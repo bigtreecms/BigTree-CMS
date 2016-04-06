@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	// Verify zip integrity
 	if (!$updater->checkZip()) {
 ?>
@@ -17,7 +19,7 @@
 		// If we're not using local install and the config settings only allow for HTTPS logins, redirect
 		$secure = (!empty($_SERVER["HTTPS"]) && $_SERVER['HTTPS'] !== "off" || $_SERVER["SERVER_PORT"] == 443);
 		if ($updater->Method != "Local" && $bigtree["config"]["force_secure_login"] && !$secure) {
-			BigTree::redirect(str_replace("http://","https://",DEVELOPER_ROOT)."upgrade/check-file/");
+			Router::redirect(str_replace("http://","https://",DEVELOPER_ROOT)."upgrade/check-file/");
 		}		
 ?>
 <form method="post" action="<?=DEVELOPER_ROOT?>upgrade/install/">

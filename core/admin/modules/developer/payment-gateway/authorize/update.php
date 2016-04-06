@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$gateway->Service = "authorize.net";
 	$gateway->Settings["authorize-api-login"] = $_POST["authorize-api-login"];
 	$gateway->Settings["authorize-transaction-key"] = $_POST["authorize-transaction-key"];
@@ -6,4 +8,5 @@
 	$gateway->saveSettings();
 
 	$admin->growl("Developer","Updated Payment Gateway");
-	BigTree::redirect(DEVELOPER_ROOT);
+	Router::redirect(DEVELOPER_ROOT);
+	

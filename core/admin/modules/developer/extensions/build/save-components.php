@@ -1,5 +1,5 @@
 <?php
-	use BigTree\FileSystem;
+	namespace BigTree;
 
 	BigTree::globalizePOSTVars();
 
@@ -195,4 +195,5 @@
 		}
 	}
 
-	BigTree::redirect(DEVELOPER_ROOT."extensions/build/files/");
+	Router::redirect(DEVELOPER_ROOT."extensions/build/files/");
+	

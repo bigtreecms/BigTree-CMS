@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	BigTree::globalizePOSTVars();
 	$admin->updateSettingValue("bigtree-internal-security-policy",array(
 		"user_fails" => array(
@@ -22,5 +24,7 @@
 		"allowed_ips" => $allowed_ips,
 		"banned_ips" => $banned_ips
 	));
+
 	$admin->growl("Security","Updated Policy");
-	BigTree::redirect(DEVELOPER_ROOT);
+	Router::redirect(DEVELOPER_ROOT);
+	

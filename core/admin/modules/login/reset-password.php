@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$user = $admin->getUserByHash(end($bigtree["path"]));
 	$failure = false;
 	
@@ -16,7 +18,7 @@
 				$user->save();
 				$user->removeBans();
 
-				BigTree::redirect(($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/reset-success/");
+				Router::redirect(($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/reset-success/");
 			}
 		}
 	}

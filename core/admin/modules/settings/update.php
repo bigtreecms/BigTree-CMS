@@ -1,10 +1,10 @@
 <?php
-	use BigTree\Field;
-
+	namespace BigTree;
+	
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
-		BigTree::redirect($_SERVER["HTTP_REFERER"]);
+		Router::redirect($_SERVER["HTTP_REFERER"]);
 	}
 	
 	$admin->requireLevel(1);
@@ -48,10 +48,10 @@
 
 	if (count($bigtree["crops"])) {
 		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = $cms->cacheUnique("org.bigtreecms.crops",$bigtree["crops"]);
-		BigTree::redirect(ADMIN_ROOT."settings/crop/");
+		Router::redirect(ADMIN_ROOT."settings/crop/");
 	} elseif (count($bigtree["errors"])) {
-		BigTree::redirect(ADMIN_ROOT."settings/error/");
+		Router::redirect(ADMIN_ROOT."settings/error/");
 	}
 
-	BigTree::redirect(ADMIN_ROOT."settings/");
+	Router::redirect(ADMIN_ROOT."settings/");
 	

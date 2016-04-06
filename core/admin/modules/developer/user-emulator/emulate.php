@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$user = $admin->getUser(end($bigtree["commands"]));
 	if (!$user) {
 ?>
@@ -16,6 +18,5 @@
 		$_SESSION["bigtree_admin"]["name"] = $user["name"];
 		$_SESSION["bigtree_admin"]["permissions"] = $user["permissions"];
 		$admin->growl("Developer","Emulating ".$user["name"]);
-		BigTree::redirect(ADMIN_ROOT);
+		Router::redirect(ADMIN_ROOT);
 	}
-?>

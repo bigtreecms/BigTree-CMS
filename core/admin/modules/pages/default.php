@@ -1,2 +1,5 @@
 <?php
-	BigTree::redirect(ADMIN_ROOT."pages/view-tree/0/");
+	namespace BigTree;
+	
+	Router::redirect(ADMIN_ROOT."pages/view-tree/0/");
+	

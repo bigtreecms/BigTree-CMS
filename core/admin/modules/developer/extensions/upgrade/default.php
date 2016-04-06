@@ -1,7 +1,9 @@
 <?php
+	namespace BigTree;
+	
 	// If we can't do a local, FTP, or SFTP update then we give instructions on how to manually update
 	if (!$updater->Method) {
-		BigTree::redirect($page_link."failed/?id=".$_GET["id"]);
+		Router::redirect($page_link."failed/?id=".$_GET["id"]);
 	}
 
 	// We're going to store the download URL in a cache to prevent the download script from abuse
@@ -9,7 +11,7 @@
 	$extension_info = $info[$_GET["id"]];
 	if (!$extension_info) {
 		$admin->growl("Extensions","Failed to get download information");
-		BigTree::redirect(DEVELOPER_ROOT."extensions/");
+		Router::redirect(DEVELOPER_ROOT."extensions/");
 	}
 	$download_key = $cms->cacheUnique("org.bigtreecms.downloads",$extension_info["github_url"]);
 ?>

@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	BigTree::globalizePOSTVars();
 	
 	if ($group_new) {
@@ -14,12 +16,12 @@
 		unset($_POST["group_new"]);
 		$_SESSION["bigtree_admin"]["saved"] = $_POST;
 		$admin->growl("Developer","Invalid Route");
-		BigTree::redirect(DEVELOPER_ROOT."modules/add/?error=route");
+		Router::redirect(DEVELOPER_ROOT."modules/add/?error=route");
 	}
 	
 	if (!$table) {
 		$admin->growl("Developer","Created Module");
-		BigTree::redirect(DEVELOPER_ROOT."modules/");
+		Router::redirect(DEVELOPER_ROOT."modules/");
 	}
 ?>
 <div class="container">

@@ -4,7 +4,7 @@
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
-		BigTree::redirect($_SERVER["HTTP_REFERER"]);
+		Router::redirect($_SERVER["HTTP_REFERER"]);
 	}
 	
 	// Make sure an upload succeeded
@@ -16,14 +16,14 @@
 	}
 	
 	if ($error) {
-		BigTree::redirect(DEVELOPER_ROOT."packages/install/");
+		Router::redirect(DEVELOPER_ROOT."packages/install/");
 	}
 	
 	// We've at least got the file now, unpack it and see what's going on.
 	$file = $_FILES["file"]["tmp_name"];
 	if (!$file) {
 		$_SESSION["upload_error"] = "File upload failed.";
-		BigTree::redirect(DEVELOPER_ROOT."extensions/install/");
+		Router::redirect(DEVELOPER_ROOT."extensions/install/");
 	}
 	
 	// Clean up existing area
@@ -46,7 +46,7 @@
 	if (!$files) {
 		FileSystem::deleteDirectory($cache_root);
 		$_SESSION["upload_error"] = "The zip file uploaded was corrupt.";
-		BigTree::redirect(DEVELOPER_ROOT."extensions/install/");
+		Router::redirect(DEVELOPER_ROOT."extensions/install/");
 	}
 	
 	// Read the manifest
@@ -55,14 +55,14 @@
 	if ($json["type"] != "extension" || !isset($json["id"]) || !isset($json["title"]) || !ctype_alnum(str_replace(array(".","_","-"),"",$json["id"]))) {
 		FileSystem::deleteDirectory($cache_root);
 		$_SESSION["upload_error"] = "The zip file uploaded does not appear to be a BigTree extension.";
-		BigTree::redirect(DEVELOPER_ROOT."extensions/install/");
+		Router::redirect(DEVELOPER_ROOT."extensions/install/");
 	}
 
 	// Check if it's already installed
 	if ($db->exists("bigtree_extensions",$json["id"])) {
 		FileSystem::deleteDirectory($cache_root);
 		$_SESSION["upload_error"] = "An extension with the id of ".htmlspecialchars($json["id"])." is already installed.";
-		BigTree::redirect(DEVELOPER_ROOT."extensions/install/");
+		Router::redirect(DEVELOPER_ROOT."extensions/install/");
 	}
 	
 	// Check for table collisions

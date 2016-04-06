@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	BigTree::globalizePOSTVars();
 	
 	$errors = array();
@@ -16,7 +18,7 @@
 	if (count($errors)) {
 		$_SESSION["developer"]["designer_errors"] = $errors;
 		$_SESSION["developer"]["saved_module"] = $_POST;
-		BigTree::redirect(DEVELOPER_ROOT."modules/designer/");
+		Router::redirect(DEVELOPER_ROOT."modules/designer/");
 	}
 		
 	if ($group_new) {
@@ -30,4 +32,5 @@
 	// Create the table.
 	$db->query("CREATE TABLE `$table` (`id` int(11) UNSIGNED NOT NULL auto_increment, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci");
 	
-	BigTree::redirect(DEVELOPER_ROOT."modules/designer/form/?table=".urlencode($table)."&module=$id");
+	Router::redirect(DEVELOPER_ROOT."modules/designer/form/?table=".urlencode($table)."&module=$id");
+	

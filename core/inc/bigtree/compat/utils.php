@@ -1141,41 +1141,7 @@
 		*/
 		
 		static function redirect($url, $codes = array("302")) {
-			// If we're presently in the admin we don't want to allow the possibility of a redirect outside our site via malicious URLs
-			if (defined("BIGTREE_ADMIN_ROUTED")) {
-				$pieces = explode("/",$url);
-				$bt_domain_pieces = explode("/",DOMAIN);
-				if (strtolower($pieces[2]) != strtolower($bt_domain_pieces[2])) {
-					return false;
-				}
-			}
-			$status_codes = array(
-				"200" => "OK",
-				"300" => "Multiple Choices",
-				"301" => "Moved Permanently",
-				"302" => "Found",
-				"304" => "Not Modified",
-				"307" => "Temporary Redirect",
-				"400" => "Bad Request",
-				"401" => "Unauthorized",
-				"403" => "Forbidden",
-				"404" => "Not Found",
-				"410" => "Gone",
-				"500" => "Internal Server Error",
-				"501" => "Not Implemented",
-				"503" => "Service Unavailable",
-				"550" => "Permission denied"
-			);
-			if (!is_array($codes)) {
-				$codes = array($codes);
-			}
-			foreach ($codes as $code) {
-				if ($status_codes[$code]) {
-					header($_SERVER["SERVER_PROTOCOL"]." $code ".$status_codes[$code]);
-				}
-			}
-			header("Location: $url");
-			die();
+			BigTree\Router::redirect($url, $codes);
 		}
 
 		/*

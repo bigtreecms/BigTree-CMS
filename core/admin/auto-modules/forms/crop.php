@@ -1,6 +1,8 @@
 <?php
+	namespace BigTree;
+
 	if (!$_SESSION["bigtree_admin"]["form_data"]) {
-		BigTree::redirect($_SESSION["bigtree_admin"]["cropper_previous_page"]);
+		Router::redirect($_SESSION["bigtree_admin"]["cropper_previous_page"]);
 	}
 	BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);
 

@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$gateway->Service = "payflow";
 	$gateway->Settings["payflow-vendor"] = $_POST["payflow-vendor"];
 	$gateway->Settings["payflow-partner"] = $_POST["payflow-partner"];
@@ -8,4 +10,5 @@
 	$gateway->saveSettings();
 	
 	$admin->growl("Developer","Updated Payment Gateway");
-	BigTree::redirect(DEVELOPER_ROOT);
+	Router::redirect(DEVELOPER_ROOT);
+	

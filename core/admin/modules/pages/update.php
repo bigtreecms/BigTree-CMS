@@ -4,12 +4,12 @@
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
-		BigTree::redirect($_SERVER["HTTP_REFERER"]);
+		Router::redirect($_SERVER["HTTP_REFERER"]);
 	}
 
 	// Stop random hits to the update page
 	if (!isset($_POST["page"])) {
-		BigTree::redirect(ADMIN_ROOT."pages/view-tree/0/");
+		Router::redirect(ADMIN_ROOT."pages/view-tree/0/");
 	}
 	
 	// Check access levels on the page we're trying to modify
@@ -113,10 +113,10 @@
 	
 	if (count($bigtree["crops"])) {
 		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = $cms->cacheUnique("org.bigtreecms.crops",$bigtree["crops"]);
-		BigTree::redirect(ADMIN_ROOT."pages/crop/$id/");
+		Router::redirect(ADMIN_ROOT."pages/crop/$id/");
 	} elseif (count($bigtree["errors"])) {
-		BigTree::redirect(ADMIN_ROOT."pages/error/$id/");
+		Router::redirect(ADMIN_ROOT."pages/error/$id/");
 	}
 
-	BigTree::redirect($redirect_url);
+	Router::redirect($redirect_url);
 	

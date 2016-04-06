@@ -1,5 +1,8 @@
 <?php
+	namespace BigTree;
+	
 	$admin->deleteModule(end($bigtree["path"]));
 	
 	$admin->growl("Developer","Deleted Module");
-	BigTree::redirect(DEVELOPER_ROOT."modules/");
+	Router::redirect(DEVELOPER_ROOT."modules/");
+	

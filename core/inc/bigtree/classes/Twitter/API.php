@@ -8,6 +8,7 @@
 	namespace BigTree\Twitter;
 
 	use BigTree\OAuth;
+	use BigTree\Router;
 
 	class API extends OAuth {
 
@@ -509,7 +510,7 @@
 			if ($oauth_callback_confirmed != "true") {
 				global $admin;
 				$admin->growl("Twitter API","Consumer Key or Secret invalid.","error");
-				BigTree::redirect(ADMIN_ROOT."developer/services/twitter/");
+				Router::redirect(ADMIN_ROOT."developer/services/twitter/");
 			}
 			header("Location: https://api.twitter.com/oauth/authenticate?oauth_token=$oauth_token");
 			die();

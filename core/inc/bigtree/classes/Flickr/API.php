@@ -7,6 +7,7 @@
 	namespace BigTree\Flickr;
 
 	use BigTree\OAuth;
+	use BigTree\Router;
 	use stdClass;
 
 	class API extends OAuth {
@@ -552,7 +553,7 @@
 				die();
 			} else {
 				$admin->growl($oauth_problem,"Flickr API","error");
-				BigTree::redirect(ADMIN_ROOT."developer/services/flickr/");
+				Router::redirect(ADMIN_ROOT."developer/services/flickr/");
 			}
 		}
 

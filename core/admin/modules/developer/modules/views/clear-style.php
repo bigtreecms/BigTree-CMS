@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$view = BigTreeAutoModule::getView(end($bigtree["path"]));
 	
 	$fields = $view["fields"];
@@ -12,4 +14,5 @@
 	$action = $admin->getModuleActionForInterface(end($bigtree["path"]));
 
 	$admin->growl("Developer","Reset View Styles");
-	BigTree::redirect(DEVELOPER_ROOT."modules/edit/".$action["module"]."/");
+	Router::redirect(DEVELOPER_ROOT."modules/edit/".$action["module"]."/");
+	

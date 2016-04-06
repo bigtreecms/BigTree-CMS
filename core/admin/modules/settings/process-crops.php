@@ -1,6 +1,7 @@
 <?php
-	use BigTree\Image;
+	namespace BigTree;
 
 	Image::processCrops($_POST["crop_key"]);
 	
-	BigTree::redirect(ADMIN_ROOT."settings/");
+	Router::redirect(ADMIN_ROOT."settings/");
+	

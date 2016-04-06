@@ -1,6 +1,10 @@
 <?php
-	BigTree\CalloutGroup::create($_POST["name"],$_POST["callouts"]);
+	namespace BigTree;
+
+	CalloutGroup::create($_POST["name"],$_POST["callouts"]);
 
 	$admin->growl("Developer","Created Callout Group");
-	BigTree::redirect(DEVELOPER_ROOT."callouts/groups/");
+
+	Router::redirect(DEVELOPER_ROOT."callouts/groups/");
+	
 	

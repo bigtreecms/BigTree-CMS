@@ -1,6 +1,9 @@
 <?php
-	BigTree\CalloutGroup::delete(end($bigtree["path"]));
+	namespace BigTree;
+
+	CalloutGroup::delete(end($bigtree["path"]));
 
 	$admin->growl("Developer","Deleted Callout Group");
-	BigTree::redirect(DEVELOPER_ROOT."callouts/groups/");
+	
+	Router::redirect(DEVELOPER_ROOT."callouts/groups/");
 	

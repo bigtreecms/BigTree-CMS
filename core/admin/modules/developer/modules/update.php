@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	BigTree::globalizePOSTVars();
 
 	$id = end($bigtree["path"]);
@@ -12,4 +14,5 @@
 	$admin->updateModule($id,$name,$group,$class,$gbp,$icon,$developer_only);	
 
 	$admin->growl("Developer","Updated Module");
-	BigTree::redirect(DEVELOPER_ROOT."modules/");
+	Router::redirect(DEVELOPER_ROOT."modules/");
+	

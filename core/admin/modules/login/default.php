@@ -1,13 +1,15 @@
 <?php
+	namespace BigTree;
+	
 	$failure = false;
 	if (isset($_POST["user"]) && isset($_POST["password"])) {
 		if (!$admin->login($_POST["user"],$_POST["password"],$_POST["stay_logged_in"])) {
 			$failure = true;
 		} else {
 			if (isset($_SESSION["bigtree_login_redirect"])) {
-				BigTree::redirect($_SESSION["bigtree_login_redirect"]);
+				Router::redirect($_SESSION["bigtree_login_redirect"]);
 			} else {
-				BigTree::redirect(ADMIN_ROOT);
+				Router::redirect(ADMIN_ROOT);
 			}
 		}
 	}

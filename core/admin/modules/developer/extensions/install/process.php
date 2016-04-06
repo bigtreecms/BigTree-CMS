@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$manifest = json_decode(file_get_contents(SERVER_ROOT."cache/package/manifest.json"),true);
 
 	// Insert the extension and growl
@@ -13,9 +15,10 @@
 		$ob_contents = ob_get_contents();
 		// If the install file didn't generate any markup, just move on to the completion screen
 		if (!$ob_contents) {
-			BigTree::redirect(DEVELOPER_ROOT."extensions/install/complete/");
+			Router::redirect(DEVELOPER_ROOT."extensions/install/complete/");
 		}
 	// No install file, completion screen
 	} else {
-		BigTree::redirect(DEVELOPER_ROOT."extensions/install/complete/");
+		Router::redirect(DEVELOPER_ROOT."extensions/install/complete/");
 	}
+	

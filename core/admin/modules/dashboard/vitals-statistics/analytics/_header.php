@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	$relative_path = "admin/modules/dashboard/vitals-statistics/analytics/";
 	define("MODULE_ROOT",ADMIN_ROOT."dashboard/vitals-statistics/analytics/");
 	
@@ -12,8 +14,9 @@
 	$restricted = array("analytics","keywords","service-providers","traffic-sources");
 	if (in_array(end($bigtree["path"]),$restricted)) {
 		if (!$analytics->Settings["token"] || !$analytics->Settings["profile"]) {
-			BigTree::redirect(MODULE_ROOT."configure/");		
+			Router::redirect(MODULE_ROOT."configure/");		
 		} elseif (!$cache) {
-			BigTree::redirect(MODULE_ROOT."cache/");
+			Router::redirect(MODULE_ROOT."cache/");
 		}
 	}
+	

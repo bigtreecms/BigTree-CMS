@@ -1271,7 +1271,7 @@
 			$user->initPasswordReset();
 
 			$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/";
-			BigTree::redirect($login_root."forgot-success/");
+			BigTree\Router::redirect($login_root."forgot-success/");
 			return true;
 		}
 

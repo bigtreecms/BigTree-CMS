@@ -1,5 +1,5 @@
 <?php
-	use BigTree\FileSystem;
+	namespace BigTree;
 	
 	$installed = false;
 
@@ -36,7 +36,7 @@
 			// Try to login
 			if (!$updater->ftpLogin($_POST["username"],$_POST["password"])) {
 				$admin->growl("Developer","Login Failed","error");
-				BigTree::redirect(DEVELOPER_ROOT."extensions/upgrade/check-file/?id=".$_GET["id"]);
+				Router::redirect(DEVELOPER_ROOT."extensions/upgrade/check-file/?id=".$_GET["id"]);
 			}
 			
 			// Try to get the FTP root
@@ -80,11 +80,11 @@
 				$ob_contents = ob_get_contents();
 				// If the update file didn't generate any markup, just move on to the completion screen
 				if (!$ob_contents) {
-					BigTree::redirect($page_link."complete/".$page_vars);
+					Router::redirect($page_link."complete/".$page_vars);
 				}
 			// No update file, completion screen
 			} else {
-				BigTree::redirect($page_link."complete/".$page_vars);
+				Router::redirect($page_link."complete/".$page_vars);
 			}
 		}
 	}

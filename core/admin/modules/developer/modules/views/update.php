@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	BigTree::globalizePOSTVars();
 	
 	$table_description = BigTree::describeTable($table);
@@ -89,9 +91,9 @@
 		$admin->growl("Developer","Updated View");
 
 		if ($_POST["return_page"]) {
-			BigTree::redirect($_POST["return_page"]);
+			Router::redirect($_POST["return_page"]);
 		} else {
-			BigTree::redirect(DEVELOPER_ROOT."modules/edit/".$action["module"]."/");
+			Router::redirect(DEVELOPER_ROOT."modules/edit/".$action["module"]."/");
 		}
 	}
 ?>

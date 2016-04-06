@@ -1,14 +1,16 @@
 <?php
+	namespace BigTree;
+	
 	// If we can't do a local, FTP, or SFTP update then we give instructions on how to manually update
 	if (!$updater->Method) {
-		BigTree::redirect(DEVELOPER_ROOT."upgrade/failed/");
+		Router::redirect(DEVELOPER_ROOT."upgrade/failed/");
 	}
 	
 	$updates = @json_decode(BigTree::cURL("http://www.bigtreecms.org/ajax/version-check/?current_version=".BIGTREE_VERSION),true);
 	$update = $updates[$_GET["type"]];
 	if (!$update) {
 		$admin->growl("Developer","Couldn't Get Download Information","error");
-		BigTree::redirect(DEVELOPER_ROOT);
+		Router::redirect(DEVELOPER_ROOT);
 	}
 
 	// Store download key for retrieval

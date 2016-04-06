@@ -187,9 +187,9 @@
     	}
 
     	if (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
-    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/")."/","301");
+    		Router::redirect(WWW_ROOT.implode($bigtree["path"],"/")."/","301");
     	} elseif (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
-    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/"),"301");    	
+    		Router::redirect(WWW_ROOT.implode($bigtree["path"],"/"),"301");    	
     	}
     }
 
@@ -203,7 +203,7 @@
 		// See if we're at the URL
 		if (implode("/",$path) != trim(str_replace(WWW_ROOT,"",$bigtree["config"]["maintenance_url"]),"/")) {
 			$_SESSION["bigtree_referring_url"] = DOMAIN.$_SERVER["REQUEST_URI"];
-			BigTree::redirect($bigtree["config"]["maintenance_url"],"307");
+			Router::redirect($bigtree["config"]["maintenance_url"],"307");
 		} else {
 			header("X-Robots-Tag: noindex");
 			include SERVER_ROOT."templates/basic/_maintenance.php";
@@ -393,7 +393,7 @@
 				$nav = $cms->getHiddenNavByParent($bigtree["page"]["id"]);
 				$first = current($nav);
 			}
-			BigTree::redirect($first["link"], 303);
+			Router::redirect($first["link"], 303);
 		}
 
 		// Setup extension handler for templates
@@ -477,7 +477,7 @@
 				include SERVER_ROOT."templates/basic/".$bigtree["page"]["template"].".php";
 			}
 		} else {
-			BigTree::redirect($bigtree["page"]["external"]);
+			Router::redirect($bigtree["page"]["external"]);
 		}
 	// Check for standard sitemap
 	} else if ($bigtree["path"][0] == "sitemap" && !$bigtree["path"][1]) {

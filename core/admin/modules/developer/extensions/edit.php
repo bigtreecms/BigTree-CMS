@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$extension = $admin->getExtension($bigtree["commands"][0]);
 	$j = json_decode($extension["manifest"],true);
 
@@ -42,4 +44,5 @@
 		}
 	}
 
-	BigTree::redirect(DEVELOPER_ROOT."extensions/build/details/");
+	Router::redirect(DEVELOPER_ROOT."extensions/build/details/");
+	

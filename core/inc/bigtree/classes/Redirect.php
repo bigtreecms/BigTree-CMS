@@ -161,7 +161,7 @@
 				SQL::query("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = ?", $entry["id"]);
 
 				// Redirect with a 301
-				BigTree::redirect(htmlspecialchars_decode($redirect),"301");
+				Router::redirect(htmlspecialchars_decode($redirect),"301");
 
 			// No redirect, log the 404 and throw the 404 headers
 			} else {

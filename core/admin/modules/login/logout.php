@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$admin->logout();
-	BigTree::redirect(ADMIN_ROOT);
+	Router::redirect(ADMIN_ROOT);
 	

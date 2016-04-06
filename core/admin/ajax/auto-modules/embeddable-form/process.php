@@ -1,5 +1,5 @@
 <?php
-	use BigTree\Field;
+	namespace BigTree;
 
 	// Generate a hash of everything posted
 	$complete_string = "";
@@ -30,13 +30,13 @@
 	// Stop Robots - See if it matches the passed hash and that _bigtree_email wasn't filled out
 	if ($_POST["_bigtree_hashcash"] != md5($cleaned_string) || $_POST["_bigtree_email"]) {
 		$_SESSION["bigtree_admin"]["post_hash_failed"] = true;
-		BigTree::redirect($_SERVER["HTTP_REFERER"]);
+		Router::redirect($_SERVER["HTTP_REFERER"]);
 	}
 
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
-		BigTree::redirect($_SERVER["HTTP_REFERER"]);
+		Router::redirect($_SERVER["HTTP_REFERER"]);
 	}
 	
 	// If there's a preprocess function for this module, let's get'r'done.
@@ -145,9 +145,9 @@
 	
 	if (count($bigtree["crops"])) {
 		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = $cms->cacheUnique("org.bigtreecms.crops",$bigtree["crops"]);
-		BigTree::redirect($bigtree["form_root"]."crop/?id=".$bigtree["form"]["id"]."&hash=".$bigtree["form"]["hash"]);
+		Router::redirect($bigtree["form_root"]."crop/?id=".$bigtree["form"]["id"]."&hash=".$bigtree["form"]["hash"]);
 	} elseif (count($bigtree["errors"])) {
-		BigTree::redirect($bigtree["form_root"]."error/?id=".$bigtree["form"]["id"]."&hash=".$bigtree["form"]["hash"]);
+		Router::redirect($bigtree["form_root"]."error/?id=".$bigtree["form"]["id"]."&hash=".$bigtree["form"]["hash"]);
 	} else {
-		BigTree::redirect($bigtree["form_root"]."complete/?id=".$bigtree["form"]["id"]."&hash=".$bigtree["form"]["hash"]);
+		Router::redirect($bigtree["form_root"]."complete/?id=".$bigtree["form"]["id"]."&hash=".$bigtree["form"]["hash"]);
 	}

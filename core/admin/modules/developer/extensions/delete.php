@@ -1,4 +1,9 @@
 <?php
-	$admin->deleteExtension($bigtree["commands"][0]);
+	namespace BigTree;
+	
+	$extension = new Extension($bigtree["commands"][0]);
+	$extension->delete();
+
 	$admin->growl("Developer","Uninstalled Extension");
-	BigTree::redirect(DEVELOPER_ROOT."extensions/");
+	Router::redirect(DEVELOPER_ROOT."extensions/");
+	

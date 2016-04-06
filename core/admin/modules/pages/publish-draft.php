@@ -5,4 +5,5 @@
 	Router::includeFile("admin/ajax/dashboard/approve-change.php");
 
 	$admin->growl("Pages","Published Draft");
-	BigTree::redirect(ADMIN_ROOT."pages/revisions/".end($bigtree["commands"])."/");
+	Router::redirect(ADMIN_ROOT."pages/revisions/".end($bigtree["commands"])."/");
+	

@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$gateway->Service = "paypal";
 	$gateway->Settings["paypal-username"] = $_POST["paypal-username"];
 	$gateway->Settings["paypal-password"] = $_POST["paypal-password"];
@@ -7,4 +9,5 @@
 	$gateway->saveSettings();
 	
 	$admin->growl("Developer","Updated Payment Gateway");
-	BigTree::redirect(DEVELOPER_ROOT);
+	Router::redirect(DEVELOPER_ROOT);
+	

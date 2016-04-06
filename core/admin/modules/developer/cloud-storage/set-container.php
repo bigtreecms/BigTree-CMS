@@ -1,12 +1,23 @@
 <?php
-	$storage = new BigTreeStorage;
+	namespace BigTree;
+
+	$storage = new Storage;
 	$storage->Settings["Service"] = $_POST["service"];
-	$cloud = new BigTreeCloudStorage($_POST["service"]);
+
+	if ($_POST["service"] == "amazon") {
+		$cloud = new CloudStorage\Amazon;
+	} elseif ($_POST["service"] == "rackspace") {
+		$cloud = new CloudStorage\Rackspace;
+	} elseif ($_POST["service"] == "google") {
+		$cloud = new CloudStorage\Google;
+	}
+
 	if ($_POST["container"]) {
 		$storage->Settings["Container"] = $_POST["container"];
+		
 		// If we're using Rackspace, we need to explicitly CDN enable this container.
 		if ($_POST["service"] == "rackspace") {
-			BigTree::cURL($cloud->RackspaceCDNEndpoint."/".$_POST["container"],false,array(CURLOPT_PUT => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$cloud->Settings["rackspace"]["token"],"X-Cdn-Enabled: true")));
+			BigTree::cURL($cloud->CDNEndpoint."/".$_POST["container"],false,array(CURLOPT_PUT => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$cloud->Settings["rackspace"]["token"],"X-Cdn-Enabled: true")));
 		}
 	} else {
 		// We're only going to try to get a unique bucket 10 times to prevent an infinite loop
@@ -17,11 +28,12 @@
 			$success = $cloud->createContainer($container,true);
 			$x++;
 		}
+		
 		if ($success) {
 			$storage->Settings["Container"] = $container;
 		} else {
 			$admin->growl("Developer","Failed to create container.","error");
-			BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
+			Router::redirect(DEVELOPER_ROOT."cloud-storage/");
 		}
 	}
 
@@ -29,11 +41,12 @@
 	$container = $cloud->getContainer($storage->Settings["Container"],true);
 	if ($container === false) {
 		$admin->growl("Developer","Failed to read container.","error");
-		BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
+		Router::redirect(DEVELOPER_ROOT."cloud-storage/");
 	}
 
 	// Remove all existing cloud file caches and import new data
 	$cloud->resetCache($container);
 
 	$admin->growl("Developer","Changed Default Storage");
-	BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
+
+	Router::redirect(DEVELOPER_ROOT."cloud-storage/");

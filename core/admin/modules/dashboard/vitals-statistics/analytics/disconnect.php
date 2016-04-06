@@ -1,5 +1,8 @@
 <?php
+	namespace BigTree;
+
 	$analytics->disconnect();
 	$admin->growl("Analytics","Disconnected");
 
-	BigTree::redirect(MODULE_ROOT);
+	Router::redirect(MODULE_ROOT);
+	

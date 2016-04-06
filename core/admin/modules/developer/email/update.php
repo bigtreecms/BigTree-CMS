@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$settings = $cms->getSetting("bigtree-internal-email-service");
 
 	if ($_POST["service"] == "mandrill") {
@@ -17,4 +19,6 @@
 
 	$admin->updateSettingValue("bigtree-internal-email-service",$settings);
 	$admin->growl("Developer","Updated Email Service");
-	BigTree::redirect(DEVELOPER_ROOT);
+
+	Router::redirect(DEVELOPER_ROOT);
+	

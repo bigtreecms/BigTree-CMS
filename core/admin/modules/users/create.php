@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	if ($_SERVER["HTTP_REFERER"] != ADMIN_ROOT."users/add/") {
 ?>
 <div class="container">
@@ -15,7 +17,7 @@
 			$_SESSION["bigtree_admin"]["create_user"] = $_POST;
 			$_SESSION["bigtree_admin"]["create_user"]["error"] = "password";
 			$admin->growl("Users","Invalid Password","error");
-			BigTree::redirect(ADMIN_ROOT."users/add/");
+			Router::redirect(ADMIN_ROOT."users/add/");
 		}
 
 		// Don't let them exceed permission level
@@ -29,10 +31,10 @@
 			$_SESSION["bigtree_admin"]["create_user"] = $_POST;
 			$_SESSION["bigtree_admin"]["create_user"]["error"] = "email";
 			$admin->growl("Users","Creation Failed","error");
-			BigTree::redirect(ADMIN_ROOT."users/add/");
+			Router::redirect(ADMIN_ROOT."users/add/");
 		}
 	
 		$admin->growl("Users","Added User");
-		BigTree::redirect(ADMIN_ROOT."users/edit/$id/");
+		Router::redirect(ADMIN_ROOT."users/edit/$id/");
 	}
 ?>

@@ -1,7 +1,9 @@
 <?php
+	namespace BigTree;
+	
 	// Don't let them move the homepage.
 	if ($page["id"] == 0) {
-		BigTree::redirect(ADMIN_ROOT."pages/edit/0/");
+		Router::redirect(ADMIN_ROOT."pages/edit/0/");
 	}
 
 	// Make sure the user is an admin.

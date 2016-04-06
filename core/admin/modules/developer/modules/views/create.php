@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	BigTree::globalizePOSTVars();
 
 	$options = json_decode($options,true);
@@ -68,7 +70,7 @@
 		// If we're not working on a new module, just redirect back to the edit module page
 		if (!$_POST["new_module"]) {
 			$admin->growl("Developer","Created Module View");
-			BigTree::redirect(DEVELOPER_ROOT."modules/edit/$module/");
+			Router::redirect(DEVELOPER_ROOT."modules/edit/$module/");
 		}
 ?>
 <div class="container">

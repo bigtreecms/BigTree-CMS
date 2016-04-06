@@ -1,9 +1,12 @@
 <?php
+	namespace BigTree;
+	
 	// Check whether our database is running the latest revision of BigTree or not.
 	$current_revision = $cms->getSetting("bigtree-internal-revision");
 	if ($current_revision < BIGTREE_REVISION && $admin->Level > 1) {
-		BigTree::redirect(DEVELOPER_ROOT."upgrade/database/");
+		Router::redirect(DEVELOPER_ROOT."upgrade/database/");
 	}
+
 	// Check for newer versions of BigTree
 	$ignored_all = true;
 	if (!$_COOKIE["bigtree_admin"]["deferred_update"]) {
@@ -17,6 +20,7 @@
 			$ignorable[] = $update["version"];
 		}
 	}
+	
 	// If we're ignoring updates through config, still ignore them
 	if (!empty($bigtree["config"]["ignore_admin_updates"])) {
 		$ignored_all = true;

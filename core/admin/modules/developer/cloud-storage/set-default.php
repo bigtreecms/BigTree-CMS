@@ -1,11 +1,22 @@
 <?php
-	$storage = new BigTreeStorage;
+	namespace BigTree;
+	
+	$storage = new Storage;
+
 	if ($_POST["service"] != "local") {
-		$cloud = new BigTreeCloudStorage($_POST["service"]);
+		if ($_POST["service"] == "amazon") {
+			$cloud = new CloudStorage\Amazon;
+		} elseif ($_POST["service"] == "rackspace") {
+			$cloud = new CloudStorage\Rackspace;
+		} elseif ($_POST["service"] == "google") {
+			$cloud = new CloudStorage\Google;
+		}
+
 		$containers = $cloud->listContainers();
+		
 		if ($containers === false) {
 			$admin->growl("Developer","Invalid Cloud Storage Setup: ".ucwords($_POST["service"]),"error");
-			BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
+			Router::redirect(DEVELOPER_ROOT."cloud-storage/");
 		} else {
 			$service_names = array("amazon" => "Amazon S3","rackspace" => "Rackspace Cloud Files","google" => "Google Cloud Storage");
 ?>
@@ -32,6 +43,6 @@
 	} else {
 		$storage->Settings["Service"] = "local";
 		$admin->growl("Developer","Changed Default Storage");
-		BigTree::redirect(DEVELOPER_ROOT);
+		Router::redirect(DEVELOPER_ROOT);
 	}
 ?>

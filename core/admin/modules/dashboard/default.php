@@ -4,7 +4,7 @@
 	// Check whether our database is running the latest revision of BigTree or not.
 	$current_revision = $cms->getSetting("bigtree-internal-revision");
 	if ($current_revision < BIGTREE_REVISION && $admin->Level > 1) {
-		BigTree::redirect(ADMIN_ROOT."developer/upgrade/database/");
+		Router::redirect(ADMIN_ROOT."developer/upgrade/database/");
 	}
 
 	// Get pane settings
@@ -12,7 +12,7 @@
 	$settings = $extension_settings["dashboard"];
 
 	// Sort the panes
-	foreach (BigTree\Dashboard::$CoreOptions as $id => $name) {
+	foreach (Dashboard::$CoreOptions as $id => $name) {
 		$panes[] = array(
 			"id" => $id,
 			"name" => $name,
@@ -20,7 +20,7 @@
 		);
 		$positions[] = isset($settings[$id]["position"]) ? $settings[$id]["position"] : 0;
 	}
-	foreach (BigTree\Dashboard::$Plugins as $extension => $set) {
+	foreach (Dashboard::$Plugins as $extension => $set) {
 		foreach ($set as $id => $name) {
 			$id = $extension."*".$id;
 			$panes[] = array(
@@ -48,3 +48,4 @@
 			echo '</div>';
 		}
 	}
+	

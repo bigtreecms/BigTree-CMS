@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	if (!count($_POST)) {
-		BigTree::redirect(MODULE_ROOT);
+		Router::redirect(MODULE_ROOT);
 	}
 	
 	$items = BigTreeAutoModule::getReportResults($bigtree["report"],$bigtree["view"],$bigtree["form"],$_POST,$_POST["*sort"]["field"],$_POST["*sort"]["order"]);
@@ -12,3 +12,4 @@
 	} else {
 		Router::includeFile("admin/auto-modules/reports/views/images.php");
 	}
+	

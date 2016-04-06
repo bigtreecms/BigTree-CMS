@@ -1,6 +1,5 @@
 <?php
-	use BigTree\FileSystem;
-	use BigTree\Image;
+	namespace BigTree;
 
 	class BigTreeTestContentLoremIpsum {
 		public $words = array(
@@ -320,4 +319,5 @@
 	}
 
 	$admin->growl("Content Generator","Generated $total Entries");
-	BigTree::redirect(DEVELOPER_ROOT."test-content/");
+	Router::redirect(DEVELOPER_ROOT."test-content/");
+	

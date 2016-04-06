@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$id = intval($_POST["id"]);
 
 	if ($_SERVER["HTTP_REFERER"] != ADMIN_ROOT."users/edit/$id/") {
@@ -15,12 +17,12 @@
 			$_SESSION["bigtree_admin"]["update_user"] = $_POST;
 			$_SESSION["bigtree_admin"]["update_user"]["error"] = "password";
 			$admin->growl("Users","Invalid Password","error");
-			BigTree::redirect(ADMIN_ROOT."users/edit/$id/");
+			Router::redirect(ADMIN_ROOT."users/edit/$id/");
 		}
 
 		// Check permission level
 		$error = false;
-		$user = BigTree\User::get($id);
+		$user = User::get($id);
 
 		if ($user["level"] <= $admin->Level) {
 			$error = "level";
@@ -38,7 +40,7 @@
 			);
 			$alerts = $_POST["alerts"] = json_decode($_POST["alerts"],true);
 			
-			if (!BigTree\User::update($id,$email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest) {
+			if (!User::update($id,$email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest) {
 				$error = "email";
 			}
 		}
@@ -47,11 +49,11 @@
 			$_SESSION["bigtree_admin"]["update_user"] = $_POST;
 			$_SESSION["bigtree_admin"]["update_user"]["error"] = $error;
 			$admin->growl("Users","Update Failed","error");
-			BigTree::redirect(ADMIN_ROOT."users/edit/$id/");
+			Router::redirect(ADMIN_ROOT."users/edit/$id/");
 		}
 		
 		$admin->growl("Users","Updated User");
 		
-		BigTree::redirect(ADMIN_ROOT."users/");
+		Router::redirect(ADMIN_ROOT."users/");
 	}
 ?>

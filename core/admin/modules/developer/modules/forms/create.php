@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	BigTree::globalizePOSTVars();
 
 	$module = end($bigtree["path"]);
@@ -17,4 +19,5 @@
 	$admin->createModuleAction($module,"Edit $title",$edit_route,"","edit",$form_id);
 
 	$admin->growl("Developer","Created Module Form");
-	BigTree::redirect(DEVELOPER_ROOT."modules/edit/$module/");
+	Router::redirect(DEVELOPER_ROOT."modules/edit/$module/");
+	

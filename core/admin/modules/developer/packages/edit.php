@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$package = $admin->getPackage($bigtree["commands"][0]);
 	$j = json_decode($package["manifest"],true);
 
@@ -45,4 +47,5 @@
 		$_SESSION["bigtree_admin"]["developer"]["package"]["files"][] = SERVER_ROOT.$file;
 	}
 
-	BigTree::redirect(DEVELOPER_ROOT."packages/build/details/");
+	Router::redirect(DEVELOPER_ROOT."packages/build/details/");
+	

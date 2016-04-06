@@ -229,7 +229,7 @@
 	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
 		if (implode(array_slice($bigtree["path"],1,3),"/") != "ajax/auto-modules/embeddable-form") {
 			$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
-			BigTree::redirect(ADMIN_ROOT."login/");
+			Router::redirect(ADMIN_ROOT."login/");
 		}
 	}
 
@@ -241,7 +241,7 @@
 
 	// Redirect to dashboard by default if we're not requesting anything.
 	if (!$bigtree["path"][1]) {
-		BigTree::redirect(ADMIN_ROOT."dashboard/");
+		Router::redirect(ADMIN_ROOT."dashboard/");
 	}
 
 	// Let route registration take over if it finds something

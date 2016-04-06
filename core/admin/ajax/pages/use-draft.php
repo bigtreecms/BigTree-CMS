@@ -38,4 +38,5 @@
 	}
 	
 	$admin->growl("Pages","Loaded Saved Revision");
-	BigTree::redirect(ADMIN_ROOT."pages/edit/".$revision["page"]."/");
+	
+	Router::redirect(ADMIN_ROOT."pages/edit/".$revision["page"]."/");

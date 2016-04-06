@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	if (!$updater->extract()) {
 ?>
 <div class="container">
@@ -17,7 +19,7 @@
 		// Very simple if we're updating locally
 		if ($updater->Method == "Local") {
 			$updater->installLocal();
-			BigTree::redirect(DEVELOPER_ROOT."upgrade/database/");
+			Router::redirect(DEVELOPER_ROOT."upgrade/database/");
 		
 		// If we're using FTP or SFTP we have to make sure we know where the files exist
 		} else {
@@ -29,7 +31,7 @@
 			// Try to login
 			if (!$updater->ftpLogin($_POST["username"],$_POST["password"])) {
 				$admin->growl("Developer","Login Failed","error");
-				BigTree::redirect(DEVELOPER_ROOT."upgrade/login/?type=".$_POST["type"]);
+				Router::redirect(DEVELOPER_ROOT."upgrade/login/?type=".$_POST["type"]);
 			}
 			
 			// Try to get the FTP root
@@ -60,7 +62,7 @@
 <?php
 			} else {
 				$updater->installFTP($ftp_root);
-				BigTree::redirect(DEVELOPER_ROOT."upgrade/database/");
+				Router::redirect(DEVELOPER_ROOT."upgrade/database/");
 			}
 		}
 	}

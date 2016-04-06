@@ -4,7 +4,7 @@
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
-		BigTree::redirect($_SERVER["HTTP_REFERER"]);
+		Router::redirect($_SERVER["HTTP_REFERER"]);
 	}
 	
 	// If there's a preprocess function for this module, let's get'r'done.
@@ -202,9 +202,9 @@
 	
 	if (count($bigtree["crops"])) {
 		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = $cms->cacheUnique("org.bigtreecms.crops",$bigtree["crops"]);
-		BigTree::redirect($bigtree["form_root"]."crop/");
+		Router::redirect($bigtree["form_root"]."crop/");
 	} elseif (count($bigtree["errors"])) {
-		BigTree::redirect($bigtree["form_root"]."error/");
+		Router::redirect($bigtree["form_root"]."error/");
 	} else {
-		BigTree::redirect($redirect_url);
+		Router::redirect($redirect_url);
 	}

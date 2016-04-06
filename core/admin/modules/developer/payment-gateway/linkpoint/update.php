@@ -1,6 +1,6 @@
 <?php
-	use BigTree\FileSystem;
-
+	namespace BigTree;
+	
 	$gateway->Service = "linkpoint";
 	$gateway->Settings["linkpoint-store"] = $_POST["linkpoint-store"];
 	$gateway->Settings["linkpoint-environment"] = $_POST["linkpoint-environment"];
@@ -12,4 +12,5 @@
 	$gateway->saveSettings();
 	
 	$admin->growl("Developer","Updated Payment Gateway");
-	BigTree::redirect(DEVELOPER_ROOT);
+	Router::redirect(DEVELOPER_ROOT);
+	

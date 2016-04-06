@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	BigTree::globalizePOSTVars();
 	
 	// Make sure at least one field is in this view.
@@ -12,7 +14,7 @@
 	if (!$ok) {
 		$_SESSION["developer"]["designer_errors"]["fields"] = true;
 		$_SESSION["developer"]["saved_module"] = $_POST;
-		BigTree::redirect($_SERVER["HTTP_REFERER"]);
+		Router::redirect($_SERVER["HTTP_REFERER"]);
 	}
 	
 	foreach ($actions as $action => $state) {
@@ -33,4 +35,5 @@
 	$view_id = $admin->createModuleView($module,$title,$description,$table,$type,json_decode($options,true),$fields,$actions);
 	$admin->createModuleAction($module,"View $title",$route,"on","list",0,$view_id,0,0,1);
 		
-	BigTree::redirect(DEVELOPER_ROOT."modules/designer/complete/?module=$module");
+	Router::redirect(DEVELOPER_ROOT."modules/designer/complete/?module=$module");
+	
