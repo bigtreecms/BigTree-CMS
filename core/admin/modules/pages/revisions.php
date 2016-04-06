@@ -1,12 +1,14 @@
 <?php
+	namespace BigTree;
+	
 	// Make sure this is a live page.
 	if (!is_numeric($page["id"])) {
-		$admin->stop("Revisions do not function on unpublished pages.",BigTree::path("admin/layouts/_error.php"));
+		$admin->stop("Revisions do not function on unpublished pages.", Router::getIncludePath("admin/layouts/_error.php"));
 	}
 
 	// Make sure the user is a publisher.
 	if ($bigtree["access_level"] != "p") {
-		$admin->stop("You must be a publisher to manage revisions.",BigTree::path("admin/layouts/_error.php"));
+		$admin->stop("You must be a publisher to manage revisions.", Router::getIncludePath("admin/layouts/_error.php"));
 	}
 	
 	// Check for a page lock
@@ -22,8 +24,7 @@
 	// Get all revisions
 	$revisions = $admin->getPageRevisions($page["id"]);
 
-	include BigTree::path("admin/modules/pages/_properties.php");
-
+	Router::includeFile("admin/modules/pages/_properties.php");
 
 	if ($draft) {
 		$draft_author = $admin->getUser($draft["user"]);

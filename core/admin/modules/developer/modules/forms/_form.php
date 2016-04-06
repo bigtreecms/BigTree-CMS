@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	// Find out if we have more than one view. If so, give them an option of which one to return to.
 	$available_views = $admin->getModuleViews("title",$module["id"]);
 ?>
@@ -46,7 +48,7 @@
 <section class="sub" id="field_area">
 	<?php
 		if ($table) {
-			include BigTree::path("admin/ajax/developer/load-form.php");
+			Router::includeFile("admin/ajax/developer/load-form.php");
 		} else {
 			echo "<p>Please choose a table to populate this area.</p>";
 		}

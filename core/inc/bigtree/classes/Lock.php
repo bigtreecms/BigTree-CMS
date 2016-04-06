@@ -79,7 +79,7 @@
 				$locked_by = $user->Array;
 				$last_accessed = $lock["last_accessed"];
 				
-				include BigTree::path($include);
+				Router::includeFile($include);
 				$admin->stop();
 				
 				return false;

@@ -1,4 +1,6 @@
 <?php
+	use BigTree\Router;
+	
 	// Set a definition to check for being in the admin
 	define("BIGTREE_ADMIN_ROUTED",true);
 	
@@ -207,7 +209,7 @@
 	}
 
 	// Make it easier to extend the nav tree without overwriting important things.
-	include BigTree::path("admin/_nav-tree.php");
+	Router::includeFile("admin/_nav-tree.php");
 
 	// Initialize BigTree's additional CSS and JS arrays for inclusion in the admin's header
 	$bigtree["js"] = array();
@@ -233,7 +235,7 @@
 
 	// Developer Mode On?
 	if (isset($admin->ID) && !empty($bigtree["config"]["developer_mode"]) && $admin->Level < 2) {
-		include BigTree::path("admin/pages/developer-mode.php");
+		Router::includeFile("admin/pages/developer-mode.php");
 		$admin->stop();
 	}
 
@@ -279,7 +281,7 @@
 
 		$bigtree["content"] = ob_get_clean();
 
-		include BigTree::path("admin/layouts/".$bigtree["layout"].".php");
+		Router::includeFile("admin/layouts/".$bigtree["layout"].".php");
 		die();
 	}
 
@@ -374,7 +376,7 @@
 		
 		// Make sure the user has access to the module
 		if (!$admin->checkAccess($module,$route_response["action"])) {
-			$admin->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
+			$admin->stop(file_get_contents(Router::getIncludePath("admin/pages/_denied.php")));
 		}
 
 		// Append module navigation.
@@ -406,7 +408,7 @@
 			define("INTERFACE_ROOT",ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/");
 			$bigtree["interface"] = BigTreeAutoModule::getInterface($bigtree["module_action"]["interface"]);
 			if (isset($bigtree["interface"]["interface_type"])) {
-				include BigTree::path("admin/auto-modules/".$bigtree["interface"]["interface_type"].".php");
+				Router::includeFile("admin/auto-modules/".$bigtree["interface"]["interface_type"].".php");
 				$complete = true;
 			} else {
 				list($extension,$interface_type) = explode("*",$bigtree["interface"]["type"]);
@@ -444,7 +446,7 @@
 		}
 		// Check pages
 		if (!$inc) {
-			$inc = BigTree::path("admin/pages/$primary_route.php");
+			$inc = Router::getIncludePath("admin/pages/$primary_route.php");
 			if (file_exists($inc)) {
 				include $inc;
 				$complete = true;
@@ -457,7 +459,7 @@
 		if (!$inc) {
 			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 			define("BIGTREE_404",true);
-			include BigTree::path("admin/pages/_404.php");
+			Router::includeFile("admin/pages/_404.php");
 		// It's a manually created module page, include it
 		} elseif (!$complete) {
 			// Setup the commands array.
@@ -483,4 +485,4 @@
 
 	$bigtree["content"] = ob_get_clean();
 
-	include BigTree::path("admin/layouts/".$bigtree["layout"].".php");
+	Router::includeFile("admin/layouts/".$bigtree["layout"].".php");

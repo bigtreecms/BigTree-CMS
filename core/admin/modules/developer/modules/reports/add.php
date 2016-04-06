@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$id = $_GET["module"];
 	$module = $admin->getModule($id);
 	$type = "csv";
@@ -52,7 +54,7 @@
 		<section class="sub" id="field_area">
 			<?php
 				if ($table) {
-					include BigTree::path("admin/ajax/developer/load-report.php");
+					Router::includeFile("admin/ajax/developer/load-report.php");
 				} else {
 					echo "<p>Please choose a table to populate this area.</p>";
 				}
@@ -63,4 +65,4 @@
 		</footer>
 	</form>
 </div>
-<?php include BigTree::path("admin/modules/developer/modules/reports/_js.php") ?>
+<?php Router::includeFile("admin/modules/developer/modules/reports/_js.php") ?>

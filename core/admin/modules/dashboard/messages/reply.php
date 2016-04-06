@@ -1,10 +1,13 @@
 <?php
+	namespace BigTree;
+	
 	// Make sure the user has the right to see this message
 	$parent = $admin->getMessage(end($bigtree["path"]));
 
 	// If the original message doesn't exist or you don't have access to it.
 	if (!$parent) {
-		$admin->stop("This message either does not exist or you do not have permission to view it.",BigTree::path("admin/layouts/_error.php"));
+		$admin->stop("This message either does not exist or you do not have permission to view it.",
+					 Router::getIncludePath("admin/layouts/_error.php"));
 	}
 
 	$users = $admin->getUsers();
@@ -96,7 +99,7 @@
 </div>
 <?php
 	$bigtree["html_fields"] = array("message");
-	include BigTree::path("admin/layouts/_html-field-loader.php");
+	Router::includeFile("admin/layouts/_html-field-loader.php");
 ?>
 <script>
 	BigTreeManyToMany({

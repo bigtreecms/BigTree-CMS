@@ -1,5 +1,5 @@
 <?php
-	use BigTree\Field;
+	namespace BigTree;
 
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
@@ -39,7 +39,7 @@
 
 	// If permission check fails, stop and throw the denied page.
 	if (!$bigtree["access_level"] || $bigtree["access_level"] == "n") {
-		$admin->stop(file_get_contents(BigTree::path("admin/auto-modules/forms/_denied.php")));
+		$admin->stop(file_get_contents(Router::getIncludePath("admin/auto-modules/forms/_denied.php")));
 	}
 
 	$bigtree["crops"] = array();

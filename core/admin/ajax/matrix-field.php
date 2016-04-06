@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	// Draw field types as callout resources
 	define("BIGTREE_CALLOUT_RESOURCES",true);
 
@@ -24,17 +26,17 @@
 		<?php
 			if (count($bigtree["matrix_columns"])) {
 
-				$bigtree["field_types"] = BigTree\FieldType::reference(false,"callouts");
+				$bigtree["field_types"] = FieldType::reference(false,"callouts");
 				$bigtree["tabindex"] = 1000 * intval($_POST["tab_depth"]);
 				$bigtree["html_fields"] = array();
 				$bigtree["simple_html_fields"] = array();
 
-				BigTree\Field::$Namespace = uniqid("matrix_field_");
+				Field::$Namespace = uniqid("matrix_field_");
 				
 				foreach ($bigtree["matrix_columns"] as $resource) {
 					$options = @json_decode($resource["options"],true);
 					
-					$field = new BigTree\Field(array(
+					$field = new Field(array(
 						"type" => $resource["type"],
 						"title" => htmlspecialchars($resource["title"]),
 						"subtitle" => htmlspecialchars($resource["subtitle"]),
@@ -59,7 +61,8 @@
 </div>
 <?php
 	$bigtree["html_editor_width"] = 440;
-	$bigtree["html_editor_height"] = 200;	
-	include BigTree::path("admin/layouts/_html-field-loader.php");
-	include BigTree::path("admin/layouts/_ajax-ready-loader.php");
+	$bigtree["html_editor_height"] = 200;
+
+	Router::includeFile("admin/layouts/_html-field-loader.php");
+	Router::includeFile("admin/layouts/_ajax-ready-loader.php");
 ?>

@@ -1,5 +1,8 @@
+<?php
+	namespace BigTree;
+?>
 <div id="template_type">
-	<?php include BigTree::path("admin/ajax/pages/get-template-form.php") ?>
+	<?php Router::includeFile("admin/ajax/pages/get-template-form.php") ?>
 </div>
 
 <?php if (!$cms->getSetting("bigtree-internal-disable-page-tagging")) { ?>

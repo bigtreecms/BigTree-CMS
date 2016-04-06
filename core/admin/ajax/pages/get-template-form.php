@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$template_id = $bigtree["current_page"]["template"];
 	if (isset($_POST["page"])) {
 		$template_id = $_POST["template"];
@@ -31,16 +33,16 @@
 		$bigtree["html_fields"] = array();
 		$bigtree["simple_html_fields"] = array();
 		$bigtree["tabindex"] = 1;
-		$bigtree["field_types"] = BigTree\FieldType::reference(false,"templates");
+		$bigtree["field_types"] = FieldType::reference(false,"templates");
 
-		BigTree\Field::$Namespace = uniqid("template_field_");
+		Field::$Namespace = uniqid("template_field_");
 
 		// We alias $bigtree["entry"] to $bigtree["resources"] so that information is in the same place for field types.
 		$bigtree["entry"] = &$bigtree["resources"];
 	
 		if (is_array($bigtree["template"]["resources"]) && count($bigtree["template"]["resources"])) {
 			foreach ($bigtree["template"]["resources"] as $resource) {
-				$field = new BigTree\Field(array(
+				$field = new Field(array(
 					"type" => $resource["type"],
 					"title" => $resource["title"],
 					"subtitle" => $resource["subtitle"],
@@ -60,7 +62,7 @@
 <?php
 	$bigtree["html_editor_width"] = 898;
 	$bigtree["html_editor_height"] = 365;
-	include BigTree::path("admin/layouts/_html-field-loader.php");
+	Router::includeFile("admin/layouts/_html-field-loader.php");
 	$bigtree["tinymce_fields"] = array_merge($bigtree["html_fields"],$bigtree["simple_html_fields"]);
 ?>
 <script>

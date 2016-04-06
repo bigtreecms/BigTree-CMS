@@ -1,3 +1,6 @@
+<?php
+	namespace BigTree;
+?>
 <section>
 	<div class="left last">
 		<fieldset>
@@ -31,7 +34,7 @@
 <section class="sub" id="field_area"<?php if ($type == "rss" || $type == "rss2") { ?> style="display: none;"<?php } ?>>
 	<?php
 		if ($item) {
-			include BigTree::path("admin/ajax/developer/load-feed-fields.php");
+			Router::includeFile("admin/ajax/developer/load-feed-fields.php");
 		} else {
 			echo "<p>Please choose a table to populate this area.</p>";
 		}

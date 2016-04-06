@@ -1,11 +1,13 @@
 <?php
+	namespace BigTree;
+	
 	// Route to common if we hit something in a sub directory that doesn't exist.
 	if (count($bigtree["commands"])) {
-		include BigTree::path("admin/modules/developer/services/_".$bigtree["commands"][0].".php");
+		Router::includeFile("admin/modules/developer/services/_".$bigtree["commands"][0].".php");
 		if ($bigtree["commands"][1]) {
-			include BigTree::path("admin/modules/developer/services/common/".$bigtree["commands"][1].".php");
+			Router::includeFile("admin/modules/developer/services/common/".$bigtree["commands"][1].".php");
 		} else {
-			include BigTree::path("admin/modules/developer/services/common/default.php");
+			Router::includeFile("admin/modules/developer/services/common/default.php");
 		}
 	} else {	
 		// Figure out which are connected

@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$groups = $admin->getModuleGroups();
 ?>
 <div class="container">
@@ -54,4 +56,4 @@
 		</footer>
 	</form>
 </div>
-<?php include BigTree::path("admin/modules/developer/modules/_js.php") ?>
+<?php Router::includeFile("admin/modules/developer/modules/_js.php") ?>

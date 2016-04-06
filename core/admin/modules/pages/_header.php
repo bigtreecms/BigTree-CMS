@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$proot = ADMIN_ROOT."pages/";
 	$id = preg_replace("/[^a-z0-9.]+/i","",isset($_POST["page"]) ? $_POST["page"] : end($bigtree["commands"]));
 	$action = $bigtree["module_path"][0];
@@ -17,7 +19,7 @@
 
 	// Stop the user if they don't have access to this page.
 	if (!$bigtree["access_level"] && $id && $action != "view-tree") {
-		$admin->stop("You do not have access to this page.",BigTree::path("admin/layouts/_error.php"));
+		$admin->stop("You do not have access to this page.", Router::getIncludePath("admin/layouts/_error.php"));
 	}
 
 	// Create custom breadcrumb
@@ -69,7 +71,7 @@
 		$pages_nav["children"]["view-tree"]["icon"] = "page";
 		$pages_nav["children"]["view-tree"]["title_override"] = "Error";
 
-		$admin->stop("The page you are trying to access no longer exists.",BigTree::path("admin/layouts/_error.php"));
+		$admin->stop("The page you are trying to access no longer exists.", Router::getIncludePath("admin/layouts/_error.php"));
 	}
 
 	// Stop them from getting butchered later.

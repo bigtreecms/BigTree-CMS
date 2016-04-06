@@ -1,6 +1,8 @@
 <?php
+	namespace BigTree;
+	
 	if (!is_writable(SERVER_ROOT."cache/")) {
-		$admin->stop("Your <code>/cache/</code> directory must be writable.",BigTree::path("admin/layouts/_error.php"));
+		$admin->stop("Your <code>/cache/</code> directory must be writable.",Router::getIncludePath("admin/layouts/_error.php"));
 	}
 ?>
 <div class="container">

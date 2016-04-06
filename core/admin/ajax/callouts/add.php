@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	if ($_POST["groups"]) {
 		$items = $admin->getCalloutsInGroups($_POST["groups"]);
 	} else {
@@ -25,7 +27,7 @@
 	</fieldset>
 </div>
 <div id="callout_resources" class="callout_fields">
-	<?php include BigTree::path("admin/ajax/callouts/resources.php") ?>
+	<?php Router::includeFile("admin/ajax/callouts/resources.php") ?>
 </div>
 
 <script>

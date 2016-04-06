@@ -40,7 +40,7 @@
 
 	// Check for extension field type
 	if (strpos($field_type,"*") === false) {
-		$path = BigTree::path("admin/ajax/developer/field-options/$field_type.php");
+		$path = Router::getIncludePath("admin/ajax/developer/field-options/$field_type.php");
 	} else {
 		list($extension,$field_type) = explode("*",$field_type);
 		$path = SERVER_ROOT."extensions/$extension/field-types/$field_type/options.php";	

@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	// Stop notices
 	if (empty($data["directory"])) {
 		if (isset($_POST["template"])) {
@@ -26,4 +28,4 @@
 	<input type="checkbox" name="disable_captions" <?php if ($data["disable_captions"]) { ?>checked="checked" <?php } ?>/>
 	<label class="for_checkbox">Disable Captions</label>
 </fieldset>
-<?php include BigTree::path("admin/ajax/developer/field-options/_image-options.php") ?>
+<?php Router::includeFile("admin/ajax/developer/field-options/_image-options.php") ?>

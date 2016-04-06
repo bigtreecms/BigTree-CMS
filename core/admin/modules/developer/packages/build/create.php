@@ -1,9 +1,9 @@
 <?php
-	use BigTree\FileSystem;
-
+	namespace BigTree;
+	
 	// First we need to package the file so they can download it manually if they wish.
 	if (!FileSystem::getDirectoryWritability(SERVER_ROOT."cache/package/")) {
-		$admin->stop("Your cache/ and cache/package/ directories must be writable.",BigTree::path("admin/layouts/_error.php"));
+		$admin->stop("Your cache/ and cache/package/ directories must be writable.",Router::getIncludePath("admin/layouts/_error.php"));
 	}
 
 	FileSystem::createDirectory(SERVER_ROOT."cache/package/");
@@ -130,7 +130,7 @@
 	
 	// Create the zip
 	FileSystem::deleteFile(SERVER_ROOT."cache/package.zip");
-	include BigTree::path("inc/lib/pclzip.php");
+	Router::includeFile("inc/lib/pclzip.php");
 	$zip = new PclZip(SERVER_ROOT."cache/package.zip");
 	$zip->create(FileSystem::getDirectoryContents(SERVER_ROOT."cache/package/"),PCLZIP_OPT_REMOVE_PATH,SERVER_ROOT."cache/package/");
 

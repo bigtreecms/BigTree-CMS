@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$view = BigTreeAutoModule::getView(end($bigtree["path"]));
 	BigTree::globalizeArray($view);
 	$module = $admin->getModule($module);
@@ -29,7 +31,7 @@
 		<input type="hidden" name="return_page" value="<?=htmlspecialchars($_SERVER["HTTP_REFERER"])?>" />
 		<?php
 			}
-			include BigTree::path("admin/modules/developer/modules/views/_form.php");
+			Router::includeFile("admin/modules/developer/modules/views/_form.php");
 		?>
 		<footer>
 			<input type="submit" class="button blue" value="Update" />
@@ -37,6 +39,6 @@
 	</form>
 </div>
 <?php
-		include BigTree::path("admin/modules/developer/modules/views/_js.php");
+		Router::includeFile("admin/modules/developer/modules/views/_js.php");
 	}
 ?>

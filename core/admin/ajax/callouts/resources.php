@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	define("BIGTREE_CALLOUT_RESOURCES",true);
 	
 	if (isset($_POST["resources"])) {
@@ -36,9 +38,9 @@
 	<?php
 		if (count($bigtree["callout"]["resources"])) {
 
-			BigTree\Field::$Namespace = uniqid("callout_field_");
+			Field::$Namespace = uniqid("callout_field_");
 
-			$bigtree["field_types"] = BigTree\FieldType::reference(false,"callouts");	
+			$bigtree["field_types"] = FieldType::reference(false,"callouts");	
 			$bigtree["tabindex"] = 1000 * intval($_POST["tab_depth"]);	
 			$bigtree["html_fields"] = array();
 			$bigtree["simple_html_fields"] = array();			
@@ -57,7 +59,7 @@
 					$field["options"]["directory"] = "files/callouts/";
 				}
 		
-				$field = new BigTree\Field($field);
+				$field = new Field($field);
 				$field->draw();
 			}
 		} else {
@@ -79,6 +81,6 @@
 	}
 	$bigtree["html_editor_width"] = 440;
 	$bigtree["html_editor_height"] = 200;	
-	include BigTree::path("admin/layouts/_html-field-loader.php");
-	include BigTree::path("admin/layouts/_ajax-ready-loader.php");
+	Router::includeFile("admin/layouts/_html-field-loader.php");
+	Router::includeFile("admin/layouts/_ajax-ready-loader.php");
 ?>	

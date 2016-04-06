@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$bigtree["view"] = $view = $bigtree["interface"];
 
 	// Setup the preview action if we have a preview URL and field.
@@ -30,6 +32,6 @@
 		list($extension,$view_type) = explode("*",$bigtree["view"]["type"]);
 		include SERVER_ROOT."extensions/$extension/plugins/view-types/$view_type/draw.php";
 	} else {
-		include BigTree::path("admin/auto-modules/views/".$bigtree["view"]["type"].".php");
+		Router::includeFile("admin/auto-modules/views/".$bigtree["view"]["type"].".php");
 	}
 ?>

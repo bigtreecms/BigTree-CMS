@@ -176,7 +176,7 @@
 
 			$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/";
 
-			$html = file_get_contents(BigTree::path("admin/email/reset-password.html"));
+			$html = file_get_contents(Router::getIncludePath("admin/email/reset-password.html"));
 			$html = str_ireplace("{www_root}",WWW_ROOT,$html);
 			$html = str_ireplace("{admin_root}",ADMIN_ROOT,$html);
 			$html = str_ireplace("{site_title}",$site_title,$html);

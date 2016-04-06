@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$search = isset($_GET["search"]) ? htmlspecialchars($_GET["search"]) : "";
 ?>
 <script>
@@ -45,11 +47,11 @@
 		<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><?php if (count($bigtree["view"]["actions"]) > 1) { ?>Actions<?php } ?></span>
 	</header>
 	<ul id="table_data">
-		<?php include BigTree::path("admin/ajax/auto-modules/views/nested.php") ?>
+		<?php Router::includeFile("admin/ajax/auto-modules/views/nested.php") ?>
 	</ul>
 </div>
 
-<?php include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
+<?php Router::includeFile("admin/auto-modules/views/_common-js.php") ?>
 <script>
 	$("#table_data").on("click",".view_column:first-of-type",function() {
 		// Make sure we haven't searched

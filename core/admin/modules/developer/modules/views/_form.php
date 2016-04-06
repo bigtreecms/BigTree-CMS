@@ -1,6 +1,8 @@
 <?php
+	namespace BigTree;
+	
 	$forms = $admin->getModuleForms("title",$module["id"]);
-	BigTree\Extension::initalizeCache();
+	Extension::initalizeCache();
 ?>
 <section>
 	<div class="left last">
@@ -69,7 +71,7 @@
 	<p>Please choose a table to populate this area.</p>
 	<?php
 		} else {
-			include BigTree::path("admin/ajax/developer/load-view-fields.php");
+			Router::includeFile("admin/ajax/developer/load-view-fields.php");
 		}
 	?>
 </section>

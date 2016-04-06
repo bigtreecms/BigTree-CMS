@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$admin->requireLevel(1);
 	$type = "301";
 	$delete_action = "ignore";
@@ -17,6 +19,6 @@
 		<span class="ignore_404">Delete</span>
 	</header>
 	<ul id="results">
-		<?php include BigTree::path("admin/ajax/dashboard/404/search.php") ?>
+		<?php Router::includeFile("admin/ajax/dashboard/404/search.php") ?>
 	</ul>
 </div>

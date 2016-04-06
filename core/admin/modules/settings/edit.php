@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$admin->requireLevel(1);
 	$item = $admin->getSetting(end($bigtree["path"]));
 	$value = $cms->getSetting(end($bigtree["path"]));
@@ -7,7 +9,8 @@
 	}
 
 	if (!$item || $item["system"] || ($item["locked"] && $admin->Level < 2)) {
-		$admin->stop("The setting you are trying to edit no longer exists or you do not have permission to edit it.",BigTree::path("admin/layouts/_error.php"));
+		$admin->stop("The setting you are trying to edit no longer exists or you do not have permission to edit it.",
+					 Router::getIncludePath("admin/layouts/_error.php"));
 	}
 
 	// Provide developers a nice handy link for edit/return of this view
@@ -15,9 +18,9 @@
 		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/settings/edit/".$item["id"]."/?return=front","icon" => "setup","title" => "Edit in Developer");
 	}
 
-	$bigtree["field_types"] = BigTree\FieldType::reference(false,"settings");
+	$bigtree["field_types"] = FieldType::reference(false,"settings");
 
-	BigTree\Field::$Namespace = uniqid("setting_field_");
+	Field::$Namespace = uniqid("setting_field_");
 ?>
 <div class="container">
 	<summary>
@@ -77,7 +80,7 @@
 <?php
 	$bigtree["html_editor_width"] = 898;
 	$bigtree["html_editor_height"] = 365;
-	include BigTree::path("admin/layouts/_html-field-loader.php");
+	Router::includeFile("admin/layouts/_html-field-loader.php");
 ?>
 <script>
 	BigTreeFormValidator("form.module");

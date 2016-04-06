@@ -1,9 +1,11 @@
 <?php
+	namespace BigTree;
+	
 	// Get the version, check if the user has access to the page the version refers to.
 	$revision = $admin->getPageRevision($_GET["id"]);
 	$access = $admin->getPageAccessLevel($revision["page"]);
 	if ($access != "p") {
-		$admin->stop("You must be a publisher to manage revisions.",BigTree::path("admin/layouts/_error.php"));
+		$admin->stop("You must be a publisher to manage revisions.",Router::getIncludePath("admin/layouts/_error.php"));
 	}
 	
 	foreach ($revision as $key => $val) {

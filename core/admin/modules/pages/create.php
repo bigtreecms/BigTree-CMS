@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
@@ -7,7 +9,7 @@
 
 	$access_level = $admin->getPageAccessLevel($_POST["parent"]);
 	if ($access_level != "p" && $access_level != "e") {
-		$admin->stop("You do not have access to create a child for this page.",BigTree::path("admin/layouts/_error.php"));
+		$admin->stop("You do not have access to create a child for this page.", Router::getIncludePath("admin/layouts/_error.php"));
 	}
 
 	// Adjust template
@@ -28,7 +30,7 @@
 	$upload_service = new BigTreeStorage;
 
 	// Parse resources
-	include BigTree::path("admin/modules/pages/_resource-parse.php");
+	Router::includeFile("admin/modules/pages/_resource-parse.php");
 
 	if ($access_level == "p" && $_POST["ptype"] == "Create & Publish") {
 		// Let's make it happen.

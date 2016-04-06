@@ -104,7 +104,7 @@
 
 			if ($bigtree["config"]["debug"] || !file_exists($cache_file)) {
 				// Preload the BigTreeModule class since others are based off it
-				include_once BigTree::path("inc/bigtree/modules.php");
+				include_once Router::getIncludePath("inc/bigtree/modules.php");
 
 				$data = array(
 					"routes" => array("admin" => array(),"public" => array(),"template" => array()),
@@ -584,7 +584,7 @@
 			// Not set or empty, no access
 			if (!isset($this->Permissions[$this->ID]) || $this->Permissions[$this->ID] == "") {
 				define("BIGTREE_ACCESS_DENIED",true);
-				$this->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
+				$this->stop(file_get_contents(Router::getIncludePath("admin/pages/_denied.php")));
 			}
 
 			// Return level defined
@@ -614,7 +614,7 @@
 			// Require explicit publisher access
 			if ($admin->Permissions[$this->ID] != "p") {
 				define("BIGTREE_ACCESS_DENIED",true);
-				$this->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
+				$this->stop(file_get_contents(Router::getIncludePath("admin/pages/_denied.php")));
 			}
 		}
 

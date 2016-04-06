@@ -1,3 +1,6 @@
+<?php
+	namespace BigTree;
+?>
 <div class="container">
 	<form method="post" action="<?=$bigtree["form_root"]?>process/<?php if ($bigtree["form"]["embedded"]) { ?>?hash=<?=$bigtree["form"]["hash"]?><?php } ?>" enctype="multipart/form-data" class="module" id="auto_module_form">
 		<?php if ($bigtree["form"]["embedded"]) { ?>
@@ -42,9 +45,9 @@
 					$bigtree["html_fields"] = array();
 					$bigtree["simple_html_fields"] = array();
 					$bigtree["tabindex"] = 1;
-					$bigtree["field_types"] = BigTree\FieldType::reference(false,"modules");
+					$bigtree["field_types"] = FieldType::reference(false,"modules");
 
-					BigTree\Field::$Namespace = uniqid("form_field_");
+					Field::$Namespace = uniqid("form_field_");
 	
 					foreach ($bigtree["form"]["fields"] as $resource) {
 						if (is_array($resource)) {
@@ -63,7 +66,7 @@
 								$field["value"] = isset($bigtree["many-to-many"][$resource["column"]]) ? $bigtree["many-to-many"][$resource["column"]]["data"] : false;
 							}
 		
-							$field = new BigTree\Field($field);
+							$field = new Field($field);
 							$field->draw();
 						}
 					}
@@ -111,7 +114,7 @@
 		</footer>
 	</form>
 </div>
-<?php include BigTree::path("admin/layouts/_html-field-loader.php") ?>
+<?php Router::includeFile("admin/layouts/_html-field-loader.php") ?>
 <script>
 	BigTreeFormValidator("#auto_module_form",false<?php if ($bigtree["form"]["embedded"]) { ?>,true<?php } ?>);
 	

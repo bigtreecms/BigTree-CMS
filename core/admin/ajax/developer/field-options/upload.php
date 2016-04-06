@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	// Stop notices
 	if (empty($data["directory"])) {
 		if (isset($_POST["template"])) {
@@ -24,7 +26,7 @@
 
 <div id="image_uploader_options"<?php if (!$data["image"]) { ?> style="display: none;"<?php } ?>>
 	<h4>Image Options</h4>
-	<?php include BigTree::path("admin/ajax/developer/field-options/_image-options.php") ?>
+	<?php Router::includeFile("admin/ajax/developer/field-options/_image-options.php") ?>
 </div>
 
 <script>

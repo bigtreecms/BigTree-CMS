@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	// Check for a page lock
 	$force = isset($_GET["force"]) ? true : false;
 	$admin->lockCheck($bigtree["form"]["table"],$bigtree["edit_id"],"admin/auto-modules/forms/_locked.php",$force);
@@ -29,12 +31,12 @@
 		}
 		
 		if (!$bigtree["access_level"] || $bigtree["access_level"] == "n") {
-			include BigTree::path("admin/auto-modules/forms/_denied.php");
+			Router::includeFile("admin/auto-modules/forms/_denied.php");
 		} else {
 			$bigtree["many-to-many"] = $many_to_many = $pending_entry["mtm"];
 			$bigtree["tags"] = $pending_entry["tags"];
 				
-			include BigTree::path("admin/auto-modules/forms/_form.php");
+			Router::includeFile("admin/auto-modules/forms/_form.php");
 		}
 	}
 ?>

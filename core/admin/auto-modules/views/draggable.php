@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$search = isset($_GET["search"]) ? htmlspecialchars($_GET["search"]) : "";
 ?>
 <div class="table auto_modules">
@@ -20,11 +22,11 @@
 		<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><?php if (count($bigtree["view"]["actions"]) > 1) { ?>Actions<?php } ?></span>
 	</header>
 	<ul id="sort_table">
-		<?php include BigTree::path("admin/ajax/auto-modules/views/draggable.php") ?>
+		<?php Router::includeFile("admin/ajax/auto-modules/views/draggable.php") ?>
 	</ul>
 </div>
 
-<?php include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
+<?php Router::includeFile("admin/auto-modules/views/_common-js.php") ?>
 <script>
 	BigTree.localSearch = function() {
 		$("#sort_table").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/draggable/", { view: <?=$bigtree["view"]["id"]?>, search: $("#search").val() }, BigTree.localCreateSortable);

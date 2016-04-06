@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
@@ -26,7 +28,7 @@
 	
 	// Work out the permissions	
 	if (!$bigtree["access_level"]) {
-		$admin->stop("You do not have access to this page.",BigTree::path("admin/layouts/_error.php"));
+		$admin->stop("You do not have access to this page.", Router::getIncludePath("admin/layouts/_error.php"));
 	}
 
 	// Adjust template
@@ -45,7 +47,7 @@
 	$bigtree["errors"] = array();
 	
 	// Parse resources
-	include BigTree::path("admin/modules/pages/_resource-parse.php");
+	Router::includeFile("admin/modules/pages/_resource-parse.php");
 	
 	$id = $_POST["page"];
 	

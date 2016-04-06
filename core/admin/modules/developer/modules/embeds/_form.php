@@ -1,3 +1,6 @@
+<?php
+	namespace BigTree;
+?>
 <section>
 	<div class="left last">
 		<fieldset>
@@ -41,5 +44,5 @@
 <?php
 	$bigtree["simple_html_fields"] = array("thank_you_message");
 	$bigtree["html_editor_width"] = 435;
-	include BigTree::path("admin/layouts/_html-field-loader.php");
+	Router::includeFile("admin/layouts/_html-field-loader.php");
 ?>

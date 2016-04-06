@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$item = $admin->getModuleAction(end($bigtree["commands"]));
 	BigTree::globalizeArray($item);
 	$module = $admin->getModule($module);
@@ -6,7 +8,7 @@
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/actions/update/<?=$item["id"]?>/" class="module">
 		<input type="hidden" name="position" value="<?=$item["position"]?>" />
-		<?php include BigTree::path("admin/modules/developer/modules/actions/_form.php") ?>
+		<?php Router::includeFile("admin/modules/developer/modules/actions/_form.php") ?>
 		<footer>
 			<input type="submit" class="button blue" value="Update" />
 		</footer>

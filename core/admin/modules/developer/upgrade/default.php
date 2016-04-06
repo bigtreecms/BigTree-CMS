@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	// Check for newer versions of BigTree
 	$ignored_all = true;
 	if (!$_COOKIE["bigtree_admin"]["deferred_update"]) {
@@ -14,7 +16,8 @@
 	}
 	// If we're ignoring updates through config, still ignore them
 	if (!empty($bigtree["config"]["ignore_admin_updates"])) {
-		$admin->stop('BigTree updates have been ignored in the configuration file ($bigtree["config"]["ignore_admin_updates"] is set to a truthy value).',BigTree::path("admin/layouts/_error.php"));
+		$admin->stop('BigTree updates have been ignored in the configuration file ($bigtree["config"]["ignore_admin_updates"] is set to a truthy value).',
+					 Router::getIncludePath("admin/layouts/_error.php"));
 	}
 
 	// Non-ignored updates are available

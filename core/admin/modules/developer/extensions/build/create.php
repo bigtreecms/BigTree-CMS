@@ -1,9 +1,10 @@
 <?php
-	use BigTree\FileSystem;
-
+	namespace BigTree;
+	
 	// First we need to package the file so they can download it manually if they wish.
 	if (!is_writable(SERVER_ROOT."cache/") || !FileSystem::getDirectoryWritability(SERVER_ROOT."extensions/$id/")) {
-		$admin->stop("Your /cache/ and /extensions/$id/ directories must be writable.",BigTree::path("admin/layouts/_error.php"));
+		$admin->stop("Your /cache/ and /extensions/$id/ directories must be writable.",
+					 Router::getIncludePath("admin/layouts/_error.php"));
 	}
 	
 	// Fix keywords into an array
@@ -315,7 +316,7 @@
 	FileSystem::deleteFile(SERVER_ROOT."cache/package.zip");
 	FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 	FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
-	include BigTree::path("inc/lib/pclzip.php");
+	Router::includeFile("inc/lib/pclzip.php");
 	$zip = new PclZip(SERVER_ROOT."cache/package.zip");
 	$zip->create(FileSystem::getDirectoryContents(SERVER_ROOT."extensions/$id/"),PCLZIP_OPT_REMOVE_PATH,SERVER_ROOT."extensions/$id/");
 ?>

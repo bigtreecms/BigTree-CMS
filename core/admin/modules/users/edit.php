@@ -1,11 +1,14 @@
 <?php
+	namespace BigTree;
+	
 	// We set this header so that when the user reloads the page form element changes don't stick (since we're only tracking explicit changes back to the JSON objects for Alerts and Permissions)
 	header("Cache-Control: no-store");
 	$user = $admin->getUser(end($bigtree["commands"]));
 
 	// Stop if this is a 404 or the user is editing someone higher than them.
 	if (!$user || $user["level"] > $admin->Level) {
-		$admin->stop("The user you are trying to edit no longer exists or you are not allowed to edit this user.",BigTree::path("admin/layouts/_error.php"));
+		$admin->stop("The user you are trying to edit no longer exists or you are not allowed to edit this user.",
+					 Router::getIncludePath("admin/layouts/_error.php"));
 	}
 
 	$bigtree["gravatar"] = $user["email"];

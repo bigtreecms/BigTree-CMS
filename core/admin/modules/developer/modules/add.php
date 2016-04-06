@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$groups = $admin->getModuleGroups("name ASC");
 	
 	// Stop notices
@@ -74,10 +76,10 @@
 				<label class="for_checkbox">Limit Access to Developers</label>
 			</fieldset>
 		</section>
-		<?php include BigTree::path("admin/modules/developer/modules/_gbp.php") ?>
+		<?php Router::includeFile("admin/modules/developer/modules/_gbp.php") ?>
 		<footer>
 			<input type="submit" class="button blue" value="Create" />
 		</footer>
 	</form>
 </div>
-<?php include BigTree::path("admin/modules/developer/modules/_js.php") ?>
+<?php Router::includeFile("admin/modules/developer/modules/_js.php") ?>

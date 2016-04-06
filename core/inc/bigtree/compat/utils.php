@@ -959,11 +959,7 @@
 		*/
 		
 		static function path($file) {
-			if (file_exists(SERVER_ROOT."custom/".$file)) {
-				return SERVER_ROOT."custom/".$file;
-			} else {
-				return SERVER_ROOT."core/".$file;
-			}
+			return BigTree\Router::getIncludePath($file);
 		}
 		
 		/*

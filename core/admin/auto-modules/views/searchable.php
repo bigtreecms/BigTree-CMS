@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	BigTree::globalizeArray($bigtree["view"]);
 		
 	$module_id = BigTreeAutoModule::getModuleForView($bigtree["view"]);
@@ -57,11 +59,11 @@
 		<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><?php if (count($bigtree["view"]["actions"]) > 1) { ?>Actions<?php } ?></span>
 	</header>
 	<ul id="results">
-		<?php include BigTree::path("admin/ajax/auto-modules/views/searchable-page.php") ?>
+		<?php Router::includeFile("admin/ajax/auto-modules/views/searchable-page.php") ?>
 	</ul>
 </div>
 
-<?php include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
+<?php Router::includeFile("admin/auto-modules/views/_common-js.php") ?>
 <script>
 	BigTree.localSortColumn = "<?=htmlspecialchars($sort_column)?>";
 	BigTree.localSortDirection = "<?=htmlspecialchars($sort_direction)?>";

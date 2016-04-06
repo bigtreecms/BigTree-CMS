@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$form = BigTreeAutoModule::getForm(end($bigtree["commands"]));;
 	$module = $admin->getModule(BigTreeAutoModule::getModuleForForm($form));
 
@@ -34,7 +36,7 @@
 		<input type="hidden" name="return_page" value="<?=htmlspecialchars($_SERVER["HTTP_REFERER"])?>" />
 		<?php
 			}
-			include BigTree::path("admin/modules/developer/modules/forms/_form.php");
+			Router::includeFile("admin/modules/developer/modules/forms/_form.php");
 		?>
 		<footer>
 			<input type="submit" class="button blue" value="Update" />

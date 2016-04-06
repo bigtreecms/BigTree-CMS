@@ -1,5 +1,5 @@
 <?php
-	use BigTree\FileSystem;
+	namespace BigTree;
 	
 	// Setup the preview action if we have a preview URL and field.
 	if ($bigtree["view"]["preview_url"]) {
@@ -68,4 +68,4 @@
 		</ul>
 	</section>
 </div>
-<?php include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
+<?php Router::includeFile("admin/auto-modules/views/_common-js.php") ?>

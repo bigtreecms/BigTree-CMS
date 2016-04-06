@@ -1,9 +1,12 @@
 <?php
+	namespace BigTree;
+
 	// Get the message chain. It'll return false if the user isn't a sender/recipient.
 	$chain = $admin->getMessageChain(end($bigtree["path"]));
 
 	if (!$chain) {
-		$admin->stop("This message either does not exist or you do not have permission to view it.",BigTree::path("admin/layouts/_error.php"));
+		$admin->stop("This message either does not exist or you do not have permission to view it.",
+					 Router::getIncludePath("admin/layouts/_error.php"));
 	}
 ?>
 <div class="container message_thread">

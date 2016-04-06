@@ -46,6 +46,25 @@
 		}
 
 		/*
+			Function: getIncludePath
+				Get the proper path for a file based on whether a custom override exists.
+
+			Parameters:
+				file - File path relative to either core/ or custom/
+
+			Returns:
+				Hard file path to a custom/ (preferred) or core/ file depending on what exists.
+		*/
+
+		static function getIncludePath($file) {
+			if (file_exists(SERVER_ROOT."custom/".$file)) {
+				return SERVER_ROOT."custom/".$file;
+			} else {
+				return SERVER_ROOT."core/".$file;
+			}
+		}
+
+		/*
 		 	Function: getReservedRoutes
 				Returns an array of already reserved top level routes.
 
@@ -74,6 +93,22 @@
 			static::$ReservedRoutes[] = $admin_route;
 
 			return static::$ReservedRoutes;
+		}
+
+		/*
+		    Function: includeFile
+				Includes a core file checking whether a custom override exists first.
+
+			Parameter:
+				file - File path (relative to /core/ or /custom/)
+		*/
+
+		static function includeFile($file) {
+			$path = static::getIncludePath($file);
+			
+			if (file_exists($path)) {
+				include_once $path;
+			}
 		}
 
 		/*

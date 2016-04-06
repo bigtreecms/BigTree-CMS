@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	// Stop notices
 	$id = $name = $description = $display_default = $level = "";
 	$fields = array();
@@ -12,14 +14,14 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>callouts/create/" enctype="multipart/form-data" class="module">
-		<?php include BigTree::path("admin/modules/developer/callouts/_form-content.php") ?>
+		<?php Router::includeFile("admin/modules/developer/callouts/_form-content.php") ?>
 		<footer>
 			<input type="submit" class="button blue" value="Create" />
 		</footer>
 	</form>
 </div>
 
-<?php include BigTree::path("admin/modules/developer/callouts/_common-js.php") ?>
+<?php Router::includeFile("admin/modules/developer/callouts/_common-js.php") ?>
 <script>
 	BigTree.localResourceCount = <?=$x?>;
 </script>

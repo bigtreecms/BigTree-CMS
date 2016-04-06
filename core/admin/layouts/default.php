@@ -1,6 +1,8 @@
 <?php
-	function _local_findPath($nav,$path,$last_link = "") {
-		global $bigtree,$breadcrumb;
+	namespace BigTree;
+	
+	$find_path = function($nav,$path,$last_link = "") {
+		global $bigtree,$breadcrumb,$find_path;
 		foreach ($nav as $item) {
 			if ((strpos($path,$item["link"]."/") === 0 && $item["link"] != $last_link) || $path == $item["link"]) {				
 				$breadcrumb[] = array("title" => $item["title"],"link" => $item["link"]);
@@ -14,7 +16,7 @@
 					$bigtree["page"]["related"]["nav"] = $bigtree["page"]["navigation"];
 				}
 				if ($item["children"]) {
-					_local_findPath($item["children"],$path,$item["link"]);
+					$find_path($item["children"],$path,$item["link"]);
 				}
 			}
 		}
@@ -24,7 +26,7 @@
 	$breadcrumb = array();
 	$current_path = implode("/",array_slice($bigtree["path"],1));
 	if (!defined("BIGTREE_ACCESS_DENIED")) {
-		_local_findPath($bigtree["nav_tree"],$current_path);
+		$find_path($bigtree["nav_tree"],$current_path);
 	}
 
 	// Set the page title if it hasn't been set
@@ -57,11 +59,11 @@
 		}
 		unset($item);
 		// We're going to fake include the header to get the active nav state.
-		include BigTree::path("admin/layouts/_header.php");
+		Router::includeFile("admin/layouts/_header.php");
 		ob_clean();
 	// Otherwise, full page render, so include the header and draw the breadcrumb.
 	} else {
-		include BigTree::path("admin/layouts/_header.php");
+		Router::includeFile("admin/layouts/_header.php");
 	}
 ?>
 <div id="page">
@@ -220,6 +222,5 @@
 		));
 	// Otherwise include the footer
 	} else {
-		include BigTree::path("admin/layouts/_footer.php");
+		Router::includeFile("admin/layouts/_footer.php");
 	}
-?>

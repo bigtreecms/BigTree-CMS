@@ -1,6 +1,6 @@
 <?php
-	use BigTree\FileSystem;
-
+	namespace BigTree;
+	
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
@@ -32,7 +32,7 @@
 	FileSystem::createDirectory($cache_root);
 
 	// Unzip the extension
-	include BigTree::path("inc/lib/pclzip.php");
+	Router::includeFile("inc/lib/pclzip.php");
 	$zip = new PclZip($file);
 
 	// See if this was downloaded off GitHub (will have a single root folder)

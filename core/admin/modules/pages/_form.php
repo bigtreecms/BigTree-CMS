@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	// Include pages.js
 	$bigtree["js"][] = "pages.js";
 	
@@ -41,13 +43,13 @@
 		<input type="hidden" name="<?php if ($bigtree["form_action"] == "create") { ?>parent<?php } else { ?>page<?php } ?>" value="<?=$bigtree["current_page"]["id"]?>" />
 		
 		<section id="properties_tab"<?php if ($bigtree["form_action"] == "update") { ?> style="display: none;"<?php } ?>>
-			<?php include BigTree::path("admin/modules/pages/tabs/properties.php") ?>
+			<?php Router::includeFile("admin/modules/pages/tabs/properties.php") ?>
 		</section>
 		<section id="content_tab"<?php if ($bigtree["form_action"] == "create") { ?> style="display: none;"<?php } ?>>
-			<?php include BigTree::path("admin/modules/pages/tabs/content.php") ?>
+			<?php Router::includeFile("admin/modules/pages/tabs/content.php") ?>
 		</section>
 		<section id="seo_tab" style="display: none;">
-			<?php include BigTree::path("admin/modules/pages/tabs/seo.php") ?>
+			<?php Router::includeFile("admin/modules/pages/tabs/seo.php") ?>
 		</section>
 		<footer>
 			<a href="#" class="next button">Next Step &raquo;</a>

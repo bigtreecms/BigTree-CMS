@@ -1,3 +1,6 @@
+<?php
+	namespace BigTree;
+?>
 <div class="container">
 	<form method="post" action="<?=ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/".$bigtree["report"]["type"]?>/">
 		<section>
@@ -6,7 +9,7 @@
 			?>
 			<fieldset>
 				<label><?=$filter["title"]?></label>
-				<?php include BigTree::path("admin/auto-modules/reports/filters/".$filter["type"].".php") ?>	
+				<?php Router::includeFile("admin/auto-modules/reports/filters/".$filter["type"].".php") ?>	
 			</fieldset>
 			<?php
 				}

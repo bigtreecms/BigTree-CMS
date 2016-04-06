@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	// If the last command is numeric then we're editing something.
 	if (is_numeric(end($bigtree["commands"])) || is_numeric(substr(end($bigtree["commands"]),1))) {
 		$bigtree["edit_id"] = $edit_id = end($bigtree["commands"]);
@@ -26,10 +28,11 @@
 			if (isset($_GET["force"])) {
 				$admin->unlock($bigtree["form"]["table"],$bigtree["edit_id"]);
 			}
-			include BigTree::path("admin/auto-modules/forms/edit.php");
+			Router::includeFile("admin/auto-modules/forms/edit.php");
 		} else {
-			include BigTree::path("admin/auto-modules/forms/add.php");
+			Router::includeFile("admin/auto-modules/forms/add.php");
 		}
 	} else {
-		include BigTree::path("admin/auto-modules/forms/$action.php");
+		Router::includeFile("admin/auto-modules/forms/$action.php");
 	}
+	

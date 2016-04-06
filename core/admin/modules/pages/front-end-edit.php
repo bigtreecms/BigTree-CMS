@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	define("BIGTREE_FRONT_END_EDITOR",true);
 	$bigtree["layout"] = "front-end";
 	// Check for a page lock
@@ -64,7 +66,7 @@
 <?php
 	$bigtree["html_editor_width"] = 760;
 	$bigtree["html_editor_height"] = 365;			
-	include BigTree::path("admin/layouts/_html-field-loader.php");
+	Router::includeFile("admin/layouts/_html-field-loader.php");
 ?>
 <script>
 	BigTreeFormValidator(".bigtree_dialog_form");

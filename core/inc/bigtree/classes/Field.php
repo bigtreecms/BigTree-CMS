@@ -77,7 +77,7 @@
 				list($extension,$field_type) = explode("*",$this->Type);
 				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/draw.php";
 			} else {
-				$field_type_path = BigTree::path("admin/form-field-types/draw/".$this->Type.".php");
+				$field_type_path = Router::getIncludePath("admin/form-field-types/draw/".$this->Type.".php");
 			}
 
 			// Backwards compatibility
@@ -199,7 +199,7 @@
 				list($extension,$field_type) = explode("*",$this->Type);
 				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/process.php";
 			} else {
-				$field_type_path = BigTree::path("admin/form-field-types/process/".$this->Type.".php");
+				$field_type_path = Router::getIncludePath("admin/form-field-types/process/".$this->Type.".php");
 			}
 
 			// If we have a customized handler for this data type, run it.

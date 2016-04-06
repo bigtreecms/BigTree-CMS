@@ -1,6 +1,7 @@
 <?php
 	use BigTree\FileSystem;
 	use BigTree\Image;
+	use BigTree\Router;
 
 	// Handle Javascript Minifying and Caching
 	if ($bigtree["path"][0] == "js") {
@@ -292,7 +293,7 @@
 				header("Content-type: text/xml");
 				echo '<?xml version="1.0" encoding="UTF-8" ?>';
 			}
-			include BigTree::path("feeds/".$feed["type"].".php");
+			Router::includeFile("feeds/".$feed["type"].".php");
 			die();
 		}
 	}
@@ -529,7 +530,7 @@
 	
 	// Load the BigTree toolbar if you're logged in to the admin via cookies but not yet via session.
 	if (isset($bigtree["page"]) && isset($_COOKIE["bigtree_admin"]["email"]) && !$_SESSION["bigtree_admin"]["id"]) {
-		include_once BigTree::path("inc/bigtree/admin.php");
+		include_once Router::getIncludePath("inc/bigtree/admin.php");
 
 		if (BIGTREE_CUSTOM_ADMIN_CLASS) {
 			// Can't instantiate class from a constant name, so we use a variable then unset it.

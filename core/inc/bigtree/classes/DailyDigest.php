@@ -231,7 +231,7 @@
 
 				// Send it
 				if (trim($block_markup)) {
-					$body = file_get_contents(BigTree::path("admin/email/daily-digest.html"));
+					$body = file_get_contents(Router::getIncludePath("admin/email/daily-digest.html"));
 					$body = str_ireplace("{www_root}", $bigtree["config"]["www_root"], $body);
 					$body = str_ireplace("{admin_root}", $bigtree["config"]["admin_root"], $body);
 					$body = str_ireplace("{site_title}", $site_title, $body);

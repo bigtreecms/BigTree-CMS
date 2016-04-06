@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$report = BigTreeAutoModule::getReport(end($bigtree["commands"]));
 	$action = $admin->getModuleActionForInterface($report);
 	BigTree::globalizeArray($report);
@@ -53,11 +55,11 @@
 			</div>
 		</section>
 		<section class="sub" id="field_area">
-			<?php include BigTree::path("admin/ajax/developer/load-report.php") ?>
+			<?php Router::includeFile("admin/ajax/developer/load-report.php") ?>
 		</section>
 		<footer>
 			<input type="submit" class="button blue" value="Update" />
 		</footer>
 	</form>
 </div>
-<?php include BigTree::path("admin/modules/developer/modules/reports/_js.php") ?>
+<?php Router::includeFile("admin/modules/developer/modules/reports/_js.php") ?>

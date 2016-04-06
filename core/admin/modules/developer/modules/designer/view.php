@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$module = $admin->getModule($_GET["module"]);
 	$table = htmlspecialchars($_GET["table"]);
 
@@ -51,7 +53,7 @@
 		<section id="field_area" class="sub">
 			<?php
 				$bigtree["module_designer_view"] = true;
-				include BigTree::path("admin/ajax/developer/load-view-fields.php");
+				Router::includeFile("admin/ajax/developer/load-view-fields.php");
 			?>
 		</section>
 		<footer>

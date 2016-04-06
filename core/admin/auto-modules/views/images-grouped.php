@@ -1,5 +1,5 @@
 <?php
-	use BigTree\FileSystem;
+	namespace BigTree;
 	
 	BigTree::globalizeArray($bigtree["view"]);
 	
@@ -173,7 +173,7 @@
 	?>
 </div>
 
-<?php include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
+<?php Router::includeFile("admin/auto-modules/views/_common-js.php") ?>
 <script>
 	<?php if ($permission == "p" && $draggable) { ?>
 	$(".image_list ul").each(function() {

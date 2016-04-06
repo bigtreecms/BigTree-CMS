@@ -2984,7 +2984,7 @@
 				foreach ($banned as $address) {
 					if (ip2long(trim($address)) == $ip) {
 						$bigtree["layout"] = "login";
-						$this->stop(file_get_contents(BigTree::path("admin/pages/ip-restriction.php")));
+						$this->stop(file_get_contents(BigTree\Router::getIncludePath("admin/pages/ip-restriction.php")));
 					}
 				}
 			}
@@ -3004,7 +3004,7 @@
 				}
 				if (!$allowed) {
 					$bigtree["layout"] = "login";
-					$this->stop(file_get_contents(BigTree::path("admin/pages/ip-restriction.php")));
+					$this->stop(file_get_contents(BigTree\Router::getIncludePath("admin/pages/ip-restriction.php")));
 				}
 			}
 		}

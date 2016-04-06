@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$id = htmlspecialchars($_GET["module"]);
 	$table = isset($_GET["table"]) ? $_GET["table"] : "";
 	$title = isset($_GET["title"]) ? htmlspecialchars($_GET["title"]) : "";
@@ -33,7 +35,7 @@
 		<input type="hidden" name="new_module" value="true" />
 		<?php
 			}
-			include BigTree::path("admin/modules/developer/modules/views/_form.php");
+			Router::includeFile("admin/modules/developer/modules/views/_form.php");
 		?>
 		<footer>
 			<input type="submit" class="button blue" value="Create" />
@@ -41,4 +43,4 @@
 	</form>
 </div>
 
-<?php include BigTree::path("admin/modules/developer/modules/views/_js.php") ?>
+<?php Router::includeFile("admin/modules/developer/modules/views/_js.php") ?>

@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	// Clear out notices
 	$name = $description = $callouts_enabled = $level = $module = $image = "";
 	$resources = array();
@@ -13,10 +15,10 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>templates/create/" enctype="multipart/form-data" class="module">
-		<?php include BigTree::path("admin/modules/developer/templates/_form-content.php") ?>
+		<?php Router::includeFile("admin/modules/developer/templates/_form-content.php") ?>
 		<footer>
 			<input type="submit" class="button blue" value="Create" />
 		</footer>
 	</form>
 </div>
-<?php include BigTree::path("admin/modules/developer/templates/_common-js.php") ?>
+<?php Router::includeFile("admin/modules/developer/templates/_common-js.php") ?>

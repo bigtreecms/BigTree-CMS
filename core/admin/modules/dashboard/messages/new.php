@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$users = $admin->getUsers();
 	
 	$send_to = array();
@@ -80,7 +82,7 @@
 </div>
 <?php
 	$bigtree["html_fields"] = array("message");
-	include BigTree::path("admin/layouts/_html-field-loader.php");
+	Router::includeFile("admin/layouts/_html-field-loader.php");
 ?>
 <script>
 	BigTreeManyToMany({

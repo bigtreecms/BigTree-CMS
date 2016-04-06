@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	// Check to see if we're using Google Analytics.
 	$ga = $cms->getSetting("bigtree-internal-google-analytics-api");
 	$ga_on = isset($ga["profile"]) ? $ga["profile"] : false;
@@ -146,7 +148,7 @@
 		}
 	};
 
-	include BigTree::path("admin/modules/pages/_properties.php");
+	Router::includeFile("admin/modules/pages/_properties.php");
 ?>
 <h3>Subpages</h3>
 <?php

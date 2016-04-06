@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	// Check whether our database is running the latest revision of BigTree or not.
 	$current_revision = $cms->getSetting("bigtree-internal-revision");
 	if ($current_revision < BIGTREE_REVISION && $admin->Level > 1) {
@@ -37,7 +39,7 @@
 			echo '<div class="dashboard_pane">';
 			// Core pane
 			if (strpos($pane["id"],"*") === false) {
-				include BigTree::path("admin/modules/dashboard/panes/".$pane["id"].".php");
+				Router::includeFile("admin/modules/dashboard/panes/".$pane["id"].".php");
 			// Extension pane
 			} else {
 				list($extension,$id) = explode("*",$pane["id"]);

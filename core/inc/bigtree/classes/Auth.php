@@ -268,7 +268,7 @@
 			// If we aren't logged in or the logged in level is less than required, denied.
 			if (!isset($this->Level) || $this->Level < $level) {
 				define("BIGTREE_ACCESS_DENIED",true);
-				$this->stop(file_get_contents(BigTree::path($error_path)));
+				$this->stop(file_get_contents(Router::getIncludePath($error_path)));
 			}
 
 			return true;
@@ -294,7 +294,9 @@
 			}
 
 			$bigtree["content"] = ob_get_clean();
-			include BigTree::path($layout_directory.$bigtree["layout"].".php");
+
+			Router::includeFile($layout_directory.$bigtree["layout"].".php");
+
 			die();
 		}
 

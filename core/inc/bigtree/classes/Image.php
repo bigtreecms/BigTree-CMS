@@ -433,7 +433,7 @@
 				imagecopyresampled($image, $icon, $icon_x, $icon_y, 0, 0, $icon_width, $icon_height, $icon_width, $icon_height);
 				// Add text if provided or default to size
 			} elseif ($text) {
-				$font = BigTree::path("inc/lib/fonts/arial.ttf");
+				$font = Router::getIncludePath("inc/lib/fonts/arial.ttf");
 				$fontsize = ($width > $height) ? ($height / 15) : ($width / 15);
 				$textpos = imageTTFBbox($fontsize, 0, $font, $text);
 				imagettftext($image, $fontsize, 0, (($width - $textpos[2]) / 2), (($height - $textpos[5]) / 2), $text_color, $font, $text);
