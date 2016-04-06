@@ -1,4 +1,6 @@
 <?php
+	use BigTree\Field;
+
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
@@ -46,10 +48,10 @@
 	$bigtree["entry"] = array();
 
 	$bigtree["post_data"] = $_POST;
-	$bigtree["file_data"] = BigTree::parsedFilesArray();
+	$bigtree["file_data"] = Field::getParsedFilesArray();
 
 	foreach ($bigtree["form"]["fields"] as $resource) {
-		$field = new BigTree\Field(array(
+		$field = new Field(array(
 			"type" => $resource["type"],
 			"title" => $resource["title"],
 			"key" => $resource["column"],

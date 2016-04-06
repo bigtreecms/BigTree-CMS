@@ -127,6 +127,59 @@
 		}
 
 		/*
+			Function: getParsedFilesArray
+				Parses the $_FILES array and returns an array more like a normal $_POST array.
+
+			Parameters:
+				part - (Optional) The key of the file tree to return.
+
+			Returns:
+				A more sensible array, or a piece of that sensible array if "part" is set.
+		*/
+
+		static function getParsedFilesArray($part = "") {
+			$clean = array();
+
+			foreach ($_FILES as $key => $first_level) {
+				// Hurray, we have a first level entry, just save it to the clean array.
+				if (!is_array($first_level["name"])) {
+					$clean[$key] = $first_level;
+				} else {
+					$clean[$key] = static::getParsedFilesArrayLoop($first_level["name"],$first_level["tmp_name"],$first_level["type"],$first_level["error"],$first_level["size"]);
+				}
+			}
+
+			if ($part) {
+				return $clean[$part];
+			}
+
+			return $clean;
+		}
+
+		/*
+			Function: parseFilesArrayLoop
+				Private method used by parseFilesArray.
+		*/
+
+		private static function getParsedFilesArrayLoop($name,$tmp_name,$type,$error,$size) {
+			$array = array();
+
+			foreach ($name as $k => $v) {
+				if (!is_array($v)) {
+					$array[$k]["name"] = $v;
+					$array[$k]["tmp_name"] = $tmp_name[$k];
+					$array[$k]["type"] = $type[$k];
+					$array[$k]["error"] = $error[$k];
+					$array[$k]["size"] = $size[$k];
+				} else {
+					$array[$k] = static::getParsedFilesArrayLoop($name[$k],$tmp_name[$k],$type[$k],$error[$k],$size[$k]);
+				}
+			}
+			
+			return $array;
+		}
+
+		/*
 			Function: process
 				Processes the field's input and returns its output
 

@@ -1,8 +1,10 @@
 <?php
+	use BigTree\Field;
+
 	// Parse the resources
 	$bigtree["entry"] = array();
 	$bigtree["template"] = $cms->getTemplate($_POST["template"]);
-	$bigtree["file_data"] = BigTree::parsedFilesArray("resources");
+	$bigtree["file_data"] = Field::getParsedFilesArray("resources");
 	$bigtree["post_data"] = $_POST["resources"];
 
 	foreach ((array)$bigtree["template"]["resources"] as $resource) {
@@ -20,7 +22,7 @@
 			$field["options"]["directory"] = $options["directory"] = "files/pages/";
 		}
 
-		$field = new BigTree\Field($field);
+		$field = new Field($field);
 		$output = $field->process();
 		if (!is_null($output)) {
 			$bigtree["entry"][$field["key"]] = $output;

@@ -1,4 +1,6 @@
 <?php
+	use BigTree\Field;
+
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
@@ -13,9 +15,9 @@
 		$bigtree["crops"] = array();
 		$bigtree["errors"] = array();
 		$bigtree["post_data"] = $_POST;
-		$bigtree["file_data"] = BigTree::parsedFilesArray();
+		$bigtree["file_data"] = Field::getParsedFilesArray();
 
-		$field = new BigTree\Field(array(
+		$field = new Field(array(
 			"type" => $item["type"],
 			"title" => $item["title"],
 			"key" => "value",
@@ -52,3 +54,4 @@
 	}
 
 	BigTree::redirect(ADMIN_ROOT."settings/");
+	

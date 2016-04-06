@@ -1,4 +1,6 @@
 <?php
+	use BigTree\Field;
+
 	// Generate a hash of everything posted
 	$complete_string = "";
 	$hash_recurse = function($array) {
@@ -58,10 +60,10 @@
 	$bigtree["field_types"] = $cached_types["modules"];
 
 	$bigtree["post_data"] = $_POST;
-	$bigtree["file_data"] = BigTree::parsedFilesArray();
+	$bigtree["file_data"] = Field::getParsedFilesArray();
 
 	foreach ($bigtree["form"]["fields"] as $resource) {
-		$field = new BigTree\Field(array(
+		$field = new Field(array(
 			"type" => $resource["type"],
 			"title" => $resource["title"],
 			"key" => $resource["column"],
