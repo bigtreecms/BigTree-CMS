@@ -1,5 +1,6 @@
 <?php
 	use BigTree\FileSystem;
+	use BigTree\Image;
 
 	// Handle Javascript Minifying and Caching
 	if ($bigtree["path"][0] == "js") {
@@ -173,7 +174,7 @@
 			$size = explode("x", strtolower($bigtree["path"][2]));
 		}
 		if (count($size) == 2) {
-			BigTree::placeholderImage($size[0], $size[1], $style["background_color"], $style["text_color"], $style["image"], $style["text"]);
+			Image::placeholder($size[0], $size[1], $style["background_color"], $style["text_color"], $style["image"], $style["text"]);
 		}
 	}
 	

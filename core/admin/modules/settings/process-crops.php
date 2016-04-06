@@ -1,3 +1,6 @@
 <?php
-	$admin->processCrops($_POST["crop_key"]);
+	use BigTree\Image;
+
+	Image::processCrops($_POST["crop_key"]);
+	
 	BigTree::redirect(ADMIN_ROOT."settings/");

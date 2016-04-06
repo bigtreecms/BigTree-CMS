@@ -279,7 +279,7 @@
 								$crop["height"] *= 2;
 							}
 							// We don't want to add multiple errors so we check if we've already failed
-							if (!BigTree::imageManipulationMemoryAvailable($temp_name,$crop["width"],$crop["height"])) {
+							if (!Image::getMemoryAvailability($temp_name,$crop["width"],$crop["height"])) {
 								$bigtree["errors"][] = array("field" => $this->Title, "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
 								$failed = true;
 							}
@@ -294,8 +294,8 @@
 								$thumb["width"] *= 2;
 								$thumb["height"] *= 2;
 							}
-							$sizes = BigTree::getThumbnailSizes($temp_name,$thumb["width"],$thumb["height"]);
-							if (!BigTree::imageManipulationMemoryAvailable($temp_name,$sizes[3],$sizes[4])) {
+							$sizes = Image::getThumbnailSizes($temp_name,$thumb["width"],$thumb["height"]);
+							if (!Image::getMemoryAvailability($temp_name,$sizes[3],$sizes[4])) {
 								$bigtree["errors"][] = array("field" => $this->Title, "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
 								$failed = true;
 							}
@@ -307,7 +307,7 @@
 						// We don't want to add multiple errors and we also don't want to waste effort getting thumbnail sizes if we already failed.
 						if (!$failed && is_array($crop) && array_filter($crop)) {
 							list($w,$h) = getimagesize($temp_name);
-							if (!BigTree::imageManipulationMemoryAvailable($temp_name,$w,$h)) {
+							if (!Image::getMemoryAvailability($temp_name,$w,$h)) {
 								$bigtree["errors"][] = array("field" => $this->Title, "error" => "Image uploaded is too large for the server to manipulate. Please upload a smaller version of this image.");
 								$failed = true;
 							}
@@ -417,7 +417,7 @@
 				// If we did upload it successfully, check on thumbs and crops.
 				} else {
 					// Get path info on the file.
-					$pinfo = BigTree::pathInfo($this->FileOutput);
+					$pinfo = pathinfo($this->FileOutput);
 
 					// Handle Crops
 					if (is_array($this->Settings["crops"])) {
@@ -457,7 +457,7 @@
 												if (($thumb["width"] && is_numeric($thumb["width"])) || ($thumb["height"] && is_numeric($thumb["height"]))) {
 													// Create a temporary thumbnail of the image on the server before moving it to it's destination.
 													$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-													BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$this->Settings["retina"],$thumb["grayscale"]);
+													Image::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$this->Settings["retina"],$thumb["grayscale"]);
 													// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
 													$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$this->Settings["directory"]);
 												}
@@ -471,7 +471,7 @@
 												if ($center_crop["width"] && is_numeric($center_crop["width"]) && $center_crop["height"] && is_numeric($center_crop["height"])) {
 													// Create a temporary crop of the image on the server before moving it to it's destination.
 													$temp_crop = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-													BigTree::centerCrop($temp_copy,$temp_crop,$center_crop["width"],$center_crop["height"],$this->Settings["retina"],$center_crop["grayscale"]);
+													Image::centerCrop($temp_copy,$temp_crop,$center_crop["width"],$center_crop["height"],$this->Settings["retina"],$center_crop["grayscale"]);
 													// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
 													$storage->replace($temp_crop,$center_crop["prefix"].$pinfo["basename"],$this->Settings["directory"]);
 												}
@@ -493,7 +493,7 @@
 							// Make sure the thumbnail has a width or height and it's numeric
 							if (($thumb["width"] && is_numeric($thumb["width"])) || ($thumb["height"] && is_numeric($thumb["height"]))) {
 								$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-								BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$this->Settings["retina"],$thumb["grayscale"]);
+								Image::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$this->Settings["retina"],$thumb["grayscale"]);
 								// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
 								$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$this->Settings["directory"]);
 							}
@@ -506,7 +506,7 @@
 							// Make sure the crop has a width and height and it's numeric
 							if ($crop["width"] && is_numeric($crop["width"]) && $crop["height"] && is_numeric($crop["height"])) {
 								$temp_crop = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-								BigTree::centerCrop($temp_copy,$temp_crop,$crop["width"],$crop["height"],$this->Settings["retina"],$crop["grayscale"]);
+								Image::centerCrop($temp_copy,$temp_crop,$crop["width"],$crop["height"],$this->Settings["retina"],$crop["grayscale"]);
 								// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
 								$storage->replace($temp_crop,$crop["prefix"].$pinfo["basename"],$this->Settings["directory"]);
 							}

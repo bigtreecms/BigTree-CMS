@@ -1,5 +1,6 @@
 <?php
 	use BigTree\FileSystem;
+	use BigTree\Image;
 
 	class BigTreeTestContentLoremIpsum {
 		public $words = array(
@@ -194,18 +195,18 @@
 
 		foreach (array_filter((array)$options["crops"]) as $crop) {
 			$crop_file = FileSystem::getPrefixedFile($file_name,$crop["prefix"]);
-			BigTree::centerCrop($file_name,$crop_file,$crop["width"],$crop["height"]);
+			Image::centerCrop($file_name,$crop_file,$crop["width"],$crop["height"]);
 			foreach (array_filter((array)$crop["thumbs"]) as $thumb) {
-				BigTree::createThumbnail($crop_file,FileSystem::getPrefixedFile($file_name,$thumb["prefix"]),$thumb["width"],$thumb["height"]);	
+				Image::createThumbnail($crop_file,FileSystem::getPrefixedFile($file_name,$thumb["prefix"]),$thumb["width"],$thumb["height"]);	
 			}
 		}
 
 		foreach (array_filter((array)$options["thumbs"]) as $thumb) {
-			BigTree::createThumbnail($file_name,FileSystem::getPrefixedFile($file_name,$thumb["prefix"]),$thumb["width"],$thumb["height"]);
+			Image::createThumbnail($file_name,FileSystem::getPrefixedFile($file_name,$thumb["prefix"]),$thumb["width"],$thumb["height"]);
 		}
 				
 		foreach (array_filter((array)$options["center_crops"]) as $crop) {
-			BigTree::centerCrop($file_name,FileSystem::getPrefixedFile($file_name,$crop["prefix"]),$crop["width"],$crop["height"]);
+			Image::centerCrop($file_name,FileSystem::getPrefixedFile($file_name,$crop["prefix"]),$crop["width"],$crop["height"]);
 		}
 
 		return $file_name;

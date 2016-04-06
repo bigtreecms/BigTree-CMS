@@ -1,4 +1,6 @@
 <?php
+	use BigTree\Image;
+	
 	$storage = new BigTreeStorage;
 	
 	// If we're replacing an existing file, find out its name
@@ -96,8 +98,8 @@
 						foreach ($thumbnails_to_create as $thumb) {
 							// We don't want to add multiple errors and we also don't want to waste effort getting thumbnail sizes if we already failed.
 							if (!$error) {
-								$sizes = BigTree::getThumbnailSizes($first_copy,$thumb["width"],$thumb["height"]);
-								if (!BigTree::imageManipulationMemoryAvailable($first_copy,$sizes[3],$sizes[4])) {
+								$sizes = Image::getThumbnailSizes($first_copy,$thumb["width"],$thumb["height"]);
+								if (!Image::getMemoryAvailability($first_copy,$sizes[3],$sizes[4])) {
 									$errors[] = "$file_name is too large for the server to manipulate. Please upload a smaller version of this image.";
 									unlink($first_copy);
 								}
@@ -113,7 +115,7 @@
 							foreach ($thumbnails_to_create as $key => $thumb) {
 								if ($iwidth > $thumb["width"] || $iheight > $thumb["height"]) {
 									$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-									BigTree::createThumbnail($first_copy,$temp_thumb,$thumb["width"],$thumb["height"]);
+									Image::createThumbnail($first_copy,$temp_thumb,$thumb["width"],$thumb["height"]);
 		
 									if ($replacing) {
 										$file = $storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],"files/resources/");

@@ -1,5 +1,7 @@
 <?php
-	$admin->processCrops($_POST["crop_key"]);
+	use BigTree\Image;
+
+	Image::processCrops($_POST["crop_key"]);
 
 	if (count($_SESSION["bigtree_admin"]["form_data"]["errors"])) {
 		BigTree::redirect($bigtree["form_root"]."error/");
