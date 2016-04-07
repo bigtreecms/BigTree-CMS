@@ -2786,6 +2786,8 @@ var BigTreeCallouts = function(settings) {
 		function getCallout() {
 			LastDialog = $(".bigtree_dialog_form").last();
 			BigTree.TabIndexDepth--;
+
+			var type_select = LastDialog.find(".callout_type select").get(0);
 	
 			// Validate required fields.
 			var validator = BigTreeFormValidator(LastDialog);
@@ -2794,7 +2796,7 @@ var BigTreeCallouts = function(settings) {
 			}
 			
 			var article = $('<article>');
-			article.html('<h4></h4><p>' + $("#callout_type select").get(0).options[$("#callout_type select").get(0).selectedIndex].text + '</p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
+			article.html('<h4></h4><p>' + type_select.options[type_select.selectedIndex].text + '</p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
 			
 			// Try our best to find some way to describe the callout
 			Description = "";
