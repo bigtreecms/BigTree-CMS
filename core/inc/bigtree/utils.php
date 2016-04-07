@@ -1619,7 +1619,7 @@
 				jQuery date picker formatting string.
 		*/
 
-		function phpDateTojQuery($format) {
+		static function phpDateTojQuery($format) {
 			$new_format = "";
 			for ($i = 0; $i < strlen($format); $i++) {
 				$c = substr($format,$i,1);
