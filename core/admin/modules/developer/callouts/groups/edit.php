@@ -1,6 +1,8 @@
 <?php
-	$callouts = BigTree\Callout::all("name ASC",true);
-	$group = new BigTree\CalloutGroup(end($bigtree["path"]));
+	namespace BigTree;
+	
+	$callouts = Callout::all("name ASC",true);
+	$group = new CalloutGroup(end($bigtree["path"]));
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>callouts/groups/update/<?=$group->ID?>/" class="module">
@@ -19,11 +21,11 @@
 						<?php
 							$x = 0;
 							foreach ($group->Callouts as $id) {
-								$callout = new BigTree\Callout($id);
+								$callout = new Callout($id);
 						?>
 						<li>
-							<input type="hidden" name="callouts[<?=$x?>]" value="<?=BigTree::safeEncode($id)?>" />
-							<p><?=BigTree::trimLength($callout->Name,100)?></p>
+							<input type="hidden" name="callouts[<?=$x?>]" value="<?=Text::htmlEncode($id)?>" />
+							<p><?=Text::trimLength($callout->Name,100)?></p>
 							<a href="#" class="icon_delete"></a>
 						</li>
 						<?php
@@ -37,7 +39,7 @@
 								foreach ($callouts as $callout) {
 									if (!in_array($callout["id"],$group->Callouts)) {
 							?>
-							<option value="<?=BigTree::safeEncode($callout["id"])?>"><?=BigTree::trimLength($callout["name"],100)?></option>
+							<option value="<?=Text::htmlEncode($callout["id"])?>"><?=Text::trimLength($callout["name"],100)?></option>
 							<?php
 									}
 								}

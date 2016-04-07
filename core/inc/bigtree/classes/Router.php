@@ -29,12 +29,15 @@
 
 			while ($x) {
 				$result = SQL::fetch("SELECT * FROM bigtree_route_history WHERE old_route = ?", implode("/",array_slice($path,0,$x)));
+
 				if ($result) {
 					$old = $result["old_route"];
 					$new = $result["new_route"];
 					$found = true;
+
 					break;
 				}
+
 				$x--;
 			}
 
@@ -42,6 +45,59 @@
 			if ($found) {
 				$new_url = $new.substr($_GET["bigtree_htaccess_url"],strlen($old));
 				static::redirect(WWW_ROOT.$new_url,"301");
+			}
+		}
+
+		/*
+			Function: classAutoLoader
+				Internal function to automatically load module classes as needed.
+		*/
+
+		static function classAutoLoader($class) {
+			global $bigtree;
+
+			// Known class in the cache file
+			if ($path = $bigtree["class_list"][$class]) {
+				if (substr($path,0,11) != "extensions/" && substr($path,0,7) != "custom/") {
+					$path = static::getIncludePath($path);
+				} else {
+					$path = SERVER_ROOT.$path;
+				}
+
+				if (file_exists($path)) {
+					include_once $path;
+					return;
+				}
+
+				// Auto loadable via the path
+			} elseif (substr($class,0,8) == "BigTree\\") {
+				$path = static::getIncludePath("inc/bigtree/classes/".str_replace("\\","/",substr($class,8)).".php");
+
+				if (file_exists($path)) {
+					include_once $path;
+					return;
+				}
+			}
+
+			// Clear the module class list just in case we're missing something.
+			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
+		}
+
+		/*
+			Function: currentURL
+				Return the current active URL with correct protocall and port
+
+			Parameters:
+				port - Whether to return the port for connections not on port 80 (defaults to false)
+		*/
+
+		static function currentURL($port = false) {
+			$protocol = (@$_SERVER["HTTPS"] == "on") ? "https://" : "http://";
+			
+			if ($_SERVER["SERVER_PORT"] != "80" && $port) {
+				return $protocol.$_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
+			} else {
+				return $protocol.$_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
 			}
 		}
 
@@ -62,6 +118,60 @@
 			} else {
 				return SERVER_ROOT."core/".$file;
 			}
+		}
+
+		/*
+			Function: getRegistryCommands
+				Helper function for pattern based routing.
+		*/ 
+
+		static function getRegistryCommands($path,$pattern) {
+			// This method is based almost entirely on the Slim Framework's routing implementation (http://www.slimframework.com/)
+			static::$RouteParamNames = array();
+			static::$RouteParamNamesPath = array();
+
+			// Convert URL params into regex patterns, construct a regex for this route, init params
+			$regex_pattern = preg_replace_callback('#:([\w]+)\+?#',"Router::getRegistryCommandsCallback",str_replace(')',')?',$pattern));
+
+			if (substr($pattern, -1) === '/') {
+				$regex_pattern .= '?';
+			}
+		
+			$regex = '#^'.$regex_pattern.'$#';
+		
+			// Do the regex match
+			if (!preg_match($regex,$path,$values)) {
+				return false;
+			}
+
+			$params = array();
+			foreach (static::$RouteParamNames as $name) {
+				if (isset($values[$name])) {
+					if (isset(static::$RouteParamNamesPath[$name])) {
+						$params[$name] = explode('/', urldecode($values[$name]));
+					} else {
+						$params[$name] = urldecode($values[$name]);
+					}
+				}
+			}
+
+			return $params;
+		}
+
+		/*
+			Function: getRegistryCommandsCallback
+				Regex callback for getRegistryCommands
+		*/
+
+		static function getRegistryCommandsCallback($match) {
+			static::$RouteParamNames[] = $match[1];
+			
+			if (substr($match[0], -1) === '+') {
+				static::$RouteParamNamesPath[$match[1]] = 1;	
+				return '(?P<'.$match[1].'>.+)';
+			}
+	
+			return '(?P<'.$match[1].'>[^/]+)';
 		}
 
 		/*
@@ -93,6 +203,147 @@
 			static::$ReservedRoutes[] = $admin_route;
 
 			return static::$ReservedRoutes;
+		}
+
+		/*
+			Function: getRoutedFileAndCommands
+				Returns the proper file to include based on existence of subdirectories or .php files with given route names.
+				Used by the CMS for routing ajax and modules.
+
+			Parameters:
+				directory - Root directory to begin looking in.
+				path - An array of routes.
+
+			Returns:
+				An array with the first element being the file to include and the second element being an array containing extraneous routes from the end of the path.
+		*/
+
+		static function getRoutedFileAndCommands($directory, $path) {
+			$commands = array();
+			$inc_file = $directory;
+			$inc_dir = $directory;
+			$ended = false;
+			$found_file = false;
+
+			foreach ($path as $piece) {
+				// Prevent path exploitation
+				if ($piece == "..") {
+					die();
+				}
+
+				// We're done, everything is a command now.
+				if ($ended) {
+					$commands[] = $piece;
+				// Keep looking for directories.
+				} elseif (is_dir($inc_dir.$piece)) {
+					$inc_file .= $piece."/";
+					$inc_dir .= $piece."/";
+				// File exists, we're ending now.
+				} elseif ($piece != "_header" && $piece != "_footer" && file_exists($inc_file.$piece.".php")) {
+					$inc_file .= $piece.".php";
+					$ended = true;
+					$found_file = true;
+				// Couldn't find a file or directory.
+				} else {
+					$commands[] = $piece;
+					$ended = true;
+				}
+			}
+
+			if (!$found_file) {
+				// If we have default in the routed directory, use it.
+				if (file_exists($inc_dir."default.php")) {
+					$inc_file = $inc_dir."default.php";
+				// See if we can change the directory name into .php file in case the directory is empty but we have .php
+				} elseif (file_exists(rtrim($inc_dir,"/").".php")) {
+					$inc_file = rtrim($inc_dir,"/").".php";
+				// We couldn't route anywhere apparently.
+				} else {
+					return array(false,false);
+				}
+			}
+
+			return array($inc_file, $commands);
+		}
+
+		/*
+			Function: getRoutedLayoutPartials
+				Retrieves a list of route layout files (_header.php and _footer.php) for a given file path.
+
+			Parameters:
+				path - A file path
+
+			Returns:
+				An array containing an array of headers at the first index and footers at the second index.
+		*/
+
+		static function getRoutedLayoutPartials($path) {
+			$file_location = ltrim(static::replaceServerRoot($path),"/");
+			$include_root = false;
+			$pathed_includes = false;
+			$headers = $footers = array();
+
+			// Get our path pieces and include roots setup properly
+			if (strpos($file_location,"custom/admin/modules/") === 0) {
+				$include_root = "admin/modules/";
+				$pathed_includes = true;
+				$pieces = explode("/",substr($file_location,21));
+			} elseif (strpos($file_location,"core/admin/modules/") === 0) {
+				$include_root = "admin/modules/";
+				$pathed_includes = true;
+				$pieces = explode("/",substr($file_location,19));
+			} elseif (strpos($file_location,"custom/admin/ajax/")) {
+				$include_root = "admin/ajax/";
+				$pathed_includes = true;
+				$pieces = explode("/",substr($file_location,18));
+			} elseif (strpos($file_location,"core/admin/ajax/") === 0) {
+				$include_root = "admin/ajax/";
+				$pathed_includes = true;
+				$pieces = explode("/",substr($file_location,16));
+			} elseif (strpos($file_location,"templates/routed/") === 0) {
+				$include_root = "templates/routed/";
+				$pieces = explode("/",substr($file_location,17));
+			} elseif (strpos($file_location,"templates/ajax/") === 0) {
+				$include_root = "templates/ajax/";
+				$pieces = explode("/",substr($file_location,15));
+			} elseif (strpos($file_location,"extensions/") === 0) {
+				$pieces = explode("/",$file_location);
+				if ($pieces[2] == "templates" && ($pieces[3] == "routed" || $pieces[3] == "ajax")) {
+					$include_root = "extensions/".$pieces[1]."/templates/".$pieces[3]."/";
+					$pieces = array_slice($pieces,4);
+				} elseif ($pieces[2] == "modules") {
+					$include_root = "extensions/".$pieces[1]."/modules/";
+					$pieces = array_slice($pieces,3);
+				} elseif ($pieces[2] == "ajax") {
+					$include_root = "extensions/".$pieces[1]."/ajax/";
+					$pieces = array_slice($pieces,3);
+				}
+			}
+
+			// Only certain places include headers and footers
+			if ($include_root) {
+				$inc_path = "";
+				foreach ($pieces as $piece) {
+					if (substr($piece,-4,4) != ".php") {
+						$inc_path .= $piece."/";
+						if ($pathed_includes) {
+							$header = static::getIncludePath($include_root.$inc_path."_header.php");
+							$footer = static::getIncludePath($include_root.$inc_path."_footer.php");
+						} else {
+							$header = SERVER_ROOT.$include_root.$inc_path."_header.php";
+							$footer = SERVER_ROOT.$include_root.$inc_path."_footer.php";
+						}
+						if (file_exists($header)) {
+							$headers[] = $header;
+						}
+						if (file_exists($footer)) {
+							$footers[] = $footer;
+						}
+					}
+				}
+			}
+
+			return array($headers,array_reverse($footers));
 		}
 
 		/*
@@ -163,6 +414,26 @@
 		}
 
 		/*
+			Function: replaceServerRoot
+				Replaces the server root in a string (as long as it is at the beginning of the string)
+
+			Parameters:
+				string - String to modify
+				replace - Replacement string for SERVER_ROOT
+
+			Returns:
+				A string.
+		*/
+
+		static function replaceServerRoot($string, $replace = "") {
+			if (strpos($string,SERVER_ROOT) === 0) {
+				return $replace.substr($string, strlen(SERVER_ROOT));
+			}
+
+			return $string;
+		}
+
+		/*
 			Function: routeToPage
 				Provides the page ID for a given path array.
 				This is a method used by the router and the admin and can generally be ignored.
@@ -175,7 +446,7 @@
 				An array containing [page ID, commands array, template routed status]
 		*/
 		
-		static function routeToPage($path,$previewing = false) {
+		static function routeToPage($path, $previewing = false) {
 			$commands = array();
 			$publish_at = $previewing ? "" : "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";
 			

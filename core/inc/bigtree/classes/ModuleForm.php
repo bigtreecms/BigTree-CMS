@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class ModuleForm extends ModuleInterface {
 
 		protected $ID;
@@ -79,9 +77,9 @@
 			foreach ($fields as $key => $data) {
 				$field = array(
 					"column" => $data["column"] ? $data["column"] : $key,
-					"type" => BigTree::safeEncode($data["type"]),
-					"title" => BigTree::safeEncode($data["title"]),
-					"subtitle" => BigTree::safeEncode($data["subtitle"]),
+					"type" => Text::htmlEncode($data["type"]),
+					"title" => Text::htmlEncode($data["title"]),
+					"subtitle" => Text::htmlEncode($data["subtitle"]),
 					"options" => is_array($data["options"]) ? $data["options"] : array_filter((array)json_decode($data["options"],true))
 				);
 
@@ -125,8 +123,8 @@
 			foreach ($this->Fields as $key => $field) {
 				$field["options"] = is_array($field["options"]) ? $field["options"] : json_decode($field["options"],true);
 				$field["column"] = $key;
-				$field["title"] = BigTree::safeEncode($field["title"]);
-				$field["subtitle"] = BigTree::safeEncode($field["subtitle"]);
+				$field["title"] = Text::htmlEncode($field["title"]);
+				$field["subtitle"] = Text::htmlEncode($field["subtitle"]);
 				$this->Fields[$key] = $field;
 			}
 
@@ -171,11 +169,11 @@
 			$this->save();
 
 			// Update action titles
-			$title = SQL::escape(BigTree::safeEncode($title));
+			$title = SQL::escape(Text::htmlEncode($title));
 			SQL::query("UPDATE bigtree_module_actions SET name = 'Add $title' 
-									WHERE interface = ? AND route LIKE 'add%'", $this->ID);
+						WHERE interface = ? AND route LIKE 'add%'", $this->ID);
 			SQL::query("UPDATE bigtree_module_actions SET name = 'Edit $title' 
-									WHERE interface = ? AND route LIKE 'edit%'", $this->ID);
+						WHERE interface = ? AND route LIKE 'edit%'", $this->ID);
 
 			// Get related views for this table and update numeric status
 			$view_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_interfaces WHERE `type` = 'view' AND `table` = ?", $table);

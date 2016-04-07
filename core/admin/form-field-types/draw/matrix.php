@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	if (!is_array($field["value"])) {
 		$field["value"] = array();
 	}
@@ -19,12 +21,12 @@
 			<input type="hidden" class="bigtree_matrix_data" value="<?=base64_encode(json_encode($item))?>" />
 			<?php BigTreeAdmin::drawArrayLevel(array($x),$item,$field) ?>
 			<h4>
-				<?=BigTree::safeEncode($item["__internal-title"])?>
-				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-title]" value="<?=BigTree::safeEncode($item["__internal-title"])?>" />
+				<?=Text::htmlEncode($item["__internal-title"])?>
+				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-title]" value="<?=Text::htmlEncode($item["__internal-title"])?>" />
 			</h4>
 			<p>
-				<?=BigTree::safeEncode($item["__internal-subtitle"])?>
-				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-subtitle]" value="<?=BigTree::safeEncode($item["__internal-subtitle"])?>" />
+				<?=Text::htmlEncode($item["__internal-subtitle"])?>
+				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-subtitle]" value="<?=Text::htmlEncode($item["__internal-subtitle"])?>" />
 			</p>
 			<div class="bottom">
 				<span class="icon_drag"></span>
@@ -68,12 +70,12 @@
 			<li>
 				<input type="hidden" class="bigtree_matrix_data" value="<?=base64_encode(json_encode($item))?>" />
 				<?php BigTreeAdmin::drawArrayLevel(array($x),$item,$field) ?>
-				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-title]" value="<?=BigTree::safeEncode($item["__internal-title"])?>" />
-				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-subtitle]" value="<?=BigTree::safeEncode($item["__internal-subtitle"])?>" />
+				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-title]" value="<?=Text::htmlEncode($item["__internal-title"])?>" />
+				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-subtitle]" value="<?=Text::htmlEncode($item["__internal-subtitle"])?>" />
 				<span class="icon_sort"></span>
 				<p>
-					<?=BigTree::trimLength(BigTree::safeEncode($item["__internal-title"]),100)?>
-					<small><?=BigTree::trimLength(BigTree::safeEncode($item["__internal-subtitle"]),100)?></small>
+					<?=Text::trimLength(Text::htmlEncode($item["__internal-title"]),100)?>
+					<small><?=Text::trimLength(Text::htmlEncode($item["__internal-subtitle"]),100)?></small>
 				</p>
 				<a href="#" class="icon_delete"></a>
 				<a href="#" class="icon_edit"></a>

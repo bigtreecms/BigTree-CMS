@@ -2,6 +2,7 @@
 	use BigTree\FileSystem;
 	use BigTree\Image;
 	use BigTree\Router;
+	use BigTree\Text;
 
 	// Handle Javascript Minifying and Caching
 	if ($bigtree["path"][0] == "js") {
@@ -218,10 +219,10 @@
 		if ($bigtree["path"][0] == "*") {
 			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$bigtree["path"][1]."/");
 			$base_path = EXTENSION_ROOT;
-			list($inc,$commands) = BigTree::route($base_path."templates/ajax/",array_slice($bigtree["path"],3));
+			list($inc,$commands) = Router::getRoutedFileAndCommands($base_path."templates/ajax/",array_slice($bigtree["path"],3));
 		} else {
 			$base_path = SERVER_ROOT;
-			list($inc,$commands) = BigTree::route($base_path."templates/ajax/",array_slice($bigtree["path"],1));
+			list($inc,$commands) = Router::getRoutedFileAndCommands($base_path."templates/ajax/",array_slice($bigtree["path"],1));
 		}		
 		
 		if (!file_exists($inc)) {
@@ -231,7 +232,7 @@
 		$bigtree["ajax_inc"] = $inc;
 		$bigtree["commands"] = $commands;
 
-		list($bigtree["ajax_headers"],$bigtree["ajax_footers"]) = BigTree::routeLayouts($inc);
+		list($bigtree["ajax_headers"],$bigtree["ajax_footers"]) = Router::getRoutedLayoutPartials($inc);
 			
 		// Draw the headers.
 		foreach ($bigtree["ajax_headers"] as $header) {
@@ -303,7 +304,7 @@
 		$registry_found = false;
 		foreach ($cms->RouteRegistry["public"] as $registration) {
 			if (!$registry_found) {
-				$registry_commands = BigTree::routeRegex("/".implode("/",$bigtree["path"]),$registration["pattern"]);
+				$registry_commands = Router::getRegistryCommands("/".implode("/",$bigtree["path"]),$registration["pattern"]);
 				if ($registry_commands !== false) {
 					$registry_found = true;
 					$registry_rule = $registration;
@@ -333,7 +334,7 @@
 				$x++;
 			}
 
-			list($bigtree["routed_headers"],$bigtree["routed_footers"]) = BigTree::routeLayouts($registry_rule["file"]);
+			list($bigtree["routed_headers"],$bigtree["routed_footers"]) = Router::getRoutedLayoutPartials($registry_rule["file"]);
 				
 			// Draw the headers.
 			foreach ($bigtree["routed_headers"] as $header) {
@@ -410,7 +411,7 @@
 			$registry_found = false;
 			foreach ($cms->RouteRegistry["template"] as $registration) {
 				if ($registration["template"] == $bigtree["page"]["template"]) {
-					$registry_commands = BigTree::routeRegex(implode("/",$bigtree["commands"]),$registration["pattern"]);
+					$registry_commands = Router::getRegistryCommands(implode("/",$bigtree["commands"]),$registration["pattern"]);
 					if ($registry_commands !== false) {
 						$registry_found = true;
 						$registry_rule = $registration;
@@ -443,9 +444,9 @@
 					array_pop($path_components);
 				}
 				if ($extension) {
-					list($inc,$commands) = BigTree::route(SERVER_ROOT."extensions/$extension/templates/routed/$template/",$path_components);
+					list($inc,$commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."extensions/$extension/templates/routed/$template/",$path_components);
 				} else {
-					list($inc,$commands) = BigTree::route(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/",$path_components);
+					list($inc,$commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/",$path_components);
 				}
 				$bigtree["routed_inc"] = $inc;
 				$bigtree["commands"] = $commands;
@@ -456,7 +457,7 @@
 				}
 			}
 			
-			list($bigtree["routed_headers"],$bigtree["routed_footers"]) = BigTree::routeLayouts($inc);
+			list($bigtree["routed_headers"],$bigtree["routed_footers"]) = Router::getRoutedLayoutPartials($inc);
 
 			// Draw the headers.
 			foreach ($bigtree["routed_headers"] as $header) {
@@ -562,7 +563,7 @@
 		if (!isset($bigtree["page"]["id"])) {
 			$bigtree["page"]["id"] = $bigtree["page"]["page"];
 		}
-		$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(array("http://","https://"),"//",$bigtree["config"]["admin_root"]).'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&amp;current_page_id='.$bigtree["page"]["id"].'&amp;show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;show_preview='.$show_preview_bar.'&amp;return_link='.$return_link.'&amp;custom_edit_link='.(empty($bigtree["bar_edit_link"]) ? "" : BigTree::safeEncode($bigtree["bar_edit_link"])).'"></script></body>',$bigtree["content"]);
+		$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(array("http://","https://"),"//",$bigtree["config"]["admin_root"]).'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&amp;current_page_id='.$bigtree["page"]["id"].'&amp;show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;show_preview='.$show_preview_bar.'&amp;return_link='.$return_link.'&amp;custom_edit_link='.(empty($bigtree["bar_edit_link"]) ? "" : Text::htmlEncode($bigtree["bar_edit_link"])).'"></script></body>',$bigtree["content"]);
 		// Don't cache the page with the BigTree bar
 		$bigtree["config"]["cache"] = false;
 	}

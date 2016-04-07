@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$autoModule = new BigTreeAutoModule;
 
 	// Grab View Data
@@ -107,7 +109,7 @@
 				if ($data["function"]) {
 					$link = call_user_func($data["function"],$item);
 				}
-				$action = BigTree::safeEncode($data["name"]);
+				$action = Text::htmlEncode($data["name"]);
 	?>
 	<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>" title="<?=$action?>"></a></section>
 	<?php

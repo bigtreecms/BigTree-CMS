@@ -1,3 +1,6 @@
+<?php
+	namespace BigTree;
+?>
 <div class="container">
 	<header><p>Add additional files and tables to your package.</p></header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>packages/build/save-files/" class="module">
@@ -9,7 +12,7 @@
 					<li>
 						<input type="hidden" name="files[]" value="<?=htmlspecialchars($file)?>" />
 						<a href="#" class="icon_small icon_small_delete"></a>
-						<span><?=BigTree::replaceServerRoot($file)?></span>
+						<span><?=Router::replaceServerRoot($file)?></span>
 					</li>
 					<?php } ?>
 				</ul>

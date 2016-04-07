@@ -29,7 +29,7 @@
 	
 	if ($bigtree["callout"]["description"]) {
 ?>
-<p class="callout_description"><?=BigTree::safeEncode($bigtree["callout"]["description"])?></p>
+<p class="callout_description"><?=Text::htmlEncode($bigtree["callout"]["description"])?></p>
 <?php
 	}
 ?>
@@ -79,8 +79,10 @@
 
 <?php
 	}
+
 	$bigtree["html_editor_width"] = 440;
-	$bigtree["html_editor_height"] = 200;	
+	$bigtree["html_editor_height"] = 200;
+	
 	Router::includeFile("admin/layouts/_html-field-loader.php");
 	Router::includeFile("admin/layouts/_ajax-ready-loader.php");
 ?>	

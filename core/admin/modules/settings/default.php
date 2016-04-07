@@ -1,14 +1,16 @@
 <?php
+	namespace BigTree;
+
 	$admin->requireLevel(1);
 
-	$settings = BigTree\Setting::all("name ASC",true);
+	$settings = Setting::all("name ASC",true);
 	foreach ($settings as &$item) {
 		if ($item["encrypted"]) {
 			$item["value"] = "&mdash; Encrypted Value &mdash;";
 		} elseif (is_array($item["value"]) || ($item["value"] && !strlen(trim(strip_tags($item["value"]))))) {
 			$item["value"] = "&mdash; Edit To View &mdash;";
 		} else {
-			$item["value"] = BigTree::trimLength(strip_tags($item["value"]),100);
+			$item["value"] = Text::trimLength(strip_tags($item["value"]),100);
 		}
 	}
 ?>
@@ -23,7 +25,7 @@
 		actions: {
 			edit: "<?=ADMIN_ROOT?>settings/edit/{id}/"
 		},
-		data: <?=BigTree::jsonExtract($settings,array("id","name","value"))?>,
+		data: <?=JSON::encodeColumns($settings,array("id","name","value"))?>,
 		searchable: true,
 		sortable: true,
 		perPage: 10

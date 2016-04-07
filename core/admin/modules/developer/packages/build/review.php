@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	// Need to get the names for everything we're including
 	$module_string = array();
 	foreach ((array)$modules as $m) {
@@ -51,7 +53,7 @@
 	}
 	$file_string = array();
 	foreach ((array)$files as $f) {
-		$file = BigTree::replaceServerRoot($f);
+		$file = Router::replaceServerRoot($f);
 		if ($file) {
 			$file_string[] = $file;
 		}

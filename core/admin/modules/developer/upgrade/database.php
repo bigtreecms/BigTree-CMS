@@ -1,5 +1,5 @@
 <?php
-	use BigTree\FileSystem;
+	namespace BigTree;
 
 	$current_revision = $cms->getSetting("bigtree-internal-revision");
 	while ($current_revision < BIGTREE_REVISION) {
@@ -588,8 +588,9 @@
 				}
 				$new_resources[] = $r;
 			}
-			return BigTree::json($new_resources,true);
+			return JSON::encode($new_resources,true);
 		};
+
 		$field_converter = function($fields) {
 			$new_fields = array();
 			foreach ($fields as $id => $field) {
@@ -641,12 +642,12 @@
 		$q = $db->query("SELECT * FROM bigtree_module_forms");
 		while ($f = $q->fetch()) {
 			$fields = $field_converter(json_decode($f["fields"],true));
-			$db->query("UPDATE bigtree_module_forms SET fields = '".BigTree::json($fields,true)."' WHERE id = '".$f["id"]."'");
+			$db->query("UPDATE bigtree_module_forms SET fields = '".JSON::encode($fields,true)."' WHERE id = '".$f["id"]."'");
 		}
 		$q = $db->query("SELECT * FROM bigtree_module_embeds");
 		while ($f = $q->fetch()) {
 			$fields = $field_converter(json_decode($f["fields"],true));
-			$db->query("UPDATE bigtree_module_embeds SET fields = '".BigTree::json($fields,true)."' WHERE id = '".$f["id"]."'");
+			$db->query("UPDATE bigtree_module_embeds SET fields = '".JSON::encode($fields,true)."' WHERE id = '".$f["id"]."'");
 		}
 		// Settings
 		$q = $db->query("SELECT * FROM bigtree_settings WHERE type = 'array'");
@@ -677,7 +678,7 @@
 			unset($entry);
 
 			// Update type/options
-			$db->query("UPDATE bigtree_settings SET type = 'matrix', options = '".BigTree::json($options,true)."' WHERE id = '".$f["id"]."'");
+			$db->query("UPDATE bigtree_settings SET type = 'matrix', options = '".JSON::encode($options,true)."' WHERE id = '".$f["id"]."'");
 			// Update value separately
 			BigTreeAdmin::updateSettingValue($f["id"],$value);
 		}

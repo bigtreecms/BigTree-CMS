@@ -6,7 +6,6 @@
 
 	namespace BigTree;
 	
-	use BigTree;
 	use BigTreeAdmin;
 	use BigTreeCMS;
 
@@ -240,16 +239,16 @@
 			$id = SQL::insert("bigtree_pages",array(
 				"trunk" => $trunk,
 				"parent" => $parent,
-				"nav_title" => BigTree::safeEncode($nav_title),
+				"nav_title" => Text::htmlEncode($nav_title),
 				"route" => $route,
 				"path" => $path,
 				"in_nav" => ($in_nav ? "on" : ""),
-				"title" => BigTree::safeEncode($title),
+				"title" => Text::htmlEncode($title),
 				"template" => $template,
 				"external" => ($external ? BigTree\Link::encode($external) : ""),
 				"new_window" => ($new_window ? "on" : ""),
 				"resources" => $resources,
-				"meta_description" => BigTree::safeEncode($meta_description),
+				"meta_description" => Text::htmlEncode($meta_description),
 				"seo_invisible" => ($seo_invisible ? "on" : ""),
 				"last_edited_by" => (get_class($admin) == "BigTreeAdmin") ? $admin->ID : null,
 				"created_at" => "NOW()",
@@ -939,11 +938,10 @@
 		
 		function getTags($return_arrays = false) {
 			$tags = SQL::fetchAll("SELECT bigtree_tags.*
-											   FROM bigtree_tags JOIN bigtree_tags_rel 
-											   ON bigtree_tags.id = bigtree_tags_rel.tag 
-											   WHERE bigtree_tags_rel.`table` = 'bigtree_pages' AND 
-										   			 bigtree_tags_rel.entry = ?
-											   ORDER BY bigtree_tags.tag", $this->ID);
+								   FROM bigtree_tags JOIN bigtree_tags_rel 
+								   ON bigtree_tags.id = bigtree_tags_rel.tag 
+								   WHERE bigtree_tags_rel.`table` = 'bigtree_pages' AND bigtree_tags_rel.entry = ?
+								   ORDER BY bigtree_tags.tag", $this->ID);
 
 			if (!$return_arrays) {
 				foreach ($tags as &$tag) {
@@ -1243,11 +1241,11 @@
 				"trunk" => $this->Trunk ? "on" : "",
 				"parent" => $this->Parent,
 				"in_nav" => $this->InNav ? "on" : "",
-				"nav_title" => BigTree::safeEncode($this->NavigationTitle),
-				"title" => BigTree::safeEncode($this->Title),
+				"nav_title" => Text::htmlEncode($this->NavigationTitle),
+				"title" => Text::htmlEncode($this->Title),
 				"path" => $this->Path,
 				"route" => $this->Route,
-				"meta_description" => BigTree::safeEncode($this->MetaDescription),
+				"meta_description" => Text::htmlEncode($this->MetaDescription),
 				"seo_invisible" => $this->SEOInvisible ? "on" : "",
 				"template" => $this->Template,
 				"external" => $this->External ? Link::encode($this->External) : "",
@@ -1293,10 +1291,8 @@
 															WHERE page = ? AND saved = ''", $this->ID);
 			if ($revision_count > 10) {
 				SQL::query("DELETE FROM bigtree_page_revisions 
-										WHERE page = ? AND 
-											  updated_at < '".date("Y-m-d",strtotime("-1 month"))."' AND 
-											  saved = '' 
-										ORDER BY updated_at ASC LIMIT ".($revision_count - 10), $this->ID);
+							WHERE page = ? AND updated_at < '".date("Y-m-d",strtotime("-1 month"))."' AND saved = '' 
+							ORDER BY updated_at ASC LIMIT ". ($revision_count - 10), $this->ID);
 			}
 
 			// Remove this page from the cache
@@ -1407,4 +1403,6 @@
 			$this->Position = $position;
 			SQL::update("bigtree_pages",$this->ID,array("position" => $position));
 		}
+
 	}
+	

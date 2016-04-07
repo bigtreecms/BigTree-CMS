@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	// Get the form so we can walk through its fields
 	$form = BigTreeAutoModule::getForm($_GET["form"]);
 
@@ -26,7 +28,7 @@
 	<section class="integrity_errors">
 		<a href="<?=ADMIN_ROOT.$module["route"]."/".$action["route"]."/".htmlspecialchars($_GET["id"])?>/" target="_blank">Edit</a>
 		<span class="icon_small icon_small_warning"></span>
-		<p>Broken <?=(($type == "img") ? "Image" : "Link")?>: <?=BigTree::safeEncode($error)?> in field &ldquo;<?=$field?>&rdquo;</p>
+		<p>Broken <?=(($type == "img") ? "Image" : "Link")?>: <?=Text::htmlEncode($error)?> in field &ldquo;<?=$field?>&rdquo;</p>
 	</section>
 </li>
 <?php

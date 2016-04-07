@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	$db_error = false;
 	$is_group_based_perm = false;
 	$list = array();
@@ -79,7 +81,7 @@
 	<option></option>
 	<?php } ?>
 	<?php foreach ($list as $option) { ?>
-	<option value="<?=BigTree::safeEncode($option["value"])?>"<?php if ($field["value"] == $option["value"]) { ?> selected="selected"<?php } ?><?php if ($option["access_level"]) { ?> data-access-level="<?=$option["access_level"]?>"<?php } ?>><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($option["description"]), 100))?></option>
+	<option value="<?=Text::htmlEncode($option["value"])?>"<?php if ($field["value"] == $option["value"]) { ?> selected="selected"<?php } ?><?php if ($option["access_level"]) { ?> data-access-level="<?=$option["access_level"]?>"<?php } ?>><?=Text::htmlEncode(Text::trimLength(strip_tags($option["description"]), 100))?></option>
 	<?php } ?>
 </select>
 <?php

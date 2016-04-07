@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	$users = $admin->getUsers();
 	$user_data = array();
 	foreach ($users as $user) {
@@ -31,7 +33,7 @@
 				});
 			}
 		},
-		data: <?=BigTree::jsonExtract($user_data,array("id","gravatar","name","email","company"))?>,
+		data: <?=JSON::encodeColumns($user_data,array("id","gravatar","name","email","company"))?>,
 		searchable: true,
 		sortable: true,
 		perPage: 10

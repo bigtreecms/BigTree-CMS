@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	$bigtree["form"] = $form = BigTreeAutoModule::getEmbedFormByHash($_GET["hash"]);
 	$bigtree["form_root"] = ADMIN_ROOT."ajax/auto-modules/embeddable-form/";
 ?><!doctype html> 
@@ -48,7 +50,7 @@
 		?>
 		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
-		<script>BigTree.dateFormat = "<?=BigTree::phpDateTojQuery($bigtree["config"]["date_format"])?>";</script>
+		<script>BigTree.dateFormat = "<?=Date::convertTojQuery($bigtree["config"]["date_format"])?>";</script>
 		<script src="<?=ADMIN_ROOT?>js/<?=isset($bigtree["config"]["html_editor"]) ? $bigtree["config"]["html_editor"]["src"] : "tinymce3/tiny_mce.js"?>"></script>
 		<?php
 			// Configuration based JS

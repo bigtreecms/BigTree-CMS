@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	if (!is_array($field["value"])) {
 		$field["value"] = array();
 	}
@@ -23,8 +25,8 @@
 			<input type="hidden" class="callout_data" value="<?=base64_encode(json_encode($callout))?>" />
 			<?php BigTreeAdmin::drawArrayLevel(array($x),$callout,$field) ?>
 			<h4>
-				<?=BigTree::safeEncode($callout["display_title"])?>
-				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][display_title]" value="<?=BigTree::safeEncode($callout["display_title"])?>" />
+				<?=Text::htmlEncode($callout["display_title"])?>
+				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][display_title]" value="<?=Text::htmlEncode($callout["display_title"])?>" />
 			</h4>
 			<p><?=$type["name"]?></p>
 			<div class="bottom">

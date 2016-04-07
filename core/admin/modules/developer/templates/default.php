@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	$templates = $admin->getTemplates();
 	$basic_data = $routed_data = array();
 	foreach ($templates as $template) {
@@ -39,14 +41,14 @@
 	// Basic table
 	BigTreeTable($.extend(table_config,{
 		container: "#basic_templates",
-		data: <?=BigTree::jsonExtract($basic_data,array("id","name"))?>,
+		data: <?=JSON::encodeColumns($basic_data,array("id","name"))?>,
 		title: "Basic Templates"
 	}));
 
 	// Routed table
 	BigTreeTable($.extend(table_config,{
 		container: "#routed_templates",
-		data: <?=BigTree::jsonExtract($routed_data,array("id","name"))?>,
+		data: <?=JSON::encodeColumns($routed_data,array("id","name"))?>,
 		title: "Routed Templates"
 	}));
 </script>

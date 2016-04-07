@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	$users = $admin->getUsers();
 	foreach ($users as &$user) {
 		$user["gravatar"] = BigTree::gravatar($user["email"],36);
@@ -19,7 +21,7 @@
 		actions: {
 			settings: "<?=DEVELOPER_ROOT?>user-emulator/emulate/{id}/"
 		},
-		data: <?=BigTree::jsonExtract($users,array("id","gravatar","name","email","company"))?>,
+		data: <?=JSON::encodeColumns($users,array("id","gravatar","name","email","company"))?>,
 		searchable: true,
 		sortable: true,
 		perPage: 10

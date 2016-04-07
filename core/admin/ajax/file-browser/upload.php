@@ -1,7 +1,7 @@
 <?php
-	use BigTree\Image;
+	namespace BigTree;
 	
-	$storage = new BigTreeStorage;
+	$storage = new Storage;
 	
 	// If we're replacing an existing file, find out its name
 	if (isset($_POST["replace"])) {
@@ -144,7 +144,7 @@
 										"md5" => $md5,
 										"height" => $iheight,
 										"width" => $iwidth,
-										"thumbs" => BigTree::json($thumbs)
+										"thumbs" => JSON::encode($thumbs)
 									));
 								}
 							}
@@ -162,3 +162,4 @@
 	} else {
 		echo 'parent.BigTreeFileManager.finishedUpload('.json_encode($errors).');</script></body></html>';
 	}
+	

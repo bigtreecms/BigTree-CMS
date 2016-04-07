@@ -248,7 +248,7 @@
 	$registry_found = false;
 	foreach ($cms->RouteRegistry["admin"] as $registration) {
 		if (!$registry_found) {
-			$registry_commands = BigTree::routeRegex("/".implode("/",array_slice($bigtree["path"],1)),$registration["pattern"]);
+			$registry_commands = Router::getRegistryCommands("/".implode("/",array_slice($bigtree["path"],1)),$registration["pattern"]);
 			if ($registry_commands !== false) {
 				$registry_found = true;
 				$registry_rule = $registration;
@@ -264,7 +264,7 @@
 			$x++;
 		}
 
-		list($bigtree["routed_headers"],$bigtree["routed_footers"]) = BigTree::routeLayouts($registry_rule["file"]);
+		list($bigtree["routed_headers"],$bigtree["routed_footers"]) = Router::getRoutedLayoutPartials($registry_rule["file"]);
 
 		// Draw the headers.
 		foreach ($bigtree["routed_headers"] as $header) {
@@ -306,13 +306,13 @@
 		$ajax_path = array_slice($bigtree["path"],2);
 		// Extensions must use this directory
 		if (defined("EXTENSION_ROOT")) {
-			list($inc,$commands) = BigTree::route(EXTENSION_ROOT."ajax/",$ajax_path);
+			list($inc,$commands) = Router::getRoutedFileAndCommands(EXTENSION_ROOT."ajax/",$ajax_path);
 		// Check custom/core
 		} else {
-			list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/ajax/",$ajax_path);
+			list($inc,$commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."custom/admin/ajax/",$ajax_path);
 			// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
 			if (!$inc || count($commands)) {
-				list($core_inc,$core_commands) = BigTree::route(SERVER_ROOT."core/admin/ajax/",$ajax_path);
+				list($core_inc,$core_commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."core/admin/ajax/",$ajax_path);
 				// If we either never found the custom file or if there are more routes found in the core file use the core.
 				if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
 					$inc = $core_inc;
@@ -328,7 +328,7 @@
 		$bigtree["commands"] = $commands;
 		$bigtree["ajax_inc"] = $inc;
 
-		list($bigtree["ajax_headers"],$bigtree["ajax_footers"]) = BigTree::routeLayouts($inc);
+		list($bigtree["ajax_headers"],$bigtree["ajax_footers"]) = Router::getRoutedLayoutPartials($inc);
 			
 		// Draw the headers.
 		foreach ($bigtree["ajax_headers"] as $header) {
@@ -413,7 +413,7 @@
 			} else {
 				list($extension,$interface_type) = explode("*",$bigtree["interface"]["type"]);
 				$base_directory = SERVER_ROOT."extensions/$extension/plugins/interfaces/$interface_type/parser/";
-				list($include_file,$bigtree["commands"]) = BigTree::route($base_directory,$bigtree["commands"]);
+				list($include_file,$bigtree["commands"]) = Router::getRoutedFileAndCommands($base_directory,$bigtree["commands"]);
 				include $include_file;
 				$complete = true;	
 			}
@@ -425,13 +425,13 @@
 		// Check custom if it's not an extension, otherwise use the extension directory
 		if ($module && $module["extension"]) {
 			$module_path[0] = str_replace($module["extension"]."*","",$module_path[0]);
-			list($inc,$commands) = BigTree::route(SERVER_ROOT."extensions/".$module["extension"]."/modules/",$module_path);
+			list($inc,$commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."extensions/".$module["extension"]."/modules/",$module_path);
 			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$module["extension"]."/");
 		} else {
-			list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/modules/",$module_path);
+			list($inc,$commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."custom/admin/modules/",$module_path);
 			// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
 			if (!$inc || count($commands)) {
-				list($core_inc,$core_commands) = BigTree::route(SERVER_ROOT."core/admin/modules/",$module_path);
+				list($core_inc,$core_commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."core/admin/modules/",$module_path);
 				// If we either never found the custom file or if there are more routes found in the core file use the core.
 				if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
 					$inc = $core_inc;
@@ -466,7 +466,7 @@
 			$bigtree["commands"] = $commands;
 			$bigtree["routed_inc"] = $inc;
 
-			list($bigtree["routed_headers"],$bigtree["routed_footers"]) = BigTree::routeLayouts($inc);
+			list($bigtree["routed_headers"],$bigtree["routed_footers"]) = Router::getRoutedLayoutPartials($inc);
 
 			// Draw the headers.
 			foreach ($bigtree["routed_headers"] as $header) {

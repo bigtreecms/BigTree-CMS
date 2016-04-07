@@ -6,9 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-	use BigTreeStorage;
-
 	class Resource extends BaseObject {
 
 		static $CreationLog = array();
@@ -120,7 +117,7 @@
 			$id = SQL::insert("bigtree_resources",array(
 				"file" => Link::tokenize($file),
 				"md5" => $md5,
-				"name" => BigTree::safeEncode($name),
+				"name" => Text::htmlEncode($name),
 				"type" => $type,
 				"folder" => $folder ? $folder : null,
 				"is_image" => $is_image,
@@ -147,7 +144,7 @@
 
 			// If this file isn't located in any other folders, delete it from the file system
 			if (!SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_resources WHERE file = ?", Link::tokenize($this->File))) {
-				$storage = new BigTreeStorage;
+				$storage = new Storage;
 				$storage->delete($this->File);
 
 				// Delete any thumbnails as well

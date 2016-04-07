@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class Template extends BaseObject {
 
 		static $Table = "bigtree_templates";
@@ -89,10 +87,10 @@
 					unset($fields[$key]);
 				} else {
 					$field_data = array(
-						"id" => BigTree::safeEncode($field["id"]),
-						"type" => BigTree::safeEncode($field["type"]),
-						"title" => BigTree::safeEncode($field["title"]),
-						"subtitle" => BigTree::safeEncode($field["subtitle"]),
+						"id" => Text::htmlEncode($field["id"]),
+						"type" => Text::htmlEncode($field["type"]),
+						"title" => Text::htmlEncode($field["title"]),
+						"subtitle" => Text::htmlEncode($field["subtitle"]),
 						"options" => (array)@json_decode($field["options"],true)
 					);
 
@@ -129,7 +127,7 @@
 			// Insert template
 			SQL::insert("bigtree_templates",array(
 				"id" => $id,
-				"name" => BigTree::safeEncode($name),
+				"name" => Text::htmlEncode($name),
 				"module" => $module,
 				"resources" => $fields,
 				"level" => $level,
@@ -170,10 +168,10 @@
 			foreach ($this->Fields as $field) {
 				if ($field["id"]) {
 					$fields[] = array(
-						"id" => BigTree::safeEncode($field["id"]),
-						"title" => BigTree::safeEncode($field["title"]),
-						"subtitle" => BigTree::safeEncode($field["subtitle"]),
-						"type" => BigTree::safeEncode($field["type"]),
+						"id" => Text::htmlEncode($field["id"]),
+						"title" => Text::htmlEncode($field["title"]),
+						"subtitle" => Text::htmlEncode($field["subtitle"]),
+						"type" => Text::htmlEncode($field["type"]),
 						"options" => is_array($field["options"]) ? $field["options"] : json_decode($field["options"],true)
 					);
 				}
@@ -181,7 +179,7 @@
 			
 			// Update DB
 			SQL::update("bigtree_templates",$this->ID,array(
-				"name" => BigTree::safeEncode($this->Name),
+				"name" => Text::htmlEncode($this->Name),
 				"resources" => array_filter($fields),
 				"module" => $this->Module,
 				"level" => $this->Level,
@@ -213,3 +211,4 @@
 		}
 
 	}
+	

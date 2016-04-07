@@ -31,7 +31,7 @@
 					foreach ($interface_list as $type => $info) {
 						if (count($info["items"])) {
 				?>
-				<optgroup label="<?=BigTree::safeEncode($info["name"])?>">
+				<optgroup label="<?=Text::htmlEncode($info["name"])?>">
 					<?php foreach ($info["items"] as $interface) { ?>
 					<option value="<?=$interface["id"]?>"<?php if ($interface["id"] == $item["interface"]) { ?> selected="selected"<?php } ?>><?=$interface["title"]?> (<?=$interface["table"]?>)</option>
 					<?php } ?>

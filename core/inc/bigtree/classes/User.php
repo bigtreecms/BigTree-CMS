@@ -7,7 +7,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
 	use BigTreeEmailService;
 	use PasswordHash;
 
@@ -95,8 +94,8 @@
 			$id = SQL::insert(static::$Table,array(
 				"email" => $email,
 				"password" => $password,
-				"name" => BigTree::safeEncode($name),
-				"company" => BigTree::safeEncode($company),
+				"name" => Text::htmlEncode($name),
+				"company" => Text::htmlEncode($company),
 				"level" => intval($level),
 				"permissions" => $permissions,
 				"alerts" => $alerts,
@@ -115,7 +114,7 @@
 
 		function delete() {
 			SQL::delete(static::$Table,$this->ID);
-			BigTree\AuditTrail::track(static::$Table,$this->ID,"deleted");
+			AuditTrail::track(static::$Table,$this->ID,"deleted");
 		}
 
 		/*
@@ -226,8 +225,8 @@
 
 			$update_values = array(
 				"email" => $this->Email,
-				"name" => BigTree::safeEncode($this->Name),
-				"company" => BigTree::safeEncode($this->Company),
+				"name" => Text::htmlEncode($this->Name),
+				"company" => Text::htmlEncode($this->Company),
 				"level" => intval($this->Level),
 				"permissions" => (array) $this->Permissions,
 				"alerts" => (array) $this->Alerts,
@@ -240,7 +239,7 @@
 			}
 
 			SQL::update(static::$Table,$this->ID,$update_values);
-			BigTree\AuditTrail::track("bigtree_users",$this->ID,"updated");
+			AuditTrail::track("bigtree_users",$this->ID,"updated");
 		}
 
 		/*
@@ -280,6 +279,7 @@
 			}
 
 			$this->save();
+
 			return true;
 		}
 
@@ -304,8 +304,8 @@
 			}
 
 			$update_values = array(
-				"name" => BigTree::safeEncode($name),
-				"company" => BigTree::safeEncode($company),
+				"name" => Text::htmlEncode($name),
+				"company" => Text::htmlEncode($company),
 				"daily_digest" => $daily_digest ? "on" : "",
 			);
 
@@ -315,6 +315,7 @@
 			}
 
 			SQL::update("bigtree_users",$admin->ID,$update_values);
+			
 			return true;
 		}
 

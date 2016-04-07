@@ -94,7 +94,7 @@
 									if ($data["function"]) {
 										$link = call_user_func($data["function"],$item);
 									}
-									$action = BigTree::safeEncode($data["name"]);
+									$action = Text::htmlEncode($data["name"]);
 								}
 				?>
 				<a href="<?=$link?>" class="<?=$class?>"></a>
@@ -150,7 +150,7 @@
 									if ($data["function"]) {
 										$link = call_user_func($data["function"],$item);
 									}
-									$action = BigTree::safeEncode($data["name"]);
+									$action = Text::htmlEncode($data["name"]);
 								}
 				?>
 				<a href="<?=$link?>" class="<?=$class?>" title="<?=$action?>"></a>

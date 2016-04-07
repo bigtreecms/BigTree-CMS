@@ -19,6 +19,13 @@
 		function __construct() {
 			global $bigtree;
 
+			// Load the router class
+			if (file_exists(SERVER_ROOT."custom/inc/classes/Router.php")) {
+				include SERVER_ROOT."custom/inc/classes/Router.php";
+			} else {
+				include SERVER_ROOT."core/inc/classes/Router.php";
+			}
+
 			// Turn on debugging if we're in debug mode.
 			if ($bigtree["config"]["debug"] === "full") {
 				error_reporting(E_ALL);
@@ -33,7 +40,7 @@
 			}
 
 			// Auto load classes	
-			spl_autoload_register("BigTree::classAutoLoader");
+			spl_autoload_register("BigTree\\Router::classAutoLoader");
 		
 			// Build caches
 			BigTree\Module::buildCaches();

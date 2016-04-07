@@ -1,9 +1,12 @@
+<?php
+	namespace BigTree;
+?>
 <div id="packages_table"></div>
 <script>
 	BigTreeTable({
 		container: "#packages_table",
 		title: "Packages",
-		data: <?=BigTree::jsonExtract($admin->getPackages(),array("id","name"))?>,
+		data: <?=JSON::encodeColumns($admin->getPackages(),array("id","name"))?>,
 		actions: {
 			edit: "<?=DEVELOPER_ROOT?>packages/edit/{id}/",
 			delete: function(id,state) {

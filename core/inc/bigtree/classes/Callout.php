@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class Callout extends BaseObject {
 
 		static $Table = "bigtree_callouts";
@@ -182,10 +180,10 @@
 					unset($fields[$key]);
 				} else {
 					$field = array(
-						"id" => BigTree::safeEncode($field["id"]),
-						"type" => BigTree::safeEncode($field["type"]),
-						"title" => BigTree::safeEncode($field["title"]),
-						"subtitle" => BigTree::safeEncode($field["subtitle"]),
+						"id" => Text::htmlEncode($field["id"]),
+						"type" => Text::htmlEncode($field["type"]),
+						"title" => Text::htmlEncode($field["title"]),
+						"subtitle" => Text::htmlEncode($field["subtitle"]),
 						"options" => (array)@json_decode($field["options"],true)
 					);
 
@@ -215,9 +213,9 @@
 
 			// Insert the callout
 			SQL::insert("bigtree_callouts",array(
-				"id" => BigTree::safeEncode($id),
-				"name" => BigTree::safeEncode($name),
-				"description" => BigTree::safeEncode($description),
+				"id" => Text::htmlEncode($id),
+				"name" => Text::htmlEncode($name),
+				"description" => Text::htmlEncode($description),
 				"resources" => $fields,
 				"level" => $level,
 				"display_field" => $display_field,
@@ -271,18 +269,18 @@
 				// "type" is still a reserved keyword due to the way we save callout data when editing.
 				if ($field["id"] && $field["id"] != "type") {
 					$fields[] = array(
-						"id" => BigTree::safeEncode($field["id"]),
-						"type" => BigTree::safeEncode($field["type"]),
-						"title" => BigTree::safeEncode($field["title"]),
-						"subtitle" => BigTree::safeEncode($field["subtitle"]),
+						"id" => Text::htmlEncode($field["id"]),
+						"type" => Text::htmlEncode($field["type"]),
+						"title" => Text::htmlEncode($field["title"]),
+						"subtitle" => Text::htmlEncode($field["subtitle"]),
 						"options" => json_decode($field["options"],true)
 					);
 				}
 			}
 
 			SQL::update("bigtree_callouts",$this->ID,array(
-				"name" => BigTree::safeEncode($this->Name),
-				"description" => BigTree::safeEncode($this->Description),
+				"name" => Text::htmlEncode($this->Name),
+				"description" => Text::htmlEncode($this->Description),
 				"display_default" => $this->DisplayDefault,
 				"display_field" => $this->DisplayField,
 				"resources" => $fields,

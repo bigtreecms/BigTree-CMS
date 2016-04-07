@@ -610,6 +610,73 @@
 		}
 
 		/*
+			Function: drawColumnSelectOptions
+				Draws the <select> options of all the columns in a table.
+			
+			Parameters:
+				table - The table to draw the columns for.
+				default - The currently selected value.
+				sorting - Whether to duplicate columns into "ASC" and "DESC" versions.
+		*/
+		
+		static function drawColumnSelectOptions($table,$default = "",$sorting = false) {
+			$table_description = static::describeTable($table);
+			
+			if (!$table_description) {
+				echo '<option>ERROR: Table Missing</option>';
+				return;
+			}
+
+			echo '<option></option>';
+
+			foreach ($table_description["columns"] as $col) {
+				if ($sorting) {
+					if ($default == $col["name"]." ASC" || $default == "`".$col["name"]."` ASC") {
+						echo '<option selected="selected">`'.$col["name"].'` ASC</option>';
+					} else {
+						echo '<option>`'.$col["name"].'` ASC</option>';
+					}
+					
+					if ($default == $col["name"]." DESC" || $default == "`".$col["name"]."` DESC") {
+						echo '<option selected="selected">`'.$col["name"].'` DESC</option>';
+					} else {
+						echo '<option>`'.$col["name"].'` DESC</option>';
+					}
+				} else {
+					if ($default == $col["name"]) {
+						echo '<option selected="selected">'.$col["name"].'</option>';
+					} else {
+						echo '<option>'.$col["name"].'</option>';
+					}
+				}
+			}
+		}
+		
+		/*
+			Function: drawTableSelectOptions
+				Draws the <select> options for all of tables in the database excluding bigtree_ prefixed tables.
+			
+			Parameters:
+				default - The currently selected value.
+		*/
+		
+		static function drawTableSelectOptions($default = "") {
+			global $bigtree;
+			
+			$tables = static::fetchAllSingle("SHOW TABLES");
+
+			foreach ($tables as $table_name) {
+				if (isset($bigtree["config"]["show_all_tables_in_dropdowns"]) || ((substr($table_name,0,8) !== "bigtree_")) || $table_name == $default) {
+					if ($default == $table_name) {
+						echo '<option selected="selected">'.$table_name.'</option>';
+					} else {
+						echo '<option>'.$table_name.'</option>';
+					}
+				}
+			}
+		}
+
+		/*
 			Function: dumpTable
 				Returns an array of INSERT statements for the rows of a given table.
 				The INSERT statements will be binary safe with binary columns requested in hex.
@@ -674,7 +741,7 @@
 
 		static function escape($string) {
 			if (!is_string($string) && !is_numeric($string) && !is_bool($string) && $string) {
-				$string = BigTree::json($string);
+				$string = JSON::encode($string);
 			}
 			
 			$connection = (static::$Connection && static::$Connection !== "disconnected") ? static::$Connection : static::connect("Connection","db");

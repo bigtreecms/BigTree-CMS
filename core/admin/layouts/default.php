@@ -55,7 +55,7 @@
 	if ($_SERVER["HTTP_BIGTREE_PARTIAL"]) {
 		ob_start();
 		foreach ($breadcrumb as &$item) {
-			$item["title"] = BigTree::safeEncode($item["title"]);
+			$item["title"] = Text::htmlEncode($item["title"]);
 		}
 		unset($item);
 		// We're going to fake include the header to get the active nav state.
@@ -78,7 +78,7 @@
 				$x++;
 				
 		?>
-		<a href="<?=ADMIN_ROOT.$item["link"]?>/" class="<?php if ($x == 1) { ?> first<?php } if ($x == count($breadcrumb)) { ?> last<?php } ?>"><?=BigTree::safeEncode($item["title"])?></a>
+		<a href="<?=ADMIN_ROOT.$item["link"]?>/" class="<?php if ($x == 1) { ?> first<?php } if ($x == count($breadcrumb)) { ?> last<?php } ?>"><?=Text::htmlEncode($item["title"])?></a>
 		<?php
 				if ($x != count($breadcrumb)) {
 		?>

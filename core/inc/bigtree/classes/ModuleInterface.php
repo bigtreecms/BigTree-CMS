@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class ModuleInterface extends BaseObject {
 
 		static $CoreTypes = array(
@@ -137,7 +135,7 @@
 			$id = SQL::insert("bigtree_module_interfaces",array(
 				"type" => $type,
 				"module" => intval($module),
-				"title" => BigTree::safeEncode($title),
+				"title" => Text::htmlEncode($title),
 				"table" => $table,
 				"settings" => $settings
 			));
@@ -169,7 +167,7 @@
 			SQL::update("bigtree_module_interfaces",$this->ID,array(
 				"type" => $this->Type,
 				"module" => $this->Module,
-				"title" => BigTree::safeEncode($this->Title),
+				"title" => Text::htmlEncode($this->Title),
 				"table" => $this->Table,
 				"settings" => (array) ($this->InterfaceSettings ?: $this->Settings)
 			));
@@ -178,3 +176,4 @@
 		}
 
 	}
+	

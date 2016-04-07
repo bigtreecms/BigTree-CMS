@@ -1,4 +1,6 @@
-<!doctype html> 
+<?php
+	namespace BigTree;
+?><!doctype html> 
 <!--[if lt IE 7 ]> <html lang="en" class="ie ie6"> <![endif]-->
 <!--[if IE 7 ]>	<html lang="en" class="ie ie7"> <![endif]-->
 <!--[if IE 8 ]>	<html lang="en" class="ie ie8"> <![endif]-->
@@ -41,7 +43,7 @@
 		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/pages.js"></script>
-		<script>BigTree.dateFormat = "<?=BigTree::phpDateTojQuery($bigtree["config"]["date_format"])?>";</script>
+		<script>BigTree.dateFormat = "<?=Date::converTojQuery($bigtree["config"]["date_format"])?>";</script>
 		<script src="<?=ADMIN_ROOT?>js/<?=isset($bigtree["config"]["html_editor"]) ? $bigtree["config"]["html_editor"]["src"] : "tinymce3/tiny_mce.js"?>"></script>
 		<?php
 			// Configuration based JS

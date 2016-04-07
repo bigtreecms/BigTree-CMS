@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class ModuleGroup extends BaseObject {
 
 		static $Table = "bigtree_module_groups";
@@ -58,7 +56,7 @@
 
 		static function create($name) {
 			$id = SQL::insert("bigtree_module_groups",array(
-				"name" => BigTree::safeEncode($name),
+				"name" => Text::htmlEncode($name),
 				"route" => SQL::unique("bigtree_module_groups","route",Link::urlify($name))
 			));
 
@@ -74,7 +72,7 @@
 
 		function save() {
 			SQL::update("bigtree_module_groups",$this->ID,array(
-				"name" => BigTree::safeEncode($this->Name),
+				"name" => Text::htmlEncode($this->Name),
 				"route" => SQL::unique("bigtree_module_groups","route",Link::urlify($this->Route),$this->ID)
 			));
 
@@ -96,3 +94,4 @@
 		}
 
 	}
+	

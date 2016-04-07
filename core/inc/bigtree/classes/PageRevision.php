@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class PageRevision extends BaseObject {
 
 		static $Table = "bigtree_page_revisions";
@@ -146,7 +144,7 @@
 				"new_window" => $this->NewWindow ? "on" : "",
 				"resources" => $this->Resources,
 				"saved" => $this->Saved ? "on" : "",
-				"saved_description" => BigTree::safeEncode($this->SavedDescription),
+				"saved_description" => Text::htmlEncode($this->SavedDescription),
 				"template" => $this->Template,
 				"title" => $this->Title
 			));

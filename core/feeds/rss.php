@@ -1,4 +1,6 @@
-<rss version="0.91">
+<?php
+	namespace BigTree;
+?><rss version="0.91">
 	<channel>
 		<title><?php if ($feed["options"]["feed_title"]) { echo $feed["options"]["feed_title"]; } else { echo $feed["name"]; } ?></title>
 		<link><?php if ($feed["options"]["feed_link"]) { echo $feed["options"]["feed_link"]; } else { ?><?=WWW_ROOT?>feeds/<?=$feed["route"]?>/<?php } ?></link>
@@ -31,7 +33,7 @@
 				
 				$content = $item[$feed["options"]["description"]];
 				$limit = $feed["options"]["content_limit"] ? $feed["options"]["content_limit"] : 500;
-				$blurb = BigTree::trimLength($content,$limit);
+				$blurb = Text::trimLength($content,$limit);
 		?>
 		<item>
 			<title><![CDATA[<?=strip_tags($item[$feed["options"]["title"]])?>]]></title>

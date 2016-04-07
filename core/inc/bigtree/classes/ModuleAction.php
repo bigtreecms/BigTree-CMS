@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class ModuleAction extends BaseObject {
 
 		static $Table = "bigtree_module_actions";
@@ -204,7 +202,7 @@
 
 			while (count($route)) {
 				$action = SQL::fetch("SELECT * FROM bigtree_module_actions 
-												  WHERE module = ? AND route = ?", $module, implode("/",$route));
+									  WHERE module = ? AND route = ?", $module, implode("/",$route));
 
 				// If we found an action for this sequence, return it with the extra URL route commands
 				if ($action) {
@@ -232,7 +230,7 @@
 			}
 
 			SQL::update("bigtree_module_actions",$id,array(
-				"name" => BigTree::safeEncode($this->Name),
+				"name" => Text::htmlEncode($this->Name),
 				"route" => $this->Route,
 				"class" => $this->Icon,
 				"in_nav" => $this->InNav ? "on" : false,
@@ -271,3 +269,4 @@
 		}
 
 	}
+	

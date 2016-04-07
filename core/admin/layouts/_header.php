@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	$nav = isset($bigtree["nav_override"]) ? $bigtree["nav_override"] : array(
 		array("link" => "dashboard", "title" => "Dashboard", "access" => 0, "children" => array(
 			array("link" => "", "title" => "Overview", "access" => 0),
@@ -55,7 +57,7 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="robots" content="noindex,nofollow" />
-		<title><?php if (isset($bigtree["admin_title"])) { ?><?=BigTree::safeEncode($bigtree["admin_title"])?> | <?php } ?><?=$site["nav_title"]?> Admin</title>
+		<title><?php if (isset($bigtree["admin_title"])) { ?><?=Text::htmlEncode($bigtree["admin_title"])?> | <?php } ?><?=$site["nav_title"]?> Admin</title>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.less" type="text/css" media="screen" />
 		<?php
 			// Configuration based CSS
@@ -91,7 +93,7 @@
 		?>
 		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
-		<script>BigTree.dateFormat = "<?=BigTree::phpDateTojQuery($bigtree["config"]["date_format"])?>";</script>
+		<script>BigTree.dateFormat = "<?=Date::convertTojQuery($bigtree["config"]["date_format"])?>";</script>
 		<script src="<?=ADMIN_ROOT?>js/<?=isset($bigtree["config"]["html_editor"]) ? $bigtree["config"]["html_editor"]["src"] : "tinymce3/tiny_mce.js"?>"></script>
 		<?php
 			// Configuration based JS

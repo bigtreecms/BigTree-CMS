@@ -14,7 +14,7 @@
 			$title = substr($title,0,-2)."ies";
 		}
 	}
-	$title = BigTree::safeEncode($title);
+	$title = Text::htmlEncode($title);
 ?>
 <div class="container">
 	<header>

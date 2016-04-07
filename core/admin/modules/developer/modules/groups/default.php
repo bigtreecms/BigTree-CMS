@@ -1,3 +1,6 @@
+<?php
+	namespace BigTree;
+?>
 <div id="module_groups_table"></div>
 <script>
 	BigTreeTable({
@@ -23,7 +26,7 @@
 		draggable: function(positioning) {
 			$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-module-groups/", { type: "POST", data: positioning });
 		},
-		data: <?=BigTree::jsonExtract($admin->getModuleGroups(),array("id","name"))?>,
+		data: <?=JSON::encodeColumns($admin->getModuleGroups(),array("id","name"))?>,
 		searchable: true
 	});
 </script>

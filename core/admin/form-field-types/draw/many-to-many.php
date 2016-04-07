@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	// Find out whether this is a draggable Many to Many.
 	$table_description = BigTree::describeTable($field["options"]["mtm-connecting-table"]);
 	$cols = $table_description["columns"];
@@ -70,11 +72,11 @@
 			foreach ($entries as $id => $description) {
 		?>
 		<li>
-			<input type="hidden" name="<?=$field["key"]?>[<?=$entry_counter?>]" value="<?=BigTree::safeEncode($id)?>" />
+			<input type="hidden" name="<?=$field["key"]?>[<?=$entry_counter?>]" value="<?=Text::htmlEncode($id)?>" />
 			<?php if ($sortable) { ?>
 			<span class="icon_sort"></span>
 			<?php } ?>
-			<p><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($description),100))?></p>
+			<p><?=Text::htmlEncode(Text::trimLength(strip_tags($description),100))?></p>
 			<a href="#" class="icon_delete"></a>
 		</li>
 		<?php
@@ -85,7 +87,7 @@
 	<footer>
 		<select>
 			<?php foreach ($list as $key => $value) { ?>
-			<option value="<?=BigTree::safeEncode($key)?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($value),100))?></option>
+			<option value="<?=Text::htmlEncode($key)?>"><?=Text::htmlEncode(Text::trimLength(strip_tags($value),100))?></option>
 			<?php } ?>
 		</select>
 		<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>

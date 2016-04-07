@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	$extensions = $admin->getExtensions();
 
 	// Get version info on our installed extensions
@@ -28,7 +30,7 @@
 	BigTreeTable({
 		container: "#extensions_table",
 		title: "Extensions",
-		data: <?=BigTree::jsonExtract($extensions,array("name","id","version","ignore_link","upgrade_link"))?>,
+		data: <?=JSON::encodeColumns($extensions,array("name","id","version","ignore_link","upgrade_link"))?>,
 		actions: {
 			edit: "<?=DEVELOPER_ROOT?>extensions/edit/{id}/",
 			delete: function(id,state) {

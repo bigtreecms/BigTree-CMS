@@ -1,9 +1,12 @@
+<?php
+	namespace BigTree;
+?>
 <div id="settings_table"></div>
 <script>
 	BigTreeTable({
 		container: "#settings_table",
 		title: "Settings",
-		data: <?=BigTree::jsonExtract($admin->getSettings(),array("id","name","type"))?>,
+		data: <?=JSON::encodeColumns($admin->getSettings(),array("id","name","type"))?>,
 		actions: {
 			edit: "<?=DEVELOPER_ROOT?>settings/edit/{id}/",
 			delete: function(id,state) {

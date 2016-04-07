@@ -6,13 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
-	/**
-	 * Class CalloutGroup
-	 * @property $ID
-	 */
-
 	class CalloutGroup extends BaseObject {
 
 		static $Table = "bigtree_callout_groups";
@@ -65,7 +58,7 @@
 
 			// Insert group
 			$id = SQL::insert("bigtree_callout_groups",array(
-				"name" => BigTree::safeEncode($name),
+				"name" => Text::htmlEncode($name),
 				"callouts" => $callouts
 			));
 
@@ -97,7 +90,7 @@
 			sort($this->Callouts);
 
 			SQL::update("bigtree_callout_groups",$this->ID,array(
-				"name" => BigTree::safeEncode($this->Name),
+				"name" => Text::htmlEncode($this->Name),
 				"callouts" => $this->Callouts
 			));
 

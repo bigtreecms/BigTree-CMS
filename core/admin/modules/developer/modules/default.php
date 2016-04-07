@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	$ungrouped_modules = $admin->getModulesByGroup(0);
 	$groups_with_modules = array();
 	
@@ -49,7 +51,7 @@
 	BigTreeTable($.extend(table_config,{
 		title: "Ungrouped Modules",
 		container: "#ungrouped_modules",
-		data: <?=BigTree::jsonExtract($ungrouped_modules,array("id","name"))?>
+		data: <?=JSON::encodeColumns($ungrouped_modules,array("id","name"))?>
 	}));
 	<?php
 		}
@@ -58,7 +60,7 @@
 	BigTreeTable($.extend(table_config,{
 		title: "<?=$group["name"]?>",
 		container: "#module_group_<?=$group["id"]?>",
-		data: <?=BigTree::jsonExtract($group["modules"],array("name","id"))?>
+		data: <?=JSON::encodeColumns($group["modules"],array("name","id"))?>
 	}));
 	<?php
 		}

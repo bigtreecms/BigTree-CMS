@@ -27,7 +27,7 @@
 			$result = array(
 				"id" => $f["id"],
 				"title" => $f["nav_title"],
-				"description" => BigTree::trimLength(strip_tags($res["page_content"]),450),
+				"description" => Text::trimLength(strip_tags($res["page_content"]),450),
 				"link" => ADMIN_ROOT."pages/edit/".$f["id"]."/",
 				"breadcrumb" => implode(" &rsaquo; ",$bc_parts)
 			);

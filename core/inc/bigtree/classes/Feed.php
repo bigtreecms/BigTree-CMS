@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class Feed extends BaseObject {
 
 		static $Table = "bigtree_feeds";
@@ -78,8 +76,8 @@
 			// Insert and track
 			$id = SQL::insert("bigtree_feeds",array(
 				"route" => $route,
-				"name" => BigTree::safeEncode($name),
-				"description" => BigTree::safeEncode($description),
+				"name" => Text::htmlEncode($name),
+				"description" => Text::htmlEncode($description),
 				"type" => $type,
 				"table" => $table,
 				"fields" => $fields,
@@ -98,8 +96,8 @@
 
 		function save() {
 			SQL::update("bigtree_feeds",$this->ID,array(
-				"name" => BigTree::safeEncode($this->Name),
-				"description" => BigTree::safeEncode($this->Description),
+				"name" => Text::htmlEncode($this->Name),
+				"description" => Text::htmlEncode($this->Description),
 				"table" => $this->Table,
 				"type" => $this->Type,
 				"fields" => $this->Fields,

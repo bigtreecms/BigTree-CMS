@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class ModuleEmbedForm extends ModuleInterface {
 
 		protected $EmbedCode;
@@ -95,8 +93,8 @@
 			// Make sure we get a unique hash
 			$hash = uniqid("embeddable-form-",true);
 			while (SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_module_interfaces WHERE `type` = 'embeddable-form' AND 
-												 (`settings` LIKE '%\"hash\":\"".SQL::escape($hash)."\"%' OR
-												  `settings` LIKE '%\"hash\": \"".SQL::escape($hash)."\"%')")) {
+									 (`settings` LIKE '%\"hash\":\"".SQL::escape($hash)."\"%' OR
+									  `settings` LIKE '%\"hash\": \"".SQL::escape($hash)."\"%')")) {
 				$hash = uniqid("embeddable-form-",true);
 			}
 
@@ -104,9 +102,9 @@
 				"fields" => $fields,
 				"default_position" => $default_position,
 				"default_pending" => $default_pending ? "on" : "",
-				"css" => BigTree::safeEncode(Link::tokenize($css)),
+				"css" => Text::htmlEncode(Link::tokenize($css)),
 				"hash" => $hash,
-				"redirect_url" => $redirect_url ? BigTree::safeEncode(Link::encode($redirect_url)) : "",
+				"redirect_url" => $redirect_url ? Text::htmlEncode(Link::encode($redirect_url)) : "",
 				"thank_you_message" => $thank_you_message,
 				"hooks" => is_string($hooks) ? json_decode($hooks,true) : $hooks
 			));
@@ -124,9 +122,9 @@
 				"fields" => $this->Fields,
 				"default_position" => $this->DefaultPosition,
 				"default_pending" => $this->DefaultPending ? "on" : "",
-				"css" => BigTree::safeEncode(Link::tokenize($this->CSS)),
+				"css" => Text::htmlEncode(Link::tokenize($this->CSS)),
 				"hash" => $this->Hash,
-				"redirect_url" => $this->RedirectURL ? BigTree::safeEncode(Link::encode($this->RedirectURL)) : "",
+				"redirect_url" => $this->RedirectURL ? Text::htmlEncode(Link::encode($this->RedirectURL)) : "",
 				"thank_you_message" => $this->ThankYouMessage,
 				"hooks" => $this->Hooks
 			);
@@ -169,5 +167,6 @@
 
 			$this->save();
 		}
+
 	}
 	

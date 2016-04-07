@@ -1,7 +1,9 @@
 <?php
+	namespace BigTree;
+	
 	if (is_array($field["input"])) {
 		foreach ($field["input"] as &$v) {
-			$v = BigTree::safeEncode($v);
+			$v = Text::htmlEncode($v);
 		}	
 		if ($field["options"]["sub_type"] == "phone") {
 			$field["output"] = $field["input"]["phone_1"]."-".$field["input"]["phone_2"]."-".$field["input"]["phone_3"];
@@ -9,5 +11,6 @@
 			$field["output"] = $field["input"];
 		}
 	} else {
-		$field["output"] = BigTree::safeEncode($field["input"]);
+		$field["output"] = Text::htmlEncode($field["input"]);
 	}
+	

@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$id = intval($_GET["id"]);
 	$page = $cms->getPage($id);
 	$template = $cms->getTemplate($page["template"]);
@@ -19,7 +21,7 @@
 	<section class="integrity_errors">
 		<a href="<?=ADMIN_ROOT?>pages/edit/<?=$id?>/" target="_blank">Edit</a>
 		<span class="icon_small icon_small_warning"></span>
-		<p>Broken <?=(($type == "img") ? "Image" : "Link")?>: <?=BigTree::safeEncode($error)?> on page &ldquo;<?=$page["nav_title"]?>&rdquo; in field &ldquo;<?=$title?>&rdquo;</p>
+		<p>Broken <?=(($type == "img") ? "Image" : "Link")?>: <?=Text::htmlEncode($error)?> on page &ldquo;<?=$page["nav_title"]?>&rdquo; in field &ldquo;<?=$title?>&rdquo;</p>
 	</section>
 </li>
 <?php

@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class ModuleView extends ModuleInterface {
 
 		static $CoreTypes = array(
@@ -89,7 +87,7 @@
 
 		static function create($module,$title,$description,$table,$type,$settings,$fields,$actions,$related_form,$preview_url = "") {
 			$interface = parent::create("view",$module,$title,$table,array(
-				"description" => BigTree::safeEncode($description),
+				"description" => Text::htmlEncode($description),
 				"type" => $type,
 				"fields" => $fields,
 				"options" => $settings,
@@ -186,7 +184,7 @@
 				);
 
 				$form = BigTreeAutoModule::getRelatedFormForView($this->Array);
-				$table = BigTree::describeTable($this->Table);
+				$table = SQL::describeTable($this->Table);
 
 				foreach ($this->Fields as $key => $field) {
 					$numeric = false;
@@ -213,7 +211,7 @@
 
 		function save() {
 			$this->InterfaceSettings = array(
-				"description" => BigTree::safeEncode($this->Description),
+				"description" => Text::htmlEncode($this->Description),
 				"type" => $this->Type,
 				"fields" => array_filter((array) $this->Fields),
 				"options" => (array) $this->Settings,
@@ -256,8 +254,8 @@
 			$this->refreshNumericColumns();
 
 			// Update related action titles
-			$action = BigTree\ModuleAction::getByInterface($this->ID);
-			$action->Name = "View ".BigTree::safeEncode($title);
+			$action = ModuleAction::getByInterface($this->ID);
+			$action->Name = "View ".Text::htmlEncode($title);
 			$action->save();
 		}
 

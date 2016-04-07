@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class PendingChange extends BaseObject {
 
 		static $Table = "bigtree_pending_changes";
@@ -96,9 +94,7 @@
 				}
 			}
 
-			$changes = SQL::fetchAll("SELECT * FROM bigtree_pending_changes 
-												  WHERE ".implode(" OR ",$search)." 
-												  ORDER BY date DESC");
+			$changes = SQL::fetchAll("SELECT * FROM bigtree_pending_changes WHERE ".implode(" OR ",$search)." ORDER BY date DESC");
 
 			foreach ($changes as $change) {
 				$ok = false;
@@ -230,10 +226,10 @@
 				"trunk" => $trunk ? "on" : "",
 				"parent" => $parent,
 				"in_nav" => $in_nav ? "on" : "",
-				"nav_title" => BigTree::safeEncode($nav_title),
-				"title" => BigTree::safeEncode($title),
-				"route" => BigTree::safeEncode($route),
-				"meta_description" => BigTree::safeEncode($meta_description),
+				"nav_title" => Text::htmlEncode($nav_title),
+				"title" => Text::htmlEncode($title),
+				"route" => Text::htmlEncode($route),
+				"meta_description" => Text::htmlEncode($meta_description),
 				"seo_invisible" => $seo_invisible ? "on" : "",
 				"template" => $template,
 				"external" => $external ? Link::encode($external) : "",
@@ -280,7 +276,7 @@
 
 			// Find a form that uses this table (it's our best guess here)
 			$form_id = SQL::fetchSingle("SELECT id FROM bigtree_module_interfaces 
-													 WHERE `type` = 'form' AND `table` = ?", $this->Table);
+										 WHERE `type` = 'form' AND `table` = ?", $this->Table);
 			if (!$form_id) {
 				return false;
 			}
@@ -290,7 +286,7 @@
 			
 			// We set in_nav to empty because edit links aren't in nav (and add links are) so we can predict where the edit action will be this way
 			$action_route = SQL::fetchSingle("SELECT route FROM bigtree_module_actions 
-														  WHERE `interface` = ? AND `in_nav` = ''", $form_id);
+											  WHERE `interface` = ? AND `in_nav` = ''", $form_id);
 
 			// Got an action
 			if ($action_route) {
@@ -315,7 +311,7 @@
 				"pending_page_parent" => $this->PendingPageParent,
 				"publish_hook" => $this->PublishHook ?: null,
 				"tags_changes" => $this->TagsChanges,
-				"title" => BigTree::safeEncode($this->Title),
+				"title" => Text::htmlEncode($this->Title),
 				"user" => $this->User
 			));
 
@@ -341,3 +337,4 @@
 		}
 		
 	}
+	

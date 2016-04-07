@@ -125,13 +125,14 @@
 	}
 	
 	// Write the manifest file
-	$json = BigTree::json($package);
+	$json = JSON::encode($package);
 	FileSystem::createFile(SERVER_ROOT."cache/package/manifest.json",$json);
 	
 	// Create the zip
 	FileSystem::deleteFile(SERVER_ROOT."cache/package.zip");
 	Router::includeFile("inc/lib/pclzip.php");
-	$zip = new PclZip(SERVER_ROOT."cache/package.zip");
+	
+	$zip = new \PclZip(SERVER_ROOT."cache/package.zip");
 	$zip->create(FileSystem::getDirectoryContents(SERVER_ROOT."cache/package/"),PCLZIP_OPT_REMOVE_PATH,SERVER_ROOT."cache/package/");
 
 	// Remove the package directory

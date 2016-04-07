@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class Module extends BaseObject {
 
 		static $CachesBuilt = false;
@@ -152,7 +150,7 @@
 				
 				if (!$bigtree["config"]["debug"]) {
 					// Cache it so we don't hit the database.
-					FileSystem::createFile($cache_file,BigTree::json($data));
+					FileSystem::createFile($cache_file, JSON::encode($data));
 				}
 			} else {
 				$data = json_decode(file_get_contents($cache_file),true);
@@ -239,7 +237,7 @@
 
 			// Create it
 			$id = SQL::insert("bigtree_modules",array(
-				"name" => BigTree::safeEncode($name),
+				"name" => Text::htmlEncode($name),
 				"route" => $route,
 				"class" => $class,
 				"icon" => $icon,
@@ -626,7 +624,7 @@
 		function save() {
 			SQL::update("bigtree_modules",$this->ID,array(
 				"group" => $this->Group,
-				"name" => BigTree::safeEncode($this->Name),
+				"name" => Text::htmlEncode($this->Name),
 				"route" => SQL::unique("bigtree_modules","route",Link::urlify($this->Route),$this->ID),
 				"class" => $this->Class,
 				"icon" => $this->Icon,
@@ -669,4 +667,6 @@
 
 			$this->save();
 		}
+
 	}
+	

@@ -27,7 +27,7 @@
 	<div class="right">
 		<fieldset>
 			<label>Title Parser Function <small>(modifies the group title shown in the user editor)</small></label>
-			<input type="text" name="gbp[item_parser]" value="<?=BigTree::safeEncode($gbp["item_parser"])?>" />
+			<input type="text" name="gbp[item_parser]" value="<?=Text::htmlEncode($gbp["item_parser"])?>" />
 		</fieldset>
 		<fieldset>
 			<label>Other Table</label>

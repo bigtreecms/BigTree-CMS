@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class Tag extends BaseObject {
 
 		static $Table = "bigtree_tags";
@@ -67,7 +65,7 @@
 
 			// Create tag
 			$id = SQL::insert("bigtree_tags",array(
-				"tag" => BigTree::safeEncode($name),
+				"tag" => Text::htmlEncode($name),
 				"metaphone" => metaphone($name),
 				"route" => SQL::unique("bigtree_tags","route",Link::urlify($name))
 			));

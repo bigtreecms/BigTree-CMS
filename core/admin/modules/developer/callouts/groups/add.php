@@ -1,5 +1,7 @@
 <?php
-	$callouts = BigTree\Callout::all("name ASC",true);
+	namespace BigTree;
+	
+	$callouts = Callout::all("name ASC",true);
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>callouts/groups/create/" class="module">
@@ -18,7 +20,7 @@
 					<footer>
 						<select>
 							<?php foreach ($callouts as $callout) { ?>
-							<option value="<?=BigTree::safeEncode($callout["id"])?>"><?=BigTree::trimLength($callout["name"],100)?></option>
+							<option value="<?=Text::htmlEncode($callout["id"])?>"><?=Text::trimLength($callout["name"],100)?></option>
 							<?php } ?>
 						</select>
 						<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Callout</a>

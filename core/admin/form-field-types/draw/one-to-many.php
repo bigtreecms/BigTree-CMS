@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	if (!$field["value"]) {
 		$field["value"] = array();
 	} elseif (!is_array($field["value"])) {
@@ -55,9 +57,9 @@
 			foreach ($entries as $id => $title) {
 		?>
 		<li>
-			<input type="hidden" name="<?=$field["key"]?>[<?=$x?>]" value="<?=BigTree::safeEncode($id)?>" />
+			<input type="hidden" name="<?=$field["key"]?>[<?=$x?>]" value="<?=Text::htmlEncode($id)?>" />
 			<span class="icon_sort"></span>
-			<p><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($title),100))?></p>
+			<p><?=Text::htmlEncode(Text::trimLength(strip_tags($title),100))?></p>
 			<a href="#" class="icon_delete"></a>
 		</li>
 		<?php
@@ -68,7 +70,7 @@
 	<footer>
 		<select>
 			<?php foreach ($list as $id => $title) { ?>
-			<option value="<?=BigTree::safeEncode($id)?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($title),100))?></option>
+			<option value="<?=Text::htmlEncode($id)?>"><?=Text::htmlEncode(Text::trimLength(strip_tags($title),100))?></option>
 			<?php } ?>
 		</select>
 		<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>

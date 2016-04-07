@@ -182,7 +182,7 @@
 				$x = 1;
 				foreach ($view["fields"] as $field => $options) {
 					$item[$field] = BigTreeCMS::replaceInternalPageLinks($item[$field]);
-					$insert_values["column$x"] = BigTree::safeEncode(strip_tags($item[$field]));
+					$insert_values["column$x"] = Text::htmlEncode(strip_tags($item[$field]));
 					$x++;
 				}
 			}

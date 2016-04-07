@@ -203,7 +203,7 @@
 	
 	// Move all the files into the extensions directory
 	foreach ((array)$files as $file) {
-		$file = BigTree::replaceServerRoot($file);
+		$file = Router::replaceServerRoot($file);
 		if (substr($file,0,11) != "extensions/") {
 			$d = false;
 
@@ -310,14 +310,15 @@
 	$db->query("SET foreign_key_checks = 1");
 
 	// Write the manifest file
-	FileSystem::createFile(SERVER_ROOT."extensions/$id/manifest.json",BigTree::json($package));
+	FileSystem::createFile(SERVER_ROOT."extensions/$id/manifest.json", JSON::encode($package));
 
 	// Create the zip, clear caches since we may have moved the routes of field types and modules
 	FileSystem::deleteFile(SERVER_ROOT."cache/package.zip");
 	FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 	FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
 	Router::includeFile("inc/lib/pclzip.php");
-	$zip = new PclZip(SERVER_ROOT."cache/package.zip");
+
+	$zip = new \PclZip(SERVER_ROOT."cache/package.zip");
 	$zip->create(FileSystem::getDirectoryContents(SERVER_ROOT."extensions/$id/"),PCLZIP_OPT_REMOVE_PATH,SERVER_ROOT."extensions/$id/");
 ?>
 <div class="container">

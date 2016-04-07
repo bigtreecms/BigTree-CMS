@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	$sort = $feed["options"]["sort"] ? $feed["options"]["sort"] : "id DESC";
 	$limit = $feed["options"]["limit"] ? $feed["options"]["limit"] : "15";
 	$query = $db->query("SELECT * FROM `".$feed["table"]."` ORDER BY $sort LIMIT $limit");
@@ -27,8 +29,10 @@
 	}
 
 	header("Content-type: application/json");
+
 	if ($feed["options"]["condensed"]) {
 		echo json_encode($json_data,JSON_UNESCAPED_SLASHES);
 	} else {
-		echo BigTree::json($json_data);
+		echo JSON::encode($json_data);
 	}
+	

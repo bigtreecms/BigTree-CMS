@@ -3,6 +3,8 @@
 		Class: BigTreeModule
 			Base class from which all BigTree module classes inherit from.
 	*/
+
+	use BigTree\JSON;
 	
 	class BigTreeModule {
 	
@@ -94,7 +96,7 @@
 			if ($enforce_unique) {
 				$existing_parts = array();
 				foreach ($insert_array as $key => $val) {
-					$val = is_array($val) ? BigTree::json($val,true) : SQL::escape($val);
+					$val = is_array($val) ? JSON::encode($val, true) : SQL::escape($val);
 					$existing_parts[] = "`$key` = '$val'";
 				}
 

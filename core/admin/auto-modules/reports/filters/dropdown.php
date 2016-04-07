@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$list = array();
 	// See if this is a DB populated list in the related form
 	$field = $bigtree["form"]["fields"][$id];
@@ -19,6 +21,6 @@
 <select name="<?=$id?>">
 	<option></option>
 	<?php foreach ($list as $item) { ?>
-	<option value="<?=BigTree::safeEncode($item["value"])?>"><?=BigTree::safeEncode($item["description"])?></option>
+	<option value="<?=Text::htmlEncode($item["value"])?>"><?=Text::htmlEncode($item["description"])?></option>
 	<?php } ?>
 </select>

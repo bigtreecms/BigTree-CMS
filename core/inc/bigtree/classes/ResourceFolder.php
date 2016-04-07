@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class ResourceFolder extends BaseObject {
 
 		static $Table = "bigtree_resource_folders";
@@ -56,7 +54,7 @@
 
 		static function create($parent,$name) {
 			$id = SQL::insert("bigtree_resource_folders",array(
-				"name" => BigTree::safeEncode($name),
+				"name" => Text::htmlEncode($name),
 				"parent" => $parent
 			));
 
@@ -240,7 +238,7 @@
 
 		function save() {
 			SQL::update("bigtree_resource_folders",$this->ID,array(
-				"name" => BigTree::safeEncode($this->Name),
+				"name" => Text::htmlEncode($this->Name),
 				"parent" => intval($this->Parent)
 			));
 

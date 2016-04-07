@@ -1,9 +1,12 @@
+<?php
+	namespace BigTree;
+?>
 <div id="callouts_table"></div>
 <script>
 	BigTreeTable({
 		container: "#callouts_table",
 		title: "Callouts",
-		data: <?=BigTree::jsonExtract(BigTree\Callout::all("name ASC",true),array("name","id"))?>,
+		data: <?=JSON::encodeColumns(BigTree\Callout::all("name ASC",true),array("name","id"))?>,
 		actions: {
 			edit: "<?=DEVELOPER_ROOT?>callouts/edit/{id}/",
 			delete: function(id,state) {

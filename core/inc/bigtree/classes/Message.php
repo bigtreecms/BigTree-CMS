@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class Message extends BaseObject {
 
 		protected $ID;
@@ -71,12 +69,12 @@
 
 			$user = SQL::escape($user);
 			$messages = SQL::fetchAll("SELECT bigtree_messages.*, 
-														  bigtree_users.name AS sender_name, 
-														  bigtree_users.email AS sender_email 
-												   FROM bigtree_messages JOIN bigtree_users 
-												   ON bigtree_messages.sender = bigtree_users.id 
-												   WHERE sender = '$user' OR recipients LIKE '%|$user|%' 
-												   ORDER BY date DESC");
+											  bigtree_users.name AS sender_name, 
+											  bigtree_users.email AS sender_email 
+									   FROM bigtree_messages JOIN bigtree_users 
+									   ON bigtree_messages.sender = bigtree_users.id 
+									   WHERE sender = '$user' OR recipients LIKE '%|$user|%' 
+									   ORDER BY date DESC");
 
 			foreach ($messages as $message) {
 				// If we're the sender put it in the sent array.
@@ -122,7 +120,7 @@
 			$id = SQL::insert("bigtree_messages",array(
 				"sender" => $sender,
 				"recipients" => $send_to,
-				"subject" => BigTree::safeEncode(strip_tags($subject)),
+				"subject" => Text::htmlEncode(strip_tags($subject)),
 				"message" => strip_tags($message,"<p><b><strong><em><i><a>"),
 				"date" => "NOW()",
 				"in_response_to" => $in_response_to
@@ -181,7 +179,7 @@
 			}
 
 			return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_messages 
-												 WHERE recipients LIKE '%|".$admin->ID."|%' AND read_by NOT LIKE '%|".$admin->ID."|%'");
+									 WHERE recipients LIKE '%|".$admin->ID."|%' AND read_by NOT LIKE '%|".$admin->ID."|%'");
 		}
 
 		/*
@@ -201,4 +199,5 @@
 			$this->ReadBy = str_replace("|".$admin->ID."|","",$this->ReadBy)."|".$admin->ID."|";
 			$this->save();
 		}
+		
 	}

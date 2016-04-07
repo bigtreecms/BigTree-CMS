@@ -1,5 +1,5 @@
 <?php
-	use BigTree\FileSystem;
+	namespace BigTree;
 
 	// Modified Photo Gallery to add Attribution and Link attributes
 	$photo_gallery = array();
@@ -7,9 +7,9 @@
 		foreach ($field["input"] as $photo_count => $data) {
 			// Existing Data
 			if ($data["image"]) {
-				$data["caption"] = BigTree::safeEncode($data["caption"]);
-				$data["attribution"] = BigTree::safeEncode($data["attribution"]);
-				$data["link"] = BigTree::safeEncode($data["link"]);
+				$data["caption"] = Text::htmlEncode($data["caption"]);
+				$data["attribution"] = Text::htmlEncode($data["attribution"]);
+				$data["link"] = Text::htmlEncode($data["link"]);
 				$photo_gallery[] = $data;
 			// Uploaded File
 			} elseif ($field["file_input"][$photo_count]["image"]["name"]) {
@@ -18,7 +18,7 @@
 
 				$file = $admin->processImageUpload($field_copy);
 				if ($file) {
-					$photo_gallery[] = array("image" => $file,"caption" => BigTree::safeEncode($data["caption"]),"attribution" => BigTree::safeEncode($data["attribution"]),"link" => BigTree::safeEncode($data["link"]));
+					$photo_gallery[] = array("image" => $file,"caption" => Text::htmlEncode($data["caption"]),"attribution" => Text::htmlEncode($data["attribution"]),"link" => Text::htmlEncode($data["link"]));
 				}
 			// File From Image Manager
 			} elseif ($data["existing"]) {
@@ -31,7 +31,7 @@
 
 				$file = $admin->processImageUpload($field_copy);
 				if ($file) {
-					$photo_gallery[] = array("image" => $file,"caption" => BigTree::safeEncode($data["caption"]),"attribution" => BigTree::safeEncode($data["attribution"]),"link" => BigTree::safeEncode($data["link"]));
+					$photo_gallery[] = array("image" => $file,"caption" => Text::htmlEncode($data["caption"]),"attribution" => Text::htmlEncode($data["attribution"]),"link" => Text::htmlEncode($data["link"]));
 				}
 			}
 		}

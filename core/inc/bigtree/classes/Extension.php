@@ -418,7 +418,7 @@
 
 				// If no longer in debug mode, cache it
 				if (!$bigtree["config"]["debug"]) {
-					file_put_contents($extension_cache_file,BigTree::json($plugins));
+					file_put_contents($extension_cache_file, JSON::encode($plugins));
 				}
 			} else {
 				$plugins = json_decode(file_get_contents($extension_cache_file),true);

@@ -1,3 +1,6 @@
+<?php
+	namespace BigTree;
+?>
 <div id="analytics_tab"></div>
 <script>
 	BigTreeTable({
@@ -8,7 +11,7 @@
 			visits: { title: "Visits", size: 115, center: true },
 			views: { title: "Views", size: 115, center: true }
 		},
-		data: <?=BigTree::jsonExtract($cache["keywords"],array("name","visits","views"))?>,
+		data: <?=JSON::encodeColumns($cache["keywords"],array("name","visits","views"))?>,
 		searchable: true,
 		sortable: true
 	});

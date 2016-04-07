@@ -106,6 +106,64 @@
 		}
 
 		/*
+			Function: formatBytes
+				Formats bytes into larger units to make them more readable.
+			
+			Parameters:
+				size - The number of bytes.
+			
+			Returns:
+				A string with the number of bytes in kilobytes, megabytes, or gigabytes.
+		*/
+		
+		static function formatBytes($size) {
+			$units = array(' B', ' KB', ' MB', ' GB', ' TB');
+			
+			for ($i = 0; $size >= 1024 && $i < 4; $i++) {
+				$size /= 1024;
+			}
+			
+			return round($size, 2).$units[$i];
+		}
+
+		/*
+			Function: getPOSTMaxSize
+				Returns in bytes the maximum size of a POST.
+		*/
+
+		static function getPOSTMaxSize() {
+			$post_max_size = ini_get("post_max_size");
+			
+			if (!is_integer($post_max_size)) {
+				$post_max_size = static::unformatBytes($post_max_size);
+			}
+			
+			return $post_max_size;
+		}
+
+		/*
+			Function: getUploadMaxFileSize
+				Returns Apache's max file size value for use in forms.
+		
+			Returns:
+				The integer value for setting a form's MAX_FILE_SIZE.
+		*/
+		
+		static function getUploadMaxFileSize() {
+			$upload_max_filesize = ini_get("upload_max_filesize");
+			if (!is_integer($upload_max_filesize)) {
+				$upload_max_filesize = static::unformatBytes($upload_max_filesize);
+			}
+			
+			$post_max_size = static::getPOSTMaxSize();
+			if ($post_max_size < $upload_max_filesize) {
+				$upload_max_filesize = $post_max_size;
+			}
+			
+			return $upload_max_filesize;
+		}
+
+		/*
 			Function: replace
 				Stores a file to the current storage service and replaces any existing file with the same file_name.
 
@@ -290,6 +348,32 @@
 					return false;
 				}
 			}
+		}
+
+		/*
+			Function: unformatBytes
+				Formats a string of kilobytes / megabytes / gigabytes back into bytes.
+			
+			Parameters:
+				size - The string of (kilo/mega/giga)bytes.
+			
+			Returns:
+				The number of bytes.
+		*/
+		
+		static function unformatBytes($size) {
+			$type = substr($size,-1,1);
+			$num = substr($size,0,-1);
+			
+			if ($type == "M") {
+				return $num * 1048576;
+			} elseif ($type == "K") {
+				return $num * 1024;
+			} elseif ($type == "G") {
+				return ($num * 1024 * 1024 * 1024);
+			}
+
+			return 0;
 		}
 
 	}

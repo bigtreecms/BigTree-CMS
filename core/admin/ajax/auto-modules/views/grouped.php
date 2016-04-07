@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	// If it's an AJAX request, get our data.
 	if (isset($_POST["view"])) {
 		$bigtree["view"] = BigTreeAutoModule::getView($_POST["view"]);
@@ -141,7 +143,7 @@
 					if ($data["function"]) {
 						$link = call_user_func($data["function"],$item);
 					}
-					$action = BigTree::safeEncode($data["name"]);
+					$action = Text::htmlEncode($data["name"]);
 		?>
 		<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>" title="<?=$action?>"></a></section>
 		<?php

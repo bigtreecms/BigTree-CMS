@@ -9,7 +9,7 @@
 ?>
 <fieldset>
 	<label>Name</label>
-	<input type="text" name="name" value="<?=BigTree::safeEncode($_POST["name"])?>" />
+	<input type="text" name="name" value="<?=Text::htmlEncode($_POST["name"])?>" />
 </fieldset>
 <?php
 	$data = $_POST;

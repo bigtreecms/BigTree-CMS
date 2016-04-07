@@ -18,7 +18,7 @@
 		<?php
 			if (isset($_SESSION["bigtree_admin"]["growl"])) {
 		?>
-		<script>BigTree.growl("<?=BigTree::safeEncode($_SESSION["bigtree_admin"]["growl"]["title"])?>","<?=BigTree::safeEncode($_SESSION["bigtree_admin"]["growl"]["message"])?>",5000,"<?=htmlspecialchars($_SESSION["bigtree_admin"]["growl"]["type"])?>");</script>
+		<script>BigTree.growl("<?=BigTree\Text::htmlEncode($_SESSION["bigtree_admin"]["growl"]["title"])?>","<?=BigTree\Text::htmlEncode($_SESSION["bigtree_admin"]["growl"]["message"])?>",5000,"<?=htmlspecialchars($_SESSION["bigtree_admin"]["growl"]["type"])?>");</script>
 		<?php
 				unset($_SESSION["bigtree_admin"]["growl"]);
 			}

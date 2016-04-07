@@ -1,6 +1,4 @@
 <?php
-	use BigTree\FileSystem;
-
 	/*
 		Class: BigTree
 			A utilities class with many useful functions.
@@ -92,40 +90,6 @@
 		}
 
 		/*
-			Function: classAutoLoader
-				Internal function to automatically load module classes as needed.
-		*/
-
-		static function classAutoLoader($class) {
-			global $bigtree;
-
-			// Known class in the cache file
-			if ($path = $bigtree["class_list"][$class]) {
-				if (substr($path,0,11) != "extensions/" && substr($path,0,7) != "custom/") {
-					$path = static::path($path);
-				} else {
-					$path = SERVER_ROOT.$path;
-				}
-				if (file_exists($path)) {
-					include_once $path;
-					return;
-				}
-
-			// Auto loadable via the path
-			} elseif (substr($class,0,8) == "BigTree\\") {
-				$path = static::path("inc/bigtree/classes/".str_replace("\\","/",substr($class,8)).".php");
-				
-				if (file_exists($path)) {
-					include_once $path;
-					return;
-				}
-			}
-
-			// Clear the module class list just in case we're missing something.
-			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
-		}
-
-		/*
 			Function: cleanFile
 				Makes sure that a file path doesn't contain abusive characters (i.e. ../)
 
@@ -137,7 +101,7 @@
 		*/
 
 		static function cleanFile($file) {
-			return FileSystem::getSafePath($file);
+			return BigTree\FileSystem::getSafePath($file);
 		}
 		
 		/*
@@ -189,7 +153,7 @@
 		*/
 		
 		static function copyFile($from,$to) {
-			return FileSystem::copyFile($from, $to);
+			return BigTree\FileSystem::copyFile($from, $to);
 		}
 		
 		/*
@@ -236,7 +200,7 @@
 				createUpscaledImage
 		*/
 		
-		static function createThumbnail($file,$new_file,$maxwidth,$maxheight,$retina = false,$grayscale = false,$upscale = false) {
+		static function createThumbnail($file,$new_file,$max_width,$max_height,$retina = false,$grayscale = false,$upscale = false) {
 			return BigTree\Image::createThumbnail($file,$new_file,$max_width,$max_height,$retina,$grayscale,$upscale);
 		}
 
@@ -342,12 +306,7 @@
 		*/
 
 		static function currentURL($port = false) {
-			$protocol = (@$_SERVER["HTTPS"] == "on") ? "https://" : "http://";
-			if ($_SERVER["SERVER_PORT"] != "80" && $port) {
-				return $protocol.$_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
-			} else {
-				return $protocol.$_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
-			}
+			return BigTree\Router::currentURL($port);
 		}
 
 		/*
@@ -363,19 +322,7 @@
 		*/
 
 		static function dateFormat($date,$format = "Y-m-d H:i:s") {
-			global $bigtree;
-			
-			$date_object = DateTime::createFromFormat($bigtree["config"]["date_format"],$date);
-
-			// Fallback to SQL standards for handling pre 4.2 values
-			if (!$date_object) {
-				$date_object = DateTime::createFromFormat("Y-m-d",$date);
-			}
-
-			if ($date_object) {
-				return $date_object->format($format);
-			}
-			return false;
+			return BigTree\Date::format($date, $format);
 		}
 
 		/*
@@ -398,10 +345,7 @@
 		*/
 
 		static function dateFromOffset($start_date,$offset,$format = "Y-m-d H:i:s") {
-			$time = is_numeric($start_date) ? $start_date : strtotime($start_date);
-			$date = DateTime::createFromFormat("Y-m-d H:i:s",date("Y-m-d H:i:s",$time));
-			$date->add(DateInterval::createFromDateString($offset));
-			return $date->format($format);
+			return BigTree\Date::fromOffset($start_date, $offset, $format);
 		}
 				
 		/*
@@ -416,7 +360,7 @@
 		*/
 		
 		static function deleteDirectory($dir) {
-			return FileSystem::deleteDirectory($dir);
+			return BigTree\FileSystem::deleteDirectory($dir);
 		}
 
 		/*
@@ -431,7 +375,7 @@
 		*/
 
 		static function deleteFile($file) {
-			return FileSystem::deleteFile($file);
+			return BigTree\FileSystem::deleteFile($file);
 		}
 		
 		/*
@@ -465,7 +409,7 @@
 		*/
 
 		static function directoryContents($directory,$recurse = true,$extension = false,$include_git = false) {
-			return FileSystem::getDirectoryContents($directory, $recurse, $extension, $include_git);
+			return BigTree\FileSystem::getDirectoryContents($directory, $recurse, $extension, $include_git);
 		}
 
 		/*
@@ -480,11 +424,7 @@
 		*/
 		
 		static function formatBytes($size) {
-			$units = array(' B', ' KB', ' MB', ' GB', ' TB');
-			for ($i = 0; $size >= 1024 && $i < 4; $i++) {
-				$size /= 1024;
-			}
-			return round($size, 2).$units[$i];
+			return BigTree\Storage::formatBytes($size);
 		}
 		
 		/*
@@ -500,8 +440,8 @@
 		*/
 		
 		static function geocodeAddress($address) {
-			$geocoder = new BigTreeGeocoding;
-			return $geocoder->geocode($address);
+			$geocode = new BigTree\Geocode($address);
+			return $geocode ? $geocode->Array : false;
 		}
 		
 		/*
@@ -518,7 +458,7 @@
 		*/
 		
 		static function getAvailableFileName($directory,$file,$prefixes = array()) {
-			return FileSystem::getAvailableFileName($directory, $file, $prefixes);
+			return BigTree\FileSystem::getAvailableFileName($directory, $file, $prefixes);
 		}
 
 		/*
@@ -533,25 +473,7 @@
 		*/
 
 		static function getCookie($id) {
-			if (strpos($id,"[") !== false) {
-				$pieces = explode("[",$id);
-				$cookie = $_COOKIE;
-				foreach ($pieces as $piece) {
-					$piece = str_replace("]","",$piece);
-					if (isset($cookie[$piece])) {
-						$cookie = $cookie[$piece];
-					} else {
-						return false;
-					}
-				}
-				return json_decode($cookie,true);
-			} else {
-				if (isset($_COOKIE[$id])) {
-					return json_decode($_COOKIE[$id],true);
-				} else {
-					return false;
-				}
-			}
+			return BigTree\Cookie::get($id);
 		}
 		
 		/*
@@ -565,33 +487,7 @@
 		*/
 		
 		static function getFieldSelectOptions($table,$default = "",$sorting = false) {
-			$table_description = static::describeTable($table);
-			if (!$table_description) {
-				echo '<option>ERROR: Table Missing</option>';
-				return;
-			}
-			echo '<option></option>';
-			foreach ($table_description["columns"] as $col) {
-				if ($sorting) {
-					if ($default == $col["name"]." ASC" || $default == "`".$col["name"]."` ASC") {
-						echo '<option selected="selected">`'.$col["name"].'` ASC</option>';
-					} else {
-						echo '<option>`'.$col["name"].'` ASC</option>';
-					}
-					
-					if ($default == $col["name"]." DESC" || $default == "`".$col["name"]."` DESC") {
-						echo '<option selected="selected">`'.$col["name"].'` DESC</option>';
-					} else {
-						echo '<option>`'.$col["name"].'` DESC</option>';
-					}
-				} else {
-					if ($default == $col["name"]) {
-						echo '<option selected="selected">'.$col["name"].'</option>';
-					} else {
-						echo '<option>'.$col["name"].'</option>';
-					}
-				}
-			}
+			BigTree\SQL::drawColumnSelectOptions($table, $default, $sorting);
 		}
 		
 		/*
@@ -603,18 +499,7 @@
 		*/
 		
 		static function getTableSelectOptions($default = "") {
-			global $bigtree;
-			
-			$tables = SQL::fetchAllSingle("SHOW TABLES");
-			foreach ($tables as $table_name) {
-				if (isset($bigtree["config"]["show_all_tables_in_dropdowns"]) || ((substr($table_name,0,8) !== "bigtree_")) || $table_name == $default) {
-					if ($default == $table_name) {
-						echo '<option selected="selected">'.$table_name.'</option>';
-					} else {
-						echo '<option>'.$table_name.'</option>';
-					}
-				}
-			}
+			BigTree\SQL::drawTableSelectOptions($default);
 		}
 		
 		/*
@@ -813,7 +698,7 @@
 		*/
 
 		static function isDirectoryWritable($path, $recursion = false) {
-			return FileSystem::getDirectoryWritability($path);
+			return BigTree\FileSystem::getDirectoryWritability($path);
 		}
 		
 		/*
@@ -844,22 +729,7 @@
 		*/
 
 		static function json($var,$sql = false) {
-			// Only run version compare once in case we're encoding a lot of JSON
-			if (static::$JSONEncoding === false) {
-				if (version_compare(PHP_VERSION,"5.4.0") >= 0) {
-					static::$JSONEncoding = 1;
-				} else {
-					static::$JSONEncoding = 0;
-				}
-			}
-
-			// Use pretty print if we have PHP 5.4 or higher
-			$json = (static::$JSONEncoding) ? json_encode($var,JSON_PRETTY_PRINT |  JSON_UNESCAPED_SLASHES) : json_encode($var);
-			// SQL escape if requested
-			if ($sql) {
-				return SQL::escape($json);
-			}
-			return $json;
+			return BigTree\JSON::encode($var, $sql);
 		}
 
 		/*
@@ -876,28 +746,7 @@
 		*/
 
 		static function jsonExtract($data,$columns = array(),$preserve_keys = false) {
-			// Only run version compare once in case we're encoding a lot of JSON
-			if (static::$JSONEncoding === false) {
-				if (version_compare(PHP_VERSION,"5.4.0") >= 0) {
-					static::$JSONEncoding = 1;
-				} else {
-					static::$JSONEncoding = 0;
-				}
-			}
-
-			$simple_data = array();
-			foreach ($data as $key => $val) {
-				$row = array();
-				foreach ($columns as $column) {
-					$row[$column] = $val[$column];
-				}
-				if ($preserve_keys) {
-					$simple_data[$key] = $row;
-				} else {
-					$simple_data[] = $row;
-				}
-			}
-			return (static::$JSONEncoding) ? json_encode($simple_data,JSON_UNESCAPED_SLASHES) : json_encode($simple_data);
+			return BigTree\JSON::encodeColumns($data, $columns, $preserve_keys);
 		}
 		
 		/*
@@ -913,7 +762,7 @@
 		*/
 		
 		static function makeDirectory($directory) {
-			return FileSystem::createDirectory($directory);
+			return BigTree\FileSystem::createDirectory($directory);
 		}
 		
 		/*
@@ -929,7 +778,7 @@
 		*/
 		
 		static function moveFile($from,$to) {
-			return FileSystem::moveFile($from, $to);
+			return BigTree\FileSystem::moveFile($from, $to);
 		}
 
 		/*
@@ -992,39 +841,7 @@
 		*/
 
 		function phpDateTojQuery($format) {
-			$new_format = "";
-			for ($i = 0; $i < strlen($format); $i++) {
-				$c = substr($format,$i,1);
-				// Day with leading zeroes
-				if ($c == "d") {
-					$new_format .= "dd";
-				// Day without leading zeroes
-				} elseif ($c == "j") {
-					$new_format .= "d";
-				// Full day name (i.e. Sunday)
-				} elseif ($c == "l") {
-					$new_format .= "DD";
-				// Numeric day of the year (0-365)
-				} elseif ($c == "z") {
-					$new_format .= "o";
-				// Full month name (i.e. January)
-				} elseif ($c == "F") {
-					$new_format .= "MM";
-				// Month with leading zeroes
-				} elseif ($c == "m") {
-					$new_format .= "mm";
-				// Month without leading zeroes
-				} elseif ($c == "n") {
-					$new_format .= "m";
-				// 4 digit year
-				} elseif ($c == "Y") {
-					$new_format .= "yy";
-				// Many others are the same or not a date format part
-				} else {
-					$new_format .= $c;
-				}
-			}
-			return $new_format;
+			return BigTree\Date::convertTojQuery($format);
 		}
 		
 		/*
@@ -1053,12 +870,7 @@
 		*/
 
 		static function postMaxSize() {
-			$post_max_size = ini_get("post_max_size");
-			if (!is_integer($post_max_size)) {
-				$post_max_size = static::unformatBytes($post_max_size);
-			}
-			
-			return $post_max_size;
+			return BigTree\Storage::getPOSTMaxSize();
 		}
 
 		/*
@@ -1074,7 +886,7 @@
 		*/
 		
 		static function prefixFile($file,$prefix) {
-			return FileSystem::getPrefixedFile($file, $prefix);
+			return BigTree\FileSystem::getPrefixedFile($file, $prefix);
 		}
 		
 		/*
@@ -1091,7 +903,7 @@
 		*/
 		
 		static function putFile($file,$contents) {
-			return FileSystem::createFile($file, $contents);
+			return BigTree\FileSystem::createFile($file, $contents);
 		}
 
 		/*
@@ -1107,28 +919,7 @@
 		*/
 		
 		static function randomString($length = 8, $type = "alphanum") {
-			// Character sets
-			$types = array(
-				"alpha" => "abcdefghijklmnopqrstuvwqyz",
-				"numeric" => "0123456789",
-				"alphanum" => "ABCDEFGHJKLMNPQRTUVWXY0123456789",
-				"hexidec" => "0123456789abcdef"
-			);
-		
-			$character_set = $types[$type];
-		
-			// Seed the random number generator
-			list($usec, $sec) = explode(' ', microtime());
-			mt_srand((float) $sec + ((float) $usec * 100000));
-		
-			// Generate
-			$sting = "";
-			$character_set_length = strlen($character_set) - 1;
-			for ($i = 0; $i < $length; $i++) {
-				$string .= $character_set[mt_rand(0,$character_set_length)];
-			}
-
-			return $string;
+			return BigTree\Text::getRandomString($length, $type);
 		}
 		
 		/*
@@ -1156,30 +947,7 @@
 		*/
 
 		static function relativeTime($time) {
-			$minute = 60;
-			$hour = 3600;
-			$day = 86400;
-			$month = 2592000;			
-			$delta = strtotime(date('r')) - strtotime($time);
-			
-			if ($delta < 2 * $minute) {
-				return "1 min ago";
-			} elseif ($delta < 45 * $minute) {
-				$minutes = floor($delta / $minute);
-				return  $minutes == 1 ? "1 minute ago" : "$minutes minutes ago";
-			} elseif ($delta < 24 * $hour) {
-				$hours = floor($delta / $hour);
-				return $hours == 1 ? "1 hour ago" : "$hours hours ago";
-			} elseif ($delta < 30 * $day) {
-				$days = floor($delta / $day);
-				return  $days == 1 ? "yesterday" : "$days days ago";
-			} elseif ($delta < 12 * $month) {
-				$months = floor($delta / $day / 30);
-				return $months == 1 ? "1 month ago" : "$months months ago";
-			} else {
-				$years = floor($delta / $day / 365);
-				return $years == 1 ? "1 year ago" : "$years years ago";
-			}
+			return BigTree\Date::relativeTime($time);
 		}
 
 		/*
@@ -1195,10 +963,7 @@
 		*/
 
 		static function replaceServerRoot($string,$replace = "") {
-			if (strpos($string,SERVER_ROOT) === 0) {
-				return $replace.substr($string,strlen(SERVER_ROOT));
-			}
-			return $string;
+			return BigTree\Router::replaceServerRoot($string, $replace);
 		}
 
 		/*
@@ -1215,48 +980,7 @@
 		*/
 
 		static function route($directory,$path) {
-			$commands = array();
-			$inc_file = $directory;
-			$inc_dir = $directory;
-			$ended = false;
-			$found_file = false;
-			foreach ($path as $piece) {
-				// Prevent path exploitation
-				if ($piece == "..") {
-					die();
-				}
-				// We're done, everything is a command now.
-				if ($ended) {
-					$commands[] = $piece;
-				// Keep looking for directories.
-				} elseif (is_dir($inc_dir.$piece)) {
-					$inc_file .= $piece."/";
-					$inc_dir .= $piece."/";
-				// File exists, we're ending now.
-				} elseif ($piece != "_header" && $piece != "_footer" && file_exists($inc_file.$piece.".php")) {
-					$inc_file .= $piece.".php";
-					$ended = true;
-					$found_file = true;
-				// Couldn't find a file or directory.
-				} else {
-					$commands[] = $piece;
-					$ended = true;
-				}
-			}
-
-			if (!$found_file) {
-				// If we have default in the routed directory, use it.
-				if (file_exists($inc_dir."default.php")) {
-					$inc_file = $inc_dir."default.php";
-				// See if we can change the directory name into .php file in case the directory is empty but we have .php
-				} elseif (file_exists(rtrim($inc_dir,"/").".php")) {
-					$inc_file = rtrim($inc_dir,"/").".php";
-				// We couldn't route anywhere apparently.
-				} else {
-					return array(false,false);
-				}
-			}
-			return array($inc_file,$commands);
+			return BigTree\Router::getRoutedFileAndCommands($directory, $path);
 		}
 
 		/*
@@ -1271,72 +995,7 @@
 		*/
 
 		static function routeLayouts($path) {
-			$file_location = ltrim(static::replaceServerRoot($path),"/");
-			$include_root = false;
-			$pathed_includes = false;
-			$headers = $footers = array();
-
-			// Get our path pieces and include roots setup properly
-			if (strpos($file_location,"custom/admin/modules/") === 0) {
-				$include_root = "admin/modules/";
-				$pathed_includes = true;
-				$pieces = explode("/",substr($file_location,21));
-			} elseif (strpos($file_location,"core/admin/modules/") === 0) {
-				$include_root = "admin/modules/";
-				$pathed_includes = true;
-				$pieces = explode("/",substr($file_location,19));
-			} elseif (strpos($file_location,"custom/admin/ajax/")) {
-				$include_root = "admin/ajax/";
-				$pathed_includes = true;
-				$pieces = explode("/",substr($file_location,18));
-			} elseif (strpos($file_location,"core/admin/ajax/") === 0) {
-				$include_root = "admin/ajax/";
-				$pathed_includes = true;
-				$pieces = explode("/",substr($file_location,16));
-			} elseif (strpos($file_location,"templates/routed/") === 0) {
-				$include_root = "templates/routed/";
-				$pieces = explode("/",substr($file_location,17));
-			} elseif (strpos($file_location,"templates/ajax/") === 0) {
-				$include_root = "templates/ajax/";
-				$pieces = explode("/",substr($file_location,15));
-			} elseif (strpos($file_location,"extensions/") === 0) {
-				$pieces = explode("/",$file_location);
-				if ($pieces[2] == "templates" && ($pieces[3] == "routed" || $pieces[3] == "ajax")) {
-					$include_root = "extensions/".$pieces[1]."/templates/".$pieces[3]."/";
-					$pieces = array_slice($pieces,4);
-				} elseif ($pieces[2] == "modules") {
-					$include_root = "extensions/".$pieces[1]."/modules/";
-					$pieces = array_slice($pieces,3);
-				} elseif ($pieces[2] == "ajax") {
-					$include_root = "extensions/".$pieces[1]."/ajax/";
-					$pieces = array_slice($pieces,3);
-				}
-			}
-
-			// Only certain places include headers and footers
-			if ($include_root) {
-				$inc_path = "";
-				foreach ($pieces as $piece) {
-					if (substr($piece,-4,4) != ".php") {
-						$inc_path .= $piece."/";
-						if ($pathed_includes) {
-							$header = static::path($include_root.$inc_path."_header.php");
-							$footer = static::path($include_root.$inc_path."_footer.php");
-						} else {
-							$header = SERVER_ROOT.$include_root.$inc_path."_header.php";
-							$footer = SERVER_ROOT.$include_root.$inc_path."_footer.php";
-						}
-						if (file_exists($header)) {
-							$headers[] = $header;
-						}
-						if (file_exists($footer)) {
-							$footers[] = $footer;
-						}
-					}
-				}
-			}
-
-			return array($headers,array_reverse($footers));
+			return BigTree\Router::getRoutedLayoutPartials($path);
 		}
 
 		/*
@@ -1402,7 +1061,7 @@
 		*/
 
 		static function runningAsSU() {
-			return FileSystem::getRunningAsOwner();
+			return BigTree\FileSystem::getRunningAsOwner();
 		}
 
 		/*
@@ -1438,7 +1097,7 @@
 		*/
 
 		static function safeEncode($string) {
-			return htmlspecialchars(html_entity_decode($string,ENT_COMPAT,"UTF-8"));
+			return BigTree\Text::htmlEncode($string);
 		}
 		
 		/*
@@ -1546,10 +1205,7 @@
 		*/
 
 		static function setCookie($id,$value,$expiration = 0) {
-			$expiration = is_string($expiration) ? strtotime($expiration) : $expiration;
-
-			$_COOKIE[$id] = json_encode($value);
-			setcookie($id,json_encode($value),$expiration,str_replace(DOMAIN,"",WWW_ROOT));
+			BigTree\Cookie::create($id, $value, $expiration);
 		}
 
 		/*
@@ -1562,7 +1218,7 @@
 		*/
 
 		static function setDirectoryPermissions($location) {
-			return FileSystem::setDirectoryPermissions($location);
+			return BigTree\FileSystem::setDirectoryPermissions($location);
 		}
 
 		/*
@@ -1578,7 +1234,7 @@
 		*/
 
 		static function setPermissions($location) {
-			return FileSystem::setPermissions($location);
+			return BigTree\FileSystem::setPermissions($location);
 		}
 
 		/*
@@ -1637,7 +1293,7 @@
 		*/
 		
 		static function touchFile($file) {
-			return FileSystem::touchFile($file);
+			return BigTree\FileSystem::touchFile($file);
 		}
 		
 		/*
@@ -1678,88 +1334,7 @@
 		*/
 		
 		static function trimLength($string,$length) {
-			$ns = "";
-			$opentags = array();
-			$string = trim($string);
-			if (strlen(html_entity_decode(strip_tags($string))) < $length) {
-				return $string;
-			}
-			if (strpos($string," ") === false && strlen(html_entity_decode(strip_tags($string))) > $length) {
-				return substr($string,0,$length)."&hellip;";
-			}
-			$x = 0;
-			$z = 0;
-			while ($z < $length && $x <= strlen($string)) {
-				$char = substr($string,$x,1);
-				$ns .= $char;		// Add the character to the new string.
-				if ($char == "<") {
-					// Get the full tag -- but compensate for bad html to prevent endless loops.
-					$tag = "";
-					while ($char != ">"	 && $char !== false) {
-						$x++;
-						$char = substr($string,$x,1);
-						$tag .= $char;
-					}
-					$ns .= $tag;
-		
-					$tagexp = explode(" ",trim($tag));
-					$tagname = str_replace(">","",$tagexp[0]);
-		
-					// If it's a self contained <br /> tag or similar, don't add it to open tags.
-					if ($tagexp[1] != "/" && $tagexp[1] != "/>") {
-						// See if we're opening or closing a tag.
-						if (substr($tagname,0,1) == "/") {
-							$tagname = str_replace("/","",$tagname);
-							// We're closing the tag. Kill the most recently opened aspect of the tag.
-							$done = false;
-							reset($opentags);
-							while (current($opentags) && !$done) {
-								if (current($opentags) == $tagname) {
-									unset($opentags[key($opentags)]);
-									$done = true;
-								}
-								next($opentags);
-							}
-						} else {
-							// Open a new tag.
-							$opentags[] = $tagname;
-						}
-					}
-				} elseif ($char == "&") {
-					$entity = "";
-					while ($char != ";" && $char != " " && $char != "<") {
-						$x++;
-						$char = substr($string,$x,1);
-						$entity .= $char;
-					}
-					if ($char == ";") {
-						$z++;
-						$ns .= $entity;
-					} elseif ($char == " ") {
-						$z += strlen($entity);
-						$ns .= $entity;
-					} else {
-						$z += strlen($entity);
-						$ns .= substr($entity,0,-1);
-						$x -= 2;
-					}
-				} else {
-					$z++;
-				}
-				$x++;
-			}
-			while ($x < strlen($string) && !in_array(substr($string,$x,1),array(" ","!",".",",","<","&"))) {
-				$ns .= substr($string,$x,1);
-				$x++;
-			}
-			if (strlen(strip_tags($ns)) < strlen(strip_tags($string))) {
-				$ns.= "&hellip;";
-			}
-			$opentags = array_reverse($opentags);
-			foreach ($opentags as $key => $val) {
-				$ns .= "</".$val.">";
-			}
-			return $ns;
+			return BigTree\Text::trimLength($string, $length);
 		}
 		
 		/*
@@ -1774,16 +1349,7 @@
 		*/
 		
 		static function unformatBytes($size) {
-			$type = substr($size,-1,1);
-			$num = substr($size,0,-1);
-			if ($type == "M") {
-				return $num * 1048576;
-			} elseif ($type == "K") {
-				return $num * 1024;
-			} elseif ($type == "G") {
-				return ($num * 1024 * 1024 * 1024);
-			}
-			return 0;
+			return BigTree\Storage::unformatBytes($size);
 		}
 
 		/*
@@ -1795,8 +1361,7 @@
 		*/
 
 		static function unsetCookie($id) {
-			setcookie($id,"",strtotime("-1 week"),str_replace(DOMAIN,"",WWW_ROOT));
-			unset($_COOKIE[$id]);
+			BigTree\Cookie::delete($id);
 		}
 		
 		/*
@@ -1835,7 +1400,7 @@
 		
 		static function unzip($file,$destination) {
 			// If we can't write the output directory, we're not getting anywhere.
-			if (!FileSystem::getDirectoryWritability($destination)) {
+			if (!BigTree\FileSystem::getDirectoryWritability($destination)) {
 				return false;
 			}
 
@@ -1843,7 +1408,7 @@
 			ini_set("memory_limit","512M");
 			
 			$destination = rtrim($destination)."/";
-			FileSystem::createDirectory($destination);
+			BigTree\FileSystem::createDirectory($destination);
 			
 			// If we have the built in ZipArchive extension, use that.
 			if (class_exists("ZipArchive")) {
@@ -1875,7 +1440,7 @@
 						// File extraction failed.
 						return false;
 					}
-					FileSystem::createFile($destination.$file["name"],$content);
+					BigTree\FileSystem::createFile($destination.$file["name"],$content);
 				}
 				
 				$z->close();
@@ -1914,7 +1479,7 @@
 						continue;
 					}
 					
-					FileSystem::createFile($destination.$item["filename"],$item["content"]);
+					BigTree\FileSystem::createFile($destination.$item["filename"],$item["content"]);
 				}
 				
 				return true;
@@ -1930,17 +1495,7 @@
 		*/
 		
 		static function uploadMaxFileSize() {
-			$upload_max_filesize = ini_get("upload_max_filesize");
-			if (!is_integer($upload_max_filesize)) {
-				$upload_max_filesize = static::unformatBytes($upload_max_filesize);
-			}
-			
-			$post_max_size = static::postMaxSize();
-			if ($post_max_size < $upload_max_filesize) {
-				$upload_max_filesize = $post_max_size;
-			}
-			
-			return $upload_max_filesize;
+			return BigTree\Storage::getUploadMaxFileSize();
 		}
 
 		/*
@@ -1958,12 +1513,4 @@
 			return BigTree\Link::urlExists($url);
 		}
 		
-	}
-
-	// For servers that don't have multibyte string extensions…
-	if (!function_exists("mb_strlen")) {
-		function mb_strlen($string) { return strlen($string); }
-	}
-	if (!function_exists("mb_strtolower")) {
-		function mb_strtolower($string) { return strtolower($string); }
 	}

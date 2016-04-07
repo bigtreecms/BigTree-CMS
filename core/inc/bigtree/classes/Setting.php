@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class Setting extends BaseObject {
 
 		protected $AutoSave;
@@ -111,7 +109,7 @@
 
 		static function allSystem($sort = "name ASC",$return_arrays = false) {
 			$settings = SQL::fetchAll("SELECT * FROM bigtree_settings 
-												   WHERE id NOT LIKE 'bigtree-internal-%' AND system != '' ORDER BY $sort");
+									   WHERE id NOT LIKE 'bigtree-internal-%' AND system != '' ORDER BY $sort");
 
 			if (!$return_arrays) {
 				foreach ($settings as &$setting) {
@@ -192,9 +190,9 @@
 			// Create the setting
 			SQL::insert("bigtree_settings",array(
 				"id" => $id,
-				"name" => BigTree::safeEncode($name),
+				"name" => Text::htmlEncode($name),
 				"description" => $description,
-				"type" => BigTree::safeEncode($type),
+				"type" => Text::htmlEncode($type),
 				"options" => array_filter((array)$settings),
 				"locked" => $locked ? "on" : "",
 				"encrypted" => $encrypted ? "on" : "",
@@ -234,7 +232,7 @@
 				"id" => $this->ID,
 				"type" => $this->Type,
 				"options" => array_filter((array) $this->Settings),
-				"name" => BigTree::safeEncode($this->Name),
+				"name" => Text::htmlEncode($this->Name),
 				"description" => $this->Description,
 				"locked" => $this->Locked ? "on" : "",
 				"system" => $this->System ? "on" : "",
@@ -252,7 +250,7 @@
 	
 				if ($this->Encrypted) {
 					SQL::query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?,?) WHERE id = ?", 
-											$value, $bigtree["config"]["settings_key"], $this->ID);
+								$value, $bigtree["config"]["settings_key"], $this->ID);
 				} else {
 					SQL::update("bigtree_settings",$this->ID,array("value" => $value));
 				}
@@ -369,4 +367,5 @@
 
 			return $setting_values;
 		}
+		
 	}

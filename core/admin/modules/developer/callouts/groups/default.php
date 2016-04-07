@@ -1,9 +1,12 @@
+<?php
+	namespace BigTree;
+?>
 <div id="callout_groups_table"></div>
 <script>
 	BigTreeTable({
 		container: "#callout_groups_table",
 		title: "Callout Groups",
-		data: <?=BigTree::jsonExtract(BigTree\CalloutGroup::all(true),array("name","id"))?>,
+		data: <?=JSON::encodeColumns(BigTree\CalloutGroup::all(true),array("name","id"))?>,
 		actions: {
 			edit: "<?=DEVELOPER_ROOT?>callouts/groups/edit/{id}/",
 			delete: function(id,state) {

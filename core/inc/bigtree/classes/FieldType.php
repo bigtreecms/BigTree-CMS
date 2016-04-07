@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class FieldType extends BaseObject {
 
 		static $Table = "bigtree_field_types";
@@ -70,7 +68,7 @@
 
 			SQL::insert("bigtree_field_types",array(
 				"id" => $id,
-				"name" => BigTree::safeEncode($name),
+				"name" => Text::htmlEncode($name),
 				"use_cases" => $use_cases,
 				"self_draw" => ($self_draw ? "on" : null)
 			));
@@ -197,7 +195,7 @@
 					}
 				}
 
-				FileSystem::createFile(SERVER_ROOT."cache/bigtree-form-field-types.json",BigTree::json($types));
+				FileSystem::createFile(SERVER_ROOT."cache/bigtree-form-field-types.json", JSON::encode($types));
 			}
 
 			// Re-merge if we don't want them split
@@ -223,7 +221,7 @@
 		function save() {
 			// Update DB
 			SQL::update("bigtree_field_types",$this->ID,array(
-				"name" => BigTree::safeEncode($this->Name),
+				"name" => Text::htmlEncode($this->Name),
 				"use_cases" => array_filter((array)$this->UseCases),
 				"self_draw" => $this->SelfDraw ? "on" : ""
 			));

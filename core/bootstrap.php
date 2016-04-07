@@ -27,6 +27,14 @@
 	// Set version
 	include SERVER_ROOT."core/version.php";
 
+	// For servers that don't have multibyte string extensions.
+	if (!function_exists("mb_strlen")) {
+		function mb_strlen($string) { return strlen($string); }
+	}
+	if (!function_exists("mb_strtolower")) {
+		function mb_strtolower($string) { return strtolower($string); }
+	}
+
 	// Include required utility functions
 	if (file_exists(SERVER_ROOT."custom/inc/bigtree/utils.php")) {
 		include SERVER_ROOT."custom/inc/bigtree/utils.php";

@@ -77,7 +77,7 @@
 				return false;
 			}
 
-			$value = BigTree::json($value);
+			$value = JSON::encode($value);
 			
 			if ($exists) {
 				return SQL::update("bigtree_caches",array("identifier" => $identifier,"key" => $key),array("value" => $value));

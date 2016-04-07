@@ -5,9 +5,7 @@
 	*/
 
 	namespace BigTree;
-
-	use BigTree;
-
+	
 	class Field extends BaseObject {
 
 		public $Error;
@@ -120,7 +118,7 @@
 					$this->drawArrayLevel(array_merge($keys,array($key)),$value);
 				} else {
 ?>
-<input type="hidden" name="<?=$this->Key?>[<?=implode("][",$keys)?>][<?=$key?>]" value="<?=BigTree::safeEncode($value)?>" />
+<input type="hidden" name="<?=$this->Key?>[<?=implode("][",$keys)?>][<?=$key?>]" value="<?=Text::htmlEncode($value)?>" />
 <?php
 				}
 			}
@@ -218,7 +216,7 @@
 				if (is_array($this->Input)) {
 					$output = $this->Input;
 				} else {
-					$output = BigTree::safeEncode($this->Input);
+					$output = Text::htmlEncode($this->Input);
 				}
 			}
 

@@ -1,9 +1,12 @@
+<?php
+	namespace BigTree;
+?>
 <div id="feeds_table"></div>
 <script>
 	BigTreeTable({
 		container: "#feeds_table",
 		title: "Field Types",
-		data: <?=BigTree::jsonExtract($admin->getFeeds(),array("id","name","route","type"))?>,
+		data: <?=JSON::encodeColumns($admin->getFeeds(),array("id","name","route","type"))?>,
 		actions: {
 			edit: "<?=DEVELOPER_ROOT?>feeds/edit/{id}/",
 			delete: function(id,state) {

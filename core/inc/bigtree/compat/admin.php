@@ -4,6 +4,7 @@
 			The main class used by the admin for manipulating and retrieving data.
 	*/
 
+	use BigTree\JSON;
 	use BigTree\SQL;
 
 	class BigTreeAdminBase {
@@ -3607,7 +3608,7 @@
 			}
 
 			// Save tags separately
-			$tags = BigTree::json($changes["_tags"],true);
+			$tags = JSON::encode($changes["_tags"],true);
 			unset($changes["_tags"]);
 
 			// Convert to an IPL
