@@ -24,16 +24,22 @@
 </div>
 
 <script>
-	$("#callout_type select").change(function(event,data) {
-		// TinyMCE tooltips and menus sometimes get stuck
-		$(".mce-tooltip, .mce-menu").remove();
+	(function() {
+		var Window = $(".bigtree_dialog_window").last();
+		var Select = Window.find(".callout_type select");
+		var Fields = Window.find(".callout_fields");
 
-		$("#callout_resources").load("<?=ADMIN_ROOT?>ajax/callouts/resources/", {
-			count: <?=$bigtree["callout_count"]?>,
-			key: "<?=$bigtree["callout_key"]?>",
-			resources: "<?=htmlspecialchars($_POST["data"])?>",
-			type: data.value,
-			tab_depth: <?=intval($_POST["tab_depth"])?>
-		}, BigTreeCustomControls).scrollTop(0);
-	});
+		Select.change(function(event,data) {
+			// TinyMCE tooltips and menus sometimes get stuck
+			$(".mce-tooltip, .mce-menu").remove();
+	
+			Fields.load("<?=ADMIN_ROOT?>ajax/callouts/resources/", {
+				count: <?=$bigtree["callout_count"]?>,
+				key: "<?=$bigtree["callout_key"]?>",
+				resources: "<?=htmlspecialchars($_POST["data"])?>",
+				type: data.value,
+				tab_depth: <?=intval($_POST["tab_depth"])?>
+			}, BigTreeCustomControls).scrollTop(0);
+		});
+	})();
 </script>
