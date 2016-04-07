@@ -291,7 +291,9 @@
 			if (is_array($c) && count($c)) {
 				$last = end($c);
 				$commands = implode("/",$c);
-				if (strpos($last,"#") === false && strpos($last,"?") === false) {
+				
+				// If the URL's last piece has a GET (?), hash (#), or appears to be a file (.) don't add a trailing slash
+				if ($bigtree["config"]["trailing_slash_behavior"] != "remove" && strpos($last,"#") === false && strpos($last,"?") === false && strpos($last,".") === false) {
 					$commands .= "/";
 				}
 			} else {
@@ -300,7 +302,7 @@
 
 			// See if it's in the cache.
 			if (isset(static::$IPLCache[$navid])) {
-				if ($bigtree["config"]["trailing_slash_behavior"] != "none" || $commands != "") {
+				if ($bigtree["config"]["trailing_slash_behavior"] != "remove" || $commands != "") {
 					return static::$IPLCache[$navid]."/".$commands;
 				} else {
 					return static::$IPLCache[$navid];
@@ -312,7 +314,7 @@
 				// Set the cache
 				static::$IPLCache[$navid] = WWW_ROOT.$path;
 
-				if (!empty($bigtree["config"]["trailing_slash_behavior"]) && $bigtree["config"]["trailing_slash_behavior"] != "none" || $commands != "") {
+				if (!empty($bigtree["config"]["trailing_slash_behavior"]) && $bigtree["config"]["trailing_slash_behavior"] != "remove" || $commands != "") {
 					return WWW_ROOT.$path."/".$commands;
 				} else {
 					return WWW_ROOT.$path;
