@@ -953,6 +953,51 @@
 		}
 
 		/*
+			Function: getTopLevelPageID
+				Returns the highest level ancestor's ID for the page.
+			
+			Parameters:
+				trunk_as_top_level - Treat a trunk as top level navigation instead of a new "site" (will return the trunk instead of the first nav item below the trunk if encountered) - defaults to false
+			
+			Returns:
+				The ID of the highest ancestor of the given page.
+			
+			See Also:
+				<getToplevelNavigationId>
+			
+		*/
+		
+		static function getTopLevelPageID($trunk_as_top_level = false) {
+			$paths = array();
+			$path = "";
+			$parts = explode("/",$this->Path);
+
+			foreach ($parts as $part) {
+				$path .= "/".$part;
+				$path = ltrim($path,"/");
+				$paths[] = "path = '".SQL::escape($path)."'";
+			}
+
+			// Get either the trunk or the top level nav id.
+			$page = SQL::fetch("SELECT id, trunk, path FROM bigtree_pages
+								WHERE (".implode(" OR ",$paths).") AND (trunk = 'on' OR parent = '0')
+								ORDER BY LENGTH(path) DESC LIMIT 1");
+
+			// If we don't want the trunk, look higher
+			if ($page["trunk"] && $page["parent"] && !$trunk_as_top_level) {
+				// Get the next item in the path.
+				$id = SQL::fetchSingle("SELECT id FROM bigtree_pages 
+										WHERE (".implode(" OR ",$paths).") AND LENGTH(path) < ".strlen($page["path"])." 
+										ORDER BY LENGTH(path) ASC LIMIT 1");
+				if ($id) {
+					return $id;
+				}
+			}
+
+			return $page["id"];
+		}
+
+		/*
 			Function: getUserAccessLevel
 				Returns the permission level for the logged in user to the page
 

@@ -513,7 +513,7 @@
 	ob_start($filter);
 	
 	// If we're in HTTPS, make sure all Javascript, images, and CSS are pulling from HTTPS
-	if (BigTreeCMS::$Secure) {
+	if (Router::$Secure) {
 		// Replace CSS includes
 		$secure_replace_callback = function($matches) {
 			return str_replace('href="http://','href="https://',$matches[0]);
@@ -550,7 +550,7 @@
 	   - User is logged into the BigTree admin FOR THIS PAGE
 	   - Developer mode is either disabled OR the logged in user is a Developer
 	*/
-	if (isset($bigtree["page"]) && !BigTreeCMS::$Secure && $_SESSION["bigtree_admin"]["id"] && $_COOKIE["bigtree_admin"]["email"] && (empty($bigtree["config"]["developer_mode"]) || $_SESSION["bigtree_admin"]["level"] > 1)) {
+	if (isset($bigtree["page"]) && !Router::$Secure && $_SESSION["bigtree_admin"]["id"] && $_COOKIE["bigtree_admin"]["email"] && (empty($bigtree["config"]["developer_mode"]) || $_SESSION["bigtree_admin"]["level"] > 1)) {
 		$show_bar_default = $_COOKIE["hide_bigtree_bar"] ? false : true;
 		$show_preview_bar = false;
 		$return_link = "";

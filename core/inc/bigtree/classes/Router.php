@@ -13,6 +13,7 @@
 		protected static $ReservedRoutes = array();
 
 		static $Registry = false;
+		static $Secure = false;
 		static $Trunk = false;
 
 		/*
@@ -99,6 +100,20 @@
 			} else {
 				return $protocol.$_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
 			}
+		}
+
+		/*
+			Function: forceHTTPS
+				Forces the site into Secure mode to be served over HTTPS.
+				When Secure mode is enabled, BigTree will enforce the user being at HTTPS and will rewrite all insecure resources (like CSS, JavaScript, and images) to use HTTPS.
+		*/
+		
+		static function forceHTTPS() {
+			if (!$_SERVER["HTTPS"]) {
+				static::redirect("https://".$_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"], "301");
+			}
+
+			static::$Secure = true;
 		}
 
 		/*

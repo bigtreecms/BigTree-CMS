@@ -84,6 +84,34 @@
 		}
 
 		/*
+			Function: getRelatedModuleForm
+				Returns the form for the same table as this report.
+
+			Returns:
+				A ModuleForm object or false.
+		*/
+
+		function getRelatedModuleForm() {
+			$form = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'form' AND `table` = ?", $this->Table);
+
+			return $form ? new ModuleForm($form) : false;
+		}
+
+		/*
+			Function: getRelatedModuleView
+				Returns the view for the same table as this report.
+
+			Returns:
+				A ModuleView object or false.
+		*/
+
+		function getRelatedModuleView() {
+			$view = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = ?", $this->Table);
+
+			return $view ? new ModuleView($view) : false;
+		}
+
+		/*
 			Function: save
 				Saves the object's properties back to the database and updates InterfaceSettings.
 		*/

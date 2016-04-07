@@ -114,6 +114,29 @@
 		}
 
 		/*
+			Function: getRelatedModuleView
+				Returns the view for the same table as this form.
+
+			Returns:
+				A ModuleView object or false.
+		*/
+
+		function getRelatedModuleView() {
+			// Try to find a view that's relating back to this form first
+			$form = SQL::escape($this->ID);
+			$view = SQL::fetch("SELECT * FROM bigtree_module_interfaces
+							    WHERE `settings` LIKE '%\"related_form\":\"$form\"%'
+								   OR `settings` LIKE '%\"related_form\": \"$form\"%'");
+
+			// Fall back to any view that uses the same table
+			if (!$view) {
+				$view = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = ?", $this->Table);
+			}
+
+			return $view ? new ModuleView($view) : false;
+		}
+
+		/*
 			Function: save
 				Saves the current object properties back to the database.
 		*/

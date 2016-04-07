@@ -1311,14 +1311,7 @@
 		*/
 		
 		static function translateArray($array) {
-			foreach ($array as &$piece) {
-				if (is_array($piece)) {
-					$piece = static::translateArray($piece);
-				} else {
-					$piece = BigTreeAdmin::autoIPL($piece);
-				}
-			}
-			return $array;
+			return BigTree\Link::encodeArray($array);
 		}
 		
 		/*
@@ -1379,14 +1372,7 @@
 		*/
 		
 		static function untranslateArray($array) {
-			foreach ($array as &$piece) {
-				if (is_array($piece)) {
-					$piece = static::untranslateArray($piece);
-				} else {
-					$piece = BigTreeCMS::replaceInternalPageLinks($piece);
-				}
-			}
-			return $array;
+			return BigTree\Link::decodeArray($array);
 		}
 		
 		/*

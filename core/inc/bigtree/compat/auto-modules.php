@@ -14,186 +14,19 @@
 				id - The id of the new item.
 				table - The table the new item is in.
 				pending - Whether this is actually a pending entry or not.
-				recache - Whether to delete previous cached entries with this id (for use by recacheItem)
 			
 			See Also:
 				<recacheItem>
 		*/
 		
-		static function cacheNewItem($id,$table,$pending = false,$recache = false) {
-			if (!$pending) {
-				$item = SQL::fetch("SELECT `$table`.*, bigtree_pending_changes.changes AS bigtree_changes 
-												FROM `$table` LEFT JOIN bigtree_pending_changes 
-												ON (bigtree_pending_changes.item_id = `$table`.id AND bigtree_pending_changes.table = '$table') 
-												WHERE `$table`.id = ?", $id);
-				$original_item = $item;
-
-				// Apply changes overtop existing values
-				if ($item["bigtree_changes"]) {
-					$changes = json_decode($item["bigtree_changes"],true);
-					foreach ($changes as $key => $change) {
-						$item[$key] = $change;
-					}
-				}
-			} else {
-				$pending_item = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $id);
-				$item = json_decode($pending_item["changes"],true);
-				$item["bigtree_pending"] = true;
-				$item["bigtree_pending_owner"] = $pending_item["user"];
-				$item["id"] = "p".$pending_item["id"];
-				$original_item = $item;
-			}
-			
-			$interface_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = ?", $table);
-			foreach ($interface_ids as $interface) {
-				$view = static::getView($interface);
-				if ($recache) {
-					SQL::delete("bigtree_module_view_cache",array("view" => $interface, "id" => $item["id"]));
-				}
-				
-				// In case this view has never been cached, run the whole view, otherwise just this one.
-				if (!self::cacheViewData($view)) {
-				
-					// Find out what module we're using so we can get the gbp_field
-					$gbp = SQL::fetchSingle("SELECT gbp FROM bigtree_modules WHERE id = ?", self::getModuleForView($view));
-					$view["gbp"] = json_decode($gbp,true);
-					
-					$form = self::getRelatedFormForView($view);					
-					$parsers = $poplists = array();
-					
-					foreach ($view["fields"] as $key => $field) {
-						if ($field["parser"]) {
-							$parsers[$key] = $field["parser"];
-						} elseif ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["options"]["list_type"] == "db") {
-							$poplists[$key] = array("description" => $form["fields"][$key]["options"]["pop-description"], "table" => $form["fields"][$key]["options"]["pop-table"]);
-						}
-					}
-					
-					self::cacheRecord($item,$view,$parsers,$poplists,$original_item);
-				}
-			}
+		static function cacheNewItem($id,$table,$pending = false) {
+			BigTree\ModuleView::cacheForAll($id, $table, $pending);
 		}
 		
-		/*
-			Function: cacheRecord
-				Caches a single item in a view to the bigtree_module_view_cache table.
-			
-			Parameters:
-				item - The database record to cache.
-				view - The related view entry.
-				parsers - An array of manual parsers set in the view.
-				poplists - An array of populated lists that relate to the item.
-				original_item - The item without pending changes applied for GBP.
-		*/
-		
-		static function cacheRecord($item,$view,$parsers,$poplists,$original_item) {
-			// If we have a filter function, ask it first if we should cache it
-			if (isset($view["options"]["filter"]) && $view["options"]["filter"]) {
-				if (!call_user_func($view["options"]["filter"],$item)) {
-					return false;
-				}
-			}
+		static function cacheRecord() {
+			trigger_error("BigTreeAutoModule::cacheRecord is not meant to be called directly. Please use BigTree\\ModuleView::cacheItem", E_USER_WARNING);
 
-			// Stringify any columns that happen to be arrays (potentially from a pending record)
-			foreach ($item as $key => $val) {
-				if (is_array($val)) {
-					$item[$key] = json_encode($val);
-				}
-			}
-
-			// Setup the fields and VALUES to INSERT INTO the cache table.
-			$status = "l";
-			$pending_owner = 0;
-			if ($item["bigtree_changes"]) {
-				$status = "c";
-			} elseif (isset($item["bigtree_pending"])) {
-				$status = "p";
-				$pending_owner = $item["bigtree_pending_owner"];
-			}
-
-			// Setup our array of insert values with what we know already
-			$insert_values = array(
-				"view" => $view["id"],
-				"id" => $item["id"],
-				"status" => $status,
-				"position" => isset($item["position"]) ? $item["position"] : 0,
-				"approved" => isset($item["approved"]) ? $item["approved"] : "",
-				"archived" => isset($item["archived"]) ? $item["archived"] : "",
-				"featured" => isset($item["featured"]) ? $item["featured"] : "",
-				"pending_owner" => $pending_owner
-			);
-			
-			// Figure out which column we're going to use to sort the view.
-			if ($view["options"]["sort"]) {
-				$sort_field = BigTree::nextSQLColumnDefinition(ltrim($view["options"]["sort"],"`"));
-			} else {
-				$sort_field = false;
-			}
-			
-			// Let's see if we have a grouping field.  If we do, let's get all that info and cache it as well.
-			if (isset($view["options"]["group_field"]) && $view["options"]["group_field"]) {
-				$value = $item[$view["options"]["group_field"]];
-
-				// Check for a parser
-				if (isset($view["options"]["group_parser"]) && $view["options"]["group_parser"]) {
-					$value = BigTree::runParser($item,$value,$view["options"]["group_parser"]);
-				}
-
-				// Add the group field
-				$insert_values["group_field"] = $value;
-				
-				// If there's a sort field for the group, add it
-				if (is_numeric($value) && $view["options"]["other_table"] && $view["options"]["ot_sort_field"]) {
-					$sort_field_value = SQL::fetchSingle("SELECT `".$view["options"]["ot_sort_field"]."` 
-																	  FROM `".$view["options"]["other_table"]."` 
-																	  WHERE id = ?", $value);
-					$insert_values["group_sort_field"] = $sort_field_value;
-				}
-			}
-
-			// Check for a nesting column
-			if (!empty($view["options"]["nesting_column"])) {
-				$insert_values["group_field"] = $item[$view["options"]["nesting_column"]];
-			}
-			
-			// Group based permissions data
-			if (!empty($view["gbp"]["enabled"]) && $view["gbp"]["table"] == $view["table"]) {
-				$insert_values["gbp_field"] = $item[$view["gbp"]["group_field"]];
-				$insert_values["published_gbp_field"] = $original_item[$view["gbp"]["group_field"]];
-			}
-
-			// Run parsers
-			foreach ($parsers as $key => $parser) {
-				$item[$key] = BigTree::runParser($item,$item[$key],$parser);
-			}
-			
-			// Run database populated list hooks
-			foreach ($poplists as $key => $pop) {
-				$pop_description = SQL::fetchSingle("SELECT `".$pop["description"]."` FROM `".$pop["table"]."` WHERE id = ?", $item[$key]);
-				if ($pop_description !== false) {
-					$item[$key] = $pop_description;
-				}
-			}
-
-			// Insert into the view cache			
-			if ($view["type"] == "images" || $view["type"] == "images-grouped") {
-				$insert_values["column1"] = $item[$view["options"]["image"]];
-			} else {
-				$x = 1;
-				foreach ($view["fields"] as $field => $options) {
-					$item[$field] = BigTreeCMS::replaceInternalPageLinks($item[$field]);
-					$insert_values["column$x"] = Text::htmlEncode(strip_tags($item[$field]));
-					$x++;
-				}
-			}
-
-			if ($sort_field && $item[$sort_field]) {
-				$insert_values["sort_field"] = $item[$sort_field];
-			}
-
-			SQL::insert("bigtree_module_view_cache",$insert_values);
-
-			return true;
+			return false;
 		}
 		
 		/*
@@ -205,71 +38,8 @@
 		*/
 		
 		static function cacheViewData($view) {
-			// See if we already have cached data.
-			if (SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_module_view_cache WHERE view = ?", $view["id"])) {
-				return false;
-			}
-			
-			// Find out what module we're using so we can get the gbp_field
-			$gbp = SQL::fetchSingle("SELECT gbp FROM bigtree_modules WHERE id = ?", self::getModuleForView($view));
-			$view["gbp"] = json_decode($gbp,true);
-			
-			// Setup information on our parsers and populated lists.
-			$form = self::getRelatedFormForView($view);
-			$view["fields"] = is_array($view["fields"]) ? $view["fields"] : array();
-			$parsers = array();
-			$poplists = array();
-			
-			foreach ($view["fields"] as $key => $field) {
-				// Get the form field
-				$ff = $form["fields"][$key];
-				
-				if ($field["parser"]) {
-					$parsers[$key] = $field["parser"];
-				} elseif ($ff["type"] == "list" && $ff["options"]["list_type"] == "db") {
-					$poplists[$key] = array("description" => $ff["options"]["pop-description"], "table" => $ff["options"]["pop-table"]);
-				}
-			}
-			
-			// See if we need to modify the cache table to add more fields.
-			$field_count = count($view["fields"]);
-			$table_description = BigTree::describeTable("bigtree_module_view_cache");
-			$cc = count($table_description["columns"]) - 13;
-			while ($field_count > $cc) {
-				$cc++;
-				SQL::query("ALTER TABLE bigtree_module_view_cache ADD COLUMN column$cc TEXT NOT NULL AFTER column".($cc - 1));
-			}
-			
-			// Cache all records
-			$published = SQL::fetchAll("SELECT `".$view["table"]."`.*, bigtree_pending_changes.changes AS bigtree_changes 
-													FROM `".$view["table"]."` LEFT JOIN bigtree_pending_changes 
-													ON (bigtree_pending_changes.item_id = `".$view["table"]."`.id AND 
-													  	bigtree_pending_changes.table = '".$view["table"]."')");
-			$pending = SQL::fetchAll("SELECT * FROM bigtree_pending_changes 
-												  WHERE `table` = '".$view["table"]."' AND item_id IS NULL");
-			
-			foreach ($published as $item) {
-				$original_item = $item;
-				if ($item["bigtree_changes"]) {
-					$changes = json_decode($item["bigtree_changes"],true);
-					foreach ($changes as $key => $change) {
-						$item[$key] = $change;
-					}
-				}	
-
-				self::cacheRecord($item,$view,$parsers,$poplists,$original_item);
-			}
-
-			foreach ($pending as $pending_change) {
-				$item = json_decode($pending_change["changes"],true);
-				$item["bigtree_pending"] = true;
-				$item["bigtree_pending_owner"] = $pending_change["user"];
-				$item["id"] = "p".$pending_change["id"];
-				
-				self::cacheRecord($item,$view,$parsers,$poplists,$item);
-			}
-			
-			return true;
+			$view = new BigTree\ModuleView($view);
+			$view->cacheAllData();
 		}
 		
 		/*
@@ -299,19 +69,11 @@
 		*/
 		
 		static function clearCache($view) {
-			// View array
-			if (is_array($view)) {
-				SQL::delete("bigtree_module_view_cache",array("view" => $view["id"]));
-			// View id
-			} elseif (is_numeric($view)) {
-				SQL::delete("bigtree_module_view_cache",array("view" => $view));
-			// Table
+			if (is_array($view) || is_numeric($view)) {
+				$view = new BigTree\ModuleView($view);
+				$view->clearCache();
 			} else {
-				$interface_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_module_interfaces
-															   WHERE `type` = 'view' AND `table` = ?", $view);
-				foreach ($interface_ids as $id) {
-					SQL::delete("bigtree_module_view_cache",array("view" => $id));
-				}
+				BigTree\ModuleView::clearCacheForTable($view);
 			}
 		}
 		
@@ -993,9 +755,10 @@
 		*/
 
 		static function getRelatedFormForReport($report) {
-			$form_id = SQL::fetchSingle("SELECT id FROM bigtree_module_interfaces 
-													 WHERE `type` = 'form' AND `table` = ?", $report["table"]);
-			return self::getForm($form_id);
+			$report = new BigTree\ModuleReport($report);
+			$form = $report->RelatedModuleForm;
+
+			return $form ? $form->Array : false;
 		}
 		
 		/*
@@ -1010,13 +773,10 @@
 		*/
 
 		static function getRelatedFormForView($view) {
-			if ($view["related_form"]) {
-				return self::getForm($view["related_form"]);
-			}
+			$view = new BigTree\ModuleView($view);
+			$form = $view->RelatedModuleForm;
 
-			$form_id = SQL::fetchSingle("SELECT id FROM bigtree_module_interfaces 
-													 WHERE `type` = 'form' AND `table` = ?", $view["table"]);
-			return self::getForm($form_id);
+			return $form ? $form->Array : false;
 		}
 		
 		/*
@@ -1031,22 +791,10 @@
 		*/
 
 		static function getRelatedViewForForm($form) {
-			$view_id = false;
+			$form = new BigTree\ModuleForm($form);
+			$view = $form->RelatedModuleView;
 
-			// Try to find a view that's relating back to this form first
-			if ($form["id"]) {
-				$form_id = SQL::escape($form["id"]);
-				$view_id = SQL::fetchSingle("SELECT id FROM bigtree_module_interfaces
-														 WHERE `settings` LIKE '%\"related_form\":\"$form_id\"%'
-															OR `settings` LIKE '%\"related_form\": \"$form_id\"%'");
-			}
-
-			// Fall back to any view that uses the same table
-			if (!$view_id) {
-				$view_id = SQL::fetchSingle("SELECT id FROM bigtree_module_interfaces 
-														 WHERE `type` = 'view' AND `table` = ?", $form["table"]);
-			}
-			return self::getView($view_id);
+			return $view ? $view->Array : false;
 		}
 
 		/*
@@ -1061,9 +809,10 @@
 		*/
 
 		static function getRelatedViewForReport($report) {
-			$view_id = SQL::fetchSingle("SELECT id FROM bigtree_module_interfaces 
-													 WHERE `type` = 'view' AND `table` = ?", $report["table"]);
-			return self::getView($view_id);
+			$report = new BigTree\ModuleReport($report);
+			$view = $report->RelatedModuleView;
+
+			return $view ? $view->Array : false;
 		}
 
 		/*
@@ -1604,7 +1353,7 @@
 		*/
 		
 		static function recacheItem($id,$table,$pending = false) {
-			self::cacheNewItem($id,$table,$pending,true);
+			return BigTree\ModuleView::cacheForAll($id, $table, $pending);
 		}
 
 		/*
@@ -1794,11 +1543,7 @@
 		*/
 		
 		static function uncacheItem($id,$table) {
-			$view_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_module_interfaces 
-														 WHERE `type` = 'view' AND `table` = ?", $table);
-			foreach ($view_ids as $view_id) {
-				SQL::delete("bigtree_module_view_cache",array("view" => $view_id, "id" => $id));
-			}
+			BigTree\ModuleView::uncacheForAll($id, $table);
 		}
 
 		/*

@@ -45,6 +45,32 @@
 		}
 
 		/*
+			Function: decodeArray
+				Steps through an array and creates hard links for all internal page links.
+			
+			Parameters:
+				array - The array to process.
+			
+			Returns:
+				An array with internal page links decoded.
+			
+			See Also:
+				<translateArray>
+		*/
+		
+		static function decodeArray($array) {
+			foreach ($array as &$piece) {
+				if (is_array($piece)) {
+					$piece = static::decodeArray($piece);
+				} else {
+					$piece = static::decode($piece);
+				}
+			}
+			
+			return $array;
+		}
+
+		/*
 			Function: detokenize
 				Replaces all root tokens in a URL (i.e. {wwwroot}) with hard links.
 
@@ -91,6 +117,32 @@
 		private static function encodeSrc($matches) {
 			$src = static::iplEncode(static::detokenize($matches[1]));
 			return 'src="'.$src.'"';
+		}
+
+		/*
+			Function: encodeArray
+				Steps through an array and creates internal page links for all parts of it.
+			
+			Parameters:
+				array - The array to process.
+			
+			Returns:
+				An array with internal page links encoded.
+			
+			See Also:
+				<untranslateArray>
+		*/
+		
+		static function encodeArray($array) {
+			foreach ($array as &$piece) {
+				if (is_array($piece)) {
+					$piece = static::encodeArray($piece);
+				} else {
+					$piece = static::encode($piece);
+				}
+			}
+
+			return $array;
 		}
 
 		/*

@@ -8,8 +8,7 @@
 
 	class BigTreeCMSBase {
 
-		public static $BreadcrumbTrunk;
-		public static $Secure;
+		static $BreadcrumbTrunk;
 
 		/*
 			Constructor:
@@ -869,7 +868,8 @@
 		
 		static function getTopLevelNavigationId($trunk_as_toplevel = false) {
 			global $bigtree;
-			return static::getTopLevelNavigationIdForPage($bigtree["page"],$trunk_as_toplevel);
+			$page = new BigTree\Page($bigtree["page"]);
+			return $page->getTopLevelPageID($trunk_as_toplevel);
 		}
 		
 		/*
@@ -889,39 +889,8 @@
 		*/
 		
 		static function getTopLevelNavigationIdForPage($page,$trunk_as_toplevel = false) {
-			$paths = array();
-			$path = "";
-			$parts = explode("/",$page["path"]);
-
-			foreach ($parts as $part) {
-				$path .= "/".$part;
-				$path = ltrim($path,"/");
-				$paths[] = "path = '".SQL::escape($path)."'";
-			}
-
-			// Get either the trunk or the top level nav id.
-			$page = SQL::fetch("SELECT id, trunk, path
-								FROM bigtree_pages
-								WHERE (".implode(" OR ",$paths).") AND
-									  (trunk = 'on' OR parent = '0')
-								ORDER BY LENGTH(path) DESC
-								LIMIT 1");
-
-			// If we don't want the trunk, look higher
-			if ($page["trunk"] && $page["parent"] && !$trunk_as_toplevel) {
-				// Get the next item in the path.
-				$id = SQL::fetchSingle("SELECT id 
-										FROM bigtree_pages 
-										WHERE (".implode(" OR ",$paths).") AND 
-											  LENGTH(path) < ".strlen($page["path"])." 
-										ORDER BY LENGTH(path) ASC
-										LIMIT 1");
-				if ($id) {
-					return $id;
-				}
-			}
-
-			return $page["id"];
+			$page = new BigTree\Page($page);
+			return $page->getTopLevelPageID($trunk_as_toplevel);
 		}
 		
 		/*
@@ -943,10 +912,7 @@
 		*/
 		
 		static function makeSecure() {
-			if (!$_SERVER["HTTPS"]) {
-				BigTree\Router::redirect("https://".$_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"],"301");
-			}
-			static::$Secure = true;
+			BigTree\Router::forceHTTPS();
 		}
 		
 		/*
