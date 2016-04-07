@@ -3,8 +3,7 @@
 	
 	BigTree::globalizeArray($bigtree["view"]);
 		
-	$module_id = BigTreeAutoModule::getModuleForView($bigtree["view"]);
-	$module = $admin->getModule($module_id);
+	$module = $admin->getModule($bigtree["view"]["module"]);
 	$perm = $admin->checkAccess($module);
 	
 	if (isset($_GET["sort"])) {

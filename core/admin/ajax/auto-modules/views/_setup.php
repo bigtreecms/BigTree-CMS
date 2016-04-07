@@ -6,7 +6,7 @@
 	$table = $view["table"];
 
 	// Get module
-	$module = $admin->getModule(BigTreeAutoModule::getModuleForView($view["id"]));
+	$module = $admin->getModule($view["module"]);
 
 	// Get the item
 	$current_item = BigTreeAutoModule::getPendingItem($table,$id);

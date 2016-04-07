@@ -4,7 +4,7 @@
 	// If it's an AJAX request, get our data.
 	if (isset($_POST["view"])) {
 		$bigtree["view"] = BigTreeAutoModule::getView($_POST["view"]);
-		$bigtree["module"] = $admin->getModule(BigTreeAutoModule::getModuleForView($bigtree["view"]));
+		$bigtree["module"] = $admin->getModule($bigtree["view"]["module"]);
 	}
 	BigTree::globalizeArray($bigtree["view"]);
 	

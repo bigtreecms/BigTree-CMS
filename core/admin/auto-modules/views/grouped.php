@@ -1,8 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	$m = BigTreeAutoModule::getModuleForView($bigtree["view"]);
-	$perm = $admin->getAccessLevel($m);
+	$perm = $admin->getAccessLevel($bigtree["view"]["module"]);
 	$search = isset($_GET["search"]) ? htmlspecialchars($_GET["search"]) : "";
 ?>
 <div class="table">

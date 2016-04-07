@@ -1,7 +1,7 @@
 <?php
 	if (isset($_POST["view"])) {
 		$bigtree["view"] = BigTreeAutoModule::getView($_POST["view"]);
-		$bigtree["module"] = $admin->getModule(BigTreeAutoModule::getModuleForView($bigtree["view"]));
+		$bigtree["module"] = $admin->getModule($bigtree["view"]["module"]);
 	}
 	
 	$permission = $admin->getAccessLevel($bigtree["module"]["id"]);

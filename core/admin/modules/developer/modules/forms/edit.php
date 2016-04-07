@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	$form = BigTreeAutoModule::getForm(end($bigtree["commands"]));;
-	$module = $admin->getModule(BigTreeAutoModule::getModuleForForm($form));
+	$module = $admin->getModule($form["module"]);
 
 	$table = $form["table"];
 	$fields = $form["fields"];
