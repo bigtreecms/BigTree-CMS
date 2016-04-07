@@ -10,7 +10,7 @@
 	$bigtree["callout_count"] = intval($_POST["count"]);
 	$bigtree["callout_key"] = htmlspecialchars($_POST["key"]);
 ?>
-<div id="callout_type">
+<div class="callout_type">
 	<fieldset>
 		<label>Callout Type</label>
 		<? if (count($items) > 0) { ?>
@@ -24,20 +24,26 @@
 		<? } ?>
 	</fieldset>
 </div>
-<div id="callout_resources" class="callout_fields">
+<div class="callout_fields">
 	<? include BigTree::path("admin/ajax/callouts/resources.php") ?>
 </div>
 
 <script>
-	$("#callout_type select").change(function(event,data) {
-		// TinyMCE tooltips and menus sometimes get stuck
-		$(".mce-tooltip, .mce-menu").remove();
+	(function() {
+		var Window = $(".bigtree_dialog_window").last();
+		var Select = Window.find(".callout_type select");
+		var Fields = Window.find(".callout_fields");
 
-		$("#callout_resources").load("<?=ADMIN_ROOT?>ajax/callouts/resources/", {
-			type: data.value,
-			count: <?=$bigtree["callout_count"]?>,
-			key: "<?=$bigtree["callout_key"]?>",
-			tab_depth: <?=intval($_POST["tab_depth"])?>
-		},BigTree.formHooks).scrollTop(0);
-	});
+		Select.change(function(event,data) {
+			// TinyMCE tooltips and menus sometimes get stuck
+			$(".mce-tooltip, .mce-menu").remove();
+
+			Fields.load("<?=ADMIN_ROOT?>ajax/callouts/resources/", {
+				type: data.value,
+				count: <?=$bigtree["callout_count"]?>,
+				key: "<?=$bigtree["callout_key"]?>",
+				tab_depth: <?=intval($_POST["tab_depth"])?>
+			},BigTree.formHooks).scrollTop(0);
+		});
+	})();
 </script>

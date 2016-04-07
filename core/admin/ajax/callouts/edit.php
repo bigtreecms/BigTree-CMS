@@ -9,7 +9,7 @@
 	$bigtree["callout_key"] = htmlspecialchars($_POST["key"]);
 	$bigtree["resources"] = json_decode(base64_decode($_POST["data"]),true);
 ?>
-<div id="callout_type">
+<div class="callout_type">
 	<fieldset>
 		<label>Callout Type</label>
 		<select name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][type]">
@@ -19,7 +19,7 @@
 		</select>
 	</fieldset>
 </div>
-<div id="callout_resources" class="callout_fields">
+<div class="callout_fields">
 	<? include BigTree::path("admin/ajax/callouts/resources.php") ?>
 </div>
 

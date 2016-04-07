@@ -438,11 +438,11 @@
 	.container .alert p { color: #666; font-size: 13px; line-height: 29px; margin: 0; }
 	.container .alert h3 { line-height: 29px; margin: 0; }
 	.container .error_message,
-	#callout_resources .error_message,
+	.callout_fields .error_message,
 	.container .warning_message,
 	.bigtree_dialog_form .overflow .error_message { background: #C0362F; border-radius: 2px; color: #FFF; font-size: 12px; line-height: 18px; margin: 0 0 15px 0; padding: 5px 10px; }
 	.container .error_message a,
-	#callout_resources .error_message a,
+	.callout_fields .error_message a,
 	.container .warning_message a,
 	.bigtree_dialog_form .overflow .error_message a { color: #FFF; text-decoration: underline; }
 	.container .template_message { user-select: none; }
@@ -766,8 +766,8 @@
 	fieldset.callouts .contain article .bottom * { margin: 0 10px 0 0; }
 	fieldset.callouts .contain article p { color: #999; font-size: 12px; height: 12px; margin: 0; overflow: hidden; padding: 5px 10px 10px 10px; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 
-	#callout_type { background: #F6F6F6; border-bottom: 1px solid #E5E5E5; margin: -20px -20px 20px -20px; padding: 20px; }
-	#callout_type fieldset { margin: 0; }
+	.callout_type { background: #F6F6F6; border-bottom: 1px solid #E5E5E5; margin: -20px -20px 20px -20px; padding: 20px; }
+	.callout_type fieldset { margin: 0; }
 
 	.callout_fields { height: 250px; margin: -20px; overflow: auto; padding: 20px; width: 450px; }
 	.callout_fields .select > span { max-width: 384px !important; }
