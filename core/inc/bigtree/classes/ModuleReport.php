@@ -112,6 +112,125 @@
 		}
 
 		/*
+			Function: getResults
+				Returns rows from the table that match the filters provided.
+
+			Parameters:
+				view - A view interface array.
+				form - A form interface array.
+				filter_data - The submitted filters to run.
+				sort_field - The field to sort by (defaults to id)
+				sort_direction - The direction to sort by (defaults to DESC)
+
+			Returns:
+				An array of rows from the report's table.
+		*/
+
+		function getResults($view, $form, $filter_data, $sort_field = "id", $sort_direction = "DESC") {
+			$where = $items = $parsers = $poplists = array();
+
+			// Prevent SQL injection
+			$sort_field = "`".str_replace("`","",$sort_field)."`";
+			$sort_direction = ($sort_direction == "ASC") ? "ASC" : "DESC";
+
+			// Figure out if we have db populated lists and parsers
+			if ($this->Type == "view") {
+				foreach ($view["fields"] as $key => $field) {
+					if ($field["parser"]) {
+						$parsers[$key] = $field["parser"];
+					}
+				}
+			}
+
+			if (is_array($form["fields"])) {
+				foreach ($form["fields"] as $key => $field) {
+					if ($field["type"] == "list" && $field["options"]["list_type"] == "db") {
+						$poplists[$key] = array(
+							"description" => $form["fields"][$key]["options"]["pop-description"],
+							"table" => $form["fields"][$key]["options"]["pop-table"]
+						);
+					}
+				}
+			}
+
+			$query = "SELECT * FROM `".$this->Table."`";
+
+			foreach ($this->Filters as $id => $filter) {
+				if ($filter_data[$id]) {
+					if ($filter["type"] == "search") {
+						// Search field
+						$where[] = "`$id` LIKE '%".SQL::escape($filter_data[$id])."%'";
+					} elseif ($filter["type"] == "dropdown") {
+						// Dropdown
+						$where[] = "`$id` = '".SQL::escape($filter_data[$id])."'";
+					} elseif ($filter["type"] == "boolean") {
+						// Yes / No / Both
+						if ($filter_data[$id] == "Yes") {
+							$where[] = "(`$id` = 'on' OR `$id` = '1' OR `$id` != '')";
+						} elseif ($filter_data[$id] == "No") {
+							$where[] = "(`$id` = '' OR `$id` = '0' OR `$id` IS NULL)";
+						}
+					} elseif ($filter["type"] == "date-range") {
+						// Date Range
+						if ($filter_data[$id]["start"]) {
+							$where[] = "`$id` >= '".SQL::escape($filter_data[$id]["start"])."'";
+						}
+
+						if ($filter_data[$id]["end"]) {
+							$where[] = "`$id` <= '".SQL::escape($filter_data[$id]["end"])."'";
+						}
+					}
+				}
+			}
+
+			if (count($where)) {
+				$query .= " WHERE ".implode(" AND ",$where);
+			}
+
+			$query = SQL::query($query." ORDER BY $sort_field $sort_direction");
+
+			while ($item = $query->fetch()) {
+				$item = Link::decodeArray($item);
+
+				foreach ($item as $key => $value) {
+					if ($poplists[$key]) {
+						$item[$key] = SQL::fetchSingle("SELECT `".$poplists[$key]["description"]."` 
+														FROM `".$poplists[$key]["table"]."` 
+														WHERE id = ?", $value);
+					}
+
+					if ($parsers[$key]) {
+						$item[$key] = BigTree::runParser($item,$value,$parsers[$key]);
+					}
+				}
+
+				$items[] = $item;
+			}
+
+			// If the field we sort by was a poplist or parser, we need to resort.
+			if (isset($parsers[$sort_field]) || isset($poplists[$sort_field])) {
+				$sort_values = array();
+
+				foreach ($items as $item) {
+					$sort_values[] = $item[$sort_field];
+				}
+
+				if ($sort_direction == "ASC") {
+					array_multisort($sort_values,SORT_ASC,$items);
+				} else {
+					array_multisort($sort_values,SORT_DESC,$items);
+				}
+			}
+
+			// If there is a data parser we need to run it
+			if (!empty($this->Parser) && function_exists($this->Parser)) {
+				$items = call_user_func($this->Parser, $items);
+			}
+
+			return $items;
+		}
+
+		/*
 			Function: save
 				Saves the object's properties back to the database and updates InterfaceSettings.
 		*/

@@ -284,7 +284,7 @@
 				layout_directory - The base directory for the layout to load (defaults to "admin/layouts/")
 		*/
 
-		function stop($message = "",$file = "",$layout_directory = "admin/layouts/") {
+		static function stop($message = "",$file = "",$layout_directory = "admin/layouts/") {
 			global $admin,$bigtree,$cms,$db;
 
 			if ($file) {

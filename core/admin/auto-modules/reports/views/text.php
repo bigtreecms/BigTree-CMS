@@ -27,7 +27,7 @@
 		<?php
 			foreach ($items as $item) {
 				// Get the status
-				if (BigTreeAutoModule::changeExists($bigtree["view"]["table"],$item["id"])) {
+				if (PendingChange::exists($bigtree["view"]["table"], $item["id"])) {
 					$status_class = "pending";
 					$status = "Changed";
 				} else {

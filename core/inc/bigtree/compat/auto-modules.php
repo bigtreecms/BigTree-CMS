@@ -55,9 +55,7 @@
 		*/
 
 		static function changeExists($table,$id) {
-			$change_count = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_pending_changes 
-														  WHERE `table` = ? AND item_id = ?", $table, $id);
-			return $change_count ? true : false;
+			return BigTree\PendingChange::exists($table, $id);
 		}
 
 		/*
@@ -270,8 +268,10 @@
 		*/
 
 		static function getEditAction($module,$form) {
-			return SQL::fetch("SELECT * FROM bigtree_module_actions 
-										   WHERE interface = ? AND module = ? AND route LIKE 'edit%'", $form, $module);
+			$module = new BigTree\Module($module);
+			$action = $module->getEditAction($form);
+
+			return $action ? $action->Array : false;
 		}
 
 		/*
@@ -280,38 +280,15 @@
 			
 			Parameters:
 				id - The id of the form.
-				decode_ipl - Whether we want to decode internal page link on the css file (defaults to true)
 			
 			Returns:
 				A module form entry with fields decoded.
 		*/
 
-		static function getEmbedForm($id,$decode_ipl = true) {
-			if (is_array($id)) {
-				$id = $id["id"];
-			}
+		static function getEmbedForm($id) {
+			$form = new BigTree\ModuleEmbedForm($id);
 
-			$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $id);
-			if (!$interface) {
-				return false;
-			}
-
-			$settings = json_decode($interface["settings"],true);
-			
-			return array(
-				"id" => $interface["id"],
-				"module" => $interface["module"],
-				"title" => $interface["title"],
-				"table" => $interface["table"],
-				"fields" => $settings["fields"],
-				"default_position" => $settings["default_position"],
-				"default_pending" => $settings["default_pending"],
-				"css" => $decode_ipl ? BigTreeCMS::getInternalPageLink($settings["css"]) : $settings["css"],
-				"hash" => $settings["hash"],
-				"redirect_url" => $decode_ipl ? BigTreeCMS::getInternalPageLink($settings["redirect_url"]) : $settings["redirect_url"],
-				"thank_you_message" => $settings["thank_you_message"],
-				"hooks" => $settings["hooks"]
-			);
+			return $form ? $form->Array : false;
 		}
 
 		/*
@@ -326,12 +303,9 @@
 		*/
 
 		static function getEmbedFormByHash($hash) {
-			$hash = SQL::escape($hash);
-			$form = SQL::fetch("SELECT id FROM bigtree_module_interfaces 
-											WHERE `type` = 'embeddable-form' AND 
-									   			  (`settings` LIKE '%\"hash\":\"$hash\"%' OR
-												   `settings` LIKE '%\"hash\": \"$hash\"%')");
-			return self::getEmbedForm($form);
+			$form = BigTree\ModuleEmbedForm::getByHash($hash);
+
+			return $form ? $form->Array : false;
 		}
 		
 		/*
@@ -347,28 +321,9 @@
 		*/
 		
 		static function getFilterQuery($view) {
-			global $admin;
+			$view = new BigTree\ModuleView($view);
 
-			$module = BigTreeAdmin::getModule(self::getModuleForView($view));
-
-			if (!empty($module["gbp"]["enabled"]) && $module["gbp"]["table"] == $view["table"]) {
-				$groups = $admin->getAccessGroups($module["id"]);
-				if (is_array($groups)) {
-					$group_where = array();
-					foreach ($groups as $group) {
-						$group = SQL::escape($group);
-
-						if ($view["type"] == "nested" && $module["gbp"]["group_field"] == $view["options"]["nesting_column"]) {
-							$group_where[] = "`id` = '$group' OR `gbp_field` = '$group'";
-						} else {
-							$group_where[] = "`gbp_field` = '$group'";
-						}
-					}
-					return " AND (".implode(" OR ",$group_where).")";
-				}
-			}
-
-			return "";
+			return $view ? $view->FilterQuery : "";
 		}
 		
 		/*
@@ -377,46 +332,15 @@
 			
 			Parameters:
 				id - The id of the form.
-				decode_ipl - Whether we want to decode internal page link on the return url (defaults to true)
 			
 			Returns:
 				A module form entry with fields decoded.
 		*/
 
-		static function getForm($id,$decode_ipl = true) {
-			if (is_array($id)) {
-				$id = $id["id"];
-			}
+		static function getForm($id) {
+			$form = new BigTree\ModuleForm($id);
 
-			$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $id);
-			if (!$interface) {
-				return false;
-			}
-
-			$settings = json_decode($interface["settings"],true);
-
-			// For backwards compatibility
-			if (is_array($settings["fields"])) {
-				$related_fields = array();
-				foreach ($settings["fields"] as $field) {
-					$related_fields[$field["column"]] = $field;
-				}
-				$settings["fields"] = $related_fields;
-			}
-
-			// Old table format
-			return array(
-				"id" => $interface["id"],
-				"module" => $interface["module"],
-				"title" => $interface["title"],
-				"table" => $interface["table"],
-				"fields" => BigTree::arrayValue($settings["fields"]),
-				"default_position" => $settings["default_position"],
-				"return_view" => $settings["return_view"],
-				"return_url" => $decode_ipl ? BigTreeCMS::getInternalPageLink($settings["return_url"]) : $settings["return_url"],
-				"tagging" => $settings["tagging"],
-				"hooks" => BigTree::arrayValue($settings["hooks"])
-			);
+			return $form ? $form->Array : false;
 		}
 		
 		/*
@@ -431,74 +355,9 @@
 		*/
 		
 		static function getGroupsForView($view) {
-			$groups = array();
-			$query = "SELECT DISTINCT(group_field) FROM bigtree_module_view_cache WHERE view = ?";
+			$view = new BigTree\ModuleView($view);
 
-			if (isset($view["options"]["ot_sort_field"]) && $view["options"]["ot_sort_field"]) {
-				// We're going to determine whether the group sort field is numeric or not first.
-				$is_numeric = true;
-				$group_sort_fields = SQL::fetchAllSingle("SELECT DISTINCT(group_sort_field) FROM bigtree_module_view_cache
-																	  WHERE view = ?", $view["id"]);
-				foreach ($group_sort_fields as $value) {
-					if (!is_numeric($value)) {
-						$is_numeric = false;
-					}
-				}
-
-				// If all of the groups are numeric we'll cast the sorting field as decimal so it's not interpretted as a string.
-				if ($is_numeric) {
-					$query .= " ORDER BY CAST(group_sort_field AS DECIMAL) ".$view["options"]["ot_sort_direction"];
-				} else {
-					$query .= " ORDER BY group_sort_field ".$view["options"]["ot_sort_direction"];
-				}
-			} else {
-				$query .= " ORDER BY group_field";
-			}
-
-			$group_values = SQL::fetchAllSingle($query, $view["id"]);
-			
-			// If there's another table, we're going to query it separately.
-			if ($view["options"]["other_table"] && !$view["options"]["group_parser"] && count($group_values)) {
-				$other_table_where = array();
-
-				foreach ($group_values as $value) {
-					$other_table_where[] = "id = ?";
-
-					// We need to instatiate all of these as empty first in case the database relationship doesn't exist.
-					$groups[$value] = "";
-				}
-
-				// Don't query up if we have no groups
-				if ($view["options"]["ot_sort_field"]) {
-					$sort_field = $view["options"]["ot_sort_field"];
-					if ($view["options"]["ot_sort_direction"]) {
-						$sort_direction = $view["options"]["ot_sort_direction"];
-					} else {
-						$sort_direction = "ASC";
-					}
-				} else {
-					$sort_field = "id";
-					$sort_direction = "ASC";
-				}
-
-				// Append the query to our parameter array
-				array_unshift($group_values, "SELECT id,`".$view["options"]["title_field"]."` AS `title` 
-											  FROM `".$view["options"]["other_table"]."` 
-											  WHERE ".implode(" OR ",$other_table_where)." 
-											  ORDER BY `$sort_field` $sort_direction");
-				$group_search = call_user_func_array(array(BigTreeCMS::$DB,"fetchAll"),$group_values);
-				foreach ($group_search as $group) {
-					$groups[$group["id"]] = $group["title"];
-				}
-
-			} else {
-				// The title and value are the same
-				foreach ($group_values as $value) {
-					$groups[$value] = $value;			
-				}
-			}
-			
-			return $groups;
+			return $view ? $view->Groups : false;
 		}
 
 		/*
@@ -515,19 +374,19 @@
 		static function getInterface($id) {
 			$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $id);
 			if ($interface["type"] == "form") {
-				$form = self::getForm($id);
+				$form = static::getForm($id);
 				$form["interface_type"] = "form";
 				return $form;
 			} elseif ($interface["type"] == "embeddable-form") {
-				$form = self::getEmbedForm($id);
+				$form = static::getEmbedForm($id);
 				$form["interface_type"] = "embeddable-form";
 				return $form;
 			} elseif ($interface["type"] == "view") {
-				$view = self::getView($id);
+				$view = static::getView($id);
 				$view["interface_type"] = "view";
 				return $view;
 			} elseif ($interface["type"] == "report") {
-				$report = self::getReport($id);
+				$report = static::getReport($id);
 				$report["interface_type"] = "report";
 				return $report;
 			} else {
@@ -827,19 +686,9 @@
 		*/
 
 		static function getReport($id) {
-			$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $id);
-			$settings = json_decode($interface["settings"],true);
-			return array(
-				"id" => $interface["id"],
-				"module" => $interface["module"],
-				"title" => $interface["title"],
-				"table" => $interface["table"],
-				"type" => $settings["type"],
-				"filters" => $settings["filters"],
-				"fields" => $settings["fields"],
-				"parser" => $settings["parser"],
-				"view" => $settings["view"]
-			);
+			$report = new BigTree\ModuleReport($id);
+
+			return $report ? $report->Array : false;
 		}
 
 		/*
@@ -859,96 +708,9 @@
 		*/
 
 		static function getReportResults($report,$view,$form,$filters,$sort_field = "id",$sort_direction = "DESC") {
-			// Prevent SQL injection
-			$sort_field = "`".str_replace("`","",$sort_field)."`";
-			$sort_direction = ($sort_direction == "ASC") ? "ASC" : "DESC";
+			$report = new BigTree\ModuleReport($report);
 
-			$where = $items = $parsers = $poplists = array();
-			// Figure out if we have db populated lists and parsers
-			if ($report["type"] == "view") {
-				foreach ($view["fields"] as $key => $field) {
-					if ($field["parser"]) {
-						$parsers[$key] = $field["parser"];
-					}
-				}
-			}
-			
-			if (is_array($form["fields"])) {
-				foreach ($form["fields"] as $key => $field) {
-					if ($field["type"] == "list" && $field["options"]["list_type"] == "db") {
-						$poplists[$key] = array("description" => $form["fields"][$key]["options"]["pop-description"], "table" => $form["fields"][$key]["options"]["pop-table"]);
-					}
-				}
-			}
-
-			$query = "SELECT * FROM `".$report["table"]."`";
-			foreach ($report["filters"] as $id => $filter) {
-				if ($filters[$id]) {
-					// Search field
-					if ($filter["type"] == "search") {
-						$where[] = "`$id` LIKE '%".SQL::escape($filters[$id])."%'";
-					// Dropdown
-					} elseif ($filter["type"] == "dropdown") {
-						$where[] = "`$id` = '".SQL::escape($filters[$id])."'";
-					// Yes / No / Both
-					} elseif ($filter["type"] == "boolean") {
-						if ($filters[$id] == "Yes") {
-							$where[] = "(`$id` = 'on' OR `$id` = '1' OR `$id` != '')";
-						} elseif ($filters[$id] == "No") {
-							$where[] = "(`$id` = '' OR `$id` = '0' OR `$id` IS NULL)";
-						}
-					// Date Range
-					} elseif ($filter["type"] == "date-range") {
-						if ($filter[$id]["start"]) {
-							$where[] = "`$id` >= '".SQL::escape($filter[$id]["start"])."'";
-						}
-						if ($filter[$id]["end"]) {
-							$where[] = "`$id` <= '".SQL::escape($filter[$id]["end"])."'";
-						}
-					}
-				}
-			}
-
-			if (count($where)) {
-				$query .= " WHERE ".implode(" AND ",$where);
-			}
-
-			$query = SQL::query($query." ORDER BY $sort_field $sort_direction");
-			while ($item = $query->fetch()) {
-				$item = BigTree::untranslateArray($item);
-
-				foreach ($item as $key => $value) {
-					if ($poplists[$key]) {
-						$item[$key] = SQL::fetchSingle("SELECT `".$poplists[$key]["description"]."` 
-																	FROM `".$poplists[$key]["table"]."` 
-																	WHERE id = ?", $value);
-					}
-					if ($parsers[$key]) {
-						$item[$key] = BigTree::runParser($item,$value,$parsers[$key]);
-					}
-				}
-				$items[] = $item;
-			}
-
-			// If the field we sort by was a poplist or parser, we need to resort.
-			if (isset($parsers[$sort_field]) || isset($poplists[$sort_field])) {
-				$sort_values = array();
-				foreach ($items as $item) {
-					$sort_values[] = $item[$sort_field];
-				}
-				if ($sort_direction == "ASC") {
-					array_multisort($sort_values,SORT_ASC,$items);
-				} else {
-					array_multisort($sort_values,SORT_DESC,$items);
-				}
-			}
-
-			// If there is a data parser we need to run it
-			if (!empty($report["parser"]) && function_exists($report["parser"])) {
-				$items = call_user_func($report["parser"], $items);
-			}
-
-			return $items;
+			return $report->getResults($view, $form, $filters, $sort_field, $sort_direction);
 		}
 		
 		/*
@@ -1079,76 +841,10 @@
 				A view entry with actions, options, and fields decoded.  fields also receive a width column for the view.
 		*/
 
-		static function getView($id,$decode_ipl = true) {
-			// Make sure a full view isn't passed in
-			if (is_array($id)) {
-				$id = $id["id"];
-			}
-			
-			$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $id);
-			if (!$interface) {
-				return false;
-			}
+		static function getView($id) {
+			$view = new BigTree\ModuleView($id);
 
-			$settings = json_decode($interface["settings"],true);
-			$view = array(
-				"id" => $interface["id"],
-				"module" => $interface["module"],
-				"title" => $interface["title"],
-				"description" => $settings["description"],
-				"type" => $settings["type"],
-				"table" => $interface["table"],
-				"fields" => BigTree::arrayValue($settings["fields"]),
-				"options" => BigTree::arrayValue($settings["options"]),
-				"actions" => BigTree::arrayValue($settings["actions"]),
-				"preview_url" => $decode_ipl ? BigTreeCMS::replaceInternalPageLinks($settings["preview_url"]) : $settings["preview_url"],
-				"related_form" => $settings["related_form"]
-			);
-
-			// We may be in AJAX, so we need to define MODULE_ROOT if it's not available
-			if (!defined("MODULE_ROOT")) {
-				$route = SQL::fetchSingle("SELECT route FROM bigtree_modules WHERE id = ?", $view["module"]);
-				$module_root = ADMIN_ROOT.$route."/";
-			} else {
-				$module_root = MODULE_ROOT;
-			}
-
-			// Get the edit link
-			if (isset($view["actions"]["edit"])) {
-				if ($view["related_form"]) {
-					// Try for actions beginning with edit first
-					$action_route = SQL::fetchSingle("SELECT route FROM bigtree_module_actions WHERE interface = ? 
-																  ORDER BY route DESC LIMIT 1", $view["related_form"]);
-
-					
-					$view["edit_url"] = $module_root.$action_route."/";
-				} else {
-					$view["edit_url"] = $module_root."edit/";
-				}
-			}
-			
-			// Add preview action to column width calculation
-			if ($view["preview_url"]) {
-				array_push($view["actions"],array("preview" => "on"));
-			}
-
-			// Calculate widths
-			if (count($view["fields"])) {
-				$first = current($view["fields"]);
-				// If we already have columns set we don't need to do the calculation
-				if (!isset($first["width"]) || !$first["width"]) {
-					$actions_width = count($view["actions"]) * 40;
-					$available = 888 - $actions_width;
-					$per_column = floor($available / count($view["fields"]));
-					
-					// Set the widths
-					foreach ($view["fields"] as &$field) {
-						$field["width"] = $per_column - 20;
-					}
-				}
-			}
-
-			return $view;
+			return $view ? $view->Array : false;
 		}
 		
 		/*
@@ -1166,32 +862,9 @@
 		*/
 		
 		static function getViewData($view,$sort = "id DESC",$type = "both",$group = false) {
-			// Check to see if we've cached this table before.
-			self::cacheViewData($view);
-			
-			$where = "";
-			if ($type == "active") {
-				$where = "status != 'p' AND ";
-			} elseif ($type == "pending") {
-				$where = "status = 'p' AND ";
-			}
+			$view = new BigTree\ModuleView($view);
 
-			// If a group was passed add that filter
-			if ($group !== false) {
-				$where .= " AND group_field = '".SQL::escape($group)."'";
-			}
-
-			$results = SQL::fetchAll("SELECT * FROM bigtree_module_view_cache 
-												  WHERE $where view = ?".self::getFilterQuery($view)." 
-												  ORDER BY $sort", $view["id"]);
-			
-			// Assign them back to keys with the item id
-			$items = array();
-			foreach ($results as $item) {
-				$items[$item["id"]] = $item;
-			}
-
-			return $items;
+			return $view->getData($sort,$type,$group);
 		}
 		
 		/*
@@ -1224,57 +897,15 @@
 		*/
 		
 		static function getViewForTable($table) {
-			$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = ?", $table);
-			if (!$interface) {
+			$view = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = ?", $table);
+
+			if (!$view) {
 				return false;
 			}
 
-			$settings = json_decode($interface["settings"],true);
-			$view = array(
-				"id" => $interface["id"],
-				"module" => $interface["module"],
-				"title" => $interface["title"],
-				"description" => $settings["description"],
-				"type" => $settings["type"],
-				"table" => $interface["table"],
-				"fields" => $settings["fields"],
-				"options" => $settings["options"],
-				"actions" => $settings["actions"],
-				"preview_url" => BigTreeCMS::replaceInternalPageLinks($settings["preview_url"]),
-				"related_form" => $settings["related_form"]
-			);
-			
-			// Get the edit link
-			if (isset($view["actions"]["edit"])) {
-				$module_route = SQL::fetchSingle("SELECT route FROM bigtree_modules WHERE id = ?", $view["module"]);
-				
-				if ($view["related_form"]) {
-					// Try for actions beginning with edit first
-					$action_route = SQL::fetchSingle("SELECT route FROM bigtree_module_actions 
-																  WHERE interface = ? ORDER BY route DESC", $view["related_form"]);
-					$view["edit_url"] = ADMIN_ROOT.$module_route."/".$action_route."/";
-				} else {
-					$view["edit_url"] = ADMIN_ROOT.$module_route."/edit/";
-				}
-			}
-			
-			$fields = is_array($view["fields"]) ? $view["fields"] : @json_decode($view["fields"],true);
-			if (is_array($fields) && count($fields)) {
-				// Three or four actions, depending on preview availability.
-				if ($view["preview_url"]) {
-					$available = 578;
-				} else {
-					$available = 633;
-				}
+			$view = new BigTree\ModuleView($view);
 
-				$per_column = floor($available / count($fields));
-				foreach ($fields as &$field) {
-					$field["width"] = $per_column - 20;
-				}
-			}
-			$view["fields"] = $fields;
-
-			return $view;
+			return $view->getArray($view->PreviewURL ? 578 : 633);
 		}
 		
 		/*
@@ -1290,33 +921,9 @@
 		*/
 
 		static function parseViewData($view,$items) {
-			$form = self::getRelatedFormForView($view);
+			$view = new BigTree\ModuleView($view);
 
-			$parsed = array();
-			foreach ($items as $item) {
-				if (is_array($view["fields"])) {
-					foreach ($view["fields"] as $key => $field) {
-						$value = $item[$key];
-
-						// If we have a parser, run it.
-						if ($field["parser"]) {
-							$item[$key] = BigTree::runParser($item,$value,$field["parser"]);
-						// If we know this field is a populated list, get the title they entered in the form.
-						} else {
-							if ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["options"]["list_type"] == "db") {
-								$form_data = $form["fields"][$key];
-								$value = SQL::fetchSingle("SELECT `".$form_data["options"]["pop-description"]."` 
-																	   FROM `".$form_data["options"]["pop-table"]."` 
-																	   WHERE `id` = ?", $value);
-							}
-							$item[$key] = strip_tags($value);
-						}
-					}
-				}
-				$parsed[] = $item;
-			}
-
-			return $parsed;
+			return $view->parseData($items);
 		}
 
 		/*
@@ -1370,68 +977,7 @@
 		*/	
 		
 		static function sanitizeData($table,$data,$existing_description = false) {
-			// Setup column info				
-			$table_description = $existing_description ? $existing_description : BigTree::describeTable($table);
-			$columns = $table_description["columns"];
-
-			foreach ($data as $key => $val) {
-				$allow_null = $columns[$key]["allow_null"];
-				$type = $columns[$key]["type"];
-
-				// Sanitize Integers
-				if ($type == "tinyint" || $type == "smallint" || $type == "mediumint" || $type == "int" || $type == "bigint") {
-					if ($allow_null == "YES" && ($val === null || $val === false || $val === "")) {
-						$data[$key] = "NULL";	
-					} else {
-						$data[$key] = intval(str_replace(array(",","$"),"",$val));
-					}
-				}
-				// Sanitize Floats
-				if ($type == "float" || $type == "double" || $type == "decimal") {
-					if ($allow_null == "YES" && ($val === null || $val === false || $val === "")) {
-						$data[$key] = "NULL";	
-					} else {
-						$data[$key] = floatval(str_replace(array(",","$"),"",$val));
-					}
-				}
-				// Sanitize Date/Times
-				if ($type == "datetime" || $type == "timestamp") {
-					if (substr($val,0,3) == "NOW") {
-						$data[$key] = "NOW()";
-					} elseif (!$val && $allow_null == "YES") {
-						$data[$key] = "NULL";
-					} elseif ($val == "") {
-						$data[$key] = "0000-00-00 00:00:00";
-					} else {
-						$data[$key] = date("Y-m-d H:i:s",strtotime($val));
-					}
-				}
-				// Sanitize Dates/Years
-				if ($type == "date" || $type == "year") {
-					if (substr($val,0,3) == "NOW") {
-						$data[$key] = "NOW()";
-					} elseif (!$val && $allow_null == "YES") {
-						$data[$key] = "NULL";
-					} elseif (!$val) {
-						$data[$key] = "0000-00-00";
-					} else {
-						$data[$key] = date("Y-m-d",strtotime($val));
-					}
-				}
-				// Sanitize Times
-				if ($type == "time") {
-					if (substr($val,0,3) == "NOW") {
-						$data[$key] = "NOW()";
-					} elseif (!$val && $allow_null == "YES") {
-						$data[$key] = "NULL";
-					} elseif (!$val) {
-						$data[$key] = "00:00:00";
-					} else {
-						$data[$key] = date("H:i:s",strtotime($val));
-					}
-				}
-			}
-			return $data;
+			return BigTree\SQL::prepareData($table, $data, $existing_description);
 		}
 
 		/*
@@ -1527,10 +1073,7 @@
 		*/
 
 		static function track($table,$id,$action) {
-			global $admin;
-			if (isset($admin) && get_class($admin) == "BigTreeAdmin" && $admin->ID) {
-				$admin->track($table,$id,$action);
-			}
+			BigTree\AuditTrail::track($table, $id, $action);
 		}
 		
 		/*

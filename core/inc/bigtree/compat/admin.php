@@ -1311,6 +1311,7 @@
 
 		function getAccessGroups($module) {
 			$module = new BigTree\Module($module);
+			
 			return $module->UserAccessibleGroups;
 		}
 

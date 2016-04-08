@@ -11,6 +11,7 @@
 	use mysqli;
 
 	class SQL {
+
 		static $Connection = "disconnected";
 		static $ErrorLog = array();
 		static $MySQLTime = false;
@@ -619,7 +620,7 @@
 				sorting - Whether to duplicate columns into "ASC" and "DESC" versions.
 		*/
 		
-		static function drawColumnSelectOptions($table,$default = "",$sorting = false) {
+		static function drawColumnSelectOptions($table, $default = "", $sorting = false) {
 			$table_description = static::describeTable($table);
 			
 			if (!$table_description) {
@@ -760,7 +761,7 @@
 				true if a row already exists that matches the passed in key/value pairs.
 		*/
 
-		static function exists($table,$values) {
+		static function exists($table, $values) {
 			// Passing an array of key/value pairs
 			if (is_array($values)) {
 				$where = array();
@@ -946,7 +947,7 @@
 				Primary key of the inserted row
 		*/
 
-		static function insert($table,$values) {
+		static function insert($table, $values) {
 			if (!is_array($values) || !count($values)) {
 				trigger_error("SQL::inserts expects a non-empty array as its second parameter");
 				return false;
@@ -1017,6 +1018,89 @@
 				$i++;
 			}
 			return $key_name;
+		}
+
+		/*
+			Function: prepareData
+				Processes form data into values understandable by the MySQL table.
+
+			Parameters:
+				table - The table to prepare data for
+				data - Array of key->value pairs
+				existing_description - If the table has already been described, pass it in instead of making prepareData do it again. (defaults to false)
+
+			Returns:
+				Array of data safe for MySQL.
+		*/
+
+		static function prepareData($table, $data, $existing_description = false) {
+			// Setup column info
+			$table_description = $existing_description ? $existing_description : static::describeTable($table);
+			$columns = $table_description["columns"];
+
+			foreach ($data as $key => $val) {
+				$allow_null = $columns[$key]["allow_null"];
+				$type = $columns[$key]["type"];
+
+				// Sanitize Integers
+				if ($type == "tinyint" || $type == "smallint" || $type == "mediumint" || $type == "int" || $type == "bigint") {
+					if ($allow_null == "YES" && ($val === null || $val === false || $val === "")) {
+						$data[$key] = "NULL";
+					} else {
+						$data[$key] = intval(str_replace(array(",","$"),"",$val));
+					}
+				}
+
+				// Sanitize Floats
+				if ($type == "float" || $type == "double" || $type == "decimal") {
+					if ($allow_null == "YES" && ($val === null || $val === false || $val === "")) {
+						$data[$key] = "NULL";
+					} else {
+						$data[$key] = floatval(str_replace(array(",","$"),"",$val));
+					}
+				}
+
+				// Sanitize Date/Times
+				if ($type == "datetime" || $type == "timestamp") {
+					if (substr($val,0,3) == "NOW") {
+						$data[$key] = "NOW()";
+					} elseif (!$val && $allow_null == "YES") {
+						$data[$key] = "NULL";
+					} elseif ($val == "") {
+						$data[$key] = "0000-00-00 00:00:00";
+					} else {
+						$data[$key] = date("Y-m-d H:i:s",strtotime($val));
+					}
+				}
+
+				// Sanitize Dates/Years
+				if ($type == "date" || $type == "year") {
+					if (substr($val,0,3) == "NOW") {
+						$data[$key] = "NOW()";
+					} elseif (!$val && $allow_null == "YES") {
+						$data[$key] = "NULL";
+					} elseif (!$val) {
+						$data[$key] = "0000-00-00";
+					} else {
+						$data[$key] = date("Y-m-d",strtotime($val));
+					}
+				}
+
+				// Sanitize Times
+				if ($type == "time") {
+					if (substr($val,0,3) == "NOW") {
+						$data[$key] = "NOW()";
+					} elseif (!$val && $allow_null == "YES") {
+						$data[$key] = "NULL";
+					} elseif (!$val) {
+						$data[$key] = "00:00:00";
+					} else {
+						$data[$key] = date("H:i:s",strtotime($val));
+					}
+				}
+			}
+
+			return $data;
 		}
 
 		/*
@@ -1112,6 +1196,25 @@
 		}
 
 		/*
+			Function: tableExists
+				Determines whether a SQL table exists.
+
+			Parameters:
+				table - The table name.
+
+			Returns:
+				true if table exists, otherwise false.
+		*/
+
+		static function tableExists($table) {
+			$rows = static::query("SHOW TABLES LIKE ?", $table)->rows();
+			if ($rows) {
+				return true;
+			}
+			return false;
+		}
+
+		/*
 			Function: unique
 				Retrieves a unique version of a given field for a table.
 				Appends trailing numbers to the string until a unique version is found (i.e. value-2)
@@ -1128,7 +1231,7 @@
 				Unique version of value.
 		*/
 
-		static function unique($table,$field,$value,$id = false,$inverse = false) {
+		static function unique($table, $field, $value, $id = false, $inverse = false) {
 			$original_value = $value;
 			$count = 1;
 
@@ -1169,25 +1272,6 @@
 		}
 
 		/*
-			Function: tableExists
-				Determines whether a SQL table exists.
-
-			Parameters:
-				table - The table name.
-
-			Returns:
-				true if table exists, otherwise false.
-		*/
-
-		static function tableExists($table) {
-			$rows = static::query("SHOW TABLES LIKE ?", $table)->rows();
-			if ($rows) {
-				return true;
-			}
-			return false;
-		}
-
-		/*
 			Function: update
 				Updates a row in the database
 
@@ -1200,7 +1284,7 @@
 				true if successful (even if no rows match)
 		*/
 
-		static function update($table,$id,$values) {
+		static function update($table, $id, $values) {
 			if (!is_array($values) || !count($values)) {
 				trigger_error("SQL::update expects a non-empty array as its third parameter");
 				return false;
@@ -1232,5 +1316,6 @@
 			$response = call_user_func_array("static::query", $values);
 			return $response->ActiveQuery ? true : false;
 		}
+
 	}
 	

@@ -68,6 +68,12 @@
 				return $this->$property;
 			}
 
+			// Allow for protected get(Property) methods
+			if (method_exists($this,"get".$property)) {
+				$this->$property = call_user_func(array($this,"get".$property));
+				return $this->$property;
+			}
+
 			// Allow easy conversion to the old array format for the new data objects
 			if ($property == "Array") {
 				$raw_properties = get_object_vars($this);
@@ -78,12 +84,6 @@
 				}
 
 				return $changed_properties;
-			}
-
-			// Allow for protected get(Property) methods
-			if (method_exists($this,"get".$property)) {
-				$this->$property = call_user_func(array($this,"get".$property));
-				return $this->$property;
 			}
 
 			trigger_error("Invalid property on ".get_called_class().": $property", E_USER_WARNING);

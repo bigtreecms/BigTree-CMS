@@ -113,6 +113,26 @@
 		}
 
 		/*
+			Function: getByHash
+				Returns a ModuleEmbedForm for the given hash.
+
+			Parameters:
+				hash - The hash of the form.
+
+			Returns:
+				A ModuleEmbedForm object or false.
+		*/
+
+		static function getByHash($hash) {
+			$hash = SQL::escape($hash);
+			$form = SQL::fetch("SELECT * FROM bigtree_module_interfaces 
+								WHERE `type` = 'embeddable-form' 
+								  AND (`settings` LIKE '%\"hash\":\"$hash\"%' OR `settings` LIKE '%\"hash\": \"$hash\"%')");
+
+			return $form ? new ModuleEmbedForm($form) : false;
+		}
+
+		/*
 			Function: save
 				Saves object properties back to the ModuleInterface based and the database.
 		*/

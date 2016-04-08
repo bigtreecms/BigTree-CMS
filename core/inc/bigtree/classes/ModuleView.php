@@ -54,7 +54,7 @@
 
 				$this->Actions = $this->InterfaceSettings["actions"];
 				$this->Description = $this->InterfaceSettings["description"];
-				$this->Fields = $this->InterfaceSettings["fields"];
+				$this->Fields = array_filter((array) $this->InterfaceSettings["fields"]);
 				$this->Module = $interface["module"];
 				$this->PreviewURL = $this->InterfaceSettings["preview_url"];
 				$this->RelatedForm = $this->InterfaceSettings["related_form"];
@@ -63,6 +63,29 @@
 				$this->Title = $interface["title"];
 				$this->Type = $this->InterfaceSettings["type"];
 			}
+		}
+
+		/*
+			Function: allDependant
+				Returns all module views that have a dependence on a given table.
+
+			Parameters:
+				table - Table name
+
+			Returns:
+				An array of ModuleView objects.
+		*/
+
+		static function allDependant($table) {
+			$table = SQL::escape($table);
+			$views = SQL::fetchAll("SELECT * FROM bigtree_module_interfaces 
+									WHERE `type` = 'view' AND `settings` LIKE '%$table%'");
+
+			foreach ($views as $key => $view) {
+				$views[$key] = new ModuleView($view);
+			}
+
+			return $views;
 		}
 
 		/*
@@ -451,6 +474,238 @@
 		}
 
 		/*
+		    Function: getArray
+				Returns an array of extended view information.
+				Calculates column widths for drawing.
+
+			Parameters:
+				table_width - Table width (in pixels) to calculate column widths from (defaults to 888)
+
+			Returns:
+				Array
+		*/
+
+		function getArray($table_width = 888) {
+			$view = array(
+				"id" => $this->ID,
+				"module" => $this->Module,
+				"title" => $this->Title,
+				"description" => $this->Description,
+				"type" => $this->Type,
+				"table" => $this->Table,
+				"fields" => $this->Fields,
+				"options" => $this->Settings,
+				"actions" => $this->Actions,
+				"preview_url" => $this->PreviewURL,
+				"related_form" => $this->RelatedForm
+			);
+
+			// We may be in AJAX, so we need to define MODULE_ROOT if it's not available
+			if (!defined("MODULE_ROOT")) {
+				$route = SQL::fetchSingle("SELECT route FROM bigtree_modules WHERE id = ?", $this->Module);
+				$module_root = ADMIN_ROOT.$route."/";
+			} else {
+				$module_root = MODULE_ROOT;
+			}
+
+			// Get the edit link
+			if (isset($this->Actions["edit"])) {
+				if ($this->RelatedForm) {
+					// Try for actions beginning with edit first
+					$action_route = SQL::fetchSingle("SELECT route FROM bigtree_module_actions WHERE interface = ? 
+													  ORDER BY route DESC LIMIT 1", $this->RelatedForm);
+
+
+					$view["edit_url"] = $module_root.$action_route."/";
+				} else {
+					$view["edit_url"] = $module_root."edit/";
+				}
+			}
+
+			// Add preview action to column width calculation
+			if ($view["preview_url"]) {
+				array_push($view["actions"],array("preview" => "on"));
+			}
+
+			// Calculate widths
+			if (count($view["fields"])) {
+				$first = current($view["fields"]);
+				// If we already have columns set we don't need to do the calculation
+				if (!isset($first["width"]) || !$first["width"]) {
+					$actions_width = count($view["actions"]) * 40;
+					$available = $table_width - $actions_width;
+					$per_column = floor($available / count($view["fields"]));
+
+					// Set the widths
+					foreach ($view["fields"] as &$field) {
+						$field["width"] = $per_column - 20;
+					}
+				}
+			}
+
+			return $view;
+		}
+		
+		/*
+			Function: getData
+				Looks up cached view data for the view.
+			
+			Parameters:
+				sort - The sort direction, defaults to most recent.
+				type - Whether to get only active entries, pending entries, or both.
+				group - The group to get data for (defaults to all).
+			
+			Returns:
+				An array of rows from bigtree_module_view_cache.
+		*/
+		
+		function getData($sort = "id DESC",$type = "both",$group = false) {
+			// Check to see if we've cached this table before.
+			$this->cacheAllData();
+			
+			$where = "";
+			if ($type == "active") {
+				$where = "status != 'p' AND ";
+			} elseif ($type == "pending") {
+				$where = "status = 'p' AND ";
+			}
+			
+			// If a group was passed add that filter
+			if ($group !== false) {
+				$where .= " AND group_field = '".SQL::escape($group)."'";
+			}
+			
+			$results = SQL::fetchAll("SELECT * FROM bigtree_module_view_cache WHERE $where view = ?".$this->FilterQuery." 
+									  ORDER BY $sort", $this->ID);
+			
+			// Assign them back to keys with the item id
+			$items = array();
+			foreach ($results as $item) {
+				$items[$item["id"]] = $item;
+			}
+			
+			return $items;
+		}
+
+		/*
+			Function: getGroups
+				Returns all groups in the view cache for the view.
+
+			Returns:
+				An array of groups.
+		*/
+
+		function getGroups($view) {
+			$groups = array();
+			$query = "SELECT DISTINCT(group_field) FROM bigtree_module_view_cache WHERE view = ?";
+
+			if (isset($this->Settings["ot_sort_field"]) && $this->Settings["ot_sort_field"]) {
+				// We're going to determine whether the group sort field is numeric or not first.
+				$is_numeric = true;
+				$group_sort_fields = SQL::fetchAllSingle("SELECT DISTINCT(group_sort_field) FROM bigtree_module_view_cache
+														  WHERE view = ?", $view["id"]);
+				foreach ($group_sort_fields as $value) {
+					if (!is_numeric($value)) {
+						$is_numeric = false;
+					}
+				}
+
+				// If all of the groups are numeric we'll cast the sorting field as decimal so it's not interpretted as a string.
+				if ($is_numeric) {
+					$query .= " ORDER BY CAST(group_sort_field AS DECIMAL) ".$this->Settings["ot_sort_direction"];
+				} else {
+					$query .= " ORDER BY group_sort_field ".$this->Settings["ot_sort_direction"];
+				}
+			} else {
+				$query .= " ORDER BY group_field";
+			}
+
+			$group_values = SQL::fetchAllSingle($query, $view["id"]);
+
+			// If there's another table, we're going to query it separately.
+			if ($this->Settings["other_table"] && !$this->Settings["group_parser"] && count($group_values)) {
+				$other_table_where = array();
+
+				foreach ($group_values as $value) {
+					$other_table_where[] = "id = ?";
+
+					// We need to instatiate all of these as empty first in case the database relationship doesn't exist.
+					$groups[$value] = "";
+				}
+
+				// Don't query up if we have no groups
+				if ($this->Settings["ot_sort_field"]) {
+					$sort_field = $this->Settings["ot_sort_field"];
+					if ($this->Settings["ot_sort_direction"]) {
+						$sort_direction = $this->Settings["ot_sort_direction"];
+					} else {
+						$sort_direction = "ASC";
+					}
+				} else {
+					$sort_field = "id";
+					$sort_direction = "ASC";
+				}
+
+				// Append the query to our parameter array
+				array_unshift($group_values, "SELECT id,`".$this->Settings["title_field"]."` AS `title` 
+											  FROM `".$this->Settings["other_table"]."` 
+											  WHERE ".implode(" OR ",$other_table_where)." 
+											  ORDER BY `$sort_field` $sort_direction");
+				$group_search = call_user_func_array("SQL::fetchAll",$group_values);
+				
+				foreach ($group_search as $group) {
+					$groups[$group["id"]] = $group["title"];
+				}
+
+			} else {
+				// The title and value are the same
+				foreach ($group_values as $value) {
+					$groups[$value] = $value;
+				}
+			}
+
+			return $groups;
+		}
+
+		/*
+			Function: getFilterQuery
+				Returns a query string that is used for searching views based on group permissions.
+				Can only be called when logged into the admin.
+
+			Parameters:
+				view - The view to create a filter for.
+
+			Returns:
+				A set of MySQL statements that filter out information the user cannot access.
+		*/
+
+		function getFilterQuery() {
+			$module = new Module($this->Module);
+
+			if (!empty($module->GroupBasedPermissions["enabled"]) && $module->GroupBasedPermissions["table"] == $this->Table) {
+				$groups = $module->UserAccessibleGroups;
+
+				if (is_array($groups)) {
+					$group_where = array();
+
+					foreach ($groups as $group) {
+						$group = SQL::escape($group);
+
+						if ($this->Type == "nested" && $module->GroupBasedPermissions["group_field"] == $this->Settings["nesting_column"]) {
+							$group_where[] = "`id` = '$group' OR `gbp_field` = '$group'";
+						} else {
+							$group_where[] = "`gbp_field` = '$group'";
+						}
+					}
+
+					return " AND (".implode(" OR ",$group_where).")";
+				}
+			}
+
+			return "";
+		}
+
+		/*
 			Function: getRelatedModuleForm
 				Returns the form for the same table as this view.
 			
@@ -466,6 +721,49 @@
 			$form = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'form' AND `table` = ?", $this->Table);
 
 			return $form ? new ModuleForm($form) : false;
+		}
+
+		/*
+			Function: parseData
+				Parses data and returns the parsed columns (runs parsers and populated lists).
+
+			Parameters:
+				items - An array of table rows to parse.
+
+			Returns:
+				An array of parsed rows for display in a View.
+		*/
+
+		function parseData($items) {
+			$form = $this->RelatedModuleForm->Array;
+			$parsed = array();
+
+			foreach ($items as $item) {
+				foreach ($this->Fields as $key => $field) {
+					$value = $item[$key];
+
+					// If we have a parser, run it.
+					if ($field["parser"]) {
+						$item[$key] = BigTree::runParser($item,$value,$field["parser"]);
+					} else {
+						$form_field = $form["fields"][$key];
+
+						// If we know this field is a populated list, get the title they entered in the form.
+						if ($form_field["type"] == "list" && $form_field["options"]["list_type"] == "db") {
+
+							$value = SQL::fetchSingle("SELECT `".$form_field["options"]["pop-description"]."` 
+													   FROM `".$form_field["options"]["pop-table"]."` 
+													   WHERE `id` = ?", $value);
+						}
+
+						$item[$key] = strip_tags($value);
+					}
+				}
+
+				$parsed[] = $item;
+			}
+
+			return $parsed;
 		}
 
 		/*
@@ -529,6 +827,106 @@
 			);
 
 			parent::save();
+		}
+
+		/*
+			Function: searchData
+				Returns search results from the bigtree_module_view_cache table for this view.
+
+			Parameters:
+				page - The page of data to retrieve.
+				query - The query string to search against.
+				sort - The column and direction to sort.
+				group - The group to pull information for.
+
+			Returns:
+				An array containing "pages" with the number of result pages and "results" with the results for the given page.
+		*/
+
+		function searchData($page = 1, $query = "", $sort = "id DESC", $group = false) {
+			// Check to see if we've cached this table before.
+			$this->cacheAllData();
+
+			$search_parts = explode(" ",$query);
+			$view_column_count = count($this->Fields);
+			$per_page = !empty($this->Settings["per_page"]) ? $this->Settings["per_page"] : 15;
+			$query = "SELECT * FROM bigtree_module_view_cache WHERE view = ?".$this->FilterQuery;
+
+			if ($group !== false) {
+				$query .= " AND group_field = '".SQL::escape($group)."'";
+			}
+
+			// Add all the pieces of the query to check against the columns in the view
+			foreach ($search_parts as $part) {
+				$part = SQL::escape($part);
+
+				$query_parts = array();
+				for ($x = 1; $x <= $view_column_count; $x++) {
+					$query_parts[] = "column$x LIKE '%$part%'";
+				}
+
+				if (count($query_parts)) {
+					$query .= " AND (".implode(" OR ",$query_parts).")";
+				}
+			}
+
+			// Find how many pages are returned from this search
+			$total = SQL::fetchSingle(str_replace("SELECT *","SELECT COUNT(*)",$query), $this->ID);
+			$pages = ceil($total / $per_page);
+			$pages = $pages ? $pages : 1;
+
+			// Get the correct column name for sorting
+			if (strpos($sort,"`") !== false) { // New formatting
+				$sort_field = SQL::nextColumnDefinition(substr($sort,1));
+				$sort_pieces = explode(" ",$sort);
+				$sort_direction = end($sort_pieces);
+			} else { // Old formatting
+				list($sort_field,$sort_direction) = explode(" ",$sort);
+			}
+
+			// Figure out whether we need to cast the column we're sorting by as numeric so that 2 comes before 11
+			if ($sort_field != "id") {
+				$x = 0;
+
+				if (isset($view["fields"][$sort_field]["numeric"]) && $view["fields"][$sort_field]["numeric"]) {
+					$convert_numeric = true;
+				} else {
+					$convert_numeric = false;
+				}
+
+				foreach ($view["fields"] as $field => $options) {
+					$x++;
+					if ($field == $sort_field) {
+						$sort_field = "column$x";
+					}
+				}
+
+				// If we didn't find a column, let's assume it's the default sort field.
+				if (substr($sort_field,0,6) != "column") {
+					$sort_field = "sort_field";
+				}
+
+				if ($convert_numeric) {
+					$sort_field = "CONVERT(".$sort_field.",SIGNED)";
+				}
+			} else {
+				$sort_field = "CONVERT(id,UNSIGNED)";
+			}
+
+			if (strtolower($sort) == "position desc, id asc") {
+				$sort_field = "position DESC, id ASC";
+				$sort_direction = "";
+			} else {
+				$sort_direction = (strtolower($sort_direction) == "asc") ? "ASC" : "DESC";
+			}
+
+			if ($page === "all") {
+				$results = SQL::fetchAll($query." ORDER BY $sort_field $sort_direction", $this->ID);
+			} else {
+				$results = SQL::fetchAll($query." ORDER BY $sort_field $sort_direction LIMIT ".(($page - 1) * $per_page).",$per_page", $this->ID);
+			}
+
+			return array("pages" => $pages, "results" => $results);
 		}
 
 		/*

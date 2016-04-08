@@ -255,6 +255,25 @@
 		}
 
 		/*
+			Function: exists
+				Checks to see if a pending change exists for a given entry ID and table.
+
+			Parameters:
+				table - The table the item is from.
+				id - The ID of the item.
+
+			Returns:
+				true or false
+		*/
+
+		static function exists($table, $id) {
+			$change_count = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_pending_changes 
+											  WHERE `table` = ? AND item_id = ?", $table, $id);
+
+			return $change_count ? true : false;
+		}
+
+		/*
 			Function: getEditLink
 				Returns a link to where the pending change can be edited.
 

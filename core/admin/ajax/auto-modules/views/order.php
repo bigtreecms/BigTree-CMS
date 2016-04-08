@@ -1,26 +1,28 @@
 <?php
+	namespace BigTree;
+
 	// Grab View Data
-	$view = BigTreeAutoModule::getView($_POST["view"]);
-	$module = $admin->getModule($view["module"]);
-	$access_level = $admin->getAccessLevel($module);
-	$table = $view["table"];
+	$view = new ModuleView($_POST["view"]);
+	$module = new Module($view->Module);
+	$table = $view->Table;
 	
-	if ($access_level == "p") {
+	if ($module->UserAccessLevel == "p") {
 		parse_str($_POST["sort"],$data);
 	
 		foreach ($data["row"] as $position => $id) {
 			if (is_numeric($id)) {
-				$db->update($table,$id,array("position" => (count($data["row"]) - $position)));
-				BigTreeAutoModule::recacheItem($id,$table);
+				$db->update($table, $id, array("position" => (count($data["row"]) - $position)));
+				ModuleView::cacheForAll($id, $table);
 			} else {
 				BigTreeAutoModule::updatePendingItemField(substr($id,1),"position",(count($data["row"]) - $position));
-				BigTreeAutoModule::recacheItem(substr($id,1),$table,true);
+				ModuleView::cacheForAll(substr($id, 1), $table, true);
 			}
 		}
 	}
 
 	// Find any view that uses this table for grouping and wipe its view cache
-	$dependant = BigTreeAutoModule::getDependentViews($table);
-	foreach ($dependant as $v) {
-		BigTreeAutoModule::clearCache($v["table"]);
+	$dependant = ModuleView::allDependant($table);
+	
+	foreach ($dependant as $view) {
+		$view->clearCache();
 	}

@@ -114,6 +114,38 @@
 		}
 
 		/*
+		    Function: getArray
+				Returns an array of form information.
+
+			Returns:
+				Array
+		*/
+
+		function getArray() {
+			// For backwards compatibility with older data
+			$fields = array();
+			if (is_array($this->Fields)) {
+				foreach ($this->Fields as $field) {
+					$fields[$field["column"]] = $field;
+				}
+			}
+
+			// Old table format
+			return array(
+				"id" => $this->ID,
+				"module" => $this->Module,
+				"title" => $this->Title,
+				"table" => $this->Table,
+				"fields" => $fields,
+				"default_position" => $this->DefaultPosition,
+				"return_view" => $this->ReturnView,
+				"return_url" => $this->ReturnURL,
+				"tagging" => $this->Tagging,
+				"hooks" => $this->Hooks
+			);
+		}
+
+		/*
 			Function: getRelatedModuleView
 				Returns the view for the same table as this form.
 
