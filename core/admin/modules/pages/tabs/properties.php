@@ -93,7 +93,7 @@
 		<? } ?>
 	</fieldset>
 	<?
-		if (!$hide_template_section && $bigtree["current_page"]["id"]) {
+		if (!$hide_template_section && ($bigtree["form_action"] == "create" || $bigtree["current_page"]["id"])) {
 	?>
 	<fieldset class="float_margin">
 		<input type="checkbox" name="redirect_lower" id="redirect_lower"<? if ($bigtree["current_page"]["template"] == "!") { ?> checked="checked"<? } ?> />
@@ -101,7 +101,7 @@
 	</fieldset>
 	<?
 		}
-		if ($admin->Level > 1 && $bigtree["current_page"]["id"]) {
+		if ($admin->Level > 1 && ($bigtree["form_action"] == "create" || $bigtree["current_page"]["id"])) {
 	?>
 	<fieldset class="float_margin">
 		<input type="checkbox" name="trunk" <? if ($bigtree["current_page"]["trunk"]) { ?>checked="checked" <? } ?> tabindex="6" />
