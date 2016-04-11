@@ -1035,67 +1035,72 @@
 
 		static function prepareData($table, $data, $existing_description = false) {
 			// Setup column info
-			$table_description = $existing_description ? $existing_description : static::describeTable($table);
+			$table_description = $existing_description ?: static::describeTable($table);
 			$columns = $table_description["columns"];
 
 			foreach ($data as $key => $val) {
-				$allow_null = $columns[$key]["allow_null"];
-				$type = $columns[$key]["type"];
+				// If the column doesn't exist, drop from the data arra
+				if (!isset($columns[$key])) {
+					unset($data[$key]);
+				} else {
+					$allow_null = $columns[$key]["allow_null"];
+					$type = $columns[$key]["type"];
 
-				// Sanitize Integers
-				if ($type == "tinyint" || $type == "smallint" || $type == "mediumint" || $type == "int" || $type == "bigint") {
-					if ($allow_null == "YES" && ($val === null || $val === false || $val === "")) {
-						$data[$key] = "NULL";
-					} else {
-						$data[$key] = intval(str_replace(array(",","$"),"",$val));
+					// Sanitize Integers
+					if ($type == "tinyint" || $type == "smallint" || $type == "mediumint" || $type == "int" || $type == "bigint") {
+						if ($allow_null == "YES" && ($val === null || $val === false || $val === "" || $val === "NULL")) {
+							$data[$key] = null;
+						} else {
+							$data[$key] = intval(str_replace(array(",", "$"), "", $val));
+						}
 					}
-				}
 
-				// Sanitize Floats
-				if ($type == "float" || $type == "double" || $type == "decimal") {
-					if ($allow_null == "YES" && ($val === null || $val === false || $val === "")) {
-						$data[$key] = "NULL";
-					} else {
-						$data[$key] = floatval(str_replace(array(",","$"),"",$val));
+					// Sanitize Floats
+					if ($type == "float" || $type == "double" || $type == "decimal") {
+						if ($allow_null == "YES" && ($val === null || $val === false || $val === "" || $val === "NULL")) {
+							$data[$key] = null;
+						} else {
+							$data[$key] = floatval(str_replace(array(",", "$"), "", $val));
+						}
 					}
-				}
 
-				// Sanitize Date/Times
-				if ($type == "datetime" || $type == "timestamp") {
-					if (substr($val,0,3) == "NOW") {
-						$data[$key] = "NOW()";
-					} elseif (!$val && $allow_null == "YES") {
-						$data[$key] = "NULL";
-					} elseif ($val == "") {
-						$data[$key] = "0000-00-00 00:00:00";
-					} else {
-						$data[$key] = date("Y-m-d H:i:s",strtotime($val));
+					// Sanitize Date/Times
+					if ($type == "datetime" || $type == "timestamp") {
+						if (substr($val, 0, 3) == "NOW") {
+							$data[$key] = "NOW()";
+						} elseif ((!$val || $val === "NULL") && $allow_null == "YES") {
+							$data[$key] = null;
+						} elseif ($val == "") {
+							$data[$key] = "0000-00-00 00:00:00";
+						} else {
+							$data[$key] = date("Y-m-d H:i:s", strtotime($val));
+						}
 					}
-				}
 
-				// Sanitize Dates/Years
-				if ($type == "date" || $type == "year") {
-					if (substr($val,0,3) == "NOW") {
-						$data[$key] = "NOW()";
-					} elseif (!$val && $allow_null == "YES") {
-						$data[$key] = "NULL";
-					} elseif (!$val) {
-						$data[$key] = "0000-00-00";
-					} else {
-						$data[$key] = date("Y-m-d",strtotime($val));
+					// Sanitize Dates/Years
+					if ($type == "date" || $type == "year") {
+						if (substr($val, 0, 3) == "NOW") {
+							$data[$key] = "NOW()";
+						} elseif ((!$val || $val === "NULL") && $allow_null == "YES") {
+							$data[$key] = null;
+						} elseif (!$val) {
+							$data[$key] = "0000-00-00";
+						} else {
+							$data[$key] = date("Y-m-d", strtotime($val));
+						}
 					}
-				}
 
-				// Sanitize Times
-				if ($type == "time") {
-					if (substr($val,0,3) == "NOW") {
-						$data[$key] = "NOW()";
-					} elseif (!$val && $allow_null == "YES") {
-						$data[$key] = "NULL";
-					} elseif (!$val) {
-						$data[$key] = "00:00:00";
-					} else {
-						$data[$key] = date("H:i:s",strtotime($val));
+					// Sanitize Times
+					if ($type == "time") {
+						if (substr($val, 0, 3) == "NOW") {
+							$data[$key] = "NOW()";
+						} elseif ((!$val || $val === "NULL") && $allow_null == "YES") {
+							$data[$key] = null;
+						} elseif (!$val) {
+							$data[$key] = "00:00:00";
+						} else {
+							$data[$key] = date("H:i:s", strtotime($val));
+						}
 					}
 				}
 			}
