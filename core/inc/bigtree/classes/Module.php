@@ -10,6 +10,7 @@
 
 		static $CachesBuilt = false;
 		static $ClassCache = array();
+		static $Table = "bigtree_modules";
 
 		protected $ID;
 

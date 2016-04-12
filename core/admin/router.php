@@ -1,7 +1,7 @@
 <?php
 	use BigTree\Auth;
 	use BigTree\Router;
-	
+
 	// Set a definition to check for being in the admin
 	define("BIGTREE_ADMIN_ROUTED",true);
 	
@@ -247,9 +247,10 @@
 
 	// Let route registration take over if it finds something
 	$registry_found = false;
-	foreach ($cms->RouteRegistry["admin"] as $registration) {
+	foreach (Router::$Registry["admin"] as $registration) {
 		if (!$registry_found) {
 			$registry_commands = Router::getRegistryCommands("/".implode("/",array_slice($bigtree["path"],1)),$registration["pattern"]);
+
 			if ($registry_commands !== false) {
 				$registry_found = true;
 				$registry_rule = $registration;

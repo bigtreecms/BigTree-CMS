@@ -743,7 +743,7 @@
 		*/
 
 		static function escape($string) {
-			if (!is_string($string) && !is_numeric($string) && !is_bool($string) && $string) {
+			if (is_object($string) || is_array($string)) {
 				$string = JSON::encode($string);
 			}
 			

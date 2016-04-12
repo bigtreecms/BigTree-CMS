@@ -47,13 +47,15 @@
 			if (!is_array($setting)) {
 				trigger_error("Invalid ID or data set passed to constructor.", E_WARNING);
 			} else {
+				$options = is_string($setting["options"]) ? json_decode($setting["options"],true) : $setting["options"];
+
 				$this->Description = $setting["description"];
 				$this->Encrypted = $this->OriginalEncrypted = $setting["encrypted"] ? true : false;
 				$this->Extension = $setting["extension"];
 				$this->ID = $this->OriginalID = $setting["id"];
 				$this->Locked = $setting["locked"] ? true : false;
 				$this->Name = $setting["name"];
-				$this->Settings = Link::decodeArray(is_string($setting["options"]) ? json_decode($setting["options"],true) : $setting["options"]);
+				$this->Settings = Link::decodeArray(array_filter((array) $options));
 				$this->System = $setting["system"] ? true : false;
 				$this->Type = $setting["type"];
 
@@ -68,7 +70,11 @@
 				// Decode value
 				$value = json_decode($value, true);
 				if ($decode) {
-					$value = is_string($value) ? Link::decode($value) : Link::decodeArray($value);
+					if (is_string($value)) {
+						$value = Link::decode($value);
+					} elseif (is_array($value)) {
+						$value = Link::decodeArray($value);
+					}
 				}
 
 				$this->Value = $this->OriginalValue = $value;
