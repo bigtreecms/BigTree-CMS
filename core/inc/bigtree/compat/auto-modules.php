@@ -1,4 +1,5 @@
 <?php
+
 	/*
 		Class: BigTreeAutoModule
 			Handles functions for auto module forms / views created in Developer.
@@ -19,7 +20,7 @@
 				<recacheItem>
 		*/
 		
-		static function cacheNewItem($id,$table,$pending = false) {
+		static function cacheNewItem($id, $table, $pending = false) {
 			BigTree\ModuleView::cacheForAll($id, $table, $pending);
 		}
 		
@@ -54,7 +55,7 @@
 				true or false
 		*/
 
-		static function changeExists($table,$id) {
+		static function changeExists($table, $id) {
 			return BigTree\PendingChange::exists($table, $id);
 		}
 
@@ -89,76 +90,11 @@
 				The id of the new entry in the database.
 		*/
 
-		static function createItem($table,$data,$many_to_many = array(),$tags = array()) {			
-			$table_description = BigTree::describeTable($table);
-			$insert_values = array();
+		static function createItem($table, $data, $many_to_many = array(), $tags = array()) {
+			// Create a generic module form
+			$form = new BigTree\ModuleForm(array("table" => $table));
 
-			foreach ($data as $key => $val) {
-				if (array_key_exists($key,$table_description["columns"])) {
-					// For backwards compatibility we'll leave this
-					if ($val === "NULL") {
-						$val = null;
-					} 
-
-					$insert_values[$key] = $val;
-				}
-			}
-			
-			// Insert, if there's a failure return false instead of doing the rest
-			$id = SQL::insert($table,$insert_values);
-			if (!$id) {
-				return false;
-			}
-
-			// Handle many to many
-			foreach ($many_to_many as $mtm) {
-				if (is_array($mtm["data"])) {
-					// Find out what columns we have
-					$table_description = BigTree::describeTable($mtm["table"]);
-
-					// Setup position
-					$x = count($mtm["data"]);
-
-					foreach ($mtm["data"] as $position => $item) {
-						// Setup the insert
-						$insert_values = array(
-							$mtm["my-id"] => $id,
-							$mtm["other-id"] => $item
-						);
-
-						// Add position if this is a positioned relationship
-						if (isset($table_description["columns"]["position"])) {
-							$insert_values["position"] = $x;
-						}
-
-						// Insert it
-						SQL::insert($mtm["table"],$insert_values);
-
-						// Decrease position
-						$x--;
-					}
-				}
-			}
-
-			// Handle the tags
-			SQL::delete("bigtree_tags_rel",array("table" => $table, "entry" => $id));
-			if (is_array($tags)) {
-				// Strip out dupes
-				$tags = array_unique($tags);
-
-				foreach ($tags as $tag) {
-					SQL::insert("bigtree_tags_rel",array(
-						"table" => $table,
-						"entry" => $id,
-						"tag" => $tag
-					));
-				}
-			}
-			
-			self::cacheNewItem($id,$table);			
-			self::track($table,$id,"created");
-
-			return $id;
+			return $form->createEntry($data, $many_to_many, $tags);
 		}
 		
 		/*
@@ -177,32 +113,15 @@
 				The id of the new entry in the bigtree_pending_changes table.
 		*/
 
-		static function createPendingItem($module,$table,$data,$many_to_many = array(),$tags = array(),$publish_hook = null) {
-			global $admin;
-			
-			foreach ($data as $key => $val) {
-				if ($val === "NULL") {
-					$data[$key] = "";
-				}
-				if (is_array($val)) {
-					$data[$key] = BigTree::translateArray($val);
-				}
-			}
-
-			$id = SQL::insert("bigtree_pending_changes",array(
-				"user" => $admin->ID,
-				"table" => $table,
-				"changes" => $data,
-				"mtm_changes" => $many_to_many,
-				"tags_changes" => $tags,
+		static function createPendingItem($module, $table, $data, $many_to_many = array(), $tags = array(), $publish_hook = null) {
+			// Create fake module form
+			$form = new BigTree\ModuleForm(array(
 				"module" => $module,
-				"publish_hook" => $publish_hook
+				"table" => $table,
+				"settings" => json_encode(array("hooks" => array("publish" => $publish_hook)))
 			));
-			
-			self::cacheNewItem($id,$table,true);
-			self::track($table,"p$id","created-pending");
-			
-			return $id;
+
+			return $form->createPendingEntry($data, $many_to_many, $tags);
 		}
 		
 		/*
@@ -214,16 +133,15 @@
 				id - The id of the entry.
 		*/
 
-		static function deleteItem($table,$id) {
-			SQL::delete($table,$id);
-			SQL::delete("bigtree_pending_changes",array("table" => $table,"item_id" => $id));
+		static function deleteItem($table, $id) {
+			// Create fake module form
+			$form = new BigTree\ModuleForm(array("table" => $table));
 
-			self::uncacheItem($id,$table);
-			self::track($table,$id,"deleted");
+			$form->deleteEntry($id);
 		}
 		
 		/*
-			Function: deleteItem
+			Function: deletePendingItem
 				Deletes a pending item from bigtree_pending_changes and uncaches it.
 			
 			Parameters:
@@ -231,11 +149,11 @@
 				id - The id of the pending entry.
 		*/
 		
-		static function deletePendingItem($table,$id) {
-			SQL::delete("bigtree_pending_changes",$id);
+		static function deletePendingItem($table, $id) {
+			// Create fake module form
+			$form = new BigTree\ModuleForm(array("table" => $table));
 
-			self::uncacheItem("p$id",$table);
-			self::track($table,"p$id","deleted-pending");
+			$form->deletePendingEntry($id);
 		}
 
 		/*
@@ -251,6 +169,7 @@
 
 		static function getDependentViews($table) {
 			$table = SQL::escape($table);
+
 			return SQL::fetchAll("SELECT * FROM bigtree_module_interfaces 
 											  WHERE `type` = 'view' AND `settings` LIKE '%$table%'");
 		}
@@ -267,7 +186,7 @@
 				A bigtree_module_actions entry.
 		*/
 
-		static function getEditAction($module,$form) {
+		static function getEditAction($module, $form) {
 			$module = new BigTree\Module($module);
 			$action = $module->getEditAction($form);
 
@@ -376,21 +295,26 @@
 			if ($interface["type"] == "form") {
 				$form = static::getForm($id);
 				$form["interface_type"] = "form";
+
 				return $form;
 			} elseif ($interface["type"] == "embeddable-form") {
 				$form = static::getEmbedForm($id);
 				$form["interface_type"] = "embeddable-form";
+
 				return $form;
 			} elseif ($interface["type"] == "view") {
 				$view = static::getView($id);
 				$view["interface_type"] = "view";
+
 				return $view;
 			} elseif ($interface["type"] == "report") {
 				$report = static::getReport($id);
 				$report["interface_type"] = "report";
+
 				return $report;
 			} else {
-				$interface["settings"] = json_decode($interface["settings"],true);
+				$interface["settings"] = json_decode($interface["settings"], true);
+
 				return $interface;
 			}
 		}
@@ -412,31 +336,11 @@
 				Returns false if the entry could not be found.
 		*/
 
-		static function getItem($table,$id) {
-			// The entry is pending if there's a "p" prefix on the id
-			if (substr($id,0,1) == "p") {
-				return self::getPendingItem($table,$id);
-			}
+		static function getItem($table, $id) {
+			// Create fake form
+			$form = new BigTree\ModuleForm(array("table" => $table));
 
-			// Otherwise it's a live entry
-			$item = SQL::fetch("SELECT * FROM `$table` WHERE id = ?", $id);
-			if (!is_array($item)) {
-				return false;
-			}
-			$tags = self::getTagsForEntry($table,$id);
-
-			// Process the internal page links, turn json_encoded arrays into arrays.
-			foreach ($item as $key => $val) {
-				$array_val = @json_decode($val, true);
-
-				if (is_array($array_val)) {
-					$item[$key] = BigTree::untranslateArray($array_val);
-				} else {
-					$item[$key] = BigTreeCMS::replaceInternalPageLinks($val);
-				}
-			}
-
-			return array("item" => $item, "tags" => $tags);
+			return $form->getEntry($id);
 		}
 		
 		/*
@@ -518,88 +422,11 @@
 				Returns false if the entry could not be found.
 		*/
 
-		static function getPendingItem($table,$id) {
-			$status = "published";
-			$many_to_many = array();
-			$owner = false;
+		static function getPendingItem($table, $id) {
+			// Create fake form
+			$form = new BigTree\ModuleForm(array("table" => $table));
 
-			// The entry is pending if there's a "p" prefix on the id
-			if (substr($id,0,1) == "p") {
-				$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", substr($id,1));
-				if (!$change) {
-					return false;
-				}
-				
-				$item = json_decode($change["changes"],true);
-				$many_to_many = json_decode($change["mtm_changes"],true);
-				$temp_tags = json_decode($change["tags_changes"],true);
-				
-				// If we have temporary tag IDs, get the full list
-				if (array_filter((array)$temp_tags)) {
-					// Add the query
-					array_unshift($temp_tags, "SELECT * FROM bigtree_tags 
-											   WHERE ".implode(" OR ", array_fill(0, count($temp_tags), "id = ?")));
-					$tags = call_user_func_array(array(BigTreeCMS::$DB,"fetchAll"), $temp_tags);
-				} else {
-					$tags = array();
-				}
-
-				$status = "pending";
-				$owner = $change["user"];
-				
-			// Otherwise it's a live entry
-			} else {
-				$item = SQL::fetch("SELECT * FROM `$table` WHERE id = ?", $id);
-				if (!$item) {
-					return false;
-				}
-				
-				// Apply changes that are pending
-				$change = SQL::fetch("SELECT * FROM bigtree_pending_changes
-												  WHERE `table` = ? AND `item_id` = ?", $table, $id);
-				if ($change) {
-					$status = "updated";
-
-					// Apply changes back
-					$changes = json_decode($change["changes"],true);
-					foreach ($changes as $key => $val) {
-						$item[$key] = $val;
-					}
-
-					$many_to_many = json_decode($change["mtm_changes"],true);
-					$temp_tags = json_decode($change["tags_changes"],true);
-					
-					// If we have temporary tag IDs, get the full list
-					if (array_filter((array)$temp_tags)) {
-						// Add the query
-						array_unshift($temp_tags, "SELECT * FROM bigtree_tags 
-												   WHERE ".implode(" OR ", array_fill(0, count($temp_tags), "id = ?")));
-						$tags = call_user_func_array(array(BigTreeCMS::$DB,"fetchAll"), $temp_tags);
-					} else {
-						$tags = array();
-					}
-
-				// If there's no pending changes, just pull the tags
-				} else {
-					$tags = self::getTagsForEntry($table,$id);
-				}
-			}
-			
-			// Process the internal page links, turn json_encoded arrays into arrays.
-			foreach ($item as $key => $val) {
-				if (is_array($val)) {
-					$item[$key] = BigTree::untranslateArray($val);
-				} else {
-					$array_val = @json_decode($val, true);
-					if (is_array($array_val)) {
-						$item[$key] = BigTree::untranslateArray($array_val);
-					} else {
-						$item[$key] = BigTreeCMS::replaceInternalPageLinks($val);
-					}
-				}
-			}
-
-			return array("item" => $item, "mtm" => $many_to_many, "tags" => $tags, "status" => $status, "owner" => $owner);
+			return $form->getPendingEntry($id);
 		}
 
 		/*
@@ -707,7 +534,7 @@
 				An array of entries from the report's table.
 		*/
 
-		static function getReportResults($report,$view,$form,$filters,$sort_field = "id",$sort_direction = "DESC") {
+		static function getReportResults($report, $view, $form, $filters, $sort_field = "id", $sort_direction = "DESC") {
 			$report = new BigTree\ModuleReport($report);
 
 			return $report->getResults($view, $form, $filters, $sort_field, $sort_direction);
@@ -728,15 +555,15 @@
 				An array containing "pages" with the number of result pages and "results" with the results for the given page.
 		*/
 		
-		static function getSearchResults($view,$page = 1,$query = "",$sort = "id DESC",$group = false) {
+		static function getSearchResults($view, $page = 1, $query = "", $sort = "id DESC", $group = false) {
 			// Check to see if we've cached this table before.
 			self::cacheViewData($view);
 			
-			$search_parts = explode(" ",$query);
+			$search_parts = explode(" ", $query);
 			$view_column_count = count($view["fields"]);
-			$per_page = $view["options"]["per_page"] ? $view["options"]["per_page"] : BigTreeAdmin::$PerPage;			
+			$per_page = $view["options"]["per_page"] ? $view["options"]["per_page"] : BigTreeAdmin::$PerPage;
 			$query = "SELECT * FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'".self::getFilterQuery($view);
-	
+
 			if ($group !== false) {
 				$query .= " AND group_field = '".SQL::escape($group)."'";
 			}
@@ -751,22 +578,22 @@
 				}
 
 				if (count($query_parts)) {
-					$query .= " AND (".implode(" OR ",$query_parts).")";
+					$query .= " AND (".implode(" OR ", $query_parts).")";
 				}
 			}
 			
 			// Find how many pages are returned from this search
-			$total = SQL::fetchSingle(str_replace("SELECT *","SELECT COUNT(*)",$query));
+			$total = SQL::fetchSingle(str_replace("SELECT *", "SELECT COUNT(*)", $query));
 			$pages = ceil($total / $per_page);
 			$pages = $pages ? $pages : 1;
 
 			// Get the correct column name for sorting
-			if (strpos($sort,"`") !== false) { // New formatting
-				$sort_field = BigTree::nextSQLColumnDefinition(substr($sort,1));
-				$sort_pieces = explode(" ",$sort);
+			if (strpos($sort, "`") !== false) { // New formatting
+				$sort_field = BigTree::nextSQLColumnDefinition(substr($sort, 1));
+				$sort_pieces = explode(" ", $sort);
 				$sort_direction = end($sort_pieces);
 			} else { // Old formatting
-				list($sort_field,$sort_direction) = explode(" ",$sort);
+				list($sort_field, $sort_direction) = explode(" ", $sort);
 			}
 
 			// Figure out whether we need to cast the column we're sorting by as numeric so that 2 comes before 11
@@ -784,7 +611,7 @@
 					}
 				}
 				// If we didn't find a column, let's assume it's the default sort field.
-				if (substr($sort_field,0,6) != "column") {
+				if (substr($sort_field, 0, 6) != "column") {
 					$sort_field = "sort_field";
 				}
 				if ($convert_numeric) {
@@ -806,7 +633,7 @@
 			} else {
 				$results = SQL::fetchAll($query." ORDER BY $sort_field $sort_direction LIMIT ".(($page - 1) * $per_page).",$per_page");
 			}
-	
+
 			return array("pages" => $pages, "results" => $results);
 		}
 		
@@ -822,7 +649,7 @@
 				An array ot tags from bigtree_tags.
 		*/
 		
-		static function getTagsForEntry($table,$id) {
+		static function getTagsForEntry($table, $id) {
 			return SQL::fetchAll("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel 
 											  ON bigtree_tags_rel.tag = bigtree_tags.id 
 											  WHERE bigtree_tags_rel.`table` = ? AND bigtree_tags_rel.entry = ? 
@@ -861,10 +688,10 @@
 				An array of items from bigtree_module_view_cache.
 		*/
 		
-		static function getViewData($view,$sort = "id DESC",$type = "both",$group = false) {
+		static function getViewData($view, $sort = "id DESC", $type = "both", $group = false) {
 			$view = new BigTree\ModuleView($view);
 
-			return $view->getData($sort,$type,$group);
+			return $view->getData($sort, $type, $group);
 		}
 		
 		/*
@@ -881,8 +708,8 @@
 				An array of items from bigtree_module_view_cache.
 		*/
 		
-		static function getViewDataForGroup($view,$group,$sort,$type = "both") {
-			return static::getViewData($view,$sort,$type,$group);
+		static function getViewDataForGroup($view, $group, $sort, $type = "both") {
+			return static::getViewData($view, $sort, $type, $group);
 		}
 		
 		/*
@@ -920,7 +747,7 @@
 				An array of parsed entries.
 		*/
 
-		static function parseViewData($view,$items) {
+		static function parseViewData($view, $items) {
 			$view = new BigTree\ModuleView($view);
 
 			return $view->parseData($items);
@@ -941,9 +768,10 @@
 				The id of the new entry.
 		*/
 		
-		static function publishPendingItem($table,$id,$data,$many_to_many = array(),$tags = array()) {
-			self::deletePendingItem($table,$id);
-			return self::createItem($table,$data,$many_to_many,$tags);
+		static function publishPendingItem($table, $id, $data, $many_to_many = array(), $tags = array()) {
+			self::deletePendingItem($table, $id);
+
+			return self::createItem($table, $data, $many_to_many, $tags);
 		}
 		
 		/*
@@ -959,7 +787,7 @@
 				<cacheNewItem>
 		*/
 		
-		static function recacheItem($id,$table,$pending = false) {
+		static function recacheItem($id, $table, $pending = false) {
 			return BigTree\ModuleView::cacheForAll($id, $table, $pending);
 		}
 
@@ -974,9 +802,9 @@
 			
 			Returns:
 				Array of data safe for MySQL.
-		*/	
+		*/
 		
-		static function sanitizeData($table,$data,$existing_description = false) {
+		static function sanitizeData($table, $data, $existing_description = false) {
 			return BigTree\SQL::prepareData($table, $data, $existing_description);
 		}
 
@@ -998,68 +826,15 @@
 				The id of the pending change.
 		*/
 		
-		static function submitChange($module,$table,$id,$data,$many_to_many = array(),$tags = array(),$publish_hook = null) {
-			global $admin;
-			if (!isset($admin) || get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
-				trigger_error("BigTreeAutoModule::submitChange must be called by a logged in user.",E_USER_ERROR);
-			}
+		static function submitChange($module, $table, $id, $data, $many_to_many = array(), $tags = array(), $publish_hook = null) {
+			// Create fake module form
+			$form = new BigTree\ModuleForm(array(
+				"module" => $module,
+				"table" => $table,
+				"settings" => json_encode(array("hooks" => array("publish" => $publish_hook)))
+			));
 
-			// If this is already a pending change we have no original item to compare to
-			if (substr($id,0,1) == "p") {
-				$existing = $id;
-			} else {
-				// Only save what's different between the original and the new changes
-				$original = SQL::fetch("SELECT * FROM `$table` WHERE id = ?", $id);
-				foreach ($data as $key => $val) {
-					if ($val === "NULL") {
-						$data[$key] = "";
-					}
-					if ($original && $original[$key] === $val) {
-						unset($data[$key]);
-					}
-				}
-
-				// See if we have another pending change that we're overwriting
-				$existing = SQL::fetchSingle("SELECT id FROM bigtree_pending_changes 
-														  WHERE `table` = ? AND item_id = ?", $table, $id);
-			}
-
-			// Overwriting an existing pending change
-			if ($existing) {
-				SQL::update("bigtree_pending_changes",$existing,array(
-					"changes" => $data,
-					"mtm_changes" => $many_to_many,
-					"tags_changes" => $tags,
-					"user" => $admin->ID
-				));
-				
-				// If the id has a "p" it's still pending and we need to recache over the pending one.
-				if (substr($id,0,1) == "p") {
-					self::recacheItem(substr($id,1),$table,true);
-				} else {
-					self::recacheItem($id,$table);					
-				}
-				
-				$admin->track($table,$id,"updated-draft");
-				return $existing["id"];
-
-			// Creating a new pending change
-			} else {
-				$change_id = SQL::insert("bigtree_pending_changes",array(
-					"user" => $admin->ID,
-					"table" => $table,
-					"item_id" => $id,
-					"changes" => $data,
-					"mtm_changes" => $many_to_many,
-					"tags_changes" => $tags,
-					"module" => $module,
-					"publish_hook" => $publish_hook
-				));
-
-				self::recacheItem($id,$table);				
-				$admin->track($table,$id,"saved-draft");
-				return $change_id;
-			}
+			return $form->createChangeRequest($id, $data, $many_to_many, $tags);
 		}
 
 		/*
@@ -1072,7 +847,7 @@
 				action - The action being taken
 		*/
 
-		static function track($table,$id,$action) {
+		static function track($table, $id, $action) {
 			BigTree\AuditTrail::track($table, $id, $action);
 		}
 		
@@ -1085,7 +860,7 @@
 				table - The table the entry is in.
 		*/
 		
-		static function uncacheItem($id,$table) {
+		static function uncacheItem($id, $table) {
 			BigTree\ModuleView::uncacheForAll($id, $table);
 		}
 
@@ -1101,71 +876,11 @@
 				tags - Tag information.
 		*/
 		
-		static function updateItem($table,$id,$data,$many_to_many = array(),$tags = array()) {
-			// Find out what columns a table has so we don't fail to update
-			$table_description = BigTree::describeTable($table);
+		static function updateItem($table, $id, $data, $many_to_many = array(), $tags = array()) {
+			// Create a generic module form
+			$form = new BigTree\ModuleForm(array("table" => $table));
 
-			$update_columns = array();
-			foreach ($data as $key => $val) {
-				if (array_key_exists($key,$table_description["columns"])) {
-					if (is_array($val)) {
-						$val = BigTree::translateArray($val);
-					}
-					$update_columns[$key] = $val;
-				}
-			}
-
-			// Do the update
-			SQL::update($table,$id,$update_columns);
-
-			// Handle many to many
-			if (!empty($many_to_many)) {
-				foreach ($many_to_many as $mtm) {
-					// Delete existing
-					SQL::delete($mtm["table"],array($mtm["my-id"] => $id));
-
-					if (is_array($mtm["data"])) {
-						// Describe table to see if it's positioned
-						$table_description = BigTree::describeTable($mtm["table"]);
-
-						$position = count($mtm["data"]);
-						foreach ($mtm["data"] as $item) {
-							$mtm_insert_data = array(
-								$mtm["my-id"] => $id,
-								$mtm["other-id"] => $item
-							);
-
-							// If we're using a positioned table, add it while decreasing the position value
-							if (isset($table_description["columns"]["position"])) {
-								$mtm_insert_data["position"] = $position--;
-							}
-
-							SQL::insert($mtm["table"],$mtm_insert_data);
-						}
-					}
-				}
-			}
-
-			// Handle the tags
-			SQL::delete("bigtree_tags_rel",array("table" => $table, "entry" => $id));
-			if (!empty($tags)) {
-				foreach ($tags as $tag) {
-					SQL::insert("bigtree_tags_rel",array(
-						"table" => $table,
-						"entry" => $id,
-						"tag" => $tag
-					));
-				}
-			}
-			
-			// Clear out any pending changes.
-			SQL::delete("bigtree_pending_changes",array("item_id" => $id, "table" => $table));
-			
-			if ($table != "bigtree_pages") {
-				self::recacheItem($id,$table);
-			}
-			
-			self::track($table,$id,"updated");
+			$form->updateEntry($id, $data, $many_to_many, $tags);
 		}
 
 		/*
@@ -1178,17 +893,8 @@
 				value - The value to set.
 		*/
 		
-		static function updatePendingItemField($id,$field,$value) {
-			$changes = json_decode(SQL::fetchSingle("SELECT changes FROM bigtree_pending_changes WHERE id = ?", $id), true);
-
-			if (is_array($value)) {
-				$value = BigTree::translateArray($value);
-			} else {
-				$value = BigTreeCMS::replaceInternalPageLinks($value);
-			}
-			$changes[$field] = $value;
-
-			SQL::update("bigtree_pending_changes",$id,array("changes" => $changes));
+		static function updatePendingItemField($id, $field, $value) {
+			BigTree\ModuleForm::updatePendingEntryField($id, $field, $value);
 		}
 
 		/*
@@ -1206,8 +912,8 @@
 				<errorMessage>
 		*/
 		
-		static function validate($data,$type) {
-			return BigTree\Field::validate($data,$type);
+		static function validate($data, $type) {
+			return BigTree\Field::validate($data, $type);
 		}
 
 		/*
@@ -1225,7 +931,7 @@
 				<validate>
 		*/
 		
-		static function validationErrorMessage($data,$type) {
-			return BigTree\Field::validationErrorMessage($data,$type);
+		static function validationErrorMessage($data, $type) {
+			return BigTree\Field::validationErrorMessage($data, $type);
 		}
 	}

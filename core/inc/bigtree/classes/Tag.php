@@ -43,40 +43,35 @@
 		}
 
 		/*
-			Function: createTag
-				Creates a new tag.
-				If a duplicate tag exists, that tag is returned instead.
+			Function: allForEntry
+				Returns the tags for an entry.
 
 			Parameters:
-				name - The name of the tag.
+				table - The table the entry is in.
+				id - The id of the entry.
+				return_arrays - Whether to return arrays rather than objects (defaults to false)
 
 			Returns:
-				A Tag object.
+				An array of tags from bigtree_tags.
 		*/
 
-		function createTag($name) {
-			$name = strtolower(html_entity_decode(trim($name)));
+		static function allForEntry($table, $id, $return_arrays = false) {
+			$tags = SQL::fetchAll("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel 
+								   ON bigtree_tags_rel.tag = bigtree_tags.id 
+								   WHERE bigtree_tags_rel.`table` = ? AND bigtree_tags_rel.entry = ? 
+								   ORDER BY bigtree_tags.tag ASC", $table, $id);
 
-			// If this tag already exists, just ignore it and return the ID
-			$existing = SQL::fetch("SELECT * FROM bigtree_tags WHERE tag = ?", $name);
-			if ($existing) {
-				return new Tag($existing);
+			if (!$return_arrays) {
+				foreach ($tags as &$tag) {
+					$tag = new Tag($tag);
+				}
 			}
 
-			// Create tag
-			$id = SQL::insert("bigtree_tags",array(
-				"tag" => Text::htmlEncode($name),
-				"metaphone" => metaphone($name),
-				"route" => SQL::unique("bigtree_tags","route",Link::urlify($name))
-			));
-
-			AuditTrail::track("bigtree_tags",$id,"created");
-
-			return new Tag($id);
+			return $tags;
 		}
 
 		/*
-			Function: similar
+			Function: allSimilar
 				Finds existing tags that are similar to the given tag name.
 
 			Parameters:
@@ -88,7 +83,7 @@
 				An array of Tag objects.
 		*/
 
-		static function similar($name,$count = 8,$return_only_name = false) {
+		static function allSimilar($name,$count = 8,$return_only_name = false) {
 			$tags = $distances = array();
 			$meta = metaphone($name);
 
@@ -112,6 +107,39 @@
 
 			// Return only the number requested
 			return array_slice($tags,0,$count);
+		}
+
+		/*
+			Function: create
+				Creates a new tag.
+				If a duplicate tag exists, that tag is returned instead.
+
+			Parameters:
+				name - The name of the tag.
+
+			Returns:
+				A Tag object.
+		*/
+
+		static function create($name) {
+			$name = strtolower(html_entity_decode(trim($name)));
+
+			// If this tag already exists, just ignore it and return the ID
+			$existing = SQL::fetch("SELECT * FROM bigtree_tags WHERE tag = ?", $name);
+			if ($existing) {
+				return new Tag($existing);
+			}
+
+			// Create tag
+			$id = SQL::insert("bigtree_tags",array(
+				"tag" => Text::htmlEncode($name),
+				"metaphone" => metaphone($name),
+				"route" => SQL::unique("bigtree_tags","route",Link::urlify($name))
+			));
+
+			AuditTrail::track("bigtree_tags",$id,"created");
+
+			return new Tag($id);
 		}
 
 	}

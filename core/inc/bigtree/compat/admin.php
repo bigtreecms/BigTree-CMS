@@ -3429,7 +3429,7 @@
 		*/
 
 		static function searchTags($tag) {
-			return BigTree\Tag::similar($tag,8,true);
+			return BigTree\Tag::allSimilar($tag,8,true);
 		}
 
 		/*

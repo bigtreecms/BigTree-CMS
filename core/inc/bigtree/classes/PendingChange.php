@@ -44,14 +44,14 @@
 				$this->Date = $change["date"];
 				$this->ID = $change["id"];
 
-				$this->Changes = (array) @json_decode($change["changes"],true);
+				$this->Changes = (array) @json_decode($change["changes"], true);
 				$this->ItemID = ($change["item_id"] !== null) ? $change["item_id"] : null;
-				$this->ManyToManyChanges = (array) @json_decode($change["mtm_changes"],true);
+				$this->ManyToManyChanges = (array) @json_decode($change["mtm_changes"], true);
 				$this->Module = $change["module"];
 				$this->PendingPageParent = $change["pending_page_parent"];
 				$this->PublishHook = $change["publish_hook"];
 				$this->Table = $change["table"];
-				$this->TagsChanges = (array) @json_decode($change["tags_changes"],true);
+				$this->TagsChanges = (array) @json_decode($change["tags_changes"], true);
 				$this->Title = $change["title"];
 				$this->User = $change["user"];
 			}
@@ -94,7 +94,7 @@
 				}
 			}
 
-			$changes = SQL::fetchAll("SELECT * FROM bigtree_pending_changes WHERE ".implode(" OR ",$search)." ORDER BY date DESC");
+			$changes = SQL::fetchAll("SELECT * FROM bigtree_pending_changes WHERE ".implode(" OR ", $search)." ORDER BY date DESC");
 
 			foreach ($changes as $change) {
 				$ok = false;
@@ -109,7 +109,7 @@
 				// If they're an admin, they've got it.
 				if ($user->Level > 0) {
 					$ok = true;
-				// Check permissions on a page if it's a page.
+					// Check permissions on a page if it's a page.
 				} elseif ($change["table"] == "bigtree_pages") {
 
 					// If this page isn't published we'll grab the parent permission
@@ -120,7 +120,7 @@
 					}
 
 					$access_level = $page->getUserAccessLevel($user);
-				
+
 					// If we're a publisher, this is ours!
 					if ($access_level == "p") {
 						$ok = true;
@@ -137,8 +137,8 @@
 						$module = $module_cache[$change["module"]];
 
 						// Check our group based permissions
-						$item = BigTreeAutoModule::getPendingItem($change["table"],$id);
-						$access_level = $module->getUserAccessLevelForEntry($item["item"],$change["table"],$user);
+						$item = BigTreeAutoModule::getPendingItem($change["table"], $id);
+						$access_level = $module->getUserAccessLevelForEntry($item["item"], $change["table"], $user);
 						
 						if ($access_level == "p") {
 							$ok = true;
@@ -170,22 +170,41 @@
 				mtm_changes - Many to Many changes.
 				tags_changes - Tags changes.
 				module - The module id for the change.
+				publish_hook - An optional publishing hook.
 
 			Returns:
 				A PendingChange object.
 		*/
 
-		static function create($table,$item_id,$changes,$mtm_changes = array(),$tags_changes = array(),$module = 0) {
-			global $admin;
+		static function create($table, $item_id, $changes, $mtm_changes = array(), $tags_changes = array(), $module = 0, $publish_hook = false) {
+			// Clean up data for JSON storage
+			foreach ($changes as $key => $val) {
+				if ($val === "NULL") {
+					$changes[$key] = "";
+				}
+			}
+			$changes = Link::encodeArray($changes);
+
+			// If this is an existing entry's changes, only keep what's different
+			if ($item_id !== false) {
+				$original = SQL::fetch("SELECT * FROM `$table` WHERE id = ?", $item_id);
+
+				foreach ($changes as $key => $value) {
+					if ($original[$key] === $value) {
+						unset($changes[$key]);
+					}
+				}
+			}
 
 			// Get the user creating the change
+			global $admin;
 			if (get_class($admin) == "BigTreeAdmin" && $admin->ID) {
 				$user = $admin->ID;
 			} else {
 				$user = null;
 			}
 
-			$id = SQL::insert("bigtree_pending_changes",array(
+			$id = SQL::insert("bigtree_pending_changes", array(
 				"user" => $user,
 				"date" => "NOW()",
 				"table" => $table,
@@ -193,10 +212,12 @@
 				"changes" => $changes,
 				"mtm_changes" => $mtm_changes,
 				"tags_changes" => $tags_changes,
-				"module" => $module
+				"module" => $module,
+				"publish_hook" => $publish_hook ?: null
 			));
 
-			AuditTrail::track($table,"p".$id,"created-pending");
+			ModuleView::cacheForAll($id, $table, true);
+			AuditTrail::track($table, "p".$id, "created-pending");
 
 			return new PendingChange($id);
 		}
@@ -206,13 +227,28 @@
 				Creates a pending page entry.
 
 			Parameters:
-				nav_title
+				trunk - Trunk status (true or false)
+				parent - Parent page ID
+				in_nav - In navigation (true or false)
+				nav_title - Navigation title
+				title - Page title
+				route - Page route (leave empty to auto generate)
+				meta_description - Page meta description
+				seo_invisible - Pass "X-Robots-Tag: noindex" header (true or false)
+				template - Page template ID
+				external - External link (or empty)
+				new_window - Open in new window from nav (true or false)
+				resources - Array of page data
+				publish_at - Publish time (or false for immediate publishing)
+				expire_at - Expiration time (or false for no expiration)
+				max_age - Content age (in days) allowed before alerts are sent (0 for no max)
+				tags - An array of tags to apply to the page (optional)
 
 			Returns:
 				The id of the pending change.
 		*/
 
-		static function createPage($trunk,$parent,$in_nav,$nav_title,$title,$route,$meta_description,$seo_invisible,$template,$external,$new_window,$fields,$publish_at,$expire_at,$max_age,$tags = array()) {
+		static function createPage($trunk, $parent, $in_nav, $nav_title, $title, $route, $meta_description, $seo_invisible, $template, $external, $new_window, $fields, $publish_at, $expire_at, $max_age, $tags = array()) {
 			global $admin;
 
 			// Get the user creating the change
@@ -235,12 +271,12 @@
 				"external" => $external ? Link::encode($external) : "",
 				"new_window" => $new_window ? "on" : "",
 				"resources" => $fields,
-				"publish_at" => $publish_at ? date("Y-m-d H:i:s",strtotime($publish_at)) : null,
-				"expire_at" => $expire_at ? date("Y-m-d H:i:s",strtotime($expire_at)) : null,
+				"publish_at" => $publish_at ? date("Y-m-d H:i:s", strtotime($publish_at)) : null,
+				"expire_at" => $expire_at ? date("Y-m-d H:i:s", strtotime($expire_at)) : null,
 				"max_age" => $max_age ? intval($max_age) : ""
 			);
 
-			$id = SQL::insert("bigtree_pending_changes",array(
+			$id = SQL::insert("bigtree_pending_changes", array(
 				"user" => $user,
 				"date" => "NOW()",
 				"table" => "bigtree_pages",
@@ -249,7 +285,7 @@
 				"pending_page_parent" => intval($parent)
 			));
 
-			AuditTrail::track("bigtree_pages","p".$id,"created-pending");
+			AuditTrail::track("bigtree_pages", "p".$id, "created-pending");
 
 			return new PendingChange($id);
 		}
@@ -322,7 +358,18 @@
 		*/
 
 		function save() {
-			SQL::update("bigtree_pending_changes",$this->ID,array(
+			// If this is an existing entry's changes, only keep what's different
+			if ($this->ItemID !== false) {
+				$original = SQL::fetch("SELECT * FROM `".$this->Table."` WHERE id = ?", $this->ItemID);
+
+				foreach ($this->Changes as $key => $value) {
+					if ($original[$key] === $value) {
+						unset($this->Changes[$key]);
+					}
+				}
+			}
+
+			SQL::update("bigtree_pending_changes", $this->ID, array(
 				"changes" => $this->Changes,
 				"item_id" => $this->ItemID ?: null,
 				"mtm_changes" => $this->ManyToManyChanges,
@@ -334,7 +381,7 @@
 				"user" => $this->User
 			));
 
-			AuditTrail::track("bigtree_pending_changes",$this->ID,"updated");
+			AuditTrail::track("bigtree_pending_changes", $this->ID, "updated");
 		}
 
 		/*
@@ -347,7 +394,7 @@
 				tags_changes - Tags changes.
 		*/
 
-		function updatePendingChange($changes,$mtm_changes = array(),$tags_changes = array()) {
+		function update($changes, $mtm_changes = array(), $tags_changes = array()) {
 			$this->Changes = $changes;
 			$this->ManyToManyChanges = $mtm_changes;
 			$this->TagsChanges = $tags_changes;

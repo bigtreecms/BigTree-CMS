@@ -156,6 +156,37 @@
 
 			AuditTrail::track("bigtree_module_interfaces",$this->ID,"deleted");
 		}
+		
+		/*
+			Function: deleteEntry
+				Deletes an entry from the form and removes any pending changes, then uncaches it from its views.
+			
+			Parameters:
+				id - The id of the entry.
+		*/
+		
+		function deleteEntry($id) {
+			SQL::delete($this->Table, $id);
+			SQL::delete("bigtree_pending_changes", array("table" => $this->Table, "item_id" => $id));
+			
+			ModuleView::uncacheForAll($id, $this->Table);
+			AuditTrail::track($this->Table, $id, "deleted");
+		}
+
+		/*
+			Function: deletePendingEntry
+				Deletes a pending entry from bigtree_pending_changes and uncaches it.
+
+			Parameters:
+				id - The id of the pending entry.
+		*/
+
+		function deletePendingEntry($id) {
+			SQL::delete("bigtree_pending_changes", $id);
+
+			ModuleView::uncacheForAll("p$id", $this->Table);
+			AuditTrail::track($this->Table, "p$id", "deleted-pending");
+		}
 
 		/*
 			Function: save
