@@ -1,8 +1,9 @@
 <?php
 	namespace BigTree;
 	
-	$find_path = function($nav,$path,$last_link = "") {
-		global $bigtree,$breadcrumb,$find_path;
+	$find_path = function($nav,$path,$last_link = "") use (&$find_path) {
+		global $bigtree,$breadcrumb;
+
 		foreach ($nav as $item) {
 			if ((strpos($path,$item["link"]."/") === 0 && $item["link"] != $last_link) || $path == $item["link"]) {				
 				$breadcrumb[] = array("title" => $item["title"],"link" => $item["link"]);
@@ -10,21 +11,24 @@
 				$bigtree["page"]["title"] = $item["title_override"] ? $item["title_override"] : $bigtree["page"]["title"];
 				$bigtree["page"]["icon"] = $item["icon"] ? $item["icon"] : $bigtree["page"]["icon"];
 				$bigtree["page"]["navigation"] = $item["children"] ? $item["children"] : $bigtree["page"]["navigation"];
+
 				// Get the related dropdown menu
 				if ($item["related"]) {
 					$bigtree["page"]["related"]["title"] = $bigtree["page"]["title"];
 					$bigtree["page"]["related"]["nav"] = $bigtree["page"]["navigation"];
 				}
+
 				if ($item["children"]) {
 					$find_path($item["children"],$path,$item["link"]);
 				}
 			}
 		}
-	}
+	};
 
 	$bigtree["page"] = array("navigation" => array(),"related" => array());
 	$breadcrumb = array();
 	$current_path = implode("/",array_slice($bigtree["path"],1));
+
 	if (!defined("BIGTREE_ACCESS_DENIED")) {
 		$find_path($bigtree["nav_tree"],$current_path);
 	}

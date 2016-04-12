@@ -569,6 +569,11 @@
 		*/
 
 		static function includeFile($file) {
+			// Make this function scope include all global vars
+			foreach ($GLOBALS as $key => $value) {
+				global $$key;
+			}
+
 			$path = static::getIncludePath($file);
 			
 			if (file_exists($path)) {

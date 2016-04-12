@@ -61,13 +61,6 @@
 
 	// CSS
 	if ($bigtree["path"][1] == "css") {
-		// Load utils since it has the CSS3 auto-formatter
-		if (file_exists("../custom/inc/bigtree/utils.php")) {
-			include "../custom/inc/bigtree/utils.php";
-		} else {
-			include "../core/inc/bigtree/utils.php";
-		}
-
 		$css_path = implode("/",array_slice($bigtree["path"],2));
 		if (defined("EXTENSION_ROOT")) {
 			$css_file = EXTENSION_ROOT."css/$css_path";

@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 
+	use BigTree;
+
 	$nav = isset($bigtree["nav_override"]) ? $bigtree["nav_override"] : array(
 		array("link" => "dashboard", "title" => "Dashboard", "access" => 0, "children" => array(
 			array("link" => "", "title" => "Overview", "access" => 0),
