@@ -31,29 +31,29 @@
 		// A little hack to allow fetch to be called both statically and chained
 		function __call($method, $arguments) {
 			if ($method == "fetch") {
-				call_user_func_array(array($this, "_local_fetch"), $arguments);
+				return call_user_func_array(array($this, "_local_fetch"), $arguments);
 			} elseif ($method == "fetchAll") {
-				call_user_func_array(array($this, "_local_fetchAll"), $arguments);
+				return call_user_func_array(array($this, "_local_fetchAll"), $arguments);
 			} elseif ($method == "fetchAllSingle") {
-				call_user_func_array(array($this, "_local_fetchAllSingle"), $arguments);
+				return call_user_func_array(array($this, "_local_fetchAllSingle"), $arguments);
 			} elseif ($method == "fetchSingle") {
-				call_user_func_array(array($this, "_local_fetchSingle"), $arguments);
+				return call_user_func_array(array($this, "_local_fetchSingle"), $arguments);
 			} elseif ($method == "rows") {
-				call_user_func_array(array($this, "_local_rows"), $arguments);
+				return call_user_func_array(array($this, "_local_rows"), $arguments);
 			}
 		}
 
-		function __callStatic($method, $arguments) {
+		static function __callStatic($method, $arguments) {
 			if ($method == "fetch") {
-				call_user_func_array("static::_static_fetch", $arguments);
+				return call_user_func_array("static::_static_fetch", $arguments);
 			} elseif ($method == "fetchAll") {
-				call_user_func_array("static::_static_fetchAll", $arguments);
+				return call_user_func_array("static::_static_fetchAll", $arguments);
 			} elseif ($method == "fetchAllSingle") {
-				call_user_func_array("static::_static_fetchAllSingle", $arguments);
+				return call_user_func_array("static::_static_fetchAllSingle", $arguments);
 			} elseif ($method == "fetchSingle") {
-				call_user_func_array("static::_static_fetchSingle", $arguments);
+				return call_user_func_array("static::_static_fetchSingle", $arguments);
 			} elseif ($method == "rows") {
-				call_user_func_array("static::_static_rows", $arguments);
+				return call_user_func_array("static::_static_rows", $arguments);
 			}
 		}
 
@@ -73,30 +73,30 @@
 				return false;
 			}
 
-			$pointer = fopen($file,"w");
-			fwrite($pointer,"SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO';\n");
-			fwrite($pointer,"SET foreign_key_checks = 0;\n\n");
+			$pointer = fopen($file, "w");
+			fwrite($pointer, "SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO';\n");
+			fwrite($pointer, "SET foreign_key_checks = 0;\n\n");
 
 			$tables = static::fetchAllSingle("SHOW TABLES");
 			foreach ($tables as $table) {
 				// Write the drop / create statements
-				fwrite($pointer,"DROP TABLE IF EXISTS `$table`;\n");
+				fwrite($pointer, "DROP TABLE IF EXISTS `$table`;\n");
 				$definition = static::fetchSingle("SHOW CREATE TABLE `$table`");
 				if (is_array($definition)) {
-					fwrite($pointer, str_replace(array("\n  ", "\n"), "", end($definition)) . ";\n");
+					fwrite($pointer, str_replace(array("\n  ", "\n"), "", end($definition)).";\n");
 				}
 
 				// Get all the table contents, write them out
 				$rows = BigTree::tableContents($table);
 				foreach ($rows as $row) {
-					fwrite($pointer,$row.";\n");
+					fwrite($pointer, $row.";\n");
 				}
 				
 				// Separate it from the next table
-				fwrite($pointer,"\n");
+				fwrite($pointer, "\n");
 			}
 
-			fwrite($pointer,"SET foreign_key_checks = 1;");
+			fwrite($pointer, "SET foreign_key_checks = 1;");
 			fclose($pointer);
 
 			return true;
@@ -114,7 +114,7 @@
 				An array of SQL calls to perform to turn Table A into Table B.
 		*/
 
-		static function compareTables($table_a,$table_b) {
+		static function compareTables($table_a, $table_b) {
 			// Get table A's description
 			$table_a_description = static::describeTable($table_a);
 			$table_a_columns = $table_a_description["columns"];
@@ -128,65 +128,65 @@
 			// Transition columns
 			$last_key = "";
 			foreach ($table_b_columns as $key => $column) {
-			    $action = "";
-			    // If this column doesn't exist in the Table A table, add it.
-			    if (!isset($table_a_columns[$key])) {
-			    	$action = "ADD";
-			    } elseif ($table_a_columns[$key] !== $column) {
-			    	$action = "MODIFY";
-			    }
-			    
-			    if ($action) {
-			    	$mod = "ALTER TABLE `$table_a` $action COLUMN `$key` ".$column["type"];
-			    	if ($column["size"]) {
-			    	    $mod .= "(".$column["size"].")";
-			    	}
+				$action = "";
+				// If this column doesn't exist in the Table A table, add it.
+				if (!isset($table_a_columns[$key])) {
+					$action = "ADD";
+				} elseif ($table_a_columns[$key] !== $column) {
+					$action = "MODIFY";
+				}
 
-			    	if ($column["unsigned"]) {
-			    		$mod .= " UNSIGNED";
-			    	}
-			    	
-			    	if ($column["charset"]) {
-			    		$mod .= " CHARSET ".$column["charset"];
-			    	}
+				if ($action) {
+					$mod = "ALTER TABLE `$table_a` $action COLUMN `$key` ".$column["type"];
+					if ($column["size"]) {
+						$mod .= "(".$column["size"].")";
+					}
 
-			    	if ($column["collate"]) {
-			    		$mod .= " COLLATE ".$column["collate"];
-			    	}
+					if ($column["unsigned"]) {
+						$mod .= " UNSIGNED";
+					}
 
-			    	if (!$column["allow_null"]) {
-			    	    $mod .= " NOT NULL";
-			    	} else {
-			    		$mod .= " NULL";
-			    	}
-			    	
-			    	if (isset($column["default"])) {
-			    	    $d = $column["default"];
-			    	    if ($d == "CURRENT_TIMESTAMP" || $d == "NULL") {
-			    	    	$mod .= " DEFAULT $d";
-			    	    } else {
-			    	    	$mod .= " DEFAULT '".static::escape($d)."'";
-			    	    }
-			    	}
-			    	
-			    	if ($last_key) {
-			    		$mod .= " AFTER `$last_key`";
-			    	} else {
-			    		$mod .= " FIRST";
-			    	}
-			    	
-			    	$queries[] = $mod;
-			    }
-			    
-			    $last_key = $key;
+					if ($column["charset"]) {
+						$mod .= " CHARSET ".$column["charset"];
+					}
+
+					if ($column["collate"]) {
+						$mod .= " COLLATE ".$column["collate"];
+					}
+
+					if (!$column["allow_null"]) {
+						$mod .= " NOT NULL";
+					} else {
+						$mod .= " NULL";
+					}
+
+					if (isset($column["default"])) {
+						$d = $column["default"];
+						if ($d == "CURRENT_TIMESTAMP" || $d == "NULL") {
+							$mod .= " DEFAULT $d";
+						} else {
+							$mod .= " DEFAULT '".static::escape($d)."'";
+						}
+					}
+
+					if ($last_key) {
+						$mod .= " AFTER `$last_key`";
+					} else {
+						$mod .= " FIRST";
+					}
+
+					$queries[] = $mod;
+				}
+
+				$last_key = $key;
 			}
 
 			// Drop columns
 			foreach ($table_a_columns as $key => $column) {
-			    // If this key no longer exists in the new table, we should delete it.
-			    if (!isset($table_b_columns[$key])) {
-			    	$queries[] = "ALTER TABLE `$table_a` DROP COLUMN `$key`";
-			    }	
+				// If this key no longer exists in the new table, we should delete it.
+				if (!isset($table_b_columns[$key])) {
+					$queries[] = "ALTER TABLE `$table_a` DROP COLUMN `$key`";
+				}
 			}
 
 			// Add new indexes
@@ -201,7 +201,7 @@
 						}
 					}
 					$verb = isset($table_a_description["indexes"][$key]) ? "MODIFY" : "ADD";
-					$queries[] = "ALTER TABLE `$table_a` $verb ".($index["unique"] ? "UNIQUE " : "")."KEY `$key` (".implode(", ",$pieces).")";
+					$queries[] = "ALTER TABLE `$table_a` $verb ".($index["unique"] ? "UNIQUE " : "")."KEY `$key` (".implode(", ", $pieces).")";
 				}
 			}
 
@@ -241,7 +241,7 @@
 					foreach ($definition["other_columns"] as $column) {
 						$destination[] = "`$column`";
 					}
-					$query = "ALTER TABLE `$table_a` ADD FOREIGN KEY (".implode(", ",$source).") REFERENCES `".$definition["other_table"]."`(".implode(", ",$destination).")";
+					$query = "ALTER TABLE `$table_a` ADD FOREIGN KEY (".implode(", ", $source).") REFERENCES `".$definition["other_table"]."`(".implode(", ", $destination).")";
 					if ($definition["on_delete"]) {
 						$query .= " ON DELETE ".$definition["on_delete"];
 					}
@@ -255,11 +255,11 @@
 			// Drop existing primary key if it's not the same
 			if ($table_a_description["primary_key"] != $table_b_description["primary_key"]) {
 				$pieces = array();
-				foreach (array_filter((array)$table_b_description["primary_key"]) as $piece) {
+				foreach (array_filter((array) $table_b_description["primary_key"]) as $piece) {
 					$pieces[] = "`$piece`";
 				}
 				$queries[] = "ALTER TABLE `$table_a` DROP PRIMARY KEY";
-				$queries[] = "ALTER TABLE `$table_a` ADD PRIMARY KEY (".implode(",",$pieces).")";
+				$queries[] = "ALTER TABLE `$table_a` ADD PRIMARY KEY (".implode(",", $pieces).")";
 			}
 
 			// Switch engine if different
@@ -285,7 +285,7 @@
 				Sets up the internal connections to the MySQL server(s).
 		*/
 
-		static function connect($property,$type) {
+		static function connect($property, $type) {
 			global $bigtree;
 
 			// Initializing optional params, if they don't exist yet due to older install
@@ -325,26 +325,27 @@
 				true if successful (even if no rows match)
 		*/
 
-		static function delete($table,$id) {
+		static function delete($table, $id) {
 			$values = $where = array();
 
 			// If the ID is an associative array we match based on the given columns
 			if (is_array($id)) {
 				foreach ($id as $column => $value) {
 					$where[] = "`$column` = ?";
-					array_push($values,$value);
+					array_push($values, $value);
 				}
-			// Otherwise default to id
+				// Otherwise default to id
 			} else {
 				$where[] = "`id` = ?";
-				array_push($values,$id);
+				array_push($values, $id);
 			}
 
 			// Add the query and the id parameter into the function parameters
-			array_unshift($values,"DELETE FROM `$table` WHERE ".implode(" AND ",$where));
+			array_unshift($values, "DELETE FROM `$table` WHERE ".implode(" AND ", $where));
 
 			// Call BigTree\SQL::query
 			$response = call_user_func_array("static::query", $values);
+
 			return $response->ActiveQuery ? true : false;
 		}
 
@@ -368,66 +369,66 @@
 			);
 			$options = array();
 			
-			$show_statement = static::fetch("SHOW CREATE TABLE `".str_replace("`","",$table)."`");
+			$show_statement = static::fetch("SHOW CREATE TABLE `".str_replace("`", "", $table)."`");
 			if (!$show_statement) {
 				return false;
 			}
 
-			$lines = explode("\n",$show_statement["Create Table"]);
+			$lines = explode("\n", $show_statement["Create Table"]);
 			// Line 0 is the create line and the last line is the collation and such. Get rid of them.
-			$main_lines = array_slice($lines,1,-1);
+			$main_lines = array_slice($lines, 1, -1);
 			foreach ($main_lines as $line) {
 				$column = array();
-				$line = rtrim(trim($line),",");
-				if (strtoupper(substr($line,0,3)) == "KEY" || strtoupper(substr($line,0,10)) == "UNIQUE KEY") { // Keys
-					if (strtoupper(substr($line,0,10)) == "UNIQUE KEY") {
-						$line = substr($line,12); // Take away "KEY `"
+				$line = rtrim(trim($line), ",");
+				if (strtoupper(substr($line, 0, 3)) == "KEY" || strtoupper(substr($line, 0, 10)) == "UNIQUE KEY") { // Keys
+					if (strtoupper(substr($line, 0, 10)) == "UNIQUE KEY") {
+						$line = substr($line, 12); // Take away "KEY `"
 						$unique = true;
 					} else {
-						$line = substr($line,5); // Take away "KEY `"
+						$line = substr($line, 5); // Take away "KEY `"
 						$unique = false;
 					}
 					// Get the key's name.
 					$key_name = static::nextColumnDefinition($line);
 					// Get the key's content
-					$line = substr($line,strlen($key_name) + substr_count($key_name,"`") + 4); // Skip ` (`
-					$line = substr(rtrim($line,","),0,-1); // Remove trailing , and )
+					$line = substr($line, strlen($key_name) + substr_count($key_name, "`") + 4); // Skip ` (`
+					$line = substr(rtrim($line, ","), 0, -1); // Remove trailing , and )
 					$key_parts = array();
 					$part = true;
 					while ($line && $part) {
 						$part = static::nextColumnDefinition($line);
 						$size = false;
 						// See if there's a size definition, include it
-						if (substr($line,strlen($part) + 1,1) == "(") {
-							$line = substr($line,strlen($part) + 1);
-							$size = substr($line,1,strpos($line,")") - 1);
-							$line = substr($line,strlen($size) + 4);
+						if (substr($line, strlen($part) + 1, 1) == "(") {
+							$line = substr($line, strlen($part) + 1);
+							$size = substr($line, 1, strpos($line, ")") - 1);
+							$line = substr($line, strlen($size) + 4);
 						} else {
-							$line = substr($line,strlen($part) + substr_count($part,"`") + 3);
+							$line = substr($line, strlen($part) + substr_count($part, "`") + 3);
 						}
 						if ($part) {
-							$key_parts[] = array("column" => $part,"length" => $size);
+							$key_parts[] = array("column" => $part, "length" => $size);
 						}
 					}
-					$result["indexes"][$key_name] = array("unique" => $unique,"columns" => $key_parts);
-				} elseif (strtoupper(substr($line,0,7)) == "PRIMARY") { // Primary Keys
-					$line = substr($line,14); // Take away PRIMARY KEY (`
+					$result["indexes"][$key_name] = array("unique" => $unique, "columns" => $key_parts);
+				} elseif (strtoupper(substr($line, 0, 7)) == "PRIMARY") { // Primary Keys
+					$line = substr($line, 14); // Take away PRIMARY KEY (`
 					$key_parts = array();
 					$part = true;
 					while ($line && $part) {
 						$part = static::nextColumnDefinition($line);
-						$line = substr($line,strlen($part) + substr_count($part,"`") + 3);
+						$line = substr($line, strlen($part) + substr_count($part, "`") + 3);
 						if ($part) {
-							if (strpos($part,"KEY_BLOCK_SIZE=") === false) {
+							if (strpos($part, "KEY_BLOCK_SIZE=") === false) {
 								$key_parts[] = $part;
 							}
 						}
 					}
 					$result["primary_key"] = $key_parts;
-				} elseif (strtoupper(substr($line,0,10)) == "CONSTRAINT") { // Foreign Keys
-					$line = substr($line,12); // Remove CONSTRAINT `
+				} elseif (strtoupper(substr($line, 0, 10)) == "CONSTRAINT") { // Foreign Keys
+					$line = substr($line, 12); // Remove CONSTRAINT `
 					$key_name = static::nextColumnDefinition($line);
-					$line = substr($line,strlen($key_name) + substr_count($key_name,"`") + 16); // Remove ` FOREIGN KEY (`
+					$line = substr($line, strlen($key_name) + substr_count($key_name, "`") + 16); // Remove ` FOREIGN KEY (`
 					
 					// Get local reference columns
 					$local_columns = array();
@@ -435,19 +436,19 @@
 					$end = false;
 					while (!$end && $part) {
 						$part = static::nextColumnDefinition($line);
-						$line = substr($line,strlen($part) + 1); // Take off the trailing `
-						if (substr($line,0,1) == ")") {
+						$line = substr($line, strlen($part) + 1); // Take off the trailing `
+						if (substr($line, 0, 1) == ")") {
 							$end = true;
 						} else {
-							$line = substr($line,2); // Skip the ,` 
+							$line = substr($line, 2); // Skip the ,`
 						}
 						$local_columns[] = $part;
 					}
 
 					// Get other table name
-					$line = substr($line,14); // Skip ) REFERENCES `
+					$line = substr($line, 14); // Skip ) REFERENCES `
 					$other_table = static::nextColumnDefinition($line);
-					$line = substr($line,strlen($other_table) + substr_count($other_table,"`") + 4); // Remove ` (`
+					$line = substr($line, strlen($other_table) + substr_count($other_table, "`") + 4); // Remove ` (`
 
 					// Get other table columns
 					$other_columns = array();
@@ -455,22 +456,22 @@
 					$end = false;
 					while (!$end && $part) {
 						$part = static::nextColumnDefinition($line);
-						$line = substr($line,strlen($part) + 1); // Take off the trailing `
-						if (substr($line,0,1) == ")") {
+						$line = substr($line, strlen($part) + 1); // Take off the trailing `
+						if (substr($line, 0, 1) == ")") {
 							$end = true;
 						} else {
-							$line = substr($line,2); // Skip the ,` 
+							$line = substr($line, 2); // Skip the ,`
 						}
 						$other_columns[] = $part;
 					}
 
-					$line = substr($line,2); // Remove ) 
+					$line = substr($line, 2); // Remove )
 					
 					// Setup our keys
 					$result["foreign_keys"][$key_name] = array("local_columns" => $local_columns, "other_table" => $other_table, "other_columns" => $other_columns);
 
 					// Figure out all the on delete, on update stuff
-					$pieces = explode(" ",$line);
+					$pieces = explode(" ", $line);
 					$on_hit = false;
 					$current_key = "";
 					$current_val = "";
@@ -492,15 +493,15 @@
 					if ($current_key) {
 						$result["foreign_keys"][$key_name][$current_key] = $current_val;
 					}
-				} elseif (substr($line,0,1) == "`") { // Column Definition
-					$line = substr($line,1); // Get rid of the first `
+				} elseif (substr($line, 0, 1) == "`") { // Column Definition
+					$line = substr($line, 1); // Get rid of the first `
 					$key = static::nextColumnDefinition($line); // Get the column name.
-					$line = substr($line,strlen($key) + substr_count($key,"`") + 2); // Take away the key from the line.
+					$line = substr($line, strlen($key) + substr_count($key, "`") + 2); // Take away the key from the line.
 					
 					$size = $current_option = "";
 					// We need to figure out if the next part has a size definition
-					$parts = explode(" ",$line);
-					if (strpos($parts[0],"(") !== false) { // Yes, there's a size definition
+					$parts = explode(" ", $line);
+					if (strpos($parts[0], "(") !== false) { // Yes, there's a size definition
 						$type = "";
 						// We're going to walk the string finding out the definition.
 						$in_quotes = false;
@@ -509,7 +510,7 @@
 						$x = 0;
 						$options = array();
 						while (!$finished_size) {
-							$c = substr($line,$x,1);
+							$c = substr($line, $x, 1);
 							if (!$finished_type) { // If we haven't finished the type, keep working on it.
 								if ($c == "(") { // If it's a (, we're starting the size definition
 									$finished_type = true;
@@ -525,7 +526,7 @@
 											$current_option = "";
 											$in_quotes = true;
 										} else {
-											if (substr($line,$x + 1,1) == "'") { // If there's a second ' after this one, it's escaped.
+											if (substr($line, $x + 1, 1) == "'") { // If there's a second ' after this one, it's escaped.
 												$current_option .= "'";
 												$x++;
 											} else { // We closed an option, add it to the list.
@@ -544,10 +545,10 @@
 							}
 							$x++;
 						}
-						$line = substr($line,$x);
+						$line = substr($line, $x);
 					} else { // No size definition
 						$type = $parts[0];
-						$line = substr($line,strlen($type) + 1);
+						$line = substr($line, strlen($type) + 1);
 					}
 					
 					$column["name"] = $key;
@@ -559,7 +560,7 @@
 						$column["options"] = $options;
 					}
 					$column["allow_null"] = true;
-					$extras = explode(" ",$line);
+					$extras = explode(" ", $line);
 					$extras_count = count($extras);
 					for ($x = 0; $x < $extras_count; $x++) {
 						$part = strtoupper($extras[$x]);
@@ -572,15 +573,15 @@
 						} elseif ($part == "DEFAULT") {
 							$default = "";
 							$x++;
-							if (substr($extras[$x],0,1) == "'") {
-								while (substr($default,-1,1) != "'") {
+							if (substr($extras[$x], 0, 1) == "'") {
+								while (substr($default, -1, 1) != "'") {
 									$default .= " ".$extras[$x];
 									$x++;
 								}
 							} else {
 								$default = $extras[$x];
 							}
-							$column["default"] = trim(trim($default),"'");
+							$column["default"] = trim(trim($default), "'");
 						} elseif ($part == "COLLATE") {
 							$column["collate"] = $extras[$x + 1];
 							$x++;
@@ -598,10 +599,10 @@
 				}
 			}
 			
-			$last_line = substr(end($lines),2);
-			$parts = explode(" ",$last_line);
+			$last_line = substr(end($lines), 2);
+			$parts = explode(" ", $last_line);
 			foreach ($parts as $part) {
-				list($key,$value) = explode("=",$part);
+				list($key, $value) = explode("=", $part);
 				if ($key && $value) {
 					$result[strtolower($key)] = $value;
 				}
@@ -625,6 +626,7 @@
 			
 			if (!$table_description) {
 				echo '<option>ERROR: Table Missing</option>';
+
 				return;
 			}
 
@@ -667,7 +669,7 @@
 			$tables = static::fetchAllSingle("SHOW TABLES");
 
 			foreach ($tables as $table_name) {
-				if (isset($bigtree["config"]["show_all_tables_in_dropdowns"]) || ((substr($table_name,0,8) !== "bigtree_")) || $table_name == $default) {
+				if (isset($bigtree["config"]["show_all_tables_in_dropdowns"]) || ((substr($table_name, 0, 8) !== "bigtree_")) || $table_name == $default) {
 					if ($default == $table_name) {
 						echo '<option selected="selected">'.$table_name.'</option>';
 					} else {
@@ -695,7 +697,7 @@
 			// Figure out which columns are binary and need to be pulled as hex
 			$description = static::describeTable($table);
 			$column_query = array();
-			$binary_columns = array();			
+			$binary_columns = array();
 			foreach ($description["columns"] as $key => $column) {
 				if ($column["type"] == "tinyblob" || $column["type"] == "blob" || $column["type"] == "mediumblob" || $column["type"] == "longblob" || $column["type"] == "binary" || $column["type"] == "varbinary") {
 					$column_query[] = "HEX(`$key`) AS `$key`";
@@ -706,7 +708,7 @@
 			}
 
 			// Get the rows out of the table
-			$query = static::query("SELECT ".implode(", ",$column_query)." FROM `$table`");
+			$query = static::query("SELECT ".implode(", ", $column_query)." FROM `$table`");
 			while ($row = $query->fetch()) {
 				$keys = $vals = array();
 
@@ -715,14 +717,14 @@
 					if ($val === null) {
 						$vals[] = "NULL";
 					} else {
-						if (in_array($key,$binary_columns)) {
-							$vals[] = "X'".str_replace("\n","\\n",static::escape($val))."'";
+						if (in_array($key, $binary_columns)) {
+							$vals[] = "X'".str_replace("\n", "\\n", static::escape($val))."'";
 						} else {
-							$vals[] = "'".str_replace("\n","\\n",static::escape($val))."'";
+							$vals[] = "'".str_replace("\n", "\\n", static::escape($val))."'";
 						}
 					}
 				}
-				$inserts[] = "INSERT INTO `$table` (".implode(",",$keys).") VALUES (".implode(",",$vals).")";
+				$inserts[] = "INSERT INTO `$table` (".implode(",", $keys).") VALUES (".implode(",", $vals).")";
 			}
 
 			return $inserts;
@@ -745,7 +747,8 @@
 				$string = JSON::encode($string);
 			}
 			
-			$connection = (static::$Connection && static::$Connection !== "disconnected") ? static::$Connection : static::connect("Connection","db");
+			$connection = (static::$Connection && static::$Connection !== "disconnected") ? static::$Connection : static::connect("Connection", "db");
+
 			return $connection->real_escape_string($string);
 		}
 
@@ -768,14 +771,14 @@
 				foreach ($values as $key => $value) {
 					$where[] = "`$key` = ?";
 				}
-			// Allow for just passing an ID
+				// Allow for just passing an ID
 			} else {
 				$where = array("`id` = ?");
 				$values = array($values);
 			}
 
 			// Push the query onto the array stack so it's the first query parameter
-			array_unshift($values,"SELECT 1 FROM `$table` WHERE ".implode(" AND ",$where));
+			array_unshift($values, "SELECT 1 FROM `$table` WHERE ".implode(" AND ", $where));
 
 			// Execute query, return a single result
 			return call_user_func_array("static::fetchSingle", $values) ? true : false;
@@ -799,12 +802,14 @@
 			$args = func_get_args();
 			if (count($args)) {
 				$query = call_user_func_array(array($this, "query"), $args);
+
 				return $query->fetch();
 			}
 
 			// Chained call
 			if (!is_object($this->ActiveQuery)) {
 				trigger_error("SQL::fetch called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_WARNING);
+
 				return false;
 			} else {
 				return $this->ActiveQuery->fetch_assoc();
@@ -814,6 +819,7 @@
 		static function _static_fetch() {
 			// Allow this to be called without calling query first
 			$query = call_user_func_array("static::query", func_get_args());
+
 			return $query->fetch();
 		}
 
@@ -835,24 +841,29 @@
 			$args = func_get_args();
 			if (count($args)) {
 				$query = call_user_func_array(array($this, "query"), $args);
+
 				return $query->fetchAll();
 			}
 
 			// Chained call
 			if (!is_object($this->ActiveQuery)) {
 				trigger_error("SQL::fetchAll called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_WARNING);
+
 				return false;
 			} else {
 				$results = array();
+
 				while ($result = $this->ActiveQuery->fetch_assoc()) {
 					$results[] = $result;
 				}
+
 				return $results;
 			}
 		}
 
 		static function _static_fetchAll() {
 			$query = call_user_func_array("static::query", func_get_args());
+
 			return $query->fetchAll();
 		}
 
@@ -876,24 +887,29 @@
 			$args = func_get_args();
 			if (count($args)) {
 				$query = call_user_func_array(array($this, "query"), $args);
+
 				return $query->fetchAllSingle();
 			}
 
 			// Chained call
 			if (!is_object($this->ActiveQuery)) {
 				trigger_error("SQL::fetchAllSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_WARNING);
+
 				return false;
 			} else {
 				$results = array();
+
 				while ($result = $this->ActiveQuery->fetch_assoc()) {
 					$results[] = current($result);
 				}
+
 				return $results;
 			}
 		}
 
-		static function __fetchAllSingle() {
+		static function _static_fetchAllSingle() {
 			$query = call_user_func_array("static::query", func_get_args());
+
 			return $query->fetchAllSingle();
 		}
 
@@ -917,21 +933,25 @@
 			$args = func_get_args();
 			if (count($args)) {
 				$query = call_user_func_array(array($this, "query"), $args);
+
 				return $query->fetchSingle();
 			}
 
 			// Chained call
 			if (!is_object($this->ActiveQuery)) {
 				trigger_error("SQL::fetchSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_WARNING);
+
 				return false;
 			} else {
 				$result = $this->ActiveQuery->fetch_assoc();
+
 				return is_array($result) ? current($result) : false;
 			}
 		}
 
 		static function _static_fetchSingle() {
 			$query = call_user_func_array("static::query", func_get_args());
+
 			return $query->fetchSingle();
 		}
 
@@ -950,6 +970,7 @@
 		static function insert($table, $values) {
 			if (!is_array($values) || !count($values)) {
 				trigger_error("SQL::inserts expects a non-empty array as its second parameter");
+
 				return false;
 			}
 
@@ -967,8 +988,9 @@
 				}
 			}
 			
-			$query_response = static::query("INSERT INTO `$table` (".implode(",",$columns).") VALUES (".implode(",",$vals).")");
+			$query_response = static::query("INSERT INTO `$table` (".implode(",", $columns).") VALUES (".implode(",", $vals).")");
 			$id = $query_response->insertID();
+
 			return $id ? $id : $query_response->ActiveQuery;
 		}
 
@@ -1005,8 +1027,8 @@
 			$found_key = false;
 			// Apparently we can have a backtick ` in a column name... ugh.
 			while (!$found_key && $i < strlen($string)) {
-				$char = substr($string,$i,1);
-				$second_char = substr($string,$i + 1,1);
+				$char = substr($string, $i, 1);
+				$second_char = substr($string, $i + 1, 1);
 				if ($char != "`" || $second_char == "`") {
 					$key_name .= $char;
 					if ($char == "`") { // Skip the next one, this was just an escape character.
@@ -1017,6 +1039,7 @@
 				}
 				$i++;
 			}
+
 			return $key_name;
 		}
 
@@ -1131,14 +1154,14 @@
 			}
 
 			// Setup our read connection if it disconnected for some reason
-			$connection = (static::$Connection && static::$Connection !== "disconnected") ? static::$Connection : static::connect("Connection","db");
+			$connection = (static::$Connection && static::$Connection !== "disconnected") ? static::$Connection : static::connect("Connection", "db");
 
 			// If we have a separate write host, let's find out if we're writing and use it if so
 			if (isset($bigtree["config"]["db_write"]) && $bigtree["config"]["db_write"]["host"]) {
-				$commands = explode(" ",$query);
+				$commands = explode(" ", $query);
 				$fc = strtolower($commands[0]);
 				if ($fc == "create" || $fc == "drop" || $fc == "insert" || $fc == "update" || $fc == "set" || $fc == "grant" || $fc == "flush" || $fc == "delete" || $fc == "alter" || $fc == "load" || $fc == "optimize" || $fc == "repair" || $fc == "replace" || $fc == "lock" || $fc == "restore" || $fc == "rollback" || $fc == "revoke" || $fc == "truncate" || $fc == "unlock") {
-					$connection = (static::$WriteConnection && static::$WriteConnection !== "disconnected") ? static::$WriteConnection : static::connect("WriteConnection","db_write");
+					$connection = (static::$WriteConnection && static::$WriteConnection !== "disconnected") ? static::$WriteConnection : static::connect("WriteConnection", "db_write");
 				}
 			}
 
@@ -1148,14 +1171,14 @@
 				$query_response = $connection->query($query);
 			} else {
 				// Check argument and ? count to trigger warnings
-				$wildcard_count = substr_count($query,"?");
+				$wildcard_count = substr_count($query, "?");
 				if ($wildcard_count != (count($args) - 1)) {
 					throw new \Exception("SQL::query error - wildcard and argument count do not match ($wildcard_count '?' found, ".(count($args) - 1)." arguments provided)");
 				}
 
 				// Do the replacements and escapes
 				$x = 1;
-				while (($position = strpos($query,"?")) !== false) {
+				while (($position = strpos($query, "?")) !== false) {
 					// Allow for these reserved keywords to be let through unescaped
 					if (is_null($args[$x])) {
 						$replacement = "NULL";
@@ -1165,7 +1188,7 @@
 						$replacement = "'".static::escape($args[$x])."'";
 					}
 
-					$query = substr($query,0,$position).$replacement.substr($query,$position + 1);
+					$query = substr($query, 0, $position).$replacement.substr($query, $position + 1);
 					$x++;
 				}
 
@@ -1216,6 +1239,7 @@
 			if ($rows) {
 				return true;
 			}
+
 			return false;
 		}
 
@@ -1247,7 +1271,7 @@
 				if (is_array($id)) {
 					list($id_column) = array_keys($id);
 					$id_value = current($id);
-				// Allow for passing "value"
+					// Allow for passing "value"
 				} else {
 					$id_column = "id";
 					$id_value = $id;
@@ -1260,14 +1284,14 @@
 					$query = "SELECT COUNT(*) FROM `$table` WHERE `$field` = ? AND `$id_column` != ?";
 				}
 
-				while (static::fetchSingle($query,$value,$id_value)) {
+				while (static::fetchSingle($query, $value, $id_value)) {
 					$count++;
 					$value = $original_value."-$count";
 				}
 
-			// Checking the whole table
+				// Checking the whole table
 			} else {
-				while (static::fetchSingle("SELECT COUNT(*) FROM `$table` WHERE `$field` = ?",$value)) {
+				while (static::fetchSingle("SELECT COUNT(*) FROM `$table` WHERE `$field` = ?", $value)) {
 					$count++;
 					$value = $original_value."-$count";
 				}
@@ -1292,6 +1316,7 @@
 		static function update($table, $id, $values) {
 			if (!is_array($values) || !count($values)) {
 				trigger_error("SQL::update expects a non-empty array as its third parameter");
+
 				return false;
 			}
 
@@ -1306,19 +1331,20 @@
 			if (is_array($id)) {
 				foreach ($id as $column => $value) {
 					$where[] = "`$column` = ?";
-					array_push($values,$value);
+					array_push($values, $value);
 				}
-			// Otherwise default to id
+				// Otherwise default to id
 			} else {
 				$where[] = "`id` = ?";
-				array_push($values,$id);
+				array_push($values, $id);
 			}
 
 			// Add the query and the id parameter into the function parameters
-			array_unshift($values,"UPDATE `$table` SET ".implode(", ",$set)." WHERE ".implode(" AND ",$where));
+			array_unshift($values, "UPDATE `$table` SET ".implode(", ", $set)." WHERE ".implode(" AND ", $where));
 
 			// Call BigTree\SQL::query
 			$response = call_user_func_array("static::query", $values);
+
 			return $response->ActiveQuery ? true : false;
 		}
 

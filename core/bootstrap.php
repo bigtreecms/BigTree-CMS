@@ -36,12 +36,12 @@
 	}
 
 	// Include required utility functions
-	if (file_exists(SERVER_ROOT."custom/inc/bigtree/utils.php")) {
-		include SERVER_ROOT."custom/inc/bigtree/utils.php";
+	if (file_exists(SERVER_ROOT."custom/inc/bigtree/classes/Router.php")) {
+		include SERVER_ROOT."custom/inc/bigtree/classes/Router.php";
 	} else {
-		include SERVER_ROOT."core/inc/bigtree/utils.php";
+		include SERVER_ROOT."core/inc/bigtree/classes/Router.php";
 	}
-	
+
 	// Connect to MySQL and include the shorterner functions
 	BigTree\Router::includeFile("inc/bigtree/classes/SQL.php");
 	BigTree\Router::includeFile("inc/bigtree/compat/sql.php");
@@ -51,7 +51,8 @@
 	$bigtree["mysql_write_connection"] = "disconnected";
 	
 	// Load Up BigTree!
-	BigTree\Router::includeFile("inc/bigtree/cms.php");
+	BigTree\Router::includeFile("inc/bigtree/compat/cms.php");
+
 	if (defined("BIGTREE_CUSTOM_BASE_CLASS") && BIGTREE_CUSTOM_BASE_CLASS) {
 		include SITE_ROOT.BIGTREE_CUSTOM_BASE_CLASS_PATH;
 		eval("class BigTreeCMS extends ".BIGTREE_CUSTOM_BASE_CLASS." {}");
@@ -62,7 +63,7 @@
 	// Initialize DB instance
 	$db = new BigTree\SQL;
 
-	BigTree\Router::includeFile("inc/bigtree/admin.php");
+	BigTree\Router::includeFile("inc/bigtree/compat/admin.php");
 	// Setup admin class if it's custom, but don't instantiate the $admin var.
 	if (defined("BIGTREE_CUSTOM_ADMIN_CLASS") && BIGTREE_CUSTOM_ADMIN_CLASS) {
 		include_once SITE_ROOT.BIGTREE_CUSTOM_ADMIN_CLASS_PATH;

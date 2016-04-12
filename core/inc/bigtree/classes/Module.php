@@ -113,7 +113,8 @@
 				);
 
 				// Get all modules from the db
-				$modules = SQL::fetchAll("SELECT route,class FROM bigtree_modules");
+				$modules = SQL::fetchAll("SELECT route, class FROM bigtree_modules");
+				
 				foreach ($modules as $module) {
 					$class = $module["class"];
 					$route = $module["route"];

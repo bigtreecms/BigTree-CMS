@@ -18,13 +18,6 @@
 		function __construct() {
 			global $bigtree;
 
-			// Load the router class
-			if (file_exists(SERVER_ROOT."custom/inc/classes/Router.php")) {
-				include SERVER_ROOT."custom/inc/classes/Router.php";
-			} else {
-				include SERVER_ROOT."core/inc/classes/Router.php";
-			}
-
 			// Turn on debugging if we're in debug mode.
 			if ($bigtree["config"]["debug"] === "full") {
 				error_reporting(E_ALL);
@@ -46,32 +39,36 @@
 		
 			// Lazy loading of modules
 			$bigtree["class_list"] = array_merge(BigTree\Module::$ClassCache,array(
-				"BigTreeAdminBase" => "inc/bigtree/admin.php",
-				"BigTreeAutoModule" => "inc/bigtree/auto-modules.php",
+				"BigTree" => "inc/bigtree/compat/utils.php",
+				"BigTreeAdminBase" => "inc/bigtree/compat/admin.php",
+				"BigTreeAutoModule" => "inc/bigtree/compat/auto-modules.php",
 				"BigTreeModule" => "inc/bigtree/modules.php",
-				"BigTreeFTP" => "inc/bigtree/ftp.php",
-				"BigTreeSFTP" => "inc/bigtree/sftp.php",
-				"BigTreeUpdater" => "inc/bigtree/Updater.php",
-				"BigTreeGoogleAnalyticsAPI" => "inc/bigtree/apis/google-analytics.php",
-				"BigTreePaymentGateway" => "inc/bigtree/apis/payment-gateway.php",
-				"BigTreeUploadService" => "inc/bigtree/apis/storage.php", // Backwards compat
-				"BigTreeStorage" => "inc/bigtree/apis/storage.php",
-				"BigTreeCloudStorage" => "inc/bigtree/apis/cloud-storage.php",
-				"BigTreeGeocoding" => "inc/bigtree/apis/geocoding.php",
-				"BigTreeEmailService" => "inc/bigtree/apis/email-service.php",
-				"BigTreeTwitterAPI" => "inc/bigtree/apis/twitter.php",
-				"BigTreeInstagramAPI" => "inc/bigtree/apis/instagram.php",
-				"BigTreeGooglePlusAPI" => "inc/bigtree/apis/google-plus.php",
-				"BigTreeYouTubeAPI" => "inc/bigtree/apis/youtube.php",
-				"BigTreeFlickrAPI" => "inc/bigtree/apis/flickr.php",
-				"BigTreeSalesforceAPI" => "inc/bigtree/apis/salesforce.php",
-				"BigTreeDisqusAPI" => "inc/bigtree/apis/disqus.php",
-				"BigTreeYahooBOSSAPI" => "inc/bigtree/apis/yahoo-boss.php",
-				"BigTreeFacebookAPI" => "inc/bigtree/apis/facebook.php",
+				"BigTreeFTP" => "inc/bigtree/compat/ftp.php",
+				"BigTreeSFTP" => "inc/bigtree/compat/sftp.php",
+				"BigTreeUpdater" => "inc/bigtree/compat/updater.php",
+				"BigTreeGoogleAnalyticsAPI" => "inc/bigtree/compat/google-analytics.php",
+				"BigTreePaymentGateway" => "inc/bigtree/compat/payment-gateway.php",
+				"BigTreeUploadService" => "inc/bigtree/compat/storage.php", // Backwards compat
+				"BigTreeStorage" => "inc/bigtree/compat/storage.php",
+				"BigTreeCloudStorage" => "inc/bigtree/compat/cloud-storage.php",
+				"BigTreeGeocoding" => "inc/bigtree/compat/geocoding.php",
+				"BigTreeEmailService" => "inc/bigtree/compat/email-service.php",
+				"BigTreeTwitterAPI" => "inc/bigtree/compat/twitter.php",
+				"BigTreeInstagramAPI" => "inc/bigtree/compat/instagram.php",
+				"BigTreeGooglePlusAPI" => "inc/bigtree/compat/google-plus.php",
+				"BigTreeYouTubeAPI" => "inc/bigtree/compat/youtube.php",
+				"BigTreeFlickrAPI" => "inc/bigtree/compat/flickr.php",
+				"BigTreeSalesforceAPI" => "inc/bigtree/compat/salesforce.php",
+				"BigTreeDisqusAPI" => "inc/bigtree/compat/disqus.php",
+				"BigTreeFacebookAPI" => "inc/bigtree/compat/facebook.php",
 				"S3" => "inc/lib/amazon-s3.php",
 				"CF_Authentication" => "inc/lib/rackspace/cloud.php",
-				"PHPMailer" => "inc/lib/PHPMailer/class.phpmailer.php",
-				"PasswordHash" => "inc/lib/PasswordHash.php"
+				"CSSMin" => "inc/lib/CSSMin.php",
+				"PHPMailer" => "inc/lib/phpmailer.php",
+				"JShrink" => "inc/lib/JShrink.php",
+				"PasswordHash" => "inc/lib/PasswordHash.php",
+				"TextStatistics" => "inc/lib/text-statistics.php",
+				"lessc" => "inc/lib/less-compiler.php"
 			));
 
 			// Load everything in the custom extras folder.
