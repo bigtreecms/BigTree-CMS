@@ -28,18 +28,18 @@
 				"alphanum" => "ABCDEFGHJKLMNPQRTUVWXY0123456789",
 				"hexidec" => "0123456789abcdef"
 			);
-		
+
 			$character_set = $types[$type];
-		
+
 			// Seed the random number generator
 			list($usec, $sec) = explode(' ', microtime());
 			mt_srand((float) $sec + ((float) $usec * 100000));
-		
+
 			// Generate
 			$string = "";
 			$character_set_length = strlen($character_set) - 1;
 			for ($i = 0; $i < $length; $i++) {
-				$string .= $character_set[mt_rand(0,$character_set_length)];
+				$string .= $character_set[mt_rand(0, $character_set_length)];
 			}
 
 			return $string;
@@ -83,37 +83,37 @@
 				return $string;
 			}
 
-			if (strpos($string," ") === false && strlen(html_entity_decode(strip_tags($string))) > $length) {
-				return substr($string,0,$length)."&hellip;";
+			if (strpos($string, " ") === false && strlen(html_entity_decode(strip_tags($string))) > $length) {
+				return substr($string, 0, $length)."&hellip;";
 			}
 
 			$x = 0;
 			$z = 0;
 
 			while ($z < $length && $x <= strlen($string)) {
-				$char = substr($string,$x,1);
-				$ns .= $char;		// Add the character to the new string.
+				$char = substr($string, $x, 1);
+				$ns .= $char;        // Add the character to the new string.
 				
 				if ($char == "<") {
 					// Get the full tag -- but compensate for bad html to prevent endless loops.
 					$tag = "";
 
-					while ($char != ">"	 && $char !== false) {
+					while ($char != ">" && $char !== false) {
 						$x++;
-						$char = substr($string,$x,1);
+						$char = substr($string, $x, 1);
 						$tag .= $char;
 					}
 
 					$ns .= $tag;
-		
-					$tagexp = explode(" ",trim($tag));
-					$tagname = str_replace(">","",$tagexp[0]);
-		
+
+					$tagexp = explode(" ", trim($tag));
+					$tagname = str_replace(">", "", $tagexp[0]);
+
 					// If it's a self contained <br /> tag or similar, don't add it to open tags.
 					if ($tagexp[1] != "/" && $tagexp[1] != "/>") {
 						// See if we're opening or closing a tag.
-						if (substr($tagname,0,1) == "/") {
-							$tagname = str_replace("/","",$tagname);
+						if (substr($tagname, 0, 1) == "/") {
+							$tagname = str_replace("/", "", $tagname);
 							
 							// We're closing the tag. Kill the most recently opened aspect of the tag.
 							$done = false;
@@ -136,7 +136,7 @@
 					
 					while ($char != ";" && $char != " " && $char != "<") {
 						$x++;
-						$char = substr($string,$x,1);
+						$char = substr($string, $x, 1);
 						$entity .= $char;
 					}
 
@@ -148,7 +148,7 @@
 						$ns .= $entity;
 					} else {
 						$z += strlen($entity);
-						$ns .= substr($entity,0,-1);
+						$ns .= substr($entity, 0, -1);
 						$x -= 2;
 					}
 				} else {
@@ -158,13 +158,13 @@
 				$x++;
 			}
 
-			while ($x < strlen($string) && !in_array(substr($string,$x,1),array(" ","!",".",",","<","&"))) {
-				$ns .= substr($string,$x,1);
+			while ($x < strlen($string) && !in_array(substr($string, $x, 1), array(" ", "!", ".", ",", "<", "&"))) {
+				$ns .= substr($string, $x, 1);
 				$x++;
 			}
 
 			if (strlen(strip_tags($ns)) < strlen(strip_tags($string))) {
-				$ns.= "&hellip;";
+				$ns .= "&hellip;";
 			}
 
 			$opentags = array_reverse($opentags);
@@ -173,6 +173,32 @@
 			}
 
 			return $ns;
+		}
+
+		/*
+			Function: versionToDecimal
+				Returns a decimal number of a BigTree version for numeric comparisons.
+
+			Parameters:
+				version - BigTree version number (i.e. 4.2.0)
+
+			Returns:
+				A number
+		*/
+
+		static function versionToDecimal($version) {
+			$pieces = explode(".", $version);
+			$number = $pieces[0] * 10000;
+
+			if (isset($pieces[1])) {
+				$number += $pieces[1] * 100;
+			}
+
+			if (isset($pieces[2])) {
+				$number += $pieces[2];
+			}
+
+			return $number;
 		}
 
 	}

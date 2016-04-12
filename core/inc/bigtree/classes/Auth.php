@@ -104,6 +104,48 @@
 		}
 
 		/*
+			Function: initSecurity
+				Sets up security environment variables and runs white/blacklists for IP checks.
+		*/
+
+		static function initSecurity() {
+			global $bigtree;
+
+			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
+			$bigtree["security-policy"] = $policy = Setting::value("bigtree-internal-security-policy");
+
+			// Check banned IPs list for the user's IP
+			if (!empty($policy["banned_ips"])) {
+				$banned = explode("\n",$policy["banned_ips"]);
+				foreach ($banned as $address) {
+					if (ip2long(trim($address)) == $ip) {
+						$bigtree["layout"] = "login";
+						static::stop(file_get_contents(Router::getIncludePath("admin/pages/ip-restriction.php")));
+					}
+				}
+			}
+
+			// Check allowed IP ranges list for user's IP
+			if (!empty($policy["allowed_ips"])) {
+				$allowed = false;
+				// Go through the list and see if our IP address is allowed
+				$list = explode("\n",$policy["allowed_ips"]);
+				foreach ($list as $item) {
+					list($begin,$end) = explode(",",$item);
+					$begin = ip2long(trim($begin));
+					$end = ip2long(trim($end));
+					if ($begin <= $ip && $end >= $ip) {
+						$allowed = true;
+					}
+				}
+				if (!$allowed) {
+					$bigtree["layout"] = "login";
+					static::stop(file_get_contents(Router::getIncludePath("admin/pages/ip-restriction.php")));
+				}
+			}
+		}
+
+		/*
 			Function: login
 				Attempts to log a user into to the CMS.
 

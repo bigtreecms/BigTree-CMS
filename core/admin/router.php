@@ -1,4 +1,5 @@
 <?php
+	use BigTree\Auth;
 	use BigTree\Router;
 	
 	// Set a definition to check for being in the admin
@@ -223,7 +224,7 @@
 	$bigtree["subnav_extras"] = array();
 
 	// Setup security policy
-	$admin->initSecurity();
+	Auth::initSecurity();
 
 	// If we're not logged in and we're not trying to login or access an embedded form, redirect to the login page.
 	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {

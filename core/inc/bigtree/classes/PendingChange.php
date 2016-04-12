@@ -358,6 +358,15 @@
 		*/
 
 		function save() {
+			global $admin;
+
+			// Get the user creating the change
+			if (get_class($admin) == "BigTreeAdmin" && $admin->ID) {
+				$user = $admin->ID;
+			} else {
+				$user = null;
+			}
+
 			// If this is an existing entry's changes, only keep what's different
 			if ($this->ItemID !== false) {
 				$original = SQL::fetch("SELECT * FROM `".$this->Table."` WHERE id = ?", $this->ItemID);
@@ -378,7 +387,7 @@
 				"publish_hook" => $this->PublishHook ?: null,
 				"tags_changes" => $this->TagsChanges,
 				"title" => Text::htmlEncode($this->Title),
-				"user" => $this->User
+				"user" => $user ?: $this->User
 			));
 
 			AuditTrail::track("bigtree_pending_changes", $this->ID, "updated");

@@ -52,6 +52,11 @@
 
 	$pdata["resources"] = $_POST["resources"];
 
+	// Handle permissions on trunk
+	if ($admin->Level < 2) {
+		unset($_POST["trunk"]);
+	}
+
 	if ($publisher && $_POST["ptype"] == "Save & Publish") {
 		// Let's make it happen.
 		if ($page[0] == "p") {

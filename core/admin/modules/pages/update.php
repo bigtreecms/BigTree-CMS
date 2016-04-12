@@ -48,6 +48,11 @@
 	
 	// Parse resources
 	Router::includeFile("admin/modules/pages/_resource-parse.php");
+
+	// Handle permissions on trunk
+	if ($admin->Level < 2) {
+		unset($_POST["trunk"]);
+	}
 	
 	$id = $_POST["page"];
 	

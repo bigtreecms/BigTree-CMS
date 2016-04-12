@@ -202,40 +202,7 @@
 		
 		static function drawXMLSitemap() {
 			header("Content-type: text/xml");
-			echo '<?xml version="1.0" encoding="UTF-8" ?>';
-			echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">';
-			
-			$pages = SQL::fetchAll("SELECT id,template,external,path FROM bigtree_pages 
-									WHERE archived = '' AND (publish_at >= NOW() OR publish_at IS NULL) ORDER BY id ASC");
-			foreach ($pages as $page) {
-				if ($page["template"] || strpos($page["external"],DOMAIN)) {	
-					if (!$page["template"]) {
-						$link = static::getInternalPageLink($page["external"]);
-					} else {
-						$link = WWW_ROOT.$page["path"].(($page["id"] > 0) ? "/" : ""); // Fix sitemap adding trailing slashes to home
-					}
-					
-					echo "<url><loc>".$link."</loc></url>\n";
-					
-					// Added routed template support
-					$module_class = SQL::fetchSingle("SELECT bigtree_modules.class
-													  FROM bigtree_templates JOIN bigtree_modules 
-													  ON bigtree_modules.id = bigtree_templates.module
-													  WHERE bigtree_templates.id = ?", $page["template"]);
-					if ($module_class) {
-						$module = new $module_class;
-						if (method_exists($module,"getSitemap")) {
-							$subnav = $module->getSitemap($page);
-							foreach ($subnav as $entry) {
-								echo "<url><loc>".$entry["link"]."</loc></url>\n";
-							}
-						}
-					}
-				}
-			}
-
-			echo '</urlset>';
-			die();
+			echo BigTree\Sitemap::getXML();
 		}
 
 		/*
@@ -396,150 +363,7 @@
 		*/
 			
 		static function getNavByParent($parent = 0,$levels = 1,$follow_module = true,$only_hidden = false) {
-			global $bigtree;
-
-			static $module_nav_count = 0;
-			$nav = array();
-			$find_children = array();
-			
-			// If the parent is an array, this is actually a recursed call.
-			// We're finding all the children of all the parents at once -- then we'll assign them back to the proper parent instead of doing separate calls for each.
-			if (is_array($parent)) {
-				$where_parent = array();
-				foreach ($parent as $p) {
-					$where_parent[] = "parent = '".SQL::escape($p)."'";
-				}
-				$where_parent = "(".implode(" OR ",$where_parent).")";
-			// If it's an integer, let's just pull the children for the provided parent.
-			} else {
-				$parent = SQL::escape($parent);
-				$where_parent = "parent = '$parent'";
-			}
-			
-			$in_nav = $only_hidden ? "" : "on";
-			$sort = $only_hidden ? "nav_title ASC" : "position DESC, id ASC";
-			
-			$children = SQL::fetchAll("SELECT id,nav_title,parent,external,new_window,template,route,path 
-									   FROM bigtree_pages
-									   WHERE $where_parent AND
-									   		 in_nav = '$in_nav' AND
-									   		 archived != 'on' AND
-									   		 (publish_at <= NOW() OR publish_at IS NULL) AND 
-									   		 (expire_at >= NOW() OR expire_at IS NULL) 
-									   ORDER BY $sort");
-			
-			// Wrangle up some kids
-			foreach ($children as $child) {
-				if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
-					$link = WWW_ROOT.$child["path"];
-				} else {
-					$link = WWW_ROOT.$child["path"]."/";
-				}
-
-				$new_window = false;
-				
-				// If we're REALLY an external link we won't have a template, so let's get the real link and not the encoded version.  Then we'll see if we should open this thing in a new window.
-				if ($child["external"] && $child["template"] == "") {
-					$link = static::getInternalPageLink($child["external"]);
-					if ($child["new_window"]) {
-						$new_window = true;
-					}
-				}
-				
-				// Add it to the nav array
-				$nav[$child["id"]] = array(
-					"id" => $child["id"],
-					"parent" => $child["parent"],
-					"title" => $child["nav_title"],
-					"route" => $child["route"],
-					"link" => $link,
-					"new_window" => $new_window,
-					"children" => array()
-				);
-				
-				// If we're going any deeper, mark down that we're looking for kids of this kid.
-				if ($levels > 1) {
-					$find_children[] = $child["id"];
-				}
-			}
-			
-			// If we're looking for children, send them all back into getNavByParent, decrease the depth we're looking for by one.
-			if (count($find_children)) {
-				$subnav = static::getNavByParent($find_children,$levels - 1,$follow_module);
-				foreach ($subnav as $item) {
-					// Reassign these new children back to their parent node.
-					$nav[$item["parent"]]["children"][$item["id"]] = $item;
-				}
-			}
-			
-			// If we're pulling in module navigation...
-			if ($follow_module) {
-				// This is a recursed iteration.
-				if (is_array($parent)) {
-					$where_parent = array();
-					foreach ($parent as $p) {
-						$where_parent[] = "bigtree_pages.id = '".SQL::escape($p)."'";
-					}
-
-					$module_pages = SQL::fetchAll("SELECT bigtree_modules.class,
-														  bigtree_templates.routed,
-														  bigtree_templates.module,
-														  bigtree_pages.id,
-														  bigtree_pages.path,
-														  bigtree_pages.template
-												   FROM bigtree_modules JOIN bigtree_templates JOIN bigtree_pages 
-												   ON bigtree_templates.id = bigtree_pages.template 
-												   WHERE bigtree_modules.id = bigtree_templates.module AND 
-														 (".implode(" OR ",$where_parent).")");
-					foreach ($module_pages as $module_page) {
-						// If the class exists, instantiate it and call it
-						if ($module_page["class"] && class_exists($module_page["class"])) {
-							$module = new $module_page["class"];
-							if (method_exists($module,"getNav")) {
-								$modNav = $module->getNav($module_page);
-								// Give the parent back to each of the items it returned so they can be reassigned to the proper parent.
-								$module_nav = array();
-								foreach ($modNav as $item) {
-									$item["parent"] = $module_page["id"];
-									$item["id"] = "module_nav_".$module_nav_count;
-									$module_nav[] = $item;
-									$module_nav_count++;
-								}
-								if ($module->NavPosition == "top") {
-									$nav = array_merge($module_nav,$nav);
-								} else {
-									$nav = array_merge($nav,$module_nav);
-								}
-							}
-						}
-					}
-				// This is the first iteration.
-				} else {
-					$module_page = SQL::fetch("SELECT bigtree_modules.class,
-													  bigtree_templates.routed,
-													  bigtree_templates.module,
-													  bigtree_pages.id,
-													  bigtree_pages.path,
-													  bigtree_pages.template 
-											   FROM bigtree_modules JOIN bigtree_templates JOIN bigtree_pages 
-											   ON bigtree_templates.id = bigtree_pages.template 
-											   WHERE bigtree_modules.id = bigtree_templates.module AND 
-											   		 bigtree_pages.id = ?",$parent);
-					// If the class exists, instantiate it and call it.
-					if ($module_page["class"] && class_exists($module_page["class"])) {
-						$module = new $module_page["class"];
-						if (method_exists($module,"getNav")) {
-							if ($module->NavPosition == "top") {
-								$nav = array_merge($module->getNav($module_page),$nav);
-							} else {
-								$nav = array_merge($nav,$module->getNav($module_page));
-							}
-						}
-					}
-				}
-			}
-			
-			return $nav;
+			return BigTree\Router::getNavigation($parent, $levels,$follow_module,$only_hidden);
 		}
 		
 		/*
@@ -606,73 +430,12 @@
 		*/
 		
 		static function getPendingPage($id,$decode = true,$return_tags = false) {
-			// Numeric id means the page is live.
-			if (is_numeric($id)) {
-				$page = static::getPage($id);
-				if (!$page) {
-					return false;
-				}
+			$pageObject = BigTree\Page::getPageDraft($id);
+			$page = $pageObject->Array;
 
-				// If we're looking for tags, apply them to the page.
-				if ($return_tags) {
-					$page["tags"] = static::getTagsForPage($id);
-				}
-
-				// Get pending changes for this page.
-				$changes = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = ?", $page["id"]);
-
-			// If it's prefixed with a "p" then it's a pending entry.
-			} else {
-				// Set the page to empty, we're going to loop through the change later and apply the fields.
-				$page = array();
-
-				// Get the changes.
-				$changes = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `id` = ?",substr($id,1));
-				if (!$changes) {
-					return false;
-				}
-				
-				$changes["id"] = $id;
-			}
-
-			// If we have changes, apply them.
-			if ($changes) {
-				$page["changes_applied"] = true;
-				$page["updated_at"] = $changes["date"];
-				$resource_changes = json_decode($changes["changes"],true);
-				foreach ($resource_changes as $key => $val) {
-					if ($key == "external") {
-						$val = static::getInternalPageLink($val);
-					}
-					$page[$key] = $val;
-				}
-				if ($return_tags) {
-					// Decode the tag changes, apply them back.
-					$tags = array();
-					$tags_changes = json_decode($changes["tags_changes"],true);
-					if (is_array($tags_changes)) {
-						foreach ($tags_changes as $tag) {
-							$tags[] = SQL::fetch("SELECT * FROM bigtree_tags WHERE id = ?",$tag);
-						}
-					}
-					$page["tags"] = $tags;
-				}
-			}
-			
-			// Turn resource entities into arrays that have been IPL decoded.
-			if ($decode) {
-				if (isset($page["resources"]) && is_array($page["resources"])) {
-					$page["resources"] = static::decodeResources($page["resources"]);	
-				}
-
-				// Backwards compatibility with 4.0 callout system
-				if (isset($page["resources"]["4.0-callouts"])) {
-					$page["callouts"] = $page["resources"]["4.0-callouts"];
-				} elseif (isset($page["resources"]["callouts"])) {
-					$page["callouts"] = $page["resources"]["callouts"];
-				} else {
-					$page["callouts"] = array();
-				}
+			// Changes Applied means the tags are already there
+			if ($return_tags && !$pageObject->ChangesApplied) {
+				$page["tags"] = $pageObject->Tags;
 			}
 
 			return $page;
@@ -690,14 +453,7 @@
 		*/
 		
 		static function getPreviewLink($id) {
-			if (substr($id,0,1) == "p") {
-				return WWW_ROOT."_preview-pending/".htmlspecialchars($id)."/";
-			} elseif ($id == 0) {
-				return WWW_ROOT."_preview/";
-			} else {
-				$path = SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?",$id);
-				return WWW_ROOT."_preview/$path/";
-			}
+			return BigTree\Link::getPreview($id);
 		}
 		
 		/*
@@ -713,46 +469,7 @@
 		*/
 		
 		static function getRelatedPagesByTags($tags = array(),$only_id = false) {
-			$results = array();
-			$relevance = array();
-
-			// Loop through each tag finding related pages
-			foreach ($tags as $tag) {
-				// In case a whole tag row was passed
-				if (is_array($tag)) {
-					$tag = $tag["tag"];
-				}
-
-				$tag_id = SQL::fetchSingle("SELECT id FROM bigtree_tags WHERE tag = ?",$tag);
-				if ($tag_id) {
-					$related_pages = SQL::fetchAllSingle("SELECT entry FROM bigtree_tags_rel WHERE tag = ? AND `table` = 'bigtree_pages'",$tag_id);
-
-					foreach ($related_pages as $page_id) {
-						// If we already have this result, add relevance
-						if (in_array($page_id,$results)) {
-							$relevance[$page_id]++;
-						} else {
-							$results[] = $page_id;
-							$relevance[$page_id] = 1;
-						}
-					}
-				}
-			}
-
-			// Sort by most relevant
-			array_multisort($relevance,SORT_DESC,$results);
-
-			if ($only_id) {
-				return $results;
-			}
-
-			// Get the actual page data for each result
-			$items = array();
-			foreach ($results as $result) {
-				$items[] = static::getPage($result);
-			}
-
-			return $items;
+			return BigTree\Page::allByTags($tags, $only_id ? "id" : "array");
 		}
 		
 		/*

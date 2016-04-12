@@ -10,9 +10,9 @@
 	class BigTreeAdminBase {
 
 		// Static variables
-		public static $ActionClasses = array("add","delete","list","edit","refresh","gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","done","warning","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","lightning","camera","video","twitter","facebook","trail","crop","cloud","phone","music","house","featured","heart","link","flag","bug","games","coffee","airplane","bank","gift","badge","award","radio");
+		public static $ActionClasses = array("add", "delete", "list", "edit", "refresh", "gear", "truck", "token", "export", "redirect", "help", "error", "ignored", "world", "server", "clock", "network", "car", "key", "folder", "calendar", "search", "setup", "page", "computer", "picture", "news", "events", "blog", "form", "category", "map", "done", "warning", "user", "question", "sports", "credit_card", "cart", "cash_register", "lock_key", "bar_graph", "comments", "email", "weather", "pin", "planet", "mug", "atom", "shovel", "cone", "lifesaver", "target", "ribbon", "dice", "ticket", "pallet", "lightning", "camera", "video", "twitter", "facebook", "trail", "crop", "cloud", "phone", "music", "house", "featured", "heart", "link", "flag", "bug", "games", "coffee", "airplane", "bank", "gift", "badge", "award", "radio");
 		public static $DB;
-		public static $IconClasses = array("gear","truck","token","export","redirect","help","error","ignored","world","server","clock","network","car","key","folder","calendar","search","setup","page","computer","picture","news","events","blog","form","category","map","user","question","sports","credit_card","cart","cash_register","lock_key","bar_graph","comments","email","weather","pin","planet","mug","atom","shovel","cone","lifesaver","target","ribbon","dice","ticket","pallet","camera","video","twitter","facebook");
+		public static $IconClasses = array("gear", "truck", "token", "export", "redirect", "help", "error", "ignored", "world", "server", "clock", "network", "car", "key", "folder", "calendar", "search", "setup", "page", "computer", "picture", "news", "events", "blog", "form", "category", "map", "user", "question", "sports", "credit_card", "cart", "cash_register", "lock_key", "bar_graph", "comments", "email", "weather", "pin", "planet", "mug", "atom", "shovel", "cone", "lifesaver", "target", "ribbon", "dice", "ticket", "pallet", "camera", "video", "twitter", "facebook");
 		public static $PerPage = 15;
 		public static $ReservedColumns = array(
 			"id",
@@ -75,9 +75,9 @@
 				$this->HidePages = true;
 				if (is_array($this->Permissions["page"])) {
 					foreach ($this->Permissions["page"] as $k => $v) {
-					    if ($v != "n" && $v != "i") {
-					    	$this->HidePages = false;
-					    }
+						if ($v != "n" && $v != "i") {
+							$this->HidePages = false;
+						}
 					}
 				}
 			} else {
@@ -100,8 +100,8 @@
 				entry - Entry ID to assign to
 		*/
 
-		static function allocateResources($module,$entry) {
-			BigTree\Resource::allocate($module,$entry);
+		static function allocateResources($module, $entry) {
+			BigTree\Resource::allocate($module, $entry);
 		}
 
 		/*
@@ -120,11 +120,12 @@
 		*/
 
 		function archivePage($page) {
-			$page = new BigTree\Page($page,false);
+			$page = new BigTree\Page($page, false);
 
 			// Only users with publisher access that can also modify this page's children can archive it
 			if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
 				$page->archive();
+
 				return true;
 			}
 
@@ -144,7 +145,7 @@
 		*/
 
 		function archivePageChildren($page) {
-			$page = new BigTree\Page($page,false);
+			$page = new BigTree\Page($page, false);
 			$page->archiveChildren();
 		}
 
@@ -191,8 +192,9 @@
 				The permission level if the user can access this group, otherwise false.
 		*/
 
-		function canAccessGroup($module,$group) {
+		function canAccessGroup($module, $group) {
 			$module = new BigTree\Module($module);
+
 			return $module->getGroupAccessLevel($group);
 		}
 
@@ -209,7 +211,8 @@
 		*/
 
 		function canModifyChildren($page) {
-			$page = new BigTree\Page($page,false);
+			$page = new BigTree\Page($page, false);
+
 			return $page->UserCanModifyChildren;
 		}
 
@@ -229,7 +232,7 @@
 
 		*/
 
-		static function changePassword($hash,$password) {
+		static function changePassword($hash, $password) {
 			$user = BigTree\User::getByHash($hash);
 			if (!$user) {
 				return false;
@@ -258,13 +261,15 @@
 				true if the user can access the module, otherwise false.
 		*/
 
-		function checkAccess($module,$action = false) {
+		function checkAccess($module, $action = false) {
 			if ($action) {
 				$action = new BigTree\ModuleAction($action);
+
 				return $action->UserCanAccess;
 			}
 
 			$module = new BigTree\Module($module);
+
 			return $module->UserCanAccess;
 		}
 
@@ -281,8 +286,8 @@
 				An array containing two possible keys (a and img) which each could contain an array of errors.
 		*/
 
-		static function checkHTML($relative_path,$html,$external = false) {
-			return BigTree\Link::integrity($relative_path,$html,$external);
+		static function checkHTML($relative_path, $html, $external = false) {
+			return BigTree\Link::integrity($relative_path, $html, $external);
 		}
 
 		/*
@@ -291,12 +296,7 @@
 		*/
 
 		static function clearCache() {
-			$d = opendir(SERVER_ROOT."cache/");
-			while ($f = readdir($d)) {
-				if ($f != "." && $f != ".." && !is_dir(SERVER_ROOT."cache/".$f)) {
-					unlink(SERVER_ROOT."cache/".$f);
-				}
-			}
+			BigTree\Router::clearCache();
 		}
 
 		/*
@@ -317,8 +317,8 @@
 				to - The 301 target
 		*/
 
-		function create301($from,$to) {
-			BigTree\Redirect::create($from,$to);
+		function create301($from, $to) {
+			BigTree\Redirect::create($from, $to);
 		}
 
 		/*
@@ -338,8 +338,9 @@
 				true if successful, false if an invalid ID was passed or the ID is already in use
 		*/
 
-		function createCallout($id,$name,$description,$level,$resources,$display_field,$display_default) {
-			$callout = BigTree\Callout::create($id,$name,$description,$level,$resources,$display_field,$display_default);
+		function createCallout($id, $name, $description, $level, $resources, $display_field, $display_default) {
+			$callout = BigTree\Callout::create($id, $name, $description, $level, $resources, $display_field, $display_default);
+
 			return $callout ? true : false;
 		}
 
@@ -355,8 +356,9 @@
 				The id of the newly created group.
 		*/
 
-		function createCalloutGroup($name,$callouts) {
-			$group = BigTree\CalloutGroup::create($name,$callouts);
+		function createCalloutGroup($name, $callouts) {
+			$group = BigTree\CalloutGroup::create($name, $callouts);
+
 			return $group->ID;
 		}
 
@@ -376,8 +378,9 @@
 				The route to the new feed.
 		*/
 
-		function createFeed($name,$description,$table,$type,$options,$fields) {
-			$feed = BigTree\Feed::create($name,$description,$table,$type,$options,$fields);
+		function createFeed($name, $description, $table, $type, $options, $fields) {
+			$feed = BigTree\Feed::create($name, $description, $table, $type, $options, $fields);
+
 			return $feed->Route;
 		}
 
@@ -395,8 +398,8 @@
 				true if successful, false if an invalid ID was passed or the ID is already in use
 		*/
 
-		function createFieldType($id,$name,$use_cases,$self_draw) {
-			$field_type = BigTree\FieldType::create($id,$name,$use_cases,$self_draw);
+		function createFieldType($id, $name, $use_cases, $self_draw) {
+			$field_type = BigTree\FieldType::create($id, $name, $use_cases, $self_draw);
 
 			return $field_type ? true : false;
 		}
@@ -412,8 +415,8 @@
 				in_response_to - The message being replied to.
 		*/
 
-		function createMessage($subject,$message,$recipients,$in_response_to = 0) {
-			BigTree\Message::create($this->ID,$subject,$message,$recipients,$in_response_to);
+		function createMessage($subject, $message, $recipients, $in_response_to = 0) {
+			BigTree\Message::create($this->ID, $subject, $message, $recipients, $in_response_to);
 		}
 
 		/*
@@ -434,8 +437,9 @@
 				The new module id.
 		*/
 
-		function createModule($name,$group,$class,$table,$permissions,$icon,$route = false,$developer_only = false) {
-			$module = BigTree\Module::create($name,$group,$class,$table,$permissions,$icon,$route,$developer_only);
+		function createModule($name, $group, $class, $table, $permissions, $icon, $route = false, $developer_only = false) {
+			$module = BigTree\Module::create($name, $group, $class, $table, $permissions, $icon, $route, $developer_only);
+
 			return $module->ID;
 		}
 
@@ -457,8 +461,9 @@
 				The action's route.
 		*/
 
-		function createModuleAction($module,$name,$route,$in_nav,$icon,$interface,$level = 0,$position = 0) {
-			$action = BigTree\ModuleAction::create($module,$name,$route,$in_nav,$icon,$interface,$level,$position);
+		function createModuleAction($module, $name, $route, $in_nav, $icon, $interface, $level = 0, $position = 0) {
+			$action = BigTree\ModuleAction::create($module, $name, $route, $in_nav, $icon, $interface, $level, $position);
+
 			return $action->Route;
 		}
 
@@ -482,8 +487,9 @@
 				The embed code.
 		*/
 
-		function createModuleEmbedForm($module,$title,$table,$fields,$hooks = array(),$default_position = "",$default_pending = "",$css = "",$redirect_url = "",$thank_you_message = "") {
-			$form = BigTree\ModuleEmbedForm::create($module,$title,$table,$fields,$hooks,$default_position,$default_pending,$css,$redirect_url,$thank_you_message);
+		function createModuleEmbedForm($module, $title, $table, $fields, $hooks = array(), $default_position = "", $default_pending = "", $css = "", $redirect_url = "", $thank_you_message = "") {
+			$form = BigTree\ModuleEmbedForm::create($module, $title, $table, $fields, $hooks, $default_position, $default_pending, $css, $redirect_url, $thank_you_message);
+
 			return htmlspecialchars($form->EmbedCode);
 		}
 
@@ -506,8 +512,9 @@
 				The new form id.
 		*/
 
-		function createModuleForm($module,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
-			$form = BigTree\ModuleForm::create($module,$title,$table,$fields,$hooks,$default_position,$return_view,$return_url,$tagging);
+		function createModuleForm($module, $title, $table, $fields, $hooks = array(), $default_position = "", $return_view = false, $return_url = "", $tagging = "") {
+			$form = BigTree\ModuleForm::create($module, $title, $table, $fields, $hooks, $default_position, $return_view, $return_url, $tagging);
+
 			return $form->ID;
 		}
 
@@ -524,6 +531,7 @@
 
 		function createModuleGroup($name) {
 			$group = BigTree\ModuleGroup::create($name);
+
 			return $group->ID;
 		}
 
@@ -545,8 +553,8 @@
 				The id of the report.
 		*/
 
-		function createModuleReport($module,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
-			$interface = BigTree\ModuleInterface::create("report",$module,$title,$table,array(
+		function createModuleReport($module, $title, $table, $type, $filters, $fields = "", $parser = "", $view = "") {
+			$interface = BigTree\ModuleInterface::create("report", $module, $title, $table, array(
 				"type" => $type,
 				"filters" => $filters,
 				"fields" => $fields,
@@ -577,8 +585,9 @@
 				The id for view.
 		*/
 
-		function createModuleView($module,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url = "") {
-			$view = BigTree\ModuleView::create($module,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url);
+		function createModuleView($module, $title, $description, $table, $type, $options, $fields, $actions, $related_form, $preview_url = "") {
+			$view = BigTree\ModuleView::create($module, $title, $description, $table, $type, $options, $fields, $actions, $related_form, $preview_url);
+
 			return $view->ID;
 		}
 
@@ -603,7 +612,7 @@
 
 			// Loop through the posted data, make sure no session hijacking is done.
 			foreach ($data as $key => $val) {
-				if (substr($key,0,1) != "_") {
+				if (substr($key, 0, 1) != "_") {
 					$$key = $val;
 				}
 			}
@@ -613,7 +622,8 @@
 				$trunk = "";
 			}
 
-			$page = BigTree\Page::create($trunk,$parent,$in_nav,$nav_title,$title,$route,$meta_description,$seo_invisible,$template,$external,$new_window,$resources,$publish_at,$expire_at,$max_age,$data["_tags"]);
+			$page = BigTree\Page::create($trunk, $parent, $in_nav, $nav_title, $title, $route, $meta_description, $seo_invisible, $template, $external, $new_window, $resources, $publish_at, $expire_at, $max_age, $data["_tags"]);
+
 			return $page->ID;
 		}
 
@@ -633,8 +643,9 @@
 				The change id.
 		*/
 
-		function createPendingChange($table,$item_id,$changes,$mtm_changes = array(),$tags_changes = array(),$module = 0) {
-			$change = BigTree\PendingChange::create($table,$item_id,$changes,$mtm_changes,$tags_changes,$module);
+		function createPendingChange($table, $item_id, $changes, $mtm_changes = array(), $tags_changes = array(), $module = 0) {
+			$change = BigTree\PendingChange::create($table, $item_id, $changes, $mtm_changes, $tags_changes, $module);
+
 			return $change->ID;
 		}
 
@@ -657,7 +668,8 @@
 				$data["trunk"] = SQL::escape($data["trunk"]);
 			}
 
-			$change = BigTree\PendingChange::createPage($data["trunk"],$data["parent"],$data["in_nav"],$data["nav_title"],$data["title"],$data["route"],$data["meta_description"],$data["seo_invisible"],$data["template"],$data["external"],$data["new_window"],$data["resources"],$data["publish_at"],$data["expire_at"],$data["max_age"],$data["_tags"]);
+			$change = BigTree\PendingChange::createPage($data["trunk"], $data["parent"], $data["in_nav"], $data["nav_title"], $data["title"], $data["route"], $data["meta_description"], $data["seo_invisible"], $data["template"], $data["external"], $data["new_window"], $data["resources"], $data["publish_at"], $data["expire_at"], $data["max_age"], $data["_tags"]);
+
 			return $change->ID;
 		}
 
@@ -680,8 +692,9 @@
 				The new resource id.
 		*/
 
-		function createResource($folder,$file,$md5,$name,$type,$is_image = "",$height = 0,$width = 0,$thumbs = array()) {
-			$resource = BigTree\Resource::create($folder,$file,$md5,$name,$type,$is_image,$height,$width,$thumbs);
+		function createResource($folder, $file, $md5, $name, $type, $is_image = "", $height = 0, $width = 0, $thumbs = array()) {
+			$resource = BigTree\Resource::create($folder, $file, $md5, $name, $type, $is_image, $height, $width, $thumbs);
+
 			return $resource->ID;
 		}
 
@@ -698,14 +711,15 @@
 				The new folder id or false if not allowed.
 		*/
 
-		function createResourceFolder($parent,$name) {
+		function createResourceFolder($parent, $name) {
 			// Backwards compatibility as ResourceFolder doesn't check permissions
 			$permission = $this->getResourceFolderPermission($parent);
 			if ($permission != "p") {
 				return false;
 			}
 
-			$folder = BigTree\ResourceFolder::create($parent,$name);
+			$folder = BigTree\ResourceFolder::create($parent, $name);
+
 			return $folder->ID;
 		}
 
@@ -726,12 +740,13 @@
 
 			// Loop through and create our expected parameters.
 			foreach ($data as $key => $val) {
-				if (substr($key,0,1) != "_") {
+				if (substr($key, 0, 1) != "_") {
 					$$key = $val;
 				}
 			}
 
-			$setting = BigTree\Setting::create($id,$name,$description,$type,$options,$extension,$system,$encrypted,$locked);
+			$setting = BigTree\Setting::create($id, $name, $description, $type, $options, $extension, $system, $encrypted, $locked);
+
 			return $setting ? true : false;
 		}
 
@@ -749,6 +764,7 @@
 
 		function createTag($tag) {
 			$tag = BigTree\Tag::create($tag);
+
 			return $tag->ID;
 		}
 
@@ -768,8 +784,9 @@
 				true if successful, false if there's an id collision or a bad ID is passed
 		*/
 
-		function createTemplate($id,$name,$routed,$level,$module,$resources) {
-			$template = BigTree\Template::create($id,$name,$routed,$level,$module,$resources);
+		function createTemplate($id, $name, $routed, $level, $module, $resources) {
+			$template = BigTree\Template::create($id, $name, $routed, $level, $module, $resources);
+
 			return $template ? true : false;
 		}
 
@@ -792,12 +809,13 @@
 
 			// Loop through and create our expected parameters.
 			foreach ($data as $key => $val) {
-				if (substr($key,0,1) != "_") {
+				if (substr($key, 0, 1) != "_") {
 					$$key = $val;
 				}
 			}
 
-			$user = BigTree\User::create($email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest);
+			$user = BigTree\User::create($email, $password, $name, $company, $level, $permissions, $alerts, $daily_digest);
+
 			return $user ? $user->ID : false;
 		}
 
@@ -1017,21 +1035,24 @@
 		function deletePage($page) {
 			// Published page
 			if (is_numeric($page)) {
-				$page = new BigTree\Page($page,false);
+				$page = new BigTree\Page($page, false);
 				if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
 					$page->delete();
+
 					return true;
 				}
 			} else {
-				$pending_change = new BigTree\PendingChange(substr($page,1));
-				$page = new BigTree\Page($page,false);
+				$pending_change = new BigTree\PendingChange(substr($page, 1));
+				$page = new BigTree\Page($page, false);
 				if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
 					$pending_change->delete();
+
 					return true;
 				}
 			}
 
 			$this->stop("You do not have permission to delete this page.");
+
 			return false;
 		}
 
@@ -1045,7 +1066,7 @@
 		*/
 
 		function deletePageChildren($id) {
-			$page = new BigTree\Page($id,false);
+			$page = new BigTree\Page($id, false);
 			$page->deleteChildren();
 		}
 
@@ -1059,7 +1080,7 @@
 		*/
 
 		function deletePageDraft($id) {
-			$page = new BigTree\Page($id,false);
+			$page = new BigTree\Page($id, false);
 
 			// Get the version, check if the user has access to the page the version refers to.
 			if ($page->UserAccessLevel != "p") {
@@ -1092,6 +1113,7 @@
 
 			// Delete the revision
 			$page->deleteRevision($id);
+
 			return true;
 		}
 
@@ -1104,8 +1126,8 @@
 		*/
 
 		function deletePendingChange($id) {
-			SQL::delete("bigtree_pending_changes",$id);
-			$this->track("bigtree_pending_changes",$id,"deleted");
+			SQL::delete("bigtree_pending_changes", $id);
+			$this->track("bigtree_pending_changes", $id, "deleted");
 		}
 
 		/*
@@ -1165,6 +1187,7 @@
 			}
 
 			$template->delete();
+
 			return true;
 		}
 
@@ -1192,7 +1215,7 @@
 		function disconnectGoogleAnalytics() {
 			$api = new BigTree\GoogleAnalytics\API;
 			$api->disconnect();
-			static::growl("Analytics","Disconnected");
+			static::growl("Analytics", "Disconnected");
 		}
 
 		/*
@@ -1207,8 +1230,8 @@
 				true if an action exists, otherwise false.
 		*/
 
-		static function doesModuleActionExist($module,$route) {
-			return BigTree\ModuleAction::exists($module,$route);
+		static function doesModuleActionExist($module, $route) {
+			return BigTree\ModuleAction::exists($module, $route);
 		}
 
 		/*
@@ -1216,13 +1239,13 @@
 				An internal function used for drawing callout and matrix resource data.
 		*/
 
-		static function drawArrayLevel($keys,$level,$field = false) {
+		static function drawArrayLevel($keys, $level, $field = false) {
 			if ($field === false) {
 				global $field;
 			}
 
 			$field = new BigTree\Field($field);
-			$field->drawArrayLevel($keys,$level);
+			$field->drawArrayLevel($keys, $level);
 		}
 
 		/*
@@ -1271,8 +1294,9 @@
 
 			$user->initPasswordReset();
 
-			$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/";
+			$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://", "https://", ADMIN_ROOT) : ADMIN_ROOT)."login/";
 			BigTree\Router::redirect($login_root."forgot-success/");
+
 			return true;
 		}
 
@@ -1295,6 +1319,7 @@
 			} elseif ($type == "ignored") {
 				return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = 'on'");
 			}
+
 			return false;
 		}
 
@@ -1333,7 +1358,7 @@
 				<getCachedAccessLevel>
 		*/
 
-		function getAccessLevel($module,$item = array(),$table = "",$user = false) {
+		function getAccessLevel($module, $item = array(), $table = "", $user = false) {
 			// UserAccessLevel uses the $admin object, so we need fake it
 			if ($user !== false) {
 				global $admin;
@@ -1344,7 +1369,7 @@
 			}
 
 			$module = new BigTree\Module($module);
-			$permission = $module->getUserAccessLevelForEntry($item,$table);
+			$permission = $module->getUserAccessLevelForEntry($item, $table);
 
 			// Restore permissions
 			if ($user !== false) {
@@ -1370,8 +1395,8 @@
 				If the item isn't already featured, it would simply return "icon_featured" for the "feature" action.
 		*/
 
-		static function getActionClass($action,$item) {
-			return BigTree\ModuleView::generateActionClass($action,$item);
+		static function getActionClass($action, $item) {
+			return BigTree\ModuleView::generateActionClass($action, $item);
 		}
 
 		/*
@@ -1386,7 +1411,8 @@
 		*/
 
 		static function getArchivedNavigationByParent($parent) {
-			$page = new BigTree\Page($parent,false);
+			$page = new BigTree\Page($parent, false);
+
 			return $page->getArchivedChildren(true);
 		}
 
@@ -1402,12 +1428,13 @@
 		*/
 
 		function getBasicTemplates($sort = "position DESC, id ASC") {
-			$list = BigTree\Template::allByRouted("",$sort,true);
+			$list = BigTree\Template::allByRouted("", $sort, true);
 			foreach ($list as $key => $template) {
 				if ($template["level"] > $this->Level) {
 					unset($list[$key]);
 				}
 			}
+
 			return $list;
 		}
 
@@ -1428,9 +1455,10 @@
 		*/
 
 		// Since cached items don't use their normal columns...
-		function getCachedAccessLevel($module,$item = array(),$table = "") {
+		function getCachedAccessLevel($module, $item = array(), $table = "") {
 			$module = new BigTree\Module($module);
-			return $module->getCachedAccessLevel($item,$table);
+
+			return $module->getCachedAccessLevel($item, $table);
 		}
 
 		/*
@@ -1461,6 +1489,7 @@
 
 		static function getCallout($id) {
 			$callout = new BigTree\Callout($id);
+
 			return $callout->Array;
 		}
 
@@ -1477,6 +1506,7 @@
 
 		static function getCalloutGroup($id) {
 			$group = new BigTree\CalloutGroup($id);
+
 			return $group->Array;
 		}
 
@@ -1489,7 +1519,7 @@
 		*/
 
 		static function getCalloutGroups() {
-			return BigTree\CalloutGroup::all("name ASC",true);
+			return BigTree\CalloutGroup::all("name ASC", true);
 		}
 
 		/*
@@ -1504,7 +1534,7 @@
 		*/
 
 		static function getCallouts($sort = "position DESC, id ASC") {
-			return BigTree\Callout::all($sort,true);
+			return BigTree\Callout::all($sort, true);
 		}
 
 		/*
@@ -1519,7 +1549,7 @@
 		*/
 
 		function getCalloutsAllowed($sort = "position DESC, id ASC") {
-			return BigTree\Callout::allAllowed($sort,true);
+			return BigTree\Callout::allAllowed($sort, true);
 		}
 
 		/*
@@ -1534,8 +1564,8 @@
 				An alphabetized array of entries from the bigtree_callouts table.
 		*/
 
-		function getCalloutsInGroups($groups,$auth = true) {
-			return BigTree\Callout::allInGroups($groups,$auth,true);
+		function getCalloutsInGroups($groups, $auth = true) {
+			return BigTree\Callout::allInGroups($groups, $auth, true);
 		}
 
 		/*
@@ -1551,6 +1581,7 @@
 
 		static function getChangeEditLink($change) {
 			$change = new BigTree\PendingChange($change);
+
 			return $change->EditLink;
 		}
 
@@ -1582,6 +1613,7 @@
 
 		static function getExtension($id) {
 			$extension = new BigTree\Extension($id);
+
 			return $extension->Array;
 		}
 
@@ -1597,7 +1629,7 @@
 		*/
 
 		static function getExtensions($sort = "last_updated DESC") {
-			return BigTree\Extension::allByType("extension",$sort,true);
+			return BigTree\Extension::allByType("extension", $sort, true);
 		}
 
 		/*
@@ -1612,7 +1644,7 @@
 		*/
 
 		static function getFeeds($sort = "name ASC") {
-			return BigTree\Feed::all($sort,true);
+			return BigTree\Feed::all($sort, true);
 		}
 
 		/*
@@ -1628,6 +1660,7 @@
 
 		static function getFieldType($id) {
 			$field_type = new BigTree\FieldType($id);
+
 			return $field_type->Array;
 		}
 
@@ -1643,7 +1676,7 @@
 		*/
 
 		static function getFieldTypes($sort = "name ASC") {
-			return BigTree\FieldType::all($sort,true);
+			return BigTree\FieldType::all($sort, true);
 		}
 
 		/*
@@ -1658,7 +1691,8 @@
 		*/
 
 		static function getFullNavigationPath($id) {
-			$page = new BigTree\Page($id,false);
+			$page = new BigTree\Page($id, false);
+
 			return $page->regeneratePath();
 		}
 
@@ -1674,7 +1708,8 @@
 		*/
 
 		static function getHiddenNavigationByParent($parent) {
-			$page = new BigTree\Page($parent,false);
+			$page = new BigTree\Page($parent, false);
+
 			return $page->getHiddenChildren(true);
 		}
 
@@ -1693,7 +1728,7 @@
 		function getMessage($id) {
 			$message = new BigTree\Message($id);
 
-			if ($message->Sender != $this->ID && !in_array($this->ID,$message->Recipients)) {
+			if ($message->Sender != $this->ID && !in_array($this->ID, $message->Recipients)) {
 				return false;
 			}
 
@@ -1735,7 +1770,7 @@
 		*/
 
 		static function getMessages($user) {
-			return BigTree\Message::allByUser($user,true);
+			return BigTree\Message::allByUser($user, true);
 		}
 
 		/*
@@ -1770,6 +1805,7 @@
 
 		static function getModuleAction($id) {
 			$action = new BigTree\ModuleAction($id);
+
 			return $action->Array;
 		}
 
@@ -1785,9 +1821,10 @@
 				A module action entry.
 		*/
 
-		static function getModuleActionByRoute($module,$route) {
-			$response = BigTree\ModuleAction::lookup($module,$route);
-			return $response ? array("action" => $response["action"]->Array,"commands" => $response["commands"]) : false;
+		static function getModuleActionByRoute($module, $route) {
+			$response = BigTree\ModuleAction::lookup($module, $route);
+
+			return $response ? array("action" => $response["action"]->Array, "commands" => $response["commands"]) : false;
 		}
 
 		/*
@@ -1822,6 +1859,7 @@
 
 		static function getModuleActionForInterface($interface) {
 			$action = BigTree\ModuleAction::getByInterface($interface);
+
 			return $action->Array;
 		}
 
@@ -1875,7 +1913,7 @@
 		*/
 
 		static function getModuleActions($module) {
-			return BigTree\ModuleAction::allByModule($module,true);
+			return BigTree\ModuleAction::allByModule($module, true);
 		}
 
 		/*
@@ -1916,6 +1954,7 @@
 
 			$module = $module->Array;
 			$module["gbp"] = $module["group_based_permissions"];
+
 			return $module;
 		}
 
@@ -1931,13 +1970,13 @@
 				An array of embeddable form entries from bigtree_module_interfaces.
 		*/
 
-		static function getModuleEmbedForms($sort = "title ASC",$module = false) {
-			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module,"embeddable-form",$sort,true);
+		static function getModuleEmbedForms($sort = "title ASC", $module = false) {
+			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module, "embeddable-form", $sort, true);
 
 			// Return previous table format
 			$forms = array();
 			foreach ($interfaces as $interface) {
-				$settings = json_decode($interface["settings"],true);
+				$settings = json_decode($interface["settings"], true);
 				$forms[] = array(
 					"id" => $interface["id"],
 					"module" => $interface["module"],
@@ -1969,13 +2008,13 @@
 				An array of entries from bigtree_module_interfaces with "fields" decoded.
 		*/
 
-		static function getModuleForms($sort = "title ASC",$module = false) {
-			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module,"form",$sort,true);
+		static function getModuleForms($sort = "title ASC", $module = false) {
+			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module, "form", $sort, true);
 
 			// Return previous table format
 			$forms = array();
 			foreach ($interfaces as $interface) {
-				$settings = json_decode($interface["settings"],true);
+				$settings = json_decode($interface["settings"], true);
 				$forms[] = array(
 					"id" => $interface["id"],
 					"module" => $interface["module"],
@@ -1989,6 +2028,7 @@
 					"hooks" => $settings["hooks"]
 				);
 			}
+
 			return $forms;
 		}
 
@@ -2009,6 +2049,7 @@
 
 		static function getModuleGroup($id) {
 			$group = new BigTree\ModuleGroup($id);
+
 			return $group->Array;
 		}
 
@@ -2030,6 +2071,7 @@
 
 		static function getModuleGroupByName($name) {
 			$group = BigTree\ModuleGroup::getByName($name);
+
 			return $group ? $group->Array : false;
 		}
 
@@ -2050,6 +2092,7 @@
 
 		static function getModuleGroupByRoute($route) {
 			$group = BigTree\ModuleGroup::getByRoute($route);
+
 			return $group ? $group->Array : false;
 		}
 
@@ -2065,7 +2108,7 @@
 		*/
 
 		static function getModuleGroups($sort = "position DESC, id ASC") {
-			$raw_groups = BigTree\ModuleGroup::all($sort,true);
+			$raw_groups = BigTree\ModuleGroup::all($sort, true);
 			$groups = array();
 
 			foreach ($raw_groups as $group) {
@@ -2109,13 +2152,13 @@
 				An array of report interfaces from bigtree_module_interfaces.
 		*/
 
-		static function getModuleReports($sort = "title ASC",$module = false) {
-			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module,"report",$sort,true);
+		static function getModuleReports($sort = "title ASC", $module = false) {
+			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module, "report", $sort, true);
 
 			// Support the old table format
 			$reports = array();
 			foreach ($interfaces as $interface) {
-				$settings = json_decode($interface["settings"],true);
+				$settings = json_decode($interface["settings"], true);
 				$reports[] = array(
 					"id" => $interface["id"],
 					"module" => $interface["module"],
@@ -2128,6 +2171,7 @@
 					"view" => $settings["view"]
 				);
 			}
+
 			return $reports;
 		}
 
@@ -2143,9 +2187,9 @@
 				An array of entries from the bigtree_modules table.
 		*/
 
-		function getModules($sort = "id ASC",$auth = true) {
+		function getModules($sort = "id ASC", $auth = true) {
 			if (!$auth) {
-				return BigTree\Module::all($sort,true);
+				return BigTree\Module::all($sort, true);
 			}
 
 			$results = array();
@@ -2172,9 +2216,10 @@
 				An array of entries from the bigtree_modules table.
 		*/
 
-		function getModulesByGroup($group,$sort = "position DESC, id ASC",$auth = true) {
+		function getModulesByGroup($group, $sort = "position DESC, id ASC", $auth = true) {
 			$group = is_array($group) ? $group["id"] : $group;
-			return BigTree\Module::allByGroup($group,$sort,true,$auth);
+
+			return BigTree\Module::allByGroup($group, $sort, true, $auth);
 		}
 
 		/*
@@ -2189,13 +2234,13 @@
 				An array of view entries with "fields" decoded.
 		*/
 
-		static function getModuleViews($sort = "title ASC",$module = false) {
-			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module,"view",$sort,true);
+		static function getModuleViews($sort = "title ASC", $module = false) {
+			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module, "view", $sort, true);
 
 			// Support the old table format
 			$views = array();
 			foreach ($interfaces as $interface) {
-				$settings = json_decode($interface["settings"],true);
+				$settings = json_decode($interface["settings"], true);
 				$views[] = array(
 					"id" => $interface["id"],
 					"module" => $interface["module"],
@@ -2226,7 +2271,8 @@
 		*/
 
 		static function getNaturalNavigationByParent($parent) {
-			$page = new BigTree\Page($parent,false);
+			$page = new BigTree\Page($parent, false);
+
 			return $page->getVisibleChildren(true);
 		}
 
@@ -2243,6 +2289,7 @@
 
 		static function getPackage($id) {
 			$extension = new BigTree\Extension($id);
+
 			return $extension->Array;
 		}
 
@@ -2258,7 +2305,7 @@
 		*/
 
 		static function getPackages($sort = "last_updated DESC") {
-			return BigTree\Extension::allByType("package",$sort,true);
+			return BigTree\Extension::allByType("package", $sort, true);
 		}
 
 		/*
@@ -2277,6 +2324,7 @@
 
 		function getPageAccessLevel($page) {
 			$page = new BigTree\Page($page);
+
 			return $page->UserAccessLevel;
 		}
 
@@ -2295,9 +2343,10 @@
 				<getPageAccessLevel>
 		*/
 
-		static function getPageAccessLevelByUser($page,$user) {
-			$page = new BigTree\Page($page,false);
+		static function getPageAccessLevelByUser($page, $user) {
+			$page = new BigTree\Page($page, false);
 			$user = new BigTree\User($user);
+
 			return $page->getUserAccessLevel($user);
 		}
 
@@ -2325,8 +2374,9 @@
 		*/
 
 		static function getPageChanges($page) {
-			$page = new BigTree\Page($page,false);
+			$page = new BigTree\Page($page, false);
 			$change = $page->PendingChange;
+
 			return $change->Array;
 		}
 
@@ -2342,8 +2392,9 @@
 				An array of pages.
 		*/
 
-		static function getPageChildren($page,$sort = "nav_title ASC") {
+		static function getPageChildren($page, $sort = "nav_title ASC") {
 			$page = new BigTree\Page($page, false);
+
 			return $page->getChildren(true, $sort);
 		}
 
@@ -2359,7 +2410,8 @@
 		*/
 
 		function getPageLineage($page) {
-			$page = new BigTree\Page($page,false);
+			$page = new BigTree\Page($page, false);
+
 			return $page->Lineage;
 		}
 
@@ -2388,43 +2440,8 @@
 				An array containing the page ID and any additional commands.
 		*/
 
-		static function getPageIDForPath($path,$previewing = false) {
-			$commands = array();
-
-			if (!$previewing) {
-				$publish_at = "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";
-			} else {
-				$publish_at = "";
-			}
-
-			// See if we have a straight up perfect match to the path.
-			$page = SQL::fetch("SELECT bigtree_pages.id, bigtree_templates.routed 
-								FROM bigtree_pages LEFT JOIN bigtree_templates 
-								ON bigtree_pages.template = bigtree_templates.id 
-								WHERE path = ? AND archived = '' $publish_at", implode("/",$path));
-			if ($page) {
-				return array($page["id"],$commands,$page["routed"]);
-			}
-
-			// Guess we don't, let's chop off commands until we find a page.
-			$x = 0;
-			while ($x < count($path)) {
-				$x++;
-				$commands[] = $path[count($path)-$x];
-				$path_string = implode("/",array_slice($path,0,-1 * $x));
-
-				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
-				$page = SQL::fetch("SELECT bigtree_pages.id FROM bigtree_pages JOIN bigtree_templates 
-									ON bigtree_pages.template = bigtree_templates.id 
-									WHERE bigtree_pages.path = ? AND 
-										  bigtree_pages.archived = '' AND 
-										  bigtree_templates.routed = 'on' $publish_at", $path_string);
-				if ($page) {
-					return array($page["id"],array_reverse($commands),"on");
-				}
-			}
-
-			return array(false,false,false);
+		static function getPageIDForPath($path, $previewing = false) {
+			return BigTree\Router::routeToPage($path, $previewing);
 		}
 
 		/*
@@ -2440,6 +2457,7 @@
 
 		static function getPageRevision($id) {
 			$page = BigTree\Page::getRevision($id);
+
 			return $page->Array;
 		}
 
@@ -2455,7 +2473,7 @@
 		*/
 
 		static function getPageRevisions($page) {
-			return BigTree\PageRevision::allByPage($page,"updated_at DESC",true);
+			return BigTree\PageRevision::allByPage($page, "updated_at DESC", true);
 		}
 
 		/*
@@ -2467,7 +2485,7 @@
 		*/
 
 		static function getPages() {
-			return BigTree\Page::all("id ASC",true);
+			return BigTree\Page::all("id ASC", true);
 		}
 
 		/*
@@ -2500,9 +2518,10 @@
 				- Fresh content - up to 10 points
 		*/
 
-		static function getPageSEORating($page,$content) {
+		static function getPageSEORating($page, $content) {
 			$page = new BigTree\Page($page);
 			$page->Resources = $content;
+
 			return $page->SEORating;
 		}
 
@@ -2519,11 +2538,14 @@
 
 		static function getPendingChange($id) {
 			$change = new BigTree\PendingChange($id);
+
 			return $change->Array;
 		}
 
 		// For backwards compatibility
-		static function getChange($id) { return static::getPendingChange($id); }
+		static function getChange($id) {
+			return static::getPendingChange($id);
+		}
 
 		/*
 			Function: getPublishableChanges
@@ -2571,7 +2593,7 @@
 				$user = $this->ID;
 			}
 
-			return BigTree\PendingChange::allByUser($user,"date DESC",true);
+			return BigTree\PendingChange::allByUser($user, "date DESC", true);
 		}
 
 		/*
@@ -2586,8 +2608,9 @@
 				An array of pending page titles/ids.
 		*/
 
-		static function getPendingNavigationByParent($parent,$in_nav = true) {
-			$page = new BigTree\Page($parent,false);
+		static function getPendingNavigationByParent($parent, $in_nav = true) {
+			$page = new BigTree\Page($parent, false);
+
 			return $page->getPendingChildren($in_nav);
 		}
 
@@ -2626,6 +2649,7 @@
 
 		static function getResourceByFile($file) {
 			$resource = BigTree\Resource::getByFile($file);
+
 			return $resource ? $resource->Array : false;
 		}
 
@@ -2642,6 +2666,7 @@
 
 		static function getResource($id) {
 			$resource = new BigTree\Resource($id);
+
 			return $resource->Array;
 		}
 
@@ -2673,6 +2698,7 @@
 
 		static function getResourceFolder($id) {
 			$folder = new BigTree\ResourceFolder($id);
+
 			return $folder->Array;
 		}
 
@@ -2689,6 +2715,7 @@
 
 		static function getResourceFolderAllocationCounts($folder) {
 			$folder = new BigTree\ResourceFolder($folder);
+
 			return $folder->Statistics;
 		}
 
@@ -2705,6 +2732,7 @@
 
 		static function getResourceFolderBreadcrumb($folder) {
 			$folder = new BigTree\ResourceFolder($folder);
+
 			return $folder->Breadcrumb;
 		}
 
@@ -2720,7 +2748,7 @@
 		*/
 
 		static function getResourceFolderChildren($id) {
-			return BigTree\ResourceFolder::allByParent($id,"name ASC",true);
+			return BigTree\ResourceFolder::allByParent($id, "name ASC", true);
 		}
 
 		/*
@@ -2750,12 +2778,13 @@
 		*/
 
 		function getRoutedTemplates($sort = "position DESC, id ASC") {
-			$list = BigTree\Template::allByRouted("on",$sort,true);
+			$list = BigTree\Template::allByRouted("on", $sort, true);
 			foreach ($list as $key => $template) {
 				if ($template["level"] > $this->Level) {
 					unset($list[$key]);
 				}
 			}
+
 			return $list;
 		}
 
@@ -2772,8 +2801,9 @@
 				Returns false if the setting could not be found.
 		*/
 
-		static function getSetting($id,$decode = true) {
-			$setting = new BigTree\Setting($id,$decode);
+		static function getSetting($id, $decode = true) {
+			$setting = new BigTree\Setting($id, $decode);
+
 			return $setting->Array;
 		}
 
@@ -2791,7 +2821,7 @@
 		*/
 
 		function getSettings($sort = "name ASC") {
-			$settings = BigTree\Setting::all($sort,true);
+			$settings = BigTree\Setting::all($sort, true);
 
 			if ($this->Level > 1) {
 				return $settings;
@@ -2820,7 +2850,7 @@
 		*/
 
 		static function getSystemSettings($sort = "name ASC") {
-			return BigTree\Setting::allSystem($sort,true);
+			return BigTree\Setting::allSystem($sort, true);
 		}
 
 		/*
@@ -2836,6 +2866,7 @@
 
 		static function getTag($id) {
 			$tag = new BigTree\Tag($id);
+
 			return $tag->Array;
 		}
 
@@ -2851,7 +2882,7 @@
 		*/
 
 		static function getTemplates($sort = "position DESC, name ASC") {
-			return BigTree\Template::all($sort,true);
+			return BigTree\Template::all($sort, true);
 		}
 
 		/*
@@ -2879,6 +2910,7 @@
 
 		static function getUser($id) {
 			$user = new BigTree\User($id);
+
 			return $user->Array;
 		}
 
@@ -2950,7 +2982,7 @@
 				type - The icon to draw.
 		*/
 
-		static function growl($title,$message,$type = "success") {
+		static function growl($title, $message, $type = "success") {
 			$_SESSION["bigtree_admin"]["growl"] = array("message" => $message, "title" => $title, "type" => $type);
 		}
 
@@ -2976,39 +3008,7 @@
 		*/
 
 		function initSecurity() {
-			global $bigtree;
-			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
-			$bigtree["security-policy"] = $policy = BigTree\Setting::value("bigtree-internal-security-policy");
-
-			// Check banned IPs list for the user's IP
-			if (!empty($policy["banned_ips"])) {
-				$banned = explode("\n",$policy["banned_ips"]);
-				foreach ($banned as $address) {
-					if (ip2long(trim($address)) == $ip) {
-						$bigtree["layout"] = "login";
-						$this->stop(file_get_contents(BigTree\Router::getIncludePath("admin/pages/ip-restriction.php")));
-					}
-				}
-			}
-
-			// Check allowed IP ranges list for user's IP
-			if (!empty($policy["allowed_ips"])) {
-				$allowed = false;
-				// Go through the list and see if our IP address is allowed
-				$list = explode("\n",$policy["allowed_ips"]);
-				foreach ($list as $item) {
-					list($begin,$end) = explode(",",$item);
-					$begin = ip2long(trim($begin));
-					$end = ip2long(trim($end));
-					if ($begin <= $ip && $end >= $ip) {
-						$allowed = true;
-					}
-				}
-				if (!$allowed) {
-					$bigtree["layout"] = "login";
-					$this->stop(file_get_contents(BigTree\Router::getIncludePath("admin/pages/ip-restriction.php")));
-				}
-			}
+			$this->Auth->initSecurity();
 		}
 
 		/*
@@ -3023,8 +3023,9 @@
 				Modified manifest array.
 		*/
 
-		function installExtension($manifest,$upgrade = false) {
-			$extension = BigTree\Extension::createFromManifest($manifest,$upgrade);
+		function installExtension($manifest, $upgrade = false) {
+			$extension = BigTree\Extension::createFromManifest($manifest, $upgrade);
+
 			return $extension->Manifest;
 		}
 
@@ -3075,8 +3076,8 @@
 				Your lock id.
 		*/
 
-		function lockCheck($table,$id,$include,$force = false) {
-			BigTree\Lock::enforce($table,$id,$include,$force);
+		function lockCheck($table, $id, $include, $force = false) {
+			BigTree\Lock::enforce($table, $id, $include, $force);
 		}
 
 		/*
@@ -3092,8 +3093,8 @@
 				false if login failed, true if successful
 		*/
 
-		function login($email,$password,$stay_logged_in = false) {
-			return $this->Auth->login($email,$password,$stay_logged_in);
+		function login($email, $password, $stay_logged_in = false) {
+			return $this->Auth->login($email, $password, $stay_logged_in);
 		}
 
 		/*
@@ -3147,8 +3148,8 @@
 				true if a match was found. If the file was already in the given folder, the date is simply updated.
 		*/
 
-		static function matchResourceMD5($file,$new_folder) {
-			return BigTree\Resource::md5Check($file,$new_folder);
+		static function matchResourceMD5($file, $new_folder) {
+			return BigTree\Resource::md5Check($file, $new_folder);
 		}
 
 		/*
@@ -3163,7 +3164,8 @@
 		*/
 
 		static function pageChangeExists($page) {
-			$page = new BigTree\Page($page,false);
+			$page = new BigTree\Page($page, false);
+
 			return $page->ChangeExists;
 		}
 
@@ -3173,13 +3175,7 @@
 		*/
 
 		static function pingSearchEngines() {
-			$setting = static::getSetting("ping-search-engines");
-			if ($setting["value"] == "on") {
-				// Google
-				BigTree::cURL("http://www.google.com/webmasters/tools/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
-				// Bing
-				BigTree::cURL("http://www.bing.com/webmaster/ping.aspx?siteMap=".urlencode(WWW_ROOT."sitemap.xml"));
-			}
+			BigTree\Sitemap::pingSearchEngines();
 		}
 
 		/*
@@ -3207,6 +3203,7 @@
 
 		static function processField($field) {
 			$field = new BigTree\Field($field);
+
 			return $field->process();
 		}
 
@@ -3240,8 +3237,8 @@
 				id - The id of the item.
 		*/
 
-		function refreshLock($table,$id) {
-			BigTree\Lock::refresh($table,$id);
+		function refreshLock($table, $id) {
+			BigTree\Lock::refresh($table, $id);
 		}
 
 		/*
@@ -3309,9 +3306,10 @@
 				The new revision id.
 		*/
 
-		function saveCurrentPageRevision($page,$description) {
+		function saveCurrentPageRevision($page, $description) {
 			$page = new BigTree\Page($page);
-			$revision = BigTree\PageRevision::create($page,$description);
+			$revision = BigTree\PageRevision::create($page, $description);
+
 			return $revision->ID;
 		}
 
@@ -3328,7 +3326,7 @@
 				An array of entries from bigtree_404s.
 		*/
 
-		static function search404s($type,$query = "",$page = 1) {
+		static function search404s($type, $query = "", $page = 1) {
 			if ($query) {
 				$query = SQL::escape($query);
 				if ($type == "301") {
@@ -3362,7 +3360,7 @@
 				$result["redirect_url"] = BigTree\Link::decode($result["redirect_url"]);
 			}
 
-			return array($pages,$results);
+			return array($pages, $results);
 		}
 
 		/*
@@ -3380,8 +3378,8 @@
 				An array of adds/edits/deletions from the audit trail.
 		*/
 
-		static function searchAuditTrail($user = false,$table = false,$entry = false,$start = false,$end = false) {
-			return BigTree\AuditTrail::search($user,$table,$entry,$start,$end);
+		static function searchAuditTrail($user = false, $table = false, $entry = false, $start = false, $end = false) {
+			return BigTree\AuditTrail::search($user, $table, $entry, $start, $end);
 		}
 
 		/*
@@ -3397,8 +3395,8 @@
 				An array of pages.
 		*/
 
-		static function searchPages($query,$fields = array("nav_title"),$max = 10) {
-			return BigTree\Page::search($query,$fields,$max,true);
+		static function searchPages($query, $fields = array("nav_title"), $max = 10) {
+			return BigTree\Page::search($query, $fields, $max, true);
 		}
 
 		/*
@@ -3414,7 +3412,7 @@
 		*/
 
 		function searchResources($query, $sort = "date DESC") {
-			return BigTree\Resource::search($query,$sort);
+			return BigTree\Resource::search($query, $sort);
 		}
 
 		/*
@@ -3429,7 +3427,7 @@
 		*/
 
 		static function searchTags($tag) {
-			return BigTree\Tag::allSimilar($tag,8,true);
+			return BigTree\Tag::allSimilar($tag, 8, true);
 		}
 
 		/*
@@ -3442,7 +3440,7 @@
 				url - The redirect URL.
 		*/
 
-		function set404Redirect($id,$url) {
+		function set404Redirect($id, $url) {
 			$this->requireLevel(1);
 
 			$redirect = new BigTree\Redirect($id);
@@ -3459,7 +3457,7 @@
 				position - The position to set.
 		*/
 
-		static function setCalloutPosition($id,$position) {
+		static function setCalloutPosition($id, $position) {
 			$callout = new BigTree\Callout($id);
 			$callout->Position = $position;
 			$callout->save();
@@ -3474,7 +3472,7 @@
 				position - The position to set.
 		*/
 
-		static function setModuleActionPosition($id,$position) {
+		static function setModuleActionPosition($id, $position) {
 			$action = new BigTree\ModuleAction($id);
 			$action->Position = $position;
 			$action->save();
@@ -3489,7 +3487,7 @@
 				position - The position to set.
 		*/
 
-		static function setModuleGroupPosition($id,$position) {
+		static function setModuleGroupPosition($id, $position) {
 			$group = new BigTree\ModuleGroup($id);
 			$group->Position = $position;
 			$group->save();
@@ -3504,7 +3502,7 @@
 				position - The position to set.
 		*/
 
-		static function setModulePosition($id,$position) {
+		static function setModulePosition($id, $position) {
 			$module = new BigTree\Module($id);
 			$module->Position = $position;
 			$module->save();
@@ -3519,8 +3517,8 @@
 				position - The position to set.
 		*/
 
-		static function setPagePosition($id,$position) {
-			$page = new BigTree\Page($id,false);
+		static function setPagePosition($id, $position) {
+			$page = new BigTree\Page($id, false);
 			$page->updatePosition($position);
 		}
 
@@ -3537,6 +3535,7 @@
 
 		static function setPasswordHashForUser($user) {
 			$user = new BigTree\User($user);
+
 			return $user->setPasswordHash();
 		}
 
@@ -3549,7 +3548,7 @@
 				position - The position to set.
 		*/
 
-		static function setTemplatePosition($id,$position) {
+		static function setTemplatePosition($id, $position) {
 			$template = new BigTree\Template($id);
 			$template->Position = $position;
 			$template->save();
@@ -3579,8 +3578,8 @@
 				file - A file to load (optional, replaces message but $message will be available in the file)
 		*/
 
-		function stop($message = "",$file = "") {
-			$this->Auth->stop($message,$file);
+		function stop($message = "", $file = "") {
+			$this->Auth->stop($message, $file);
 		}
 
 		/*
@@ -3594,88 +3593,13 @@
 				changes - An array of changes
 		*/
 
-		function submitPageChange($page,$changes) {
-			if ($page[0] == "p") {
-				// It's still pending...
-				$pending = true;
-				$existing_page = array();
-				$existing_pending_change = substr($page,1);
-			} else {
-				// It's an existing page
-				$pending = false;
-				$existing_page = BigTreeCMS::getPage($page);
-				$existing_pending_change = SQL::fetchSingle("SELECT id FROM bigtree_pending_changes 
-															 WHERE `table` = 'bigtree_pages' AND item_id = ?", $page);
-			}
-
-			// Save tags separately
-			$tags = JSON::encode($changes["_tags"],true);
-			unset($changes["_tags"]);
-
-			// Convert to an IPL
-			if (!empty($changes["external"])) {
-				$changes["external"] = $this->makeIPL($changes["external"]);
-			}
-
+		function submitPageChange($page, $changes) {
 			// Unset the trunk flag if the user isn't a developer
 			if ($this->Level < 2) {
 				unset($changes["trunk"]);
-			// Make sure the value is changed -- since it's a check box it may not have come through
-			} else {
-				$changes["trunk"] = !empty($changes["trunk"]) ? "on" : "";
 			}
 
-			// Set the in_nav flag, since it's not in the post if the checkbox became unclicked
-			$changes["in_nav"] = !empty($changes["in_nav"]) ? "on" : "";
-
-			// If there's already a change in the queue, update it with this latest info.
-			if ($existing_pending_change) {
-				// If this is a pending page, just replace all the changes
-				if ($pending) {
-					$diff = $changes;
-				// Otherwise, we need to check what's changed.
-				} else {
-
-					// We don't want to indiscriminately put post data in as changes, so we ensure it matches a column in the bigtree_pages table
-					$diff = array();
-					foreach ($changes as $key => $val) {
-						if (array_key_exists($key,$existing_page) && $existing_page[$key] != $val) {
-							$diff[$key] = $val;
-						}
-					}
-				}
-
-				// Update existing draft and track
-				SQL::update("bigtree_pending_changes",$existing_pending_change,array(
-					"changes" => $diff,
-					"tags_changes" => $tags,
-					"user" => $this->ID
-				));
-
-				$this->track("bigtree_pages",$page,"updated-draft");
-				return $existing_pending_change;
-
-			// We're submitting a change to a presently published page with no pending changes.
-			} else {
-				$diff = array();
-				foreach ($changes as $key => $val) {
-					if (array_key_exists($key,$existing_page) && $val != $existing_page[$key]) {
-						$diff[$key] = $val;
-					}
-				}
-
-				// Create draft and track
-				$this->track("bigtree_pages",$page,"saved-draft");
-
-				return SQL::insert("bigtree_pending_changes",array(
-					"user" => $this->ID,
-					"table" => "bigtree_pages",
-					"item_id" => $page,
-					"changes" => $diff,
-					"tags_changes" => $tags,
-					"title" => "Page Change Pending"
-				));
-			}
+			BigTree\Page::createChangeRequest($page, $changes);
 		}
 
 		/*
@@ -3688,8 +3612,8 @@
 				type - The action taken by the user (delete, edit, create, etc.)
 		*/
 
-		static function track($table,$entry,$type) {
-			BigTree\AuditTrail::track($table,$entry,$type);
+		static function track($table, $entry, $type) {
+			BigTree\AuditTrail::track($table, $entry, $type);
 		}
 
 		/*
@@ -3706,10 +3630,11 @@
 
 		function unarchivePage($page) {
 			$page = is_array($page) ? $page["id"] : $page;
-			$page = new BigTree\Page($page,false);
+			$page = new BigTree\Page($page, false);
 
 			if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
 				$page->unarchive();
+
 				return true;
 			}
 
@@ -3726,7 +3651,7 @@
 		*/
 
 		function unarchivePageChildren($id) {
-			$page = new BigTree\Page($id,false);
+			$page = new BigTree\Page($id, false);
 			$page->unarchiveChildren();
 		}
 
@@ -3767,7 +3692,7 @@
 		*/
 
 		static function unCache($page) {
-			$page = new BigTree\Page($page,false);
+			$page = new BigTree\Page($page, false);
 			$page->uncache();
 		}
 
@@ -3797,8 +3722,8 @@
 				id - The id of the entry.
 		*/
 
-		static function unlock($table,$id) {
-			BigTree\Lock::remove($table,$id);
+		static function unlock($table, $id) {
+			BigTree\Lock::remove($table, $id);
 		}
 
 		/*
@@ -3815,9 +3740,9 @@
 				display_default - The text string to use in the event the display_field is blank or non-existent
 		*/
 
-		function updateCallout($id,$name,$description,$level,$resources,$display_field,$display_default) {
+		function updateCallout($id, $name, $description, $level, $resources, $display_field, $display_default) {
 			$callout = new BigTree\Callout($id);
-			$callout->update($name,$description,$level,$resources,$display_field,$display_default);
+			$callout->update($name, $description, $level, $resources, $display_field, $display_default);
 		}
 
 		/*
@@ -3830,9 +3755,9 @@
 				callouts - An array of callout IDs to assign to the group.
 		*/
 
-		function updateCalloutGroup($id,$name,$callouts) {
+		function updateCalloutGroup($id, $name, $callouts) {
 			$group = new BigTree\CalloutGroup($id);
-			$group->update($name,$callouts);
+			$group->update($name, $callouts);
 		}
 
 		/*
@@ -3845,7 +3770,7 @@
 		*/
 
 		static function updateChildPagePaths($page) {
-			$page = new BigTree\Page($page,false);
+			$page = new BigTree\Page($page, false);
 			$page->updateChildrenPaths();
 		}
 
@@ -3863,9 +3788,9 @@
 				fields - The fields.
 		*/
 
-		function updateFeed($id,$name,$description,$table,$type,$options,$fields) {
+		function updateFeed($id, $name, $description, $table, $type, $options, $fields) {
 			$feed = new BigTree\Feed($id);
-			$feed->update($name,$description,$table,$type,$options,$fields);
+			$feed->update($name, $description, $table, $type, $options, $fields);
 		}
 
 		/*
@@ -3879,9 +3804,9 @@
 				self_draw - Whether this field type will draw its <fieldset> and <label> ("on" or a falsey value)
 		*/
 
-		function updateFieldType($id,$name,$use_cases,$self_draw) {
+		function updateFieldType($id, $name, $use_cases, $self_draw) {
 			$field_type = new BigTree\FieldType($id);
-			$field_type->update($name,$use_cases,$self_draw);
+			$field_type->update($name, $use_cases, $self_draw);
 		}
 
 		/*
@@ -3898,9 +3823,9 @@
 				developer_only - Sets a module to be accessible/visible to only developers.
 		*/
 
-		function updateModule($id,$name,$group,$class,$permissions,$icon,$developer_only = false) {
+		function updateModule($id, $name, $group, $class, $permissions, $icon, $developer_only = false) {
 			$module = new BigTree\Module($id);
-			$module->update($name,$group,$class,$permissions,$icon,$developer_only);
+			$module->update($name, $group, $class, $permissions, $icon, $developer_only);
 		}
 
 		/*
@@ -3918,9 +3843,9 @@
 				position - The position in navigation.
 		*/
 
-		function updateModuleAction($id,$name,$route,$in_nav,$icon,$interface,$level,$position) {
+		function updateModuleAction($id, $name, $route, $in_nav, $icon, $interface, $level, $position) {
 			$action = new BigTree\ModuleAction($id);
-			$action->update($name,$route,$in_nav,$icon,$interface,$level,$position);
+			$action->update($name, $route, $in_nav, $icon, $interface, $level, $position);
 		}
 
 		/*
@@ -3940,9 +3865,9 @@
 				thank_you_message - The message to display upon completeion of submission.
 		*/
 
-		function updateModuleEmbedForm($id,$title,$table,$fields,$hooks = array(),$default_position = "",$default_pending = "",$css = "",$redirect_url = "",$thank_you_message = "") {
+		function updateModuleEmbedForm($id, $title, $table, $fields, $hooks = array(), $default_position = "", $default_pending = "", $css = "", $redirect_url = "", $thank_you_message = "") {
 			$form = new BigTree\ModuleEmbedForm($id);
-			$form->update($title,$table,$fields,$hooks,$default_position,$default_pending,$css,$redirect_url,$thank_you_message);
+			$form->update($title, $table, $fields, $hooks, $default_position, $default_pending, $css, $redirect_url, $thank_you_message);
 		}
 
 		/*
@@ -3961,9 +3886,9 @@
 				tagging - Whether or not to enable tagging.
 		*/
 
-		function updateModuleForm($id,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
+		function updateModuleForm($id, $title, $table, $fields, $hooks = array(), $default_position = "", $return_view = false, $return_url = "", $tagging = "") {
 			$form = new BigTree\ModuleForm($id);
-			$form->update($title,$table,$fields,$hooks,$default_position,$return_view,$return_url,$tagging);
+			$form->update($title, $table, $fields, $hooks, $default_position, $return_view, $return_url, $tagging);
 		}
 
 		/*
@@ -3975,7 +3900,7 @@
 				name - The name of the module group.
 		*/
 
-		function updateModuleGroup($id,$name) {
+		function updateModuleGroup($id, $name) {
 			$group = new BigTree\ModuleGroup($id);
 			$group->update($name);
 		}
@@ -3991,7 +3916,7 @@
 				settings - An array of settings
 		*/
 
-		function updateModuleInterface($id,$title,$table,$settings = array()) {
+		function updateModuleInterface($id, $title, $table, $settings = array()) {
 			$interface = new BigTree\ModuleInterface($id);
 			$interface->Title = $title;
 			$interface->Table = $table;
@@ -4014,9 +3939,9 @@
 				view - A module view ID to use (if type = view).
 		*/
 
-		function updateModuleReport($id,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
+		function updateModuleReport($id, $title, $table, $type, $filters, $fields = "", $parser = "", $view = "") {
 			$report = new BigTree\ModuleReport($id);
-			$report->update($title,$table,$type,$filters,$fields,$parser,$view);
+			$report->update($title, $table, $type, $filters, $fields, $parser, $view);
 		}
 
 		/*
@@ -4036,9 +3961,9 @@
 				preview_url - Optional preview URL.
 		*/
 
-		function updateModuleView($id,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url = "") {
+		function updateModuleView($id, $title, $description, $table, $type, $options, $fields, $actions, $related_form, $preview_url = "") {
 			$view = new BigTree\ModuleView($id);
-			$view->update($title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url);
+			$view->update($title, $description, $table, $type, $options, $fields, $actions, $related_form, $preview_url);
 		}
 
 		/*
@@ -4063,7 +3988,7 @@
 				fields - A fields array.
 		*/
 
-		function updateModuleViewFields($id,$fields) {
+		function updateModuleViewFields($id, $fields) {
 			$view = new BigTree\ModuleView($id);
 			$view->Fields = $fields;
 
@@ -4081,14 +4006,14 @@
 				data - The page data to update with.
 		*/
 
-		function updatePage($page,$data) {
+		function updatePage($page, $data) {
 			// Set local variables in a clean fashion that prevents _SESSION exploitation.  Also, don't let them somehow overwrite $page and $current.
 			$trunk = $in_nav = $external = $route = $publish_at = $expire_at = $nav_title = $title = $template = $new_window = $meta_keywords = $meta_description = $seo_invisible = "";
 			$parent = $max_age = 0;
 			$resources = $tags = array();
 
 			foreach ($data as $key => $val) {
-				if (substr($key,0,1) != "_" && $key != "current" && $key != "page") {
+				if (substr($key, 0, 1) != "_" && $key != "current" && $key != "page") {
 					$$key = $val;
 				}
 			}
@@ -4114,7 +4039,7 @@
 				$parent = $page->Parent;
 			}
 
-			$page->update($trunk,$parent,$in_nav,$nav_title,$title,$route,$meta_description,$seo_invisible,$template,$external,$new_window,$resources,$publish_at,$expire_at,$max_age,$tags);
+			$page->update($trunk, $parent, $in_nav, $nav_title, $title, $route, $meta_description, $seo_invisible, $template, $external, $new_window, $resources, $publish_at, $expire_at, $max_age, $tags);
 		}
 
 		/*
@@ -4127,16 +4052,16 @@
 				parent - The parent to switch to.
 		*/
 
-		function updatePageParent($page,$parent) {
+		function updatePageParent($page, $parent) {
 			if ($this->Level < 1) {
 				$this->stop("You are not allowed to move pages.");
 			}
 
-			$page = new BigTree\Page($page,false);
+			$page = new BigTree\Page($page, false);
 
 			// Reset back to not in nav if a non-developer is moving to top level
 			if ($this->Level < 2 && $parent == 0) {
-				SQL::update("bigtree_pages",$page->ID,array("in_nav" => ""));
+				SQL::update("bigtree_pages", $page->ID, array("in_nav" => ""));
 			}
 
 			$page->updateParent($parent);
@@ -4152,7 +4077,7 @@
 				description - Saved description.
 		*/
 
-		function updatePageRevision($id,$description) {
+		function updatePageRevision($id, $description) {
 			// Get the version, check if the user has access to the page the version refers to.
 			$revision = new BigTree\PageRevision($id);
 			$origin_page = new BigTree\Page($revision->Page);
@@ -4175,9 +4100,9 @@
 				tags_changes - Tags changes.
 		*/
 
-		function updatePendingChange($id,$changes,$mtm_changes = array(),$tags_changes = array()) {
+		function updatePendingChange($id, $changes, $mtm_changes = array(), $tags_changes = array()) {
 			$change = new BigTree\PendingChange($id);
-			$change->update($changes,$mtm_changes,$tags_changes);
+			$change->update($changes, $mtm_changes, $tags_changes);
 		}
 
 		/*
@@ -4191,8 +4116,8 @@
 				password - Password (leave empty or false to not update)
 		*/
 
-		function updateProfile($name,$company = "",$daily_digest = "",$password = false) {
-			BigTree\User::updateProfile($name,$company,$daily_digest,$password);
+		function updateProfile($name, $company = "", $daily_digest = "", $password = false) {
+			BigTree\User::updateProfile($name, $company, $daily_digest, $password);
 		}
 
 		/*
@@ -4204,11 +4129,11 @@
 				attributes - A key/value array of fields to update.
 		*/
 
-		function updateResource($id,$attributes) {
+		function updateResource($id, $attributes) {
 			$resource = new BigTree\Resource($id);
 			foreach ($attributes as $key => $val) {
 				// Camel case attributes
-				$key = str_replace(" ","",ucwords(str_replace("_"," ",$key)));
+				$key = str_replace(" ", "", ucwords(str_replace("_", " ", $key)));
 				$resource->$key = $val;
 			}
 			$resource->save();
@@ -4226,18 +4151,19 @@
 				true if successful, false if a setting exists for the new id already.
 		*/
 
-		function updateSetting($old_id,$data) {
+		function updateSetting($old_id, $data) {
 			$id = $type = $name = $description = $locked = $encrypted = $system = "";
 			$options = array();
 
 			foreach ($data as $key => $val) {
-				if (substr($key,0,1) != "_") {
+				if (substr($key, 0, 1) != "_") {
 					$$key = $val;
 				}
 			}
 
-			$setting = new BigTree\Setting($old_id,false);
-			return $setting->update($id,$type,$options,$name,$description,$locked,$encrypted,$system);
+			$setting = new BigTree\Setting($old_id, false);
+
+			return $setting->update($id, $type, $options, $name, $description, $locked, $encrypted, $system);
 		}
 
 		/*
@@ -4249,7 +4175,7 @@
 				value - A value to set (can be a string or array).
 		*/
 
-		static function updateSettingValue($id,$value) {
+		static function updateSettingValue($id, $value) {
 			$setting = new BigTree\Setting($id);
 			$setting->Value = $value;
 			$setting->save();
@@ -4267,9 +4193,9 @@
 				resources - An array of resources
 		*/
 
-		function updateTemplate($id,$name,$level,$module,$resources) {
+		function updateTemplate($id, $name, $level, $module, $resources) {
 			$template = new BigTree\Template($id);
-			$template->update($name,$level,$module,$resources);
+			$template->update($name, $level, $module, $resources);
 		}
 
 		/*
@@ -4291,19 +4217,20 @@
 				True if successful.  False if the logged in user doesn't have permission to change the user or there was an email collision.
 		*/
 
-		function updateUser($id,$email,$password = "",$name = "",$company = "",$level = 0,$permissions = array(),$alerts = array(),$daily_digest = "") {
+		function updateUser($id, $email, $password = "", $name = "", $company = "", $level = 0, $permissions = array(), $alerts = array(), $daily_digest = "") {
 			// Allow for pre-4.3 syntax
 			if (is_array($email)) {
 				$data = $email;
 				foreach ($data as $key => $val) {
-					if (substr($key,0,1) != "_") {
+					if (substr($key, 0, 1) != "_") {
 						$$key = $val;
 					}
 				}
 			}
 
 			$user = new BigTree\User($id);
-			return $user->update($email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest);
+
+			return $user->update($email, $password, $name, $company, $level, $permissions, $alerts, $daily_digest);
 		}
 
 		/*
@@ -4315,7 +4242,7 @@
 				password - The new password.
 		*/
 
-		static function updateUserPassword($id,$password) {
+		static function updateUserPassword($id, $password) {
 			$user = new BigTree\User($id);
 			$user->Password = $password;
 			$user->save();
@@ -4348,14 +4275,6 @@
 		*/
 
 		static function versionToDecimal($version) {
-			$pieces = explode(".",$version);
-			$number = $pieces[0] * 10000;
-			if (isset($pieces[1])) {
-				$number += $pieces[1] * 100;
-			}
-			if (isset($pieces[2])) {
-				$number += $pieces[2];
-			}
-			return $number;
+			return BigTree\Text::versionToDecimal($version);
 		}
 	}
