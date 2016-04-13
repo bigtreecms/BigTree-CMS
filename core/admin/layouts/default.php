@@ -2,35 +2,35 @@
 	namespace BigTree;
 	
 	$find_path = function($nav,$path,$last_link = "") use (&$find_path) {
-		global $bigtree,$breadcrumb;
+		static $page = array("navigation" => array(), "related" => array());
 
 		foreach ($nav as $item) {
 			if ((strpos($path,$item["link"]."/") === 0 && $item["link"] != $last_link) || $path == $item["link"]) {				
-				$breadcrumb[] = array("title" => $item["title"],"link" => $item["link"]);
-				$bigtree["page"]["title"] = $item["title"] ? $item["title"] : $bigtree["page"]["title"];
-				$bigtree["page"]["title"] = $item["title_override"] ? $item["title_override"] : $bigtree["page"]["title"];
-				$bigtree["page"]["icon"] = $item["icon"] ? $item["icon"] : $bigtree["page"]["icon"];
-				$bigtree["page"]["navigation"] = $item["children"] ? $item["children"] : $bigtree["page"]["navigation"];
+				$page["breadcrumb"][] = array("title" => $item["title"],"link" => $item["link"]);
+				$page["title"] = $item["title"] ? $item["title"] : $page["title"];
+				$page["title"] = $item["title_override"] ? $item["title_override"] : $page["title"];
+				$page["icon"] = $item["icon"] ? $item["icon"] : $page["icon"];
+				$page["navigation"] = $item["children"] ? $item["children"] : $page["navigation"];
 
 				// Get the related dropdown menu
 				if ($item["related"]) {
-					$bigtree["page"]["related"]["title"] = $bigtree["page"]["title"];
-					$bigtree["page"]["related"]["nav"] = $bigtree["page"]["navigation"];
+					$page["related"]["title"] = $page["title"];
+					$page["related"]["nav"] = $page["navigation"];
 				}
 
 				if ($item["children"]) {
-					$find_path($item["children"],$path,$item["link"]);
+					return $find_path($item["children"],$path,$item["link"]);
 				}
 			}
 		}
+
+		return $page;
 	};
 
-	$bigtree["page"] = array("navigation" => array(),"related" => array());
-	$breadcrumb = array();
 	$current_path = implode("/",array_slice($bigtree["path"],1));
 
 	if (!defined("BIGTREE_ACCESS_DENIED")) {
-		$find_path($bigtree["nav_tree"],$current_path);
+		$bigtree["page"] = $find_path($bigtree["nav_tree"],$current_path);
 	}
 
 	// Set the page title if it hasn't been set
@@ -40,12 +40,15 @@
 
 	// If we're in a module, add "Modules" to the beginning of the breadcrumb
 	if (defined("MODULE_ROOT")) {
-		$breadcrumb = array_merge(array(array("title" => "Modules","link" => "modules")),$breadcrumb);
+		$bigtree["page"]["breadcrumb"] = array_merge(
+			array(array("title" => "Modules","link" => "modules")),
+			$bigtree["page"]["breadcrumb"]
+		);
 	}
 
-	// Replace breadcrumb with a custom one if it exists
-	if (is_array($bigtree["breadcrumb"]) && count($bigtree["breadcrumb"])) {
-		$breadcrumb = $bigtree["breadcrumb"];
+	// Don't replace breadcrumb with a custom one if it exists
+	if (!array_filter((array) $bigtree["breadcrumb"])) {
+		$bigtree["breadcrumb"] = $bigtree["page"]["breadcrumb"];
 	}
 
 	// Allow individual pages to override the automatic navigation.
@@ -58,7 +61,7 @@
 	// If this is a "Partial" page request then we're going to deliver JSON and let JavaScript construct it.
 	if ($_SERVER["HTTP_BIGTREE_PARTIAL"]) {
 		ob_start();
-		foreach ($breadcrumb as &$item) {
+		foreach ($bigtree["page"]["breadcrumb"] as &$item) {
 			$item["title"] = Text::htmlEncode($item["title"]);
 		}
 		unset($item);
@@ -78,13 +81,13 @@
 		<span class="page_icon <?=$bigtree["page"]["icon"]?>"><?php if ($bigtree["page"]["icon"] == "gravatar") { ?><img src="<?=BigTree::gravatar($bigtree["gravatar"])?>" alt="" /><?php } ?></span>
 		<?php
 			$x = 0;
-			foreach ($breadcrumb as $item) {
+			foreach ($bigtree["page"]["breadcrumb"] as $item) {
 				$x++;
 				
 		?>
-		<a href="<?=ADMIN_ROOT.$item["link"]?>/" class="<?php if ($x == 1) { ?> first<?php } if ($x == count($breadcrumb)) { ?> last<?php } ?>"><?=Text::htmlEncode($item["title"])?></a>
+		<a href="<?=ADMIN_ROOT.$item["link"]?>/" class="<?php if ($x == 1) { ?> first<?php } if ($x == count($bigtree["page"]["breadcrumb"])) { ?> last<?php } ?>"><?=Text::htmlEncode($item["title"])?></a>
 		<?php
-				if ($x != count($breadcrumb)) {
+				if ($x != count($bigtree["page"]["breadcrumb"])) {
 		?>
 		<span class="divider">&rsaquo;</span>
 		<?php
@@ -217,7 +220,7 @@
 			}
 		}
 		echo json_encode(array(
-			"breadcrumb" => $breadcrumb,
+			"breadcrumb" => $bigtree["page"]["breadcrumb"],
 			"title" => $title,
 			"page" => ob_get_clean(),
 			"active_nav" => $bigtree["active_nav_item"],
