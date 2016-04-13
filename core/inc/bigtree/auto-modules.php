@@ -396,12 +396,13 @@
 				many_to_many - Many to many relationship entries.
 				tags - Tags for the entry.
 				publish_hook - A function to call when this change is published from the Dashboard.
+				embedded_form - If this is being called from an embedded form, set the user to NULL (defaults to false)
 			
 			Returns:
 				The id of the new entry in the bigtree_pending_changes table.
 		*/
 
-		static function createPendingItem($module,$table,$data,$many_to_many = array(),$tags = array(),$publish_hook = null) {
+		static function createPendingItem($module,$table,$data,$many_to_many = array(),$tags = array(),$publish_hook = null,$embedded_form = false) {
 			global $admin;
 			
 			foreach ($data as $key => $val) {
@@ -413,11 +414,12 @@
 				}
 			}
 
+			$user = $embedded_form ? "NULL" : $admin->ID;
 			$data = sqlescape(json_encode($data));
 			$many_data = sqlescape(json_encode($many_to_many));
 			$tags_data = sqlescape(json_encode($tags));
 			$publish_hook = is_null($publish_hook) ? "NULL" : "'".sqlescape($publish_hook)."'";
-			sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`changes`,`mtm_changes`,`tags_changes`,`module`,`type`,`publish_hook`) VALUES (".$admin->ID.",NOW(),'$table','$data','$many_data','$tags_data','$module','NEW',$publish_hook)");
+			sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`changes`,`mtm_changes`,`tags_changes`,`module`,`type`,`publish_hook`) VALUES ($user,NOW(),'$table','$data','$many_data','$tags_data','$module','NEW',$publish_hook)");
 			
 			$id = sqlid();
 
@@ -446,7 +448,7 @@
 		}
 		
 		/*
-			Function: deleteItem
+			Function: deletePendingItem
 				Deletes a pending item from bigtree_pending_changes and uncaches it.
 			
 			Parameters:

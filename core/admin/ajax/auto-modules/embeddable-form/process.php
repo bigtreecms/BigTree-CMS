@@ -105,7 +105,7 @@
 	}
 
 	if ($bigtree["form"]["default_pending"]) {
-		$edit_id = "p".BigTreeAutoModule::createPendingItem($bigtree["module"]["id"],$table,$item,$many_to_many,$tags,$bigtree["form"]["hooks"]["publish"]);
+		$edit_id = "p".BigTreeAutoModule::createPendingItem($bigtree["form"]["module"],$table,$item,$many_to_many,$tags,$bigtree["form"]["hooks"]["publish"],true);
 	} else {
 		$edit_id = BigTreeAutoModule::createItem($table,$item,$many_to_many,$tags);
 		$did_publish = true;
