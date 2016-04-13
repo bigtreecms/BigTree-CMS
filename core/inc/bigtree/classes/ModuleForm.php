@@ -190,14 +190,15 @@
 				columns - An array of form user data.
 				many_to_many - Many to many relationship entries.
 				tags - Tags for the entry.
+				embedded_form - If this is being called from an embedded form, set the user to NULL (defaults to false)
 
 			Returns:
 				The id of the new entry in the bigtree_pending_changes table.
 		*/
 
-		function createPendingEntry($columns, $many_to_many = array(), $tags = array()) {
+		function createPendingEntry($columns, $many_to_many = array(), $tags = array(), $embedded_form = false) {
 			$hook = !empty($this->Hooks["publish"]) ? $this->Hooks["publish"] : false;
-			$change = PendingChange::create($this->Table, false, $columns, $many_to_many, $tags, $this->Module, $hook);
+			$change = PendingChange::create($this->Table, false, $columns, $many_to_many, $tags, $this->Module, $hook, $embedded_form);
 
 			return $change->ID;
 		}

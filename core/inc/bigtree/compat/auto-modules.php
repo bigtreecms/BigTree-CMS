@@ -108,12 +108,13 @@
 				many_to_many - Many to many relationship entries.
 				tags - Tags for the entry.
 				publish_hook - A function to call when this change is published from the Dashboard.
+				embedded_form - If this is being called from an embedded form, set the user to NULL (defaults to false)
 			
 			Returns:
 				The id of the new entry in the bigtree_pending_changes table.
 		*/
 
-		static function createPendingItem($module, $table, $data, $many_to_many = array(), $tags = array(), $publish_hook = null) {
+		static function createPendingItem($module, $table, $data, $many_to_many = array(), $tags = array(), $publish_hook = null, $embedded_form = false) {
 			// Create fake module form
 			$form = new BigTree\ModuleForm(array(
 				"module" => $module,
@@ -121,7 +122,7 @@
 				"settings" => json_encode(array("hooks" => array("publish" => $publish_hook)))
 			));
 
-			return $form->createPendingEntry($data, $many_to_many, $tags);
+			return $form->createPendingEntry($data, $many_to_many, $tags, $embedded_form);
 		}
 		
 		/*

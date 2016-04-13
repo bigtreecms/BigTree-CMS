@@ -692,6 +692,13 @@
 		$db->query("CREATE TABLE `bigtree_user_sessions` (`id` varchar(255) NOT NULL DEFAULT '', `email` varchar(255) DEFAULT NULL, `chain` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`), KEY `email` (`email`), KEY `chain` (`chain`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 	}
 
+	// BigTree 4.2.10 update -- REVISION 202
+	function _local_bigtree_update_202() {
+		global $db;
+
+		$db->query("ALTER TABLE `bigtree_pending_changes` CHANGE COLUMN `user` `user` int(11) unsigned NULL");
+	}
+
 	// BigTree 4.3 update -- REVISION 300
 	function _local_bigtree_update_300() {
 		global $db;

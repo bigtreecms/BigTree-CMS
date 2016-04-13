@@ -171,12 +171,13 @@
 				tags_changes - Tags changes.
 				module - The module id for the change.
 				publish_hook - An optional publishing hook.
+				embedded_form - If this is a submission from an embeddable form, set to true.
 
 			Returns:
 				A PendingChange object.
 		*/
 
-		static function create($table, $item_id, $changes, $mtm_changes = array(), $tags_changes = array(), $module = 0, $publish_hook = false) {
+		static function create($table, $item_id, $changes, $mtm_changes = array(), $tags_changes = array(), $module = 0, $publish_hook = false, $embedded_form = false) {
 			// Clean up data for JSON storage
 			foreach ($changes as $key => $val) {
 				if ($val === "NULL") {
@@ -197,11 +198,15 @@
 			}
 
 			// Get the user creating the change
-			global $admin;
-			if (get_class($admin) == "BigTreeAdmin" && $admin->ID) {
-				$user = $admin->ID;
-			} else {
+			if ($embedded_form) {
 				$user = null;
+			} else {
+				global $admin;
+				if (get_class($admin) == "BigTreeAdmin" && $admin->ID) {
+					$user = $admin->ID;
+				} else {
+					$user = null;
+				}
 			}
 
 			$id = SQL::insert("bigtree_pending_changes", array(
