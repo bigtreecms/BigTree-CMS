@@ -26,7 +26,7 @@
 		public $Value;
 
 		static $Count = 0;
-		static $Namespace = ;
+		static $Namespace = "bigtree_field_";
 
 		/*
 			Constructor:

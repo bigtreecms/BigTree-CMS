@@ -38,7 +38,7 @@
 
 			// Bad data set
 			if (!is_array($extension)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_WARNING);
+				trigger_error("Invalid ID or data set passed to constructor.", E_USER_WARNING);
 			} else {
 				$this->ID = $extension["id"];
 				$this->LastUpdated = $extension["last_updated"];

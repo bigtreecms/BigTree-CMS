@@ -36,7 +36,7 @@
 
 			// Bad data set
 			if (!is_array($interface)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_WARNING);
+				trigger_error("Invalid ID or data set passed to constructor.", E_USER_WARNING);
 			} else {
 				$this->ID = $interface["id"];
 				$this->InterfaceSettings = (array) @json_decode($interface["settings"], true);

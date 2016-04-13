@@ -45,7 +45,7 @@
 
 			// Bad data set
 			if (!is_array($setting)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_WARNING);
+				trigger_error("Invalid ID or data set passed to constructor.", E_USER_WARNING);
 			} else {
 				$options = is_string($setting["options"]) ? json_decode($setting["options"],true) : $setting["options"];
 

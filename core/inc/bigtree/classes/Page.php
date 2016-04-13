@@ -96,6 +96,20 @@
 			}
 		}
 
+		// Array conversion
+		function getArray() {
+			$raw_properties = get_object_vars($this);
+			$changed_properties = array();
+
+			foreach ($raw_properties as $key => $value) {
+				$changed_properties[$this->_camelCaseToUnderscore($key)] = $value;
+			}
+
+			$changed_properties["nav_title"] = $changed_properties["navigation_title"];
+			
+			return $changed_properties;
+		}
+
 		/*
 			Function: allByTags
 				Returns pages related to the given set of tags.
