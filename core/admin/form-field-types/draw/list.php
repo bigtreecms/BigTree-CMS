@@ -16,7 +16,7 @@
 		if ($bigtree["config"]["debug"] && !BigTree::tableExists($list_table)) {
 			$db_error = true;
 		} else {
-			$entries = $db->fetchAll("SELECT `id`,`$list_title` AS `title` FROM `$list_table` ORDER BY $list_sort");
+			$entries = SQL::fetchAll("SELECT `id`,`$list_title` AS `title` FROM `$list_table` ORDER BY $list_sort");
 			
 			// Check if we're doing module based permissions on this table.
 			if ($bigtree["module"] && $bigtree["module"]["gbp"]["enabled"] && $form["table"] == $bigtree["module"]["gbp"]["table"] && $key == $bigtree["module"]["gbp"]["group_field"]) {

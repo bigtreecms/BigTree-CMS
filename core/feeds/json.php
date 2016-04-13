@@ -3,7 +3,7 @@
 
 	$sort = $feed["options"]["sort"] ? $feed["options"]["sort"] : "id DESC";
 	$limit = $feed["options"]["limit"] ? $feed["options"]["limit"] : "15";
-	$query = $db->query("SELECT * FROM `".$feed["table"]."` ORDER BY $sort LIMIT $limit");
+	$query = SQL::query("SELECT * FROM `".$feed["table"]."` ORDER BY $sort LIMIT $limit");
 	
 	$json_data = array();
 	while ($item = $query->fetch()) {

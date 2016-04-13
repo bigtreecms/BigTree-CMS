@@ -59,7 +59,7 @@
 	}
 
 	// Check if it's already installed
-	if ($db->exists("bigtree_extensions",$json["id"])) {
+	if (SQL::exists("bigtree_extensions",$json["id"])) {
 		FileSystem::deleteDirectory($cache_root);
 		$_SESSION["upload_error"] = "An extension with the id of ".htmlspecialchars($json["id"])." is already installed.";
 		Router::redirect(DEVELOPER_ROOT."extensions/install/");
@@ -67,7 +67,7 @@
 	
 	// Check for table collisions
 	foreach ((array)$json["components"]["tables"] as $table => $create_statement) {
-		if ($db->query("SHOW TABLES LIKE '$table'")->rows()) {
+		if (SQL::query("SHOW TABLES LIKE '$table'")->rows()) {
 			$warnings[] = "A table named &ldquo;$table&rdquo; already exists &mdash; the table will be overwritten.";
 		}
 	}

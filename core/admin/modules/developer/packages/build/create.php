@@ -95,11 +95,11 @@
 	foreach ((array)$tables as $t) {
 		$x++;
 		list($table,$type) = explode("#",$t);
-		$f = $db->fetch("SHOW CREATE TABLE `$table`");
+		$f = SQL::fetch("SHOW CREATE TABLE `$table`");
 		$package["sql"][] = "DROP TABLE IF EXISTS `$table`";
 		$package["sql"][] = str_replace(array("\r","\n")," ",end($f));
 		if ($type != "structure") {
-			$q = $db->query("SELECT * FROM `$table`");
+			$q = SQL::query("SELECT * FROM `$table`");
 			while ($f = $q->fetch()) {
 				$fields = array();
 				$values = array();
@@ -108,7 +108,7 @@
 					if ($val === null) {
 						$values[] = "NULL";
 					} else {
-						$values[] = "'".$db->escape(str_replace("\n","\\n",$val))."'";
+						$values[] = "'".SQL::escape(str_replace("\n","\\n",$val))."'";
 					}
 				}
 				$package["sql"][] = "INSERT INTO `$table` (".implode(",",$fields).") VALUES (".implode(",",$values).")";
@@ -139,14 +139,14 @@
 	FileSystem::deleteDirectory(SERVER_ROOT."cache/package/");
 
 	// Store it in the database for future updates
-	if ($db->exists("bigtree_extensions",$id)) {
-		$db->update("bigtree_extensions",$id,array(
+	if (SQL::exists("bigtree_extensions",$id)) {
+		SQL::update("bigtree_extensions",$id,array(
 			"name" => $title,
 			"version" => $version,
 			"manifest" => $json
 		));
 	} else {
-		$db->insert("bigtree_extensions",array(
+		SQL::insert("bigtree_extensions",array(
 			"id" => $id,
 			"type" => "package",
 			"name" => $title,

@@ -233,7 +233,7 @@
 			} elseif ($options["list_type"] == "country") {
 				return BigTree::$CountryList[array_rand(BigTree::$CountryList)];
 			} else {
-				return $db->fetchSingle("SELECT `id` FROM `".$options["pop-table"]."` ORDER BY RAND() LIMIT 1");
+				return SQL::fetchSingle("SELECT `id` FROM `".$options["pop-table"]."` ORDER BY RAND() LIMIT 1");
 			}
 		} elseif ($type == "checkbox") {
 			if (rand(0,1) == 1) {
@@ -268,14 +268,14 @@
 			global $data,$form;
 
 			$route = BigTreeCMS::urlify(strip_tags($data[$options["source"]]));
-			return $db->unique($form["table"],$field["key"],$route);
+			return SQL::unique($form["table"],$field["key"],$route);
 		} elseif ($type == "many-to-many") {
 			global $many_to_many;
-			$total = $db->fetchSingle("SELECT COUNT(*) FROM `".$options["mtm-other-table"]."`");
+			$total = SQL::fetchSingle("SELECT COUNT(*) FROM `".$options["mtm-other-table"]."`");
 			$number_to_make = rand(1,$total);
 			$used = array();
 			while ($number_to_make) {
-				$random_id = $db->fetchSingle("SELECT id FROM `".$options["mtm-other-table"]."` ORDER BY RAND() LIMIT 1");
+				$random_id = SQL::fetchSingle("SELECT id FROM `".$options["mtm-other-table"]."` ORDER BY RAND() LIMIT 1");
 				if (!in_array($random_id,$used)) {
 					$many_to_many[] = array(
 						"table" => $options["mtm-connecting-table"],
@@ -310,7 +310,7 @@
 		}
 		$id = BigTreeAutoModule::createItem($form["table"],$data);
 		foreach ($many_to_many as $mtm) {
-			$db->insert($mtm["table"],array(
+			SQL::insert($mtm["table"],array(
 				$mtm["my_field"] => $id,
 				$mtm["other_field"] => $mtm["value"]
 			));

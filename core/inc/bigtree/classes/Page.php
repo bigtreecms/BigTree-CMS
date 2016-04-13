@@ -889,7 +889,7 @@
 
 				// Get pending changes for this page.
 				$pending = SQL::fetch("SELECT * FROM bigtree_pending_changes 
-									   WHERE `table` = 'bigtree_pages' AND item_id = ?", $page["id"]);
+									   WHERE `table` = 'bigtree_pages' AND item_id = ?", $page->ID);
 
 			} else {
 				// If it's prefixed with a "p" then it's a pending entry.

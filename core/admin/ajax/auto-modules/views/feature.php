@@ -7,7 +7,7 @@
 		} else {
 			echo 'BigTree.growl("'.$module["name"].'","Item is now unfeatured.");';
 			if (is_numeric($id)) {
-				$db->update($table,$id,array("featured" => ""));
+				SQL::update($table,$id,array("featured" => ""));
 			} else {
 				BigTreeAutoModule::updatePendingItemField(substr($id,1),"featured","");
 			}
@@ -18,7 +18,7 @@
 		} else {
 			echo 'BigTree.growl("'.$module["name"].'","Item is now featured.");';
 			if (is_numeric($id)) {
-				$db->update($table,$id,array("featured" => "on"));
+				SQL::update($table,$id,array("featured" => "on"));
 			} else {
 				BigTreeAutoModule::updatePendingItemField(substr($id,1),"featured","on");
 			}

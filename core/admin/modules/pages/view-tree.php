@@ -48,7 +48,7 @@
 				if (isset($item["bigtree_pending"])) {
 					$status = '<a href="'.WWW_ROOT.'_preview-pending/'.$item["id"].'/" target="_blank">Pending</a>';
 					$status_class = "pending";
-				} elseif ($db->exists("bigtree_pending_changes",array("table" => "bigtree_pages", "item_id" => $item["id"]))) {
+				} elseif (SQL::exists("bigtree_pending_changes",array("table" => "bigtree_pages", "item_id" => $item["id"]))) {
 					$status = '<a href="'.WWW_ROOT.'_preview/'.$item["path"].'/" target="_blank">Changed</a>';
 					$status_class = "pending";
 				} elseif (strtotime($item["publish_at"]) > time()) {

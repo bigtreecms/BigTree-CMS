@@ -7,10 +7,10 @@
 
 	// Run SQL
 	foreach ($json["sql"] as $sql) {
-		$db->query($sql);
+		SQL::query($sql);
 	}
 	
-	$db->query("SET foreign_key_checks = 0");
+	SQL::query("SET foreign_key_checks = 0");
 	
 	// Import module groups
 	foreach ($json["components"]["module_groups"] as &$group) {
@@ -25,10 +25,10 @@
 	foreach ($json["components"]["modules"] as &$module) {
 		if ($module) {
 			$group = ($module["group"] && isset($bigtree["group_match"][$module["group"]])) ? $bigtree["group_match"][$module["group"]] : null;
-			$route = $db->unique("bigtree_modules",array("route" => $module["route"]));
+			$route = SQL::unique("bigtree_modules",array("route" => $module["route"]));
 			
 			// Create the module
-			$module_id = $db->insert("bigtree_modules",array(
+			$module_id = SQL::insert("bigtree_modules",array(
 				"name" => $module["name"],
 				"route" => $route,
 				"class" => $module["class"],
@@ -67,9 +67,9 @@
 
 			// Update views with their new related form value
 			foreach ($views_to_update as $id) {
-				$settings = json_decode($db->fetchSingle("SELECT settings FROM bigtree_module_interfaces WHERE id = ?", $id), true);
+				$settings = json_decode(SQL::fetchSingle("SELECT settings FROM bigtree_module_interfaces WHERE id = ?", $id), true);
 				$settings["related_form"] = $bigtree["form_id_match"][$settings["related_form"]];
-				$db->update("bigtree_module_interfaces",$id,array("settings" => $settings));
+				SQL::update("bigtree_module_interfaces",$id,array("settings" => $settings));
 			}
 			
 			// Create reports
@@ -113,7 +113,7 @@
 	// Import Settings
 	foreach ($json["components"]["settings"] as $setting) {
 		if ($setting) {
-			$db->delete("bigtree_settings",$setting["id"]);
+			SQL::delete("bigtree_settings",$setting["id"]);
 			$admin->createSetting($setting);
 		}
 	}
@@ -121,8 +121,8 @@
 	// Import Feeds
 	foreach ($json["components"]["feeds"] as $feed) {
 		if ($feed) {
-			$db->delete("bigtree_feeds",array("route" => $feed["route"]));
-			$db->insert("bigtree_feeds",array(
+			SQL::delete("bigtree_feeds",array("route" => $feed["route"]));
+			SQL::insert("bigtree_feeds",array(
 				"route" => $feed["route"],
 				"name" => $feed["name"],
 				"description" => $feed["description"],
@@ -147,8 +147,8 @@
 				);
 			}
 
-			$db->delete("bigtree_field_types",$type["id"]);
-			$db->insert("bigtree_field_types",array(
+			SQL::delete("bigtree_field_types",$type["id"]);
+			SQL::insert("bigtree_field_types",array(
 				"id" => $type["id"],
 				"name" => $type["name"],
 				"use_cases" => $type["use_cases"],
@@ -163,7 +163,7 @@
 	}
 
 	// Empty view cache
-	$db->query("DELETE FROM bigtree_module_view_cache");
+	SQL::query("DELETE FROM bigtree_module_view_cache");
 
 	// Remove the package directory
 	FileSystem::deleteDirectory(SERVER_ROOT."cache/package/");
@@ -173,7 +173,7 @@
 	FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 	// Create package
-	$db->insert("bigtree_extensions",array(
+	SQL::insert("bigtree_extensions",array(
 		"id" => $json["id"],
 		"type" => "package",
 		"name" => $json["title"],
@@ -182,7 +182,7 @@
 	));
 	
 	// Turn key checks back on
-	$db->query("SET foreign_key_checks = 1");
+	SQL::query("SET foreign_key_checks = 1");
 	
 	$admin->growl("Developer","Installed Package");
 	Router::redirect(DEVELOPER_ROOT."packages/install/complete/");

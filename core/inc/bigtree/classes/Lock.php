@@ -70,7 +70,7 @@
 				return false;
 			}
 
-			$lock = static::$DB->fetch("SELECT * FROM bigtree_locks WHERE `table` = ? AND item_id = ?", $table, $id);
+			$lock = SQL::fetch("SELECT * FROM bigtree_locks WHERE `table` = ? AND item_id = ?", $table, $id);
 
 			// Lock exists and the logged-in user doesn't own it (and it's not old) and we're not forcing our way through
 			if ($lock && $lock["user"] != $admin->ID && strtotime($lock["last_accessed"]) > (time() - 300) && !$force) {

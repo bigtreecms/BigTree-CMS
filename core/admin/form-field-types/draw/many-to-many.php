@@ -13,7 +13,7 @@
 	// If we have existing data then this item is either pending or has pending changes so we use that data.
 	if (is_array($field["value"])) {
 		foreach ($field["value"] as $other_id) {
-			$other_descriptor = $db->fetchSingle("SELECT `".$field["options"]["mtm-other-descriptor"]."` 
+			$other_descriptor = SQL::fetchSingle("SELECT `".$field["options"]["mtm-other-descriptor"]."` 
 												  FROM `".$field["options"]["mtm-other-table"]."` WHERE id = ?", $other_id);
 			if ($other_descriptor !== false) {
 				$entries[$other_id] = $other_descriptor;
@@ -26,10 +26,10 @@
 			$query_string .= "ORDER BY `position` DESC";
 		}
 		
-		$query = $db->query($query_string, $bigtree["edit_id"]);
+		$query = SQL::query($query_string, $bigtree["edit_id"]);
 		
 		while ($entry = $query->fetch()) {
-			$other_descriptor = $db->fetchSingle("SELECT `".$field["options"]["mtm-other-descriptor"]."` 
+			$other_descriptor = SQL::fetchSingle("SELECT `".$field["options"]["mtm-other-descriptor"]."` 
 												  FROM `".$field["options"]["mtm-other-table"]."`
 												  WHERE id = ?", $entry[$field["options"]["mtm-other-id"]]);
 			if ($other_descriptor !== false) {
@@ -40,7 +40,7 @@
 
 	// Gather a list of the items that could possibly be tagged.
 	$list = array();
-	$query = $db->query("SELECT `id`, `".$field["options"]["mtm-other-descriptor"]."` AS `title`
+	$query = SQL::query("SELECT `id`, `".$field["options"]["mtm-other-descriptor"]."` AS `title`
 						 FROM `".$field["options"]["mtm-other-table"]."` ORDER BY ".$field["options"]["mtm-sort"]);
 	while ($item = $query->fetch()) {
 		$list[$item["id"]] = $item["title"];

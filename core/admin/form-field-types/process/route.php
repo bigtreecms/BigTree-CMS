@@ -5,7 +5,7 @@
 			$field["output"] = $cms->urlify(strip_tags($bigtree["post_data"][$field["options"]["source"]]));
 		} else {
 			$route = $cms->urlify(strip_tags($bigtree["post_data"][$field["options"]["source"]]));
-			$route = $db->unique($bigtree["form"]["table"],$field["key"],$route,$bigtree["edit_id"]);
+			$route = SQL::unique($bigtree["form"]["table"],$field["key"],$route,$bigtree["edit_id"]);
 		}
 	} else {
 		$field["ignore"] = true;

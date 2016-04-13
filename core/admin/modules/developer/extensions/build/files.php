@@ -48,7 +48,7 @@
 					<a class="icon_small icon_small_add" href="#"></a>
 					<select class="custom_control" id="add_table_select">
 						<?php
-							$tables = $db->fetchAllSingle("SHOW TABLES");
+							$tables = SQL::fetchAllSingle("SHOW TABLES");
 							foreach ($tables as $table) {
 								if (substr($table,0,8) != "bigtree_" && !in_array($table,$used_tables)) {
 						?>

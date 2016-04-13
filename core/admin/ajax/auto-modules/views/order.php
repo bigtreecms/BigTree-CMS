@@ -11,7 +11,7 @@
 	
 		foreach ($data["row"] as $position => $id) {
 			if (is_numeric($id)) {
-				$db->update($table, $id, array("position" => (count($data["row"]) - $position)));
+				SQL::update($table, $id, array("position" => (count($data["row"]) - $position)));
 				ModuleView::cacheForAll($id, $table);
 			} else {
 				BigTreeAutoModule::updatePendingItemField(substr($id,1),"position",(count($data["row"]) - $position));

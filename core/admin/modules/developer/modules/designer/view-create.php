@@ -19,16 +19,16 @@
 	
 	foreach ($actions as $action => $state) {
 		if ($action == "approve") {
-			$db->query("ALTER TABLE `$table` ADD COLUMN approved CHAR(2) NOT NULL");
+			SQL::query("ALTER TABLE `$table` ADD COLUMN approved CHAR(2) NOT NULL");
 		} elseif ($action == "feature") {
-			$db->query("ALTER TABLE `$table` ADD COLUMN featured CHAR(2) NOT NULL");
+			SQL::query("ALTER TABLE `$table` ADD COLUMN featured CHAR(2) NOT NULL");
 		} elseif ($action == "archive") {
-			$db->query("ALTER TABLE `$table` ADD COLUMN archived CHAR(2) NOT NULL");
+			SQL::query("ALTER TABLE `$table` ADD COLUMN archived CHAR(2) NOT NULL");
 		}
 	}
 	
 	if ($type == "draggable") {
-		$db->query("ALTER TABLE `$table` ADD COLUMN position INT(11) NOT NULL");
+		SQL::query("ALTER TABLE `$table` ADD COLUMN position INT(11) NOT NULL");
 	}	
 	
 	// Let's create the view - we're decoding options here because it's already encoded but that'd be weird to assume in the class.

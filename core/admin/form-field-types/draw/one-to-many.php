@@ -17,7 +17,7 @@
 
 	// Get existing entries' titles
 	foreach ($field["value"] as $entry) {
-		$title = $db->fetchSingle("SELECT `".$field["options"]["title_column"]."` FROM `".$field["options"]["table"]."` WHERE id = ?", $entry);
+		$title = SQL::fetchSingle("SELECT `".$field["options"]["title_column"]."` FROM `".$field["options"]["table"]."` WHERE id = ?", $entry);
 		if ($title !== false) {
 			$entries[$entry = $title;
 		}			
@@ -25,7 +25,7 @@
 
 	// Gather a list of the items that could possibly be used
 	$list = array();
-	$query = $db->query("SELECT `id`, `".$field["options"]["title_column"]."` AS `title` 
+	$query = SQL::query("SELECT `id`, `".$field["options"]["title_column"]."` AS `title` 
 						 FROM `".$field["options"]["table"]."` ORDER BY $sort");
 	while ($entry = $query->fetch()) {
 		$list[$entry["id"]] = $entry["title"];

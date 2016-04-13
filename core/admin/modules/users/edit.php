@@ -283,7 +283,7 @@
 														if (!empty($gbp["other_table"]) && !empty($gbp["title_field"])) {
 															$title_field = str_replace("`","",$gbp["title_field"]);
 															$other_table = str_replace("`","",$gbp["other_table"]);
-															$gbp_categories = $db->fetchAll("SELECT id, `$title_field` AS `title` FROM `$other_table` ORDER BY `$title_field` ASC");
+															$gbp_categories = SQL::fetchAll("SELECT id, `$title_field` AS `title` FROM `$other_table` ORDER BY `$title_field` ASC");
 															// Run parser on the name if it exists
 															if (!empty($gbp["item_parser"])) {
 																foreach ($gbp_categories as &$category) {
