@@ -75,7 +75,7 @@
 	if (isset($_POST["type"])) {
 ?>
 <script>	
-	BigTreeCustomControls($("#callout_resources"));
+	BigTreeCustomControls($(".callout_fields"));
 </script>
 
 <?

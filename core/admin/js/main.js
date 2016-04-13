@@ -348,13 +348,13 @@ var BigTreeSelect = function(element) {
 				// Find out if we're in a dialog and have an overflow
 				var overflow = Container.parents(".overflow");
 				if (overflow.length) {
-					if (Container.parents("#callout_resources, #matrix_resources").length) {
+					if (Container.parents(".callout_fields, #matrix_resources").length) {
 						// WebKit needs fixin.
 						if ($.browser.webkit) {
-							select_options.css("marginTop",-1 * $("#callout_resources, #matrix_resources").last().scrollTop() + "px");
+							select_options.css("marginTop",-1 * $(".callout_fields, #matrix_resources").last().scrollTop() + "px");
 						}
 						// When someone scrolls the overflow, close the select or the dropdown will detach.
-						setTimeout(function() { $("#callout_resources, #matrix_resources").last().scroll(close); },500);
+						setTimeout(function() { $(".callout_fields, #matrix_resources").last().scroll(close); },500);
 					} else {
 						// WebKit needs fixin.
 						if ($.browser.webkit) {
@@ -389,7 +389,7 @@ var BigTreeSelect = function(element) {
 			Container.removeClass("open").find(".select_options").hide();
 			// Remove events for closing the dropdown
 			$("body").unbind("click",close);
-			$("#callout_resources").unbind("scroll",close);
+			$(".callout_fields").unbind("scroll",close);
 			Container.parents(".overflow").unbind("scroll",close);
 			
 			// Reset relative position if applicable
@@ -2433,7 +2433,7 @@ var BigTreeFormValidator = function(selector,callback) {
 						window.parent.BigTreeEmbeddableForm.scrollToTop();
 					}
 				} else {
-					Form.find(".overflow, #callout_resources").animate({ scrollTop: 0 }, 200);
+					Form.find(".overflow, .callout_fields").animate({ scrollTop: 0 }, 200);
 				}
 				if (Callback) {
 					Callback(errors);
