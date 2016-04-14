@@ -233,7 +233,7 @@
 
 			// Translation of internal links
 			if (is_array($output)) {
-				$output = BigTree::translateArray($output);
+				$output = Link::encodeArray($output);
 			} else {
 				$output = Link::encode($output);
 			}

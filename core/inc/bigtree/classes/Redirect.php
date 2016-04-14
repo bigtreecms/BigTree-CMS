@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class Redirect extends BaseObject {
 
 		protected $ID;
@@ -33,7 +31,7 @@
 
 			// Bad data set
 			if (!is_array($redirect)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_WARNING);
+				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 			} else {
 				$this->ID = $redirect["id"];
 				$this->Requests = $redirect["requests"];
@@ -55,7 +53,7 @@
 			// Wipe any content that's already been drawn
 			ob_clean();
 
-			if (static::handle404(str_ireplace(WWW_ROOT,"",BigTree::currentURL()))) {
+			if (static::handle404(str_ireplace(WWW_ROOT,"",Router::currentURL()))) {
 				$bigtree["layout"] = "default";
 				include SERVER_ROOT."templates/basic/_404.php";
 

@@ -35,12 +35,12 @@
 		function __construct($revision) {
 			// Passing in just an ID
 			if (!is_array($revision)) {
-				$revision = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $revision);
+				$revision = SQL::fetch("SELECT * FROM bigtree_page_revisions WHERE id = ?", $revision);
 			}
 
 			// Bad data set
 			if (!is_array($revision)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_WARNING);
+				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 			} else {
 				$this->ID = $revision["id"];
 				$this->Page = $revision["page"];

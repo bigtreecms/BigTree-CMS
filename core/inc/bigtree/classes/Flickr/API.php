@@ -6,6 +6,7 @@
 
 	namespace BigTree\Flickr;
 
+	use BigTree\cURL;
 	use BigTree\OAuth;
 	use BigTree\Router;
 	use stdClass;
@@ -563,7 +564,7 @@
 		*/
 
 		function oAuthRefreshToken() {
-			$response = json_decode(BigTree::cURL($this->TokenURL,array(
+			$response = json_decode(cURL::request($this->TokenURL,array(
 				"client_id" => $this->Settings["key"],
 				"client_secret" => $this->Settings["secret"],
 				"refresh_token" => $this->Settings["refresh_token"],

@@ -6,7 +6,7 @@
 
 	namespace BigTree\Salesforce;
 
-	use BigTree;
+	use BigTree\cURL;
 	use BigTree\OAuth;
 
 	class API extends OAuth {
@@ -40,7 +40,7 @@
 			// Get a new access token for this session.
 			$this->Connected = false;
 			if ($this->Settings["refresh_token"]) {
-				$response = json_decode(BigTree::cURL($this->TokenURL,array(
+				$response = json_decode(cURL::request($this->TokenURL,array(
 					"grant_type" => "refresh_token",
 					"client_id" => $this->Settings["key"],
 					"client_secret" => $this->Settings["secret"],

@@ -7,7 +7,7 @@
 
 	namespace BigTree\CloudStorage;
 
-	use BigTree;
+	use BigTree\cURL;
 
 	class Google extends Provider {
 
@@ -52,7 +52,7 @@
 
 		// Implements Provider::createFile
 		function createFile($contents,$container,$pointer,$public = false,$type = "text/plain") {
-			$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$pointer&uploadType=media",$contents,array(
+			$response = json_decode(cURL::request("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$pointer&uploadType=media",$contents,array(
 				CURLOPT_POST => true,
 				CURLOPT_HTTPHEADER => array(
 					"Content-Type: $type",
@@ -171,7 +171,7 @@
 
 		// Implements Provider::getfile
 		function getFile($container,$pointer) {
-			return BigTree::cURL("https://storage.googleapis.com/$container/$pointer",false,array(
+			return cURL::request("https://storage.googleapis.com/$container/$pointer",false,array(
 				CURLOPT_HTTPHEADER => array("Authorization: Bearer ".$this->Settings["token"])
 			));
 		}
@@ -224,7 +224,7 @@
 			// Open file pointer for cURL to upload
 			$file_pointer = fopen($file,"r");
 
-			$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$pointer&uploadType=media",false,array(
+			$response = json_decode(cURL::request("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$pointer&uploadType=media",false,array(
 				CURLOPT_INFILE => $file_pointer,
 				CURLOPT_POST => true,
 				CURLOPT_HTTPHEADER => array(

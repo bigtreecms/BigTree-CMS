@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class Extension extends BaseObject {
 
 		static $CacheInitialized = false;
@@ -38,7 +36,7 @@
 
 			// Bad data set
 			if (!is_array($extension)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_WARNING);
+				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 			} else {
 				$this->ID = $extension["id"];
 				$this->LastUpdated = $extension["last_updated"];

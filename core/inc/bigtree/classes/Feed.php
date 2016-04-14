@@ -36,7 +36,7 @@
 
 			// Bad data set
 			if (!is_array($feed)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_WARNING);
+				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 			} else {
 				$this->ID = $feed["id"];
 
@@ -68,7 +68,7 @@
 
 		static function create($name,$description,$table,$type,$settings,$fields) {
 			// Settings were probably passed as a JSON string, but either way make a nice translated array
-			$settings = BigTree::translateArray(is_array($settings) ? $settings : array_filter((array)json_decode($settings,true)));
+			$settings = Link::encodeArray(is_array($settings) ? $settings : array_filter((array)json_decode($settings,true)));
 
 			// Get a unique route!
 			$route = SQL::unique("bigtree_feeds", "route", Link::urlify($name));
@@ -101,7 +101,7 @@
 				"table" => $this->Table,
 				"type" => $this->Type,
 				"fields" => $this->Fields,
-				"options" => BigTree::translateArray($this->Settings)
+				"options" => Link::encodeArray($this->Settings)
 			));
 
 			AuditTrail::track("bigtree_feeds",$this->ID,"updated");

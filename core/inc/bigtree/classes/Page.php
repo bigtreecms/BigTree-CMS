@@ -6,9 +6,6 @@
 
 	namespace BigTree;
 	
-	use BigTreeAdmin;
-	use BigTreeCMS;
-
 	class Page extends BaseObject {
 
 		static $Table = "bigtree_pages";
@@ -58,7 +55,7 @@
 
 			// Bad data set
 			if (!is_array($page)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_WARNING);
+				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 			} else {
 				// Allow for empty page creation (for creating a page from a pending entry)
 				if (count($page) == 1) {
@@ -356,10 +353,10 @@
 			SQL::delete("bigtree_route_history", array("old_route" => $path));
 
 			// Dump the cache, we don't really know how many pages may be showing this now in their nav.
-			BigTreeAdmin::clearCache();
+			Router::clearCache();
 
 			// Let search engines know this page now exists.
-			BigTreeAdmin::pingSearchEngines();
+			Sitemap::pingSearchEngines();
 
 			// Track
 			AuditTrail::track("bigtree_pages", $id, "created");
@@ -716,7 +713,7 @@
 				// In case we want to know what the trunk is.
 				if ($ancestor["trunk"]) {
 					$trunk_hit = true;
-					BigTreeCMS::$BreadcrumbTrunk = $ancestor;
+					\BigTreeCMS::$BreadcrumbTrunk = $ancestor;
 					Router::$Trunk = $ancestor;
 				}
 				
@@ -1101,7 +1098,7 @@
 			}
 
 			// Check for an H1
-			if (!$h1_field || $this->Resources[$h1_field]) {
+			if (!$h1_field || !empty($this->Resources[$h1_field])) {
 				$score += 10;
 			} else {
 				$recommendations[] = "You should enter a page header.";
@@ -1617,7 +1614,7 @@
 
 			// We have no idea how this affects the nav, just wipe it all.
 			if ($this->NavigationTitle != $nav_title || $this->Route != $route || $this->InNav != $in_nav || $this->Parent != $parent) {
-				BigTreeAdmin::clearCache();
+				Router::clearCache();
 			}
 
 			$this->ExpireAt = ($expire_at && $expire_at != "NULL") ? date("Y-m-d", strtotime($expire_at)) : null;

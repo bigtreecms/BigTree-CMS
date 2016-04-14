@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class Storage {
 
 		var $AutoJPEG = false;

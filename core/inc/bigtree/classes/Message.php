@@ -36,7 +36,7 @@
 
 			// Bad data set
 			if (!is_array($message)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_WARNING);
+				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 			} else {
 				$this->ID = $message["id"];
 

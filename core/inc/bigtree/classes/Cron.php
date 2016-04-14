@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class Cron {
 
 		static $Plugins = array();
@@ -45,7 +43,7 @@
 
 				// Ping bigtreecms.org with current version stats
 				if (!$bigtree["config"]["disable_ping"]) {
-					BigTree::cURL("https://www.bigtreecms.org/ajax/ping/?www_root=".urlencode(WWW_ROOT)."&version=".urlencode(BIGTREE_VERSION));
+					cURL::request("https://www.bigtreecms.org/ajax/ping/?www_root=".urlencode(WWW_ROOT)."&version=".urlencode(BIGTREE_VERSION));
 				}
 			}
 

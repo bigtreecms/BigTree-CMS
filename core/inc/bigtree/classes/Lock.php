@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class Lock extends BaseObject {
 
 		static $Table = "bigtree_locks";
@@ -34,7 +32,7 @@
 
 			// Bad data set
 			if (!is_array($lock)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_WARNING);
+				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 			} else {
 				$this->ID = $lock["id"];
 				$this->ItemID = $lock["item_id"];
@@ -98,7 +96,7 @@
 				$id = SQL::insert("bigtree_locks",array(
 					"table" => $table,
 					"item_id" => $id,
-					"user" => $this->ID
+					"user" => $admin->ID
 				));
 
 				return new Lock($id);
@@ -135,7 +133,7 @@
 				id - The ID of the locked entry.
 		*/
 
-		static function unlock($table,$id) {
+		static function remove($table,$id) {
 			SQL::delete("bigtree_locks",array("table" => $table, "item_id" => $id));
 		}
 		

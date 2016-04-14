@@ -86,7 +86,7 @@
 				return $changed_properties;
 			}
 
-			trigger_error("Invalid property on ".get_called_class().": $property", E_USER_WARNING);
+			trigger_error("Invalid property on ".get_called_class().": $property", E_USER_ERROR);
 			return null;
 		}
 
@@ -115,7 +115,7 @@
 		static function all($sort = false,$return_arrays = false) {
 			// Must have a static Table var.
 			if (empty(static::$Table)) {
-				trigger_error('Method "all" must be called from a subclass where the static variable $Table has been set.', E_USER_WARNING);
+				trigger_error('Method "all" must be called from a subclass where the static variable $Table has been set.', E_USER_ERROR);
 				return false;
 			}
 
@@ -141,7 +141,7 @@
 		function delete() {
 			// Must have a static Table var.
 			if (empty(static::$Table)) {
-				trigger_error('Method "delete" must be called from a subclass where the static variable $Table has been set.', E_USER_WARNING);
+				trigger_error('Method "delete" must be called from a subclass where the static variable $Table has been set.', E_USER_ERROR);
 				return false;
 			}
 
@@ -160,7 +160,7 @@
 		function save() {
 			// Must have a static Table var.
 			if (empty(static::$Table)) {
-				trigger_error('Method "save" must be called from a subclass where the static variable $Table has been set.', E_USER_WARNING);
+				trigger_error('Method "save" must be called from a subclass where the static variable $Table has been set.', E_USER_ERROR);
 				return false;
 			}
 

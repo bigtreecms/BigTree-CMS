@@ -39,7 +39,7 @@
 
 			// Bad data set
 			if (!is_array($module)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_WARNING);
+				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 			} else {
 				$this->ID = $module["id"];
 
@@ -294,7 +294,7 @@
 
 			// Make sure a user is logged in
 			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
-				trigger_error("Method getCachedAccessLevel not available outside logged-in user context.", E_USER_WARNING);
+				trigger_error("Method getCachedAccessLevel not available outside logged-in user context.", E_USER_ERROR);
 				return "n";
 			}
 

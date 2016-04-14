@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class ModuleReport extends ModuleInterface {
 
 		protected $ID;
@@ -37,7 +35,7 @@
 
 			// Bad data set
 			if (!is_array($interface)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_WARNING);
+				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 			} else {
 				$this->ID = $interface["id"];
 				$this->InterfaceSettings = (array) @json_decode($interface["settings"],true);

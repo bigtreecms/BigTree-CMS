@@ -6,8 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-
 	class DailyDigest extends BaseObject {
 
 		static $CoreOptions = array(

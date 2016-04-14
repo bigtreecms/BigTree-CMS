@@ -6,8 +6,6 @@
 	*/
 
 	namespace BigTree;
-
-	use BigTree;
 	
 	class OAuth {
 
@@ -240,7 +238,7 @@
 			// Trim trailing ? or & from the URL, not that it should matter.
 			$url = substr($url,0,-1);
 
-			return BigTree::cURL($url,$data,array(CURLOPT_CUSTOMREQUEST => $method,CURLOPT_HTTPHEADER => $headers));
+			return cURL::request($url,$data,array(CURLOPT_CUSTOMREQUEST => $method,CURLOPT_HTTPHEADER => $headers));
 		}
 
 		/*
@@ -260,7 +258,7 @@
 
 		function callUncached($endpoint = "",$params = array(),$method = "GET",$headers = array()) {
 			if (!$this->Connected) {
-				trigger_error("This API is not connected.", E_USER_WARNING);
+				trigger_error("This API is not connected.", E_USER_ERROR);
 			}
 
 			// Some APIs expect us to send a JSON string as the content body instead of POST... and they also want a Content-type header.
@@ -315,7 +313,7 @@
 		*/
 
 		function oAuthRefreshToken() {
-			$response = json_decode(BigTree::cURL($this->TokenURL,array(
+			$response = json_decode(cURL::request($this->TokenURL,array(
 				"client_id" => $this->Settings["key"],
 				"client_secret" => $this->Settings["secret"],
 				"refresh_token" => $this->Settings["refresh_token"],
@@ -336,7 +334,7 @@
 		*/
 
 		function oAuthSetToken($code) {
-			$response = json_decode(BigTree::cURL($this->TokenURL,array(
+			$response = json_decode(cURL::request($this->TokenURL,array(
 				"code" => $code,
 				"client_id" => $this->Settings["key"],
 				"client_secret" => $this->Settings["secret"],

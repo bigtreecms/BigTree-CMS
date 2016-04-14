@@ -37,7 +37,7 @@
 
 			// Bad data set
 			if (!is_array($callout)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_WARNING);
+				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 			} else {
 				$this->ID = $callout["id"];
 				$this->Description = $callout["description"];
@@ -68,7 +68,7 @@
 
 			// Make sure a user is logged in
 			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
-				trigger_error("Method allAllowed not available outside logged-in user context.", E_USER_WARNING);
+				trigger_error("Method allAllowed not available outside logged-in user context.", E_USER_ERROR);
 				return false;
 			}
 
@@ -103,7 +103,7 @@
 
 			// Make sure a user is logged in
 			if ($auth && (get_class($admin) != "BigTreeAdmin" || !$admin->ID)) {
-				trigger_error("Method allInGroups not available outside logged-in user context when passing auth = true.", E_USER_WARNING);
+				trigger_error("Method allInGroups not available outside logged-in user context when passing auth = true.", E_USER_ERROR);
 				return false;
 			}
 

@@ -1,16 +1,14 @@
 <?php
-	namespace BigTree\GoogleAnalytics;
-
-	use BigTree;
-	use BigTreeCMS;
-	use BigTree\OAuth;
-	use BigTree\GoogleResultSet;
-	use FileSystem;
-
 	/*
 		Class: BigTree\GoogleAnalytics\API
 			An interface layer for grabbing Google Analytics information and storing it alongside BigTree.
 	*/
+	
+	namespace BigTree\GoogleAnalytics;
+
+	use BigTree\FileSystem;
+	use BigTree\GoogleResultSet;
+	use BigTree\OAuth;
 	
 	class API extends OAuth {
 		

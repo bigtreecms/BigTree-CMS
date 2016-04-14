@@ -6,8 +6,7 @@
 	*/
 
 	namespace BigTree;
-
-	use BigTree;
+	
 	use mysqli;
 
 	class SQL {
@@ -87,7 +86,7 @@
 				}
 
 				// Get all the table contents, write them out
-				$rows = BigTree::tableContents($table);
+				$rows = static::tableContents($table);
 				foreach ($rows as $row) {
 					fwrite($pointer, $row.";\n");
 				}
@@ -808,7 +807,7 @@
 
 			// Chained call
 			if (!is_object($this->ActiveQuery)) {
-				trigger_error("SQL::fetch called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_WARNING);
+				trigger_error("SQL::fetch called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_ERROR);
 
 				return false;
 			} else {
@@ -847,7 +846,7 @@
 
 			// Chained call
 			if (!is_object($this->ActiveQuery)) {
-				trigger_error("SQL::fetchAll called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_WARNING);
+				trigger_error("SQL::fetchAll called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_ERROR);
 
 				return false;
 			} else {
@@ -893,7 +892,7 @@
 
 			// Chained call
 			if (!is_object($this->ActiveQuery)) {
-				trigger_error("SQL::fetchAllSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_WARNING);
+				trigger_error("SQL::fetchAllSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_ERROR);
 
 				return false;
 			} else {
@@ -939,7 +938,7 @@
 
 			// Chained call
 			if (!is_object($this->ActiveQuery)) {
-				trigger_error("SQL::fetchSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_WARNING);
+				trigger_error("SQL::fetchSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_ERROR);
 
 				return false;
 			} else {

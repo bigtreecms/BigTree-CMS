@@ -7,8 +7,6 @@
 
 	namespace BigTree\CloudStorage;
 
-	use BigTree;
-
 	class Amazon extends Provider {
 
 		public $HTTPResponseCode = false;

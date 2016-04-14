@@ -6,9 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
-	use BigTreeStorage;
-
 	class Image {
 
 		/*
@@ -456,7 +453,7 @@
 		*/
 
 		static function processCrops($crop_key) {
-			$storage = new BigTreeStorage;
+			$storage = new Storage;
 
 			// Get and remove the crop data
 			$crops = Cache::get("org.bigtreecms.crops",$crop_key);

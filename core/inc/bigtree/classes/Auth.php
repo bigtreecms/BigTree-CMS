@@ -6,7 +6,6 @@
 
 	namespace BigTree;
 	
-	use BigTree;
 	use PasswordHash;
 
 	class Auth {
@@ -84,14 +83,14 @@
 								"chain" => $chain,
 								"email" => $this->User
 							));
-							BigTree::setCookie($this->Namespace."[login]",json_encode(array($session,$chain)),"+1 month");
+							Cookie::set($this->Namespace."[login]",json_encode(array($session,$chain)),"+1 month");
 						}
 
 					// Chain is legit and session isn't -- someone has taken your cookies
 					} else {
 						// Delete existing cookies
-						BigTree::setCookie($this->Namespace."[login]","",time() - 3600);
-						BigTree::setCookie($this->Namespace."[email]","",time() - 3600);
+						Cookie::set($this->Namespace."[login]","",time() - 3600);
+						Cookie::set($this->Namespace."[email]","",time() - 3600);
 						
 						// Delete all sessions for this user
 						SQL::delete("bigtree_user_sessions",array("email" => $_COOKIE[$this->Namespace]["email"]));

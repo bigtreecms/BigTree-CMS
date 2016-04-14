@@ -7,7 +7,7 @@
 
 	namespace BigTree\CloudStorage;
 
-	use BigTree;
+	use BigTree\cURL;
 
 	class Rackspace extends Provider {
 
@@ -47,14 +47,14 @@
 					)
 				);
 
-			return json_decode(BigTree::cURL($this->Endpoint.($endpoint ? "/$endpoint" : ""),$data,$curl_options));
+			return json_decode(cURL::request($this->Endpoint.($endpoint ? "/$endpoint" : ""),$data,$curl_options));
 		}
 
 		// Implements Provider::copyFile
 		function copyFile($source_container,$source_pointer,$destination_container,$destination_pointer,$public = false) {
 			global $bigtree;
 
-			BigTree::cURL($this->Endpoint."/$source_container/$source_pointer",false,array(
+			cURL::request($this->Endpoint."/$source_container/$source_pointer",false,array(
 				CURLOPT_CUSTOMREQUEST => "COPY",
 				CURLOPT_HTTPHEADER => array(
 					"Destination: /$destination_container/$destination_pointer",
@@ -78,7 +78,7 @@
 			if ($bigtree["last_curl_response_code"] == 201) {
 				// CDN Enable this container if it's public
 				if ($public) {
-					BigTree::cURL($this->CDNEndpoint."/$name",false,array(
+					cURL::request($this->CDNEndpoint."/$name",false,array(
 						CURLOPT_PUT => true,
 						CURLOPT_HTTPHEADER => array(
 							"X-Auth-Token: ".$this->Settings["rackspace"]["token"],
@@ -97,7 +97,7 @@
 		function createFile($contents,$container,$pointer,$public = false,$type = "text/plain") {
 			global $bigtree;
 
-			BigTree::cURL($this->Endpoint."/$container/$pointer",$contents,array(
+			cURL::request($this->Endpoint."/$container/$pointer",$contents,array(
 				CURLOPT_CUSTOMREQUEST => "PUT",
 				CURLOPT_HTTPHEADER => array(
 					"Content-Length" => strlen($contents),
@@ -149,7 +149,7 @@
 			// If we don't have a Temp URL key already set, we need to make one
 			if (!$this->Settings["rackspace"]["temp_url_key"]) {
 				// See if we already have one
-				$response = BigTree::cURL($this->Endpoint,false,array(
+				$response = cURL::request($this->Endpoint,false,array(
 					CURLOPT_CUSTOMREQUEST => "HEAD",
 					CURLOPT_HEADER => true,
 					CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Settings["rackspace"]["token"])
@@ -166,7 +166,7 @@
 				if (!$this->Settings["rackspace"]["temp_url_key"]) {
 					$this->Settings["rackspace"]["temp_url_key"] = uniqid();
 
-					BigTree::cURL($this->Endpoint,false,array(
+					cURL::request($this->Endpoint,false,array(
 						CURLOPT_CUSTOMREQUEST => "POST",
 						CURLOPT_HTTPHEADER => array(
 							"X-Auth-Token: ".$this->Settings["rackspace"]["token"],
@@ -215,14 +215,14 @@
 
 		// Implements Provider::getFile
 		function getFile($container,$pointer) {
-			return BigTree::cURL($this->Endpoint."/$container/$pointer",false,array(
+			return cURL::request($this->Endpoint."/$container/$pointer",false,array(
 				CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Settings["rackspace"]["token"])
 			));
 		}
 
 		// Internal method for refreshing a Rackspace token
 		protected function getToken() {
-			$j = json_decode(BigTree::cURL("https://identity.api.rackspacecloud.com/v2.0/tokens",json_encode(array(
+			$j = json_decode(cURL::request("https://identity.api.rackspacecloud.com/v2.0/tokens",json_encode(array(
 				"auth" => array(
 					"RAX-KSKEY:apiKeyCredentials" => array(
 						"username" => $this->Settings["rackspace"]["username"],
@@ -263,7 +263,7 @@
 			} else {
 				// See if we can get the container's CDN URL
 				$cdn = false;
-				$response = BigTree::cURL($this->CDNEndpoint."/$container",false,array(CURLOPT_CUSTOMREQUEST => "HEAD",CURLOPT_HEADER => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Settings["rackspace"]["token"])));
+				$response = cURL::request($this->CDNEndpoint."/$container",false,array(CURLOPT_CUSTOMREQUEST => "HEAD",CURLOPT_HEADER => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Settings["rackspace"]["token"])));
 				$lines = explode("\n",$response);
 				foreach ($lines as $line) {
 					if (substr($line,0,10) == "X-Cdn-Uri:") {
@@ -307,7 +307,7 @@
 			// Open the file pointer for curl to upload from
 			$file_pointer = fopen($file,"r");
 
-			BigTree::cURL($this->Endpoint."/$container/$pointer",false,array(
+			cURL::request($this->Endpoint."/$container/$pointer",false,array(
 				CURLOPT_PUT => true,
 				CURLOPT_INFILE => $file_pointer,
 				CURLOPT_HTTPHEADER => array(

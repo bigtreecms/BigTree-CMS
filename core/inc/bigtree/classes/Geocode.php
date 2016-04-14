@@ -6,7 +6,6 @@
 
 	namespace BigTree;
 
-	use BigTree;
 	use Exception;
 
 	class Geocode {
@@ -98,7 +97,7 @@
 				return array("latitude" => $this->Latitude, "longitude" => $this->Longitude);
 			}
 
-			trigger_error("Undefined property of BigTree\\Geocode: $property", E_USER_WARNING);
+			trigger_error("Undefined property of BigTree\\Geocode: $property", E_USER_ERROR);
 		}
 
 		/*
@@ -108,7 +107,7 @@
 
 		private function geocodeBing($address) {
 			$address = str_replace("?","",str_replace(" ","%20",$address));
-			$response = BigTree::cURL("http://dev.virtualearth.net/REST/v1/Locations/$address?key=".static::$Settings["bing_key"]);
+			$response = cURL::request("http://dev.virtualearth.net/REST/v1/Locations/$address?key=".static::$Settings["bing_key"]);
 
 			try {
 				if (is_string($response)) {
@@ -143,7 +142,7 @@
 		*/
 
 		private function geocodeGoogle($address) {
-			$response = BigTree::cURL("http://maps.googleapis.com/maps/api/geocode/json?address=".urlencode($address)."&sensor=false");
+			$response = cURL::request("http://maps.googleapis.com/maps/api/geocode/json?address=".urlencode($address)."&sensor=false");
 
 			try {
 				if (is_string($response)) {
@@ -172,7 +171,7 @@
 		*/
 
 		private function geocodeMapQuest($address) {
-			$response = BigTree::cURL("http://www.mapquestapi.com/geocoding/v1/address?key=".$this->Settings["mapquest_key"]."&location=".urlencode($address));
+			$response = cURL::request("http://www.mapquestapi.com/geocoding/v1/address?key=".$this->Settings["mapquest_key"]."&location=".urlencode($address));
 
 			if ($response == "The AppKey submitted with this request is invalid.") {
 				$this->Error = "Invalid API Key";

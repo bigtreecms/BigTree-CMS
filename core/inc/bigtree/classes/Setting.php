@@ -45,7 +45,7 @@
 
 			// Bad data set
 			if (!is_array($setting)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_WARNING);
+				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 			} else {
 				$options = is_string($setting["options"]) ? json_decode($setting["options"],true) : $setting["options"];
 
@@ -369,6 +369,11 @@
 			// Allow for single ID
 			if (count($ids) == 1) {
 				return $setting_values[$ids[0]];
+			}
+
+			// Allow for failed lookup
+			if (!count($setting_values)) {
+				return false;
 			}
 
 			return $setting_values;

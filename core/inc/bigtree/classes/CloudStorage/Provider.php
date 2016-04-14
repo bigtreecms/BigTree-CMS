@@ -6,7 +6,6 @@
 
 	namespace BigTree\CloudStorage;
 
-	use BigTree;
 	use BigTree\OAuth;
 	use BigTree\Setting;
 
@@ -41,7 +40,7 @@
 		*/
 
 		function copyFile($source_container,$source_pointer,$destination_container,$destination_pointer,$public = false) {
-			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_WARNING);
+			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 		}
 
 		/*
@@ -60,7 +59,7 @@
 		*/
 
 		function createContainer($name,$public = false) {
-			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_WARNING);
+			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 		}
 
 		/*
@@ -80,7 +79,7 @@
 		*/
 
 		function createFile($contents,$container,$pointer,$public = false,$type = "text/plain") {
-			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_WARNING);
+			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 		}
 
 
@@ -113,7 +112,7 @@
 		*/
 
 		function deleteContainer($container) {
-			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_WARNING);
+			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 		}
 
 		/*
@@ -129,7 +128,7 @@
 		*/
 
 		function deleteFile($container,$pointer) {
-			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_WARNING);
+			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 		}
 
 		/*
@@ -146,7 +145,7 @@
 		*/
 
 		function getAuthenticatedFileURL($container,$pointer,$expires) {
-			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_WARNING);
+			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 		}
 
 		/*
@@ -162,7 +161,7 @@
 		*/
 
 		function getContainer($container,$simple = false) {
-			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_WARNING);
+			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 		}
 
 		/*
@@ -256,7 +255,7 @@
 		*/
 
 		function getFile($container,$pointer) {
-			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_WARNING);
+			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 		}
 
 		/*
@@ -295,7 +294,7 @@
 		*/
 
 		function listContainers() {
-			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_WARNING);
+			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 		}
 
 		/*
@@ -312,7 +311,7 @@
 		*/
 
 		function makeFilePublic($container,$pointer) {
-			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_WARNING);
+			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 		}
 
 		/*
@@ -356,7 +355,7 @@
 		*/
 
 		function uploadFile($file,$container,$pointer = false,$public = false) {
-			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_WARNING);
+			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 		}
 
 	}

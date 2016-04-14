@@ -5,8 +5,6 @@
 	*/
 
 	namespace BigTree;
-	
-	use BigTree;
 
 	class PageDraft extends BaseObject {
 
@@ -59,7 +57,7 @@
 
 			// Bad data set
 			if (!is_array($change)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_WARNING);
+				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 			} else {
 				$data = json_decode($change["changes"],true);
 
