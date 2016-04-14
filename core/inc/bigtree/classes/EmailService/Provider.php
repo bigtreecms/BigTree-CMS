@@ -1,10 +1,10 @@
 <?php
-	namespace BigTree\EmailService;
-
 	/*
 		Class: BigTree\EmailService\Provider
 			Provides a base interface for transactional email service providers.
 	*/
+	
+	namespace BigTree\EmailService;
 	
 	class Provider {
 

@@ -6,8 +6,12 @@
 	
 	namespace BigTree\EmailService;
 
+	use BigTree\cURL;
+	use BigTree\Email;
+
 	class Mandrill extends Provider {
 
+		// Implements Provider::send
 		function send(Email $email) {
 			// Get formatted name/email
 			list($from_email,$from_name) = $this->parseAddress($email->From);
@@ -52,7 +56,7 @@
 				$headers[$key] = $value;
 			}
 
-			$response = json_decode(BigTree::cURL("https://mandrillapp.com/api/1.0/messages/send.json",json_encode(array(
+			$response = json_decode(cURL::request("https://mandrillapp.com/api/1.0/messages/send.json",json_encode(array(
 				"key" => $this->Settings["mandrill_key"],
 				"message" => array(
 					"html" => $body,

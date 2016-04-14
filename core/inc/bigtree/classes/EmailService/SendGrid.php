@@ -11,6 +11,7 @@
 
 	class SendGrid extends Provider {
 
+		// Implements Provider::send
 		function send(Email $email) {
 			// Get formatted name/email
 			list($from_email,$from_name) = $this->parseAddress($email->From);

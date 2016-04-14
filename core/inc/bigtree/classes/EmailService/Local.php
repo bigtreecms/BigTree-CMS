@@ -10,6 +10,7 @@
 
 	class Local extends Provider {
 
+		// Implements Provider::send
 		function send(Email $email) {
 			$mailer = new PHPMailer;
 
