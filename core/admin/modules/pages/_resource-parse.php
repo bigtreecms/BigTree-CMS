@@ -25,7 +25,7 @@
 		$field = new Field($field);
 		$output = $field->process();
 		if (!is_null($output)) {
-			$bigtree["entry"][$field["key"]] = $output;
+			$bigtree["entry"][$field->Key] = $output;
 		}
 	}
 

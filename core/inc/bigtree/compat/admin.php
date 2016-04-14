@@ -2456,9 +2456,13 @@
 		*/
 
 		static function getPageRevision($id) {
-			$page = BigTree\Page::getRevision($id);
+			$page = new BigTree\PageRevision($id);
+			$array = $page->Array;
 
-			return $page->Array;
+			// Previously the resources were still JSON, so replicate that
+			$array["resources"] = json_encode($array["resources"]);
+
+			return $array;
 		}
 
 		/*

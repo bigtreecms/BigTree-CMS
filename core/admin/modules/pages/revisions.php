@@ -1,5 +1,6 @@
 <?php
 	namespace BigTree;
+	use BigTree;
 	
 	// Make sure this is a live page.
 	if (!is_numeric($page["id"])) {

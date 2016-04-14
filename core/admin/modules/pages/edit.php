@@ -1,6 +1,6 @@
 <?php
 	namespace BigTree;
-	
+
 	$bigtree["current_page"] = $page;
 	$bigtree["resources"] = $page["resources"];
 	

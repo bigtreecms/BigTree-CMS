@@ -61,7 +61,7 @@
 	// If this is a "Partial" page request then we're going to deliver JSON and let JavaScript construct it.
 	if ($_SERVER["HTTP_BIGTREE_PARTIAL"]) {
 		ob_start();
-		foreach ($bigtree["page"]["breadcrumb"] as &$item) {
+		foreach ($bigtree["breadcrumb"] as &$item) {
 			$item["title"] = Text::htmlEncode($item["title"]);
 		}
 		unset($item);
@@ -81,13 +81,13 @@
 		<span class="page_icon <?=$bigtree["page"]["icon"]?>"><?php if ($bigtree["page"]["icon"] == "gravatar") { ?><img src="<?=BigTree::gravatar($bigtree["gravatar"])?>" alt="" /><?php } ?></span>
 		<?php
 			$x = 0;
-			foreach ($bigtree["page"]["breadcrumb"] as $item) {
+			foreach ($bigtree["breadcrumb"] as $item) {
 				$x++;
 				
 		?>
-		<a href="<?=ADMIN_ROOT.$item["link"]?>/" class="<?php if ($x == 1) { ?> first<?php } if ($x == count($bigtree["page"]["breadcrumb"])) { ?> last<?php } ?>"><?=Text::htmlEncode($item["title"])?></a>
+		<a href="<?=ADMIN_ROOT.$item["link"]?>/" class="<?php if ($x == 1) { ?> first<?php } if ($x == count($bigtree["breadcrumb"])) { ?> last<?php } ?>"><?=Text::htmlEncode($item["title"])?></a>
 		<?php
-				if ($x != count($bigtree["page"]["breadcrumb"])) {
+				if ($x != count($bigtree["breadcrumb"])) {
 		?>
 		<span class="divider">&rsaquo;</span>
 		<?php
@@ -220,7 +220,7 @@
 			}
 		}
 		echo json_encode(array(
-			"breadcrumb" => $bigtree["page"]["breadcrumb"],
+			"breadcrumb" => $bigtree["breadcrumb"],
 			"title" => $title,
 			"page" => ob_get_clean(),
 			"active_nav" => $bigtree["active_nav_item"],
