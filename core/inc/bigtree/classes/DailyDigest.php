@@ -194,9 +194,6 @@
 			$blocks = array();
 			$positions = array();
 
-			// Start email service
-			$email_service = new BigTreeEmailService;
-
 			// Cache extension plugins
 			Extension::initializeCache();
 		
@@ -236,13 +233,17 @@
 					$body = str_ireplace("{date}", date("F j, Y",time()), $body);
 					$body = str_ireplace("{blocks}", $block_markup, $body);
 
-					// If we don't have a from email set, third parties most likely will fail so we're going to use local sending
-					if ($email_service->Settings["bigtree_from"]) {
-						$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
-						$email_service->sendEmail("$site_title Daily Digest",$body,$user["email"],$email_service->Settings["bigtree_from"],"BigTree CMS",$reply_to);
-					} else {
-						BigTree::sendEmail($user["email"],"$site_title Daily Digest",$body);
-					}
+					$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
+
+					$email = new Email;
+
+					$email->Subject = "$site_title Daily Digest";
+					$email->HTML = $body;
+					$email->To = $user["email"];
+					$email->From = $email->Settings["bigtree_from"] ?: $reply_to;
+					$email->ReplyTo = $reply_to;
+
+					$email->send();
 				}
 			}
 		}

@@ -242,7 +242,14 @@
 		*/
 		
 		static function cURL($url,$post = false,$options = array(),$strict_security = false,$output_file = false) {
-			return BigTree\cURL::request($url,$post,$options,$strict_security,$output_file);
+			global $bigtree;
+
+			$response = BigTree\cURL::request($url,$post,$options,$strict_security,$output_file);
+
+			// Backwards compat
+			$bigtree["last_curl_response_code"] = BigTree\cURL::$ResponseCode;
+
+			return $response;
 		}
 		
 		/*
@@ -1050,7 +1057,7 @@
 		
 		/*
 			Function: sendEmail
-				Sends an email using htmlMimeMail
+				Sends an email using PHPMailer
 
 			Parameters:
 				to - String or array of recipient email address(es)
@@ -1068,77 +1075,19 @@
 		*/
 		
 		static function sendEmail($to,$subject,$html,$text = "",$from = false,$return = false,$cc = false,$bcc = false,$headers = array()) {
-			$mailer = new PHPMailer;
-
-			foreach ($headers as $key => $val) {
-				$mailer->addCustomHeader($key,$val);
-			}
-
-			$mailer->Subject = $subject;
-			if ($html) {
-				$mailer->isHTML(true);
-				$mailer->Body = $html;
-				$mailer->AltBody = $text;
-			} else {
-				$mailer->Body = $text;
-			}
-
-			if (!$from) {
-				$from = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
-				$from_name = "BigTree CMS";
-			} else {
-				// Parse out from and reply-to names
-				$from_name = false;
-				$from = trim($from);
-				if (strpos($from,"<") !== false && substr($from,-1,1) == ">") {
-					$from_pieces = explode("<",$from);
-					$from_name = trim($from_pieces[0]);
-					$from = substr($from_pieces[1],0,-1);
-				}
-			}
-			$mailer->From = $from;
-			$mailer->FromName = $from_name;
+			$email = new BigTree\Email;
 			
-			if ($return) {
-				$return_name = "";
-				$return = trim($return);
-				if (strpos($return,"<") !== false && substr($return,-1,1) == ">") {
-					$return_pieces = explode("<",$return);
-					$return_name = trim($return_pieces[0]);
-					$return = substr($return_pieces[1],0,-1);
-				}
-				$mailer->addReplyTo($return,$return_name);
-			}
-			
-			if ($cc) {
-				if (is_array($cc)) {
-					foreach ($cc as $item) {
-						$mailer->addCC($item);
-					}
-				} else {
-					$mailer->addCC($cc);
-				}
-			}
+			$email->To = $to;
+			$email->Subject = $subject;
+			$email->HTML = $html;
+			$email->Text = $text;
+			$email->From = $from;
+			$email->ReplyTo = $return;
+			$email->CC = $cc;
+			$email->BCC = $bcc;
+			$email->Headers = $headers;
 
-			if ($bcc) {
-				if (is_array($bcc)) {
-					foreach ($bcc as $item) {
-						$mailer->addBCC($item);
-					}
-				} else {
-					$mailer->addBCC($bcc);
-				}
-			}
-
-			if (is_array($to)) {
-				foreach ($to as $item) {
-					$mailer->addAddress($item);
-				}
-			} else {
-				$mailer->addAddress($to);
-			}
-			
-			return $mailer->send();
+			$email->send();
 		}
 
 		/*

@@ -868,4 +868,29 @@
 
 		// Get rid of unneeded columns
 		SQL::query("ALTER TABLE `bigtree_locks` DROP COLUMN `title`");
+
+		// Switch provider names for email service to enable us to load provider classes easier
+		if (Setting::exists("bigtree-internal-email-service"))) {
+			$setting = new Setting("bigtree-internal-email-service");
+
+			switch ($setting->Value["service"]) {
+				case "local":
+					$setting->Value["service"] = "Local";
+					break;
+				case "mandrill";
+					$setting->Value["service"] = "Mandrill";
+					break;
+				case "mailgun":
+					$setting->Value["service"] = "Mailgun";
+					break;
+				case "postmark":
+					$setting->Value["service"] = "Postmark";
+					break;
+				case "sendgrid":
+					$setting->Value["service"] = "SendGrid";
+					break;
+			}
+
+			$setting->save();
+		}
 	}

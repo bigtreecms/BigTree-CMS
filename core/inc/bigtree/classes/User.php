@@ -7,7 +7,6 @@
 
 	namespace BigTree;
 
-	use BigTreeEmailService;
 	use PasswordHash;
 
 	class User extends BaseObject {
@@ -181,14 +180,17 @@
 			$html = str_ireplace("{site_title}",$site_title,$html);
 			$html = str_ireplace("{reset_link}",$login_root."reset-password/$hash/",$html);
 
-			$email_service = new BigTreeEmailService;
-			// Only use a custom email service if a from email has been set
-			if ($email_service->Settings["bigtree_from"]) {
-				$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
-				$email_service->sendEmail("Reset Your Password",$html,$this->Email,$email_service->Settings["bigtree_from"],"BigTree CMS",$reply_to);
-			} else {
-				BigTree::sendEmail($this->Email,"Reset Your Password",$html);
-			}
+			$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
+				
+			$email = new Email;
+
+			$email->To = $this->Email;
+			$email->Subject = "Reset Your Password";
+			$email->HTML = $html;
+			$email->From = $email->Settings["bigtree_from"] ?: $reply_to;
+			$email->ReplyTo = $reply_to;
+
+			$email->send();
 		}
 
 		/*

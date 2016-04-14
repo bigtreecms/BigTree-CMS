@@ -8,26 +8,50 @@
 	
 	class Provider {
 
+		protected $Settings;
+
 		public $Error;
 
 		/*
 			Constructor:
-				Sets up the currently configured service.
+				Sets up the current service settings.
 		*/
 
-		function __construct() {
-			$setup = Setting::value("bigtree-internal-email-service");
+		function __construct($settings) {
+			$this->Settings = $settings;
+		}
 
-			// Setting doesn't exist? Create it.
-			if ($setup === false) {
-				$setting = Setting::create("bigtree-internal-email-service","Email Service","","",array(),"",true,true,true);
-				$setting->Value = array("service" => "", "settings" => array());
-				$setting->save();
+		/*
+			Function: parseAddress
+				Returns a proper address and name if the user doesn't provide one or provides a combined name/email.
 
-				$this->Settings = array();
+			Parameters:
+				address - User submitted email/name combo
+				use_default - Use the default no-reply (defaults to true)
+
+			Returns:
+				Properly formatted name & email as an array
+		*/
+
+		function parseAddress($address) {
+			$email = $name = "";
+
+			if (!$address && $use_default) {
+				$email = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
+				$name = "BigTree CMS";
 			} else {
-				$this->Settings = $setup["settings"];
+				// Parse out from and reply-to names
+				$name = false;
+				$address = trim($address);
+
+				if (strpos($address,"<") !== false && substr($address,-1,1) == ">") {
+					$address_pieces = explode("<",$address);
+					$name = trim($address_pieces[0]);
+					$email = substr($address_pieces[1],0,-1);
+				}
 			}
+
+			return array($email,$name);
 		}
 
 		/*
