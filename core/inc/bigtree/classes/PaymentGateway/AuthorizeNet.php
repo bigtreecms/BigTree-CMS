@@ -5,6 +5,8 @@
 	*/
 
 	namespace BigTree\PaymentGateway;
+
+	use BigTree\cURL;
 	
 	class AuthorizeNet extends Provider {
 
@@ -31,7 +33,7 @@
 			} else {
 				$this->PostURL = "https://secure.authorize.net/gateway/transact.dll";
 			}
-				
+
 			$this->DefaultParameters = array(
 				"x_delim_data" => "TRUE",
 				"x_delim_char" => "|",
@@ -45,8 +47,8 @@
 		}
 
 		// Implements Provider::authorize
-		function authorize($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer) {
-			return $this->charge($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer,"AUTH_ONLY");
+		function authorize($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description, $email, $phone, $customer) {
+			return $this->charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description, $email, $phone, $customer, "AUTH_ONLY");
 		}
 
 		/*
@@ -56,23 +58,23 @@
 		
 		function call($params) {
 			$count = 0;
-			$possibilities = array("","approved","declined","error");
+			$possibilities = array("", "approved", "declined", "error");
 			$this->Unresponsive = false;
 
 			// Get the default parameters
-			$params = array_merge($this->DefaultParameters,$params);
+			$params = array_merge($this->DefaultParameters, $params);
 			
 			// Authorize wants a GET instead of a POST, so we have to convert it away from an array.
 			$fields = array();
 			foreach ($params as $key => $val) {
-				$fields[] = $key."=".str_replace("&","%26",$val);
+				$fields[] = $key."=".str_replace("&", "%26", $val);
 			}
 			
 			// Send it off to the server, try 3 times.
 			while ($count < 3) {
-				$response = cURL::request($this->PostURL,implode("&",$fields));
+				$response = cURL::request($this->PostURL, implode("&", $fields));
 				if ($response) {
-					$r = explode("|",$response);
+					$r = explode("|", $response);
 					
 					return array(
 						"status" => $possibilities[$r[0]],
@@ -81,7 +83,7 @@
 						"avs" => $r[5],
 						"cvv" => $r[39],
 						"transaction" => $r[6],
-						"cc_last_4" => substr($r[50],-4,4)
+						"cc_last_4" => substr($r[50], -4, 4)
 					);
 				}
 				
@@ -94,7 +96,7 @@
 		}
 
 		// Implements Provider::capture
-		function capture($transaction,$amount) {
+		function capture($transaction, $amount) {
 			$params = array(
 				"x_type" => "PRIOR_AUTH_CAPTURE",
 				"x_trans_id" => $transaction
@@ -102,7 +104,7 @@
 
 			// Default is to capture the whole transaction
 			if ($amount) {
-				"x_amount" => $this->formatCurrency($amount)
+				$params["x_amount"] = $this->formatCurrency($amount);
 			}
 			
 			$response = $this->call($params);
@@ -119,7 +121,7 @@
 		}
 
 		// Implements Provider::charge
-		function charge($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description = "",$email = "",$phone = "",$customer = "") {
+		function charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description = "", $email = "", $phone = "", $customer = "", $action = "AUTH_CAPTURE") {
 			// Clean up the amount and tax.
 			$amount = $this->formatCurrency($amount);
 			$tax = $this->formatCurrency($tax);
@@ -128,8 +130,8 @@
 			$card_number = preg_replace('/\D/', '', $card_number);
 
 			// Split the card name into first name and last name.
-			$first_name = substr($card_name,0,strpos($card_name," "));
-			$last_name = trim(substr($card_name,strlen($first_name)));
+			$first_name = substr($card_name, 0, strpos($card_name, " "));
+			$last_name = trim(substr($card_name, strlen($first_name)));
 
 			// Build request parameters
 			$params = array(
@@ -186,7 +188,7 @@
 		}
 
 		// Implements Provider::refund
-		function refund($transaction,$card_number,$amount) {
+		function refund($transaction, $card_number, $amount) {
 			// Setup request params
 			$params = array(
 				"x_type" => "CREDIT",

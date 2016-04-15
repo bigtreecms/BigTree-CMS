@@ -17,7 +17,7 @@
 			list($from_email,$from_name) = $this->parseAddress($email->From);
 
 			// Get formatted reply-to
-			list($reply_to,$reply_email) = $this->parseAddress($email->ReplyTo,false);
+			list($reply_to,$reply_name) = $this->parseAddress($email->ReplyTo,false);
 
 			// Build POST data
 			$data = array(

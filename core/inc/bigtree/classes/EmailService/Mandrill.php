@@ -17,7 +17,7 @@
 			list($from_email,$from_name) = $this->parseAddress($email->From);
 
 			// Get formatted reply-to
-			list($reply_to,$reply_email) = $this->parseAddress($email->ReplyTo,false);
+			list($reply_to,$reply_name) = $this->parseAddress($email->ReplyTo,false);
 
 			// Generate array of people to send to
 			$to_array = array();
@@ -59,9 +59,9 @@
 			$response = json_decode(cURL::request("https://mandrillapp.com/api/1.0/messages/send.json",json_encode(array(
 				"key" => $this->Settings["mandrill_key"],
 				"message" => array(
-					"html" => $body,
-					"text" => $text,
-					"subject" => $subject,
+					"html" => $email->HTML,
+					"text" => $email->Text,
+					"subject" => $email->Subject,
 					"from_email" => $from_email,
 					"from_name" => $from_name,
 					"to" => $to_array,

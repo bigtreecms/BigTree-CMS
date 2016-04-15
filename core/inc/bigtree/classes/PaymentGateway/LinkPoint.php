@@ -37,8 +37,8 @@
 		}
 
 		// Implements Provider::authorize
-		function authorize($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer) {
-			return $this->charge($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer,"AUTH_ONLY");
+		function authorize($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description, $email, $phone, $customer) {
+			return $this->charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description, $email, $phone, $customer, "AUTH_ONLY");
 		}
 
 		/*
@@ -55,7 +55,7 @@
 			
 			foreach ($params as $container => $data) {
 				$xml .= "<$container>";
-			
+
 				foreach ($data as $key => $val) {
 					if (is_array($val)) {
 						$xml .= "<$key>";
@@ -67,7 +67,7 @@
 						$xml .= "<$key>".htmlspecialchars($val)."</$key>";
 					}
 				}
-			
+
 				$xml .= "</$container>";
 			}
 			
@@ -76,13 +76,13 @@
 			// Send it off to the server, try 3 times.
 			while ($count < 3) {
 				$ch = curl_init();
-				curl_setopt($ch,CURLOPT_URL,$this->PostURL);
-				curl_setopt($ch,CURLOPT_POST, 1); 
-				curl_setopt($ch,CURLOPT_POSTFIELDS, $xml);
-				curl_setopt($ch,CURLOPT_SSLCERT, $this->Certificate);
-				curl_setopt($ch,CURLOPT_RETURNTRANSFER, 1);
-				curl_setopt($ch,CURLOPT_SSL_VERIFYHOST, 0);
-				curl_setopt($ch,CURLOPT_SSL_VERIFYPEER, 0);
+				curl_setopt($ch, CURLOPT_URL, $this->PostURL);
+				curl_setopt($ch, CURLOPT_POST, 1);
+				curl_setopt($ch, CURLOPT_POSTFIELDS, $xml);
+				curl_setopt($ch, CURLOPT_SSLCERT, $this->Certificate);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 				
 				$response = curl_exec($ch);
 				
@@ -99,7 +99,7 @@
 		}
 
 		// Implements Provider::capture
-		function capture($transaction,$amount) {
+		function capture($transaction, $amount) {
 			$params = array(
 				"orderoptions" => array(
 					"ordertype" => "POSTAUTH"
@@ -128,7 +128,7 @@
 		}
 
 		// Implements Provider::charge
-		function charge($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description = "",$email = "",$phone = "",$customer = "") {
+		function charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description = "", $email = "", $phone = "", $customer = "", $action = "SALE") {
 			// Clean up the amount and tax.
 			$amount = $this->formatCurrency($amount);
 			$tax = $this->formatCurrency($tax);
@@ -137,8 +137,8 @@
 			$card_number = preg_replace('/\D/', '', $card_number);
 
 			// Split out expiration
-			$card_month = substr($card_expiration,0,2);
-			$card_year = substr($card_expiration,-2,2);
+			$card_month = substr($card_expiration, 0, 2);
+			$card_year = substr($card_expiration, -2, 2);
 			
 			$params = array(
 				"orderoptions" => array(
@@ -179,10 +179,10 @@
 			// Setup response messages.
 			$this->Transaction = strval($response->r_ordernum);
 			$this->Message = strval($response->r_error);
-			$this->Last4CC = substr(trim($card_number),-4,4);
+			$this->Last4CC = substr(trim($card_number), -4, 4);
 			
 			// Get a common AVS response.
-			$a = substr(strval($response->r_avs),0,2);
+			$a = substr(strval($response->r_avs), 0, 2);
 			if ($a == "YN") {
 				$this->AVS = "Address";
 			} elseif ($a == "NY") {
@@ -194,7 +194,7 @@
 			}
 			
 			// CVV match.
-			if (substr(strval($response->r_avs),-1,1) == "M") {
+			if (substr(strval($response->r_avs), -1, 1) == "M") {
 				$this->CVV = true;
 			} else {
 				$this->CVV = false;
@@ -208,7 +208,7 @@
 		}
 
 		// Implements Provider::refund
-		function refund($transaction,$card_number,$amount) {
+		function refund($transaction, $card_number, $amount) {
 			$params = array(
 				"orderoptions" => array(
 					"ordertype" => "CREDIT"

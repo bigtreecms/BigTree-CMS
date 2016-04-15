@@ -5,6 +5,10 @@
 	*/
 
 	namespace BigTree\PaymentGateway;
+
+	use BigTree\cURL;
+	use BigTree\Setting;
+	use stdClass;
 	
 	class PayPalREST extends Provider {
 
@@ -39,13 +43,13 @@
 		}
 
 		// Implements Provider::authorize
-		function authorize($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer) {
-			return $this->charge($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer,"AUTH_ONLY");
+		function authorize($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description, $email, $phone, $customer) {
+			return $this->charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description, $email, $phone, $customer, "AUTH_ONLY");
 		}
 
 		// Implements Provider::authorizeByProfile
-		function authorizeByProfile($id,$user_id,$amount,$tax = 0,$description = "",$email = "") {
-			return $this->chargeByProfile($id,$user_id,$amount,$tax,$description,$email,"authorize");		
+		function authorizeByProfile($id, $user_id, $amount, $tax = 0, $description = "", $email = "") {
+			return $this->chargeByProfile($id, $user_id, $amount, $tax, $description, $email, "authorize");
 		}
 
 		/*
@@ -53,16 +57,16 @@
 				Sends an API call to PayPal Payments Pro.
 		*/
 		
-		function call($endpoint,$data = "",$method = false) {
+		function call($endpoint, $data = "", $method = false) {
 			if ($method) {
-				return json_decode(cURL::request($this->PostURL.$endpoint,$data,array(CURLOPT_HTTPHEADER => $this->Headers,CURLOPT_CUSTOMREQUEST => $method)));
+				return json_decode(cURL::request($this->PostURL.$endpoint, $data, array(CURLOPT_HTTPHEADER => $this->Headers, CURLOPT_CUSTOMREQUEST => $method)));
 			} else {
-				return json_decode(cURL::request($this->PostURL.$endpoint,$data,array(CURLOPT_HTTPHEADER => $this->Headers)));
+				return json_decode(cURL::request($this->PostURL.$endpoint, $data, array(CURLOPT_HTTPHEADER => $this->Headers)));
 			}
 		}
 
 		// Implements Provider::capture
-		function capture($transaction,$amount) {
+		function capture($transaction, $amount) {
 			$data = json_encode(array(
 				"amount" => array(
 					"currency" => "USD",
@@ -70,29 +74,29 @@
 				)
 			));
 
-			$response = $this->call("payments/authorization/$transaction/capture",$data);
+			$response = $this->call("payments/authorization/$transaction/capture", $data);
 			
 			if ($response->state == "completed") {
 				return $response->id;
 			} else {
 				$this->Message = $response->message;
-			
+
 				return false;
 			}
 		}
 
 		// Implements Provider::charge
-		function charge($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description = "",$email = "",$phone = "",$customer = "") {
+		function charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description = "", $email = "", $phone = "", $customer = "", $action = "sale") {
 			// Make card number only have numeric digits
 			$card_number = preg_replace('/\D/', '', $card_number);
 
 			// Split the card name into first name and last name.
-			$first_name = substr($card_name,0,strpos($card_name," "));
-			$last_name = trim(substr($card_name,strlen($first_name)));
+			$first_name = substr($card_name, 0, strpos($card_name, " "));
+			$last_name = trim(substr($card_name, strlen($first_name)));
 
 			// Separate card expiration out
-			$card_expiration_month = substr($card_expiration,0,2);
-			$card_expiration_year = substr($card_expiration,2);				
+			$card_expiration_month = substr($card_expiration, 0, 2);
+			$card_expiration_year = substr($card_expiration, 2);
 			if (strlen($card_expiration) == 4) {
 				$card_expiration_year = "20".$card_expiration_year;
 			}
@@ -123,7 +127,7 @@
 					"city" => $address["city"],
 					"state" => $address["state"],
 					"postal_code" => $address["zip"],
-					"country_code" => $this->countryCode($country),
+					"country_code" => $this->countryCode($address["country"]),
 					"phone" => $phone
 				)
 			);
@@ -145,7 +149,7 @@
 						"currency" => "USD"
 					)
 				))
-			);			
+			);
 
 			if ($transaction_details) {
 				$data["transactions"][0]["amount"]["details"] = $transaction_details;
@@ -157,10 +161,10 @@
 				$data["transactions"][0]["description"] = $description;
 			}
 
-			$response = $this->call("payments/payment",json_encode($data));
+			$response = $this->call("payments/payment", json_encode($data));
 
 			if ($response->state == "approved") {
-				$this->Last4CC = substr(trim($card_number),-4,4);
+				$this->Last4CC = substr(trim($card_number), -4, 4);
 
 				if ($action == "authorize") {
 					$this->Transaction = $response->transactions[0]->related_resources[0]->authorization->id;
@@ -178,7 +182,7 @@
 		}
 
 		// Implements Provider::chargeByProfile
-		function chargeByProfile($id,$user_id,$amount,$tax = 0,$description = "",$email = "",$action = "sale") {
+		function chargeByProfile($id, $user_id, $amount, $tax = 0, $description = "", $email = "", $action = "sale") {
 			$amount = $this->formatCurrency($amount);
 			$tax = $this->formatCurrency($tax);
 
@@ -197,7 +201,7 @@
 				"intent" => $action,
 				"payer" => array(
 					"payment_method" => "credit_card",
-					"funding_instruments" => array(array("credit_card_token" => array("credit_card_id" => $id))),	
+					"funding_instruments" => array(array("credit_card_token" => array("credit_card_id" => $id))),
 				),
 				"transactions" => array(array(
 					"amount" => array(
@@ -223,7 +227,7 @@
 				$data["transactions"][0]["description"] = $description;
 			}
 
-			$response = $this->call("payments/payment",json_encode($data));
+			$response = $this->call("payments/payment", json_encode($data));
 
 			if ($response->state == "approved") {
 				if ($action == "authorize") {
@@ -242,17 +246,17 @@
 		}
 
 		// Implements Provider::createProfile
-		function createProfile($name,$number,$expiration_date,$cvv,$address,$user_id) {
+		function createProfile($name, $number, $expiration_date, $cvv, $address, $user_id) {
 			// Split the card name into first name and last name.
-			$first_name = substr($name,0,strpos($name," "));
-			$last_name = trim(substr($name,strlen($first_name)));
+			$first_name = substr($name, 0, strpos($name, " "));
+			$last_name = trim(substr($name, strlen($first_name)));
 
 			// Make card number only have numeric digits
 			$number = preg_replace('/\D/', '', $number);
 
 			// Separate card expiration out
-			$card_expiration_month = substr($expiration_date,0,2);
-			$card_expiration_year = substr($expiration_date,2);				
+			$card_expiration_month = substr($expiration_date, 0, 2);
+			$card_expiration_year = substr($expiration_date, 2);
 			if (strlen($expiration_date) == 4) {
 				$card_expiration_year = "20".$card_expiration_year;
 			}
@@ -272,7 +276,7 @@
 					"city" => $address["city"],
 					"state" => $address["state"],
 					"postal_code" => $address["zip"],
-					"country_code" => $this->countryCode($country);
+					"country_code" => $this->countryCode($address["country"])
 				)
 			);
 
@@ -280,7 +284,7 @@
 			$data["billing_address"] = array_filter($data["billing_address"]);
 			$data = array_filter($data);
 
-			$response = $this->call("vault/credit-card",json_encode($data));
+			$response = $this->call("vault/credit-card", json_encode($data));
 			
 			if ($response->state == "ok") {
 				return $response->id;
@@ -293,7 +297,7 @@
 		}
 
 		// Implements Provider::createRecurringPayment
-		function createRecurringPayment($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount = false,$trial_period = false,$trial_frequency = false,$trial_length = false) {
+		function createRecurringPayment($description, $amount, $start_date, $period, $frequency, $card_name, $card_number, $card_expiration, $cvv, $address, $email, $trial_amount = false, $trial_period = false, $trial_frequency = false, $trial_length = false) {
 			// Default to today for start
 			$start_time = $start_date ? strtotime($start_date) : time();
 
@@ -301,12 +305,12 @@
 			$card_number = preg_replace('/\D/', '', $card_number);
 
 			// Split the card name into first name and last name.
-			$first_name = substr($card_name,0,strpos($card_name," "));
-			$last_name = trim(substr($card_name,strlen($first_name)));
-		
+			$first_name = substr($card_name, 0, strpos($card_name, " "));
+			$last_name = trim(substr($card_name, strlen($first_name)));
+
 			$params = array(
 				"METHOD" => "CreateRecurringPaymentsProfile",
-				"PROFILESTARTDATE" => gmdate("Y-m-d",$start_time)."T".gmdate("H:i:s",$start_time)."ZL",
+				"PROFILESTARTDATE" => gmdate("Y-m-d", $start_time)."T".gmdate("H:i:s", $start_time)."ZL",
 				"BILLINGPERIOD" => $this->PayPalPeriods[$period],
 				"BILLINGFREQUENCY" => $frequency,
 				"DESC" => $description,
@@ -322,8 +326,7 @@
 				"STATE" => $address["state"],
 				"COUNTRYCODE" => $this->countryCode($address["country"]),
 				"ZIP" => $address["zip"],
-				"EMAIL" => $email,
-				"PHONE" => $phone
+				"EMAIL" => $email
 
 			);
 			
@@ -334,7 +337,7 @@
 				$params["TRIALTOTALBILLINGCYCLES"] = $trial_length;
 			}
 			
-			$response = $this->sendPayPal($params);
+			$response = $this->call($params);
 			
 			// Setup response messages.
 			$this->Profile = $response["PROFILEID"];
@@ -349,7 +352,7 @@
 
 		// Implements Provider::deleteProfile
 		function deleteProfile($id) {
-			$this->call("vault/credit-card/$id","","DELETE");
+			$this->call("vault/credit-card/$id", "", "DELETE");
 		}
 
 
@@ -359,7 +362,7 @@
 			
 			if ($response->state != "ok") {
 				$this->Message = $response->message;
-			
+
 				return false;
 			}
 
@@ -377,7 +380,7 @@
 			$card->Number = $response->number;
 			$card->Type = $response->type == "amex" ? "American Express" : ucwords($response->type);
 			$card->UserID = $response->payer_id;
-			$card->ValidUntil = date("Y-m-d H:i:s",strtotime($response->valid_until));
+			$card->ValidUntil = date("Y-m-d H:i:s", strtotime($response->valid_until));
 
 			return $card;
 		}
@@ -394,15 +397,15 @@
 				$url = "api.paypal.com";
 			}
 			
-			$response = json_decode(cURL::request("https://$url/v1/oauth2/token","grant_type=client_credentials",array(CURLOPT_POST => true, CURLOPT_USERPWD => $this->Settings["paypal-rest-client-id"].":".$this->Settings["paypal-rest-client-secret"])));
+			$response = json_decode(cURL::request("https://$url/v1/oauth2/token", "grant_type=client_credentials", array(CURLOPT_POST => true, CURLOPT_USERPWD => $this->Settings["paypal-rest-client-id"].":".$this->Settings["paypal-rest-client-secret"])));
 			
 			if ($response->error) {
-				$this->Errors[] = $response->error;
+				$this->Message[] = $response->error;
 
 				return false;
 			}
 
-			$this->Settings["paypal-rest-expiration"] = date("Y-m-d H:i:s",strtotime("+".$response->expires_in." seconds"));
+			$this->Settings["paypal-rest-expiration"] = date("Y-m-d H:i:s", strtotime("+".$response->expires_in." seconds"));
 			$this->Settings["paypal-rest-token"] = $response->access_token;
 
 			$setting = new Setting("bigtree-internal-payment-gateway");
@@ -425,30 +428,30 @@
 		}
 
 		// Implements Provider::paypalExpressCheckoutProcess
-		function paypalExpressCheckoutProcess($token,$payer_id,$amount = false) {
+		function paypalExpressCheckoutProcess($token, $payer_id, $amount = false) {
 			$token = $token ?: $_SESSION["bigtree"]["paypal-rest-payment-id"];
 			$data = array("payer_id" => $payer_id);
 			
 			if ($amount) {
-				$data["transactions"] = array(array("amount" => array("total" => $amount,"currency" => "USD")));
+				$data["transactions"] = array(array("amount" => array("total" => $amount, "currency" => "USD")));
 			}
 			
-			$response = $this->call("payments/payment/$token/execute",json_encode($data));
+			$response = $this->call("payments/payment/$token/execute", json_encode($data));
 			
 			if ($response->state == "approved") {
 				$this->Transaction = $response->transactions[0]->related_resources[0]->sale->id;
-			
+
 				return $this->Transaction;
 			} else {
 				$this->Errors = $response->details;
 				$this->Message = $response->message;
-			
+
 				return false;
 			}
 		}
 
 		// Implements Provider::paypalExpressCheckoutRedirect
-		function paypalExpressCheckoutRedirect($amount,$success_url,$cancel_url) {
+		function paypalExpressCheckoutRedirect($amount, $success_url, $cancel_url) {
 			$data = json_encode(array(
 				"intent" => "sale",
 				"redirect_urls" => array(
@@ -464,11 +467,11 @@
 				))
 			));
 
-			$response = $this->call("payments/payment",$data);
+			$response = $this->call("payments/payment", $data);
 			
 			if ($response->state == "created") {
 				$_SESSION["bigtree"]["paypal-rest-payment-id"] = $response->id;
-			
+
 				foreach ($response->links as $link) {
 					if ($link->rel == "approval_url") {
 						header("Location: ".$link->href);
@@ -481,10 +484,12 @@
 				
 				return false;
 			}
+
+			return true;
 		}
 
 		// Implements Provider::refund
-		function refund($transaction,$card_number,$amount) {
+		function refund($transaction, $card_number, $amount) {
 			if ($amount) {
 				$data = json_encode(array(
 					"amount" => array(
@@ -497,14 +502,14 @@
 			}
 
 			// First try as if it was a sale.
-			$response = $this->call("payments/sale/$transaction/refund",$data);
+			$response = $this->call("payments/sale/$transaction/refund", $data);
 			
 			if ($response->state == "completed") {
 				return $response->id;
 			} elseif ($amount) {
 				// Try as if it were auth/capture
-				$response = $this->call("payments/capture/$transaction/refund",$data);
-			
+				$response = $this->call("payments/capture/$transaction/refund", $data);
+
 				if ($response->state == "completed") {
 					return $response->id;
 				}
@@ -517,7 +522,7 @@
 
 		// Implements Provider::void
 		function void($authorization) {
-			$response = $this->call("payments/authorization/$authorization/void","{}");
+			$response = $this->call("payments/authorization/$authorization/void", "{}");
 			
 			if ($response->state == "voided") {
 				return $response->id;

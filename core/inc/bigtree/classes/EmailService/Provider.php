@@ -33,7 +33,7 @@
 				Properly formatted name & email as an array
 		*/
 
-		function parseAddress($address) {
+		function parseAddress($address, $use_default = true) {
 			$email = $name = "";
 
 			if (!$address && $use_default) {

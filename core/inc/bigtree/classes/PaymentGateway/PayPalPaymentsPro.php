@@ -5,6 +5,8 @@
 	*/
 
 	namespace BigTree\PaymentGateway;
+
+	use BigTree\cURL;
 	
 	class PayPalPaymentsPro extends Provider {
 
@@ -43,8 +45,8 @@
 		}
 
 		// Implements Provider::authorize
-		function authorize($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer) {
-			return $this->charge($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description,$email,$phone,$customer,"AUTH_ONLY");
+		function authorize($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description, $email, $phone, $customer) {
+			return $this->charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description, $email, $phone, $customer, "AUTH_ONLY");
 		}
 
 		/*
@@ -57,24 +59,24 @@
 			$this->Unresponsive = false;
 			
 			// Get the default parameters
-			$params = array_merge($this->DefaultParameters,$params);
+			$params = array_merge($this->DefaultParameters, $params);
 			
 			// PayPal wants a GET instead of a POST, so we have to convert it away from an array.
 			$fields = array();
 			foreach ($params as $key => $val) {
-				$fields[] = $key."=".str_replace("&","%26",$val);
+				$fields[] = $key."=".str_replace("&", "%26", $val);
 			}
 			
 			// Send it off to the server, try 3 times.
 			while ($count < 3) {
-				$response = cURL::request($this->PostURL,implode("&",$fields));
+				$response = cURL::request($this->PostURL, implode("&", $fields));
 				
 				if ($response) {
 					$response_array = array();
-					$response_parts = explode("&",$response);
+					$response_parts = explode("&", $response);
 					
 					foreach ($response_parts as $part) {
-						list($key,$val) = explode("=",$part);
+						list($key, $val) = explode("=", $part);
 						$response_array[$key] = $val;
 					}
 					
@@ -90,7 +92,7 @@
 		}
 
 		// Implements Provider::capture
-		function capture($transaction,$amount) {
+		function capture($transaction, $amount) {
 			$params = array(
 				"METHOD" => "DoCapture",
 				"COMPLETETYPE" => "Complete",
@@ -112,13 +114,13 @@
 		}
 
 		// Implements Provider::charge
-		function charge($amount,$tax,$card_name,$card_number,$card_expiration,$cvv,$address,$description = "",$email = "",$phone = "",$customer = "") {
+		function charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description = "", $email = "", $phone = "", $customer = "", $action = "Sale") {
 			// Make card number only have numeric digits
 			$card_number = preg_replace('/\D/', '', $card_number);
 
 			// Split the card name into first name and last name.
-			$first_name = substr($card_name,0,strpos($card_name," "));
-			$last_name = trim(substr($card_name,strlen($first_name)));
+			$first_name = substr($card_name, 0, strpos($card_name, " "));
+			$last_name = trim(substr($card_name, strlen($first_name)));
 
 			// Setup request params
 			$params = array(
@@ -147,7 +149,7 @@
 			// Setup response messages.
 			$this->Transaction = $response["TRANSACTIONID"];
 			$this->Message = urldecode($response["L_LONGMESSAGE0"]);
-			$this->Last4CC = substr(trim($card_number),-4,4);
+			$this->Last4CC = substr(trim($card_number), -4, 4);
 			
 			// Get a common AVS response.
 			$a = $response["AVSCODE"];
@@ -156,7 +158,7 @@
 			} elseif ($a == "W" || $a == "Z" || $a == "P") {
 				$this->AVS = "Zip";
 			} elseif ($a == "D" || $a == "F" || $a == "M" || $a == "Y" || $a == "X") {
-				$this->AVS = "Both";			
+				$this->AVS = "Both";
 			} else {
 				$this->AVS = false;
 			}
@@ -176,7 +178,7 @@
 		}
 
 		// Implements Provider::createRecurringPayment
-		function createRecurringPayment($description,$amount,$start_date,$period,$frequency,$card_name,$card_number,$card_expiration,$cvv,$address,$email,$trial_amount = false,$trial_period = false,$trial_frequency = false,$trial_length = false) {
+		function createRecurringPayment($description, $amount, $start_date, $period, $frequency, $card_name, $card_number, $card_expiration, $cvv, $address, $email, $trial_amount = false, $trial_period = false, $trial_frequency = false, $trial_length = false) {
 			// Default to today for start
 			$start_time = $start_date ? strtotime($start_date) : time();
 
@@ -184,12 +186,12 @@
 			$card_number = preg_replace('/\D/', '', $card_number);
 
 			// Split the card name into first name and last name.
-			$first_name = substr($card_name,0,strpos($card_name," "));
-			$last_name = trim(substr($card_name,strlen($first_name)));
-		
+			$first_name = substr($card_name, 0, strpos($card_name, " "));
+			$last_name = trim(substr($card_name, strlen($first_name)));
+
 			$params = array(
 				"METHOD" => "CreateRecurringPaymentsProfile",
-				"PROFILESTARTDATE" => gmdate("Y-m-d",$start_time)."T".gmdate("H:i:s",$start_time)."ZL",
+				"PROFILESTARTDATE" => gmdate("Y-m-d", $start_time)."T".gmdate("H:i:s", $start_time)."ZL",
 				"BILLINGPERIOD" => $this->PayPalPeriods[$period],
 				"BILLINGFREQUENCY" => $frequency,
 				"DESC" => $description,
@@ -205,8 +207,7 @@
 				"STATE" => $address["state"],
 				"COUNTRYCODE" => $this->countryCode($address["country"]),
 				"ZIP" => $address["zip"],
-				"EMAIL" => $email,
-				"PHONE" => $phone
+				"EMAIL" => $email
 
 			);
 			
@@ -217,7 +218,7 @@
 				$params["TRIALTOTALBILLINGCYCLES"] = $trial_length;
 			}
 			
-			$response = $this->sendPayPal($params);
+			$response = $this->call($params);
 			
 			// Setup response messages.
 			$this->Profile = $response["PROFILEID"];
@@ -236,7 +237,7 @@
 				"METHOD" => "GetExpressCheckoutDetails",
 				"TOKEN" => $token
 			);
-				
+
 			$response = $this->call($params);
 			$this->Message = urldecode($response["L_LONGMESSAGE0"]);
 			
@@ -248,7 +249,7 @@
 		}
 
 		// Implements Provider::paypalExpressCheckoutProcess
-		function paypalExpressCheckoutProcess($token,$payer_id,$amount = false) {
+		function paypalExpressCheckoutProcess($token, $payer_id, $amount = false) {
 			// Clean up the amount.
 			$amount = $this->formatCurrency($amount);
 			
@@ -260,7 +261,7 @@
 				"PAYMENTREQUEST_0_AMT" => $amount,
 				"AMT" => $amount
 			);
-				
+
 			$response = $this->call($params);
 
 			$this->Message = urldecode($response["L_LONGMESSAGE0"]);
@@ -274,7 +275,7 @@
 		}
 
 		// Implements Provider::paypalExpressCheckoutRedirect
-		function paypalExpressCheckoutRedirect($amount,$success_url,$cancel_url) {
+		function paypalExpressCheckoutRedirect($amount, $success_url, $cancel_url) {
 			// Clean up the amount.
 			$amount = $this->formatCurrency($amount);
 			
@@ -287,7 +288,7 @@
 				"PAYMENTACTION" => "Sale"
 			);
 			
-			$response = $this->sendPayPal($params);
+			$response = $this->call($params);
 
 			$this->Message = urldecode($response["L_LONGMESSAGE0"]);
 			
@@ -300,7 +301,7 @@
 		}
 
 		// Implements Provider::refund
-		function refund($transaction,$card_number,$amount) {
+		function refund($transaction, $card_number, $amount) {
 			$params = array(
 				"METHOD" => "RefundTransaction",
 				"TRANSACTIONID" => $transaction
@@ -330,7 +331,7 @@
 		function void($authorization) {
 			$params = array(
 				"METHOD" => "DoVoid",
-				"AUTHORIZATIONID" => $transaction
+				"AUTHORIZATIONID" => $authorization
 			);
 			
 			$response = $this->call($params);

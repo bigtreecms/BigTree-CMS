@@ -18,7 +18,7 @@
 				$mailer->addCustomHeader($key,$val);
 			}
 
-			$mailer->Subject = $subject;
+			$mailer->Subject = $email->Subject;
 			
 			if ($email->HTML) {
 				$mailer->isHTML(true);
@@ -30,7 +30,7 @@
 
 			list($from_email,$from_name) = $this->parseAddress($email->From);
 
-			$mailer->From = $from;
+			$mailer->From = $from_email;
 			$mailer->FromName = $from_name;
 
 			list($reply_email,$reply_name) = $this->parseAddress($email->ReplyTo,false);

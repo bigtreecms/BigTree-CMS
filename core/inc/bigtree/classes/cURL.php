@@ -26,8 +26,6 @@
 		*/
 		
 		static function request($url,$post = false,$options = array(),$strict_security = false,$output_file = false) {
-			global $bigtree;
-
 			// Startup cURL and set the URL
 			$ch = curl_init();
 			curl_setopt($ch,CURLOPT_URL, $url);
@@ -80,7 +78,7 @@
 			// If we're outputting to a file, close the handle and return nothing
 			if ($output_file) {
 				fclose($file_pointer);
-				return;
+				return true;
 			}
 
 			return $output;
