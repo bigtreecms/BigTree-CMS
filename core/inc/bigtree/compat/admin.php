@@ -2987,7 +2987,7 @@
 		*/
 
 		static function growl($title, $message, $type = "success") {
-			$_SESSION["bigtree_admin"]["growl"] = array("message" => $message, "title" => $title, "type" => $type);
+			BigTree\Utils::growl($title, $message, $type);
 		}
 
 		/*
@@ -3665,7 +3665,7 @@
 		*/
 
 		static function ungrowl() {
-			unset($_SESSION["bigtree_admin"]["flash"]);
+			BigTree\Utils::ungrowl();
 		}
 
 		/*

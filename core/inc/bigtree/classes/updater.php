@@ -250,6 +250,103 @@
 		}
 
 		/*
+			Function: unzip
+				Unzips a file.
+			
+			Parameters:
+				file - Location of the file to unzip
+				destination - The full path to unzip the file's contents to.
+		*/
+		
+		static function unzip($file,$destination) {
+			// If we can't write the output directory, we're not getting anywhere.
+			if (!FileSystem::getDirectoryWritability($destination)) {
+				return false;
+			}
+
+			// Up the memory limit for the unzip.
+			ini_set("memory_limit","512M");
+			
+			$destination = rtrim($destination)."/";
+			FileSystem::createDirectory($destination);
+			
+			// If we have the built in ZipArchive extension, use that.
+			if (class_exists("ZipArchive")) {
+				$z = new ZipArchive;
+				
+				if (!$z->open($file)) {
+					// Bad zip file.
+					return false;
+				}
+				
+				for ($i = 0; $i < $z->numFiles; $i++) {
+					if (!$info = $z->statIndex($i)) {
+						// Unzipping the file failed for some reason.
+						return false;
+					}
+					
+					// If it's a directory, ignore it. We'll create them in putFile.
+					if (substr($info["name"],-1) == "/") {
+						continue;
+					}
+					
+					// Ignore __MACOSX and all it's files.
+					if (substr($info["name"],0,9) == "__MACOSX/") {
+						continue;
+					}
+
+					$content = $z->getFromIndex($i);
+					if ($content === false) {
+						// File extraction failed.
+						return false;
+					}
+					FileSystem::createFile($destination.$file["name"],$content);
+				}
+				
+				$z->close();
+				return true;
+
+			// Fall back on PclZip if we don't have the "native" version.
+			} else {
+				// WordPress claims this could be an issue, so we'll make sure multibyte encoding isn't overloaded.
+				if (ini_get('mbstring.func_overload') && function_exists('mb_internal_encoding')) {
+					$previous_encoding = mb_internal_encoding();
+					mb_internal_encoding('ISO-8859-1');
+				}
+				
+				$z = new PclZip($file);
+				$archive = $z->extract(PCLZIP_OPT_EXTRACT_AS_STRING);
+
+				// If we saved a previous encoding, reset it now.
+				if (isset($previous_encoding)) {
+					mb_internal_encoding($previous_encoding);
+					unset($previous_encoding);
+				}
+				
+				// If it's not an array, it's not a good zip. Also, if it's empty it's not a good zip.
+				if (!is_array($archive) || !count($archive)) {
+					return false;
+				}
+
+				foreach ($archive as $item) {
+					// If it's a directory, ignore it. We'll create them in putFile.
+					if ($item["folder"]) {
+						continue;
+					}
+					
+					// Ignore __MACOSX and all it's files.
+					if (substr($item["filename"],0,9) == "__MACOSX/") {
+						continue;
+					}
+					
+					FileSystem::createFile($destination.$item["filename"],$item["content"]);
+				}
+				
+				return true;
+			}
+		}
+
+		/*
 			Function: zipRoot
 				Returns the root of a zip file (if the root is simply a folder)
 
