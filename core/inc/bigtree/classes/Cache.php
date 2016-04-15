@@ -52,8 +52,6 @@
 				$entry = SQL::fetchSingle("SELECT value FROM bigtree_caches WHERE `identifier` = ? AND `key` = ?",$identifier,$key);
 			}
 
-			\Kint::dump($identifier,$key,$max_age,$decode,$entry);
-
 			return $decode ? json_decode($entry,true) : $entry;
 		}
 

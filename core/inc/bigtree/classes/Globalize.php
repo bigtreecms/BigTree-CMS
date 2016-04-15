@@ -42,7 +42,6 @@
 				if (substr($bigtree["key"], 0, 1) != "_" && !in_array($bigtree["key"], array("admin", "bigtree", "cms"))) {
 					if (is_array($bigtree["val"])) {
 						$GLOBALS[$bigtree["key"]] = static::recurse($bigtree["val"], $bigtree["functions"]);
-						echo "Running recurse on ".$bigtree["key"]."<br>";
 					} else {
 						foreach ($bigtree["functions"] as $bigtree["function"]) {
 							// Backwards compatibility with old array passed syntax
@@ -56,7 +55,6 @@
 						}
 
 						$GLOBALS[$bigtree["key"]] = $bigtree["val"];
-						echo "Set value on ".$bigtree["key"]." to ".$bigtree["val"]."<br>";
 					}
 				}
 			}
