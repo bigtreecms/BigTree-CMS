@@ -44,5 +44,5 @@
 <?php
 	$bigtree["simple_html_fields"] = array("thank_you_message");
 	$bigtree["html_editor_width"] = 435;
-	Router::includeFile("admin/layouts/_html-field-loader.php");
+	include Router::getIncludePath("admin/layouts/_html-field-loader.php");
 ?>

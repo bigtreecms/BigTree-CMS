@@ -150,7 +150,7 @@
 	<?php } ?>
 </div>
 
-<?php Router::includeFile("admin/auto-modules/views/_common-js.php") ?>
+<?php include Router::getIncludePath("admin/auto-modules/views/_common-js.php") ?>
 <script>
 	<?php if ($permission == "p" && $draggable) { ?>
 	$("#image_list").sortable({ containment: "parent", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {

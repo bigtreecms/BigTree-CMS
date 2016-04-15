@@ -4,7 +4,8 @@
 	if (!$_SESSION["bigtree_admin"]["form_data"]) {
 		Router::redirect($_SESSION["bigtree_admin"]["cropper_previous_page"]);
 	}
-	BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);
+
+	Globalize::arrayObject($_SESSION["bigtree_admin"]["form_data"]);
 
 	// Override the default H1
 	$bigtree["page_override"] = array("title" => "Crop Images","icon" => "crop");

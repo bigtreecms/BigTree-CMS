@@ -32,6 +32,6 @@
 		list($extension,$view_type) = explode("*",$bigtree["view"]["type"]);
 		include SERVER_ROOT."extensions/$extension/plugins/view-types/$view_type/draw.php";
 	} else {
-		Router::includeFile("admin/auto-modules/views/".$bigtree["view"]["type"].".php");
+		include Router::getIncludePath("admin/auto-modules/views/".$bigtree["view"]["type"].".php");
 	}
 ?>

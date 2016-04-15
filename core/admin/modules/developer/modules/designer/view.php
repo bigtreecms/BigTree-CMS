@@ -53,7 +53,7 @@
 		<section id="field_area" class="sub">
 			<?php
 				$bigtree["module_designer_view"] = true;
-				Router::includeFile("admin/ajax/developer/load-view-fields.php");
+				include Router::getIncludePath("admin/ajax/developer/load-view-fields.php");
 			?>
 		</section>
 		<footer>

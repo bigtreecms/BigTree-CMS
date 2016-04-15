@@ -8,5 +8,5 @@
 		unset($_SESSION["bigtree_admin"]["form_data"]["saved"]);
 	}
 
-	Router::includeFile("admin/auto-modules/forms/add.php");
+	include Router::getIncludePath("admin/auto-modules/forms/add.php");
 	

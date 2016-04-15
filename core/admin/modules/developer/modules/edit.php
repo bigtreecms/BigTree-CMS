@@ -8,7 +8,7 @@
 	$gbp = is_array($module["gbp"]) ? $module["gbp"] : array("enabled" => false, "name" => "", "table" => "", "group_field" => "", "other_table" => "", "title_field" => "");
 
 	// Get a list of interfaces, this is separated out because actions form uses the same logic
-	Router::includeFile("admin/modules/developer/modules/_interface-sort.php");
+	include Router::getIncludePath("admin/modules/developer/modules/_interface-sort.php");
 
 	// Set the drag disabled flag for non-visible actions
 	$action_data = array();
@@ -93,7 +93,7 @@
 				</fieldset>
 				<br class="clear" />
 			</section>
-			<?php Router::includeFile("admin/modules/developer/modules/_gbp.php") ?>
+			<?php include Router::getIncludePath("admin/modules/developer/modules/_gbp.php") ?>
 			<footer>
 				<input type="submit" class="button blue" value="Update" />	
 			</footer>
@@ -109,7 +109,7 @@
 	</div>
 </div>
 
-<?php Router::includeFile("admin/modules/developer/modules/_js.php") ?>
+<?php include Router::getIncludePath("admin/modules/developer/modules/_js.php") ?>
 <script>
 	BigTreeTable({
 		container: "#actions_table",

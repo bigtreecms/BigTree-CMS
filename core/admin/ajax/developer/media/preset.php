@@ -14,5 +14,5 @@
 <?php
 	$data = $_POST;
 	define("BIGTREE_CREATING_PRESET",true);
-	Router::includeFile("admin/ajax/developer/field-options/_image-options.php");
+	include Router::getIncludePath("admin/ajax/developer/field-options/_image-options.php");
 ?>

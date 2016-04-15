@@ -32,7 +32,7 @@
 	FileSystem::createDirectory($cache_root);
 
 	// Unzip the package
-	Router::includeFile("inc/lib/pclzip.php");
+	include Router::getIncludePath("inc/lib/pclzip.php");
 	$zip = new PclZip($file);
 	$files = $zip->extract(PCLZIP_OPT_PATH,$cache_root);
 	if (!$files) {

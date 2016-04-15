@@ -10,9 +10,9 @@
 	
 	$action = $bigtree["commands"][0];
 	if ($action == "csv") {
-		Router::includeFile("admin/auto-modules/reports/csv.php");
+		include Router::getIncludePath("admin/auto-modules/reports/csv.php");
 	} elseif ($action == "view") {
-		Router::includeFile("admin/auto-modules/reports/view.php");
+		include Router::getIncludePath("admin/auto-modules/reports/view.php");
 	} else {
-		Router::includeFile("admin/auto-modules/reports/filter.php");
+		include Router::getIncludePath("admin/auto-modules/reports/filter.php");
 	}

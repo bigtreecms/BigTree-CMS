@@ -54,7 +54,7 @@
 		<section class="sub" id="field_area">
 			<?php
 				if ($table) {
-					Router::includeFile("admin/ajax/developer/load-report.php");
+					include Router::getIncludePath("admin/ajax/developer/load-report.php");
 				} else {
 					echo "<p>Please choose a table to populate this area.</p>";
 				}
@@ -65,4 +65,4 @@
 		</footer>
 	</form>
 </div>
-<?php Router::includeFile("admin/modules/developer/modules/reports/_js.php") ?>
+<?php include Router::getIncludePath("admin/modules/developer/modules/reports/_js.php") ?>

@@ -1,5 +1,5 @@
 <?php
-	use BigTree\FileSystem;
+	namespace BigTree;
 	
 	// Prevent directory path shenanigans
 	$field_type = FileSystem::getSafePath($_POST["type"]);

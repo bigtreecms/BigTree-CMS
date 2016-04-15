@@ -22,7 +22,7 @@
 	</fieldset>
 </div>
 <div class="callout_fields">
-	<?php Router::includeFile("admin/ajax/callouts/resources.php") ?>
+	<?php include Router::getIncludePath("admin/ajax/callouts/resources.php") ?>
 </div>
 
 <script>

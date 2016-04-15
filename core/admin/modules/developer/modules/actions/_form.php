@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	// Get list of interfaces but dump embeddable forms since they're for the front end
-	Router::includeFile("admin/modules/developer/modules/_interface-sort.php");
+	include Router::getIncludePath("admin/modules/developer/modules/_interface-sort.php");
 	unset($interface_list["embeddable-form"]);
 ?>
 <section>

@@ -19,6 +19,6 @@
 		<span class="ignore_404">Delete</span>
 	</header>
 	<ul id="results">
-		<?php Router::includeFile("admin/ajax/dashboard/404/search.php") ?>
+		<?php include Router::getIncludePath("admin/ajax/dashboard/404/search.php") ?>
 	</ul>
 </div>

@@ -44,9 +44,10 @@
 					$output = $sub_field->process();
 
 					if (!is_null($output)) {
-						$bigtree["entry"][$sub_field["key"]] = $output;
+						$bigtree["entry"][$sub_field->Key] = $output;
 					}
 				}
+				
 				$callouts[] = $bigtree["entry"];
 			}
 		}

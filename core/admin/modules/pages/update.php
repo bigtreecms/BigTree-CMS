@@ -47,7 +47,7 @@
 	$bigtree["errors"] = array();
 	
 	// Parse resources
-	Router::includeFile("admin/modules/pages/_resource-parse.php");
+	include Router::getIncludePath("admin/modules/pages/_resource-parse.php");
 
 	// Handle permissions on trunk
 	if ($admin->Level < 2) {
@@ -115,7 +115,7 @@
 		"edit_link" => ADMIN_ROOT."pages/edit/$id/",
 		"errors" => $bigtree["errors"]
 	);
-	
+
 	if (count($bigtree["crops"])) {
 		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = $cms->cacheUnique("org.bigtreecms.crops",$bigtree["crops"]);
 		Router::redirect(ADMIN_ROOT."pages/crop/$id/");

@@ -71,7 +71,7 @@
 	<p>Please choose a table to populate this area.</p>
 	<?php
 		} else {
-			Router::includeFile("admin/ajax/developer/load-view-fields.php");
+			include Router::getIncludePath("admin/ajax/developer/load-view-fields.php");
 		}
 	?>
 </section>

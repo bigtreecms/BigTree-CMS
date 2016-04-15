@@ -114,7 +114,7 @@
 		</footer>
 	</form>
 </div>
-<?php Router::includeFile("admin/layouts/_html-field-loader.php") ?>
+<?php include Router::getIncludePath("admin/layouts/_html-field-loader.php") ?>
 <script>
 	BigTreeFormValidator("#auto_module_form",false<?php if ($bigtree["form"]["embedded"]) { ?>,true<?php } ?>);
 	

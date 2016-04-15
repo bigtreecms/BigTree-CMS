@@ -1147,11 +1147,6 @@
 		static function query($query) {
 			global $bigtree;
 
-			// Debug should log queries
-			if ($bigtree["config"]["debug"]) {
-				static::$QueryLog[] = $query;
-			}
-
 			// Setup our read connection if it disconnected for some reason
 			$connection = (static::$Connection && static::$Connection !== "disconnected") ? static::$Connection : static::connect("Connection", "db");
 
@@ -1166,18 +1161,21 @@
 
 			// If we only have a single argument we're not doing a prepared statement thing
 			$args = func_get_args();
+
 			if (count($args) == 1) {
 				$query_response = $connection->query($query);
 			} else {
 				// Check argument and ? count to trigger warnings
 				$wildcard_count = substr_count($query, "?");
+				
 				if ($wildcard_count != (count($args) - 1)) {
 					throw new \Exception("SQL::query error - wildcard and argument count do not match ($wildcard_count '?' found, ".(count($args) - 1)." arguments provided)");
 				}
 
 				// Do the replacements and escapes
 				$x = 1;
-				while (($position = strpos($query, "?")) !== false) {
+				$offset = 0;
+				while (($position = strpos($query, "?", $offset)) !== false) {
 					// Allow for these reserved keywords to be let through unescaped
 					if (is_null($args[$x])) {
 						$replacement = "NULL";
@@ -1187,7 +1185,13 @@
 						$replacement = "'".static::escape($args[$x])."'";
 					}
 
+					// If the replacement contained a ? we don't want it to be replaced, so start after the replacement
+					$offset = strlen($replacement) + $position;
+
+					// Replace
 					$query = substr($query, 0, $position).$replacement.substr($query, $position + 1);
+
+					// Increment argument
 					$x++;
 				}
 
@@ -1198,6 +1202,11 @@
 			// Log errors
 			if (!is_object($query_response) && $connection->error) {
 				static::$ErrorLog[] = $connection->error;
+			}
+
+			// Debug should log queries
+			if ($bigtree["config"]["debug"]) {
+				static::$QueryLog[] = $query;
 			}
 
 			return new SQL($query_response);

@@ -28,4 +28,4 @@
 	<input type="checkbox" name="disable_captions" <?php if ($data["disable_captions"]) { ?>checked="checked" <?php } ?>/>
 	<label class="for_checkbox">Disable Captions</label>
 </fieldset>
-<?php Router::includeFile("admin/ajax/developer/field-options/_image-options.php") ?>
+<?php include Router::getIncludePath("admin/ajax/developer/field-options/_image-options.php") ?>

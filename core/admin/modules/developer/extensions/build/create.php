@@ -316,7 +316,7 @@
 	FileSystem::deleteFile(SERVER_ROOT."cache/package.zip");
 	FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 	FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
-	Router::includeFile("inc/lib/pclzip.php");
+	include Router::getIncludePath("inc/lib/pclzip.php");
 
 	$zip = new \PclZip(SERVER_ROOT."cache/package.zip");
 	$zip->create(FileSystem::getDirectoryContents(SERVER_ROOT."extensions/$id/"),PCLZIP_OPT_REMOVE_PATH,SERVER_ROOT."extensions/$id/");

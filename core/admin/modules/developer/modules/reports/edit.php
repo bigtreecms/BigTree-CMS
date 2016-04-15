@@ -55,11 +55,11 @@
 			</div>
 		</section>
 		<section class="sub" id="field_area">
-			<?php Router::includeFile("admin/ajax/developer/load-report.php") ?>
+			<?php include Router::getIncludePath("admin/ajax/developer/load-report.php") ?>
 		</section>
 		<footer>
 			<input type="submit" class="button blue" value="Update" />
 		</footer>
 	</form>
 </div>
-<?php Router::includeFile("admin/modules/developer/modules/reports/_js.php") ?>
+<?php include Router::getIncludePath("admin/modules/developer/modules/reports/_js.php") ?>

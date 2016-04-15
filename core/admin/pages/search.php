@@ -118,9 +118,9 @@
 						$view["edit_url"] = str_replace("MODULE_ROOT",ADMIN_ROOT.$module["route"]."/",$view["edit_url"]);
 
 						if ($view["type"] == "images" || $view["type"] == "images-group") {
-							Router::includeFile("admin/pages/search-views/images.php");
+							include Router::getIncludePath("admin/pages/search-views/images.php");
 						} else {
-							Router::includeFile("admin/pages/search-views/table.php");
+							include Router::getIncludePath("admin/pages/search-views/table.php");
 						}
 					}
 				} else {

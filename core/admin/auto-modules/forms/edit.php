@@ -31,12 +31,12 @@
 		}
 		
 		if (!$bigtree["access_level"] || $bigtree["access_level"] == "n") {
-			Router::includeFile("admin/auto-modules/forms/_denied.php");
+			include Router::getIncludePath("admin/auto-modules/forms/_denied.php");
 		} else {
 			$bigtree["many-to-many"] = $many_to_many = $pending_entry["mtm"];
 			$bigtree["tags"] = $pending_entry["tags"];
 				
-			Router::includeFile("admin/auto-modules/forms/_form.php");
+			include Router::getIncludePath("admin/auto-modules/forms/_form.php");
 		}
 	}
 ?>

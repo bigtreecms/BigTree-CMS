@@ -39,7 +39,7 @@
 			echo '<div class="dashboard_pane">';
 			// Core pane
 			if (strpos($pane["id"],"*") === false) {
-				Router::includeFile("admin/modules/dashboard/panes/".$pane["id"].".php");
+				include Router::getIncludePath("admin/modules/dashboard/panes/".$pane["id"].".php");
 			// Extension pane
 			} else {
 				list($extension,$id) = explode("*",$pane["id"]);

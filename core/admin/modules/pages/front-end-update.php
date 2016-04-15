@@ -41,7 +41,7 @@
 	$_POST["template"] = $pdata["template"];
 
 	// Parse resources
-	Router::includeFile("admin/modules/pages/_resource-parse.php");
+	include Router::getIncludePath("admin/modules/pages/_resource-parse.php");
 
 	// Un-htmlspecialchar everything since createPage / updatePage is going to re-do it.
 	foreach ($pdata as $key => $val) {
@@ -81,9 +81,9 @@
 	$admin->unlock("bigtree_pages",$page);
 
 	if (count($bigtree["crops"])) {
-		Router::includeFile("admin/modules/pages/_front-end-crop.php");
+		include Router::getIncludePath("admin/modules/pages/_front-end-crop.php");
 	} elseif (count($bigtree["errors"])) {
-		Router::includeFile("admin/modules/pages/_front-end-error.php");
+		include Router::getIncludePath("admin/modules/pages/_front-end-error.php");
 	} else {
 ?>
 <script>parent.BigTreeBar.refresh("<?=$refresh_link?>");</script>

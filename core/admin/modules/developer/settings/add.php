@@ -17,7 +17,7 @@
 ?>
 <div class="container">
 	<form class="module" method="post" action="<?=DEVELOPER_ROOT?>settings/create/">
-		<?php Router::includeFile("admin/modules/developer/settings/_form-content.php") ?>
+		<?php include Router::getIncludePath("admin/modules/developer/settings/_form-content.php") ?>
 		<footer>
 			<input type="submit" class="button blue" value="Create" />
 		</footer>
@@ -28,7 +28,7 @@
 </script>
 <?php
 	$bigtree["html_fields"] = array("setting_description");
-	Router::includeFile("admin/layouts/_html-field-loader.php");
+	include Router::getIncludePath("admin/layouts/_html-field-loader.php");
 	
 	unset($module);
 ?>

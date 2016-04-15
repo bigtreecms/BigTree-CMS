@@ -30,7 +30,7 @@
 	$upload_service = new BigTreeStorage;
 
 	// Parse resources
-	Router::includeFile("admin/modules/pages/_resource-parse.php");
+	include Router::getIncludePath("admin/modules/pages/_resource-parse.php");
 
 	if ($access_level == "p" && $_POST["ptype"] == "Create & Publish") {
 		// Let's make it happen.

@@ -10,11 +10,11 @@
 		<span class="form_search_icon"></span>
 	</summary>
 	<article class="table" id="table_contents">
-		<?php Router::includeFile("admin/ajax/auto-modules/views/grouped.php") ?>
+		<?php include Router::getIncludePath("admin/ajax/auto-modules/views/grouped.php") ?>
 	</article>
 </div>
 
-<?php Router::includeFile("admin/auto-modules/views/_common-js.php") ?>
+<?php include Router::getIncludePath("admin/auto-modules/views/_common-js.php") ?>
 <script>
 	BigTree.localSearch = function() {
 		$("#table_contents").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/grouped/", { view: <?=$bigtree["view"]["id"]?>, search: $("#search").val() }, BigTree.localRefreshSort);

@@ -48,48 +48,53 @@
 		*/
 
 		function __construct($page, $decode = true) {
-			// Passing in just an ID
-			if (!is_array($page)) {
-				$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $page);
-			}
-
-			// Bad data set
-			if (!is_array($page)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+			// Allow for loading the root (i.e. -1)
+			if ($page === -1 || $page === null) {
+				$this->ID = -1;
 			} else {
-				// Allow for empty page creation (for creating a page from a pending entry)
-				if (count($page) == 1) {
-					$this->PendingID = $page["id"];
-					
-					return;
+				// Passing in just an ID
+				if (!is_array($page)) {
+					$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $page);
 				}
 
-				// Protected vars first
-				$this->CreatedAt = $page["created_at"];
-				$this->ID = $page["id"];
-				$this->LastEditedBy = $page["last_edited_by"];
-				$this->UpdatedAt = $page["updated_at"];
+				// Bad data set
+				if (!is_array($page)) {
+					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+				} else {
+					// Allow for empty page creation (for creating a page from a pending entry)
+					if (count($page) == 1) {
+						$this->PendingID = $page["id"];
 
-				// Public vars
-				$this->AnalyticsPageViews = $page["ga_page_views"];
-				$this->Archived = $page["archived"] ? true : false;
-				$this->ArchivedInherited = $page["archived_inherited"] ? true : false;
-				$this->ExpireAt = $page["expire_at"] ?: false;
-				$this->External = $page["external"] ? Link::decode($page["external"]) : "";
-				$this->InNav = $page["in_nav"] ? true : false;
-				$this->MetaDescription = $page["meta_description"];
-				$this->NavigationTitle = $page["nav_title"];
-				$this->NewWindow = $page["new_window"] ? true : false;
-				$this->Parent = $page["parent"];
-				$this->Path = $page["path"];
-				$this->Position = $page["position"];
-				$this->PublishAt = $page["publish_at"] ?: false;
-				$this->Resources = $decode ? array_filter((array) @json_decode($page["resources"], true)) : $page["resources"];
-				$this->Route = $page["route"];
-				$this->SEOInvisible = $page["seo_invisible"] ? true : false;
-				$this->Template = $page["template"];
-				$this->Title = $page["title"];
-				$this->Trunk = $page["trunk"];
+						return;
+					}
+
+					// Protected vars first
+					$this->CreatedAt = $page["created_at"];
+					$this->ID = $page["id"];
+					$this->LastEditedBy = $page["last_edited_by"];
+					$this->UpdatedAt = $page["updated_at"];
+
+					// Public vars
+					$this->AnalyticsPageViews = $page["ga_page_views"];
+					$this->Archived = $page["archived"] ? true : false;
+					$this->ArchivedInherited = $page["archived_inherited"] ? true : false;
+					$this->ExpireAt = $page["expire_at"] ?: false;
+					$this->External = $page["external"] ? Link::decode($page["external"]) : "";
+					$this->InNav = $page["in_nav"] ? true : false;
+					$this->MetaDescription = $page["meta_description"];
+					$this->NavigationTitle = $page["nav_title"];
+					$this->NewWindow = $page["new_window"] ? true : false;
+					$this->Parent = $page["parent"];
+					$this->Path = $page["path"];
+					$this->Position = $page["position"];
+					$this->PublishAt = $page["publish_at"] ?: false;
+					$this->Resources = $decode ? array_filter((array) @json_decode($page["resources"], true)) : $page["resources"];
+					$this->Route = $page["route"];
+					$this->SEOInvisible = $page["seo_invisible"] ? true : false;
+					$this->Template = $page["template"];
+					$this->Title = $page["title"];
+					$this->Trunk = $page["trunk"];
+				}
 			}
 		}
 

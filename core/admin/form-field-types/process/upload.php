@@ -1,5 +1,5 @@
 <?php
-	use BigTree\FileSystem;
+	namespace BigTree;
 
 	// If a file upload error occurred, return the old data and set errors
 	if ($field["file_input"]["error"] == 1 || $field["file_input"]["error"] == 2) {
@@ -12,7 +12,7 @@
 		// We're processing a file.
 		if (!$field["options"]["image"]) {
 			if (is_uploaded_file($field["file_input"]["tmp_name"])) {
-				$storage = new BigTreeStorage;
+				$storage = new Storage;
 				$field["output"] = $storage->store($field["file_input"]["tmp_name"],$field["file_input"]["name"],$field["options"]["directory"]);
 	
 				if (!$field["output"]) {

@@ -32,7 +32,7 @@
 	FileSystem::createDirectory($cache_root);
 
 	// Unzip the extension
-	Router::includeFile("inc/lib/pclzip.php");
+	include Router::getIncludePath("inc/lib/pclzip.php");
 	$zip = new PclZip($file);
 
 	// See if this was downloaded off GitHub (will have a single root folder)

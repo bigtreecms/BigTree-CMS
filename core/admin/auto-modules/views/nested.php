@@ -47,11 +47,11 @@
 		<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><?php if (count($bigtree["view"]["actions"]) > 1) { ?>Actions<?php } ?></span>
 	</header>
 	<ul id="table_data">
-		<?php Router::includeFile("admin/ajax/auto-modules/views/nested.php") ?>
+		<?php include Router::getIncludePath("admin/ajax/auto-modules/views/nested.php") ?>
 	</ul>
 </div>
 
-<?php Router::includeFile("admin/auto-modules/views/_common-js.php") ?>
+<?php include Router::getIncludePath("admin/auto-modules/views/_common-js.php") ?>
 <script>
 	$("#table_data").on("click",".view_column:first-of-type",function() {
 		// Make sure we haven't searched

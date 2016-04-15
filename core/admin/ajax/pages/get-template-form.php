@@ -62,7 +62,7 @@
 <?php
 	$bigtree["html_editor_width"] = 898;
 	$bigtree["html_editor_height"] = 365;
-	Router::includeFile("admin/layouts/_html-field-loader.php");
+	include Router::getIncludePath("admin/layouts/_html-field-loader.php");
 	$bigtree["tinymce_fields"] = array_merge($bigtree["html_fields"],$bigtree["simple_html_fields"]);
 ?>
 <script>

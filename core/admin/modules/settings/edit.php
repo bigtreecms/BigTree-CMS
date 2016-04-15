@@ -80,7 +80,7 @@
 <?php
 	$bigtree["html_editor_width"] = 898;
 	$bigtree["html_editor_height"] = 365;
-	Router::includeFile("admin/layouts/_html-field-loader.php");
+	include Router::getIncludePath("admin/layouts/_html-field-loader.php");
 ?>
 <script>
 	BigTreeFormValidator("form.module");

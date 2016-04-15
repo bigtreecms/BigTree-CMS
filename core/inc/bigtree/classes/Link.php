@@ -456,7 +456,7 @@
 			}
 
 			// Check for page link
-			list($navid, $commands) = BigTreeAdmin::getPageIDForPath($command);
+			list($navid, $commands) = Router::routeToPage($command);
 			if (!$navid) {
 				return static::tokenize($url);
 			}

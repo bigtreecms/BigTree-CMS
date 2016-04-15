@@ -2,5 +2,5 @@
 	namespace BigTree;
 	
 	$reply_all = true;
-	Router::includeFile("admin/modules/dashboard/messages/reply.php");
+	include Router::getIncludePath("admin/modules/dashboard/messages/reply.php");
 	

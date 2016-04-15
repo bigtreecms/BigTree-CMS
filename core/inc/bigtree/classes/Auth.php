@@ -336,7 +336,7 @@
 
 			$bigtree["content"] = ob_get_clean();
 
-			Router::includeFile($layout_directory.$bigtree["layout"].".php");
+			include Router::getIncludePath($layout_directory.$bigtree["layout"].".php");
 
 			die();
 		}

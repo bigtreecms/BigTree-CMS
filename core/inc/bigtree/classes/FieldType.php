@@ -90,7 +90,7 @@
 			"required" — A boolean value of whether this form field is required or not
 	*/
 
-	BigTree\Router::includeFile("admin/form-field-types/draw/text.php");
+	include BigTree\Router::getIncludePath("admin/form-field-types/draw/text.php");
 ?>');
 			}
 

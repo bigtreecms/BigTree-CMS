@@ -25,7 +25,7 @@
 	// Get all revisions
 	$revisions = $admin->getPageRevisions($page["id"]);
 
-	Router::includeFile("admin/modules/pages/_properties.php");
+	include Router::getIncludePath("admin/modules/pages/_properties.php");
 
 	if ($draft) {
 		$draft_author = $admin->getUser($draft["user"]);

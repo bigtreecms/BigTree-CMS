@@ -26,7 +26,7 @@
 
 <div id="image_uploader_options"<?php if (!$data["image"]) { ?> style="display: none;"<?php } ?>>
 	<h4>Image Options</h4>
-	<?php Router::includeFile("admin/ajax/developer/field-options/_image-options.php") ?>
+	<?php include Router::getIncludePath("admin/ajax/developer/field-options/_image-options.php") ?>
 </div>
 
 <script>

@@ -31,7 +31,7 @@
 		<input type="hidden" name="return_page" value="<?=htmlspecialchars($_SERVER["HTTP_REFERER"])?>" />
 		<?php
 			}
-			Router::includeFile("admin/modules/developer/modules/views/_form.php");
+			include Router::getIncludePath("admin/modules/developer/modules/views/_form.php");
 		?>
 		<footer>
 			<input type="submit" class="button blue" value="Update" />
@@ -39,6 +39,6 @@
 	</form>
 </div>
 <?php
-		Router::includeFile("admin/modules/developer/modules/views/_js.php");
+		include Router::getIncludePath("admin/modules/developer/modules/views/_js.php");
 	}
 ?>

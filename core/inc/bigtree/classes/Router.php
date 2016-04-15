@@ -561,27 +561,6 @@
 		}
 
 		/*
-		    Function: includeFile
-				Includes a core file checking whether a custom override exists first.
-
-			Parameter:
-				file - File path (relative to /core/ or /custom/)
-		*/
-
-		static function includeFile($file) {
-			// Make this function scope include all global vars
-			foreach ($GLOBALS as $key => $value) {
-				global $$key;
-			}
-
-			$path = static::getIncludePath($file);
-			
-			if (file_exists($path)) {
-				include_once $path;
-			}
-		}
-
-		/*
 			Function: redirect
 				Simple URL redirect via header with proper code #
 			

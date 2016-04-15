@@ -28,11 +28,11 @@
 			if (isset($_GET["force"])) {
 				$admin->unlock($bigtree["form"]["table"],$bigtree["edit_id"]);
 			}
-			Router::includeFile("admin/auto-modules/forms/edit.php");
+			include Router::getIncludePath("admin/auto-modules/forms/edit.php");
 		} else {
-			Router::includeFile("admin/auto-modules/forms/add.php");
+			include Router::getIncludePath("admin/auto-modules/forms/add.php");
 		}
 	} else {
-		Router::includeFile("admin/auto-modules/forms/$action.php");
+		include Router::getIncludePath("admin/auto-modules/forms/$action.php");
 	}
 	

@@ -129,6 +129,24 @@
 		}
 
 		/*
+			Function: getArray
+				Returns an Array version of this Object.
+		*/
+
+		function getArray() {
+			$raw_properties = get_object_vars($this);
+			$array = array();
+
+			foreach ($raw_properties as $key => $value) {
+				$array[$this->_camelCaseToUnderscore($key)] = $value;
+			}
+
+			$array["options"] = $array["settings"];
+
+			return $array;
+		}
+
+		/*
 			Function: getParsedFilesArray
 				Parses the $_FILES array and returns an array more like a normal $_POST array.
 
@@ -275,8 +293,8 @@
 				return false;
 			}
 
-			// We're going to tell BigTreeStorage to handle forcing images into JPEGs instead of writing the code 20x
-			$storage = new BigTreeStorage;
+			// We're going to tell Storage to handle forcing images into JPEGs instead of writing the code 20x
+			$storage = new Storage;
 			$storage->AutoJPEG = $bigtree["config"]["image_force_jpeg"];
 
 			// Let's check the minimum requirements for the image first before we store it anywhere.

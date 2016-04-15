@@ -84,4 +84,4 @@
 		?>
 	</ul>
 </div>
-<?php Router::includeFile("admin/auto-modules/views/_common-js.php") ?>
+<?php include Router::getIncludePath("admin/auto-modules/views/_common-js.php") ?>

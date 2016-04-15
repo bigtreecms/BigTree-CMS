@@ -35,7 +35,7 @@
 		<input type="hidden" name="new_module" value="true" />
 		<?php
 			}
-			Router::includeFile("admin/modules/developer/modules/views/_form.php");
+			include Router::getIncludePath("admin/modules/developer/modules/views/_form.php");
 		?>
 		<footer>
 			<input type="submit" class="button blue" value="Create" />
@@ -43,4 +43,4 @@
 	</form>
 </div>
 
-<?php Router::includeFile("admin/modules/developer/modules/views/_js.php") ?>
+<?php include Router::getIncludePath("admin/modules/developer/modules/views/_js.php") ?>

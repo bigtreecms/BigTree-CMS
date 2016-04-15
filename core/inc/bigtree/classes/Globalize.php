@@ -31,6 +31,8 @@
 				return false;
 			}
 
+			$GLOBALS["ran_it"] = "yes";
+
 			// We don't want to lose track of our array while globalizing, so we're going to save things into $bigtree
 			// Since we're not in the global scope, it doesn't matter that we're junking up $bigtree
 			$bigtree = array("functions" => array_slice(func_get_args(), 1), "array" => $array);
@@ -38,12 +40,9 @@
 			foreach ($bigtree["array"] as $bigtree["key"] => $bigtree["val"]) {
 				// Prevent messing with super globals
 				if (substr($bigtree["key"], 0, 1) != "_" && !in_array($bigtree["key"], array("admin", "bigtree", "cms"))) {
-					// Fix for PHP 7
-					$key = $bigtree["key"];
-					global $$key;
-
 					if (is_array($bigtree["val"])) {
-						$$key = static::recurse($bigtree["val"], $bigtree["functions"]);
+						$GLOBALS[$bigtree["key"]] = static::recurse($bigtree["val"], $bigtree["functions"]);
+						echo "Running recurse on ".$bigtree["key"]."<br>";
 					} else {
 						foreach ($bigtree["functions"] as $bigtree["function"]) {
 							// Backwards compatibility with old array passed syntax
@@ -56,7 +55,8 @@
 							}
 						}
 
-						$$key = $bigtree["val"];
+						$GLOBALS[$bigtree["key"]] = $bigtree["val"];
+						echo "Set value on ".$bigtree["key"]." to ".$bigtree["val"]."<br>";
 					}
 				}
 			}

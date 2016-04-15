@@ -148,7 +148,7 @@
 		}
 	};
 
-	Router::includeFile("admin/modules/pages/_properties.php");
+	include Router::getIncludePath("admin/modules/pages/_properties.php");
 ?>
 <h3>Subpages</h3>
 <?php

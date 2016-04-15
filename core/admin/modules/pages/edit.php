@@ -5,7 +5,7 @@
 	$bigtree["resources"] = $page["resources"];
 	
 	// Show the properties section
-	Router::includeFile("admin/modules/pages/_properties.php");
+	include Router::getIncludePath("admin/modules/pages/_properties.php");
 	
 	// Check for a page lock
 	$force = isset($_GET["force"]) ? $_GET["force"] : false;
@@ -23,5 +23,5 @@
 	}
 	
 	$bigtree["form_action"] = "update";
-	Router::includeFile("admin/modules/pages/_form.php");
+	include Router::getIncludePath("admin/modules/pages/_form.php");
 	

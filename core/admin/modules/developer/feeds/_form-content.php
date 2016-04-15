@@ -34,7 +34,7 @@
 <section class="sub" id="field_area"<?php if ($type == "rss" || $type == "rss2") { ?> style="display: none;"<?php } ?>>
 	<?php
 		if ($item) {
-			Router::includeFile("admin/ajax/developer/load-feed-fields.php");
+			include Router::getIncludePath("admin/ajax/developer/load-feed-fields.php");
 		} else {
 			echo "<p>Please choose a table to populate this area.</p>";
 		}

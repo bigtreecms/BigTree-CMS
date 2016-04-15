@@ -14,14 +14,14 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>callouts/create/" enctype="multipart/form-data" class="module">
-		<?php Router::includeFile("admin/modules/developer/callouts/_form-content.php") ?>
+		<?php include Router::getIncludePath("admin/modules/developer/callouts/_form-content.php") ?>
 		<footer>
 			<input type="submit" class="button blue" value="Create" />
 		</footer>
 	</form>
 </div>
 
-<?php Router::includeFile("admin/modules/developer/callouts/_common-js.php") ?>
+<?php include Router::getIncludePath("admin/modules/developer/callouts/_common-js.php") ?>
 <script>
 	BigTree.localResourceCount = <?=$x?>;
 </script>

@@ -77,7 +77,7 @@
 				$locked_by = $user->Array;
 				$last_accessed = $lock["last_accessed"];
 				
-				Router::includeFile($include);
+				include Router::getIncludePath($include);
 				$admin->stop();
 				
 				return false;

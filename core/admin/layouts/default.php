@@ -66,11 +66,11 @@
 		}
 		unset($item);
 		// We're going to fake include the header to get the active nav state.
-		Router::includeFile("admin/layouts/_header.php");
+		include Router::getIncludePath("admin/layouts/_header.php");
 		ob_clean();
 	// Otherwise, full page render, so include the header and draw the breadcrumb.
 	} else {
-		Router::includeFile("admin/layouts/_header.php");
+		include Router::getIncludePath("admin/layouts/_header.php");
 	}
 ?>
 <div id="page">
@@ -229,5 +229,5 @@
 		));
 	// Otherwise include the footer
 	} else {
-		Router::includeFile("admin/layouts/_footer.php");
+		include Router::getIncludePath("admin/layouts/_footer.php");
 	}

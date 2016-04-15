@@ -83,6 +83,6 @@
 	$bigtree["html_editor_width"] = 440;
 	$bigtree["html_editor_height"] = 200;
 	
-	Router::includeFile("admin/layouts/_html-field-loader.php");
-	Router::includeFile("admin/layouts/_ajax-ready-loader.php");
+	include Router::getIncludePath("admin/layouts/_html-field-loader.php");
+	include Router::getIncludePath("admin/layouts/_ajax-ready-loader.php");
 ?>	

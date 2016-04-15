@@ -1489,8 +1489,10 @@
 
 		static function getCallout($id) {
 			$callout = new BigTree\Callout($id);
+			$array = $callout->Array;
+			$array["resources"] = $array["fields"];
 
-			return $callout->Array;
+			return $array;
 		}
 
 		/*

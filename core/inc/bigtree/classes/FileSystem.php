@@ -25,7 +25,7 @@
 		*/
 
 		static function copyFile($from,$to) {
-			if (!static::getDirectoryWritable($to)) {
+			if (!static::getDirectoryWritability($to)) {
 				return false;
 			}
 
@@ -40,7 +40,7 @@
 			}
 			$pathinfo = pathinfo($to);
 			$directory = $pathinfo["dirname"];
-			static::makeDirectory($directory);
+			static::createDirectory($directory);
 
 			$success = copy($from,$to);
 			static::setPermissions($to);
@@ -192,7 +192,7 @@
 		*/
 
 		static function getAvailableFileName($directory,$file,$prefixes = array()) {
-			$parts = static::getPathInfo($directory.$file);
+			$parts = pathinfo($directory.$file);
 
 			// Clean up the file name
 			$clean_name = Link::urlify($parts["filename"]);

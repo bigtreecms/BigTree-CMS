@@ -6,7 +6,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/embeds/create/<?=$module["id"]?>/" class="module">
-		<?php Router::includeFile("admin/modules/developer/modules/embeds/_form.php") ?>
+		<?php include Router::getIncludePath("admin/modules/developer/modules/embeds/_form.php") ?>
 		<section class="sub" id="field_area">
 			<p>Please choose a table to populate this area.</p>
 		</section>
@@ -16,4 +16,4 @@
 	</form>
 </div>
 
-<?php Router::includeFile("admin/modules/developer/modules/forms/_footer.php") ?>
+<?php include Router::getIncludePath("admin/modules/developer/modules/forms/_footer.php") ?>

@@ -8,7 +8,7 @@
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/actions/update/<?=$item["id"]?>/" class="module">
 		<input type="hidden" name="position" value="<?=$item["position"]?>" />
-		<?php Router::includeFile("admin/modules/developer/modules/actions/_form.php") ?>
+		<?php include Router::getIncludePath("admin/modules/developer/modules/actions/_form.php") ?>
 		<footer>
 			<input type="submit" class="button blue" value="Update" />
 		</footer>

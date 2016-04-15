@@ -56,4 +56,4 @@
 		</footer>
 	</form>
 </div>
-<?php Router::includeFile("admin/modules/developer/modules/_js.php") ?>
+<?php include Router::getIncludePath("admin/modules/developer/modules/_js.php") ?>

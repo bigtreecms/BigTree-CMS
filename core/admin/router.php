@@ -203,7 +203,7 @@
 	}
 
 	// Make it easier to extend the nav tree without overwriting important things.
-	Router::includeFile("admin/_nav-tree.php");
+	include Router::getIncludePath("admin/_nav-tree.php");
 
 	// Initialize BigTree's additional CSS and JS arrays for inclusion in the admin's header
 	$bigtree["js"] = array();
@@ -229,7 +229,7 @@
 
 	// Developer Mode On?
 	if (isset($admin->ID) && !empty($bigtree["config"]["developer_mode"]) && $admin->Level < 2) {
-		Router::includeFile("admin/pages/developer-mode.php");
+		include Router::getIncludePath("admin/pages/developer-mode.php");
 		$admin->stop();
 	}
 
@@ -276,7 +276,7 @@
 
 		$bigtree["content"] = ob_get_clean();
 
-		Router::includeFile("admin/layouts/".$bigtree["layout"].".php");
+		include Router::getIncludePath("admin/layouts/".$bigtree["layout"].".php");
 		die();
 	}
 
@@ -403,7 +403,7 @@
 			define("INTERFACE_ROOT",ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/");
 			$bigtree["interface"] = BigTreeAutoModule::getInterface($bigtree["module_action"]["interface"]);
 			if (isset($bigtree["interface"]["interface_type"])) {
-				Router::includeFile("admin/auto-modules/".$bigtree["interface"]["interface_type"].".php");
+				include Router::getIncludePath("admin/auto-modules/".$bigtree["interface"]["interface_type"].".php");
 				$complete = true;
 			} else {
 				list($extension,$interface_type) = explode("*",$bigtree["interface"]["type"]);
@@ -454,7 +454,7 @@
 		if (!$inc) {
 			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 			define("BIGTREE_404",true);
-			Router::includeFile("admin/pages/_404.php");
+			include Router::getIncludePath("admin/pages/_404.php");
 		// It's a manually created module page, include it
 		} elseif (!$complete) {
 			// Setup the commands array.
@@ -480,4 +480,4 @@
 
 	$bigtree["content"] = ob_get_clean();
 
-	Router::includeFile("admin/layouts/".$bigtree["layout"].".php");
+	include Router::getIncludePath("admin/layouts/".$bigtree["layout"].".php");

@@ -9,7 +9,7 @@
 			?>
 			<fieldset>
 				<label><?=$filter["title"]?></label>
-				<?php Router::includeFile("admin/auto-modules/reports/filters/".$filter["type"].".php") ?>	
+				<?php include Router::getIncludePath("admin/auto-modules/reports/filters/".$filter["type"].".php") ?>	
 			</fieldset>
 			<?php
 				}

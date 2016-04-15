@@ -99,7 +99,7 @@
 </div>
 <?php
 	$bigtree["html_fields"] = array("message");
-	Router::includeFile("admin/layouts/_html-field-loader.php");
+	include Router::getIncludePath("admin/layouts/_html-field-loader.php");
 ?>
 <script>
 	BigTreeManyToMany({
