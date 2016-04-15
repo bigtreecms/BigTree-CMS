@@ -1,5 +1,5 @@
 <?php
-	BigTree\Extension::initalizeCache();
+	BigTree\Extension::initializeCache();
 
 	$interfaces = $admin->getModuleInterfaces($module);
 

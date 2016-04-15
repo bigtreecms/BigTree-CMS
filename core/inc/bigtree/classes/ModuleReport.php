@@ -6,10 +6,10 @@
 
 	namespace BigTree;
 
-	class ModuleReport extends ModuleInterface {
+	class ModuleReport extends BaseObject {
 
 		protected $ID;
-		protected $InterfaceSettings;
+		protected $Interface;
 
 		public $Fields;
 		public $Filters;
@@ -38,16 +38,16 @@
 				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 			} else {
 				$this->ID = $interface["id"];
-				$this->InterfaceSettings = (array) @json_decode($interface["settings"],true);
+				$this->Interface = new ModuleInterface($interface);
 
-				$this->Fields = $this->InterfaceSettings["fields"];
-				$this->Filters = $this->InterfaceSettings["filters"];
+				$this->Fields = $this->Interface->Settings["fields"];
+				$this->Filters = $this->Interface->Settings["filters"];
 				$this->Module = $interface["module"];
-				$this->Parser = $this->InterfaceSettings["parser"];
+				$this->Parser = $this->Interface->Settings["parser"];
 				$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the BaseObject class
 				$this->Title = $interface["title"];
-				$this->Type = $this->InterfaceSettings["type"];
-				$this->View = $this->InterfaceSettings["view"];
+				$this->Type = $this->Interface->Settings["type"];
+				$this->View = $this->Interface->Settings["view"];
 			}
 		}
 
@@ -69,8 +69,8 @@
 				The id of the report.
 		*/
 
-		static function createModuleReport($module,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
-			$interface = BigTree\ModuleInterface::create("report",$module,$title,$table,array(
+		static function create($module,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
+			$interface = ModuleInterface::create("report",$module,$title,$table,array(
 				"type" => $type,
 				"filters" => $filters,
 				"fields" => $fields,
@@ -234,7 +234,7 @@
 		*/
 
 		function save() {
-			$this->InterfaceSettings = array(
+			$this->Interface->Settings = array(
 				"type" => $this->Type,
 				"filters" => $this->Filters,
 				"fields" => $this->Fields,
@@ -242,7 +242,7 @@
 				"view" => $this->View ?: null
 			);
 
-			parent::save();
+			$this->Interface->save();
 		}
 
 		/*

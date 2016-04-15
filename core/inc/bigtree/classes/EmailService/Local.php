@@ -7,6 +7,7 @@
 	namespace BigTree\EmailService;
 
 	use BigTree\Email;
+	use PHPMailer;
 
 	class Local extends Provider {
 

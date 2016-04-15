@@ -48,7 +48,7 @@
 			}
 
 			// Make sure we have up to date plugins
-			Extension::initalizeCache();
+			Extension::initializeCache();
 		
 			// Run any extension cron jobs
 			$extension_settings = Setting::value("bigtree-internal-extension-settings");

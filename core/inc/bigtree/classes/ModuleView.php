@@ -6,7 +6,7 @@
 
 	namespace BigTree;
 
-	class ModuleView extends ModuleInterface {
+	class ModuleView extends BaseObject {
 
 		static $CoreTypes = array(
 			"searchable" => "Searchable List",
@@ -19,7 +19,7 @@
 		static $Plugins = array();
 		
 		protected $ID;
-		protected $InterfaceSettings;
+		protected $Interface;
 
 		public $Actions;
 		public $Description;
@@ -50,18 +50,18 @@
 				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 			} else {
 				$this->ID = $interface["id"];
-				$this->InterfaceSettings = (array) @json_decode($interface["settings"],true);
+				$this->Interface = new ModuleInterface($interface);
 
-				$this->Actions = $this->InterfaceSettings["actions"];
-				$this->Description = $this->InterfaceSettings["description"];
-				$this->Fields = array_filter((array) $this->InterfaceSettings["fields"]);
+				$this->Actions = $this->Interface->Settings["actions"];
+				$this->Description = $this->Interface->Settings["description"];
+				$this->Fields = array_filter((array) $this->Interface->Settings["fields"]);
 				$this->Module = $interface["module"];
-				$this->PreviewURL = $this->InterfaceSettings["preview_url"];
-				$this->RelatedForm = $this->InterfaceSettings["related_form"];
-				$this->Settings = $this->InterfaceSettings["options"];
+				$this->PreviewURL = $this->Interface->Settings["preview_url"];
+				$this->RelatedForm = $this->Interface->Settings["related_form"];
+				$this->Settings = $this->Interface->Settings["options"];
 				$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the BaseObject class
 				$this->Title = $interface["title"];
-				$this->Type = $this->InterfaceSettings["type"];
+				$this->Type = $this->Interface->Settings["type"];
 			}
 		}
 
@@ -399,7 +399,7 @@
 		*/
 
 		static function create($module,$title,$description,$table,$type,$settings,$fields,$actions,$related_form,$preview_url = "") {
-			$interface = parent::create("view",$module,$title,$table,array(
+			$interface = ModuleInterface::create("view",$module,$title,$table,array(
 				"description" => Text::htmlEncode($description),
 				"type" => $type,
 				"fields" => $fields,
@@ -816,7 +816,7 @@
 		*/
 
 		function save() {
-			$this->InterfaceSettings = array(
+			$this->Interface->Settings = array(
 				"description" => Text::htmlEncode($this->Description),
 				"type" => $this->Type,
 				"fields" => array_filter((array) $this->Fields),
@@ -826,7 +826,7 @@
 				"related_form" => $this->RelatedForm ? intval($this->RelatedForm) : null
 			);
 
-			parent::save();
+			$this->Interface->save();
 		}
 
 		/*

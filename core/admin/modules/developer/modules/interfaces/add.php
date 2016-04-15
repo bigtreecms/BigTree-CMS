@@ -16,7 +16,7 @@
 	</section>
 </div>
 <?php
-	BigTree\Extension::initalizeCache();
+	BigTree\Extension::initializeCache();
 	if (count(BigTree\ModuleInterface::$Plugins)) {
 ?>
 <div class="container">

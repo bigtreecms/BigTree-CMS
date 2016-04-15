@@ -6,10 +6,10 @@
 
 	namespace BigTree;
 
-	class ModuleForm extends ModuleInterface {
+	class ModuleForm extends BaseObject {
 
 		protected $ID;
-		protected $InterfaceSettings;
+		protected $Interface;
 
 		public $DefaultPosition;
 		public $Fields;
@@ -39,16 +39,16 @@
 				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 			} else {
 				$this->ID = $interface["id"];
-				$this->InterfaceSettings = (array) @json_decode($interface["settings"], true);
+				$this->Interface = new ModuleInterface($interface);
 
-				$this->DefaultPosition = $this->InterfaceSettings["default_position"];
-				$this->Fields = $this->InterfaceSettings["fields"];
-				$this->Hooks = array_filter((array) $this->InterfaceSettings["hooks"]);
+				$this->DefaultPosition = $this->Interface->Settings["default_position"];
+				$this->Fields = $this->Interface->Settings["fields"];
+				$this->Hooks = array_filter((array) $this->Interface->Settings["hooks"]);
 				$this->Module = $interface["module"];
-				$this->ReturnURL = $this->InterfaceSettings["return_url"];
-				$this->ReturnView = $this->InterfaceSettings["return_view"];
+				$this->ReturnURL = $this->Interface->Settings["return_url"];
+				$this->ReturnView = $this->Interface->Settings["return_view"];
 				$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the BaseObject class
-				$this->Tagging = $this->InterfaceSettings["tagging"] ? true : false;
+				$this->Tagging = $this->Interface->Settings["tagging"] ? true : false;
 				$this->Title = $interface["title"];
 			}
 		}
@@ -94,7 +94,7 @@
 			}
 
 			// Create the parent interface
-			$interface = parent::create("form", $module, $title, $table, array(
+			$interface = ModuleInterface::create("form", $module, $title, $table, array(
 				"fields" => $fields,
 				"default_position" => $default_position,
 				"return_view" => $return_view,
@@ -201,6 +201,37 @@
 			$change = PendingChange::create($this->Table, false, $columns, $many_to_many, $tags, $this->Module, $hook, $embedded_form);
 
 			return $change->ID;
+		}
+
+		/*
+			Function: deleteEntry
+				Deletes an entry from the form and removes any pending changes, then uncaches it from its views.
+
+			Parameters:
+				id - The id of the entry.
+		*/
+
+		function deleteEntry($id) {
+			SQL::delete($this->Table, $id);
+			SQL::delete("bigtree_pending_changes", array("table" => $this->Table, "item_id" => $id));
+
+			ModuleView::uncacheForAll($id, $this->Table);
+			AuditTrail::track($this->Table, $id, "deleted");
+		}
+
+		/*
+			Function: deletePendingEntry
+				Deletes a pending entry from bigtree_pending_changes and uncaches it.
+
+			Parameters:
+				id - The id of the pending entry.
+		*/
+
+		function deletePendingEntry($id) {
+			SQL::delete("bigtree_pending_changes", $id);
+
+			ModuleView::uncacheForAll("p$id", $this->Table);
+			AuditTrail::track($this->Table, "p$id", "deleted-pending");
 		}
 
 		/*
@@ -484,7 +515,7 @@
 				$this->Fields[$key] = $field;
 			}
 
-			$this->InterfaceSettings = array(
+			$this->Interface->Settings = array(
 				"fields" => array_filter((array) $this->Fields),
 				"default_position" => $this->DefaultPosition,
 				"return_view" => intval($this->ReturnView) ?: null,
@@ -493,7 +524,7 @@
 				"hooks" => array_filter((array) $this->Hooks)
 			);
 
-			parent::save();
+			$this->Interface->save();
 		}
 
 		/*

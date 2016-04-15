@@ -32,12 +32,13 @@
 				$setting = Setting::create("bigtree-internal-email-service","Email Service","","",array(),"",true,true,true);
 				$setting->Value = array("service" => "local", "settings" => array());
 				$setting->save();
-
-				$this->Service = "local";
-				$this->Settings = array();
 			} else {
 				$this->Service = $setup["service"];
 				$this->Settings = $setup["settings"];
+			}
+
+			if (!$this->Service) {
+				$this->Service = "Local";
 			}
 		}
 
@@ -47,7 +48,7 @@
 		*/
 
 		function send() {
-			$provider_string = "BigTree\\EmailProvider\\".$this->Service;
+			$provider_string = "BigTree\\EmailService\\".$this->Service;
 			$provider = new $provider_string($this->Settings);
 
 			return $provider->send($this);

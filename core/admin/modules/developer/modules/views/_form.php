@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	$forms = $admin->getModuleForms("title",$module["id"]);
-	Extension::initalizeCache();
+	Extension::initializeCache();
 ?>
 <section>
 	<div class="left last">

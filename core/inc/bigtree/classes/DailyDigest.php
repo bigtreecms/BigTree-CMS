@@ -11,15 +11,15 @@
 		static $CoreOptions = array(
 			"pending-changes" => array(
 				"name" => "Pending Changes",
-				"function" => "DailyDigest::getChanges"
+				"function" => "BigTree\\DailyDigest::getChanges"
 			),
 			"messages" => array(
 				"name" => "Unread Messages",
-				"function" => "DailyDigest::getMessages"
+				"function" => "BigTree\\DailyDigest::getMessages"
 			),
 			"alerts" => array(
 				"name" => "Content Age Alerts",
-				"function" => "DailyDigest::getAlerts"
+				"function" => "BigTree\\DailyDigest::getAlerts"
 			)
 		);
 		static $Plugins = array();
@@ -110,12 +110,12 @@
 				foreach ($changes as $change) {
 					$changes_markup .= '<tr>';
 					$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$change->User->Name.'</td>';
-					if ($change["title"]) {
+					if ($change->Table == "bigtree_pages") {
 						$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Pages</td>';
 					} else {
 						$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$change->Module->Name.'</td>';
 					}
-					if (is_null($change["item_id"])) {
+					if (is_null($change->ItemID)) {
 						$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Addition</td>';
 					} else {
 						$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Edit</td>';

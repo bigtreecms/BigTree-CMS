@@ -6,12 +6,12 @@
 
 	namespace BigTree;
 
-	class ModuleEmbedForm extends ModuleInterface {
+	class ModuleEmbedForm extends BaseObject {
 
 		protected $EmbedCode;
 		protected $Hash;
 		protected $ID;
-		protected $InterfaceSettings;
+		protected $Interface;
 
 		public $CSS;
 		public $DefaultPending;
@@ -43,18 +43,18 @@
 				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 			} else {
 				$this->ID = $interface["id"];
-				$this->InterfaceSettings = (array) @json_decode($interface["settings"],true);
-				$this->Hash = $this->InterfaceSettings["hash"];
+				$this->Interface = new ModuleInterface($interface);
+				$this->Hash = $this->Interface->Settings["hash"];
 
-				$this->CSS = $this->InterfaceSettings["css"];
-				$this->DefaultPending = $this->InterfaceSettings["default_pending"] ? true : false;
-				$this->DefaultPosition = $this->InterfaceSettings["default_position"];
-				$this->Fields = $this->InterfaceSettings["fields"];
-				$this->Hooks = array_filter((array) $this->InterfaceSettings["hooks"]);
+				$this->CSS = $this->Interface->Settings["css"];
+				$this->DefaultPending = $this->Interface->Settings["default_pending"] ? true : false;
+				$this->DefaultPosition = $this->Interface->Settings["default_position"];
+				$this->Fields = $this->Interface->Settings["fields"];
+				$this->Hooks = array_filter((array) $this->Interface->Settings["hooks"]);
 				$this->Module = $interface["module"];
-				$this->RedirectURL = $this->InterfaceSettings["redirect_url"];
+				$this->RedirectURL = $this->Interface->Settings["redirect_url"];
 				$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the BaseObject class
-				$this->ThankYouMessage = $this->InterfaceSettings["thank_you_message"];
+				$this->ThankYouMessage = $this->Interface->Settings["thank_you_message"];
 				$this->Title = $interface["title"];
 
 				// Generate an embed code
@@ -138,7 +138,7 @@
 		*/
 
 		function save() {
-			$this->InterfaceSettings = array(
+			$this->Interface->Settings = array(
 				"fields" => $this->Fields,
 				"default_position" => $this->DefaultPosition,
 				"default_pending" => $this->DefaultPending ? "on" : "",
@@ -149,7 +149,7 @@
 				"hooks" => $this->Hooks
 			);
 
-			parent::save();
+			$this->Interface->save();
 		}
 
 		/*
