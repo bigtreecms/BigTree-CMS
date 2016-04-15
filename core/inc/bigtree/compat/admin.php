@@ -3231,7 +3231,8 @@
 
 		static function processImageUpload($field) {
 			$field = new BigTree\Field($field);
-			$field->processImageUpload();
+			
+			return $field->processImageUpload();
 		}
 
 		/*

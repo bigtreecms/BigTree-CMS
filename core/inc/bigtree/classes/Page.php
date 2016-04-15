@@ -88,7 +88,7 @@
 					$this->Path = $page["path"];
 					$this->Position = $page["position"];
 					$this->PublishAt = $page["publish_at"] ?: false;
-					$this->Resources = $decode ? array_filter((array) @json_decode($page["resources"], true)) : $page["resources"];
+					$this->Resources = $decode ? Link::decodeArray(array_filter((array) @json_decode($page["resources"], true))) : $page["resources"];
 					$this->Route = $page["route"];
 					$this->SEOInvisible = $page["seo_invisible"] ? true : false;
 					$this->Template = $page["template"];

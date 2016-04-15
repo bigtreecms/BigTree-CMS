@@ -30,7 +30,7 @@
 			// We uploaded a new image.
 			if (is_uploaded_file($field["file_input"]["tmp_name"])) {
 				$file = $admin->processImageUpload($field);
-				$field["output"] = $file ? $file : $field["input"];
+				$field["output"] = $file ?: $field["input"];
 			// Using an existing image or one from the Image Browser
 			} else {
 				$field["output"] = $field["input"];

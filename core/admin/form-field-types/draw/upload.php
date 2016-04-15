@@ -1,6 +1,6 @@
 <?php
-	use BigTree\FileSystem;
-	
+	namespace BigTree;
+
 	// If we're using a preset, the prefix may be there
 	if (!empty($field["options"]["preset"])) {
 		if (!isset($bigtree["media_settings"])) {
