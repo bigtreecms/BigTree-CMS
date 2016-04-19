@@ -2046,7 +2046,7 @@
 		
 		/*
 			Function: sendEmail
-				Sends an email using htmlMimeMail
+				Sends an email using PHPMailer
 
 			Parameters:
 				to - String or array of recipient email address(es)

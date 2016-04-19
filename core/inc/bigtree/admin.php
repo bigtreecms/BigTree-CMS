@@ -6974,7 +6974,7 @@
 		*/
 
 		static function ungrowl() {
-			unset($_SESSION["bigtree_admin"]["flash"]);
+			unset($_SESSION["bigtree_admin"]["growl"]);
 		}
 
 		/*
