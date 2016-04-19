@@ -29,6 +29,7 @@
 	);
 	if ($id != 0) {
 		$bc = $cms->getBreadcrumbByPage($page,true);
+
 		foreach ($bc as $item) {
 			$bigtree["breadcrumb"][] = array("link" => "pages/view-tree/".$item["id"], "title" => $item["title"]);
 		}

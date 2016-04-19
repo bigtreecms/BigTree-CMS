@@ -735,9 +735,9 @@
 			
 			// Check for module breadcrumbs
 			$module_class = SQL::fetchSingle("SELECT bigtree_modules.class
-														  FROM bigtree_modules JOIN bigtree_templates
-														  ON bigtree_modules.id = bigtree_templates.module
-														  WHERE bigtree_templates.id = ?", $page["template"]);
+											  FROM bigtree_modules JOIN bigtree_templates
+											  ON bigtree_modules.id = bigtree_templates.module
+											  WHERE bigtree_templates.id = ?", $page["template"]);
 
 			if ($module_class && class_exists($module_class)) {
 				$module = new $module_class;
@@ -1189,9 +1189,9 @@
 
 			$color = "#008000";
 			if ($score <= 50) {
-				$color = BigTree::colorMesh("#CCAC00", "#FF0000", 100 - (100 * $score / 50));
+				$color = Utils::colorMesh("#CCAC00", "#FF0000", 100 - (100 * $score / 50));
 			} elseif ($score <= 80) {
-				$color = BigTree::colorMesh("#008000", "#CCAC00", 100 - (100 * ($score - 50) / 30));
+				$color = Utils::colorMesh("#008000", "#CCAC00", 100 - (100 * ($score - 50) / 30));
 			}
 
 			return array("score" => $score, "recommendations" => $recommendations, "color" => $color);
@@ -1401,9 +1401,9 @@
 
 			$page_info = SQL::fetch("SELECT route, parent FROM bigtree_pages WHERE id = ?", $id);
 			$path[] = $page_info["route"];
-			
+
 			// If we have a higher page, keep recursing up
-			if ($page_info["parent"]) {
+			if ($page_info["parent"] > 0) {
 				return $this->regeneratePath($page_info["parent"], $path);
 			}
 

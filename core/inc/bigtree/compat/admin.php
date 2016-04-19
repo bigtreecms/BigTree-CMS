@@ -1412,8 +1412,14 @@
 
 		static function getArchivedNavigationByParent($parent) {
 			$page = new BigTree\Page($parent, false);
+			$children = $page->getArchivedChildren(true);
 
-			return $page->getArchivedChildren(true);
+			// We expect "title" to be the navigation title
+			foreach ($children as $key => $child) {
+				$children[$key]["title"] = $child["nav_title"];
+			}
+
+			return $children;
 		}
 
 		/*
@@ -1711,8 +1717,14 @@
 
 		static function getHiddenNavigationByParent($parent) {
 			$page = new BigTree\Page($parent, false);
+			$children = $page->getHiddenChildren(true);
 
-			return $page->getHiddenChildren(true);
+			// We expect "title" to be the navigation title
+			foreach ($children as $key => $child) {
+				$children[$key]["title"] = $child["nav_title"];
+			}
+
+			return $children;
 		}
 
 		/*
@@ -2274,8 +2286,14 @@
 
 		static function getNaturalNavigationByParent($parent) {
 			$page = new BigTree\Page($parent, false);
+			$children = $page->getVisibleChildren(true);
 
-			return $page->getVisibleChildren(true);
+			// We expect "title" to be the navigation title
+			foreach ($children as $key => $child) {
+				$children[$key]["title"] = $child["nav_title"];
+			}
+
+			return $children;
 		}
 
 		/*
