@@ -630,7 +630,7 @@
 		*/
 		
 		function getRecent($count = 5, $field = "date",$columns = false) {
-			return $this->fetch("$field DESC",$count,"`$field` <= '".date("Y-m-d")."'",$columns);
+			return $this->fetch("$field DESC",$count,"DATE(`$field`) <= '".date("Y-m-d")."'",$columns);
 		}
 
 		/*
@@ -650,7 +650,7 @@
 		*/
 		
 		function getRecentFeatured($count = 5, $field = "date",$columns = false) {
-			return $this->fetch("$field DESC",$count,"featured = 'on' AND `$field` <= '".date("Y-m-d")."'",$columns);
+			return $this->fetch("$field DESC",$count,"featured = 'on' AND DATE(`$field`) <= '".date("Y-m-d")."'",$columns);
 		}
 		
 		/*
@@ -795,7 +795,7 @@
 		*/
 		
 		function getUpcoming($count = 5,$field = "date",$columns = false) {
-			return $this->fetch("$field ASC",$count,"`$field` >= '".date("Y-m-d")."'",$columns);
+			return $this->fetch("$field ASC",$count,"DATE(`$field`) >= '".date("Y-m-d")."'",$columns);
 		}
 		
 		/*
@@ -815,7 +815,7 @@
 		*/
 		
 		function getUpcomingFeatured($count = 5,$field = "date",$columns = false) {
-			return $this->fetch("$field ASC",$count,"featured = 'on' AND `$field` >= '".date("Y-m-d")."'",$columns);
+			return $this->fetch("$field ASC",$count,"featured = 'on' AND DATE(`$field`) >= '".date("Y-m-d")."'",$columns);
 		}
 		
 		/*
