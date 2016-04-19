@@ -110,7 +110,7 @@
 			foreach ($groups as $group_id) {
 				$group = new CalloutGroup($group_id);
 
-				foreach ($group["callouts"] as $callout_id) {
+				foreach ($group->Callouts as $callout_id) {
 					// Only grab each callout once
 					if (!in_array($callout_id,$ids)) {
 						$callout = SQL::fetch("SELECT * FROM bigtree_callouts WHERE id = ?", $callout_id);

@@ -1915,7 +1915,7 @@
 		*/
 
 		static function getModuleActions($module) {
-			return BigTree\ModuleAction::allByModule($module, true);
+			return BigTree\ModuleAction::allByModule($module, "position DESC, id ASC", true);
 		}
 
 		/*
@@ -4017,7 +4017,7 @@
 			// Set local variables in a clean fashion that prevents _SESSION exploitation.  Also, don't let them somehow overwrite $page and $current.
 			$trunk = $in_nav = $external = $route = $publish_at = $expire_at = $nav_title = $title = $template = $new_window = $meta_keywords = $meta_description = $seo_invisible = "";
 			$parent = $max_age = 0;
-			$resources = $tags = array();
+			$resources = array();
 
 			foreach ($data as $key => $val) {
 				if (substr($key, 0, 1) != "_" && $key != "current" && $key != "page") {
@@ -4046,7 +4046,7 @@
 				$parent = $page->Parent;
 			}
 
-			$page->update($trunk, $parent, $in_nav, $nav_title, $title, $route, $meta_description, $seo_invisible, $template, $external, $new_window, $resources, $publish_at, $expire_at, $max_age, $tags);
+			$page->update($trunk, $parent, $in_nav, $nav_title, $title, $route, $meta_description, $seo_invisible, $template, $external, $new_window, $resources, $publish_at, $expire_at, $max_age, $data["_tags"]);
 		}
 
 		/*

@@ -16,10 +16,6 @@
 			Parameters:
 				array - An array with key/value pairs.
 				functions - Pass in additional arguments to run functions (i.e. "htmlspecialchars") on the data
-			
-			See Also:
-				<globalizeGETVars>
-				<globalizePOSTVars>
 		*/
 		
 		static function arrayObject($array) {
@@ -30,8 +26,6 @@
 			if (!is_array($array)) {
 				return false;
 			}
-
-			$GLOBALS["ran_it"] = "yes";
 
 			// We don't want to lose track of our array while globalizing, so we're going to save things into $bigtree
 			// Since we're not in the global scope, it doesn't matter that we're junking up $bigtree
@@ -92,16 +86,12 @@
 			Parameters:
 				functions - Pass in additional arguments to run functions (i.e. "htmlspecialchars") on the data
 
-			See Also:
-				<globalizeArray>
-				<globalizePOSTVars>
-
 		*/
 
 		static function GET() {
 			$args = func_get_args();
 
-			return call_user_func_array("BigTree::globalizeArray", array_merge(array($_GET), $args));
+			return call_user_func_array("static::arrayObject", array_merge(array($_GET), $args));
 		}
 
 		/*
@@ -111,16 +101,12 @@
 
 			Parameters:
 				functions - Pass in additional arguments to run functions (i.e. "htmlspecialchars") on the data
-
-			See Also:
-				<globalizeArray>
-				<globalizeGETVars>
 		*/
 
 		static function POST() {
 			$args = func_get_args();
 
-			return call_user_func_array("BigTree::globalizeArray", array_merge(array($_POST), $args));
+			return call_user_func_array("static::arrayObject", array_merge(array($_POST), $args));
 		}
 
 	}

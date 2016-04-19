@@ -1,7 +1,9 @@
 <?php
-	BigTree\Extension::initializeCache();
+	namespace BigTree;
 
-	$interfaces = $admin->getModuleInterfaces($module);
+	Extension::initializeCache();
+
+	$interfaces = ModuleInterface::all("title ASC",true);
 
 	$interface_list = array(
 		"form" => array("name" => "Forms","items" => array()),
@@ -38,7 +40,7 @@
 				$interface_list[$interface["type"]]["items"][] = $interface;
 			} else {
 				$interface_list[$interface["type"]] = array(
-					"name" => BigTree\ModuleInterface::$Plugins[$extension][$type]["name"],
+					"name" => ModuleInterface::$Plugins[$extension][$type]["name"],
 					"items" => array($interface)
 				);
 			}

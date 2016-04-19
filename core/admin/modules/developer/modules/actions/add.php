@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	$module = $admin->getModule(end($bigtree["commands"]));
+	$module = $admin->getModule($_GET["module"]);
 	$item = array("name" => "", "route" => "", "level" => 0, "class" => "", "in_nav" => "");
 ?>
 <div class="container">

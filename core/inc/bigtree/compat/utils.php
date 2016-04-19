@@ -466,7 +466,7 @@
 		static function globalizeArray($array) {
 			$args = func_get_args();
 			
-			return call_user_func_array("BigTree\\Globalize::arrayObject", array_merge(array($array), $args));
+			return call_user_func_array("BigTree\\Globalize::arrayObject", $args);
 		}
 		
 		/*

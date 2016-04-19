@@ -8,7 +8,7 @@
 	$name = $route = $group_new = $group_existing = $table = $class = "";
 	$icon = "gear";
 	if (isset($_SESSION["bigtree_admin"]["saved"])) {
-		BigTree::globalizeArray($_SESSION["bigtree_admin"]["saved"],"htmlspecialchars");
+		\BigTree::globalizeArray($_SESSION["bigtree_admin"]["saved"],"htmlspecialchars");
 		unset($_SESSION["bigtree_admin"]["saved"]);
 	}
 ?>
@@ -45,7 +45,7 @@
 					<label>Related Table</label>
 					<select name="table" id="rel_table">
 						<option></option>
-						<?php BigTree::getTableSelectOptions($table) ?>
+						<?php \BigTree::getTableSelectOptions($table) ?>
 					</select>
 				</fieldset>
 				<fieldset>
@@ -59,7 +59,7 @@
 		        <label class="required">Icon</label>
 		        <input type="hidden" name="icon" id="selected_icon" value="<?=$icon?>" />
 		        <ul class="developer_icon_list">
-		        	<?php foreach (BigTreeAdmin::$IconClasses as $class) { ?>
+		        	<?php foreach (\BigTreeAdmin::$IconClasses as $class) { ?>
 		        	<li>
 		        		<a href="#<?=$class?>"<?php if ($class == "gear") { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
 		        	</li>

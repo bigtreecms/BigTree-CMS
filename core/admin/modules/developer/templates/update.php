@@ -1,7 +1,8 @@
 <?php
 	namespace BigTree;
 	
-	BigTree::globalizePOSTVars();
+	Globalize::POST();
+
 	$admin->updateTemplate($id,$name,$level,$module,$resources);
 	$admin->growl("Developer","Updated Template");
 

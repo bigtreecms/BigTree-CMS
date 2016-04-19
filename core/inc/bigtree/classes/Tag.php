@@ -27,7 +27,7 @@
 		function __construct($tag) {
 			// Passing in just an ID
 			if (!is_array($tag)) {
-				$tag = SQL::fetch("SELECT * FROM bigtree_feeds WHERE id = ?", $tag);
+				$tag = SQL::fetch("SELECT * FROM bigtree_tags WHERE id = ?", $tag);
 			}
 
 			// Bad data set

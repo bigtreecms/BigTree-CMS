@@ -47,7 +47,7 @@
 		<label class="required">Icon</label>
 		<input type="hidden" name="class" id="selected_icon" value="<?=$item["class"]?>" />
 		<ul class="developer_icon_list">
-			<?php foreach (BigTreeAdmin::$ActionClasses as $class) { ?>
+			<?php foreach (\BigTreeAdmin::$ActionClasses as $class) { ?>
 			<li>
 				<a href="#<?=$class?>"<?php if ($class == $item["class"]) { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
 			</li>

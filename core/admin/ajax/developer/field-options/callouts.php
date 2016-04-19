@@ -1,5 +1,5 @@
 <?php
-	$groups = BigTree\CalloutGroup::list();
+	$groups = BigTree\CalloutGroup::all();
 
 	// Stop notices
 	$data["groups"] = is_array($data["groups"]) ? $data["groups"] : array();

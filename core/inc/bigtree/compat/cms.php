@@ -436,6 +436,14 @@
 				$page["tags"] = $pageObject->Tags;
 			}
 
+			// Turn tags into arrays
+			if (is_array($page["tags"])) {
+				foreach ($page["tags"] as $key => $tag) {
+					$page["tags"][$key] = $tag->Array;
+					$page["tags"][$key]["tag"] = $page["tags"][$key]["name"];
+				}
+			}
+
 			return $page;
 		}
 		
