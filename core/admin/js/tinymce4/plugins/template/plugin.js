@@ -17,6 +17,11 @@ tinymce.PluginManager.add('template', function(editor) {
 		return function() {
 			var templateList = editor.settings.templates;
 
+			if (typeof templateList == "function") {
+				templateList(callback);
+				return;
+			}
+
 			if (typeof templateList == "string") {
 				tinymce.util.XHR.send({
 					url: templateList,
@@ -34,7 +39,8 @@ tinymce.PluginManager.add('template', function(editor) {
 		var win, values = [], templateHtml;
 
 		if (!templateList || templateList.length === 0) {
-			editor.windowManager.alert('No templates defined');
+			var message = editor.translate('No templates defined.');
+			editor.notificationManager.open({text: message, type: 'info'});
 			return;
 		}
 
@@ -61,13 +67,19 @@ tinymce.PluginManager.add('template', function(editor) {
 						contentCssLinks += '<link type="text/css" rel="stylesheet" href="' + editor.documentBaseURI.toAbsolute(url) + '">';
 					});
 
+					var bodyClass = editor.settings.body_class || '';
+					if (bodyClass.indexOf('=') != -1) {
+						bodyClass = editor.getParam('body_class', '', 'hash');
+						bodyClass = bodyClass[editor.id] || '';
+					}
+
 					html = (
 						'<!DOCTYPE html>' +
 						'<html>' +
 							'<head>' +
 								contentCssLinks +
 							'</head>' +
-							'<body>' +
+							'<body class="' + bodyClass + '">' +
 								html +
 							'</body>' +
 						'</html>'

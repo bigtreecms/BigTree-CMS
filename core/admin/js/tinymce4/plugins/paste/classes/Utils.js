@@ -115,15 +115,26 @@ define("tinymce/pasteplugin/Utils", [
 			/^[\s\S]*<body[^>]*>\s*|\s*<\/body[^>]*>[\s\S]*$/g, // Remove anything but the contents within the BODY element
 			/<!--StartFragment-->|<!--EndFragment-->/g, // Inner fragments (tables from excel on mac)
 			[/( ?)<span class="Apple-converted-space">\u00a0<\/span>( ?)/g, trimSpaces],
+			/<br class="Apple-interchange-newline">/g,
 			/<br>$/i // Trailing BR elements
 		]);
 
 		return html;
 	}
 
+	// TODO: Should be in some global class
+	function createIdGenerator(prefix) {
+		var count = 0;
+
+		return function() {
+			return prefix + (count++);
+		};
+	}
+
 	return {
 		filter: filter,
 		innerText: innerText,
-		trimHtml: trimHtml
+		trimHtml: trimHtml,
+		createIdGenerator: createIdGenerator
 	};
 });

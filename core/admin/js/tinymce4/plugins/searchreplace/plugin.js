@@ -13,6 +13,10 @@
 /*global tinymce:true */
 
 (function() {
+	function isContentEditableFalse(node) {
+		return node && node.nodeType == 1 && node.contentEditable === "false";
+	}
+
 	// Based on work developed by: James Padolsey http://james.padolsey.com
 	// released under UNLICENSE that is compatible with LGPL
 	// TODO: Handle contentEditable edgecase:
@@ -62,6 +66,10 @@
 
 			txt = '';
 
+			if (isContentEditableFalse(node)) {
+				return '\n';
+			}
+
 			if (blockElementsMap[node.nodeName] || shortEndedElementsMap[node.nodeName]) {
 				txt += '\n';
 			}
@@ -81,7 +89,7 @@
 				matchLocation = matches.shift(), matchIndex = 0;
 
 			out: while (true) {
-				if (blockElementsMap[curNode.nodeName] || shortEndedElementsMap[curNode.nodeName]) {
+				if (blockElementsMap[curNode.nodeName] || shortEndedElementsMap[curNode.nodeName] || isContentEditableFalse(curNode)) {
 					atIndex++;
 				}
 
@@ -129,9 +137,11 @@
 						break; // no more matches
 					}
 				} else if ((!hiddenTextElementsMap[curNode.nodeName] || blockElementsMap[curNode.nodeName]) && curNode.firstChild) {
-					// Move down
-					curNode = curNode.firstChild;
-					continue;
+					if (!isContentEditableFalse(curNode)) {
+						// Move down
+						curNode = curNode.firstChild;
+						continue;
+					}
 				} else if (curNode.nextSibling) {
 					// Move forward:
 					curNode = curNode.nextSibling;
@@ -270,13 +280,12 @@
 			}
 
 			function notFoundAlert() {
-				tinymce.ui.MessageBox.alert('Could not find the specified string.', function() {
+				editor.windowManager.alert('Could not find the specified string.', function() {
 					win.find('#find')[0].focus();
 				});
 			}
 
-			var win = tinymce.ui.Factory.create({
-				type: 'window',
+			var win = editor.windowManager.open({
 				layout: "flex",
 				pack: "center",
 				align: "center",
@@ -363,7 +372,7 @@
 						{type: 'checkbox', name: 'words', text: 'Whole words', label: ' '}
 					]
 				}
-			}).renderTo().reflow();
+			});
 		}
 
 		self.init = function(ed) {

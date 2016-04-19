@@ -19,16 +19,18 @@
 @text-inverse:                   white;
 @text-disabled:                  #aaa;
 @text-shadow:                    0 1px 1px hsla(hue(@text-inverse), saturation(@text-inverse), lightness(@text-inverse), 0.75);
-@text-error:                     #aa0000;
+@text-error:                     #b94a48;
+@text-warning:                   #c09853;
+@text-success:                   #468847;
 
 // Button
 @btn-text:                       @text;
-@btn-text-shadow:                none; 
+@btn-text-shadow:                none;
 @btn-border-top:                 transparent;
 @btn-border-right:               transparent;
 @btn-border-bottom:              transparent;
 @btn-border-left:                transparent;
-@btn-caret-border:               @btn-text;   
+@btn-caret-border:               @btn-text;
 @btn-text-disabled:              @text-disabled;
 @btn-box-shadow:                 inset 0 1px 0 rgba(255, 255, 255, .2), 0 1px 2px rgba(0, 0, 0, .05);
 @btn-box-shadow-active:          inset 0 2px 4px rgba(0, 0, 0, .15), 0 1px 2px rgba(0, 0, 0, .05);
@@ -95,6 +97,41 @@
 @tooltip-text:                   white;
 @tooltip-font-size:              11px;
 
+// Notification
+@notification-font-size:         14px;
+@notification-bg:                #F0F0F0;
+@notification-border:            #CCCCCC;
+@notification-text:              #333333;
+@notification-success-bg:        #dff0d8;
+@notification-success-border:    #d6e9c6;
+@notification-success-text:      #3c763d;
+@notification-info-bg:           #d9edf7;
+@notification-info-border:       #779ECB;
+@notification-info-text:         #31708f;
+@notification-warning-bg:        #fcf8e3;
+@notification-warning-border:    #faebcc;
+@notification-warning-text:      #8a6d3b;
+@notification-error-bg:          #f2dede;
+@notification-error-border:      #ebccd1;
+@notification-error-text:        #a94442;
+
+// Infobox
+@infobox-bg:                     @notification-bg;
+@infobox-border:                 @notification-border;
+@infobox-text:                   @notification-text;
+@infobox-success-bg:             @notification-success-bg;
+@infobox-success-border:         @notification-success-border;
+@infobox-success-text:           @notification-success-text;
+@infobox-info-bg:                @notification-info-bg;
+@infobox-info-border:            @notification-info-border;
+@infobox-info-text:              @notification-info-text;
+@infobox-warning-bg:             @notification-warning-bg;
+@infobox-warning-border:         @notification-warning-border;
+@infobox-warning-text:           @notification-warning-text;
+@infobox-error-bg:               @notification-error-bg;
+@infobox-error-border:           @notification-error-border;
+@infobox-error-text:             @notification-error-text;
+
 // Window
 @window-border:                  #c5c5c5;
 @window-head-border:             @window-border;
@@ -138,6 +175,10 @@
 @textbox-border:                 #c5c5c5;
 @textbox-border-focus:           #3498db;
 
+// Selectbox
+@selectbox-bg:                   @textbox-bg;
+@selectbox-border:               @textbox-border;
+
 // Throbber
 @throbber-bg:                    #fff url('img/loader.gif') no-repeat center center;
 
@@ -163,6 +204,13 @@
 @slider-bg:                      #EEE;
 @slider-handle-border:           #BBB;
 @slider-handle-bg:               #DDD;
+@slider-handle-bg-focus:         #BBB;
+
+// Progress
+@progress-border:                #ccc;
+@progress-bar-bg:                #dfdfdf;
+@progress-bar-bg-hlight:         #cccccc;
+@progress-text:                  @text;
 
 // Flow layout
 @flow-layout-spacing:            2px;
@@ -405,6 +453,10 @@ div.@{prefix}-tinymce-inline {
 	color: mix(@text, #fff, 70%);
 }
 
+.@{prefix}-monospace {
+	font-family: "Courier New", Courier, monospace;
+}
+
 // Reduce double margins between toolbar rows
 
 .@{prefix}-toolbar-grp when (@has-button-borders = false) {
@@ -482,6 +534,14 @@ div.@{prefix}-tinymce-inline {
 	background: black;
 }
 
+.@{prefix}-croprect-handle:focus {
+	border-color: @textbox-border-focus;
+}
+
+.@{prefix}-croprect-handle-move:focus {
+	outline: 1px solid @textbox-border-focus;
+}
+
 
 // ImagePanel
 
@@ -502,6 +562,83 @@ div.@{prefix}-tinymce-inline {
 	line-height: 20px;
 	font-size: 20px;
 	padding: 5px;
+}
+
+
+// Arrows
+
+.@{prefix}-arrow-up {
+	margin-top: 3px;
+}
+
+.@{prefix}-arrow-down {
+	margin-top: -3px;
+}
+
+.@{prefix}-arrow:before,
+.@{prefix}-arrow:after {
+	position: absolute;
+	left: 50%;
+	display: block;
+	width: 0;
+	height: 0;
+	border-style: solid;
+	border-color: transparent;
+	content: "";
+}
+
+.@{prefix}-arrow.@{prefix}-arrow-up:before {
+	top: -9px;
+	border-bottom-color: @panel-border;
+	border-width: 0 9px 9px;
+	margin-left: -9px;
+}
+
+.@{prefix}-arrow.@{prefix}-arrow-down:before {
+	bottom: -9px;
+	border-top-color: @panel-border;
+	border-width: 9px 9px 0;
+	margin-left: -9px;
+}
+
+.@{prefix}-arrow.@{prefix}-arrow-up:after {
+	top: -8px;
+	border-bottom-color: mix(@panel-bg, @panel-bg-hlight, 60%);
+	border-width: 0 8px 8px;
+	margin-left: -8px;
+}
+
+.@{prefix}-arrow.@{prefix}-arrow-down:after {
+	bottom: -8px;
+	border-top-color: mix(@panel-bg, @panel-bg-hlight, 60%);
+	border-width: 8px 8px 0;
+	margin-left: -8px;
+}
+
+.@{prefix}-arrow.@{prefix}-arrow-left:before,
+.@{prefix}-arrow.@{prefix}-arrow-left:after {
+	margin: 0;
+}
+
+.@{prefix}-arrow.@{prefix}-arrow-left:before {
+	left: 20px;
+}
+.@{prefix}-arrow.@{prefix}-arrow-left:after {
+	left: 21px;
+}
+
+.@{prefix}-arrow.@{prefix}-arrow-right:before,
+.@{prefix}-arrow.@{prefix}-arrow-right:after {
+	left: auto;
+	margin: 0;
+}
+
+.@{prefix}-arrow.@{prefix}-arrow-right:before {
+	right: 20px;
+}
+
+.@{prefix}-arrow.@{prefix}-arrow-right:after {
+	right: 21px;
 }
 
 
@@ -678,10 +815,12 @@ div.@{prefix}-fullscreen {
 	position: fixed;
 	top: 0; left: 0;
 	opacity: 0;
-	.transition(opacity 150ms ease-in);
+	transform: scale(0.1);
+	transition: transform 100ms ease-in, opacity 150ms ease-in;
 }
 
 .@{prefix}-window.@{prefix}-in {
+	transform: scale(1);
 	opacity: 1;
 }
 
@@ -693,20 +832,19 @@ div.@{prefix}-fullscreen {
 
 .@{prefix}-window-head .@{prefix}-close {
 	position: absolute;
-	right: 15px;
-	top: 9px;
-	font-size: 20px;
-	font-weight: bold;
-	line-height: 20px;
-	color: @window-head-close;
+	right: 0;
+	top: 0;
+	height: 38px;
+	width: 38px;
+	text-align: center;
 	cursor: pointer;
 
-	// IE7
-	height: 20px;
-	overflow: hidden;
+	i {
+		color: @window-head-close;
+	}
 }
 
-.@{prefix}-close:hover {
+.@{prefix}-close:hover i {
 	color: @window-head-close-hover;
 }
 
@@ -715,7 +853,7 @@ div.@{prefix}-fullscreen {
 	font-size: @window-title-font-size;
 	font-weight: bold;
 	text-rendering: optimizelegibility;
-	padding-right: 10px;
+	padding-right: 20px;
 }
 
 .@{prefix}-window .@{prefix}-container-body {
@@ -766,25 +904,6 @@ div.@{prefix}-fullscreen {
 .@{prefix}-rtl .@{prefix}-window-head .@{prefix}-title {
 	direction: rtl;
 	text-align: right;
-}
-
-
-// AbsoluteLayout
-
-.@{prefix}-abs-layout {
-	position: relative;
-}
-
-body .@{prefix}-abs-layout-item, .@{prefix}-abs-end {
-	position: absolute;
-}
-
-.@{prefix}-abs-end {
-	width: 1px; height: 1px;
-}
-
-.@{prefix}-container-body.@{prefix}-abs-layout {
-	overflow: hidden;
 }
 
 
@@ -919,6 +1038,206 @@ body .@{prefix}-abs-layout-item, .@{prefix}-abs-end {
 }
 
 
+// Progress
+
+.@{prefix}-progress {
+	display: inline-block;
+	position: relative;
+	height: 20px;
+}
+
+.@{prefix}-progress .@{prefix}-bar-container {
+	display: inline-block;
+	width: 100px;
+	height: 100%;
+	margin-right: 8px;
+	border: 1px solid @progress-border;
+	overflow: hidden;
+	.border-radius(4px);
+}
+
+.@{prefix}-progress .@{prefix}-text {
+	display: inline-block;
+	margin-top: auto;
+	margin-bottom: auto;
+	font-size: 14px;
+	width: 40px;
+	color: @progress-text;
+}
+
+.@{prefix}-bar {
+	display: block;
+	width: 0%;
+	height: 100%;
+	.vertical-gradient(@progress-bar-bg, @progress-bar-bg-hlight);
+	.transition(width .2s ease);
+}
+
+
+// notification
+
+.@{prefix}-notification {
+	position: absolute;
+	background-color: @notification-bg;
+	padding: 5px;
+	margin-top: 5px;
+	border-width: 1px;
+	border-style: solid;
+	border-color: @notification-border;
+	transform: scale(0.1);
+	transition: transform 100ms ease-in, opacity 150ms ease-in;
+	opacity: 0;
+}
+
+.@{prefix}-notification.@{prefix}-in {
+	opacity: 1;
+	transform: scale(1);
+}
+
+.@{prefix}-notification-success {
+	background-color: @notification-success-bg;
+	border-color: @notification-success-border;
+}
+
+.@{prefix}-notification-info {
+	background-color: @notification-info-bg;
+	border-color: @notification-info-border;
+}
+
+.@{prefix}-notification-warning {
+	background-color: @notification-warning-bg;
+	border-color: @notification-warning-border;
+}
+
+.@{prefix}-notification-error {
+	background-color: @notification-error-bg;
+	border-color: @notification-error-border;
+}
+
+.@{prefix}-notification.@{prefix}-has-close {
+	padding-right: 15px;
+}
+
+.@{prefix}-notification .@{prefix}-ico {
+	margin-top: 5px;
+}
+
+.@{prefix}-notification-inner {
+	display: inline-block;
+	font-size: @notification-font-size;
+	margin: 5px 8px 4px 8px;
+	text-align: center;
+	white-space: normal;
+	color: @notification-info-text;
+}
+
+.@{prefix}-notification-inner a {
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.@{prefix}-notification .@{prefix}-progress {
+	margin-right: 8px;
+}
+
+.@{prefix}-notification .@{prefix}-progress .@{prefix}-text {
+	margin-top: 5px;
+}
+
+.@{prefix}-notification *, .@{prefix}-notification .@{prefix}-progress .@{prefix}-text {
+	color: @notification-text;
+}
+
+.@{prefix}-notification .@{prefix}-progress .@{prefix}-bar-container {
+	border-color: @notification-border;
+}
+
+.@{prefix}-notification .@{prefix}-progress .@{prefix}-bar-container .@{prefix}-bar {
+	background-color: @notification-text;
+}
+
+.@{prefix}-notification-success *, .@{prefix}-notification-success .@{prefix}-progress .@{prefix}-text {
+	color: @notification-success-text;
+}
+
+.@{prefix}-notification-success .@{prefix}-progress .@{prefix}-bar-container {
+	border-color: @notification-success-border;
+}
+
+.@{prefix}-notification-success .@{prefix}-progress .@{prefix}-bar-container .@{prefix}-bar {
+	background-color: @notification-success-text;
+}
+
+.@{prefix}-notification-info *, .@{prefix}-notification-info .@{prefix}-progress .@{prefix}-text  {
+	color: @notification-info-text;
+}
+
+.@{prefix}-notification-info .@{prefix}-progress .@{prefix}-bar-container {
+	border-color: @notification-info-border;
+}
+
+.@{prefix}-notification-info .@{prefix}-progress .@{prefix}-bar-container .@{prefix}-bar {
+	background-color: @notification-info-text;
+}
+
+.@{prefix}-notification-warning *, .@{prefix}-notification-warning .@{prefix}-progress .@{prefix}-text  {
+	color: @notification-warning-text;
+}
+
+.@{prefix}-notification-warning .@{prefix}-progress .@{prefix}-bar-container {
+	border-color: @notification-warning-border;
+}
+
+.@{prefix}-notification-warning .@{prefix}-progress .@{prefix}-bar-container .@{prefix}-bar {
+	background-color: @notification-warning-text;
+}
+
+.@{prefix}-notification-error *, .@{prefix}-notification-error .@{prefix}-progress .@{prefix}-text  {
+	color: @notification-error-text;
+}
+
+.@{prefix}-notification-error .@{prefix}-progress .@{prefix}-bar-container {
+	border-color: @notification-error-border;
+}
+
+.@{prefix}-notification-error .@{prefix}-progress .@{prefix}-bar-container .@{prefix}-bar {
+	background-color: @notification-error-text;
+}
+
+.@{prefix}-notification .@{prefix}-close {
+	position: absolute;
+	top: 6px;
+	right: 8px;
+	font-size: 20px;
+	font-weight: bold;
+	line-height: 20px;
+	color: @window-head-close;
+	cursor: pointer;
+
+	// IE7
+	height: 20px;
+	overflow: hidden;
+}
+
+// AbsoluteLayout
+
+.@{prefix}-abs-layout {
+	position: relative;
+}
+
+body .@{prefix}-abs-layout-item, .@{prefix}-abs-end {
+	position: absolute;
+}
+
+.@{prefix}-abs-end {
+	width: 1px; height: 1px;
+}
+
+.@{prefix}-container-body.@{prefix}-abs-layout {
+	overflow: hidden;
+}
+
+
 // Button
 
 .@{prefix}-btn {
@@ -1007,6 +1326,12 @@ body .@{prefix}-abs-layout-item, .@{prefix}-abs-end {
 .@{prefix}-primary button, .@{prefix}-primary button i {
 	color: @btn-primary-text;
 	text-shadow: 1px 1px @btn-primary-text-shadow;
+}
+
+.@{prefix}-btn .@{prefix}-txt {
+	font-size: inherit;
+	line-height: inherit;
+	color: inherit;
 }
 
 .@{prefix}-btn-large button {
@@ -1536,6 +1861,79 @@ i.@{prefix}-i-checkbox {
 }
 
 
+// InfoBox
+
+.@{prefix}-infobox {
+	.inline-block();
+	text-shadow: @text-shadow;
+	overflow: hidden;
+  border: 1px solid red;
+
+  div {
+    display: block;
+    margin: 5px;
+
+    button {
+      position: absolute;
+      top: 50%; right: 4px;
+      cursor: pointer;
+      margin-top: -8px;
+      display: none;
+    }
+
+		button:focus {
+      outline: 2px solid @btn-border-hover;
+    }
+  }
+}
+
+.@{prefix}-infobox.@{prefix}-has-help {
+  div {
+    margin-right: 25px;
+  }
+
+  button {
+    display: block;
+  }
+}
+
+.@{prefix}-infobox.@{prefix}-success {
+  background: @infobox-success-bg;
+  border-color: @infobox-success-border;
+
+  div {
+    color: @infobox-success-text;
+  }
+}
+
+.@{prefix}-infobox.@{prefix}-warning {
+  background: @infobox-warning-bg;
+  border-color: @infobox-warning-border;
+
+  div {
+    color: @infobox-warning-text;
+  }
+}
+
+.@{prefix}-infobox.@{prefix}-error {
+  background: @infobox-error-bg;
+  border-color: @infobox-error-border;
+
+  div {
+    color: @infobox-error-text;
+  }
+}
+
+// RTL
+
+.@{prefix}-rtl .@{prefix}-infobox {
+  div {
+  	text-align: right;
+  	direction: rtl;
+  }
+}
+
+
 // Label
 
 .@{prefix}-label {
@@ -1554,6 +1952,14 @@ i.@{prefix}-i-checkbox {
 
 .@{prefix}-label.@{prefix}-multiline {
 	white-space: pre-wrap;
+}
+
+.@{prefix}-label.@{prefix}-success {
+	color: @text-success;
+}
+
+.@{prefix}-label.@{prefix}-warning {
+	color: @text-warning;
 }
 
 .@{prefix}-label.@{prefix}-error {
@@ -1782,6 +2188,27 @@ div.@{prefix}-menu .@{prefix}-menu-item-sep, .@{prefix}-menu-item-sep:hover {
 }
 
 
+// Throbber
+
+.@{prefix}-throbber {
+	position: absolute;
+	top: 0; left: 0;
+	width: 100%; height: 100%;
+	.opacity(0.6);
+	background: @throbber-bg;
+}
+
+.@{prefix}-throbber-inline {
+	position: static;
+	height: 50px;
+}
+
+.@{prefix}-menu .@{prefix}-throbber-inline {
+	height: 25px;
+	background-size: contain;
+}
+
+
 // Menu
 
 .@{prefix}-menu {
@@ -1869,6 +2296,14 @@ i.@{prefix}-i-resize {
 }
 
 
+// SelectBox
+
+.@{prefix}-selectbox {
+	background: @selectbox-bg;
+	border: 1px solid @selectbox-border;
+}
+
+
 // Slider
 
 .@{prefix}-slider {
@@ -1897,6 +2332,10 @@ i.@{prefix}-i-resize {
 	top: 0; left: 0;
 	margin-left: -1px;
 	margin-top: -2px;
+}
+
+.@{prefix}-slider-handle:focus {
+	background: @slider-handle-bg-focus;
 }
 
 
@@ -2039,6 +2478,7 @@ i.@{prefix}-i-resize {
 
 .@{prefix}-textbox.@{prefix}-multiline {
 	padding: 4px;
+	height: auto;
 }
 
 .@{prefix}-textbox.@{prefix}-disabled {
@@ -2050,22 +2490,6 @@ i.@{prefix}-i-resize {
 .@{prefix}-rtl .@{prefix}-textbox {
 	text-align: right;
 	direction: rtl;
-}
-
-
-// Throbber
-
-.@{prefix}-throbber {
-	position: absolute;
-	top: 0; left: 0;
-	width: 100%; height: 100%;
-	.opacity(0.6);
-	background: @throbber-bg;
-}
-
-.@{prefix}-throbber-inline {
-	position: static;
-	height: 50px;
 }
 
 
@@ -2198,7 +2622,7 @@ i.@{prefix}-i-resize {
 .@{prefix}-i-invert         { -ie7-icon: "\e602"; }
 .@{prefix}-i-gamma          { -ie7-icon: "\e600"; }
 .@{prefix}-i-remove         { -ie7-icon: "\ed6a"; }
-
+.@{prefix}-i-codesample     { -ie7-icon: "\e603"; }
 .@{prefix}-i-checkbox, .@{prefix}-i-selected {
 	-ie7-icon: "\e033";
 }

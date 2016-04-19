@@ -18,8 +18,12 @@
 define("tinymce/dom/ControlSelection", [
 	"tinymce/util/VK",
 	"tinymce/util/Tools",
-	"tinymce/Env"
-], function(VK, Tools, Env) {
+	"tinymce/util/Delay",
+	"tinymce/Env",
+	"tinymce/dom/NodeType"
+], function(VK, Tools, Delay, Env, NodeType) {
+	var isContentEditableFalse = NodeType.isContentEditableFalse;
+
 	return function(selection, editor) {
 		var dom = editor.dom, each = Tools.each;
 		var selectedElm, selectedElmGhost, resizeHelper, resizeHandles, selectedHandle, lastMouseDownEvent;
@@ -46,6 +50,7 @@ define("tinymce/dom/ControlSelection", [
 			rootClass + ' div.mce-resizehandle {' +
 				'position: absolute;' +
 				'border: 1px solid black;' +
+				'box-sizing: box-sizing;' +
 				'background: #FFF;' +
 				'width: 7px;' +
 				'height: 7px;' +
@@ -54,7 +59,7 @@ define("tinymce/dom/ControlSelection", [
 			rootClass + ' .mce-resizehandle:hover {' +
 				'background: #000' +
 			'}' +
-			rootClass + ' img[data-mce-selected], hr[data-mce-selected] {' +
+			rootClass + ' img[data-mce-selected],' + rootClass + ' hr[data-mce-selected] {' +
 				'outline: 1px solid black;' +
 				'resize: none' + // Have been talks about implementing this in browsers
 			'}' +
@@ -228,6 +233,7 @@ define("tinymce/dom/ControlSelection", [
 		function showResizeRect(targetElm, mouseDownHandleName, mouseDownEvent) {
 			var position, targetWidth, targetHeight, e, rect;
 
+			hideResizeRect();
 			unbindResizeHandleEvents();
 
 			// Get position and size of target
@@ -448,8 +454,21 @@ define("tinymce/dom/ControlSelection", [
 			showResizeRect(target, name, lastMouseDownEvent);
 		}
 
+		function preventDefault(e) {
+			if (e.preventDefault) {
+				e.preventDefault();
+			} else {
+				e.returnValue = false; // IE
+			}
+		}
+
 		function nativeControlSelect(e) {
 			var target = e.srcElement;
+
+			if (isContentEditableFalse(target)) {
+				preventDefault(e);
+				return;
+			}
 
 			if (target != selectedElm) {
 				editor.fire('ObjectSelected', {target: target});
@@ -546,35 +565,44 @@ define("tinymce/dom/ControlSelection", [
 					});
 
 					editor.dom.bind(rootElement, 'mscontrolselect', function(e) {
+						function delayedSelect(node) {
+							Delay.setEditorTimeout(editor, function() {
+								editor.selection.select(node);
+							});
+						}
+
+						if (isContentEditableFalse(e.target)) {
+							e.preventDefault();
+							delayedSelect(e.target);
+							return;
+						}
+
 						if (/^(TABLE|IMG|HR)$/.test(e.target.nodeName)) {
 							e.preventDefault();
 
 							// This moves the selection from being a control selection to a text like selection like in WebKit #6753
 							// TODO: Fix this the day IE works like other browsers without this nasty native ugly control selections.
 							if (e.target.tagName == 'IMG') {
-								window.setTimeout(function() {
-									editor.selection.select(e.target);
-								}, 0);
+								delayedSelect(e.target);
 							}
 						}
 					});
 				}
 			}
 
+			var throttledUpdateResizeRect = Delay.throttle(updateResizeRect);
+
 			editor.on('nodechange ResizeEditor ResizeWindow drop', function(e) {
-				if (window.requestAnimationFrame) {
-					window.requestAnimationFrame(function() {
-						updateResizeRect(e);
-					});
-				} else {
-					updateResizeRect(e);
+				if (!editor.composing) {
+					throttledUpdateResizeRect(e);
 				}
 			});
 
 			// Update resize rect while typing in a table
-			editor.on('keydown keyup', function(e) {
-				if (selectedElm && selectedElm.nodeName == "TABLE") {
-					updateResizeRect(e);
+			editor.on('keydown keyup compositionend', function(e) {
+				// Don't update the resize rect while composing since it blows away the IME see: #2710
+				if (selectedElm && selectedElm.nodeName == "TABLE" && !editor.composing) {
+					throttledUpdateResizeRect(e);
 				}
 			});
 

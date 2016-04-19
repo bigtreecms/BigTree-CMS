@@ -9,7 +9,7 @@
  */
 
 /**
- * This utilitiy class is used for easier inheritage.
+ * This utilitiy class is used for easier inheritance.
  *
  * Features:
  * * Exposed super functions: this._super();
@@ -88,8 +88,6 @@ define("tinymce/util/Class", [
 		// Add mixins
 		if (prop.Mixins) {
 			each(prop.Mixins, function(mixin) {
-				mixin = mixin;
-
 				for (var name in mixin) {
 					if (name !== "init") {
 						prop[name] = mixin[name];

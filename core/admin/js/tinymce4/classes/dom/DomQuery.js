@@ -333,7 +333,7 @@ define("tinymce/dom/DomQuery", [
 		 *
 		 * @method add
 		 * @param {Array/tinymce.dom.DomQuery} items Array of all nodes to add to set.
-		 * @param {Boolean} sort
+		 * @param {Boolean} sort Optional sort flag that enables sorting of elements.
 		 * @return {tinymce.dom.DomQuery} New instance with nodes added.
 		 */
 		add: function(items, sort) {
@@ -643,7 +643,8 @@ define("tinymce/dom/DomQuery", [
 		 */
 		append: function() {
 			return domManipulate(this, arguments, function(node) {
-				if (this.nodeType === 1) {
+				// Either element or Shadow Root
+				if (this.nodeType === 1 || (this.host && this.host.nodeType === 1)) {
 					this.appendChild(node);
 				}
 			});
@@ -658,7 +659,8 @@ define("tinymce/dom/DomQuery", [
 		 */
 		prepend: function() {
 			return domManipulate(this, arguments, function(node) {
-				if (this.nodeType === 1) {
+				// Either element or Shadow Root
+				if (this.nodeType === 1 || (this.host && this.host.nodeType === 1)) {
 					this.insertBefore(node, this.firstChild);
 				}
 			}, true);
@@ -1345,7 +1347,7 @@ define("tinymce/dom/DomQuery", [
 		 * Returns all child nodes matching the optional selector.
 		 *
 		 * @method contents
-		 * @param {Element/tinymce.dom.DomQuery} node
+		 * @param {Element/tinymce.dom.DomQuery} node Node to get the contents of.
 		 * @return {tinymce.dom.DomQuery} New DomQuery instance with all matching elements.
 		 */
 		contents: function(node) {
@@ -1394,7 +1396,7 @@ define("tinymce/dom/DomQuery", [
 		 * of each item in current collection matching the optional selector.
 		 *
 		 * @method parentsUntil
-		 * @param {Element/tinymce.dom.DomQuery} node
+		 * @param {Element/tinymce.dom.DomQuery} node Node to find parent of.
 		 * @param {String/Element/tinymce.dom.DomQuery} until Until the matching selector or element.
 		 * @return {tinymce.dom.DomQuery} New DomQuery instance with all matching parents.
 		 */
@@ -1406,7 +1408,7 @@ define("tinymce/dom/DomQuery", [
 		 * Returns a new collection with all next siblings of each item in current collection matching the optional selector.
 		 *
 		 * @method nextUntil
-		 * @param {Element/tinymce.dom.DomQuery} node
+		 * @param {Element/tinymce.dom.DomQuery} node Node to find next siblings on.
 		 * @param {String/Element/tinymce.dom.DomQuery} until Until the matching selector or element.
 		 * @return {tinymce.dom.DomQuery} New DomQuery instance with all matching elements.
 		 */
@@ -1418,7 +1420,7 @@ define("tinymce/dom/DomQuery", [
 		 * Returns a new collection with all previous siblings of each item in current collection matching the optional selector.
 		 *
 		 * @method prevUntil
-		 * @param {Element/tinymce.dom.DomQuery} node
+		 * @param {Element/tinymce.dom.DomQuery} node Node to find previous siblings on.
 		 * @param {String/Element/tinymce.dom.DomQuery} until Until the matching selector or element.
 		 * @return {tinymce.dom.DomQuery} New DomQuery instance with all matching elements.
 		 */

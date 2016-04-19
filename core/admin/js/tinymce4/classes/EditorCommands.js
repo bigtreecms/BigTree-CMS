@@ -20,13 +20,16 @@ define("tinymce/EditorCommands", [
 	"tinymce/util/Tools",
 	"tinymce/dom/ElementUtils",
 	"tinymce/dom/RangeUtils",
-	"tinymce/dom/TreeWalker"
-], function(Serializer, Env, Tools, ElementUtils, RangeUtils, TreeWalker) {
+	"tinymce/dom/TreeWalker",
+	"tinymce/caret/CaretWalker",
+	"tinymce/caret/CaretPosition",
+	"tinymce/dom/NodeType"
+], function(Serializer, Env, Tools, ElementUtils, RangeUtils, TreeWalker, CaretWalker, CaretPosition, NodeType) {
 	// Added for compression purposes
 	var each = Tools.each, extend = Tools.extend;
 	var map = Tools.map, inArray = Tools.inArray, explode = Tools.explode;
-	var isGecko = Env.gecko, isIE = Env.ie, isOldIE = Env.ie && Env.ie < 11;
-	var TRUE = true, FALSE = false;
+	var isIE = Env.ie, isOldIE = Env.ie && Env.ie < 11;
+	var TRUE = true, FALSE = false, isTableCell = NodeType.matchNodeNames('td th');
 
 	return function(editor) {
 		var dom, selection, formatter,
@@ -48,7 +51,7 @@ define("tinymce/EditorCommands", [
 		 * @param {String} command Command to execute.
 		 * @param {Boolean} ui Optional user interface state.
 		 * @param {Object} value Optional value for command.
-		 * @param {Object} args
+		 * @param {Object} args Optional extra arguments to the execCommand.
 		 * @return {Boolean} true/false if the command was found or not.
 		 */
 		function execCommand(command, ui, value, args) {
@@ -115,7 +118,7 @@ define("tinymce/EditorCommands", [
 			var func;
 
 			// Is hidden then return undefined
-			if (editor._isHidden()) {
+			if (editor.quirks.isHidden()) {
 				return;
 			}
 
@@ -145,7 +148,7 @@ define("tinymce/EditorCommands", [
 			var func;
 
 			// Is hidden then return undefined
-			if (editor._isHidden()) {
+			if (editor.quirks.isHidden()) {
 				return;
 			}
 
@@ -305,7 +308,7 @@ define("tinymce/EditorCommands", [
 						msg = msg.replace(/Ctrl\+/g, '\u2318+');
 					}
 
-					editor.windowManager.alert(msg);
+					editor.notificationManager.open({text: msg, type: 'error'});
 				}
 			},
 
@@ -340,7 +343,6 @@ define("tinymce/EditorCommands", [
 
 				if (align != 'none') {
 					toggleFormat('align' + align);
-					execCommand('mceRepaint');
 				}
 			},
 
@@ -524,6 +526,92 @@ define("tinymce/EditorCommands", [
 					}
 				}
 
+				function canHaveChildren(node) {
+					return node && !editor.schema.getShortEndedElements()[node.nodeName];
+				}
+
+				function moveSelectionToMarker(marker) {
+					var parentEditableFalseElm, parentBlock, nextRng;
+
+					function getContentEditableFalseParent(node) {
+						var root = editor.getBody();
+
+						for (; node && node !== root; node = node.parentNode) {
+							if (editor.dom.getContentEditable(node) === 'false') {
+								return node;
+							}
+						}
+
+						return null;
+					}
+
+					if (!marker) {
+						return;
+					}
+
+					selection.scrollIntoView(marker);
+
+					// If marker is in cE=false then move selection to that element instead
+					parentEditableFalseElm = getContentEditableFalseParent(marker);
+					if (parentEditableFalseElm) {
+						dom.remove(marker);
+						selection.select(parentEditableFalseElm);
+						return;
+					}
+
+					// Move selection before marker and remove it
+					rng = dom.createRng();
+
+					// If previous sibling is a text node set the selection to the end of that node
+					node = marker.previousSibling;
+					if (node && node.nodeType == 3) {
+						rng.setStart(node, node.nodeValue.length);
+
+						// TODO: Why can't we normalize on IE
+						if (!isIE) {
+							node2 = marker.nextSibling;
+							if (node2 && node2.nodeType == 3) {
+								node.appendData(node2.data);
+								node2.parentNode.removeChild(node2);
+							}
+						}
+					} else {
+						// If the previous sibling isn't a text node or doesn't exist set the selection before the marker node
+						rng.setStartBefore(marker);
+						rng.setEndBefore(marker);
+					}
+
+					function findNextCaretRng(rng) {
+						var caretPos = CaretPosition.fromRangeStart(rng);
+						var caretWalker = new CaretWalker(editor.getBody());
+
+						caretPos = caretWalker.next(caretPos);
+						if (caretPos) {
+							return caretPos.toRange();
+						}
+					}
+
+					// Remove the marker node and set the new range
+					parentBlock = dom.getParent(marker, dom.isBlock);
+					dom.remove(marker);
+
+					if (parentBlock && dom.isEmpty(parentBlock)) {
+						editor.$(parentBlock).empty();
+
+						rng.setStart(parentBlock, 0);
+						rng.setEnd(parentBlock, 0);
+
+						if (!isTableCell(parentBlock) && (nextRng = findNextCaretRng(rng))) {
+							rng = nextRng;
+							dom.remove(parentBlock);
+						} else {
+							dom.add(parentBlock, dom.create('br', {'data-mce-bogus': '1'}));
+						}
+					}
+
+					selection.setRng(rng);
+				}
+
 				if (typeof value != 'string') {
 					merge = value.merge;
 					data = value.data;
@@ -560,7 +648,7 @@ define("tinymce/EditorCommands", [
 				var caretElement = rng.startContainer || (rng.parentElement ? rng.parentElement() : null);
 				var body = editor.getBody();
 				if (caretElement === body && selection.isCollapsed()) {
-					if (dom.isBlock(body.firstChild) && dom.isEmpty(body.firstChild)) {
+					if (dom.isBlock(body.firstChild) && canHaveChildren(body.firstChild) && dom.isEmpty(body.firstChild)) {
 						rng = dom.createRng();
 						rng.setStart(body.firstChild, 0);
 						rng.setEnd(body.firstChild, 0);
@@ -570,6 +658,9 @@ define("tinymce/EditorCommands", [
 
 				// Insert node maker where we will insert the new HTML and get it's parent
 				if (!selection.isCollapsed()) {
+					// Fix for #2595 seems that delete removes one extra character on
+					// WebKit for some odd reason if you double click select a word
+					editor.selection.setRng(editor.selection.getRng());
 					editor.getDoc().execCommand('Delete', false, null);
 					trimNbspAfterDeleteAndPaddValue();
 				}
@@ -596,6 +687,8 @@ define("tinymce/EditorCommands", [
 						}
 					}
 				}
+
+				editor._selectionOverrides.showBlockCaretContainer(parentNode);
 
 				// If parser says valid we can insert the contents into that parent
 				if (!parserArgs.invalid) {
@@ -651,37 +744,7 @@ define("tinymce/EditorCommands", [
 				}
 
 				reduceInlineTextElements();
-
-				marker = dom.get('mce_marker');
-				selection.scrollIntoView(marker);
-
-				// Move selection before marker and remove it
-				rng = dom.createRng();
-
-				// If previous sibling is a text node set the selection to the end of that node
-				node = marker.previousSibling;
-				if (node && node.nodeType == 3) {
-					rng.setStart(node, node.nodeValue.length);
-
-					// TODO: Why can't we normalize on IE
-					if (!isIE) {
-						node2 = marker.nextSibling;
-						if (node2 && node2.nodeType == 3) {
-							node.appendData(node2.data);
-							node2.parentNode.removeChild(node2);
-						}
-					}
-				} else {
-					// If the previous sibling isn't a text node or doesn't exist set the selection before the marker node
-					rng.setStartBefore(marker);
-					rng.setEndBefore(marker);
-				}
-
-				// Remove the marker node and set the new range
-				dom.remove(marker);
-				selection.setRng(rng);
-
-				// Dispatch after event and add any visual elements needed
+				moveSelectionToMarker(dom.get('mce_marker'));
 				editor.fire('SetContent', args);
 				editor.addVisual();
 			},
@@ -718,6 +781,10 @@ define("tinymce/EditorCommands", [
 					}
 
 					each(selection.getSelectedBlocks(), function(element) {
+						if (dom.getContentEditable(element) === "false") {
+							return;
+						}
+
 						if (element.nodeName != "LI") {
 							var indentStyleName = editor.getParam('indent_use_margin', false) ? 'margin' : 'padding';
 
@@ -738,20 +805,6 @@ define("tinymce/EditorCommands", [
 			},
 
 			mceRepaint: function() {
-				if (isGecko) {
-					try {
-						storeSelection(TRUE);
-
-						if (selection.getSel()) {
-							selection.getSel().selectAllChildren(editor.getBody());
-						}
-
-						selection.collapse(TRUE);
-						restoreSelection();
-					} catch (ex) {
-						// Ignore
-					}
-				}
 			},
 
 			InsertHorizontalRule: function() {
