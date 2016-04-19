@@ -16,7 +16,9 @@
  *
  * @class tinymce.dom.EventUtils
  */
-define("tinymce/dom/EventUtils", [], function() {
+define("tinymce/dom/EventUtils", [
+	"tinymce/util/Delay"
+], function(Delay) {
 	"use strict";
 
 	var eventExpandoPrefix = "mce-data-";
@@ -72,6 +74,19 @@ define("tinymce/dom/EventUtils", [], function() {
 		// Normalize target IE uses srcElement
 		if (!event.target) {
 			event.target = event.srcElement || document;
+		}
+
+		// When target element is inside Shadow DOM we need to take first element from path
+		// otherwise we'll get Shadow Root parent, not actual target element
+
+		// Normalize target for WebComponents v0 implementation (in Chrome)
+		if (event.path) {
+			event.target = event.path[0] || event.target;
+		}
+
+		// Normalize target for WebComponents v1 implementation (standard)
+		if (event.deepPath) {
+			event.target = event.deepPath[0] || event.target;
 		}
 
 		// Calculate pageX/Y if missing and clientX/Y available
@@ -171,7 +186,7 @@ define("tinymce/dom/EventUtils", [], function() {
 				// http://javascript.nwbox.com/IEContentLoaded/
 				doc.documentElement.doScroll("left");
 			} catch (ex) {
-				setTimeout(tryScroll, 0);
+				Delay.setTimeout(tryScroll);
 				return;
 			}
 

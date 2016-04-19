@@ -232,7 +232,7 @@ define("tinymce/EnterKey", [
 								block.appendChild(clonedNode);
 							}
 						}
-					} while ((node = node.parentNode));
+					} while ((node = node.parentNode) && node != editableRoot);
 				}
 
 				// BR is needed in empty blocks on non IE browsers
@@ -645,6 +645,8 @@ define("tinymce/EnterKey", [
 				if (dom.isEmpty(parentBlock)) {
 					emptyBlock(parentBlock);
 				}
+
+				newBlock.normalize();
 
 				// New block might become empty if it's <p><b>a |</b></p>
 				if (dom.isEmpty(newBlock)) {

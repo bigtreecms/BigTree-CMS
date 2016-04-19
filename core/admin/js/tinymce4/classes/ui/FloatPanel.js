@@ -22,8 +22,9 @@ define("tinymce/ui/FloatPanel", [
 	"tinymce/ui/Movable",
 	"tinymce/ui/Resizable",
 	"tinymce/ui/DomUtils",
-	"tinymce/dom/DomQuery"
-], function(Panel, Movable, Resizable, DomUtils, $) {
+	"tinymce/dom/DomQuery",
+	"tinymce/util/Delay"
+], function(Panel, Movable, Resizable, DomUtils, $, Delay) {
 	"use strict";
 
 	var documentClickHandler, documentScrollHandler, windowResizeHandler, visiblePanels = [];
@@ -178,7 +179,7 @@ define("tinymce/ui/FloatPanel", [
 			}
 		}
 
-		var modalBlockEl = document.getElementById(ctrl.classPrefix + 'modal-block');
+		var modalBlockEl = $('#' + ctrl.classPrefix + 'modal-block', ctrl.getContainerElm())[0];
 
 		if (topModal) {
 			$(modalBlockEl).css('z-index', topModal.zIndex - 1);
@@ -228,17 +229,17 @@ define("tinymce/ui/FloatPanel", [
 					var $modalBlockEl, prefix = self.classPrefix;
 
 					if (self.modal && !hasModal) {
-						$modalBlockEl = $('#' + prefix + 'modal-block');
+						$modalBlockEl = $('#' + prefix + 'modal-block', self.getContainerElm());
 						if (!$modalBlockEl[0]) {
 							$modalBlockEl = $(
 								'<div id="' + prefix + 'modal-block" class="' + prefix + 'reset ' + prefix + 'fade"></div>'
 							).appendTo(self.getContainerElm());
 						}
 
-						setTimeout(function() {
+						Delay.setTimeout(function() {
 							$modalBlockEl.addClass(prefix + 'in');
 							$(self.getEl()).addClass(prefix + 'in');
-						}, 0);
+						});
 
 						hasModal = true;
 					}
@@ -260,6 +261,10 @@ define("tinymce/ui/FloatPanel", [
 				self._preBodyHtml = '<div class="' + self.classPrefix + 'arrow"></div>';
 				self.classes.add('popover').add('bottom').add(self.isRtl() ? 'end' : 'start');
 			}
+
+			self.aria('label', settings.ariaLabel);
+			self.aria('labelledby', self._id);
+			self.aria('describedby', self.describedBy || self._id + '-none');
 		},
 
 		fixed: function(state) {

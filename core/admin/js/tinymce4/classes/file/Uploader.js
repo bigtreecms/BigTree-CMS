@@ -67,15 +67,29 @@ define("tinymce/file/Uploader", [
 			};
 		}
 
-		function defaultHandler(blobInfo, success, failure) {
-			var xhr, formData;
+		function defaultHandler(blobInfo, success, failure, openNotification) {
+			var xhr, formData, notification;
 
 			xhr = new XMLHttpRequest();
 			xhr.open('POST', settings.url);
 			xhr.withCredentials = settings.credentials;
 
+			notification = openNotification();
+
+			xhr.upload.onprogress = function(e) {
+				var percentLoaded = Math.round(e.loaded / e.total * 100);
+				notification.progressBar.value(percentLoaded);
+			};
+
+			xhr.onerror = function() {
+				notification.close();
+				failure("Image upload failed due to a XHR Transport error. Code: " + xhr.status);
+			};
+
 			xhr.onload = function() {
 				var json;
+
+				notification.close();
 
 				if (xhr.status != 200) {
 					failure("HTTP Error: " + xhr.status);
@@ -98,62 +112,77 @@ define("tinymce/file/Uploader", [
 			xhr.send(formData);
 		}
 
-		function upload(blobInfos) {
-			var promises;
+		function noUpload() {
+			return new Promise(function(resolve) {
+				resolve([]);
+			});
+		}
 
-			// If no url is configured then resolve
-			if (!settings.url && settings.handler === defaultHandler) {
-				return new Promise(function(resolve) {
-					resolve([]);
-				});
-			}
+		function interpretResult(promise) {
+			return promise.then(function(result) {
+				return result;
+			})['catch'](function(error) {
+				return error;
+			});
+		}
 
+		function registerPromise(handler, id, blobInfo) {
+			var response = handler(blobInfo);
+			var promise = interpretResult(response);
+			delete cachedPromises[id];
+			cachedPromises[id] = promise;
+			return promise;
+		}
+
+		function collectUploads(blobInfos, uploadBlobInfo) {
+			return Tools.map(blobInfos, function(blobInfo) {
+				var id = blobInfo.id();
+				return cachedPromises[id] ? cachedPromises[id] : registerPromise(uploadBlobInfo, id, blobInfo);
+			});
+		}
+
+		function uploadBlobs(blobInfos, openNotification) {
 			function uploadBlobInfo(blobInfo) {
 				return new Promise(function(resolve) {
 					var handler = settings.handler;
 
-					handler(blobInfoToData(blobInfo), function(url) {
-						resolve({
-							url: url,
-							blobInfo: blobInfo,
-							status: true
-						});
-					}, function(failure) {
+					try {
+						handler(blobInfoToData(blobInfo), function(url) {
+							resolve({
+								url: url,
+								blobInfo: blobInfo,
+								status: true
+							});
+						}, function(failure) {
+							resolve({
+								url: '',
+								blobInfo: blobInfo,
+								status: false,
+								error: failure
+							});
+						}, openNotification);
+					} catch (ex) {
 						resolve({
 							url: '',
 							blobInfo: blobInfo,
 							status: false,
-							error: failure
+							error: ex.message
 						});
-					});
+					}
 				});
 			}
 
-			promises = Tools.map(blobInfos, function(blobInfo) {
-				var newPromise, id = blobInfo.id();
-
-				if (cachedPromises[id]) {
-					return cachedPromises[id];
-				}
-
-				newPromise = uploadBlobInfo(blobInfo).then(function(result) {
-					delete cachedPromises[id];
-					return result;
-				})['catch'](function(error) {
-					delete cachedPromises[id];
-					return error;
-				});
-
-				cachedPromises[id] = newPromise;
-
-				return newPromise;
-			});
-
+			var promises = collectUploads(blobInfos, uploadBlobInfo);
 			return Promise.all(promises);
+		}
+
+		function upload(blobInfos, openNotification) {
+			return (!settings.url && settings.handler === defaultHandler) ? noUpload() : uploadBlobs(blobInfos, openNotification);
 		}
 
 		settings = Tools.extend({
 			credentials: false,
+			// We are adding a notify argument to this (at the moment, until it doesn't work)
 			handler: defaultHandler
 		}, settings);
 

@@ -16,8 +16,9 @@
  */
 define("tinymce/ui/Throbber", [
 	"tinymce/dom/DomQuery",
-	"tinymce/ui/Control"
-], function($, Control) {
+	"tinymce/ui/Control",
+	"tinymce/util/Delay"
+], function($, Control, Delay) {
 	"use strict";
 
 	/**
@@ -28,7 +29,7 @@ define("tinymce/ui/Throbber", [
 	 * @param {Boolean} inline Optional true/false state if the throbber should be appended to end of element for infinite scroll.
 	 */
 	return function(elm, inline) {
-		var self = this, state, classPrefix = Control.classPrefix;
+		var self = this, state, classPrefix = Control.classPrefix, timer;
 
 		/**
 		 * Shows the throbber.
@@ -39,21 +40,27 @@ define("tinymce/ui/Throbber", [
 		 * @return {tinymce.ui.Throbber} Current throbber instance.
 		 */
 		self.show = function(time, callback) {
+			function render() {
+					if (state) {
+						$(elm).append(
+							'<div class="' + classPrefix + 'throbber' + (inline ? ' ' + classPrefix + 'throbber-inline' : '') + '"></div>'
+						);
+
+						if (callback) {
+							callback();
+						}
+					}
+			}
+
 			self.hide();
 
 			state = true;
 
-			window.setTimeout(function() {
-				if (state) {
-					$(elm).append(
-						'<div class="' + classPrefix + 'throbber' + (inline ? ' ' + classPrefix + 'throbber-inline' : '') + '"></div>'
-					);
-
-					if (callback) {
-						callback();
-					}
-				}
-			}, time || 0);
+			if (time) {
+				timer = Delay.setTimeout(render, time);
+			} else {
+				render();
+			}
 
 			return self;
 		};
@@ -66,6 +73,8 @@ define("tinymce/ui/Throbber", [
 		 */
 		self.hide = function() {
 			var child = elm.lastChild;
+
+			Delay.clearTimeout(timer);
 
 			if (child && child.className.indexOf('throbber') != -1) {
 				child.parentNode.removeChild(child);
