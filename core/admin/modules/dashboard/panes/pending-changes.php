@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	// Get publishable changes.
 	$changes = $admin->getPublishableChanges($admin->ID);
 	// Figure out what module each of the changes is for.
@@ -11,7 +13,7 @@
 		if (!array_key_exists($c["module"],$change_modules)) {
 			// Pages
 			if ($c["module"] == 0) {
-				$change_modules[0] = array("title" => "Pages", "count" => 1);
+				$change_modules[0] = array("title" => Text::translate("Pages"), "count" => 1);
 			} else {
 				$module = $admin->getModule($c["module"]);
 				$change_modules[$c["module"]] = array("title" => $module["name"], "icon" => $module["icon"], "count" => 1);
@@ -33,7 +35,7 @@
 		if (!array_key_exists($c["module"],$my_change_modules)) {
 			// Pages
 			if ($c["module"] == 0) {
-				$my_change_modules[0] = array("title" => "Pages", "count" => 1);
+				$my_change_modules[0] = array("title" => Text::translate("Pages"), "count" => 1);
 			} else {
 				$module = $admin->getModule($c["module"]);
 				$my_change_modules[$c["module"]] = array("title" => $module["name"], "icon" => $module["icon"], "count" => 1);
@@ -47,8 +49,8 @@
 	<summary>
 		<h2 class="full">
 			<span class="pending"></span>
-			Pending Changes
-			<a href="<?=ADMIN_ROOT?>dashboard/pending-changes/" class="button">View All Pending Changes</a>
+			<?=Text::translate("Pending Changes")?>
+			<a href="<?=ADMIN_ROOT?>dashboard/pending-changes/" class="button"><?=Text::translate("View All Pending Changes")?></a>
 		</h2>
 	</summary>
 	
@@ -57,12 +59,12 @@
 			if (!count($changes)) {
 		?>
 		<section class="no_content">
-			<p>There are no changes awaiting your approval.</p>
+			<p><?=Text::translate("There are no changes awaiting your approval.")?></p>
 		</section>
 		<?php
 			} else {
 		?>
-		<h3>Changes Pending Your Approval</h3>
+		<h3><?=Text::translate("Changes Pending Your Approval")?></h3>
 		<section class="changes">
 			<?php
 				foreach ($change_modules as $m => $cm) {
@@ -75,7 +77,7 @@
 					}
 			?>
 			<div>
-				<a href="<?=ADMIN_ROOT?>dashboard/pending-changes/#<?=$m?>"><span class="icon_small icon_small_<?=$icon?>"></span> <?=$cm["count"]?> change<?php if ($cm["count"] != 1) { ?>s<?php } ?> for <?=$cm["title"]?></a>
+				<a href="<?=ADMIN_ROOT?>dashboard/pending-changes/#<?=$m?>"><span class="icon_small icon_small_<?=$icon?>"></span> <?=$cm["count"]?> <?=Text::translate($cm["count"] == 1 ? "change" : "changes")?> <?=Text::translate("for")?> <?=$cm["title"]?></a>
 			</div>
 			<?php
 				}
@@ -90,12 +92,12 @@
 			if (!count($my_changes)) {
 		?>
 		<section class="no_content">
-			<p>You have no changes awaiting a publisher's approval.</p>
+			<p><?=Text::translate("You have no changes awaiting a publisher's approval.")?></p>
 		</section>
 		<?php
 			} else {
 		?>
-		<h3>Your Changes Pending Approval</h3>
+		<h3><?=Text::translate("Your Changes Pending Approval")?></h3>
 		<section class="changes">
 			<?php
 				foreach ($my_change_modules as $m => $cm) {
@@ -108,7 +110,7 @@
 					}
 			?>
 			<div>
-				<span class="icon_small icon_small_<?=$icon?>"></span> <?=$cm["count"]?> change<?php if ($cm["count"] != 1) { ?>s<?php } ?> for <?=$cm["title"]?>
+				<span class="icon_small icon_small_<?=$icon?>"></span> <?=$cm["count"]?> <?=Text::translate($cm["count"] == 1 ? "change" : "changes")?> <?=Text::translate("for")?> <?=$cm["title"]?>
 			</div>
 			<?php
 				}

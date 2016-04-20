@@ -1,9 +1,11 @@
 <?php
+	namespace BigTree;
+
 	if ($admin->Level < 1) {
 ?>
 <div class="container">
 	<section>
-		<p>You are not authorized to view this section.</p>
+		<p><?=Text::translate("You are not authorized to view this section.")?></p>
 	</section>
 </div>
 <?php
@@ -17,7 +19,7 @@
 	<form method="post" action="<?=MODULE_ROOT?>set-profile/" class="module">
 		<section>
 			<fieldset>
-				<label>Choose A Profile From The List Below</label>
+				<label><?=Text::translate("Choose A Profile From The List Below")?></label>
 				<?php
 					if (count($profiles->Results)) {
 				?>
@@ -29,15 +31,15 @@
 				<?php
 					} else {
 				?>
-				<p class="error_message">No profiles were found in your Google Analytics account.</p>
+				<p class="error_message"><?=Text::translate("No profiles were found in your Google Analytics account.")?></p>
 				<?php  	
 					}
 				?>
 			</fieldset>
 		</section>
 		<footer>
-			<input type="submit" value="Set Profile" class="blue" id="set_button" />
-			<a href="#" class="button" id="ga_disconnect">Disconnect</a>
+			<input type="submit" value="<?=Text::translate("Set Profile")?>" class="blue" id="set_button" />
+			<a href="#" class="button" id="ga_disconnect"><?=Text::translate("Disconnect")?></a>
 		</footer>
 	</form>
 	
@@ -53,14 +55,14 @@
 	?>
 	<form method="get" action="<?=MODULE_ROOT?>set-token/" class="module">	
 		<section>
-			<p>To connect Google Analytics you will need to login to your Google Analytics account by clicking the Authenticate button below. Once you have logged in you will be taken to a screen with a code in a box. Copy that code into the field that appears below to allow BigTree to access your Google Analytics information.</p>
+			<p><?=Text::translate("To connect Google Analytics you will need to login to your Google Analytics account by clicking the Authenticate button below. Once you have logged in you will be taken to a screen with a code in a box. Copy that code into the field that appears below to allow BigTree to access your Google Analytics information.")?></p>
 			<fieldset>
-				<input type="text" name="code" placeholder="Enter Code Here" />
+				<input type="text" name="code" placeholder="<?=Text::translate("Enter Code Here")?>" />
 			</fieldset>
 		</section>
 		<footer>
-			<a href="<?=$auth_url?>" class="button" id="google_button" target="_blank">Authenticate</a>
-			<input type="submit" class="button blue" id="profile_button" value="Save Code" style="display: none;" />
+			<a href="<?=$auth_url?>" class="button" id="google_button" target="_blank"><?=Text::translate("Authenticate")?></a>
+			<input type="submit" class="button blue" id="profile_button" value="<?=Text::translate("Save Code")?>" style="display: none;" />
 		</footer>
 	</form>
 	<?php
@@ -75,10 +77,10 @@
 	
 	$("#ga_disconnect").click(function() {
 		BigTreeDialog({
-			title: "Disconnect Google Analytics",
-			content: "<p>Are you sure you want to disconnect your Google Analytics account? <br/ >This will remove all analytics data and can not be undone.</p>",
+			title: "<?=Text::translate("Disconnect Google Analytics")?>",
+			content: "<p><?=Text::translate("Are you sure you want to disconnect your Google Analytics account?<br>This will remove all analytics data and can not be undone.")?></p>",
 			icon: "delete",
-			alternateSaveText: "Disconnect",
+			alternateSaveText: "<?=Text::translate("Disconnect")?>",
 			callback: function() {
 				window.location.href = "<?=MODULE_ROOT?>disconnect/";
 			}

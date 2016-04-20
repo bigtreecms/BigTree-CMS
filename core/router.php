@@ -302,7 +302,7 @@
 	// Check route registry if we're not previewing
 	if (!$navid) {
 		$registry_found = false;
-		foreach ($cms->RouteRegistry["public"] as $registration) {
+		foreach (Router::$Registry["public"] as $registration) {
 			if (!$registry_found) {
 				$registry_commands = Router::getRegistryCommands("/".implode("/",$bigtree["path"]),$registration["pattern"]);
 				if ($registry_commands !== false) {

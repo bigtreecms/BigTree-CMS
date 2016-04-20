@@ -8,7 +8,9 @@
 
 	use BigTree\FileSystem;
 	use BigTree\GoogleResultSet;
+	use BigTree\JSON;
 	use BigTree\OAuth;
+	use BigTree\SQL;
 	
 	class API extends OAuth {
 		

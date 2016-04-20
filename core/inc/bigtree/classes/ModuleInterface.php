@@ -104,7 +104,7 @@
 			array_unshift($parameters,"SELECT * FROM bigtree_module_interfaces $where ORDER BY $order");
 
 			// Get the arrays
-			$interfaces = call_user_func_array(array("SQL","fetchAll"),$parameters);
+			$interfaces = call_user_func_array(array("BigTree\\SQL","fetchAll"),$parameters);
 
 			// Turn into objects
 			if (!$return_arrays) {

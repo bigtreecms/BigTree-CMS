@@ -107,7 +107,7 @@
 		<nav class="jump_group">
 			<span class="icon"><?=Text::translate("Related")?></span>
 			<nav class="dropdown">
-				<strong><?=$bigtree["page"]["related"]["title"]?></strong>
+				<strong><?=Text::translate($bigtree["page"]["related"]["title"])?></strong>
 				<?php
 					foreach ($bigtree["page"]["related"]["nav"] as $item) {
 						if ($item["level"] <= $admin->Level) {
@@ -161,7 +161,7 @@
 						}
 					}
 		?>
-		<a href="<?=ADMIN_ROOT.$item["link"]?>/<?=htmlspecialchars(rtrim($get_string,"&"))?>"<?php if ($active_item == $item) { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=($item["nav_icon"] ? $item["nav_icon"] : $item["icon"])?>"></span><?=$item["title"]?></a>
+		<a href="<?=ADMIN_ROOT.$item["link"]?>/<?=htmlspecialchars(rtrim($get_string,"&"))?>"<?php if ($active_item == $item) { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=($item["nav_icon"] ? $item["nav_icon"] : $item["icon"])?>"></span><?=Text::translate($item["title"])?></a>
 		<?php
 				}
 			}

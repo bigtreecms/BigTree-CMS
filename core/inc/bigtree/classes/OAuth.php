@@ -46,7 +46,7 @@
 			$this->Setting = new Setting($setting_id,false,true);
 
 			// Emulate old functionality of $this->Settings by making it a reference to the setting value
-			$this->Settings &= $this->Setting->Value;
+			$this->Settings = &$this->Setting->Value;
 
 			// Make sure Settings is an array
 			$this->Settings = array_filter((array) $this->Settings);
@@ -354,8 +354,10 @@
 			$this->Settings["token"] = $response->access_token;
 			$this->Settings["refresh_token"] = $response->refresh_token;
 			$this->Settings["expires"] = $response->expires_in ? strtotime("+".$response->expires_in." seconds") : false;
+			$this->Setting->save();
 
 			$this->Connected = true;
+
 			return $response;
 		}
 	}

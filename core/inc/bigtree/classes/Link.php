@@ -6,6 +6,8 @@
 
 	namespace BigTree;
 
+	use DOMDocument;
+
 	class Link {
 
 		public static $IRLCache = array();

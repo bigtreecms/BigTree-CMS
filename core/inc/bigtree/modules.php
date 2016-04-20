@@ -5,6 +5,7 @@
 	*/
 
 	use BigTree\JSON;
+	use BigTree\SQL;
 	
 	class BigTreeModule {
 	

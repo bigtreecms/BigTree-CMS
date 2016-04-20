@@ -5,11 +5,11 @@
 <script>
 	BigTreeTable({
 		container: "#analytics_tab",
-		title: "Traffic sources",
+		title: "<?=Text::translate("Traffic sources")?>",
 		columns: {
-			name: { title: "Referrer" },
-			visits: { title: "Visits", size: 115, center: true },
-			views: { title: "Views", size: 115, center: true }
+			name: { title: "<?=Text::translate("Referrer")?>" },
+			visits: { title: "<?=Text::translate("Visits")?>", size: 115, center: true },
+			views: { title: "<?=Text::translate("Views")?>", size: 115, center: true }
 		},
 		data: <?=JSON::encodeColumns($cache["referrers"],array("name","visits","views"))?>,
 		searchable: true,

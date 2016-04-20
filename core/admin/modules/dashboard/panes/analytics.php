@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	// Get Google Analytics Traffic
 	if (file_exists(SERVER_ROOT."cache/analytics.json")) {
 		$ga_cache = json_decode(file_get_contents(SERVER_ROOT."cache/analytics.json"),true);
@@ -17,10 +19,10 @@
 ?>
 <div class="container">
 	<summary>
-		<a href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/analytics/" class="button">View Analytics</a>
+		<a href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/analytics/" class="button"><?=Text::translate("View Analytics")?></a>
 		<h2>
 			<span class="icon_medium_analytics"></span>
-			Recent Traffic <small>Visits In The Past Two Weeks</small>
+			<?=Text::translate("Recent Traffic")?> <small><?=Text::translate("Visits In The Past Two Weeks")?></small>
 		</h2>
 	</summary>
 	<section>
@@ -55,7 +57,7 @@
 		<?php
 			} else {
 		?>
-		<p>No recent traffic</p>
+		<p><?=Text::translate("No recent traffic")?></p>
 		<?php
 			}
 		?>

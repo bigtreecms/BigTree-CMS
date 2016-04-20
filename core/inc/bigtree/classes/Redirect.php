@@ -37,7 +37,7 @@
 				$this->Requests = $redirect["requests"];
 
 				$this->BrokenURL = $redirect["broken_url"];
-				$this->RedirectURL = BigTree\Link::decode($redirect["redirect_url"]);
+				$this->RedirectURL = Link::decode($redirect["redirect_url"]);
 				$this->Ignored = $redirect["ignored"] ? true : false;
 			}
 		}
@@ -189,15 +189,19 @@
 
 		function save() {
 			// Try to convert the short URL into a full one
-			$redirect_url = $this->RedirectURL;
-			if (strpos($redirect_url,"//") === false) {
-				$redirect_url = WWW_ROOT.ltrim($redirect_url,"/");
-			}
-			$redirect_url = htmlspecialchars(Link::encode($redirect_url));
+			if ($this->RedirectURL) {
+				$redirect_url = $this->RedirectURL;
+				if (strpos($redirect_url,"//") === false) {
+					$redirect_url = WWW_ROOT.ltrim($redirect_url,"/");
+				}
+				$redirect_url = htmlspecialchars(Link::encode($redirect_url));
 
-			// Don't use static roots if they're the same as www just in case they are different when moving environments
-			if (WWW_ROOT === STATIC_ROOT) {
-				$redirect_url = str_replace("{staticroot}","{wwwroot}",$redirect_url);
+				// Don't use static roots if they're the same as www just in case they are different when moving environments
+				if (WWW_ROOT === STATIC_ROOT) {
+					$redirect_url = str_replace("{staticroot}","{wwwroot}",$redirect_url);
+				}
+			} else {
+				$redirect_url = "";
 			}
 
 			SQL::update("bigtree_404s",$this->ID,array(

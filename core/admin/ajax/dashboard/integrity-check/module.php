@@ -2,10 +2,10 @@
 	namespace BigTree;
 	
 	// Get the form so we can walk through its fields
-	$form = BigTreeAutoModule::getForm($_GET["form"]);
+	$form = \BigTreeAutoModule::getForm($_GET["form"]);
 
 	// Create a generic module class to get the decoded item data
-	$m = new BigTreeModule;
+	$m = new \BigTreeModule;
 	$m->Table = $form["table"];
 	$item = $m->get($_GET["id"]);
 	
@@ -26,9 +26,9 @@
 ?>
 <li>
 	<section class="integrity_errors">
-		<a href="<?=ADMIN_ROOT.$module["route"]."/".$action["route"]."/".htmlspecialchars($_GET["id"])?>/" target="_blank">Edit</a>
+		<a href="<?=ADMIN_ROOT.$module["route"]."/".$action["route"]."/".htmlspecialchars($_GET["id"])?>/" target="_blank"><?=Text::translate("Edit")?></a>
 		<span class="icon_small icon_small_warning"></span>
-		<p>Broken <?=(($type == "img") ? "Image" : "Link")?>: <?=Text::htmlEncode($error)?> in field &ldquo;<?=$field?>&rdquo;</p>
+		<p><?=Text::translate("Broken")?> <?=Text::translate(($type == "img") ? "Image" : "Link")?>: <?=Text::htmlEncode($error)?> <?=Text::translate("in field")?> &ldquo;<?=$field?>&rdquo;</p>
 	</section>
 </li>
 <?php

@@ -1,5 +1,7 @@
 <?php
-	use BigTree\FileSystem;
+	namespace BigTree;
+
+	use BigTree;
 	
 	// Get pending changes awaiting this user's approval.
 	$changes = $admin->getPublishableChanges($admin->ID);
@@ -27,7 +29,7 @@
 ?>
 <div class="container">
 	<section>
-		<p>You have no changes awaiting your approval.</p>
+		<p><?=Text::translate("You have no changes awaiting your approval.")?></p>
 	</section>
 </div>
 <?php
@@ -40,18 +42,18 @@
 	<summary>
 		<h2 class="full">
 			<span class="pages"></span>
-			Pages
+			<?=Text::translate("Pages")?>
 		</h2>
 	</summary>
 	<header>
-		<span class="changes_author">Author</span>
-		<span class="changes_page">Page</span>
-		<span class="changes_type">Type</span>
-		<span class="changes_time">Updated</span>
-		<span class="changes_action">Preview</a></span>
-		<span class="changes_action">Edit</a></span>
-		<span class="changes_action">Approve</span>
-		<span class="changes_action">Deny</span>
+		<span class="changes_author"><?=Text::translate("Author")?></span>
+		<span class="changes_page"><?=Text::translate("Page")?></span>
+		<span class="changes_type"><?=Text::translate("Type")?></span>
+		<span class="changes_time"><?=Text::translate("Updated")?></span>
+		<span class="changes_action"><?=Text::translate("Preview")?></a></span>
+		<span class="changes_action"><?=Text::translate("Edit")?></a></span>
+		<span class="changes_action"><?=Text::translate("Approve")?></span>
+		<span class="changes_action"><?=Text::translate("Deny")?></span>
 	</header>
 	<ul>
 		<?php
@@ -72,7 +74,7 @@
 		<li>
 			<section class="changes_author"><?=$change["user"]["name"]?></section>
 			<section class="changes_page"><?=$page["nav_title"]?></section>
-			<section class="changes_type"><?php if (is_numeric($change["item_id"])) { ?>EDIT<?php } else { ?><span class="new">NEW</span><?php } ?></section>
+			<section class="changes_type"><?php if (is_numeric($change["item_id"])) { echo Text::translate("CHANGE"); } else {  ?><span class="new"><?=Text::translate("NEW")?></span><?php } ?></section>
 			<section class="changes_time"><?=BigTree::relativeTime($change["date"])?></section>
 			<section class="changes_action"><a href="<?=$preview_link?>" target="_preview" class="icon_preview"></a></section>
 			<section class="changes_action"><a href="<?=$edit_link?>" class="icon_edit"></a></section>
@@ -151,7 +153,7 @@
 	</section>
 	<?php } else { ?>
 	<header>
-		<span class="changes_author">Author</span>
+		<span class="changes_author"><?=Text::translate("Author")?></span>
 		<?php
 			if (is_array($view["fields"])) {
 				foreach ($view["fields"] as $field) {
@@ -163,13 +165,13 @@
 			
 			if ($view["preview_url"]) {
 		?>
-		<span class="changes_action">Preview</a></span>
+		<span class="changes_action"><?=Text::translate("Preview")?></a></span>
 		<?php
 			}
 		?>
-		<span class="changes_action">Edit</a></span>
-		<span class="changes_action">Approve</span>
-		<span class="changes_action">Deny</span>
+		<span class="changes_action"><?=Text::translate("Edit")?></a></span>
+		<span class="changes_action"><?=Text::translate("Approve")?></span>
+		<span class="changes_action"><?=Text::translate("Deny")?></span>
 	</header>
 	<ul>
 		<?php
@@ -228,14 +230,14 @@
 	$(".icon_approve").click(function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/approve-change/", { data: { id: $(this).attr("href").substr(1) }, type: "POST" });
 		$(this).parents("li").remove();
-		BigTree.growl($(this).attr("data-module"),"Approved Change");
+		BigTree.growl($(this).attr("data-module"),"<?=Text::translate("Approved Change")?>");
 		return false;
 	});
 	
 	$(".icon_deny").click(function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/reject-change/", { data: { id: $(this).attr("href").substr(1) }, type: "POST" });
 		$(this).parents("li").remove();
-		BigTree.growl($(this).attr("data-module"),"Rejected Change");
+		BigTree.growl($(this).attr("data-module"),"<?=Text::translate("Rejected Change")?>");
 		return false;
 	});
 </script>

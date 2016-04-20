@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	$messages = $admin->getMessages($admin->ID);	
 
 	// Going to be querying a lot of user names
@@ -56,17 +58,17 @@
 	// Unread Messages
 	BigTreeTable({
 		container: "#unread_messages_table",
-		title: "Unread Messages",
+		title: "<?=Text::translate("Unread Messages")?>",
 		icon: "unread",
-		noContentMessage: "You have no unread messages.",
+		noContentMessage: "<?=Text::translate("You have no unread messages.")?>",
 		perPage: 5,
 		searchable: true,
 		sortable: true,
 		columns: {
-			from: { title: "From", size: 0.4 },
-			subject: { title: "Subject", size: 0.6 },
-			date: { title: "Date", size: 80 },
-			time: { title: "Time", size: 80 }
+			from: { title: "<?=Text::translate("From")?>", size: 0.4 },
+			subject: { title: "<?=Text::translate("Subject")?>", size: 0.6 },
+			date: { title: "<?=Text::translate("Date")?>", size: 80 },
+			time: { title: "<?=Text::translate("Time")?>", size: 80 }
 		},
 		actions: {
 			view: "<?=ADMIN_ROOT?>dashboard/messages/view/{id}/"
@@ -77,17 +79,17 @@
 	// Read Messages
 	BigTreeTable({
 		container: "#read_messages_table",
-		title: "Read Messages",
+		title: "<?=Text::translate("Read Messages")?>",
 		icon: "read",
-		noContentMessage: "You have no read messages.",
+		noContentMessage: "<?=Text::translate("You have no read messages.")?>",
 		perPage: 5,
 		searchable: true,
 		sortable: true,
 		columns: {
-			from: { title: "From", size: 0.4 },
-			subject: { title: "Subject", size: 0.6 },
-			date: { title: "Date", size: 80 },
-			time: { title: "Time", size: 80 }
+			from: { title: "<?=Text::translate("From")?>", size: 0.4 },
+			subject: { title: "<?=Text::translate("Subject")?>", size: 0.6 },
+			date: { title: "<?=Text::translate("Date")?>", size: 80 },
+			time: { title: "<?=Text::translate("Time")?>", size: 80 }
 		},
 		actions: {
 			view: "<?=ADMIN_ROOT?>dashboard/messages/view/{id}/"
@@ -98,17 +100,17 @@
 	// Sent Messages
 	BigTreeTable({
 		container: "#sent_messages_table",
-		title: "Sent Messages",
+		title: "<?=Text::translate("Sent Messages")?>",
 		icon: "sent",
-		noContentMessage: "You have no sent messages.",
+		noContentMessage: "<?=Text::translate("You have no sent messages.")?>",
 		perPage: 5,
 		searchable: true,
 		sortable: true,
 		columns: {
-			to: { title: "To", size: 0.4 },
-			subject: { title: "Subject", size: 0.6 },
-			date: { title: "Date", size: 80 },
-			time: { title: "Time", size: 80 }
+			to: { title: "<?=Text::translate("To")?>", size: 0.4 },
+			subject: { title: "<?=Text::translate("Subject")?>", size: 0.6 },
+			date: { title: "<?=Text::translate("Date")?>", size: 80 },
+			time: { title: "<?=Text::translate("Time")?>", size: 80 }
 		},
 		actions: {
 			view: "<?=ADMIN_ROOT?>dashboard/messages/view/{id}/"

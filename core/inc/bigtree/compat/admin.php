@@ -3021,6 +3021,7 @@
 
 		function ignore404($id) {
 			$this->requireLevel(1);
+			
 			$redirect = new BigTree\Redirect($id);
 			$redirect->Ignored = true;
 			$redirect->save();

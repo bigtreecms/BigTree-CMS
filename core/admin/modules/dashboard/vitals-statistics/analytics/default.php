@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	$two_week_visits = $cache["two_week"];
 	$graph_min = min($two_week_visits);
 	$graph_max = max($two_week_visits) - $graph_min;
@@ -33,22 +35,22 @@
 		}
 		
 		$c_min = "";
-		$c_seconds = floor($current["average_time_seconds"])." second(s)";
+		$c_seconds = floor($current["average_time_seconds"])." ".Text::translate("second(s)");
 		$c_time = $current["average_time_seconds"];
 		if ($c_time > 60) {
 			$c_minutes = floor($c_time / 60);
-			$c_seconds = floor($c_time - ($c_minutes * 60))." second(s)";
-			$c_min = $c_minutes." minute(s)";
+			$c_seconds = floor($c_time - ($c_minutes * 60))." ".Text::translate("second(s)");
+			$c_min = $c_minutes." ".Text::translate("minute(s)");
 		}
 		$c_time = trim($c_min." ".$c_seconds);
 		
 		$p_min = "";
-		$p_seconds = floor($past["average_time_seconds"])." second(s)";
+		$p_seconds = floor($past["average_time_seconds"])." ".Text::translate("second(s)");
 		$p_time = $past["average_time_seconds"];
 		if ($p_time > 60) {
 			$p_minutes = floor($p_time / 60);
-			$p_seconds = floor($p_time - ($p_minutes * 60))." second(s)";
-			$p_min = $p_minutes." minute(s)";
+			$p_seconds = floor($p_time - ($p_minutes * 60))." ".Text::translate("second(s)");
+			$p_min = $p_minutes." ".Text::translate("minute(s)");
 		}
 		$p_time = trim($p_min." ".$p_seconds);
 		
@@ -95,41 +97,41 @@
 ?>
 <div class="set">
 	<div class="data">
-		<header><small>Growth</small>Views</header>
+		<header><small><?=Text::translate("Growth")?></small><?=Text::translate("Views")?></header>
 		<p class="percentage <?=$view_class?>"><?=$view_growth?></p>
-		<label>Present</label>
+		<label><?=Text::translate("Present")?></label>
 		<p class="value"><?=number_format($current["views"])?></p>
-		<label>Year-ago</label>
+		<label><?=Text::translate("Year-ago")?></label>
 		<p class="value"><?=number_format($past["views"])?></p>
 	</div>
 </div>
 <div class="set">
 	<div class="data">
-		<header><small>Growth</small>Visits</header>
+		<header><small><?=Text::translate("Growth")?></small><?=Text::translate("Visits")?></header>
 		<p class="percentage <?=$visit_class?>"><?=$visits_growth?></p>
-		<label>Present</label>
+		<label><?=Text::translate("Present")?></label>
 		<p class="value"><?=number_format($current["visits"])?></p>
-		<label>Year-ago</label>
+		<label><?=Text::translate("Year-ago")?></label>
 		<p class="value"><?=number_format($past["visits"])?></p>
 	</div>
 </div>
 <div class="set">
 	<div class="data">
-		<header><small>Growth</small>Average Time on Site</header>
+		<header><small><?=Text::translate("Growth")?></small><?=Text::translate("Average Time on Site")?></header>
 		<p class="percentage <?=$time_class?>"><?=$time_growth?></p>
-		<label>Present</label>
+		<label><?=Text::translate("Present")?></label>
 		<p class="value"><?=$c_time?></p>
-		<label>Year-ago</label>
+		<label><?=Text::translate("Year-ago")?></label>
 		<p class="value"><?=$p_time?></p>
 	</div>
 </div>
 <div class="set">
 	<div class="data">
-		<header><small>Growth</small>Bounce Rate</header>
+		<header><small><?=Text::translate("Growth")?></small><?=Text::translate("Bounce Rate")?></header>
 		<p class="percentage <?=$bounce_class?>"><?=$bounce_growth?></p>
-		<label>Present</label>
+		<label><?=Text::translate("Present")?></label>
 		<p class="value"><?=number_format($current["bounce_rate"],2)?>%</p>
-		<label>Year-ago</label>
+		<label><?=Text::translate("Year-ago")?></label>
 		<p class="value"><?=number_format($past["bounce_rate"],2)?>%</p>
 	</div>
 </div>
@@ -138,7 +140,7 @@
 ?>
 <div class="container">
 	<summary>
-		<h2>Two Week Heads-Up <small>(visits)</small></h2>
+		<h2><?=Text::translate("Two Week Heads-Up")?> <small><?=Text::translate("Visits")?></small></h2>
 	</summary>
 	<section>
 		<div class="graph">
@@ -172,15 +174,15 @@
 
 <section class="analytics_columns">
 	<article>
-		<summary>Current Month <small>(<?=date("n/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
+		<summary><?=Text::translate("Current Month")?> <small>(<?=date("n/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
 		<?php $compare_data($cache["month"],$cache["year_ago_month"]); ?>
 	</article>
 	<article>
-		<summary>Current Quarter <small>(<?=date("$current_quarter_month/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
+		<summary><?=Text::translate("Current Quarter")?> <small>(<?=date("$current_quarter_month/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
 		<?php $compare_data($cache["quarter"],$cache["year_ago_quarter"]); ?>
 	</article>
 	<article class="last">
-		<summary>Current Year <small>(<?=date("1/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
+		<summary><?=Text::translate("Current Year")?> <small>(<?=date("1/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
 		<?php $compare_data($cache["year"],$cache["year_ago_year"]); ?>
 	</article>
 </section>

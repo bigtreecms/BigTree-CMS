@@ -543,7 +543,6 @@
 
 /* Table Styles */
 	div.table { border: 1px solid #ccc; border-radius: 2px; margin: 0 0 20px 0; }
-	div.table:last-child { margin: 0; }
 	div.table:after { clear: both; content: ""; display: table; }
 	.table ul { list-style: none; margin: 0; }
 	.table > summary, .container summary { background: #eee; border-bottom: 1px solid #ccc; border-radius: 2px 2px 0 0; height: 37px; line-height: 37px; padding: 0 6px 0 15px; }
@@ -671,7 +670,7 @@
 	/* Site Integrity Check */
 	.table .integrity_errors { padding: 0 0 0 20px; text-align: left; width: 958px; }
 	.table .integrity_errors span { margin: 8px 8px 0 0; }
-	.table .integrity_errors a { background: #EEE; border-left: 1px solid #DDD; float: right; height: 35px; margin: 0 20px 0 0; padding: 0px 30px; }
+	.table .integrity_errors a { background: #EEE; border-left: 1px solid #DDD; float: right; height: 35px; margin: 0 20px 0 0; overflow: hidden; text-align: center; text-overflow: ellipsis; white-space: nowrap; width: 80px; }
 	.table .integrity_errors a:hover { background: #F3F3F3; }
 	.table .integrity_errors p { height: 35px; line-height: 35px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 830px; }
 	.table .integrity_progress { float: right; font-size: 12px !important; height: 37px; line-height: 35px; }

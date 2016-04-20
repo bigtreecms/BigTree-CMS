@@ -1,6 +1,9 @@
+<?php
+	namespace BigTree;
+?>
 <div class="container">
 	<section>
-		<p><img src="<?=ADMIN_ROOT?>images/spinner.gif" alt="" /> &nbsp; Please wait while we retrieve your Google Analytics information.</p>
+		<p><img src="<?=ADMIN_ROOT?>images/spinner.gif" alt="" /> &nbsp; <?=Text::translate("Please wait while we retrieve your Google Analytics information.")?></p>
 	</section>
 </div>
 <script>
@@ -8,8 +11,8 @@
 		if (response) {
 			document.location.href = "<?=MODULE_ROOT?>";
 		} else {
-			BigTree.growl("Analytics","Caching Failed",5000,"error");
-			$(".container section p").html('Caching failed. Please return to the configuration screen by <a href="../configure/">clicking here</a>.');
+			BigTree.growl("Analytics","<?=Text::translate("Caching Failed")?>",5000,"error");
+			$(".container section p").html('<?=Text::translate("Caching failed. Please return to the configuration screen by <a href=\"../configure/\">clicking here</a>.")?>');
 		}
 	}});
 </script>

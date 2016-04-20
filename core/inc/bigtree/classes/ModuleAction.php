@@ -17,7 +17,7 @@
 		public $InNav;
 		public $Interface;
 		public $Level;
-		public $ModuleID;
+		public $Module;
 		public $Name;
 		public $Position;
 		public $Route;
@@ -47,7 +47,7 @@
 				$this->InNav = $action["in_nav"] ? true : false;
 				$this->Interface = $action["interface"] ?: false;
 				$this->Level = $action["level"];
-				$this->ModuleID = $action["module"];
+				$this->Module = $action["module"];
 				$this->Name = $action["name"];
 				$this->Position = $action["position"];
 				$this->Route = $this->OriginalRoute = $action["route"];

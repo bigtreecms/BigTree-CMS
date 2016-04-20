@@ -85,7 +85,7 @@
 		*/
 
 		static function translate($string) {
-			return isset(static::$Language[$string]) ? static::$Language[$string] : $string;
+			return "*".(isset(static::$Language[$string]) ? static::$Language[$string] : $string)."*";
 		}
 
 		/*

@@ -1,17 +1,20 @@
 <?php
+	namespace BigTree;
+
 	$external = ($_GET["external"] == "true") ? true : false;
 	$admin->requireLevel(1);
 	$pages = $admin->getPageIds();
 	$modules = $admin->getModuleForms();
+
 	// Get the ids of items that are in each module.
 	foreach ($modules as &$m) {
 		$action = $admin->getModuleActionForInterface($m);
 		$module = $admin->getModule($action["module"]);
 		if ($module["group"]) {
 			$group = $admin->getModuleGroup($module["group"]);
-			$m["module_name"] = "Modules&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$group["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$m["title"];
+			$m["module_name"] = Text::translate("Modules")."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$group["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$m["title"];
 		} else {
-			$m["module_name"] = "Modules&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$m["title"];
+			$m["module_name"] = Text::translate("Modules")."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$m["title"];
 		}
 
 	    $m["items"] = SQL::fetchAllSingle("SELECT id FROM `".$m["table"]."`");
@@ -19,12 +22,12 @@
 ?>
 <div class="table">
 	<summary>
-		<p>Running site integrity check with external link checking <?php if ($external) { ?>enabled<?php } else { ?>disabled<?php } ?>.</p>
+		<p><?=Text::translate("Running site integrity check with external link checking")?> <?=Text::translate($external ? "enabled" : "disabled")?>.</p>
 	</summary>
 	<header>
-		<span class="integrity_errors">Errors</span>
+		<span class="integrity_errors"><?=Text::translate("Errors")?></span>
 	</header>
-	<header class="group"><span class="integrity_progress" id="pages_progress">0%</span>Pages</header>
+	<header class="group"><span class="integrity_progress" id="pages_progress">0%</span><?=Text::translate("Pages")?></header>
 	<ul id="pages_updates"></ul>
 	<?php foreach ($modules as $module) { ?>
 	<header class="group"><span class="integrity_progress" id="module_<?=$module["id"]?>_progress">0%</span><?=$module["module_name"]?></header>
@@ -54,7 +57,7 @@
 				} else {
 					$("#pages_progress").addClass("complete");
 					if (!$("#pages_updates").html()) {
-						$("#pages_updates").append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span>No errors found in Pages.</section></li>'));
+						$("#pages_updates").append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span><?=Text::translate("No errors found in Pages.")?></section></li>'));
 					}
 					BigTree.localDownloadModule(0);
 				}
@@ -73,7 +76,7 @@
 			BigTree.localDownloadItem(0);
 		} else {
 			$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_progress").html("100%").addClass("complete");
-			$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span> No errors found in ' + BigTree.localModuleList[BigTree.localCurrentModule].module_name + '.</section></li>'));
+			$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span> <?=Text::translate("No errors found in")?> ' + BigTree.localModuleList[BigTree.localCurrentModule].module_name + '.</section></li>'));
 			BigTree.localDownloadModule(BigTree.localCurrentModule + 1);
 		}
 	};
@@ -91,7 +94,7 @@
 				} else {
 					$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_progress").addClass("complete");
 					if (!$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").html()) {
-						$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span> No errors found in ' + BigTree.localModuleList[BigTree.localCurrentModule].module_name + '.</section></li>'));
+						$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span> <?=Text::translate("No errors found in")?> ' + BigTree.localModuleList[BigTree.localCurrentModule].module_name + '.</section></li>'));
 					}
 					if (BigTree.localCurrentModule + 1 < BigTree.localTotalModules) {
 						BigTree.localDownloadModule(BigTree.localCurrentModule + 1);
