@@ -14,7 +14,7 @@
 ?>
 <div class="callout_type">
 	<fieldset>
-		<label>Callout Type</label>
+		<label><?=Text::translate("Callout Type")?></label>
 		<?php if (count($items) > 0) { ?>
 		<select name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][type]">
 			<?php foreach ($items as $item) { ?>
@@ -22,12 +22,18 @@
 			<?php } ?>
 		</select>
 		<?php } else { ?>
-		<input type="text" disabled="disabled" value="No callouts available" />
+		<input type="text" disabled="disabled" value="" />
 		<?php } ?>
 	</fieldset>
 </div>
 <div class="callout_fields">
-	<?php include Router::getIncludePath("admin/ajax/callouts/resources.php") ?>
+	<?php 
+		if (count($items) > 0) {
+			include Router::getIncludePath("admin/ajax/callouts/resources.php");
+		} else {
+			echo '<p class="error_message">'.Text::translate("No callouts available.").'</p>';
+		}
+	?>
 </div>
 
 <script>

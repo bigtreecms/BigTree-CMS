@@ -43,11 +43,11 @@
 	// Show an alert for being on the development site of a live site, in maintenance mode, or in developer mode
 	$environment_alert = false;
 	if (!empty($bigtree["config"]["maintenance_url"])) {
-		$environment_alert = '<span><strong>Maintenance Mode</strong> &middot; Entire Site Restricted To Developers</span>';
+		$environment_alert = '<span><strong>'.Text::translate("Maintenance Mode").'</strong> &middot; '.Text::translate("Entire Site Restricted To Developers").'</span>';
 	} elseif (!empty($bigtree["config"]["developer_mode"])) {
-		$environment_alert = '<span><strong>Developer Mode</strong> &middot; Admin Area Restricted To Developers</span>';
+		$environment_alert = '<span><strong>'.Text::translate("Developer Mode").'</strong> &middot; '.Text::translate("Admin Area Restricted To Developers").'</span>';
 	} elseif ($bigtree["config"]["environment"] == "dev" && $bigtree["config"]["environment_live_url"]) {
-		$environment_alert = '<span><strong>Development Site</strong> &middot; Changes Will Not Affect Live Site!</span><a href="'.$bigtree["config"]["environment_live_url"].'">Go Live</a>';
+		$environment_alert = '<span><strong>'.Text::translate("Development Site").'</strong> &middot; '.Text::translate("Changes Will Not Affect Live Site!").'</span><a href="'.$bigtree["config"]["environment_live_url"].'">'.Text::translate("Go Live").'</a>';
 	}
 ?>
 <!doctype html> 
@@ -59,7 +59,7 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="robots" content="noindex,nofollow" />
-		<title><?php if (isset($bigtree["admin_title"])) { ?><?=Text::htmlEncode($bigtree["admin_title"])?> | <?php } ?><?=$site["nav_title"]?> Admin</title>
+		<title><?php if (isset($bigtree["admin_title"])) { ?><?=Text::htmlEncode($bigtree["admin_title"])?> | <?php } ?><?=$site["nav_title"]?> <?=Text::translate("Admin")?></title>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.less" type="text/css" media="screen" />
 		<?php
 			// Configuration based CSS
@@ -144,13 +144,13 @@
 		</script>
 		<header class="main">
 			<section>
-				<a href="<?php if ($bigtree["config"]["force_secure_login"]) { echo str_replace("http://","https://",ADMIN_ROOT); } else { echo ADMIN_ROOT; } ?>login/logout/" class="logout"><span></span>Logout</a>
+				<a href="<?php if ($bigtree["config"]["force_secure_login"]) { echo str_replace("http://","https://",ADMIN_ROOT); } else { echo ADMIN_ROOT; } ?>login/logout/" class="logout"><span></span><?=Text::translate("Logout")?></a>
 				<div></div>
-				<p class="messages"><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_messages?> Unread Messages</a></p>
+				<p class="messages"><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_messages?> <?=Text::translate("Unread")?> <?=Text::translate($unread_messages == 1 ? "Message" : "Messages")?></a></p>
 				<div></div>
-				<p class="welcome"><span class="gravatar"><img src="<?=BigTree::gravatar($admin->User, 28)?>" alt="" /></span>Welcome Back <a href="<?=ADMIN_ROOT?>users/profile/"><?=$admin->Name?></a></p>
+				<p class="welcome"><span class="gravatar"><img src="<?=BigTree::gravatar($admin->User, 28)?>" alt="" /></span><?=Text::translate("Welcome Back")?> <a href="<?=ADMIN_ROOT?>users/profile/"><?=$admin->Name?></a></p>
 				<strong><?=$site["nav_title"]?></strong>
-				<a href="<?=WWW_ROOT?>" target="_blank" class="view_site">View Site</a>
+				<a href="<?=WWW_ROOT?>" target="_blank" class="view_site"><?=Text::translate("View Site")?></a>
 			</section>
 		</header>
 		<nav class="main">
@@ -166,7 +166,7 @@
 								$path_pieces = array_slice($bigtree["path"],1,count($link_pieces));
 					?>
 					<li>
-						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<?php if ($link_pieces == $path_pieces || ($item["link"] == "modules" && isset($bigtree["module"]))) { $bigtree["active_nav_item"] = $x; ?> class="active"<?php } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
+						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<?php if ($link_pieces == $path_pieces || ($item["link"] == "modules" && isset($bigtree["module"]))) { $bigtree["active_nav_item"] = $x; ?> class="active"<?php } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=Text::translate($item["title"])?></a>
 						<?php if (isset($item["children"]) && count($item["children"])) { ?>
 						<ul>
 							<?php
@@ -174,16 +174,16 @@
 									if ($admin->Level >= $child["access"]) {
 										if (isset($child["group"]) && count($child["children"])) {
 							?>
-							<li class="grouper"><?=$child["title"]?></li>
+							<li class="grouper"><?=Text::translate($child["title"])?></li>
 							<?php 
 											foreach ($child["children"] as $c) {
 							?>
-							<li><a href="<?=ADMIN_ROOT?><?=$c["link"]?>/"><?=$c["title"]?></a></li>
+							<li><a href="<?=ADMIN_ROOT?><?=$c["link"]?>/"><?=Text::translate($c["title"])?></a></li>
 							<?php
 											}
 										} elseif (!isset($child["group"])) {
 							?>
-							<li><a href="<?=ADMIN_ROOT?><?=$item["link"]?>/<?=$child["link"]?>/"><?=$child["title"]?></a></li>
+							<li><a href="<?=ADMIN_ROOT?><?=$item["link"]?>/<?=$child["link"]?>/"><?=Text::translate($child["title"])?></a></li>
 							<?php
 										}
 									}
@@ -198,8 +198,8 @@
 					?>
 				</ul>
 				<form method="get" action="<?=ADMIN_ROOT?>search/">
-					<input type="submit" class="qs_image" alt="Search" />
-					<input type="search" name="query" autocomplete="off" placeholder="Quick Search" class="qs_query" />
+					<input type="submit" class="qs_image" alt="<?=Text::translate("Search")?>" />
+					<input type="search" name="query" autocomplete="off" placeholder="<?=Text::translate("Quick Search")?>" class="qs_query" />
 					<div id="quick_search_results" style="display: none;"></div>
 				</form>
 			</section>

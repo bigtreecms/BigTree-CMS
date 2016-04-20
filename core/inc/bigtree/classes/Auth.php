@@ -83,14 +83,15 @@
 								"chain" => $chain,
 								"email" => $this->User
 							));
-							Cookie::set($this->Namespace."[login]",json_encode(array($session,$chain)),"+1 month");
+
+							Cookie::create($this->Namespace."[login]",json_encode(array($session,$chain)),"+1 month");
 						}
 
 					// Chain is legit and session isn't -- someone has taken your cookies
 					} else {
 						// Delete existing cookies
-						Cookie::set($this->Namespace."[login]","",time() - 3600);
-						Cookie::set($this->Namespace."[email]","",time() - 3600);
+						Cookie::create($this->Namespace."[login]","",time() - 3600);
+						Cookie::create($this->Namespace."[email]","",time() - 3600);
 						
 						// Delete all sessions for this user
 						SQL::delete("bigtree_user_sessions",array("email" => $_COOKIE[$this->Namespace]["email"]));
@@ -207,9 +208,9 @@
 				));
 
 				// We still set the email for BigTree bar usage even if they're not being "remembered"
-				setcookie($this->Namespace."[email]",$user->Email,strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
+				Cookie::create($this->Namespace."[email]",$user->Email,"+1 month");
 				if ($stay_logged_in) {
-					setcookie($this->Namespace."[login]",json_encode(array($session,$chain)),strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
+					Cookie::create($this->Namespace."[login]",json_encode(array($session,$chain)),"+1 month");
 				}
 
 				$_SESSION[$this->Namespace]["id"] = $user->ID;
@@ -287,8 +288,9 @@
 		*/
 
 		function logout() {
-			setcookie($this->Namespace."[email]","",time() - 3600,str_replace(DOMAIN,"",WWW_ROOT));
-			setcookie($this->Namespace."[login]","",time() - 3600,str_replace(DOMAIN,"",WWW_ROOT));
+			Cookie::delete($this->Namespace."[email]");
+			Cookie::delete($this->Namespace."[login]");
+			
 			unset($_COOKIE[$this->Namespace]);
 			unset($_SESSION[$this->Namespace]);
 		}

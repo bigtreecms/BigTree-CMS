@@ -8,6 +8,8 @@
 
 	class Text {
 
+		static $Language = array();
+
 		/*
 			Function: getRandomString
 				Returns a random string.
@@ -60,6 +62,30 @@
 
 		static function htmlEncode($string) {
 			return htmlspecialchars(html_entity_decode($string, ENT_COMPAT, "UTF-8"));
+		}
+
+		/*
+			Function: setLanguage
+				Sets the language pack for drawing text strings via the Text::draw method.
+
+			Parameters:
+				An array of key/value pairs of the english text and the translation.
+		*/
+
+		static function setLanguage($language) {
+			static::$Language = $language;
+		}
+
+		/*
+			Function: translate
+				Returns a translated string if a translation text is found in the Text::$Language array or the passed in string if no match is found.
+
+			Parameters:
+				string - A text string.
+		*/
+
+		static function translate($string) {
+			return isset(static::$Language[$string]) ? static::$Language[$string] : $string;
 		}
 
 		/*

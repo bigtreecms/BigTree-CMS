@@ -1,5 +1,7 @@
 <?php
 	namespace BigTree;
+
+	use BigTree;
 	
 	$find_path = function($nav,$path,$last_link = "") use (&$find_path) {
 		static $page = array("navigation" => array(), "related" => array());
@@ -85,7 +87,7 @@
 				$x++;
 				
 		?>
-		<a href="<?=ADMIN_ROOT.$item["link"]?>/" class="<?php if ($x == 1) { ?> first<?php } if ($x == count($bigtree["breadcrumb"])) { ?> last<?php } ?>"><?=Text::htmlEncode($item["title"])?></a>
+		<a href="<?=ADMIN_ROOT.$item["link"]?>/" class="<?php if ($x == 1) { ?> first<?php } if ($x == count($bigtree["breadcrumb"])) { ?> last<?php } ?>"><?=Text::htmlEncode(Text::translate($item["title"]))?></a>
 		<?php
 				if ($x != count($bigtree["breadcrumb"])) {
 		?>
@@ -103,14 +105,14 @@
 			if (isset($bigtree["page"]["related"]["nav"])) {
 		?>
 		<nav class="jump_group">
-			<span class="icon">Related</span>
+			<span class="icon"><?=Text::translate("Related")?></span>
 			<nav class="dropdown">
 				<strong><?=$bigtree["page"]["related"]["title"]?></strong>
 				<?php
 					foreach ($bigtree["page"]["related"]["nav"] as $item) {
 						if ($item["level"] <= $admin->Level) {
 				?>
-				<a href="<?=ADMIN_ROOT.$item["link"]?>/"><?=$item["title"]?></a>
+				<a href="<?=ADMIN_ROOT.$item["link"]?>/"><?=Text::translate($item["title"])?></a>
 				<?php
 						}
 					}
