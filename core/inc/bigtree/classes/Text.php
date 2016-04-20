@@ -82,10 +82,13 @@
 
 			Parameters:
 				string - A text string.
+				html_encode - Whether to return an encoded string (safer for things inside an attribute, defaults to false)
 		*/
 
-		static function translate($string) {
-			return "*".(isset(static::$Language[$string]) ? static::$Language[$string] : $string)."*";
+		static function translate($string,$html_encode = false) {
+			$string = "*".(isset(static::$Language[$string]) ? static::$Language[$string] : $string)."*";
+
+			return $html_encode ? static::htmlEncode($string) : $string;
 		}
 
 		/*

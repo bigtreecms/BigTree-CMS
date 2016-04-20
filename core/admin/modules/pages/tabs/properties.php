@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$ages = array(
 		"0" => "No Limit",
 		"15" => "15 Days",
@@ -40,40 +42,40 @@
 	if ($bigtree["form_action"] == "create" && $_SESSION["bigtree_admin"]["post_max_hit"]) {
 		unset($_SESSION["bigtree_admin"]["post_max_hit"]);
 ?>
-<p class="warning_message">The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.</p>
+<p class="warning_message"><?=Text::translate("The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.")?></p>
 <?php
 	}
 ?>
-<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
+<p class="error_message" style="display: none;"><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 
 <div class="left">
 	<fieldset>
-		<label class="required">Navigation Title</label>
+		<label class="required"><?=Text::translate("Navigation Title")?></label>
 		<input type="text" name="nav_title" id="nav_title" value="<?=$bigtree["current_page"]["nav_title"]?>" tabindex="1" class="required" />
 	</fieldset>
 </div>
 <div class="right">
 	<fieldset>
-		<label class="required">Page Title <small>(web browsers use this for their title bar)</small></label>
+		<label class="required"><?=Text::translate("Page Title")?> <small>(<?=Text::translate("web browsers use this for their title bar")?>)</small></label>
 		<input type="text" name="title" id="page_title" tabindex="2" value="<?=$bigtree["current_page"]["title"]?>" class="required" />
 	</fieldset>
 </div>
 <div class="contain">
 	<div class="left date_pickers">
 		<fieldset class="last">
-			<label>Publish Date <small>(blank = immediately)</small></label>
+			<label><?=Text::translate("Publish Date")?> <small>(<?=Text::translate("blank = immediately")?>)</small></label>
 			<input type="text" class="date_picker" id="publish_at" name="publish_at" tabindex="3" value="<?php if ($bigtree["current_page"]["publish_at"]) { echo date("Y-m-d",strtotime($bigtree["current_page"]["publish_at"])); } ?>" />
 			<span class="icon_small icon_small_calendar date_picker_icon"></span>
 		</fieldset>
 		<fieldset class="right last">
-			<label>Expiration Date <small>(blank = never)</small></label>
+			<label><?=Text::translate("Expiration Date")?> <small>(<?=Text::translate("blank = never")?>)</small></label>
 			<input type="text" class="date_picker" id="expire_at" name="expire_at" tabindex="4" value="<?php if ($bigtree["current_page"]["expire_at"]) { echo date("Y-m-d",strtotime($bigtree["current_page"]["expire_at"])); } ?>" />
 			<span class="icon_small icon_small_calendar date_picker_icon"></span>
 		</fieldset>
 	</div>
 	<div class="right">
 		<fieldset class="last">
-			<label>Content Max Age <small>(before alerts)</small></label>
+			<label><?=Text::translate("Content Max Age")?> <small>(<?=Text::translate("before alerts")?>)</small></label>
 			<select name="max_age" tabindex="5">
 				<?php foreach ($ages as $v => $age) { ?>
 				<option value="<?=$v?>"<?php if ($v == $bigtree["current_page"]["max_age"]) { ?> selected="selected"<?php } ?>><?=$age?></option>
@@ -86,10 +88,10 @@
 	<fieldset class="float_margin">
 		<?php if ($parent_to_check > 0 || $admin->Level > 1) { ?>
 		<input type="checkbox" name="in_nav" <?php if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <?php } ?>class="checkbox" tabindex="7" />
-		<label class="for_checkbox">Visible In Navigation</label>
+		<label class="for_checkbox"><?=Text::translate("Visible In Navigation")?></label>
 		<?php } else { ?>
 		<input type="checkbox" name="in_nav" <?php if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <?php } ?>disabled="disabled" class="checkbox" tabindex="7" />
-		<label class="for_checkbox">Visible In Navigation <small>(only developers can change the visibility of top level navigation)</small></label>
+		<label class="for_checkbox"><?=Text::translate("Visible In Navigation")?> <small>(<?=Text::translate("only developers can change the visibility of top level navigation")?>)</small></label>
 		<?php } ?>
 	</fieldset>
 	<?php
@@ -97,7 +99,7 @@
 	?>
 	<fieldset class="float_margin">
 		<input type="checkbox" name="redirect_lower" id="redirect_lower"<?php if ($bigtree["current_page"]["template"] == "!") { ?> checked="checked"<?php } ?> />
-		<label class="for_checkbox">Redirect Lower</label>
+		<label class="for_checkbox"><?=Text::translate("Redirect Lower")?></label>
 	</fieldset>
 	<?php
 		}
@@ -105,7 +107,7 @@
 	?>
 	<fieldset class="float_margin">
 		<input type="checkbox" name="trunk" <?php if ($bigtree["current_page"]["trunk"]) { ?>checked="checked" <?php } ?> tabindex="6" />
-		<label class="for_checkbox">Trunk</label>
+		<label class="for_checkbox"><?=Text::translate("Trunk")?></label>
 	</fieldset>
 	<?php
 		}
@@ -117,14 +119,14 @@
 <hr />
 <div class="contain">
 	<fieldset class="template last">
-		<label>Template</label>
+		<label><?=Text::translate("Template")?></label>
 		<select id="template_select" name="template"<?php if ($bigtree["current_page"]["template"] == "!" || $bigtree["current_page"]["external"]) { ?> disabled="disabled"<?php } ?>>
-			<optgroup label="Flexible Templates">
+			<optgroup label="<?=Text::translate("Flexible Templates", true)?>">
 				<?php foreach ($basic_templates as $t) { ?>
 				<option value="<?=$t["id"]?>"<?php if ($t["id"] == $bigtree["current_page"]["template"]) { ?> selected="selected"<?php } ?>><?=$t["name"]?></option>
 				<?php } ?>
 			</optgroup>
-			<optgroup label="Special Templates">
+			<optgroup label="<?=Text::translate("Special Templates", true)?>">
 				<?php foreach ($routed_templates as $t) { ?>
 				<option value="<?=$t["id"]?>"<?php if ($t["id"] == $bigtree["current_page"]["template"]) { ?> selected="selected"<?php } ?>><?=$t["name"]?></option>
 				<?php } ?>
@@ -133,12 +135,12 @@
 	</fieldset>
 	<?php if ($bigtree["current_page"]["id"]) { ?>
 	<fieldset class="external last">
-		<label>External Link <small>(include http://, overrides template)</small></label>
+		<label><?=Text::translate("External Link")?> <small>(<?=Text::translate("include http://, overrides template")?>)</small></label>
 		<input id="external_link" type="text" name="external" value="<?=$bigtree["current_page"]["external"]?>" id="external_link"<?php if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<?php } ?> />
 	</fieldset>
 	<fieldset class="checkbox_bump last">
 		<input id="new_window" type="checkbox" name="new_window"<?php if ($bigtree["current_page"]["new_window"]) { ?> checked="checked"<?php } ?><?php if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<?php } ?> />
-		<label class="for_checkbox">Open in New Window</label>
+		<label class="for_checkbox"><?=Text::translate("Open in New Window")?></label>
 	</fieldset>
 	<?php } ?>
 </div>

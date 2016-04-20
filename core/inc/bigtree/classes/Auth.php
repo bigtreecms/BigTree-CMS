@@ -333,7 +333,7 @@
 			if ($file) {
 				include $file;
 			} else {
-				echo $message;
+				echo Text::translate($message);
 			}
 
 			$bigtree["content"] = ob_get_clean();

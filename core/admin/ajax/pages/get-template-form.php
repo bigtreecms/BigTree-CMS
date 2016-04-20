@@ -16,18 +16,28 @@
 	$bigtree["template"] = $cms->getTemplate($template_id);
 ?>
 <div class="alert template_message">
-	<label>Template:</label>
-	<p><?php if ($template_id == "") { ?>External Link<?php } elseif ($template_id == "!") { ?>Redirect Lower<?php } else { ?><?=$bigtree["template"]["name"]?><?php } ?></p>
+	<label><?=Text::translate("Template")?>:</label>
+	<p>
+		<?php
+			if ($template_id == "") {
+				echo Text::translate("External Link");
+			} elseif ($template_id == "!") {
+				echo Text::translate("Redirect Lower"); 
+			} else { 
+				echo $bigtree["template"]["name"]; 
+			}
+		?>
+	</p>
 </div>
 <?php
 	if ($_SESSION["bigtree_admin"]["post_max_hit"]) {
 		unset($_SESSION["bigtree_admin"]["post_max_hit"]);
 ?>
-<p class="warning_message">The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.</p>
+<p class="warning_message"><?=Text::translate("The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.")?></p>
 <?php
 	}
 ?>
-<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
+<p class="error_message" style="display: none;"><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 <div class="form_fields">
 	<?php
 		$bigtree["html_fields"] = array();
@@ -55,7 +65,7 @@
 				$field->draw();
 			}
 		} else {
-			echo '<p>There are no resources for the selected template.</p>';
+			echo '<p>'.Text::translate("There are no resources for the selected template.").'</p>';
 		}
 	?>
 </div>

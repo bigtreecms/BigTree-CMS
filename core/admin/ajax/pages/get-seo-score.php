@@ -6,20 +6,20 @@
 	$seo_recommendations = $seo["recommendations"];
 	$seo_color = $seo["color"];
 	
-	$goal_text = "<strong>SEO Goals</strong>";
+	$goal_text = "<strong>".Text::translate("SEO Goals")."</strong>";
 	if (count($seo_recommendations)) {
 		$goal_text .= "<ul>";
 		foreach ($seo_recommendations as $rec) {
-			$goal_text .= "<li>".htmlspecialchars($rec)."</li>";
+			$goal_text .= "<li>".Text::translate($rec, true)."</li>";
 		}
 		$goal_text .= "</ul>";
 	} else {
-		$goal_text .= "<p>You currently meet all recommended SEO goals.</p>";
+		$goal_text .= "<p>".Text::translate("You currently meet all recommended SEO goals.")."</p>";
 	}
-	$goal_text .= '<p><a href="'.$wiki.'SEO" target="wiki">Learn More About SEO Goals</a></p>';
+	
+	echo $goal_text;
 ?>
-<?=$goal_text?>
 <script>
-	$("li.seo_info p").html('<strong style="color: <?=$seo_color?>"><?=$seo_rating?>%</strong> SEO Rating');
+	$("li.seo_info p").html('<strong style="color: <?=$seo_color?>"><?=$seo_rating?>%</strong> <?=Text::translate("SEO Rating")?>');
 	$(".seo_goals").html("<?=str_replace('"','\"',$goal_text)?>");
 </script>

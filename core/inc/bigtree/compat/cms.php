@@ -444,6 +444,11 @@
 				}
 			}
 
+			// Remove ChangesApplied if it's not true
+			if (!$pageObject->ChangesApplied) {
+				unset($page["changes_applied"]);
+			}
+
 			return $page;
 		}
 		

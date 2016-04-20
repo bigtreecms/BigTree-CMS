@@ -31,13 +31,13 @@
 		$draft_author = $admin->getUser($draft["user"]);
 ?>
 <div class="table">
-	<summary><h2><span class="icon_medium_pages"></span>Current Draft</h2></summary>
+	<summary><h2><span class="icon_medium_pages"></span><?=Text::translate("Current Draft")?></h2></summary>
 	<header>
-		<span class="pages_last_edited">Last Edited</span>
-		<span class="pages_draft_author">Draft Author</span>
-		<span class="pages_publish">Publish</span>
-		<span class="pages_edit">Edit</span>
-		<span class="pages_delete">Delete</span>
+		<span class="pages_last_edited"><?=Text::translate("Last Edited")?></span>
+		<span class="pages_draft_author"><?=Text::translate("Draft Author")?></span>
+		<span class="pages_publish"><?=Text::translate("Publish")?></span>
+		<span class="pages_edit"><?=Text::translate("Edit")?></span>
+		<span class="pages_delete"><?=Text::translate("Delete")?></span>
 	</header>
 	<ul>
 		<li>
@@ -54,13 +54,13 @@
 	}
 ?>
 <div class="table">
-	<summary><h2><span class="icon_medium_published"></span>Published Revisions</h2></summary>
+	<summary><h2><span class="icon_medium_published"></span><?=Text::translate("Published Revisions")?></h2></summary>
 	<header>
-		<span class="pages_last_edited">Published</span>
-		<span class="pages_draft_author">Author</span>
-		<span class="pages_delete">Save</span>
-		<span class="pages_publish">New Draft</span>
-		<span class="pages_edit">Delete</span>
+		<span class="pages_last_edited"><?=Text::translate("Published")?></span>
+		<span class="pages_draft_author"><?=Text::translate("Author")?></span>
+		<span class="pages_delete"><?=Text::translate("Save")?></span>
+		<span class="pages_publish"><?=Text::translate("New Draft")?></span>
+		<span class="pages_edit"><?=Text::translate("Delete")?></span>
 	</header>
 	<ul>
 		<li class="active">
@@ -82,12 +82,12 @@
 	</ul>
 </div>
 <div class="table">
-	<summary><h2><span class="icon_medium_saved"></span>Saved Revisions</h2></summary>
+	<summary><h2><span class="icon_medium_saved"></span><?=Text::translate("Saved Revisions")?></h2></summary>
 	<header>
-		<span class="pages_last_edited">Saved</span>
-		<span class="pages_draft_description">Description</span>
-		<span class="pages_publish">New Draft</span>
-		<span class="pages_edit">Delete</span>
+		<span class="pages_last_edited"><?=Text::translate("Saved")?></span>
+		<span class="pages_draft_description"><?=Text::translate("Description")?></span>
+		<span class="pages_publish"><?=Text::translate("New Draft")?></span>
+		<span class="pages_edit"><?=Text::translate("Delete")?></span>
 	</header>
 	<ul>
 		<?php foreach ($revisions["saved"] as $r) { ?>
@@ -106,8 +106,8 @@
 	
 	$(".icon_save").click(function() {
 		BigTreeDialog({
-			title: "Save Revision",
-			content: '<fieldset class="last"><label>Short Description <small>(quick reminder of what\'s special about this revision)</small></label><input type="text" name="description" /></fieldset>',
+			title: "<?=Text::translate("Save Revision")?>",
+			content: '<fieldset class="last"><label><?=Text::translate("Short Description")?> <small>(<?=Text::translate("quick reminder of what\'s special about this revision")?>)</small></label><input type="text" name="description" /></fieldset>',
 			callback: $.proxy(function(d) {
 				// If there's no href it's because it's the currently published copy we're saving.
 				if (BigTree.cleanHref($(this).attr("href"))) {
@@ -126,26 +126,26 @@
 		var href = $(this).attr("href");
 		if (href.substr(0,1) == "#") {
 			BigTreeDialog({
-				title: "Delete Revision",
-				content: '<p class="confirm">Are you sure you want to delete this revision?</p>',
+				title: "<?=Text::translate("Delete Revision")?>",
+				content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this revision?")?></p>',
 				icon: "delete",
-				alternateSaveText: "OK",
+				alternateSaveText: "<?=Text::translate("OK")?>",
 				callback: $.proxy(function() {
 					$.ajax("<?=ADMIN_ROOT?>ajax/pages/delete-revision/?id=" + BigTree.cleanHref($(this).attr("href")));
 					$(this).parents("li").remove();
-					BigTree.growl("Pages","Deleted Revision");
+					BigTree.growl("Pages","<?=Text::translate("Deleted Revision")?>");
 				},this)
 			});
 		} else {
 			BigTreeDialog({
-				title: "Delete Draft",
-				content: '<p class="confirm">Are you sure you want to delete this draft?</p>',
+				title: "<?=Text::translate("Delete Draft")?>",
+				content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this draft?")?></p>',
 				icon: "delete",
-				alternateSaveText: "OK",
+				alternateSaveText: "<?=Text::translate("OK")?>",
 				callback: $.proxy(function() {
 					$.ajax($(this).attr("href"));
 					$(this).parents("li").remove();
-					BigTree.growl("Pages","Deleted Draft");
+					BigTree.growl("Pages","<?=Text::translate("Deleted Draft")?>");
 				},this)
 			});
 		}
@@ -156,9 +156,9 @@
 	$(".icon_draft").click(function() {
 		if (BigTree.localActiveDraft) {
 			BigTreeDialog({
-				title: "Use Revision",
-				content: '<p class="confirm">Are you sure you want to overwrite your existing draft with this revision?</p>',
-				alternateSaveText: "Overwrite",
+				title: "<?=Text::translate("Use Revision")?>",
+				content: '<p class="confirm"><?=Text::translate("Are you sure you want to overwrite your existing draft with this revision?")?></p>',
+				alternateSaveText: "<?=Text::translate("Overwrite")?>",
 				callback: $.proxy(function() {
 					document.location.href = "<?=ADMIN_ROOT?>ajax/pages/use-draft/?id=" + BigTree.cleanHref($(this).attr("href"));
 				},this)

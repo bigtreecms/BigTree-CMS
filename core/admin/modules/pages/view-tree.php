@@ -11,31 +11,31 @@
 ?>
 <div class="table">
 	<summary>
-		<h2><span class="icon_medium_<?=$class?>"></span><?=$title?></h2>
+		<h2><span class="icon_medium_<?=$class?>"></span><?=Text::translate($title)?></h2>
 	</summary>
 	<header>
 		<?php
 			if ($class == "archived") {
 		?>
-		<span class="pages_title_widest">Title</span>
-		<span class="pages_restore">Restore</span>
-		<span class="pages_delete">Delete</span>
+		<span class="pages_title_widest"><?=Text::translate("Title")?></span>
+		<span class="pages_restore"><?=Text::translate("Restore")?></span>
+		<span class="pages_delete"><?=Text::translate("Delete")?></span>
 		<?php
 			} else {
 				if ($ga_on) {
 		?>
-		<span class="pages_title">Title</span>
-		<span class="pages_views">Views</span>
+		<span class="pages_title"><?=Text::translate("Title")?></span>
+		<span class="pages_views"><?=Text::translate("Views")?></span>
 		<?php
 				} else {
 		?>
-		<span class="pages_title_wider">Title</span>		
+		<span class="pages_title_wider"><?=Text::translate("Title")?></span>		
 		<?php
 				}
 		?>
-		<span class="pages_status">Status</span>
-		<span class="pages_archive">Archive</span>
-		<span class="pages_edit">Edit</span>
+		<span class="pages_status"><?=Text::translate("Status")?></span>
+		<span class="pages_archive"><?=Text::translate("Archive")?></span>
+		<span class="pages_edit"><?=Text::translate("Edit")?></span>
 		<?php
 			}
 		?>
@@ -46,19 +46,19 @@
 				$perm = $admin->getPageAccessLevel($item["id"]);
 				
 				if (isset($item["bigtree_pending"])) {
-					$status = '<a href="'.WWW_ROOT.'_preview-pending/'.$item["id"].'/" target="_blank">Pending</a>';
+					$status = '<a href="'.WWW_ROOT.'_preview-pending/'.$item["id"].'/" target="_blank">'.Text::translate("Pending").'</a>';
 					$status_class = "pending";
 				} elseif (SQL::exists("bigtree_pending_changes",array("table" => "bigtree_pages", "item_id" => $item["id"]))) {
-					$status = '<a href="'.WWW_ROOT.'_preview/'.$item["path"].'/" target="_blank">Changed</a>';
+					$status = '<a href="'.WWW_ROOT.'_preview/'.$item["path"].'/" target="_blank">'.Text::translate("Changed").'</a>';
 					$status_class = "pending";
 				} elseif (strtotime($item["publish_at"]) > time()) {
-					$status = "Scheduled";
+					$status = Text::translate("Scheduled");
 					$status_class = "scheduled";
 				} elseif ($item["expire_at"] != "" && strtotime($item["expire_at"]) < time()) {
-					$status = "Expired";
+					$status = Text::translate("Expired");
 					$status_class = "expired";
 				} else {
-					$status = "Published";
+					$status = Text::translate("Published");
 					$status_class = "published";
 				}
 		?>
@@ -78,14 +78,14 @@
 			?>
 			<section class="pages_restore">
 				<?php if ($perm == "p" && $admin->canModifyChildren($item)) { ?>
-				<a href="<?=$proot?>restore/<?=$item["id"]?>/" title="Restore Page" class="icon_restore"></a>
+				<a href="<?=$proot?>restore/<?=$item["id"]?>/" title="<?=Text::translate("Restore Page")?>" class="icon_restore"></a>
 				<?php } else { ?>
 				<span class="icon_restore disabled_icon"></span>
 				<?php } ?>
 			</section>
 			<section class="pages_delete">
 				<?php if ($perm == "p" && $admin->canModifyChildren($item)) { ?>
-				<a href="<?=$proot?>delete/<?=$item["id"]?>/" title="Delete Page" class="icon_delete"></a>
+				<a href="<?=$proot?>delete/<?=$item["id"]?>/" title="<?=Text::translate("Delete Page")?>" class="icon_delete"></a>
 				<?php } else { ?>
 				<span class="icon_delete disabled_icon"></span>
 				<?php } ?>
@@ -111,9 +111,9 @@
 			</section>
 			<section class="pages_archive">
 				<?php if (!isset($item["bigtree_pending"]) && $perm == "p" && ($page["id"] != 0 || $admin->Level > 1 || $class == "hidden") && $admin->canModifyChildren($item)) { ?>
-				<a href="<?=$proot?>archive/<?=$item["id"]?>/" title="Archive Page" class="icon_archive"></a>
+				<a href="<?=$proot?>archive/<?=$item["id"]?>/" title="<?=Text::translate("Archive Page")?>" class="icon_archive"></a>
 				<?php } elseif ($item["bigtree_pending"] && $perm == "p") { ?>
-				<a href="<?=$proot?>delete/<?=$item["id"]?>/" title="Delete Pending Page" class="icon_delete"></a>
+				<a href="<?=$proot?>delete/<?=$item["id"]?>/" title="<?=Text::translate("Delete Pending Page")?>" class="icon_delete"></a>
 				<?php } elseif ($item["bigtree_pending"]) { ?>
 				<span class="icon_delete disabled_icon"></span>
 				<?php } else { ?>
@@ -122,7 +122,7 @@
 			</section>
 			<section class="pages_edit">
 				<?php if ($perm) { ?>
-				<a href="<?=$proot?>edit/<?=$item["id"]?>/" title="Edit Page" class="icon_edit page"></a>
+				<a href="<?=$proot?>edit/<?=$item["id"]?>/" title="<?=Text::translate("Edit Page")?>" class="icon_edit page"></a>
 				<?php } else { ?>
 				<span class="icon_edit disabled_icon"></span>
 				<?php } ?>
@@ -150,7 +150,7 @@
 
 	include Router::getIncludePath("admin/modules/pages/_properties.php");
 ?>
-<h3>Subpages</h3>
+<h3><?=Text::translate("Subpages")?></h3>
 <?php
 	$nav_visible = array_merge($admin->getNaturalNavigationByParent($page["id"],1),$admin->getPendingNavigationByParent($page["id"]));
 	$nav_hidden = array_merge($admin->getHiddenNavigationByParent($page["id"]),$admin->getPendingNavigationByParent($page["id"],""));
@@ -173,7 +173,7 @@
 		}
 	} else {
 ?>
-<p>Create new subpages by clicking the "Add Subpage" button above.</p>
+<p><?=Text::translate("Create new subpages by clicking the \"Add Subpage\" button above.")?></p>
 <?php
 	}
 ?>

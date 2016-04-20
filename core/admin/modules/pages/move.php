@@ -49,16 +49,16 @@
 		<section>
 			<fieldset>
 				<input type="hidden" name="parent" value="<?=$page["parent"]?>" id="page_parent" />
-				<label>Select New Parent</label>
+				<label><?=Text::translate("Select New Parent")?></label>
 				<div class="move_page form_table">
 					<div class="labels">
-						<span class="page_label">Page</span>
+						<span class="page_label"><?=Text::translate("Page")?></span>
 					</div>
 					<section>
 						<ul class="depth_1">
 							<li class="top">
 								<span class="depth"></span>
-								<a class="title expanded<?php if ($page["parent"] == 0) { ?> active<?php } ?>" href="#0">Top Level</a>
+								<a class="title expanded<?php if ($page["parent"] == 0) { ?> active<?php } ?>" href="#0"><?=Text::translate("Top Level")?></a>
 								<?php _local_drawNavLevel(0,2,$ancestors) ?>
 							</li>
 					</section>
@@ -66,7 +66,7 @@
 			</fieldset>
 		</section>
 		<footer>
-			<input type="submit" class="button blue" value="Move Page" />
+			<input type="submit" class="button blue" value="<?=Text::translate("Move Page", true)?>" />
 		</footer>
 	</form>
 </div>

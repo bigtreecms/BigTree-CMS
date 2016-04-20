@@ -87,7 +87,7 @@
 				$x++;
 				
 		?>
-		<a href="<?=ADMIN_ROOT.$item["link"]?>/" class="<?php if ($x == 1) { ?> first<?php } if ($x == count($bigtree["breadcrumb"])) { ?> last<?php } ?>"><?=Text::htmlEncode(Text::translate($item["title"]))?></a>
+		<a href="<?=ADMIN_ROOT.$item["link"]?>/" class="<?php if ($x == 1) { ?> first<?php } if ($x == count($bigtree["breadcrumb"])) { ?> last<?php } ?>"><?=Text::translate($item["title"], true)?></a>
 		<?php
 				if ($x != count($bigtree["breadcrumb"])) {
 		?>
@@ -174,7 +174,7 @@
 						foreach ($bigtree["subnav_extras"] as $link) {
 							if ($admin->Level >= $link["level"]) {
 				?>
-				<a href="<?=$link["link"]?>"><span class="icon_small icon_small_<?=$link["icon"]?>"></span><?=$link["title"]?></a>
+				<a href="<?=$link["link"]?>"><span class="icon_small icon_small_<?=$link["icon"]?>"></span><?=Text::translate($link["title"])?></a>
 				<?php
 							}
 						}

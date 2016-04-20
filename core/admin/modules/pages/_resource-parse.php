@@ -1,5 +1,5 @@
 <?php
-	use BigTree\Field;
+	namespace BigTree;
 
 	// Parse the resources
 	$bigtree["entry"] = array();
