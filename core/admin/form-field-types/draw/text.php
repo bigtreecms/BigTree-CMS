@@ -43,7 +43,7 @@
 		<select class="<?=$field["options"]["validation"]?>" name="<?=$field["key"]?>[state]" id="<?=$field["id"]?>_state" tabindex="<?=($field["tabindex"] + 2)?>">
 			<option value="">Select a State</option>
 			<? foreach (BigTree::$StateList as $abbreviation => $state_name) { ?>
-			<option value="<?=$a?>"<? if ($abbreviation == $field["value"]["state"]) { ?> selected="selected"<? } ?>><?=$state_name?></option>
+			<option value="<?=$abbreviation?>"<? if ($abbreviation == $field["value"]["state"]) { ?> selected="selected"<? } ?>><?=$state_name?></option>
 			<? } ?>
 		</select>
 	</section>
