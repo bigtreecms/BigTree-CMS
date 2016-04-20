@@ -53,7 +53,7 @@
 	<section class="input_address_country">
 		<select class="<?=$field["options"]["validation"]?>" name="<?=$field["key"]?>[country]" id="<?=$field["id"]?>_country" tabindex="<?=($field["tabindex"] + 4)?>">
 			<? foreach (BigTree::$CountryList as $country_name) { ?>
-			<option value="<?=$c?>"<? if ($country_name == $field["value"]["country"]) { ?> selected="selected"<? } ?>><?=$country_name?></option>
+			<option value="<?=$country_name?>"<? if ($country_name == $field["value"]["country"]) { ?> selected="selected"<? } ?>><?=$country_name?></option>
 			<? } ?>
 		</select>
 	</section>
