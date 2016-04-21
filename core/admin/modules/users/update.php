@@ -3,7 +3,10 @@
 	
 	$id = intval($_POST["id"]);
 
-	if ($_SERVER["HTTP_REFERER"] != ADMIN_ROOT."users/edit/$id/") {
+	$clean_referer = str_replace(array("http://","https://"),"//",$_SERVER["HTTP_REFERER"]);
+	$clean_admin_root = str_replace(array("http://","https://"),"//",ADMIN_ROOT)."users/edit/".$id."/";
+
+	if ($clean_referer != $clean_admin_root) {
 ?>
 <div class="container">
 	<section>
