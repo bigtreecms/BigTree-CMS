@@ -1,5 +1,8 @@
 <?
-	if ($_SERVER["HTTP_REFERER"] != ADMIN_ROOT."users/profile/") {
+	$clean_referer = str_replace(array("http://","https://"),"//",$_SERVER["HTTP_REFERER"]);
+	$clean_admin_root = str_replace(array("http://","https://"),"//",ADMIN_ROOT)."users/profile/";
+
+	if ($clean_referer != $clean_admin_root) {
 ?>
 <div class="container">
 	<section>
