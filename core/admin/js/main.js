@@ -2814,7 +2814,7 @@ var BigTreeCallouts = function(settings) {
 				}
 			});
 
-			article.find("h4").html(Description + '<input type="hidden" name="' + Key + '[' + Count + '][display_title]" value="' + htmlspecialchars(Description) + '" />');
+			article.find("h4").html(strip_tags(Description) + '<input type="hidden" name="' + Key + '[' + Count + '][display_title]" value="' + htmlspecialchars(strip_tags(Description)) + '" />');
 	
 			return article;
 		};
@@ -3014,9 +3014,9 @@ var BigTreeMatrix = function(settings) {
 						}
 						if (value) {
 							if (!Title) {
-								Title = value;
+								Title = strip_tags(value);
 							} else {
-								Subtitle = value;
+								Subtitle = strip_tags(value);
 							}
 						} 
 					}
