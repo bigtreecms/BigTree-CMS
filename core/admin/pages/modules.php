@@ -1,9 +1,11 @@
 <?php
-		$module_count = 0;
-		$groups = $admin->getModuleGroups();
-		foreach ($groups as $group) {
-			$modules = $admin->getModulesByGroup($group["id"]);
-			if (count($modules)) {
+	namespace BigTree;
+
+	$module_count = 0;
+	$groups = $admin->getModuleGroups();
+	foreach ($groups as $group) {
+		$modules = $admin->getModulesByGroup($group["id"]);
+		if (count($modules)) {
 ?>
 <div class="container">
 	<summary><h2><?=$group["name"]?></h2></summary>
@@ -12,7 +14,7 @@
 			foreach ($modules as $module) {
 		?>
 		<p class="module">
-			<?php if (BigTree\ModuleAction::exists($module["id"],"add")) { ?>
+			<?php if (ModuleAction::exists($module["id"],"add")) { ?>
 			<a href="<?=ADMIN_ROOT?><?=$module["route"]?>/add/" class="add"><span class="icon_small icon_small_add"></span></a>
 			<?php } ?>
 			<a class="module_name" href="<?=ADMIN_ROOT?><?=$module["route"]?>/"><?php if ($module["icon"]) { ?><span class="icon_small icon_small_<?=$module["icon"]?>"></span><?php } ?><?=$module["name"]?></a>
@@ -24,20 +26,20 @@
 	</section>
 </div>
 <?php
-			}
 		}
-		
-		$misc = $admin->getModulesByGroup(0);
-		if (count($misc)) {
+	}
+	
+	$misc = $admin->getModulesByGroup(0);
+	if (count($misc)) {
 ?>
 <div class="container">
-	<summary><h2>Ungrouped</h2></summary>
+	<summary><h2><?=Text::translate("Ungrouped")?></h2></summary>
 	<section class="modules">
 		<?php
 			foreach ($misc as $module) {
 		?>
 		<p class="module">
-			<?php if (BigTree\ModuleAction::exists($module["id"],"add")) { ?>
+			<?php if (ModuleAction::exists($module["id"],"add")) { ?>
 			<a href="<?=ADMIN_ROOT?><?=$module["route"]?>/add/" class="add"><span class="icon_small icon_small_add"></span></a>
 			<?php } ?>
 			<a class="module_name" href="<?=ADMIN_ROOT?><?=$module["route"]?>/"><?php if ($module["icon"]) { ?><span class="icon_small icon_small_<?=$module["icon"]?>"></span><?php } ?><?=$module["name"]?></a>
@@ -49,16 +51,16 @@
 	</section>
 </div>
 <?php
-   		}
-   		
-		if ($module_count < 1) {
+	}
+		
+	if ($module_count < 1) {
 ?>
 <div class="container">
-	<summary><h2>No Modules</h2></summary>
+	<summary><h2><?=Text::translate("No Modules")?></h2></summary>
 	<section>
-		<p>You do not have access to any modules (or none exist).</p>
+		<p><?=Text::translate("You do not have access to any modules (or none exist).")?></p>
 	</section>
 </div>
 <?php
-		}
+	}
 ?>

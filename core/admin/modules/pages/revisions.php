@@ -65,7 +65,7 @@
 	<ul>
 		<li class="active">
 			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($page["updated_at"]))?></section>
-			<section class="pages_draft_author"><span class="gravatar"><img src="<?=BigTree::gravatar($current_author["email"], 36)?>" alt="" /></span><?=$current_author["name"]?><span class="active_draft">Active</span></section>
+			<section class="pages_draft_author"><span class="gravatar"><img src="<?=BigTree::gravatar($current_author["email"], 36)?>" alt="" /></span><?=$current_author["name"]?><span class="active_draft"><?=Text::translate("Active")?></span></section>
 			<section class="pages_delete"><a href="#" class="icon_save"></a></section>
 			<section class="pages_publish"></section>
 			<section class="pages_edit"></section>

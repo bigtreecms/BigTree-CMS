@@ -1,4 +1,5 @@
 <?php
+	use BigTree\SQL;
 
 	/*
 		Class: BigTreeAutoModule

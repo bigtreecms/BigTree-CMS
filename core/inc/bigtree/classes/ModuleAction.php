@@ -176,7 +176,7 @@
 				return false;
 			}
 
-			$module = new Module($this->ModuleID);
+			$module = new Module($this->Module);
 			return $module->UserCanAccess;
 		}
 
@@ -225,7 +225,7 @@
 			// Make sure route is unique and clean
 			$this->Route = Link::urlify($this->Route);
 			if ($this->Route != $this->OriginalRoute) {
-				$this->Route = SQL::unique("bigtree_module_actions","route",$this->Route,array("module" => $this->ModuleID),true);
+				$this->Route = SQL::unique("bigtree_module_actions","route",$this->Route,array("module" => $this->Module),true);
 				$this->OriginalRoute = $this->Route;
 			}
 
