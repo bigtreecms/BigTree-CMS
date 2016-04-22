@@ -2520,7 +2520,7 @@ var BigTreeToolTip = function(settings) {
 		var Target;
 
 		function hide() {
-			Container.stop().fadeTo(200,0,Container.hide);
+			Container.stop().fadeTo(200,0,function() { Container.hide(); });
 			BigTree.ZIndex--;
 			return false;
 		};
