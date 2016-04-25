@@ -2993,7 +2993,7 @@
 		*/
 
 		static function getUsers($sort = "name ASC") {
-			return BigTree\User::all($sort);
+			return BigTree\User::all($sort, true);
 		}
 
 		/*

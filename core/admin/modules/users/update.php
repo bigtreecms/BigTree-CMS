@@ -15,8 +15,10 @@
 </div>
 <?php
 	} else {
+		Globalize::POST();
+
 		// Check security policy
-		if ($_POST["password"] && !$admin->validatePassword($_POST["password"])) {
+		if ($password && !$admin->validatePassword($password)) {
 			$_SESSION["bigtree_admin"]["update_user"] = $_POST;
 			$_SESSION["bigtree_admin"]["update_user"]["error"] = "password";
 			$admin->growl("Users","Invalid Password","error");
@@ -25,33 +27,39 @@
 
 		// Check permission level
 		$error = false;
-		$user = User::get($id);
+		$user = new User($id);
 
-		if ($user["level"] <= $admin->Level) {
+		// Don't let a user edit someone that has higher access levels than they do
+		if ($user->Level > $admin->Level) {
 			$error = "level";
-		} elseif ($id == $admin->ID && intval($level) != $admin->Level) {
-			$error = "level";
+		}
+
+		// Don't let a user change their own level
+		if ($id == $admin->ID) {
+			$level = $admin->Level;
 		}
 
 		if (!$error) {
-			$permission_data = json_decode($_POST["permissions"],true);
-			$permissions = $_POST["permissions"] = array(
+			$permission_data = json_decode($permissions,true);
+			$permissions = array(
 				"page" => $permission_data["Page"],
-				"module" => $perms["Module"],
-				"resources" => $perms["Resource"],
-				"module_gbp" => $perms["ModuleGBP"]
+				"module" => $permission_data["Module"],
+				"resources" => $permission_data["Resource"],
+				"module_gbp" => $permission_data["ModuleGBP"]
 			);
-			$alerts = $_POST["alerts"] = json_decode($_POST["alerts"],true);
+
+			$alerts = json_decode($alerts,true);
 			
-			if (!User::update($id,$email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest) {
+			if (!$user->update($email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest)) {
 				$error = "email";
 			}
 		}
-		
+
 		if ($error) {
 			$_SESSION["bigtree_admin"]["update_user"] = $_POST;
 			$_SESSION["bigtree_admin"]["update_user"]["error"] = $error;
 			$admin->growl("Users","Update Failed","error");
+
 			Router::redirect(ADMIN_ROOT."users/edit/$id/");
 		}
 		
@@ -59,4 +67,3 @@
 		
 		Router::redirect(ADMIN_ROOT."users/");
 	}
-?>
