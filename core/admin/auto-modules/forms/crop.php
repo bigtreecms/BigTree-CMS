@@ -16,7 +16,7 @@
 <div class="container">
 	<?php if (count($crops) > 1) { ?>
 	<header>
-		<h2 class="cropper"><span>Cropping Image</span> <span class="count current">1</span> <span>of</span> <span class="count total"><?=count($crops)?></span></h2>
+		<h2 class="cropper"><span><?=Text::translate("Cropping Image")?></span> <span class="count current">1</span> <span><?=Text::translate("of")?></span> <span class="count total"><?=count($crops)?></span></h2>
 	</header>
 	<?php } ?>
 	<form method="post" action="<?=$bigtree["form_root"]?>process-crops/<?php if (is_array($bigtree["current_page"])) { echo $bigtree["current_page"]["id"]; } elseif (is_numeric($bigtree["current_page"])) { echo $bigtree["current_page"]; } ?>/" id="crop_form" class="module">
@@ -90,12 +90,12 @@
 			?>
 			<article<?php if ($x > 1) { ?> style="display: none;"<?php } ?>>
 				<div class="original">
-					<p>Original</p>
+					<p><?=Text::translate("Original")?></p>
 					<img src="<?=$image?>" id="cropImage<?=$x?>" width="<?=$box_width?>" height="<?=$box_height?>" />
 				</div>
 				<div class="crop_arrow" style="margin-top: <?=$arrow_margin?>px;"></div>
 				<div class="cropped">
-					<p>Cropped (<?=$cwidth?>x<?=$cheight?>)</p>
+					<p><?=Text::translate("Cropped")?> (<?=$cwidth?>x<?=$cheight?>)</p>
 					<div style="padding-top: <?=$preview_margin?>px;">
 						<div id="preview_<?=$x?>" style="width: <?=$preview_width?>px; height: <?=$preview_height?>px; overflow: hidden;">
 							<img src="<?=$image?>" alt="" />
@@ -142,7 +142,7 @@
 			?>
 		</section>
 		<footer>
-			<input type="submit" class="blue" value="Crop Image" />			
+			<input type="submit" class="blue" value="<?=Text::translate("Crop Image", true)?>" />			
 		</footer>
 	</form>
 </div>
@@ -162,7 +162,7 @@
 	});
 
 	window.onbeforeunload = function(ev) {
-		BigTree.growl("Cropping Image","Please crop your images before leaving this page.",5000,"error");
+		BigTree.growl("<?=Text::translate("Cropping Image", true)?>","<?=Text::translate("Please crop your images before leaving this page.", true)?>",5000,"error");
 		return false;
 	};
 </script>

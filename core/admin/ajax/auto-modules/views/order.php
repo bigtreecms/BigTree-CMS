@@ -14,7 +14,7 @@
 				SQL::update($table, $id, array("position" => (count($data["row"]) - $position)));
 				ModuleView::cacheForAll($id, $table);
 			} else {
-				BigTreeAutoModule::updatePendingItemField(substr($id,1),"position",(count($data["row"]) - $position));
+				\BigTreeAutoModule::updatePendingItemField(substr($id,1),"position",(count($data["row"]) - $position));
 				ModuleView::cacheForAll(substr($id, 1), $table, true);
 			}
 		}

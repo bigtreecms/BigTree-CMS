@@ -22,8 +22,8 @@
 	// Find out what kind of permissions we're allowed on this item.  We need to check the EXISTING copy of the data AND what it's turning into and find the lowest of the two permissions.
 	$bigtree["access_level"] = $admin->getAccessLevel($bigtree["module"],$_POST,$bigtree["form"]["table"]);
 	if ($_POST["id"] && $bigtree["access_level"] && $bigtree["access_level"] != "n") {
-		$original_item = BigTreeAutoModule::getItem($bigtree["form"]["table"],$_POST["id"]);
-		$existing_item = BigTreeAutoModule::getPendingItem($bigtree["form"]["table"],$_POST["id"]);
+		$original_item = \BigTreeAutoModule::getItem($bigtree["form"]["table"],$_POST["id"]);
+		$existing_item = \BigTreeAutoModule::getPendingItem($bigtree["form"]["table"],$_POST["id"]);
 		$previous_permission = $admin->getAccessLevel($bigtree["module"],$existing_item["item"],$bigtree["form"]["table"]);
 		$original_permission = $admin->getAccessLevel($bigtree["module"],$original_item["item"],$bigtree["form"]["table"]);
 
@@ -62,8 +62,9 @@
 		));
 
 		$output = $field->process();
+
 		if (!is_null($output)) {
-			$bigtree["entry"][$field["key"]] = $output;
+			$bigtree["entry"][$field->Key] = $output;
 		}
 	}
 
@@ -77,7 +78,7 @@
 	}
 
 	// Sanitize the form data so it fits properly in the database (convert dates to MySQL-friendly format and such)
-	$bigtree["entry"] = BigTreeAutoModule::sanitizeData($bigtree["form"]["table"],$bigtree["entry"]);
+	$bigtree["entry"] = \BigTreeAutoModule::sanitizeData($bigtree["form"]["table"],$bigtree["entry"]);
 
 	// Make some easier to write out vars for below.
 	$tags = $_POST["_tags"];
@@ -89,7 +90,7 @@
 
 	// Check to see if this is a positioned element
 	// If it is and the form is setup to create new items at the top and this is a new record, update the position column.
-	$table_description = BigTree::describeTable($table);
+	$table_description = SQL::describeTable($table);
 	if (isset($table_description["columns"]["position"]) && $bigtree["form"]["default_position"] == "Top" && !$_POST["id"]) {
 		$max = SQL::fetchSingle("SELECT COUNT(*) FROM `$table`") + 
 			   SQL::fetchSingle("SELECT COUNT(*) FROM `bigtree_pending_changes` WHERE `table` = ?", $table);
@@ -103,11 +104,11 @@
 	if ($bigtree["access_level"] == "e" || $data_action == "save") {
 		// We have an existing module entry we're saving a change to.
 		if ($edit_id) {
-			BigTreeAutoModule::submitChange($bigtree["module"]["id"],$table,$edit_id,$item,$many_to_many,$tags,$bigtree["form"]["hooks"]["publish"]);
+			\BigTreeAutoModule::submitChange($bigtree["module"]["id"],$table,$edit_id,$item,$many_to_many,$tags,$bigtree["form"]["hooks"]["publish"]);
 			$admin->growl($bigtree["module"]["name"],"Saved ".$bigtree["form"]["title"]." Draft");
 		// It's a new entry, so we create a pending item.
 		} else {
-			$edit_id = "p".BigTreeAutoModule::createPendingItem($bigtree["module"]["id"],$table,$item,$many_to_many,$tags,$bigtree["form"]["hooks"]["publish"]);
+			$edit_id = "p".\BigTreeAutoModule::createPendingItem($bigtree["module"]["id"],$table,$item,$many_to_many,$tags,$bigtree["form"]["hooks"]["publish"]);
 			$admin->growl($bigtree["module"]["name"],"Created ".$bigtree["form"]["title"]." Draft");
 		}
 	// We're a publisher and we want to publish
@@ -116,18 +117,18 @@
 		if ($edit_id) {
 			// If the edit id starts with a "p" it's a pending entry we're publishing.
 			if (substr($edit_id,0,1) == "p") {
-				$edit_id = BigTreeAutoModule::publishPendingItem($table,substr($edit_id,1),$item,$many_to_many,$tags);
+				$edit_id = \BigTreeAutoModule::publishPendingItem($table,substr($edit_id,1),$item,$many_to_many,$tags);
 				$admin->growl($bigtree["module"]["name"],"Updated & Published ".$bigtree["form"]["title"]);
 				$did_publish = true;
 			// Otherwise we're updating something that is already published
 			} else {
-				BigTreeAutoModule::updateItem($table,$edit_id,$item,$many_to_many,$tags);
+				\BigTreeAutoModule::updateItem($table,$edit_id,$item,$many_to_many,$tags);
 				$admin->growl($bigtree["module"]["name"],"Updated ".$bigtree["form"]["title"]);
 				$did_publish = true;
 			}
 		// We're creating a new published entry.
 		} else {
-			$edit_id = BigTreeAutoModule::createItem($table,$item,$many_to_many,$tags);
+			$edit_id = \BigTreeAutoModule::createItem($table,$item,$many_to_many,$tags);
 			$admin->growl($bigtree["module"]["name"],"Created ".$bigtree["form"]["title"]);
 			$did_publish = true;
 		}
@@ -154,10 +155,10 @@
 	}
 	
 	// Get the redirect location.
-	$view = BigTreeAutoModule::getRelatedViewForForm($bigtree["form"]);
+	$view = \BigTreeAutoModule::getRelatedViewForForm($bigtree["form"]);
 	// If we specify a specific return view, get that information
 	if ($bigtree["form"]["return_view"]) {
-		$view = BigTreeAutoModule::getView($bigtree["form"]["return_view"]);
+		$view = \BigTreeAutoModule::getView($bigtree["form"]["return_view"]);
 		$action = $admin->getModuleActionForInterface($bigtree["form"]["return_view"]);
 		if ($action["route"]) {
 			$redirect_url = ADMIN_ROOT.$bigtree["module"]["route"]."/".$action["route"]."/".$redirect_append;
@@ -191,7 +192,7 @@
 	$admin->allocateResources($bigtree["module"]["id"],$edit_id);
 
 	// Put together saved form information for the error or crop page in case we need it.
-	$edit_action = BigTreeAutoModule::getEditAction($bigtree["module"]["id"],$bigtree["form"]["id"]);
+	$edit_action = \BigTreeAutoModule::getEditAction($bigtree["module"]["id"],$bigtree["form"]["id"]);
 	$_SESSION["bigtree_admin"]["form_data"] = array(
 		"view" => $view,
 		"id" => $edit_id,

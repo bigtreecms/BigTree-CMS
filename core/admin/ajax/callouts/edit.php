@@ -13,7 +13,7 @@
 ?>
 <div class="callout_type">
 	<fieldset>
-		<label>Callout Type</label>
+		<label><?=Text::translate("Callout Type")?></label>
 		<select name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][type]">
 			<?php foreach ($items as $item) { ?>
 			<option value="<?=$item["id"]?>"<?php if ($item["id"] == $bigtree["resources"]["type"]) { ?> selected="selected"<?php } ?>><?=$item["name"]?></option>

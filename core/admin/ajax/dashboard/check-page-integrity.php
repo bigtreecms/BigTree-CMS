@@ -1,4 +1,6 @@
-<?	
+<?php
+	namespace BigTree;
+
 	// Determine whether we should check external links
 	$external = $_GET["external"] ? true : false;
 	$id = $_GET["id"];
@@ -36,7 +38,7 @@
 				}
 		    // HTML we just run through checkHTML
 		    } elseif ($resource["type"] == "html") {
-		    	$integrity_errors[$field] = BigTree\Link::integrity($local_path,$data,$external);
+		    	$integrity_errors[$field] = Link::integrity($local_path,$data,$external);
 		    }
 		}
 	}
@@ -48,12 +50,12 @@
 ?>
 <li>
 	<section class="integrity_errors">
-		<a href="<?=ADMIN_ROOT."pages/edit/$id/"?>" target="_blank">Edit</a>
+		<a href="<?=ADMIN_ROOT."pages/edit/$id/"?>" target="_blank"><?=Text::translate("Edit")?></a>
 		<span class="icon_small icon_small_warning"></span>
-		<p>Broken <?=(($type == "img") ? "Image" : "Link")?>: <?=$error?> on page &ldquo;<?=$page["nav_title"]?>&rdquo; in field &ldquo;<?=$title?>&rdquo;</p>
+		<p><?=Text::translate("Broken")?> <?=Text::translate(($type == "img") ? "Image" : "Link")?>: <?=$error?> <?=Text::translate("on page")?> &ldquo;<?=$page["nav_title"]?>&rdquo; <?=Text::translate("in field")?> &ldquo;<?=$title?>&rdquo;</p>
 	</section>
 </li>
-<?
+<?php
 			}
 		}
 	}

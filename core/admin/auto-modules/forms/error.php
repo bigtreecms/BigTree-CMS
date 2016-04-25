@@ -1,19 +1,21 @@
 <?php
-	BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);
+	namespace BigTree;
+
+	\BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);
 
 	// Override the default H1
-	$bigtree["page_override"] = array("title" => "Errors Occurred","icon" => "page_404");
+	$bigtree["page_override"] = array("title" => Text::translate("Errors Occurred"),"icon" => "page_404");
 ?>
 <div class="container">
 	<section>
 		<div class="alert">
 			<span></span>
-			<p>Your submission had <?=count($errors)?> error<?php if (count($errors) != 1) { ?>s<?php } ?>.</p>
+			<p><?=Text::translate("Your submission had")?> <?=count($errors)?> <?=Text::translate((count($errors) != 1) ? "errors" : "error")?>.</p>
 		</div>
 		<div class="table error_table">
 			<header>
-				<span class="view_column field">Field</span>
-				<span class="view_column error">Error</span>
+				<span class="view_column field"><?=Text::translate("Field")?></span>
+				<span class="view_column error"><?=Text::translate("Error")?></span>
 			</header>
 			<ul>
 				<?php foreach ($errors as $error) { ?>
@@ -26,7 +28,7 @@
 		</div>
 	</section>
 	<footer>
-		<a href="<?=$return_link?>" class="button blue">Continue</a> &nbsp; 
-		<a href="<?=$edit_link?>" class="button">Return &amp; Edit</a> &nbsp; 
+		<a href="<?=$return_link?>" class="button blue"><?=Text::translate("Continue", true)?></a> &nbsp; 
+		<a href="<?=$edit_link?>" class="button"><?=Text::translate("Return & Edit", true)?></a> &nbsp; 
 	</footer>
 </div>

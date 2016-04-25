@@ -25,7 +25,7 @@
 ?>
 <div class="table auto_modules">
 	<summary>
-		<input type="search" class="form_search" id="search" placeholder="Search" value="<?=$search?>" />
+		<input type="search" class="form_search" id="search" placeholder="<?=Text::translate("Search", true)?>" value="<?=$search?>" />
 		<span class="form_search_icon"></span>
 		<nav id="view_paging" class="view_paging"></nav>
 	</summary>
@@ -54,8 +54,8 @@
 		<?php
 			}
 		?>
-		<span class="view_status">Status</span>
-		<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><?php if (count($bigtree["view"]["actions"]) > 1) { ?>Actions<?php } ?></span>
+		<span class="view_status"><?=Text::translate("Status")?></span>
+		<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><?php if (count($bigtree["view"]["actions"]) > 1) { echo Text::translate("Actions"); } ?></span>
 	</header>
 	<ul id="results">
 		<?php include Router::getIncludePath("admin/ajax/auto-modules/views/searchable-page.php") ?>

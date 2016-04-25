@@ -5,7 +5,7 @@
 	<form method="post" action="<?=$bigtree["form_root"]?>process/<?php if ($bigtree["form"]["embedded"]) { ?>?hash=<?=$bigtree["form"]["hash"]?><?php } ?>" enctype="multipart/form-data" class="module" id="auto_module_form">
 		<?php if ($bigtree["form"]["embedded"]) { ?>
 		<fieldset>
-			<label>This is a field that shouldn't be filled out.</label>
+			<label><?=Text::translate("This is a field that shouldn't be filled out.")?></label>
 			<input type="text" name="_bigtree_email" />
 			<input type="text" name="_bigtree_hashcash" id="bigtree_hashcash_field" />
 		</fieldset>
@@ -26,17 +26,17 @@
 			}
 		?>
 		<section>
-			<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
+			<p class="error_message" style="display: none;"><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 			<?php
 				if ($_SESSION["bigtree_admin"]["post_max_hit"]) {
 					unset($_SESSION["bigtree_admin"]["post_max_hit"]);
 			?>
-			<p class="warning_message">The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.</p>
+			<p class="warning_message"><?=Text::translate("The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.")?></p>
 			<?php
 				} elseif ($_SESSION["bigtree_admin"]["post_hash_failed"]) {
 					unset($_SESSION["bigtree_admin"]["post_hash_failed"]);
 			?>
-			<p class="warning_message">The form submission failed to pass our automated submission test. If you have JavaScript turned off, please turn it on.</p>
+			<p class="warning_message"><?=Text::translate("The form submission failed to pass our automated submission test. If you have JavaScript turned off, please turn it on.")?></p>
 			<?php
 				}
 			?>
@@ -75,7 +75,7 @@
 			<?php if ($bigtree["form"]["tagging"]) { ?>
 			<div class="tags" id="bigtree_tag_browser">
 				<fieldset>
-					<label>Tags<span></span></label>
+					<label><?=Text::translate("Tags")?><span></span></label>
 					<ul id="tag_list">
 						<?php foreach ($bigtree["tags"] as $tag) { ?>
 						<li><input type="hidden" name="_tags[]" value="<?=$tag["id"]?>" /><a href="#"><?=$tag["tag"]?><span>x</span></a></li>
@@ -101,13 +101,13 @@
 			?>
 			<a class="button save_and_preview" href="#">
 				<span class="icon_small icon_small_computer"></span>
-				Save &amp; Preview
+				<?=Text::translate("Save & Preview", true)?>
 			</a>
 			<?php
 					}
 			?>
-			<input type="submit" class="button<?php if ($bigtree["access_level"] != "p") { ?> blue<?php } ?>" tabindex="<?=$bigtree["tabindex"]?>" value="Save" name="save" />
-			<input type="submit" class="button blue" tabindex="<?=($bigtree["tabindex"] + 1)?>" value="Save & Publish" name="save_and_publish" <?php if ($bigtree["access_level"] != "p") { ?>style="display: none;" <?php } ?>/>
+			<input type="submit" class="button<?php if ($bigtree["access_level"] != "p") { ?> blue<?php } ?>" tabindex="<?=$bigtree["tabindex"]?>" value="<?=Text::translate("Save", true)?>" name="save" />
+			<input type="submit" class="button blue" tabindex="<?=($bigtree["tabindex"] + 1)?>" value="<?=Text::translate("Save & Publish", true)?>" name="save_and_publish" <?php if ($bigtree["access_level"] != "p") { ?>style="display: none;" <?php } ?>/>
 			<?php
 				}
 			?>

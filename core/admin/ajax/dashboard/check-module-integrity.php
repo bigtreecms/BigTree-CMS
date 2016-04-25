@@ -1,19 +1,21 @@
-<?	
+<?php
+	namespace BigTree;
+
 	$integrity_errors = array();
 	$external = $_GET["external"] ? true : false;
 
 	// Get the form so we can walk through its fields
-	$form = BigTreeAutoModule::getForm($_GET["form"]);	
+	$form = \BigTreeAutoModule::getForm($_GET["form"]);	
 
 	// Create a generic module class to get the decoded item data
-	$m = new BigTreeModule;
+	$m = new \BigTreeModule;
 	$m->Table = $form["table"];
 	$item = $m->get($_GET["id"]);
 	
 	// Loop through all the fields
 	foreach ($form["fields"] as $field => $resource) {
 		if ($resource["type"] == "html") {
-			$integrity_errors[$field] = BigTree\Link::integrity("",$item[$field],$external);
+			$integrity_errors[$field] = Link::integrity("",$item[$field],$external);
 		} elseif ($resource["type"] == "text" && is_string($item[$field])) {
 			$href = $item[$field];
 			// External link
@@ -48,12 +50,12 @@
 ?>
 <li>
 	<section class="integrity_errors">
-		<a href="<?=ADMIN_ROOT.$module["route"]."/".$action["route"]."/".$_GET["id"]?>/" target="_blank">Edit</a>
+		<a href="<?=ADMIN_ROOT.$module["route"]."/".$action["route"]."/".$_GET["id"]?>/" target="_blank"><?=Text::translate("Edit")?></a>
 		<span class="icon_small icon_small_warning"></span>
-		<p>Broken <?=(($type == "img") ? "Image" : "Link")?>: <?=$error?> in field &ldquo;<?=$form["fields"][$field]["title"]?>&rdquo;</p>
+		<p><?=Text::translate("Broken")?> <?=Text::translate(($type == "img") ? "Image" : "Link")?>: <?=$error?> <?=Text::translate("in field")?> &ldquo;<?=$form["fields"][$field]["title"]?>&rdquo;</p>
 	</section>
 </li>
-<?
+<?php
 			}
 		}
 	}

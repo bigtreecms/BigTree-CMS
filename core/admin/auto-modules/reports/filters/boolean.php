@@ -1,5 +1,8 @@
+<?php
+	namespace BigTree;
+?>
 <select name="<?=$id?>">
-	<option>Both</option>
-	<option>Yes</option>
-	<option>No</option>
+	<option><?=Text::translate("Both")?></option>
+	<option><?=Text::translate("Yes")?></option>
+	<option><?=Text::translate("No")?></option>
 </select>

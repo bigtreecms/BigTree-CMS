@@ -1,17 +1,15 @@
 <?php
 	namespace BigTree;
 	
-	$autoModule = new BigTreeAutoModule;
-
 	// Grab View Data
 	if (isset($_GET["view"])) {
-		$bigtree["view"] = BigTreeAutoModule::getView($_GET["view"]);
+		$bigtree["view"] = \BigTreeAutoModule::getView($_GET["view"]);
 	}
 	if (isset($_GET["module"])) {
 		$bigtree["module"] = $admin->getModuleByRoute($_GET["module"]);
 	}
 
-	BigTree::globalizeArray($bigtree["view"]);
+	\BigTree::globalizeArray($bigtree["view"]);
 
 	$search = isset($_GET["search"]) ? $_GET["search"] : "";
 	$page = isset($_GET["page"]) ? intval($_GET["page"]) : 1;
@@ -44,7 +42,7 @@
 	$perm = $admin->getAccessLevel($bigtree["module"]);
 		
 	// Handle how many pages we have and get our results.
-	$data = BigTreeAutoModule::getSearchResults($bigtree["view"],$page,$search,$sort,false);
+	$data = \BigTreeAutoModule::getSearchResults($bigtree["view"],$page,$search,$sort,false);
 	$pages = $data["pages"];
 	$items = $data["results"];
 	
@@ -78,7 +76,7 @@
 	<?php
 		}
 	?>
-	<section class="view_status status_<?=$status_class?>"><?=$status?></section>
+	<section class="view_status status_<?=$status_class?>"><?=Text::translate($status)?></section>
 	<?php
 		$iperm = ($perm == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);
 		foreach ($actions as $action => $data) {
@@ -109,9 +107,8 @@
 				if ($data["function"]) {
 					$link = call_user_func($data["function"],$item);
 				}
-				$action = Text::htmlEncode($data["name"]);
 	?>
-	<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>" title="<?=$action?>"></a></section>
+	<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>" title="<?=Text::translate($data["name"], true)?>"></a></section>
 	<?php
 			}
 		}

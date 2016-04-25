@@ -1,3 +1,6 @@
+<?php
+	namespace BigTree;
+?>
 <script>
 	(function() {
 		var Current = false;
@@ -11,10 +14,10 @@
 		$(".table").on("click",".icon_delete",function() {
 			Current = $(this);
 			BigTreeDialog({
-				title: "Delete Item",
-				content: '<p class="confirm">Are you sure you want to delete this item?</p>',
+				title: "<?=Text::translate("Delete Item", true)?>",
+				content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this item?", true)?></p>',
 				icon: "delete",
-				alternateSaveText: "OK",
+				alternateSaveText: "<?=Text::translate("OK", true)?>",
 				callback: function() {
 					// Allow custom delete implementations
 					var href = BigTree.cleanHref(Current.attr("href"));

@@ -5,20 +5,20 @@
 	$force = isset($_GET["force"]) ? true : false;
 	$admin->lockCheck($bigtree["form"]["table"],$bigtree["edit_id"],"admin/auto-modules/forms/_locked.php",$force);
 	
-	$pending_entry = BigTreeAutoModule::getPendingItem($bigtree["form"]["table"],$bigtree["edit_id"]);
-	$original_item = BigTreeAutoModule::getItem($bigtree["form"]["table"],$bigtree["edit_id"]);
+	$pending_entry = \BigTreeAutoModule::getPendingItem($bigtree["form"]["table"],$bigtree["edit_id"]);
+	$original_item = \BigTreeAutoModule::getItem($bigtree["form"]["table"],$bigtree["edit_id"]);
 		
 	if (!$pending_entry) {
 ?>
 <div class="container">
 	<section>
-		<h3>Error</h3>
-		<p>The item you are trying to edit no longer exists.</p>
+		<h3><?=Text::translate("Error")?></h3>
+		<p><?=Text::translate("The item you are trying to edit no longer exists.")?></p>
 	</section>
 </div>
 <?php
 	} else {
-		$bigtree["related_view"] = BigTreeAutoModule::getRelatedViewForForm($bigtree["form"]);				
+		$bigtree["related_view"] = \BigTreeAutoModule::getRelatedViewForForm($bigtree["form"]);				
 		$bigtree["entry"] = $item = $pending_entry["item"];
 
 		// Check access levels

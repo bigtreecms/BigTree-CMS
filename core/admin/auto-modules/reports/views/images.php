@@ -8,7 +8,7 @@
 ?>
 <div class="table auto_modules image_list">
 	<summary>
-		<h2>Filtered Data</h2>
+		<h2><?=Text::translate("Filtered Data")?></h2>
 	</summary>
 	<section>
 		<ul id="image_list">
@@ -55,7 +55,7 @@
 								$action = Text::htmlEncode($data["name"]);
 							}
 				?>
-				<a href="<?=$link?>" class="<?=$class?>" title="<?=$action?>"></a>
+				<a href="<?=$link?>" class="<?=$class?>" title="<?=Text::translate($action, true)?>"></a>
 				<?php
 						}
 					}

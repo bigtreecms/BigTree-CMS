@@ -3,10 +3,10 @@
 	
 	// If it's an AJAX request, get our data.
 	if (isset($_POST["view"])) {
-		$bigtree["view"] = BigTreeAutoModule::getView($_POST["view"]);
+		$bigtree["view"] = \BigTreeAutoModule::getView($_POST["view"]);
 		$bigtree["module"] = $admin->getModule($bigtree["view"]["module"]);
 	}
-	BigTree::globalizeArray($bigtree["view"]);
+	\BigTree::globalizeArray($bigtree["view"]);
 	
 	$permission = $admin->getAccessLevel($bigtree["module"]["id"]);
 	$module_page = ADMIN_ROOT.$bigtree["module"]["route"]."/";
@@ -49,9 +49,9 @@
 	$edit_append = "?view_data=".base64_encode(json_encode(array("view" => $bigtree["view"]["id"], "search" => $search)));
 	
 	// Cache the data in case it's not there.
-	BigTreeAutoModule::cacheViewData($bigtree["view"]);
+	\BigTreeAutoModule::cacheViewData($bigtree["view"]);
 	
-	$groups = BigTreeAutoModule::getGroupsForView($bigtree["view"]);
+	$groups = \BigTreeAutoModule::getGroupsForView($bigtree["view"]);
 ?>
 <header>
 	<?php
@@ -63,8 +63,8 @@
 	<?php
 		}
 	?>
-	<span class="view_status">Status</span>
-	<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><?php if (count($bigtree["view"]["actions"]) > 1) { ?>Actions<?php } ?></span>
+	<span class="view_status"><?=Text::translate("Status")?></span>
+	<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><?php if (count($bigtree["view"]["actions"]) > 1) { echo Text::translate("Actions"); } ?></span>
 </header>
 <?php
 	$gc = 0;
@@ -76,7 +76,7 @@
 			$search_in = $search;
 		}
 		
-		$r = BigTreeAutoModule::getSearchResults($bigtree["view"],1,$search_in,$sort,$group);
+		$r = \BigTreeAutoModule::getSearchResults($bigtree["view"],1,$search_in,$sort,$group);
 		
 		if (count($r["results"])) {
 			$gc++;
@@ -143,9 +143,8 @@
 					if ($data["function"]) {
 						$link = call_user_func($data["function"],$item);
 					}
-					$action = Text::htmlEncode($data["name"]);
 		?>
-		<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>" title="<?=$action?>"></a></section>
+		<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>" title="<?=Text::translate($data["name"], true)?>"></a></section>
 		<?php
 				}
 			}
@@ -156,4 +155,3 @@
 <?php
 		}
 	}
-?>	

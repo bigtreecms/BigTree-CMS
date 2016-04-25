@@ -15,9 +15,9 @@
 
 	foreach ($bigtree["resources"] as &$val) {
 		if (is_array($val)) {
-			$val = BigTree::untranslateArray($val);
+			$val = \BigTree::untranslateArray($val);
 		} elseif (is_array(json_decode($val,true))) {
-			$val = BigTree::untranslateArray(json_decode($val,true));
+			$val = \BigTree::untranslateArray(json_decode($val,true));
 		} else {
 			$val = $cms->replaceInternalPageLinks($val);
 		}
@@ -33,7 +33,7 @@
 <?php
 	}
 ?>
-<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
+<p class="error_message" style="display: none;"><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 <div class="form_fields">
 	<?php
 		if (count($bigtree["callout"]["resources"])) {
@@ -63,7 +63,7 @@
 				$field->draw();
 			}
 		} else {
-			echo '<p>There are no resources for the selected callout.</p>';
+			echo '<p>'.Text::translate("There are no resources for the selected callout.").'</p>';
 		}
 	?>
 </div>

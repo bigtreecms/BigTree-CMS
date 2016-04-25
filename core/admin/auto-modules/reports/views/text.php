@@ -8,7 +8,7 @@
 ?>
 <div class="table auto_modules">
 	<summary>
-		<h2>Filtered Data</h2>
+		<h2><?=Text::translate("Filtered Data")?></h2>
 	</summary>
 	<header>
 		<?php
@@ -20,8 +20,8 @@
 		<?php
 			}
 		?>
-		<span class="view_status">Status</span>		
-		<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><?php if (count($bigtree["view"]["actions"]) > 1) { ?>Actions<?php } ?></span>
+		<span class="view_status"><?=Text::translate("Status")?></span>		
+		<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><?php if (count($bigtree["view"]["actions"]) > 1) { echo Text::translate("Actions"); } ?></span>
 	</header>
 	<ul id="sort_table">
 		<?php
@@ -41,7 +41,7 @@
 			<?php foreach ($bigtree["view"]["fields"] as $key => $field) { ?>
 			<section class="view_column" style="width: <?=$field["width"]?>px;"><?=$item[$key]?></section>
 			<?php } ?>
-			<section class="view_status status_<?=$status_class?>"><?=$status?></section>
+			<section class="view_status status_<?=$status_class?>"><?=Text::translate($status)?></section>
 			<?php
 				foreach ($bigtree["view"]["actions"] as $action => $data) {
 					if ($data == "on") {

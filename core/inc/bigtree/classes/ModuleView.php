@@ -110,12 +110,12 @@
 			}
 
 			// Setup the fields and VALUES to INSERT INTO the cache table.
-			$status = "l";
+			$status = "l"; // Live
 			$pending_owner = 0;
 			if ($item["bigtree_changes"]) {
-				$status = "c";
+				$status = "c"; // Changes Pending
 			} elseif (isset($item["bigtree_pending"])) {
-				$status = "p";
+				$status = "p"; // Completely Pending
 				$pending_owner = $item["bigtree_pending_owner"];
 			}
 
@@ -212,7 +212,7 @@
 			if (SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_module_view_cache WHERE view = ?", $this->ID)) {
 				return false;
 			}
-			
+
 			// Find out what module we're using so we can get the gbp_field
 			$gbp = SQL::fetchSingle("SELECT gbp FROM bigtree_modules WHERE id = ?", $this->Module);
 			$group_based_permissions = json_decode($gbp,true);
@@ -336,7 +336,7 @@
 					$parsers = $poplists = array();
 
 					foreach ($view->Fields as $key => $field) {
-						$form_field = !empty($form["fields"][$key]) ? $form["fields"][$key] : false;
+						$form_field = !empty($form->Fields[$key]) ? $form->Fields[$key] : false;
 
 						if ($field["parser"]) {
 							$parsers[$key] = $field["parser"];
@@ -526,6 +526,7 @@
 			if ($view["preview_url"]) {
 				array_push($view["actions"],array("preview" => "on"));
 			}
+
 
 			// Calculate widths
 			if (count($view["fields"])) {

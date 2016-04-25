@@ -16,7 +16,7 @@
 			?>
 			<div class="sub_section last">
 				<fieldset class="float_margin">
-					<label>Sort By</label>
+					<label><?=Text::translate("Sort By")?></label>
 					<select name="*sort[field]">
 						<?php
 							if ($bigtree["report"]["type"] == "csv") {
@@ -36,16 +36,16 @@
 					</select>
 				</fieldset>
 				<fieldset>
-					<label>Sort Order</label>
+					<label><?=Text::translate("Sort Order")?></label>
 					<select name="*sort[order]">
-						<option value="ASC">Ascending</option>
-						<option value="DESC">Descending</option>
+						<option value="ASC"><?=Text::translate("Ascending")?></option>
+						<option value="DESC"><?=Text::translate("Descending")?></option>
 					</select>
 				</fieldset>
 			</div>
 		</section>
 		<footer>
-			<input type="submit" class="button blue" value="Submit" />
+			<input type="submit" class="button blue" value="<?=Text::translate("Submit", true)?>" />
 		</footer>
 	</form>
 </div>

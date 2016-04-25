@@ -2,7 +2,7 @@
 	if ($_POST["query"]) {
 		$items = $admin->searchResources($_POST["query"]);
 		$perm = "e";
-		$bc = array(array("name" => "Clear Results","id" => ""));
+		$bc = array(array("name" => Text::translate("Clear Results"),"id" => ""));
 	} else {
 		$perm = $admin->getResourceFolderPermission($_POST["folder"]);
 		$items = $admin->getContentsOfResourceFolder($_POST["folder"]);
@@ -12,7 +12,7 @@
 	if (!$_POST["query"] && $_POST["folder"] > 0) {
 		$folder = $admin->getResourceFolder($_POST["folder"]);
 ?>
-<a href="#<?=$folder["parent"]?>" class="file folder back"><span class="icon_small icon_small_back"></span>Back</a>
+<a href="#<?=$folder["parent"]?>" class="file folder back"><span class="icon_small icon_small_back"></span><?=Text::translate("Back")?></a>
 <?php
 	}
 	
@@ -45,7 +45,7 @@
 	BigTreeFileManager.disableCreate();
 	<?php } ?>
 	<?php if ($_POST["query"]) { ?>
-	BigTreeFileManager.setTitleSuffix(": Search Results");
+	BigTreeFileManager.setTitleSuffix(": <?=Text::translate("Search Results")?>");
 	<?php } else { ?>
 	BigTreeFileManager.setTitleSuffix("");
 	<?php } ?>

@@ -653,9 +653,9 @@
 		
 		static function getTagsForEntry($table, $id) {
 			return SQL::fetchAll("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel 
-											  ON bigtree_tags_rel.tag = bigtree_tags.id 
-											  WHERE bigtree_tags_rel.`table` = ? AND bigtree_tags_rel.entry = ? 
-											  ORDER BY bigtree_tags.tag ASC", $table, $id);
+								  ON bigtree_tags_rel.tag = bigtree_tags.id 
+								  WHERE bigtree_tags_rel.`table` = ? AND bigtree_tags_rel.entry = ? 
+								  ORDER BY bigtree_tags.tag ASC", $table, $id);
 		}
 		
 		/*
@@ -691,7 +691,7 @@
 		*/
 		
 		static function getViewData($view, $sort = "id DESC", $type = "both", $group = false) {
-			$view = new BigTree\ModuleView($view);
+			$view = new BigTree\ModuleView($view["id"]);
 
 			return $view->getData($sort, $type, $group);
 		}

@@ -1,6 +1,8 @@
 <?php
+	namespace BigTree;
+
 	if (isset($_POST["view"])) {
-		$bigtree["view"] = BigTreeAutoModule::getView($_POST["view"]);
+		$bigtree["view"] = \BigTreeAutoModule::getView($_POST["view"]);
 		$bigtree["module"] = $admin->getModule($bigtree["view"]["module"]);
 	}
 	
@@ -17,10 +19,10 @@
 	if ((isset($_POST["search"]) && $_POST["search"]) || (isset($_GET["search"]) && $_GET["search"])) {
 		$search = isset($_GET["search"]) ? $_GET["search"] : $_POST["search"];
 		$bigtree["view"]["options"]["per_page"] = 10000000;
-		$r = BigTreeAutoModule::getSearchResults($bigtree["view"],1,$search,"column1 ASC",false);
+		$r = \BigTreeAutoModule::getSearchResults($bigtree["view"],1,$search,"column1 ASC",false);
 		$items = $r["results"];
 	} else {
-		$items = BigTreeAutoModule::getViewData($bigtree["view"],"position DESC, CAST(id AS UNSIGNED) ASC","both");
+		$items = \BigTreeAutoModule::getViewData($bigtree["view"],"position DESC, CAST(id AS UNSIGNED) ASC","both");
 		$search = "";
 	}
 	
@@ -99,4 +101,4 @@
 </li>
 <?php
 	}
-?>
+	

@@ -726,15 +726,14 @@
 				"title" => $form["title"],
 				"table" => $form["table"],
 				"settings" => array(
-					"fields" => $form["fields"],
+					"fields" => json_decode($form["fields"], true),
 					"default_position" => $form["default_position"],
 					"return_view" => $form["return_view"],
 					"return_url" => $form["return_url"],
 					"tagging" => $form["tagging"],
-					"hooks" => $form["hooks"]
+					"hooks" => json_decode($form["hooks"], true);
 				)
-			))
-			;
+			));
 		}
 
 		// Views
@@ -747,9 +746,9 @@
 				"table" => $view["table"],
 				"settings" => array(
 					"type" => $view["type"],
-					"fields" => $view["fields"],
-					"options" => $view["options"],
-					"actions" => $view["actions"],
+					"fields" => json_decode($view["fields"], true),
+					"options" => json_decode($view["options"], true),
+					"actions" => json_decode($view["actions"], true),
 					"preview_url" => $view["preview_url"],
 					"related_form" => $interface_references["forms"][$view["related_form"]]
 				)
@@ -776,8 +775,8 @@
 				"table" => $report["table"],
 				"settings" => array(
 					"type" => $report["type"],
-					"fields" => $report["fields"],
-					"filters" => $report["filters"],
+					"fields" => json_decode($report["fields"], true),
+					"filters" => json_decode($report["filters"], true),
 					"parser" => $report["parser"],
 					"view" => $report["view"]
 				)
@@ -793,14 +792,14 @@
 				"title" => $form["title"],
 				"table" => $form["table"],
 				"settings" => array(
-					"fields" => $form["fields"],
+					"fields" => json_decode($form["fields"], true),
 					"default_position" => $form["default_position"],
 					"default_pending" => $form["default_pending"],
 					"css" => $form["css"],
 					"hash" => $form["hash"],
 					"redirect_url" => $form["redirect_url"],
 					"thank_you_message" => $form["thank_you_message"],
-					"hooks" => $form["hooks"]
+					"hooks" => json_decode($form["hooks"], true)
 				)
 			));
 		}

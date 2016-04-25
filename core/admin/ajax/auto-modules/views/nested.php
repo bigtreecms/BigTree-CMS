@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	if ((isset($_POST["search"]) && $_POST["search"]) || (isset($_GET["search"]) && $_GET["search"])) {
 		include "draggable.php";
 ?>
@@ -6,7 +8,7 @@
 <?php
 	} else {
 		if (isset($_POST["view"])) {
-			$bigtree["view"] = BigTreeAutoModule::getView($_POST["view"]);
+			$bigtree["view"] = \BigTreeAutoModule::getView($_POST["view"]);
 			$bigtree["module"] = $admin->getModule($bigtree["view"]["module"]);
 		}
 	
@@ -23,7 +25,7 @@
 
 			foreach ($items as $item) {
 				$expanded = !empty($_COOKIE["bigtree_admin"]["nested_views"][$bigtree["view"]["id"]][$item["id"]]) ? true : false;
-				$children = BigTreeAutoModule::getViewDataForGroup($bigtree["view"],$item["id"],"position DESC, id ASC","both");
+				$children = \BigTreeAutoModule::getViewDataForGroup($bigtree["view"],$item["id"],"position DESC, id ASC","both");
 				
 				// Stop the item status notice
 				if (!isset($item["status"])) {
@@ -63,7 +65,7 @@
 	<?php
 				}
 	?>
-	<section class="view_status status_<?=$status_class?>"><?=$status?></section>
+	<section class="view_status status_<?=$status_class?>"><?=Text::translate($status)?></section>
 	<?php
 				$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);
 				foreach ($bigtree["view"]["actions"] as $action => $data) {
@@ -115,11 +117,11 @@
 			}
 		}
 
-		$table_description = BigTree::describeTable($bigtree["view"]["table"]);
+		$table_description = SQL::describeTable($bigtree["view"]["table"]);
 		if ($table_description["columns"][$bigtree["view"]["options"]["nesting_column"]]["allow_null"]) {
-			_localDrawLevel(BigTreeAutoModule::getViewDataForGroup($bigtree["view"],"","position DESC, id ASC","both"),1);
+			_localDrawLevel(\BigTreeAutoModule::getViewDataForGroup($bigtree["view"],"","position DESC, id ASC","both"),1);
 		} else {
-			_localDrawLevel(BigTreeAutoModule::getViewDataForGroup($bigtree["view"],"0","position DESC, id ASC","both"),1);
+			_localDrawLevel(\BigTreeAutoModule::getViewDataForGroup($bigtree["view"],"0","position DESC, id ASC","both"),1);
 		}
 ?>
 <script>
@@ -130,4 +132,3 @@
 </script>
 <?php
 	}
-?>

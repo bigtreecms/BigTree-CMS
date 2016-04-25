@@ -37,7 +37,17 @@
 		if (($permission == "p" && $draggable) || isset($view["actions"]["edit"])) {
 	?>
 	<summary>
-		<p><?php if ($permission == "p" && $draggable) { ?>Click and drag the light gray area of an item to sort the images. <?php } ?><?php if (isset($view["actions"]["edit"])) { ?>Click an image to edit it.<?php } ?></p>
+		<p>
+			<?php
+				if ($permission == "p" && $draggable) { 
+					echo Text::translate("Click and drag the light gray area of an item to sort the images."); 
+				}
+
+				if (isset($view["actions"]["edit"])) { 
+					echo Text::translatE("Click an image to edit it.");
+				}
+			?>
+		</p>
 	</summary>
 	<?php
 		}
@@ -48,7 +58,7 @@
 			$items = BigTreeAutoModule::getViewDataForGroup($bigtree["view"],$group,$order,"active");
 			$pending_items = BigTreeAutoModule::getViewDataForGroup($bigtree["view"],$group,$order,"pending");
 	?>
-	<header class="group"><?=(isset($group_title_overrides[$title]) ? $group_title_overrides[$title] : $title)?></header>
+	<header class="group"><?=Text::translate((isset($group_title_overrides[$title]) ? $group_title_overrides[$title] : $title))?></header>
 	<section>
 		<?php
 			if (count($items)) {
@@ -113,7 +123,7 @@
 			
 			if (count($pending_items)) {
 		?>
-		<header class="image_pending_divider">Pending Entries</header>
+		<header class="image_pending_divider"><?=Text::translate("Pending Entries")?></header>
 		<ul>
 			<?php
 				foreach ($pending_items as $item) {
@@ -150,10 +160,9 @@
 									if ($data["function"]) {
 										$link = call_user_func($data["function"],$item);
 									}
-									$action = Text::htmlEncode($data["name"]);
 								}
 				?>
-				<a href="<?=$link?>" class="<?=$class?>" title="<?=$action?>"></a>
+				<a href="<?=$link?>" class="<?=$class?>" title="<?=Text::translate($data["name"], true)?>"></a>
 				<?php
 							}
 						}

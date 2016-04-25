@@ -26,13 +26,23 @@
 		if (($permission == "p" && $draggable) || isset($view["actions"]["edit"])) {
 	?>
 	<summary>
-		<p><?php if ($permission == "p" && $draggable) { ?>Click and drag the light gray area of an item to sort the images. <?php } ?><?php if (isset($view["actions"]["edit"])) { ?>Click an image to edit it.<?php } ?></p>
+		<p>
+			<?php
+				if ($permission == "p" && $draggable) {
+					echo Text::translate("Click and drag the light gray area of an item to sort the images.");
+				}
+
+				if (isset($view["actions"]["edit"])) {
+					echo Text::translate("Click an image to edit it.");
+				}
+			?>
+		</p>
 	</summary>
 	<?php
 		}
 		if (count($pending_items)) {
 	?>
-	<header><span>Active</span></header>
+	<header><span><?=Text::translate("Active")?></span></header>
 	<?php
 		}
 	?>
@@ -81,7 +91,7 @@
 									$action = Text::htmlEncode($data["name"]);
 								}
 				?>
-				<a href="<?=$link?>" class="<?=$class?>" title="<?=$action?>"></a>
+				<a href="<?=$link?>" class="<?=$class?>" title="<?=Text::translate($action, true)?>"></a>
 				<?php
 							}
 						}
@@ -94,7 +104,7 @@
 		</ul>
 	</section>
 	<?php if (count($pending_items)) { ?>
-	<header><span>Pending</span></header>
+	<header><span><?=Text::translate("Pending")?></span></header>
 	<section>
 		<ul>
 			<?php
@@ -135,7 +145,7 @@
 									$action = Text::htmlEncode($data["name"]);
 								}
 				?>
-				<a href="<?=$link?>" class="<?=$class?>" title="<?=$action?>"></a>
+				<a href="<?=$link?>" class="<?=$class?>" title="<?=Text::translate($action, true)?>"></a>
 				<?php
 							}
 						}
