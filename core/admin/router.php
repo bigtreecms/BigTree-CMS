@@ -13,6 +13,7 @@
 	// If we're routing through * it means we're accessing an extension's assets
 	if ($bigtree["path"][1] == "*") {
 		define("EXTENSION_ROOT",$server_root."extensions/".$bigtree["path"][2]."/");
+		$bigtree["extension_context"] = $bigtree["path"][2];
 		$bigtree["path"] = array_merge(array($bigtree["path"][0]),array_slice($bigtree["path"],3));
 	}
 
@@ -345,6 +346,7 @@
 		$bigtree["current_module"] = $bigtree["module"] = $module;
 		define("MODULE_ROOT",ADMIN_ROOT.$module["route"]."/");
 		if ($module["extension"]) {
+			$bigtree["extension_context"] = $module["extension"];
 			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$module["extension"]."/");
 		}
 

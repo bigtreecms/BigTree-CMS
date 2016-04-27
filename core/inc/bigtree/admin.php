@@ -2362,12 +2362,20 @@
 
 			// Prevent path abuse
 			$field["type"] = BigTree::cleanFile($field["type"]);
+
+			// Save current context
+			$bigtree["saved_extension_context"] = $bigtree["extension_context"];
+
+			// Get path and set context
 			if (strpos($field["type"],"*") !== false) {
 				list($extension,$field_type) = explode("*",$field["type"]);
+
+				$bigtree["extension_context"] = $extension;
 				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/draw.php";
 			} else {
 				$field_type_path = BigTree::path("admin/form-field-types/draw/".$field["type"].".php");
 			}
+
 			if (file_exists($field_type_path)) {
 				// Don't draw the fieldset for field types that are declared as self drawing.
 				if ($bigtree["field_types"][$field["type"]]["self_draw"]) {
@@ -2383,8 +2391,12 @@
 <?
 					$bigtree["tabindex"]++;
 				}
+
 				$bigtree["last_resource_type"] = $field["type"];
 			}
+
+			// Restore context
+			$bigtree["extension_context"] = $bigtree["saved_extension_context"];
 		}
 
 		/*

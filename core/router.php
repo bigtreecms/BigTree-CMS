@@ -194,6 +194,7 @@
 		if ($bigtree["path"][0] == "*") {
 			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$bigtree["path"][1]."/");
 			$base_path = EXTENSION_ROOT;
+			$bigtree["extension_context"] = $bigtree["path"][1];
 			list($inc,$commands) = BigTree::route($base_path."templates/ajax/",array_slice($bigtree["path"],3));
 		} else {
 			$base_path = SERVER_ROOT;
@@ -347,6 +348,7 @@
 		if (strpos($bigtree["page"]["template"],"*") !== false) {
 			list($extension,$template) = explode("*",$bigtree["page"]["template"]);
 			define("EXTENSION_ROOT",SERVER_ROOT."extensions/$extension/");
+			$bigtree["extension_context"] = $extension;
 		} else {
 			$extension = false;
 		}

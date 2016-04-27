@@ -361,21 +361,27 @@
 		*/
 
 		static function extensionSettingCheck($id) {
+			global $bigtree;
+
 			$id = sqlescape($id);
 
 			// See if we're in an extension
-			if (defined("EXTENSION_ROOT")) {
-				$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
+			if ($bigtree["extension_context"]) {
+				$extension = $bigtree["extension_context"];
+
 				// If we're already asking for it by it's namespaced name, don't append again.
 				if (substr($id,0,strlen($extension)) == $extension) {
 					return $id;
 				}
+
 				// See if namespaced version exists
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$extension*$id'"));
+				$f = sqlfetch(sqlquery("SELECT id FROM bigtree_settings WHERE id = '$extension*$id'"));
+
 				if ($f) {
 					return "$extension*$id";
 				}
 			}
+
 			return $id;
 		}
 		
