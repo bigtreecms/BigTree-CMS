@@ -276,6 +276,8 @@
 		$commands = $bigtree["commands"]; // Backwards compatibility
 		$navid = $bigtree["path"][1];
 		header("X-Robots-Tag: noindex");
+
+		define("BIGTREE_PREVIEWING_PENDING", true);
 	}
 	
 	// So we don't lose this.
@@ -361,6 +363,12 @@
 			} else {
 				$path_components = $bigtree["path"];
 			}
+
+			// If we're previewing a pending page, the path components are different
+			if (defined("BIGTREE_PREVIEWING_PENDING")) {
+				$path_components = array_slice($bigtree["path"],2);
+			}
+
 			if (end($path_components) === "") {
 				array_pop($path_components);
 			}
