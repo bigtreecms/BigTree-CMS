@@ -2,15 +2,23 @@
 	namespace BigTree;
 
 	$admin->requireLevel(1);
+	$settings = Setting::all("name ASC", true);
 
-	$settings = Setting::all("name ASC",true);
-	foreach ($settings as &$item) {
-		if ($item["encrypted"]) {
-			$item["value"] = "&mdash; Encrypted Value &mdash;";
-		} elseif (is_array($item["value"]) || ($item["value"] && !strlen(trim(strip_tags($item["value"]))))) {
-			$item["value"] = "&mdash; Edit To View &mdash;";
+	foreach ($settings as $key => $item) {
+		if ($item["system"] || $item["locked"] && $admin->Level < 2) {
+			unset($settings[$key]);
 		} else {
-			$item["value"] = Text::trimLength(strip_tags($item["value"]),100);
+			if ($item["encrypted"]) {
+				$settings[$key]["value"] = "&mdash; ".Text::translate("Encrypted Value")." &mdash;";
+			} else {
+				$item["value"] = json_decode($item["value"], true);
+				
+				if (is_array($item["value"]) || ($item["value"] && !strlen(trim(strip_tags($item["value"]))))) {
+					$settings[$key]["value"] = "&mdash; ".Text::translate("Edit To View")." &mdash;";
+				} else {
+					$settings[$key]["value"] = Text::trimLength(strip_tags($item["value"]),100);
+				}
+			}
 		}
 	}
 ?>
@@ -19,8 +27,8 @@
 	BigTreeTable({
 		container: "#settings_table",
 		columns: {
-			name: { title: "Name", sort: "asc", size: 0.3 },
-			value: { title: "Value" }
+			name: { title: "<?=Text::translate("Name", true)?>", sort: "asc", size: 0.3 },
+			value: { title: "<?=Text::translate("Value", true)?>" }
 		},
 		actions: {
 			edit: "<?=ADMIN_ROOT?>settings/edit/{id}/"

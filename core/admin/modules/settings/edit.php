@@ -4,6 +4,7 @@
 	$admin->requireLevel(1);
 	$item = $admin->getSetting(end($bigtree["path"]));
 	$value = $cms->getSetting(end($bigtree["path"]));
+	
 	if ($item["encrypted"]) {
 		$value = "";
 	}
@@ -26,11 +27,11 @@
 	<summary>
 		<h2><?=$item["name"]?></h2>
 		<?php if ($admin->Level > 1) { ?>
-		<a class="button" href="<?=ADMIN_ROOT?>developer/settings/edit/<?=$item["id"]?>/?return=front">Edit in Developer</a>
+		<a class="button" href="<?=ADMIN_ROOT?>developer/settings/edit/<?=$item["id"]?>/?return=front"><?=Text::translate("Edit in Developer")?></a>
 		<?php } ?>
 	</summary>
 	<form class="module" action="<?=ADMIN_ROOT?>settings/update/" method="post" enctype="multipart/form-data">
-		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
+		<input type="hidden" name="MAX_FILE_SIZE" value="<?=\BigTree::uploadMaxFileSize()?>" />
 		<input type="hidden" name="_bigtree_post_check" value="success" />
 		<input type="hidden" name="id" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />
 		<section>
@@ -39,7 +40,7 @@
 			?>
 			<div class="alert">
 				<span></span>
-				<p>This setting is encrypted. The current value cannot be shown.</p>
+				<p><?=Text::translate("This setting is encrypted. The current value cannot be shown.")?></p>
 			</div>
 			<?php
 				}
@@ -47,7 +48,7 @@
 				if ($_SESSION["bigtree_admin"]["post_max_hit"]) {
 					unset($_SESSION["bigtree_admin"]["post_max_hit"]);
 			?>
-			<p class="warning_message">The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.</p>
+			<p class="warning_message"><?=Text::translate("The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.")?></p>
 			<?php
 				}
 
@@ -58,7 +59,7 @@
 					$bigtree["html_fields"] = array();
 					$bigtree["simple_html_fields"] = array();
 					
-					$field = new BigTree\Field(array(
+					$field = new Field(array(
 						"type" => $item["type"],
 						"title" => "",
 						"subtitle" => "",
@@ -73,7 +74,7 @@
 			</div>
 		</section>
 		<footer>
-			<input type="submit" class="button blue" value="Update" />		
+			<input type="submit" class="button blue" value="<?=Text::translate("Update", true)?>" />		
 		</footer>
 	</form>
 </div>

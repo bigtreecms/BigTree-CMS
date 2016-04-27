@@ -24,6 +24,8 @@
 		public $Type;
 		public $Value;
 
+		static $Table = "bigtree_settings";
+
 		/*
 			Constructor:
 				Builds a Setting object referencing an existing database entry.
@@ -255,6 +257,9 @@
 				} else {
 					$value = Link::encode($this->Value);
 				}
+
+				// Settings always expect JSON encoded value
+				$value = json_encode($value);
 	
 				if ($this->Encrypted) {
 					SQL::query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?,?) WHERE id = ?", 
