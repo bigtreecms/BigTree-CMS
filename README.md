@@ -20,6 +20,39 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.10 Release
+- UPDATED: Data parsers can now be used in both CSV reports and filtered view reports (thanks Jordan Mason)
+- UPDATED: TinyMCE to 4.3.10 (default config file settings now include the minified version rather than the developer version)
+- FIXED: Dropdowns with long options falling outside viewport (thanks Jordan Mason)
+- FIXED: Grammar errors (thanks Jordan Mason)
+- FIXED: Warnings appearing in CSV reports (thanks Jordan Mason)
+- FIXED: Twitter API not properly uploading images to tweets on PHP 5.5+
+- FIXED: BigTreeCMS::cacheDelete not being static
+- FIXED: Group Based Permissions not properly working in List field types
+- FIXED: Some documentation errors
+- FIXED: Administrator level users being able to access Developer level module actions
+- FIXED: Image upload fields accepting non-image file types (thanks dantaex)
+- FIXED: Generated URLs being incorrect when trailing slash behavior was set to remove
+- FIXED: Password reset hash to be slightly more secure and less random
+- FIXED: Page caching now works better with URLs that don't end in /
+- FIXED: BigTree::globalizeArray for arrays that contained the "key" array key (fixes editing Amazon S3 settings)
+- FIXED: Missing configuration based CSS/JS in Front End Editor view
+- FIXED: Nested callouts not working properly
+- FIXED: Incorrect PHP -> jQuery date format conversion
+- FIXED: Date range filters in reports
+- FIXED: Trunk and Redirect Lower not showing up when creating pages
+- FIXED: Embeddable Forms not working correctly for users that aren't logged into the admin
+- FIXED: BigTreeModule::getRecent and BigTreeModule::getUpcoming when the entries were on the current date
+- FIXED: BigTreeAdmin::ungrowl not doing anything
+- FIXED: State/Country list abbreviations when using the Address sub-type of a Text field
+- FIXED: Inability to edit users when using a protocol agnostic admin_root setting
+- FIXED: Lingering escape key hook after uploading a file to the File Manager
+- FIXED: Matrix/Callout fields not stripping HTML when setting the entry's title/subtitle
+- FIXED: Tooltips staying in DOM at 0% opacity (and block user actions)
+- FIXED: Field Types in extensions not getting the proper context (making them unable to access non-namespaced settings)
+- FIXED: $bigtree["commands"] array being incorrect when accessing a routed template that is a pending page
+- REMOVED: Yahoo BOSS and Yahoo Geocoder APIs (these were EOL'd by Yahoo some time ago and no longer work)
+
 ### 4.2.9 Release
 - ADDED: Clear Label button to callout editor in case you don't want to use any resource for the label
 - ADDED: $_SESSION["bigtree_referring_url"] is now set when your site is in maintenance mode (for use by your maintenance template for logging)
