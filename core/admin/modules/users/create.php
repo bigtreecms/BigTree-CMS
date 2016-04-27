@@ -28,9 +28,9 @@
 			$level = $admin->Level;
 		}
 
-		$id = User::create($email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest);
+		$user = User::create($email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest);
 			
-		if (!$id) {
+		if ($user === false) {
 			$_SESSION["bigtree_admin"]["create_user"] = $_POST;
 			$_SESSION["bigtree_admin"]["create_user"]["error"] = "email";
 			$admin->growl("Users","Creation Failed","error");
@@ -38,6 +38,6 @@
 		}
 	
 		$admin->growl("Users","Added User");
-		Router::redirect(ADMIN_ROOT."users/edit/$id/");
+		Router::redirect(ADMIN_ROOT."users/edit/".$user->ID."/");
 	}
 ?>

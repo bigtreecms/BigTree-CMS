@@ -74,7 +74,7 @@
 				daily_digest - Whether the user wishes to receive the daily digest email
 
 			Returns:
-				id of the newly created user or false if a user already exists with the provided email
+				A USer object of the newly created user or false if a user already exists with the provided email
 		*/
 
 		static function create($email,$password = "",$name = "",$company = "",$level = 0,$permissions = array(),$alerts = array(),$daily_digest = "") {
@@ -96,8 +96,8 @@
 				"name" => Text::htmlEncode($name),
 				"company" => Text::htmlEncode($company),
 				"level" => intval($level),
-				"permissions" => $permissions,
-				"alerts" => $alerts,
+				"permissions" => $permissions ?: "{}",
+				"alerts" => $alerts ?: "{}",
 				"daily_digest" => ($daily_digest ? "on" : "")
 			));
 
