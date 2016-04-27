@@ -139,10 +139,12 @@
 		*/
 
 		static function context($id) {
+			global $bigtree;
+
 			// See if we're in an extension
-			if (defined("EXTENSION_ROOT")) {
-				$extension = rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/");
-				
+			if (!empty($bigtree["extension_context"])) {
+				$extension = $bigtree["extension_context"]
+
 				// If we're already asking for it by it's namespaced name, don't append again.
 				if (substr($id,0,strlen($extension)) == $extension) {
 					return $id;

@@ -74,9 +74,14 @@
 				$this->Required = true;
 			}
 
+			// Save current context
+			$bigtree["saved_extension_context"] = $bigtree["extension_context"];
+
 			// Get the field path in case it's an extension field type
 			if (strpos($this->Type,"*") !== false) {
 				list($extension,$field_type) = explode("*",$this->Type);
+
+				$bigtree["extension_context"] = $extension;
 				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/draw.php";
 			} else {
 				$field_type_path = Router::getIncludePath("admin/form-field-types/draw/".$this->Type.".php");
@@ -109,6 +114,9 @@
 
 				$bigtree["last_resource_type"] = $this->Type;
 			}
+
+			// Restore context
+			$bigtree["extension_context"] = $bigtree["saved_extension_context"];
 		}
 
 		/*
@@ -210,6 +218,9 @@
 		function process() {
 			global $admin,$bigtree,$cms,$db;
 
+			// Save current context
+			$bigtree["saved_extension_context"] = $bigtree["extension_context"];
+
 			// Backwards compatibility
 			$field = $this->Array;
 			$this->Settings = $this->Settings;
@@ -217,6 +228,8 @@
 			// Check if the field type is stored in an extension
 			if (strpos($this->Type,"*") !== false) {
 				list($extension,$field_type) = explode("*",$this->Type);
+
+				$bigtree["extension_context"] = $extension;
 				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/process.php";
 			} else {
 				$field_type_path = Router::getIncludePath("admin/form-field-types/process/".$this->Type.".php");
@@ -259,6 +272,9 @@
 			} else {
 				$output = Link::encode($output);
 			}
+
+			// Restore context
+			$bigtree["extension_context"] = $bigtree["saved_extension_context"];
 
 			return $output;
 		}

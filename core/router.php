@@ -217,7 +217,9 @@
 	// Handle AJAX calls.
 	if ($bigtree["path"][0] == "ajax" || ($bigtree["path"][0] == "*" && $bigtree["path"][2] == "ajax")) {
 		if ($bigtree["path"][0] == "*") {
+			$bigtree["extension_context"] = $bigtree["path"][1];
 			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$bigtree["path"][1]."/");
+
 			$base_path = EXTENSION_ROOT;
 			list($inc,$commands) = Router::getRoutedFileAndCommands($base_path."templates/ajax/",array_slice($bigtree["path"],3));
 		} else {
@@ -400,6 +402,8 @@
 		// Setup extension handler for templates
 		if (strpos($bigtree["page"]["template"],"*") !== false) {
 			list($extension,$template) = explode("*",$bigtree["page"]["template"]);
+
+			$bigtree["extension_context"] = $extension;
 			define("EXTENSION_ROOT",SERVER_ROOT."extensions/$extension/");
 		} else {
 			$extension = false;
