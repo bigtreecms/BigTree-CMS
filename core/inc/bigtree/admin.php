@@ -5957,9 +5957,14 @@
 		static function processField($field) {
 			global $admin,$bigtree,$cms;
 
+			// Save current context
+			$bigtree["saved_extension_context"] = $bigtree["extension_context"];
+
 			// Check if the field type is stored in an extension
 			if (strpos($field["type"],"*") !== false) {
 				list($extension,$field_type) = explode("*",$field["type"]);
+
+				$bigtree["extension_context"] = $extension;
 				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/process.php";
 			} else {
 				$field_type_path = BigTree::path("admin/form-field-types/process/".$field["type"].".php");
@@ -6000,6 +6005,9 @@
 			} else {
 				$output = $admin->autoIPL($output);
 			}
+
+			// Restore context
+			$bigtree["extension_context"] = $bigtree["saved_extension_context"];
 
 			return $output;
 		}
