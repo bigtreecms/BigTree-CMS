@@ -1,7 +1,10 @@
+<?php
+	namespace BigTree;
+?>
 <div class="container">
 	<section>
 		<p>
-			BigTree wouldn't have been possible without the tireless work of the open source community - and as our way of saying thanks, we decided to open it up. We'd also like to take a moment to thank those whose work is included in BigTree.
+			<?=Text::translate("BigTree wouldn't have been possible without the tireless work of the open source community - and as our way of saying thanks, we decided to open it up. We'd also like to take a moment to thank those whose work is included in BigTree.")?>
 		</p>
 	</section>
 	<hr style="margin: 0 0 -5px;" />

@@ -8,12 +8,12 @@
 ?>
 <div class="container">
 	<section>
-		<p>To create a user, please access the <a href="<?=ADMIN_ROOT?>users/add/">Add User</a> page.</p>
+		<p><?=Text::translate("To create a user, please access the")?> <a href="<?=ADMIN_ROOT?>users/add/"><?=Text::translate("Add User")?></a> <?=Text::translate("page")?>.</p>
 	</section>
 </div>
 <?php
 	} else {
-		BigTree::globalizePOSTVars();
+		\BigTree::globalizePOSTVars();
 
 		// Check security policy
 		if (!$admin->validatePassword($password)) {
@@ -28,7 +28,7 @@
 			$level = $admin->Level;
 		}
 
-		$id = BigTree\User::create($email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest);
+		$id = User::create($email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest);
 			
 		if (!$id) {
 			$_SESSION["bigtree_admin"]["create_user"] = $_POST;

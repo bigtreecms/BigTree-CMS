@@ -282,6 +282,8 @@
 		$bigtree["commands"] = array();
 		$commands = $bigtree["commands"]; // Backwards compatibility
 		$navid = $bigtree["path"][1];
+		
+		define("BIGTREE_PREVIEWING_PENDING", true);
 		header("X-Robots-Tag: noindex");
 	}
 	
@@ -428,6 +430,7 @@
 				// Emulate commands at indexes as well as with requested variable keys
 				$bigtree["commands"] = array();
 				$x = 0;
+				
 				foreach ($registry_commands as $key => $value) {
 					$bigtree["commands"][$x] = $bigtree["commands"][$key] = $value;
 					$x++;
@@ -444,16 +447,25 @@
 				} else {
 					$path_components = $bigtree["path"];
 				}
+
+				// If we're previewing a pending page, the path components are different
+				if (defined("BIGTREE_PREVIEWING_PENDING")) {
+					$path_components = array_slice($bigtree["path"],2);
+				}
+
 				if (end($path_components) === "") {
 					array_pop($path_components);
 				}
+
 				if ($extension) {
 					list($inc,$commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."extensions/$extension/templates/routed/$template/",$path_components);
 				} else {
 					list($inc,$commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/",$path_components);
 				}
+
 				$bigtree["routed_inc"] = $inc;
 				$bigtree["commands"] = $commands;
+
 				if (count($commands)) {
 					$bigtree["routed_path"] = $bigtree["module_path"] = array_slice($path_components,0,-1 * count($commands));
 				} else {

@@ -20,12 +20,12 @@
 	<?php
 		if (!empty($bigtree["ban_expiration"])) {
 	?>
-	<p class="error_message clear">You are temporarily banned due to failed login attempts.<br />You may try logging in again after <?=$bigtree["ban_expiration"]?>.</p>
+	<p class="error_message clear"><?=Text::translate("You are temporarily banned due to failed login attempts.<br />You may try logging in again after")?> <?=$bigtree["ban_expiration"]?>.</p>
 	<?php
 			if ($bigtree["ban_is_user"]) {
 	?>
 	<fieldset>
-		<p>You may <a href="<?=$login_root?>forgot-password/">reset your password</a> to remove your ban.</p>
+		<p><?=Text::translate("You may")?> <a href="<?=$login_root?>forgot-password/"><?=Text::translate("reset your password")?></a> <?=Text::translate("to remove your ban")?>.</p>
 	</fieldset>
 	<br />
 	<?php
@@ -33,22 +33,22 @@
 		} else {
 			if ($failure) {
 	?>
-	<p class="error_message clear">You've entered an invalid email address and/or password.</p>
+	<p class="error_message clear"><?=Text::translate("You've entered an invalid email address and/or password.")?></p>
 	<?php
 			}
 	?>
 	<fieldset>
-		<label>Email</label>
+		<label><?=Text::translate("Email")?></label>
 		<input type="email" id="user" name="user" class="text" value="<?=$user?>" />
 	</fieldset>
 	<fieldset>
-		<label>Password</label>
+		<label><?=Text::translate("Password")?></label>
 		<input type="password" id="password" name="password" class="text" />
-		<p><input type="checkbox" name="stay_logged_in" checked="checked" /> Remember Me</p>
+		<p><input type="checkbox" name="stay_logged_in" checked="checked" /> <?=Text::translate("Remember Me")?></p>
 	</fieldset>
 	<fieldset class="lower">
-		<a href="<?=$login_root?>forgot-password/" class="forgot_password">Forgot Password?</a>
-		<input type="submit" class="button blue" value="Login" />
+		<a href="<?=$login_root?>forgot-password/" class="forgot_password"><?=Text::translate("Forgot Password?")?></a>
+		<input type="submit" class="button blue" value="<?=Text::translate("Login", true)?>" />
 	</fieldset>
 	<?php
 		}

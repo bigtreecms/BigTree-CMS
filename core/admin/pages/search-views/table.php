@@ -14,7 +14,7 @@
 	$items = BigTreeAutoModule::parseViewData($view,$items);
 ?>
 <div class="table" style="margin: 0;">
-	<summary><h2>Search Results</h2></summary>
+	<summary><h2><?=Text::translate("Search Results")?></h2></summary>
 	<header>
 		<?php
 			$x = 0;
@@ -25,7 +25,7 @@
 		<?php
 			}
 		?>
-		<span class="view_action" style="width: <?=(count($actions) * 40)?>px;">Actions</span>
+		<span class="view_action" style="width: <?=(count($actions) * 40)?>px;"><?=Text::translate("Actions")?></span>
 	</header>
 	<ul id="results_table_<?=$view["id"]?>">
 		<?php foreach ($items as $item) { ?>
@@ -73,10 +73,10 @@
 			
 	$("#results_table_<?=$view["id"]?> .icon_delete").click(function() {
 		BigTreeDialog({
-			title: "Delete Item",
-			content: '<p class="confirm">Are you sure you want to delete this item?',
+			title: "<?=Text::translate("Delete Item")?>",
+			content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this item?")?>',
 			icon: "delete",
-			alternateSaveText: "OK",
+			alternateSaveText: "<?=Text::translate("OK")?>",
 			callback: $.proxy(function() {
 				$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$view["id"]?>&id=" + $(this).attr("href").substr(1));
 				$(this).parents("li").remove();

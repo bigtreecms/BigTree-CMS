@@ -143,7 +143,7 @@
 
 			// See if we're in an extension
 			if (!empty($bigtree["extension_context"])) {
-				$extension = $bigtree["extension_context"]
+				$extension = $bigtree["extension_context"];
 
 				// If we're already asking for it by it's namespaced name, don't append again.
 				if (substr($id,0,strlen($extension)) == $extension) {

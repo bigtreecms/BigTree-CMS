@@ -15,18 +15,18 @@
 	BigTreeTable({
 		container: "#user_table",
 		columns: {
-			name: { title: "Name", source: '<span class="gravatar"><img src="{gravatar}" alt="" /></span>{name}', size: 0.4, sort: "asc" },
-			email: { title: "Email", size: 0.3 },
-			company: { title: "Company", size: 0.3 }
+			name: { title: "<?=Text::translate("Name", true)?>", source: '<span class="gravatar"><img src="{gravatar}" alt="" /></span>{name}', size: 0.4, sort: "asc" },
+			email: { title: "<?=Text::translate("Email", true)?>", size: 0.3 },
+			company: { title: "<?=Text::translate("Company", true)?>", size: 0.3 }
 		},
 		actions: {
 			edit: "<?=ADMIN_ROOT?>users/edit/{id}/",
 			delete: function(id,state) {
 				BigTreeDialog({
-					title: "Delete User",
-					content: '<p class="confirm">Are you sure you want to delete this user?</p>',
+					title: "<?=Text::translate("Delete User", true)?>",
+					content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this user?", true)?></p>',
 					icon: "delete",
-					alternateSaveText: "OK",
+					alternateSaveText: "<?=Text::translate("OK", true)?>",
 					callback: function() {
 						document.location.href = "<?=ADMIN_ROOT?>users/delete/" + id + "/";
 					}

@@ -10,7 +10,7 @@
 ?>
 <div class="container">
 	<section>
-		<p>To update a user, please access the <a href="<?=ADMIN_ROOT?>users/edit/<?=$id?>/">Edit User</a> page.</p>
+		<p><?=Text::translate("To update a user, please access the")?> <a href="<?=ADMIN_ROOT?>users/edit/<?=$id?>/"><?=Text::translate("Edit User")?></a> <?=Text::translate("page")?>.</p>
 	</section>
 </div>
 <?php

@@ -149,41 +149,41 @@
 	<form class="module" action="<?=ADMIN_ROOT?>users/update/" method="post">
 		<input type="hidden" name="id" value="<?=$user["id"]?>" />
 		<section>
-			<p class="error_message"<?php if (!$error) { ?> style="display: none;"<?php } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
+			<p class="error_message"<?php if (!$error) { ?> style="display: none;"<?php } ?>><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 			<div class="left">
 				<fieldset<?php if ($error == "email") { ?> class="form_error"<?php } ?> style="position: relative;">
-					<label class="required">Email <small>(Profile images from <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <?php if ($error == "email") { ?><span class="form_error_reason">Already In Use By Another User</span><?php } ?></label>
+					<label class="required"><?=Text::translate("Email")?> <small>(<?=Text::translate("Profile images from")?> <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <?php if ($error == "email") { ?><span class="form_error_reason"><?=Text::translate("Already In Use By Another User")?></span><?php } ?></label>
 					<input type="text" class="required email" name="email" autocomplete="off" value="<?=htmlspecialchars($email)?>" tabindex="1" />
 					<span class="gravatar"<?php if ($email) { ?> style="display: block;"<?php } ?>><img src="<?=\BigTree::gravatar($email, 36)?>" alt="" /></span>
 				</fieldset>
 				
 				<fieldset<?php if ($error == "password") { ?> class="form_error"<?php } ?> >
-					<label>Password <small>(Leave blank to remain unchanged)</small> <?php if ($error == "password") { ?><span class="form_error_reason">Did Not Meet Requirements</span><?php } ?></label>
+					<label><?=Text::translate("Password")?> <small>(<?=Text::translate("Leave blank to remain unchanged")?>)</small> <?php if ($error == "password") { ?><span class="form_error_reason"><?=Text::translate("Did Not Meet Requirements")?></span><?php } ?></label>
 					<input type="password" name="password" value="" tabindex="3" autocomplete="off" id="password_field"<?php if ($policy) { ?> class="has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?>"<?php } ?> />
 					<?php if ($policy) { ?>
-					<p class="password_policy">Password Policy In Effect</p>
+					<p class="password_policy"><?=Text::translate("Password Policy In Effect")?></p>
 					<?php } ?>
 				</fieldset>
 
 				<?php if ($user["id"] != $admin->ID) { ?>
 				<fieldset<?php if ($error == "email") { ?> class="form_error"<?php } ?> >
-					<label class="required">User Level</label>
+					<label class="required"><?=Text::translate("User Level")?></label>
 					<select name="level" tabindex="5" id="user_level">
-						<option value="0"<?php if ($user["level"] == "0") { ?> selected="selected"<?php } ?>>Normal User</option>
-						<option value="1"<?php if ($user["level"] == "1") { ?> selected="selected"<?php } ?>>Administrator</option>
-						<?php if ($admin->Level > 1) { ?><option value="2"<?php if ($user["level"] == "2") { ?> selected="selected"<?php } ?>>Developer</option><?php } ?>
+						<option value="0"<?php if ($user["level"] == "0") { ?> selected="selected"<?php } ?>><?=Text::translate("Normal User")?></option>
+						<option value="1"<?php if ($user["level"] == "1") { ?> selected="selected"<?php } ?>><?=Text::translate("Administrator")?></option>
+						<?php if ($admin->Level > 1) { ?><option value="2"<?php if ($user["level"] == "2") { ?> selected="selected"<?php } ?>><?=Text::translate("Developer")?></option><?php } ?>
 					</select>
 				</fieldset>
 				<?php } ?>
 			</div>
 			<div class="right">
 				<fieldset>
-					<label>Name</label>
+					<label><?=Text::translate("Name")?></label>
 					<input type="text" name="name" value="<?=$name?>" tabindex="2" />
 				</fieldset>
 				
 				<fieldset>
-					<label>Company</label>
+					<label><?=Text::translate("Company")?></label>
 					<input type="text" name="company" value="<?=$company?>" tabindex="4" />
 				</fieldset>
 				
@@ -191,39 +191,39 @@
 				
 				<fieldset>
 					<input type="checkbox" name="daily_digest" tabindex="4" <?php if ($daily_digest) { ?> checked="checked"<?php } ?> />
-					<label class="for_checkbox">Daily Digest Email</label>
+					<label class="for_checkbox"><?=Text::translate("Daily Digest Email")?></label>
 				</fieldset>
 			</div>			
 		</section>
 		<section class="sub" id="permission_section">
 			<fieldset class="last">
-				<label>Permissions
-					<small id="admin_user_message"<?php if ($user["level"] < 1) { ?> style="display: none;"<?php } ?>>(this user is an <strong>administrator</strong> and is a publisher of the entire site)</small>
-					<small id="regular_user_message"<?php if ($user["level"] > 0) { ?> style="display: none;"<?php } ?>>(for module sub-permissions "No Access" inherits from the main permission level)</small>
+				<label><?=Text::translate("Permissions")?>
+					<small id="admin_user_message"<?php if ($user["level"] < 1) { ?> style="display: none;"<?php } ?>>(<?=Text::translate("this user is an <strong>administrator</strong> and is a publisher of the entire site")?>)</small>
+					<small id="regular_user_message"<?php if ($user["level"] > 0) { ?> style="display: none;"<?php } ?>>(<?=Text::translate("for module sub-permissions \"No Access\" inherits from the main permission level")?>)</small>
 				</label>
 			
 				<div class="user_permissions form_table">
 					<header<?php if ($user["level"] > 0) { ?> style="display: none;"<?php } ?>>
 						<nav>
-							<a href="#page_permissions" class="active">Pages</a>
-							<a href="#module_permissions">Modules</a>
-							<a href="#resource_permissions">Resources</a>
+							<a href="#page_permissions" class="active"><?=Text::translate("Pages")?></a>
+							<a href="#module_permissions"><?=Text::translate("Modules")?></a>
+							<a href="#resource_permissions"><?=Text::translate("Resources")?></a>
 						</nav>
 					</header>
 					<div id="page_permissions">
 						<div class="labels sticky_controls">
-							<span class="permission_label<?php if ($user["level"] > 0) { ?> permission_label_admin<?php } ?>">Page</span>
-							<span class="permission_alerts">Content Alerts</span>
-							<span class="permission_level"<?php if ($user["level"] > 0) { ?> style="display: none;"<?php } ?>>Publisher</span>
-							<span class="permission_level"<?php if ($user["level"] > 0) { ?> style="display: none;"<?php } ?>>Editor</span>
-							<span class="permission_level"<?php if ($user["level"] > 0) { ?> style="display: none;"<?php } ?>>No Access</span>
-							<span class="permission_level"<?php if ($user["level"] > 0) { ?> style="display: none;"<?php } ?>>Inherit</span>
+							<span class="permission_label<?php if ($user["level"] > 0) { ?> permission_label_admin<?php } ?>"><?=Text::translate("Page")?></span>
+							<span class="permission_alerts"><?=Text::translate("Content Alerts")?></span>
+							<span class="permission_level"<?php if ($user["level"] > 0) { ?> style="display: none;"<?php } ?>><?=Text::translate("Publisher")?></span>
+							<span class="permission_level"<?php if ($user["level"] > 0) { ?> style="display: none;"<?php } ?>><?=Text::translate("Editor")?></span>
+							<span class="permission_level"<?php if ($user["level"] > 0) { ?> style="display: none;"<?php } ?>><?=Text::translate("No Access")?></span>
+							<span class="permission_level"<?php if ($user["level"] > 0) { ?> style="display: none;"<?php } ?>><?=Text::translate("Inherit")?></span>
 						</div>
 						<section>
 							<ul class="depth_1">
 								<li class="top">
 									<span class="depth"></span>
-									<a class="permission_label expanded<?php if ($user["level"] > 0) { ?> permission_label_admin<?php } ?>" href="#">All Pages</a>
+									<a class="permission_label expanded<?php if ($user["level"] > 0) { ?> permission_label_admin<?php } ?>" href="#"><?=Text::translate("All Pages")?></a>
 									<span class="permission_alerts"><input type="checkbox" name="alerts[0]"<?php if ($alerts[0] == "on") { ?> checked="checked"<?php } ?>/></span>
 									<span class="permission_level"<?php if ($user["level"] > 0) { ?> style="display: none;"<?php } ?>>
 										<input type="radio" data-category="Page" data-key="0" name="permissions[page][0]" value="p" <?php if ($permissions["page"][0] == "p") { ?>checked="checked" <?php } ?>/>
@@ -243,15 +243,15 @@
 					
 					<div id="module_permissions" style="display: none;">
 						<div class="labels sticky_controls">
-							<span class="permission_label permission_label_wider">Module</span>
-							<span class="permission_level">Publisher</span>
-							<span class="permission_level">Editor</span>
-							<span class="permission_level">No Access</span>
+							<span class="permission_label permission_label_wider"><?=Text::translate("Module")?></span>
+							<span class="permission_level"><?=Text::translate("Publisher")?></span>
+							<span class="permission_level"><?=Text::translate("Editor")?></span>
+							<span class="permission_level"><?=Text::translate("No Access")?></span>
 						</div>
 						<section>
 							<ul class="depth_1">
 								<?php
-									$groups[] = array("id" => 0, "name" => "- Ungrouped -");
+									$groups[] = array("id" => 0, "name" => Text::translate("- Ungrouped -"));
 									foreach ($groups as $group) {
 										$modules = $admin->getModulesByGroup($group,"name ASC");
 										if (count($modules)) {
@@ -325,17 +325,17 @@
 					
 					<div id="resource_permissions" style="display: none;">
 						<div class="labels sticky_controls">
-							<span class="permission_label folder_label">Folder</span>
-							<span class="permission_level">Creator</span>
-							<span class="permission_level">Consumer</span>
-							<span class="permission_level">No Access</span>
-							<span class="permission_level">Inherit</span>
+							<span class="permission_label folder_label"><?=Text::translate("Folder")?></span>
+							<span class="permission_level"><?=Text::translate("Creator")?></span>
+							<span class="permission_level"><?=Text::translate("Consumer")?></span>
+							<span class="permission_level"><?=Text::translate("No Access")?></span>
+							<span class="permission_level"><?=Text::translate("Inherit")?></span>
 						</div>
 						<section>
 							<ul class="depth_1">
 								<li class="top">
 									<span class="depth"></span>
-									<a class="permission_label folder_label expanded" href="#">Home Folder</a>
+									<a class="permission_label folder_label expanded" href="#"><?=Text::translate("Home Folder")?></a>
 									<span class="permission_level"><input type="radio" data-category="Resource" data-key="0" name="permissions[resources][0]" value="p" <?php if ($permissions["resources"][0] == "p") { ?>checked="checked" <?php } ?>/></span>
 									<span class="permission_level"><input type="radio" data-category="Resource" data-key="0" name="permissions[resources][0]" value="e" <?php if ($permissions["resources"][0] == "e" || !$permissions["resources"][0]) { ?>checked="checked" <?php } ?>/></span>
 									<span class="permission_level"><input type="radio" data-category="Resource" data-key="0" name="permissions[resources][0]" value="n" <?php if ($permissions["resources"][0] == "n") { ?>checked="checked" <?php } ?>/></span>
@@ -393,7 +393,7 @@
 	BigTreePasswordInput("input[type=password]");
 	
 	$("form.module").submit(function(ev) {
-		$("#edit_user_submit").val("Saving Permisions...").prop("disabled",true);
+		$("#edit_user_submit").val("<?=Text::translate("Saving Permisions...", true)?>").prop("disabled",true);
 		var permissions = $('<input name="permissions" type="hidden" />').val(json_encode(BigTreeUserForm.Permissions));
 		var alerts = $('<input name="alerts" type="hidden" />').val(json_encode(BigTreeUserForm.Alerts));
 		// Remove the radios / checkboxes from the permissions section as they can cause a post overrun
