@@ -8,14 +8,14 @@
 	<form method="post" action="<?=DEVELOPER_ROOT?>callouts/groups/update/<?=$group->ID?>/" class="module">
 		<section>
 			<fieldset>
-			    <label class="required">Name</label>
+			    <label class="required"><?=Text::translate("Name")?></label>
 			    <input type="text" name="name" value="<?=$group->Name?>" class="required" />
 			</fieldset>
 			<fieldset>
-				<label>Callouts</label>
+				<label><?=Text::translate("Callouts")?></label>
 				<div class="multi_widget many_to_many" id="group_callouts">
 					<section<?php if (count($group->Callouts)) { ?> style="display: none;"<?php } ?>>
-						<p>Click "Add Item" to add an item to this list.</p>
+						<p><?=Text::translate('Click "Add Item" to add an item to this list.')?></p>
 					</section>
 					<ul>
 						<?php
@@ -45,13 +45,13 @@
 								}
 							?>
 						</select>
-						<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Callout</a>
+						<a href="#" class="add button"><span class="icon_small icon_small_add"></span><?=Text::translate("Add Callout")?></a>
 					</footer>
 				</div>
 			</fieldset>
 		</section>
 		<footer>
-			<input type="submit" class="button blue" value="Update" />
+			<input type="submit" class="button blue" value="<?=Text::translate("Update", true)?>" />
 		</footer>
 	</form>
 </div>

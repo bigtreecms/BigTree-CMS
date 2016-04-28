@@ -1,7 +1,8 @@
 <?php
 	namespace BigTree;
 
-	Callout::delete(end($bigtree["path"]));
+	$callout = new Callout(end($bigtree["path"]));
+	$callout->delete();
 	
 	$admin->growl("Developer","Deleted Callout");
 	

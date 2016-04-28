@@ -974,70 +974,72 @@
 	.table .developer_image_preset { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 863px; }
 	.table .developer_image_preset a { color: #333; display: block; margin: 0; width: 846px; }
 	
-	.developer .form_table li { background: #fff; border-top: 1px solid #E5E5E5; height: 43px; overflow: hidden; }
-	.developer .form_table li:first-child { border-top-color: transparent; }
-	.developer .form_table li:nth-of-type(odd) { background: #FFF; }
-	.developer .form_table li:nth-of-type(even) { background: #F5F5F5; }
-	.developer .form_table li.ui-sortable-helper { border: 1px solid #E5E5E5; border-width: 1px 0; height: 42px; opacity: 1; }
-	.developer .form_table .ui-sortable-placeholder { background: #E3E3E3; border-top: 1px solid #E5E5E5; height: 43px; overflow: hidden; }
-	.developer .form_table li section { float: left; text-align: center; }
-	.developer .form_table li section input { margin: 5px 0; }
-	.developer .form_table li section select, .developer .form_table li section .select { margin: 5px 0; }
+	.developer .form_table {
+		li { background: #fff; border-top: 1px solid #E5E5E5; height: 43px; overflow: hidden; }
+		li:first-child { border-top-color: transparent; }
+		li:nth-of-type(odd) { background: #FFF; }
+		li:nth-of-type(even) { background: #F5F5F5; }
+		li.ui-sortable-helper { border: 1px solid #E5E5E5; border-width: 1px 0; height: 42px; opacity: 1; }
+		.ui-sortable-placeholder { background: #E3E3E3; border-top: 1px solid #E5E5E5; height: 43px; overflow: hidden; }
+		li section { float: left; text-align: center; }
+		li section input { margin: 5px 0; }
+		li section select, li section .select { margin: 5px 0; }
 
-	.developer .form_table .developer_resource_id { padding: 0 0 0 30px; text-align: left; width: 147px; }
-	.developer .form_table .developer_resource_id input { width: 110px; }
-	.developer .form_table .developer_resource_id span { margin: 5px 7px 0 -21px; }
-	.developer .form_table .developer_resource_title { text-align: left; width: 202px; }
-	.developer .form_table .developer_resource_title input { width: 168px; }
-	.developer .form_table .developer_resource_form_title { padding: 0 0 0 35px; text-align: left; width: 299px; }
-	.developer .form_table .developer_resource_form_title input { width: 267px; }
-	.developer .form_table .developer_resource_form_title span { margin: 8px 5px 0 -30px; }
-	.developer .form_table .developer_resource_subtitle { text-align: left; width: 202px; }
-	.developer .form_table .developer_resource_subtitle input { width: 168px; }
-	.developer .form_table .developer_resource_form_subtitle { text-align: left; width: 267px; }
-	.developer .form_table .developer_resource_form_subtitle input { width: 235px; }
-	.developer .form_table .developer_resource_type { padding: 0; text-align: left; white-space: nowrap; width: 240px; }
-	.developer .form_table .developer_resource_type .select span { width: 155px !important; }
-	.developer .form_table .developer_resource_type .select .select_options { width: 209px !important; }
-	.developer .form_table .developer_resource_type .icon_settings { margin: 9px 0 0 5px; }
-	.developer .form_table .developer_resource_type .field_name { background: #F6F6F6; border: 1px solid #CCCCCC; border-radius: 2px; color: #333; display: block; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 5px 0; opacity: 0.5; padding: 0 44px 0 10px; .no_user_select; width: 155px; }
-	.developer .form_table .developer_resource_display_title { width: 40px; }
-	.developer .form_table .developer_resource_action { width: 55px; }
-	.developer .form_table .developer_resource_action a { margin: 9px 0 0 0; }
-	.developer .form_table .developer_resource_action.right { float: right; }
+		.developer_resource_id { padding: 0 0 0 30px; text-align: left; width: 147px; }
+		.developer_resource_id input { width: 110px; }
+		.developer_resource_id span { margin: 5px 7px 0 -21px; }
+		.developer_resource_title { text-align: left; width: 202px; }
+		.developer_resource_title input { width: 168px; }
+		.developer_resource_form_title { padding: 0 0 0 35px; text-align: left; width: 299px; }
+		.developer_resource_form_title input { width: 267px; }
+		.developer_resource_form_title span { margin: 8px 5px 0 -30px; }
+		.developer_resource_subtitle { text-align: left; width: 202px; }
+		.developer_resource_subtitle input { width: 168px; }
+		.developer_resource_form_subtitle { text-align: left; width: 267px; }
+		.developer_resource_form_subtitle input { width: 235px; }
+		.developer_resource_type { padding: 0; text-align: left; white-space: nowrap; width: 240px; }
+		.developer_resource_type .select span { width: 155px !important; }
+		.developer_resource_type .select .select_options { width: 209px !important; }
+		.developer_resource_type .icon_settings { margin: 9px 0 0 5px; }
+		.developer_resource_type .field_name { background: #F6F6F6; border: 1px solid #CCCCCC; border-radius: 2px; color: #333; display: block; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 5px 0; opacity: 0.5; padding: 0 44px 0 10px; .no_user_select; width: 155px; }
+		.developer_resource_display_title { width: 40px; }
+		.developer_resource_action { width: 55px; }
+		.developer_resource_action a { margin: 9px 0 0 0; }
+		.developer_resource_action.right { float: right; }
+	
+		.developer_resource_callout_id { padding: 0 0 0 30px; text-align: left; width: 137px; }
+		.developer_resource_callout_id input { width: 101px; }
+		.developer_resource_callout_id span { margin: 8px 4px 0 -25px; }
+		.developer_resource_callout_title { text-align: left; width: 207px; }
+		.developer_resource_callout_title input { width: 173px; }
+		.developer_resource_callout_subtitle { text-align: left; width: 187px; }
+		.developer_resource_callout_subtitle input { width: 153px; }
 
-	.developer .form_table .developer_resource_callout_id { padding: 0 0 0 30px; text-align: left; width: 137px; }
-	.developer .form_table .developer_resource_callout_id input { width: 101px; }
-	.developer .form_table .developer_resource_callout_id span { margin: 8px 4px 0 -25px; }
-	.developer .form_table .developer_resource_callout_title { text-align: left; width: 207px; }
-	.developer .form_table .developer_resource_callout_title input { width: 173px; }
-	.developer .form_table .developer_resource_callout_subtitle { text-align: left; width: 187px; }
-	.developer .form_table .developer_resource_callout_subtitle input { width: 153px; }
+		.developer_rule_table { padding: 0 0 0 10px; text-align: left; width: 210px; }
+		.developer_rule_table select { margin: 10px 0; width: 200px; }
+		.developer_rule_field { padding: 0 0 0 10px; text-align: left; width: 188px; }
+		.developer_rule_field div { line-height: 32px; }
+		.developer_rule_field select { margin: 10px 0; width: 178px; }
+	
+		.developer_view_title { padding: 0 0 0 10px; text-align: left; width: 336px; }
+		.developer_view_title input { width: 290px; }
+		.developer_view_title span { margin: 8px 5px 0 -5px; }
+		.developer_view_parser { padding: 0 0 0 10px; text-align: left; width: 480px; }
+		.developer_view_parser input { width: 458px; }
+	
+		.developer_report_field_title { padding: 0 0 0 10px; text-align: left; width: 846px; }
+		.developer_report_field_title span { margin-top: 9px; }
+		.developer_report_field_title input { width: 807px; }
+		.developer_report_filter_title { padding: 0 0 0 10px; text-align: left; width: 646px; }
+		.developer_report_filter_title input { width: 607px; }
+		.developer_report_filter_title span { margin-top: 9px; }
+		.developer_report_filter_type { padding: 0 0 0 10px; text-align: left; width: 190px; }
+		.developer_report_filter_type .select span { width: 134px !important; }
+		.developer_report_filter_type .select .select_options { width: 188px !important; }
+		.developer_report_action { padding: 9px 0 0 0; width: 40px; }
+	}
 
-	#field_table .developer_field_display_title { padding: 12px 0 0 12px; width: 28px; }
-
-	.developer .form_table .developer_rule_table { padding: 0 0 0 10px; text-align: left; width: 210px; }
-	.developer .form_table .developer_rule_table select { margin: 10px 0; width: 200px; }
-	.developer .form_table .developer_rule_field { padding: 0 0 0 10px; text-align: left; width: 188px; }
-	.developer .form_table .developer_rule_field div { line-height: 32px; }
-	.developer .form_table .developer_rule_field select { margin: 10px 0; width: 178px; }
-
-	.developer .form_table .developer_view_title { padding: 0 0 0 10px; text-align: left; width: 336px; }
-	.developer .form_table .developer_view_title input { width: 290px; }
-	.developer .form_table .developer_view_title span { margin: 8px 5px 0 -5px; }
-	.developer .form_table .developer_view_parser { padding: 0 0 0 10px; text-align: left; width: 480px; }
-	.developer .form_table .developer_view_parser input { width: 458px; }
-
-	.developer .form_table .developer_report_field_title { padding: 0 0 0 10px; text-align: left; width: 846px; }
-	.developer .form_table .developer_report_field_title span { margin-top: 9px; }
-	.developer .form_table .developer_report_field_title input { width: 807px; }
-	.developer .form_table .developer_report_filter_title { padding: 0 0 0 10px; text-align: left; width: 646px; }
-	.developer .form_table .developer_report_filter_title input { width: 607px; }
-	.developer .form_table .developer_report_filter_title span { margin-top: 9px; }
-	.developer .form_table .developer_report_filter_type { padding: 0 0 0 10px; text-align: left; width: 190px; }
-	.developer .form_table .developer_report_filter_type .select span { width: 134px !important; }
-	.developer .form_table .developer_report_filter_type .select .select_options { width: 188px !important; }
-	.developer .form_table .developer_report_action { padding: 9px 0 0 0; width: 40px; }
+	#field_table .developer_resource_display_title { padding: 12px 0 0 12px; width: 28px; }
 
 	.developer form .right textarea, .developer form .left textarea { height: 135px; }
 

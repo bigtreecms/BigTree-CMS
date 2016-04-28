@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	BigTree::globalizePOSTVars();
+	\BigTree::globalizePOSTVars();
 
 	if (!empty($group_new)) {
 		$new_group = CalloutGroup::create($group_new);

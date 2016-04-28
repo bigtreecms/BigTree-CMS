@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	$cached_types = $admin->getCachedFieldTypes(true);
 	$types = $cached_types["callouts"];
 ?>
@@ -9,8 +11,8 @@
 
 		BigTreeFormValidator("form.module");		
 		
-		$("#field_table").on("blur", ".developer_field_id input", function() {
-			$(this).parents("li").find(".developer_field_display_title input").val($(this).val());
+		$("#field_table").on("blur", ".developer_resource_id input", function() {
+			$(this).parents("li").find(".developer_resource_display_title input").val($(this).val());
 		});
 
 		$(".clear_label").click(function(ev) {
@@ -30,7 +32,7 @@
 			CurrentFieldKey = key;
 
 			BigTreeDialog({
-				title: "Field Options",
+				title: "<?=Text::translate("Field Options", true)?>",
 				url: "<?=ADMIN_ROOT?>ajax/developer/load-field-options/",
 				post: { callout: "true", type: $("#type_" + key).val(), data: $("#options_" + key).val() },
 				icon: "edit",
@@ -41,10 +43,10 @@
 			
 		}).on("click",".icon_delete",function() {
 			BigTreeDialog({
-				title: "Delete field",
-				content: '<p class="confirm">Are you sure you want to delete this field?</p>',
+				title: "<?=Text::translate("Delete Field")?>",
+				content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this field?", true)?></p>',
 				icon: "delete",
-				alternateSaveText: "OK",
+				alternateSaveText: "<?=Text::translate("OK")?>",
 				callback: $.proxy(function() {
 					$(this).parents("li").remove();
 				},this)
@@ -56,7 +58,7 @@
 			// Get the id field
 			var id = $(this).parents("li").find("input").eq(0).val();
 			$(this).val(id);
-		}).on("change",".developer_field_callout_id input",function() {
+		}).on("change",".developer_resource_callout_id input",function() {
 			$(this).parents("li").find("input[type=radio]").val($(this).val());
 		});
 			
@@ -64,7 +66,40 @@
 			FieldCount++;
 			
 			var li = $('<li id="row_' + FieldCount + '">');
-			li.html('<section class="developer_field_callout_id"><span class="icon_sort"></span><input type="text" name="fields[' + FieldCount + '][id]" value="" /></section><section class="developer_field_callout_title"><input type="text" name="fields[' + FieldCount + '][title]" value="" /></section><section class="developer_field_callout_subtitle"><input type="text" name="fields[' + FieldCount + '][subtitle]" value="" /></section><section class="developer_field_type"><select name="fields[' + FieldCount + '][type]" id="type_' + FieldCount + '"><optgroup label="Default"><? foreach ($types["default"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></optgroup><? if (count($types["custom"])) { ?><optgroup label="Custom"><? foreach ($types["custom"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><? } ?></optgroup><? } ?></select><a href="#" tabindex="-1" class="icon_settings" name="' + FieldCount + '"></a><input type="hidden" name="fields[' + FieldCount + '][options]" value="" id="options_' + FieldCount + '" /></section><section class="developer_field_display_title"><input type="radio" name="display_field" value="" id="display_title_' + FieldCount + '" /></section><section class="developer_field_action right"><a href="#" tabindex="-1" class="icon_delete"></a></section>');
+			li.html('<section class="developer_resource_callout_id">' +
+						'<span class="icon_sort"></span>' +
+						'<input type="text" name="fields[' + FieldCount + '][id]" value="" />' +
+					'</section>' + 
+					'<section class="developer_resource_callout_title">' +
+						'<input type="text" name="fields[' + FieldCount + '][title]" value="" />' +
+					'</section>' + 
+					'<section class="developer_resource_callout_subtitle">' +
+						'<input type="text" name="fields[' + FieldCount + '][subtitle]" value="" />' +
+					'</section>' +
+					'<section class="developer_resource_type">' +
+						'<select name="fields[' + FieldCount + '][type]" id="type_' + FieldCount + '">' +
+							'<optgroup label="Default">' +
+								<?php foreach ($types["default"] as $k => $v) { ?>
+								'<option value="<?=$k?>"><?=$v["name"]?></option>' +
+								<?php } ?>
+							'</optgroup>' + 
+							<?php if (count($types["custom"])) { ?>
+							'<optgroup label="Custom">' +
+								<?php foreach ($types["custom"] as $k => $v) { ?>
+								'<option value="<?=$k?>"><?=$v["name"]?></option>' +
+								<?php } ?>
+							'</optgroup>' +
+							<?php } ?>
+						'</select>' +
+						'<a href="#" tabindex="-1" class="icon_settings" name="' + FieldCount + '"></a>' +
+						'<input type="hidden" name="fields[' + FieldCount + '][options]" value="" id="options_' + FieldCount + '" />' +
+					'</section>' +
+					'<section class="developer_resource_display_title">' +
+						'<input type="radio" name="display_field" value="" id="display_title_' + FieldCount + '" />' +
+					'</section>' +
+					'<section class="developer_resource_action right">' +
+						'<a href="#" tabindex="-1" class="icon_delete"></a>' +
+					'</section>');
 	
 			$("#field_table").append(li);
 			li.find("select").get(0).customControl = new BigTreeSelect(li.find("select").get(0));
