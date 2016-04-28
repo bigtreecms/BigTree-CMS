@@ -47,7 +47,7 @@
 				An array of adds/edits/deletions from the audit trail.
 		*/
 
-		static function search($user = false,$table = false,$entry = false,$start = false,$end = false) {
+		static function search($user = false, $table = false, $entry = false, $start = false, $end = false) {
 			$users = $items = $where = $parameters = array();
 			$query = "SELECT * FROM bigtree_audit_trail";
 
@@ -55,28 +55,37 @@
 				$where[] = "user = ?";
 				$parameters[] = $user;
 			}
+
 			if ($table) {
 				$where[] = "`table` = ?";
 				$parameters[] = $table;
 			}
+
 			if ($entry) {
 				$where[] = "entry = ?";
 				$parameters[] = $entry;
 			}
+
 			if ($start) {
 				$where[] = "`date` >= '".date("Y-m-d H:i:s",strtotime($start))."'";
 			}
+
 			if ($end) {
 				$where[] = "`date` <= '".date("Y-m-d H:i:s",strtotime($end))."'";
 			}
+
 			if (count($where)) {
 				$query .= " WHERE ".implode(" AND ",$where);
 			}
 
-			$entries = SQL::fetchAll($query." ORDER BY `date` DESC");
+			// Push query onto the parameters array since we're using call_user_func_array
+			array_unshift($parameters, $query." ORDER BY `date` DESC");
+
+			$entries = call_user_func_array("BigTree\\SQL::fetchAll", $parameters);
+			
 			foreach ($entries as &$entry) {
 				// Check the user cache
-				if (!$users[$entry["user"]]) {
+				if (!$users[$entry["user"]] && $entry["user"]) {
 					$user = SQL::fetch("SELECT id,name,email,level FROM bigtree_users WHERE id = ?", $entry["user"]);
 					$users[$entry["user"]] = $user;
 				}

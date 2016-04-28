@@ -652,7 +652,7 @@
 											  FROM `".$this->Settings["other_table"]."` 
 											  WHERE ".implode(" OR ",$other_table_where)." 
 											  ORDER BY `$sort_field` $sort_direction");
-				$group_search = call_user_func_array("SQL::fetchAll",$group_values);
+				$group_search = call_user_func_array("BigTree\\SQL::fetchAll", $group_values);
 				
 				foreach ($group_search as $group) {
 					$groups[$group["id"]] = $group["title"];

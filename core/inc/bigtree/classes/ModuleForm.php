@@ -351,7 +351,7 @@
 					// Add the query
 					array_unshift($temp_tags, "SELECT * FROM bigtree_tags 
 											   WHERE ".implode(" OR ", array_fill(0, count($temp_tags), "id = ?")));
-					$tags = call_user_func_array(SQL::fetchAll, $temp_tags);
+					$tags = call_user_func_array("BigTree\\SQL::fetchAll", $temp_tags);
 				} else {
 					$tags = array();
 				}
@@ -387,7 +387,7 @@
 						// Add the query
 						array_unshift($temp_tags, "SELECT * FROM bigtree_tags 
 												   WHERE ".implode(" OR ", array_fill(0, count($temp_tags), "id = ?")));
-						$tags = call_user_func_array(SQL::fetchAll, $temp_tags);
+						$tags = call_user_func_array("BigTree\\SQL::fetchAll", $temp_tags);
 					} else {
 						$tags = array();
 					}
