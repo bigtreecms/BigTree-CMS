@@ -74,7 +74,7 @@
 
 		static function clearEmpty() {
 			SQL::delete("bigtree_404s",array("redirect_url" => ""));
-			AuditTrail::track("bigtree_404s","All","Cleared Empty");
+			AuditTrail::track("bigtree_404s","all","cleared-empty");
 		}
 
 		/*
