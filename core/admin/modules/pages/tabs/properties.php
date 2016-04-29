@@ -131,7 +131,7 @@
 			</optgroup>
 		</select>
 	</fieldset>
-	<? if ($bigtree["current_page"]["id"]) { ?>
+	<? if ($bigtree["form_action"] == "create" || $bigtree["current_page"]["id"]) { ?>
 	<fieldset class="external last">
 		<label>External Link <small>(include http://, overrides template)</small></label>
 		<input id="external_link" type="text" name="external" value="<?=$bigtree["current_page"]["external"]?>" id="external_link"<? if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<? } ?> />
