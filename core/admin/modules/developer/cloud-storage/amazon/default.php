@@ -9,19 +9,19 @@
 	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/amazon/update/" class="module">
 		<section>
 			<div class="alert">
-				<p>To enable usage of Amazon S3 for all BigTree uploads enter your access keys below.<br />Please note that this change is not retroactive -- only future uploads will be stored on Amazon S3.</p>
+				<p><?=Text::translate("To enable usage of Amazon S3 for all BigTree uploads enter your access keys below.<br />Please note that this change is not retroactive -- only future uploads will be stored on Amazon S3.")?></p>
 			</div>	
 			<fieldset>
-				<label>Access Key ID</label>
+				<label><?=Text::translate("Access Key ID")?></label>
 				<input type="text" name="key" value="<?=$key?>" />
 			</fieldset>
 			<fieldset>
-				<label>Secret Access Key</label>
+				<label><?=Text::translate("Secret Access Key")?></label>
 				<input type="text" name="secret" value="<?=$secret?>" />
 			</fieldset>
 		</section>
 		<footer>
-			<input type="submit" class="button blue" value="Update" />
+			<input type="submit" class="button blue" value="<?=Text::translate("Update", true)?>" />
 		</footer>
 	</form>
 </div>

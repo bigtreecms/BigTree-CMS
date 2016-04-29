@@ -19,7 +19,7 @@
 	<form class="module" method="post" action="<?=DEVELOPER_ROOT?>settings/create/">
 		<?php include Router::getIncludePath("admin/modules/developer/settings/_form-content.php") ?>
 		<footer>
-			<input type="submit" class="button blue" value="Create" />
+			<input type="submit" class="button blue" value="<?=Text::translate("Create", true)?>" />
 		</footer>
 	</form>
 </div>

@@ -39,7 +39,7 @@
 			include Router::getIncludePath("admin/modules/developer/modules/forms/_form.php");
 		?>
 		<footer>
-			<input type="submit" class="button blue" value="Update" />
+			<input type="submit" class="button blue" value="<?=Text::translate("Update", true)?>" />
 		</footer>
 	</form>
 </div>

@@ -58,7 +58,7 @@
 			<?php include Router::getIncludePath("admin/ajax/developer/load-report.php") ?>
 		</section>
 		<footer>
-			<input type="submit" class="button blue" value="Update" />
+			<input type="submit" class="button blue" value="<?=Text::translate("Update", true)?>" />
 		</footer>
 	</form>
 </div>

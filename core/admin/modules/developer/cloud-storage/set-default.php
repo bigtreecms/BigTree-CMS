@@ -25,7 +25,7 @@
 		<input type="hidden" name="service" value="<?=htmlspecialchars($_POST["service"])?>" />
 		<summary><h2><?=$service_names[$_POST["service"]]?></h2></summary>
 		<section>
-			<label>Existing Container/Bucket <small>(this should be used exclusively by BigTree, if left blank BigTree will make its own)</small></label>
+			<label><?=Text::translate("Existing Container/Bucket")?> <small>(<?=Text::translate("this should be used exclusively by BigTree, if left blank BigTree will make its own")?>)</small></label>
 			<select name="container">
 				<option></option>
 				<?php foreach ($containers as $container) { ?>
@@ -34,7 +34,7 @@
 			</select>
 		</section>
 		<footer>
-			<input type="submit" class="button blue" value="Update" />
+			<input type="submit" class="button blue" value="<?=Text::translate("Update", true)?>" />
 		</footer>
 	</form>
 </div>

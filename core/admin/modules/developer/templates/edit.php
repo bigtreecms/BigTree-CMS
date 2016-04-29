@@ -11,7 +11,7 @@
 		<input type="hidden" name="id" value="<?=$template["id"]?>" />
 		<?php include Router::getIncludePath("admin/modules/developer/templates/_form-content.php") ?>
 		<footer>
-			<input type="submit" class="button blue" value="Update" />
+			<input type="submit" class="button blue" value="<?=Text::translate("Update", true)?>" />
 		</footer>
 	</form>
 </div>

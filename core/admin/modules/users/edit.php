@@ -349,7 +349,7 @@
 			</fieldset>
 		</section>
 		<footer>
-			<input id="edit_user_submit" type="submit" class="blue" value="Update" />
+			<input id="edit_user_submit" type="submit" class="blue" value="<?=Text::translate("Update", true)?>" />
 		</footer>
 	</form>
 </div>

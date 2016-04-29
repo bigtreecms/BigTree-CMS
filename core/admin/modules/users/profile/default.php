@@ -43,7 +43,7 @@
 			</div>			
 		</section>
 		<footer>
-			<input type="submit" class="blue" value="Update" />
+			<input type="submit" class="blue" value="<?=Text::translate("Update", true)?>" />
 		</footer>
 	</form>
 </div>

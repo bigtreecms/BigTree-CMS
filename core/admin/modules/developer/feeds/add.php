@@ -5,7 +5,7 @@
 	<form method="post" action="<?=DEVELOPER_ROOT?>feeds/create/" class="module">
 		<?php include Router::getIncludePath("admin/modules/developer/feeds/_form-content.php") ?>
 		<footer>
-			<input type="submit" class="button blue" value="Create" />
+			<input type="submit" class="button blue" value="<?=Text::translate("Create", true)?>" />
 		</footer>
 	</form>
 </div>

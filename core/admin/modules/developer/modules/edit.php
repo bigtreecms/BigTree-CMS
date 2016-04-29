@@ -95,7 +95,7 @@
 			</section>
 			<?php include Router::getIncludePath("admin/modules/developer/modules/_gbp.php") ?>
 			<footer>
-				<input type="submit" class="button blue" value="Update" />	
+				<input type="submit" class="button blue" value="<?=Text::translate("Update", true)?>" />	
 			</footer>
 		</form>
 	</div>

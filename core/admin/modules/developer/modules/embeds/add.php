@@ -11,7 +11,7 @@
 			<p>Please choose a table to populate this area.</p>
 		</section>
 		<footer>
-			<input type="submit" class="button blue" value="Create" />
+			<input type="submit" class="button blue" value="<?=Text::translate("Create", true)?>" />
 		</footer>
 	</form>
 </div>

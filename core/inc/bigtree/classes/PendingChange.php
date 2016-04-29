@@ -114,9 +114,9 @@
 
 					// If this page isn't published we'll grab the parent permission
 					if ($change["item_id"]) {
-						$page = new BigTree\Page($change["item_id"]);
+						$page = new Page($change["item_id"]);
 					} else {
-						$page = new BigTree\Page($change["pending_page_parent"]);
+						$page = new Page($change["pending_page_parent"]);
 					}
 
 					$access_level = $page->getUserAccessLevel($user);

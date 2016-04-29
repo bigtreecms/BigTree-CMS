@@ -14,7 +14,7 @@
 			</fieldset>
 		</section>
 		<footer>
-			<input type="submit" class="blue" value="<?=Text::translate("Create")?>" />
+			<input type="submit" class="blue" value="<?=Text::translate("Create", true)?>" />
 		</footer>
 	</div>
 </form>

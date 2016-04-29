@@ -8,7 +8,7 @@
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/actions/create/<?=$module["id"]?>/" class="module">
 		<?php include Router::getIncludePath("admin/modules/developer/modules/actions/_form.php") ?>
 		<footer>
-			<input type="submit" class="button blue" value="Create" />
+			<input type="submit" class="button blue" value="<?=Text::translate("Create", true)?>" />
 		</footer>
 	</form>
 </div>

@@ -71,7 +71,7 @@
 	<input type="hidden" name="<?=$key?>" id="data_<?=$key?>" value="<?=$field["width"]?>" />
 	<?php } ?>
 	<a class="button" href="<?=DEVELOPER_ROOT?>modules/views/clear-style/<?=$view["id"]?>/">Clear Existing Style</a>
-	<input type="submit" class="button blue" value="Update" />
+	<input type="submit" class="button blue" value="<?=Text::translate("Update", true)?>" />
 </form>
 <?php
 	}

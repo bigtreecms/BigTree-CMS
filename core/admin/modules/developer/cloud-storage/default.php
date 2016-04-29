@@ -1,8 +1,10 @@
 <?php
-	$storage = new BigTreeStorage;
+	namespace BigTree;
+
+	$storage = new \BigTreeStorage;
 ?>
 <div class="container">
-	<summary><h2>Configure</h2></summary>
+	<summary><h2><?=Text::translate("Configure")?></h2></summary>
 	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/set-default/">
 		<section>
 			<div class="contain">
@@ -21,9 +23,9 @@
 			</div>
 			<hr />
 			<fieldset>
-				<label>Default Storage Service <small>(only connected services appear)</small></label>
+				<label><?=Text::translate("Default Storage Service")?> <small>(<?=Text::translate("only connected services appear")?>)</small></label>
 				<select name="service">
-					<option value="local">Local Storage</option>
+					<option value="local"><?=Text::translate("Local Storage")?></option>
 					<?php
 						if ($cloud->Settings["amazon"]["active"]) {
 					?>
@@ -45,7 +47,7 @@
 			</fieldset>
 		</section>
 		<footer>
-			<input type="submit" value="Update" class="button blue" />
+			<input type="submit" value="<?=Text::translate("Update", true)?>" class="button blue" />
 		</footer>
 	</form>
 </div>
