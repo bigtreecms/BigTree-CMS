@@ -1,22 +1,20 @@
 <?php
 	namespace BigTree;
-
-	$storage = new \BigTreeStorage;
 ?>
 <div class="container">
 	<summary><h2><?=Text::translate("Configure")?></h2></summary>
 	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/set-default/">
 		<section>
 			<div class="contain">
-				<a class="box_select last_row<?php if ($cloud->Settings["amazon"]["active"]) { ?> connected<?php } ?>" href="<?=DEVELOPER_ROOT?>cloud-storage/amazon/">
+				<a class="box_select last_row<?php if ($amazon->Active) { ?> connected<?php } ?>" href="<?=DEVELOPER_ROOT?>cloud-storage/amazon/">
 					<span class="amazon"></span>
 					<p>Amazon S3</p>
 				</a>
-				<a class="box_select last_row<?php if ($cloud->Settings["rackspace"]["active"]) { ?> connected<?php } ?>" href="<?=DEVELOPER_ROOT?>cloud-storage/rackspace/">
+				<a class="box_select last_row<?php if ($rackspace->Active) { ?> connected<?php } ?>" href="<?=DEVELOPER_ROOT?>cloud-storage/rackspace/">
 					<span class="rackspace"></span>
 					<p>Rackspace Cloud Files</p>
 				</a>
-				<a class="box_select last_row<?php if ($cloud->Settings["google"]["active"]) { ?> connected<?php } ?>" href="<?=DEVELOPER_ROOT?>cloud-storage/google/">
+				<a class="box_select last_row<?php if ($google->Active) { ?> connected<?php } ?>" href="<?=DEVELOPER_ROOT?>cloud-storage/google/">
 					<span class="google"></span>
 					<p>Google Cloud Storage</p>
 				</a>
@@ -27,17 +25,17 @@
 				<select name="service">
 					<option value="local"><?=Text::translate("Local Storage")?></option>
 					<?php
-						if ($cloud->Settings["amazon"]["active"]) {
+						if ($amazon->Active) {
 					?>
 					<option value="amazon"<?php if ($storage->Settings["Service"] == "s3" || $storage->Settings["Service"] == "amazon") { ?> selected="selected"<?php } ?>>Amazon S3</option>
 					<?php
 						}
-						if ($cloud->Settings["rackspace"]["active"]) {
+						if ($rackspace->Active) {
 					?>
 					<option value="rackspace"<?php if ($storage->Settings["Service"] == "rackspace") { ?> selected="selected"<?php } ?>>Rackspace Cloud Files</option>
 					<?php
 						}
-						if ($cloud->Settings["google"]["active"]) {
+						if ($google->Active) {
 					?>
 					<option value="google"<?php if ($storage->Settings["Service"] == "google") { ?> selected="selected"<?php } ?>>Google Cloud Storage</option>
 					<?php

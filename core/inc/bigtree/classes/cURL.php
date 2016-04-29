@@ -47,7 +47,7 @@
 			// Setup post data
 			if ($post !== false) {
 				// Use cURLFile for any file uploads
-				if (function_exists("curl_file_create")) {
+				if (function_exists("curl_file_create") && is_array($post)) {
 					foreach ($post as &$post_field) {
 						if (substr($post_field,0,1) == "@" && file_exists(substr($post_field,1))) {
 							$post_field = curl_file_create(substr($post_field,1));

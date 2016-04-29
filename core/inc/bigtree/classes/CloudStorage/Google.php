@@ -15,8 +15,27 @@
 		public $EndpointURL = "https://www.googleapis.com/storage/v1/";
 		public $OAuthVersion = "1.0";
 		public $RequestType = "header";
+		public $ReturnURL;
 		public $Scope = "https://www.googleapis.com/auth/devstorage.full_control";
 		public $TokenURL = "https://accounts.google.com/o/oauth2/token";
+
+		function __construct() {
+			// Tell the OAuth API to store things in "google" since we use a common setting for all APIs
+			$this->SettingNamespace = "google";
+			$this->ReturnURL = ADMIN_ROOT."developer/cloud-storage/google/return/";
+
+			// Init OAuth
+			parent::__construct();
+
+			// Setup references to the main cloud storage setting
+			$this->Active = &$this->Settings["google"]["active"];
+			$this->CertificateEmail = &$this->Settings["google"]["certificate_email"];
+			$this->Key = &$this->Settings["google"]["key"];
+			$this->PrivateKey = &$this->Settings["google"]["private_key"];
+			$this->Project = &$this->Settings["google"]["project"];
+			$this->Secret = &$this->Settings["google"]["secret"];
+			$this->Token = &$this->Settings["google"]["token"];
+		}
 
 		// Implements Provider::copyFile
 		function copyFile($source_container,$source_pointer,$destination_container,$destination_pointer,$public = false) {
@@ -45,7 +64,7 @@
 				);
 			}
 
-			$response = $this->call("b?project=".$this->Settings["project"],json_encode($request),"POST");
+			$response = $this->call("b?project=".$this->Project,json_encode($request),"POST");
 
 			return isset($response->id) ? true : false;
 		}
@@ -57,7 +76,7 @@
 				CURLOPT_HTTPHEADER => array(
 					"Content-Type: $type",
 					"Content-Length: ".strlen($contents),
-					"Authorization: Bearer ".$this->Settings["token"]
+					"Authorization: Bearer ".$this->Token
 				)
 			)));
 
@@ -114,13 +133,13 @@
 				trigger_error("PHP's OpenSSL extension is required to use authenticated URLs with Google Cloud Storage.",E_USER_ERROR);
 			}
 
-			if (!$this->Settings["private_key"] || !$this->Settings["certificate_email"]) {
+			if (!$this->PrivateKey || !$this->CertificateEmail) {
 				trigger_error("You must upload your Google Cloud Storage private key and set your Certificate Email Address to use authenticated URLs.",E_USER_ERROR);
 			}
 
 			// Google's default password for these is "notasecret"
 			$certificates = array();
-			if (!openssl_pkcs12_read(file_get_contents($this->Settings["private_key"]),$certificates,"notasecret")) {
+			if (!openssl_pkcs12_read(file_get_contents($this->PrivateKey),$certificates,"notasecret")) {
 				trigger_error("Unable to parse Google Cloud Storage private key file:".openssl_error_string(),E_USER_ERROR);
 			}
 
@@ -128,7 +147,7 @@
 			$private_key = openssl_pkey_get_private($certificates["pkey"]);
 			openssl_sign("GET\n\n\n$expires\n/$container/".str_replace(array("+","%2F"),array("%20","/"),urlencode($pointer)),$signature,$private_key,"sha256");
 			$signature = urlencode(base64_encode($signature));
-			$access_id = $this->Settings["certificate_email"];
+			$access_id = $this->CertificateEmail;
 
 			return "//storage.googleapis.com/$container/$pointer?GoogleAccessId=$access_id&Expires=$expires&Signature=$signature";
 		}
@@ -172,14 +191,14 @@
 		// Implements Provider::getfile
 		function getFile($container,$pointer) {
 			return cURL::request("https://storage.googleapis.com/$container/$pointer",false,array(
-				CURLOPT_HTTPHEADER => array("Authorization: Bearer ".$this->Settings["token"])
+				CURLOPT_HTTPHEADER => array("Authorization: Bearer ".$this->Token)
 			));
 		}
 
 		// Implements Provider::listContainers
 		function listContainers() {
 			$containers = array();
-			$response = $this->call("b",array("project" => $this->Settings["project"]));
+			$response = $this->call("b",array("project" => $this->Project));
 
 			if (isset($response->kind) && $response->kind == "storage#buckets") {
 				if (is_array($response->items)) {
@@ -230,7 +249,7 @@
 				CURLOPT_HTTPHEADER => array(
 					"Content-Type: $content_type",
 					"Content-Length: ".filesize($file),
-					"Authorization: Bearer ".$this->Settings["token"]
+					"Authorization: Bearer ".$this->Token
 				)
 			)));
 

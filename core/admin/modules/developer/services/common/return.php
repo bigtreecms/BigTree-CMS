@@ -10,5 +10,7 @@
 		$admin->growl("$name API","Connected");
 	}
 
+	$api->Setting->save();
+
 	Router::redirect(DEVELOPER_ROOT."services/$route/");
 	

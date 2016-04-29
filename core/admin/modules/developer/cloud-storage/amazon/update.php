@@ -1,21 +1,20 @@
 <?php
 	namespace BigTree;
 
-	$cloud->Settings["amazon"] = array(
-		"key" => trim($_POST["key"]),
-		"secret" => trim($_POST["secret"])
-	);
+	$amazon->Key = trim($_POST["key"]);
+	$amazon->Secret = trim($_POST["secret"]);
 
 	// Try to list buckets
-	$cloud->Service = "amazon";
-	$cloud->listContainers();
+	$amazon->listContainers();
 	
-	if (count($cloud->Errors)) {
+	if (count($amazon->Errors)) {
 		$admin->growl("Developer","Amazon S3 secret/key are invalid.","error");
 		Router::redirect(DEVELOPER_ROOT."cloud-storage/amazon/");
 	}
 
-	$cloud->Settings["amazon"]["active"] = true;
+	$amazon->Active = true;
+	$amazon->Setting->save();
+
 	$admin->growl("Developer","Enabled Amazon S3");
 	
 	Router::redirect(DEVELOPER_ROOT."cloud-storage/");

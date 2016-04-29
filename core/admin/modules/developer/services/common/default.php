@@ -1,3 +1,6 @@
+<?php
+	namespace BigTree;
+?>
 <div class="container">
 	<?php
 		if (!$api->Connected) {
@@ -6,6 +9,9 @@
 		<section>
 			<p>To activate the <?=$name?> API class you must follow these steps:</p>
 			<hr />
+			<?php if ($name == "YouTube" || $name == "Google+") { ?>
+			<p class="notice_message"><?=Text::translate("Google's Developer Console changes frequently, these steps may not be up to date.")?></p>
+			<?php } ?>
 			<ol>
 				<?php foreach ($instructions as $i) { ?>
 				<li><?=$i?></li>

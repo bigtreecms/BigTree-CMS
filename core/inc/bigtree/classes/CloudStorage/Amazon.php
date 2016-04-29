@@ -11,6 +11,14 @@
 
 		public $HTTPResponseCode = false;
 
+		function __construct() {
+			parent::__construct();
+
+			$this->Active = &$this->Settings["amazon"]["active"];
+			$this->Key = &$this->Settings["amazon"]["key"];
+			$this->Secret = &$this->Settings["amazon"]["secret"];
+		}
+
 		/*
 			Function: call
 				Calls the Amazon AWS API.

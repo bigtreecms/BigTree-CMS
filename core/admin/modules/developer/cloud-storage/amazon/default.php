@@ -1,9 +1,5 @@
 <?php
-	if (isset($cloud->Settings["amazon"])) {
-		BigTree::globalizeArray($cloud->Settings["amazon"],"htmlspecialchars");
-	} else {
-		$key = $secret = "";
-	}
+	namespace BigTree;
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/amazon/update/" class="module">
@@ -13,11 +9,11 @@
 			</div>	
 			<fieldset>
 				<label><?=Text::translate("Access Key ID")?></label>
-				<input type="text" name="key" value="<?=$key?>" />
+				<input type="text" name="key" value="<?=Text::htmlEncode($amazon->Key)?>" />
 			</fieldset>
 			<fieldset>
 				<label><?=Text::translate("Secret Access Key")?></label>
-				<input type="text" name="secret" value="<?=$secret?>" />
+				<input type="text" name="secret" value="<?=Text::htmlEncode($amazon->Secret)?>" />
 			</fieldset>
 		</section>
 		<footer>

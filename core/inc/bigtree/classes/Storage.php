@@ -23,7 +23,7 @@
 
 		function __construct() {
 			// Get an auto-saving setting
-			$this->Setting = new Setting("bigtree-internal-storage", true, true);
+			$this->Setting = new Setting("bigtree-internal-storage");
 			$this->Settings = &$this->Setting->Value;
 
 			if (!empty($this->Settings["service"])) {

@@ -1,18 +1,19 @@
 <?php
 	namespace BigTree;
 
-	$cloud->Settings["rackspace"] = array(
-		"username" => trim($_POST["username"]),
-		"api_key" => trim($_POST["api_key"]),
-		"region" => trim($_POST["region"])
-	);
+	$rackspace->Username = trim($_POST["username"]);
+	$rackspace->Key = trim($_POST["api_key"]);
+	$rackspace->Region = trim($_POST["region"]);
 
-	if (!$cloud->getToken()) {
+	if (!$rackspace->getToken()) {
 		$admin->growl("Developer","Rackspace Cloud Files Login Failed","error");
+		
 		Router::redirect(DEVELOPER_ROOT."cloud-storage/rackspace/");
 	}
 
-	$cloud->Settings["rackspace"]["active"] = true;
+	$rackspace->Active = true;
+	$rackspace->Setting->save();
+
 	$admin->growl("Developer","Enabled Rackspace Cloud Files");
 
 	Router::redirect(DEVELOPER_ROOT."cloud-storage/");

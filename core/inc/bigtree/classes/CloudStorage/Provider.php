@@ -8,6 +8,7 @@
 
 	use BigTree\OAuth;
 	use BigTree\Setting;
+	use BigTree\SQL;
 
 	class Provider extends OAuth {
 

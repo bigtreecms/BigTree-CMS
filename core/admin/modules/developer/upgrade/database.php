@@ -892,4 +892,19 @@
 
 			$setting->save();
 		}
+
+		// Move Google's Cloud Storage settings into a proper namespace
+		$cloud_storage = new Setting("bigtree-internal-cloud-storage");
+		
+		if ($cloud_storage->Value["key"]) {
+			$cloud_storage->Value["google"] = array(
+				"key" => $cloud_storage->Value["key"],
+				"secret" => $cloud_storage->Value["secret"],
+				"project" => $cloud_storage->Value["project"],
+				"certificate_email" => $cloud_storage->Value["certificate_email"],
+				"private_key" => $cloud_storage->Value["private_key"],
+			);
+			
+			$cloud_storage->save();
+		}
 	}

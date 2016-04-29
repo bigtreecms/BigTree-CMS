@@ -268,5 +268,6 @@
 				$results[] = new Person($person,$this);
 			}
 
-			return new GoogleResultSet($this,"searchPeople",array($query,$count,$params),$response,$results);public
+			return new GoogleResultSet($this,"searchPeople",array($query,$count,$params),$response,$results);
+		}
 	}

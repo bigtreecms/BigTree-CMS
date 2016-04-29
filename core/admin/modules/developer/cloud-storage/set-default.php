@@ -42,6 +42,8 @@
 		}
 	} else {
 		$storage->Settings["Service"] = "local";
+		$storage->Setting->save();
+		
 		$admin->growl("Developer","Changed Default Storage");
 		Router::redirect(DEVELOPER_ROOT);
 	}

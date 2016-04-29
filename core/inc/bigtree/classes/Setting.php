@@ -8,7 +8,6 @@
 
 	class Setting extends BaseObject {
 
-		protected $AutoSave;
 		protected $OriginalEncrypted;
 		protected $OriginalID;
 		protected $OriginalValue;
@@ -33,10 +32,9 @@
 			Parameters:
 				setting - Either an ID (to pull a record) or an array (to use the array as the record)
 				decode - Whether to decode the setting's value (defaults true, set to false for faster processing of large data value)
-				auto_save - Automatically save this setting's value on destruction of the object (defaults to false)
 		*/
 
-		function __construct($setting, $decode = true, $auto_save = false) {
+		function __construct($setting, $decode = true) {
 			global $bigtree;
 
 			// Passing in just an ID
@@ -80,26 +78,6 @@
 				}
 
 				$this->Value = $this->OriginalValue = $value;
-
-				$this->AutoSave = $auto_save;
-			}
-		}
-
-		/*
-			Destructor:
-				Saves the setting's value back to the database if it was instantiated with AutoSave.
-		*/
-
-		function __destruct() {
-			global $bigtree;
-
-			if ($this->AutoSave) {
-				if ($this->Encrypted) {
-					SQL::query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?,?) WHERE id = ?",
-							    $this->Value, $bigtree["config"]["settings_key"], $this->ID);
-				} else {
-					SQL::update("bigtree_settings",$this->ID,array("value" => $this->Value));
-				}
 			}
 		}
 

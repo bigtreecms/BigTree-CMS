@@ -24,6 +24,7 @@
 		public $Scope = false;
 		public $Settings = array();
 		public $SettingID = false;
+		public $SettingNamespace = false;
 		public $TokenURL = "";
 
 		/*
@@ -43,7 +44,7 @@
 			if (!Setting::exists($setting_id)) {
 				Setting::create($setting_id,$setting_name,"","",array(),"","on","on");
 			}
-			$this->Setting = new Setting($setting_id,false,true);
+			$this->Setting = new Setting($setting_id);
 
 			// Emulate old functionality of $this->Settings by making it a reference to the setting value
 			$this->Settings = &$this->Setting->Value;
@@ -54,12 +55,18 @@
 			// Setup dependency table for cache busting
 			$this->Settings["hash_table"] = @is_array($this->Settings["hash_table"]) ? $this->Settings["hash_table"] : array();
 			
-			// Check if we're conected
-			if ($this->Settings["key"] && $this->Settings["secret"] && $this->Settings["token"]) {
+			// Setup proper namespace
+			if ($this->SettingNamespace) {
+				$this->OAuthSettings = &$this->Settings[$this->SettingNamespace];
+			} else {
+				$this->OAuthSettings = &$this->Settings;
+			}
+
+			if ($this->OAuthSettings["key"] && $this->OAuthSettings["secret"] && $this->OAuthSettings["token"]) {
 				$this->Connected = true;
 
 				// If our token is going to expire in the next 30 minutes, refresh it.
-				if ($this->Settings["expires"] < time() + 1800 && $this->Settings["expires"]) {
+				if ($this->OAuthSettings["expires"] < time() + 1800 && $this->OAuthSettings["expires"]) {
 					$this->oAuthRefreshToken();
 				}
 			}
@@ -71,8 +78,8 @@
 		*/
 
 		function cacheBust($id) {
-			if (is_array($this->Settings["hash_table"][$id])) {
-				foreach ($this->Settings["hash_table"][$id] as $i) {
+			if (is_array($this->OAuthSettings["hash_table"][$id])) {
+				foreach ($this->OAuthSettings["hash_table"][$id] as $i) {
 					SQL::delete("bigtree_caches", array(
 						"identifier" => $this->CacheIdentifier,
 						"key" => $i
@@ -87,11 +94,11 @@
 		*/
 
 		function cachePush($id) {
-			if (!isset($this->Settings["hash_table"][$id])) {
-				$this->Settings["hash_table"][$id] = array();
+			if (!isset($this->OAuthSettings["hash_table"][$id])) {
+				$this->OAuthSettings["hash_table"][$id] = array();
 			}
-			if (!in_array($this->LastCacheKey,$this->Settings["hash_table"][$id])) {
-				$this->Settings["hash_table"][$id][] = $this->LastCacheKey;
+			if (!in_array($this->LastCacheKey,$this->OAuthSettings["hash_table"][$id])) {
+				$this->OAuthSettings["hash_table"][$id][] = $this->LastCacheKey;
 			}
 		}
 		
@@ -157,8 +164,8 @@
 					$url = substr($url,0,strpos($url,"?"));
 				}
 	
-				$oauth["oauth_consumer_key"] = $this->Settings["key"];
-				$oauth["oauth_token"] = $this->Settings["token"];
+				$oauth["oauth_consumer_key"] = $this->OAuthSettings["key"];
+				$oauth["oauth_token"] = $this->OAuthSettings["token"];
 				$oauth["oauth_version"] = $this->OAuthVersion;
 				$oauth["oauth_nonce"] = md5(uniqid(rand(), true));
 				$oauth["oauth_timestamp"] = time();
@@ -179,11 +186,11 @@
 				}
 
 				// Signature
-				$oauth["oauth_signature"] = base64_encode(hash_hmac("sha1",strtoupper($method)."&".rawurlencode($url)."&".rawurlencode(substr($string,1)),$this->Settings["secret"]."&".$this->Settings["token_secret"],true));
+				$oauth["oauth_signature"] = base64_encode(hash_hmac("sha1",strtoupper($method)."&".rawurlencode($url)."&".rawurlencode(substr($string,1)),$this->OAuthSettings["secret"]."&".$this->OAuthSettings["token_secret"],true));
 			} elseif ($this->RequestType == "custom") {
 				$oauth = $this->RequestParameters;
 			} elseif ($this->RequestType == "header") {
-				$headers[] = "Authorization: Bearer ".$this->Settings["token"];
+				$headers[] = "Authorization: Bearer ".$this->OAuthSettings["token"];
 			}
 
 			// Build out our new URL with OAuth vars + GET vars we extracted.
@@ -301,7 +308,7 @@
 
 		function oAuthRedirect() {
 			header("Location: ".$this->AuthorizeURL.
-				"?client_id=".urlencode($this->Settings["key"]).
+				"?client_id=".urlencode($this->OAuthSettings["key"]).
 				"&redirect_uri=".urlencode($this->ReturnURL).
 				"&response_type=code".
 				"&scope=".urlencode($this->Scope).
@@ -317,14 +324,14 @@
 
 		function oAuthRefreshToken() {
 			$response = json_decode(cURL::request($this->TokenURL,array(
-				"client_id" => $this->Settings["key"],
-				"client_secret" => $this->Settings["secret"],
-				"refresh_token" => $this->Settings["refresh_token"],
+				"client_id" => $this->OAuthSettings["key"],
+				"client_secret" => $this->OAuthSettings["secret"],
+				"refresh_token" => $this->OAuthSettings["refresh_token"],
 				"grant_type" => "refresh_token"
 			)));
 			if ($response->access_token) {
-				$this->Settings["token"] = $response->access_token;
-				$this->Settings["expires"] = strtotime("+".$response->expires_in." seconds");
+				$this->OAuthSettings["token"] = $response->access_token;
+				$this->OAuthSettings["expires"] = strtotime("+".$response->expires_in." seconds");
 			}
 		}
 
@@ -339,8 +346,8 @@
 		function oAuthSetToken($code) {
 			$response = json_decode(cURL::request($this->TokenURL,array(
 				"code" => $code,
-				"client_id" => $this->Settings["key"],
-				"client_secret" => $this->Settings["secret"],
+				"client_id" => $this->OAuthSettings["key"],
+				"client_secret" => $this->OAuthSettings["secret"],
 				"redirect_uri" => $this->ReturnURL,
 				"grant_type" => "authorization_code"
 			)));
@@ -351,9 +358,11 @@
 			}
 
 			// Update Token information and save it back.
-			$this->Settings["token"] = $response->access_token;
-			$this->Settings["refresh_token"] = $response->refresh_token;
-			$this->Settings["expires"] = $response->expires_in ? strtotime("+".$response->expires_in." seconds") : false;
+			$this->OAuthSettings["token"] = $response->access_token;
+			$this->OAuthSettings["refresh_token"] = $response->refresh_token;
+			$this->OAuthSettings["expires"] = $response->expires_in ? strtotime("+".$response->expires_in." seconds") : false;
+			
+			$this->Active = true;
 			$this->Setting->save();
 
 			$this->Connected = true;

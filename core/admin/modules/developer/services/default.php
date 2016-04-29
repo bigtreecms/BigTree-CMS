@@ -11,14 +11,14 @@
 		}
 	} else {	
 		// Figure out which are connected
-		$facebook = new BigTreeFacebookAPI;
-		$twitter = new BigTreeTwitterAPI;
-		$instagram = new BigTreeInstagramAPI;
-		$google = new BigTreeGooglePlusAPI;
-		$youtube = new BigTreeYouTubeAPI;
-		$flickr = new BigTreeFlickrAPI;
-		$disqus = new BigTreeDisqusAPI;
-		$salesforce = new BigTreeSalesforceAPI;
+		$facebook = new \BigTreeFacebookAPI;
+		$twitter = new \BigTreeTwitterAPI;
+		$instagram = new \BigTreeInstagramAPI;
+		$google = new \BigTreeGooglePlusAPI;
+		$youtube = new \BigTreeYouTubeAPI;
+		$flickr = new \BigTreeFlickrAPI;
+		$disqus = new \BigTreeDisqusAPI;
+		$salesforce = new \BigTreeSalesforceAPI;
 ?>
 <div class="container">
 	<summary><h2>Configure</h2></summary>
