@@ -14,8 +14,8 @@
    				return false;
    			}
    			
-   			$knownLen = Binary::strlen($knownString);
-   			$userLen = Binary::strlen($userInput);
+   			$knownLen = function_exists("mb_strlen") ? mb_strlen($knownString, "8bit") : strlen($knownString);
+   			$userLen = function_exists("mb_strlen") ? mb_strlen($userInput, "8bit") : strlen($userInput);
    			
    			if ($knownLen !== $userLen) {
    				return false;
