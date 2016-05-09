@@ -318,6 +318,6 @@
 		$count--;
 	}
 
-	$admin->growl("Content Generator","Generated $total Entries");
+	$admin->growl("Content Generator","Generated Test Entries");
 	Router::redirect(DEVELOPER_ROOT."test-content/");
 	

@@ -151,7 +151,8 @@
 			array("title" => "Email Delivery","link" => "developer/email","icon" => "messages","hidden" => true),
 			array("title" => "System Upgrade","link" => "developer/upgrade","icon" => "vitals","hidden" => true),
 			array("title" => "Dashboard","link" => "developer/dashboard","icon" => "home","hidden" => true),
-			array("title" => "Content Generator","link" => "developer/content-generator","icon" => "edit_page","hidden" => true)
+			array("title" => "Content Generator","link" => "developer/content-generator","icon" => "edit_page","hidden" => true),
+			array("title" => "Cron & Daily Digest","link" => "developer/cron-digest","icon" => "pending","hidden" => true)
 		)),
 		"search" => array("title" => "Advanced Search","link" => "search","icon" => "search","hidden" => true),
 		"credits" => array("title" => "Credits & Licenses","link" => "credits","icon" => "credits","hidden" => true)
