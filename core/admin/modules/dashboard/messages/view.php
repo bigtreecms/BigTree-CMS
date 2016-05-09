@@ -11,7 +11,6 @@
 ?>
 <div class="container message_thread">
 	<?php
-
 		// Mark the message read by you.
 		foreach ($chain as $m) {
 			if ($m["selected"]) {

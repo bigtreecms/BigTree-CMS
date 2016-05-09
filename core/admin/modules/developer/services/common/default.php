@@ -65,7 +65,7 @@
 			<?=Text::translate("Currently connected to your account.")?>
 			<?php if ($api->Settings["test_environment"]) { ?>
 			<br />
-			<strong><?=Text::translate("Test Environment")?></strong> - <?=Text::translate("Remember to reconnect to live service before launch)")?>
+			<?=Text::translate("<strong>Test Environment</strong> - Remember to reconnect to live service before launch")?>
 			<?php } ?>
 		</p>
 		<?php } ?>

@@ -20,12 +20,12 @@
 	<form method="post" action="../create/" id="message_form">
 		<?php if (count($users) > 1) { ?>
 		<section>
-			<p<?php if (!$error) { ?> style="display: none;"<?php } ?> class="error_message">Errors found! Please fix the highlighted fields before submitting.</p>
+			<p<?php if (!$error) { ?> style="display: none;"<?php } ?> class="error_message"><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 			<fieldset id="send_to"<?php if ($error && !count($send_to)) { ?> class="form_error"<?php } ?>>
-				<label class="required">Send To<?php if ($error && !count($send_to)) { ?><span class="form_error_reason">Required</span><?php } ?></label>
+				<label class="required"><?=Text::translate("Send To")?><?php if ($error && !count($send_to)) { ?><span class="form_error_reason"><?=Text::translate("Required")?></span><?php } ?></label>
 				<div class="multi_widget many_to_many">
 					<section>
-						<p>No users selected. Click "Add User" to add a user to the list.</p>
+						<p><?=Text::translate('No users selected. Click "Add User" to add a user to the list.')?></p>
 					</section>
 					<ul>
 						<?php
@@ -56,26 +56,26 @@
 								}
 							?>
 						</select>
-						<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add User</a>
+						<a href="#" class="add button"><span class="icon_small icon_small_add"></span><?=Text::translate("Add User")?></a>
 					</footer>
 				</div>
 			</fieldset>
 			<fieldset<?php if ($error && !$subject) { ?> class="form_error"<?php } ?>>
-				<label class="required">Subject<?php if ($error && !$subject) { ?><span class="form_error_reason">Required</span><?php } ?></label>
+				<label class="required"><?=Text::translate("Subject")?><?php if ($error && !$subject) { ?><span class="form_error_reason"><?=Text::translate("Required")?></span><?php } ?></label>
 				<input type="text" name="subject"  class="required" value="<?=$subject?>" />
 			</fieldset>
 			<fieldset<?php if ($error && !$message) { ?> class="form_error"<?php } ?>>
-				<label class="required">Message<?php if ($error && !$message) { ?><span class="form_error_reason">Required</span><?php } ?></label>
+				<label class="required"><?=Text::translate("Message")?><?php if ($error && !$message) { ?><span class="form_error_reason"><?=Text::translate("Required")?></span><?php } ?></label>
 				<textarea name="message" id="message" class="required"><?=$message?></textarea>
 			</fieldset>
 		</section>
 		<footer>
-			<a href="../" class="button">Discard</a>
-			<input type="submit" class="button blue" value="Send Message" />
+			<a href="../" class="button"><?=Text::translate("Discard")?></a>
+			<input type="submit" class="button blue" value="<?=Text::translate("Send Message", true)?>" />
 		</footer>
 		<?php } else { ?>
 		<section>
-			<p>There must be more then one active user to send messages.</p>
+			<p><?=Text::translate("There must be more then one active user to send messages.")?></p>
 		</section>
 		<?php } ?>
 	</form>
@@ -91,5 +91,6 @@
 		key: "send_to",
 		sortable: false
 	});
+
 	BigTreeFormValidator("#message_form");
 </script>

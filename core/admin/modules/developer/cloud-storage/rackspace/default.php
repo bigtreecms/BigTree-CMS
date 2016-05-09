@@ -13,7 +13,7 @@
 				<input type="text" name="username" value="<?=Text::htmlEncode($rackspace->Username)?>" />
 			</fieldset>
 			<fieldset>
-				<label><?=Text::translate("Region")?> <small>(<?=Text::translate("choose the location closest to your server")?>)</small></label>
+				<label><?=Text::translate('Region <small>(choose the location closest to your server)</small>')?></label>
 				<select name="region">
 					<?php foreach ($rackspace->Regions as $region => $name) { ?>
 					<option value="<?=$region?>"<?php if ($region == $rackspace->Region) { ?> selected="selected"<?php } ?>><?=$name?></option>

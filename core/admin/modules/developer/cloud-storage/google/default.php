@@ -31,11 +31,11 @@
 				<input type="text" name="secret" value="<?=Text::htmlEncode($google->Secret)?>" />
 			</fieldset>
 			<fieldset>
-				<label><?=Text::translate("Certificate Email Address")?> <small>(<?=Text::translate("optional, needed only for Temporary Private URLs")?>)</small></label>
+				<label><?=Text::translate('Certificate Email Address <small>(optional, needed only for Temporary Private URLs)</small>')?></label>
 				<input type="text" name="certificate_email" value="<?=Text::htmlEncode($google->CertificateEmail)?>" />
 			</fieldset>
 			<fieldset class="developer_cloud_key">
-				<label><?=Text::translate("Certificate Private Key")?> <small>(<?=Text::translate("optional, needed only for Temporary Private URLs")?>)</small></label>
+				<label><?=Text::translate('Certificate Private Key <small>(optional, needed only for Temporary Private URLs)</small>')?></label>
 				<input type="file" name="private_key" />
 				<?php if ($google->PrivateKey) { ?>
 				<span class="icon_approve icon_approve_on"></span>

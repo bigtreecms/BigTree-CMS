@@ -10,7 +10,7 @@
 	<div class="left">
 		<?php if (!isset($callout)) { ?>
 		<fieldset<?php if ($show_error) { ?> class="form_error"<?php } ?>>
-			<label class="required"><?=Text::translate("ID")?> <small>(<?=Text::translate("used for file name, alphanumeric, \"-\" and \"_\" only")?></small><?php if ($show_error) { ?> <span class="form_error_reason"><?=Text::translate($show_error)?></span><?php } ?></label>
+			<label class="required"><?=Text::translate('ID <small>("used for file name, alphanumeric, "-" and "_" only")</small>')?><?php if ($show_error) { ?> <span class="form_error_reason"><?=Text::translate($show_error)?></span><?php } ?></label>
 			<input type="text" class="required" name="id" value="<?=$id?>" />
 		</fieldset>
 		<?php } ?>
@@ -27,7 +27,7 @@
 			</select>
 		</fieldset>
 		<fieldset>
-			<label class="required"><?=Text::translate("Default Display Label")?> <small>(<?=Text::translate("displays if no fields are assigned as \"Label\"")?></small></label>
+			<label class="required"><?=Text::translate('Default Display Label <small>(displays if no fields are assigned as "Label")</small>')?></label>
 			<input type="text" name="display_default" value="<?=$display_default?>" />
 		</fieldset>
 	</div>
@@ -39,7 +39,7 @@
 	</div>
 </section>
 <section class="sub">
-	<label><?=Text::translate("Fields")?> <small>(<?=Text::translate('"type", "display_field", "display_title", and "display_default" are all reserved IDs &mdash; any fields with these IDs will be removed')?>)</small></label>
+	<label><?=Text::translate('Fields <small>("type", "display_field", "display_title", and "display_default" are all reserved IDs &mdash; any fields with these IDs will be removed)</small>')?></label>
 	<div class="form_table">
 		<header>
 			<a href="#" class="add_field add"><span></span><?=Text::translate("Add Field")?></a>

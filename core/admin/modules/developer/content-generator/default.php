@@ -9,7 +9,7 @@
     <form method="post" action="<?=DEVELOPER_ROOT?>content-generator/generate/">
         <section>
             <fieldset>
-                <label><?=Text::translate("Module Form")?> <small>(<?=Text::translate("populates test content into the table for this form")?></small></label>
+                <label><?=Text::translate('Module Form <small>(populates test content into the table for this form)</small>')?></label>
                 <select name="form">
                     <?php foreach ($forms as $form) { ?>
                     <option value="<?=$form["id"]?>"><?=$form["title"]?> &mdash; <?=$form["table"]?></option>
@@ -17,7 +17,7 @@
                 </select>
             </fieldset>
             <fieldset>
-                <label><?=Text::translate("Number of Entries to Create")?> <small>(<?=Text::translate("defaults to 25")?>)</small></label>
+                <label><?=Text::translate('Number of Entries to Create <small>(defaults to 25)</small>')?></label>
                 <input type="text" name="count" />
             </fieldset>
         </section>

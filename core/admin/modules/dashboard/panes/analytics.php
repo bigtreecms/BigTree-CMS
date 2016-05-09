@@ -22,7 +22,7 @@
 		<a href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/analytics/" class="button"><?=Text::translate("View Analytics")?></a>
 		<h2>
 			<span class="icon_medium_analytics"></span>
-			<?=Text::translate("Recent Traffic")?> <small><?=Text::translate("Visits In The Past Two Weeks")?></small>
+			<?=Text::translate('Recent Traffic <small>Visits In The Past Two Weeks</small>')?>
 		</h2>
 	</summary>
 	<section>
