@@ -44,7 +44,7 @@
 				Wrapper for better Disqus error handling.
 		*/
 
-		function callUncached($endpoint,$params = array(),$method = "GET",$headers = array()) {
+		function callUncached($endpoint = "",$params = array(),$method = "GET",$headers = array()) {
 			$response = parent::callUncached($endpoint,$params,$method,$headers);
 
 			if ($response->code != 0) {

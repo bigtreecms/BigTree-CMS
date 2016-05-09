@@ -42,7 +42,7 @@
 				Piggybacks on the base call to provide error checking for Instagram.
 		*/
 
-		function callUncached($endpoint,$params = array(),$method = "GET",$headers = array()) {
+		function callUncached($endpoint = "",$params = array(),$method = "GET",$headers = array()) {
 			$response = parent::callUncached($endpoint,$params,$method,$headers);
 
 			if (isset($response->meta->error_message)) {
