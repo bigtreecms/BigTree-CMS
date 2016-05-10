@@ -142,7 +142,15 @@
 			global $bigtree;
 			// If the query is boolean, it's probably a "false" from a failed sql query.
 			if (is_bool($query)) {
-				trigger_error("sqlfetch called on invalid query resource. The most likely cause is an invalid sqlquery call. Last error returned was: ".$bigtree["sql"]["errors"][count($bigtree["sql"]["errors"])-1]);
+				$last_query = $bigtree["sql"]["errors"][count($bigtree["sql"]["errors"]) - 1];
+
+				// XDebug will already htmlspecialchar the error message.
+				if (!extension_loaded("xdebug")) {
+					$last_query = htmlspecialchars($last_query);
+				}
+
+				trigger_error("sqlfetch called on invalid query resource. The most likely cause is an invalid sqlquery call. Last error returned was: ".$last_query);
+				
 				return false;
 			} else {
 				return $query->fetch_assoc();
@@ -284,7 +292,15 @@
 
 			// If the query is boolean, it's probably a "false" from a failed sql query.
 			if (is_bool($query)) {
-				trigger_error("sqlfetch called on invalid query resource. The most likely cause is an invalid sqlquery call. Last error returned was: ".$bigtree["sql"]["errors"][count($bigtree["sql"]["errors"])-1]);
+				$last_query = $bigtree["sql"]["errors"][count($bigtree["sql"]["errors"]) - 1];
+
+				// XDebug will already htmlspecialchar the error message.
+				if (!extension_loaded("xdebug")) {
+					$last_query = htmlspecialchars($last_query);
+				}
+
+				trigger_error("sqlfetch called on invalid query resource. The most likely cause is an invalid sqlquery call. Last error returned was: ".$last_query);
+
 				return false;
 			} else {
 				return mysql_fetch_assoc($query);
