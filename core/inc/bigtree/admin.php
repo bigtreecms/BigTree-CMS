@@ -90,10 +90,11 @@
 				$user = sqlescape($_COOKIE["bigtree_admin"]["email"]);
 
 				// Get chain and session broken out
-				list($session,$chain) = json_decode($_COOKIE["bigtree_admin"]["login"]);
+				list($session,$chain) = json_decode($_COOKIE["bigtree_admin"]["login"], true);
 
 				// See if this is the current chain and session
 				$chain_entry = sqlfetch(sqlquery("SELECT * FROM bigtree_user_sessions WHERE email = '$user' AND chain = '".sqlescape($chain)."'"));
+
 				if ($chain_entry) {
 					// If both chain and session are legit, log them in
 					if ($chain_entry["id"] == $session) {
@@ -5748,10 +5749,25 @@
 		*/
 
 		static function logout() {
-			setcookie("bigtree_admin[email]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
-			setcookie("bigtree_admin[login]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
+			// If the user asked to be remembered, drop their chain from the legit sessions and remove cookies
+			if (!empty($_COOKIE["bigtree_admin"]["login"])) {
+				list($session,$chain) = json_decode($_COOKIE["bigtree_admin"]["login"], true);
+
+				// Make sure this session/chain is legit before removing everything with the given chain
+				$chain = sqlescape($chain);
+				$session = sqlescape($session);
+
+				if (sqlrows(sqlquery("SELECT * FROM bigtree_user_sessions WHERE id = '$session' AND chain = '$chain'"))) {
+					sqlquery("DELETE FROM bigtree_user_sessions WHERE chain = '$chain'");
+				}
+
+				setcookie("bigtree_admin[email]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
+				setcookie("bigtree_admin[login]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
+			}
+
 			unset($_COOKIE["bigtree_admin"]);
 			unset($_SESSION["bigtree_admin"]);
+
 			BigTree::redirect(ADMIN_ROOT);
 		}
 
