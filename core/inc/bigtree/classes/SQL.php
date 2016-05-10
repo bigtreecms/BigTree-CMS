@@ -807,7 +807,14 @@
 
 			// Chained call
 			if (!is_object($this->ActiveQuery)) {
-				trigger_error("SQL::fetch called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_ERROR);
+				$last_query = static::$ErrorLog[count(static::$ErrorLog) - 1];
+
+				// XDebug will already htmlspecialchar the error message.
+				if (!extension_loaded("xdebug")) {
+					$last_query = htmlspecialchars($last_query);
+				}
+
+				trigger_error("SQL::fetch called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query", E_USER_ERROR);
 
 				return false;
 			} else {
@@ -846,7 +853,14 @@
 
 			// Chained call
 			if (!is_object($this->ActiveQuery)) {
-				trigger_error("SQL::fetchAll called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_ERROR);
+				$last_query = static::$ErrorLog[count(static::$ErrorLog) - 1];
+
+				// XDebug will already htmlspecialchar the error message.
+				if (!extension_loaded("xdebug")) {
+					$last_query = htmlspecialchars($last_query);
+				}
+
+				trigger_error("SQL::fetchAll called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query", E_USER_ERROR);
 
 				return false;
 			} else {
@@ -892,7 +906,14 @@
 
 			// Chained call
 			if (!is_object($this->ActiveQuery)) {
-				trigger_error("SQL::fetchAllSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_ERROR);
+				$last_query = static::$ErrorLog[count(static::$ErrorLog) - 1];
+
+				// XDebug will already htmlspecialchar the error message.
+				if (!extension_loaded("xdebug")) {
+					$last_query = htmlspecialchars($last_query);
+				}
+
+				trigger_error("SQL::fetchAllSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query", E_USER_ERROR);
 
 				return false;
 			} else {
@@ -938,7 +959,14 @@
 
 			// Chained call
 			if (!is_object($this->ActiveQuery)) {
-				trigger_error("SQL::fetchSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: ".static::$ErrorLog[count(static::$ErrorLog) - 1], E_USER_ERROR);
+				$last_query = static::$ErrorLog[count(static::$ErrorLog) - 1];
+
+				// XDebug will already htmlspecialchar the error message.
+				if (!extension_loaded("xdebug")) {
+					$last_query = htmlspecialchars($last_query);
+				}
+
+				trigger_error("SQL::fetchSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query", E_USER_ERROR);
 
 				return false;
 			} else {

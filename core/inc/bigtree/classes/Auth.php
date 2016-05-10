@@ -288,8 +288,18 @@
 		*/
 
 		function logout() {
-			Cookie::delete($this->Namespace."[email]");
-			Cookie::delete($this->Namespace."[login]");
+			// If the user asked to be remembered, drop their chain from the legit sessions and remove cookies
+			if ($login = Cookie::get($this->Namespace."[login]")) {
+				list($session,$chain) = $login;
+
+				// Make sure this session/chain is legit before removing everything with the given chain
+				if (SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_user_sessions WHERE id = ? AND chain = ?", $session, $chain)) {
+					SQL::delete("bigtree_user_sessions", array("chain" => $chain));
+				}
+
+				Cookie::delete($this->Namespace."[email]");
+				Cookie::delete($this->Namespace."[login]");
+			}
 			
 			unset($_COOKIE[$this->Namespace]);
 			unset($_SESSION[$this->Namespace]);
