@@ -6,13 +6,13 @@
 	if (!$updater->extract()) {
 ?>
 <div class="container">
-	<summary><h2>Upgrade Extension</h2></summary>
+	<summary><h2><?=Text::translate("Upgrade Extension")?></h2></summary>
 	<section>
-		<p>An error occurred extracting the zip file. You can hit back to try the download again or click the ignore button below to try the auto upgrade again in a week.</p>
+		<p><?=Text::translate("An error occurred extracting the zip file. You can hit back to try the download again or click the ignore button below to try the auto upgrade again in a week.")?></p>
 	</section>
 	<footer>
-		<a class="button blue" href="<?=$page_link.$page_vars?>">Try Again</a>
-		<a class="button" href="<?=DEVELOPER_ROOT?>extensions/">Return to Extensions List</a>
+		<a class="button blue" href="<?=$page_link.$page_vars?>"><?=Text::translate("Try Again")?></a>
+		<a class="button" href="<?=DEVELOPER_ROOT?>extensions/"><?=Text::translate("Return to Extensions List")?></a>
 	</footer>
 </div>
 <?php
@@ -46,17 +46,17 @@
 ?>
 <form method="post" action="<?=$page_link?>set-ftp-directory/<?=$page_vars?>">
 	<div class="container">
-		<summary><h2>Upgrade Extension</h2></summary>
+		<summary><h2><?=Text::translate("Upgrade Extension")?></h2></summary>
 		<section>
-			<p>BigTree could not automatically detect the <?=$method?> directory that it is installed in (or BigTree was not found in the directory entered below). Please enter the full <?=$method?> path below. This would be the directory that contains /core/.</p>
+			<p><?=Text::translate("BigTree could not automatically detect the :file_access_method: directory that it is installed in (or BigTree was not found in the directory entered below). Please enter the full :file_access_method: path below. This would be the directory that contains /core/.", false, array(":file_access_method:" => $method))?></p>
 			<hr />
 			<fieldset>
-				<label><?=$method?> Path</label>
+				<label><?=Text::translate(":file_access_method: Path", false, array(":file_access_method:" => $method))?></label>
 				<input type="text" name="ftp_root" value="<?=htmlspecialchars($cms->getSetting("bigtree-internal-ftp-upgrade-root"))?>" />
 			</fieldset>
 		</section>
 		<footer>
-			<input type="submit" class="button blue" value="Set <?=$method?> Directory" />
+			<input type="submit" class="button blue" value="<?=Text::translate("Set :file_access_method: Directory", true, array(":file_access_method:" => $method))?>" />
 		</footer>
 	</div>
 </form>

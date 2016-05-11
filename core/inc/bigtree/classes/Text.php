@@ -85,8 +85,13 @@
 				html_encode - Whether to return an encoded string (safer for things inside an attribute, defaults to false)
 		*/
 
-		static function translate($string,$html_encode = false) {
+		static function translate($string, $html_encode = false, $replacements = array()) {
 			$string = "*".(isset(static::$Language[$string]) ? static::$Language[$string] : $string)."*";
+
+			// Allow for wildcard replacements where language isn't an issue
+			foreach ($replacements as $key => $value) {
+				$string = str_replace($key, $value, $string);
+			}
 
 			return $html_encode ? static::htmlEncode($string) : $string;
 		}

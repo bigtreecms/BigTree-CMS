@@ -120,7 +120,7 @@
 			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 			// Track
-			AudiTrail::track("bigtree_field_types",$id,"created");
+			AuditTrail::track("bigtree_field_types",$id,"created");
 			
 			return new FieldType($id);
 		}

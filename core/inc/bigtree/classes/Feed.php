@@ -8,6 +8,12 @@
 
 	class Feed extends BaseObject {
 
+		static $AvailableTypes = array(
+			"custom" => "XML",
+			"json" => "JSON",
+			"rss" => "RSS 0.91",
+			"rss2" => "RSS 2.0"
+		);
 		static $Table = "bigtree_feeds";
 
 		protected $ID;
@@ -17,7 +23,6 @@
 		public $Name;
 		public $Route;
 		public $Settings;
-		public $Table;
 		public $Type;
 
 		/*
@@ -41,10 +46,10 @@
 				$this->ID = $feed["id"];
 
 				$this->Description = $feed["description"];
-				$this->Fields = json_decode($feed["fields"]);
+				$this->Fields = json_decode($feed["fields"], true);
 				$this->Name = $feed["name"];
 				$this->Route = $feed["route"];
-				$this->Settings = json_decode($feed["options"]);
+				$this->Settings = json_decode($feed["options"], true);
 				$this->Table = $feed["table"];
 				$this->Type = $feed["type"];
 			}

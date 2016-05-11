@@ -89,14 +89,14 @@
 	<summary>
 		<h2>
 			<?=$json["title"]?> <?=$json["version"]?>
-			<small>by <?=$json["author"]["name"]?></small>
+			<small><?=Text::translate("by")?> <?=$json["author"]["name"]?></small>
 		</h2>
 	</summary>
 	<section>
 		<?php
 			if (count($warnings)) {
 		?>
-		<h3>Warnings</h3>
+		<h3><?=Text::translate("Warnings")?></h3>
 		<ul>
 			<?php foreach ($warnings as $w) { ?>
 			<li><?=$w?></li>
@@ -107,26 +107,26 @@
 			
 			if (count($errors)) {
 		?>
-		<h3>Errors</h3>
+		<h3><?=Text::translate("Errors")?></h3>
 		<ul>
 			<?php foreach ($errors as $e) { ?>
 			<li><?=$e?></li>
 			<?php } ?>
 		</ul>
-		<p><strong>ERRORS OCCURRED!</strong> &mdash; Please correct all errors.  You may not import this module while errors persist.</p>
+		<p><?=Text::translate("<strong>ERRORS OCCURRED!</strong> &mdash; Please correct all errors. You may not install this extension while errors persist.")?></p>
 		<?php
 			}
 			
 			if (!count($warnings) && !count($errors)) {
 		?>
-		<p>Extension is ready to be installed. No problems found.</p>
+		<p><?=Text::translate("Extension is ready to be installed. No problems found.")?></p>
 		<?php
 			}
 		?>
 	</section>
 	<?php if (!count($errors)) { ?>
 	<footer>
-		<a href="<?=DEVELOPER_ROOT?>extensions/install/process/" class="button blue">Install</a>
+		<a href="<?=DEVELOPER_ROOT?>extensions/install/process/" class="button blue"><?=Text::translate("Install")?></a>
 	</footer>
 	<?php } ?>
 </div>

@@ -4,20 +4,20 @@
 <section>
 	<div class="left last">
 		<fieldset>
-			<label class="required">Name</label>
+			<label class="required"><?=Text::translate("Name")?></label>
 			<input type="text" class="required" name="name" value="<?=$name?>" />
 		</fieldset>
 		<fieldset>
-			<label class="required">Data Table</label>
+			<label class="required"><?=Text::translate("Data Table")?></label>
 			<select name="table" id="feed_table" class="required left">
 				<option></option>
-				<?php BigTree::getTableSelectOptions($table); ?>
+				<?php \BigTree::getTableSelectOptions($table); ?>
 			</select>
 		</fieldset>
 		<fieldset>
-			<label>Type</label>
+			<label><?=Text::translate("Type")?></label>
 			<select name="type" id="feed_type" class="left">
-				<?php foreach ($feed_types as $t => $v) { ?>
+				<?php foreach (Feed::$AvailableTypes as $t => $v) { ?>
 				<option value="<?=$t?>"<?php if ($t == $type) { ?> selected="selected"<?php } ?>><?=$v?></option>
 				<?php } ?>
 			</select> &nbsp; <a href="#" class="options icon_settings centered"></a>
@@ -26,7 +26,7 @@
 	</div>
 	<div class="right last">
 		<fieldset>
-			<label>Description</label>
+			<label><?=Text::translate("Description")?></label>
 			<textarea name="description"><?=$description?></textarea>
 		</fieldset>
 	</div>
@@ -36,7 +36,7 @@
 		if ($item) {
 			include Router::getIncludePath("admin/ajax/developer/load-feed-fields.php");
 		} else {
-			echo "<p>Please choose a table to populate this area.</p>";
+			echo "<p>".Text::translate("Please choose a table to populate this area.")."</p>";
 		}
 	?>
 </section>

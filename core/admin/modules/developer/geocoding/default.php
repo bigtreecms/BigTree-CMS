@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	if (!$admin->settingExists("bigtree-internal-geocoding-service")) {
 		$admin->createSetting(array(
 			"id" => "bigtree-internal-geocoding-service",
@@ -7,11 +9,12 @@
 		));
 		$admin->updateSettingValue("bigtree-internal-geocoding-service",array("service" => "google", "settings" => array()));
 	}
+	
 	$gateway = $cms->getSetting("bigtree-internal-geocoding-service");
 	$gateway["service"] = isset($gateway["service"]) ? $gateway["service"] : "";
 ?>
 <div class="container">
-	<summary><h2>Configure</h2></summary>
+	<summary><h2><?=Text::translate("Configure")?></h2></summary>
 	<section>
 		<a class="box_select<?php if ($gateway["service"] == "google" || !$gateway["service"]) { ?> connected<?php } ?>" href="<?=DEVELOPER_ROOT?>geocoding/google/">
 			<span class="google"></span>

@@ -323,9 +323,9 @@
 ?>
 <div class="container">
 	<section>
-		<p>Extension created successfully.</p>
+		<p><?=Text::translate("Extension created successfully.")?></p>
 	</section>
 	<footer>
-		<a href="<?=DEVELOPER_ROOT?>extensions/build/download/" class="button blue">Download</a>
+		<a href="<?=DEVELOPER_ROOT?>extensions/build/download/" class="button blue"><?=Text::translate("Download")?></a>
 	</footer>
 </div>

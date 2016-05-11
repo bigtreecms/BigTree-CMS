@@ -3,7 +3,7 @@
 	
 	$id = $_POST["id"];
 	
-	if ($admin->getFieldType($id) || file_exists("../core/admin/form-field-types/draw/$id.php") || file_exists("../core/admin/form-field-types/process/$id.php")) {
+	if (SQL::exists("bigtree_field_types",$id) || file_exists("../core/admin/form-field-types/draw/$id.php") || file_exists("../core/admin/form-field-types/process/$id.php")) {
 		$_SESSION["bigtree_admin"]["error"] = "ID Used";
 		$_SESSION["bigtree_admin"]["saved"] = $_POST;
 		Router::redirect(DEVELOPER_ROOT."field-types/add/");

@@ -1,5 +1,6 @@
 <?php
 	BigTree::globalizeArray($_SESSION["bigtree_admin"]["developer"]["package"],"strip_tags","htmlspecialchars");
+	
 	$available_licenses = array(
 		"Closed Source" => array(
 			"Free For Personal Use" => "",

@@ -1,3 +1,6 @@
+<?php
+	namespace BigTree;
+?>
 <script>
 	BigTreeFormValidator("form.module");
 
@@ -14,7 +17,7 @@
 		}
 
 		BigTreeDialog({
-			title: "Feed Options",
+			title: "<?=Text::translate("Feed Options")?>",
 			url: "<?=ADMIN_ROOT?>ajax/developer/load-feed-options/",
 			post: { table: $("#feed_table").val(), type: $("#feed_type").val(), data: $("#feed_options").val() },
 			icon: "edit",

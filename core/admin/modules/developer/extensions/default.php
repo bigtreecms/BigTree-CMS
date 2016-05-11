@@ -8,7 +8,7 @@
 	foreach ($extensions as $extension) {
 		$query[] = "extensions[]=".urlencode($extension["id"]);
 	}
-	$version_info = array_filter((array)@json_decode(BigTree::cURL("http://www.bigtreecms.org/ajax/extensions/version/?".implode("&",$query),false,array(CURLOPT_CONNECTTIMEOUT => 1,CURLOPT_TIMEOUT => 5)),true));
+	$version_info = array_filter((array)@json_decode(\BigTree::cURL("http://www.bigtreecms.org/ajax/extensions/version/?".implode("&",$query),false,array(CURLOPT_CONNECTTIMEOUT => 1,CURLOPT_TIMEOUT => 5)),true));
 
 	foreach ($extensions as &$extension) {
 		$extension["ignore_link"] = $extension["upgrade_link"] = "";
@@ -29,16 +29,16 @@
 <script>
 	BigTreeTable({
 		container: "#extensions_table",
-		title: "Extensions",
+		title: "<?=Text::translate("Extensions", true)?>",
 		data: <?=JSON::encodeColumns($extensions,array("name","id","version","ignore_link","upgrade_link"))?>,
 		actions: {
 			edit: "<?=DEVELOPER_ROOT?>extensions/edit/{id}/",
 			delete: function(id,state) {
 				BigTreeDialog({
-					title: "Uninstall Extension",
-					content: '<p class="confirm">Are you sure you want to uninstall this extension?<br /><br />Related components, including those that were added to this package will also <strong>completely deleted</strong> (including related files).</p>',
+					title: "<?=Text::translate("Uninstall Extension", true)?>",
+					content: '<p class="confirm"><?=str_replace("'","\'",Text::translate("Are you sure you want to uninstall this extension?<br /><br />Related components, including those that were added to this package will also <strong>completely deleted</strong> (including related files)."))?></p>',
 					icon: "delete",
-					alternateSaveText: "OK",
+					alternateSaveText: "<?=Text::translate("OK", true)?>",
 					callback: function() {
 						document.location.href = "<?=DEVELOPER_ROOT?>extensions/delete/" + id + "/";
 					}
@@ -46,7 +46,7 @@
 			}
 		},
 		columns: {
-			name: { title: "Extension Name", largeFont: true, actionHook: "edit", size: 1, source: "{name} v{version}" },
+			name: { title: "<?=Text::translate("Extension Name", true)?>", largeFont: true, actionHook: "edit", size: 1, source: "{name} v{version}" },
 			ignore_link: { title: "", size: 87, center: true },
 			upgrade_link: { title: "", size: 101, center: true }
 		},
@@ -58,9 +58,9 @@
 		ev.preventDefault();
 
 		BigTreeDialog({
-			title: "Ignore Extension Updates",
-			content: '<p class="confirm">Are you sure you want to ignore updates for this extension?</p>',
-			alternateSaveText: "Ignore",
+			title: "<?=Text::translate("Ignore Extension Updates", true)?>",
+			content: '<p class="confirm"><?=Text::translate("Are you sure you want to ignore updates for this extension?", true)?></p>',
+			alternateSaveText: "<?=Text::translate("Ignore", true)?>",
 			callback: $.proxy(function() {
 				window.location.href = $(this).attr("href");
 			},this)
