@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	$cached_types = $admin->getCachedFieldTypes(true);
 	$types = $cached_types["templates"];
 
@@ -9,20 +11,20 @@
 	}
 ?>
 <section>
-	<p class="error_message"<?php if (!$show_error) { ?> style="display: none;"<?php } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
+	<p class="error_message"<?php if (!$show_error) { ?> style="display: none;"<?php } ?>><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 	
 	<div class="contain">
 		<?php if (!isset($template)) { ?>
 		<div class="left">
 			<fieldset<?php if ($show_error) { ?> class="form_error"<?php } ?>>
-				<label class="required">ID <small>(used for file/directory name, alphanumeric, "-" and "_" only)</small><?php if ($show_error) { ?> <span class="form_error_reason"><?=$show_error?></span><?php } ?></label>
+				<label class="required"><?=Text::translate('ID <small>(used for file/directory name, alphanumeric, "-" and "_" only)</small>')?><?php if ($show_error) { ?> <span class="form_error_reason"><?=Text::translate($show_error)?></span><?php } ?></label>
 				<input type="text" class="required" name="id" value="<?=$id?>" />
 			</fieldset>
 		</div>
 		<?php } ?>
 		<div class="<?php if (isset($template)) { ?>left<?php } else { ?>right<?php } ?>">
 			<fieldset>
-				<label class="required">Name</label>
+				<label class="required"><?=Text::translate("Name")?></label>
 				<input type="text" class="required" name="name" value="<?=$name?>" />
 			</fieldset>
 		</div>
@@ -31,10 +33,10 @@
 		if (!isset($template)) {
 	?>
 	<fieldset class="float_margin">
-		<label>Type</label>
+		<label><?=Text::translate("Type")?></label>
 		<select name="routed">
-			<option value="">Basic</option>
-			<option value="on">Routed</option>
+			<option value=""><?=Text::translate("Basic")?></option>
+			<option value="on"><?=Text::translate("Routed")?></option>
 		</select>
 	</fieldset>
 	<?php
@@ -42,7 +44,7 @@
 		if (!isset($template) || $routed) {
 	?>
 	<fieldset class="float_margin">
-		<label>Related Module</label>
+		<label><?=Text::translate("Related Module")?></label>
 		<select name="module">
 			<option></option>
 			<?php
@@ -53,13 +55,9 @@
 					if (count($modules)) {
 			?>
 			<optgroup label="<?=$g["name"]?>">
-				<?php
-						foreach ($modules as $m) {
-				?>
+				<?php foreach ($modules as $m) { ?>
 				<option value="<?=$m["id"]?>"<?php if ($m["id"] == $module) { ?> selected="selected"<?php } ?>><?=$m["name"]?></option>
-				<?php
-						}
-				?>
+				<?php } ?>
 			</optgroup>
 			<?php
 					}
@@ -71,26 +69,26 @@
 		}
 	?>
 	<fieldset class="float_margin">
-		<label>Access Level</label>
+		<label><?=Text::translate("Access Level")?></label>
 		<select name="level">
-			<option value="0">Normal User</option>
-			<option value="1"<?php if ($level == 1) { ?> selected="selected"<?php } ?>>Administrator</option>
-			<option value="2"<?php if ($level == 2) { ?> selected="selected"<?php } ?>>Developer</option>
+			<option value="0"><?=Text::translate("Normal User")?></option>
+			<option value="1"<?php if ($level == 1) { ?> selected="selected"<?php } ?>><?=Text::translate("Administrator")?></option>
+			<option value="2"<?php if ($level == 2) { ?> selected="selected"<?php } ?>><?=Text::translate("Developer")?></option>
 		</select>
 	</fieldset>
 </section>
 <section class="sub">
-	<label>Fields</label>
+	<label><?=Text::translate("Fields")?></label>
 	<div class="form_table">
 		<header>
-			<a href="#" class="add_resource add"><span></span>Add Field</a>
+			<a href="#" class="add_resource add"><span></span><?=Text::translate("Add Field")?></a>
 		</header>
 		<div class="labels">
-			<span class="developer_resource_id">ID</span>
-			<span class="developer_resource_title">Title</span>
-			<span class="developer_resource_subtitle">Subtitle</span>
-			<span class="developer_resource_type">Type</span>
-			<span class="developer_resource_action right">Delete</span>
+			<span class="developer_resource_id"><?=Text::translate("ID")?></span>
+			<span class="developer_resource_title"><?=Text::translate("Title")?></span>
+			<span class="developer_resource_subtitle"><?=Text::translate("Subtitle")?></span>
+			<span class="developer_resource_type"><?=Text::translate("Type")?></span>
+			<span class="developer_resource_action right"><?=Text::translate("Delete")?></span>
 		</div>
 		<ul id="resource_table">
 			<?php

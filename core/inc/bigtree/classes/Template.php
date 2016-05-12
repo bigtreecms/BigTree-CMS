@@ -79,9 +79,10 @@
 			$file_contents = "<?\n	/*\n		Fields Available:\n";
 
 			// Grabbing field types so we can put their name in the template file
-			$types = BigTree\FieldType::reference(false,"templates");
+			$types = FieldType::reference(false,"templates");
 
 			// Loop through fields and create cleaned up versions
+			$fields = array_filter((array) $fields);
 			foreach ($fields as $key => $field) {
 				if (!$field["id"]) {
 					unset($fields[$key]);

@@ -7,175 +7,114 @@
 		Router::redirect(DEVELOPER_ROOT."upgrade/database/");
 	}
 
-	// Check for newer versions of BigTree
-	$ignored_all = true;
-	if (!$_COOKIE["bigtree_admin"]["deferred_update"]) {
-		$updates = array_filter((array)@json_decode(cURL::request("http://www.bigtreecms.org/ajax/version-check/?current_version=".BIGTREE_VERSION,false,array(CURLOPT_CONNECTTIMEOUT => 1,CURLOPT_TIMEOUT => 5)),true));
-		// See if we've ignored these updates
-		$ignorable = array();
-		foreach ($updates as $update) {
-			if (!$_COOKIE["bigtree_admin"]["ignored_update"][$update["version"]]) {
-				$ignored_all = false;
-			}
-			$ignorable[] = $update["version"];
-		}
-	}
-	
-	// If we're ignoring updates through config, still ignore them
-	if (!empty($bigtree["config"]["ignore_admin_updates"])) {
-		$ignored_all = true;
-	}
+	// Check for updates
+	include "upgrade/_update-list.php";
 
-	// Updates are available and we didn't ignore them
-	if (!$ignored_all && count($updates)) {
+	if (!$showing_updates) {
 ?>
 <div class="container">
-	<summary><h2>Update Available</h2></summary>
-	<section>
-		<p>You are currently running BigTree <?=BIGTREE_VERSION?>. The following update<?php if (count($updates) > 1) { ?>s are<?php } else { ?> is<?php } ?> available:</p>
-		<ul>
-			<?php
-				foreach ($updates as $type => $update) {
-					if (!$_COOKIE["bigtree_admin"]["ignored_update"][$update["version"]]) {
-			?>
-			<li>
-				<strong><?=$update["version"]?></strong> &mdash; Released <?=date("F j, Y",strtotime($update["release_date"]))?> &mdash; 
-				<?php
-					if ($type == "revision") {
-						echo "This is a bugfix release and is recommended for all users.";
-					} elseif ($type == "minor") {
-						echo "This is a feature release. Though it should be backwards compatible it is recommended that you test the update on your development site before running it on your live site.";
-					} elseif ($type == "major") {
-						echo "This is a major update and is not backwards compatible. You must install this release manually.";
-					}
-				?>
-			</li>
-			<?php
-					}
-				}
-			?>
-		</ul>
-	</section>
-	<footer>
-		<?php
-			foreach ($updates as $type => $update) {
-				if ($type != "major" && !$_COOKIE["bigtree_admin"]["ignored_update"][$update["version"]]) {
-		?>
-		<a class="button<?php if ($type == "revision") { ?> blue<?php } ?>" href="<?=DEVELOPER_ROOT?>upgrade/init/?type=<?=$type?>">Upgrade To <?=$update["version"]?></a>
-		<?php
-				}
-			}
-		?>
-		<a class="button" href="<?=DEVELOPER_ROOT?>upgrade/remind/">Remind Me In 1 Week</a>
-		<a class="button red" href="<?=DEVELOPER_ROOT?>upgrade/ignore/?versions=<?=urlencode(json_encode($ignorable))?>">Ignore These Updates</a>
-	</footer>
-</div>
-<?php
-	} else {
-?>
-<div class="container">
-	<summary><h2>Create</h2></summary>
+	<summary><h2><?=Text::translate("Create")?></h2></summary>
 	<section>
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>templates/">
 			<span class="templates"></span>
-			<p>Templates</p>
+			<p><?=Text::translate("Templates")?></p>
 		</a>
 		
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>modules/">
 			<span class="modules"></span>
-			<p>Modules</p>
+			<p><?=Text::translate("Modules")?></p>
 		</a>
 		
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>callouts/">
 			<span class="callouts"></span>
-			<p>Callouts</p>
+			<p><?=Text::translate("Callouts")?></p>
 		</a>
 		
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>field-types/">
 			<span class="field_types"></span>
-			<p>Field Types</p>
+			<p><?=Text::translate("Field Types")?></p>
 		</a>
 		
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>feeds/">
 			<span class="feeds"></span>
-			<p>Feeds</p>
+			<p><?=Text::translate("Feeds")?></p>
 		</a>
 		
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>settings/">
 			<span class="settings"></span>
-			<p>Settings</p>
+			<p><?=Text::translate("Settings")?></p>
 		</a>
 		<a class="box_select last" href="<?=DEVELOPER_ROOT?>extensions/">
 			<span class="package"></span>
-			<p>Extensions &amp; Packages</p>
+			<p><?=Text::translate("Extensions &amp; Packages")?></p>
 		</a>
 	</section>
 </div>
 
 <div class="container">
-	<summary><h2>Configure</h2></summary>
+	<summary><h2><?=Text::translate("Configure")?></h2></summary>
 	<section>
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>cloud-storage/">
 			<span class="cloud"></span>
-			<p>Cloud Storage</p>
+			<p><?=Text::translate("Cloud Storage")?></p>
 		</a>
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>payment-gateway/">
 			<span class="payment"></span>
-			<p>Payment Gateway</p>
+			<p><?=Text::translate("Payment Gateway")?></p>
 		</a>
 		<a class="box_select" href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/analytics/configure/">
 			<span class="analytics"></span>
-			<p>Analytics</p>
+			<p><?=Text::translate("Analytics")?></p>
 		</a>
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>geocoding/">
 			<span class="geocoding"></span>
-			<p>Geocoding</p>
+			<p><?=Text::translate("Geocoding")?></p>
 		</a>
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>email/">
 			<span class="messages"></span>
-			<p>Email Delivery</p>
+			<p><?=Text::translate("Email Delivery")?></p>
 		</a>
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>services/">
 			<span class="api"></span>
-			<p>Service APIs</p>
+			<p><?=Text::translate("Service APIs")?></p>
 		</a>
 		<a class="box_select last" href="<?=DEVELOPER_ROOT?>media/">
 			<span class="images"></span>
-			<p>Media</p>
+			<p><?=Text::translate("Media")?></p>
 		</a>
 		<a class="box_select second_row" href="<?=DEVELOPER_ROOT?>security/">
 			<span class="lock"></span>
-			<p>Security</p>
+			<p><?=Text::translate("Security")?></p>
 		</a>
 		<a class="box_select second_row" href="<?=DEVELOPER_ROOT?>dashboard/">
 			<span class="home"></span>
-			<p>Dashboard</p>
+			<p><?=Text::translate("Dashboard")?></p>
 		</a>
 		<a class="box_select second_row" href="<?=DEVELOPER_ROOT?>cron-digest/">
 			<span class="pending"></span>
-			<p>Daily Digest<br />&amp; Cron</p>
+			<p><?=Text::translate("Daily Digest<br />&amp; Cron")?></p>
 		</a>
 	</section>
 </div>
 
 <div class="container">
-	<summary><h2>Debug</h2></summary>
+	<summary><h2><?=Text::translate("Debug")?></h2></summary>
 	<section>
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>status/">
 			<span class="vitals"></span>
-			<p>Site Status</p>
+			<p><?=Text::translate("Site Status")?></p>
 		</a>
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>audit/">
 			<span class="trail"></span>
-			<p>Audit Trail</p>
+			<p><?=Text::translate("Audit Trail")?></p>
 		</a>
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>user-emulator/">
 			<span class="users"></span>
-			<p>User Emulator</p>
+			<p><?=Text::translate("User Emulator")?></p>
 		</a>
 		<a class="box_select last" href="<?=DEVELOPER_ROOT?>content-generator/">
 			<span class="edit_page"></span>
-			<p>Content Generator</p>
+			<p><?=Text::translate("Content Generator")?></p>
 		</a>
 	</section>
 </div>

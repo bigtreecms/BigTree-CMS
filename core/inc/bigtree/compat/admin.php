@@ -2847,14 +2847,10 @@
 		function getSettings($sort = "name ASC") {
 			$settings = BigTree\Setting::all($sort, true);
 
-			if ($this->Level > 1) {
-				return $settings;
-			}
-
 			// Only draw settings the admin can use
 			$filtered_settings = array();
 			foreach ($settings as $setting) {
-				if (!$setting["locked"]) {
+				if (!$setting["system"] && ($this->Level > 1 || !$setting["locked"])) {
 					$filtered_settings[] = $setting;
 				}
 			}

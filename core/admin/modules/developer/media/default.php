@@ -1,10 +1,12 @@
 <?php
+	namespace BigTree;
+
 	$settings = $cms->getSetting("bigtree-internal-media-settings");
 ?>
 <div class="table" id="image_presets_table">
 	<summary>
-		<h2>Image Option Presets</h2>
-		<a class="add" href="#"><span></span>Add</a>
+		<h2><?=Text::translate("Image Option Presets")?></h2>
+		<a class="add" href="#"><span></span><?=Text::translate("Add")?></a>
 	</summary>
 	<ul>
 		<?php foreach (array_filter((array)$settings["presets"]) as $preset) { ?>
@@ -33,7 +35,7 @@
 
 			$.ajax("<?=ADMIN_ROOT?>ajax/developer/media/preset/", { complete: function(e) {
 				BigTreeDialog({
-					title: "Add Image Preset",
+					title: "<?=Text::translate("Add Image Preset")?>",
 					icon: "add",
 					content: e.responseText,
 					callback: function(data) {
@@ -58,10 +60,10 @@
 
 			Current = $(this).parents("li");
 			BigTreeDialog({
-				title: "Delete Image Preset",
-				content: '<p class="confirm">Are you sure you want to delete this image preset?</p>',
+				title: "<?=Text::translate("Delete Image Preset", true)?>",
+				content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this image preset?", true)?></p>',
 				icon: "delete",
-				alternateSaveText: "OK",
+				alternateSaveText: "<?=Text::translate("OK", true)?>",
 				callback: function() {
 					var data = JSON.parse(Current.find("input").val());
 					// Remove from DOM
@@ -83,7 +85,7 @@
 			Current = $(this).parents("li");
 			$.ajax("<?=ADMIN_ROOT?>ajax/developer/media/preset/", { method: "POST", data: JSON.parse(Current.find("input").val()), complete: function(e) {
 				BigTreeDialog({
-					title: "Edit Image Preset",
+					title: "<?=Text::translate("Edit Image Preset", true)?>",
 					icon: "edit",
 					content: e.responseText,
 					callback: function(data) {

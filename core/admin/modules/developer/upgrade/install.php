@@ -4,13 +4,13 @@
 	if (!$updater->extract()) {
 ?>
 <div class="container">
-	<summary><h2>Upgrade BigTree</h2></summary>
+	<summary><h2><?=Text::translate("Upgrade BigTree")?></h2></summary>
 	<section>
-		<p>An error occurred extracting the zip file. You can hit back to try the download again or click the ignore button below to try the auto upgrade again in a week.</p>
+		<p><?=Text::translate("An error occurred extracting the zip file. You can hit back to try the download again or click the ignore button below to try the auto upgrade again in a week.")?></p>
 	</section>
 	<footer>
-		<a class="button blue" href="<?=DEVELOPER_ROOT?>upgrade/init/?type=<?=htmlspecialchars($_POST["type"])?>">Try Again</a>
-		<a class="button" href="<?=DEVELOPER_ROOT?>upgrade/remind/">Remind Me Later</a>
+		<a class="button blue" href="<?=DEVELOPER_ROOT?>upgrade/init/?type=<?=htmlspecialchars($_POST["type"])?>"><?=Text::translate("Try Again")?></a>
+		<a class="button" href="<?=DEVELOPER_ROOT?>upgrade/remind/"><?=Text::translate("Remind Me Later")?></a>
 	</footer>
 </div>
 <?php
@@ -42,20 +42,20 @@
 ?>
 <form method="post" action="<?=DEVELOPER_ROOT?>upgrade/set-ftp-directory/">
 	<div class="container">
-		<summary><h2>Upgrade BigTree</h2></summary>
+		<summary><h2><?=Text::translate("Upgrade BigTree")?></h2></summary>
 		<section>
-			<p>BigTree could not automatically detect the <?=$method?> directory that it is installed in (or BigTree was not found in the directory entered below). Please enter the full <?=$method?> path below. This would be the directory that contains /core/.</p>
+			<p><?=Text::translate("BigTree could not automatically detect the :update_method: directory that it is installed in (or BigTree was not found in the directory entered below). Please enter the full :update_method: path below. This would be the directory that contains /core/.", false, array(":update_method:" => $method))?></p>
 			<hr />
 			<?php if ($saved_root) { ?>
-			<p class="error_message">A BigTree installation could not be found in <code><?=$saved_root?></code></p>
+			<p class="error_message"><?=Text::translate("A BigTree installation could not be found in <code>:directory:</code>", false, array(":directory:" => $saved_root))?></p>
 			<?php } ?>
 			<fieldset>
-				<label><?=$method?> Path</label>
+				<label><?=Text::translate(":update_method: Path", false, array(":update_method:" => $method))?></label>
 				<input type="text" name="ftp_root" value="<?=$saved_root?>" />
 			</fieldset>
 		</section>
 		<footer>
-			<input type="submit" class="button blue" value="Set <?=$method?> Directory" />
+			<input type="submit" class="button blue" value="<?=Text::translate("Set :update_method: Directory", true, array(":update_method:" => $method))?>" />
 		</footer>
 	</div>
 </form>

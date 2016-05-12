@@ -5,13 +5,13 @@
 	if (!$updater->checkZip()) {
 ?>
 <div class="container">
-	<summary><h2>Upgrade BigTree</h2></summary>
+	<summary><h2><?=Text::translate("Upgrade BigTree")?></h2></summary>
 	<section>
-		<p>An error occurred extracting the zip file. You can hit back to try the download again or click the ignore button below to try the auto upgrade again in a week.</p>
+		<p><?=Text::translate("An error occurred extracting the zip file. You can hit back to try the download again or click the ignore button below to try the auto upgrade again in a week.")?></p>
 	</section>
 	<footer>
-		<a class="button blue" href="<?=DEVELOPER_ROOT?>upgrade/init/?type=<?=htmlspecialchars($_GET["type"])?>">Try Again</a>
-		<a class="button" href="<?=DEVELOPER_ROOT?>upgrade/remind/">Remind Me Later</a>
+		<a class="button blue" href="<?=DEVELOPER_ROOT?>upgrade/init/?type=<?=htmlspecialchars($_GET["type"])?>"><?=Text::translate("Try Again")?></a>
+		<a class="button" href="<?=DEVELOPER_ROOT?>upgrade/remind/"><?=Text::translate("Remind Me Later")?></a>
 	</footer>
 </div>
 <?php
@@ -25,33 +25,33 @@
 <form method="post" action="<?=DEVELOPER_ROOT?>upgrade/install/">
 	<input type="hidden" name="type" value="<?=htmlspecialchars($_GET["type"])?>" />
 	<div class="container">
-		<summary><h2>Upgrade BigTree</h2></summary>
+		<summary><h2><?=Text::translate("Upgrade BigTree")?></h2></summary>
 		<section>
 			<?php if ($updater->Method == "Local") { ?>
-			<p>The upgrade file finished downloading and your file permissions allow for local install.</p>
+			<p><?=Text::translate("The upgrade file finished downloading and your file permissions allow for local install.")?></p>
 			<ul>
-				<li>Your existing /core/ folder will be backed up in /backups/core-<?=BIGTREE_VERSION?>/</li>
-				<li>Your existing database will be backed up as /backups/core-<?=BIGTREE_VERSION?>/backup.sql</li>
+				<li><?=Text::translate("Your existing /core/ folder will be backed up in /backups/core-:version:/", false, array(":version:" => BIGTREE_VERSION))?></li>
+				<li><?=Text::translate("Your existing database will be backed up as /backups/core-:version:/backup.sql", false, array(":version:" => BIGTREE_VERSION))?></li>
 			</ul>
 			<?php } else { ?>
-			<p>The upgrade file has finished downloading but the web server can not write directly to the root or /core/ folder. You'll need to enter your <strong><?=$updater->Method?></strong> credentials below so that BigTree can upgrade.</p>
+			<p><?=Text::translate("The upgrade file has finished downloading but the web server can not write directly to the root or /core/ folder. You'll need to enter your <strong>:update_method:</strong> credentials below so that BigTree can upgrade.", false, array(":update_method" => $updater->Method))?></p>
 			<ul>
-				<li>Your existing /core/ folder will be backed up in /backups/core-<?=BIGTREE_VERSION?>/</li>
-				<li>Your existing database will be backed up as /backups/core-<?=BIGTREE_VERSION?>/backup.sql</li>
+				<li><?=Text::translate("Your existing /core/ folder will be backed up in /backups/core-:version:/", false, array(":version:" => BIGTREE_VERSION))?></li>
+				<li><?=Text::translate("Your existing database will be backed up as /backups/core-:version:/backup.sql", false, array(":version:" => BIGTREE_VERSION))?></li>
 			</ul>
 			<hr />
 			<fieldset>
-				<label><?=$updater->Method?> Username</label>
+				<label><?=Text::translate(":update_method: Username", false, array(":update_method:" => $updater->Method))?></label>
 				<input type="text" name="username" autocomplete="off" />
 			</fieldset>
 			<fieldset>
-				<label><?=$updater->Method?> Password</label>
+				<label><?=Text::translate(":update_method: Password", false, array(":update_method:" => $updater->Method))?></label>
 				<input type="password" name="password" autocomplete="off" />
 			</fieldset>
 			<?php } ?>
 		</section>
 		<footer>
-			<input type="submit" class="blue" value="Install" />
+			<input type="submit" class="blue" value="<?=Text::translate("Install", true)?>" />
 		</footer>
 	</div>
 </form>

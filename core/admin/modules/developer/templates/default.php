@@ -19,10 +19,10 @@
 			edit: "<?=DEVELOPER_ROOT?>templates/edit/{id}/",
 			delete: function(id,state) {
 				BigTreeDialog({
-					title: "Delete Template",
-					content: '<p class="confirm">Are you sure you want to delete this template?<br /><br />Deleting a template also removes its files in the /templates/ directory.</p>',
+					title: "<?=Text::translate("Delete Template", true)?>",
+					content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this template?<br /><br />Deleting a template also removes its files in the /templates/ directory.")?></p>',
 					icon: "delete",
-					alternateSaveText: "OK",
+					alternateSaveText: "<?=Text::translate("OK", true)?>",
 					callback: function() {
 						document.location.href = "<?=DEVELOPER_ROOT?>templates/delete/" + id + "/";
 					}
@@ -30,7 +30,7 @@
 			}
 		},
 		columns: {
-			name: { title: "Template Name", largeFont: true, actionHook: "edit" }
+			name: { title: "<?=Text::translate("Template Name", true)?>", largeFont: true, actionHook: "edit" }
 		},
 		draggable: function(positioning) {
 			$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-templates/", { type: "POST", data: positioning });
@@ -42,13 +42,13 @@
 	BigTreeTable($.extend(table_config,{
 		container: "#basic_templates",
 		data: <?=JSON::encodeColumns($basic_data,array("id","name"))?>,
-		title: "Basic Templates"
+		title: "<?=Text::translate("Basic Templates", true)?>"
 	}));
 
 	// Routed table
 	BigTreeTable($.extend(table_config,{
 		container: "#routed_templates",
 		data: <?=JSON::encodeColumns($routed_data,array("id","name"))?>,
-		title: "Routed Templates"
+		title: "<?=Text::translate("Routed Templates", true)?>"
 	}));
 </script>

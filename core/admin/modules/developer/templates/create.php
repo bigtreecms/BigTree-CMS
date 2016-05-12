@@ -1,10 +1,10 @@
 <?php
 	namespace BigTree;
 	
-	BigTree::globalizePOSTVars();
+	\BigTree::globalizePOSTVars();
 	
 	// Let's see if the ID has already been used.
-	if ($cms->getTemplate($id)) {
+	if (SQL::exists("bigtree_templates",$id)) {
 		$_SESSION["bigtree_admin"]["saved"] = $_POST;
 		$_SESSION["bigtree_admin"]["error"] = "ID Used";
 		Router::redirect(DEVELOPER_ROOT."templates/add/");

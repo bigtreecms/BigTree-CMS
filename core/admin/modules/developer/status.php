@@ -1,5 +1,5 @@
 <?php
-	use BigTree\FileSystem;
+	namespace BigTree;
 	
 	//!BigTree Warnings
 	$warnings = array();
@@ -19,8 +19,8 @@
 	foreach ($writable_directories as $directory) {
 		if (!FileSystem::getDirectoryWritability(SERVER_ROOT.$directory)) {
 		    $warnings[] = array(
-		    	"name" => "Directory Permissions Error",
-		    	"description" => "Make ".SERVER_ROOT.$directory." writable.",
+		    	"name" => Text::translate("Directory Permissions Error"),
+		    	"description" => Text::translate("Make :directory: writable.", false, array(":directory:" => SERVER_ROOT.$directory)),
 		    	"status" => "bad"
 		    );
 		}
@@ -40,8 +40,8 @@
 					if (!FileSystem::getDirectoryWritability(SITE_ROOT.$options["directory"]) && !in_array($options["directory"],$directory_warnings)) {
 						$directory_warnings[] = $options["directory"];
 						$warnings[] = array(
-							"name" => "Directory Permissions Error",
-							"description" => "Make ".SITE_ROOT.$options["directory"]." writable.",
+							"name" => Text::translate("Directory Permissions Error"),
+							"description" => Text::translate("Make :directory: writable.", false, array(":directory:" => SITE_ROOT.$options["directory"])),
 							"status" => "bad"
 						);
 					}
@@ -66,16 +66,16 @@
 	$bad = $admin->getPageAdminLinks();
 	foreach ($bad as $f) {
 		$warnings[] = array(
-			"name" => "Bad Admin Links",
-			"description" => 'Remove links to Admin on <a href="'.ADMIN_ROOT.'pages/edit/'.$f["id"].'/">'.$f["nav_title"].'</a>',
+			"name" => Text::translate("Bad Admin Links"),
+			"description" => Text::translate('Remove links to Admin on <a href=":link:">:link_title:</a>', false, array(":link:" => ADMIN_ROOT.'pages/edit/'.$f["id"]."/", ":link_title:" => $f["nav_title"])),
 			"status" => "ok"
 		);
 	}
 	
 	if (!file_exists(SITE_ROOT."favicon.ico")) {
 		$warnings[] = array(
-			"name" => "Missing Favicon",
-			"description" => "Create a favicon and place it in the /site/ root.",
+			"name" => Text::translate("Missing Favicon"),
+			"description" => Text::translate("Create a favicon and place it in the /site/ root."),
 			"status" => "ok"
 		);
 	}
@@ -95,49 +95,49 @@
 	$server_parameters = array(
 		array(
 			"name" => "Magic Quotes",
-			"description" => "&ldquo;magic_quotes_gpc = Off&rdquo; in php.ini",
+			"description" => Text::translate('&ldquo;magic_quotes_gpc = Off&rdquo; in php.ini'),
 			"status" => !get_magic_quotes_gpc() ? "good" : "bad",
 			"value" => ""
 		),
 		array(
 			"name" => "Magic Quotes Runtime Setting",
-			"description" => "&ldquo;magic_quotes_gpc = Off&rdquo; at runtime",
+			"description" => Text::translate("&ldquo;magic_quotes_gpc = Off&rdquo; at runtime"),
 			"status" => !get_magic_quotes_runtime() ? "good" : "bad",
 			"value" => ""
 		),
 		array(
 			"name" => "MySQL Support",
-			"description" => 'MySQL or <a href="http://www.php.net/manual/en/mysqli.installation.php" target="_blank">MySQLi extension</a> is required',
+			"description" => Text::translate('MySQL or <a href=":mysqli_link:" target="_blank">MySQLi extension</a> is required', false, array(":mysqli_link" => "http://www.php.net/manual/en/mysqli.installation.php")),
 			"status" => (extension_loaded('mysql') || extension_loaded("mysqli")) ? "good" : "bad",
 			"value" => ""
 		),
 		array(
 			"name" => "Allow File Uploads",
-			"description" => "&ldquo;file_uploads = On&rdquo; in php.ini",
+			"description" => Text::translate("&ldquo;file_uploads = On&rdquo; in php.ini"),
 			"status" => ini_get('file_uploads') ? "good" : "bad",
 			"value" => ""
 		),
 		array(
 			"name" => "Allow 4MB Uploads",
-			"description" => "&ldquo;upload_max_filesize&rdquo; and &ldquo;post_max_size&rdquo; > 4M &mdash; ideally 8M or higher in php.ini",
+			"description" => Text::translate("&ldquo;upload_max_filesize&rdquo; and &ldquo;post_max_size&rdquo; > 4M &mdash; ideally 8M or higher in php.ini"),
 			"status" => $max_check,
 			"value" => $max_file."M"
 		),
 		array(
 			"name" => "Memory Limit",
-			"description" => "&ldquo;memory_limit&rdquo; > 32M in php.ini",
+			"description" => Text::translate("&ldquo;memory_limit&rdquo; > 32M in php.ini"),
 			"status" => (intval(ini_get("memory_limit")) > 32) ? "good" : "bad",
 			"value" => ini_get("memory_limit")
 		),
 		array(
 			"name" => "Image Processing",
-			"description" => '<a href="http://us3.php.net/manual/en/image.installation.php" target="_blank">GD extension</a> is required',
+			"description" => Text::translate('<a href=":gd_link:" target="_blank">GD extension</a> is required', false, array(":gd_link:" => "http://www.php.net/manual/en/image.installation.php")),
 			"status" => extension_loaded('gd') ? "good" : "bad",
 			"value" => ""
 		),
 		array(
 			"name" => "cURL Support",
-			"description" => '<a href="http://www.php.net/manual/en/curl.installation.php" target="_blank">cURL extension</a> is required',
+			"description" => Text::translate('<a href=":curl_link:" target="_blank">cURL extension</a> is required', false, array(":curl_link:" => "http://www.php.net/manual/en/curl.installation.php")),
 			"status" => extension_loaded('curl') ? "good" : "bad",
 			"value" => ""
 		)
@@ -145,7 +145,7 @@
 ?>
 <div class="container">
 	<section>
-		<p>Critical errors appear in <span style="color: red;">red</span>, warnings appear in <span style="color: orange;">yellow</span>, and successes appear in <span style="color: green;">green</span>.</p>
+		<p><?=Text::translate('Critical errors appear in <span style="color: red;">red</span>, warnings appear in <span style="color: orange;">yellow</span>, and successes appear in <span style="color: green;">green</span>.')?></p>
 	</section>
 </div>
 <div id="site_warnings_table"></div>
@@ -154,28 +154,28 @@
 	<?php if (count($warnings)) { ?>
 	// Site Warnings
 	BigTreeTable({
-		title: "Warnings",
+		title: "<?=Text::translate("Warnings", true)?>",
 		container: "#site_warnings_table",
 		data: <?=json_encode($warnings)?>,
 		actions: [],
 		columns: {
-			name: { title: "Problem", size: 0.3 },
-			description: { title: "Recommended Action", size: 0.7 },
-			status: { title: "Status", size: 90, center: true, source: '<span class="status {status}"></span>' }
+			name: { title: "<?=Text::translate("Problem", true)?>", size: 0.3 },
+			description: { title: "<?=Text::translate("Recommended Action", true)?>", size: 0.7 },
+			status: { title: "<?=Text::translate("Status", true)?>", size: 90, center: true, source: '<span class="status {status}"></span>' }
 		}
 	});
 	<?php } ?>
 
 	// Server Status
 	BigTreeTable({
-		title: "Server Parameters",
+		title: "<?=Text::translate("Server Parameters", true)?>",
 		container: "#server_status_table",
 		data: <?=json_encode($server_parameters)?>,
 		actions: [],
 		columns: {
-			name: { title: "Server Parameter", size: 0.3 },
-			description: { title: "Recommended Value", size: 0.7 },
-			status: { title: "Status", size: 90, center: true, source: '<span class="status {status}">{value}</span>' }
+			name: { title: "<?=Text::translate("Server Parameter", true)?>", size: 0.3 },
+			description: { title: "<?=Text::translate("Recommended Value", true)?>", size: 0.7 },
+			status: { title: "<?=Text::translate("Status", true)?>", size: 90, center: true, source: '<span class="status {status}">{value}</span>' }
 		}
 	});
 </script>

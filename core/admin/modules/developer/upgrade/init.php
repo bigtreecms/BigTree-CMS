@@ -6,7 +6,7 @@
 		Router::redirect(DEVELOPER_ROOT."upgrade/failed/");
 	}
 	
-	$updates = @json_decode(BigTree::cURL("http://www.bigtreecms.org/ajax/version-check/?current_version=".BIGTREE_VERSION),true);
+	$updates = @json_decode(\BigTree::cURL("http://www.bigtreecms.org/ajax/version-check/?current_version=".BIGTREE_VERSION),true);
 	$update = $updates[$_GET["type"]];
 	if (!$update) {
 		$admin->growl("Developer","Couldn't Get Download Information","error");
@@ -17,9 +17,9 @@
 	$download_key = $cms->cacheUnique("org.bigtreecms.downloads",$update["file"]);
 ?>
 <div class="container">
-	<summary><h2>Upgrade BigTree</h2></summary>
+	<summary><h2><?=Text::translate("Upgrade BigTree")?></h2></summary>
 	<section>
-		<p>Please wait while we download the update...</p>
+		<p><?=Text::translate("Please wait while we download the update...")?></p>
 	</section>
 </div>
 <script>

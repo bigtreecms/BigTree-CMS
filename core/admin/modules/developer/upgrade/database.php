@@ -12,8 +12,11 @@
 ?>
 <div class="container">
 	<section>
-		<p>BigTree has been updated to <?=BIGTREE_VERSION?>.</p>
+		<p><?=Text::translate("BigTree has been updated to :version:.", false, array(":version:" => BIGTREE_VERSION))?></p>
 	</section>
+	<footer>
+		<a class="button blue" href="<?=DEVELOPER_ROOT?>"><?=Text::translate("Continue")?></a>
+	</footer>
 </div>
 <?php
 	// BigTree 4.0b5 update -- REVISION 1
@@ -731,7 +734,7 @@
 					"return_view" => $form["return_view"],
 					"return_url" => $form["return_url"],
 					"tagging" => $form["tagging"],
-					"hooks" => json_decode($form["hooks"], true);
+					"hooks" => json_decode($form["hooks"], true)
 				)
 			));
 		}
@@ -869,7 +872,7 @@
 		SQL::query("ALTER TABLE `bigtree_locks` DROP COLUMN `title`");
 
 		// Switch provider names for email service to enable us to load provider classes easier
-		if (Setting::exists("bigtree-internal-email-service"))) {
+		if (Setting::exists("bigtree-internal-email-service")) {
 			$setting = new Setting("bigtree-internal-email-service");
 
 			switch ($setting->Value["service"]) {

@@ -6,8 +6,8 @@
 ?>
 <div class="container">
 	<section>
-		<h3>Error</h3>
-		<p>The user you are trying to emulate no longer exists.</p>
+		<h3><?=Text::translate("Error")?></h3>
+		<p><?=Text::translate("The user you are trying to emulate no longer exists.")?></p>
 	</section>
 </div>
 <?php
@@ -18,5 +18,6 @@
 		$_SESSION["bigtree_admin"]["name"] = $user["name"];
 		$_SESSION["bigtree_admin"]["permissions"] = $user["permissions"];
 		$admin->growl("Developer","Emulating ".$user["name"]);
+		
 		Router::redirect(ADMIN_ROOT);
 	}

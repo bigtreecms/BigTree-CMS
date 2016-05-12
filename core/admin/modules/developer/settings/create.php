@@ -1,8 +1,8 @@
 <?php
 	namespace BigTree;
 	
-	BigTree::globalizePOSTVars();
-	$success = $admin->createSetting($id,$name,$description,$type,$options,false,false,$encrypted,$locked);
+	\BigTree::globalizePOSTVars();
+	$success = $admin->createSetting($_POST);
 
 	if ($success) {
 		$admin->growl("Developer","Created Setting");
