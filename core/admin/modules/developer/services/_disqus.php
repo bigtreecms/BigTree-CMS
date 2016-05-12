@@ -1,14 +1,16 @@
 <?php
-	$api = new BigTreeDisqusAPI;
+	namespace BigTree;
+
+	$api = new \BigTreeDisqusAPI;
 	$name = "Disqus";
 	$route = "disqus";
 	$key_name = "Public Key <small>API Key</small>";
 	$secret_name = "Secret Key <small>API Secret</small>";
 	$show_test_environment = false;
 	$instructions = array(
-		'<a href="http://disqus.com/api/applications/register/" target="_blank">Register a Disqus application</a>.',
-		'Enter your Public Key and Secret Key that you receive below.',
-		'Follow the OAuth process of allowing BigTree/your application access to your Disqus account.'
+		Text::translate('<a href=":disqus_link:" target="_blank">Register a Disqus application</a>.', false, array(":disqus_link:" => "http://disqus.com/api/applications/register/")),
+		Text::translate('Enter your Public Key and Secret Key that you receive below.'),
+		Text::translate('Follow the OAuth process of allowing BigTree/your application access to your Disqus account.')
 	);
 
 	$bigtree["api_return_function"] = function(&$api) {

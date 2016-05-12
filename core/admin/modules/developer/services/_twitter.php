@@ -1,15 +1,17 @@
 <?php
-	$api = new BigTreeTwitterAPI;
+	namespace BigTree;
+
+	$api = new \BigTreeTwitterAPI;
 	$name = "Twitter";
 	$route = "twitter";
 	$key_name = "API Key";
 	$secret_name = "API Secret";
 	$show_test_environment = false;
 	$instructions = array(
-		'Create a <a href="https://apps.twitter.com/" target="_blank">Twitter Application</a> at the Twitter Developers portal.',
-		'Set the application\'s Website to '.DOMAIN.' and it\'s Callback URL to '.DEVELOPER_ROOT.'services/twitter/return/',
-		'Enter the application\'s "API Key" and "API Secret" below.',
-		'Follow the OAuth process of allowing BigTree/your application access to your Twitter account.'
+		Text::translate('Create a <a href=":twitter_api_link:" target="_blank">Twitter Application</a> at the Twitter Developers portal.', false, array(":twitter_api_link:" => "https://apps.twitter.com/")),
+		Text::translate('Set the application\'s Website to :domain: and it\'s Callback URL to :callback_url:', false, array(":domain:" => DOMAIN, ":callback_url:" => DEVELOPER_ROOT.'services/twitter/return/')),
+		Text::translate('Enter the application\'s "API Key" and "API Secret" below.'),
+		Text::translate('Follow the OAuth process of allowing BigTree/your application access to your Twitter account.')
 	);
 
 	$bigtree["api_return_function"] = function(&$api) {

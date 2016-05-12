@@ -7,14 +7,14 @@
 	?>
 	<form method="post" action="<?=DEVELOPER_ROOT?>services/<?=$route?>/activate/" class="module">	
 		<section>
-			<p><?=Text::translate("To activate the")?> <?=$name?> <?=Text::translate("API class you must follow these steps:")?></p>
+			<p><?=Text::translate("To activate the :api_name: API class you must follow these steps:", false, array(":api_name:" => $name))?></p>
 			<hr />
 			<?php if ($name == "YouTube" || $name == "Google+") { ?>
 			<p class="notice_message"><?=Text::translate("Google's Developer Console changes frequently, these steps may not be up to date.")?></p>
 			<?php } ?>
 			<ol>
 				<?php foreach ($instructions as $i) { ?>
-				<li><?=Text::translate($i)?></li>
+				<li><?=$i?></li>
 				<?php } ?>
 			</ol>
 			<hr />

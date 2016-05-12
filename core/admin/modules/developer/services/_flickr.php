@@ -1,14 +1,16 @@
 <?php
-	$api = new BigTreeFlickrAPI;
+	namespace BigTree;
+
+	$api = new \BigTreeFlickrAPI;
 	$name = "Flickr";
 	$route = "flickr";
 	$key_name = "Key";
 	$secret_name = "Secret";
 	$show_test_environment = false;
 	$instructions = array(
-		'<a href="http://www.flickr.com/services/apps/create/apply/" target="_blank">Create a Flickr app</a> in The App Garden.',
-		'Enter your Key and Secret that you receive below.',
-		'Follow the OAuth process of allowing BigTree/your application access to your Flickr account.'
+		Text::translate('<a href=":flickr_link:" target="_blank">Create a Flickr app</a> in The App Garden.', false, array(":flickr_link:" => "http://www.flickr.com/services/apps/create/apply/")),
+		Text::translate('Enter your Key and Secret that you receive below.'),
+		Text::translate('Follow the OAuth process of allowing BigTree/your application access to your Flickr account.')
 	);
 
 	$bigtree["api_return_function"] = function(&$api) {

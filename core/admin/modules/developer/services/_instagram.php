@@ -1,15 +1,17 @@
 <?php
-	$api = new BigTreeInstagramAPI;
+	namespace BigTree;
+
+	$api = new \BigTreeInstagramAPI;
 	$name = "Instagram";
 	$route = "instagram";
 	$key_name = "Client ID";
 	$secret_name = "Client Secret";
 	$show_test_environment = false;
 	$instructions = array(
-		'Create an <a href="http://instagram.com/developer/clients/register/" target="_blank">Instagram Application</a> at the Instagram developer portal.',
-		'Set the application\'s OAuth redirect_uri to '.ADMIN_ROOT.'developer/services/instagram/return/',
-		'Enter the application\'s "Client ID" and "Client Secret" below.',
-		'Follow the OAuth process of allowing BigTree/your application access to your Instagram account.'
+		Text::translate('Create an <a href=":instagram_url:" target="_blank">Instagram Application</a> at the Instagram developer portal.', false, array(":instagram_url:" => "http://instagram.com/developer/clients/register/")),
+		Text::translate('Set the application\'s OAuth redirect_uri to :redirect_uri:', false, array(":redirect_uri:" => ADMIN_ROOT.'developer/services/instagram/return/')),
+		Text::translate('Enter the application\'s "Client ID" and "Client Secret" below.'),
+		Text::translate('Follow the OAuth process of allowing BigTree/your application access to your Instagram account.')
 	);
 
 	$bigtree["api_return_function"] = function(&$api) {
