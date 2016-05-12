@@ -1,8 +1,10 @@
 <?php
+	namespace BigTree;
+
 	$root = DEVELOPER_ROOT."payment-gateway/";
 ?>
 <div class="container">
-	<summary><h2>Configure</h2></summary>
+	<summary><h2><?=Text::translate("Configure")?></h2></summary>
 	<section>
 		<a class="box_select<?php if ($gateway->Service == "authorize.net") { ?> connected<?php } ?>" href="<?=$root?>authorize/">
 			<span class="authorize"></span>

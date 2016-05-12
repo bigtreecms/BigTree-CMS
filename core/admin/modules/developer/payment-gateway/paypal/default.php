@@ -1,26 +1,29 @@
+<?php
+	namespace BigTree;
+?>
 <div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>developer/payment-gateway/paypal/update/" class="module">
 		<section>
 			<div class="alert">
-				<p>To enable usage of PayPal Payments Pro as your payment gateway, enter your access information below.</p>
+				<p><?=Text::translate("To enable usage of PayPal Payments Pro as your payment gateway, enter your access information below.")?></p>
 			</div>
 			<fieldset>
-				<label>API User</label>
+				<label><?=Text::translate("API User")?></label>
 				<input type="text" name="paypal-username" value="<?=htmlspecialchars($gateway->Settings["paypal-username"])?>" />
 			</fieldset>
 			<fieldset>
-				<label>API Password</label>
+				<label><?=Text::translate("API Password")?></label>
 				<input type="text" name="paypal-password" value="<?=htmlspecialchars($gateway->Settings["paypal-password"])?>" />
 			</fieldset>
 			<fieldset>
-				<label>API Signature</label>
+				<label><?=Text::translate("API Signature")?></label>
 				<input type="text" name="paypal-signature" value="<?=htmlspecialchars($gateway->Settings["paypal-signature"])?>" />
 			</fieldset>
 			<fieldset>
-				<label>Processing Environment</label>
+				<label><?=Text::translate("Processing Environment")?></label>
 				<select name="paypal-environment">
-					<option value="live">Live</option>
-					<option value="test"<?php if ($gateway->Settings["paypal-environment"] == "test") { ?> selected="selected"<?php } ?>>Test</option>
+					<option value="live"><?=Text::translate("Live")?></option>
+					<option value="test"<?php if ($gateway->Settings["paypal-environment"] == "test") { ?> selected="selected"<?php } ?>><?=Text::translate("Test")?></option>
 				</select>
 			</fieldset>
 		</section>

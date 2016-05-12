@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	BigTree::globalizePOSTVars();
+	\BigTree::globalizePOSTVars();
 	$admin->updateSettingValue("bigtree-internal-security-policy",array(
 		"user_fails" => array(
 			"count" => $user_fails["count"] ? intval($user_fails["count"]) : "",

@@ -1,22 +1,25 @@
+<?php
+	namespace BigTree;
+?>
 <div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>developer/payment-gateway/authorize/update/" class="module">
 		<section>
 			<div class="alert">
-				<p>To enable usage of Authorize.Net as your payment gateway, enter your access information below.</p>
+				<p><?=Text::translate("To enable usage of Authorize.Net as your payment gateway, enter your access information below.")?></p>
 			</div>
 			<fieldset>
-				<label>API Login</label>
+				<label><?=Text::translate("API Login")?></label>
 				<input type="text" name="authorize-api-login" value="<?=htmlspecialchars($gateway->Settings["authorize-api-login"])?>" />
 			</fieldset>
 			<fieldset>
-				<label>Transaction Key</label>
+				<label><?=Text::translate("Transaction Key")?></label>
 				<input type="text" name="authorize-transaction-key" value="<?=htmlspecialchars($gateway->Settings["authorize-transaction-key"])?>" />
 			</fieldset>
 			<fieldset>
-				<label>Processing Environment</label>
+				<label><?=Text::translate("Processing Environment")?></label>
 				<select name="authorize-environment">
-					<option value="live">Live</option>
-					<option value="test"<?php if ($gateway->Settings["authorize-environment"] == "test") { ?> selected="selected"<?php } ?>>Test</option>
+					<option value="live"><?=Text::translate("Live")?></option>
+					<option value="test"<?php if ($gateway->Settings["authorize-environment"] == "test") { ?> selected="selected"<?php } ?>><?=Text::translate("Test")?></option>
 				</select>
 			</fieldset>
 		</section>

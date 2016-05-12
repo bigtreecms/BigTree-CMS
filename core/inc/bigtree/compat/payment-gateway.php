@@ -4,6 +4,8 @@
 			Controls eCommerce payment systems.
 			Wrapper overtop PayPal Payments Pro, Authorize.Net, PayPal Payflow Gateway, LinkPoint API
 	*/
+
+	use BigTree\Setting;
 	
 	class BigTreePaymentGateway {
 
