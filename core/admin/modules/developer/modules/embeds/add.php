@@ -8,7 +8,7 @@
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/embeds/create/<?=$module["id"]?>/" class="module">
 		<?php include Router::getIncludePath("admin/modules/developer/modules/embeds/_form.php") ?>
 		<section class="sub" id="field_area">
-			<p>Please choose a table to populate this area.</p>
+			<p><?=Text::translate("Please choose a table to populate this area.")?></p>
 		</section>
 		<footer>
 			<input type="submit" class="button blue" value="<?=Text::translate("Create", true)?>" />

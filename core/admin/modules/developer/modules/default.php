@@ -26,10 +26,10 @@
 			edit: "<?=DEVELOPER_ROOT?>modules/edit/{id}/",
 			delete: function(id) {
 				BigTreeDialog({
-					title: "Delete Module",
-					content: '<p class="confirm">Are you sure you want to delete this module?<br /><br />Deleting a module will also delete its class file and related directory in /custom/admin/modules/.</p>',
+					title: "<?=Text::translate("Delete Module", true)?>",
+					content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this module?<br /><br />Deleting a module will also delete its class file and related directory in /custom/admin/modules/.")?></p>',
 					icon: "delete",
-					alternateSaveText: "OK",
+					alternateSaveText: "<?=Text::translate("OK", true)?>",
 					callback: function() {
 						document.location.href = "<?=DEVELOPER_ROOT?>modules/delete/" + id + "/";
 					}
@@ -37,7 +37,7 @@
 			}
 		},
 		columns: {
-			name: { title: "Module Name", largeFont: true, actionHook: "edit" }
+			name: { title: "<?=Text::translate("Module Name", true)?>", largeFont: true, actionHook: "edit" }
 		},
 		draggable: function(positioning) {
 			$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-modules/", { type: "POST", data: positioning });
@@ -49,7 +49,7 @@
 		if (count($ungrouped_modules)) {
 	?>
 	BigTreeTable($.extend(table_config,{
-		title: "Ungrouped Modules",
+		title: "<?=Text::translate("Ungrouped Modules", true)?>",
 		container: "#ungrouped_modules",
 		data: <?=JSON::encodeColumns($ungrouped_modules,array("id","name"))?>
 	}));

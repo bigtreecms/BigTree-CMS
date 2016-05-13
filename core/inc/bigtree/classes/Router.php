@@ -344,7 +344,7 @@
 			static::$RouteParamNamesPath = array();
 
 			// Convert URL params into regex patterns, construct a regex for this route, init params
-			$regex_pattern = preg_replace_callback('#:([\w]+)\+?#', "Router::getRegistryCommandsCallback", str_replace(')', ')?', $pattern));
+			$regex_pattern = preg_replace_callback('#:([\w]+)\+?#', "BigTree\\Router::getRegistryCommandsCallback", str_replace(')', ')?', $pattern));
 
 			if (substr($pattern, -1) === '/') {
 				$regex_pattern .= '?';

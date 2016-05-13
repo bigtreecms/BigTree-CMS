@@ -61,7 +61,7 @@
 				$this->ID = $interface["id"];
 
 				$this->Module = $interface["module"];
-				$this->Settings = (array) @json_decode($interface["settings"],true);
+				$this->Settings = is_array($interface["settings"]) ? $interface["settings"] : (array) @json_decode($interface["settings"],true);
 				$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the parent class
 				$this->Title = $interface["title"];
 				$this->Type = $interface["type"];
@@ -169,7 +169,7 @@
 				"module" => $this->Module,
 				"title" => Text::htmlEncode($this->Title),
 				"table" => $this->Table,
-				"settings" => (array) ($this->InterfaceSettings ?: $this->Settings)
+				"settings" => (array) (isset($this->InterfaceSettings) ? $this->InterfaceSettings : $this->Settings)
 			));
 
 			AuditTrail::track("bigtree_module_interfaces",$this->ID,"updated");

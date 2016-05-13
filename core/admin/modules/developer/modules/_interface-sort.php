@@ -3,7 +3,7 @@
 
 	Extension::initializeCache();
 
-	$interfaces = ModuleInterface::all("title ASC",true);
+	$interfaces = ModuleInterface::allByModule($id,"title ASC",true);
 
 	$interface_list = array(
 		"form" => array("name" => "Forms","items" => array()),

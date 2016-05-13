@@ -18,25 +18,25 @@
 ?>
 <div class="container">
 	<header>
-		<p>Step 3: Creating Your View</p>
+		<p><?=Text::translate("Step 3: Creating Your View")?></p>
 	</header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/designer/view-create/" class="module">
 		<input type="hidden" name="module" value="<?=$module["id"]?>" />
 		<input type="hidden" name="table" value="<?=$table?>" />
 		<section>
-			<p class="error_message"<?php if (!count($e)) { ?> style="display: none;"<?php } ?>>Errors found! Please ensure you have entered an Item Title and one or more Fields.</p>
+			<p class="error_message"<?php if (!count($e)) { ?> style="display: none;"<?php } ?>><?=Text::translate("Errors found! Please ensure you have entered an Item Title and one or more Fields.")?></p>
 			
 			<div class="left">
 				<fieldset>
-					<label class="required">Item Title <small>(for example, "Questions" to make the title "Viewing Questions")</small></label>
+					<label class="required"><?=Text::translate('Item Title <small>(for example, "Questions" to make the title "Viewing Questions")</small>')?></label>
 					<input type="text" class="required" name="title" value="<?=$title?>" tabindex="1" />
 				</fieldset>
 				
 				<fieldset class="left">
-					<label>View Type</label>
+					<label><?=Text::translate("View Type")?></label>
 					<select name="type" id="view_type" class="left" tabindex="2">
-						<option value="searchable">Searchable List</option>
-						<option value="draggable">Draggable List</option>
+						<option value="searchable"><?=Text::translate("Searchable List")?></option>
+						<option value="draggable"><?=Text::translate("Draggable List")?></option>
 					</select>
 					&nbsp; <a href="#" class="options icon_settings centered"></a>
 					<input type="hidden" name="options" id="view_options" />
@@ -45,7 +45,7 @@
 			
 			<div class="right">
 				<fieldset>
-					<label>Page Description <small>(instructions for the user)</small></label>
+					<label><?=Text::translate("Page Description <small>(instructions for the user)</small>")?></label>
 					<textarea name="description" tabindex="3"></textarea>
 				</fieldset>
 			</div>
@@ -74,7 +74,7 @@
 		}
 
 		BigTreeDialog({
-			title: "View Options",
+			title: "<?=Text::translate("View Options", true)?>",
 			url: "<?=ADMIN_ROOT?>ajax/developer/load-view-options/",
 			post: { table: "<?=$table?>", type: $("#view_type").val(), data: $("#view_options").val() },
 			icon: "edit",

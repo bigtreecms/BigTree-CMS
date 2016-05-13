@@ -8,7 +8,7 @@
 ?>
 <div class="container">
 	<section>
-		<p>To update your profile, please access your  <a href="<?=ADMIN_ROOT?>users/profile/">Profile</a> page directly.</p>
+		<p><?=Text::translate('To update your profile, please access your <a href=":profile_link:">Profile</a> page directly.', false, array(":profile_link:" => ADMIN_ROOT."users/profile/"))?></p>
 	</section>
 </div>
 <?php

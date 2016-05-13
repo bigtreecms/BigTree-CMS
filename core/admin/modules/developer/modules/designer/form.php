@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$module = $admin->getModule($_GET["module"]);
 	$table = $_GET["table"];
 	
@@ -16,33 +18,33 @@
 ?>
 <div class="container">
 	<header>
-		<p>Step 2: Creating Your Form</p>
+		<p><?=Text::translate("Step 2: Creating Your Form")?></p>
 	</header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/designer/form-create/" class="module">
 		<input type="hidden" name="module" value="<?=$module["id"]?>" />
 		<input type="hidden" name="table" value="<?=htmlspecialchars($table)?>" />
 		<section>
-			<p class="error_message"<?php if (!count($e)) { ?> style="display: none;"<?php } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
+			<p class="error_message"<?php if (!count($e)) { ?> style="display: none;"<?php } ?>><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 			<div class="left">
 				<fieldset>
-					<label class="required">Item Title <small>(for example, "Question" as in "Adding Question")</small></label>
+					<label class="required"><?=Text::translate('Item Title <small>(for example, "Question" as in "Adding Question")</small>')?></label>
 					<input type="text" class="required" name="title" value="<?=$title?>" />
 				</fieldset>
 			</div>
 		</section>
 		<section id="field_area" class="sub">
 			<fieldset<?php if (isset($e["fields"])) { ?> class="form_error"<?php } ?>>
-				<label class="required">Fields<?php if (isset($e["fields"])) { ?><span class="form_error_reason">One Or More Fields Required</span><?php } ?></label>
+				<label class="required"><?=Text::translate("Fields")?><?php if (isset($e["fields"])) { ?><span class="form_error_reason"><?=Text::translate("One Or More Fields Required")?></span><?php } ?></label>
 				<div class="form_table">
 					<header>
-						<a class="add add_field" href="#"><span></span>Field</A>
+						<a class="add add_field" href="#"><span></span><?=Text::translate("Field")?></A>
 					</header>
 					<div class="labels">
-						<span class="developer_resource_form_title">Title</span>
-						<span class="developer_resource_form_subtitle">Subtitle</span>
-						<span class="developer_resource_type">Type</span>
-						<span class="developer_resource_action">Edit</span>
-						<span class="developer_resource_action">Delete</span>
+						<span class="developer_resource_form_title"><?=Text::translate("Title")?></span>
+						<span class="developer_resource_form_subtitle"><?=Text::translate("Subtitle")?></span>
+						<span class="developer_resource_type"><?=Text::translate("Type")?></span>
+						<span class="developer_resource_action"><?=Text::translate("Edit")?></span>
+						<span class="developer_resource_action"><?=Text::translate("Delete")?></span>
 					</div>
 					<ul id="resource_table"></ul>
 				</div>
@@ -76,7 +78,7 @@
 		BigTree.localCurrentFieldKey = $(this).attr("name");
 		
 		BigTreeDialog({
-			title: "Field Options",
+			title: "<?=Text::translate("Field Options")?>",
 			url: "<?=ADMIN_ROOT?>ajax/developer/load-field-options/",
 			post: { type: $("#type_" + BigTree.localCurrentFieldKey).val(), data: $("#options_" + BigTree.localCurrentFieldKey).val() },
 			icon: "edit",

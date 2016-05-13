@@ -128,7 +128,7 @@
 			// Convert old usage of field type ID to extension usage
 			$field_type_converter("bigtree_templates","resources");
 			$field_type_converter("bigtree_callouts","resources");
-			$field_type_converter("bigtree_interfaces","settings");
+			$field_type_converter("bigtree_module_interfaces","settings");
 			SQL::query("UPDATE bigtree_settings SET `type` = CONCAT('$extension*',type)  WHERE `type` = ?", $type);
 
 			// Move files into new format

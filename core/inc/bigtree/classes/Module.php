@@ -245,8 +245,8 @@
 				"route" => $route,
 				"class" => $class,
 				"icon" => $icon,
-				"group" => ($group ? $group : null),
-				"gbp" => $permissions,
+				"group" => $group ?: null,
+				"gbp" => $permissions ?: "",
 				"developer_only" => ($developer_only ? "on" : "")
 			));
 
@@ -700,7 +700,7 @@
 
 		function update($name,$group,$class,$permissions,$icon,$developer_only = false) {
 			$this->Name = $name;
-			$this->Group = $group;
+			$this->Group = $group ?: null;
 			$this->Class = $class;
 			$this->GroupBasedPermissions = $permissions;
 			$this->Icon = $icon;

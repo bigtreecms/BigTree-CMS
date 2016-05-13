@@ -58,7 +58,8 @@
 				$this->Title = $interface["title"];
 
 				// Generate an embed code
-				$this->EmbedCode = '<div id="bigtree_embeddable_form_container_'.$this->ID.'">'.$this->Title.'</div>'."\n".'<script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?id='.$this->ID.'&hash='.$this->Hash.'"></script>');
+				$this->EmbedCode = '<div id="bigtree_embeddable_form_container_'.$this->ID.'">'.$this->Title.'</div>'."\n".
+								   '<script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?id='.$this->ID.'&hash='.$this->Hash.'"></script>';
 			}
 		}
 
@@ -148,6 +149,8 @@
 				"thank_you_message" => $this->ThankYouMessage,
 				"hooks" => $this->Hooks
 			);
+			$this->Interface->Table = $this->Table;
+			$this->Interface->Title = $this->Title;
 
 			$this->Interface->save();
 		}

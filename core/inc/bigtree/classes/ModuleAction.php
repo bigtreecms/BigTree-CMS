@@ -79,6 +79,7 @@
 			// Create
 			$id = SQL::insert("bigtree_module_actions",array(
 				"module" => $module,
+				"name" => Text::htmlEncode($name),
 				"route" => $route,
 				"in_nav" => ($in_nav ? "on" : ""),
 				"class" => $icon,
@@ -229,7 +230,7 @@
 				$this->OriginalRoute = $this->Route;
 			}
 
-			SQL::update("bigtree_module_actions",$id,array(
+			SQL::update("bigtree_module_actions",$this->ID,array(
 				"name" => Text::htmlEncode($this->Name),
 				"route" => $this->Route,
 				"class" => $this->Icon,
@@ -256,7 +257,7 @@
 				position - The position in navigation.
 		*/
 
-		function updateModuleAction($id,$name,$route,$in_nav,$icon,$interface,$level,$position) {
+		function update($name,$route,$in_nav,$icon,$interface,$level,$position) {
 			$this->Name = $name;
 			$this->Route = $route;
 			$this->InNav = $in_nav;

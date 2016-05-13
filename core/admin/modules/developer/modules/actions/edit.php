@@ -3,7 +3,7 @@
 	
 	$item = $admin->getModuleAction(end($bigtree["commands"]));
 	\BigTree::globalizeArray($item);
-	\Kint::dump($item);
+
 	$module = $admin->getModule($module);
 ?>
 <div class="container">

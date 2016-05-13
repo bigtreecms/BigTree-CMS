@@ -585,7 +585,7 @@
 				The id for view.
 		*/
 
-		function createModuleView($module, $title, $description, $table, $type, $options, $fields, $actions, $related_form, $preview_url = "") {
+		function createModuleView($module, $title, $description, $table, $type, $options, $fields, $actions, $related_form = "", $preview_url = "") {
 			$view = BigTree\ModuleView::create($module, $title, $description, $table, $type, $options, $fields, $actions, $related_form, $preview_url);
 
 			return $view->ID;

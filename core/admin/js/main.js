@@ -3159,6 +3159,13 @@ var BigTreeTable = function(settings) {
 							Actions[action_key](id,toggle_state);
 						}
 					})(action_key));
+				} else {
+					Container.on("click",".hook_" + action_key,(function(action_key) {
+						return function(ev) {
+							ev.preventDefault();
+							document.location.href = $(this).parents("li").find(".icon_" + action_key).attr("href");
+						}
+					})(action_key));
 				}
 			}
 

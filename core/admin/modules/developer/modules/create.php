@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	BigTree::globalizePOSTVars();
+	\BigTree::globalizePOSTVars();
 	
 	if ($group_new) {
 		$group = $admin->createModuleGroup($group_new,"on");
@@ -27,9 +27,9 @@
 <div class="container">
 	<section>
 		<h3><?=htmlspecialchars($name)?></h3>
-		<p>If you plan on programming this module manually, you can leave now. Otherwise, click the continue button below to setup the module's landing view.</p>
+		<p><?=Text::translate("If you plan on programming this module manually, you can leave now. Otherwise, click the continue button below to setup the module's landing view.")?></p>
 	</section>
 	<footer>
-		<a href="<?=DEVELOPER_ROOT?>modules/views/add/?new_module=true&module=<?=$id?>&table=<?=htmlspecialchars(urlencode($table))?>&title=<?=htmlspecialchars(urlencode($name))?>" class="button blue">Continue</a>	
+		<a href="<?=DEVELOPER_ROOT?>modules/views/add/?new_module=true&module=<?=$id?>&table=<?=htmlspecialchars(urlencode($table))?>&title=<?=htmlspecialchars(urlencode($name))?>" class="button blue"><?=Text::translate("Continue")?></a>	
 	</footer>
 </div>

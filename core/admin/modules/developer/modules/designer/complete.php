@@ -1,11 +1,13 @@
 <?php
+	namespace BigTree;
+
 	$module = $admin->getModule($_GET["module"]);
 ?>
 <div class="container">
 	<summary>
-		<h2>Module Complete</h2>
+		<h2><?=Text::translate("Module Complete")?></h2>
 	</summary>
 	<section>
-		<p>Your module is created.  You may access it <a href="<?=ADMIN_ROOT.$module["route"]?>/">by clicking here</a>.</p>
+		<p><?=Text::translate('Your module is created.  You may access it <a href=":module_link:">by clicking here</a>.', false, array(":module_link:" => ADMIN_ROOT.$module["route"]."/"))?></p>
 	</section>
 </div>

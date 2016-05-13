@@ -104,7 +104,7 @@
 			));
 
 			// Get related views for this table and update numeric status
-			$view_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_interfaces WHERE `type` = 'view' AND `table` = ?", $table);
+			$view_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = ?", $table);
 			foreach ($view_ids as $view_id) {
 				$view = new ModuleView($view_id);
 				$view->refreshNumericColumns();
@@ -563,7 +563,7 @@
 						WHERE interface = ? AND route LIKE 'edit%'", $this->ID);
 
 			// Get related views for this table and update numeric status
-			$view_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_interfaces WHERE `type` = 'view' AND `table` = ?", $table);
+			$view_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = ?", $table);
 			foreach ($view_ids as $view_id) {
 				$view = new ModuleView($view_id);
 				$view->refreshNumericColumns();

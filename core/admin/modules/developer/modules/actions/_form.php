@@ -2,29 +2,30 @@
 	namespace BigTree;
 	
 	// Get list of interfaces but dump embeddable forms since they're for the front end
+	$id = $_GET["module"];
 	include Router::getIncludePath("admin/modules/developer/modules/_interface-sort.php");
 	unset($interface_list["embeddable-form"]);
 ?>
 <section>
 	<fieldset>
-		<label class="required">Name</label>
+		<label class="required"><?=Text::translate("Name")?></label>
 		<input type="text" name="name" class="required" value="<?=$item["name"]?>" />
 	</fieldset>
 	<fieldset>
-		<label>Route</label>
+		<label><?=Text::translate("Route")?></label>
 		<input type="text" name="route" value="<?=$item["route"]?>" />
 	</fieldset>
 	<div class="contain">
 		<fieldset class="float">
-			<label>Access Level</label>
+			<label><?=Text::translate("Access Level")?></label>
 			<select name="level">
-				<option value="0">Normal User</option>
-				<option value="1"<?php if ($item["level"] == 1) { ?> selected="selected"<?php } ?>>Administrator</option>
-				<option value="2"<?php if ($item["level"] == 2) { ?> selected="selected"<?php } ?>>Developer</option>
+				<option value="0"><?=Text::translate("Normal User")?></option>
+				<option value="1"<?php if ($item["level"] == 1) { ?> selected="selected"<?php } ?>><?=Text::translate("Administrator")?></option>
+				<option value="2"<?php if ($item["level"] == 2) { ?> selected="selected"<?php } ?>><?=Text::translate("Developer")?></option>
 			</select>
 		</fieldset>
 		<fieldset class="float">
-			<label>Interface</label>
+			<label><?=Text::translate("Interface")?></label>
 			<select name="interface">
 				<option></option>
 				<?php
@@ -44,7 +45,7 @@
 		</fieldset>
 	</div>
 	<fieldset>
-		<label class="required">Icon</label>
+		<label class="required"><?=Text::translate("Icon")?></label>
 		<input type="hidden" name="class" id="selected_icon" value="<?=$item["class"]?>" />
 		<ul class="developer_icon_list">
 			<?php foreach (\BigTreeAdmin::$ActionClasses as $class) { ?>
@@ -55,7 +56,7 @@
 		</ul>
 	</fieldset>
 	<fieldset>
-		<label>In Navigation</label>
+		<label><?=Text::translate("In Navigation")?></label>
 		<input type="checkbox" name="in_nav" <?php if ($item["in_nav"]) { ?>checked="checked" <?php } ?>/>
 	</fieldset>
 </section>

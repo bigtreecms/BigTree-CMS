@@ -1,7 +1,8 @@
 <?php
 	namespace BigTree;
 	
-	$admin->deleteModuleInterface(end($bigtree["commands"]));
+	$interface = new ModuleInterface(end($bigtree["commands"]));
+	$interface->delete();
 
 	$admin->growl("Developer","Deleted Interface");
 	Router::redirect(DEVELOPER_ROOT."modules/edit/".$_GET["module"]."/");

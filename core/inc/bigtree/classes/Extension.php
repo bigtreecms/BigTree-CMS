@@ -401,7 +401,7 @@
 					"view-types" => array()
 				);
 
-				$extension_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_extensions");
+				$extension_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_extensions WHERE type = 'extension'");
 				foreach ($extension_ids as $extension_id) {
 					// Load up the manifest
 					$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$extension_id/manifest.json"),true);

@@ -8,7 +8,7 @@
 	use BigTree\SQL;
 	
 	class BigTreeModule {
-	
+
 		var $NavPosition = "bottom";
 		var $Table = "";
 
@@ -34,7 +34,7 @@
 					A function to run (instead of including a file).
 		*/
 		
-		var $RouteRegistry = array();
+		static $RouteRegistry = array();
 
 
 		/*

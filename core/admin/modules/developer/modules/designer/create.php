@@ -1,18 +1,18 @@
 <?php
 	namespace BigTree;
 	
-	BigTree::globalizePOSTVars();
+	\BigTree::globalizePOSTVars();
 	
 	$errors = array();
 	
 	// Check if the table exists
-	if (BigTree::tableExists($table)) {
-		$errors["table"] = "The table you chose already exists.";
+	if (SQL::tableExists($table)) {
+		$errors["table"] = Text::translate("The table you chose already exists.");
 	}
 	
 	// Check if the class name exists
 	if (class_exists($class)) {
-		$errors["class"] = "The class name you chose already exists.";
+		$errors["class"] = Text::translate("The class name you chose already exists.");
 	}
 	
 	if (count($errors)) {

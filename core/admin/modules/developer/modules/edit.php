@@ -37,9 +37,9 @@
 <div class="container">
 	<header>
 		<nav class="left">
-			<a href="#details_tab" class="active">Details</a>
-			<a href="#actions_tab">Actions</a>
-			<a href="#interfaces_tab">Interfaces</a>
+			<a href="#details_tab" class="active"><?=Text::translate("Details")?></a>
+			<a href="#actions_tab"><?=Text::translate("Actions")?></a>
+			<a href="#interfaces_tab"><?=Text::translate("Interfaces")?></a>
 		</nav>
 	</header>
 	<div id="details_tab" class="section">
@@ -47,17 +47,17 @@
 			<section>
 				<div class="left">
 					<fieldset>
-						<label class="required">Name</label>
+						<label class="required"><?=Text::translate("Name")?></label>
 						<input name="name" type="text" value="<?=$module["name"]?>" class="required" />
 					</fieldset>
 				</div>
 				<br class="clear" /><br />
 				<fieldset class="clear developer_module_group">
-					<label>Group <small>(if a new group name is chosen, the select box is ignored)</small></label>
-					<input name="group_new" type="text" placeholder="New Group" />
-					<span>OR</span> 
+					<label><?=Text::translate("Group <small>(if a new group name is chosen, the select box is ignored)</small>")?></label>
+					<input name="group_new" type="text" placeholder="<?=Text::translate("New Group", true)?>" />
+					<span><?=Text::translate("OR")?></span> 
 					<select name="group_existing">
-						<option value="0"></option>
+						<option value=""></option>
 						<?php foreach ($groups as $group) { ?>
 						<option value="<?=$group["id"]?>"<?php if ($group["id"] == $module["group"]) { ?> selected="selected"<?php } ?>><?=$group["name"]?></option>
 						<?php } ?>
@@ -65,14 +65,14 @@
 				</fieldset>
 				<div class="left">
 					<fieldset>
-						<label>Class Name <small>(only change this if you renamed your class manually)</small></label>
+						<label><?=Text::translate("Class Name <small>(only change this if you renamed your class manually)</small>")?></label>
 						<input name="class" type="text" value="<?=htmlspecialchars($module["class"])?>" />
 					</fieldset>
 				</div>
 				
 				<br class="clear" />
 				<fieldset>
-			        <label class="required">Icon</label>
+			        <label class="required"><?=Text::translate("Icon")?></label>
 			        <input type="hidden" name="icon" id="selected_icon" value="<?=$module["icon"]?>" />
 			        <ul class="developer_icon_list">
 			        	<?php foreach (\BigTreeAdmin::$IconClasses as $class) { ?>
@@ -85,11 +85,11 @@
 				
 				<fieldset class="left last">
 					<input type="checkbox" name="gbp[enabled]" id="gbp_on" <?php if (isset($gbp["enabled"]) && $gbp["enabled"]) { ?>checked="checked" <?php } ?> <?php if ($module["developer_only"]) { ?>disabled="disabled"<?php } ?> />
-					<label class="for_checkbox">Enable Advanced Permissions</label>
+					<label class="for_checkbox"><?=Text::translate("Enable Advanced Permissions")?></label>
 				</fieldset>
 				<fieldset class="right last">
 					<input type="checkbox" name="developer_only" id="developer_only" <?php if ($module["developer_only"]) { ?>checked="checked" <?php } ?>/>
-					<label class="for_checkbox">Limit Access to Developers</label>
+					<label class="for_checkbox"><?=Text::translate("Limit Access to Developers")?></label>
 				</fieldset>
 				<br class="clear" />
 			</section>
@@ -113,22 +113,22 @@
 <script>
 	BigTreeTable({
 		container: "#actions_table",
-		title: "Actions",
+		title: "<?=Text::translate("Actions", true)?>",
 		icon: "actions",
 		button: { title: "<span></span>Add", className: "add", link: "<?=DEVELOPER_ROOT?>modules/actions/add/?module=<?=$id?>" },
 		columns: {
-			name: { title: "Name" }
+			name: { title: "<?=Text::translate("Name", true)?>" }
 		},
 		actions: {
 			edit: "<?=DEVELOPER_ROOT?>modules/actions/edit/{id}/",
 			delete: function(id,state) {
 				BigTreeDialog({
-					title: "Delete Action",
-					content: '<p class="confirm">Are you sure you want to delete this module action?</p>',
+					title: "<?=Text::translate("Delete Action", true)?>",
+					content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this module action?")?></p>',
 					icon: "delete",
-					alternateSaveText: "OK",
+					alternateSaveText: "<?=Text::translate("OK", true)?>",
 					callback: function() {
-						document.location.href = "<?=DEVELOPER_ROOT?>modules/actions/delete/" + id + "/";
+						document.location.href = "<?=DEVELOPER_ROOT?>modules/actions/delete/" + id + "/?module=<?=$id?>";
 					}
 				});
 			}
@@ -141,9 +141,9 @@
 
 	BigTreeTable({
 		container: "#interfaces_table",
-		title: "Interfaces",
+		title: "<?=Text::translate("Interfaces", true)?>",
 		icon: "interfaces",
-		button: { title: "<span></span>Add", className: "add", link: "<?=DEVELOPER_ROOT?>modules/interfaces/add/?module=<?=$id?>" },
+		button: { title: "<span></span><?=Text::translate("Add")?>", className: "add", link: "<?=DEVELOPER_ROOT?>modules/interfaces/add/?module=<?=$id?>" },
 		columns: {
 			type: { title: "Type", size: 175 },
 			title: { title: "Title" },
@@ -153,10 +153,10 @@
 		actions: {
 			delete: function(id,state) {
 				BigTreeDialog({
-					title: "Delete Interface",
-					content: '<p class="confirm">Are you sure you want to delete this module interface?</p>',
+					title: "<?=Text::translate("Delete Interface", true)?>",
+					content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this module interface?")?></p>',
 					icon: "delete",
-					alternateSaveText: "OK",
+					alternateSaveText: "<?=Text::translate("OK", true)?>",
 					callback: function() {
 						document.location.href = "<?=DEVELOPER_ROOT?>modules/interfaces/delete/" + id + "/?module=<?=$id?>";
 					}

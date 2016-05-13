@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	$user = $admin->getUser($admin->ID);
 	$bigtree["gravatar"] = $user["email"];
 	BigTree::globalizeArray($user,array("htmlspecialchars"));
@@ -14,23 +16,23 @@
 <div class="container">
 	<form class="module" action="<?=ADMIN_ROOT?>users/profile/update/" method="post">
 		<section>
-			<p class="error_message"<?php if (!$error) { ?> style="display: none;"<?php } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
+			<p class="error_message"<?php if (!$error) { ?> style="display: none;"<?php } ?>><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 			<div class="left">
 				<fieldset>
-					<label>Name</label>
+					<label><?=Text::translate("Name")?></label>
 					<input type="text" name="name" value="<?=$name?>" tabindex="1" />
 				</fieldset>
 				<fieldset<?php if ($error) { ?> class="form_error"<?php } ?>>
-					<label>Password <small>(leave blank to remain unchanged)</small> <?php if ($error) { ?><span class="form_error_reason">Did Not Meet Requirements</span><?php } ?></label>
+					<label><?=Text::translate("Password <small>(leave blank to remain unchanged)</small>")?> <?php if ($error) { ?><span class="form_error_reason"><?=Text::translate("Did Not Meet Requirements")?></span><?php } ?></label>
 					<input type="password" name="password" value="" tabindex="3" autocomplete="off" <?php if ($policy) { ?> class="has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?>"<?php } ?> />
 					<?php if ($policy) { ?>
-					<p class="password_policy">Password Policy In Effect</p>
+					<p class="password_policy"><?=Text::translate("Password Policy In Effect")?></p>
 					<?php } ?>
 				</fieldset>
 			</div>
 			<div class="right">
 				<fieldset>
-					<label>Company</label>
+					<label><?=Text::translate("Company")?></label>
 					<input type="text" name="company" value="<?=$company?>" tabindex="2" />
 				</fieldset>
 				
@@ -38,7 +40,7 @@
 				
 				<fieldset>
 					<input type="checkbox" name="daily_digest" tabindex="4" <?php if ($daily_digest) { ?> checked="checked"<?php } ?> />
-					<label class="for_checkbox">Daily Digest Email</label>
+					<label class="for_checkbox"><?=Text::translate("Daily Digest Email")?></label>
 				</fieldset>
 			</div>			
 		</section>

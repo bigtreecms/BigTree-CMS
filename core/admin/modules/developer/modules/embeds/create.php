@@ -1,5 +1,7 @@
 <?php
-	BigTree::globalizePOSTVars();
+	namespace BigTree;
+
+	\BigTree::globalizePOSTVars();
 
 	$module = end($bigtree["path"]);
 
@@ -11,10 +13,10 @@
 <div class="container">
 	<section>
 		<h3><?=$title?></h3>
-		<p>Your embeddable form has been created. You can copy and paste the code below to embed this form.</p>
+		<p><?=Text::translate("Your embeddable form has been created. You can copy and paste the code below to embed this form.")?></p>
 		<textarea><?=$embed?></textarea>
 	</section>
 	<footer>
-		<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$module?>/" class="button blue">Return to Module</a>
+		<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$module?>/" class="button blue"><?=Text::translate("Return to Module")?></a>
 	</footer>
 </div>

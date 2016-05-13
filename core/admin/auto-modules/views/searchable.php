@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	BigTree::globalizeArray($bigtree["view"]);
+	\BigTree::globalizeArray($bigtree["view"]);
 		
 	$module = $admin->getModule($bigtree["view"]["module"]);
 	$perm = $admin->checkAccess($module);
@@ -17,7 +17,7 @@
 	}
 	// Retrieve the column and the sort direction from the consolidated ORDER BY statement.
 	$sort = ltrim($sort,"`");
-	$sort_column = BigTree::nextSQLColumnDefinition($sort);
+	$sort_column = SQL::nextColumnDefinition($sort);
 	$sort_pieces = explode(" ",$sort);
 	$sort_direction = end($sort_pieces);
 	// See if we're searching for anything.
