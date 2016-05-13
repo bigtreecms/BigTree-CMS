@@ -1,10 +1,13 @@
+<?php
+	namespace BigTree;
+?>
 <div class="container">
-	<header><p>Add modules, templates, callouts, field types, feeds, and settings to your package.</p></header>
+	<header><p><?=Text::translate("Add modules, templates, callouts, field types, feeds, and settings to your package.")?></p></header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>packages/build/save-components/" class="module">
 		<section>
 			<fieldset>
 				<article class="package_column">
-					<strong>Modules</strong>
+					<strong><?=Text::translate("Modules")?></strong>
 					<ul>
 						<?php
 							foreach ((array)$modules as $mid) {
@@ -48,7 +51,7 @@
 					</div>
 				</article>
 				<article class="package_column">
-					<strong>Templates</strong>
+					<strong><?=Text::translate("Templates")?></strong>
 					<ul>
 						<?php
 							foreach ((array)$templates as $tid) {
@@ -92,7 +95,7 @@
 					</div>
 				</article>
 				<article class="package_column package_column_last">
-					<strong>Callouts</strong>
+					<strong><?=Text::translate("Callouts")?></strong>
 					<ul>
 						<?php
 							foreach ((array)$callouts as $cid) {
@@ -126,7 +129,7 @@
 			</fieldset>
 			<fieldset>
 				<article class="package_column">
-					<strong>Settings</strong>
+					<strong><?=Text::translate("Settings")?></strong>
 					<ul>
 						<?php
 							foreach ((array)$settings as $sid) {
@@ -170,7 +173,7 @@
 					</div>
 				</article>
 				<article class="package_column">
-					<strong>Feeds</strong>
+					<strong><?=Text::translate("Feeds")?></strong>
 					<ul>
 						<?php
 							foreach ((array)$feeds as $fid) {
@@ -202,7 +205,7 @@
 					</div>
 				</article>
 				<article class="package_column package_column_last">
-					<strong>Field Types</strong>
+					<strong><?=Text::translate("Field Types")?></strong>
 					<ul>
 						<?php
 							foreach ((array)$field_types as $fid) {
@@ -236,7 +239,7 @@
 			</fieldset>
 		</section>
 		<footer>
-			<input type="submit" class="button blue" value="Continue" />
+			<input type="submit" class="button blue" value="<?=Text::translate("Continue", true)?>" />
 		</footer>
 	</form>
 </div>

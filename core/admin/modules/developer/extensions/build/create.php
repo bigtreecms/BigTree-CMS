@@ -63,11 +63,11 @@
 	$used_reports = array();
 	$extension = SQL::escape($id);
 
-	foreach (array_filter((array)$module_groups) as $group) {
+	foreach (array_filter((array) $module_groups) as $group) {
 		$package["components"]["module_groups"][] = $admin->getModuleGroup($group);
 	}
 	
-	foreach (array_filter((array)$callouts) as $callout) {
+	foreach (array_filter((array) $callouts) as $callout) {
 		if (strpos($callout,"*") === false) {
 			SQL::query("UPDATE bigtree_callouts SET id = CONCAT('$extension*',id), extension = '$extension' WHERE id = ?", $callout);
 			$callout = "$id*$callout";
@@ -75,12 +75,12 @@
 		$package["components"]["callouts"][] = $admin->getCallout($callout);
 	}
 	
-	foreach (array_filter((array)$feeds) as $feed) {
+	foreach (array_filter((array) $feeds) as $feed) {
 		SQL::query("UPDATE bigtree_feeds SET route = CONCAT('$extension/',route), extension = '$extension' WHERE id = ?", $feed);
 		$package["components"]["feeds"][] = $cms->getFeed($feed);
 	}
 	
-	foreach (array_filter((array)$settings) as $setting) {
+	foreach (array_filter((array) $settings) as $setting) {
 		if (strpos($setting,"*") === false) {
 			SQL::query("UPDATE bigtree_settings SET id = CONCAT('$extension*',id), extension = '$extension' WHERE id = ?", $setting);
 			$setting = "$id*$setting";
@@ -121,7 +121,7 @@
 		}
 	};
 
-	foreach (array_filter((array)$field_types) as $type) {
+	foreach (array_filter((array) $field_types) as $type) {
 		// Currently non-extension field type becoming an extension one
 		if (strpos($type,"*") === false) {
 			SQL::query("UPDATE bigtree_field_types SET extension = '$extension', id = CONCAT('$extension*',id) WHERE id = ?", $type);
@@ -142,7 +142,7 @@
 		$package["components"]["field_types"][] = $admin->getFieldType($type);
 	}
 
-	foreach (array_filter((array)$templates) as $template) {
+	foreach (array_filter((array) $templates) as $template) {
 		if (strpos($template,"*") === false) {
 			SQL::query("UPDATE bigtree_templates SET extension = '$extension', id = CONCAT('$extension*',id) WHERE id = ?", $template);
 			$template = "$id*$template";
@@ -150,7 +150,7 @@
 		$package["components"]["templates"][] = $cms->getTemplate($template);
 	}
 
-	foreach (array_filter((array)$modules) as $module) {
+	foreach (array_filter((array) $modules) as $module) {
 		$module = $admin->getModule($module);
 		
 		// If the module isn't namespaced yet, namespace it
@@ -189,7 +189,7 @@
 		$package["components"]["modules"][] = $module;
 	}
 	
-	foreach (array_filter((array)$tables) as $table) {
+	foreach (array_filter((array) $tables) as $table) {
 		// Set the table to the create statement
 		$f = SQL::fetch("SHOW CREATE TABLE `$table`");
 		$create_statement = str_replace(array("\r","\n")," ",end($f));
@@ -202,7 +202,7 @@
 	}
 	
 	// Move all the files into the extensions directory
-	foreach ((array)$files as $file) {
+	foreach (array_filter((array) $files as $file) {
 		$file = Router::replaceServerRoot($file);
 		if (substr($file,0,11) != "extensions/") {
 			$d = false;

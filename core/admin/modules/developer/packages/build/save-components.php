@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	BigTree::globalizePOSTVars();
+	\BigTree::globalizePOSTVars();
 
 	$p = &$_SESSION["bigtree_admin"]["developer"]["package"];
 	$p["module_groups"] = array();
@@ -19,14 +19,14 @@
 	}
 
 	// Infer tables/files to include from the modules
-	foreach ((array)$modules as $module_id) {
+	foreach (array_filter((array) $modules) as $module_id) {
 		if ($module_id) {
 			$module = $admin->getModule($module_id);
 			$actions = $admin->getModuleActions($module_id);
 			// Get all the tables of the module's actions.
 			foreach ($actions as $action) {
 				if ($action["interface"]) {
-					$interface = BigTreeAutoModule::getInterface($action["interface"]);
+					$interface = \BigTreeAutoModule::getInterface($action["interface"]);
 
 					// Forms we're going to lookup field types that could be used
 					if ($interface["interface_type"] == "form") {
@@ -98,7 +98,7 @@
 		}
 	}
 	// Bring in files for templates
-	foreach ((array)$templates as $template) {
+	foreach (array_filter((array) $templates) as $template) {
 		if ($template) {
 			if (is_dir(SERVER_ROOT."templates/routed/$template/")) {
 				$contents = FileSystem::getDirectoryContents(SERVER_ROOT."templates/routed/$template/");
@@ -123,7 +123,7 @@
 		}
 	}
 	// Files for callouts
-	foreach ((array)$callouts as $callout) {
+	foreach (array_filter((array) $callouts) as $callout) {
 		if ($callout) {
 			if (file_exists(SERVER_ROOT."templates/callouts/$callout.php")) {
 				$p["files"][] = SERVER_ROOT."templates/callouts/$callout.php";
@@ -142,7 +142,7 @@
 	}
 
 	// Get settings to make sure they don't use a custom field type
-	foreach (array_filter((array)$p["settings"]) as $setting_id) {
+	foreach (array_filter((array) $p["settings"]) as $setting_id) {
 		$setting = $admin->getSetting($setting_id);
 		if (isset($custom_field_types[$setting["type"]])) {
 			if (!in_array($setting["type"],$p["field_types"])) {
@@ -152,7 +152,7 @@
 	}
 
 	// Files for field types -- we use the $p version here because we may have added some when checking the module
-	foreach ((array)$p["field_types"] as $type) {
+	foreach (array_filter((array) $p["field_types"]) as $type) {
 		if ($type) {
 			if (file_exists(SERVER_ROOT."custom/admin/form-field-types/draw/$type.php")) {
 				$p["files"][] = SERVER_ROOT."custom/admin/form-field-types/draw/$type.php";

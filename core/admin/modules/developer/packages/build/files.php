@@ -2,11 +2,11 @@
 	namespace BigTree;
 ?>
 <div class="container">
-	<header><p>Add additional files and tables to your package.</p></header>
+	<header><p><?=Text::translate("Add additional files and tables to your package.")?></p></header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>packages/build/save-files/" class="module">
 		<section>
 			<article class="package_column package_column_double">
-				<strong>Files</strong>
+				<strong><?=Text::translate("Files")?></strong>
 				<ul id="package_files">
 					<?php foreach ((array)$_SESSION["bigtree_admin"]["developer"]["package"]["files"] as $file) { ?>
 					<li>
@@ -17,11 +17,11 @@
 					<?php } ?>
 				</ul>
 				<div class="add_file adder">
-					<a href="#"><span class="icon_small icon_small_folder"></span>Browse For File</a>
+					<a href="#"><span class="icon_small icon_small_folder"></span><?=Text::translate("Browse For File")?></a>
 				</div>
 			</article>
 			<article class="package_column package_column_double package_column_last">
-				<strong>Tables</strong>
+				<strong><?=Text::translate("Tables")?></strong>
 				<ul>
 					<?php
 						$used_tables = array();
@@ -57,7 +57,7 @@
 			</article>
 		</section>
 		<footer>
-			<input type="submit" class="button blue" value="Continue" />
+			<input type="submit" class="button blue" value="<?=Text::translate("Continue", true)?>" />
 		</footer>
 	</form>
 </div>

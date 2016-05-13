@@ -33,7 +33,7 @@
 						<input type="text" name="version" value="<?=$version?>" tabindex="4" />
 					</fieldset>
 					<fieldset class="last">
-						<label><?=Text::translate('Keywords <small>(separate with commas)')?></label>
+						<label><?=Text::translate('Keywords <small>(separate with commas)</small>')?></label>
 						<textarea name="keywords" tabindex="6"><?=$keywords?></textarea>
 					</fieldset>
 				</div>
@@ -64,7 +64,7 @@
 						<input type="text" name="license_name" value="<?=$license_name?>" />
 					</fieldset>
 					<fieldset>
-						<label><?=Text::translate('URL <small>(to full license text)')?></label>
+						<label><?=Text::translate('URL <small>(to full license text)</small>')?></label>
 						<input type="text" name="license_url" value="<?=$license_url?>" />
 					</fieldset>
 				</div>

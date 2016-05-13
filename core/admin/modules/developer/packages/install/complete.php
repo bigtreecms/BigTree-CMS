@@ -1,5 +1,8 @@
+<?php
+	namespace BigTree;
+?>
 <div class="container">
 	<section>
-		<p>Your package has been successfully installed.</p>
+		<p><?=Text::translate("Your package has been successfully installed.")?></p>
 	</section>
 </div>

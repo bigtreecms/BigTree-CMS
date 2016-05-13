@@ -3,56 +3,56 @@
 
 	// Need to get the names for everything we're including
 	$module_string = array();
-	foreach ((array)$modules as $m) {
+	foreach (array_filter((array) $modules) as $m) {
 		$module = $admin->getModule($m);
 		if ($module) {
 			$module_string[] = $module["name"];
 		}
 	}
 	$template_string = array();
-	foreach ((array)$templates as $t) {
+	foreach (array_filter((array) $templates) as $t) {
 		$template = $cms->getTemplate($t);
 		if ($template) {
 			$template_string[] = $template["name"];
 		}
 	}
 	$callout_string = array();
-	foreach ((array)$callouts as $c) {
+	foreach (array_filter((array) $callouts) as $c) {
 		$callout = $admin->getCallout($c);
 		if ($callout) {
 			$callout_string[] = $callout["name"];
 		}
 	}
 	$setting_string = array();
-	foreach ((array)$settings as $s) {
+	foreach (array_filter((array) $settings) as $s) {
 		$setting = $admin->getSetting($s);
 		if ($setting) {
 			$setting_string[] = $setting["name"];
 		}
 	}
 	$feed_string = array();
-	foreach ((array)$feeds as $f) {
+	foreach (array_filter((array) $feeds) as $f) {
 		$feed = $cms->getFeed($f);
 		if ($feed) {
 			$feed_string[] = $feed["name"];
 		}
 	}
 	$field_string = array();
-	foreach ((array)$field_types as $f) {
+	foreach (array_filter((array) $field_types) as $f) {
 		$field_type = $admin->getFieldType($f);
 		if ($field_type) {
 			$field_string[] = $field_type["name"];
 		}
 	}
 	$table_string = array();
-	foreach ((array)$tables as $t) {
+	foreach (array_filter((array) $tables) as $t) {
 		list($table,$data) = explode("#",$t);
 		if ($table) {
 			$table_string[] = $table;
 		}
 	}
 	$file_string = array();
-	foreach ((array)$files as $f) {
+	foreach (array_filter((array) $files) as $f) {
 		$file = Router::replaceServerRoot($f);
 		if ($file) {
 			$file_string[] = $file;
@@ -61,11 +61,11 @@
 ?>
 <div class="container package_review">
 	<summary>
-		<h2><?=Text::translate("Review Your Package")?></h2>
+		<h2><?=Text::translate("Review Your Extension")?></h2>
 	</summary>
 	<section>
 		<fieldset>
-			<h3><?=Text::translate("Package Information")?></h3>
+			<h3><?=Text::translate("Extension Information")?></h3>
 			<label>
 				<small><?=Text::translate("id")?></small>
 				<?=$id?>

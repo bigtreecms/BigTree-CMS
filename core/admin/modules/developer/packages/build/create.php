@@ -56,11 +56,11 @@
 	$used_views = array();
 	$used_reports = array();
 
-	foreach ((array)$module_groups as $group) {
+	foreach (array_filter((array) $module_groups) as $group) {
 		$package["components"]["module_groups"][] = $admin->getModuleGroup($group);
 	}
 	
-	foreach ((array)$modules as $module) {
+	foreach (array_filter((array) $modules) as $module) {
 		$module = $admin->getModule($module);
 		if ($module) {
 			$module["actions"] = $admin->getModuleActions($module["id"]);
@@ -72,27 +72,27 @@
 		}
 	}
 	
-	foreach ((array)$templates as $template) {
+	foreach (array_filter((array) $templates) as $template) {
 		$package["components"]["templates"][] = $cms->getTemplate($template);
 	}
 	
-	foreach ((array)$callouts as $callout) {
+	foreach (array_filter((array) $callouts) as $callout) {
 		$package["components"]["callouts"][] = $admin->getCallout($callout);
 	}
 	
-	foreach ((array)$feeds as $feed) {
+	foreach (array_filter((array) $feeds) as $feed) {
 		$package["components"]["feeds"][] = $cms->getFeed($feed);
 	}
 	
-	foreach ((array)$settings as $setting) {
+	foreach (array_filter((array) $settings) as $setting) {
 		$package["components"]["settings"][] = $admin->getSetting($setting);
 	}
 	
-	foreach ((array)$field_types as $type) {
+	foreach (array_filter((array) $field_types) as $type) {
 		$package["components"]["field_types"][] = $admin->getFieldType($type);
 	}
 	
-	foreach ((array)$tables as $t) {
+	foreach (array_filter((array) $tables) as $t) {
 		$x++;
 		list($table,$type) = explode("#",$t);
 		$f = SQL::fetch("SHOW CREATE TABLE `$table`");
@@ -118,8 +118,8 @@
 	}
 	$package["sql"][] = "SET foreign_key_checks = 1";
 	
-	foreach ((array)$files as $file) {
-		$file = BigTree::replaceServerRoot($file);
+	foreach (array_filter((array) $files) as $file) {
+		$file = \BigTree::replaceServerRoot($file);
 		FileSystem::copyFile(SERVER_ROOT.$file,SERVER_ROOT."cache/package/".$file);
 		$package["files"][] = $file;
 	}
@@ -157,9 +157,9 @@
 ?>
 <div class="container">
 	<section>
-		<p>Package created successfully.</p>
+		<p><?=Text::translate("Package created successfully.")?></p>
 	</section>
 	<footer>
-		<a href="<?=DEVELOPER_ROOT?>packages/build/download/" class="button blue">Download</a>
+		<a href="<?=DEVELOPER_ROOT?>packages/build/download/" class="button blue"><?=Text::translate("Download")?></a>
 	</footer>
 </div>

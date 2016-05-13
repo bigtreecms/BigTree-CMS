@@ -21,17 +21,17 @@
 				if ($_SESSION["bigtree_admin"]["post_max_hit"]) {
 					unset($_SESSION["bigtree_admin"]["post_max_hit"]);
 			?>
-			<p class="warning_message">The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.</p>
+			<p class="warning_message"><?=Text::translate("The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.")?></p>
 			<?php
 				}
 			?>
 			<fieldset>
-				<label>Package</label>
+				<label><?=Text::translate("Package")?></label>
 				<input type="file" name="file" />
 			</fieldset>
 		</section>
 		<footer>
-			<input type="submit" class="button blue" value="Unpack" />
+			<input type="submit" class="button blue" value="<?=Text::translate("Unpack", true)?>" />
 		</footer>
 	</form>
 </div>
