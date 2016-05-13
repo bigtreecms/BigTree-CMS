@@ -790,7 +790,7 @@
 					"numeric"
 				);
 
-				$form = BigTreeAutoModule::getRelatedFormForView($this->Array);
+				$form = $this->RelatedModuleForm;
 				$table = SQL::describeTable($this->Table);
 
 				foreach ($this->Fields as $key => $field) {
@@ -800,7 +800,7 @@
 						$numeric = true;
 					}
 
-					if ($field["parser"] || ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["list_type"] == "db")) {
+					if ($field["parser"] || ($form->Fields[$key]["type"] == "list" && $form->Fields[$key]["list_type"] == "db")) {
 						$numeric = false;
 					}
 
@@ -826,6 +826,8 @@
 				"preview_url" => $this->PreviewURL ? Link::encode($this->PreviewURL) : "",
 				"related_form" => $this->RelatedForm ? intval($this->RelatedForm) : null
 			);
+			$this->Interface->Table = $this->Table;
+			$this->Interface->Title = $this->Title;
 
 			$this->Interface->save();
 		}

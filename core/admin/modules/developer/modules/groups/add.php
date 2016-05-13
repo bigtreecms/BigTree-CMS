@@ -1,8 +1,11 @@
+<?php
+	namespace BigTree;
+?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/groups/create/" class="module">
 		<section>
 			<fieldset>
-				<label class="required">Name</label>
+				<label class="required"><?=Text::translate("Name")?></label>
 				<input type="text" name="name" value="" class="required" />
 			</fieldset>
 		</section>

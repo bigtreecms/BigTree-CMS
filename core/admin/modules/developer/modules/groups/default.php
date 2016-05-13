@@ -5,15 +5,15 @@
 <script>
 	BigTreeTable({
 		container: "#module_groups_table",
-		title: "Module Groups",
+		title: "<?=Text::translate("Module Groups", true)?>",
 		actions: {
 			edit: "<?=DEVELOPER_ROOT?>modules/groups/edit/{id}/",
 			delete: function(id) {
 				BigTreeDialog({
-					title: "Delete Module Group",
-					content: '<p class="confirm">Are you sure you want to delete this module group?<br /><br />Modules in this group will become uncategorized.</p>',
+					title: "<?=Text::translate("Delete Module Group", true)?>",
+					content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this module group?<br /><br />Modules in this group will become uncategorized.")?></p>',
 					icon: "delete",
-					alternateSaveText: "OK",
+					alternateSaveText: "<?=Text::translate("OK", true)?>",
 					callback: function() {
 						document.location.href = "<?=DEVELOPER_ROOT?>modules/groups/delete/" + id + "/";
 					}
@@ -21,7 +21,7 @@
 			}
 		},
 		columns: {
-			name: { title: "Group Name", largeFont: true, actionHook: "edit" }
+			name: { title: "<?=Text::translate("Group Name", true)?>", largeFont: true, actionHook: "edit" }
 		},
 		draggable: function(positioning) {
 			$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-module-groups/", { type: "POST", data: positioning });

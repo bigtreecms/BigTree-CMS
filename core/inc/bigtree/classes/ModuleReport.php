@@ -241,6 +241,8 @@
 				"parser" => $this->Parser,
 				"view" => $this->View ?: null
 			);
+			$this->Interface->Table = $this->Table;
+			$this->Interface->Title = $this->Title;
 
 			$this->Interface->save();
 		}

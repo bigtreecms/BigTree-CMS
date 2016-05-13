@@ -1,3 +1,6 @@
+<?php
+	namespace BigTree;
+?>
 <script>
 	$("#view_table").change(function(event,data) {
 		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-view-fields/?table=" + data.value);
@@ -14,7 +17,7 @@
 		BigTreeDialog({
 			url: "<?=ADMIN_ROOT?>ajax/developer/load-view-options/",
 			post: { table: $("#view_table").val(), type: $("#view_type").val(), data: $("#view_options").val() },
-			title: "View Options",
+			title: "<?=Text::translate("View Options", true)?>",
 			icon: "edit",
 			callback: function(data) {
 				$("#view_options").val(JSON.stringify(data));

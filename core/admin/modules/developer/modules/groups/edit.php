@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	$id = end($bigtree["path"]);
 	$group = $admin->getModuleGroup($id);
 ?>
@@ -6,7 +8,7 @@
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/groups/update/<?=$id?>/" class="module">
 		<section>
 			<fieldset>
-			    <label class="required">Name</label>
+			    <label class="required"><?=Text::translate("Name")?></label>
 			    <input type="text" name="name" value="<?=$group["name"]?>" class="required" />
 			</fieldset>
 		</section>

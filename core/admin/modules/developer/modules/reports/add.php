@@ -13,20 +13,20 @@
 		<section>
 			<div class="left last">
 				<fieldset>
-					<label class="required">Title</label>
+					<label class="required"><?=Text::translate("Title")?></label>
 					<input type="text" class="required" name="title" />
 				</fieldset>
 
 				<fieldset>
-					<label class="required">Data Table</label>
+					<label class="required"><?=Text::translate("Data Table")?></label>
 					<select name="table" id="report_table" class="required">
 						<option></option>
-						<?php BigTree::getTableSelectOptions(); ?>
+						<?php \BigTree::getTableSelectOptions(); ?>
 					</select>
 				</fieldset>
 
 				<fieldset id="filtered_view" style="display: none;">
-					<label>Filtered View <small>(after the report is submitted, it will show data using this view)</small></label>
+					<label><?=Text::translate("Filtered View <small>(after the report is submitted, it will show data using this view)</small>")?></label>
 					<select name="view">
 						<?php foreach ($available_views as $view) { ?>
 						<option value="<?=$view["id"]?>"<?php if (isset($_GET["view"]) && $_GET["view"] == $view["id"]) { ?> selected="selected"<?php } ?>><?=$view["title"]?></option>
@@ -37,17 +37,17 @@
 
 			<div class="right last">
 				<fieldset>
-					<label>Type</label>
+					<label><?=Text::translate("Type")?></label>
 					<select name="type" id="report_type">
-						<option value="csv">CSV Export</option>
-						<option value="view">Filtered View</option>
+						<option value="csv"><?=Text::translate("CSV Export")?></option>
+						<option value="view"><?=Text::translate("Filtered View")?></option>
 					</select>
 				</fieldset>
 
 				<fieldset id="data_parser_function">
-					<label>Data Parser Function <small>(optional, just the function name)</small></label>
+					<label><?=Text::translate("Data Parser Function <small>(optional, just the function name)</small>")?></label>
 					<input type="text" name="parser" />
-					<p class="note">Your function will receive an array of records to modify and return.</p>
+					<p class="note"><?=Text::translate("Your function will receive an array of records to modify and return.")?></p>
 				</fieldset>
 			</div>
 		</section>
@@ -56,7 +56,7 @@
 				if ($table) {
 					include Router::getIncludePath("admin/ajax/developer/load-report.php");
 				} else {
-					echo "<p>Please choose a table to populate this area.</p>";
+					echo "<p>".Text::translate("Please choose a table to populate this area.")."</p>";
 				}
 			?>
 		</section>

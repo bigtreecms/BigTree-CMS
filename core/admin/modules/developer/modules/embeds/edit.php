@@ -17,7 +17,7 @@
 	</section>
 	<footer>
 		<a href="javascript:history.go(-1);" class="button"><?=Text::translate("Back")?></a>
-		<a href="<?=DEVELOPER_ROOT?>modules/embeds/delete/<?=$form["id"]?>/?module=<?=$module["id"]?>" class="button red"><?=Text::translate("Delete Form")?></a>
+		<a href="<?=DEVELOPER_ROOT?>modules/interfaces/delete/<?=$form["id"]?>/?module=<?=$module["id"]?>" class="button red"><?=Text::translate("Delete Form")?></a>
 	</footer>
 </div>
 <?php

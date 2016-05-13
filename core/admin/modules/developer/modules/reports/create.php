@@ -1,11 +1,12 @@
 <?php
 	namespace BigTree;
 	
-	BigTree::globalizePOSTVars();
+	\BigTree::globalizePOSTVars();
 
 	$module = end($bigtree["path"]);
 	$id = $admin->createModuleReport($module,$title,$table,$type,$filters,$fields,$parser,$view);
-	$report_route = $admin->createModuleAction($module,$title,$admin->uniqueModuleActionRoute($module,"report"),"on","export","report-$id");
+	$action_route = SQL::unique("bigtree_module_actions", "route", "report", array("module" => $module), true);
+	$report_route = $admin->createModuleAction($module,$title,$action_route,"on","export",$id);
 
 	$admin->growl("Developer","Created Module Report");
 	Router::redirect(DEVELOPER_ROOT."modules/edit/$module/");

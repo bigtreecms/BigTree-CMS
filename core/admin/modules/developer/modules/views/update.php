@@ -1,27 +1,30 @@
 <?php
 	namespace BigTree;
 	
-	BigTree::globalizePOSTVars();
+	\BigTree::globalizePOSTVars();
 	
-	$table_description = BigTree::describeTable($table);
+	$table_description = SQL::describeTable($table);
 	$columns = $table_description["columns"];
 	
 	$options = json_decode($options, true);
 	
 	$errors = array();
+	
 	// Check for errors
 	if (($type == "draggable" || $type == "draggable-group" || $options["draggable"]) && !$columns["position"]) {
-		$errors[] = "Sorry, but you can't create a draggable view without a 'position' column in your table.  Please create a position column (integer) in your table and try again.";
+		$errors[] = Text::translate("Sorry, but you can't create a draggable view without a 'position' column in your table.  Please create a position column (integer) in your table and try again.");
 	}
 	
 	if ($actions["archive"] && !(($columns["archived"]["type"] == "char" || $columns["archived"]["type"] == "varchar") && $columns["archived"]["size"] == "2")) {
-		$errors[] = "Sorry, but you must have a column named 'archived' that is char(2) in order to use the archive function.";
+		$errors[] = Text::translate("Sorry, but you must have a column named 'archived' that is char(2) in order to use the archive function.");
 	}
+
 	if ($actions["approve"] && !(($columns["approved"]["type"] == "char" || $columns["approved"]["type"] == "varchar") && $columns["approved"]["size"] == "2")) {
-		$errors[] = "Sorry, but you must have a column named 'approved' that is char(2) in order to use the approve function.";
+		$errors[] = Text::translate("Sorry, but you must have a column named 'approved' that is char(2) in order to use the approve function.");
 	}
+	
 	if ($actions["feature"] && !(($columns["featured"]["type"] == "char" || $columns["featured"]["type"] == "varchar") && $columns["featured"]["size"] == "2")) {
-		$errors[] = "Sorry, but you must have a column named 'featured' that is char(2) in order to use the feature function.";
+		$errors[] = Text::translate("Sorry, but you must have a column named 'featured' that is char(2) in order to use the feature function.");
 	}
 	
 	if (count($errors)) {
@@ -30,14 +33,14 @@
 	<section>
 		<div class="alert">
 			<span></span>
-			<h3>Update Failed</h3>
+			<h3><?=Text::translate("Update Failed")?></h3>
 		</div>
 		<?php foreach ($errors as $error) { ?>
 		<p><?=$error?></p>
 		<?php } ?>
 	</section>
 	<footer>
-		<a href="javascript: history.back();" class="button white">Back</a>
+		<a href="javascript: history.back();" class="button white"><?=Text::translate("Back")?></a>
 	</footer>
 </div>
 <?php
@@ -53,7 +56,7 @@
 		
 		// If we've switched from searchable -> anything else or vice versa, wipe the width columns.
 		// Also wipe them if we have added or removed a column.
-		$old_view = BigTreeAutoModule::getView(end($bigtree["path"]));
+		$old_view = \BigTreeAutoModule::getView(end($bigtree["path"]));
 		$keys_match = true;
 		foreach ($old_view["fields"] as $key => $field) {
 			if (!$fields[$key]) {
@@ -85,7 +88,7 @@
 		
 		// Let's update the view and clear its cache
 		$admin->updateModuleView(end($bigtree["path"]),$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url);
-		BigTreeAutoModule::clearCache(end($bigtree["path"]));
+		\BigTreeAutoModule::clearCache(end($bigtree["path"]));
 		
 		$action = $admin->getModuleActionForInterface(end($bigtree["path"]));
 		$admin->growl("Developer","Updated View");

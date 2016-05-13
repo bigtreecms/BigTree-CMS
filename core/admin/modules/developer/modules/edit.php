@@ -28,7 +28,7 @@
 				"id" => $item["id"],
 				"type" => ucwords($item["type"]),
 				"title" => $item["title"],
-				"style_link" => $item["show_style"] ? '<a href="'.DEVELOPER_ROOT.'modules/views/style/{id}/" class="icon_preview"></a>' : "",
+				"style_link" => $item["show_style"] ? '<a href="'.DEVELOPER_ROOT.'modules/views/style/'.$item["id"].'/" class="icon_preview"></a>' : "",
 				"edit_link" => '<a href="'.DEVELOPER_ROOT.'modules/'.$item["edit_url"].'" class="icon_edit"></a>'
 			);
 		}

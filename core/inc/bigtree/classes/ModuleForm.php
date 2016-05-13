@@ -523,6 +523,8 @@
 				"tagging" => $this->Tagging ? "on" : "",
 				"hooks" => array_filter((array) $this->Hooks)
 			);
+			$this->Interface->Table = $this->Table;
+			$this->Interface->Title = $this->Title;
 
 			$this->Interface->save();
 		}

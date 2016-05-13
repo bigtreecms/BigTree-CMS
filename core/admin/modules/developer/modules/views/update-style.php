@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	$view = BigTreeAutoModule::getView(end($bigtree["path"]));
+	$view = \BigTreeAutoModule::getView(end($bigtree["path"]));
 	
 	$fields = $view["fields"];
 	$x = 0;

@@ -1,11 +1,13 @@
 <?php
-	$view = BigTreeAutoModule::getView(end($bigtree["path"]));
-	$entries = BigTreeAutoModule::getSearchResults($view,1);
+	namespace BigTree;
+
+	$view = \BigTreeAutoModule::getView(end($bigtree["path"]));
+	$entries = \BigTreeAutoModule::getSearchResults($view,1);
 	$entries = array_slice($entries["results"],0,5);
 
 	if ($view == "images" || $view == "images-group") {
 ?>
-<p>The view type does not have any style settings.</p>
+<p><?=Text::translate("The current view type does not have any style settings.")?></p>
 <?php
 	} else {
 		$fields = $view["fields"];
@@ -15,10 +17,10 @@
 		}
 ?>
 <section class="inset_block">
-	<p>Drag the bounds of the columns to resize them. Don't forget to save your changes.</p>
+	<p><?=Text::translate("Drag the bounds of the columns to resize them. Don't forget to save your changes.")?></p>
 </section>
 <div class="table">
-	<summary><h2>Example View Information</h2></summary>
+	<summary><h2><?=Text::translate("Example View Information")?></h2></summary>
 	<header>
 		<?php
 			$x = 0;
@@ -29,8 +31,8 @@
 		<?php
 			}
 		?>
-		<span class="view_status">Status</span>
-		<span class="view_action" style="width: <?=(count($actions) * 40)?>px;"><?php if (count($view["actions"]) > 1) { ?>Actions<?php } ?></span>
+		<span class="view_status"><?=Text::translate("Status")?></span>
+		<span class="view_action" style="width: <?=(count($actions) * 40)?>px;"><?php if (count($view["actions"]) > 1) { echo Text::translate("Actions"); } ?></span>
 	</header>
 	<ul>
 		<?php
@@ -46,7 +48,7 @@
 			<?php
 				}
 			?>
-			<section class="view_status status_published">Published</section>
+			<section class="view_status status_published"><?=Text::translate("Published")?></section>
 			<?php
 				foreach ($actions as $action => $data) {
 					if ($data != "on") {
@@ -70,7 +72,7 @@
 	<?php foreach ($fields as $key => $field) { ?>
 	<input type="hidden" name="<?=$key?>" id="data_<?=$key?>" value="<?=$field["width"]?>" />
 	<?php } ?>
-	<a class="button" href="<?=DEVELOPER_ROOT?>modules/views/clear-style/<?=$view["id"]?>/">Clear Existing Style</a>
+	<a class="button" href="<?=DEVELOPER_ROOT?>modules/views/clear-style/<?=$view["id"]?>/"><?=Text::translate("Clear Existing Style")?></a>
 	<input type="submit" class="button blue" value="<?=Text::translate("Update", true)?>" />
 </form>
 <?php

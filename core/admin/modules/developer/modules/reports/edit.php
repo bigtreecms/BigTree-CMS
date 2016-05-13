@@ -1,9 +1,9 @@
 <?php
 	namespace BigTree;
 	
-	$report = BigTreeAutoModule::getReport(end($bigtree["commands"]));
+	$report = \BigTreeAutoModule::getReport(end($bigtree["commands"]));
 	$action = $admin->getModuleActionForInterface($report);
-	BigTree::globalizeArray($report);
+	\BigTree::globalizeArray($report);
 
 	// Find out available views to use
 	$available_views = $admin->getModuleViews("title",$action["module"]);
@@ -16,20 +16,20 @@
 		<section>
 			<div class="left last">
 				<fieldset>
-					<label class="required">Title</label>
+					<label class="required"><?=Text::translate("Title")?></label>
 					<input type="text" class="required" name="title" value="<?=$title?>" />
 				</fieldset>
 
 				<fieldset>
-					<label class="required">Data Table</label>
+					<label class="required"><?=Text::translate("Data Table")?></label>
 					<select name="table" id="report_table" class="required">
 						<option></option>
-						<?php BigTree::getTableSelectOptions($table); ?>
+						<?php \BigTree::getTableSelectOptions($table); ?>
 					</select>
 				</fieldset>
 
 				<fieldset id="filtered_view"<?php if ($type == "csv") { ?> style="display: none;"<? } ?>>
-					<label>Filtered View <small>(after the report is submitted, it will show data using this view)</small></label>
+					<label><?=Text::translate("Filtered View <small>(after the report is submitted, it will show data using this view)</small>")?></label>
 					<select name="view">
 						<?php foreach ($available_views as $v) { ?>
 						<option value="<?=$v["id"]?>"<?php if ($view == $v["id"]) { ?> selected="selected"<?php } ?>><?=$v["title"]?></option>
@@ -40,17 +40,17 @@
 
 			<div class="right last">
 				<fieldset>
-					<label>Type</label>
+					<label><?=Text::translate("Type")?></label>
 					<select name="type" id="report_type">
-						<option value="csv">CSV Export</option>
-						<option value="view"<?php if ($type == "view") { ?> selected="selected"<?php } ?>>Filtered View</option>
+						<option value="csv"><?=Text::translate("CSV Export")?></option>
+						<option value="view"<?php if ($type == "view") { ?> selected="selected"<?php } ?>><?=Text::translate("Filtered View")?></option>
 					</select>
 				</fieldset>
 
 				<fieldset id="data_parser_function">
-					<label>Data Parser Function <small>(optional, just the function name)</small></label>
+					<label><?=Text::translate("Data Parser Function <small>(optional, just the function name)</small>")?></label>
 					<input type="text" name="parser" value="<?=htmlspecialchars($parser)?>" />
-					<p class="note">Your function will receive an array of records to modify and return.</p>
+					<p class="note"><?=Text::translate("Your function will receive an array of records to modify and return.")?></p>
 				</fieldset>
 			</div>
 		</section>
