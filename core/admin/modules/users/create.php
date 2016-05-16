@@ -8,7 +8,7 @@
 ?>
 <div class="container">
 	<section>
-		<p><?=Text::translate("To create a user, please access the")?> <a href="<?=ADMIN_ROOT?>users/add/"><?=Text::translate("Add User")?></a> <?=Text::translate("page")?>.</p>
+		<p><?=Text::translate('To create a user, please access the <a href=":link:">Add User</a> page.', false, array(":link:" => ADMIN_ROOT."users/add/"))?></p>
 	</section>
 </div>
 <?php

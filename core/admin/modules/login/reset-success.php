@@ -1,3 +1,6 @@
+<?php
+	namespace BigTree;
+?>
 <div id="login">
 	<form method="post" action="" class="module">
 		<h2><?=Text::translate("Password Set")?></h2>

@@ -20,12 +20,12 @@
 	<?php
 		if (!empty($bigtree["ban_expiration"])) {
 	?>
-	<p class="error_message clear"><?=Text::translate("You are temporarily banned due to failed login attempts.<br />You may try logging in again after")?> <?=$bigtree["ban_expiration"]?>.</p>
+	<p class="error_message clear"><?=Text::translate("You are temporarily banned due to failed login attempts.<br />You may try logging in again after :ban_expiration:.", false, array(":ban_expiration:" => $bigtree["ban_expiration"]))?></p>
 	<?php
 			if ($bigtree["ban_is_user"]) {
 	?>
 	<fieldset>
-		<p><?=Text::translate("You may")?> <a href="<?=$login_root?>forgot-password/"><?=Text::translate("reset your password")?></a> <?=Text::translate("to remove your ban")?>.</p>
+		<p><?=Text::translate('You may <a href=":reset_link:">reset your password</a> to remove your ban.', false, array(":reset_link:" => $login_root."forgot-password/"))?></p>
 	</fieldset>
 	<br />
 	<?php

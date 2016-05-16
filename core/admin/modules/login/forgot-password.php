@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$failure = false;
 
 	if ($_POST["email"]) {
