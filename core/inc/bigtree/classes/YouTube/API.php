@@ -631,6 +631,8 @@
 			}
 			
 			$this->call("subscriptions?id=".$response->items[0]->id,false,"DELETE");
+			
+			return true;
 		}
 
 		/*

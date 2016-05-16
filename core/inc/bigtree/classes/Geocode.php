@@ -98,6 +98,8 @@
 			}
 
 			trigger_error("Undefined property of BigTree\\Geocode: $property", E_USER_ERROR);
+
+			return null;
 		}
 
 		/*

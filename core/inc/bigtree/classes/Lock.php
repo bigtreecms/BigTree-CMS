@@ -64,8 +64,7 @@
 
 			// Make sure a user is logged in
 			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
-				throw new Exception("Lock::enforce cannot be called outside logged-in user context.");
-				return false;
+				throw new \Exception("Lock::enforce cannot be called outside logged-in user context.");
 			}
 
 			$lock = SQL::fetch("SELECT * FROM bigtree_locks WHERE `table` = ? AND item_id = ?", $table, $id);
@@ -114,10 +113,11 @@
 		*/
 
 		static function refresh($table,$id) {
+			global $admin;
+
 			// Make sure a user is logged in
 			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
-				throw new Exception("Lock::refresh cannot be called outside logged-in user context.");
-				return false;
+				throw new \Exception("Lock::refresh cannot be called outside logged-in user context.");
 			}
 
 			// Update the access time and user

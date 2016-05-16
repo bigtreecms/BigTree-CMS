@@ -1,2 +1,2 @@
 <?php
-	echo BigTree::curl("http://www.bigtreecms.org/ajax/extensions/exists/?id=".urlencode($_GET["id"]));
+	echo BigTree::cURL("http://www.bigtreecms.org/ajax/extensions/exists/?id=".urlencode($_GET["id"]));

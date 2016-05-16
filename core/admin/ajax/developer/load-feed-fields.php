@@ -88,7 +88,7 @@
 	
 	BigTree.localHooks = function() {
 		$("#sort_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
-	}
+	};
 	BigTree.localHooks();
 
 	BigTree.localFieldSelect = BigTreeFieldSelect({

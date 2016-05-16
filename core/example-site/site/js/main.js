@@ -112,7 +112,7 @@ if(window.console===undefined){window.console={log:function(){},error:function()
 		},
 		_formatCaptions: function($target) {
 			var attribution = $target.data("attribution"),
-				link = $target.data("link")
+				link = $target.data("link"),
 				caption = '';
 			
 			if (attribution) {

@@ -2602,7 +2602,7 @@ var BigTreeFilesystemBrowser = function(settings) {
 		var BaseDirectory = settings.baseDir ? settings.baseDir : "";
 		var Bucket = settings.bucket ? settings.bucket : "";
 		var Callback = settings.callback ? settings.callback : false;
-		var CloudServices = settings.disableCloud ? false : true;
+		var CloudServices = !settings.disableCloud;
 		var Container;
 		var File = settings.file ? settings.file : "";
 		var Directory = settings.directory ? settings.directory : "/";
@@ -3716,4 +3716,4 @@ var BigTree = {
 	windowWidth: function() {
 		return $("body").innerWidth();
 	}
-}
+};

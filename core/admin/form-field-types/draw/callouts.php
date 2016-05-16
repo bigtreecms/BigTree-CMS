@@ -23,7 +23,7 @@
 		?>
 		<article>
 			<input type="hidden" class="callout_data" value="<?=base64_encode(json_encode($callout))?>" />
-			<?php Field::drawArrayLevel(array($x),$callout,$field) ?>
+			<?php $this->drawArrayLevel(array($x),$callout) ?>
 			<h4>
 				<?=Text::htmlEncode($callout["display_title"])?>
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][display_title]" value="<?=Text::htmlEncode($callout["display_title"])?>" />

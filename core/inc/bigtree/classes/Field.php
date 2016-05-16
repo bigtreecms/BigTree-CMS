@@ -5,6 +5,11 @@
 	*/
 
 	namespace BigTree;
+
+	/**
+	  * @property-read array $Array
+	  * @property-read array $ParsedFilesArray
+	  */
 	
 	class Field extends BaseObject {
 

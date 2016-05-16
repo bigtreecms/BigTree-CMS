@@ -40,6 +40,10 @@
 			} elseif ($method == "rows") {
 				return call_user_func_array(array($this, "_local_rows"), $arguments);
 			}
+
+			trigger_error("Invalid method called on BigTree\\SQL: $method", E_USER_WARNING);
+
+			return null;
 		}
 
 		static function __callStatic($method, $arguments) {
@@ -54,6 +58,10 @@
 			} elseif ($method == "rows") {
 				return call_user_func_array("static::_static_rows", $arguments);
 			}
+
+			trigger_error("Invalid static method called on BigTree\\SQL: $method", E_USER_WARNING);
+
+			return null;
 		}
 
 		/*

@@ -7,11 +7,11 @@
 	namespace BigTree;
 
 	/**
-	  * @property-read string $Navigation
+	  * @property-read array $Navigation
 	  * @property-read string $Table
-	  * @property-read string $UserAccessibleGroups
+	  * @property-read array $UserAccessibleGroups
 	  * @property-read string $UserAccessLevel
-	  * @property-read string $UserCanAccess
+	  * @property-read bool $UserCanAccess
 	  */
 
 	class Module extends BaseObject {

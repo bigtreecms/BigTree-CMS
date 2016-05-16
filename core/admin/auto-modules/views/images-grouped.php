@@ -44,7 +44,7 @@
 				}
 
 				if (isset($view["actions"]["edit"])) { 
-					echo Text::translatE("Click an image to edit it.");
+					echo Text::translate("Click an image to edit it.");
 				}
 			?>
 		</p>

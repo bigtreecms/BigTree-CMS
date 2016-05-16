@@ -432,7 +432,7 @@
 			} elseif ($text) {
 				$font = Router::getIncludePath("inc/lib/fonts/arial.ttf");
 				$fontsize = ($width > $height) ? ($height / 15) : ($width / 15);
-				$textpos = imageTTFBbox($fontsize, 0, $font, $text);
+				$textpos = imagettfbbox($fontsize, 0, $font, $text);
 				imagettftext($image, $fontsize, 0, (($width - $textpos[2]) / 2), (($height - $textpos[5]) / 2), $text_color, $font, $text);
 			}
 

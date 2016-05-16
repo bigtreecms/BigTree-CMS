@@ -192,8 +192,8 @@
 
 			// Make sure a user is logged in
 			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
-				trigger_error("Method markRead not available outside logged-in user context.");
-				return false;
+				trigger_error("Method markRead not available outside logged-in user context.", E_USER_WARNING);
+				return;
 			}
 
 			$this->ReadBy = str_replace("|".$admin->ID."|","",$this->ReadBy)."|".$admin->ID."|";
