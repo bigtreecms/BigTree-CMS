@@ -8,9 +8,9 @@
 
 	class Resource extends BaseObject {
 
-		static $CreationLog = array();
-		static $Prefixes = array();
-		static $Table = "bigtree_resources";
+		public static $CreationLog = array();
+		public static $Prefixes = array();
+		public static $Table = "bigtree_resources";
 
 		protected $ID;
 

@@ -10,9 +10,9 @@
 
 	class Geocode {
 
-		static $API = false;
-		static $Service = false;
-		static $Settings = array();
+		public static $API = false;
+		public static $Service = false;
+		public static $Settings = array();
 
 		public $Address;
 		public $Error;

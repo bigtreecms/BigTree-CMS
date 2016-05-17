@@ -8,7 +8,7 @@
 
 	class ResourceFolder extends BaseObject {
 
-		static $Table = "bigtree_resource_folders";
+		public static $Table = "bigtree_resource_folders";
 
 		protected $ID;
 

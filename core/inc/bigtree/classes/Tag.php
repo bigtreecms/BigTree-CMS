@@ -8,7 +8,7 @@
 
 	class Tag extends BaseObject {
 
-		static $Table = "bigtree_tags";
+		public static $Table = "bigtree_tags";
 
 		protected $ID;
 		protected $Metaphone;

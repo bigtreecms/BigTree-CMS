@@ -8,11 +8,11 @@
 
 	class Dashboard {
 
-		static $CoreOptions = array(
+		public static $CoreOptions = array(
 			"analytics" => "Google Analytics",
 			"pending-changes" => "Pending Changes",
 			"messages" => "Messages"
 		);
-		static $Plugins = array();
+		public static $Plugins = array();
 
 	}

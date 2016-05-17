@@ -8,9 +8,9 @@
 
 	class Updater {
 
-		var $Connection = false;
-		var $Extension = false;
-		var $Method = false;
+		public $Connection = false;
+		public $Extension = false;
+		public $Method = false;
 
 		/*
 			Constructor:

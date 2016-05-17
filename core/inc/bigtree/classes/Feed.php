@@ -8,13 +8,13 @@
 
 	class Feed extends BaseObject {
 
-		static $AvailableTypes = array(
+		public static $AvailableTypes = array(
 			"custom" => "XML",
 			"json" => "JSON",
 			"rss" => "RSS 0.91",
 			"rss2" => "RSS 2.0"
 		);
-		static $Table = "bigtree_feeds";
+		public static $Table = "bigtree_feeds";
 
 		protected $ID;
 

@@ -10,9 +10,9 @@
 
 	class Auth {
 
-		var $Namespace = "";
-		var $Policies = false;
-		var $UserClass = "";
+		public $Namespace = "";
+		public $Policies = false;
+		public $UserClass = "";
 
 		/*
 			Constructor:

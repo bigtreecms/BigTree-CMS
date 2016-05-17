@@ -8,13 +8,13 @@
 
 	class Storage {
 
-		var $AutoJPEG = false;
-		var $DisabledFileError = false;
-		var $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx)$/i';
-		var $Service = "";
-		var $Cloud = false;
-		var $Setting;
-		var $Settings;
+		public $AutoJPEG = false;
+		public $DisabledFileError = false;
+		public $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx)$/i';
+		public $Service = "";
+		public $Cloud = false;
+		public $Setting;
+		public $Settings;
 
 		/*
 			Constructor:

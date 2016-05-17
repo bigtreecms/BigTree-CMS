@@ -8,7 +8,7 @@
 	
 	class Page extends BaseObject {
 
-		static $Table = "bigtree_pages";
+		public static $Table = "bigtree_pages";
 
 		protected $ChangesApplied = false;
 		protected $CreatedAt;

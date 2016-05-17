@@ -8,7 +8,7 @@
 
 	class Callout extends BaseObject {
 
-		static $Table = "bigtree_callouts";
+		public static $Table = "bigtree_callouts";
 
 		protected $ID;
 

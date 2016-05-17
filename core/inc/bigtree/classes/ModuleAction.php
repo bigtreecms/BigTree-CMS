@@ -8,7 +8,7 @@
 
 	class ModuleAction extends BaseObject {
 
-		static $Table = "bigtree_module_actions";
+		public static $Table = "bigtree_module_actions";
 
 		protected $ID;
 		protected $OriginalRoute;

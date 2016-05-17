@@ -8,7 +8,7 @@
 
 	class Cron {
 
-		static $Plugins = array();
+		public static $Plugins = array();
 
 		/*
 			Function: runs

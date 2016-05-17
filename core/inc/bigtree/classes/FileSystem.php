@@ -10,7 +10,7 @@
 
 	class FileSystem {
 
-		static $OwnerResult = false;
+		public static $OwnerResult = false;
 
 		/*
 			Function: copyFile

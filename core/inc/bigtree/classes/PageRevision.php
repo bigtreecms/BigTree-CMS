@@ -8,7 +8,7 @@
 
 	class PageRevision extends BaseObject {
 
-		static $Table = "bigtree_page_revisions";
+		public static $Table = "bigtree_page_revisions";
 
 		protected $ID;
 		protected $Author;

@@ -8,7 +8,7 @@
 
 	class DailyDigest extends BaseObject {
 
-		static $CoreOptions = array(
+		public static $CoreOptions = array(
 			"pending-changes" => array(
 				"name" => "Pending Changes",
 				"function" => "BigTree\\DailyDigest::getChanges"
@@ -22,7 +22,7 @@
 				"function" => "BigTree\\DailyDigest::getAlerts"
 			)
 		);
-		static $Plugins = array();
+		public static $Plugins = array();
 
 		/*
 			Function: getAlerts

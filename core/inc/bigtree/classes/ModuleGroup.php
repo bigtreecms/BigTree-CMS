@@ -8,7 +8,7 @@
 
 	class ModuleGroup extends BaseObject {
 
-		static $Table = "bigtree_module_groups";
+		public static $Table = "bigtree_module_groups";
 
 		protected $ID;
 

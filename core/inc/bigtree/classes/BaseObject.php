@@ -3,7 +3,7 @@
 
 	class BaseObject {
 
-		static $Table = "";
+		public static $Table = "";
 
 		// Magic method to allow for getBy and allBy methods where you pass in a column name
 		static function __callStatic($method,$arguments) {

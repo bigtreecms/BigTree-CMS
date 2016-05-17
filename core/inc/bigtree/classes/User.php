@@ -11,7 +11,7 @@
 
 	class User extends BaseObject {
 
-		static $Table = "bigtree_users";
+		public static $Table = "bigtree_users";
 
 		protected $ID;
 		protected $OriginalPassword;

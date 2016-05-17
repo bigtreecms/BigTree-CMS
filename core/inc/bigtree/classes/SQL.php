@@ -9,13 +9,21 @@
 	
 	use mysqli;
 
+	/**
+	  * @method fetch
+	  * @method fetchAll
+	  * @method fetchSingle
+	  * @method fetchAllSingle
+	  * @method rows
+	  */
+
 	class SQL {
 
-		static $Connection = "disconnected";
-		static $ErrorLog = array();
-		static $MySQLTime = false;
-		static $QueryLog = array();
-		static $WriteConnection = "disconnected";
+		public static $Connection = "disconnected";
+		public static $ErrorLog = array();
+		public static $MySQLTime = false;
+		public static $QueryLog = array();
+		public static $WriteConnection = "disconnected";
 
 		public $ActiveQuery = false;
 

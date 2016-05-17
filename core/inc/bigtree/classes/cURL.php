@@ -8,7 +8,7 @@
 
 	class cURL {
 
-		static $ResponseCode;
+		public static $ResponseCode;
 
 		/*
 			Function: request

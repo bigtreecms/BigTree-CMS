@@ -8,7 +8,7 @@
 
 	class PendingChange extends BaseObject {
 
-		static $Table = "bigtree_pending_changes";
+		public static $Table = "bigtree_pending_changes";
 
 		protected $Date;
 		protected $ID;

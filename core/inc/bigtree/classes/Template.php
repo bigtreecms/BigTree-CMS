@@ -8,7 +8,7 @@
 
 	class Template extends BaseObject {
 
-		static $Table = "bigtree_templates";
+		public static $Table = "bigtree_templates";
 
 		protected $ID;
 		protected $Routed;

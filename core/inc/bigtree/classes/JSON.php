@@ -8,7 +8,7 @@
 
 	class JSON {
 
-		static $PrettyPrint = false;
+		public static $PrettyPrint = false;
 		
 		/*
 			Function: encode

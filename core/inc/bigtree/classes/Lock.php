@@ -8,7 +8,7 @@
 
 	class Lock extends BaseObject {
 
-		static $Table = "bigtree_locks";
+		public static $Table = "bigtree_locks";
 
 		protected $ID;
 

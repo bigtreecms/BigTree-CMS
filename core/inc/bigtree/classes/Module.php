@@ -16,9 +16,9 @@
 
 	class Module extends BaseObject {
 
-		static $CachesBuilt = false;
-		static $ClassCache = array();
-		static $Table = "bigtree_modules";
+		public static $CachesBuilt = false;
+		public static $ClassCache = array();
+		public static $Table = "bigtree_modules";
 
 		protected $ID;
 

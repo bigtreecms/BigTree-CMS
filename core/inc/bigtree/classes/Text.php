@@ -8,7 +8,7 @@
 
 	class Text {
 
-		static $Language = array();
+		public static $Language = array();
 
 		/*
 			Function: getRandomString

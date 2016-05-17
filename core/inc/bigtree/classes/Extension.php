@@ -8,9 +8,9 @@
 
 	class Extension extends BaseObject {
 
-		static $CacheInitialized = false;
-		static $RequiredFiles = array();
-		static $Table = "bigtree_extensions";
+		public static $CacheInitialized = false;
+		public static $RequiredFiles = array();
+		public static $Table = "bigtree_extensions";
 
 		protected $ID;
 		protected $LastUpdated;

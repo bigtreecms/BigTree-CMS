@@ -8,7 +8,7 @@
 
 	class ModuleView extends BaseObject {
 
-		static $CoreTypes = array(
+		public static $CoreTypes = array(
 			"searchable" => "Searchable List",
 			"draggable" => "Draggable List",
 			"nested" => "Nested Draggable List",
@@ -16,7 +16,7 @@
 			"images" => "Image List",
 			"images-grouped" => "Grouped Image List"
 		);
-		static $Plugins = array();
+		public static $Plugins = array();
 		
 		protected $ID;
 		protected $Interface;

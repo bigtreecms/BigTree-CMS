@@ -8,7 +8,7 @@
 
 	class ModuleInterface extends BaseObject {
 
-		static $CoreTypes = array(
+		public static $CoreTypes = array(
 			"views" => array(
 				"name" => "View",
 				"icon" => "category",
@@ -30,8 +30,8 @@
 				"description" => "Embeddable forms allow your front-end users to create database content using your existing field types via iframes."
 			)
 		);
-		static $Plugins = array();
-		static $Table = "bigtree_module_interfaces";
+		public static $Plugins = array();
+		public static $Table = "bigtree_module_interfaces";
 
 		protected $ID;
 
