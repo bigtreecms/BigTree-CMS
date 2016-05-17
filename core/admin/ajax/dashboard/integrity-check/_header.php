@@ -36,7 +36,7 @@
 			} elseif ($resource["type"] == "callouts" && is_array($data)) {
 				foreach ($data as $callout_data) {
 					$callout = BigTreeAdmin::getCallout($callout_data["type"]);
-					if ($callout) {
+					if (!empty($callout)) {
 						// We're going to modify the field titles so that it makes more sense when someone is diagnosing the issue
 						$callout_resources = array_filter((array)$callout["resources"]);
 						foreach ($callout_resources as &$column) {
