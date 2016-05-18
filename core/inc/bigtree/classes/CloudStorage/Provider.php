@@ -7,11 +7,11 @@
 	namespace BigTree\CloudStorage;
 
 	use BigTree\OAuth;
-	use BigTree\Setting;
 	use BigTree\SQL;
 
 	class Provider extends OAuth {
 
+		public $Active;
 		public $Errors;
 		public $Settings;
 

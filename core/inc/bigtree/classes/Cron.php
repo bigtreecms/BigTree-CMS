@@ -37,7 +37,7 @@
 		
 				// Cache Google Analytics Information
 				$analytics = new GoogleAnalytics\API;
-				if ($analytics->API && $analytics->Profile) {
+				if ($analytics->Connected && !empty($analytics->Setting["profile"])) {
 					$analytics->cacheInformation();
 				}
 

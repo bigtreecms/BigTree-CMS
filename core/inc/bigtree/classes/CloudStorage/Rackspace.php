@@ -11,6 +11,16 @@
 
 	class Rackspace extends Provider {
 
+		protected $CDNContainerURLs;
+		protected $CDNEndpoints;
+		protected $Endpoints;
+		protected $Key;
+		protected $Region;
+		protected $TempURLKey;
+		protected $Token;
+		protected $TokenExpiration;
+		protected $Username;
+
 		public $CDNEndpoint = "";
 		public $Endpoint = "";
 		public $Regions = array(

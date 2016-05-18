@@ -37,6 +37,7 @@
 			isset($user->bio) ? $this->Biography = $user->bio : false;
 			isset($user->birthday) ? $this->Birthday = $user->birthday : false;
 			if (is_array($user->education)) {
+				$this->Education = array();
 				foreach ($user->education as $school) {
 					$this->Education[] = new School($school["school"],$school["type"],$this->API);
 				}

@@ -4,7 +4,6 @@
 			The main class used by the admin for manipulating and retrieving data.
 	*/
 
-	use BigTree\JSON;
 	use BigTree\SQL;
 
 	class BigTreeAdminBase {

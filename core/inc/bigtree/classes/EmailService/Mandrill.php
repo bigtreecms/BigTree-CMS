@@ -21,29 +21,29 @@
 
 			// Generate array of people to send to
 			$to_array = array();
-			if (is_string($email->To)) {
-				$to_array[] = array("email" => $email->To, "type" => "to");
-			} else {
+			if (is_array($email->To)) {
 				foreach ($email->To as $address) {
 					$to_array[] = array("email" => $address, "type" => "to");
 				}
+			} else {
+				$to_array[] = array("email" => $email->To, "type" => "to");
 			}
 
 			// Add CC and BCC
-			if (is_string($email->CC) && $email->CC) {
-				$to_array[] = array("email" => $email->CC, "type" => "cc");
-			} else {
+			if (is_array($email->CC)) {
 				foreach ($email->CC as $address) {
 					$to_array[] = array("email" => $address, "type" => "cc");
 				}
+			} elseif ($email->CC) {
+				$to_array[] = array("email" => $email->CC, "type" => "cc");
 			}
 
-			if (is_string($email->BCC) && $email->BCC) {
-				$to_array[] = array("email" => $email->BCC, "type" => "bcc");
-			} else {
+			if (is_array($email->BCC)) {
 				foreach ($email->BCC as $address) {
 					$to_array[] = array("email" => $address, "type" => "bcc");
 				}
+			} elseif ($email->BCC) {
+				$to_array[] = array("email" => $email->BCC, "type" => "bcc");
 			}
 
 			// Set reply header if passed in

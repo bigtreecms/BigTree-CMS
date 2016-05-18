@@ -11,6 +11,13 @@
 
 	class Google extends Provider {
 
+		protected $CertificateEmail;
+		protected $Key;
+		protected $PrivateKey;
+		protected $Project;
+		protected $Secret;
+		protected $Token;
+
 		public $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
 		public $EndpointURL = "https://www.googleapis.com/storage/v1/";
 		public $OAuthVersion = "1.0";

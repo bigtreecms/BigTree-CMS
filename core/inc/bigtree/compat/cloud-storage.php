@@ -4,16 +4,21 @@
 
 		protected $API;
 
-		function __construct($service = false) {
-			$settings = BigTree\Setting::value("bigtree-internal-cloud-storage");
+		public $Connected;
+		public $Settings;
 
-			if ($settings["service"] == "amazon") {
+		function __construct($service = false) {
+			$this->Settings = BigTree\Setting::value("bigtree-internal-cloud-storage");
+
+			if ($this->Settings["service"] == "amazon") {
 				$this->API = new BigTree\CloudStorage\Amazon;
-			} elseif ($settings["service"] == "google") {
+			} elseif ($this->Settings["service"] == "google") {
 				$this->API = new BigTree\CloudStorage\Google;
-			} elseif ($settings["service"] == "rackspace") {
+			} elseif ($this->Settings["service"] == "rackspace") {
 				$this->API = new BigTree\CloudStorage\Rackspace;
 			}
+
+			$this->Connected = $this->API->Active;
 		}
 
 		// Magic method to intercept calls and route them to the API

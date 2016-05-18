@@ -9,6 +9,9 @@
 
 	class Amazon extends Provider {
 
+		protected $Key;
+		protected $Secret;
+
 		public $HTTPResponseCode = false;
 
 		function __construct() {
