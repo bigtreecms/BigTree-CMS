@@ -10,11 +10,11 @@
 	use mysqli;
 
 	/**
-	  * @method fetch
-	  * @method fetchAll
-	  * @method fetchSingle
-	  * @method fetchAllSingle
-	  * @method rows
+	  * @method array fetch() fetch(string $query, ...$replacements) query the database and return a row
+	  * @method array fetchAll() fetchAll(string $query, ...$replacements) query the database and return all rows
+	  * @method string fetchSingle() fetchSingle(string $query, ...$replacements) query the database and return a single column
+	  * @method array fetchAllSingle() fetchAllSingle(string $query, ...$replacments) query the database and return all results for a single column
+	  * @method int rows() rows(string $query, ...$replacements) query the database and return the number of results
 	  */
 
 	class SQL {
