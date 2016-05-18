@@ -13,7 +13,7 @@
 	if ($table) {
 ?>
 <select name="<?=htmlspecialchars($field)?>">
-	<?=BigTree::getFieldSelectOptions($table,$field,$sort)?>
+	<?php BigTree::getFieldSelectOptions($table,$field,$sort) ?>
 </select>
 <?php
 	} else {

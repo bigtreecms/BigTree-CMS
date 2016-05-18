@@ -151,10 +151,14 @@
 	
 	$("#crop_form").submit(function() {
 		if (BigTree.localCurrentCrop != BigTree.localMaxCrops) {
-			$("#cropper article").eq(BigTree.localCurrentCrop - 1).hide();
-			$("#cropper article").eq(BigTree.localCurrentCrop).show();
+			var articles = $("#cropper").find("article");
+
+			articles.eq(BigTree.localCurrentCrop - 1).hide();
+			articles.eq(BigTree.localCurrentCrop).show();
+
 			BigTree.localCurrentCrop++;
 			BigTree.localInitJcrop();
+
 			return false;
 		}
 	});

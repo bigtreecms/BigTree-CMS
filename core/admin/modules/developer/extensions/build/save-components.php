@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	BigTree::globalizePOSTVars();
+	\BigTree::globalizePOSTVars();
 
 	$p = &$_SESSION["bigtree_admin"]["developer"]["package"];
 	$p["module_groups"] = array();
@@ -26,7 +26,7 @@
 			// Get all the tables of the module's actions.
 			foreach ($actions as $action) {
 				if ($action["interface"]) {
-					$interface = BigTreeAutoModule::getInterface($action["interface"]);
+					$interface = \BigTreeAutoModule::getInterface($action["interface"]);
 
 					// Forms we're going to lookup field types that could be used
 					if ($interface["interface_type"] == "form") {

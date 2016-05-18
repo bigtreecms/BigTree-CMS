@@ -1,3 +1,6 @@
+<?php
+	namespace BigTree;
+?>
 <div class="container">
 	<summary><h2><?=Text::translate("Upgrade BigTree")?></h2></summary>
 	<section>

@@ -260,7 +260,7 @@
 			$doc = new DOMDocument();
 			try {
 				$doc->loadHTML($html);
-			} catch (Exception $e) {
+			} catch (\Exception $e) {
 				return array();
 			}
 

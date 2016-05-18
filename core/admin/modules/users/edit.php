@@ -278,7 +278,7 @@
 
 												$gbp_categories = array();
 												if (!empty($gbp["enabled"])) {
-													if (BigTree::tableExists($gbp["other_table"])) {
+													if (SQL::tableExists($gbp["other_table"])) {
 														$categories = array();
 														if (!empty($gbp["other_table"]) && !empty($gbp["title_field"])) {
 															$title_field = str_replace("`","",$gbp["title_field"]);

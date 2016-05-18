@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$user = $admin->getUser($f["user"]);
 ?>
 <h2><strong><?=Text::translate("Warning")?>:</strong> <?=Text::translate("This page is currently locked.")?></h2>

@@ -7,7 +7,7 @@
 <fieldset>
 	<label>Source Field <small>(the table column to use for route generation)</small></label>
 	<select name="source">
-		<?=BigTree::getFieldSelectOptions($_POST["table"],$data["source"])?>
+		<?php BigTree::getFieldSelectOptions($_POST["table"],$data["source"]) ?>
 	</select>
 </fieldset>
 

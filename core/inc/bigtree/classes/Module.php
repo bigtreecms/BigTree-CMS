@@ -7,6 +7,7 @@
 	namespace BigTree;
 
 	/**
+	  * @property-read int $ID
 	  * @property-read array $Navigation
 	  * @property-read string $Table
 	  * @property-read array $UserAccessibleGroups

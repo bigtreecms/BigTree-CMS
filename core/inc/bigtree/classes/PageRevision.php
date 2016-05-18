@@ -6,12 +6,19 @@
 
 	namespace BigTree;
 
+	/**
+	 * @property-read int $Author
+	 * @property-read int $ID
+	 * @property-read int $Page
+	 * @property-read string $UpdatedAt
+	 */
+
 	class PageRevision extends BaseObject {
 
 		public static $Table = "bigtree_page_revisions";
 
-		protected $ID;
 		protected $Author;
+		protected $ID;
 		protected $Page;
 		protected $UpdatedAt;
 

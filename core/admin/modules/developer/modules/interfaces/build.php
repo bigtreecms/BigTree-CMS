@@ -13,7 +13,7 @@
 	// If we're editing an existing interface, grab it
 	$bigtree["interface"] = false;
 	if (isset($_GET["id"])) {
-		$bigtree["interface"] = BigTreeAutoModule::getInterface($_GET["id"]);
+		$bigtree["interface"] = \BigTreeAutoModule::getInterface($_GET["id"]);
 	}
 
 	include $include_file;

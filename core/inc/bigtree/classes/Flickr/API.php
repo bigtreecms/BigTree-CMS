@@ -543,7 +543,7 @@
 
 		function oAuthRedirect() {
 			$this->Settings["token_secret"] = "";
-			$admin = new BigTreeAdmin;
+			$admin = new \BigTreeAdmin;
 			$response = $this->callAPI("http://www.flickr.com/services/oauth/request_token","GET",array("oauth_callback" => $this->ReturnURL));
 			parse_str($response);
 

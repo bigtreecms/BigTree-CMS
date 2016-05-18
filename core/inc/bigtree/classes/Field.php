@@ -94,7 +94,7 @@
 
 			// Backwards compatibility
 			$field = $this->Array;
-			$this->Settings = $this->Settings;
+			$options = $this->Settings;
 
 			// Only draw fields for which we have a file
 			if (file_exists($field_type_path)) {
@@ -228,7 +228,7 @@
 
 			// Backwards compatibility
 			$field = $this->Array;
-			$this->Settings = $this->Settings;
+			$options = $this->Settings;
 
 			// Check if the field type is stored in an extension
 			if (strpos($this->Type,"*") !== false) {
@@ -327,7 +327,7 @@
 
 			// See if we're using image presets
 			if ($this->Settings["preset"]) {
-				$media_settings = Seting::value("bigtree-internal-media-settings");
+				$media_settings = Setting::value("bigtree-internal-media-settings");
 				$preset = $media_settings["presets"][$this->Settings["preset"]];
 				// If the preset still exists, copy its properties over to our options
 				if ($preset) {

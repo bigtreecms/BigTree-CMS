@@ -6,6 +6,11 @@
 
 	namespace BigTree;
 
+	/**
+	 * @property int $ID
+	 * @proeprty object $Interface
+	 */
+
 	class ModuleForm extends BaseObject {
 
 		protected $ID;

@@ -6,6 +6,11 @@
 
 	namespace BigTree;
 
+	/**
+	 * @property-read string $Date
+	 * @property-read int $ID
+	 */
+
 	class PendingChange extends BaseObject {
 
 		public static $Table = "bigtree_pending_changes";
@@ -137,7 +142,7 @@
 						$module = $module_cache[$change["module"]];
 
 						// Check our group based permissions
-						$item = BigTreeAutoModule::getPendingItem($change["table"], $id);
+						$item = \BigTreeAutoModule::getPendingItem($change["table"], $id);
 						$access_level = $module->getUserAccessLevelForEntry($item["item"], $change["table"], $user);
 						
 						if ($access_level == "p") {

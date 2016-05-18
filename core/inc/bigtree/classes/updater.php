@@ -272,7 +272,7 @@
 			
 			// If we have the built in ZipArchive extension, use that.
 			if (class_exists("ZipArchive")) {
-				$z = new ZipArchive;
+				$z = new \ZipArchive;
 				
 				if (!$z->open($file)) {
 					// Bad zip file.
@@ -314,7 +314,7 @@
 					mb_internal_encoding('ISO-8859-1');
 				}
 				
-				$z = new PclZip($file);
+				$z = new \PclZip($file);
 				$archive = $z->extract(PCLZIP_OPT_EXTRACT_AS_STRING);
 
 				// If we saved a previous encoding, reset it now.

@@ -16,7 +16,7 @@
 					$array_val = @json_decode($val,true);
 	
 					if (is_array($array_val)) {
-						$item[$key] = BigTree::untranslateArray($array_val);
+						$item[$key] = \BigTree::untranslateArray($array_val);
 					} else {
 						$item[$key] = $cms->replaceInternalPageLinks($val);
 					}
@@ -24,7 +24,7 @@
 				
 				if ($feed["options"]["link_gen"]) {
 					$link = $feed["options"]["link_gen"];
-					foreach ($f as $key => $val) {
+					foreach ($item as $key => $val) {
 						$link = str_replace("{".$key."}",$val,$link);
 					}
 				} else {

@@ -1,3 +1,6 @@
+<?php
+	namespace BigTree;
+?>
 <h2><?=Text::translate("Errors Occurred")?></h2>
 <div class="bigtree_dialog_form">
 	<div class="overflow">

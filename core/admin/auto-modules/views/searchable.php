@@ -68,8 +68,8 @@
 	BigTree.localSortDirection = "<?=htmlspecialchars($sort_direction)?>";
 	BigTree.localSearchQuery = "<?=$search?>";
 	BigTree.localSearch = function() {
-		BigTree.localSearchQuery = escape($("#search").val());
-		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&page=1&view=<?=$bigtree["view"]["id"]?>&module=<?=$bigtree["module"]["route"]?>&search=" + BigTree.localSearchQuery);
+		BigTree.localSearchQuery = encodeURIComponent($("#search").val());
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + encodeURIComponent(BigTree.localSortColumn) + "&sort_direction=" + encodeURIComponent(BigTree.localSortDirection) + "&page=1&view=<?=$bigtree["view"]["id"]?>&module=<?=$bigtree["module"]["route"]?>&search=" + BigTree.localSearchQuery);
 	};
 	
 	$(".table").on("click",".sort_column",function() {
@@ -95,13 +95,13 @@
 			$(this).parents("header").find(".sort_column").removeClass("asc").removeClass("desc").find("em").html("");
 			$(this).addClass(BigTree.localSortDirection.toLowerCase()).find("em").html(dchar);
 		}
-		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&view=<?=$bigtree["view"]["id"]?>&module=<?=$bigtree["module"]["route"]?>&search=" + BigTree.localSearchQuery + "&page=1");
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + encodeURIComponent(BigTree.localSortColumn) + "&sort_direction=" + encodeURIComponent(BigTree.localSortDirection) + "&view=<?=$bigtree["view"]["id"]?>&module=<?=$bigtree["module"]["route"]?>&search=" + BigTree.localSearchQuery + "&page=1");
 		return false;
 	}).on("click","#view_paging a",function() {
 		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
 			return false;
 		}
-		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&view=<?=$bigtree["view"]["id"]?>&module=<?=$bigtree["module"]["route"]?>&search=" + BigTree.localSearchQuery + "&page=" + BigTree.cleanHref($(this).attr("href")));
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + encodeURIComponent(BigTree.localSortColumn) + "&sort_direction=" + encodeURIComponent(BigTree.localSortDirection) + "&view=<?=$bigtree["view"]["id"]?>&module=<?=$bigtree["module"]["route"]?>&search=" + BigTree.localSearchQuery + "&page=" + BigTree.cleanHref($(this).attr("href")));
 
 		return false;
 	});

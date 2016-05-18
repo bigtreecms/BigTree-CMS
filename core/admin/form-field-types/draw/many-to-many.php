@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	// Find out whether this is a draggable Many to Many.
-	$table_description = BigTree::describeTable($field["options"]["mtm-connecting-table"]);
+	$table_description = SQL::describeTable($field["options"]["mtm-connecting-table"]);
 	$cols = $table_description["columns"];
 	$sortable = false;
 	if (isset($cols["position"])) {
@@ -110,7 +110,7 @@
 		id: "<?=$field["id"]?>",
 		count: <?=$entry_counter?>,
 		key: "<?=$field["key"]?>",
-		sortable: <?=($sortable ? "true" : "false")?>,
+		sortable: <?=($sortable ? "true" : "false")?>
 	});
 </script>
 <?php

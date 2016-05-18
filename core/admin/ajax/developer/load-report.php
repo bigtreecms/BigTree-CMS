@@ -148,7 +148,7 @@
 			var li = $('<li id="row_' + key + '">');
 			li.html('<section class="developer_report_field_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + ']" value="' + title + '" /></section><section class="developer_report_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
 			
-			$("#field_table ul").append(li);
+			$("#field_table").find("ul").append(li);
 			fs.removeCurrent();
 			BigTree.localHooks();
 		}
@@ -164,7 +164,7 @@
 			var li = $('<li id="row_' + key + '">');
 			li.html('<section class="developer_report_filter_title"><span class="icon_sort"></span><input type="text" name="filters[' + key + '][title]" value="' + title + '" /></section><section class="developer_report_filter_type"><select name="filters[' + key + '][type]"><?php foreach ($filter_types as $k => $v) { ?><option value="<?=$k?>"><?=$v?></option><?php } ?></select></section><section class="developer_report_action"><a href="#" class="icon_delete" name="' + key + '"></a></section>');
 			
-			$("#filter_table ul").append(li);
+			$("#filter_table").find("ul").append(li);
 			fs.removeCurrent();
 			BigTree.localHooks();
 		}

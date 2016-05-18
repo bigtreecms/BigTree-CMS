@@ -13,7 +13,7 @@
 		$list_sort = $field["options"]["pop-sort"];
 		
 		// If debug is on we're going to check if the tables exists...
-		if ($bigtree["config"]["debug"] && !BigTree::tableExists($list_table)) {
+		if ($bigtree["config"]["debug"] && !SQL::tableExists($list_table)) {
 			$db_error = true;
 		} else {
 			$entries = SQL::fetchAll("SELECT `id`,`$list_title` AS `title` FROM `$list_table` ORDER BY $list_sort");
@@ -37,7 +37,7 @@
 		}
 	// State List
 	} elseif ($field["options"]["list_type"] == "state") {
-		foreach (BigTree::$StateList as $a => $s) {
+		foreach (\BigTree::$StateList as $a => $s) {
 			$list[] = array(
 				"value" => $a,
 				"description" => $s
@@ -45,7 +45,7 @@
 		}
 	// Country List
 	} elseif ($field["options"]["list_type"] == "country") {
-		foreach (BigTree::$CountryList as $c) {
+		foreach (\BigTree::$CountryList as $c) {
 			$list[] = array(
 				"value" => $c,
 				"description" => $c

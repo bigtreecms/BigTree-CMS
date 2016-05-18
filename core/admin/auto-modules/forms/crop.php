@@ -152,10 +152,15 @@
 	
 	$("#crop_form").submit(function() {
 		if (BigTree.currentCrop != BigTree.maxCrops) {
-			$("#cropper article").eq(BigTree.currentCrop - 1).hide();
-			$("#cropper article").eq(BigTree.currentCrop).show();
+			var articles = $("#cropper").find("article");
+
+			articles.eq(BigTree.currentCrop - 1).hide();
+			articles.eq(BigTree.currentCrop).show();
+
 			BigTree.currentCrop++;
+
 			$("h2.cropper .current").html(BigTree.currentCrop);
+
 			return false;
 		}
 		window.onbeforeunload = null;
@@ -163,6 +168,7 @@
 
 	window.onbeforeunload = function(ev) {
 		BigTree.growl("<?=Text::translate("Cropping Image", true)?>","<?=Text::translate("Please crop your images before leaving this page.", true)?>",5000,"error");
+
 		return false;
 	};
 </script>

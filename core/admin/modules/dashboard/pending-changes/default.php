@@ -90,9 +90,9 @@
 	}
 	
 	foreach ($modules as $mod) {
-		$view = BigTreeAutoModule::getViewForTable($mod["table"]);
+		$view = \BigTreeAutoModule::getViewForTable($mod["table"]);
 		if ($view) {
-			$view_data = BigTreeAutoModule::getViewData($view);
+			$view_data = \BigTreeAutoModule::getViewData($view);
 		} else {
 			$view_data = false;
 		}

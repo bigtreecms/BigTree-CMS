@@ -70,7 +70,7 @@
 				<update>
 		*/
 		
-		function add($fields,$values = false,$enforce_unique = false,$ignore_cache = false) {	
+		function add($fields,$values = array(),$enforce_unique = false,$ignore_cache = false) {
 			$insert_array = array();
 
 			// Single column/value add
@@ -78,8 +78,8 @@
 				$insert_array[$fields] = $values;
 			// Multiple columns / values
 			} else {
-				// If we didn't pass in values (=== false) then we're using a key => value array
-				if ($values === false) {
+				// If we didn't pass in values (=== array()) then we're using a key => value array
+				if ($values === array()) {
 					$insert_array = $fields;
 				// Separate arrays for keys and values
 				} else {
@@ -1018,11 +1018,11 @@
 				<save>
 		*/
 		
-		function update($id,$fields,$values = false,$ignore_cache = false) {
+		function update($id,$fields,$values = array(),$ignore_cache = false) {
 			$update_fields = array();
 
 			// Turn a key => value array into pairs
-			if ($values === false && is_array($fields)) {
+			if ($values === array() && is_array($fields)) {
 				$update_fields = $fields;
 
 			// Multiple columns to update			

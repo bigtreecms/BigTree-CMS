@@ -1,14 +1,14 @@
 <?php
 	namespace BigTree;
 	
-	BigTree::globalizeArray($bigtree["view"]);
+	\BigTree::globalizeArray($bigtree["view"]);
 	
 	// Make sure our view data is cached;
-	BigTreeAutoModule::cacheViewData($bigtree["view"]);
+	\BigTreeAutoModule::cacheViewData($bigtree["view"]);
 	
 	$permission = $admin->getAccessLevel($bigtree["module"]["id"]);
 	$draggable = (isset($bigtree["view"]["options"]["draggable"]) && $bigtree["view"]["options"]["draggable"]) ? true : false;
-	$groups = BigTreeAutoModule::getGroupsForView($bigtree["view"]);
+	$groups = \BigTreeAutoModule::getGroupsForView($bigtree["view"]);
 	if ($draggable) {
 		$order = "position DESC, id ASC";
 	} else {
@@ -55,8 +55,8 @@
 		foreach ($groups as $group => $title) {
 			$y++;
 			
-			$items = BigTreeAutoModule::getViewDataForGroup($bigtree["view"],$group,$order,"active");
-			$pending_items = BigTreeAutoModule::getViewDataForGroup($bigtree["view"],$group,$order,"pending");
+			$items = \BigTreeAutoModule::getViewDataForGroup($bigtree["view"],$group,$order,"active");
+			$pending_items = \BigTreeAutoModule::getViewDataForGroup($bigtree["view"],$group,$order,"pending");
 	?>
 	<header class="group"><?=Text::translate((isset($group_title_overrides[$title]) ? $group_title_overrides[$title] : $title))?></header>
 	<section>

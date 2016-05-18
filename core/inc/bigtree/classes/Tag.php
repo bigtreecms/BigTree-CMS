@@ -6,6 +6,12 @@
 
 	namespace BigTree;
 
+	/**
+	 * @property-read int $ID
+	 * @property-read string $Metaphone
+	 * @property-read string $Route
+	 */
+
 	class Tag extends BaseObject {
 
 		public static $Table = "bigtree_tags";

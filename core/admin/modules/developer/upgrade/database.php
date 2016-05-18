@@ -285,7 +285,7 @@
 		// Go through all views and figure out what kind of data is in each column.
 		$view_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_module_views");
 		foreach ($view_ids as $id) {
-			$admin->updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($id));
+			$admin->updateModuleViewColumnNumericStatus(\BigTreeAutoModule::getView($id));
 		}
 	}
 
@@ -358,11 +358,11 @@
 		// Switch storage settings
 		$storage_settings = $cms->getSetting("bigtree-internal-storage");
 		if ($storage_settings["service"] == "s3") {
-			$cloud = new BigTreeCloudStorage;
+			$cloud = new \BigTreeCloudStorage;
 			$cloud->Settings["amazon"] = array("key" => $storage_settings["s3"]["keys"]["access_key_id"],"secret" => $storage_settings["s3"]["keys"]["secret_access_key"]);
 			unset($cloud);
 		} elseif ($storage_settings["service"] == "rackspace") {
-			$cloud = new BigTreeCloudStorage;
+			$cloud = new \BigTreeCloudStorage;
 			$cloud->Settings["rackspace"] = array("api_key" => $storage_settings["rackspace"]["keys"]["api_key"],"username" => $storage_settings["rackspace"]["keys"]["username"]);
 			unset($cloud);
 		}
@@ -413,7 +413,7 @@
 		global $db;
 		
 		SQL::query("ALTER TABLE bigtree_caches CHANGE `key` `key` VARCHAR(10000)");
-		$storage = new BigTreeStorage;
+		$storage = new \BigTreeStorage;
 		if (is_array($storage->Settings["Files"])) {
 			foreach ($storage->Settings["Files"] as $file) {
 				SQL::insert("bigtree_caches", array(
@@ -517,7 +517,7 @@
 		SQL::query("ALTER TABLE bigtree_module_embeds DROP COLUMN `callback`");
 
 		// Adjust groups/callouts for multi-support -- first we drop the foreign key
-		$table_desc = BigTree::describeTable("bigtree_callouts");
+		$table_desc = SQL::describeTable("bigtree_callouts");
 		foreach ($table_desc["foreign_keys"] as $name => $definition) {
 			if ($definition["local_columns"][0] === "group") {
 				SQL::query("ALTER TABLE bigtree_callouts DROP FOREIGN KEY `$name`");
@@ -674,7 +674,7 @@
 			unset($options["fields"]);
 
 			// Update the value to set an internal title key
-			$value = BigTreeCMS::getSetting($f["id"]);
+			$value = \BigTreeCMS::getSetting($f["id"]);
 			foreach ($value as &$entry) {
 				$entry["__internal-title"] = $entry[$display_key];
 			}
@@ -683,7 +683,7 @@
 			// Update type/options
 			SQL::query("UPDATE bigtree_settings SET type = 'matrix', options = '".JSON::encode($options,true)."' WHERE id = '".$f["id"]."'");
 			// Update value separately
-			BigTreeAdmin::updateSettingValue($f["id"],$value);
+			\BigTreeAdmin::updateSettingValue($f["id"],$value);
 		}
 	}
 
@@ -715,7 +715,7 @@
 
 		// New module interface table
 		SQL::query("CREATE TABLE `bigtree_module_interfaces` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `type` varchar(255) DEFAULT NULL, `module` int(11) DEFAULT NULL, `title` varchar(255) DEFAULT NULL, `table` varchar(255) DEFAULT NULL, `settings` longtext, PRIMARY KEY (`id`), KEY `module` (`module`), KEY `type` (`type`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
-		$intMod = new BigTreeModule("bigtree_module_interfaces");
+		$intMod = new \BigTreeModule("bigtree_module_interfaces");
 
 		// Move forms, views, embeds, and reports into the interfaces table
 		$interface_references = array();

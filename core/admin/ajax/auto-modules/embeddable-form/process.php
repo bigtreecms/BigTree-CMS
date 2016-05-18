@@ -89,7 +89,7 @@
 	}
 
 	// Sanitize the form data so it fits properly in the database (convert dates to MySQL-friendly format and such)
-	$bigtree["entry"] = BigTreeAutoModule::sanitizeData($bigtree["form"]["table"],$bigtree["entry"]);
+	$bigtree["entry"] = \BigTreeAutoModule::sanitizeData($bigtree["form"]["table"],$bigtree["entry"]);
 
 	// Make some easier to write out vars for below.
 	$tags = $_POST["_tags"];
@@ -100,7 +100,7 @@
 
 	// Check to see if this is a positioned element
 	// If it is and the form is setup to create new items at the top and this is a new record, update the position column.
-	$table_description = BigTree::describeTable($table);
+	$table_description = SQL::describeTable($table);
 	if (isset($table_description["columns"]["position"]) && $bigtree["form"]["default_position"] == "Top" && !$_POST["id"]) {
 		$max = (int) SQL::fetchSingle("SELECT COUNT(*) FROM `$table`") +
 			   (int) SQL::fetchSingle("SELECT COUNT(*) FROM `bigtree_pending_changes` WHERE `table` = ?", $table);

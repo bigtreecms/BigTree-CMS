@@ -27,7 +27,7 @@
 	$bigtree["crops"] = array();
 	$bigtree["errors"] = array();
 	// Initiate the Storage class for backwards compat.
-	$upload_service = new BigTreeStorage;
+	$upload_service = new \BigTreeStorage;
 
 	// Parse resources
 	include Router::getIncludePath("admin/modules/pages/_resource-parse.php");

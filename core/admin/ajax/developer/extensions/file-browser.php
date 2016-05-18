@@ -4,7 +4,7 @@
 	// See if we have cloud support
 	$cloud_options = array();
 	if (!$_POST["cloud_disabled"] || $_POST["cloud_disabled"] == "false") {
-		$cloud = new BigTreeCloudStorage;
+		$cloud = new \BigTreeCloudStorage;
 		if (!empty($cloud->Settings["amazon"]["active"])) {
 			$cloud_options[] = array("class" => "amazon","title" => "Amazon S3");
 		}
@@ -62,7 +62,7 @@
 			$postcontainer = false;
 		}
 
-		$cloud = new BigTreeCloudStorage($location);
+		$cloud = new \BigTreeCloudStorage($location);
 		if (!$postcontainer) {
 			$containers = $cloud->listContainers();
 		} else {
@@ -90,7 +90,7 @@
 		$bucket_pane_height = 338;
 	}
 ?>
-<div class="directory"><?=BigTree::replaceServerRoot($directory,"/")?></div>
+<div class="directory"><?=\BigTree::replaceServerRoot($directory,"/")?></div>
 <div class="navigation_pane">
 	<?php if (count($cloud_options)) { ?>
 	<ul class="cloud_options">

@@ -6,6 +6,10 @@
 
 	namespace BigTree;
 
+	/**
+	 * @property-read int $ID
+	 */
+
 	class ModuleInterface extends BaseObject {
 
 		public static $CoreTypes = array(

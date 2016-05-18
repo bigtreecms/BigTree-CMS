@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$admin->createResourceFolder($_POST["folder"],$_POST["name"]);
 ?>
 <html>

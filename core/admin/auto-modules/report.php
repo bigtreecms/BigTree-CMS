@@ -2,8 +2,8 @@
 	namespace BigTree;
 	
 	$bigtree["report"] = $bigtree["interface"];
-	$bigtree["form"] = BigTreeAutoModule::getRelatedFormForReport($bigtree["report"]);
-	$bigtree["view"] = $bigtree["report"]["view"] ? BigTreeAutoModule::getView($bigtree["report"]["view"]) : BigTreeAutoModule::getRelatedViewForReport($bigtree["report"]);
+	$bigtree["form"] = \BigTreeAutoModule::getRelatedFormForReport($bigtree["report"]);
+	$bigtree["view"] = $bigtree["report"]["view"] ? \BigTreeAutoModule::getView($bigtree["report"]["view"]) : \BigTreeAutoModule::getRelatedViewForReport($bigtree["report"]);
 	if ($admin->Level > 1) {
 		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/modules/reports/edit/".$bigtree["report"]["id"]."/?return=front","icon" => "setup","title" => "Edit in Developer");
 	}

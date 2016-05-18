@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	// Backwards compatibility
 	function sqlquery($query) {
 		return SQL::query($query);

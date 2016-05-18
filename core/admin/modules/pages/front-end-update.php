@@ -35,7 +35,7 @@
 	$bigtree["crops"] = array();
 	$bigtree["errors"] = array();
 	// Initiate the Storage class for backwards compat.
-	$upload_service = new BigTreeStorage;
+	$upload_service = new \BigTreeStorage;
 
 	// Save the template since we're not passing in the full update data.
 	$_POST["template"] = $pdata["template"];

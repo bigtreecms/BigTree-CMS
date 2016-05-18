@@ -19,7 +19,7 @@
 	foreach ($field["value"] as $entry) {
 		$title = SQL::fetchSingle("SELECT `".$field["options"]["title_column"]."` FROM `".$field["options"]["table"]."` WHERE id = ?", $entry);
 		if ($title !== false) {
-			$entries[$entry = $title;
+			$entries[$entry] = $title;
 		}			
 	}
 

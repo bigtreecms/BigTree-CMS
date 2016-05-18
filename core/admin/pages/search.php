@@ -46,7 +46,7 @@
 		foreach ($views as $view) {
 			$module_results = array();
 				
-			$table_description = BigTree::describeTable($view["table"]);
+			$table_description = SQL::describeTable($view["table"]);
 			$qparts = array();
 			foreach ($table_description["columns"] as $column => $data) {
 				$qparts[] = "`$column` LIKE $w";

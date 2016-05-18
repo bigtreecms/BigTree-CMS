@@ -127,26 +127,26 @@
 							}
 	
 							if (is_array($crop["center_crops"])) {
-								foreach ($crop["center_crops"] as $crop) {
+								foreach ($crop["center_crops"] as $subcrop) {
 									// In case a sub crop was added and a prefix or width/height were missing - require prefix here because it'll replace the crop otherwise
-									if (is_array($crop) && $crop["prefix"] && $crop["width"] && $crop["height"]) {
+									if (is_array($subcrop) && $subcrop["prefix"] && $subcrop["width"] && $subcrop["height"]) {
 										$crop_sub_count++;
 			?>
 			<ul class="image_attr_thumbs_<?=$crop_count?>">
 				<li class="thumbed">
 					<span class="icon_small icon_small_crop" title="Sub-Crop"></span>
-					<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][prefix]" value="<?=htmlspecialchars($crop["prefix"])?>" />
+					<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][prefix]" value="<?=htmlspecialchars($subcrop["prefix"])?>" />
 				</li>
 				<li>
-					<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][width]" value="<?=htmlspecialchars($crop["width"])?>" />
+					<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][width]" value="<?=htmlspecialchars($subcrop["width"])?>" />
 				</li>
 				<li>
-					<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][height]" value="<?=htmlspecialchars($crop["height"])?>" />
+					<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][height]" value="<?=htmlspecialchars($subcrop["height"])?>" />
 				</li>
 				<li class="actions">
 					<span class="icon_small icon_small_up"></span>
-					<input type="hidden" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
+					<input type="hidden" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][grayscale]" value="<?=$subcrop["grayscale"]?>" />
+					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($subcrop["grayscale"]) { ?> gray<?php } ?>"></a>
 					<a href="#" title="Remove" class="delete"></a>
 				</li>
 			</ul>

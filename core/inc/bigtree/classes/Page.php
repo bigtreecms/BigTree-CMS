@@ -6,6 +6,15 @@
 
 	namespace BigTree;
 	
+	/**
+	 * @property-read bool $ChangesApplied
+	 * @property-read string $CreatedAt
+	 * @property-read int $ID
+	 * @property-read int $LastEditedBy
+	 * @property-read int $PendingID
+	 * @property-read string $UpdatedAt
+	 */
+	
 	class Page extends BaseObject {
 
 		public static $Table = "bigtree_pages";

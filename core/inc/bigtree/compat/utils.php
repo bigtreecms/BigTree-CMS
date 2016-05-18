@@ -6,6 +6,8 @@
 	
 	*/
 	
+	use BigTree\SQL;
+	
 	class BigTree {
 		
 		// Static properties
@@ -992,7 +994,7 @@
 		*/
 		
 		static function tableCompare($table_a, $table_b) {
-			return SQL::compareTables($table_a, $table_b);
+			return BigSQL::compareTables($table_a, $table_b);
 		}
 		
 		/*

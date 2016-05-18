@@ -33,10 +33,10 @@
 
 	// Unzip the extension
 	include Router::getIncludePath("inc/lib/pclzip.php");
-	$zip = new PclZip($file);
+	$zip = new \PclZip($file);
 
 	// See if this was downloaded off GitHub (will have a single root folder)
-	$zip_root = BigTreeUpdater::zipRoot($zip);
+	$zip_root = \BigTreeUpdater::zipRoot($zip);
 	if ($zip_root) {
 		$files = $zip->extract(PCLZIP_OPT_PATH,$cache_root,PCLZIP_OPT_REMOVE_PATH,$zip_root);
 	} else {

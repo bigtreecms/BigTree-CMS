@@ -1,3 +1,6 @@
+<?php
+	namespace BigTree;
+?>
 <div class="container">
 	<header><p><?=Text::translate("Add modules, templates, callouts, field types, feeds, and settings to your extension.")?></p></header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>extensions/build/save-components/" class="module">
@@ -180,7 +183,7 @@
 					</div>
 				</article>
 				<article class="package_column">
-					<strong><?=Text::translate("Feeds"0?></strong>
+					<strong><?=Text::translate("Feeds")?></strong>
 					<ul>
 						<?php
 							foreach ((array)$feeds as $fid) {

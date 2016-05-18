@@ -6,6 +6,10 @@
 
 	namespace BigTree;
 
+	/**
+	 * @property-read int $ID
+	 */
+
 	class ResourceFolder extends BaseObject {
 
 		public static $Table = "bigtree_resource_folders";

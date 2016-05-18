@@ -4,7 +4,7 @@
 	// Stop notices
 	$id = $name = $type = $locked = $encrypted = $description = "";
 	if (isset($_SESSION["bigtree_admin"]["developer"]["setting_data"])) {
-		BigTree::globalizeArray($_SESSION["bigtree_admin"]["developer"]["setting_data"]);
+		\BigTree::globalizeArray($_SESSION["bigtree_admin"]["developer"]["setting_data"]);
 		unset($_SESSION["bigtree_admin"]["developer"]["setting_data"]);
 	}
 	

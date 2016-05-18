@@ -92,8 +92,8 @@
 	// If it is and the form is setup to create new items at the top and this is a new record, update the position column.
 	$table_description = SQL::describeTable($table);
 	if (isset($table_description["columns"]["position"]) && $bigtree["form"]["default_position"] == "Top" && !$_POST["id"]) {
-		$max = SQL::fetchSingle("SELECT COUNT(*) FROM `$table`") + 
-			   SQL::fetchSingle("SELECT COUNT(*) FROM `bigtree_pending_changes` WHERE `table` = ?", $table);
+		$max = (int) SQL::fetchSingle("SELECT COUNT(*) FROM `$table`") +
+			   (int) SQL::fetchSingle("SELECT COUNT(*) FROM `bigtree_pending_changes` WHERE `table` = ?", $table);
 		$item["position"] = $max;
 	}
 

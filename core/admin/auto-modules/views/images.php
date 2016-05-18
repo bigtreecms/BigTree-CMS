@@ -18,8 +18,8 @@
 		}
 	}
 
-	$items = BigTreeAutoModule::getViewData($bigtree["view"],$order,"active");
-	$pending_items = BigTreeAutoModule::getViewData($bigtree["view"],$order,"pending");
+	$items = \BigTreeAutoModule::getViewData($bigtree["view"],$order,"active");
+	$pending_items = \BigTreeAutoModule::getViewData($bigtree["view"],$order,"pending");
 ?>
 <div class="table auto_modules image_list">
 	<?php

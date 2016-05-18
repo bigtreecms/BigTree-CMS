@@ -11,9 +11,9 @@
 	$bigtree["resources"] = isset($_POST["data"]) ? json_decode(base64_decode($_POST["data"]),true) : array();
 	foreach ($bigtree["resources"] as &$val) {
 		if (is_array($val)) {
-			$val = BigTree::untranslateArray($val);
+			$val = \BigTree::untranslateArray($val);
 		} elseif (is_array(json_decode($val,true))) {
-			$val = BigTree::untranslateArray(json_decode($val,true));
+			$val = \BigTree::untranslateArray(json_decode($val,true));
 		} else {
 			$val = $cms->replaceInternalPageLinks($val);
 		}

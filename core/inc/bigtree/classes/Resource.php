@@ -6,6 +6,10 @@
 
 	namespace BigTree;
 
+	/**
+	 * @property-read int $ID
+	 */
+
 	class Resource extends BaseObject {
 
 		public static $CreationLog = array();

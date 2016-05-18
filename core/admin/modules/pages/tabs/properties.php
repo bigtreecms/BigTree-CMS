@@ -22,7 +22,6 @@
 		$bigtree["current_page"] = array(
 			"nav_title" => "",
 			"title" => "",
-			"resources" => "",
 			"publish_at" => "",
 			"expire_at" => "",
 			"max_age" => "",

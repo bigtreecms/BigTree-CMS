@@ -5,7 +5,7 @@
 		Router::redirect(MODULE_ROOT);
 	}
 	
-	$items = BigTreeAutoModule::getReportResults($bigtree["report"],$bigtree["view"],$bigtree["form"],$_POST,$_POST["*sort"]["field"],$_POST["*sort"]["order"]);
+	$items = \BigTreeAutoModule::getReportResults($bigtree["report"],$bigtree["view"],$bigtree["form"],$_POST,$_POST["*sort"]["field"],$_POST["*sort"]["order"]);
 
 	if ($bigtree["view"]["type"] == "searchable" || $bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "draggable" || $bigtree["view"]["type"] == "nested") {
 		include Router::getIncludePath("admin/auto-modules/reports/views/text.php");

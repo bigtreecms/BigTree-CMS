@@ -34,7 +34,7 @@
 		}
 	}
 ?>
-<div class="container">
+<section class="container">
 	<header>
 		<nav class="left">
 			<a href="#details_tab" class="active"><?=Text::translate("Details")?></a>
@@ -100,14 +100,14 @@
 		</form>
 	</div>
 
-	<section id="actions_tab" style="display: none;">
+	<div id="actions_tab" style="display: none;">
 		<div id="actions_table"></div>
-	</section>
+	</div>
 
-	<section id="interfaces_tab" style="display: none;">
+	<div id="interfaces_tab" style="display: none;">
 		<div id="interfaces_table"></div>
 	</div>
-</div>
+</section>
 
 <?php include Router::getIncludePath("admin/modules/developer/modules/_js.php") ?>
 <script>

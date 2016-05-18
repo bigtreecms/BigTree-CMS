@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	BigTree::globalizePOSTVars();
+	\BigTree::globalizePOSTVars();
 	sort($files);
 	sort($tables);
 

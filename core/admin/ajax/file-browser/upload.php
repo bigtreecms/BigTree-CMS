@@ -35,7 +35,7 @@
 			if ($error) {
 				$file_name = htmlspecialchars($file_name);
 				if ($error == 2 || $error == 1) {
-					$errors[] = $file_name." was too large ".BigTree::formatBytes(BigTree::uploadMaxFileSize())." max)";
+					$errors[] = $file_name." was too large ".\BigTree::formatBytes(\BigTree::uploadMaxFileSize())." max)";
 				} else {
 					$errors[] = "Uploading $file_name failed (unknown error)";
 				}

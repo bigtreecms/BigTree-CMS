@@ -6,6 +6,13 @@
 
 	namespace BigTree;
 
+	/**
+	 * @property-read string $EmbedCode
+	 * @property-read string $Hash
+	 * @property-read int $ID
+	 * @property-read object $Interface
+	 */
+
 	class ModuleEmbedForm extends BaseObject {
 
 		protected $EmbedCode;

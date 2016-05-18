@@ -5,6 +5,8 @@
 	*/
 
 	namespace BigTree\PaymentGateway;
+
+	use BigTree\Setting;
 	
 	class Provider {
 

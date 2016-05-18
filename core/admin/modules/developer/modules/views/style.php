@@ -118,7 +118,7 @@
 		BigTree.localDragging = false;
 		BigTree.localViewTitles.eq(BigTree.localGrowing).css({ cursor: "move" });
 		$(".table .view_column").each(function() {
-			name = $(this).attr("name");
+			var name = $(this).attr("name");
 			width = $(this).width();
 			$("#data_" + name).val(width);
 		});
@@ -140,7 +140,7 @@
 			BigTree.localViewTitles.eq(BigTree.localGrowing).css({ width: (BigTree.localGrowingStartWidth + difference) + "px" });
 			// Shrink/Grow all the rows
 			BigTree.localViewRows.each(function() {
-				sections = $(this).find("section");
+				var sections = $(this).find("section");
 				sections.eq(BigTree.localShrinking).css({ width: (BigTree.localShrinkingStartWidth - difference) + "px" });
 				sections.eq(BigTree.localGrowing).css({ width: (BigTree.localGrowingStartWidth + difference) + "px" });
 			});

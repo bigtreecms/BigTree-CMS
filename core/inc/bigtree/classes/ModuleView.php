@@ -5,6 +5,11 @@
 	*/
 
 	namespace BigTree;
+	
+	/**
+	 * @property-read int $ID
+	 * @property-read object $Interface
+	 */
 
 	class ModuleView extends BaseObject {
 
@@ -144,7 +149,7 @@
 
 				// Check for a parser
 				if (isset($this->Settings["group_parser"]) && $this->Settings["group_parser"]) {
-					$value = BigTree::runParser($item,$value,$this->Settings["group_parser"]);
+					$value = \BigTree::runParser($item,$value,$this->Settings["group_parser"]);
 				}
 
 				// Add the group field
@@ -170,7 +175,7 @@
 
 			// Run parsers
 			foreach ($parsers as $key => $parser) {
-				$item[$key] = BigTree::runParser($item,$item[$key],$parser);
+				$item[$key] = \BigTree::runParser($item,$item[$key],$parser);
 			}
 
 			// Run database populated list hooks
@@ -745,7 +750,7 @@
 
 					// If we have a parser, run it.
 					if ($field["parser"]) {
-						$item[$key] = BigTree::runParser($item,$value,$field["parser"]);
+						$item[$key] = \BigTree::runParser($item,$value,$field["parser"]);
 					} else {
 						$form_field = $form["fields"][$key];
 

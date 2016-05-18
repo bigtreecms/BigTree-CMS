@@ -163,7 +163,7 @@
 		$data = false;
 		while (!$data) {
 			$url = str_replace(array("width","height"),array($width,$height),$services[array_rand($services)]);
-			$data = BigTree::cURL($url);
+			$data = \BigTree::cURL($url);
 		}
 		file_put_contents($file,$data);
 		chmod($file,0777);
@@ -229,9 +229,9 @@
 			if ($options["list_type"] == "static") {
 				return $options["list"][array_rand($options["list"])]["value"];
 			} elseif ($options["list_type"] == "state") {
-				return BigTree::$StateList[array_rand(BigTree::$StateList)];
+				return \BigTree::$StateList[array_rand(\BigTree::$StateList)];
 			} elseif ($options["list_type"] == "country") {
-				return BigTree::$CountryList[array_rand(BigTree::$CountryList)];
+				return \BigTree::$CountryList[array_rand(\BigTree::$CountryList)];
 			} else {
 				return SQL::fetchSingle("SELECT `id` FROM `".$options["pop-table"]."` ORDER BY RAND() LIMIT 1");
 			}
@@ -267,7 +267,7 @@
 		} elseif ($type == "route") {
 			global $data,$form;
 
-			$route = BigTreeCMS::urlify(strip_tags($data[$options["source"]]));
+			$route = \BigTreeCMS::urlify(strip_tags($data[$options["source"]]));
 			return SQL::unique($form["table"],$field["key"],$route);
 		} elseif ($type == "many-to-many") {
 			global $many_to_many;
@@ -292,7 +292,7 @@
 	};
 
 	// Generator code
-	$form = BigTreeAutoModule::getForm($_POST["form"]);
+	$form = \BigTreeAutoModule::getForm($_POST["form"]);
 	$count = $total = intval($_POST["count"]);
 	if (!$count) {
 		$count = 25;
@@ -308,7 +308,7 @@
 				$data[$field["column"]] = $value;
 			}
 		}
-		$id = BigTreeAutoModule::createItem($form["table"],$data);
+		$id = \BigTreeAutoModule::createItem($form["table"],$data);
 		foreach ($many_to_many as $mtm) {
 			SQL::insert($mtm["table"],array(
 				$mtm["my_field"] => $id,

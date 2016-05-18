@@ -6,6 +6,10 @@
 
 	namespace BigTree;
 
+	/**
+	 * @property-read int $ID
+	 */
+
 	class CalloutGroup extends BaseObject {
 
 		public static $Table = "bigtree_callout_groups";

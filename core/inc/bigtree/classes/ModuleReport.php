@@ -198,7 +198,7 @@
 					}
 
 					if ($parsers[$key]) {
-						$item[$key] = BigTree::runParser($item,$value,$parsers[$key]);
+						$item[$key] = \BigTree::runParser($item,$value,$parsers[$key]);
 					}
 				}
 

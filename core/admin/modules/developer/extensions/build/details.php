@@ -113,7 +113,7 @@
 			IDTimer = setTimeout(function() {
 				var value = $("#extension_id").val();
 				if (value && value != $("#extension_id").prop("defaultValue")) {
-					$.ajax("<?=ADMIN_ROOT?>ajax/developer/extensions/exists/?id=" + escape(value), { complete: function(req) {
+					$.ajax("<?=ADMIN_ROOT?>ajax/developer/extensions/exists/?id=" + encodeURIComponent(value), { complete: function(req) {
 						if (parseInt(req.responseText)) {
 							$("#extension_id_warning").show();
 						} else {

@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$bigtree["form"] = $form = BigTreeAutoModule::getEmbedFormByHash($_GET["hash"]);
+	$bigtree["form"] = $form = \BigTreeAutoModule::getEmbedFormByHash($_GET["hash"]);
 	$bigtree["form_root"] = ADMIN_ROOT."ajax/auto-modules/embeddable-form/";
 ?><!doctype html> 
 <!--[if lt IE 7 ]> <html lang="en" class="ie ie6"> <![endif]-->

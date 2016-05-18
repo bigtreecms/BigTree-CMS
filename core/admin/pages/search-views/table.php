@@ -1,6 +1,8 @@
 <?php
+	namespace BigTree;
+
 	$mpage = ADMIN_ROOT.$module["route"]."/";
-	BigTree::globalizeArray($view);	
+	\BigTree::globalizeArray($view);
 	
 	// Figure out the column width
 	$awidth = count($actions) * 40;
@@ -11,7 +13,7 @@
 		$fields[$key]["width"] = $percol - 20;
 	}
 	
-	$items = BigTreeAutoModule::parseViewData($view,$items);
+	$items = \BigTreeAutoModule::parseViewData($view,$items);
 ?>
 <div class="table" style="margin: 0;">
 	<summary><h2><?=Text::translate("Search Results")?></h2></summary>

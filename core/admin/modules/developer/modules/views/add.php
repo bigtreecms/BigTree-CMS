@@ -7,7 +7,7 @@
 	// See if we can default to positioned
 	$is_positioned = false;
 	if ($table) {
-		$table_description = BigTree::describeTable($table);
+		$table_description = SQL::describeTable($table);
 		if (isset($table_description["columns"]["position"]) && $table_description["columns"]["position"]["type"] == "int") {
 			$is_positioned = true;
 		}
@@ -15,7 +15,7 @@
 	$module = $admin->getModule($id);
 
 	if (isset($_SESSION["bigtree_admin"]["developer"]["saved_view"])) {
-		BigTree::globalizeArray($_SESSION["bigtree_admin"]["developer"]["saved_view"],array("htmlspecialchars"));
+		\BigTree::globalizeArray($_SESSION["bigtree_admin"]["developer"]["saved_view"],array("htmlspecialchars"));
 		unset($_SESSION["bigtree_admin"]["developer"]["saved_view"]);
 	} else {
 		// Stop notices

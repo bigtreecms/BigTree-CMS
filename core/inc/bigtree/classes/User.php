@@ -9,6 +9,11 @@
 
 	use PasswordHash;
 
+	/**
+	 * @property-read int $ID
+	 * @property-read string $OriginalPassword
+	 */
+
 	class User extends BaseObject {
 
 		public static $Table = "bigtree_users";

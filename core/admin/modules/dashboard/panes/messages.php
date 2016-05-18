@@ -9,7 +9,7 @@
 	foreach ($messages["unread"] as $message) {
 		$unread_data[] = array(
 			"id" => $message["id"],
-			"from" => '<span class="gravatar"><img src="'.BigTree::gravatar($message["sender_email"], 36).'" alt="" /></span>'.$message["sender_name"],
+			"from" => '<span class="gravatar"><img src="'.\BigTree::gravatar($message["sender_email"], 36).'" alt="" /></span>'.$message["sender_name"],
 			"subject" => $message["subject"],
 			"date" => date("n/j/y",strtotime($message["date"])),
 			"time" => date("g:ia",strtotime($message["date"]))

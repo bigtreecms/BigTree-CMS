@@ -16,12 +16,13 @@ var BigTreeBar = {
 	createCookie: function(name,value,days) {
 		if (days) {
 			var date = new Date();
-			date.setTime(date.getTime()+(days*24*60*60*1000));
-			var expires = "; expires="+date.toGMTString();
+			date.setTime(date.getTime() + (days*24*60*60*1000));
+			var expires = "; expires=" + date.toGMTString();
 		} else {
 			var expires = "";
 		}
-		document.cookie = name+"="+value+expires+"; path=/";
+		
+		document.cookie = name + "=" + value + expires + "; path=/";
 	},
 
 	getStyle: function(oElm, strCssRule){
@@ -52,10 +53,10 @@ var BigTreeBar = {
 		document.getElementsByTagName('body')[0].className = (document.getElementsByTagName('body')[0].className.replace("bigtree_bar_closed", "") + " bigtree_bar_open").trim();
 		
 		// Add the bar
-		bigtree_bar = document.createElement("div");
+		var bigtree_bar = document.createElement("div");
 		bigtree_bar.setAttribute("id","bigtree_bar");
 		
-		bigtree_bar_html = '<a href="<?=ADMIN_ROOT?>" id="bigtree_bar_logo"></a>';
+		var bigtree_bar_html = '<a href="<?=ADMIN_ROOT?>" id="bigtree_bar_logo"></a>';
 		<?php
 			if ($permission) {
 				if ($_GET["custom_edit_link"]) {
@@ -104,14 +105,14 @@ var BigTreeBar = {
 		
 		document.getElementById("bigtree_edit_content").onclick = function() {
 			if (!document.getElementById("bigtree_bar_overlay")) {
-				leftd = parseInt((BigTreeBar.windowWidth() - 820) / 2);
-				topd = parseInt((BigTreeBar.windowHeight() - 615) / 2);
+				var leftd = parseInt((BigTreeBar.windowWidth() - 820) / 2);
+				var topd = parseInt((BigTreeBar.windowHeight() - 615) / 2);
 				
-				bigtree_bar_overlay = document.createElement("div");
+				var bigtree_bar_overlay = document.createElement("div");
 				bigtree_bar_overlay.setAttribute("id","bigtree_bar_overlay");
 				BigTreeBar.body.appendChild(bigtree_bar_overlay);
 				
-				bigtree_bar_frame = document.createElement("iframe");
+				var bigtree_bar_frame = document.createElement("iframe");
 				bigtree_bar_frame.setAttribute("id","bigtree_bar_frame");
 				bigtree_bar_frame.setAttribute("src","<?=ADMIN_ROOT?>pages/front-end-edit/<?=htmlspecialchars(strip_tags($_GET["current_page_id"]))?>/");
 				bigtree_bar_frame.style.left = leftd + "px";
@@ -135,10 +136,10 @@ var BigTreeBar = {
 		BigTreeBar.body.style.paddingTop = (BigTreeBar.body_padding + 40) + "px";
 		
 		// Add the bar
-		bigtree_bar = document.createElement("div");
+		var bigtree_bar = document.createElement("div");
 		bigtree_bar.setAttribute("id","bigtree_bar");
 		
-		bigtree_bar_html = '<a href="<?=ADMIN_ROOT?>" id="bigtree_bar_logo"></a><a class="bigtree_link" id="bigtree_edit_content" href="' + return_link + '">Continue Editing</a><a href="' + return_link + '" id="bigtree_bar_close"></a><a href="<?=ADMIN_ROOT?>login/logout/" id="bigtree_logout">Logout</a><span id="bigtree_name"><?=htmlspecialchars(strip_tags(str_replace("'","\'",$_GET["username"])))?></span><span id="bigtree_preview_notice">PAGE PREVIEW</span>';
+		var bigtree_bar_html = '<a href="<?=ADMIN_ROOT?>" id="bigtree_bar_logo"></a><a class="bigtree_link" id="bigtree_edit_content" href="' + return_link + '">Continue Editing</a><a href="' + return_link + '" id="bigtree_bar_close"></a><a href="<?=ADMIN_ROOT?>login/logout/" id="bigtree_logout">Logout</a><span id="bigtree_name"><?=htmlspecialchars(strip_tags(str_replace("'","\'",$_GET["username"])))?></span><span id="bigtree_preview_notice">PAGE PREVIEW</span>';
 		bigtree_bar.innerHTML = bigtree_bar_html;
 		
 		BigTreeBar.body.appendChild(bigtree_bar);
@@ -147,6 +148,8 @@ var BigTreeBar = {
 	},
 
 	windowHeight: function() {
+		var windowHeight;
+
 		if (window.innerHeight) {
 			windowHeight = window.innerHeight;
 		} else if (document.documentElement && document.documentElement.clientHeight) {
@@ -154,10 +157,13 @@ var BigTreeBar = {
 		} else if (document.body) {
 			windowHeight = document.body.clientHeight;
 		}
+
 		return windowHeight;
 	},
 
 	windowWidth: function() {
+		var windowWidth;
+
 		if (window.innerWidth) {
 			windowWidth = window.innerWidth;
 		} else if (document.documentElement && document.documentElement.clientWidth) {
@@ -165,6 +171,7 @@ var BigTreeBar = {
 		} else if (document.body) {
 			windowWidth = document.body.clientWidth;
 		}
+		
 		return windowWidth;
 	},
 	

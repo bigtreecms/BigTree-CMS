@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	$view_data = isset($_GET["view_data"]) ? "&view_data=".htmlspecialchars($_GET["view_data"]) : "";
 ?>
 <div class="container">

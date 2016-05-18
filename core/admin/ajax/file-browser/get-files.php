@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	if ($_POST["query"]) {
 		$items = $admin->searchResources($_POST["query"]);
 		$perm = "e";

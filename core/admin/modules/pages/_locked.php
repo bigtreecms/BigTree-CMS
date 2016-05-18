@@ -1,3 +1,6 @@
+<?php
+	namespace BigTree;
+?>
 <div class="container">
 	<section>
 		<div class="alert">

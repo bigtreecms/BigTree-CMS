@@ -1,3 +1,6 @@
+<?php
+	namespace BigTree;
+?>
 <h2><?=Text::translate("Crop Images")?></h2>
 <form class="bigtree_dialog_form" method="post" action="<?=ADMIN_ROOT?>pages/process-crops/" id="crop_form">
 	<div class="overflow">
@@ -88,9 +91,13 @@
 	
 	$("#crop_form").submit(function() {
 		if (BigTree.localCurrentCrop != BigTree.localMaxCrops) {
-			$("#cropper article").eq(BigTree.localCurrentCrop - 1).hide();
-			$("#cropper article").eq(BigTree.localCurrentCrop).show();
+			var articles = $("#cropper").find("article");
+			
+			articles.eq(BigTree.localCurrentCrop - 1).hide();
+			articles.eq(BigTree.localCurrentCrop).show();
+
 			BigTree.localCurrentCrop++;
+
 			return false;
 		}
 	});

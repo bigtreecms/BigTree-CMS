@@ -82,7 +82,7 @@
 	</section>
 	<footer>
 		<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$module?>/" class="button white"><?=Text::translate("Return to Module")?></a>
-		<a href="<?=DEVELOPER_ROOT?>modules/forms/add/?module=<?=$module?>&table=<?=urlencode($table)?>&title=<?=urlencode($title)?>&view=<?=$view_id?>" class="button blue"><?=Text::translate("Add Form")?></a></p>
+		<a href="<?=DEVELOPER_ROOT?>modules/forms/add/?module=<?=$module?>&table=<?=urlencode($table)?>&title=<?=urlencode($title)?>&view=<?=$view_id?>" class="button blue"><?=Text::translate("Add Form")?></a>
 	</footer>
 </div>
 <?php

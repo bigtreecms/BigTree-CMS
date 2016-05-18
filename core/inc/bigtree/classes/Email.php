@@ -7,7 +7,10 @@
 
 	namespace BigTree;
 
-	use PHPMailer;
+	/**
+	 * @property-read string $Service
+	 * @property-read array $Settings
+	 */
 
 	class Email extends BaseObject {
 
