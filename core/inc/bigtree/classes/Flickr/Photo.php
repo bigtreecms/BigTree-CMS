@@ -40,6 +40,7 @@
 		public $Secret;
 		public $Tags = array();
 		public $Title;
+		public $Type;
 		public $URLs;
 		public $User;
 		public $VisibleToFamily;

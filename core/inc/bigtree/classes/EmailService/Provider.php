@@ -43,7 +43,6 @@
 				$name = "BigTree CMS";
 			} else {
 				// Parse out from and reply-to names
-				$name = false;
 				$address = trim($address);
 
 				if (strpos($address,"<") !== false && substr($address,-1,1) == ">") {

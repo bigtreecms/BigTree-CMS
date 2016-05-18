@@ -11,6 +11,9 @@
 		/** @var \BigTree\Instagram\API */
 		protected $API;
 
+		public $MediaCount;
+		public $Name;
+
 		/*
 			Constructor:
 				Creates a tag object from Instagram data.

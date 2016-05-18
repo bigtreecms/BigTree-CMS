@@ -16,7 +16,7 @@
 		public $Biography;
 		public $Birthday;
 		public $Education = array();
-		public $Email,
+		public $Email;
 		public $FirstName;
 		public $Gender;
 		public $Hometown;

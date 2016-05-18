@@ -506,7 +506,7 @@
 
 		function getUserAccessLevelForEntry($entry,$table,$user = false) {
 			// Default to logged in user
-			if ($user == false) {
+			if ($user === false) {
 				global $admin;
 
 				// Make sure a user is logged in

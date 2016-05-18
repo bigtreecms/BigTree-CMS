@@ -48,7 +48,8 @@
 			// No address
 			if (!$address) {
 				$this->Error = "No address provided.";
-				return false;
+
+				return;
 			}
 
 			$this->Address = trim($address);
@@ -60,7 +61,7 @@
 				$this->Latitude = $existing["latitude"];
 				$this->Longitude = $existing["longitude"];
 
-				return true;
+				return;
 			}
 
 			// Run the Geocoding APIs
@@ -75,8 +76,8 @@
 				$result = $this->geocodeMapQuest($address);
 			}
 
-			if (!$result || !$result["latitude"]) {
-				return false;
+			if (empty($result) || !$result["latitude"] || !$result["longitude"]) {
+				return;
 			}
 
 			$this->Latitude = $result["latitude"];
@@ -84,7 +85,7 @@
 
 			Cache::put("org.bigtreecms.geocoding", $address, $result);
 
-			return true;
+			return;
 		}
 
 		// Magic methods to allow string and array conversion

@@ -8,7 +8,13 @@
 	namespace BigTree\GoogleAnalytics;
 
 	class Account {
+
 		protected $API;
+
+		public $CreatedAt;
+		public $ID;
+		public $Name;
+		public $UpdatedAt;
 
 		function __construct($account,&$api) {
 			$this->API = $api;
@@ -21,5 +27,6 @@
 		function getProperties($params) {
 			return $this->API->getProperties($this->ID,$params);
 		}
+		
 	}
 	

@@ -13,6 +13,34 @@
 		/** @var \BigTree\GooglePlus\API */
 		protected $API;
 
+		public $AgeRangeMin;
+		public $AgeRangeMax;
+		public $Birthday;
+		public $BraggingRights;
+		public $CircledByCount;
+		public $Cover;
+		public $CurrentLocation;
+		public $Description;
+		public $DisplayName;
+		public $Education = array();
+		public $Emails = array();
+		public $Employment = array();
+		public $Gender;
+		public $HasApp;
+		public $ID;
+		public $Image;
+		public $IsPlusUser;
+		public $Language;
+		public $Links = array();
+		public $Name;
+		public $Places = array();
+		public $PlusOneCount;
+		public $RelationshipStatus;
+		public $Tagline;
+		public $Type;
+		public $URL;
+		public $Verified;
+
 		function __construct($person,&$api) {
 			$this->API = $api;
 			isset($person->ageRange->min) ? $this->AgeRangeMin = $person->ageRange->min : false;
@@ -33,8 +61,6 @@
 			isset($person->aboutMe) ? $this->Description = $person->aboutMe : false;
 			isset($person->displayName) ? $this->DisplayName = $person->displayName : false;
 			if (is_array($person->organizations)) {
-				$this->Education = array();
-				$this->Employment = array();
 				foreach ($person->organizations as $org) {
 					$o = new stdClass;
 					isset($org->name) ? $o->Name = $org->name : false;
@@ -50,7 +76,6 @@
 				}
 			}
 			if (is_array($person->emails)) {
-				$this->Emails = array();
 				foreach ($person->emails as $e) {
 					$email = new stdClass;
 					isset($e->value) ? $email->Address = $e->value : false;
@@ -63,8 +88,9 @@
 			isset($person->id) ? $this->ID = $person->id : false;
 			isset($person->hasApp) ? $this->HasApp = $person->hasApp : false;
 			isset($person->image->url) ? $this->Image = $person->image->url : false;
+			isset($person->isPlusUser) ? $this->IsPlusUser = $person->isPlusUser : false;
+			isset($person->language) ? $this->Language = $person->language : false;
 			if (is_array($person->urls)) {
-				$this->Links = array();
 				foreach ($person->urls as $url) {
 					$link = new stdClass;
 					isset($url->label) ? $link->Name = $url->label : false;
@@ -74,8 +100,6 @@
 					$this->Links[] = $link;
 				}
 			}
-			isset($person->isPlusUser) ? $this->IsPlusUser = $person->isPlusUser : false;
-			isset($person->language) ? $this->Language = $person->language : false;
 			isset($person->name) ? $this->Name = new stdClass : false;
 			isset($person->name->formatted) ? $this->Name->Formatted = $person->name->formatted : false;
 			isset($person->name->honorificPrefix) ? $this->Name->Prefix = $person->name->honorificPrefix : false;
@@ -85,7 +109,6 @@
 			isset($person->name->honorificSuffix) ? $this->Name->Suffix = $person->name->honorificSuffix : false;
 			isset($person->nickname) ? $this->Name->Preferred = $person->nickname : false;
 			if (is_array($person->placesLived)) {
-				$this->Places = array();
 				foreach ($person->placesLived as $pl) {
 					$loc = new stdClass;
 					isset($pl->value) ? $loc->Location = $pl->value : false;

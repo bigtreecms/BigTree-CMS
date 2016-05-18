@@ -28,7 +28,7 @@
 					</select>
 				</fieldset>
 
-				<fieldset id="filtered_view"<?php if ($type == "csv") { ?> style="display: none;"<? } ?>>
+				<fieldset id="filtered_view"<?php if ($type == "csv") { ?> style="display: none;"<?php } ?>>
 					<label><?=Text::translate("Filtered View <small>(after the report is submitted, it will show data using this view)</small>")?></label>
 					<select name="view">
 						<?php foreach ($available_views as $v) { ?>

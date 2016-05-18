@@ -11,6 +11,16 @@
 		/** @var \BigTree\Instagram\API */
 		protected $API;
 
+		public $Description;
+		public $FollowersCount;
+		public $FriendsCount;
+		public $ID;
+		public $Image;
+		public $MediaCount;
+		public $Name;
+		public $URL;
+		public $Username;
+
 		/*
 			Constructor:
 				Creates a user object from Instagram data.

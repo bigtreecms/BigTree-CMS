@@ -48,7 +48,7 @@
 		*/
 
 		static function search($user = false, $table = false, $entry = false, $start = false, $end = false) {
-			$users = $items = $where = $parameters = array();
+			$users = $where = $parameters = array();
 			$query = "SELECT * FROM bigtree_audit_trail";
 
 			if ($user) {

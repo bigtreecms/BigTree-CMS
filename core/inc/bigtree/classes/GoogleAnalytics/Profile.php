@@ -8,7 +8,19 @@
 	namespace BigTree\GoogleAnalytics;
 
 	class Profile {
+
 		protected $API;
+
+		public $AccountID;
+		public $CreatedAt;
+		public $Currency;
+		public $ID;
+		public $Name;
+		public $PropertyID;
+		public $Timezone;
+		public $Type;
+		public $UpdatedAt;
+		public $WebsiteURL;
 
 		function __construct($profile,&$api) {
 			$this->AccountID = $profile->accountId;
@@ -23,5 +35,6 @@
 			$this->UpdatedAt = date("Y-m-d H:i:s",strtotime($profile->updated));
 			$this->WebsiteURL = $profile->websiteUrl;
 		}
+
 	}
 	

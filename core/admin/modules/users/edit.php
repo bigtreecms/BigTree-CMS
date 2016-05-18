@@ -296,13 +296,13 @@
 								?>
 								<li>
 									<span class="depth"></span>
-									<a class="permission_label permission_label_wider<? if (!count($gbp_categories)) { ?> disabled<? } ?><? if (!$closed) { ?>  expanded<? } ?>" href="#"><?=$m["name"]?></a>
-									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="p" <? if ($permissions["module"][$m["id"]] == "p") { ?>checked="checked" <? } ?>/></span>
-									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="e" <? if ($permissions["module"][$m["id"]] == "e") { ?>checked="checked" <? } ?>/></span>
-									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="n" <? if (!$permissions["module"][$m["id"]] || $permissions["module"][$m["id"]] == "n") { ?>checked="checked" <? } ?>/></span>
-									<? if (count($gbp_categories)) { ?>
-									<ul class="depth_2"<? if ($closed) { ?> style="display: none;"<? } ?>>
-										<? foreach ($gbp_categories as $category) { ?>
+									<a class="permission_label permission_label_wider<?php if (!count($gbp_categories)) { ?> disabled<?php } ?><?php if (!$closed) { ?>  expanded<?php } ?>" href="#"><?=$m["name"]?></a>
+									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="p" <?php if ($permissions["module"][$m["id"]] == "p") { ?>checked="checked" <?php } ?>/></span>
+									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="e" <?php if ($permissions["module"][$m["id"]] == "e") { ?>checked="checked" <?php } ?>/></span>
+									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="n" <?php if (!$permissions["module"][$m["id"]] || $permissions["module"][$m["id"]] == "n") { ?>checked="checked" <?php } ?>/></span>
+									<?php if (count($gbp_categories)) { ?>
+									<ul class="depth_2"<?php if ($closed) { ?> style="display: none;"<?php } ?>>
+										<?php foreach ($gbp_categories as $category) { ?>
 										<li>
 											<span class="depth"></span>
 											<a class="permission_label permission_label_wider disabled" href="#"><?=$gbp["name"]?>: <?=$category["title"]?></a>

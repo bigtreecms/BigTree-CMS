@@ -11,6 +11,11 @@
 		/** @var \BigTree\Instagram\API */
 		protected $API;
 
+		public $ID;
+		public $Latitude;
+		public $Longitude;
+		public $Name;
+
 		/*
 			Constructor:
 				Creates a location object from Instagram data.

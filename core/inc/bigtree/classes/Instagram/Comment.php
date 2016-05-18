@@ -11,6 +11,12 @@
 		/** @var \BigTree\Instagram\API */
 		protected $API;
 
+		public $Content;
+		public $ID;
+		public $MediaID;
+		public $Timestamp;
+		public $User;
+
 		/*
 			Constructor:
 				Creates a comment object from Instagram data.

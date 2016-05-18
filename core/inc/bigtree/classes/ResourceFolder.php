@@ -187,7 +187,7 @@
 			global $admin;
 
 			// Not much, but skip it since it's not needed on recursion
-			if ($recursion == false) {
+			if ($recursion === false) {
 
 				// Make sure a user is logged in
 				if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {

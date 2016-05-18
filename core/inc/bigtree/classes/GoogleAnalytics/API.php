@@ -18,7 +18,7 @@
 		public $ClientID = "423602902679-h7bva04vid397g496l07csispa6kkth3.apps.googleusercontent.com";
 		public $ClientSecret = "lCP25m_7s7o5ua3Z2JY67mRe";
 		public $EndpointURL = "https://www.googleapis.com/analytics/v3/";
-		public $LastDataTotals = false;
+		public $LastDataTotals;
 		public $OAuthVersion = "2.0";
 		public $RequestType = "header";
 		public $Scope = "https://www.googleapis.com/auth/analytics.readonly";

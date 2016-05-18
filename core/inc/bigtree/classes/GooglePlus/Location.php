@@ -11,6 +11,11 @@
 		/** @var \BigTree\GooglePlus\API */
 		protected $API;
 
+		public $Address;
+		public $Latitude;
+		public $Longitude;
+		public $Name;
+
 		function __construct($location,&$api) {
 			$this->API = $api;
 			isset($location->address->formatted) ? $this->Address = $location->address->formatted : false;

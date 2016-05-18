@@ -10,6 +10,13 @@
 
 		protected $API;
 
+		public $AccountID;
+		public $CreatedAt;
+		public $ID;
+		public $Name;
+		public $UpdatedAt;
+		public $WebsiteURL;
+
 		function __construct($property,&$api) {
 			$this->AccountID = $property->accountId;
 			$this->API = $api;
@@ -23,4 +30,5 @@
 		function getProfiles($params) {
 			return $this->API->getProfiles($this->AccountID,$this->ID,$params);
 		}
+		
 	}

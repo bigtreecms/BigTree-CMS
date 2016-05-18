@@ -13,6 +13,17 @@
 		/** @var \BigTree\GooglePlus\API */
 		protected $API;
 
+		public $Content;
+		public $ContentPlainText;
+		public $CreatedAt;
+		public $ID;
+		public $PlusOneCount;
+		public $RepliedTo = array();
+		public $Type;
+		public $UpdatedAt;
+		public $URL;
+		public $User;
+
 		function __construct($comment,&$api) {
 			$this->API = $api;
 			isset($comment->object->content) ? $this->Content = $comment->object->content : false;
@@ -21,7 +32,6 @@
 			isset($comment->id) ? $this->ID = $comment->id : false;
 			isset($comment->totalItems) ? $this->PlusOneCount = $comment->plusoners->totalItems : false;
 			if (is_array($comment->inReplyTo)) {
-				$this->RepliedTo = array();
 				foreach ($comment->inReplyTo as $reply) {
 					$r = new stdClass;
 					$r->ID = $reply->id;

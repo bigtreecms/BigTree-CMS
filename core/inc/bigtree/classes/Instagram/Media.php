@@ -13,6 +13,24 @@
 		/** @var \BigTree\Instagram\API */
 		protected $API;
 
+		public $Caption;
+		public $Filter;
+		public $ID;
+		public $Image;
+		public $Liked;
+		public $LikesCount;
+		public $Likes = array();
+		public $Location;
+		public $SmallImage;
+		public $Tags = array();
+		public $ThumbnailImage;
+		public $Timestamp;
+		public $Type;
+		public $URL;
+		public $User;
+		public $UsersInPhoto;
+		public $Videos;
+
 		/*
 			Constructor:
 				Creates a media object from Instagram data.
@@ -31,7 +49,7 @@
 			isset($media->user_has_liked) ? $this->Liked = $media->user_has_liked : false;
 			if (isset($media->likes)) {
 				$this->LikesCount = $media->likes->count;
-				$this->Likes = array();
+
 				foreach ($media->likes->data as $user) {
 					$this->Likes[] = new User($user,$api);
 				}
@@ -41,7 +59,6 @@
 			}
 			isset($media->images->low_resolution->url) ? $this->SmallImage = $media->images->low_resolution->url : false;
 			if (isset($media->tags)) {
-				$this->Tags = array();
 				foreach ($media->tags as $tag_name) {
 					$tag = new Tag(false,$api);
 					$tag->Name = $tag_name;

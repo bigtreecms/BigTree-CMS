@@ -549,6 +549,7 @@
 			$oauth_callback_confirmed = "";
 			$oauth_token = "";
 			$oauth_token_secret = "";
+			$oauth_problem = "";
 
 			parse_str($response);
 

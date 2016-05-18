@@ -13,6 +13,28 @@
 		/** @var \BigTree\GooglePlus\API */
 		protected $API;
 
+		public $Access;
+		public $Content;
+		public $ContentPlainText;
+		public $ContentURL;
+		public $CreatedAt;
+		public $CrosspostSource;
+		public $ID;
+		public $Location;
+		public $Media;
+		public $note;
+		public $PlusOneCount;
+		public $ReplyCount;
+		public $ResharedID;
+		public $ResharedUser;
+		public $ReshareCount;
+		public $Service;
+		public $Title;
+		public $Type;
+		public $UpdatedAt;
+		public $URL;
+		public $User;
+
 		function __construct($activity,&$api) {
 			if (is_array($activity->access->items)) {
 				$this->Access = new stdClass;
