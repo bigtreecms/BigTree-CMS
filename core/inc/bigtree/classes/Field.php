@@ -23,6 +23,7 @@
 		public $Error;
 		public $FieldsetClass = "";
 		public $FileInput;
+		public $FileOutput;
 		public $ID;
 		public $Ignore;
 		public $Input;
@@ -194,7 +195,7 @@
 				Private method used by parseFilesArray.
 		*/
 
-		private static function getParsedFilesArrayLoop($name,$tmp_name,$type,$error,$size) {
+		protected static function getParsedFilesArrayLoop($name,$tmp_name,$type,$error,$size) {
 			$array = array();
 
 			foreach ($name as $k => $v) {

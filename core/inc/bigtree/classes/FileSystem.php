@@ -203,7 +203,7 @@
 
 			// Just find a good filename that isn't used now.
 			$x = 2;
-			while (!$file || file_exists($directory.$file)) {
+			while ($file === false || file_exists($directory.$file)) {
 				$file = $clean_name."-$x.".strtolower($parts["extension"]);
 
 				// Check prefixes
@@ -238,8 +238,11 @@
 			$contents = array();
 
 			$directory_handle = @opendir($directory);
+			
 			if (!$directory_handle) {
-				return false;
+				trigger_error('BigTree\FileSystem::getDirectoryContents failed to open directory: '.$directory, E_USER_WARNING);
+
+				return array();
 			}
 			
 			while ($file = readdir($directory_handle)) {

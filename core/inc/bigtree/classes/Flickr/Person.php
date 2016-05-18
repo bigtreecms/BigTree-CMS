@@ -11,6 +11,19 @@
 		/** @var \BigTree\Flickr\API */
 		protected $API;
 
+		public $Description;
+		public $ID;
+		public $Image;
+		public $Location;
+		public $MobileURL;
+		public $Name;
+		public $PhotoCount;
+		public $PhotosURL;
+		public $PhotoViews;
+		public $ProAccount;
+		public $ProfileURL;
+		public $Username;
+
 		function __construct($person,&$api) {
 			$this->API = $api;
 			isset($person->description->_content) ? $this->Description = $person->description->_content : false;

@@ -7,6 +7,15 @@
 	namespace BigTree\Flickr;
 
 	class ResultSet {
+		
+		/** @var \BigTree\Flickr\API */
+		protected $API;
+		protected $LastCall;
+		protected $LastParameters;
+
+		public $CurrentPage;
+		public $Results;
+		public $TotalPages;
 
 		/*
 			Constructor:

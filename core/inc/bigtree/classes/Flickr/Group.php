@@ -11,6 +11,15 @@
 		/** @var \BigTree\Flickr\API */
 		protected $API;
 
+		public $Description;
+		public $ID;
+		public $Image;
+		public $MemberCount;
+		public $Name;
+		public $PhotoCount;
+		public $Rules;
+		public $TopicCount;
+
 		function __construct($group,&$api) {
 			$this->API = $api;
 			isset($group->description->_content) ? $this->Description = $group->description->_content : false;

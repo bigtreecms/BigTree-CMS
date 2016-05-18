@@ -11,6 +11,10 @@
 		/** @var \BigTree\Facebook\API */
 		protected $API;
 
+		public $ID;
+		public $Name;
+		public $Type;
+
 		function __construct($school,$type,&$api) {
 			$this->API = $api;
 

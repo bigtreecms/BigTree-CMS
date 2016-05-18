@@ -543,17 +543,25 @@
 
 		function oAuthRedirect() {
 			$this->Settings["token_secret"] = "";
-			$admin = new \BigTreeAdmin;
 			$response = $this->callAPI("http://www.flickr.com/services/oauth/request_token","GET",array("oauth_callback" => $this->ReturnURL));
+
+			// Set empty vars that we're expecting from parse_str
+			$oauth_callback_confirmed = "";
+			$oauth_token = "";
+			$oauth_token_secret = "";
+
 			parse_str($response);
 
-			if ($oauth_callback_confirmed) {
+			if (!empty($oauth_callback_confirmed)) {
 				$this->Settings["token"] = $oauth_token;
 				$this->Settings["token_secret"] = $oauth_token_secret;
+				
 				header("Location: http://www.flickr.com/services/oauth/authorize?perms=delete&oauth_token=".$oauth_token);
 				die();
 			} else {
+				$admin = new \BigTreeAdmin;
 				$admin->growl($oauth_problem,"Flickr API","error");
+				
 				Router::redirect(ADMIN_ROOT."developer/services/flickr/");
 			}
 		}
@@ -587,12 +595,19 @@
 
 		function oAuthSetToken($code) {
 			$response = $this->callAPI("http://www.flickr.com/services/oauth/access_token","GET",array("oauth_verifier" => $_GET["oauth_verifier"],"oauth_token" => $_GET["oauth_token"]));
+			
+			// Setup vars we're expecting a response from in parse_str
+			$fullname = "";
+			$oauth_token = "";
+			$oauth_token_secret = "";
+
 			parse_str($response);
 
 			if ($fullname) {
 				$this->Settings["token"] = $oauth_token;
 				$this->Settings["token_secret"] = $oauth_token_secret;
 				$this->Connected = true;
+				
 				return true;
 			}
 

@@ -13,10 +13,34 @@
 		/** @var \BigTree\Facebook\API */
 		protected $API;
 
+		public $Biography;
+		public $Birthday;
+		public $Education = array();
+		public $Email,
+		public $FirstName;
+		public $Gender;
+		public $Hometown;
+		public $ID;
+		public $LastName;
+		public $LastUpdate;
+		public $Locale;
+		public $Location;
+		public $Name;
+		public $Picture;
+		public $Political;
+		public $RelationshipStatus;
+		public $Religion;
+		public $SignificantOther;
+		public $Timezone;
+		public $URL;
+		public $Verified;
+		public $Work;
+
 		function __construct($user,&$api) {
 			$this->API = $api;
 			$this->ID = $user->id;
 			$this->Name = $user->name;
+			
 			$this->updateDetails($user);
 		}
 
@@ -37,7 +61,6 @@
 			isset($user->bio) ? $this->Biography = $user->bio : false;
 			isset($user->birthday) ? $this->Birthday = $user->birthday : false;
 			if (is_array($user->education)) {
-				$this->Education = array();
 				foreach ($user->education as $school) {
 					$this->Education[] = new School($school["school"],$school["type"],$this->API);
 				}
@@ -59,6 +82,7 @@
 			isset($user->verified) ? $this->Verified = $user->verified : false;
 			if (isset($user->work)) {
 				$this->Work = new stdClass;
+
 				isset($user->work["employer"]) ? $this->Work->Employer = $user->work["employer"] : false;
 				isset($user->work["location"]) ? $this->Work->Location = new Location($user->work["location"],$this->API) : false;
 				isset($user->work["position"]) ? $this->Work->JobTitle = new JobTitle($user->work["position"],$this->API) : false;
@@ -84,6 +108,7 @@
 			}
 
 			$response = $this->API->call($this->ID."/picture?redirect=false&width=".intval($width)."&height=".intval($height));
+			
 			if (isset($response->data->url)) {
 				$this->Picture = $response->data->url;
 				return $this->Picture;

@@ -11,6 +11,10 @@
 		/** @var \BigTree\Flickr\API */
 		protected $API;
 
+		public $Author;
+		public $ID;
+		public $Name;
+
 		function __construct($tag,&$api) {
 			if (!is_string($tag)) {
 				$this->API = $api;

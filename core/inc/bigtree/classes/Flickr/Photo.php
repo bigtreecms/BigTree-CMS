@@ -13,8 +13,38 @@
 		/** @var \BigTree\Flickr\API */
 		protected $API;
 
-		var $NextPhoto = false;
-		var $PreviousPhoto = false;
+		public $CanComment;
+		public $CanAddMeta;
+		public $CommentCount;
+		public $Dates;
+		public $Description;
+		public $Favorited;
+		public $ID;
+		public $Image100;
+		public $Image240;
+		public $Image320;
+		public $Image500;
+		public $Image640;
+		public $Image800;
+		public $Image1024;
+		public $ImageSquare75;
+		public $ImageSquare150;
+		public $License;
+		public $Location;
+		public $NextPhoto;
+		public $Notes;
+		public $OriginalImage;
+		public $PreviousPhoto;
+		public $Rotation;
+		public $SafetyLevel;
+		public $Secret;
+		public $Tags = array();
+		public $Title;
+		public $URLs;
+		public $User;
+		public $VisibleToFamily;
+		public $VisibleToFriends;
+		public $VisibleToPublic;
 
 		function __construct($photo,&$api) {
 			$image_base = "http://farm".$photo->farm.".staticflickr.com/".$photo->server."/".$photo->id."_".$photo->secret;
@@ -57,7 +87,6 @@
 			isset($photo->safety_level) ? $this->SafetyLevel = $photo->safety_level : false;
 			isset($photo->secret) ? $this->Secret = $photo->secret : false;
 			if (isset($photo->tags->tag)) {
-				$this->Tags = array();
 				foreach ($photo->tags->tag as $tag) {
 					$this->Tags[] = new Tag($tag,$api);
 				}
