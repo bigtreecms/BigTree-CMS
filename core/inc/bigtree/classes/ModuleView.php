@@ -7,8 +7,10 @@
 	namespace BigTree;
 	
 	/**
+	 * @property-read string $FilterQuery
 	 * @property-read int $ID
 	 * @property-read object $Interface
+	 * @property-read object $RelatedModuleForm
 	 */
 
 	class ModuleView extends BaseObject {
@@ -198,7 +200,7 @@
 				}
 			}
 
-			if ($sort_field && $item[$sort_field]) {
+			if (!empty($sort_field) && !empty($item[$sort_field])) {
 				$insert_values["sort_field"] = $item[$sort_field];
 			}
 
@@ -896,13 +898,13 @@
 			if ($sort_field != "id") {
 				$x = 0;
 
-				if (isset($view["fields"][$sort_field]["numeric"]) && $view["fields"][$sort_field]["numeric"]) {
+				if (!empty($this->Fields[$sort_field]["numeric"])) {
 					$convert_numeric = true;
 				} else {
 					$convert_numeric = false;
 				}
 
-				foreach ($view["fields"] as $field => $options) {
+				foreach ($this->Fields as $field => $options) {
 					$x++;
 					if ($field == $sort_field) {
 						$sort_field = "column$x";

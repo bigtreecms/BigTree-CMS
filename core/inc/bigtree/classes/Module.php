@@ -522,7 +522,7 @@
 			$permission = $this->UserAccessLevel;
 
 			// If group based permissions aren't on or we're a publisher of this module it's an easy solution… or if we're not even using the table.
-			if (empty($item) || empty($this->GroupBasedPermissions["enabled"]) || $permission == "p" || $table != $this->GroupBasedPermissions["table"]) {
+			if (empty($entry) || empty($this->GroupBasedPermissions["enabled"]) || $permission == "p" || $table != $this->GroupBasedPermissions["table"]) {
 				return $permission;
 			}
 
@@ -611,13 +611,13 @@
 			}
 
 			// Not set or empty, no access
-			if (!isset($this->Permissions[$this->ID]) || $this->Permissions[$this->ID] == "") {
+			if (!isset($admin->Permissions[$this->ID]) || $admin->Permissions[$this->ID] == "") {
 				define("BIGTREE_ACCESS_DENIED",true);
 				Auth::stop(file_get_contents(Router::getIncludePath("admin/pages/_denied.php")));
 			}
 
 			// Return level defined
-			return $this->Permissions[$this->ID];
+			return $admin->Permissions[$this->ID];
 		}
 
 		/*

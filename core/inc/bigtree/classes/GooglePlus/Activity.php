@@ -22,9 +22,10 @@
 		public $ID;
 		public $Location;
 		public $Media;
-		public $note;
+		public $Note;
 		public $PlusOneCount;
 		public $ReplyCount;
+		public $Reshare = false;
 		public $ResharedID;
 		public $ResharedUser;
 		public $ReshareCount;

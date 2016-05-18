@@ -15,6 +15,7 @@
 		public $Recipients;
 		public $ReadBy;
 		public $ResponseTo;
+		public $Selected = false;
 		public $Sender;
 		public $SenderEmail;
 		public $SenderName;
