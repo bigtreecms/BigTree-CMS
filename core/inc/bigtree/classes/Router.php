@@ -12,11 +12,11 @@
 
 		protected static $ReservedRoutes = array();
 
-		static $Registry = false;
-		static $RouteParamNames = array();
-		static $RouteParamNamesPath = array();
-		static $Secure = false;
-		static $Trunk = false;
+		public static $Registry = false;
+		public static $RouteParamNames = array();
+		public static $RouteParamNamesPath = array();
+		public static $Secure = false;
+		public static $Trunk = false;
 
 		/*
 			Function: checkPathHistory

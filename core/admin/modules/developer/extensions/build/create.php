@@ -242,7 +242,7 @@
 
 	// If this package already exists, we need to do a diff of the tables, increment revision numbers, and add SQL statements.
 	$existing = SQL::fetch("SELECT * FROM bigtree_extensions WHERE id = ? AND type = 'extension'", $id);
-	if ($existing) {
+	if (!empty($existing)) {
 		$existing_json = json_decode($existing["manifest"],true);
 
 		// Increment revision numbers

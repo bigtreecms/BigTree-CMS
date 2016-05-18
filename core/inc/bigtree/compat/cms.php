@@ -8,7 +8,7 @@
 
 	class BigTreeCMSBase {
 
-		static $BreadcrumbTrunk;
+		public static $BreadcrumbTrunk;
 
 		/*
 			Constructor:

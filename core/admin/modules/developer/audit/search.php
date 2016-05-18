@@ -205,7 +205,7 @@
 					$action = SQL::fetch("SELECT route, module FROM bigtree_module_actions 
 										  WHERE interface = ? AND route LIKE 'edit%'", $data["id"]);
 					$module = SQL::fetch("SELECT route FROM bigtree_modules WHERE id = ?", $action["module"]);
-					if ($action && $module) {
+					if (!empty($action) && !empty($module)) {
 						$title = "View Entry";
 						$link = ADMIN_ROOT.$module["route"]."/".$action["route"]."/".$result["entry"]."/";
 					}

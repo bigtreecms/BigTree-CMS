@@ -8,6 +8,8 @@
 
 	class Setting extends BaseObject {
 
+		public static $Table = "bigtree_settings";
+
 		protected $OriginalEncrypted;
 		protected $OriginalID;
 		protected $OriginalValue;
@@ -22,8 +24,6 @@
 		public $System;
 		public $Type;
 		public $Value;
-
-		static $Table = "bigtree_settings";
 
 		/*
 			Constructor:

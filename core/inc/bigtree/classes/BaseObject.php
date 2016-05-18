@@ -116,7 +116,8 @@
 			// Must have a static Table var.
 			if (empty(static::$Table)) {
 				trigger_error('Method "all" must be called from a subclass where the static variable $Table has been set.', E_USER_ERROR);
-				return false;
+
+				return array();
 			}
 
 			$sort = $sort ? " ORDER BY ".$sort : "";

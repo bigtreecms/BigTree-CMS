@@ -39,7 +39,7 @@
 			$level = $admin->Level;
 		}
 
-		if (!$error) {
+		if ($error === false) {
 			$permission_data = json_decode($permissions,true);
 			$permissions = array(
 				"page" => $permission_data["Page"],
@@ -55,7 +55,7 @@
 			}
 		}
 
-		if ($error) {
+		if ($error !== false) {
 			$_SESSION["bigtree_admin"]["update_user"] = $_POST;
 			$_SESSION["bigtree_admin"]["update_user"]["error"] = $error;
 			$admin->growl("Users","Update Failed","error");
