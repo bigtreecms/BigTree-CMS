@@ -11,6 +11,24 @@
 		/** @var \BigTree\Disqus\API */
 		protected $API;
 
+		public $Anonymous;
+		public $Description;
+		public $Email;
+		public $ID;
+		public $FollowerCount;
+		public $FollowingCount;
+		public $Image;
+		public $LikesCount;
+		public $Location;
+		public $Name;
+		public $PostCount;
+		public $Primary;
+		public $ProfileURL;
+		public $Reputation;
+		public $Timestamp;
+		public $URL;
+		public $Verified;
+
 		function __construct($user,&$api) {
 			$this->API = $api;
 			isset($user->isAnonymous) ? $this->Anonymous = $user->isAnonymous : false;

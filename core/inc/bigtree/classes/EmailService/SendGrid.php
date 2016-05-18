@@ -40,7 +40,7 @@
 				$data["bcc"] = $email->BCC;
 			}
 
-			if ($email->Headers) {
+			if (!empty($email->Headers) && is_array($email->Headers)) {
 				$data["headers"] = json_encode($email->Headers);
 			}
 

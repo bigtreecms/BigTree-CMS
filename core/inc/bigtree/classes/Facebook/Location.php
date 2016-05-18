@@ -11,6 +11,9 @@
 		/** @var \BigTree\Facebook\API */
 		protected $API;
 
+		public $ID;
+		public $Name;
+
 		function __construct($location,&$api) {
 			$this->API = $api;
 

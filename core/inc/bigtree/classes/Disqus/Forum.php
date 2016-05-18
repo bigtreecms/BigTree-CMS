@@ -11,6 +11,14 @@
 		/** @var \BigTree\Disqus\API */
 		protected $API;
 
+		public $FounderID;
+		public $ID;
+		public $Image;
+		public $Language;
+		public $Name;
+		public $Settings;
+		public $URL;
+
 		function __construct($forum,&$api) {
 			$this->API = $api;
 			isset($forum->founder) ? $this->FounderID = $forum->founder : false;

@@ -11,6 +11,13 @@
 		/** @var \BigTree\Disqus\API */
 		protected $API;
 
+		public $ForumID;
+		public $ID;
+		public $Notes;
+		public $Timestamp;
+		public $Type;
+		public $Value;
+
 		function __construct($item,&$api) {
 			$this->API = $api;
 			$this->ForumID = $item->forum;

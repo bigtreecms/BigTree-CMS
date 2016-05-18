@@ -8,6 +8,13 @@
 
 	class ResultSet {
 
+		protected $Cursor;
+		protected $LastCall;
+		protected $LastParameters;
+		protected $Object;
+
+		public $Results;
+
 		/*
 			Constructor:
 				Creates a result set of Disqus data.
@@ -25,6 +32,7 @@
 			$this->LastCall = $last_call;
 			$this->LastParameters = $params;
 			$this->Object = $object;
+			
 			$this->Results = $results;
 		}
 

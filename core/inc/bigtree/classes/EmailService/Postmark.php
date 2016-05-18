@@ -41,8 +41,9 @@
 				$data["Bcc"] = is_array($email->BCC) ? implode(",",$email->BCC) : $email->BCC;
 			}
 
-			if ($email->Headers) {
+			if (!empty($email->Headers) && is_array($email->Headers)) {
 				$data["Headers"] = array();
+				
 				foreach ($email->Headers as $key => $value) {
 					$data["Headers"][] = array("Name" => $key, "Value" => $value);
 				}

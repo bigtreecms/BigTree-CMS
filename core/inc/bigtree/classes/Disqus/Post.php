@@ -11,6 +11,26 @@
 		/** @var \BigTree\Disqus\API */
 		protected $API;
 
+		public $Approved;
+		public $Author;
+		public $Content;
+		public $ContentPlainText;
+		public $Deleted;
+		public $Dislikes;
+		public $Edited;
+		public $Flagged;
+		public $Highlighted;
+		public $ID;
+		public $Likes;
+		public $Media;
+		public $ParentID;
+		public $Points;
+		public $Reports;
+		public $Spam;
+		public $ThreadID;
+		public $Timestamp;
+		public $UserScore;
+
 		function __construct($post,&$api) {
 			$this->API = $api;
 			isset($post->isApproved) ? $this->Approved = $post->isApproved : false;

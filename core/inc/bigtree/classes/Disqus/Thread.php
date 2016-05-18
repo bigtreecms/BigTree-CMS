@@ -11,6 +11,26 @@
 		/** @var \BigTree\Disqus\API */
 		protected $API;
 
+		public $AuthorID;
+		public $CategoryID;
+		public $Closed;
+		public $Deleted;
+		public $Dislikes;
+		public $Feed;
+		public $ForumID;
+		public $ID;
+		public $Identifiers;
+		public $Likes;
+		public $Message;
+		public $PostCount;
+		public $Reactions;
+		public $Slug;
+		public $Subscribed;
+		public $Timestamp;
+		public $Title;
+		public $URL;
+		public $UserScore;
+
 		function __construct($thread,&$api) {
 			$this->API = $api;
 			isset($thread->author) ? $this->AuthorID = $thread->author : false;
