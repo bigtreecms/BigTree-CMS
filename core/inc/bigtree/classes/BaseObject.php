@@ -1,6 +1,10 @@
 <?php
 	namespace BigTree;
 
+	/**
+	 * @property-read array $Array
+	 */
+
 	class BaseObject {
 
 		public static $Table = "";
@@ -42,7 +46,8 @@
 				if (substr($method,0,5) == "getBy") {
 
 					$record = SQL::fetch("SELECT * FROM `".static::$Table."` WHERE `$column` = ?", $value);
-					if (!$record) {
+					
+					if (empty($record)) {
 						return false;
 					}
 

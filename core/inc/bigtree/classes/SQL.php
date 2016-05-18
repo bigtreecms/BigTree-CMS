@@ -21,7 +21,7 @@
 
 		public static $Connection = "disconnected";
 		public static $ErrorLog = array();
-		public static $MySQLTime = false;
+		public static $MySQLTime = "";
 		public static $QueryLog = array();
 		public static $WriteConnection = "disconnected";
 

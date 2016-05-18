@@ -17,7 +17,7 @@
 		public static $RouteParamNamesPath = array();
 		public static $Secure = false;
 		public static $Trunk = false;
-
+	
 		/*
 			Function: checkPathHistory
 				Checks the page route history table, redirects if the page is found.

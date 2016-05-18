@@ -235,7 +235,9 @@
 					}
 				}
 			} else {
-				return false;
+				trigger_error('BigTree\CloudStorage\Rackspace::getContainer call failed.', E_USER_WARNING);
+
+				return array();
 			}
 
 			return $simple ? $flat : array("tree" => $this->getContainerTree($flat), "flat" => $flat);

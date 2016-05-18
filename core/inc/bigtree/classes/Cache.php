@@ -42,7 +42,7 @@
 		static function get($identifier,$key,$max_age = false,$decode = true) {
 			if ($max_age) {
 				// We need to get MySQL's idea of what time it is so that if PHP's differs we don't screw up caches.
-				if (!SQL::$MySQLTime) {
+				if (SQL::$MySQLTime === "") {
 					SQL::$MySQLTime = SQL::fetchSingle("SELECT NOW()");
 				}
 				$max_age = date("Y-m-d H:i:s",strtotime(SQL::$MySQLTime) - $max_age);
@@ -98,10 +98,13 @@
 
 		static function putUnique($identifier,$value) {
 			$success = false;
+			$key = "";
+
 			while (!$success) {
 				$key = uniqid("",true);
 				$success = static::put($identifier,$key,$value,false);
 			}
+
 			return $key;
 		}
 	}

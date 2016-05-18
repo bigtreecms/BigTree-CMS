@@ -11,10 +11,16 @@
 		/** @var \BigTree\Disqus\API */
 		protected $API;
 
+		public $Default;
+		public $ForumID;
+		public $ID;
+		public $Name;
+		public $Order;
+
 		function __construct($category,&$api) {
 			$this->API = $api;
 			isset($category->isDefault) ? $this->Default = $category->isDefault : false;
-			isset($category->forum) ? $this->Forum = $category->forum : false;
+			isset($category->forum) ? $this->ForumID = $category->forum : false;
 			isset($category->id) ? $this->ID = $category->id : false;
 			isset($category->title) ? $this->Name = $category->title : false;
 			isset($category->order) ? $this->Order = $category->order : false;

@@ -24,7 +24,7 @@
 		public $Scope = false;
 		public $Settings = array();
 		public $SettingID = false;
-		public $SettingNamespace = false;
+		public $SettingNamespace = "";
 		public $TokenURL = "";
 
 		/*
@@ -56,7 +56,7 @@
 			$this->Settings["hash_table"] = @is_array($this->Settings["hash_table"]) ? $this->Settings["hash_table"] : array();
 			
 			// Setup proper namespace
-			if ($this->SettingNamespace) {
+			if ($this->SettingNamespace !== "") {
 				$this->OAuthSettings = &$this->Settings[$this->SettingNamespace];
 			} else {
 				$this->OAuthSettings = &$this->Settings;

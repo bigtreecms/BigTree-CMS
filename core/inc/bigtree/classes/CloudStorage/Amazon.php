@@ -282,12 +282,13 @@
 		// Implements Provider::getContainer
 		function getContainer($container,$simple = false) {
 			$flat = array();
-
 			$continue = true;
 			$marker = "";
+
 			while ($continue) {
 				$response = $this->call("GET", $container, "", array("marker" => $marker));
 				$xml = simplexml_load_string($response);
+				
 				if (isset($xml->Name)) {
 					foreach ($xml->Contents as $item) {
 						if ($simple) {
@@ -311,7 +312,9 @@
 							);
 						}
 					}
+
 					$continue = false;
+					
 					// Multi-page
 					if ($xml->IsTruncated == "true") {
 						$continue = true;
@@ -319,8 +322,9 @@
 					}
 				} else {
 					$this->setError($response);
+					trigger_error('BigTree\CloudStorage\Amazon::getContainer call failed.', E_USER_WARNING);
 
-					return false;
+					return array();
 				}
 			}
 
