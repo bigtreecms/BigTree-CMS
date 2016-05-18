@@ -102,15 +102,16 @@
 	// If it is and the form is setup to create new items at the top and this is a new record, update the position column.
 	$table_description = BigTree::describeTable($table);
 	if (isset($table_description["columns"]["position"]) && $bigtree["form"]["default_position"] == "Top" && !$_POST["id"]) {
-		$max = SQL::fetchSingle("SELECT COUNT(*) FROM `$table`") + 
-			   SQL::fetchSingle("SELECT COUNT(*) FROM `bigtree_pending_changes` WHERE `table` = ?", $table);
+		$max = (int) SQL::fetchSingle("SELECT COUNT(*) FROM `$table`") +
+			   (int) SQL::fetchSingle("SELECT COUNT(*) FROM `bigtree_pending_changes` WHERE `table` = ?", $table);
 		$item["position"] = $max;
 	}
 
+	$did_publish = false;
 	if ($bigtree["form"]["default_pending"]) {
-		$edit_id = "p".BigTreeAutoModule::createPendingItem($bigtree["form"]["module"],$table,$item,$many_to_many,$tags,$bigtree["form"]["hooks"]["publish"],true);
+		$edit_id = "p".\BigTreeAutoModule::createPendingItem($bigtree["form"]["module"],$table,$item,$many_to_many,$tags,$bigtree["form"]["hooks"]["publish"],true);
 	} else {
-		$edit_id = BigTreeAutoModule::createItem($table,$item,$many_to_many,$tags);
+		$edit_id = \BigTreeAutoModule::createItem($table,$item,$many_to_many,$tags);
 		$did_publish = true;
 	}
 
@@ -134,12 +135,12 @@
 
 	// If we have errors, we want to save the data and drop the entry from the database but give them the info again
 	if (count($bigtree["errors"])) {
-		$item = BigTreeAutoModule::getItem($table,$edit_id);
+		$item = \BigTreeAutoModule::getItem($table,$edit_id);
 		$_SESSION["bigtree_admin"]["form_data"]["saved"] = $item["item"];
 		if ($bigtree["form"]["default_pending"]) {
-			BigTreeAutoModule::deletePendingItem($table,substr($edit_id,1));
+			\BigTreeAutoModule::deletePendingItem($table,substr($edit_id,1));
 		} else {
-			BigTreeAutoModule::deleteItem($table,$edit_id);
+			\BigTreeAutoModule::deleteItem($table,$edit_id);
 		}
 	}
 	
