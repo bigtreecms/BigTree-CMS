@@ -158,7 +158,7 @@
 				Array of three arrays of field types (template, module, and callout).
 		*/
 
-		static function reference($split = false, $use_case_type = false) {
+		static function reference($split = false, $use_case_type = "") {
 			// Used cached values if available, otherwise query the DB
 			if (file_exists(SERVER_ROOT."cache/bigtree-form-field-types.json")) {
 				$types = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-form-field-types.json"),true);
@@ -206,7 +206,7 @@
 			}
 
 			// If we only want one use case
-			if ($use_case_type) {
+			if (!empty($use_case_type)) {
 				return $types[$use_case_type];
 			}
 
