@@ -15,7 +15,7 @@
 			$cloud_options[] = array("class" => "rackspace","title" => "Rackspace Cloud Files");
 		}
 		if (count($cloud_options)) {
-			array_unshift($cloud_options,array("class" => "server","title" => "Local Server"));
+			array_unshift($cloud_options,array("class" => "server","title" => Text::translate("Local Server")));
 		}
 	}
 
@@ -130,6 +130,6 @@
 	<input type="hidden" name="directory" value="<?=$postdirectory?>" id="bigtree_foundry_directory" />
 	<input type="hidden" name="container" value="<?=$postcontainer?>" id="bigtree_foundry_container" />
 	<input type="hidden" name="location" value="<?=$location?>" id="bigtree_foundry_location" />
-	<input type="submit" value="Use Selected File" class="button blue" />
-	<a href="#" class="button">Cancel</a>
+	<input type="submit" value="<?=Text::translate("Use Selected File", true)?>" class="button blue" />
+	<a href="#" class="button"><?=Text::translate("Cancel")?></a>
 </div>

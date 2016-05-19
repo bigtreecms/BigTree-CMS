@@ -8,7 +8,7 @@
 	}
 ?>
 <fieldset>
-	<label>Name</label>
+	<label><?=Text::translate("Name")?></label>
 	<input type="text" name="name" value="<?=Text::htmlEncode($_POST["name"])?>" />
 </fieldset>
 <?php

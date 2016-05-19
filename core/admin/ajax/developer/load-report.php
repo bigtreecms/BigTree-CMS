@@ -1,9 +1,11 @@
 <?php
+	namespace BigTree;
+
 	$filter_types = array(
-		"search" => "Simple Search",
-		"dropdown" => "Dropdown Select",
-		"boolean" => "Yes/No/Both Select",
-		"date-range" => "Date Range"
+		"search" => Text::translate("Simple Search"),
+		"dropdown" => Text::translate("Dropdown Select"),
+		"boolean" => Text::translate("Yes/No/Both Select"),
+		"date-range" => Text::translate("Date Range")
 	);
 	$report_type = isset($_POST["report_type"]) ? $_POST["report_type"] : $type;
 	
@@ -23,7 +25,7 @@
 			$used_filters[] = $key;
 		}
 		// Figure out the fields we're not using so we can offer them back.
-		$table_description = BigTree::describeTable($table);
+		$table_description = SQL::describeTable($table);
 		foreach ($table_description["columns"] as $column => $details) {
 			if (!in_array($column,$used_fields)) {
 				$unused_fields[] = array("field" => $column, "title" => str_replace(array("Url","Pdf","Sql"),array("URL","PDF","SQL"),ucwords(str_replace(array("-","_")," ",$details["name"]))));
@@ -39,7 +41,7 @@
 
 		// To tolerate someone selecting the blank spot in the table dropdown again when creating a form.
 		if ($table) {
-			$table_info = BigTree::describeTable($table);
+			$table_info = SQL::describeTable($table);
 		} else {
 			$table_info = array("foreign_keys" => array(), "columns" => array());
 		}
@@ -64,13 +66,13 @@
 	if (count($fields)) {
 ?>
 <fieldset id="filter_table" class="last">
-	<label>Report Filters</label>
+	<label><?=Text::translate("Report Filters")?></label>
 	
 	<div class="form_table">
 		<header></header>
 		<div class="labels">
-			<span class="developer_report_filter_title">Title</span>
-			<span class="developer_report_filter_type">Type</span>
+			<span class="developer_report_filter_title"><?=Text::translate("Title")?></span>
+			<span class="developer_report_filter_type"><?=Text::translate("Type")?></span>
 			<span class="developer_report_action"></span>
 		</div>
 		<ul>
@@ -106,11 +108,11 @@
 
 <fieldset id="field_table" class="last"<?php if ($report_type != "csv") { ?> style="display: none;"<?php } ?>>
 	<br /><br />
-	<label>Fields to Include in CSV File</label>
+	<label><?=Text::translate("Fields to Include in CSV File")?></label>
 	<div class="form_table">
 		<header></header>
 		<div class="labels">
-			<span class="developer_report_field_title">Title</span>
+			<span class="developer_report_field_title"><?=Text::translate("Title")?></span>
 			<span class="developer_report_action"></span>
 		</div>
 		<ul>
@@ -173,7 +175,7 @@
 <?php
 	} else {
 ?>
-<p>Please choose a table to populate this area.</p>
+<p><?=Text::translate("Please choose a table to populate this area.")?></p>
 <?php
 	}
 ?>

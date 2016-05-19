@@ -1,30 +1,45 @@
 <?php
-	$settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
+	namespace BigTree;
+
+	$settings = \BigTreeCMS::getSetting("bigtree-internal-media-settings");
 	$data = isset($data["preset"]) ? $settings["presets"][$data["preset"]] : $settings["presets"][$_POST["id"]];
+
+	// Translate title text that gets repeated
+	$subcrop_title = Text::translate("Sub-Crop", true);
+	$center_subcrop_title = Text::translate("Create Centered Sub-Crop", true);
+	$crop_thumb_title = Text::translate("Create Thumbnail of Crop", true);
+	$color_mode_title = Text::translate("Switch Color Mode", true);
+	$remove_title = Text::translate("Remove", true);
+	$thumb_title = Text::translate("Thumbnail", true);
+	$prefix_title = Text::translate("Prefix");
+	$width_title = Text::translate("Width");
+	$height_title = Text::translate("Height");
 ?>
 <fieldset>
-	<label>Minimum Width <small>(numeric value in pixels)</small></label>
+	<label><?=Text::translate("Minimum Width <small>(numeric value in pixels)</small>")?></label>
 	<input type="text" name="min_width" value="<?=htmlspecialchars($data["min_width"])?>" disabled="disabled" />
 </fieldset>
 <fieldset>
-	<label>Minimum Height <small>(numeric value in pixels)</small></label>
+	<label><?=Text::translate("Minimum Height <small>(numeric value in pixels)</small>")?></label>
 	<input type="text" name="min_height" value="<?=htmlspecialchars($data["min_height"])?>" disabled="disabled" />
 </fieldset>
 <fieldset>
-	<label>Preview Prefix <small>(for forms)</small></label>
+	<label><?=Text::translate("Preview Prefix <small>(for forms)</small>")?></label>
 	<input type="text" name="preview_prefix" value="<?=htmlspecialchars($data["preview_prefix"])?>" disabled="disabled" />
 </fieldset>
 <fieldset>
-	<label>Create Hi-Resolution Retina Images <small><a href="http://www.bigtreecms.org/docs/dev-guide/field-types/retina-images/" target="_blank">(learn more)</a></small></label>
+	<label><?=Text::translate('Create Hi-Resolution Retina Images <small><a href=":doc_link:" target="_blank">(learn more)</a></small>', false, array(":doc_link:" => "http://www.bigtreecms.org/docs/dev-guide/field-types/retina-images/"))?></label>
 	<input type="checkbox" name="retina" <?php if ($data["retina"]) { ?>checked="checked" <?php } ?> disabled="disabled" />
-	<label class="for_checkbox"> When Available</label>
+	<label class="for_checkbox"> <?=Text::translate("When Available")?></label>
 </fieldset>
 
-<h4>Crops <a href="#" class="add_crop icon_small icon_small_add" style="display: none;"></a></h4>
+<h4><?=Text::translate("Crops")?> <a href="#" class="add_crop icon_small icon_small_add" style="display: none;"></a></h4>
 <fieldset>
 	<div class="image_attr" id="pop_crop_list">
 		<ul>
-			<li>Prefix:</li><li>Width:</li><li>Height:</li>
+			<li><?=$prefix_title?></li>
+			<li><?=$width_title?></li>
+			<li><?=$height_title?></li>
 		</ul>
 		<?php
 			$crop_count = 0;
@@ -47,11 +62,11 @@
 				<input type="text" name="crops[<?=$crop_count?>][height]" value="<?=htmlspecialchars($crop["height"])?>" disabled="disabled" />
 			</li>
 			<li class="actions">
-				<a href="#<?=$crop_count?>" title="Create Centered Sub-Crop" class="subcrop disabled"></a>
-				<a href="#<?=$crop_count?>" title="Create Thumbnail of Crop" class="thumbnail disabled"></a>
+				<a href="#<?=$crop_count?>" title="<?=$center_subcrop_title?>" class="subcrop disabled"></a>
+				<a href="#<?=$crop_count?>" title="<?=$crop_thumb_title?>" class="thumbnail disabled"></a>
 				<input type="hidden" name="crops[<?=$crop_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-				<a href="#" title="Switch Color Mode" class="disabled color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
-				<a href="#<?=$crop_count?>" title="Remove" class="disabled delete"></a>
+				<a href="#" title="<?=$color_mode_title?>" class="disabled color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
+				<a href="#<?=$crop_count?>" title="<?=$remove_title?>" class="disabled delete"></a>
 			</li>
 		</ul>
 		<?php
@@ -63,7 +78,7 @@
 		?>
 		<ul class="image_attr_thumbs_<?=$crop_count?>">
 			<li class="thumbed">
-				<span class="icon_small icon_small_picture" title="Thumbnail"></span>
+				<span class="icon_small icon_small_picture" title="<?=$thumb_title?>"></span>
 				<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][prefix]" value="<?=htmlspecialchars($thumb["prefix"])?>" disabled="disabled" />
 			</li>
 			<li>
@@ -75,8 +90,8 @@
 			<li class="actions">
 				<span class="icon_small icon_small_up disabled"></span>
 				<input type="hidden" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][grayscale]" value="<?=$thumb["grayscale"]?>" />
-				<a href="#" title="Switch Color Mode" class="disabled color_mode<?php if ($thumb["grayscale"]) { ?> gray<?php } ?>"></a>
-				<a href="#" title="Remove" class="disabled delete"></a>
+				<a href="#" title="<?=$color_mode_title?>" class="disabled color_mode<?php if ($thumb["grayscale"]) { ?> gray<?php } ?>"></a>
+				<a href="#" title="<?=$remove_title?>" class="disabled delete"></a>
 			</li>
 		</ul>
 		<?php
@@ -92,7 +107,7 @@
 		?>
 		<ul class="image_attr_thumbs_<?=$crop_count?>">
 			<li class="thumbed">
-				<span class="icon_small icon_small_crop" title="Sub-Crop"></span>
+				<span class="icon_small icon_small_crop" title="<?=$subcrop_title?>"></span>
 				<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][prefix]" value="<?=htmlspecialchars($subcrop["prefix"])?>" disabled="disabled" />
 			</li>
 			<li>
@@ -104,8 +119,8 @@
 			<li class="actions">
 				<span class="disabled icon_small icon_small_up"></span>
 				<input type="hidden" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][grayscale]" value="<?=$subcrop["grayscale"]?>" />
-				<a href="#" title="Switch Color Mode" class="disabled color_mode<?php if ($subcrop["grayscale"]) { ?> gray<?php } ?>"></a>
-				<a href="#" title="Remove" class="disabled delete"></a>
+				<a href="#" title="<?=$color_mode_title?>" class="disabled color_mode<?php if ($subcrop["grayscale"]) { ?> gray<?php } ?>"></a>
+				<a href="#" title="<?=$remove_title?>" class="disabled delete"></a>
 			</li>
 		</ul>
 		<?php
@@ -119,12 +134,14 @@
 	</div>
 </fieldset>
 
-<h4>Thumbnails <a href="#" class="add_thumb icon_small icon_small_add" style="display: none;"></a></h4>
-<p class="error_message" style="display: none;" id="thumbnail_dialog_error">You must enter a height or width for each thumbnail.</p>
+<h4><?=Text::translate("Thumbnails")?> <a href="#" class="add_thumb icon_small icon_small_add" style="display: none;"></a></h4>
+<p class="error_message" style="display: none;" id="thumbnail_dialog_error"><?=Text::translate("You must enter a height or width for each thumbnail.")?></p>
 <fieldset>
 	<div class="image_attr" id="pop_thumb_list">
 		<ul>
-			<li>Prefix:</li><li>Width:</li><li>Height:</li>
+			<li><?=$prefix_title?></li>
+			<li><?=$width_title?></li>
+			<li><?=$height_title?></li>
 		</ul>
 		<?php
 			// Keep a count of thumbs
@@ -147,8 +164,8 @@
 			</li>
 			<li class="actions for_thumbnail">
 				<input type="hidden" name="thumbs[<?=$crop_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-				<a href="#" title="Switch Color Mode" class="disabled color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
-				<a href="#<?=$crop_count?>" title="Remove" class="disabled delete"></a>
+				<a href="#" title="<?=$color_mode_title?>" class="disabled color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
+				<a href="#<?=$crop_count?>" title="<?=$remove_title?>" class="disabled delete"></a>
 			</li>
 		</ul>
 		<?php
@@ -159,11 +176,13 @@
 	</div>
 </fieldset>
 
-<h4>Center Crops <small>(automatically crops from the center of image)</small> <a href="#" class="add_center_crop icon_small icon_small_add" style="display: none;"></a></h4>
+<h4><?=Text::translate("Center Crops <small>(automatically crops from the center of image)</small>")?> <a href="#" class="add_center_crop icon_small icon_small_add" style="display: none;"></a></h4>
 <fieldset>
 	<div class="image_attr" id="pop_center_crop_list">
 		<ul>
-			<li>Prefix:</li><li>Width:</li><li>Height:</li>
+			<li><?=$prefix_title?></li>
+			<li><?=$width_title?></li>
+			<li><?=$height_title?></li>
 		</ul>
 		<?php
 			// Keep a count of center crops
@@ -186,8 +205,8 @@
 			</li>
 			<li class="actions for_thumbnail">
 				<input type="hidden" name="center_crops[<?=$center_crop_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-				<a href="#" title="Switch Color Mode" class="disabled color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
-				<a href="#<?=$center_crop_count?>" title="Remove" class="disabled delete"></a>
+				<a href="#" title="<?=$color_mode_title?>" class="disabled color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
+				<a href="#<?=$center_crop_count?>" title="<?=$remove_title?>" class="disabled delete"></a>
 			</li>
 		</ul>
 		<?php

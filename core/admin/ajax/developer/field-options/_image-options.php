@@ -1,9 +1,11 @@
 <?php
+	namespace BigTree;
+
 	// Prevent warnings
 	$data = is_array($data) ? $data : array();
 
 	$using_preset = false;
-	$settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
+	$settings = \BigTreeCMS::getSetting("bigtree-internal-media-settings");
 	// See if we're using a preset and ensure it still exists
 	if ($data["preset"]) {
 		if ($settings["presets"][$data["preset"]]) {
@@ -19,11 +21,22 @@
 	$data["crops"] = isset($data["crops"]) ? $data["crops"] : array();
 	$data["thumbs"] = isset($data["thumbs"]) ? $data["thumbs"] : array();
 
+	// Translate title text that gets repeated
+	$subcrop_title = Text::translate("Sub-Crop", true);
+	$center_subcrop_title = Text::translate("Create Centered Sub-Crop", true);
+	$crop_thumb_title = Text::translate("Create Thumbnail of Crop", true);
+	$color_mode_title = Text::translate("Switch Color Mode", true);
+	$remove_title = Text::translate("Remove", true);
+	$thumb_title = Text::translate("Thumbnail", true);
+	$prefix_title = Text::translate("Prefix");
+	$width_title = Text::translate("Width");
+	$height_title = Text::translate("Height");
+
 	// We use this file for creating presets so we don't want to show the dropdown in that context
 	if (!defined("BIGTREE_CREATING_PRESET") && array_filter((array)$settings["presets"])) {
 ?>
 <fieldset>
-	<label>Existing Preset</label>
+	<label><?=Text::translate("Existing Preset")?></label>
 	<select name="preset" id="preset_select">
 		<option></option>
 		<?php
@@ -45,33 +58,36 @@
 		} else {
 	?>
 	<fieldset>
-		<label>Minimum Width <small>(numeric value in pixels)</small></label>
+		<label><?=Text::translate("Minimum Width <small>(numeric value in pixels)</small>")?></label>
 		<input type="text" name="min_width" value="<?=htmlspecialchars($data["min_width"])?>" />
 	</fieldset>
 	<fieldset>
-		<label>Minimum Height <small>(numeric value in pixels)</small></label>
+		<label><?=Text::translate("Minimum Height <small>(numeric value in pixels)</small>")?></label>
 		<input type="text" name="min_height" value="<?=htmlspecialchars($data["min_height"])?>" />
 	</fieldset>
 	<fieldset>
-		<label>Preview Prefix <small>(for forms)</small></label>
+		<label><?=Text::translate("Preview Prefix <small>(for forms)</small>")?></label>
 		<input type="text" name="preview_prefix" value="<?=htmlspecialchars($data["preview_prefix"])?>" />
 	</fieldset>
 	<fieldset>
-		<label>Create Hi-Resolution Retina Images <small><a href="http://www.bigtreecms.org/docs/dev-guide/field-types/retina-images/" target="_blank">(learn more)</a></small></label>
+		<label><?=Text::translate('Create Hi-Resolution Retina Images <small><a href=":doc_link:" target="_blank">(learn more)</a></small>', false, array(":doc_link:" => "http://www.bigtreecms.org/docs/dev-guide/field-types/retina-images/"))?></label>
 		<input type="checkbox" name="retina" <?php if ($data["retina"]) { ?>checked="checked" <?php } ?>/>
-		<label class="for_checkbox"> When Available</label>
+		<label class="for_checkbox"> <?=Text::translate("When Available")?></label>
 	</fieldset>
 	
-	<h4>Crops <a href="#" class="add_crop icon_small icon_small_add"></a></h4>
+	<h4><?=Text::translate("Crops")?> <a href="#" class="add_crop icon_small icon_small_add"></a></h4>
 	<fieldset>
 		<div class="image_attr" id="pop_crop_list">
 			<ul>
-				<li>Prefix:</li><li>Width:</li><li>Height:</li>
+				<li><?=$prefix_title?></li>
+				<li><?=$width_title?></li>
+				<li><?=$height_title?></li>
 			</ul>
 			<?php
 				$crop_count = 0;
 				$crop_thumb_count = 0;
 				$crop_sub_count = 0;
+
 				if (is_array($data["crops"])) {
 					foreach ($data["crops"] as $crop) {
 						// In case a crop was added but no options were set
@@ -89,11 +105,11 @@
 					<input type="text" name="crops[<?=$crop_count?>][height]" value="<?=htmlspecialchars($crop["height"])?>" />
 				</li>
 				<li class="actions">
-					<a href="#<?=$crop_count?>" title="Create Centered Sub-Crop" class="subcrop"></a>
-					<a href="#<?=$crop_count?>" title="Create Thumbnail of Crop" class="thumbnail"></a>
+					<a href="#<?=$crop_count?>" title="<?=$center_subcrop_title?>" class="subcrop"></a>
+					<a href="#<?=$crop_count?>" title="<?=$crop_thumb_title?>" class="thumbnail"></a>
 					<input type="hidden" name="crops[<?=$crop_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
-					<a href="#<?=$crop_count?>" title="Remove" class="delete"></a>
+					<a href="#" title="<?=$color_mode_title?>" class="color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
+					<a href="#<?=$crop_count?>" title="<?=$remove_title?>" class="delete"></a>
 				</li>
 			</ul>
 			<?php
@@ -105,7 +121,7 @@
 			?>
 			<ul class="image_attr_thumbs_<?=$crop_count?>">
 				<li class="thumbed">
-					<span class="icon_small icon_small_picture" title="Thumbnail"></span>
+					<span class="icon_small icon_small_picture" title="<?=$thumb_title?>"></span>
 					<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][prefix]" value="<?=htmlspecialchars($thumb["prefix"])?>" />
 				</li>
 				<li>
@@ -117,8 +133,8 @@
 				<li class="actions">
 					<span class="icon_small icon_small_up"></span>
 					<input type="hidden" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][grayscale]" value="<?=$thumb["grayscale"]?>" />
-					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($thumb["grayscale"]) { ?> gray<?php } ?>"></a>
-					<a href="#" title="Remove" class="delete"></a>
+					<a href="#" title="<?=$color_mode_title?>" class="color_mode<?php if ($thumb["grayscale"]) { ?> gray<?php } ?>"></a>
+					<a href="#" title="<?=$remove_title?>" class="delete"></a>
 				</li>
 			</ul>
 			<?php
@@ -134,7 +150,7 @@
 			?>
 			<ul class="image_attr_thumbs_<?=$crop_count?>">
 				<li class="thumbed">
-					<span class="icon_small icon_small_crop" title="Sub-Crop"></span>
+					<span class="icon_small icon_small_crop" title="<?=$sub_crop_title?>"></span>
 					<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][prefix]" value="<?=htmlspecialchars($subcrop["prefix"])?>" />
 				</li>
 				<li>
@@ -146,8 +162,8 @@
 				<li class="actions">
 					<span class="icon_small icon_small_up"></span>
 					<input type="hidden" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][grayscale]" value="<?=$subcrop["grayscale"]?>" />
-					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($subcrop["grayscale"]) { ?> gray<?php } ?>"></a>
-					<a href="#" title="Remove" class="delete"></a>
+					<a href="#" title="<?=$color_mode_title?>" class="color_mode<?php if ($subcrop["grayscale"]) { ?> gray<?php } ?>"></a>
+					<a href="#" title="<?=$remove_title?>" class="delete"></a>
 				</li>
 			</ul>
 			<?php
@@ -161,12 +177,14 @@
 		</div>
 	</fieldset>
 	
-	<h4>Thumbnails <a href="#" class="add_thumb icon_small icon_small_add"></a></h4>
-	<p class="error_message" style="display: none;" id="thumbnail_dialog_error">You must enter a height or width for each thumbnail.</p>
+	<h4><?=Text::translate("Thumbnails")?> <a href="#" class="add_thumb icon_small icon_small_add"></a></h4>
+	<p class="error_message" style="display: none;" id="thumbnail_dialog_error"><?=Text::translate("You must enter a height or width for each thumbnail.")?></p>
 	<fieldset>
 		<div class="image_attr" id="pop_thumb_list">
 			<ul>
-				<li>Prefix:</li><li>Width:</li><li>Height:</li>
+				<li><?=$prefix_title?></li>
+				<li><?=$width_title?></li>
+				<li><?=$height_title?></li>
 			</ul>
 			<?php
 				// Keep a count of thumbs
@@ -189,8 +207,8 @@
 				</li>
 				<li class="actions for_thumbnail">
 					<input type="hidden" name="thumbs[<?=$thumb_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
-					<a href="#<?=$crop_count?>" title="Remove" class="delete"></a>
+					<a href="#" title="<?=$color_mode_title?>" class="color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
+					<a href="#<?=$crop_count?>" title="<?=$remove_title?>" class="delete"></a>
 				</li>
 			</ul>
 			<?php
@@ -201,11 +219,13 @@
 		</div>
 	</fieldset>
 	
-	<h4>Center Crops <small>(automatically crops from the center of image)</small> <a href="#" class="add_center_crop icon_small icon_small_add"></a></h4>
+	<h4><?=Text::translate("Center Crops <small>(automatically crops from the center of image)</small>")?> <a href="#" class="add_center_crop icon_small icon_small_add"></a></h4>
 	<fieldset>
 		<div class="image_attr" id="pop_center_crop_list">
 			<ul>
-				<li>Prefix:</li><li>Width:</li><li>Height:</li>
+				<li><?=$prefix_title?></li>
+				<li><?=$width_title?></li>
+				<li><?=$height_title?></li>
 			</ul>
 			<?php
 				// Keep a count of center crops
@@ -228,8 +248,8 @@
 				</li>
 				<li class="actions for_thumbnail">
 					<input type="hidden" name="center_crops[<?=$center_crop_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
-					<a href="#<?=$center_crop_count?>" title="Remove" class="delete"></a>
+					<a href="#" title="<?=$color_mode_title?>" class="color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
+					<a href="#<?=$center_crop_count?>" title="<?=$remove_title?>" class="delete"></a>
 				</li>
 			</ul>
 			<?php
@@ -263,8 +283,8 @@
 				'<li><input type="text" name="center_crops[' + CenterCropCount + '][height]" value="" /></li>' +
 				'<li class="actions for_thumbnail">' +
 					'<input type="hidden" name="center_crops[' + CenterCropCount + '][grayscale]" value="" />' +
-					'<a href="#" title="Switch Color Mode" class="color_mode"></a>' +
-					'<a href="#' + CenterCropCount + '" title="Remove" class="delete"></a>' +
+					'<a href="#" title="<?=$color_mode_title?>" class="color_mode"></a>' +
+					'<a href="#' + CenterCropCount + '" title="<?=$remove_title?>" class="delete"></a>' +
 				'</li></ul>');
 		}
 
@@ -277,11 +297,11 @@
 				'<li><input type="text" class="required" name="crops[' + CropCount + '][width]" value="" /></li>' +
 				'<li><input type="text" class="required" name="crops[' + CropCount + '][height]" value="" /></li>' +
 				'<li class="actions">' +
-					'<a href="#' + CropCount + '" title="Create Centered Sub-Crop" class="subcrop"></a>' +
-					'<a href="#' + CropCount + '" title="Create Thumbnail of Crop" class="thumbnail"></a>' +
+					'<a href="#' + CropCount + '" title="<?=$center_subcrop_title?>" class="subcrop"></a>' +
+					'<a href="#' + CropCount + '" title="<?=$crop_thumb_title?>" class="thumbnail"></a>' +
 					'<input type="hidden" name="crops[' + CropCount + '][grayscale]" value="" />' +
-					'<a href="#" title="Switch Color Mode" class="color_mode"></a>' +
-					'<a href="#' + CropCount + '" title="Remove" class="delete"></a>' +
+					'<a href="#" title="<?=$color_mode_title?>" class="color_mode"></a>' +
+					'<a href="#' + CropCount + '" title="<?=$remove_title?>" class="delete"></a>' +
 				'</li></ul>');
 		}
 
@@ -295,8 +315,8 @@
 				'<li><input type="text" name="thumbs[' + ThumbCount + '][height]" value="" /></li>' +
 				'<li class="actions for_thumbnail">' +
 					'<input type="hidden" name="thumbs[' + ThumbCount + '][grayscale]" value="" />' +
-					'<a href="#" title="Switch Color Mode" class="color_mode"></a>' +
-					'<a href="#' + ThumbCount + '" title="Remove" class="delete"></a>' +
+					'<a href="#" title="<?=$color_mode_title?>" class="color_mode"></a>' +
+					'<a href="#' + ThumbCount + '" title="<?=$remove_title?>" class="delete"></a>' +
 				'</li></ul>');
 		}
 
@@ -329,7 +349,7 @@
 			CropThumbCount++;			
 			$(this).parents("ul").after('<ul class="require_width_or_height image_attr_thumbs_' + count + '">' +
 				'<li class="thumbed">' +
-					'<span class="icon_small icon_small_picture" title="Thumbnail"></span>' +
+					'<span class="icon_small icon_small_picture" title="<?=$thumb_title?>"></span>' +
 					'<input type="text" class="image_attr_thumbs" name="crops[' + count + '][thumbs][' + CropThumbCount + '][prefix]" value="" />' +
 				'</li>' +
 				'<li><input type="text" name="crops[' + count + '][thumbs][' + CropThumbCount + '][width]" value="" /></li>' +
@@ -337,8 +357,8 @@
 				'<li class="actions">' +
 					'<span class="icon_small icon_small_up"></span>' +
 					'<input type="hidden" name="crops[' + count + '][thumbs][' + CropThumbCount + '][grayscale]" value="" />' +
-					'<a href="#" title="Switch Color Mode" class="color_mode"></a>' +
-					'<a href="#" title="Remove" class="delete"></a>' +
+					'<a href="#" title="<?=$color_mode_title?>" class="color_mode"></a>' +
+					'<a href="#" title="<?=$remove_title?>" class="delete"></a>' +
 				'</li></ul>');
 
 		// Add sub-crop of crops
@@ -349,7 +369,7 @@
 			CropSubCount++;			
 			$(this).parents("ul").after('<ul class="require_width_or_height image_attr_thumbs_' + count + '">' +
 				'<li class="thumbed">' +
-					'<span class="icon_small icon_small_crop" title="Sub-Crop"></span>' +
+					'<span class="icon_small icon_small_crop" title="<?=$subcrop_title?>"></span>' +
 					'<input type="text" class="image_attr_thumbs" name="crops[' + count + '][center_crops][' + CropSubCount + '][prefix]" value="" />' +
 				'</li>' +
 				'<li><input type="text" name="crops[' + count + '][center_crops][' + CropSubCount + '][width]" value="" /></li>' +
@@ -357,8 +377,8 @@
 				'<li class="actions">' +
 					'<span class="icon_small icon_small_up"></span>' +
 					'<input type="hidden" name="crops[' + count + '][center_crops][' + CropSubCount + '][grayscale]" value="" />' +
-					'<a href="#" title="Switch Color Mode" class="color_mode"></a>' +
-					'<a href="#" title="Remove" class="delete"></a>' +
+					'<a href="#" title="<?=$color_mode_title?>" class="color_mode"></a>' +
+					'<a href="#" title="<?=$remove_title?>" class="delete"></a>' +
 				'</li></ul>');
 			
 		// Switch between color and grayscale

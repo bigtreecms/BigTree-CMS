@@ -21,11 +21,11 @@
 	$data["thumbs"] = isset($data["thumbs"]) ? $data["thumbs"] : "";
 ?>
 <fieldset>
-	<label>Upload Directory <small>(required, relative to SITE_ROOT)</small></label>
+	<label><?=Text::translate("Upload Directory <small>(required, relative to SITE_ROOT)</small>")?></label>
 	<input type="text" name="directory" value="<?=htmlspecialchars($data["directory"])?>" class="required" />
 </fieldset>
 <fieldset>
 	<input type="checkbox" name="disable_captions" <?php if ($data["disable_captions"]) { ?>checked="checked" <?php } ?>/>
-	<label class="for_checkbox">Disable Captions</label>
+	<label class="for_checkbox"><?=Text::translate("Disable Captions")?></label>
 </fieldset>
 <?php include Router::getIncludePath("admin/ajax/developer/field-options/_image-options.php") ?>

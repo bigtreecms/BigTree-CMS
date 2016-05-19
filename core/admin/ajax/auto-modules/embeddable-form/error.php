@@ -7,7 +7,7 @@
 	<section>
 		<div class="alert">
 			<span></span>
-			<p><?=Text::translate("Your submission had ")?> <?=count($errors)?> <?=Text::translate((count($errors) != 1) ? "errors" : "error")?>.</p>
+			<p><?=Text::translate("Your submission had :count: error(s).", false, array(":count:" => count($errors)))?></p>
 		</div>
 		<div class="table error_table">
 			<header>

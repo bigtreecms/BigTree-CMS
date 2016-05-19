@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	if ($_GET["table"]) {
 		$table = $_GET["table"];
 	}
@@ -10,7 +12,7 @@
 
 	// To tolerate someone selecting the blank spot again when creating a feed.
 	if ($table) {
-		$table_description = BigTree::describeTable($table);
+		$table_description = SQL::describeTable($table);
 	} else {
 		$table_description = array("columns" => array());
 	}
@@ -41,16 +43,17 @@
 	}
 
 	if (count($fields)) {
+		$parser_placeholder = Text::translate('PHP code to transform $value (which contains the column value.)', true);
 ?>
 <fieldset class="last">
-	<label>Fields</label>
+	<label><?=Text::translate("Fields")?></label>
 
 	<div class="form_table">
 		<header></header>
 		<div class="labels">
-			<span class="developer_view_title">Title</span>
-			<span class="developer_view_parser">Parser</span>
-			<span class="developer_resource_action">Delete</span>
+			<span class="developer_view_title"><?=Text::translate("Title")?></span>
+			<span class="developer_view_parser"><?=Text::translate("Parser")?></span>
+			<span class="developer_resource_action"><?=Text::translate("Delete")?></span>
 		</div>
 		<ul id="sort_table">
 			<?php foreach ($fields as $key => $field) { ?>
@@ -61,7 +64,7 @@
 					<input type="text" name="fields[<?=$key?>][title]" value="<?=$field["title"]?>" />
 				</section>
 				<section class="developer_view_parser">
-					<input type="text" name="fields[<?=$key?>][parser]" value="<?=htmlspecialchars($field["parser"])?>"  placeholder="PHP code to transform $value (which contains the column value.)" />
+					<input type="text" name="fields[<?=$key?>][parser]" value="<?=htmlspecialchars($field["parser"])?>"  placeholder="<?=$parser_placeholder?>" />
 				</section>
 				<section class="developer_resource_action">
 					<a href="#" class="icon_delete"></a>
@@ -99,7 +102,7 @@
 			var key = el.field;
 			
 			var li = $('<li id="row_' + key + '">');
-			li.html('<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_view_parser"><input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="PHP code to transform $value (which contains the column value.)"/></section><section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>');
+			li.html('<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_view_parser"><input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="<?=$parser_placeholder?>" /></section><section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>');
 		
 			fs.removeCurrent();
 			$("#sort_table").append(li);
@@ -111,7 +114,7 @@
 <?php
 	} else {
 ?>
-<p>Please choose a table to populate this area.</p>
+<p><?=Text::translate("Please choose a table to populate this area.")?></p>
 <?php
 	}
 ?>

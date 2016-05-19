@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	// Stop notices
 	$data["seo_body"] = isset($data["seo_body"]) ? $data["seo_body"] : "";
 	$data["simple"] = isset($data["simple"]) ? $data["simple"] : "";
@@ -8,22 +10,22 @@
 ?>
 <fieldset>
 	<input type="checkbox" name="seo_body"<?php if ($data["seo_body"]) { ?> checked="checked"<?php } ?> />
-	<label class="for_checkbox">Use For Body Copy SEO Score</label>
+	<label class="for_checkbox"><?=Text::translate("Use For Body Copy SEO Score")?></label>
 </fieldset>
 <?php
 	}
 ?>
 <fieldset>
 	<input type="checkbox" name="simple"<?php if ($data["simple"]) { ?> checked="checked"<?php } ?> />
-	<label class="for_checkbox">Simple Mode <small>(less options)</small></label>
+	<label class="for_checkbox"><?=Text::translate("Simple Mode <small>(less options)</small>")?></label>
 </fieldset>
 <hr />
 <fieldset>
-	<label>Simple Mode Via Permissions <small>(minimum access level)</small></label>
+	<label><?=Text::translate("Simple Mode Via Permissions <small>(minimum access level)</small>")?></label>
 	<select name="simple_by_permission">
 		<option value="0"></option>
-		<option value="1"<?php if ($sbp == "1") { ?> selected="selected"<?php } ?>>Administrator</option>
-		<option value="2"<?php if ($sbp == "2") { ?> selected="selected"<?php } ?>>Developer</option>
+		<option value="1"<?php if ($sbp == "1") { ?> selected="selected"<?php } ?>><?=Text::translate("Administrator")?></option>
+		<option value="2"<?php if ($sbp == "2") { ?> selected="selected"<?php } ?>><?=Text::translate("Developer")?></option>
 	</select>
 </fieldset>
-<p class="note">If a user is below this permission level, this HTML area will switch to Simple Mode.</p>
+<p class="note"><?=Text::translate("If a user is below this permission level, this HTML area will switch to Simple Mode.")?></p>

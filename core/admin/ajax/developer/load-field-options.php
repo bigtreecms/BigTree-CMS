@@ -3,24 +3,22 @@
 	
 	// Prevent directory path shenanigans
 	$field_type = FileSystem::getSafePath($_POST["type"]);
-	$data = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["data"]),true);
-	
-	$validation_options = array(
-		"required" => "Required",
-		"numeric" => "Numeric",
-		"numeric required" => "Numeric (required)",
-		"email" => "Email",
-		"email required" => "Email (required)",
-		"link" => "Link",
-		"link required" => "Link (required)"
-	);
-	
+	$data = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["data"]),true);	
 	$validation = isset($data["validation"]) ? $data["validation"] : "";
 	
 	if ($field_type == "text") {
+		$validation_options = array(
+			"required" => Text::translate("Required"),
+			"numeric" => Text::translate("Numeric"),
+			"numeric required" => Text::translate("Numeric (required)"),
+			"email" => Text::translate("Email"),
+			"email required" => Text::translate("Email (required)"),
+			"link" => Text::translate("Link"),
+			"link required" => Text::translate("Link (required)")
+		);
 ?>
 <fieldset>
-	<label>Validation</label>
+	<label><?=Text::translate("Validation")?></label>
 	<select name="validation">
 		<option></option>
 		<?php foreach ($validation_options as $k => $v) { ?>
@@ -33,7 +31,7 @@
 ?>
 <fieldset>
 	<input type="checkbox" name="validation" value="required"<?php if ($validation == "required") { ?> checked="checked"<?php } ?> />
-	<label class="for_checkbox">Required</label>
+	<label class="for_checkbox"><?=Text::translate("Required")?></label>
 </fieldset>
 <?php
 	}
@@ -53,7 +51,7 @@
 		include $path;
 	} elseif ($field_type != "textarea" && $field_type != "time") {
 ?>
-<p>This field type does not have any options.</p>
+<p><?=Text::translate("This field type does not have any options.")?></p>
 <?php
 	}
 ?>

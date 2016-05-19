@@ -1,9 +1,11 @@
 <?php
+	namespace BigTree;
+
 	if (isset($_GET["table"])) {
 		$table = $_GET["table"];
 	}
 	
-	$reserved = BigTreeAdmin::$ReservedColumns;
+	$reserved = \BigTreeAdmin::$ReservedColumns;
 
 	$used = array();
 	$unused = array();
@@ -11,7 +13,7 @@
 	$tblfields = array();
 	// To tolerate someone selecting the blank spot again when creating a view.
 	if ($table) {
-		$table_description = BigTree::describeTable($table);
+		$table_description = SQL::describeTable($table);
 	} else {
 		$table_description = array("columns" => array());
 	}
@@ -32,19 +34,20 @@
 	}
 	
 	$preview_field = isset($view["preview_field"]) ? $view["preview_field"] : "id";
-	
 	$unused[] = array("field" => "— Custom —", "title" => "");
+
 	if (count($tblfields)) {
+		$parser_placeholder = Text::translate('PHP code to transform $value (which contains the column value.)', true);
 ?>
 <fieldset id="fields"<?php if ($type == "images" || $type == "images-grouped") { ?> style="display: none;"<?php } ?>>
-	<label>Fields</label>
+	<label><?=Text::translate("Fields")?></label>
 	
 	<div class="form_table">
 		<header></header>
 		<div class="labels">
-			<span class="developer_view_title">Title</span>
-			<span class="developer_view_parser">Parser</span>
-			<span class="developer_resource_action">Delete</span>
+			<span class="developer_view_title"><?=Text::translate("Title")?></span>
+			<span class="developer_view_parser"><?=Text::translate("Parser")?></span>
+			<span class="developer_resource_action"><?=Text::translate("Delete")?></span>
 		</div>
 		<ul id="sort_table">
 			<?php
@@ -57,7 +60,7 @@
 			<li id="row_<?=$key?>">
 				<input type="hidden" name="fields[<?=$key?>][width]" value="<?=$field["width"]?>" />
 				<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[<?=$key?>][title]" value="<?=$field["title"]?>" /></section>
-				<section class="developer_view_parser"><input type="text" name="fields[<?=$key?>][parser]" value="<?=htmlspecialchars($field["parser"])?>" class="parser" placeholder="PHP code to transform $value (which contains the column value.)" /></section>
+				<section class="developer_view_parser"><input type="text" name="fields[<?=$key?>][parser]" value="<?=htmlspecialchars($field["parser"])?>" class="parser" placeholder="<?=$parser_placeholder?>" /></section>
 				<section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>
 			</li>
 			<?php
@@ -69,7 +72,7 @@
 			?>
 			<li id="row_<?=$key?>">
 				<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[<?=$key?>][title]" value="<?=htmlspecialchars(ucwords(str_replace("_"," ",$key)))?>" /></section>
-				<section class="developer_view_parser"><input type="text" name="fields[<?=$key?>][parser]" value="" class="parser" placeholder="PHP code to transform $value (which contains the column value.)" /></section>
+				<section class="developer_view_parser"><input type="text" name="fields[<?=$key?>][parser]" value="" class="parser" placeholder="<?=$parser_placeholder?>" /></section>
 				<section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>
 			</li>
 			<?php
@@ -81,7 +84,7 @@
 	</div>
 </fieldset>
 <fieldset class="last">
-	<label>Actions <small>(click to deselect, drag bottom tab to rearrange)</small></label>
+	<label><?=Text::translate("Actions <small>(click to deselect, drag bottom tab to rearrange)</small>")?></label>
 	<div class="developer_action_list">
 		<ul>
 			<?php
@@ -129,7 +132,7 @@
 				}
 			?>
 		</ul>
-		<a href="#" class="button add_action">Add</a>
+		<a href="#" class="button add_action"><?=Text::translate("Add")?></a>
 	</div>
 </fieldset>
 
@@ -164,8 +167,23 @@
 		_local_BigTreeCustomAction = $(this).parents("li");
 		var j = $.parseJSON(_local_BigTreeCustomAction.find("input").val());
 		BigTreeDialog({
-			title: "Edit Custom Action",
-			content: '<fieldset><label>Action Name</label><input type="text" name="name" value="' + htmlspecialchars(j.name) + '" /></fieldset><fieldset><label>Action Image Class <small>(i.e. icon_preview)</small></label><input type="text" name="class" value="' + htmlspecialchars(j.class) + '" /></fieldset><fieldset><label>Action Route</label><input type="text" name="route" value="' + htmlspecialchars(j.route) + '" /></fieldset><fieldset class="last"><label>Link Function <small>(if you need more than simply /route/id/)</small></label><input type="text" name="function" value="' + htmlspecialchars(j.function) + '" /></fieldset>',
+			title: "<?=Text::translate("Edit Custom Action", true)?>",
+			content: '<fieldset>' +
+						'<label><?=Text::translate("Action Name")?></label>' +
+						'<input type="text" name="name" value="' + htmlspecialchars(j.name) + '" />' +
+					'</fieldset>' +
+					'<fieldset>' +
+						'<label><?=Text::translate("Action Image Class <small>(i.e. icon_preview)</small>")?></label>' +
+						'<input type="text" name="class" value="' + htmlspecialchars(j.class) + '" />' +
+					'</fieldset>' +
+					'<fieldset>' +
+						'<label><?=Text::translate("Action Route")?></label>' +
+						'<input type="text" name="route" value="' + htmlspecialchars(j.route) + '" />' +
+					'</fieldset>' +
+					'<fieldset class="last">' +
+						'<label><?=Text::translate("Link Function <small>(if you need more than simply /route/id/)</small>")?></label>' +
+						'<input type="text" name="function" value="' + htmlspecialchars(j.function) + '" />' +
+					'</fieldset>',
 			icon: "edit",
 			callback: function(data) {
 				_local_BigTreeCustomAction.load("<?=ADMIN_ROOT?>ajax/developer/add-view-action/", data);
@@ -175,10 +193,25 @@
 		
 	$(".add_action").click(function() {
 		BigTreeDialog({
-			title: "Add Custom Action",
-			content: '<fieldset><label>Action Name</label><input type="text" name="name" /></fieldset><fieldset><label>Action Image Class <small>(i.e. icon_preview)</small></label><input type="text" name="class" /></fieldset><fieldset><label>Action Route</label><input type="text" name="route" /></fieldset><fieldset class="last"><label>Link Function <small>(if you need more than simply /route/id/)</small></label><input type="text" name="function" /></fieldset>',
+			title: "<?=Text::translate("Add Custom Action", true)?>",
+			content: '<fieldset>' +
+						'<label><?=Text::translate("Action Name")?></label>' +
+						'<input type="text" name="name" />' +
+					'</fieldset>' +
+					'<fieldset>' +
+						'<label><?=Text::translate("Action Image Class <small>(i.e. icon_preview)</small>")?></label>' +
+						'<input type="text" name="class" />' +
+					'</fieldset>' +
+					'<fieldset>' +
+						'<label><?=Text::translate("Action Route")?></label>' +
+						'<input type="text" name="route" />' +
+					'</fieldset>' +
+					'<fieldset class="last">' +
+						'<label><?=Text::translate("Link Function <small>(if you need more than simply /route/id/)</small>")?></label>' +
+						'<input type="text" name="function" />' +
+					'</fieldset>',
 			icon: "add",
-			alternateSaveText: "Add",
+			alternateSaveText: "<?=Text::translate("Add", true)?>",
 			callback: function(data) {
 				var li = $('<li>');
 				li.load("<?=ADMIN_ROOT?>ajax/developer/add-view-action/", data);
@@ -204,15 +237,31 @@
 			
 			if (title) {
 				var li = $('<li id="row_' + key + '">');
-				li.html('<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_view_parser"><input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="PHP code to transform $value (which contains the column value.)"/></section><section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>');
+				li.html('<section class="developer_view_title">' + 
+							'<span class="icon_sort"></span>' +
+							'<input type="text" name="fields[' + key + '][title]" value="' + title + '" />' +
+						'</section>' +
+						'<section class="developer_view_parser">' +
+							'<input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="<?=$parser_placeholder?>"/>' +
+						'</section>' +
+						'<section class="developer_resource_action">' +
+							'<a href="#" class="icon_delete"></a>' +
+						'</section>');
 			
 				fs.removeCurrent();
 				$("#sort_table").append(li);
 				BigTree.localHooks();
 			} else {
 				BigTreeDialog({
-					title: "Add Custom Column",
-					content: '<fieldset><label>Column Key <small>(must be unique)</small></label><input type="text" name="key" /></fieldset><fieldset class="last"><label>Column Title</label><input type="text" name="title" /></fieldset>',
+					title: "<?=Text::translate("Add Custom Column", true)?>",
+					content: '<fieldset>' +
+								'<label><?=Text::translate("Column Key <small>(must be unique)</small>")?></label>' +
+								'<input type="text" name="key" />' +
+							'</fieldset>' +
+							'<fieldset class="last">' +
+								'<label><?=Text::translate("Column Title")?></label>' +
+								'<input type="text" name="title" />' +
+							'</fieldset>',
 					icon: "add",
 					alternateSaveText: "Add",
 					callback: function(data) {
@@ -220,7 +269,16 @@
 						var title = htmlspecialchars(data.title);
 						
 						var li = $('<li id="row_' + key + '">');
-						li.html('<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[' + key + '][title]" value="' + title + '" /></section><section class="developer_view_parser"><input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="PHP code to transform $value (which contains the column value.)" /></section><section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>');
+						li.html('<section class="developer_view_title">' +
+									'<span class="icon_sort"></span>' +
+									'<input type="text" name="fields[' + key + '][title]" value="' + title + '" />' +
+								'</section>' +
+								'<section class="developer_view_parser">' +
+									'<input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="<?=$parser_placeholder?>" />' +
+								'</section>' +
+								'<section class="developer_resource_action">' +
+									'<a href="#" class="icon_delete"></a>' +
+								'</section>');
 						$("#sort_table").append(li);
 						BigTree.localHooks();
 					}
@@ -232,7 +290,7 @@
 <?php
 	} else {
 ?>
-<p>Please choose a table to populate this area.</p>
+<p><?=Text::translate("Please choose a table to populate this area.")?></p>
 <?php
 	}
 ?>

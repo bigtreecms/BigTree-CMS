@@ -16,16 +16,16 @@
 	$data["image"] = isset($data["image"]) ? $data["image"] : "";
 ?>
 <fieldset>
-	<label>Upload Directory <small>(required, relative to SITE_ROOT)</small></label>
+	<label><?=Text::translate("Upload Directory <small>(required, relative to SITE_ROOT)</small>")?></label>
 	<input type="text" name="directory" value="<?=htmlspecialchars($data["directory"])?>" class="required" />
 </fieldset>
 <fieldset>
 	<input type="checkbox" name="image"<?php if ($data["image"]) { ?> checked="checked"<?php } ?> id="image_uploader_enabled" />
-	<label class="for_checkbox">Image Uploader Enabled <small>(enables crops, thumbs, preview)</small></label>
+	<label class="for_checkbox"><?=Text::translate("Image Uploader Enabled <small>(enables crops, thumbs, preview)</small>")?></label>
 </fieldset>
 
 <div id="image_uploader_options"<?php if (!$data["image"]) { ?> style="display: none;"<?php } ?>>
-	<h4>Image Options</h4>
+	<h4><?=Text::translate("Image Options")?></h4>
 	<?php include Router::getIncludePath("admin/ajax/developer/field-options/_image-options.php") ?>
 </div>
 

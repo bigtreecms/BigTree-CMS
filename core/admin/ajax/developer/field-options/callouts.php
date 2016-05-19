@@ -1,5 +1,7 @@
 <?php
-	$groups = BigTree\CalloutGroup::all();
+	namespace BigTree;
+
+	$groups = CalloutGroup::all();
 
 	// Stop notices
 	$data["groups"] = is_array($data["groups"]) ? $data["groups"] : array();
@@ -12,16 +14,16 @@
 	}
 ?>
 <fieldset>
-	<label>Groups <small>(if you don't choose at least one group, all callouts will be available)</small></label>
+	<label><?=Text::translate("Groups <small>(if you don't choose at least one group, all callouts will be available)</small>")?></label>
 	<div class="multi_widget many_to_many" id="callout_groups">
 		<section<?php if (count($data["groups"])) { ?> style="display: none;"<?php } ?>>
-			<p>Click "Add Item" to add an item to this list.</p>
+			<p><?=Text::translate('Click "Add Item" to add an item to this list.')?></p>
 		</section>
 		<ul>
 			<?php
 				$x = 0;
 				foreach ($data["groups"] as $id) {
-					$group = new BigTree\CalloutGroup($id);
+					$group = new CalloutGroup($id);
 			?>
 			<li>
 				<input type="hidden" name="groups[<?=$x?>]" value="<?=$group->ID?>" />
@@ -45,16 +47,16 @@
 					}
 				?>
 			</select>
-			<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Group</a>
+			<a href="#" class="add button"><span class="icon_small icon_small_add"></span><?=Text::translate("Add Group")?></a>
 		</footer>
 	</div>
 </fieldset>
 <fieldset>
-	<label>Noun <small>(defaults to "Callout")</small></label>
+	<label><?=Text::translate('Noun <small>(defaults to "Callout")</small>')?></label>
 	<input type="text" name="noun" value="<?=htmlspecialchars($data["noun"])?>" />
 </fieldset>
 <fieldset>
-	<label>Maximum Entries <small>(defaults to unlimited)</small></label>
+	<label><?=Text::translate("Maximum Entries <small>(defaults to unlimited)</small>")?></label>
 	<input type="text" name="max" value="<?=$data["max"]?>" />
 </fieldset>
 <script>

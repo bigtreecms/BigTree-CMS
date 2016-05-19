@@ -895,7 +895,7 @@
 		*/
 		
 		function search($query,$order = false,$limit = false,$split_search = false,$case_sensitive = false,$columns = false) {
-			$table_description = BigTree::describeTable($this->Table);
+			$table_description = SQL::describeTable($this->Table);
 			$where = array();
 
 			if ($split_search) {

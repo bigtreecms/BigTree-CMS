@@ -1,5 +1,7 @@
 <?php
-	$reserved = BigTreeAdmin::$ReservedColumns;
+	namespace BigTree;
+
+	$reserved = \BigTreeAdmin::$ReservedColumns;
 	
 	$used = array();
 	$unused = array();
@@ -13,7 +15,7 @@
 			$used[] = $field["column"];
 		}
 		// Figure out the fields we're not using so we can offer them back.
-		$table_description = BigTree::describeTable($table);
+		$table_description = SQL::describeTable($table);
 		foreach ($table_description["columns"] as $column => $details) {
 			if (!in_array($column,$reserved) && !in_array($column,$used)) {
 				$unused[] = array("field" => $column, "title" => str_replace(array("Url","Pdf","Sql"),array("URL","PDF","SQL"),ucwords(str_replace(array("-","_")," ",$details["name"]))));
@@ -27,7 +29,7 @@
 		$fields = array();
 		// To tolerate someone selecting the blank spot in the table dropdown again when creating a form.
 		if ($table) {
-			$table_description = BigTree::describeTable($table);
+			$table_description = SQL::describeTable($table);
 		} else {
 			$table_description = array("foreign_keys" => array(), "columns" => array());
 		}
@@ -49,7 +51,7 @@
 				$options = array();
 				
 				if (strpos($title,"URL") !== false) {
-					$subtitle = "(include http://)";
+					$subtitle = Text::translate("(include http://)");
 				}
 
 				if ($column["name"] == "route") {
@@ -106,7 +108,7 @@
 				if (substr($column["type"],-3,3) == "int" && isset($foreign_keys[$column["name"]]) && implode("",$foreign_keys[$column["name"]]["other_columns"]) == "id") {
 					$type = "list";
 					// Describe this other table
-					$other_table = BigTree::describeTable($foreign_keys[$column["name"]]["other_table"]);
+					$other_table = SQL::describeTable($foreign_keys[$column["name"]]["other_table"]);
 					$ot_columns = $other_table["columns"];
 					$desc_column = "";
 					// Find the first short title-esque column and use it as the populated list descriptor
@@ -140,11 +142,11 @@
 	// Make sure this table has an "id" column and is auto increment, if not, throw a warning
 	if (empty($table_description["columns"]["id"])) {
 ?>
-<p class="error_message">The chosen table does not have a column named "id" which BigTree requires as a unique identifier.<br />Please an an "id" column INT(11) with Primary Key and Auto Increment settings.</p>
+<p class="error_message"><?=Text::translate('The chosen table does not have a column named "id" which BigTree requires as a unique identifier.<br />Please an an "id" column INT(11) with Primary Key and Auto Increment settings.')?></p>
 <?php
 	} elseif (!$table_description["columns"]["id"]["auto_increment"]) {
 ?>
-<p class="error_message">The chosen table's "id" column is not set to auto increment. If you're adding to this table via BigTree, please set the column to auto increment.</p>
+<p class="error_message"><?=Text::translate('The chosen table\'s "id" column is not set to auto increment. If you\'re adding to this table via BigTree, please set the column to auto increment.')?></p>
 <?php
 	}
 
@@ -152,7 +154,7 @@
 	$types = $cached_types["modules"];
 	if (count($fields)) {
 ?>
-<label>Fields</label>
+<label><?=Text::translate("Fields")?></label>
 
 <div class="form_table<?php if (!$positioned) { ?> last<?php } ?>">
 	<header>
@@ -160,14 +162,17 @@
 		<a href="#" class="add add_many_to_many"><span></span>Many-To-Many</a>
 	</header>
 	<div class="labels">
-		<span class="developer_resource_form_title">Title</span>
-		<span class="developer_resource_form_subtitle">Subtitle</span>
-		<span class="developer_resource_type">Type</span>
-		<span class="developer_resource_action">Delete</span>
+		<span class="developer_resource_form_title"><?=Text::translate("Title")?></span>
+		<span class="developer_resource_form_subtitle"><?=Text::translate("Subtitle")?></span>
+		<span class="developer_resource_type"><?=Text::translate("Type")?></span>
+		<span class="developer_resource_action"><?=Text::translate("Delete")?></span>
 	</div>
 	<ul id="resource_table">
 		<?php
 			$mtm_count = 0;
+
+			$custom_title = Text::translate("Custom", true);
+			$default_title = Text::translate("Default", true);
 
 			foreach ($fields as $field) {
 				$key = $field["column"];
@@ -203,13 +208,13 @@
 					} else {
 				?>
 				<select name="fields[<?=$key?>][type]" id="type_<?=$key?>">
-					<optgroup label="Default">
+					<optgroup label="<?=$default_title?>">
 						<?php foreach ($types["default"] as $k => $v) { ?>
 						<option value="<?=$k?>"<?php if ($k == $field["type"]) { ?> selected="selected"<?php } ?>><?=$v["name"]?></option>
 						<?php } ?>
 					</optgroup>
 					<?php if (count($types["custom"])) { ?>
-					<optgroup label="Custom">
+					<optgroup label="<?=$custom_title?>">
 						<?php foreach ($types["custom"] as $k => $v) { ?>
 						<option value="<?=$k?>"<?php if ($k == $field["type"]) { ?> selected="selected"<?php } ?>><?=$v["name"]?></option>
 						<?php } ?>
@@ -235,10 +240,10 @@
 
 <?php if ($positioned) { ?>
 <fieldset class="last">
-	<label>Default Position <small>For New Entries</small></label>
+	<label><?=Text::translate("Default Position <small>For New Entries</small>")?></label>
 	<select name="default_position">
-		<option>Bottom</option>
-		<option<?php if ($form["default_position"] == "Top") { ?> selected="selected"<?php } ?>>Top</option>
+		<option><?=Text::translate("Bottom")?></option>
+		<option<?php if ($form["default_position"] == "Top") { ?> selected="selected"<?php } ?>><?=Text::translate("Top")?></option>
 	</select>
 </fieldset>
 <?php } ?>
@@ -265,11 +270,11 @@
 <?php
 	} elseif (array_filter((array)$table_description["columns"])) {
 ?>
-<p>The chosen table does not have any <a href="http://www.bigtreecms.org/docs/dev-guide/sql-queries/table-structure/#ReservedColumns" target="_blank">non-reserved columns</a>.</p>
+<p><?=Text::translate('The chosen table does not have any <a href=":doc_link:" target="_blank">non-reserved columns</a>.', false, array(":doc_link:" => "http://www.bigtreecms.org/docs/dev-guide/sql-queries/table-structure/#ReservedColumns"))?></p>
 <?php
 	} else {
 ?>
-<p>Please choose a table to populate this area.</p>
+<p><?=Text::translate("Please choose a table to populate this area.")?></p>
 <?php
 	}
 ?>
