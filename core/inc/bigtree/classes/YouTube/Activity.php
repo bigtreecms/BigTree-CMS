@@ -13,6 +13,23 @@
 		/** @var \BigTree\YouTube\API */
 		protected $API;
 
+		public $ChannelID;
+		public $ChannelTitle;
+		public $Comment;
+		public $Description;
+		public $Favorite;
+		public $GroupID;
+		public $ID;
+		public $Images;
+		public $Like;
+		public $PlaylistItem;
+		public $Recommendation;
+		public $Social;
+		public $Subscription;
+		public $Timestamp;
+		public $Title;
+		public $Upload;
+
 		function __construct($activity,&$api) {
 			$type = $activity->snippet->type;
 

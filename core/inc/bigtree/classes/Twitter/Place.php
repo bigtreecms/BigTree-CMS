@@ -11,6 +11,15 @@
 		/** @var \BigTree\Twitter\API */
 		protected $API;
 
+		public $BoundingBox;
+		public $Country;
+		public $CountryCode;
+		public $FullName;
+		public $ID;
+		public $Name;
+		public $Type;
+		public $URL;
+
 		/*
 			Constructor:
 				Creates a place object from Twitter data.

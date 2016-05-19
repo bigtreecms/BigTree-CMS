@@ -8,6 +8,13 @@
 
 	class ResultSet {
 
+		/** @var \BigTree\Twitter\API */
+		protected $API;
+		protected $LastCall;
+		protected $LastParameters;
+
+		public $Results;
+
 		/*
 			Constructor:
 				Creates a result set of Twitter data.

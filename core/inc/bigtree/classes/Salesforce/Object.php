@@ -14,6 +14,24 @@
 		protected $API;
 		protected $QueryFieldNames;
 
+		public $Activateable;
+		public $Creatable;
+		public $Deletable;
+		public $Fields;
+		public $Label;
+		public $LabelPlural;
+		public $Layoutable;
+		public $Mergeable;
+		public $Name;
+		public $Queryable;
+		public $QueryFieldNames;
+		public $Replicateable;
+		public $Retrieveable;
+		public $Searchable;
+		public $Triggerable;
+		public $Undeletable;
+		public $Updateable;
+
 		/*
 			Constructor:
 				Creates a new BigTree\Salesforce\Object

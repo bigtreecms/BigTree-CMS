@@ -27,7 +27,7 @@
 		*/
 		
 		static function checkPathHistory($path) {
-			$found = false;
+			$found = $new = $old = false;
 			$x = count($path);
 
 			while ($x) {
@@ -495,7 +495,7 @@
 			$file_location = ltrim(static::replaceServerRoot($path), "/");
 			$include_root = false;
 			$pathed_includes = false;
-			$headers = $footers = array();
+			$headers = $footers = $pieces = array();
 
 			// Get our path pieces and include roots setup properly
 			if (strpos($file_location, "custom/admin/modules/") === 0) {

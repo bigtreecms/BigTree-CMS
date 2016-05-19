@@ -8,6 +8,7 @@
 
 	/**
 	 * @property-read int $ID
+	 * @property-read int $AllocationCount
 	 */
 
 	class Resource extends BaseObject {

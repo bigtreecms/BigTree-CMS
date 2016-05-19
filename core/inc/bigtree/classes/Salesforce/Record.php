@@ -11,6 +11,14 @@
 		/** @var \BigTree\Salesforce\API */
 		protected $API;
 
+		public $Columns;
+		public $CreatedAt;
+		public $CreatedBy;
+		public $ID;
+		public $Type;
+		public $UpdatedAt;
+		public $UpdatedBy;
+
 		/*
 			Constructor:
 				Creates a new BigTree\Salesforce\Record object.
@@ -22,6 +30,7 @@
 
 		function __construct($record,&$api) {
 			$this->API = $api;
+			
 			// Save this ahead of time to keep things alphabetized.
 			$this->Columns = $record;
 			$this->CreatedAt = date("Y-m-d H:i:s",strtotime($record->CreatedDate));
@@ -30,6 +39,7 @@
 			$this->Type = $record->attributes->type;
 			$this->UpdatedAt = date("Y-m-d H:i:s",strtotime($record->LastModifiedDate));
 			$this->UpdatedBy = $record->LastModifiedById;
+			
 			// Remove a bunch of columns we can't modify
 			unset($record->attributes);
 			unset($this->Columns->CreatedById);

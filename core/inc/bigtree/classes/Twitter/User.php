@@ -11,6 +11,28 @@
 		/** @var \BigTree\Twitter\API */
 		protected $API;
 
+		public $Description;
+		public $Favorites;
+		public $FollowersCount;
+		public $Following;
+		public $FriendsCount;
+		public $GeoEnabled;
+		public $ID;
+		public $Image;
+		public $ImageHTTPS;
+		public $Language;
+		public $ListedCount;
+		public $Location;
+		public $Name;
+		public $Protected;
+		public $Timestamp;
+		public $Timezone;
+		public $TimezoneOffset;
+		public $TweetCount;
+		public $Username;
+		public $URL;
+		public $Verified;
+
 		/*
 			Constructor:
 				Creates a user object from Twitter data.

@@ -7,7 +7,11 @@
 	namespace BigTree;
 
 	/**
+	 * @property-read array $Breadcrumb
+	 * @property-read array $Contents
 	 * @property-read int $ID
+	 * @property-read array $Statistics
+	 * @property-read string $UserAccessLevel
 	 */
 
 	class ResourceFolder extends BaseObject {

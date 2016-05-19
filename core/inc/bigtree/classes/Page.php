@@ -12,6 +12,7 @@
 	 * @property-read int $ID
 	 * @property-read int $LastEditedBy
 	 * @property-read int $PendingID
+	 * @property-read array $Tags
 	 * @property-read string $UpdatedAt
 	 */
 	
@@ -41,6 +42,7 @@
 		public $Position;
 		public $PublishAt;
 		public $Resources;
+		public $Revision;
 		public $Route;
 		public $SEOInvisible;
 		public $Template;

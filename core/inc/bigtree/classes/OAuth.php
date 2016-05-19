@@ -9,6 +9,9 @@
 	
 	class OAuth {
 
+		protected $Setting;
+
+		public $Active;
 		public $AuthorizeURL = "";
 		public $Cache = true;
 		public $CacheIdentifier = "";
@@ -17,6 +20,7 @@
 		public $Errors = array();
 		public $LastCacheKey = false;
 		public $OAuthError = false;
+		public $OAuthSettings;
 		public $OAuthVersion = false;
 		public $RequestParameters = array();
 		public $RequestType = false;

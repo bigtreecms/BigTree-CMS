@@ -13,6 +13,16 @@
 		/** @var \BigTree\YouTube\API */
 		protected $API;
 
+		public $CommentCount;
+		public $Description;
+		public $ID;
+		public $Images;
+		public $SubscriberCount;
+		public $Timestamp;
+		public $Title;
+		public $VideoCount;
+		public $ViewCount;
+
 		function __construct($channel,&$api) {
 			$this->API = $api;
 			isset($channel->statistics->commentCount) ? $this->CommentCount = $channel->statistics->commentCount : false;

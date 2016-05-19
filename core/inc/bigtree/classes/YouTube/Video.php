@@ -13,6 +13,36 @@
 		/** @var \BigTree\YouTube\API */
 		protected $API;
 
+		public $Captioned;
+		public $CategoryID;
+		public $ChannelID;
+		public $ChannelTitle;
+		public $CommentCount;
+		public $ContentRatings;
+		public $Definition;
+		public $Description;
+		public $Dimension;
+		public $DislikeCount;
+		public $Duration;
+		public $Embed;
+		public $Embeddable;
+		public $FavoriteCount;
+		public $ID;
+		public $Images;
+		public $License;
+		public $LicensedContent;
+		public $LikeCount;
+		public $Location;
+		public $Privacy;
+		public $RecordedTimestamp;
+		public $Tags;
+		public $Timestamp;
+		public $Title;
+		public $UploadFailureReason;
+		public $UploadRejectionReason;
+		public $UploadStatus;
+		public $ViewCount;
+
 		function __construct($video,&$api) {
 			$this->API = $api;
 			isset($video->contentDetails->caption) ? $this->Captioned = $video->contentDetails->caption : false;

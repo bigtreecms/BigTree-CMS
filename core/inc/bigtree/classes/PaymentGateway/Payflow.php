@@ -19,6 +19,8 @@
 		protected $Username;
 		protected $Vendor;
 
+		public $PayPalTransaction;
+
 		/*
 			Constructor:
 				Prepares an environment for Authorize.Net payments.

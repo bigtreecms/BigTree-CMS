@@ -13,6 +13,16 @@
 		/** @var \BigTree\YouTube\API */
 		protected $API;
 
+		public $ChannelID;
+		public $ChannelTitle;
+		public $Description;
+		public $ID;
+		public $Images;
+		public $Privacy;
+		public $Tags;
+		public $Timestamp;
+		public $Title;
+
 		function __construct($playlist,&$api) {
 			$this->API = $api;
 			isset($playlist->snippet->channelId) ? $this->ChannelID = $playlist->snippet->channelId : false;

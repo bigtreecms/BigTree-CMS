@@ -13,6 +13,10 @@
 		/** @var \BigTree\YouTube\API */
 		protected $API;
 
+		public $Channel;
+		public $ID;
+		public $Timestamp;
+
 		function __construct($subscription,&$api) {
 			$this->API = $api;
 

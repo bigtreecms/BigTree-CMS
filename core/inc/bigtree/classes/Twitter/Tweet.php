@@ -13,6 +13,26 @@
 		/** @var \BigTree\Twitter\API */
 		protected $API;
 
+		public $Content;
+		public $FavoriteCount;
+		public $Favorited;
+		public $Hashtags = array();
+		public $ID;
+		public $IsRetweet;
+		public $Language;
+		public $LinkedContent;
+		public $Media = array();
+		public $Mentions = array();
+		public $OriginalTweet;
+		public $Place;
+		public $RetweetCount;
+		public $Retweeted;
+		public $Source;
+		public $Symbols = array();
+		public $Timestamp;
+		public $URLs = array();
+		public $User;
+
 		/*
 			Constructor:
 				Creates a tweet object from Twitter data.
@@ -28,7 +48,6 @@
 			isset($tweet->favorite_count) ? $this->FavoriteCount = $tweet->favorite_count : false;
 			isset($tweet->favorited) ? $this->Favorited = $tweet->favorited : false;
 			if (isset($tweet->entities->hashtags)) {
-				$this->Hashtags = array();
 				if (is_array($tweet->entities->hashtags)) {
 					foreach ($tweet->entities->hashtags as $hashtag) {
 						$this->Hashtags[] = $hashtag->text;
@@ -40,7 +59,6 @@
 			isset($tweet->lang) ? $this->Language = $tweet->lang : false;
 			isset($tweet->text) ? $this->LinkedContent = preg_replace('/(^|\s)#(\w+)/','\1<a href="http://twitter.com/search?q=%23\2" target="_blank">#\2</a>',preg_replace('/(^|\s)@(\w+)/','\1<a href="http://www.twitter.com/\2" target="_blank">@\2</a>',preg_replace("@\b(https?://)?(([0-9a-zA-Z_!~*'().&=+$%-]+:)?[0-9a-zA-Z_!~*'().&=+$%-]+\@)?(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-zA-Z_!~*'()-]+\.)*([0-9a-zA-Z][0-9a-zA-Z-]{0,61})?[0-9a-zA-Z]\.[a-zA-Z]{2,6})(:[0-9]{1,4})?((/[0-9a-zA-Z_!~*'().;?:\@&=+$,%#-]+)*/?)@",'<a href="\0" target="_blank">\0</a>',$tweet->text))) : false;
 			if (isset($tweet->entities->media)) {
-				$this->Media = array();
 				if (is_array($tweet->entities->media)) {
 					foreach ($tweet->entities->media as $media) {
 						$m = new stdClass;
@@ -64,7 +82,6 @@
 				}
 			}
 			if (isset($tweet->entities->user_mentions)) {
-				$this->Mentions = array();
 				if (is_array($tweet->entities->user_mentions)) {
 					foreach ($tweet->entities->user_mentions as $mention) {
 						$this->Mentions[] = new User($mention,$api);
@@ -77,7 +94,6 @@
 			isset($tweet->retweeted) ? $this->Retweeted = $tweet->retweeted : false;
 			isset($tweet->source) ? $this->Source = $tweet->source : false;
 			if (isset($tweet->entities->symbols)) {
-				$this->Symbols = array();
 				if (is_array($tweet->entities->symbols)) {
 					foreach ($tweet->entities->symbols as $symbol) {
 						$this->Symbols[] = $symbol->text;
@@ -86,7 +102,6 @@
 			}
 			isset($tweet->created_at) ? $this->Timestamp = date("Y-m-d H:i:s",strtotime($tweet->created_at)) : false;
 			if (isset($tweet->entities->url)) {
-				$this->URLs = array();
 				if (is_array($tweet->entities->url)) {
 					foreach ($tweet->entities->urls as $url) {
 						$this->URLs[] = (object) array(

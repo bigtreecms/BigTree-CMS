@@ -11,6 +11,13 @@
 		/** @var \BigTree\Twitter\API */
 		protected $API;
 
+		public $Content;
+		public $ID;
+		public $LinkedContent;
+		public $Recipient;
+		public $Sender;
+		public $Timestamp;
+
 		/*
 			Constructor:
 				Create a direct message object from Twitter data.

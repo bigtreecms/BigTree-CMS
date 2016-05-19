@@ -16,6 +16,8 @@
 		protected $Environment;
 		protected $PostURL;
 
+		public $Errors;
+
 		/*
 			Constructor:
 				Prepares an environment for Authorize.Net payments.

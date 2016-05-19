@@ -17,6 +17,8 @@
 		protected $Signature;
 		protected $Username;
 
+		public $Profile;
+
 		/*
 			Constructor:
 				Prepares an environment for Authorize.Net payments.
