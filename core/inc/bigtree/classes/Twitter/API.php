@@ -620,10 +620,13 @@
 
 			// Upload media first
 			if ($image) {
-				$params["media_ids"] = $this->uploadMedia($image);
+				$media_id = $this->uploadMedia($image);
+
 				if (!$media_id) {
 					return false;
 				}
+
+				$params["media_ids"] = $media_id;
 			}
 			
 			// Post tweet

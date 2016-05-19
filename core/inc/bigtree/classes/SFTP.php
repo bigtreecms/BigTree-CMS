@@ -12,7 +12,7 @@
 
 	class SFTP {
 
-		var $Connection = false;
+		var $Connection;
 
 		/*
 			Function: changeToParentDirectory
@@ -55,11 +55,14 @@
 		function connect($host,$port = 22) {
 			// Test connection
 			$connection = @fsockopen($host, $port);
+			
 			if (is_resource($connection)) {
 				fclose($connection);
-				$this->Connection = new \Net_SFTP($host,$port);
+				$this->Connection = new \Net_SFTP($host, $port);
+				
 				return true;
 			}
+
 			return false;
 		}
 
@@ -130,7 +133,7 @@
 		*/
 
 		function downloadFile($remote,$local) {
-			return $this->Connection->get($remote,$local);
+			return $this->Connection->get($remote, $local);
 		}
 
 		/*
@@ -161,6 +164,7 @@
 			$list = $this->Connection->rawlist($path);
 			$formatted_list = array();
 			$names = array();
+			
 			foreach ($list as $line) {
 				if ($line["filename"] != "." && $line["filename"] != "..") {
 					// Make this the same as the BigTreeFTP class
@@ -178,7 +182,7 @@
 			}
 
 			// Sort alphabetically
-			array_multisort($names,$formatted_list);
+			array_multisort($names, $formatted_list);
 
 			return $formatted_list;
 		}
@@ -223,9 +227,11 @@
 			if (!$this->Connection) {
 				return false;
 			}
-			if (!$this->Connection->login($user,$pass)) {
+
+			if (!$this->Connection->login($user, $pass)) {
 				return false;
 			}
+			
 			return true;
 		}
 
@@ -242,7 +248,7 @@
 		*/
 
 		function rename($from, $to) {
-			return $this->Connection->rename($from,$to);
+			return $this->Connection->rename($from, $to);
 		}
 
 		/*
@@ -270,7 +276,8 @@
 			if (!@file_exists($local)) {
 				return false;
 			}
-			return $this->Connection->put($remote,$local,NET_SFTP_LOCAL_FILE);
+
+			return $this->Connection->put($remote, $local, NET_SFTP_LOCAL_FILE);
 		}
 
 	}

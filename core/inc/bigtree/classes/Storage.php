@@ -12,7 +12,7 @@
 		public $DisabledFileError = false;
 		public $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx)$/i';
 		public $Service = "";
-		public $Cloud = false;
+		public $Cloud;
 		public $Setting;
 		public $Settings;
 
@@ -287,9 +287,9 @@
 				$x = 2;
 
 				// Make sure we have a unique name
-				while (!$file_name || SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_caches 
-					   									WHERE `identifier` = 'org.bigtreecms.cloudfiles' 
-					   									AND `key` = ?", $relative_path.$file_name)) {
+				while (empty($file_name) || SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_caches 
+					   										  WHERE `identifier` = 'org.bigtreecms.cloudfiles' 
+					   										  AND `key` = ?", $relative_path.$file_name)) {
 					$file_name = $clean_name."-$x.".strtolower($parts["extension"]);
 					$x++;
 
