@@ -240,8 +240,9 @@
 				// Class file
 				FileSystem::createFile(SERVER_ROOT."custom/inc/modules/$route.php",'<?php
 	class '.$class.' extends BigTreeModule {
-		static $RouteRegistry = array();
-		var $Table = "'.$table.'";
+		public static $RouteRegistry = array();
+		
+		public $Table = "'.$table.'";
 	}
 ');
 				// Remove cached class list.

@@ -5,8 +5,11 @@
 	*/
 
 	class BigTreeEmailService {
-		var $Error = false;
-		var $Service = "";
+
+		public $Email;
+		public $Error = false;
+		public $Service = "";
+		public $Settings;
 
 		/*
 			Constructor:

@@ -9,6 +9,10 @@
 	
 	class BigTreePaymentGateway {
 
+		public $Provider;
+		public $Service;
+		public $Settings;
+
 		/*
 			Constructor:
 				Sets up the currently configured service.

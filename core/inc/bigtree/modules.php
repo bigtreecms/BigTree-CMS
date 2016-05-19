@@ -9,8 +9,8 @@
 	
 	class BigTreeModule {
 
-		var $NavPosition = "bottom";
-		var $Table = "";
+		public $NavPosition = "bottom";
+		public $Table = "";
 
 		/*
 			Route Registry

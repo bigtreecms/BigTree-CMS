@@ -8,7 +8,7 @@
 
 	class Updater {
 
-		public $Connection = false;
+		public $Connection;
 		public $Extension = false;
 		public $Method = false;
 

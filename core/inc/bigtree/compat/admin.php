@@ -47,6 +47,7 @@
 			)
 		);
 
+		public $Auth;
 		public $ID;
 		public $Level;
 		public $Name;
@@ -605,7 +606,7 @@
 		function createPage($data) {
 			// Defaults
 			$parent = 0;
-			$title = $nav_title = $meta_description = $meta_keywords = $external = $template = $in_nav = $route = "";
+			$title = $nav_title = $meta_description = $external = $template = $in_nav = $route = "";
 			$seo_invisible = $publish_at = $expire_at = $trunk = $new_window = $max_age = false;
 			$resources = array();
 
@@ -1358,11 +1359,11 @@
 		*/
 
 		function getAccessLevel($module, $item = array(), $table = "", $user = false) {
+			global $admin;
+			$saved = array("level" => $admin->Level, "permissions" => $admin->Permissions);
+
 			// UserAccessLevel uses the $admin object, so we need fake it
 			if ($user !== false) {
-				global $admin;
-
-				$saved = array("level" => $admin->Level, "permissions" => $admin->Permissions);
 				$admin->Level = $user["level"];
 				$admin->Permissions = $user["permissions"];
 			}
@@ -2786,7 +2787,9 @@
 		*/
 
 		function getResourceFolderPermission($folder) {
-			return BigTree\ResourceFolder::access($folder);
+			$folder = new BigTree\ResourceFolder($folder);
+
+			return $folder->UserAccessLevel;
 		}
 
 		/*
@@ -4029,7 +4032,7 @@
 
 		function updatePage($page, $data) {
 			// Set local variables in a clean fashion that prevents _SESSION exploitation.  Also, don't let them somehow overwrite $page and $current.
-			$trunk = $in_nav = $external = $route = $publish_at = $expire_at = $nav_title = $title = $template = $new_window = $meta_keywords = $meta_description = $seo_invisible = "";
+			$trunk = $in_nav = $external = $route = $publish_at = $expire_at = $nav_title = $title = $template = $new_window = $meta_description = $seo_invisible = "";
 			$parent = $max_age = 0;
 			$resources = array();
 

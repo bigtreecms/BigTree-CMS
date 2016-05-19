@@ -18,6 +18,7 @@
 		public $Module;
 		public $Name;
 		public $Position;
+		public $Resources;
 
 		/*
 			Constructor:
@@ -44,6 +45,7 @@
 				$this->Module = $template["module"];
 				$this->Name = $template["name"];
 				$this->Position = $template["position"];
+				$this->Resources = $this->Fields; // Backwards compat
 				$this->Routed = $template["route"] ? true : false;
 			}
 		}

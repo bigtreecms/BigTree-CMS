@@ -7,8 +7,10 @@
 	namespace BigTree;
 
 	/**
-	 * @property int $ID
-	 * @proeprty object $Interface
+	 * @property-read array $Array
+	 * @property-read int $ID
+	 * @property-read object $Interface
+	 * @property-read BigTree\ModuleView $RelatedModuleView
 	 */
 
 	class ModuleForm extends BaseObject {

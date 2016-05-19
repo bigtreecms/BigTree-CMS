@@ -12,7 +12,7 @@
 
 	class SFTP {
 
-		var $Connection;
+		public $Connection;
 
 		/*
 			Function: changeToParentDirectory

@@ -28,6 +28,7 @@
 		public $Subscription;
 		public $Timestamp;
 		public $Title;
+		public $Type;
 		public $Upload;
 
 		function __construct($activity,&$api) {

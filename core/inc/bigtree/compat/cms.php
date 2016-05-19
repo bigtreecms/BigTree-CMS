@@ -575,7 +575,6 @@
 		
 		static function getTemplate($id) {
 			$template = new BigTree\Template($id);
-			$template->Resources = $template->Fields;
 			return $template->Array;
 		}
 		

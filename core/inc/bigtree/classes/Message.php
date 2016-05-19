@@ -6,6 +6,10 @@
 
 	namespace BigTree;
 
+	/**
+	 * @property-read array $Chain
+	 */
+
 	class Message extends BaseObject {
 
 		protected $ID;

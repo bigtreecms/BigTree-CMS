@@ -11,12 +11,12 @@
 
 	class API extends OAuth {
 		
-		var $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
-		var $EndpointURL = "https://www.googleapis.com/youtube/v3/";
-		var $OAuthVersion = "2.0";
-		var $RequestType = "header";
-		var $Scope = "https://www.googleapis.com/auth/youtube";
-		var $TokenURL = "https://accounts.google.com/o/oauth2/token";
+		public $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
+		public $EndpointURL = "https://www.googleapis.com/youtube/v3/";
+		public $OAuthVersion = "2.0";
+		public $RequestType = "header";
+		public $Scope = "https://www.googleapis.com/auth/youtube";
+		public $TokenURL = "https://accounts.google.com/o/oauth2/token";
 		
 		/*
 			Constructor:

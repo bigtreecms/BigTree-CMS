@@ -17,6 +17,7 @@
 		protected $PostURL;
 
 		public $Errors;
+		public $Profile;
 
 		/*
 			Constructor:

@@ -6,6 +6,11 @@
 
 	namespace BigTree;
 
+	/**
+	 * @property-read BigTree\ModuleForm $RelatedModuleForm
+	 * @property-read BigTree\ModuleView $RelatedModuleView
+	 */
+
 	class ModuleReport extends BaseObject {
 
 		protected $ID;

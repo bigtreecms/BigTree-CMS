@@ -11,6 +11,7 @@
 	 * @property-read string $CreatedAt
 	 * @property-read int $ID
 	 * @property-read int $LastEditedBy
+	 * @property-read BigTree\PendingChange $PendingChange
 	 * @property-read int $PendingID
 	 * @property-read array $Tags
 	 * @property-read string $UpdatedAt
