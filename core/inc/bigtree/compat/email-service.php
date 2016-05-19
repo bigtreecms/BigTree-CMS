@@ -42,11 +42,11 @@
 				Sets $this->Error with error response if not successful.
 		*/
 
-		function sendEmail($subject,$body,$to,$from_email = false,$from_name = false,$reply_to = false,$text = "") {
+		function sendEmail($subject,$body,$to,$from_email = "",$from_name = "",$reply_to = "",$text = "") {
 			$this->Email->Subject = $subject;
 			$this->Email->HTML = $body;
 			$this->Email->To = $to;
-			$this->Email->From = $from_name ? "$from_name <$from_email>" : $from_email;
+			$this->Email->From = !empty($from_name) ? "$from_name <$from_email>" : $from_email;
 			$this->Email->ReplyTo = $reply_to;
 			$this->Email->Text = $text;
 

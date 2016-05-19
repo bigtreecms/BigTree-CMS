@@ -19,6 +19,7 @@
 
 		public $BCC = false;
 		public $CC = false;
+		public $Error;
 		public $From = "";
 		public $Headers = array();
 		public $HTML = "";
@@ -52,9 +53,15 @@
 
 		function send() {
 			$provider_string = "BigTree\\EmailService\\".$this->Service;
-			$provider = new $provider_string($this->Settings);
 
-			return $provider->send($this);
+			$provider = new $provider_string($this->Settings);
+			$success = $provider->send($this);
+
+			if (!$success) {
+				$this->Error = $provider->Error;
+			}
+
+			return $success;
 		}
 
 	}
