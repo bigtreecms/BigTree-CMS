@@ -65,6 +65,26 @@
 		}
 
 		/*
+			Function: replaceServerRoot
+				Replaces the server root in a string (as long as it is at the beginning of the string)
+
+			Parameters:
+				string - String to modify
+				replace - Replacement string for SERVER_ROOT
+
+			Returns:
+				A string.
+		*/
+
+		static function replaceServerRoot($string, $replace = "") {
+			if (strpos($string, SERVER_ROOT) === 0) {
+				return $replace.substr($string, strlen(SERVER_ROOT));
+			}
+
+			return $string;
+		}
+
+		/*
 			Function: setLanguage
 				Sets the language pack for drawing text strings via the Text::draw method.
 

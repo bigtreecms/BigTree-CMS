@@ -15,7 +15,7 @@
 					<li>
 						<input type="hidden" name="files[]" value="<?=htmlspecialchars($file)?>" />
 						<a href="#" class="icon_small icon_small_delete"></a>
-						<span><?=Router::replaceServerRoot($file)?></span>
+						<span><?=Text::replaceServerRoot($file)?></span>
 					</li>
 					<?php
 							}

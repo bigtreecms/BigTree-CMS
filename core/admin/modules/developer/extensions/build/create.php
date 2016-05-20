@@ -203,7 +203,7 @@
 	
 	// Move all the files into the extensions directory
 	foreach (array_filter((array) $files) as $file) {
-		$file = Router::replaceServerRoot($file);
+		$file = Text::replaceServerRoot($file);
 		if (substr($file,0,11) != "extensions/") {
 			$d = false;
 

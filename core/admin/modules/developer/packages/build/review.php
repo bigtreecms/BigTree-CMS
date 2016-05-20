@@ -53,7 +53,7 @@
 	}
 	$file_string = array();
 	foreach (array_filter((array) $files) as $f) {
-		$file = Router::replaceServerRoot($f);
+		$file = Text::replaceServerRoot($f);
 		if ($file) {
 			$file_string[] = $file;
 		}

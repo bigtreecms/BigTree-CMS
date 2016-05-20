@@ -35,12 +35,40 @@
 		function mb_strtolower($string) { return strtolower($string); }
 	}
 
-	// Include required utility functions
-	if (file_exists(SERVER_ROOT."custom/inc/bigtree/classes/Router.php")) {
-		include SERVER_ROOT."custom/inc/bigtree/classes/Router.php";
-	} else {
-		include SERVER_ROOT."core/inc/bigtree/classes/Router.php";
-	}
+	// Class auto loader
+	spl_autoload_register(function($class) {
+		global $bigtree;
+
+		// Auto loadable via the class name
+		if (substr($class, 0, 8) == "BigTree\\") {
+			$path = "inc/bigtree/classes/".str_replace("\\", "/", substr($class, 8)).".php";
+
+		// Known class in the cache file
+		} else {
+			$path = $bigtree["class_list"][$class];
+		}
+
+		if (!$path) {
+			// Clear the module class list just in case we're missing something.
+			BigTree\FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
+
+			return;
+		}
+
+		if (substr($path, 0, 11) == "extensions/" || substr($path, 0, 7) == "custom/") {
+			$path = SERVER_ROOT.$path;
+		} else {
+			if (file_exists(SERVER_ROOT."custom/".$path)) {
+				$path = SERVER_ROOT."custom/".$path;
+			} else {
+				$path = SERVER_ROOT."core/".$path;
+			}
+		}
+
+		if (file_exists($path)) {
+			include_once $path;
+		}
+	});
 
 	// Connect to MySQL and include the shorterner functions
 	include BigTree\Router::getIncludePath("inc/bigtree/classes/SQL.php");

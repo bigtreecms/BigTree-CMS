@@ -1,4 +1,10 @@
 <?php
+	/*
+		Class: BigTree\BaseObject
+			A base object class from which most BigTree classes inherit.
+			Implements protected properties as read-only properties and getXYZ method calls that accept no parameters as read-only properties.
+	*/
+
 	namespace BigTree;
 
 	/**

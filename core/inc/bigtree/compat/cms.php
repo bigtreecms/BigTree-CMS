@@ -30,9 +30,6 @@
 			} else {
 				ini_set("display_errors","off");
 			}
-
-			// Auto load classes	
-			spl_autoload_register("BigTree\\Router::classAutoLoader");
 		
 			// Build caches
 			BigTree\Module::buildCaches();
@@ -361,7 +358,7 @@
 		*/
 			
 		static function getNavByParent($parent = 0,$levels = 1,$follow_module = true,$only_hidden = false) {
-			return BigTree\Router::getNavigation($parent, $levels,$follow_module,$only_hidden);
+			return BigTree\Navigation::getLevel($parent, $levels,$follow_module,$only_hidden);
 		}
 		
 		/*

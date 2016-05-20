@@ -53,7 +53,7 @@
 			// Wipe any content that's already been drawn
 			ob_clean();
 
-			if (static::handle404(str_ireplace(WWW_ROOT,"",Router::currentURL()))) {
+			if (static::handle404(str_ireplace(WWW_ROOT,"",Link::currentURL()))) {
 				$bigtree["layout"] = "default";
 				include SERVER_ROOT."templates/basic/_404.php";
 

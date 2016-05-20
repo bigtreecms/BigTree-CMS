@@ -16,6 +16,24 @@
 		public static $TokenValues = array();
 
 		/*
+			Function: currentURL
+				Return the current active URL with correct protocall and port
+
+			Parameters:
+				port - Whether to return the port for connections not on port 80 (defaults to false)
+		*/
+
+		static function currentURL($port = false) {
+			$protocol = (@$_SERVER["HTTPS"] == "on") ? "https://" : "http://";
+			
+			if ($_SERVER["SERVER_PORT"] != "80" && $port) {
+				return $protocol.$_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
+			} else {
+				return $protocol.$_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
+			}
+		}
+		
+		/*
 			Function: decode
 				Replaces the internal page links in a string with hard links.
 			

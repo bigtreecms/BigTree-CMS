@@ -155,9 +155,12 @@
 				// Get all extension required files and add them to a required list
 				$extensions = SQL::fetchAllSingle("SELECT id FROM bigtree_extensions");
 				foreach ($extensions as $id) {
-					$required_contents = FileSystem::getDirectoryContents(SERVER_ROOT."extensions/$id/required/");
-					foreach (array_filter((array)$required_contents) as $file) {
-						$data["extension_required_files"][] = $file;
+					if (file_exists(SERVER_ROOT."extensions/$id/required/")) {
+						$required_contents = FileSystem::getDirectoryContents(SERVER_ROOT."extensions/$id/required/");
+					
+						foreach (array_filter((array)$required_contents) as $file) {
+							$data["extension_required_files"][] = $file;
+						}
 					}
 				}
 				

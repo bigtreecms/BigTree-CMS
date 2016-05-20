@@ -220,7 +220,7 @@
 		*/
 		
 		static function currentURL($port = false) {
-			return BigTree\Router::currentURL($port);
+			return BigTree\Link::currentURL($port);
 		}
 		
 		/*
@@ -819,7 +819,7 @@
 		*/
 		
 		static function replaceServerRoot($string, $replace = "") {
-			return BigTree\Router::replaceServerRoot($string, $replace);
+			return BigTree\Text::replaceServerRoot($string, $replace);
 		}
 		
 		/*
