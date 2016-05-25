@@ -106,7 +106,7 @@
 			isset($user->verified) ? $this->Verified = $user->verified : false;
 			if (isset($user->work)) {
 				$this->Work = new stdClass;
-				isset($user->work["employer"]) ? $this->Work->Employer = new BigTreeFacebookEmployer($user->work["employer"],$api) : false;
+				isset($user->work["employer"]) ? $this->Work->Employer = $user->work["employer"] : false;
 				isset($user->work["location"]) ? $this->Work->Location = new BigTreeFacebookLocation($user->work["location"],$api) : false;
 				isset($user->work["position"]) ? $this->Work->JobTitle = new BigTreeFacebookJobTitle($user->work["position"],$api) : false;
 			}
