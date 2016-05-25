@@ -23,7 +23,7 @@
 					}
 				}
 				// Replace www_root/ and Minify
-				$data = str_replace(array('$www_root','www_root/','$static_root','static_root/','$admin_root/','admin_root/'),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT,ADMIN_ROOT,ADMIN_ROOT),$data);
+				$data = str_replace(array('$www_root','www_root/','$static_root','static_root/','$admin_root','admin_root/'),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT,ADMIN_ROOT,ADMIN_ROOT),$data);
 				if (is_array($_GET)) {
 					foreach ($_GET as $key => $val) {
 						if ($key != "bigtree_htaccess_url") {
