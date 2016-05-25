@@ -59,11 +59,11 @@
 ?>
 <div class="container package_review">
 	<summary>
-		<h2>Review Your Package</h2>
+		<h2>Review Your Extension</h2>
 	</summary>
 	<section>
 		<fieldset>
-			<h3>Package Information</h3>
+			<h3>Extension Information</h3>
 			<label>
 				<small>id</small>
 				<?=$id?>
