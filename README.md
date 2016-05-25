@@ -20,6 +20,22 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.11 Release
+- SECURITY FIX: Fixed Blind SQL injection attack for admin users with access to a module form (requires admin access).
+- SECURITY FIX: Logging out should now clear your login session chain (a cookie attack at the exact right time could previously give impervious session chain).
+- SECURITY FIX: Cross Site Request Forgeries should now be blocked across the board in the developer section.
+- SECURITY FIX: Fixed Cross Site Scripting vulnerability when editing a Module View (clicking a malicious link could steal cookies).
+- SECURITY FIX: Fixed Cross Site Scripting vulnerabilities when causing a sqlfetch error (clicking a malicious link could steal cookies).
+- FIXED: Bad admin_root replacement when accessing admin-side Javascript.
+- FIXED: Not being able to use the External Link field on initial page creation.
+- FIXED: PHP 7 throwing deprecation warnings on PasswordHash class (PHP 7.1 will drop support entirely for PHP 4 constructors)
+- FIXED: Some incorrect helper text and not-closed-properly tags.
+- FIXED: BigTree::cURL throwing a warning when posting string data (thanks Matt DeWyer).
+- FIXED: Facebook employer information causing a fatal error.
+- FIXED: Twitter API media posting
+
+Thank you to Ashraf Alharbi at security-assessment.com for providing vulnerability analysis related to the security fixes in this release.
+
 ### 4.2.10 Release
 - UPDATED: Data parsers can now be used in both CSV reports and filtered view reports (thanks Jordan Mason)
 - UPDATED: TinyMCE to 4.3.10 (default config file settings now include the minified version rather than the developer version)
@@ -884,7 +900,7 @@ Changelog
 - CHANGED: BigTreeModule::search is now case insensitive by default.
 - CHANGED: New default layout for the admin includes H1s, breadcrumb, and navigation for modules. THIS MAY CAUSE BACKWARDS COMPATIBILITY ISSUES WITH CUSTOM MODULES THAT DRAW IT ON THEIR OWN.
 - CHANGED: Including custom CSS and JavaScript in the admin is now done through $bigtree["css"] and $bigtree["js"] instead of $css and $js — THIS IS A BACKWARDS COMPATIBILITY BREAK FOR CUSTOM MODULES.
-- CHANGED: form_container class name is now container - THIS IS A BACKWARDS COMPATIBILITY BREAK FOR CUSTOM MODULES. 
+- CHANGED: form_container class name is now container - THIS IS A BACKWARDS COMPATIBILITY BREAK FOR CUSTOM MODULES.
 - CHANGED: Cropping code is now consolidated across modules/pages.
 - CHANGED: Pages tab should no longer be in the header if a user has no pages access.
 - CHANGED: BigTreeBar javascript is now namespaced better in a JavaScript object.
