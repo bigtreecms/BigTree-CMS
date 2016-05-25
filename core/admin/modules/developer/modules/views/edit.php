@@ -22,7 +22,7 @@
 	} else {
 ?>
 <div class="container">
-	<form method="post" action="<?=DEVELOPER_ROOT?>modules/views/update/<?=end($bigtree["path"])?>/" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>modules/views/update/<?=$view["id"]?>/" class="module">
 		<?
 			if ($_GET["return"] == "front") {
 		?>

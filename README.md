@@ -20,6 +20,13 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.1.16 Release
+- SECURITY FIX: Fixed Blind SQL injection attack for admin users with access to a module form (requires admin access).
+- SECURITY FIX: Cross Site Request Forgeries should now be blocked across the board in the developer section.
+- SECURITY FIX: Fixed Cross Site Scripting vulnerability when editing a Module View (clicking a malicious link could steal cookies).
+
+Thank you to Ashraf Alharbi at security-assessment.com for providing vulnerability analysis related to the security fixes in this release.
+
 ### 4.1.15 Release
 - SECURITY FIX: A privilege escalation issue that would enable Administrator level users to become Developer level for a session.
 - SECURITY FIX: Fixed object injection vulnerability in POST data that enabled any BigTree admin-side user to poison settings. Thanks to Tim Coen @ Curesec GmbH for the disclosure.

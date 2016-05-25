@@ -21,6 +21,8 @@
 		*/
 		
 		static function cacheNewItem($id,$table,$pending = false,$recache = false) {
+			$id = sqlescape($id);
+
 			if (!$pending) {
 				$item = sqlfetch(sqlquery("SELECT `$table`.*,bigtree_pending_changes.changes AS bigtree_changes FROM `$table` LEFT JOIN bigtree_pending_changes ON (bigtree_pending_changes.item_id = `$table`.id AND bigtree_pending_changes.table = '$table') WHERE `$table`.id = '$id'"));
 				$original_item = $item;
@@ -815,7 +817,9 @@
 				$owner = $change["user"];
 			// Otherwise it's a live entry
 			} else {
-				$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '".sqlescape($id)."'"));
+				$id = sqlescape($id);
+
+				$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
 				if (!$item) {
 					return false;
 				}
@@ -1616,6 +1620,9 @@
 		*/
 		
 		static function uncacheItem($id,$table) {
+			$id = sqlescape($id);
+			$table = sqlescape($table);
+
 			$q = sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '$table'");
 			while ($view = sqlfetch($q)) {
 				sqlquery("DELETE FROM bigtree_module_view_cache WHERE `view` = '".$view["id"]."' AND id = '$id'");
@@ -1636,6 +1643,8 @@
 		
 		static function updateItem($table,$id,$data,$many_to_many = array(),$tags = array()) {
 			global $admin,$module;
+
+			$id = sqlescape($id);
 			$table_description = BigTree::describeTable($table);
 			$query = "UPDATE `$table` SET ";
 			foreach ($data as $key => $val) {
