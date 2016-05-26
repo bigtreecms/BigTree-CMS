@@ -6,7 +6,7 @@
 					var height = $("body").height();
 					if (height != Height) {
 						try {
-							Height = window.parent.BigTreeEmbeddableForm<?=$bigtree["form"]["id"]?>.resize(height);
+							Height = window.parent.BigTreeEmbeddableForm<?=$form->ID?>.resize(height);
 						} catch (e) {}
 					}
 				}

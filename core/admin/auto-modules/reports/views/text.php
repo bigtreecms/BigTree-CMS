@@ -1,10 +1,5 @@
 <?php
 	namespace BigTree;
-	
-	// Setup the preview action if we have a preview URL and field.
-	if ($bigtree["view"]["preview_url"]) {
-		$bigtree["view"]["actions"]["preview"] = "on";
-	}
 ?>
 <div class="table auto_modules">
 	<summary>

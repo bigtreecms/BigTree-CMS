@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	$change = $admin->getPendingChange($_POST["id"]);
 
 	// See if we have permission.
@@ -22,7 +24,7 @@
 		die("Permission denied.");
 	}
 
-	$change["changes"] = BigTreeAutoModule::sanitizeData($change["table"],$change["changes"]);
+	$change["changes"] = SQL::prepareData($change["table"],$change["changes"]);
 
 	// This is an update to an existing entry.
 	if (!is_null($change["item_id"])) {

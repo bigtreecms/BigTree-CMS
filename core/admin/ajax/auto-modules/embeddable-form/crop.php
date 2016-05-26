@@ -7,7 +7,7 @@
 	$crops = $cms->cacheGet("org.bigtreecms.crops",$crop_key);
 ?>
 <div class="container">
-	<form method="post" action="<?=$bigtree["form_root"]?>process-crops/?id=<?=$bigtree["form"]["id"]?>&hash=<?=$bigtree["form"]["hash"]?>" id="crop_form" class="module">
+	<form method="post" action="<?=$form->Root?>process-crops/?id=<?=$form->ID?>&hash=<?=$form->Hash?>" id="crop_form" class="module">
 		<input type="hidden" name="return_page" value="<?=htmlspecialchars($return_link)?>" />
 		<input type="hidden" name="crop_key" value="<?=htmlspecialchars($crop_key)?>" />
 		<section id="cropper">
@@ -143,7 +143,7 @@
 		}
 	};
 
-	window.parent.BigTreeEmbeddableForm<?=$bigtree["form"]["id"]?>.scrollToTop();
+	window.parent.BigTreeEmbeddableForm<?=$form->ID?>.scrollToTop();
 	BigTree.localCurrentCrop = 1;
 	BigTree.localMaxCrops = <?=count($crops)?>;
 	BigTree.localWindowWidth = window.innerWidth;

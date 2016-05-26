@@ -6,21 +6,25 @@
 	$id = SQL::escape($_GET["id"]);
 	
 	// Grab View Data
-	$view = \BigTreeAutoModule::getView($_GET["view"]);
-	$table = $view["table"];
+	$view = new ModuleView($id);
+	$table = $view->Table;
 
 	// Get module
-	$module = $admin->getModule($view["module"]);
+	$module = new Module($view->Module);
 
-	// Get the item
-	$current_item = \BigTreeAutoModule::getPendingItem($table,$id);
-	$item = $current_item["item"];
+	// Get the pending item to check permissions
+	$form = new ModuleForm(array("table" => $table));
+	$pending_entry = $form->getPendingEntry($id);
+	$item = $pending_entry["item"];
 
 	// Check permission
-	$access_level = $admin->getAccessLevel($module,$item,$table);
+	$access_level = $module->getUserAccessLevelForEntry($item, $table);
+
 	if ($access_level != "n") {
-		$original_item = \BigTreeAutoModule::getItem($table,$id);
-		$original_access_level = $admin->getAccessLevel($module,$original_item["item"],$table);
+		// Get the original item to check permissions on it as well
+		$original_item = $form->getEntry($id);
+		$original_access_level = $module->getUserAccessLevelForEntry($original_item["item"], $table);
+		
 		if ($original_access_level != "p") {
 			$access_level = $original_access_level;
 		}

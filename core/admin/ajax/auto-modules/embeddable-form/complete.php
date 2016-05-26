@@ -1,10 +1,10 @@
 <?php
-	if ($bigtree["form"]["redirect_url"]) {
+	if ($form->RedirectURL) {
 ?>
-<script>window.parent.BigTreeEmbeddableForm<?=$bigtree["form"]["id"]?>.redirect("<?=$bigtree["form"]["redirect_url"]?>");</script>
+<script>window.parent.BigTreeEmbeddableForm<?=$form->ID?>.redirect("<?=$form->RedirectURL?>");</script>
 <?php
 	} else {
-		echo $bigtree["form"]["thank_you_message"];
+		echo $form->ThankYouMessage;
 	}
 ?>
-<script>window.parent.BigTreeEmbeddableForm<?=$bigtree["form"]["id"]?>.scrollToTop();</script>
+<script>window.parent.BigTreeEmbeddableForm<?=$form->ID?>.scrollToTop();</script>

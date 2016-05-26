@@ -558,85 +558,9 @@
 		*/
 		
 		static function getSearchResults($view, $page = 1, $query = "", $sort = "id DESC", $group = false) {
-			// Check to see if we've cached this table before.
-			self::cacheViewData($view);
-			
-			$search_parts = explode(" ", $query);
-			$view_column_count = count($view["fields"]);
-			$per_page = $view["options"]["per_page"] ? $view["options"]["per_page"] : BigTreeAdmin::$PerPage;
-			$query = "SELECT * FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'".self::getFilterQuery($view);
+			$view = new BigTree\ModuleView($view);
 
-			if ($group !== false) {
-				$query .= " AND group_field = '".SQL::escape($group)."'";
-			}
-			
-			// Add all the pieces of the query to check against the columns in the view
-			foreach ($search_parts as $part) {
-				$part = SQL::escape($part);
-
-				$query_parts = array();
-				for ($x = 1; $x <= $view_column_count; $x++) {
-					$query_parts[] = "column$x LIKE '%$part%'";
-				}
-
-				if (count($query_parts)) {
-					$query .= " AND (".implode(" OR ", $query_parts).")";
-				}
-			}
-			
-			// Find how many pages are returned from this search
-			$total = SQL::fetchSingle(str_replace("SELECT *", "SELECT COUNT(*)", $query));
-			$pages = ceil($total / $per_page);
-			$pages = $pages ? $pages : 1;
-
-			// Get the correct column name for sorting
-			if (strpos($sort, "`") !== false) { // New formatting
-				$sort_field = SQL::nextColumnDefinition(substr($sort, 1));
-				$sort_pieces = explode(" ", $sort);
-				$sort_direction = end($sort_pieces);
-			} else { // Old formatting
-				list($sort_field, $sort_direction) = explode(" ", $sort);
-			}
-
-			// Figure out whether we need to cast the column we're sorting by as numeric so that 2 comes before 11
-			if ($sort_field != "id") {
-				$x = 0;
-				if (isset($view["fields"][$sort_field]["numeric"]) && $view["fields"][$sort_field]["numeric"]) {
-					$convert_numeric = true;
-				} else {
-					$convert_numeric = false;
-				}
-				foreach ($view["fields"] as $field => $options) {
-					$x++;
-					if ($field == $sort_field) {
-						$sort_field = "column$x";
-					}
-				}
-				// If we didn't find a column, let's assume it's the default sort field.
-				if (substr($sort_field, 0, 6) != "column") {
-					$sort_field = "sort_field";
-				}
-				if ($convert_numeric) {
-					$sort_field = "CONVERT(".$sort_field.",SIGNED)";
-				}
-			} else {
-				$sort_field = "CONVERT(id,UNSIGNED)";
-			}
-
-			if (strtolower($sort) == "position desc, id asc") {
-				$sort_field = "position DESC, id ASC";
-				$sort_direction = "";
-			} else {
-				$sort_direction = (strtolower($sort_direction) == "asc") ? "ASC" : "DESC";
-			}
-			
-			if ($page === "all") {
-				$results = SQL::fetchAll($query." ORDER BY $sort_field $sort_direction");
-			} else {
-				$results = SQL::fetchAll($query." ORDER BY $sort_field $sort_direction LIMIT ".(($page - 1) * $per_page).",$per_page");
-			}
-
-			return array("pages" => $pages, "results" => $results);
+			return $view->searchData($page, $query, $sort, $group);
 		}
 		
 		/*
@@ -672,8 +596,9 @@
 
 		static function getView($id) {
 			$view = new BigTree\ModuleView($id);
+			$view->calculateFieldWidths();
 
-			return $view ? $view->Array : false;
+			return $view->Array;
 		}
 		
 		/*

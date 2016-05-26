@@ -10,9 +10,9 @@
 			$message = "Item is now unfeatured.";
 			
 			if (is_numeric($id)) {
-				SQL::update($table,$id,array("featured" => ""));
+				SQL::update($table, $id, array("featured" => ""));
 			} else {
-				\BigTreeAutoModule::updatePendingItemField(substr($id,1),"featured","");
+				$form->updatePendingEntryField(substr($id, 1), "featured", "");
 			}
 		}
 	} else {
@@ -22,13 +22,13 @@
 			$message = "Item is now featured.";
 			
 			if (is_numeric($id)) {
-				SQL::update($table,$id,array("featured" => "on"));
+				SQL::update($table, $id, array("featured" => "on"));
 			} else {
-				\BigTreeAutoModule::updatePendingItemField(substr($id,1),"featured","on");
+				$form->updatePendingEntryField(substr($id, 1), "featured", "");
 			}
 		}
 	}
 	
 	include "_recache.php";
 ?>
-BigTree.growl("<?=$module["name"]?>","<?=Text::translate($message, true)?>");
+BigTree.growl("<?=$module->Name?>","<?=Text::translate($message, true)?>");

@@ -78,7 +78,7 @@
 	}
 
 	// Sanitize the form data so it fits properly in the database (convert dates to MySQL-friendly format and such)
-	$bigtree["entry"] = \BigTreeAutoModule::sanitizeData($bigtree["form"]["table"],$bigtree["entry"]);
+	$bigtree["entry"] = SQL::prepareData($bigtree["form"]["table"],$bigtree["entry"]);
 
 	// Make some easier to write out vars for below.
 	$tags = $_POST["_tags"];

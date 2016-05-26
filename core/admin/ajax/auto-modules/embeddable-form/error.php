@@ -25,6 +25,6 @@
 		</div>
 	</section>
 	<footer>
-		<a href="<?=$bigtree["form_root"]."?id=".$bigtree["form"]["id"]."&hash=".$bigtree["form"]["hash"]?>" class="button"><?=Text::translate("Return & Edit", true)?></a>
+		<a href="<?=$form->Root."?id=".$form->ID."&hash=".$form->Hash?>" class="button"><?=Text::translate("Return & Edit", true)?></a>
 	</footer>
 </div>

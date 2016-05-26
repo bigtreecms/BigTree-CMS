@@ -3,61 +3,61 @@
 	
 	// If it's an AJAX request, get our data.
 	if (isset($_POST["view"])) {
-		$bigtree["view"] = \BigTreeAutoModule::getView($_POST["view"]);
-		$bigtree["module"] = $admin->getModule($bigtree["view"]["module"]);
+		$view = new ModuleView($_POST["view"]);
+		$module = new Module($view->Module);
 	}
 	
-	Globalize::arrayObject($bigtree["view"]);
+	$module_permission = $module->UserAccessLevel;
+	$module_page = ADMIN_ROOT.$module->Route."/";
 	
-	$permission = $admin->getAccessLevel($bigtree["module"]["id"]);
-	$module_page = ADMIN_ROOT.$bigtree["module"]["route"]."/";
-
-	// Defaults
-	$search = isset($_POST["search"]) ? $_POST["search"] : "";
-	$search = isset($_GET["search"]) ? $_GET["search"] : $search;
-	$draggable = (isset($options["draggable"]) && $options["draggable"]) ? true : false;
-	$bigtree["view"]["options"]["per_page"] = 10000;
-	if (isset($options["sort_field"])) {
-		$sort = $options["sort_field"]." ".$options["sort_direction"];
-	} elseif (isset($options["sort"])) {
-		$sort = $options["sort"];
-	} else {
-		$sort = "id DESC";
+	// Grouped views don't use pagination so we set it to 1000000
+	$view->Settings["per_page"] = 1000000;
+	$draggable = !empty($view->Settings["draggable"]) ? true : false;
+	
+	// Get search query info
+	$query = "";
+	if (!empty($_POST["search"]) || !empty($_GET["search"])) {
+		$query = !empty($_GET["search"]) ? $_GET["search"] : $_POST["search"];
 	}
+	
+	// Get sort column information
 	if ($draggable) {
 		$sort = "position DESC, id ASC";
-	}
-	
-	// Setup the preview action if we have a preview URL and field.
-	if ($bigtree["view"]["preview_url"]) {
-		$actions["preview"] = "on";
+	} else {
+		if (isset($view->Settings["sort_field"])) {
+			$sort = $view->Settings["sort_field"]." ".$view->Settings["sort_direction"];
+		} elseif (isset($view->Settings["sort"])) {
+			$sort = $view->Settings["sort"];
+		} else {
+			$sort = "id DESC";
+		}
 	}
 
 	// Setup custom overrides for group titles when we're grouping by a special BigTree column
 	$group_title_overrides = array();
-	if ($bigtree["view"]["options"]["group_field"] == "featured") {
+
+	if ($view->Settings["group_field"] == "featured") {
 		$group_title_overrides["on"] = "Featured";
 		$group_title_overrides[""] = "Normal";
-	} elseif ($bigtree["view"]["options"]["group_field"] == "archived") {
+	} elseif ($view->Settings["group_field"] == "archived") {
 		$group_title_overrides["on"] = "Archived";
 		$group_title_overrides[""] = "Active";
-	} elseif ($bigtree["view"]["options"]["group_field"] == "approved") {
+	} elseif ($view->Settings["group_field"] == "approved") {
 		$group_title_overrides["on"] = "Approved";
 		$group_title_overrides[""] = "Not Approved";
 	}
 	
 	// We're going to append information to the end of an edit string so that we can return to the same page / set of search results after submitting a form.
-	$edit_append = "?view_data=".base64_encode(json_encode(array("view" => $bigtree["view"]["id"], "search" => $search)));
+	$edit_append = "?view_data=".base64_encode(json_encode(array("view" => $view->ID, "search" => $query)));
 	
-	// Cache the data in case it's not there.
-	\BigTreeAutoModule::cacheViewData($bigtree["view"]);
-	
-	$groups = \BigTreeAutoModule::getGroupsForView($bigtree["view"]);
+	// Cache the data in case it's not there then grab groups from the cached data
+	$view->cacheAllData();
+	$groups = $view->Groups;
 ?>
 <header>
 	<?php
 		$x = 0;
-		foreach ($fields as $key => $field) {
+		foreach ($view->Fields as $key => $field) {
 			$x++;
 	?>
 	<span class="view_column" style="width: <?=$field["width"]?>px;"><?=$field["title"]?></span>
@@ -65,27 +65,27 @@
 		}
 	?>
 	<span class="view_status"><?=Text::translate("Status")?></span>
-	<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><?php if (count($bigtree["view"]["actions"]) > 1) { echo Text::translate("Actions"); } ?></span>
+	<span class="view_action" style="width: <?=(count($view->Actions) * 40)?>px;"><?php if (count($view->Actions) > 1) { echo Text::translate("Actions"); } ?></span>
 </header>
 <?php
 	$gc = 0;
 	foreach ($groups as $group => $title) {
 		// If the group title contains the search phrase, show everything in that group.
-		if (!$search || strpos(strtolower($title),strtolower($search)) !== false) {
+		if (!$query || strpos(strtolower($title), strtolower($query)) !== false) {
 			$search_in = "";
 		} else {
-			$search_in = $search;
+			$search_in = $query;
 		}
 		
-		$r = \BigTreeAutoModule::getSearchResults($bigtree["view"],1,$search_in,$sort,$group);
+		$search = $view->searchData(1, $search_in, $sort, $group);
 		
-		if (count($r["results"])) {
+		if (count($search["results"])) {
 			$gc++;
 ?>
 <header class="group"><?=(isset($group_title_overrides[$title]) ? $group_title_overrides[$title] : $title)?></header>
 <ul id="sort_table_<?=$gc?>">
 	<?php 
-		foreach ($r["results"] as $item) {
+		foreach ($search["results"] as $item) {
 			if ($item["status"] == "p") {
 				$status = "Pending";
 				$status_class = "pending";
@@ -96,16 +96,18 @@
 				$status = "Published";
 				$status_class = "published";
 			}
+
+			$entry_permission = ($module_permission == "p") ? "p" : $module->getCachedAccessLevel($item, $view->Table);
 	?>
 	<li id="row_<?=$item["id"]?>" class="<?=$status_class?>">
 		<?php
 			$x = 0;
-			foreach ($fields as $key => $field) {
+			foreach ($view->Fields as $key => $field) {
 				$x++;
 				$value = $item["column$x"];
 		?>
 		<section class="view_column" style="width: <?=$field["width"]?>px;">
-			<?php if ($x == 1 && $permission == "p" && !$search && $draggable) { ?>
+			<?php if ($x == 1 && $module_permission == "p" && !$search && $draggable) { ?>
 			<span class="icon_sort"></span>
 			<?php } ?>
 			<?=$value?>
@@ -115,23 +117,22 @@
 		?>
 		<section class="view_status status_<?=$status_class?>"><?=$status?></section>
 		<?php
-			$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);
-			foreach ($actions as $action => $data) {
+			foreach ($view->Actions as $action => $data) {
 				if ($data == "on") {
-					if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
+					if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $entry_permission != "p") {
 						if ($action == "delete" && $item["pending_owner"] == $admin->ID) {
 							$class = "icon_delete";
 						} else {
 							$class = "icon_disabled";
 						}
 					} else {
-						$class = $admin->getActionClass($action,$item);
+						$class = $view->generateActionClass($action, $item);
 					}
 					
 					if ($action == "preview") {
-						$link = rtrim($bigtree["view"]["preview_url"],"/")."/".$item["id"].'/" target="_preview';
+						$link = rtrim($view->PreviewURL,"/")."/".$item["id"].'/" target="_preview';
 					} elseif ($action == "edit") {
-						$link = $bigtree["view"]["edit_url"].$item["id"]."/".$edit_append;
+						$link = $view->EditURL.$item["id"]."/".$edit_append;
 					} else {
 						$link = "#".$item["id"];
 					}
@@ -141,6 +142,7 @@
 				} else {
 					$data = json_decode($data,true);
 					$link = $module_page.$data["route"]."/".$item["id"]."/";
+
 					if ($data["function"]) {
 						$link = call_user_func($data["function"],$item);
 					}

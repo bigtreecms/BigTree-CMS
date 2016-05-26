@@ -41,8 +41,8 @@
 	
 	// If there's a preprocess function for this module, let's get'r'done.
 	$bigtree["preprocessed"] = array();
-	if ($bigtree["form"]["hooks"]["pre"]) {
-		$bigtree["preprocessed"] = call_user_func($bigtree["form"]["hooks"]["pre"],$_POST);
+	if ($form->Hooks["pre"]) {
+		$bigtree["preprocessed"] = call_user_func($form->Hooks["pre"],$_POST);
 		// Update the $_POST
 		if (is_array($bigtree["preprocessed"])) {
 			foreach ($bigtree["preprocessed"] as $key => $val) {
@@ -62,7 +62,7 @@
 	$bigtree["post_data"] = $_POST;
 	$bigtree["file_data"] = Field::getParsedFilesArray();
 
-	foreach ($bigtree["form"]["fields"] as $resource) {
+	foreach ($form->Fields as $resource) {
 		$field = new Field(array(
 			"type" => $resource["type"],
 			"title" => $resource["title"],
@@ -89,40 +89,40 @@
 	}
 
 	// Sanitize the form data so it fits properly in the database (convert dates to MySQL-friendly format and such)
-	$bigtree["entry"] = \BigTreeAutoModule::sanitizeData($bigtree["form"]["table"],$bigtree["entry"]);
+	$bigtree["entry"] = SQL::prepareData($form->Table,$bigtree["entry"]);
 
 	// Make some easier to write out vars for below.
 	$tags = $_POST["_tags"];
 	$new_id = false;
-	$table = $bigtree["form"]["table"];
+	$table = $form->Table;
 	$item = $bigtree["entry"];
 	$many_to_many = $bigtree["many-to-many"];
 
 	// Check to see if this is a positioned element
 	// If it is and the form is setup to create new items at the top and this is a new record, update the position column.
 	$table_description = SQL::describeTable($table);
-	if (isset($table_description["columns"]["position"]) && $bigtree["form"]["default_position"] == "Top" && !$_POST["id"]) {
+	if (isset($table_description["columns"]["position"]) && $form->DefaultPosition == "Top" && !$_POST["id"]) {
 		$max = (int) SQL::fetchSingle("SELECT COUNT(*) FROM `$table`") +
 			   (int) SQL::fetchSingle("SELECT COUNT(*) FROM `bigtree_pending_changes` WHERE `table` = ?", $table);
 		$item["position"] = $max;
 	}
 
 	$did_publish = false;
-	if ($bigtree["form"]["default_pending"]) {
-		$edit_id = "p".\BigTreeAutoModule::createPendingItem($bigtree["form"]["module"],$table,$item,$many_to_many,$tags,$bigtree["form"]["hooks"]["publish"],true);
+	if ($form->DefaultPending) {
+		$edit_id = "p".\BigTreeAutoModule::createPendingItem($form->Module,$table,$item,$many_to_many,$tags,$form->Hooks["publish"],true);
 	} else {
 		$edit_id = \BigTreeAutoModule::createItem($table,$item,$many_to_many,$tags);
 		$did_publish = true;
 	}
 
 	// If there's a callback function for this module, let's get'r'done.
-	if ($bigtree["form"]["hooks"]["post"]) {
-		call_user_func($bigtree["form"]["hooks"]["post"],$edit_id,$item,$did_publish);
+	if ($form->Hooks["post"]) {
+		call_user_func($form->Hooks["post"],$edit_id,$item,$did_publish);
 	}
 
 	// Publish Hook
-	if ($did_publish && $bigtree["form"]["hooks"]["publish"]) {
-		call_user_func($bigtree["form"]["hooks"]["publish"],$table,$edit_id,$item,$many_to_many,$tags);
+	if ($did_publish && $form->Hooks["publish"]) {
+		call_user_func($form->Hooks["publish"],$table,$edit_id,$item,$many_to_many,$tags);
 	}
 
 	// Track resource allocation
@@ -137,7 +137,7 @@
 	if (count($bigtree["errors"])) {
 		$item = \BigTreeAutoModule::getItem($table,$edit_id);
 		$_SESSION["bigtree_admin"]["form_data"]["saved"] = $item["item"];
-		if ($bigtree["form"]["default_pending"]) {
+		if ($form->DefaultPending) {
 			\BigTreeAutoModule::deletePendingItem($table,substr($edit_id,1));
 		} else {
 			\BigTreeAutoModule::deleteItem($table,$edit_id);
@@ -146,9 +146,9 @@
 	
 	if (count($bigtree["crops"])) {
 		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = $cms->cacheUnique("org.bigtreecms.crops",$bigtree["crops"]);
-		Router::redirect($bigtree["form_root"]."crop/?id=".$bigtree["form"]["id"]."&hash=".$bigtree["form"]["hash"]);
+		Router::redirect($form->Root."crop/?id=".$form->ID."&hash=".$form->Hash);
 	} elseif (count($bigtree["errors"])) {
-		Router::redirect($bigtree["form_root"]."error/?id=".$bigtree["form"]["id"]."&hash=".$bigtree["form"]["hash"]);
+		Router::redirect($form->Root."error/?id=".$form->ID."&hash=".$form->Hash);
 	} else {
-		Router::redirect($bigtree["form_root"]."complete/?id=".$bigtree["form"]["id"]."&hash=".$bigtree["form"]["hash"]);
+		Router::redirect($form->Root."complete/?id=".$form->ID."&hash=".$form->Hash);
 	}

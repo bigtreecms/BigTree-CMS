@@ -30,6 +30,7 @@
 
 		public $Actions;
 		public $Description;
+		public $EditURL;
 		public $Fields;
 		public $Module;
 		public $PreviewURL;
@@ -69,6 +70,33 @@
 				$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the BaseObject class
 				$this->Title = $interface["title"];
 				$this->Type = $this->Interface->Settings["type"];
+
+				// Apply Preview action if a Preview URL is set
+				if ($this->PreviewURL) {
+					$this->Actions["preview"] = "on";
+				}
+		
+				// Get the edit link
+				if (!empty($this->Actions["edit"])) {
+					// We may be in AJAX, so we need to define MODULE_ROOT if it's not available
+					if (!defined("MODULE_ROOT")) {
+						$route = SQL::fetchSingle("SELECT route FROM bigtree_modules WHERE id = ?", $this->Module);
+						$module_root = ADMIN_ROOT.$route."/";
+					} else {
+						$module_root = MODULE_ROOT;
+					}
+					
+					if ($this->RelatedForm) {
+						// Try for actions beginning with edit first
+						$action_route = SQL::fetchSingle("SELECT route FROM bigtree_module_actions WHERE interface = ? 
+														  ORDER BY route DESC LIMIT 1", $this->RelatedForm);
+		
+		
+						$view["edit_url"] = $module_root.$action_route."/";
+					} else {
+						$view["edit_url"] = $module_root."edit/";
+					}
+				}
 			}
 		}
 
@@ -361,6 +389,32 @@
 		}
 
 		/*
+			Function: calculateFieldWidths
+				Calculates the field widths for the view for use when drawing a table. Updates $this->Actions
+
+			Parameters:
+				table_width - Table width (in pixels) to calculate column widths from (defaults to 888)
+		*/
+
+		function calculateFieldWidths($table_width = 888) {
+			if (array_filter((array) $this->Fields)) {
+				$first = current($this->Fields);
+
+				// If we already have columns set we don't need to do the calculation
+				if (empty($first["width"])) {
+					$actions_width = count($this->Actions) * 40;
+					$available = $table_width - $actions_width;
+					$per_column = floor($available / count($this->Fields));
+
+					// Set the widths
+					foreach ($this->Fields as $key => $field) {
+						$this->Fields[$key]["width"] = $per_column - 20;
+					}
+				}
+			}
+		}
+
+		/*
 			Function: clearCache
 				Clears the cache of the view.
 		*/
@@ -479,80 +533,6 @@
 			
 			return $class;
 		}
-
-		/*
-		    Function: getArray
-				Returns an array of extended view information.
-				Calculates column widths for drawing.
-
-			Parameters:
-				table_width - Table width (in pixels) to calculate column widths from (defaults to 888)
-
-			Returns:
-				Array
-		*/
-
-		function getArray($table_width = 888) {
-			$view = array(
-				"id" => $this->ID,
-				"module" => $this->Module,
-				"title" => $this->Title,
-				"description" => $this->Description,
-				"type" => $this->Type,
-				"table" => $this->Table,
-				"fields" => $this->Fields,
-				"options" => $this->Settings,
-				"actions" => $this->Actions,
-				"preview_url" => $this->PreviewURL,
-				"related_form" => $this->RelatedForm
-			);
-
-			// We may be in AJAX, so we need to define MODULE_ROOT if it's not available
-			if (!defined("MODULE_ROOT")) {
-				$route = SQL::fetchSingle("SELECT route FROM bigtree_modules WHERE id = ?", $this->Module);
-				$module_root = ADMIN_ROOT.$route."/";
-			} else {
-				$module_root = MODULE_ROOT;
-			}
-
-			// Get the edit link
-			if (isset($this->Actions["edit"])) {
-				if ($this->RelatedForm) {
-					// Try for actions beginning with edit first
-					$action_route = SQL::fetchSingle("SELECT route FROM bigtree_module_actions WHERE interface = ? 
-													  ORDER BY route DESC LIMIT 1", $this->RelatedForm);
-
-
-					$view["edit_url"] = $module_root.$action_route."/";
-				} else {
-					$view["edit_url"] = $module_root."edit/";
-				}
-			}
-
-			// Add preview action to column width calculation
-			if ($view["preview_url"]) {
-				array_push($view["actions"],array("preview" => "on"));
-			}
-
-
-			// Calculate widths
-			if (count($view["fields"])) {
-				$first = current($view["fields"]);
-				// If we already have columns set we don't need to do the calculation
-				if (!isset($first["width"]) || !$first["width"]) {
-					$actions_width = count($view["actions"]) * 40;
-					$available = $table_width - $actions_width;
-					$per_column = floor($available / count($view["fields"]));
-
-					// Set the widths
-					foreach ($view["fields"] as &$field) {
-						$field["width"] = $per_column - 20;
-					}
-				}
-			}
-
-			return $view;
-		}
 		
 		/*
 			Function: getData
@@ -603,7 +583,7 @@
 				An array of groups.
 		*/
 
-		function getGroups($view) {
+		function getGroups() {
 			$groups = array();
 			$query = "SELECT DISTINCT(group_field) FROM bigtree_module_view_cache WHERE view = ?";
 
@@ -611,7 +591,7 @@
 				// We're going to determine whether the group sort field is numeric or not first.
 				$is_numeric = true;
 				$group_sort_fields = SQL::fetchAllSingle("SELECT DISTINCT(group_sort_field) FROM bigtree_module_view_cache
-														  WHERE view = ?", $view["id"]);
+														  WHERE view = ?", $this->ID);
 				foreach ($group_sort_fields as $value) {
 					if (!is_numeric($value)) {
 						$is_numeric = false;
@@ -628,7 +608,7 @@
 				$query .= " ORDER BY group_field";
 			}
 
-			$group_values = SQL::fetchAllSingle($query, $view["id"]);
+			$group_values = SQL::fetchAllSingle($query, $this->ID);
 
 			// If there's another table, we're going to query it separately.
 			if ($this->Settings["other_table"] && !$this->Settings["group_parser"] && count($group_values)) {

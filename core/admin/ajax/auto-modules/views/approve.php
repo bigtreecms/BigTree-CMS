@@ -10,9 +10,9 @@
 			$message = "Item is now unapproved.";
 			
 			if (is_numeric($id)) {
-				SQL::update($table,$id,array("approved" => ""));
+				SQL::update($table, $id, array("approved" => ""));
 			} else {
-				\BigTreeAutoModule::updatePendingItemField(substr($id,1),"approved","");
+				$form->updatePendingEntryField(substr($id, 1), "approved", "");
 			}
 		}
 	} else {
@@ -22,13 +22,13 @@
 			$message = "Item is now approved.";
 
 			if (is_numeric($id)) {
-				SQL::update($table,$id,array("approved" => "on"));
+				SQL::update($table, $id, array("approved" => "on"));
 			} else {
-				\BigTreeAutoModule::updatePendingItemField(substr($id,1),"approved","on");
+				$form->updatePendingEntryField(substr($id, 1), "approved", "on");
 			}
 		}
 	}
 	
 	include "_recache.php";
 ?>
-BigTree.growl("<?=$module["name"]?>","<?=Text::translate($message, true)?>");
+BigTree.growl("<?=$module->Name?>","<?=Text::translate($message, true)?>");

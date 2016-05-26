@@ -9,11 +9,11 @@
 	} else {
 		$message = "Deleted Item";
 		
-		if (substr($id,0,1) == "p") {
-			\BigTreeAutoModule::deletePendingItem($table,substr($id,1));
+		if (substr($id, 0, 1) == "p") {
+			$form->deletePendingEntry(substr($id, 1));
 		} else {
-			\BigTreeAutoModule::deleteItem($table,$id);
+			$form->deleteEntry($id);
 		}
 	}
 ?>
-BigTree.growl("<?=$module["name"]?>","<?=Text::translate($message, true)?>");
+BigTree.growl("<?=$module->Name?>","<?=Text::translate($message, true)?>");

@@ -10,9 +10,9 @@
 			$message = "Item is now unarchived.";
 			
 			if (is_numeric($id)) {
-				SQL::update($table,$id,array("archived" => ""));
+				SQL::update($table, $id, array("archived" => ""));
 			} else {
-				\BigTreeAutoModule::updatePendingItemField(substr($id,1),"archived","");
+				$form->updatePendingEntryField(substr($id, 1), "archived", "");
 			}
 		}
 	} else {
@@ -22,13 +22,13 @@
 			$message = "Item is now archived.";
 			
 			if (is_numeric($id)) {
-				SQL::update($table,$id,array("archived" => "on"));
+				SQL::update($table, $id, array("archived" => "on"));
 			} else {
-				\BigTreeAutoModule::updatePendingItemField(substr($id,1),"archived","on");
+				$form->updatePendingEntryField(substr($id, 1), "archived", "on");
 			}
 		}
 	}
 	
 	include "_recache.php";
 ?>
-BigTree.growl("<?=$module["name"]?>","<?=Text::translate($message, true)?>");
+BigTree.growl("<?=$module->Name?>","<?=Text::translate($message, true)?>");
