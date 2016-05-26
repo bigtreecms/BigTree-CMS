@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	$mpage = ADMIN_ROOT.$module["route"]."/";
-	\BigTree::globalizeArray($view);
+	Globalize::arrayObject($view);
 ?>
 <div class="table" id="" class="image_list">
 	<summary><h2><?=Text::translate("Search Results")?></h2></summary>

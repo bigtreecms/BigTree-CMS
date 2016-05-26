@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	\BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);
+	Globalize::arrayObject($_SESSION["bigtree_admin"]["form_data"]);
 ?>
 <div class="container">
 	<section>

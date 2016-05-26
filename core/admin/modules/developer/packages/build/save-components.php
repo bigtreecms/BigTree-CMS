@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	\BigTree::globalizePOSTVars();
+	Globalize::POST();
 
 	$p = &$_SESSION["bigtree_admin"]["developer"]["package"];
 	$p["module_groups"] = array();

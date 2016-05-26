@@ -9,7 +9,7 @@
 	<label><?=Text::translate("Sort By")?></label>
 	<?php if ($table) { ?>
 	<select name="sort">
-		<?php \BigTree::getFieldSelectOptions($table,$sort,true) ?>
+		<?php SQL::drawColumnSelectOptions($table,$sort,true) ?>
 	</select>
 	<?php } else { ?>
 	<input name="sort" type="text" disabled="disabled" placeholder="<?=Text::translate("Choose a Data Table first.", true)?>" />

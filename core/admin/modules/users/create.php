@@ -13,7 +13,7 @@
 </div>
 <?php
 	} else {
-		\BigTree::globalizePOSTVars();
+		Globalize::POST();
 
 		// Check security policy
 		if (!$admin->validatePassword($password)) {

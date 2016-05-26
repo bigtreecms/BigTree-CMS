@@ -1996,7 +1996,7 @@
 					"module" => $interface["module"],
 					"title" => $interface["title"],
 					"table" => $interface["table"],
-					"fields" => BigTree::arrayValue($settings["fields"]),
+					"fields" => BigTree\Utils::arrayValue($settings["fields"]),
 					"default_position" => $settings["default_position"],
 					"default_pending" => $settings["default_pending"],
 					"css" => $settings["css"],
@@ -2034,7 +2034,7 @@
 					"module" => $interface["module"],
 					"title" => $interface["title"],
 					"table" => $interface["table"],
-					"fields" => BigTree::arrayValue($settings["fields"]),
+					"fields" => BigTree\Utils::arrayValue($settings["fields"]),
 					"default_position" => $settings["default_position"],
 					"return_view" => $settings["return_view"],
 					"return_url" => $settings["return_url"],
@@ -3691,16 +3691,12 @@
 		/*
 			Function: urlExists
 				Attempts to connect to a URL using cURL.
-				This is now an alias for BigTree::urlExists
 
 			Parameters:
 				url - The URL to connect to.
 
 			Returns:
 				true if it can connect, false if connection failed.
-
-			See Also:
-				BigTree::urlExists
 		*/
 
 		static function urlExists($url) {

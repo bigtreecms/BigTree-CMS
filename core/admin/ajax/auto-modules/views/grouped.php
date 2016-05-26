@@ -6,7 +6,8 @@
 		$bigtree["view"] = \BigTreeAutoModule::getView($_POST["view"]);
 		$bigtree["module"] = $admin->getModule($bigtree["view"]["module"]);
 	}
-	\BigTree::globalizeArray($bigtree["view"]);
+	
+	Globalize::arrayObject($bigtree["view"]);
 	
 	$permission = $admin->getAccessLevel($bigtree["module"]["id"]);
 	$module_page = ADMIN_ROOT.$bigtree["module"]["route"]."/";

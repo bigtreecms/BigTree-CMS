@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	\BigTree::globalizePOSTVars();
+	Globalize::POST();
 	$success = $admin->createSetting($_POST);
 
 	if ($success) {

@@ -11,7 +11,7 @@
 			<label><?=Text::translate("Main Table")?></label>
 			<select name="gbp[table]" class="table_select" data-pop-name="gbp[group_field]" data-pop-target="#gbp_group_field">
 				<option></option>
-				<?php \BigTree::getTableSelectOptions($gbp["table"]) ?>
+				<?php SQL::drawTableSelectOptions($gbp["table"]) ?>
 			</select>
 		</fieldset>
 		<fieldset name="gbp[group_field]">
@@ -19,7 +19,7 @@
 			<div id="gbp_group_field">
 				<?php if ($gbp["table"]) { ?>
 				<select name="gbp[group_field]">
-					<?php \BigTree::getFieldSelectOptions($gbp["table"],$gbp["group_field"]) ?>
+					<?php SQL::drawColumnSelectOptions($gbp["table"],$gbp["group_field"]) ?>
 				</select>
 				<?php } else { ?>
 				<input type="text" disabled="disabled" value="<?=Text::translate('Please select "Main Table"', true)?>" />
@@ -36,7 +36,7 @@
 			<label><?=Text::translate("Other Table")?></label>
 			<select name="gbp[other_table]" class="table_select" data-pop-name="gbp[title_field]" data-pop-target="#gbp_title_field">
 				<option></option>
-				<?php \BigTree::getTableSelectOptions($gbp["other_table"]) ?>
+				<?php SQL::drawTableSelectOptions($gbp["other_table"]) ?>
 			</select>
 		</fieldset>
 		<fieldset name="gbp[title_field]">
@@ -44,7 +44,7 @@
 			<div id="gbp_title_field">
 				<?php if ($gbp["other_table"]) { ?>
 				<select name="gbp[title_field]">
-					<?php \BigTree::getFieldSelectOptions($gbp["other_table"],$gbp["title_field"]) ?>
+					<?php SQL::drawColumnSelectOptions($gbp["other_table"],$gbp["title_field"]) ?>
 				</select>
 				<?php } else { ?>
 				<input type="text" disabled="disabled" value="<?=Text::translate('Please select "Other Table"', true)?>" />

@@ -8,7 +8,7 @@
 	$name = $route = $group_new = $group_existing = $table = $class = "";
 	$icon = "gear";
 	if (isset($_SESSION["bigtree_admin"]["saved"])) {
-		\BigTree::globalizeArray($_SESSION["bigtree_admin"]["saved"],"htmlspecialchars");
+		Globalize::arrayObject($_SESSION["bigtree_admin"]["saved"],"htmlspecialchars");
 		unset($_SESSION["bigtree_admin"]["saved"]);
 	}
 ?>
@@ -45,7 +45,7 @@
 					<label><?=Text::translate("Related Table")?></label>
 					<select name="table" id="rel_table">
 						<option></option>
-						<?php \BigTree::getTableSelectOptions($table) ?>
+						<?php SQL::drawTableSelectOptions($table) ?>
 					</select>
 				</fieldset>
 				<fieldset>

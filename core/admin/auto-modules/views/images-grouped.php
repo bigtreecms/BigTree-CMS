@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	\BigTree::globalizeArray($bigtree["view"]);
+	Globalize::arrayObject($bigtree["view"]);
 	
 	// Make sure our view data is cached;
 	\BigTreeAutoModule::cacheViewData($bigtree["view"]);

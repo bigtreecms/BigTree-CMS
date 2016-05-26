@@ -5,7 +5,7 @@
 	$id = $name = $self_draw = "";
 	$use_cases = array("templates" => "on", "modules" => "on","callouts" => "on","settings" => "on");
 	if ($_SESSION["bigtree_admin"]["error"]) {
-		\BigTree::globalizeArray($_SESSION["bigtree_admin"]["saved"]);
+		Globalize::arrayObject($_SESSION["bigtree_admin"]["saved"]);
 		$show_error = $_SESSION["bigtree_admin"]["error"];
 		unset($_SESSION["bigtree_admin"]["error"]);
 		unset($_SESSION["bigtree_admin"]["saved"]);

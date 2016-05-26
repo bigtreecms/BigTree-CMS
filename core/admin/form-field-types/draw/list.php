@@ -37,7 +37,7 @@
 		}
 	// State List
 	} elseif ($field["options"]["list_type"] == "state") {
-		foreach (\BigTree::$StateList as $a => $s) {
+		foreach (Field::$StateList as $a => $s) {
 			$list[] = array(
 				"value" => $a,
 				"description" => $s
@@ -45,7 +45,7 @@
 		}
 	// Country List
 	} elseif ($field["options"]["list_type"] == "country") {
-		foreach (\BigTree::$CountryList as $c) {
+		foreach (Field::$CountryList as $c) {
 			$list[] = array(
 				"value" => $c,
 				"description" => $c

@@ -11,7 +11,7 @@
 			<label class="required"><?=Text::translate("Data Table")?></label>
 			<select name="table" id="feed_table" class="required left">
 				<option></option>
-				<?php \BigTree::getTableSelectOptions($table); ?>
+				<?php SQL::drawTableSelectOptions($table); ?>
 			</select>
 		</fieldset>
 		<fieldset>

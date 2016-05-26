@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	\BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);
+	Globalize::arrayObject($_SESSION["bigtree_admin"]["form_data"]);
 
 	// Override the default H1
 	$bigtree["page_override"] = array("title" => Text::translate("Errors Occurred"),"icon" => "page_404");

@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	\BigTree::globalizePOSTVars();
+	Globalize::POST();
 
 	$module = end($bigtree["path"]);
 	$id = $admin->createModuleReport($module,$title,$table,$type,$filters,$fields,$parser,$view);

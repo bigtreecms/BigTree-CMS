@@ -2,7 +2,7 @@
 	namespace BigTree;
 
 	$security_policy = $cms->getSetting("bigtree-internal-security-policy");
-	\BigTree::globalizeArray($security_policy,"htmlspecialchars");
+	Globalize::arrayObject($security_policy,"htmlspecialchars");
 ?>
 <div class="container" id="security_settings">
 	<form method="post" action="<?=DEVELOPER_ROOT?>security/update/">

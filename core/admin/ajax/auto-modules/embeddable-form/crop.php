@@ -1,5 +1,7 @@
 <?php
-	BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);
+	namespace BigTree;
+
+	Globalize::arrayObject($_SESSION["bigtree_admin"]["form_data"]);
 
 	// Get crop information
 	$crops = $cms->cacheGet("org.bigtreecms.crops",$crop_key);

@@ -20,7 +20,7 @@
 	<label><?=Text::translate("Image Field")?></label>
 	<?php if ($table) { ?>
 	<select name="image">
-		<?php \BigTree::getFieldSelectOptions($table,$image) ?>
+		<?php SQL::drawColumnSelectOptions($table,$image) ?>
 	</select>
 	<?php } else { ?>
 	<input name="image" type="text" disabled="disabled" placeholder="<?=Text::translate("Choose a Data Table first.", true)?>" />

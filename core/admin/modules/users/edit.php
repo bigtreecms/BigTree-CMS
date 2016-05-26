@@ -12,7 +12,7 @@
 	}
 
 	$bigtree["gravatar"] = $user["email"];
-	\BigTree::globalizeArray($user);
+	Globalize::arrayObject($user);
 	
 	if (!$permissions) {
 		$permissions = array(
@@ -134,7 +134,7 @@
 	
 	$error = "";
 	if (isset($_SESSION["bigtree_admin"]["update_user"])) {
-		\BigTree::globalizeArray($_SESSION["bigtree_admin"]["update_user"],array("htmlspecialchars"));
+		Globalize::arrayObject($_SESSION["bigtree_admin"]["update_user"],array("htmlspecialchars"));
 		unset($_SESSION["bigtree_admin"]["update_user"]);
 	}
 	
@@ -154,7 +154,7 @@
 				<fieldset<?php if ($error == "email") { ?> class="form_error"<?php } ?> style="position: relative;">
 					<label class="required"><?=Text::translate("Email")?> <small>(<?=Text::translate("Profile images from")?> <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <?php if ($error == "email") { ?><span class="form_error_reason"><?=Text::translate("Already In Use By Another User")?></span><?php } ?></label>
 					<input type="text" class="required email" name="email" autocomplete="off" value="<?=htmlspecialchars($email)?>" tabindex="1" />
-					<span class="gravatar"<?php if ($email) { ?> style="display: block;"<?php } ?>><img src="<?=\BigTree::gravatar($email, 36)?>" alt="" /></span>
+					<span class="gravatar"<?php if ($email) { ?> style="display: block;"<?php } ?>><img src="<?=Image::gravatar($email, 36)?>" alt="" /></span>
 				</fieldset>
 				
 				<fieldset<?php if ($error == "password") { ?> class="form_error"<?php } ?> >

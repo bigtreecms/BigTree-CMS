@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	\BigTree::globalizePOSTVars();
+	Globalize::POST();
 	
 	// Make sure at least one field is in this view.
 	$ok = false;

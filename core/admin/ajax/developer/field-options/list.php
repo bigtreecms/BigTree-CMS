@@ -41,7 +41,7 @@
 		<label><?=Text::translate("Table")?></label>
 		<select name="pop-table" class="table_select">
 			<option></option>
-			<?php BigTree::getTableSelectOptions($data["pop-table"]); ?>
+			<?php SQL::drawTableSelectOptions($data["pop-table"]); ?>
 		</select>
 	</fieldset>
 	
@@ -49,7 +49,7 @@
 		<label><?=Text::translate("Description Field")?></label>
 		<div data-name="pop-description" class="pop-dependant pop-table">
 			<?php if ($data["pop-table"]) { ?>
-			<select name="pop-description"><?php BigTree::getFieldSelectOptions($data["pop-table"],$data["pop-description"]) ?></select>
+			<select name="pop-description"><?php SQL::drawColumnSelectOptions($data["pop-table"],$data["pop-description"]) ?></select>
 			<?php } else { ?>
 			<input type="text" disabled="disabled" value="<?=Text::translate('Please select "Table"', true)?>" />
 			<?php } ?>
@@ -60,7 +60,7 @@
 		<label><?=Text::translate("Sort By")?></label>
 		<div data-name="pop-sort" class="sort_by pop-dependant pop-table">
 			<?php if ($data["pop-table"]) { ?>
-			<select name="pop-sort"><?php BigTree::getFieldSelectOptions($data["pop-table"],$data["pop-sort"],true) ?></select>
+			<select name="pop-sort"><?php SQL::drawColumnSelectOptions($data["pop-table"],$data["pop-sort"],true) ?></select>
 			<?php } else { ?>
 			<input type="text" disabled="disabled" value="<?=Text::translate('Please select "Table"', true)?>" />
 			<?php } ?>

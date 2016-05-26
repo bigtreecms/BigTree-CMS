@@ -1,6 +1,5 @@
 <?php
 	namespace BigTree;
-	use BigTree;
 	
 	// Make sure this is a live page.
 	if (!is_numeric($page["id"])) {
@@ -42,7 +41,7 @@
 	<ul>
 		<li>
 			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($draft["date"]))?></section>
-			<section class="pages_draft_author"><span class="gravatar"><img src="<?=BigTree::gravatar($draft_author["email"], 36)?>" alt="" /></span><?=$draft_author["name"]?></section>
+			<section class="pages_draft_author"><span class="gravatar"><img src="<?=Image::gravatar($draft_author["email"], 36)?>" alt="" /></span><?=$draft_author["name"]?></section>
 			<section class="pages_publish"><a class="icon_publish" href="<?=ADMIN_ROOT?>pages/publish-draft/<?=$page["id"]?>/?draft=<?=$draft["id"]?>"></a></section>
 			<section class="pages_edit"><a class="icon_edit" href="<?=ADMIN_ROOT?>pages/edit/<?=$page["id"]?>/"></a></section>
 			<section class="pages_delete"><a class="icon_delete" href="<?=ADMIN_ROOT?>ajax/pages/delete-draft/?id=<?=$page["id"]?>"></a></section>
@@ -65,7 +64,7 @@
 	<ul>
 		<li class="active">
 			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($page["updated_at"]))?></section>
-			<section class="pages_draft_author"><span class="gravatar"><img src="<?=BigTree::gravatar($current_author["email"], 36)?>" alt="" /></span><?=$current_author["name"]?><span class="active_draft"><?=Text::translate("Active")?></span></section>
+			<section class="pages_draft_author"><span class="gravatar"><img src="<?=Image::gravatar($current_author["email"], 36)?>" alt="" /></span><?=$current_author["name"]?><span class="active_draft"><?=Text::translate("Active")?></span></section>
 			<section class="pages_delete"><a href="#" class="icon_save"></a></section>
 			<section class="pages_publish"></section>
 			<section class="pages_edit"></section>
@@ -73,7 +72,7 @@
 		<?php foreach ($revisions["unsaved"] as $r) { ?>
 		<li>
 			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($r["updated_at"]))?></section>
-			<section class="pages_draft_author"><span class="gravatar"><img src="<?=BigTree::gravatar($r["email"], 36)?>" alt="" /></span><?=$r["name"]?></section>
+			<section class="pages_draft_author"><span class="gravatar"><img src="<?=Image::gravatar($r["email"], 36)?>" alt="" /></span><?=$r["name"]?></section>
 			<section class="pages_delete"><a href="#<?=$r["id"]?>" class="icon_save"></a></section>
 			<section class="pages_publish"><a href="#<?=$r["id"]?>" class="icon_draft"></a></section>
 			<section class="pages_edit"><a href="#<?=$r["id"]?>" class="icon_delete"></a></section>

@@ -1,7 +1,5 @@
 <?php
 	namespace BigTree;
-
-	use BigTree;
 	
 	// Get pending changes awaiting this user's approval.
 	$changes = $admin->getPublishableChanges($admin->ID);
@@ -75,7 +73,7 @@
 			<section class="changes_author"><?=$change["user"]["name"]?></section>
 			<section class="changes_page"><?=$page["nav_title"]?></section>
 			<section class="changes_type"><?php if (is_numeric($change["item_id"])) { echo Text::translate("CHANGE"); } else {  ?><span class="new"><?=Text::translate("NEW")?></span><?php } ?></section>
-			<section class="changes_time"><?=BigTree::relativeTime($change["date"])?></section>
+			<section class="changes_time"><?=Date::relativeTime($change["date"])?></section>
 			<section class="changes_action"><a href="<?=$preview_link?>" target="_preview" class="icon_preview"></a></section>
 			<section class="changes_action"><a href="<?=$edit_link?>" class="icon_edit"></a></section>
 			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="Pages" class="icon_approve icon_approve_on"></a></section>

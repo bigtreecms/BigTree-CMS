@@ -11,7 +11,7 @@
 		</fieldset>
 		<?php } ?>
 		<input type="hidden" id="preview_field" name="_bigtree_preview" />
-		<input type="hidden" name="MAX_FILE_SIZE" value="<?=\BigTree::uploadMaxFileSize()?>" id="bigtree_max_file_size" />
+		<input type="hidden" name="MAX_FILE_SIZE" value="<?=Storage::uploadMaxFileSize()?>" id="bigtree_max_file_size" />
 		<input type="hidden" name="_bigtree_post_check" value="success" />
 		<?php
 			if (isset($bigtree["entry"])) {

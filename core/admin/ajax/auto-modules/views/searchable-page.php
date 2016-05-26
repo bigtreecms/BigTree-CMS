@@ -9,7 +9,7 @@
 		$bigtree["module"] = $admin->getModuleByRoute($_GET["module"]);
 	}
 
-	\BigTree::globalizeArray($bigtree["view"]);
+	Globalize::arrayObject($bigtree["view"]);
 
 	$search = isset($_GET["search"]) ? $_GET["search"] : "";
 	$page = isset($_GET["page"]) ? intval($_GET["page"]) : 1;

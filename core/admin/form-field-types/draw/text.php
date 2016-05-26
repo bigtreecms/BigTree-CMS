@@ -42,7 +42,7 @@
 	<section class="input_address_state">
 		<select class="<?=$field["options"]["validation"]?>" name="<?=$field["key"]?>[state]" id="<?=$field["id"]?>_state" tabindex="<?=($field["tabindex"] + 2)?>">
 			<option value="">Select a State</option>
-			<?php foreach (BigTree::$StateList as $abbreviation => $state_name) { ?>
+			<?php foreach (Field::$StateList as $abbreviation => $state_name) { ?>
 			<option value="<?=$a?>"<?php if ($abbreviation == $field["value"]["state"]) { ?> selected="selected"<?php } ?>><?=$state_name?></option>
 			<?php } ?>
 		</select>
@@ -52,7 +52,7 @@
 	</section>
 	<section class="input_address_country">
 		<select class="<?=$field["options"]["validation"]?>" name="<?=$field["key"]?>[country]" id="<?=$field["id"]?>_country" tabindex="<?=($field["tabindex"] + 4)?>">
-			<?php foreach (BigTree::$CountryList as $country_name) { ?>
+			<?php foreach (Field::$CountryList as $country_name) { ?>
 			<option value="<?=$c?>"<?php if ($country_name == $field["value"]["country"]) { ?> selected="selected"<?php } ?>><?=$country_name?></option>
 			<?php } ?>
 		</select>

@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	$view = \BigTreeAutoModule::getView(end($bigtree["path"]));
-	\BigTree::globalizeArray($view);
+	Globalize::arrayObject($view);
 	$module = $admin->getModule($module);
 
 	if (!SQL::tableExists($table)) {

@@ -3,11 +3,11 @@
 
 	$user = $admin->getUser($admin->ID);
 	$bigtree["gravatar"] = $user["email"];
-	\BigTree::globalizeArray($user,array("htmlspecialchars"));
+	Globalize::arrayObject($user,array("htmlspecialchars"));
 
 	$error = false;
 	if (isset($_SESSION["bigtree_admin"]["update_profile"])) {
-		\BigTree::globalizeArray($_SESSION["bigtree_admin"]["update_profile"],array("htmlspecialchars"));
+		Globalize::arrayObject($_SESSION["bigtree_admin"]["update_profile"],array("htmlspecialchars"));
 		$daily_digest = isset($daily_digest) ? $daily_digest : false;
 		unset($_SESSION["bigtree_admin"]["update_profile"]);
 		$error = true;

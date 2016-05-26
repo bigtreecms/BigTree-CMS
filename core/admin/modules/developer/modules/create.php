@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	\BigTree::globalizePOSTVars();
+	Globalize::POST();
 	
 	if ($group_new) {
 		$group = $admin->createModuleGroup($group_new,"on");

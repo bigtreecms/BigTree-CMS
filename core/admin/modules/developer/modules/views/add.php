@@ -15,7 +15,7 @@
 	$module = $admin->getModule($id);
 
 	if (isset($_SESSION["bigtree_admin"]["developer"]["saved_view"])) {
-		\BigTree::globalizeArray($_SESSION["bigtree_admin"]["developer"]["saved_view"],array("htmlspecialchars"));
+		Globalize::arrayObject($_SESSION["bigtree_admin"]["developer"]["saved_view"],array("htmlspecialchars"));
 		unset($_SESSION["bigtree_admin"]["developer"]["saved_view"]);
 	} else {
 		// Stop notices

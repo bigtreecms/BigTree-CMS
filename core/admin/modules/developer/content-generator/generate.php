@@ -163,7 +163,7 @@
 		$data = false;
 		while (!$data) {
 			$url = str_replace(array("width","height"),array($width,$height),$services[array_rand($services)]);
-			$data = \BigTree::cURL($url);
+			$data = cURL::request($url);
 		}
 		file_put_contents($file,$data);
 		chmod($file,0777);
@@ -229,9 +229,9 @@
 			if ($options["list_type"] == "static") {
 				return $options["list"][array_rand($options["list"])]["value"];
 			} elseif ($options["list_type"] == "state") {
-				return \BigTree::$StateList[array_rand(\BigTree::$StateList)];
+				return Field::$StateList[array_rand(Field::$StateList)];
 			} elseif ($options["list_type"] == "country") {
-				return \BigTree::$CountryList[array_rand(\BigTree::$CountryList)];
+				return Field::$CountryList[array_rand(Field::$CountryList)];
 			} else {
 				return SQL::fetchSingle("SELECT `id` FROM `".$options["pop-table"]."` ORDER BY RAND() LIMIT 1");
 			}

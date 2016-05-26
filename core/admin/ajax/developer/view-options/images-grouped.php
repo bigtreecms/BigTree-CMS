@@ -24,7 +24,7 @@
 	<label><?=Text::translate("Image Field")?></label>
 	<?php if ($table) { ?>
 	<select name="image">
-		<?php \BigTree::getFieldSelectOptions($table,$image) ?>
+		<?php SQL::drawColumnSelectOptions($table,$image) ?>
 	</select>
 	<?php } else { ?>
 	<input name="image" type="text" disabled="disabled" placeholder="<?=Text::translate("Choose a Data Table first.", true)?>" />
@@ -35,7 +35,7 @@
 	<label><?=Text::translate("Group Field")?></label>
 	<?php if ($table) { ?>
 	<select name="group_field">
-		<?php BigTree::getFieldSelectOptions($table,$group_field) ?>
+		<?php SQL::drawColumnSelectOptions($table,$group_field) ?>
 	</select>
 	<?php } else { ?>
 	<input name="group_field" type="text" disabled="disabled" placeholder="<?=Text::translate("Choose a Data Table first.", true)?>" />
@@ -56,7 +56,7 @@
 	<label><?=Text::translate("Other Table")?></label>
 	<select name="other_table" class="table_select">
 		<option></option>
-		<?php \BigTree::getTableSelectOptions($other_table) ?>
+		<?php SQL::drawTableSelectOptions($other_table) ?>
 	</select>
 </fieldset>
 
@@ -65,7 +65,7 @@
 	<div data-name="title_field">
 		<?php if ($other_table) { ?>
 		<select name="title_field">
-			<?php \BigTree::getFieldSelectOptions($other_table,$title_field) ?>
+			<?php SQL::drawColumnSelectOptions($other_table,$title_field) ?>
 		</select>
 		<?php } else { ?>
 		<input type="text" disabled="disabled" value="<?=Text::translate('Please select "Other Table"', true)?>" />

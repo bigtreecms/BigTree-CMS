@@ -7,18 +7,11 @@
 	$bigtree["matrix_count"] = intval($_POST["count"]);
 	$bigtree["matrix_key"] = htmlspecialchars($_POST["key"]);
 	$bigtree["matrix_columns"] = $_POST["columns"];
+	$bigtree["resources"] = array();
 
-	$bigtree["resources"] = isset($_POST["data"]) ? json_decode(base64_decode($_POST["data"]),true) : array();
-	foreach ($bigtree["resources"] as &$val) {
-		if (is_array($val)) {
-			$val = \BigTree::untranslateArray($val);
-		} elseif (is_array(json_decode($val,true))) {
-			$val = \BigTree::untranslateArray(json_decode($val,true));
-		} else {
-			$val = $cms->replaceInternalPageLinks($val);
-		}
+	if (isset($_POST["data"])) {
+		$bigtree["resources"] = Link::decodeArray(json_decode(base64_decode($_POST["data"]),true));
 	}
-	unset($val);
 ?>
 <div id="matrix_resources" class="callout_fields">
 	<p class="error_message" style="display: none;"><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>

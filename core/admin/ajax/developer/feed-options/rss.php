@@ -21,13 +21,13 @@
 <fieldset>
 	<label><?=Text::translate("Title Field")?></label>
 	<select name="title">
-		<?php BigTree::getFieldSelectOptions($table,$data["title"]); ?>
+		<?php SQL::drawColumnSelectOptions($table,$data["title"]); ?>
 	</select>
 </fieldset>
 <fieldset>
 	<label><?=Text::translate("Description Field")?></label>
 	<select name="description">
-		<?php BigTree::getFieldSelectOptions($table,$data["description"]); ?>
+		<?php SQL::drawColumnSelectOptions($table,$data["description"]); ?>
 	</select>
 </fieldset>
 <fieldset>
@@ -37,7 +37,7 @@
 <fieldset>
 	<label><?=Text::translate("Link Field")?></label>
 	<select name="link">
-		<?php BigTree::getFieldSelectOptions($table,$data["link"]); ?>
+		<?php SQL::drawColumnSelectOptions($table,$data["link"]); ?>
 	</select>
 </fieldset>
 <fieldset>
@@ -47,7 +47,7 @@
 <fieldset>
 	<label><?=Text::translate("Order By")?></label>
 	<select name="sort">
-		<?php BigTree::getFieldSelectOptions($table,$data["sort"],true); ?>
+		<?php SQL::drawColumnSelectOptions($table,$data["sort"],true); ?>
 	</select>
 </fieldset>
 <?php } ?>

@@ -2,7 +2,7 @@
 	namespace BigTree;
 
 	$type = $admin->getFieldType(end($bigtree["commands"]));
-	\BigTree::globalizeArray($type,array("htmlspecialchars"));
+	Globalize::arrayObject($type,array("htmlspecialchars"));
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>field-types/update/" enctype="multipart/form-data" class="module">

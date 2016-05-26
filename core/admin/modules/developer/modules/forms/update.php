@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	\BigTree::globalizePOSTVars();
+	Globalize::POST();
 
 	$form_id = end($bigtree["path"]);
 	$admin->updateModuleForm($form_id,$title,$table,$fields,$hooks,$default_position,$return_view,$return_url,$tagging);

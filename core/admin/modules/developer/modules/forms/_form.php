@@ -15,7 +15,7 @@
 			<label class="required"><?=Text::translate("Data Table")?></label>
 			<select name="table" id="form_table" class="required">
 				<option></option>
-				<?php \BigTree::getTableSelectOptions($form["table"]); ?>
+				<?php SQL::drawTableSelectOptions($form["table"]); ?>
 			</select>
 		</fieldset>
 

@@ -14,7 +14,7 @@
 <fieldset>
 	<label><?=Text::translate("Order By")?></label>
 	<select name="sort">
-		<?php BigTree::getFieldSelectOptions($table,$data["sort"],true); ?>
+		<?php SQL::drawColumnSelectOptions($table,$data["sort"],true); ?>
 	</select>
 </fieldset>
 <fieldset>

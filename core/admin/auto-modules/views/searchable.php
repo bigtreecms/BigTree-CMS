@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	\BigTree::globalizeArray($bigtree["view"]);
+	Globalize::arrayObject($bigtree["view"]);
 		
 	$module = $admin->getModule($bigtree["view"]["module"]);
 	$perm = $admin->checkAccess($module);

@@ -13,17 +13,7 @@
 		$bigtree["callout_key"] = htmlspecialchars($_POST["key"]);
 	}
 
-	foreach ($bigtree["resources"] as &$val) {
-		if (is_array($val)) {
-			$val = \BigTree::untranslateArray($val);
-		} elseif (is_array(json_decode($val,true))) {
-			$val = \BigTree::untranslateArray(json_decode($val,true));
-		} else {
-			$val = $cms->replaceInternalPageLinks($val);
-		}
-	}
-	unset($val);
-
+	$bigtree["resources"] = Link::decodeArray($bigtree["resources"]);
 	$bigtree["callout_count"] = intval($_POST["count"]);
 	$bigtree["callout"] = $admin->getCallout($bigtree["resources"]["type"]);
 	

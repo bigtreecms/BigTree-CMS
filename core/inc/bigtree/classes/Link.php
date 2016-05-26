@@ -235,27 +235,6 @@
 		}
 
 		/*
-			Function: gravatar
-				Returns a properly formatted gravatar url.
-			
-			Parameters:
-				email - User's email address.
-				size - Image size; defaults to 56
-				default - Default profile image; defaults to BigTree icon
-				rating - Defaults to "g" (options include "g", "pg", "r", "x")
-		*/
-		
-		static function gravatar($email,$size = 56,$default = false,$rating = "g") {
-			if (!$default) {
-				global $bigtree;
-			
-				$default = !empty($bigtree["config"]["default_gravatar"]) ? $bigtree["config"]["default_gravatar"] : "https://www.bigtreecms.org/images/bigtree-gravatar.png";
-			}
-
-			return "https://secure.gravatar.com/avatar/".md5(strtolower($email))."?s=$size&d=".urlencode($default)."&rating=$rating";
-		}	
-
-		/*
 			Function: integrity
 				Checks a block of HTML for link/image intergirty
 

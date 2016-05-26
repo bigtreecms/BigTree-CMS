@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	$callout = new Callout(end($bigtree["path"]));	
-	\BigTree::globalizeArray($callout->Array);
+	Globalize::arrayObject($callout->Array);
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>callouts/update/" enctype="multipart/form-data" class="module">

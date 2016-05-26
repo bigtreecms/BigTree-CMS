@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	$item = $admin->getModuleAction(end($bigtree["commands"]));
-	\BigTree::globalizeArray($item);
+	Globalize::arrayObject($item);
 
 	$module = $admin->getModule($module);
 ?>

@@ -21,7 +21,7 @@
 					<label class="required"><?=Text::translate("Data Table")?></label>
 					<select name="table" id="report_table" class="required">
 						<option></option>
-						<?php \BigTree::getTableSelectOptions(); ?>
+						<?php SQL::drawTableSelectOptions(); ?>
 					</select>
 				</fieldset>
 

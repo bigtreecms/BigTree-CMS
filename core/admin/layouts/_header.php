@@ -1,8 +1,6 @@
 <?php
 	namespace BigTree;
 
-	use BigTree;
-
 	$nav = isset($bigtree["nav_override"]) ? $bigtree["nav_override"] : array(
 		array("link" => "dashboard", "title" => "Dashboard", "access" => 0, "children" => array(
 			array("link" => "", "title" => "Overview", "access" => 0),
@@ -37,7 +35,8 @@
 		))
 	);
 	
-	$unread_messages = $admin->getUnreadMessageCount();	
+	$unread_messages = $admin->getUnreadMessageCount();
+	$unread_message_string = Text::translate(":count: Unread Message".(($unread_messages == 1) ? "" : "s"), false, array(":count:" => $unread_messages));
 	$site = $cms->getPage(0,false);
 
 	// Show an alert for being on the development site of a live site, in maintenance mode, or in developer mode
@@ -146,9 +145,9 @@
 			<section>
 				<a href="<?php if ($bigtree["config"]["force_secure_login"]) { echo str_replace("http://","https://",ADMIN_ROOT); } else { echo ADMIN_ROOT; } ?>login/logout/" class="logout"><span></span><?=Text::translate("Logout")?></a>
 				<div></div>
-				<p class="messages"><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_messages?> <?=Text::translate("Unread")?> <?=Text::translate($unread_messages == 1 ? "Message" : "Messages")?></a></p>
+				<p class="messages"><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_message_string?></a></p>
 				<div></div>
-				<p class="welcome"><span class="gravatar"><img src="<?=BigTree::gravatar($admin->User, 28)?>" alt="" /></span><?=Text::translate("Welcome Back")?> <a href="<?=ADMIN_ROOT?>users/profile/"><?=$admin->Name?></a></p>
+				<p class="welcome"><span class="gravatar"><img src="<?=Image::gravatar($admin->User, 28)?>" alt="" /></span><?=Text::translate("Welcome Back")?> <a href="<?=ADMIN_ROOT?>users/profile/"><?=$admin->Name?></a></p>
 				<strong><?=$site["nav_title"]?></strong>
 				<a href="<?=WWW_ROOT?>" target="_blank" class="view_site"><?=Text::translate("View Site")?></a>
 			</section>

@@ -2,7 +2,7 @@
 	namespace BigTree;
 
 	$mpage = ADMIN_ROOT.$module["route"]."/";
-	\BigTree::globalizeArray($view);
+	Globalize::arrayObject($view);
 	
 	// Figure out the column width
 	$awidth = count($actions) * 40;

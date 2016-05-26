@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	$form = \BigTreeAutoModule::getEmbedForm(end($bigtree["commands"]));
-	\BigTree::globalizeArray($form);
+	Globalize::arrayObject($form);
 	$module = $admin->getModule($module);
 
 	if (!SQL::tableExists($table)) {

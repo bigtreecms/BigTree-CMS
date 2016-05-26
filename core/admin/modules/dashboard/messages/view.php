@@ -26,7 +26,7 @@
 		<header>
 			<h3><?=$m["subject"]?></h3>
 			<div class="from">
-				<span class="gravatar"><img src="<?=\BigTree::gravatar($sender_gravatar)?>" alt="" /></span>
+				<span class="gravatar"><img src="<?=Image::gravatar($sender_gravatar)?>" alt="" /></span>
 				<p><?=$sender_name?></p>
 			</div>
 		</header>

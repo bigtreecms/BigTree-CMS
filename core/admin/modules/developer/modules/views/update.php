@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	\BigTree::globalizePOSTVars();
+	Globalize::POST();
 	
 	$table_description = SQL::describeTable($table);
 	$columns = $table_description["columns"];

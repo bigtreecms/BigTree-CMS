@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	\BigTree::globalizePOSTVars();
+	Globalize::POST();
 
 	$module = end($bigtree["path"]);
 	$form_id = $admin->createModuleForm($module,$title,$table,$fields,$hooks,$default_position,$return_view,$return_url,$tagging);

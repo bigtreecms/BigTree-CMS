@@ -90,7 +90,7 @@
 		$bucket_pane_height = 338;
 	}
 ?>
-<div class="directory"><?=\BigTree::replaceServerRoot($directory,"/")?></div>
+<div class="directory"><?=Text::replaceServerRoot($directory,"/")?></div>
 <div class="navigation_pane">
 	<?php if (count($cloud_options)) { ?>
 	<ul class="cloud_options">

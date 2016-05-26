@@ -2,10 +2,10 @@
 	namespace BigTree;
 	
 	$item = $admin->getSetting(end($bigtree["path"]));
-	\BigTree::globalizeArray($item,array("htmlspecialchars"));
+	Globalize::arrayObject($item,array("htmlspecialchars"));
 	
 	if (isset($_SESSION["bigtree_admin"]["developer"]["setting_data"])) {
-		\BigTree::globalizeArray($_SESSION["bigtree_admin"]["developer"]["setting_data"]);
+		Globalize::arrayObject($_SESSION["bigtree_admin"]["developer"]["setting_data"]);
 		unset($_SESSION["bigtree_admin"]["developer"]["setting_data"]);
 	}
 	

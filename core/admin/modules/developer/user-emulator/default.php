@@ -3,7 +3,7 @@
 
 	$users = $admin->getUsers();
 	foreach ($users as &$user) {
-		$user["gravatar"] = \BigTree::gravatar($user["email"],36);
+		$user["gravatar"] = Image::gravatar($user["email"],36);
 	}
 ?>
 <section class="inset_block">

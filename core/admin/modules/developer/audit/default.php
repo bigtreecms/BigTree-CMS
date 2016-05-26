@@ -25,7 +25,7 @@
 						<option value="bigtree_settings"><?=Text::translate("Settings")?></option>
 					</optgroup>
 					<optgroup label="Modules">
-						<?php \BigTree::getTableSelectOptions() ?>
+						<?php SQL::drawTableSelectOptions() ?>
 					</optgroup>
 				</select>
 			</fieldset>

@@ -11,7 +11,7 @@
 				$array_val = @json_decode($val,true);
 
 				if (is_array($array_val)) {
-					$item[$key] = \BigTree::untranslateArray($array_val);
+					$item[$key] = Link::decodeArray($array_val);
 				} else {
 					$item[$key] = $cms->replaceInternalPageLinks($val);
 				}
@@ -22,7 +22,7 @@
 			foreach ($feed["fields"] as $key => $options) {
 				$value = $item[$key];
 				if ($options["parser"]) {
-					$value = \BigTree::runParser($item,$value,$options["parser"]);
+					$value = Module::runParser($item,$value,$options["parser"]);
 				}
 
 				// If there's a title, use it for a key

@@ -3,7 +3,7 @@
 	
 	$report = \BigTreeAutoModule::getReport(end($bigtree["commands"]));
 	$action = $admin->getModuleActionForInterface($report);
-	\BigTree::globalizeArray($report);
+	Globalize::arrayObject($report);
 
 	// Find out available views to use
 	$available_views = $admin->getModuleViews("title",$action["module"]);
@@ -24,7 +24,7 @@
 					<label class="required"><?=Text::translate("Data Table")?></label>
 					<select name="table" id="report_table" class="required">
 						<option></option>
-						<?php \BigTree::getTableSelectOptions($table); ?>
+						<?php SQL::drawTableSelectOptions($table); ?>
 					</select>
 				</fieldset>
 

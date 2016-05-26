@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	\BigTree::globalizePOSTVars();
+	Globalize::POST();
 
 	$callout = new Callout($id);
 	$callout->update($name,$description,$level,$fields,$display_field,$display_default);

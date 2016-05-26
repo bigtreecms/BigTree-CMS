@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	\BigTree::globalizePOSTVars();
+	Globalize::POST();
 	
 	// Let's see if the ID has already been used.
 	if (SQL::exists("bigtree_templates",$id)) {

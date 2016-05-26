@@ -261,7 +261,7 @@
 				SQL::query($create_statement);
 
 				// Compare the tables, if we have changes to make, store them in a SQL revisions portion of the manifest
-				$transition_statements = \BigTree::tableCompare("bigtree_extension_temp",$table);
+				$transition_statements = SQL::compareTables("bigtree_extension_temp",$table);
 				foreach ($transition_statements as $statement) {
 					// Don't include changes to auto increment
 					if (stripos($statement,"auto_increment = ") === false) {

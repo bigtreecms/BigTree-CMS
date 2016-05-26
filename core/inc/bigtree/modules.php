@@ -91,7 +91,7 @@
 			}
 
 			// Do auto IPL stuff
-			$insert_array = BigTree::translateArray($insert_array);
+			$insert_array = BigTree\Link::encodeArray($insert_array);
 
 			// Prevent Duplicates
 			if ($enforce_unique) {
@@ -260,17 +260,16 @@
 				return false;
 			}
 			
-			foreach ($item as $key => $val) {
-				if (is_array($val)) {
-					$item[$key] = BigTree::untranslateArray($val);
-				} elseif (is_array(json_decode($val,true))) {
-					$item[$key] = BigTree::untranslateArray(json_decode($val,true));
-				} else {
-					$item[$key] = BigTreeCMS::replaceInternalPageLinks($val);
+			// Decode any JSON
+			foreach ($item as $key => $value) {
+				$array_value = @json_decode($value, true);
+
+				if (is_array($array_value)) {
+					$item[$key] = $array_value;
 				}
 			}
 			
-			return $item;
+			return BigTree\Link::decodeArray($item);
 		}
 		
 		/*
