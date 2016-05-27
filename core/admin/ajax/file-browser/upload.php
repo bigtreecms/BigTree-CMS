@@ -35,7 +35,7 @@
 			if ($error) {
 				$file_name = htmlspecialchars($file_name);
 				if ($error == 2 || $error == 1) {
-					$errors[] = $file_name." was too large ".Storage::formatBytes(Storage::uploadMaxFileSize())." max)";
+					$errors[] = $file_name." was too large ".Storage::formatBytes(Storage::getUploadMaxFileSize())." max)";
 				} else {
 					$errors[] = "Uploading $file_name failed (unknown error)";
 				}
