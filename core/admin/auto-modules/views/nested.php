@@ -1,12 +1,19 @@
 <?php
 	namespace BigTree;
+
+	/**
+	 * @global \BigTreeAdmin $admin
+	 * @global Module $module
+	 * @global string $module_permission (set in ajax file)
+	 * @global ModuleView $view
+	 */
 	
-	$search = isset($_GET["search"]) ? htmlspecialchars($_GET["search"]) : "";
+	$query = isset($_GET["search"]) ? htmlspecialchars($_GET["search"]) : "";
 ?>
 <script>
 	BigTree.localSearch = function() {
 		// If a search has been entered, revert to draggable
-		$("#table_data").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/nested/", { view: <?=$bigtree["view"]["id"]?>, search: $("#search").val() });
+		$("#table_data").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/nested/", { view: <?=$view->ID?>, search: $("#search").val() });
 	};
 	BigTree.localCreateSortable = function(element) {
 		$(element).sortable({
@@ -16,7 +23,7 @@
 			items: "> li",
 			placeholder: "ui-sortable-placeholder",
 			update: function(ev,ui) {
-				$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$bigtree["view"]["id"]?>", sort: ui.item.parent().sortable("serialize") } });
+				$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$view->ID?>", sort: ui.item.parent().sortable("serialize") } });
 			}
 		});
 	};
@@ -30,13 +37,13 @@
 </script>
 <div class="table auto_modules nested_table" id="nested_container">
 	<summary>
-		<input type="search" class="form_search" id="search" placeholder="<?=Text::translate("Search", true)?>" value="<?=$search?>" />
+		<input type="search" class="form_search" id="search" placeholder="<?=Text::translate("Search", true)?>" value="<?=$query?>" />
 		<span class="form_search_icon"></span>
 	</summary>
 	<header>
 		<?php
 			$x = 0;
-			foreach ($bigtree["view"]["fields"] as $key => $field) {
+			foreach ($view->Fields as $key => $field) {
 				$x++;
 		?>
 		<span class="view_column" style="width: <?=$field["width"]?>px;"><?=$field["title"]?></span>
@@ -44,7 +51,7 @@
 			}
 		?>
 		<span class="view_status"><?=Text::translate("Status")?></span>		
-		<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><?php if (count($bigtree["view"]["actions"]) > 1) { echo Text::translate("Actions"); } ?></span>
+		<span class="view_action" style="width: <?=(count($view->Actions) * 40)?>px;"><?php if (count($view->Actions) > 1) { echo Text::translate("Actions"); } ?></span>
 	</header>
 	<ul id="table_data">
 		<?php include Router::getIncludePath("admin/ajax/auto-modules/views/nested.php") ?>
@@ -61,8 +68,8 @@
 		// Change expanded state
 		var li = $(this).parent();
 		var ul = li.toggleClass("expanded").children("ul").toggle();
-		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/set-nest-state/", { type: "POST", data: { view: <?=$bigtree["view"]["id"]?>, id: li.attr("id").replace("row_",""), expanded: li.hasClass("expanded") } });
-		<?php if ($permission == "p") { ?>
+		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/set-nest-state/", { type: "POST", data: { view: <?=$view->ID?>, id: li.attr("id").replace("row_",""), expanded: li.hasClass("expanded") } });
+		<?php if ($module_permission == "p") { ?>
 		BigTree.localCreateSortable(ul);
 		<?php } ?>
 	}).on("mousedown",".icon_sort",function() {

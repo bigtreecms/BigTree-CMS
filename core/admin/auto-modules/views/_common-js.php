@@ -1,10 +1,14 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global ModuleView $view
+	 */
 ?>
 <script>
 	(function() {
 		var Current = false;
-		var SearchTimer = false;
+		var SearchTimer;
 
 		$("#search").keyup(function() {
 			clearTimeout(SearchTimer);
@@ -21,12 +25,15 @@
 				callback: function() {
 					// Allow custom delete implementations
 					var href = BigTree.cleanHref(Current.attr("href"));
+
 					// If it's just an ID, we're using the default delete implementation
 					if (parseInt(href) || parseInt(href.substr(1))) {
-						$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$bigtree["view"]["id"]?>&id=" + href);
 						var row = Current.parents("li");
 						var list = row.parents("ul");
+
+						$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$view->ID?>&id=" + href);
 						row.remove();
+
 						if (!list.find("li").length) {
 							var header = list.prev();
 							if (header.hasClass("group")) {
@@ -42,24 +49,24 @@
 	
 			return false;
 		}).on("click",".icon_approve",function() {
-			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/approve/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
-			<?php if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["options"]["group_field"] == "approved") { ?>
+			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/approve/?view=<?=$view->ID?>&id=" + BigTree.cleanHref($(this).attr("href")));
+			<?php if (($view->Type == "grouped" || $view->Type == "images-grouped") && $view->Settings["group_field"] == "approved") { ?>
 			BigTree.localSearch();
 			<?php } else { ?>
 			$(this).toggleClass("icon_approve_on");
 			<?php } ?>
 			return false;
 		}).on("click",".icon_feature",function() {
-			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/feature/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
-			<?php if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["options"]["group_field"] == "featured") { ?>
+			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/feature/?view=<?=$view->ID?>&id=" + BigTree.cleanHref($(this).attr("href")));
+			<?php if (($view->Type == "grouped" || $view->Type == "images-grouped") && $view->Settings["group_field"] == "featured") { ?>
 			BigTree.localSearch();
 			<?php } else { ?>
 			$(this).toggleClass("icon_feature_on");
 			<?php } ?>
 			return false;
 		}).on("click",".icon_archive",function() {
-			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/archive/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
-			<?php if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["options"]["group_field"] == "archived") { ?>
+			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/archive/?view=<?=$view->ID?>&id=" + BigTree.cleanHref($(this).attr("href")));
+			<?php if (($view->Type == "grouped" || $view->Type == "images-grouped") && $view->Settings["group_field"] == "archived") { ?>
 			BigTree.localSearch();
 			<?php } else { ?>
 			$(this).toggleClass("icon_archive_on");

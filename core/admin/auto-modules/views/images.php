@@ -1,34 +1,39 @@
 <?php
 	namespace BigTree;
+
+	/**
+	 * @global \BigTreeAdmin $admin
+	 * @global Module $module
+	 * @global ModuleView $view
+	 */
 	
-	$permission = $admin->getAccessLevel($bigtree["module"]["id"]);
+	$module_permission = $module->UserAccessLevel;
 	
 	// Setup defaults
-	$draggable = (isset($bigtree["view"]["options"]["draggable"]) && $bigtree["view"]["options"]["draggable"]) ? true : false;
-	$prefix = (isset($bigtree["view"]["options"]["prefix"]) && $bigtree["view"]["options"]["prefix"]) ? $bigtree["view"]["options"]["prefix"] : "";
+	$draggable = (isset($view->Settings["draggable"]) && $view->Settings["draggable"]) ? true : false;
+	$prefix = (isset($view->Settings["prefix"]) && $view->Settings["prefix"]) ? $view->Settings["prefix"] : "";
 	
-	$items = array();
 	if ($draggable) {
 		$order = "position DESC, CAST(id AS UNSIGNED) ASC";
 	} else {
-		if ($bigtree["view"]["options"]["sort"] && ($bigtree["view"]["options"]["sort"] == "ASC" || $bigtree["view"]["options"]["sort"] == "DESC")) {
-			$order = "CAST(id AS UNSIGNED) ".$bigtree["view"]["options"]["sort"];
+		if ($view->Settings["sort"] && ($view->Settings["sort"] == "ASC" || $view->Settings["sort"] == "DESC")) {
+			$order = "CAST(id AS UNSIGNED) ".$view->Settings["sort"];
 		} else {
 			$order = "CAST(id AS UNSIGNED) DESC";
 		}
 	}
 
-	$items = \BigTreeAutoModule::getViewData($bigtree["view"],$order,"active");
-	$pending_items = \BigTreeAutoModule::getViewData($bigtree["view"],$order,"pending");
+	$items = $view->getData($order, "active");
+	$pending_items = $view->getData($order, "pending");
 ?>
 <div class="table auto_modules image_list">
 	<?php
-		if (($permission == "p" && $draggable) || isset($view["actions"]["edit"])) {
+		if (($module_permission == "p" && $draggable) || isset($view["actions"]["edit"])) {
 	?>
 	<summary>
 		<p>
 			<?php
-				if ($permission == "p" && $draggable) {
+				if ($module_permission == "p" && $draggable) {
 					echo Text::translate("Click and drag the light gray area of an item to sort the images.");
 				}
 
@@ -57,12 +62,12 @@
 						$preview_image = $item["column1"];
 					}
 			?>
-			<li id="row_<?=$item["id"]?>"<?php if ($permission != "p" || !$draggable) { ?> class="non_draggable"<?php } ?>>
-				<a class="image<?php if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<?php } ?>" href="<?=$bigtree["view"]["edit_url"].$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
+			<li id="row_<?=$item["id"]?>"<?php if ($module_permission != "p" || !$draggable) { ?> class="non_draggable"<?php } ?>>
+				<a class="image<?php if (!isset($view->Actions["edit"])) { ?> image_disabled<?php } ?>" href="<?=$view->EditURL.$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?php
-					if ($permission == "p" || ($bigtree["module"]["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$bigtree["module"]["id"]])) || $item["pending_owner"] == $admin->ID) {
-						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);
-						foreach ($bigtree["view"]["actions"] as $action => $data) {
+					if ($module_permission == "p" || ($module->GroupBasedPermissions["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module->ID])) || $item["pending_owner"] == $admin->ID) {
+						$iperm = ($module_permission == "p") ? "p" : $module->getCachedAccessLevel($item, $view->Table);
+						foreach ($view->Actions as $action => $data) {
 							if ($action != "edit") {
 								if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
 									if ($action == "delete" && $item["pending_owner"] == $admin->ID) {
@@ -75,7 +80,7 @@
 								}
 								
 								if ($action == "preview") {
-									$link = rtrim($bigtree["view"]["preview_url"],"/")."/".$item["id"].'/" target="_preview';
+									$link = rtrim($view->PreviewURL, "/")."/".$item["id"].'/" target="_preview';
 								} else {
 									$link = "#".$item["id"];
 								}
@@ -117,11 +122,11 @@
 					}
 			?>
 			<li id="row_<?=$item["id"]?>" class="non_draggable">
-				<a class="image<?php if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<?php } ?>" href="<?=$bigtree["view"]["edit_url"].$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
+				<a class="image<?php if (!isset($view->Actions["edit"])) { ?> image_disabled<?php } ?>" href="<?=$view->EditURL.$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?php
-					if ($permission == "p" || ($bigtree["module"]["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$bigtree["module"]["id"]])) || $item["pending_owner"] == $admin->ID) {
-						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);
-						foreach ($bigtree["view"]["actions"] as $action => $data) {
+					if ($module_permission == "p" || ($module->GroupBasedPermissions["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module->ID])) || $item["pending_owner"] == $admin->ID) {
+						$iperm = ($module_permission == "p") ? "p" : $module->getCachedAccessLevel($item, $view->Table);
+						foreach ($view->Actions as $action => $data) {
 							if ($action != "edit") {
 								if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
 									if ($action == "delete" && $item["pending_owner"] == $admin->ID) {
@@ -162,9 +167,9 @@
 
 <?php include Router::getIncludePath("admin/auto-modules/views/_common-js.php") ?>
 <script>
-	<?php if ($permission == "p" && $draggable) { ?>
+	<?php if ($module_permission == "p" && $draggable) { ?>
 	$("#image_list").sortable({ containment: "parent", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$bigtree["view"]["id"]?>", table_name: "image_list", sort: $("#image_list").sortable("serialize") } });
+		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$view->ID?>", table_name: "image_list", sort: $("#image_list").sortable("serialize") } });
 	}});
 	<?php } ?>
 	

@@ -1,11 +1,17 @@
 <?php
 	namespace BigTree;
 
-	$search = isset($_GET["search"]) ? htmlspecialchars($_GET["search"]) : "";
+	/**
+	 * @global bool $draggable (set in ajax file)
+	 * @global string $module_permission (set in ajax file)
+	 * @global ModuleView $view
+	 */
+
+	$query = isset($_GET["search"]) ? htmlspecialchars($_GET["search"]) : "";
 ?>
 <div class="table">
 	<summary>
-		<input type="search" class="form_search" id="search" placeholder="<?=Text::translate("Search", true)?>" value="<?=$search?>" />
+		<input type="search" class="form_search" id="search" placeholder="<?=Text::translate("Search", true)?>" value="<?=$query?>" />
 		<span class="form_search_icon"></span>
 	</summary>
 	<article class="table" id="table_contents">
@@ -16,15 +22,15 @@
 <?php include Router::getIncludePath("admin/auto-modules/views/_common-js.php") ?>
 <script>
 	BigTree.localSearch = function() {
-		$("#table_contents").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/grouped/", { view: <?=$bigtree["view"]["id"]?>, search: $("#search").val() }, BigTree.localRefreshSort);
+		$("#table_contents").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/grouped/", { view: <?=$view->ID?>, search: $("#search").val() }, BigTree.localRefreshSort);
 	};
 
 	BigTree.localRefreshSort = function() {
-		<?php if ($permission == "p" && $draggable) { ?>
+		<?php if ($module_permission == "p" && $draggable) { ?>
 		$("#table_contents").find("ul").each(function() {
 			if ($("#search").val() == "") {
 				$(this).sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: $.proxy(function() {
-					$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$bigtree["view"]["id"]?>", table_name: $(this).attr("id"), sort: $(this).sortable("serialize") } });
+					$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$view->ID?>", table_name: $(this).attr("id"), sort: $(this).sortable("serialize") } });
 				},this) });
 			}
 		});
