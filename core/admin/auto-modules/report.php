@@ -1,14 +1,24 @@
 <?php
 	namespace BigTree;
 	
-	$bigtree["report"] = $bigtree["interface"];
-	$bigtree["form"] = \BigTreeAutoModule::getRelatedFormForReport($bigtree["report"]);
-	$bigtree["view"] = $bigtree["report"]["view"] ? \BigTreeAutoModule::getView($bigtree["report"]["view"]) : \BigTreeAutoModule::getRelatedViewForReport($bigtree["report"]);
+	/**
+	 * @global \BigTreeAdmin $admin
+	 * @global array $bigtree
+	 * @global ModuleInterface $interface
+	 */
+	
+	$report = new ModuleReport($interface->Array);
+
 	if ($admin->Level > 1) {
-		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/modules/reports/edit/".$bigtree["report"]["id"]."/?return=front","icon" => "setup","title" => "Edit in Developer");
+		$bigtree["subnav_extras"][] = array(
+			"link" => ADMIN_ROOT."developer/modules/reports/edit/".$report->ID."/?return=front",
+			"icon" => "setup",
+			"title" => "Edit in Developer"
+		);
 	}
 	
 	$action = $bigtree["commands"][0];
+
 	if ($action == "csv") {
 		include Router::getIncludePath("admin/auto-modules/reports/csv.php");
 	} elseif ($action == "view") {

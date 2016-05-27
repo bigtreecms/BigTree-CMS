@@ -1,5 +1,12 @@
 <?php
 	namespace BigTree;
+
+	/**
+	 * @global array $items
+	 * @global Module $module
+	 * @global ModuleReport $report
+	 * @global ModuleView $view
+	 */
 ?>
 <div class="table auto_modules image_list">
 	<summary>
@@ -9,32 +16,33 @@
 		<ul id="image_list">
 			<?php
 				foreach ($items as $item) {
-					if ($prefix) {
-						$preview_image = FileSystem::getPrefixedFile($item[$bigtree["view"]["options"]["image"]],$prefix);
+					if ($view->Settings["prefix"]) {
+						$preview_image = FileSystem::getPrefixedFile($item[$view->Settings["image"]],$view->Settings["prefix"]);
 					} else {
-						$preview_image = $item[$bigtree["view"]["options"]["image"]];
+						$preview_image = $item[$view->Settings["image"]];
 					}
-					$item_permission = $admin->getAccessLevel($bigtree["module"],$item,$bigtree["form"]["table"]);
 
-					if ($item_permission && $item_permission != "n") {
+					$entry_permission = $module->getUserAccessLevelForEntry($item, $view->Table);
+
+					if ($entry_permission && $entry_permission != "n") {
 			?>
 			<li id="row_<?=$item["id"]?>" class="non_draggable">
-				<a class="image<?php if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<?php } ?>" href="<?=$bigtree["view"]["edit_url"].$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
+				<a class="image<?php if (empty($view->Actions["edit"])) { ?> image_disabled<?php } ?>" href="<?=$view->EditURL.$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?php
-					foreach ($bigtree["view"]["actions"] as $action => $data) {
+					foreach ($view->Actions as $action => $data) {
 						if ($action != "edit") {
-							if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $item_permission != "p") {
+							if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $entry_permission != "p") {
 								if ($action == "delete") {
 									$class = "icon_delete";
 								} else {
 									$class = "icon_disabled";
 								}
 							} else {
-								$class = $admin->getActionClass($action,$item);
+								$class = $view->generateActionClass($action, $item);
 							}
 							
 							if ($action == "preview") {
-								$link = rtrim($bigtree["view"]["preview_url"],"/")."/".$item["id"].'/" target="_preview';
+								$link = rtrim($view->PreviewURL,"/")."/".$item["id"].'/" target="_preview';
 							} else {
 								$link = "#".$item["id"];
 							}

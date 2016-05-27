@@ -101,7 +101,7 @@
 			<input type="submit" class="button" tabindex="<?=$bigtree["tabindex"]?>" value="Submit" />
 			<?php
 				} else {
-					if (isset($bigtree["related_view"]) && $bigtree["related_view"]["preview_url"]) {
+					if (isset($bigtree["related_view"]) && $bigtree["related_view"]->PreviewURL) {
 			?>
 			<a class="button save_and_preview" href="#">
 				<span class="icon_small icon_small_computer"></span>

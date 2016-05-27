@@ -93,9 +93,9 @@
 														  ORDER BY route DESC LIMIT 1", $this->RelatedForm);
 		
 		
-						$view["edit_url"] = $module_root.$action_route."/";
+						$this->EditURL = $module_root.$action_route."/";
 					} else {
-						$view["edit_url"] = $module_root."edit/";
+						$this->EditURL = $module_root."edit/";
 					}
 				}
 			}

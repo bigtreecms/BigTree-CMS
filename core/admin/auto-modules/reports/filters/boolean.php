@@ -1,5 +1,9 @@
 <?php
 	namespace BigTree;
+
+	/**
+	 * @global string $id
+	 */
 ?>
 <select name="<?=$id?>">
 	<option><?=Text::translate("Both")?></option>

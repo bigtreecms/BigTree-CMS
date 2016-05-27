@@ -1,9 +1,16 @@
 <?php
 	namespace BigTree;
+
+	/**
+	 * @global string $id
+	 * @global ModuleReport $report
+	 */
 	
 	$list = array();
+	$form = $report->RelatedModuleForm;
+	$field = $form->Fields[$id];
+
 	// See if this is a DB populated list in the related form
-	$field = $bigtree["form"]["fields"][$id];
 	if ($field && $field["type"] == "list" && $field["options"]["list_type"] == "db") {
 		$query = SQL::query("SELECT id, `".$field["options"]["pop-description"]."` AS `description` 
 							 FROM `".$field["options"]["pop-table"]."` 
@@ -12,7 +19,8 @@
 			$list[] = array("value" => $entry["id"],"description" => $entry["description"]);
 		}
 	} else {
-		$ids = SQL::fetchAllSingle("SELECT DISTINCT(`$id`) FROM `".$bigtree["report"]["table"]."` ORDER BY `$id`");
+		$ids = SQL::fetchAllSingle("SELECT DISTINCT(`$id`) FROM `".$report->Table."` ORDER BY `$id`");
+
 		foreach ($ids as $id) {
 			$list[] = array("value" => $id,"description" => $id);
 		}

@@ -499,7 +499,7 @@
 		static function getReportResults($report, $view, $form, $filters, $sort_field = "id", $sort_direction = "DESC") {
 			$report = new BigTree\ModuleReport($report);
 
-			return $report->getResults($view, $form, $filters, $sort_field, $sort_direction);
+			return $report->getResults($filters, $sort_field, $sort_direction);
 		}
 		
 		/*

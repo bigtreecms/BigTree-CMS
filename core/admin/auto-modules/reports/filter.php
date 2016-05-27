@@ -1,11 +1,17 @@
 <?php
 	namespace BigTree;
+
+	/**
+	 * @global array $bigtree
+	 * @global Module $module
+	 * @global ModuleReport $report
+	 */
 ?>
 <div class="container">
-	<form method="post" action="<?=ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/".$bigtree["report"]["type"]?>/">
+	<form method="post" action="<?=ADMIN_ROOT.$module->Route."/".$bigtree["module_action"]["route"]."/".$report->Type?>/">
 		<section>
 			<?php
-				foreach ($bigtree["report"]["filters"] as $id => $filter) {
+				foreach ($report->Filters as $id => $filter) {
 			?>
 			<fieldset>
 				<label><?=$filter["title"]?></label>
@@ -19,14 +25,16 @@
 					<label><?=Text::translate("Sort By")?></label>
 					<select name="*sort[field]">
 						<?php
-							if ($bigtree["report"]["type"] == "csv") {
-								foreach ($bigtree["report"]["fields"] as $key => $title) {
+							if ($report->Type == "csv") {
+								foreach ($report->Fields as $key => $title) {
 						?>
 						<option value="<?=htmlspecialchars($key)?>"><?=htmlspecialchars($title)?></option>
 						<?php
 								}
 							} else {
-								foreach ($bigtree["view"]["fields"] as $key => $field) {
+								$view = $report->RelatedModuleView;
+								
+								foreach ($view->Fields as $key => $field) {
 						?>
 						<option value="<?=htmlspecialchars($key)?>"><?=$field["title"]?></option>
 						<?php

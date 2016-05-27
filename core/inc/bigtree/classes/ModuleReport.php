@@ -112,7 +112,11 @@
 		*/
 
 		function getRelatedModuleView() {
-			$view = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = ?", $this->Table);
+			if ($this->View) {
+				$view = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE i = ?", $this->View);
+			} else {
+				$view = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = ?", $this->Table);
+			}
 
 			return $view ? new ModuleView($view) : false;
 		}
@@ -122,8 +126,6 @@
 				Returns rows from the table that match the filters provided.
 
 			Parameters:
-				view - A view interface array.
-				form - A form interface array.
 				filter_data - The submitted filters to run.
 				sort_field - The field to sort by (defaults to id)
 				sort_direction - The direction to sort by (defaults to DESC)
@@ -132,8 +134,10 @@
 				An array of rows from the report's table.
 		*/
 
-		function getResults($view, $form, $filter_data, $sort_field = "id", $sort_direction = "DESC") {
+		function getResults($filter_data, $sort_field = "id", $sort_direction = "DESC") {
 			$where = $items = $parsers = $poplists = array();
+			$view = $this->RelatedModuleView;
+			$form = $this->RelatedModuleForm;
 
 			// Prevent SQL injection
 			$sort_field = "`".str_replace("`","",$sort_field)."`";
@@ -141,19 +145,19 @@
 
 			// Figure out if we have db populated lists and parsers
 			if ($this->Type == "view") {
-				foreach ($view["fields"] as $key => $field) {
+				foreach ($view->Fields as $key => $field) {
 					if ($field["parser"]) {
 						$parsers[$key] = $field["parser"];
 					}
 				}
 			}
 
-			if (is_array($form["fields"])) {
-				foreach ($form["fields"] as $key => $field) {
+			if (is_array($form->Fields)) {
+				foreach ($form->Fields as $key => $field) {
 					if ($field["type"] == "list" && $field["options"]["list_type"] == "db") {
 						$poplists[$key] = array(
-							"description" => $form["fields"][$key]["options"]["pop-description"],
-							"table" => $form["fields"][$key]["options"]["pop-table"]
+							"description" => $form->Fields[$key]["options"]["pop-description"],
+							"table" => $form->Fields[$key]["options"]["pop-table"]
 						);
 					}
 				}

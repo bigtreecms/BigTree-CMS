@@ -1,5 +1,12 @@
 <?php
 	namespace BigTree;
+
+	/**
+	 * @global array $items
+	 * @global Module $module
+	 * @global ModuleReport $report
+	 * @global ModuleView $view
+	 */
 ?>
 <div class="table auto_modules">
 	<summary>
@@ -8,7 +15,7 @@
 	<header>
 		<?php
 			$x = 0;
-			foreach ($bigtree["view"]["fields"] as $key => $field) {
+			foreach ($view->Fields as $key => $field) {
 				$x++;
 		?>
 		<span class="view_column" style="width: <?=$field["width"]?>px;"><?=$field["title"]?></span>
@@ -16,44 +23,46 @@
 			}
 		?>
 		<span class="view_status"><?=Text::translate("Status")?></span>		
-		<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><?php if (count($bigtree["view"]["actions"]) > 1) { echo Text::translate("Actions"); } ?></span>
+		<span class="view_action" style="width: <?=(count($view->Actions) * 40)?>px;"><?php if (count($view->Actions) > 1) { echo Text::translate("Actions"); } ?></span>
 	</header>
 	<ul id="sort_table">
 		<?php
 			foreach ($items as $item) {
 				// Get the status
-				if (PendingChange::exists($bigtree["view"]["table"], $item["id"])) {
+				if (PendingChange::exists($view->Table, $item["id"])) {
 					$status_class = "pending";
 					$status = "Changed";
 				} else {
 					$status_class = "published";
 					$status = "Published";
 				}
-				$item_permission = $admin->getAccessLevel($bigtree["module"],$item,$bigtree["form"]["table"]);
-				if ($item_permission && $item_permission != "n") {
+
+				$entry_permission = $module->getUserAccessLevelForEntry($item, $view->Table);
+
+				if ($entry_permission && $entry_permission != "n") {
 		?>
 		<li id="row_<?=$item["id"]?>" class="<?=$status_class?>">
-			<?php foreach ($bigtree["view"]["fields"] as $key => $field) { ?>
+			<?php foreach ($view->Fields as $key => $field) { ?>
 			<section class="view_column" style="width: <?=$field["width"]?>px;"><?=$item[$key]?></section>
 			<?php } ?>
 			<section class="view_status status_<?=$status_class?>"><?=Text::translate($status)?></section>
 			<?php
-				foreach ($bigtree["view"]["actions"] as $action => $data) {
+				foreach ($view->Actions as $action => $data) {
 					if ($data == "on") {
-						if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $item_permission != "p") {
+						if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $entry_permission != "p") {
 							if ($action == "delete") {
 								$class = "icon_delete";
 							} else {
 								$class = "icon_disabled";
 							}
 						} else {
-							$class = $admin->getActionClass($action,$item);
+							$class = $view->generateActionClass($action, $item);
 						}
 						
 						if ($action == "preview") {
-							$link = rtrim($bigtree["view"]["preview_url"],"/")."/".$item["id"].'/" target="_preview';
+							$link = rtrim($view->PreviewURL,"/")."/".$item["id"].'/" target="_preview';
 						} elseif ($action == "edit") {
-							$link = $bigtree["view"]["edit_url"].$item["id"]."/";
+							$link = $view->EditURL.$item["id"]."/";
 						} else {
 							$link = "#".$item["id"];
 						}
@@ -63,6 +72,7 @@
 					} else {
 						$data = json_decode($data,true);
 						$link = MODULE_ROOT.$data["route"]."/".$item["id"]."/";
+						
 						if ($data["function"]) {
 							$link = call_user_func($data["function"],$item);
 						}
