@@ -109,8 +109,8 @@
 			$string = "*".(isset(static::$Language[$string]) ? static::$Language[$string] : $string)."*";
 
 			// Allow for wildcard replacements where language isn't an issue
-			foreach ($replacements as $key => $value) {
-				$string = str_replace($key, $value, $string);
+			if (count($replacements)) {
+				$string = strtr($string, $replacements);
 			}
 
 			return $html_encode ? static::htmlEncode($string) : $string;
