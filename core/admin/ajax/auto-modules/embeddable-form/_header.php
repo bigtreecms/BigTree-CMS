@@ -1,10 +1,14 @@
 <?php
 	namespace BigTree;
 
+	/**
+	 * @global array $bigtree
+	 */
+
 	// Setup our form environment
 	$form = ModuleEmbedForm::getByHash($_GET["hash"]);
 	$form->Root = ADMIN_ROOT."ajax/auto-modules/embeddable-form/";
-	$form->Embedded = true;
+	$module = new Module($form->Module);
 
 ?><!doctype html> 
 <!--[if lt IE 7 ]> <html lang="en" class="ie ie6"> <![endif]-->
@@ -35,7 +39,7 @@
 						$include_path = ADMIN_ROOT.$style;
 					// This is an extension inside its routed directory loading its own styles
 					} elseif (defined("EXTENSION_ROOT")) {
-						$include_path = ADMIN_ROOT."*/".$bigtree["module"]["extension"]."/css/".$style;
+						$include_path = ADMIN_ROOT."*/".$module->Extension."/css/".$style;
 					// This is just a regular old include
 					} else {
 						$include_path = ADMIN_ROOT."css/".$style;
@@ -76,7 +80,7 @@
 						$include_path = ADMIN_ROOT.$script;
 					// This is an extension inside its routed directory loading its own scripts
 					} elseif (defined("EXTENSION_ROOT")) {
-						$include_path = ADMIN_ROOT."*/".$bigtree["module"]["extension"]."/js/".$script;
+						$include_path = ADMIN_ROOT."*/".$module->Extension."/js/".$script;
 					// This is just a regular old include
 					} else {
 						$include_path = ADMIN_ROOT."js/".$script;
@@ -88,8 +92,5 @@
 				}
 			}
 		?>
-		<!--[if lt IE 9]>
-		<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
-		<![endif]-->
 	</head>
 	<body class="bigtree embedded">

@@ -1,10 +1,16 @@
 <?php
 	namespace BigTree;
 
+	/**
+	 * @global ModuleForm $form
+	 * @global Module $module
+	 */
+
 	// Generate a hash of everything posted
 	$complete_string = "";
 	$hash_recurse = function($array) {
 		global $complete_string,$hash_recurse;
+
 		foreach ($array as $key => $val) {
 			if ($key !== "_bigtree_hashcash") {
 				if (is_array($val)) {
@@ -22,6 +28,7 @@
 	for ($i = 0; $i < strlen($complete_string); $i++) {
 		$char = substr($complete_string,$i,1);
 		$code = ord($char);
+
 		if ($code != 10 && $code != 13) {
 			$cleaned_string .= $char;
 		}
@@ -41,8 +48,10 @@
 	
 	// If there's a preprocess function for this module, let's get'r'done.
 	$bigtree["preprocessed"] = array();
+
 	if ($form->Hooks["pre"]) {
 		$bigtree["preprocessed"] = call_user_func($form->Hooks["pre"],$_POST);
+
 		// Update the $_POST
 		if (is_array($bigtree["preprocessed"])) {
 			foreach ($bigtree["preprocessed"] as $key => $val) {
@@ -55,10 +64,6 @@
 	$bigtree["many-to-many"] = array();
 	$bigtree["errors"] = array();
 	$bigtree["entry"] = array();
-
-	$cached_types = $admin->getCachedFieldTypes();
-	$bigtree["field_types"] = $cached_types["modules"];
-
 	$bigtree["post_data"] = $_POST;
 	$bigtree["file_data"] = Field::getParsedFilesArray();
 
@@ -93,7 +98,6 @@
 
 	// Make some easier to write out vars for below.
 	$tags = $_POST["_tags"];
-	$new_id = false;
 	$table = $form->Table;
 	$item = $bigtree["entry"];
 	$many_to_many = $bigtree["many-to-many"];
@@ -109,9 +113,9 @@
 
 	$did_publish = false;
 	if ($form->DefaultPending) {
-		$edit_id = "p".\BigTreeAutoModule::createPendingItem($form->Module,$table,$item,$many_to_many,$tags,$form->Hooks["publish"],true);
+		$edit_id = "p".$form->createPendingEntry($item, $many_to_many, $tags);
 	} else {
-		$edit_id = \BigTreeAutoModule::createItem($table,$item,$many_to_many,$tags);
+		$edit_id = $form->createEntry($item, $many_to_many, $tags);
 		$did_publish = true;
 	}
 
@@ -126,7 +130,7 @@
 	}
 
 	// Track resource allocation
-	$admin->allocateResources($bigtree["module"]["id"],$edit_id);
+	Resource::allocate($module->ID, $edit_id);
 
 	// Put together saved form information for the error or crop page in case we need it.
 	$_SESSION["bigtree_admin"]["form_data"] = array(
@@ -135,17 +139,18 @@
 
 	// If we have errors, we want to save the data and drop the entry from the database but give them the info again
 	if (count($bigtree["errors"])) {
-		$item = \BigTreeAutoModule::getItem($table,$edit_id);
+		$item = $form->getEntry($edit_id);
 		$_SESSION["bigtree_admin"]["form_data"]["saved"] = $item["item"];
+
 		if ($form->DefaultPending) {
-			\BigTreeAutoModule::deletePendingItem($table,substr($edit_id,1));
+			$form->deletePendingEntry(substr($edit_id, 1));
 		} else {
-			\BigTreeAutoModule::deleteItem($table,$edit_id);
+			$form->deleteEntry($edit_id);
 		}
 	}
 	
 	if (count($bigtree["crops"])) {
-		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = $cms->cacheUnique("org.bigtreecms.crops",$bigtree["crops"]);
+		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = Cache::putUnique("org.bigtreecms.crops", $bigtree["crops"]);
 		Router::redirect($form->Root."crop/?id=".$form->ID."&hash=".$form->Hash);
 	} elseif (count($bigtree["errors"])) {
 		Router::redirect($form->Root."error/?id=".$form->ID."&hash=".$form->Hash);

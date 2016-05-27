@@ -10,10 +10,10 @@
 	 * @property-read string $EmbedCode
 	 * @property-read string $Hash
 	 * @property-read int $ID
-	 * @property-read object $Interface
+	 * @property-read ModuleInterface $Interface
 	 */
 
-	class ModuleEmbedForm extends BaseObject {
+	class ModuleEmbedForm extends ModuleForm {
 
 		protected $EmbedCode;
 		protected $Hash;
@@ -23,6 +23,7 @@
 		public $CSS;
 		public $DefaultPending;
 		public $DefaultPosition;
+		public $Embedded = true;
 		public $Fields;
 		public $Hooks;
 		public $Module;

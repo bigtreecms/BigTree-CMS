@@ -1,6 +1,10 @@
 <?php
 	namespace BigTree;
 
+	/**
+	 * @global ModuleForm $form
+	 */
+
 	Image::processCrops($_POST["crop_key"]);
 	
 	// For embedded forms we let them process crops first since we're not saving the data to the database and we'll lose their uploads otherwise

@@ -6,6 +6,10 @@
 
 	namespace BigTree;
 
+	/**
+	 * @property-read int $ID
+	 */
+
 	class ModuleAction extends BaseObject {
 
 		public static $Table = "bigtree_module_actions";

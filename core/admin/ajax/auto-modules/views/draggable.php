@@ -1,6 +1,12 @@
 <?php
 	namespace BigTree;
 
+	/**
+	 * @global \BigTreeAdmin $admin
+	 * @global Module $module
+	 * @global ModuleView $view
+	 */
+
 	// If it's an AJAX request, get our data.
 	if (isset($_POST["view"])) {
 		$view = new ModuleView($_POST["view"]);

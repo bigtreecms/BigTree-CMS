@@ -7,8 +7,10 @@
 	namespace BigTree;
 
 	/**
-	 * @property-read BigTree\ModuleForm $RelatedModuleForm
-	 * @property-read BigTree\ModuleView $RelatedModuleView
+	 * @property-read int $ID
+	 * @property-read ModuleInterface $Interface
+	 * @property-read ModuleForm $RelatedModuleForm
+	 * @property-read ModuleView $RelatedModuleView
 	 */
 
 	class ModuleReport extends BaseObject {
@@ -20,6 +22,7 @@
 		public $Filters;
 		public $Module;
 		public $Parser;
+		public $Root;
 		public $Title;
 		public $Type;
 		public $View;

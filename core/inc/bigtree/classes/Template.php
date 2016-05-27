@@ -13,6 +13,7 @@
 		protected $ID;
 		protected $Routed;
 
+		public $Extension;
 		public $Fields;
 		public $Level;
 		public $Module;
@@ -40,6 +41,7 @@
 			} else {
 				$this->ID = $template["id"];
 
+				$this->Extension = $template["extension"];
 				$this->Fields = array_filter((array) @json_decode($template["resources"],true));
 				$this->Level = $template["level"];
 				$this->Module = $template["module"];

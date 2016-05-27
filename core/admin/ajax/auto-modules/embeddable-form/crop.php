@@ -1,10 +1,16 @@
 <?php
 	namespace BigTree;
 
+	/**
+	 * @global string $crop_key
+	 * @global ModuleForm $form
+	 * @global string $return_link
+	 */
+
 	Globalize::arrayObject($_SESSION["bigtree_admin"]["form_data"]);
 
 	// Get crop information
-	$crops = $cms->cacheGet("org.bigtreecms.crops",$crop_key);
+	$crops = Cache::get("org.bigtreecms.crops", $crop_key);
 ?>
 <div class="container">
 	<form method="post" action="<?=$form->Root?>process-crops/?id=<?=$form->ID?>&hash=<?=$form->Hash?>" id="crop_form" class="module">
@@ -15,7 +21,7 @@
 				$x = 0;
 				foreach ($crops as $crop) {
 					$x++;
-					list($width,$height,$type,$attr) = getimagesize($crop["image"]);
+					list($width, $height) = getimagesize($crop["image"]);
 			?>
 			<article<?php if ($x > 1) { ?> style="display: none;"<?php } ?>>
 				<div class="original">
@@ -74,21 +80,16 @@
 		var min_width = Math.ceil(crop_width * image_ratio);
 		var min_height = Math.ceil(crop_height * image_ratio);
 		
-		if (preview_height < box_height) {
-			var preview_margin = Math.floor((box_height - preview_height) / 2);
-			var box_margin = 0;
-		} else {
-			var box_margin = Math.floor((preview_height - box_height) / 2);
-			var preview_margin = 0;
-		}
-		
 		// Fill the cropper to ~90% of the available area by default.
+		var initial_width;
+		var initial_height;
+
 		if (min_width > min_height) {
-			var initial_width = Math.ceil(box_width * 0.90);
-			var initial_height = Math.ceil(initial_width / min_width * min_height);
+			initial_width = Math.ceil(box_width * 0.90);
+			initial_height = Math.ceil(initial_width / min_width * min_height);
 		} else {
-			var initial_height = Math.ceil(box_height * 0.90);
-			var initial_width = Math.ceil(initial_height / min_height * min_width);
+			initial_height = Math.ceil(box_height * 0.90);
+			initial_width = Math.ceil(initial_height / min_height * min_width);
 		}
 		
 		if ((initial_width < min_width || initial_height < min_height) || (retina && (initial_width < min_width * 2 || initial_height < min_height * 2))) {

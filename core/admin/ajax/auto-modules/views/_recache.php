@@ -1,6 +1,13 @@
 <?php
+	namespace BigTree;
+
+	/**
+	 * @global int $id
+	 * @global string $table
+	 */
+
 	if (is_numeric($id)) {
-		BigTreeAutoModule::recacheItem($id,$table);
+		ModuleView::cacheForAll($id, $table);
 	} else {
-		BigTreeAutoModule::recacheItem(substr($id,1),$table,true);
+		ModuleView::cacheForAll(substr($id, 1), $table, true);
 	}

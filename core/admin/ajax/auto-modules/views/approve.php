@@ -1,6 +1,15 @@
 <?php
 	namespace BigTree;
 
+	/**
+	 * @global string $access_level
+	 * @global ModuleForm $form
+	 * @global int $id
+	 * @global array $item
+	 * @global Module $module
+	 * @global string $table
+	 */
+
 	include "_setup.php";
 	
 	if ($item["approved"]) {

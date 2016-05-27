@@ -1,6 +1,11 @@
 <?php
 	namespace BigTree;
 
+	/**
+	 * @global array $errors
+	 * @global ModuleForm $form
+	 */
+
 	Globalize::arrayObject($_SESSION["bigtree_admin"]["form_data"]);
 ?>
 <div class="container">
@@ -25,6 +30,6 @@
 		</div>
 	</section>
 	<footer>
-		<a href="<?=$form->Root."?id=".$form->ID."&hash=".$form->Hash?>" class="button"><?=Text::translate("Return & Edit", true)?></a>
+		<a href="<?=$form->Root."?id=".$form->ID."&hash=".$form->Hash?>" class="button"><?=Text::translate("Return &amp; Edit")?></a>
 	</footer>
 </div>

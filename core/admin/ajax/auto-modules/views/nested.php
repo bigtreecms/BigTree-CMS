@@ -1,6 +1,12 @@
 <?php
 	namespace BigTree;
 
+	/**
+	 * @global \BigTreeAdmin $admin
+	 * @global Module $module
+	 * @global ModuleView $view
+	 */
+
 	// If a search has occurred, the behavior is the same as a draggable view
 	if (!empty($_POST["search"]) || !empty($_GET["search"])) {
 		include "draggable.php";

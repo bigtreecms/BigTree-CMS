@@ -1,3 +1,10 @@
+<?php
+	namespace BigTree;
+
+	/**
+	 * @global ModuleForm $form
+	 */
+?>
 		<script>
 			(function() {
 				var Height;

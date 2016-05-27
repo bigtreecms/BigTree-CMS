@@ -9,8 +9,8 @@
 	/**
 	 * @property-read array $Array
 	 * @property-read int $ID
-	 * @property-read object $Interface
-	 * @property-read BigTree\ModuleView $RelatedModuleView
+	 * @property-read ModuleInterface $Interface
+	 * @property-read ModuleView $RelatedModuleView
 	 */
 
 	class ModuleForm extends BaseObject {
@@ -19,11 +19,13 @@
 		protected $Interface;
 
 		public $DefaultPosition;
+		public $Embedded = false;
 		public $Fields;
 		public $Hooks;
 		public $Module;
 		public $ReturnURL;
 		public $ReturnView;
+		public $Root;
 		public $Tagging;
 		public $Title;
 
@@ -203,9 +205,9 @@
 				The id of the new entry in the bigtree_pending_changes table.
 		*/
 
-		function createPendingEntry($columns, $many_to_many = array(), $tags = array(), $embedded_form = false) {
+		function createPendingEntry($columns, $many_to_many = array(), $tags = array()) {
 			$hook = !empty($this->Hooks["publish"]) ? $this->Hooks["publish"] : false;
-			$change = PendingChange::create($this->Table, false, $columns, $many_to_many, $tags, $this->Module, $hook, $embedded_form);
+			$change = PendingChange::create($this->Table, false, $columns, $many_to_many, $tags, $this->Module, $hook, $this->Embedded);
 
 			return $change->ID;
 		}
@@ -431,6 +433,11 @@
 		*/
 
 		function getRelatedModuleView() {
+			// Explicitly set related view
+			if ($this->ReturnView) {
+				return new ModuleView($this->ReturnView);
+			}
+
 			// Try to find a view that's relating back to this form first
 			$form = SQL::escape($this->ID);
 			$view = SQL::fetch("SELECT * FROM bigtree_module_interfaces

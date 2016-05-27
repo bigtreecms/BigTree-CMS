@@ -39,6 +39,7 @@
 			// Handle Login Session
 			if (isset($_SESSION[$this->Namespace]["email"])) {
 				$user = $user_class::getByEmail($_SESSION[$this->Namespace]["email"]);
+				
 				if ($user) {
 					$this->ID = $user->ID;
 					$this->User = $user->Email;
@@ -123,6 +124,7 @@
 			// Check banned IPs list for the user's IP
 			if (!empty($policy["banned_ips"])) {
 				$banned = explode("\n",$policy["banned_ips"]);
+				
 				foreach ($banned as $address) {
 					if (ip2long(trim($address)) == $ip) {
 						$bigtree["layout"] = "login";
@@ -134,6 +136,7 @@
 			// Check allowed IP ranges list for user's IP
 			if (!empty($policy["allowed_ips"])) {
 				$allowed = false;
+				
 				// Go through the list and see if our IP address is allowed
 				$list = explode("\n",$policy["allowed_ips"]);
 				foreach ($list as $item) {
@@ -144,6 +147,7 @@
 						$allowed = true;
 					}
 				}
+
 				if (!$allowed) {
 					$bigtree["layout"] = "login";
 					static::stop(file_get_contents(Router::getIncludePath("admin/pages/ip-restriction.php")));

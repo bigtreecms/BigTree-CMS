@@ -9,8 +9,8 @@
 	/**
 	 * @property-read string $FilterQuery
 	 * @property-read int $ID
-	 * @property-read object $Interface
-	 * @property-read object $RelatedModuleForm
+	 * @property-read ModuleInterface $Interface
+	 * @property-read ModuleForm $RelatedModuleForm
 	 */
 
 	class ModuleView extends BaseObject {
@@ -35,6 +35,7 @@
 		public $Module;
 		public $PreviewURL;
 		public $RelatedForm;
+		public $Root;
 		public $Settings;
 		public $Title;
 		public $Type;

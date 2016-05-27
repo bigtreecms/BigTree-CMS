@@ -1,9 +1,13 @@
 <?php
 	namespace BigTree;
+
+	/**
+	 * @global ModuleForm $form
+	 */
 ?>
 <div class="container">
-	<form method="post" action="<?=$bigtree["form_root"]?>process/<?php if ($bigtree["form"]["embedded"]) { ?>?hash=<?=$bigtree["form"]["hash"]?><?php } ?>" enctype="multipart/form-data" class="module" id="auto_module_form">
-		<?php if ($bigtree["form"]["embedded"]) { ?>
+	<form method="post" action="<?=$form->Root?>process/<?php if (!empty($form->Embedded)) { ?>?hash=<?=$form->Hash?><?php } ?>" enctype="multipart/form-data" class="module" id="auto_module_form">
+		<?php if (!empty($form->Embedded)) { ?>
 		<fieldset>
 			<label><?=Text::translate("This is a field that shouldn't be filled out.")?></label>
 			<input type="text" name="_bigtree_email" />
@@ -49,7 +53,7 @@
 
 					Field::$Namespace = uniqid("form_field_");
 	
-					foreach ($bigtree["form"]["fields"] as $resource) {
+					foreach ($form->Fields as $resource) {
 						if (is_array($resource)) {
 							$field = array(
 								"type" => $resource["type"],
@@ -72,7 +76,7 @@
 					}
 				?>
 			</div>
-			<?php if ($bigtree["form"]["tagging"]) { ?>
+			<?php if (!empty($form->Tagging)) { ?>
 			<div class="tags" id="bigtree_tag_browser">
 				<fieldset>
 					<label><?=Text::translate("Tags")?><span></span></label>
@@ -92,7 +96,7 @@
 		</section>
 		<footer>
 			<?php
-				if ($bigtree["form"]["embedded"]) {
+				if (!empty($form->Embedded)) {
 			?>
 			<input type="submit" class="button" tabindex="<?=$bigtree["tabindex"]?>" value="Submit" />
 			<?php
@@ -116,7 +120,7 @@
 </div>
 <?php include Router::getIncludePath("admin/layouts/_html-field-loader.php") ?>
 <script>
-	BigTreeFormValidator("#auto_module_form",false<?php if ($bigtree["form"]["embedded"]) { ?>,true<?php } ?>);
+	BigTreeFormValidator("#auto_module_form",false<?php if (!empty($form->Embedded)) { ?>,true<?php } ?>);
 	
 	$(".save_and_preview").click(function() {
 		$("#preview_field").val("true");
@@ -135,7 +139,6 @@
 			$("input[name=save]").addClass("blue");
 			$("input[name=save_and_publish]").hide();
 		}
-	});
-	$(".gbp_select").trigger("change");
+	}).trigger("change");
 	<?php } ?>
 </script>

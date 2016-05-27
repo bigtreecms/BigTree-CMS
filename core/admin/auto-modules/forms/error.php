@@ -1,6 +1,12 @@
 <?php
 	namespace BigTree;
 
+	/**
+	 * @global array $errors
+	 * @global string $return_link
+	 * @global string $edit_link
+	 */
+
 	Globalize::arrayObject($_SESSION["bigtree_admin"]["form_data"]);
 
 	// Override the default H1
@@ -10,7 +16,7 @@
 	<section>
 		<div class="alert">
 			<span></span>
-			<p><?=Text::translate("Your submission had")?> <?=count($errors)?> <?=Text::translate((count($errors) != 1) ? "errors" : "error")?>.</p>
+			<p><?=Text::translate("Your submission had :count: error(s).", false, array(":count:" => count($errors)))?></p>
 		</div>
 		<div class="table error_table">
 			<header>
@@ -28,7 +34,7 @@
 		</div>
 	</section>
 	<footer>
-		<a href="<?=$return_link?>" class="button blue"><?=Text::translate("Continue", true)?></a> &nbsp; 
-		<a href="<?=$edit_link?>" class="button"><?=Text::translate("Return & Edit", true)?></a> &nbsp; 
+		<a href="<?=$return_link?>" class="button blue"><?=Text::translate("Continue")?></a> &nbsp;
+		<a href="<?=$edit_link?>" class="button"><?=Text::translate("Return &amp; Edit")?></a> &nbsp;
 	</footer>
 </div>

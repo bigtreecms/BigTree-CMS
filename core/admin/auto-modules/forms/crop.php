@@ -1,6 +1,13 @@
 <?php
 	namespace BigTree;
 
+	/**
+	 * @global array $bigtree
+	 * @global string $crop_key
+	 * @global ModuleForm $form
+	 * @global string $return_link
+	 */
+
 	if (!$_SESSION["bigtree_admin"]["form_data"]) {
 		Router::redirect($_SESSION["bigtree_admin"]["cropper_previous_page"]);
 	}
@@ -11,7 +18,7 @@
 	$bigtree["page_override"] = array("title" => "Crop Images","icon" => "crop");
 
 	// Get crop information
-	$crops = $cms->cacheGet("org.bigtreecms.crops",$crop_key);
+	$crops = Cache::get("org.bigtreecms.crops",$crop_key);
 ?>
 <div class="container">
 	<?php if (count($crops) > 1) { ?>
@@ -19,7 +26,7 @@
 		<h2 class="cropper"><span><?=Text::translate("Cropping Image")?></span> <span class="count current">1</span> <span><?=Text::translate("of")?></span> <span class="count total"><?=count($crops)?></span></h2>
 	</header>
 	<?php } ?>
-	<form method="post" action="<?=$bigtree["form_root"]?>process-crops/<?php if (is_array($bigtree["current_page"])) { echo $bigtree["current_page"]["id"]; } elseif (is_numeric($bigtree["current_page"])) { echo $bigtree["current_page"]; } ?>/" id="crop_form" class="module">
+	<form method="post" action="<?=$form->Root?>process-crops/<?php if (is_array($bigtree["current_page"])) { echo $bigtree["current_page"]["id"]; } elseif (is_numeric($bigtree["current_page"])) { echo $bigtree["current_page"]; } ?>/" id="crop_form" class="module">
 		<input type="hidden" name="return_page" value="<?=htmlspecialchars($return_link)?>" />
 		<input type="hidden" name="crop_key" value="<?=htmlspecialchars($crop_key)?>" />
 		<section id="cropper">
@@ -27,7 +34,7 @@
 				$x = 0;
 				foreach ($crops as $crop) {
 					$x++;
-					list($width,$height,$type,$attr) = getimagesize($crop["image"]);
+					list($width, $height) = getimagesize($crop["image"]);
 					$image = str_replace(SITE_ROOT,WWW_ROOT,$crop["image"]);
 					$cwidth = $crop["width"];
 					$cheight = $crop["height"];
@@ -55,9 +62,7 @@
 					
 					if ($preview_height < $box_height) {
 						$preview_margin = floor(($box_height - $preview_height) / 2);
-						$box_margin = 0;
 					} else {
-						$box_margin = floor(($preview_height - $box_height) / 2);
 						$preview_margin = 0;
 					}
 					
@@ -166,7 +171,7 @@
 		window.onbeforeunload = null;
 	});
 
-	window.onbeforeunload = function(ev) {
+	window.onbeforeunload = function() {
 		BigTree.growl("<?=Text::translate("Cropping Image", true)?>","<?=Text::translate("Please crop your images before leaving this page.", true)?>",5000,"error");
 
 		return false;

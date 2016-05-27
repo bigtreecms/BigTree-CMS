@@ -282,46 +282,6 @@
 		}
 
 		/*
-			Function: getInterface
-				Gets a module interface. If the interface is a core type, the related type will be returned.
-
-			Parameters:
-				id - The interface ID.
-
-			Returns:
-				An interface array (or specialty type for forms, embeddable forms, views, and reports).
-		*/
-
-		static function getInterface($id) {
-			$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $id);
-			if ($interface["type"] == "form") {
-				$form = static::getForm($id);
-				$form["interface_type"] = "form";
-
-				return $form;
-			} elseif ($interface["type"] == "embeddable-form") {
-				$form = static::getEmbedForm($id);
-				$form["interface_type"] = "embeddable-form";
-
-				return $form;
-			} elseif ($interface["type"] == "view") {
-				$view = static::getView($id);
-				$view["interface_type"] = "view";
-
-				return $view;
-			} elseif ($interface["type"] == "report") {
-				$report = static::getReport($id);
-				$report["interface_type"] = "report";
-
-				return $report;
-			} else {
-				$interface["settings"] = json_decode($interface["settings"], true);
-
-				return $interface;
-			}
-		}
-
-		/*
 			Function: getItem
 				Returns an entry from a table with all its related information.
 				If a pending ID is passed in (prefixed with a p) getPendingItem is called instead.

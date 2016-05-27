@@ -25,6 +25,7 @@
 
 		public $Class;
 		public $DeveloperOnly;
+		public $Extension;
 		public $Group;
 		public $GroupBasedPermissions;
 		public $Icon;
@@ -54,6 +55,7 @@
 
 				$this->Class = $module["class"];
 				$this->DeveloperOnly = $module["developer_only"];
+				$this->Extension = $module["extension"];
 				$this->Group = $module["group"] ?: false;
 				$this->GroupBasedPermissions = array_filter((array) @json_decode($module["gbp"],true));
 				$this->Icon = $module["icon"];

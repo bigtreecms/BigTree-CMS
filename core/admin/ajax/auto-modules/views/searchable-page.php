@@ -1,6 +1,12 @@
 <?php
 	namespace BigTree;
-	
+
+	/**
+	 * @global \BigTreeAdmin $admin
+	 * @global Module $module
+	 * @global ModuleView $view
+	 */
+
 	// Grab View Data
 	if (isset($_GET["view"])) {
 		$view = new ModuleView($_GET["view"]);

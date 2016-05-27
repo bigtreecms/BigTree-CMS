@@ -1,6 +1,5 @@
 <?php
-	use BigTree\Auth;
-	use BigTree\Router;
+	namespace BigTree;
 
 	// Set a definition to check for being in the admin
 	define("BIGTREE_ADMIN_ROUTED",true);
@@ -146,9 +145,9 @@
 			header("Content-type: image/gif");
 		} elseif ($type == "jpg") {
 			header("Content-type: image/jpeg");
-		} elseif (substr($bigtree["path"][$x],-3,3) == "ttf") {
+		} elseif ($type == "ttf") {
 			header("Content-type: font/ttf");
-		} elseif (substr($bigtree["path"][$x],-4,4) == "woff") {
+		} elseif (substr($js_file, -4, 4) == "woff") {
 			header("Content-type: font/x-woff");
 		} else {
 			header("Content-type: text/javascript");
@@ -212,7 +211,7 @@
 	$bigtree["css"] = array();
 	
 	// Instantiate the $admin var (user system)
-	$admin = new BigTreeAdmin;
+	$admin = new \BigTreeAdmin;
 
 	// Load the default layout.
 	$bigtree["layout"] = "default";
@@ -286,30 +285,36 @@
 	if ($bigtree["path"][1] == "ajax") {
 		$module = false;
 		$core_ajax_directories = array("auto-modules","callouts","dashboard","file-browser","pages","tags");
-		if (!in_array($bigtree["path"][2],$core_ajax_directories) && $bigtree["path"]) {
+
+		if ($bigtree["path"] && !in_array($bigtree["path"][2], $core_ajax_directories)) {
 			// If the current user isn't allowed in the module for the ajax, stop them.
-			$module = $admin->getModuleByRoute($bigtree["path"][2]);
-			if ($module && !$admin->checkAccess($module)) {
-				die("Permission denied to module: ".$module["name"]);
+			$module = Module::getByRoute($bigtree["path"][2]);
+
+			if ($module && !$module->UserCanAccess) {
+				die("Permission denied to module: ".$module->Name);
 			} elseif (!$admin->ID) {
 				die("Please login.");
 			}
-			
+
+			// Backwards compatibility with array formats < 4.3
 			if ($module) {
-				$bigtree["current_module"] = $bigtree["module"] = $module;
+				$bigtree["current_module"] = $bigtree["module"] = $module->Array;
 			}
 		}
 
-		$ajax_path = array_slice($bigtree["path"],2);
+		$ajax_path = array_slice($bigtree["path"], 2);
+
 		// Extensions must use this directory
 		if (defined("EXTENSION_ROOT")) {
-			list($inc,$commands) = Router::getRoutedFileAndCommands(EXTENSION_ROOT."ajax/",$ajax_path);
+			list($inc, $commands) = Router::getRoutedFileAndCommands(EXTENSION_ROOT."ajax/", $ajax_path);
 		// Check custom/core
 		} else {
-			list($inc,$commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."custom/admin/ajax/",$ajax_path);
+			list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."custom/admin/ajax/", $ajax_path);
+
 			// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
 			if (!$inc || count($commands)) {
 				list($core_inc,$core_commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."core/admin/ajax/",$ajax_path);
+
 				// If we either never found the custom file or if there are more routes found in the core file use the core.
 				if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
 					$inc = $core_inc;
@@ -322,10 +327,11 @@
 			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 			die("File not found.");
 		}
+
 		$bigtree["commands"] = $commands;
 		$bigtree["ajax_inc"] = $inc;
 
-		list($bigtree["ajax_headers"],$bigtree["ajax_footers"]) = Router::getRoutedLayoutPartials($inc);
+		list($bigtree["ajax_headers"], $bigtree["ajax_footers"]) = Router::getRoutedLayoutPartials($inc);
 			
 		// Draw the headers.
 		foreach ($bigtree["ajax_headers"] as $header) {
@@ -344,7 +350,7 @@
 	}
 
 	// Execute cron tab functions if they haven't been run in 24 hours
-	$last_check = $cms->getSetting("bigtree-internal-cron-last-run");
+	$last_check = Setting::value("bigtree-internal-cron-last-run");
 	if ((time() - $last_check) > (24 * 60 * 60)) {
 		$admin->runCron();
 	}
@@ -353,20 +359,22 @@
 	$inc = false;
 	$primary_route = $bigtree["path"][1];
 	$module_path = array_slice($bigtree["path"],1);
-	$module = $admin->getModuleByRoute($primary_route);
+	$module = Module::getByRoute($primary_route);
 	$complete = false;
+
 	// We're routing through a module, so get module information and check permissions
 	if ($module) {		
 		// Setup environment vars
-		$bigtree["current_module"] = $bigtree["module"] = $module;
-		define("MODULE_ROOT",ADMIN_ROOT.$module["route"]."/");
-		if ($module["extension"]) {
-			$bigtree["extension_context"] = $module["extension"];
-			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$module["extension"]."/");
+		$bigtree["current_module"] = $bigtree["module"] = $module->Array;
+		define("MODULE_ROOT",ADMIN_ROOT.$module->Route."/");
+
+		if ($module->Extension) {
+			$bigtree["extension_context"] = $module->Extension;
+			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$module->Extension."/");
 		}
 
 		// Find out what module action we're trying to hit
-		$route_response = $admin->getModuleActionByRoute($module["id"],array_slice($bigtree["path"],2));
+		$route_response = $admin->getModuleActionByRoute($module->ID, array_slice($bigtree["path"],2));
 		if ($route_response) {
 			$bigtree["module_action"] = $route_response["action"];
 			$bigtree["commands"] = $route_response["commands"];
@@ -381,20 +389,35 @@
 		$actions = $admin->getModuleActions($module);
 	
 		// Append module info to the admin nav to draw the headers and breadcrumb and such.
-		$bigtree["nav_tree"]["auto-module"] = array("title" => $module["name"],"link" => $module["route"],"icon" => "modules","children" => array());
+		$bigtree["nav_tree"]["auto-module"] = array(
+			"title" => $module->Name,
+			"link" => $module->Route,
+			"icon" => "modules",
+			"children" => array()
+		);
+
 		foreach ($actions as $action) {
 			$hidden = $action["in_nav"] ? false : true;
-			$route = $action["route"] ? $module["route"]."/".$action["route"] : $module["route"];
-			$bigtree["nav_tree"]["auto-module"]["children"][] = array("title" => $action["name"],"link" => $route,"nav_icon" => $action["class"],"hidden" => $hidden,"level" => $action["level"]);
+			$route = $action["route"] ? $module->Route."/".$action["route"] : $module->Route;
+
+			$bigtree["nav_tree"]["auto-module"]["children"][] = array(
+				"title" => $action["name"],
+				"link" => $route,
+				"nav_icon" => $action["class"],
+				"hidden" => $hidden,
+				"level" => $action["level"]
+			);
 		}
 
 		// Bring in related modules if this one is in a group.
-		if ($module["group"]) {
-			$related_modules = $admin->getModulesByGroup($module["group"]);
-			$related_group = $admin->getModuleGroup($module["group"]);
+		if ($module->Group) {
+			$related_modules = $admin->getModulesByGroup($module->Group);
+			$related_group = $admin->getModuleGroup($module->Group);
+
 			if (count($related_modules) > 1) {
 				$bigtree["related_modules"] = array();
 				$bigtree["related_group"] = $related_group["name"];
+
 				foreach ($related_modules as $rm) {
 					$bigtree["related_modules"][] = array("title" => $rm["name"],"link" => $rm["route"]);
 				}
@@ -403,17 +426,21 @@
 
 		// Handle interface actions
 		if ($bigtree["module_action"]["interface"]) {
-			define("INTERFACE_ROOT",ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/");
-			$bigtree["interface"] = BigTreeAutoModule::getInterface($bigtree["module_action"]["interface"]);
-			if (isset($bigtree["interface"]["interface_type"])) {
-				include Router::getIncludePath("admin/auto-modules/".$bigtree["interface"]["interface_type"].".php");
+			define("INTERFACE_ROOT",ADMIN_ROOT.$module->Route."/".$bigtree["module_action"]["route"]."/");
+			$interface = new ModuleInterface($bigtree["module_action"]["interface"]);
+
+			if (strpos($interface->Type,"*") === false) {
+				include Router::getIncludePath("admin/auto-modules/".$interface->Type.".php");
+
 				$complete = true;
 			} else {
-				list($extension,$interface_type) = explode("*",$bigtree["interface"]["type"]);
+				list($extension,$interface_type) = explode("*",$interface->Type);
 				$base_directory = SERVER_ROOT."extensions/$extension/plugins/interfaces/$interface_type/parser/";
 				list($include_file,$bigtree["commands"]) = Router::getRoutedFileAndCommands($base_directory,$bigtree["commands"]);
+
 				include $include_file;
-				$complete = true;	
+
+				$complete = true;
 			}
 		}
 	}
@@ -421,12 +448,12 @@
 	// Auto actions are going to be already done so we don't need to try manual routing.
 	if (!$complete) {
 		// Check custom if it's not an extension, otherwise use the extension directory
-		if ($module && $module["extension"]) {
-			$module_path[0] = str_replace($module["extension"]."*","",$module_path[0]);
-			list($inc,$commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."extensions/".$module["extension"]."/modules/",$module_path);
+		if ($module && $module->Extension) {
+			$module_path[0] = str_replace($module->Extension."*","",$module_path[0]);
+			list($inc,$commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."extensions/".$module->Extension."/modules/",$module_path);
 
-			$bigtree["extension_context"] = $module["extension"];
-			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$module["extension"]."/");
+			$bigtree["extension_context"] = $module->Extension;
+			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$module->Extension."/");
 		} else {
 			list($inc,$commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."custom/admin/modules/",$module_path);
 			// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)

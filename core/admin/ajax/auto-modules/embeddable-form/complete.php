@@ -1,4 +1,10 @@
 <?php
+	namespace BigTree;
+
+	/**
+	 * @global ModuleForm $form
+	 */
+	
 	if ($form->RedirectURL) {
 ?>
 <script>window.parent.BigTreeEmbeddableForm<?=$form->ID?>.redirect("<?=$form->RedirectURL?>");</script>

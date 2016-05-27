@@ -1,6 +1,11 @@
 <?php
 	namespace BigTree;
 
+	/**
+	 * @global string $table
+	 * @global ModuleView $view
+	 */
+
 	// Grab View Data
 	$view = new ModuleView($_POST["view"]);
 	$module = new Module($view->Module);

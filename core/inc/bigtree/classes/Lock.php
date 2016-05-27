@@ -59,9 +59,9 @@
 				A Lock object.
 		*/
 
-		static function enforce($table,$id,$include,$force = false) {
-			global $admin,$bigtree,$cms,$db;
-
+		static function enforce($table, $id, $include, $force = false) {
+			global $admin, $bigtree, $cms, $db;
+			
 			// Make sure a user is logged in
 			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 				throw new \Exception("Lock::enforce cannot be called outside logged-in user context.");
@@ -84,15 +84,15 @@
 
 			// We're taking over the lock, force was sent or this is an old lock
 			if ($lock) {
-				SQL::update("bigtree_locks",$lock["id"],array(
+				SQL::update("bigtree_locks", $lock["id"], array(
 					"user" => $admin->ID
 				));
 
 				return new Lock($lock["id"]);
-			
-			// No lock, we're creating a new one
+
+				// No lock, we're creating a new one
 			} else {
-				$id = SQL::insert("bigtree_locks",array(
+				$id = SQL::insert("bigtree_locks", array(
 					"table" => $table,
 					"item_id" => $id,
 					"user" => $admin->ID
@@ -112,7 +112,7 @@
 
 		*/
 
-		static function refresh($table,$id) {
+		static function refresh($table, $id) {
 			global $admin;
 
 			// Make sure a user is logged in
@@ -121,7 +121,7 @@
 			}
 
 			// Update the access time and user
-			SQL::update("bigtree_locks",array("table" => $table,"item_id" => $id, "user" => $admin->ID), array("last_accessed" => "NOW()"));
+			SQL::update("bigtree_locks", array("table" => $table, "item_id" => $id, "user" => $admin->ID), array("last_accessed" => "NOW()"));
 		}
 
 		/*
@@ -133,8 +133,8 @@
 				id - The ID of the locked entry.
 		*/
 
-		static function remove($table,$id) {
-			SQL::delete("bigtree_locks",array("table" => $table, "item_id" => $id));
+		static function remove($table, $id) {
+			SQL::delete("bigtree_locks", array("table" => $table, "item_id" => $id));
 		}
 		
 	}
