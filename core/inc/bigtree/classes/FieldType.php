@@ -10,8 +10,7 @@
 
 		public static $Table = "bigtree_field_types";
 
-		protected $ID;
-
+		public $ID;
 		public $Name;
 		public $SelfDraw;
 		public $UseCases;
@@ -24,7 +23,7 @@
 				field_type - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
-		function __construct($field_type) {
+		function __construct($field_type = null) {
 			// Passing in just an ID
 			if (!is_array($field_type)) {
 				$field_type = SQL::fetch("SELECT * FROM bigtree_field_types WHERE id = ?", $field_type);
@@ -37,7 +36,7 @@
 				$this->ID = $field_type["id"];
 				$this->Name = $field_type["name"];
 				$this->SelfDraw = $field_type["self_draw"] ? true : false;
-				$this->UseCases = array_filter((array) json_decode($field_type["use_cases"],true));
+				$this->UseCases = array_filter((array) json_decode($field_type["use_cases"], true));
 			}
 		}
 
@@ -55,18 +54,18 @@
 				true if successful, false if an invalid ID was passed or the ID is already in use
 		*/
 
-		static function create($id,$name,$use_cases,$self_draw) {
+		static function create($id, $name, $use_cases, $self_draw) {
 			// Check to see if it's a valid ID
-			if (!ctype_alnum(str_replace(array("-","_"),"",$id)) || strlen($id) > 127) {
+			if (!ctype_alnum(str_replace(array("-", "_"), "", $id)) || strlen($id) > 127) {
 				return false;
 			}
 
 			// See if a callout ID already exists
-			if (SQL::exists("bigtree_field_types",$id)) {
+			if (SQL::exists("bigtree_field_types", $id)) {
 				return false;
 			}
 
-			SQL::insert("bigtree_field_types",array(
+			SQL::insert("bigtree_field_types", array(
 				"id" => $id,
 				"name" => Text::htmlEncode($name),
 				"use_cases" => $use_cases,
@@ -77,7 +76,7 @@
 			$file = "$id.php";
 
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/draw/$file")) {
-				FileSystem::createFile(SERVER_ROOT."custom/admin/form-field-types/draw/$file",'<?php
+				FileSystem::createFile(SERVER_ROOT."custom/admin/form-field-types/draw/$file", '<?php
 	/*
 		When drawing a field type you are provided with the $field array with the following keys:
 			"title" — The title given by the developer to draw as the label (drawn automatically)
@@ -95,7 +94,7 @@
 			}
 
 			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/process/$file")) {
-				FileSystem::createFile(SERVER_ROOT."custom/admin/form-field-types/process/$file",'<?php
+				FileSystem::createFile(SERVER_ROOT."custom/admin/form-field-types/process/$file", '<?php
 	/*
 		When processing a field type you are provided with the $field array with the following keys:
 			"key" — The key of the field (this could be the database column for a module or the ID of the template or callout resource)
@@ -120,7 +119,7 @@
 			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 			// Track
-			AuditTrail::track("bigtree_field_types",$id,"created");
+			AuditTrail::track("bigtree_field_types", $id, "created");
 			
 			return new FieldType($id);
 		}
@@ -142,8 +141,8 @@
 			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 			// Delete and track
-			SQL::delete("bigtree_field_types",$id);
-			AuditTrail::track("bigtree_field_types",$id,"deleted");
+			SQL::delete("bigtree_field_types", $id);
+			AuditTrail::track("bigtree_field_types", $id, "deleted");
 		}
 
 		/*
@@ -161,7 +160,7 @@
 		static function reference($split = false, $use_case_type = "") {
 			// Used cached values if available, otherwise query the DB
 			if (file_exists(SERVER_ROOT."cache/bigtree-form-field-types.json")) {
-				$types = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-form-field-types.json"),true);
+				$types = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-form-field-types.json"), true);
 			} else {
 				$types = array();
 				$types["modules"] = $types["templates"] = $types["callouts"] = $types["settings"] = array(
@@ -183,14 +182,14 @@
 					"custom" => array()
 				);
 
-				$types["modules"]["default"]["route"] = array("name" => "Generated Route","self_draw" => true);
+				$types["modules"]["default"]["route"] = array("name" => "Generated Route", "self_draw" => true);
 
 				$field_types = SQL::fetchAll("SELECT * FROM bigtree_field_types ORDER BY name");
 				foreach ($field_types as $field_type) {
-					$use_cases = json_decode($field_type["use_cases"],true);
-					foreach ((array)$use_cases as $case => $val) {
+					$use_cases = json_decode($field_type["use_cases"], true);
+					foreach ((array) $use_cases as $case => $val) {
 						if ($val) {
-							$types[$case]["custom"][$field_type["id"]] = array("name" => $field_type["name"],"self_draw" => $field_type["self_draw"]);
+							$types[$case]["custom"][$field_type["id"]] = array("name" => $field_type["name"], "self_draw" => $field_type["self_draw"]);
 						}
 					}
 				}
@@ -201,7 +200,7 @@
 			// Re-merge if we don't want them split
 			if (!$split) {
 				foreach ($types as $use_case => $list) {
-					$types[$use_case] = array_merge($list["default"],$list["custom"]);
+					$types[$use_case] = array_merge($list["default"], $list["custom"]);
 				}
 			}
 
@@ -219,18 +218,20 @@
 		*/
 
 		function save() {
-			// Update DB
-			SQL::update("bigtree_field_types",$this->ID,array(
-				"name" => Text::htmlEncode($this->Name),
-				"use_cases" => array_filter((array)$this->UseCases),
-				"self_draw" => $this->SelfDraw ? "on" : ""
-			));
+			// IDs are user defined so the database entry may not exist but an ID still exists
+			if (SQL::exists("bigtree_field_types", $this->ID)) {
+				SQL::update("bigtree_field_types", $this->ID, array(
+					"name" => Text::htmlEncode($this->Name),
+					"use_cases" => array_filter((array) $this->UseCases),
+					"self_draw" => $this->SelfDraw ? "on" : ""
+				));
+				AuditTrail::track("bigtree_field_types", $this->ID, "updated");
 
-			// Clear cache
-			unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
-
-			// Track
-			AuditTrail::track("bigtree_field_types",$this->ID,"updated");
+				// Clear cache
+				unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
+			} else {
+				static::create($this->ID, $this->Name, $this->UseCases, $this->SelfDraw);
+			}
 		}
 
 		/*
@@ -243,7 +244,7 @@
 				self_draw - Whether this field type will draw its <fieldset> and <label> ("on" or a falsey value)
 		*/
 
-		function update($name,$use_cases,$self_draw) {
+		function update($name, $use_cases, $self_draw) {
 			$this->Name = $name;
 			$this->UseCases = $use_cases;
 			$this->SelfDraw = $self_draw;

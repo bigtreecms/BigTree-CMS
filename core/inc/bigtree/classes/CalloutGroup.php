@@ -14,7 +14,7 @@
 
 		public static $Table = "bigtree_callout_groups";
 
-		protected $ID; // This shouldn't be editable from outside the class instance
+		protected $ID;
 
 		public $Callouts;
 		public $Name;
@@ -28,19 +28,21 @@
 				o pull a record) or an array (to use the array as the record)
 		*/
 
-		function __construct($group) {
-			// Passing in just an ID
-			if (!is_array($group)) {
-				$group = SQL::fetch("SELECT * FROM bigtree_callout_groups WHERE id = ?", $group);
-			}
+		function __construct($group = null) {
+			if ($group !== null) {
+				// Passing in just an ID
+				if (!is_array($group)) {
+					$group = SQL::fetch("SELECT * FROM bigtree_callout_groups WHERE id = ?", $group);
+				}
 
-			// Bad data set
-			if (!is_array($group)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-			} else {
-				$this->ID = $group["id"];
-				$this->Name = $group["name"];
-				$this->Callouts = array_filter((array) (is_string($group["callouts"]) ? json_decode($group["callouts"],true) : $group["callouts"]));
+				// Bad data set
+				if (!is_array($group)) {
+					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+				} else {
+					$this->ID = $group["id"];
+					$this->Name = $group["name"];
+					$this->Callouts = array_filter((array) (is_string($group["callouts"]) ? json_decode($group["callouts"], true) : $group["callouts"]));
+				}
 			}
 		}
 
@@ -93,12 +95,18 @@
 			$this->Callouts = (array)$this->Callouts;
 			sort($this->Callouts);
 
-			SQL::update("bigtree_callout_groups",$this->ID,array(
+			$sql_data = array(
 				"name" => Text::htmlEncode($this->Name),
 				"callouts" => $this->Callouts
-			));
+			);
 
-			AuditTrail::track("bigtree_callout_groups",$this->ID,"updated");
+			if (empty($this->ID)) {
+				$this->ID = SQL::insert("bigtree_callout_groups", $sql_data);
+				AuditTrail::track("bigtree_callout_groups", $this->ID, "created");
+			} else {
+				SQL::update("bigtree_callout_groups", $this->ID, $sql_data);
+				AuditTrail::track("bigtree_callout_groups", $this->ID, "updated");
+			}
 		}
 
 		/*

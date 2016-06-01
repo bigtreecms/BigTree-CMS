@@ -12,9 +12,9 @@
 		public static $RequiredFiles = array();
 		public static $Table = "bigtree_extensions";
 
-		protected $ID;
 		protected $LastUpdated;
 
+		public $ID;
 		public $Manifest;
 		public $Name;
 		public $Type;
@@ -28,23 +28,25 @@
 				extension - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
-		function __construct($extension) {
-			// Passing in just an ID
-			if (!is_array($extension)) {
-				$extension = SQL::fetch("SELECT * FROM bigtree_extensions WHERE id = ?", $extension);
-			}
+		function __construct($extension = null) {
+			if ($extension !== null) {
+				// Passing in just an ID
+				if (!is_array($extension)) {
+					$extension = SQL::fetch("SELECT * FROM bigtree_extensions WHERE id = ?", $extension);
+				}
 
-			// Bad data set
-			if (!is_array($extension)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-			} else {
-				$this->ID = $extension["id"];
-				$this->LastUpdated = $extension["last_updated"];
+				// Bad data set
+				if (!is_array($extension)) {
+					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+				} else {
+					$this->ID = $extension["id"];
+					$this->Manifest = array_filter((array) @json_decode($extension["manifest"], true));
+					$this->Name = $extension["name"];
+					$this->Type = $extension["type"];
+					$this->Version = $extension["version"];
 
-				$this->Manifest = array_filter((array) @json_decode($extension["manifest"],true));
-				$this->Name = $extension["name"];
-				$this->Type = $extension["type"];
-				$this->Version = $extension["version"];
+					$this->LastUpdated = $extension["last_updated"];
+				}
 			}
 		}
 

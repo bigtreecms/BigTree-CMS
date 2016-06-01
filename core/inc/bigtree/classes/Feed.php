@@ -33,25 +33,27 @@
 				feed - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
-		function __construct($feed) {
-			// Passing in just an ID
-			if (!is_array($feed)) {
-				$feed = SQL::fetch("SELECT * FROM bigtree_feeds WHERE id = ?", $feed);
-			}
+		function __construct($feed = null) {
+			if  ($feed !== null) {
+				// Passing in just an ID
+				if (!is_array($feed)) {
+					$feed = SQL::fetch("SELECT * FROM bigtree_feeds WHERE id = ?", $feed);
+				}
 
-			// Bad data set
-			if (!is_array($feed)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-			} else {
-				$this->ID = $feed["id"];
+				// Bad data set
+				if (!is_array($feed)) {
+					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+				} else {
+					$this->ID = $feed["id"];
 
-				$this->Description = $feed["description"];
-				$this->Fields = json_decode($feed["fields"], true);
-				$this->Name = $feed["name"];
-				$this->Route = $feed["route"];
-				$this->Settings = json_decode($feed["options"], true);
-				$this->Table = $feed["table"];
-				$this->Type = $feed["type"];
+					$this->Description = $feed["description"];
+					$this->Fields = json_decode($feed["fields"], true);
+					$this->Name = $feed["name"];
+					$this->Route = $feed["route"];
+					$this->Settings = json_decode($feed["options"], true);
+					$this->Table = $feed["table"];
+					$this->Type = $feed["type"];
+				}
 			}
 		}
 
@@ -100,16 +102,22 @@
 		*/
 
 		function save() {
-			SQL::update("bigtree_feeds",$this->ID,array(
+			$sql_data = array(
 				"name" => Text::htmlEncode($this->Name),
 				"description" => Text::htmlEncode($this->Description),
 				"table" => $this->Table,
 				"type" => $this->Type,
 				"fields" => $this->Fields,
 				"options" => Link::encodeArray($this->Settings)
-			));
+			);
 
-			AuditTrail::track("bigtree_feeds",$this->ID,"updated");
+			if (empty($this->ID)) {
+				$this->ID = SQL::insert("bigtree_feeds", $sql_data);
+				AuditTrail::track("bigtree_feeds", $this->ID, "created");
+			} else {
+				SQL::update("bigtree_feeds", $this->ID, $sql_data);
+				AuditTrail::track("bigtree_feeds", $this->ID, "updated");
+			}
 		}
 
 		/*

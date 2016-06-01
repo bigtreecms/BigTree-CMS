@@ -24,21 +24,23 @@
 				lock - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
-		function __construct($lock) {
-			// Passing in just an ID
-			if (!is_array($lock)) {
-				$lock = SQL::fetch("SELECT * FROM bigtree_locks WHERE id = ?", $lock);
-			}
+		function __construct($lock = null) {
+			if ($lock !== null) {
+				// Passing in just an ID
+				if (!is_array($lock)) {
+					$lock = SQL::fetch("SELECT * FROM bigtree_locks WHERE id = ?", $lock);
+				}
 
-			// Bad data set
-			if (!is_array($lock)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-			} else {
-				$this->ID = $lock["id"];
-				$this->ItemID = $lock["item_id"];
-				$this->LastAccessed = $lock["last_accessed"];
-				$this->Table = $lock["table"];
-				$this->User = $lock["user"];
+				// Bad data set
+				if (!is_array($lock)) {
+					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+				} else {
+					$this->ID = $lock["id"];
+					$this->ItemID = $lock["item_id"];
+					$this->LastAccessed = $lock["last_accessed"];
+					$this->Table = $lock["table"];
+					$this->User = $lock["user"];
+				}
 			}
 		}
 
@@ -58,7 +60,7 @@
 			Returns:
 				A Lock object.
 		*/
-
+		
 		static function enforce($table, $id, $include, $force = false) {
 			global $admin, $bigtree, $cms, $db;
 			

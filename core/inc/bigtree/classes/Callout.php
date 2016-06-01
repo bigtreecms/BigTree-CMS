@@ -6,21 +6,16 @@
 
 	namespace BigTree;
 
-	/**
-	 * @property-read int $ID
-	 */
-
 	class Callout extends BaseObject {
 
 		public static $Table = "bigtree_callouts";
-
-		protected $ID;
 
 		public $Description;
 		public $DisplayDefault;
 		public $DisplayField;
 		public $Extension;
 		public $Fields;
+		public $ID;
 		public $Level;
 		public $Name;
 		public $Position;
@@ -33,25 +28,27 @@
 				callout - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
-		function __construct($callout) {
-			// Passing in just an ID
-			if (!is_array($callout)) {
-				$callout = SQL::fetch("SELECT * FROM bigtree_callouts WHERE id = ?", $callout);
-			}
+		function __construct($callout = null) {
+			if ($callout !== null) {
+				// Passing in just an ID
+				if (!is_array($callout)) {
+					$callout = SQL::fetch("SELECT * FROM bigtree_callouts WHERE id = ?", $callout);
+				}
 
-			// Bad data set
-			if (!is_array($callout)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-			} else {
-				$this->ID = $callout["id"];
-				$this->Description = $callout["description"];
-				$this->DisplayDefault = $callout["display_default"];
-				$this->DisplayField = $callout["display_field"];
-				$this->Extension = $callout["extension"];
-				$this->Fields = is_string($callout["resources"]) ? json_decode($callout["resources"],true) : $callout["resources"];
-				$this->Level = $callout["level"];
-				$this->Name = $callout["name"];
-				$this->Position = $callout["position"];
+				// Bad data set
+				if (!is_array($callout)) {
+					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+				} else {
+					$this->ID = $callout["id"];
+					$this->Description = $callout["description"];
+					$this->DisplayDefault = $callout["display_default"];
+					$this->DisplayField = $callout["display_field"];
+					$this->Extension = $callout["extension"];
+					$this->Fields = is_string($callout["resources"]) ? json_decode($callout["resources"], true) : $callout["resources"];
+					$this->Level = $callout["level"];
+					$this->Name = $callout["name"];
+					$this->Position = $callout["position"];
+				}
 			}
 		}
 
@@ -282,7 +279,7 @@
 				}
 			}
 
-			SQL::update("bigtree_callouts",$this->ID,array(
+			$sql_data = array(
 				"name" => Text::htmlEncode($this->Name),
 				"description" => Text::htmlEncode($this->Description),
 				"display_default" => $this->DisplayDefault,
@@ -291,9 +288,18 @@
 				"level" => $this->Level,
 				"position" => $this->Position,
 				"extension" => $this->Extension
-			));
+			);
 
-			AuditTrail::track("bigtree_callouts",$this->ID,"updated");
+			// Callouts set their own ID, so we need to check the database to see if the ID already exists before updating/creating
+			if (SQL::exists("bigtree_callouts", $this->ID)) {
+				SQL::update("bigtree_callouts", $this->ID, $sql_data);
+				AuditTrail::track("bigtree_callouts", $this->ID, "updated");
+			} else {
+				$sql_data["id"] = $this->ID;
+
+				SQL::insert("bigtree_callouts", $sql_data);
+				AuditTrail::track("bigtree_callouts", $this->ID, "created");
+			}
 		}
 
 		/*
