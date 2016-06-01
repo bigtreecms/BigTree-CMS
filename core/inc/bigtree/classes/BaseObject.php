@@ -179,20 +179,22 @@
 			// Get the table description and an array equivalent of all object properties
 			$table_description = SQL::describeTable(static::$Table);
 			$array_data = $this->Array;
-			$update_data = array();
+			$sql_data = array();
 
 			foreach ($array_data as $key => $value) {
 				// We're not going to update IDs or columns not found in the table
 				if ($key != "id" && isset($table_description["columns"][$key])) {
-					$update_data[$key] = $value;
+					$sql_data[$key] = $value;
 				}
 			}
-
-			// Update db
-			SQL::update(static::$Table,$this->ID,$update_data);
-
-			// Track
-			AuditTrail::track(static::$Table,$this->ID,"updated");
+			
+			if (empty($this->ID)) {
+				$this->ID = SQL::insert(static::$Table, $sql_data);
+				AuditTrail::track(static::$Table, $this->ID, "created");
+			} else {
+				SQL::update(static::$Table, $this->ID, $sql_data);
+				AuditTrail::track(static::$Table, $this->ID, "updated");
+			}
 
 			return true;
 		}
