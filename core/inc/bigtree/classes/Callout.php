@@ -266,41 +266,42 @@
 		*/
 
 		function save() {
-			// Clean up fields
-			$fields = array();
-			foreach ($this->Fields as $field) {
-				// "type" is still a reserved keyword due to the way we save callout data when editing.
-				if ($field["id"] && $field["id"] != "type") {
-					$fields[] = array(
-						"id" => Text::htmlEncode($field["id"]),
-						"type" => Text::htmlEncode($field["type"]),
-						"title" => Text::htmlEncode($field["title"]),
-						"subtitle" => Text::htmlEncode($field["subtitle"]),
-						"options" => json_decode($field["options"], true)
-					);
-				}
-			}
-
-			$sql_data = array(
-				"name" => Text::htmlEncode($this->Name),
-				"description" => Text::htmlEncode($this->Description),
-				"display_default" => $this->DisplayDefault,
-				"display_field" => $this->DisplayField,
-				"resources" => $fields,
-				"level" => $this->Level,
-				"position" => $this->Position,
-				"extension" => $this->Extension
-			);
-
 			// Callouts set their own ID, so we need to check the database to see if the ID already exists before updating/creating
 			if (SQL::exists("bigtree_callouts", $this->ID)) {
-				SQL::update("bigtree_callouts", $this->ID, $sql_data);
+				// Clean up fields
+				$fields = array();
+				foreach ($this->Fields as $field) {
+					// "type" is still a reserved keyword due to the way we save callout data when editing.
+					if ($field["id"] && $field["id"] != "type") {
+						$fields[] = array(
+							"id" => Text::htmlEncode($field["id"]),
+							"type" => Text::htmlEncode($field["type"]),
+							"title" => Text::htmlEncode($field["title"]),
+							"subtitle" => Text::htmlEncode($field["subtitle"]),
+							"options" => json_decode($field["options"], true)
+						);
+					}
+				}
+
+				SQL::update("bigtree_callouts", $this->ID, array(
+					"name" => Text::htmlEncode($this->Name),
+					"description" => Text::htmlEncode($this->Description),
+					"display_default" => $this->DisplayDefault,
+					"display_field" => $this->DisplayField,
+					"resources" => $fields,
+					"level" => $this->Level,
+					"position" => $this->Position,
+					"extension" => $this->Extension
+				));
 				AuditTrail::track("bigtree_callouts", $this->ID, "updated");
 			} else {
-				$sql_data["id"] = $this->ID;
+				$new = static::create($this->ID, $this->Name, $this->Description, $this->Level, $this->Fields, $this->DisplayField, $this->DisplayDefault);
 
-				SQL::insert("bigtree_callouts", $sql_data);
-				AuditTrail::track("bigtree_callouts", $this->ID, "created");
+				if ($new !== false) {
+					$this->inherit($new);
+				} else {
+					trigger_error("Failed to create new callout object due to invalid or used ID.", E_USER_WARNING);
+				}
 			}
 		}
 

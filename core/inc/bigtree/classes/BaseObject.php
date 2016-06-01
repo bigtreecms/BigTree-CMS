@@ -171,11 +171,27 @@
 		}
 
 		/*
+			Function: inherit
+				Copies another object's properties back to this object.
+
+			Parameters:
+				object - Another object
+		*/
+
+		function inherit($object) {
+			$properties = get_object_vars($object);
+
+			foreach ($properties as $key) {
+				$this->$key = $object->$key;
+			}
+		}
+
+		/*
 			Function: save
 				Reads all object properties and compares them against the related table.
 				Saves matching columns to the database and logs the audit trail (if logged in).
 		*/
-		
+
 		function save() {
 			// Must have a static Table var.
 			if (empty(static::$Table)) {

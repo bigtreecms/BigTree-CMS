@@ -216,6 +216,7 @@
 					$existing[] = $f;
 				}
 			}
+
 			// Go through the directories (really ajax, css, images, js)
 			$d = opendir(SERVER_ROOT."core/admin/");
 			while ($f = readdir($d)) {
@@ -223,6 +224,7 @@
 					$existing[] = $f;
 				}
 			}
+
 			// Go through the hard coded pages
 			$d = opendir(SERVER_ROOT."core/admin/pages/");
 			while ($f = readdir($d)) {
@@ -231,6 +233,7 @@
 					$existing[] = substr($f, 0, -4);
 				}
 			}
+
 			// Go through already created modules
 			array_merge($existing, SQL::fetchAllSingle("SELECT route FROM bigtree_modules"));
 
@@ -689,7 +692,7 @@
 
 		function save() {
 			if (empty($this->ID)) {
-				$module = static::create(
+				$new = static::create(
 					$this->Name,
 					$this->Group,
 					$this->Class,
@@ -699,8 +702,10 @@
 					!empty($this->DeveloperOnly) ? true : false
 				);
 
-				if ($module) {
-					$this->ID = $module->ID;
+				if ($new !== false) {
+					$this->inherit($new);
+				} else {
+					trigger_error("Failed to create module due to invalid route.", E_USER_WARNING);
 				}
 			} else {
 				SQL::update("bigtree_modules", $this->ID, array(

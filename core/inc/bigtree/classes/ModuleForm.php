@@ -37,28 +37,30 @@
 				interface - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
-		function __construct($interface) {
-			// Passing in just an ID
-			if (!is_array($interface)) {
-				$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
-			}
+		function __construct($interface = null) {
+			if ($interface !== null) {
+				// Passing in just an ID
+				if (!is_array($interface)) {
+					$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
+				}
 
-			// Bad data set
-			if (!is_array($interface)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-			} else {
-				$this->ID = $interface["id"];
-				$this->Interface = new ModuleInterface($interface);
+				// Bad data set
+				if (!is_array($interface)) {
+					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+				} else {
+					$this->ID = $interface["id"];
+					$this->Interface = new ModuleInterface($interface);
 
-				$this->DefaultPosition = $this->Interface->Settings["default_position"];
-				$this->Fields = $this->Interface->Settings["fields"];
-				$this->Hooks = array_filter((array) $this->Interface->Settings["hooks"]);
-				$this->Module = $interface["module"];
-				$this->ReturnURL = $this->Interface->Settings["return_url"];
-				$this->ReturnView = $this->Interface->Settings["return_view"];
-				$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the BaseObject class
-				$this->Tagging = $this->Interface->Settings["tagging"] ? true : false;
-				$this->Title = $interface["title"];
+					$this->DefaultPosition = $this->Interface->Settings["default_position"];
+					$this->Fields = $this->Interface->Settings["fields"];
+					$this->Hooks = array_filter((array) $this->Interface->Settings["hooks"]);
+					$this->Module = $interface["module"];
+					$this->ReturnURL = $this->Interface->Settings["return_url"];
+					$this->ReturnView = $this->Interface->Settings["return_view"];
+					$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the BaseObject class
+					$this->Tagging = $this->Interface->Settings["tagging"] ? true : false;
+					$this->Title = $interface["title"];
+				}
 			}
 		}
 
@@ -520,27 +522,32 @@
 		*/
 
 		function save() {
-			// Clean up fields in case old format was used
-			foreach ($this->Fields as $key => $field) {
-				$field["options"] = is_array($field["options"]) ? $field["options"] : json_decode($field["options"], true);
-				$field["column"] = $key;
-				$field["title"] = Text::htmlEncode($field["title"]);
-				$field["subtitle"] = Text::htmlEncode($field["subtitle"]);
-				$this->Fields[$key] = $field;
+			if (empty($this->Interface->ID)) {
+				$new = static::create($this->Module, $this->Title, $this->Table, $this->Fields, $this->Hooks, $this->DefaultPosition, $this->ReturnView, $this->ReturnURL, $this->Tagging);
+				$this->inherit($new);
+			} else {
+				// Clean up fields in case old format was used
+				foreach ($this->Fields as $key => $field) {
+					$field["options"] = is_array($field["options"]) ? $field["options"] : json_decode($field["options"], true);
+					$field["column"] = $key;
+					$field["title"] = Text::htmlEncode($field["title"]);
+					$field["subtitle"] = Text::htmlEncode($field["subtitle"]);
+					$this->Fields[$key] = $field;
+				}
+
+				$this->Interface->Settings = array(
+					"fields" => array_filter((array) $this->Fields),
+					"default_position" => $this->DefaultPosition,
+					"return_view" => intval($this->ReturnView) ?: null,
+					"return_url" => $this->ReturnURL,
+					"tagging" => $this->Tagging ? "on" : "",
+					"hooks" => array_filter((array) $this->Hooks)
+				);
+				$this->Interface->Table = $this->Table;
+				$this->Interface->Title = $this->Title;
+
+				$this->Interface->save();
 			}
-
-			$this->Interface->Settings = array(
-				"fields" => array_filter((array) $this->Fields),
-				"default_position" => $this->DefaultPosition,
-				"return_view" => intval($this->ReturnView) ?: null,
-				"return_url" => $this->ReturnURL,
-				"tagging" => $this->Tagging ? "on" : "",
-				"hooks" => array_filter((array) $this->Hooks)
-			);
-			$this->Interface->Table = $this->Table;
-			$this->Interface->Title = $this->Title;
-
-			$this->Interface->save();
 		}
 
 		/*

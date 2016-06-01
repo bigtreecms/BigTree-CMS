@@ -102,20 +102,18 @@
 		*/
 
 		function save() {
-			$sql_data = array(
-				"name" => Text::htmlEncode($this->Name),
-				"description" => Text::htmlEncode($this->Description),
-				"table" => $this->Table,
-				"type" => $this->Type,
-				"fields" => $this->Fields,
-				"options" => Link::encodeArray($this->Settings)
-			);
-
 			if (empty($this->ID)) {
-				$this->ID = SQL::insert("bigtree_feeds", $sql_data);
-				AuditTrail::track("bigtree_feeds", $this->ID, "created");
+				$new = static::create($this->Name, $this->Description, $this->Table, $this->Type, $this->Settings, $this->Fields);
+				$this->inherit($new);
 			} else {
-				SQL::update("bigtree_feeds", $this->ID, $sql_data);
+				SQL::update("bigtree_feeds", $this->ID, array(
+					"name" => Text::htmlEncode($this->Name),
+					"description" => Text::htmlEncode($this->Description),
+					"table" => $this->Table,
+					"type" => $this->Type,
+					"fields" => $this->Fields,
+					"options" => Link::encodeArray($this->Settings)
+				));
 				AuditTrail::track("bigtree_feeds", $this->ID, "updated");
 			}
 		}

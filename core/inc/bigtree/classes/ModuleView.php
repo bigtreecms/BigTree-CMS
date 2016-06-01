@@ -48,54 +48,56 @@
 				interface - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
-		function __construct($interface) {
-			// Passing in just an ID
-			if (!is_array($interface)) {
-				$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
-			}
-
-			// Bad data set
-			if (!is_array($interface)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-			} else {
-				$this->ID = $interface["id"];
-				$this->Interface = new ModuleInterface($interface);
-
-				$this->Actions = $this->Interface->Settings["actions"];
-				$this->Description = $this->Interface->Settings["description"];
-				$this->Fields = array_filter((array) $this->Interface->Settings["fields"]);
-				$this->Module = $interface["module"];
-				$this->PreviewURL = $this->Interface->Settings["preview_url"];
-				$this->RelatedForm = $this->Interface->Settings["related_form"];
-				$this->Settings = $this->Interface->Settings["options"];
-				$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the BaseObject class
-				$this->Title = $interface["title"];
-				$this->Type = $this->Interface->Settings["type"];
-
-				// Apply Preview action if a Preview URL is set
-				if ($this->PreviewURL) {
-					$this->Actions["preview"] = "on";
+		function __construct($interface = null) {
+			if ($interface !== null) {
+				// Passing in just an ID
+				if (!is_array($interface)) {
+					$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
 				}
-		
-				// Get the edit link
-				if (!empty($this->Actions["edit"])) {
-					// We may be in AJAX, so we need to define MODULE_ROOT if it's not available
-					if (!defined("MODULE_ROOT")) {
-						$route = SQL::fetchSingle("SELECT route FROM bigtree_modules WHERE id = ?", $this->Module);
-						$module_root = ADMIN_ROOT.$route."/";
-					} else {
-						$module_root = MODULE_ROOT;
+
+				// Bad data set
+				if (!is_array($interface)) {
+					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+				} else {
+					$this->ID = $interface["id"];
+					$this->Interface = new ModuleInterface($interface);
+
+					$this->Actions = $this->Interface->Settings["actions"];
+					$this->Description = $this->Interface->Settings["description"];
+					$this->Fields = array_filter((array) $this->Interface->Settings["fields"]);
+					$this->Module = $interface["module"];
+					$this->PreviewURL = $this->Interface->Settings["preview_url"];
+					$this->RelatedForm = $this->Interface->Settings["related_form"];
+					$this->Settings = $this->Interface->Settings["options"];
+					$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the BaseObject class
+					$this->Title = $interface["title"];
+					$this->Type = $this->Interface->Settings["type"];
+
+					// Apply Preview action if a Preview URL is set
+					if ($this->PreviewURL) {
+						$this->Actions["preview"] = "on";
 					}
-					
-					if ($this->RelatedForm) {
-						// Try for actions beginning with edit first
-						$action_route = SQL::fetchSingle("SELECT route FROM bigtree_module_actions WHERE interface = ? 
+
+					// Get the edit link
+					if (!empty($this->Actions["edit"])) {
+						// We may be in AJAX, so we need to define MODULE_ROOT if it's not available
+						if (!defined("MODULE_ROOT")) {
+							$route = SQL::fetchSingle("SELECT route FROM bigtree_modules WHERE id = ?", $this->Module);
+							$module_root = ADMIN_ROOT.$route."/";
+						} else {
+							$module_root = MODULE_ROOT;
+						}
+
+						if ($this->RelatedForm) {
+							// Try for actions beginning with edit first
+							$action_route = SQL::fetchSingle("SELECT route FROM bigtree_module_actions WHERE interface = ? 
 														  ORDER BY route DESC LIMIT 1", $this->RelatedForm);
-		
-		
-						$this->EditURL = $module_root.$action_route."/";
-					} else {
-						$this->EditURL = $module_root."edit/";
+
+
+							$this->EditURL = $module_root.$action_route."/";
+						} else {
+							$this->EditURL = $module_root."edit/";
+						}
 					}
 				}
 			}
@@ -130,10 +132,10 @@
 				Private method used by cacheAllData and cacheForAll
 		*/
 
-		private function cache($item,$parsers,$poplists,$original_item,$group_based_permissions) {
+		private function cache($item, $parsers, $poplists, $original_item, $group_based_permissions) {
 			// If we have a filter function, ask it first if we should cache it
 			if (!empty($this->Settings["filter"])) {
-				if (!call_user_func($this->Settings["filter"],$item)) {
+				if (!call_user_func($this->Settings["filter"], $item)) {
 					return false;
 				}
 			}
@@ -169,7 +171,7 @@
 
 			// Figure out which column we're going to use to sort the view.
 			if ($this->Settings["sort"]) {
-				$sort_field = SQL::nextColumnDefinition(ltrim($this->Settings["sort"],"`"));
+				$sort_field = SQL::nextColumnDefinition(ltrim($this->Settings["sort"], "`"));
 			} else {
 				$sort_field = false;
 			}
@@ -180,7 +182,7 @@
 
 				// Check for a parser
 				if (isset($this->Settings["group_parser"]) && $this->Settings["group_parser"]) {
-					$value = Module::runParser($item,$value,$this->Settings["group_parser"]);
+					$value = Module::runParser($item, $value, $this->Settings["group_parser"]);
 				}
 
 				// Add the group field
@@ -206,7 +208,7 @@
 
 			// Run parsers
 			foreach ($parsers as $key => $parser) {
-				$item[$key] = Module::runParser($item,$item[$key],$parser);
+				$item[$key] = Module::runParser($item, $item[$key], $parser);
 			}
 
 			// Run database populated list hooks
@@ -233,7 +235,7 @@
 				$insert_values["sort_field"] = $item[$sort_field];
 			}
 
-			SQL::insert("bigtree_module_view_cache",$insert_values);
+			SQL::insert("bigtree_module_view_cache", $insert_values);
 
 			return true;
 		}
@@ -251,7 +253,7 @@
 
 			// Find out what module we're using so we can get the gbp_field
 			$gbp = SQL::fetchSingle("SELECT gbp FROM bigtree_modules WHERE id = ?", $this->Module);
-			$group_based_permissions = json_decode($gbp,true);
+			$group_based_permissions = json_decode($gbp, true);
 			
 			// Setup information on our parsers and populated lists.
 			$form = $this->RelatedModuleForm;
@@ -295,22 +297,22 @@
 
 				// Apply pending changes to the published entry before caching
 				if ($item["bigtree_changes"]) {
-					$changes = json_decode($item["bigtree_changes"],true);
+					$changes = json_decode($item["bigtree_changes"], true);
 					foreach ($changes as $key => $change) {
 						$item[$key] = $change;
 					}
-				}	
+				}
 
-				$this->cache($item,$parsers,$poplists,$original_item,$group_based_permissions);
+				$this->cache($item, $parsers, $poplists, $original_item, $group_based_permissions);
 			}
 
 			foreach ($pending as $pending_change) {
-				$item = json_decode($pending_change["changes"],true);
+				$item = json_decode($pending_change["changes"], true);
 				$item["bigtree_pending"] = true;
 				$item["bigtree_pending_owner"] = $pending_change["user"];
 				$item["id"] = "p".$pending_change["id"];
 				
-				$this->cache($item,$parsers,$poplists,$item,$group_based_permissions);
+				$this->cache($item, $parsers, $poplists, $item, $group_based_permissions);
 			}
 			
 			return true;
@@ -338,7 +340,7 @@
 
 				// Apply changes overtop existing values
 				if ($item["bigtree_changes"]) {
-					$changes = json_decode($item["bigtree_changes"],true);
+					$changes = json_decode($item["bigtree_changes"], true);
 					foreach ($changes as $key => $change) {
 						$item[$key] = $change;
 					}
@@ -346,7 +348,7 @@
 			} else {
 				$pending_item = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $id);
 
-				$item = json_decode($pending_item["changes"],true);
+				$item = json_decode($pending_item["changes"], true);
 				$item["bigtree_pending"] = true;
 				$item["bigtree_pending_owner"] = $pending_item["user"];
 				$item["id"] = "p".$pending_item["id"];
@@ -360,7 +362,7 @@
 				$view = new ModuleView($interface);
 
 				// Delete any existing cache data on this row
-				SQL::delete("bigtree_module_view_cache",array("view" => $view->ID, "id" => $item["id"]));
+				SQL::delete("bigtree_module_view_cache", array("view" => $view->ID, "id" => $item["id"]));
 
 				// In case this view has never been cached, run the whole view, otherwise just this one.
 				if (!$view->cacheAllData()) {
@@ -384,7 +386,7 @@
 						}
 					}
 
-					$view->cache($item,$parsers,$poplists,$original_item,$group_based_permissions);
+					$view->cache($item, $parsers, $poplists, $original_item, $group_based_permissions);
 				}
 			}
 		}
@@ -460,8 +462,8 @@
 				A ModuleView object.
 		*/
 
-		static function create($module,$title,$description,$table,$type,$settings,$fields,$actions,$related_form,$preview_url = "") {
-			$interface = ModuleInterface::create("view",$module,$title,$table,array(
+		static function create($module, $title, $description, $table, $type, $settings, $fields, $actions, $related_form, $preview_url = "") {
+			$interface = ModuleInterface::create("view", $module, $title, $table, array(
 				"description" => Text::htmlEncode($description),
 				"type" => $type,
 				"fields" => $fields,
@@ -492,7 +494,7 @@
 				If the item isn't already featured, it would simply return "icon_featured" for the "feature" action.
 		*/
 
-		static function generateActionClass($action,$item) {
+		static function generateActionClass($action, $item) {
 			$class = "";
 
 			if (isset($item["bigtree_pending"]) && $action != "edit" && $action != "delete") {
@@ -548,7 +550,7 @@
 				An array of rows from bigtree_module_view_cache.
 		*/
 		
-		function getData($sort = "id DESC",$type = "both",$group = false) {
+		function getData($sort = "id DESC", $type = "both", $group = false) {
 			// Check to see if we've cached this table before.
 			$this->cacheAllData();
 			
@@ -638,7 +640,7 @@
 				// Append the query to our parameter array
 				array_unshift($group_values, "SELECT id,`".$this->Settings["title_field"]."` AS `title` 
 											  FROM `".$this->Settings["other_table"]."` 
-											  WHERE ".implode(" OR ",$other_table_where)." 
+											  WHERE ".implode(" OR ", $other_table_where)." 
 											  ORDER BY `$sort_field` $sort_direction");
 				$group_search = call_user_func_array("BigTree\\SQL::fetchAll", $group_values);
 				
@@ -687,7 +689,7 @@
 						}
 					}
 
-					return " AND (".implode(" OR ",$group_where).")";
+					return " AND (".implode(" OR ", $group_where).")";
 				}
 			}
 
@@ -733,7 +735,7 @@
 
 					// If we have a parser, run it.
 					if ($field["parser"]) {
-						$item[$key] = Module::runParser($item,$value,$field["parser"]);
+						$item[$key] = Module::runParser($item, $value, $field["parser"]);
 					} else {
 						$form_field = $form["fields"][$key];
 
@@ -784,7 +786,7 @@
 				foreach ($this->Fields as $key => $field) {
 					$numeric = false;
 
-					if (in_array($table["columns"][$key]["type"],$numeric_column_types)) {
+					if (in_array($table["columns"][$key]["type"], $numeric_column_types)) {
 						$numeric = true;
 					}
 
@@ -805,19 +807,24 @@
 		*/
 
 		function save() {
-			$this->Interface->Settings = array(
-				"description" => Text::htmlEncode($this->Description),
-				"type" => $this->Type,
-				"fields" => array_filter((array) $this->Fields),
-				"options" => (array) $this->Settings,
-				"actions" => array_filter((array) $this->Actions),
-				"preview_url" => $this->PreviewURL ? Link::encode($this->PreviewURL) : "",
-				"related_form" => $this->RelatedForm ? intval($this->RelatedForm) : null
-			);
-			$this->Interface->Table = $this->Table;
-			$this->Interface->Title = $this->Title;
+			if (empty($this->Interface->ID)) {
+				$new = static::create($this->Module, $this->Title, $this->Description, $this->Table, $this->Type, $this->Settings, $this->Fields, $this->Actions, $this->RelatedForm, $this->PreviewURL);
+				$this->inherit($new);
+			} else {
+				$this->Interface->Settings = array(
+					"description" => Text::htmlEncode($this->Description),
+					"type" => $this->Type,
+					"fields" => array_filter((array) $this->Fields),
+					"options" => (array) $this->Settings,
+					"actions" => array_filter((array) $this->Actions),
+					"preview_url" => $this->PreviewURL ? Link::encode($this->PreviewURL) : "",
+					"related_form" => $this->RelatedForm ? intval($this->RelatedForm) : null
+				);
+				$this->Interface->Table = $this->Table;
+				$this->Interface->Title = $this->Title;
 
-			$this->Interface->save();
+				$this->Interface->save();
+			}
 		}
 
 		/*
@@ -838,7 +845,7 @@
 			// Check to see if we've cached this table before.
 			$this->cacheAllData();
 
-			$search_parts = explode(" ",$query);
+			$search_parts = explode(" ", $query);
 			$view_column_count = count($this->Fields);
 			$per_page = !empty($this->Settings["per_page"]) ? $this->Settings["per_page"] : 15;
 			$query = "SELECT * FROM bigtree_module_view_cache WHERE view = ?".$this->FilterQuery;
@@ -857,22 +864,22 @@
 				}
 
 				if (count($query_parts)) {
-					$query .= " AND (".implode(" OR ",$query_parts).")";
+					$query .= " AND (".implode(" OR ", $query_parts).")";
 				}
 			}
 
 			// Find how many pages are returned from this search
-			$total = SQL::fetchSingle(str_replace("SELECT *","SELECT COUNT(*)",$query), $this->ID);
+			$total = SQL::fetchSingle(str_replace("SELECT *", "SELECT COUNT(*)", $query), $this->ID);
 			$pages = ceil($total / $per_page);
 			$pages = $pages ? $pages : 1;
 
 			// Get the correct column name for sorting
-			if (strpos($sort,"`") !== false) { // New formatting
-				$sort_field = SQL::nextColumnDefinition(substr($sort,1));
-				$sort_pieces = explode(" ",$sort);
+			if (strpos($sort, "`") !== false) { // New formatting
+				$sort_field = SQL::nextColumnDefinition(substr($sort, 1));
+				$sort_pieces = explode(" ", $sort);
 				$sort_direction = end($sort_pieces);
 			} else { // Old formatting
-				list($sort_field,$sort_direction) = explode(" ",$sort);
+				list($sort_field, $sort_direction) = explode(" ", $sort);
 			}
 
 			// Figure out whether we need to cast the column we're sorting by as numeric so that 2 comes before 11
@@ -893,7 +900,7 @@
 				}
 
 				// If we didn't find a column, let's assume it's the default sort field.
-				if (substr($sort_field,0,6) != "column") {
+				if (substr($sort_field, 0, 6) != "column") {
 					$sort_field = "sort_field";
 				}
 
@@ -933,7 +940,7 @@
 			$view_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_module_interfaces 
 											 WHERE `type` = 'view' AND `table` = ?", $table);
 			foreach ($view_ids as $view_id) {
-				SQL::delete("bigtree_module_view_cache",array("view" => $view_id, "id" => $id));
+				SQL::delete("bigtree_module_view_cache", array("view" => $view_id, "id" => $id));
 			}
 		}
 
@@ -953,7 +960,7 @@
 				preview_url - Optional preview URL.
 		*/
 
-		function update($title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url = "") {
+		function update($title, $description, $table, $type, $options, $fields, $actions, $related_form, $preview_url = "") {
 			$this->Actions = $actions;
 			$this->Description = $description;
 			$this->Fields = $fields;

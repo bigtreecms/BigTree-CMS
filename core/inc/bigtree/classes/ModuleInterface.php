@@ -52,23 +52,25 @@
 				interface - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
-		function __construct($interface) {
-			// Passing in just an ID
-			if (!is_array($interface)) {
-				$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
-			}
+		function __construct($interface = null) {
+			if ($interface !== null) {
+				// Passing in just an ID
+				if (!is_array($interface)) {
+					$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
+				}
 
-			// Bad data set
-			if (!is_array($interface)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-			} else {
-				$this->ID = $interface["id"];
+				// Bad data set
+				if (!is_array($interface)) {
+					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+				} else {
+					$this->ID = $interface["id"];
 
-				$this->Module = $interface["module"];
-				$this->Settings = is_array($interface["settings"]) ? $interface["settings"] : (array) @json_decode($interface["settings"],true);
-				$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the parent class
-				$this->Title = $interface["title"];
-				$this->Type = $interface["type"];
+					$this->Module = $interface["module"];
+					$this->Settings = is_array($interface["settings"]) ? $interface["settings"] : (array) @json_decode($interface["settings"], true);
+					$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the parent class
+					$this->Title = $interface["title"];
+					$this->Type = $interface["type"];
+				}
 			}
 		}
 
@@ -86,7 +88,7 @@
 				An array of interfaces.
 		*/
 
-		static function allByModuleAndType($module = false,$type = false,$order = "`title` ASC",$return_arrays = false) {
+		static function allByModuleAndType($module = false, $type = false, $order = "`title` ASC", $return_arrays = false) {
 			$where = $parameters = array();
 
 			// Add module restriction
@@ -102,13 +104,13 @@
 			}
 
 			// Add the query
-			$where = count($where) ? " WHERE ".implode(" AND ",$where) : "";
+			$where = count($where) ? " WHERE ".implode(" AND ", $where) : "";
 
 			// Push query onto parameters
-			array_unshift($parameters,"SELECT * FROM bigtree_module_interfaces $where ORDER BY $order");
+			array_unshift($parameters, "SELECT * FROM bigtree_module_interfaces $where ORDER BY $order");
 
 			// Get the arrays
-			$interfaces = call_user_func_array(array("BigTree\\SQL","fetchAll"),$parameters);
+			$interfaces = call_user_func_array(array("BigTree\\SQL", "fetchAll"), $parameters);
 
 			// Turn into objects
 			if (!$return_arrays) {
@@ -135,8 +137,8 @@
 				A ModuleInterface object.
 		*/
 
-		static function create($type,$module,$title,$table,$settings = array()) {
-			$id = SQL::insert("bigtree_module_interfaces",array(
+		static function create($type, $module, $title, $table, $settings = array()) {
+			$id = SQL::insert("bigtree_module_interfaces", array(
 				"type" => $type,
 				"module" => intval($module),
 				"title" => Text::htmlEncode($title),
@@ -144,7 +146,7 @@
 				"settings" => $settings
 			));
 
-			AuditTrail::track("bigtree_module_interfaces",$id,"created");
+			AuditTrail::track("bigtree_module_interfaces", $id, "created");
 
 			return new ModuleInterface($id);
 		}
@@ -155,10 +157,10 @@
 		*/
 
 		function delete() {
-			SQL::delete("bigtree_module_actions",array("interface" => $this->ID));
-			SQL::delete("bigtree_module_interfaces",$this->ID);
+			SQL::delete("bigtree_module_actions", array("interface" => $this->ID));
+			SQL::delete("bigtree_module_interfaces", $this->ID);
 
-			AuditTrail::track("bigtree_module_interfaces",$this->ID,"deleted");
+			AuditTrail::track("bigtree_module_interfaces", $this->ID, "deleted");
 		}
 
 		/*
@@ -167,16 +169,21 @@
 		*/
 
 		function save() {
-			// Some sub-classes use $this->Settings so we check for InterfaceSettings first when grabbing data.
-			SQL::update("bigtree_module_interfaces",$this->ID,array(
-				"type" => $this->Type,
-				"module" => $this->Module,
-				"title" => Text::htmlEncode($this->Title),
-				"table" => $this->Table,
-				"settings" => (array) (isset($this->InterfaceSettings) ? $this->InterfaceSettings : $this->Settings)
-			));
+			if (empty($this->ID)) {
+				$new = static::create($this->Type, $this->Module, $this->Title, $this->Table, $this->Settings);
+				$this->inherit($new);
+			} else {
+				// Some sub-classes use $this->Settings so we check for InterfaceSettings first when grabbing data.
+				SQL::update("bigtree_module_interfaces", $this->ID, array(
+					"type" => $this->Type,
+					"module" => $this->Module,
+					"title" => Text::htmlEncode($this->Title),
+					"table" => $this->Table,
+					"settings" => (array) (isset($this->InterfaceSettings) ? $this->InterfaceSettings : $this->Settings)
+				));
 
-			AuditTrail::track("bigtree_module_interfaces",$this->ID,"updated");
+				AuditTrail::track("bigtree_module_interfaces", $this->ID, "updated");
+			}
 		}
 
 	}

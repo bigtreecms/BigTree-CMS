@@ -230,7 +230,13 @@
 				// Clear cache
 				unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 			} else {
-				static::create($this->ID, $this->Name, $this->UseCases, $this->SelfDraw);
+				$new = static::create($this->ID, $this->Name, $this->UseCases, $this->SelfDraw);
+
+				if ($new !== false) {
+					$this->inherit($new);
+				} else {
+					trigger_error("Failed to create new field type due to invalid ID.", E_USER_WARNING);
+				}
 			}
 		}
 

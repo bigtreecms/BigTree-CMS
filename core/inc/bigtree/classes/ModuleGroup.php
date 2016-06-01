@@ -29,21 +29,23 @@
 				group - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
-		function __construct($group) {
-			// Passing in just an ID
-			if (!is_array($group)) {
-				$group = SQL::fetch("SELECT * FROM bigtree_module_groups WHERE id = ?", $group);
-			}
+		function __construct($group = null) {
+			if ($group !== null) {
+				// Passing in just an ID
+				if (!is_array($group)) {
+					$group = SQL::fetch("SELECT * FROM bigtree_module_groups WHERE id = ?", $group);
+				}
 
-			// Bad data set
-			if (!is_array($group)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-			} else {
-				$this->ID = $group["id"];
+				// Bad data set
+				if (!is_array($group)) {
+					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+				} else {
+					$this->ID = $group["id"];
 
-				$this->Name = $group["name"];
-				$this->Position = $group["position"];
-				$this->Route = $group["route"];
+					$this->Name = $group["name"];
+					$this->Position = $group["position"];
+					$this->Route = $group["route"];
+				}
 			}
 		}
 
@@ -75,12 +77,17 @@
 		*/
 
 		function save() {
-			SQL::update("bigtree_module_groups",$this->ID,array(
-				"name" => Text::htmlEncode($this->Name),
-				"route" => SQL::unique("bigtree_module_groups","route",Link::urlify($this->Route),$this->ID)
-			));
+			if (empty($this->ID)) {
+				$new = static::create($this->Name);
+				$this->inherit($new);
+			} else {
+				SQL::update("bigtree_module_groups", $this->ID, array(
+					"name" => Text::htmlEncode($this->Name),
+					"route" => SQL::unique("bigtree_module_groups", "route", Link::urlify($this->Route), $this->ID)
+				));
 
-			AuditTrail::track("bigtree_module_groups",$this->ID,"updated");
+				AuditTrail::track("bigtree_module_groups", $this->ID, "updated");
+			}
 		}
 
 		/*

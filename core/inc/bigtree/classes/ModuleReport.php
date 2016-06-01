@@ -35,27 +35,29 @@
 				interface - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
-		function __construct($interface) {
-			// Passing in just an ID
-			if (!is_array($interface)) {
-				$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
-			}
+		function __construct($interface = null) {
+			if ($interface !== null) {
+				// Passing in just an ID
+				if (!is_array($interface)) {
+					$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
+				}
 
-			// Bad data set
-			if (!is_array($interface)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-			} else {
-				$this->ID = $interface["id"];
-				$this->Interface = new ModuleInterface($interface);
+				// Bad data set
+				if (!is_array($interface)) {
+					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+				} else {
+					$this->ID = $interface["id"];
+					$this->Interface = new ModuleInterface($interface);
 
-				$this->Fields = $this->Interface->Settings["fields"];
-				$this->Filters = $this->Interface->Settings["filters"];
-				$this->Module = $interface["module"];
-				$this->Parser = $this->Interface->Settings["parser"];
-				$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the BaseObject class
-				$this->Title = $interface["title"];
-				$this->Type = $this->Interface->Settings["type"];
-				$this->View = $this->Interface->Settings["view"];
+					$this->Fields = $this->Interface->Settings["fields"];
+					$this->Filters = $this->Interface->Settings["filters"];
+					$this->Module = $interface["module"];
+					$this->Parser = $this->Interface->Settings["parser"];
+					$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the BaseObject class
+					$this->Title = $interface["title"];
+					$this->Type = $this->Interface->Settings["type"];
+					$this->View = $this->Interface->Settings["view"];
+				}
 			}
 		}
 
@@ -77,8 +79,8 @@
 				The id of the report.
 		*/
 
-		static function create($module,$title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
-			$interface = ModuleInterface::create("report",$module,$title,$table,array(
+		static function create($module, $title, $table, $type, $filters, $fields = array(), $parser = "", $view = "") {
+			$interface = ModuleInterface::create("report", $module, $title, $table, array(
 				"type" => $type,
 				"filters" => $filters,
 				"fields" => $fields,
@@ -86,7 +88,7 @@
 				"view" => $view ? $view : null
 			));
 
-			return $interface->ID;
+			return new ModuleReport($interface->Array);
 		}
 
 		/*
@@ -140,7 +142,7 @@
 			$form = $this->RelatedModuleForm;
 
 			// Prevent SQL injection
-			$sort_field = "`".str_replace("`","",$sort_field)."`";
+			$sort_field = "`".str_replace("`", "", $sort_field)."`";
 			$sort_direction = ($sort_direction == "ASC") ? "ASC" : "DESC";
 
 			// Figure out if we have db populated lists and parsers
@@ -194,7 +196,7 @@
 			}
 
 			if (count($where)) {
-				$query .= " WHERE ".implode(" AND ",$where);
+				$query .= " WHERE ".implode(" AND ", $where);
 			}
 
 			$query = SQL::query($query." ORDER BY $sort_field $sort_direction");
@@ -210,7 +212,7 @@
 					}
 
 					if ($parsers[$key]) {
-						$item[$key] = Module::runParser($item,$value,$parsers[$key]);
+						$item[$key] = Module::runParser($item, $value, $parsers[$key]);
 					}
 				}
 
@@ -226,9 +228,9 @@
 				}
 
 				if ($sort_direction == "ASC") {
-					array_multisort($sort_values,SORT_ASC,$items);
+					array_multisort($sort_values, SORT_ASC, $items);
 				} else {
-					array_multisort($sort_values,SORT_DESC,$items);
+					array_multisort($sort_values, SORT_DESC, $items);
 				}
 			}
 
@@ -246,17 +248,22 @@
 		*/
 
 		function save() {
-			$this->Interface->Settings = array(
-				"type" => $this->Type,
-				"filters" => $this->Filters,
-				"fields" => $this->Fields,
-				"parser" => $this->Parser,
-				"view" => $this->View ?: null
-			);
-			$this->Interface->Table = $this->Table;
-			$this->Interface->Title = $this->Title;
+			if (empty($this->Interface->ID)) {
+				$new = static::create($this->Module, $this->Title, $this->Table, $this->Type, $this->Filters, $this->Fields, $this->Parser, $this->View);
+				$this->inherit($new);
+			} else {
+				$this->Interface->Settings = array(
+					"type" => $this->Type,
+					"filters" => $this->Filters,
+					"fields" => $this->Fields,
+					"parser" => $this->Parser,
+					"view" => $this->View ?: null
+				);
+				$this->Interface->Table = $this->Table;
+				$this->Interface->Title = $this->Title;
 
-			$this->Interface->save();
+				$this->Interface->save();
+			}
 		}
 
 		/*
@@ -273,7 +280,7 @@
 				view - A module view ID to use (if type = view).
 		*/
 
-		function update($title,$table,$type,$filters,$fields = "",$parser = "",$view = "") {
+		function update($title, $table, $type, $filters, $fields = "", $parser = "", $view = "") {
 			$this->Fields = $fields;
 			$this->Filters = $filters;
 			$this->Parser = $parser;
