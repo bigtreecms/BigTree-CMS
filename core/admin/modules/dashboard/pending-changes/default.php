@@ -1,24 +1,29 @@
 <?php
 	namespace BigTree;
+
+	/**
+	 * @global \BigTreeAdmin $admin
+	 */
 	
 	// Get pending changes awaiting this user's approval.
-	$changes = $admin->getPublishableChanges($admin->ID);
-	
+	$user = new User($admin->ID);
+	$changes = PendingChange::allPublishableByUser($user);
+
 	// Go through and get all the modules and pages, separate them out.
 	$modules = array();
 	$pages = array();
 	
 	foreach ($changes as $change) {
-		$mid = $change["mod"]["id"];
-		if ($change["table"] == "bigtree_pages") {
+		if ($change->Table == "bigtree_pages") {
 			$pages[] = $change;
 		} else {
-			if (isset($modules[$mid])) {
-				$modules[$mid]["changes"][] = $change;
+			$module_id = $change->Module->ID;
+
+			if (isset($modules[$module_id])) {
+				$modules[$module_id]->Changes[] = $change;
 			} else {
-				$modules[$mid] = $change["mod"];
-				$modules[$mid]["table"] = $change["table"];
-				$modules[$mid]["changes"] = array($change);		
+				$modules[$module_id] = $change->Module;
+				$modules[$module_id]->Changes = array($change);
 			}
 		}
 	}
@@ -32,6 +37,10 @@
 </div>
 <?php
 	}
+
+	// We don't want to repeatedly call for translations in the loop
+	$change_translated = Text::translate("CHANGE");
+	$new_translated = Text::translate("NEW");
 
 	if (count($pages)) {
 ?>
@@ -56,28 +65,29 @@
 	<ul>
 		<?php
 			foreach ($pages as $change) {
-				if (is_numeric($change["item_id"])) {
-					$page = $cms->getPendingPage($change["item_id"]);
-					$preview_link = WWW_ROOT."_preview/".$page["path"]."/";
-					$edit_link = ADMIN_ROOT."pages/edit/".$change["item_id"]."/";
-					if (!$change["item_id"]) {
-						$page["nav_title"] = "Home";
+				if (is_numeric($change->ItemID)) {
+					$page = Page::getPageDraft($change->ItemID);
+					$preview_link = WWW_ROOT."_preview/".$page->Path."/";
+					$edit_link = ADMIN_ROOT."pages/edit/".$change->ItemID."/";
+
+					if (!$change->ItemID) {
+						$page->NavigationTitle = "Home";
 					}
 				} else {
-					$page = $cms->getPendingPage("p".$change["id"]);
-					$preview_link = WWW_ROOT."_preview-pending/p".$change["id"]."/";
-					$edit_link = ADMIN_ROOT."pages/edit/p".$change["id"]."/";
+					$page = Page::getPageDraft("p".$change->ID);
+					$preview_link = WWW_ROOT."_preview-pending/p".$change->ID."/";
+					$edit_link = ADMIN_ROOT."pages/edit/p".$change->ID."/";
 				}
 		?>
 		<li>
-			<section class="changes_author"><?=$change["user"]["name"]?></section>
-			<section class="changes_page"><?=$page["nav_title"]?></section>
-			<section class="changes_type"><?php if (is_numeric($change["item_id"])) { echo Text::translate("CHANGE"); } else {  ?><span class="new"><?=Text::translate("NEW")?></span><?php } ?></section>
-			<section class="changes_time"><?=Date::relativeTime($change["date"])?></section>
+			<section class="changes_author"><?=$change->User->Name?></section>
+			<section class="changes_page"><?=$page->NavigationTitle?></section>
+			<section class="changes_type"><?php if (is_numeric($change->ItemID)) { echo $change_translated; } else {  ?><span class="new"><?=$new_translated?></span><?php } ?></section>
+			<section class="changes_time"><?=Date::relativeTime($change->Date)?></section>
 			<section class="changes_action"><a href="<?=$preview_link?>" target="_preview" class="icon_preview"></a></section>
 			<section class="changes_action"><a href="<?=$edit_link?>" class="icon_edit"></a></section>
-			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="Pages" class="icon_approve icon_approve_on"></a></section>
-			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="Pages" class="icon_deny"></a></section>
+			<section class="changes_action"><a href="#<?=$change->ID?>" data-module="Pages" class="icon_approve icon_approve_on"></a></section>
+			<section class="changes_action"><a href="#<?=$change->ID?>" data-module="Pages" class="icon_deny"></a></section>
 		</li>
 		<?php
 			}
@@ -87,47 +97,45 @@
 <?php
 	}
 	
-	foreach ($modules as $mod) {
-		$view = \BigTreeAutoModule::getViewForTable($mod["table"]);
-		if ($view) {
-			$view_data = \BigTreeAutoModule::getViewData($view);
-		} else {
-			$view_data = false;
-		}
+	foreach ($modules as $module_id => $module) {
+		$view = ModuleView::getByTable($module->Table);
+		$view_data = $view ? $view->getData() : false;
 ?>
-<a name="<?=$mod["id"]?>"></a>
+<a name="<?=$module_id?>"></a>
 <div class="table">
 	<summary>
 		<h2 class="full">
 			<span class="modules"></span>
-			<?=$mod["name"]?>
+			<?=$module->Name?>
 		</h2>
 	</summary>
 	<?php if ($view["type"] == "images" || $view["type"] == "images-grouped") { ?>
 	<section>
 		<ul class="image_list">
 			<?php
-				foreach ($mod["changes"] as $change) {
+				foreach ($module->Changes as $change) {
 					if ($view_data) {
-						if ($change["item_id"]) {
-							$item = $view_data[$change["item_id"]];
+						if ($change->ItemID) {
+							$item = $view_data[$change->ItemID];
 						} else {
-							$item = $view_data["p".$change["id"]];
+							$item = $view_data["p".$change->ID];
 						}
 					} else {
-						$item = array("id" => $change["item_id"] ? $change["item_id"] : "p".$change["id"]);
+						$item = array("id" => $change->ItemID ? $change->ItemID : "p".$change->ID);
 					}
+
 					$image = str_replace(array("{staticroot}","{wwwroot}"),array(STATIC_ROOT,WWW_ROOT),$item["column1"]);
-					if ($view["options"]["prefix"]) {
-						$image = FileSystem::getPrefixedFile($image,$view["options"]["prefix"]);
+
+					if ($view->Settings["prefix"]) {
+						$image = FileSystem::getPrefixedFile($image, $view->Settings["prefix"]);
 					}
 			?>
 			<li class="non_draggable">
-				<p><?=$change["user"]["name"]?></p>
+				<p><?=$change->User->Name?></p>
 				<?php
-					if ($view["edit_url"]) {
+					if ($view->EditURL) {
 				?>
-				<a class="image" href="<?=$view["edit_url"].$item["id"]?>/"><img src="<?=$image?>" alt="" /></a>
+				<a class="image" href="<?=$view->EditURL.$item["id"]?>/"><img src="<?=$image?>" alt="" /></a>
 				<?php
 					} else {
 				?>
@@ -135,14 +143,14 @@
 				<?php
 					}
 
-					if ($view["preview_url"]) {
+					if ($view->PreviewURL) {
 				?>
-				<a href="<?=rtrim($view["preview_url"],"/")."/".$item["id"]."/"?>" target="_preview" class="icon_preview"></a>
+				<a href="<?=rtrim($view->PreviewURL,"/")."/".$item["id"]."/"?>" target="_preview" class="icon_preview"></a>
 				<?php
 					}
 				?>
-				<a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_approve icon_approve_on"></a>
-				<a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_deny"></a>
+				<a href="#<?=$change->ID?>" data-module="<?=$module->Name?>" class="icon_approve icon_approve_on"></a>
+				<a href="#<?=$change->ID?>" data-module="<?=$module->Name?>" class="icon_deny"></a>
 			</li>
 			<?php
 				}
@@ -153,8 +161,8 @@
 	<header>
 		<span class="changes_author"><?=Text::translate("Author")?></span>
 		<?php
-			if (is_array($view["fields"])) {
-				foreach ($view["fields"] as $field) {
+			if (is_array($view->Fields)) {
+				foreach ($view->Fields as $field) {
 		?>
 		<span class="view_column" style="width: <?=$field["width"]?>px;"><?=$field["title"]?></span>
 		<?php
@@ -173,19 +181,19 @@
 	</header>
 	<ul>
 		<?php
-			foreach ($mod["changes"] as $change) {
-				if ($change["item_id"]) {
-					$item = $view_data[$change["item_id"]];
+			foreach ($module->Changes as $change) {
+				if ($change->ItemID) {
+					$item = $view_data[$change->ItemID];
 				} else {
-					$item = $view_data["p".$change["id"]];
+					$item = $view_data["p".$change->ID];
 				}
 		?>
 		<li>
-			<section class="changes_author"><?=$change["user"]["name"]?></section>
+			<section class="changes_author"><?=$change->User->Name?></section>
 			<?php
-				if (is_array($view["fields"])) {
+				if (is_array($view->Fields)) {
 					$x = 0;
-					foreach ($view["fields"] as $field => $data) {
+					foreach ($view->Fields as $field => $data) {
 						$x++;
 			?>
 			<section class="view_column" style="width: <?=$data["width"]?>px;">
@@ -195,15 +203,15 @@
 					}
 				}
 					
-				if ($view["preview_url"]) {
+				if ($view->PreviewURL) {
 			?>
-			<section class="changes_action"><a href="<?=rtrim($view["preview_url"],"/")."/".$item["id"]."/"?>" target="_preview" class="icon_preview"></a></section>
+			<section class="changes_action"><a href="<?=rtrim($view->PreviewURL,"/")."/".$item["id"]."/"?>" target="_preview" class="icon_preview"></a></section>
 			<?php
 				}
 
-				if ($view["edit_url"]) {
+				if ($view->EditURL) {
 			?>
-			<section class="changes_action"><a href="<?=$view["edit_url"].$item["id"]?>/" class="icon_edit"></a></section>
+			<section class="changes_action"><a href="<?=$view->EditURL.$item["id"]?>/" class="icon_edit"></a></section>
 			<?php
 				} else {
 			?>
@@ -211,8 +219,8 @@
 			<?php
 				}
 			?>
-			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_approve icon_approve_on"></a></section>
-			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_deny"></a></section>
+			<section class="changes_action"><a href="#<?=$change->ID?>" data-module="<?=$module->Name?>" class="icon_approve icon_approve_on"></a></section>
+			<section class="changes_action"><a href="#<?=$change->ID?>" data-module="<?=$module->Name?>" class="icon_deny"></a></section>
 		</li>
 		<?php
 			}

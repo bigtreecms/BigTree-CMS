@@ -2,36 +2,37 @@
 	namespace BigTree;
 	
 	// Get the form so we can walk through its fields
-	$form = \BigTreeAutoModule::getForm($_GET["form"]);
-
-	// Create a generic module class to get the decoded item data
-	$m = new \BigTreeModule;
-	$m->Table = $form["table"];
-	$item = $m->get($_GET["id"]);
+	$form = new ModuleForm($_GET["form"]);
+	$item = Link::decode(SQL::fetch("SELECT * FROM `".$form->Table."` WHERE id = ?", $_GET["id"]));
 	
 	// Loop through form resources and see if we have related page data, only check html and text fields
 	if (is_array($form["fields"])) {
-		$check_data("",$external,$form["fields"],$item);
+		$check_data("", $external, $form["fields"], $item);
 	}
 
 	// Only retrieve these if we have errors as we only need them for URL generation
 	if (array_filter($integrity_errors)) {
 		$action = $admin->getModuleActionForInterface($form);
 		$module = $admin->getModule($action["module"]);
-	}
 	
-	foreach ($integrity_errors as $field => $error_types) {
-		foreach ($error_types as $type => $errors) {
-			foreach ($errors as $error) {
+		foreach ($integrity_errors as $field => $error_types) {
+			foreach ($error_types as $type => $errors) {
+				foreach ($errors as $url) {
+					if ($type == "img") {
+						$message = "Broken Image: :url: in field &ldquo;:field:&rdquo;";
+					} else {
+						$message = "Broken Link: :url: in field &ldquo;:field:&rdquo;";
+					}
 ?>
 <li>
 	<section class="integrity_errors">
-		<a href="<?=ADMIN_ROOT.$module["route"]."/".$action["route"]."/".htmlspecialchars($_GET["id"])?>/" target="_blank"><?=Text::translate("Edit")?></a>
+		<a href="<?=ADMIN_ROOT.$module->Route."/".$action->Route."/".htmlspecialchars($_GET["id"])?>/" target="_blank"><?=Text::translate("Edit")?></a>
 		<span class="icon_small icon_small_warning"></span>
-		<p><?=Text::translate("Broken")?> <?=Text::translate(($type == "img") ? "Image" : "Link")?>: <?=Text::htmlEncode($error)?> <?=Text::translate("in field")?> &ldquo;<?=$field?>&rdquo;</p>
+		<p><?=Text::translate($message, false, array(":url:" => $url, ":field:" => $form->Fields[$field]["title"]))?></p>
 	</section>
 </li>
 <?php
+				}
 			}
 		}
 	}

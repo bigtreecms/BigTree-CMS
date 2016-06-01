@@ -20,13 +20,13 @@
 						if (strpos($data,"#") !== false) {
 							$data = substr($data,0,strpos($data,"#") - 1);
 						}
-						if (!BigTreeAdmin::urlExists($data)) {
+						if (!Link::urlExists($data)) {
 							$integrity_errors[$field] = array("a" => array($data));
 						}
 					}
 					// Internal link
 				} elseif (substr($data,0,4) == "http") {
-					if (!BigTreeAdmin::urlExists($data)) {
+					if (!Link::urlExists($data)) {
 						$integrity_errors[$field] = array("a" => array($data));
 					}
 				}

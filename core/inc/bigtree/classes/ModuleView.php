@@ -536,6 +536,27 @@
 			
 			return $class;
 		}
+
+		/*
+		    Function: getByTable
+				Returns a ModuleView for a given table (if one exists).
+
+			Parameters:
+				table - A MySQL table name
+
+			Returns:
+				A ModuleView object or false.
+		*/
+
+		static function getByTable($table) {
+			$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE type = 'view' AND `table` = ?", $table);
+
+			if ($interface) {
+				return new ModuleView($interface);
+			}
+
+			return false;
+		}
 		
 		/*
 			Function: getData
