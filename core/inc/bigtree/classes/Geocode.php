@@ -109,12 +109,12 @@
 		*/
 
 		private function geocodeBing($address) {
-			$address = str_replace("?","",str_replace(" ","%20",$address));
+			$address = str_replace("?", "", str_replace(" ", "%20", $address));
 			$response = cURL::request("http://dev.virtualearth.net/REST/v1/Locations/$address?key=".static::$Settings["bing_key"]);
 
 			try {
 				if (is_string($response)) {
-					$response = json_decode($response,true);
+					$response = json_decode($response, true);
 				}
 
 				if ($response["statusDescription"] != "OK") {
@@ -129,7 +129,7 @@
 					return false;
 				}
 
-				list($latitude,$longitude) = $response["resourceSets"][0]["resources"][0]["point"]["coordinates"];
+				list($latitude, $longitude) = $response["resourceSets"][0]["resources"][0]["point"]["coordinates"];
 
 				return array("latitude" => $latitude, "longitude" => $longitude);
 			} catch (Exception $e) {

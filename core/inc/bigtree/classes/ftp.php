@@ -9,7 +9,7 @@
 
 	class FTP {
 
-		public $LocalEcho,$Verbose,$OS_local,$OS_remote,$_lastaction,$_errors,$_type,$_umask,$_timeout,$_passive,$_host,$_fullhost,$_port,$_datahost,$_dataport,$_ftp_control_sock,$_ftp_data_sock,$_ftp_temp_sock,$_ftp_buff_size,$_login,$_password,$_connected,$_ready,$_code,$_message,$_can_restore,$_port_available,$_curtype,$_features,$_error_array,$AuthorizedTransferMode,$OS_FullName,$_eol_code,$AutoAsciiExt;
+		public $LocalEcho, $Verbose, $OS_local, $OS_remote, $_lastaction, $_errors, $_type, $_umask, $_timeout, $_passive, $_host, $_fullhost, $_port, $_datahost, $_dataport, $_ftp_control_sock, $_ftp_data_sock, $_ftp_temp_sock, $_ftp_buff_size, $_login, $_password, $_connected, $_ready, $_code, $_message, $_can_restore, $_port_available, $_curtype, $_features, $_error_array, $AuthorizedTransferMode, $OS_FullName, $_eol_code, $AutoAsciiExt;
 
 		function __construct() {
 			$this->_lastaction = null;
@@ -17,7 +17,7 @@
 			$this->_eol_code = array("u" => "\n", "m" => "\r", "w" => "\r\n");
 			$this->AuthorizedTransferMode = array(-1, 0, 1);
 			$this->OS_FullName = array("u" => 'UNIX', "w" => 'WINDOWS', "m" => 'MACOS');
-			$this->AutoAsciiExt = array("ASP","BAT","C","CPP","CSS","CSV","JS","H","HTM","HTML","SHTML","INI","LOG","PHP3","PHTML","PL","PERL","SH","SQL","TXT");
+			$this->AutoAsciiExt = array("ASP", "BAT", "C", "CPP", "CSS", "CSV", "JS", "H", "HTM", "HTML", "SHTML", "INI", "LOG", "PHP3", "PHTML", "PL", "PERL", "SH", "SQL", "TXT");
 			$this->_connected = false;
 			$this->_ready = false;
 			$this->_can_restore = false;
@@ -28,7 +28,7 @@
 			$this->_type = -1;
 			$this->_timeout = 30;
 			$this->_login = "anonymous";
-			$this->_password= " anon@ftp.com";
+			$this->_password = " anon@ftp.com";
 			$this->_features = array();
 			$this->OS_local = "u";
 			$this->OS_remote = "u";
@@ -52,6 +52,7 @@
 			if (!$this->_exec("CDUP") || !$this->_checkCode()) {
 				return false;
 			}
+
 			return true;
 		}
 
@@ -69,6 +70,7 @@
 			if (!$this->_exec("CWD $path") || !$this->_checkCode()) {
 				return false;
 			}
+
 			return true;
 		}
 
@@ -84,26 +86,26 @@
 				true if successful
 		*/
 
-		function connect($host,$port = 21) {
+		function connect($host, $port = 21) {
 			// Setup server parameters
 			if (!is_long($port)) {
-		 		return false;
+				return false;
 			} else {
 				$ip = @gethostbyname($host);
-		 		$dns = @gethostbyaddr($host);
-		 		if (!$ip) {
-		 			$ip = $host;
-		 		}
-		 		if (!$dns) {
-		 			$dns = $host;
-		 		}
+				$dns = @gethostbyaddr($host);
+				if (!$ip) {
+					$ip = $host;
+				}
+				if (!$dns) {
+					$dns = $host;
+				}
 				if (ip2long($ip) === -1) {
 					return false;
 				}
-		 		$this->_host = $ip;
-		 		$this->_fullhost = $dns;
-		 		$this->_port = $port;
-		 		$this->_dataport = $port - 1;
+				$this->_host = $ip;
+				$this->_fullhost = $dns;
+				$this->_port = $port;
+				$this->_dataport = $port - 1;
 			}
 			// Already connected
 			if ($this->_ready) {
@@ -127,15 +129,16 @@
 				if (preg_match("/win|dos|novell/i", $syst[0])) {
 					$this->OS_remote = "w";
 				} elseif (preg_match("/os/i", $syst[0])) {
-					$this->OS_remote="m";
+					$this->OS_remote = "m";
 				} elseif (preg_match("/(li|u)nix/i", $syst[0])) {
-					$this->OS_remote="u";
+					$this->OS_remote = "u";
 				} else {
-					$this->OS_remote="m";
+					$this->OS_remote = "m";
 				}
 			}
 
 			$this->_ready = true;
+
 			return true;
 		}
 
@@ -154,6 +157,7 @@
 			if (!$this->_exec("MKD $path") || !$this->_checkCode()) {
 				return false;
 			}
+
 			return true;
 		}
 
@@ -172,6 +176,7 @@
 			if (!$this->_exec("RMD $path") || !$this->_checkCode()) {
 				return false;
 			}
+
 			return true;
 		}
 
@@ -190,6 +195,7 @@
 			if (!$this->_exec("DELE ".$path) || !$this->_checkCode()) {
 				return false;
 			}
+
 			return true;
 		}
 
@@ -205,7 +211,7 @@
 			if ($this->_ftp_control_sock) {
 				fclose($this->_ftp_control_sock);
 			}
-			$this->_connected=false;
+			$this->_connected = false;
 			$this->_ready = false;
 		}
 
@@ -221,7 +227,7 @@
 				true if successful.
 		*/
 
-		function downloadFile($remote,$local) {
+		function downloadFile($remote, $local) {
 			$fp = @fopen($local, "w");
 			if (!$fp) {
 				return false;
@@ -234,19 +240,22 @@
 			}
 			if (!$this->_data_prepare($mode)) {
 				fclose($fp);
+
 				return false;
 			}
 			if (!$this->_exec("RETR ".$remote) || !$this->_checkCode()) {
 				$this->_data_close();
 				fclose($fp);
+
 				return false;
 			}
 			$this->_data_read($mode, $fp);
 			fclose($fp);
 			$this->_data_close();
-			if(!$this->_readmsg() || !$this->_checkCode()) {
+			if (!$this->_readmsg() || !$this->_checkCode()) {
 				return false;
 			}
+
 			return true;
 		}
 
@@ -262,6 +271,7 @@
 			if (!$this->_exec("PWD") || !$this->_checkCode()) {
 				return false;
 			}
+
 			return preg_replace('/^[0-9]{3} "(.+)" .+'."\r\n/", "\\1", $this->_message);
 		}
 
@@ -277,12 +287,13 @@
 		*/
 
 		function getDirectoryContents($path = "") {
-			$list = $this->_list(" ".$path,"LIST");
+			$list = $this->_list(" ".$path, "LIST");
 			if (is_array($list)) {
 				foreach ($list as &$line) {
 					$line = $this->parseListing($line);
 				}
 			}
+
 			return $list;
 		}
 
@@ -298,7 +309,7 @@
 		*/
 
 		function getRawDirectoryContents($path = "") {
-			return $this->_list(" ".$path,"LIST");
+			return $this->_list(" ".$path, "LIST");
 		}
 
 		/*
@@ -314,6 +325,7 @@
 				return false;
 			}
 			$data = explode(" ", $this->_message);
+
 			return array($data[1], $data[3]);
 		}
 
@@ -329,7 +341,7 @@
 				true if successful
 		*/
 
-		function login($user = null,$pass = null) {
+		function login($user = null, $pass = null) {
 			if (!$user) {
 				$this->_login = "anonymous";
 				$this->_password = "anon@anon.com";
@@ -346,6 +358,7 @@
 					return false;
 				}
 			}
+
 			return true;
 		}
 
@@ -363,14 +376,14 @@
 		function parseListing($list) {
 			if (preg_match("/^([-ld])([rwxst-]+)\s+(\d+)\s+([^\s]+)\s+([^\s]+)\s+(\d+)\s+(\w{3})\s+(\d+)\s+([\:\d]+)\s+(.+)$/i", $list, $ret)) {
 				$v = array(
-					"type"	=> ($ret[1] == "-" ? "f" : $ret[1]),
-					"perms"	=> 0,
-					"inode"	=> $ret[3],
-					"owner"	=> $ret[4],
-					"group"	=> $ret[5],
-					"size"	=> $ret[6],
-					"date"	=> $ret[7]." ".$ret[8]." ".$ret[9],
-					"name"	=> $ret[10]
+					"type" => ($ret[1] == "-" ? "f" : $ret[1]),
+					"perms" => 0,
+					"inode" => $ret[3],
+					"owner" => $ret[4],
+					"group" => $ret[5],
+					"size" => $ret[6],
+					"date" => $ret[7]." ".$ret[8]." ".$ret[9],
+					"name" => $ret[10]
 				);
 				$bad = array("(?)");
 				if (in_array($v["owner"], $bad)) {
@@ -379,20 +392,22 @@
 				if (in_array($v["group"], $bad)) {
 					$v["group"] = null;
 				}
-				$v["perms"] += 00400 * (int)($ret[2]{0} == "r");
-				$v["perms"] += 00200 * (int)($ret[2]{1} == "w");
-				$v["perms"] += 00100 * (int)in_array($ret[2]{2}, array("x","s"));
-				$v["perms"] += 00040 * (int)($ret[2]{3} == "r");
-				$v["perms"] += 00020 * (int)($ret[2]{4} == "w");
-				$v["perms"] += 00010 * (int)in_array($ret[2]{5}, array("x","s"));
-				$v["perms"] += 00004 * (int)($ret[2]{6} == "r");
-				$v["perms"] += 00002 * (int)($ret[2]{7} == "w");
-				$v["perms"] += 00001 * (int)in_array($ret[2]{8}, array("x","t"));
-				$v["perms"] += 04000 * (int)in_array($ret[2]{2}, array("S","s"));
-				$v["perms"] += 02000 * (int)in_array($ret[2]{5}, array("S","s"));
-				$v["perms"] += 01000 * (int)in_array($ret[2]{8}, array("T","t"));
+				$v["perms"] += 00400 * (int) ($ret[2]{0} == "r");
+				$v["perms"] += 00200 * (int) ($ret[2]{1} == "w");
+				$v["perms"] += 00100 * (int) in_array($ret[2]{2}, array("x", "s"));
+				$v["perms"] += 00040 * (int) ($ret[2]{3} == "r");
+				$v["perms"] += 00020 * (int) ($ret[2]{4} == "w");
+				$v["perms"] += 00010 * (int) in_array($ret[2]{5}, array("x", "s"));
+				$v["perms"] += 00004 * (int) ($ret[2]{6} == "r");
+				$v["perms"] += 00002 * (int) ($ret[2]{7} == "w");
+				$v["perms"] += 00001 * (int) in_array($ret[2]{8}, array("x", "t"));
+				$v["perms"] += 04000 * (int) in_array($ret[2]{2}, array("S", "s"));
+				$v["perms"] += 02000 * (int) in_array($ret[2]{5}, array("S", "s"));
+				$v["perms"] += 01000 * (int) in_array($ret[2]{8}, array("T", "t"));
+
 				return $v;
 			}
+
 			return false;
 		}
 
@@ -415,6 +430,7 @@
 			if (!$this->_exec("RNTO ".$to) || !$this->_checkCode()) {
 				return false;
 			}
+
 			return true;
 		}
 
@@ -431,6 +447,7 @@
 				return false;
 			}
 			$this->_type = $mode;
+
 			return true;
 		}
 
@@ -446,7 +463,7 @@
 				true if successful
 		*/
 
-		function uploadFile($local,$remote) {
+		function uploadFile($local, $remote) {
 			if (!@file_exists($local)) {
 				return false;
 			}
@@ -455,18 +472,20 @@
 				return false;
 			}
 			$pi = pathinfo($local);
-			if ($this->_type == 0 || ($this->_type==-1 && in_array(strtoupper($pi["extension"]), $this->AutoAsciiExt))) {
+			if ($this->_type == 0 || ($this->_type == -1 && in_array(strtoupper($pi["extension"]), $this->AutoAsciiExt))) {
 				$mode = 0;
 			} else {
 				$mode = 1;
 			}
 			if (!$this->_data_prepare($mode)) {
 				fclose($fp);
+
 				return false;
 			}
 			if (!$this->_exec("STOR ".$remote) || !$this->_checkCode()) {
 				$this->_data_close();
 				fclose($fp);
+
 				return false;
 			}
 			$this->_data_write($mode, $fp);
@@ -475,6 +494,7 @@
 			if (!$this->_readmsg() || !$this->_checkCode()) {
 				return false;
 			}
+
 			return true;
 		}
 
@@ -490,6 +510,7 @@
 				return false;
 			}
 			$this->_connected = true;
+
 			return $sock;
 		}
 
@@ -497,6 +518,7 @@
 			if ($this->_ftp_data_sock) {
 				fclose($this->_ftp_data_sock);
 			}
+
 			return true;
 		}
 
@@ -506,14 +528,16 @@
 			}
 			if (!$this->_exec("PASV") || !$this->_checkCode()) {
 				$this->_data_close();
+
 				return false;
 			}
 			$ip_port = explode(",", preg_replace("/^.+ \\(?([0-9]{1,3},[0-9]{1,3},[0-9]{1,3},[0-9]{1,3},[0-9]+,[0-9]+)\\)?.*"."\r\n"."$/", "\\1", $this->_message));
 			$this->_datahost = $ip_port[0].".".$ip_port[1].".".$ip_port[2].".".$ip_port[3];
-			$this->_dataport = (((int)$ip_port[4])<<8) + ((int)$ip_port[5]);
+			$this->_dataport = (((int) $ip_port[4]) << 8) + ((int) $ip_port[5]);
 			$this->_ftp_data_sock = @fsockopen($this->_datahost, $this->_dataport, $errno, $errstr, $this->_timeout);
 			if (!$this->_ftp_data_sock) {
 				$this->_data_close();
+
 				return false;
 			} else {
 				$this->_ftp_data_sock;
@@ -521,7 +545,7 @@
 			
 			return true;
 		}
-	
+
 		private function _data_read($mode = 0, $fp = null) {
 			if (is_resource($fp)) {
 				$out = 0;
@@ -539,9 +563,10 @@
 					$out .= $block;
 				}
 			}
+
 			return $out;
 		}
-	
+
 		private function _data_write($mode = 0, $fp = null) {
 			if (is_resource($fp)) {
 				while (!feof($fp)) {
@@ -553,9 +578,10 @@
 			} elseif (!$this->_data_write_block($mode, $fp)) {
 				return false;
 			}
+
 			return true;
 		}
-	
+
 		private function _data_write_block($mode, $block) {
 			if ($mode != 1) {
 				$block = preg_replace("/\r\n|\r|\n/", $this->_eol_code[$this->OS_remote], $block);
@@ -566,6 +592,7 @@
 				}
 				$block = substr($block, $t);
 			} while (!empty($block));
+
 			return true;
 		}
 
@@ -581,6 +608,7 @@
 			if (!$this->_readmsg()) {
 				return false;
 			}
+
 			return true;
 		}
 
@@ -590,6 +618,7 @@
 			}
 			if (!$this->_exec($cmd.$arg) || !$this->_checkCode()) {
 				$this->_data_close();
+
 				return false;
 			}
 			$out = "";
@@ -604,6 +633,7 @@
 				}
 				$out = preg_split("/["."\r\n"."]+/", $out, -1, PREG_SPLIT_NO_EMPTY);
 			}
+
 			return $out;
 		}
 
@@ -625,7 +655,7 @@
 						$go = false;
 					}
 				}
-			} while($go);
+			} while ($go);
 
 			return $result;
 		}
@@ -643,11 +673,12 @@
 					if (!$this->_exec("TYPE A")) {
 						return "m";
 					}
-					$this->_curtype=0;
+					$this->_curtype = 0;
 				}
 			} else {
 				return "m";
 			}
+
 			return true;
 		}
 	}

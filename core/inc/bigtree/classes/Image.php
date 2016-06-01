@@ -38,12 +38,12 @@
 				$x = ceil(($nw - $crop_width) / 2 * $width / $nw);
 				$y = 0;
 
-				return static::createCrop($file,$newfile,$x,$y,$crop_width,$crop_height,($width - $x * 2),$height,$retina,$grayscale);
+				return static::createCrop($file, $newfile, $x, $y, $crop_width, $crop_height, ($width - $x * 2), $height, $retina, $grayscale);
 			} else {
 				$y = ceil(($new_height - $crop_height) / 2 * $height / $new_height);
 				$x = 0;
 
-				return static::createCrop($file,$newfile,$x,$y,$crop_width,$crop_height,$width,($height - $y * 2),$retina,$grayscale);
+				return static::createCrop($file, $newfile, $x, $y, $crop_width, $crop_height, $width, ($height - $y * 2), $retina, $grayscale);
 			}
 		}
 
@@ -59,27 +59,27 @@
 				jpg file name version of the desired file name
 		*/
 
-		static function convertPNGToJPEG($file,$name) {
+		static function convertPNGToJPEG($file, $name) {
 			global $bigtree;
 
 			// Try to figure out what this file is
-			list($image_width,$image_height,$image_type) = @getimagesize($file);
+			list($image_width, $image_height, $image_type) = @getimagesize($file);
 			
 			if ($image_type !== IMAGETYPE_PNG) {
 				return false;
 			}
 			
 			// See if this PNG has any alpha channels, if it does we're not doing a JPG conversion.
-			$alpha = ord(@file_get_contents($file,null,null,25,1));
+			$alpha = ord(@file_get_contents($file, null, null, 25, 1));
 			if ($alpha != 4 && $alpha != 6) {
 				// Convert the PNG to JPG
 				$source = imagecreatefrompng($file);
-				imagejpeg($source,$file,$bigtree["config"]["image_quality"]);
+				imagejpeg($source, $file, $bigtree["config"]["image_quality"]);
 				imagedestroy($source);
 
 				// If they originally uploaded a JPG we converted into a PNG, we don't want to change the desired filename, but if they uploaded a PNG the new file should be JPG
-				if (strtolower(substr($name,-3,3)) == "png") {
-					$name = substr($name,0,-3)."jpg";
+				if (strtolower(substr($name, -3, 3)) == "png") {
+					$name = substr($name, 0, -3)."jpg";
 				}
 			}
 
@@ -106,11 +106,11 @@
 				The new file name if successful, false if there was not enough memory available or an invalid source image was provided.
 		*/
 		
-		static function createCrop($file,$new_file,$x,$y,$target_width,$target_height,$width,$height,$retina = false,$grayscale = false) {
+		static function createCrop($file, $new_file, $x, $y, $target_width, $target_height, $width, $height, $retina = false, $grayscale = false) {
 			global $bigtree;
 
 			// If we don't have the memory available, fail gracefully.
-			if (!static::getMemoryAvailability($file,$target_width,$target_height)) {
+			if (!static::getMemoryAvailability($file, $target_width, $target_height)) {
 				return false;
 			}
 			
@@ -124,7 +124,7 @@
 			}
 			
 			list($w, $h, $type) = getimagesize($file);
-			$cropped_image = imagecreatetruecolor($target_width,$target_height);
+			$cropped_image = imagecreatetruecolor($target_width, $target_height);
 			if ($type == IMAGETYPE_JPEG) {
 				$original_image = imagecreatefromjpeg($file);
 			} elseif ($type == IMAGETYPE_GIF) {
@@ -143,17 +143,17 @@
 			if ($grayscale) {
 				imagefilter($cropped_image, IMG_FILTER_GRAYSCALE);
 			}
-		
+
 			if ($type == IMAGETYPE_JPEG) {
-				imagejpeg($cropped_image,$new_file,$jpeg_quality);
+				imagejpeg($cropped_image, $new_file, $jpeg_quality);
 			} elseif ($type == IMAGETYPE_GIF) {
-				imagegif($cropped_image,$new_file);
+				imagegif($cropped_image, $new_file);
 			} elseif ($type == IMAGETYPE_PNG) {
-				imagepng($cropped_image,$new_file);
+				imagepng($cropped_image, $new_file);
 			}
 
 			FileSystem::setPermissions($new_file);
-		
+
 			imagedestroy($original_image);
 			imagedestroy($cropped_image);
 			
@@ -180,15 +180,15 @@
 				createUpscaledImage
 		*/
 		
-		static function createThumbnail($file,$new_file,$max_width,$max_height,$retina = false,$grayscale = false,$upscale = false) {
+		static function createThumbnail($file, $new_file, $max_width, $max_height, $retina = false, $grayscale = false, $upscale = false) {
 			global $bigtree;
 			
 			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
 			
 			if ($upscale) {
-				list($type,$w,$h,$result_width,$result_height) = static::getUpscaleSizes($file,$max_width,$max_height);
+				list($type, $w, $h, $result_width, $result_height) = static::getUpscaleSizes($file, $max_width, $max_height);
 			} else {
-				list($type,$w,$h,$result_width,$result_height) = static::getThumbnailSizes($file,$max_width,$max_height);
+				list($type, $w, $h, $result_width, $result_height) = static::getThumbnailSizes($file, $max_width, $max_height);
 			}
 			
 			// If we're doing retina, see if 2x the height/width is less than the original height/width and change the quality.
@@ -199,7 +199,7 @@
 			}
 
 			// If we don't have the memory available, fail gracefully.
-			if (!static::getMemoryAvailability($file,$result_width,$result_height)) {
+			if (!static::getMemoryAvailability($file, $result_width, $result_height)) {
 				return false;
 			}
 
@@ -213,22 +213,22 @@
 			} else {
 				return false;
 			}
-		
+
 			imagealphablending($original_image, true);
 			imagealphablending($thumbnailed_image, false);
 			imagesavealpha($thumbnailed_image, true);
 			imagecopyresampled($thumbnailed_image, $original_image, 0, 0, 0, 0, $result_width, $result_height, $w, $h);
-		
+
 			if ($grayscale) {
 				imagefilter($thumbnailed_image, IMG_FILTER_GRAYSCALE);
 			}
-		
+
 			if ($type == IMAGETYPE_JPEG) {
-				imagejpeg($thumbnailed_image,$new_file,$jpeg_quality);
+				imagejpeg($thumbnailed_image, $new_file, $jpeg_quality);
 			} elseif ($type == IMAGETYPE_GIF) {
-				imagegif($thumbnailed_image,$new_file);
+				imagegif($thumbnailed_image, $new_file);
 			} elseif ($type == IMAGETYPE_PNG) {
-				imagepng($thumbnailed_image,$new_file);
+				imagepng($thumbnailed_image, $new_file);
 			}
 
 			FileSystem::setPermissions($new_file);
@@ -252,7 +252,7 @@
 				true if the image can be created, otherwise false.
 		*/
 
-		static function getMemoryAvailability($source,$width,$height) {
+		static function getMemoryAvailability($source, $width, $height) {
 			$available_memory = intval(ini_get('memory_limit')) * 1024 * 1024;
 			$info = getimagesize($source);
 			$source_width = $info[0];
@@ -260,11 +260,11 @@
 
 			// GD takes about 70% extra memory for JPG and we're most likely running 3 bytes per pixel
 			if ($info["mime"] == "image/jpg" || $info["mime"] == "image/jpeg") {
-				$source_size = ceil($source_width * $source_height * 3 * 1.7); 
+				$source_size = ceil($source_width * $source_height * 3 * 1.7);
 				$target_size = ceil($width * $height * 3 * 1.7);
 			// GD takes about 250% extra memory for GIFs which are most likely running 1 byte per pixel
 			} elseif ($info["mime"] == "image/gif") {
-				$source_size = ceil($source_width * $source_height * 2.5); 
+				$source_size = ceil($source_width * $source_height * 2.5);
 				$target_size = ceil($width * $height * 2.5);
 			// GD takes about 245% extra memory for PNGs which are most likely running 4 bytes per pixel
 			} elseif ($info["mime"] == "image/png") {
@@ -278,6 +278,7 @@
 			if ($memory_usage > $available_memory) {
 				return false;
 			}
+
 			return true;
 		}
 
@@ -294,33 +295,33 @@
 				An array with (type,width,height,result width,result height)
 		*/
 		
-		static function getThumbnailSizes($file,$max_width,$max_height) {
+		static function getThumbnailSizes($file, $max_width, $max_height) {
 			list($w, $h, $type) = getimagesize($file);
 
 			if ($w > $max_width && $max_width) {
 				$perc = $max_width / $w;
 				$result_width = $max_width;
-				$result_height = round($h * $perc,0);
+				$result_height = round($h * $perc, 0);
 				if ($result_height > $max_height && $max_height) {
 					$perc = $max_height / $result_height;
 					$result_height = $max_height;
-					$result_width = round($result_width * $perc,0);
+					$result_width = round($result_width * $perc, 0);
 				}
 			} elseif ($h > $max_height && $max_height) {
 				$perc = $max_height / $h;
 				$result_height = $max_height;
-				$result_width = round($w * $perc,0);
+				$result_width = round($w * $perc, 0);
 				if ($result_width > $max_width && $max_width) {
 					$perc = $max_width / $result_width;
 					$result_width = $max_width;
-					$result_height = round($result_height * $perc,0);
+					$result_height = round($result_height * $perc, 0);
 				}
 			} else {
 				$result_width = $w;
 				$result_height = $h;
 			}
 			
-			return array($type,$w,$h,$result_width,$result_height);
+			return array($type, $w, $h, $result_width, $result_height);
 		}
 
 		/*
@@ -336,33 +337,33 @@
 				An array with (type,width,height,result width,result height)
 		*/
 		
-		static function getUpscaleSizes($file,$min_width,$min_height) {
+		static function getUpscaleSizes($file, $min_width, $min_height) {
 			list($w, $h, $type) = getimagesize($file);
 
 			if ($w < $min_width && $min_width) {
 				$perc = $min_width / $w;
 				$result_width = $min_width;
-				$result_height = round($h * $perc,0);
+				$result_height = round($h * $perc, 0);
 				if ($result_height < $min_height && $min_height) {
 					$perc = $min_height / $result_height;
 					$result_height = $min_height;
-					$result_width = round($result_width * $perc,0);
+					$result_width = round($result_width * $perc, 0);
 				}
 			} elseif ($h < $min_height && $min_height) {
 				$perc = $min_height / $h;
 				$result_height = $min_height;
-				$result_width = round($w * $perc,0);
+				$result_width = round($w * $perc, 0);
 				if ($result_width < $min_width && $min_width) {
 					$perc = $min_width / $result_width;
 					$result_width = $min_width;
-					$result_height = round($result_height * $perc,0);
+					$result_height = round($result_height * $perc, 0);
 				}
 			} else {
 				$result_width = $w;
 				$result_height = $h;
 			}
 			
-			return array($type,$w,$h,$result_width,$result_height);
+			return array($type, $w, $h, $result_width, $result_height);
 		}
 
 		/*
@@ -376,10 +377,10 @@
 				rating - Defaults to "g" (options include "g", "pg", "r", "x")
 		*/
 		
-		static function gravatar($email,$size = 56,$default = false,$rating = "g") {
+		static function gravatar($email, $size = 56, $default = false, $rating = "g") {
 			if (!$default) {
 				global $bigtree;
-			
+
 				$default = !empty($bigtree["config"]["default_gravatar"]) ? $bigtree["config"]["default_gravatar"] : "https://www.bigtreecms.org/images/bigtree-gravatar.png";
 			}
 
@@ -409,8 +410,8 @@
 			$height = ($height > 2000) ? 2000 : $height;
 
 			// Check colors
-			$bg_color = (!$bg_color && $bg_color != "000" && $bg_color != "000000") ? "CCCCCC" : ltrim($bg_color,"#");
-			$text_color = (!$text_color  && $text_color != "000" && $text_color != "000000") ? "666666" : ltrim($text_color,"#");
+			$bg_color = (!$bg_color && $bg_color != "000" && $bg_color != "000000") ? "CCCCCC" : ltrim($bg_color, "#");
+			$text_color = (!$text_color && $text_color != "000" && $text_color != "000000") ? "666666" : ltrim($text_color, "#");
 
 			// Set text
 			$text = $text_string;
@@ -418,7 +419,7 @@
 				$text = "";
 			} else {
 				if (!$text_string) {
-					$text = $width . " X " . $height;
+					$text = $width." X ".$height;
 				}
 			}
 
@@ -438,7 +439,7 @@
 				$icon_x = ($width - $icon_width) / 2;
 				$icon_y = ($height - $icon_height) / 2;
 
-				$ext = strtolower(substr($icon_path,-3));
+				$ext = strtolower(substr($icon_path, -3));
 				if ($ext == "jpg" || $ext == "peg") {
 					$icon = imagecreatefromjpeg($icon_path);
 				} elseif ($ext == "gif") {
@@ -477,8 +478,8 @@
 			$storage = new Storage;
 
 			// Get and remove the crop data
-			$crops = Cache::get("org.bigtreecms.crops",$crop_key);
-			Cache::delete("org.bigtreecms.crops",$crop_key);
+			$crops = Cache::get("org.bigtreecms.crops", $crop_key);
+			Cache::delete("org.bigtreecms.crops", $crop_key);
 
 			foreach ($crops as $key => $crop) {
 				$image_src = $crop["image"];
@@ -495,18 +496,18 @@
 
 				// Create the crop and put it in a temporary location
 				$temp_crop = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
-				static::createCrop($image_src,$temp_crop,$x,$y,$target_width,$target_height,$width,$height,$crop["retina"],$crop["grayscale"]);
+				static::createCrop($image_src, $temp_crop, $x, $y, $target_width, $target_height, $width, $height, $crop["retina"], $crop["grayscale"]);
 				
 				// Make thumbnails for the crop
 				if (is_array($thumbs)) {
 					foreach ($thumbs as $thumb) {
 						if (is_array($thumb) && ($thumb["height"] || $thumb["width"])) {
 							// We're going to figure out what size the thumbs will be so we can re-crop the original image so we don't lose image quality.
-							list($type,$w,$h,$result_width,$result_height) = static::getThumbnailSizes($temp_crop,$thumb["width"],$thumb["height"]);
+							list($type, $w, $h, $result_width, $result_height) = static::getThumbnailSizes($temp_crop, $thumb["width"], $thumb["height"]);
 
 							$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
-							static::createCrop($image_src,$temp_thumb,$x,$y,$result_width,$result_height,$width,$height,$crop["retina"],$thumb["grayscale"]);
-							$storage->replace($temp_thumb,$thumb["prefix"].$crop["name"],$crop["directory"]);
+							static::createCrop($image_src, $temp_thumb, $x, $y, $result_width, $result_height, $width, $height, $crop["retina"], $thumb["grayscale"]);
+							$storage->replace($temp_thumb, $thumb["prefix"].$crop["name"], $crop["directory"]);
 						}
 					}
 				}
@@ -516,14 +517,14 @@
 					foreach ($center_crops as $center_crop) {
 						if (is_array($center_crop) && $center_crop["height"] && $center_crop["width"]) {
 							$temp_center_crop = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
-							static::centerCrop($temp_crop,$temp_center_crop,$center_crop["width"],$center_crop["height"],$crop["retina"],$center_crop["grayscale"]);
-							$storage->replace($temp_center_crop,$center_crop["prefix"].$crop["name"],$crop["directory"]);
+							static::centerCrop($temp_crop, $temp_center_crop, $center_crop["width"], $center_crop["height"], $crop["retina"], $center_crop["grayscale"]);
+							$storage->replace($temp_center_crop, $center_crop["prefix"].$crop["name"], $crop["directory"]);
 						}
 					}
 				}
 
 				// Move crop into its resting place
-				$storage->replace($temp_crop,$crop["prefix"].$crop["name"],$crop["directory"]);
+				$storage->replace($temp_crop, $crop["prefix"].$crop["name"], $crop["directory"]);
 			}
 
 			// Remove all the temporary images

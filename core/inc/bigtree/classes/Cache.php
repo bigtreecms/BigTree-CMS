@@ -17,11 +17,11 @@
 				key - The key for your data (if no key is passed, deletes all data for a given identifier)
 		*/
 
-		static function delete($identifier,$key = false) {
+		static function delete($identifier, $key = false) {
 			if ($key === false) {
-				SQL::query("DELETE FROM bigtree_caches WHERE `identifier` = ?",$identifier);
+				SQL::query("DELETE FROM bigtree_caches WHERE `identifier` = ?", $identifier);
 			} else {
-				SQL::query("DELETE FROM bigtree_caches WHERE `identifier` = ? AND `key` = ?",$identifier,$key);
+				SQL::query("DELETE FROM bigtree_caches WHERE `identifier` = ? AND `key` = ?", $identifier, $key);
 			}
 		}
 
@@ -39,20 +39,20 @@
 				Data from the table (json decoded, objects convert to keyed arrays) if it exists.
 		*/
 
-		static function get($identifier,$key,$max_age = false,$decode = true) {
+		static function get($identifier, $key, $max_age = false, $decode = true) {
 			if ($max_age) {
 				// We need to get MySQL's idea of what time it is so that if PHP's differs we don't screw up caches.
 				if (SQL::$MySQLTime === "") {
 					SQL::$MySQLTime = SQL::fetchSingle("SELECT NOW()");
 				}
-				$max_age = date("Y-m-d H:i:s",strtotime(SQL::$MySQLTime) - $max_age);
+				$max_age = date("Y-m-d H:i:s", strtotime(SQL::$MySQLTime) - $max_age);
 
-				$entry = SQL::fetchSingle("SELECT value FROM bigtree_caches WHERE `identifier` = ? AND `key` = ? AND timestamp >= ?",$identifier,$key,$max_age);
+				$entry = SQL::fetchSingle("SELECT value FROM bigtree_caches WHERE `identifier` = ? AND `key` = ? AND timestamp >= ?", $identifier, $key, $max_age);
 			} else {
-				$entry = SQL::fetchSingle("SELECT value FROM bigtree_caches WHERE `identifier` = ? AND `key` = ?",$identifier,$key);
+				$entry = SQL::fetchSingle("SELECT value FROM bigtree_caches WHERE `identifier` = ? AND `key` = ?", $identifier, $key);
 			}
 
-			return $decode ? json_decode($entry,true) : $entry;
+			return $decode ? json_decode($entry, true) : $entry;
 		}
 
 		/*
@@ -69,8 +69,8 @@
 				True if successful, false if the indentifier/key combination already exists and replace was set to false.
 		*/
 
-		static function put($identifier,$key,$value,$replace = true) {
-			$exists = SQL::exists("bigtree_caches",array("identifier" => $identifier,"key" => $key));
+		static function put($identifier, $key, $value, $replace = true) {
+			$exists = SQL::exists("bigtree_caches", array("identifier" => $identifier, "key" => $key));
 			if (!$replace && $exists) {
 				return false;
 			}
@@ -78,9 +78,9 @@
 			$value = JSON::encode($value);
 			
 			if ($exists) {
-				return SQL::update("bigtree_caches",array("identifier" => $identifier,"key" => $key),array("value" => $value));
+				return SQL::update("bigtree_caches", array("identifier" => $identifier, "key" => $key), array("value" => $value));
 			} else {
-				return SQL::insert("bigtree_caches",array("identifier" => $identifier,"key" => $key,"value" => $value));
+				return SQL::insert("bigtree_caches", array("identifier" => $identifier, "key" => $key, "value" => $value));
 			}
 		}
 
@@ -96,13 +96,13 @@
 				They unique cache key.
 		*/
 
-		static function putUnique($identifier,$value) {
+		static function putUnique($identifier, $value) {
 			$success = false;
 			$key = "";
 
 			while (!$success) {
-				$key = uniqid("",true);
-				$success = static::put($identifier,$key,$value,false);
+				$key = uniqid("", true);
+				$success = static::put($identifier, $key, $value, false);
 			}
 
 			return $key;

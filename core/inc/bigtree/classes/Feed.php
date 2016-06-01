@@ -34,7 +34,7 @@
 		*/
 
 		function __construct($feed = null) {
-			if  ($feed !== null) {
+			if ($feed !== null) {
 				// Passing in just an ID
 				if (!is_array($feed)) {
 					$feed = SQL::fetch("SELECT * FROM bigtree_feeds WHERE id = ?", $feed);
@@ -73,15 +73,15 @@
 				A Feed object.
 		*/
 
-		static function create($name,$description,$table,$type,$settings,$fields) {
+		static function create($name, $description, $table, $type, $settings, $fields) {
 			// Settings were probably passed as a JSON string, but either way make a nice translated array
-			$settings = Link::encodeArray(is_array($settings) ? $settings : array_filter((array)json_decode($settings,true)));
+			$settings = Link::encodeArray(is_array($settings) ? $settings : array_filter((array) json_decode($settings, true)));
 
 			// Get a unique route!
 			$route = SQL::unique("bigtree_feeds", "route", Link::urlify($name));
 
 			// Insert and track
-			$id = SQL::insert("bigtree_feeds",array(
+			$id = SQL::insert("bigtree_feeds", array(
 				"route" => $route,
 				"name" => Text::htmlEncode($name),
 				"description" => Text::htmlEncode($description),
@@ -91,7 +91,7 @@
 				"options" => $settings
 			));
 
-			AuditTrail::track("bigtree_feeds",$id,"created");
+			AuditTrail::track("bigtree_feeds", $id, "created");
 
 			return new Feed($id);
 		}
@@ -133,8 +133,8 @@
 				fields - The fields.
 		*/
 
-		function update($name,$description,$table,$type,$settings,$fields) {
-			$settings = is_array($settings) ? $settings : json_decode($settings,true);
+		function update($name, $description, $table, $type, $settings, $fields) {
+			$settings = is_array($settings) ? $settings : json_decode($settings, true);
 
 			$this->Name = $name;
 			$this->Description = $description;

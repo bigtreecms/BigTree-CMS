@@ -18,12 +18,12 @@
 				type - The action taken by the user (delete, edit, create, etc.)
 		*/
 
-		static function track($table,$entry,$type) {
+		static function track($table, $entry, $type) {
 			global $admin;
 
 			// If this is running fron cron or something, nobody is logged in so don't track.
 			if (get_class($admin) == "BigTreeAdmin" && $admin->ID) {
-				SQL::insert("bigtree_audit_trail",array(
+				SQL::insert("bigtree_audit_trail", array(
 					"table" => $table,
 					"user" => $admin->ID,
 					"entry" => $entry,
@@ -67,15 +67,15 @@
 			}
 
 			if ($start) {
-				$where[] = "`date` >= '".date("Y-m-d H:i:s",strtotime($start))."'";
+				$where[] = "`date` >= '".date("Y-m-d H:i:s", strtotime($start))."'";
 			}
 
 			if ($end) {
-				$where[] = "`date` <= '".date("Y-m-d H:i:s",strtotime($end))."'";
+				$where[] = "`date` <= '".date("Y-m-d H:i:s", strtotime($end))."'";
 			}
 
 			if (count($where)) {
-				$query .= " WHERE ".implode(" AND ",$where);
+				$query .= " WHERE ".implode(" AND ", $where);
 			}
 
 			// Push query onto the parameters array since we're using call_user_func_array

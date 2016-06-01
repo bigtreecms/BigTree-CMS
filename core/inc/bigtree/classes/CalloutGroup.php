@@ -58,17 +58,17 @@
 				The id of the newly created group.
 		*/
 
-		static function create($name,$callouts = array()) {
+		static function create($name, $callouts = array()) {
 			// Order callouts alphabetically by ID
 			sort($callouts);
 
 			// Insert group
-			$id = SQL::insert("bigtree_callout_groups",array(
+			$id = SQL::insert("bigtree_callout_groups", array(
 				"name" => Text::htmlEncode($name),
 				"callouts" => $callouts
 			));
 
-			AuditTrail::track("bigtree_callout_groups",$id,"created");
+			AuditTrail::track("bigtree_callout_groups", $id, "created");
 
 			return new CalloutGroup($id);
 		}
@@ -82,8 +82,8 @@
 		*/
 
 		function delete() {
-			SQL::delete("bigtree_callout_groups",$this->ID);
-			AuditTrail::track("bigtree_callout_groups",$this->ID,"deleted");
+			SQL::delete("bigtree_callout_groups", $this->ID);
+			AuditTrail::track("bigtree_callout_groups", $this->ID, "deleted");
 		}
 
 		/*
@@ -92,7 +92,7 @@
 		*/
 
 		function save() {
-			$this->Callouts = (array)$this->Callouts;
+			$this->Callouts = (array) $this->Callouts;
 			sort($this->Callouts);
 
 			$sql_data = array(
@@ -118,7 +118,7 @@
 				callouts - An array of callout IDs to assign to the group.
 		*/
 
-		function update($name,$callouts) {
+		function update($name, $callouts) {
 			$this->Name = $name;
 			$this->Callouts = $callouts;
 			$this->save();

@@ -19,7 +19,7 @@
 				results - Results to store
 		*/
 
-		function __construct(&$api,$last_call,$params,$data,$results) {
+		function __construct(&$api, $last_call, $params, $data, $results) {
 			$this->API = $api;
 			$this->LastCall = $last_call;
 			$this->LastParameters = $params;
@@ -40,8 +40,10 @@
 			if ($this->NextPageToken) {
 				$params = $this->LastParameters;
 				$params[count($params) - 1]["pageToken"] = $this->NextPageToken;
-				return call_user_func_array(array($this->API,$this->LastCall),$params);
+
+				return call_user_func_array(array($this->API, $this->LastCall), $params);
 			}
+
 			return false;
 		}
 
@@ -52,13 +54,15 @@
 			Returns:
 				A BigTreeGoogleResultSet or false if there is not a previous page.
 		*/
-	
+
 		function previousPage() {
 			if ($this->PreviousPageToken) {
 				$params = $this->LastParameters;
 				$params[count($params) - 1]["pageToken"] = $this->PreviousPageToken;
-				return call_user_func_array(array($this->API,$this->LastCall),$this->LastParameters);
+
+				return call_user_func_array(array($this->API, $this->LastCall), $this->LastParameters);
 			}
+
 			return false;
 		}
 	}

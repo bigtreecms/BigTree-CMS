@@ -24,25 +24,25 @@
 				true if the copy was successful, false if the directories were not writable.
 		*/
 
-		static function copyFile($from,$to) {
+		static function copyFile($from, $to) {
 			if (!static::getDirectoryWritability($to)) {
 				return false;
 			}
 
 			// If the origin is a protocol agnostic URL, add http:
-			if (substr($from,0,2) == "//") {
+			if (substr($from, 0, 2) == "//") {
 				$from = "http:".$from;
 			}
 
 			// is_readable doesn't work on URLs
-			if (substr($from,0,7) != "http://" && substr($from,0,8) != "https://" && !is_readable($from)) {
+			if (substr($from, 0, 7) != "http://" && substr($from, 0, 8) != "https://" && !is_readable($from)) {
 				return false;
 			}
 			$pathinfo = pathinfo($to);
 			$directory = $pathinfo["dirname"];
 			static::createDirectory($directory);
 
-			$success = copy($from,$to);
+			$success = copy($from, $to);
 			static::setPermissions($to);
 
 			return $success;
@@ -72,13 +72,13 @@
 			}
 
 			// Windows systems aren't going to start with /
-			if (substr($directory,0,1) == "/") {
+			if (substr($directory, 0, 1) == "/") {
 				$directory_path = "/";
 			} else {
 				$directory_path = "";
 			}
 
-			$directory_parts = explode("/",trim($directory,"/"));
+			$directory_parts = explode("/", trim($directory, "/"));
 			foreach ($directory_parts as $part) {
 				$directory_path .= $part;
 
@@ -107,7 +107,7 @@
 				true if the creation was successful, false if the directories were not writable.
 		*/
 
-		static function createFile($file,$contents) {
+		static function createFile($file, $contents) {
 			if (!static::getDirectoryWritability($file)) {
 				return false;
 			}
@@ -117,10 +117,10 @@
 			static::createDirectory($directory);
 
 			if (!file_exists($file)) {
-				file_put_contents($file,$contents);
+				file_put_contents($file, $contents);
 				static::setPermissions($file);
 			} else {
-				file_put_contents($file,$contents);
+				file_put_contents($file, $contents);
 			}
 
 			return true;
@@ -143,7 +143,7 @@
 			}
 
 			// Make sure it has a trailing /
-			$directory = rtrim($directory,"/")."/";
+			$directory = rtrim($directory, "/")."/";
 
 			$directory_handle = opendir($directory);
 			while ($file = readdir($directory_handle)) {
@@ -191,13 +191,13 @@
 				An available, web safe file name.
 		*/
 
-		static function getAvailableFileName($directory,$file,$prefixes = array()) {
+		static function getAvailableFileName($directory, $file, $prefixes = array()) {
 			$parts = pathinfo($directory.$file);
 
 			// Clean up the file name
 			$clean_name = Link::urlify($parts["filename"]);
 			if (strlen($clean_name) > 50) {
-				$clean_name = substr($clean_name,0,50);
+				$clean_name = substr($clean_name, 0, 50);
 			}
 			$file = $clean_name.".".strtolower($parts["extension"]);
 
@@ -234,7 +234,7 @@
 				Returns false if the directory cannot be read.
 		*/
 		
-		static function getDirectoryContents($directory,$recurse = true,$extension = false,$include_git = false) {
+		static function getDirectoryContents($directory, $recurse = true, $extension = false, $include_git = false) {
 			$contents = array();
 
 			$directory_handle = @opendir($directory);
@@ -248,14 +248,14 @@
 			while ($file = readdir($directory_handle)) {
 				if ($file != "." && $file != ".." && $file != ".DS_Store" && $file != "__MACOSX") {
 					if ($include_git || ($file != ".git" && $file != ".gitignore")) {
-						$path = rtrim($directory,"/")."/".$file;
+						$path = rtrim($directory, "/")."/".$file;
 
-						if ($extension === false || substr($path,-1 * strlen($extension)) == $extension) {
+						if ($extension === false || substr($path, -1 * strlen($extension)) == $extension) {
 							$contents[] = $path;
 						}
 
 						if (is_dir($path) && $recurse) {
-							$contents = array_merge($contents,static::getDirectoryContents($path,$recurse,$extension,$include_git));
+							$contents = array_merge($contents, static::getDirectoryContents($path, $recurse, $extension, $include_git));
 						}
 					}
 				}
@@ -278,8 +278,8 @@
 		static function getDirectoryWritability($path, $recursion = false) {
 			// We need to setup an error handler to catch open_basedir restrictions
 			if (!$recursion) {
-				set_error_handler(function($error_number, $error_string) {
-					if ($error_number == 2 && strpos($error_string,"open_basedir") !== false) {
+				set_error_handler(function ($error_number, $error_string) {
+					if ($error_number == 2 && strpos($error_string, "open_basedir") !== false) {
 						throw new Exception("open_basedir restriction in effect");
 					}
 				});
@@ -288,10 +288,10 @@
 			// If open_basedir restriction is hit we'll failover into the exceptiond and return false
 			try {
 				// Windows improperly returns writable status based on read-only flag instead of ACLs so we need our own version for Windows
-				if (isset($_SERVER["OS"]) && stripos($_SERVER["OS"],"windows") !== false) {
+				if (isset($_SERVER["OS"]) && stripos($_SERVER["OS"], "windows") !== false) {
 					// Directory exists, check to see if we can create a temporary file inside it
 					if (is_dir($path)) {
-						$file = rtrim($path,"/")."/".uniqid().".tmp";
+						$file = rtrim($path, "/")."/".uniqid().".tmp";
 						$success = @touch($file);
 						if ($success) {
 							unlink($file);
@@ -305,10 +305,10 @@
 
 					// Remove the last directory from the path and then run isDirectoryWritable again
 					} else {
-						$parts = explode("/",$path);
+						$parts = explode("/", $path);
 						array_pop($parts);
 						if (count($parts)) {
-							return static::getDirectoryWritability(implode("/",$parts), true);
+							return static::getDirectoryWritability(implode("/", $parts), true);
 						}
 						restore_error_handler();
 
@@ -323,10 +323,10 @@
 					}
 
 					// Remove the last directory from the path and try again
-					$parts = explode("/",$path);
+					$parts = explode("/", $path);
 					array_pop($parts);
 
-					return static::getDirectoryWritability(implode("/",$parts), true);
+					return static::getDirectoryWritability(implode("/", $parts), true);
 				}
 			} catch (Exception $e) {
 				restore_error_handler();
@@ -347,7 +347,7 @@
 				The full path or file name with a prefix appended to the file name.
 		*/
 
-		static function getPrefixedFile($file,$prefix) {
+		static function getPrefixedFile($file, $prefix) {
 			$path_info = pathinfo($file);
 			$path_info["dirname"] = isset($path_info["dirname"]) ? $path_info["dirname"] : "";
 
@@ -395,21 +395,21 @@
 		*/
 
 		static function getSafePath($file) {
-			$pieces = array_filter(explode("/",$file), function($val) {
+			$pieces = array_filter(explode("/", $file), function ($val) {
 				// Let empties through
 				if (!trim($val)) {
 					return true;
 				}
 
 				// Strip path manipulation
-				if (trim(str_replace(".","",$val)) === "") {
+				if (trim(str_replace(".", "", $val)) === "") {
 					return false;
 				}
 
 				return true;
 			});
 
-			return implode("/",$pieces);
+			return implode("/", $pieces);
 		}
 
 		/*
@@ -424,8 +424,8 @@
 				true if the move was successful, false if the directories were not writable.
 		*/
 
-		static function moveFile($from,$to) {
-			$success = static::copyFile($from,$to);
+		static function moveFile($from, $to) {
+			$success = static::copyFile($from, $to);
 
 			if (!$success) {
 				return false;
@@ -468,7 +468,7 @@
 		static function setPermissions($location) {
 			if (!static::getRunningAsOwner()) {
 				try {
-					chmod($location,0777);
+					chmod($location, 0777);
 				} catch (Exception $e) {
 					return false;
 				}

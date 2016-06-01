@@ -59,12 +59,12 @@
 
 		static function get($id) {
 			// Allow for sub-cookies
-			if (strpos($id,"[") !== false) {
-				$pieces = explode("[",$id);
+			if (strpos($id, "[") !== false) {
+				$pieces = explode("[", $id);
 				$cookie = $_COOKIE;
 
 				foreach ($pieces as $piece) {
-					$piece = str_replace("]","",$piece);
+					$piece = str_replace("]", "", $piece);
 					if (isset($cookie[$piece])) {
 						$cookie = $cookie[$piece];
 					} else {
@@ -72,10 +72,10 @@
 					}
 				}
 
-				return json_decode($cookie,true);
+				return json_decode($cookie, true);
 			} else {
 				if (isset($_COOKIE[$id])) {
-					return json_decode($_COOKIE[$id],true);
+					return json_decode($_COOKIE[$id], true);
 				} else {
 					return false;
 				}

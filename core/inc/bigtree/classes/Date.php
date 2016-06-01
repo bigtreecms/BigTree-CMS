@@ -26,7 +26,7 @@
 			$new_format = "";
 			
 			for ($i = 0; $i < strlen($format); $i++) {
-				$c = substr($format,$i,1);
+				$c = substr($format, $i, 1);
 				
 				// Day with leading zeroes
 				if ($c == "d") {
@@ -73,14 +73,14 @@
 				A date string or false if date parsing failed
 		*/
 
-		static function format($date,$format = "Y-m-d H:i:s") {
+		static function format($date, $format = "Y-m-d H:i:s") {
 			global $bigtree;
 
-			$date_object = DateTime::createFromFormat($bigtree["config"]["date_format"],$date);
+			$date_object = DateTime::createFromFormat($bigtree["config"]["date_format"], $date);
 
 			// Fallback to SQL standards for handling pre 4.2 values
 			if (!$date_object) {
-				$date_object = DateTime::createFromFormat("Y-m-d",$date);
+				$date_object = DateTime::createFromFormat("Y-m-d", $date);
 			}
 
 			if ($date_object) {
@@ -109,10 +109,10 @@
 				http://php.net/manual/en/function.date.php (for date formats)
 		*/
 
-		static function fromOffset($start_date,$offset,$format = "Y-m-d H:i:s") {
+		static function fromOffset($start_date, $offset, $format = "Y-m-d H:i:s") {
 			$time = is_numeric($start_date) ? $start_date : strtotime($start_date);
 
-			$date = DateTime::createFromFormat("Y-m-d H:i:s",date("Y-m-d H:i:s",$time));
+			$date = DateTime::createFromFormat("Y-m-d H:i:s", date("Y-m-d H:i:s", $time));
 			$date->add(DateInterval::createFromDateString($offset));
 
 			return $date->format($format);
@@ -133,7 +133,7 @@
 			$minute = 60;
 			$hour = 3600;
 			$day = 86400;
-			$month = 2592000;			
+			$month = 2592000;
 			$delta = strtotime(date('r')) - strtotime($time);
 			
 			if ($delta < 2 * $minute) {

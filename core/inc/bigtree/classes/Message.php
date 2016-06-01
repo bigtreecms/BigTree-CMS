@@ -33,27 +33,29 @@
 				message - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
-		function __construct($message) {
-			// Passing in just an ID
-			if (!is_array($message)) {
-				$message = SQL::fetch("SELECT * FROM bigtree_messages WHERE id = ?", $message);
-			}
+		function __construct($message = null) {
+			if ($message !== null) {
+				// Passing in just an ID
+				if (!is_array($message)) {
+					$message = SQL::fetch("SELECT * FROM bigtree_messages WHERE id = ?", $message);
+				}
 
-			// Bad data set
-			if (!is_array($message)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-			} else {
-				$this->ID = $message["id"];
+				// Bad data set
+				if (!is_array($message)) {
+					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+				} else {
+					$this->ID = $message["id"];
 
-				$this->Date = $message["date"];
-				$this->Message = $message["message"];
-				$this->Recipients = explode("||",trim($message["recipients"],"|"));
-				$this->ReadBy = explode("||",trim($message["read_by"],"|"));
-				$this->ResponseTo = $message["response_to"];
-				$this->Sender = $message["sender"];
-				$this->SenderEmail = $message["sender_email"] ?: null;
-				$this->SenderName = $message["sender_name"] ?: null;
-				$this->Subject = $message["subject"];
+					$this->Date = $message["date"];
+					$this->Message = $message["message"];
+					$this->Recipients = explode("||", trim($message["recipients"], "|"));
+					$this->ReadBy = explode("||", trim($message["read_by"], "|"));
+					$this->ResponseTo = $message["response_to"];
+					$this->Sender = $message["sender"];
+					$this->SenderEmail = $message["sender_email"] ?: null;
+					$this->SenderName = $message["sender_name"] ?: null;
+					$this->Subject = $message["subject"];
+				}
 			}
 		}
 
@@ -69,7 +71,7 @@
 				An array containing "sent", "read", and "unread" keys that contain an array of messages each.
 		*/
 
-		static function allByUser($user = false,$return_arrays = false) {
+		static function allByUser($user = false, $return_arrays = false) {
 			$sent = $read = $unread = array();
 
 			$user = SQL::escape($user);
@@ -87,7 +89,7 @@
 					$sent[] = $return_arrays ? $message : new Message($message);
 				} else {
 					// If we've been marked read, put it in the read array.
-					if ($message["read_by"] && strpos($message["read_by"],"|".$user."|") !== false) {
+					if ($message["read_by"] && strpos($message["read_by"], "|".$user."|") !== false) {
 						$read[] = $return_arrays ? $message : new Message($message);
 					} else {
 						$unread[] = $return_arrays ? $message : new Message($message);
@@ -113,7 +115,7 @@
 				A Message object.
 		*/
 
-		static function create($sender,$subject,$message,$recipients,$in_response_to = 0) {
+		static function create($sender, $subject, $message, $recipients, $in_response_to = 0) {
 			// We build the send_to field this way so that we don't have to create a second table of recipients.
 			$send_to = "|";
 			foreach ($recipients as $r) {
@@ -122,11 +124,11 @@
 			}
 
 			// Insert the message
-			$id = SQL::insert("bigtree_messages",array(
+			$id = SQL::insert("bigtree_messages", array(
 				"sender" => $sender,
 				"recipients" => $send_to,
 				"subject" => Text::htmlEncode(strip_tags($subject)),
-				"message" => strip_tags($message,"<p><b><strong><em><i><a>"),
+				"message" => strip_tags($message, "<p><b><strong><em><i><a>"),
 				"date" => "NOW()",
 				"in_response_to" => $in_response_to
 			));
@@ -154,7 +156,7 @@
 				$message = new Message($message->ResponseTo);
 
 				// Prepend this message to the chain
-				array_unshift($chain,$message);
+				array_unshift($chain, $message);
 			}
 
 			// Find children
@@ -180,6 +182,7 @@
 			// Make sure a user is logged in
 			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 				trigger_error("Method getUserUnreadCount not available outside logged-in user context.");
+
 				return false;
 			}
 
@@ -198,10 +201,11 @@
 			// Make sure a user is logged in
 			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 				trigger_error("Method markRead not available outside logged-in user context.", E_USER_WARNING);
+
 				return;
 			}
 
-			$this->ReadBy = str_replace("|".$admin->ID."|","",$this->ReadBy)."|".$admin->ID."|";
+			$this->ReadBy = str_replace("|".$admin->ID."|", "", $this->ReadBy)."|".$admin->ID."|";
 			$this->save();
 		}
 		

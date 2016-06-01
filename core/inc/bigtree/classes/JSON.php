@@ -22,10 +22,10 @@
 				A JSON encoded string.
 		*/
 
-		static function encode($var,$sql = false) {
+		static function encode($var, $sql = false) {
 			// Only run version compare once in case we're encoding a lot of JSON
 			if (static::$PrettyPrint === false) {
-				if (version_compare(PHP_VERSION,"5.4.0") >= 0) {
+				if (version_compare(PHP_VERSION, "5.4.0") >= 0) {
 					static::$PrettyPrint = 1;
 				} else {
 					static::$PrettyPrint = 0;
@@ -33,7 +33,7 @@
 			}
 
 			// Use pretty print if we have PHP 5.4 or higher
-			$json = (static::$PrettyPrint) ? json_encode($var,JSON_PRETTY_PRINT |  JSON_UNESCAPED_SLASHES) : json_encode($var);
+			$json = (static::$PrettyPrint) ? json_encode($var, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) : json_encode($var);
 			
 			// SQL escape if requested
 			if ($sql) {
@@ -56,10 +56,10 @@
 				A JSON string.
 		*/
 
-		static function encodeColumns($data,$columns = array(),$preserve_keys = false) {
+		static function encodeColumns($data, $columns = array(), $preserve_keys = false) {
 			// Only run version compare once in case we're encoding a lot of JSON
 			if (static::$PrettyPrint === false) {
-				if (version_compare(PHP_VERSION,"5.4.0") >= 0) {
+				if (version_compare(PHP_VERSION, "5.4.0") >= 0) {
 					static::$PrettyPrint = 1;
 				} else {
 					static::$PrettyPrint = 0;
@@ -79,7 +79,7 @@
 				}
 			}
 
-			return (static::$PrettyPrint) ? json_encode($simple_data,JSON_UNESCAPED_SLASHES) : json_encode($simple_data);
+			return (static::$PrettyPrint) ? json_encode($simple_data, JSON_UNESCAPED_SLASHES) : json_encode($simple_data);
 		}
 
 	}

@@ -60,7 +60,7 @@
 			Returns:
 				A Lock object.
 		*/
-		
+
 		static function enforce($table, $id, $include, $force = false) {
 			global $admin, $bigtree, $cms, $db;
 			

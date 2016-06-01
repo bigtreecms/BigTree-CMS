@@ -7,13 +7,13 @@
 	namespace BigTree;
 
 	/**
-	  * @property-read int $ID
-	  * @property-read array $Navigation
-	  * @property-read string $Table
-	  * @property-read array $UserAccessibleGroups
-	  * @property-read string $UserAccessLevel
-	  * @property-read bool $UserCanAccess
-	  */
+	 * @property-read int $ID
+	 * @property-read array $Navigation
+	 * @property-read string $Table
+	 * @property-read array $UserAccessibleGroups
+	 * @property-read string $UserAccessLevel
+	 * @property-read bool $UserCanAccess
+	 */
 
 	class Module extends BaseObject {
 
@@ -41,27 +41,29 @@
 				module - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
-		function __construct($module) {
-			// Passing in just an ID
-			if (!is_array($module)) {
-				$module = SQL::fetch("SELECT * FROM bigtree_modules WHERE id = ?", $module);
-			}
+		function __construct($module = null) {
+			if ($module !== null) {
+				// Passing in just an ID
+				if (!is_array($module)) {
+					$module = SQL::fetch("SELECT * FROM bigtree_modules WHERE id = ?", $module);
+				}
 
-			// Bad data set
-			if (!is_array($module)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-			} else {
-				$this->ID = $module["id"];
+				// Bad data set
+				if (!is_array($module)) {
+					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+				} else {
+					$this->ID = $module["id"];
 
-				$this->Class = $module["class"];
-				$this->DeveloperOnly = $module["developer_only"];
-				$this->Extension = $module["extension"];
-				$this->Group = $module["group"] ?: false;
-				$this->GroupBasedPermissions = array_filter((array) @json_decode($module["gbp"],true));
-				$this->Icon = $module["icon"];
-				$this->Name = $module["name"];
-				$this->Position = $module["position"];
-				$this->Route = $module["route"];
+					$this->Class = $module["class"];
+					$this->DeveloperOnly = $module["developer_only"];
+					$this->Extension = $module["extension"];
+					$this->Group = $module["group"] ?: false;
+					$this->GroupBasedPermissions = array_filter((array) @json_decode($module["gbp"], true));
+					$this->Icon = $module["icon"];
+					$this->Name = $module["name"];
+					$this->Position = $module["position"];
+					$this->Route = $module["route"];
+				}
 			}
 		}
 
@@ -79,7 +81,7 @@
 				An array of entries from the bigtree_modules table.
 		*/
 
-		static function allByGroup($group,$sort = "position DESC, id ASC",$return_arrays = false,$auth = true) {
+		static function allByGroup($group, $sort = "position DESC, id ASC", $return_arrays = false, $auth = true) {
 			$modules = array();
 
 			if ($group) {
@@ -119,7 +121,7 @@
 				include_once Router::getIncludePath("inc/bigtree/modules.php");
 
 				$data = array(
-					"routes" => array("admin" => array(),"public" => array(),"template" => array()),
+					"routes" => array("admin" => array(), "public" => array(), "template" => array()),
 					"classes" => array(),
 					"extension_required_files" => array()
 				);
@@ -133,8 +135,8 @@
 
 					if ($class) {
 						// Get the class file path
-						if (strpos($route,"*") !== false) {
-							list($extension,$file_route) = explode("*",$route);
+						if (strpos($route, "*") !== false) {
+							list($extension, $file_route) = explode("*", $route);
 							$path = "extensions/$extension/classes/$file_route.php";
 						} else {
 							$path = "custom/inc/modules/$route.php";
@@ -147,7 +149,7 @@
 							foreach ($class::$RouteRegistry as $registration) {
 								$type = $registration["type"];
 								unset($registration["type"]);
-	
+
 								$data["routes"][$type][] = $registration;
 							}
 						}
@@ -159,8 +161,8 @@
 				foreach ($extensions as $id) {
 					if (file_exists(SERVER_ROOT."extensions/$id/required/")) {
 						$required_contents = FileSystem::getDirectoryContents(SERVER_ROOT."extensions/$id/required/");
-					
-						foreach (array_filter((array)$required_contents) as $file) {
+
+						foreach (array_filter((array) $required_contents) as $file) {
 							$data["extension_required_files"][] = $file;
 						}
 					}
@@ -171,7 +173,7 @@
 					FileSystem::createFile($cache_file, JSON::encode($data));
 				}
 			} else {
-				$data = json_decode(file_get_contents($cache_file),true);
+				$data = json_decode(file_get_contents($cache_file), true);
 			}
 
 			Router::$Registry = $data["routes"];
@@ -199,10 +201,10 @@
 				A Module object.
 		*/
 
-		static function create($name,$group,$class,$table,$permissions,$icon,$route = false,$developer_only = false) {
+		static function create($name, $group, $class, $table, $permissions, $icon, $route = false, $developer_only = false) {
 			// Find an available module route.
 			$route = $route ? $route : Link::urlify($name);
-			if (!ctype_alnum(str_replace("-","",$route)) || strlen($route) > 127) {
+			if (!ctype_alnum(str_replace("-", "", $route)) || strlen($route) > 127) {
 				return false;
 			}
 
@@ -226,16 +228,16 @@
 			while ($f = readdir($d)) {
 				if ($f != "." && $f != "..") {
 					// Drop the .php
-					$existing[] = substr($f,0,-4);
+					$existing[] = substr($f, 0, -4);
 				}
 			}
 			// Go through already created modules
-			array_merge($existing,SQL::fetchAllSingle("SELECT route FROM bigtree_modules"));
+			array_merge($existing, SQL::fetchAllSingle("SELECT route FROM bigtree_modules"));
 
 			// Get a unique route
 			$x = 2;
 			$original_route = $route;
-			while (in_array($route,$existing)) {
+			while (in_array($route, $existing)) {
 				$route = $original_route."-".$x;
 				$x++;
 			}
@@ -243,7 +245,7 @@
 			// Create class module if a class name was provided
 			if ($class && !file_exists(SERVER_ROOT."custom/inc/modules/$route.php")) {
 				// Class file
-				FileSystem::createFile(SERVER_ROOT."custom/inc/modules/$route.php",'<?php
+				FileSystem::createFile(SERVER_ROOT."custom/inc/modules/$route.php", '<?php
 	class '.$class.' extends BigTreeModule {
 		public static $RouteRegistry = array();
 		
@@ -255,7 +257,7 @@
 			}
 
 			// Create it
-			$id = SQL::insert("bigtree_modules",array(
+			$id = SQL::insert("bigtree_modules", array(
 				"name" => Text::htmlEncode($name),
 				"route" => $route,
 				"class" => $class,
@@ -265,7 +267,7 @@
 				"developer_only" => ($developer_only ? "on" : "")
 			));
 
-			AuditTrail::track("bigtree_modules",$id,"created");
+			AuditTrail::track("bigtree_modules", $id, "created");
 
 			return new Module($id);
 		}
@@ -281,15 +283,15 @@
 			FileSystem::deleteDirectory(SERVER_ROOT."custom/admin/modules/".$this->Route."/");
 
 			// Delete all the related auto module actions
-			SQL::delete("bigtree_module_interfaces",array("module" => $this->ID));
+			SQL::delete("bigtree_module_interfaces", array("module" => $this->ID));
 
 			// Delete actions
-			SQL::delete("bigtree_module_actions",array("module" => $this->ID));
+			SQL::delete("bigtree_module_actions", array("module" => $this->ID));
 
 			// Delete the module
-			SQL::delete("bigtree_modules",$this->ID);
+			SQL::delete("bigtree_modules", $this->ID);
 
-			AuditTrail::track("bigtree_modules",$this->ID,"deleted");
+			AuditTrail::track("bigtree_modules", $this->ID, "deleted");
 		}
 
 		/*
@@ -304,12 +306,13 @@
 				The permission level for the given item or module (if item was not passed).
 		*/
 
-		function getCachedAccessLevel($item = array(),$table = "") {
+		function getCachedAccessLevel($item = array(), $table = "") {
 			global $admin;
 
 			// Make sure a user is logged in
 			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 				trigger_error("Method getCachedAccessLevel not available outside logged-in user context.", E_USER_ERROR);
+
 				return "n";
 			}
 
@@ -377,6 +380,7 @@
 			// Make sure a user is logged in
 			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 				trigger_error("Method getGroupAccessLevel not available outside logged-in user context.");
+
 				return false;
 			}
 
@@ -437,6 +441,7 @@
 			// Make sure a user is logged in
 			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 				trigger_error("Property UserAccessibleGroups not available outside logged-in user context.");
+
 				return false;
 			}
 
@@ -459,6 +464,7 @@
 					}
 				}
 			}
+
 			return $groups;
 		}
 
@@ -476,6 +482,7 @@
 			// Make sure a user is logged in
 			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 				trigger_error("Property UserAccessLevel not available outside logged-in user context.");
+
 				return "n";
 			}
 
@@ -510,7 +517,7 @@
 				<getCachedAccessLevel>
 		*/
 
-		function getUserAccessLevelForEntry($entry,$table,$user = false) {
+		function getUserAccessLevelForEntry($entry, $table, $user = false) {
 			// Default to logged in user
 			if ($user === false) {
 				global $admin;
@@ -518,6 +525,7 @@
 				// Make sure a user is logged in
 				if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 					trigger_error("Property UserAccessLevel not available outside logged-in user context.");
+
 					return false;
 				}
 
@@ -558,6 +566,7 @@
 			// Make sure a user is logged in
 			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 				trigger_error("Property UserCanAccess not available outside logged-in user context.");
+
 				return false;
 			}
 
@@ -618,7 +627,7 @@
 
 			// Not set or empty, no access
 			if (!isset($admin->Permissions[$this->ID]) || $admin->Permissions[$this->ID] == "") {
-				define("BIGTREE_ACCESS_DENIED",true);
+				define("BIGTREE_ACCESS_DENIED", true);
 				Auth::stop(file_get_contents(Router::getIncludePath("admin/pages/_denied.php")));
 			}
 
@@ -648,7 +657,7 @@
 
 			// Require explicit publisher access
 			if ($admin->Permissions[$this->ID] != "p") {
-				define("BIGTREE_ACCESS_DENIED",true);
+				define("BIGTREE_ACCESS_DENIED", true);
 				Auth::stop(file_get_contents(Router::getIncludePath("admin/pages/_denied.php")));
 			}
 		}
@@ -667,8 +676,9 @@
 				Modified $value
 		*/
 
-		static function runParser($item,$value,$code) {
+		static function runParser($item, $value, $code) {
 			eval($code);
+
 			return $value;
 		}
 
@@ -678,25 +688,40 @@
 		*/
 
 		function save() {
-			SQL::update("bigtree_modules",$this->ID,array(
-				"group" => $this->Group,
-				"name" => Text::htmlEncode($this->Name),
-				"route" => SQL::unique("bigtree_modules","route",Link::urlify($this->Route),$this->ID),
-				"class" => $this->Class,
-				"icon" => $this->Icon,
-				"position" => $this->Position,
-				"gbp" => array_filter((array) $this->GroupBasedPermissions),
-				"developer_only" => $this->DeveloperOnly ? "on" : ""
-			));
+			if (empty($this->ID)) {
+				$module = static::create(
+					$this->Name,
+					$this->Group,
+					$this->Class,
+					$this->Table,
+					$this->GroupBasedPermissions,
+					!empty($this->Route) ? $this->Route : false,
+					!empty($this->DeveloperOnly) ? true : false
+				);
 
-			AuditTrail::track("bigtree_modules",$this->ID,"updated");
+				if ($module) {
+					$this->ID = $module->ID;
+				}
+			} else {
+				SQL::update("bigtree_modules", $this->ID, array(
+					"group" => $this->Group,
+					"name" => Text::htmlEncode($this->Name),
+					"route" => SQL::unique("bigtree_modules", "route", Link::urlify($this->Route), $this->ID),
+					"class" => $this->Class,
+					"icon" => $this->Icon,
+					"position" => $this->Position,
+					"gbp" => array_filter((array) $this->GroupBasedPermissions),
+					"developer_only" => $this->DeveloperOnly ? "on" : ""
+				));
+				AuditTrail::track("bigtree_modules", $this->ID, "updated");
 
-			// Clear cache file in case class or route changed
-			@unlink(SERVER_ROOT."cache/bigtree-module-cache.json");
+				// Clear cache file in case class or route changed
+				@unlink(SERVER_ROOT."cache/bigtree-module-cache.json");
 
-			// If this has a permissions table for group based permissions, wipe that table's view cache
-			if ($this->GroupBasedPermissions["table"]) {
-				ModuleView::clearCacheForTable($this->GroupBasedPermissions["table"]);
+				// If this has a permissions table for group based permissions, wipe that table's view cache
+				if ($this->GroupBasedPermissions["table"]) {
+					ModuleView::clearCacheForTable($this->GroupBasedPermissions["table"]);
+				}
 			}
 		}
 
@@ -713,7 +738,7 @@
 				developer_only - Sets a module to be accessible/visible to only developers.
 		*/
 
-		function update($name,$group,$class,$permissions,$icon,$developer_only = false) {
+		function update($name, $group, $class, $permissions, $icon, $developer_only = false) {
 			$this->Name = $name;
 			$this->Group = $group ?: null;
 			$this->Class = $class;

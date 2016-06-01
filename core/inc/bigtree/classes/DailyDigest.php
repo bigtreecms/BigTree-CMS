@@ -68,8 +68,9 @@
 			}
 
 			if ($alerts_markup) {
-				return str_replace("{content_alerts}",$alerts_markup,$wrapper);
+				return str_replace("{content_alerts}", $alerts_markup, $wrapper);
 			}
+
 			return "";
 		}
 
@@ -120,11 +121,11 @@
 					} else {
 						$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Edit</td>';
 					}
-					$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.$change->EditLink.'"><img src="'.ADMIN_ROOT.'images/email/launch.gif" alt="Launch" /></a></td>' . "\r\n";
+					$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0; text-align: center;"><a href="'.$change->EditLink.'"><img src="'.ADMIN_ROOT.'images/email/launch.gif" alt="Launch" /></a></td>'."\r\n";
 					$changes_markup .= '</tr>';
 				}
 
-				return str_replace("{pending_changes}",$changes_markup,$wrapper);
+				return str_replace("{pending_changes}", $changes_markup, $wrapper);
 			} else {
 				return "";
 			}
@@ -142,7 +143,7 @@
 		*/
 
 		static function getMessages($user) {
-			$messages = Message::allByUser($user["id"],true);
+			$messages = Message::allByUser($user["id"], true);
 			$messages_markup = "";
 			$wrapper = '<div style="margin: 20px 0 30px;">
 							<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Unread Messages</h3>
@@ -165,11 +166,11 @@
 					$messages_markup .= '<tr>
 											<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$message["sender_name"].'</td>
 											<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$message["subject"].'</td>
-											<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.date("n/j/y g:ia",strtotime($message["date"])).'</td>
+											<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.date("n/j/y g:ia", strtotime($message["date"])).'</td>
 										</tr>';
 				}
 
-				return str_replace("{unread_messages}",$messages_markup,$wrapper);
+				return str_replace("{unread_messages}", $messages_markup, $wrapper);
 			} else {
 				return "";
 			}
@@ -196,7 +197,7 @@
 
 			// Cache extension plugins
 			Extension::initializeCache();
-		
+
 			// We're going to get the position setups and the multi-sort the list to get it in order
 			foreach (static::$CoreOptions as $id => $details) {
 				if (empty($digest_settings[$id]["disabled"])) {
@@ -213,7 +214,7 @@
 					}
 				}
 			}
-			array_multisort($positions,SORT_DESC,$blocks);
+			array_multisort($positions, SORT_DESC, $blocks);
 
 			// Loop through each user who has opted in to emails
 			$daily_digest_users = SQL::fetchAll("SELECT * FROM bigtree_users WHERE daily_digest = 'on'");
@@ -221,7 +222,7 @@
 				$block_markup = "";
 
 				foreach ($blocks as $function) {
-					$block_markup .= call_user_func($function,$user);
+					$block_markup .= call_user_func($function, $user);
 				}
 
 				// Send it
@@ -230,10 +231,10 @@
 					$body = str_ireplace("{www_root}", $bigtree["config"]["www_root"], $body);
 					$body = str_ireplace("{admin_root}", $bigtree["config"]["admin_root"], $body);
 					$body = str_ireplace("{site_title}", $site_title, $body);
-					$body = str_ireplace("{date}", date("F j, Y",time()), $body);
+					$body = str_ireplace("{date}", date("F j, Y", time()), $body);
 					$body = str_ireplace("{blocks}", $block_markup, $body);
 
-					$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
+					$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.", "", $_SERVER["HTTP_HOST"]) : str_replace(array("http://www.", "https://www.", "http://", "https://"), "", DOMAIN));
 
 					$email = new Email;
 
