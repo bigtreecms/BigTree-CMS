@@ -31,7 +31,7 @@
 				// Can't use local, see what FTP methods are available
 				$ftp = new FTP;
 				$sftp = new SFTP;
-	
+
 				if ($ftp->connect("localhost")) {
 					$this->Connection = $ftp;
 					$this->Method = "FTP";
@@ -57,6 +57,7 @@
 			if ($zip->errorName() != "PCLZIP_ERR_NO_ERROR") {
 				return false;
 			}
+
 			return true;
 		}
 
@@ -90,9 +91,9 @@
 			// Figure out if we have just a single directory at the root
 			$zip_root = $this->zipRoot($zip);
 			if ($zip_root) {
-				$zip->extract(PCLZIP_OPT_PATH,SERVER_ROOT."cache/update/",PCLZIP_OPT_REMOVE_PATH,$zip_root);
-			} else {				
-				$zip->extract(PCLZIP_OPT_PATH,SERVER_ROOT."cache/update/");
+				$zip->extract(PCLZIP_OPT_PATH, SERVER_ROOT."cache/update/", PCLZIP_OPT_REMOVE_PATH, $zip_root);
+			} else {
+				$zip->extract(PCLZIP_OPT_PATH, SERVER_ROOT."cache/update/");
 			}
 			
 			// Error occurred extracting? Return false
@@ -103,7 +104,7 @@
 			// Make sure everything extracted is 777 -- if we're writing as Apache we want bust permissions for the user.
 			$contents = FileSystem::getDirectoryContents(SERVER_ROOT."cache/update/");
 			foreach ($contents as $file) {
-				chmod($file,0777);
+				chmod($file, 0777);
 			}
 
 			return true;
@@ -121,8 +122,8 @@
 				true if successful.
 		*/
 
-		function ftpLogin($user,$password) {
-			return $this->Connection->login($user,$password) ? true : false;
+		function ftpLogin($user, $password) {
+			return $this->Connection->login($user, $password) ? true : false;
 		}
 
 		/*
@@ -148,9 +149,10 @@
 				$ftp_root = "/httpdocs";
 			} elseif ($this->Connection->changeDirectory("/public_html/core/inc/bigtree")) {
 				$ftp_root = "/public_html";
-			} elseif ($this->Connection->changeDirectory("/".str_replace(array("http://","https://"),"",DOMAIN)."inc/bigtree/")) {
-				$ftp_root = "/".str_replace(array("http://","https://"),"",DOMAIN);
+			} elseif ($this->Connection->changeDirectory("/".str_replace(array("http://", "https://"), "", DOMAIN)."inc/bigtree/")) {
+				$ftp_root = "/".str_replace(array("http://", "https://"), "", DOMAIN);
 			}
+
 			return $ftp_root;
 		}
 
@@ -163,7 +165,7 @@
 		*/
 
 		function installFTP($ftp_root) {
-			$ftp_root = "/".trim($ftp_root,"/")."/";
+			$ftp_root = "/".trim($ftp_root, "/")."/";
 
 			// Create backups folder
 			$this->Connection->createDirectory($ftp_root."backups/");
@@ -172,14 +174,14 @@
 			if ($this->Extension === false) {
 				// Backup database
 				SQL::backup(SERVER_ROOT."cache/backup.sql");
-				$this->Connection->rename($ftp_root."cache/backup.sql",$ftp_root."backups/core-".BIGTREE_VERSION."/backup.sql");
+				$this->Connection->rename($ftp_root."cache/backup.sql", $ftp_root."backups/core-".BIGTREE_VERSION."/backup.sql");
 				
 				// Backup old core
-				$this->Connection->rename($ftp_root."core/",$ftp_root."backups/core-".BIGTREE_VERSION."/");
-	
+				$this->Connection->rename($ftp_root."core/", $ftp_root."backups/core-".BIGTREE_VERSION."/");
+
 				// Move new core into place
-				$this->Connection->rename($ftp_root."cache/update/core/",$ftp_root."core/");
-			// Doing an extension upgrade
+				$this->Connection->rename($ftp_root."cache/update/core/", $ftp_root."core/");
+				// Doing an extension upgrade
 			} else {
 				$extension = $this->Extension;
 
@@ -188,17 +190,17 @@
 				$this->Connection->createDirectory($ftp_root."backups/extensions/$extension/");
 
 				// Read manifest file for current version
-				$current_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$extension/manifest.json"),true);
+				$current_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$extension/manifest.json"), true);
 				$old_version = $current_manifest["version"];
 
 				// Get a unique directory name
-				$old_version = FileSystem::getAvailableFileName(SERVER_ROOT."backups/extensions/$extension/",$old_version);
+				$old_version = FileSystem::getAvailableFileName(SERVER_ROOT."backups/extensions/$extension/", $old_version);
 
 				// Move old extension into backups
-				$this->Connection->rename($ftp_root."extensions/$extension/",$ftp_root."backups/extensions/$extension/$old_version/");
+				$this->Connection->rename($ftp_root."extensions/$extension/", $ftp_root."backups/extensions/$extension/$old_version/");
 
 				// Move new extension into place
-				$this->Connection->rename($ftp_root."cache/update/",$ftp_root."extensions/$extension/");
+				$this->Connection->rename($ftp_root."cache/update/", $ftp_root."extensions/$extension/");
 			}
 			
 			$this->cleanup();
@@ -216,16 +218,16 @@
 			// Doing a core upgrade
 			if ($this->Extension === false) {
 				// Move old core into backups
-				rename(SERVER_ROOT."core/",SERVER_ROOT."backups/core-".BIGTREE_VERSION."/");
-			
+				rename(SERVER_ROOT."core/", SERVER_ROOT."backups/core-".BIGTREE_VERSION."/");
+
 				// Backup database
 				global $admin;
 				$admin->backupDatabase(SERVER_ROOT."backups/core-".BIGTREE_VERSION."/backup.sql");
-			
-				// Move new core into place
-				rename(SERVER_ROOT."cache/update/core/",SERVER_ROOT."core/");
 
-			// Doing an extension upgrade
+				// Move new core into place
+				rename(SERVER_ROOT."cache/update/core/", SERVER_ROOT."core/");
+
+				// Doing an extension upgrade
 			} else {
 				$extension = $this->Extension;
 
@@ -233,17 +235,17 @@
 				FileSystem::createDirectory(SERVER_ROOT."backups/extensions/$extension/");
 
 				// Read manifest file for current version
-				$current_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$extension/manifest.json"),true);
+				$current_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$extension/manifest.json"), true);
 				$old_version = $current_manifest["version"];
 
 				// Get a unique directory name
-				$old_version = FileSystem::getAvailableFileName(SERVER_ROOT."backups/extensions/$extension/",$old_version);
+				$old_version = FileSystem::getAvailableFileName(SERVER_ROOT."backups/extensions/$extension/", $old_version);
 
 				// Move old extension into backups
-				rename(SERVER_ROOT."extensions/$extension/",SERVER_ROOT."backups/extensions/$extension/$old_version/");
+				rename(SERVER_ROOT."extensions/$extension/", SERVER_ROOT."backups/extensions/$extension/$old_version/");
 
 				// Move new extension into place
-				rename(SERVER_ROOT."cache/update/",SERVER_ROOT."extensions/$extension/");
+				rename(SERVER_ROOT."cache/update/", SERVER_ROOT."extensions/$extension/");
 			}
 
 			$this->cleanup();
@@ -258,14 +260,14 @@
 				destination - The full path to unzip the file's contents to.
 		*/
 		
-		static function unzip($file,$destination) {
+		static function unzip($file, $destination) {
 			// If we can't write the output directory, we're not getting anywhere.
 			if (!FileSystem::getDirectoryWritability($destination)) {
 				return false;
 			}
 
 			// Up the memory limit for the unzip.
-			ini_set("memory_limit","512M");
+			ini_set("memory_limit", "512M");
 			
 			$destination = rtrim($destination)."/";
 			FileSystem::createDirectory($destination);
@@ -286,12 +288,12 @@
 					}
 					
 					// If it's a directory, ignore it. We'll create them in putFile.
-					if (substr($info["name"],-1) == "/") {
+					if (substr($info["name"], -1) == "/") {
 						continue;
 					}
 					
 					// Ignore __MACOSX and all it's files.
-					if (substr($info["name"],0,9) == "__MACOSX/") {
+					if (substr($info["name"], 0, 9) == "__MACOSX/") {
 						continue;
 					}
 
@@ -300,10 +302,11 @@
 						// File extraction failed.
 						return false;
 					}
-					FileSystem::createFile($destination.$file["name"],$content);
+					FileSystem::createFile($destination.$file["name"], $content);
 				}
 				
 				$z->close();
+
 				return true;
 
 			// Fall back on PclZip if we don't have the "native" version.
@@ -335,11 +338,11 @@
 					}
 					
 					// Ignore __MACOSX and all it's files.
-					if (substr($item["filename"],0,9) == "__MACOSX/") {
+					if (substr($item["filename"], 0, 9) == "__MACOSX/") {
 						continue;
 					}
 					
-					FileSystem::createFile($destination.$item["filename"],$item["content"]);
+					FileSystem::createFile($destination.$item["filename"], $item["content"]);
 				}
 				
 				return true;
@@ -362,8 +365,8 @@
 			$root_count = 0;
 			$root = false;
 			foreach ($contents as $content) {
-				$file = rtrim($content["filename"],"/");
-				$pieces = explode("/",$file);
+				$file = rtrim($content["filename"], "/");
+				$pieces = explode("/", $file);
 				if (count($pieces) == 1) {
 					$root_count++;
 					$root = $file;
@@ -372,6 +375,7 @@
 			if ($root_count == 1) {
 				return $root;
 			}
+
 			return false;
 		}
 	}

@@ -107,7 +107,7 @@
 				type - The icon to draw.
 		*/
 
-		static function growl($title,$message,$type = "success") {
+		static function growl($title, $message, $type = "success") {
 			$_SESSION["bigtree_admin"]["growl"] = array("message" => Text::translate($message), "title" => Text::translate($title), "type" => $type);
 		}
 

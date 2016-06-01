@@ -30,21 +30,23 @@
 				tag - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
-		function __construct($tag) {
-			// Passing in just an ID
-			if (!is_array($tag)) {
-				$tag = SQL::fetch("SELECT * FROM bigtree_tags WHERE id = ?", $tag);
-			}
+		function __construct($tag = null) {
+			if ($tag !== null) {
+				// Passing in just an ID
+				if (!is_array($tag)) {
+					$tag = SQL::fetch("SELECT * FROM bigtree_tags WHERE id = ?", $tag);
+				}
 
-			// Bad data set
-			if (!is_array($tag)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-			} else {
-				$this->ID = $tag["id"];
-				$this->Metaphone = $tag["metaphone"];
-				$this->Route = $tag["route"];
+				// Bad data set
+				if (!is_array($tag)) {
+					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+				} else {
+					$this->ID = $tag["id"];
+					$this->Metaphone = $tag["metaphone"];
+					$this->Route = $tag["route"];
 
-				$this->Name = $tag["tag"];
+					$this->Name = $tag["tag"];
+				}
 			}
 		}
 

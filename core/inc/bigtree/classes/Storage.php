@@ -47,15 +47,15 @@
 
 		function delete($file_location) {
 			// Make sure we're using IPLs so we don't get it confused with cloud
-			$file_location = str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),$file_location);
+			$file_location = str_replace(array(STATIC_ROOT, WWW_ROOT), array("{staticroot}", "{wwwroot}"), $file_location);
 
 			// Cloud
-			if (substr($file_location,0,4) == "http" || substr($file_location,0,5) == "https" || substr($file_location,0,2) == "//") {
+			if (substr($file_location, 0, 4) == "http" || substr($file_location, 0, 5) == "https" || substr($file_location, 0, 2) == "//") {
 				// Try to get the container and pointer
-				$parts = explode("/",$file_location);
+				$parts = explode("/", $file_location);
 				$domain = $parts[2];
 				$container = $parts[3];
-				$pointer_parts = array_slice($parts,4);
+				$pointer_parts = array_slice($parts, 4);
 
 				if ($domain == "s3.amazonaws.com") {
 					$service = "amazon";
@@ -83,10 +83,10 @@
 						return false;
 					}
 
-					$pointer_parts = array_slice($parts,3);
+					$pointer_parts = array_slice($parts, 3);
 				}
 
-				$pointer = implode("/",$pointer_parts);
+				$pointer = implode("/", $pointer_parts);
 
 				// This is our primary storage service so we're going to delete from the cloudfiles cache as well
 				if ($this->Settings["service"] == $service && $this->Settings["Container"] == $container) {
@@ -96,11 +96,11 @@
 					));
 				}
 
-				return $cloud->deleteFile($container,$pointer);
+				return $cloud->deleteFile($container, $pointer);
 			}
 
 			// Local
-			return FileSystem::deleteFile(str_replace(array("{wwwroot}","{staticroot}"),SITE_ROOT,$file_location));
+			return FileSystem::deleteFile(str_replace(array("{wwwroot}", "{staticroot}"), SITE_ROOT, $file_location));
 		}
 
 		/*
@@ -175,7 +175,7 @@
 				The URL of the stored file.
 		*/
 
-		function replace($local_file,$file_name,$relative_path,$remove_original = true) {
+		function replace($local_file, $file_name, $relative_path, $remove_original = true) {
 			global $bigtree;
 
 			// Make sure there are no path exploits
@@ -195,10 +195,10 @@
 			}
 
 			// Enforce trailing slashe on relative_path
-			$relative_path = $relative_path ? rtrim($relative_path,"/")."/" : "files/";
+			$relative_path = $relative_path ? rtrim($relative_path, "/")."/" : "files/";
 
 			if ($this->Cloud) {
-				$success = $this->Cloud->uploadFile($local_file,$this->Settings["Container"],$relative_path.$file_name,true);
+				$success = $this->Cloud->uploadFile($local_file, $this->Settings["Container"], $relative_path.$file_name, true);
 
 				if ($success) {
 					SQL::update("bigtree_caches",
@@ -223,9 +223,9 @@
 				return $success;
 			} else {
 				if ($remove_original) {
-					$success = FileSystem::moveFile($local_file,SITE_ROOT.$relative_path.$file_name);
+					$success = FileSystem::moveFile($local_file, SITE_ROOT.$relative_path.$file_name);
 				} else {
-					$success = FileSystem::copyFile($local_file,SITE_ROOT.$relative_path.$file_name);
+					$success = FileSystem::copyFile($local_file, SITE_ROOT.$relative_path.$file_name);
 				}
 
 				if ($success) {
@@ -251,7 +251,7 @@
 				The URL of the stored file.
 		*/
 
-		function store($local_file,$file_name,$relative_path,$remove_original = true,$prefixes = array()) {
+		function store($local_file, $file_name, $relative_path, $remove_original = true, $prefixes = array()) {
 			global $bigtree;
 
 			// Make sure there are no path exploits
@@ -271,7 +271,7 @@
 			}
 
 			// Enforce trailing slashe on relative_path
-			$relative_path = $relative_path ? rtrim($relative_path,"/")."/" : "files/";
+			$relative_path = $relative_path ? rtrim($relative_path, "/")."/" : "files/";
 
 			// Cloud Storage
 			if ($this->Cloud) {
@@ -279,7 +279,7 @@
 				$parts = pathinfo($file_name);
 				$clean_name = Link::urlify($parts["filename"]);
 				if (strlen($clean_name) > 50) {
-					$clean_name = substr($clean_name,0,50);
+					$clean_name = substr($clean_name, 0, 50);
 				}
 
 				// Best case name
@@ -302,7 +302,7 @@
 
 						$exists = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_caches 
 													WHERE identifier = 'org.bigtreecms.cloudfiles' 
-													AND (".implode(" OR ",$prefix_query).")");
+													AND (".implode(" OR ", $prefix_query).")");
 						if ($exists) {
 							$file_name = false;
 						}
@@ -310,7 +310,7 @@
 				}
 
 				// Upload it
-				$success = $this->Cloud->uploadFile($local_file,$this->Settings["Container"],$relative_path.$file_name,true);
+				$success = $this->Cloud->uploadFile($local_file, $this->Settings["Container"], $relative_path.$file_name, true);
 
 				if ($success) {
 					SQL::insert("bigtree_caches", array(
@@ -332,12 +332,12 @@
 
 			// Local Storage
 			} else {
-				$safe_name = FileSystem::getAvailableFileName(SITE_ROOT.$relative_path,$file_name,$prefixes);
+				$safe_name = FileSystem::getAvailableFileName(SITE_ROOT.$relative_path, $file_name, $prefixes);
 
 				if ($remove_original) {
-					$success = FileSystem::moveFile($local_file,SITE_ROOT.$relative_path.$safe_name);
+					$success = FileSystem::moveFile($local_file, SITE_ROOT.$relative_path.$safe_name);
 				} else {
-					$success = FileSystem::copyFile($local_file,SITE_ROOT.$relative_path.$safe_name);
+					$success = FileSystem::copyFile($local_file, SITE_ROOT.$relative_path.$safe_name);
 				}
 
 				if ($success) {
@@ -360,8 +360,8 @@
 		*/
 		
 		static function unformatBytes($size) {
-			$type = substr($size,-1,1);
-			$num = substr($size,0,-1);
+			$type = substr($size, -1, 1);
+			$num = substr($size, 0, -1);
 			
 			if ($type == "M") {
 				return $num * 1048576;
