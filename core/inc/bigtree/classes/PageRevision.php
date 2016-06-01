@@ -63,7 +63,7 @@
 				$this->External = $revision["external"] ? Link::decode($revision["external"]) : "";
 				$this->MetaDescription = $revision["meta_description"];
 				$this->NewWindow = $revision["new_window"] ? true : false;
-				$this->Resources = array_filter((array) @json_decode($revision["resources"],true));
+				$this->Resources = array_filter((array) @json_decode($revision["resources"], true));
 				$this->Saved = $revision["saved"] ? true : false;
 				$this->SavedDescription = $revision["saved_description"];
 				$this->Template = $revision["template"];
@@ -84,7 +84,7 @@
 				An array of "saved" revisions and "unsaved" revisions.
 		*/
 
-		static function allByPage($page,$sort = "updated_at DESC",$return_arrays = false) {
+		static function allByPage($page, $sort = "updated_at DESC", $return_arrays = false) {
 			$saved = $unsaved = array();
 			$revisions = SQL::fetchAll("SELECT bigtree_users.name, 
 											   bigtree_users.email, 
@@ -120,8 +120,8 @@
 				A PageRevision object.
 		*/
 
-		static function create(Page $page,$description = "") {
-			$id = SQL::insert("bigtree_page_revisions",array(
+		static function create(Page $page, $description = "") {
+			$id = SQL::insert("bigtree_page_revisions", array(
 				"page" => $page->ID,
 				"title" => $page->Title,
 				"meta_description" => $page->MetaDescription,
@@ -135,7 +135,7 @@
 				"saved_description" => $description
 			));
 
-			AuditTrail::track("bigtree_page_revisions",$id,"created");
+			AuditTrail::track("bigtree_page_revisions", $id, "created");
 			
 			return new PageRevision($id);
 		}
@@ -146,7 +146,7 @@
 		*/
 
 		function save() {
-			SQL::update("bigtree_page_revisions",$this->ID,array(
+			SQL::update("bigtree_page_revisions", $this->ID, array(
 				"external" => $this->External,
 				"new_window" => $this->NewWindow ? "on" : "",
 				"resources" => $this->Resources,
@@ -156,7 +156,7 @@
 				"title" => $this->Title
 			));
 
-			AuditTrail::track("bigtree_page_revisions",$this->ID,"updated");
+			AuditTrail::track("bigtree_page_revisions", $this->ID, "updated");
 		}
 
 		/*

@@ -36,29 +36,31 @@
 				change - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
-		function __construct($change) {
-			// Passing in just an ID
-			if (!is_array($change)) {
-				$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $change);
-			}
+		function __construct($change = null) {
+			if ($change !== null) {
+				// Passing in just an ID
+				if (!is_array($change)) {
+					$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $change);
+				}
 
-			// Bad data set
-			if (!is_array($change)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-			} else {
-				$this->Date = $change["date"];
-				$this->ID = $change["id"];
+				// Bad data set
+				if (!is_array($change)) {
+					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+				} else {
+					$this->Date = $change["date"];
+					$this->ID = $change["id"];
 
-				$this->Changes = (array) @json_decode($change["changes"], true);
-				$this->ItemID = ($change["item_id"] !== null) ? $change["item_id"] : null;
-				$this->ManyToManyChanges = (array) @json_decode($change["mtm_changes"], true);
-				$this->Module = $change["module"];
-				$this->PendingPageParent = $change["pending_page_parent"];
-				$this->PublishHook = $change["publish_hook"];
-				$this->Table = $change["table"];
-				$this->TagsChanges = (array) @json_decode($change["tags_changes"], true);
-				$this->Title = $change["title"];
-				$this->User = $change["user"];
+					$this->Changes = (array) @json_decode($change["changes"], true);
+					$this->ItemID = ($change["item_id"] !== null) ? $change["item_id"] : null;
+					$this->ManyToManyChanges = (array) @json_decode($change["mtm_changes"], true);
+					$this->Module = $change["module"];
+					$this->PendingPageParent = $change["pending_page_parent"];
+					$this->PublishHook = $change["publish_hook"];
+					$this->Table = $change["table"];
+					$this->TagsChanges = (array) @json_decode($change["tags_changes"], true);
+					$this->Title = $change["title"];
+					$this->User = $change["user"];
+				}
 			}
 		}
 
@@ -368,39 +370,44 @@
 		*/
 
 		function save() {
-			global $admin;
-
-			// Get the user creating the change
-			if (get_class($admin) == "BigTreeAdmin" && $admin->ID) {
-				$user = $admin->ID;
+			if (empty($this->ID)) {
+				$new = static::create($this->Table, $this->ItemID, $this->Changes, $this->ManyToManyChanges, $this->TagsChanges, $this->Module, $this->PublishHook);
+				$this->inherit($new);
 			} else {
-				$user = null;
-			}
+				global $admin;
+				
+				// Get the user creating the change
+				if (get_class($admin) == "BigTreeAdmin" && $admin->ID) {
+					$user = $admin->ID;
+				} else {
+					$user = null;
+				}
 
-			// If this is an existing entry's changes, only keep what's different
-			if ($this->ItemID !== false) {
-				$original = SQL::fetch("SELECT * FROM `".$this->Table."` WHERE id = ?", $this->ItemID);
+				// If this is an existing entry's changes, only keep what's different
+				if ($this->ItemID !== false) {
+					$original = SQL::fetch("SELECT * FROM `".$this->Table."` WHERE id = ?", $this->ItemID);
 
-				foreach ($this->Changes as $key => $value) {
-					if ($original[$key] === $value) {
-						unset($this->Changes[$key]);
+					foreach ($this->Changes as $key => $value) {
+						if ($original[$key] === $value) {
+							unset($this->Changes[$key]);
+						}
 					}
 				}
+
+				SQL::update("bigtree_pending_changes", $this->ID, array(
+					"changes" => $this->Changes,
+					"item_id" => $this->ItemID ?: null,
+					"mtm_changes" => $this->ManyToManyChanges,
+					"module" => $this->Module ?: "",
+					"pending_page_parent" => $this->PendingPageParent,
+					"publish_hook" => $this->PublishHook ?: null,
+					"tags_changes" => $this->TagsChanges,
+					"title" => Text::htmlEncode($this->Title),
+					"user" => $user ?: $this->User
+				));
+
+				AuditTrail::track("bigtree_pending_changes", $this->ID, "updated");
 			}
-
-			SQL::update("bigtree_pending_changes", $this->ID, array(
-				"changes" => $this->Changes,
-				"item_id" => $this->ItemID ?: null,
-				"mtm_changes" => $this->ManyToManyChanges,
-				"module" => $this->Module ?: "",
-				"pending_page_parent" => $this->PendingPageParent,
-				"publish_hook" => $this->PublishHook ?: null,
-				"tags_changes" => $this->TagsChanges,
-				"title" => Text::htmlEncode($this->Title),
-				"user" => $user ?: $this->User
-			));
-
-			AuditTrail::track("bigtree_pending_changes", $this->ID, "updated");
 		}
 
 		/*

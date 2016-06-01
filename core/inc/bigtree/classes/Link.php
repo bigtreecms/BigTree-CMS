@@ -107,6 +107,25 @@
 		}
 
 		/*
+			Function: detokenizeArray
+				Replaces all root tokens in an array of URLs (i.e. {wwwroot}) with hard links.
+
+			Parameters:
+				array - An array of strings with root tokens.
+
+			Returns:
+				An array of strings with hard links.
+		*/
+
+		static function detokenizeArray($array) {
+			foreach ($array as $key => $val) {
+				$array[$key] = static::detokenize($val);
+			}
+
+			return $array;
+		}
+
+		/*
 			Function: encode
 				Converts links in a string into internal page links.
 
@@ -578,6 +597,25 @@
 			}
 
 			return str_replace(static::$TokenKeys, static::$TokenValues, $string);
+		}
+
+		/*
+			Function: tokenizeArray
+				Replaces all hard roots in an array of URLs with tokens (i.e. {wwwroot}).
+
+			Parameters:
+				array - An array of URL strings.
+
+			Returns:
+				An array of URL strings with tokens.
+		*/
+
+		static function tokenizeArray($array) {
+			foreach ($array as $key => $value) {
+				$array[$key] = static::tokenize($value);
+			}
+
+			return $array;
 		}
 
 		/*

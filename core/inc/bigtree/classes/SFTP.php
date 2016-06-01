@@ -52,7 +52,7 @@
 				true if successful
 		*/
 
-		function connect($host,$port = 22) {
+		function connect($host, $port = 22) {
 			// Test connection
 			$connection = @fsockopen($host, $port);
 			
@@ -132,7 +132,7 @@
 				true if successful.
 		*/
 
-		function downloadFile($remote,$local) {
+		function downloadFile($remote, $local) {
 			return $this->Connection->get($remote, $local);
 		}
 
@@ -160,7 +160,7 @@
 		*/
 
 		function getDirectoryContents($path = "") {
-			$types = array("1" => "f","2" => "d","3" => "l");
+			$types = array("1" => "f", "2" => "d", "3" => "l");
 			$list = $this->Connection->rawlist($path);
 			$formatted_list = array();
 			$names = array();
@@ -174,7 +174,7 @@
 						"owner" => $line["uid"],
 						"group" => $line["gid"],
 						"size" => $line["size"],
-						"date" => date("M d Y",$line["mtime"]),
+						"date" => date("M d Y", $line["mtime"]),
 						"name" => $line["filename"]
 					);
 					$names[] = $line["filename"];
@@ -223,7 +223,7 @@
 				true if successful
 		*/
 
-		function login($user = null,$pass = null) {
+		function login($user = null, $pass = null) {
 			if (!$this->Connection) {
 				return false;
 			}
@@ -272,7 +272,7 @@
 				true if successful
 		*/
 
-		function uploadFile($local,$remote) {
+		function uploadFile($local, $remote) {
 			if (!@file_exists($local)) {
 				return false;
 			}

@@ -59,7 +59,7 @@
 			if (!is_array($change)) {
 				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 			} else {
-				$data = json_decode($change["changes"],true);
+				$data = json_decode($change["changes"], true);
 
 				// Protected vars first
 				$this->CreatedAt = $change["date"];
@@ -79,7 +79,7 @@
 				$this->Parent = $change["pending_page_parent"];
 				$this->Path = false;
 				$this->PublishAt = $data["publish_at"] ?: false;
-				$this->Resources = is_array($data["resources"]) ? $data["resources"] : json_decode($data["resources"],true);
+				$this->Resources = is_array($data["resources"]) ? $data["resources"] : json_decode($data["resources"], true);
 				$this->Route = $data["route"] ?: Link::urlify($data["nav_title"]);
 				$this->SEOInvisible = $data["seo_invisible"] ? true : false;
 				$this->Template = $data["template"];

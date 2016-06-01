@@ -17,7 +17,7 @@
 		public static $RouteParamNamesPath = array();
 		public static $Secure = false;
 		public static $Trunk = false;
-	
+
 		/*
 			Function: checkPathHistory
 				Checks the page route history table, redirects if the page is found.
@@ -213,16 +213,16 @@
 				// We're done, everything is a command now.
 				if ($ended) {
 					$commands[] = $piece;
-					// Keep looking for directories.
+				// Keep looking for directories.
 				} elseif (is_dir($inc_dir.$piece)) {
 					$inc_file .= $piece."/";
 					$inc_dir .= $piece."/";
-					// File exists, we're ending now.
+				// File exists, we're ending now.
 				} elseif ($piece != "_header" && $piece != "_footer" && file_exists($inc_file.$piece.".php")) {
 					$inc_file .= $piece.".php";
 					$ended = true;
 					$found_file = true;
-					// Couldn't find a file or directory.
+				// Couldn't find a file or directory.
 				} else {
 					$commands[] = $piece;
 					$ended = true;
@@ -233,10 +233,10 @@
 				// If we have default in the routed directory, use it.
 				if (file_exists($inc_dir."default.php")) {
 					$inc_file = $inc_dir."default.php";
-					// See if we can change the directory name into .php file in case the directory is empty but we have .php
+				// See if we can change the directory name into .php file in case the directory is empty but we have .php
 				} elseif (file_exists(rtrim($inc_dir, "/").".php")) {
 					$inc_file = rtrim($inc_dir, "/").".php";
-					// We couldn't route anywhere apparently.
+				// We couldn't route anywhere apparently.
 				} else {
 					return array(false, false);
 				}
@@ -395,9 +395,9 @@
 			
 			// See if we have a straight up perfect match to the path.
 			$page = SQL::fetch("SELECT bigtree_pages.id,bigtree_templates.routed
-											FROM bigtree_pages LEFT JOIN bigtree_templates
-											ON bigtree_pages.template = bigtree_templates.id
-											WHERE path = ? AND archived = '' $publish_at", implode("/", $path));
+								FROM bigtree_pages LEFT JOIN bigtree_templates
+								ON bigtree_pages.template = bigtree_templates.id
+								WHERE path = ? AND archived = '' $publish_at", implode("/", $path));
 			if ($page) {
 				return array($page["id"], array(), $page["routed"]);
 			}
@@ -410,11 +410,11 @@
 				$path_string = implode("/", array_slice($path, 0, -1 * $x));
 				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
 				$page_id = SQL::fetchSingle("SELECT bigtree_pages.id
-														 FROM bigtree_pages JOIN bigtree_templates 
-														 ON bigtree_pages.template = bigtree_templates.id 
-														 WHERE bigtree_pages.path = ? AND 
-															   bigtree_pages.archived = '' AND
-															   bigtree_templates.routed = 'on' $publish_at", $path_string);
+											 FROM bigtree_pages JOIN bigtree_templates 
+											 ON bigtree_pages.template = bigtree_templates.id 
+											 WHERE bigtree_pages.path = ? AND 
+												   bigtree_pages.archived = '' AND
+												   bigtree_templates.routed = 'on' $publish_at", $path_string);
 				if ($page_id) {
 					return array($page_id, array_reverse($commands), "on");
 				}

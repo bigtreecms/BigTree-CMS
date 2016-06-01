@@ -23,22 +23,24 @@
 				redirect - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
-		function __construct($redirect) {
-			// Passing in just an ID
-			if (!is_array($redirect)) {
-				$redirect = SQL::fetch("SELECT * FROM bigtree_404s WHERE id = ?", $redirect);
-			}
+		function __construct($redirect = null) {
+			if ($redirect !== null) {
+				// Passing in just an ID
+				if (!is_array($redirect)) {
+					$redirect = SQL::fetch("SELECT * FROM bigtree_404s WHERE id = ?", $redirect);
+				}
 
-			// Bad data set
-			if (!is_array($redirect)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-			} else {
-				$this->ID = $redirect["id"];
-				$this->Requests = $redirect["requests"];
+				// Bad data set
+				if (!is_array($redirect)) {
+					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+				} else {
+					$this->ID = $redirect["id"];
+					$this->Requests = $redirect["requests"];
 
-				$this->BrokenURL = $redirect["broken_url"];
-				$this->RedirectURL = Link::decode($redirect["redirect_url"]);
-				$this->Ignored = $redirect["ignored"] ? true : false;
+					$this->BrokenURL = $redirect["broken_url"];
+					$this->RedirectURL = Link::decode($redirect["redirect_url"]);
+					$this->Ignored = $redirect["ignored"] ? true : false;
+				}
 			}
 		}
 
@@ -48,12 +50,12 @@
 		*/
 		
 		static function catch404() {
-			global $admin,$bigtree,$cms,$db;
+			global $admin, $bigtree, $cms, $db;
 			
 			// Wipe any content that's already been drawn
 			ob_clean();
 
-			if (static::handle404(str_ireplace(WWW_ROOT,"",Link::currentURL()))) {
+			if (static::handle404(str_ireplace(WWW_ROOT, "", Link::currentURL()))) {
 				$bigtree["layout"] = "default";
 				include SERVER_ROOT."templates/basic/_404.php";
 
@@ -73,8 +75,8 @@
 		*/
 
 		static function clearEmpty() {
-			SQL::delete("bigtree_404s",array("redirect_url" => ""));
-			AuditTrail::track("bigtree_404s","all","cleared-empty");
+			SQL::delete("bigtree_404s", array("redirect_url" => ""));
+			AuditTrail::track("bigtree_404s", "all", "cleared-empty");
 		}
 
 		/*
@@ -89,23 +91,39 @@
 				A Redirect object.
 		*/
 
-		static function create($from,$to) {
-			$from = htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT,"",$from),"/")));
+		static function create($from, $to = "") {
+			$from = htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT, "", $from), "/")));
 			$to = htmlspecialchars(Link::encode($to));
+
+			// Try to convert the short URL into a full one
+			if ($to !== "") {
+				$redirect_url = $to;
+				if (strpos($redirect_url, "//") === false) {
+					$redirect_url = WWW_ROOT.ltrim($redirect_url, "/");
+				}
+				$redirect_url = htmlspecialchars(Link::encode($redirect_url));
+
+				// Don't use static roots if they're the same as www just in case they are different when moving environments
+				if (WWW_ROOT === STATIC_ROOT) {
+					$redirect_url = str_replace("{staticroot}", "{wwwroot}", $redirect_url);
+				}
+			} else {
+				$redirect_url = "";
+			}
 
 			// See if the from already exists
 			$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ?", $from);
 			if ($existing) {
-				SQL::update("bigtree_404s",$existing["id"],array("redirect_url" => $to));
-				AuditTrail::track("bigtree_404s",$existing["id"],"updated");
+				SQL::update("bigtree_404s", $existing["id"], array("redirect_url" => $redirect_url));
+				AuditTrail::track("bigtree_404s", $existing["id"], "updated");
 
 				return new Redirect($existing["id"]);
 			} else {
-				$id = SQL::insert("bigtree_404s",array(
+				$id = SQL::insert("bigtree_404s", array(
 					"broken_url" => $from,
-					"redirect_url" => $to
+					"redirect_url" => $redirect_url
 				));
-				AuditTrail::track("bigtree_404s",$id,"created");
+				AuditTrail::track("bigtree_404s", $id, "created");
 
 				return new Redirect($id);
 			}
@@ -117,8 +135,8 @@
 		*/
 
 		function delete() {
-			SQL::delete("bigtree_404s",$this->ID);
-			AuditTrail::track("bigtree_404s",$this->ID,"deleted");
+			SQL::delete("bigtree_404s", $this->ID);
+			AuditTrail::track("bigtree_404s", $this->ID, "deleted");
 		}
 
 		/*
@@ -130,7 +148,7 @@
 		*/
 		
 		static function handle404($url) {
-			$url = htmlspecialchars(strip_tags(rtrim($url,"/")));
+			$url = htmlspecialchars(strip_tags(rtrim($url, "/")));
 			if (!$url) {
 				return false;
 			}
@@ -147,19 +165,19 @@
 				}
 				
 				// Full URL, use the whole thing
-				if (substr($entry["redirect_url"],0,7) == "http://" || substr($entry["redirect_url"],0,8) == "https://") {
+				if (substr($entry["redirect_url"], 0, 7) == "http://" || substr($entry["redirect_url"], 0, 8) == "https://") {
 					$redirect = $entry["redirect_url"];
-				
-				// Partial URL, append WWW_ROOT
+
+					// Partial URL, append WWW_ROOT
 				} else {
-					$redirect = WWW_ROOT.str_replace(WWW_ROOT,"",$entry["redirect_url"]);
+					$redirect = WWW_ROOT.str_replace(WWW_ROOT, "", $entry["redirect_url"]);
 				}
 				
 				// Update request count
 				SQL::query("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = ?", $entry["id"]);
 
 				// Redirect with a 301
-				Router::redirect(htmlspecialchars_decode($redirect),"301");
+				Router::redirect(htmlspecialchars_decode($redirect), "301");
 
 			// No redirect, log the 404 and throw the 404 headers
 			} else {
@@ -169,14 +187,14 @@
 				if ($entry) {
 					SQL::query("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = ?", $entry["id"]);
 				} else {
-					SQL::insert("bigtree_404s",array(
+					SQL::insert("bigtree_404s", array(
 						"broken_url" => $url,
 						"requests" => 1
 					));
 				}
 
 				// Tell BigTree to not cache this page
-				define("BIGTREE_DO_NOT_CACHE",true);
+				define("BIGTREE_DO_NOT_CACHE", true);
 			}
 
 			return true;
@@ -188,29 +206,9 @@
 		*/
 
 		function save() {
-			// Try to convert the short URL into a full one
-			if ($this->RedirectURL) {
-				$redirect_url = $this->RedirectURL;
-				if (strpos($redirect_url,"//") === false) {
-					$redirect_url = WWW_ROOT.ltrim($redirect_url,"/");
-				}
-				$redirect_url = htmlspecialchars(Link::encode($redirect_url));
-
-				// Don't use static roots if they're the same as www just in case they are different when moving environments
-				if (WWW_ROOT === STATIC_ROOT) {
-					$redirect_url = str_replace("{staticroot}","{wwwroot}",$redirect_url);
-				}
-			} else {
-				$redirect_url = "";
-			}
-
-			SQL::update("bigtree_404s",$this->ID,array(
-				"broken_url" => htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT,"",$this->BrokenURL),"/"))),
-				"redirect_url" => $redirect_url,
-				"ignored" => $this->Ignored ? "on" : ""
-			));
-
-			AuditTrail::track("bigtree_404s",$this->ID,"updated");
+			// The create method already checks for existance and updates existing redirects
+			$new = static::create($this->BrokenURL, $this->RedirectURL);
+			$this->inherit($new);
 		}
 
 	}

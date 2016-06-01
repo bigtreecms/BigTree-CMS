@@ -19,7 +19,6 @@
 
 		protected $ID;
 
-		public $Crops;
 		public $Date;
 		public $File;
 		public $Folder;
@@ -40,33 +39,31 @@
 				resource - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 
-		function __construct($resource) {
-			// Passing in just an ID
-			if (!is_array($resource)) {
-				$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $resource);
-			}
-
-			// Bad data set
-			if (!is_array($resource)) {
-				trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-			} else {
-				$this->ID = $resource["id"];
-
-				$this->Crops = array_filter((array) @json_decode($resource["crops"],true));
-				$this->Date = $resource["date"];
-				$this->File = Link::detokenize($resource["file"]);
-				$this->Folder = $resource["folder"];
-				$this->Height = $resource["height"];
-				$this->IsImage = $resource["is_image"] ? true : false;
-				$this->ListThumbMargin = $resource["list_thumb_margin"];
-				$this->MD5 = $resource["md5"];
-				$this->Name = $resource["name"];
-				$this->Thumbs = array_filter((array) @json_decode($resource["thumbs"],true));
-				foreach ($this->Thumbs as &$thumb) {
-					$thumb = Link::detokenize($thumb);
+		function __construct($resource = null) {
+			if ($resource !== null) {
+				// Passing in just an ID
+				if (!is_array($resource)) {
+					$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $resource);
 				}
-				$this->Type = $resource["type"];
-				$this->Width = $resource["width"];
+
+				// Bad data set
+				if (!is_array($resource)) {
+					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+				} else {
+					$this->ID = $resource["id"];
+
+					$this->Date = $resource["date"];
+					$this->File = Link::detokenize($resource["file"]);
+					$this->Folder = $resource["folder"];
+					$this->Height = $resource["height"];
+					$this->IsImage = $resource["is_image"] ? true : false;
+					$this->ListThumbMargin = $resource["list_thumb_margin"];
+					$this->MD5 = $resource["md5"];
+					$this->Name = $resource["name"];
+					$this->Thumbs = Link::detokenizeArray(array_filter((array) @json_decode($resource["thumbs"], true)));
+					$this->Type = $resource["type"];
+					$this->Width = $resource["width"];
+				}
 			}
 		}
 
@@ -79,16 +76,16 @@
 				entry - Entry ID to assign to
 		*/
 
-		static function allocate($module,$entry) {
+		static function allocate($module, $entry) {
 			// Wipe existing allocations
-			SQL::delete("bigtree_resource_allocation",array(
+			SQL::delete("bigtree_resource_allocation", array(
 				"module" => $module,
 				"entry" => $entry
 			));
 
 			// Add new allocations
 			foreach (static::$CreationLog as $resource) {
-				SQL::insert("bigtree_resource_allocation",array(
+				SQL::insert("bigtree_resource_allocation", array(
 					"module" => $module,
 					"entry" => $entry,
 					"resource" => $resource
@@ -118,8 +115,8 @@
 				The new resource id.
 		*/
 
-		static function create($folder,$file,$md5,$name,$type,$is_image = "",$height = 0,$width = 0,$thumbs = array()) {
-			$id = SQL::insert("bigtree_resources",array(
+		static function create($folder, $file, $md5, $name, $type, $is_image = "", $height = 0, $width = 0, $thumbs = array()) {
+			$id = SQL::insert("bigtree_resources", array(
 				"file" => Link::tokenize($file),
 				"md5" => $md5,
 				"name" => Text::htmlEncode($name),
@@ -128,10 +125,10 @@
 				"is_image" => $is_image,
 				"height" => intval($height),
 				"width" => intval($width),
-				"thumbs" => $thumbs
+				"thumbs" => Link::tokenizeArray($thumbs)
 			));
 
-			AuditTrail::track("bigtree_resources",$id,"created");
+			AuditTrail::track("bigtree_resources", $id, "created");
 
 			return new Resource($id);
 		}
@@ -144,8 +141,8 @@
 
 		function delete() {
 			// Delete resource record
-			SQL::delete("bigtree_resources",$this->ID);
-			AuditTrail::track("bigtree_resources",$this->ID,"deleted");
+			SQL::delete("bigtree_resources", $this->ID);
+			AuditTrail::track("bigtree_resources", $this->ID, "deleted");
 
 			// If this file isn't located in any other folders, delete it from the file system
 			if (!SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_resources WHERE file = ?", Link::tokenize($this->File))) {
@@ -153,7 +150,7 @@
 				$storage->delete($this->File);
 
 				// Delete any thumbnails as well
-				foreach (array_filter((array)$this->Thumbs) as $thumb) {
+				foreach (array_filter((array) $this->Thumbs) as $thumb) {
 					$storage->delete($thumb);
 				}
 			}
@@ -198,7 +195,7 @@
 			if (!$resource) {
 				foreach (static::$Prefixes as $prefix) {
 					if (!$resource) {
-						$prefixed_file = str_replace("files/resources/$prefix","files/resources/",$file);
+						$prefixed_file = str_replace("files/resources/$prefix", "files/resources/", $file);
 						$resource = SQL::fetch("SELECT * FROM bigtree_resources
 												WHERE file = ? OR file = ?", $file, Link::tokenize($prefixed_file));
 					}
@@ -224,7 +221,7 @@
 				true if a match was found. If the file was already in the given folder, the date is simply updated.
 		*/
 
-		static function md5Check($file,$new_folder) {
+		static function md5Check($file, $new_folder) {
 			$md5 = md5_file($file);
 
 			$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE md5 = ? LIMIT 1", $md5);
@@ -234,14 +231,14 @@
 
 			// If we already have this exact resource in this exact folder, just update its modification time
 			if ($resource["folder"] == $new_folder) {
-				SQL::update("bigtree_resources",$resource["id"],array("date" => "NOW()"));
+				SQL::update("bigtree_resources", $resource["id"], array("date" => "NOW()"));
 			} else {
 				// Make a copy of the resource
 				unset($resource["id"]);
 				$resource["date"] = "NOW()";
 				$resource["folder"] = $new_folder ? $new_folder : null;
 
-				SQL::insert("bigtree_resources",$resource);
+				SQL::insert("bigtree_resources", $resource);
 			}
 
 			return true;
@@ -295,30 +292,26 @@
 		*/
 
 		function save() {
-			// Convert links
-			foreach ($this->Crops as &$crop) {
-				$crop = Link::tokenize($crop);
-			}
-			foreach ($this->Thumbs as &$thumb) {
-				$thumb = Link::tokenize($thumb);
-			}
+			if (empty($this->ID)) {
+				$new = static::create($this->Folder, $this->File, $this->MD5, $this->Name, $this->Type, $this->IsImage, $this->Height, $this->Width, $this->Thumbs);
+				$this->inherit($new);
+			} else {
+				SQL::update("bigtree_resources", $this->ID, array(
+					"folder" => $this->Folder,
+					"file" => Link::tokenize($this->File),
+					"md5" => $this->MD5,
+					"date" => date("Y-m-d H:i:s", strtotime($this->Date)),
+					"name" => $this->Name,
+					"type" => $this->Type,
+					"is_image" => $this->IsImage ? "on" : "",
+					"height" => intval($this->Height),
+					"width" => intval($this->Width),
+					"thumbs" => Link::tokenizeArray($this->Thumbs),
+					"list_thumb_margin" => intval($this->ListThumbMargin)
+				));
 
-			SQL::update("bigtree_resources",$this->ID,array(
-				"folder" => $this->Folder,
-				"file" => Link::tokenize($this->File),
-				"md5" => $this->MD5,
-				"date" => date("Y-m-d H:i:s",strtotime($this->Date)),
-				"name" => $this->Name,
-				"type" => $this->Type,
-				"is_image" => $this->IsImage ? "on" : "",
-				"height" => intval($this->Height),
-				"width" => intval($this->Width),
-				"crops" => $this->Crops,
-				"thumbs" => $this->Thumbs,
-				"list_thumb_margin" => intval($this->ListThumbMargin)
-			));
-
-			AuditTrail::track("bigtree_resources",$this->ID,"updated");
+				AuditTrail::track("bigtree_resources", $this->ID, "updated");
+			}
 		}
 
 	}

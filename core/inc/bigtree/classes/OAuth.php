@@ -39,14 +39,14 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 
-		function __construct($setting_id,$setting_name,$cache_id,$cache = true) {
+		function __construct($setting_id, $setting_name, $cache_id, $cache = true) {
 			$this->Cache = $cache;
 			$this->CacheIdentifier = $cache_id;
 			$this->SettingID = $setting_id;
 
 			// If we don't have the setting for the API, create it.
 			if (!Setting::exists($setting_id)) {
-				Setting::create($setting_id,$setting_name,"","",array(),"","on","on");
+				Setting::create($setting_id, $setting_name, "", "", array(), "", "on", "on");
 			}
 			$this->Setting = new Setting($setting_id);
 
@@ -101,7 +101,7 @@
 			if (!isset($this->OAuthSettings["hash_table"][$id])) {
 				$this->OAuthSettings["hash_table"][$id] = array();
 			}
-			if (!in_array($this->LastCacheKey,$this->OAuthSettings["hash_table"][$id])) {
+			if (!in_array($this->LastCacheKey, $this->OAuthSettings["hash_table"][$id])) {
 				$this->OAuthSettings["hash_table"][$id][] = $this->LastCacheKey;
 			}
 		}
@@ -121,22 +121,23 @@
 				Information directly from the API or the cache.
 		*/
 
-		function call($endpoint = "",$params = array(),$method = "GET",$headers = array()) {
+		function call($endpoint = "", $params = array(), $method = "GET", $headers = array()) {
 			if ($this->Cache) {
 				$this->LastCacheKey = md5($endpoint.json_encode($params));
-				$record = Cache::get($this->CacheIdentifier,$this->LastCacheKey,900);
+				$record = Cache::get($this->CacheIdentifier, $this->LastCacheKey, 900);
 				if ($record) {
 					// We re-decode it as an object since that's what we're expecting from OAuth normally.
 					return json_decode(json_encode($record));
 				}
 			}
 			
-			$response = $this->callUncached($endpoint,$params,$method,$headers);
+			$response = $this->callUncached($endpoint, $params, $method, $headers);
 			if ($response !== false) {
 				if ($this->Cache) {
-					Cache::put($this->CacheIdentifier,$this->LastCacheKey,$response);
+					Cache::put($this->CacheIdentifier, $this->LastCacheKey, $response);
 				}
 			}
+
 			return $response;
 		}
 
@@ -155,7 +156,7 @@
 				Response data.
 		*/
 
-		protected function callAPI($url,$method = "GET",$data = array(),$headers = array(),$excluded = array()) {
+		protected function callAPI($url, $method = "GET", $data = array(), $headers = array(), $excluded = array()) {
 			// Add OAuth related parameters.
 			$oauth = array();
 			$get = array();
@@ -163,20 +164,20 @@
 			// If we have to HMAC sign the request
 			if ($this->RequestType == "hash" || $this->RequestType == "hash-header") {
 				// Extract GET vars from the URL.
-				parse_str(parse_url($url,PHP_URL_QUERY),$get);
+				parse_str(parse_url($url, PHP_URL_QUERY), $get);
 				if (count($get)) {
-					$url = substr($url,0,strpos($url,"?"));
+					$url = substr($url, 0, strpos($url, "?"));
 				}
-	
+
 				$oauth["oauth_consumer_key"] = $this->OAuthSettings["key"];
 				$oauth["oauth_token"] = $this->OAuthSettings["token"];
 				$oauth["oauth_version"] = $this->OAuthVersion;
 				$oauth["oauth_nonce"] = md5(uniqid(rand(), true));
 				$oauth["oauth_timestamp"] = time();
 				$oauth["oauth_signature_method"] = "HMAC-SHA1";
-	
+
 				// Merge GET and POST and OAuth
-				$mixed = array_merge($get,$data,$oauth);
+				$mixed = array_merge($get, $data, $oauth);
 
 				// Sort keys
 				ksort($mixed);
@@ -184,13 +185,13 @@
 				// Create a string for signing
 				$string = "";
 				foreach ($mixed as $key => $val) {
-					if (!in_array($key,$excluded)) {
+					if (!in_array($key, $excluded)) {
 						$string .= "&".rawurlencode($key)."=".rawurlencode($val);
 					}
 				}
 
 				// Signature
-				$oauth["oauth_signature"] = base64_encode(hash_hmac("sha1",strtoupper($method)."&".rawurlencode($url)."&".rawurlencode(substr($string,1)),$this->OAuthSettings["secret"]."&".$this->OAuthSettings["token_secret"],true));
+				$oauth["oauth_signature"] = base64_encode(hash_hmac("sha1", strtoupper($method)."&".rawurlencode($url)."&".rawurlencode(substr($string, 1)), $this->OAuthSettings["secret"]."&".$this->OAuthSettings["token_secret"], true));
 			} elseif ($this->RequestType == "custom") {
 				$oauth = $this->RequestParameters;
 			} elseif ($this->RequestType == "header") {
@@ -209,14 +210,14 @@
 				foreach ($oauth as $key => $value) {
 					$oauth_header[] = $key.'="'.rawurlencode($value).'"';
 				}
-				$headers[] = "Authorization: OAuth ".implode(", ",$oauth_header);
+				$headers[] = "Authorization: OAuth ".implode(", ", $oauth_header);
 
 				if ($method == "POST") {
 					if (is_array($data)) {
 						// Make sure we're not posting files first.
 						$files_included = false;
 						foreach ($data as $val) {
-							if (substr($val,0,1) == "@" && file_exists(substr($val,1))) {
+							if (substr($val, 0, 1) == "@" && file_exists(substr($val, 1))) {
 								$files_included = true;
 							}
 						}
@@ -227,21 +228,21 @@
 							foreach ($data_array as $key => $val) {
 								$data[] = "$key=".rawurlencode($val);
 							}
-							$data = implode("&",$data);
+							$data = implode("&", $data);
 						}
 					}
 				} else {
 					if (is_array($data) && count($data)) {
-						$url .= preg_replace("/%5B[0-9]+%5D/simU","%5B%5D",str_replace("+","%20",http_build_query($data,"","&")))."&";
+						$url .= preg_replace("/%5B[0-9]+%5D/simU", "%5B%5D", str_replace("+", "%20", http_build_query($data, "", "&")))."&";
 						$data = false;
 					}
 				}
 
 			} elseif (($method == "POST" || $method == "PUT") && is_array($data)) {
-				$data = array_merge($oauth,$data);
+				$data = array_merge($oauth, $data);
 			} else {
 				if (is_array($data) && count($data)) {
-					$url .= preg_replace("/%5B[0-9]+%5D/simU","%5B%5D",str_replace("+","%20",http_build_query($data,"","&")))."&";
+					$url .= preg_replace("/%5B[0-9]+%5D/simU", "%5B%5D", str_replace("+", "%20", http_build_query($data, "", "&")))."&";
 					$data = false;
 				}
 				foreach ($oauth as $key => $val) {
@@ -250,9 +251,9 @@
 			}
 
 			// Trim trailing ? or & from the URL, not that it should matter.
-			$url = substr($url,0,-1);
+			$url = substr($url, 0, -1);
 
-			return cURL::request($url,$data,array(CURLOPT_CUSTOMREQUEST => $method,CURLOPT_HTTPHEADER => $headers));
+			return cURL::request($url, $data, array(CURLOPT_CUSTOMREQUEST => $method, CURLOPT_HTTPHEADER => $headers));
 		}
 
 		/*
@@ -270,7 +271,7 @@
 				Information directly from the API.
 		*/
 
-		function callUncached($endpoint = "",$params = array(),$method = "GET",$headers = array()) {
+		function callUncached($endpoint = "", $params = array(), $method = "GET", $headers = array()) {
 			if (!$this->Connected) {
 				trigger_error("This API is not connected.", E_USER_ERROR);
 			}
@@ -280,7 +281,7 @@
 				$headers[] = "Content-Type: application/json";
 			}
 
-			$response = json_decode($this->callAPI($this->EndpointURL.$endpoint,$method,$params,$headers));
+			$response = json_decode($this->callAPI($this->EndpointURL.$endpoint, $method, $params, $headers));
 			if (isset($response->error)) {
 				if (is_array($response->error->errors)) {
 					foreach ($response->error->errors as $error) {
@@ -289,6 +290,7 @@
 				} else {
 					$this->Errors[] = $response->error;
 				}
+
 				return false;
 			} else {
 				return $response;
@@ -327,7 +329,7 @@
 		*/
 
 		function oAuthRefreshToken() {
-			$response = json_decode(cURL::request($this->TokenURL,array(
+			$response = json_decode(cURL::request($this->TokenURL, array(
 				"client_id" => $this->OAuthSettings["key"],
 				"client_secret" => $this->OAuthSettings["secret"],
 				"refresh_token" => $this->OAuthSettings["refresh_token"],
@@ -348,7 +350,7 @@
 		*/
 
 		function oAuthSetToken($code) {
-			$response = json_decode(cURL::request($this->TokenURL,array(
+			$response = json_decode(cURL::request($this->TokenURL, array(
 				"code" => $code,
 				"client_id" => $this->OAuthSettings["key"],
 				"client_secret" => $this->OAuthSettings["secret"],
@@ -358,6 +360,7 @@
 
 			if ($response->error) {
 				$this->OAuthError = $response->error;
+
 				return false;
 			}
 

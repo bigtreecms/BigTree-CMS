@@ -10,12 +10,12 @@
 	use mysqli;
 
 	/**
-	  * @method static array fetch() fetch(string $query = "",...) query the database and return a row
-	  * @method static array fetchAll() fetchAll(string $query = "",...) query the database and return all rows
-	  * @method static string fetchSingle() fetchSingle(string $query = "",...) query the database and return a single column
-	  * @method static array fetchAllSingle() fetchAllSingle(string $query = "",...) query the database and return all results for a single column
-	  * @method static int rows() rows(string $query = "",...) query the database and return the number of results
-	  */
+	 * @method static array fetch() fetch(string $query = "", ...) query the database and return a row
+	 * @method static array fetchAll() fetchAll(string $query = "", ...) query the database and return all rows
+	 * @method static string fetchSingle() fetchSingle(string $query = "", ...) query the database and return a single column
+	 * @method static array fetchAllSingle() fetchAllSingle(string $query = "", ...) query the database and return all results for a single column
+	 * @method static int rows() rows(string $query = "", ...) query the database and return the number of results
+	 */
 
 	class SQL {
 
