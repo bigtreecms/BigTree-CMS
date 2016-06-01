@@ -1,51 +1,81 @@
 <?php
 	namespace BigTree;
 
-	$change = $admin->getPendingChange($_POST["id"]);
+	$change = new PendingChange($_POST["id"]);
 
 	// See if we have permission.
-	$item_id = $change["item_id"] ? $change["item_id"] : "p".$change["id"];
+	$item_id = !is_null($change->ItemID) ? $change->ItemID : "p".$change->ID;
 	
-	if ($change["module"]) {
-		// It's a module. Check permissions on this.
-		$data = BigTreeAutoModule::getPendingItem($change["table"],$item_id);
-		$permission_level = $admin->getAccessLevel($admin->getModule($change["module"]),$data["item"],$change["table"]);
+	// It's a module. Check permissions on this.
+	if ($change->Module) {
+		$module = new Module($change->Module);
+		$form = new ModuleForm(array("table" => $change->Table));
+
+		$data = $form->getPendingEntry($item_id);
+		$access_level = $module->getUserAccessLevelForEntry($data["item"], $change->Table);
+	// Page
 	} else {
-		if ($change["item_id"]) {
-			$permission_level = $admin->getPageAccessLevel($item_id);
+		// Published page
+		if (!is_null($change->ItemID)) {
+			$page = new Page($change->ItemID);
+			$access_level = $page->UserAccessLevel;
+		// Pending page we'll check parent's permissions
 		} else {
-			$f = $admin->getPendingChange($change["id"]);
-			$permission_level = $admin->getPageAccessLevel($f["changes"]["parent"]);
+			$form = new ModuleForm(array("table" => "bigtree_pages"));
+			$data = $form->getPendingEntry($change->ID);
+
+			$page = new Page($data["changes"]["parent"]);
+			$access_level = $page->UserAccessLevel;
 		}
 	}
 	
 	// If they're not a publisher, they have no business here.
-	if ($permission_level != "p") {
+	if ($access_level != "p") {
 		die("Permission denied.");
 	}
 
-	$change["changes"] = SQL::prepareData($change["table"],$change["changes"]);
+	$change->Changes = SQL::prepareData($change->Table, $change->Changes);
 
 	// This is an update to an existing entry.
-	if (!is_null($change["item_id"])) {
-		if ($change["table"] == "bigtree_pages") {
-			$page_data = $cms->getPendingPage($change["item_id"]);
-			$admin->updatePage($change["item_id"],$page_data);
+	if (!is_null($change->ItemID)) {
+		if ($change->Table == "bigtree_pages") {
+			$page = Page::getPageDraft($change->ItemID);
+			$page->save();
 		} else {
-			BigTreeAutoModule::updateItem($change["table"],$change["item_id"],$change["changes"],$change["mtm_changes"],$change["tags_changes"]);
+			$form->updateEntry($change->ItemID, $change->Changes, $change->ManyToManyChanges, $change->TagsChanges);
+
 			if ($change["publish_hook"]) {
-				call_user_func($change["publish_hook"],$change["table"],$change["item_id"],$change["changes"],$change["mtm_changes"],$change["tags_changes"]);
+				call_user_func($change->PublishHook, $change->Table, $change->ItemID, $change->Changes, $change->ManyToManyChanges, $change->TagsChanges);
 			}
 		}
 	// It's a new entry, let's publish it.
 	} else {
-		if ($change["table"] == "bigtree_pages") {
-			$page = $admin->createPage($change["changes"]);
-			$admin->deletePendingChange($change["id"]);
+		if ($change->Table == "bigtree_pages") {
+			Page::create(
+				$change->Changes["trunk"],
+				$change->Changes["parent"],
+				$change->Changes["in_nav"],
+				$change->Changes["nav_title"],
+				$change->Changes["title"],
+				$change->Changes["route"],
+				$change->Changes["meta_description"],
+				$change->Changes["seo_invisible"],
+				$change->Changes["template"],
+				$change->Changes["external"],
+				$change->Changes["new_window"],
+				$change->Changes["resources"],
+				$change->Changes["publish_at"],
+				$change->Changes["expire_at"],
+				$change->Changes["max_age"],
+				$change->TagsChanges
+			);
 		} else {
-			$id = BigTreeAutoModule::publishPendingItem($change["table"],$change["id"],$change["changes"],$change["mtm_changes"],$change["tags_changes"]);
-			if ($change["publish_hook"]) {
-				call_user_func($change["publish_hook"],$change["table"],$id,$change["changes"],$change["mtm_changes"],$change["tags_changes"]);
+			$id = $form->createEntry($change->Changes, $change->ManyToManyChanges, $change->TagsChanges);
+
+			if ($change->PublishHook) {
+				call_user_func($change->PublishHook, $change->Table, $id, $change->Changes, $change->ManyToManyChanges, $change->TagsChanges);
 			}
 		}
 	}
+
+	$change->delete();
