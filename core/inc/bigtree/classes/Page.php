@@ -101,7 +101,7 @@
 					$this->Path = $page["path"];
 					$this->Position = $page["position"];
 					$this->PublishAt = $page["publish_at"] ?: false;
-					$this->Resources = $decode ? Link::decodeArray(array_filter((array) @json_decode($page["resources"], true))) : $page["resources"];
+					$this->Resources = $decode ? Link::decode(array_filter((array) @json_decode($page["resources"], true))) : $page["resources"];
 					$this->Route = $page["route"];
 					$this->SEOInvisible = $page["seo_invisible"] ? true : false;
 					$this->Template = $page["template"];
@@ -505,12 +505,12 @@
 				foreach ($data as $key => $val) {
 					// Already an array, decode the whole thing
 					if (is_array($val)) {
-						$val = Link::decodeArray($val);
+						$val = Link::decode($val);
 					} else {
 						// See if it's a JSON string first, if so decode the array
 						$decoded_val = json_decode($val, true);
 						if (is_array($decoded_val)) {
-							$val = Link::decodeArray($decoded_val);
+							$val = Link::decode($decoded_val);
 							
 							// Otherwise it's a string, just replace the {wwwroot} and ipls.
 						} else {
@@ -943,7 +943,7 @@
 			}
 			
 			// Regular changes
-			$changes = Link::decodeArray(json_decode($pending["changes"], true));
+			$changes = Link::decode(json_decode($pending["changes"], true));
 			
 			// Protected vars, force an inheritance
 			$draft_data = new \stdClass;

@@ -139,7 +139,7 @@
 
 		function createEntry($columns, $many_to_many = array(), $tags = array()) {
 			// Clean up data
-			$insert_values = Link::encodeArray(SQL::prepareData($this->Table, $columns));
+			$insert_values = Link::encode(SQL::prepareData($this->Table, $columns));
 
 			// Insert, if there's a failure return false instead of doing the rest
 			$id = SQL::insert($this->Table, $insert_values);
@@ -310,7 +310,7 @@
 				$array_val = @json_decode($val, true);
 
 				if (is_array($array_val)) {
-					$item[$key] = Link::decodeArray($array_val);
+					$item[$key] = Link::decode($array_val);
 				} else {
 					$item[$key] = Link::decode($val);
 				}
@@ -415,7 +415,7 @@
 				$item[$key] = is_array($array_val) ? $array_val : $val;
 			}
 
-			$item = Link::decodeArray($item);
+			$item = Link::decode($item);
 
 			return array(
 				"item" => $item,
@@ -606,7 +606,7 @@
 		
 		function updateEntry($id, $columns, $many_to_many = array(), $tags = array()) {
 			// Prepare update dat
-			$update_columns = Link::encodeArray(SQL::prepareData($this->Table, $columns));
+			$update_columns = Link::encode(SQL::prepareData($this->Table, $columns));
 			
 			// Do the update
 			SQL::update($this->Table, $id, $update_columns);
@@ -637,7 +637,7 @@
 			$changes = json_decode(SQL::fetchSingle("SELECT changes FROM bigtree_pending_changes WHERE id = ?", $id), true);
 
 			if (is_array($value)) {
-				$value = Link::encodeArray($value);
+				$value = Link::encode($value);
 			} else {
 				$value = Link::encode($value);
 			}

@@ -1055,7 +1055,7 @@
 		*/
 		
 		static function translateArray($array) {
-			return BigTree\Link::encodeArray($array);
+			return BigTree\Link::encode($array);
 		}
 		
 		/*
@@ -1116,7 +1116,7 @@
 		*/
 		
 		static function untranslateArray($array) {
-			return BigTree\Link::decodeArray($array);
+			return BigTree\Link::decode($array);
 		}
 		
 		/*

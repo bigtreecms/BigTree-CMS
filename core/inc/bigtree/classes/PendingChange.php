@@ -191,7 +191,7 @@
 					$changes[$key] = "";
 				}
 			}
-			$changes = Link::encodeArray($changes);
+			$changes = Link::encode($changes);
 
 			// If this is an existing entry's changes, only keep what's different
 			if ($item_id !== false) {

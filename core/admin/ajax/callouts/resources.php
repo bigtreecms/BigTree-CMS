@@ -13,7 +13,7 @@
 		$bigtree["callout_key"] = htmlspecialchars($_POST["key"]);
 	}
 
-	$bigtree["resources"] = Link::decodeArray($bigtree["resources"]);
+	$bigtree["resources"] = Link::decode($bigtree["resources"]);
 	$bigtree["callout_count"] = intval($_POST["count"]);
 	$bigtree["callout"] = $admin->getCallout($bigtree["resources"]["type"]);
 	

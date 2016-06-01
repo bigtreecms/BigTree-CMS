@@ -11,7 +11,7 @@
 			$array_val = @json_decode($val,true);
 
 			if (is_array($array_val)) {
-				$item[$key] = Link::decodeArray($array_val);
+				$item[$key] = Link::decode($array_val);
 			} else {
 				$item[$key] = $cms->replaceInternalPageLinks($val);
 			}

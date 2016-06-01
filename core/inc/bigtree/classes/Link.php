@@ -35,30 +35,39 @@
 		
 		/*
 			Function: decode
-				Replaces the internal page links in a string with hard links.
+				Replaces the internal page links in a string or array with hard links.
 			
 			Parameters:
-				html - An HTML block
+				input - A string or array
 			
 			Returns:
 				An HTML block with links hard-linked.
 		*/
 		
-		static function decode($html) {
+		static function decode($input) {
+			// Allow for arrays to recurse
+			if (is_array($input)) {
+				foreach ($input as $key => $value) {
+					$input[$key] = static::decode($value);
+				}
+
+				return $input;
+			}
+			
 			// Save time if there's no content
-			if (trim($html) === "") {
+			if (trim($input) === "") {
 				return "";
 			}
 			
-			if (substr($html, 0, 6) == "ipl://" || substr($html, 0, 6) == "irl://") {
-				$html = static::iplDecode($html);
+			if (substr($input, 0, 6) == "ipl://" || substr($input, 0, 6) == "irl://") {
+				$input = static::iplDecode($input);
 			} else {
-				$html = static::detokenize($html);
-				$html = preg_replace_callback('^="(ipl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^', array('BigTree\Link', "decodeHook"), $html);
-				$html = preg_replace_callback('^="(irl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^', array('BigTree\Link', "decodeHook"), $html);
+				$input = static::detokenize($input);
+				$input = preg_replace_callback('^="(ipl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^', array('BigTree\Link', "decodeHook"), $input);
+				$input = preg_replace_callback('^="(irl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^', array('BigTree\Link', "decodeHook"), $input);
 			}
 
-			return $html;
+			return $input;
 		}
 
 		private static function decodeHook($matches) {
@@ -66,88 +75,59 @@
 		}
 
 		/*
-			Function: decodeArray
-				Steps through an array and creates hard links for all internal page links.
-			
-			Parameters:
-				array - The array to process.
-			
-			Returns:
-				An array with internal page links decoded.
-			
-			See Also:
-				<translateArray>
-		*/
-		
-		static function decodeArray($array) {
-			foreach ($array as &$piece) {
-				if (is_array($piece)) {
-					$piece = static::decodeArray($piece);
-				} else {
-					$piece = static::decode($piece);
-				}
-			}
-			
-			return $array;
-		}
-
-		/*
 			Function: detokenize
 				Replaces all root tokens in a URL (i.e. {wwwroot}) with hard links.
 
 			Parameters:
-				string - A string with root tokens.
+				input - A string or array with root tokens.
 
 			Returns:
 				A string with hard links.
 		*/
 
-		static function detokenize($string) {
-			return str_replace(array("{adminroot}", "{wwwroot}", "{staticroot}"), array(ADMIN_ROOT, WWW_ROOT, STATIC_ROOT), $string);
-		}
+		static function detokenize($input) {
+			if (is_array($input)) {
+				foreach ($input as $key => $value) {
+					$input[$key] = static::detokenize($value);
+				}
 
-		/*
-			Function: detokenizeArray
-				Replaces all root tokens in an array of URLs (i.e. {wwwroot}) with hard links.
-
-			Parameters:
-				array - An array of strings with root tokens.
-
-			Returns:
-				An array of strings with hard links.
-		*/
-
-		static function detokenizeArray($array) {
-			foreach ($array as $key => $val) {
-				$array[$key] = static::detokenize($val);
+				return $input;
 			}
 
-			return $array;
+			return str_replace(array("{adminroot}", "{wwwroot}", "{staticroot}"), array(ADMIN_ROOT, WWW_ROOT, STATIC_ROOT), $input);
 		}
 
 		/*
 			Function: encode
-				Converts links in a string into internal page links.
+				Converts links in a string or array into internal page links.
 
 			Parameters:
-				string - A string of contents that may contain URLs
+				input - A string or array of contents that may contain URLs
 
 			Returns:
 				A string with hard links converted into internal page links.
 		*/
 
-		static function encode($string) {
-			// If this string is actually just a URL, IPL it.
-			if ((substr($string, 0, 7) == "http://" || substr($string, 0, 8) == "https://") && strpos($string, "\n") === false && strpos($string, "\r") === false) {
-				$string = static::iplEncode($string);
-				// Otherwise, switch all the image srcs and javascripts srcs and whatnot to {wwwroot}.
-			} else {
-				$string = preg_replace_callback('/href="([^"]*)"/', array('BigTree\Link', "encodeHref"), $string);
-				$string = preg_replace_callback('/src="([^"]*)"/', array('BigTree\Link', "encodeSrc"), $string);
-				$string = static::tokenize($string);
+		static function encode($input) {
+			if (is_array($input)) {
+				foreach ($input as $key => $value) {
+					$input[$key] = static::encode($value);
+				}
+
+				return $input;
 			}
 
-			return $string;
+			// If this string is actually just a URL, IPL it.
+			if ((substr($input, 0, 7) == "http://" || substr($input, 0, 8) == "https://") && strpos($input, "\n") === false && strpos($input, "\r") === false) {
+				$input = static::iplEncode($input);
+				// Otherwise, switch all the image srcs and javascripts srcs and whatnot to {wwwroot}.
+			} else {
+				$input = preg_replace_callback('/href="([^"]*)"/', array('BigTree\Link', "encodeHref"), $input);
+				$input = preg_replace_callback('/src="([^"]*)"/', array('BigTree\Link', "encodeSrc"), $input);
+				$input = static::tokenize($input);
+			}
+
+			return $input;
 		}
 		
 		private static function encodeHref($matches) {
@@ -160,32 +140,6 @@
 			$src = static::iplEncode(static::detokenize($matches[1]));
 
 			return 'src="'.$src.'"';
-		}
-
-		/*
-			Function: encodeArray
-				Steps through an array and creates internal page links for all parts of it.
-			
-			Parameters:
-				array - The array to process.
-			
-			Returns:
-				An array with internal page links encoded.
-			
-			See Also:
-				<untranslateArray>
-		*/
-		
-		static function encodeArray($array) {
-			foreach ($array as &$piece) {
-				if (is_array($piece)) {
-					$piece = static::encodeArray($piece);
-				} else {
-					$piece = static::encode($piece);
-				}
-			}
-
-			return $array;
 		}
 
 		/*
@@ -573,13 +527,21 @@
 				Replaces all hard roots in a URL with tokens (i.e. {wwwroot}).
 
 			Parameters:
-				string - A string with hard roots.
+				input - A string or array with hard roots.
 
 			Returns:
 				A string with tokens.
 		*/
 
-		static function tokenize($string) {
+		static function tokenize($input) {
+			if (is_array($input)) {
+				foreach ($input as $key => $value) {
+					$input[$key] = static::tokenize($value);
+				}
+
+				return $input;
+			}
+
 			// Figure out what roots we can replace
 			if (!count(static::$TokenKeys)) {
 				if (substr(ADMIN_ROOT, 0, 7) == "http://" || substr(ADMIN_ROOT, 0, 8) == "https://") {
@@ -596,26 +558,7 @@
 				}
 			}
 
-			return str_replace(static::$TokenKeys, static::$TokenValues, $string);
-		}
-
-		/*
-			Function: tokenizeArray
-				Replaces all hard roots in an array of URLs with tokens (i.e. {wwwroot}).
-
-			Parameters:
-				array - An array of URL strings.
-
-			Returns:
-				An array of URL strings with tokens.
-		*/
-
-		static function tokenizeArray($array) {
-			foreach ($array as $key => $value) {
-				$array[$key] = static::tokenize($value);
-			}
-
-			return $array;
+			return str_replace(static::$TokenKeys, static::$TokenValues, $input);
 		}
 
 		/*

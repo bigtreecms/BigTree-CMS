@@ -91,7 +91,7 @@
 			}
 
 			// Do auto IPL stuff
-			$insert_array = BigTree\Link::encodeArray($insert_array);
+			$insert_array = BigTree\Link::encode($insert_array);
 
 			// Prevent Duplicates
 			if ($enforce_unique) {
@@ -269,7 +269,7 @@
 				}
 			}
 			
-			return BigTree\Link::decodeArray($item);
+			return BigTree\Link::decode($item);
 		}
 		
 		/*

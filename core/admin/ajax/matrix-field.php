@@ -10,7 +10,7 @@
 	$bigtree["resources"] = array();
 
 	if (isset($_POST["data"])) {
-		$bigtree["resources"] = Link::decodeArray(json_decode(base64_decode($_POST["data"]),true));
+		$bigtree["resources"] = Link::decode(json_decode(base64_decode($_POST["data"]),true));
 	}
 ?>
 <div id="matrix_resources" class="callout_fields">

@@ -277,7 +277,7 @@
 
 			// Translation of internal links
 			if (is_array($output)) {
-				$output = Link::encodeArray($output);
+				$output = Link::encode($output);
 			} else {
 				$output = Link::encode($output);
 			}

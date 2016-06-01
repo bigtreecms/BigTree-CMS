@@ -56,7 +56,7 @@
 					$this->ID = $this->OriginalID = $setting["id"];
 					$this->Locked = $setting["locked"] ? true : false;
 					$this->Name = $setting["name"];
-					$this->Settings = Link::decodeArray(array_filter((array) $options));
+					$this->Settings = Link::decode(array_filter((array) $options));
 					$this->System = $setting["system"] ? true : false;
 					$this->Type = $setting["type"];
 
@@ -74,7 +74,7 @@
 						if (is_string($value)) {
 							$value = Link::decode($value);
 						} elseif (is_array($value)) {
-							$value = Link::decodeArray($value);
+							$value = Link::decode($value);
 						}
 					}
 
@@ -249,7 +249,7 @@
 				if ($this->Value != $this->OriginalValue) {
 					// Do encoding
 					if (is_array($this->Value)) {
-						$value = Link::decodeArray($this->Value);
+						$value = Link::decode($this->Value);
 					} else {
 						$value = Link::encode($this->Value);
 					}
@@ -366,7 +366,7 @@
 					$value = json_decode($setting["value"], true);
 					
 					if (is_array($value)) {
-						$setting_values[$id] = Link::decodeArray($value);
+						$setting_values[$id] = Link::decode($value);
 					} else {
 						$setting_values[$id] = Link::decode($value);
 					}

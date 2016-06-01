@@ -60,7 +60,7 @@
 					$this->ListThumbMargin = $resource["list_thumb_margin"];
 					$this->MD5 = $resource["md5"];
 					$this->Name = $resource["name"];
-					$this->Thumbs = Link::detokenizeArray(array_filter((array) @json_decode($resource["thumbs"], true)));
+					$this->Thumbs = Link::detokenize(array_filter((array) @json_decode($resource["thumbs"], true)));
 					$this->Type = $resource["type"];
 					$this->Width = $resource["width"];
 				}

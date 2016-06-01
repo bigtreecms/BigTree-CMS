@@ -202,7 +202,7 @@
 			$query = SQL::query($query." ORDER BY $sort_field $sort_direction");
 
 			while ($item = $query->fetch()) {
-				$item = Link::decodeArray($item);
+				$item = Link::decode($item);
 
 				foreach ($item as $key => $value) {
 					if ($poplists[$key]) {
