@@ -12,8 +12,8 @@
 		<ul id="image_list">
 			<?
 				foreach ($items as $item) {
-					if ($prefix) {
-						$preview_image = BigTree::prefixFile($item[$bigtree["view"]["options"]["image"]],$prefix);
+					if ($bigtree["view"]["options"]["prefix"]) {
+						$preview_image = BigTree::prefixFile($item[$bigtree["view"]["options"]["image"]],$bigtree["view"]["options"]["prefix"]);
 					} else {
 						$preview_image = $item[$bigtree["view"]["options"]["image"]];
 					}
