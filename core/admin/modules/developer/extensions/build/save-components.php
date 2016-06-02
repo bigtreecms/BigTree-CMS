@@ -23,15 +23,18 @@
 		if ($module_id) {
 			$module = $admin->getModule($module_id);
 			$actions = $admin->getModuleActions($module_id);
+			
 			// Get all the tables of the module's actions.
 			foreach ($actions as $action) {
 				if ($action["interface"]) {
-					$interface = \BigTreeAutoModule::getInterface($action["interface"]);
+					$interface = new ModuleInterface($action["interface"]);
 
 					// Forms we're going to lookup field types that could be used
-					if ($interface["interface_type"] == "form") {
+					if ($interface->Type == "form") {
+						$form = new ModuleForm($interface->Array);
+
 						// Figure out what tables and field types the form uses and automatically add them.
-						foreach ($interface["fields"] as $field) {
+						foreach ($form->Fields as $field) {
 							// Database populated list? Include the table it pulls from.
 							if ($field["type"] == "list" && $field["list_type"] == "db") {
 								if (!in_array($field["pop-table"]."#structure",$p["tables"]) && substr($field["pop-table"],0,8) != "bigtree_") {
@@ -56,10 +59,11 @@
 						}
 					}
 					
-					if (isset($interface["table"]) && !in_array($interface["table"]."#structure",$p["tables"])) {
+					if (!empty($interface->Table) && !in_array($interface->Table."#structure",$p["tables"])) {
 						$p["tables"][] = $interface["table"]."#structure";
 					}
 				}
+
 				if ($module["group"]) {
 					$p["module_groups"][] = $module["group"];
 				}

@@ -1,11 +1,14 @@
 <?php
 	namespace BigTree;
-	
-	Globalize::POST();
 
-	$admin->updateModuleEmbedForm(end($bigtree["path"]),$title,$table,$fields,$hooks,$default_position,$default_pending,$css,$redirect_url,$thank_you_message);
-	$admin->growl("Developer","Updated Embeddable Form");
+	/**
+	 * @global array $bigtree
+	 */
 
-	$form = \BigTreeAutoModule::getEmbedForm(end($bigtree["path"]));
-	Router::redirect(DEVELOPER_ROOT."modules/edit/".$form["module"]."/");
+	$form = new ModuleEmbedForm(end($bigtree["path"]));
+	$form->update($_POST["title"], $_POST["table"], $_POST["fields"], $_POST["hooks"], $_POST["default_position"],
+				  $_POST["default_pending"], $_POST["css"], $_POST["redirect_url"], $_POST["thank_you_message"]);
+
+	Utils::growl("Developer","Updated Embeddable Form");
+	Router::redirect(DEVELOPER_ROOT."modules/edit/".$form->Module."/");
 	

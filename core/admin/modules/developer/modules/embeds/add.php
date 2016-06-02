@@ -1,11 +1,11 @@
 <?php
 	namespace BigTree;
 	
-	$module = $admin->getModule($_GET["module"]);
-	$form = array("hooks" => array());
+	$form = new ModuleEmbedForm;
+	$module = new Module($_GET["module"]);
 ?>
 <div class="container">
-	<form method="post" action="<?=DEVELOPER_ROOT?>modules/embeds/create/<?=$module["id"]?>/" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>modules/embeds/create/<?=$module->ID?>/" class="module">
 		<?php include Router::getIncludePath("admin/modules/developer/modules/embeds/_form.php") ?>
 		<section class="sub" id="field_area">
 			<p><?=Text::translate("Please choose a table to populate this area.")?></p>
