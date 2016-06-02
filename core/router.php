@@ -162,11 +162,18 @@
 	
 	// If we have a specific URL trailing slash behavior specified, ensure it's applied to the current request
     if (array_filter($bigtree["path"])) {
+    	// Build GET vars for a redirect if we need it
+    	$get_vars = $_GET;
+    	unset($get_vars["bigtree_htaccess_url"]);
+    	$get_vars = count($get_vars) ? "?".http_build_query($get_vars) : "";
+
     	if (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
-    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/")."/","301");
+    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/")."/$get_vars","301");
     	} elseif (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
-    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/"),"301");    	
+    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/").$get_vars,"301");    	
     	}
+
+    	unset($get_vars);
     }
 
 	// Start output buffering and sessions
