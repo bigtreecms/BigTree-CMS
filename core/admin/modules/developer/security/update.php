@@ -25,6 +25,6 @@
 		"banned_ips" => $banned_ips
 	));
 
-	$admin->growl("Security","Updated Policy");
+	Utils::growl("Security","Updated Policy");
 	Router::redirect(DEVELOPER_ROOT);
 	

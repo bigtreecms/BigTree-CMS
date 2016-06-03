@@ -91,7 +91,7 @@
 		\BigTreeAutoModule::clearCache(end($bigtree["path"]));
 		
 		$action = $admin->getModuleActionForInterface(end($bigtree["path"]));
-		$admin->growl("Developer","Updated View");
+		Utils::growl("Developer","Updated View");
 
 		if ($_POST["return_page"]) {
 			Router::redirect($_POST["return_page"]);

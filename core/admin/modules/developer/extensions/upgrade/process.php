@@ -35,7 +35,7 @@
 			
 			// Try to login
 			if (!$updater->ftpLogin($_POST["username"],$_POST["password"])) {
-				$admin->growl("Developer","Login Failed","error");
+				Utils::growl("Developer","Login Failed","error");
 				Router::redirect(DEVELOPER_ROOT."extensions/upgrade/check-file/?id=".$_GET["id"]);
 			}
 			

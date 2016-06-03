@@ -9,7 +9,7 @@
 	$updates = @json_decode(cURL::request("http://www.bigtreecms.org/ajax/version-check/?current_version=".BIGTREE_VERSION),true);
 	$update = $updates[$_GET["type"]];
 	if (!$update) {
-		$admin->growl("Developer","Couldn't Get Download Information","error");
+		Utils::growl("Developer","Couldn't Get Download Information","error");
 		Router::redirect(DEVELOPER_ROOT);
 	}
 

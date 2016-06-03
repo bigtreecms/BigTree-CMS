@@ -35,10 +35,10 @@
 	if ($access_level == "p" && $_POST["ptype"] == "Create & Publish") {
 		// Let's make it happen.
 		$page = $admin->createPage($_POST);
-		$admin->growl("Pages","Created & Published Page");
+		Utils::growl("Pages","Created & Published Page");
 	} else {
 		$page = "p".$admin->createPendingPage($_POST);
-		$admin->growl("Pages","Created Page Draft");
+		Utils::growl("Pages","Created Page Draft");
 	}
 
 	// Track resource allocation

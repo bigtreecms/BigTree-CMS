@@ -184,6 +184,6 @@
 	// Turn key checks back on
 	SQL::query("SET foreign_key_checks = 1");
 	
-	$admin->growl("Developer","Installed Package");
+	Utils::growl("Developer","Installed Package");
 	Router::redirect(DEVELOPER_ROOT."packages/install/complete/");
 	

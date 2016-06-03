@@ -13,5 +13,5 @@
 	
 	$admin->updateModule($id,$name,$group,$class,$gbp,$icon,$developer_only);	
 
-	$admin->growl("Developer","Updated Module");
+	Utils::growl("Developer","Updated Module");
 	Router::redirect(DEVELOPER_ROOT."modules/");

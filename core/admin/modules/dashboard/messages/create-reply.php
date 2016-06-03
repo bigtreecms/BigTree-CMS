@@ -16,6 +16,6 @@
 	// Send the response.
 	$admin->createMessage($_POST["subject"],$_POST["message"],$_POST["send_to"],$_POST["response_to"]);
 	
-	$admin->growl("Message Center","Replied To Message");
+	Utils::growl("Message Center","Replied To Message");
 	
 	Router::redirect(ADMIN_ROOT."dashboard/messages/");

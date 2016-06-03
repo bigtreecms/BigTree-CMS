@@ -14,6 +14,6 @@
 
 	$action = $admin->getModuleActionForInterface(end($bigtree["path"]));
 
-	$admin->growl("Developer","Updated View Styles");
+	Utils::growl("Developer","Updated View Styles");
 	Router::redirect(DEVELOPER_ROOT."modules/edit/".$action["module"]."/");
 	

@@ -8,10 +8,10 @@
 	$gateway->saveSettings();
 
 	if (!$gateway->paypalRESTTokenRequest()) {
-		$admin->growl("PayPal REST API",$gateway->Errors[0],"error");
+		Utils::growl("PayPal REST API",$gateway->Errors[0],"error");
 		Router::redirect(DEVELOPER_ROOT."payment-gateway/paypal-rest/");
 	}
 
-	$admin->growl("Developer","Updated Payment Gateway");
+	Utils::growl("Developer","Updated Payment Gateway");
 	Router::redirect(DEVELOPER_ROOT);
 	

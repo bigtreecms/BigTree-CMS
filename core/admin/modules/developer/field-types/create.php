@@ -13,6 +13,6 @@
 		Router::redirect(DEVELOPER_ROOT."field-types/add/");		
 	}
 	
-	$admin->growl("Developer","Created Field Type");
+	Utils::growl("Developer","Created Field Type");
 	Router::redirect(DEVELOPER_ROOT."field-types/new/$id/");
 	

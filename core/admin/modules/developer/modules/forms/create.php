@@ -1,25 +1,39 @@
 <?php
 	namespace BigTree;
-	
-	Globalize::POST();
+
+	/**
+	 * @global array $bigtree
+	 */
 
 	$module = end($bigtree["path"]);
-	$form_id = $admin->createModuleForm($module,$title,$table,$fields,$hooks,$default_position,$return_view,$return_url,$tagging);
-	
+	$title = $_POST["title"];
+
+	$form = ModuleForm::create(
+		$module,
+		$title,
+		$_POST["table"],
+		$_POST["fields"],
+		$_POST["hooks"],
+		$_POST["default_position"],
+		$_POST["return_view"],
+		$_POST["return_url"],
+		$_POST["tagging"]
+	);
+
 	// See if add/edit actions already exist
 	$add_route = "add";
 	$edit_route = "edit";
 
 	// If we already have add/edit routes, get unique new ones for this form
-	if (ModuleAction::exists($module,"add") || ModuleAction::exists($module,"edit")) {
-		$add_route = SQL::unique("bigtree_module_actions", "route", $cms->urlify("add $title"), array("module" => $module), true);
-		$edit_route = SQL::unique("bigtree_module_actions", "route", $cms->urlify("edit $title"), array("module" => $module), true);
+	if (ModuleAction::exists($module, "add") || ModuleAction::exists($module, "edit")) {
+		$add_route = SQL::unique("bigtree_module_actions", "route", Link::urlify("add $title"), array("module" => $module), true);
+		$edit_route = SQL::unique("bigtree_module_actions", "route", Link::urlify("edit $title"), array("module" => $module), true);
 	}
 
 	// Create actions for the form
-	$admin->createModuleAction($module,"Add $title",$add_route,"on","add",$form_id);
-	$admin->createModuleAction($module,"Edit $title",$edit_route,"","edit",$form_id);
+	ModuleAction::create($module, "Add $title", $add_route, "on", "add", $form->ID);
+	ModuleAction::create($module, "Edit $title", $edit_route, "", "edit", $form->ID);
 
-	$admin->growl("Developer","Created Module Form");
+	Utils::growl("Developer", "Created Module Form");
 	Router::redirect(DEVELOPER_ROOT."modules/edit/$module/");
 	

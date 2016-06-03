@@ -37,6 +37,6 @@
 		$admin->createPendingChange("bigtree_pages",$revision["page"],$changes);
 	}
 	
-	$admin->growl("Pages","Loaded Saved Revision");
+	Utils::growl("Pages","Loaded Saved Revision");
 	
 	Router::redirect(ADMIN_ROOT."pages/edit/".$revision["page"]."/");

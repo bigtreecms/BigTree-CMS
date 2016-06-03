@@ -10,7 +10,7 @@
 	$info = array_filter((array)@json_decode(cURL::request("http://www.bigtreecms.org/ajax/extensions/version/?extensions[]=".$_GET["id"],false,array(CURLOPT_CONNECTTIMEOUT => 1,CURLOPT_TIMEOUT => 5)),true));
 	$extension_info = $info[$_GET["id"]];
 	if (!$extension_info) {
-		$admin->growl("Extensions","Failed to get download information");
+		Utils::growl("Extensions","Failed to get download information");
 		Router::redirect(DEVELOPER_ROOT."extensions/");
 	}
 	$download_key = $cms->cacheUnique("org.bigtreecms.downloads",$extension_info["github_url"]);

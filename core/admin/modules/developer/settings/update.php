@@ -3,12 +3,12 @@
 	
 	$item = $admin->getSetting(end($bigtree["path"]));
 	if ($item["system"]) {
-		$admin->growl("Developer","Access Denied","error");
+		Utils::growl("Developer","Access Denied","error");
 		Router::redirect(DEVELOPER_ROOT."settings/");
 	} else {
 		$success = $admin->updateSetting(end($bigtree["path"]),$_POST);
 		if ($success) {
-			$admin->growl("Developer","Updated Setting");
+			Utils::growl("Developer","Updated Setting");
 			if ($_POST["return_to_front"]) {
 				Router::redirect(ADMIN_ROOT."settings/edit/".$_POST["id"]."/");
 			} else {

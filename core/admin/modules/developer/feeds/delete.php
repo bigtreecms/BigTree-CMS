@@ -3,6 +3,6 @@
 	
 	$admin->deleteFeed(end($bigtree["commands"]));
 
-	$admin->growl("Developer","Deleted Feed");
+	Utils::growl("Developer","Deleted Feed");
 	Router::redirect(DEVELOPER_ROOT."feeds/");
 	

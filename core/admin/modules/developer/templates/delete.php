@@ -3,6 +3,6 @@
 	
 	$admin->deleteTemplate(end($bigtree["path"]));
 	
-	$admin->growl("Developer","Deleted Template");
+	Utils::growl("Developer","Deleted Template");
 	Router::redirect(DEVELOPER_ROOT."templates/");
 	

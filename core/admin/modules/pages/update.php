@@ -66,18 +66,18 @@
 			
 			$admin->deletePendingChange(substr($id,1));
 			$id = $admin->createPage($_POST);
-			$admin->growl("Pages","Created & Published Page");
+			Utils::growl("Pages","Created & Published Page");
 		} else {
 			// It's an existing page.
 			$admin->updatePage($id,$_POST);
-			$admin->growl("Pages","Updated Page");
+			Utils::growl("Pages","Updated Page");
 		}
 	} else {
 		if (!$_POST["parent"]) {
 			$_POST["parent"] = $bigtree["current_page_data"]["parent"];
 		}
 		$admin->submitPageChange($id,$_POST);
-		$admin->growl("Pages","Saved Page Draft");
+		Utils::growl("Pages","Saved Page Draft");
 	}
 	
 	$admin->unlock("bigtree_pages",$id);

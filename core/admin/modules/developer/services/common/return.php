@@ -4,10 +4,10 @@
 	$token = $api->oAuthSetToken($_GET["code"]);
 
 	if ($api->OAuthError) {
-		$admin->growl("$name API",$api->OAuthError,"error");
+		Utils::growl("$name API",$api->OAuthError,"error");
 	} else {
 		$bigtree["api_return_function"]($api);
-		$admin->growl("$name API","Connected");
+		Utils::growl("$name API","Connected");
 	}
 
 	$api->Setting->save();

@@ -8,7 +8,7 @@
 	
 	$admin->createMessage($_POST["subject"],$_POST["message"],$_POST["send_to"]);
 	
-	$admin->growl("Message Center","Sent Message");
+	Utils::growl("Message Center","Sent Message");
 
 	Router::redirect(ADMIN_ROOT."dashboard/messages/");
 	

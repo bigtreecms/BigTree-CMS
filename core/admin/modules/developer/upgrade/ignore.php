@@ -8,6 +8,6 @@
 		setcookie("bigtree_admin[ignored_update][$version]",true,time()+365*60*60*24,str_replace(DOMAIN,"",WWW_ROOT));
 	}
 
-	$admin->growl("Developer","Ignored Updates");
+	Utils::growl("Developer","Ignored Updates");
 	Router::redirect(DEVELOPER_ROOT);
 	

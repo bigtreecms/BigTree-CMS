@@ -19,7 +19,7 @@
 		if (!$admin->validatePassword($password)) {
 			$_SESSION["bigtree_admin"]["create_user"] = $_POST;
 			$_SESSION["bigtree_admin"]["create_user"]["error"] = "password";
-			$admin->growl("Users","Invalid Password","error");
+			Utils::growl("Users","Invalid Password","error");
 			Router::redirect(ADMIN_ROOT."users/add/");
 		}
 
@@ -33,11 +33,11 @@
 		if ($user === false) {
 			$_SESSION["bigtree_admin"]["create_user"] = $_POST;
 			$_SESSION["bigtree_admin"]["create_user"]["error"] = "email";
-			$admin->growl("Users","Creation Failed","error");
+			Utils::growl("Users","Creation Failed","error");
 			Router::redirect(ADMIN_ROOT."users/add/");
 		}
 	
-		$admin->growl("Users","Added User");
+		Utils::growl("Users","Added User");
 		Router::redirect(ADMIN_ROOT."users/edit/".$user->ID."/");
 	}
 ?>

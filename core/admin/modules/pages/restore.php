@@ -5,7 +5,7 @@
 	$page = $cms->getPage($id,false);
 	$access = $admin->unarchivePage($id);
 
-	$admin->growl("Pages","Restored Page");
+	Utils::growl("Pages","Restored Page");
 	
 	Router::redirect(ADMIN_ROOT."pages/view-tree/".$page["parent"]."/");
 	

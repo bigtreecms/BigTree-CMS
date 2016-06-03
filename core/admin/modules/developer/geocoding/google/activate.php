@@ -5,7 +5,7 @@
 	$geocoding_service["service"] = "google";
 
 	$admin->updateSettingValue("bigtree-internal-geocoding-service",$geocoding_service);
-	$admin->growl("Developer","Geocoding Service set to Google");
+	Utils::growl("Developer","Geocoding Service set to Google");
 
 	Router::redirect(DEVELOPER_ROOT);
 	

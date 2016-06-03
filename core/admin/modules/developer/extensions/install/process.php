@@ -5,7 +5,7 @@
 
 	// Insert the extension and growl
 	$admin->installExtension($manifest);
-	$admin->growl("Developer","Installed Extension");
+	Utils::growl("Developer","Installed Extension");
 
 	// If we have an install.php file, run it. We're catching the output buffer to see if install.php has anything to show -- if it doesn't, we'll redirect to the complete screen.
 	$install_file_path = SERVER_ROOT."extensions/".$manifest["id"]."/install.php";

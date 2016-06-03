@@ -10,7 +10,7 @@
 	$admin->requireLevel(1);
 	$item = $admin->getSetting($_POST["id"]);
 	if ($item["system"] || ($item["locked"] && $admin->Level < 2)) {
-		$admin->growl("Settings","Access Denied","error");
+		Utils::growl("Settings","Access Denied","error");
 	} else {
 		$bigtree["crops"] = array();
 		$bigtree["errors"] = array();
@@ -33,7 +33,7 @@
 			$admin->updateSettingValue($_POST["id"],$output);
 		}
 
-		$admin->growl("Settings","Updated Setting");
+		Utils::growl("Settings","Updated Setting");
 	}
 
 	$_SESSION["bigtree_admin"]["form_data"] = array(

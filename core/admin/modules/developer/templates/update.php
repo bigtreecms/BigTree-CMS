@@ -4,7 +4,7 @@
 	Globalize::POST();
 
 	$admin->updateTemplate($id,$name,$level,$module,$resources);
-	$admin->growl("Developer","Updated Template");
+	Utils::growl("Developer","Updated Template");
 
 	if (isset($_POST["return_to_front"])) {
 		Router::redirect(ADMIN_ROOT."pages/edit/".$_POST["return_to_front"]."/");

@@ -7,6 +7,6 @@
 	$gateway->Settings["authorize-environment"] = $_POST["authorize-environment"];
 	$gateway->saveSettings();
 
-	$admin->growl("Developer","Updated Payment Gateway");
+	Utils::growl("Developer","Updated Payment Gateway");
 	Router::redirect(DEVELOPER_ROOT);
 	

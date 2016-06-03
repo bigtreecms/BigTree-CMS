@@ -8,6 +8,6 @@
 	$action_route = SQL::unique("bigtree_module_actions", "route", "report", array("module" => $module), true);
 	$report_route = $admin->createModuleAction($module,$title,$action_route,"on","export",$id);
 
-	$admin->growl("Developer","Created Module Report");
+	Utils::growl("Developer","Created Module Report");
 	Router::redirect(DEVELOPER_ROOT."modules/edit/$module/");
 	

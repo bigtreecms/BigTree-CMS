@@ -15,12 +15,12 @@
 		$_POST["group_existing"] = $group;
 		unset($_POST["group_new"]);
 		$_SESSION["bigtree_admin"]["saved"] = $_POST;
-		$admin->growl("Developer","Invalid Route");
+		Utils::growl("Developer","Invalid Route");
 		Router::redirect(DEVELOPER_ROOT."modules/add/?error=route");
 	}
 	
 	if (!$table) {
-		$admin->growl("Developer","Created Module");
+		Utils::growl("Developer","Created Module");
 		Router::redirect(DEVELOPER_ROOT."modules/");
 	}
 ?>

@@ -6,7 +6,7 @@
 	$geocoding_service["bing_key"] = $_POST["bing_key"];
 
 	$admin->updateSettingValue("bigtree-internal-geocoding-service",$geocoding_service);
-	$admin->growl("Developer","Geocoding Service set to Bing");
+	Utils::growl("Developer","Geocoding Service set to Bing");
 
 	Router::redirect(DEVELOPER_ROOT);
 	

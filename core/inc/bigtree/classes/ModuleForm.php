@@ -21,7 +21,7 @@
 		public $DefaultPosition;
 		public $Embedded = false;
 		public $Fields;
-		public $Hooks;
+		public $Hooks = array("pre" => "", "post" => "", "publish" => "");
 		public $Module;
 		public $ReturnURL;
 		public $ReturnView;

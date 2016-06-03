@@ -2,7 +2,7 @@
 	namespace BigTree;
 
 	$analytics->disconnect();
-	$admin->growl("Analytics","Disconnected");
+	Utils::growl("Analytics","Disconnected");
 
 	Router::redirect(MODULE_ROOT);
 	

@@ -71,7 +71,7 @@
 
 		// If we're not working on a new module, just redirect back to the edit module page
 		if (!$_POST["new_module"]) {
-			$admin->growl("Developer","Created Module View");
+			Utils::growl("Developer","Created Module View");
 			Router::redirect(DEVELOPER_ROOT."modules/edit/$module/");
 		}
 ?>

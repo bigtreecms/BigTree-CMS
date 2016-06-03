@@ -5,7 +5,7 @@
 	
 	if (isset($_POST["clear"])) {
 		Redirect::clearEmpty();
-		$admin->growl("404 Report","Cleared 404s");
+		Utils::growl("404 Report","Cleared 404s");
 		
 		Router::redirect(ADMIN_ROOT."dashboard/vitals-statistics/404/");
 	} else {

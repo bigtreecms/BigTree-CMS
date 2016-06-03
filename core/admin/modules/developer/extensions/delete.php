@@ -4,6 +4,6 @@
 	$extension = new Extension($bigtree["commands"][0]);
 	$extension->delete();
 
-	$admin->growl("Developer","Uninstalled Extension");
+	Utils::growl("Developer","Uninstalled Extension");
 	Router::redirect(DEVELOPER_ROOT."extensions/");
 	

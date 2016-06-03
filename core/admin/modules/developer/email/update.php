@@ -18,7 +18,7 @@
 	$settings["settings"]["bigtree_from"] = $_POST["bigtree_from"];
 
 	$admin->updateSettingValue("bigtree-internal-email-service",$settings);
-	$admin->growl("Developer","Updated Email Service");
+	Utils::growl("Developer","Updated Email Service");
 
 	Router::redirect(DEVELOPER_ROOT);
 	

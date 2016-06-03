@@ -13,6 +13,6 @@
 
 	$action = $admin->getModuleActionForInterface(end($bigtree["path"]));
 
-	$admin->growl("Developer","Reset View Styles");
+	Utils::growl("Developer","Reset View Styles");
 	Router::redirect(DEVELOPER_ROOT."modules/edit/".$action["module"]."/");
 	

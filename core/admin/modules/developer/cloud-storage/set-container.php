@@ -32,7 +32,7 @@
 		if ($success) {
 			$storage->Settings["Container"] = $container;
 		} else {
-			$admin->growl("Developer","Failed to create container.","error");
+			Utils::growl("Developer","Failed to create container.","error");
 			Router::redirect(DEVELOPER_ROOT."cloud-storage/");
 		}
 	}
@@ -40,7 +40,7 @@
 	// Get a list of files
 	$container = $cloud->getContainer($storage->Settings["Container"],true);
 	if ($container === false) {
-		$admin->growl("Developer","Failed to read container.","error");
+		Utils::growl("Developer","Failed to read container.","error");
 		Router::redirect(DEVELOPER_ROOT."cloud-storage/");
 	}
 
@@ -50,6 +50,6 @@
 	// Save storage settings
 	$storage->Setting->save();
 
-	$admin->growl("Developer","Changed Default Storage");
+	Utils::growl("Developer","Changed Default Storage");
 
 	Router::redirect(DEVELOPER_ROOT."cloud-storage/");

@@ -15,7 +15,7 @@
 		$containers = $cloud->listContainers();
 		
 		if ($containers === false) {
-			$admin->growl("Developer","Invalid Cloud Storage Setup: ".ucwords($_POST["service"]),"error");
+			Utils::growl("Developer","Invalid Cloud Storage Setup: ".ucwords($_POST["service"]),"error");
 			Router::redirect(DEVELOPER_ROOT."cloud-storage/");
 		} else {
 			$service_names = array("amazon" => "Amazon S3","rackspace" => "Rackspace Cloud Files","google" => "Google Cloud Storage");
@@ -44,7 +44,7 @@
 		$storage->Settings["Service"] = "local";
 		$storage->Setting->save();
 		
-		$admin->growl("Developer","Changed Default Storage");
+		Utils::growl("Developer","Changed Default Storage");
 		Router::redirect(DEVELOPER_ROOT);
 	}
 ?>

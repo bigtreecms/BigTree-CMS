@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	$admin->deleteModuleAction(end($bigtree["path"]));
-	$admin->growl("Developer","Deleted Action");
+	Utils::growl("Developer","Deleted Action");
 	
 	Router::redirect(DEVELOPER_ROOT."modules/edit/".$_GET["module"]."/");
 	

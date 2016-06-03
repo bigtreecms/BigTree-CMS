@@ -1,9 +1,5 @@
 <?php
 	namespace BigTree;
-	
-	$id = $_GET["module"];
-	$table = isset($_GET["table"]) ? $_GET["table"] : "";
-	$module = $admin->getModule($id);
 
 	// Try to make sense of a plural title into singular
 	if (isset($_GET["title"])) {
@@ -20,10 +16,15 @@
 		$title = "";
 	}
 
-	$form = array("title" => htmlspecialchars(urldecode($title)),"table" => $table,"tagging" => "","return_view" => "","return_url" => "","hooks" => array());
+	$form = new ModuleForm(array(
+		"table" => isset($_GET["table"]) ? $_GET["table"] : "",
+		"title" => $title
+	));
+	$module = new Module($_GET["module"]);
+
 ?>
 <div class="container">
-	<form method="post" action="<?=DEVELOPER_ROOT?>modules/forms/create/<?=$module["id"]?>/" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>modules/forms/create/<?=$module->ID?>/" class="module">
 		<?php include Router::getIncludePath("admin/modules/developer/modules/forms/_form.php") ?>
 		<footer>
 			<input type="submit" class="button blue" value="<?=Text::translate("Create", true)?>" />
