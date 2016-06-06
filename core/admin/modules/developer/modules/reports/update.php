@@ -1,14 +1,26 @@
 <?php
 	namespace BigTree;
-	
-	Globalize::POST();
-	$admin->updateModuleReport(end($bigtree["commands"]),$title,$table,$type,$filters,$fields,$parser,$view);
+
+	/**
+	 * @global array $bigtree
+	 */
+
+	$report = new ModuleReport(end($bigtree["commands"]));
+	$report->update(
+		$_POST["title"],
+		$_POST["table"],
+		$_POST["type"],
+		$_POST["filters"],
+		$_POST["fields"],
+		$_POST["parser"],
+		$_POST["view"]
+	);
+
 	Utils::growl("Developer","Updated Module Report");
-	$action = $admin->getModuleActionForInterface(end($bigtree["commands"]));
 
 	if ($_POST["return_page"]) {
 		Router::redirect($_POST["return_page"]);
 	} else {
-		Router::redirect(DEVELOPER_ROOT."modules/edit/".$action["module"]."/");
+		Router::redirect(DEVELOPER_ROOT."modules/edit/".$report->Module."/");
 	}
 	

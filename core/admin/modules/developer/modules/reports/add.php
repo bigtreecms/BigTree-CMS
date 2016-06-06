@@ -1,12 +1,8 @@
 <?php
 	namespace BigTree;
-	
-	$id = $_GET["module"];
-	$module = $admin->getModule($id);
-	$type = "csv";
 
-	// Find out available views to use
-	$available_views = $admin->getModuleViews("title",$module["id"]);
+	$module = new Module($_GET["id"]);
+	$available_views = ModuleView::allByModule($module->ID, "title");
 ?>
 <div class="container">
 	<form method="post" action="<?=SECTION_ROOT?>create/<?=$module["id"]?>/" class="module">
@@ -29,7 +25,7 @@
 					<label><?=Text::translate("Filtered View <small>(after the report is submitted, it will show data using this view)</small>")?></label>
 					<select name="view">
 						<?php foreach ($available_views as $view) { ?>
-						<option value="<?=$view["id"]?>"<?php if (isset($_GET["view"]) && $_GET["view"] == $view["id"]) { ?> selected="selected"<?php } ?>><?=$view["title"]?></option>
+						<option value="<?=$view->ID?>"<?php if (isset($_GET["view"]) && $_GET["view"] == $view->ID) { ?> selected="selected"<?php } ?>><?=$view->Title?></option>
 						<?php } ?>
 					</select>
 				</fieldset>
@@ -52,13 +48,7 @@
 			</div>
 		</section>
 		<section class="sub" id="field_area">
-			<?php
-				if ($table) {
-					include Router::getIncludePath("admin/ajax/developer/load-report.php");
-				} else {
-					echo "<p>".Text::translate("Please choose a table to populate this area.")."</p>";
-				}
-			?>
+			<p><?=Text::translate("Please choose a table to populate this area.")?></p>
 		</section>
 		<footer>
 			<input type="submit" class="button blue" value="<?=Text::translate("Create", true)?>" />

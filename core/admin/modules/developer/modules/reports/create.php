@@ -1,13 +1,26 @@
 <?php
 	namespace BigTree;
-	
-	Globalize::POST();
 
-	$module = end($bigtree["path"]);
-	$id = $admin->createModuleReport($module,$title,$table,$type,$filters,$fields,$parser,$view);
-	$action_route = SQL::unique("bigtree_module_actions", "route", "report", array("module" => $module), true);
-	$report_route = $admin->createModuleAction($module,$title,$action_route,"on","export",$id);
+	/**
+	 * @global array $bigtree
+	 */
 
-	Utils::growl("Developer","Created Module Report");
-	Router::redirect(DEVELOPER_ROOT."modules/edit/$module/");
+	$module_id = end($bigtree["path"]);
+
+	$report = ModuleReport::create(
+		$module_id,
+		$_POST["title"],
+		$_POST["table"],
+		$_POST["type"],
+		$_POST["filters"],
+		$_POST["fields"],
+		$_POST["parser"],
+		$_POST["view"]
+	);
+
+	$action_route = SQL::unique("bigtree_module_actions", "route", "report", array("module" => $module_id), true);
+	ModuleAction::create($module_id, $_POST["title"], $action_route, "on", "export", $report->ID);
+
+	Utils::growl("Developer", "Created Module Report");
+	Router::redirect(DEVELOPER_ROOT."modules/edit/$module_id/");
 	
