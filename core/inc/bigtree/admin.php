@@ -3013,6 +3013,9 @@
 
 			foreach ($groups as $group_id) {
 				$group = $this->getCalloutGroup($group_id);
+				if (!$group) {
+					continue;
+				}
 				foreach ($group["callouts"] as $callout_id) {
 					if (!in_array($callout_id,$ids)) {
 						$callout = $this->getCallout($callout_id);
