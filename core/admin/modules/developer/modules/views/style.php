@@ -3,7 +3,7 @@
 	$entries = BigTreeAutoModule::getSearchResults($view,1);
 	$entries = array_slice($entries["results"],0,5);
 
-	if ($view == "images" || $view == "images-group") {
+	if ($view["type"] == "images" || $view["type"] == "images-group") {
 ?>
 <p>The view type does not have any style settings.</p>
 <?

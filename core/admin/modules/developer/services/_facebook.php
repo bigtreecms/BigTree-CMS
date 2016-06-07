@@ -9,11 +9,11 @@
 	$scope_help = ' <small>(see <a href="https://developers.facebook.com/docs/facebook-login/permissions/v2.4" target="_blank">Permissions</a>)</small>';
 	$instructions = array(
 		'<a href="https://developers.facebook.com/apps/" target="_blank">Add a new Facebook app</a>.',
-		'Inside your app\'s Dashboard, go to Settings and then the "Advanced" tab.',
-		'Find the Client OAuth Settings section, add '.DEVELOPER_ROOT.'services/facebook/return/ as a valid OAuth redirect URI.',
-		'If you don\'t want your app showing up in your connected account\'s news feed, set Social Discovery to No.',
+		'In the left navigation bar of your project dashboard click the Add Product link.',
+		'Add the Facebook Login product.',
+		'Under Facebook Login, find the Client OAuth Settings section and add '.DEVELOPER_ROOT.'services/facebook/return/ as a valid OAuth redirect URI.',
 		'Click "Save Changes".',
-		'Go back to the "Basic" tab and enter the App ID and App Secret from that page below.',
+		'Go back to the Settings page and enter the App ID and App Secret from that page below.',
 		'Follow the OAuth process of allowing BigTree/your application access to your Facebook account.'
 	);
 
