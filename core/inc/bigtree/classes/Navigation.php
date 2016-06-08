@@ -8,6 +8,78 @@
 
 	class Navigation {
 
+		public static $Trunk = false;
+
+		/*
+			Function: getBreadcrumb
+				Returns an array of titles, links, and ids for the pages above the given page.
+
+			Parameters:
+				page - A page array (containing at least the "path" from the database)
+				ignore_trunk - Ignores trunk settings when returning the breadcrumb
+
+			Returns:
+				An array of arrays with "title", "link", and "id" of each of the pages above the current (or passed in) page.
+				If a trunk is hit, BigTree\Navigation::$Trunk is set to the trunk.
+
+			See Also:
+				<getBreadcrumb>
+		*/
+
+		static function getBreadcrumb($page, $ignore_trunk = false) {
+			global $bigtree;
+
+			$bc = array();
+
+			// Break up the pieces so we can get each piece of the path individually and pull all the pages above this one.
+			$pieces = explode("/", $page["path"]);
+			$paths = array();
+			$path = "";
+			foreach ($pieces as $piece) {
+				$path = $path.$piece."/";
+				$paths[] = "path = '".SQL::escape(trim($path, "/"))."'";
+			}
+
+			// Get all the ancestors, ordered by the page length so we get the latest first and can count backwards to the trunk.
+			$ancestors = SQL::fetchAll("SELECT id, nav_title, path, trunk FROM bigtree_pages 
+										WHERE (".implode(" OR ", $paths).") ORDER BY LENGTH(path) DESC");
+			$trunk_hit = false;
+			foreach ($ancestors as $ancestor) {
+				// In case we want to know what the trunk is.
+				if ($ancestor["trunk"]) {
+					$trunk_hit = true;
+					\BigTreeCMS::$BreadcrumbTrunk = $ancestor;
+					Navigation::$Trunk = $ancestor;
+				}
+
+				if (!$trunk_hit || $ignore_trunk) {
+					if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
+						$link = WWW_ROOT.$ancestor["path"];
+					} else {
+						$link = WWW_ROOT.$ancestor["path"]."/";
+					}
+					$bc[] = array("title" => stripslashes($ancestor["nav_title"]), "link" => $link, "id" => $ancestor["id"]);
+				}
+			}
+			$bc = array_reverse($bc);
+
+			// Check for module breadcrumbs
+			$module_class = SQL::fetchSingle("SELECT bigtree_modules.class
+											  FROM bigtree_modules JOIN bigtree_templates
+											  ON bigtree_modules.id = bigtree_templates.module
+											  WHERE bigtree_templates.id = ?", $page["template"]);
+
+			if ($module_class && class_exists($module_class)) {
+				$module = new $module_class;
+
+				if (method_exists($module, "getBreadcrumb")) {
+					$bc = array_merge($bc, $module->getBreadcrumb($page, array_filter((array) $bigtree["routed_path"])));
+				}
+			}
+
+			return $bc;
+		}
+
 		/*
 			Function: getLevel
 				Returns a navigation array of pages visible in navigation.

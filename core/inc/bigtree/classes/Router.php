@@ -16,7 +16,6 @@
 		public static $RouteParamNames = array();
 		public static $RouteParamNamesPath = array();
 		public static $Secure = false;
-		public static $Trunk = false;
 
 		/*
 			Function: checkPathHistory
