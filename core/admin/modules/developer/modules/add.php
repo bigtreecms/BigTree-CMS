@@ -59,7 +59,7 @@
 		        <label class="required"><?=Text::translate("Icon")?></label>
 		        <input type="hidden" name="icon" id="selected_icon" value="<?=$icon?>" />
 		        <ul class="developer_icon_list">
-		        	<?php foreach (\BigTreeAdmin::$IconClasses as $class) { ?>
+		        	<?php foreach (Module::$IconClasses as $class) { ?>
 		        	<li>
 		        		<a href="#<?=$class?>"<?php if ($class == "gear") { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
 		        	</li>

@@ -1,18 +1,20 @@
 <?php
+	namespace BigTree;
+
 	// Grab the settings list
-	$settings = $cms->getSetting("bigtree-internal-extension-settings");
+	$extension_settings = new Setting("bigtree-internal-extension-settings");
 	$type = $_POST["type"];
 	
 	// Toggle it
 	$id = $_POST["id"];
-	if (isset($settings[$type][$id])) {
+	if (isset($extension_settings->Value[$type][$id])) {
 		if ($_POST["state"] == "true") {
-			$settings[$type][$id]["disabled"] = "";
+			$extension_settings->Value[$type][$id]["disabled"] = "";
 		} else {
-			$settings[$type][$id]["disabled"] = "on";
+			$extension_settings->Value[$type][$id]["disabled"] = "on";
 		}
 	} else {
-		$settings[$type][$id] = array("position" => 0,"disabled" => "on");
+		$extension_settings->Value[$type][$id] = array("position" => 0, "disabled" => "on");
 	}
 
-	$admin->updateSettingValue("bigtree-internal-extension-settings",$settings);
+	$extension_settings->save();

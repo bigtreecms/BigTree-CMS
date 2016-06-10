@@ -84,7 +84,7 @@
 		$package["components"]["feeds"][] = $cms->getFeed($feed);
 	}
 	
-	foreach (array_filter((array) $settings) as $setting) {
+	foreach (array_filter((array) $extension_settings) as $setting) {
 		$package["components"]["settings"][] = $admin->getSetting($setting);
 	}
 	

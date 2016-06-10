@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$settings = \BigTreeCMS::getSetting("bigtree-internal-media-settings");
+	$settings = Setting::value("bigtree-internal-media-settings");
 	$data = isset($data["preset"]) ? $settings["presets"][$data["preset"]] : $settings["presets"][$_POST["id"]];
 
 	// Translate title text that gets repeated
@@ -163,8 +163,8 @@
 				<input type="text" name="thumbs[<?=$thumb_count?>][height]" value="<?=htmlspecialchars($thumb["height"])?>" disabled="disabled" />
 			</li>
 			<li class="actions for_thumbnail">
-				<input type="hidden" name="thumbs[<?=$crop_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-				<a href="#" title="<?=$color_mode_title?>" class="disabled color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
+				<input type="hidden" name="thumbs[<?=$crop_count?>][grayscale]" value="<?=$thumb["grayscale"]?>" />
+				<a href="#" title="<?=$color_mode_title?>" class="disabled color_mode<?php if ($thumb["grayscale"]) { ?> gray<?php } ?>"></a>
 				<a href="#<?=$crop_count?>" title="<?=$remove_title?>" class="disabled delete"></a>
 			</li>
 		</ul>

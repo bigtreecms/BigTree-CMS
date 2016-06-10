@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	$admin->requireLevel(1);
+	$admin->Auth->requireLevel(1);
 	$type = "404";
 	$delete_action = "ignore";
 ?>

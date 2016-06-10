@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$reserved = \BigTreeAdmin::$ReservedColumns;
+	$reserved = ModuleForm::$ReservedColumns;
 	
 	$used = array();
 	$unused = array();

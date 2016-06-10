@@ -2,7 +2,7 @@
 	namespace BigTree;
 
 	if (end($bigtree["path"]) != "password" && $bigtree["path"][2] != "profile") {
-		$admin->requireLevel(1);
+		$admin->Auth->requireLevel(1);
 	}
 
 	$policy = array_filter((array)$bigtree["security-policy"]["password"]) ? $bigtree["security-policy"]["password"] : false;

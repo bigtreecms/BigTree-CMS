@@ -7,7 +7,7 @@
 		Router::redirect($_SERVER["HTTP_REFERER"]);
 	}
 	
-	$admin->requireLevel(1);
+	$admin->Auth->requireLevel(1);
 	$item = $admin->getSetting($_POST["id"]);
 	if ($item["system"] || ($item["locked"] && $admin->Level < 2)) {
 		Utils::growl("Settings","Access Denied","error");

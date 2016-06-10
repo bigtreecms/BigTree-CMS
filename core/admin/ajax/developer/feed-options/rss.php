@@ -1,5 +1,10 @@
 <?php
 	namespace BigTree;
+
+	/**
+	 * @global array $data
+	 * @global string $table
+	 */
 ?>
 <fieldset>
 	<label><?=Text::translate("Feed Title")?></label>
@@ -21,13 +26,13 @@
 <fieldset>
 	<label><?=Text::translate("Title Field")?></label>
 	<select name="title">
-		<?php SQL::drawColumnSelectOptions($table,$data["title"]); ?>
+		<?php SQL::drawColumnSelectOptions($table, $data["title"]); ?>
 	</select>
 </fieldset>
 <fieldset>
 	<label><?=Text::translate("Description Field")?></label>
 	<select name="description">
-		<?php SQL::drawColumnSelectOptions($table,$data["description"]); ?>
+		<?php SQL::drawColumnSelectOptions($table, $data["description"]); ?>
 	</select>
 </fieldset>
 <fieldset>
@@ -37,7 +42,7 @@
 <fieldset>
 	<label><?=Text::translate("Link Field")?></label>
 	<select name="link">
-		<?php SQL::drawColumnSelectOptions($table,$data["link"]); ?>
+		<?php SQL::drawColumnSelectOptions($table, $data["link"]); ?>
 	</select>
 </fieldset>
 <fieldset>
@@ -47,7 +52,7 @@
 <fieldset>
 	<label><?=Text::translate("Order By")?></label>
 	<select name="sort">
-		<?php SQL::drawColumnSelectOptions($table,$data["sort"],true); ?>
+		<?php SQL::drawColumnSelectOptions($table, $data["sort"], true); ?>
 	</select>
 </fieldset>
 <?php } ?>

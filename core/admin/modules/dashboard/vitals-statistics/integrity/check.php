@@ -2,7 +2,7 @@
 	namespace BigTree;
 
 	$external = ($_GET["external"] == "true") ? true : false;
-	$admin->requireLevel(1);
+	$admin->Auth->requireLevel(1);
 	$pages = $admin->getPageIds();
 	$modules = $admin->getModuleForms();
 

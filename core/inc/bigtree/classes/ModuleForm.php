@@ -15,6 +15,12 @@
 
 	class ModuleForm extends BaseObject {
 
+		public static $ReservedColumns = array(
+			"id",
+			"position",
+			"archived",
+			"approved"
+		);
 		public static $Table = "bigtree_module_interfaces";
 
 		protected $ID;

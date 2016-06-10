@@ -24,7 +24,7 @@
 		}
 	}
 	$setting_string = array();
-	foreach (array_filter((array) $settings) as $s) {
+	foreach (array_filter((array) $extension_settings) as $s) {
 		$setting = $admin->getSetting($s);
 		if ($setting) {
 			$setting_string[] = $setting["name"];

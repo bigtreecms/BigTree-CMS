@@ -1,5 +1,11 @@
 <?php
 	namespace BigTree;
+
+	/**
+	 * @global callable $check_data
+	 * @global bool $external
+	 * @global array $integrity_errors
+	 */
 	
 	// Get the form so we can walk through its fields
 	$form = new ModuleForm($_GET["form"]);
@@ -12,9 +18,9 @@
 
 	// Only retrieve these if we have errors as we only need them for URL generation
 	if (array_filter($integrity_errors)) {
-		$action = $admin->getModuleActionForInterface($form);
-		$module = $admin->getModule($action["module"]);
-	
+		$action = ModuleAction::getByInterface($form->Interface->ID);
+		$module = new Module($action->Module);
+
 		foreach ($integrity_errors as $field => $error_types) {
 			foreach ($error_types as $type => $errors) {
 				foreach ($errors as $url) {

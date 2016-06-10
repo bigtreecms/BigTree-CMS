@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	$admin->requireLevel(1);
+	$admin->Auth->requireLevel(1);
 	$item = $admin->getSetting(end($bigtree["path"]));
 	$value = $cms->getSetting(end($bigtree["path"]));
 	

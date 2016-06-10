@@ -1,3 +1,3 @@
 <?php
-	$admin->requireLevel(1);
+	$admin->Auth->requireLevel(1);
 	

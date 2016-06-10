@@ -1,11 +1,16 @@
 <?php
 	namespace BigTree;
 
+	/**
+	 * @global array $data
+	 */
+
 	// Prevent warnings
 	$data = is_array($data) ? $data : array();
 
 	$using_preset = false;
-	$settings = \BigTreeCMS::getSetting("bigtree-internal-media-settings");
+	$settings = Setting::value("bigtree-internal-media-settings");
+
 	// See if we're using a preset and ensure it still exists
 	if ($data["preset"]) {
 		if ($settings["presets"][$data["preset"]]) {
@@ -150,7 +155,7 @@
 			?>
 			<ul class="image_attr_thumbs_<?=$crop_count?>">
 				<li class="thumbed">
-					<span class="icon_small icon_small_crop" title="<?=$sub_crop_title?>"></span>
+					<span class="icon_small icon_small_crop" title="<?=$subcrop_title?>"></span>
 					<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][prefix]" value="<?=htmlspecialchars($subcrop["prefix"])?>" />
 				</li>
 				<li>
@@ -206,8 +211,8 @@
 					<input type="text" name="thumbs[<?=$thumb_count?>][height]" value="<?=htmlspecialchars($thumb["height"])?>" />
 				</li>
 				<li class="actions for_thumbnail">
-					<input type="hidden" name="thumbs[<?=$thumb_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-					<a href="#" title="<?=$color_mode_title?>" class="color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
+					<input type="hidden" name="thumbs[<?=$thumb_count?>][grayscale]" value="<?=$thumb["grayscale"]?>" />
+					<a href="#" title="<?=$color_mode_title?>" class="color_mode<?php if ($thumb["grayscale"]) { ?> gray<?php } ?>"></a>
 					<a href="#<?=$crop_count?>" title="<?=$remove_title?>" class="delete"></a>
 				</li>
 			</ul>

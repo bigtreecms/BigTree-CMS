@@ -5,7 +5,7 @@
 	
 	// If we're replacing an existing file, find out its name
 	if (isset($_POST["replace"])) {
-		$admin->requireLevel(1);
+		$admin->Auth->requireLevel(1);
 		$replacing = $admin->getResource($_POST["replace"]);
 		$pinfo = pathinfo($replacing["file"]);
 		$replacing = $pinfo["basename"];

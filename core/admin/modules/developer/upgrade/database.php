@@ -678,7 +678,7 @@
 			unset($options["fields"]);
 
 			// Update the value to set an internal title key
-			$value = \BigTreeCMS::getSetting($f["id"]);
+			$value = Setting::value($f["id"]);
 			foreach ($value as &$entry) {
 				$entry["__internal-title"] = $entry[$display_key];
 			}
@@ -686,8 +686,11 @@
 
 			// Update type/options
 			SQL::query("UPDATE bigtree_settings SET type = 'matrix', options = '".JSON::encode($options,true)."' WHERE id = '".$f["id"]."'");
+
 			// Update value separately
-			\BigTreeAdmin::updateSettingValue($f["id"],$value);
+			$setting = new Setting($f["id"]);
+			$setting->Value = $value;
+			$setting->save();
 		}
 	}
 

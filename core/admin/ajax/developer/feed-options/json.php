@@ -1,6 +1,11 @@
 <?php
 	namespace BigTree;
 
+	/**
+	 * @global array $data
+	 * @global string $table
+	 */
+
 	if (!$table) {
 ?>
 <p><?=Text::translate("Please select a table first.")?></p>
@@ -14,7 +19,7 @@
 <fieldset>
 	<label><?=Text::translate("Order By")?></label>
 	<select name="sort">
-		<?php SQL::drawColumnSelectOptions($table,$data["sort"],true); ?>
+		<?php SQL::drawColumnSelectOptions($table, $data["sort"], true); ?>
 	</select>
 </fieldset>
 <fieldset>
