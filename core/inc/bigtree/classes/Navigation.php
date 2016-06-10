@@ -15,7 +15,7 @@
 				Returns an array of titles, links, and ids for the pages above the given page.
 
 			Parameters:
-				page - A page array (containing at least the "path" from the database)
+				page - A page object or array (containing at least the "path" from the database)
 				ignore_trunk - Ignores trunk settings when returning the breadcrumb
 
 			Returns:
@@ -28,6 +28,10 @@
 
 		static function getBreadcrumb($page, $ignore_trunk = false) {
 			global $bigtree;
+
+			if (is_object($page)) {
+				$page = $page->Array;
+			}
 
 			$bc = array();
 

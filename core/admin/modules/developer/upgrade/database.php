@@ -2,13 +2,15 @@
 	namespace BigTree;
 
 	$current_revision = $cms->getSetting("bigtree-internal-revision");
+	
 	while ($current_revision < BIGTREE_REVISION) {
 		$current_revision++;
 		if (function_exists("_local_bigtree_update_".$current_revision)) {
 			call_user_func("_local_bigtree_update_$current_revision");
 		}
 	}
-	$admin->updateSettingValue("bigtree-internal-revision",BIGTREE_REVISION);
+	
+	$admin->updateSettingValue("bigtree-internal-revision", BIGTREE_REVISION);
 ?>
 <div class="container">
 	<section>
@@ -284,8 +286,10 @@
 
 		// Go through all views and figure out what kind of data is in each column.
 		$view_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_module_views");
+		
 		foreach ($view_ids as $id) {
-			$admin->updateModuleViewColumnNumericStatus(\BigTreeAutoModule::getView($id));
+			$view = new ModuleView($id);
+			$view->refreshNumericColumns();
 		}
 	}
 
