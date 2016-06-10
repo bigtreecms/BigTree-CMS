@@ -1,11 +1,17 @@
 <?php
+	namespace BigTree;
+
+	/**
+	 * @global string $type
+	 */
+	
 	$type = isset($_POST["type"]) ? $_POST["type"] : $type;
 	$page = isset($_POST["page"]) ? intval($_POST["page"]) : 1;
 	$search = isset($_POST["search"]) ? $_POST["search"] : "";
-	
-	list($pages,$items) = $admin->search404s($type,$search,$page);
-
 	$tabindex = 0;
+
+	list($pages, $items) = Redirect::search($type, $search, $page, true);
+
 	foreach ($items as $item) {
 		$tabindex++;
 ?>

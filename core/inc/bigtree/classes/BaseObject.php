@@ -199,7 +199,7 @@
 		function inherit($object) {
 			$properties = get_object_vars($object);
 
-			foreach ($properties as $key) {
+			foreach ($properties as $key => $value) {
 				$this->$key = $object->$key;
 			}
 		}

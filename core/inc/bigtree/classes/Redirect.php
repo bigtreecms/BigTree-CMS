@@ -86,14 +86,16 @@
 			Parameters:
 				from - The 404 path
 				to - The 301 target
+				ignored - Whether to add the redirect to the ignored list (defaults to false)
 
 			Returns:
 				A Redirect object.
 		*/
 
-		static function create($from, $to = "") {
+		static function create($from, $to = "", $ignored = false) {
 			$from = htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT, "", $from), "/")));
 			$to = htmlspecialchars(Link::encode($to));
+			$ignored = $ignored ? "on" : "";
 
 			// Try to convert the short URL into a full one
 			if ($to !== "") {
@@ -113,16 +115,19 @@
 
 			// See if the from already exists
 			$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ?", $from);
+
 			if ($existing) {
-				SQL::update("bigtree_404s", $existing["id"], array("redirect_url" => $redirect_url));
+				SQL::update("bigtree_404s", $existing["id"], array("redirect_url" => $redirect_url, "ignored" => $ignored));
 				AuditTrail::track("bigtree_404s", $existing["id"], "updated");
 
 				return new Redirect($existing["id"]);
 			} else {
 				$id = SQL::insert("bigtree_404s", array(
 					"broken_url" => $from,
-					"redirect_url" => $redirect_url
+					"redirect_url" => $redirect_url,
+					"ignored" => $ignored
 				));
+				
 				AuditTrail::track("bigtree_404s", $id, "created");
 
 				return new Redirect($id);
@@ -179,7 +184,7 @@
 				// Redirect with a 301
 				Router::redirect(htmlspecialchars_decode($redirect), "301");
 
-			// No redirect, log the 404 and throw the 404 headers
+				// No redirect, log the 404 and throw the 404 headers
 			} else {
 				// Throw 404 header
 				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
@@ -207,8 +212,64 @@
 
 		function save() {
 			// The create method already checks for existance and updates existing redirects
-			$new = static::create($this->BrokenURL, $this->RedirectURL);
+			$new = static::create($this->BrokenURL, $this->RedirectURL, $this->Ignored);
 			$this->inherit($new);
+		}
+
+		/*
+			Function: search
+				Searches 404s, returns results.
+
+			Parameters:
+				type - The type of results (301, 404, or ignored).
+				query - The search query.
+				page - The page to return.
+				return_arrays - Whether to return an array (true) or Redirect object (false)
+
+			Returns:
+				An array containing the number of pages of search results and one page of search results
+		*/
+
+		static function search($type, $query = "", $page = 1, $return_arrays = false) {
+			if ($query) {
+				$query = SQL::escape($query);
+				if ($type == "301") {
+					$where = "ignored = '' AND (broken_url LIKE '%$query%' OR redirect_url LIKE '%$query%') AND redirect_url != ''";
+				} elseif ($type == "ignored") {
+					$where = "ignored != '' AND (broken_url LIKE '%$query%' OR redirect_url LIKE '%$query%')";
+				} else {
+					$where = "ignored = '' AND broken_url LIKE '%$query%' AND redirect_url = ''";
+				}
+			} else {
+				if ($type == "301") {
+					$where = "ignored = '' AND redirect_url != ''";
+				} elseif ($type == "ignored") {
+					$where = "ignored != ''";
+				} else {
+					$where = "ignored = '' AND redirect_url = ''";
+				}
+			}
+
+			// Get the page count
+			$result_count = SQL::fetchSingle("SELECT COUNT(*) AS `count` FROM bigtree_404s WHERE $where");
+			$pages = ceil($result_count / 20);
+
+			// Return 1 page even if there are 0
+			$pages = $pages ? $pages : 1;
+
+			// Get the results
+			$results = SQL::fetchAll("SELECT * FROM bigtree_404s WHERE $where 
+									  ORDER BY requests DESC LIMIT ".(($page - 1) * 20).",20");
+
+			foreach ($results as &$result) {
+				if ($return_arrays) {
+					$result["redirect_url"] = Link::decode($result["redirect_url"]);
+				} else {
+					$result = new Redirect($result);
+				}
+			}
+
+			return array($pages, $results);
 		}
 
 	}

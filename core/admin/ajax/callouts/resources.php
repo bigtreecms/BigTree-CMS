@@ -15,18 +15,20 @@
 
 	$bigtree["resources"] = Link::decode($bigtree["resources"]);
 	$bigtree["callout_count"] = intval($_POST["count"]);
-	$bigtree["callout"] = $admin->getCallout($bigtree["resources"]["type"]);
+
+	$callout = new Callout($bigtree["resources"]["type"]);
+	$bigtree["callout"] = $callout->Array; // Backwards compatibility with fields that might read the callout array
 	
-	if ($bigtree["callout"]["description"]) {
+	if ($callout->Description) {
 ?>
-<p class="callout_description"><?=Text::htmlEncode($bigtree["callout"]["description"])?></p>
+<p class="callout_description"><?=Text::htmlEncode($callout->Description)?></p>
 <?php
 	}
 ?>
 <p class="error_message" style="display: none;"><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 <div class="form_fields">
 	<?php
-		if (count($bigtree["callout"]["resources"])) {
+		if (count($callout->Fields)) {
 
 			Field::$Namespace = uniqid("callout_field_");
 
@@ -35,16 +37,17 @@
 			$bigtree["html_fields"] = array();
 			$bigtree["simple_html_fields"] = array();			
 
-			foreach ($bigtree["callout"]["resources"] as $resource) {
+			foreach ($callout->Fields as $field) {
 				$field = array(
-					"type" => $resource["type"],
-					"title" => $resource["title"],
-					"subtitle" => $resource["subtitle"],
-					"key" => $bigtree["callout_key"]."[".$bigtree["callout_count"]."][".$resource["id"]."]",
-					"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
+					"type" => $field["type"],
+					"title" => $field["title"],
+					"subtitle" => $field["subtitle"],
+					"key" => $bigtree["callout_key"]."[".$bigtree["callout_count"]."][".$field["id"]."]",
+					"value" => isset($bigtree["resources"][$field["id"]]) ? $bigtree["resources"][$field["id"]] : "",
 					"tabindex" => $bigtree["tabindex"],
-					"options" => $resource["options"]
+					"options" => $field["options"]
 				);
+
 				if (empty($field["options"]["directory"])) {
 					$field["options"]["directory"] = "files/callouts/";
 				}
@@ -57,8 +60,8 @@
 		}
 	?>
 </div>
-<input type="hidden" name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][display_default]" class="display_default" value="<?=$bigtree["callout"]["display_default"]?>" />
-<input type="hidden" name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][display_field]" class="display_field" value="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][<?=$bigtree["callout"]["display_field"]?>]" />
+<input type="hidden" name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][display_default]" class="display_default" value="<?=$callout->DisplayDefault?>" />
+<input type="hidden" name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][display_field]" class="display_field" value="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][<?=$callout->DisplayField?>]" />
 <?php
 	// Only re-run if we're loading a new callout type
 	if (isset($_POST["type"])) {

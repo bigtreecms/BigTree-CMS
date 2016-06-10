@@ -2,9 +2,9 @@
 	namespace BigTree;
 
 	if ($_POST["groups"]) {
-		$items = $admin->getCalloutsInGroups($_POST["groups"]);
+		$callout_list = Callout::allInGroups($_POST["groups"]);
 	} else {
-		$items = $admin->getCalloutsAllowed("name ASC");
+		$callout_list = Callout::allAllowed("name ASC");
 	}
 
 	$bigtree["callout_count"] = intval($_POST["count"]);
@@ -13,10 +13,10 @@
 ?>
 <div class="callout_type">
 	<fieldset>
-		<label><?=Text::translate("Callout Type")?></label>
-		<select name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][type]">
-			<?php foreach ($items as $item) { ?>
-			<option value="<?=$item["id"]?>"<?php if ($item["id"] == $bigtree["resources"]["type"]) { ?> selected="selected"<?php } ?>><?=$item["name"]?></option>
+		<label for="callout_type"><?=Text::translate("Callout Type")?></label>
+		<select id="callout_type" name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][type]">
+			<?php foreach ($callout_list as $item) { ?>
+			<option value="<?=$item->ID?>"<?php if ($item->ID == $bigtree["resources"]["type"]) { ?> selected="selected"<?php } ?>><?=$item->Name?></option>
 			<?php } ?>
 		</select>
 	</fieldset>

@@ -1,3 +1,5 @@
 <?php
-	header("Content-type: text/javascript");
-	$admin->delete404($_POST["id"]);
+	namespace BigTree;
+
+	$redirect = new Redirect($_POST["id"]);
+	$redirect->delete();

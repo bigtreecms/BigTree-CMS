@@ -1,2 +1,6 @@
 <?php
-	$admin->set404Redirect($_POST["id"],$_POST["value"]);
+	namespace BigTree;
+
+	$redirect = new Redirect($_POST["id"]);
+	$redirect->RedirectURL = $_POST["value"];
+	$redirect->save();

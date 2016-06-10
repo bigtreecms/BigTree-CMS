@@ -1,6 +1,10 @@
 <?php
+	namespace BigTree;
+
 	header("Content-type: text/javascript");
-	$permission = $admin->getPageAccessLevel($_GET["current_page_id"]);
+
+	$page = new Page($_GET["current_page_id"]);
+	$permission = $page->UserAccessLevel;
 ?>
 var BigTreeBar = {
 
@@ -14,12 +18,12 @@ var BigTreeBar = {
 	},
 
 	createCookie: function(name,value,days) {
+		var expires = "";
+
 		if (days) {
 			var date = new Date();
 			date.setTime(date.getTime() + (days*24*60*60*1000));
-			var expires = "; expires=" + date.toGMTString();
-		} else {
-			var expires = "";
+			expires = "; expires=" + date.toGMTString();
 		}
 		
 		document.cookie = name + "=" + value + expires + "; path=/";
@@ -83,7 +87,7 @@ var BigTreeBar = {
 		BigTreeBar.body.appendChild(bigtree_bar);
 		
 		// Close Button
-		document.getElementById("bigtree_bar_close").onclick = function(e) {
+		document.getElementById("bigtree_bar_close").onclick = function() {
 			if (document.getElementById("bigtree_bar_overlay")) {
 				BigTreeBar.body.removeChild(document.getElementById("bigtree_bar_overlay"));
 			}

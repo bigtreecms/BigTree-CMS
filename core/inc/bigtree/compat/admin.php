@@ -3351,40 +3351,7 @@
 		*/
 
 		static function search404s($type, $query = "", $page = 1) {
-			if ($query) {
-				$query = SQL::escape($query);
-				if ($type == "301") {
-					$where = "ignored = '' AND (broken_url LIKE '%$query%' OR redirect_url LIKE '%$query%') AND redirect_url != ''";
-				} elseif ($type == "ignored") {
-					$where = "ignored != '' AND (broken_url LIKE '%$query%' OR redirect_url LIKE '%$query%')";
-				} else {
-					$where = "ignored = '' AND broken_url LIKE '%$query%' AND redirect_url = ''";
-				}
-			} else {
-				if ($type == "301") {
-					$where = "ignored = '' AND redirect_url != ''";
-				} elseif ($type == "ignored") {
-					$where = "ignored != ''";
-				} else {
-					$where = "ignored = '' AND redirect_url = ''";
-				}
-			}
-
-			// Get the page count
-			$result_count = SQL::fetchSingle("SELECT COUNT(*) AS `count` FROM bigtree_404s WHERE $where");
-			$pages = ceil($result_count / 20);
-
-			// Return 1 page even if there are 0
-			$pages = $pages ? $pages : 1;
-
-			// Get the results
-			$results = SQL::fetchAll("SELECT * FROM bigtree_404s WHERE $where 
-									  ORDER BY requests DESC LIMIT ".(($page - 1) * 20).",20");
-			foreach ($results as &$result) {
-				$result["redirect_url"] = BigTree\Link::decode($result["redirect_url"]);
-			}
-
-			return array($pages, $results);
+			return BigTree\Redirect::search($type, $query, $page, true);
 		}
 
 		/*

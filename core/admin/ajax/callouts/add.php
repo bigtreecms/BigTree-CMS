@@ -2,33 +2,33 @@
 	namespace BigTree;
 
 	if ($_POST["groups"]) {
-		$items = $admin->getCalloutsInGroups($_POST["groups"]);
+		$callout_list = Callout::allInGroups($_POST["groups"]);
 	} else {
-		$items = $admin->getCalloutsAllowed("name ASC");
+		$callout_list = Callout::allAllowed("name ASC");
 	}
 
-	$type = $items[0]["id"];
+	$type = $callout_list[0]["id"];
 	$bigtree["resources"] = array("type" => $type);
 	$bigtree["callout_count"] = intval($_POST["count"]);
 	$bigtree["callout_key"] = htmlspecialchars($_POST["key"]);
 ?>
 <div class="callout_type">
 	<fieldset>
-		<label><?=Text::translate("Callout Type")?></label>
-		<?php if (count($items) > 0) { ?>
-		<select name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][type]">
-			<?php foreach ($items as $item) { ?>
-			<option value="<?=$item["id"]?>"><?=$item["name"]?></option>
+		<label for="callout_type"><?=Text::translate("Callout Type")?></label>
+		<?php if (count($callout_list) > 0) { ?>
+		<select id="callout_type" name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][type]">
+			<?php foreach ($callout_list as $item) { ?>
+			<option value="<?=$item->ID?>"><?=$item->Name?></option>
 			<?php } ?>
 		</select>
 		<?php } else { ?>
-		<input type="text" disabled="disabled" value="" />
+		<input type="text" disabled="disabled" value="No Callouts Available" />
 		<?php } ?>
 	</fieldset>
 </div>
 <div class="callout_fields">
 	<?php 
-		if (count($items) > 0) {
+		if (count($callout_list) > 0) {
 			include Router::getIncludePath("admin/ajax/callouts/resources.php");
 		} else {
 			echo '<p class="error_message">'.Text::translate("No callouts available.").'</p>';

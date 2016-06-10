@@ -1,3 +1,6 @@
 <?php
-	header("Content-type: text/javascript");
-	$admin->ignore404($_POST["id"]);
+	namespace BigTree;
+
+	$redirect = new Redirect($_POST["id"]);
+	$redirect->Ignored = true;
+	$redirect->save();

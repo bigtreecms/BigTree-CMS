@@ -27,7 +27,7 @@
 	</header>
 	<ul id="sort_table">
 		<?php
-			foreach ($items as $item) {
+			foreach ($callout_list as $item) {
 				// Get the status
 				if (PendingChange::exists($view->Table, $item["id"])) {
 					$status_class = "pending";
