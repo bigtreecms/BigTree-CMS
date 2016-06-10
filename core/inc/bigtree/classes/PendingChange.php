@@ -144,7 +144,8 @@
 						$module = $module_cache[$change["module"]];
 
 						// Check our group based permissions
-						$item = \BigTreeAutoModule::getPendingItem($change["table"], $id);
+						$form = new ModuleForm(array("table" => $change["table"]));
+						$item = $form->getPendingEntry($id);
 						$access_level = $module->getUserAccessLevelForEntry($item["item"], $change["table"], $user);
 						
 						if ($access_level == "p") {

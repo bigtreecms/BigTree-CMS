@@ -5,6 +5,8 @@
 	*/
 
 	use BigTree\JSON;
+	use BigTree\Link;
+	use BigTree\ModuleView;
 	use BigTree\SQL;
 	
 	class BigTreeModule {
@@ -70,18 +72,18 @@
 				<update>
 		*/
 		
-		function add($fields,$values = array(),$enforce_unique = false,$ignore_cache = false) {
+		function add($fields, $values = array(), $enforce_unique = false, $ignore_cache = false) {
 			$insert_array = array();
 
 			// Single column/value add
 			if (is_string($fields)) {
 				$insert_array[$fields] = $values;
-			// Multiple columns / values
+				// Multiple columns / values
 			} else {
 				// If we didn't pass in values (=== array()) then we're using a key => value array
 				if ($values === array()) {
 					$insert_array = $fields;
-				// Separate arrays for keys and values
+					// Separate arrays for keys and values
 				} else {
 					foreach ($fields as $key) {
 						$insert_array[$key] = current($values);
@@ -91,18 +93,19 @@
 			}
 
 			// Do auto IPL stuff
-			$insert_array = BigTree\Link::encode($insert_array);
+			$insert_array = Link::encode($insert_array);
 
 			// Prevent Duplicates
 			if ($enforce_unique) {
 				$existing_parts = array();
+
 				foreach ($insert_array as $key => $val) {
 					$val = is_array($val) ? JSON::encode($val, true) : SQL::escape($val);
 					$existing_parts[] = "`$key` = '$val'";
 				}
 
 				$existing_id = SQL::fetchSingle("SELECT id FROM `".$this->Table."` 
-															 WHERE ".implode(" AND ",$existing_parts)." LIMIT 1");
+															 WHERE ".implode(" AND ", $existing_parts)." LIMIT 1");
 				// If it's the same as an existing entry, return that entry's id
 				if ($existing_id) {
 					return $existing_id;
@@ -110,10 +113,10 @@
 			}
 			
 			// Add the entry and cache it.
-			$id = SQL::insert($this->Table,$insert_array);
+			$id = SQL::insert($this->Table, $insert_array);
 
 			if (!$ignore_cache) {
-				BigTreeAutoModule::cacheNewItem($id,$this->Table);
+				ModuleView::cacheForAll($id, $this->Table);
 			}
 
 			return $id;
@@ -134,8 +137,9 @@
 			if (is_array($item)) {
 				$item = $item["id"];
 			}
-			$this->update($item,"approved","on");
-			BigTreeAutoModule::recacheItem($item,$this->Table);
+
+			$this->update($item, "approved", "on");
+			ModuleView::cacheForAll($item, $this->Table);
 		}
 		
 		/*
@@ -153,8 +157,9 @@
 			if (is_array($item)) {
 				$item = $item["id"];
 			}
-			$this->update($item,"archived","on");
-			BigTreeAutoModule::recacheItem($item,$this->Table);
+
+			$this->update($item, "archived", "on");
+			ModuleView::cacheForAll($item, $this->Table);
 		}
 		
 		/*
@@ -174,9 +179,10 @@
 			if (is_array($item)) {
 				$item = $item["id"];
 			}
-			SQL::delete($this->Table,$item);
+			
+			SQL::delete($this->Table, $item);
 			SQL::delete("bigtree_pending_changes", array("table" => $this->Table, "item_id" => $item));
-			BigTreeAutoModule::uncacheItem($item,$this->Table);
+			ModuleView::uncacheForAll($item, $this->Table);
 		}
 		
 		/*
@@ -194,8 +200,9 @@
 			if (is_array($item)) {
 				$item = $item["id"];
 			}
-			$this->update($item,"featured","on");
-			BigTreeAutoModule::recacheItem($item,$this->Table);
+
+			$this->update($item, "featured", "on");
+			ModuleView::cacheForAll($item, $this->Table);
 		}
 		
 		/*
@@ -203,17 +210,17 @@
 				Protected function used by other table querying functions.
 		*/
 		
-		protected function fetch($sortby = false,$limit = false,$where = false,$columns = false) {
+		protected function fetch($sortby = false, $limit = false, $where = false, $columns = false) {
 			$query_columns = "*";
 			if ($columns !== false) {
 				if (is_array($columns)) {
 					$query_columns = array();
 					foreach ($columns as $column) {
-						$query_columns[] = "`".str_replace("`","",$column)."`";
+						$query_columns[] = "`".str_replace("`", "", $column)."`";
 					}
-					$query_columns = implode(",",$query_columns);
+					$query_columns = implode(",", $query_columns);
 				} else {
-					$query_columns = "`".str_replace("`","",$columns)."`";
+					$query_columns = "`".str_replace("`", "", $columns)."`";
 				}
 			}
 			$query = "SELECT $query_columns FROM `".$this->Table."`";
@@ -232,6 +239,7 @@
 			
 			$items = array();
 			$query = SQL::query($query);
+
 			while ($item = $query->fetch()) {
 				$items[] = $this->get($item);
 			}
@@ -269,7 +277,7 @@
 				}
 			}
 			
-			return BigTree\Link::decode($item);
+			return Link::decode($item);
 		}
 		
 		/*
@@ -284,8 +292,8 @@
 				An array of items from the table.
 		*/
 
-		function getAll($order = false,$columns = false) {
-			return $this->fetch($order,false,false,$columns);
+		function getAll($order = false, $columns = false) {
+			return $this->fetch($order, false, false, $columns);
 		}
 		
 		/*
@@ -300,7 +308,7 @@
 		*/
 		
 		function getAllPositioned($columns = false) {
-			return $this->getAll("position DESC, id ASC",$columns);
+			return $this->getAll("position DESC, id ASC", $columns);
 		}
 		
 		/*
@@ -319,8 +327,8 @@
 				<getMatching>
 		*/
 		
-		function getApproved($order = false,$limit = false,$columns = false) {
-			return $this->getMatching("approved","on",$order,$limit,false,$columns);
+		function getApproved($order = false, $limit = false, $columns = false) {
+			return $this->getMatching("approved", "on", $order, $limit, false, $columns);
 		}
 
 		/*
@@ -339,8 +347,8 @@
 				<getMatching>
 		*/
 		
-		function getArchived($order = false,$limit = false,$columns = false) {
-			return $this->getMatching("archived","on",$order,$limit,false,$columns);
+		function getArchived($order = false, $limit = false, $columns = false) {
+			return $this->getMatching("archived", "on", $order, $limit, false, $columns);
 		}
 		
 		/*
@@ -398,8 +406,8 @@
 				<getMatching>
 		*/
 		
-		function getFeatured($order = false,$limit = false,$columns = false) {
-			return $this->getMatching("featured","on",$order,$limit,false,$columns);
+		function getFeatured($order = false, $limit = false, $columns = false) {
+			return $this->getMatching("featured", "on", $order, $limit, false, $columns);
 		}
 		
 		/*
@@ -420,25 +428,26 @@
 
 		function getInfo($entry) {
 			$info = array();
+
 			if (is_array($entry)) {
 				$entry = $entry["id"];
 			}
 
 			$base_query = "SELECT * FROM bigtree_audit_trail WHERE `table` = '".$this->Table."' AND entry = ?";
-
 			$created = SQL::fetch($base_query." AND type = 'created'", $entry);
+			$updated = SQL::fetch($base_query." AND type = 'updated' ORDER BY date DESC LIMIT 1", $entry);
+			$changed = SQL::fetch($base_query." AND type = 'saved-draft' ORDER BY date DESC LIMIT 1", $entry);
+
 			if ($created) {
 				$info["created_at"] = $created["date"];
 				$info["creator"] = $created["user"];
 			}
 
-			$updated = SQL::fetch($base_query." AND type = 'updated' ORDER BY date DESC LIMIT 1", $entry);
 			if ($updated) {
 				$info["updated_at"] = $updated["date"];
 				$info["last_updated_by"] = $updated["user"];
 			}
 			
-			$changed = SQL::fetch($base_query." AND type = 'saved-draft' ORDER BY date DESC LIMIT 1", $entry);
 			if ($changed && strtotime($changed) > strtotime($info["updated_at"])) {
 				$info["status"] = "changed";
 			} else {
@@ -464,14 +473,15 @@
 				An array of entries from the table.
 		*/
 		
-		function getMatching($fields,$values,$sortby = false,$limit = false,$exact = false,$columns = false) {
+		function getMatching($fields, $values, $sortby = false, $limit = false, $exact = false, $columns = false) {
 			if (!is_array($fields)) {
 				$search = array($fields => $values);
 			} else {
-				$search = array_combine($fields,$values);
+				$search = array_combine($fields, $values);
 			}
 
 			$where = array();
+
 			foreach ($search as $key => $value) {
 				if (!$exact && ($value === "NULL" || !$value)) {
 					$where[] = "(`$key` IS NULL OR `$key` = '' OR `$key` = '0')";
@@ -480,7 +490,7 @@
 				}
 			}
 			
-			return $this->fetch($sortby,$limit,implode(" AND ",$where),$columns);
+			return $this->fetch($sortby, $limit, implode(" AND ", $where), $columns);
 		}
 		
 		/*
@@ -515,8 +525,8 @@
 				<getMatching>
 		*/
 		
-		function getNonarchived($order = false,$limit = false,$columns = false) {
-			return $this->getMatching("archived","",$order,$limit,false,$columns);
+		function getNonarchived($order = false, $limit = false, $columns = false) {
+			return $this->getMatching("archived", "", $order, $limit, false, $columns);
 		}
 		
 		/*
@@ -537,18 +547,20 @@
 				<getPageCount>
 		*/
 		
-		function getPage($page = 1,$order = "id ASC",$perpage = 15,$where = false,$columns = false) {
+		function getPage($page = 1, $order = "id ASC", $perpage = 15, $where = false, $columns = false) {
 			// Backwards compatibility with old argument order
 			if (!is_numeric($perpage)) {
 				$saved = $perpage;
 				$perpage = $where;
 				$where = $saved;
 			}
+
 			// Don't try to hit page 0.
 			if ($page < 1) {
 				$page = 1;
 			}
-			return $this->fetch($order,(($page - 1) * $perpage).", $perpage",$where,$columns);
+
+			return $this->fetch($order, (($page - 1) * $perpage).", $perpage", $where, $columns);
 		}
 		
 		/*
@@ -566,7 +578,7 @@
 				<getPage>
 		*/
 		
-		function getPageCount($perpage = 15,$where = false) {
+		function getPageCount($perpage = 15, $where = false) {
 			// Backwards compatibility with old argument order
 			if (!is_numeric($perpage)) {
 				$saved = $perpage;
@@ -581,9 +593,11 @@
 			}
 
 			$pages = ceil(SQL::fetchSingle($query) / $perpage);
+
 			if ($pages == 0) {
 				$pages = 1;
 			}
+
 			return $pages;
 		}
 		
@@ -600,21 +614,21 @@
 		
 		function getPending($id) {
 			// Completely pending
-			if (substr($id,0,1) == "p") {
-				$pending = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", substr($id,1));
-				$item = json_decode($pending["changes"],true);
+			if (substr($id, 0, 1) == "p") {
+				$pending = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", substr($id, 1));
+				$item = json_decode($pending["changes"], true);
 				$item["id"] = $id;
 			// Published with changes
 			} else {
 				$item = SQL::fetch("SELECT * FROM `".$this->Table."` WHERE id = ?", $id);
 				$pending = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE item_id = ? AND `table` = '".$this->Table."'", $id);
 				if ($pending) {
-					$changes = json_decode($pending["changes"],true);
+					$changes = json_decode($pending["changes"], true);
 					foreach ($changes as $key => $val) {
 						$item[$key] = $val;
 					}
 				}
-			
+
 			}
 			
 			// Translate its roots and return it
@@ -633,12 +647,13 @@
 				If "count" is passed, an array of entries from the table. Otherwise, a single entry from the table.
 		*/
 		
-		function getRandom($count = false,$columns = false) {
-			$results = $this->fetch("RAND()",$count,false,$columns);
+		function getRandom($count = false, $columns = false) {
+			$results = $this->fetch("RAND()", $count, false, $columns);
 
 			if ($count === false) {
 				return $results[0];
 			}
+
 			return $results;
 		}
 
@@ -658,8 +673,8 @@
 				<getRecentFeatured>
 		*/
 		
-		function getRecent($count = 5, $field = "date",$columns = false) {
-			return $this->fetch("$field DESC",$count,"DATE(`$field`) <= '".date("Y-m-d")."'",$columns);
+		function getRecent($count = 5, $field = "date", $columns = false) {
+			return $this->fetch("$field DESC", $count, "DATE(`$field`) <= '".date("Y-m-d")."'", $columns);
 		}
 
 		/*
@@ -678,8 +693,8 @@
 				<getRecent>
 		*/
 		
-		function getRecentFeatured($count = 5, $field = "date",$columns = false) {
-			return $this->fetch("$field DESC",$count,"featured = 'on' AND DATE(`$field`) <= '".date("Y-m-d")."'",$columns);
+		function getRecentFeatured($count = 5, $field = "date", $columns = false) {
+			return $this->fetch("$field DESC", $count, "featured = 'on' AND DATE(`$field`) <= '".date("Y-m-d")."'", $columns);
 		}
 		
 		/*
@@ -706,11 +721,12 @@
 
 				if ($tag_id) {
 					$query = SQL::query("SELECT * FROM bigtree_tags_rel WHERE tag = '$tag_id' AND `table` = '".$this->Table."'");
+
 					while ($relationship = $query->fetch()) {
 						$id = $relationship["entry"];
 
 						// If we already have this relationship, increase the relevance
-						if (in_array($id,$results)) {
+						if (in_array($id, $results)) {
 							$relevance[$id]++;
 						} else {
 							$results[] = $id;
@@ -721,15 +737,16 @@
 			}
 
 			// Sort by most relevant
-			array_multisort($relevance,SORT_DESC,$results);
+			array_multisort($relevance, SORT_DESC, $results);
 
 			// If we asked for a certain number, only return that many
 			if ($count !== false) {
-				$results = array_slice($results,0,$count);
+				$results = array_slice($results, 0, $count);
 			}
 
 			// Parse result IDs into items 
 			$items = array();
+
 			foreach ($results as $result) {
 				$items[] = $this->get($result);
 			}
@@ -770,10 +787,10 @@
 			}
 			
 			return SQL::fetchAllSingle("SELECT bigtree_tags.tag FROM bigtree_tags JOIN bigtree_tags_rel 
-													ON bigtree_tags.id = bigtree_tags_rel.tag 
-													WHERE bigtree_tags_rel.`table` = ? 
-													  AND bigtree_tags_rel.entry = ? 
-													ORDER BY bigtree_tags.tag", $this->Table, $item);
+										ON bigtree_tags.id = bigtree_tags_rel.tag 
+										WHERE bigtree_tags_rel.`table` = ? 
+										  AND bigtree_tags_rel.entry = ? 
+										ORDER BY bigtree_tags.tag", $this->Table, $item);
 		}
 
 		/*
@@ -793,8 +810,8 @@
 				<getMatching> <getNonarchived>
 		*/
 		
-		function getUnarchived($order = false,$limit = false,$columns = false) {
-			return $this->getMatching("archived","",$order,$limit,false,$columns);
+		function getUnarchived($order = false, $limit = false, $columns = false) {
+			return $this->getMatching("archived", "", $order, $limit, false, $columns);
 		}
 
 		/*
@@ -813,8 +830,8 @@
 				<getMatching>
 		*/
 		
-		function getUnapproved($order = false,$limit = false,$columns = false) {
-			return $this->getMatching("approved","",$order,$limit,false,$columns);
+		function getUnapproved($order = false, $limit = false, $columns = false) {
+			return $this->getMatching("approved", "", $order, $limit, false, $columns);
 		}
 		
 		/*
@@ -833,8 +850,8 @@
 				<getUpcomingFeatured>
 		*/
 		
-		function getUpcoming($count = 5,$field = "date",$columns = false) {
-			return $this->fetch("$field ASC",$count,"DATE(`$field`) >= '".date("Y-m-d")."'",$columns);
+		function getUpcoming($count = 5, $field = "date", $columns = false) {
+			return $this->fetch("$field ASC", $count, "DATE(`$field`) >= '".date("Y-m-d")."'", $columns);
 		}
 		
 		/*
@@ -853,8 +870,8 @@
 				<getUpcoming>
 		*/
 		
-		function getUpcomingFeatured($count = 5,$field = "date",$columns = false) {
-			return $this->fetch("$field ASC",$count,"featured = 'on' AND DATE(`$field`) >= '".date("Y-m-d")."'",$columns);
+		function getUpcomingFeatured($count = 5, $field = "date", $columns = false) {
+			return $this->fetch("$field ASC", $count, "featured = 'on' AND DATE(`$field`) >= '".date("Y-m-d")."'", $columns);
 		}
 		
 		/*
@@ -871,12 +888,12 @@
 				<update>
 		*/
 		
-		function save($item,$ignore_cache = false) {
+		function save($item, $ignore_cache = false) {
 			$id = $item["id"];
 			unset($item["id"]);
 			
 			$keys = array_keys($item);
-			$this->update($id,$keys,$item,$ignore_cache);
+			$this->update($id, $keys, $item, $ignore_cache);
 		}
 		
 		/*
@@ -895,17 +912,18 @@
 				An array of entries from the table.
 		*/
 		
-		function search($query,$order = false,$limit = false,$split_search = false,$case_sensitive = false,$columns = false) {
+		function search($query, $order = false, $limit = false, $split_search = false, $case_sensitive = false, $columns = false) {
 			$table_description = SQL::describeTable($this->Table);
 			$where = array();
 
 			if ($split_search) {
-				$pieces = explode(" ",$query);
+				$pieces = explode(" ", $query);
+
 				foreach ($pieces as $piece) {
 					if ($piece) {
 						$piece = SQL::escape($piece);
-
 						$where_piece = array();
+
 						foreach ($table_description["columns"] as $field => $parameters) {
 							if ($case_sensitive) {
 								$where_piece[] = "`$field` LIKE '%$piece%'";
@@ -913,10 +931,12 @@
 								$where_piece[] = "LOWER(`$field`) LIKE '%".strtolower($piece)."%'";
 							}
 						}
-						$where[] = "(".implode(" OR ",$where_piece).")";
+
+						$where[] = "(".implode(" OR ", $where_piece).")";
 					}
 				}
-				return $this->fetch($order,$limit,implode(" AND ",$where),$columns);
+
+				return $this->fetch($order, $limit, implode(" AND ", $where), $columns);
 			} else {
 				foreach ($table_description["columns"] as $field => $parameters) {
 					if ($case_sensitive) {
@@ -925,7 +945,8 @@
 						$where[] = "LOWER(`$field`) LIKE '%".SQL::escape(strtolower($query))."%'";
 					}
 				}
-				return $this->fetch($order,$limit,implode(" OR ",$where),$columns);
+
+				return $this->fetch($order, $limit, implode(" OR ", $where), $columns);
 			}
 		}
 		
@@ -938,12 +959,13 @@
 				position - The position to set. BigTree sorts by default as position DESC, id ASC.
 		*/
 		
-		function setPosition($item,$position) {
+		function setPosition($item, $position) {
 			if (is_array($item)) {
 				$item = $item["id"];
 			}
-			$this->update($item,"position",$position);
-			BigTreeAutoModule::recacheItem($item,$this->Table);
+
+			$this->update($item, "position", $position);
+			ModuleView::cacheForAll($item, $this->Table);
 		}
 		
 		/*
@@ -961,9 +983,10 @@
 			if (is_array($item)) {
 				$item = $item["id"];
 			}
-			$this->update($item,"approved","");
-			BigTreeAutoModule::recacheItem($item,$this->Table);
-		}	
+
+			$this->update($item, "approved", "");
+			ModuleView::cacheForAll($item, $this->Table);
+		}
 		
 		/*
 			Function: unarchive
@@ -980,8 +1003,9 @@
 			if (is_array($item)) {
 				$item = $item["id"];
 			}
-			$this->update($item,"archived","");
-			BigTreeAutoModule::recacheItem($item,$this->Table);
+
+			$this->update($item, "archived", "");
+			ModuleView::cacheForAll($item, $this->Table);
 		}
 		
 		/*
@@ -999,8 +1023,9 @@
 			if (is_array($item)) {
 				$item = $item["id"];
 			}
-			$this->update($item,"featured","");
-			BigTreeAutoModule::recacheItem($item,$this->Table);
+
+			$this->update($item, "featured", "");
+			ModuleView::cacheForAll($item, $this->Table);
 		}
 		
 		/*
@@ -1019,14 +1044,14 @@
 				<save>
 		*/
 		
-		function update($id,$fields,$values = array(),$ignore_cache = false) {
+		function update($id, $fields, $values = array(), $ignore_cache = false) {
 			$update_fields = array();
 
 			// Turn a key => value array into pairs
 			if ($values === array() && is_array($fields)) {
 				$update_fields = $fields;
 
-			// Multiple columns to update			
+			// Multiple columns to update
 			} elseif (is_array($fields)) {
 				foreach ($fields as $key) {
 					$update_fields[$key] = current($values);
@@ -1042,7 +1067,7 @@
 			SQL::update($this->Table, $id, $update_fields);
 
 			if (!$ignore_cache) {
-				BigTreeAutoModule::recacheItem($id,$this->Table);
+				ModuleView::cacheForAll($id, $this->Table);
 			}
 		}
 	}
