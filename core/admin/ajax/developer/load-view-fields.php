@@ -2,6 +2,10 @@
 	if (isset($_GET["table"])) {
 		$table = $_GET["table"];
 	}
+
+	if (isset($_GET["type"])) {
+		$type = $_GET["type"];
+	}
 	
 	$reserved = BigTreeAdmin::$ReservedColumns;
 
