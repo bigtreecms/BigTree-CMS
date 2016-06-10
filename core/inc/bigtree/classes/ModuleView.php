@@ -15,6 +15,33 @@
 
 	class ModuleView extends BaseObject {
 
+		public static $CoreActions = array(
+			"approve" => array(
+				"key" => "approved",
+				"name" => "Approve",
+				"class" => "icon_approve icon_approve_on"
+			),
+			"archive" => array(
+				"key" => "archived",
+				"name" => "Archive",
+				"class" => "icon_archive"
+			),
+			"feature" => array(
+				"key" => "featured",
+				"name" => "Feature",
+				"class" => "icon_feature icon_feature_on"
+			),
+			"edit" => array(
+				"key" => "id",
+				"name" => "Edit",
+				"class" => "icon_edit"
+			),
+			"delete" => array(
+				"key" => "id",
+				"name" => "Delete",
+				"class" => "icon_delete"
+			)
+		);
 		public static $CoreTypes = array(
 			"searchable" => "Searchable List",
 			"draggable" => "Draggable List",
@@ -24,6 +51,7 @@
 			"images-grouped" => "Grouped Image List"
 		);
 		public static $Plugins = array();
+		public static $Table = "bigtree_module_interfaces";
 		
 		protected $ID;
 		protected $Interface;

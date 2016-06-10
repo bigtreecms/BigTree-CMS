@@ -1,19 +1,18 @@
 <?php
 	namespace BigTree;
-	
-	$view = \BigTreeAutoModule::getView(end($bigtree["path"]));
-	
-	$fields = $view["fields"];
-	$x = 0;
-	foreach ($fields as $key => $field) {
-		$fields[$key]["width"] = $_POST[$key];
-	}
-		
-	// Update the view
-	$admin->updateModuleViewFields(end($bigtree["path"]),$fields);
 
-	$action = $admin->getModuleActionForInterface(end($bigtree["path"]));
+	/**
+	 * @global array $bigtree
+	 */
+
+	$view = new ModuleView(end($bigtree["path"]));
+
+	foreach ($view->Fields as $key => $field) {
+		$view->Fields[$key]["width"] = $_POST[$key];
+	}
+
+	$view->save();
 
 	Utils::growl("Developer","Updated View Styles");
-	Router::redirect(DEVELOPER_ROOT."modules/edit/".$action["module"]."/");
+	Router::redirect(DEVELOPER_ROOT."modules/edit/".$view->Module."/");
 	

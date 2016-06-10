@@ -1,42 +1,48 @@
 <?php
 	namespace BigTree;
 
+	/**
+	 * @global string $table
+	 * @global string $type
+	 */
+
 	if (isset($_GET["table"])) {
 		$table = $_GET["table"];
 	}
-	
-	$reserved = \BigTreeAdmin::$ReservedColumns;
+
+	if (isset($_GET["type"])) {
+		$type = $_GET["type"];
+	}
 
 	$used = array();
 	$unused = array();
+	$table_fields = array();
 
-	$tblfields = array();
-	// To tolerate someone selecting the blank spot again when creating a view.
 	if ($table) {
 		$table_description = SQL::describeTable($table);
-	} else {
-		$table_description = array("columns" => array());
-	}
-	foreach ($table_description["columns"] as $column => $details) {
-		$tblfields[] = $column;
+
+		foreach ($table_description["columns"] as $column => $details) {
+			$table_fields[] = $column;
+		}
 	}
 	
 	if (isset($fields)) {
 		foreach ($fields as $key => $field) {
 			$used[] = $key;
 		}
+
 		// Figure out the fields we're not using so we can offer them back.
-		foreach ($tblfields as $field) {
-			if (!in_array($field,$reserved) && !in_array($field,$used)) {
-				$unused[] = array("field" => $field, "title" => ucwords(str_replace("_"," ",$field)));
+		foreach ($table_fields as $field) {
+			if (!in_array($field, Module::$ReservedColumns) && !in_array($field, $used)) {
+				$unused[] = array("field" => $field, "title" => ucwords(str_replace("_", " ", $field)));
 			}
 		}		
 	}
-	
-	$preview_field = isset($view["preview_field"]) ? $view["preview_field"] : "id";
+
+	// Add the ability for someone to create a custom view field
 	$unused[] = array("field" => "— Custom —", "title" => "");
 
-	if (count($tblfields)) {
+	if (count($table_fields)) {
 		$parser_placeholder = Text::translate('PHP code to transform $value (which contains the column value.)', true);
 ?>
 <fieldset id="fields"<?php if ($type == "images" || $type == "images-grouped") { ?> style="display: none;"<?php } ?>>
@@ -52,7 +58,6 @@
 		<ul id="sort_table">
 			<?php
 				// If we're loading an existing data set.
-				$mtm_count = 0;
 				if (isset($fields)) {
 					foreach ($fields as $key => $field) {
 						$used[] = $key;
@@ -67,8 +72,8 @@
 					}			
 				// Otherwise we're loading a new data set based on a table.
 				} else {
-					foreach ($tblfields as $key) {
-						if (!in_array($key,$reserved)) {
+					foreach ($table_fields as $key) {
+						if (!in_array($key, Module::$ReservedColumns)) {
 			?>
 			<li id="row_<?=$key?>">
 				<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[<?=$key?>][title]" value="<?=htmlspecialchars(ucwords(str_replace("_"," ",$key)))?>" /></section>
@@ -89,10 +94,11 @@
 		<ul>
 			<?php
 				$used_actions = array();
+
 				if (!empty($actions)) {
 					foreach ($actions as $key => $action) {
 						if ($action != "on") {
-							$data = json_decode($action,true);
+							$data = json_decode($action, true);
 							$key = $data["route"];
 							$class = $data["class"];
 						} else {
@@ -101,6 +107,7 @@
 								$class .= " icon_".$key."_on";
 							}
 						}
+
 						$used_actions[] = $key;
 			?>
 			<li>
@@ -113,9 +120,11 @@
 			<?php
 					}
 				}
-				foreach (BigTreeAdmin::$ViewActions as $key => $action) {
-					if (!in_array($key,$used_actions) && (in_array($action["key"],$tblfields) || isset($bigtree["module_designer_view"]))) {
+
+				foreach (ModuleView::$CoreActions as $key => $action) {
+					if (!in_array($key, $used_actions) && (in_array($action["key"], $table_fields) || isset($bigtree["module_designer_view"]))) {
 						$checked = false;
+
 						if (isset($actions[$key]) || (!isset($actions) && !isset($bigtree["module_designer_view"])) || (isset($bigtree["module_designer_view"]) && ($key == "edit" || $key == "delete"))) {
 							$checked = true;
 						}
@@ -137,155 +146,166 @@
 </fieldset>
 
 <script>
-	var _local_BigTreeCustomAction = false;
+	(function() {
+		var CustomAction = false;
+		var FieldSelect;
 
-	$(".form_table").on("click",".icon_delete",function() {
-		var tf = $(this).parents("li").find("section").find("input");
-		
-		var title = tf.val();
-		var key = tf.attr("name").substr(7);
-		key = key.substr(0,key.length-8);
-		
-		BigTree.localFieldSelect.addField(key,title);
-
-		$(this).parents("li").remove();		
-		return false;
-	});
-		
-	
-	$(".developer_action_list").on("click",".action",function() {
-		if ($(this).hasClass("active")) {
-			$(this).removeClass("active");
-			$(this).prev("input").prop("checked",false);
-		} else {
-			$(this).addClass("active");
-			$(this).prev("input").prop("checked",true);
+		function hooks() {
+			$("#sort_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 		}
-		
-		return false;
-	}).on("click",".edit",function() {
-		_local_BigTreeCustomAction = $(this).parents("li");
-		var j = $.parseJSON(_local_BigTreeCustomAction.find("input").val());
-		BigTreeDialog({
-			title: "<?=Text::translate("Edit Custom Action", true)?>",
-			content: '<fieldset>' +
-						'<label><?=Text::translate("Action Name")?></label>' +
-						'<input type="text" name="name" value="' + htmlspecialchars(j.name) + '" />' +
-					'</fieldset>' +
-					'<fieldset>' +
-						'<label><?=Text::translate("Action Image Class <small>(i.e. icon_preview)</small>")?></label>' +
-						'<input type="text" name="class" value="' + htmlspecialchars(j.class) + '" />' +
-					'</fieldset>' +
-					'<fieldset>' +
-						'<label><?=Text::translate("Action Route")?></label>' +
-						'<input type="text" name="route" value="' + htmlspecialchars(j.route) + '" />' +
-					'</fieldset>' +
-					'<fieldset class="last">' +
-						'<label><?=Text::translate("Link Function <small>(if you need more than simply /route/id/)</small>")?></label>' +
-						'<input type="text" name="function" value="' + htmlspecialchars(j.function) + '" />' +
-					'</fieldset>',
-			icon: "edit",
-			callback: function(data) {
-				_local_BigTreeCustomAction.load("<?=ADMIN_ROOT?>ajax/developer/add-view-action/", data);
-			}
+
+		// Hook removal of fields to add them back to the field select dropdown
+		$(".form_table").on("click",".icon_delete",function() {
+			var title_field = $(this).parents("li").find("section").find("input");
+			var title = title_field.val();
+			var key = title_field.attr("name").substr(7);
+
+			key = key.substr(0, key.length - 8);
+			FieldSelect.addField(key, title);
+
+			$(this).parents("li").remove();
+
+			return false;
 		});
-	}).sortable({ axis: "x", containment: "parent", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
-		
-	$(".add_action").click(function() {
-		BigTreeDialog({
-			title: "<?=Text::translate("Add Custom Action", true)?>",
-			content: '<fieldset>' +
-						'<label><?=Text::translate("Action Name")?></label>' +
-						'<input type="text" name="name" />' +
-					'</fieldset>' +
-					'<fieldset>' +
-						'<label><?=Text::translate("Action Image Class <small>(i.e. icon_preview)</small>")?></label>' +
-						'<input type="text" name="class" />' +
-					'</fieldset>' +
-					'<fieldset>' +
-						'<label><?=Text::translate("Action Route")?></label>' +
-						'<input type="text" name="route" />' +
-					'</fieldset>' +
-					'<fieldset class="last">' +
-						'<label><?=Text::translate("Link Function <small>(if you need more than simply /route/id/)</small>")?></label>' +
-						'<input type="text" name="function" />' +
-					'</fieldset>',
-			icon: "add",
-			alternateSaveText: "<?=Text::translate("Add", true)?>",
-			callback: function(data) {
-				var li = $('<li>');
-				li.load("<?=ADMIN_ROOT?>ajax/developer/add-view-action/", data);
-				$(".developer_action_list li:first-child").before(li);
-			}
-		});
-		
-		return false;
-	});
-	
-	BigTree.localHooks = function() {
-		$("#sort_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
-	};
-	
-	BigTree.localHooks();
-	
-	BigTree.localFieldSelect = BigTreeFieldSelect({
-		selector: ".form_table header",
-		elements: <?=json_encode($unused)?>,
-		callback: function(el,fs) {
-			var title = el.title;
-			var key = el.field;
-			
-			if (title) {
-				var li = $('<li id="row_' + key + '">');
-				li.html('<section class="developer_view_title">' + 
-							'<span class="icon_sort"></span>' +
-							'<input type="text" name="fields[' + key + '][title]" value="' + title + '" />' +
-						'</section>' +
-						'<section class="developer_view_parser">' +
-							'<input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="<?=$parser_placeholder?>"/>' +
-						'</section>' +
-						'<section class="developer_resource_action">' +
-							'<a href="#" class="icon_delete"></a>' +
-						'</section>');
-			
-				fs.removeCurrent();
-				$("#sort_table").append(li);
-				BigTree.localHooks();
+
+		// Hook action boxes
+		$(".developer_action_list").on("click",".action",function() {
+			if ($(this).hasClass("active")) {
+				$(this).removeClass("active");
+				$(this).prev("input").prop("checked",false);
 			} else {
-				BigTreeDialog({
-					title: "<?=Text::translate("Add Custom Column", true)?>",
-					content: '<fieldset>' +
-								'<label><?=Text::translate("Column Key <small>(must be unique)</small>")?></label>' +
-								'<input type="text" name="key" />' +
-							'</fieldset>' +
-							'<fieldset class="last">' +
-								'<label><?=Text::translate("Column Title")?></label>' +
-								'<input type="text" name="title" />' +
-							'</fieldset>',
-					icon: "add",
-					alternateSaveText: "Add",
-					callback: function(data) {
-						var key = htmlspecialchars(data.key);
-						var title = htmlspecialchars(data.title);
-						
-						var li = $('<li id="row_' + key + '">');
-						li.html('<section class="developer_view_title">' +
-									'<span class="icon_sort"></span>' +
-									'<input type="text" name="fields[' + key + '][title]" value="' + title + '" />' +
-								'</section>' +
-								'<section class="developer_view_parser">' +
-									'<input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="<?=$parser_placeholder?>" />' +
-								'</section>' +
-								'<section class="developer_resource_action">' +
-									'<a href="#" class="icon_delete"></a>' +
-								'</section>');
-						$("#sort_table").append(li);
-						BigTree.localHooks();
-					}
-				});
+				$(this).addClass("active");
+				$(this).prev("input").prop("checked",true);
 			}
-		}
-	});
+
+			return false;
+		}).on("click",".edit",function() {
+			CustomAction = $(this).parents("li");
+			var json = $.parseJSON(CustomAction.find("input").val());
+
+			BigTreeDialog({
+				title: "<?=Text::translate("Edit Custom Action", true)?>",
+				content: '<fieldset>' +
+							'<label><?=Text::translate("Action Name")?></label>' +
+							'<input type="text" name="name" value="' + htmlspecialchars(json.name) + '" />' +
+						'</fieldset>' +
+						'<fieldset>' +
+							'<label><?=Text::translate("Action Image Class <small>(i.e. icon_preview)</small>")?></label>' +
+							'<input type="text" name="class" value="' + htmlspecialchars(json.class) + '" />' +
+						'</fieldset>' +
+						'<fieldset>' +
+							'<label><?=Text::translate("Action Route")?></label>' +
+							'<input type="text" name="route" value="' + htmlspecialchars(json.route) + '" />' +
+						'</fieldset>' +
+						'<fieldset class="last">' +
+							'<label><?=Text::translate("Link Function <small>(if you need more than simply /route/id/)</small>")?></label>' +
+							'<input type="text" name="function" value="' + htmlspecialchars(json.function) + '" />' +
+						'</fieldset>',
+				icon: "edit",
+				callback: function(data) {
+					CustomAction.load("<?=ADMIN_ROOT?>ajax/developer/add-view-action/", data);
+				}
+			});
+		}).sortable({ axis: "x", containment: "parent", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
+
+		// Custom action adding
+		$(".add_action").click(function() {
+			BigTreeDialog({
+				title: "<?=Text::translate("Add Custom Action", true)?>",
+				content: '<fieldset>' +
+							'<label><?=Text::translate("Action Name")?></label>' +
+							'<input type="text" name="name" />' +
+						'</fieldset>' +
+						'<fieldset>' +
+							'<label><?=Text::translate("Action Image Class <small>(i.e. icon_preview)</small>")?></label>' +
+							'<input type="text" name="class" />' +
+						'</fieldset>' +
+						'<fieldset>' +
+							'<label><?=Text::translate("Action Route")?></label>' +
+							'<input type="text" name="route" />' +
+						'</fieldset>' +
+						'<fieldset class="last">' +
+							'<label><?=Text::translate("Link Function <small>(if you need more than simply /route/id/)</small>")?></label>' +
+							'<input type="text" name="function" />' +
+						'</fieldset>',
+				icon: "add",
+				alternateSaveText: "<?=Text::translate("Add", true)?>",
+				callback: function(data) {
+					var li = $('<li>');
+
+					li.load("<?=ADMIN_ROOT?>ajax/developer/add-view-action/", data);
+					$(".developer_action_list li:first-child").before(li);
+				}
+			});
+
+			return false;
+		});
+
+		FieldSelect = BigTreeFieldSelect({
+			selector: ".form_table header",
+			elements: <?=json_encode($unused)?>,
+			callback: function(el, field_select) {
+				var title = el.title;
+				var key = el.field;
+
+				if (title) {
+					var li = $('<li id="row_' + key + '">');
+
+					li.html('<section class="developer_view_title">' +
+								'<span class="icon_sort"></span>' +
+								'<input type="text" name="fields[' + key + '][title]" value="' + title + '" />' +
+							'</section>' +
+							'<section class="developer_view_parser">' +
+								'<input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="<?=$parser_placeholder?>"/>' +
+							'</section>' +
+							'<section class="developer_resource_action">' +
+								'<a href="#" class="icon_delete"></a>' +
+							'</section>');
+
+					$("#sort_table").append(li);
+
+					field_select.removeCurrent();
+					hooks();
+				} else {
+					BigTreeDialog({
+						title: "<?=Text::translate("Add Custom Column", true)?>",
+						content: '<fieldset>' +
+									'<label><?=Text::translate("Column Key <small>(must be unique)</small>")?></label>' +
+									'<input type="text" name="key" />' +
+								'</fieldset>' +
+								'<fieldset class="last">' +
+									'<label><?=Text::translate("Column Title")?></label>' +
+									'<input type="text" name="title" />' +
+								'</fieldset>',
+						icon: "add",
+						alternateSaveText: "Add",
+						callback: function(data) {
+							var key = htmlspecialchars(data.key);
+							var title = htmlspecialchars(data.title);
+
+							var li = $('<li id="row_' + key + '">');
+							li.html('<section class="developer_view_title">' +
+										'<span class="icon_sort"></span>' +
+										'<input type="text" name="fields[' + key + '][title]" value="' + title + '" />' +
+									'</section>' +
+									'<section class="developer_view_parser">' +
+										'<input type="text" class="parser" name="fields[' + key + '][parser]" value="" placeholder="<?=$parser_placeholder?>" />' +
+									'</section>' +
+									'<section class="developer_resource_action">' +
+										'<a href="#" class="icon_delete"></a>' +
+									'</section>');
+							$("#sort_table").append(li);
+
+							hooks();
+						}
+					});
+				}
+			}
+		});
+
+		hooks();
+
+	})();
 </script>
 <?php
 	} else {

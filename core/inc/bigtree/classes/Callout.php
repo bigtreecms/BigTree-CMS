@@ -113,6 +113,10 @@
 			foreach ($groups as $group_id) {
 				$group = new CalloutGroup($group_id);
 
+				if (empty($group->ID)) {
+					continue;
+				}
+
 				foreach ($group->Callouts as $callout_id) {
 					// Only grab each callout once
 					if (!in_array($callout_id, $ids)) {

@@ -3,7 +3,7 @@
 ?>
 <script>
 	$("#view_table").change(function(event,data) {
-		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-view-fields/?table=" + data.value);
+		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-view-fields/?table=" + data.value + "&type=" + $("#view_type").val());
 	});
 	
 	$(".options").click(function(ev) {

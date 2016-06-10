@@ -15,6 +15,8 @@
 
 	class ModuleReport extends BaseObject {
 
+		public static $Table = "bigtree_module_interfaces";
+
 		protected $ID;
 		protected $Interface;
 

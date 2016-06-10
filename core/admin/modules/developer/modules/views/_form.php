@@ -1,8 +1,19 @@
 <?php
 	namespace BigTree;
+
+	/**
+	 * @global string $description
+	 * @global Module $module
+	 * @global array $options
+	 * @global string $preview_url
+	 * @global int $related_form
+	 * @global string $table
+	 * @global string $title
+	 * @global string $type
+	 */
 	
-	$forms = $admin->getModuleForms("title",$module["id"]);
 	Extension::initializeCache();
+	$forms = ModuleForm::allByModule($module->ID, "title");
 ?>
 <section>
 	<div class="left last">
@@ -34,7 +45,7 @@
 			<select name="related_form">
 				<option value="">&mdash;</option>
 				<?php foreach ($forms as $form) { ?>
-				<option value="<?=$form["id"]?>"<?php if ($form["id"] == $related_form) { ?> selected="selected"<?php } ?>><?=$form["title"]?> (<?=$form["table"]?>)</option>
+				<option value="<?=$form->ID?>"<?php if ($form->ID == $related_form) { ?> selected="selected"<?php } ?>><?=$form->Title?> (<?=$form->Table?>)</option>
 				<?php } ?>
 			</select>
 		</fieldset>

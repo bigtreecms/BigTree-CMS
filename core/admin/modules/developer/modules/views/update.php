@@ -1,16 +1,23 @@
 <?php
 	namespace BigTree;
-	
-	Globalize::POST();
-	
+
+	/**
+	 * @global array $bigtree
+	 */
+
+	// Get some globals for repeated vars
+	$table = $_POST["table"];
+	$options = json_decode($_POST["options"], true);
+	$type = $_POST["type"];
+	$actions = $_POST["actions"];
+	$fields = $_POST["fields"];
+	$preview_url = $_POST["preview_url"];
+
+	// Check for errors
 	$table_description = SQL::describeTable($table);
 	$columns = $table_description["columns"];
-	
-	$options = json_decode($options, true);
-	
 	$errors = array();
-	
-	// Check for errors
+
 	if (($type == "draggable" || $type == "draggable-group" || $options["draggable"]) && !$columns["position"]) {
 		$errors[] = Text::translate("Sorry, but you can't create a draggable view without a 'position' column in your table.  Please create a position column (integer) in your table and try again.");
 	}
@@ -52,51 +59,59 @@
 				$clean_actions[$key] = $val;
 			}
 		}
-		$actions = $clean_actions;
 		
 		// If we've switched from searchable -> anything else or vice versa, wipe the width columns.
 		// Also wipe them if we have added or removed a column.
-		$old_view = \BigTreeAutoModule::getView(end($bigtree["path"]));
+		$view = new ModuleView(end($bigtree["path"]));
 		$keys_match = true;
-		foreach ($old_view["fields"] as $key => $field) {
-			if (!$fields[$key]) {
+
+		foreach ($view->Fields as $key => $field) {
+			if (empty($fields[$key])) {
 				$keys_match = false;
 			}
 		}
 		
 		foreach ($fields as $key => $field) {
-			if (!$old_view["fields"][$key]) {
+			if (empty($view->Fields[$key])) {
 				$keys_match = false;
 			}
 		}
 
 		// Check actions
-		if (count($old_view["actions"]) != count($actions)) {
+		if (count($view->Actions) != count($actions)) {
 			$keys_match = false;
 		}
 		
 		// Check preview field
-		if ((!$old_view["preview_url"] && $preview_url) || ($old_view["preview_url"] && !$preview_url)) {
+		if ((!$view->PreviewURL && $preview_url) || ($view->PreviewURL && !$preview_url)) {
 			$keys_match = false;
 		}
 		
-		if (!$keys_match || ($old_view["type"] == "searchable" && $type != "searchable") || ($type == "searchable" && $old_view["type"] != "searchable")) {
+		if (!$keys_match || ($view->Type == "searchable" && $type != "searchable") || ($type == "searchable" && $view->Type != "searchable")) {
 			foreach ($fields as $key => $field) {
 				unset($fields[$key]["width"]);
 			}
 		}
 		
 		// Let's update the view and clear its cache
-		$admin->updateModuleView(end($bigtree["path"]),$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url);
-		\BigTreeAutoModule::clearCache(end($bigtree["path"]));
-		
-		$action = $admin->getModuleActionForInterface(end($bigtree["path"]));
+		$view->update(
+			$_POST["title"],
+			$_POST["description"],
+			$table,
+			$type,
+			$options,
+			$fields,
+			$actions,
+			$_POST["related_form"],
+			$preview_url
+		);
+		$view->clearCache();
+
 		Utils::growl("Developer","Updated View");
 
 		if ($_POST["return_page"]) {
 			Router::redirect($_POST["return_page"]);
 		} else {
-			Router::redirect(DEVELOPER_ROOT."modules/edit/".$action["module"]."/");
+			Router::redirect(DEVELOPER_ROOT."modules/edit/".$view->Module."/");
 		}
 	}
-?>

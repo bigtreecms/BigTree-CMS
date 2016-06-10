@@ -1,9 +1,17 @@
 <?php
 	namespace BigTree;
-	
-	Globalize::POST();
 
-	$options = json_decode($options,true);
+	/**
+	 * @global array $bigtree
+	 */
+
+	// Easier global vars for type checks
+	$type = $_POST["type"];
+	$options = json_decode($_POST["options"], true);
+	$actions = $_POST["actions"];
+	$module_id = end($bigtree["commands"]);
+	$title = $_POST["title"];
+	$table = $_POST["table"];
 
 	$table_description = SQL::describeTable($table);
 	$columns = $table_description["columns"];
@@ -44,45 +52,51 @@
 	} else {
 		// Clean up actions
 		$clean_actions = array();
-		if (isset($actions)) {
-			foreach ($actions as $key => $val) {
-				if ($val) {
-					$clean_actions[$key] = $val;
-				}
+		foreach (array_filter((array) $actions) as $key => $val) {
+			if ($val) {
+				$clean_actions[$key] = $val;
 			}
 		}
-		$actions = $clean_actions;
-
-		$module = end($bigtree["path"]);
 
 		// Create the view
-		$view_id = $admin->createModuleView($module,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url);
+		$view = ModuleView::create(
+			$module_id,
+			$title,
+			$_POST["description"],
+			$table,
+			$type,
+			$options,
+			$_POST["fields"],
+			$clean_actions,
+			$_POST["related_form"],
+			$_POST["preview_url"]
+		);
 
 		// Check to see if there's a default view for the module. If not our route is going to be blank.
 		$route = "";
-		$landing_exists = ModuleAction::exists($module,"");
+		$landing_exists = ModuleAction::exists($module_id, "");
 		
 		if ($landing_exists) {
-			$route = SQL::unique("bigtree_module_actions", "route", $cms->urlify("View $title"), array("module" => $module), true);
+			$route = SQL::unique("bigtree_module_actions", "route", Link::urlify("View $title"), array("module" => $module_id), true);
 		}
 
 		// Create an action for the view
-		$admin->createModuleAction($module,"View $title",$route,"on","list",$view_id);
+		ModuleAction::create($module_id, "View $title", $route, "on", "list", $view->ID);
 
 		// If we're not working on a new module, just redirect back to the edit module page
 		if (!$_POST["new_module"]) {
 			Utils::growl("Developer","Created Module View");
-			Router::redirect(DEVELOPER_ROOT."modules/edit/$module/");
+			Router::redirect(DEVELOPER_ROOT."modules/edit/$module_id/");
 		}
 ?>
 <div class="container">
 	<section>
-		<h3><?=Text::translate("View :title:", false, array(":title:" => $title))?></h3>
+		<h3><?=Text::translate("View :title:", false, array(":title:" => htmlspecialchars($title)))?></h3>
 		<p><?=Text::translate("Your view has been created. You may continue to create a form for this view or return to the module overview instead.")?></p>
 	</section>
 	<footer>
-		<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$module?>/" class="button white"><?=Text::translate("Return to Module")?></a>
-		<a href="<?=DEVELOPER_ROOT?>modules/forms/add/?module=<?=$module?>&table=<?=urlencode($table)?>&title=<?=urlencode($title)?>&view=<?=$view_id?>" class="button blue"><?=Text::translate("Add Form")?></a>
+		<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$module_id?>/" class="button white"><?=Text::translate("Return to Module")?></a>
+		<a href="<?=DEVELOPER_ROOT?>modules/forms/add/?module=<?=$module_id?>&table=<?=urlencode($table)?>&title=<?=urlencode($title)?>&view=<?=$view->ID?>" class="button blue"><?=Text::translate("Add Form")?></a>
 	</footer>
 </div>
 <?php

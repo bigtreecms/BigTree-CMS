@@ -106,6 +106,24 @@
 			return null;
 		}
 
+		function __isset($property) {
+			// Many inherited objects will have read-only properties
+			if (property_exists($this, $property)) {
+				return true;
+			}
+
+			// Allow for protected get(Property) methods
+			if (method_exists($this, "get".$property)) {
+				return true;
+			}
+
+			if ($property == "Array") {
+				return true;
+			}
+
+			return false;
+		}
+
 		// Courtesy of StackOverflow: http://stackoverflow.com/questions/1993721/how-to-convert-camelcase-to-camel-case
 		static function _camelCaseToUnderscore($string) {
 			preg_match_all('!([A-Z][A-Z0-9]*(?=$|[A-Z][a-z0-9])|[A-Za-z][a-z0-9]+)!', $string, $matches);

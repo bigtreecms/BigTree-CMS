@@ -19,6 +19,12 @@
 
 		public static $CachesBuilt = false;
 		public static $ClassCache = array();
+		public static $ReservedColumns = array(
+			"id",
+			"position",
+			"archived",
+			"approved"
+		);
 		public static $Table = "bigtree_modules";
 
 		protected $ID;

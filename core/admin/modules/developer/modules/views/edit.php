@@ -1,11 +1,14 @@
 <?php
 	namespace BigTree;
-	
-	$view = \BigTreeAutoModule::getView(end($bigtree["path"]));
-	Globalize::arrayObject($view);
-	$module = $admin->getModule($module);
 
-	if (!SQL::tableExists($table)) {
+	/**
+	 * @global array $bigtree
+	 */
+
+	$view = new ModuleView(end($bigtree["commands"]));
+	Globalize::arrayObject($view->Array);
+
+	if (!SQL::tableExists($view->Table)) {
 ?>
 <div class="container">
 	<section>
@@ -13,24 +16,25 @@
 			<span></span>
 			<h3><?=Text::translate("Error")?></h3>
 		</div>
-		<p><?=Text::translate("The table for this view (:table:) no longer exists.", false, array(":table:" => $table))?></p>
+		<p><?=Text::translate("The table for this view (:table:) no longer exists.", false, array(":table:" => $view->Table))?></p>
 	</section>
 	<footer>
 		<a href="javascript:history.go(-1);" class="button"><?=Text::translate("Back")?></a>
-		<a href="<?=DEVELOPER_ROOT?>modules/interfaces/delete/<?=$view["id"]?>/?module=<?=$module["id"]?>" class="button red"><?=Text::translate("Delete View")?></a>
+		<a href="<?=DEVELOPER_ROOT?>modules/interfaces/delete/<?=$view->ID?>/?module=<?=$view->Module?>" class="button red"><?=Text::translate("Delete View")?></a>
 	</footer>
 </div>
 <?php
 	} else {
 ?>
 <div class="container">
-	<form method="post" action="<?=DEVELOPER_ROOT?>modules/views/update/<?=$view["id"]?>/" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>modules/views/update/<?=$view->ID?>/" class="module">
 		<?php
 			if ($_GET["return"] == "front") {
 		?>
 		<input type="hidden" name="return_page" value="<?=htmlspecialchars($_SERVER["HTTP_REFERER"])?>" />
 		<?php
 			}
+			
 			include Router::getIncludePath("admin/modules/developer/modules/views/_form.php");
 		?>
 		<footer>

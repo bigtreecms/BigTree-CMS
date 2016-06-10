@@ -11,9 +11,9 @@
 	$scope_help = Text::translate(' <small>(see <a href=":scope_link:" target="_blank">Permissions</a>)</small>', false, array(":scope_link:" => "https://developers.facebook.com/docs/facebook-login/permissions/v2.4"));
 	$instructions = array(
 		Text::translate('<a href=":facebook_link:" target="_blank">Add a new Facebook app</a>.', false, array(":facebook_link:" => "https://developers.facebook.com/apps/")),
-		Text::translate('Inside your app\'s Dashboard, go to Settings and then the "Advanced" tab.'),
-		Text::translate('Find the Client OAuth Settings section, add :redirect_uri: as a valid OAuth redirect URI.', false, array(":redirect_uri:" => "DEVELOPER_ROOT.'services/facebook/return/")),
-		Text::translate('If you don\'t want your app showing up in your connected account\'s news feed, set Social Discovery to No.'),
+		Text::translate('In the left navigation bar of your project dashboard click the Add Product link.'),
+		Text::translate('Add the Facebook Login product.'),
+		Text::translate('Under Facebook Login, find the Client OAuth Settings section and add :redirect_uri: as a valid OAuth redirect URI.', false, array(":redirect_uri:" => "DEVELOPER_ROOT.'services/facebook/return/")),
 		Text::translate('Click "Save Changes".'),
 		Text::translate('Go back to the "Basic" tab and enter the App ID and App Secret from that page below.'),
 		Text::translate('Follow the OAuth process of allowing BigTree/your application access to your Facebook account.')

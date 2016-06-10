@@ -350,12 +350,14 @@
 			
 			Parameters:
 				page - The page data for the current page the user is on.
+				routed_path - An array of routes used to land on the current file in your routed template directory. (equivalent to $bigtree["routed_path"])
+				commands - An array of commands available in the current routed page (equivalent to $bigtree["commands"])
 			
 			Returns:
 				An array of arrays with "title" and "link" key/value pairs.
 		*/
 		
-		function getBreadcrumb($page) {
+		function getBreadcrumb($page, $routed_path = array(), $commands = array()) {
 			return array();
 		}
 		

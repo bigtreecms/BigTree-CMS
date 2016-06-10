@@ -1,19 +1,21 @@
 <?php
 	namespace BigTree;
 
-	$view = \BigTreeAutoModule::getView(end($bigtree["path"]));
-	$entries = \BigTreeAutoModule::getSearchResults($view,1);
+	/**
+	 * @global array $bigtree
+	 */
+
+	$view = new ModuleView(end($bigtree["path"]));
+	$entries = $view->searchData(1);
 	$entries = array_slice($entries["results"],0,5);
 
-	if ($view == "images" || $view == "images-group") {
+	if ($view->Type == "images" || $view->Type == "images-group") {
 ?>
 <p><?=Text::translate("The current view type does not have any style settings.")?></p>
 <?php
 	} else {
-		$fields = $view["fields"];
-		$actions = $view["actions"];
-		if ($view["preview_url"]) {
-			$actions["preview"] = "on";
+		if ($view->PreviewURL) {
+			$view->Actions["preview"] = "on";
 		}
 ?>
 <section class="inset_block">
@@ -24,7 +26,7 @@
 	<header>
 		<?php
 			$x = 0;
-			foreach ($fields as $key => $field) {
+			foreach ($view->Fields as $key => $field) {
 				$x++;
 		?>
 		<span class="view_column" style="width: <?=$field["width"]?>px; cursor: move;" name="<?=$key?>"><?=$field["title"]?></span>
@@ -32,7 +34,7 @@
 			}
 		?>
 		<span class="view_status"><?=Text::translate("Status")?></span>
-		<span class="view_action" style="width: <?=(count($actions) * 40)?>px;"><?php if (count($view["actions"]) > 1) { echo Text::translate("Actions"); } ?></span>
+		<span class="view_action" style="width: <?=(count($view->Actions) * 40)?>px;"><?php if (count($view->Actions) > 1) { echo Text::translate("Actions"); } ?></span>
 	</header>
 	<ul>
 		<?php
@@ -41,7 +43,7 @@
 		<li>
 			<?php
 				$x = 0;
-				foreach ($fields as $key => $field) {
+				foreach ($view->Fields as $key => $field) {
 					$x++;
 			?>
 			<section class="view_column" style="width: <?=$field["width"]?>px;" name="<?=$key?>"><?=$entry["column$x"]?></section>
@@ -50,7 +52,7 @@
 			?>
 			<section class="view_status status_published"><?=Text::translate("Published")?></section>
 			<?php
-				foreach ($actions as $action => $data) {
+				foreach ($view->Actions as $action => $data) {
 					if ($data != "on") {
 						$data = json_decode($data,true);
 						$class = $data["class"];
@@ -68,11 +70,11 @@
 		?>
 	</ul>
 </div>
-<form method="post" action="<?=DEVELOPER_ROOT?>modules/views/update-style/<?=$view["id"]?>/" class="module">
-	<?php foreach ($fields as $key => $field) { ?>
+<form method="post" action="<?=DEVELOPER_ROOT?>modules/views/update-style/<?=$view->ID?>/" class="module">
+	<?php foreach ($view->Fields as $key => $field) { ?>
 	<input type="hidden" name="<?=$key?>" id="data_<?=$key?>" value="<?=$field["width"]?>" />
 	<?php } ?>
-	<a class="button" href="<?=DEVELOPER_ROOT?>modules/views/clear-style/<?=$view["id"]?>/"><?=Text::translate("Clear Existing Style")?></a>
+	<a class="button" href="<?=DEVELOPER_ROOT?>modules/views/clear-style/<?=$view->ID?>/"><?=Text::translate("Clear Existing Style")?></a>
 	<input type="submit" class="button blue" value="<?=Text::translate("Update", true)?>" />
 </form>
 <?php
