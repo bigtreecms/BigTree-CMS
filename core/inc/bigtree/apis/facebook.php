@@ -13,6 +13,7 @@
 		var $RequestType = "header";
 		var $Scope = "";
 		var $TokenURL = "https://graph.facebook.com/v2.4/oauth/access_token";
+		static $ALBUM_FIELDS = "id,name,description,link,cover_photo,count,place,type,created_time";
 		
 		/*
 			Constructor:
@@ -50,6 +51,25 @@
 				return false;
 			}
 			return new BigTreeFacebookUser($response,$this);
+		}
+		
+		/*
+			Function: getAlbum
+				 Returns an album for the given album ID.
+
+			Parameters:
+				albumId - Id of album
+		
+			 Returns:
+				 A BigTreeFacebookAlbum object or false if the object id does not exist.
+		 */
+		
+		function getAlbum($albumId) {
+			$response = $this->call($albumId."?fields=". BigTreeFacebookAPI::$ALBUM_FIELDS);
+			if (!$response->id) {
+				return false;
+			}
+			return new BigTreeFacebookAlbum($response, $this);
 		}
 	}
 
@@ -138,6 +158,36 @@
 
 			return false;
 		}
+
+		/*
+		 Function: getAlbums
+			 Gets the albums owned by user.
+		 	
+		 Parameters:
+		 	none
+		
+		 Returns:
+		 	Returns an array of BigTreeFacebookAlbum's or false on failure.
+		 */
+		
+		function getAlbums() {
+			if ($this->Albums) {
+				return $this->Albums;
+			}
+		
+			$response = $this->API->call($this->ID."/albums?fields=". BigTreeFacebookAPI::$ALBUM_FIELDS);
+			if (isset($response->data)) {
+				$bsAlbums = array();				
+				foreach ($response->data as $album) {
+					$bsAlbums[] = new BigTreeFacebookAlbum($album, $this->API);
+				}
+				$this->Albums = $bsAlbums;
+				return $this->Albums;
+			}
+		
+			return false;
+		}
+		
 	}
 
 	/*
@@ -186,6 +236,104 @@
 
 			$this->ID = $job->id;
 			$this->Name = $job->name;
+		}
+	}
+	
+	/*
+	 Class: BigTreeFacebookAlbum
+		 Facebook API class for a picture album.
+	 */
+	
+	class BigTreeFacebookAlbum {
+		protected $API;
+	
+		var $Pictures;
+	
+		function __construct($job,&$api) {
+			$this->API = $api;
+	
+			$this->ID = $job->id;
+			$this->Name = $job->name;
+			$this->Description = $job->description;
+			$this->Link = $job->link;
+			
+			$response = $this->API->call($job->cover_photo->id."?fields=source,created_time,images");
+			$this->CoverPhoto = new BigTreeFacebookPicture($response, $this->API);
+			
+			$this->PhotoCount = $job->count;
+			$this->Place = new BigTreeFacebookLocation($job->place,$api);
+			$this->Type = $job->type;
+			$this->CreatedTime = $job->created_time;
+		}
+	
+		/*
+			Function: getPictures
+				Gets all the pictures in this album.
+				NB: Currently there is no cursor support.
+		 	
+			Parameters:
+		 		none
+		
+		 	Returns:
+		 		Returns an array of BigTreeFacebookPicture's or false on failure.
+		 */
+		
+		function getPictures() {
+			if ($this->Pictures) {
+				return $this->Pictures;
+			}
+				
+			$response = $this->API->call($this->ID."/photos?fields=source,created_time,images");
+				
+			if (isset($response->data)) {
+				$bsPictures = array();
+				foreach ($response->data as $picture) {
+					$bsPictures[] = new BigTreeFacebookPicture($picture, $this->API);
+				}
+				$this->Pictures = $bsPictures;
+				return $this->Pictures;
+			}
+	
+		}
+	}
+	
+	/*
+	 Class: BigTreeFacebookPicture
+		 Facebook API class for a picture.
+	 */
+	
+	class BigTreeFacebookPicture {
+		protected $API;
+		
+		function __construct($job,&$api) {
+			$this->API = $api;
+		
+			$this->ID = $job->id;
+			$this->CreatedTime = $job->created_time;
+			$this->Images = array();
+			$this->Images["default"] = $job->source;
+			foreach ($job->images as $image) {
+				$this->Images[$image->width ."x". $image->height] = $image->source;
+			}
+		}
+
+		/*
+			Function: preferredSize
+				Facebook has several sizes of your image. This functions returns the one
+				you want.
+		
+			Parameters:
+				dimensions - e.g. "300x225" (limited set available)
+		
+			Returns:
+				Returns the url of the requested image or the default image.
+		 */
+		
+		function preferredSize($dimensions) {
+			if (isset($this->Images[$dimensions])) {
+				return $this->Images[$dimensions];
+			}
+			return $this->Images["default"];
 		}
 	}
 ?>
