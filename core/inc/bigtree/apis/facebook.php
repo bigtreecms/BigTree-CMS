@@ -8,7 +8,7 @@
 	class BigTreeFacebookAPI extends BigTreeOAuthAPIBase {
 		
 		var $AuthorizeURL = "https://www.facebook.com/dialog/oauth";
-		var $EndpointURL = "https://graph.facebook.com/v2.4/";
+		var $EndpointURL = "https://graph.facebook.com/v2.6/";
 		var $OAuthVersion = "2.0";
 		var $RequestType = "header";
 		var $Scope = "";
