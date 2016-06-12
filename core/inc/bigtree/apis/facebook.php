@@ -12,7 +12,7 @@
 		var $OAuthVersion = "2.0";
 		var $RequestType = "header";
 		var $Scope = "";
-		var $TokenURL = "https://graph.facebook.com/v2.4/oauth/access_token";
+		var $TokenURL = "https://graph.facebook.com/v2.6/oauth/access_token";
 		static $ALBUM_FIELDS = "id,name,description,link,cover_photo,count,place,type,created_time";
 		
 		/*
