@@ -59,14 +59,14 @@
 				 Returns an album for the given album ID.
 
 			Parameters:
-				albumId - Id of album
+				album_id - ID of album
 		
 			 Returns:
 				 A BigTreeFacebookAlbum object or false if the object id does not exist.
-		 */
+		*/
 		
-		function getAlbum($albumId) {
-			$response = $this->call($albumId."?fields=". BigTreeFacebookAPI::ALBUM_FIELDS);
+		function getAlbum($album_id) {
+			$response = $this->call($album_id."?fields=". BigTreeFacebookAPI::ALBUM_FIELDS);
 
 			if (!$response->id) {
 				return false;
@@ -242,9 +242,9 @@
 	}
 	
 	/*
-	 Class: BigTreeFacebookAlbum
-		 Facebook API class for a picture album.
-	 */
+		Class: BigTreeFacebookAlbum
+			Facebook API class for a picture album.
+	*/
 	
 	class BigTreeFacebookAlbum {
 
@@ -271,14 +271,10 @@
 		/*
 			Function: getPictures
 				Gets all the pictures in this album.
-				NB: Currently there is no cursor support.
-		 	
-			Parameters:
-		 		none
-		
-		 	Returns:
-		 		Returns an array of BigTreeFacebookPicture's or false on failure.
-		 */
+
+			Returns:
+				Returns an array of BigTreeFacebookPicture's or false on failure.
+		*/
 		
 		function getPictures() {
 			if (isset($this->Pictures)) {
@@ -302,9 +298,9 @@
 	}
 	
 	/*
-	 Class: BigTreeFacebookPicture
-		 Facebook API class for a picture.
-	 */
+		Class: BigTreeFacebookPicture
+			Facebook API class for a picture.
+	*/
 	
 	class BigTreeFacebookPicture {
 		protected $API;
@@ -331,7 +327,7 @@
 		
 			Returns:
 				Returns the url of the requested image or the default image.
-		 */
+		*/
 		
 		function getSize($dimensions) {
 			if (isset($this->Images[$dimensions])) {
