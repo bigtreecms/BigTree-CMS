@@ -715,6 +715,17 @@
 		protected $API;
 
 		function __construct($person,&$api) {
+			// Sometimes the owner is just an ID, so we'll need to fetch data
+			if (is_string($person)) {
+				$r = $api->call("flickr.people.getInfo",array("user_id" => $person));
+				
+				if (!isset($r->person)) {
+					return;
+				}
+				
+				$person = $r->person;
+			}
+			
 			$this->API = $api;
 			isset($person->description->_content) ? $this->Description = $person->description->_content : false;
 			$this->ID = isset($person->nsid) ? $person->nsid : $person->id;
