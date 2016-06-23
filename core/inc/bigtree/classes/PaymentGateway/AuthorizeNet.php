@@ -64,15 +64,16 @@
 			// Get the default parameters
 			$params = array_merge($this->DefaultParameters, $params);
 			
-			// Authorize wants a GET instead of a POST, so we have to convert it away from an array.
-			$fields = array();
-			foreach ($params as $key => $val) {
-				$fields[] = $key."=".str_replace("&", "%26", $val);
-			}
+			// Set the cURL options
+			$curl_options = array(
+				CURLOPT_HEADER => 0,
+				CURLOPT_POST => TRUE,
+				CURLOPT_POSTFIELDS => http_build_query($params)
+			);
 			
 			// Send it off to the server, try 3 times.
 			while ($count < 3) {
-				$response = cURL::request($this->PostURL, implode("&", $fields));
+				$response = cURL::request($this->PostURL, false, $curl_options);
 				if ($response) {
 					$r = explode("|", $response);
 					
