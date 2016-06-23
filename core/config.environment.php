@@ -15,7 +15,7 @@
 	$bigtree["config"]["maintenance_url"] = false; // Set to a URL to 307 redirect visitors to a maintenance page (driven by /templates/basic/_maintenance.php).
 	$bigtree["config"]["routing"] = "[routing]";
 	$bigtree["config"]["cache"] = false; // Enable Simple Caching
-	$bigtree["config"]["cache_expiry"] = 300; // Number of seconds to keep a cached item
+	$bigtree["config"]["cache_ttl"] = 300; // Number of seconds to keep a cached page
 	$bigtree["config"]["sql_interface"] = "mysqli"; // Change to "mysql" to use legacy MySQL interface in PHP.
 
 	// Database Environment

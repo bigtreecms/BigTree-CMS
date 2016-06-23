@@ -81,7 +81,9 @@
 		$file = $server_root."cache/$cache_location.page";
 		// If the file is at least 5 minutes fresh, serve it up.
 		clearstatcache();
-		if (file_exists($file) && filemtime($file) > (time() - $bigtree["config"]["cache_expiry"])) {
+		$ttl = !empty($bigtree["config"]["cache_ttl"]) ? $bigtree["config"]["cache_ttl"] : 300;
+
+		if (file_exists($file) && filemtime($file) > (time() - $ttl)) {
 			readfile($file);
 			die();
 		}
