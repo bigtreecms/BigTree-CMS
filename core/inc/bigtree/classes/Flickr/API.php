@@ -29,7 +29,7 @@
 		*/
 
 		function __construct($cache = true) {
-			parent::__construct("bigtree-internal-flickr-api","YouTube API","org.bigtreecms.api.flickr",$cache);
+			parent::__construct("bigtree-internal-flickr-api", "YouTube API", "org.bigtreecms.api.flickr", $cache);
 
 			// Set OAuth Return URL
 			$this->ReturnURL = ADMIN_ROOT."developer/services/flickr/return/";
@@ -47,12 +47,12 @@
 				true if successful
 		*/
 
-		function addTagsToPhoto($photo,$tags) {
+		function addTagsToPhoto($photo, $tags) {
 			if (is_array($tags)) {
-				$tags = implode(",",$tags);
+				$tags = implode(",", $tags);
 			}
 
-			$response = $this->call("flickr.photos.addTags",array("photo_id" => $photo,"tags" => $tags),"POST");
+			$response = $this->call("flickr.photos.addTags", array("photo_id" => $photo, "tags" => $tags), "POST");
 
 			if ($response->stat == "ok") {
 				return true;
@@ -66,14 +66,15 @@
 				Overrides BigTreeOAuthAPIBase to always request normal JSON.
 		*/
 
-		function callUncached($endpoint = "",$params = array(),$method = "GET",$headers = array()) {
+		function callUncached($endpoint = "", $params = array(), $method = "GET", $headers = array()) {
 			$params["method"] = $endpoint;
 			$params["format"] = "json";
 			$params["nojsoncallback"] = true;
-			$response = parent::callUncached("",$params,$method,$headers);
+			$response = parent::callUncached("", $params, $method, $headers);
 
 			if ($response->stat == "fail") {
 				$this->Errors[] = $response->message;
+
 				return false;
 			}
 
@@ -92,7 +93,7 @@
 		*/
 
 		function deletePhoto($photo) {
-			$response = $this->call("flickr.photos.delete",array("photo_id" => $photo),"POST");
+			$response = $this->call("flickr.photos.delete", array("photo_id" => $photo), "POST");
 
 			if ($response->stat == "ok") {
 				return true;
@@ -115,15 +116,15 @@
 				An array of Photo objects or false if the call fails.
 		*/
 
-		function getContactsPhotos($count = 10,$just_friends = false,$include_self = false,$info = "license,date_upload,date_taken,owner_name,icon_server,original_format,last_update") {
-			$params = array("count" => $count,"extras" => $info);
+		function getContactsPhotos($count = 10, $just_friends = false, $include_self = false, $info = "license,date_upload,date_taken,owner_name,icon_server,original_format,last_update") {
+			$params = array("count" => $count, "extras" => $info);
 			if ($just_friends) {
 				$params["just_friends"] = 1;
 			}
 			if ($include_self) {
 				$params["include_self"] = 1;
 			}
-			$response = $this->call("flickr.photos.getContactsPhotos",$params);
+			$response = $this->call("flickr.photos.getContactsPhotos", $params);
 
 			if (!isset($response->photos)) {
 				return false;
@@ -136,7 +137,7 @@
 				$owner->nsid = $photo->owner;
 				$owner->username = $photo->username;
 				$photo->owner = $owner;
-				$photos[] = new Photo($photo,$this);
+				$photos[] = new Photo($photo, $this);
 			}
 
 			return $photos;
@@ -154,13 +155,13 @@
 		*/
 
 		function getGroup($id) {
-			$response = $this->call("flickr.groups.getInfo",array("group_id" => $id));
+			$response = $this->call("flickr.groups.getInfo", array("group_id" => $id));
 
 			if (!isset($response->group)) {
 				return false;
 			}
 
-			return new Group($response->group,$this);
+			return new Group($response->group, $this);
 		}
 
 		/*
@@ -176,10 +177,10 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 
-		function getMyGeotaggedPhotos($per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		function getMyGeotaggedPhotos($per_page = 100, $info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media", $params = array()) {
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info;
-			$response = $this->call("flickr.photos.getWithGeoData",$params);
+			$response = $this->call("flickr.photos.getWithGeoData", $params);
 
 			if (!isset($response->photos)) {
 				return false;
@@ -187,10 +188,10 @@
 
 			$photos = array();
 			foreach ($response->photos->photo as $photo) {
-				$photos[] = new Photo($photo,$this);
+				$photos[] = new Photo($photo, $this);
 			}
 
-			return new ResultSet($this,"getMyGeotaggedPhotos",array($per_page,$info,$params),$photos,$response->photos->page,$response->photos->pages);
+			return new ResultSet($this, "getMyGeotaggedPhotos", array($per_page, $info, $params), $photos, $response->photos->page, $response->photos->pages);
 		}
 
 		/*
@@ -207,11 +208,11 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 
-		function getMyRecentlyUpdatedPhotos($since = "-1 week",$per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		function getMyRecentlyUpdatedPhotos($since = "-1 week", $per_page = 100, $info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media", $params = array()) {
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info;
-			$params["min_date"] = date("Y-m-d H:i:s",strtotime($since));
-			$response = $this->call("flickr.photos.recentlyUpdated",$params);
+			$params["min_date"] = date("Y-m-d H:i:s", strtotime($since));
+			$response = $this->call("flickr.photos.recentlyUpdated", $params);
 
 			if (!isset($response->photos)) {
 				return false;
@@ -219,10 +220,10 @@
 
 			$photos = array();
 			foreach ($response->photos->photo as $photo) {
-				$photos[] = new Photo($photo,$this);
+				$photos[] = new Photo($photo, $this);
 			}
 
-			return new ResultSet($this,"getMyRecentlyUpdatedPhotos",array($per_page,$info,$params),$photos,$response->photos->page,$response->photos->pages);
+			return new ResultSet($this, "getMyRecentlyUpdatedPhotos", array($per_page, $info, $params), $photos, $response->photos->page, $response->photos->pages);
 		}
 
 		/*
@@ -238,10 +239,10 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 
-		function getMyUncategorizedPhotos($per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		function getMyUncategorizedPhotos($per_page = 100, $info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media", $params = array()) {
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info;
-			$response = $this->call("flickr.photos.getNotInSet",$params);
+			$response = $this->call("flickr.photos.getNotInSet", $params);
 
 			if (!isset($response->photos)) {
 				return false;
@@ -249,10 +250,10 @@
 
 			$photos = array();
 			foreach ($response->photos->photo as $photo) {
-				$photos[] = new Photo($photo,$this);
+				$photos[] = new Photo($photo, $this);
 			}
 
-			return new ResultSet($this,"getMyUncategorizedPhotos",array($per_page,$info,$params),$photos,$response->photos->page,$response->photos->pages);
+			return new ResultSet($this, "getMyUncategorizedPhotos", array($per_page, $info, $params), $photos, $response->photos->page, $response->photos->pages);
 		}
 
 		/*
@@ -268,10 +269,10 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 
-		function getMyUngeotaggedPhotos($per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		function getMyUngeotaggedPhotos($per_page = 100, $info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media", $params = array()) {
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info;
-			$response = $this->call("flickr.photos.getWithoutGeoData",$params);
+			$response = $this->call("flickr.photos.getWithoutGeoData", $params);
 
 			if (!isset($response->photos)) {
 				return false;
@@ -279,10 +280,10 @@
 
 			$photos = array();
 			foreach ($response->photos->photo as $photo) {
-				$photos[] = new Photo($photo,$this);
+				$photos[] = new Photo($photo, $this);
 			}
 
-			return new ResultSet($this,"getMyUngeotaggedPhotos",array($per_page,$info,$params),$photos,$response->photos->page,$response->photos->pages);
+			return new ResultSet($this, "getMyUngeotaggedPhotos", array($per_page, $info, $params), $photos, $response->photos->page, $response->photos->pages);
 		}
 
 		/*
@@ -298,10 +299,10 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 
-		function getMyUntaggedPhotos($per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		function getMyUntaggedPhotos($per_page = 100, $info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media", $params = array()) {
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info;
-			$response = $this->call("flickr.photos.getUntagged",$params);
+			$response = $this->call("flickr.photos.getUntagged", $params);
 
 			if (!isset($response->photos)) {
 				return false;
@@ -309,10 +310,10 @@
 
 			$photos = array();
 			foreach ($response->photos->photo as $photo) {
-				$photos[] = new Photo($photo,$this);
+				$photos[] = new Photo($photo, $this);
 			}
 
-			return new ResultSet($this,"getMyUntaggedPhotos",array($per_page,$info,$params),$photos,$response->photos->page,$response->photos->pages);
+			return new ResultSet($this, "getMyUntaggedPhotos", array($per_page, $info, $params), $photos, $response->photos->page, $response->photos->pages);
 		}
 
 		/*
@@ -327,13 +328,13 @@
 		*/
 
 		function getPerson($id) {
-			$response = $this->call("flickr.people.getInfo",array("user_id" => $id));
+			$response = $this->call("flickr.people.getInfo", array("user_id" => $id));
 
 			if (!isset($response->person)) {
 				return false;
 			}
 
-			return new Person($response->person,$this);
+			return new Person($response->person, $this);
 		}
 
 		/*
@@ -348,14 +349,14 @@
 				A Photo object or false if the photo isn't found.
 		*/
 
-		function getPhoto($id,$secret = false) {
-			$response = $this->call("flickr.photos.getInfo",array("photo_id" => $id,"secret" => $secret));
+		function getPhoto($id, $secret = false) {
+			$response = $this->call("flickr.photos.getInfo", array("photo_id" => $id, "secret" => $secret));
 
 			if (!isset($response->photo)) {
 				return false;
 			}
 
-			return new Photo($response->photo,$this);
+			return new Photo($response->photo, $this);
 		}
 
 		/*
@@ -376,7 +377,7 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 
-		function getPhotosByLocation($latitude,$longitude,$radius = 10,$radius_unit = "mi",$per_page = 100,$sort = "date-posted-desc",$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		function getPhotosByLocation($latitude, $longitude, $radius = 10, $radius_unit = "mi", $per_page = 100, $sort = "date-posted-desc", $info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media", $params = array()) {
 			$params["lat"] = $latitude;
 			$params["lon"] = $longitude;
 			$params["radius"] = $radius;
@@ -384,7 +385,7 @@
 			$params["extras"] = $info;
 			$params["per_page"] = $per_page;
 			$params["sort"] = $sort;
-			$response = $this->call("flickr.photos.search",$params);
+			$response = $this->call("flickr.photos.search", $params);
 
 			if (!isset($response->photos)) {
 				return false;
@@ -392,10 +393,10 @@
 
 			$photos = array();
 			foreach ($response->photos->photo as $photo) {
-				$photos[] = new Photo($photo,$this);
+				$photos[] = new Photo($photo, $this);
 			}
 
-			return new ResultSet($this,"getPhotosByLocation",array($latitude,$longitude,$radius,$radius_unit,$per_page,$sort,$info,$params),$photos,$response->photos->page,$response->photos->pages);
+			return new ResultSet($this, "getPhotosByLocation", array($latitude, $longitude, $radius, $radius_unit, $per_page, $sort, $info, $params), $photos, $response->photos->page, $response->photos->pages);
 		}
 
 		/*
@@ -415,9 +416,9 @@
 				A ResultSet of Photo objects.
 		*/
 
-		function getPhotosByTag($tags,$per_page = 100,$sort = "date-posted-desc",$require_all = false,$user = false,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		function getPhotosByTag($tags, $per_page = 100, $sort = "date-posted-desc", $require_all = false, $user = false, $info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media", $params = array()) {
 			if (is_array($tags)) {
-				$tags = implode(",",$tags);
+				$tags = implode(",", $tags);
 			}
 			if ($user) {
 				$params["user_id"] = $user;
@@ -429,7 +430,7 @@
 			$params["extras"] = $info;
 			$params["per_page"] = $per_page;
 			$params["sort"] = $sort;
-			$response = $this->call("flickr.photos.search",$params);
+			$response = $this->call("flickr.photos.search", $params);
 
 			if (!isset($response->photos)) {
 				return false;
@@ -437,10 +438,10 @@
 
 			$photos = array();
 			foreach ($response->photos->photo as $photo) {
-				$photos[] = new Photo($photo,$this);
+				$photos[] = new Photo($photo, $this);
 			}
 
-			return new ResultSet($this,"getPhotosByTag",array($tags,$per_page,$sort,$require_all,$user,$info,$params),$photos,$response->photos->page,$response->photos->pages);
+			return new ResultSet($this, "getPhotosByTag", array($tags, $per_page, $sort, $require_all, $user, $info, $params), $photos, $response->photos->page, $response->photos->pages);
 		}
 
 		/*
@@ -457,11 +458,11 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 
-		function getPhotosForPerson($person,$per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		function getPhotosForPerson($person, $per_page = 100, $info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media", $params = array()) {
 			$params["user_id"] = $person;
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info;
-			$response = $this->call("flickr.people.getPhotos",$params);
+			$response = $this->call("flickr.people.getPhotos", $params);
 			
 			if (!isset($response->photos)) {
 				return false;
@@ -469,10 +470,10 @@
 			
 			$photos = array();
 			foreach ($response->photos->photo as $photo) {
-				$photos[] = new Photo($photo,$this);
+				$photos[] = new Photo($photo, $this);
 			}
 			
-			return new ResultSet($this,"getPhotosForPerson",array($person,$per_page,$info,$params),$photos,$response->photos->page,$response->photos->pages);
+			return new ResultSet($this, "getPhotosForPerson", array($person, $per_page, $info, $params), $photos, $response->photos->page, $response->photos->pages);
 		}
 
 		/*
@@ -489,11 +490,11 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 
-		function getPhotosOfPerson($person,$per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		function getPhotosOfPerson($person, $per_page = 100, $info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media", $params = array()) {
 			$params["user_id"] = $person;
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info;
-			$response = $this->call("flickr.people.getPhotosOf",$params);
+			$response = $this->call("flickr.people.getPhotosOf", $params);
 			
 			if (!isset($response->photos)) {
 				return false;
@@ -501,10 +502,10 @@
 			
 			$photos = array();
 			foreach ($response->photos->photo as $photo) {
-				$photos[] = new Photo($photo,$this);
+				$photos[] = new Photo($photo, $this);
 			}
 			
-			return new ResultSet($this,"getPhotosOfPerson",array($person,$per_page,$info,$params),$photos,$response->photos->page,$response->photos->pages);
+			return new ResultSet($this, "getPhotosOfPerson", array($person, $per_page, $info, $params), $photos, $response->photos->page, $response->photos->pages);
 		}
 
 		/*
@@ -520,10 +521,10 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 
-		function getRecentPhotos($per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		function getRecentPhotos($per_page = 100, $info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media", $params = array()) {
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info;
-			$response = $this->call("flickr.photos.getRecent",$params);
+			$response = $this->call("flickr.photos.getRecent", $params);
 
 			if (!isset($response->photos)) {
 				return false;
@@ -531,10 +532,10 @@
 
 			$photos = array();
 			foreach ($response->photos->photo as $photo) {
-				$photos[] = new Photo($photo,$this);
+				$photos[] = new Photo($photo, $this);
 			}
 
-			return new ResultSet($this,"getRecentPhotos",array($per_page,$info,$params),$photos,$response->photos->page,$response->photos->pages);
+			return new ResultSet($this, "getRecentPhotos", array($per_page, $info, $params), $photos, $response->photos->page, $response->photos->pages);
 		}
 
 		/*
@@ -544,7 +545,7 @@
 
 		function oAuthRedirect() {
 			$this->Settings["token_secret"] = "";
-			$response = $this->callAPI("http://www.flickr.com/services/oauth/request_token","GET",array("oauth_callback" => $this->ReturnURL));
+			$response = $this->callAPI("http://www.flickr.com/services/oauth/request_token", "GET", array("oauth_callback" => $this->ReturnURL));
 
 			// Set empty vars that we're expecting from parse_str
 			$oauth_callback_confirmed = "";
@@ -562,7 +563,7 @@
 				die();
 			} else {
 				$admin = new \BigTreeAdmin;
-				Utils::growl($oauth_problem,"Flickr API","error");
+				Utils::growl($oauth_problem, "Flickr API", "error");
 				
 				Router::redirect(ADMIN_ROOT."developer/services/flickr/");
 			}
@@ -574,7 +575,7 @@
 		*/
 
 		function oAuthRefreshToken() {
-			$response = json_decode(cURL::request($this->TokenURL,array(
+			$response = json_decode(cURL::request($this->TokenURL, array(
 				"client_id" => $this->Settings["key"],
 				"client_secret" => $this->Settings["secret"],
 				"refresh_token" => $this->Settings["refresh_token"],
@@ -596,7 +597,7 @@
 		*/
 
 		function oAuthSetToken($code) {
-			$response = $this->callAPI("http://www.flickr.com/services/oauth/access_token","GET",array("oauth_verifier" => $_GET["oauth_verifier"],"oauth_token" => $_GET["oauth_token"]));
+			$response = $this->callAPI("http://www.flickr.com/services/oauth/access_token", "GET", array("oauth_verifier" => $_GET["oauth_verifier"], "oauth_token" => $_GET["oauth_token"]));
 			
 			// Setup vars we're expecting a response from in parse_str
 			$fullname = "";
@@ -628,7 +629,7 @@
 		*/
 
 		function removeTagFromPhoto($tag) {
-			$response = $this->call("flickr.photos.removeTag",array("tag_id" => $tag));
+			$response = $this->call("flickr.photos.removeTag", array("tag_id" => $tag));
 
 			if ($response !== false) {
 				return true;
@@ -650,11 +651,11 @@
 
 		function searchPeople($query) {
 			// Search by email
-			if (strpos($query,"@") !== false) {
-				$response = $this->call("flickr.people.findByEmail",array("find_email" => $query));
-			// Search by username
+			if (strpos($query, "@") !== false) {
+				$response = $this->call("flickr.people.findByEmail", array("find_email" => $query));
+				// Search by username
 			} else {
-				$response = $this->call("flickr.people.findByUsername",array("username" => $query));
+				$response = $this->call("flickr.people.findByUsername", array("username" => $query));
 			}
 
 			if (!isset($response->user)) {
@@ -680,7 +681,7 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 
-		function searchPhotos($query,$per_page = 100,$sort = "date-posted-desc",$user = false,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		function searchPhotos($query, $per_page = 100, $sort = "date-posted-desc", $user = false, $info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media", $params = array()) {
 			if ($user) {
 				$params["user_id"] = $user;
 			}
@@ -688,7 +689,7 @@
 			$params["extras"] = $info;
 			$params["per_page"] = $per_page;
 			$params["sort"] = $sort;
-			$response = $this->call("flickr.photos.search",$params);
+			$response = $this->call("flickr.photos.search", $params);
 
 			if (!isset($response->photos)) {
 				return false;
@@ -696,10 +697,10 @@
 
 			$photos = array();
 			foreach ($response->photos->photo as $photo) {
-				$photos[] = new Photo($photo,$this);
+				$photos[] = new Photo($photo, $this);
 			}
 
-			return new ResultSet($this,"searchPhotos",array($query,$per_page,$sort,$user,$info,$params),$photos,$response->photos->page,$response->photos->pages);
+			return new ResultSet($this, "searchPhotos", array($query, $per_page, $sort, $user, $info, $params), $photos, $response->photos->page, $response->photos->pages);
 		}
 
 		/*
@@ -716,12 +717,12 @@
 				true if successful
 		*/
 
-		function setPhotoInformation($photo,$title = "",$description = "",$tags = "") {
+		function setPhotoInformation($photo, $title = "", $description = "", $tags = "") {
 			if (is_array($tags)) {
-				$tags = implode(",",$tags);
+				$tags = implode(",", $tags);
 			}
-			$meta = $this->call("flickr.photos.setMeta",array("photo_id" => $photo,"title" => $title,"description" => $description),"POST");
-			$tags = $this->call("flickr.photos.setTags",array("photo_id" => $photo,"tags" => $tags),"POST");
+			$meta = $this->call("flickr.photos.setMeta", array("photo_id" => $photo, "title" => $title, "description" => $description), "POST");
+			$tags = $this->call("flickr.photos.setTags", array("photo_id" => $photo, "tags" => $tags), "POST");
 
 			if ($meta !== false && $tags !== false) {
 				return true;
@@ -750,9 +751,9 @@
 				The ID of the photo if successful.
 		*/
 
-		function uploadPhoto($photo,$title = "",$description = "",$tags = array(),$public = true,$family = true,$friends = true,$safety = 1,$type = 1,$hidden = false) {
-			$xml = $this->callAPI("http://up.flickr.com/services/upload/","POST",
-				array("photo" => "@".$photo,"title" => $title,"description" => $description,"tags" => implode(" ",$tags),"is_public" => $public,"is_family" => $family,"is_friends" => $friends,"safety_level" => $safety,"content_type" => $type,"hidden" => ($hidden ? 2 : 1)),
+		function uploadPhoto($photo, $title = "", $description = "", $tags = array(), $public = true, $family = true, $friends = true, $safety = 1, $type = 1, $hidden = false) {
+			$xml = $this->callAPI("http://up.flickr.com/services/upload/", "POST",
+				array("photo" => "@".$photo, "title" => $title, "description" => $description, "tags" => implode(" ", $tags), "is_public" => $public, "is_family" => $family, "is_friends" => $friends, "safety_level" => $safety, "content_type" => $type, "hidden" => ($hidden ? 2 : 1)),
 				array(),
 				array("photo")
 			);

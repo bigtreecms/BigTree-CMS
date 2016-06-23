@@ -24,7 +24,18 @@
 		public $ProfileURL;
 		public $Username;
 
-		function __construct($person,&$api) {
+		function __construct($person, API &$api) {
+			// Sometimes the owner is just an ID, so we'll need to fetch data
+			if (is_string($person)) {
+				$r = $api->call("flickr.people.getInfo", array("user_id" => $person));
+
+				if (!isset($r->person)) {
+					return;
+				}
+
+				$person = $r->person;
+			}
+
 			$this->API = $api;
 			isset($person->description->_content) ? $this->Description = $person->description->_content : false;
 			$this->ID = isset($person->nsid) ? $person->nsid : $person->id;
@@ -49,7 +60,7 @@
 		*/
 
 		function getGroups() {
-			$response = $this->API->call("flickr.people.getGroups",array("user_id" => $this->ID));
+			$response = $this->API->call("flickr.people.getGroups", array("user_id" => $this->ID));
 
 			if (!isset($response->groups)) {
 				return false;
@@ -57,7 +68,7 @@
 
 			$groups = array();
 			foreach ($response->groups->group as $group) {
-				$groups[] = new Group($group,$this->API);
+				$groups[] = new Group($group, $this->API);
 			}
 
 			return $groups;
@@ -75,8 +86,8 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 
-		function getPhotos($per_page = 100,$params = array()) {
-			return $this->API->getPhotosForPerson($this->ID,$per_page,$params);
+		function getPhotos($per_page = 100, $params = array()) {
+			return $this->API->getPhotosForPerson($this->ID, $per_page, $params);
 		}
 
 		/*
@@ -91,8 +102,8 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 
-		function getPhotosOf($per_page = 100,$params = array()) {
-			return $this->API->getPhotosOfPerson($this->ID,$per_page,$params);
+		function getPhotosOf($per_page = 100, $params = array()) {
+			return $this->API->getPhotosOfPerson($this->ID, $per_page, $params);
 		}
 
 	}

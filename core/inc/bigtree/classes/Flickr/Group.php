@@ -20,7 +20,7 @@
 		public $Rules;
 		public $TopicCount;
 
-		function __construct($group,&$api) {
+		function __construct($group, API &$api) {
 			$this->API = $api;
 			isset($group->description->_content) ? $this->Description = $group->description->_content : false;
 			$this->ID = isset($group->nsid) ? $group->nsid : $group->id;

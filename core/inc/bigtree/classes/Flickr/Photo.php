@@ -47,7 +47,7 @@
 		public $VisibleToFriends;
 		public $VisibleToPublic;
 
-		function __construct($photo,&$api) {
+		function __construct($photo, API &$api) {
 			$image_base = "http://farm".$photo->farm.".staticflickr.com/".$photo->server."/".$photo->id."_".$photo->secret;
 
 			$this->API = $api;
@@ -58,10 +58,10 @@
 			isset($photo->comments->_content) ? $this->CommentCount = $photo->comments->_content : false;
 			if (isset($photo->dates) || isset($photo->dateupload)) {
 				$this->Dates = new stdClass;
-				$this->Dates->Posted = date("Y-m-d H:i:s",isset($photo->dates->posted) ? $photo->dates->posted : $photo->dateupload);
+				$this->Dates->Posted = date("Y-m-d H:i:s", isset($photo->dates->posted) ? $photo->dates->posted : $photo->dateupload);
 				isset($photo->dates->taken) ? $this->Dates->Taken = $photo->dates->taken : false;
 				isset($photo->datetaken) ? $this->Dates->Taken = $photo->datetaken : false;
-				isset($photo->dates->lastupdate) ? $this->Dates->Updated = date("Y-m-d H:i:s",$photo->dates->lastupdate) : false;
+				isset($photo->dates->lastupdate) ? $this->Dates->Updated = date("Y-m-d H:i:s", $photo->dates->lastupdate) : false;
 			}
 			isset($photo->description->_content) ? $this->Description = $photo->description->_content : false;
 			isset($photo->isfavorite) ? $this->Favorited = $photo->isfavorite : false;
@@ -89,13 +89,13 @@
 			isset($photo->secret) ? $this->Secret = $photo->secret : false;
 			if (isset($photo->tags->tag)) {
 				foreach ($photo->tags->tag as $tag) {
-					$this->Tags[] = new Tag($tag,$api);
+					$this->Tags[] = new Tag($tag, $api);
 				}
 			} elseif (isset($photo->tags)) {
 				$this->Tags = array();
-				$tags = explode(" ",$photo->tags);
+				$tags = explode(" ", $photo->tags);
 				foreach ($tags as $t) {
-					$this->Tags[] = new Tag($t,$api);
+					$this->Tags[] = new Tag($t, $api);
 				}
 			}
 			$this->Title = isset($photo->title->_content) ? $photo->title->_content : $photo->title;
@@ -107,7 +107,7 @@
 					$this->URLs->$k = $u->_content;
 				}
 			}
-			isset($photo->owner) ? $this->User = new Person($photo->owner,$api) : false;
+			isset($photo->owner) ? $this->User = new Person($photo->owner, $api) : false;
 			$this->VisibleToFamily = isset($photo->visibility->isfamily) ? $photo->visibility->isfamily : $photo->isfamily;
 			$this->VisibleToFriends = isset($photo->visibility->isfriend) ? $photo->visibility->isfriend : $photo->isfriend;
 			$this->VisibleToPublic = isset($photo->visibility->ispublic) ? $photo->visibility->ispublic : $photo->ispublic;
@@ -125,7 +125,7 @@
 		*/
 
 		function addTags($tags) {
-			return $this->API->addTagsToPhoto($this->ID,$tags);
+			return $this->API->addTagsToPhoto($this->ID, $tags);
 		}
 
 		/*
@@ -134,14 +134,14 @@
 		*/
 
 		function getContext() {
-			$response = $this->API->call("flickr.photos.getContext",array("photo_id" => $this->ID));
+			$response = $this->API->call("flickr.photos.getContext", array("photo_id" => $this->ID));
 
 			if (isset($response->nextphoto)) {
-				$this->NextPhoto = new Photo($response->nextphoto,$this->API);
+				$this->NextPhoto = new Photo($response->nextphoto, $this->API);
 			}
 
 			if (isset($response->prevphoto)) {
-				$this->PreviousPhoto = new Photo($response->prevphoto,$this->API);
+				$this->PreviousPhoto = new Photo($response->prevphoto, $this->API);
 			}
 		}
 
@@ -151,7 +151,7 @@
 		*/
 
 		function getExif() {
-			$response = $this->API->call("flickr.photos.getExif",array("photo_id" => $this->ID,"secret" => $this->Secret));
+			$response = $this->API->call("flickr.photos.getExif", array("photo_id" => $this->ID, "secret" => $this->Secret));
 
 			if (!isset($response->photo)) {
 				return false;
@@ -184,10 +184,10 @@
 				A ResultSet of BigTree\Flickr\Person objects.
 		*/
 
-		function getFavorites($per_page = 50,$params = array()) {
+		function getFavorites($per_page = 50, $params = array()) {
 			$params["photo_id"] = $this->ID;
 			$params["per_page"] = $per_page;
-			$response = $this->API->call("flickr.photos.getFavorites",$params);
+			$response = $this->API->call("flickr.photos.getFavorites", $params);
 
 			if (!$response->photo) {
 				return false;
@@ -195,10 +195,10 @@
 
 			$people = array();
 			foreach ($response->photo->person as $person) {
-				$people[] = new Person($person,$this->API);
+				$people[] = new Person($person, $this->API);
 			}
 
-			return new ResultSet($this,"getFavorites",array($per_page,$params),$people,$response->photo->page,$response->photo->pages);
+			return new ResultSet($this, "getFavorites", array($per_page, $params), $people, $response->photo->page, $response->photo->pages);
 		}
 
 		/*
@@ -211,13 +211,13 @@
 		*/
 
 		function getInfo() {
-			$response = $this->API->call("flickr.photos.getInfo",array("photo_id" => $this->ID,"secret" => $this->Secret));
+			$response = $this->API->call("flickr.photos.getInfo", array("photo_id" => $this->ID, "secret" => $this->Secret));
 
 			if (!isset($response->photo)) {
 				return false;
 			}
 
-			return new Photo($response->photo,$this->API);
+			return new Photo($response->photo, $this->API);
 		}
 
 		/*
@@ -274,7 +274,7 @@
 		*/
 
 		function setContentType($type) {
-			$response = $this->API->call("flickr.photos.setContentType",array("photo_id" => $this->ID,"content_type" => $type),"POST");
+			$response = $this->API->call("flickr.photos.setContentType", array("photo_id" => $this->ID, "content_type" => $type), "POST");
 
 			if ($response !== false) {
 				return true;
@@ -295,8 +295,8 @@
 		*/
 
 		function setDateTaken($date) {
-			$date = date("Y-m-d H:i:s",strtotime($date));
-			$response = $this->API->call("flickr.photos.setDates",array("photo_id" => $this->ID,"date_taken" => $date),"POST");
+			$date = date("Y-m-d H:i:s", strtotime($date));
+			$response = $this->API->call("flickr.photos.setDates", array("photo_id" => $this->ID, "date_taken" => $date), "POST");
 
 			if ($response !== false) {
 				return true;
@@ -320,8 +320,8 @@
 				true if successful
 		*/
 
-		function setPermissions($public = true,$friends = true,$family = true,$comments = 3,$metadata = 0) {
-			$response = $this->API->call("flickr.photos.setPerms",array("photo_id" => $this->ID,"is_public" => $public,"is_friend" => $friends,"is_family" => $family,"perm_comment" => $comments,"perm_addmeta" => $metadata),"POST");
+		function setPermissions($public = true, $friends = true, $family = true, $comments = 3, $metadata = 0) {
+			$response = $this->API->call("flickr.photos.setPerms", array("photo_id" => $this->ID, "is_public" => $public, "is_friend" => $friends, "is_family" => $family, "perm_comment" => $comments, "perm_addmeta" => $metadata), "POST");
 
 			if ($response !== false) {
 				return true;
@@ -342,7 +342,7 @@
 		*/
 
 		function setSafetyLevel($level) {
-			$response = $this->API->call("flickr.photos.setSafetyLevel",array("photo_id" => $this->ID,"safety_level" => $level),"POST");
+			$response = $this->API->call("flickr.photos.setSafetyLevel", array("photo_id" => $this->ID, "safety_level" => $level), "POST");
 
 			if ($response !== false) {
 				return true;
@@ -364,9 +364,9 @@
 
 		function setTags($tags) {
 			if (is_array($tags)) {
-				$tags = implode(",",$tags);
+				$tags = implode(",", $tags);
 			}
-			$response = $this->API->call("flickr.photos.setTags",array("photo_id" => $this->ID,"tags" => $tags),"POST");
+			$response = $this->API->call("flickr.photos.setTags", array("photo_id" => $this->ID, "tags" => $tags), "POST");
 
 			if ($response !== false) {
 				return true;
@@ -387,8 +387,8 @@
 				true if successful
 		*/
 
-		function setTitleAndDescription($title,$description) {
-			$response = $this->API->call("flickr.photos.setMeta",array("photo_id" => $this->ID,"title" => $title,"description" => $description),"POST");
+		function setTitleAndDescription($title, $description) {
+			$response = $this->API->call("flickr.photos.setMeta", array("photo_id" => $this->ID, "title" => $title, "description" => $description), "POST");
 
 			if ($response !== false) {
 				return true;

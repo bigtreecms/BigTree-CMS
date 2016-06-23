@@ -15,7 +15,7 @@
 		public $ID;
 		public $Name;
 
-		function __construct($tag,&$api) {
+		function __construct($tag, API &$api) {
 			if (!is_string($tag)) {
 				$this->API = $api;
 				$this->Author = $tag->author;
