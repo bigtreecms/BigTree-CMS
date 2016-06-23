@@ -26,7 +26,7 @@
 	}
 
 	// Stop Robots - See if it matches the passed hash and that _bigtree_email wasn't filled out
-	if ($_POST["_bigtree_hashcash"] != md5($cleaned_string) || $_POST["_bigtree_email"]) {
+	if (trim($_POST["_bigtree_hashcash"]) != trim(md5($cleaned_string)) || $_POST["_bigtree_email"]) {
 		$_SESSION["bigtree_admin"]["post_hash_failed"] = true;
 		BigTree::redirect($_SERVER["HTTP_REFERER"]);
 	}
