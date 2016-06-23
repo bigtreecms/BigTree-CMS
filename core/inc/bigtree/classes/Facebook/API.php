@@ -11,11 +11,13 @@
 	class API extends OAuth {
 		
 		public $AuthorizeURL = "https://www.facebook.com/dialog/oauth";
-		public $EndpointURL = "https://graph.facebook.com/v2.4/";
+		public $EndpointURL = "https://graph.facebook.com/v2.6/";
 		public $OAuthVersion = "2.0";
 		public $RequestType = "header";
 		public $Scope = "";
-		public $TokenURL = "https://graph.facebook.com/v2.4/oauth/access_token";
+		public $TokenURL = "https://graph.facebook.com/v2.6/oauth/access_token";
+
+		const ALBUM_FIELDS = "id,name,description,link,cover_photo,count,place,type,created_time";
 		
 		/*
 			Constructor:
@@ -33,6 +35,27 @@
 
 			// Set access scope
 			$this->Scope = $this->Settings["scope"];
+		}
+
+		/*
+			Function: getAlbum
+				 Returns an album for the given album ID.
+
+			Parameters:
+				album_id - ID of album
+
+			 Returns:
+				 A BigTreeFacebookAlbum object or false if the object id does not exist.
+		*/
+
+		function getAlbum($album_id) {
+			$response = $this->call($album_id."?fields=". API::ALBUM_FIELDS);
+
+			if (!$response->id) {
+				return false;
+			}
+
+			return new Album($response, $this);
 		}
 
 		/*

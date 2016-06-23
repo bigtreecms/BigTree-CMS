@@ -13,6 +13,7 @@
 		/** @var \BigTree\Facebook\API */
 		protected $API;
 
+		public $Albums;
 		public $Biography;
 		public $Birthday;
 		public $Education = array();
@@ -42,6 +43,34 @@
 			$this->Name = $user->name;
 			
 			$this->updateDetails($user);
+		}
+
+		/*
+			Function: getAlbums
+				Gets the albums owned by user.
+
+			Returns:
+				Returns an array of BigTreeFacebookAlbum objects or false on failure.
+		*/
+
+		function getAlbums() {
+			if (isset($this->Albums)) {
+				return $this->Albums;
+			}
+
+			$response = $this->API->call($this->ID."/albums?fields=".API::ALBUM_FIELDS);
+
+			if (isset($response->data)) {
+				$this->Albums = array();
+
+				foreach ($response->data as $album) {
+					$this->Albums[] = new Album($album, $this->API);
+				}
+
+				return $this->Albums;
+			}
+
+			return false;
 		}
 
 		/*
