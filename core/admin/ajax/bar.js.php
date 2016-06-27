@@ -60,7 +60,7 @@ var BigTreeBar = {
 			if ($permission) {
 				if ($_GET["custom_edit_link"]) {
 		?>
-		bigtree_bar_html += '<a class="bigtree_link" href="<?=$_GET["custom_edit_link"]?>">Edit in BigTree</a>';
+		bigtree_bar_html += '<a class="bigtree_link" href="<?=htmlspecialchars(strip_tags($_GET["custom_edit_link"],ENT_COMPAT,"UTF-8"))?>">Edit in BigTree</a>';
 		<?
 				} else {
 		?>

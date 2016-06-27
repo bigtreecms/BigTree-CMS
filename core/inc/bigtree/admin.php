@@ -6864,6 +6864,8 @@
 		*/
 
 		function submitPageChange($page,$changes) {
+			$page = sqlescape($page);
+			$changes = sqlescape($changes);
 			if ($page[0] == "p") {
 				// It's still pending...
 				$type = "NEW";
