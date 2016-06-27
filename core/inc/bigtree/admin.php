@@ -6306,6 +6306,8 @@
 		function submitPageChange($page,$changes) {
 			global $cms;
 
+			$page = sqlescape($page);
+
 			if ($page[0] == "p") {
 				// It's still pending...
 				$existing_page = array();
