@@ -58,9 +58,9 @@ var BigTreeBar = {
 		bigtree_bar_html = '<a href="<?=ADMIN_ROOT?>" id="bigtree_bar_logo"></a>';
 		<?
 			if ($permission) {
-				if ($_GET["custom_edit_link"]) {
+				if (!empty($_GET["custom_edit_link"])) {
 		?>
-		bigtree_bar_html += '<a class="bigtree_link" href="<?=$_GET["custom_edit_link"]?>">Edit in BigTree</a>';
+		bigtree_bar_html += '<a class="bigtree_link" href="<?=BigTree::safeEncode($_GET["custom_edit_link"])?>">Edit in BigTree</a>';
 		<?
 				} else {
 		?>
@@ -70,7 +70,7 @@ var BigTreeBar = {
 			}
 		?>
 		bigtree_bar_html += '<a href="#" id="bigtree_bar_close"></a><a href="<?=ADMIN_ROOT?>login/logout/" id="bigtree_logout">Logout</a><div class="divider"></div><span id="bigtree_name"><?=str_replace("'","\'",htmlspecialchars(strip_tags($_GET["username"])))?></span>';
-		<? if ($_GET["previewing"]) { ?>
+		<? if (!empty($_GET["previewing"])) { ?>
 		bigtree_bar_html += '<span id="bigtree_preview_notice">THIS IS A PREVIEW OF PENDING CHANGES</span>';
 		<? } elseif (!empty($bigtree["config"]["maintenance_url"])) { ?>
 		bigtree_bar_html += '<span id="bigtree_preview_notice">MAINTENANCE MODE</span>';
@@ -195,10 +195,10 @@ BigTreeBar.body.appendChild(BigTreeBar.tab);
 
 // Add BigTree Bar class to the body, keep outside global namespace
 document.getElementsByTagName('body')[0].className = (document.getElementsByTagName('body')[0].className.replace("bigtree_bar_open", "") + " bigtree_bar_closed").trim();	
-<? if ($_GET["show_bar"]) { ?>
+<? if (!empty($_GET["show_bar"])) { ?>
 BigTreeBar.show();
 <? } ?>
 
-<? if ($_GET["show_preview"]) { ?>
+<? if (!empty($_GET["show_preview"])) { ?>
 BigTreeBar.showPreview("<?=htmlspecialchars(strip_tags($_GET["return_link"]))?>");
 <? } ?>
