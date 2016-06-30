@@ -352,7 +352,7 @@
 	#quick_search_results a.no_results { border-top: none; }
 	#quick_search_results p.no_results { background: #FFF; }
 
-	#growl { margin: -18px 0 0 714px; opacity: 0; position: absolute; transition: opacity 0.5s; width: 246px; z-index: 1000; }
+	#growl { margin: -18px 0 0 714px; opacity: 0; position: absolute; transition: opacity 0.5s; width: 246px; z-index: 1000; visibility: hidden; }
 	#growl.visible { opacity: 1; }
 	#growl article { background: rgba(0, 0, 0, 0.8); border-radius: 3px; margin: 5px 0 0 0; overflow: hidden; padding: 15px; }
 	#growl article span { display: inline-block; }
