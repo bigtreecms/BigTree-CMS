@@ -3,7 +3,20 @@
 	
 	// Prevent directory path shenanigans
 	$field_type = FileSystem::getSafePath($_POST["type"]);
-	$data = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["data"]),true);	
+
+	// I honestly don't know why this was doing weird things with \r and \n but leaving it case it's some kind of legacy support
+	if (!empty($_POST["data"])) {
+		$data = json_decode($_POST["data"], true);
+		
+		if (!is_array($data)) {
+			$data = json_decode(str_replace(array("\r", "\n"), array('\r', '\n'), $_POST["data"]), true);
+		}
+	
+		$data = Link::decode($data);
+	} else {
+		$data = array();
+	}
+
 	$validation = isset($data["validation"]) ? $data["validation"] : "";
 	
 	if ($field_type == "text") {

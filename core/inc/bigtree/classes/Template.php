@@ -43,12 +43,12 @@
 					$this->ID = $template["id"];
 
 					$this->Extension = $template["extension"];
-					$this->Fields = array_filter((array) @json_decode($template["resources"], true));
+					$this->Fields = Link::decode(array_filter((array) @json_decode($template["resources"], true)));
 					$this->Level = $template["level"];
 					$this->Module = $template["module"];
 					$this->Name = $template["name"];
 					$this->Position = $template["position"];
-					$this->Resources = $this->Fields; // Backwards compat
+					$this->Resources = &$this->Fields; // Backwards compat
 					$this->Routed = $template["route"] ? true : false;
 				}
 			}
@@ -93,12 +93,14 @@
 				if (!$field["id"]) {
 					unset($fields[$key]);
 				} else {
+					$options = is_array($field["options"]) ? $field["options"] : json_decode($field["options"], true);
+
 					$field_data = array(
 						"id" => Text::htmlEncode($field["id"]),
 						"type" => Text::htmlEncode($field["type"]),
 						"title" => Text::htmlEncode($field["title"]),
 						"subtitle" => Text::htmlEncode($field["subtitle"]),
-						"options" => (array) @json_decode($field["options"], true)
+						"options" => Link::encode((array) $options)
 					);
 
 					// Backwards compatibility with BigTree 4.1 package imports
@@ -179,12 +181,14 @@
 				$fields = array();
 				foreach ($this->Fields as $field) {
 					if ($field["id"]) {
+						$options = is_array($field["options"]) ? $field["options"] : json_decode($field["options"], true);
+
 						$fields[] = array(
 							"id" => Text::htmlEncode($field["id"]),
 							"title" => Text::htmlEncode($field["title"]),
 							"subtitle" => Text::htmlEncode($field["subtitle"]),
 							"type" => Text::htmlEncode($field["type"]),
-							"options" => is_array($field["options"]) ? $field["options"] : json_decode($field["options"], true)
+							"options" => Link::encode((array) $options)
 						);
 					}
 				}

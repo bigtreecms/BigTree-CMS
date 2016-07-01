@@ -58,7 +58,7 @@
 					$this->CSS = $this->Interface->Settings["css"];
 					$this->DefaultPending = $this->Interface->Settings["default_pending"] ? true : false;
 					$this->DefaultPosition = $this->Interface->Settings["default_position"];
-					$this->Fields = $this->Interface->Settings["fields"];
+					$this->Fields = Link::decode($this->Interface->Settings["fields"]);
 					$this->Hooks = array_filter((array) $this->Interface->Settings["hooks"]);
 					$this->Module = $interface["module"];
 					$this->RedirectURL = $this->Interface->Settings["redirect_url"];
@@ -96,8 +96,11 @@
 		static function create($module, $title, $table, $fields, $hooks = array(), $default_position = "", $default_pending = "", $css = "", $redirect_url = "", $thank_you_message = "") {
 			// Clean up fields to ensure proper formatting
 			foreach ($fields as $key => $field) {
-				$field["options"] = is_array($field["options"]) ? $field["options"] : array_filter((array) json_decode($field["options"], true));
+				$options = is_array($field["options"]) ? $field["options"] : json_decode($field["options"], true);
+
+				$field["options"] = Link::encode((array) $options);
 				$field["column"] = $field["column"] ? $field["column"] : $key;
+
 				$fields[$key] = $field;
 			}
 
@@ -153,6 +156,16 @@
 				$new = static::create($this->Module, $this->Title, $this->Table, $this->Fields, $this->Hooks, $this->DefaultPosition, $this->DefaultPending, $this->CSS, $this->RedirectURL, $this->ThankYouMessage);
 				$this->inherit($new);
 			} else {
+				// Clean up fields to ensure proper formatting
+				foreach ($this->Fields as $key => $field) {
+					$options = is_array($field["options"]) ? $field["options"] : json_decode($field["options"], true);
+	
+					$field["options"] = Link::encode((array) $options);
+					$field["column"] = $field["column"] ? $field["column"] : $key;
+	
+					$this->Fields[$key] = $field;
+				}
+
 				$this->Interface->Settings = array(
 					"fields" => $this->Fields,
 					"default_position" => $this->DefaultPosition,

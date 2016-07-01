@@ -39,12 +39,14 @@
 				if (!is_array($callout)) {
 					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 				} else {
+					$resources = is_string($callout["resources"]) ? json_decode($callout["resources"], true) : $callout["resources"];
+
 					$this->ID = $callout["id"];
 					$this->Description = $callout["description"];
 					$this->DisplayDefault = $callout["display_default"];
 					$this->DisplayField = $callout["display_field"];
 					$this->Extension = $callout["extension"];
-					$this->Fields = is_string($callout["resources"]) ? json_decode($callout["resources"], true) : $callout["resources"];
+					$this->Fields = Link::decode($resources);
 					$this->Level = $callout["level"];
 					$this->Name = $callout["name"];
 					$this->Position = $callout["position"];
@@ -186,12 +188,14 @@
 				if (!$field["id"] || $field["id"] == "type") {
 					unset($fields[$key]);
 				} else {
+					$options = is_array($field["options"]) ? $field["options"] : json_decode($field["options"], true);
+					
 					$field = array(
 						"id" => Text::htmlEncode($field["id"]),
 						"type" => Text::htmlEncode($field["type"]),
 						"title" => Text::htmlEncode($field["title"]),
 						"subtitle" => Text::htmlEncode($field["subtitle"]),
-						"options" => (array) @json_decode($field["options"], true)
+						"options" => Link::encode((array) $options)
 					);
 
 					// Backwards compatibility with BigTree 4.1 package imports
@@ -277,12 +281,14 @@
 				foreach ($this->Fields as $field) {
 					// "type" is still a reserved keyword due to the way we save callout data when editing.
 					if ($field["id"] && $field["id"] != "type") {
+						$options = is_array($field["options"]) ? $field["options"] : json_decode($field["options"], true);
+
 						$fields[] = array(
 							"id" => Text::htmlEncode($field["id"]),
 							"type" => Text::htmlEncode($field["type"]),
 							"title" => Text::htmlEncode($field["title"]),
 							"subtitle" => Text::htmlEncode($field["subtitle"]),
-							"options" => json_decode($field["options"], true)
+							"options" => Link::encode((array) $options)
 						);
 					}
 				}

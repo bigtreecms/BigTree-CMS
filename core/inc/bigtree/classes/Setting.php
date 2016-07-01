@@ -183,7 +183,7 @@
 				"name" => Text::htmlEncode($name),
 				"description" => $description,
 				"type" => Text::htmlEncode($type),
-				"options" => array_filter((array) $settings),
+				"options" => Link::encode((array) $settings),
 				"locked" => $locked ? "on" : "",
 				"encrypted" => $encrypted ? "on" : "",
 				"system" => $system ? "on" : "",
@@ -237,7 +237,7 @@
 				SQL::update("bigtree_settings", $this->OriginalID, array(
 					"id" => $this->ID,
 					"type" => $this->Type,
-					"options" => array_filter((array) $this->Settings),
+					"options" => Link::encode((array) $this->Settings),
 					"name" => Text::htmlEncode($this->Name),
 					"description" => $this->Description,
 					"locked" => $this->Locked ? "on" : "",

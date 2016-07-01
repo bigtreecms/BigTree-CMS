@@ -60,7 +60,7 @@
 					$this->Interface = new ModuleInterface($interface);
 
 					$this->DefaultPosition = $this->Interface->Settings["default_position"];
-					$this->Fields = $this->Interface->Settings["fields"];
+					$this->Fields = Link::decode($this->Interface->Settings["fields"]);
 					$this->Hooks = array_filter((array) $this->Interface->Settings["hooks"]);
 					$this->Module = $interface["module"];
 					$this->ReturnURL = $this->Interface->Settings["return_url"];
@@ -94,12 +94,14 @@
 		static function create($module, $title, $table, $fields, $hooks = array(), $default_position = "", $return_view = false, $return_url = "", $tagging = "") {
 			// Clean up fields for backwards compatibility
 			foreach ($fields as $key => $data) {
+				$options = is_array($data["options"]) ? $data["options"] : json_decode($data["options"], true);
+
 				$field = array(
 					"column" => $data["column"] ? $data["column"] : $key,
 					"type" => Text::htmlEncode($data["type"]),
 					"title" => Text::htmlEncode($data["title"]),
 					"subtitle" => Text::htmlEncode($data["subtitle"]),
-					"options" => is_array($data["options"]) ? $data["options"] : array_filter((array) json_decode($data["options"], true))
+					"options" =>  Link::encode((array) $options)
 				);
 
 				// Backwards compatibility with BigTree 4.1 package imports
@@ -536,10 +538,13 @@
 			} else {
 				// Clean up fields in case old format was used
 				foreach ($this->Fields as $key => $field) {
-					$field["options"] = is_array($field["options"]) ? $field["options"] : json_decode($field["options"], true);
+					$options = is_array($field["options"]) ? $field["options"] : json_decode($field["options"], true);
+
+					$field["options"] = Link::encode((array) $options);
 					$field["column"] = $key;
 					$field["title"] = Text::htmlEncode($field["title"]);
 					$field["subtitle"] = Text::htmlEncode($field["subtitle"]);
+					
 					$this->Fields[$key] = $field;
 				}
 
