@@ -639,7 +639,7 @@
 						"type" => BigTree::safeEncode($resource["type"]),
 						"title" => BigTree::safeEncode($resource["title"]),
 						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
-						"options" => (array)@json_decode($resource["options"],true)
+						"options" => BigTree::translateArray((array)@json_decode($resource["options"],true))
 					);
 
 					// Backwards compatibility with BigTree 4.1 package imports
@@ -1023,7 +1023,7 @@
 
 			$clean_fields = array();
 			foreach ($fields as $key => $field) {
-				$field["options"] = json_decode($field["options"],true);
+				$field["options"] = BigTree::translateArray(json_decode($field["options"],true));
 				$field["column"] = $key;
 				$clean_fields[] = $field;
 			}
@@ -1078,7 +1078,7 @@
 					"type" => BigTree::safeEncode($data["type"]),
 					"title" => BigTree::safeEncode($data["title"]),
 					"subtitle" => BigTree::safeEncode($data["subtitle"]),
-					"options" => is_array($data["options"]) ? $data["options"] : (array)@json_decode($data["options"],true)
+					"options" => BigTree::translateArray(is_array($data["options"]) ? $data["options"] : (array)@json_decode($data["options"],true))
 				);
 				// Backwards compatibility with BigTree 4.1 package imports
 				foreach ($data as $k => $v) {
@@ -1526,7 +1526,11 @@
 			$description = isset($data["description"]) ? sqlescape($data["description"]) : "";
 			// We don't want this encoded since it's JSON
 			if (isset($data["options"])) {
-				$options = sqlescape(is_array($data["options"]) ? BigTree::json($data["options"]) : $data["options"]);
+				if (is_string($data["options"])) {
+					$data["options"] = json_decode($data["options"], true);
+				}
+
+				$options = BigTree::json(BigTree::translateArray($data["options"]), true);
 			}
 
 			// See if there's already a setting with this ID
@@ -1611,7 +1615,7 @@
 						"type" => BigTree::safeEncode($resource["type"]),
 						"title" => BigTree::safeEncode($resource["title"]),
 						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
-						"options" => (array)@json_decode($resource["options"],true)
+						"options" => BigTree::translateArray((array)@json_decode($resource["options"],true))
 					);
 
 					// Backwards compatibility with BigTree 4.1 package imports
@@ -7139,7 +7143,7 @@
 						"type" => BigTree::safeEncode($resource["type"]),
 						"title" => BigTree::safeEncode($resource["title"]),
 						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
-						"options" => json_decode($resource["options"],true)
+						"options" => BigTree::translateArray(json_decode($resource["options"],true))
 					);
 				}
 			}
@@ -7352,7 +7356,7 @@
 
 			$clean_fields = array();
 			foreach ($fields as $key => $field) {
-				$field["options"] = json_decode($field["options"],true);
+				$field["options"] = BigTree::translateArray(json_decode($field["options"],true));
 				$field["column"] = $key;
 				$clean_fields[] = $field;
 			}
@@ -7390,7 +7394,7 @@
 
 			$clean_fields = array();
 			foreach ($fields as $key => $field) {
-				$field["options"] = json_decode($field["options"],true);
+				$field["options"] = BigTree::translateArray(json_decode($field["options"],true));
 				$field["column"] = $key;
 				$field["title"] = BigTree::safeEncode($field["title"]);
 				$field["subtitle"] = BigTree::safeEncode($field["subtitle"]);
@@ -7896,8 +7900,9 @@
 
 			// We don't want this encoded since it's a WYSIWYG field.
 			$description = sqlescape($data["description"]);
+
 			// We don't want this encoded since it's JSON
-			$options = sqlescape($data["options"]);
+			$options = BigTree::json(BigTree::translateArray(json_decode($data["options"], true)));
 
 			// See if we have an id collision with the new id.
 			if ($old_id != $id && static::settingExists($id)) {
@@ -7976,7 +7981,7 @@
 						"title" => BigTree::safeEncode($resource["title"]),
 						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
 						"type" => BigTree::safeEncode($resource["type"]),
-						"options" => json_decode($resource["options"],true)
+						"options" => BigTree::translateArray(json_decode($resource["options"],true))
 					);
 				}
 			}

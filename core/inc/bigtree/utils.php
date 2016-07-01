@@ -2615,6 +2615,10 @@
 		*/
 		
 		static function untranslateArray($array) {
+			if (!is_array($array)) {
+				return array();
+			}
+
 			foreach ($array as &$piece) {
 				if (is_array($piece)) {
 					$piece = static::untranslateArray($piece);
@@ -2622,6 +2626,7 @@
 					$piece = BigTreeCMS::replaceInternalPageLinks($piece);
 				}
 			}
+			
 			return $array;
 		}
 		
