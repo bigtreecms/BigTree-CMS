@@ -146,7 +146,7 @@
 						// Check our group based permissions
 						$form = new ModuleForm(array("table" => $change["table"]));
 						$item = $form->getPendingEntry($id);
-						$access_level = $module->getUserAccessLevelForEntry($item["item"], $change["table"], $user);
+						$access_level = Auth::user($user)->getAccessLevel($module, $item["item"], $change["table"]);
 						
 						if ($access_level == "p") {
 							$ok = true;

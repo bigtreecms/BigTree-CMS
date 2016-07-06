@@ -643,9 +643,9 @@
 			// If we care about the whole tree, skip the madness.
 			if ($user->Alerts[0] == "on") {
 				return SQL::fetchAll("SELECT nav_title, id, path, updated_at, DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age
-												  FROM bigtree_pages 
-												  WHERE max_age > 0 AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age 
-												  ORDER BY current_age DESC");
+								      FROM bigtree_pages 
+								      WHERE max_age > 0 AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age 
+								      ORDER BY current_age DESC");
 			} else {
 				$where = array();
 				
@@ -666,9 +666,10 @@
 				if (count($path_query)) {
 					// Find all the pages that are old that contain our paths
 					return SQL::fetchAll("SELECT nav_title, id, path, updated_at, DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age 
-													  FROM bigtree_pages 
-													  WHERE max_age > 0 AND (".implode(" OR ", $path_query).") AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age 
-													  ORDER BY current_age DESC");
+										  FROM bigtree_pages 
+										  WHERE max_age > 0 AND (".implode(" OR ", $path_query).") AND 
+										        DATEDIFF('".date("Y-m-d")."',updated_at) > max_age 
+										  ORDER BY current_age DESC");
 				}
 			}
 			
@@ -742,7 +743,7 @@
 		
 		function getHiddenChildren($return_arrays = false) {
 			$children = SQL::fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND in_nav = '' AND archived != 'on' 
-												   ORDER BY nav_title ASC", $this->ID);
+									   ORDER BY nav_title ASC", $this->ID);
 			
 			if (!$return_arrays) {
 				foreach ($children as &$child) {
@@ -804,8 +805,8 @@
 		function getPendingChildren($in_nav = true) {
 			$nav = $titles = array();
 			$changes = SQL::fetchAll("SELECT * FROM bigtree_pending_changes 
-												  WHERE pending_page_parent = ? AND `table` = 'bigtree_pages' AND item_id IS NULL 
-												  ORDER BY date DESC", $this->ID);
+									  WHERE pending_page_parent = ? AND `table` = 'bigtree_pages' AND item_id IS NULL 
+									  ORDER BY date DESC", $this->ID);
 			
 			foreach ($changes as $change) {
 				$page = json_decode($change["changes"], true);
@@ -1224,48 +1225,7 @@
 		*/
 		
 		function getUserAccessLevel($user = false) {
-			// Default to logged in user
-			if ($user === false) {
-				global $admin;
-				
-				// Make sure a user is logged in
-				if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
-					trigger_error("Property UserAccessLevel not available outside logged-in user context.");
-					
-					return false;
-				}
-				
-				$user = $admin;
-			}
-			
-			// See if the user is an administrator, if so we can skip permissions.
-			if ($user->Level > 0) {
-				return "p";
-			}
-			
-			// See if this page has an explicit permission set and return it if so.
-			$explicit_permission = $user->Permissions["page"][$this->ID];
-			if ($explicit_permission == "n") {
-				return false;
-			} elseif ($explicit_permission && $explicit_permission != "i") {
-				return $explicit_permission;
-			}
-			
-			// Grab the parent's permission. Keep going until we find a permission that isn't inherit or until we hit a parent of 0.
-			$page_parent = $this->Parent;
-			$parent_permission = $user->Permissions["page"][$page_parent];
-			while ((!$parent_permission || $parent_permission == "i") && $page_parent) {
-				$parent_id = SQL::fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page_parent);
-				$parent_permission = $user->Permissions["page"][$parent_id];
-			}
-			
-			// If no permissions are set on the page (we hit page 0 and still nothing) or permission is "n", return not allowed.
-			if (!$parent_permission || $parent_permission == "i" || $parent_permission == "n") {
-				return false;
-			}
-			
-			// Return whatever we found.
-			return $parent_permission;
+			return Auth::user($user)->getAccessLevel($this);
 		}
 		
 		/*
@@ -1297,6 +1257,7 @@
 			// Check all the descendants for an explicit "no" or "editor" permission
 			foreach ($descendant_ids as $id) {
 				$permission = $admin->Permissions["page"][$id];
+
 				if ($permission == "n" || $permission == "e") {
 					return false;
 				}
@@ -1429,7 +1390,7 @@
 			
 			// Unarchive this level
 			SQL::query("UPDATE bigtree_pages SET archived = '', archived_inherited = '' 
-									WHERE parent = ? AND archived_inherited = 'on'", $id);
+						WHERE parent = ? AND archived_inherited = 'on'", $id);
 		}
 		
 		/*
@@ -1497,7 +1458,7 @@
 
 					// Existing pages.
 					while (SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_pages 
-													 WHERE `route` = ? AND parent = ? AND id != ?", $route, $this->Parent, $this->ID)) {
+											 WHERE `route` = ? AND parent = ? AND id != ?", $route, $this->Parent, $this->ID)) {
 						$route = $original_route."-".$x;
 						$x++;
 					}
@@ -1602,7 +1563,7 @@
 			
 			// Count the page revisions, if we have more than 10, delete any that are more than a month old
 			$revision_count = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_page_revisions 
-															WHERE page = ? AND saved = ''", $this->ID);
+												WHERE page = ? AND saved = ''", $this->ID);
 			if ($revision_count > 10) {
 				SQL::query("DELETE FROM bigtree_page_revisions 
 							WHERE page = ? AND updated_at < '".date("Y-m-d", strtotime("-1 month"))."' AND saved = '' 

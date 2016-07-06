@@ -195,7 +195,7 @@
 		function canAccessGroup($module, $group) {
 			$module = new BigTree\Module($module);
 
-			return $module->getGroupAccessLevel($group);
+			return BigTree\Auth::user()->getGroupAccessLevel($module, $group);
 		}
 
 		/*
@@ -263,14 +263,12 @@
 
 		function checkAccess($module, $action = false) {
 			if ($action) {
-				$action = new BigTree\ModuleAction($action);
-
-				return $action->UserCanAccess;
+				$object = new BigTree\ModuleAction($action);
+			} else {
+				$object = new BigTree\Module($module);
 			}
 
-			$module = new BigTree\Module($module);
-
-			return $module->UserCanAccess;
+			return BigTree\Auth::user()->canAccess($object);
 		}
 
 		/*
@@ -1336,8 +1334,8 @@
 
 		function getAccessGroups($module) {
 			$module = new BigTree\Module($module);
-			
-			return $module->UserAccessibleGroups;
+
+			return BigTree\Auth::user()->getAccessibleModuleGroups($module);
 		}
 
 		/*
@@ -1359,25 +1357,9 @@
 		*/
 
 		function getAccessLevel($module, $item = array(), $table = "", $user = false) {
-			global $admin;
-			$saved = array("level" => $admin->Level, "permissions" => $admin->Permissions);
-
-			// UserAccessLevel uses the $admin object, so we need fake it
-			if ($user !== false) {
-				$admin->Level = $user["level"];
-				$admin->Permissions = $user["permissions"];
-			}
-
 			$module = new BigTree\Module($module);
-			$permission = $module->getUserAccessLevelForEntry($item, $table);
-
-			// Restore permissions
-			if ($user !== false) {
-				$admin->Level = $saved["level"];
-				$admin->Permissions = $saved["permissions"];
-			}
-
-			return $permission;
+			
+			return BigTree\Auth::user($user)->getAccessLevel($module, $item, $table);
 		}
 
 		/*
@@ -1464,7 +1446,7 @@
 		function getCachedAccessLevel($module, $item = array(), $table = "") {
 			$module = new BigTree\Module($module);
 
-			return $module->getCachedAccessLevel($item, $table);
+			return BigTree\Auth::user()->getCachedAccessLevel($module, $item, $table);
 		}
 
 		/*
@@ -2345,7 +2327,7 @@
 		function getPageAccessLevel($page) {
 			$page = new BigTree\Page($page);
 
-			return $page->UserAccessLevel;
+			return BigTree\Auth::user()->getAccessLevel($page);
 		}
 
 		/*
@@ -2365,9 +2347,8 @@
 
 		static function getPageAccessLevelByUser($page, $user) {
 			$page = new BigTree\Page($page, false);
-			$user = new BigTree\User($user);
 
-			return $page->getUserAccessLevel($user);
+			return BigTree\Auth::user($user)->getAccessLevel($page);
 		}
 
 		/*
@@ -3279,7 +3260,7 @@
 
 		function requireAccess($module) {
 			$module = new BigTree\Module($module);
-			$module->requireAccess();
+			BigTree\Auth::user()->requireAccess($module);
 		}
 
 		/*
@@ -3292,7 +3273,7 @@
 		*/
 
 		function requireLevel($level) {
-			$this->Auth->requireLevel($level);
+			BigTree\Auth::user()->requireLevel($level);
 		}
 
 		/*
@@ -3306,7 +3287,7 @@
 
 		function requirePublisher($module) {
 			$module = new BigTree\Module($module);
-			$module->requirePublisher();
+			BigTree\Auth::user()->requirePublisher($module);
 		}
 
 		/*

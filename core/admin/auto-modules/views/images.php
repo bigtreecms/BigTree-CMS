@@ -66,7 +66,7 @@
 				<a class="image<?php if (!isset($view->Actions["edit"])) { ?> image_disabled<?php } ?>" href="<?=$view->EditURL.$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?php
 					if ($module_permission == "p" || ($module->GroupBasedPermissions["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module->ID])) || $item["pending_owner"] == $admin->ID) {
-						$iperm = ($module_permission == "p") ? "p" : $module->getCachedAccessLevel($item, $view->Table);
+						$iperm = ($module_permission == "p") ? "p" : Auth::user()->getCachedAccessLevel($module, $item, $view->Table);
 						foreach ($view->Actions as $action => $data) {
 							if ($action != "edit") {
 								if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
@@ -125,7 +125,7 @@
 				<a class="image<?php if (!isset($view->Actions["edit"])) { ?> image_disabled<?php } ?>" href="<?=$view->EditURL.$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?php
 					if ($module_permission == "p" || ($module->GroupBasedPermissions["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module->ID])) || $item["pending_owner"] == $admin->ID) {
-						$iperm = ($module_permission == "p") ? "p" : $module->getCachedAccessLevel($item, $view->Table);
+						$iperm = ($module_permission == "p") ? "p" : Auth::user()->getCachedAccessLevel($module, $item, $view->Table);
 						foreach ($view->Actions as $action => $data) {
 							if ($action != "edit") {
 								if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {

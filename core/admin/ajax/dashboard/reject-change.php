@@ -11,7 +11,7 @@
 		$form = new ModuleForm(array("table" => $change->Table));
 		$module = new Module($change->Module);
 		$data = $form->getPendingEntry($item_id);
-		$access_level = $module->getUserAccessLevelForEntry($data["item"], $form->Table);
+		$access_level = Auth::user()->getAccessLevel($module, $data["item"], $form->Table);
 	// It's a page
 	} else {
 		// Published page

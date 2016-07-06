@@ -12,7 +12,7 @@
 		$form = new ModuleForm(array("table" => $change->Table));
 
 		$data = $form->getPendingEntry($item_id);
-		$access_level = $module->getUserAccessLevelForEntry($data["item"], $change->Table);
+		$access_level = Auth::user()->getAccessLevel($module, $data["item"], $change->Table);
 	// Page
 	} else {
 		// Published page

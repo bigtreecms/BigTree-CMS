@@ -28,10 +28,10 @@
 		$bigtree["entry"] = $item = $pending_entry["item"];
 
 		// Check access levels
-		$bigtree["access_level"] = $module->getUserAccessLevelForEntry($item, $form->Table);
+		$bigtree["access_level"] = Auth::user()->getAccessLevel($module, $item, $form->Table);
 
 		if ($bigtree["access_level"] != "n") {
-			$original_permission_level = $module->getUserAccessLevelForEntry($original_item["item"], $form->Table);
+			$original_permission_level = Auth::user()->getAccessLevel($module, $original_item["item"], $form->Table);
 
 			if ($original_permission_level != "p") {
 				$bigtree["access_level"] = $original_permission_level;

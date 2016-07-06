@@ -28,14 +28,14 @@
 
 	// Find out what kind of permissions we're allowed on this item.
 	// We need to check the EXISTING copy of the data AND what it's turning into and find the lowest of the two permissions.
-	$bigtree["access_level"] = $module->getUserAccessLevelForEntry($_POST, $form->Table);
+	$bigtree["access_level"] = Auth::user()->getAccessLevel($module, $_POST, $form->Table);
 
 	if ($_POST["id"] && $bigtree["access_level"] && $bigtree["access_level"] != "n") {
 		$original_item = $form->getEntry($_POST["id"]);
 		$existing_item = $form->getPendingEntry($_POST["id"]);
 
-		$previous_permission = $module->getUserAccessLevelForEntry($existing_item["item"], $form->Table);
-		$original_permission = $module->getUserAccessLevelForEntry($original_item["item"], $form->Table);
+		$previous_permission = Auth::user()->getAccessLevel($module, $existing_item["item"], $form->Table);
+		$original_permission = Auth::user()->getAccessLevel($module, $original_item["item"], $form->Table);
 
 		// If the current permission is e or p, drop it down to e if the old one was e.
 		if ($previous_permission != "p") {

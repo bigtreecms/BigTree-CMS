@@ -80,7 +80,7 @@
 						$preview_image = $item["column1"];
 					}
 
-					$entry_permission = ($module_permission == "p") ? "p" : $module->getCachedAccessLevel($item, $view->Table);
+					$entry_permission = ($module_permission == "p") ? "p" : Auth::user()->getCachedAccessLevel($module, $item, $view->Table);
 			?>
 			<li id="row_<?=$item["id"]?>"<?php if ($module_permission != "p" || !$draggable) { ?> class="non_draggable"<?php } ?>>
 				<a class="image<?php if (empty($view->Actions["edit"])) { ?> image_disabled<?php } ?>" href="<?=$view->EditURL.$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
@@ -145,7 +145,7 @@
 						$preview_image = $item["column1"];
 					}
 
-					$entry_permission = ($module_permission == "p") ? "p" : $module->getCachedAccessLevel($item, $view->Table);
+					$entry_permission = ($module_permission == "p") ? "p" : Auth::user()->getCachedAccessLevel($module, $item, $view->Table);
 			?>
 			<li id="row_<?=$item["id"]?>" class="non_draggable">
 				<a class="image<?php if (empty($view->Actions["edit"])) { ?> image_disabled<?php } ?>" href="<?=$view->EditURL.$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>

@@ -50,7 +50,7 @@
 					$status_class .= " expanded";
 				}
 
-				$entry_permission = ($module_permission == "p") ? "p" : $module->getCachedAccessLevel($item, $view->Table);
+				$entry_permission = ($module_permission == "p") ? "p" : Auth::user()->getCachedAccessLevel($module, $item, $view->Table);
 ?>
 <li id="row_<?=$item["id"]?>" class="<?=$status_class?>">
 	<span class="depth" style="width: <?=($depth * 24)?>px;">

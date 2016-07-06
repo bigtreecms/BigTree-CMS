@@ -22,7 +22,7 @@
 						$preview_image = $item[$view->Settings["image"]];
 					}
 
-					$entry_permission = $module->getUserAccessLevelForEntry($item, $view->Table);
+					$entry_permission = Auth::user()->getAccessLevel($module, $item, $view->Table);
 
 					if ($entry_permission && $entry_permission != "n") {
 			?>

@@ -170,23 +170,7 @@
 		*/
 
 		function getUserCanAccess() {
-			global $admin;
-
-			// Make sure a user is logged in
-			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
-				trigger_error("Property UserCanAccess not available outside logged-in user context.");
-				
-				return false;
-			}
-
-			// Check action access level
-			if ($this->Level > $admin->Level) {
-				return false;
-			}
-
-			$module = new Module($this->Module);
-			
-			return $module->UserCanAccess;
+			return Auth::user()->canAccess($this);
 		}
 
 		/*

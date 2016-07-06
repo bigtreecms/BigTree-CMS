@@ -190,45 +190,8 @@
 				"p" if a user can create folders and upload files, "e" if the user can see/use files, "n" if a user can't access this folder.
 		*/
 		
-		function getUserAccessLevel($recursion = false) {
-			global $admin;
-			
-			// Not much, but skip it since it's not needed on recursion
-			if ($recursion === false) {
-				
-				// Make sure a user is logged in
-				if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
-					trigger_error("Property UserAccessLevel not available outside logged-in user context.");
-					
-					return false;
-				}
-				
-				// User is an admin or developer
-				if ($admin->Level > 0) {
-					return "p";
-				}
-				
-				$id = $this->ID;
-			} else {
-				$id = $recursion;
-			}
-			
-			$permission = $admin->Permissions["resources"][$id];
-			// If permission is already no, creator, or consumer we can just return it.
-			if ($permission && $permission != "i") {
-				return $permission;
-			} else {
-				// If folder is 0, we're already at home and can't check a higher folder for permissions.
-				if (!$id) {
-					return "e";
-				}
-				
-				// Find parent folder
-				$parent_folder = ($this->ID == $id) ? $this->Parent : SQL::fetchSingle("SELECT parent FROM bigtree_resource_folders WHERE id = ?", $id);
-				
-				// Return the parent's permissions
-				return $this->getUserAccessLevel($parent_folder);
-			}
+		function getUserAccessLevel() {
+			return Auth::user()->getAccessLevel($this);
 		}
 		
 		/*
