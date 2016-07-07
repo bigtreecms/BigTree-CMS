@@ -17,13 +17,17 @@
  * @class tinymce.dom.EventUtils
  */
 define("tinymce/dom/EventUtils", [
-	"tinymce/util/Delay"
-], function(Delay) {
+	"tinymce/util/Delay",
+	"tinymce/Env"
+], function(Delay, Env) {
 	"use strict";
 
 	var eventExpandoPrefix = "mce-data-";
 	var mouseEventRe = /^(?:mouse|contextmenu)|click/;
-	var deprecated = {keyLocation: 1, layerX: 1, layerY: 1, returnValue: 1, webkitMovementX: 1, webkitMovementY: 1};
+	var deprecated = {
+		keyLocation: 1, layerX: 1, layerY: 1, returnValue: 1,
+		webkitMovementX: 1, webkitMovementY: 1, keyIdentifier: 1
+	};
 
 	/**
 	 * Binds a native event to a callback on the speified target.
@@ -45,6 +49,32 @@ define("tinymce/dom/EventUtils", [
 		} else if (target.detachEvent) {
 			target.detachEvent('on' + name, callback);
 		}
+	}
+
+	/**
+	 * Gets the event target based on shadow dom properties like path and deepPath.
+	 */
+	function getTargetFromShadowDom(event, defaultTarget) {
+		var path, target = defaultTarget;
+
+		// When target element is inside Shadow DOM we need to take first element from path
+		// otherwise we'll get Shadow Root parent, not actual target element
+
+		// Normalize target for WebComponents v0 implementation (in Chrome)
+		path = event.path;
+		if (path && path.length > 0) {
+			target = path[0];
+		}
+
+		// Normalize target for WebComponents v1 implementation (standard)
+		if (event.deepPath) {
+			path = event.deepPath();
+			if (path && path.length > 0) {
+				target = path[0];
+			}
+		}
+
+		return target;
 	}
 
 	/**
@@ -76,17 +106,9 @@ define("tinymce/dom/EventUtils", [
 			event.target = event.srcElement || document;
 		}
 
-		// When target element is inside Shadow DOM we need to take first element from path
-		// otherwise we'll get Shadow Root parent, not actual target element
-
-		// Normalize target for WebComponents v0 implementation (in Chrome)
-		if (event.path) {
-			event.target = event.path[0] || event.target;
-		}
-
-		// Normalize target for WebComponents v1 implementation (standard)
-		if (event.deepPath) {
-			event.target = event.deepPath[0] || event.target;
+		// Experimental shadow dom support
+		if (Env.experimentalShadowDom) {
+			event.target = getTargetFromShadowDom(originalEvent, event.target);
 		}
 
 		// Calculate pageX/Y if missing and clientX/Y available
