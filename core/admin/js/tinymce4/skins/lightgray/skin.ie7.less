@@ -568,11 +568,11 @@ div.@{prefix}-tinymce-inline {
 // Arrows
 
 .@{prefix}-arrow-up {
-	margin-top: 3px;
+	margin-top: 12px;
 }
 
 .@{prefix}-arrow-down {
-	margin-top: -3px;
+	margin-top: -12px;
 }
 
 .@{prefix}-arrow:before,
@@ -621,10 +621,10 @@ div.@{prefix}-tinymce-inline {
 }
 
 .@{prefix}-arrow.@{prefix}-arrow-left:before {
-	left: 20px;
+	left: 8px;
 }
 .@{prefix}-arrow.@{prefix}-arrow-left:after {
-	left: 21px;
+	left: 9px;
 }
 
 .@{prefix}-arrow.@{prefix}-arrow-right:before,
@@ -634,11 +634,51 @@ div.@{prefix}-tinymce-inline {
 }
 
 .@{prefix}-arrow.@{prefix}-arrow-right:before {
-	right: 20px;
+	right: 8px;
 }
 
 .@{prefix}-arrow.@{prefix}-arrow-right:after {
-	right: 21px;
+	right: 9px;
+}
+
+.@{prefix}-arrow.@{prefix}-arrow-center.@{prefix}-arrow.@{prefix}-arrow-left:before {
+	left: -9px;
+	top: 50%;
+	border-right-color: @panel-border;
+	border-width: 9px 9px 9px 0;
+	margin-top: -9px;
+}
+
+.@{prefix}-arrow.@{prefix}-arrow-center.@{prefix}-arrow.@{prefix}-arrow-left:after {
+	left: -8px;
+	top: 50%;
+	border-right-color: mix(@panel-bg, @panel-bg-hlight, 60%);
+	border-width: 8px 8px 8px 0;
+	margin-top: -8px;
+}
+
+.@{prefix}-arrow.@{prefix}-arrow-center.@{prefix}-arrow.@{prefix}-arrow-left {
+	margin-left: 12px;
+}
+
+.@{prefix}-arrow.@{prefix}-arrow-center.@{prefix}-arrow.@{prefix}-arrow-right:before {
+	right: -9px;
+	top: 50%;
+	border-left-color: @panel-border;
+	border-width: 9px 0 9px 9px;
+	margin-top: -9px;
+}
+
+.@{prefix}-arrow.@{prefix}-arrow-center.@{prefix}-arrow.@{prefix}-arrow-right:after {
+	right: -8px;
+	top: 50%;
+	border-left-color: mix(@panel-bg, @panel-bg-hlight, 60%);
+	border-width: 8px 0 8px 8px;
+	margin-top: -8px;
+}
+
+.@{prefix}-arrow.@{prefix}-arrow-center.@{prefix}-arrow.@{prefix}-arrow-right {
+	margin-left: -14px;
 }
 
 
@@ -1084,14 +1124,12 @@ div.@{prefix}-fullscreen {
 	border-width: 1px;
 	border-style: solid;
 	border-color: @notification-border;
-	transform: scale(0.1);
 	transition: transform 100ms ease-in, opacity 150ms ease-in;
 	opacity: 0;
 }
 
 .@{prefix}-notification.@{prefix}-in {
 	opacity: 1;
-	transform: scale(1);
 }
 
 .@{prefix}-notification-success {
@@ -1299,8 +1337,11 @@ body .@{prefix}-abs-layout-item, .@{prefix}-abs-end {
 	text-shadow: 1px 1px @btn-text-shadow;
 }
 
-.@{prefix}-primary {
+.@{prefix}-primary.@{prefix}-btn-has-text {
 	min-width: 50px;
+}
+
+.@{prefix}-primary {
 	color: @btn-primary-text;
 	border: 1px solid transparent;
 	border-color: @btn-primary-border;
