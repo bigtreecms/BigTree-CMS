@@ -366,7 +366,7 @@
 			$id = sqlescape($id);
 
 			// See if we're in an extension
-			if ($bigtree["extension_context"]) {
+			if (!empty($bigtree["extension_context"])) {
 				$extension = $bigtree["extension_context"];
 
 				// If we're already asking for it by it's namespaced name, don't append again.
