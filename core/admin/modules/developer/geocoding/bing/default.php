@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$geocoding_service = $cms->getSetting("bigtree-internal-geocoding-service");
+	$geocoding_service = Setting::value("bigtree-internal-geocoding-service");
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>geocoding/bing/activate/">

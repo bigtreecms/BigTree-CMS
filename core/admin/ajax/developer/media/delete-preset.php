@@ -1,7 +1,9 @@
 <?php
+	namespace BigTree;
+
 	// Get existing presets
-	$settings = $cms->getSetting("bigtree-internal-media-settings");
+	$media_settings = new Setting("bigtree-internal-media-settings");
 
 	// Delete one of them
-	unset($settings["presets"][$_POST["id"]]);
-	$admin->updateSettingValue("bigtree-internal-media-settings",$settings);
+	unset($media_settings->Value["presets"][$_POST["id"]]);
+	$media_settings->save();

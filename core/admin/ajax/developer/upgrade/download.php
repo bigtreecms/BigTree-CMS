@@ -1,21 +1,21 @@
 <?php
-	use BigTree\FileSystem;
+	namespace BigTree;
 
 	// Remove existing update zips
 	FileSystem::deleteFile(SERVER_ROOT."cache/update.zip");
 
 	// Get download info
-	$url = $cms->cacheGet("org.bigtreecms.downloads",$_POST["key"]);
-	$cms->cacheDelete("org.bigtreecms.downloads",$_POST["key"]);
+	$url = Cache::get("org.bigtreecms.downloads", $_POST["key"]);
+	Cache::delete("org.bigtreecms.downloads", $_POST["key"]);
 
 	// Try fopen first
-	$resource = @fopen($url,"r");
+	$resource = @fopen($url, "r");
 	if ($resource) {
-		FileSystem::createFile(SERVER_ROOT."cache/update.zip",$resource);
+		FileSystem::createFile(SERVER_ROOT."cache/update.zip", $resource);
 	} else {
-		$file = fopen(SERVER_ROOT."cache/update.zip","w");
+		$file = fopen(SERVER_ROOT."cache/update.zip", "w");
 		$curl = curl_init();
-		curl_setopt_array($curl,array(
+		curl_setopt_array($curl, array(
 			CURLOPT_URL => $url,
 			CURLOPT_TIMEOUT => 300,
 			CURLOPT_FILE => $file

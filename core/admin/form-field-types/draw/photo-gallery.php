@@ -1,14 +1,18 @@
 <?php
-	use BigTree\FileSystem;
+	namespace BigTree;
+	
+	/**
+	 * @global array $bigtree
+	 * @global array $field
+	 */
 	
 	$photos = is_array($field["value"]) ? $field["value"] : array();
-	$max = count($photos);
 	$current = 0;
 
 	// If we're using a preset, the prefix may be there
 	if ($field["options"]["preset"]) {
 		if (!isset($bigtree["media_settings"])) {
-			$bigtree["media_settings"] = $cms->getSetting("bigtree-internal-media-settings");
+			$bigtree["media_settings"] = Setting::value("bigtree-internal-media-settings");
 		}
 		$preset = $bigtree["media_settings"]["presets"][$field["options"]["preset"]];
 		if (!empty($preset["preview_prefix"])) {

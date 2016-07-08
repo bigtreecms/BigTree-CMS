@@ -1,5 +1,9 @@
 <?php
 	namespace BigTree;
+
+	/**
+	 * @global \BigTreeAdmin $admin
+	 */
 	
 	$storage = new Storage;
 	
@@ -82,7 +86,8 @@
 							"bigtree_internal_list" => array("width" => 100, "height" => 100, "prefix" => "bigtree_list_thumb_"),
 							"bigtree_internal_detail" => array("width" => 190, "height" => 145, "prefix" => "bigtree_detail_thumb_")
 						);
-						$more_thumb_types = $cms->getSetting("bigtree-file-manager-thumbnail-sizes");
+						$more_thumb_types = Setting::value("bigtree-file-manager-thumbnail-sizes");
+
 						if (is_array($more_thumb_types)) {
 							foreach ($more_thumb_types as $thumb) {
 								$thumbnails_to_create[$thumb["title"]] = $thumb;

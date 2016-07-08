@@ -2,13 +2,13 @@
 	namespace BigTree;
 	
 	// Check whether our database is running the latest revision of BigTree or not.
-	$current_revision = $cms->getSetting("bigtree-internal-revision");
+	$current_revision = Setting::value("bigtree-internal-revision");
 	if ($current_revision < BIGTREE_REVISION && $admin->Level > 1) {
 		Router::redirect(ADMIN_ROOT."developer/upgrade/database/");
 	}
 
 	// Get pane settings
-	$extension_settings = $cms->getSetting("bigtree-internal-extension-settings");
+	$extension_settings = Setting::value("bigtree-internal-extension-settings");
 	$settings = $extension_settings["dashboard"];
 
 	// Sort the panes

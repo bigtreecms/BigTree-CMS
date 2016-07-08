@@ -1,10 +1,14 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $bigtree
+	 */
 
 	// If we're using a preset, the prefix may be there
 	if (!empty($field["options"]["preset"])) {
 		if (!isset($bigtree["media_settings"])) {
-			$bigtree["media_settings"] = $cms->getSetting("bigtree-internal-media-settings");
+			$bigtree["media_settings"] = Setting::value("bigtree-internal-media-settings");
 		}
 		$preset = $bigtree["media_settings"]["presets"][$field["options"]["preset"]];
 		if (!empty($preset["preview_prefix"])) {

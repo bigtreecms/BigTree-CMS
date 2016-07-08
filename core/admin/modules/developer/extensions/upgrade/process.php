@@ -52,7 +52,7 @@
 			<hr />
 			<fieldset>
 				<label><?=Text::translate(":file_access_method: Path", false, array(":file_access_method:" => $method))?></label>
-				<input type="text" name="ftp_root" value="<?=htmlspecialchars($cms->getSetting("bigtree-internal-ftp-upgrade-root"))?>" />
+				<input type="text" name="ftp_root" value="<?=htmlspecialchars(Setting::value("bigtree-internal-ftp-upgrade-root"))?>" />
 			</fieldset>
 		</section>
 		<footer>

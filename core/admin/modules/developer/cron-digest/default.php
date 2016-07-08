@@ -3,7 +3,7 @@
 
 	Extension::initializeCache();
 
-	$extension_settings = $cms->getSetting("bigtree-internal-extension-settings");
+	$extension_settings = Setting::value("bigtree-internal-extension-settings");
 	$cron_settings = $extension_settings["cron"];
 	$digest_settings = $extension_settings["digest"];
 

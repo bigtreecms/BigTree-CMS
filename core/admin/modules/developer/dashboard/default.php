@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$extension_settings = $cms->getSetting("bigtree-internal-extension-settings");
+	$extension_settings = Setting::value("bigtree-internal-extension-settings");
 	$settings = $extension_settings["dashboard"];
 
 	$panes = array();
