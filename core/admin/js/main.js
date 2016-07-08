@@ -169,6 +169,16 @@ var BigTreePasswordInput = function(element) {
 			Element.val(FakeElement.val());
 		}
 
+		function disable() {
+			Element.prop("disabled", true);
+			FakeElement.prop("disabled", true);
+		}
+
+		function enable() {
+			Element.prop("disabled", false);
+			FakeElement.prop("disabled", false);
+		}
+
 		function focus() {
 			FakeElement.val(Buffer);
 		}
@@ -183,7 +193,7 @@ var BigTreePasswordInput = function(element) {
 		FakeElement.get(0).className = Element.get(0).className;
 		Element.addClass("custom_control").removeClass("required").hide().after(FakeElement);
 
-		return { Element: Element, FakeElement: FakeElement };
+		return { Element: Element, FakeElement: FakeElement, disable: disable, enable: enable };
 
 	})(jQuery,element);
 };
@@ -196,12 +206,12 @@ var BigTreeCheckbox = function(element) {
 
 		function blur() {
 			Link.removeClass("focused");
-		};
+		}
 
 		function clear() {
 			Element.prop("checked",false);
 			Link.removeClass("checked");
-		};
+		}
 
 		function click() {
 			if (!Element.prop("disabled")) {
@@ -216,30 +226,30 @@ var BigTreeCheckbox = function(element) {
 				Element.triggerHandler("change");
 			}
 			return false;
-		};
+		}
 	
 		function disable() {
 			Link.addClass("disabled");
 			Element.prop("disabled",true);
-		};
+		}
 		
 		function enable() {
 			Link.removeClass("disabled");
 			Element.prop("disabled",false);
-		};
+		}
 
 		function focus() {
 			if (!Element.prop("disabled")) {
 				Link.addClass("focused");
 			}
-		};
+		}
 		
 		function keydown(event) {
 			if (event.keyCode == 32) {
 				click();
 				return false;
 			}
-		};
+		}
 
 		// Init routine
 		if (Element.hasClass("custom_control")) {
@@ -311,11 +321,11 @@ var BigTreeSelect = function(element) {
 			}
 	
 			tester.remove();
-		};
+		}
 		
 		function blur() {
 			Container.removeClass("focused");
-		};
+		}
 	
 		function click() {
 			if (Container.hasClass("disabled")) {
@@ -382,7 +392,7 @@ var BigTreeSelect = function(element) {
 			}
 	
 			return false;
-		};
+		}
 
 		function close() {
 			Open = false;
@@ -399,21 +409,21 @@ var BigTreeSelect = function(element) {
 			}
 			
 			return false;
-		};
+		}
 	
 		function disable() {
 			Element.prop("disabled",true);
 			Container.addClass("disabled");
-		};
+		}
 	
 		function enable() {
 			Element.prop("disabled",false);
 			Container.removeClass("disabled");
-		};
+		}
 	
 		function focus() {
 			Container.addClass("focused");
-		};
+		}
 		
 		function keydown(ev) {
 			// If a modifier has been pressed, ignore this.
@@ -526,7 +536,7 @@ var BigTreeSelect = function(element) {
 			if (ev.keyCode != 9) {
 				return false;
 			}
-		};
+		}
 	
 		function remove(value) {
 			// Remove it from the actual select.
@@ -554,7 +564,7 @@ var BigTreeSelect = function(element) {
 			} else {
 				sel.html('<figure class="handle"></figure>');
 			}
-		};
+		}
 		
 		function select(ev) {
 			ev.preventDefault();
@@ -579,13 +589,13 @@ var BigTreeSelect = function(element) {
 			
 			// Tell the <select> it has changed.
 			Element.trigger("change", { value: option.attr("data-value"), text: option.innerHTML });
-		};
+		}
 
 		function update() {
 			var el = Element.get(0);
 			Container.find("span").html('<figure class="handle"></figure>' + el.options[el.selectedIndex].text);
 			Container.find("a").removeClass("active").eq(el.selectedIndex).addClass("active");
-		};
+		}
 
 		// Init routine
 		if (Element.hasClass("custom_control")) {
@@ -803,33 +813,48 @@ var BigTreeFileInput = function(element) {
 					}
 				}
 			}
-		};
+		}
 
 		function clear() {
 			Element.val("");
 			checkUploads();
-		};
+		}
 	
 		function connect(el) {
 			Element = $(el).on("change",checkUploads);
 			return { Container: Container, Element: Element, clear: clear, connect: connect };
-		};
+		}
+
+		function disable() {
+			Element.prop("disabled", true);
+			Container.addClass("disabled");
+		}
+
+		function enable() {
+			Element.prop("disabled", false);
+			Container.removeClass("disabled");
+		}
 	
 		// Courtesy of Aliceljm on StackOverflow
 		function formatBytes(bytes) {
 			var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
 			var i = Math.floor(Math.log(bytes) / Math.log(1000));
 			return (bytes / Math.pow(1000, i)).toPrecision(3) + sizes[i];
-		};	
+		}
 
 		// Init routine
 		if (Element.hasClass("custom_control")) {
 			return false;
 		}
+
 		Container.find(".handle").click(function() { Element.click(); });
 		Element.addClass("custom_control").hide().on("change",checkUploads).before(Container);
+
+		if (Element.prop("disabled")) {
+			Container.addClass("disabled");
+		}
 		
-		return { Container: Container, Element: Element, clear: clear, connect: connect };
+		return { Container: Container, Element: Element, clear: clear, connect: connect, disable: disable, enable: enable };
 
 	})(jQuery,element);
 };
@@ -840,28 +865,9 @@ var BigTreeRadioButton = function(element) {
 		var Element = $(element);
 		var Link = false;
 
-		function focus() {
-			Link.addClass("focused");
-		};
-
 		function blur() {
 			Link.removeClass("focused");
-		};
-	
-		function keydown(ev) {
-			if (ev.keyCode == 32) {
-				click(ev);
-				return false;
-			}
-			if (ev.keyCode == 39 || ev.keyCode == 40) {
-				next(ev);
-				return false;
-			}
-			if (ev.keyCode == 37 || ev.keyCode == 38) {
-				previous(ev);
-				return false;
-			}
-		};
+		}
 
 		function clear(ev) {
 			$('input[name="' + Element.attr("name") + '"]').each(function() {
@@ -869,7 +875,7 @@ var BigTreeRadioButton = function(element) {
 				$(this).prop("checked",true);
 				$(this).trigger("change");
 			});
-		};
+		}
 
 		function click(ev) {
 			if (Link.hasClass("checked")) {
@@ -885,7 +891,36 @@ var BigTreeRadioButton = function(element) {
 			Element.triggerHandler("click");
 			Element.triggerHandler("change");
 			return false;
-		};
+		}
+
+		function disable() {
+			Link.addClass("disabled");
+			Element.prop("disabled", true);
+		}
+
+		function enable() {
+			Link.removeClass("disabled");
+			Element.prop("disabled", false);
+		}
+
+		function focus() {
+			Link.addClass("focused");
+		}
+	
+		function keydown(ev) {
+			if (ev.keyCode == 32) {
+				click(ev);
+				return false;
+			}
+			if (ev.keyCode == 39 || ev.keyCode == 40) {
+				next(ev);
+				return false;
+			}
+			if (ev.keyCode == 37 || ev.keyCode == 38) {
+				previous(ev);
+				return false;
+			}
+		}
 	
 		function next(ev) {
 			var all = $('input[name="' + Element.attr("name") + '"]');
@@ -894,7 +929,7 @@ var BigTreeRadioButton = function(element) {
 				all[index + 1].customControl.Link.focus();
 				all[index + 1].customControl.click(ev);
 			}
-		};
+		}
 		
 		function previous(ev) {
 			var all = $('input[name="' + Element.attr("name") + '"]');
@@ -903,7 +938,7 @@ var BigTreeRadioButton = function(element) {
 				all[index - 1].customControl.Link.focus();
 				all[index - 1].customControl.click(ev);
 			}
-		};
+		}
 
 		// Init routine
 		if (Element.hasClass("custom_control")) {
@@ -930,7 +965,7 @@ var BigTreeRadioButton = function(element) {
 		
 		Element.hide().after($('<div class="radio_button">').append(Link));
 
-		return { Element: Element, Link: Link, blur: blur, click: click, clear: clear, focus: focus };
+		return { Element: Element, Link: Link, blur: blur, click: click, clear: clear, disable: disable, enable: enable, focus: focus };
 
 	})(jQuery,element);
 };
@@ -965,7 +1000,7 @@ var BigTreePhotoGallery = function(settings) {
 				saveNewFile({ caption: "" });
 			}
 			return false;
-		};
+		}
 		
 		function deletePhoto() {
 			BigTreeDialog({
@@ -977,7 +1012,7 @@ var BigTreePhotoGallery = function(settings) {
 			});
 			
 			return false;
-		};
+		}
 		
 		function editPhoto(ev) {
 			var link = $(ev.target);
@@ -991,7 +1026,7 @@ var BigTreePhotoGallery = function(settings) {
 			});
 	
 			return false;
-		};
+		}
 
 		function openFileManager(ev) {
 			var target = $(ev.target);
@@ -1005,12 +1040,12 @@ var BigTreePhotoGallery = function(settings) {
 			}
 			BigTreeFileManager.formOpen("photo-gallery",field,options,useExistingFile);
 			return false;
-		};
+		}
 
 		function saveCaption(data) {
 			ActiveCaption.val(data.caption);
 			ActiveCaption = false;
-		};
+		}
 		
 		function saveNewFile(data) {
 			var li = $('<li>').html('<figure></figure><a href="#" class="icon_delete"></a>');
@@ -1044,7 +1079,7 @@ var BigTreePhotoGallery = function(settings) {
 			new_file.get(0).customControl = customControl.connect(new_file.get(0));
 			FileInput.get(0).customControl = false;
 			FileInput = new_file;
-		};
+		}
 		
 		function useExistingFile(path,caption,thumbnail) {
 			var li = $('<li>').html('<figure><img src="' + thumbnail + '" alt="" /></figure><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a>');
@@ -1052,7 +1087,7 @@ var BigTreePhotoGallery = function(settings) {
 			li.append($('<input type="hidden" name="' + Key + '[' + Counter + '][caption]" class="caption" />').val(caption));
 			Container.find("ul").append(li);
 			Counter++;
-		};
+		}
 
 		// Init routine
 		Key = settings.key;
@@ -1086,7 +1121,22 @@ var BigTreeTagAdder = (function($) {
 		TagEntry = $("#tag_entry").keydown(checkKeys).keyup(searchTags);
 		TagList = $("#tag_list").on("click","a",deleteHook);
 		TagResults = $("#tag_results");
-	};
+	}
+
+	function addTag(ev) {
+		var tag = TagEntry.val();
+		if (tag) {
+			ActiveTagName = tag;
+			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: addedTag });
+		}
+	}
+	
+	function addedTag(id) {
+		TagList.append($('<li class="tag">').html('<a href="#"><input type="hidden" name="_tags[]" value="' + id + '" />' + ActiveTagName + '<span>x</span></a>'));
+		TagEntry.val("").focus();
+		TagResults.hide();
+		Dropdown = false;
+	}
 	
 	function checkKeys(ev) {
 		if (ev.keyCode == 13) {
@@ -1105,20 +1155,35 @@ var BigTreeTagAdder = (function($) {
 			moveDown(ev);
 			return false;
 		}
-	};
-	
-	function moveUp(ev) {
-		if (!Dropdown || SelectedTag < 0) {
-			return;
+	}
+
+	function chooseTag(ev) {
+		var el = ev.target;
+		var tag = el.innerHTML.replace("<span>","").replace("</span>","");
+		if (tag) {
+			ActiveTagName = tag;
+			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: addedTag });
 		}
-		var li = TagResults.find("li");
-		li.eq(SelectedTag).removeClass("selected");
-		SelectedTag--;
-		if (SelectedTag > -1) {
-			li.eq(SelectedTag).addClass("selected");
+		return false;
+	}
+
+	function deleteHook(ev) {
+		$(this).parents("li").remove();
+		return false;
+	}
+
+	function hookResults() {
+		SelectedTag = -1;
+		if (TagResults.html()) {
+			TagResults.show();
+			Dropdown = true;
+			TagResults.find("li a").click(chooseTag);
+		} else {
+			Dropdown = false;
+			TagResults.hide();
 		}
-	};
-	
+	}
+
 	function moveDown(ev) {
 		var li = TagResults.find("li");
 		var max = li.length - 1;
@@ -1130,7 +1195,19 @@ var BigTreeTagAdder = (function($) {
 		}
 		SelectedTag++;
 		li.eq(SelectedTag).addClass("selected");
-	};
+	}
+	
+	function moveUp(ev) {
+		if (!Dropdown || SelectedTag < 0) {
+			return;
+		}
+		var li = TagResults.find("li");
+		li.eq(SelectedTag).removeClass("selected");
+		SelectedTag--;
+		if (SelectedTag > -1) {
+			li.eq(SelectedTag).addClass("selected");
+		}
+	}
 	
 	function searchTags(ev) {
 		var tag = TagEntry.val();
@@ -1142,49 +1219,7 @@ var BigTreeTagAdder = (function($) {
 				TagResults.hide();
 			}
 		}
-	};
-	
-	function hookResults() {
-		SelectedTag = -1;
-		if (TagResults.html()) {
-			TagResults.show();
-			Dropdown = true;
-			TagResults.find("li a").click(chooseTag);
-		} else {
-			Dropdown = false;
-			TagResults.hide();
-		}
-	};
-	
-	function deleteHook(ev) {
-		$(this).parents("li").remove();
-		return false;
-	};
-	
-	function chooseTag(ev) {
-		var el = ev.target;
-		var tag = el.innerHTML.replace("<span>","").replace("</span>","");
-		if (tag) {
-			ActiveTagName = tag;
-			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: addedTag });
-		}
-		return false;
-	};
-	
-	function addTag(ev) {
-		var tag = TagEntry.val();
-		if (tag) {
-			ActiveTagName = tag;
-			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: addedTag });
-		}
-	};
-	
-	function addedTag(id) {
-		TagList.append($('<li class="tag">').html('<a href="#"><input type="hidden" name="_tags[]" value="' + id + '" />' + ActiveTagName + '<span>x</span></a>'));
-		TagEntry.val("").focus();
-		TagResults.hide();
-		Dropdown = false;
-	};
+	}
 
 	return { init: init };
 })(jQuery);
@@ -1207,7 +1242,7 @@ var BigTreeDialog = function(settings) {
 			if (e.keyCode == 27) {
 				dialogClose();
 			}
-		};
+		}
 	
 		function dialogClose() {
 			// Call the cancel hook once, if it requests that we close the dialog, don't run it again.
@@ -1221,7 +1256,7 @@ var BigTreeDialog = function(settings) {
 				BigTree.ZIndex -= 2;
 			}
 			return false;
-		};
+		}
 	
 		function dialogSubmit(ev) {
 			ev.preventDefault();
@@ -1242,7 +1277,7 @@ var BigTreeDialog = function(settings) {
 			$(".bigtree_dialog_overlay").last().remove();
 			$(".bigtree_dialog_window").last().remove();
 			$("body").off("keyup",checkForEsc);
-		};
+		}
 
 		function watchHeight() {
 			var height = DialogWindow.height();
@@ -1250,7 +1285,7 @@ var BigTreeDialog = function(settings) {
 				DialogHeight = height;
 				windowResize(false,true);
 			}
-		};
+		}
 
 		function windowResize(ev,animate) {
 			var left_offset = parseInt((BigTree.windowWidth() - DialogWidth) / 2);
@@ -1261,7 +1296,7 @@ var BigTreeDialog = function(settings) {
 			} else {
 				DialogWindow.css({ "top": top_offset + "px", "left": left_offset + "px" });
 			}
-		};
+		}
 
 		// Setup a callback to give the data to once they submit their dialog
 		OnComplete = settings.callback;
@@ -1354,7 +1389,7 @@ var BigTreeFileManager = (function($) {
 		});
 
 		return false;
-	};
+	}
 	
 	function addFolder() {
 		BigTreeDialog({
@@ -1367,7 +1402,7 @@ var BigTreeFileManager = (function($) {
 		});
 		
 		return false;
-	};
+	}
 	
 	function chooseImageSize() {
 		$("#file_browser_upload").unbind("click").html("").css({ cursor: "default" }).click(function() { return false; });
@@ -1393,7 +1428,7 @@ var BigTreeFileManager = (function($) {
 		});
 
 		return false;
-	};
+	}
 	
 	function closeFileBrowser() {
 		$(".bigtree_dialog_overlay").last().remove();
@@ -1402,7 +1437,7 @@ var BigTreeFileManager = (function($) {
 		$("#mceModalBlocker, #mce-modal-block").show();
 		
 		return false;
-	};
+	}
 	
 	function createFile() {
 		var last_dialog = $(".bigtree_dialog_form").last();
@@ -1412,7 +1447,7 @@ var BigTreeFileManager = (function($) {
 					.attr("target","file_manager_upload_frame");
 		last_dialog.find("footer *").hide();
 		last_dialog.find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Uploading files. Please wait…</p>'));
-	};
+	}
 	
 	function createFolder(data) {
 		var last_dialog = $(".bigtree_dialog_form").last();
@@ -1422,7 +1457,7 @@ var BigTreeFileManager = (function($) {
 					.attr("target","file_manager_upload_frame");
 		last_dialog.find("footer *").hide();
 		last_dialog.find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Creating folder. Please wait…</p>'));
-	};
+	}
 
 	function deleteFile(ev) {
 		ev.preventDefault();
@@ -1439,7 +1474,7 @@ var BigTreeFileManager = (function($) {
 			$("#file_browser_info_pane").html("");
 			$("#file_browser .footer .blue").hide();
 		}
-	};
+	}
 
 	function deleteFolder(ev) {
 		ev.stopPropagation();
@@ -1462,25 +1497,25 @@ var BigTreeFileManager = (function($) {
 				}});
 			}
 		}});
-	};
+	}
 	
 	function disableCreate() {
 		$("#file_browser .header a").hide();		
-	};
+	}
 	
 	function enableCreate() {
 		$("#file_browser .header a").show();
-	};
+	}
 	
 	function fileBrowser() {
 		$("#file_browser_type_icon").addClass("icon_folder");
 		$("#file_browser_type .title").html("File Browser");
 		openFileFolder(0);
-	};
+	}
 	
 	function fileBrowserPopulated() {
 		$("#file_browser_contents a").click(fileClick);
-	};
+	}
 	
 	function fileClick() {				
 		if ($(this).hasClass("disabled")) {
@@ -1513,7 +1548,7 @@ var BigTreeFileManager = (function($) {
 		);
 		
 		return false;
-	};
+	}
 	
 	function finishedUpload(errors) {
 		UploadDialog.close();
@@ -1524,7 +1559,7 @@ var BigTreeFileManager = (function($) {
 		} else {
 			openFileFolder(CurrentFolder);
 		}
-	};
+	}
 	
 	function formOpen(type,field_name,options,callback) {
 		CurrentlyName = field_name;
@@ -1533,21 +1568,21 @@ var BigTreeFileManager = (function($) {
 		FieldName = false;
 		Callback = callback;
 		open(type,options.minWidth,options.minHeight);
-	};
+	}
 
 	function hideDeleteFolder() {
 		$("#file_browser .delete_folder").hide();
-	};
+	}
 	
 	function imageBrowser() {
 		$("#file_browser_type_icon").addClass("icon_images");
 		$("#file_browser_type .title").html("Image Library");
 		openImageFolder(0);
-	};
+	}
 	
 	function imageBrowserPopulated() {
 		$("#file_browser_contents a").click(imageClick);
-	};
+	}
 	
 	function imageClick() {
 		if ($(this).hasClass("disabled")) {
@@ -1585,7 +1620,7 @@ var BigTreeFileManager = (function($) {
 		);
 		
 		return false;
-	};
+	}
 	
 	function open(type,min_width,min_height) {
 		if ($.browser.msie  && parseInt($.browser.version, 10) === 7) {
@@ -1680,7 +1715,7 @@ var BigTreeFileManager = (function($) {
 		} else {
 			fileBrowser();
 		}
-	};
+	}
 	
 	function openFileFolder(folder) {
 		CurrentFolder = folder;
@@ -1688,7 +1723,7 @@ var BigTreeFileManager = (function($) {
 		$("#file_browser_info_pane").html("");
 		$("#file_browser_form .footer .blue").hide();
 		$("#file_browser_contents").scrollTop(0).load("admin_root/ajax/file-browser/get-files/", { folder: folder }, fileBrowserPopulated);
-	};
+	}
 	
 	function openImageFolder(folder) {
 		CurrentFolder = folder;
@@ -1696,7 +1731,7 @@ var BigTreeFileManager = (function($) {
 		$("#file_browser_info_pane").html("");
 		$("#file_browser_form .footer .blue").hide();
 		$("#file_browser_contents").scrollTop(0).load("admin_root/ajax/file-browser/get-images/", { minWidth: MinWidth, minHeight: MinHeight, folder: folder }, imageBrowserPopulated);
-	};
+	}
 
 	function replaceFile() {
 		BigTreeDialog({
@@ -1709,21 +1744,21 @@ var BigTreeFileManager = (function($) {
 		});
 
 		return false;
-	};
+	}
 
 	function replaceFileProcess(data) {
 		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
 		$(".bigtree_dialog_form").last().attr("action","admin_root/ajax/file-browser/upload/").attr("target","file_manager_upload_frame");
 		$(".bigtree_dialog_form").last().find("footer *").hide();
 		$(".bigtree_dialog_form").last().find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Replacing file. Please wait…</p>'));
-	};
+	}
 	
 	function saveFileTitle() {
 		var title = $("#file_browser_detail_title_input").val();
 		var file = $("#file_browser_selected_file").val();
 		
 		$.ajax("admin_root/ajax/file-browser/save-title/", { type: "POST", data: { file: file, title: title } });
-	};
+	}
 	
 	function search() {
 		var query = $("#file_browser_search").val();
@@ -1735,19 +1770,19 @@ var BigTreeFileManager = (function($) {
 		} else {
 			$("#file_browser_contents").load("admin_root/ajax/file-browser/get-files/", { query: query, folder: CurrentFolder }, fileBrowserPopulated);
 		}
-	};
+	}
 	
 	function setBreadcrumb(contents) {
 		$("#file_browser_breadcrumb").html(contents);
-	};
+	}
 	
 	function setTitleSuffix(suffix) {
 		$("#file_browser_type .suffix").html(suffix);
-	};
+	}
 
 	function showDeleteFolder() {
 		$("#file_browser .delete_folder").show();
-	};
+	}
 	
 	function submitSelectedFile() {
 		if (FieldName) {
@@ -1776,7 +1811,7 @@ var BigTreeFileManager = (function($) {
 			}
 			return closeFileBrowser();
 		}
-	};
+	}
 	
 	function tinyMCEOpen(field_name,url,type,win) {
 		CurrentlyName = false;
@@ -1786,7 +1821,7 @@ var BigTreeFileManager = (function($) {
 			FieldName = $("#" + field_name).get(0);
 		}
 		open(type,false,false);
-	};
+	}
 
 	function uploadError(message,successes) {
 		var last_dialog = $(".bigtree_dialog_form").last();
@@ -1799,7 +1834,7 @@ var BigTreeFileManager = (function($) {
 		} else {
 			openFileFolder(CurrentFolder);
 		}
-	};
+	}
 
 	return {
 		disableCreate: disableCreate,
@@ -1895,7 +1930,7 @@ var BigTreeFormNavBar = (function() {
 			MoreContainer.append(current_page);
 			calc_nav_container.remove();
 		}
-	};
+	}
 
 	function nextClick(ev) {
 		ev.preventDefault();
@@ -1993,7 +2028,7 @@ var BigTreeListMaker = function(settings) {
 			Container.find("summary").show();
 	
 			return false;
-		};
+		}
 		
 		function deleteOption() {
 			var ul = $(this).parents("ul").eq(0);
@@ -2004,7 +2039,7 @@ var BigTreeListMaker = function(settings) {
 			}
 	
 			return false;
-		};
+		}
 
 		// Init routine
 		Container = $(settings.element);
@@ -2159,7 +2194,7 @@ var BigTreeManyToMany = function(settings) {
 			
 			// Hide the instructions saying there haven't been any items tagged.
 			Field.find("section").hide();
-		};
+		}
 	
 		function deleteItem(ev) {
 			ev.preventDefault();
@@ -2180,7 +2215,7 @@ var BigTreeManyToMany = function(settings) {
 
 			li.remove();
 			Field.trigger("removedItem", { value: val, description: text });
-		};
+		}
 
 		function reset(ev) {
 			ev.preventDefault();
@@ -2202,7 +2237,7 @@ var BigTreeManyToMany = function(settings) {
 
 			// Show the empty message
 			Field.find("section").show();
-		};
+		}
 
 		// Init routine
 		Field = $("#" + settings.id);
@@ -2253,7 +2288,7 @@ var BigTreeFieldSelect = function(settings) {
 				Container.find("p").html(Elements[0].field);
 				Container.show();
 			}
-		};
+		}
 		
 		function click(ev) {
 			if (Dropdown.hasClass("open")) {
@@ -2265,12 +2300,12 @@ var BigTreeFieldSelect = function(settings) {
 				}
 			}
 			return false;
-		};
+		}
 		
 		function close() {
 			$(window).unbind("click",close);
 			Dropdown.removeClass("open").hide();
-		};
+		}
 		
 		function removeCurrent() {
 			Dropdown.find("a").eq(CurrentElement).remove();
@@ -2283,7 +2318,7 @@ var BigTreeFieldSelect = function(settings) {
 			} else {
 				CurrentlyP.html(Elements[0].field);
 			}
-		};
+		}
 
 		// Init routine
 		Container = $('<div class="field_selector">');
@@ -2453,7 +2488,7 @@ var BigTreeFormValidator = function(selector,callback) {
 				window.onbeforeunload = null;
 				return true;
 			}
-		};
+		}
 
 		// Init routine
 		Form = $(selector);
@@ -2489,7 +2524,7 @@ var BigTreeFormValidator = function(selector,callback) {
 					}
 				};
 			},5000);
-		});		
+		});
 
 		return { Form: Form, Callback: Callback, validateForm: validateForm };
 
@@ -2509,7 +2544,7 @@ var BigTreeToolTip = function(settings) {
 			Container.stop().fadeTo(200,0,function() { Container.hide(); });
 			BigTree.ZIndex--;
 			return false;
-		};
+		}
 		
 		function show() {
 			// Figure out where the target is in the DOM, add the container to the DOM so we can get its width/height for some positions.
@@ -2542,7 +2577,7 @@ var BigTreeToolTip = function(settings) {
 			}
 			
 			Container.css({ left: l + "px", top: t + "px", zIndex: (BigTree.ZIndex++) }).stop().fadeTo(200, 1);
-		};
+		}
 
 		// Init routine
 		for (var i in settings) {
@@ -2650,7 +2685,7 @@ var BigTreeFilesystemBrowser = function(settings) {
 			Container.remove();
 			BigTree.ZIndex -= 2;
 			return false;
-		};
+		}
 
 		// Init routine
 		Overlay = $('<div class="bigtree_dialog_overlay" style="z-index: ' + (BigTree.ZIndex++) + ';">');
@@ -2719,7 +2754,27 @@ var BigTreeCallouts = function(settings) {
 					}
 				});
 			}});
-		};
+		}
+
+		function deleteCallout(e) {
+			e.preventDefault();
+
+			CurrentItem = $(this).parents("article");
+			BigTreeDialog({
+				title: "Delete " + Noun,
+				content: '<p class="confirm">Are you sure you want to delete this ' + Noun.toLowerCase() + '?</p>',
+				callback: function() {
+					CurrentItem.remove();
+					var count = List.find("article").length;
+					if (count < Max) {
+						AddButton.show();
+					}
+				},
+				icon: "delete",
+				alternateSaveText: "OK"
+			});
+			return false;
+		}
 
 		function editCallout(e) {
 			e.preventDefault();
@@ -2750,27 +2805,7 @@ var BigTreeCallouts = function(settings) {
 					}
 				});
 			}});
-		};
-
-		function deleteCallout(e) {
-			e.preventDefault();
-
-			CurrentItem = $(this).parents("article");
-			BigTreeDialog({
-				title: "Delete " + Noun,
-				content: '<p class="confirm">Are you sure you want to delete this ' + Noun.toLowerCase() + '?</p>',
-				callback: function() {
-					CurrentItem.remove();
-					var count = List.find("article").length;
-					if (count < Max) {
-						AddButton.show();
-					}
-				},
-				icon: "delete",
-				alternateSaveText: "OK"
-			});
-			return false;
-		};
+		}
 
 		function getCallout() {
 			LastDialog = $(".bigtree_dialog_form").last();
@@ -2817,7 +2852,7 @@ var BigTreeCallouts = function(settings) {
 			article.find("h4").html(strip_tags(Description) + '<input type="hidden" name="' + Key + '[' + Count + '][display_title]" value="' + htmlspecialchars(strip_tags(Description)) + '" />');
 	
 			return article;
-		};
+		}
 
 		function removeDialog() {
 			LastDialog.parents("div").remove();
@@ -2897,7 +2932,7 @@ var BigTreeMatrix = function(settings) {
 					});
 				}
 			});
-		};
+		}
 
 		function deleteItem(e) {
 			e.preventDefault();
@@ -2924,7 +2959,7 @@ var BigTreeMatrix = function(settings) {
 				icon: "delete",
 				alternateSaveText: "OK"
 			});
-		};
+		}
 
 		function editItem(e) {
 			e.preventDefault();
@@ -2966,7 +3001,7 @@ var BigTreeMatrix = function(settings) {
 					});
 				}
 			});
-		};
+		}
 		
 		function getItem() {
 			LastDialog = $(".bigtree_dialog_form").last();
@@ -3048,14 +3083,14 @@ var BigTreeMatrix = function(settings) {
 			}
 
 			return entry;
-		};
+		}
 
 		function removeDialog() {
 			LastDialog.parents("div").remove();
 			LastDialog.remove();
 			$(".bigtree_dialog_overlay").last().remove();
 			BigTree.zIndex -= 2;
-		};
+		}
 
 		// Init routine
 		Key = settings.key;

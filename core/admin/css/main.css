@@ -174,17 +174,16 @@
 	.checkbox a.checked { background-position: -150px -121px; }
 	.checkbox a.focused { background-position: -166px -105px; }
 	.checkbox a.checked.focused { background-position: -166px -121px; }
-	.checkbox a.disabled { cursor: default; opacity: 0.3; }
+	.checkbox a.disabled { cursor: default; opacity: 0.3; pointer-events: none; }
 	label.for_checkbox { cursor: pointer; line-height: 17px; margin: 0; padding: 0 0 0 23px; user-select: none; }
 	.checkbox_row { margin: 0 0 10px 0; overflow: hidden; }
 
 	.radio_button { float: left; margin: 0 7px 0 0; }
 	.radio_button a { background: url(../images/icon-sprite.svg) -256px -124px; cursor: pointer; display: block; height: 16px; width: 16px; }
 	.radio_button a.checked { background-position: -240px -124px; }
-	.radio_button a.disabled { background-position: -288px -124px; }
-	.radio_button a.checked.disabled { background-position: -272px -124px; }
 	.radio_button a.focused { background-position: -320px -124px; }
 	.radio_button a.checked.focused { background-position: -304px -124px; }
+	.radio_button a.disabled { cursor: default; opacity: 0.3; pointer-events: none; }
 
 	.select { background: #FFF; border: 1px solid #CCCCCC; border-radius: 2px; color: #333; cursor: pointer; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 0; transition: border-color 0.2s; user-select: none; }
 	.select.disabled { opacity: 0.5; }
@@ -204,6 +203,7 @@
 	.form_error .select .handle { background-position: -374px -105px; }
 
 	.file_wrapper { background: #FFF; border: 1px solid #CCC; border-radius: 2px; color: #333; display: block; height: 30px; margin: 0; overflow: hidden; width: 300px; }
+	.file_wrapper.disabled { cursor: default; opacity: 0.3; pointer-events: none; }
 	.file_wrapper .handle { background: rgba(0, 0, 0, 0.1); border-left: 1px solid #CCC; border-radius: 0px 2px 2px 0px; color: #333; cursor: pointer; display: block; font-size: 14px; height: 30px; line-height: 30px; text-align: center; width: 70px; float: right; }
 	.file_wrapper .handle:hover { background: rgba(0,0,0,0.15); }
 	.file_wrapper .data { float: left; font-size: 12px; height: 30px; line-height: 30px; overflow: hidden; padding: 0 5px; position: relative; text-overflow: ellipsis; white-space: nowrap; width: 219px; }
