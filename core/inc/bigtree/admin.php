@@ -639,7 +639,7 @@
 						"type" => BigTree::safeEncode($resource["type"]),
 						"title" => BigTree::safeEncode($resource["title"]),
 						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
-						"options" => BigTree::translateArray((array)@json_decode($resource["options"],true))
+						"options" => BigTree::translateArray((array) @json_decode($resource["options"],true))
 					);
 
 					// Backwards compatibility with BigTree 4.1 package imports
@@ -1524,12 +1524,19 @@
 
 			// We don't want this encoded since it's a WYSIWYG field.
 			$description = isset($data["description"]) ? sqlescape($data["description"]) : "";
+			
 			// We don't want this encoded since it's JSON
 			if (isset($data["options"])) {
 				if (is_string($data["options"])) {
 					$data["options"] = json_decode($data["options"], true);
 				}
 
+				foreach ($data["options"] as $key => $value) {
+					if ($key == "options" && is_string($value)) {
+						$data["options"][$key] = json_decode($value, true);
+					}
+				}
+	
 				$options = BigTree::json(BigTree::translateArray($data["options"]), true);
 			}
 
@@ -7901,8 +7908,16 @@
 			// We don't want this encoded since it's a WYSIWYG field.
 			$description = sqlescape($data["description"]);
 
-			// We don't want this encoded since it's JSON
-			$options = BigTree::json(BigTree::translateArray(json_decode($data["options"], true)));
+			// Stored as JSON encoded already
+			$options = json_decode($data["options"], true);
+
+			foreach ($options as $key => $value) {
+				if ($key == "options" && is_string($value)) {
+					$options[$key] = json_decode($value, true);
+				}
+			}
+
+			$options = BigTree::json(BigTree::translateArray($options), true);
 
 			// See if we have an id collision with the new id.
 			if ($old_id != $id && static::settingExists($id)) {
