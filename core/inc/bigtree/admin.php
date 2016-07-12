@@ -2362,6 +2362,8 @@
 				$field["options"] = array();
 			}
 
+			$field["options"] = BigTree::untranslateArray($field["options"]);
+
 			// Setup Validation Classes
 			$label_validation_class = "";
 			$field["required"] = false;
