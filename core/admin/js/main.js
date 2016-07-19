@@ -1404,7 +1404,7 @@ var BigTreeFileManager = (function($) {
 	}
 	
 	function addFolder() {
-		BigTreeDialog({
+		UploadDialog = BigTreeDialog({
 			title: "New Folder",
 			content: '<input type="hidden" name="folder" value="' + CurrentFolder + '" /><fieldset><label>Folder Name</label><input type="text" name="name" /></fieldset>',
 			callback: createFolder,
