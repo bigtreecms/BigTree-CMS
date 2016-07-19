@@ -12,9 +12,11 @@
 
 	$("#manage_hooks").click(function() {
 		var data = $.parseJSON($("#form_hooks").val());
-		var html = '<fieldset><label>Pre-processing Hook</label><input type="text" name="pre" value="' + htmlspecialchars(data.pre ? data.pre : "") + '" /></fieldset>';
+		var html = '<fieldset><label>Editing Hook</label><input type="text" name="edit" value="' + htmlspecialchars(data.edit ? data.edit : "") + '" /></fieldset>';
+		html += '<fieldset><label>Pre-processing Hook</label><input type="text" name="pre" value="' + htmlspecialchars(data.pre ? data.pre : "") + '" /></fieldset>';
 		html += '<fieldset><label>Post-processing Hook</label><input type="text" name="post" value="' + htmlspecialchars(data.post ? data.post : "") + '" /></fieldset>';
 		html += '<fieldset><label>Publishing Hook</label><input type="text" name="publish" value="' + htmlspecialchars(data.publish ? data.publish : "") + '" /></fieldset>';
+		
 		BigTreeDialog({
 			title: "Manage Hooks",
 			content: html,
@@ -24,6 +26,7 @@
 				$("#form_hooks").val(JSON.stringify(data));
 			}
 		});
+		
 		return false;
 	});
 	

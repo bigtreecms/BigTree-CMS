@@ -16,8 +16,13 @@
 </div>
 <?
 	} else {
-		$bigtree["related_view"] = BigTreeAutoModule::getRelatedViewForForm($bigtree["form"]);				
+		$bigtree["related_view"] = BigTreeAutoModule::getRelatedViewForForm($bigtree["form"]);
 		$bigtree["entry"] = $item = $pending_entry["item"];
+		
+		// See if we have an editing hook
+		if (!empty($bigtree["form"]["hooks"]["edit"])) {
+			$bigtree["entry"] = call_user_func($bigtree["form"]["hooks"]["edit"], $bigtree["entry"], $bigtree["form"]);
+		}
 
 		// Check access levels
 		$bigtree["access_level"] = $admin->getAccessLevel($bigtree["module"],$item,$bigtree["form"]["table"]);
