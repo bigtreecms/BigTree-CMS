@@ -26,7 +26,12 @@
 	} else {
 		$bigtree["related_view"] = $form->RelatedModuleView;
 		$bigtree["entry"] = $item = $pending_entry["item"];
-
+		
+		// See if we have an editing hook
+		if (!empty($form->Hooks["edit"])) {
+			$bigtree["entry"] = call_user_func($form->Hooks["edit"], $bigtree["entry"], $form->Array);
+		}
+		
 		// Check access levels
 		$bigtree["access_level"] = Auth::user()->getAccessLevel($module, $item, $form->Table);
 
