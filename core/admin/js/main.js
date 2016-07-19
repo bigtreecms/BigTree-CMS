@@ -3585,6 +3585,9 @@ var BigTree = {
 	},
 
 	formHooks: function(selector) {
+		// Remove any existing handlers
+		$(selector).off("click");
+
 		// Remove Existing Uploads
 		$(selector).on("click",".remove_resource",function() {
 			var p = $(this).parent();
