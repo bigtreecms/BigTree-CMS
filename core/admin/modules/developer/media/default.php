@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$settings = $cms->getSetting("bigtree-internal-media-settings");
+	$settings = Setting::value("bigtree-internal-media-settings");
 ?>
 <div class="table" id="image_presets_table">
 	<summary>

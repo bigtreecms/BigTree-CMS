@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$geocoding_service = $cms->getSetting("bigtree-internal-geocoding-service");
+	$geocoding_service = Setting::value("bigtree-internal-geocoding-service");
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>geocoding/mapquest/activate/">
@@ -10,7 +10,7 @@
 			<hr />
 			<fieldset>
 				<label><?=Text::translate("MapQuest AppKey / Consumer Key")?></label>
-				<input type="text" name="mapquest_key" value="<?=htmlspecialchars($geocoding_service["mapquest_key"])?>" />
+				<input type="text" name="mapquest_key" value="<?=Text::htmlEncode($geocoding_service["mapquest_key"])?>" />
 			</fieldset>
 		</section>
 		<footer>
