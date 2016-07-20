@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	if ($admin->Level < 1) {
+	if (Auth::user()->Level < 1) {
 ?>
 <div class="container">
 	<section>

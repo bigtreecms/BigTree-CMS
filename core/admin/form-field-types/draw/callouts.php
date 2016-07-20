@@ -31,7 +31,7 @@
 			<p><?=$type["name"]?></p>
 			<div class="bottom">
 				<span class="icon_drag"></span>
-				<?php if ($type["level"] > $admin->Level) { ?>
+				<?php if ($type["level"] > Auth::user()->Level) { ?>
 				<span class="icon_disabled has_tooltip" data-tooltip="<p>This callout requires a higher user level to edit.</p>"></span>
 				<?php } else { ?>
 				<a href="#" class="icon_edit"></a>

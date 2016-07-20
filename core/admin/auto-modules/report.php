@@ -9,7 +9,7 @@
 	
 	$report = new ModuleReport($interface->Array);
 
-	if ($admin->Level > 1) {
+	if (Auth::user()->Level > 1) {
 		$bigtree["subnav_extras"][] = array(
 			"link" => ADMIN_ROOT."developer/modules/reports/edit/".$report->ID."/?return=front",
 			"icon" => "setup",

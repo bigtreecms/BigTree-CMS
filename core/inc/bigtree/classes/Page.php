@@ -1247,7 +1247,7 @@
 				return false;
 			}
 			
-			if ($admin->Level > 0) {
+			if (Auth::user()->Level > 0) {
 				return true;
 			}
 			

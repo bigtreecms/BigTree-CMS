@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	// Check to see if we're using Google Analytics.
-	$ga = $cms->getSetting("bigtree-internal-google-analytics-api");
+	$ga = Setting::value("bigtree-internal-google-analytics-api");
 	$ga_on = isset($ga["profile"]) ? $ga["profile"] : false;
 	
 	// Handy function to show the trees without repeating so much code.
@@ -110,7 +110,7 @@
 				<?=$status?>
 			</section>
 			<section class="pages_archive">
-				<?php if (!isset($item["bigtree_pending"]) && $perm == "p" && ($page["id"] != 0 || $admin->Level > 1 || $class == "hidden") && $admin->canModifyChildren($item)) { ?>
+				<?php if (!isset($item["bigtree_pending"]) && $perm == "p" && ($page["id"] != 0 || Auth::user()->Level > 1 || $class == "hidden") && $admin->canModifyChildren($item)) { ?>
 				<a href="<?=$proot?>archive/<?=$item["id"]?>/" title="<?=Text::translate("Archive Page")?>" class="icon_archive"></a>
 				<?php } elseif ($item["bigtree_pending"] && $perm == "p") { ?>
 				<a href="<?=$proot?>delete/<?=$item["id"]?>/" title="<?=Text::translate("Delete Pending Page")?>" class="icon_delete"></a>

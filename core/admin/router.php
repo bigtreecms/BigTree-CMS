@@ -229,7 +229,7 @@
 	}
 
 	// Developer Mode On?
-	if (isset($admin->ID) && !empty($bigtree["config"]["developer_mode"]) && $admin->Level < 2) {
+	if (isset($admin->ID) && !empty($bigtree["config"]["developer_mode"]) && Auth::user()->Level < 2) {
 		include Router::getIncludePath("admin/pages/developer-mode.php");
 		$admin->stop();
 	}

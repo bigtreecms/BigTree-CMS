@@ -30,13 +30,13 @@
 		$user = new User($id);
 
 		// Don't let a user edit someone that has higher access levels than they do
-		if ($user->Level > $admin->Level) {
+		if ($user->Level > Auth::user()->Level) {
 			$error = "level";
 		}
 
 		// Don't let a user change their own level
 		if ($id == $admin->ID) {
-			$level = $admin->Level;
+			$level = Auth::user()->Level;
 		}
 
 		if ($error === false) {

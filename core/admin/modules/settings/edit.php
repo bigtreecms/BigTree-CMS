@@ -1,22 +1,26 @@
 <?php
 	namespace BigTree;
 	
-	$admin->Auth->requireLevel(1);
-	$item = $admin->getSetting(end($bigtree["path"]));
-	$value = $cms->getSetting(end($bigtree["path"]));
+	/**
+	 * @global array $bigtree
+	 */
 	
-	if ($item["encrypted"]) {
-		$value = "";
-	}
+	Auth::user()->requireLevel(1);
+	
+	$setting = new Setting(end($bigtree["path"]));
+	$value = $setting->Encrypted ? "" : $setting->Value;
 
-	if (!$item || $item["system"] || ($item["locked"] && $admin->Level < 2)) {
-		$admin->stop("The setting you are trying to edit no longer exists or you do not have permission to edit it.",
-					 Router::getIncludePath("admin/layouts/_error.php"));
+	if (!Setting::exists(end($bigtree["path"])) || $setting->System || ($setting->Locked && Auth::user()->Level < 2)) {
+		Auth::stop("The setting you are trying to edit no longer exists or you do not have permission to edit it.",
+					Router::getIncludePath("admin/layouts/_error.php"));
 	}
 
 	// Provide developers a nice handy link for edit/return of this view
-	if ($admin->Level > 1) {
-		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/settings/edit/".$item["id"]."/?return=front","icon" => "setup","title" => "Edit in Developer");
+	if (Auth::user()->Level > 1) {
+		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/settings/edit/".$setting->ID."/?return=front",
+											"icon" => "setup",
+											"title" => "Edit in Developer"
+		);
 	}
 
 	$bigtree["field_types"] = FieldType::reference(false,"settings");
@@ -25,18 +29,18 @@
 ?>
 <div class="container">
 	<summary>
-		<h2><?=$item["name"]?></h2>
-		<?php if ($admin->Level > 1) { ?>
-		<a class="button" href="<?=ADMIN_ROOT?>developer/settings/edit/<?=$item["id"]?>/?return=front"><?=Text::translate("Edit in Developer")?></a>
+		<h2><?=$setting->Name?></h2>
+		<?php if (Auth::user()->Level > 1) { ?>
+		<a class="button" href="<?=ADMIN_ROOT?>developer/settings/edit/<?=$setting->ID?>/?return=front"><?=Text::translate("Edit in Developer")?></a>
 		<?php } ?>
 	</summary>
 	<form class="module" action="<?=ADMIN_ROOT?>settings/update/" method="post" enctype="multipart/form-data">
-		<input type="hidden" name="MAX_FILE_SIZE" value="<?=Storage::getUploadMaxFilesize()?>" />
+		<input type="hidden" name="MAX_FILE_SIZE" value="<?=Storage::getUploadMaxFileSize()?>" />
 		<input type="hidden" name="_bigtree_post_check" value="success" />
 		<input type="hidden" name="id" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />
 		<section>
 			<?php
-				if ($item["encrypted"]) {
+				if ($setting->Encrypted) {
 			?>
 			<div class="alert">
 				<span></span>
@@ -52,7 +56,7 @@
 			<?php
 				}
 
-				echo $item["description"];
+				echo $setting->Description;
 			?>
 			<div class="form_fields">
 				<?php
@@ -60,12 +64,12 @@
 					$bigtree["simple_html_fields"] = array();
 					
 					$field = new Field(array(
-						"type" => $item["type"],
+						"type" => $setting->Type,
 						"title" => "",
 						"subtitle" => "",
 						"key" => "value",
 						"tabindex" => 1,
-						"options" => json_decode($item["options"],true),
+						"options" => $setting->Settings,
 						"value" => $value
 					));
 

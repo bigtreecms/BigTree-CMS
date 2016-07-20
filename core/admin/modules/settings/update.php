@@ -9,7 +9,7 @@
 	
 	$admin->Auth->requireLevel(1);
 	$item = $admin->getSetting($_POST["id"]);
-	if ($item["system"] || ($item["locked"] && $admin->Level < 2)) {
+	if ($item["system"] || ($item["locked"] && Auth::user()->Level < 2)) {
 		Utils::growl("Settings","Access Denied","error");
 	} else {
 		$bigtree["crops"] = array();

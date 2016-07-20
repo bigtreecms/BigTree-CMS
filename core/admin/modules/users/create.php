@@ -24,8 +24,8 @@
 		}
 
 		// Don't let them exceed permission level
-		if ($admin->Level < intval($level)) {
-			$level = $admin->Level;
+		if (Auth::user()->Level < intval($level)) {
+			$level = Auth::user()->Level;
 		}
 
 		$user = User::create($email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest);

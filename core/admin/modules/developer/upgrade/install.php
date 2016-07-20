@@ -1,6 +1,10 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global Updater $updater
+	 */
+	
 	if (!$updater->extract()) {
 ?>
 <div class="container">
@@ -29,33 +33,34 @@
 			}
 			
 			// Try to login
-			if (!$updater->ftpLogin($_POST["username"],$_POST["password"])) {
+			if (!$updater->ftpLogin($_POST["username"], $_POST["password"])) {
 				Utils::growl("Developer","Login Failed","error");
 				Router::redirect(DEVELOPER_ROOT."upgrade/login/?type=".$_POST["type"]);
 			}
 			
 			// Try to get the FTP root
-			$ftp_root = $updater->getFTPRoot($_POST["username"],$_POST["password"]);
- 			if ($ftp_root === false) {
+			$ftp_root = $updater->getFTPRoot();
+ 			
+			if ($ftp_root === false) {
 				$_SESSION["bigtree_admin"]["ftp"] = array("username" => $_POST["username"],"password" => $_POST["password"]);
-				$saved_root = htmlspecialchars($cms->getSetting("bigtree-internal-ftp-upgrade-root"));
+				$saved_root = htmlspecialchars(Setting::value("bigtree-internal-ftp-upgrade-root"));
 ?>
 <form method="post" action="<?=DEVELOPER_ROOT?>upgrade/set-ftp-directory/">
 	<div class="container">
 		<summary><h2><?=Text::translate("Upgrade BigTree")?></h2></summary>
 		<section>
-			<p><?=Text::translate("BigTree could not automatically detect the :update_method: directory that it is installed in (or BigTree was not found in the directory entered below). Please enter the full :update_method: path below. This would be the directory that contains /core/.", false, array(":update_method:" => $method))?></p>
+			<p><?=Text::translate("BigTree could not automatically detect the :update_method: directory that it is installed in (or BigTree was not found in the directory entered below). Please enter the full :update_method: path below. This would be the directory that contains /core/.", false, array(":update_method:" => $updater->Method))?></p>
 			<hr />
 			<?php if ($saved_root) { ?>
 			<p class="error_message"><?=Text::translate("A BigTree installation could not be found in <code>:directory:</code>", false, array(":directory:" => $saved_root))?></p>
 			<?php } ?>
 			<fieldset>
-				<label><?=Text::translate(":update_method: Path", false, array(":update_method:" => $method))?></label>
+				<label><?=Text::translate(":update_method: Path", false, array(":update_method:" => $updater->Method))?></label>
 				<input type="text" name="ftp_root" value="<?=$saved_root?>" />
 			</fieldset>
 		</section>
 		<footer>
-			<input type="submit" class="button blue" value="<?=Text::translate("Set :update_method: Directory", true, array(":update_method:" => $method))?>" />
+			<input type="submit" class="button blue" value="<?=Text::translate("Set :update_method: Directory", true, array(":update_method:" => $updater->Method))?>" />
 		</footer>
 	</div>
 </form>

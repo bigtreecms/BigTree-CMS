@@ -30,7 +30,7 @@
 	<p><span>Uploaded</span><strong><?=date("n/j/y @ g:ia",strtotime($file["date"]))?></strong></p>
 </div>
 <?php
-	if ($admin->Level) {
+	if (Auth::user()->Level) {
 ?>
 <div class="file_browser_detail_actions">
 	<a href="#" data-replace="<?=$file["id"]?>" class="button replace">Replace</a>

@@ -76,7 +76,7 @@
 				return false;
 			}
 
-			$callouts = SQL::fetchAll("SELECT * FROM bigtree_callouts WHERE level <= ? ORDER BY $sort", $admin->Level);
+			$callouts = SQL::fetchAll("SELECT * FROM bigtree_callouts WHERE level <= ? ORDER BY $sort", Auth::user()->Level);
 
 			// Return objects
 			if (!$return_arrays) {
@@ -126,7 +126,7 @@
 						$ids[] = $callout_id;
 
 						// If we're looking at only the ones the user is allowed to access, check levels
-						if (!$auth || $admin->Level >= $callout["level"]) {
+						if (!$auth || Auth::user()->Level >= $callout["level"]) {
 							$callouts[] = $callout;
 							$names[] = $callout["name"];
 						}

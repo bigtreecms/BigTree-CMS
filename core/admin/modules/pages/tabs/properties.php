@@ -26,7 +26,7 @@
 			"expire_at" => "",
 			"max_age" => "",
 			"trunk" => "",
-			"in_nav" => ($parent_to_check > 0 || $admin->Level > 1) ? "on" : "",
+			"in_nav" => ($parent_to_check > 0 || Auth::user()->Level > 1) ? "on" : "",
 			"external" => "",
 			"new_window" => "",
 			"template" => isset($basic_templates[0]) ? $basic_templates[0]["id"] : $routed_templates[0]["id"],
@@ -85,7 +85,7 @@
 </div>
 <div class="contain">
 	<fieldset class="float_margin">
-		<?php if ($parent_to_check > 0 || $admin->Level > 1) { ?>
+		<?php if ($parent_to_check > 0 || Auth::user()->Level > 1) { ?>
 		<input type="checkbox" name="in_nav" <?php if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <?php } ?>class="checkbox" tabindex="7" />
 		<label class="for_checkbox"><?=Text::translate("Visible In Navigation")?></label>
 		<?php } else { ?>
@@ -102,7 +102,7 @@
 	</fieldset>
 	<?php
 		}
-		if ($admin->Level > 1 && ($bigtree["form_action"] == "create" || $bigtree["current_page"]["id"])) {
+		if (Auth::user()->Level > 1 && ($bigtree["form_action"] == "create" || $bigtree["current_page"]["id"])) {
 	?>
 	<fieldset class="float_margin">
 		<input type="checkbox" name="trunk" <?php if ($bigtree["current_page"]["trunk"]) { ?>checked="checked" <?php } ?> tabindex="6" />

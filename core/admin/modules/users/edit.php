@@ -6,7 +6,7 @@
 	$user = $admin->getUser(end($bigtree["commands"]));
 
 	// Stop if this is a 404 or the user is editing someone higher than them.
-	if (!$user || $user["level"] > $admin->Level) {
+	if (!$user || $user["level"] > Auth::user()->Level) {
 		$admin->stop("The user you are trying to edit no longer exists or you are not allowed to edit this user.",
 					 Router::getIncludePath("admin/layouts/_error.php"));
 	}
@@ -171,7 +171,7 @@
 					<select name="level" tabindex="5" id="user_level">
 						<option value="0"<?php if ($user["level"] == "0") { ?> selected="selected"<?php } ?>><?=Text::translate("Normal User")?></option>
 						<option value="1"<?php if ($user["level"] == "1") { ?> selected="selected"<?php } ?>><?=Text::translate("Administrator")?></option>
-						<?php if ($admin->Level > 1) { ?><option value="2"<?php if ($user["level"] == "2") { ?> selected="selected"<?php } ?>><?=Text::translate("Developer")?></option><?php } ?>
+						<?php if (Auth::user()->Level > 1) { ?><option value="2"<?php if ($user["level"] == "2") { ?> selected="selected"<?php } ?>><?=Text::translate("Developer")?></option><?php } ?>
 					</select>
 				</fieldset>
 				<?php } ?>

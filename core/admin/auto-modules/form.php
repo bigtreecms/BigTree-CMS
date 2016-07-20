@@ -22,7 +22,7 @@
 	$bigtree["form"] = $form->Array;
 	
 	// Provide developers a nice handy link for edit/return of this form
-	if ($admin->Level > 1) {
+	if (Auth::user()->Level > 1) {
 		$bigtree["subnav_extras"][] = array(
 			"link" => ADMIN_ROOT."developer/modules/forms/edit/".$form->ID."/?return=front",
 			"icon" => "setup",

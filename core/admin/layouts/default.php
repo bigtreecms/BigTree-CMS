@@ -108,7 +108,7 @@
 				<strong><?=Text::translate($bigtree["page"]["related"]["title"])?></strong>
 				<?php
 					foreach ($bigtree["page"]["related"]["nav"] as $item) {
-						if ($item["level"] <= $admin->Level) {
+						if ($item["level"] <= Auth::user()->Level) {
 				?>
 				<a href="<?=ADMIN_ROOT.$item["link"]?>/"><?=Text::translate($item["title"])?></a>
 				<?php
@@ -150,7 +150,7 @@
 			}
 			// Draw the nav.
 			foreach ($bigtree["page"]["navigation"] as $item) {
-				if (!$item["hidden"] && (!$item["level"] || $item["level"] <= $admin->Level)) {
+				if (!$item["hidden"] && (!$item["level"] || $item["level"] <= Auth::user()->Level)) {
 					$get_string = "";
 					if (is_array($item["get_vars"]) && count($item["get_vars"])) {
 						$get_string = "?";
@@ -170,7 +170,7 @@
 				<?php
 					if (is_array($bigtree["subnav_extras"])) {
 						foreach ($bigtree["subnav_extras"] as $link) {
-							if ($admin->Level >= $link["level"]) {
+							if (Auth::user()->Level >= $link["level"]) {
 				?>
 				<a href="<?=$link["link"]?>"><span class="icon_small icon_small_<?=$link["icon"]?>"></span><?=Text::translate($link["title"])?></a>
 				<?php

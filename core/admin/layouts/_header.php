@@ -155,7 +155,7 @@
 					<?php
 						$x = -1;
 						foreach ($nav as $item) {
-							if ($admin->Level >= $item["access"] && (!$admin->HidePages || $item["link"] != "pages")) {
+							if (Auth::user()->Level >= $item["access"] && (!$admin->HidePages || $item["link"] != "pages")) {
 								$x++;
 								// Need to check custom nav states better
 								$link_pieces = explode("/",$item["link"]);
@@ -167,7 +167,7 @@
 						<ul>
 							<?php
 								foreach ($item["children"] as $child) {
-									if ($admin->Level >= $child["access"]) {
+									if (Auth::user()->Level >= $child["access"]) {
 										if (isset($child["group"]) && count($child["children"])) {
 							?>
 							<li class="grouper"><?=Text::translate($child["title"])?></li>

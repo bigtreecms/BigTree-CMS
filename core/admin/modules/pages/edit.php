@@ -18,7 +18,7 @@
 	$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/audit/search/?table=bigtree_pages&entry=".$page["id"],"icon" => "trail","title" => "View Audit Trail");		
 
 	// Provide developers a nice handy link for edit/return of this form
-	if ($admin->Level > 1) {
+	if (Auth::user()->Level > 1) {
 		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/templates/edit/".$page["template"]."/?return=".$page["id"],"icon" => "setup","title" => "Edit Current Template in Developer");
 	}
 	

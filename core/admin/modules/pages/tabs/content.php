@@ -1,11 +1,15 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $page
+	 */
 ?>
 <div id="template_type">
 	<?php include Router::getIncludePath("admin/ajax/pages/get-template-form.php") ?>
 </div>
 
-<?php if (!$cms->getSetting("bigtree-internal-disable-page-tagging")) { ?>
+<?php if (!Setting::value("bigtree-internal-disable-page-tagging")) { ?>
 <div class="tags" id="bigtree_tag_browser">
 	<fieldset>
 		<label><span></span><?=Text::translate("Tags")?></label>

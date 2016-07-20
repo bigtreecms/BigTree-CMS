@@ -53,7 +53,7 @@
 	$pdata["resources"] = $_POST["resources"];
 
 	// Handle permissions on trunk
-	if ($admin->Level < 2) {
+	if (Auth::user()->Level < 2) {
 		unset($_POST["trunk"]);
 	}
 

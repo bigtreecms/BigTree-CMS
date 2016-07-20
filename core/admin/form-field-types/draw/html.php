@@ -1,5 +1,5 @@
 <?php
-	if ((isset($field["options"]["simple"]) && $field["options"]["simple"]) || (isset($field["options"]["simple_by_permission"]) && $field["options"]["simple_by_permission"] > $admin->Level)) {
+	if ((isset($field["options"]["simple"]) && $field["options"]["simple"]) || (isset($field["options"]["simple_by_permission"]) && $field["options"]["simple_by_permission"] > Auth::user()->Level)) {
 		$bigtree["simple_html_fields"][] = $field["id"];
 	} else {
 		$bigtree["html_fields"][] = $field["id"];

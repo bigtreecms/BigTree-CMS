@@ -4,7 +4,7 @@
 	$users = $admin->getUsers();
 	$user_data = array();
 	foreach ($users as $user) {
-		if ($user["level"] <= $admin->Level) {
+		if ($user["level"] <= Auth::user()->Level) {
 			$user["gravatar"] = Image::gravatar($user["email"],36);
 			$user_data[] = $user;
 		}

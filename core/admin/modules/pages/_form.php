@@ -6,7 +6,7 @@
 	
 	// See if the user isn't allowed to use the currently in use template. If they can't, we hide the section altogether.
 	$hide_template_section = false;
-	if (is_array($template_data) && $template_data["level"] > $admin->Level) {
+	if (is_array($template_data) && $template_data["level"] > Auth::user()->Level) {
 		$hide_template_section = true;
 	}
 ?>

@@ -38,7 +38,7 @@
 					<select name="level" tabindex="5">
 						<option value="0"><?=Text::translate("Normal User")?></option>
 						<option value="1"<?php if ($level == 1) { ?> selected="selected"<?php } ?>><?=Text::translate("Administrator")?></option>
-						<?php if ($admin->Level > 1) { ?><option value="2"<?php if ($level == 2) { ?> selected="selected"<?php } ?>><?=Text::translate("Developer")?></option><?php } ?>
+						<?php if (Auth::user()->Level > 1) { ?><option value="2"<?php if ($level == 2) { ?> selected="selected"<?php } ?>><?=Text::translate("Developer")?></option><?php } ?>
 					</select>
 				</fieldset>
 			</div>

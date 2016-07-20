@@ -3,7 +3,7 @@
 	
 	// Check whether our database is running the latest revision of BigTree or not.
 	$current_revision = Setting::value("bigtree-internal-revision");
-	if ($current_revision < BIGTREE_REVISION && $admin->Level > 1) {
+	if ($current_revision < BIGTREE_REVISION && Auth::user()->Level > 1) {
 		Router::redirect(ADMIN_ROOT."developer/upgrade/database/");
 	}
 
