@@ -187,6 +187,28 @@
 
 			return true;
 		}
+		
+		/*
+			Function: exists
+				Determines whether an object exists for a given id.
+
+			Parameters:
+				id - The object ID to check for.
+
+			Returns:
+				1 if the setting exists, otherwise 0.
+		*/
+		
+		static function exists($id) {
+			// Must have a static Table var.
+			if (empty(static::$Table)) {
+				trigger_error('Method "exists" must be called from a subclass where the static variable $Table has been set.', E_USER_ERROR);
+				
+				return false;
+			}
+			
+			return SQL::exists(static::$Table, $id);
+		}
 
 		/*
 			Function: inherit

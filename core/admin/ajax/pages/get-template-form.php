@@ -1,7 +1,12 @@
 <?php
 	namespace BigTree;
+
+	/**
+	 * @global array $bigtree
+	 */
 	
 	$template_id = $bigtree["current_page"]["template"];
+
 	if (isset($_POST["page"])) {
 		$template_id = $_POST["template"];
 		$bigtree["current_page"] = $cms->getPendingPage($_POST["page"]);

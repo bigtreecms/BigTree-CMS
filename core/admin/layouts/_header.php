@@ -37,7 +37,7 @@
 	
 	$unread_messages = $admin->getUnreadMessageCount();
 	$unread_message_string = Text::translate(":count: Unread Message".(($unread_messages == 1) ? "" : "s"), false, array(":count:" => $unread_messages));
-	$site = $cms->getPage(0,false);
+	$site = new Page(0, false);
 
 	// Show an alert for being on the development site of a live site, in maintenance mode, or in developer mode
 	$environment_alert = false;
@@ -58,7 +58,7 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="robots" content="noindex,nofollow" />
-		<title><?php if (isset($bigtree["admin_title"])) { ?><?=Text::htmlEncode($bigtree["admin_title"])?> | <?php } ?><?=$site["nav_title"]?> <?=Text::translate("Admin")?></title>
+		<title><?php if (isset($bigtree["admin_title"])) { ?><?=Text::htmlEncode($bigtree["admin_title"])?> | <?php } ?><?=$site->NavigationTitle?> <?=Text::translate("Admin")?></title>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.less" type="text/css" media="screen" />
 		<?php
 			// Configuration based CSS
@@ -145,7 +145,7 @@
 				<p class="messages"><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_message_string?></a></p>
 				<div></div>
 				<p class="welcome"><span class="gravatar"><img src="<?=Image::gravatar($admin->User, 28)?>" alt="" /></span><?=Text::translate("Welcome Back")?> <a href="<?=ADMIN_ROOT?>users/profile/"><?=$admin->Name?></a></p>
-				<strong><?=$site["nav_title"]?></strong>
+				<strong><?=$site->NavigationTitle?></strong>
 				<a href="<?=WWW_ROOT?>" target="_blank" class="view_site"><?=Text::translate("View Site")?></a>
 			</section>
 		</header>
@@ -162,7 +162,7 @@
 								$path_pieces = array_slice($bigtree["path"],1,count($link_pieces));
 					?>
 					<li>
-						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<?php if ($link_pieces == $path_pieces || ($item["link"] == "modules" && isset($bigtree["module"]))) { $bigtree["active_nav_item"] = $x; ?> class="active"<?php } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=Text::translate($item["title"])?></a>
+						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<?php if ($link_pieces == $path_pieces || ($item["link"] == "modules" && isset($bigtree["module"]))) { $bigtree["active_nav_item"] = $x; ?> class="active"<?php } ?>><span class="<?=Link::urlify($item["title"])?>"></span><?=Text::translate($item["title"])?></a>
 						<?php if (isset($item["children"]) && count($item["children"])) { ?>
 						<ul>
 							<?php

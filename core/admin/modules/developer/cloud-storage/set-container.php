@@ -24,7 +24,7 @@
 		$x = 0;
 		$success = false;
 		while (!$success && $x < 10) {
-			$container = $cms->urlify(uniqid("bigtree-container-",true));
+			$container = Link::urlify(uniqid("bigtree-container-",true));
 			$success = $cloud->createContainer($container,true);
 			$x++;
 		}
@@ -39,6 +39,7 @@
 
 	// Get a list of files
 	$container = $cloud->getContainer($storage->Settings["Container"],true);
+	
 	if ($container === false) {
 		Utils::growl("Developer","Failed to read container.","error");
 		Router::redirect(DEVELOPER_ROOT."cloud-storage/");
@@ -51,5 +52,4 @@
 	$storage->Setting->save();
 
 	Utils::growl("Developer","Changed Default Storage");
-
 	Router::redirect(DEVELOPER_ROOT."cloud-storage/");

@@ -1221,7 +1221,7 @@
 				user - Optional User object to check permissions for (defaults to logged in user)
 			
 			Returns:
-				A permission level ("p" for publisher, "e" for editor, "n" for none)
+				A permission level ("p" for publisher, "e" for editor, false for none)
 		*/
 		
 		function getUserAccessLevel($user = false) {

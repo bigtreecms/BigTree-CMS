@@ -23,7 +23,7 @@
 		);
 		
 		$x = 2;
-		$field_name = str_replace(array("`","-"),array("","_"),$cms->urlify($ft));
+		$field_name = str_replace(array("`","-"),array("","_"),Link::urlify($ft));
 		$ofn = $field_name;
 		while (isset($fields[$field_name]) && !in_array($field_name,$reserved)) {
 			$field_name = $ofn.$x;

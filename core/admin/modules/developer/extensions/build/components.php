@@ -1,5 +1,15 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $callouts
+	 * @global array $feeds
+	 * @global array $field_types
+	 * @global string $id
+	 * @global array $modules
+	 * @global array $settings
+	 * @global array $templates
+	 */
 ?>
 <div class="container">
 	<header><p><?=Text::translate("Add modules, templates, callouts, field types, feeds, and settings to your extension.")?></p></header>
@@ -10,14 +20,14 @@
 					<strong><?=Text::translate("Modules")?></strong>
 					<ul>
 						<?php
-							foreach ((array)$modules as $mid) {
-								$module = $admin->getModule($mid);
-								if ($module) {
+							foreach ((array) $modules as $module_id) {
+								if (Module::exists($module_id)) {
+									$module = new Module($module_id);
 						?>
 						<li>
-							<input type="hidden" name="modules[]" value="<?=$mid?>" />
+							<input type="hidden" name="modules[]" value="<?=$module_id?>" />
 							<a href="#" class="icon_small icon_small_delete"></a>
-							<span><?=$module["name"]?></span>
+							<span><?=$module->Name?></span>
 						</li>
 						<?php
 								}
@@ -28,18 +38,20 @@
 						<a href="#"></a>
 						<select class="custom_control" data-key="modules">
 							<?php
-								$groups = $admin->getModuleGroups("name ASC");
+								$groups = ModuleGroup::all("name ASC");
 								$groups[] = array("id" => "0", "name" => "Ungrouped");
-								foreach ($groups as $g) {
-									$modules = $admin->getModulesByGroup($g["id"],"name ASC");
+								
+								foreach ($groups as $group_id) {
+									$modules = Module::allByGroup($group_id["id"], "name ASC");
+									
 									if (count($modules)) {
 							?>
-							<optgroup label="<?=$g["name"]?>">
+							<optgroup label="<?=$group_id["name"]?>">
 								<?php
-										foreach ($modules as $m) {
-											if (!$m["extension"] || $m["extension"] == $id) {
+										foreach ($modules as $module) {
+											if (!$module->Extension || $module->Extension == $id) {
 								?>
-								<option value="<?=$m["id"]?>"<?php if ($m["id"] == $module) { ?> selected="selected"<?php } ?>><?=$m["name"]?></option>
+								<option value="<?=$module->ID?>"><?=$module->Name?></option>
 								<?php
 											}
 										}
@@ -56,14 +68,14 @@
 					<strong><?=Text::translate("Templates")?></strong>
 					<ul>
 						<?php
-							foreach ((array)$templates as $tid) {
-								$template = $cms->getTemplate($tid);
-								if ($template) {
+							foreach ((array) $templates as $template_id) {
+								if (Template::exists($template_id)) {
+									$template = new Template($template_id);
 						?>
 						<li>
-							<input type="hidden" name="templates[]" value="<?=$tid?>" />
+							<input type="hidden" name="templates[]" value="<?=$template_id?>" />
 							<a href="#" class="icon_small icon_small_delete"></a>
-							<span><?=$template["name"]?></span>
+							<span><?=$template->Name?></span>
 						</li>
 						<?php
 								}
@@ -75,11 +87,12 @@
 						<select class="custom_control" data-key="templates">
 							<optgroup label="Basic Templates">
 								<?php
-									$templates = $admin->getBasicTemplates("name ASC");
+									$templates = Template::allByRouted("", "name ASC");
+									
 									foreach ($templates as $template) {
-										if (!$template["extension"] || $template["extension"] == $id) {
+										if (!$template->Extension || $template->Extension == $id) {
 								?>
-								<option value="<?=$template["id"]?>"><?=$template["name"]?></option>
+								<option value="<?=$template->ID?>"><?=$template->Name?></option>
 								<?php
 										}
 									}
@@ -87,11 +100,12 @@
 							</optgroup>
 							<optgroup label="Routed Templates">
 								<?php
-									$templates = $admin->getRoutedTemplates("name ASC");
+									$templates = Template::allByRouted("on", "name ASC");
+									
 									foreach ($templates as $template) {
-										if (!$template["extension"] || $template["extension"] == $id) {
+										if (!$template->Extension || $template->Extension == $id) {
 								?>
-								<option value="<?=$template["id"]?>"><?=$template["name"]?></option>
+								<option value="<?=$template->ID?>"><?=$template->Name?></option>
 								<?php
 										}
 									}
@@ -104,14 +118,14 @@
 					<strong><?=Text::translate("Callouts")?></strong>
 					<ul>
 						<?php
-							foreach ((array)$callouts as $cid) {
-								$callout = $admin->getCallout($cid);
-								if ($callout) {
+							foreach ((array) $callouts as $callout_id) {
+								if (Callout::exists($callout_id)) {
+									$callout = new Callout($callout_id);
 						?>
 						<li>
-							<input type="hidden" name="callouts[]" value="<?=$cid?>" />
+							<input type="hidden" name="callouts[]" value="<?=$callout_id?>" />
 							<a href="#" class="icon_small icon_small_delete"></a>
-							<span><?=$callout["name"]?></span>
+							<span><?=$callout->Name?></span>
 						</li>
 						<?php
 								}
@@ -122,11 +136,12 @@
 						<a href="#"></a>
 						<select class="custom_control" data-key="callouts">
 							<?php
-								$callouts = $admin->getCallouts("name ASC");
+								$callouts = Callout::all("name ASC");
+								
 								foreach ($callouts as $callout) {
-									if (!$callout["extension"] || $callout["extension"] == $id) {
+									if (!$callout->Extension || $callout->Extension == $id) {
 							?>
-							<option value="<?=$callout["id"]?>"><?=$callout["name"]?></option>
+							<option value="<?=$callout->ID?>"><?=$callout->Name?></option>
 							<?php
 									}
 								}
@@ -140,14 +155,14 @@
 					<strong><?=Text::translate("Settings")?></strong>
 					<ul>
 						<?php
-							foreach ((array)$settings as $sid) {
-								$setting = $admin->getSetting($sid);
-								if ($setting) {
+							foreach ((array) $settings as $setting_id) {
+								if (Setting::exists($setting_id)) {
+									$setting = new Setting($setting_id);
 						?>
 						<li>
-							<input type="hidden" name="settings[]" value="<?=$sid?>" />
+							<input type="hidden" name="settings[]" value="<?=$setting_id?>" />
 							<a href="#" class="icon_small icon_small_delete"></a>
-							<span><?=$setting["name"]?></span>
+							<span><?=$setting->Name?></span>
 						</li>
 						<?php
 								}
@@ -159,11 +174,12 @@
 						<select class="custom_control" data-key="settings">
 							<optgroup label="Public">
 								<?php
-									$settings = $admin->getSettings();
+									$settings = Setting::allBySystem("", "name ASC");
+									
 									foreach ($settings as $setting) {
-										if (!$setting["extension"] || $setting["extension"] == $id) {
+										if (!$setting->Extension || $setting->Extension == $id) {
 								?>
-								<option value="<?=$setting["id"]?>"><?=$setting["name"]?></option>
+								<option value="<?=$setting->ID?>"><?=$setting->Name?></option>
 								<?php
 										}
 									}
@@ -171,11 +187,14 @@
 							</optgroup>
 							<optgroup label="System">
 								<?php
-									$settings = $admin->getSystemSettings();
+									$settings = Setting::allBySystem("on", "name ASC");
+									
 									foreach ($settings as $setting) {
+										if (!$setting->Extension || $setting->Extension == $id) {
 								?>
-								<option value="<?=$setting["id"]?>"><?=$setting["name"]?></option>
+								<option value="<?=$setting->ID?>"><?=$setting->Name?></option>
 								<?php
+										}
 									}
 								?>
 							</optgroup>
@@ -186,14 +205,14 @@
 					<strong><?=Text::translate("Feeds")?></strong>
 					<ul>
 						<?php
-							foreach ((array)$feeds as $fid) {
-								$feed = $cms->getFeed($fid);
-								if ($feed) {
+							foreach ((array) $feeds as $feed_id) {
+								if (Feed::exists($feed_id)) {
+									$feed = new Feed($feed_id);
 						?>
 						<li>
-							<input type="hidden" name="feeds[]" value="<?=$fid?>" />
+							<input type="hidden" name="feeds[]" value="<?=$feed_id?>" />
 							<a href="#" class="icon_small icon_small_delete"></a>
-							<span><?=$feed["name"]?></span>
+							<span><?=$feed->Name?></span>
 						</li>
 						<?php
 								}
@@ -204,11 +223,12 @@
 						<a href="#"></a>
 						<select class="custom_control" data-key="feeds">
 							<?php
-								$feeds = $admin->getFeeds();
+								$feeds = Feed::all("name ASC");
+								
 								foreach ($feeds as $feed) {
-									if (!$feed["extension"] || $feed["extension"] == $id) {
+									if (!$feed->Extension || $feed->Extension == $id) {
 							?>
-							<option value="<?=$feed["id"]?>"><?=$feed["name"]?></option>
+							<option value="<?=$feed->ID?>"><?=$feed->Name?></option>
 							<?php
 									}
 								}
@@ -220,14 +240,14 @@
 					<strong><?=Text::translate("Field Types")?></strong>
 					<ul>
 						<?php
-							foreach ((array)$field_types as $fid) {
-								$field_type = $admin->getFieldType($fid);
-								if ($field_type) {
+							foreach ((array) $field_types as $field_type_id) {
+								if (FieldType::exists($field_type_id)) {
+									$field_type = new FieldType($field_type_id);
 						?>
 						<li>
-							<input type="hidden" name="field_types[]" value="<?=$fid?>" />
+							<input type="hidden" name="field_types[]" value="<?=$field_type_id?>" />
 							<a href="#" class="icon_small icon_small_delete"></a>
-							<span><?=$field_type["name"]?></span>
+							<span><?=$field_type->Name?></span>
 						</li>
 						<?php
 								}
@@ -238,11 +258,12 @@
 						<a  href="#"></a>
 						<select class="custom_control" data-key="field_types">
 							<?php
-								$field_types = $admin->getFieldTypes();
+								$field_types = FieldType::all("name ASC");
+								
 								foreach ($field_types as $type) {
-									if (!$type["extension"] || $type["extension"] == $id) {
+									if (!$type->Extension || $type->Extension == $id) {
 							?>
-							<option value="<?=$type["id"]?>"><?=$type["name"]?></option>
+							<option value="<?=$type->ID?>"><?=$type->Name?></option>
 							<?php
 									}
 								}
@@ -262,17 +283,21 @@
 	$(".adder a").click(function(ev) {
 		var select = $(this).parent().find("select");
 		var el = select.get(0);
+		var li = $("<li>");
+		
 		if (el.selectedIndex < 0) {
 			return false;
 		}
-		var li = $("<li>");
+		
 		li.html('<input type="hidden" name="' + select.attr("data-key") + '[]" value="' + select.val() + '" /><a href="#" class="icon_small icon_small_delete"></a></a>' + el.options[el.selectedIndex].text);
 		$(this).parent().parent().find("ul").append(li);
+		
 		return false;
 	});
 
 	$(".package_column").on("click",".icon_small_delete",function() {
 		$(this).parent().remove();
+		
 		return false;
 	});
 </script>
