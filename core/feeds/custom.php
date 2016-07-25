@@ -1,28 +1,27 @@
 <?php
 	namespace BigTree;
 
-	$sort = $feed["options"]["sort"] ? $feed["options"]["sort"] : "id DESC";
-	$limit = $feed["options"]["limit"] ? $feed["options"]["limit"] : "15";
-	$query = SQL::query("SELECT * FROM `".$feed["table"]."` ORDER BY $sort LIMIT $limit");
+	/**
+	 * @global Feed $feed
+	 */
+
+	$sort = $feed->Settings["sort"] ? $feed->Settings["sort"] : "id DESC";
+	$limit = $feed->Settings["limit"] ? $feed->Settings["limit"] : "15";
+	$query = SQL::query("SELECT * FROM `".$feed->Table."` ORDER BY $sort LIMIT $limit");
 ?><feed>
 	<?php
 		while ($item = $query->fetch()) {
 			foreach ($item as $key => $val) {
-				$array_val = @json_decode($val,true);
-
-				if (is_array($array_val)) {
-					$item[$key] = Link::decode($array_val);
-				} else {
-					$item[$key] = $cms->replaceInternalPageLinks($val);
-				}
+				$array_val = @json_decode($val, true);
+				$item[$key] = Link::decode(is_array($array_val) ? $array_val : $val);
 			}
 	?>
 	<item>
 		<?php
-			foreach ($feed["fields"] as $key => $options) {
+			foreach ($feed->Fields as $key => $options) {
 				$value = $item[$key];
 				if ($options["parser"]) {
-					$value = Module::runParser($item,$value,$options["parser"]);
+					$value = Module::runParser($item, $value, $options["parser"]);
 				}
 
 				// If there's a title, use it for a key
