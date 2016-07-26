@@ -1,3 +1,5 @@
 <?php
-	$admin->Auth->requireLevel(1);
+	namespace BigTree;
+	
+	Auth::user()->requireLevel(1);
 	

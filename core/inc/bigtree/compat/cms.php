@@ -3,13 +3,13 @@
 		Class: BigTreeCMS
 			The primary interface to BigTree that is used by the front end of the site for pulling settings, navigation, and page content.
 	*/
-
+	
 	use BigTree\SQL;
-
+	
 	class BigTreeCMSBase {
-
+		
 		public static $BreadcrumbTrunk;
-
+		
 		/*
 			Constructor:
 				Builds caches, sets up auto loaders, loads required files.
@@ -17,25 +17,25 @@
 		
 		function __construct() {
 			global $bigtree;
-
+			
 			// Turn on debugging if we're in debug mode.
 			if ($bigtree["config"]["debug"] === "full") {
 				error_reporting(E_ALL);
-				ini_set("display_errors","on");
-				require_once(BigTree\Router::getIncludePath("inc/lib/kint/Kint.class.php")); 
+				ini_set("display_errors", "on");
+				require_once(BigTree\Router::getIncludePath("inc/lib/kint/Kint.class.php"));
 			} elseif ($bigtree["config"]["debug"]) {
 				error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT);
-				ini_set("display_errors","on");
+				ini_set("display_errors", "on");
 				require_once(BigTree\Router::getIncludePath("inc/lib/kint/Kint.class.php"));
 			} else {
-				ini_set("display_errors","off");
+				ini_set("display_errors", "off");
 			}
-		
+			
 			// Build caches
 			BigTree\Module::buildCaches();
-		
+			
 			// Lazy loading of modules
-			$bigtree["class_list"] = array_merge(BigTree\Module::$ClassCache,array(
+			$bigtree["class_list"] = array_merge(BigTree\Module::$ClassCache, array(
 				"BigTree" => "inc/bigtree/compat/utils.php",
 				"BigTreeAdminBase" => "inc/bigtree/compat/admin.php",
 				"BigTreeAutoModule" => "inc/bigtree/compat/auto-modules.php",
@@ -68,12 +68,12 @@
 				"TextStatistics" => "inc/lib/text-statistics.php",
 				"lessc" => "inc/lib/less-compiler.php"
 			));
-
+			
 			// Load everything in the custom extras folder.
 			$directory_handle = opendir(SERVER_ROOT."custom/inc/required/");
 			$custom_required_includes = array();
 			while ($file = readdir($directory_handle)) {
-				if (substr($file,0,1) != "." && !is_dir(SERVER_ROOT."custom/inc/required/$file")) {
+				if (substr($file, 0, 1) != "." && !is_dir(SERVER_ROOT."custom/inc/required/$file")) {
 					$custom_required_includes[] = SERVER_ROOT."custom/inc/required/$file";
 				}
 			}
@@ -82,12 +82,12 @@
 			foreach ($custom_required_includes as $file) {
 				include $file;
 			}
-		
+			
 			foreach (BigTree\Extension::$RequiredFiles as $file) {
 				include $file;
 			}
 		}
-
+		
 		/*
 			Function: cacheDelete
 				Deletes data from BigTree's cache table.
@@ -96,11 +96,11 @@
 				identifier - Uniquid identifier for your data type (i.e. org.bigtreecms.geocoding)
 				key - The key for your data (if no key is passed, deletes all data for a given identifier)
 		*/
-
-		static function cacheDelete($identifier,$key = false) {
-			BigTree\Cache::delete($identifier,$key);
+		
+		static function cacheDelete($identifier, $key = false) {
+			BigTree\Cache::delete($identifier, $key);
 		}
-
+		
 		/*
 			Function: cacheGet
 				Retrieves data from BigTree's cache table.
@@ -114,11 +114,11 @@
 			Returns:
 				Data from the table (json decoded, objects convert to keyed arrays) if it exists.
 		*/
-
-		static function cacheGet($identifier,$key,$max_age = false,$decode = true) {
-			return BigTree\Cache::get($identifier,$key,$max_age,$decode);
+		
+		static function cacheGet($identifier, $key, $max_age = false, $decode = true) {
+			return BigTree\Cache::get($identifier, $key, $max_age, $decode);
 		}
-
+		
 		/*
 			Function: cachePut
 				Puts data into BigTree's cache table.
@@ -132,11 +132,11 @@
 			Returns:
 				True if successful, false if the indentifier/key combination already exists and replace was set to false.
 		*/
-
-		static function cachePut($identifier,$key,$value,$replace = true) {
-			return BigTree\Cache::put($identifier,$key,$value,$replace);
+		
+		static function cachePut($identifier, $key, $value, $replace = true) {
+			return BigTree\Cache::put($identifier, $key, $value, $replace);
 		}
-
+		
 		/*
 			Function: cacheUnique
 				Puts data into BigTree's cache table with a random unqiue key and returns the key.
@@ -148,9 +148,9 @@
 			Returns:
 				They unique cache key.
 		*/
-
-		static function cacheUnique($identifier,$value) {
-			return BigTree\Cache::putUnique($identifier,$value);
+		
+		static function cacheUnique($identifier, $value) {
+			return BigTree\Cache::putUnique($identifier, $value);
 		}
 		
 		/*
@@ -185,7 +185,7 @@
 			Returns:
 				An array of resources.
 		*/
-
+		
 		static function decodeResources($data) {
 			return BigTree\Page::decodeResources($data);
 		}
@@ -199,7 +199,7 @@
 			header("Content-type: text/xml");
 			echo BigTree\Sitemap::getXML();
 		}
-
+		
 		/*
 			Function: extensionSettingCheck
 				Checks to see if we're in an extension and if we're requesting a setting attached to it.
@@ -211,7 +211,7 @@
 			Returns:
 				An extension setting ID if one is found.
 		*/
-
+		
 		static function extensionSettingCheck($id) {
 			return BigTree\Setting::context($id);
 		}
@@ -232,7 +232,8 @@
 		
 		static function getBreadcrumb($ignore_trunk = false) {
 			global $bigtree;
-			return BigTree\Page::getBreadcrumbForPage($bigtree["page"],$ignore_trunk);
+			
+			return BigTree\Page::getBreadcrumbForPage($bigtree["page"], $ignore_trunk);
 		}
 		
 		/*
@@ -251,8 +252,8 @@
 				<getBreadcrumb>
 		*/
 		
-		static function getBreadcrumbByPage($page,$ignore_trunk = false) {
-			return BigTree\Page::getBreadcrumbForPage($page,$ignore_trunk);
+		static function getBreadcrumbByPage($page, $ignore_trunk = false) {
+			return BigTree\Page::getBreadcrumbForPage($page, $ignore_trunk);
 		}
 		
 		/*
@@ -273,6 +274,7 @@
 			$feed = new BigTree\Feed($item);
 			$feed = $feed->Array;
 			$feed["options"] = $feed["settings"];
+			
 			return $feed;
 		}
 		
@@ -291,7 +293,7 @@
 		*/
 		
 		static function getFeedByRoute($route) {
-			return static::getFeed(SQL::fetch("SELECT * FROM bigtree_feeds WHERE route = ?",$route));
+			return static::getFeed(SQL::fetch("SELECT * FROM bigtree_feeds WHERE route = ?", $route));
 		}
 		
 		/*
@@ -309,7 +311,7 @@
 		*/
 		
 		static function getHiddenNavByParent($parent = 0) {
-			return static::getNavByParent($parent,1,false,true);
+			return static::getNavByParent($parent, 1, false, true);
 		}
 		
 		/*
@@ -356,9 +358,9 @@
 			Returns:
 				A multi-level navigation array containing "id", "parent", "title", "route", "link", "new_window", and "children"
 		*/
-			
-		static function getNavByParent($parent = 0,$levels = 1,$follow_module = true,$only_hidden = false) {
-			return BigTree\Navigation::getLevel($parent, $levels,$follow_module,$only_hidden);
+		
+		static function getNavByParent($parent = 0, $levels = 1, $follow_module = true, $only_hidden = false) {
+			return BigTree\Navigation::getLevel($parent, $levels, $follow_module, $only_hidden);
 		}
 		
 		/*
@@ -374,8 +376,8 @@
 				An array containing the page ID and any additional commands.
 		*/
 		
-		static function getNavId($path,$previewing = false) {
-			return BigTree\Router::routeToPage($path,$previewing);
+		static function getNavId($path, $previewing = false) {
+			return BigTree\Router::routeToPage($path, $previewing);
 		}
 		
 		/*
@@ -390,10 +392,10 @@
 				A page array from the database.
 		*/
 		
-		static function getPage($id,$decode = true) {
-			$page = new BigTree\Page($id,$decode);
+		static function getPage($id, $decode = true) {
+			$page = new BigTree\Page($id, $decode);
 			$page = $page->Array;
-
+			
 			// Backwards compatibility stuff
 			$page["nav_title"] = $page["navigation_title"];
 			
@@ -407,7 +409,7 @@
 					$page["callouts"] = array();
 				}
 			}
-
+			
 			return $page;
 		}
 		
@@ -424,15 +426,15 @@
 				A page array from the database.
 		*/
 		
-		static function getPendingPage($id,$decode = true,$return_tags = false) {
+		static function getPendingPage($id, $decode = true, $return_tags = false) {
 			$pageObject = BigTree\Page::getPageDraft($id);
 			$page = $pageObject->Array;
-
+			
 			// Changes Applied means the tags are already there
 			if ($return_tags && !$pageObject->ChangesApplied) {
 				$page["tags"] = $pageObject->Tags;
 			}
-
+			
 			// Turn tags into arrays
 			if (is_array($page["tags"])) {
 				foreach ($page["tags"] as $key => $tag) {
@@ -440,12 +442,12 @@
 					$page["tags"][$key]["tag"] = $page["tags"][$key]["name"];
 				}
 			}
-
+			
 			// Remove ChangesApplied if it's not true
 			if (!$pageObject->ChangesApplied) {
 				unset($page["changes_applied"]);
 			}
-
+			
 			return $page;
 		}
 		
@@ -476,7 +478,7 @@
 				An array of related pages sorted by relevance (how many tags get matched).
 		*/
 		
-		static function getRelatedPagesByTags($tags = array(),$only_id = false) {
+		static function getRelatedPagesByTags($tags = array(), $only_id = false) {
 			return BigTree\Page::allByTags($tags, $only_id ? "id" : "array");
 		}
 		
@@ -524,6 +526,7 @@
 		
 		static function getTag($id) {
 			$tag = new BigTree\Tag($id);
+			
 			return $tag->Array;
 		}
 		
@@ -540,6 +543,7 @@
 		
 		static function getTagByRoute($route) {
 			$tag = BigTree\Tag::getByRoute($route);
+			
 			return $tag ? $tag->Array : false;
 		}
 		
@@ -555,7 +559,8 @@
 		*/
 		
 		static function getTagsForPage($page) {
-			$page = new BigTree\Page($page,false);
+			$page = new BigTree\Page($page, false);
+			
 			return $page->Tags;
 		}
 		
@@ -572,6 +577,7 @@
 		
 		static function getTemplate($id) {
 			$template = new BigTree\Template($id);
+			
 			return $template->Array;
 		}
 		
@@ -593,6 +599,7 @@
 		static function getTopLevelNavigationId($trunk_as_toplevel = false) {
 			global $bigtree;
 			$page = new BigTree\Page($bigtree["page"]);
+			
 			return $page->getTopLevelPageID($trunk_as_toplevel);
 		}
 		
@@ -612,8 +619,9 @@
 			
 		*/
 		
-		static function getTopLevelNavigationIdForPage($page,$trunk_as_toplevel = false) {
+		static function getTopLevelNavigationIdForPage($page, $trunk_as_toplevel = false) {
 			$page = new BigTree\Page($page);
+			
 			return $page->getTopLevelPageID($trunk_as_toplevel);
 		}
 		
@@ -649,11 +657,11 @@
 			Returns:
 				A string with relative roots.
 		*/
-
+		
 		static function replaceHardRoots($string) {
 			return BigTree\Link::tokenize($string);
 		}
-
+		
 		/*
 			Function: replaceInternalPageLinks
 				Replaces the internal page links in an HTML block with hard links.
@@ -679,11 +687,11 @@
 			Returns:
 				A string with hard links.
 		*/
-
+		
 		static function replaceRelativeRoots($string) {
 			return BigTree\Link::detokenize($string);
 		}
-
+		
 		/*
 			Function: urlify
 				Turns a string into one suited for URL routes.
@@ -694,7 +702,7 @@
 			Returns:
 				A string suited for a URL route.
 		*/
-
+		
 		static function urlify($title) {
 			return BigTree\Link::urlify($title);
 		}

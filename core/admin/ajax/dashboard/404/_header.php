@@ -1,6 +1,5 @@
 <?php
-	/**
-	 * @global BigTreeAdmin $admin
-	 */
+	namespace BigTree;
 
-	$admin->Auth->requireLevel(1);
+	Auth::user()->requireLevel(1);
+	

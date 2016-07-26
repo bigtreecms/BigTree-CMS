@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$admin->Auth->requireLevel(1);
+	Auth::user()->requireLevel(1);
 	$settings = Setting::all("name ASC", true);
 
 	foreach ($settings as $key => $item) {

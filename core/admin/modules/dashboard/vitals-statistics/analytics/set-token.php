@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$admin->Auth->requireLevel(1);
+	Auth::user()->requireLevel(1);
 	
 	$token = $analytics->oAuthSetToken($_GET["code"]);
 	

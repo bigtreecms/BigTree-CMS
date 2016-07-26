@@ -1,6 +1,11 @@
 <?php
-	$admin->Auth->requireLevel(1);
-	$resource = $admin->getResourceByFile($_POST["file"]);
+	namespace BigTree;
+	
+	Auth::user()->requireLevel(1);
+	
+	$resource = Resource::getByFile($_POST["file"]);
+
 	if ($resource) {
-		$admin->deleteResource($resource["id"]);
+		$resource->delete();
 	}
+	

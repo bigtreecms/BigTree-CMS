@@ -1,8 +1,9 @@
 <?php
 	namespace BigTree;
+	
+	Auth::user()->requireLevel(1);
 
 	$external = ($_GET["external"] == "true") ? true : false;
-	$admin->Auth->requireLevel(1);
 	$pages = $admin->getPageIds();
 	$modules = $admin->getModuleForms();
 

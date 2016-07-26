@@ -1,5 +1,9 @@
 <?php
-	$admin->Auth->requireLevel(1);
-	$folder = $admin->getResourceFolder($_POST["folder"]);
-	$admin->deleteResourceFolder($_POST["folder"]);
-	echo $folder["parent"] ? $folder["parent"] : 0;
+	namespace BigTree;
+	
+	Auth::user()->requireLevel(1);
+	
+	$folder = new ResourceFolder($_POST["folder"]);
+	$folder->delete();
+	
+	echo $folder->Parent ?: 0;

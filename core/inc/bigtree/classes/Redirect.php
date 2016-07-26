@@ -154,6 +154,7 @@
 		
 		static function handle404($url) {
 			$url = htmlspecialchars(strip_tags(rtrim($url, "/")));
+			
 			if (!$url) {
 				return false;
 			}

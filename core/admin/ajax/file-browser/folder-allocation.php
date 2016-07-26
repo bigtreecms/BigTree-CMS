@@ -1,3 +1,7 @@
 <?php
-	$admin->Auth->requireLevel(1);
-	echo json_encode($admin->getResourceFolderAllocationCounts($_POST["folder"]));
+	namespace BigTree;
+	
+	Auth::user()->requireLevel(1);
+	
+	$folder = new ResourceFolder($_POST["folder"]);
+	echo json_encode($folder->Statistics);

@@ -1,17 +1,13 @@
 <?php
 	namespace BigTree;
 
-	/**
-	 * @global \BigTreeAdmin $admin
-	 */
-
-	$admin->Auth->requireLevel(1);
+	Auth::user()->requireLevel(1);
 
 	$integrity_errors = array();
 	$external = $_GET["external"] ? true : false;
 
 	// Recursive method for checking an array of data against an array of resources
-	$check_data = function ($local_path, $external, $resources, $data_set) {
+	$check_data = function($local_path, $external, $resources, $data_set) {
 		global $check_data, $integrity_errors;
 
 		foreach ($resources as $resource_id => $resource) {
@@ -78,3 +74,4 @@
 			}
 		}
 	};
+	

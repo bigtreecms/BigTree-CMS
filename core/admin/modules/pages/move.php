@@ -7,7 +7,7 @@
 	}
 
 	// Make sure the user is an admin.
-	$admin->Auth->requireLevel(1);
+	Auth::user()->requireLevel(1);
 	
 	// Get all the ancestors
 	$bc = $cms->getBreadcrumbByPage($page);

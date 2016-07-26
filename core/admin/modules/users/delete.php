@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	$id = intval($bigtree["commands"][0]);
-	$admin->Auth->requireLevel(1);
+	Auth::user()->requireLevel(1);
 
 	if ($id == $admin->ID) {
 		Utils::growl("Users","You cannot delete your own user.","error");

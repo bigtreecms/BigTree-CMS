@@ -1,5 +1,12 @@
 <?php
-	$root = str_replace(array("http://","https://"),"//",ADMIN_ROOT);
+	namespace BigTree;
+	
+	/**
+	 * @global array $bigtree
+	 * @global Page $site
+	 */
+	
+	$root = str_replace(array("http://", "https://"), "//", ADMIN_ROOT);
 ?>
 <!doctype html> 
 <!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
@@ -10,14 +17,14 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="robots" content="noindex,nofollow" />
-		<title><?=$site["nav_title"]?> Login</title>
+		<title><?=$site->NavigationTitle?> Login</title>
 		<link rel="stylesheet" href="<?=$root?>css/main.less" type="text/css" media="screen" charset="utf-8" />
 		<script src="<?=$root?>js/lib.js"></script>
 		<script src="<?=$root?>js/main.js"></script>
 	</head>
 	<body class="login">
 		<div class="login_wrapper">
-			<h1><?=$site["nav_title"]?></h1>
+			<h1><?=$site->NavigationTitle?></h1>
 			<?=$bigtree["content"]?>
 			
 			<a href="http://www.bigtreecms.com" class="login_logo" target="_blank"></a>
