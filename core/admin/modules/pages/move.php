@@ -1,8 +1,12 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global Page $page
+	 */
+	
 	// Don't let them move the homepage.
-	if ($page["id"] == 0) {
+	if ($page->ID === 0) {
 		Router::redirect(ADMIN_ROOT."pages/edit/0/");
 	}
 
@@ -10,28 +14,30 @@
 	Auth::user()->requireLevel(1);
 	
 	// Get all the ancestors
-	$bc = $cms->getBreadcrumbByPage($page);
 	$ancestors = array();
-	foreach ($bc as $item) {
+	
+	foreach ($page->Breadcrumb as $item) {
 		$ancestors[] = $item["id"];
 	}
 	
 	function _local_drawNavLevel($parent,$depth,$ancestors,$children = false) {
 		global $permissions,$page,$admin;
+		
 		if (!$children) {
 			$children = $admin->getPageChildren($parent);
 		}
+		
 		if (count($children)) {
 ?>
 <ul class="depth_<?=$depth?>"<?php if ($depth > 2 && !in_array($parent,$ancestors)) { ?> style="display: none;"<?php } ?>>
 	<?php
 			foreach ($children as $f) {
-				if ($f["id"] != $page["id"]) {
+				if ($f["id"] != $page->ID) {
 					$grandchildren = $admin->getPageChildren($f["id"]);
 	?>
 	<li>
 		<span class="depth"></span>
-		<a class="title<?php if (!$grandchildren) { ?> disabled<?php } ?><?php if ($f["id"] == $page["parent"]) { ?> active<?php } ?><?php if (in_array($f["id"],$ancestors)) { ?> expanded<?php } ?>" href="#<?=$f["id"]?>"><?=$f["nav_title"]?></a>
+		<a class="title<?php if (!$grandchildren) { ?> disabled<?php } ?><?php if ($f["id"] == $page->Parent) { ?> active<?php } ?><?php if (in_array($f["id"],$ancestors)) { ?> expanded<?php } ?>" href="#<?=$f["id"]?>"><?=$f["nav_title"]?></a>
 		<?php _local_drawNavLevel($f["id"],$depth + 1,$ancestors,$grandchildren) ?>
 	</li>
 	<?php
@@ -45,10 +51,10 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>pages/move-update/">
-		<input type="hidden" name="page" value="<?=$page["id"]?>" />
+		<input type="hidden" name="page" value="<?=$page->ID?>" />
 		<section>
 			<fieldset>
-				<input type="hidden" name="parent" value="<?=$page["parent"]?>" id="page_parent" />
+				<input type="hidden" name="parent" value="<?=$page->Parent?>" id="page_parent" />
 				<label><?=Text::translate("Select New Parent")?></label>
 				<div class="move_page form_table">
 					<div class="labels">
@@ -58,7 +64,7 @@
 						<ul class="depth_1">
 							<li class="top">
 								<span class="depth"></span>
-								<a class="title expanded<?php if ($page["parent"] == 0) { ?> active<?php } ?>" href="#0"><?=Text::translate("Top Level")?></a>
+								<a class="title expanded<?php if ($page->Parent === 0) { ?> active<?php } ?>" href="#0"><?=Text::translate("Top Level")?></a>
 								<?php _local_drawNavLevel(0,2,$ancestors) ?>
 							</li>
 					</section>

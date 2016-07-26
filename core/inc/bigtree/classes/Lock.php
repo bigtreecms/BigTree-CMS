@@ -79,7 +79,7 @@
 				$last_accessed = $lock["last_accessed"];
 				
 				include Router::getIncludePath($include);
-				$admin->stop();
+				Auth::stop();
 				
 				return false;
 			}

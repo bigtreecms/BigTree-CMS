@@ -1,25 +1,36 @@
 <?php
 	namespace BigTree;
-
-	$bigtree["current_page"] = $page;
-	$bigtree["resources"] = $page["resources"];
+	
+	/**
+	 * @global array $bigtree
+	 * @global Page $page
+	 */
+	
+	$bigtree["resources"] = $page->Resources;
 	
 	// Show the properties section
 	include Router::getIncludePath("admin/modules/pages/_properties.php");
 	
 	// Check for a page lock
 	$force = isset($_GET["force"]) ? $_GET["force"] : false;
-	$admin->lockCheck("bigtree_pages",$page["id"],"admin/modules/pages/_locked.php",$force);
+	Lock::enforce("bigtree_pages", $page->ID, "admin/modules/pages/_locked.php", $force);
 	
 	// Grab template information
-	$template_data = $cms->getTemplate($page["template"]);
-
-	// Audit Trail link
-	$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/audit/search/?table=bigtree_pages&entry=".$page["id"],"icon" => "trail","title" => "View Audit Trail");		
-
-	// Provide developers a nice handy link for edit/return of this form
+	$template = new Template($page->Template);
+	
+	// Provide developers a nice handy link for edit/return of this form and the audit trail
 	if (Auth::user()->Level > 1) {
-		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/templates/edit/".$page["template"]."/?return=".$page["id"],"icon" => "setup","title" => "Edit Current Template in Developer");
+		$bigtree["subnav_extras"][] = array(
+			"link" => ADMIN_ROOT."developer/audit/search/?table=bigtree_pages&entry=".$page->ID,
+			"icon" => "trail",
+			"title" => "View Audit Trail"
+		);
+		
+		$bigtree["subnav_extras"][] = array(
+			"link" => ADMIN_ROOT."developer/templates/edit/".$page->Template."/?return=".$page->ID,
+			"icon" => "setup",
+			"title" => "Edit Current Template in Developer"
+		);
 	}
 	
 	$bigtree["form_action"] = "update";

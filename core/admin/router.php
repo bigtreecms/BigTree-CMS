@@ -231,7 +231,7 @@
 	// Developer Mode On?
 	if (isset($admin->ID) && !empty($bigtree["config"]["developer_mode"]) && Auth::user()->Level < 2) {
 		include Router::getIncludePath("admin/pages/developer-mode.php");
-		$admin->stop();
+		Auth::stop();
 	}
 
 	// Redirect to dashboard by default if we're not requesting anything.
@@ -382,7 +382,7 @@
 		
 		// Make sure the user has access to the module
 		if (!$admin->checkAccess($module,$route_response["action"])) {
-			$admin->stop(file_get_contents(Router::getIncludePath("admin/pages/_denied.php")));
+			Auth::stop(file_get_contents(Router::getIncludePath("admin/pages/_denied.php")));
 		}
 
 		// Append module navigation.

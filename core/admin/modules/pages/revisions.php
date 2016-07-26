@@ -1,28 +1,33 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global array $bigtree
+	 * @global Page $page
+	 */
+	
 	// Make sure this is a live page.
-	if (!is_numeric($page["id"])) {
-		$admin->stop("Revisions do not function on unpublished pages.", Router::getIncludePath("admin/layouts/_error.php"));
+	if (!is_numeric($page->ID)) {
+		Auth::stop("Revisions do not function on unpublished pages.", Router::getIncludePath("admin/layouts/_error.php"));
 	}
 
 	// Make sure the user is a publisher.
 	if ($bigtree["access_level"] != "p") {
-		$admin->stop("You must be a publisher to manage revisions.", Router::getIncludePath("admin/layouts/_error.php"));
+		Auth::stop("You must be a publisher to manage revisions.", Router::getIncludePath("admin/layouts/_error.php"));
 	}
 	
 	// Check for a page lock
 	$force = isset($_GET["force"]) ? $_GET["force"] : false;
-	$lock_id = $admin->lockCheck("bigtree_pages",$page["id"],"admin/modules/pages/_locked.php",$force);
+	$lock_id = Lock::enforce("bigtree_pages", $page->ID, "admin/modules/pages/_locked.php", $force);
 	
 	// See if there's a draft copy.
-	$draft = $admin->getPageChanges($page["id"]);
+	$draft = $admin->getPageChanges($page->ID);
 	
 	// Get the current published copy.  We're going to just pull a few columns or I'd use getPage here.
-	$current_author = $admin->getUser($page["last_edited_by"]);
+	$current_author = $admin->getUser($page->LastEditedBy);
 	
 	// Get all revisions
-	$revisions = $admin->getPageRevisions($page["id"]);
+	$revisions = $admin->getPageRevisions($page->ID);
 
 	include Router::getIncludePath("admin/modules/pages/_properties.php");
 
@@ -42,9 +47,9 @@
 		<li>
 			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($draft["date"]))?></section>
 			<section class="pages_draft_author"><span class="gravatar"><img src="<?=Image::gravatar($draft_author["email"], 36)?>" alt="" /></span><?=$draft_author["name"]?></section>
-			<section class="pages_publish"><a class="icon_publish" href="<?=ADMIN_ROOT?>pages/publish-draft/<?=$page["id"]?>/?draft=<?=$draft["id"]?>"></a></section>
-			<section class="pages_edit"><a class="icon_edit" href="<?=ADMIN_ROOT?>pages/edit/<?=$page["id"]?>/"></a></section>
-			<section class="pages_delete"><a class="icon_delete" href="<?=ADMIN_ROOT?>ajax/pages/delete-draft/?id=<?=$page["id"]?>"></a></section>
+			<section class="pages_publish"><a class="icon_publish" href="<?=ADMIN_ROOT?>pages/publish-draft/<?=$page->ID?>/?draft=<?=$draft["id"]?>"></a></section>
+			<section class="pages_edit"><a class="icon_edit" href="<?=ADMIN_ROOT?>pages/edit/<?=$page->ID?>/"></a></section>
+			<section class="pages_delete"><a class="icon_delete" href="<?=ADMIN_ROOT?>ajax/pages/delete-draft/?id=<?=$page->ID?>"></a></section>
 		</li>
 
 	</ul>
@@ -63,7 +68,7 @@
 	</header>
 	<ul>
 		<li class="active">
-			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($page["updated_at"]))?></section>
+			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($page->UpdatedAt))?></section>
 			<section class="pages_draft_author"><span class="gravatar"><img src="<?=Image::gravatar($current_author["email"], 36)?>" alt="" /></span><?=$current_author["name"]?><span class="active_draft"><?=Text::translate("Active")?></span></section>
 			<section class="pages_delete"><a href="#" class="icon_save"></a></section>
 			<section class="pages_publish"></section>
@@ -112,7 +117,7 @@
 				if (BigTree.cleanHref($(this).attr("href"))) {
 					var id = BigTree.cleanHref($(this).attr("href"));
 				} else {
-					var id = "c<?=$page["id"]?>";
+					var id = "c<?=$page->ID?>";
 				}
 				$.ajax("<?=ADMIN_ROOT?>ajax/pages/save-revision/", { type: "POST", data: { id: id, description: d.description }});
 			},this)

@@ -1,11 +1,16 @@
 <?php
 	namespace BigTree;
 	
-	$id = end($bigtree["path"]);
-	$page = $cms->getPage($id,false);
-	$access = $admin->unarchivePage($id);
-
-	Utils::growl("Pages","Restored Page");
+	/**
+	 * @global array $bigtree
+	 */
 	
-	Router::redirect(ADMIN_ROOT."pages/view-tree/".$page["parent"]."/");
+	$page = new Page(end($bigtree["path"]));
+	
+	if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
+		$page->unarchive();
+	}
+	
+	Utils::growl("Pages","Restored Page");
+	Router::redirect(ADMIN_ROOT."pages/view-tree/".$page->Parent."/");
 	

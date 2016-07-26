@@ -1,13 +1,15 @@
 <?php
 	namespace BigTree;
+	
+	$template = new Template($_POST["template"]);
 
 	// Parse the resources
 	$bigtree["entry"] = array();
-	$bigtree["template"] = $cms->getTemplate($_POST["template"]);
+	$bigtree["template"] = $template->Array;
 	$bigtree["file_data"] = Field::getParsedFilesArray("resources");
 	$bigtree["post_data"] = $_POST["resources"];
 
-	foreach ((array)$bigtree["template"]["resources"] as $resource) {
+	foreach ($template->Fields as $resource) {
 		$field = array(
 			"type" => $resource["type"],
 			"title" => $resource["title"],
@@ -18,12 +20,14 @@
 			"input" => $bigtree["post_data"][$resource["id"]],
 			"file_input" => $bigtree["file_data"][$resource["id"]]
 		);
+		
 		if (empty($field["options"]["directory"])) {
 			$field["options"]["directory"] = $options["directory"] = "files/pages/";
 		}
 
 		$field = new Field($field);
 		$output = $field->process();
+		
 		if (!is_null($output)) {
 			$bigtree["entry"][$field->Key] = $output;
 		}

@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	/**
-	 * @global array $page
+	 * @global Page $page
 	 */
 ?>
 <div id="template_type">
@@ -15,12 +15,10 @@
 		<label><span></span><?=Text::translate("Tags")?></label>
 		<ul id="tag_list">
 			<?php
-				if (is_array($page["tags"])) {
-					foreach ($page["tags"] as $tag) {
+				foreach ($page->Tags as $tag) {
 			?>
-			<li><input type="hidden" name="_tags[]" value="<?=$tag["id"]?>" /><a href="#"><?=$tag["tag"]?><span>x</span></a></li>
+			<li><input type="hidden" name="_tags[]" value="<?=$tag->ID?>" /><a href="#"><?=$tag->Name?><span>x</span></a></li>
 			<?php
-					}
 				}
 			?>
 		</ul>

@@ -28,7 +28,7 @@
 	
 	// Work out the permissions	
 	if (!$bigtree["access_level"]) {
-		$admin->stop("You do not have access to this page.", Router::getIncludePath("admin/layouts/_error.php"));
+		Auth::stop("You do not have access to this page.", Router::getIncludePath("admin/layouts/_error.php"));
 	}
 
 	// Adjust template

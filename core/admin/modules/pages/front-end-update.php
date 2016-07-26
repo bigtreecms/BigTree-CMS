@@ -28,14 +28,12 @@
 	} elseif ($r == "e") {
 		$publisher = false;
 	} else {
-		$admin->stop("You do not have access to this page.", Router::getIncludePath("admin/layouts/_error.php"));
+		Auth::stop("You do not have access to this page.", Router::getIncludePath("admin/layouts/_error.php"));
 	}
 
 	$resources = array();
 	$bigtree["crops"] = array();
 	$bigtree["errors"] = array();
-	// Initiate the Storage class for backwards compat.
-	$upload_service = new \BigTreeStorage;
 
 	// Save the template since we're not passing in the full update data.
 	$_POST["template"] = $pdata["template"];
@@ -68,14 +66,14 @@
 			$admin->updatePage($page,$pdata);
 		}
 
-		$refresh_link = $cms->getLink($page);
+		$refresh_link = Link::get($page);
 	} else {
 		if (!$_POST["parent"]) {
 			$_POST["parent"] = $pdata["parent"];
 		}
 		$admin->submitPageChange($page,$pdata);
 
-		$refresh_link = $cms->getPreviewLink($page);
+		$refresh_link = Link::getPreview($page);
 	}
 
 	$admin->unlock("bigtree_pages",$page);

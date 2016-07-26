@@ -1,5 +1,16 @@
 <?php
 	namespace BigTree;
+		
+	/**
+	 * @global Template $template
+	 */
+	
+	// See if the user isn't allowed to use the currently in use template. If they can't, we hide the section altogether.
+	if (is_object($template) && $template->Level > Auth::user()->Level) {
+		$hide_template_section = true;
+	} else {
+		$hide_template_section = false;
+	}
 	
 	$ages = array(
 		"0" => "No Limit",

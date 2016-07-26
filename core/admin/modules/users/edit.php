@@ -7,7 +7,7 @@
 
 	// Stop if this is a 404 or the user is editing someone higher than them.
 	if (!$user || $user["level"] > Auth::user()->Level) {
-		$admin->stop("The user you are trying to edit no longer exists or you are not allowed to edit this user.",
+		Auth::stop("The user you are trying to edit no longer exists or you are not allowed to edit this user.",
 					 Router::getIncludePath("admin/layouts/_error.php"));
 	}
 

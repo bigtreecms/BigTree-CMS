@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	if (!is_writable(SERVER_ROOT."cache/")) {
-		$admin->stop("Your <code>/cache/</code> directory must be writable.",Router::getIncludePath("admin/layouts/_error.php"));
+		Auth::stop("Your <code>/cache/</code> directory must be writable.",Router::getIncludePath("admin/layouts/_error.php"));
 	}
 ?>
 <div class="container">

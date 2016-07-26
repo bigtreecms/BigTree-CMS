@@ -6,7 +6,7 @@
 
 	// If the original message doesn't exist or you don't have access to it.
 	if (!$parent) {
-		$admin->stop("This message either does not exist or you do not have permission to view it.",
+		Auth::stop("This message either does not exist or you do not have permission to view it.",
 					 Router::getIncludePath("admin/layouts/_error.php"));
 	}
 

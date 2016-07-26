@@ -1,17 +1,23 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global Page $page
+	 */
+	
 	define("BIGTREE_FRONT_END_EDITOR",true);
 	$bigtree["layout"] = "front-end";
 	// Check for a page lock
 	$force = isset($_GET["force"]) ? $_GET["force"] : false;
-	$admin->lockCheck("bigtree_pages",$bigtree["current_page"]["id"],"admin/modules/pages/front-end-locked.php",$force);
+	Lock::enforce("bigtree_pages", $bigtree["current_page"]["id"], "admin/modules/pages/front-end-locked.php", $force);
+
+	$template = new Template($bigtree["current_page"]["template"]);
 	
-	$bigtree["template"] = $cms->getTemplate($bigtree["current_page"]["template"]);
-	$bigtree["resources"] = $bigtree["current_page"]["resources"];
+	$bigtree["resources"] = $page->Resources;
 	$bigtree["html_fields"] = array();
 	$bigtree["simple_html_fields"] = array();
 	$bigtree["tabindex"] = 1;
+	$bigtree["template"] = $template->Array;
 ?>
 <h2><?=Text::translate("Edit Page Content")?></h2>
 <form class="bigtree_dialog_form" method="post" action="<?=ADMIN_ROOT?>pages/front-end-update/" enctype="multipart/form-data">
@@ -29,14 +35,14 @@
 		<p class="error_message" style="display: none;"><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 		<div class="form_fields">
 			<?php
-				if (is_array($bigtree["template"]["resources"]) && count($bigtree["template"]["resources"])) {
+				if (count($template->Fields)) {
 
 					// Get field types for knowing self drawing ones
 					$bigtree["field_types"] = FieldType::reference(false,"templates");
 
 					Field::$Namespace = uniqid("template_field_");
 
-					foreach ($bigtree["template"]["resources"] as $resource) {
+					foreach ($template->Fields as $resource) {
 						$field = new Field(array(
 							"type" => $resource["type"],
 							"title" => $resource["title"],

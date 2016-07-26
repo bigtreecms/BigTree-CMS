@@ -1,9 +1,13 @@
 <?php
 	namespace BigTree;
 	
-	$tags = array();
+	/**
+	 * @global array $bigtree
+	 */
+	
 	$bigtree["form_action"] = "create";
 	$bigtree["current_page"] = array("id" => $bigtree["current_page"]["id"]);
-	// Reset the $page variable to take out the information from the parent page.
-	$page = array("id" => $page["id"]);
+
+	$page = new Page;
+	
 	include Router::getIncludePath("admin/modules/pages/_form.php");

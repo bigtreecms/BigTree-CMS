@@ -5,7 +5,7 @@
 	$revision = $admin->getPageRevision($_GET["id"]);
 	$access = $admin->getPageAccessLevel($revision["page"]);
 	if ($access != "p") {
-		$admin->stop("You must be a publisher to manage revisions.", Router::getIncludePath("admin/layouts/_error.php"));
+		Auth::stop("You must be a publisher to manage revisions.", Router::getIncludePath("admin/layouts/_error.php"));
 	}
 	
 	foreach ($revision as $key => $val) {

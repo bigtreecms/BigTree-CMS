@@ -3,7 +3,7 @@
 	
 	// First we need to package the file so they can download it manually if they wish.
 	if (!FileSystem::getDirectoryWritability(SERVER_ROOT."cache/package/")) {
-		$admin->stop("Your cache/ and cache/package/ directories must be writable.",Router::getIncludePath("admin/layouts/_error.php"));
+		Auth::stop("Your cache/ and cache/package/ directories must be writable.",Router::getIncludePath("admin/layouts/_error.php"));
 	}
 
 	FileSystem::createDirectory(SERVER_ROOT."cache/package/");

@@ -1,29 +1,33 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global Page $page
+	 */
 
 	$live_url = false;
 	$preview_url = false;
-	$age = floor((time() - strtotime($page["updated_at"])) / (60 * 60 * 24));
-	$seo = $admin->getPageSEORating($page,$page["resources"]);
+	$age = floor((time() - strtotime($page->UpdatedAt)) / (60 * 60 * 24));
+	$seo = $page->SEORating;
 	
-	if (isset($page["id"]) && is_numeric($page["id"])) {
-		if ($page["id"] == 0) {
+	if (is_numeric($page->ID)) {
+		if ($page->ID == 0) {
 			$live_url = WWW_ROOT;
 		} else {
-			$live_url = WWW_ROOT.$page["path"]."/";
+			$live_url = WWW_ROOT.$page->Path."/";
 		}
-		if (isset($page["changes_applied"])) {
+		if (isset($page->ChangesApplied)) {
 			$status = Text::translate("Changes Pending");
-			if ($page["id"] == 0) {
+			if ($page->ID == 0) {
 				$preview_url = WWW_ROOT."_preview/";
 			} else {
-				$preview_url = WWW_ROOT."_preview/".$page["path"]."/";
+				$preview_url = WWW_ROOT."_preview/".$page->Path."/";
 			}
 		} else {
 			$status = Text::translate("Published");
 		}
 	} else {
-		$preview_url = WWW_ROOT."_preview-pending/".$page["id"]."/";
+		$preview_url = WWW_ROOT."_preview-pending/".$page->ID."/";
 		$status = Text::translate("Unpublished");
 	}
 	
@@ -57,7 +61,7 @@
 	</article>
 	<article class="page_id">
 		<label><?=Text::translate("Page ID")?></label>
-		<p><?=$page["id"]?></p>
+		<p><?=$page->ID?></p>
 	</article>
 	<?php
 		if ($live_url) {

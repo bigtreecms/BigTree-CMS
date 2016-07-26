@@ -9,7 +9,7 @@
 	);
 	foreach ($directories_to_check as $directory) {
 		if (!is_writable(SERVER_ROOT.$directory)) {
-			$admin->stop("Your <code>/$directory</code> directory must be writable to install extensions.",
+			Auth::stop("Your <code>/$directory</code> directory must be writable to install extensions.",
 						 Router::getIncludePath("admin/layouts/_error.php"));
 		}
 	}
