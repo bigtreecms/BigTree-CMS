@@ -1,2 +1,0 @@
-<?php
-	$treesMod = new DemoTrees;
