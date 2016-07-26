@@ -1,5 +1,7 @@
 <?php
 	namespace BigTree;
+	
+	$feed = new Feed;
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>feeds/create/" class="module">

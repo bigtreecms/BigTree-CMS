@@ -1,13 +1,17 @@
 <?php
 	namespace BigTree;
 	
-	$cached_types = $admin->getCachedFieldTypes(true);
+	/**
+	 * @global Template $template
+	 */
+	
+	$cached_types = FieldType::reference(true);
 	$types = $cached_types["templates"];
 ?>
 <script>
 	(function() {
 		var CurrentField = false;
-		var ResourceCount = <?=$x?>;
+		var ResourceCount = <?=count($template->Fields)?>;
 
 		BigTreeFormValidator("form.module");
 		$(".form_table").on("click",".icon_settings",function(ev) {

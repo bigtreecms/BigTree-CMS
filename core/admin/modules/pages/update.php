@@ -6,7 +6,7 @@
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
 		Router::redirect($_SERVER["HTTP_REFERER"]);
 	}
-
+	
 	// Stop random hits to the update page
 	if (!isset($_POST["page"])) {
 		Router::redirect(ADMIN_ROOT."pages/view-tree/0/");
@@ -16,21 +16,21 @@
 	$page = $_POST["page"];
 	// Pending page
 	if ($page[0] == "p") {
-		$pending_change = $admin->getPendingChange(substr($page,1));
+		$pending_change = $admin->getPendingChange(substr($page, 1));
 		$bigtree["current_page_data"] = $pending_change["changes"];
 		$bigtree["access_level"] = $admin->getPageAccessLevel($bigtree["current_page_data"]["parent"]);
 	// Live page
 	} else {
 		$bigtree["access_level"] = $admin->getPageAccessLevel($page);
 		// Get pending page data with resources decoded and tags.
-		$bigtree["current_page_data"] = $cms->getPendingPage($page,true,true);
+		$bigtree["current_page_data"] = $cms->getPendingPage($page, true, true);
 	}
 	
 	// Work out the permissions	
 	if (!$bigtree["access_level"]) {
 		Auth::stop("You do not have access to this page.", Router::getIncludePath("admin/layouts/_error.php"));
 	}
-
+	
 	// Adjust template
 	if ($_POST["redirect_lower"]) {
 		$_POST["template"] = "!";
@@ -42,13 +42,13 @@
 	} else {
 		$_POST["new_window"] = "";
 	}
-
+	
 	$bigtree["crops"] = array();
 	$bigtree["errors"] = array();
 	
 	// Parse resources
 	include Router::getIncludePath("admin/modules/pages/_resource-parse.php");
-
+	
 	// Handle permissions on trunk
 	if (Auth::user()->Level < 2) {
 		unset($_POST["trunk"]);
@@ -64,38 +64,39 @@
 				$_POST["parent"] = $bigtree["current_page_data"]["parent"];
 			}
 			
-			$admin->deletePendingChange(substr($id,1));
+			$admin->deletePendingChange(substr($id, 1));
 			$id = $admin->createPage($_POST);
-			Utils::growl("Pages","Created & Published Page");
+			Utils::growl("Pages", "Created & Published Page");
 		} else {
 			// It's an existing page.
-			$admin->updatePage($id,$_POST);
-			Utils::growl("Pages","Updated Page");
+			$admin->updatePage($id, $_POST);
+			Utils::growl("Pages", "Updated Page");
 		}
 	} else {
 		if (!$_POST["parent"]) {
 			$_POST["parent"] = $bigtree["current_page_data"]["parent"];
 		}
-		$admin->submitPageChange($id,$_POST);
-		Utils::growl("Pages","Saved Page Draft");
+		$admin->submitPageChange($id, $_POST);
+		Utils::growl("Pages", "Saved Page Draft");
 	}
 	
-	$admin->unlock("bigtree_pages",$id);
-
+	$admin->unlock("bigtree_pages", $id);
+	
 	// We can't return to any lower number, so even if we edited the homepage, return to the top level nav.	
 	if ($bigtree["current_page_data"]["parent"] == "-1") {
 		$bigtree["current_page_data"]["parent"] = 0;
 	}
 	
 	if (isset($_GET["preview"])) {
-		$redirect_url = $cms->getPreviewLink($id)."?bigtree_preview_return=".urlencode(ADMIN_ROOT."pages/edit/$id/");
+		$redirect_url = Link::getPreview($id)."?bigtree_preview_return=".urlencode(ADMIN_ROOT."pages/edit/$id/");
 	} elseif ($_POST["return_to_front"]) {
 		if ($_POST["ptype"] != "Save & Publish") {
-			$redirect_url = $cms->getPreviewLink($id);
+			$redirect_url = Link::getPreview($id);
 		} else {
-			$page = $cms->getPage($id);
-			if ($page["id"]) {
-				$redirect_url = WWW_ROOT.$page["path"]."/";
+			$page = new Page($id);
+			
+			if ($page->ID) {
+				$redirect_url = WWW_ROOT.$page->Path."/";
 			} else {
 				$redirect_url = WWW_ROOT;
 			}
@@ -105,23 +106,23 @@
 	} else {
 		$redirect_url = ADMIN_ROOT."pages/view-tree/".$bigtree["current_page_data"]["parent"]."/";
 	}
-
+	
 	// Track resource allocation
-	$admin->allocateResources("pages",$id);
-
+	$admin->allocateResources("pages", $id);
+	
 	$_SESSION["bigtree_admin"]["form_data"] = array(
 		"page" => $id,
 		"return_link" => $redirect_url,
 		"edit_link" => ADMIN_ROOT."pages/edit/$id/",
 		"errors" => $bigtree["errors"]
 	);
-
+	
 	if (count($bigtree["crops"])) {
-		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = $cms->cacheUnique("org.bigtreecms.crops",$bigtree["crops"]);
+		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = Cache::putUnique("org.bigtreecms.crops", $bigtree["crops"]);
 		Router::redirect(ADMIN_ROOT."pages/crop/$id/");
 	} elseif (count($bigtree["errors"])) {
 		Router::redirect(ADMIN_ROOT."pages/error/$id/");
 	}
-
+	
 	Router::redirect($redirect_url);
 	

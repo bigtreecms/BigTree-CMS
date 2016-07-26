@@ -1,10 +1,12 @@
 <?php
 	namespace BigTree;
 	
-	$template = $cms->getTemplate(end($bigtree["path"]));
-	Globalize::arrayObject($template);
-
-	$show_error = false;
+	/**
+	 * @global array $bigtree
+	 */
+	
+	$template = new Template(end($bigtree["path"]));
+	$form_action = "edit";
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>templates/update/" enctype="multipart/form-data" class="module">
@@ -17,6 +19,3 @@
 </div>
 
 <?php include Router::getIncludePath("admin/modules/developer/templates/_common-js.php") ?>
-<script>
-	BigTree.localResourceCount = <?=$x?>;
-</script>

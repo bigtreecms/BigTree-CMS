@@ -1,8 +1,14 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global string $form_action
+	 * @global Template $template
+	 */
 
-	$cached_types = $admin->getCachedFieldTypes(true);
+	$cached_types = FieldType::reference(true);
 	$types = $cached_types["templates"];
+	$show_error = !empty($_SESSION["bigtree_admin"]["error"]);
 
 	if (isset($_GET["return"])) {
 ?>
@@ -17,20 +23,20 @@
 		<?php if (!isset($template)) { ?>
 		<div class="left">
 			<fieldset<?php if ($show_error) { ?> class="form_error"<?php } ?>>
-				<label class="required"><?=Text::translate('ID <small>(used for file/directory name, alphanumeric, "-" and "_" only)</small>')?><?php if ($show_error) { ?> <span class="form_error_reason"><?=Text::translate($show_error)?></span><?php } ?></label>
-				<input type="text" class="required" name="id" value="<?=$id?>" />
+				<label class="required"><?=Text::translate('ID <small>(used for file/directory name, alphanumeric, "-" and "_" only)</small>')?><?php if ($show_error) { ?> <span class="form_error_reason"><?=Text::translate($_SESSION["bigtree_admin"]["error"])?></span><?php } ?></label>
+				<input type="text" class="required" name="id" value="<?=$template->ID?>" />
 			</fieldset>
 		</div>
 		<?php } ?>
 		<div class="<?php if (isset($template)) { ?>left<?php } else { ?>right<?php } ?>">
 			<fieldset>
 				<label class="required"><?=Text::translate("Name")?></label>
-				<input type="text" class="required" name="name" value="<?=$name?>" />
+				<input type="text" class="required" name="name" value="<?=$template->Name?>" />
 			</fieldset>
 		</div>
 	</div>
 	<?php
-		if (!isset($template)) {
+		if ($form_action == "add") {
 	?>
 	<fieldset class="float_margin">
 		<label><?=Text::translate("Type")?></label>
@@ -41,22 +47,25 @@
 	</fieldset>
 	<?php
 		}
-		if (!isset($template) || $routed) {
+		
+		if ($form_action == "add" || $template->Routed) {
 	?>
 	<fieldset class="float_margin">
 		<label><?=Text::translate("Related Module")?></label>
 		<select name="module">
 			<option></option>
 			<?php
-				$groups = $admin->getModuleGroups("name ASC");
-				$groups[] = array("id" => "0", "name" => "Ungrouped");
-				foreach ($groups as $g) {
-					$modules = $admin->getModulesByGroup($g["id"],"name ASC");
+				$groups = ModuleGroup::all("name ASC");
+				$groups[] = new ModuleGroup(array("id" => 0, "name" => "- Ungrouped -"));
+				
+				foreach ($groups as $group) {
+					$modules = Module::allByGroup($group->ID, "name ASC");
+					
 					if (count($modules)) {
 			?>
-			<optgroup label="<?=$g["name"]?>">
-				<?php foreach ($modules as $m) { ?>
-				<option value="<?=$m["id"]?>"<?php if ($m["id"] == $module) { ?> selected="selected"<?php } ?>><?=$m["name"]?></option>
+			<optgroup label="<?=$group->Name?>">
+				<?php foreach ($modules as $module) { ?>
+				<option value="<?=$module->ID?>"<?php if ($module->ID == $template->Module) { ?> selected="selected"<?php } ?>><?=$module->Name?></option>
 				<?php } ?>
 			</optgroup>
 			<?php
@@ -69,11 +78,11 @@
 		}
 	?>
 	<fieldset class="float_margin">
-		<label><?=Text::translate("Access Level")?></label>
-		<select name="level">
+		<label for="template_level"><?=Text::translate("Access Level")?></label>
+		<select id="template_level" name="level">
 			<option value="0"><?=Text::translate("Normal User")?></option>
-			<option value="1"<?php if ($level == 1) { ?> selected="selected"<?php } ?>><?=Text::translate("Administrator")?></option>
-			<option value="2"<?php if ($level == 2) { ?> selected="selected"<?php } ?>><?=Text::translate("Developer")?></option>
+			<option value="1"<?php if ($template->Level == 1) { ?> selected="selected"<?php } ?>><?=Text::translate("Administrator")?></option>
+			<option value="2"<?php if ($template->Level == 2) { ?> selected="selected"<?php } ?>><?=Text::translate("Developer")?></option>
 		</select>
 	</fieldset>
 </section>
@@ -93,8 +102,8 @@
 		<ul id="resource_table">
 			<?php
 				$x = 0;
-				$resources = is_array($resources) ? $resources : array();
-				foreach ($resources as $resource) {
+				
+				foreach ($template->Fields as $resource) {
 					$x++;
 			?>
 			<li>

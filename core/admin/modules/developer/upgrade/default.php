@@ -1,6 +1,10 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global bool $showing_updates
+	 */
+	
 	include "_update-list.php";
 
 	if (!$showing_updates) {

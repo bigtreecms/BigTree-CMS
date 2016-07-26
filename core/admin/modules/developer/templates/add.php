@@ -1,17 +1,13 @@
 <?php
 	namespace BigTree;
 	
-	// Clear out notices
-	$name = $description = $callouts_enabled = $level = $module = $image = "";
-	$resources = array();
-	$show_error = false;
-	
 	if ($_SESSION["bigtree_admin"]["error"]) {
-		Globalize::arrayObject($_SESSION["bigtree_admin"]["saved"]);
-		$show_error = $_SESSION["bigtree_admin"]["error"];
-		unset($_SESSION["bigtree_admin"]["error"]);
-		unset($_SESSION["bigtree_admin"]["saved"]);
+		$template = new Template($_SESSION["bigtree_admin"]["saved"]);
+	} else {
+		$template = new Template;
 	}
+	
+	$form_action = "add";
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>templates/create/" enctype="multipart/form-data" class="module">
@@ -21,4 +17,9 @@
 		</footer>
 	</form>
 </div>
-<?php include Router::getIncludePath("admin/modules/developer/templates/_common-js.php") ?>
+<?php
+	include Router::getIncludePath("admin/modules/developer/templates/_common-js.php");
+	
+	unset($_SESSION["bigtree_admin"]["saved"]);
+	unset($_SESSION["bigtree_admin"]["error"]);
+?>

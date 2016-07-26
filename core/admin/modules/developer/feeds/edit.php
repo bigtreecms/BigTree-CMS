@@ -1,11 +1,14 @@
 <?php
 	namespace BigTree;
 	
-	$item = $cms->getFeed(end($bigtree["commands"]));
-	Globalize::arrayObject($item);
+	/**
+	 * @global array $bigtree
+	 */
+	
+	$feed = new Feed(end($bigtree["commands"]));
 ?>
 <div class="container">
-	<form method="post" action="<?=DEVELOPER_ROOT?>feeds/update/<?=$id?>/" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>feeds/update/<?=$feed->ID?>/" class="module">
 		<?php include Router::getIncludePath("admin/modules/developer/feeds/_form-content.php") ?>
 		<footer>
 			<input type="submit" class="button blue" value="<?=Text::translate("Update", true)?>" />
