@@ -23,13 +23,16 @@
 			// If we have a newer Javascript file to include or we haven't cached yet, do it now.
 			if (!file_exists($cfile) || $mtime > $last_modified) {
 				$data = "";
+				
 				if (is_array($bigtree["config"]["js"]["files"][$js_file])) {
 					foreach ($bigtree["config"]["js"]["files"][$js_file] as $script) {
 						$data .= file_get_contents(SITE_ROOT."js/$script")."\n";
 					}
 				}
+				
 				// Replace www_root/ and Minify
 				$data = str_replace(array('$www_root', 'www_root/', '$static_root', 'static_root/', '$admin_root', 'admin_root/'), array(WWW_ROOT, WWW_ROOT, STATIC_ROOT, STATIC_ROOT, ADMIN_ROOT, ADMIN_ROOT), $data);
+				
 				if (is_array($_GET)) {
 					foreach ($_GET as $key => $val) {
 						if ($key != "bigtree_htaccess_url") {
@@ -37,17 +40,21 @@
 						}
 					}
 				}
+				
 				if (is_array($bigtree["config"]["js"]["vars"])) {
 					foreach ($bigtree["config"]["js"]["vars"] as $key => $val) {
 						$data = str_replace('$'.$key, $val, $data);
 					}
 				}
+				
 				if ($bigtree["config"]["js"]["minify"]) {
 					include_once SERVER_ROOT."core/inc/lib/JShrink/src/JShrink/Minifier.php";
 					$data = \JShrink\Minifier::minify($data);
 				}
+				
 				FileSystem::createFile($cfile, $data);
 				header("Content-type: text/javascript");
+				
 				die($data);
 			} else {
 				// Added a line to .htaccess to hopefully give us IF_MODIFIED_SINCE when running as CGI
@@ -98,15 +105,18 @@
 					// if we need LESS
 					if (strpos(implode(" ", $bigtree["config"]["css"]["files"][$css_file]), "less") > -1) {
 						include_once SERVER_ROOT."core/inc/lib/less.php/lessc.inc.php";
-						$parser = new Less_Parser;
+						$parser = new \Less_Parser;
 					}
+					
 					foreach ($bigtree["config"]["css"]["files"][$css_file] as $style_file) {
 						$style = file_get_contents(SITE_ROOT."css/$style_file");
+						
 						if (strpos($style_file, "less") > -1) {
 							// convert LESS
 							$parser->parse($style);
 							$style = $parser->getCss();
 						}
+						
 						$data .= $style."\n";
 					}
 				}
@@ -265,13 +275,17 @@
 	
 	// See if we're previewing changes.
 	$bigtree["preview"] = false;
+	$navid = false;
+	
 	if ($bigtree["path"][0] == "_preview" && $_SESSION["bigtree_admin"]["id"]) {
 		$npath = array();
+		
 		foreach ($bigtree["path"] as $item) {
 			if ($item != "_preview") {
 				$npath[] = $item;
 			}
 		}
+		
 		$bigtree["path"] = $npath;
 		$bigtree["preview"] = true;
 		$bigtree["config"]["cache"] = false;
@@ -280,10 +294,10 @@
 		// Clean up
 		unset($npath);
 	}
+	
 	if ($bigtree["path"][0] == "_preview-pending" && $_SESSION["bigtree_admin"]["id"]) {
 		$bigtree["preview"] = true;
 		$bigtree["commands"] = array();
-		$commands = $bigtree["commands"]; // Backwards compatibility
 		$navid = $bigtree["path"][1];
 		
 		define("BIGTREE_PREVIEWING_PENDING", true);
@@ -309,8 +323,8 @@
 	}
 	
 	// Check route registry if we're not previewing
+	$registry_found = false;
 	if (!$navid) {
-		$registry_found = false;
 		foreach (Router::$Registry["public"] as $registration) {
 			if (!$registry_found) {
 				$registry_commands = Router::getRegistryCommands("/".implode("/", $bigtree["path"]), $registration["pattern"]);
@@ -324,8 +338,7 @@
 	
 	// Not in route registry, check BigTree pages
 	if (!$registry_found) {
-		list($navid, $bigtree["commands"], $routed) = $cms->getNavId($bigtree["path"], $bigtree["preview"]);
-		$commands = $bigtree["commands"]; // Backwards compatibility
+		list($navid, $bigtree["commands"], $routed) = Router::routeToPage($bigtree["path"], $bigtree["preview"]);
 	}
 	
 	// Pre-init a bunch of vars to keep away notices.
@@ -361,17 +374,21 @@
 		} elseif ($registry_rule["function"]) {
 			call_user_func_array($registry_rule["function"], $registry_commands);
 		}
-		// Nav ID found means we're loading a page
+	// Nav ID found means we're loading a page
 	} elseif ($navid !== false) {
 		// If we're previewing, get pending data as well.
 		if ($bigtree["preview"]) {
-			$bigtree["page"] = $cms->getPendingPage($navid);
+			$page = Page::getPageDraft($navid);
+			$bigtree["page"] = $page->Array;
+			
 			// If we're previewing pending changes, the template's routed-ness may have changed.
-			$template = $cms->getTemplate($bigtree["page"]["template"]);
-			$routed = $template["routed"];
+			$template = new Template($bigtree["page"]["template"]);
+			$routed = $template->Routed;
 		} else {
-			$bigtree["page"] = $cms->getPage($navid);
+			$page = new Page($navid);
+			$bigtree["page"] = $page->Array;
 		}
+		
 		$bigtree["page"]["link"] = WWW_ROOT.$bigtree["page"]["path"]."/";
 		$bigtree["resources"] = $bigtree["page"]["resources"];
 		$bigtree["callouts"] = $bigtree["page"]["callouts"];
@@ -380,11 +397,6 @@
 		if ($bigtree["page"]["seo_invisible"]) {
 			header("X-Robots-Tag: noindex");
 		}
-		
-		/* Backwards Compatibility */
-		$page = $bigtree["page"];
-		$resources = $bigtree["resources"];
-		$callouts = $bigtree["callouts"];
 		
 		// Quick access to resources
 		if (is_array($bigtree["resources"])) {
@@ -397,13 +409,7 @@
 		
 		// Redirect lower if the template is !
 		if ($bigtree["page"]["template"] == "!") {
-			$nav = $cms->getNavByParent($bigtree["page"]["id"], 1);
-			$first = current($nav);
-			if (!$first) {
-				$nav = $cms->getHiddenNavByParent($bigtree["page"]["id"]);
-				$first = current($nav);
-			}
-			Router::redirect($first["link"], 303);
+			Router::redirectLower($page);
 		}
 		
 		// Setup extension handler for templates
@@ -420,9 +426,11 @@
 		if ($routed) {
 			// See if a module has hooked this template routing
 			$registry_found = false;
-			foreach ($cms->RouteRegistry["template"] as $registration) {
+			
+			foreach (Router::$Registry["template"] as $registration) {
 				if ($registration["template"] == $bigtree["page"]["template"]) {
 					$registry_commands = Router::getRegistryCommands(implode("/", $bigtree["commands"]), $registration["pattern"]);
+					
 					if ($registry_commands !== false) {
 						$registry_found = true;
 						$registry_rule = $registration;
@@ -444,7 +452,7 @@
 				// Set the include file
 				$bigtree["routed_inc"] = $inc = SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/".ltrim($registry_rule["file"], "/");
 				
-				// Use BigTree's routing to find the page
+			// Use BigTree's routing to find the page
 			} else {
 				// Allow the homepage to be routed
 				if ($bigtree["page"]["path"]) {
@@ -501,15 +509,16 @@
 		} else {
 			Router::redirect($bigtree["page"]["external"]);
 		}
-		// Check for standard sitemap
+	// Check for standard sitemap
 	} else if ($bigtree["path"][0] == "sitemap" && !$bigtree["path"][1]) {
 		include SERVER_ROOT."templates/basic/_sitemap.php";
-		// We've got a 404, check for old routes or throw one.
+	// We've got a 404, check for old routes or throw one.
 	} else {
 		// Let's check if it's in the old routing table.
-		$cms->checkOldRoutes($bigtree["path"]);
+		Router::checkPathHistory($bigtree["path"]);
+		
 		// It's not, it's a 404.
-		if ($cms->handle404($_GET["bigtree_htaccess_url"])) {
+		if (Redirect::handle404($_GET["bigtree_htaccess_url"])) {
 			include SERVER_ROOT."templates/basic/_404.php";
 		}
 	}
@@ -540,8 +549,10 @@
 			return str_replace('href="http://', 'href="https://', $matches[0]);
 		};
 		$bigtree["content"] = preg_replace_callback('/<link [^>]*href="([^"]*)"/', $secure_replace_callback, $bigtree["content"]);
+		
 		// Replace script and image tags.
 		$bigtree["content"] = str_replace('src="http://', 'src="https://', $bigtree["content"]);
+		
 		// Replace inline background images
 		$bigtree["content"] = preg_replace(
 			array("/url\('http:\/\//", '/url\("http:\/\//', '/url\(http:\/\//'),

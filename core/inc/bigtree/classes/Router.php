@@ -374,6 +374,39 @@
 			header("Location: $url");
 			die();
 		}
+		
+		/*
+			Function: redirectLower
+				Redirects to the first visible child of the given page with a 301.
+			
+			Parameters:
+				 page - A BigTree\Page object
+		*/
+		
+		static function redirectLower(Page $page) {
+			global $bigtree;
+			
+			$path = SQL::fetchSingle("SELECT path FROM bigtree_pages 
+						  			  WHERE in_nav = 'on' AND parent = ? 
+						              ORDER BY position DESC, id ASC LIMIT 1", $page->ID);
+			
+			// Try for one that's not in nav
+			if (!$path) {
+				$path = SQL::fetchSingle("SELECT path FROM bigtree_pages 
+						  		  		  WHERE in_nav != 'on' AND parent = ? 
+						                  ORDER BY position DESC, id ASC LIMIT 1", $page->ID);
+			}
+				
+			if ($path) {
+				if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
+					$url = WWW_ROOT.$path;
+				} else {
+					$url = WWW_ROOT.$path."/";
+				}
+				
+				Router::redirect($url, 301);
+			}
+		}
 
 		/*
 			Function: routeToPage
