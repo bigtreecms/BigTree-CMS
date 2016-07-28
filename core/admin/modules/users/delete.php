@@ -4,7 +4,7 @@
 	$id = intval($bigtree["commands"][0]);
 	Auth::user()->requireLevel(1);
 
-	if ($id == $admin->ID) {
+	if ($id == Auth::user()->ID) {
 		Utils::growl("Users","You cannot delete your own user.","error");
 	} else {
 		$user = new User($id);

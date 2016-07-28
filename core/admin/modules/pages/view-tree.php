@@ -11,7 +11,7 @@
 	
 	// Handy function to show the trees without repeating so much code.
 	$draw_page_tree = function($nav,$title,$class,$draggable = false) {
-		global $proot,$admin,$cms,$ga_on,$bigtree,$page;
+		global $proot,$admin,$cms,$ga_on,$bigtree,$page_id;
 ?>
 <div class="table">
 	<summary>
@@ -114,7 +114,7 @@
 				<?=$status?>
 			</section>
 			<section class="pages_archive">
-				<?php if (!isset($item["bigtree_pending"]) && $perm == "p" && ($page->ID !== 0 || Auth::user()->Level > 1 || $class == "hidden") && $admin->canModifyChildren($item)) { ?>
+				<?php if (!isset($item["bigtree_pending"]) && $perm == "p" && ($page_id->ID !== 0 || Auth::user()->Level > 1 || $class == "hidden") && $admin->canModifyChildren($item)) { ?>
 				<a href="<?=$proot?>archive/<?=$item["id"]?>/" title="<?=Text::translate("Archive Page")?>" class="icon_archive"></a>
 				<?php } elseif ($item["bigtree_pending"] && $perm == "p") { ?>
 				<a href="<?=$proot?>delete/<?=$item["id"]?>/" title="<?=Text::translate("Delete Pending Page")?>" class="icon_delete"></a>
@@ -145,7 +145,7 @@
 ?>
 <script>
 	$("#pages_<?=$class?>").sortable({ axis: "y", containment: "parent",  handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/pages/order/", { type: "POST", data: { id: "<?=$page->ID?>", sort: $("#pages_<?=$class?>").sortable("serialize") } });
+		$.ajax("<?=ADMIN_ROOT?>ajax/pages/order/", { type: "POST", data: { id: "<?=$page_id->ID?>", sort: $("#pages_<?=$class?>").sortable("serialize") } });
 	}});
 </script>
 <?php
@@ -156,9 +156,9 @@
 ?>
 <h3><?=Text::translate("Subpages")?></h3>
 <?php
-	$nav_visible = array_merge($admin->getNaturalNavigationByParent($page->ID,1),$admin->getPendingNavigationByParent($page->ID));
-	$nav_hidden = array_merge($admin->getHiddenNavigationByParent($page->ID),$admin->getPendingNavigationByParent($page->ID,""));
-	$nav_archived = $admin->getArchivedNavigationByParent($page->ID);
+	$nav_visible = array_merge($admin->getNaturalNavigationByParent($page_id->ID,1),$admin->getPendingNavigationByParent($page_id->ID));
+	$nav_hidden = array_merge($admin->getHiddenNavigationByParent($page_id->ID),$admin->getPendingNavigationByParent($page_id->ID,""));
+	$nav_archived = $admin->getArchivedNavigationByParent($page_id->ID);
 	
 	if (count($nav_visible) || count($nav_hidden) || count($nav_archived)) {
 		// Drag Visible Pages

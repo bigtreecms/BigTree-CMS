@@ -1,12 +1,8 @@
 <?php
 	namespace BigTree;
-
-	/**
-	 * @global \BigTreeAdmin $admin
-	 */
 	
 	// Get pending changes awaiting this user's approval.
-	$user = new User($admin->ID);
+	$user = new User(Auth::user()->ID);
 	$changes = PendingChange::allPublishableByUser($user);
 
 	// Go through and get all the modules and pages, separate them out.

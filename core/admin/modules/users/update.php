@@ -35,7 +35,7 @@
 		}
 
 		// Don't let a user change their own level
-		if ($id == $admin->ID) {
+		if ($id == Auth::user()->ID) {
 			$level = Auth::user()->Level;
 		}
 

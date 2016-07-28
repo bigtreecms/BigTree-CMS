@@ -2,7 +2,7 @@
 	namespace BigTree;
 
 	// Get publishable changes.
-	$changes = $admin->getPublishableChanges($admin->ID);
+	$changes = $admin->getPublishableChanges(Auth::user()->ID);
 	// Figure out what module each of the changes is for.
 	$change_modules = array();
 	foreach ($changes as $c) {

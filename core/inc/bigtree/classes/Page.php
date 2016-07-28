@@ -351,7 +351,7 @@
 				"resources" => $resources,
 				"meta_description" => Text::htmlEncode($meta_description),
 				"seo_invisible" => ($seo_invisible ? "on" : ""),
-				"last_edited_by" => (get_class($admin) == "BigTreeAdmin") ? $admin->ID : null,
+				"last_edited_by" => (get_class($admin) == "BigTreeAdmin") ? Auth::user()->ID : null,
 				"created_at" => "NOW()",
 				"publish_at" => ($publish_at ? date("Y-m-d", strtotime($publish_at)) : null),
 				"expire_at" => ($expire_at ? date("Y-m-d", strtotime($expire_at)) : null),
@@ -393,14 +393,8 @@
 		*/
 		
 		static function createChangeRequest($page, $changes) {
-			global $admin;
-			
 			// Get the user creating the change
-			if (get_class($admin) == "BigTreeAdmin" && $admin->ID) {
-				$user = $admin->ID;
-			} else {
-				$user = null;
-			}
+			$user = Auth::user()->ID;
 			
 			// Get existing information
 			if ($page[0] == "p") {
@@ -1241,7 +1235,7 @@
 			global $admin;
 			
 			// Make sure a user is logged in
-			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
+			if (is_null(Auth::user()->ID)) {
 				trigger_error("Property UserCanModifyChildren not available outside logged-in user context.");
 				
 				return false;
@@ -1498,7 +1492,7 @@
 					"publish_at" => $this->PublishAt ?: null,
 					"expire_at" => $this->ExpireAt ?: null,
 					"max_age" => $this->MaxAge ?: 0,
-					"last_edited_by" => !empty($admin->ID) ? $admin->ID : $this->LastEditedBy
+					"last_edited_by" => Auth::user()->ID ?: $this->LastEditedBy
 				));
 
 				// Remove any pending drafts

@@ -7,27 +7,27 @@
 
 	$live_url = false;
 	$preview_url = false;
-	$age = floor((time() - strtotime($page->UpdatedAt)) / (60 * 60 * 24));
-	$seo = $page->SEORating;
+	$age = floor((time() - strtotime($page_id->UpdatedAt)) / (60 * 60 * 24));
+	$seo = $page_id->SEORating;
 	
-	if (is_numeric($page->ID)) {
-		if ($page->ID == 0) {
+	if (is_numeric($page_id->ID)) {
+		if ($page_id->ID == 0) {
 			$live_url = WWW_ROOT;
 		} else {
-			$live_url = WWW_ROOT.$page->Path."/";
+			$live_url = WWW_ROOT.$page_id->Path."/";
 		}
-		if (isset($page->ChangesApplied)) {
+		if (isset($page_id->ChangesApplied)) {
 			$status = Text::translate("Changes Pending");
-			if ($page->ID == 0) {
+			if ($page_id->ID == 0) {
 				$preview_url = WWW_ROOT."_preview/";
 			} else {
-				$preview_url = WWW_ROOT."_preview/".$page->Path."/";
+				$preview_url = WWW_ROOT."_preview/".$page_id->Path."/";
 			}
 		} else {
 			$status = Text::translate("Published");
 		}
 	} else {
-		$preview_url = WWW_ROOT."_preview-pending/".$page->ID."/";
+		$preview_url = WWW_ROOT."_preview-pending/".$page_id->ID."/";
 		$status = Text::translate("Unpublished");
 	}
 	
@@ -61,7 +61,7 @@
 	</article>
 	<article class="page_id">
 		<label><?=Text::translate("Page ID")?></label>
-		<p><?=$page->ID?></p>
+		<p><?=$page_id->ID?></p>
 	</article>
 	<?php
 		if ($live_url) {

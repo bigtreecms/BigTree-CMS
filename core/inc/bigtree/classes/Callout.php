@@ -67,10 +67,10 @@
 		*/
 
 		static function allAllowed($sort = "position DESC, id ASC", $return_arrays = false) {
-			global $admin;
+			$user = Auth::user()->ID;
 
 			// Make sure a user is logged in
-			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
+			if (is_null($user)) {
 				trigger_error("Method allAllowed not available outside logged-in user context.", E_USER_ERROR);
 
 				return false;
@@ -102,11 +102,11 @@
 		*/
 
 		static function allInGroups($groups, $auth = true, $return_arrays = false) {
-			global $admin;
 			$ids = $callouts = $names = array();
+			$user = Auth::user()->ID;
 
 			// Make sure a user is logged in
-			if ($auth && (get_class($admin) != "BigTreeAdmin" || !$admin->ID)) {
+			if ($auth && is_null($user)) {
 				trigger_error("Method allInGroups not available outside logged-in user context when passing auth = true.", E_USER_ERROR);
 
 				return false;

@@ -177,17 +177,17 @@
 		*/
 
 		static function getUserUnreadCount() {
-			global $admin;
+			$user = Auth::user()->ID;
 
 			// Make sure a user is logged in
-			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
+			if (is_null($user)) {
 				trigger_error("Method getUserUnreadCount not available outside logged-in user context.");
 
 				return false;
 			}
 
 			return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_messages 
-									 WHERE recipients LIKE '%|".$admin->ID."|%' AND read_by NOT LIKE '%|".$admin->ID."|%'");
+									 WHERE recipients LIKE '%|$user|%' AND read_by NOT LIKE '%|$user|%'");
 		}
 
 		/*
@@ -196,16 +196,16 @@
 		*/
 
 		function markRead() {
-			global $admin;
+			$user = Auth::user()->ID;
 
 			// Make sure a user is logged in
-			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
+			if (is_null($user)) {
 				trigger_error("Method markRead not available outside logged-in user context.", E_USER_WARNING);
 
 				return;
 			}
 
-			$this->ReadBy = str_replace("|".$admin->ID."|", "", $this->ReadBy)."|".$admin->ID."|";
+			$this->ReadBy = str_replace("|$user|", "", $this->ReadBy)."|$user|";
 			$this->save();
 		}
 		

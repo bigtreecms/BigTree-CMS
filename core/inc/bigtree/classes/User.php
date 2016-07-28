@@ -323,10 +323,12 @@
 		*/
 
 		static function updateProfile($name, $company = "", $daily_digest = "", $password = false) {
-			global $admin, $bigtree;
+			global $bigtree;
+
+			$user = Auth::user()->ID;
 
 			// Make sure a user is logged in
-			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
+			if (is_null($user)) {
 				trigger_error("Method updateProfile not available outside logged-in user context.");
 
 				return false;
@@ -343,7 +345,7 @@
 				$update_values["password"] = $phpass->HashPassword($password);
 			}
 
-			SQL::update("bigtree_users", $admin->ID, $update_values);
+			SQL::update("bigtree_users", $user, $update_values);
 			
 			return true;
 		}

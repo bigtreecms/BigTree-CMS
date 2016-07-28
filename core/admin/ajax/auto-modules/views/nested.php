@@ -77,7 +77,7 @@
 				foreach ($view->Actions as $action => $data) {
 					if ($data == "on") {
 						if ($entry_permission == "n" || !$entry_permission || (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $entry_permission != "p")) {
-							if ($action == "delete" && $item["pending_owner"] == $admin->ID) {
+							if ($action == "delete" && $item["pending_owner"] == Auth::user()->ID) {
 								$class = "icon_delete";
 							} else {
 								$class = "icon_disabled";

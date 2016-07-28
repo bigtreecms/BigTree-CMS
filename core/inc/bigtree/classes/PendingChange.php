@@ -209,12 +209,7 @@
 			if ($embedded_form) {
 				$user = null;
 			} else {
-				global $admin;
-				if (get_class($admin) == "BigTreeAdmin" && $admin->ID) {
-					$user = $admin->ID;
-				} else {
-					$user = null;
-				}
+				$user = Auth::user()->ID;
 			}
 
 			$id = SQL::insert("bigtree_pending_changes", array(
@@ -262,14 +257,8 @@
 		*/
 
 		static function createPage($trunk, $parent, $in_nav, $nav_title, $title, $route, $meta_description, $seo_invisible, $template, $external, $new_window, $fields, $publish_at, $expire_at, $max_age, $tags = array()) {
-			global $admin;
-
 			// Get the user creating the change
-			if (get_class($admin) == "BigTreeAdmin" && $admin->ID) {
-				$user = $admin->ID;
-			} else {
-				$user = null;
-			}
+			$user = Auth::user()->ID;
 
 			$changes = array(
 				"trunk" => $trunk ? "on" : "",
@@ -375,14 +364,8 @@
 				$new = static::create($this->Table, $this->ItemID, $this->Changes, $this->ManyToManyChanges, $this->TagsChanges, $this->Module, $this->PublishHook);
 				$this->inherit($new);
 			} else {
-				global $admin;
-				
 				// Get the user creating the change
-				if (get_class($admin) == "BigTreeAdmin" && $admin->ID) {
-					$user = $admin->ID;
-				} else {
-					$user = null;
-				}
+				$user = Auth::user()->ID;
 
 				// If this is an existing entry's changes, only keep what's different
 				if ($this->ItemID !== false) {

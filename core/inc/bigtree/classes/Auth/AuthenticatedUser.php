@@ -11,7 +11,8 @@
 	use BigTree\SQL;
 
 	class AuthenticatedUser {
-
+		
+		public $ID;
 		public $Level;
 		public $Permissions;
 
@@ -20,11 +21,13 @@
 				Sets up an authenticated user instance.
 
 			Parameters:
+				id - User ID
 				level - User level (-1 = anonymous, 0 = normal user, 1 = administrator, 2 = developer)
 				permissions - Array of user permissions
 		*/
 
-		function __construct($level, $permissions) {
+		function __construct($id, $level, $permissions) {
+			$this->ID = $id;
 			$this->Level = $level;
 			$this->Permissions = $permissions;
 		}

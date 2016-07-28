@@ -15,7 +15,7 @@
 		<label><span></span><?=Text::translate("Tags")?></label>
 		<ul id="tag_list">
 			<?php
-				foreach ($page->Tags as $tag) {
+				foreach ($page_id->Tags as $tag) {
 			?>
 			<li><input type="hidden" name="_tags[]" value="<?=$tag->ID?>" /><a href="#"><?=$tag->Name?><span>x</span></a></li>
 			<?php

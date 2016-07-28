@@ -364,22 +364,22 @@
 		static function user($user = false) {
 			if ($user !== false) {
 				if (is_object($user)) {
-					return new Auth\AuthenticatedUser($user->Level, $user->Permissions);
+					return new Auth\AuthenticatedUser($user->ID, $user->Level, $user->Permissions);
 				}
 
-				$user = SQL::fetch("SELECT level, permissions FROM bigtree_users WHERE id = ?", $user);
+				$user = SQL::fetch("SELECT id, level, permissions FROM bigtree_users WHERE id = ?", $user);
 
 				// Return a -1 level of anonymous user
 				if (!$user) {
-					return new Auth\AuthenticatedUser(-1, array());
+					return new Auth\AuthenticatedUser(null, -1, array());
 				} else {
-					return new Auth\AuthenticatedUser($user["level"], (array) json_decode($user["permissions"], true));
+					return new Auth\AuthenticatedUser($user["id"], $user["level"], (array) json_decode($user["permissions"], true));
 				}
 			} else {
 				if (static::$ID) {
-					return new Auth\AuthenticatedUser(static::$Level, static::$Permissions);
+					return new Auth\AuthenticatedUser(static::$ID, static::$Level, static::$Permissions);
 				} else {
-					return new Auth\AuthenticatedUser(-1, array());
+					return new Auth\AuthenticatedUser(null, -1, array());
 				}
 			}
 		}

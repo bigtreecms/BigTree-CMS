@@ -48,7 +48,7 @@
 						<select>
 							<?php
 								foreach ($users as $item) {
-									if ($item["id"] != $admin->ID) {
+									if ($item["id"] != Auth::user()->ID) {
 							?>
 							<option value="<?=$item["id"]?>"><?=htmlspecialchars($item["name"])?></option>
 							<?php

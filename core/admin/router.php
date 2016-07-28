@@ -221,7 +221,7 @@
 	Auth::initSecurity();
 
 	// If we're not logged in and we're not trying to login or access an embedded form, redirect to the login page.
-	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
+	if (is_null(Auth::user()->ID) && $bigtree["path"][1] != "login") {
 		if (implode(array_slice($bigtree["path"],1,3),"/") != "ajax/auto-modules/embeddable-form") {
 			$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
 			Router::redirect(ADMIN_ROOT."login/");
@@ -229,7 +229,7 @@
 	}
 
 	// Developer Mode On?
-	if (isset($admin->ID) && !empty($bigtree["config"]["developer_mode"]) && Auth::user()->Level < 2) {
+	if (!Auth::user()->ID && !empty($bigtree["config"]["developer_mode"]) && Auth::user()->Level < 2) {
 		include Router::getIncludePath("admin/pages/developer-mode.php");
 		Auth::stop();
 	}
@@ -292,7 +292,7 @@
 
 			if ($module && !$module->UserCanAccess) {
 				die("Permission denied to module: ".$module->Name);
-			} elseif (!$admin->ID) {
+			} elseif (!Auth::user()->ID) {
 				die("Please login.");
 			}
 

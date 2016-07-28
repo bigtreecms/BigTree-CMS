@@ -13,7 +13,7 @@
 
 	$template = new Template($bigtree["current_page"]["template"]);
 	
-	$bigtree["resources"] = $page->Resources;
+	$bigtree["resources"] = $page_id->Resources;
 	$bigtree["html_fields"] = array();
 	$bigtree["simple_html_fields"] = array();
 	$bigtree["tabindex"] = 1;

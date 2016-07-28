@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$user = $admin->getUser($admin->ID);
+	$user = $admin->getUser(Auth::user()->ID);
 	$bigtree["gravatar"] = $user["email"];
 	Globalize::arrayObject($user,array("htmlspecialchars"));
 

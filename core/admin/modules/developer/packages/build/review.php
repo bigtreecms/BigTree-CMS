@@ -1,59 +1,86 @@
 <?php
 	namespace BigTree;
-
+	
+	/**
+	 * @global array $author
+	 * @global array $callouts
+	 * @global array $extension_settings
+	 * @global array $feeds
+	 * @global array $field_types
+	 * @global array $files
+	 * @global array $modules
+	 * @global array $tables
+	 * @global array $templates
+	 * @global string $compatibility
+	 * @global string $description
+	 * @global string $id
+	 * @global string $keywords
+	 * @global string $title
+	 * @global string $version
+	 */
+	
 	// Need to get the names for everything we're including
-	$module_string = array();
-	foreach (array_filter((array) $modules) as $m) {
-		$module = $admin->getModule($m);
-		if ($module) {
-			$module_string[] = $module["name"];
+	$module_string = $template_string = $callout_string = $setting_string = $feed_string = $field_string = $table_string = $file_string = array();
+	
+	foreach (array_filter((array) $modules) as $module_id) {
+		$module = new Module($module_id);
+		
+		if ($module->Name) {
+			$module_string[] = $module->Name;
 		}
 	}
-	$template_string = array();
-	foreach (array_filter((array) $templates) as $t) {
-		$template = $cms->getTemplate($t);
-		if ($template) {
-			$template_string[] = $template["name"];
+	
+	foreach (array_filter((array) $templates) as $template_id) {
+		$template = new Template($template_id);
+		
+		if ($template->Name) {
+			$template_string[] = $template->Name;
 		}
 	}
-	$callout_string = array();
-	foreach (array_filter((array) $callouts) as $c) {
-		$callout = $admin->getCallout($c);
-		if ($callout) {
-			$callout_string[] = $callout["name"];
+	
+	foreach (array_filter((array) $callouts) as $callout_id) {
+		$callout = new Callout($callout_id);
+		
+		if ($callout->Name) {
+			$callout_string[] = $callout->Name;
 		}
 	}
-	$setting_string = array();
-	foreach (array_filter((array) $extension_settings) as $s) {
-		$setting = $admin->getSetting($s);
-		if ($setting) {
-			$setting_string[] = $setting["name"];
+	
+	foreach (array_filter((array) $extension_settings) as $setting_id) {
+		$setting = new Setting($setting_id);
+		
+		if ($setting->Name) {
+			$setting_string[] = $setting->Name;
 		}
 	}
-	$feed_string = array();
-	foreach (array_filter((array) $feeds) as $f) {
-		$feed = $cms->getFeed($f);
-		if ($feed) {
-			$feed_string[] = $feed["name"];
+	
+	foreach (array_filter((array) $feeds) as $feed_id) {
+		$feed = new Feed($feed_id);
+		
+		if ($feed->Name) {
+			$feed_string[] = $feed->Name;
 		}
 	}
-	$field_string = array();
-	foreach (array_filter((array) $field_types) as $f) {
-		$field_type = $admin->getFieldType($f);
-		if ($field_type) {
-			$field_string[] = $field_type["name"];
+	
+	foreach (array_filter((array) $field_types) as $field_id) {
+		$field_type = new FieldType($field_id);
+		
+		if ($field_type->Name) {
+			$field_string[] = $field_type->Name;
 		}
 	}
-	$table_string = array();
-	foreach (array_filter((array) $tables) as $t) {
-		list($table,$data) = explode("#",$t);
+	
+	foreach (array_filter((array) $tables) as $table) {
+		list($table) = explode("#", $table);
+		
 		if ($table) {
 			$table_string[] = $table;
 		}
 	}
-	$file_string = array();
-	foreach (array_filter((array) $files) as $f) {
-		$file = Text::replaceServerRoot($f);
+	
+	foreach (array_filter((array) $files) as $file) {
+		$file = Text::replaceServerRoot($file);
+		
 		if ($file) {
 			$file_string[] = $file;
 		}

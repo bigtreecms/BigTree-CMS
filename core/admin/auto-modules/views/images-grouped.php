@@ -85,11 +85,11 @@
 			<li id="row_<?=$item["id"]?>"<?php if ($module_permission != "p" || !$draggable) { ?> class="non_draggable"<?php } ?>>
 				<a class="image<?php if (empty($view->Actions["edit"])) { ?> image_disabled<?php } ?>" href="<?=$view->EditURL.$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?php
-					if ($module_permission == "p" || ($module->Group["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module->ID])) || $item["pending_owner"] == $admin->ID) {
+					if ($module_permission == "p" || ($module->Group["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module->ID])) || $item["pending_owner"] == Auth::user()->ID) {
 						foreach ($view->Actions as $action => $data) {
 							if ($action != "edit") {
 								if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $entry_permission != "p") {
-									if ($action == "delete" && $item["pending_owner"] == $admin->ID) {
+									if ($action == "delete" && $item["pending_owner"] == Auth::user()->ID) {
 										$class = "icon_delete";
 									} else {
 										$class = "icon_disabled";
@@ -150,11 +150,11 @@
 			<li id="row_<?=$item["id"]?>" class="non_draggable">
 				<a class="image<?php if (empty($view->Actions["edit"])) { ?> image_disabled<?php } ?>" href="<?=$view->EditURL.$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?php
-					if ($module_permission == "p" || ($module->GroupBasedPermissions["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module->ID])) || $item["pending_owner"] == $admin->ID) {
+					if ($module_permission == "p" || ($module->GroupBasedPermissions["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$module->ID])) || $item["pending_owner"] == Auth::user()->ID) {
 						foreach ($view->Actions as $action => $data) {
 							if ($action != "edit") {
 								if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $entry_permission != "p") {
-									if ($action == "delete" && $item["pending_owner"] == $admin->ID) {
+									if ($action == "delete" && $item["pending_owner"] == Auth::user()->ID) {
 										$class = "icon_delete";
 									} else {
 										$class = "icon_disabled";

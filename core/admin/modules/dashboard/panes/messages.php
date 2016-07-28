@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	// Get all the messages we've received.
-	$messages = $admin->getMessages($admin->ID);
+	$messages = $admin->getMessages(Auth::user()->ID);
 
 	// Unread messages table data 
 	$unread_data = array();

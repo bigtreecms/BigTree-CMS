@@ -9,16 +9,18 @@
 
 	if (isset($_POST["page"])) {
 		$template_id = $_POST["template"];
-		$bigtree["current_page"] = $cms->getPendingPage($_POST["page"]);
-		$bigtree["resources"] = $bigtree["current_page"]["resources"];
+		$page = Page::getPageDraft($_POST["page"]);
+		$bigtree["current_page"] = $page->Array; // Backwards compat
+		$bigtree["resources"] = $page->Resources;
 	} elseif (isset($_POST["template"])) {
 		$template_id = $_POST["template"];
 		$bigtree["resources"] = array();
 	} elseif (!isset($bigtree["resources"]) && !isset($bigtree["callouts"])) {
 		$bigtree["resources"] = array();
 	}
-
-	$bigtree["template"] = $cms->getTemplate($template_id);
+	
+	$template = new Template($template_id);
+	$bigtree["template"] = $template->Array; // Backwards compat
 ?>
 <div class="alert template_message">
 	<label><?=Text::translate("Template")?>:</label>
@@ -29,7 +31,7 @@
 			} elseif ($template_id == "!") {
 				echo Text::translate("Redirect Lower"); 
 			} else { 
-				echo $bigtree["template"]["name"]; 
+				echo $template->Name;
 			}
 		?>
 	</p>
@@ -55,8 +57,8 @@
 		// We alias $bigtree["entry"] to $bigtree["resources"] so that information is in the same place for field types.
 		$bigtree["entry"] = &$bigtree["resources"];
 	
-		if (is_array($bigtree["template"]["resources"]) && count($bigtree["template"]["resources"])) {
-			foreach ($bigtree["template"]["resources"] as $resource) {
+		if (count($template->Fields)) {
+			foreach ($template->Fields as $resource) {
 				$field = new Field(array(
 					"type" => $resource["type"],
 					"title" => $resource["title"],

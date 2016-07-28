@@ -63,16 +63,18 @@
 
 		static function enforce($table, $id, $include, $force = false) {
 			global $admin, $bigtree, $cms, $db;
+
+			$user = Auth::user()->ID;
 			
 			// Make sure a user is logged in
-			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
+			if (is_null($user)) {
 				throw new \Exception("Lock::enforce cannot be called outside logged-in user context.");
 			}
 
 			$lock = SQL::fetch("SELECT * FROM bigtree_locks WHERE `table` = ? AND item_id = ?", $table, $id);
 
 			// Lock exists and the logged-in user doesn't own it (and it's not old) and we're not forcing our way through
-			if ($lock && $lock["user"] != $admin->ID && strtotime($lock["last_accessed"]) > (time() - 300) && !$force) {
+			if ($lock && $lock["user"] != $user && strtotime($lock["last_accessed"]) > (time() - 300) && !$force) {
 				$user = new User($lock["user"]);
 
 				$locked_by = $user->Array;
@@ -87,7 +89,7 @@
 			// We're taking over the lock, force was sent or this is an old lock
 			if ($lock) {
 				SQL::update("bigtree_locks", $lock["id"], array(
-					"user" => $admin->ID
+					"user" => $user
 				));
 
 				return new Lock($lock["id"]);
@@ -97,7 +99,7 @@
 				$id = SQL::insert("bigtree_locks", array(
 					"table" => $table,
 					"item_id" => $id,
-					"user" => $admin->ID
+					"user" => $user
 				));
 
 				return new Lock($id);
@@ -115,15 +117,15 @@
 		*/
 
 		static function refresh($table, $id) {
-			global $admin;
+			$user = Auth::user()->ID;
 
 			// Make sure a user is logged in
-			if (get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
+			if (is_null($user)) {
 				throw new \Exception("Lock::refresh cannot be called outside logged-in user context.");
 			}
 
 			// Update the access time and user
-			SQL::update("bigtree_locks", array("table" => $table, "item_id" => $id, "user" => $admin->ID), array("last_accessed" => "NOW()"));
+			SQL::update("bigtree_locks", array("table" => $table, "item_id" => $id, "user" => $user), array("last_accessed" => "NOW()"));
 		}
 
 		/*

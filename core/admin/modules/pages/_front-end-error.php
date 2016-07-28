@@ -24,6 +24,6 @@
 	</div>
 	<footer>
 		<a href="<?=ADMIN_ROOT?>pages/front-end-return/<?=base64_encode($refresh_link)?>/" class="button white"><?=Text::translate("Ignore")?></a>				
-		<a href="<?=ADMIN_ROOT?>pages/front-end-edit/<?=$page?>/" class="button blue"><?=Text::translate("Go Back")?></a>
+		<a href="<?=ADMIN_ROOT?>pages/front-end-edit/<?=$page_id?>/" class="button blue"><?=Text::translate("Go Back")?></a>
 	</footer>
 </div>

@@ -25,11 +25,11 @@
 		
 		// Generate the recipient names from the parent if we're replying to all, otherwise, just use the sender.
 		$send_to = array();
-		if (isset($reply_all) || $parent["sender"] == $admin->ID) {
+		if (isset($reply_all) || $parent["sender"] == Auth::user()->ID) {
 			$p_recipients = explode("|",trim($parent["recipients"],"|"));
 			$p_recipients[] = $parent["sender"];
 			foreach ($p_recipients as $r) {
-				if ($r != $admin->ID) {
+				if ($r != Auth::user()->ID) {
 					$send_to[] = $r;
 				}
 			}
@@ -70,7 +70,7 @@
 						<select>
 							<?php
 								foreach ($users as $id => $u) {
-									if ($item["id"] != $admin->ID) {
+									if ($item["id"] != Auth::user()->ID) {
 							?>
 							<option value="<?=$id?>"><?=htmlspecialchars($u["name"])?></option>
 							<?php

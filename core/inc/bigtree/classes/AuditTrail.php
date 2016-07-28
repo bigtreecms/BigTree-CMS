@@ -19,13 +19,13 @@
 		*/
 
 		static function track($table, $entry, $type) {
-			global $admin;
+			$user = Auth::user()->ID;
 
 			// If this is running fron cron or something, nobody is logged in so don't track.
-			if (get_class($admin) == "BigTreeAdmin" && $admin->ID) {
+			if (!is_null($user)) {
 				SQL::insert("bigtree_audit_trail", array(
 					"table" => $table,
-					"user" => $admin->ID,
+					"user" => $user,
 					"entry" => $entry,
 					"type" => $type
 				));

@@ -2,19 +2,18 @@
 	namespace BigTree;
 
 	/**
-	 * @global \BigTreeAdmin $admin
-	 * @global string $access_level
-	 * @global ModuleForm $form
-	 * @global int $id
 	 * @global array $item
-	 * @global Module $module
 	 * @global array $pending_entry
+	 * @global int $id
+	 * @global Module $module
+	 * @global ModuleForm $form
+	 * @global string $access_level
 	 */
 
 	include "_setup.php";
 	
 	// If you made this pending item, you should be allowed to delete it, or if you're a publisher of the module.
-	if ($access_level != "p" && $pending_entry["owner"] != $admin->ID) {
+	if ($access_level != "p" && $pending_entry["owner"] != Auth::user()->ID) {
 		$message = "You don't have permission to delete this item.";
 	} else {
 		$message = "Deleted Item";

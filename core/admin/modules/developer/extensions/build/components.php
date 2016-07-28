@@ -5,10 +5,10 @@
 	 * @global array $callouts
 	 * @global array $feeds
 	 * @global array $field_types
-	 * @global string $id
 	 * @global array $modules
 	 * @global array $settings
 	 * @global array $templates
+	 * @global string $id
 	 */
 ?>
 <div class="container">

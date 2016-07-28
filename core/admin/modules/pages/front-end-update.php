@@ -8,75 +8,58 @@
 	}
 
 	$bigtree["layout"] = "front-end";
+	$bigtree["crops"] = array();
+	$bigtree["errors"] = array();
 
-	$page = $_POST["page"];
-
-	if ($page[0] == "p") {
-		$change_id = substr($page,1);
-		$f = $admin->getPendingChange($change_id);
-		$pdata = $f["changes"];
-		$r = $admin->getPageAccessLevel($pdata["parent"]);
-	} else {
-		$r = $admin->getPageAccessLevel($page);
-		// Get pending page data with resources decoded and tags.
-		$pdata = $cms->getPendingPage($page,true,true);
-	}
-
+	$page_id = $_POST["page"];
+	$page = Page::getPageDraft($page_id);
+	$access_level = $page->UserAccessLevel;
+	
 	// Work out the permissions
-	if ($r == "p") {
+	if ($access_level == "p") {
 		$publisher = true;
-	} elseif ($r == "e") {
+	} elseif ($access_level == "e") {
 		$publisher = false;
 	} else {
 		Auth::stop("You do not have access to this page.", Router::getIncludePath("admin/layouts/_error.php"));
 	}
 
 	$resources = array();
-	$bigtree["crops"] = array();
-	$bigtree["errors"] = array();
 
 	// Save the template since we're not passing in the full update data.
-	$_POST["template"] = $pdata["template"];
-
+	$_POST["template"] = $page->Template;
+	
 	// Parse resources
 	include Router::getIncludePath("admin/modules/pages/_resource-parse.php");
 
-	// Un-htmlspecialchar everything since createPage / updatePage is going to re-do it.
-	foreach ($pdata as $key => $val) {
-		if (!is_array($val)) {
-			$pdata[$key] = htmlspecialchars_decode($val);
-		}
-	}
-
-	$pdata["resources"] = $_POST["resources"];
-
 	// Handle permissions on trunk
 	if (Auth::user()->Level < 2) {
+		
 		unset($_POST["trunk"]);
 	}
 
 	if ($publisher && $_POST["ptype"] == "Save & Publish") {
 		// Let's make it happen.
-		if ($page[0] == "p") {
+		if ($page_id[0] == "p") {
 			// It's a pending page, so let's create one.
-			$page = $admin->createPage($pdata);
+			$page_id = $admin->createPage($pdata);
 			$admin->deletePendingChange($change_id);
 		} else {
 			// It's an existing page.
-			$admin->updatePage($page,$pdata);
+			$admin->updatePage($page_id,$pdata);
 		}
 
-		$refresh_link = Link::get($page);
+		$refresh_link = Link::get($page_id);
 	} else {
 		if (!$_POST["parent"]) {
 			$_POST["parent"] = $pdata["parent"];
 		}
-		$admin->submitPageChange($page,$pdata);
+		$admin->submitPageChange($page_id,$pdata);
 
-		$refresh_link = Link::getPreview($page);
+		$refresh_link = Link::getPreview($page_id);
 	}
 
-	$admin->unlock("bigtree_pages",$page);
+	$admin->unlock("bigtree_pages",$page_id);
 
 	if (count($bigtree["crops"])) {
 		include Router::getIncludePath("admin/modules/pages/_front-end-crop.php");

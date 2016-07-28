@@ -165,7 +165,7 @@
 					<?php } ?>
 				</fieldset>
 
-				<?php if ($user["id"] != $admin->ID) { ?>
+				<?php if ($user["id"] != Auth::user()->ID) { ?>
 				<fieldset<?php if ($error == "email") { ?> class="form_error"<?php } ?> >
 					<label class="required"><?=Text::translate("User Level")?></label>
 					<select name="level" tabindex="5" id="user_level">

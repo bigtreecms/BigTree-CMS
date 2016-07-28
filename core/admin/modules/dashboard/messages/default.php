@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$messages = $admin->getMessages($admin->ID);	
+	$messages = $admin->getMessages(Auth::user()->ID);	
 
 	// Going to be querying a lot of user names
 	$user_cache = array();

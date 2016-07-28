@@ -5,9 +5,9 @@
 	 * @global Page $page
 	 */
 	
-	if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
-		$page->delete();
+	if ($page_id->UserAccessLevel == "p" && $page_id->UserCanModifyChildren) {
+		$page_id->delete();
 	}
 	
-	Router::redirect(ADMIN_ROOT."pages/view-tree/".$page->Parent."/");
+	Router::redirect(ADMIN_ROOT."pages/view-tree/".$page_id->Parent."/");
 	
