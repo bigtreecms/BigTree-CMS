@@ -18,8 +18,9 @@
 				$bigtree["post_data"] = $data;
 				$bigtree["file_data"] = $this->FileInput[$number];
 				
-				$callout_info = $admin->getCallout($data["type"]);
-				foreach ($callout_info["resources"] as $resource) {
+				$callout = new Callout($data["type"]);
+
+				foreach ($callout->Fields as $resource) {
 					$sub_field = array(
 						"type" => $resource["type"],
 						"title" => $resource["title"],

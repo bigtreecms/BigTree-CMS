@@ -20,10 +20,13 @@
 			
 			// Check if we're doing module based permissions on this table.
 			if ($bigtree["module"] && $bigtree["module"]["gbp"]["enabled"] && $form["table"] == $bigtree["module"]["gbp"]["table"] && $key == $bigtree["module"]["gbp"]["group_field"]) {
+				$module = new Module($bigtree["module"]);
 				$is_group_based_perm = true;
+
 				foreach ($entries as $entry) {
 					// Find out whether the logged in user can access a given group, and if so, specify the access level.
-					$access_level = $admin->canAccessGroup($bigtree["module"],$entry["id"]);
+					$access_level = Auth::user()->getGroupAccessLevel($module, $entry["id"]);
+					
 					if ($access_level) {
 						$list[] = array("value" => $entry["id"],"description" => $entry["title"],"access_level" => $access_level);
 					}
@@ -69,9 +72,11 @@
 	// Draw the list.
 	} else {
 		$class = array();
+		
 		if ($is_group_based_perm) {
 			$class[] = "gbp_select";
 		}
+
 		if ($this->Required) {
 			$class[] = "required";
 		}
