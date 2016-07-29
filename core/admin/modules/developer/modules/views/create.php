@@ -74,7 +74,7 @@
 
 		// Check to see if there's a default view for the module. If not our route is going to be blank.
 		$route = "";
-		$landing_exists = ModuleAction::exists($module_id, "");
+		$landing_exists = ModuleAction::existsForRoute($module_id, "");
 		
 		if ($landing_exists) {
 			$route = SQL::unique("bigtree_module_actions", "route", Link::urlify("View $title"), array("module" => $module_id), true);

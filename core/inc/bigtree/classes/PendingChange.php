@@ -293,7 +293,7 @@
 		}
 
 		/*
-			Function: exists
+			Function: existsForEntry
 				Checks to see if a pending change exists for a given entry ID and table.
 
 			Parameters:
@@ -304,7 +304,7 @@
 				true or false
 		*/
 
-		static function exists($table, $id) {
+		static function existsForEntry($table, $id) {
 			$change_count = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_pending_changes 
 											  WHERE `table` = ? AND item_id = ?", $table, $id);
 

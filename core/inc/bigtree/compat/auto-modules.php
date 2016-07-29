@@ -57,7 +57,7 @@
 		*/
 
 		static function changeExists($table, $id) {
-			return BigTree\PendingChange::exists($table, $id);
+			return BigTree\PendingChange::existsForEntry($table, $id);
 		}
 
 		/*

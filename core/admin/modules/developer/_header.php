@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+
 	// Simple CSRF checker
 	if (count($_POST)) {
 		$clean_referer = str_replace(array("http://","https://"),"//",$_SERVER["HTTP_REFERER"]);
@@ -11,8 +13,8 @@
 	}
 
 	$developer_root = ADMIN_ROOT."developer/";
-	define("DEVELOPER_ROOT",$developer_root);
+	define("DEVELOPER_ROOT", $developer_root);
 
-	$admin->Auth->requireLevel(2);
+	Auth::user()->requireLevel(2);
 ?>
 <div class="developer">

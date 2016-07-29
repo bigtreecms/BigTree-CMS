@@ -25,7 +25,7 @@
 	$edit_route = "edit";
 
 	// If we already have add/edit routes, get unique new ones for this form
-	if (ModuleAction::exists($module, "add") || ModuleAction::exists($module, "edit")) {
+	if (ModuleAction::existsForRoute($module, "add") || ModuleAction::existsForRoute($module, "edit")) {
 		$add_route = SQL::unique("bigtree_module_actions", "route", Link::urlify("add $title"), array("module" => $module), true);
 		$edit_route = SQL::unique("bigtree_module_actions", "route", Link::urlify("edit $title"), array("module" => $module), true);
 	}

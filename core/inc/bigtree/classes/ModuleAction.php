@@ -25,8 +25,7 @@
 		public $Name;
 		public $Position;
 		public $Route;
-
-
+		
 		/*
 			Constructor:
 				Builds a ModuleAction object referencing an existing database entry.
@@ -120,7 +119,7 @@
 		}
 
 		/*
-			Function: exists
+			Function: existsForRoute
 				Checks to see if an action exists for a given route and module.
 
 			Parameters:
@@ -131,7 +130,7 @@
 				true if an action exists, otherwise false.
 		*/
 
-		static function exists($module, $route) {
+		static function existsForRoute($module, $route) {
 			return SQL::exists("bigtree_module_actions", array("module" => $module, "route" => $route));
 		}
 

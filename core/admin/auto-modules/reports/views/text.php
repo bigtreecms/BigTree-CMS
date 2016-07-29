@@ -29,7 +29,7 @@
 		<?php
 			foreach ($callout_list as $item) {
 				// Get the status
-				if (PendingChange::exists($view->Table, $item["id"])) {
+				if (PendingChange::existsForEntry($view->Table, $item["id"])) {
 					$status_class = "pending";
 					$status = "Changed";
 				} else {

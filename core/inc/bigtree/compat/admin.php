@@ -1229,7 +1229,7 @@
 		*/
 
 		static function doesModuleActionExist($module, $route) {
-			return BigTree\ModuleAction::exists($module, $route);
+			return BigTree\ModuleAction::existsForRoute($module, $route);
 		}
 
 		/*

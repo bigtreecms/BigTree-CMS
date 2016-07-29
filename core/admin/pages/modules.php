@@ -14,7 +14,7 @@
 			foreach ($modules as $module) {
 		?>
 		<p class="module">
-			<?php if (ModuleAction::exists($module["id"],"add")) { ?>
+			<?php if (ModuleAction::existsForRoute($module["id"], "add")) { ?>
 			<a href="<?=ADMIN_ROOT?><?=$module["route"]?>/add/" class="add"><span class="icon_small icon_small_add"></span></a>
 			<?php } ?>
 			<a class="module_name" href="<?=ADMIN_ROOT?><?=$module["route"]?>/"><?php if ($module["icon"]) { ?><span class="icon_small icon_small_<?=$module["icon"]?>"></span><?php } ?><?=$module["name"]?></a>
@@ -39,7 +39,7 @@
 			foreach ($misc as $module) {
 		?>
 		<p class="module">
-			<?php if (ModuleAction::exists($module["id"],"add")) { ?>
+			<?php if (ModuleAction::existsForRoute($module["id"], "add")) { ?>
 			<a href="<?=ADMIN_ROOT?><?=$module["route"]?>/add/" class="add"><span class="icon_small icon_small_add"></span></a>
 			<?php } ?>
 			<a class="module_name" href="<?=ADMIN_ROOT?><?=$module["route"]?>/"><?php if ($module["icon"]) { ?><span class="icon_small icon_small_<?=$module["icon"]?>"></span><?php } ?><?=$module["name"]?></a>

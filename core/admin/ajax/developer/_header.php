@@ -3,4 +3,4 @@
 	 * @global BigTreeAdmin $admin
 	 */
 
-	$admin->Auth->requireLevel(2);
+	Auth::user()->requireLevel(2);
