@@ -76,8 +76,10 @@
 
 			// Setup Validation Class
 			if (!empty($this->Settings["validation"]) && strpos($this->Settings["validation"], "required") !== false) {
-				$this->LabelClass .= " required";
+				$this->LabelClass .= "required";
 				$this->Required = true;
+				
+				$label_validation_class = ' class="'.$this->LabelClass.'"'; // Backwards compat
 			}
 
 			// Save current context

@@ -1,16 +1,16 @@
 <?php
 	namespace BigTree;
 	
-	if (is_array($field["input"])) {
-		foreach ($field["input"] as &$v) {
+	if (is_array($this->Input)) {
+		foreach ($this->Input as &$v) {
 			$v = Text::htmlEncode($v);
-		}	
-		if ($field["options"]["sub_type"] == "phone") {
-			$field["output"] = $field["input"]["phone_1"]."-".$field["input"]["phone_2"]."-".$field["input"]["phone_3"];
-		} elseif ($field["options"]["sub_type"] == "address" || $field["options"]["sub_type"] == "name") {
-			$field["output"] = $field["input"];
+		}
+		if ($this->Settings["sub_type"] == "phone") {
+			$this->Output = $this->Input["phone_1"]."-".$this->Input["phone_2"]."-".$this->Input["phone_3"];
+		} elseif ($this->Settings["sub_type"] == "address" || $this->Settings["sub_type"] == "name") {
+			$this->Output = $this->Input;
 		}
 	} else {
-		$field["output"] = Text::htmlEncode($field["input"]);
+		$this->Output = Text::htmlEncode($this->Input);
 	}
 	

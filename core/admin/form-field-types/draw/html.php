@@ -1,8 +1,8 @@
 <?php
-	if ((isset($field["options"]["simple"]) && $field["options"]["simple"]) || (isset($field["options"]["simple_by_permission"]) && $field["options"]["simple_by_permission"] > Auth::user()->Level)) {
-		$bigtree["simple_html_fields"][] = $field["id"];
+	if ((isset($this->Settings["simple"]) && $this->Settings["simple"]) || (isset($this->Settings["simple_by_permission"]) && $this->Settings["simple_by_permission"] > Auth::user()->Level)) {
+		$bigtree["simple_html_fields"][] = $this->ID;
 	} else {
-		$bigtree["html_fields"][] = $field["id"];
+		$bigtree["html_fields"][] = $this->ID;
 	}
 ?>
-<textarea class="<?=$field["options"]["validation"]?>" name="<?=$field["key"]?>" tabindex="<?=$field["tabindex"]?>" id="<?=$field["id"]?>"><?=htmlspecialchars($field["value"])?></textarea>
+<textarea class="<?=$this->Settings["validation"]?>" name="<?=$this->Key?>" tabindex="<?=$this->TabIndex?>" id="<?=$this->ID?>"><?=htmlspecialchars($this->Value)?></textarea>

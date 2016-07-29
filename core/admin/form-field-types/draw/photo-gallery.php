@@ -3,39 +3,38 @@
 	
 	/**
 	 * @global array $bigtree
-	 * @global array $field
 	 */
 	
-	$photos = is_array($field["value"]) ? $field["value"] : array();
+	$photos = is_array($this->Value) ? $this->Value : array();
 	$current = 0;
 
 	// If we're using a preset, the prefix may be there
-	if ($field["options"]["preset"]) {
+	if ($this->Settings["preset"]) {
 		if (!isset($bigtree["media_settings"])) {
 			$bigtree["media_settings"] = Setting::value("bigtree-internal-media-settings");
 		}
-		$preset = $bigtree["media_settings"]["presets"][$field["options"]["preset"]];
+		$preset = $bigtree["media_settings"]["presets"][$this->Settings["preset"]];
 		if (!empty($preset["preview_prefix"])) {
-			$field["options"]["preview_prefix"] = $preset["preview_prefix"];
+			$this->Settings["preview_prefix"] = $preset["preview_prefix"];
 		}
 	}
 
 	// Get min width/height designations
-	$min_width = $field["options"]["min_width"] ? intval($field["options"]["min_width"]) : 0;
-	$min_height = $field["options"]["min_height"] ? intval($field["options"]["min_height"]) : 0;
+	$min_width = $this->Settings["min_width"] ? intval($this->Settings["min_width"]) : 0;
+	$min_height = $this->Settings["min_height"] ? intval($this->Settings["min_height"]) : 0;
 
 	$button_options = htmlspecialchars(json_encode(array(
 		"minWidth" => $min_width,
 		"minHeight" => $min_height
 	)));
 ?>
-<div class="photo_gallery_widget" id="<?=$field["id"]?>">
+<div class="photo_gallery_widget" id="<?=$this->ID?>">
 	<ul>
 		<?php
 			foreach ($photos as $photo) {
 
-				if ($field["options"]["preview_prefix"]) {
-					$preview_image = FileSystem::getPrefixedFile($photo["image"],$field["options"]["preview_prefix"]);
+				if ($this->Settings["preview_prefix"]) {
+					$preview_image = FileSystem::getPrefixedFile($photo["image"],$this->Settings["preview_prefix"]);
 				} else {
 					$preview_image = $photo["image"];
 				}
@@ -44,9 +43,9 @@
 			<figure>
 				<img src="<?=$preview_image?>" alt="" />
 			</figure>
-			<input type="hidden" name="<?=$field["key"]?>[<?=$current?>][image]" value="<?=$photo["image"]?>" />
-			<input type="hidden" name="<?=$field["key"]?>[<?=$current?>][caption]" value="<?=$photo["caption"]?>" class="caption" />
-			<?php if (!$field["options"]["disable_captions"]) { ?>
+			<input type="hidden" name="<?=$this->Key?>[<?=$current?>][image]" value="<?=$photo["image"]?>" />
+			<input type="hidden" name="<?=$this->Key?>[<?=$current?>][caption]" value="<?=$photo["caption"]?>" class="caption" />
+			<?php if (!$this->Settings["disable_captions"]) { ?>
 			<a href="#" class="icon_edit"></a>
 			<?php } ?>
 			<a href="#" class="icon_delete"></a>
@@ -57,18 +56,18 @@
 		?>
 	</ul>
 	<footer class="image_field">
-		<input type="file" accept="image/*" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>[<?=$current?>][image]" data-min-width="<?=$min_width?>" data-min-height="<?=$min_height?>" />
+		<input type="file" accept="image/*" tabindex="<?=$this->TabIndex?>" name="<?=$this->Key?>[<?=$current?>][image]" data-min-width="<?=$min_width?>" data-min-height="<?=$min_height?>" />
 		<?php if (!defined("BIGTREE_FRONT_END_EDITOR") && !$bigtree["form"]["embedded"]) { ?>
 		<span class="or">OR</span>
-		<a href="#<?=$field["id"]?>" data-options="<?=$button_options?>" class="button form_image_browser"><span class="icon_images"></span>Browse</a>
+		<a href="#<?=$this->ID?>" data-options="<?=$button_options?>" class="button form_image_browser"><span class="icon_images"></span>Browse</a>
 		<?php } ?>
 	</footer>
 </div>
 <script>
 	BigTreePhotoGallery({
-		container: "<?=$field["id"]?>",
-		key: "<?=$field["key"]?>",
+		container: "<?=$this->ID?>",
+		key: "<?=$this->Key?>",
 		count: <?=$current?>
-		<?php if ($field["options"]["disable_captions"]) { ?>,disableCaptions: true<?php } ?>
+		<?php if ($this->Settings["disable_captions"]) { ?>,disableCaptions: true<?php } ?>
 	});
 </script>

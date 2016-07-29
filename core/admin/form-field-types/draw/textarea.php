@@ -1,1 +1,1 @@
-<textarea class="<?=$field["options"]["validation"]?>" name="<?=$field["key"]?>" tabindex="<?=$field["tabindex"]?>" id="<?=$field["id"]?>"><?=$field["value"]?></textarea>
+<textarea class="<?=$this->Settings["validation"]?>" name="<?=$this->Key?>" tabindex="<?=$this->TabIndex?>" id="<?=$this->ID?>"><?=$this->Value?></textarea>

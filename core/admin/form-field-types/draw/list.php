@@ -6,11 +6,11 @@
 	$list = array();
 
 	// Database populated list.
-	if ($field["options"]["list_type"] == "db") {
-		$list_table = $field["options"]["pop-table"];
-		$list_id = $field["options"]["pop-id"];
-		$list_title = $field["options"]["pop-description"];
-		$list_sort = $field["options"]["pop-sort"];
+	if ($this->Settings["list_type"] == "db") {
+		$list_table = $this->Settings["pop-table"];
+		$list_id = $this->Settings["pop-id"];
+		$list_title = $this->Settings["pop-description"];
+		$list_sort = $this->Settings["pop-sort"];
 		
 		// If debug is on we're going to check if the tables exists...
 		if ($bigtree["config"]["debug"] && !SQL::tableExists($list_table)) {
@@ -36,7 +36,7 @@
 			}
 		}
 	// State List
-	} elseif ($field["options"]["list_type"] == "state") {
+	} elseif ($this->Settings["list_type"] == "state") {
 		foreach (Field::$StateList as $a => $s) {
 			$list[] = array(
 				"value" => $a,
@@ -44,7 +44,7 @@
 			);
 		}
 	// Country List
-	} elseif ($field["options"]["list_type"] == "country") {
+	} elseif ($this->Settings["list_type"] == "country") {
 		foreach (Field::$CountryList as $c) {
 			$list[] = array(
 				"value" => $c,
@@ -53,12 +53,12 @@
 		}
 	// Static List
 	} else {
-		$list = $field["options"]["list"];
+		$list = $this->Settings["list"];
 	}
 
 	// If we have a parser, send a list of the available items through it.
-	if (isset($field["options"]["parser"]) && $field["options"]["parser"]) {
-		$list = call_user_func($field["options"]["parser"],$list);
+	if (isset($this->Settings["parser"]) && $this->Settings["parser"]) {
+		$list = call_user_func($this->Settings["parser"],$list);
 	}
 
 	// If the table was deleted for a database populated list, throw an error.
@@ -72,16 +72,16 @@
 		if ($is_group_based_perm) {
 			$class[] = "gbp_select";
 		}
-		if ($field["required"]) {
+		if ($this->Required) {
 			$class[] = "required";
 		}
 ?>
-<select<?php if (count($class)) { ?> class="<?=implode(" ",$class)?>"<?php } ?> name="<?=$field["key"]?>" tabindex="<?=$field["tabindex"]?>" id="<?=$field["id"]?>">
-	<?php if ($field["options"]["allow-empty"] != "No") { ?>
+<select<?php if (count($class)) { ?> class="<?=implode(" ",$class)?>"<?php } ?> name="<?=$this->Key?>" tabindex="<?=$this->TabIndex?>" id="<?=$this->ID?>">
+	<?php if ($this->Settings["allow-empty"] != "No") { ?>
 	<option></option>
 	<?php } ?>
 	<?php foreach ($list as $option) { ?>
-	<option value="<?=Text::htmlEncode($option["value"])?>"<?php if ($field["value"] == $option["value"]) { ?> selected="selected"<?php } ?><?php if ($option["access_level"]) { ?> data-access-level="<?=$option["access_level"]?>"<?php } ?>><?=Text::htmlEncode(Text::trimLength(strip_tags($option["description"]), 100))?></option>
+	<option value="<?=Text::htmlEncode($option["value"])?>"<?php if ($this->Value == $option["value"]) { ?> selected="selected"<?php } ?><?php if ($option["access_level"]) { ?> data-access-level="<?=$option["access_level"]?>"<?php } ?>><?=Text::htmlEncode(Text::trimLength(strip_tags($option["description"]), 100))?></option>
 	<?php } ?>
 </select>
 <?php

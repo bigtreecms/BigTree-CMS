@@ -1,10 +1,11 @@
 <?php
-	$bigtree["many-to-many"][$field["key"]] = array(
-		"table" => $field["options"]["mtm-connecting-table"],
-		"my-id" => $field["options"]["mtm-my-id"],
-		"other-id" => $field["options"]["mtm-other-id"],
-		"data" => $field["input"]
-	);	
-
+	$bigtree["many-to-many"][$this->Key] = array(
+		"table" => $this->Settings["mtm-connecting-table"],
+		"my-id" => $this->Settings["mtm-my-id"],
+		"other-id" => $this->Settings["mtm-other-id"],
+		"data" => $this->Input
+	);
+	
 	// This field doesn't have it's own key to process.
-	$field["ignore"] = true;
+	$this->Ignore = true;
+	

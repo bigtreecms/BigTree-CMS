@@ -1,2 +1,3 @@
 <?php
-	$field["output"] = $field["input"];
+	$this->Output = $this->Input;
+	

@@ -1,6 +1,6 @@
 <?php
 	namespace BigTree;
-	
+		
 	/**
 	 * @global array $bigtree
 	 */

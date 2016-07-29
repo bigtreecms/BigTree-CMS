@@ -1,32 +1,40 @@
 <?php
 	namespace BigTree;
 	
-	if (!is_array($field["value"])) {
-		$field["value"] = array();
+	/**
+	 * @global array $bigtree
+	 */
+	
+	if (!is_array($this->Value)) {
+		$this->Value = array();
 	}
-	$max = !empty($field["options"]["max"]) ? $field["options"]["max"] : 0;
+	
+	$max = !empty($this->Settings["max"]) ? $this->Settings["max"] : 0;
 
 	// Callout style
-	if ($field["options"]["style"] == "callout") {
-		$field["type"] = "callouts"; // Pretend to be callouts to work back-to-back
+	if ($this->Settings["style"] == "callout") {
+		$this->Type = "callouts"; // Pretend to be callouts to work back-to-back
 ?>
-<fieldset class="callouts<?php if ($bigtree["last_resource_type"] == "callouts") { ?> callouts_no_margin<?php } ?>" id="<?=$field["id"]?>">
-	<label<?=$label_validation_class?>><?=$field["title"]?><?php if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><?php } ?></label>
+<fieldset class="callouts<?php if ($bigtree["last_resource_type"] == "callouts") { ?> callouts_no_margin<?php } ?>" id="<?=$this->ID?>">
+	<label<?php if ($this->LabelClass) { ?> class="<?=trim($this->LabelClass)?>"<?php } ?>>
+		<?=$this->Title?>
+		<?php if ($this->Subtitle) { ?> <small><?=$this->Subtitle?></small><?php } ?>
+	</label>
 	<div class="contain">
 		<?php
 			$x = 0;
-			foreach ($field["value"] as $item) {
+			foreach ($this->Value as $item) {
 		?>
 		<article>
 			<input type="hidden" class="bigtree_matrix_data" value="<?=base64_encode(json_encode($item))?>" />
 			<?php $this->drawArrayLevel(array($x), $item) ?>
 			<h4>
 				<?=Text::htmlEncode($item["__internal-title"])?>
-				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-title]" value="<?=Text::htmlEncode($item["__internal-title"])?>" />
+				<input type="hidden" name="<?=$this->Key?>[<?=$x?>][__internal-title]" value="<?=Text::htmlEncode($item["__internal-title"])?>" />
 			</h4>
 			<p>
 				<?=Text::htmlEncode($item["__internal-subtitle"])?>
-				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-subtitle]" value="<?=Text::htmlEncode($item["__internal-subtitle"])?>" />
+				<input type="hidden" name="<?=$this->Key?>[<?=$x?>][__internal-subtitle]" value="<?=Text::htmlEncode($item["__internal-subtitle"])?>" />
 			</p>
 			<div class="bottom">
 				<span class="icon_drag"></span>
@@ -45,9 +53,9 @@
 	<?php } ?>
 	<script>
 		BigTreeMatrix({
-			selector: "#<?=$field["id"]?>",
-			key: "<?=$field["key"]?>",
-			columns: <?=json_encode($field["options"]["columns"])?>,
+			selector: "#<?=$this->ID?>",
+			key: "<?=$this->Key?>",
+			columns: <?=json_encode($this->Settings["columns"])?>,
 			max: <?=$max?>,
 			style: "callout"
 		});
@@ -57,21 +65,24 @@
 	} else {
 ?>
 <fieldset>
-	<label<?=$label_validation_class?>><?=$field["title"]?><?php if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><?php } ?></label>
-	<div class="multi_widget matrix_list" id="<?=$field["id"]?>">
-		<section<?php if (count($field["value"])) { ?> style="display: none;"<?php } ?>>
+	<label<?php if ($this->LabelClass) { ?> class="<?=trim($this->LabelClass)?>"<?php } ?>>
+		<?=$this->Title?>
+		<?php if ($this->Subtitle) { ?> <small><?=$this->Subtitle?></small><?php } ?>
+	</label>
+	<div class="multi_widget matrix_list" id="<?=$this->ID?>">
+		<section<?php if (count($this->Value)) { ?> style="display: none;"<?php } ?>>
 			<p>Click "Add Item" to add an item to this list.</p>
 		</section>
 		<ul>
 			<?php
 				$x = 0;
-				foreach ($field["value"] as $item) {
+				foreach ($this->Value as $item) {
 			?>
 			<li>
 				<input type="hidden" class="bigtree_matrix_data" value="<?=base64_encode(json_encode($item))?>" />
 				<?php $this->drawArrayLevel(array($x), $item) ?>
-				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-title]" value="<?=Text::htmlEncode($item["__internal-title"])?>" />
-				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-subtitle]" value="<?=Text::htmlEncode($item["__internal-subtitle"])?>" />
+				<input type="hidden" name="<?=$this->Key?>[<?=$x?>][__internal-title]" value="<?=Text::htmlEncode($item["__internal-title"])?>" />
+				<input type="hidden" name="<?=$this->Key?>[<?=$x?>][__internal-subtitle]" value="<?=Text::htmlEncode($item["__internal-subtitle"])?>" />
 				<span class="icon_sort"></span>
 				<p>
 					<?=Text::trimLength(Text::htmlEncode($item["__internal-title"]),100)?>
@@ -93,9 +104,9 @@
 		</footer>
 		<script>
 			BigTreeMatrix({
-				selector: "#<?=$field["id"]?>",
-				key: "<?=$field["key"]?>",
-				columns: <?=json_encode($field["options"]["columns"])?>,
+				selector: "#<?=$this->ID?>",
+				key: "<?=$this->Key?>",
+				columns: <?=json_encode($this->Settings["columns"])?>,
 				max: <?=$max?>,
 				style: "list"
 			});
@@ -104,4 +115,3 @@
 </fieldset>
 <?php
 	}
-?>
