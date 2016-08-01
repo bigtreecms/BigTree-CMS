@@ -2,29 +2,29 @@
 	namespace BigTree;
 
 	/**
-	 * @global array $data
+	 * @global array $options
 	 */
 
 	// Prevent warnings
-	$data = is_array($data) ? $data : array();
+	$options = is_array($options) ? $options : array();
 
 	$using_preset = false;
 	$settings = Setting::value("bigtree-internal-media-settings");
 
 	// See if we're using a preset and ensure it still exists
-	if ($data["preset"]) {
-		if ($settings["presets"][$data["preset"]]) {
+	if ($options["preset"]) {
+		if ($settings["presets"][$options["preset"]]) {
 			$using_preset = true;
 		} else {
-			$data = array();
+			$options = array();
 		}
 	} 
 
-	$data["min_width"] = isset($data["min_width"]) ? $data["min_width"] : "";
-	$data["min_height"] = isset($data["min_height"]) ? $data["min_height"] : "";
-	$data["preview_prefix"] = isset($data["preview_prefix"]) ? $data["preview_prefix"] : "";
-	$data["crops"] = isset($data["crops"]) ? $data["crops"] : array();
-	$data["thumbs"] = isset($data["thumbs"]) ? $data["thumbs"] : array();
+	$options["min_width"] = isset($options["min_width"]) ? $options["min_width"] : "";
+	$options["min_height"] = isset($options["min_height"]) ? $options["min_height"] : "";
+	$options["preview_prefix"] = isset($options["preview_prefix"]) ? $options["preview_prefix"] : "";
+	$options["crops"] = isset($options["crops"]) ? $options["crops"] : array();
+	$options["thumbs"] = isset($options["thumbs"]) ? $options["thumbs"] : array();
 
 	// Translate title text that gets repeated
 	$subcrop_title = Text::translate("Sub-Crop", true);
@@ -41,13 +41,13 @@
 	if (!defined("BIGTREE_CREATING_PRESET") && array_filter((array)$settings["presets"])) {
 ?>
 <fieldset>
-	<label><?=Text::translate("Existing Preset")?></label>
-	<select name="preset" id="preset_select">
+	<label for="options_field_preset"><?=Text::translate("Existing Preset")?></label>
+	<select id="options_field_preset" name="preset" id="preset_select">
 		<option></option>
 		<?php
 			foreach ($settings["presets"] as $preset) {
 		?>
-		<option value="<?=$preset["id"]?>"<?php if ($preset["id"] == $data["preset"]) { ?> selected="selected"<?php } ?>><?=$preset["name"]?></option>
+		<option value="<?=$preset["id"]?>"<?php if ($preset["id"] == $options["preset"]) { ?> selected="selected"<?php } ?>><?=$preset["name"]?></option>
 		<?php
 			}
 		?>
@@ -63,20 +63,20 @@
 		} else {
 	?>
 	<fieldset>
-		<label><?=Text::translate("Minimum Width <small>(numeric value in pixels)</small>")?></label>
-		<input type="text" name="min_width" value="<?=htmlspecialchars($data["min_width"])?>" />
+		<label for="options_field_minwidth"><?=Text::translate("Minimum Width <small>(numeric value in pixels)</small>")?></label>
+		<input id="options_field_minwidth" type="text" name="min_width" value="<?=htmlspecialchars($options["min_width"])?>" />
 	</fieldset>
 	<fieldset>
-		<label><?=Text::translate("Minimum Height <small>(numeric value in pixels)</small>")?></label>
-		<input type="text" name="min_height" value="<?=htmlspecialchars($data["min_height"])?>" />
+		<label for="options_field_minheight"><?=Text::translate("Minimum Height <small>(numeric value in pixels)</small>")?></label>
+		<input id="options_field_minheight" type="text" name="min_height" value="<?=htmlspecialchars($options["min_height"])?>" />
 	</fieldset>
 	<fieldset>
-		<label><?=Text::translate("Preview Prefix <small>(for forms)</small>")?></label>
-		<input type="text" name="preview_prefix" value="<?=htmlspecialchars($data["preview_prefix"])?>" />
+		<label for="options_field_previewprefix"><?=Text::translate("Preview Prefix <small>(for forms)</small>")?></label>
+		<input id="options_field_previewprefix" type="text" name="preview_prefix" value="<?=htmlspecialchars($options["preview_prefix"])?>" />
 	</fieldset>
 	<fieldset>
-		<label><?=Text::translate('Create Hi-Resolution Retina Images <small><a href=":doc_link:" target="_blank">(learn more)</a></small>', false, array(":doc_link:" => "http://www.bigtreecms.org/docs/dev-guide/field-types/retina-images/"))?></label>
-		<input type="checkbox" name="retina" <?php if ($data["retina"]) { ?>checked="checked" <?php } ?>/>
+		<label for="options_field_retina"><?=Text::translate('Create Hi-Resolution Retina Images <small><a href=":doc_link:" target="_blank">(learn more)</a></small>', false, array(":doc_link:" => "http://www.bigtreecms.org/docs/dev-guide/field-types/retina-images/"))?></label>
+		<input id="options_field_retina" type="checkbox" name="retina" <?php if ($options["retina"]) { ?>checked="checked" <?php } ?>/>
 		<label class="for_checkbox"> <?=Text::translate("When Available")?></label>
 	</fieldset>
 	
@@ -93,8 +93,8 @@
 				$crop_thumb_count = 0;
 				$crop_sub_count = 0;
 
-				if (is_array($data["crops"])) {
-					foreach ($data["crops"] as $crop) {
+				if (is_array($options["crops"])) {
+					foreach ($options["crops"] as $crop) {
 						// In case a crop was added but no options were set
 						if (is_array($crop) && $crop["width"] && $crop["height"]) {
 							$crop_count++;
@@ -194,8 +194,8 @@
 			<?php
 				// Keep a count of thumbs
 				$thumb_count = 0;
-				if (is_array($data["thumbs"])) {
-					foreach ($data["thumbs"] as $thumb) {
+				if (is_array($options["thumbs"])) {
+					foreach ($options["thumbs"] as $thumb) {
 						// Make sure a width or height was entered or it's pointless
 						if (is_array($thumb) && ($thumb["width"] || $thumb["height"])) {
 							$thumb_count++;
@@ -235,8 +235,8 @@
 			<?php
 				// Keep a count of center crops
 				$center_crop_count = 0;
-				if (is_array($data["center_crops"])) {
-					foreach ($data["center_crops"] as $crop) {
+				if (is_array($options["center_crops"])) {
+					foreach ($options["center_crops"] as $crop) {
 						// Make sure a width and height was entered or it's pointless
 						if (is_array($crop) && ($crop["width"] && $crop["height"])) {
 							$center_crop_count++;

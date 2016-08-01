@@ -6,18 +6,20 @@
 
 	// I honestly don't know why this was doing weird things with \r and \n but leaving it case it's some kind of legacy support
 	if (!empty($_POST["data"])) {
-		$data = json_decode($_POST["data"], true);
+		$options = json_decode($_POST["data"], true);
 		
-		if (!is_array($data)) {
-			$data = json_decode(str_replace(array("\r", "\n"), array('\r', '\n'), $_POST["data"]), true);
+		if (!is_array($options)) {
+			$options = json_decode(str_replace(array("\r", "\n"), array('\r', '\n'), $_POST["data"]), true);
 		}
-	
-		$data = Link::decode($data);
+		
+		$options = Link::decode($options);
 	} else {
-		$data = array();
+		$options = array();
 	}
 
-	$validation = isset($data["validation"]) ? $data["validation"] : "";
+	$validation = isset($options["validation"]) ? $options["validation"] : "";
+	
+	$data = $options; // Backwards compatibility
 	
 	if ($field_type == "text") {
 		$validation_options = array(
@@ -31,8 +33,8 @@
 		);
 ?>
 <fieldset>
-	<label><?=Text::translate("Validation")?></label>
-	<select name="validation">
+	<label for="option_field_validation"><?=Text::translate("Validation")?></label>
+	<select id="option_field_validation" name="validation">
 		<option></option>
 		<?php foreach ($validation_options as $k => $v) { ?>
 		<option value="<?=$k?>"<?php if ($k == $validation) { ?> selected="selected"<?php } ?>><?=$v?></option>
@@ -43,8 +45,8 @@
 	} elseif ($field_type == "textarea" || $field_type == "upload" || $field_type == "html" || $field_type == "list" || $field_type == "time" || $field_type == "date" || $field_type == "datetime" || $field_type == "checkbox") {
 ?>
 <fieldset>
-	<input type="checkbox" name="validation" value="required"<?php if ($validation == "required") { ?> checked="checked"<?php } ?> />
-	<label class="for_checkbox"><?=Text::translate("Required")?></label>
+	<input id="option_field_validation" type="checkbox" name="validation" value="required"<?php if ($validation == "required") { ?> checked="checked"<?php } ?> />
+	<label for="option_field_validation" class="for_checkbox"><?=Text::translate("Required")?></label>
 </fieldset>
 <?php
 	}
@@ -72,7 +74,7 @@
 	$(".table_select").change(function() {
 		var name = $(this).attr("name");
 		var table = $(this).val();
-		$(".pop-dependant").each(function(el) {
+		$(".pop-dependant").each(function() {
 			if ($(this).hasClass(name)) {
 				if ($(this).hasClass("sort_by")) {
 					$(this).load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?sort=true&table=" + table + "&field=" + $(this).attr("data-name"));

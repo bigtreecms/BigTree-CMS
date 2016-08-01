@@ -1,10 +1,13 @@
 <?php
 	namespace BigTree;
-
-	$cached_types = $admin->getCachedFieldTypes(true);
-	$types = $cached_types["callouts"];
-	$columns = is_array($data["columns"]) ? $data["columns"] : array(array("id" => "","title" => "","subtitle" => "","type" => "text"));
-	$data["max"] = $data["max"] ? intval($data["max"]) : "";
+	
+	/**
+	 * @global array $options
+	 */
+	
+	$types = FieldType::reference(true, "callouts");
+	$columns = is_array($options["columns"]) ? $options["columns"] : array(array("id" => "","title" => "","subtitle" => "","type" => "text"));
+	$options["max"] = $options["max"] ? intval($options["max"]) : "";
 
 	// Pre-translate repeated strings
 	$id_title = Text::translate("ID", true);
@@ -13,19 +16,22 @@
 	$use_as_title = Text::translate("Use as Title");
 ?>
 <fieldset>
-	<label><?=Text::translate("Maximum Entries <small>(defaults to unlimited)</small>")?></label>
-	<input type="text" name="max" value="<?=$data["max"]?>" />
+	<label for="options_field_max"><?=Text::translate("Maximum Entries <small>(defaults to unlimited)</small>")?></label>
+	<input id="options_field_max" type="text" name="max" value="<?=$options["max"]?>" />
 </fieldset>
+
 <fieldset>
-	<label><?=Text::translate("Style")?></label>
-	<select name="style">
+	<label for="options_field_style"><?=Text::translate("Style")?></label>
+	<select id="options_field_style" name="style">
 		<option value="list"><?=Text::translate("List (like Many to Many)")?></option>
-		<option value="callout"<?php if ($data["style"] == "callout") { ?> selected="selected"<?php } ?>><?=Text::translate("Blocks (like Callouts)")?></option>
+		<option value="callout"<?php if ($options["style"] == "callout") { ?> selected="selected"<?php } ?>><?=Text::translate("Blocks (like Callouts)")?></option>
 	</select>
 </fieldset>
+
 <div class="matrix_wrapper">
 	<span class="icon_small icon_small_add matrix_add_column"></span>
 	<label><?=Text::translate("Columns")?></label>
+	
 	<section class="matrix_table">
 		<?php
 			$x = 0;
@@ -68,12 +74,15 @@
 		?>
 	</section>
 </div>
+
 <br />
+
 <script>
 	(function() {
 		var CurrentColumn = false;
 		var ColumnCount = <?=$x?>;
-		var MatrixTable = $(".bigtree_dialog_window").last().find(".matrix_table");
+		var LastWindow = $(".bigtree_dialog_window").last();
+		var MatrixTable = LastWindow.find(".matrix_table");
 
 		// Handle editing the options on fields
 		MatrixTable.on("click",".icon_edit",function(e) {
@@ -105,7 +114,7 @@
 		}).sortable({ axis: "y", containment: "parent", handle: ".icon_drag", items: "article", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 
 		// Adding fields
-		$(".bigtree_dialog_window").last().find(".matrix_add_column").click(function() {
+		LastWindow.find(".matrix_add_column").click(function() {
 			ColumnCount++;
 			
 			var item = $('<article>').html('<div><select name="columns[' + ColumnCount + '][type]"><optgroup label="Default"><?php foreach ($types["default"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><?php } ?></optgroup><?php if (count($types["custom"])) { ?><optgroup label="Custom"><?php foreach ($types["custom"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><?php } ?></optgroup><?php } ?></select>' +

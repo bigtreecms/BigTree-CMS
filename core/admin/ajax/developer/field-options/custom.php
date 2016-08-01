@@ -1,15 +1,19 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $options
+	 */
 
 	// Stop notices
-	$data["function"] = isset($data["function"]) ? $data["function"] : "";
-	$data["process_function"] = isset($data["process_function"]) ? $data["process_function"] : "";
+	$options["function"] = isset($options["function"]) ? $options["function"] : "";
+	$options["process_function"] = isset($options["process_function"]) ? $options["process_function"] : "";
 ?>
 <fieldset>
-	<label><?=Text::translate('Drawing Call <small>(function name only, receives $key, $value, $title, $subtitle, $tabindex)</small>')?></label>
-	<input type="text" name="function" value="<?=htmlspecialchars($data["function"])?>" />
+	<label for="options_function_field"><?=Text::translate('Drawing Call <small>(function name only, receives $key, $value, $title, $subtitle, $tabindex)</small>')?></label>
+	<input id="options_function_field" type="text" name="function" value="<?=htmlspecialchars($options["function"])?>" />
 </fieldset>
 <fieldset>
-	<label><?=Text::translate('Processing Call <small>(optional, function name only, receives: $value, $key)</small>')?></label>
-	<input type="text" name="process_function" value="<?=htmlspecialchars($data["process_function"])?>" />
+	<label for="options_process_field"><?=Text::translate('Processing Call <small>(optional, function name only, receives: $value, $key)</small>')?></label>
+	<input id="options_process_field" type="text" name="process_function" value="<?=htmlspecialchars($options["process_function"])?>" />
 </fieldset>

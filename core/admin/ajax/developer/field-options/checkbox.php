@@ -1,10 +1,14 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $options
+	 */
 
 	// Stop notices
-	$data["custom_value"] = isset($data["custom_value"]) ? $data["custom_value"] : "";
+	$options["custom_value"] = isset($options["custom_value"]) ? $options["custom_value"] : "";
 ?>
 <fieldset>
-	<label><?=Text::translate('Value <small>(defaults to "on")</small>')?></label>
-	<input type="text" name="custom_value" value="<?=htmlspecialchars($data["custom_value"])?>" />
+	<label for="options_field_value"><?=Text::translate('Value <small>(defaults to "on")</small>')?></label>
+	<input id="options_field_value" type="text" name="custom_value" value="<?=htmlspecialchars($options["custom_value"])?>" />
 </fieldset>

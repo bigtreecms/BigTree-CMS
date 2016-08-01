@@ -1,31 +1,36 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $options
+	 */
 
 	// Stop notices
-	if (empty($data["directory"])) {
+	if (empty($options["directory"])) {
 		if (isset($_POST["template"])) {
-			$data["directory"] = "files/pages/";
+			$options["directory"] = "files/pages/";
 		} elseif (isset($_POST["callout"])) {
-			$data["directory"] = "files/callouts/";
+			$options["directory"] = "files/callouts/";
 		} elseif (isset($_POST["setting"])) {
-			$data["directory"] = "files/settings/";
+			$options["directory"] = "files/settings/";
 		} else {
-			$data["directory"] = "files/modules/";
+			$options["directory"] = "files/modules/";
 		}
 	}
-	$data["image"] = isset($data["image"]) ? $data["image"] : "";
-	$data["min_width"] = isset($data["min_width"]) ? $data["min_width"] : "";
-	$data["min_height"] = isset($data["min_height"]) ? $data["min_height"] : "";
-	$data["preview_prefix"] = isset($data["preview_prefix"]) ? $data["preview_prefix"] : "";
-	$data["crops"] = isset($data["crops"]) ? $data["crops"] : "";
-	$data["thumbs"] = isset($data["thumbs"]) ? $data["thumbs"] : "";
+	
+	$options["image"] = isset($options["image"]) ? $options["image"] : "";
+	$options["min_width"] = isset($options["min_width"]) ? $options["min_width"] : "";
+	$options["min_height"] = isset($options["min_height"]) ? $options["min_height"] : "";
+	$options["preview_prefix"] = isset($options["preview_prefix"]) ? $options["preview_prefix"] : "";
+	$options["crops"] = isset($options["crops"]) ? $options["crops"] : "";
+	$options["thumbs"] = isset($options["thumbs"]) ? $options["thumbs"] : "";
 ?>
 <fieldset>
-	<label><?=Text::translate("Upload Directory <small>(required, relative to SITE_ROOT)</small>")?></label>
-	<input type="text" name="directory" value="<?=htmlspecialchars($data["directory"])?>" class="required" />
+	<label for="options_field_directory"><?=Text::translate("Upload Directory <small>(required, relative to SITE_ROOT)</small>")?></label>
+	<input id="options_field_directory" type="text" name="directory" value="<?=htmlspecialchars($options["directory"])?>" class="required" />
 </fieldset>
 <fieldset>
-	<input type="checkbox" name="disable_captions" <?php if ($data["disable_captions"]) { ?>checked="checked" <?php } ?>/>
-	<label class="for_checkbox"><?=Text::translate("Disable Captions")?></label>
+	<input id="options_field_captions" type="checkbox" name="disable_captions" <?php if ($options["disable_captions"]) { ?>checked="checked" <?php } ?>/>
+	<label for="options_field_captions" class="for_checkbox"><?=Text::translate("Disable Captions")?></label>
 </fieldset>
 <?php include Router::getIncludePath("admin/ajax/developer/field-options/_image-options.php") ?>
