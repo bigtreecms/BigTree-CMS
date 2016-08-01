@@ -1,5 +1,10 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $options
+	 * @global string $table
+	 */
 
 	$draggable = isset($options["draggable"]) ? $options["draggable"] : "";
 	$prefix = isset($options["prefix"]) ? $options["prefix"] : "";
@@ -7,29 +12,29 @@
 	$sort = isset($options["sort"]) ? $options["sort"] : "DESC";
 ?>
 <fieldset>
-	<input type="checkbox" class="checkbox" name="draggable" <?php if ($draggable) { ?>checked="checked" <?php } ?>/>
-	<label class="for_checkbox"><?=Text::translate("Draggable")?></label>
+	<input id="options_field_draggable" type="checkbox" class="checkbox" name="draggable" <?php if ($draggable) { ?>checked="checked" <?php } ?>/>
+	<label for="options_field_draggable" class="for_checkbox"><?=Text::translate("Draggable")?></label>
 </fieldset>
 
 <fieldset>
-	<label><?=Text::translate("Image Prefix <small>(for using thumbnails, i.e. &ldquo;thumb_&rdquo;)</small>")?></label>
-	<input type="text" name="prefix" value="<?=htmlspecialchars($prefix)?>" />
+	<label for="options_field_prefix"><?=Text::translate("Image Prefix <small>(for using thumbnails, i.e. &ldquo;thumb_&rdquo;)</small>")?></label>
+	<input id="options_field_prefix" type="text" name="prefix" value="<?=htmlspecialchars($prefix)?>" />
 </fieldset>
 
 <fieldset>
-	<label><?=Text::translate("Image Field")?></label>
+	<label for="options_field_image"><?=Text::translate("Image Field")?></label>
 	<?php if ($table) { ?>
-	<select name="image">
+	<select id="options_field_image" name="image">
 		<?php SQL::drawColumnSelectOptions($table,$image) ?>
 	</select>
 	<?php } else { ?>
-	<input name="image" type="text" disabled="disabled" placeholder="<?=Text::translate("Choose a Data Table first.", true)?>" />
+	<input id="options_field_image" name="image" type="text" disabled="disabled" placeholder="<?=Text::translate("Choose a Data Table first.", true)?>" />
 	<?php } ?>
 </fieldset>
 
 <fieldset>
-	<label><?=Text::translate("Sort Direction<small>(if not draggable)</small>")?></label>
-	<select name="sort">
+	<label for="options_field_sort"><?=Text::translate("Sort Direction<small>(if not draggable)</small>")?></label>
+	<select id="options_field_sort" name="sort">
 		<option value="DESC"><?=Text::translate("Newest First")?></option>
 		<option value="ASC"<?php if ($sort == "ASC") { ?> selected="selected"<?php } ?>><?=Text::translate("Oldest First")?></option>
 	</select>
