@@ -2,7 +2,7 @@
 	namespace BigTree;
 
 	/**
-	 * @global array $data
+	 * @global array $options
 	 * @global string $table
 	 */
 
@@ -13,14 +13,14 @@
 	} else {
 ?>
 <fieldset>
-	<label><?=Text::translate("Order By")?></label>
-	<select name="sort">
-		<?php SQL::drawColumnSelectOptions($table, $data["sort"], true); ?>
+	<label for="options_field_sort"><?=Text::translate("Order By")?></label>
+	<select id="options_field_sort" name="sort">
+		<?php SQL::drawColumnSelectOptions($table, $options["sort"], true); ?>
 	</select>
 </fieldset>
 <fieldset>
-	<label><?=Text::translate("Limit <small>(defaults to 15)</small>")?></label>
-	<input type="text" name="limit" value="<?=$data["limit"]?>" />
+	<label for="options_field_limit"><?=Text::translate("Limit <small>(defaults to 15)</small>")?></label>
+	<input id="options_field_limit" type="text" name="limit" value="<?=$options["limit"]?>" />
 </fieldset>
 <?php
 	} 
