@@ -1,10 +1,14 @@
 <?php
-	$r = $admin->getPageAccessLevel($_POST["id"]);
-	if ($r == "p") {
-		parse_str($_POST["sort"],$data);
-		
+	namespace BigTree;
+	
+	$page = new Page($_POST["id"]);
+	
+	if ($page->UserAccessLevel == "p") {
+		parse_str($_POST["sort"], $data);
 		$max = count($data["row"]);
+
 		foreach ($data["row"] as $pos => $id) {
-			$admin->setPagePosition($id,$max - $pos);
+			SQL::update("bigtree_pages", $id, array("position" => $max - $pos));
 		}
 	}
+	

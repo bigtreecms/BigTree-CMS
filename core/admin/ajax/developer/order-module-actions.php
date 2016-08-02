@@ -1,12 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	parse_str($_POST["sort"],$data);
-	$max = count($data["row"]);
-	
-	foreach ($data["row"] as $pos => $id) {
-		$action = new ModuleAction($id);
-		$action->Position = ($max - $pos);
-		$action->save();
+	foreach ($_POST as $id => $position) {
+		SQL::update("bigtree_module_actions", $id, array("position" => $position));
 	}
 	

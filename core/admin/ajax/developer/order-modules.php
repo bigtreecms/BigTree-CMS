@@ -2,8 +2,6 @@
 	namespace BigTree;
 	
 	foreach ($_POST as $id => $position) {
-		$module = new Module($id);
-		$module->Position = $position;
-		$module->save();
+		SQL::update("bigtree_modules", $id, array("position" => $position));
 	}
 	
