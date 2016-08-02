@@ -48,7 +48,7 @@
 	<?php
 		if (count($ungrouped_modules)) {
 	?>
-	BigTreeTable($.extend(table_config,{
+	BigTreeTable($.extend(table_config, {
 		title: "<?=Text::translate("Ungrouped Modules", true)?>",
 		container: "#ungrouped_modules",
 		data: <?=JSON::encodeColumns($ungrouped_modules,array("id","name"))?>
@@ -57,7 +57,7 @@
 		}
 		foreach ($groups_with_modules as $group) {
 	?>
-	BigTreeTable($.extend(table_config,{
+	BigTreeTable($.extend(table_config, {
 		title: "<?=$group["name"]?>",
 		container: "#module_group_<?=$group["id"]?>",
 		data: <?=JSON::encodeColumns($group["modules"],array("name","id"))?>

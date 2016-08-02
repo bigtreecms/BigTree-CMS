@@ -1,2 +1,8 @@
 <?php
-	$admin->deletePageDraft($_GET["id"]);
+	namespace BigTree;
+	
+	$page = new Page($_GET["id"]);
+	
+	if ($page->UserAccessLevel == "p") {
+		$page->deleteDraft();
+	}

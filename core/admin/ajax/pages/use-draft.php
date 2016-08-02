@@ -2,41 +2,37 @@
 	namespace BigTree;
 	
 	// Get the version, check if the user has access to the page the version refers to.
-	$revision = $admin->getPageRevision($_GET["id"]);
-	$access = $admin->getPageAccessLevel($revision["page"]);
-	if ($access != "p") {
+	$revision = new PageRevision($_GET["id"]);
+	$page = new Page($revision->Page);
+	
+	if ($page->UserAccessLevel != "p") {
 		Auth::stop("You must be a publisher to manage revisions.", Router::getIncludePath("admin/layouts/_error.php"));
 	}
 	
-	foreach ($revision as $key => $val) {
-		$$key = $val;
-	}
-	
 	// See if we have an existing draft, if so load its changes.  Otherwise start a new list.
-	$existing = $admin->getPageChanges($revision["page"]);
+	$existing = $page->PendingChange;
+	
 	if ($existing) {
-		$changes = $existing["changes"];
+		$changes = $existing->Changes;
 	} else {
 		$changes = array();
 	}
 
-	$changes["title"] = $title;
-	$changes["meta_keywords"] = $meta_keywords;
-	$changes["meta_description"] = $meta_description;
-	$changes["template"] = $template;
-	$changes["external"] = $external;
-	$changes["new_window"] = $new_window;
-	// Resources are already are json encoded.
-	$changes["resources"] = json_decode($resources,true);
+	$changes["title"] = $revision->Title;
+	$changes["meta_description"] = $revision->MetaDescription;
+	$changes["template"] = $revision->Template;
+	$changes["external"] = $revision->External;
+	$changes["new_window"] = $revision->NewWindow;
+	$changes["resources"] = $revision->Resources;
 	
 	if ($existing) {
 		// Update an existing draft with our changes and new author
-		$admin->updatePendingChange($existing["id"],$changes);
+		$existing->Changes = $changes;
+		$existing->save();
 	} else {
 		// If we don't have an existing copy, make a new draft.
-		$admin->createPendingChange("bigtree_pages",$revision["page"],$changes);
+		PendingChange::create("bigtree_pages", $revision->Page, $changes);
 	}
 	
 	Utils::growl("Pages","Loaded Saved Revision");
-	
 	Router::redirect(ADMIN_ROOT."pages/edit/".$revision["page"]."/");
