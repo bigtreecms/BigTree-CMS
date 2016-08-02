@@ -1,19 +1,22 @@
+<?php
+	namespace BigTree;
+	
+	if ($_POST["query"]) {
+		$items = Resource::search($_POST["query"], "date DESC");
+		$permission_level = "e";
+		$breadcrumb = array(array("name" => "Clear Results","id" => ""));
+	} else {
+		$folder = new ResourceFolder($_POST["folder"]);
+		$permission_level = $folder->UserAccessLevel;
+		$items = $folder->Contents;
+		$breadcrumb = $folder->Breadcrumb;
+	}
+?>
 <div class="file_browser_images">
 	<?php
-		if ($_POST["query"]) {
-			$items = $admin->searchResources($_POST["query"]);
-			$perm = "e";
-			$bc = array(array("name" => "Clear Results","id" => ""));
-		} else {
-			$perm = $admin->getResourceFolderPermission($_POST["folder"]);
-			$items = $admin->getContentsOfResourceFolder($_POST["folder"]);
-			$bc = $admin->getResourceFolderBreadcrumb($_POST["folder"]);
-		}
-		
-		if (!$_POST["query"] && $_POST["folder"] > 0) {
-			$folder = $admin->getResourceFolder($_POST["folder"]);
+		if (!empty($folder) && $folder->ID > 0) {
 	?>
-	<a href="#<?=$folder["parent"]?>" class="file folder"><span class="file_type file_type_folder file_type_folder_back"></span> Back</a>
+	<a href="#<?=$folder->Parent?>" class="file folder"><span class="file_type file_type_folder file_type_folder_back"></span> Back</a>
 	<?php
 		}
 	
@@ -33,16 +36,19 @@
 			if ($resource["is_image"]) {
 				$file = str_replace(array("{wwwroot}","{staticroot}"),SITE_ROOT,$resource["file"]);
 				$thumbs = json_decode($resource["thumbs"],true);
+				
 				if (isset($thumbs["bigtree_internal_list"])) {
 					$thumb = $thumbs["bigtree_internal_list"];
 				} else {
 					$thumb = str_replace(SITE_ROOT,WWW_ROOT,$file);
 				}
-				$thumb = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$thumb);
+				
+				$thumb = str_replace(array("{wwwroot}", "{staticroot}"), array(WWW_ROOT, STATIC_ROOT), $thumb);
 				$disabled = (($minWidth && $minWidth !== "false" && $resource["width"] < $minWidth) || ($minHeight && $minHeight !== "false" && $resource["height"] < $minHeight)) ? " disabled" : "";
 				
 				// Find the available thumbnails for this image if we're dropping it in a WYSIWYG area.
 				$available_thumbs = array();
+				
 				if (count($thumbs) > 0) {
 					foreach ($thumbs as $tk => $tu) {
 						if (substr($tk,0,17) != "bigtree_internal_") {
@@ -65,18 +71,21 @@
 		}
 		
 		// Make sure the breadcrumb is at most 5 pieces
-		$cut_breadcrumb = array_slice($bc,-5,5);
-		if (count($cut_breadcrumb) < count($bc)) {
-			$cut_breadcrumb = array_merge(array(array("id" => 0,"name" => "&hellip;")),$cut_breadcrumb);
+		$cut_breadcrumb = array_slice($breadcrumb,-5,5);
+		
+		if (count($cut_breadcrumb) < count($breadcrumb)) {
+			$cut_breadcrumb = array_merge(array(array("id" => 0, "name" => "&hellip;")), $cut_breadcrumb);
 		}
+		
 		$crumb_contents = "";
+		
 		foreach ($cut_breadcrumb as $crumb) {
 			$crumb_contents .= '<li><a href="#'.$crumb["id"].'" title="'.$crumb["name"].'">'.$crumb["name"].'</a></li>';
 		}
 	?>
 </div>
 <script>
-	<?php if ($perm == "p") { ?>
+	<?php if ($permission_level == "p") { ?>
 	BigTreeFileManager.enableCreate();
 	<?php } else { ?>
 	BigTreeFileManager.disableCreate();

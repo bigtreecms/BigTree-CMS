@@ -1,34 +1,31 @@
 <?php
 	namespace BigTree;
 	
-	/**
-	 * @global \BigTreeAdmin $admin
-	 */
-	
 	$storage = new Storage;
 	
 	// If we're replacing an existing file, find out its name
 	if (isset($_POST["replace"])) {
 		Auth::user()->requireLevel(1);
-		$replacing = $admin->getResource($_POST["replace"]);
-		$pinfo = pathinfo($replacing["file"]);
-		$replacing = $pinfo["basename"];
+		
+		$resource = new Resource($_POST["replace"]);
+		$path_info = pathinfo($resource->File);
+		$replacing = $path_info["basename"];
+		
 		// Set a recently replaced cookie so we don't use cached images
 		setcookie('bigtree_admin[recently_replaced_file]', true, time() + 300, str_replace(DOMAIN, "", WWW_ROOT));
 	} else {
 		$replacing = false;
 	}
 	
-	$folder = isset($_POST["folder"]) ? $_POST["folder"] : false;
+	$folder = new ResourceFolder(isset($_POST["folder"]) ? $_POST["folder"] : 0);
+	$permission_level = $folder->UserAccessLevel;
 	$errors = array();
-	$successes = 0;
 	
 	// This is an iFrame, so we're going to call the parent from it.
 	echo '<html><body><script>';
 	
 	// If the user doesn't have permission to upload to this folder, throw an error.
-	$perm = $admin->getResourceFolderPermission($folder);
-	if ($perm != "p") {
+	if ($permission_level != "p") {
 		echo 'parent.BigTreeFileManager.uploadError("You do not have permission to upload to this folder.");';
 	} else {
 		foreach ($_FILES["files"]["tmp_name"] as $number => $temp_name) {
@@ -46,7 +43,7 @@
 			// File successfully uploaded
 			} elseif ($temp_name) {
 				// See if this file already exists
-				if ($replacing || !$admin->matchResourceMD5($temp_name, $_POST["folder"])) {
+				if ($replacing || !Resource::md5Check($temp_name, $_POST["folder"])) {
 					$md5 = md5_file($temp_name);
 					
 					// Get the name and file extension
@@ -54,12 +51,10 @@
 					$extension = strtolower(strrev(substr($n, 0, strpos($n, "."))));
 					
 					// See if it's an image
-					list($iwidth, $iheight, $itype, $iattr) = getimagesize($temp_name);
+					list($image_width, $image_height, $image_type) = getimagesize($temp_name);
 					
 					// It's a regular file
-					if ($itype != IMAGETYPE_GIF && $itype != IMAGETYPE_JPEG && $itype != IMAGETYPE_PNG) {
-						$type = "file";
-						
+					if ($image_type != IMAGETYPE_GIF && $image_type != IMAGETYPE_JPEG && $image_type != IMAGETYPE_PNG) {
 						if ($replacing) {
 							$file = $storage->replace($temp_name, $file_name, "files/resources/");
 						} else {
@@ -76,13 +71,11 @@
 						// Otherwise make the database entry for the file we uplaoded.
 						} else {
 							if (!$replacing) {
-								$admin->createResource($folder, $file, $md5, $file_name, $extension);
+								Resource::create($folder, $file, $md5, $file_name, $extension);
 							}
 						}
 					// It's an image
 					} else {
-						$type = "image";
-						
 						// We're going to create a list view and detail view thumbnail plus whatever we're requesting to have through Settings
 						$thumbnails_to_create = array(
 							"bigtree_internal_list" => array("width" => 100, "height" => 100, "prefix" => "bigtree_list_thumb_"),
@@ -100,7 +93,7 @@
 						$itype_exts = array(IMAGETYPE_PNG => ".png", IMAGETYPE_JPEG => ".jpg", IMAGETYPE_GIF => ".gif");
 						$first_copy = $temp_name;
 						
-						list($iwidth, $iheight, $itype, $iattr) = getimagesize($first_copy);
+						list($image_width, $image_height, $image_type, $iattr) = getimagesize($first_copy);
 						
 						foreach ($thumbnails_to_create as $thumb) {
 							// We don't want to add multiple errors and we also don't want to waste effort getting thumbnail sizes if we already failed.
@@ -121,8 +114,8 @@
 							
 							// Create a bunch of thumbnails
 							foreach ($thumbnails_to_create as $key => $thumb) {
-								if ($iwidth > $thumb["width"] || $iheight > $thumb["height"]) {
-									$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
+								if ($image_width > $thumb["width"] || $image_height > $thumb["height"]) {
+									$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$image_type];
 									Image::createThumbnail($first_copy, $temp_thumb, $thumb["width"], $thumb["height"]);
 									
 									if ($replacing) {
@@ -146,15 +139,14 @@
 								$errors[] = "Uploading ".htmlspecialchars($file_name)." failed (unknown error).";
 							} else {
 								if (!$replacing) {
-									$admin->createResource($folder, $file, $md5, $file_name, $extension, "on", $iheight, $iwidth, $thumbs);
+									Resource::create($folder, $file, $md5, $file_name, $extension, "on", $image_height, $image_width, $thumbs);
 								} else {
-									$admin->updateResource($_POST["replace"], array(
-										"date" => date("Y-m-d H:i:s"),
-										"md5" => $md5,
-										"height" => $iheight,
-										"width" => $iwidth,
-										"thumbs" => JSON::encode($thumbs)
-									));
+									$resource = new Resource($_POST["replace"]);
+									$resource->Date = date("Y-m-d H:i:s");
+									$resource->MD5 = $md5;
+									$resource->Height = $image_height;
+									$resource->Width = $image_width;
+									$resource->save();
 								}
 							}
 						}
@@ -166,7 +158,13 @@
 	
 	if (count($errors)) {
 		$uploaded = count($_FILES["files"]["tmp_name"]) - count($errors);
-		$success_message = "$uploaded file".($uploaded != 1 ? "s" : "")." uploaded successfully.";
+		
+		if ($uploaded != 1) {
+			$success_message = Text::translate(":count: files uploaded successfully.", false, array(":count:" => $uploaded));
+		} else {
+			$success_message = Text::translate("1 file uploaded successfully.");
+		}
+		
 		echo 'parent.BigTreeFileManager.uploadError("'.implode("<br />", $errors).'","'.$success_message.'");</script></body></html>';
 	} else {
 		echo 'parent.BigTreeFileManager.finishedUpload('.json_encode($errors).');</script></body></html>';

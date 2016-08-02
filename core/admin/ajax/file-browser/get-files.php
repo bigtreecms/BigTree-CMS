@@ -2,19 +2,19 @@
 	namespace BigTree;
 	
 	if ($_POST["query"]) {
-		$items = $admin->searchResources($_POST["query"]);
-		$perm = "e";
-		$bc = array(array("name" => Text::translate("Clear Results"),"id" => ""));
+		$items = Resource::search($_POST["query"], "date DESC");
+		$permission_level = "e";
+		$breadcrumb = array(array("name" => Text::translate("Clear Results"), "id" => ""));
 	} else {
-		$perm = $admin->getResourceFolderPermission($_POST["folder"]);
-		$items = $admin->getContentsOfResourceFolder($_POST["folder"]);
-		$bc = $admin->getResourceFolderBreadcrumb($_POST["folder"]);
+		$folder = new ResourceFolder($_POST["folder"]);
+		$permission_level = $folder->UserAccessLevel;
+		$items = $folder->Contents;
+		$breadcrumb = $folder->Breadcrumb;
 	}
 	
-	if (!$_POST["query"] && $_POST["folder"] > 0) {
-		$folder = $admin->getResourceFolder($_POST["folder"]);
+	if (!empty($folder) && $folder->ID) {
 ?>
-<a href="#<?=$folder["parent"]?>" class="file folder back"><span class="icon_small icon_small_back"></span><?=Text::translate("Back")?></a>
+<a href="#<?=$folder->Parent?>" class="file folder back"><span class="icon_small icon_small_back"></span><?=Text::translate("Back")?></a>
 <?php
 	}
 	
@@ -26,22 +26,25 @@
 	
 	foreach ($items["resources"] as $resource) {
 ?>
-<a <?php if ($perm == "n") { ?>href="#" class="file disabled"<?php } else { ?>href="<?=$resource["file"]?>" class="file"<?php } ?>><span class="icon_small icon_small_file_default icon_small_file_<?=$resource["type"]?>"></span> <?=$resource["name"]?></a>
+<a <?php if ($permission_level == "n") { ?>href="#" class="file disabled" <?php } else { ?>href="<?=$resource["file"]?>" class="file"<?php } ?>><span class="icon_small icon_small_file_default icon_small_file_<?=$resource["type"]?>"></span> <?=$resource["name"]?></a>
 <?php
 	}
 	
 	// Make sure the breadcrumb is at most 5 pieces
-	$cut_breadcrumb = array_slice($bc,-5,5);
-	if (count($cut_breadcrumb) < count($bc)) {
-		$cut_breadcrumb = array_merge(array(array("id" => 0,"name" => "&hellip;")),$cut_breadcrumb);
+	$cut_breadcrumb = array_slice($breadcrumb,-5,5);
+	
+	if (count($cut_breadcrumb) < count($breadcrumb)) {
+		$cut_breadcrumb = array_merge(array(array("id" => 0, "name" => "&hellip;")), $cut_breadcrumb);
 	}
+	
 	$crumb_contents = "";
+	
 	foreach ($cut_breadcrumb as $crumb) {
 		$crumb_contents .= '<li><a href="#'.$crumb["id"].'" title="'.$crumb["name"].'">'.$crumb["name"].'</a></li>';
 	}
 ?>
 <script>
-	<?php if ($perm == "p") { ?>
+	<?php if ($permission_level == "p") { ?>
 	BigTreeFileManager.enableCreate();
 	<?php } else { ?>
 	BigTreeFileManager.disableCreate();
@@ -51,7 +54,7 @@
 	<?php } else { ?>
 	BigTreeFileManager.setTitleSuffix("");
 	<?php } ?>
-	BigTreeFileManager.setBreadcrumb("<?=str_replace('"','\"',$crumb_contents)?>");
+	BigTreeFileManager.setBreadcrumb("<?=str_replace('"', '\"', $crumb_contents)?>");
 	<?php if (Auth::user()->Level && $_POST["folder"]) { ?>
 	BigTreeFileManager.showDeleteFolder();
 	<?php } else { ?>

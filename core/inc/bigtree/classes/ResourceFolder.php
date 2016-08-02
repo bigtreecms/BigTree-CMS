@@ -33,19 +33,24 @@
 		
 		function __construct($folder = null) {
 			if ($folder !== null) {
-				// Passing in just an ID
-				if (!is_array($folder)) {
-					$folder = SQL::fetch("SELECT * FROM bigtree_resource_folders WHERE id = ?", $folder);
-				}
-				
-				// Bad data set
-				if (!is_array($folder)) {
-					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+				if ($folder === 0) {
+					$this->ID = 0;
+					$this->Name = "Home";
 				} else {
-					$this->ID = $folder["id"];
+					// Passing in just an ID
+					if (!is_array($folder)) {
+						$folder = SQL::fetch("SELECT * FROM bigtree_resource_folders WHERE id = ?", $folder);
+					}
 					
-					$this->Name = $folder["name"];
-					$this->Parent = $folder["parent"];
+					// Bad data set
+					if (!is_array($folder)) {
+						trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+					} else {
+						$this->ID = $folder["id"];
+						
+						$this->Name = $folder["name"];
+						$this->Parent = $folder["parent"];
+					}
 				}
 			}
 		}
@@ -212,9 +217,14 @@
 		*/
 		
 		function save() {
-			if (empty($this->ID)) {
+			// Home shouldn't be allowed to be saved
+			if ($this->ID === 0) {
+				return false;
+			} elseif (empty($this->ID)) {
 				$new = static::create($this->Parent, $this->Name);
 				$this->inherit($new);
+				
+				return true;
 			} else {
 				SQL::update("bigtree_resource_folders", $this->ID, array(
 					"name" => Text::htmlEncode($this->Name),
@@ -222,6 +232,8 @@
 				));
 				
 				AuditTrail::track("bigtree_resource_folders", $this->ID, "updated");
+				
+				return true;
 			}
 		}
 		
