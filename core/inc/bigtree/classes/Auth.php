@@ -10,11 +10,12 @@
 
 	class Auth {
 
+		public static $Email;
 		public static $ID;
 		public static $Level = 0;
 		public static $Name;
+		public static $PagesTabHidden = false;
 		public static $Permissions = array();
-		public static $User;
 
 		private static $Namespace = "";
 		private static $Policies = false;
@@ -41,8 +42,8 @@
 				$user = $user_class::getByEmail($_SESSION[static::$Namespace]["email"]);
 				
 				if ($user) {
+					static::$Email = $user->Email;
 					static::$ID = $user->ID;
-					static::$User = $user->Email;
 					static::$Level = $user->Level;
 					static::$Name = $user->Name;
 					static::$Permissions = $user->Permissions;
@@ -69,8 +70,8 @@
 							$_SESSION[static::$Namespace]["level"] = $user->Level;
 
 							// Setup auth environment
+							static::$Email = $user->Email;
 							static::$ID = $user->ID;
-							static::$User = $user->Email;
 							static::$Level = $user->Level;
 							static::$Name = $user->Name;
 							static::$Permissions = $user->Permissions;
@@ -88,7 +89,7 @@
 							SQL::insert("bigtree_user_sessions", array(
 								"id" => $session,
 								"chain" => $chain,
-								"email" => static::$User
+								"email" => static::$Email
 							));
 
 							Cookie::create(static::$Namespace."[login]", json_encode(array($session, $chain)), "+1 month");
@@ -103,6 +104,21 @@
 						// Delete all sessions for this user
 						SQL::delete("bigtree_user_sessions", array("email" => $_COOKIE[static::$Namespace]["email"]));
 					}
+				}
+
+				// Check the permissions to see if we should show the pages tab.
+				if (!static::$Level) {
+					static::$PagesTabHidden = true;
+					
+					if (is_array(static::$Permissions["page"])) {
+						foreach (static::$Permissions["page"] as $page_id => $permission) {
+							if ($permission != "n" && $permission != "i") {
+								static::$PagesTabHidden = false;
+							}
+						}
+					}
+				} else {
+					static::$PagesTabHidden = false;
 				}
 
 				// Clean up

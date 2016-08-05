@@ -1,23 +1,22 @@
 <?php
 	namespace BigTree;
-
+		
 	/**
-	 * @global \BigTreeAdmin $admin
 	 * @global array $bigtree
 	 * @global ModuleInterface $interface
 	 */
 	
 	// If the last command is numeric then we're editing something.
-	if (is_numeric(end($bigtree["commands"])) || is_numeric(substr(end($bigtree["commands"]),1))) {
+	if (is_numeric(end($bigtree["commands"])) || is_numeric(substr(end($bigtree["commands"]), 1))) {
 		$bigtree["edit_id"] = $edit_id = end($bigtree["commands"]);
-	// Otherwise we're adding something or we're processing something we were editing.
+		// Otherwise we're adding something or we're processing something we were editing.
 	} else {
 		$bigtree["edit_id"] = $edit_id = $_POST["id"] ? $_POST["id"] : false;
 	}
-
+	
 	$form = new ModuleForm($interface->Array);
 	$form->Root = ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/";
-
+	
 	// In case someone is relying on $bigtree["form"] for backwards compatibility
 	$bigtree["form"] = $form->Array;
 	
@@ -29,7 +28,7 @@
 			"title" => "Edit in Developer"
 		);
 	}
-
+	
 	// Audit Trail link
 	if ($bigtree["edit_id"]) {
 		$bigtree["subnav_extras"][] = array(
@@ -40,12 +39,13 @@
 	}
 	
 	$action = $bigtree["commands"][0];
-
-	if (!$action || is_numeric($action) || is_numeric(substr($action,1))) {
+	
+	if (!$action || is_numeric($action) || is_numeric(substr($action, 1))) {
 		if ($bigtree["edit_id"]) {
 			if (isset($_GET["force"])) {
-				$admin->unlock($form->Table,$bigtree["edit_id"]);
+				Lock::remove($form->Table, $bigtree["edit_id"]);
 			}
+			
 			include Router::getIncludePath("admin/auto-modules/forms/edit.php");
 		} else {
 			include Router::getIncludePath("admin/auto-modules/forms/add.php");

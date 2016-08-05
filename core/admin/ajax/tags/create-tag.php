@@ -1,2 +1,5 @@
 <?php
-	echo $admin->createTag($_POST["tag"]);
+	namespace BigTree;
+	
+	Tag::create($_POST["tag"]);
+	

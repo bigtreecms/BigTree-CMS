@@ -1,16 +1,21 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global array $bigtree
+	 * @global bool $reply_all
+	 */
+	
 	// Make sure the user has the right to see this message
-	$parent = $admin->getMessage(end($bigtree["path"]));
+	$parent = new Message(end($bigtree["path"]));
 
 	// If the original message doesn't exist or you don't have access to it.
-	if (!$parent) {
+	if (!$parent->ID) {
 		Auth::stop("This message either does not exist or you do not have permission to view it.",
 					 Router::getIncludePath("admin/layouts/_error.php"));
 	}
 
-	$users = $admin->getUsers();
+	$users = User::all("name ASC", true);
 		
 	if (isset($_SESSION["saved_message"])) {
 		$send_to = $_SESSION["saved_message"]["send_to"];
@@ -19,23 +24,23 @@
 		$error = true;
 		unset($_SESSION["saved_message"]);
 	} else {
-		$subject = "RE: ".$parent["subject"];
+		$subject = "RE: ".$parent->Subject;
 		$message = "";
 		$error = false;
 		
 		// Generate the recipient names from the parent if we're replying to all, otherwise, just use the sender.
 		$send_to = array();
-		if (isset($reply_all) || $parent["sender"] == Auth::user()->ID) {
-			$p_recipients = explode("|",trim($parent["recipients"],"|"));
-			$p_recipients[] = $parent["sender"];
-			foreach ($p_recipients as $r) {
-				if ($r != Auth::user()->ID) {
-					$send_to[] = $r;
+		
+		if (!empty($reply_all) || $parent->Sender == Auth::user()->ID) {
+			foreach ($parent->Recipients as $recipient) {
+				if ($recipient != Auth::user()->ID) {
+					$send_to[] = $recipient;
 				}
 			}
-		} else {
-			$send_to[] = $parent["sender"];
+			
 		}
+		
+		$send_to[] = $parent->Sender;
 	}
 ?>
 <div class="container">
@@ -69,10 +74,10 @@
 					<footer>
 						<select>
 							<?php
-								foreach ($users as $id => $u) {
-									if ($item["id"] != Auth::user()->ID) {
+								foreach ($users as $id => $user) {
+									if ($id != Auth::user()->ID) {
 							?>
-							<option value="<?=$id?>"><?=htmlspecialchars($u["name"])?></option>
+							<option value="<?=$id?>"><?=htmlspecialchars($user["name"])?></option>
 							<?php
 									}
 								}
@@ -83,12 +88,12 @@
 				</div>
 			</fieldset>
 			<fieldset<?php if ($error && !$subject) { ?> class="form_error"<?php } ?>>
-				<label class="required"><?=Text::translate("Subject")?><?php if ($error && !$subject) { ?><span class="form_error_reason"><?=Text::translate("Required")?></span><?php } ?></label>
-				<input type="text" name="subject"  class="required" value="<?=$subject?>" />
+				<label for="message_field_subject" class="required"><?=Text::translate("Subject")?><?php if ($error && !$subject) { ?><span class="form_error_reason"><?=Text::translate("Required")?></span><?php } ?></label>
+				<input id="message_field_subject" type="text" name="subject"  class="required" value="<?=$subject?>" />
 			</fieldset>
 			<fieldset<?php if ($error && !$message) { ?> class="form_error"<?php } ?>>
-				<label class="required"><?=Text::translate("Message")?><?php if ($error && !$message) { ?><span class="form_error_reason"><?=Text::translate("Required")?></span><?php } ?></label>
-				<textarea name="message" id="message" class="required"><?=$message?></textarea>
+				<label for="message_field_message" class="required"><?=Text::translate("Message")?><?php if ($error && !$message) { ?><span class="form_error_reason"><?=Text::translate("Required")?></span><?php } ?></label>
+				<textarea id="message_field_message" name="message" id="message" class="required"><?=$message?></textarea>
 			</fieldset>
 		</section>
 		<footer>

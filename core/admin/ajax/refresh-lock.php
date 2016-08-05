@@ -1,2 +1,5 @@
 <?php
-	$admin->refreshLock($_POST["table"],$_POST["id"]);
+	namespace BigTree;
+	
+	Lock::refresh($_POST["table"],$_POST["id"]);
+	

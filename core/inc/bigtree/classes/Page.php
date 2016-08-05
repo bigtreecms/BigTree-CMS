@@ -1232,8 +1232,6 @@
 		*/
 		
 		function getUserCanModifyChildren() {
-			global $admin;
-			
 			// Make sure a user is logged in
 			if (is_null(Auth::user()->ID)) {
 				trigger_error("Property UserCanModifyChildren not available outside logged-in user context.");
@@ -1250,7 +1248,7 @@
 			
 			// Check all the descendants for an explicit "no" or "editor" permission
 			foreach ($descendant_ids as $id) {
-				$permission = $admin->Permissions["page"][$id];
+				$permission = Auth::user()->Permissions["page"][$id];
 
 				if ($permission == "n" || $permission == "e") {
 					return false;

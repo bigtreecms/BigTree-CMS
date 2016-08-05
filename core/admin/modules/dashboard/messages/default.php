@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$messages = $admin->getMessages(Auth::user()->ID);	
+	$messages = Message::allByUser(Auth::user()->ID, true);
 
 	// Going to be querying a lot of user names
 	$user_cache = array();
@@ -11,10 +11,13 @@
 	foreach ($messages["sent"] as $message) {
 		$recipients = explode("|",trim($message["recipients"],"|"));
 		$recipient_names = array();
+		
 		foreach ($recipients as $recipient) {
 			if (!isset($user_cache[$recipient])) {
-				$user_cache[$recipient] = $admin->getUser($recipient);
+				$recipient_user = new User($recipient);
+				$user_cache[$recipient] = $recipient_user->Array;
 			}
+			
 			$recipient_names[] = $user_cache[$recipient]["name"];
 		}
 
@@ -29,6 +32,7 @@
 
 	// Unread messages table data 
 	$unread_data = array();
+	
 	foreach ($messages["unread"] as $message) {
 		$unread_data[] = array(
 			"id" => $message["id"],
@@ -41,6 +45,7 @@
 
 	// Read messages table data 
 	$read_data = array();
+	
 	foreach ($messages["read"] as $message) {
 		$read_data[] = array(
 			"id" => $message["id"],
@@ -54,6 +59,7 @@
 <div id="unread_messages_table"></div>
 <div id="read_messages_table"></div>
 <div id="sent_messages_table"></div>
+
 <script>
 	// Unread Messages
 	BigTreeTable({
@@ -116,24 +122,5 @@
 			view: "<?=ADMIN_ROOT?>dashboard/messages/view/{id}/"
 		},
 		data: <?=json_encode($sent_data)?>
-	});
-</script>
-
-<script>
-	BigTree.localPagesOfMessages = { unread_paging: <?=$unread_pages?>, read_paging: <?=$read_pages?>, sent_paging: <?=$sent_pages?> };
-	
-	BigTree.setPageCount("#unread_paging",<?=$unread_pages?>,1);
-	BigTree.setPageCount("#read_paging",<?=$read_pages?>,1);
-	BigTree.setPageCount("#sent_paging",<?=$sent_pages?>,1);
-	
-	$(".table").on("click",".view_paging a",function() {
-		var page = parseInt($(this).attr("href").substr(1));
-		$(this).parents("summary").siblings("ul").find("li").hide().filter(".page_" + page).show();
-		$(this).parents("ul").find(".active").removeClass("active");
-		
-		var id = $(this).parents("ul").attr("id");
-		BigTree.setPageCount("#" + id,BigTree.localPagesOfMessages[id],page);
-		
-		return false;
 	});
 </script>

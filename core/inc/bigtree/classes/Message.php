@@ -71,9 +71,8 @@
 				An array containing "sent", "read", and "unread" keys that contain an array of messages each.
 		*/
 
-		static function allByUser($user = false, $return_arrays = false) {
+		static function allByUser($user, $return_arrays = false) {
 			$sent = $read = $unread = array();
-
 			$user = SQL::escape($user);
 			$messages = SQL::fetchAll("SELECT bigtree_messages.*, 
 											  bigtree_users.name AS sender_name, 
@@ -161,6 +160,7 @@
 
 			// Find children
 			$id = $this->ID;
+			
 			while ($id = SQL::fetchSingle("SELECT id FROM bigtree_messages WHERE response_to = ?", $id)) {
 				$chain[] = new Message($id);
 			}

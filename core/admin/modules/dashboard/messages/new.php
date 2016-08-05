@@ -1,12 +1,13 @@
 <?php
 	namespace BigTree;
 	
-	$users = $admin->getUsers();
+	$users = User::all("name ASC", true);
 	
 	$send_to = array();
 	$subject = "";
 	$message = "";
 	$error = false;
+	$send_to_count = 0;
 	
 	if (isset($_SESSION["saved_message"])) {
 		$send_to = $_SESSION["saved_message"]["send_to"];
@@ -29,17 +30,17 @@
 					</section>
 					<ul>
 						<?php
-							$x = 0;
+							
 							if (is_array($send_to)) {
 								foreach ($send_to as $id) {
 						?>
 						<li>
-							<input type="hidden" name="send_to[<?=$x?>]" value="<?=htmlspecialchars($id)?>" />
+							<input type="hidden" name="send_to[<?=$send_to_count?>]" value="<?=htmlspecialchars($id)?>" />
 							<p><?=htmlspecialchars($users[$id]["name"])?></p>
 							<a href="#" class="icon_delete"></a>
 						</li>
 						<?php
-									$x++;
+									$send_to_count++;
 								}
 							}
 						?>
@@ -61,12 +62,12 @@
 				</div>
 			</fieldset>
 			<fieldset<?php if ($error && !$subject) { ?> class="form_error"<?php } ?>>
-				<label class="required"><?=Text::translate("Subject")?><?php if ($error && !$subject) { ?><span class="form_error_reason"><?=Text::translate("Required")?></span><?php } ?></label>
-				<input type="text" name="subject"  class="required" value="<?=$subject?>" />
+				<label for="message_field_subject" class="required"><?=Text::translate("Subject")?><?php if ($error && !$subject) { ?><span class="form_error_reason"><?=Text::translate("Required")?></span><?php } ?></label>
+				<input id="message_field_subject" type="text" name="subject"  class="required" value="<?=$subject?>" />
 			</fieldset>
 			<fieldset<?php if ($error && !$message) { ?> class="form_error"<?php } ?>>
-				<label class="required"><?=Text::translate("Message")?><?php if ($error && !$message) { ?><span class="form_error_reason"><?=Text::translate("Required")?></span><?php } ?></label>
-				<textarea name="message" id="message" class="required"><?=$message?></textarea>
+				<label for="message_field_message" class="required"><?=Text::translate("Message")?><?php if ($error && !$message) { ?><span class="form_error_reason"><?=Text::translate("Required")?></span><?php } ?></label>
+				<textarea id="message_field_message" name="message" id="message" class="required"><?=$message?></textarea>
 			</fieldset>
 		</section>
 		<footer>
@@ -87,7 +88,7 @@
 <script>
 	BigTreeManyToMany({
 		id: "send_to",
-		count: <?=$x?>,
+		count: <?=$send_to_count?>,
 		key: "send_to",
 		sortable: false
 	});
