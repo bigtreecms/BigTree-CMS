@@ -1,17 +1,19 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global array $bigtree
+	 * @global array $interface_list
+	 */
+	
 	$id = end($bigtree["path"]);	
-	$module = $admin->getModule($id);
-	$actions = $admin->getModuleActions($id);
-	$groups = $admin->getModuleGroups("name ASC");
-	$gbp = is_array($module["gbp"]) ? $module["gbp"] : array("enabled" => false, "name" => "", "table" => "", "group_field" => "", "other_table" => "", "title_field" => "");
-
-	// Get a list of interfaces, this is separated out because actions form uses the same logic
-	include Router::getIncludePath("admin/modules/developer/modules/_interface-sort.php");
-
-	// Set the drag disabled flag for non-visible actions
+	$module = new Module($id);
+	$actions = ModuleAction::allByModule($id, "position DESC, id ASC");;
+	$groups = ModuleGroup::all("name ASC");
 	$action_data = array();
+	$interface_data = array();
+	
+	// Set the drag disabled flag for non-visible actions
 	foreach ($actions as $action) {
 		$action_data[] = array(
 			"id" => $action["id"],
@@ -19,9 +21,11 @@
 			"!disable_drag" => $action["in_nav"] ? false : true
 		);
 	}
-
+	
+	// Get a list of interfaces, this is separated out because actions form uses the same logic
+	include Router::getIncludePath("admin/modules/developer/modules/_interface-sort.php");
+	
 	// Put together our interface list
-	$interface_data = array();
 	foreach ($interface_list as $key => $type) {
 		foreach ($type["items"] as $item) {
 			$interface_data[] = array(
@@ -43,53 +47,53 @@
 		</nav>
 	</header>
 	<div id="details_tab" class="section">
-		<form method="post" action="<?=DEVELOPER_ROOT?>modules/update/<?=$module["id"]?>/" enctype="multipart/form-data" class="module left">
+		<form method="post" action="<?=DEVELOPER_ROOT?>modules/update/<?=$module->ID?>/" enctype="multipart/form-data" class="module left">
 			<section>
 				<div class="left">
 					<fieldset>
-						<label class="required"><?=Text::translate("Name")?></label>
-						<input name="name" type="text" value="<?=$module["name"]?>" class="required" />
+						<label for="module_field_name" class="required"><?=Text::translate("Name")?></label>
+						<input id="module_field_name" name="name" type="text" value="<?=$module->Name?>" class="required" />
 					</fieldset>
 				</div>
 				<br class="clear" /><br />
 				<fieldset class="clear developer_module_group">
-					<label><?=Text::translate("Group <small>(if a new group name is chosen, the select box is ignored)</small>")?></label>
-					<input name="group_new" type="text" placeholder="<?=Text::translate("New Group", true)?>" />
+					<label for="module_field_group_new"><?=Text::translate("Group <small>(if a new group name is chosen, the select box is ignored)</small>")?></label>
+					<input id="module_field_group_new" name="group_new" type="text" placeholder="<?=Text::translate("New Group", true)?>" />
 					<span><?=Text::translate("OR")?></span> 
 					<select name="group_existing">
 						<option value=""></option>
 						<?php foreach ($groups as $group) { ?>
-						<option value="<?=$group["id"]?>"<?php if ($group["id"] == $module["group"]) { ?> selected="selected"<?php } ?>><?=$group["name"]?></option>
+						<option value="<?=$group->ID?>"<?php if ($group->ID == $module->Group) { ?> selected="selected"<?php } ?>><?=$group->Name?></option>
 						<?php } ?>
 					</select>
 				</fieldset>
 				<div class="left">
 					<fieldset>
-						<label><?=Text::translate("Class Name <small>(only change this if you renamed your class manually)</small>")?></label>
-						<input name="class" type="text" value="<?=htmlspecialchars($module["class"])?>" />
+						<label for="module_field_class"><?=Text::translate("Class Name <small>(only change this if you renamed your class manually)</small>")?></label>
+						<input id="module_field_class" name="class" type="text" value="<?=$module->Class?>" />
 					</fieldset>
 				</div>
 				
 				<br class="clear" />
 				<fieldset>
 			        <label class="required"><?=Text::translate("Icon")?></label>
-			        <input type="hidden" name="icon" id="selected_icon" value="<?=$module["icon"]?>" />
+			        <input type="hidden" name="icon" id="selected_icon" value="<?=$module->Icon?>" />
 			        <ul class="developer_icon_list">
 			        	<?php foreach (Module::$IconClasses as $class) { ?>
 			        	<li>
-			        		<a href="#<?=$class?>"<?php if ($class == $module["icon"]) { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
+			        		<a href="#<?=$class?>"<?php if ($class == $module->Icon) { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
 			        	</li>
 			        	<?php } ?>
 			        </ul>
 			    </fieldset>
 				
 				<fieldset class="left last">
-					<input type="checkbox" name="gbp[enabled]" id="gbp_on" <?php if (isset($gbp["enabled"]) && $gbp["enabled"]) { ?>checked="checked" <?php } ?> <?php if ($module["developer_only"]) { ?>disabled="disabled"<?php } ?> />
-					<label class="for_checkbox"><?=Text::translate("Enable Advanced Permissions")?></label>
+					<input type="checkbox" name="gbp[enabled]" id="gbp_on" <?php if (!empty($module->Group["enabled"]))  { ?>checked="checked" <?php } ?> <?php if ($module->DeveloperOnly) { ?>disabled="disabled"<?php } ?> />
+					<label for="gbp_on" class="for_checkbox"><?=Text::translate("Enable Advanced Permissions")?></label>
 				</fieldset>
 				<fieldset class="right last">
-					<input type="checkbox" name="developer_only" id="developer_only" <?php if ($module["developer_only"]) { ?>checked="checked" <?php } ?>/>
-					<label class="for_checkbox"><?=Text::translate("Limit Access to Developers")?></label>
+					<input type="checkbox" name="developer_only" id="developer_only" <?php if ($module->DeveloperOnly) { ?>checked="checked" <?php } ?>/>
+					<label for="developer_only" class="for_checkbox"><?=Text::translate("Limit Access to Developers")?></label>
 				</fieldset>
 				<br class="clear" />
 			</section>
@@ -121,7 +125,7 @@
 		},
 		actions: {
 			"edit": "<?=DEVELOPER_ROOT?>modules/actions/edit/{id}/",
-			"delete": function(id,state) {
+			"delete": function(id) {
 				BigTreeDialog({
 					title: "<?=Text::translate("Delete Action", true)?>",
 					content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this module action?")?></p>',
@@ -151,7 +155,7 @@
 			edit_link: { title: "", size: 40, center: true, noPadding: true }
 		},
 		actions: {
-			"delete": function(id,state) {
+			"delete": function(id) {
 				BigTreeDialog({
 					title: "<?=Text::translate("Delete Interface", true)?>",
 					content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this module interface?")?></p>',

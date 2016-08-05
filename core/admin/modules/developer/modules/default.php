@@ -1,12 +1,13 @@
 <?php
 	namespace BigTree;
 
-	$ungrouped_modules = $admin->getModulesByGroup(0);
+	$ungrouped_modules = Module::allByGroup(0, "position DESC, id ASC", true);
 	$groups_with_modules = array();
+	$groups = ModuleGroup::all("position DESC, id ASC", true);
 	
-	$groups = $admin->getModuleGroups();
 	foreach ($groups as $group) {
-		$modules = $admin->getModulesByGroup($group["id"]);
+		$modules = Module::allByGroup($group["id"], "position DESC, id ASC", true);
+
 		if (count($modules)) {
 			$group["modules"] = $modules;
 			$groups_with_modules[] = $group;

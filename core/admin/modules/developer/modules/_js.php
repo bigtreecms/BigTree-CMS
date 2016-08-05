@@ -1,19 +1,24 @@
 <script>
 	(function() {
+		var GBPCheckbox = $("#gbp_on");
+		var GBPControl = GBPCheckbox.get(0).customControl;
+		var GBPSection = $("#gbp");
+		var IconList = $(".developer_icon_list a");
+		
 		BigTreeFormValidator("form.module");
 		
-		$("#gbp_on").on("click",function() {
-			$("#gbp").toggle();
+		GBPCheckbox.on("click",function() {
+			GBPSection.toggle();
 		});
 
 		$("#developer_only").on("click",function() {
 			if ($(this).prop("checked")) {
-				$("#gbp_on").get(0).customControl.disable();
-				$("#gbp").hide();
+				GBPControl.disable();
+				GBPSection.hide();
 			} else {
-				$("#gbp_on").get(0).customControl.enable();
-				if ($("#gbp_on").prop("checked")) {
-					$("#gbp").show();
+				GBPControl.enable();
+				if (GBPCheckbox.prop("checked")) {
+					GBPSection.show();
 				}
 			}
 		});
@@ -25,8 +30,8 @@
 			$(target).load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?table=" + data.value + "&field=" + name);
 		});
 		
-		$(".developer_icon_list a").click(function() {
-			$(".developer_icon_list a").removeClass("active");
+		IconList.click(function() {
+			IconList.removeClass("active");
 			$(this).addClass("active");
 			$("#selected_icon").val($(this).attr("href").substr(1));
 			

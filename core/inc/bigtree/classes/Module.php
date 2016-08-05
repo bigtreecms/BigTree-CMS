@@ -34,7 +34,7 @@
 		public $DeveloperOnly;
 		public $Extension;
 		public $Group;
-		public $GroupBasedPermissions;
+		public $GroupBasedPermissions = array();
 		public $Icon;
 		public $Name;
 		public $Position;
@@ -65,11 +65,16 @@
 					$this->DeveloperOnly = $module["developer_only"];
 					$this->Extension = $module["extension"];
 					$this->Group = $module["group"] ?: false;
-					$this->GroupBasedPermissions = array_filter((array) @json_decode($module["gbp"], true));
 					$this->Icon = $module["icon"];
 					$this->Name = $module["name"];
 					$this->Position = $module["position"];
 					$this->Route = $module["route"];
+					
+					$gbp =  is_string($module["gbp"]) ? @json_decode($module["gbp"], true) : $module["gbp"];
+
+					if (is_array($gbp)) {
+						$this->GroupBasedPermissions = $gbp;
+					}
 				}
 			}
 		}
