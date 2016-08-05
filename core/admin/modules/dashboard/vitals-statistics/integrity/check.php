@@ -1,107 +1,126 @@
 <?php
 	namespace BigTree;
-	
-	Auth::user()->requireLevel(1);
 
 	$external = ($_GET["external"] == "true") ? true : false;
-	$pages = $admin->getPageIds();
-	$modules = $admin->getModuleForms();
+	$pages = Page::allIDs();
+	$forms = ModuleInterface::allByModuleAndType(false, "form", "title ASC", true);
 
 	// Get the ids of items that are in each module.
-	foreach ($modules as &$m) {
-		$action = $admin->getModuleActionForInterface($m);
-		$module = $admin->getModule($action["module"]);
-		if ($module["group"]) {
-			$group = $admin->getModuleGroup($module["group"]);
-			$m["module_name"] = Text::translate("Modules")."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$group["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$m["title"];
+	foreach ($forms as &$form) {
+		$module = new Module($form->Module);
+		
+		if ($module->Group) {
+			$group = new ModuleGroup($module->Group);
+			$form->ModuleName = Text::translate("Modules")."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$group->Name."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module->Name."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$form->Title;
 		} else {
-			$m["module_name"] = Text::translate("Modules")."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$m["title"];
+			$form->ModuleName = Text::translate("Modules")."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module->Name."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$form->Title;
 		}
 
-	    $m["items"] = SQL::fetchAllSingle("SELECT id FROM `".$m["table"]."`");
+	    $form->Items = SQL::fetchAllSingle("SELECT id FROM `".$form->Table."`");
 	}
 ?>
 <div class="table">
 	<summary>
 		<p><?=Text::translate("Running site integrity check with external link checking")?> <?=Text::translate($external ? "enabled" : "disabled")?>.</p>
 	</summary>
+	
 	<header>
 		<span class="integrity_errors"><?=Text::translate("Errors")?></span>
 	</header>
+	
 	<header class="group"><span class="integrity_progress" id="pages_progress">0%</span><?=Text::translate("Pages")?></header>
+	
 	<ul id="pages_updates"></ul>
-	<?php foreach ($modules as $module) { ?>
-	<header class="group"><span class="integrity_progress" id="module_<?=$module["id"]?>_progress">0%</span><?=$module["module_name"]?></header>
-	<ul id="module_<?=$module["id"]?>_updates"></ul>
+	
+	<?php foreach ($forms as $form) { ?>
+	<header class="group"><span class="integrity_progress" id="module_<?=$form->ID?>_progress">0%</span><?=$form->ModuleName?></header>
+	<ul id="module_<?=$form->ID?>_updates"></ul>
 	<?php } ?>
 </div>
 
 <script>
-	BigTree.localPageList = [<?php echo implode(",",$pages) ?>];
-	BigTree.localModuleList = <?=json_encode($modules)?>;
-	BigTree.localTotalPages = BigTree.localPageList.length;
-	BigTree.localCurrentPage = 0;
-	BigTree.localCurrentModule = 0;
-	BigTree.localTotalModules = BigTree.localModuleList.length;
-	BigTree.localCurrentItem = 0;
-	
-	BigTree.localDownloadPage = function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/integrity-check/page/?external=<?=$external?>&id=" + BigTree.localPageList[BigTree.localCurrentPage], {
-			complete: function(response) {
-				if (response.responseText) {
-					$("#pages_updates").append(response.responseText);
-				}
-				BigTree.localCurrentPage++;
-				$("#pages_progress").html((Math.round(BigTree.localCurrentPage / BigTree.localTotalPages * 10000) / 100) + "%");
-				if (BigTree.localCurrentPage < BigTree.localTotalPages) {
-					BigTree.localDownloadPage();
-				} else {
-					$("#pages_progress").addClass("complete");
-					if (!$("#pages_updates").html()) {
-						$("#pages_updates").append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span><?=Text::translate("No errors found in Pages.")?></section></li>'));
+	(function() {
+		var CurrentItem = 0;
+		var CurrentModule = 0;
+		var CurrentPage = 0;
+		var ModuleList = <?=json_encode($forms)?>;
+		var PageList = [<?php echo implode(",", $pages) ?>];
+		var PageProgressContainer = $("#pages_progress");
+		var PageUpdatesContainer = $("#pages_updates");
+		var TotalModules = ModuleList.length;
+		var TotalPages = PageList.length;
+		
+		function checkPages() {
+			$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/integrity-check/page/?external=<?=$external?>&id=" + PageList[CurrentPage], {
+				complete: function(response) {
+					if (response.responseText) {
+						$("#pages_updates").append(response.responseText);
 					}
-					BigTree.localDownloadModule(0);
+					
+					CurrentPage++;
+					PageProgressContainer.html((Math.round(CurrentPage / TotalPages * 10000) / 100) + "%");
+					
+					if (CurrentPage < TotalPages) {
+						checkPages();
+					} else {
+						PageProgressContainer.addClass("complete");
+						
+						if (!PageUpdatesContainer.html()) {
+							PageUpdatesContainer.append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span><?=Text::translate("No errors found in Pages.")?></section></li>'));
+						}
+						
+						checkModule(0);
+					}
 				}
-			}
-		});
-	};
-
-	BigTree.localDownloadPage();
-	
-	
-	BigTree.localDownloadModule = function(number) {
-		BigTree.localCurrentModule = number;
-		BigTree.localTotalItems = BigTree.localModuleList[number].items.length;
-		BigTree.localCurrentItem = 0;
-		if (BigTree.localTotalItems > 0) {
-			BigTree.localDownloadItem(0);
-		} else {
-			$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_progress").html("100%").addClass("complete");
-			$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span> <?=Text::translate("No errors found in")?> ' + BigTree.localModuleList[BigTree.localCurrentModule].module_name + '.</section></li>'));
-			BigTree.localDownloadModule(BigTree.localCurrentModule + 1);
+			});
 		}
-	};
-	
-	BigTree.localDownloadItem = function(number) {
-		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/integrity-check/module/?external=<?=$external?>&form=" + BigTree.localModuleList[BigTree.localCurrentModule].id + "&id=" + BigTree.localModuleList[BigTree.localCurrentModule].items[number], {
-			complete: function(response) {
-				if (response.responseText) {
-					$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").append(response.responseText);
-				}
-				BigTree.localCurrentItem++;
-				$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_progress").html((Math.round(BigTree.localCurrentItem / BigTree.localTotalItems * 10000) / 100) + "%");
-				if (BigTree.localCurrentItem < BigTree.localTotalItems) {
-					BigTree.localDownloadItem(BigTree.localCurrentItem);
-				} else {
-					$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_progress").addClass("complete");
-					if (!$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").html()) {
-						$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span> <?=Text::translate("No errors found in")?> ' + BigTree.localModuleList[BigTree.localCurrentModule].module_name + '.</section></li>'));
-					}
-					if (BigTree.localCurrentModule + 1 < BigTree.localTotalModules) {
-						BigTree.localDownloadModule(BigTree.localCurrentModule + 1);
-					}
-				}
+		
+		function checkModule(number) {
+			var TotalItems = ModuleList[number].items.length;
+			
+			CurrentModule = number;
+			CurrentItem = 0;
+			
+			if (TotalItems > 0) {
+				checkModuleEntry(0);
+			} else {
+				$("#module_" + ModuleList[CurrentModule].id + "_progress").html("100%").addClass("complete");
+				$("#module_" + ModuleList[CurrentModule].id + "_updates").append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span> <?=Text::translate("No errors found in")?> ' + ModuleList[CurrentModule].ModuleName + '.</section></li>'));
+				
+				checkModule(CurrentModule + 1);
 			}
-		});
-	};
+		}
+		
+		function checkModuleEntry(number) {
+			$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/integrity-check/module/?external=<?=$external?>&form=" + ModuleList[CurrentModule].id + "&id=" + ModuleList[CurrentModule].items[number], {
+				complete: function(response) {
+					var updates_container = $("#module_" + ModuleList[CurrentModule].id + "_updates");
+					var progress_container = $("#module_" + ModuleList[CurrentModule].id + "_progress");
+					
+					if (response.responseText) {
+						updates_container.append(response.responseText);
+					}
+					
+					CurrentItem++;
+					progress_container.html((Math.round(CurrentItem / TotalItems * 10000) / 100) + "%");
+					
+					if (CurrentItem < TotalItems) {
+						checkModuleEntry(CurrentItem);
+					} else {
+						progress_container.addClass("complete");
+						
+						if (!updates_container.html()) {
+							updates_container.append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span> <?=Text::translate("No errors found in")?> ' + ModuleList[CurrentModule].ModuleName + '.</section></li>'));
+						}
+						
+						if (CurrentModule + 1 < TotalModules) {
+							DownloadModule(CurrentModule + 1);
+						}
+					}
+				}
+			});
+		}
+		
+		checkPages();
+	})();
 </script>

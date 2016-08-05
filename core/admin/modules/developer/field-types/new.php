@@ -1,5 +1,9 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $bigtree
+	 */
 
 	$file = htmlspecialchars(end($bigtree["path"])).".php";
 ?>

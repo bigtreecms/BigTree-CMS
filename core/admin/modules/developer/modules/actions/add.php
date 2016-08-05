@@ -1,11 +1,10 @@
 <?php
 	namespace BigTree;
 	
-	$module = $admin->getModule($_GET["module"]);
-	$item = array("name" => "", "route" => "", "level" => 0, "class" => "", "in_nav" => "");
+	$action = new ModuleAction;
 ?>
 <div class="container">
-	<form method="post" action="<?=DEVELOPER_ROOT?>modules/actions/create/<?=$module["id"]?>/" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>modules/actions/create/<?=htmlspecialchars($_GET["module"])?>/" class="module">
 		<?php include Router::getIncludePath("admin/modules/developer/modules/actions/_form.php") ?>
 		<footer>
 			<input type="submit" class="button blue" value="<?=Text::translate("Create", true)?>" />

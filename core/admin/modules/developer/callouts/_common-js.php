@@ -1,17 +1,20 @@
 <?php
 	namespace BigTree;
-
-	$cached_types = $admin->getCachedFieldTypes(true);
-	$types = $cached_types["callouts"];
+	
+	/**
+	 * @global array $field_types
+	 * @global int $field_count
+	 */
 ?>
 <script>
 	(function() {
 		var CurrentFieldKey = false;
-		var FieldCount = <?=$x?>;
+		var FieldCount = <?=$field_count?>;
+		var FieldTable = $("#field_table");
 
 		BigTreeFormValidator("form.module");		
 		
-		$("#field_table").on("blur", ".developer_resource_id input", function() {
+		FieldTable.on("blur", ".developer_resource_id input", function() {
 			$(this).parents("li").find(".developer_resource_display_title input").val($(this).val());
 		});
 
@@ -79,13 +82,13 @@
 					'<section class="developer_resource_type">' +
 						'<select name="fields[' + FieldCount + '][type]" id="type_' + FieldCount + '">' +
 							'<optgroup label="Default">' +
-								<?php foreach ($types["default"] as $k => $v) { ?>
+								<?php foreach ($field_types["default"] as $k => $v) { ?>
 								'<option value="<?=$k?>"><?=$v["name"]?></option>' +
 								<?php } ?>
 							'</optgroup>' + 
-							<?php if (count($types["custom"])) { ?>
+							<?php if (count($field_types["custom"])) { ?>
 							'<optgroup label="Custom">' +
-								<?php foreach ($types["custom"] as $k => $v) { ?>
+								<?php foreach ($field_types["custom"] as $k => $v) { ?>
 								'<option value="<?=$k?>"><?=$v["name"]?></option>' +
 								<?php } ?>
 							'</optgroup>' +
@@ -101,15 +104,15 @@
 						'<a href="#" tabindex="-1" class="icon_delete"></a>' +
 					'</section>');
 	
-			$("#field_table").append(li);
+			FieldTable.append(li);
 			li.find("select").get(0).customControl = new BigTreeSelect(li.find("select").get(0));
 			li.find("input[type=radio]").get(0).customControl = new BigTreeRadioButton(li.find("input[type=radio]").get(0));
 	
-			$("#field_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
+			FieldTable.sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 	
 			return false;
 		});
 		
-		$("#field_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
+		FieldTable.sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 	})();
 </script>

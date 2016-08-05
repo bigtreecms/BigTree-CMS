@@ -1,30 +1,33 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $bigtree
+	 */
 
-	$type = $admin->getFieldType(end($bigtree["commands"]));
-	Globalize::arrayObject($type,array("htmlspecialchars"));
+	$field_type = new FieldType(end($bigtree["commands"]));
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>field-types/update/" enctype="multipart/form-data" class="module">
-		<input type="hidden" name="id" value="<?=$id?>" />
+		<input type="hidden" name="id" value="<?=$field_type->ID?>" />
 		<section>
 			<fieldset>
-				<label class="required"><?=Text::translate("Name")?></label>
-				<input type="text" class="required" name="name" value="<?=$name?>" />
+				<label for="fieldtype_field_name" class="required"><?=Text::translate("Name")?></label>
+				<input id="fieldtype_field_name" type="text" class="required" name="name" value="<?=$field_type->Name?>" />
 			</fieldset>
 			<fieldset>
 				<label class="required"><?=Text::translate("Use Cases")?></label>
 				<ul class="developer_field_types_usage">
-					<li><input type="checkbox" name="use_cases[templates]"<?php if ($use_cases["templates"]) { ?> checked="checked"<?php } ?> /> <label class="for_checkbox"><?=Text::translate("Templates")?></label></li>
-					<li><input type="checkbox" name="use_cases[modules]"<?php if ($use_cases["modules"]) { ?> checked="checked"<?php } ?> /> <label class="for_checkbox"><?=Text::translate("Modules")?></label></li>
-					<li><input type="checkbox" name="use_cases[callouts]"<?php if ($use_cases["callouts"]) { ?> checked="checked"<?php } ?> /> <label class="for_checkbox"><?=Text::translate("Callouts")?></label></li>
-					<li><input type="checkbox" name="use_cases[settings]"<?php if ($use_cases["settings"]) { ?> checked="checked"<?php } ?> /> <label class="for_checkbox"><?=Text::translate("Settings")?></label></li>
+					<li><input id="fieldtype_field_use_case_templates" type="checkbox" name="use_cases[templates]"<?php if ($field_type->UseCases["templates"]) { ?> checked="checked"<?php } ?> /> <label for="fieldtype_field_use_case_templates" class="for_checkbox"><?=Text::translate("Templates")?></label></li>
+					<li><input id="fieldtype_field_use_case_modules" type="checkbox" name="use_cases[modules]"<?php if ($field_type->UseCases["modules"]) { ?> checked="checked"<?php } ?> /> <label for="fieldtype_field_use_case_modules" class="for_checkbox"><?=Text::translate("Modules")?></label></li>
+					<li><input id="fieldtype_field_use_case_callouts" type="checkbox" name="use_cases[callouts]"<?php if ($field_type->UseCases["callouts"]) { ?> checked="checked"<?php } ?> /> <label for="fieldtype_field_use_case_callouts" class="for_checkbox"><?=Text::translate("Callouts")?></label></li>
+					<li><input id="fieldtype_field_use_case_settings" type="checkbox" name="use_cases[settings]"<?php if ($field_type->UseCases["settings"]) { ?> checked="checked"<?php } ?> /> <label for="fieldtype_field_use_case_settings" class="for_checkbox"><?=Text::translate("Settings")?></label></li>
 				</ul>
 			</fieldset>
 			<hr />
 			<fieldset>
-				<input type="checkbox" name="self_draw"<?php if ($self_draw) { ?> checked="checked"<?php } ?> />
-				<label class="for_checkbox"><?=Text::translate('Self Draw <small>(if checked, you will need to draw your &lt;fieldset&gt; and &lt;label&gt; manually)</small>')?></label>
+				<input id="fieldtype_field_self_draw" type="checkbox" name="self_draw"<?php if ($field_type->SelfDraw) { ?> checked="checked"<?php } ?> />
+				<label for="fieldtype_field_self_draw" class="for_checkbox"><?=Text::translate('Self Draw <small>(if checked, you will need to draw your &lt;fieldset&gt; and &lt;label&gt; manually)</small>')?></label>
 			</fieldset>
 		</section>
 		<footer>

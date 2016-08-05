@@ -82,16 +82,24 @@
 									   WHERE sender = '$user' OR recipients LIKE '%|$user|%' 
 									   ORDER BY date DESC");
 
-			foreach ($messages as $message) {
+			foreach ($messages as $message_data) {
+				if ($return_arrays) {
+					$message = $message_data;
+				} else {
+					$message = new Message($message_data);
+					$message->SenderEmail = $message_data["sender_email"];
+					$message->SenderName = $message_data["sender_name"];
+				}
+				
 				// If we're the sender put it in the sent array.
-				if ($message["sender"] == $user) {
-					$sent[] = $return_arrays ? $message : new Message($message);
+				if ($message_data["sender"] == $user) {
+					$sent[] = $message;
 				} else {
 					// If we've been marked read, put it in the read array.
-					if ($message["read_by"] && strpos($message["read_by"], "|".$user."|") !== false) {
-						$read[] = $return_arrays ? $message : new Message($message);
+					if ($message_data["read_by"] && strpos($message_data["read_by"], "|".$user."|") !== false) {
+						$read[] = $message;
 					} else {
-						$unread[] = $return_arrays ? $message : new Message($message);
+						$unread[] = $message;
 					}
 				}
 			}

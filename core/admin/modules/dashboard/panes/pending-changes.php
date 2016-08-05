@@ -1,47 +1,41 @@
 <?php
 	namespace BigTree;
 
-	// Get publishable changes.
-	$changes = $admin->getPublishableChanges(Auth::user()->ID);
+	// Get changes that the user made and can publish
+	$changes = PendingChange::allPublishableByUser(Auth::user());
+	$my_changes = PendingChange::allByUser(Auth::user()->ID, "date DESC");
+
 	// Figure out what module each of the changes is for.
 	$change_modules = array();
-	foreach ($changes as $c) {
+	$my_change_modules = array();
+	
+	foreach ($changes as $change) {
 		// If we didn't get the info for this module already, get it.
-		if (!$c["module"]) {
-			$c["module"] = 0;
-		}
-		if (!array_key_exists($c["module"],$change_modules)) {
+		if (!array_key_exists($change->Module, $change_modules)) {
 			// Pages
-			if ($c["module"] == 0) {
+			if ($change->Module == 0) {
 				$change_modules[0] = array("title" => Text::translate("Pages"), "count" => 1);
 			} else {
-				$module = $admin->getModule($c["module"]);
-				$change_modules[$c["module"]] = array("title" => $module["name"], "icon" => $module["icon"], "count" => 1);
+				$module = new Module($change->Module);
+				$change_modules[$change->Module] = array("title" => $module->Name, "icon" => $module->Icon, "count" => 1);
 			}
 		} else {
-			$change_modules[$c["module"]]["count"]++;
+			$change_modules[$change->Module]["count"]++;
 		}
 	}
-
-	// Get the current user's changes.
-	$my_changes = $admin->getPendingChanges();
+	
 	// Figure out what module each of the changes is for.
-	$my_change_modules = array();
-	foreach ($my_changes as $c) {
-		// If we didn't get the info for this module already, get it.
-		if (!$c["module"]) {
-			$c["module"] = 0;
-		}
-		if (!array_key_exists($c["module"],$my_change_modules)) {
+	foreach ($my_changes as $change) {
+		if (!array_key_exists($change->Module, $my_change_modules)) {
 			// Pages
-			if ($c["module"] == 0) {
+			if ($change->Module == 0) {
 				$my_change_modules[0] = array("title" => Text::translate("Pages"), "count" => 1);
 			} else {
-				$module = $admin->getModule($c["module"]);
-				$my_change_modules[$c["module"]] = array("title" => $module["name"], "icon" => $module["icon"], "count" => 1);
+				$module = new Module($change->Module);
+				$my_change_modules[$change->Module] = array("title" => $module->Name, "icon" => $module->Icon, "count" => 1);
 			}
 		} else {
-			$my_change_modules[$c["module"]]["count"]++;
+			$my_change_modules[$change->Module]["count"]++;
 		}
 	}
 ?>
@@ -67,17 +61,17 @@
 		<h3><?=Text::translate("Changes Pending Your Approval")?></h3>
 		<section class="changes">
 			<?php
-				foreach ($change_modules as $m => $cm) {
-					if ($m == 0) {
+				foreach ($change_modules as $module_id => $module_info) {
+					if ($module_id == 0) {
 						$icon = "page";
-					} elseif ($cm["icon"]) {
-						$icon = $cm["icon"];
+					} elseif ($module_info["icon"]) {
+						$icon = $module_info["icon"];
 					} else {
 						$icon = "gear";
 					}
 			?>
 			<div>
-				<a href="<?=ADMIN_ROOT?>dashboard/pending-changes/#<?=$m?>"><span class="icon_small icon_small_<?=$icon?>"></span> <?=$cm["count"]?> <?=Text::translate($cm["count"] == 1 ? "change" : "changes")?> <?=Text::translate("for")?> <?=$cm["title"]?></a>
+				<a href="<?=ADMIN_ROOT?>dashboard/pending-changes/#<?=$module_id?>"><span class="icon_small icon_small_<?=$icon?>"></span> <?=$module_info["count"]?> <?=Text::translate($module_info["count"] == 1 ? "change" : "changes")?> <?=Text::translate("for")?> <?=$module_info["title"]?></a>
 			</div>
 			<?php
 				}
@@ -100,17 +94,17 @@
 		<h3><?=Text::translate("Your Changes Pending Approval")?></h3>
 		<section class="changes">
 			<?php
-				foreach ($my_change_modules as $m => $cm) {
-					if ($m == 0) {
+				foreach ($my_change_modules as $module_id => $module_info) {
+					if ($module_id == 0) {
 						$icon = "page";
-					} elseif ($cm["icon"]) {
-						$icon = $cm["icon"];
+					} elseif ($module_info["icon"]) {
+						$icon = $module_info["icon"];
 					} else {
 						$icon = "gear";
 					}
 			?>
 			<div>
-				<span class="icon_small icon_small_<?=$icon?>"></span> <?=$cm["count"]?> <?=Text::translate($cm["count"] == 1 ? "change" : "changes")?> <?=Text::translate("for")?> <?=$cm["title"]?>
+				<span class="icon_small icon_small_<?=$icon?>"></span> <?=$module_info["count"]?> <?=Text::translate($module_info["count"] == 1 ? "change" : "changes")?> <?=Text::translate("for")?> <?=$module_info["title"]?>
 			</div>
 			<?php
 				}

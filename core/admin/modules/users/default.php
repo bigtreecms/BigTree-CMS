@@ -20,8 +20,8 @@
 			company: { title: "<?=Text::translate("Company", true)?>", size: 0.3 }
 		},
 		actions: {
-			edit: "<?=ADMIN_ROOT?>users/edit/{id}/",
-			delete: function(id,state) {
+			"edit": "<?=ADMIN_ROOT?>users/edit/{id}/",
+			"delete": function(id,state) {
 				BigTreeDialog({
 					title: "<?=Text::translate("Delete User", true)?>",
 					content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this user?", true)?></p>',

@@ -120,8 +120,8 @@
 			name: { title: "<?=Text::translate("Name", true)?>" }
 		},
 		actions: {
-			edit: "<?=DEVELOPER_ROOT?>modules/actions/edit/{id}/",
-			delete: function(id,state) {
+			"edit": "<?=DEVELOPER_ROOT?>modules/actions/edit/{id}/",
+			"delete": function(id,state) {
 				BigTreeDialog({
 					title: "<?=Text::translate("Delete Action", true)?>",
 					content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this module action?")?></p>',
@@ -151,7 +151,7 @@
 			edit_link: { title: "", size: 40, center: true, noPadding: true }
 		},
 		actions: {
-			delete: function(id,state) {
+			"delete": function(id,state) {
 				BigTreeDialog({
 					title: "<?=Text::translate("Delete Interface", true)?>",
 					content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this module interface?")?></p>',

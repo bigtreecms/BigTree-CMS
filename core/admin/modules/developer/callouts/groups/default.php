@@ -8,8 +8,8 @@
 		title: "<?=Text::translate("Callout Groups", true)?>",
 		data: <?=JSON::encodeColumns(CalloutGroup::all("name", true),array("name","id"))?>,
 		actions: {
-			edit: "<?=DEVELOPER_ROOT?>callouts/groups/edit/{id}/",
-			delete: function(id,state) {
+			"edit": "<?=DEVELOPER_ROOT?>callouts/groups/edit/{id}/",
+			"delete": function(id,state) {
 				BigTreeDialog({
 					title: "<?=Text::translate("Delete Callout Group", true)?>",
 					content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this callout group?", true)?></p>',

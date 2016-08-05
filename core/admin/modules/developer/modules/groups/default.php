@@ -7,8 +7,8 @@
 		container: "#module_groups_table",
 		title: "<?=Text::translate("Module Groups", true)?>",
 		actions: {
-			edit: "<?=DEVELOPER_ROOT?>modules/groups/edit/{id}/",
-			delete: function(id) {
+			"edit": "<?=DEVELOPER_ROOT?>modules/groups/edit/{id}/",
+			"delete": function(id) {
 				BigTreeDialog({
 					title: "<?=Text::translate("Delete Module Group", true)?>",
 					content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this module group?<br /><br />Modules in this group will become uncategorized.")?></p>',

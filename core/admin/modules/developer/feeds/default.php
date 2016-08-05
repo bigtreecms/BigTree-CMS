@@ -1,15 +1,17 @@
 <?php
 	namespace BigTree;
+	
+	$feeds = Feed::all("name ASC", true);
 ?>
 <div id="feeds_table"></div>
 <script>
 	BigTreeTable({
 		container: "#feeds_table",
 		title: "<?=Text::translate("Field Types")?>",
-		data: <?=JSON::encodeColumns($admin->getFeeds(),array("id","name","route","type"))?>,
+		data: <?=JSON::encodeColumns($feeds, array("id", "name", "route", "type"))?>,
 		actions: {
-			edit: "<?=DEVELOPER_ROOT?>feeds/edit/{id}/",
-			delete: function(id,state) {
+			"edit": "<?=DEVELOPER_ROOT?>feeds/edit/{id}/",
+			"delete": function(id,state) {
 				BigTreeDialog({
 					title: "<?=Text::translate("Delete Feed", true)?>",
 					content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this feed?", true)?></p>',

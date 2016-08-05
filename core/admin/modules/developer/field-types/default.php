@@ -1,15 +1,17 @@
 <?php
 	namespace BigTree;
+	
+	$field_types = FieldType::all("name ASC", true);
 ?>
 <div id="field_types_table"></div>
 <script>
 	BigTreeTable({
 		container: "#field_types_table",
 		title: "<?=Text::translate("Field Types", true)?>",
-		data: <?=JSON::encodeColumns($admin->getFieldTypes(),array("id","name"))?>,
+		data: <?=JSON::encodeColumns($field_types, array("id", "name"))?>,
 		actions: {
-			edit: "<?=DEVELOPER_ROOT?>field-types/edit/{id}/",
-			delete: function(id,state) {
+			"edit": "<?=DEVELOPER_ROOT?>field-types/edit/{id}/",
+			"delete": function(id,state) {
 				BigTreeDialog({
 					title: "<?=Text::translate("Delete Field Type", true)?>",
 					content: '<p class="confirm"><?=Text::translate('Are you sure you want to delete this field type?<br /><br />Deleting a field type also deletes its draw, process, and options files.<br /><br />Fields using this type will revert to text fields.')?></p>',

@@ -8,8 +8,8 @@
 		title: "Settings",
 		data: <?=JSON::encodeColumns($admin->getSettings(),array("id","name","type"))?>,
 		actions: {
-			edit: "<?=DEVELOPER_ROOT?>settings/edit/{id}/",
-			delete: function(id,state) {
+			"edit": "<?=DEVELOPER_ROOT?>settings/edit/{id}/",
+			"delete": function(id,state) {
 				BigTreeDialog({
 					title: "Delete Setting",
 					content: '<p class="confirm">Are you sure you want to delete this setting?</p>',

@@ -1,15 +1,15 @@
 <?php
 	namespace BigTree;
 	
-	// Stop notices
-	$id = $name = $description = $display_default = $level = "";
-	$fields = array();
-
 	if ($_SESSION["bigtree_admin"]["error"]) {
-		Globalize::arrayObject($_SESSION["bigtree_admin"]["saved"]);
+		$callout = new Callout($_SESSION["bigtree_admin"]["saved"]);
 		$show_error = $_SESSION["bigtree_admin"]["error"];
+		
 		unset($_SESSION["bigtree_admin"]["error"]);
 		unset($_SESSION["bigtree_admin"]["saved"]);
+	} else {
+		$callout = new Callout;
+		$show_error = "";
 	}
 ?>
 <div class="container">
@@ -22,6 +22,3 @@
 </div>
 
 <?php include Router::getIncludePath("admin/modules/developer/callouts/_common-js.php") ?>
-<script>
-	BigTree.localResourceCount = <?=$x?>;
-</script>

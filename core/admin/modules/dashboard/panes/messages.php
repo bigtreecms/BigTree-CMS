@@ -2,14 +2,15 @@
 	namespace BigTree;
 	
 	// Get all the messages we've received.
-	$messages = $admin->getMessages(Auth::user()->ID);
+	$messages = Message::allByUser(Auth::user()->ID);
 
 	// Unread messages table data 
 	$unread_data = array();
+	
 	foreach ($messages["unread"] as $message) {
 		$unread_data[] = array(
-			"id" => $message["id"],
-			"from" => '<span class="gravatar"><img src="'.Image::gravatar($message["sender_email"], 36).'" alt="" /></span>'.$message["sender_name"],
+			"id" => $message->ID,
+			"from" => '<span class="gravatar"><img src="'.Image::gravatar($message->SenderEmail, 36).'" alt="" /></span>'.$message->SenderName,
 			"subject" => $message["subject"],
 			"date" => date("n/j/y",strtotime($message["date"])),
 			"time" => date("g:ia",strtotime($message["date"]))

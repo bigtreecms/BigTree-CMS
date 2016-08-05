@@ -3028,7 +3028,7 @@
 		*/
 
 		function installExtension($manifest, $upgrade = false) {
-			$extension = BigTree\Extension::createFromManifest($manifest, $upgrade);
+			$extension = BigTree\Extension::installFromManifest($manifest, $upgrade);
 
 			return $extension->Manifest;
 		}

@@ -1,14 +1,14 @@
 <?php
 	namespace BigTree;
 
-	$users = $admin->getUsers();
+	$users = User::all("name ASC", true);
 ?>
 <div class="container">
 	<form method="get" action="<?=DEVELOPER_ROOT?>audit/search/">
 		<section>
 			<fieldset>
-				<label><?=Text::translate("User")?></label>
-				<select name="user">
+				<label for="audit_field_user"><?=Text::translate("User")?></label>
+				<select id="audit_field_user" name="user">
 					<option></option>
 					<?php foreach ($users as $user) { ?>
 					<option value="<?=$user["id"]?>"><?=$user["name"]?></option>
@@ -16,8 +16,8 @@
 				</select>
 			</fieldset>
 			<fieldset>
-				<label><?=Text::translate("Table")?></label>
-				<select name="table">
+				<label for="audit_field_table"><?=Text::translate("Table")?></label>
+				<select id="audit_field_table" name="table">
 					<option></option>
 					<optgroup label="Core">
 						<option value="bigtree_pages"><?=Text::translate("Pages")?></option>
@@ -30,13 +30,13 @@
 				</select>
 			</fieldset>
 			<fieldset>
-				<label><?=Text::translate("Start Date")?></label>
-				<input type="text" name="start" autocomplete="off" class="date_time_picker" />
+				<label for="audit_field_start"><?=Text::translate("Start Date")?></label>
+				<input id="audit_field_start" type="text" name="start" autocomplete="off" class="date_time_picker" />
 				<span class="icon_small icon_small_calendar date_picker_icon"></span>
 			</fieldset>
 			<fieldset>
-				<label><?=Text::translate("End Date")?></label>
-				<input type="text" name="end" autocomplete="off" class="date_time_picker" />
+				<label for="audit_field_end"><?=Text::translate("End Date")?></label>
+				<input id="audit_field_end" type="text" name="end" autocomplete="off" class="date_time_picker" />
 				<span class="icon_small icon_small_calendar date_picker_icon"></span>
 			</fieldset>
 		</section>

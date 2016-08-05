@@ -1,6 +1,13 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global string $method
+	 * @global string $page_link
+	 * @global string $page_vars
+	 * @global Updater $updater
+	 */
+	
 	$installed = false;
 
 	if (!$updater->extract()) {
@@ -19,7 +26,7 @@
 	} else {
 		// Save original manifest, prevent path manipulation
 		$id = FileSystem::getSafePath($_GET["id"]);
-		$original_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$id/manifest.json"),true);
+		$original_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$id/manifest.json"), true);
 		
 		// Very simple if we're updating locally
 		if ($updater->Method == "Local") {
@@ -40,7 +47,8 @@
 			}
 			
 			// Try to get the FTP root
-			$ftp_root = $updater->getFTPRoot($_POST["username"],$_POST["password"]);
+			$ftp_root = $updater->getFTPRoot();
+
  			if ($ftp_root === false) {
 				$_SESSION["bigtree_admin"]["ftp"] = array("username" => $_POST["username"],"password" => $_POST["password"]);
 ?>
@@ -69,8 +77,8 @@
 
 		if ($installed) {
 			// Install/replace existing extension
-			$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$id/manifest.json"),true);
-			$admin->installExtension($manifest,$original_manifest);
+			$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$id/manifest.json"), true);
+			Extension::installFromManifest($manifest, $original_manifest);
 
 			// If we have an update.php file, run it. We're catching the output buffer to see if update.php has anything to show -- if it doesn't, we'll redirect to the complete screen.
 			$update_file_path = SERVER_ROOT."extensions/$id/update.php";
@@ -78,6 +86,7 @@
 				ob_clean();
 				include $update_file_path;
 				$ob_contents = ob_get_contents();
+				
 				// If the update file didn't generate any markup, just move on to the completion screen
 				if (!$ob_contents) {
 					Router::redirect($page_link."complete/".$page_vars);

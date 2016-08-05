@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
-
-	$route = $admin->createFeed($_POST["name"],$_POST["description"],$_POST["table"],$_POST["type"],$_POST["options"],$_POST["fields"]);
+	
+	$route = Feed::create($_POST["name"], $_POST["description"], $_POST["table"], $_POST["type"], $_POST["options"], $_POST["fields"]);
 ?>
 <div class="container">
 	<section>

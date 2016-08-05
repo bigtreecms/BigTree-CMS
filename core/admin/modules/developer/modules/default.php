@@ -23,8 +23,8 @@
 <script>
 	var table_config = {
 		actions: {
-			edit: "<?=DEVELOPER_ROOT?>modules/edit/{id}/",
-			delete: function(id) {
+			"edit": "<?=DEVELOPER_ROOT?>modules/edit/{id}/",
+			"delete": function(id) {
 				BigTreeDialog({
 					title: "<?=Text::translate("Delete Module", true)?>",
 					content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this module?<br /><br />Deleting a module will also delete its class file and related directory in /custom/admin/modules/.")?></p>',

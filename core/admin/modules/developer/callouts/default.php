@@ -8,8 +8,8 @@
 		title: "<?=Text::translate("Callouts", true)?>",
 		data: <?=JSON::encodeColumns(Callout::all("name ASC",true),array("name","id"))?>,
 		actions: {
-			edit: "<?=DEVELOPER_ROOT?>callouts/edit/{id}/",
-			delete: function(id,state) {
+			"edit": "<?=DEVELOPER_ROOT?>callouts/edit/{id}/",
+			"delete": function(id,state) {
 				BigTreeDialog({
 					title: "<?=Text::translate("Delete Callout", true)?>",
 					content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this callout?", true)?><br /><br /><?=Text::translate("Deleting a callout also removes its files in the /templates/callouts/ directory.", true)?></p>',
