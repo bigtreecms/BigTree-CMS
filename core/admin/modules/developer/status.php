@@ -28,16 +28,18 @@
 	
 	// Setup a recursive function to loop through fields
 	$directory_warnings = array();
+	
 	$recurse_fields = function($fields) {
-		global $directory_warnings,$recurse_fields,$warnings;
-		foreach (array_filter((array)$fields) as $key => $data) {			
+		global $directory_warnings, $recurse_fields, $warnings;
+		
+		foreach (array_filter((array)$fields) as $key => $data) {
 			$options = is_string($data["options"]) ? array_filter((array)json_decode($data["options"],true)) : $data["options"];
 			
 			if ($data["type"] == "matrix") {
 				$recurse_fields($options["columns"]);
 			} else {
 				if ($options["directory"]) {
-					if (!FileSystem::getDirectoryWritability(SITE_ROOT.$options["directory"]) && !in_array($options["directory"],$directory_warnings)) {
+					if (!FileSystem::getDirectoryWritability(SITE_ROOT.$options["directory"]) && !in_array($options["directory"], $directory_warnings)) {
 						$directory_warnings[] = $options["directory"];
 						$warnings[] = array(
 							"name" => Text::translate("Directory Permissions Error"),
@@ -51,23 +53,38 @@
 	};
 	
 	// Go through every module form and look for uploads, make sure the directories exist and are writable.
-	$forms = array_merge($admin->getModuleForms(),$admin->getModuleEmbedForms());
+	$forms = ModuleForm::all("name ASC");
+	$embed_forms = ModuleEmbedForm::all("name ASC");
+	$templates = Template::all("name ASC");
+	$callouts = Callout::all("name ASC");
+	
 	foreach ($forms as $form) {
-		$recurse_fields($form["fields"]);
+		$recurse_fields($form->Fields);
 	}
 	
-	// Now templates and callouts
-	$templates = array_merge($admin->getTemplates(),$admin->getCallouts());
+	foreach ($embed_forms as $form) {
+		$recurse_fields($form->Fields);
+	}
+	
 	foreach ($templates as $template) {
-		$recurse_fields(json_decode($template["resources"],true));
+		$recurse_fields($template->Fields);
+	}
+	
+	foreach ($callouts as $callout) {
+		$recurse_fields($callout->Fields);
 	}
 		
 	// Search all content for links to the admin.
-	$bad = $admin->getPageAdminLinks();
-	foreach ($bad as $f) {
+	$bad_links = Page::auditAdminLinks(true);
+	
+	foreach ($bad_links as $link) {
 		$warnings[] = array(
 			"name" => Text::translate("Bad Admin Links"),
-			"description" => Text::translate('Remove links to Admin on <a href=":link:">:link_title:</a>', false, array(":link:" => ADMIN_ROOT.'pages/edit/'.$f["id"]."/", ":link_title:" => $f["nav_title"])),
+			"description" => Text::translate('Remove links to Admin on <a href=":link:">:link_title:</a>', false,
+											 array(
+											 	":link:" => ADMIN_ROOT.'pages/edit/'.$link["id"]."/",
+												 ":link_title:" => $link["nav_title"]
+											 )),
 			"status" => "ok"
 		);
 	}
@@ -85,9 +102,11 @@
 	$post_max_size = ini_get('post_max_size');
 	$max_file = (intval($upload_max_filesize) > intval($post_max_size)) ? intval($post_max_size) : intval($upload_max_filesize);	
 	$max_check = "bad";
+	
 	if ($max_file >= 4) {
 		$max_check = "ok";
 	}
+	
 	if ($max_file >= 8) {
 		$max_check = "good";
 	}

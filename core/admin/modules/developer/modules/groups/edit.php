@@ -1,15 +1,18 @@
 <?php
 	namespace BigTree;
-
-	$id = end($bigtree["path"]);
-	$group = $admin->getModuleGroup($id);
+	
+	/**
+	 * @global array $bigtree
+	 */
+	
+	$group = new ModuleGroup(end($bigtree["path"]));
 ?>
 <div class="container">
-	<form method="post" action="<?=DEVELOPER_ROOT?>modules/groups/update/<?=$id?>/" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>modules/groups/update/<?=$group->ID?>/" class="module">
 		<section>
 			<fieldset>
-			    <label class="required"><?=Text::translate("Name")?></label>
-			    <input type="text" name="name" value="<?=$group["name"]?>" class="required" />
+			    <label for="group_field_name" class="required"><?=Text::translate("Name")?></label>
+			    <input id="group_field_name" type="text" name="name" value="<?=$group->Name?>" class="required" />
 			</fieldset>
 		</section>
 		<footer>

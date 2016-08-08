@@ -1,9 +1,14 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global string $login_root
+	 */
+	
 	$failure = false;
+	
 	if (isset($_POST["user"]) && isset($_POST["password"])) {
-		if (!$admin->login($_POST["user"],$_POST["password"],$_POST["stay_logged_in"])) {
+		if (!Auth::login($_POST["user"],$_POST["password"],$_POST["stay_logged_in"])) {
 			$failure = true;
 		} else {
 			if (isset($_SESSION["bigtree_login_redirect"])) {
@@ -38,13 +43,14 @@
 			}
 	?>
 	<fieldset>
-		<label><?=Text::translate("Email")?></label>
+		<label for="user"><?=Text::translate("Email")?></label>
 		<input type="email" id="user" name="user" class="text" value="<?=$user?>" />
 	</fieldset>
 	<fieldset>
-		<label><?=Text::translate("Password")?></label>
+		<label for="password"><?=Text::translate("Password")?></label>
 		<input type="password" id="password" name="password" class="text" />
-		<p><input type="checkbox" name="stay_logged_in" checked="checked" /> <?=Text::translate("Remember Me")?></p>
+		<label class="visually_hidden" for="login_field_stay_logged_in">Remember Me</label>
+		<p><input id="login_field_stay_logged_in" type="checkbox" name="stay_logged_in" checked="checked" /> <?=Text::translate("Remember Me")?></p>
 	</fieldset>
 	<fieldset class="lower">
 		<a href="<?=$login_root?>forgot-password/" class="forgot_password"><?=Text::translate("Forgot Password?")?></a>

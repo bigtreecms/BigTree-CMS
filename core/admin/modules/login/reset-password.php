@@ -1,16 +1,22 @@
 <?php
 	namespace BigTree;
 	
-	$user = $admin->getUserByHash(end($bigtree["path"]));
+	/**
+	 * @global array $bigtree
+	 * @global string $login_root
+	 */
+	
+	$user = User::getByHash(end($bigtree["path"]));
 	$failure = false;
 	
 	if ($_POST["password"]) {
-		if (!$admin->validatePassword($_POST["password"])) {
+		if (!User::validatePassword($_POST["password"])) {
 			$failure = "validation";
 		} elseif ($_POST["password"] != $_POST["confirm_password"]) {
 			$failure = "match";
 		} else {
 			$user = User::getByHash(end($bigtree["path"]));
+			
 			if ($user) {
 				$user->ChangePasswordHash = "";
 				$user->Password = $_POST["password"];
@@ -24,21 +30,29 @@
 	}
 
 	$policy = array_filter((array)$bigtree["security-policy"]["password"]) ? $bigtree["security-policy"]["password"] : false;
+	
 	if ($policy) {
 		$policy_text = "<p>".Text::translate("Requirements")."</p><ul>";
+		
 		if ($policy["length"]) {
 			$policy_text .= "<li>".Text::translate("Minimum length &mdash; :length: characters", false, array(":length:" => $policy["length"]))."</li>";
 		}
+		
 		if ($policy["mixedcase"]) {
 			$policy_text .= "<li>".Text::translate("Both upper and lowercase letters")."</li>";
 		}
+		
 		if ($policy["numbers"]) {
 			$policy_text .= "<li>".Text::translate("At least one number")."</li>";
 		}
+		
 		if ($policy["nonalphanumeric"]) {
 			$policy_text .= "<li>".Text::translate("At least one special character (i.e. $%*)")."</li>";
 		}
+		
 		$policy_text .= "</ul>";
+	} else {
+		$policy_text = "";
 	}
 ?>
 <div id="login">
@@ -62,15 +76,15 @@
 			} else {
 		?>
 		<fieldset>
-			<label><?=Text::translate("New Password")?></label>
-			<input class="text<?php if ($policy) { ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><?php } ?>" type="password" name="password" />
+			<label for="password_field_password"><?=Text::translate("New Password")?></label>
+			<input id="password_field_password" class="text<?php if ($policy) { ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><?php } ?>" type="password" name="password" />
 			<?php if ($policy) { ?>
 			<p class="password_policy"><?=Text::translate("Password Policy In Effect")?></p>
 			<?php } ?>
 		</fieldset>
 		<fieldset>
-			<label><?=Text::translate("Confirm New Password")?></label>
-			<input class="text" type="password" name="confirm_password" />
+			<label for="password_field_confirm"><?=Text::translate("Confirm New Password")?></label>
+			<input id="password_field_confirm" class="text" type="password" name="confirm_password" />
 		</fieldset>
 		<fieldset class="lower">
 			<input type="submit" class="button blue" value="<?=Text::translate("Reset", true)?>" />

@@ -23,15 +23,15 @@
 		<?php if (!isset($template)) { ?>
 		<div class="left">
 			<fieldset<?php if ($show_error) { ?> class="form_error"<?php } ?>>
-				<label class="required"><?=Text::translate('ID <small>(used for file/directory name, alphanumeric, "-" and "_" only)</small>')?><?php if ($show_error) { ?> <span class="form_error_reason"><?=Text::translate($_SESSION["bigtree_admin"]["error"])?></span><?php } ?></label>
-				<input type="text" class="required" name="id" value="<?=$template->ID?>" />
+				<label for="template_field_id" class="required"><?=Text::translate('ID <small>(used for file/directory name, alphanumeric, "-" and "_" only)</small>')?><?php if ($show_error) { ?> <span class="form_error_reason"><?=Text::translate($_SESSION["bigtree_admin"]["error"])?></span><?php } ?></label>
+				<input id="template_field_id" type="text" class="required" name="id" value="<?=$template->ID?>" />
 			</fieldset>
 		</div>
 		<?php } ?>
 		<div class="<?php if (isset($template)) { ?>left<?php } else { ?>right<?php } ?>">
 			<fieldset>
-				<label class="required"><?=Text::translate("Name")?></label>
-				<input type="text" class="required" name="name" value="<?=$template->Name?>" />
+				<label for="template_field_name" class="required"><?=Text::translate("Name")?></label>
+				<input id="template_field_name" type="text" class="required" name="name" value="<?=$template->Name?>" />
 			</fieldset>
 		</div>
 	</div>
@@ -39,8 +39,8 @@
 		if ($form_action == "add") {
 	?>
 	<fieldset class="float_margin">
-		<label><?=Text::translate("Type")?></label>
-		<select name="routed">
+		<label for="template_field_type"><?=Text::translate("Type")?></label>
+		<select id="template_field_type" name="routed">
 			<option value=""><?=Text::translate("Basic")?></option>
 			<option value="on"><?=Text::translate("Routed")?></option>
 		</select>
@@ -51,8 +51,8 @@
 		if ($form_action == "add" || $template->Routed) {
 	?>
 	<fieldset class="float_margin">
-		<label><?=Text::translate("Related Module")?></label>
-		<select name="module">
+		<label for="template_field_module"><?=Text::translate("Related Module")?></label>
+		<select id="template_field_module" name="module">
 			<option></option>
 			<?php
 				$groups = ModuleGroup::all("name ASC");

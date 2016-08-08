@@ -1,9 +1,9 @@
 <?php
 	namespace BigTree;
 	
-	Globalize::POST();
-
-	$admin->updateTemplate($id,$name,$level,$module,$resources);
+	$template = new Template($_POST["id"]);
+	$template->update($_POST["name"], $_POST["level"], $_POST["module"], $_POST["resources"]);
+	
 	Utils::growl("Developer","Updated Template");
 
 	if (isset($_POST["return_to_front"])) {

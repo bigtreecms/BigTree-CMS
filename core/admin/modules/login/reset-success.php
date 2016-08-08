@@ -1,5 +1,9 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global string $login_root
+	 */
 ?>
 <div id="login">
 	<form method="post" action="" class="module">

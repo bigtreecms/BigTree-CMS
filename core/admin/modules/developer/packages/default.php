@@ -1,15 +1,17 @@
 <?php
 	namespace BigTree;
+	
+	$packages = Extension::allByType("package", "last_updated DESC", true);
 ?>
 <div id="packages_table"></div>
 <script>
 	BigTreeTable({
 		container: "#packages_table",
 		title: "<?=Text::translate("Packages", true)?>",
-		data: <?=JSON::encodeColumns($admin->getPackages(),array("id","name"))?>,
+		data: <?=JSON::encodeColumns($packages, array("id", "name"))?>,
 		actions: {
 			"edit": "<?=DEVELOPER_ROOT?>packages/edit/{id}/",
-			"delete": function(id,state) {
+			"delete": function(id) {
 				BigTreeDialog({
 					title: "<?=Text::translate("Uninstall Package", true)?>",
 					content: '<p class="confirm"><?=Text::translate("Are you sure you want to uninstall this package?<br /><br />Related components, including those that were added to this package will also <strong>completely deleted</strong> (including related files).")?></p>',

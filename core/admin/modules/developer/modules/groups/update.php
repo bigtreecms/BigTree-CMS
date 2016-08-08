@@ -1,7 +1,12 @@
 <?php
 	namespace BigTree;
 	
-	$admin->updateModuleGroup(end($bigtree["path"]),$_POST["name"]);	
+	/**
+	 * @global array $bigtree
+	 */
+	
+	$group = new ModuleGroup(end($bigtree["path"]));
+	$group->update($_POST["name"]);
 
 	Utils::growl("Developer","Updated Module Group");
 	Router::redirect(DEVELOPER_ROOT."modules/groups/");

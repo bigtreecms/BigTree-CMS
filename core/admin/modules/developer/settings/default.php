@@ -1,15 +1,17 @@
 <?php
 	namespace BigTree;
+	
+	$settings = Setting::all("name ASC", true);
 ?>
 <div id="settings_table"></div>
 <script>
 	BigTreeTable({
 		container: "#settings_table",
 		title: "Settings",
-		data: <?=JSON::encodeColumns($admin->getSettings(),array("id","name","type"))?>,
+		data: <?=JSON::encodeColumns($settings, array("id", "name", "type"))?>,
 		actions: {
 			"edit": "<?=DEVELOPER_ROOT?>settings/edit/{id}/",
-			"delete": function(id,state) {
+			"delete": function(id) {
 				BigTreeDialog({
 					title: "Delete Setting",
 					content: '<p class="confirm">Are you sure you want to delete this setting?</p>',

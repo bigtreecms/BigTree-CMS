@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$extensions = Extension::allByType("extension", "last_updated DESC");
+	$extensions = Extension::allByType("extension", "last_updated DESC", true);
 
 	// Get version info on our installed extensions
 	$query = array();

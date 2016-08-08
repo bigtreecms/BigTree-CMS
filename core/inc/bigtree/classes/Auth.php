@@ -184,7 +184,7 @@
 				false if login failed, otherwise redirects back to the page the person requested.
 		*/
 
-		function login($email, $password, $stay_logged_in = false) {
+		static function login($email, $password, $stay_logged_in = false) {
 			global $bigtree;
 
 			$user_class = static::$UserClass;
@@ -322,7 +322,7 @@
 				Destroys the user's session and unsets the login cookies.
 		*/
 
-		function logout() {
+		static function logout() {
 			// If the user asked to be remembered, drop their chain from the legit sessions and remove cookies
 			if ($login = Cookie::get(static::$Namespace."[login]")) {
 				list($session, $chain) = $login;

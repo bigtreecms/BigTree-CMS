@@ -5,8 +5,8 @@
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/groups/create/" class="module">
 		<section>
 			<fieldset>
-				<label class="required"><?=Text::translate("Name")?></label>
-				<input type="text" name="name" value="" class="required" />
+				<label for="group_field_name" class="required"><?=Text::translate("Name")?></label>
+				<input id="group_field_name" type="text" name="name" value="" class="required" />
 			</fieldset>
 		</section>
 		<footer>

@@ -62,14 +62,14 @@
 									'<section class="developer_resource_type">' +
 										'<select name="resources[' + ResourceCount + '][type]" id="type_' + ResourceCount + '">' +
 											'<optgroup label="<?=Text::translate("Default", true)?>">' +
-												<?php foreach ($types["default"] as $k => $v) { ?>
-												'<option value="<?=$k?>"><?=$v["name"]?></option>' + 
+												<?php foreach ($types["default"] as $id => $field_type) { ?>
+												'<option value="<?=$id?>"><?=$field_type["name"]?></option>' +
 												<?php } ?>
 											'</optgroup>' +
 											<?php if (count($types["custom"])) { ?>
 											'<optgroup label="<?=Text::translate("Custom", true)?>">' +
-												<?php foreach ($types["custom"] as $k => $v) { ?>
-												'<option value="<?=$k?>"><?=$v["name"]?></option>' +
+												<?php foreach ($types["custom"] as $id => $field_type) { ?>
+												'<option value="<?=$id?>"><?=$field_type["name"]?></option>' +
 												<?php } ?>
 											'</optgroup>' +
 											<?php } ?>

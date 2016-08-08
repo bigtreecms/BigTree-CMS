@@ -1,13 +1,16 @@
 <?php
 	namespace BigTree;
 	
-	if (!$admin->settingExists("bigtree-internal-ftp-upgrade-root")) {
-		$admin->createSetting(array(
-			"id" => "bigtree-internal-ftp-upgrade-root",
-			"system" => "on"
-		));
+	if (!Setting::exists("bigtree-internal-ftp-upgrade-root")) {
+		$setting = new Setting;
+		$setting->ID = "bigtree-internal-ftp-upgrade-root";
+		$setting->System = "on";
+	} else {
+		$setting = new Setting("bigtree-internal-ftp-upgrade-root");
 	}
+	
+	$setting->Value = $_POST["ftp_root"];
+	$setting->save();
 
-	$admin->updateSettingValue("bigtree-internal-ftp-upgrade-root",$_POST["ftp_root"]);
 	Router::redirect(DEVELOPER_ROOT."upgrade/install/");
 	

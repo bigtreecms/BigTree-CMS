@@ -1,5 +1,7 @@
 <?php
 	namespace BigTree;
+	
+	$groups = ModuleGroup::all("position DESC, id ASC", true);
 ?>
 <div id="module_groups_table"></div>
 <script>
@@ -26,7 +28,7 @@
 		draggable: function(positioning) {
 			$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-module-groups/", { type: "POST", data: positioning });
 		},
-		data: <?=JSON::encodeColumns($admin->getModuleGroups(),array("id","name"))?>,
+		data: <?=JSON::encodeColumns($groups, array("id", "name"))?>,
 		searchable: true
 	});
 </script>

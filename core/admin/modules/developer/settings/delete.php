@@ -1,7 +1,12 @@
 <?php
 	namespace BigTree;
 	
-	$admin->deleteSetting(end($bigtree["path"]));
+	/**
+	 * @global array $bigtree
+	 */
+	
+	$setting = new Setting(end($bigtree["path"]));
+	$setting->delete();
 	
 	Utils::growl("Developer","Deleted Setting");
 	Router::redirect(DEVELOPER_ROOT."settings/");

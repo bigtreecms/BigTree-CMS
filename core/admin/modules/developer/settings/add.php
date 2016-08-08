@@ -1,18 +1,14 @@
 <?php
 	namespace BigTree;
 	
-	// Stop notices
-	$id = $name = $type = $locked = $encrypted = $description = "";
-	if (isset($_SESSION["bigtree_admin"]["developer"]["setting_data"])) {
-		Globalize::arrayObject($_SESSION["bigtree_admin"]["developer"]["setting_data"]);
+	if (!empty($_SESSION["bigtree_admin"]["developer"]["setting_data"])) {
+		$setting = new Setting($_SESSION["bigtree_admin"]["developer"]["setting_data"]);
+		$error = $_SESSION["bigtree_admin"]["developer"]["error"];
+
 		unset($_SESSION["bigtree_admin"]["developer"]["setting_data"]);
-	}
-	
-	if (isset($_SESSION["bigtree_admin"]["developer"]["error"])) {
-		$e = $_SESSION["bigtree_admin"]["developer"]["error"];
-		unset($_SESSION["bigtree_admin"]["developer"]["error"]);
 	} else {
-		$e = false;
+		$setting = new Setting;
+		$error = false;
 	}
 ?>
 <div class="container">
@@ -23,12 +19,3 @@
 		</footer>
 	</form>
 </div>
-<script>
-	BigTreeFormValidator("form.module");
-</script>
-<?php
-	$bigtree["html_fields"] = array("setting_description");
-	include Router::getIncludePath("admin/layouts/_html-field-loader.php");
-	
-	unset($module);
-?>

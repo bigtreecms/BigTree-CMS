@@ -1,9 +1,10 @@
 <?php
 	namespace BigTree;
 
-	$users = $admin->getUsers();
+	$users = User::all("name ASC", true);
+	
 	foreach ($users as &$user) {
-		$user["gravatar"] = Image::gravatar($user["email"],36);
+		$user["gravatar"] = Image::gravatar($user["email"], 36);
 	}
 ?>
 <section class="inset_block">
@@ -21,7 +22,7 @@
 		actions: {
 			settings: "<?=DEVELOPER_ROOT?>user-emulator/emulate/{id}/"
 		},
-		data: <?=JSON::encodeColumns($users,array("id","gravatar","name","email","company"))?>,
+		data: <?=JSON::encodeColumns($users, array("id", "gravatar", "name", "email", "company"))?>,
 		searchable: true,
 		sortable: true,
 		perPage: 10

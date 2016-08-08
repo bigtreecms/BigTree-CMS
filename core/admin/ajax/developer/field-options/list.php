@@ -13,7 +13,7 @@
 	$options["pop-sort"] = isset($options["pop-sort"]) ? $options["pop-sort"] : "";
 	$options["list"] = isset($options["list"]) ? $options["list"] : array();
 	
-	$types = array(
+	$field_types = array(
 		"static" => Text::translate("Static"),
 		"db" => Text::translate("Database Populated"),
 		"state" => Text::translate("State List"),
@@ -23,7 +23,7 @@
 <fieldset>
 	<label for="options_field_type"><?=Text::translate("List Type")?></label>
 	<select id="options_field_type" name="list_type" id="field_list_types">
-		<?php foreach ($types as $val => $desc) { ?>
+		<?php foreach ($field_types as $val => $desc) { ?>
 		<option value="<?=$val?>"<?php if ($val == $options["list_type"]) { ?> selected="selected"<?php } ?>><?=$desc?></option>
 		<?php } ?>
 	</select>

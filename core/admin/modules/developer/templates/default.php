@@ -1,8 +1,9 @@
 <?php
 	namespace BigTree;
 
-	$templates = $admin->getTemplates();
+	$templates = Template::all("position DESC, id ASC", true);
 	$basic_data = $routed_data = array();
+	
 	foreach ($templates as $template) {
 		if ($template["routed"]) {
 			$routed_data[] = $template;
@@ -17,7 +18,7 @@
 	var table_config = {
 		actions: {
 			"edit": "<?=DEVELOPER_ROOT?>templates/edit/{id}/",
-			"delete": function(id,state) {
+			"delete": function(id) {
 				BigTreeDialog({
 					title: "<?=Text::translate("Delete Template", true)?>",
 					content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this template?<br /><br />Deleting a template also removes its files in the /templates/ directory.")?></p>',

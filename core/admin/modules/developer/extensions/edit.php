@@ -6,7 +6,7 @@
 	 */
 	
 	$extension = new Extension($bigtree["commands"][0]);
-	$manifest = json_decode($extension["manifest"], true);
+	$manifest = $extension->Manifest;
 	
 	$_SESSION["bigtree_admin"]["developer"]["package"] = array(
 		"id" => $manifest["id"],
@@ -28,7 +28,6 @@
 	
 	foreach ($manifest["components"] as $key => $data) {
 		if ($key == "tables") {
-			$tables = array();
 			foreach ($data as $table => $create_statement) {
 				$_SESSION["bigtree_admin"]["developer"]["package"]["tables"][] = "$table#structure";
 			}

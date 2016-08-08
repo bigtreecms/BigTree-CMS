@@ -1,7 +1,8 @@
 <?php
 	namespace BigTree;
+	
+	Globalize::arrayObject($_SESSION["bigtree_admin"]["developer"]["package"], "strip_tags", "htmlspecialchars");
 
-	Globalize::arrayObject($_SESSION["bigtree_admin"]["developer"]["package"],"strip_tags","htmlspecialchars");
 	$available_licenses = array(
 		"Closed Source" => array(
 			"Free For Personal Use" => "",
@@ -19,3 +20,4 @@
 			"MPL 2.0" => "http://opensource.org/licenses/MPL-2.0",
 		)
 	);
+	
