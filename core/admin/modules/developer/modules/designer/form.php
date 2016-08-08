@@ -1,40 +1,47 @@
 <?php
 	namespace BigTree;
 	
-	$module = $admin->getModule($_GET["module"]);
-	$table = $_GET["table"];
+	$module = new Module($_GET["module"]);
+	$field_types = FieldType::reference(true, "modules");
 	
-	if (!$title) {
-		$title = $module["name"];
+	if (!empty($_SESSION["developer"]["saved_form"])) {
+		$saved = $_SESSION["developer"]["saved_form"];
+		$error = true;
+		$title = $saved["title"];
+		$table = $saved["table"];
+		
+		unset($_SESSION["developer"]["saved_form"]);
+	} else {
+		$error = false;
+		$table = $_GET["table"];
+		$title = $module->Name;
+		
 		if (substr($title,-3,3) == "ies") {
-			$title = substr($title,0,-3)."y";
+			$title = substr($title, 0, -3)."y";
 		} else {
-			$title = rtrim($title,"s");
+			$title = rtrim($title, "s");
 		}
 	}
-	
-	$cached_types = $admin->getCachedFieldTypes(true);
-	$types = $cached_types["modules"];
 ?>
 <div class="container">
 	<header>
 		<p><?=Text::translate("Step 2: Creating Your Form")?></p>
 	</header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/designer/form-create/" class="module">
-		<input type="hidden" name="module" value="<?=$module["id"]?>" />
+		<input type="hidden" name="module" value="<?=$module->ID?>" />
 		<input type="hidden" name="table" value="<?=htmlspecialchars($table)?>" />
 		<section>
-			<p class="error_message"<?php if (!count($e)) { ?> style="display: none;"<?php } ?>><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
+			<p class="error_message"<?php if (!$error) { ?> style="display: none;"<?php } ?>><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 			<div class="left">
 				<fieldset>
-					<label class="required"><?=Text::translate('Item Title <small>(for example, "Question" as in "Adding Question")</small>')?></label>
-					<input type="text" class="required" name="title" value="<?=$title?>" />
+					<label for="form_field_title" class="required"><?=Text::translate('Item Title <small>(for example, "Question" as in "Adding Question")</small>')?></label>
+					<input id="form_field_title" type="text" class="required" name="title" value="<?=Text::htmlEncode($title)?>" />
 				</fieldset>
 			</div>
 		</section>
 		<section id="field_area" class="sub">
-			<fieldset<?php if (isset($e["fields"])) { ?> class="form_error"<?php } ?>>
-				<label class="required"><?=Text::translate("Fields")?><?php if (isset($e["fields"])) { ?><span class="form_error_reason"><?=Text::translate("One Or More Fields Required")?></span><?php } ?></label>
+			<fieldset<?php if ($error) { ?> class="form_error"<?php } ?>>
+				<label class="required"><?=Text::translate("Fields")?><?php if ($error) { ?><span class="form_error_reason"><?=Text::translate("One Or More Fields Required")?></span><?php } ?></label>
 				<div class="form_table">
 					<header>
 						<a class="add add_field" href="#"><span></span><?=Text::translate("Field")?></A>
@@ -57,53 +64,87 @@
 </div>
 
 <script>
-	BigTreeFormValidator("form.module");
-
-	BigTree.localCurrentFieldKey = false;
-	BigTree.localMTMCount = 0;
-	BigTree.localKeyCount = 0;
-	BigTree.localHooks = function() {
-		$("#resource_table").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
-		BigTreeCustomControls();
-	};
-	
-	$(".form_table").on("click",".icon_settings",function(ev) {
-		ev.preventDefault();
-
-		// Prevent double clicks
-		if (BigTree.Busy) {
-			return;
-		}
-
-		BigTree.localCurrentFieldKey = $(this).attr("name");
+	(function() {
+		var CurrentFieldKey = false;
+		var KeyCount = 0;
 		
-		BigTreeDialog({
-			title: "<?=Text::translate("Field Options")?>",
-			url: "<?=ADMIN_ROOT?>ajax/developer/load-field-options/",
-			post: { type: $("#type_" + BigTree.localCurrentFieldKey).val(), data: $("#options_" + BigTree.localCurrentFieldKey).val() },
-			icon: "edit",
-			callback: function(data) {
-				$("#options_" + BigTree.localCurrentFieldKey).val(JSON.stringify(data));
+		function hooks() {
+			$("#resource_table").sortable({
+				axis: "y",
+				containment: "parent",
+				handle: ".icon_sort",
+				items: "li",
+				placeholder: "ui-sortable-placeholder",
+				tolerance: "pointer"
+			});
+			
+			BigTreeCustomControls();
+		}
+		
+		$(".form_table").on("click",".icon_settings",function(ev) {
+			ev.preventDefault();
+			
+			// Prevent double clicks
+			if (BigTree.Busy) {
+				return;
 			}
+			
+			CurrentFieldKey = $(this).attr("name");
+			
+			BigTreeDialog({
+				title: "<?=Text::translate("Field Options")?>",
+				url: "<?=ADMIN_ROOT?>ajax/developer/load-field-options/",
+				post: { type: $("#type_" + CurrentFieldKey).val(), data: $("#options_" + CurrentFieldKey).val() },
+				icon: "edit",
+				callback: function(data) {
+					$("#options_" + CurrentFieldKey).val(JSON.stringify(data));
+				}
+			});
+			
+		}).on("click",".icon_delete",function() {
+			$(this).parents("li").remove();
+			return false;
 		});
 		
-	}).on("click",".icon_delete",function() {
-		$(this).parents("li").remove();		
-		return false;
-	});
-	
-	$(".add_field").click(function() {
-		BigTree.localKeyCount++;
-		var c = BigTree.localKeyCount;
-
-		var li = $('<li id="row_' + c + '">');
-		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="titles[' + c + ']" value="" class="required" /></section><section class="developer_resource_form_subtitle"><input type="text" name="subtitles[' + c + ']" value="" /></section><section class="developer_resource_type"><select name="type[' + c + ']" id="type_' + c + '"><optgroup label="Default"><?php foreach ($types["default"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><?php } ?></optgroup><?php if (count($types["custom"])) { ?><optgroup label="Custom"><?php foreach ($types["custom"] as $k => $v) { ?><option value="<?=$k?>"><?=$v["name"]?></option><?php } ?></optgroup><?php } ?></select><a href="#" class="options icon_settings" name="' + c + '"></a><input type="hidden" name="options[' + c + ']" value="" id="options_' + c + '" /></section><section class="developer_resource_action"><a href="#" class="icon_delete" name="' + c + '"></a></section>');
+		$(".add_field").click(function() {
+			KeyCount++;
+			
+			var li = $('<li id="row_' + KeyCount + '">');
+			li.html('<section class="developer_resource_form_title">' +
+						'<span class="icon_sort"></span>' +
+						'<input type="text" name="titles[' + KeyCount + ']" value="" class="required" />' +
+					'</section>' +
+					'<section class="developer_resource_form_subtitle">' +
+						'<input type="text" name="subtitles[' + KeyCount + ']" value="" />' +
+					'</section>' +
+					'<section class="developer_resource_type">' +
+						'<select name="type[' + KeyCount + ']" id="type_' + KeyCount + '">' +
+							'<optgroup label="Default">' +
+								<?php foreach ($field_types["default"] as $id => $field_type) { ?>
+								'<option value="<?=$id?>"><?=$field_type["name"]?></option><?php } ?>' +
+							'</optgroup>' +
+							<?php if (count($field_types["custom"])) { ?>
+							'<optgroup label="Custom">' +
+								<?php foreach ($field_types["custom"] as $id => $field_type) { ?>
+								'<option value="<?=$id?>"><?=$field_type["name"]?></option>' +
+								<?php } ?>
+							'</optgroup>' +
+							<?php } ?>
+						'</select>' +
+						'<a href="#" class="options icon_settings" name="' + KeyCount + '"></a>' +
+						'<input type="hidden" name="options[' + KeyCount + ']" value="" id="options_' + KeyCount + '" />' +
+					'</section>' +
+					'<section class="developer_resource_action">' +
+						'<a href="#" class="icon_delete" name="' + KeyCount + '"></a>' +
+					'</section>');
+			
+			$("#resource_table").append(li);
+			hooks();
+			
+			return false;
+		});
 		
-		$("#resource_table").append(li);
-		BigTree.localHooks();
-		
-		return false;
-	});
-	
-	BigTree.localHooks();
+		hooks();
+		BigTreeFormValidator("form.module");
+	})();
 </script>

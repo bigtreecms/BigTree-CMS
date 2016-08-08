@@ -490,7 +490,7 @@
 				A ModuleView object.
 		*/
 
-		static function create($module, $title, $description, $table, $type, $settings, $fields, $actions, $related_form, $preview_url = "") {
+		static function create($module, $title, $description, $table, $type, $settings, $fields, $actions, $related_form = false, $preview_url = "") {
 			$interface = ModuleInterface::create("view", $module, $title, $table, array(
 				"description" => Text::htmlEncode($description),
 				"type" => $type,
