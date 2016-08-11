@@ -70,11 +70,8 @@
 					$this->Position = $module["position"];
 					$this->Route = $module["route"];
 					
-					$gbp =  is_string($module["gbp"]) ? @json_decode($module["gbp"], true) : $module["gbp"];
-
-					if (is_array($gbp)) {
-						$this->GroupBasedPermissions = $gbp;
-					}
+					$gbp = is_string($module["gbp"]) ? @json_decode($module["gbp"], true) : $module["gbp"];
+					$this->GroupBasedPermissions = is_array($gbp) ? $gbp : array();
 				}
 			}
 		}

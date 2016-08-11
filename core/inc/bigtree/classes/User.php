@@ -62,6 +62,32 @@
 					$this->Alerts = $user["alerts"] ? json_decode($user["alerts"], true) : null;
 					$this->DailyDigest = $user["daily_digest"] ? true : false;
 					$this->ChangePasswordHash = $user["change_password_hash"] ?: null;
+					
+					// Verify a correct permissions array
+					if (!is_array($this->Permissions)) {
+						$this->Permissions = array();
+					}
+					
+					if (!is_array($this->Permissions["page"])) {
+						$this->Permissions["page"] = array();
+					}
+					
+					if (!is_array($this->Permissions["module"])) {
+						$this->Permissions["module"] = array();
+					}
+					
+					if (!is_array($this->Permissions["resources"])) {
+						$this->Permissions["resources"] = array();
+					}
+					
+					if (!is_array($this->Permissions["module_gbp"])) {
+						$this->Permissions["module_gbp"] = array();
+					}
+					
+					// Verify alerts is an array as well
+					if (!is_array($this->Alerts)) {
+						$this->Alerts = array();
+					}
 				}
 			}
 		}

@@ -2411,9 +2411,7 @@
 		*/
 
 		function getPageLineage($page) {
-			$page = new BigTree\Page($page, false);
-
-			return $page->Lineage;
+			return BigTree\Page::getLineage($page);
 		}
 
 		/*

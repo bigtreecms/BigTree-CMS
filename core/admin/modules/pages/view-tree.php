@@ -10,8 +10,8 @@
 	$ga_on = isset($ga["profile"]) ? $ga["profile"] : false;
 	
 	// Handy function to show the trees without repeating so much code.
-	$draw_page_tree = function($nav,$title,$class,$draggable = false) {
-		global $proot,$admin,$cms,$ga_on,$bigtree,$page_id;
+	$draw_page_tree = function($nav, $title, $class, $draggable = false) {
+		global $proot, $ga_on, $bigtree, $page;
 ?>
 <div class="table">
 	<div class="table_summary">
@@ -47,7 +47,8 @@
 	<ul id="pages_<?=$class?>">
 		<?php
 			foreach ($nav as $item) {
-				$perm = $admin->getPageAccessLevel($item["id"]);
+				$page_data = new Page($item, false);
+				$access_level = $page_data->UserAccessLevel;
 				
 				if (isset($item["bigtree_pending"])) {
 					$status = '<a href="'.WWW_ROOT.'_preview-pending/'.$item["id"].'/" target="_blank">'.Text::translate("Pending").'</a>';
@@ -81,14 +82,14 @@
 				if ($class == "archived") {
 			?>
 			<section class="pages_restore">
-				<?php if ($perm == "p" && $admin->canModifyChildren($item)) { ?>
+				<?php if ($access_level == "p" && $page_data->UserCanModifyChildren) { ?>
 				<a href="<?=$proot?>restore/<?=$item["id"]?>/" title="<?=Text::translate("Restore Page")?>" class="icon_restore"></a>
 				<?php } else { ?>
 				<span class="icon_restore disabled_icon"></span>
 				<?php } ?>
 			</section>
 			<section class="pages_delete">
-				<?php if ($perm == "p" && $admin->canModifyChildren($item)) { ?>
+				<?php if ($access_level == "p" && $page_data->UserCanModifyChildren) { ?>
 				<a href="<?=$proot?>delete/<?=$item["id"]?>/" title="<?=Text::translate("Delete Page")?>" class="icon_delete"></a>
 				<?php } else { ?>
 				<span class="icon_delete disabled_icon"></span>
@@ -114,9 +115,9 @@
 				<?=$status?>
 			</section>
 			<section class="pages_archive">
-				<?php if (!isset($item["bigtree_pending"]) && $perm == "p" && ($page->ID !== 0 || Auth::user()->Level > 1 || $class == "hidden") && $admin->canModifyChildren($item)) { ?>
+				<?php if (!isset($item["bigtree_pending"]) && $access_level == "p" && ($page->ID !== 0 || Auth::user()->Level > 1 || $class == "hidden") && $page_data->UserCanModifyChildren) { ?>
 				<a href="<?=$proot?>archive/<?=$item["id"]?>/" title="<?=Text::translate("Archive Page")?>" class="icon_archive"></a>
-				<?php } elseif ($item["bigtree_pending"] && $perm == "p") { ?>
+				<?php } elseif ($item["bigtree_pending"] && $access_level == "p") { ?>
 				<a href="<?=$proot?>delete/<?=$item["id"]?>/" title="<?=Text::translate("Delete Pending Page")?>" class="icon_delete"></a>
 				<?php } elseif ($item["bigtree_pending"]) { ?>
 				<span class="icon_delete disabled_icon"></span>
@@ -125,7 +126,7 @@
 				<?php } ?>
 			</section>
 			<section class="pages_edit">
-				<?php if ($perm) { ?>
+				<?php if ($access_level) { ?>
 				<a href="<?=$proot?>edit/<?=$item["id"]?>/" title="<?=Text::translate("Edit Page")?>" class="icon_edit page"></a>
 				<?php } else { ?>
 				<span class="icon_edit disabled_icon"></span>
@@ -156,24 +157,24 @@
 ?>
 <h3><?=Text::translate("Subpages")?></h3>
 <?php
-	$nav_visible = array_merge($admin->getNaturalNavigationByParent($page->ID,1),$admin->getPendingNavigationByParent($page->ID));
-	$nav_hidden = array_merge($admin->getHiddenNavigationByParent($page->ID),$admin->getPendingNavigationByParent($page->ID,""));
-	$nav_archived = $admin->getArchivedNavigationByParent($page->ID);
+	$nav_visible = array_merge($page->getVisibleChildren(true), $page->getPendingChildren(true));
+	$nav_hidden = array_merge($page->getHiddenChildren(true), $page->getPendingChildren(false));
+	$nav_archived = $page->getArchivedChildren(true);
 	
 	if (count($nav_visible) || count($nav_hidden) || count($nav_archived)) {
 		// Drag Visible Pages
 		if (count($nav_visible)) {
-			$draw_page_tree($nav_visible,"Visible","pages",true);
+			$draw_page_tree($nav_visible, "Visible", "pages", true);
 		}
 		
 		// Draw Hidden Pages
 		if (count($nav_hidden)) {
-			$draw_page_tree($nav_hidden,"Hidden","hidden",false);
+			$draw_page_tree($nav_hidden, "Hidden", "hidden", false);
 		}
 		
 		// Draw Archived Pages
 		if (count($nav_archived)) {
-			$draw_page_tree($nav_archived,"Archived","archived",false);
+			$draw_page_tree($nav_archived, "Archived", "archived", false);
 		}
 	} else {
 ?>

@@ -15,10 +15,8 @@
 </div>
 <?php
 	} else {
-		Globalize::POST();
-
 		// Check security policy
-		if ($password && !$admin->validatePassword($password)) {
+		if ($_POST["password"] && !User::validatePassword($_POST["password"])) {
 			$_SESSION["bigtree_admin"]["update_user"] = $_POST;
 			$_SESSION["bigtree_admin"]["update_user"]["error"] = "password";
 			Utils::growl("Users","Invalid Password","error");
@@ -37,10 +35,12 @@
 		// Don't let a user change their own level
 		if ($id == Auth::user()->ID) {
 			$level = Auth::user()->Level;
+		} else {
+			$level = $_POST["level"];
 		}
 
 		if ($error === false) {
-			$permission_data = json_decode($permissions,true);
+			$permission_data = json_decode($_POST["permissions"], true);
 			$permissions = array(
 				"page" => $permission_data["Page"],
 				"module" => $permission_data["Module"],
@@ -48,9 +48,10 @@
 				"module_gbp" => $permission_data["ModuleGBP"]
 			);
 
-			$alerts = json_decode($alerts,true);
+			$alerts = json_decode($_POST["alerts"], true);
 			
-			if (!$user->update($email,$password,$name,$company,$level,$permissions,$alerts,$daily_digest)) {
+			if (!$user->update($_POST["email"], $_POST["password"], $_POST["name"], $_POST["company"], $level,
+							   $permissions, $alerts, $_POST["daily_digest"])) {
 				$error = "email";
 			}
 		}

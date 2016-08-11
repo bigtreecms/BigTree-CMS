@@ -750,16 +750,18 @@
 		
 		/*
 			Function: getLineage
-				Returns all the ids of pages above this page not including the homepage.
+				Returns all the ids of pages above the provided page ID not including the homepage.
 			
+			Parameters:
+				page - A Page ID
+		
 			Returns:
 				Array of IDs
 		*/
 		
-		function getLineage() {
+		static function getLineage($page) {
 			$parents = array();
 			
-			$page = $this->ID;
 			while ($page = SQL::fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page)) {
 				$parents[] = $page;
 			}

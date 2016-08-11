@@ -1,5 +1,9 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $bigtree
+	 */
 
 	if (end($bigtree["path"]) != "password" && $bigtree["path"][2] != "profile") {
 		Auth::user()->requireLevel(1);
@@ -12,15 +16,19 @@
 		if ($policy["length"]) {
 			$policy_text .= "<li>".Text::translate("Minimum length &mdash; :length: characters", false, array(":length:" => $policy["length"]))."</li>";
 		}
+		
 		if ($policy["mixedcase"]) {
 			$policy_text .= "<li>".Text::translate("Both upper and lowercase letters")."</li>";
 		}
+		
 		if ($policy["numbers"]) {
 			$policy_text .= "<li>".Text::translate("At least one number")."</li>";
 		}
+		
 		if ($policy["nonalphanumeric"]) {
 			$policy_text .= "<li>".Text::translate("At least one special character (i.e. $%*)")."</li>";
 		}
+		
 		$policy_text .= "</ul>";
 	}
 	
