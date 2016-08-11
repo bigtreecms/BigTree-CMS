@@ -13,7 +13,7 @@
 	if (!$updater->extract()) {
 ?>
 <div class="container">
-	<summary><h2><?=Text::translate("Upgrade Extension")?></h2></summary>
+	<div class="container_summary"><h2><?=Text::translate("Upgrade Extension")?></h2></div>
 	<section>
 		<p><?=Text::translate("An error occurred extracting the zip file. You can hit back to try the download again or click the ignore button below to try the auto upgrade again in a week.")?></p>
 	</section>
@@ -54,7 +54,7 @@
 ?>
 <form method="post" action="<?=$page_link?>set-ftp-directory/<?=$page_vars?>">
 	<div class="container">
-		<summary><h2><?=Text::translate("Upgrade Extension")?></h2></summary>
+		<div class="container_summary"><h2><?=Text::translate("Upgrade Extension")?></h2></div>
 		<section>
 			<p><?=Text::translate("BigTree could not automatically detect the :file_access_method: directory that it is installed in (or BigTree was not found in the directory entered below). Please enter the full :file_access_method: path below. This would be the directory that contains /core/.", false, array(":file_access_method:" => $method))?></p>
 			<hr />

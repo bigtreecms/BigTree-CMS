@@ -1,8 +1,9 @@
 <?php
 	namespace BigTree;
 
-	$users = $admin->getUsers();
+	$users = User::all("name ASC", true);
 	$user_data = array();
+	
 	foreach ($users as $user) {
 		if ($user["level"] <= Auth::user()->Level) {
 			$user["gravatar"] = Image::gravatar($user["email"],36);
@@ -21,7 +22,7 @@
 		},
 		actions: {
 			"edit": "<?=ADMIN_ROOT?>users/edit/{id}/",
-			"delete": function(id,state) {
+			"delete": function(id) {
 				BigTreeDialog({
 					title: "<?=Text::translate("Delete User", true)?>",
 					content: '<p class="confirm"><?=Text::translate("Are you sure you want to delete this user?", true)?></p>',

@@ -13,7 +13,7 @@
 	);
 ?>
 <div class="container">
-	<summary><h2><?=Text::translate("Extension Upgrade Failed")?></h2></summary>
+	<div class="container_summary"><h2><?=Text::translate("Extension Upgrade Failed")?></h2></div>
 	<section>
 		<p><?=$failure_text?></p>
 	</section>

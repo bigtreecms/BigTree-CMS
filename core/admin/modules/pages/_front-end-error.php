@@ -5,9 +5,9 @@
 <div class="bigtree_dialog_form">
 	<div class="overflow">
 		<div class="table">
-			<summary>
+			<div class="table_summary">
 				<p><?=Text::translate("Your submission had")?> <?=count($bigtree["errors"])?> <?=Text::translate(count($bigtree["errors"]) == 1 ? "error" : "errors")?>.</p>
-			</summary>
+			</div>
 			<header>
 				<span class="view_column" style="padding: 0 0 0 20px; width: 250px;"><?=Text::translate("Field")?></span>
 				<span class="view_column" style="width: 506px;">Error</span>

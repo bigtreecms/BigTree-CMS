@@ -4,10 +4,10 @@
 	$settings = Setting::value("bigtree-internal-media-settings");
 ?>
 <div class="table" id="image_presets_table">
-	<summary>
+	<div class="table_summary">
 		<h2><?=Text::translate("Image Option Presets")?></h2>
 		<a class="add" href="#"><span></span><?=Text::translate("Add")?></a>
-	</summary>
+	</div>
 	<ul>
 		<?php foreach (array_filter((array)$settings["presets"]) as $preset) { ?>
 		<li>

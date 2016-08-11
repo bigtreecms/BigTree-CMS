@@ -37,24 +37,29 @@
 		$c_min = "";
 		$c_seconds = floor($current["average_time_seconds"])." ".Text::translate("second(s)");
 		$c_time = $current["average_time_seconds"];
+		
 		if ($c_time > 60) {
 			$c_minutes = floor($c_time / 60);
 			$c_seconds = floor($c_time - ($c_minutes * 60))." ".Text::translate("second(s)");
 			$c_min = $c_minutes." ".Text::translate("minute(s)");
 		}
+
 		$c_time = trim($c_min." ".$c_seconds);
 		
 		$p_min = "";
 		$p_seconds = floor($past["average_time_seconds"])." ".Text::translate("second(s)");
 		$p_time = $past["average_time_seconds"];
+		
 		if ($p_time > 60) {
 			$p_minutes = floor($p_time / 60);
 			$p_seconds = floor($p_time - ($p_minutes * 60))." ".Text::translate("second(s)");
 			$p_min = $p_minutes." ".Text::translate("minute(s)");
 		}
+
 		$p_time = trim($p_min." ".$p_seconds);
 		
 		$view_class = "";
+		
 		if ($view_growth > 5) {
 			$view_class = 'growth';
 		} elseif ($view_growth < -5) {
@@ -62,6 +67,7 @@
 		}
 		
 		$visit_class = "";
+		
 		if ($visits_growth > 5) {
 			$visit_class = 'growth';
 		} elseif ($visits_growth < -5) {
@@ -69,6 +75,7 @@
 		}
 		
 		$time_class = "";
+		
 		if ($time_growth > 5) {
 			$time_class = "growth";
 		} elseif ($time_growth < -5) {
@@ -76,6 +83,7 @@
 		}
 		
 		$bounce_class = "";
+		
 		if ($bounce_growth < -2) {
 			$bounce_class = 'growth';
 		} elseif ($bounce_growth > 2) {
@@ -85,12 +93,15 @@
 		if (!$current["views"]) {
 			$current["views"] = 0;
 		}
+
 		if (!$past["views"]) {
 			$past["views"] = 0;
 		}
+		
 		if (!$current["visits"]) {
 			$current["visits"] = 0;
 		}
+		
 		if (!$past["visits"]) {
 			$past["visits"] = 0;
 		}
@@ -139,17 +150,19 @@
 	};
 ?>
 <div class="container">
-	<summary>
+	<div class="container_summary">
 		<h2><?=Text::translate("Two Week Heads-Up")?> <small><?=Text::translate("Visits")?></small></h2>
-	</summary>
+	</div>
 	<section>
 		<div class="graph">
 			<?php
 				$x = 0;
 				$graph_max = ($graph_max < 1) ? 1 : $graph_max;
+				
 				foreach ($two_week_visits as $date => $count) {
 					$height = round($graph_bar_height * ($count - $graph_min) / $graph_max) + 12;
 					$x++;
+					
 					if (!$count) {
 						$count = 0;
 					}
@@ -161,6 +174,7 @@
 				}
 				
 				$x = 0;
+				
 				foreach ($two_week_visits as $date => $count) {
 					$x++;
 			?>
@@ -174,15 +188,15 @@
 
 <section class="analytics_columns">
 	<article>
-		<summary><?=Text::translate("Current Month")?> <small>(<?=date("n/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
-		<?php $compare_data($cache["month"],$cache["year_ago_month"]); ?>
+		<div class="analytics_column_title"><?=Text::translate("Current Month")?> <small>(<?=date("n/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></div>
+		<?php $compare_data($cache["month"], $cache["year_ago_month"]); ?>
 	</article>
 	<article>
-		<summary><?=Text::translate("Current Quarter")?> <small>(<?=date("$current_quarter_month/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
-		<?php $compare_data($cache["quarter"],$cache["year_ago_quarter"]); ?>
+		<div class="analytics_column_title"><?=Text::translate("Current Quarter")?> <small>(<?=date("$current_quarter_month/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></div>
+		<?php $compare_data($cache["quarter"], $cache["year_ago_quarter"]); ?>
 	</article>
 	<article class="last">
-		<summary><?=Text::translate("Current Year")?> <small>(<?=date("1/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
-		<?php $compare_data($cache["year"],$cache["year_ago_year"]); ?>
+		<div class="analytics_column_title"><?=Text::translate("Current Year")?> <small>(<?=date("1/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></div>
+		<?php $compare_data($cache["year"], $cache["year_ago_year"]); ?>
 	</article>
 </section>

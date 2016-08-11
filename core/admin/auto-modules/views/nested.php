@@ -36,10 +36,10 @@
 	}
 </script>
 <div class="table auto_modules nested_table" id="nested_container">
-	<summary>
+	<div class="table_summary">
 		<input type="search" class="form_search" id="search" placeholder="<?=Text::translate("Search", true)?>" value="<?=$query?>" />
 		<span class="form_search_icon"></span>
-	</summary>
+	</div>
 	<header>
 		<?php
 			$x = 0;

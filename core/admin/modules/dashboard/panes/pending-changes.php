@@ -40,13 +40,13 @@
 	}
 ?>
 <div class="table pending_changes_table">
-	<summary>
+	<div class="table_summary">
 		<h2 class="full">
 			<span class="pending"></span>
 			<?=Text::translate("Pending Changes")?>
 			<a href="<?=ADMIN_ROOT?>dashboard/pending-changes/" class="button"><?=Text::translate("View All Pending Changes")?></a>
 		</h2>
-	</summary>
+	</div>
 	
 	<div class="split left">
 		<?php

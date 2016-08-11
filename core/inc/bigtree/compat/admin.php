@@ -2396,7 +2396,7 @@
 		static function getPageChildren($page, $sort = "nav_title ASC") {
 			$page = new BigTree\Page($page, false);
 
-			return $page->getChildren(true, $sort);
+			return $page->getChildren($sort, true);
 		}
 
 		/*
@@ -2478,7 +2478,7 @@
 		*/
 
 		static function getPageRevisions($page) {
-			return BigTree\PageRevision::allByPage($page, "updated_at DESC", true);
+			return BigTree\PageRevision::listForPage($page, "updated_at DESC");
 		}
 
 		/*

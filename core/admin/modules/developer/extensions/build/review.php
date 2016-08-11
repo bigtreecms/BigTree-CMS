@@ -87,9 +87,9 @@
 	}
 ?>
 <div class="container package_review">
-	<summary>
+	<div class="container_summary">
 		<h2><?=Text::translate("Review Your Extension")?></h2>
-	</summary>
+	</div>
 	<section>
 		<fieldset>
 			<h3><?=Text::translate("Extension Information")?></h3>

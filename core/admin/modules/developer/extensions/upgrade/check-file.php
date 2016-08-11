@@ -5,7 +5,7 @@
 	if (!$updater->checkZip()) {
 ?>
 <div class="container">
-	<summary><h2><?=Text::translate("Upgrade Extension")?></h2></summary>
+	<div class="container_summary"><h2><?=Text::translate("Upgrade Extension")?></h2></div>
 	<section>
 		<p><?=Text::translate("An error occurred extracting the zip file. You can hit back to try the download again or click the ignore button below to try the auto upgrade again in a week.")?></p>
 	</section>
@@ -24,7 +24,7 @@
 ?>
 <form method="post" action="<?=$page_link?>process/<?=$page_vars?>">
 	<div class="container">
-		<summary><h2><?=Text::translate("Upgrade Extension")?></h2></summary>
+		<div class="container_summary"><h2><?=Text::translate("Upgrade Extension")?></h2></div>
 		<section>
 			<?php if ($updater->Method == "Local") { ?>
 			<p><?=Text::translate("The upgrade file finished downloading and your file permissions allow for local install.")?></p>

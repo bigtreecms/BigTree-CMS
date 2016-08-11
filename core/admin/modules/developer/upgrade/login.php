@@ -6,7 +6,7 @@
 <form method="post" action="<?=DEVELOPER_ROOT?>upgrade/install/">
 	<input type="hidden" name="type" value="<?=htmlspecialchars($_GET["type"])?>" />
 	<div class="container">
-		<summary><h2><?=Text::translate("Upgrade BigTree")?></h2></summary>
+		<div class="container_summary"><h2><?=Text::translate("Upgrade BigTree")?></h2></div>
 		<section>
 			<div class="alert">
 				<span></span>

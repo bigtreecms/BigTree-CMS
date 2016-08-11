@@ -24,7 +24,7 @@
 	$download_key = Cache::putUnique("org.bigtreecms.downloads", $extension_info["github_url"]);
 ?>
 <div class="container">
-	<summary><h2><?=Text::translate("Upgrade Extension")?></h2></summary>
+	<div class="container_summary"><h2><?=Text::translate("Upgrade Extension")?></h2></div>
 	<section>
 		<p><?=Text::translate("Please wait while we download the update...")?></p>
 	</section>

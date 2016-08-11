@@ -20,9 +20,9 @@
 	}
 ?>
 <div class="table">
-	<summary>
+	<div class="table_summary">
 		<p><?=Text::translate("Running site integrity check with external link checking")?> <?=Text::translate($external ? "enabled" : "disabled")?>.</p>
-	</summary>
+	</div>
 	
 	<header>
 		<span class="integrity_errors"><?=Text::translate("Errors")?></span>

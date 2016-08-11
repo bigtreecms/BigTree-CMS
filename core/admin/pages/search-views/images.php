@@ -10,7 +10,7 @@
 	$module_link = ADMIN_ROOT.$module["route"]."/";
 ?>
 <div class="table" class="image_list">
-	<summary><h2><?=Text::translate("Search Results")?></h2></summary>
+	<div class="table_summary"><h2><?=Text::translate("Search Results")?></h2></div>
 	<?php if (!empty($view->Actions["edit"])) { ?>
 	<header>
 		<span class="view_column"><?=Text::translate("Click an image to edit it.")?></span>

@@ -28,7 +28,7 @@
 		$showing_updates = true;
 ?>
 <div class="container">
-	<summary><h2><?=Text::translate("Update Available")?></h2></summary>
+	<div class="container_summary"><h2><?=Text::translate("Update Available")?></h2></div>
 	<section>
 		<p><?=Text::translate("You are currently running BigTree :version:. The following update(s) are available:", false, array(":version:" => BIGTREE_VERSION))?></p>
 		<ul>

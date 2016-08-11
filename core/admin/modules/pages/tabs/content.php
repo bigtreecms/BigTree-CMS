@@ -12,10 +12,10 @@
 <?php if (!Setting::value("bigtree-internal-disable-page-tagging")) { ?>
 <div class="tags" id="bigtree_tag_browser">
 	<fieldset>
-		<label><span></span><?=Text::translate("Tags")?></label>
+		<label for="tag_entry"><span></span><?=Text::translate("Tags")?></label>
 		<ul id="tag_list">
 			<?php
-				foreach ($page_id->Tags as $tag) {
+				foreach ($page->Tags as $tag) {
 			?>
 			<li><input type="hidden" name="_tags[]" value="<?=$tag->ID?>" /><a href="#"><?=$tag->Name?><span>x</span></a></li>
 			<?php

@@ -2,7 +2,7 @@
 	namespace BigTree;
 ?>
 <div class="container">
-	<summary><h2><?=Text::translate("Upgrade BigTree")?></h2></summary>
+	<div class="container_summary"><h2><?=Text::translate("Upgrade BigTree")?></h2></div>
 	<section>
 		<p><?=Text::translate("Unfortunately, BigTree was unable to modify files locally and was unable to connect via FTP or SFTP. If you wish to upgrade BigTree manually, these are the recommended steps to limit any potential downtime:")?></p>
 		<hr />

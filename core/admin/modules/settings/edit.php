@@ -28,12 +28,12 @@
 	Field::$Namespace = uniqid("setting_field_");
 ?>
 <div class="container">
-	<summary>
+	<div class="container_summary">
 		<h2><?=$setting->Name?></h2>
 		<?php if (Auth::user()->Level > 1) { ?>
 		<a class="button" href="<?=ADMIN_ROOT?>developer/settings/edit/<?=$setting->ID?>/?return=front"><?=Text::translate("Edit in Developer")?></a>
 		<?php } ?>
-	</summary>
+	</div>
 	<form class="module" action="<?=ADMIN_ROOT?>settings/update/" method="post" enctype="multipart/form-data">
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=Storage::getUploadMaxFileSize()?>" />
 		<input type="hidden" name="_bigtree_post_check" value="success" />

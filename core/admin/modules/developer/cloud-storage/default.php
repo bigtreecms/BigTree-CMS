@@ -2,7 +2,7 @@
 	namespace BigTree;
 ?>
 <div class="container">
-	<summary><h2><?=Text::translate("Configure")?></h2></summary>
+	<div class="container_summary"><h2><?=Text::translate("Configure")?></h2></div>
 	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/set-default/">
 		<section>
 			<div class="contain">

@@ -1,15 +1,21 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global array $bigtree
+	 */
+	
+	Auth::user()->requireLevel(1);
+	
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
 		Router::redirect($_SERVER["HTTP_REFERER"]);
 	}
 	
-	Auth::user()->requireLevel(1);
-	$item = $admin->getSetting($_POST["id"]);
-	if ($item["system"] || ($item["locked"] && Auth::user()->Level < 2)) {
+	$setting = new Setting($_POST["id"]);
+	
+	if ($setting->System || ($setting->Locked && Auth::user()->Level < 2)) {
 		Utils::growl("Settings", "Access Denied", "error");
 	} else {
 		$bigtree["crops"] = array();
@@ -18,10 +24,10 @@
 		$bigtree["file_data"] = Field::getParsedFilesArray();
 		
 		$field = new Field(array(
-			"type" => $item["type"],
-			"title" => $item["title"],
+			"type" => $setting->Type,
+			"title" => $setting->Title,
 			"key" => "value",
-			"options" => json_decode($item["options"], true),
+			"options" => $setting->Settings,
 			"ignore" => false,
 			"input" => $bigtree["post_data"]["value"],
 			"file_input" => $bigtree["file_data"]["value"]
@@ -30,7 +36,8 @@
 		// Process the input
 		$output = $field->process();
 		if (!is_null($output)) {
-			$admin->updateSettingValue($_POST["id"], $output);
+			$setting->Value = $output;
+			$setting->save();
 		}
 		
 		Utils::growl("Settings", "Updated Setting");
@@ -44,7 +51,7 @@
 	);
 	
 	// Track resource allocation
-	$admin->allocateResources("settings", $_POST["id"]);
+	Resource::allocate("settings", $_POST["id"]);
 	
 	if (count($bigtree["crops"])) {
 		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = Cache::putUnique("org.bigtreecms.crops", $bigtree["crops"]);

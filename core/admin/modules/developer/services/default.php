@@ -21,7 +21,7 @@
 		$salesforce = new \BigTreeSalesforceAPI;
 ?>
 <div class="container">
-	<summary><h2><?=Text::translate("Configure")?></h2></summary>
+	<div class="container_summary"><h2><?=Text::translate("Configure")?></h2></div>
 	<section>
 		<a class="box_select<?php if ($facebook->Connected) { ?> connected<?php } ?>" href="facebook/">
 			<span class="facebook"></span>

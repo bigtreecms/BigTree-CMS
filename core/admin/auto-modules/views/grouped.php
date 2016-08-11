@@ -10,10 +10,10 @@
 	$query = isset($_GET["search"]) ? htmlspecialchars($_GET["search"]) : "";
 ?>
 <div class="table">
-	<summary>
+	<div class="table_summary">
 		<input type="search" class="form_search" id="search" placeholder="<?=Text::translate("Search", true)?>" value="<?=$query?>" />
 		<span class="form_search_icon"></span>
-	</summary>
+	</div>
 	<article class="table" id="table_contents">
 		<?php include Router::getIncludePath("admin/ajax/auto-modules/views/grouped.php") ?>
 	</article>

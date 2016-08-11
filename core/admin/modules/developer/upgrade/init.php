@@ -22,7 +22,7 @@
 	$download_key = Cache::putUnique("org.bigtreecms.downloads", $update["file"]);
 ?>
 <div class="container">
-	<summary><h2><?=Text::translate("Upgrade BigTree")?></h2></summary>
+	<div class="container_summary"><h2><?=Text::translate("Upgrade BigTree")?></h2></div>
 	<section>
 		<p><?=Text::translate("Please wait while we download the update...")?></p>
 	</section>

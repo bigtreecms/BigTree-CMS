@@ -23,7 +23,7 @@
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/set-container/">
 		<input type="hidden" name="service" value="<?=htmlspecialchars($_POST["service"])?>" />
-		<summary><h2><?=$service_names[$_POST["service"]]?></h2></summary>
+		<div class="container_summary"><h2><?=$service_names[$_POST["service"]]?></h2></div>
 		<section>
 			<label><?=Text::translate("Existing Container/Bucket")?> <small>(<?=Text::translate("this should be used exclusively by BigTree, if left blank BigTree will make its own")?>)</small></label>
 			<select name="container">

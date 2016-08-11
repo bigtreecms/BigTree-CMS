@@ -22,7 +22,7 @@
 	$items = $view->parseData($items);
 ?>
 <div class="table" style="margin: 0;">
-	<summary><h2><?=Text::translate("Search Results")?></h2></summary>
+	<div class="table_summary"><h2><?=Text::translate("Search Results")?></h2></div>
 	<header>
 		<?php
 			$x = 0;

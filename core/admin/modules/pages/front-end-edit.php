@@ -7,13 +7,14 @@
 	
 	define("BIGTREE_FRONT_END_EDITOR",true);
 	$bigtree["layout"] = "front-end";
+	
 	// Check for a page lock
 	$force = isset($_GET["force"]) ? $_GET["force"] : false;
 	Lock::enforce("bigtree_pages", $bigtree["current_page"]["id"], "admin/modules/pages/front-end-locked.php", $force);
 
 	$template = new Template($bigtree["current_page"]["template"]);
 	
-	$bigtree["resources"] = $page_id->Resources;
+	$bigtree["resources"] = $page->Resources;
 	$bigtree["html_fields"] = array();
 	$bigtree["simple_html_fields"] = array();
 	$bigtree["tabindex"] = 1;

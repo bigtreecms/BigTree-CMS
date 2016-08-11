@@ -5,6 +5,7 @@
 	*/
 	
 	namespace BigTree;
+	
 	use PclZip;
 	
 	class Updater {
@@ -227,8 +228,7 @@
 				rename(SERVER_ROOT."core/", SERVER_ROOT."backups/core-".BIGTREE_VERSION."/");
 				
 				// Backup database
-				global $admin;
-				$admin->backupDatabase(SERVER_ROOT."backups/core-".BIGTREE_VERSION."/backup.sql");
+				SQL::backup(SERVER_ROOT."backups/core-".BIGTREE_VERSION."/backup.sql");
 				
 				// Move new core into place
 				rename(SERVER_ROOT."cache/update/core/", SERVER_ROOT."core/");

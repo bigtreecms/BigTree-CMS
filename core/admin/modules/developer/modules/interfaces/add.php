@@ -2,9 +2,9 @@
 	namespace BigTree;
 ?>
 <div class="container">
-	<summary>
+	<div class="container_summary">
 		<h2><?=Text::translate("Core Interfaces")?></h2>
-	</summary>
+	</div>
 	<section>
 		<?php
 			foreach (ModuleInterface::$CoreTypes as $route => $interface) {
@@ -23,9 +23,9 @@
 	if (count(ModuleInterface::$Plugins)) {
 ?>
 <div class="container">
-	<summary>
+	<div class="container_summary">
 		<h2><?=Text::translate("Extension Interfaces")?></h2>
-	</summary>
+	</div>
 	<section>
 		<?php
 			foreach (ModuleInterface::$Plugins as $extension => $interfaces) {

@@ -28,11 +28,11 @@
 	$query = isset($_GET["search"]) ? htmlspecialchars($_GET["search"]) : "";
 ?>
 <div class="table auto_modules">
-	<summary>
+	<div class="table_summary">
 		<input type="search" class="form_search" id="search" placeholder="<?=Text::translate("Search", true)?>" value="<?=$query?>" />
 		<span class="form_search_icon"></span>
 		<nav id="view_paging" class="view_paging"></nav>
-	</summary>
+	</div>
 	<header>
 		<?php
 			$x = 0;

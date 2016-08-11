@@ -13,7 +13,7 @@
 	if (!$showing_updates) {
 ?>
 <div class="container">
-	<summary><h2><?=Text::translate("Create")?></h2></summary>
+	<div class="container_summary"><h2><?=Text::translate("Create")?></h2></div>
 	<section>
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>templates/">
 			<span class="templates"></span>
@@ -52,7 +52,7 @@
 </div>
 
 <div class="container">
-	<summary><h2><?=Text::translate("Configure")?></h2></summary>
+	<div class="container_summary"><h2><?=Text::translate("Configure")?></h2></div>
 	<section>
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>cloud-storage/">
 			<span class="cloud"></span>
@@ -98,7 +98,7 @@
 </div>
 
 <div class="container">
-	<summary><h2><?=Text::translate("Debug")?></h2></summary>
+	<div class="container_summary"><h2><?=Text::translate("Debug")?></h2></div>
 	<section>
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>status/">
 			<span class="vitals"></span>
@@ -120,4 +120,3 @@
 </div>
 <?php
 	}
-?>

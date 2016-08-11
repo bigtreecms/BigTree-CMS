@@ -2,65 +2,55 @@
 	namespace BigTree;
 
 	$module_count = 0;
-	$groups = $admin->getModuleGroups();
-	foreach ($groups as $group) {
-		$modules = $admin->getModulesByGroup($group["id"]);
-		if (count($modules)) {
+	$groups = ModuleGroup::all("position DESC, id ASC");
+	
+	$draw_module_list = function($group_name, $modules) {
+		global $module_count;
+		
+		$module_count += count($modules);
 ?>
 <div class="container">
-	<summary><h2><?=$group["name"]?></h2></summary>
+	<div class="container_summary"><h2><?=$group_name?></h2></div>
 	<section class="modules">
-		<?php
-			foreach ($modules as $module) {
-		?>
+		<?php foreach ($modules as $module) { ?>
 		<p class="module">
-			<?php if (ModuleAction::existsForRoute($module["id"], "add")) { ?>
-			<a href="<?=ADMIN_ROOT?><?=$module["route"]?>/add/" class="add"><span class="icon_small icon_small_add"></span></a>
+			<?php if (ModuleAction::existsForRoute($module->ID, "add")) { ?>
+				<a href="<?=ADMIN_ROOT?><?=$module->Route?>/add/" class="add"><span class="icon_small icon_small_add"></span></a>
 			<?php } ?>
-			<a class="module_name" href="<?=ADMIN_ROOT?><?=$module["route"]?>/"><?php if ($module["icon"]) { ?><span class="icon_small icon_small_<?=$module["icon"]?>"></span><?php } ?><?=$module["name"]?></a>
+			<a class="module_name" href="<?=ADMIN_ROOT?><?=$module->Route?>/">
+				<?php if ($module->Icon) { ?>
+					<span class="icon_small icon_small_<?=$module->Icon?>"></span>
+				<?php } ?>
+				<?=$module->Name?>
+			</a>
 		</p>
-		<?php 
-				$module_count++;
-			} 
-		?>
+		<?php } ?>
 	</section>
 </div>
 <?php
+	};
+	
+	foreach ($groups as $group) {
+		$modules = Module::allByGroup($group->ID, "position DESC, id ASC");
+		
+		if (count($modules)) {
+			$draw_module_list($group->Name, $modules);
 		}
 	}
 	
-	$misc = $admin->getModulesByGroup(0);
+	$misc = Module::allByGroup(0, "position DESC, id ASC");
+
 	if (count($misc)) {
-?>
-<div class="container">
-	<summary><h2><?=Text::translate("Ungrouped")?></h2></summary>
-	<section class="modules">
-		<?php
-			foreach ($misc as $module) {
-		?>
-		<p class="module">
-			<?php if (ModuleAction::existsForRoute($module["id"], "add")) { ?>
-			<a href="<?=ADMIN_ROOT?><?=$module["route"]?>/add/" class="add"><span class="icon_small icon_small_add"></span></a>
-			<?php } ?>
-			<a class="module_name" href="<?=ADMIN_ROOT?><?=$module["route"]?>/"><?php if ($module["icon"]) { ?><span class="icon_small icon_small_<?=$module["icon"]?>"></span><?php } ?><?=$module["name"]?></a>
-		</p>
-		<?php 
-				$module_count++;
-			} 
-		?>
-	</section>
-</div>
-<?php
+		$draw_module_list(Text::translate("Ungrouped"), $misc);
 	}
 		
 	if ($module_count < 1) {
 ?>
 <div class="container">
-	<summary><h2><?=Text::translate("No Modules")?></h2></summary>
+	<div class="container_summary"><h2><?=Text::translate("No Modules")?></h2></div>
 	<section>
 		<p><?=Text::translate("You do not have access to any modules (or none exist).")?></p>
 	</section>
 </div>
 <?php
 	}
-?>

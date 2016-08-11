@@ -6,11 +6,11 @@
 	$delete_action = "unignore";
 ?>
 <div class="table">
-	<summary>
+	<div class="table_summary">
 		<input type="search" class="form_search" placeholder="<?=Text::translate("Search")?>" id="404_search" />
 		<span class="form_search_icon"></span>
 		<nav id="view_paging" class="view_paging"></nav>
-	</summary>
+	</div>
 	<header>
 		<span class="requests_404"><?=Text::translate("Requests")?></span>
 		<span class="url_404"><?=Text::translate("404 URL")?></span>

@@ -2039,7 +2039,7 @@ var BigTreeListMaker = function(settings) {
 			Count++;
 
 			// We're guaranteed at least one option now, so show the header.
-			Container.find("summary").show();
+			Container.find("header").show();
 	
 			return false;
 		}
@@ -2049,7 +2049,7 @@ var BigTreeListMaker = function(settings) {
 			$(this).parents("li").eq(0).remove();
 			// Hide the header if we're out of options
 			if (ul.find("li").length == 0) {
-				ul.prev("summary").hide();
+				ul.prev("header").hide();
 			}
 	
 			return false;
@@ -2063,11 +2063,11 @@ var BigTreeListMaker = function(settings) {
 		var html = '<h4>' + settings.title + ' <a href="#" class="add_option icon_small icon_small_add"></a></h4>';
 		html += '<fieldset class="list_options_widget list_options_widget_' + Keys.length + '">';
 		// Add column headers
-		html += '<summary>';
+		html += '<header>';
 		for (var i = 0; i < settings.columns.length; i++) {
 			html += '<span>' + settings.columns[i] + '</span>';
 		}
-		html += '</summary>';
+		html += '</header>';
 		// Add options
 		html += '<ul>';
 		var count = 0;
@@ -2097,7 +2097,7 @@ var BigTreeListMaker = function(settings) {
 
 		// Hide the summary if we have no options
 		if (!settings.existing || settings.existing.length == 0) {
-			Container.find("summary").hide();
+			Container.find("header").hide();
 		}
 		// Hook the add button
 		Container.find(".add_option").click(addOption);
@@ -3279,7 +3279,7 @@ var BigTreeTable = function(settings) {
 				PageCount = Math.ceil(Data.length / PerPage);
 				
 				// Draw the content
-				Container.html('<div class="table"><summary>' + SummaryHTML + '</summary><header>' + HeaderHTML + '</header><ul>' + generateBody(page) + '</ul></div>');
+				Container.html('<div class="table"><div class="table_summary">' + SummaryHTML + '</div><header>' + HeaderHTML + '</header><ul>' + generateBody(page) + '</ul></div>');
 
 				// Draw the pagination
 				BigTree.setPageCount(Container.find(".view_paging"),PageCount,1,true);
@@ -3290,7 +3290,7 @@ var BigTreeTable = function(settings) {
 				if (!SummaryHTML) {
 					Container.html('<div class="table table_no_summary"><header>' + HeaderHTML + '</header><ul>' + generateBody(Data) + '</ul></div>');
 				} else {
-					Container.html('<div class="table"><summary>' + SummaryHTML + '</summary><header>' + HeaderHTML + '</header><ul>' + generateBody(Data) + '</ul></div>');					
+					Container.html('<div class="table"><div class="table_summary">' + SummaryHTML + '</div><header>' + HeaderHTML + '</header><ul>' + generateBody(Data) + '</ul></div>');					
 				}
 			}
 

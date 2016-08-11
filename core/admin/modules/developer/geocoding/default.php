@@ -15,7 +15,7 @@
 	}
 ?>
 <div class="container">
-	<summary><h2><?=Text::translate("Configure")?></h2></summary>
+	<div class="container_summary"><h2><?=Text::translate("Configure")?></h2></div>
 	<section>
 		<a class="box_select<?php if ($setting->Value["service"] == "google" || !$setting->Value["service"]) { ?> connected<?php } ?>" href="<?=DEVELOPER_ROOT?>geocoding/google/">
 			<span class="google"></span>

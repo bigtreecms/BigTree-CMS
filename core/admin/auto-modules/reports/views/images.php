@@ -9,9 +9,9 @@
 	 */
 ?>
 <div class="table auto_modules image_list">
-	<summary>
+	<div class="table_summary">
 		<h2><?=Text::translate("Filtered Data")?></h2>
-	</summary>
+	</div>
 	<section>
 		<ul id="image_list">
 			<?php

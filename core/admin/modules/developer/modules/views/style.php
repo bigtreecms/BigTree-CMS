@@ -22,7 +22,7 @@
 	<p><?=Text::translate("Drag the bounds of the columns to resize them. Don't forget to save your changes.")?></p>
 </section>
 <div class="table">
-	<summary><h2><?=Text::translate("Example View Information")?></h2></summary>
+	<div class="table_summary"><h2><?=Text::translate("Example View Information")?></h2></div>
 	<header>
 		<?php
 			$x = 0;

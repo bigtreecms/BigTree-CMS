@@ -39,7 +39,7 @@
 	<?php
 		if (($module_permission == "p" && $draggable) || isset($view["actions"]["edit"])) {
 	?>
-	<summary>
+	<div class="table_summary">
 		<p>
 			<?php
 				if ($module_permission == "p" && $draggable) { 
@@ -51,7 +51,7 @@
 				}
 			?>
 		</p>
-	</summary>
+	</div>
 	<?php
 		}
 		$y = 0;

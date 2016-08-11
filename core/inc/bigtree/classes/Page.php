@@ -705,14 +705,14 @@
 				Returns an array of non-archived child pages.
 
 			Parameters:
-				return_arrays - Set to true to return arrays rather than objects.
 				sort - Sort order (defaults to "nav_title ASC")
+				return_arrays - Set to true to return arrays rather than objects.
 
 			Returns:
 				An array of Page entries.
 		*/
 		
-		function getChildren($return_arrays = false, $sort = "nav_title ASC") {
+		function getChildren($sort = "nav_title ASC", $return_arrays = false) {
 			$children = SQL::fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND archived != 'on' ORDER BY $sort", $this->ID);
 			
 			if (!$return_arrays) {
@@ -854,7 +854,7 @@
 					return false;
 				}
 				
-				$page = new Page(array("id" => $pending["id"]));
+				$page = new Page;
 			}
 			
 			// No changes, just return
@@ -874,6 +874,7 @@
 			// Protected vars, force an inheritance
 			$draft_data = new \stdClass;
 			$draft_data->ChangesApplied = true;
+			$draft_data->ChangeID = $pending["id"];
 			$draft_data->UpdatedAt = $pending["date"];
 			$draft_data->LastEditedBy = $pending["user"] ?: $page->LastEditedBy;
 			$page->inherit($draft_data);
@@ -1421,91 +1422,91 @@
 					$this->MaxAge
 				);
 				$this->inherit($new);
-			} elseif (is_numeric($this->ID)) {
-				global $admin;
 
-				// Homepage must have no route
-				if ($this->ID == 0) {
-					$this->Route = "";
-				} else {
-					// Get a unique route
-					$original_route = $route = Link::urlify($this->Route);
-					$x = 2;
+				return;
+			}
+				
+			// Homepage must have no route
+			if ($this->ID == 0) {
+				$this->Route = "";
+			} else {
+				// Get a unique route
+				$original_route = $route = Link::urlify($this->Route);
+				$x = 2;
 
-					// Reserved paths.
-					if ($this->Parent == 0) {
-						while (file_exists(SERVER_ROOT."site/".$route."/")) {
-							$route = $original_route."-".$x;
-							$x++;
-						}
-						$reserved_routes = Router::getReservedRoutes();
-						while (in_array($route, $reserved_routes)) {
-							$route = $original_route."-".$x;
-							$x++;
-						}
-					}
-
-					// Make sure route isn't longer than 250
-					$route = substr($route, 0, 250);
-
-					// Existing pages.
-					while (SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_pages 
-											 WHERE `route` = ? AND parent = ? AND id != ?", $route, $this->Parent, $this->ID)) {
+				// Reserved paths.
+				if ($this->Parent == 0) {
+					while (file_exists(SERVER_ROOT."site/".$route."/")) {
 						$route = $original_route."-".$x;
 						$x++;
 					}
-
-					$this->Route = $route;
+					$reserved_routes = Router::getReservedRoutes();
+					while (in_array($route, $reserved_routes)) {
+						$route = $original_route."-".$x;
+						$x++;
+					}
 				}
 
-				// Update the path in case the parent changed
-				$original_path = $this->Path;
-				$this->regeneratePath();
+				// Make sure route isn't longer than 250
+				$route = substr($route, 0, 250);
 
-				// Remove old paths from the redirect list, add a new redirect and update children
-				if ($this->Path != $original_path) {
-					$this->updateChildrenPaths();
-
-					SQL::query("DELETE FROM bigtree_route_history WHERE old_route = ? OR old_route = ?", $this->Path, $original_path);
-					SQL::insert("bigtree_route_history", array(
-						"old_route" => $original_path,
-						"new_route" => $this->Path
-					));
+				// Existing pages.
+				while (SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_pages 
+										 WHERE `route` = ? AND parent = ? AND id != ?", $route, $this->Parent, $this->ID)) {
+					$route = $original_route."-".$x;
+					$x++;
 				}
 
-				SQL::update("bigtree_pages", $this->ID, array(
-					"trunk" => $this->Trunk ? "on" : "",
-					"parent" => $this->Parent,
-					"in_nav" => $this->InNav ? "on" : "",
-					"nav_title" => Text::htmlEncode($this->NavigationTitle),
-					"title" => Text::htmlEncode($this->Title),
-					"path" => $this->Path,
-					"route" => $this->Route,
-					"meta_description" => Text::htmlEncode($this->MetaDescription),
-					"seo_invisible" => $this->SEOInvisible ? "on" : "",
-					"template" => $this->Template,
-					"external" => $this->External ? Link::encode($this->External) : "",
-					"new_window" => $this->NewWindow ? "on" : "",
-					"resources" => (array) $this->Resources,
-					"publish_at" => $this->PublishAt ?: null,
-					"expire_at" => $this->ExpireAt ?: null,
-					"max_age" => $this->MaxAge ?: 0,
-					"last_edited_by" => Auth::user()->ID ?: $this->LastEditedBy
+				$this->Route = $route;
+			}
+
+			// Update the path in case the parent changed
+			$original_path = $this->Path;
+			$this->regeneratePath();
+
+			// Remove old paths from the redirect list, add a new redirect and update children
+			if ($this->Path != $original_path) {
+				$this->updateChildrenPaths();
+
+				SQL::query("DELETE FROM bigtree_route_history WHERE old_route = ? OR old_route = ?", $this->Path, $original_path);
+				SQL::insert("bigtree_route_history", array(
+					"old_route" => $original_path,
+					"new_route" => $this->Path
 				));
+			}
 
-				// Remove any pending drafts
-				SQL::delete("bigtree_pending_changes", array("table" => "bigtree_pages", "item_id" => $this->ID));
+			SQL::update("bigtree_pages", $this->ID, array(
+				"trunk" => $this->Trunk ? "on" : "",
+				"parent" => $this->Parent,
+				"in_nav" => $this->InNav ? "on" : "",
+				"nav_title" => Text::htmlEncode($this->NavigationTitle),
+				"title" => Text::htmlEncode($this->Title),
+				"path" => $this->Path,
+				"route" => $this->Route,
+				"meta_description" => Text::htmlEncode($this->MetaDescription),
+				"seo_invisible" => $this->SEOInvisible ? "on" : "",
+				"template" => $this->Template,
+				"external" => $this->External ? Link::encode($this->External) : "",
+				"new_window" => $this->NewWindow ? "on" : "",
+				"resources" => (array) $this->Resources,
+				"publish_at" => $this->PublishAt ?: null,
+				"expire_at" => $this->ExpireAt ?: null,
+				"max_age" => $this->MaxAge ?: 0,
+				"last_edited_by" => Auth::user()->ID ?: $this->LastEditedBy
+			));
 
-				// Handle tags
-				SQL::delete("bigtree_tags_rel", array("table" => "bigtree_pages", "entry" => $this->ID));
+			// Remove any pending drafts
+			SQL::delete("bigtree_pending_changes", array("table" => "bigtree_pages", "item_id" => $this->ID));
 
-				foreach ($this->Tags as $tag) {
-					SQL::insert("bigtree_tags_rel", array(
-						"table" => "bigtree_pages",
-						"entry" => $this->ID,
-						"tag" => $tag->ID
-					));
-				}
+			// Handle tags
+			SQL::delete("bigtree_tags_rel", array("table" => "bigtree_pages", "entry" => $this->ID));
+
+			foreach ($this->Tags as $tag) {
+				SQL::insert("bigtree_tags_rel", array(
+					"table" => "bigtree_pages",
+					"entry" => $this->ID,
+					"tag" => $tag->ID
+				));
 			}
 		}
 		

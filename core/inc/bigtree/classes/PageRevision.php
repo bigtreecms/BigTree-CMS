@@ -72,43 +72,6 @@
 		}
 
 		/*
-			Function: allByPage
-				Get a list of revisions for a given page.
-
-			Parameters:
-				page - A page ID to pull revisions for.
-				sort - Sort by (defaults to "updated_at DESC")
-				return_arrays - Set to true to return arrays rather than objects.
-
-			Returns:
-				An array of "saved" revisions and "unsaved" revisions.
-		*/
-
-		static function allByPage($page, $sort = "updated_at DESC", $return_arrays = false) {
-			$saved = $unsaved = array();
-			$revisions = SQL::fetchAll("SELECT bigtree_users.name, 
-											   bigtree_users.email, 
-											   bigtree_page_revisions.saved, 
-											   bigtree_page_revisions.saved_description, 
-											   bigtree_page_revisions.updated_at, 
-											   bigtree_page_revisions.id 
-										FROM bigtree_page_revisions JOIN bigtree_users 
-										ON bigtree_page_revisions.author = bigtree_users.id 
-										WHERE page = ? 
-										ORDER BY $sort", $page);
-
-			foreach ($revisions as $revision) {
-				if ($revision["saved"]) {
-					$saved[] = $return_arrays ? $revision : new PageRevision($revision);
-				} else {
-					$unsaved[] = $return_arrays ? $revision : new PageRevision($revision);
-				}
-			}
-
-			return array("saved" => $saved, "unsaved" => $unsaved);
-		}
-
-		/*
 			Function: create
 				Saves a Page object's data as a revision.
 
@@ -138,6 +101,42 @@
 			AuditTrail::track("bigtree_page_revisions", $id, "created");
 			
 			return new PageRevision($id);
+		}
+		
+		/*
+			Function: listForPage
+				Returns an array of revision data for a given page.
+
+			Parameters:
+				page - A page ID to pull revisions for.
+				sort - Sort by (defaults to "updated_at DESC")
+
+			Returns:
+				An array of "saved" revisions and "unsaved" revisions.
+		*/
+		
+		static function listForPage($page, $sort = "updated_at DESC") {
+			$saved = $unsaved = array();
+			$revisions = SQL::fetchAll("SELECT bigtree_users.name, 
+											   bigtree_users.email, 
+											   bigtree_page_revisions.saved, 
+											   bigtree_page_revisions.saved_description, 
+											   bigtree_page_revisions.updated_at, 
+											   bigtree_page_revisions.id 
+										FROM bigtree_page_revisions JOIN bigtree_users 
+										ON bigtree_page_revisions.author = bigtree_users.id 
+										WHERE page = ? 
+										ORDER BY $sort", $page);
+			
+			foreach ($revisions as $revision) {
+				if ($revision["saved"]) {
+					$saved[] = $revision;
+				} else {
+					$unsaved[] = $revision;
+				}
+			}
+			
+			return array("saved" => $saved, "unsaved" => $unsaved);
 		}
 
 		/*

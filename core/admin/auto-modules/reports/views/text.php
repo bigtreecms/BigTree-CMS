@@ -9,9 +9,9 @@
 	 */
 ?>
 <div class="table auto_modules">
-	<summary>
+	<div class="table_summary">
 		<h2><?=Text::translate("Filtered Data")?></h2>
-	</summary>
+	</div>
 	<header>
 		<?php
 			$x = 0;

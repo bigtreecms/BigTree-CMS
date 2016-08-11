@@ -42,12 +42,12 @@
 ?>
 <a name="0"></a>
 <div class="table">
-	<summary>
+	<div class="table_summary">
 		<h2 class="full">
 			<span class="pages"></span>
 			<?=Text::translate("Pages")?>
 		</h2>
-	</summary>
+	</div>
 	<header>
 		<span class="changes_author"><?=Text::translate("Author")?></span>
 		<span class="changes_page"><?=Text::translate("Page")?></span>
@@ -99,12 +99,12 @@
 ?>
 <a name="<?=$module_id?>"></a>
 <div class="table">
-	<summary>
+	<div class="table_summary">
 		<h2 class="full">
 			<span class="modules"></span>
 			<?=$module->Name?>
 		</h2>
-	</summary>
+	</div>
 	<?php if ($view["type"] == "images" || $view["type"] == "images-grouped") { ?>
 	<section>
 		<ul class="image_list">

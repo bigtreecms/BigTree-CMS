@@ -6,61 +6,54 @@
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
 		Router::redirect($_SERVER["HTTP_REFERER"]);
 	}
-
+	
 	$bigtree["layout"] = "front-end";
 	$bigtree["crops"] = array();
 	$bigtree["errors"] = array();
-
+	
 	$page_id = $_POST["page"];
 	$page = Page::getPageDraft($page_id);
 	$access_level = $page->UserAccessLevel;
 	
 	// Work out the permissions
+	$publisher = false;
+	
 	if ($access_level == "p") {
 		$publisher = true;
-	} elseif ($access_level == "e") {
-		$publisher = false;
-	} else {
+	} elseif (!$access_level) {
 		Auth::stop("You do not have access to this page.", Router::getIncludePath("admin/layouts/_error.php"));
 	}
-
-	$resources = array();
-
-	// Save the template since we're not passing in the full update data.
+	
+	// Resource parser needs a template
 	$_POST["template"] = $page->Template;
 	
 	// Parse resources
 	include Router::getIncludePath("admin/modules/pages/_resource-parse.php");
-
-	// Handle permissions on trunk
-	if (Auth::user()->Level < 2) {
-		
-		unset($_POST["trunk"]);
-	}
-
+	$page->Resources = $bigtree["entry"];
+	
 	if ($publisher && $_POST["ptype"] == "Save & Publish") {
-		// Let's make it happen.
+		// It's a pending page, so let's create one.
 		if ($page_id[0] == "p") {
-			// It's a pending page, so let's create one.
-			$page_id = $admin->createPage($pdata);
-			$admin->deletePendingChange($change_id);
+			// Saving a page with -1 ID causes creation
+			$page->save();
+			
+			// Saving usually deletes pending changes but this wasn't related to the page so manually delete it
+			$change = new PendingChange($page->ChangeID);
+			$change->delete();
+		// It's an existing page.
 		} else {
-			// It's an existing page.
-			$admin->updatePage($page_id,$pdata);
+			$page->save();
 		}
-
-		$refresh_link = Link::get($page_id);
+		
+		$refresh_link = Link::get($page->ID);
 	} else {
-		if (!$_POST["parent"]) {
-			$_POST["parent"] = $pdata["parent"];
-		}
-		$admin->submitPageChange($page_id,$pdata);
-
+		$page->_Tags = $_POST["_tags"];
+		Page::createChangeRequest($page_id, $page->Array);
 		$refresh_link = Link::getPreview($page_id);
 	}
-
-	$admin->unlock("bigtree_pages",$page_id);
-
+	
+	Lock::remove("bigtree_pages", $page_id);
+	
 	if (count($bigtree["crops"])) {
 		include Router::getIncludePath("admin/modules/pages/_front-end-crop.php");
 	} elseif (count($bigtree["errors"])) {
@@ -70,4 +63,3 @@
 <script>parent.BigTreeBar.refresh("<?=$refresh_link?>");</script>
 <?php
 	}
-?>
