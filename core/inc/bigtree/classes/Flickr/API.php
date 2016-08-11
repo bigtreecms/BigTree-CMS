@@ -562,9 +562,7 @@
 				header("Location: http://www.flickr.com/services/oauth/authorize?perms=delete&oauth_token=".$oauth_token);
 				die();
 			} else {
-				$admin = new \BigTreeAdmin;
-				Utils::growl($oauth_problem, "Flickr API", "error");
-				
+				Utils::growl($oauth_problem, "Flickr API", "error");				
 				Router::redirect(ADMIN_ROOT."developer/services/flickr/");
 			}
 		}

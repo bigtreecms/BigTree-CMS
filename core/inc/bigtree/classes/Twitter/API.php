@@ -508,11 +508,12 @@
 			// Get a token first because Twitter is silly.
 			$response = $this->callAPI("https://api.twitter.com/oauth/request_token","GET",array("oauth_callback" => $this->ReturnURL));
 			parse_str($response);
+
 			if ($oauth_callback_confirmed != "true") {
-				global $admin;
 				Utils::growl("Twitter API","Consumer Key or Secret invalid.","error");
 				Router::redirect(ADMIN_ROOT."developer/services/twitter/");
 			}
+
 			header("Location: https://api.twitter.com/oauth/authenticate?oauth_token=$oauth_token");
 			die();
 		}

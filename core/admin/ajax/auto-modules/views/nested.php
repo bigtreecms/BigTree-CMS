@@ -2,7 +2,6 @@
 	namespace BigTree;
 
 	/**
-	 * @global \BigTreeAdmin $admin
 	 * @global Module $module
 	 * @global ModuleView $view
 	 */
@@ -24,7 +23,7 @@
 		$module_page = ADMIN_ROOT.$module->Route."/";
 
 		function drawNestedLevel($items,$depth) {
-			global $admin,$bigtree,$module,$module_page,$module_permission,$view;
+			global $bigtree,$module,$module_page,$module_permission,$view;
 
 			foreach ($items as $item) {
 				$expanded = !empty($_COOKIE["bigtree_admin"]["nested_views"][$view->ID][$item["id"]]) ? true : false;

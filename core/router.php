@@ -8,18 +8,22 @@
 	// Handle Javascript Minifying and Caching
 	if ($bigtree["path"][0] == "js") {
 		clearstatcache();
+		
 		// Get the latest mod time on any included js files.
 		$mtime = 0;
 		$js_file = str_replace(".js", "", $bigtree["path"][1]);
 		$cfile = SERVER_ROOT."cache/".$js_file.".js";
 		$last_modified = file_exists($cfile) ? filemtime($cfile) : 0;
+		
 		if (is_array($bigtree["config"]["js"]["files"][$js_file])) {
 			foreach ($bigtree["config"]["js"]["files"][$js_file] as $script) {
 				$m = file_exists(SITE_ROOT."js/$script") ? filemtime(SITE_ROOT."js/$script") : 0;
+				
 				if ($m > $mtime) {
 					$mtime = $m;
 				}
 			}
+			
 			// If we have a newer Javascript file to include or we haven't cached yet, do it now.
 			if (!file_exists($cfile) || $mtime > $last_modified) {
 				$data = "";
@@ -84,11 +88,13 @@
 	// Handle CSS Shortcuts and Minifying
 	if ($bigtree["path"][0] == "css") {
 		clearstatcache();
+		
 		// Get the latest mod time on any included css files.
 		$mtime = 0;
 		$css_file = str_replace(".css", "", $bigtree["path"][1]);
 		$cfile = SERVER_ROOT."cache/".$css_file.".css";
 		$last_modified = file_exists($cfile) ? filemtime($cfile) : 0;
+		
 		if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
 			// Check modification times on each included CSS file
 			foreach ($bigtree["config"]["css"]["files"][$css_file] as $style) {
@@ -101,6 +107,7 @@
 			// If we have a newer CSS file to include or we haven't cached yet, do it now.
 			if (!file_exists($cfile) || $mtime > $last_modified) {
 				$data = "";
+				
 				if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
 					// if we need LESS
 					if (strpos(implode(" ", $bigtree["config"]["css"]["files"][$css_file]), "less") > -1) {
@@ -186,6 +193,7 @@
 			$style = $bigtree["config"]["placeholder"]["default"];
 			$size = explode("x", strtolower($bigtree["path"][2]));
 		}
+		
 		if (count($size) == 2) {
 			Image::placeholder($size[0], $size[1], $style["background_color"], $style["text_color"], $style["image"], $style["text"]);
 		}
@@ -242,9 +250,9 @@
 			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 			die("File not found.");
 		}
+		
 		$bigtree["ajax_inc"] = $inc;
 		$bigtree["commands"] = $commands;
-		
 		list($bigtree["ajax_headers"], $bigtree["ajax_footers"]) = Router::getRoutedLayoutPartials($inc);
 		
 		// Draw the headers.
@@ -328,6 +336,7 @@
 		foreach (Router::$Registry["public"] as $registration) {
 			if (!$registry_found) {
 				$registry_commands = Router::getRegistryCommands("/".implode("/", $bigtree["path"]), $registration["pattern"]);
+				
 				if ($registry_commands !== false) {
 					$registry_found = true;
 					$registry_rule = $registration;
@@ -351,6 +360,7 @@
 			// Emulate commands at indexes as well as with requested variable keys
 			$bigtree["commands"] = array();
 			$x = 0;
+			
 			foreach ($registry_commands as $key => $value) {
 				$bigtree["commands"][$x] = $bigtree["commands"][$key] = $value;
 				$x++;
@@ -414,7 +424,7 @@
 		
 		// Setup extension handler for templates
 		if (strpos($bigtree["page"]["template"], "*") !== false) {
-			list($extension, $template) = explode("*", $bigtree["page"]["template"]);
+			list($extension, $extension_template) = explode("*", $bigtree["page"]["template"]);
 			
 			$bigtree["extension_context"] = $extension;
 			define("EXTENSION_ROOT", SERVER_ROOT."extensions/$extension/");
@@ -471,7 +481,7 @@
 				}
 				
 				if ($extension) {
-					list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."extensions/$extension/templates/routed/$template/", $path_components);
+					list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."extensions/$extension/templates/routed/$extension_template/", $path_components);
 				} else {
 					list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/", $path_components);
 				}
@@ -502,7 +512,7 @@
 			}
 		} elseif ($bigtree["page"]["template"]) {
 			if ($extension) {
-				include SERVER_ROOT."extensions/$extension/templates/basic/$template.php";
+				include SERVER_ROOT."extensions/$extension/templates/basic/$extension_template.php";
 			} else {
 				include SERVER_ROOT."templates/basic/".$bigtree["page"]["template"].".php";
 			}
@@ -527,15 +537,18 @@
 	
 	// Load the content again into the layout.
 	ob_start();
+	
 	if ($bigtree["extension_layout"]) {
 		include SERVER_ROOT."extensions/".$bigtree["extension_layout"]."/templates/layouts/".$bigtree["layout"].".php";
 	} else {
 		include SERVER_ROOT."templates/layouts/".$bigtree["layout"].".php";
 	}
+	
 	$bigtree["content"] = ob_get_clean();
 	
 	// Allow for special output filter functions.
 	$filter = null;
+	
 	if ($bigtree["config"]["output_filter"]) {
 		$filter = $bigtree["config"]["output_filter"];
 	}
@@ -586,15 +599,18 @@
 		$show_bar_default = $_COOKIE["hide_bigtree_bar"] ? false : true;
 		$show_preview_bar = false;
 		$return_link = "";
+		
 		if (!empty($_GET["bigtree_preview_return"])) {
 			$show_bar_default = false;
 			$show_preview_bar = true;
 			$return_link = htmlspecialchars(urlencode($_GET["bigtree_preview_return"]));
 		}
+		
 		// Pending Pages don't have their ID set.
 		if (!isset($bigtree["page"]["id"])) {
 			$bigtree["page"]["id"] = $bigtree["page"]["page"];
 		}
+		
 		$bigtree["content"] = str_ireplace('</body>', '<script type="text/javascript" src="'.str_replace(array("http://", "https://"), "//", $bigtree["config"]["admin_root"]).'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&amp;current_page_id='.$bigtree["page"]["id"].'&amp;show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;show_preview='.$show_preview_bar.'&amp;return_link='.$return_link.'&amp;custom_edit_link='.(empty($bigtree["bar_edit_link"]) ? "" : Text::htmlEncode($bigtree["bar_edit_link"])).'"></script></body>', $bigtree["content"]);
 		// Don't cache the page with the BigTree bar
 		$bigtree["config"]["cache"] = false;
@@ -605,8 +621,10 @@
 	// Write to the cache
 	if ($bigtree["config"]["cache"] && !defined("BIGTREE_DO_NOT_CACHE") && !count($_POST)) {
 		$cache = ob_get_flush();
+		
 		if (!$bigtree["page"]["path"]) {
 			$bigtree["page"]["path"] = "!";
 		}
+		
 		FileSystem::createFile(SERVER_ROOT."cache/".md5(json_encode($_GET)).".page", $cache);
 	}

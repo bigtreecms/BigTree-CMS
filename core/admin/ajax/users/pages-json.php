@@ -4,7 +4,7 @@
 	header("Content-type: text/json");
 
 	$recurse_nav = function($parent) {
-		global $recurse_nav,$admin;
+		global $recurse_nav;
 		
 		$page = new Page($parent);
 		$response = array();

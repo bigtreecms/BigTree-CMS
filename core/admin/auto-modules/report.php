@@ -2,7 +2,6 @@
 	namespace BigTree;
 	
 	/**
-	 * @global \BigTreeAdmin $admin
 	 * @global array $bigtree
 	 * @global ModuleInterface $interface
 	 */

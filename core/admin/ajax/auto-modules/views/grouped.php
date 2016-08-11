@@ -2,7 +2,6 @@
 	namespace BigTree;
 
 	/**
-	 * @global \BigTreeAdmin $admin
 	 * @global Module $module
 	 * @global ModuleView $view
 	 */

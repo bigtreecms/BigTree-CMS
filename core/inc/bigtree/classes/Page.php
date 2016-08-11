@@ -299,8 +299,6 @@
 		*/
 		
 		static function create($trunk, $parent, $in_nav, $nav_title, $title, $route, $meta_description, $seo_invisible, $template, $external, $new_window, $resources, $publish_at, $expire_at, $max_age, $tags = array()) {
-			global $admin;
-			
 			// Clean up either their desired route or the nav title
 			$route = Link::urlify($route ?: $nav_title);
 			
@@ -351,7 +349,7 @@
 				"resources" => $resources,
 				"meta_description" => Text::htmlEncode($meta_description),
 				"seo_invisible" => ($seo_invisible ? "on" : ""),
-				"last_edited_by" => (get_class($admin) == "BigTreeAdmin") ? Auth::user()->ID : null,
+				"last_edited_by" => Auth::user()->ID,
 				"created_at" => "NOW()",
 				"publish_at" => ($publish_at ? date("Y-m-d", strtotime($publish_at)) : null),
 				"expire_at" => ($expire_at ? date("Y-m-d", strtotime($expire_at)) : null),

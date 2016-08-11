@@ -2,7 +2,6 @@
 	namespace BigTree;
 
 	/**
-	 * @global \BigTreeAdmin $admin
 	 * @global Module $module
 	 * @global string $module_permission (set in ajax file)
 	 * @global ModuleView $view
