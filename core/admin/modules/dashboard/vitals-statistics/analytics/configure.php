@@ -1,5 +1,9 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global GoogleAnalytics\API $analytics
+	 */
 
 	if (Auth::user()->Level < 1) {
 ?>
@@ -19,11 +23,11 @@
 	<form method="post" action="<?=MODULE_ROOT?>set-profile/" class="module">
 		<section>
 			<fieldset>
-				<label><?=Text::translate("Choose A Profile From The List Below")?></label>
+				<label for="ga_field_profile"><?=Text::translate("Choose A Profile From The List Below")?></label>
 				<?php
 					if (count($profiles->Results)) {
 				?>
-				<select name="profile">
+				<select id="ga_field_profile" name="profile">
 					<?php foreach ($profiles->Results as $profile) { ?>
 					<option value="<?=$profile->ID?>"><?=$profile->WebsiteURL?> &mdash; <?=$profile->Name?></option>
 					<?php } ?>

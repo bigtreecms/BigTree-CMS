@@ -55,8 +55,8 @@
 			<p class="error_message"><?=Text::translate("A BigTree installation could not be found in <code>:directory:</code>", false, array(":directory:" => $saved_root))?></p>
 			<?php } ?>
 			<fieldset>
-				<label><?=Text::translate(":update_method: Path", false, array(":update_method:" => $updater->Method))?></label>
-				<input type="text" name="ftp_root" value="<?=$saved_root?>" />
+				<label for="ftp_field_root"><?=Text::translate(":update_method: Path", false, array(":update_method:" => $updater->Method))?></label>
+				<input id="ftp_field_root" type="text" name="ftp_root" value="<?=$saved_root?>" />
 			</fieldset>
 		</section>
 		<footer>

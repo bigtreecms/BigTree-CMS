@@ -29,7 +29,7 @@
 			foreach ($view->Fields as $key => $field) {
 				$x++;
 		?>
-		<span class="view_column" style="width: <?=$field["width"]?>px; cursor: move;" name="<?=$key?>"><?=$field["title"]?></span>
+		<span class="view_column" style="width: <?=$field["width"]?>px; cursor: move;" data-name="<?=$key?>"><?=$field["title"]?></span>
 		<?php
 			}
 		?>
@@ -46,7 +46,7 @@
 				foreach ($view->Fields as $key => $field) {
 					$x++;
 			?>
-			<section class="view_column" style="width: <?=$field["width"]?>px;" name="<?=$key?>"><?=$entry["column$x"]?></section>
+			<section class="view_column" style="width: <?=$field["width"]?>px;" data-name="<?=$key?>"><?=$entry["column$x"]?></section>
 			<?php
 				}
 			?>
@@ -120,7 +120,7 @@
 		BigTree.localDragging = false;
 		BigTree.localViewTitles.eq(BigTree.localGrowing).css({ cursor: "move" });
 		$(".table .view_column").each(function() {
-			var name = $(this).attr("name");
+			var name = $(this).attr("data-name");
 			width = $(this).width();
 			$("#data_" + name).val(width);
 		});

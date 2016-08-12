@@ -14,15 +14,13 @@
 		protected $CDNContainerURLs;
 		protected $CDNEndpoints;
 		protected $Endpoints;
-		protected $Key;
-		protected $Region;
 		protected $TempURLKey;
 		protected $Token;
 		protected $TokenExpiration;
-		protected $Username;
 
 		public $CDNEndpoint = "";
 		public $Endpoint = "";
+		public $Key;
 		public $Regions = array(
 			"ORD" => "Chicago, IL (USA)",
 			"DFW" => "Dallas/Ft. Worth, TX (USA)",
@@ -31,6 +29,8 @@
 			"IAD" => "Northern Virginia (USA)",
 			"SYD" => "Sydney (Australia)"
 		);
+		public $Region;
+		public $Username;
 
 		function __construct() {
 			parent::__construct();

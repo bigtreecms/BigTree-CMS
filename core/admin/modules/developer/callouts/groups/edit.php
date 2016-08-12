@@ -1,6 +1,10 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global array $bigtree
+	 */
+	
 	$callouts = Callout::all("name ASC",true);
 	$group = new CalloutGroup(end($bigtree["path"]));
 ?>
@@ -8,11 +12,11 @@
 	<form method="post" action="<?=DEVELOPER_ROOT?>callouts/groups/update/<?=$group->ID?>/" class="module">
 		<section>
 			<fieldset>
-			    <label class="required"><?=Text::translate("Name")?></label>
-			    <input type="text" name="name" value="<?=$group->Name?>" class="required" />
+			    <label for="group_field_name" class="required"><?=Text::translate("Name")?></label>
+			    <input id="group_field_name" type="text" name="name" value="<?=$group->Name?>" class="required" />
 			</fieldset>
 			<fieldset>
-				<label><?=Text::translate("Callouts")?></label>
+				<label for="group_field_callouts"><?=Text::translate("Callouts")?></label>
 				<div class="multi_widget many_to_many" id="group_callouts">
 					<section<?php if (count($group->Callouts)) { ?> style="display: none;"<?php } ?>>
 						<p><?=Text::translate('Click "Add Item" to add an item to this list.')?></p>
@@ -34,7 +38,7 @@
 						?>
 					</ul>
 					<footer>
-						<select>
+						<select id="group_field_callouts">
 							<?php
 								foreach ($callouts as $callout) {
 									if (!in_array($callout["id"],$group->Callouts)) {

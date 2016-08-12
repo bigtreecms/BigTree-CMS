@@ -10,20 +10,19 @@
 	use BigTree\cURL;
 
 	class Google extends Provider {
-
-		protected $CertificateEmail;
-		protected $Key;
-		protected $PrivateKey;
-		protected $Project;
-		protected $Secret;
-		protected $Token;
-
+		
 		public $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
+		public $CertificateEmail;
 		public $EndpointURL = "https://www.googleapis.com/storage/v1/";
+		public $Key;
 		public $OAuthVersion = "1.0";
+		public $PrivateKey;
+		public $Project;
 		public $RequestType = "header";
 		public $ReturnURL;
 		public $Scope = "https://www.googleapis.com/auth/devstorage.full_control";
+		public $Secret;
+		public $Token;
 		public $TokenURL = "https://accounts.google.com/o/oauth2/token";
 
 		function __construct() {

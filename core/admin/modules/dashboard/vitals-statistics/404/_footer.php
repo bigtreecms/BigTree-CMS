@@ -10,8 +10,7 @@
 			if (ev.keyCode != 9) {
 				BigTree.localSaveTimer = setTimeout("BigTree.localSave();",500);
 			}
-		});
-		$(".autosave").blur(function() {
+		}).blur(function() {
 			$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/update/", { data: { id: BigTree.localCurrentField, value: $("#404_" + BigTree.localCurrentField).val() }, type: "POST" });
 			BigTree.localCurrentField = $(this).attr("name");
 		});

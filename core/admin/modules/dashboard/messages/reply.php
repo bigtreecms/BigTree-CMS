@@ -49,7 +49,7 @@
 		<section>
 			<p<?php if (!$error) { ?> style="display: none;"<?php } ?> class="error_message"><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 			<fieldset id="send_to"<?php if ($error && !count($send_to)) { ?> class="form_error"<?php } ?>>
-				<label class="required"><?=Text::translate("Send To")?><?php if ($error && !count($send_to)) { ?><span class="form_error_reason"><?=Text::translate("Required")?></span><?php } ?></label>
+				<label for="message_field_recipient" class="required"><?=Text::translate("Send To")?><?php if ($error && !count($send_to)) { ?><span class="form_error_reason"><?=Text::translate("Required")?></span><?php } ?></label>
 				<div class="multi_widget many_to_many">
 					<section style="display: none;">
 						<p><?=Text::translate('No users selected. Click "Add User" to add a user to the list.')?></p>
@@ -72,7 +72,7 @@
 						?>
 					</ul>
 					<footer>
-						<select>
+						<select id="message_field_recipient">
 							<?php
 								foreach ($users as $id => $user) {
 									if ($id != Auth::user()->ID) {

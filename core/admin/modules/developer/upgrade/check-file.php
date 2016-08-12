@@ -1,6 +1,11 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global array $bigtree
+	 * @global Updater $updater
+	 */
+	
 	// Verify zip integrity
 	if (!$updater->checkZip()) {
 ?>
@@ -18,6 +23,7 @@
 	} else {
 		// If we're not using local install and the config settings only allow for HTTPS logins, redirect
 		$secure = (!empty($_SERVER["HTTPS"]) && $_SERVER['HTTPS'] !== "off" || $_SERVER["SERVER_PORT"] == 443);
+		
 		if ($updater->Method != "Local" && $bigtree["config"]["force_secure_login"] && !$secure) {
 			Router::redirect(str_replace("http://","https://",DEVELOPER_ROOT)."upgrade/check-file/");
 		}		
@@ -41,12 +47,12 @@
 			</ul>
 			<hr />
 			<fieldset>
-				<label><?=Text::translate(":update_method: Username", false, array(":update_method:" => $updater->Method))?></label>
-				<input type="text" name="username" autocomplete="off" />
+				<label for="ftp_field_username"><?=Text::translate(":update_method: Username", false, array(":update_method:" => $updater->Method))?></label>
+				<input id="ftp_field_username" type="text" name="username" autocomplete="off" />
 			</fieldset>
 			<fieldset>
-				<label><?=Text::translate(":update_method: Password", false, array(":update_method:" => $updater->Method))?></label>
-				<input type="password" name="password" autocomplete="off" />
+				<label for="ftp_field_password"><?=Text::translate(":update_method: Password", false, array(":update_method:" => $updater->Method))?></label>
+				<input id="ftp_field_password" type="password" name="password" autocomplete="off" />
 			</fieldset>
 			<?php } ?>
 		</section>

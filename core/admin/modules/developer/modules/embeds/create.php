@@ -17,7 +17,9 @@
 	<section>
 		<h3><?=$form->Title?></h3>
 		<p><?=Text::translate("Your embeddable form has been created. You can copy and paste the code below to embed this form.")?></p>
-		<textarea><?=$form->EmbedCode?></textarea>
+		
+		<label class="visually_hidden" for="embed_code_field">Embed Code</label>
+		<textarea id="embed_code_field"><?=$form->EmbedCode?></textarea>
 	</section>
 	<footer>
 		<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$form->Module?>/" class="button blue"><?=Text::translate("Return to Module")?></a>

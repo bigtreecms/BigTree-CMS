@@ -72,7 +72,8 @@
 ?>
 <form class="adv_search" method="get" action="<?=ADMIN_ROOT?>search/">
 	<h3><?=number_format($total_results)?> <?=Text::translate("Search results for")?> &ldquo;<?=htmlspecialchars($_GET["query"])?>&rdquo;</h3>
-	<input type="search" name="query" autocomplete="off" value="<?=htmlspecialchars($_GET["query"])?>"/>
+	<label for="search_field_query" class="visually_hidden">Query</label>
+	<input id="search_field_query" type="search" name="query" autocomplete="off" value="<?=htmlspecialchars($_GET["query"])?>"/>
 	<input type="submit"/>
 </form>
 

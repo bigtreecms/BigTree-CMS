@@ -1,6 +1,13 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global array $bigtree
+	 * @global string $page_link
+	 * @global string $page_vars
+	 * @global Updater $updater
+	 */
+	
 	// Verify zip integrity
 	if (!$updater->checkZip()) {
 ?>
@@ -34,12 +41,12 @@
 			<p><?=Text::translate("Your existing extension folder will be backed up in /backups/extensions/:extension_id:/", false, array(":extension_id:" => htmlspecialchars($_GET["id"])))?></p>
 			<hr />
 			<fieldset>
-				<label><?=Text::translate(":file_access_method: Username", false, array(":file_access_method:" => $updater->Method))?></label>
-				<input type="text" name="username" autocomplete="off" />
+				<label for="ftp_field_username"><?=Text::translate(":file_access_method: Username", false, array(":file_access_method:" => $updater->Method))?></label>
+				<input id="ftp_field_username" type="text" name="username" autocomplete="off" />
 			</fieldset>
 			<fieldset>
-				<label><?=Text::translate(":file_access_method: Password", false, array(":file_access_method:" => $updater->Method))?></label>
-				<input type="password" name="password" autocomplete="off" />
+				<label for="ftp_field_password"><?=Text::translate(":file_access_method: Password", false, array(":file_access_method:" => $updater->Method))?></label>
+				<input id="ftp_field_password" type="password" name="password" autocomplete="off" />
 			</fieldset>
 			<?php } ?>
 		</section>

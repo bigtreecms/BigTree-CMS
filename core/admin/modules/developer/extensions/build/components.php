@@ -17,7 +17,7 @@
 		<section>
 			<fieldset>
 				<article class="package_column">
-					<strong><?=Text::translate("Modules")?></strong>
+					<label for="extension_field_modules"><?=Text::translate("Modules")?></label>
 					<ul>
 						<?php
 							foreach ((array) $modules as $module_id) {
@@ -36,7 +36,7 @@
 					</ul>
 					<div class="adder">
 						<a href="#"></a>
-						<select class="custom_control" data-key="modules">
+						<select id="extension_field_modules" class="custom_control" data-key="modules">
 							<?php
 								$groups = ModuleGroup::all("name ASC");
 								$groups[] = array("id" => "0", "name" => "Ungrouped");
@@ -65,7 +65,7 @@
 					</div>
 				</article>
 				<article class="package_column">
-					<strong><?=Text::translate("Templates")?></strong>
+					<label for="extension_field_templates"><?=Text::translate("Templates")?></label>
 					<ul>
 						<?php
 							foreach ((array) $templates as $template_id) {
@@ -84,7 +84,7 @@
 					</ul>
 					<div class="adder">
 						<a href="#"></a>
-						<select class="custom_control" data-key="templates">
+						<select id="extension_field_templates" class="custom_control" data-key="templates">
 							<optgroup label="Basic Templates">
 								<?php
 									$templates = Template::allByRouted("", "name ASC");
@@ -115,7 +115,7 @@
 					</div>
 				</article>
 				<article class="package_column package_column_last">
-					<strong><?=Text::translate("Callouts")?></strong>
+					<label for="extension_field_callouts"><?=Text::translate("Callouts")?></label>
 					<ul>
 						<?php
 							foreach ((array) $callouts as $callout_id) {
@@ -134,7 +134,7 @@
 					</ul>
 					<div class="adder">
 						<a href="#"></a>
-						<select class="custom_control" data-key="callouts">
+						<select id="extension_field_callouts" class="custom_control" data-key="callouts">
 							<?php
 								$callouts = Callout::all("name ASC");
 								
@@ -152,7 +152,7 @@
 			</fieldset>
 			<fieldset>
 				<article class="package_column">
-					<strong><?=Text::translate("Settings")?></strong>
+					<label for="extension_field_settings"><?=Text::translate("Settings")?></label>
 					<ul>
 						<?php
 							foreach ((array) $settings as $setting_id) {
@@ -171,7 +171,7 @@
 					</ul>
 					<div class="add_setting adder">
 						<a href="#"></a>
-						<select class="custom_control" data-key="settings">
+						<select id="extension_field_settings" class="custom_control" data-key="settings">
 							<optgroup label="Public">
 								<?php
 									$settings = Setting::allBySystem("", "name ASC");
@@ -202,7 +202,7 @@
 					</div>
 				</article>
 				<article class="package_column">
-					<strong><?=Text::translate("Feeds")?></strong>
+					<label for="extension_field_feeds"><?=Text::translate("Feeds")?></label>
 					<ul>
 						<?php
 							foreach ((array) $feeds as $feed_id) {
@@ -221,7 +221,7 @@
 					</ul>
 					<div class="add_feed adder">
 						<a href="#"></a>
-						<select class="custom_control" data-key="feeds">
+						<select id="extension_field_feeds" class="custom_control" data-key="feeds">
 							<?php
 								$feeds = Feed::all("name ASC");
 								
@@ -237,7 +237,7 @@
 					</div>
 				</article>
 				<article class="package_column package_column_last">
-					<strong><?=Text::translate("Field Types")?></strong>
+					<label for="extension_field_field_types"><?=Text::translate("Field Types")?></label>
 					<ul>
 						<?php
 							foreach ((array) $field_types as $field_type_id) {
@@ -255,8 +255,8 @@
 						?>
 					</ul>
 					<div class="add_field_type adder">
-						<a  href="#"></a>
-						<select class="custom_control" data-key="field_types">
+						<a href="#"></a>
+						<select id="extension_field_field_types" class="custom_control" data-key="field_types">
 							<?php
 								$field_types = FieldType::all("name ASC");
 								
@@ -280,7 +280,7 @@
 </div>
 
 <script>
-	$(".adder a").click(function(ev) {
+	$(".adder a").click(function() {
 		var select = $(this).parent().find("select");
 		var el = select.get(0);
 		var li = $("<li>");

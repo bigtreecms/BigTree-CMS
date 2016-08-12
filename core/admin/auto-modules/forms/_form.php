@@ -79,7 +79,7 @@
 			<?php if (!empty($form->Tagging)) { ?>
 			<div class="tags" id="bigtree_tag_browser">
 				<fieldset>
-					<label><?=Text::translate("Tags")?><span></span></label>
+					<label for="tag_entry"><?=Text::translate("Tags")?><span></span></label>
 					<ul id="tag_list">
 						<?php foreach ($bigtree["tags"] as $tag) { ?>
 						<li><input type="hidden" name="_tags[]" value="<?=$tag["id"]?>" /><a href="#"><?=$tag["tag"]?><span>x</span></a></li>

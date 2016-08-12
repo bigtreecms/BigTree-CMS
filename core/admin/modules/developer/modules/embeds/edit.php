@@ -26,8 +26,8 @@
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/embeds/update/<?=$form->ID?>/" class="module">
 		<?php include Router::getIncludePath("admin/modules/developer/modules/embeds/_form.php") ?>
 		<section class="sub">
-			<label><?=Text::translate("Embed Code <small>(not editable)</small>")?></label>
-			<textarea><?=htmlspecialchars('<div id="bigtree_embeddable_form_container_'.$form->ID.'">'.$form->Title.'</div>'."\n".'<script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?id='.$form->ID.'&hash='.$form->Hash.'"></script>')?></textarea>
+			<label for="embed_field_code"><?=Text::translate("Embed Code <small>(not editable)</small>")?></label>
+			<textarea id="embed_field_code"><?=htmlspecialchars('<div id="bigtree_embeddable_form_container_'.$form->ID.'">'.$form->Title.'</div>'."\n".'<script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?id='.$form->ID.'&hash='.$form->Hash.'"></script>')?></textarea>
 		</section>
 		<section class="sub" id="field_area">
 			<?php include Router::getIncludePath("admin/ajax/developer/load-form.php") ?>

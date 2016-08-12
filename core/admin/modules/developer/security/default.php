@@ -23,20 +23,20 @@
 					<br />
 					<h3><?=Text::translate("Password Strength")?></h3>
 					<fieldset>
-						<label><?=Text::translate('Minimum Password Length <small>(leave blank or 0 to have no restriction)</small>')?></label>
-						<input type="text" name="password[length]" value="<?=Text::htmlEncode($security_policy["password"]["length"])?>" />
+						<label for="security_field_password_length"><?=Text::translate('Minimum Password Length <small>(leave blank or 0 to have no restriction)</small>')?></label>
+						<input id="security_field_password_length" type="text" name="password[length]" value="<?=Text::htmlEncode($security_policy["password"]["length"])?>" />
 					</fieldset>
 					<fieldset>
-						<input type="checkbox" name="password[mixedcase]"<?php if ($security_policy["password"]["mixedcase"]) { ?> checked="checked"<?php } ?> />
-						<label class="for_checkbox"><?=Text::translate('Require Mixed-Case <small>(both lowercase and uppercase characters)</small>')?></label>
+						<input id="security_field_mixed_case" type="checkbox" name="password[mixedcase]"<?php if ($security_policy["password"]["mixedcase"]) { ?> checked="checked"<?php } ?> />
+						<label for="security_field_mixed_case" class="for_checkbox"><?=Text::translate('Require Mixed-Case <small>(both lowercase and uppercase characters)</small>')?></label>
 					</fieldset>
 					<fieldset>
-						<input type="checkbox" name="password[numbers]"<?php if ($security_policy["password"]["numbers"]) { ?> checked="checked"<?php } ?> />
-						<label class="for_checkbox"><?=Text::translate("Require Numbers")?></label>
+						<input id="security_field_numbers" type="checkbox" name="password[numbers]"<?php if ($security_policy["password"]["numbers"]) { ?> checked="checked"<?php } ?> />
+						<label for="security_field_numbers" class="for_checkbox"><?=Text::translate("Require Numbers")?></label>
 					</fieldset>
 					<fieldset>
-						<input type="checkbox" name="password[nonalphanumeric]"<?php if ($security_policy["password"]["nonalphanumeric"]) { ?> checked="checked"<?php } ?> />
-						<label class="for_checkbox"><?=Text::translate('Require Non-Alphanumeric Characters <small>(i.e. $ # ^ *)</small>')?></label>
+						<input id="security_field_nonalphanumeric" type="checkbox" name="password[nonalphanumeric]"<?php if ($security_policy["password"]["nonalphanumeric"]) { ?> checked="checked"<?php } ?> />
+						<label for="security_field_nonalphanumeric" class="for_checkbox"><?=Text::translate('Require Non-Alphanumeric Characters <small>(i.e. $ # ^ *)</small>')?></label>
 					</fieldset>
 				</div>
 				<div class="right">

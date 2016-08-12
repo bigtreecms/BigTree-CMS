@@ -8,7 +8,7 @@
 			<article class="package_column package_column_double">
 				<strong><?=Text::translate("Files")?></strong>
 				<ul id="package_files">
-					<?php foreach ((array)$_SESSION["bigtree_admin"]["developer"]["package"]["files"] as $file) { ?>
+					<?php foreach ((array) $_SESSION["bigtree_admin"]["developer"]["package"]["files"] as $file) { ?>
 					<li>
 						<input type="hidden" name="files[]" value="<?=htmlspecialchars($file)?>" />
 						<a href="#" class="icon_small icon_small_delete"></a>
@@ -41,6 +41,7 @@
 				</ul>
 				<div class="add_table adder">
 					<a class="icon_small icon_small_add" href="#"></a>
+					<label for="add_table_select" class="visually_hidden">Table</label>
 					<select class="custom_control" id="add_table_select">
 						<?php
 							$tables = SQL::fetchAllSingle("SHOW TABLES");
@@ -62,7 +63,7 @@
 	</form>
 </div>
 <script>
-	$(".add_table a").click(function(ev) {
+	$(".add_table a").click(function() {
 		var table_select = $("#add_table_select");
 		var table = table_select.val();
 		if (table) {
@@ -75,7 +76,7 @@
 		return false;
 	});
 
-	$(".add_file a").click(function(ev) {
+	$(".add_file a").click(function() {
 		BigTreeFilesystemBrowser({
 			directory: "",
 			callback: function(data) {

@@ -22,8 +22,8 @@
 			?>
 			<div class="sub_section last">
 				<fieldset class="float_margin">
-					<label><?=Text::translate("Sort By")?></label>
-					<select name="*sort[field]">
+					<label for="report_field_sort_by"><?=Text::translate("Sort By")?></label>
+					<select id="report_field_sort_by" name="*sort[field]">
 						<?php
 							if ($report->Type == "csv") {
 								foreach ($report->Fields as $key => $title) {
@@ -44,8 +44,8 @@
 					</select>
 				</fieldset>
 				<fieldset>
-					<label><?=Text::translate("Sort Order")?></label>
-					<select name="*sort[order]">
+					<label for="report_field_sort_order"><?=Text::translate("Sort Order")?></label>
+					<select id="report_field_sort_order" name="*sort[order]">
 						<option value="ASC"><?=Text::translate("Ascending")?></option>
 						<option value="DESC"><?=Text::translate("Descending")?></option>
 					</select>

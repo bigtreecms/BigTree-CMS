@@ -117,13 +117,21 @@
 
 		static function createPendingItem($module, $table, $data, $many_to_many = array(), $tags = array(), $publish_hook = null, $embedded_form = false) {
 			// Create fake module form
-			$form = new BigTree\ModuleForm(array(
-				"module" => $module,
-				"table" => $table,
-				"settings" => json_encode(array("hooks" => array("publish" => $publish_hook)))
-			));
-
-			return $form->createPendingEntry($data, $many_to_many, $tags, $embedded_form);
+			if ($embedded_form) {
+				$form = new BigTree\ModuleEmbedForm(array(
+					"module" => $module,
+					"table" => $table,
+					"settings" => json_encode(array("hooks" => array("publish" => $publish_hook)))
+				));
+			} else {
+				$form = new BigTree\ModuleForm(array(
+					"module" => $module,
+					"table" => $table,
+					"settings" => json_encode(array("hooks" => array("publish" => $publish_hook)))
+				));
+			}
+			
+			return $form->createPendingEntry($data, $many_to_many, $tags);
 		}
 		
 		/*

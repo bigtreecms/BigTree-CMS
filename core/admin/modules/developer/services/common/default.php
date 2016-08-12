@@ -1,5 +1,17 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $instructions
+	 * @global bool $show_test_environment
+	 * @global OAuth $api
+	 * @global string $key_name
+	 * @global string $name
+	 * @global string $route
+	 * @global string $secret_name
+	 * @global string $scope_default
+	 * @global string $scope_help
+	 */
 ?>
 <div class="container">
 	<?php
@@ -13,33 +25,34 @@
 			<p class="notice_message"><?=Text::translate("Google's Developer Console changes frequently, these steps may not be up to date.")?></p>
 			<?php } ?>
 			<ol>
-				<?php foreach ($instructions as $i) { ?>
-				<li><?=$i?></li>
+				<?php foreach ($instructions as $instruction) { ?>
+				<li><?=$instruction?></li>
 				<?php } ?>
 			</ol>
 			<hr />
 			<fieldset>
-				<label><?=Text::translate($key_name)?></label>
-				<input type="text" name="key" value="<?=htmlspecialchars($api->Settings["key"])?>" />
+				<label for="oauth_field_key"><?=Text::translate($key_name)?></label>
+				<input id="oauth_field_key" type="text" name="key" value="<?=htmlspecialchars($api->Settings["key"])?>" />
 			</fieldset>
 			<fieldset>
-				<label><?=Text::translate($secret_name)?></label>
-				<input type="text" name="secret" value="<?=htmlspecialchars($api->Settings["secret"])?>" />
+				<label for="oauth_field_secret"><?=Text::translate($secret_name)?></label>
+				<input id="oauth_field_secret" type="text" name="secret" value="<?=htmlspecialchars($api->Settings["secret"])?>" />
 			</fieldset>
 			<?php
 				if ($scope_default) {
 			?>
 			<fieldset>
-				<label><?=Text::translate("Scope")?><?php if ($scope_help) { echo $scope_help; } ?></label>
-				<input type="text" name="scope" value="<?=htmlspecialchars($api->Settings["scope"] ? $api->Settings["scope"] : $scope_default)?>" />
+				<label for="oauth_field_scope"><?=Text::translate("Scope")?><?php if ($scope_help) { echo $scope_help; } ?></label>
+				<input id="oauth_field_scope" type="text" name="scope" value="<?=htmlspecialchars($api->Settings["scope"] ? $api->Settings["scope"] : $scope_default)?>" />
 			</fieldset>
 			<?php
 				}
+				
 				if ($show_test_environment) {
 			?>
 			<fieldset>
-				<input name="test_environment" type="checkbox"<?php if ($api->Settings["test_environment"]) { ?> checked="checked"<?php } ?> />
-				<label class="for_checkbox"><?=Text::translate("Use Test Environment")?></label>
+				<input id="oauth_field_test_environment" name="test_environment" type="checkbox"<?php if ($api->Settings["test_environment"]) { ?> checked="checked"<?php } ?> />
+				<label for="oauth_field_test_environment" class="for_checkbox"><?=Text::translate("Use Test Environment")?></label>
 			</fieldset>
 			<?php
 				}

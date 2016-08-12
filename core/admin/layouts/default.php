@@ -183,19 +183,23 @@
 	</nav>
 	<script>
 		// Placing this here inline because we want the menu rendering changed on page render if it's too large.
-		var width = 0;
-		var menu = $("#sub_nav").find("menu div");
-		var extras = $("<div>");
-		$("#sub_nav > a").each(function() {
-			var iwidth = $(this).width() + 29;
-			if (width + iwidth > 910) {
-				extras.append($(this));
+		(function() {
+			var width = 0;
+			var menu = $("#sub_nav").find("menu div");
+			var extras = $("<div>");
+			
+			$("#sub_nav > a").each(function () {
+				var iwidth = $(this).width() + 29;
+				if (width + iwidth > 910) {
+					extras.append($(this));
+				}
+				width += iwidth;
+			});
+			
+			if (width > 910) {
+				$("#sub_nav").find("menu").show().find("div").prepend(extras.html());
 			}
-			width += iwidth;
-		});
-		if (width > 910) {
-			$("#sub_nav").find("menu").show().find("div").prepend(extras.html());
-		}
+		})();
 	</script>
 	<?php
 		}

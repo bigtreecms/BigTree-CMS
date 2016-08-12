@@ -22,7 +22,7 @@
 			<?php } ?>
 		</select>
 		<?php } else { ?>
-		<input type="text" disabled="disabled" value="No Callouts Available" />
+		<input id="callout_type" type="text" disabled="disabled" value="No Callouts Available" />
 		<?php } ?>
 	</fieldset>
 </div>

@@ -59,8 +59,8 @@
 			<p><?=Text::translate("BigTree could not automatically detect the :file_access_method: directory that it is installed in (or BigTree was not found in the directory entered below). Please enter the full :file_access_method: path below. This would be the directory that contains /core/.", false, array(":file_access_method:" => $method))?></p>
 			<hr />
 			<fieldset>
-				<label><?=Text::translate(":file_access_method: Path", false, array(":file_access_method:" => $method))?></label>
-				<input type="text" name="ftp_root" value="<?=htmlspecialchars(Setting::value("bigtree-internal-ftp-upgrade-root"))?>" />
+				<label for="ftp_field_root"><?=Text::translate(":file_access_method: Path", false, array(":file_access_method:" => $method))?></label>
+				<input id="ftp_field_root" type="text" name="ftp_root" value="<?=htmlspecialchars(Setting::value("bigtree-internal-ftp-upgrade-root"))?>" />
 			</fieldset>
 		</section>
 		<footer>

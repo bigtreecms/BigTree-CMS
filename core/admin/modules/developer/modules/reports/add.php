@@ -9,12 +9,12 @@
 		<section>
 			<div class="left last">
 				<fieldset>
-					<label class="required"><?=Text::translate("Title")?></label>
-					<input type="text" class="required" name="title" />
+					<label for="report_field_title" class="required"><?=Text::translate("Title")?></label>
+					<input id="report_field_title" type="text" class="required" name="title" />
 				</fieldset>
 
 				<fieldset>
-					<label class="required"><?=Text::translate("Data Table")?></label>
+					<label for="report_table" class="required"><?=Text::translate("Data Table")?></label>
 					<select name="table" id="report_table" class="required">
 						<option></option>
 						<?php SQL::drawTableSelectOptions(); ?>
@@ -22,8 +22,8 @@
 				</fieldset>
 
 				<fieldset id="filtered_view" style="display: none;">
-					<label><?=Text::translate("Filtered View <small>(after the report is submitted, it will show data using this view)</small>")?></label>
-					<select name="view">
+					<label for="report_field_view"><?=Text::translate("Filtered View <small>(after the report is submitted, it will show data using this view)</small>")?></label>
+					<select id="report_field_view" name="view">
 						<?php foreach ($available_views as $view) { ?>
 						<option value="<?=$view->ID?>"<?php if (isset($_GET["view"]) && $_GET["view"] == $view->ID) { ?> selected="selected"<?php } ?>><?=$view->Title?></option>
 						<?php } ?>
@@ -33,7 +33,7 @@
 
 			<div class="right last">
 				<fieldset>
-					<label><?=Text::translate("Type")?></label>
+					<label for="report_type"><?=Text::translate("Type")?></label>
 					<select name="type" id="report_type">
 						<option value="csv"><?=Text::translate("CSV Export")?></option>
 						<option value="view"><?=Text::translate("Filtered View")?></option>
@@ -41,8 +41,8 @@
 				</fieldset>
 
 				<fieldset id="data_parser_function">
-					<label><?=Text::translate("Data Parser Function <small>(optional, just the function name)</small>")?></label>
-					<input type="text" name="parser" />
+					<label for="report_field_parser"><?=Text::translate("Data Parser Function <small>(optional, just the function name)</small>")?></label>
+					<input id="report_field_parser" type="text" name="parser" />
 					<p class="note"><?=Text::translate("Your function will receive an array of records to modify and return.")?></p>
 				</fieldset>
 			</div>

@@ -1,5 +1,7 @@
 <?php
-	$resource = BigTree\Resource::getByFile($_POST["file"]);
+	namespace BigTree;
+	
+	$resource = Resource::getByFile($_POST["file"]);
 	$file = $resource->Array;
 	$pinfo = pathinfo($file["file"]);
 	
@@ -13,7 +15,7 @@
 	}
 ?>
 <div class="file_browser_detail_title">
-	<label>Title</label>
+	<label for="file_browser_detail_title_input">Title</label>
 	<input type="text" name="<?=$file["id"]?>" id="file_browser_detail_title_input" value="<?=$file["name"]?>" />
 </div>
 <div class="file_browser_detail_list">

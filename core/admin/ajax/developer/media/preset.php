@@ -8,8 +8,8 @@
 	}
 ?>
 <fieldset>
-	<label><?=Text::translate("Name")?></label>
-	<input type="text" name="name" value="<?=Text::htmlEncode($_POST["name"])?>" />
+	<label for="preset_field_name"><?=Text::translate("Name")?></label>
+	<input id="preset_field_name" type="text" name="name" value="<?=Text::htmlEncode($_POST["name"])?>" />
 </fieldset>
 <?php
 	$data = $_POST;

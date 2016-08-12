@@ -59,8 +59,11 @@
 				<fieldset class="clear developer_module_group">
 					<label for="module_field_group_new"><?=Text::translate("Group <small>(if a new group name is chosen, the select box is ignored)</small>")?></label>
 					<input id="module_field_group_new" name="group_new" type="text" placeholder="<?=Text::translate("New Group", true)?>" />
-					<span><?=Text::translate("OR")?></span> 
-					<select name="group_existing">
+					
+					<span><?=Text::translate("OR")?></span>
+					
+					<label for="module_field_group_existing" class="visually_hidden">Existing Group</label>
+					<select id="module_field_group_existing" name="group_existing">
 						<option value=""></option>
 						<?php foreach ($groups as $group) { ?>
 						<option value="<?=$group->ID?>"<?php if ($group->ID == $module->Group) { ?> selected="selected"<?php } ?>><?=$group->Name?></option>

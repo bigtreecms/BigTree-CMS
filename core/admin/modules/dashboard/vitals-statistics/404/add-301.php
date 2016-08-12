@@ -5,12 +5,12 @@
 	<div class="container">
 		<section>
 			<fieldset>
-				<label><?=Text::translate("From")?> <small>(<?=Text::translate("can be a full URL or just the piece after your domain")?>)</small></label>
-				<input type="text" name="from" class="required" />
+				<label for="redirect_field_from"><?=Text::translate("From")?> <small>(<?=Text::translate("can be a full URL or just the piece after your domain")?>)</small></label>
+				<input id="redirect_field_from" type="text" name="from" class="required" />
 			</fieldset>
 			<fieldset>
-				<label><?=Text::translate("To")?> <small>(<?=Text::translate("a full URL — include http://")?>)</small></label>
-				<input type="text" name="to" class="required" />
+				<label for="redirect_field_to"><?=Text::translate("To")?> <small>(<?=Text::translate("a full URL — include http://")?>)</small></label>
+				<input id="redirect_field_to" type="text" name="to" class="required" />
 			</fieldset>
 		</section>
 		<footer>

@@ -1,5 +1,12 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global CloudStorage\Amazon $amazon
+	 * @global CloudStorage\Google $google
+	 * @global CloudStorage\Rackspace $rackspace
+	 * @global Storage $storage
+	 */
 ?>
 <div class="container">
 	<div class="container_summary"><h2><?=Text::translate("Configure")?></h2></div>
@@ -21,8 +28,8 @@
 			</div>
 			<hr />
 			<fieldset>
-				<label><?=Text::translate("Default Storage Service")?> <small>(<?=Text::translate("only connected services appear")?>)</small></label>
-				<select name="service">
+				<label for="storage_field_service"><?=Text::translate("Default Storage Service")?> <small>(<?=Text::translate("only connected services appear")?>)</small></label>
+				<select id="storage_field_service" name="service">
 					<option value="local"><?=Text::translate("Local Storage")?></option>
 					<?php
 						if ($amazon->Active) {

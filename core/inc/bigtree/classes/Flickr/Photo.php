@@ -198,7 +198,7 @@
 				$people[] = new Person($person, $this->API);
 			}
 
-			return new ResultSet($this, "getFavorites", array($per_page, $params), $people, $response->photo->page, $response->photo->pages);
+			return new ResultSet($this->API, "getFavorites", array($per_page, $params), $people, $response->photo->page, $response->photo->pages);
 		}
 
 		/*

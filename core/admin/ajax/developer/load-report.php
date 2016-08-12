@@ -1,5 +1,11 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $filters
+	 * @global string $table
+	 * @global string $type
+	 */
 
 	$filter_types = array(
 		"search" => Text::translate("Simple Search"),

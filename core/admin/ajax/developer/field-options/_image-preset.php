@@ -16,20 +16,20 @@
 	$height_title = Text::translate("Height");
 ?>
 <fieldset>
-	<label><?=Text::translate("Minimum Width <small>(numeric value in pixels)</small>")?></label>
-	<input type="text" name="min_width" value="<?=htmlspecialchars($data["min_width"])?>" disabled="disabled" />
+	<label for="preset_field_min_width"><?=Text::translate("Minimum Width <small>(numeric value in pixels)</small>")?></label>
+	<input id="preset_field_min_width" type="text" name="min_width" value="<?=htmlspecialchars($data["min_width"])?>" disabled="disabled" />
 </fieldset>
 <fieldset>
-	<label><?=Text::translate("Minimum Height <small>(numeric value in pixels)</small>")?></label>
-	<input type="text" name="min_height" value="<?=htmlspecialchars($data["min_height"])?>" disabled="disabled" />
+	<label for="preset_field_min_height"><?=Text::translate("Minimum Height <small>(numeric value in pixels)</small>")?></label>
+	<input id="preset_field_min_height" type="text" name="min_height" value="<?=htmlspecialchars($data["min_height"])?>" disabled="disabled" />
 </fieldset>
 <fieldset>
-	<label><?=Text::translate("Preview Prefix <small>(for forms)</small>")?></label>
-	<input type="text" name="preview_prefix" value="<?=htmlspecialchars($data["preview_prefix"])?>" disabled="disabled" />
+	<label for="preset_field_preview_prefix"><?=Text::translate("Preview Prefix <small>(for forms)</small>")?></label>
+	<input id="preset_field_preview_prefix" type="text" name="preview_prefix" value="<?=htmlspecialchars($data["preview_prefix"])?>" disabled="disabled" />
 </fieldset>
 <fieldset>
-	<label><?=Text::translate('Create Hi-Resolution Retina Images <small><a href=":doc_link:" target="_blank">(learn more)</a></small>', false, array(":doc_link:" => "http://www.bigtreecms.org/docs/dev-guide/field-types/retina-images/"))?></label>
-	<input type="checkbox" name="retina" <?php if ($data["retina"]) { ?>checked="checked" <?php } ?> disabled="disabled" />
+	<label for="preset_field_retina"><?=Text::translate('Create Hi-Resolution Retina Images <small><a href=":doc_link:" target="_blank">(learn more)</a></small>', false, array(":doc_link:" => "http://www.bigtreecms.org/docs/dev-guide/field-types/retina-images/"))?></label>
+	<input id="preset_field_retina" type="checkbox" name="retina" <?php if ($data["retina"]) { ?>checked="checked" <?php } ?> disabled="disabled" />
 	<label class="for_checkbox"> <?=Text::translate("When Available")?></label>
 </fieldset>
 
@@ -45,6 +45,7 @@
 			$crop_count = 0;
 			$crop_thumb_count = 0;
 			$crop_sub_count = 0;
+			
 			if (is_array($data["crops"])) {
 				foreach ($data["crops"] as $crop) {
 					// In case a crop was added but no options were set

@@ -25,8 +25,8 @@
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
 			<input type="hidden" name="service" value="local" />
 			<fieldset>
-				<label><?=Text::translate('BigTree "From" Address <small>(for sending Daily Digest and Forgot Password emails)</small>')?></label>
-				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
+				<label for="local_field_bigtree_from"><?=Text::translate('BigTree "From" Address <small>(for sending Daily Digest and Forgot Password emails)</small>')?></label>
+				<input id="local_field_bigtree_from" type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
 			</fieldset>
 		</form>
 	</section>
@@ -38,12 +38,13 @@
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
 			<input type="hidden" name="service" value="mandrill" />
 			<fieldset>
-				<label><?=Text::translate("API Key")?></label>
-				<input type="text" name="mandrill_key" value="<?=htmlspecialchars($email_service->Settings["mandrill_key"])?>" />
+				<label for="mandrill_field_key"><?=Text::translate("API Key")?></label>
+				<input id="mandrill_field_key" type="text" name="mandrill_key" value="<?=htmlspecialchars($email_service->Settings["mandrill_key"])?>" />
 			</fieldset>
+			
 			<fieldset>
-				<label><?=Text::translate('BigTree "From" Address <small>(required for sending Daily Digest and Forgot Password emails)</small>')?></label>
-				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
+				<label for="mandrill_field_bigtree_from"><?=Text::translate('BigTree "From" Address <small>(required for sending Daily Digest and Forgot Password emails)</small>')?></label>
+				<input id="mandrill_field_bigtree_from" type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
 			</fieldset>
 		</form>
 	</section>
@@ -55,16 +56,16 @@
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
 			<input type="hidden" name="service" value="mailgun" />
 			<fieldset>
-				<label><?=Text::translate("API Key")?></label>
-				<input type="text" name="mailgun_key" value="<?=htmlspecialchars($email_service->Settings["mailgun_key"])?>" />
+				<label for="mailgun_field_key"><?=Text::translate("API Key")?></label>
+				<input id="mailgun_field_key" type="text" name="mailgun_key" value="<?=htmlspecialchars($email_service->Settings["mailgun_key"])?>" />
 			</fieldset>
 			<fieldset>
-				<label><?=Text::translate('Domain <small>(i.e. sandbox42162361dg235125512.mailgun.org</small>')?></label>
-				<input type="text" name="mailgun_domain" value="<?=htmlspecialchars($email_service->Settings["mailgun_domain"])?>" />
+				<label for="mailgun_field_domain"><?=Text::translate('Domain <small>(i.e. sandbox42162361dg235125512.mailgun.org</small>')?></label>
+				<input id="mailgun_field_domain" type="text" name="mailgun_domain" value="<?=htmlspecialchars($email_service->Settings["mailgun_domain"])?>" />
 			</fieldset>
 			<fieldset>
-				<label><?=Text::translate('BigTree "From" Address <small>(required for sending Daily Digest and Forgot Password emails)</small>')?></label>
-				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
+				<label for="mailgun_field_bigtree_from"><?=Text::translate('BigTree "From" Address <small>(required for sending Daily Digest and Forgot Password emails)</small>')?></label>
+				<input id="mailgun_field_bigtree_from" type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
 			</fieldset>
 		</form>
 	</section>
@@ -76,12 +77,12 @@
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
 			<input type="hidden" name="service" value="postmark" />
 			<fieldset>
-				<label><?=Text::translate("API Key")?></label>
-				<input type="text" name="postmark_key" value="<?=htmlspecialchars($email_service->Settings["postmark_key"])?>" />
+				<label for="postmark_field_key"><?=Text::translate("API Key")?></label>
+				<input id="postmark_field_key" type="text" name="postmark_key" value="<?=htmlspecialchars($email_service->Settings["postmark_key"])?>" />
 			</fieldset>
 			<fieldset>
-				<label><?=Text::translate('BigTree "From" Address <small>(required for sending Daily Digest and Forgot Password emails)</small>')?></label>
-				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
+				<label for="postmark_field_bigtree_from"><?=Text::translate('BigTree "From" Address <small>(required for sending Daily Digest and Forgot Password emails)</small>')?></label>
+				<input id="postmark_field_bigtree_from" type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
 			</fieldset>
 		</form>
 	</section>
@@ -92,16 +93,16 @@
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
 			<input type="hidden" name="service" value="sendgrid" />
 			<fieldset>
-				<label><?=Text::translate('API User <small>(same as SMTP username)</small>')?></label>
-				<input type="text" name="sendgrid_api_user" value="<?=htmlspecialchars($email_service->Settings["sendgrid_api_user"])?>" />
+				<label for="sendgrid_field_user"><?=Text::translate('API User <small>(same as SMTP username)</small>')?></label>
+				<input id="sendgrid_field_user" type="text" name="sendgrid_api_user" value="<?=htmlspecialchars($email_service->Settings["sendgrid_api_user"])?>" />
 			</fieldset>
 			<fieldset>
-				<label><?=Text::translate('API Key <small>(same as SMTP password)</small>')?></label>
-				<input type="text" name="sendgrid_api_key" value="<?=htmlspecialchars($email_service->Settings["sendgrid_api_key"])?>" />
+				<label for="sendgrid_field_key"><?=Text::translate('API Key <small>(same as SMTP password)</small>')?></label>
+				<input id="sendgrid_field_key" type="text" name="sendgrid_api_key" value="<?=htmlspecialchars($email_service->Settings["sendgrid_api_key"])?>" />
 			</fieldset>
 			<fieldset>
-				<label><?=Text::translate('BigTree "From" Address <small>(required for sending Daily Digest and Forgot Password emails)</small>')?></label>
-				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
+				<label for="sendgrid_field_bigtree_from"><?=Text::translate('BigTree "From" Address <small>(required for sending Daily Digest and Forgot Password emails)</small>')?></label>
+				<input id="sendgrid_field_bigtree_from" type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
 			</fieldset>
 		</form>
 	</section>
