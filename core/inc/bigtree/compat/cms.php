@@ -233,7 +233,7 @@
 		static function getBreadcrumb($ignore_trunk = false) {
 			global $bigtree;
 			
-			return BigTree\Page::getBreadcrumbForPage($bigtree["page"], $ignore_trunk);
+			return BigTree\Navigation::getBreadcrumb($bigtree["page"], $ignore_trunk);
 		}
 		
 		/*
@@ -253,7 +253,7 @@
 		*/
 		
 		static function getBreadcrumbByPage($page, $ignore_trunk = false) {
-			return BigTree\Page::getBreadcrumbForPage($page, $ignore_trunk);
+			return BigTree\Navigation::getBreadcrumb($page, $ignore_trunk);
 		}
 		
 		/*

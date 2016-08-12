@@ -1,3 +1,10 @@
+<?php
+	namespace BigTree;
+	
+	/**
+	 * @global array $bigtree
+	 */
+?>
 <div class="text_input">
 	<?php
 		$sub_type = isset($this->Settings["sub_type"]) ? $this->Settings["sub_type"] : false;
@@ -43,7 +50,7 @@
 		<select class="<?=$this->Settings["validation"]?>" name="<?=$this->Key?>[state]" id="<?=$this->ID?>_state" tabindex="<?=($this->TabIndex + 2)?>">
 			<option value="">Select a State</option>
 			<?php foreach (Field::$StateList as $abbreviation => $state_name) { ?>
-			<option value="<?=$a?>"<?php if ($abbreviation == $this->Value["state"]) { ?> selected="selected"<?php } ?>><?=$state_name?></option>
+			<option value="<?=$abbreviation?>"<?php if ($abbreviation == $this->Value["state"]) { ?> selected="selected"<?php } ?>><?=$state_name?></option>
 			<?php } ?>
 		</select>
 	</section>
@@ -53,7 +60,7 @@
 	<section class="input_address_country">
 		<select class="<?=$this->Settings["validation"]?>" name="<?=$this->Key?>[country]" id="<?=$this->ID?>_country" tabindex="<?=($this->TabIndex + 4)?>">
 			<?php foreach (Field::$CountryList as $country_name) { ?>
-			<option value="<?=$c?>"<?php if ($country_name == $this->Value["country"]) { ?> selected="selected"<?php } ?>><?=$country_name?></option>
+			<option value="<?=$country_name?>"<?php if ($country_name == $this->Value["country"]) { ?> selected="selected"<?php } ?>><?=$country_name?></option>
 			<?php } ?>
 		</select>
 	</section>

@@ -6,11 +6,11 @@
 		return SQL::query($query);
 	}
 
-	function sqlfetch($query) {
+	function sqlfetch(SQL $query) {
 		return $query->fetch();
 	}
 
-	function sqlrows($result) {
+	function sqlrows(SQL $result) {
 		return $result->rows();
 	}
 

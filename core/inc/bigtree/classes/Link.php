@@ -419,11 +419,12 @@
 			
 			// Check for resource link
 			if ($command[0] == "files" && $command[1] == "resources") {
-				$resource = Resource::file($url);
+				$resource = Resource::getByFile($url);
+				
 				if ($resource) {
-					Resource::$CreationLog[] = $resource["id"];
+					Resource::$CreationLog[] = $resource->ID;
 
-					return "irl://".$resource["id"]."//".$resource["prefix"];
+					return "irl://".$resource->ID."//".$resource->Prefix;
 				}
 			}
 
@@ -493,7 +494,7 @@
 		static function irlExists($irl) {
 			$irl = explode("//", $irl);
 
-			return Resource::get($irl[1]) ? true : false;
+			return Resource::exists($irl[1]) ? true : false;
 		}
 
 		/*

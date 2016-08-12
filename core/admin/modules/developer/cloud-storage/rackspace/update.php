@@ -1,5 +1,9 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global CloudStorage\Rackspace $rackspace
+	 */
 
 	$rackspace->Username = trim($_POST["username"]);
 	$rackspace->Key = trim($_POST["api_key"]);
@@ -15,6 +19,5 @@
 	$rackspace->Setting->save();
 
 	Utils::growl("Developer","Enabled Rackspace Cloud Files");
-
 	Router::redirect(DEVELOPER_ROOT."cloud-storage/");
 	

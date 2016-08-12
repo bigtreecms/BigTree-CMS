@@ -19,7 +19,7 @@
 		Text::translate('Follow the OAuth process of allowing BigTree/your application access to your Facebook account.')
 	);
 
-	function __localBigTreeAPIReturn(&$api) {
+	function __localBigTreeAPIReturn(Facebook\API &$api) {
 		$user = $api->getUser();
 		$api->Settings["user_name"] = $user->Name;
 		$api->Settings["user_image"] = $user->getPicture();

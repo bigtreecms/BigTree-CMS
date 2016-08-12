@@ -7,7 +7,8 @@
 	namespace BigTree\GoogleAnalytics;
 
 	class Property {
-
+		
+		/** @var \BigTree\GoogleAnalytics\API */
 		protected $API;
 
 		public $AccountID;

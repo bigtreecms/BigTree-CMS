@@ -15,7 +15,7 @@
 		Text::translate('Follow the OAuth process of allowing BigTree/your application access to your YouTube account.')
 	);
 
-	$bigtree["api_return_function"] = function(&$api) {
+	$bigtree["api_return_function"] = function(YouTube\API &$api) {
 		$info = $api->getChannel();
 		$api->Settings["user_id"] = $info->ID;
 		$api->Settings["user_name"] = $info->Title;

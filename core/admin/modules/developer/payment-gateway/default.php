@@ -1,5 +1,9 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global PaymentGateway\Provider $gateway
+	 */
 
 	$root = DEVELOPER_ROOT."payment-gateway/";
 ?>

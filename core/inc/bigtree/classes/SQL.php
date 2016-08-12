@@ -18,13 +18,16 @@
 	 */
 
 	class SQL {
-
+		/** @var \mysqli */
 		public static $Connection = "disconnected";
+		/** @var \mysqli */
+		public static $WriteConnection = "disconnected";
+		
 		public static $ErrorLog = array();
 		public static $MySQLTime = "";
 		public static $QueryLog = array();
-		public static $WriteConnection = "disconnected";
-
+		
+		/** @var \mysqli_result */
 		public $ActiveQuery = false;
 
 		// Constructor for chain queries
@@ -93,16 +96,19 @@
 			fwrite($pointer, "SET foreign_key_checks = 0;\n\n");
 
 			$tables = static::fetchAllSingle("SHOW TABLES");
+			
 			foreach ($tables as $table) {
 				// Write the drop / create statements
 				fwrite($pointer, "DROP TABLE IF EXISTS `$table`;\n");
 				$definition = static::fetchSingle("SHOW CREATE TABLE `$table`");
+				
 				if (is_array($definition)) {
 					fwrite($pointer, str_replace(array("\n  ", "\n"), "", end($definition)).";\n");
 				}
 
 				// Get all the table contents, write them out
-				$rows = static::tableContents($table);
+				$rows = static::dumpTable($table);
+				
 				foreach ($rows as $row) {
 					fwrite($pointer, $row.";\n");
 				}
@@ -713,6 +719,7 @@
 			$description = static::describeTable($table);
 			$column_query = array();
 			$binary_columns = array();
+			
 			foreach ($description["columns"] as $key => $column) {
 				if ($column["type"] == "tinyblob" || $column["type"] == "blob" || $column["type"] == "mediumblob" || $column["type"] == "longblob" || $column["type"] == "binary" || $column["type"] == "varbinary") {
 					$column_query[] = "HEX(`$key`) AS `$key`";
@@ -724,11 +731,13 @@
 
 			// Get the rows out of the table
 			$query = static::query("SELECT ".implode(", ", $column_query)." FROM `$table`");
+			
 			while ($row = $query->fetch()) {
 				$keys = $vals = array();
 
 				foreach ($row as $key => $val) {
 					$keys[] = "`$key`";
+					
 					if ($val === null) {
 						$vals[] = "NULL";
 					} else {

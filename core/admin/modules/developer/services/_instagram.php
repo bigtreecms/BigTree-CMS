@@ -14,7 +14,7 @@
 		Text::translate('Follow the OAuth process of allowing BigTree/your application access to your Instagram account.')
 	);
 
-	$bigtree["api_return_function"] = function(&$api) {
+	$bigtree["api_return_function"] = function(Instagram\API &$api) {
 		$user = $api->callUncached("users/self");
 		$api->Settings["user_id"] = $user->data->id;
 		$api->Settings["user_name"] = $user->data->username;

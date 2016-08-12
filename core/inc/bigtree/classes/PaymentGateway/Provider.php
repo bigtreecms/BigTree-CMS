@@ -17,6 +17,7 @@
 		public $Message;
 		public $PayPalPeriods = array("day" => "Day", "week" => "Week", "month" => "Month", "year" => "Year");
 		public $Service;
+		public $Setting;
 		public $Settings;
 		public $Transaction;
 		public $Unresponsive;
@@ -30,20 +31,17 @@
 		*/
 		
 		function __construct($gateway_override = false) {
-			$setup = Setting::value("bigtree-internal-payment-gateway");
+			$this->Setting = new Setting("bigtree-internal-payment-gateway");
 
 			// Setting doesn't exist? Create it.
-			if ($setup === false) {
-				$setting = Setting::create("bigtree-internal-payment-gateway", "Payment Gateway", "", "", array(), "", true, true, true);
-				$setting->Value = array("service" => "", "settings" => array());
-				$setting->save();
-
-				$this->Service = "";
-				$this->Settings = array();
-			} else {
-				$this->Service = $setup["service"];
-				$this->Settings = $setup["settings"];
+			if (empty($this->Setting->ID)) {
+				$this->Setting = Setting::create("bigtree-internal-payment-gateway", "Payment Gateway", "", "", array(), "", true, true, true);
+				$this->Setting->Value = array("service" => "", "settings" => array());
+				$this->Setting->save();
 			}
+			
+			$this->Service = &$this->Setting["service"];
+			$this->Settings = &$this->Setting["settings"];
 		}
 		
 		/*

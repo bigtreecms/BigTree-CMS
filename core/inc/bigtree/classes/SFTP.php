@@ -11,7 +11,8 @@
 	require_once("Net/SFTP.php");
 
 	class SFTP {
-
+		
+		/** @var \Net_SFTP */
 		public $Connection;
 
 		/*
@@ -117,7 +118,7 @@
 		*/
 
 		function disconnect() {
-			return $this->Connection->_disconnect();
+			return $this->Connection->_disconnect("");
 		}
 
 		/*

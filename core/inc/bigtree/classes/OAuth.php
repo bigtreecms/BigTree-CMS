@@ -9,8 +9,6 @@
 	
 	class OAuth {
 
-		protected $Setting;
-
 		public $Active;
 		public $AuthorizeURL = "";
 		public $Cache = true;
@@ -26,6 +24,7 @@
 		public $RequestType = false;
 		public $ReturnURL = "";
 		public $Scope = false;
+		public $Setting;
 		public $Settings = array();
 		public $SettingID = false;
 		public $SettingNamespace = "";

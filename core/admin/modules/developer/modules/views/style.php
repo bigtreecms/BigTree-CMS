@@ -92,7 +92,7 @@
 	BigTree.localViewTitles = $(".table header .view_column");
 	BigTree.localViewRows = $(".table ul li");
 	
-	$(".table .view_column").mousedown(function(ev) {
+	$(".table .view_column").on("mousedown", function(ev) {
 		BigTree.localGrowingStartWidth = $(this).width();
 		var objoffset = $(this).offset();
 		var obj_middle = Math.round(BigTree.localGrowingStartWidth / 2);
@@ -116,17 +116,17 @@
 		BigTree.localDragging = true;
 		
 		return false;
-	}).mouseup(function() {
+	}).on("mouseup", function() {
 		BigTree.localDragging = false;
 		BigTree.localViewTitles.eq(BigTree.localGrowing).css({ cursor: "move" });
 		$(".table .view_column").each(function() {
 			var name = $(this).attr("data-name");
-			width = $(this).width();
+			var width = $(this).width();
 			$("#data_" + name).val(width);
 		});
 	});
 	
-	$(window).mousemove(function(ev) {
+	$(window).on("mousemove", function(ev) {
 		if (!BigTree.localDragging) {
 			return;
 		}

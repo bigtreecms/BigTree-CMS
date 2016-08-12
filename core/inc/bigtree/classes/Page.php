@@ -544,7 +544,7 @@
 			$children = SQL::fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ?", $id);
 			foreach ($children as $child) {
 				// Recurse to this child's children
-				$this->deletePageChildren($child);
+				$this->deleteChildren($child);
 				
 				// Delete and track
 				SQL::delete("bigtree_pages", $child);

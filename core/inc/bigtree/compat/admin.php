@@ -4,6 +4,7 @@
 			The main class used by the admin for manipulating and retrieving data.
 	*/
 
+	use BigTree\Auth;
 	use BigTree\SQL;
 
 	class BigTreeAdminBase {
@@ -61,14 +62,14 @@
 
 		function __construct() {
 			// Handle authentication
-			$this->Auth = new BigTree\Auth;
+			$this->Auth = new Auth;
 
 			// Admin environment
-			$this->ID = $this->Auth->ID;
-			$this->User = $this->Auth->User;
-			$this->Level = $this->Auth->Level;
-			$this->Name = $this->Auth->Name;
-			$this->Permissions = $this->Auth->Permissions;
+			$this->ID = Auth::$ID;
+			$this->User = Auth::$Email;
+			$this->Level = Auth::$Level;
+			$this->Name = Auth::$Name;
+			$this->Permissions = Auth::$Permissions;
 
 			// Check the permissions to see if we should show the pages tab.
 			if (!$this->Level) {

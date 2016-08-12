@@ -1,4 +1,10 @@
 <?php
+	namespace BigTree;
+	
+	/**
+	 * @global array $bigtree
+	 */
+	
 	// We're going to change these $bigtree entries, so save them to revert back.
 	$saved = array(
 		"entry" => $bigtree["entry"],
@@ -41,7 +47,7 @@
 						$sub_field["input"] = json_decode($sub_field["input"], true);
 					}
 					
-					$sub_field = new BigTree\Field($sub_field);
+					$sub_field = new Field($sub_field);
 					$output = $sub_field->process();
 					
 					if (!is_null($output)) {

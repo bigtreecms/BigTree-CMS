@@ -1,5 +1,9 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global CloudStorage\Amazon $amazon
+	 */
 
 	$amazon->Key = trim($_POST["key"]);
 	$amazon->Secret = trim($_POST["secret"]);
@@ -16,5 +20,5 @@
 	$amazon->Setting->save();
 
 	Utils::growl("Developer","Enabled Amazon S3");
-	
 	Router::redirect(DEVELOPER_ROOT."cloud-storage/");
+	

@@ -16,7 +16,7 @@
 		Text::translate('Follow the OAuth process of allowing BigTree/your application access to your Google+ account.')
 	);
 
-	$bigtree["api_return_function"] = function(&$api) {
+	$bigtree["api_return_function"] = function(GooglePlus\API &$api) {
 		$info = $api->getPerson();
 		$api->Settings["user_id"] = $info->ID;
 		$api->Settings["user_name"] = $info->DisplayName;
