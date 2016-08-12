@@ -1,5 +1,11 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $bigtree
+	 * @global string $page_id
+	 * @global string $refresh_link
+	 */
 ?>
 <h2><?=Text::translate("Errors Occurred")?></h2>
 <div class="bigtree_dialog_form">

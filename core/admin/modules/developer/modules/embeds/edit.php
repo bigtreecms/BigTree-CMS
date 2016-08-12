@@ -1,6 +1,10 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global array $bigtree
+	 */
+	
 	$form = new ModuleEmbedForm(end($bigtree["commands"]));
 	$module = new Module($form->Module);
 

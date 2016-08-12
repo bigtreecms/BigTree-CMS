@@ -1,9 +1,15 @@
 <?php
-	$date = DateTime::createFromFormat($bigtree["config"]["date_format"]." h:i a", $this->Input);
+	namespace BigTree;
+	
+	/**
+	 * @global array $bigtree
+	 */
+	
+	$date = \DateTime::createFromFormat($bigtree["config"]["date_format"]." h:i a", $this->Input);
 	
 	// Fallback to SQL standards for existing values
 	if (!$date) {
-		$date = DateTime::createFromFormat("Y-m-d H:i:s", $this->Input);
+		$date = \DateTime::createFromFormat("Y-m-d H:i:s", $this->Input);
 	}
 	
 	if ($date) {

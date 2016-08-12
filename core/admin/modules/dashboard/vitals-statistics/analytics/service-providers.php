@@ -1,5 +1,9 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $cache
+	 */
 ?>
 <div id="analytics_tab"></div>
 <script>

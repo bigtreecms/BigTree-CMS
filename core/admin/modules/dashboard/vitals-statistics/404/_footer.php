@@ -1,3 +1,8 @@
+<?php
+	/**
+	 * @global string $type
+	 */
+?>
 <script>
 	BigTree.localSaveTimer = false;
 	BigTree.localSearchTimer = false;

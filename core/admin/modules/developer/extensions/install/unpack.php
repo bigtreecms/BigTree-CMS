@@ -9,6 +9,9 @@
 	
 	// Make sure an upload succeeded
 	$error = $_FILES["file"]["error"];
+	$errors = array();
+	$warnings = array();
+	
 	if ($error == 1 || $error == 2) {
 		$_SESSION["upload_error"] = "The file you uploaded is too large.  You may need to edit your php.ini to upload larger files.";
 	} elseif ($error == 3) {
@@ -21,6 +24,7 @@
 	
 	// We've at least got the file now, unpack it and see what's going on.
 	$file = $_FILES["file"]["tmp_name"];
+	
 	if (!$file) {
 		$_SESSION["upload_error"] = "File upload failed.";
 		Router::redirect(DEVELOPER_ROOT."extensions/install/");
@@ -37,10 +41,11 @@
 
 	// See if this was downloaded off GitHub (will have a single root folder)
 	$zip_root = Updater::zipRoot($zip);
+	
 	if ($zip_root) {
-		$files = $zip->extract(PCLZIP_OPT_PATH,$cache_root,PCLZIP_OPT_REMOVE_PATH,$zip_root);
+		$files = $zip->extract(PCLZIP_OPT_PATH, $cache_root, PCLZIP_OPT_REMOVE_PATH, $zip_root);
 	} else {
-		$files = $zip->extract(PCLZIP_OPT_PATH,$cache_root);
+		$files = $zip->extract(PCLZIP_OPT_PATH, $cache_root);
 	}
 
 	if (!$files) {
@@ -51,6 +56,7 @@
 	
 	// Read the manifest
 	$json = json_decode(file_get_contents($cache_root."manifest.json"),true);
+	
 	// Make sure it's legit -- we check the alphanumeric status of the ID because if it's invalid someone may be trying to put files in a bad directory
 	if ($json["type"] != "extension" || !isset($json["id"]) || !isset($json["title"]) || !ctype_alnum(str_replace(array(".","_","-"),"",$json["id"]))) {
 		FileSystem::deleteDirectory($cache_root);

@@ -1,5 +1,9 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $cache
+	 */
 
 	$two_week_visits = $cache["two_week"];
 	$graph_min = min($two_week_visits);

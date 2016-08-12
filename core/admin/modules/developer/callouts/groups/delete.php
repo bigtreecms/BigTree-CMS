@@ -1,5 +1,9 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $bigtree
+	 */
 
 	$group = new CalloutGroup(end($bigtree["path"]));
 	$group->delete();

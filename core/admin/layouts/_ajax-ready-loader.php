@@ -1,5 +1,7 @@
 <?
-	// Load field types requested CSS and JS if it's not already loaded and then run BigTree's ready call
+	/**
+	 * @global array $bigtree
+	 */
 ?>
 <script>
 	var Head = $("head");

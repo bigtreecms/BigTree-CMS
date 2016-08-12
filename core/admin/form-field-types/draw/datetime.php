@@ -1,4 +1,10 @@
 <?php
+	namespace BigTree;
+	
+	/**
+	 * @global array $bigtree
+	 */
+	
 	if (!$this->Value && isset($this->Settings["default_now"]) && $this->Settings["default_now"]) {
 		$this->Value = date($bigtree["config"]["date_format"]." h:i a");
 	} elseif ($this->Value && $this->Value != "0000-00-00 00:00:00") {
@@ -11,7 +17,7 @@
 	if (defined("BIGTREE_CALLOUT_RESOURCES")) {
 		// Process hour/minute
 		if ($this->Value) {
-			$date = DateTime::createFromFormat($bigtree["config"]["date_format"]." h:i a",$this->Value);
+			$date = \DateTime::createFromFormat($bigtree["config"]["date_format"]." h:i a",$this->Value);
 			$hour = $date->format("H");
 			$minute = $date->format("i");
 		} else {

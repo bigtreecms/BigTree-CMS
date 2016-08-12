@@ -1,6 +1,10 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global array $bigtree
+	 */
+	
 	$page = new Page(end($bigtree["path"]));
 	
 	if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {

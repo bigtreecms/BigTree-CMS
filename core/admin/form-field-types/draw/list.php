@@ -1,14 +1,19 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $bigtree
+	 * @global ModuleForm $form
+	 */
 
 	$db_error = false;
 	$is_group_based_perm = false;
 	$list = array();
+	$list_table = "";
 
 	// Database populated list.
 	if ($this->Settings["list_type"] == "db") {
 		$list_table = $this->Settings["pop-table"];
-		$list_id = $this->Settings["pop-id"];
 		$list_title = $this->Settings["pop-description"];
 		$list_sort = $this->Settings["pop-sort"];
 		
@@ -19,7 +24,7 @@
 			$entries = SQL::fetchAll("SELECT `id`,`$list_title` AS `title` FROM `$list_table` ORDER BY $list_sort");
 			
 			// Check if we're doing module based permissions on this table.
-			if ($bigtree["module"] && $bigtree["module"]["gbp"]["enabled"] && $form["table"] == $bigtree["module"]["gbp"]["table"] && $key == $bigtree["module"]["gbp"]["group_field"]) {
+			if ($bigtree["module"] && $bigtree["module"]["gbp"]["enabled"] && $form->Table == $bigtree["module"]["gbp"]["table"] && $this->Key == $bigtree["module"]["gbp"]["group_field"]) {
 				$module = new Module($bigtree["module"]);
 				$is_group_based_perm = true;
 

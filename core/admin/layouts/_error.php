@@ -1,3 +1,8 @@
+<?php
+	/**
+	 * @global string $message
+	 */
+?>
 <div class="container">
 	<section>
 		<div class="alert">

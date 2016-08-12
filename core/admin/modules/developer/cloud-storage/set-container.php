@@ -3,7 +3,9 @@
 
 	$storage = new Storage;
 	$storage->Settings["Service"] = $_POST["service"];
-
+	$cloud = false;
+	$container = "";
+	
 	if ($_POST["service"] == "amazon") {
 		$cloud = new CloudStorage\Amazon;
 	} elseif ($_POST["service"] == "rackspace") {

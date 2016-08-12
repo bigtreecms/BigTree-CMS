@@ -1,6 +1,10 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global array $bigtree
+	 */
+	
 	$interface = new ModuleInterface(end($bigtree["commands"]));
 	$interface->delete();
 

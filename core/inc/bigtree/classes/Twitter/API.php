@@ -505,6 +505,9 @@
 		*/
 
 		function oAuthRedirect() {
+			$oauth_callback_confirmed = false;
+			$oauth_token = "";
+			
 			// Get a token first because Twitter is silly.
 			$response = $this->callAPI("https://api.twitter.com/oauth/request_token","GET",array("oauth_callback" => $this->ReturnURL));
 			parse_str($response);
@@ -524,6 +527,9 @@
 		*/
 
 		function oAuthSetToken($code) {
+			$oauth_token = "";
+			$oauth_token_secret = "";
+			
 			$response = $this->callAPI("https://api.twitter.com/oauth/access_token","POST",array("oauth_token" => $_GET["oauth_token"],"oauth_verifier" => $_GET["oauth_verifier"]));
 			parse_str($response);
 

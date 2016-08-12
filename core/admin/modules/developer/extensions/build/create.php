@@ -119,7 +119,7 @@
 	
 	// Setup anonymous function for converting old field type IDs to new ones
 	$field_type_converter = function ($table, $field) {
-		global $db, $id, $type;
+		global $id, $type;
 		
 		$q = SQL::query("SELECT * FROM `$table` 
 						 WHERE `$field` LIKE '%\"type\":\"".SQL::escape($type)."\"%' 

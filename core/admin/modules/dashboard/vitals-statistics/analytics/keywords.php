@@ -1,5 +1,9 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $cache
+	 */
 ?>
 <div id="analytics_tab"></div>
 <script>
@@ -11,7 +15,7 @@
 			visits: { title: "<?=Text::translate("Visits")?>", size: 115, center: true },
 			views: { title: "<?=Text::translate("Views")?>", size: 115, center: true }
 		},
-		data: <?=JSON::encodeColumns($cache["keywords"],array("name","visits","views"))?>,
+		data: <?=JSON::encodeColumns($cache["keywords"], array("name", "visits", "views"))?>,
 		searchable: true,
 		sortable: true
 	});

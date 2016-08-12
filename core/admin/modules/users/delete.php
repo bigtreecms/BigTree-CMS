@@ -1,6 +1,10 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global array $bigtree
+	 */
+	
 	$id = intval($bigtree["commands"][0]);
 	Auth::user()->requireLevel(1);
 

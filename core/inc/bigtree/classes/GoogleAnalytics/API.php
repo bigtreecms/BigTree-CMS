@@ -68,11 +68,13 @@
 		*/
 		
 		function getAccounts($params = array()) {
+			$results = array();
 			$response = $this->call("management/accounts", $params);
+			
 			if (!isset($response->items)) {
 				return false;
 			}
-			$results = array();
+			
 			foreach ($response->items as $account) {
 				$results[] = new Account($account, $this);
 			}
@@ -107,26 +109,32 @@
 			if (!is_array($metrics)) {
 				$metrics = array($metrics);
 			}
+			
 			foreach ($metrics as $m) {
 				if (substr($m, 0, 3) != "ga:") {
 					$metric_string .= "ga:";
 				}
+				
 				$metric_string .= $m.",";
 			}
+			
 			$metric_string = rtrim($metric_string, ",");
 			
 			// Clean up the dimensions
 			if (!is_array($dimensions)) {
 				$dimensions = array($dimensions);
 			}
+			
 			foreach ($dimensions as $d) {
 				if ($d) {
 					if (substr($d, 0, 3) != "ga:") {
 						$dimension_string .= "ga:";
 					}
+					
 					$dimension_string .= $d.",";
 				}
 			}
+			
 			$dimension_string = rtrim($dimension_string, ",");
 			
 			// Clean up sort
@@ -145,16 +153,19 @@
 			if ($dimension_string) {
 				$params["dimensions"] = $dimension_string;
 			}
+			
 			if ($sort) {
 				$params["sort"] = $sort;
 			}
 			
 			$response = $this->call("data/ga", $params);
+			
 			if (!$response->rows) {
 				return false;
 			}
 			
 			$this->LastDataTotals = new \stdClass;
+			
 			foreach ($response->totalsForAllResults as $column => $total) {
 				$column = str_replace("ga:", "", $column);
 				$this->LastDataTotals->$column = $total;
@@ -162,16 +173,20 @@
 			
 			// Get the names of each column
 			$column_names = $results = array();
+			
 			foreach ($response->columnHeaders as $header) {
 				// Strip ga: from the name
 				$column_names[] = substr($header->name, 3);
 			}
+			
 			// Return results
 			foreach ($response->rows as $row) {
 				$result = new \stdClass;
+				
 				foreach ($column_names as $index => $name) {
 					$result->$name = $row[$index];
 				}
+				
 				$results[] = $result;
 			}
 			
@@ -191,11 +206,13 @@
 		*/
 		
 		function getProperties($account = "~all", $params = array()) {
+			$results = array();
 			$response = $this->call("management/accounts/$account/webproperties", $params);
+			
 			if (!isset($response->items)) {
 				return false;
 			}
-			$results = array();
+			
 			foreach ($response->items as $property) {
 				$results[] = new Property($property, $this);
 			}
@@ -217,11 +234,13 @@
 		*/
 		
 		function getProfiles($account = "~all", $property = "~all", $params = array()) {
+			$results = array();
 			$response = $this->call("management/accounts/$account/webproperties/$property/profiles", $params);
+			
 			if (!isset($response->items)) {
 				return false;
 			}
-			$results = array();
+			
 			foreach ($response->items as $profile) {
 				$results[] = new Profile($profile, $this);
 			}
@@ -236,11 +255,11 @@
 		*/
 		
 		function cacheInformation() {
-			$cache = array();
-			
 			// First we're going to update the monthly view counts for all pages.
 			$results = $this->getData($this->Settings["profile"], "1 month ago", "today", "pageviews", "pagePath");
 			$used_paths = array();
+			$cache = array();
+			
 			foreach ($results as $item) {
 				$clean_path = trim($item->pagePath, "/");
 				$views = intval($item->pageviews);
@@ -256,18 +275,21 @@
 			
 			// Service Provider report
 			$results = $this->getData($this->Settings["profile"], "1 month ago", "today", array("pageviews", "visits"), "networkLocation", "-ga:pageviews");
+			
 			foreach ($results as $item) {
 				$cache["service_providers"][] = array("name" => $item->networkLocation, "views" => $item->pageviews, "visits" => $item->visits);
 			}
 			
 			// Referrer report
 			$results = $this->getData($this->Settings["profile"], "1 month ago", "today", array("pageviews", "visits"), "source", "-ga:pageviews");
+			
 			foreach ($results as $item) {
 				$cache["referrers"][] = array("name" => $item->source, "views" => $item->pageviews, "visits" => $item->visits);
 			}
 			
 			// Keyword report
 			$results = $this->getData($this->Settings["profile"], "1 month ago", "today", array("pageviews", "visits"), "keyword", "-ga:pageviews");
+			
 			foreach ($results as $item) {
 				$cache["keywords"][] = array("name" => $item->keyword, "views" => $item->pageviews, "visits" => $item->visits);
 			}
@@ -295,6 +317,7 @@
 			
 			// Two Week Heads Up
 			$results = $this->getData($this->Settings["profile"], date("Y-m-d", strtotime("-2 weeks")), date("Y-m-d", strtotime("-1 day")), "visits", "date", "date");
+			
 			foreach ($results as $item) {
 				$cache["two_week"][$item->date] = $item->visits;
 			}

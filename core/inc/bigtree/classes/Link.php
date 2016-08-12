@@ -3,18 +3,18 @@
 		Class: BigTree\Link
 			Provides an interface for handling BigTree links.
 	*/
-
+	
 	namespace BigTree;
-
+	
 	use DOMDocument;
-
+	
 	class Link {
-
+		
 		public static $IRLCache = array();
 		public static $IPLCache = array();
 		public static $TokenKeys = array();
 		public static $TokenValues = array();
-
+		
 		/*
 			Function: currentURL
 				Return the current active URL with correct protocall and port
@@ -22,7 +22,7 @@
 			Parameters:
 				port - Whether to return the port for connections not on port 80 (defaults to false)
 		*/
-
+		
 		static function currentURL($port = false) {
 			$protocol = (@$_SERVER["HTTPS"] == "on") ? "https://" : "http://";
 			
@@ -50,7 +50,7 @@
 				foreach ($input as $key => $value) {
 					$input[$key] = static::decode($value);
 				}
-
+				
 				return $input;
 			}
 			
@@ -66,14 +66,14 @@
 				$input = preg_replace_callback('^="(ipl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^', array('BigTree\Link', "decodeHook"), $input);
 				$input = preg_replace_callback('^="(irl:\/\/[a-zA-Z0-9\_\:\/\.\?\=\-]*)"^', array('BigTree\Link', "decodeHook"), $input);
 			}
-
+			
 			return $input;
 		}
-
+		
 		private static function decodeHook($matches) {
 			return '="'.static::iplDecode($matches[1]).'"';
 		}
-
+		
 		/*
 			Function: detokenize
 				Replaces all root tokens in a URL (i.e. {wwwroot}) with hard links.
@@ -84,19 +84,19 @@
 			Returns:
 				A string with hard links.
 		*/
-
+		
 		static function detokenize($input) {
 			if (is_array($input)) {
 				foreach ($input as $key => $value) {
 					$input[$key] = static::detokenize($value);
 				}
-
+				
 				return $input;
 			}
-
+			
 			return str_replace(array("{adminroot}", "{wwwroot}", "{staticroot}"), array(ADMIN_ROOT, WWW_ROOT, STATIC_ROOT), $input);
 		}
-
+		
 		/*
 			Function: encode
 				Converts links in a string or array into internal page links.
@@ -107,16 +107,16 @@
 			Returns:
 				A string with hard links converted into internal page links.
 		*/
-
+		
 		static function encode($input) {
 			if (is_array($input)) {
 				foreach ($input as $key => $value) {
 					$input[$key] = static::encode($value);
 				}
-
+				
 				return $input;
 			}
-
+			
 			// If this string is actually just a URL, IPL it.
 			if ((substr($input, 0, 7) == "http://" || substr($input, 0, 8) == "https://") && strpos($input, "\n") === false && strpos($input, "\r") === false) {
 				$input = static::iplEncode($input);
@@ -126,22 +126,22 @@
 				$input = preg_replace_callback('/src="([^"]*)"/', array('BigTree\Link', "encodeSrc"), $input);
 				$input = static::tokenize($input);
 			}
-
+			
 			return $input;
 		}
 		
 		private static function encodeHref($matches) {
 			$href = static::iplEncode(static::detokenize($matches[1]));
-
+			
 			return 'href="'.$href.'"';
 		}
-
+		
 		private static function encodeSrc($matches) {
 			$src = static::iplEncode(static::detokenize($matches[1]));
-
+			
 			return 'src="'.$src.'"';
 		}
-
+		
 		/*
 			Function: get
 				Returns the public link to a page in the database.
@@ -155,12 +155,12 @@
 		
 		static function get($id) {
 			global $bigtree;
-
+			
 			// Homepage, just return the web root.
 			if ($id == 0) {
 				return WWW_ROOT;
 			}
-
+			
 			// If someone is requesting the link of the page they're already on we don't need to request it from the database.
 			if ($bigtree["page"]["id"] == $id) {
 				if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
@@ -169,10 +169,10 @@
 					return WWW_ROOT.$bigtree["page"]["path"]."/";
 				}
 			}
-
+			
 			// Otherwise we'll grab the page path from the db.
 			$path = SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE archived != 'on' AND id = ?", $id);
-
+			
 			if ($path) {
 				if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
 					return WWW_ROOT.$path;
@@ -180,10 +180,10 @@
 					return WWW_ROOT.$path."/";
 				}
 			}
-
+			
 			return false;
 		}
-
+		
 		/*
 			Function: getPreview
 				Returns a URL to where this page can be previewed.
@@ -194,7 +194,7 @@
 			Returns:
 				A URL.
 		*/
-
+		
 		static function getPreview($id) {
 			if (substr($id, 0, 1) == "p") {
 				return WWW_ROOT."_preview-pending/".htmlspecialchars($id)."/";
@@ -202,11 +202,11 @@
 				return WWW_ROOT."_preview/";
 			} else {
 				$path = SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $id);
-
+				
 				return WWW_ROOT."_preview/$path/";
 			}
 		}
-
+		
 		/*
 			Function: integrity
 				Checks a block of HTML for link/image intergirty
@@ -219,13 +219,13 @@
 			Returns:
 				An array containing two possible keys (a and img) which each could contain an array of errors.
 		*/
-
+		
 		static function integrity($relative_path, $html, $external = false) {
 			if (!$html) {
 				return array();
 			}
 			$errors = array();
-
+			
 			// Make sure HTML is valid.
 			$doc = new DOMDocument();
 			try {
@@ -233,12 +233,13 @@
 			} catch (\Exception $e) {
 				return array();
 			}
-
+			
 			// Check A tags.
 			$links = $doc->getElementsByTagName("a");
 			foreach ($links as $link) {
 				$href = $link->getAttribute("href");
 				$href = str_replace(array("{wwwroot}", "%7Bwwwroot%7D", "{staticroot}", "%7Bstaticroot%7D"), array(WWW_ROOT, WWW_ROOT, STATIC_ROOT, STATIC_ROOT), $href);
+				
 				if ((substr($href, 0, 2) == "//" || substr($href, 0, 4) == "http") && strpos($href, WWW_ROOT) === false) {
 					// External link, not much we can do but alert that it's dead
 					if ($external) {
@@ -277,8 +278,10 @@
 					}
 				}
 			}
+			
 			// Check IMG tags.
 			$images = $doc->getElementsByTagName("img");
+			
 			foreach ($images as $image) {
 				$href = $image->getAttribute("src");
 				$href = str_replace(array("{wwwroot}", "%7Bwwwroot%7D", "{staticroot}", "%7Bstaticroot%7D"), array(WWW_ROOT, WWW_ROOT, STATIC_ROOT, STATIC_ROOT), $href);
@@ -313,10 +316,10 @@
 					}
 				}
 			}
-
+			
 			return $errors;
 		}
-
+		
 		/*
 			Function: iplDecode
 				Returns a hard link to the page's publicly accessible URL from its encoded soft link URL.
@@ -330,14 +333,14 @@
 		
 		static function iplDecode($ipl) {
 			global $bigtree;
-
+			
 			// Regular links
 			if (substr($ipl, 0, 6) != "ipl://" && substr($ipl, 0, 6) != "irl://") {
 				return static::detokenize($ipl);
 			}
 			$ipl = explode("//", $ipl);
 			$navid = $ipl[1];
-
+			
 			// Resource Links
 			if ($ipl[0] == "irl:") {
 				// See if it's in the cache.
@@ -374,7 +377,7 @@
 			} else {
 				$commands = "";
 			}
-
+			
 			// See if it's in the cache.
 			if (isset(static::$IPLCache[$navid])) {
 				if ($bigtree["config"]["trailing_slash_behavior"] != "remove" || $commands != "") {
@@ -385,10 +388,10 @@
 			} else {
 				// Get the page's path
 				$path = SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $navid);
-
+				
 				// Set the cache
 				static::$IPLCache[$navid] = WWW_ROOT.$path;
-
+				
 				if (!empty($bigtree["config"]["trailing_slash_behavior"]) && $bigtree["config"]["trailing_slash_behavior"] != "remove" || $commands != "") {
 					return WWW_ROOT.$path."/".$commands;
 				} else {
@@ -396,7 +399,7 @@
 				}
 			}
 		}
-
+		
 		/*
 			Function: iplEncode
 				Creates an internal page link out of a URL.
@@ -407,14 +410,14 @@
 			Returns:
 				An internal page link (if possible) or just the same URL (if it's not internal).
 		*/
-
+		
 		static function iplEncode($url) {
 			// See if this is a file
 			$local_path = str_replace(WWW_ROOT, SITE_ROOT, $url);
 			if ((substr($local_path, 0, 1) == "/" || substr($local_path, 0, 2) == "\\\\") && file_exists($local_path)) {
 				return static::tokenize($url);
 			}
-
+			
 			$command = explode("/", rtrim(str_replace(WWW_ROOT, "", $url), "/"));
 			
 			// Check for resource link
@@ -423,20 +426,20 @@
 				
 				if ($resource) {
 					Resource::$CreationLog[] = $resource->ID;
-
+					
 					return "irl://".$resource->ID."//".$resource->Prefix;
 				}
 			}
-
+			
 			// Check for page link
 			list($navid, $commands) = Router::routeToPage($command);
 			if (!$navid) {
 				return static::tokenize($url);
 			}
-
+			
 			return "ipl://".$navid."//".base64_encode(json_encode($commands));
 		}
-
+		
 		/*
 			Function: iplExists
 				Determines whether an internal page link still exists or not.
@@ -447,16 +450,16 @@
 			Returns:
 				True if it is still a valid link, otherwise false.
 		*/
-
+		
 		static function iplExists($ipl) {
 			$ipl = explode("//", $ipl);
-
+			
 			// See if the page it references still exists.
 			$nav_id = $ipl[1];
 			if (!SQL::exists("bigtree_pages", $nav_id)) {
 				return false;
 			}
-
+			
 			// Decode the commands attached to the page
 			$commands = json_decode(base64_decode($ipl[2]), true);
 			// If there are no commands, we're good.
@@ -475,11 +478,11 @@
 			if ($routed) {
 				return true;
 			}
-
+			
 			// We may have been on a page, but there's extra routes that don't go anywhere or do anything so it's a 404.
 			return false;
 		}
-
+		
 		/*
 			Function: irlExists
 				Determines whether an internal resource link still exists or not.
@@ -490,13 +493,13 @@
 			Returns:
 				True if it is still a valid link, otherwise false.
 		*/
-
+		
 		static function irlExists($irl) {
 			$irl = explode("//", $irl);
-
+			
 			return Resource::exists($irl[1]) ? true : false;
 		}
-
+		
 		/*
 			Function: isExternal
 				Check if URL is external, relative to site root
@@ -507,22 +510,22 @@
 			Returns:
 				true if link is external
 		*/
-
+		
 		static function isExternal($url) {
 			if (substr($url, 0, 7) != "http://" && substr($url, 0, 8) != "https://") {
 				return false;
 			}
-
+			
 			$www_root = str_replace(array("https://", "http://"), "//", WWW_ROOT);
 			$url = str_replace(array("https://", "http://"), "//", $url);
-
+			
 			if (strpos($url, $www_root) === 0) {
 				return false;
 			}
-
+			
 			return true;
 		}
-
+		
 		/*
 			Function: tokenize
 				Replaces all hard roots in a URL with tokens (i.e. {wwwroot}).
@@ -533,16 +536,16 @@
 			Returns:
 				A string with tokens.
 		*/
-
+		
 		static function tokenize($input) {
 			if (is_array($input)) {
 				foreach ($input as $key => $value) {
 					$input[$key] = static::tokenize($value);
 				}
-
+				
 				return $input;
 			}
-
+			
 			// Figure out what roots we can replace
 			if (!count(static::$TokenKeys)) {
 				if (substr(ADMIN_ROOT, 0, 7) == "http://" || substr(ADMIN_ROOT, 0, 8) == "https://") {
@@ -558,10 +561,10 @@
 					static::$TokenValues[] = "{wwwroot}";
 				}
 			}
-
+			
 			return str_replace(static::$TokenKeys, static::$TokenValues, $input);
 		}
-
+		
 		/*
 			Function: urlExists
 				Attempts to connect to a URL using cURL.
@@ -572,36 +575,36 @@
 			Returns:
 				true if it can connect, false if connection failed.
 		*/
-
+		
 		static function urlExists($url) {
 			// Handle // urls as http://
 			if (substr($url, 0, 2) == "//") {
 				$url = "http:".$url;
 			}
-
+			
 			$handle = curl_init($url);
 			if ($handle === false) {
 				return false;
 			}
-
+			
 			// We want just the header (NOBODY sets it to a HEAD request)
 			curl_setopt($handle, CURLOPT_HEADER, true);
 			curl_setopt($handle, CURLOPT_NOBODY, true);
 			curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
-
+			
 			// Fail on error should make it so response codes > 400 result in a fail
 			curl_setopt($handle, CURLOPT_FAILONERROR, true);
-
+			
 			// Request as Firefox so that servers don't reject us for not having headers.
 			curl_setopt($handle, CURLOPT_HTTPHEADER, Array("User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.15) Gecko/20080623 Firefox/2.0.0.15"));
-
+			
 			// Execute the request and close the handle
 			$success = curl_exec($handle) ? true : false;
 			curl_close($handle);
-
+			
 			return $success;
 		}
-
+		
 		/*
 			Function: urlify
 				Turns a string into one suited for URL routes.
@@ -612,7 +615,7 @@
 			Returns:
 				A string suited for a URL route.
 		*/
-
+		
 		static function urlify($title) {
 			$replacements = array(
 				'Â' => 'A',
@@ -682,7 +685,7 @@
 			$title = str_replace("/", "-", $title);
 			$title = strtolower(preg_replace('/\s/', '-', preg_replace('/[^a-zA-Z0-9\s\-\_]+/', '', trim($title))));
 			$title = str_replace("--", "-", $title);
-
+			
 			return $title;
 		}
 	}

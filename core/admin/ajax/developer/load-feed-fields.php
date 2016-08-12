@@ -1,5 +1,9 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global string $table
+	 */
 
 	if ($_GET["table"]) {
 		$table = $_GET["table"];
@@ -16,6 +20,7 @@
 	} else {
 		$table_description = array("columns" => array());
 	}
+	
 	foreach ($table_description["columns"] as $column => $details) {
 		$tblfields[] = $column;
 	}
@@ -24,6 +29,7 @@
 		foreach ($fields as $key => $field) {
 			$used[] = $key;
 		}
+		
 		// Figure out the fields we're not using so we can offer them back.
 		foreach ($tblfields as $field) {
 			if (!in_array($field,$used)) {
@@ -35,6 +41,7 @@
 		}		
 	} else {
 		$fields = array();
+		
 		foreach ($tblfields as $f) {
 			$title = ucwords(str_replace(array("-","_")," ",$f));
 			$title = str_replace(array("Url","Pdf","Sql","Id"),array("URL","PDF","SQL","ID"),$title);

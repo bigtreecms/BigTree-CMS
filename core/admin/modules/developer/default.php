@@ -10,7 +10,7 @@
 	// Check for updates
 	include "upgrade/_update-list.php";
 
-	if (!$showing_updates) {
+	if (empty($showing_updates)) {
 ?>
 <div class="container">
 	<div class="container_summary"><h2><?=Text::translate("Create")?></h2></div>

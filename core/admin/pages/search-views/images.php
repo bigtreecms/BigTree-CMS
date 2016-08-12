@@ -19,9 +19,9 @@
 	<section>
 		<ul id="image_list_<?=$view->ID?>" class="image_list">
 			<?php
-				foreach ($callout_list as $item) {
+				foreach ($items as $item) {
 					if ($view->Settings["preview_prefix"]) {
-						$preview_image = FileSystem::getPrefixedFile($item[$view->Settings["image"]],$view->Settings["preview_prefix"]);
+						$preview_image = FileSystem::getPrefixedFile($item[$view->Settings["image"]], $view->Settings["preview_prefix"]);
 					} else {
 						$preview_image = $item[$view->Settings["image"]];
 					}

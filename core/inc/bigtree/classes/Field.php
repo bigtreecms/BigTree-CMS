@@ -72,7 +72,7 @@
 		*/
 
 		function draw() {
-			global $admin, $bigtree, $cms, $db;
+			global $admin, $bigtree, $cms, $db, $form;
 
 			// Setup Validation Class
 			if (!empty($this->Settings["validation"]) && strpos($this->Settings["validation"], "required") !== false) {
@@ -227,7 +227,7 @@
 		*/
 
 		function process() {
-			global $admin, $bigtree, $cms, $db;
+			global $admin, $bigtree, $cms, $db, $form;
 
 			// Save current context
 			$bigtree["saved_extension_context"] = $bigtree["extension_context"];

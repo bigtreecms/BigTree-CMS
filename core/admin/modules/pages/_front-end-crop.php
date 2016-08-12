@@ -1,5 +1,10 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $bigtree
+	 * @global string $refresh_link
+	 */
 ?>
 <h2><?=Text::translate("Crop Images")?></h2>
 <form class="bigtree_dialog_form" method="post" action="<?=ADMIN_ROOT?>pages/process-crops/" id="crop_form">
@@ -12,7 +17,7 @@
 				$x = 0;
 				foreach ($bigtree["crops"] as $crop) {
 					$x++;
-					list($width,$height,$type,$attr) = getimagesize($crop["image"]);
+					list($width, $height) = getimagesize($crop["image"]);
 					$image = str_replace(SITE_ROOT,WWW_ROOT,$crop["image"]);
 					$cwidth = $crop["width"];
 					$cheight = $crop["height"];

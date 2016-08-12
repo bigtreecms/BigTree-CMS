@@ -1,5 +1,9 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global string $title
+	 */
 
 	header('Content-Type: application/octet-stream');
 	header('Content-Disposition: attachment; filename="'.Link::urlify($title).'.zip"');

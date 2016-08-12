@@ -1,6 +1,10 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global array $bigtree
+	 */
+	
 	$find_path = function($nav,$path,$last_link = "") use (&$find_path) {
 		static $page = array("navigation" => array(), "related" => array());
 
