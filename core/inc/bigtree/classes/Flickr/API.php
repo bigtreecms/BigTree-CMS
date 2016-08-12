@@ -63,7 +63,7 @@
 
 		/*
 			Function: callUncached
-				Overrides BigTreeOAuthAPIBase to always request normal JSON.
+				Overrides BigTree\OAuth to always request normal JSON.
 		*/
 
 		function callUncached($endpoint = "", $params = array(), $method = "GET", $headers = array()) {

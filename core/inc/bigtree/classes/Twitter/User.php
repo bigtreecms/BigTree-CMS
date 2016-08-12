@@ -39,7 +39,7 @@
 
 			Parameters:
 				user - Twitter data
-				api - Reference to the BigTreeTwiterAPI class instance
+				api - Reference to the BigTree\Twiter\API class instance
 		*/
 
 		function __construct($user,&$api) {

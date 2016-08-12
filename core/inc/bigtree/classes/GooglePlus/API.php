@@ -71,7 +71,7 @@
 				params - Additional parameters to pass to the people/{userId}/activities API call.
 
 			Returns:
-				A BigTreeGoogleResultSet of BigTree\GooglePlus\Activity objects.
+				A BigTree\GoogleResultSet of BigTree\GooglePlus\Activity objects.
 		*/
 
 		function getActivities($user = "me",$count = 100,$params = array()) {
@@ -103,7 +103,7 @@
 				params - Additional parameters to pass to the people/{userId}/people API call.
 
 			Returns:
-				A BigTreeGoogleResultSet of BigTree\GooglePlus\People objects.
+				A BigTree\GoogleResultSet of BigTree\GooglePlus\People objects.
 		*/
 
 		function getCircledPeople($user = "me",$count = 100,$order = "best",$params = array()) {
@@ -156,7 +156,7 @@
 				params - Additional parameters to pass to the activities/{activityId}/comments API call.
 
 			Returns:
-				A BigTreeGoogleResultSet of BigTree\GooglePlus\Comment objects.
+				A BigTree\GoogleResultSet of BigTree\GooglePlus\Comment objects.
 		*/
 
 		function getComments($activity,$count = 500,$order = "ascending",$params = array()) {
@@ -210,7 +210,7 @@
 				params - Additional parameters to pass to the activities API call.
 
 			Returns:
-				A BigTreeGoogleResultSet of BigTree\GooglePlus\Activity objects.
+				A BigTree\GoogleResultSet of BigTree\GooglePlus\Activity objects.
 		*/
 
 		function searchActivities($query,$count = 10,$order = "best",$params = array()) {
@@ -246,7 +246,7 @@
 				params - Additional parameters to pass to the people API call.
 
 			Returns:
-				A BigTreeGoogleResultSet of BigTree\GooglePlus\Person objects.
+				A BigTree\GoogleResultSet of BigTree\GooglePlus\Person objects.
 		*/
 
 		function searchPeople($query,$count = 10,$params = array()) {

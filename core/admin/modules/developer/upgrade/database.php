@@ -381,7 +381,7 @@
 	// BigTree 4.1.1 update -- REVISION 101
 	function _local_bigtree_update_101() {
 		SQL::query("ALTER TABLE bigtree_caches CHANGE `key` `key` VARCHAR(10000)");
-		$storage = new \BigTreeStorage;
+		$storage = new Storage;
 		
 		if (is_array($storage->Settings["Files"])) {
 			foreach ($storage->Settings["Files"] as $file) {

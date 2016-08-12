@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$email_service = new \BigTreeEmailService;
+	$email_service = new Email;
 
 	$services = array(
 		"Local" => Text::translate("Local Server"),

@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$api = new \BigTreeSalesforceAPI;
+	$api = new Salesforce\API;
 	$name = "Salesforce";
 	$route = "salesforce";
 	$key_name = "Consumer Key";

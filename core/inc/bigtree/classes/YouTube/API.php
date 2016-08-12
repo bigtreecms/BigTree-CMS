@@ -182,7 +182,7 @@
 				params - Additional parameters to pass to the activities API call.
 
 			Returns:
-				A BigTreeGoogleResultSet of BigTree\YouTube\Activity objects.
+				A BigTree\GoogleResultSet of BigTree\YouTube\Activity objects.
 		*/
 
 		function getActivities($channel = "home",$count = 10,$params = array()) {
@@ -276,7 +276,7 @@
 				params - Additional parameters to pass to the search API call.
 
 			Returns:
-				A BigTreeGoogleResultSet of BigTree\YouTube\Video objects.
+				A BigTree\GoogleResultSet of BigTree\YouTube\Video objects.
 		*/
 
 		function getChannelVideos($channel,$count = 10,$order = "date",$params = array()) {
@@ -331,7 +331,7 @@
 				params - Additional parameters to pass to the subscriptions API call.
 
 			Returns:
-				A BigTreeGoogleResultSet of BigTree\YouTube\Playlist objects.
+				A BigTree\GoogleResultSet of BigTree\YouTube\Playlist objects.
 		*/
 
 		function getPlaylists($channel = false,$count = 50,$params = array()) {
@@ -367,7 +367,7 @@
 				params - Additional parameters to pass to the playlistItems API call.
 
 			Return:
-				A BigTreeGoogleResultSet of BigTree\YouTube\PlaylistItem objects.
+				A BigTree\GoogleResultSet of BigTree\YouTube\PlaylistItem objects.
 		*/
 
 		function getPlaylistItems($playlist,$count = 50,$params = array()) {
@@ -395,7 +395,7 @@
 				params - Additional parameters to pass to the subscriptions API call.
 
 			Returns:
-				A BigTreeGoogleResultSet of channel IDs.
+				A BigTree\GoogleResultSet of channel IDs.
 		*/
 
 		function getSubscribers($count = 50,$order = "relevance",$params = array()) {
@@ -423,7 +423,7 @@
 				params - Additional parameters to pass to the videos API call.
 
 			Returns:
-				A BigTreeGoogleResultSet of BigTree\YouTube\Subscription objects.
+				A BigTree\GoogleResultSet of BigTree\YouTube\Subscription objects.
 		*/
 
 		function getSubscriptions($count = 50,$order = "relevance",$params = array()) {

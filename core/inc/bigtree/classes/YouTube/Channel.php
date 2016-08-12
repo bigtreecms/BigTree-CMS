@@ -51,7 +51,7 @@
 				count - Number of videos to return (defaults to 10).
 
 			Returns:
-				A BigTreeGoogleResultSet of BigTree\YouTube\Video objects.
+				A BigTree\GoogleResultSet of BigTree\YouTube\Video objects.
 		*/
 
 		function getVideos($count = 10,$order = "date") {

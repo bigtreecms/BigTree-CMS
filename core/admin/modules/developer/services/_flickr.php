@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$api = new \BigTreeFlickrAPI;
+	$api = new Flickr\API;
 	$name = "Flickr";
 	$route = "flickr";
 	$key_name = "Key";

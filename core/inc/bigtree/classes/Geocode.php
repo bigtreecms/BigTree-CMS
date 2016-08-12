@@ -90,7 +90,11 @@
 
 		// Magic methods to allow string and array conversion
 		function __toString() {
-			return $this->Latitude.",".$this->Longitude;
+			if ($this->Latitude) {
+				return $this->Latitude.",".$this->Longitude;
+			} else {
+				return "";
+			}
 		}
 
 		function __get($property) {

@@ -1,8 +1,8 @@
 <?php
 	/*
-		Class: BigTreeSFTP
+		Class: BigTree\SFTP
 			A SFTP class based on (and requiring) phpseclib.
-			Meant to be method-compatible with BigTreeFTP.
+			Meant to be method-compatible with BigTree\FTP.
 	*/
 
 	namespace BigTree;
@@ -167,7 +167,7 @@
 			
 			foreach ($list as $line) {
 				if ($line["filename"] != "." && $line["filename"] != "..") {
-					// Make this the same as the BigTreeFTP class
+					// Make this the same as the BigTree\FTP class
 					$formatted_list[] = array(
 						"type" => $types[$line["type"]],
 						"perms" => $line["permissions"],
@@ -204,7 +204,7 @@
 
 		/*
 			Function: getSystemType
-				This is here for method compatibility with BigTreeFTP but doesn't do anything.
+				This is here for method compatibility with BigTree\FTP but doesn't do anything.
 		*/
 
 		function getSystemType() {
@@ -253,7 +253,7 @@
 
 		/*
 			Function: setTransferType
-				This is here for compatibility with BigTreeFTP but doesn't do anything.
+				This is here for compatibility with BigTree\FTP but doesn't do anything.
 		*/
 
 		function setTransferType($mode) {

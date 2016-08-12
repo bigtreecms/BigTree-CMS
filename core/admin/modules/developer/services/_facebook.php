@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$api = new \BigTreeFacebookAPI(false);
+	$api = new Facebook\API(false);
 	$name = "Facebook";
 	$route = "facebook";
 	$key_name = "App ID";

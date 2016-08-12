@@ -33,7 +33,7 @@
 				Calls the previous method and gets the next page of results.
 
 			Returns:
-				A BigTreeGoogleResultSet or false if there is not another page.
+				A BigTree\GoogleResultSet or false if there is not another page.
 		*/
 
 		function nextPage() {
@@ -52,7 +52,7 @@
 				Calls the previous method and gets the previous page of results.
 
 			Returns:
-				A BigTreeGoogleResultSet or false if there is not a previous page.
+				A BigTree\GoogleResultSet or false if there is not a previous page.
 		*/
 
 		function previousPage() {

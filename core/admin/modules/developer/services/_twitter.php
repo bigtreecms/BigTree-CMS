@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$api = new \BigTreeTwitterAPI;
+	$api = new Twitter\API;
 	$name = "Twitter";
 	$route = "twitter";
 	$key_name = "API Key";

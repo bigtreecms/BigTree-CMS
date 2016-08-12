@@ -1,7 +1,7 @@
 <?php
 	
 	/*
-		Class: BigTreeGoogleAnalyticsAccount
+		Class: BigTree\GoogleAnalytics\Account
 			A Google Analytics object that contains information about and methods you can perform on an account.
 	*/
 

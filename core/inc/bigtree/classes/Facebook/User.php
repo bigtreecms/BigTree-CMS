@@ -50,7 +50,7 @@
 				Gets the albums owned by user.
 
 			Returns:
-				Returns an array of BigTreeFacebookAlbum objects or false on failure.
+				Returns an array of BigTree\Facebook\Album objects or false on failure.
 		*/
 
 		function getAlbums() {

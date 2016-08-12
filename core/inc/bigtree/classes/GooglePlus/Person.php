@@ -133,7 +133,7 @@
 				params - Additional parameters to pass to the people/{userId}/activities API call.
 
 			Returns:
-				A BigTreeGoogleResultSet of BigTree\GooglePlus\Activity objects.
+				A BigTree\GoogleResultSet of BigTree\GooglePlus\Activity objects.
 		*/
 
 		function getActivities($count = 100,$params = array()) {
@@ -150,7 +150,7 @@
 				params - Additional parameters to pass to the people/{userId}/people API call.
 
 			Returns:
-				A BigTreeGoogleResultSet of BigTree\GooglePlus\People objects.
+				A BigTree\GoogleResultSet of BigTree\GooglePlus\People objects.
 		*/
 
 		function getCircledPeople($count = 100,$order = "best",$params = array()) {

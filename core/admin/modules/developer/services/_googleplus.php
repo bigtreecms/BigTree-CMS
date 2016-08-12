@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$api = new \BigTreeGooglePlusAPI;
+	$api = new GooglePlus\API;
 	$name = "Google+";
 	$route = "googleplus";
 	$key_name = "Client ID";

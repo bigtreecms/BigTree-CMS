@@ -11,14 +11,14 @@
 		}
 	} else {	
 		// Figure out which are connected
-		$facebook = new \BigTreeFacebookAPI;
-		$twitter = new \BigTreeTwitterAPI;
-		$instagram = new \BigTreeInstagramAPI;
-		$google = new \BigTreeGooglePlusAPI;
-		$youtube = new \BigTreeYouTubeAPI;
-		$flickr = new \BigTreeFlickrAPI;
-		$disqus = new \BigTreeDisqusAPI;
-		$salesforce = new \BigTreeSalesforceAPI;
+		$facebook = new Facebook\API;
+		$twitter = new Twitter\API;
+		$instagram = new Instagram\API;
+		$google = new GooglePlus\API;
+		$youtube = new YouTube\API;
+		$flickr = new Flickr\API;
+		$disqus = new Disqus\API;
+		$salesforce = new Salesforce\API;
 ?>
 <div class="container">
 	<div class="container_summary"><h2><?=Text::translate("Configure")?></h2></div>

@@ -109,7 +109,7 @@
 				params - Additional parameters to pass to the activities/{activityId}/comments API call.
 
 			Returns:
-				A BigTreeGoogleResultSet of BigTree\GooglePlus\Comment objects.
+				A BigTree\GoogleResultSet of BigTree\GooglePlus\Comment objects.
 		*/
 
 		function getComments($count = 500,$order = "ascending",$params = array()) {

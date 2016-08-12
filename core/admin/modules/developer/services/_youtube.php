@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$api = new \BigTreeYouTubeAPI;
+	$api = new YouTube\API;
 	$name = "YouTube";
 	$route = "youtube";
 	$key_name = "Client ID";

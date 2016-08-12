@@ -1,2 +1,2 @@
 <?php
-	$gateway = new BigTreePaymentGateway;
+	$gateway = new BigTree\PaymentGateway\Provider;

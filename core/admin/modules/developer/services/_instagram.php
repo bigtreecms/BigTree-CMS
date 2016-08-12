@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$api = new \BigTreeInstagramAPI;
+	$api = new Instagram\API;
 	$name = "Instagram";
 	$route = "instagram";
 	$key_name = "Client ID";

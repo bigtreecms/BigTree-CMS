@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$api = new \BigTreeDisqusAPI;
+	$api = new Disqus\API;
 	$name = "Disqus";
 	$route = "disqus";
 	$key_name = "Public Key <small>API Key</small>";

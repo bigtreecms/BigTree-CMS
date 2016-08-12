@@ -1,4 +1,10 @@
 <?php
+	namespace BigTree;
+	
+	/**
+	 * @global array $bigtree
+	 */
+
 	// Loop through all the fields to build the address
 	$source_fields = explode(",", $this->Settings["fields"]);
 	$location = array();
@@ -14,17 +20,15 @@
 	}
 	
 	if (count($location)) {
-		// Geocode
-		$geocoder = new BigTreeGeocoding;
-		$result = $geocoder->geocode(implode(", ", $location));
+		$result = new Geocode(implode(", ", $location));
 		
 		// If it's false, we didn't get anything.
-		if (!$result) {
+		if (!strval($result)) {
 			$bigtree["entry"]["latitude"] = false;
 			$bigtree["entry"]["longitude"] = false;
 		} else {
-			$bigtree["entry"]["latitude"] = $result["latitude"];
-			$bigtree["entry"]["longitude"] = $result["longitude"];
+			$bigtree["entry"]["latitude"] = $result->Latitude;
+			$bigtree["entry"]["longitude"] = $result->Longitude;
 		}
 	}
 	

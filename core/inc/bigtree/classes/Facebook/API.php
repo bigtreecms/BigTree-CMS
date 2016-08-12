@@ -45,7 +45,7 @@
 				album_id - ID of album
 
 			 Returns:
-				 A BigTreeFacebookAlbum object or false if the object id does not exist.
+				 A BigTree\Facebook\Album object or false if the object id does not exist.
 		*/
 
 		function getAlbum($album_id) {
