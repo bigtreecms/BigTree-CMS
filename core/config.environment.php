@@ -25,6 +25,7 @@
 	$bigtree["config"]["db"]["password"] = "[password]";
 	$bigtree["config"]["db"]["port"] = "[port]";
 	$bigtree["config"]["db"]["socket"] = "[socket]";
+	
 	// Separate write database info (for load balanced setups)
 	$bigtree["config"]["db_write"]["host"] = "[write_host]";
 	$bigtree["config"]["db_write"]["name"] = "[write_db]";
@@ -32,4 +33,28 @@
 	$bigtree["config"]["db_write"]["password"] = "[write_password]";
 	$bigtree["config"]["db_write"]["port"] = "[write_port]";
 	$bigtree["config"]["db_write"]["socket"] = "[write_socket]";
+	
+	/*
+		Multi-Domain Support
+		--------------------
+		"trunk" should be set to the Page ID of the page that serves as the root-level page for the domain.
+	
+		Example
+		=======
+	
+		$bigtree["config"]["sites"] = array(
+			"primary" => array(
+				"trunk" => 0,
+				"domain" => "http://primary.bigtree.dev",
+				"www_root" => "http://primary.bigtree.dev/",
+				"static_root" => "http://primary.bigtree.dev/"
+			),
+			"alt" => array(
+				"trunk" => 7,
+				"domain" => "http://alt.bigtree.dev",
+				"www_root" => "http://alt.bigtree.dev/",
+				"static_root" => "http://alt.bigtree.dev/"
+			)
+		);
+	*/
 ?>
