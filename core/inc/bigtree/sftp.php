@@ -112,7 +112,7 @@
 		*/
 
 		function disconnect() {
-			return $this->Connection->_disconnect();
+			return $this->Connection->_disconnect("");
 		}
 
 		/*
