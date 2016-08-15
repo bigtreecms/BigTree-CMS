@@ -131,7 +131,7 @@
 				$fields[] = array("column" => $column["name"],"title" => $title, "subtitle" => $subtitle, "type" => $type,"options" => $options);
 			}
 			
-			if ($f["Field"] == "position") {
+			if ($column["name"] == "position" && $column["type"] == "int") {
 				$positioned = true;
 			}
 		}
