@@ -1,23 +1,44 @@
 <?
 	ini_set("log_errors","false");
-
-	// Set some config vars automatically and setup some globals.
-	$domain = rtrim($bigtree["config"]["domain"],"/");
-	// This is set now in index.php but is left for backwards compatibility.
-	$server_root = isset($server_root) ? $server_root : str_replace("core/bootstrap.php","",strtr(__FILE__, "\\", "/"));
-	$site_root = $server_root."site/";
-	$www_root = $bigtree["config"]["www_root"];
-	$admin_root = $bigtree["config"]["admin_root"];
-	$static_root = isset($bigtree["config"]["static_root"]) ? $bigtree["config"]["static_root"] : $www_root;
-	$secure_root = str_replace("http://","https://",$www_root);
 	
-	define("WWW_ROOT",$www_root);
-	define("STATIC_ROOT",$static_root);
-	define("SECURE_ROOT",$secure_root);
-	define("DOMAIN",$domain);
-	define("SERVER_ROOT",$server_root);
-	define("SITE_ROOT",$site_root);
-	define("ADMIN_ROOT",$admin_root);
+	// See if we're in a multi-domain setup
+	if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+		// Figure out which domain we're in
+		foreach ($bigtree["config"]["sites"] as $site_key => $site_data) {
+			$domain_match = str_replace(array("http://", "https://"), "", $site_data["domain"]);
+			
+			if ($domain_match == $_SERVER["HTTP_HOST"]) {
+				define("BIGTREE_SITE_KEY", $site_key);
+				define("BIGTREE_SITE_TRUNK", intval($site_data["trunk"]));
+				
+				$domain = rtrim($site_data["domain"], "/");
+				$www_root = $site_data["www_root"];
+				$static_root = !empty($site_data["static_root"]) ? $site_data["static_root"] : $www_root;
+			}
+		}
+	}
+	
+	if (!defined("BIGTREE_SITE_KEY")) {
+		define("BIGTREE_SITE_TRUNK", 0);
+		
+		// Set some config vars automatically and setup some globals.
+		$domain = rtrim($bigtree["config"]["domain"], "/");
+		$www_root = $bigtree["config"]["www_root"];
+		$static_root = isset($bigtree["config"]["static_root"]) ? $bigtree["config"]["static_root"] : $www_root;
+	}
+	
+	$server_root = isset($server_root) ? $server_root : str_replace("core/bootstrap.php", "", strtr(__FILE__, "\\", "/"));
+	$site_root = $server_root."site/";
+	$secure_root = str_replace("http://", "https://", $www_root);
+	$admin_root = $bigtree["config"]["admin_root"];
+	
+	define("WWW_ROOT", $www_root);
+	define("STATIC_ROOT", $static_root);
+	define("SECURE_ROOT", $secure_root);
+	define("DOMAIN", $domain);
+	define("SERVER_ROOT", $server_root);
+	define("SITE_ROOT", $site_root);
+	define("ADMIN_ROOT", $admin_root);
 
 	// Adjust server parameters in case we're running on CloudFlare
 	if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {

@@ -6476,6 +6476,12 @@
 		*/
 
 		function saveCurrentPageRevision($page,$description) {
+			$access = $this->getPageAccessLevel($page);
+			
+			if ($access != "p") {
+				$this->stop("You must be a publisher to manage revisions.");
+			}
+
 			$page = sqlescape($page);
 			$description = sqlescape($description);
 
@@ -7742,6 +7748,13 @@
 
 			// Audit trail.
 			$this->track("bigtree_pages",$page,"updated");
+			
+			// If this page is a trunk in a multi-site setup, wipe the cache
+			foreach (BigTreeCMS::$SiteRoots as $site_path => $site_data) {
+				if ($site_data["trunk"] == $page) {
+					unlink(SERVER_ROOT."cache/multi-site-cache.json");
+				}
+			}
 
 			return $page;
 		}

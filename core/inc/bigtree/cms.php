@@ -15,6 +15,7 @@
 		static $ReplaceableRootKeys = array();
 		static $ReplaceableRootVals = array();
 		static $Secure;
+		static $SiteRoots = array();
 
 		/*
 			Constructor:
@@ -22,6 +23,8 @@
 		*/
 		
 		function __construct() {
+			global $bigtree;
+			
 			// If the cache exists, just use it.
 			if (file_exists(SERVER_ROOT."cache/bigtree-module-class-list.json")) {
 				$items = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-module-class-list.json"),true);
@@ -38,6 +41,33 @@
 			}
 			
 			$this->ModuleClassList = $items;
+			
+			// Find root paths for all sites to include in URLs if we're in a multi-site environment
+			if (defined("BIGTREE_SITE_KEY")) {
+				$cache_location = SERVER_ROOT."cache/multi-site-cache.json";
+
+				if (!file_exists($cache_location)) {
+					foreach ($bigtree["config"]["sites"] as $site_key => $site_data) {
+						$page = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".intval($site_data["trunk"])."'"));
+						
+						static::$SiteRoots[$page["path"]] = $site_data;
+					}
+					
+					// We want the primary domain (at root 0) last as well as longer routes first
+					ksort(static::$SiteRoots);
+					static::$SiteRoots = array_reverse(static::$SiteRoots);
+					
+					file_put_contents($cache_location, BigTree::json(static::$SiteRoots));
+				} else {
+					static::$SiteRoots = json_decode(file_get_contents($cache_location), true);
+				}
+				
+				foreach (static::$SiteRoots as $site_path => $site_data) {
+					if ($site_data["trunk"] == BIGTREE_SITE_TRUNK) {
+						define("BIGTREE_SITE_PATH", $site_path);
+					}
+				}
+			}
 		}
 
 		/*
@@ -325,21 +355,25 @@
 					if (!$f["template"]) {
 						$link = static::getInternalPageLink($f["external"]);
 					} else {
-						$link = WWW_ROOT.$f["path"].(($f["id"] > 0) ? "/" : ""); // Fix sitemap adding trailing slashes to home
+						$link = static::linkForPath($f["path"]);
 					}
 					
 					echo "<url><loc>".$link."</loc></url>\n";
 					
 					// Added routed template support
 					$tf = sqlfetch(sqlquery("SELECT bigtree_modules.class AS module_class FROM bigtree_templates JOIN bigtree_modules ON bigtree_modules.id = bigtree_templates.module WHERE bigtree_templates.id = '".$f["template"]."'"));
+					
 					if ($tf["module_class"]) {
 						$mod = new $tf["module_class"];
+						
 						if (method_exists($mod,"getSitemap")) {
 							$subnav = $mod->getSitemap($f);
+							
 							foreach ($subnav as $s) {
 								echo "<url><loc>".$s["link"]."</loc></url>\n";
 							}
 						}
+						
 						$mod = $subnav = null;
 					}
 				}
@@ -422,12 +456,13 @@
 		
 		static function getBreadcrumbByPage($page,$ignore_trunk = false) {
 			global $bigtree;
-			$bc = array();
 			
 			// Break up the pieces so we can get each piece of the path individually and pull all the pages above this one.
-			$pieces = explode("/",$page["path"]);
+			$bc = array();
+			$pieces = explode("/", $page["path"]);
 			$paths = array();
 			$path = "";
+			
 			foreach ($pieces as $piece) {
 				$path = $path.$piece."/";
 				$paths[] = "path = '".sqlescape(trim($path,"/"))."'";
@@ -438,18 +473,17 @@
 			$trunk_hit = false;
 			while ($f = sqlfetch($q)) {
 				// In case we want to know what the trunk is.
-				if ($f["trunk"]) {
+				if ($f["trunk"] || $f["id"] == BIGTREE_SITE_TRUNK) {
 					$trunk_hit = true;
 					static::$BreadcrumbTrunk = $f;
 				}
 				
 				if (!$trunk_hit || $ignore_trunk) {
-					if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
-						$link = WWW_ROOT.$f["path"];
-					} else {						
-						$link = WWW_ROOT.$f["path"]."/";
-					}
-					$bc[] = array("title" => stripslashes($f["nav_title"]),"link" => $link,"id" => $f["id"]);
+					$bc[] = array(
+						"title" => stripslashes($f["nav_title"]),
+						"link" => static::linkForPath($f["path"]),
+						"id" => $f["id"]
+					);
 				}
 			}
 			
@@ -609,12 +643,12 @@
 				$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($navid)."'"));
 
 				// Set the cache
-				static::$IPLCache[$navid] = WWW_ROOT.$f["path"];
+				static::$IPLCache[$navid] = rtrim(static::linkForPath($f["path"]));
 
 				if ($bigtree["config"]["trailing_slash_behavior"] != "remove" || $commands != "") {
-					return WWW_ROOT.$f["path"]."/".$commands;
+					return static::$IPLCache[$navid]."/".$commands;
 				} else {
-					return WWW_ROOT.$f["path"];
+					return static::$IPLCache[$navid];
 				}
 			}
 		}
@@ -632,30 +666,24 @@
 		
 		static function getLink($id) {
 			global $bigtree;
-
+			
 			// Homepage, just return the web root.
-			if ($id == 0) {
+			if ($id == BIGTREE_SITE_TRUNK) {
 				return WWW_ROOT;
 			}
 
 			// If someone is requesting the link of the page they're already on we don't need to request it from the database.
 			if ($bigtree["page"]["id"] == $id) {
-				if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
-					return WWW_ROOT.$bigtree["page"]["path"];					
-				} else {
-					return WWW_ROOT.$bigtree["page"]["path"]."/";
+				return static::linkForPath($bigtree["page"]["path"]);
+			} else {
+				// Otherwise we'll grab the page path from the db.
+				$page = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($id)."' AND archived != 'on'"));
+				
+				if ($page) {
+					return static::linkForPath($page["path"]);
 				}
 			}
-
-			// Otherwise we'll grab the page path from the db.
-			$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($id)."' AND archived != 'on'"));
-			if ($f) {
-				if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
-					return WWW_ROOT.$f["path"];
-				} else {
-					return WWW_ROOT.$f["path"]."/";
-				}
-			}
+			
 			return false;
 		}
 		
@@ -669,16 +697,23 @@
 				levels - The number of levels of navigation depth to recurse
 				follow_module - Whether to pull module navigation or not
 				only_hidden - Whether to pull visible (false) or hidden (true) pages
+				explicit_zero - In a multi-site environment you must pass true for this parameter if you want root level children rather than the site-root level
 			
 			Returns:
 				A multi-level navigation array containing "id", "parent", "title", "route", "link", "new_window", and "children"
 		*/
 			
-		static function getNavByParent($parent = 0,$levels = 1,$follow_module = true,$only_hidden = false) {
+		static function getNavByParent($parent = 0, $levels = 1, $follow_module = true, $only_hidden = false, $explicit_zero = false) {
 			global $bigtree;
 			static $module_nav_count = 0;
+			
 			$nav = array();
 			$find_children = array();
+			
+			// If we're asking for root (0) and in multi-site, use that site's root instead of the top-level root
+			if (!$explicit_zero && $parent === 0 && BIGTREE_SITE_TRUNK !== 0) {
+				$parent = BIGTREE_SITE_TRUNK;
+			}
 			
 			// If the parent is an array, this is actually a recursed call.
 			// We're finding all the children of all the parents at once -- then we'll assign them back to the proper parent instead of doing separate calls for each.
@@ -701,11 +736,7 @@
 			
 			// Wrangle up some kids
 			while ($f = sqlfetch($q)) {
-				if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
-					$link = WWW_ROOT.$f["path"];
-				} else {
-					$link = WWW_ROOT.$f["path"]."/";
-				}
+				$link = static::linkForPath($f["path"]);
 				$new_window = false;
 				
 				// If we're REALLY an external link we won't have a template, so let's get the real link and not the encoded version.  Then we'll see if we should open this thing in a new window.
@@ -800,6 +831,11 @@
 		
 		static function getNavId($path,$previewing = false) {
 			$commands = array();
+			
+			// Add multi-site path
+			if (defined("BIGTREE_SITE_PATH")) {
+				$path = array_filter(array_merge(explode("/", BIGTREE_SITE_PATH), $path));
+			}
 			
 			if (!$previewing) {
 				$publish_at = "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";
@@ -1210,13 +1246,16 @@
 			$paths = array();
 			$path = "";
 			$parts = explode("/",$page["path"]);
+			
 			foreach ($parts as $part) {
 				$path .= "/".$part;
 				$path = ltrim($path,"/");
 				$paths[] = "path = '".sqlescape($path)."'";
 			}
+			
 			// Get either the trunk or the top level nav id.
-			$f = sqlfetch(sqlquery("SELECT id,trunk,path FROM bigtree_pages WHERE (".implode(" OR ",$paths).") AND (trunk = 'on' OR parent = '0') ORDER BY LENGTH(path) DESC LIMIT 1"));
+			$f = sqlfetch(sqlquery("SELECT id,trunk,path FROM bigtree_pages WHERE (".implode(" OR ",$paths).") AND (trunk = 'on' OR parent = '".BIGTREE_SITE_TRUNK."') ORDER BY LENGTH(path) DESC LIMIT 1"));
+
 			if ($f["trunk"] && !$trunk_as_toplevel) {
 				// Get the next item in the path.
 				$g = sqlfetch(sqlquery("SELECT id FROM bigtree_pages WHERE (".implode(" OR ",$paths).") AND LENGTH(path) < ".strlen($f["path"])." ORDER BY LENGTH(path) ASC LIMIT 1"));
@@ -1224,6 +1263,7 @@
 					$f = $g;
 				}
 			}
+			
 			return $f["id"];
 		}
 		
@@ -1268,6 +1308,46 @@
 				define("BIGTREE_DO_NOT_CACHE",true);
 				return true;
 			}
+		}
+		
+		/*
+		    Function: linkForPath
+				Returns a correct link for a page's path for the current site in a multi-domain setup.
+			
+			Parameters:
+				path - A page path
+		
+			Returns:
+				A fully qualified URL
+		*/
+		
+		static function linkForPath($path) {
+			global $bigtree;
+			
+			// Remove the site root from the path for multi-site
+			if (defined("BIGTREE_SITE_KEY")) {
+				foreach (static::$SiteRoots as $site_path => $site_data) {
+					if ($site_path == "" || strpos($path, $site_path) === 0) {
+						if ($site_path) {
+							$path = substr($path, strlen($site_path) + 1);
+						}
+						
+						
+						if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
+							return $site_data["www_root"].$path;
+						}
+						
+						return $site_data["www_root"].$path."/";
+					}
+				}
+			}
+			
+			
+			if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
+				return WWW_ROOT.$path;
+			}
+			
+			return WWW_ROOT.$path."/";
 		}
 		
 		/*

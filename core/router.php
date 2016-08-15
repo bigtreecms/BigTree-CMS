@@ -309,6 +309,7 @@
 	
 	// Pre-init a bunch of vars to keep away notices.
 	$bigtree["layout"] = "default";
+	
 	if ($navid !== false) {
 		// If we're previewing, get pending data as well.
 		if ($bigtree["preview"]) {
@@ -319,6 +320,28 @@
 		} else {
 			$bigtree["page"] = $cms->getPage($navid);
 		}
+		
+		// If we're in multi-site and the path contains a different site, 301 away
+		if (defined("BIGTREE_SITE_KEY")) {
+			foreach (BigTreeCMS::$SiteRoots as $site_path => $site_data) {
+				if ($site_path == BIGTREE_SITE_PATH && (!$site_path || strpos($bigtree["page"]["path"], $site_path) === 0)) {
+					break;
+				}
+				
+				if ($site_path == "" || strpos($bigtree["page"]["path"], $site_path) === 0) {
+					if ($site_path) {
+						$bigtree["page"]["path"] = substr($bigtree["page"]["path"], strlen($site_path));
+					}
+					
+					if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
+						BigTree::redirect($site_data["domain"].$bigtree["page"]["path"]);
+					}
+					
+					BigTree::redirect($site_data["domain"].$bigtree["page"]["path"]."/");
+				}
+			}
+		}
+		
 		$bigtree["page"]["link"] = WWW_ROOT.$bigtree["page"]["path"]."/";
 		$bigtree["resources"] = $bigtree["page"]["resources"];
 		$bigtree["callouts"] = $bigtree["page"]["callouts"];
