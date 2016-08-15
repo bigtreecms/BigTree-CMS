@@ -74,10 +74,10 @@
 					<footer>
 						<select>
 							<?
-								foreach ($users as $id => $u) {
-									if ($item["id"] != $admin->ID) {
+								foreach ($users as $id => $user) {
+									if ($id != $admin->ID) {
 							?>
-							<option value="<?=$id?>"><?=htmlspecialchars($u["name"])?></option>
+							<option value="<?=$id?>"><?=htmlspecialchars($user["name"])?></option>
 							<?
 									}
 								}
