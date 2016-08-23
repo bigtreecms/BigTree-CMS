@@ -420,6 +420,47 @@
 		}
 		
 		/*
+		    Function: generateReplaceableRoots
+				Caches a list of tokens and the values that are related to them.
+		*/
+		
+		static function generateReplaceableRoots() {
+			global $bigtree;
+			
+			// Figure out what roots we can replace
+			if (!count(static::$ReplaceableRootKeys)) {
+				if (substr(ADMIN_ROOT, 0, 7) == "http://" || substr(ADMIN_ROOT, 0, 8) == "https://") {
+					static::$ReplaceableRootKeys[] = ADMIN_ROOT;
+					static::$ReplaceableRootVals[] = "{adminroot}";
+				}
+				
+				if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+					foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
+						if (substr($site_configuration["static_root"], 0, 7) == "http://" || substr($site_configuration["static_root"], 0, 8) == "https://") {
+							static::$ReplaceableRootKeys[] = $site_configuration["static_root"];
+							static::$ReplaceableRootVals[] = "{staticroot:$site_key}";
+						}
+						
+						if (substr($site_configuration["www_root"], 0, 7) == "http://" || substr($site_configuration["www_root"], 0, 8) == "https://") {
+							static::$ReplaceableRootKeys[] = $site_configuration["www_root"];
+							static::$ReplaceableRootVals[] = "{wwwroot:$site_key}";
+						}
+					}
+				} else {
+					if (substr(STATIC_ROOT, 0, 7) == "http://" || substr(STATIC_ROOT, 0, 8) == "https://") {
+						static::$ReplaceableRootKeys[] = STATIC_ROOT;
+						static::$ReplaceableRootVals[] = "{staticroot}";
+					}
+					
+					if (substr(WWW_ROOT, 0, 7) == "http://" || substr(WWW_ROOT, 0, 8) == "https://") {
+						static::$ReplaceableRootKeys[] = WWW_ROOT;
+						static::$ReplaceableRootVals[] = "{wwwroot}";
+					}
+				}
+			}
+		}
+		
+		/*
 			Function: getBreadcrumb
 				Returns an array of titles, links, and ids for pages above the current page.
 			
@@ -643,7 +684,7 @@
 				$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($navid)."'"));
 
 				// Set the cache
-				static::$IPLCache[$navid] = rtrim(static::linkForPath($f["path"]));
+				static::$IPLCache[$navid] = rtrim(static::linkForPath($f["path"]), "/");
 
 				if ($bigtree["config"]["trailing_slash_behavior"] != "remove" || $commands != "") {
 					return static::$IPLCache[$navid]."/".$commands;
@@ -1375,22 +1416,9 @@
 		*/
 
 		static function replaceHardRoots($string) {
-			// Figure out what roots we can replace
-			if (!count(static::$ReplaceableRootKeys)) {
-				if (substr(ADMIN_ROOT,0,7) == "http://" || substr(ADMIN_ROOT,0,8) == "https://") {
-					static::$ReplaceableRootKeys[] = ADMIN_ROOT;
-					static::$ReplaceableRootVals[] = "{adminroot}";
-				}
-				if (substr(STATIC_ROOT,0,7) == "http://" || substr(STATIC_ROOT,0,8) == "https://") {
-					static::$ReplaceableRootKeys[] = STATIC_ROOT;
-					static::$ReplaceableRootVals[] = "{staticroot}";
-				}
-				if (substr(WWW_ROOT,0,7) == "http://" || substr(WWW_ROOT,0,8) == "https://") {
-					static::$ReplaceableRootKeys[] = WWW_ROOT;
-					static::$ReplaceableRootVals[] = "{wwwroot}";
-				}
-			}
-			return str_replace(static::$ReplaceableRootKeys,static::$ReplaceableRootVals,$string);
+			static::generateReplaceableRoots();
+			
+			return str_replace(static::$ReplaceableRootKeys, static::$ReplaceableRootVals, $string);
 		}
 
 		/*
@@ -1436,7 +1464,9 @@
 		*/
 
 		static function replaceRelativeRoots($string) {
-			return str_replace(array("{adminroot}","{wwwroot}","{staticroot}"),array(ADMIN_ROOT,WWW_ROOT,STATIC_ROOT),$string);
+			static::generateReplaceableRoots();
+			
+			return str_replace(static::$ReplaceableRootVals, static::$ReplaceableRootKeys, $string);
 		}
 
 		/*

@@ -5801,24 +5801,68 @@
 		static function makeIPL($url) {
 			// See if this is a file
 			$local_path = str_replace(WWW_ROOT,SITE_ROOT,$url);
+			
 			if ((substr($local_path,0,1) == "/" || substr($local_path,0,2) == "\\\\") && file_exists($local_path)) {
 				return BigTreeCMS::replaceHardRoots($url);
 			}
-
-			$command = explode("/",rtrim(str_replace(WWW_ROOT,"",$url),"/"));
-			// Check for resource link
-			if ($command[0] == "files" && $command[1] == "resources") {
-				$resource = static::getResourceByFile($url);
-				if ($resource) {
-					static::$IRLsCreated[] = $resource["id"];
-					return "irl://".$resource["id"]."//".$resource["prefix"];
+			
+			// If we have multiple sites, try each domain
+			if (defined("BIGTREE_SITE_KEY")) {
+				global $bigtree;
+				
+				foreach ($bigtree["config"]["sites"] as $site_key => $configuration) {
+					// This is the site we're pointing to
+					if (strpos($url, $configuration["www_root"]) !== false) {
+						$path_components = explode("/", rtrim(str_replace($configuration["www_root"], "", $url), "/"));
+						
+						// Check for resource link
+						if ($path_components[0] == "files" && $path_components[1] == "resources") {
+							$resource = static::getResourceByFile($url);
+							
+							if ($resource) {
+								static::$IRLsCreated[] = $resource["id"];
+								
+								return "irl://".$resource["id"]."//".$resource["prefix"];
+							}
+						}
+						
+						// Get the root path of the site for calculating an IPL and add it to the path components
+						$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".$configuration["trunk"]."'"));
+						$path_components = array_filter(array_merge(explode("/", $f["path"]), $path_components));
+						
+						// Check for page link
+						list($navid, $commands) = static::getPageIDForPath($path_components);
+						
+						if ($navid) {
+							return "ipl://".$navid."//".base64_encode(json_encode($commands));
+						} else {
+							return BigTreeCMS::replaceHardRoots($url);
+						}
+					}
 				}
+				
+				return BigTreeCMS::replaceHardRoots($url);
+			} else {
+				$path_components = explode("/", rtrim(str_replace(WWW_ROOT, "", $url), "/"));
+				
+				// Check for resource link
+				if ($path_components[0] == "files" && $path_components[1] == "resources") {
+					$resource = static::getResourceByFile($url);
+					if ($resource) {
+						static::$IRLsCreated[] = $resource["id"];
+						
+						return "irl://".$resource["id"]."//".$resource["prefix"];
+					}
+				}
+				
+				// Check for page link
+				list($navid, $commands) = static::getPageIDForPath($path_components);
 			}
-			// Check for page link
-			list($navid,$commands) = static::getPageIDForPath($command);
+			
 			if (!$navid) {
 				return BigTreeCMS::replaceHardRoots($url);
 			}
+			
 			return "ipl://".$navid."//".base64_encode(json_encode($commands));
 		}
 
