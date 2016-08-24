@@ -127,6 +127,12 @@
 	} else {
 		class BigTreeAdmin extends BigTreeAdminBase {};
 	}
+	
+	// If we're in the process of logging into sites
+	if (defined("BIGTREE_SITE_KEY") && isset($_GET["bigtree_login_redirect_session_key"])) {
+		session_start();
+		BigTreeAdmin::loginSession($_GET["bigtree_login_redirect_session_key"]);
+	}
 
 	// Load everything in the custom extras folder.
 	$d = opendir(SERVER_ROOT."custom/inc/required/");

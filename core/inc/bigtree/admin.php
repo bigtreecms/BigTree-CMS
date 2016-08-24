@@ -5656,81 +5656,119 @@
 			// Check to see if this IP is already banned from logging in.
 			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
 			$ban = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND ip = '$ip'"));
+			
 			if ($ban) {
 				$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime($ban["expires"]));
 				$bigtree["ban_is_user"] = false;
+				
 				return false;
 			}
 
 			// Get rid of whitespace and make the email lowercase for consistency
 			$email = trim(strtolower($email));
 			$password = trim($password);
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE LOWER(email) = '".sqlescape($email)."'"));
+			$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE LOWER(email) = '".sqlescape($email)."'"));
 
 			// See if this user is banned due to failed login attempts
 			$ban = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND `user` = '".$f["id"]."'"));
+			
 			if ($ban) {
 				$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime($ban["expires"]));
 				$bigtree["ban_is_user"] = true;
+				
 				return false;
 			}
 
-			$phpass = new PasswordHash($bigtree["config"]["password_depth"],true);
-			$ok = $phpass->CheckPassword($password,$f["password"]);
+			$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
+			$ok = $phpass->CheckPassword($password, $user["password"]);
+			
 			if ($ok) {
 				// Generate a random chain id
 				$chain = uniqid("chain-",true);
+
 				while (sqlrows(sqlquery("SELECT id FROM bigtree_user_sessions WHERE chain = '".sqlescape($chain)."'"))) {
 					$chain = uniqid("chain-",true);
 				}
+
 				// Generate a random session id
 				$session = uniqid("session-",true);
+
 				while (sqlrows(sqlquery("SELECT id FROM bigtree_user_sessions WHERE id = '".sqlescape($session)."'"))) {
 					$session = uniqid("session-",true);
 				}
+
 				// Create the new session chain
 				sqlquery("INSERT INTO bigtree_user_sessions (`id`,`chain`,`email`) VALUES ('".sqlescape($session)."','".sqlescape($chain)."','".sqlescape($f["email"])."')");
-
-				// We still set the email for BigTree bar usage even if they're not being "remembered"
-				setcookie('bigtree_admin[email]',$f["email"],strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
-				if ($stay_logged_in) {
-					setcookie('bigtree_admin[login]',json_encode(array($session,$chain)),strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
-				}
-
-				$_SESSION["bigtree_admin"]["id"] = $f["id"];
-				$_SESSION["bigtree_admin"]["email"] = $f["email"];
-				$_SESSION["bigtree_admin"]["level"] = $f["level"];
-				$_SESSION["bigtree_admin"]["name"] = $f["name"];
-				$_SESSION["bigtree_admin"]["permissions"] = json_decode($f["permissions"],true);
-
-				if (isset($_SESSION["bigtree_login_redirect"])) {
-					BigTree::redirect($_SESSION["bigtree_login_redirect"]);
+				
+				if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+					// Create another unique cache session for logins across domains
+					$cache_data = array(
+						"user_id" => $user["id"],
+						"session" => $session,
+						"chain" => $chain,
+						"stay_logged_in" => $stay_logged_in,
+						"login_redirect" => isset($_SESSION["bigtree_login_redirect"]) ? $_SESSION["bigtree_login_redirect"] : false,
+						"remaining_sites" => array()
+					);
+					
+					foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
+						$cache_data["remaining_sites"][$site_key] = $site_configuration["www_root"];
+					}
+					
+					$cache_session_key = BigTreeCMS::cacheUnique("org.bigtreecms.login-session", $cache_data);
+					$next_site = array_shift(array_values($cache_data["remaining_sites"]));
+					
+					// Start the login chain
+					BigTree::redirect($next_site."?bigtree_login_redirect_session_key=".$cache_session_key);
 				} else {
-					BigTree::redirect(ADMIN_ROOT);
+					$cookie_domain = str_replace(DOMAIN,"",WWW_ROOT);
+					$cookie_value = json_encode(array($session, $chain));
+					
+					// We still set the email for BigTree bar usage even if they're not being "remembered"
+					setcookie('bigtree_admin[email]', $user["email"], strtotime("+1 month"), $cookie_domain, "", false, true);
+					
+					if ($stay_logged_in) {
+						setcookie('bigtree_admin[login]', $cookie_value, strtotime("+1 month"), $cookie_domain, "", false, true);
+					}
+					
+					$_SESSION["bigtree_admin"]["id"] = $user["id"];
+					$_SESSION["bigtree_admin"]["email"] = $user["email"];
+					$_SESSION["bigtree_admin"]["level"] = $user["level"];
+					$_SESSION["bigtree_admin"]["name"] = $user["name"];
+					$_SESSION["bigtree_admin"]["permissions"] = json_decode($user["permissions"],true);
+					
+					if (isset($_SESSION["bigtree_login_redirect"])) {
+						BigTree::redirect($_SESSION["bigtree_login_redirect"]);
+					} else {
+						BigTree::redirect(ADMIN_ROOT);
+					}
 				}
-			// Failed login attempt, log it.
 			} else {
 				// Log it as a failed attempt for a user if the email address matched
-				if ($f) {
-					$user = "'".$f["id"]."'";
+				if ($user) {
+					$user_id = "'".$user["id"]."'";
 				} else {
-					$user = "NULL";
+					$user_id = "NULL";
 				}
-				sqlquery("INSERT INTO bigtree_login_attempts (`ip`,`user`) VALUES ('$ip',$user)");
+				
+				sqlquery("INSERT INTO bigtree_login_attempts (`ip`,`user`) VALUES ('$ip', $user_id)");
 
 				// See if this attempt earns the user a ban - first verify the policy is completely filled out (3 parts)
-				if ($f["id"] && count(array_filter((array)$bigtree["security-policy"]["user_fails"])) == 3) {
+				if ($user["id"] && count(array_filter((array)$bigtree["security-policy"]["user_fails"])) == 3) {
 					$p = $bigtree["security-policy"]["user_fails"];
-					$r = sqlrows(sqlquery("SELECT * FROM bigtree_login_attempts WHERE `user` = $user AND `timestamp` >= DATE_SUB(NOW(),INTERVAL ".$p["time"]." MINUTE)"));
+					$r = sqlrows(sqlquery("SELECT * FROM bigtree_login_attempts WHERE `user` = $user_id AND `timestamp` >= DATE_SUB(NOW(),INTERVAL ".$p["time"]." MINUTE)"));
+					
 					// Earned a ban
 					if ($r >= $p["count"]) {
 						// See if they have an existing ban that hasn't expired, if so, extend it
-						$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE `user` = $user AND expires >= NOW()"));
+						$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE `user` = $user_id AND expires >= NOW()"));
+						
 						if ($existing) {
 							sqlquery("UPDATE bigtree_login_bans SET expires = DATE_ADD(NOW(),INTERVAL ".$p["ban"]." MINUTE) WHERE id = '".$existing["id"]."'");
 						} else {
-							sqlquery("INSERT INTO bigtree_login_bans (`ip`,`user`,`expires`) VALUES ('$ip',$user,DATE_ADD(NOW(),INTERVAL ".$p["ban"]." MINUTE))");
+							sqlquery("INSERT INTO bigtree_login_bans (`ip`,`user`,`expires`) VALUES ('$ip', $user_id, DATE_ADD(NOW(), INTERVAL ".$p["ban"]." MINUTE))");
 						}
+						
 						$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime("+".$p["ban"]." minutes"));
 						$bigtree["ban_is_user"] = true;
 					}
@@ -5740,22 +5778,70 @@
 				if (count(array_filter((array)$bigtree["security-policy"]["ip_fails"])) == 3) {
 					$p = $bigtree["security-policy"]["ip_fails"];
 					$r = sqlrows(sqlquery("SELECT * FROM bigtree_login_attempts WHERE `ip` = '$ip' AND `timestamp` >= DATE_SUB(NOW(),INTERVAL ".$p["time"]." MINUTE)"));
+					
 					// Earned a ban
 					if ($r >= $p["count"]) {
 						$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE `ip` = '$ip' AND expires >= NOW()"));
+						
 						if ($existing) {
 							sqlquery("UPDATE bigtree_login_bans SET expires = DATE_ADD(NOW(),INTERVAL ".$p["ban"]." HOUR) WHERE id = '".$existing["id"]."'");						
 						} else {
 							sqlquery("INSERT INTO bigtree_login_bans (`ip`,`expires`) VALUES ('$ip',DATE_ADD(NOW(),INTERVAL ".$p["ban"]." HOUR))");
 						}
-						$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime("+".$p["ban"]." hours"));
+						
+						$bigtree["ban_expiration"] = date("F j, Y @ g:ia", strtotime("+".$p["ban"]." hours"));
 						$bigtree["ban_is_user"] = false;
 					}
 				}
 
 				return false;
 			}
+			
 			return true;
+		}
+		
+		static function loginSession($session_key) {
+			$cache_data = BigTreeCMS::cacheGet("org.bigtreecms.login-session", $session_key);
+			$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$cache_data["user_id"]."'"));
+			
+			foreach ($cache_data["remaining_sites"] as $site_key => $www_root) {
+				if ($site_key == BIGTREE_SITE_KEY) {
+					$cookie_domain = str_replace(DOMAIN, "", WWW_ROOT);
+					$cookie_value = json_encode(array($cache_data["session"], $cache_data["chain"]));
+
+					// We still set the email for BigTree bar usage even if they're not being "remembered"
+					setcookie('bigtree_admin[email]', $user["email"], strtotime("+1 month"), $cookie_domain, "", false, true);
+					
+					if ($cache_data["stay_logged_in"]) {
+						setcookie('bigtree_admin[login]', $cookie_value, strtotime("+1 month"), $cookie_domain, "", false, true);
+					}
+					
+					$_SESSION["bigtree_admin"]["id"] = $user["id"];
+					$_SESSION["bigtree_admin"]["email"] = $user["email"];
+					$_SESSION["bigtree_admin"]["level"] = $user["level"];
+					$_SESSION["bigtree_admin"]["name"] = $user["name"];
+					$_SESSION["bigtree_admin"]["permissions"] = json_decode($user["permissions"], true);
+					
+					unset($cache_data["remaining_sites"][$site_key]);
+				}
+			}
+			
+			if (count($cache_data["remaining_sites"]) == 0) {
+				// Done logging in, delete session
+				BigTreeCMS::cacheDelete("org.bigtreecms.login-session", $session_key);
+				
+				if (!empty($cache_data["login_redirect"])) {
+					BigTree::redirect($cache_data["login_redirect"]);
+				} else {
+					BigTree::redirect(ADMIN_ROOT);
+				}
+			} else {
+				$next_site = array_shift(array_values($cache_data["remaining_sites"]));
+				BigTreeCMS::cachePut("org.bigtreecms.login-session", $session_key, $cache_data);
+				
+				// Redirect to the next site that needs a session/cookie
+				BigTree::redirect($next_site."?bigtree_login_redirect_session_key=".$session_key);
+			}
 		}
 
 		/*
