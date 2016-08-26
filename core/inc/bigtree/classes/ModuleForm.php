@@ -359,7 +359,7 @@
 			if (substr($id, 0, 1) == "p") {
 				$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", substr($id, 1));
 
-				if (!$change) {
+				if (empty($change)) {
 					return false;
 				}
 
@@ -384,14 +384,14 @@
 				// Otherwise it's a live entry
 				$item = SQL::fetch("SELECT * FROM `".$this->Table."` WHERE id = ?", $id);
 
-				if (!$item) {
+				if (empty($item)) {
 					return false;
 				}
 
 				// Apply changes that are pending
 				$change = SQL::fetch("SELECT * FROM bigtree_pending_changes
 									  WHERE `table` = ? AND `item_id` = ?", $this->Table, $id);
-				if ($change) {
+				if (!empty($change)) {
 					$status = "updated";
 
 					// Apply changes back
@@ -457,7 +457,7 @@
 								   OR `settings` LIKE '%\"related_form\": \"$form\"%'");
 
 			// Fall back to any view that uses the same table
-			if (!$view) {
+			if (empty($view)) {
 				$view = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = ?", $this->Table);
 			}
 

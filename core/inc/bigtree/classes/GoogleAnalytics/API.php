@@ -161,7 +161,7 @@
 			$response = $this->call("data/ga", $params);
 			
 			if (!$response->rows) {
-				return false;
+				return array();
 			}
 			
 			$this->LastDataTotals = new \stdClass;

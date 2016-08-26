@@ -386,7 +386,7 @@
 				$user = SQL::fetch("SELECT id, level, permissions FROM bigtree_users WHERE id = ?", $user);
 
 				// Return a -1 level of anonymous user
-				if (!$user) {
+				if (empty($user)) {
 					return new Auth\AuthenticatedUser(null, -1, array());
 				} else {
 					return new Auth\AuthenticatedUser($user["id"], $user["level"], (array) json_decode($user["permissions"], true));

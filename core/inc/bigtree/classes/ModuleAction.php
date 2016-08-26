@@ -197,7 +197,7 @@
 									  WHERE module = ? AND route = ?", $module, implode("/", $route));
 
 				// If we found an action for this sequence, return it with the extra URL route commands
-				if ($action) {
+				if (!empty($action)) {
 					return array("action" => new ModuleAction($action), "commands" => array_reverse($commands));
 				}
 

@@ -11,7 +11,7 @@
 	$level = 0;
 	
 	if (isset($_SESSION["bigtree_admin"]["create_user"])) {
-		Globalize::arrayObject($_SESSION["bigtree_admin"]["create_user"],array("htmlspecialchars"));
+		Globalize::arrayObject($_SESSION["bigtree_admin"]["create_user"], array("htmlspecialchars"));
 		$daily_digest = isset($daily_digest) ? $daily_digest : false;
 		unset($_SESSION["bigtree_admin"]["create_user"]);
 	}
@@ -57,7 +57,7 @@
 				
 				<br />
 				<fieldset>
-					<input id="user_field_digest" type="checkbox" name="daily_digest" <?php if ($daily_digest) { ?>checked="checked" <?php } ?>/>
+					<input id="user_field_digest" type="checkbox" name="daily_digest" <?php if (!empty($daily_digest)) { ?>checked="checked" <?php } ?>/>
 					<label for="user_field_digest" class="for_checkbox"><?=Text::translate("Daily Digest Email")?></label>
 				</fieldset>
 			</div>

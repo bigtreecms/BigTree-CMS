@@ -72,9 +72,20 @@
 			}
 
 			$lock = SQL::fetch("SELECT * FROM bigtree_locks WHERE `table` = ? AND item_id = ?", $table, $id);
+			
+			// Not currently locked, lock it
+			if (empty($lock)) {
+				$id = SQL::insert("bigtree_locks", array(
+					"table" => $table,
+					"item_id" => $id,
+					"user" => $user
+				));
+				
+				return new Lock($id);
+			}
 
 			// Lock exists and the logged-in user doesn't own it (and it's not old) and we're not forcing our way through
-			if ($lock && $lock["user"] != $user && strtotime($lock["last_accessed"]) > (time() - 300) && !$force) {
+			if ($lock["user"] != $user && strtotime($lock["last_accessed"]) > (time() - 300) && !$force) {
 				$user = new User($lock["user"]);
 
 				$locked_by = $user->Array;
@@ -87,23 +98,11 @@
 			}
 
 			// We're taking over the lock, force was sent or this is an old lock
-			if ($lock) {
-				SQL::update("bigtree_locks", $lock["id"], array(
-					"user" => $user
-				));
+			SQL::update("bigtree_locks", $lock["id"], array(
+				"user" => $user
+			));
 
-				return new Lock($lock["id"]);
-
-				// No lock, we're creating a new one
-			} else {
-				$id = SQL::insert("bigtree_locks", array(
-					"table" => $table,
-					"item_id" => $id,
-					"user" => $user
-				));
-
-				return new Lock($id);
-			}
+			return new Lock($lock["id"]);
 		}
 
 		/*
