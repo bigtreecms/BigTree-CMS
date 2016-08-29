@@ -1159,6 +1159,16 @@
 	#security_settings .rule input { display: inline-block; height: 20px; margin: 0 5px 5px 0; padding: 0 5px; text-align: center; width: 30px; }
 	#security_settings .icon_small_help { display: inline-block; float: none; vertical-align: middle; }
 
+	.bigtree_dialog_window .route_source_field .icon_small { margin: 8px 0 0 0; }
+	.route_source_field { margin: 0 0 5px 0; }
+	.route_source_field:last-child { margin: 0; }
+	.route_source_field .select { float: none; width: 415px; }
+	.route_source_field .select span { width: 361px !important; }
+	.route_source_field .select .select_options { width: 415px !important; }
+	.route_source_field .icon_small_add { display: none; }
+	.route_source_field:last-child .icon_small_add { display: block; }
+	.route_source_field:last-child .icon_small_delete { display: none; }
+
 /*---------------------------
 		Front End Editor
 ---------------------------*/
