@@ -446,16 +446,16 @@
 							static::$ReplaceableRootVals[] = "{wwwroot:$site_key}";
 						}
 					}
-				} else {
-					if (substr(STATIC_ROOT, 0, 7) == "http://" || substr(STATIC_ROOT, 0, 8) == "https://") {
-						static::$ReplaceableRootKeys[] = STATIC_ROOT;
-						static::$ReplaceableRootVals[] = "{staticroot}";
-					}
-					
-					if (substr(WWW_ROOT, 0, 7) == "http://" || substr(WWW_ROOT, 0, 8) == "https://") {
-						static::$ReplaceableRootKeys[] = WWW_ROOT;
-						static::$ReplaceableRootVals[] = "{wwwroot}";
-					}
+				}
+
+				if (substr(STATIC_ROOT, 0, 7) == "http://" || substr(STATIC_ROOT, 0, 8) == "https://") {
+					static::$ReplaceableRootKeys[] = STATIC_ROOT;
+					static::$ReplaceableRootVals[] = "{staticroot}";
+				}
+				
+				if (substr(WWW_ROOT, 0, 7) == "http://" || substr(WWW_ROOT, 0, 8) == "https://") {
+					static::$ReplaceableRootKeys[] = WWW_ROOT;
+					static::$ReplaceableRootVals[] = "{wwwroot}";
 				}
 			}
 		}
@@ -632,6 +632,7 @@
 			if (substr($ipl,0,6) != "ipl://" && substr($ipl,0,6) != "irl://") {
 				return static::replaceRelativeRoots($ipl);
 			}
+
 			$ipl = explode("//",$ipl);
 			$navid = $ipl[1];
 
@@ -648,6 +649,7 @@
 					$r = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE id = '".sqlescape($navid)."'"));
 					$file = $r ? static::replaceRelativeRoots($r["file"]) : false;
 					static::$IRLCache[$navid] = $file;
+
 					if ($ipl[2]) {
 						return BigTree::prefixFile($file,$ipl[2]);
 					} else {

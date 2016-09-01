@@ -4723,30 +4723,41 @@
 			if (static::$IRLPrefixes === false) {
 				static::$IRLPrefixes = array();
 				$thumbnail_sizes = static::getSetting("bigtree-file-manager-thumbnail-sizes");
+				
 				foreach ($thumbnail_sizes["value"] as $ts) {
 					static::$IRLPrefixes[] = $ts["prefix"];
 				}
 			}
+
 			$last_prefix = false;
-			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($file)."' OR file = '".sqlescape(BigTreeCMS::replaceHardRoots($file))."'"));
+			$tokenized_file = BigTreeCMS::replaceHardRoots($file);
+			$single_domain_tokenized_file = static::stripMultipleRootTokens($tokenized_file);
+			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($file)."' OR file = '".sqlescape($tokenized_file)."' OR file = '".sqlescape($single_domain_tokenized_file)."'"));
+			
 			if (!$item) {
 				foreach (static::$IRLPrefixes as $prefix) {
 					if (!$item) {
-						$sfile = str_replace("files/resources/$prefix","files/resources/",$file);
-						$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($sfile)."' OR file = '".sqlescape(BigTreeCMS::replaceHardRoots($sfile))."'"));
+						$sfile = str_replace("files/resources/$prefix", "files/resources/", $file);
+						$tokenized_file = BigTreeCMS::replaceHardRoots($sfile);
+						$single_domain_tokenized_file = static::stripMultipleRootTokens($tokenized_file);
+						$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($sfile)."' OR file = '".sqlescape($tokenized_file)."' OR file = '".sqlescape($single_domain_tokenized_file)."'"));
 						$last_prefix = $prefix;
 					}
 				}
+
 				if (!$item) {
 					return false;
 				}
 			}
+
 			$item["prefix"] = $last_prefix;
 			$item["file"] = BigTreeCMS::replaceRelativeRoots($item["file"]);
 			$item["thumbs"] = json_decode($item["thumbs"],true);
+			
 			foreach ($item["thumbs"] as &$thumb) {
 				$thumb = BigTreeCMS::replaceRelativeRoots($thumb);
 			}
+			
 			return $item;
 		}
 
@@ -5885,13 +5896,18 @@
 		*/
 
 		static function makeIPL($url) {
+			$path_components = explode("/", rtrim(str_replace(WWW_ROOT, "", $url), "/"));
+			
 			// See if this is a file
 			$local_path = str_replace(WWW_ROOT,SITE_ROOT,$url);
 			
-			if ((substr($local_path,0,1) == "/" || substr($local_path,0,2) == "\\\\") && file_exists($local_path)) {
+			if (($path_components[0] != "files" || $path_components[1] != "resources") && 
+				(substr($local_path,0,1) == "/" || substr($local_path,0,2) == "\\\\") && 
+				file_exists($local_path)) {
+				
 				return BigTreeCMS::replaceHardRoots($url);
 			}
-			
+
 			// If we have multiple sites, try each domain
 			if (defined("BIGTREE_SITE_KEY")) {
 				global $bigtree;
@@ -5904,7 +5920,7 @@
 						// Check for resource link
 						if ($path_components[0] == "files" && $path_components[1] == "resources") {
 							$resource = static::getResourceByFile($url);
-							
+
 							if ($resource) {
 								static::$IRLsCreated[] = $resource["id"];
 								
@@ -5929,8 +5945,6 @@
 				
 				return BigTreeCMS::replaceHardRoots($url);
 			} else {
-				$path_components = explode("/", rtrim(str_replace(WWW_ROOT, "", $url), "/"));
-				
 				// Check for resource link
 				if ($path_components[0] == "files" && $path_components[1] == "resources") {
 					$resource = static::getResourceByFile($url);
@@ -7002,6 +7016,35 @@
 			$bigtree["content"] = ob_get_clean();
 			include BigTree::path("admin/layouts/".$bigtree["layout"].".php");
 			die();
+		}
+
+		/*
+			Function: stripMultipleRootTokens
+				Strips the multi-domain root tokens from a string and replaces them with standard {wwwroot} and {staticroot}
+
+			Parameters:
+				string - A string
+
+			Returns:
+				A modified string.
+		*/
+
+		static function stripMultipleRootTokens($string) {
+			global $bigtree;
+
+			if (empty($bigtree["config"]["sites"]) || !array_filter((array) $bigtree["config"]["sites"])) {
+				return $string;
+			}
+
+			foreach ($bigtree["config"]["sites"] as $key => $data) {
+				$string = str_replace(
+					array("{wwwroot:$key}", "{staticroot:$key}"),
+					array("{wwwroot}", "{staticroot}"),
+					$string
+				);
+			}
+
+			return $string;
 		}
 
 		/*
