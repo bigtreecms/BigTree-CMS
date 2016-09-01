@@ -227,6 +227,7 @@
 	load('classes/dom/Dimensions.js');
 	load('classes/caret/LineWalker.js');
 	load('classes/caret/LineUtils.js');
+	load('classes/dom/MousePosition.js');
 	load('classes/DragDropOverrides.js');
 	load('classes/SelectionOverrides.js');
 	load('classes/util/Uuid.js');
@@ -287,4 +288,4 @@
 	writeScripts();
 })(this);
 
-// $hash: cfc07a79b503fe8a4790dc135d473647
+// $hash: 2f3a9f50afdf4759aed62eb2cc83a81e

@@ -26,7 +26,7 @@
 					$bigtree["config"]["db"]["port"],
 					$bigtree["config"]["db"]["socket"]
 				);
-				$connection->query("SET NAMES 'utf8'");
+				$connection->set_charset("utf8mb4");
 				$connection->query("SET SESSION sql_mode = ''");
 				// Remove BigTree connection parameters once it is setup.
 				unset($bigtree["config"]["db"]["user"]);
@@ -40,7 +40,7 @@
 					$bigtree["config"]["db_write"]["port"],
 					$bigtree["config"]["db_write"]["socket"]
 				);
-				$connection->query("SET NAMES 'utf8'");
+				$connection->set_charset("utf8mb4");
 				$connection->query("SET SESSION sql_mode = ''");
 				// Remove BigTree connection parameters once it is setup.
 				unset($bigtree["config"]["db_write"]["user"]);
