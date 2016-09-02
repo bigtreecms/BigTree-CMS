@@ -23,6 +23,28 @@ Changelog
 ### 4.2.12
 - SECURITY FIX: Fixed authenticated SQL injection vulnerability (users with access to edit a page could make SQL calls that could leak data) - Thank you to Mehmet İnce (http://www.mehmetince.net)
 - SECURITY FIX: Fixed XSS vector in front end bar Javascript (would be very hard to attack) - Thanks to Mehmet İnce (http://www.mehmetince.net)
+- ADDED: Multi-domain multi-site support (you can now serve different branches of the page tree from different domains!) http://www.bigtreecms.org/
+- ADDED: Generated Route field type can now accept multiple fields as source fields for route generation
+- ADDED: Edit hooks for Module Forms (data can be translated on load before presenting it to the form for drawing)
+- ADDED: Disable/Enable methods to custom radio, checkbox, and file input fields
+- ADDED: $bigtree["config"]["cache_ttl"] directive to set the default page cache expiration time (rather than it always being 5 minutes)
+- UPDATED: TinyMCE 4 to 4.4.3
+- UPDATED: Field options are now encoded (so you can enter a URL and have it translated properly from dev to live)
+- UPDATED: Facebook API (added new album calls, thanks David Newcomb)
+- FIXED: Resource links not properly getting irl:// protocol when stored in the db
+- FIXED: Warning when calling the disconnect method in BigTreeSFTP
+- FIXED: Permissions bug that allowed users to reply to a message thread they weren't a part of
+- FIXED: Modules not properly guessing that a view should be draggable
+- FIXED: Dialog not closing when working in the File Manager
+- FIXED: Double calls to form hooks no longer breaks the file manager
+- FIXED: Embedded form hashcash validation when whitespace was present (thanks Jordan Mason)
+- FIXED: Person information not being retrieved properly from Flickr API
+- FIXED: Authorize.net now uses POST rather than GET (as GET has been deprecated)
+- FIXED: Switching to Image/Image Group view type showing field lists
+- FIXED: Warning when a callout group had no callouts (thanks David Newcomb)
+- FIXED: Image based views having the view column styling option
+- FIXED: Reports on image views not respecting prefixes for file paths
+- FIXED: GET vars not being passed when enforcing trailing slash behavior
 
 ### 4.2.11 Release
 - SECURITY FIX: Fixed Blind SQL injection attack for admin users with access to a module form (requires admin access).
