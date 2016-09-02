@@ -3554,6 +3554,7 @@ var BigTree = {
 	Busy: false,
 	Growling: false,
 	GrowlTimer: false,
+	GrowlClearTimer: false,
 	ReadyCountdown: 0,
 	ReadyHooks: [],
 	TabIndexDepth: 0,
@@ -3645,12 +3646,14 @@ var BigTree = {
 		if (!time) {
 			time = 2000;
 		}
+
 		if (!type) {
 			type = "success";
 		}
 
 		// Reset the fade out timer, show the growl container
 		clearTimeout(BigTree.GrowlTimer);
+		clearTimeout(BigTree.GrowlClearTimer);
 		var growl_box = $("#growl").addClass("visible");
 
 		// If a growl already exists, fade that one out and slide it up adding another to the box
@@ -3668,7 +3671,10 @@ var BigTree = {
 		BigTree.GrowlTimer = setTimeout(function() {
 			growl_box.removeClass("visible");
 			BigTree.Growling = false;
-		},time + 500);
+			BigTree.GrowlClearTimer = setTimeout(function() {
+				growl_box.find("article").remove();
+			}, 500);
+		}, time + 500);
 	},
 
 	hookReady: function(callback) {
