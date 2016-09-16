@@ -441,16 +441,19 @@
 				// Traverse our page tree
 				var data = false;
 				var inherited_alerts = false;
+				
 				$.fn.reverse = [].reverse;
 				$(this).parentsUntil(".depth_1","li").reverse().each(function(index,el) {
 					var id = $(el).find("a").attr("data-id");
+					
 					if ($(el).find("input[type=checkbox]").prop("checked")) {
 						inherited_alerts = true;
 					}
+					
 					if (!data) {
-						data = BigTree.localPages[id];
+						data = BigTree.localPages["p" + id];
 					} else {
-						data = data.c[id];
+						data = data.c["p" + id];
 					}
 				});
 
