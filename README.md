@@ -23,7 +23,7 @@ Changelog
 ### 4.2.12
 - SECURITY FIX: Fixed authenticated SQL injection vulnerability (users with access to edit a page could make SQL calls that could leak data) - Thank you to Mehmet İnce (http://www.mehmetince.net)
 - SECURITY FIX: Fixed XSS vector in front end bar Javascript (would be very hard to attack) - Thanks to Mehmet İnce (http://www.mehmetince.net)
-- ADDED: Multi-domain multi-site support (you can now serve different branches of the page tree from different domains!) http://www.bigtreecms.org/
+- ADDED: Multi-domain multi-site support (you can now serve different branches of the page tree from different domains!) [Learn More](https://www.bigtreecms.org/docs/dev-guide/advanced/multi-domain-support/)
 - ADDED: Generated Route field type can now accept multiple fields as source fields for route generation
 - ADDED: Edit hooks for Module Forms (data can be translated on load before presenting it to the form for drawing)
 - ADDED: Disable/Enable methods to custom radio, checkbox, and file input fields
@@ -45,6 +45,7 @@ Changelog
 - FIXED: Image based views having the view column styling option
 - FIXED: Reports on image views not respecting prefixes for file paths
 - FIXED: GET vars not being passed when enforcing trailing slash behavior
+- FIXED: Page tree not being in alphabetical order when expanding branches editing user permissions
 
 ### 4.2.11 Release
 - SECURITY FIX: Fixed Blind SQL injection attack for admin users with access to a module form (requires admin access).
