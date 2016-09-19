@@ -628,7 +628,8 @@
 			
 			// Alerts is empty, nothing to check
 			$user->Alerts = array_filter((array) $user->Alerts);
-			if (!$user->Alerts) {
+			
+			if (!count($user->Alerts)) {
 				return array();
 			}
 			
@@ -778,7 +779,7 @@
 		function getPendingChange() {
 			$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND `item_id` = ?", $this->ID);
 			
-			if (!$change) {
+			if (empty($change)) {
 				return false;
 			}
 			
@@ -850,7 +851,7 @@
 				// If it's prefixed with a "p" then it's a pending entry.
 				$pending = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `id` = ?", substr($id, 1));
 				
-				if (!$pending) {
+				if (empty($pending)) {
 					return false;
 				}
 				
@@ -858,7 +859,7 @@
 			}
 			
 			// No changes, just return
-			if (!$pending) {
+			if (empty($pending)) {
 				return $page;
 			}
 			

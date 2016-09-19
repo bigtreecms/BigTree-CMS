@@ -195,9 +195,9 @@
 			// If we didn't find the resource, check all the prefixes
 			$last_prefix = "";
 			
-			if (!$resource) {
+			if (empty($resource)) {
 				foreach (static::$Prefixes as $prefix) {
-					if (!$resource) {
+					if (empty($resource)) {
 						$prefixed_file = str_replace("files/resources/$prefix", "files/resources/", $file);
 						$resource = SQL::fetch("SELECT * FROM bigtree_resources
 												WHERE file = ? OR file = ?", $file, Link::tokenize($prefixed_file));

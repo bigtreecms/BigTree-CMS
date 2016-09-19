@@ -116,7 +116,7 @@
 			// See if the from already exists
 			$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ?", $from);
 
-			if ($existing) {
+			if (!empty($existing)) {
 				SQL::update("bigtree_404s", $existing["id"], array("redirect_url" => $redirect_url, "ignored" => $ignored));
 				AuditTrail::track("bigtree_404s", $existing["id"], "updated");
 
@@ -190,7 +190,7 @@
 				// Throw 404 header
 				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 
-				if ($entry) {
+				if (!empty($entry)) {
 					SQL::query("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = ?", $entry["id"]);
 				} else {
 					SQL::insert("bigtree_404s", array(

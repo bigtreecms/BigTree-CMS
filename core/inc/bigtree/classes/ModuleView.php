@@ -579,7 +579,7 @@
 		static function getByTable($table) {
 			$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE type = 'view' AND `table` = ?", $table);
 
-			if ($interface) {
+			if (empty($interface)) {
 				return new ModuleView($interface);
 			}
 
