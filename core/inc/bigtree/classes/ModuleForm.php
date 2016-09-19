@@ -29,7 +29,7 @@
 		public $DefaultPosition;
 		public $Embedded = false;
 		public $Fields;
-		public $Hooks = array("pre" => "", "post" => "", "publish" => "");
+		public $Hooks = array("edit" => "", "pre" => "", "post" => "", "publish" => "");
 		public $Module;
 		public $ReturnURL;
 		public $ReturnView;

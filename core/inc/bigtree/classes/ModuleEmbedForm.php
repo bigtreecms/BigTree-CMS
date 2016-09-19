@@ -25,7 +25,7 @@
 		public $DefaultPosition;
 		public $Embedded = true;
 		public $Fields;
-		public $Hooks;
+		public $Hooks = array("edit" => "", "pre" => "", "post" => "", "publish" => "");
 		public $Module;
 		public $RedirectURL;
 		public $Tagging;
