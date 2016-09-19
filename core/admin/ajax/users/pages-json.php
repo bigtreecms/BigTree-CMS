@@ -18,7 +18,7 @@
 				$kid["c"] = $grandkids;
 			}
 		
-			$response[$child->ID] = $kid;
+			$response["p".$child->ID] = $kid;
 		}
 		
 		return $response;

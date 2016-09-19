@@ -449,9 +449,9 @@
 						inherited_alerts = true;
 					}
 					if (!data) {
-						data = BigTree.localPages[id];
+						data = BigTree.localPages["p" + id];
 					} else {
-						data = data.c[id];
+						data = data.c["p" + id];
 					}
 				});
 
