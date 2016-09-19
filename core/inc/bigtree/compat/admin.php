@@ -3312,6 +3312,11 @@
 
 		function saveCurrentPageRevision($page, $description) {
 			$page = new BigTree\Page($page);
+
+			if ($page->UserAccessLevel != "p") {
+				$this->stop("You must be a publisher to manage revisions.");
+			}
+
 			$revision = BigTree\PageRevision::create($page, $description);
 
 			return $revision->ID;

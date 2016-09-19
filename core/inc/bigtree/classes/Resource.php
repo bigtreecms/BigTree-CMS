@@ -194,13 +194,22 @@
 			
 			// If we didn't find the resource, check all the prefixes
 			$last_prefix = "";
+			$tokenized_file = Link::tokenize($file);
+			$single_domain_tokenized_file = Link::stripMultipleRootTokens($tokenized_file);
+
+			$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ? OR file = ?", 
+									$file, $tokenized_file, $single_domain_tokenized_file);
 			
 			if (empty($resource)) {
 				foreach (static::$Prefixes as $prefix) {
 					if (empty($resource)) {
 						$prefixed_file = str_replace("files/resources/$prefix", "files/resources/", $file);
-						$resource = SQL::fetch("SELECT * FROM bigtree_resources
-												WHERE file = ? OR file = ?", $file, Link::tokenize($prefixed_file));
+						$tokenized_file = Link::tokenize($sfile);
+						$single_domain_tokenized_file = Link::stripMultipleRootTokens($tokenized_file);
+						
+						$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ? OR file = ?", 
+												$file, $tokenized_file, $single_domain_tokenized_file);
+						
 						$last_prefix = $prefix;
 					}
 				}

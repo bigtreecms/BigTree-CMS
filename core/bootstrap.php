@@ -4,17 +4,37 @@
 	 */
 	
 	ini_set("log_errors", "false");
+
+	// See if we're in a multi-domain setup
+	if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+		// Figure out which domain we're in
+		foreach ($bigtree["config"]["sites"] as $site_key => $site_data) {
+			$domain_match = str_replace(array("http://", "https://"), "", $site_data["domain"]);
+			
+			if ($domain_match == $_SERVER["HTTP_HOST"]) {
+				define("BIGTREE_SITE_KEY", $site_key);
+				define("BIGTREE_SITE_TRUNK", intval($site_data["trunk"]));
+				
+				$domain = rtrim($site_data["domain"], "/");
+				$www_root = $site_data["www_root"];
+				$static_root = !empty($site_data["static_root"]) ? $site_data["static_root"] : $www_root;
+			}
+		}
+	}
 	
-	// Set some config vars automatically and setup some globals.
-	$domain = rtrim($bigtree["config"]["domain"], "/");
+	if (!defined("BIGTREE_SITE_KEY")) {
+		define("BIGTREE_SITE_TRUNK", 0);
+		
+		// Set some config vars automatically and setup some globals.
+		$domain = rtrim($bigtree["config"]["domain"], "/");
+		$www_root = $bigtree["config"]["www_root"];
+		$static_root = isset($bigtree["config"]["static_root"]) ? $bigtree["config"]["static_root"] : $www_root;
+	}
 	
-	// This is set now in index.php but is left for backwards compatibility.
 	$server_root = isset($server_root) ? $server_root : str_replace("core/bootstrap.php", "", strtr(__FILE__, "\\", "/"));
 	$site_root = $server_root."site/";
-	$www_root = $bigtree["config"]["www_root"];
-	$admin_root = $bigtree["config"]["admin_root"];
-	$static_root = isset($bigtree["config"]["static_root"]) ? $bigtree["config"]["static_root"] : $www_root;
 	$secure_root = str_replace("http://", "https://", $www_root);
+	$admin_root = $bigtree["config"]["admin_root"];
 	
 	define("WWW_ROOT", $www_root);
 	define("STATIC_ROOT", $static_root);
@@ -88,7 +108,14 @@
 	$bigtree["mysql_write_connection"] = "disconnected";
 	
 	// Load Up BigTree!
+	BigTree\Router::boot($bigtree["config"]);
 	include BigTree\Router::getIncludePath("inc/bigtree/compat/cms.php");
+
+	// If we're in the process of logging into multi-domain sites, login this session and move along
+	if (defined("BIGTREE_SITE_KEY") && isset($_GET["bigtree_login_redirect_session_key"])) {
+		session_start();
+		Auth::loginChainSession($_GET["bigtree_login_redirect_session_key"]);
+	}
 	
 	if (defined("BIGTREE_CUSTOM_BASE_CLASS") && BIGTREE_CUSTOM_BASE_CLASS) {
 		include SITE_ROOT.BIGTREE_CUSTOM_BASE_CLASS_PATH;

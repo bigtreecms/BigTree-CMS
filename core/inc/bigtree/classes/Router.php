@@ -10,12 +10,120 @@
 
 	class Router {
 
+		protected static $Booted = false;
 		protected static $ReservedRoutes = array();
 
 		public static $Registry = false;
 		public static $RouteParamNames = array();
 		public static $RouteParamNamesPath = array();
 		public static $Secure = false;
+		public static $SiteRoots = array();
+
+		/*
+			Function: boot
+				Builds caches from the database and configuration files.
+		*/
+
+		static function boot($config) {
+			if (static::$Booted) {
+				return;
+			}
+
+			$cache_file = SERVER_ROOT."cache/bigtree-module-cache.json";
+
+			if ($config["debug"] || !file_exists($cache_file)) {
+				// Preload the BigTreeModule class since others are based off it
+				include_once Router::getIncludePath("inc/bigtree/modules.php");
+
+				$data = array(
+					"routes" => array("admin" => array(), "public" => array(), "template" => array()),
+					"classes" => array(),
+					"extension_required_files" => array()
+				);
+
+				// Get all modules from the db
+				$modules = SQL::fetchAll("SELECT route, class FROM bigtree_modules");
+				
+				foreach ($modules as $module) {
+					$class = $module["class"];
+					$route = $module["route"];
+
+					if ($class) {
+						// Get the class file path
+						if (strpos($route, "*") !== false) {
+							list($extension, $file_route) = explode("*", $route);
+							$path = "extensions/$extension/classes/$file_route.php";
+						} else {
+							$path = "custom/inc/modules/$route.php";
+						}
+						$data["classes"][$class] = $path;
+
+						// Get the registered routes, load the class
+						include_once SERVER_ROOT.$path;
+						if (isset($class::$RouteRegistry) && is_array($class::$RouteRegistry)) {
+							foreach ($class::$RouteRegistry as $registration) {
+								$type = $registration["type"];
+								unset($registration["type"]);
+
+								$data["routes"][$type][] = $registration;
+							}
+						}
+					}
+				}
+
+				// Get all extension required files and add them to a required list
+				$extensions = SQL::fetchAllSingle("SELECT id FROM bigtree_extensions");
+				foreach ($extensions as $id) {
+					if (file_exists(SERVER_ROOT."extensions/$id/required/")) {
+						$required_contents = FileSystem::getDirectoryContents(SERVER_ROOT."extensions/$id/required/");
+
+						foreach (array_filter((array) $required_contents) as $file) {
+							$data["extension_required_files"][] = $file;
+						}
+					}
+				}
+				
+				if (!$config["debug"]) {
+					// Cache it so we don't hit the database.
+					FileSystem::createFile($cache_file, JSON::encode($data));
+				}
+			} else {
+				$data = json_decode(file_get_contents($cache_file), true);
+			}
+
+			Module::$ClassCache = $data["classes"];
+			Extension::$RequiredFiles = $data["extension_required_files"];
+			static::$Registry = $data["routes"];
+
+			// Find root paths for all sites to include in URLs if we're in a multi-site environment
+			if (defined("BIGTREE_SITE_KEY")) {
+				$cache_location = SERVER_ROOT."cache/multi-site-cache.json";
+
+				if (!file_exists($cache_location)) {
+					foreach ($config["sites"] as $site_key => $site_data) {
+						$page = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".intval($site_data["trunk"])."'"));
+						
+						static::$SiteRoots[$page["path"]] = $site_data;
+					}
+					
+					// We want the primary domain (at root 0) last as well as longer routes first
+					ksort(static::$SiteRoots);
+					static::$SiteRoots = array_reverse(static::$SiteRoots);
+					
+					file_put_contents($cache_location, BigTree::json(static::$SiteRoots));
+				} else {
+					static::$SiteRoots = json_decode(file_get_contents($cache_location), true);
+				}
+				
+				foreach (static::$SiteRoots as $site_path => $site_data) {
+					if ($site_data["trunk"] == BIGTREE_SITE_TRUNK) {
+						define("BIGTREE_SITE_PATH", $site_path);
+					}
+				}
+			}
+
+			static::$Booted = true;
+		}
 
 		/*
 			Function: checkPathHistory
@@ -424,6 +532,11 @@
 		static function routeToPage($path, $previewing = false) {
 			$commands = array();
 			$publish_at = $previewing ? "" : "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";
+
+			// Add multi-site path
+			if (defined("BIGTREE_SITE_PATH")) {
+				$path = array_filter(array_merge(explode("/", BIGTREE_SITE_PATH), $path));
+			}
 			
 			// See if we have a straight up perfect match to the path.
 			$page = SQL::fetch("SELECT bigtree_pages.id,bigtree_templates.routed

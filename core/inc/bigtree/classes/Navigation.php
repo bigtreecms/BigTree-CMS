@@ -50,19 +50,18 @@
 			$trunk_hit = false;
 			foreach ($ancestors as $ancestor) {
 				// In case we want to know what the trunk is.
-				if ($ancestor["trunk"]) {
+				if ($ancestor["trunk"] || $ancestor["id"] === BIGTREE_SITE_TRUNK) {
 					$trunk_hit = true;
 					\BigTreeCMS::$BreadcrumbTrunk = $ancestor;
 					Navigation::$Trunk = $ancestor;
 				}
 
 				if (!$trunk_hit || $ignore_trunk) {
-					if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
-						$link = WWW_ROOT.$ancestor["path"];
-					} else {
-						$link = WWW_ROOT.$ancestor["path"]."/";
-					}
-					$bc[] = array("title" => stripslashes($ancestor["nav_title"]), "link" => $link, "id" => $ancestor["id"]);
+					$bc[] = array(
+						"title" => stripslashes($ancestor["nav_title"]),
+						"link" => Link::byPath($ancestor["path"]), 
+						"id" => $ancestor["id"]
+					);
 				}
 			}
 			$bc = array_reverse($bc);
@@ -92,17 +91,24 @@
 				parent - Either a single page ID or an array of page IDs -- the latter is used internally
 				depth - The number of levels of navigation depth to recurse
 				follow_module - Whether to pull module navigation or not (defaults to true)
+				only_hidden - Whether to pull visible (false) or hidden (true) pages
+				explicit_zero - In a multi-site environment you must pass true for this parameter if you want root level children rather than the site-root level
 
 			Returns:
 				A navigation array containing "id", "parent", "title", "route", "link", "new_window", and "children" (containing children if depth > 1)
 		*/
 
-		static function getLevel($parent = 0, $depth = 1, $follow_module = true, $only_hidden = false) {
+		static function getLevel($parent = 0, $depth = 1, $follow_module = true, $only_hidden = false, $explicit_zero = false) {
 			global $bigtree;
 			static $module_nav_count = 0;
 
 			$nav = array();
 			$find_children = array();
+
+			// If we're asking for root (0) and in multi-site, use that site's root instead of the top-level root
+			if (!$explicit_zero && $parent === 0 && BIGTREE_SITE_TRUNK !== 0) {
+				$parent = BIGTREE_SITE_TRUNK;
+			}
 
 			// If the parent is an array, this is actually a recursed call.
 			// We're finding all the children of all the parents at once -- then we'll assign them back to the proper parent instead of doing separate calls for each.
@@ -139,12 +145,6 @@
 
 			// Wrangle up some kids
 			foreach ($children as $child) {
-				if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
-					$link = WWW_ROOT.$child["path"];
-				} else {
-					$link = WWW_ROOT.$child["path"]."/";
-				}
-
 				// If we're REALLY an external link we won't have a template, so let's get the real link and not the encoded version.
 				// Then we'll see if we should open this thing in a new window.
 				$new_window = false;
@@ -155,6 +155,8 @@
 					if ($child["new_window"]) {
 						$new_window = true;
 					}
+				} else {
+					$link = static::byPath($child["path"]);
 				}
 
 				// Add it to the nav array

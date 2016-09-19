@@ -1192,7 +1192,7 @@
 			
 			// Get either the trunk or the top level nav id.
 			$page = SQL::fetch("SELECT id, trunk, path FROM bigtree_pages
-								WHERE (".implode(" OR ", $paths).") AND (trunk = 'on' OR parent = '0')
+								WHERE (".implode(" OR ", $paths).") AND (trunk = 'on' OR parent = '".BIGTREE_SITE_TRUNK."')
 								ORDER BY LENGTH(path) DESC LIMIT 1");
 			
 			// If we don't want the trunk, look higher
@@ -1508,6 +1508,13 @@
 					"entry" => $this->ID,
 					"tag" => $tag->ID
 				));
+			}
+
+			// If this page is a trunk in a multi-site setup, wipe the cache
+			foreach (Router::$SiteRoots as $site_path => $site_data) {
+				if ($site_data["trunk"] == $page) {
+					unlink(SERVER_ROOT."cache/multi-site-cache.json");
+				}
 			}
 		}
 		

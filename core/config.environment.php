@@ -33,3 +33,28 @@
 	$bigtree["config"]["db_write"]["port"] = "[write_port]";
 	$bigtree["config"]["db_write"]["socket"] = "[write_socket]";
 	
+	/*
+		Multi-Domain Support
+		--------------------
+		"trunk" should be set to the Page ID of the page that serves as the root-level page for the domain.
+		The array key for each site will be defined as BIGTREE_SITE_KEY when you've been routed to that site.
+		It should be alphanumeric as it is also used in tokenization of URLs.
+
+		Example
+		=======
+	
+		$bigtree["config"]["sites"] = array(
+			"primary" => array(
+				"trunk" => 0,
+				"domain" => "http://primary.bigtree.dev",
+				"www_root" => "http://primary.bigtree.dev/",
+				"static_root" => "http://primary.bigtree.dev/"
+			),
+			"alt" => array(
+				"trunk" => 7,
+				"domain" => "http://alt.bigtree.dev",
+				"www_root" => "http://alt.bigtree.dev/",
+				"static_root" => "http://alt.bigtree.dev/"
+			)
+		);
+	*/

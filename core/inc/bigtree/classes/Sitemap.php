@@ -25,7 +25,7 @@
 					if (!$page["template"]) {
 						$link = Link::iplDecode($page["external"]);
 					} else {
-						$link = WWW_ROOT.$page["path"].(($page["id"] > 0) ? "/" : ""); // Fix sitemap adding trailing slashes to home
+						$link = Link::byPath($page["path"]);
 					}
 
 					$response .= "<url><loc>".$link."</loc></url>\n";

@@ -31,9 +31,6 @@
 				ini_set("display_errors", "off");
 			}
 			
-			// Build caches
-			BigTree\Module::buildCaches();
-			
 			// Lazy loading of modules
 			$bigtree["class_list"] = array_merge(BigTree\Module::$ClassCache, array(
 				"BigTree" => "inc/bigtree/compat/utils.php",

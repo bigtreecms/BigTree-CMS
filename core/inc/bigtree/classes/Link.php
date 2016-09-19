@@ -14,6 +14,87 @@
 		public static $IPLCache = array();
 		public static $TokenKeys = array();
 		public static $TokenValues = array();
+
+		/*
+			Function: byPath
+				Returns the proper multi-site checked domain for a given page path.
+
+			Parameters:
+				path - A page path
+
+			Returns:
+				A string.
+		*/
+
+		static function byPath($path) {
+			global $bigtree;
+			
+			// Remove the site root from the path for multi-site
+			if (defined("BIGTREE_SITE_KEY")) {
+				foreach (Router::$SiteRoots as $site_path => $site_data) {
+					if ($site_path == "" || strpos($path, $site_path) === 0) {
+						if ($site_path) {
+							$path = substr($path, strlen($site_path) + 1);
+						}
+						
+						
+						if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
+							return $site_data["www_root"].$path;
+						}
+						
+						return $site_data["www_root"].$path."/";
+					}
+				}
+			}
+			
+			
+			if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
+				return WWW_ROOT.$path;
+			}
+			
+			return WWW_ROOT.$path."/";
+		}
+
+		/*
+		    Function: cacheTokens
+				Caches a list of tokens and the values that are related to them.
+		*/
+
+		static function cacheTokens() {
+			global $bigtree;
+			
+			// Figure out what roots we can replace
+			if (!count(static::$TokenKeys)) {
+				if (substr(ADMIN_ROOT, 0, 7) == "http://" || substr(ADMIN_ROOT, 0, 8) == "https://") {
+					static::$TokenKeys[] = ADMIN_ROOT;
+					static::$TokenValues[] = "{adminroot}";
+				}
+				
+				if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+					foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
+						if (substr($site_configuration["static_root"], 0, 7) == "http://" || substr($site_configuration["static_root"], 0, 8) == "https://") {
+							static::$TokenKeys[] = $site_configuration["static_root"];
+							static::$TokenValues[] = "{staticroot:$site_key}";
+						}
+						
+						if (substr($site_configuration["www_root"], 0, 7) == "http://" || substr($site_configuration["www_root"], 0, 8) == "https://") {
+							static::$TokenKeys[] = $site_configuration["www_root"];
+							static::$TokenValues[] = "{wwwroot:$site_key}";
+						}
+					}
+				}
+
+				if (substr(STATIC_ROOT, 0, 7) == "http://" || substr(STATIC_ROOT, 0, 8) == "https://") {
+					static::$TokenKeys[] = STATIC_ROOT;
+					static::$TokenValues[] = "{staticroot}";
+				}
+				
+				if (substr(WWW_ROOT, 0, 7) == "http://" || substr(WWW_ROOT, 0, 8) == "https://") {
+					static::$TokenKeys[] = WWW_ROOT;
+					static::$TokenValues[] = "{wwwroot}";
+				}
+			}
+		}
 		
 		/*
 			Function: currentURL
@@ -93,8 +174,10 @@
 				
 				return $input;
 			}
-			
-			return str_replace(array("{adminroot}", "{wwwroot}", "{staticroot}"), array(ADMIN_ROOT, WWW_ROOT, STATIC_ROOT), $input);
+
+			static::cacheTokens();
+
+			return str_replace(static::$TokenValues, static::$TokenKeys, $input);
 		}
 		
 		/*
@@ -157,28 +240,20 @@
 			global $bigtree;
 			
 			// Homepage, just return the web root.
-			if ($id == 0) {
+			if ($id === BIGTREE_SITE_TRUNK) {
 				return WWW_ROOT;
 			}
 			
 			// If someone is requesting the link of the page they're already on we don't need to request it from the database.
 			if ($bigtree["page"]["id"] == $id) {
-				if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
-					return WWW_ROOT.$bigtree["page"]["path"];
-				} else {
-					return WWW_ROOT.$bigtree["page"]["path"]."/";
-				}
+				return static::byPath($bigtree["page"]["path"]);
 			}
 			
 			// Otherwise we'll grab the page path from the db.
 			$path = SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE archived != 'on' AND id = ?", $id);
 			
 			if ($path) {
-				if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
-					return WWW_ROOT.$path;
-				} else {
-					return WWW_ROOT.$path."/";
-				}
+				return static::byPath($path);
 			}
 			
 			return false;
@@ -390,12 +465,12 @@
 				$path = SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $navid);
 				
 				// Set the cache
-				static::$IPLCache[$navid] = WWW_ROOT.$path;
+				static::$IPLCache[$navid] = rtrim(static::byPath($path), "/");
 				
 				if (!empty($bigtree["config"]["trailing_slash_behavior"]) && $bigtree["config"]["trailing_slash_behavior"] != "remove" || $commands != "") {
-					return WWW_ROOT.$path."/".$commands;
+					return static::$IPLCache[$navid]."/".$commands;
 				} else {
-					return WWW_ROOT.$path;
+					returnstatic::$IPLCache[$navid];
 				}
 			}
 		}
@@ -412,27 +487,70 @@
 		*/
 		
 		static function iplEncode($url) {
+			$path_components = explode("/", rtrim(str_replace(WWW_ROOT, "", $url), "/"));
+			
 			// See if this is a file
 			$local_path = str_replace(WWW_ROOT, SITE_ROOT, $url);
-			if ((substr($local_path, 0, 1) == "/" || substr($local_path, 0, 2) == "\\\\") && file_exists($local_path)) {
+			
+			if (($path_components[0] != "files" || $path_components[1] != "resources") && 
+				(substr($local_path,0,1) == "/" || substr($local_path,0,2) == "\\\\") && 
+				file_exists($local_path)) {
+				
 				return static::tokenize($url);
 			}
-			
-			$command = explode("/", rtrim(str_replace(WWW_ROOT, "", $url), "/"));
-			
-			// Check for resource link
-			if ($command[0] == "files" && $command[1] == "resources") {
-				$resource = Resource::getByFile($url);
+
+			// If we have multiple sites, try each domain
+			if (defined("BIGTREE_SITE_KEY")) {
+				global $bigtree;
 				
-				if ($resource) {
-					Resource::$CreationLog[] = $resource->ID;
-					
-					return "irl://".$resource->ID."//".$resource->Prefix;
+				foreach ($bigtree["config"]["sites"] as $site_key => $configuration) {
+					// This is the site we're pointing to
+					if (strpos($url, $configuration["www_root"]) !== false) {
+						$path_components = explode("/", rtrim(str_replace($configuration["www_root"], "", $url), "/"));
+						
+						// Check for resource link
+						if ($path_components[0] == "files" && $path_components[1] == "resources") {
+							$resource = Resource::getByFile($url);
+
+							if ($resource) {
+								static::$IRLsCreated[] = $resource["id"];
+								
+								return "irl://".$resource["id"]."//".$resource["prefix"];
+							}
+						}
+						
+						// Get the root path of the site for calculating an IPL and add it to the path components
+						$root_path = SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $configuration["trunk"]);
+						$path_components = array_filter(array_merge(explode("/", $root_path), $path_components));
+						
+						// Check for page link
+						list($navid, $commands) = Router::routeToPage($path_components);
+						
+						if ($navid) {
+							return "ipl://".$navid."//".base64_encode(json_encode($commands));
+						} else {
+							return static::tokenize($url);
+						}
+					}
 				}
+				
+				return static::tokenize($url);
+			} else {
+				// Check for resource link
+				if ($path_components[0] == "files" && $path_components[1] == "resources") {
+					$resource = Resource::getByFile($url);
+					
+					if ($resource) {
+						static::$IRLsCreated[] = $resource["id"];
+						
+						return "irl://".$resource["id"]."//".$resource["prefix"];
+					}
+				}
+				
+				// Check for page link
+				list($navid, $commands) = Router::routeToPage($path_components);
 			}
 			
-			// Check for page link
-			list($navid, $commands) = Router::routeToPage($command);
 			if (!$navid) {
 				return static::tokenize($url);
 			}
@@ -525,6 +643,35 @@
 			
 			return true;
 		}
+
+		/*
+			Function: stripMultipleRootTokens
+				Strips the multi-domain root tokens from a string and replaces them with standard {wwwroot} and {staticroot}
+
+			Parameters:
+				string - A string
+
+			Returns:
+				A modified string.
+		*/
+
+		static function stripMultipleRootTokens($string) {
+			global $bigtree;
+
+			if (empty($bigtree["config"]["sites"]) || !array_filter((array) $bigtree["config"]["sites"])) {
+				return $string;
+			}
+
+			foreach ($bigtree["config"]["sites"] as $key => $data) {
+				$string = str_replace(
+					array("{wwwroot:$key}", "{staticroot:$key}"),
+					array("{wwwroot}", "{staticroot}"),
+					$string
+				);
+			}
+
+			return $string;
+		}
 		
 		/*
 			Function: tokenize
@@ -546,21 +693,7 @@
 				return $input;
 			}
 			
-			// Figure out what roots we can replace
-			if (!count(static::$TokenKeys)) {
-				if (substr(ADMIN_ROOT, 0, 7) == "http://" || substr(ADMIN_ROOT, 0, 8) == "https://") {
-					static::$TokenKeys[] = ADMIN_ROOT;
-					static::$TokenValues[] = "{adminroot}";
-				}
-				if (substr(STATIC_ROOT, 0, 7) == "http://" || substr(STATIC_ROOT, 0, 8) == "https://") {
-					static::$TokenKeys[] = STATIC_ROOT;
-					static::$TokenValues[] = "{staticroot}";
-				}
-				if (substr(WWW_ROOT, 0, 7) == "http://" || substr(WWW_ROOT, 0, 8) == "https://") {
-					static::$TokenKeys[] = WWW_ROOT;
-					static::$TokenValues[] = "{wwwroot}";
-				}
-			}
+			static::cacheTokens();
 			
 			return str_replace(static::$TokenKeys, static::$TokenValues, $input);
 		}

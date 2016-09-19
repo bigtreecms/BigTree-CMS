@@ -398,6 +398,27 @@
 			$page = new Page($navid);
 			$bigtree["page"] = $page->Array;
 		}
+
+		// If we're in multi-site and the path contains a different site, 301 away
+		if (defined("BIGTREE_SITE_KEY")) {
+			foreach (Router::$SiteRoots as $site_path => $site_data) {
+				if ($site_path == BIGTREE_SITE_PATH && (!$site_path || strpos($bigtree["page"]["path"], $site_path) === 0)) {
+					break;
+				}
+				
+				if ($site_path == "" || strpos($bigtree["page"]["path"], $site_path) === 0) {
+					if ($site_path) {
+						$bigtree["page"]["path"] = substr($bigtree["page"]["path"], strlen($site_path));
+					}
+					
+					if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
+						Router::redirect($site_data["domain"].$bigtree["page"]["path"]);
+					}
+					
+					Router::redirect($site_data["domain"].$bigtree["page"]["path"]."/");
+				}
+			}
+		}
 		
 		$bigtree["page"]["link"] = WWW_ROOT.$bigtree["page"]["path"]."/";
 		$bigtree["resources"] = $bigtree["page"]["resources"];
@@ -466,7 +487,12 @@
 			} else {
 				// Allow the homepage to be routed
 				if ($bigtree["page"]["path"]) {
-					$path_components = explode("/", substr(implode("/", $bigtree["path"])."/", strlen($bigtree["page"]["path"]."/")));
+					if (defined("BIGTREE_SITE_PATH")) {
+						$path = array_filter(array_merge(explode("/", BIGTREE_SITE_PATH), $bigtree["path"]));
+						$path_components = explode("/", substr(implode("/", $path)."/", strlen($bigtree["page"]["path"]."/")));
+					} else {
+						$path_components = explode("/", substr(implode("/", $bigtree["path"])."/", strlen($bigtree["page"]["path"]."/")));
+					}
 				} else {
 					$path_components = $bigtree["path"];
 				}
