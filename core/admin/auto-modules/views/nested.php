@@ -18,7 +18,7 @@
 		$(element).sortable({
 			axis: "y",
 			containment: "parent",
-			handle: ".icon_sort",
+			handle: ".js-hook-sort",
 			items: "> li",
 			placeholder: "ui-sortable-placeholder",
 			update: function(ev,ui) {
@@ -71,7 +71,7 @@
 		<?php if ($module_permission == "p") { ?>
 		BigTree.localCreateSortable(ul);
 		<?php } ?>
-	}).on("mousedown",".icon_sort",function() {
+	}).on("mousedown",".js-hook-sort",function() {
 		// We're going to collapse the section so we can drag it easier.
 		BigTree.localPreviouslyExpanded = [];
 		var li = $(this).parent().parent();

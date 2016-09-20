@@ -15,7 +15,7 @@
 			SearchTimer = setTimeout("BigTree.localSearch();",400);
 		});
 		
-		$(".table").on("click",".icon_delete",function() {
+		$(".table").on("click",".js-hook-delete",function() {
 			Current = $(this);
 			BigTreeDialog({
 				title: "<?=Text::translate("Delete Item", true)?>",
@@ -48,7 +48,7 @@
 			});
 	
 			return false;
-		}).on("click",".icon_approve",function() {
+		}).on("click",".js-hook-approve",function() {
 			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/approve/?view=<?=$view->ID?>&id=" + BigTree.cleanHref($(this).attr("href")));
 			<?php if (($view->Type == "grouped" || $view->Type == "images-grouped") && $view->Settings["group_field"] == "approved") { ?>
 			BigTree.localSearch();
@@ -56,7 +56,7 @@
 			$(this).toggleClass("icon_approve_on");
 			<?php } ?>
 			return false;
-		}).on("click",".icon_feature",function() {
+		}).on("click",".js-hook-feature",function() {
 			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/feature/?view=<?=$view->ID?>&id=" + BigTree.cleanHref($(this).attr("href")));
 			<?php if (($view->Type == "grouped" || $view->Type == "images-grouped") && $view->Settings["group_field"] == "featured") { ?>
 			BigTree.localSearch();
@@ -64,7 +64,7 @@
 			$(this).toggleClass("icon_feature_on");
 			<?php } ?>
 			return false;
-		}).on("click",".icon_archive",function() {
+		}).on("click",".js-hook-archive",function() {
 			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/archive/?view=<?=$view->ID?>&id=" + BigTree.cleanHref($(this).attr("href")));
 			<?php if (($view->Type == "grouped" || $view->Type == "images-grouped") && $view->Settings["group_field"] == "archived") { ?>
 			BigTree.localSearch();
@@ -72,6 +72,6 @@
 			$(this).toggleClass("icon_archive_on");
 			<?php } ?>
 			return false;
-		}).on("click",".icon_disabled",function() { return false; });
+		}).on("click",".js-hook-disabled",function() { return false; });
 	})();
 </script>

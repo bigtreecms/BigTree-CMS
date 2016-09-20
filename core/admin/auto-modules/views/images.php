@@ -70,9 +70,9 @@
 							if ($action != "edit") {
 								if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
 									if ($action == "delete" && $item["pending_owner"] == Auth::user()->ID) {
-										$class = "icon_delete";
+										$class = "icon_delete js-hook-delete";
 									} else {
-										$class = "icon_disabled";
+										$class = "icon_disabled js-hook-disabled";
 									}
 								} else {
 									$class = ModuleView::generateActionClass($action, $item);
@@ -129,9 +129,9 @@
 							if ($action != "edit") {
 								if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
 									if ($action == "delete" && $item["pending_owner"] == Auth::user()->ID) {
-										$class = "icon_delete";
+										$class = "icon_delete js-hook-delete";
 									} else {
-										$class = "icon_disabled";
+										$class = "icon_disabled js-hook-disabled";
 									}
 								} else {
 									$class = ModuleView::generateActionClass($action, $item);

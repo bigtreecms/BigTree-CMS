@@ -114,7 +114,7 @@
 		?>
 		<section class="view_column" style="width: <?=$field["width"]?>px;">
 			<?php if ($x == 1 && $module_permission == "p" && !$search && $draggable) { ?>
-			<span class="icon_sort"></span>
+			<span class="icon_sort js-hook-sort"></span>
 			<?php } ?>
 			<?=$value?>
 		</section>
@@ -127,9 +127,9 @@
 				if ($data == "on") {
 					if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $entry_permission != "p") {
 						if ($action == "delete" && $item["pending_owner"] == Auth::user()->ID) {
-							$class = "icon_delete";
+							$class = "icon_delete js-hook-delete";
 						} else {
-							$class = "icon_disabled";
+							$class = "icon_disabled js-hook-disabled";
 						}
 					} else {
 						$class = $view->generateActionClass($action, $item);

@@ -53,7 +53,7 @@
 					$achar = "";
 				}
 		?>
-		<span class="view_column" style="width: <?=$field["width"]?>px;"><a class="sort_column<?=$active?>" href="<?=$s_direction?>" name="<?=$key?>"><?=$field["title"]?> <em><?=$achar?></em></a></span>
+		<span class="view_column" style="width: <?=$field["width"]?>px;"><a class="js-sort-column sort_column<?=$active?>" href="<?=$s_direction?>" name="<?=$key?>"><?=$field["title"]?> <em><?=$achar?></em></a></span>
 		<?php
 			}
 		?>
@@ -75,7 +75,7 @@
 		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + encodeURIComponent(BigTree.localSortColumn) + "&sort_direction=" + encodeURIComponent(BigTree.localSortDirection) + "&page=1&view=<?=$view->ID?>&module=<?=$module->Route?>&search=" + BigTree.localSearchQuery);
 	};
 	
-	$(".table").on("click",".sort_column",function() {
+	$(".table").on("click",".js-sort-column",function() {
 		BigTree.localSortDirection = BigTree.cleanHref($(this).attr("href"));
 		BigTree.localSortColumn = $(this).attr("name");
 		if ($(this).hasClass("asc") || $(this).hasClass("desc")) {

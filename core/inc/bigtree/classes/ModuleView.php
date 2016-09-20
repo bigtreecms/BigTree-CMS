@@ -526,11 +526,12 @@
 			$class = "";
 
 			if (isset($item["bigtree_pending"]) && $action != "edit" && $action != "delete") {
-				return "icon_disabled";
+				return "icon_disabled js-hook-disabled";
 			}
 			
 			if ($action == "feature") {
-				$class = "icon_feature";
+				$class = "icon_feature js-hook-feature";
+				
 				if ($item["featured"]) {
 					$class .= " icon_feature_on";
 				}
@@ -541,18 +542,20 @@
 			}
 			
 			if ($action == "delete") {
-				$class = "icon_delete";
+				$class = "icon_delete js-hook-delete";
 			}
 			
 			if ($action == "approve") {
-				$class = "icon_approve";
+				$class = "icon_approve js-hook-approve";
+
 				if ($item["approved"]) {
 					$class .= " icon_approve_on";
 				}
 			}
 			
 			if ($action == "archive") {
-				$class = "icon_archive";
+				$class = "icon_archive js-hook-archive";
+				
 				if ($item["archived"]) {
 					$class .= " icon_archive_on";
 				}

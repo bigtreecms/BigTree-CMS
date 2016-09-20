@@ -59,7 +59,7 @@
 		<?php
 			// Show sortable indicator if the user is a publisher of the module and hasn't searched
 			if (!$x && $module_permission == "p" && !$query) {
-				echo '<span class="icon_sort"></span>';
+				echo '<span class="icon_sort js-hook-sort"></span>';
 			}
 
 			$x++;
@@ -76,9 +76,9 @@
 			if ($data == "on") {
 				if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $entry_permission != "p") {
 					if ($action == "delete" && $item["pending_owner"] == Auth::user()->ID) {
-						$class = "icon_delete";
+						$class = "icon_delete js-hook-delete";
 					} else {
-						$class = "icon_disabled";
+						$class = "icon_disabled js-hook-disabled";
 					}
 				} else {
 					$class = $view->generateActionClass($action, $item);
