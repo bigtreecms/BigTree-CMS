@@ -86,23 +86,28 @@
 			if (!file_exists($cfile) || $mtime > $last_modified) {
 				$data = "";
 				if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
-					// if we need LESS
+					// If we need LESS, load less.php
 					if (strpos(implode(" ", $bigtree["config"]["css"]["files"][$css_file]), "less") > -1) {
-						$less_compiler = new lessc();
-						$less_compiler->setImportDir(array(SITE_ROOT."css/"));
+						require_once SERVER_ROOT."core/inc/lib/less.php/lib/Less/Autoloader.php";
+						Less_Autoloader::register();
+						$less_compiler = new Less_Parser();
 					}
+
 					foreach ($bigtree["config"]["css"]["files"][$css_file] as $style_file) {
-						$style = file_get_contents(SITE_ROOT."css/$style_file");
 						if (strpos($style_file, "less") > -1) {
-							// convert LESS
-							$style = $less_compiler->compile($style);
+							// LESS
+							$less_compiler->parseFile(SITE_ROOT."css/".$style_file);
+							$style = $less_compiler->getCss();
 						} else {
-							// normal CSS
+							// Normal CSS
+							$style = file_get_contents(SITE_ROOT."css/$style_file");
+							
 							if ($bigtree["config"]["css"]["prefix"]) {
 								// Replace CSS3 easymode
 								$style = BigTree::formatCSS3($style);
 							}
 						}
+
 						$data .= $style."\n";
 					}
 				}
@@ -162,18 +167,11 @@
 	
 	// If we have a specific URL trailing slash behavior specified, ensure it's applied to the current request
     if (array_filter($bigtree["path"])) {
-    	// Build GET vars for a redirect if we need it
-    	$get_vars = $_GET;
-    	unset($get_vars["bigtree_htaccess_url"]);
-    	$get_vars = count($get_vars) ? "?".http_build_query($get_vars) : "";
-
     	if (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
-    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/")."/$get_vars","301");
+    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/")."/","301");
     	} elseif (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
-    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/").$get_vars,"301");    	
+    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/"),"301");    	
     	}
-
-    	unset($get_vars);
     }
 
 	// Start output buffering and sessions
@@ -309,7 +307,6 @@
 	
 	// Pre-init a bunch of vars to keep away notices.
 	$bigtree["layout"] = "default";
-	
 	if ($navid !== false) {
 		// If we're previewing, get pending data as well.
 		if ($bigtree["preview"]) {
@@ -320,28 +317,6 @@
 		} else {
 			$bigtree["page"] = $cms->getPage($navid);
 		}
-		
-		// If we're in multi-site and the path contains a different site, 301 away
-		if (defined("BIGTREE_SITE_KEY")) {
-			foreach (BigTreeCMS::$SiteRoots as $site_path => $site_data) {
-				if ($site_path == BIGTREE_SITE_PATH && (!$site_path || strpos($bigtree["page"]["path"], $site_path) === 0)) {
-					break;
-				}
-				
-				if ($site_path == "" || strpos($bigtree["page"]["path"], $site_path) === 0) {
-					if ($site_path) {
-						$bigtree["page"]["path"] = substr($bigtree["page"]["path"], strlen($site_path));
-					}
-					
-					if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
-						BigTree::redirect($site_data["domain"].$bigtree["page"]["path"]);
-					}
-					
-					BigTree::redirect($site_data["domain"].$bigtree["page"]["path"]."/");
-				}
-			}
-		}
-		
 		$bigtree["page"]["link"] = WWW_ROOT.$bigtree["page"]["path"]."/";
 		$bigtree["resources"] = $bigtree["page"]["resources"];
 		$bigtree["callouts"] = $bigtree["page"]["callouts"];
@@ -389,12 +364,7 @@
 		if ($routed) {
 			// Allow the homepage to be routed
 			if ($bigtree["page"]["path"]) {
-				if (defined("BIGTREE_SITE_PATH")) {
-					$path = array_filter(array_merge(explode("/", BIGTREE_SITE_PATH), $bigtree["path"]));
-					$path_components = explode("/", substr(implode("/", $path)."/", strlen($bigtree["page"]["path"]."/")));
-				} else {
-					$path_components = explode("/", substr(implode("/", $bigtree["path"])."/", strlen($bigtree["page"]["path"]."/")));
-				}
+				$path_components = explode("/",substr(implode("/",$bigtree["path"])."/",strlen($bigtree["page"]["path"]."/")));
 			} else {
 				$path_components = $bigtree["path"];
 			}
