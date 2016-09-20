@@ -20,6 +20,10 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.13
+- FIXED: Breaking of UTF8 support in 4.2.12
+- FIXED: Core action icons can now be re-used by custom actions without Javascript hooking them
+
 ### 4.2.12
 - SECURITY FIX: Fixed authenticated SQL injection vulnerability (users with access to edit a page could make SQL calls that could leak data) - Thank you to Mehmet İnce (http://www.mehmetince.net)
 - SECURITY FIX: Fixed XSS vector in front end bar Javascript (would be very hard to attack) - Thanks to Mehmet İnce (http://www.mehmetince.net)
