@@ -48,7 +48,7 @@
 					$achar = "";
 				}
 		?>
-		<span class="view_column" style="width: <?=$field["width"]?>px;"><a class="sort_column<?=$active?>" href="<?=$s_direction?>" name="<?=$key?>"><?=$field["title"]?> <em><?=$achar?></em></a></span>
+		<span class="view_column" style="width: <?=$field["width"]?>px;"><a class="js-sort-column sort_column<?=$active?>" href="<?=$s_direction?>" name="<?=$key?>"><?=$field["title"]?> <em><?=$achar?></em></a></span>
 		<?
 			}
 		?>
@@ -70,7 +70,7 @@
 		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&page=1&view=<?=$bigtree["view"]["id"]?>&module=<?=$bigtree["module"]["route"]?>&search=" + BigTree.localSearchQuery);
 	};
 	
-	$(".table").on("click",".sort_column",function() {
+	$(".table").on("click",".js-sort-column",function() {
 		BigTree.localSortDirection = BigTree.cleanHref($(this).attr("href"));
 		BigTree.localSortColumn = $(this).attr("name");
 		if ($(this).hasClass("asc") || $(this).hasClass("desc")) {
@@ -90,7 +90,7 @@
 			} else {
 				var dchar = "&#9660;";
 			}
-			$(this).parents("header").find(".sort_column").removeClass("asc").removeClass("desc").find("em").html("");
+			$(this).parents("header").find(".js-sort-column").removeClass("asc").removeClass("desc").find("em").html("");
 			$(this).addClass(BigTree.localSortDirection.toLowerCase()).find("em").html(dchar);
 		}
 		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&view=<?=$bigtree["view"]["id"]?>&module=<?=$bigtree["module"]["route"]?>&search=" + BigTree.localSearchQuery + "&page=1");

@@ -70,9 +70,9 @@
 							if ($action != "edit") {
 								if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
 									if ($action == "delete" && $item["pending_owner"] == $admin->ID) {
-										$class = "icon_delete";
+										$class = "icon_delete js-delete-hook";
 									} else {
-										$class = "icon_disabled";
+										$class = "icon_disabled js-disabled-hook";
 									}
 								} else {
 									$class = $admin->getActionClass($action,$item);
@@ -85,6 +85,7 @@
 								}
 								
 								$action = ucwords($action);
+								
 								if ($data != "on") {
 									$data = json_decode($data,true);
 									$class = $data["class"];

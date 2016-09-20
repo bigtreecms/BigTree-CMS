@@ -23,7 +23,7 @@
 		<? if ($permission == "p" && $draggable) { ?>
 		$("#table_contents ul").each(function() {
 			if ($("#search").val() == "") {
-				$(this).sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: $.proxy(function() {
+				$(this).sortable({ axis: "y", containment: "parent", handle: ".js-sort-hook", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: $.proxy(function() {
 					$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$bigtree["view"]["id"]?>", table_name: $(this).attr("id"), sort: $(this).sortable("serialize") } });
 				},this) });
 			}

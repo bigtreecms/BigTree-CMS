@@ -2690,10 +2690,11 @@
 		static function getActionClass($action,$item) {
 			$class = "";
 			if (isset($item["bigtree_pending"]) && $action != "edit" && $action != "delete") {
-				return "icon_disabled";
+				return "icon_disabled js-disabled-hook";
 			}
 			if ($action == "feature") {
-				$class = "icon_feature";
+				$class = "icon_feature js-feature-hook";
+				
 				if ($item["featured"]) {
 					$class .= " icon_feature_on";
 				}
@@ -2702,16 +2703,16 @@
 				$class = "icon_edit";
 			}
 			if ($action == "delete") {
-				$class = "icon_delete";
+				$class = "icon_delete js-delete-hook";
 			}
 			if ($action == "approve") {
-				$class = "icon_approve";
+				$class = "icon_approve js-approve-hook";
 				if ($item["approved"]) {
 					$class .= " icon_approve_on";
 				}
 			}
 			if ($action == "archive") {
-				$class = "icon_archive";
+				$class = "icon_archive js-archive-hook";
 				if ($item["archived"]) {
 					$class .= " icon_archive_on";
 				}

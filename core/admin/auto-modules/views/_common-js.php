@@ -8,7 +8,7 @@
 			SearchTimer = setTimeout("BigTree.localSearch();",400);
 		});
 		
-		$(".table").on("click",".icon_delete",function() {
+		$(".table").on("click",".js-delete-hook",function() {
 			Current = $(this);
 			BigTreeDialog({
 				title: "Delete Item",
@@ -38,7 +38,7 @@
 			});
 	
 			return false;
-		}).on("click",".icon_approve",function() {
+		}).on("click",".js-approve-hook",function() {
 			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/approve/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
 			<? if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["options"]["group_field"] == "approved") { ?>
 			BigTree.localSearch();
@@ -46,7 +46,7 @@
 			$(this).toggleClass("icon_approve_on");
 			<? } ?>
 			return false;
-		}).on("click",".icon_feature",function() {
+		}).on("click",".js-feature-hook",function() {
 			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/feature/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
 			<? if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["options"]["group_field"] == "featured") { ?>
 			BigTree.localSearch();
@@ -54,7 +54,7 @@
 			$(this).toggleClass("icon_feature_on");
 			<? } ?>
 			return false;
-		}).on("click",".icon_archive",function() {
+		}).on("click",".js-archive-hook",function() {
 			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/archive/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
 			<? if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["options"]["group_field"] == "archived") { ?>
 			BigTree.localSearch();
@@ -62,6 +62,6 @@
 			$(this).toggleClass("icon_archive_on");
 			<? } ?>
 			return false;
-		}).on("click",".icon_disabled",function() { return false; });
+		}).on("click",".js-disabled-hook",function() { return false; });
 	})();
 </script>

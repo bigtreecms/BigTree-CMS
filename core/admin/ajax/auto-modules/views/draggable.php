@@ -52,7 +52,7 @@
 	?>
 	<section class="view_column" style="width: <?=$field["width"]?>px;">
 		<? if ($x == 1 && $permission == "p" && !$search) { ?>
-		<span class="icon_sort"></span>
+		<span class="icon_sort js-sort-hook"></span>
 		<? } ?>
 		<?=$value?>
 	</section>
@@ -66,9 +66,9 @@
 			if ($data == "on") {
 				if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
 					if ($action == "delete" && $item["pending_owner"] == $admin->ID) {
-						$class = "icon_delete";
+						$class = "icon_delete js-delete-hook";
 					} else {
-						$class = "icon_disabled";
+						$class = "icon_disabled js-disabled-hook";
 					}
 				} else {
 					$class = $admin->getActionClass($action,$item);
