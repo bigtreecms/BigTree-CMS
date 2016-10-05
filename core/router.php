@@ -90,12 +90,12 @@
 					if (strpos(implode(" ", $bigtree["config"]["css"]["files"][$css_file]), "less") > -1) {
 						require_once SERVER_ROOT."core/inc/lib/less.php/lib/Less/Autoloader.php";
 						Less_Autoloader::register();
-						$less_compiler = new Less_Parser();
 					}
 
 					foreach ($bigtree["config"]["css"]["files"][$css_file] as $style_file) {
 						if (strpos($style_file, "less") > -1) {
 							// LESS
+							$less_compiler = new Less_Parser;
 							$less_compiler->parseFile(SITE_ROOT."css/".$style_file);
 							$style = $less_compiler->getCss();
 						} else {
