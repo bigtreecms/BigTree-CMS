@@ -85,6 +85,7 @@
 	$admin->unlock("bigtree_pages",$page);
 
 	if (count($bigtree["crops"])) {
+		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = $cms->cacheUnique("org.bigtreecms.crops", $bigtree["crops"]);
 		include BigTree::path("admin/modules/pages/_front-end-crop.php");
 	} elseif (count($bigtree["errors"])) {
 		include BigTree::path("admin/modules/pages/_front-end-error.php");
