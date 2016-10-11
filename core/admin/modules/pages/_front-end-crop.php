@@ -3,7 +3,7 @@
 	<div class="overflow">
 		<p>You have <?=count($bigtree["crops"])?> image<? if (count($bigtree["crops"]) > 1) { ?>s<? } ?> that need<? if (count($bigtree["crops"]) == 1) { ?>s<? } ?> to be cropped.</p>
 		<input type="hidden" name="return_page" value="<?=ADMIN_ROOT?>pages/front-end-return/<?=base64_encode($refresh_link)?>/" />
-		<input type="hidden" name="crop_info" value="<?=htmlspecialchars($_SESSION["bigtree_admin"]["form_data"]["crop_key"])?>" />
+		<input type="hidden" name="crop_key" value="<?=htmlspecialchars($_SESSION["bigtree_admin"]["form_data"]["crop_key"])?>" />
 		<section id="cropper">
 			<?
 				$x = 0;
