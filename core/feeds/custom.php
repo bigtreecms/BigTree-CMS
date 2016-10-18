@@ -2,7 +2,13 @@
 	<?
 		$sort = $feed["options"]["sort"] ? $feed["options"]["sort"] : "id desc";
 		$limit = $feed["options"]["limit"] ? $feed["options"]["limit"] : "15";
-		$q = sqlquery("SELECT * FROM ".$feed["table"]." ORDER BY $sort LIMIT $limit");
+		$items = array();
+
+		if ($feed["options"]["parser"]) {
+			$q = sqlquery("SELECT * FROM ".$feed["table"]." ORDER BY $sort");
+		} else {
+			$q = sqlquery("SELECT * FROM ".$feed["table"]." ORDER BY $sort LIMIT $limit");
+		}
 		
 		while ($item = sqlfetch($q)) {
 			foreach ($item as $key => $val) {
@@ -12,6 +18,16 @@
 					$item[$key] = $cms->replaceInternalPageLinks($val);
 				}
 			}
+
+			$items[] = $item;
+		}
+
+		if ($feed["options"]["parser"]) {
+			$items = call_user_func_array($feed["options"]["parser"], array($items));
+			$items = array_slice($items, 0, $limit);
+		}
+
+		foreach ($items as $item) {
 	?>
 	<item>
 		<?
