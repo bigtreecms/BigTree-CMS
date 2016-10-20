@@ -3023,7 +3023,7 @@ var BigTreeMatrix = function(settings) {
 			Title = Subtitle = "";
 			LastDialog.find(".matrix_title_field").each(function(index,el) {
 				if (!Title || !Subtitle) {
-					var item = $(el).find("input[type=checkbox],input[type=text],input[type=email],input[type=url],textarea,select").not("[type=file]");
+					var item = $(el).find("input[type=checkbox],input[type=text],input[type=email],input[type=url],input[type=hidden],textarea,select").not("[type=file]");
 					if (item.length) {
 						// Going to check for multi-part inputs like names, address, phone
 						var parent = item.parent();
