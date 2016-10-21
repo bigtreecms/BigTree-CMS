@@ -2094,6 +2094,7 @@
 			}
 			$mailer->From = $from;
 			$mailer->FromName = $from_name;
+			$mailer->Sender = $from;
 			
 			if ($return) {
 				$return_name = false;
