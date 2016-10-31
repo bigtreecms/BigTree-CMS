@@ -63,24 +63,31 @@
 	if (version_compare(PHP_VERSION,"5.3.0","<")) {
 		$fails[] = "PHP 5.3 or higher is required.";
 	}
+
 	if (!extension_loaded('json')) {
 		$fails[] = "PHP does not have the JSON extension installed.";
 	}
+
 	if (!extension_loaded("mysql") && !extension_loaded("mysqli")) {
 		$fails[] = "PHP does not have the MySQL extension installed.";
 	}
+
 	if (!extension_loaded('gd')) {
 		$fails[] = "PHP does not have the GD extension installed.";
 	}
+
 	if (!extension_loaded('curl')) {
 		$fails[] = "PHP does not have the cURL extension installed.";
 	}
+
 	if (!extension_loaded('ctype')) {
 		$fails[] = "PHP does not have the ctype extension installed.";
 	}
+
 	if (!ini_get('file_uploads')) {
 		$fails[] = "PHP does not have file uploads enabled.";
 	}
+
 	if (!is_writable(".")) {
 		$fails[] = "Please make the current directory writable.";
 	}
@@ -88,12 +95,9 @@
 	// Issues that could cause problems next.
 	$warnings = array();
 	if (get_magic_quotes_gpc()) {
-		if ($iis) {
-			$fails[] = "magic_quotes_gpc is on. This is a deprecated setting that will break BigTree. Please disable it in php.ini.";
-		} else {
-			$warnings[] = "magic_quotes_gpc is on. BigTree will attempt to override this at runtime but it is advised that you turn it off in php.ini.";
-		}
+		$fails[] = "magic_quotes_gpc is on. This is a deprecated setting that will break BigTree. Please disable it in php.ini.";
 	}
+
 	if (!ini_get('short_open_tag')) {
 		if ($iis) {
 			$fails[] = "PHP does not currently allow short_open_tags. Please set short_open_tag to 'On' in php.ini.";
@@ -101,12 +105,15 @@
 			$warnings[] = "PHP does not currently allow short_open_tags. BigTree will attempt to override this at runtime but you may need to enable it in php.ini manually.";
 		}
 	}
+
 	if (intval(ini_get('upload_max_filesize')) < 4) {
 		$warnings[] = "Max upload filesize (upload_max_filesize in php.ini) is currently less than 4MB. 8MB or higher is recommended.";
 	}
+
 	if (intval(ini_get('post_max_size')) < 4) {
 		$warnings[] = "Max POST size (post_max_size in php.ini) is currently less than 4MB. 8MB or higher is recommended.";
 	}
+
 	if (intval(ini_get("memory_limit")) < 32) {
 		$warnings[] = "PHP's memory limit is currently under 32MB. BigTree recommends at least 32MB of memory be available to PHP.";
 	}
@@ -115,6 +122,7 @@
 	if (strpos($_SERVER["SERVER_SOFTWARE"],"IIS") !== false) {
 		$iis = $iis_rewrite = true;
 		$warnings[] = "You are running Microsoft IIS. BigTree is only tested on Apache; proceed with caution in production environments.";
+		
 		// See if we have the equivalent of rewrite installed.
 		if (!isset($_SERVER["IIS_UrlRewriteModule"])) {
 			$warnings[] = "You do not seem to have the IIS rewrite module installed; only basic routing is available.";
@@ -128,6 +136,7 @@
 	$rewrite_enabled = true;
 	if (function_exists("apache_get_modules")) {		
 		$apache_modules = apache_get_modules();
+		
 		if (in_array('mod_rewrite', $apache_modules) === false) {
 			$warnings[] = "Apache's mod_rewrite is not installed. Only basic routing is available without mod_rewrite.";
 			$rewrite_enabled = false;
@@ -159,6 +168,7 @@
 			sqlquery("CREATE DATABASE IF NOT EXISTS `$db`");
 			// Try to select it
 			$select = sqlselectdb($db);
+			
 			if (!$select) {
 				$error = "Error accessing/creating database &ldquo;$db&rdquo;.";
 			}
@@ -170,6 +180,7 @@
 		// Let domain/www_root/static_root be set by post for command line installs
 		if (!isset($domain)) {
 			$domain = "http://".$_SERVER["HTTP_HOST"];
+			
 			if ($routing == "basic") {
 				$static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"])."site/";
 				$www_root = $static_root."index.php/";
@@ -229,6 +240,7 @@
 		// Make sure we're not running in a special mode that forces values for textareas that aren't allowing null.
 		sqlquery("SET SESSION sql_mode = ''");
 		$sql_queries = explode("\n",file_get_contents("bigtree.sql"));
+		
 		foreach ($sql_queries as $query) {
 			$query = trim($query);
 			if ($query != "") {
@@ -255,7 +267,9 @@
 
 		function bt_mkdir_writable($dir) {
 			global $root;
+			
 			mkdir($root.$dir);
+			
 			if (!BT_SU_EXEC) {
 				chmod($root.$dir,0777);
 			}
@@ -263,6 +277,7 @@
 		
 		function bt_touch_writable($file,$contents = "") {
 			file_put_contents($file,$contents);
+			
 			if (!BT_SU_EXEC) {
 				chmod($file,0777);
 			}
@@ -271,18 +286,22 @@
 		function bt_copy_dir($from,$to) {
 			global $root;
 			$d = opendir($root.$from);
+			
 			if (!file_exists($root.$to)) {
 				@mkdir($root.$to);
+				
 				if (!BT_SU_EXEC) {
 					@chmod($root.$to,0777);
 				}
 			}
+			
 			while ($f = readdir($d)) {
 				if ($f != "." && $f != "..") {
 					if (is_dir($root.$from.$f)) {
 						bt_copy_dir($from.$f."/",$to.$f."/");
 					} else {
 						@copy($from.$f,$to.$f);
+						
 						if (!BT_SU_EXEC) {
 							@chmod($to.$f,0777);
 						}
@@ -340,12 +359,14 @@
 		if ($install_example_site) {
 			bt_copy_dir("core/example-site/","");
 			$sql_queries = explode("\n",file_get_contents("example-site.sql"));
+			
 			foreach ($sql_queries as $query) {
 				$query = trim($query);
 				if ($query != "") {
 					$q = sqlquery($query);
 				}
 			}
+			
 			bt_touch_writable("custom/settings.php",str_replace($find,$replace,file_get_contents("core/example-site/custom/settings.php")));
 		} else {
 			bt_touch_writable("custom/settings.php",str_replace($find,$replace,file_get_contents("core/config.settings.php")));
@@ -440,10 +461,7 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.*)$ index.php?bigtree_htaccess_url=$1 [QSA,L]
 
 RewriteRule .* - [E=HTTP_IF_MODIFIED_SINCE:%{HTTP:If-Modified-Since}]
-RewriteRule .* - [E=HTTP_BIGTREE_PARTIAL:%{HTTP:BigTree-Partial}]
-
-php_flag short_open_tag On
-php_flag magic_quotes_gpc Off');
+RewriteRule .* - [E=HTTP_BIGTREE_PARTIAL:%{HTTP:BigTree-Partial}]');
 			
 		} elseif ($routing == "simple") {
 			bt_touch_writable("site/.htaccess",'IndexIgnore */*
@@ -682,7 +700,7 @@ RewriteRule (.*) site/$1 [L]');
 						<li>Choose <strong>"Rewrite Routing"</strong> if you want cleaner looking URLs and can import .htaccess rules.</li>
 						<?php } else { ?>
 						<li>Choose <strong>"Basic Routing"</strong> if you are unsure your server supports .htaccess overrides and mod_rewrite.</li>
-						<li>Choose <strong>"Simple Rewrite Routing"</strong> if your server supports .htaccess and mod_rewrite but does not allow for php_flags and content compression.</li>
+						<li>Choose <strong>"Simple Rewrite Routing"</strong> if your server supports .htaccess and mod_rewrite but does not allow for content compression.</li>
 						<li>Choose <strong>"Advanced Routing"</strong> to install an .htaccess that enables caching, compression, and routing.</li>
 						<?php } ?>
 					</ul>
