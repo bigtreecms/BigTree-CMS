@@ -364,7 +364,11 @@
 		if ($routed) {
 			// Allow the homepage to be routed
 			if ($bigtree["page"]["path"]) {
-				$path_components = explode("/",substr(implode("/",$bigtree["path"])."/",strlen($bigtree["page"]["path"]."/")));
+				if (strpos(implode("/", $bigtree["path"]), $bigtree["page"]["path"]) !== false) {
+					$path_components = explode("/",substr(implode("/",$bigtree["path"])."/",strlen($bigtree["page"]["path"]."/")));
+				} else {
+					$path_components = $bigtree["path"];
+				}
 			} else {
 				$path_components = $bigtree["path"];
 			}
