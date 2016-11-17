@@ -87,6 +87,10 @@
                 define("BIGTREE_SITE_TRUNK", intval($site_data["trunk"]));
                 define("BIGTREE_CACHE_DIRECTORY", $server_root."cache/".BIGTREE_SITE_KEY."/");
 
+                if (!file_exists(BIGTREE_CACHE_DIRECTORY)) {
+                    mkdir(BIGTREE_CACHE_DIRECTORY, 0777);
+                }
+
                 $domain = rtrim($site_data["domain"], "/");
                 $www_root = $site_data["www_root"];
                 $static_root = !empty($site_data["static_root"]) ? $site_data["static_root"] : $www_root;
