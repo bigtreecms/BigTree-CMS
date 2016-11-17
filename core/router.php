@@ -1,13 +1,15 @@
-<?	
+<?
 	// Handle Javascript Minifying and Caching
 	if ($bigtree["path"][0] == "js") {
 		clearstatcache();
-		// Get the latest mod time on any included js files.
+
+        // Get the latest mod time on any included js files.
 		$mtime = 0;
 		$js_file = str_replace(".js","",$bigtree["path"][1]);
-		$cfile = SERVER_ROOT."cache/".$js_file.".js";
-		$last_modified = file_exists($cfile) ? filemtime($cfile) : 0;
-		if (is_array($bigtree["config"]["js"]["files"][$js_file])) {
+        $cache_file = BIGTREE_CACHE_DIRECTORY.$js_file.".js";
+		$last_modified = file_exists($cache_file) ? filemtime($cache_file) : 0;
+
+        if (is_array($bigtree["config"]["js"]["files"][$js_file])) {
 			foreach ($bigtree["config"]["js"]["files"][$js_file] as $script) {
 				$m = file_exists(SITE_ROOT."js/$script") ? filemtime(SITE_ROOT."js/$script") : 0;
 				if ($m > $mtime) {
@@ -15,7 +17,7 @@
 				}
 			}
 			// If we have a newer Javascript file to include or we haven't cached yet, do it now.
-			if (!file_exists($cfile) || $mtime > $last_modified) {
+			if (!file_exists($cache_file) || $mtime > $last_modified) {
 				$data = "";
 				if (is_array($bigtree["config"]["js"]["files"][$js_file])) {
 					foreach ($bigtree["config"]["js"]["files"][$js_file] as $script) {
@@ -39,7 +41,7 @@
 				if ($bigtree["config"]["js"]["minify"]) {
 					$data = JShrink::minify($data);
 				}
-				BigTree::putFile($cfile,$data);
+				BigTree::putFile($cache_file,$data);
 				header("Content-type: text/javascript");
 				die($data);
 			} else {
@@ -54,7 +56,7 @@
 				if (!$ims || strtotime($ims) != $last_modified) {
 					header("Content-type: text/javascript");
 					header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-					readfile($cfile);
+					readfile($cache_file);
 					die();
 				} else {
 					header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
@@ -70,12 +72,14 @@
 	// Handle CSS Shortcuts and Minifying
 	if ($bigtree["path"][0] == "css") {
 		clearstatcache();
-		// Get the latest mod time on any included css files.
+
+        // Get the latest mod time on any included css files.
 		$mtime = 0;
 		$css_file = str_replace(".css","",$bigtree["path"][1]);
-		$cfile = SERVER_ROOT."cache/".$css_file.".css";
-		$last_modified = file_exists($cfile) ? filemtime($cfile) : 0;
-		if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
+		$cache_file = BIGTREE_CACHE_DIRECTORY.$css_file.".css";
+		$last_modified = file_exists($cache_file) ? filemtime($cache_file) : 0;
+
+        if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
 			foreach ($bigtree["config"]["css"]["files"][$css_file] as $style) {
 				$m = (file_exists(SITE_ROOT."css/$style")) ? filemtime(SITE_ROOT."css/$style") : 0;
 				if ($m > $mtime) {
@@ -83,7 +87,7 @@
 				}
 			}
 			// If we have a newer CSS file to include or we haven't cached yet, do it now.
-			if (!file_exists($cfile) || $mtime > $last_modified) {
+			if (!file_exists($cache_file) || $mtime > $last_modified) {
 				$data = "";
 				if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
 					// If we need LESS, load less.php
@@ -123,7 +127,7 @@
 					$minifier = new CSSMin;
 					$data = $minifier->run($data);
 				}	
-				BigTree::putFile($cfile,$data);
+				BigTree::putFile($cache_file,$data);
 				header("Content-type: text/css");
 				die($data);
 			} else {
@@ -138,7 +142,7 @@
 				if (!$ims || strtotime($ims) != $last_modified) {
 					header("Content-type: text/css");
 					header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-					readfile($cfile);
+					readfile($cache_file);
 					die();
 				} else {
 					header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
@@ -535,6 +539,6 @@
 		if (!$bigtree["page"]["path"]) {
 			$bigtree["page"]["path"] = "!";
 		}
-		BigTree::putFile(SERVER_ROOT."cache/".md5(json_encode($_GET)).".page",$cache);
+		BigTree::putFile(BIGTREE_CACHE_DIRECTORY.md5(json_encode($_GET)).".page",$cache);
 	}
 ?>
