@@ -12,8 +12,8 @@
 		// Get the latest mod time on any included js files.
 		$mtime = 0;
 		$js_file = str_replace(".js", "", $bigtree["path"][1]);
-		$cfile = SERVER_ROOT."cache/".$js_file.".js";
-		$last_modified = file_exists($cfile) ? filemtime($cfile) : 0;
+		$cache_file = BIGTREE_CACHE_DIRECTORY.$js_file.".js";
+		$last_modified = file_exists($cache_file) ? filemtime($cache_file) : 0;
 		
 		if (is_array($bigtree["config"]["js"]["files"][$js_file])) {
 			foreach ($bigtree["config"]["js"]["files"][$js_file] as $script) {
@@ -25,7 +25,7 @@
 			}
 			
 			// If we have a newer Javascript file to include or we haven't cached yet, do it now.
-			if (!file_exists($cfile) || $mtime > $last_modified) {
+			if (!file_exists($cache_file) || $mtime > $last_modified) {
 				$data = "";
 				
 				if (is_array($bigtree["config"]["js"]["files"][$js_file])) {
@@ -56,7 +56,7 @@
 					$data = \JShrink\Minifier::minify($data);
 				}
 				
-				FileSystem::createFile($cfile, $data);
+				FileSystem::createFile($cache_file, $data);
 				header("Content-type: text/javascript");
 				
 				die($data);
@@ -72,7 +72,7 @@
 				if (!$ims || strtotime($ims) != $last_modified) {
 					header("Content-type: text/javascript");
 					header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-					readfile($cfile);
+					readfile($cache_file);
 					die();
 				} else {
 					header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
@@ -92,8 +92,8 @@
 		// Get the latest mod time on any included css files.
 		$mtime = 0;
 		$css_file = str_replace(".css", "", $bigtree["path"][1]);
-		$cfile = SERVER_ROOT."cache/".$css_file.".css";
-		$last_modified = file_exists($cfile) ? filemtime($cfile) : 0;
+		$cache_file = BIGTREE_CACHE_DIRECTORY.$css_file.".css";
+		$last_modified = file_exists($cache_file) ? filemtime($cache_file) : 0;
 		
 		if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
 			// Check modification times on each included CSS file
@@ -105,7 +105,7 @@
 			}
 			
 			// If we have a newer CSS file to include or we haven't cached yet, do it now.
-			if (!file_exists($cfile) || $mtime > $last_modified) {
+			if (!file_exists($cache_file) || $mtime > $last_modified) {
 				$data = "";
 				
 				if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
@@ -154,7 +154,7 @@
 				}
 				
 				// Cache
-				FileSystem::createFile($cfile, $data);
+				FileSystem::createFile($cache_file, $data);
 				
 				// Return
 				header("Content-type: text/css");
@@ -171,7 +171,7 @@
 				if (!$ims || strtotime($ims) != $last_modified) {
 					header("Content-type: text/css");
 					header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-					readfile($cfile);
+					readfile($cache_file);
 					die();
 				} else {
 					header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
@@ -652,5 +652,5 @@
 			$bigtree["page"]["path"] = "!";
 		}
 		
-		FileSystem::createFile(SERVER_ROOT."cache/".md5(json_encode($_GET)).".page", $cache);
+		FileSystem::createFile(BIGTREE_CACHE_DIRECTORY.md5(json_encode($_GET)).".page", $cache);
 	}

@@ -1,27 +1,14 @@
 <?php
 	/**
 	 * @global array $bigtree
+     * @global string $domain
+     * @global string $static_root
+     * @global string $www_root
 	 */
 	
 	ini_set("log_errors", "false");
 
-	// See if we're in a multi-domain setup
-	if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
-		// Figure out which domain we're in
-		foreach ($bigtree["config"]["sites"] as $site_key => $site_data) {
-			$domain_match = str_replace(array("http://", "https://"), "", $site_data["domain"]);
-			
-			if ($domain_match == $_SERVER["HTTP_HOST"]) {
-				define("BIGTREE_SITE_KEY", $site_key);
-				define("BIGTREE_SITE_TRUNK", intval($site_data["trunk"]));
-				
-				$domain = rtrim($site_data["domain"], "/");
-				$www_root = $site_data["www_root"];
-				$static_root = !empty($site_data["static_root"]) ? $site_data["static_root"] : $www_root;
-			}
-		}
-	}
-	
+    // These vars are defined in launch.php for multi-domain setups
 	if (!defined("BIGTREE_SITE_KEY")) {
 		define("BIGTREE_SITE_TRUNK", 0);
 		
