@@ -62,34 +62,38 @@
 
 		static function cacheTokens() {
 			global $bigtree;
+
+            $valid_root = function($root) {
+                return (substr($root, 0, 7) == "http://" || substr($root, 0, 8) == "https://" || substr($root, 0, 2) == "//");
+            };
 			
 			// Figure out what roots we can replace
 			if (!count(static::$TokenKeys)) {
-				if (substr(ADMIN_ROOT, 0, 7) == "http://" || substr(ADMIN_ROOT, 0, 8) == "https://") {
+				if ($valid_root(ADMIN_ROOT)) {
 					static::$TokenKeys[] = ADMIN_ROOT;
 					static::$TokenValues[] = "{adminroot}";
 				}
 				
 				if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
 					foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
-						if (substr($site_configuration["static_root"], 0, 7) == "http://" || substr($site_configuration["static_root"], 0, 8) == "https://") {
+						if ($valid_root($site_configuration["static_root"])) {
 							static::$TokenKeys[] = $site_configuration["static_root"];
 							static::$TokenValues[] = "{staticroot:$site_key}";
 						}
 						
-						if (substr($site_configuration["www_root"], 0, 7) == "http://" || substr($site_configuration["www_root"], 0, 8) == "https://") {
+						if ($valid_root($site_configuration["www_root"])) {
 							static::$TokenKeys[] = $site_configuration["www_root"];
 							static::$TokenValues[] = "{wwwroot:$site_key}";
 						}
 					}
 				}
 
-				if (substr(STATIC_ROOT, 0, 7) == "http://" || substr(STATIC_ROOT, 0, 8) == "https://") {
+				if ($valid_root(STATIC_ROOT)) {
 					static::$TokenKeys[] = STATIC_ROOT;
 					static::$TokenValues[] = "{staticroot}";
 				}
 				
-				if (substr(WWW_ROOT, 0, 7) == "http://" || substr(WWW_ROOT, 0, 8) == "https://") {
+				if ($valid_root(WWW_ROOT)) {
 					static::$TokenKeys[] = WWW_ROOT;
 					static::$TokenValues[] = "{wwwroot}";
 				}
