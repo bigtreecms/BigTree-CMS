@@ -4127,6 +4127,9 @@
 		
 		static function getPageIDForPath($path,$previewing = false) {
 			$commands = array();
+
+			// Reset array keys
+			$path = array_values($path);
 			
 			if (!$previewing) {
 				$publish_at = "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";
