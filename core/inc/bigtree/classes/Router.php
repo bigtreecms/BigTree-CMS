@@ -547,12 +547,15 @@
 				return array($page["id"], array(), $page["routed"]);
 			}
 
-			// Guess we don't, let's chop off commands until we find a page.
+			// Resetting $path to ensure it's numerically indexed, chop off the end until we find a page
 			$x = 0;
+			$path = array_values($path);
+
 			while ($x < count($path)) {
 				$x++;
 				$commands[] = $path[count($path) - $x];
 				$path_string = implode("/", array_slice($path, 0, -1 * $x));
+				
 				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
 				$page_id = SQL::fetchSingle("SELECT bigtree_pages.id
 											 FROM bigtree_pages JOIN bigtree_templates 
@@ -560,6 +563,7 @@
 											 WHERE bigtree_pages.path = ? AND 
 												   bigtree_pages.archived = '' AND
 												   bigtree_templates.routed = 'on' $publish_at", $path_string);
+				
 				if ($page_id) {
 					return array($page_id, array_reverse($commands), "on");
 				}
