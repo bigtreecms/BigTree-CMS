@@ -20,6 +20,17 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.14
+- FIXED: Static roots that began in // not encoding or decoding properly
+- FIXED: Routed template URLs losing their last command when used in multi-site mode
+- FIXED: Javascript, CSS, and page caching using the same cache on multi-site mode (www_root/ should now be different when referenced at different URLs)
+- FIXED: Multi-site failing to route properly when the homepage is a routed template
+- FIXED: Sending emails to servers that required sender headers in BigTree::sendEmail (thanks Matt DeWyer)
+- FIXED: Dates not working as matrix titles
+- FIXED: Cropping from the front-end overlay editor failing
+- CHANGED: LESS compiler in BigTree is now using less.php rather than the no longer supported lessphp
+- ADDED: Feeds can now have a filter function
+
 ### 4.2.13
 - FIXED: Breaking of UTF8 support in 4.2.12
 - FIXED: Core action icons can now be re-used by custom actions without Javascript hooking them
