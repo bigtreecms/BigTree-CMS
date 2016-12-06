@@ -20,8 +20,6 @@
 	$names = array();
 
 	foreach ($settings["presets"] as $index => $preset) {
-		$names[] = $preset["name"];
-
 		// Clean up empty entries
 		foreach ($preset["crops"] as $crop_index => $crop) {
 			foreach ($crop["center_crops"] as $center_crop_index => $center_crop) {
@@ -57,6 +55,7 @@
 
 		// Only store it if this preset has stuff in it
 		if (array_filter($preset)) {
+			$names[] = $preset["name"];
 			$settings["presets"][$index] = $preset;
 		} else {
 			unset($settings["presets"][$index]);
