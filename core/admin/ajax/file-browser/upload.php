@@ -1,5 +1,17 @@
 <?php
 	namespace BigTree;
+
+	if (empty($_FILES)) {
+?>
+<html>
+	<body>
+		<script>
+			parent.BigTreeFileManager.uploadError("The file(s) uploaded exceeded the maximum allowed size of <?=Storage::formatBytes(Storage::getPOSTMaxSize())?>", "");
+		</script>
+	</body>
+</html>
+<?php
+	}
 	
 	$storage = new Storage;
 	
