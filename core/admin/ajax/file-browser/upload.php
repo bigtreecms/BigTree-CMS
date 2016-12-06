@@ -1,4 +1,17 @@
 <?
+	if (empty($_FILES)) {
+?>
+<html>
+	<body>
+		<script>
+			parent.BigTreeFileManager.uploadError("The file(s) uploaded exceeded the maximum allowed size of <?=BigTree::formatBytes(BigTree::postMaxSize())?>", "");
+		</script>
+	</body>
+</html>
+<?
+		die();
+	}
+
 	$storage = new BigTreeStorage;
 	
 	// If we're replacing an existing file, find out its name
