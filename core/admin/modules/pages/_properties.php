@@ -3,12 +3,14 @@
 	$preview_url = false;
 	$age = floor((time() - strtotime($page["updated_at"])) / (60 * 60 * 24));
 	$seo = $admin->getPageSEORating($page,$page["resources"]);
+	
 	if (isset($page["id"]) && is_numeric($page["id"])) {
 		if ($page["id"] == 0) {
 			$live_url = WWW_ROOT;
 		} else {
-			$live_url = WWW_ROOT.$page["path"]."/";
+			$live_url = $cms->getLink($page["id"]);
 		}
+
 		if (isset($page["changes_applied"])) {
 			$status = "Changes Pending";
 			if ($page["id"] == 0) {

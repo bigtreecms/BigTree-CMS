@@ -43,7 +43,7 @@
 			$this->ModuleClassList = $items;
 			
 			// Find root paths for all sites to include in URLs if we're in a multi-site environment
-			if (defined("BIGTREE_SITE_KEY")) {
+			if (defined("BIGTREE_SITE_KEY") || (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]))) {
 				$cache_location = SERVER_ROOT."cache/multi-site-cache.json";
 
 				if (!file_exists($cache_location)) {
@@ -1375,7 +1375,7 @@
 			global $bigtree;
 			
 			// Remove the site root from the path for multi-site
-			if (defined("BIGTREE_SITE_KEY")) {
+			if (defined("BIGTREE_SITE_KEY") || (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]))) {
 				foreach (static::$SiteRoots as $site_path => $site_data) {
 					if ($site_path == "" || strpos($path, $site_path) === 0) {
 						if ($site_path) {
@@ -1390,8 +1390,7 @@
 						return $site_data["www_root"].$path."/";
 					}
 				}
-			}
-			
+			}			
 			
 			if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
 				return WWW_ROOT.$path;
