@@ -1845,14 +1845,36 @@
 		*/
 		
 		static function redirect($url = false, $codes = array("302")) {
+			global $bigtree;
+
 			// If we're presently in the admin we don't want to allow the possibility of a redirect outside our site via malicious URLs
 			if (defined("BIGTREE_ADMIN_ROUTED")) {
-				$pieces = explode("/",$url);
-				$bt_domain_pieces = explode("/",DOMAIN);
-				if (strtolower($pieces[2]) != strtolower($bt_domain_pieces[2])) {
-					return false;
+				// Multiple redirect domains allowed
+				if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+					$ok = false;
+					$pieces = explode("/", $url);
+
+					foreach ($bigtree["config"]["sites"] as $site_data) {
+						$bt_domain_pieces = explode("/", $site_data["domain"]);
+
+						if (strtolower($pieces[2]) == strtolower($bt_domain_pieces[2])) {
+							$ok = true;
+						}
+					}
+
+					if (!$ok) {
+						return false;
+					}
+				} else {
+					$pieces = explode("/", $url);
+					$bt_domain_pieces = explode("/", DOMAIN);
+				
+					if (strtolower($pieces[2]) != strtolower($bt_domain_pieces[2])) {
+						return false;
+					}
 				}
 			}
+
 			$status_codes = array(
 				"200" => "OK",
 				"300" => "Multiple Choices",

@@ -13,11 +13,7 @@
 
 		if (isset($page["changes_applied"])) {
 			$status = "Changes Pending";
-			if ($page["id"] == 0) {
-				$preview_url = WWW_ROOT."_preview/";
-			} else {
-				$preview_url = WWW_ROOT."_preview/".$page["path"]."/";
-			}
+			$preview_url = $cms->getPreviewLink($page["id"]);
 		} else {
 			$status = "Published";
 		}

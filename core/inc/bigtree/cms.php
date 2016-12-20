@@ -1051,8 +1051,11 @@
 			} elseif ($id == 0) {
 				return WWW_ROOT."_preview/";
 			} else {
-				$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($id)."'"));
-				return WWW_ROOT."_preview/".$f["path"]."/";
+				$link = static::getLink($id);
+				$parts = explode("/", $link);
+				array_splice($parts, 3, 0, "_preview");
+
+				return implode("/", $parts);
 			}
 		}
 		
