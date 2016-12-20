@@ -367,36 +367,27 @@
 		// If the template is a module, do its routing for it, otherwise just include the template.
 		if ($routed) {
 			// Allow the homepage to be routed
-			if ($bigtree["page"]["path"]) {
-				if (strpos(implode("/", $bigtree["path"]), $bigtree["page"]["path"]) !== false) {
-					$path_components = explode("/",substr(implode("/",$bigtree["path"])."/",strlen($bigtree["page"]["path"]."/")));
-				} else {
-					$path_components = $bigtree["path"];
-				}
-			} else {
-				$path_components = $bigtree["path"];
+			if (!$bigtree["page"]["path"]) {
+				$bigtree["commands"] = $bigtree["path"];
 			}
-
-			// If we're previewing a pending page, the path components are different
-			if (defined("BIGTREE_PREVIEWING_PENDING")) {
-				$path_components = array_slice($bigtree["path"],2);
-			}
-
-			if (end($path_components) === "") {
-				array_pop($path_components);
-			}
+			
 			if ($extension) {
-				list($inc,$commands) = BigTree::route(SERVER_ROOT."extensions/$extension/templates/routed/$template/",$path_components);
+				list($inc,$commands) = BigTree::route(SERVER_ROOT."extensions/$extension/templates/routed/$template/", array_filter($bigtree["commands"]));
 			} else {
-				list($inc,$commands) = BigTree::route(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/",$path_components);
+				list($inc,$commands) = BigTree::route(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/", array_filter($bigtree["commands"]));
 			}
+			
+			$command_count = count($commands);
+
+			if ($command_count) {
+				$bigtree["routed_path"] = array_slice($bigtree["commands"], 0, $command_count * -1);
+			} else {
+				$bigtree["routed_path"] = $bigtree["commands"];
+			}
+			
 			$bigtree["routed_inc"] = $inc;
 			$bigtree["commands"] = $commands;
-			if (count($commands)) {
-				$bigtree["routed_path"] = $bigtree["module_path"] = array_slice($path_components,0,-1 * count($commands));
-			} else {
-				$bigtree["routed_path"] = $bigtree["module_path"] = array_slice($path_components,0);
-			}
+			$bigtree["module_path"] = $bigtree["routed_path"]; // Backwards compat
 			
 			// Get the pieces of the location so we can get header and footers. Take away the first 2 routes since they're templates/routed/.
 			$pieces = array_slice(explode("/",str_replace(SERVER_ROOT,"",$inc)),2);

@@ -883,6 +883,9 @@
 			if (defined("BIGTREE_SITE_PATH")) {
 				$path = array_filter(array_merge(explode("/", BIGTREE_SITE_PATH), $path));
 			}
+
+			// Reset indexes
+			$path = array_values($path);
 			
 			if (!$previewing) {
 				$publish_at = "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";
