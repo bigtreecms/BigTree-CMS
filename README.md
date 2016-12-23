@@ -20,6 +20,9 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.1.18 Release
+- SECURITY FIX: Potential XSS attack vector in module integrity checker - thanks to Haojun Hou in ADLab of Venustech
+
 ### 4.1.17 Release
 - SECURITY FIX: Fixed authenticated SQL injection vulnerability (users with access to edit a page could make SQL calls that could leak data) - Thank you to Mehmet İnce (http://www.mehmetince.net)
 
