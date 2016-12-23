@@ -20,6 +20,14 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.15
+- FIXED: Potential XSS attack vector in module integrity checker - thanks to Haojun Hou in ADLab of Venustech
+- FIXED: File uploads to the file manager not properly throwing errors when post max size was exceeded
+- FIXED: Media preset data being potentially corrupted with empty slots on save
+- FIXED: Several routing issues on multi-site environments in routed templates
+- FIXED: Hitting another domain's page in a multi-site environment now 301 redirects to the proper domain
+- FIXED: Previewing a page from a non-primary domain in a multi-site environment
+
 ### 4.2.14
 - FIXED: Static roots that began in // not encoding or decoding properly
 - FIXED: Routed template URLs losing their last command when used in multi-site mode
