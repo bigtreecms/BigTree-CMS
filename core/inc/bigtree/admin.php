@@ -5685,7 +5685,7 @@
 			$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE LOWER(email) = '".sqlescape($email)."'"));
 
 			// See if this user is banned due to failed login attempts
-			$ban = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND `user` = '".$f["id"]."'"));
+			$ban = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND `user` = '".$user["id"]."'"));
 			
 			if ($ban) {
 				$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime($ban["expires"]));
@@ -5713,7 +5713,7 @@
 				}
 
 				// Create the new session chain
-				sqlquery("INSERT INTO bigtree_user_sessions (`id`,`chain`,`email`) VALUES ('".sqlescape($session)."','".sqlescape($chain)."','".sqlescape($f["email"])."')");
+				sqlquery("INSERT INTO bigtree_user_sessions (`id`,`chain`,`email`) VALUES ('".sqlescape($session)."','".sqlescape($chain)."','".sqlescape($user["email"])."')");
 				
 				if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
 					// Create another unique cache session for logins across domains
