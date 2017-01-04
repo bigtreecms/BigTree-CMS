@@ -30,7 +30,7 @@
 			global $bigtree;
 			
 			// Remove the site root from the path for multi-site
-			if (defined("BIGTREE_SITE_KEY")) {
+			if (defined("BIGTREE_SITE_KEY") || (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]))) {
 				foreach (Router::$SiteRoots as $site_path => $site_data) {
 					if ($site_path == "" || strpos($path, $site_path) === 0) {
 						if ($site_path) {
@@ -280,9 +280,11 @@
 			} elseif ($id == 0) {
 				return WWW_ROOT."_preview/";
 			} else {
-				$path = SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $id);
+				$link = static::get($id);
+				$parts = explode("/", $link);
+				array_splice($parts, 3, 0, "_preview");
 				
-				return WWW_ROOT."_preview/$path/";
+				return implode("/", $parts);
 			}
 		}
 		

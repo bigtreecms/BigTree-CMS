@@ -14,14 +14,16 @@
 		if ($page->ID == 0) {
 			$live_url = WWW_ROOT;
 		} else {
-			$live_url = WWW_ROOT.$page->Path."/";
+			$live_url = Link::get($page->ID);
 		}
+		
 		if (isset($page->ChangesApplied)) {
 			$status = Text::translate("Changes Pending");
+			
 			if ($page->ID == 0) {
 				$preview_url = WWW_ROOT."_preview/";
 			} else {
-				$preview_url = WWW_ROOT."_preview/".$page->Path."/";
+				$preview_url = Link::getPreview($page->ID);
 			}
 		} else {
 			$status = Text::translate("Published");

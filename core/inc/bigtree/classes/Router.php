@@ -96,7 +96,7 @@
 			static::$Registry = $data["routes"];
 
 			// Find root paths for all sites to include in URLs if we're in a multi-site environment
-			if (defined("BIGTREE_SITE_KEY")) {
+			if (defined("BIGTREE_SITE_KEY") || (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]))) {
 				$cache_location = SERVER_ROOT."cache/multi-site-cache.json";
 
 				if (!file_exists($cache_location)) {
@@ -442,12 +442,33 @@
 		*/
 		
 		static function redirect($url, $codes = array("302")) {
+			global $bigtree;
+			
 			// If we're presently in the admin we don't want to allow the possibility of a redirect outside our site via malicious URLs
 			if (defined("BIGTREE_ADMIN_ROUTED")) {
-				$pieces = explode("/", $url);
-				$bt_domain_pieces = explode("/", DOMAIN);
-				if (strtolower($pieces[2]) != strtolower($bt_domain_pieces[2])) {
-					return false;
+				// Multiple redirect domains allowed
+				if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+					$ok = false;
+					$pieces = explode("/", $url);
+					
+					foreach ($bigtree["config"]["sites"] as $site_data) {
+						$bt_domain_pieces = explode("/", $site_data["domain"]);
+						
+						if (strtolower($pieces[2]) == strtolower($bt_domain_pieces[2])) {
+							$ok = true;
+						}
+					}
+					
+					if (!$ok) {
+						return false;
+					}
+				} else {
+					$pieces = explode("/", $url);
+					$bt_domain_pieces = explode("/", DOMAIN);
+					
+					if (strtolower($pieces[2]) != strtolower($bt_domain_pieces[2])) {
+						return false;
+					}
 				}
 			}
 
@@ -537,7 +558,10 @@
 			if (defined("BIGTREE_SITE_PATH")) {
 				$path = array_filter(array_merge(explode("/", BIGTREE_SITE_PATH), $path));
 			}
-			
+
+            // Reset indexes
+            $path = array_values($path);
+
 			// See if we have a straight up perfect match to the path.
 			$page = SQL::fetch("SELECT bigtree_pages.id,bigtree_templates.routed
 								FROM bigtree_pages LEFT JOIN bigtree_templates

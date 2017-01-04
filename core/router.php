@@ -111,18 +111,19 @@
 				if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
 					// if we need LESS
 					if (strpos(implode(" ", $bigtree["config"]["css"]["files"][$css_file]), "less") > -1) {
-						include_once SERVER_ROOT."core/inc/lib/less.php/lessc.inc.php";
-						$parser = new \Less_Parser;
+                        require_once SERVER_ROOT."core/inc/lib/less.php/lib/Less/Autoloader.php";
+                        \Less_Autoloader::register();
 					}
 					
 					foreach ($bigtree["config"]["css"]["files"][$css_file] as $style_file) {
-						$style = file_get_contents(SITE_ROOT."css/$style_file");
-						
 						if (strpos($style_file, "less") > -1) {
-							// convert LESS
-							$parser->parse($style);
-							$style = $parser->getCss();
-						}
+                            // LESS
+                            $less_compiler = new Less_Parser;
+                            $less_compiler->parseFile(SITE_ROOT."css/".$style_file);
+                            $style = $less_compiler->getCss();
+						} else {
+                            $style = file_get_contents(SITE_ROOT."css/$style_file");
+                        }
 						
 						$data .= $style."\n";
 					}
@@ -331,7 +332,8 @@
 	}
 	
 	// Check route registry if we're not previewing
-	$registry_found = false;
+	$registry_found = $registry_rule = $registry_commands = false;
+
 	if (!$navid) {
 		foreach (Router::$Registry["public"] as $registration) {
 			if (!$registry_found) {
@@ -486,40 +488,27 @@
 			// Use BigTree's routing to find the page
 			} else {
 				// Allow the homepage to be routed
-				if ($bigtree["page"]["path"]) {
-					if (defined("BIGTREE_SITE_PATH")) {
-						$path = array_filter(array_merge(explode("/", BIGTREE_SITE_PATH), $bigtree["path"]));
-						$path_components = explode("/", substr(implode("/", $path)."/", strlen($bigtree["page"]["path"]."/")));
-					} else {
-						$path_components = explode("/", substr(implode("/", $bigtree["path"])."/", strlen($bigtree["page"]["path"]."/")));
-					}
-				} else {
-					$path_components = $bigtree["path"];
-				}
-				
-				// If we're previewing a pending page, the path components are different
-				if (defined("BIGTREE_PREVIEWING_PENDING")) {
-					$path_components = array_slice($bigtree["path"], 2);
-				}
-				
-				if (end($path_components) === "") {
-					array_pop($path_components);
-				}
-				
-				if ($extension) {
-					list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."extensions/$extension/templates/routed/$extension_template/", $path_components);
-				} else {
-					list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/", $path_components);
-				}
-				
-				$bigtree["routed_inc"] = $inc;
-				$bigtree["commands"] = $commands;
-				
-				if (count($commands)) {
-					$bigtree["routed_path"] = $bigtree["module_path"] = array_slice($path_components, 0, -1 * count($commands));
-				} else {
-					$bigtree["routed_path"] = $bigtree["module_path"] = array_slice($path_components, 0);
-				}
+                if (!$bigtree["page"]["path"]) {
+                    $bigtree["commands"] = $bigtree["path"];
+                }
+
+                if ($extension) {
+                    list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."extensions/$extension/templates/routed/$extension_template/", array_filter($bigtree["commands"]));
+                } else {
+                    list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/", array_filter($bigtree["commands"]));
+                }
+
+                $command_count = count($commands);
+
+                if ($command_count) {
+                    $bigtree["routed_path"] = array_slice($bigtree["commands"], 0, $command_count * -1);
+                } else {
+                    $bigtree["routed_path"] = $bigtree["commands"];
+                }
+
+                $bigtree["routed_inc"] = $inc;
+                $bigtree["commands"] = $commands;
+                $bigtree["module_path"] = $bigtree["routed_path"]; // Backwards compat
 			}
 			
 			list($bigtree["routed_headers"], $bigtree["routed_footers"]) = Router::getRoutedLayoutPartials($inc);
