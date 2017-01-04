@@ -257,7 +257,7 @@
 					$next_site = array_shift(array_values($cache_data["remaining_sites"]));
 					
 					// Start the login chain
-					BigTree::redirect($next_site."?bigtree_login_redirect_session_key=".$cache_session_key);
+					Router::redirect($next_site."?bigtree_login_redirect_session_key=".$cache_session_key);
 				} else {
 					$cookie_domain = str_replace(DOMAIN, "", WWW_ROOT);
 					$cookie_value = json_encode(array($session, $chain));
@@ -276,9 +276,9 @@
 					$_SESSION[static::$Namespace]["permissions"] = $user->Permissions;
 					
 					if (isset($_SESSION["bigtree_login_redirect"])) {
-						BigTree::redirect($_SESSION["bigtree_login_redirect"]);
+						Router::redirect($_SESSION["bigtree_login_redirect"]);
 					} else {
-						BigTree::redirect(ADMIN_ROOT);
+						Router::redirect(ADMIN_ROOT);
 					}
 				}
 
