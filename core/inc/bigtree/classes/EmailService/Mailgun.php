@@ -12,7 +12,7 @@
 	class Mailgun extends Provider {
 		
 		// Implements Provider::send
-		function send(Email $email) {
+		function send(Email $email): ?bool {
 			// Get formatted name/email
 			list($from_email, $from_name) = $this->parseAddress($email->From);
 			
@@ -20,13 +20,13 @@
 			list($reply_to, $reply_name) = $this->parseAddress($email->ReplyTo, false);
 			
 			// Build POST array
-			$post = array(
+			$post = [
 				"from" => $from_name ? "$from_name <$from_email>" : $from_email,
 				"to" => is_array($email->To) ? implode(",", $email->To) : $email->To,
 				"subject" => $email->Subject,
 				"text" => $email->Text,
 				"html" => $email->HTML
-			);
+			];
 			
 			// Add Reply-To header
 			if ($reply_to) {
@@ -48,12 +48,16 @@
 			}
 			
 			// Mailgun doesn't give a nice easy to know error response so we have to check HTTP response codes
-			$response = json_decode(cURL::request("https://api.mailgun.net/v2/".$this->Settings["mailgun_domain"]."/messages", $post, array(CURLOPT_USERPWD => "api:".$this->Settings["mailgun_key"])), true);
+			$response = cURL::request("https://api.mailgun.net/v2/".$this->Settings["mailgun_domain"]."/messages",
+									  $post,
+									  [CURLOPT_USERPWD => "api:".$this->Settings["mailgun_key"]],
+									  true);
+			$response = json_decode($response);
 			
 			if (cURL::$ResponseCode == 200) {
 				return true;
 			} else {
-				$this->Error = $response["message"];
+				$this->Error = $response->message;
 				
 				return false;
 			}

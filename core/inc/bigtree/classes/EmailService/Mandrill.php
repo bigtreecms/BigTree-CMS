@@ -12,7 +12,7 @@
 	class Mandrill extends Provider {
 		
 		// Implements Provider::send
-		function send(Email $email) {
+		function send(Email $email): ?bool {
 			// Get formatted name/email
 			list($from_email, $from_name) = $this->parseAddress($email->From);
 			
@@ -20,34 +20,36 @@
 			list($reply_to, $reply_name) = $this->parseAddress($email->ReplyTo, false);
 			
 			// Generate array of people to send to
-			$to_array = array();
+			$to_array = [];
+			
 			if (is_array($email->To)) {
 				foreach ($email->To as $address) {
-					$to_array[] = array("email" => $address, "type" => "to");
+					$to_array[] = ["email" => $address, "type" => "to"];
 				}
 			} else {
-				$to_array[] = array("email" => $email->To, "type" => "to");
+				$to_array[] = ["email" => $email->To, "type" => "to"];
 			}
 			
 			// Add CC and BCC
 			if (is_array($email->CC)) {
 				foreach ($email->CC as $address) {
-					$to_array[] = array("email" => $address, "type" => "cc");
+					$to_array[] = ["email" => $address, "type" => "cc"];
 				}
 			} elseif ($email->CC) {
-				$to_array[] = array("email" => $email->CC, "type" => "cc");
+				$to_array[] = ["email" => $email->CC, "type" => "cc"];
 			}
 			
 			if (is_array($email->BCC)) {
 				foreach ($email->BCC as $address) {
-					$to_array[] = array("email" => $address, "type" => "bcc");
+					$to_array[] = ["email" => $address, "type" => "bcc"];
 				}
 			} elseif ($email->BCC) {
-				$to_array[] = array("email" => $email->BCC, "type" => "bcc");
+				$to_array[] = ["email" => $email->BCC, "type" => "bcc"];
 			}
 			
 			// Set reply header if passed in
-			$headers = array();
+			$headers = [];
+			
 			if ($reply_to) {
 				$headers["Reply-To"] = $reply_to;
 			}
@@ -56,9 +58,9 @@
 				$headers[$key] = $value;
 			}
 			
-			$response = json_decode(cURL::request("https://mandrillapp.com/api/1.0/messages/send.json", json_encode(array(
+			$data = [
 				"key" => $this->Settings["mandrill_key"],
-				"message" => array(
+				"message" => [
 					"html" => $email->HTML,
 					"text" => $email->Text,
 					"subject" => $email->Subject,
@@ -67,8 +69,11 @@
 					"to" => $to_array,
 					"headers" => $headers,
 					"inline_css" => true
-				)
-			))), true);
+				]
+			];
+				
+			$response = cURL::request("https://mandrillapp.com/api/1.0/messages/send.json", json_encode($data));
+			$response = json_decode($response, true);
 			
 			if ($response["status"] == "error" || $response["status"] == "invalid") {
 				$this->Error = $response["message"];

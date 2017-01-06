@@ -12,7 +12,7 @@
 	class Postmark extends Provider {
 		
 		// Implements Provider::send
-		function send(Email $email) {
+		function send(Email $email): ?bool {
 			// Get formatted name/email
 			list($from_email, $from_name) = $this->parseAddress($email->From);
 			
@@ -20,13 +20,13 @@
 			list($reply_to, $reply_name) = $this->parseAddress($email->ReplyTo, false);
 			
 			// Build POST data
-			$data = array(
+			$data = [
 				"From" => $from_name ? "$from_name <$from_email>" : $from_email,
 				"To" => is_array($email->To) ? implode(",", $email->To) : $email->To,
 				"Subject" => $email->Subject,
 				"HtmlBody" => $email->Body,
 				"TextBody" => $email->Text
-			);
+			];
 			
 			// Add reply to info
 			if ($reply_to) {
@@ -42,18 +42,18 @@
 			}
 			
 			if (!empty($email->Headers) && is_array($email->Headers)) {
-				$data["Headers"] = array();
+				$data["Headers"] = [];
 				
 				foreach ($email->Headers as $key => $value) {
-					$data["Headers"][] = array("Name" => $key, "Value" => $value);
+					$data["Headers"][] = ["Name" => $key, "Value" => $value];
 				}
 			}
 			
-			$response = json_decode(cURL::request("https://api.postmarkapp.com/email", json_encode($data), array(CURLOPT_HTTPHEADER => array(
+			$response = json_decode(cURL::request("https://api.postmarkapp.com/email", json_encode($data), [CURLOPT_HTTPHEADER => [
 				"Content-Type: application/json",
 				"Accept: application/json",
 				"X-Postmark-Server-Token: ".$this->Settings["postmark_key"]
-			))), true);
+			]]), true);
 			
 			if ($response["ErrorCode"]) {
 				$this->Error = $response["Message"];
