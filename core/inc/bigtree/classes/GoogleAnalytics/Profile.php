@@ -7,6 +7,8 @@
 	
 	namespace BigTree\GoogleAnalytics;
 	
+	use stdClass;
+	
 	class Profile {
 		
 		protected $API;
@@ -22,7 +24,7 @@
 		public $UpdatedAt;
 		public $WebsiteURL;
 		
-		function __construct($profile, &$api) {
+		function __construct(stdClass $profile, API &$api) {
 			$this->AccountID = $profile->accountId;
 			$this->API = $api;
 			$this->CreatedAt = date("Y-m-d H:i:s", strtotime($profile->created));

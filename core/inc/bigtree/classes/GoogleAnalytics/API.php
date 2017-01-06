@@ -6,11 +6,13 @@
 	
 	namespace BigTree\GoogleAnalytics;
 	
+	use BigTree\CloudStorage\Google;
 	use BigTree\FileSystem;
 	use BigTree\GoogleResultSet;
 	use BigTree\JSON;
 	use BigTree\OAuth;
 	use BigTree\SQL;
+	use stdClass;
 	
 	class API extends OAuth {
 		
@@ -32,7 +34,7 @@
 				cache - Whether to use cached information (15 minute cache, defaults to false)
 		*/
 		
-		function __construct($cache = false) {
+		function __construct(bool $cache = false) {
 			parent::__construct("bigtree-internal-google-analytics-api", "Google Analytics API", "org.bigtreecms.api.analytics.google", $cache);
 			$this->Settings["key"] = $this->ClientID;
 			$this->Settings["secret"] = $this->ClientSecret;
@@ -44,16 +46,16 @@
 				Turns of Google Analytics settings in BigTree and deletes cached information.
 		*/
 		
-		function disconnect() {
+		function disconnect(): void {
 			// Delete cache
 			FileSystem::deleteFile(SERVER_ROOT."cache/analytics.json");
-			SQL::delete("bigtree_caches", array("identifier" => "org.bigtreecms.api.analytics.google"));
+			SQL::delete("bigtree_caches", ["identifier" => "org.bigtreecms.api.analytics.google"]);
 			
 			// Remove page views from Pages
 			SQL::query("UPDATE bigtree_pages SET ga_page_views = NULL");
 			
 			// Clear settings
-			$this->Settings = array();
+			$this->Settings = [];
 		}
 		
 		/*
@@ -67,19 +69,19 @@
 				A BigTree\GoogleResultSet object of BigTree\GoogleAnalaytics\Account objects.
 		*/
 		
-		function getAccounts($params = array()) {
-			$results = array();
+		function getAccounts(array $params = []): ?GoogleResultSet {
+			$results = [];
 			$response = $this->call("management/accounts", $params);
 			
 			if (!isset($response->items)) {
-				return false;
+				return null;
 			}
 			
 			foreach ($response->items as $account) {
 				$results[] = new Account($account, $this);
 			}
 			
-			return new GoogleResultSet($this, "getAccounts", array($params), $response, $results);
+			return new GoogleResultSet($this, "getAccounts", [$params], $response, $results);
 		}
 		
 		/*
@@ -100,55 +102,58 @@
 				An array of data.
 		*/
 		
-		function getData($profile, $start_date, $end_date, $metrics, $dimensions = "", $sort = "", $results = 10000) {
+		function getData(string $profile, string $start_date, string $end_date, $metrics, $dimensions = "",
+						 ?string $sort = null, int $results = 10000): ?array {
 			$start_date = date("Y-m-d", strtotime($start_date));
 			$end_date = date("Y-m-d", strtotime($end_date));
 			$metric_string = $dimension_string = "";
 			
 			// Clean up the metrics
-			if (!is_array($metrics)) {
-				$metrics = array($metrics);
-			}
-			
-			foreach ($metrics as $m) {
-				if (substr($m, 0, 3) != "ga:") {
-					$metric_string .= "ga:";
-				}
-				
-				$metric_string .= $m.",";
-			}
-			
-			$metric_string = rtrim($metric_string, ",");
-			
-			// Clean up the dimensions
-			if (!is_array($dimensions)) {
-				$dimensions = array($dimensions);
-			}
-			
-			foreach ($dimensions as $d) {
-				if ($d) {
-					if (substr($d, 0, 3) != "ga:") {
-						$dimension_string .= "ga:";
+			if (is_array($metrics)) {
+				foreach ($metrics as $metric) {
+					if (substr($metric, 0, 3) != "ga:") {
+						$metric_string .= "ga:";
 					}
 					
-					$dimension_string .= $d.",";
+					$metric_string .= $metric.",";
 				}
+				
+				$metric_string = rtrim($metric_string, ",");
+			} else {
+				$metric_string = trim($metrics);
 			}
 			
-			$dimension_string = rtrim($dimension_string, ",");
+			// Clean up the dimensions
+			if (is_array($dimensions)) {
+				foreach ($dimensions as $dimension) {
+					$dimension = trim($dimension);
+					
+					if ($dimension !== "") {
+						if (substr($dimension, 0, 3) != "ga:") {
+							$dimension_string .= "ga:";
+						}
+						
+						$dimension_string .= $dimension.",";
+					}
+				}
+				
+				$dimension_string = rtrim($dimension_string, ",");
+			} else {
+				$dimension_string = trim($dimensions);
+			}
 			
 			// Clean up sort
 			if ($sort && substr($sort, 0, 3) != "ga:" && substr($sort, 0, 4) != "-ga:") {
 				$sort = "ga:$sort";
 			}
 			
-			$params = array(
+			$params = [
 				"ids" => "ga:$profile",
 				"start-date" => $start_date,
 				"end-date" => $end_date,
 				"metrics" => rtrim($metric_string, ","),
 				"max-results" => $results
-			);
+			];
 			
 			if ($dimension_string) {
 				$params["dimensions"] = $dimension_string;
@@ -160,11 +165,11 @@
 			
 			$response = $this->call("data/ga", $params);
 			
-			if (!$response->rows) {
-				return array();
+			if (empty($response->rows)) {
+				return [];
 			}
 			
-			$this->LastDataTotals = new \stdClass;
+			$this->LastDataTotals = new stdClass;
 			
 			foreach ($response->totalsForAllResults as $column => $total) {
 				$column = str_replace("ga:", "", $column);
@@ -172,7 +177,7 @@
 			}
 			
 			// Get the names of each column
-			$column_names = $results = array();
+			$column_names = $results = [];
 			
 			foreach ($response->columnHeaders as $header) {
 				// Strip ga: from the name
@@ -181,7 +186,7 @@
 			
 			// Return results
 			foreach ($response->rows as $row) {
-				$result = new \stdClass;
+				$result = new stdClass;
 				
 				foreach ($column_names as $index => $name) {
 					$result->$name = $row[$index];
@@ -205,19 +210,19 @@
 				A BigTree\GoogleResultSet object of BigTree\GoogleAnalytics\Property objects.
 		*/
 		
-		function getProperties($account = "~all", $params = array()) {
-			$results = array();
+		function getProperties(string $account = "~all", array $params = []): ?GoogleResultSet {
+			$results = [];
 			$response = $this->call("management/accounts/$account/webproperties", $params);
 			
 			if (!isset($response->items)) {
-				return false;
+				return null;
 			}
 			
 			foreach ($response->items as $property) {
 				$results[] = new Property($property, $this);
 			}
 			
-			return new GoogleResultSet($this, "getProperties", array($account, $params), $response, $results);
+			return new GoogleResultSet($this, "getProperties", [$account, $params], $response, $results);
 		}
 		
 		/*
@@ -233,19 +238,19 @@
 				A BigTree\GoogleResultSet of BigTree\GoogleAnalytics\Profile objects.
 		*/
 		
-		function getProfiles($account = "~all", $property = "~all", $params = array()) {
-			$results = array();
+		function getProfiles(string $account = "~all", string $property = "~all", array $params = []): ?GoogleResultSet {
+			$results = [];
 			$response = $this->call("management/accounts/$account/webproperties/$property/profiles", $params);
 			
 			if (!isset($response->items)) {
-				return false;
+				return null;
 			}
 			
 			foreach ($response->items as $profile) {
 				$results[] = new Profile($profile, $this);
 			}
 			
-			return new GoogleResultSet($this, "getProfiles", array($account, $property, $params), $response, $results);
+			return new GoogleResultSet($this, "getProfiles", [$account, $property, $params], $response, $results);
 		}
 		
 		/*
@@ -254,11 +259,11 @@
 				Also retrieves heads up views and stores them in settings for quick retrieval. Should be called every 24 hours to refresh.
 		*/
 		
-		function cacheInformation() {
+		function cacheInformation(): void {
 			// First we're going to update the monthly view counts for all pages.
 			$results = $this->getData($this->Settings["profile"], "1 month ago", "today", "pageviews", "pagePath");
-			$used_paths = array();
-			$cache = array();
+			$used_paths = [];
+			$cache = [];
 			
 			foreach ($results as $item) {
 				$clean_path = trim($item->pagePath, "/");
@@ -268,51 +273,51 @@
 				if (in_array($clean_path, $used_paths)) {
 					SQL::query("UPDATE bigtree_pages SET ga_page_views = (ga_page_views + $views) WHERE `path` = ?", $clean_path);
 				} else {
-					SQL::update("bigtree_pages", array("path" => $clean_path), array("ga_page_views" => $views));
+					SQL::update("bigtree_pages", ["path" => $clean_path], ["ga_page_views" => $views]);
 					$used_paths[] = $clean_path;
 				}
 			}
 			
 			// Service Provider report
-			$results = $this->getData($this->Settings["profile"], "1 month ago", "today", array("pageviews", "visits"), "networkLocation", "-ga:pageviews");
+			$results = $this->getData($this->Settings["profile"], "1 month ago", "today", ["pageviews", "visits"], "networkLocation", "-ga:pageviews");
 			
 			foreach ($results as $item) {
-				$cache["service_providers"][] = array("name" => $item->networkLocation, "views" => $item->pageviews, "visits" => $item->visits);
+				$cache["service_providers"][] = ["name" => $item->networkLocation, "views" => $item->pageviews, "visits" => $item->visits];
 			}
 			
 			// Referrer report
-			$results = $this->getData($this->Settings["profile"], "1 month ago", "today", array("pageviews", "visits"), "source", "-ga:pageviews");
+			$results = $this->getData($this->Settings["profile"], "1 month ago", "today", ["pageviews", "visits"], "source", "-ga:pageviews");
 			
 			foreach ($results as $item) {
-				$cache["referrers"][] = array("name" => $item->source, "views" => $item->pageviews, "visits" => $item->visits);
+				$cache["referrers"][] = ["name" => $item->source, "views" => $item->pageviews, "visits" => $item->visits];
 			}
 			
 			// Keyword report
-			$results = $this->getData($this->Settings["profile"], "1 month ago", "today", array("pageviews", "visits"), "keyword", "-ga:pageviews");
+			$results = $this->getData($this->Settings["profile"], "1 month ago", "today", ["pageviews", "visits"], "keyword", "-ga:pageviews");
 			
 			foreach ($results as $item) {
-				$cache["keywords"][] = array("name" => $item->keyword, "views" => $item->pageviews, "visits" => $item->visits);
+				$cache["keywords"][] = ["name" => $item->keyword, "views" => $item->pageviews, "visits" => $item->visits];
 			}
 			
 			// Yearly Report
-			$this->getData($this->Settings["profile"], date("Y-01-01"), date("Y-m-d"), array("pageviews", "visits", "bounces", "timeOnSite"), "browser");
+			$this->getData($this->Settings["profile"], date("Y-01-01"), date("Y-m-d"), ["pageviews", "visits", "bounces", "timeOnSite"], "browser");
 			$cache["year"] = $this->cacheParseLastData();
-			$this->getData($this->Settings["profile"], date("Y-01-01", strtotime("-1 year")), date("Y-m-d", strtotime("-1 year")), array("pageviews", "visits", "bounces", "timeOnSite"), "browser");
+			$this->getData($this->Settings["profile"], date("Y-01-01", strtotime("-1 year")), date("Y-m-d", strtotime("-1 year")), ["pageviews", "visits", "bounces", "timeOnSite"], "browser");
 			$cache["year_ago_year"] = $this->cacheParseLastData();
 			
 			// Quarterly Report
-			$quarters = array(1, 3, 6, 9);
-			$current_quarter_month = $quarters[floor((date("m") - 1) / 3)];
+			$quarters = [1, 3, 6, 9];
+			$current_quarter_month = $quarters[strval(floor((date("m") - 1) / 3))];
 			
-			$this->getData($this->Settings["profile"], date("Y-".str_pad($current_quarter_month, 2, "0", STR_PAD_LEFT)."-01"), date("Y-m-d"), array("pageviews", "visits", "bounces", "timeOnSite"), "browser");
+			$this->getData($this->Settings["profile"], date("Y-".str_pad($current_quarter_month, 2, "0", STR_PAD_LEFT)."-01"), date("Y-m-d"), ["pageviews", "visits", "bounces", "timeOnSite"], "browser");
 			$cache["quarter"] = $this->cacheParseLastData();
-			$this->getData($this->Settings["profile"], date("Y-".str_pad($current_quarter_month, 2, "0", STR_PAD_LEFT)."-01", strtotime("-1 year")), date("Y-m-d", strtotime("-1 year")), array("pageviews", "visits", "bounces", "timeOnSite"), "browser");
+			$this->getData($this->Settings["profile"], date("Y-".str_pad($current_quarter_month, 2, "0", STR_PAD_LEFT)."-01", strtotime("-1 year")), date("Y-m-d", strtotime("-1 year")), ["pageviews", "visits", "bounces", "timeOnSite"], "browser");
 			$cache["year_ago_quarter"] = $this->cacheParseLastData();
 			
 			// Monthly Report
-			$this->getData($this->Settings["profile"], date("Y-m-01"), date("Y-m-d"), array("pageviews", "visits", "bounces", "timeOnSite"), "browser");
+			$this->getData($this->Settings["profile"], date("Y-m-01"), date("Y-m-d"), ["pageviews", "visits", "bounces", "timeOnSite"], "browser");
 			$cache["month"] = $this->cacheParseLastData();
-			$this->getData($this->Settings["profile"], date("Y-m-01", strtotime("-1 year")), date("Y-m-d", strtotime("-1 year")), array("pageviews", "visits", "bounces", "timeOnSite"), "browser");
+			$this->getData($this->Settings["profile"], date("Y-m-01", strtotime("-1 year")), date("Y-m-d", strtotime("-1 year")), ["pageviews", "visits", "bounces", "timeOnSite"], "browser");
 			$cache["year_ago_month"] = $this->cacheParseLastData();
 			
 			// Two Week Heads Up
@@ -330,11 +335,11 @@
 				Private method for cacheInformation to stop so much repeat code.  Returns total visits, views, bounces, and time on site.
 		*/
 		
-		private function cacheParseLastData() {
-			$d = $this->LastDataTotals;
+		private function cacheParseLastData(): array {
+			$data_set = $this->LastDataTotals;
 			
-			if ($d->visits) {
-				$time_on_site = round($d->timeOnSite / $d->visits, 2);
+			if ($data_set->visits) {
+				$time_on_site = round($data_set->timeOnSite / $data_set->visits, 2);
 				$hours = floor($time_on_site / 3600);
 				$minutes = floor(($time_on_site - (3600 * $hours)) / 60);
 				$seconds = floor($time_on_site - (3600 * $hours) - (60 * $minutes));
@@ -343,20 +348,20 @@
 				$mpart = str_pad($minutes, 2, "0", STR_PAD_LEFT).":";
 				$time = $hpart.$mpart.str_pad($seconds, 2, "0", STR_PAD_LEFT);
 				
-				$bounce_rate = round($d->bounces / $d->visits * 100, 2);
+				$bounce_rate = round($data_set->bounces / $data_set->visits * 100, 2);
 			} else {
 				$time_on_site = 0;
 				$time = "00:00:00";
 				$bounce_rate = 0;
 			}
 			
-			return array(
-				"views" => $d->pageviews,
-				"visits" => $d->visits,
-				"bounces" => $d->bounces,
+			return [
+				"views" => $data_set->pageviews,
+				"visits" => $data_set->visits,
+				"bounces" => $data_set->bounces,
 				"bounce_rate" => $bounce_rate,
 				"average_time" => $time,
 				"average_time_seconds" => $time_on_site
-			);
+			];
 		}
 	}
