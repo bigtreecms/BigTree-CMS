@@ -6,6 +6,7 @@
 
 	namespace BigTree;
 	
+	use BigTree\Auth\AuthenticatedUser;
 	use PasswordHash;
 
 	class Auth {
@@ -32,7 +33,7 @@
 				enforce_policies - Whether to enforce password/login policies
 		*/
 
-		function __construct($user_class = 'BigTree\User', $namespace = "bigtree_admin", $enforce_policies = true) {
+		function __construct(string $user_class = 'BigTree\User', string $namespace = "bigtree_admin", bool $enforce_policies = true) {
 			static::$Namespace = $namespace;
 			static::$Policies = $enforce_policies;
 			static::$UserClass = $user_class;
@@ -184,7 +185,7 @@
 				false if login failed, otherwise redirects back to the page the person requested.
 		*/
 
-		static function login($email, $password, $stay_logged_in = false) {
+		static function login(string $email, string $password, bool $stay_logged_in = false): bool {
 			global $bigtree;
 
 			$user_class = static::$UserClass;
@@ -348,8 +349,16 @@
 
 			return false;
 		}
+		
+		/*
+		 	Function: loginSessionChain
+				Begins or continues the login process for a login session chain logging in a user across all domains.
+			
+			Parameters:
+				session_key - The session key created by the login method
+		*/
 
-		static function loginChainSession($session_key) {
+		static function loginChainSession(string $session_key) {
 			$cache_data = Cache::get("org.bigtreecms.login-session", $session_key);
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE id = ?", $cache_data["user_id"]);
 			
@@ -425,7 +434,7 @@
 				layout_directory - The base directory for the layout to load (defaults to "admin/layouts/")
 		*/
 
-		static function stop($message = "", $file = "", $layout_directory = "admin/layouts/") {
+		static function stop(?string $message = null, ?string $file = null, string $layout_directory = "admin/layouts/") {
 			global $admin, $bigtree, $cms, $db;
 
 			if ($file) {
@@ -452,25 +461,25 @@
 				A BigTree\Auth\AuthenticatedUser object.
 		*/
 
-		static function user($user = false) {
-			if ($user !== false) {
-				if (is_object($user)) {
-					return new Auth\AuthenticatedUser($user->ID, $user->Level, $user->Permissions);
-				}
-
-				$user = SQL::fetch("SELECT id, level, permissions FROM bigtree_users WHERE id = ?", $user);
-
-				// Return a -1 level of anonymous user
-				if (empty($user)) {
-					return new Auth\AuthenticatedUser(null, -1, array());
+		static function user($user = null): AuthenticatedUser {
+			if (is_null($user)) {
+				if (static::$ID) {
+					return new AuthenticatedUser(static::$ID, static::$Level, static::$Permissions);
 				} else {
-					return new Auth\AuthenticatedUser($user["id"], $user["level"], (array) json_decode($user["permissions"], true));
+					return new AuthenticatedUser(null, -1, array());
 				}
 			} else {
-				if (static::$ID) {
-					return new Auth\AuthenticatedUser(static::$ID, static::$Level, static::$Permissions);
+				if (is_object($user)) {
+					return new AuthenticatedUser($user->ID, $user->Level, $user->Permissions);
+				}
+				
+				$user = SQL::fetch("SELECT id, level, permissions FROM bigtree_users WHERE id = ?", $user);
+				
+				// Return a -1 level of anonymous user
+				if (empty($user)) {
+					return new AuthenticatedUser(null, -1, array());
 				} else {
-					return new Auth\AuthenticatedUser(null, -1, array());
+					return new AuthenticatedUser($user["id"], $user["level"], (array)json_decode($user["permissions"], true));
 				}
 			}
 		}

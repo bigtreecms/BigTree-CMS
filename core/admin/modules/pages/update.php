@@ -4,6 +4,7 @@
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
+		
 		Router::redirect($_SERVER["HTTP_REFERER"]);
 	}
 	
@@ -13,21 +14,11 @@
 	}
 	
 	// Check access levels on the page we're trying to modify
-	$page = $_POST["page"];
-	// Pending page
-	if ($page[0] == "p") {
-		$pending_change = $admin->getPendingChange(substr($page, 1));
-		$bigtree["current_page_data"] = $pending_change["changes"];
-		$bigtree["access_level"] = $admin->getPageAccessLevel($bigtree["current_page_data"]["parent"]);
-	// Live page
-	} else {
-		$bigtree["access_level"] = $admin->getPageAccessLevel($page);
-		// Get pending page data with resources decoded and tags.
-		$bigtree["current_page_data"] = $cms->getPendingPage($page, true, true);
-	}
+	$page = Page::getPageDraft($_POST["page"]);
+	$access_level = $page->UserAccessLevel;
 	
 	// Work out the permissions	
-	if (!$bigtree["access_level"]) {
+	if (!$access_level) {
 		Auth::stop("You do not have access to this page.", Router::getIncludePath("admin/layouts/_error.php"));
 	}
 	
@@ -50,13 +41,10 @@
 	include Router::getIncludePath("admin/modules/pages/_resource-parse.php");
 	
 	// Handle permissions on trunk
-	if (Auth::user()->Level < 2) {
-		unset($_POST["trunk"]);
-	}
-	
+	$trunk = (Auth::user()->Level < 2) ? $page->Trunk : $_POST["trunk"];
 	$id = $_POST["page"];
 	
-	if ($bigtree["access_level"] == "p" && $_POST["ptype"] == "Save & Publish") {
+	if ($access_level == "p" && $_POST["form_action"] == "Save & Publish") {
 		// Let's make it happen.
 		if ($id[0] == "p") {
 			// It's a pending page, so let's create one.
@@ -64,51 +52,56 @@
 				$_POST["parent"] = $bigtree["current_page_data"]["parent"];
 			}
 			
-			$admin->deletePendingChange(substr($id, 1));
-			$id = $admin->createPage($_POST);
+			$id = Page::create($trunk, $_POST["parent"], $_POST["in_nav"], $_POST["nav_title"], $_POST["title"],
+							   $_POST["route"], $_POST["meta_description"], $_POST["seo_invisible"], $_POST["template"],
+							   $_POST["external"], $_POST["new_window"], $_POST["resources"], $_POST["publish_at"],
+							   $_POST["expire_at"], $_POST["max_age"], $_POST["tags"]);
+			
+			$change = new PendingChange(substr($id, 1));
+			$change->delete();
+			
 			Utils::growl("Pages", "Created & Published Page");
 		} else {
 			// It's an existing page.
-			$admin->updatePage($id, $_POST);
+			$page->update($trunk, $_POST["parent"], $_POST["in_nav"], $_POST["nav_title"], $_POST["title"],
+						  $_POST["route"], $_POST["meta_description"], $_POST["seo_invisible"], $_POST["template"],
+						  $_POST["external"], $_POST["new_window"], $_POST["resources"], $_POST["publish_at"],
+						  $_POST["expire_at"], $_POST["max_age"], $_POST["tags"]);
+			
 			Utils::growl("Pages", "Updated Page");
 		}
 	} else {
 		if (!$_POST["parent"]) {
 			$_POST["parent"] = $bigtree["current_page_data"]["parent"];
 		}
-		$admin->submitPageChange($id, $_POST);
+		
+		Page::createChangeRequest($id, $_POST);
 		Utils::growl("Pages", "Saved Page Draft");
 	}
 	
-	$admin->unlock("bigtree_pages", $id);
+	Lock::remove("bigtree_pages", $id);
 	
 	// We can't return to any lower number, so even if we edited the homepage, return to the top level nav.	
-	if ($bigtree["current_page_data"]["parent"] == "-1") {
-		$bigtree["current_page_data"]["parent"] = 0;
+	if ($page->Parent == -1) {
+		$page->Parent = 0;
 	}
 	
 	if (isset($_GET["preview"])) {
 		$redirect_url = Link::getPreview($id)."?bigtree_preview_return=".urlencode(ADMIN_ROOT."pages/edit/$id/");
 	} elseif ($_POST["return_to_front"]) {
-		if ($_POST["ptype"] != "Save & Publish") {
+		if ($_POST["form_action"] != "Save & Publish") {
 			$redirect_url = Link::getPreview($id);
 		} else {
-			$page = new Page($id);
-			
-			if ($page->ID) {
-				$redirect_url = WWW_ROOT.$page->Path."/";
-			} else {
-				$redirect_url = WWW_ROOT;
-			}
+			$redirect_url = Link::get($id);
 		}
 	} elseif ($_POST["return_to_self"]) {
-		$redirect_url = ADMIN_ROOT."pages/view-tree/".$bigtree["current_page_data"]["id"]."/";
+		$redirect_url = ADMIN_ROOT."pages/view-tree/$id/";
 	} else {
-		$redirect_url = ADMIN_ROOT."pages/view-tree/".$bigtree["current_page_data"]["parent"]."/";
+		$redirect_url = ADMIN_ROOT."pages/view-tree/".$page->Parent."/";
 	}
 	
 	// Track resource allocation
-	$admin->allocateResources("pages", $id);
+	Resource::allocate("pages", $id);
 	
 	$_SESSION["bigtree_admin"]["form_data"] = array(
 		"page" => $id,

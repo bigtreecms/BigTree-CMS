@@ -51,21 +51,21 @@
 			<?php
 				if ($bigtree["form_action"] == "create") {
 			?>
-			<input type="submit" name="ptype" value="<?=Text::translate("Create", true)?>" <?php if ($bigtree["access_level"] != "p") { ?>class="blue" <?php } ?>/>
+			<input type="submit" name="form_action" value="<?=Text::translate("Create", true)?>" <?php if ($bigtree["access_level"] != "p") { ?>class="blue" <?php } ?>/>
 			<?php
 					if ($bigtree["access_level"] == "p") {
 			?>
-			<input type="submit" name="ptype" value="<?=Text::translate("Create & Publish", true)?>" class="blue" />
+			<input type="submit" name="form_action" value="<?=Text::translate("Create & Publish", true)?>" class="blue" />
 			<?php
 					}
 				} else {
 			?>
 			<a href="#" class="button save_and_preview"><span class="icon_small icon_small_computer"></span><?=Text::translate("Save & Preview", true)?></a>
-			<input type="submit" name="ptype" value="<?=Text::translate("Save", true)?>"<?php if ($bigtree["access_level"] != "p") { ?> class="blue"<?php } ?> />
+			<input type="submit" name="form_action" value="<?=Text::translate("Save", true)?>"<?php if ($bigtree["access_level"] != "p") { ?> class="blue"<?php } ?> />
 			<?php
 					if ($bigtree["access_level"] == "p") {
 			?>
-			<input type="submit" name="ptype" value="<?=Text::translate("Save & Publish", true)?>" class="blue" />
+			<input type="submit" name="form_action" value="<?=Text::translate("Save & Publish", true)?>" class="blue" />
 			<?php
 					}
 				}

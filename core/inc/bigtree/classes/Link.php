@@ -14,6 +14,8 @@
 		public static $IPLCache = array();
 		public static $TokenKeys = array();
 		public static $TokenValues = array();
+		
+		private static $IRLsCreated = array();
 
 		/*
 			Function: byPath
@@ -317,6 +319,7 @@
 			
 			// Check A tags.
 			$links = $doc->getElementsByTagName("a");
+			
 			foreach ($links as $link) {
 				$href = $link->getAttribute("href");
 				$href = str_replace(array("{wwwroot}", "%7Bwwwroot%7D", "{staticroot}", "%7Bstaticroot%7D"), array(WWW_ROOT, WWW_ROOT, STATIC_ROOT, STATIC_ROOT), $href);
@@ -476,7 +479,7 @@
 				if (!empty($bigtree["config"]["trailing_slash_behavior"]) && $bigtree["config"]["trailing_slash_behavior"] != "remove" || $commands != "") {
 					return static::$IPLCache[$navid]."/".$commands;
 				} else {
-					returnstatic::$IPLCache[$navid];
+					return static::$IPLCache[$navid];
 				}
 			}
 		}

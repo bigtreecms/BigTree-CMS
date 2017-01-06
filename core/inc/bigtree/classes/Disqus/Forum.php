@@ -3,14 +3,16 @@
 		Class: BigTree\Disqus\Forum
 			A Disqus object that contains information about and methods you can perform on a forum.
 	*/
-
+	
 	namespace BigTree\Disqus;
-
+	
+	use stdClass;
+	
 	class Forum {
-
+		
 		/** @var \BigTree\Disqus\API */
 		protected $API;
-
+		
 		public $FounderID;
 		public $ID;
 		public $Image;
@@ -18,8 +20,8 @@
 		public $Name;
 		public $Settings;
 		public $URL;
-
-		function __construct($forum,&$api) {
+		
+		function __construct(stdClass $forum, API &$api) {
 			$this->API = $api;
 			isset($forum->founder) ? $this->FounderID = $forum->founder : false;
 			isset($forum->id) ? $this->ID = $forum->id : false;
@@ -29,7 +31,7 @@
 			isset($forum->settings) ? $this->Settings = $forum->settings : false;
 			isset($forum->url) ? $this->URL = $forum->url : false;
 		}
-
+		
 		/*
 			Function: addCategory
 				Adds a category to this forum.
@@ -41,18 +43,19 @@
 			Returns:
 				A BigTree\Disqus\Category object.
 		*/
-
-		function addCategory($title) {
-			$response = $this->API->call("categories/create.json",array("forum" => $this->ID,"title" => $title),"POST");
-
-			if ($response !== false) {
+		
+		function addCategory(string $title): ?Category {
+			$response = $this->API->call("categories/create.json", ["forum" => $this->ID, "title" => $title], "POST");
+			
+			if (!empty($response)) {
 				$this->API->cacheBust("categories".$this->ID);
-				return new Category($response,$this->API);
+				
+				return new Category($response, $this->API);
 			}
-
-			return false;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: addModerator
 				Adds a moderator to this forum.
@@ -61,26 +64,27 @@
 			Parameters:
 				user - The ID of the user or the person's username
 		*/
-
-		function addModerator($user) {
-			$params = array("forum" => $this->ID);
-
+		
+		function addModerator(string $user): ?bool {
+			$params = ["forum" => $this->ID];
+			
 			if (is_numeric($user)) {
 				$params["user"] = $user;
 			} else {
 				$params["user:username"] = $user;
 			}
-
-			$response = $this->API->call("forums/addModerator.json",$params,"POST");
-
-			if ($response !== false) {
+			
+			$response = $this->API->call("forums/addModerator.json", $params, "POST");
+			
+			if (!empty($response)) {
 				$this->API->cacheBust("moderators".$this->ID);
+				
 				return true;
 			}
-
+			
 			return false;
 		}
-
+		
 		/*
 			Function: addToBlacklist
 				Adds an entry to this forum's blacklist
@@ -91,18 +95,21 @@
 				retroactive - Whether to make this block affect old posts (defaults to false)
 				notes - Notes (optional)
 		*/
-
-		function addToBlacklist($type,$value,$retroactive = false,$notes = "") {
-			$response = $this->API->call("blacklists/add.json",array("forum" => $this->ID,$type => $value,"retroactive" => $retroactive,"notes" => $notes),"POST");
-
-			if ($response !== false) {
+		
+		function addToBlacklist(string $type, string $value, bool $retroactive = false, string $notes = ""): bool {
+			$response = $this->API->call("blacklists/add.json",
+										 ["forum" => $this->ID, $type => $value, "retroactive" => $retroactive, "notes" => $notes],
+										 "POST");
+			
+			if (!is_null($response)) {
 				$this->API->cacheBust("blacklisted".$this->ID);
+				
 				return true;
 			}
-
+			
 			return false;
 		}
-
+		
 		/*
 			Function: addToWhitelist
 				Adds an entry to this forum's whitelist
@@ -112,10 +119,10 @@
 				value - Value to whitelist
 				notes - Notes (optional)
 		*/
-
-		function addToWhitelist($type,$value,$notes = "") {
-			$params = array("forum" => $this->ID,"notes" => $notes);
-
+		
+		function addToWhitelist(string $type, string $value, string $notes = ""): bool {
+			$params = ["forum" => $this->ID, "notes" => $notes];
+			
 			if ($type == "email") {
 				$params["email"] = $value;
 			} elseif ($type == "user_id") {
@@ -123,17 +130,18 @@
 			} elseif ($type == "username") {
 				$params["user:username"] = $value;
 			}
-
-			$response = $this->API->call("whitelists/add.json",$params,"POST");
-
-			if ($response !== false) {
+			
+			$response = $this->API->call("whitelists/add.json", $params, "POST");
+			
+			if (!is_null($response)) {
 				$this->API->cacheBust("whitelisted".$this->ID);
+				
 				return true;
 			}
-
+			
 			return false;
 		}
-
+		
 		/*
 			Function: getBlacklist
 				Returns a result set of blacklist entries for this forum.
@@ -147,27 +155,28 @@
 			Returns:
 				A BigTree\Disqus\ResultSet of BigTree\Disqus\BlacklistEntry objects
 		*/
-
-		function getBlacklist($limit = 25,$order = "asc",$params = array()) {
+		
+		function getBlacklist(int $limit = 25, string $order = "asc", array $params = []): ?ResultSet {
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
 			$params["order"] = $order;
-			$response = $this->API->call("blacklists/list.json",$params);
-
-			if ($response !== false) {
+			$response = $this->API->call("blacklists/list.json", $params);
+			
+			if (!empty($response)) {
 				$this->API->cachePush("blacklisted".$this->ID);
-				$results = array();
+				$results = [];
+				
 				foreach ($response->Results as $item) {
 					$this->API->cachePush("blacklist".$item->id);
-					$results[] = new BlacklistEntry($item,$this->API);
+					$results[] = new BlacklistEntry($item, $this->API);
 				}
-
-				return new ResultSet($this,"getBlacklist",array($limit,$order,$params),$response->Cursor,$results);
+				
+				return new ResultSet($this, "getBlacklist", [$limit, $order, $params], $response->Cursor, $results);
 			}
-
-			return false;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: getCategories
 				Returns categories for this forum.
@@ -180,27 +189,28 @@
 			Returns:
 				A BigTree\Disqus\ResultSet of BigTree\Disqus\Category objects.
 		*/
-
-		function getCategories($limit = 25,$order = "asc",$params = array()) {
+		
+		function getCategories(int $limit = 25, string $order = "asc", array $params = []): ?ResultSet {
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
 			$params["order"] = $order;
-			$response = $this->API->call("forums/listCategories.json",$params);
-
-			if ($response !== false) {
+			$response = $this->API->call("forums/listCategories.json", $params);
+			
+			if (!empty($response)) {
 				$this->API->cachePush("categories".$this->ID);
-				$results = array();
+				$results = [];
+				
 				foreach ($response->Results as $category) {
 					$this->API->cachePush("category".$category->id);
-					$results[] = new Category($category,$this->API);
+					$results[] = new Category($category, $this->API);
 				}
-
-					return new ResultSet($this,"getCategories",array($limit,$order,$params),$response->Cursor,$results);
+				
+				return new ResultSet($this, "getCategories", [$limit, $order, $params], $response->Cursor, $results);
 			}
-
-			return false;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: getFounder
 				Returns information about this forum's founder.
@@ -208,11 +218,11 @@
 			Returns:
 				A BigTree\Disqus\User object.
 		*/
-
-		function getFounder() {
+		
+		function getFounder(): ?User {
 			return $this->API->getUser($this->FounderID);
 		}
-
+		
 		/*
 			Function: getModerators
 				Returns an array of moderators for this forum.
@@ -220,24 +230,25 @@
 			Returns:
 				An array of BigTree\Disqus\User objects.
 		*/
-
-		function getModerators() {
-			$response = $this->API->call("forums/listModerators.json",array("forum" => $this->ID));
-
+		
+		function getModerators(): ?array {
+			$response = $this->API->call("forums/listModerators.json", ["forum" => $this->ID]);
+			
 			if (is_array($response)) {
 				$this->API->cachePush("moderators".$this->ID);
-				$results = array();
+				$results = [];
+				
 				foreach ($response as $user) {
 					$this->API->cachePush("user".$user->id);
-					$results[] = new User($user,$this->API);
+					$results[] = new User($user, $this->API);
 				}
-
+				
 				return $results;
 			}
-
-			return false;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: getMostActiveUsers
 				Returns a result set of most active users on this forum.
@@ -249,25 +260,26 @@
 			Returns:
 				A BigTree\Disqus\ResultSet of BigTree\Disqus\User objects.
 		*/
-
-		function getMostActiveUsers($limit = 25,$params = array()) {
+		
+		function getMostActiveUsers(int $limit = 25, array $params = []): ?ResultSet {
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
-			$response = $this->API->call("forums/listMostActiveUsers.json",$params);
-
-			if ($response !== false) {
-				$results = array();
+			$response = $this->API->call("forums/listMostActiveUsers.json", $params);
+			
+			if (!empty($response)) {
+				$results = [];
+				
 				foreach ($response->Results as $user) {
 					$this->API->cachePush("user".$user->id);
-					$results[] = new User($user,$this->API);
+					$results[] = new User($user, $this->API);
 				}
-
-				return new ResultSet($this,"getMostActiveUsers",array($limit,$params),$response->Cursor,$results);
+				
+				return new ResultSet($this, "getMostActiveUsers", [$limit, $params], $response->Cursor, $results);
 			}
-
-			return false;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: getMostLikedUsers
 				Returns a result set of the most liked users on this forum.
@@ -279,25 +291,26 @@
 			Returns:
 				A BigTree\Disqus\ResultSet of BigTree\Disqus\User objects.
 		*/
-
-		function getMostLikedUsers($limit = 25,$params = array()) {
+		
+		function getMostLikedUsers(int $limit = 25, array $params = []): ?ResultSet {
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
-			$response = $this->API->call("forums/listMostLikedUsers.json",$params);
-
-			if ($response !== false) {
-				$results = array();
+			$response = $this->API->call("forums/listMostLikedUsers.json", $params);
+			
+			if (!empty($response)) {
+				$results = [];
+				
 				foreach ($response->Results as $user) {
 					$this->API->cachePush("user".$user->id);
-					$results[] = new User($user,$this->API);
+					$results[] = new User($user, $this->API);
 				}
-
-				return new ResultSet($this,"getMostLikedUsers",array($limit,$params),$response->Cursor,$results);
+				
+				return new ResultSet($this, "getMostLikedUsers", [$limit, $params], $response->Cursor, $results);
 			}
-
-			return false;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: getPosts
 				Returns a result set of posts to this forum.
@@ -312,30 +325,34 @@
 			Returns:
 				A BigTree\Disqus\ResultSet of BigTree\Disqus\Post objects.
 		*/
-
-		function getPosts($limit = 25,$order = "desc",$include = array("approved"),$since = false,$params = array()) {
+		
+		function getPosts(int $limit = 25, string $order = "desc", array $include = ["approved"], bool $since = false,
+						  array $params = []): ?ResultSet {
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
 			$params["include"] = $include;
+			
 			if ($since) {
 				$params["since"] = $since;
 			}
-			$response = $this->API->call("forums/listPosts.json",$params);
-
-			if ($response !== false) {
+			
+			$response = $this->API->call("forums/listPosts.json", $params);
+			
+			if (!empty($response)) {
 				$this->API->cachePush("forumposts".$this->ID);
-				$results = array();
+				$results = [];
+				
 				foreach ($response->Results as $post) {
 					$this->API->cachePush("post".$post->id);
-					$results[] = new Post($post,$this->API);
+					$results[] = new Post($post, $this->API);
 				}
-
-				return new ResultSet($this,"getPosts",array($limit,$order,$include,$since,$params),$response->Cursor,$results);
+				
+				return new ResultSet($this, "getPosts", [$limit, $order, $include, $since, $params], $response->Cursor, $results);
 			}
-
-			return false;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: getThreads
 				Returns a result set of threads in this forum.
@@ -349,29 +366,32 @@
 			Returns:
 				A BigTree\Disqus\ResultSet of BigTree\Disqus\Thread objects.
 		*/
-
-		function getThreads($limit = 25,$order = "desc",$since = false,$params = array()) {
+		
+		function getThreads(int $limit = 25, string $order = "desc", ?string $since = null, array $params = []): ?ResultSet {
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
+			
 			if ($since) {
 				$params["since"] = $since;
 			}
-			$response = $this->API->call("forums/listThreads.json",$params);
-
-			if ($response !== false) {
+			
+			$response = $this->API->call("forums/listThreads.json", $params);
+			
+			if (!empty($response)) {
 				$this->API->cachePush("threads".$this->ID);
-				$results = array();
+				$results = [];
+				
 				foreach ($response->Results as $thread) {
 					$this->API->cachePush("thread".$thread->id);
-					$results[] = new Thread($thread,$this->API);
+					$results[] = new Thread($thread, $this->API);
 				}
-
-				return new ResultSet($this,"getThreads",array($limit,$order,$since,$params),$response->Cursor,$results);
+				
+				return new ResultSet($this, "getThreads", [$limit, $order, $since, $params], $response->Cursor, $results);
 			}
-
-			return false;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: getTrendingThreads
 				Returns an array of trending threads in this forum.
@@ -382,23 +402,24 @@
 			Returns:
 				An array of BigTree\Disqus\Post objects.
 		*/
-
-		function getTrendingThreads($limit = 10) {
-			$response = $this->API->call("trends/listThreads.json",array("forum" => $this->ID,"limit" => $limit));
-
+		
+		function getTrendingThreads(int $limit = 10): ?array {
+			$response = $this->API->call("trends/listThreads.json", ["forum" => $this->ID, "limit" => $limit]);
+			
 			if (is_array($response)) {
-				$results = array();
+				$results = [];
+				
 				foreach ($response as $thread) {
 					$this->API->cachePush("thread".$thread->id);
-					$results[] = new Thread($thread,$this->API);
+					$results[] = new Thread($thread, $this->API);
 				}
-
+				
 				return $results;
 			}
-
-			return false;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: getUsers
 				Returns a result set of users of this forum.
@@ -410,26 +431,27 @@
 			Returns:
 				A BigTree\Disqus\ResultSet of BigTree\Disqus\User objects.
 		*/
-
-		function getUsers($limit = 25,$params = array()) {
+		
+		function getUsers(int $limit = 25, array $params = []): ?ResultSet {
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
-			$response = $this->API->call("forums/listUsers.json",$params);
-
-			if ($response !== false) {
+			$response = $this->API->call("forums/listUsers.json", $params);
+			
+			if (!empty($response)) {
 				$this->API->cachePush("users".$this->ID);
-				$results = array();
+				$results = [];
+				
 				foreach ($response->Results as $user) {
 					$this->API->cachePush("user".$user->id);
-					$results[] = new User($user,$this->API);
+					$results[] = new User($user, $this->API);
 				}
-
-				return new ResultSet($this,"getUsers",array($limit,$params),$response->Cursor,$results);
+				
+				return new ResultSet($this, "getUsers", [$limit, $params], $response->Cursor, $results);
 			}
-
-			return false;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: getWhitelist
 				Returns a result set of whitelist entries for this forum.
@@ -443,27 +465,28 @@
 			Returns:
 				A BigTree\Disqus\ResultSet of BigTree\Disqus\WhitelistEntry objects
 		*/
-
-		function getWhitelist($limit = 25,$order = "asc",$params = array()) {
+		
+		function getWhitelist(int $limit = 25, string $order = "asc", array $params = []): ?ResultSet {
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
 			$params["order"] = $order;
-			$response = $this->API->call("whitelists/list.json",$params);
-
-			if ($response !== false) {
+			$response = $this->API->call("whitelists/list.json", $params);
+			
+			if (!empty($response)) {
 				$this->API->cachePush("whitelisted".$this->ID);
-				$results = array();
+				$results = [];
+				
 				foreach ($response->Results as $item) {
 					$this->API->cachePush("whitelist".$item->id);
-					$results[] = new WhitelistEntry($item,$this->API);
+					$results[] = new WhitelistEntry($item, $this->API);
 				}
-
-				return new ResultSet($this,"getWhitelist",array($limit,$order,$params),$response->Cursor,$results);
+				
+				return new ResultSet($this, "getWhitelist", [$limit, $order, $params], $response->Cursor, $results);
 			}
-
-			return false;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: removeModerator
 				Removes a moderator to this forum.
@@ -472,22 +495,24 @@
 			Parameters:
 				user - The ID of the user or the person's username
 		*/
-
-		function removeModerator($user) {
-			$params = array("forum" => $this->ID);
+		
+		function removeModerator(string $user): bool {
+			$params = ["forum" => $this->ID];
+		
 			if (is_numeric($user)) {
 				$params["user"] = $user;
 			} else {
 				$params["user:username"] = $user;
 			}
-			$response = $this->API->call("forums/removeModerator.json",$params,"POST");
-
-			if ($response !== false) {
+			
+			$response = $this->API->call("forums/removeModerator.json", $params, "POST");
+			
+			if (!empty($response)) {
 				$this->API->cacheBust("moderators".$this->ID);
-
+				
 				return true;
 			}
-
+			
 			return false;
 		}
 	}

@@ -22,7 +22,7 @@
 				A random string.
 		*/
 		
-		static function getRandomString($length = 8, $type = "alphanum") {
+		static function getRandomString(int $length = 8, string $type = "alphanum"): string {
 			// Character sets
 			$types = array(
 				"alpha" => "abcdefghijklmnopqrstuvwqyz",
@@ -40,6 +40,7 @@
 			// Generate
 			$string = "";
 			$character_set_length = strlen($character_set) - 1;
+			
 			for ($i = 0; $i < $length; $i++) {
 				$string .= $character_set[mt_rand(0, $character_set_length)];
 			}
@@ -60,7 +61,7 @@
 				Encoded string.
 		*/
 
-		static function htmlEncode($string) {
+		static function htmlEncode(string $string): string {
 			return htmlspecialchars(html_entity_decode($string, ENT_COMPAT, "UTF-8"));
 		}
 
@@ -76,7 +77,7 @@
 				A string.
 		*/
 
-		static function replaceServerRoot($string, $replace = "") {
+		static function replaceServerRoot(string $string, string $replace = ""): string {
 			if (strpos($string, SERVER_ROOT) === 0) {
 				return $replace.substr($string, strlen(SERVER_ROOT));
 			}
@@ -92,7 +93,7 @@
 				An array of key/value pairs of the english text and the translation.
 		*/
 
-		static function setLanguage($language) {
+		static function setLanguage(string $language) {
 			static::$Language = $language;
 		}
 
@@ -105,8 +106,8 @@
 				html_encode - Whether to return an encoded string (safer for things inside an attribute, defaults to false)
 		*/
 
-		static function translate($string, $html_encode = false, $replacements = array()) {
-			$string = "*".(isset(static::$Language[$string]) ? static::$Language[$string] : $string)."*";
+		static function translate(string $string, bool $html_encode = false, array $replacements = array()): string {
+			$string = isset(static::$Language[$string]) ? static::$Language[$string] : $string;
 
 			// Allow for wildcard replacements where language isn't an issue
 			if (count($replacements)) {
@@ -128,7 +129,7 @@
 				A string trimmed to the proper number of characters.
 		*/
 		
-		static function trimLength($string, $length) {
+		static function trimLength(string $string, int $length): string {
 			$ns = "";
 			$opentags = array();
 			$string = trim($string);
@@ -159,7 +160,6 @@
 					}
 
 					$ns .= $tag;
-
 					$tagexp = explode(" ", trim($tag));
 					$tagname = str_replace(">", "", $tagexp[0]);
 
@@ -178,6 +178,7 @@
 									unset($opentags[key($opentags)]);
 									$done = true;
 								}
+								
 								next($opentags);
 							}
 						} else {
@@ -222,6 +223,7 @@
 			}
 
 			$opentags = array_reverse($opentags);
+			
 			foreach ($opentags as $key => $val) {
 				$ns .= "</".$val.">";
 			}
@@ -240,7 +242,7 @@
 				A number
 		*/
 
-		static function versionToDecimal($version) {
+		static function versionToDecimal(string $version): int {
 			$pieces = explode(".", $version);
 			$number = $pieces[0] * 10000;
 

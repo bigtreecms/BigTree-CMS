@@ -37,6 +37,10 @@
 						"file_input" => $bigtree["file_data"][$resource["id"]]
 					);
 					
+					if (!is_array($sub_field["options"])) {
+						$sub_field["options"] = [];
+					}
+					
 					// Setup default directory
 					if (empty($sub_field["options"]["directory"])) {
 						$sub_field["options"]["directory"] = "files/pages/";

@@ -8,6 +8,7 @@
 	namespace BigTree\CloudStorage;
 	
 	use BigTree\cURL;
+	use stdClass;
 	
 	class Rackspace extends Provider {
 		
@@ -21,14 +22,14 @@
 		public $CDNEndpoint = "";
 		public $Endpoint = "";
 		public $Key;
-		public $Regions = array(
+		public $Regions = [
 			"ORD" => "Chicago, IL (USA)",
 			"DFW" => "Dallas/Ft. Worth, TX (USA)",
 			"HKG" => "Hong Kong",
 			"LON" => "London (UK)",
 			"IAD" => "Northern Virginia (USA)",
 			"SYD" => "Sydney (Australia)"
-		);
+		];
 		public $Region;
 		public $Username;
 		
@@ -59,7 +60,7 @@
 		}
 		
 		/*
-			Function: call
+			Function: callRackspace
 				cURL wrapper for Rackspace API.
 
 			Parameters:
@@ -68,51 +69,58 @@
 				curl_options - Additional cURL options.
 		*/
 		
-		function call($endpoint = "", $data = false, $method = "GET", $curl_options = array()) {
-			$curl_options = $curl_options + array(
-					CURLOPT_HTTPHEADER => array(
-						"Accept: application/json", "X-Auth-Token: ".$this->Token
-					)
-				);
+		function callRackspace(string $endpoint = "", ?array $data = null, string $method = "GET",
+							   array $curl_options = []): ?stdClass {
+			// Add authentication headers and ask for JSON in return
+			if (!is_array($curl_options[CURLOPT_HTTPHEADER])) {
+				$curl_options[CURLOPT_HTTPHEADER] = [];
+			}
+			
+			$curl_options[CURLOPT_HTTPHEADER][] = "Accept: application/json";
+			$curl_options[CURLOPT_HTTPHEADER][] = "X-Auth-Token: ".$this->Token;
+			
+			// If the method isn't get, set proper curl options
+			if ($method == "POST") {
+				$curl_options[CURLOPT_POST] = true;
+			} elseif ($method != "GET") {
+				$curl_options[CURLOPT_CUSTOMREQUEST] = $method;
+			}
 			
 			return json_decode(cURL::request($this->Endpoint.($endpoint ? "/$endpoint" : ""), $data, $curl_options));
 		}
 		
 		// Implements Provider::copyFile
-		function copyFile($source_container, $source_pointer, $destination_container, $destination_pointer, $public = false) {
-			global $bigtree;
-			
-			cURL::request($this->Endpoint."/$source_container/$source_pointer", false, array(
+		function copyFile(string $source_container, string $source_pointer, string $destination_container,
+						  string $destination_pointer, bool $public = false): ?string {
+			cURL::request($this->Endpoint."/$source_container/$source_pointer", false, [
 				CURLOPT_CUSTOMREQUEST => "COPY",
-				CURLOPT_HTTPHEADER => array(
+				CURLOPT_HTTPHEADER => [
 					"Destination: /$destination_container/$destination_pointer",
 					"X-Auth-Token: ".$this->Token
-				)
-			));
+				]
+			]);
 			
-			if ($bigtree["last_curl_response_code"] == "201") {
+			if (cURL::$ResponseCode == "201") {
 				return $this->getURL($destination_container, $destination_pointer);
 			}
 			
-			return false;
+			return null;
 		}
 		
 		// Implements Provider::createContainer
-		function createContainer($name, $public = false) {
-			global $bigtree;
+		function createContainer(string $name, bool $public = false): ?bool {
+			$this->callRackspace($name, "", "PUT", [CURLOPT_PUT => true]);
 			
-			$this->call($name, "", "PUT", array(CURLOPT_PUT => true));
-			
-			if ($bigtree["last_curl_response_code"] == 201) {
+			if (cURL::$ResponseCode == 201) {
 				// CDN Enable this container if it's public
 				if ($public) {
-					cURL::request($this->CDNEndpoint."/$name", false, array(
+					cURL::request($this->CDNEndpoint."/$name", false, [
 						CURLOPT_PUT => true,
-						CURLOPT_HTTPHEADER => array(
+						CURLOPT_HTTPHEADER => [
 							"X-Auth-Token: ".$this->Token,
 							"X-Cdn-Enabled: true"
-						)
-					));
+						]
+					]);
 				}
 				
 				return true;
@@ -122,48 +130,43 @@
 		}
 		
 		// Implements Provider::createFile
-		function createFile($contents, $container, $pointer, $public = false, $type = "text/plain") {
-			global $bigtree;
-			
-			cURL::request($this->Endpoint."/$container/$pointer", $contents, array(
+		function createFile(string $contents, string $container, string $pointer, bool $public = false,
+							string $type = "text/plain"): ?string {
+			cURL::request($this->Endpoint."/$container/$pointer", $contents, [
 				CURLOPT_CUSTOMREQUEST => "PUT",
-				CURLOPT_HTTPHEADER => array(
+				CURLOPT_HTTPHEADER => [
 					"Content-Length" => strlen($contents),
 					"X-Auth-Token: ".$this->Token
-				)
-			));
+				]
+			]);
 			
-			if ($bigtree["last_curl_response_code"] == "201") {
+			if (cURL::$ResponseCode == "201") {
 				return $this->getURL($container, $pointer);
 			}
 			
-			return false;
+			return null;
 		}
 		
 		// Implements Provider::deleteContainer
-		function deleteContainer($container) {
-			global $bigtree;
+		function deleteContainer(string $container): ?bool {
+			$this->callRackspace($container, "", "DELETE", [CURLOPT_CUSTOMREQUEST => "DELETE"]);
 			
-			$this->call($container, "", "DELETE", array(CURLOPT_CUSTOMREQUEST => "DELETE"));
-			
-			if ($bigtree["last_curl_response_code"] == 204) {
+			if (cURL::$ResponseCode == 204) {
 				return true;
-			} elseif ($bigtree["last_curl_response_code"] == 404) {
-				$this->Errors[] = array("message" => "Container was not found.");
-			} elseif ($bigtree["last_curl_response_code"] == 409) {
-				$this->Errors[] = array("message" => "Container could not be deleted because it is not empty.");
+			} elseif (cURL::$ResponseCode == 404) {
+				$this->Errors[] = ["message" => "Container was not found."];
+			} elseif (cURL::$ResponseCode == 409) {
+				$this->Errors[] = ["message" => "Container could not be deleted because it is not empty."];
 			}
 			
 			return false;
 		}
 		
 		// Implements Provider::deleteFile
-		function deleteFile($container, $pointer) {
-			global $bigtree;
+		function deleteFile(string $container, string $pointer): ?bool {
+			$this->callRackspace("$container/$pointer", "", "DELETE", [CURLOPT_CUSTOMREQUEST => "DELETE"]);
 			
-			$this->call("$container/$pointer", "", "DELETE", array(CURLOPT_CUSTOMREQUEST => "DELETE"));
-			
-			if ($bigtree["last_curl_response_code"] == 204) {
+			if (cURL::$ResponseCode == 204) {
 				return true;
 			}
 			
@@ -171,19 +174,20 @@
 		}
 		
 		// Implements Provider::getAuthenticatedFileURL
-		function getAuthenticatedFileURL($container, $pointer, $expires) {
+		function getAuthenticatedFileURL(string $container, string $pointer, int $expires): ?string {
 			$expires += time();
 			
 			// If we don't have a Temp URL key already set, we need to make one
 			if (!$this->TempURLKey) {
 				// See if we already have one
-				$response = cURL::request($this->Endpoint, false, array(
+				$response = cURL::request($this->Endpoint, false, [
 					CURLOPT_CUSTOMREQUEST => "HEAD",
 					CURLOPT_HEADER => true,
-					CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Token)
-				));
+					CURLOPT_HTTPHEADER => ["X-Auth-Token: ".$this->Token]
+				]);
 				
 				$headers = explode("\n", $response);
+				
 				foreach ($headers as $header) {
 					if (substr($header, 0, 28) == "X-Account-Meta-Temp-Url-Key:") {
 						$this->TempURLKey = trim(substr($header, 29));
@@ -194,13 +198,13 @@
 				if (!$this->TempURLKey) {
 					$this->TempURLKey = uniqid();
 					
-					cURL::request($this->Endpoint, false, array(
+					cURL::request($this->Endpoint, false, [
 						CURLOPT_CUSTOMREQUEST => "POST",
-						CURLOPT_HTTPHEADER => array(
+						CURLOPT_HTTPHEADER => [
 							"X-Auth-Token: ".$this->Token,
 							"X-Account-Meta-Temp-Url-Key: ".$this->TempURLKey
-						)
-					));
+						]
+					]);
 				}
 			}
 			
@@ -211,64 +215,69 @@
 		}
 		
 		// Implements Provider::getContainer
-		function getContainer($container, $simple = false) {
-			$flat = array();
-			
-			$response = $this->call($container);
+		function getContainer(string $container, bool $simple = false): ?array {
+			$flat = [];
+			$response = $this->callRackspace($container);
 			
 			if (is_array($response)) {
 				foreach ($response as $item) {
 					if ($simple) {
-						$flat[] = array(
+						$flat[] = [
 							"name" => (string) $item->name,
 							"path" => (string) $item->name,
 							"size" => (int) $item->bytes
-						);
+						];
 					} else {
-						$flat[(string) $item->name] = array(
+						$flat[(string) $item->name] = [
 							"name" => (string) $item->name,
 							"path" => (string) $item->name,
 							"updated_at" => date("Y-m-d H:i:s", strtotime($item->last_modified)),
 							"etag" => (string) $item->hash,
 							"size" => (int) $item->bytes
-						);
+						];
 					}
 				}
 			} else {
 				trigger_error('BigTree\CloudStorage\Rackspace::getContainer call failed.', E_USER_WARNING);
 				
-				return array();
+				return null;
 			}
 			
-			return $simple ? $flat : array("tree" => $this->getContainerTree($flat), "flat" => $flat);
+			return $simple ? $flat : ["tree" => $this->getContainerTree($flat), "flat" => $flat];
 		}
 		
 		// Implements Provider::getFile
-		function getFile($container, $pointer) {
-			return cURL::request($this->Endpoint."/$container/$pointer", false, array(
-				CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Token)
-			));
+		function getFile(string $container, string $pointer): ?string {
+			return cURL::request($this->Endpoint."/$container/$pointer", false, [
+				CURLOPT_HTTPHEADER => ["X-Auth-Token: ".$this->Token]
+			]);
 		}
 		
 		// Internal method for refreshing a Rackspace token
 		function getToken() {
-			$j = json_decode(cURL::request("https://identity.api.rackspacecloud.com/v2.0/tokens", json_encode(array(
-				"auth" => array(
-					"RAX-KSKEY:apiKeyCredentials" => array(
+			$data = [
+				"auth" => [
+					"RAX-KSKEY:apiKeyCredentials" => [
 						"username" => $this->Username,
 						"apiKey" => $this->Key
-					)
-				)
-			)), array(CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: application/json"))));
+					]
+				]
+			];
 			
-			if (isset($j->access->token)) {
-				$this->Token = $j->access->token->id;
-				$this->TokenExpiration = strtotime($j->access->token->expires);
-				$this->Endpoints = array();
-				$this->CDNEndpoints = array();
+			$response = cURL::request("https://identity.api.rackspacecloud.com/v2.0/tokens",
+									  json_encode($data),
+									  [CURLOPT_POST => true, CURLOPT_HTTPHEADER => ["Content-Type: application/json"]]);
+			
+			$response_object = json_decode($response);
+			
+			if (isset($response_object->access->token)) {
+				$this->Token = $response_object->access->token->id;
+				$this->TokenExpiration = strtotime($response_object->access->token->expires);
+				$this->Endpoints = [];
+				$this->CDNEndpoints = [];
 				
 				// Get API endpoints
-				foreach ($j->access->serviceCatalog as $service) {
+				foreach ($response_object->access->serviceCatalog as $service) {
 					if ($service->name == "cloudFiles") {
 						foreach ($service->endpoints as $endpoint) {
 							$this->Endpoints[$endpoint->region] = (string) $endpoint->publicURL;
@@ -287,19 +296,25 @@
 		}
 		
 		// Internal method for getting the live URL of an asset
-		function getURL($container, $pointer) {
+		function getURL(string $container, string $pointer): string {
 			if ($this->CDNContainerURLs[$container]) {
 				return $this->CDNContainerURLs[$container]."/$pointer";
 			} else {
 				// See if we can get the container's CDN URL
 				$cdn = false;
-				$response = cURL::request($this->CDNEndpoint."/$container", false, array(CURLOPT_CUSTOMREQUEST => "HEAD", CURLOPT_HEADER => true, CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$this->Settings["rackspace"]["token"])));
+				$response = cURL::request($this->CDNEndpoint."/$container", false, [
+					CURLOPT_CUSTOMREQUEST => "HEAD",
+					CURLOPT_HEADER => true,
+					CURLOPT_HTTPHEADER => ["X-Auth-Token: ".$this->Settings["rackspace"]["token"]]
+				]);
 				$lines = explode("\n", $response);
+				
 				foreach ($lines as $line) {
 					if (substr($line, 0, 10) == "X-Cdn-Uri:") {
 						$cdn = trim(substr($line, 10));
 					}
 				}
+				
 				if ($cdn) {
 					$this->CDNContainerURLs[$container] = $cdn;
 					
@@ -311,25 +326,23 @@
 		}
 		
 		// Implements Provider::listContainers
-		function listContainers() {
-			$containers = array();
+		function listContainers(): ?array {
+			$containers = [];
 			$response = $this->call();
 			
 			if (is_array($response)) {
 				foreach ($response as $item) {
-					$containers[] = array("name" => (string) $item->name);
+					$containers[] = ["name" => (string) $item->name];
 				}
 			} else {
-				return false;
+				return null;
 			}
 			
 			return $containers;
 		}
 		
 		// Implements Provider::uploadFile
-		function uploadFile($file, $container, $pointer = false, $public = false) {
-			global $bigtree;
-			
+		function uploadFile(string $file, string $container, ?string $pointer = null, bool $public = false): ?string {
 			// No target destination, just use root folder w/ file name
 			if (!$pointer) {
 				$path_info = pathinfo($file);
@@ -339,18 +352,18 @@
 			// Open the file pointer for curl to upload from
 			$file_pointer = fopen($file, "r");
 			
-			cURL::request($this->Endpoint."/$container/$pointer", false, array(
+			cURL::request($this->Endpoint."/$container/$pointer", false, [
 				CURLOPT_PUT => true,
 				CURLOPT_INFILE => $file_pointer,
-				CURLOPT_HTTPHEADER => array(
+				CURLOPT_HTTPHEADER => [
 					"Content-Length" => filesize($file),
 					"X-Auth-Token: ".$this->Token
-				)
-			));
+				]
+			]);
 			
 			fclose($file_pointer);
 			
-			if ($bigtree["last_curl_response_code"] == "201") {
+			if (cURL::$ResponseCode == "201") {
 				return $this->getURL($container, $pointer);
 			}
 			

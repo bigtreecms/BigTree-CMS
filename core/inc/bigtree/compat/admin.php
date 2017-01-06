@@ -1335,8 +1335,13 @@
 
 		function getAccessGroups($module) {
 			$module = new BigTree\Module($module);
+			$groups = BigTree\Auth::user()->getAccessibleModuleGroups($module);
 
-			return BigTree\Auth::user()->getAccessibleModuleGroups($module);
+			if (is_null($groups)) {
+				return true;
+			} else {
+				return $groups;
+			}
 		}
 
 		/*

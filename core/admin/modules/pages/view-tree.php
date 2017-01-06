@@ -11,7 +11,7 @@
 	
 	// Handy function to show the trees without repeating so much code.
 	$draw_page_tree = function($nav, $title, $class, $draggable = false) {
-		global $proot, $ga_on, $bigtree, $page;
+		global $ga_on, $bigtree, $page;
 ?>
 <div class="table">
 	<div class="table_summary">
@@ -73,7 +73,7 @@
 				<span class="icon_sort"></span>
 				<?php } ?>
 				<?php if ($class != "archived" && is_numeric($item["id"])) { ?>
-				<a href="<?=$proot?>view-tree/<?=$item["id"]?>/"><?=$item["title"]?></a>
+				<a href="<?=ADMIN_ROOT?>pages/view-tree/<?=$item["id"]?>/"><?=$item["title"]?></a>
 				<?php } else { ?>
 				<?=$item["title"]?>				
 				<?php } ?>
@@ -83,14 +83,14 @@
 			?>
 			<section class="pages_restore">
 				<?php if ($access_level == "p" && $page_data->UserCanModifyChildren) { ?>
-				<a href="<?=$proot?>restore/<?=$item["id"]?>/" title="<?=Text::translate("Restore Page")?>" class="icon_restore"></a>
+				<a href="<?=ADMIN_ROOT?>pages/restore/<?=$item["id"]?>/" title="<?=Text::translate("Restore Page")?>" class="icon_restore"></a>
 				<?php } else { ?>
 				<span class="icon_restore disabled_icon"></span>
 				<?php } ?>
 			</section>
 			<section class="pages_delete">
 				<?php if ($access_level == "p" && $page_data->UserCanModifyChildren) { ?>
-				<a href="<?=$proot?>delete/<?=$item["id"]?>/" title="<?=Text::translate("Delete Page")?>" class="icon_delete"></a>
+				<a href="<?=ADMIN_ROOT?>pages/delete/<?=$item["id"]?>/" title="<?=Text::translate("Delete Page")?>" class="icon_delete"></a>
 				<?php } else { ?>
 				<span class="icon_delete disabled_icon"></span>
 				<?php } ?>
@@ -116,9 +116,9 @@
 			</section>
 			<section class="pages_archive">
 				<?php if (!isset($item["bigtree_pending"]) && $access_level == "p" && ($page->ID !== 0 || Auth::user()->Level > 1 || $class == "hidden") && $page_data->UserCanModifyChildren) { ?>
-				<a href="<?=$proot?>archive/<?=$item["id"]?>/" title="<?=Text::translate("Archive Page")?>" class="icon_archive"></a>
+				<a href="<?=ADMIN_ROOT?>pages/archive/<?=$item["id"]?>/" title="<?=Text::translate("Archive Page")?>" class="icon_archive"></a>
 				<?php } elseif ($item["bigtree_pending"] && $access_level == "p") { ?>
-				<a href="<?=$proot?>delete/<?=$item["id"]?>/" title="<?=Text::translate("Delete Pending Page")?>" class="icon_delete"></a>
+				<a href="<?=ADMIN_ROOT?>pages/delete/<?=$item["id"]?>/" title="<?=Text::translate("Delete Pending Page")?>" class="icon_delete"></a>
 				<?php } elseif ($item["bigtree_pending"]) { ?>
 				<span class="icon_delete disabled_icon"></span>
 				<?php } else { ?>
@@ -127,7 +127,7 @@
 			</section>
 			<section class="pages_edit">
 				<?php if ($access_level) { ?>
-				<a href="<?=$proot?>edit/<?=$item["id"]?>/" title="<?=Text::translate("Edit Page")?>" class="icon_edit page"></a>
+				<a href="<?=ADMIN_ROOT?>pages/edit/<?=$item["id"]?>/" title="<?=Text::translate("Edit Page")?>" class="icon_edit page"></a>
 				<?php } else { ?>
 				<span class="icon_edit disabled_icon"></span>
 				<?php } ?>

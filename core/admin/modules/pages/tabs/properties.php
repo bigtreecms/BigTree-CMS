@@ -40,7 +40,7 @@
 			"in_nav" => ($parent_to_check > 0 || Auth::user()->Level > 1) ? "on" : "",
 			"external" => "",
 			"new_window" => "",
-			"template" => isset($basic_templates[0]) ? $basic_templates[0]["id"] : $routed_templates[0]["id"],
+			"template" => isset($basic_templates[0]) ? $basic_templates[0]->ID : $routed_templates[0]->ID,
 			"resources" => array(),
 			"tags" => false,
 			"route" => "",
@@ -132,13 +132,13 @@
 		<label for="template_select"><?=Text::translate("Template")?></label>
 		<select id="template_select" name="template"<?php if ($bigtree["current_page"]["template"] == "!" || $bigtree["current_page"]["external"]) { ?> disabled="disabled"<?php } ?>>
 			<optgroup label="<?=Text::translate("Flexible Templates", true)?>">
-				<?php foreach ($basic_templates as $t) { ?>
-				<option value="<?=$t["id"]?>"<?php if ($t["id"] == $bigtree["current_page"]["template"]) { ?> selected="selected"<?php } ?>><?=$t["name"]?></option>
+				<?php foreach ($basic_templates as $template) { ?>
+				<option value="<?=$template->ID?>"<?php if ($template->ID == $bigtree["current_page"]["template"]) { ?> selected="selected"<?php } ?>><?=$template->Name?></option>
 				<?php } ?>
 			</optgroup>
 			<optgroup label="<?=Text::translate("Special Templates", true)?>">
-				<?php foreach ($routed_templates as $t) { ?>
-				<option value="<?=$t["id"]?>"<?php if ($t["id"] == $bigtree["current_page"]["template"]) { ?> selected="selected"<?php } ?>><?=$t["name"]?></option>
+				<?php foreach ($routed_templates as $template) { ?>
+				<option value="<?=$template->ID?>"<?php if ($template->ID == $bigtree["current_page"]["template"]) { ?> selected="selected"<?php } ?>><?=$template->Name?></option>
 				<?php } ?>
 			</optgroup>
 		</select>

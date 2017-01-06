@@ -35,7 +35,7 @@
 	// Make sure trunk is only available to developers
 	$trunk = Auth::user()->Level < 2 ? "" : $_POST["trunk"];
 	
-	if ($access_level == "p" && $_POST["ptype"] == "Create & Publish") {
+	if ($access_level == "p" && $_POST["form_action"] == "Create & Publish") {
 		// Let's make it happen.
 		$page = Page::create($trunk, $_POST["parent"], $_POST["in_nav"], $_POST["nav_title"], $_POST["title"],
 							 $_POST["route"], $_POST["meta_description"], $_POST["seo_invisible"], $_POST["template"],

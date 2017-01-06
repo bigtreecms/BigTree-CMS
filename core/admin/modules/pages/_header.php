@@ -5,14 +5,33 @@
 	 * @global array $bigtree
 	 */
 	
-	$proot = ADMIN_ROOT."pages/";
-	$id = preg_replace("/[^a-z0-9.]+/i", "", isset($_POST["page"]) ? $_POST["page"] : end($bigtree["commands"]));
+	if (isset($_POST["page"])) {
+		$id = $_POST["page"];
+	} elseif (isset($bigtree["commands"][0])) {
+		$id = $bigtree["commands"][0];
+	} else {
+		Router::redirect(ADMIN_ROOT."pages/view-tree/0/");
+	}
+	
+	$id = preg_replace("/[^a-z0-9.]+/i", "", $id);
 	$action = $bigtree["module_path"][0];
 	
 	// Get the end command as the current working page
 	$page = Page::getPageDraft($id);
 	$bigtree["current_page"] = $page->Array;
 	$bigtree["access_level"] = Auth::user()->getAccessLevel($page);
+	
+	// If we can't find the parent or the current page, stop.
+	if (!$page) {
+		$bigtree["breadcrumb"] = array(
+			array("link" => "pages/", "title" => "Pages"),
+			array("link" => "pages/view-tree/0", "title" => "Error")
+		);
+		$pages_nav["children"]["view-tree"]["icon"] = "page";
+		$pages_nav["children"]["view-tree"]["title_override"] = "Error";
+		
+		Auth::stop("The page you are trying to access no longer exists.", Router::getIncludePath("admin/layouts/_error.php"));
+	}
 	
 	// Stop the user if they don't have access to this page.
 	if (!$bigtree["access_level"] && $id && $action != "view-tree") {
@@ -58,19 +77,6 @@
 	if (!$bigtree["access_level"]) {
 		unset($pages_nav["children"]["add"]);
 		unset($pages_nav["children"]["edit"]);
-	}
-	
-	
-	// If we can't find the parent or the current page, stop.
-	if (!$page) {
-		$bigtree["breadcrumb"] = array(
-			array("link" => "pages/", "title" => "Pages"),
-			array("link" => "pages/view-tree/0", "title" => "Error")
-		);
-		$pages_nav["children"]["view-tree"]["icon"] = "page";
-		$pages_nav["children"]["view-tree"]["title_override"] = "Error";
-		
-		Auth::stop("The page you are trying to access no longer exists.", Router::getIncludePath("admin/layouts/_error.php"));
 	}
 	
 	// Stop them from getting butchered later.

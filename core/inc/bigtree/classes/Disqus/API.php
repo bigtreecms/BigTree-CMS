@@ -3,14 +3,14 @@
 		Class: BigTree\Disqus\API
 			The main Disqus API class used to retrieve lower level Disqus objects.
 	*/
-
+	
 	namespace BigTree\Disqus;
 	
 	use BigTree\OAuth;
 	use stdClass;
-
+	
 	class API extends OAuth {
-
+		
 		public $AuthorizeURL = "https://disqus.com/api/oauth/2.0/authorize/";
 		public $EndpointURL = "https://disqus.com/api/3.0/";
 		public $OAuthVersion = "1.0";
@@ -25,47 +25,50 @@
 			Parameters:
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
-
-		function __construct($cache = true) {
-			parent::__construct("bigtree-internal-disqus-api","Disqus API","org.bigtreecms.api.disqus",$cache);
-
+		
+		function __construct(bool $cache = true) {
+			parent::__construct("bigtree-internal-disqus-api", "Disqus API", "org.bigtreecms.api.disqus", $cache);
+			
 			// Set OAuth Return URL
 			$this->ReturnURL = ADMIN_ROOT."developer/services/disqus/return/";
-
+			
 			// Just send the request with the secret.
-			$this->RequestParameters = array();
+			$this->RequestParameters = [];
 			$this->RequestParameters["access_token"] = &$this->Settings["token"];
 			$this->RequestParameters["api_key"] = &$this->Settings["key"];
 			$this->RequestParameters["api_secret"] = &$this->Settings["secret"];
 		}
-
+		
 		/*
 			Function: callUncached
 				Wrapper for better Disqus error handling.
 		*/
-
-		function callUncached($endpoint = "",$params = array(),$method = "GET",$headers = array()) {
-			$response = parent::callUncached($endpoint,$params,$method,$headers);
-
+		
+		function callUncached(string $endpoint = "", array $params = [], string $method = "GET", array $headers = []): stdClass {
+			$response = parent::callUncached($endpoint, $params, $method, $headers);
+			
 			if ($response->code != 0) {
 				$this->Errors[] = $response->response;
-				return false;
+				
+				return null;
 			}
-
+			
 			if (isset($response->cursor)) {
-				$r = new stdClass;
 				$cursor = new stdClass;
 				$response->cursor->next ? $cursor->Next = $response->cursor->next : false;
 				$response->cursor->prev ? $cursor->Previous = $response->cursor->prev : false;
 				$response->cursor->total ? $cursor->Total = $response->cursor->total : false;
-				$r->Cursor = $cursor;
-				$r->Results = $response->response;
-				return $r;
+				
+				$response_object = new stdClass;
+				$response_object->Cursor = $cursor;
+				$response_object->Results = $response->response;
+				
+				return $response_object;
 			}
-
+			
 			return $response->response;
 		}
-
+		
 		/*
 			Function: changeUsername
 				Changes the username of the authenticated user.
@@ -76,17 +79,17 @@
 			Returns:
 				true if successful
 		*/
-
-		function changeUsername($username) {
-			$response = $this->call("users/checkUsername.json",array("username" => $username),"POST");
-
+		
+		function changeUsername(string $username): bool {
+			$response = $this->call("users/checkUsername.json", ["username" => $username], "POST");
+			
 			if ($response) {
 				return true;
 			}
-
+			
 			return false;
 		}
-
+		
 		/*
 			Function: createForum
 				Creates a new forum.
@@ -98,17 +101,19 @@
 
 			Returns:
 				A BigTree\Disqus\Forum object.
-				Returns false if the shortname is already taken.
+				Returns null if the shortname is already taken.
 		*/
-
-		function createForum($shortname,$name,$url) {
-			$response = $this->call("forums/create.json",array("website" => $url,"name" => $name,"short_name" => $shortname),"POST");
+		
+		function createForum(string $shortname, string $name, string $url): ?Forum {
+			$response = $this->call("forums/create.json", ["website" => $url, "name" => $name, "short_name" => $shortname], "POST");
+			
 			if ($response !== false) {
-				return new Forum($response,$this);
+				return new Forum($response, $this);
 			}
-			return false;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: getCategory
 				Returns a BigTree\Disqus\Category object for the given category id.
@@ -119,16 +124,19 @@
 			Returns:
 				A BigTree\Disqus\Category object if successful.
 		*/
-
-		function getCategory($id) {
-			$response = $this->call("categories/details.json",array("category" => $id));
-			if ($response !== false) {
+		
+		function getCategory(string $id): ?Category {
+			$response = $this->call("categories/details.json", ["category" => $id]);
+			
+			if (!empty($response)) {
 				$this->cachePush("category".$response->id);
-				return new Category($response,$this);
+				
+				return new Category($response, $this);
 			}
-			return false;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: getForum
 				Returns a BigTree\Disqus\Forum object for the given forum shortname.
@@ -139,16 +147,19 @@
 			Returns:
 				A BigTree\Disqus\Forum object if successful.
 		*/
-
-		function getForum($shortname) {
-			$response = $this->call("forums/details.json",array("forum" => $shortname));
-			if ($response !== false) {
+		
+		function getForum(string $shortname): ?Forum {
+			$response = $this->call("forums/details.json", ["forum" => $shortname]);
+			
+			if (!empty($response)) {
 				$this->cachePush("forum".$response->id);
-				return new Forum($response,$this);
+				
+				return new Forum($response, $this);
 			}
-			return false;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: getPost
 				Returns a BigTree\Disqus\Post object for the given post ID.
@@ -159,16 +170,19 @@
 			Returns:
 				A BigTree\Disqus\Post object if successful.
 		*/
-
-		function getPost($id) {
-			$response = $this->call("posts/details.json",array("post" => $id));
-			if ($response !== false) {
+		
+		function getPost(string $id): ?Post {
+			$response = $this->call("posts/details.json", ["post" => $id]);
+			
+			if (!empty($response)) {
 				$this->cachePush("post".$response->id);
-				return new Post($response,$this);
+				
+				return new Post($response, $this);
 			}
-			return false;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: getThread
 				Returns a BigTree\Disqus\Thread object for the given thread ID.
@@ -180,11 +194,12 @@
 			Returns:
 				A BigTree\Disqus\Thread object if successful.
 		*/
-
-		function getThread($thread,$forum = false) {
-			$params = array();
+		
+		function getThread(string $thread, ?string $forum = null): Thread {
+			$params = [];
+			
 			if (!is_numeric($thread)) {
-				if (substr($thread,0,7) == "http://" || substr($thread,0,8) == "https://") {
+				if (substr($thread, 0, 7) == "http://" || substr($thread, 0, 8) == "https://") {
 					$params["thread:link"] = $thread;
 					$params["forum"] = $forum;
 				} else {
@@ -193,14 +208,18 @@
 			} else {
 				$params["thread"] = $thread;
 			}
-			$response = $this->call("threads/details.json",$params);
-			if ($response !== false) {
+			
+			$response = $this->call("threads/details.json", $params);
+			
+			if (!empty($response)) {
 				$this->cachePush("thread".$response->id);
-				return new Thread($response,$this);
+				
+				return new Thread($response, $this);
 			}
-			return false;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: getUser
 				Returns a BigTree\Disqus\User object for the given user.
@@ -212,21 +231,26 @@
 			Returns:
 				A BigTree\Disqus\User object if successful.
 		*/
-
-		function getUser($user = false) {
-			$params = array();
+		
+		function getUser(?string $user = null): ?User {
+			$params = [];
+		
 			if (is_numeric($user)) {
 				$params["user"] = $user;
 			} elseif ($user) {
 				$params["user:username"] = $user;
 			}
-			$response = $this->call("users/details.json",$params);
-			if ($response !== false) {
+			
+			$response = $this->call("users/details.json", $params);
+			
+			if (!empty($response)) {
 				$this->cachePush("user".$response->id);
-				return new User($response,$this);
+				
+				return new User($response, $this);
 			}
-			return false;
+			
+			return null;
 		}
-
+		
 	}
-
+	
