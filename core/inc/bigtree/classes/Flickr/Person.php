@@ -3,14 +3,16 @@
 		Class: BigTree\Flickr\Person
 			A Flickr object that contains information about and methods you can perform on a person.
 	*/
-
+	
 	namespace BigTree\Flickr;
-
+	
+	use stdClass;
+	
 	class Person {
-
+		
 		/** @var \BigTree\Flickr\API */
 		protected $API;
-
+		
 		public $Description;
 		public $ID;
 		public $Image;
@@ -23,19 +25,19 @@
 		public $ProAccount;
 		public $ProfileURL;
 		public $Username;
-
-		function __construct($person, API &$api) {
+		
+		function __construct(stdClass $person, API &$api) {
 			// Sometimes the owner is just an ID, so we'll need to fetch data
 			if (is_string($person)) {
-				$r = $api->call("flickr.people.getInfo", array("user_id" => $person));
-
+				$r = $api->call("flickr.people.getInfo", ["user_id" => $person]);
+				
 				if (!isset($r->person)) {
 					return;
 				}
-
+				
 				$person = $r->person;
 			}
-
+			
 			$this->API = $api;
 			isset($person->description->_content) ? $this->Description = $person->description->_content : false;
 			$this->ID = isset($person->nsid) ? $person->nsid : $person->id;
@@ -50,30 +52,30 @@
 			isset($person->profileurl->_content) ? $this->ProfileURL = $person->profileurl->_content : false;
 			isset($person->username) ? $this->Username = isset($person->username->_content) ? $person->username->_content : $person->username : false;
 		}
-
+		
 		/*
 			Function: getGroups
 				Returns the groups this person is a member of.
 
 			Returns:
-				An array of BigTree\Flickr\Group objects or false if the call fails.
+				An array of BigTree\Flickr\Group objects or null if the call fails.
 		*/
-
-		function getGroups() {
-			$response = $this->API->call("flickr.people.getGroups", array("user_id" => $this->ID));
-
+		
+		function getGroups(): ?array {
+			$response = $this->API->call("flickr.people.getGroups", ["user_id" => $this->ID]);
+			$groups = [];
+			
 			if (!isset($response->groups)) {
-				return false;
+				return null;
 			}
-
-			$groups = array();
+			
 			foreach ($response->groups->group as $group) {
 				$groups[] = new Group($group, $this->API);
 			}
-
+			
 			return $groups;
 		}
-
+		
 		/*
 			Function: getPhotos
 				Returns the photos this person has uploaded.
@@ -85,11 +87,11 @@
 			Returns:
 				A ResultSet of Photo objects or false if the call fails.
 		*/
-
-		function getPhotos($per_page = 100, $params = array()) {
+		
+		function getPhotos(int $per_page = 100, array $params = []): ?ResultSet {
 			return $this->API->getPhotosForPerson($this->ID, $per_page, $params);
 		}
-
+		
 		/*
 			Function: getPhotosOf
 				Returns photos of this person.
@@ -101,9 +103,9 @@
 			Returns:
 				A ResultSet of Photo objects or false if the call fails.
 		*/
-
-		function getPhotosOf($per_page = 100, $params = array()) {
+		
+		function getPhotosOf(int $per_page = 100, array $params = []): ?ResultSet {
 			return $this->API->getPhotosOfPerson($this->ID, $per_page, $params);
 		}
-
+		
 	}

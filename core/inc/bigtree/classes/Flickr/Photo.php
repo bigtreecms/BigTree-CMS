@@ -3,16 +3,16 @@
 		Class: BigTree\Flickr\Photo
 			A Flickr object that contains information about and methods you can perform on a photo.
 	*/
-
+	
 	namespace BigTree\Flickr;
-
+	
 	use stdClass;
-
+	
 	class Photo {
-
+		
 		/** @var \BigTree\Flickr\API */
 		protected $API;
-
+		
 		public $CanComment;
 		public $CanAddMeta;
 		public $CommentCount;
@@ -38,7 +38,7 @@
 		public $Rotation;
 		public $SafetyLevel;
 		public $Secret;
-		public $Tags = array();
+		public $Tags = [];
 		public $Title;
 		public $Type;
 		public $URLs;
@@ -46,16 +46,19 @@
 		public $VisibleToFamily;
 		public $VisibleToFriends;
 		public $VisibleToPublic;
-
-		function __construct($photo, API &$api) {
+		
+		function __construct(stdClass $photo, API &$api) {
 			$image_base = "http://farm".$photo->farm.".staticflickr.com/".$photo->server."/".$photo->id."_".$photo->secret;
-
+			
 			$this->API = $api;
+			
 			if (isset($photo->editability)) {
 				$this->CanComment = $photo->editability->cancomment;
 				$this->CanAddMeta = $photo->editability->canaddmeta;
 			}
+			
 			isset($photo->comments->_content) ? $this->CommentCount = $photo->comments->_content : false;
+			
 			if (isset($photo->dates) || isset($photo->dateupload)) {
 				$this->Dates = new stdClass;
 				$this->Dates->Posted = date("Y-m-d H:i:s", isset($photo->dates->posted) ? $photo->dates->posted : $photo->dateupload);
@@ -63,6 +66,7 @@
 				isset($photo->datetaken) ? $this->Dates->Taken = $photo->datetaken : false;
 				isset($photo->dates->lastupdate) ? $this->Dates->Updated = date("Y-m-d H:i:s", $photo->dates->lastupdate) : false;
 			}
+			
 			isset($photo->description->_content) ? $this->Description = $photo->description->_content : false;
 			isset($photo->isfavorite) ? $this->Favorited = $photo->isfavorite : false;
 			$this->ID = $photo->id;
@@ -76,43 +80,51 @@
 			$this->ImageSquare75 = $image_base."_s.jpg";
 			$this->ImageSquare150 = $image_base."_q.jpg";
 			isset($photo->license) ? $this->License = $photo->license : false;
+			
 			if (isset($photo->latitude)) {
 				$this->Location = new stdClass;
 				$this->Location->Accuracy = $photo->accuracy;
 				$this->Location->Latitude = $photo->latitude;
 				$this->Location->Longitude = $photo->longitude;
 			}
+			
 			isset($photo->notes->note) ? $this->Notes = $photo->notes->note : false;
 			isset($photo->originalsecret) ? $this->OriginalImage = "http://farm".$photo->farm.".staticflickr.com/".$photo->server."/".$photo->id."_".$photo->originalsecret."_o.".$photo->originalformat : false;
 			isset($photo->rotation) ? $this->Rotation = $photo->rotation : false;
 			isset($photo->safety_level) ? $this->SafetyLevel = $photo->safety_level : false;
 			isset($photo->secret) ? $this->Secret = $photo->secret : false;
+			
 			if (isset($photo->tags->tag)) {
 				foreach ($photo->tags->tag as $tag) {
 					$this->Tags[] = new Tag($tag, $api);
 				}
 			} elseif (isset($photo->tags)) {
-				$this->Tags = array();
+				$this->Tags = [];
 				$tags = explode(" ", $photo->tags);
+				
 				foreach ($tags as $t) {
 					$this->Tags[] = new Tag($t, $api);
 				}
 			}
+			
 			$this->Title = isset($photo->title->_content) ? $photo->title->_content : $photo->title;
 			isset($photo->media) ? $this->Type = $photo->media : false;
+			
 			if (isset($photo->urls->url)) {
 				$this->URLs = new stdClass;
+			
 				foreach ($photo->urls->url as $u) {
 					$k = ucwords($u->type);
 					$this->URLs->$k = $u->_content;
 				}
 			}
+			
 			isset($photo->owner) ? $this->User = new Person($photo->owner, $api) : false;
 			$this->VisibleToFamily = isset($photo->visibility->isfamily) ? $photo->visibility->isfamily : $photo->isfamily;
 			$this->VisibleToFriends = isset($photo->visibility->isfriend) ? $photo->visibility->isfriend : $photo->isfriend;
 			$this->VisibleToPublic = isset($photo->visibility->ispublic) ? $photo->visibility->ispublic : $photo->ispublic;
 		}
-
+		
 		/*
 			Function: addTags
 				Adds tags to this photo.
@@ -123,41 +135,41 @@
 			Returns:
 				true if successful
 		*/
-
-		function addTags($tags) {
+		
+		function addTags($tags): bool {
 			return $this->API->addTagsToPhoto($this->ID, $tags);
 		}
-
+		
 		/*
 			Function: getContext
 				Gets information about the next and previous photos in the photo stream.
 		*/
-
-		function getContext() {
-			$response = $this->API->call("flickr.photos.getContext", array("photo_id" => $this->ID));
-
+		
+		function getContext(): void {
+			$response = $this->API->call("flickr.photos.getContext", ["photo_id" => $this->ID]);
+			
 			if (isset($response->nextphoto)) {
 				$this->NextPhoto = new Photo($response->nextphoto, $this->API);
 			}
-
+			
 			if (isset($response->prevphoto)) {
 				$this->PreviousPhoto = new Photo($response->prevphoto, $this->API);
 			}
 		}
-
+		
 		/*
 			Function: getExif
 				Gets EXIF/TIFF/GPS information about this photo.
 		*/
-
-		function getExif() {
-			$response = $this->API->call("flickr.photos.getExif", array("photo_id" => $this->ID, "secret" => $this->Secret));
-
+		
+		function getExif(): ?array {
+			$response = $this->API->call("flickr.photos.getExif", ["photo_id" => $this->ID, "secret" => $this->Secret]);
+			$tags = [];
+			
 			if (!isset($response->photo)) {
-				return false;
+				return null;
 			}
-
-			$tags = array();
+			
 			foreach ($response->photo->exif as $item) {
 				$tag = new stdClass;
 				$tag->Label = $item->label;
@@ -168,10 +180,10 @@
 				$tag->Value = isset($item->clean) ? $item->clean->_content : $item->raw->_content;
 				$tags[] = $tag;
 			}
-
+			
 			return $tags;
 		}
-
+		
 		/*
 			Function: getFavorites
 				Returns the users who have favorited this photo.
@@ -183,24 +195,25 @@
 			Returns:
 				A ResultSet of BigTree\Flickr\Person objects.
 		*/
-
-		function getFavorites($per_page = 50, $params = array()) {
+		
+		function getFavorites(int $per_page = 50, array $params = []): ?ResultSet {
 			$params["photo_id"] = $this->ID;
 			$params["per_page"] = $per_page;
 			$response = $this->API->call("flickr.photos.getFavorites", $params);
-
+			$people = [];
+			
 			if (!$response->photo) {
-				return false;
+				return null;
 			}
-
-			$people = array();
+			
 			foreach ($response->photo->person as $person) {
 				$people[] = new Person($person, $this->API);
 			}
-
-			return new ResultSet($this->API, "getFavorites", array($per_page, $params), $people, $response->photo->page, $response->photo->pages);
+			
+			return new ResultSet($this->API, "getFavorites", [$per_page, $params], $people,
+								 $response->photo->page, $response->photo->pages);
 		}
-
+		
 		/*
 			Function: getInfo
 				Returns additional information on this photo.
@@ -209,17 +222,17 @@
 			Returns:
 				A new Photo object or false if the call fails.
 		*/
-
-		function getInfo() {
-			$response = $this->API->call("flickr.photos.getInfo", array("photo_id" => $this->ID, "secret" => $this->Secret));
-
+		
+		function getInfo(): ?Photo {
+			$response = $this->API->call("flickr.photos.getInfo", ["photo_id" => $this->ID, "secret" => $this->Secret]);
+			
 			if (!isset($response->photo)) {
-				return false;
+				return null;
 			}
-
+			
 			return new Photo($response->photo, $this->API);
 		}
-
+		
 		/*
 			Function: delete
 				Deletes this photo.
@@ -227,41 +240,41 @@
 			Returns:
 				true if successful
 		*/
-
-		function delete() {
+		
+		function delete(): bool {
 			return $this->API->deletePhoto($this->ID);
 		}
-
+		
 		/*
 			Function: next
 				Returns the next photo in the photo stream.
 		*/
-
-		function next() {
+		
+		function next(): Photo {
 			if ($this->NextPhoto) {
 				return $this->NextPhoto;
 			}
-
+			
 			$this->getContext();
-
+			
 			return $this->NextPhoto;
 		}
-
+		
 		/*
 			Function: previous
 				Returns the previous photo in the photo stream.
 		*/
-
-		function previous() {
+		
+		function previous(): Photo {
 			if ($this->PreviousPhoto) {
 				return $this->PreviousPhoto;
 			}
-
+			
 			$this->getContext();
-
+			
 			return $this->PreviousPhoto;
 		}
-
+		
 		/*
 			Function: setContentType
 				Sets the content type of the image.
@@ -272,17 +285,17 @@
 			Returns:
 				true if successful
 		*/
-
-		function setContentType($type) {
-			$response = $this->API->call("flickr.photos.setContentType", array("photo_id" => $this->ID, "content_type" => $type), "POST");
-
+		
+		function setContentType(int $type): bool {
+			$response = $this->API->call("flickr.photos.setContentType", ["photo_id" => $this->ID, "content_type" => $type], "POST");
+			
 			if ($response !== false) {
 				return true;
 			}
-
+			
 			return false;
 		}
-
+		
 		/*
 			Function: setDateTaken
 				Sets the date taken of the image.
@@ -293,18 +306,18 @@
 			Returns:
 				true if successful
 		*/
-
-		function setDateTaken($date) {
+		
+		function setDateTaken(string $date): bool {
 			$date = date("Y-m-d H:i:s", strtotime($date));
-			$response = $this->API->call("flickr.photos.setDates", array("photo_id" => $this->ID, "date_taken" => $date), "POST");
-
+			$response = $this->API->call("flickr.photos.setDates", ["photo_id" => $this->ID, "date_taken" => $date], "POST");
+			
 			if ($response !== false) {
 				return true;
 			}
-
+			
 			return false;
 		}
-
+		
 		/*
 			Function: setPermissions
 				Sets the permissions of the image.
@@ -319,17 +332,25 @@
 			Returns:
 				true if successful
 		*/
-
-		function setPermissions($public = true, $friends = true, $family = true, $comments = 3, $metadata = 0) {
-			$response = $this->API->call("flickr.photos.setPerms", array("photo_id" => $this->ID, "is_public" => $public, "is_friend" => $friends, "is_family" => $family, "perm_comment" => $comments, "perm_addmeta" => $metadata), "POST");
-
+		
+		function setPermissions(bool $public = true, bool $friends = true, bool $family = true, int $comments = 3,
+								int $metadata = 0): bool {
+			$response = $this->API->call("flickr.photos.setPerms", [
+				"photo_id" => $this->ID,
+				"is_public" => $public,
+				"is_friend" => $friends,
+				"is_family" => $family,
+				"perm_comment" => $comments,
+				"perm_addmeta" => $metadata
+			], "POST");
+			
 			if ($response !== false) {
 				return true;
 			}
-
+			
 			return false;
 		}
-
+		
 		/*
 			Function: setSafetyLevel
 				Sets the safety level of the image.
@@ -340,17 +361,17 @@
 			Returns:
 				true if successful
 		*/
-
-		function setSafetyLevel($level) {
-			$response = $this->API->call("flickr.photos.setSafetyLevel", array("photo_id" => $this->ID, "safety_level" => $level), "POST");
-
+		
+		function setSafetyLevel(int $level): bool {
+			$response = $this->API->call("flickr.photos.setSafetyLevel", ["photo_id" => $this->ID, "safety_level" => $level], "POST");
+			
 			if ($response !== false) {
 				return true;
 			}
-
+			
 			return false;
 		}
-
+		
 		/*
 			Function: setTags
 				Sets the tags of the image.
@@ -361,20 +382,21 @@
 			Returns:
 				true if successful
 		*/
-
-		function setTags($tags) {
+		
+		function setTags($tags): bool {
 			if (is_array($tags)) {
 				$tags = implode(",", $tags);
 			}
-			$response = $this->API->call("flickr.photos.setTags", array("photo_id" => $this->ID, "tags" => $tags), "POST");
-
+			
+			$response = $this->API->call("flickr.photos.setTags", ["photo_id" => $this->ID, "tags" => $tags], "POST");
+			
 			if ($response !== false) {
 				return true;
 			}
-
+			
 			return false;
 		}
-
+		
 		/*
 			Function: setTitleAndDescription
 				Sets the title and description of the image.
@@ -386,15 +408,19 @@
 			Returns:
 				true if successful
 		*/
-
-		function setTitleAndDescription($title, $description) {
-			$response = $this->API->call("flickr.photos.setMeta", array("photo_id" => $this->ID, "title" => $title, "description" => $description), "POST");
-
+		
+		function setTitleAndDescription(string $title, string $description): bool {
+			$response = $this->API->call("flickr.photos.setMeta", [
+				"photo_id" => $this->ID,
+				"title" => $title,
+				"description" => $description
+			], "POST");
+			
 			if ($response !== false) {
 				return true;
 			}
-
+			
 			return false;
 		}
-
+		
 	}

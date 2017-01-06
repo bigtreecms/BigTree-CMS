@@ -5,7 +5,7 @@
 	*/
 
 	namespace BigTree\Flickr;
-
+	
 	class Tag {
 
 		/** @var \BigTree\Flickr\API */
@@ -38,7 +38,7 @@
 				true on success
 		*/
 
-		function remove() {
+		function remove(): bool {
 			return $this->API->removeTagFromPhoto($this->ID);
 		}
 

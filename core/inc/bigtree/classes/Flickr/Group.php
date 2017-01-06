@@ -3,14 +3,16 @@
 		Class: BigTree\Flickr\Group
 			A Flickr object that contains information about and methods you can perform on a group.
 	*/
-
+	
 	namespace BigTree\Flickr;
-
+	
+	use stdClass;
+	
 	class Group {
-
+		
 		/** @var \BigTree\Flickr\API */
 		protected $API;
-
+		
 		public $Description;
 		public $ID;
 		public $Image;
@@ -19,8 +21,8 @@
 		public $PhotoCount;
 		public $Rules;
 		public $TopicCount;
-
-		function __construct($group, API &$api) {
+		
+		function __construct(stdClass $group, API &$api) {
 			$this->API = $api;
 			isset($group->description->_content) ? $this->Description = $group->description->_content : false;
 			$this->ID = isset($group->nsid) ? $group->nsid : $group->id;
@@ -31,6 +33,6 @@
 			isset($group->rules->_content) ? $this->Rules = $group->rules->_content : false;
 			isset($group->topic_count->_content) ? $this->TopicCount = $group->topic_count->_content : false;
 		}
-
+		
 	}
 	
