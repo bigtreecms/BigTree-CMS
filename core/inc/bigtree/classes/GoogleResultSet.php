@@ -5,8 +5,19 @@
 	*/
 
 	namespace BigTree;
+	
+	use ArrayAccess;
+	use BigTree\Disqus\ResultSet;
+	use stdClass;
 
-	class GoogleResultSet {
+	class GoogleResultSet implements ArrayAccess {
+		
+		public $API;
+		public $LastCall = "";
+		public $LastParameters = [];
+		public $NextPageToken;
+		public $PreviousPageToken;
+		public $Results = [];
 
 		/*
 			Constructor:
@@ -16,10 +27,11 @@
 				api - An instance of your Google-related API class.
 				last_call - Method called on the API class.
 				params - The parameters sent to last call
+				data - Result from the API call
 				results - Results to store
 		*/
 
-		function __construct(&$api, $last_call, $params, $data, $results) {
+		function __construct(&$api, string $last_call, array $params, stdClass $data, array $results) {
 			$this->API = $api;
 			$this->LastCall = $last_call;
 			$this->LastParameters = $params;
@@ -36,7 +48,7 @@
 				A BigTree\GoogleResultSet or false if there is not another page.
 		*/
 
-		function nextPage() {
+		function nextPage(): ?ResultSet {
 			if ($this->NextPageToken) {
 				$params = $this->LastParameters;
 				$params[count($params) - 1]["pageToken"] = $this->NextPageToken;
@@ -44,7 +56,28 @@
 				return call_user_func_array(array($this->API, $this->LastCall), $params);
 			}
 
-			return false;
+			return null;
+		}
+		
+		// Array iterator implementation
+		function offsetSet($index, $value) {
+			if (is_null($index)) {
+				$this->Results[] = $value;
+			} else {
+				$this->Results[$index] = $value;
+			}
+		}
+		
+		function offsetExists($index) {
+			return isset($this->Results[$index]);
+		}
+		
+		function offsetUnset($index) {
+			unset($this->Results[$index]);
+		}
+		
+		function offsetGet($index) {
+			return isset($this->Results[$index]) ? $this->Results[$index] : null;
 		}
 
 		/*
@@ -55,7 +88,7 @@
 				A BigTree\GoogleResultSet or false if there is not a previous page.
 		*/
 
-		function previousPage() {
+		function previousPage(): ?ResultSet {
 			if ($this->PreviousPageToken) {
 				$params = $this->LastParameters;
 				$params[count($params) - 1]["pageToken"] = $this->PreviousPageToken;
@@ -63,6 +96,6 @@
 				return call_user_func_array(array($this->API, $this->LastCall), $this->LastParameters);
 			}
 
-			return false;
+			return null;
 		}
 	}

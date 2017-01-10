@@ -3,12 +3,12 @@
 		Class: BigTree\GooglePlus\API
 			Google+ API class that implements people and activity related calls.
 	*/
-
+	
 	namespace BigTree\GooglePlus;
-
+	
 	use BigTree\OAuth;
 	use BigTree\GoogleResultSet;
-
+	
 	class API extends OAuth {
 		
 		public $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
@@ -25,20 +25,20 @@
 			Parameters:
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
-
-		function __construct($cache = true) {
-			parent::__construct("bigtree-internal-googleplus-api","Google+ API","org.bigtreecms.api.googleplus",$cache);
-
+		
+		function __construct(bool $cache = true) {
+			parent::__construct("bigtree-internal-googleplus-api", "Google+ API", "org.bigtreecms.api.googleplus", $cache);
+			
 			// Set OAuth Return URL
 			$this->ReturnURL = ADMIN_ROOT."developer/services/googleplus/return/";
-
+			
 			// Just send the request with the secret.
-			$this->RequestParameters = array();
+			$this->RequestParameters = [];
 			$this->RequestParameters["access_token"] = &$this->Settings["token"];
 			$this->RequestParameters["api_key"] = &$this->Settings["key"];
 			$this->RequestParameters["api_secret"] = &$this->Settings["secret"];
 		}
-
+		
 		/*
 			Function: getActivity
 				Returns information about a given activity ID.
@@ -49,17 +49,17 @@
 			Returns:
 				A BigTree\GooglePlus\Activity object.
 		*/
-
-		function getActivity($id) {
+		
+		function getActivity(string $id): ?Activity {
 			$response = $this->call("activities/$id");
-
+			
 			if (!$response->id) {
-				return false;
+				return null;
 			}
-
-			return new Activity($response,$this);
+			
+			return new Activity($response, $this);
 		}
-
+		
 		/*
 			Function: getActivities
 				Returns a list of public activities made by the given user ID.
@@ -73,24 +73,23 @@
 			Returns:
 				A BigTree\GoogleResultSet of BigTree\GooglePlus\Activity objects.
 		*/
-
-		function getActivities($user = "me",$count = 100,$params = array()) {
-			$response = $this->call("people/$user/activities/public",array_merge(array(
-				"maxResults" => $count
-			),$params));
-
+		
+		function getActivities(string $user = "me", int $count = 100, array $params = []): ?GoogleResultSet {
+			$params["maxResults"] = $count;
+			$response = $this->call("people/$user/activities/public", $params);
+			$results = [];
+			
 			if (!isset($response->items)) {
-				return false;
+				return null;
 			}
-
-			$results = array();
+			
 			foreach ($response->items as $activity) {
-				$results[] = new Activity($activity,$this);
+				$results[] = new Activity($activity, $this);
 			}
-
-			return new GoogleResultSet($this,"getActivities",array($user,$count,$params),$response,$results);
+			
+			return new GoogleResultSet($this, "getActivities", [$user, $count, $params], $response, $results);
 		}
-
+		
 		/*
 			Function: getCircledPeople
 				Returns a list of people the given user has in one or more circles.
@@ -105,25 +104,25 @@
 			Returns:
 				A BigTree\GoogleResultSet of BigTree\GooglePlus\People objects.
 		*/
-
-		function getCircledPeople($user = "me",$count = 100,$order = "best",$params = array()) {
-			$response = $this->call("people/$user/people/visible",array_merge(array(
-				"orderBy" => $order,
-				"maxResults" => $count
-			),$params));
-
+		
+		function getCircledPeople(string $user = "me", int $count = 100, string $order = "best",
+								  array $params = []): ?GoogleResultSet {
+			$params["orderBy"] = $order;
+			$params["maxResults"] = $count;
+			$response = $this->call("people/$user/people/visible", $params);
+			$results = [];
+			
 			if (!isset($response->items)) {
-				return false;
+				return null;
 			}
-
-			$results = array();
+			
 			foreach ($response->items as $person) {
-				$results[] = new Person($person,$this);
+				$results[] = new Person($person, $this);
 			}
-
-			return new GoogleResultSet($this,"getCircledPeople",array($user,$count,$order,$params),$response,$results);
+			
+			return new GoogleResultSet($this, "getCircledPeople", [$user, $count, $order, $params], $response, $results);
 		}
-
+		
 		/*
 			Function: getComment
 				Returns a comment with the given ID.
@@ -134,17 +133,17 @@
 			Returns:
 				A BigTree\GooglePlus\Comment object.
 		*/
-
-		function getComment($id) {
+		
+		function getComment(string $id): ?Comment {
 			$response = $this->call("comments/$id");
-
+			
 			if (!isset($response->id)) {
-				return false;
+				return null;
 			}
-
-			return new Comment($response,$this);
+			
+			return new Comment($response, $this);
 		}
-
+		
 		/*
 			Function: getComments
 				Returns comments for a given activity ID.
@@ -158,25 +157,24 @@
 			Returns:
 				A BigTree\GoogleResultSet of BigTree\GooglePlus\Comment objects.
 		*/
-
-		function getComments($activity,$count = 500,$order = "ascending",$params = array()) {
-			$response = $this->call("activities/$activity/comments",array_merge(array(
-				"orderBy" => $order,
-				"maxResults" => $count
-			),$params));
-
+		
+		function getComments(string $activity, int $count = 500, string $order = "ascending", array $params = []): ?GoogleResultSet {
+			$params["orderBy"] = $order;
+			$params["maxResults"] = $count;
+			$response = $this->call("activities/$activity/comments", $params);
+			$results = [];
+			
 			if (!isset($response->items)) {
-				return false;
+				return null;
 			}
-
-			$results = array();
+			
 			foreach ($response->items as $comment) {
-				$results[] = new Comment($comment,$this);
+				$results[] = new Comment($comment, $this);
 			}
-
-			return new GoogleResultSet($this,"getComments",array($activity,$count,$order,$params),$response,$results);
+			
+			return new GoogleResultSet($this, "getComments", [$activity, $count, $order, $params], $response, $results);
 		}
-
+		
 		/*
 			Function: getPerson
 				Returns a person for the given user ID.
@@ -188,17 +186,17 @@
 			Returns:
 				A BigTree\GooglePlus\Person object.
 		*/
-
-		function getPerson($user = "me") {
+		
+		function getPerson(string $user = "me"): ?Person {
 			$response = $this->call("people/$user");
-
+			
 			if (!$response->id) {
-				return false;
+				return null;
 			}
-
-			return new Person($response,$this);
+			
+			return new Person($response, $this);
 		}
-
+		
 		/*
 			Function: searchActivities
 				Searches for public activities.
@@ -212,30 +210,26 @@
 			Returns:
 				A BigTree\GoogleResultSet of BigTree\GooglePlus\Activity objects.
 		*/
-
-		function searchActivities($query,$count = 10,$order = "best",$params = array()) {
-			// Google+ fails if you pass too high of a count.
-			if ($count > 20) {
-				$count = 20;
-			}
-			$response = $this->call("activities",array_merge(array(
-				"query" => $query,
-				"orderBy" => $order,
-				"maxResults" => $count
-			),$params));
-
+		
+		function searchActivities(string $query, int $count = 10, string $order = "best", array $params = []): ?GoogleResultSet {
+			$params["query"] = $query;
+			$params["orderBy"] = $order;
+			$params["maxResults"] = ($count > 20) ? 20 : $count; // Google+ fails if you pass too high of a count.
+			
+			$response = $this->call("activities", $params);
+			$results = [];
+			
 			if (!isset($response->items)) {
-				return false;
+				return null;
 			}
-
-			$results = array();
+			
 			foreach ($response->items as $activity) {
-				$results[] = new Activity($activity,$this);
+				$results[] = new Activity($activity, $this);
 			}
-
-			return new GoogleResultSet($this,"searchActivities",array($query,$count,$order,$params),$response,$results);
+			
+			return new GoogleResultSet($this, "searchActivities", [$query, $count, $order, $params], $response, $results);
 		}
-
+		
 		/*
 			Function: searchPeople
 				Searches for people.
@@ -248,26 +242,23 @@
 			Returns:
 				A BigTree\GoogleResultSet of BigTree\GooglePlus\Person objects.
 		*/
-
-		function searchPeople($query,$count = 10,$params = array()) {
-			// Google+ fails if you pass too high of a count.
-			if ($count > 20) {
-				$count = 20;
-			}
-			$response = $this->call("people",array_merge(array(
-				"query" => $query,
-				"maxResults" => $count
-			),$params));
-
+		
+		function searchPeople(string $query, int $count = 10, array $params = []): ?GoogleResultSet {
+			$params["query"] = $query;
+			$params["maxResults"] = ($count > 20) ? 20 : $count; // Google+ fails if you pass too high of a count.
+			
+			$response = $this->call("people", $params);
+			$results = [];
+			
 			if (!isset($response->items)) {
-				return false;
+				return null;
 			}
-
-			$results = array();
+			
 			foreach ($response->items as $person) {
-				$results[] = new Person($person,$this);
+				$results[] = new Person($person, $this);
 			}
-
-			return new GoogleResultSet($this,"searchPeople",array($query,$count,$params),$response,$results);
+			
+			return new GoogleResultSet($this, "searchPeople", [$query, $count, $params], $response, $results);
 		}
+		
 	}

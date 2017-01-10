@@ -6,7 +6,9 @@
 	
 	namespace BigTree\Flickr;
 	
-	class ResultSet {
+	use ArrayAccess;
+	
+	class ResultSet implements ArrayAccess{
 		
 		/** @var \BigTree\Flickr\API */
 		protected $API;
@@ -57,6 +59,27 @@
 			}
 			
 			return null;
+		}
+		
+		// Array iterator implementation
+		function offsetSet($index, $value) {
+			if (is_null($index)) {
+				$this->Results[] = $value;
+			} else {
+				$this->Results[$index] = $value;
+			}
+		}
+		
+		function offsetExists($index) {
+			return isset($this->Results[$index]);
+		}
+		
+		function offsetUnset($index) {
+			unset($this->Results[$index]);
+		}
+		
+		function offsetGet($index) {
+			return isset($this->Results[$index]) ? $this->Results[$index] : null;
 		}
 		
 		/*

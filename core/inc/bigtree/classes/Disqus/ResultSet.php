@@ -6,9 +6,10 @@
 	
 	namespace BigTree\Disqus;
 	
+	use ArrayAccess;
 	use stdClass;
 	
-	class ResultSet {
+	class ResultSet implements ArrayAccess{
 		
 		protected $Cursor;
 		protected $LastCall;
@@ -54,6 +55,27 @@
 			$params[count($params) - 1]["cursor"] = $this->Cursor->Next;
 			
 			return call_user_func_array([$this->Object, $this->LastCall], $params);
+		}
+		
+		// Array iterator implementation
+		function offsetSet($index, $value) {
+			if (is_null($index)) {
+				$this->Results[] = $value;
+			} else {
+				$this->Results[$index] = $value;
+			}
+		}
+		
+		function offsetExists($index) {
+			return isset($this->Results[$index]);
+		}
+		
+		function offsetUnset($index) {
+			unset($this->Results[$index]);
+		}
+		
+		function offsetGet($index) {
+			return isset($this->Results[$index]) ? $this->Results[$index] : null;
 		}
 		
 		/*
