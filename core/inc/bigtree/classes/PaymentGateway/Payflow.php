@@ -3,13 +3,13 @@
 		Class: BigTree\PaymentGateway\Payflow
 			Provides a PayPal Payflow Gateway implementation of the PaymentGateway Provider.
 	*/
-
+	
 	namespace BigTree\PaymentGateway;
-
+	
 	use BigTree\cURL;
 	
 	class Payflow extends Provider {
-
+		
 		protected $DefaultParameters;
 		protected $Environment;
 		protected $Partner;
@@ -18,9 +18,9 @@
 		protected $Signature;
 		protected $Username;
 		protected $Vendor;
-
+		
 		public $PayPalTransaction;
-
+		
 		/*
 			Constructor:
 				Prepares an environment for Authorize.Net payments.
@@ -28,7 +28,7 @@
 		
 		function __construct() {
 			parent::__construct();
-
+			
 			$this->Username = $this->Settings["payflow-username"];
 			$this->Password = $this->Settings["payflow-password"];
 			$this->Vendor = $this->Settings["payflow-vendor"];
@@ -41,39 +41,43 @@
 				$this->PostURL = 'https://payflowpro.paypal.com';
 			}
 			
-			$this->DefaultParameters = array(
+			$this->DefaultParameters = [
 				"USER" => $this->Username,
 				"VENDOR" => $this->Vendor,
 				"PARTNER" => $this->Partner,
 				"PWD" => $this->Password
-			);
+			];
 		}
-
+		
 		// Implements Provider::authorize
-		function authorize($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description, $email, $phone, $customer) {
-			return $this->charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description, $email, $phone, $customer, "AUTH_ONLY");
+		function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
+						   int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
+						   ?string $customer = ""): ?string {
+			return $this->charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description,
+								 $email, $phone, $customer, "AUTH_ONLY");
 		}
-
+		
 		/*
 			Function: call
 				Sends an API call to PayPal Payflow Gateway.
 		*/
 		
-		function call($params) {
+		function call(array $params): ?array {
 			$count = 0;
 			$this->Unresponsive = false;
 			
 			// We build a random hash to submit as the transaction ID so that Payflow knows we're trying a repeat transaction, and spoof Mozilla.
-			$extras = array(
-				CURLOPT_HTTPHEADER => array("X-VPS-Request-ID: ".uniqid("", true)),
+			$extras = [
+				CURLOPT_HTTPHEADER => ["X-VPS-Request-ID: ".uniqid("", true)],
 				CURLOPT_USERAGENT => "Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)"
-			);
+			];
 			
 			// Get the default parameters
 			$params = array_merge($this->DefaultParameters, $params);
 			
 			// Authorize wants a GET instead of a POST, so we have to convert it away from an array.
-			$fields = array();
+			$fields = [];
+			
 			foreach ($params as $key => $val) {
 				$fields[] = $key."=".str_replace("&", "%26", $val);
 			}
@@ -84,7 +88,7 @@
 				
 				if ($response) {
 					$response = strstr($response, 'RESULT');
-					$response_array = array();
+					$response_array = [];
 					$response_parts = explode("&", $response);
 					
 					foreach ($response_parts as $part) {
@@ -100,15 +104,15 @@
 			
 			$this->Unresponsive = true;
 			
-			return false;
+			return null;
 		}
-
+		
 		// Implements Provider::capture
-		function capture($transaction, $amount) {
-			$params = array(
+		function capture(string $transaction, ?float $amount = null): ?string {
+			$params = [
 				"TRXTYPE" => "D",
 				"ORIGID" => $transaction
-			);
+			];
 			
 			if ($amount) {
 				$params["AMT"] = $this->formatCurrency($amount);
@@ -123,20 +127,22 @@
 			if ($response["RESULT"] == "0") {
 				return $response["PNREF"];
 			} else {
-				return false;
+				return null;
 			}
 		}
-
+		
 		// Implements Provider::charge
-		function charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description = "", $email = "", $phone = "", $customer = "", $action = "S") {
+		function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
+						int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
+						?string $customer = "", ?string $action = null): ?string {
 			// Make card number only have numeric digits
 			$card_number = preg_replace('/\D/', '', $card_number);
-
+			
 			// Split the card name into first name and last name.
 			$first_name = substr($card_name, 0, strpos($card_name, " "));
 			$last_name = trim(substr($card_name, strlen($first_name)));
-
-			$params = array(
+			
+			$params = [
 				"TRXTYPE" => $action,
 				"TENDER" => "C",
 				"AMT" => $amount,
@@ -155,8 +161,8 @@
 				"EMAIL" => $email,
 				"PHONE" => $phone,
 				"COMMENT1" => $description
-			);
-
+			];
+			
 			$response = $this->call($params);
 			
 			// Setup response messages.
@@ -185,34 +191,34 @@
 			if ($response["RESULT"] == "0") {
 				return $response["PNREF"];
 			} else {
-				return false;
+				return null;
 			}
 		}
-
+		
 		// Implements Provider::paypalExpressCheckoutDetails
-		function paypalExpressCheckoutDetails($token) {
-			$params = array(
+		function paypalExpressCheckoutDetails(string $token): ?array {
+			$params = [
 				"TOKEN" => $token,
 				"TRXTYPE" => "S",
 				"ACTION" => "G",
 				"TENDER" => "P"
-			);
-
+			];
+			
 			$response = $this->call($params);
 			$this->Message = $response["RESPMSG"];
 			
 			if ($response["RESULT"] == "0") {
 				return $this->urldecodeArray($response);
 			} else {
-				return false;
+				return null;
 			}
 		}
-
+		
 		// Implements Provider::paypalExpressCheckoutProcess
-		function paypalExpressCheckoutProcess($token, $payer_id, $amount = false) {
+		function paypalExpressCheckoutProcess(string $token, string $payer_id, ?float $amount = null): ?array {
 			$amount = $this->formatCurrency($amount);
 			
-			$params = array(
+			$params = [
 				"TOKEN" => $token,
 				"PAYERID" => $payer_id,
 				"PAYMENTREQUEST_0_AMT" => $amount,
@@ -220,8 +226,8 @@
 				"TRXTYPE" => "S",
 				"ACTION" => "D",
 				"TENDER" => "P"
-			);
-
+			];
+			
 			$response = $this->call($params);
 			
 			$this->Transaction = $response["PNREF"];
@@ -231,16 +237,16 @@
 			if ($response["RESULT"] == "0") {
 				return $response["PNREF"];
 			} else {
-				return false;
+				return null;
 			}
 		}
-
+		
 		// Implements Provider::paypalExpressCheckoutRedirect
-		function paypalExpressCheckoutRedirect($amount, $success_url, $cancel_url) {
+		function paypalExpressCheckoutRedirect(float $amount, string $success_url, string $cancel_url): void {
 			// Clean up the amount.
 			$amount = $this->formatCurrency($amount);
 			
-			$params = array(
+			$params = [
 				"PAYMENTREQUEST_0_AMT" => $amount,
 				"AMT" => $amount,
 				"RETURNURL" => $success_url,
@@ -248,27 +254,25 @@
 				"TRXTYPE" => "S",
 				"ACTION" => "S",
 				"TENDER" => "P"
-			);
-
+			];
+			
 			$response = $this->call($params);
-
+			
 			$this->Message = $response["RESPMSG"];
 			
 			if ($response["RESULT"] == "0") {
 				header("Location: https://www".($this->Environment == "test" ? ".sandbox" : "").".paypal.com/webscr?cmd=_express-checkout&token=".urldecode($response["TOKEN"])."&AMT=$amount&CURRENCYCODE=USD&RETURNURL=$success_url&CANCELURL=$cancel_url");
 				die();
-			} else {
-				return false;
 			}
 		}
-
+		
 		// Implements Provider::refund
-		function refund($transaction, $card_number, $amount) {
-			$params = array(
+		function refund(string $transaction, ?string $card_number = null, ?float $amount = null): ?string {
+			$params = [
 				"TRXTYPE" => "C",
 				"ORIGID" => $transaction
-			);
-
+			];
+			
 			if ($amount) {
 				$params["AMT"] = $this->formatCurrency($amount);
 			}
@@ -282,17 +286,17 @@
 			if ($response["RESULT"] == "0") {
 				return $response["PNREF"];
 			} else {
-				return false;
+				return null;
 			}
 		}
-
+		
 		// Implements Provider::void
-		function void($authorization) {
-			$params = array(
+		function void(string $authorization): ?string {
+			$params = [
 				"TRXTYPE" => "V",
 				"ORIGID" => $authorization
-			);
-
+			];
+			
 			$response = $this->call($params);
 			
 			// Setup response messages.
@@ -302,8 +306,8 @@
 			if ($response["RESULT"] == "0") {
 				return $response["PNREF"];
 			} else {
-				return false;
+				return null;
 			}
 		}
-
+		
 	}

@@ -3,17 +3,17 @@
 		Class: BigTree\PaymentGateway\LinkPoint
 			Provides a LinkPoint implementation of the PaymentGateway Provider.
 	*/
-
+	
 	namespace BigTree\PaymentGateway;
 	
 	class LinkPoint extends Provider {
-
+		
 		protected $Certificate;
 		protected $DefaultParameters;
 		protected $Environment;
 		protected $PostURL;
 		protected $Store;
-
+		
 		/*
 			Constructor:
 				Prepares an environment for LinkPoint payments.
@@ -21,26 +21,27 @@
 		
 		function __construct() {
 			parent::__construct();
-
+			
 			$this->Store = $this->Settings["linkpoint-store"];
 			$this->Environment = $this->Settings["linkpoint-environment"];
 			$this->Certificate = SERVER_ROOT."custom/certificates/".$this->Settings["linkpoint-certificate"];
-
+			
 			if ($this->Environment == "test") {
 				$this->PostURL = "https://staging.linkpt.net:1129";
 			} else {
 				$this->PostURL = "https://secure.linkpt.net:1129";
-				$this->DefaultParameters["orderoptions"] = array(
-					"result" => "live"
-				);
+				$this->DefaultParameters["orderoptions"] = ["result" => "live"];
 			}
 		}
-
+		
 		// Implements Provider::authorize
-		function authorize($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description, $email, $phone, $customer) {
-			return $this->charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description, $email, $phone, $customer, "AUTH_ONLY");
+		function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
+						   int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
+						   ?string $customer = ""): ?string {
+			return $this->charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description,
+								 $email, $phone, $customer, "AUTH_ONLY");
 		}
-
+		
 		/*
 			Function: call
 				Sends an API call to LinkPoint.
@@ -55,19 +56,21 @@
 			
 			foreach ($params as $container => $data) {
 				$xml .= "<$container>";
-
+				
 				foreach ($data as $key => $val) {
 					if (is_array($val)) {
 						$xml .= "<$key>";
+						
 						foreach ($val as $k => $v) {
 							$xml .= "<$k>".htmlspecialchars($v)."</$k>";
 						}
+						
 						$xml .= "</$key>";
 					} else {
 						$xml .= "<$key>".htmlspecialchars($val)."</$key>";
 					}
 				}
-
+				
 				$xml .= "</$container>";
 			}
 			
@@ -95,20 +98,20 @@
 			
 			$this->Unresponsive = true;
 			
-			return false;
+			return null;
 		}
-
+		
 		// Implements Provider::capture
-		function capture($transaction, $amount) {
-			$params = array(
-				"orderoptions" => array(
+		function capture(string $transaction, ?float $amount = null): ?string {
+			$params = [
+				"orderoptions" => [
 					"ordertype" => "POSTAUTH"
-				),
-				"transactiondetails" => array(
+				],
+				"transactiondetails" => [
 					"ip" => $_SERVER["REMOTE_ADDR"],
 					"oid" => $transaction
-				)
-			);
+				]
+			];
 			
 			if ($amount) {
 				$params["payment"]["chargetotal"] = $this->formatCurrency($amount);
@@ -119,42 +122,44 @@
 			// Setup response messages.
 			$this->Transaction = strval($response->r_ordernum);
 			$this->Message = strval($response->r_error);
-
+			
 			if (strval($response->r_message) == "ACCEPTED") {
 				return $this->Transaction;
 			} else {
-				return false;
+				return null;
 			}
 		}
-
+		
 		// Implements Provider::charge
-		function charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description = "", $email = "", $phone = "", $customer = "", $action = "SALE") {
+		function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
+						int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
+						?string $customer = "", ?string $action = null): ?string {
 			// Clean up the amount and tax.
 			$amount = $this->formatCurrency($amount);
 			$tax = $this->formatCurrency($tax);
 			
 			// Make card number only have numeric digits
 			$card_number = preg_replace('/\D/', '', $card_number);
-
+			
 			// Split out expiration
 			$card_month = substr($card_expiration, 0, 2);
 			$card_year = substr($card_expiration, -2, 2);
 			
-			$params = array(
-				"orderoptions" => array(
+			$params = [
+				"orderoptions" => [
 					"ordertype" => $action
-				),
-				"creditcard" => array(
+				],
+				"creditcard" => [
 					"cardnumber" => $card_number,
 					"cardexpmonth" => $card_month,
 					"cardexpyear" => $card_year,
 					"cvmvalue" => $cvv,
 					"cvmindicator" => "provided"
-				),
-				"transactiondetails" => array(
+				],
+				"transactiondetails" => [
 					"ip" => $_SERVER["REMOTE_ADDR"]
-				),
-				"billing" => array(
+				],
+				"billing" => [
 					"name" => $card_name,
 					"address1" => $address["street"],
 					"address2" => $address["street2"],
@@ -164,15 +169,15 @@
 					"phone" => $phone,
 					"email" => $email,
 					"userid" => $customer
-				),
-				"payment" => array(
+				],
+				"payment" => [
 					"tax" => $tax,
 					"chargetotal" => $amount
-				),
-				"notes" => array(
+				],
+				"notes" => [
 					"comments" => $description
-				)
-			);
+				]
+			];
 			
 			$response = $this->call($params);
 			
@@ -182,12 +187,13 @@
 			$this->Last4CC = substr(trim($card_number), -4, 4);
 			
 			// Get a common AVS response.
-			$a = substr(strval($response->r_avs), 0, 2);
-			if ($a == "YN") {
+			$avs_response = substr(strval($response->r_avs), 0, 2);
+			
+			if ($avs_response == "YN") {
 				$this->AVS = "Address";
-			} elseif ($a == "NY") {
+			} elseif ($avs_response == "NY") {
 				$this->AVS = "Zip";
-			} elseif ($a == "YY") {
+			} elseif ($avs_response == "YY") {
 				$this->AVS = "Both";
 			} else {
 				$this->AVS = false;
@@ -203,24 +209,24 @@
 			if (strval($response->r_message) == "APPROVED") {
 				return $this->Transaction;
 			} else {
-				return false;
+				return null;
 			}
 		}
-
+		
 		// Implements Provider::refund
-		function refund($transaction, $card_number, $amount) {
-			$params = array(
-				"orderoptions" => array(
+		function refund(string $transaction, ?string $card_number = null, ?float $amount = null): ?string {
+			$params = [
+				"orderoptions" => [
 					"ordertype" => "CREDIT"
-				),
-				"creditcard" => array(
+				],
+				"creditcard" => [
 					"cardnumber" => $card_number
-				),
-				"transactiondetails" => array(
+				],
+				"transactiondetails" => [
 					"ip" => $_SERVER["REMOTE_ADDR"],
 					"oid" => $transaction
-				)
-			);
+				]
+			];
 			
 			if ($amount) {
 				$params["payment"]["chargetotal"] = $this->formatCurrency($amount);
@@ -231,37 +237,37 @@
 			// Setup response messages.
 			$this->Transaction = strval($response->r_ordernum);
 			$this->Message = strval($response->r_error);
-
+			
 			if (strval($response->r_message) == "ACCEPTED") {
 				return $this->Transaction;
 			} else {
-				return false;
+				return null;
 			}
 		}
-
+		
 		// Implements Provider::void
-		function void($authorization) {
-			$params = array(
-				"orderoptions" => array(
+		function void(string $authorization): ?string {
+			$params = [
+				"orderoptions" => [
 					"ordertype" => "VOID"
-				),
-				"transactiondetails" => array(
+				],
+				"transactiondetails" => [
 					"ip" => $_SERVER["REMOTE_ADDR"],
 					"oid" => $authorization
-				)
-			);
+				]
+			];
 			
 			$response = $this->call($params);
 			
 			// Setup response messages.
 			$this->Transaction = strval($response->r_ordernum);
 			$this->Message = strval($response->r_error);
-
+			
 			if (strval($response->r_message) == "ACCEPTED") {
 				return $this->Transaction;
 			} else {
-				return false;
+				return null;
 			}
 		}
-
+		
 	}
