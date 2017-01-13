@@ -4,21 +4,22 @@
 			Twitter API class that implements most functionality (limited lists support).
 			All calls return false on API failure and set the "Errors" property to an array of errors returned by the Twitter API.
 	*/
-
+	
 	namespace BigTree\Twitter;
-
+	
 	use BigTree\OAuth;
 	use BigTree\Router;
 	use BigTree\Utils;
-
+	use stdClass;
+	
 	class API extends OAuth {
-
+		
 		public $Configuration;
 		public $EndpointURL = "https://api.twitter.com/1.1/";
 		public $OAuthVersion = "1.0";
 		public $RequestType = "hash-header";
 		public $TweetLength;
-
+		
 		/*
 			Constructor:
 				Sets up the Twitter API connections.
@@ -26,14 +27,14 @@
 			Parameters:
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
-
-		function __construct($cache = true) {
-			parent::__construct("bigtree-internal-twitter-api","Twitter API","org.bigtreecms.api.twitter",$cache);
-
+		
+		function __construct(bool $cache = true) {
+			parent::__construct("bigtree-internal-twitter-api", "Twitter API", "org.bigtreecms.api.twitter", $cache);
+			
 			// Set OAuth Return URL
 			$this->ReturnURL = ADMIN_ROOT."developer/services/twitter/return/";
 		}
-
+		
 		/*
 			Function: blockUser
 				Blocks a given username by the authenticated user.
@@ -44,32 +45,40 @@
 			Returns:
 				A BigTree\Twitter\User object if successful.
 		*/
-
-		function blockUser($username) {
-			$response = $this->callUncached("blocks/create.json",array("screen_name" => $username),"POST");
+		
+		function blockUser(string $username): ?User {
+			$response = $this->callUncached("blocks/create.json", ["screen_name" => $username], "POST");
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			return new User($response,$this);
+			
+			return new User($response, $this);
 		}
-		function block($username) { return $this->blockUser($username); }
-
+		
+		function block(string $username): ?User {
+			return $this->blockUser($username);
+		}
+		
 		/*
 			Function: callUncached
 				Piggybacks on the base call to provide error checking for Twitter.
 		*/
-
-		function callUncached($endpoint = "",$params = array(),$method = "GET",$headers = array()) {
-			$response = parent::callUncached($endpoint,$params,$method,$headers);
+		
+		function callUncached(string $endpoint = "", array $params = [], string $method = "GET", array $headers = []): ?stdClass {
+			$response = parent::callUncached($endpoint, $params, $method, $headers);
+			
 			if (isset($response->errors) && count($response->errors)) {
 				foreach ($response->errors as $e) {
 					$this->Errors[] = $e->message;
 				}
-				return false;
+				
+				return null;
 			}
+			
 			return $response;
 		}
-
+		
 		/*
 			Function: deleteDirectMessage
 				Deletes a direct message that was received by the authenticated user.
@@ -80,15 +89,17 @@
 			Returns:
 				true if successful.
 		*/
-
-		function deleteDirectMessage($id) {
-			$response = $this->callUncached("direct_messages/destroy.json",array("id" => $id),"POST");
+		
+		function deleteDirectMessage(string $id): bool {
+			$response = $this->callUncached("direct_messages/destroy.json", ["id" => $id], "POST");
+			
 			if (!$response) {
 				return false;
 			}
+			
 			return true;
 		}
-
+		
 		/*
 			Function: deleteTweet
 				Deletes a tweet that belongs to the authenticated user.
@@ -99,15 +110,17 @@
 			Returns:
 				True if successful.
 		*/
-
-		function deleteTweet($id) {
-			$response = $this->callUncached("statuses/destroy/$id.json",array(),"POST");
+		
+		function deleteTweet(string $id): bool {
+			$response = $this->callUncached("statuses/destroy/$id.json", [], "POST");
+			
 			if (!$response) {
 				return false;
 			}
+			
 			return true;
 		}
-
+		
 		/*
 			Function: favoriteTweet
 				Sets a tweet as a favorite of the authenticated user.
@@ -118,15 +131,17 @@
 			Returns:
 				A BigTree\Twitter\Tweet object if successful.
 		*/
-
-		function favoriteTweet($id) {
-			$response = $this->callUncached("favorites/create.json",array("id" => $id),"POST");
+		
+		function favoriteTweet(string $id): ?Tweet {
+			$response = $this->callUncached("favorites/create.json", ["id" => $id], "POST");
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			return new Tweet($response,$this);
+			
+			return new Tweet($response, $this);
 		}
-
+		
 		/*
 			Function: followUser / friendUser
 				Follows/friends a given user by the authenticated user.
@@ -137,16 +152,21 @@
 			Returns:
 				A BigTree\Twitter\User object on success.
 		*/
-
-		function followUser($username) {
-			$response = $this->callUncached("friendships/create.json",array("screen_name" => $username),"POST");
+		
+		function followUser(string $username): ?User {
+			$response = $this->callUncached("friendships/create.json", ["screen_name" => $username], "POST");
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			return new User($response,$this);
+			
+			return new User($response, $this);
 		}
-		function friendUser($username) { return $this->followUser($username); }
-
+		
+		function friendUser(string $username): ?User {
+			return $this->followUser($username);
+		}
+		
 		/*
 			Function: getBlockedUsers
 				Returns a page of users that are blocked by the authenticated user.
@@ -161,32 +181,38 @@
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/blocks/list
 		*/
-
-		function getBlockedUsers($skip_status = true,$params = array()) {
-			$response = $this->call("blocks/list.json",array_merge($params,array("skip_status" => $skip_status)));
+		
+		function getBlockedUsers(bool $skip_status = true, array $params = []): ?ResultSet {
+			$params["skip_status"] = $skip_status;
+			$response = $this->call("blocks/list.json", $params);
+			$users = [];
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			$users = array();
+			
 			foreach ($response->users as $user) {
-				$users[] = new User($user,$this);
+				$users[] = new User($user, $this);
 			}
+			
 			$params["cursor"] = $response->next_cursor;
-			return new ResultSet($this,"getBlockedUsers",array($skip_status,$params),$users);
+			
+			return new ResultSet($this, "getBlockedUsers", [$skip_status, $params], $users);
 		}
-
+		
 		/*
 			Function: getConfiguration
 				Sets up information such as the length of reserved characters for URLs and media uploads.
 		*/
-
-		function getConfiguration() {
+		
+		function getConfiguration(): void {
 			$response = $this->call("help/configuration.json");
+			
 			if ($response) {
 				$this->Configuration = $response;
 			}
 		}
-
+		
 		/*
 			Function: getDirectMessage
 				Returns a single direct messages for the given ID (must be sent to or by the authenticated user).
@@ -200,15 +226,17 @@
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/direct_messages
 		*/
-
-		function getDirectMessage($id) {
-			$response = $this->call("direct_messages/show.json",array("id" => $id));
+		
+		function getDirectMessage(string $id): ?DirectMessage {
+			$response = $this->call("direct_messages/show.json", ["id" => $id]);
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			return new DirectMessage($response,$this);
+			
+			return new DirectMessage($response, $this);
 		}
-
+		
 		/*
 			Function: getDirectMessages
 				Returns a page of direct messages sent to the authenticated user.
@@ -223,19 +251,23 @@
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/direct_messages
 		*/
-
-		function getDirectMessages($count = 10,$params = array()) {
-			$response = $this->callUncached("direct_messages.json",array_merge($params,array("count" => $count)));
+		
+		function getDirectMessages(int $count = 10, array $params = []): ?ResultSet {
+			$params["count"] = $count;
+			$response = $this->callUncached("direct_messages.json", $params);
+			$results = [];
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			$results = array();
+			
 			foreach ($response as $message) {
-				$results[] = new DirectMessage($message,$this);
+				$results[] = new DirectMessage($message, $this);
 			}
-			return new ResultSet($this,"getDirectMessages",array($count,$params),$results);
+			
+			return new ResultSet($this, "getDirectMessages", [$count, $params], $results);
 		}
-
+		
 		/*
 			Function: getFavoriteTweets
 				Returns a page of favorite tweets of the authenticated user.
@@ -250,19 +282,23 @@
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/favorites/list
 		*/
-
-		function getFavoriteTweets($count = 10,$params = array()) {
-			$response = $this->call("favorites/list.json",array_merge($params,array("count" => $count)));
+		
+		function getFavoriteTweets(int $count = 10, array $params = []): ?ResultSet {
+			$params["count"] = $count;
+			$response = $this->call("favorites/list.json", $params);
+			$results = [];
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			$results = array();
+			
 			foreach ($response as $tweet) {
-				$results[] = new Tweet($tweet,$this);
+				$results[] = new Tweet($tweet, $this);
 			}
-			return new ResultSet($this,"getFavoriteTweets",array($count,$params),$results);
+			
+			return new ResultSet($this, "getFavoriteTweets", [$count, $params], $results);
 		}
-
+		
 		/*
 			Function: getFollowers
 				Returns a page of followers for a given username.
@@ -278,20 +314,26 @@
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/followers/list
 		*/
-
-		function getFollowers($username,$skip_status = true,$params = array()) {
-			$response = $this->call("followers/list.json",array_merge($params,array("screen_name" => $username,"skip_status" => $skip_status)));
+		
+		function getFollowers(string $username, bool $skip_status = true, array $params = []): ?ResultSet {
+			$params["screen_name"] = $username;
+			$params["skip_status"] = $skip_status;
+			$response = $this->call("followers/list.json", $params);
+			$users = [];
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			$users = array();
+			
 			foreach ($response->users as $user) {
-				$users[] = new User($user,$this);
+				$users[] = new User($user, $this);
 			}
+			
 			$params["cursor"] = $response->next_cursor;
-			return new ResultSet($this,"getFollowers",array($username,$skip_status,$params),$users);
+			
+			return new ResultSet($this, "getFollowers", [$username, $skip_status, $params], $users);
 		}
-
+		
 		/*
 			Function: getFriends
 				Returns a page of friends (people they follow) for a given username.
@@ -307,20 +349,26 @@
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/friends/list
 		*/
-
-		function getFriends($username,$skip_status = true,$params = array()) {
-			$response = $this->call("friends/list.json",array_merge($params,array("screen_name" => $username,"skip_status" => $skip_status)));
+		
+		function getFriends(string $username, bool $skip_status = true, array $params = []): ?ResultSet {
+			$params["screen_name"] = $username;
+			$params["skip_status"] = $skip_status;
+			$response = $this->call("friends/list.json", $params);
+			$users = [];
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			$users = array();
+			
 			foreach ($response->users as $user) {
-				$users[] = new User($user,$this);
+				$users[] = new User($user, $this);
 			}
+			
 			$params["cursor"] = $response->next_cursor;
-			return new ResultSet($this,"getFriends",array($username,$skip_status,$params),$users);
+			
+			return new ResultSet($this, "getFriends", [$username, $skip_status, $params], $users);
 		}
-
+		
 		/*
 			Function: getHomeTimeline
 				Returns recent tweets from the authenticated user and everyone the authenticated user follows.
@@ -335,19 +383,23 @@
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/statuses/home_timeline
 		*/
-
-		function getHomeTimeline($count = 10, $params = array()) {
-			$response = $this->call("statuses/home_timeline.json",array_merge($params,array("count" => $count)));
+		
+		function getHomeTimeline(int $count = 10, array $params = []): ?ResultSet {
+			$params["count"] = $count;
+			$response = $this->call("statuses/home_timeline.json", $params);
+			$tweets = [];
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			$tweets = array();
+			
 			foreach ($response as $tweet) {
-				$tweets[] = new Tweet($tweet,$this);
+				$tweets[] = new Tweet($tweet, $this);
 			}
-			return new ResultSet($this,"getHomeTimeline",array($count,$params),$tweets);
+			
+			return new ResultSet($this, "getHomeTimeline", [$count, $params], $tweets);
 		}
-
+		
 		/*
 			Function: getMentions
 				Returns the timeline of mentions for the authenticated user.
@@ -362,19 +414,23 @@
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/statuses/mentions_timeline
 		*/
-
-		function getMentions($count = 10,$params = array()) {
-			$response = $this->call("statuses/mentions_timeline.json",array_merge($params,array("count" => $count)));
+		
+		function getMentions(int $count = 10, array $params = []): ?ResultSet {
+			$params["count"] = $count;
+			$response = $this->call("statuses/mentions_timeline.json", $params);
+			$tweets = [];
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			$tweets = array();
+			
 			foreach ($response as $tweet) {
-				$tweets[] = new Tweet($tweet,$this);
+				$tweets[] = new Tweet($tweet, $this);
 			}
-			return new ResultSet($this,"getMentions",array($count,$params),$tweets);
+			
+			return new ResultSet($this, "getMentions", [$count, $params], $tweets);
 		}
-
+		
 		/*
 			Function: getPlace
 				Returns information about a place.
@@ -385,15 +441,17 @@
 			Returns:
 				A BigTree\Twitter\Place object.
 		*/
-
-		function getPlace($id) {
+		
+		function getPlace(string $id): ?Place {
 			$response = $this->call("geo/id/$id.json");
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			return new Place($response,$this);
+			
+			return new Place($response, $this);
 		}
-
+		
 		/*
 			Function: getSentDirectMessages
 				Returns a page of direct messages sent by the authenticated user.
@@ -408,19 +466,23 @@
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/direct_messages
 		*/
-
-		function getSentDirectMessages($count = 10,$params = array()) {
-			$response = $this->call("direct_messages/sent.json",array_merge($params,array("count" => $count)));
+		
+		function getSentDirectMessages(int $count = 10, array $params = []): ?ResultSet {
+			$params["count"] = $count;
+			$response = $this->call("direct_messages/sent.json", $params);
+			$results = [];
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			$results = array();
+			
 			foreach ($response as $message) {
-				$results[] = new DirectMessage($message,$this);
+				$results[] = new DirectMessage($message, $this);
 			}
-			return new ResultSet($this,"getSentDirectMessages",array($count,$params),$results);
+			
+			return new ResultSet($this, "getSentDirectMessages", [$count, $params], $results);
 		}
-
+		
 		/*
 			Function: getTweet
 				Returns a single tweet.
@@ -435,15 +497,18 @@
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/statuses/show
 		*/
-
-		function getTweet($id,$params = array()) {
-			$response = $this->call("statuses/show.json",array_merge($params,array("id" => $id)));
+		
+		function getTweet(string $id, array $params = []): ?Tweet {
+			$params["id"] = $id;
+			$response = $this->call("statuses/show.json", $params);
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			return new Tweet($response,$this);
+			
+			return new Tweet($response, $this);
 		}
-
+		
 		/*
 			Function: getUser
 				Returns information about a user.
@@ -458,19 +523,21 @@
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/users/show
 		*/
-
-		function getUser($username,$id = false) {
+		
+		function getUser(string $username, ?string $id = null): ?User {
 			if ($id) {
-				$response = $this->call("users/show.json",array("id" => $id));
+				$response = $this->call("users/show.json", ["id" => $id]);
 			} else {
-				$response = $this->call("users/show.json",array("screen_name" => $username));
+				$response = $this->call("users/show.json", ["screen_name" => $username]);
 			}
+			
 			if ($response) {
-				return new User($response,$this);
+				return new User($response, $this);
 			}
-			return false;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: getUserTimeline
 				Returns recent tweets from the given user's timeline.
@@ -486,66 +553,76 @@
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/statuses/user_timeline
 		*/
-
-		function getUserTimeline($user_name, $count = 10, $params = array()) {
-			$response = $this->call("statuses/user_timeline.json",array_merge($params,array("screen_name" => $user_name,"count" => $count)));
+		
+		function getUserTimeline(string $user_name, int $count = 10, array $params = []): ?ResultSet {
+			$params["screen_name"] = $user_name;
+			$params["count"] = $count;
+			$response = $this->call("statuses/user_timeline.json", $params);
+			$tweets = [];
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			$tweets = array();
+			
 			foreach ($response as $tweet) {
-				$tweets[] = new Tweet($tweet,$this);
+				$tweets[] = new Tweet($tweet, $this);
 			}
-			return new ResultSet($this,"getUserTimeline",array($user_name,$count,$params),$tweets);
+			
+			return new ResultSet($this, "getUserTimeline", [$user_name, $count, $params], $tweets);
 		}
-
+		
 		/*
 			Function: oAuthRedirect
 				Redirects to the OAuth API to authenticate.
 		*/
-
-		function oAuthRedirect() {
+		
+		function oAuthRedirect(): void {
 			$oauth_callback_confirmed = false;
 			$oauth_token = "";
 			
 			// Get a token first because Twitter is silly.
-			$response = $this->callAPI("https://api.twitter.com/oauth/request_token","GET",array("oauth_callback" => $this->ReturnURL));
+			$response = $this->callAPI("https://api.twitter.com/oauth/request_token", "GET", ["oauth_callback" => $this->ReturnURL]);
 			parse_str($response);
-
+			
 			if ($oauth_callback_confirmed != "true") {
-				Utils::growl("Twitter API","Consumer Key or Secret invalid.","error");
+				Utils::growl("Twitter API", "Consumer Key or Secret invalid.", "error");
 				Router::redirect(ADMIN_ROOT."developer/services/twitter/");
 			}
-
+			
 			header("Location: https://api.twitter.com/oauth/authenticate?oauth_token=$oauth_token");
 			die();
 		}
-
+		
 		/*
 			Function: oAuthSetToken
 				Sets token information (or an error) when provided a response code.
 		*/
-
-		function oAuthSetToken($code) {
+		
+		function oAuthSetToken(string $code): ?stdClass {
 			$oauth_token = "";
 			$oauth_token_secret = "";
 			
-			$response = $this->callAPI("https://api.twitter.com/oauth/access_token","POST",array("oauth_token" => $_GET["oauth_token"],"oauth_verifier" => $_GET["oauth_verifier"]));
+			$response = $this->callAPI("https://api.twitter.com/oauth/access_token", "POST", [
+				"oauth_token" => $_GET["oauth_token"],
+				"oauth_verifier" => $_GET["oauth_verifier"]
+			]);
 			parse_str($response);
-
+			
 			if (!$oauth_token) {
 				$this->OAuthError = "Authentication failed.";
-				return false;
+				
+				return null;
 			}
-
+			
 			// Update Token information and save it back.
 			$this->Settings["token"] = $oauth_token;
 			$this->Settings["token_secret"] = $oauth_token_secret;
-
+			
 			$this->Connected = true;
-			return true;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: sendDirectMessage
 				Sends a direct message by the authenticated user.
@@ -559,37 +636,40 @@
 				A BigTree\Twitter\DirectMessage object or false if the direct message fails or is too long.
 				$this->TweetLength will be set to the length of the tweet if it is > 140 characters.
 		*/
-
-		function sendDirectMessage($recipient_username,$content,$recipient_id = false) {
+		
+		function sendDirectMessage(string $recipient_username, string $content, ?string $recipient_id = null): ?DirectMessage {
 			// Figure out how long our content can be
 			if (!$this->Configuration) {
 				$this->getConfiguration();
 			}
 			
 			// Figure out how many URLs are
-			$http_length = substr_count($content,"http://") * $this->Configuration->short_url_length;
-			$https_length = substr_count($content,"https://") * $this->Configuration->short_url_length_https;
+			$http_length = substr_count($content, "http://") * $this->Configuration->short_url_length;
+			$https_length = substr_count($content, "https://") * $this->Configuration->short_url_length_https;
 			$url_length = $http_length + $https_length;
-
+			
 			// Replace URLs so they no longer count toward length
-  			$content_trimmed = preg_replace('/((?:http|https)(?::\\/{2}[\\w]+)(?:[\\/|\\.]?)(?:[^\\s"]*))/is',"",$content);
-  			if (strlen($content_trimmed) + $url_length > 140) {
-  				$this->TweetLength = strlen($content_trimmed) + $url_length;
-  				return false;
-  			}
-
-  			if ($recipient_id) {
-  				$response = $this->callUncached("direct_messages/new.json",array("user_id" => $recipient_id,"text" => $content),"POST");
-  			} else {
-  				$response = $this->callUncached("direct_messages/new.json",array("screen_name" => $recipient_username,"text" => $content),"POST");
-  			}
-
-  			if (!$response) {
-				return false;
+			$content_trimmed = preg_replace('/((?:http|https)(?::\\/{2}[\\w]+)(?:[\\/|\\.]?)(?:[^\\s"]*))/is', "", $content);
+			
+			if (strlen($content_trimmed) + $url_length > 140) {
+				$this->TweetLength = strlen($content_trimmed) + $url_length;
+				
+				return null;
 			}
-			return new DirectMessage($response,$this);
+			
+			if ($recipient_id) {
+				$response = $this->callUncached("direct_messages/new.json", ["user_id" => $recipient_id, "text" => $content], "POST");
+			} else {
+				$response = $this->callUncached("direct_messages/new.json", ["screen_name" => $recipient_username, "text" => $content], "POST");
+			}
+			
+			if (!$response) {
+				return null;
+			}
+			
+			return new DirectMessage($response, $this);
 		}
-
+		
 		/*
 			Function: sendTweet
 				Post a tweet by the authenticated user.
@@ -607,45 +687,52 @@
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/post/statuses/update
 		*/
-
-		function sendTweet($content,$image = false,$params = array()) {
+		
+		function sendTweet(string $content, ?string $image = null, array $params = []): ?Tweet {
 			// Figure out how long our content can be
 			if (!$this->Configuration) {
 				$this->getConfiguration();
 			}
-
+			
 			// Figure out how many URLs are
-			$http_length = substr_count($content,"http://") * $this->Configuration->short_url_length;
-			$https_length = substr_count($content,"https://") * $this->Configuration->short_url_length_https;
+			$http_length = substr_count($content, "http://") * $this->Configuration->short_url_length;
+			$https_length = substr_count($content, "https://") * $this->Configuration->short_url_length_https;
 			$media_length = $image ? $this->Configuration->characters_reserved_per_media : 0;
 			$url_length = $http_length + $https_length + $media_length;
+			
 			// Replace URLs so they no longer count toward length
-  			$content_trimmed = preg_replace('/((?:http|https)(?::\\/{2}[\\w]+)(?:[\\/|\\.]?)(?:[^\\s"]*))/is',"",$content);
-  			if (strlen($content_trimmed) + $url_length > 140) {
-  				$this->TweetLength = strlen($content_trimmed) + $url_length;
-  				return false;
-  			}
-
+			$content_trimmed = preg_replace('/((?:http|https)(?::\\/{2}[\\w]+)(?:[\\/|\\.]?)(?:[^\\s"]*))/is', "", $content);
+			
+			if (strlen($content_trimmed) + $url_length > 140) {
+				$this->TweetLength = strlen($content_trimmed) + $url_length;
+				$this->Error = "Tweet was too long: ".$this->TweetLength;
+				
+				return null;
+			}
+			
 			// Upload media first
 			if ($image) {
 				$media_id = $this->uploadMedia($image);
-
+				
 				if (!$media_id) {
-					return false;
+					$this->Error = "Media Upload Failed";
+					
+					return null;
 				}
-
+				
 				$params["media_ids"] = $media_id;
 			}
 			
 			// Post tweet
-			$response = $this->callUncached("statuses/update.json",array_merge($params,array("status" => $content)),"POST");
-
+			$response = $this->callUncached("statuses/update.json", array_merge($params, ["status" => $content]), "POST");
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			return new Tweet($response,$this);
+			
+			return new Tweet($response, $this);
 		}
-
+		
 		/*
 			Function: retweetTweet
 				Causes the authenticated user to retweet a tweet.
@@ -656,15 +743,17 @@
 			Returns:
 				True if successful.
 		*/
-
-		function retweetTweet($id) {
-			$response = $this->callUncached("statuses/retweet/$id.json",array(),"POST");
+		
+		function retweetTweet(string $id): bool {
+			$response = $this->callUncached("statuses/retweet/$id.json", [], "POST");
+			
 			if (!$response) {
 				return false;
 			}
+			
 			return true;
 		}
-
+		
 		/*
 			Function: searchPlaces
 				Returns close places for a given latitude/longitude pair.
@@ -681,19 +770,25 @@
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/geo/search
 		*/
-
-		function searchPlaces($latitude,$longitude,$count = 20,$params = array()) {
-			$response = $this->call("geo/search.json",array_merge($params,array("lat" => $latitude,"long" => $longitude,"max_results" => $count)));
+		
+		function searchPlaces(string $latitude, string $longitude, int $count = 20, array $params = []): ?array {
+			$params["lat"] = $latitude;
+			$params["long"] = $longitude;
+			$params["max_results"] = $count;
+			$response = $this->call("geo/search.json", $params);
+			$results = [];
+			
 			if (!isset($response->result)) {
-				return false;
+				return null;
 			}
-			$results = array();
+
 			foreach ($response->result->places as $place) {
-				$results[] = new Place($place,$this);
+				$results[] = new Place($place, $this);
 			}
+			
 			return $results;
 		}
-
+		
 		/*
 			Function: searchTweets
 				Searches Twitter for a given query and returns tweets.
@@ -713,28 +808,32 @@
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/search/tweets
 		*/
-
-		function searchTweets($query,$count = 10,$type = "recent",$latitude = false,$longitude = false,$radius = false,$params = array()) {
-			// We're saving user_params for pagination
-			$user_params = $params;
+		
+		function searchTweets(string $query, int $count = 10, string $type = "recent", ?string $latitude = null,
+							  ?string $longitude = null, ?string $radius = null, array $params = []): ?ResultSet {
 			// Setup default parameters
 			$params["q"] = $query;
 			$params["count"] = $count;
 			$params["result_type"] = $type;
+			
 			if ($latitude) {
 				$params["geocode"] = "$latitude,$longitude,$radius";
 			}
-			$response = $this->call("search/tweets.json",$params);
+			
+			$response = $this->call("search/tweets.json", $params);
+			$tweets = [];
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			$tweets = array();
+			
 			foreach ($response->statuses as $tweet) {
-				$tweets[] = new Tweet($tweet,$this);
+				$tweets[] = new Tweet($tweet, $this);
 			}
-			return new ResultSet($this,"searchTweets",array($query,$count,$type,$latitude,$longitude,$radius,$user_params),$tweets);
+			
+			return new ResultSet($this, "searchTweets", [$query, $count, $type, $latitude, $longitude, $radius, $params], $tweets);
 		}
-
+		
 		/*
 			Function: searchUsers
 				Searches Twitter for a given query and returns users.
@@ -750,25 +849,29 @@
 			See Also:
 				https://dev.twitter.com/docs/api/1.1/get/users/search
 		*/
-
-		function searchUsers($query,$count = 10,$params = array()) {
-			// Little hack since BigTree\Twitter\ResultSet expects to use max_id but we're looking for page here, so ask for the next one.
-			if ($params["page"]) {
+		
+		function searchUsers(string $query, int $count = 10, array $params = []): ?ResultSet {
+			// ResultSet expects to use max_id but we're looking for page here, so ask for the next one.
+			if (!empty($params["page"])) {
 				$params["page"]++;
 			} else {
 				$params["page"] = 1;
 			}
-			$response = $this->call("users/search.json",array_merge(array("q" => $query,"count" => $count),$params));
+			
+			$response = $this->call("users/search.json", array_merge(["q" => $query, "count" => $count], $params));
+			$users = [];
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			$users = array();
+			
 			foreach ($response as $user) {
-				$users[] = new User($user,$this);
+				$users[] = new User($user, $this);
 			}
-			return new ResultSet($this,"searchUsers",array($query,$count,$params),$users);
+			
+			return new ResultSet($this, "searchUsers", [$query, $count, $params], $users);
 		}
-
+		
 		/*
 			Function: unblockUser
 				Unblocks a given username by the authenticated user.
@@ -779,16 +882,21 @@
 			Returns:
 				A BigTree\Twitter\User object if successful.
 		*/
-
-		function unblockUser($username) {
-			$response = $this->callUncached("blocks/destroy.json",array("screen_name" => $username),"POST");
+		
+		function unblockUser(string $username): ?User {
+			$response = $this->callUncached("blocks/destroy.json", ["screen_name" => $username], "POST");
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			return new User($response,$this);
+			
+			return new User($response, $this);
 		}
-		function unblock($username) { return $this->unblockUser($username); }
-
+		
+		function unblock(string $username): ?User {
+			return $this->unblockUser($username);
+		}
+		
 		/*
 			Function: unfavoriteTweet
 				Unsets a tweet as a favorite of the authenticated user.
@@ -799,15 +907,17 @@
 			Returns:
 				A BigTree\Twitter\Tweet object if successful.
 		*/
-
-		function unfavoriteTweet($id) {
-			$response = $this->callUncached("favorites/destroy.json",array("id" => $id),"POST");
+		
+		function unfavoriteTweet(string $id): ?Tweet {
+			$response = $this->callUncached("favorites/destroy.json", ["id" => $id], "POST");
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			return new Tweet($response,$this);
+			
+			return new Tweet($response, $this);
 		}
-
+		
 		/*
 			Function: unfollowUser / unfriendUser
 				Unfollows/unfriends a given user by the authenticated user.
@@ -818,16 +928,21 @@
 			Returns:
 				A BigTree\Twitter\User object on success.
 		*/
-
-		function unfollowUser($username) {
-			$response = $this->callUncached("friendships/destroy.json",array("screen_name" => $username),"POST");
+		
+		function unfollowUser(string $username): ?User {
+			$response = $this->callUncached("friendships/destroy.json", ["screen_name" => $username], "POST");
+			
 			if (!$response) {
-				return false;
+				return null;
 			}
-			return new User($response,$this);
+			
+			return new User($response, $this);
 		}
-		function unfriendUser($username) { return $this->unfollowUser($username); }
-
+		
+		function unfriendUser(string $username): ?User {
+			return $this->unfollowUser($username);
+		}
+		
 		/*
 			Function: uploadMedia
 				Uploads media to Twitter's hosting service.
@@ -839,15 +954,18 @@
 			Returns:
 				Media ID
 		*/
-
-		function uploadMedia($media) {
+		
+		function uploadMedia(string $media): ?string {
 			// Different endpoint, we call this manually
-			$media_response = json_decode($this->callAPI("https://upload.twitter.com/1.1/media/upload.json","POST",array("media" => "@".$media),array(),array("media")),true);
+			$media_response = json_decode($this->callAPI("https://upload.twitter.com/1.1/media/upload.json",
+														 "POST", ["media" => "@".$media], [], ["media"]), true);
+			
 			if ($media_response["media_id"]) {
 				return $media_response["media_id"];
 			} else {
 				$this->Errors[] = $media_response["errors"][0]["message"];
-				return false;
+				
+				return null;
 			}
 		}
 	}
