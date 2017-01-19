@@ -390,7 +390,8 @@
 			"text/plain" \
 			"text/vtt" \
 			"text/x-component" \
-			"text/xml"
+			"text/xml" \
+			"text/javascript"
 	</IfModule>
 </IfModule>
 
