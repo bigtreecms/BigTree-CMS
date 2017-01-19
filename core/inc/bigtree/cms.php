@@ -724,9 +724,13 @@
 				return static::linkForPath($bigtree["page"]["path"]);
 			} else {
 				// Otherwise we'll grab the page path from the db.
-				$page = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($id)."' AND archived != 'on'"));
+				$page = sqlfetch(sqlquery("SELECT path, template, external FROM bigtree_pages WHERE id = '".sqlescape($id)."' AND archived != 'on'"));
 				
 				if ($page) {
+					if ($page["external"] !== "" && $page["template"] === "") {
+						return $page["external"];
+					}
+
 					return static::linkForPath($page["path"]);
 				}
 			}
