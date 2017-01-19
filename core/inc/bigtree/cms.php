@@ -728,6 +728,10 @@
 				
 				if ($page) {
 					if ($page["external"] !== "" && $page["template"] === "") {
+						if (substr($page["external"], 0, 6) == "ipl://" || substr($page["external"], 0, 6) == "irl://") {
+							$page["external"] = static::getInternalPageLink($page["external"]);
+						}
+						
 						return $page["external"];
 					}
 
