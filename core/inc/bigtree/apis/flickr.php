@@ -12,6 +12,12 @@
 		var $OAuthVersion = "1.0";
 		var $RequestType = "hash";
 		var $TokenURL = "https://www.flickr.com/services/oauth/authorize";
+
+		const PRIVACY_PUBLIC = 1;
+		const PRIVACY_FRIENDS = 2;
+		const PRIVACY_FAMILY = 3;
+		const PRIVACY_FRIENDS_FAMILY = 4;
+		const PRIVACY_PRIVATE = 5;
 		
 		/*
 			Constructor:
@@ -87,6 +93,73 @@
 			} else {
 				return false;
 			}
+		}
+
+		/*
+			Function: getAlbumPhotos
+				Returns a list of all of the public photos for a particular photo album
+
+			Parameters:
+				id - The ID of the photo album
+				privacy - Privacy level of photos to return (defaults to PRIVACY_PUBLIC / 1)
+				info - A comma separated list of additional information to retrieve (defaults to license, date_upload, date_taken, owner_name, icon_server, original_format, last_update)
+	
+			Returns:
+				Raw Flickr API call
+		*/
+		
+		function getAlbumPhotos($id,$privacy = 1,$info = "license,date_upload,date_taken,owner_name,icon_server,original_format,last_update") {
+			$params["photoset_id"] = $id;
+			$params["extras"] = $info;
+			$params["privacy_filter"] = $privacy;
+			$params["media"] = "photos";
+			$r = $this->call("flickr.photosets.getPhotos",$params);
+
+			if (!isset($r->photoset)) {
+				return false;
+			}
+
+			$photos = array();
+
+			foreach ($r->photoset->photo as $photo) {
+				$photos[] = new BigTreeFlickrPhoto($photo,$this);
+			}
+
+			return new BigTreeFlickrResultSet($this,"getAlbumPhotos",array($id,$privacy,$info),$photos,$r->photoset->page,$r->photoset->pages);
+		}
+
+		/*
+			Function: getAlbums
+				Returns all of the albums for the given user
+
+			Parameters:
+				user_id - The user ID to retrieve albums for (defaults to logged in user)
+				
+			Returns:
+				A BigTreeFlickrResultSet of BigTreeFlickrAlbum objects
+		*/
+		
+		function getAlbums($user_id = false) {
+			$params = array();
+			$params["primary_photo_extras"] = "media,date_taken,url_sq,url_t,url_s,url_m,url_o,";
+			
+			if ($user_id) {
+				$params["user_id"] = $user_id;
+			}
+
+			$r = $this->call("flickr.photosets.getList",$params);
+
+			if (!isset($r->photosets->photoset)) {
+				return false;
+			}
+
+			$albums = array();
+
+			foreach ($r->photosets->photoset as $album) {
+				$albums[] = new BigTreeFlickrAlbum($album, $this);
+			}
+
+			return new BigTreeFlickrResultSet($this,"getAlbums",array($user_id),$albums,$r->photosets->page,$r->photosets->pages);
 		}
 
 		/*
@@ -682,6 +755,54 @@
 				return strval($doc->photoid);
 			}
 			return false;
+		}
+	}
+
+	/*
+		Class: BigTreeFlickrAlbum
+			A Flickr object that contains album information and methods you can perform on the album.
+	*/
+
+	class BigTreeFlickrAlbum {
+		protected $API;
+
+		function __construct($album, &$api) {
+			$this->API = $api;
+			if (isset($album->primary_photo_extras->url_sq)) {
+				$this->Cover = new stdClass;
+				$this->Cover->Type = $album->primary_photo_extras->media;
+				$this->Cover->Images = new stdClass;
+				$this->Cover->Images->Square = $album->primary_photo_extras->url_sq;
+				$this->Cover->Images->Thumbnail = $album->primary_photo_extras->url_t;
+				$this->Cover->Images->Small = $album->primary_photo_extras->url_s;
+				$this->Cover->Images->Medium = $album->primary_photo_extras->url_m;
+				$this->Cover->Images->Original = $album->primary_photo_extras->url_o;
+			}
+			$this->CreatedAt = date("Y-m-d H:i:s", $album->date_create);
+			isset($album->farm) ? $this->Farm = $album->farm : false;
+			$this->ID = $album->id;
+			$this->PhotoCount = $album->photos;
+			isset($album->primary) ? $this->Primary = $album->primary : false;
+			isset($album->secret) ? $this->Secret = $album->secret : false;
+			isset($album->title->_content) ? $this->Title = $album->title->_content : false;
+			$this->UpdatedAt = date("Y-m-d H:i:s", $album->date_update);
+			$this->VideoCount = $album->videos;
+		}
+
+		/*
+			Function: getPhotos
+				Returns the photos in this album.
+
+			Parameters:
+				privacy - Privacy level of photos to return (defaults to PRIVACY_PUBLIC / 1)
+				info - A comma separated list of additional information to retrieve (defaults to license, date_upload, date_taken, owner_name, icon_server, original_format, last_update)
+
+			Returns:
+				A BigTreeFlickrREsultSet of BigTreeFlickrPhoto objects or false if the call fails.
+		*/
+
+		function getPhotos($privacy = 1,$info = "license,date_upload,date_taken,owner_name,icon_server,original_format,last_update") {
+			return $this->getAlbumPhotos($this->ID, $privacy, $info);
 		}
 	}
 
