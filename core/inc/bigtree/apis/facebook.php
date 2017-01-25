@@ -8,11 +8,11 @@
 	class BigTreeFacebookAPI extends BigTreeOAuthAPIBase {
 		
 		var $AuthorizeURL = "https://www.facebook.com/dialog/oauth";
-		var $EndpointURL = "https://graph.facebook.com/v2.6/";
+		var $EndpointURL = "https://graph.facebook.com/v2.8/";
 		var $OAuthVersion = "2.0";
 		var $RequestType = "header";
 		var $Scope = "";
-		var $TokenURL = "https://graph.facebook.com/v2.6/oauth/access_token";
+		var $TokenURL = "https://graph.facebook.com/v2.8/oauth/access_token";
 
 		const ALBUM_FIELDS = "id,name,description,link,cover_photo,count,place,type,created_time";
 		
