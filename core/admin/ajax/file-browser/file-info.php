@@ -1,6 +1,10 @@
 <?
 	$file = $admin->getResourceByFile($_POST["file"]);
 	$pinfo = BigTree::pathInfo($file["file"]);
+
+	if ($file["folder"]) {
+		$folder = $admin->getResourceFolder($file["folder"]);
+	}
 	
 	// We throw on ?uniqid so that we don't cache the thumbnail in the event that we just replaced it
 	if ($file["is_image"]) {
@@ -27,6 +31,9 @@
 	<p><span>Height</span><strong><?=$file["height"]?></strong></p>
 	<? } ?>
 	<p><span>Uploaded</span><strong><?=date("n/j/y @ g:ia",strtotime($file["date"]))?></strong></p>
+	<? if ($file["folder"]) { ?>
+	<p><span>Folder</span><strong class="file_browser_detail_folder_button" data-folder="<?=$folder["id"]?>"><?=$folder["name"]?></strong></p>
+	<? } ?>
 </div>
 <?
 	if ($admin->Level) {
