@@ -1,3 +1,3 @@
 <?
-	$field["output"] = $field["input"];
+	$field["output"] = array_values($field["input"]);
 ?>
