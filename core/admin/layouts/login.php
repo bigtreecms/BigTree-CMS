@@ -21,9 +21,6 @@
 			<?=$bigtree["content"]?>
 			
 			<a href="http://www.bigtreecms.com" class="login_logo" target="_blank"></a>
-			<span class="login_copyright">
-				Version <?=BIGTREE_VERSION?>&nbsp;&nbsp;&middot;&nbsp;&nbsp;&copy; <?=date("Y")?> <a href="http://www.fastspot.com" target="_blank"> Fastspot</a>
-			</span>
 		</div>
 	</body>
 </html>
