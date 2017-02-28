@@ -20,6 +20,23 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.16
+- ADDED: getAlbums, getAlbumPhotos, and BigTreeFlickrAlbum to the Flickr API (thanks Matt Briney)
+- ADDED: The file / image browser now shows a link to the folder a file is contained in when viewing file details
+- UPDATED: Facebook API now points to 2.8 API endpoint
+- UPDATED: BigTree should now attempt to remove installation files after installing
+- UPDATED: The forgot password function should no longer confirm whether a valid email was entered to prevent bruteforcing valid emails
+- REMOVED: Version information is no longer shown on the admin login page to prevent version-targeting exploits
+- FIXED: User ban system for too many failed logins
+- FIXED: User session chains not being correctly created
+- FIXED: Default "Advanced" htaccess failing to serve compressed Javascript when the MIME type reported text/javascript
+- FIXED: BigTreeCMS::getLink now properly returns the external link when a page is set to an external link
+- FIXED: More preview links problems in multi-site environments
+- FIXED: Deprecated endpoint in Flickr API
+- FIXED: Creating module views in Module Designer crashing when Xdebug was enabled
+- FIXED: One-to-many fields saving as an object rather than an array in JSON when rearranging (thanks Jordan Mason)
+- FIXED: Display bug in Chrome that visconti was experiencing
+
 ### 4.2.15
 - FIXED: Potential XSS attack vector in module integrity checker - thanks to Haojun Hou in ADLab of Venustech
 - FIXED: File uploads to the file manager not properly throwing errors when post max size was exceeded
