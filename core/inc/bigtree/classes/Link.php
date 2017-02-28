@@ -255,11 +255,19 @@
 				return static::byPath($bigtree["page"]["path"]);
 			}
 			
-			// Otherwise we'll grab the page path from the db.
-			$path = SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE archived != 'on' AND id = ?", $id);
+			// Otherwise we'll grab the page data from the db.
+			$page = SQL::fetch("SELECT path, template, external FROM bigtree_pages WHERE id = ? AND archived != 'on'", $id);
 			
-			if ($path) {
-				return static::byPath($path);
+			if ($page) {
+				if ($page["external"] !== "" && $page["template"] === "") {
+					if (substr($page["external"], 0, 6) == "ipl://" || substr($page["external"], 0, 6) == "irl://") {
+						$page["external"] = static::decode($page["external"]);
+					}
+					
+					return $page["external"];
+				}
+
+				return static::byPath($page["path"]);
 			}
 			
 			return false;
