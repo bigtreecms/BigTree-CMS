@@ -2,15 +2,13 @@
 	$failure = false;
 
 	if ($_POST["email"]) {
-		if (!$admin->forgotPassword($_POST["email"])) {
-			$failure = true;
-		}
+		$admin->forgotPassword($_POST["email"]);
+		BigTree::redirect(ADMIN_ROOT."login/forgot-success/");
 	}
 ?>
 <div id="login">
 	<form method="post" action="" class="module">
 		<h2>Forgot Your Password?</h2>
-		<? if ($failure) { ?><p class="error_message clear">You've entered an invalid email address.</p><? } ?>
 		<fieldset>
 			<label>Email</label>
 			<input class="text" type="email" name="email" />
