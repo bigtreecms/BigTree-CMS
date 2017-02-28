@@ -15,7 +15,7 @@
 	class API extends OAuth {
 		
 		public $AuthorizeURL = "https://www.flickr.com/services/oauth/request_token";
-		public $EndpointURL = "https://ycpi.api.flickr.com/services/rest";
+		public $EndpointURL = "https://api.flickr.com/services/rest";
 		public $OAuthVersion = "1.0";
 		public $RequestType = "hash";
 		public $TokenURL = "https://www.flickr.com/services/oauth/authorize";
@@ -101,6 +101,74 @@
 			} else {
 				return false;
 			}
+		}
+		
+		/*
+			Function: getAlbumPhotos
+				Returns a list of all of the public photos for a particular photo album
+
+			Parameters:
+				id - The ID of the photo album
+				privacy - Privacy level of photos to return (defaults to PRIVACY_PUBLIC / 1)
+				info - A comma separated list of additional information to retrieve (defaults to license, date_upload, date_taken, owner_name, icon_server, original_format, last_update)
+	
+			Returns:
+				A BigTree\Flickr\ResultSet of BigTree\Flickr\Photo objects
+		*/
+		
+		function getAlbumPhotos(string $id, int $privacy = 1,
+								string $info = "license,date_upload,date_taken,owner_name,icon_server,original_format,last_update"): ?ResultSet {
+			$params["photoset_id"] = $id;
+			$params["extras"] = $info;
+			$params["privacy_filter"] = $privacy;
+			$params["media"] = "photos";
+			$r = $this->call("flickr.photosets.getPhotos", $params);
+			
+			if (!isset($r->photoset)) {
+				return null;
+			}
+			
+			$photos = [];
+			
+			foreach ($r->photoset->photo as $photo) {
+				$photos[] = new Photo($photo, $this);
+			}
+			
+			return new ResultSet($this, "getAlbumPhotos", [$id, $privacy, $info], $photos, $r->photoset->page, $r->photoset->pages);
+		}
+		
+		/*
+			Function: getAlbums
+				Returns all of the albums for the given user
+
+			Parameters:
+				user_id - The user ID to retrieve albums for (defaults to logged in user)
+				
+			Returns:
+				A BigTree\Flickr\ResultSet of BigTree\Flickr\Album objects
+		*/
+		
+		function getAlbums(?string $user_id = null): ?ResultSet {
+			$params = [];
+			$params["primary_photo_extras"] = "media,date_taken,url_sq,url_t,url_s,url_m,url_o,";
+			
+			if ($user_id) {
+				$params["user_id"] = $user_id;
+			}
+			
+			$r = $this->call("flickr.photosets.getList", $params);
+			
+			if (!isset($r->photosets->photoset)) {
+				return null;
+			}
+			
+			$albums = [];
+			
+			foreach ($r->photosets->photoset as $album) {
+				$albums[] = new Album($album, $this);
+			}
+			
+			return new ResultSet($this, "getAlbums", [$user_id], $albums, $r->photosets->page, $r->photosets->pages);
 		}
 		
 		/*
@@ -693,7 +761,7 @@
 			// Search by email
 			if (strpos($query, "@") !== false) {
 				$response = $this->call("flickr.people.findByEmail", ["find_email" => $query]);
-			// Search by username
+				// Search by username
 			} else {
 				$response = $this->call("flickr.people.findByUsername", ["username" => $query]);
 			}
