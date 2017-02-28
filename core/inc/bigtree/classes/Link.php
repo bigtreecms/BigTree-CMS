@@ -291,10 +291,8 @@
 				return WWW_ROOT."_preview/";
 			} else {
 				$link = static::get($id);
-				$parts = explode("/", $link);
-				array_splice($parts, 3, 0, "_preview");
-				
-				return implode("/", $parts);
+
+				return str_replace(WWW_ROOT, WWW_ROOT."_preview/", $link);
 			}
 		}
 		
