@@ -105,7 +105,7 @@
 				info - A comma separated list of additional information to retrieve (defaults to license, date_upload, date_taken, owner_name, icon_server, original_format, last_update)
 	
 			Returns:
-				Raw Flickr API call
+				A BigTreeFlickrResultSet of BigTreeFlickrPhoto objects
 		*/
 		
 		function getAlbumPhotos($id,$privacy = 1,$info = "license,date_upload,date_taken,owner_name,icon_server,original_format,last_update") {
@@ -802,7 +802,7 @@
 		*/
 
 		function getPhotos($privacy = 1,$info = "license,date_upload,date_taken,owner_name,icon_server,original_format,last_update") {
-			return $this->getAlbumPhotos($this->ID, $privacy, $info);
+			return $this->API->getAlbumPhotos($this->ID, $privacy, $info);
 		}
 	}
 
