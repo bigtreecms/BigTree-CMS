@@ -489,6 +489,13 @@ RewriteRule (.*) site/$1 [L]');
 		$installed = true;
 	}
 	
+	if ($installed) {
+		@unlink("install.php");
+		@unlink("bigtree.sql");
+		@unlink("example-site.sql");
+		@unlink("README.md");
+	}
+	
 	// Set localhost as the default MySQL host
 	$host = $host ? $host : "localhost";
 ?>
@@ -518,7 +525,7 @@ RewriteRule (.*) site/$1 [L]');
 				<h2 class="getting_started"><span></span>Installation Complete</h2>
 				<fieldset class="clear">
 					<p>Your new BigTree site is ready to go! Login to the CMS using the email/password you entered on the previous page.</p>
-					<?php if ($routing == "basic") { ?>
+					<?php if ($routing == "basic" && file_exists("install.php")) { ?>
 					<p class="delete_message">Remember to delete install.php from your root folder as it is publicly accessible in Basic Routing mode.</p>
 					<?php } elseif ($routing == "iis") { ?>
 					<p class="error_message iis_message">To setup proper rewrite routing for IIS you must import the following .htaccess rules to the /site/ directory:</p>
