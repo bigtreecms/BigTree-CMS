@@ -12,11 +12,11 @@
 	class API extends OAuth {
 		
 		public $AuthorizeURL = "https://www.facebook.com/dialog/oauth";
-		public $EndpointURL = "https://graph.facebook.com/v2.6/";
+		public $EndpointURL = "https://graph.facebook.com/v2.8/";
 		public $OAuthVersion = "2.0";
 		public $RequestType = "header";
 		public $Scope = "";
-		public $TokenURL = "https://graph.facebook.com/v2.6/oauth/access_token";
+		public $TokenURL = "https://graph.facebook.com/v2.8/oauth/access_token";
 		
 		const ALBUM_FIELDS = "id,name,description,link,cover_photo,count,place,type,created_time";
 		

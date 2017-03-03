@@ -1,3 +1,3 @@
 <?php
-	$this->Output = $this->Input;
+	$this->Output = array_values($this->Input);
 	
