@@ -1556,7 +1556,10 @@ var BigTreeFileManager = (function($) {
 				});
 				$("#file_browser_info_pane .replace").click(replaceFile);
 				$("#file_browser_info_pane .delete").click(deleteFile);
-			}
+        $(".file_browser_detail_folder_button").click(function() {
+          openFileFolder($(this).data("folder"));
+        });
+      }
 		);
 		
 		return false;
@@ -1628,7 +1631,10 @@ var BigTreeFileManager = (function($) {
 				});
 				$("#file_browser_info_pane .replace").click(replaceFile);
 				$("#file_browser_info_pane .delete").click(deleteFile);
-			}
+        $(".file_browser_detail_folder_button").click(function() {
+          openImageFolder($(this).data("folder"));
+        });
+      }
 		);
 		
 		return false;

@@ -10,18 +10,16 @@
 	if ($_POST["email"]) {
 		$user = User::getByEmail($_POST["email"]);
 		
-		if (!$user) {
-			$failure = true;
-		} else {
+		if ($user) {
 			$user->initPasswordReset();
-			Router::redirect($login_root."forgot-success/");
 		}
+		
+		Router::redirect($login_root."forgot-success/");
 	}
 ?>
 <div id="login">
 	<form method="post" action="" class="module">
 		<h2><?=Text::translate("Forgot Your Password?")?></h2>
-		<?php if ($failure) { ?><p class="error_message clear"><?=Text::translate("You've entered an invalid email address.")?></p><?php } ?>
 		<fieldset>
 			<label for="forgot_field_email"><?=Text::translate("Email")?></label>
 			<input id="forgot_field_email" class="text" type="email" name="email" />

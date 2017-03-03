@@ -5,6 +5,10 @@
 	$file = $resource->Array;
 	$pinfo = pathinfo($file["file"]);
 	
+	if ($file["folder"]) {
+		$folder = new ResourceFolder($file["folder"]);
+	}
+	
 	// We throw on ?uniqid so that we don't cache the thumbnail in the event that we just replaced it
 	if ($file["is_image"]) {
 ?>
@@ -30,6 +34,9 @@
 	<p><span>Height</span><strong><?=$file["height"]?></strong></p>
 	<?php } ?>
 	<p><span>Uploaded</span><strong><?=date("n/j/y @ g:ia",strtotime($file["date"]))?></strong></p>
+	<?php if ($file["folder"]) { ?>
+	<p><span>Folder</span><strong class="file_browser_detail_folder_button" data-folder="<?=$folder->ID?>"><?=$folder->Name?></strong></p>
+	<?php } ?>
 </div>
 <?php
 	if (Auth::user()->Level) {
