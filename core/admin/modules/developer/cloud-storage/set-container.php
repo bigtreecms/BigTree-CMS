@@ -1,7 +1,11 @@
 <?
+	$admin->verifyCSRFToken();
+
 	$storage = new BigTreeStorage;
-	$storage->Settings->Service = $_POST["service"];
 	$cloud = new BigTreeCloudStorage($_POST["service"]);
+	
+	$storage->Settings->Service = $_POST["service"];
+
 	if ($_POST["container"]) {
 		$storage->Settings->Container = $_POST["container"];
 		// If we're using Rackspace, we need to explicitly CDN enable this container.

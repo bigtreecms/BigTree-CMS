@@ -1,8 +1,12 @@
 <?
+	$admin->verifyCSRFToken();
+
 	$storage = new BigTreeStorage;
+
 	if ($_POST["service"] != "local") {
 		$cloud = new BigTreeCloudStorage($_POST["service"]);
 		$containers = $cloud->listContainers();
+		
 		if ($containers === false) {
 			$admin->growl("Developer","Invalid Cloud Storage Setup: ".ucwords($_POST["service"]),"error");
 			BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
@@ -11,6 +15,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/set-container/">
+		<? $admin->drawCSRFToken() ?>
 		<input type="hidden" name="service" value="<?=htmlspecialchars($_POST["service"])?>" />
 		<summary><h2><?=$service_names[$_POST["service"]]?></h2></summary>
 		<section>

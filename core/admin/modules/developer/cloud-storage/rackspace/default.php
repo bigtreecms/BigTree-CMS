@@ -16,6 +16,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/rackspace/update/" class="module">
+		<? $admin->drawCSRFToken() ?>
 		<section>
 			<fieldset>
 				<label>API Key</label>

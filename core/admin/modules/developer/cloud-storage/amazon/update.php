@@ -1,4 +1,6 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	$cloud->Settings["amazon"] = array(
 		"key" => trim($_POST["key"]),
 		"secret" => trim($_POST["secret"])

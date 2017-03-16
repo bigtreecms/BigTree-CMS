@@ -4,6 +4,7 @@
 <div class="container">
 	<summary><h2>Configure</h2></summary>
 	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/set-default/">
+		<? $admin->drawCSRFToken() ?>
 		<section>
 			<div class="contain">
 				<a class="box_select last_row<? if ($cloud->Settings["amazon"]["active"]) { ?> connected<? } ?>" href="<?=DEVELOPER_ROOT?>cloud-storage/amazon/">

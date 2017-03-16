@@ -34,50 +34,12 @@
 			// Retrieve a fresh token for Rackspace Cloud Files
 			if ($this->Service == "rackspace") {
 				if (!isset($this->Settings["rackspace"]["token_expiration"]) || $this->Settings["rackspace"]["token_expiration"] < time()) {
-					$this->_getRackspaceToken();
+					$this->getRackspaceToken();
 				}
 				$this->RackspaceAPIEndpoint = $this->Settings["rackspace"]["endpoints"][$this->Settings["rackspace"]["region"]];
 				$this->RackspaceCDNEndpoint = $this->Settings["rackspace"]["cdn_endpoints"][$this->Settings["rackspace"]["region"]];
 			}
 			
-		}
-
-		/*
-			Function: _getRackspaceToken
-				Gets a new access token for the Rackspace Cloud Files API.
-		*/
-
-		protected function _getRackspaceToken() {
-			$j = json_decode(BigTree::cURL("https://identity.api.rackspacecloud.com/v2.0/tokens",json_encode(array(
-				"auth" => array(
-					"RAX-KSKEY:apiKeyCredentials" => array(
-						"username" => $this->Settings["rackspace"]["username"],
-						"apiKey" => $this->Settings["rackspace"]["api_key"]
-					)
-				)
-			)),array(CURLOPT_POST => true,CURLOPT_HTTPHEADER => array("Content-Type: application/json"))));
-			
-			if (isset($j->access->token)) {
-				$this->Settings["rackspace"]["token"] = $j->access->token->id;
-				$this->Settings["rackspace"]["token_expiration"] = strtotime($j->access->token->expires);
-				$this->Settings["rackspace"]["endpoints"] = array();
-				$this->Settings["rackspace"]["cdn_endpoints"] = array();
-				// Get API endpoints
-				foreach ($j->access->serviceCatalog as $service) {
-					if ($service->name == "cloudFiles") {
-						foreach ($service->endpoints as $endpoint) {
-							$this->Settings["rackspace"]["endpoints"][$endpoint->region] = (string)$endpoint->publicURL;
-						}
-					} elseif ($service->name == "cloudFilesCDN") {
-						foreach ($service->endpoints as $endpoint) {
-							$this->Settings["rackspace"]["cdn_endpoints"][$endpoint->region] = (string)$endpoint->publicURL;							
-						}
-					}
-				}
-				return true;
-			}
-
-			return false;
 		}
 
 		/*
@@ -687,6 +649,44 @@
 				$tree = isset($tree["folders"][$part]) ? $tree["folders"][$part] : false;
 			}
 			return $tree;
+		}
+
+		/*
+			Function: getRackspaceToken
+				Gets a new access token for the Rackspace Cloud Files API.
+		*/
+
+		function getRackspaceToken() {
+			$j = json_decode(BigTree::cURL("https://identity.api.rackspacecloud.com/v2.0/tokens",json_encode(array(
+				"auth" => array(
+					"RAX-KSKEY:apiKeyCredentials" => array(
+						"username" => $this->Settings["rackspace"]["username"],
+						"apiKey" => $this->Settings["rackspace"]["api_key"]
+					)
+				)
+			)),array(CURLOPT_POST => true,CURLOPT_HTTPHEADER => array("Content-Type: application/json"))));
+			
+			if (isset($j->access->token)) {
+				$this->Settings["rackspace"]["token"] = $j->access->token->id;
+				$this->Settings["rackspace"]["token_expiration"] = strtotime($j->access->token->expires);
+				$this->Settings["rackspace"]["endpoints"] = array();
+				$this->Settings["rackspace"]["cdn_endpoints"] = array();
+				// Get API endpoints
+				foreach ($j->access->serviceCatalog as $service) {
+					if ($service->name == "cloudFiles") {
+						foreach ($service->endpoints as $endpoint) {
+							$this->Settings["rackspace"]["endpoints"][$endpoint->region] = (string)$endpoint->publicURL;
+						}
+					} elseif ($service->name == "cloudFilesCDN") {
+						foreach ($service->endpoints as $endpoint) {
+							$this->Settings["rackspace"]["cdn_endpoints"][$endpoint->region] = (string)$endpoint->publicURL;							
+						}
+					}
+				}
+				return true;
+			}
+
+			return false;
 		}
 
 		/*

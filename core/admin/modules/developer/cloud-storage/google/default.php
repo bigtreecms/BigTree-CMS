@@ -1,5 +1,6 @@
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/google/activate/" class="module" enctype="multipart/form-data">
+		<? $admin->drawCSRFToken() ?>
 		<section>
 			<p>To activate Google Cloud Storage you must follow these steps:</p>
 			<hr />
