@@ -3,6 +3,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>callouts/groups/create/" class="module">
+		<? $admin->drawCSRFToken() ?>
 		<section>
 			<fieldset>
 				<label class="required">Name</label>

@@ -1,4 +1,6 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	if ($_POST["group_new"]) {
 		$group = $admin->createCalloutGroup($_POST["group_new"]);
 	} else {

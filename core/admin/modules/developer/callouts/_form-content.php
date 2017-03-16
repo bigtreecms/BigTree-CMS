@@ -1,6 +1,8 @@
 <?
 	$cached_types = $admin->getCachedFieldTypes(true);
 	$types = $cached_types["callouts"];
+
+	$admin->drawCSRFToken();
 ?>
 <section>
 	<p class="error_message"<? if (!$show_error) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>

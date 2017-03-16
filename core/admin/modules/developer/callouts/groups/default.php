@@ -19,7 +19,7 @@
 				<a href="<?=DEVELOPER_ROOT?>callouts/groups/edit/<?=$item["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>callouts/groups/delete/<?=$item["id"]?>/" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>callouts/groups/delete/?id=<?=$item["id"]?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
 			</section>
 		</li>
 		<? } ?>

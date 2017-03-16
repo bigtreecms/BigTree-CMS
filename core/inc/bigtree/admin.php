@@ -2439,7 +2439,7 @@
 		*/
 		
 		function drawCSRFTokenGET() {
-			echo '&'.$this->CSRFTokenField.'='.htmlspecialchars($this->CSRFToken);
+			echo '&'.$this->CSRFTokenField.'='.urlencode($this->CSRFToken);
 		}
 
 		/*

@@ -1,5 +1,7 @@
 <?
+	$admin->verifyCSRFToken();
 	$results = $admin->searchAuditTrail($_GET["user"],$_GET["table"],$_GET["entry"],$_GET["start"],$_GET["end"]);
+	
 	// Setup caches so for big trails we don't retrieve stuff multiple times
 	$page_cache = array();
 	$user_cache = array();

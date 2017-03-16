@@ -3,6 +3,7 @@
 ?>
 <div class="container">
 	<form method="get" action="<?=DEVELOPER_ROOT?>audit/search/">
+		<? $admin->drawCSRFToken() ?>
 		<section>
 			<fieldset>
 				<label>User</label>
