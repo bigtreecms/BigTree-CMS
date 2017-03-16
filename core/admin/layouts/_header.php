@@ -89,6 +89,10 @@
 				}
 			}
 		?>
+		<script>
+			var CSRFTokenField = "<?=$admin->CSRFTokenField?>";
+			var CSRFToken = "<?=$admin->CSRFToken?>";
+		</script>
 		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
 		<script>BigTree.dateFormat = "<?=BigTree::phpDateTojQuery($bigtree["config"]["date_format"])?>";</script>

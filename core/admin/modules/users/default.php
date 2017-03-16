@@ -41,7 +41,7 @@
 			icon: "delete",
 			alternateSaveText: "OK",
 			callback: $.proxy(function() {
-				$.ajax("<?=ADMIN_ROOT?>ajax/users/delete/", { type: "POST", data: { id: $(this).attr("href").substr(1) } });
+				$.secureAjax("<?=ADMIN_ROOT?>ajax/users/delete/", { type: "POST", data: { id: $(this).attr("href").substr(1) } });
 			},this)
 		});
 		

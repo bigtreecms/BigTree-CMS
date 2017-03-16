@@ -9,6 +9,8 @@
 	if (!isset($_POST["page"])) {
 		BigTree::redirect(ADMIN_ROOT."pages/view-tree/0/");
 	}
+
+	$admin->verifyCSRFToken();
 	
 	// Check access levels on the page we're trying to modify
 	$page = $_POST["page"];

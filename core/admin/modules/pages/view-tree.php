@@ -76,14 +76,14 @@
 			?>
 			<section class="pages_restore">
 				<? if ($perm == "p" && $admin->canModifyChildren($item)) { ?>
-				<a href="<?=$proot?>restore/<?=$item["id"]?>/" title="Restore Page" class="icon_restore"></a>
+				<a href="<?=$proot?>restore/?id=<?=$item["id"]?><? $admin->drawCSRFTokenGET() ?>" title="Restore Page" class="icon_restore"></a>
 				<? } else { ?>
 				<span class="icon_restore disabled_icon"></span>
 				<? } ?>
 			</section>
 			<section class="pages_delete">
 				<? if ($perm == "p" && $admin->canModifyChildren($item)) { ?>
-				<a href="<?=$proot?>delete/<?=$item["id"]?>/" title="Delete Page" class="icon_delete"></a>
+				<a href="<?=$proot?>delete/?id=<?=$item["id"]?><? $admin->drawCSRFTokenGET() ?>" title="Delete Page" class="icon_delete"></a>
 				<? } else { ?>
 				<span class="icon_delete disabled_icon"></span>
 				<? } ?>
@@ -107,9 +107,9 @@
 			</section>
 			<section class="pages_archive">
 				<? if (!isset($item["bigtree_pending"]) && $perm == "p" && ($page["id"] != 0 || $admin->Level > 1 || $class == "hidden") && $admin->canModifyChildren($item)) { ?>
-				<a href="<?=$proot?>archive/<?=$item["id"]?>/" title="Archive Page" class="icon_archive"></a>
+				<a href="<?=$proot?>archive/?id=<?=$item["id"]?><? $admin->drawCSRFTokenGET() ?>" title="Archive Page" class="icon_archive"></a>
 				<? } elseif ($item["bigtree_pending"] && $perm == "p") { ?>
-				<a href="<?=$proot?>delete/<?=$item["id"]?>/" title="Delete Pending Page" class="icon_delete"></a>
+				<a href="<?=$proot?>delete/?id=<?=$item["id"]?><? $admin->drawCSRFTokenGET() ?>" title="Delete Pending Page" class="icon_delete"></a>
 				<? } elseif ($item["bigtree_pending"]) { ?>
 				<span class="icon_delete disabled_icon"></span>
 				<? } else { ?>
@@ -137,7 +137,7 @@
 ?>
 <script>
 	$("#pages_<?=$class?>").sortable({ axis: "y", containment: "parent",  handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/pages/order/", { type: "POST", data: { id: "<?=$page["id"]?>", sort: $("#pages_<?=$class?>").sortable("serialize") } });
+		$.secureAjax("<?=ADMIN_ROOT?>ajax/pages/order/", { type: "POST", data: { id: "<?=$page["id"]?>", sort: $("#pages_<?=$class?>").sortable("serialize") } });
 	}});
 </script>
 <?

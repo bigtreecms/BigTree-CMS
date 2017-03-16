@@ -5,7 +5,9 @@
 		BigTree::redirect($_SERVER["HTTP_REFERER"]);
 	}
 
+	$admin->verifyCSRFToken();
 	$access_level = $admin->getPageAccessLevel($_POST["parent"]);
+	
 	if ($access_level != "p" && $access_level != "e") {
 ?>
 <div class="container">

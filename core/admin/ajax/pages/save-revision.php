@@ -1,5 +1,7 @@
 <?
 	header("Content-type: text/javascript");
+
+	$admin->verifyCSRFToken();
 	
 	if (is_numeric($_POST["id"])) {
 		$admin->updatePageRevision($_POST["id"],$_POST["description"]);

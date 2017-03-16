@@ -78,7 +78,7 @@
 			icon: "delete",
 			alternateSaveText: "OK",
 			callback: $.proxy(function() {
-				$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$view["id"]?>&id=" + $(this).attr("href").substr(1));
+				$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$view["id"]?>&id=" + $(this).attr("href").substr(1));
 				$(this).parents("li").remove();
 			},this)
 		});
@@ -86,17 +86,17 @@
 		return false;
 	});
 	$("#results_table_<?=$view["id"]?> .icon_approve").click(function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/approve/?view=<?=$view["id"]?>&id=" + $(this).attr("href").substr(1));
+		$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/approve/?view=<?=$view["id"]?>&id=" + $(this).attr("href").substr(1));
 		$(this).toggleClass("icon_approve_on");
 		return false;
 	});
 	$("#results_table_<?=$view["id"]?> .icon_feature").click(function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/feature/?view=<?=$view["id"]?>&id=" + $(this).attr("href").substr(1));
+		$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/feature/?view=<?=$view["id"]?>&id=" + $(this).attr("href").substr(1));
 		$(this).toggleClass("icon_feature_on");
 		return false;
 	});
 	$("#results_table_<?=$view["id"]?> .icon_archive").click(function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/archive/?view=<?=$view["id"]?>&id=" + $(this).attr("href").substr(1));
+		$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/archive/?view=<?=$view["id"]?>&id=" + $(this).attr("href").substr(1));
 		$(this).toggleClass("icon_archive_on");
 		return false;
 	});

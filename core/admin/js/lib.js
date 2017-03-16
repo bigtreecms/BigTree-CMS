@@ -102,3 +102,12 @@ b==="api")return a(this).data("Jcrop");a(this).data("Jcrop").setOptions(b)}else 
 
 /* Sort a select alphabetically */
 $.fn.sortSelect=function(){var b=$(this).val();var a=$("#"+this.attr("id")+" option");a.sort(function(d,c){if(d.text>c.text){return 1}else{if(d.text<c.text){return -1}}return 0});$(this).empty().append(a);$(this).val(b)};
+
+/* Append CSRF Tokens to AJAX requests */
+$.secureAjax = function(url, settings) {
+	if (settings.data) {
+		settings.data[CSRFTokenField] = CSRFToken;
+	}
+
+	return this.ajax(url, settings);
+};

@@ -15,6 +15,7 @@
 ?>
 <h2>Edit Page Content</h2>
 <form class="bigtree_dialog_form" method="post" action="<?=ADMIN_ROOT?>pages/front-end-update/" enctype="multipart/form-data">
+	<? $admin->drawCSRFToken() ?>
 	<input type="hidden" name="page" value="<?=$bigtree["current_page"]["id"]?>" />
 	<input type="hidden" name="_bigtree_post_check" value="success" />
 	<div class="overflow">
@@ -76,5 +77,5 @@
 		return false;
 	});
 	
-	BigTree.localLockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$bigtree["current_page"]["id"]?>' } });",60000);
+	BigTree.localLockTimer = setInterval("$.secureAjax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$bigtree["current_page"]["id"]?>' } });",60000);
 </script>

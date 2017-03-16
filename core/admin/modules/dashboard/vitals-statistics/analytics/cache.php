@@ -4,7 +4,7 @@
 	</section>
 </div>
 <script>
-	$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/analytics/cache/", { success: function(response) {
+	$.secureAjax("<?=ADMIN_ROOT?>ajax/dashboard/analytics/cache/", { success: function(response) {
 		if (response) {
 			document.location.href = "<?=MODULE_ROOT?>";
 		} else {

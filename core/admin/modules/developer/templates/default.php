@@ -71,11 +71,11 @@
 
 <script>
 	$("#basic_templates").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-templates/", { type: "POST", data: { sort: $("#basic_templates").sortable("serialize"), rel: <?=json_encode($rel_table)?> } });
+		$.secureAjax("<?=ADMIN_ROOT?>ajax/developer/order-templates/", { type: "POST", data: { sort: $("#basic_templates").sortable("serialize"), rel: <?=json_encode($rel_table)?> } });
 	}});
 	
 	$("#routed_templates").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-templates/", { type: "POST", data: { sort: $("#routed_templates").sortable("serialize"), rel: <?=json_encode($rel_table)?> } });
+		$.secureAjax("<?=ADMIN_ROOT?>ajax/developer/order-templates/", { type: "POST", data: { sort: $("#routed_templates").sortable("serialize"), rel: <?=json_encode($rel_table)?> } });
 	}});
 	
 	$(".icon_delete").click(function() {

@@ -1125,9 +1125,11 @@ var BigTreeTagAdder = (function($) {
 
 	function addTag(ev) {
 		var tag = TagEntry.val();
+
 		if (tag) {
 			ActiveTagName = tag;
-			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: addedTag });
+
+			$.secureAjax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: addedTag });
 		}
 	}
 	
@@ -1160,10 +1162,13 @@ var BigTreeTagAdder = (function($) {
 	function chooseTag(ev) {
 		var el = ev.target;
 		var tag = el.innerHTML.replace("<span>","").replace("</span>","");
+
 		if (tag) {
 			ActiveTagName = tag;
-			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: addedTag });
+
+			$.secureAjax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: addedTag });
 		}
+
 		return false;
 	}
 
@@ -1444,7 +1449,8 @@ var BigTreeFileManager = (function($) {
 
 		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
 		last_dialog.attr("action","admin_root/ajax/file-browser/upload/")
-					.attr("target","file_manager_upload_frame");
+				   .attr("target","file_manager_upload_frame");
+		last_dialog.prepend('<input type="hidden" name="' + CSRFTokenField + '" value="' + CSRFToken + '">');
 		last_dialog.find("footer *").hide();
 		last_dialog.find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Uploading files. Please wait…</p>'));
 	}
@@ -1454,22 +1460,27 @@ var BigTreeFileManager = (function($) {
 
 		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
 		last_dialog.attr("action","admin_root/ajax/file-browser/create-folder/")
-					.attr("target","file_manager_upload_frame");
+				   .attr("target","file_manager_upload_frame");
+		last_dialog.prepend('<input type="hidden" name="' + CSRFTokenField + '" value="' + CSRFToken + '">');
 		last_dialog.find("footer *").hide();
 		last_dialog.find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Creating folder. Please wait…</p>'));
 	}
 
 	function deleteFile(ev) {
+		var count = parseInt($(this).attr("data-allocation"));
+		
 		ev.preventDefault();
 		ev.stopPropagation();
-		var count = parseInt($(this).attr("data-allocation"));
+		
 		if (count) {
 			var c = confirm("This file is in use in " + count + " locations.\nThese links or images will become empty or broken.\n\nAre you sure you want to delete this file?");
 		} else {
 			var c = confirm("Are you sure you want to delete this file?");
 		}
+
 		if (c) {
-			$.ajax("admin_root/ajax/file-browser/delete/", { type: "POST", data: { file: $("#file_browser_selected_file").val() } });
+			$.secureAjax("admin_root/ajax/file-browser/delete/", { type: "POST", data: { file: $("#file_browser_selected_file").val() } });
+			
 			$("#file_browser_contents .selected").remove();
 			$("#file_browser_info_pane").html("");
 			$("#file_browser .footer .blue").hide();
@@ -1487,8 +1498,9 @@ var BigTreeFileManager = (function($) {
 
 		$.ajax("admin_root/ajax/file-browser/folder-allocation/", { type: "POST", data: { folder: CurrentFolder }, complete: function(r) {
 			var j = $.parseJSON(r.responseText);
+			
 			if (confirm("This folder has " + j.folders + " sub-folder(s) and " + j.resources + " file(s) which will be deleted.\n\nFiles in this folder are in use in " + j.allocations + " location(s).\n\nAre you sure you want to delete this folder?")) {
-				$.ajax("admin_root/ajax/file-browser/delete-folder/", { type: "POST", data: { folder: CurrentFolder }, complete: function(r) {
+				$.secureAjax("admin_root/ajax/file-browser/delete-folder/", { type: "POST", data: { folder: CurrentFolder }, complete: function(r) {
 					if (Type == "image" || Type == "photo-gallery") {
 						openImageFolder(r.responseText);	
 					} else {
@@ -1762,8 +1774,8 @@ var BigTreeFileManager = (function($) {
 	function saveFileTitle() {
 		var title = $("#file_browser_detail_title_input").val();
 		var file = $("#file_browser_selected_file").val();
-		
-		$.ajax("admin_root/ajax/file-browser/save-title/", { type: "POST", data: { file: file, title: title } });
+
+		$.secureAjax("admin_root/ajax/file-browser/save-title/", { type: "POST", data: { file: file, title: title } });
 	}
 	
 	function search() {

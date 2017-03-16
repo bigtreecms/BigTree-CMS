@@ -1,6 +1,7 @@
 <?
-	$page = end($bigtree["path"]);
-	
+	$admin->verifyCSRFToken();
+
+	$page = $_GET["id"];
 	$page_data = $cms->getPendingPage($page);
 	$admin->deletePage($page);
 	

@@ -1,6 +1,8 @@
 <?
 	header("Content-type: text/json");
 
+	$admin->verifyCSRFToken();
+
 	function _localRecurseNav($parent) {
 		global $admin;
 		$response = array();

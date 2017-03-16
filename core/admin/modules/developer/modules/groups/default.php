@@ -29,7 +29,7 @@
 
 <script>
 	$("#groups").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-module-groups/", { type: "POST", data: { sort: $("#groups").sortable("serialize") } }); 
+		$.secureAjax("<?=ADMIN_ROOT?>ajax/developer/order-module-groups/", { type: "POST", data: { sort: $("#groups").sortable("serialize") } }); 
 	}});
 
 	$(".icon_delete").click(function() {

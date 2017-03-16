@@ -4,9 +4,12 @@
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
 		BigTree::redirect($_SERVER["HTTP_REFERER"]);
 	}
-	
+
+	$admin->verifyCSRFToken();
 	$admin->requireLevel(1);
+
 	$item = $admin->getSetting($_POST["id"]);
+
 	if ($item["system"] || ($item["locked"] && $admin->Level < 2)) {
 		$admin->growl("Settings","Access Denied","error");
 	} else {

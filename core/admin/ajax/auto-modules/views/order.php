@@ -1,4 +1,6 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	// Grab View Data
 	$view = BigTreeAutoModule::getView($_POST["view"]);
 	$module = $admin->getModule(BigTreeAutoModule::getModuleForView($view));

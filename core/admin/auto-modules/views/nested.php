@@ -14,7 +14,7 @@
 			items: "> li",
 			placeholder: "ui-sortable-placeholder",
 			update: function(ev,ui) {
-				$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$bigtree["view"]["id"]?>", sort: ui.item.parent().sortable("serialize") } });
+				$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$bigtree["view"]["id"]?>", sort: ui.item.parent().sortable("serialize") } });
 			}
 		});
 	};

@@ -77,7 +77,7 @@
 		*/
 
 		function __construct() {
-			if (isset($_SESSION["bigtree_admin"]["email"])) {
+			if (isset($_SESSION["bigtree_admin"]["email"]) && isset($_SESSION["bigtree_admin"]["csrf_token"])) {
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$_SESSION["bigtree_admin"]["id"]."' AND email = '".sqlescape($_SESSION["bigtree_admin"]["email"])."'"));
 				if ($f) {
 					$this->ID = $f["id"];
@@ -85,6 +85,8 @@
 					$this->Level = $f["level"];
 					$this->Name = $f["name"];
 					$this->Permissions = json_decode($f["permissions"],true);
+					$this->CSRFToken = $_SESSION["bigtree_admin"]["csrf_token"];
+					$this->CSRFTokenField = $_SESSION["bigtree_admin"]["csrf_token_field"];
 				}
 			} elseif (isset($_COOKIE["bigtree_admin"]["email"])) {
 				$user = sqlescape($_COOKIE["bigtree_admin"]["email"]);
@@ -95,21 +97,30 @@
 				// See if this is the current chain and session
 				$chain_entry = sqlfetch(sqlquery("SELECT * FROM bigtree_user_sessions WHERE email = '$user' AND chain = '".sqlescape($chain)."'"));
 
-				if ($chain_entry) {
+				if ($chain_entry && $chain_entry["csrf_token"]) {
 					// If both chain and session are legit, log them in
 					if ($chain_entry["id"] == $session) {
 						$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE email = '$user'"));
 						if ($f) {
+							// Generate a random CSRF token
+							$csrf_token = base64_encode(openssl_random_pseudo_bytes(32));
+							$csrf_token_field = "__csrf_token_".BigTree::randomString(32)."__";
+				
 							// Setup session
 							$this->ID = $f["id"];
 							$this->User = $user;
 							$this->Level = $f["level"];
 							$this->Name = $f["name"];
 							$this->Permissions = json_decode($f["permissions"],true);
+							$this->CSRFToken = $csrf_token;
+							$this->CSRFTokenField = $csrf_token_field;
+							
 							$_SESSION["bigtree_admin"]["id"] = $f["id"];
 							$_SESSION["bigtree_admin"]["email"] = $f["email"];
 							$_SESSION["bigtree_admin"]["name"] = $f["name"];
 							$_SESSION["bigtree_admin"]["level"] = $f["level"];
+							$_SESSION["bigtree_admin"]["csrf_token"] = $csrf_token;
+							$_SESSION["bigtree_admin"]["csrf_token_field"] = $csrf_token_field;
 
 							// Delete existing session
 							sqlquery("DELETE FROM bigtree_user_sessions WHERE id = '".sqlescape($session)."'");
@@ -119,9 +130,9 @@
 							while (sqlrows(sqlquery("SELECT id FROM bigtree_user_sessions WHERE id = '".sqlescape($session)."'"))) {
 								$session = uniqid("session-",true);
 							}
-
+							
 							// Create a new session with the same chain
-							sqlquery("INSERT INTO bigtree_user_sessions (`id`,`chain`,`email`) VALUES ('".sqlescape($session)."','".sqlescape($chain)."','$user')");
+							sqlquery("INSERT INTO bigtree_user_sessions (`id`,`chain`,`email`,`csrf_token`,`csrf_token_field`) VALUES ('".sqlescape($session)."','".sqlescape($chain)."','$user','$csrf_token','$csrf_token_field')");
 							setcookie('bigtree_admin[login]',json_encode(array($session,$chain)),strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
 						}
 					// Chain is legit and session isn't -- someone has taken your cookies
@@ -144,9 +155,9 @@
 				$this->HidePages = true;
 				if (is_array($this->Permissions["page"])) {
 					foreach ($this->Permissions["page"] as $k => $v) {
-					    if ($v != "n" && $v != "i") {
-					    	$this->HidePages = false;
-					    }
+						if ($v != "n" && $v != "i") {
+							$this->HidePages = false;
+						}
 					}
 				}
 			} else {
@@ -298,7 +309,7 @@
 				// Write the drop / create statements
 				fwrite($pointer,"DROP TABLE IF EXISTS `$table`;\n");
 				$definition = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
-				fwrite($pointer,str_replace(array("\n  ","\n"),"",end($definition)).";\n");
+				fwrite($pointer,str_replace(array("\n	","\n"),"",end($definition)).";\n");
 
 				// Get all the table contents, write them out
 				$rows = BigTree::tableContents($table);
@@ -1257,7 +1268,7 @@
 				$route = BigTreeCMS::urlify($route);
 			}
 
-			// We need to figure out a unique route for the page.  Make sure it doesn't match a directory in /site/
+			// We need to figure out a unique route for the page. Make sure it doesn't match a directory in /site/
 			$original_route = $route;
 			$x = 2;
 			// Reserved paths.
@@ -2411,6 +2422,24 @@
 
 			// Restore context
 			$bigtree["extension_context"] = $bigtree["saved_extension_context"];
+		}
+		
+		/*
+			Function: drawCSRFToken
+				Draws an input field for the CSRF token.
+		*/
+		
+		function drawCSRFToken() {
+			echo '<input type="hidden" value="'.htmlspecialchars($this->CSRFToken).'" name="'.$this->CSRFTokenField.'" />';
+		}
+
+		/*
+			Function: drawCSRFTokenGET
+				Draws a GET variable in a URL for the CSRF token.
+		*/
+		
+		function drawCSRFTokenGET() {
+			echo '&'.$this->CSRFTokenField.'='.htmlspecialchars($this->CSRFToken);
 		}
 
 		/*
@@ -4407,7 +4436,7 @@
 				if (mb_strlen($page["meta_description"]) <= 165) {
 					$score += 5;
 				} else {
-					$recommendations[] = "Your meta description should be no more than 165 characters.  It is currently ".mb_strlen($page["meta_description"])." characters.";
+					$recommendations[] = "Your meta description should be no more than 165 characters. It is currently ".mb_strlen($page["meta_description"])." characters.";
 				}
 			} else {
 				$recommendations[] = "You should enter a meta description.";
@@ -4447,7 +4476,7 @@
 					if ($words >= 300) {
 						$score += 15;
 					} else {
-						$recommendations[] = "You should enter at least 300 words of page content.  You currently have ".$words." word(s).";
+						$recommendations[] = "You should enter at least 300 words of page content. You currently have ".$words." word(s).";
 					}
 
 					// See if we have any links
@@ -4457,7 +4486,7 @@
 						if (floor($words / 120) <= $number_of_links) {
 							$score += 5;
 						} else {
-							$recommendations[] = "You should have at least one link for every 120 words of page content.  You currently have $number_of_links link(s).  You should have at least ".floor($words / 120).".";
+							$recommendations[] = "You should have at least one link for every 120 words of page content. You currently have $number_of_links link(s). You should have at least ".floor($words / 120).".";
 						}
 						// See if we have any external links.
 						if ($number_of_external_links) {
@@ -4474,7 +4503,7 @@
 						$score += 20;
 					} else {
 						$read_score = round(($readability / 90),2);
-						$recommendations[] = "Your readability score is ".($read_score*100)."%.  Using shorter sentences and words with fewer syllables will make your site easier to read by search engines and users.";
+						$recommendations[] = "Your readability score is ".($read_score*100)."%. Using shorter sentences and words with fewer syllables will make your site easier to read by search engines and users.";
 						$score += ceil($read_score * 20);
 					}
 				} else {
@@ -4491,7 +4520,7 @@
 						$age_score = 0;
 					}
 					$score += $age_score;
-					$recommendations[] = "Your content is around ".ceil(2 + ($age / (30*24*60*60)))." months old.  Updating your page more frequently will make it rank higher.";
+					$recommendations[] = "Your content is around ".ceil(2 + ($age / (30*24*60*60)))." months old. Updating your page more frequently will make it rank higher.";
 				} else {
 					$score += 10;
 				}
@@ -5698,6 +5727,10 @@
 			$ok = $phpass->CheckPassword($password, $user["password"]);
 			
 			if ($ok) {
+				// Generate a random CSRF token
+				$csrf_token = base64_encode(openssl_random_pseudo_bytes(32));
+				$csrf_token_field = "__csrf_token_".BigTree::randomString(32)."__";
+				
 				// Generate a random chain id
 				$chain = uniqid("chain-",true);
 
@@ -5713,7 +5746,7 @@
 				}
 
 				// Create the new session chain
-				sqlquery("INSERT INTO bigtree_user_sessions (`id`,`chain`,`email`) VALUES ('".sqlescape($session)."','".sqlescape($chain)."','".sqlescape($user["email"])."')");
+				sqlquery("INSERT INTO bigtree_user_sessions (`id`,`chain`,`email`,`csrf_token`,`csrf_token_field`) VALUES ('".sqlescape($session)."','".sqlescape($chain)."','".sqlescape($user["email"])."','$csrf_token','$csrf_token_field')");
 				
 				if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
 					// Create another unique cache session for logins across domains
@@ -5723,7 +5756,9 @@
 						"chain" => $chain,
 						"stay_logged_in" => $stay_logged_in,
 						"login_redirect" => isset($_SESSION["bigtree_login_redirect"]) ? $_SESSION["bigtree_login_redirect"] : false,
-						"remaining_sites" => array()
+						"remaining_sites" => array(),
+						"csrf_token" => $csrf_token,
+						"csrf_token_field" => $csrf_token_field
 					);
 					
 					foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
@@ -5751,6 +5786,8 @@
 					$_SESSION["bigtree_admin"]["level"] = $user["level"];
 					$_SESSION["bigtree_admin"]["name"] = $user["name"];
 					$_SESSION["bigtree_admin"]["permissions"] = json_decode($user["permissions"],true);
+					$_SESSION["bigtree_admin"]["csrf_token"] = $csrf_token;
+					$_SESSION["bigtree_admin"]["csrf_token_field"] = $csrf_token_field;
 					
 					if (isset($_SESSION["bigtree_login_redirect"])) {
 						BigTree::redirect($_SESSION["bigtree_login_redirect"]);
@@ -5836,6 +5873,8 @@
 					$_SESSION["bigtree_admin"]["level"] = $user["level"];
 					$_SESSION["bigtree_admin"]["name"] = $user["name"];
 					$_SESSION["bigtree_admin"]["permissions"] = json_decode($user["permissions"], true);
+					$_SESSION["bigtree_admin"]["csrf_token"] = $cache_data["csrf_token"];
+					$_SESSION["bigtree_admin"]["csrf_token_field"] = $cache_data["csrf_token_field"];
 					
 					unset($cache_data["remaining_sites"][$site_key]);
 				}
@@ -6248,7 +6287,7 @@
 				}
 			}
 
-			// If the minimum height or width is not meant, do NOT let the image through.  Erase the change or update from the database.
+			// If the minimum height or width is not meant, do NOT let the image through. Erase the change or update from the database.
 			if ((isset($field["options"]["min_height"]) && $iheight < $field["options"]["min_height"]) || (isset($field["options"]["min_width"]) && $iwidth < $field["options"]["min_width"])) {
 				$error = "Image uploaded (".htmlspecialchars($name).") did not meet the minimum size of ";
 				if ($field["options"]["min_height"] && $field["options"]["min_width"]) {
@@ -6264,13 +6303,13 @@
 
 			// If it's not a valid image, throw it out!
 			if ($itype != IMAGETYPE_GIF && $itype != IMAGETYPE_JPEG && $itype != IMAGETYPE_PNG) {
-				$bigtree["errors"][] = array("field" => $field["title"], "error" =>  "An invalid file was uploaded. Valid file types: JPG, GIF, PNG.");
+				$bigtree["errors"][] = array("field" => $field["title"], "error" => "An invalid file was uploaded. Valid file types: JPG, GIF, PNG.");
 				$failed = true;
 			}
 
 			// See if it's CMYK
 			if ($channels == 4) {
-				$bigtree["errors"][] = array("field" => $field["title"], "error" =>  "A CMYK encoded file was uploaded. Please upload an RBG image.");
+				$bigtree["errors"][] = array("field" => $field["title"], "error" => "A CMYK encoded file was uploaded. Please upload an RBG image.");
 				$failed = true;
 			}
 
@@ -6417,7 +6456,7 @@
 					unlink($temp_copy);
 					unlink($first_copy);
 
-				    // Failed, we keep the current value
+					// Failed, we keep the current value
 					return false;
 				// If we did upload it successfully, check on thumbs and crops.
 				} else {
@@ -6814,7 +6853,7 @@
 
 			$q = sqlquery("SELECT * FROM bigtree_resources WHERE LOWER(name) LIKE '%$query%' ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
-				// If we've already got the permission cahced, use it.  Otherwise, fetch it and cache it.
+				// If we've already got the permission cahced, use it. Otherwise, fetch it and cache it.
 				if ($permission_cache[$f["folder"]]) {
 					$f["permission"] = $permission_cache[$f["folder"]];
 				} else {
@@ -7788,7 +7827,7 @@
 			// Remove this page from the cache
 			static::unCache($page);
 
-			// Set local variables in a clean fashion that prevents _SESSION exploitation.  Also, don't let them somehow overwrite $page and $current.
+			// Set local variables in a clean fashion that prevents _SESSION exploitation. Also, don't let them somehow overwrite $page and $current.
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_" && $key != "current" && $key != "page") {
 					if (is_array($val)) {
@@ -7818,7 +7857,7 @@
 				$external = static::makeIPL($external);
 			}
 
-			// If somehow we didn't provide a parent page (like, say, the user didn't have the right to change it) then pull the one from before.  Actually, this might be exploitable… look into it later.
+			// If somehow we didn't provide a parent page (like, say, the user didn't have the right to change it) then pull the one from before. Actually, this might be exploitable… look into it later.
 			if (!isset($data["parent"])) {
 				$parent = $current["parent"];
 			}
@@ -8212,7 +8251,7 @@
 				data - A key/value array containing email, name, company, level, permissions, alerts, daily_digest, and (optionally) password.
 
 			Returns:
-				True if successful.  False if the logged in user doesn't have permission to change the user or there was an email collision.
+				True if successful. False if the logged in user doesn't have permission to change the user or there was an email collision.
 		*/
 
 		function updateUser($id,$data) {
@@ -8315,6 +8354,21 @@
 				$failed = true;
 			}
 			return !$failed;
+		}
+		
+		/*
+			Function: verifyCSRFToken
+				Verifies the referring host and session token and stops processing if they fail.
+		*/
+		
+		function verifyCSRFToken() {
+			$clean_referer = str_replace(array("http://","https://"),"//",$_SERVER["HTTP_REFERER"]);
+			$clean_domain = str_replace(array("http://","https://"),"//",DOMAIN);
+			$token = isset($_POST[$this->CSRFTokenField]) ? $_POST[$this->CSRFTokenField] : $_GET[$this->CSRFTokenField];
+			
+			if (strpos($clean_referer, $clean_domain) === false || $token != $this->CSRFToken) {
+				$this->stop("Cross site request forgery detected.");
+			}
 		}
 
 		/*

@@ -1,5 +1,7 @@
 <?
 	header("Content-type: text/javascript");
+
+	$admin->verifyCSRFToken();
 	
 	$id = sqlescape($_GET["id"]);
 

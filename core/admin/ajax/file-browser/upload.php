@@ -12,6 +12,8 @@
 		die();
 	}
 
+	$admin->verifyCSRFToken();
+
 	$storage = new BigTreeStorage;
 	
 	// If we're replacing an existing file, find out its name

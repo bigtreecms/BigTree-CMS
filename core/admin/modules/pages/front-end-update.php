@@ -5,6 +5,8 @@
 		BigTree::redirect($_SERVER["HTTP_REFERER"]);
 	}
 
+	$admin->verifyCSRFToken();
+
 	$bigtree["layout"] = "front-end";
 
 	$page = $_POST["page"];

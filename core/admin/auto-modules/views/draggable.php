@@ -34,7 +34,7 @@
 		<? if ($permission == "p") { ?>
 		if ($("#search").val() == "") {
 			$("#sort_table").sortable({ axis: "y", containment: "parent", handle: ".js-sort-hook", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-				$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$bigtree["view"]["id"]?>", sort: $("#sort_table").sortable("serialize") } });
+				$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$bigtree["view"]["id"]?>", sort: $("#sort_table").sortable("serialize") } });
 			}});
 		}
 		<? } ?>

@@ -1,4 +1,6 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	// Get existing presets
 	$settings = $cms->getSetting("bigtree-internal-media-settings");
 

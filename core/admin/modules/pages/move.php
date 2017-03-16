@@ -43,6 +43,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>pages/move-update/">
+		<? $admin->drawCSRFToken() ?>
 		<input type="hidden" name="page" value="<?=$page["id"]?>" />
 		<section>
 			<fieldset>

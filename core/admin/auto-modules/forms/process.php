@@ -4,6 +4,8 @@
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
 		BigTree::redirect($_SERVER["HTTP_REFERER"]);
 	}
+
+	$admin->verifyCSRFToken();
 	
 	// If there's a preprocess function for this module, let's get'r'done.
 	$bigtree["preprocessed"] = array();

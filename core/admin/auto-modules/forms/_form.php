@@ -1,12 +1,18 @@
 <div class="container">
 	<form method="post" action="<?=$bigtree["form_root"]?>process/<? if ($bigtree["form"]["embedded"]) { ?>?hash=<?=$bigtree["form"]["hash"]?><? } ?>" enctype="multipart/form-data" class="module" id="auto_module_form">
-		<? if ($bigtree["form"]["embedded"]) { ?>
+		<?
+			if ($bigtree["form"]["embedded"]) {
+		?>
 		<fieldset>
 			<label>This is a field that shouldn't be filled out.</label>
 			<input type="text" name="_bigtree_email" />
 			<input type="text" name="_bigtree_hashcash" id="bigtree_hashcash_field" />
 		</fieldset>
-		<? } ?>
+		<?
+			} else {
+				$admin->drawCSRFToken();
+			}
+		?>
 		<input type="hidden" id="preview_field" name="_bigtree_preview" />
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" id="bigtree_max_file_size" />
 		<input type="hidden" name="_bigtree_post_check" value="success" />

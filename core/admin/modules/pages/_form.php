@@ -25,6 +25,8 @@
 	</header>
 	<form method="post" class="module" action="<?=ADMIN_ROOT?>pages/<?=$bigtree["form_action"]?>/" enctype="multipart/form-data" id="page_form">
 		<?
+			$admin->drawCSRFToken();
+			
 			if (isset($_GET["return"]) && $_GET["return"] == "front") {
 		?>
 		<input type="hidden" name="return_to_front" value="true" />
@@ -86,6 +88,6 @@
 	BigTree.currentPage = false;
 	<? } else { ?>
 	BigTree.currentPage = "<?=$bigtree["current_page"]["id"]?>";
-	BigTree.localLockTimer = setInterval("$.ajax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$bigtree["current_page"]["id"]?>' } });",60000);
+	BigTree.localLockTimer = setInterval("$.secureAjax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$bigtree["current_page"]["id"]?>' } });",60000);
 	<? } ?>
 </script>

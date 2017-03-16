@@ -624,4 +624,11 @@
 	function _local_bigtree_update_202() {
 		sqlquery("ALTER TABLE `bigtree_pending_changes` CHANGE COLUMN `user` `user` int(11) unsigned NULL");
 	}
+
+	// BigTree 4.2.17 update -- REVISION 203
+	function _local_bigtree_update_203() {
+		sqlquery("ALTER TABLE `bigtree_user_sessions` ADD COLUMN `csrf_token` VARCHAR(255) NULL");
+		sqlquery("ALTER TABLE `bigtree_user_sessions` ADD COLUMN `csrf_token_field` VARCHAR(255) NULL");
+		sqlquery("DELETE FROM bigtree_user_sessions");
+	}
 ?>

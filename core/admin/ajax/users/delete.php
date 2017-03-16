@@ -1,6 +1,8 @@
 <?
 	header("Content-type: text/javascript");
 	$id = intval($_POST["id"]);
+
+	$admin->verifyCSRFToken();
 	$admin->requireLevel(1);
 	$admin->deleteUser($id);
 ?>

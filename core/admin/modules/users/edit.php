@@ -152,6 +152,7 @@
 ?>
 <div class="container">
 	<form class="module" action="<?=ADMIN_ROOT?>users/update/" method="post">
+		<? $admin->drawCSRFToken() ?>
 		<input type="hidden" name="id" value="<?=$user["id"]?>" />
 		<section>
 			<p class="error_message"<? if (!$error) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
@@ -362,7 +363,7 @@
 
 <script>
 	BigTree.localPages = false;
-	$.ajax("<?=ADMIN_ROOT?>ajax/users/pages-json/", { complete: function(r) {
+	$.secureAjax("<?=ADMIN_ROOT?>ajax/users/pages-json/", { complete: function(r) {
 		BigTree.localPages = r.responseJSON;
 	}});
 

@@ -13,7 +13,8 @@
 	}
 ?>
 <div class="container">
-	<form class="module" action="<?=ADMIN_ROOT?>users/create/" method="post">	
+	<form class="module" action="<?=ADMIN_ROOT?>users/create/" method="post">
+		<? $admin->drawCSRFToken() ?>
 		<section>
 			<p class="error_message"<? if (!$error) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="left">

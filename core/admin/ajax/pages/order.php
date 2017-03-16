@@ -1,5 +1,7 @@
 <?
+	$admin->verifyCSRFToken();
 	$r = $admin->getPageAccessLevel($_POST["id"]);
+	
 	if ($r == "p") {
 		parse_str($_POST["sort"],$data);
 		

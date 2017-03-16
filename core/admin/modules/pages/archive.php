@@ -1,5 +1,7 @@
 <?
-	$id = end($bigtree["path"]);
+	$admin->verifyCSRFToken();
+	
+	$id = $_GET["id"];
 	$page = $cms->getPage($id,false);
 	$access = $admin->archivePage($id);
 	

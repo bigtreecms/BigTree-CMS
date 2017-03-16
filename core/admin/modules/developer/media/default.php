@@ -38,7 +38,7 @@
 					content: e.responseText,
 					callback: function(data) {
 						// We update the DB first because we need the random ID that's created
-						$.ajax("<?=ADMIN_ROOT?>ajax/developer/media/save-preset/", { type: "POST", data: data, complete: function(response) {
+						$.secureAjax("<?=ADMIN_ROOT?>ajax/developer/media/save-preset/", { type: "POST", data: data, complete: function(response) {
 							data.id = response.responseText;
 							var li = new $("<li>");
 							li.html('<input type="hidden" />' +
@@ -67,7 +67,7 @@
 					// Remove from DOM
 					Current.remove();
 					// Remove from DB
-					$.ajax("<?=ADMIN_ROOT?>ajax/developer/media/delete-preset/", { type: "POST", id: data.id });
+					$.secureAjax("<?=ADMIN_ROOT?>ajax/developer/media/delete-preset/", { type: "POST", id: data.id });
 				}
 			});
 		}
@@ -91,7 +91,7 @@
 						Current.find(".developer_templates_name").html(htmlspecialchars(data.name));
 						Current.find("input").val(JSON.stringify(data));
 						// Update DB
-						$.ajax("<?=ADMIN_ROOT?>ajax/developer/media/save-preset/", { type: "POST", data: data });
+						$.secureAjax("<?=ADMIN_ROOT?>ajax/developer/media/save-preset/", { type: "POST", data: data });
 					}
 				});
 			}});

@@ -1,7 +1,10 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	// Get the version, check if the user has access to the page the version refers to.
 	$revision = $admin->getPageRevision($_GET["id"]);
 	$access = $admin->getPageAccessLevel($revision["page"]);
+	
 	if ($access != "p") {
 ?>
 <div class="container">
