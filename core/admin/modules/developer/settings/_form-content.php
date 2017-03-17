@@ -1,3 +1,4 @@
+<? $admin->drawCSRFToken() ?>
 <section>
 	<p class="error_message"<? if (!$e) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 	<div class="contain">

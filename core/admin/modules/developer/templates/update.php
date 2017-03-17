@@ -1,4 +1,6 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	BigTree::globalizePOSTVars();
 	$admin->updateTemplate($id,$name,$level,$module,$resources);
 	$admin->growl("Developer","Updated Template");

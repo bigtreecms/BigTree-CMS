@@ -27,7 +27,7 @@
 				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>templates/delete/<?=$template["id"]?>/" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>templates/delete/?id=<?=$template["id"]?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
 			</section>
 		</li>
 		<?
@@ -59,7 +59,7 @@
 				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>templates/delete/<?=$template["id"]?>/" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>templates/delete/?id=<?=$template["id"]?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
 			</section>
 		</li>
 		<?

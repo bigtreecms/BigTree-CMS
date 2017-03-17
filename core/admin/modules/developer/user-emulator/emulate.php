@@ -1,5 +1,8 @@
 <?
-	$user = $admin->getUser(end($bigtree["commands"]));
+	$admin->verifyCSRFToken();
+	
+	$user = $admin->getUser($_GET["id"]);
+	
 	if (!$user) {
 ?>
 <div class="container">

@@ -21,7 +21,7 @@
 				<a href="<?=DEVELOPER_ROOT?>settings/edit/<?=$setting["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>settings/delete/<?=$setting["id"]?>/" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>settings/delete/?id=<?=$setting["id"]?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
 			</section>
 		</li>
 		<? } ?>

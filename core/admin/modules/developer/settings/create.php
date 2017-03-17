@@ -1,5 +1,8 @@
 <?
+	$admin->verifyCSRFToken();
+
 	$success = $admin->createSetting($_POST);
+
 	if ($success) {
 		$admin->growl("Developer","Created Setting");
 		BigTree::redirect(DEVELOPER_ROOT."settings/");

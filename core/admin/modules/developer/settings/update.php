@@ -1,5 +1,8 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	$item = $admin->getSetting(end($bigtree["path"]));
+	
 	if ($item["system"]) {
 		$admin->growl("Developer","Access Denied","error");
 		BigTree::redirect(DEVELOPER_ROOT."settings/");

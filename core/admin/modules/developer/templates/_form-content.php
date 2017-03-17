@@ -1,4 +1,6 @@
 <?
+	$admin->drawCSRFToken();
+	
 	$cached_types = $admin->getCachedFieldTypes(true);
 	$types = $cached_types["templates"];
 
