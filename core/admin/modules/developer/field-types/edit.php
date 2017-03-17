@@ -4,6 +4,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>field-types/update/" enctype="multipart/form-data" class="module">
+		<? $admin->drawCSRFToken() ?>
 		<input type="hidden" name="id" value="<?=$id?>" />
 		<section>
 			<fieldset>

@@ -1,4 +1,6 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
@@ -43,7 +45,7 @@
 
 	if (!$files) {
 		BigTree::deleteDirectory($cache_root);
-		$_SESSION["upload_error"] = "The zip file uploaded was corrupt.";
+		$_SESSION["upload_error"] = "The file uploaded is either not a zip file or is corrupt.";
 		BigTree::redirect(DEVELOPER_ROOT."extensions/install/");
 	}
 	

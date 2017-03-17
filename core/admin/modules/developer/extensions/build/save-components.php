@@ -1,4 +1,6 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	BigTree::globalizePOSTVars();
 
 	$p = &$_SESSION["bigtree_admin"]["developer"]["package"];

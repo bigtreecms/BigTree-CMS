@@ -1,6 +1,7 @@
 <div class="container">
 	<header><p>Add additional files and tables to your extension.</p></header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>extensions/build/save-files/" class="module">
+		<? $admin->drawCSRFToken() ?>
 		<section>
 			<article class="package_column package_column_double">
 				<strong>Files</strong>

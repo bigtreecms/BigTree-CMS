@@ -1,3 +1,4 @@
+<? $admin->drawCSRFToken() ?>
 <section>
 	<div class="left last">
 		<fieldset>

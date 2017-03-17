@@ -1,5 +1,7 @@
 <?
+	$admin->verifyCSRFToken();
 	$route = $admin->createFeed($_POST["name"],$_POST["description"],$_POST["table"],$_POST["type"],$_POST["options"],$_POST["fields"]);
+	$admin->growl("Developer","Created Feed");
 ?>
 <div class="container">
 	<section>

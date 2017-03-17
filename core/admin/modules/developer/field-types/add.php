@@ -11,6 +11,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>field-types/create/" enctype="multipart/form-data" class="module">
+		<? $admin->drawCSRFToken() ?>
 		<section>
 			<div class="contain">
 				<div class="left">

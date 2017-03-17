@@ -21,7 +21,7 @@
 				<a href="<?=DEVELOPER_ROOT?>feeds/edit/<?=$feed["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>feeds/delete/<?=$feed["id"]?>/" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>feeds/delete/?id=<?=$feed["id"]?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
 			</section>
 		</li>
 		<? } ?>

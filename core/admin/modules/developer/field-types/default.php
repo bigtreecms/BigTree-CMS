@@ -17,7 +17,7 @@
 				<a href="<?=DEVELOPER_ROOT?>field-types/edit/<?=$type["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>field-types/delete/<?=$type["id"]?>/" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>field-types/delete/?id=<?=$type["id"]?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
 			</section>
 		</li>
 		<? } ?>

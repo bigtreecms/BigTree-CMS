@@ -1,4 +1,6 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	$geocoding_service = $cms->getSetting("bigtree-internal-geocoding-service");
 	$geocoding_service["service"] = "mapquest";
 	$geocoding_service["mapquest_key"] = $_POST["mapquest_key"];

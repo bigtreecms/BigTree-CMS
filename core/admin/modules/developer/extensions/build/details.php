@@ -1,5 +1,6 @@
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>extensions/build/save-details/" class="module">
+		<? $admin->drawCSRFToken() ?>
 		<section>
 			<div class="contain">
 				<h3>General Information</h3>
