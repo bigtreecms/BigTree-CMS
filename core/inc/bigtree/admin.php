@@ -1790,12 +1790,20 @@
 
 		function deleteExtension($id) {
 			$extension = $this->getExtension($id);
+
+			if (!$extension) {
+				return;
+			}
+
 			$j = json_decode($extension["manifest"],true);
-		
-			// Delete site files
-			BigTree::deleteDirectory(SITE_ROOT."extensions/".$j["id"]."/");
-			// Delete extensions directory
-			BigTree::deleteDirectory(SERVER_ROOT."extensions/".$j["id"]."/");
+			
+			// Don't delete the whole directory if the manifest fails to load
+			if ($j["id"]) {
+				// Delete site files
+				BigTree::deleteDirectory(SITE_ROOT."extensions/".$j["id"]."/");
+				// Delete extensions directory
+				BigTree::deleteDirectory(SERVER_ROOT."extensions/".$j["id"]."/");
+			}
 		
 			// Delete components
 			foreach ($j["components"] as $type => $list) {
