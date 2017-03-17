@@ -20,6 +20,7 @@
 	<section id="local_tab"<? if ($email_service->Service != "local") { ?> style="display: none;"<? } ?>>
 		<p>Mail delivery over your local server uses <a href="http://php.net/manual/en/mail.configuration.php" target="_blank">PHP's native mail settings</a> for email delivery. This may increase your risk of having emails marked as spam.</p>
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
+			<? $admin->drawCSRFToken() ?>
 			<input type="hidden" name="service" value="local" />
 			<fieldset>
 				<label>BigTree "From" Address <small>(for sending Daily Digest and Forgot Password emails)</small></label>
@@ -32,6 +33,7 @@
 		<p>It is advised that you verify your "sending domain" (the domain that you plan to use in the "From" address of your emails) via DKIM and SPF to reduce the risk of your email being marked as spam.</p>
 		<hr />
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
+			<? $admin->drawCSRFToken() ?>
 			<input type="hidden" name="service" value="mandrill" />
 			<fieldset>
 				<label>API Key</label>
@@ -48,6 +50,7 @@
 		<p>It is <strong>required</strong> that you verify your "sending domain" (the domain that you plan to use in the "From" address of your emails) via DKIM and SPF to send more than 300 emails per day. It is also recommended even if you fall below that threshold as it will reduce the risk of your email being marked as spam.</p>
 		<hr />
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
+			<? $admin->drawCSRFToken() ?>
 			<input type="hidden" name="service" value="mailgun" />
 			<fieldset>
 				<label>API Key</label>
@@ -68,6 +71,7 @@
 		<p>It is advised that you verify your "sending domain" (the domain that you plan to use in the "From" address of your emails) via DKIM and SPF to reduce the risk of your email being marked as spam.</p>
 		<hr />
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
+			<? $admin->drawCSRFToken() ?>
 			<input type="hidden" name="service" value="postmark" />
 			<fieldset>
 				<label>API Key</label>
@@ -83,6 +87,7 @@
 		<p><a href="https://www.sendgrid.com/" target="_blank">SendGrid</a> is a transactional email delivery and management service.<br />You must enter both your API user and API key (the password that you use to log into sendgrid.com).</p>
 		<hr />
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
+			<? $admin->drawCSRFToken() ?>
 			<input type="hidden" name="service" value="sendgrid" />
 			<fieldset>
 				<label>API User <small>(same as SMTP username)</small></label>
