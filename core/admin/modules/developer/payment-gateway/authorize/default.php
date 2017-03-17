@@ -1,5 +1,6 @@
 <div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>developer/payment-gateway/authorize/update/" class="module">
+		<? $admin->drawCSRFToken() ?>
 		<section>
 			<div class="alert">
 				<p>To enable usage of Authorize.Net as your payment gateway, enter your access information below.</p>

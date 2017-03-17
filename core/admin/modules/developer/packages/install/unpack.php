@@ -4,6 +4,8 @@
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
 		BigTree::redirect($_SERVER["HTTP_REFERER"]);
 	}
+
+	$admin->verifyCSRFToken();
 	
 	// Make sure an upload succeeded
 	$error = $_FILES["file"]["error"];

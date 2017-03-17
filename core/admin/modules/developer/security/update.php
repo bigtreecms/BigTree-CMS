@@ -1,5 +1,8 @@
 <?
+	$admin->verifyCSRFToken();
+
 	BigTree::globalizePOSTVars();
+	
 	$admin->updateSettingValue("bigtree-internal-security-policy",array(
 		"user_fails" => array(
 			"count" => $user_fails["count"] ? intval($user_fails["count"]) : "",
@@ -22,6 +25,7 @@
 		"allowed_ips" => $allowed_ips,
 		"banned_ips" => $banned_ips
 	));
+	
 	$admin->growl("Security","Updated Policy");
 	BigTree::redirect(DEVELOPER_ROOT);
 ?>

@@ -3,6 +3,7 @@
 		if (!$api->Connected) {
 	?>
 	<form method="post" action="<?=DEVELOPER_ROOT?>services/<?=$route?>/activate/" class="module">	
+		<? $admin->drawCSRFToken() ?>
 		<section>
 			<p>To activate the <?=$name?> API class you must follow these steps:</p>
 			<hr />
@@ -65,7 +66,7 @@
 		<? } ?>
 	</section>
 	<footer>
-		<a href="<?=DEVELOPER_ROOT?>services/<?=$route?>/disconnect/" class="button red">Disconnect</a>
+		<a href="<?=DEVELOPER_ROOT?>services/<?=$route?>/disconnect/?true<? $admin->drawCSRFTokenGET() ?>" class="button red">Disconnect</a>
 	</footer>
 	<?
 		}

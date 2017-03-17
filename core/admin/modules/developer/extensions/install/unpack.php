@@ -1,11 +1,11 @@
-<?
-	$admin->verifyCSRFToken();
-	
+<?	
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
 		BigTree::redirect($_SERVER["HTTP_REFERER"]);
 	}
+
+	$admin->verifyCSRFToken();
 	
 	// Make sure an upload succeeded
 	$error = $_FILES["file"]["error"];

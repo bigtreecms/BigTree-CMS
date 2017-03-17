@@ -1,6 +1,7 @@
 <div class="container">
 	<header><p>Add additional files and tables to your package.</p></header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>packages/build/save-files/" class="module">
+		<? $admin->drawCSRFToken() ?>
 		<section>
 			<article class="package_column package_column_double">
 				<strong>Files</strong>

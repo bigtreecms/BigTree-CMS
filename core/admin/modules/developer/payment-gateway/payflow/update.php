@@ -1,4 +1,6 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	$gateway->Service = "payflow";
 	$gateway->Settings["payflow-vendor"] = $_POST["payflow-vendor"];
 	$gateway->Settings["payflow-partner"] = $_POST["payflow-partner"];

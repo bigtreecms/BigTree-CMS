@@ -1,6 +1,7 @@
 <div class="container">
 	<header><p>Add modules, templates, callouts, field types, feeds, and settings to your package.</p></header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>packages/build/save-components/" class="module">
+		<? $admin->drawCSRFToken() ?>
 		<section>
 			<fieldset>
 				<article class="package_column">

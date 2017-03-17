@@ -1,4 +1,6 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	$gateway->Service = "authorize.net";
 	$gateway->Settings["authorize-api-login"] = $_POST["authorize-api-login"];
 	$gateway->Settings["authorize-transaction-key"] = $_POST["authorize-transaction-key"];

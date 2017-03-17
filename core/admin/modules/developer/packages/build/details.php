@@ -1,6 +1,7 @@
 <div class="container">
 	<header><p>Build out the manifest details for your package.</p></header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>packages/build/save-details/" class="module">
+		<? $admin->drawCSRFToken() ?>
 		<section>
 			<div class="contain">
 				<h3>Package Information</h3>
