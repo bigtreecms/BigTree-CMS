@@ -8,9 +8,15 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=SECTION_ROOT?>update/<?=$report["id"]?>/" class="module">
-		<? if ($_GET["return"] == "front") { ?>
+		<?
+			$admin->drawCSRFToken();
+			
+			if ($_GET["return"] == "front") {
+		?>
 		<input type="hidden" name="return_page" value="<?=htmlspecialchars($_SERVER["HTTP_REFERER"])?>" />
-		<? } ?>
+		<?
+			}
+		?>
 		<section>
 			<div class="left last">
 				<fieldset>

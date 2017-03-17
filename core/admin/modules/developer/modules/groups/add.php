@@ -1,5 +1,6 @@
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/groups/create/" class="module">
+		<? $admin->drawCSRFToken() ?>
 		<section>
 			<fieldset>
 				<label class="required">Name</label>

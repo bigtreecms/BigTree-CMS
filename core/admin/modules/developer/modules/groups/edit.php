@@ -4,6 +4,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/groups/update/<?=$id?>/" class="module">
+		<? $admin->drawCSRFToken() ?>
 		<section>
 			<fieldset>
 			    <label class="required">Name</label>

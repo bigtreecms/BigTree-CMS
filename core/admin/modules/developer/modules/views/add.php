@@ -28,6 +28,8 @@
 
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/views/create/<?=$id?>/" class="module">
 		<?
+			$admin->drawCSRFToken();
+			
 			if (isset($_GET["new_module"]) || isset($new_module)) {
 		?>
 		<input type="hidden" name="new_module" value="true" />

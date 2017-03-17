@@ -67,10 +67,16 @@
 	</ul>
 </div>
 <form method="post" action="<?=DEVELOPER_ROOT?>modules/views/update-style/<?=$view["id"]?>/" class="module">
-	<? foreach ($fields as $key => $field) { ?>
+	<?
+		$admin->drawCSRFToken();
+
+		foreach ($fields as $key => $field) {
+	?>
 	<input type="hidden" name="<?=$key?>" id="data_<?=$key?>" value="<?=$field["width"]?>" />
-	<? } ?>
-	<a class="button" href="<?=DEVELOPER_ROOT?>modules/views/clear-style/<?=$view["id"]?>/">Clear Existing Style</a>
+	<?
+		}
+	?>
+	<a class="button" href="<?=DEVELOPER_ROOT?>modules/views/clear-style/?id=<?=$view["id"]?><? $admin->drawCSRFTokenGET() ?>">Clear Existing Style</a>
 	<input type="submit" class="button blue" value="Update" />
 </form>
 <?

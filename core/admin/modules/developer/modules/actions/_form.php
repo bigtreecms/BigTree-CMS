@@ -2,6 +2,8 @@
 	$forms = $admin->getModuleForms("title",$module["id"]);
 	$views = $admin->getModuleViews("title",$module["id"]);
 	$reports = $admin->getModuleReports("title",$module["id"]);
+
+	$admin->drawCSRFToken();
 ?>
 <section>
 	<fieldset>

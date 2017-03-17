@@ -1,4 +1,6 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	BigTree::globalizePOSTVars();
 
 	$module = end($bigtree["path"]);

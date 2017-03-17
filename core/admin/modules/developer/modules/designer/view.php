@@ -19,6 +19,7 @@
 		<p>Step 3: Creating Your View</p>
 	</header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/designer/view-create/" class="module">
+		<? $admin->drawCSRFToken() ?>
 		<input type="hidden" name="module" value="<?=$module["id"]?>" />
 		<input type="hidden" name="table" value="<?=$table?>" />
 		<section>

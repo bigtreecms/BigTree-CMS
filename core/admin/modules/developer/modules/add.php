@@ -12,6 +12,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/create/" class="module">
+		<? $admin->drawCSRFToken() ?>
 		<section>
 			<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="contain">

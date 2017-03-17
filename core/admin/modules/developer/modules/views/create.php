@@ -1,4 +1,6 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	BigTree::globalizePOSTVars();
 
 	$options = json_decode($options,true);

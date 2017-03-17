@@ -1,4 +1,6 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	BigTree::globalizePOSTVars();
 	
 	if ($group_new) {

@@ -8,6 +8,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=SECTION_ROOT?>create/<?=$module["id"]?>/" class="module">
+		<? $admin->drawCSRFToken() ?>
 		<section>
 			<div class="left last">
 				<fieldset>

@@ -1,4 +1,6 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	BigTree::globalizePOSTVars();
 
 	$id = end($bigtree["path"]);

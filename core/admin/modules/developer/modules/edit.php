@@ -41,6 +41,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/update/<?=$module["id"]?>/" enctype="multipart/form-data" class="module left">
+		<? $admin->drawCSRFToken() ?>
 		<section>
 			<div class="left">
 				<fieldset>
@@ -113,7 +114,7 @@
 				<? } ?>
 			</section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/views/edit/<?=$view["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/views/delete/<?=$view["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/views/delete/?id=<?=$view["id"]?>&module=<?=$id?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>
@@ -133,7 +134,7 @@
 		<li>
 			<section class="developer_templates_name">Add/Edit <?=$form["title"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/forms/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/forms/delete/<?=$form["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/forms/delete/?id=<?=$form["id"]?>&module=<?=$id?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>
@@ -153,7 +154,7 @@
 		<li>
 			<section class="developer_templates_name"><?=$form["title"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/embeds/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/embeds/delete/<?=$form["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/embeds/delete/?id=<?=$form["id"]?>&module=<?=$id?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>
@@ -173,7 +174,7 @@
 		<li>
 			<section class="developer_templates_name"><?=$report["title"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/reports/edit/<?=$report["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/reports/delete/<?=$report["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/reports/delete/?id=<?=$report["id"]?>&module=<?=$id?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>
@@ -196,7 +197,7 @@
 		<li id="row_<?=$action["id"]?>">
 			<section class="developer_templates_name"><span class="icon_sort"></span><?=$action["name"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/edit/<?=$action["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/delete/<?=$action["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/delete/?id=<?=$action["id"]?>&module=<?=$id?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>
@@ -209,7 +210,7 @@
 		<li>
 			<section class="developer_templates_name"><?=$action["name"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/edit/<?=$action["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/delete/<?=$action["id"]?>/?module=<?=$id?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/delete/?id=<?=$action["id"]?>&module=<?=$id?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a></section>
 		</li>
 		<? } ?>
 	</ul>

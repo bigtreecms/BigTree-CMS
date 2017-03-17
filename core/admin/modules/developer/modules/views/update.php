@@ -1,4 +1,6 @@
-<?	
+<?
+	$admin->verifyCSRFToken();
+	
 	BigTree::globalizePOSTVars();
 	
 	$table_description = BigTree::describeTable($table);

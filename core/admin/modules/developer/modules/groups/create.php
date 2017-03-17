@@ -1,4 +1,5 @@
 <?
+	$admin->verifyCSRFToken();
 	$admin->createModuleGroup($_POST["name"]);
 	
 	$admin->growl("Developer","Created Module Group");

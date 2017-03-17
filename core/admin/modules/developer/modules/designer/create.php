@@ -1,4 +1,6 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	BigTree::globalizePOSTVars();
 	
 	$errors = array();

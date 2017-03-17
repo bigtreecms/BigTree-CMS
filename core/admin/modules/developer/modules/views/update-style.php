@@ -1,4 +1,6 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	$view = BigTreeAutoModule::getView(end($bigtree["path"]));
 	
 	$fields = $view["fields"];

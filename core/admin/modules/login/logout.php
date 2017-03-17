@@ -1,3 +1,4 @@
 <?
+	$admin->verifyCSRFToken();
 	$admin->logout();
 ?>

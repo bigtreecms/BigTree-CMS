@@ -1,4 +1,6 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	$reserved = array("id","position");
 	$fields = array();
 	$adds = array();
