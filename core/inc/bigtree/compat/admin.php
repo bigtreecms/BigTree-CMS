@@ -402,7 +402,7 @@
 		*/
 
 		function createFieldType($id, $name, $use_cases, $self_draw) {
-			$field_type = BigTree\FieldType::create($id, $name, $use_cases, $self_draw);
+			$field_type = BigTree\FieldType::create($id, $name, $use_cases, $self_draw ? true : false);
 
 			return $field_type ? true : false;
 		}
@@ -3791,7 +3791,7 @@
 
 		function updateFieldType($id, $name, $use_cases, $self_draw) {
 			$field_type = new BigTree\FieldType($id);
-			$field_type->update($name, $use_cases, $self_draw);
+			$field_type->update($name, $use_cases, $self_draw ? true : false);
 		}
 
 		/*

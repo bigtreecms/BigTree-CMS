@@ -3,13 +3,13 @@
 		Class: BigTree\GoogleResultSet
 			Common result set class for Google+, YouTube, and Google Analytics.
 	*/
-
+	
 	namespace BigTree;
 	
 	use ArrayAccess;
 	use BigTree\Disqus\ResultSet;
 	use stdClass;
-
+	
 	class GoogleResultSet implements ArrayAccess {
 		
 		public $API;
@@ -18,7 +18,7 @@
 		public $NextPageToken;
 		public $PreviousPageToken;
 		public $Results = [];
-
+		
 		/*
 			Constructor:
 				Creates a result set of Google data.
@@ -30,7 +30,7 @@
 				data - Result from the API call
 				results - Results to store
 		*/
-
+		
 		function __construct(&$api, string $last_call, array $params, stdClass $data, array $results) {
 			$this->API = $api;
 			$this->LastCall = $last_call;
@@ -39,7 +39,7 @@
 			$this->PreviousPageToken = $data->prevPageToken;
 			$this->Results = $results;
 		}
-
+		
 		/*
 			Function: nextPage
 				Calls the previous method and gets the next page of results.
@@ -47,15 +47,15 @@
 			Returns:
 				A BigTree\GoogleResultSet or false if there is not another page.
 		*/
-
+		
 		function nextPage(): ?ResultSet {
 			if ($this->NextPageToken) {
 				$params = $this->LastParameters;
 				$params[count($params) - 1]["pageToken"] = $this->NextPageToken;
-
-				return call_user_func_array(array($this->API, $this->LastCall), $params);
+				
+				return call_user_func_array([$this->API, $this->LastCall], $params);
 			}
-
+			
 			return null;
 		}
 		
@@ -79,7 +79,7 @@
 		function offsetGet($index) {
 			return isset($this->Results[$index]) ? $this->Results[$index] : null;
 		}
-
+		
 		/*
 			Function: previousPage
 				Calls the previous method and gets the previous page of results.
@@ -87,15 +87,15 @@
 			Returns:
 				A BigTree\GoogleResultSet or false if there is not a previous page.
 		*/
-
+		
 		function previousPage(): ?ResultSet {
 			if ($this->PreviousPageToken) {
 				$params = $this->LastParameters;
 				$params[count($params) - 1]["pageToken"] = $this->PreviousPageToken;
-
-				return call_user_func_array(array($this->API, $this->LastCall), $this->LastParameters);
+				
+				return call_user_func_array([$this->API, $this->LastCall], $this->LastParameters);
 			}
-
+			
 			return null;
 		}
 	}
