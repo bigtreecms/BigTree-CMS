@@ -3,16 +3,16 @@
 		Class: BigTree\YouTube\Activity
 			A YouTube object that contains information about and methods you can perform on an activity.
 	*/
-
+	
 	namespace BigTree\YouTube;
-
+	
 	use stdClass;
-
+	
 	class Activity {
-
+		
 		/** @var \BigTree\YouTube\API */
 		protected $API;
-
+		
 		public $ChannelID;
 		public $ChannelTitle;
 		public $Comment;
@@ -30,25 +30,30 @@
 		public $Title;
 		public $Type;
 		public $Upload;
-
-		function __construct($activity,&$api) {
+		
+		function __construct(stdClass $activity, API &$api) {
 			$type = $activity->snippet->type;
-
+			
 			$this->API = $api;
 			isset($activity->snippet->channelId) ? $this->ChannelID = $activity->snippet->channelId : false;
 			isset($activity->snippet->channelTitle) ? $this->ChannelTitle = $activity->snippet->channelTitle : false;
+			
 			if ($type == "comment") {
 				$this->Comment = new stdClass;
 				$this->Comment->ChannelID = $activity->contentDetails->comment->resourceId->channelId;
 				$this->Comment->VideoID = $activity->contentDetails->comment->resourceId->videoId;
 			}
+			
 			isset($activity->snippet->description) ? $this->Description = $activity->snippet->description : false;
+			
 			if ($type == "favorite") {
 				$this->Favorite = new stdClass;
 				$this->Favorite->VideoID = $activity->contentDetails->favorite->resourceId->videoId;
 			}
+			
 			isset($activity->snippet->groupId) ? $this->GroupID = $activity->snippet->groupId : false;
 			$this->ID = $activity->id;
+			
 			if (isset($activity->snippet->thumbnails)) {
 				$this->Images = new stdClass;
 				foreach ($activity->snippet->thumbnails as $key => $val) {
@@ -56,16 +61,19 @@
 					$this->Images->$key = $val->url;
 				}
 			}
+			
 			if ($type == "like") {
 				$this->Like = new stdClass;
 				$this->Like->VideoID = $activity->contentDetails->like->resourceId->videoId;
 			}
+			
 			if ($type == "playlistItem") {
 				$this->PlaylistItem = new stdClass;
 				$this->PlaylistItem->ID = $activity->contentDetails->playlistItem->playlistItemId;
 				$this->PlaylistItem->PlaylistID = $activity->contentDetails->playlistItem->playlistId;
 				$this->PlaylistItem->VideoID = $activity->contentDetails->playlistItem->resourceId->videoId;
 			}
+			
 			if ($type == "recommendation") {
 				$this->Recommendation = new stdClass;
 				isset($activity->contentDetails->recommendation->resourceId->channelId) ? $this->Recommendation->ChannelID = $activity->contentDetails->recommendation->resourceId->channelId : false;
@@ -75,6 +83,7 @@
 				isset($activity->contentDetails->recommendation->seedResourceId->videoId) ? $this->Recommendation->Reason->VideoID = $activity->contentDetails->recommendation->seedResourceId->videoId : false;
 				isset($activity->contentDetails->recommendation->resourceId->videoId) ? $this->Recommendation->VideoID = $activity->contentDetails->recommendation->resourceId->videoId : false;
 			}
+			
 			if ($type == "social") {
 				$this->Social = new stdClass;
 				isset($activity->contentDetails->social->author) ? $this->Social->Author = $activity->contentDetails->social->author : false;
@@ -85,18 +94,21 @@
 				$this->Social->Type = $activity->contentDetails->social->type;
 				isset($activity->contentDetails->social->resourceId->videoId) ? $this->Social->VideoID = $activity->contentDetails->social->resourceId->videoId : false;
 			}
+			
 			if ($type == "subscription") {
 				$this->Subscription = new stdClass;
 				$this->Subscription->ChannelID = $activity->contentDetails->subscription->channelId;
 			}
-			isset($activity->snippet->publishedAt) ? $this->Timestamp = date("Y-m-d H:i:s",strtotime($activity->snippet->publishedAt)) : false;
+			
+			isset($activity->snippet->publishedAt) ? $this->Timestamp = date("Y-m-d H:i:s", strtotime($activity->snippet->publishedAt)) : false;
 			isset($activity->snippet->title) ? $this->Title = $activity->snippet->title : false;
 			$this->Type = $activity->snippet->type;
+			
 			if ($type == "upload") {
 				$this->Upload = new stdClass;
 				$this->Upload->VideoID = $activity->contentDetails->upload->videoId;
 			}
 		}
-
+		
 	}
 	

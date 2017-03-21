@@ -60,16 +60,20 @@
 			isset($video->status->embeddable) ? $this->Embeddable = $video->status->embeddable : false;
 			isset($video->statistics->favoriteCount) ? $this->FavoriteCount = $video->statistics->favoriteCount : false;
 			$this->ID = is_string($video->id) ? $video->id : $video->id->videoId;
+			
 			if (isset($video->snippet->thumbnails)) {
 				$this->Images = new stdClass;
+				
 				foreach ($video->snippet->thumbnails as $key => $val) {
 					$key = ucwords($key);
 					$this->Images->$key = $val->url;
 				}
 			}
+			
 			isset($video->status->license) ? $this->License = $video->status->license : false;
 			isset($video->contentDetails->licensedContent) ? $this->LicensedContent = $video->contentDetails->licensedContent : false;
 			isset($video->statistics->likeCount) ? $this->LikeCount = $video->statistics->likeCount : false;
+			
 			if (isset($video->recordingDetails->location)) {
 				$this->Location = new stdClass;
 				$this->Location->Latitude = $video->recordingDetails->location->latitude;
@@ -77,6 +81,7 @@
 				$this->Location->Elevation = $video->recordingDetails->location->elevation;
 				$this->Location->Description = $video->recordingDetails->locationDescription;
 			}
+			
 			isset($video->status->privacyStatus) ? $this->Privacy = $video->status->privacyStatus : false;
 			isset($video->recordingDetails->recordingDate) ? $this->RecordedTimestamp = $video->recordingDetails->recordingDate : false;
 			isset($video->snippet->tags) ? $this->Tags = $video->snippet->tags : false;
@@ -96,7 +101,7 @@
 				true on success.
 		*/
 
-		function delete() {
+		function delete(): bool {
 			return $this->API->deleteVideo($this->ID);
 		}
 
@@ -109,7 +114,7 @@
 				A new Video object with more details.
 		*/
 
-		function getDetails() {
+		function getDetails(): ?Video {
 			return $this->API->getVideo($this->ID);
 		}
 
@@ -121,7 +126,7 @@
 				rating - "like", "dislike", or "none" (for clearing an existing rating)
 		*/
 
-		function rate($rating) {
+		function rate(string $rating): bool {
 			return $this->API->rateVideo($this->ID,$rating);
 		}
 
@@ -134,7 +139,7 @@
 				true on success.
 		*/
 
-		function save() {
+		function save(): bool {
 			$object = json_encode(array(
 				"id" => $this->ID,
 				"snippet" => array(
@@ -148,9 +153,11 @@
 				)
 			));
 			$response = $this->API->call("videos?part=snippet",$object,"PUT");
+			
 			if (isset($response->id)) {
 				return true;
 			}
+			
 			return false;
 		}
 
