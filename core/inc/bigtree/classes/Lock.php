@@ -3,19 +3,19 @@
 		Class: BigTree\Lock
 			Provides an interface for handling BigTree locks.
 	*/
-
+	
 	namespace BigTree;
-
+	
 	class Lock extends BaseObject {
-
+		
 		public static $Table = "bigtree_locks";
-
+		
 		protected $ID;
-
+		
 		public $ItemID;
 		public $LastAccessed;
 		public $User;
-
+		
 		/*
 			Constructor:
 				Builds a Lock object referencing an existing database entry.
@@ -23,14 +23,14 @@
 			Parameters:
 				lock - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
-
+		
 		function __construct($lock = null) {
 			if ($lock !== null) {
 				// Passing in just an ID
 				if (!is_array($lock)) {
 					$lock = SQL::fetch("SELECT * FROM bigtree_locks WHERE id = ?", $lock);
 				}
-
+				
 				// Bad data set
 				if (!is_array($lock)) {
 					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
@@ -43,7 +43,7 @@
 				}
 			}
 		}
-
+		
 		/*
 			Function: enforce
 				Checks if a lock exists for the given table and ID.
@@ -58,53 +58,53 @@
 				force - Whether to force through the lock or not.
 
 			Returns:
-				A Lock object.
+				A Lock object or null if the logged in user does not own the lock.
 		*/
-
-		static function enforce($table, $id, $include, $force = false) {
+		
+		static function enforce(string $table, string $id, string $include, bool $force = false): ?Lock {
 			global $admin, $bigtree, $cms, $db;
-
+			
 			$user = Auth::user()->ID;
 			
 			// Make sure a user is logged in
 			if (is_null($user)) {
 				throw new \Exception("Lock::enforce cannot be called outside logged-in user context.");
 			}
-
+			
 			$lock = SQL::fetch("SELECT * FROM bigtree_locks WHERE `table` = ? AND item_id = ?", $table, $id);
 			
 			// Not currently locked, lock it
 			if (empty($lock)) {
-				$id = SQL::insert("bigtree_locks", array(
+				$id = SQL::insert("bigtree_locks", [
 					"table" => $table,
 					"item_id" => $id,
 					"user" => $user
-				));
+				]);
 				
 				return new Lock($id);
 			}
-
+			
 			// Lock exists and the logged-in user doesn't own it (and it's not old) and we're not forcing our way through
 			if ($lock["user"] != $user && strtotime($lock["last_accessed"]) > (time() - 300) && !$force) {
 				$user = new User($lock["user"]);
-
+				
 				$locked_by = $user->Array;
 				$last_accessed = $lock["last_accessed"];
 				
 				include Router::getIncludePath($include);
 				Auth::stop();
 				
-				return false;
+				return null;
 			}
-
+			
 			// We're taking over the lock, force was sent or this is an old lock
-			SQL::update("bigtree_locks", $lock["id"], array(
+			SQL::update("bigtree_locks", $lock["id"], [
 				"user" => $user
-			));
-
+			]);
+			
 			return new Lock($lock["id"]);
 		}
-
+		
 		/*
 			Function: refresh
 				Refreshes a lock's access time and user.
@@ -114,19 +114,19 @@
 				id - The ID of the locked entry.
 
 		*/
-
-		static function refresh($table, $id) {
+		
+		static function refresh(string $table, string $id): void {
 			$user = Auth::user()->ID;
-
+			
 			// Make sure a user is logged in
 			if (is_null($user)) {
 				throw new \Exception("Lock::refresh cannot be called outside logged-in user context.");
 			}
-
+			
 			// Update the access time and user
-			SQL::update("bigtree_locks", array("table" => $table, "item_id" => $id, "user" => $user), array("last_accessed" => "NOW()"));
+			SQL::update("bigtree_locks", ["table" => $table, "item_id" => $id, "user" => $user], ["last_accessed" => "NOW()"]);
 		}
-
+		
 		/*
 			Function: remove
 				Removes a lock from a table entry.
@@ -135,9 +135,9 @@
 				table - SQL table of the locked entry.
 				id - The ID of the locked entry.
 		*/
-
-		static function remove($table, $id) {
-			SQL::delete("bigtree_locks", array("table" => $table, "item_id" => $id));
+		
+		static function remove(string $table, string $id): void {
+			SQL::delete("bigtree_locks", ["table" => $table, "item_id" => $id]);
 		}
 		
 	}

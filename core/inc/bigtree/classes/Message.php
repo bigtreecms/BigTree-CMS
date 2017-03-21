@@ -3,17 +3,17 @@
 		Class: BigTree\Message
 			Provides an interface for handling BigTree messages.
 	*/
-
+	
 	namespace BigTree;
-
+	
 	/**
 	 * @property-read array $Chain
 	 */
-
+	
 	class Message extends BaseObject {
-
+		
 		protected $ID;
-
+		
 		public $Date;
 		public $Message;
 		public $Recipients;
@@ -24,7 +24,7 @@
 		public $SenderEmail;
 		public $SenderName;
 		public $Subject;
-
+		
 		/*
 			Constructor:
 				Builds a Message object referencing an existing database entry.
@@ -32,20 +32,20 @@
 			Parameters:
 				message - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
-
+		
 		function __construct($message = null) {
 			if ($message !== null) {
 				// Passing in just an ID
 				if (!is_array($message)) {
 					$message = SQL::fetch("SELECT * FROM bigtree_messages WHERE id = ?", $message);
 				}
-
+				
 				// Bad data set
 				if (!is_array($message)) {
 					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 				} else {
 					$this->ID = $message["id"];
-
+					
 					$this->Date = $message["date"];
 					$this->Message = $message["message"];
 					$this->Recipients = explode("||", trim($message["recipients"], "|"));
@@ -58,7 +58,7 @@
 				}
 			}
 		}
-
+		
 		/*
 			Function: allByUser
 				Returns all a user's messages.
@@ -70,9 +70,9 @@
 			Returns:
 				An array containing "sent", "read", and "unread" keys that contain an array of messages each.
 		*/
-
-		static function allByUser($user, $return_arrays = false) {
-			$sent = $read = $unread = array();
+		
+		static function allByUser(string $user, bool $return_arrays = false): array {
+			$sent = $read = $unread = [];
 			$user = SQL::escape($user);
 			$messages = SQL::fetchAll("SELECT bigtree_messages.*, 
 											  bigtree_users.name AS sender_name, 
@@ -81,7 +81,7 @@
 									   ON bigtree_messages.sender = bigtree_users.id 
 									   WHERE sender = '$user' OR recipients LIKE '%|$user|%' 
 									   ORDER BY date DESC");
-
+			
 			foreach ($messages as $message_data) {
 				if ($return_arrays) {
 					$message = $message_data;
@@ -103,10 +103,10 @@
 					}
 				}
 			}
-
-			return array("sent" => $sent, "read" => $read, "unread" => $unread);
+			
+			return ["sent" => $sent, "read" => $read, "unread" => $unread];
 		}
-
+		
 		/*
 			Function: create
 				Creates a message in message center.
@@ -121,28 +121,30 @@
 			Returns:
 				A Message object.
 		*/
-
-		static function create($sender, $subject, $message, $recipients, $in_response_to = 0) {
+		
+		static function create(string $sender, string $subject, string $message, array $recipients,
+							   ?int $in_response_to = 0): Message {
 			// We build the send_to field this way so that we don't have to create a second table of recipients.
 			$send_to = "|";
+			
 			foreach ($recipients as $r) {
 				// Make sure they actually put in a number and didn't try to screw with the $_POST
 				$send_to .= intval($r)."|";
 			}
-
+			
 			// Insert the message
-			$id = SQL::insert("bigtree_messages", array(
+			$id = SQL::insert("bigtree_messages", [
 				"sender" => $sender,
 				"recipients" => $send_to,
 				"subject" => Text::htmlEncode(strip_tags($subject)),
 				"message" => strip_tags($message, "<p><b><strong><em><i><a>"),
 				"date" => "NOW()",
 				"in_response_to" => $in_response_to
-			));
-
+			]);
+			
 			return new Message($id);
 		}
-
+		
 		/*
 			Function: getChain
 				Gets a full chain of messages based on this message.
@@ -150,32 +152,31 @@
 			Returns:
 				An array of Message objects with the current message's Selected property set to true.
 		*/
-
-		function getChain() {
+		
+		function getChain(): array {
 			// Show this message as special in the chain
 			$message = clone $this;
 			$message->Selected = true;
-
-			$chain = array($message);
-
+			$chain = [$message];
+			
 			// Find parents
 			while ($message->ResponseTo) {
 				$message = new Message($message->ResponseTo);
-
+				
 				// Prepend this message to the chain
 				array_unshift($chain, $message);
 			}
-
+			
 			// Find children
 			$id = $this->ID;
 			
 			while ($id = SQL::fetchSingle("SELECT id FROM bigtree_messages WHERE response_to = ?", $id)) {
 				$chain[] = new Message($id);
 			}
-
+			
 			return $chain;
 		}
-
+		
 		/*
 			Function: getUserUnreadCount
 				Returns the number of unread messages for the logged in user.
@@ -183,36 +184,36 @@
 			Returns:
 				The number of unread messages.
 		*/
-
-		static function getUserUnreadCount() {
+		
+		static function getUserUnreadCount(): ?int {
 			$user = Auth::user()->ID;
-
+			
 			// Make sure a user is logged in
 			if (is_null($user)) {
 				trigger_error("Method getUserUnreadCount not available outside logged-in user context.");
-
-				return false;
+				
+				return null;
 			}
-
+			
 			return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_messages 
 									 WHERE recipients LIKE '%|$user|%' AND read_by NOT LIKE '%|$user|%'");
 		}
-
+		
 		/*
 			Function: markRead
 				Marks the message as read by the currently logged in user.
 		*/
-
-		function markRead() {
+		
+		function markRead(): void {
 			$user = Auth::user()->ID;
-
+			
 			// Make sure a user is logged in
 			if (is_null($user)) {
 				trigger_error("Method markRead not available outside logged-in user context.", E_USER_WARNING);
-
+				
 				return;
 			}
-
+			
 			$this->ReadBy = str_replace("|$user|", "", $this->ReadBy)."|$user|";
 			$this->save();
 		}

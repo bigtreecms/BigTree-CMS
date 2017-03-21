@@ -8,7 +8,7 @@
 	
 	class LoremIpsum {
 		
-		public static $Words = array(
+		public static $Words = [
 			'lorem', 'ipsum', 'dolor', 'sit',
 			'amet', 'consectetur', 'adipiscing', 'elit',
 			'a', 'ac', 'accumsan', 'ad',
@@ -55,10 +55,10 @@
 			'ut', 'varius', 'vehicula', 'vel',
 			'velit', 'venenatis', 'vestibulum', 'vitae',
 			'vivamus', 'viverra', 'volutpat', 'vulputate',
-		);
+		];
 		
-		static function getWords($count = 1, $tags = false, $array = false) {
-			$words = array();
+		static function getWords(int $count = 1, ?array $tags = null, bool $array = false) {
+			$words = [];
 			$word_count = 0;
 			
 			while ($word_count < $count) {
@@ -80,8 +80,8 @@
 			return static::output($words, $tags, $array);
 		}
 		
-		static function getSentences($count = 1, $tags = false, $array = false) {
-			$sentences = array();
+		static function getSentences(int $count = 1, ?array $tags = null, bool $array = false) {
+			$sentences = [];
 			
 			for ($i = 0; $i < $count; $i++) {
 				$sentences[] = static::getWords(static::gauss(24.46, 5.08), false, true);
@@ -92,8 +92,8 @@
 			return static::output($sentences, $tags, $array);
 		}
 		
-		static function getParagraphs($count = 1, $tags = false, $array = false) {
-			$paragraphs = array();
+		static function getParagraphs(int $count = 1, ?array $tags = null, bool $array = false) {
+			$paragraphs = [];
 			
 			for ($i = 0; $i < $count; $i++) {
 				$paragraphs[] = static::getSentences(static::gauss(5.8, 1.93));
@@ -110,7 +110,7 @@
 			return $z * $std_dev + $mean;
 		}
 		
-		private static function punctuate(&$sentences) {
+		private static function punctuate(array &$sentences) {
 			foreach ($sentences as $key => $sentence) {
 				$words = count($sentence);
 				
@@ -132,10 +132,10 @@
 			}
 		}
 		
-		private static function output($strings, $tags, $array, $delimiter = ' ') {
-			if ($tags) {
+		private static function output(array $strings, ?array $tags = null, bool $array = false, string $delimiter = ' ') {
+			if (!is_null($tags)) {
 				if (!is_array($tags)) {
-					$tags = array($tags);
+					$tags = [$tags];
 				} else {
 					$tags = array_reverse($tags);
 				}

@@ -3,20 +3,20 @@
 		Class: BigTree\ModuleAction
 			Provides an interface for handling BigTree module actions.
 	*/
-
+	
 	namespace BigTree;
-
+	
 	/**
 	 * @property-read int $ID
 	 */
-
+	
 	class ModuleAction extends BaseObject {
-
+		
 		public static $Table = "bigtree_module_actions";
-
+		
 		protected $ID;
 		protected $OriginalRoute;
-
+		
 		public $Icon;
 		public $InNav;
 		public $Interface;
@@ -33,20 +33,20 @@
 			Parameters:
 				action - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
-
+		
 		function __construct($action = null) {
 			if ($action !== null) {
 				// Passing in just an ID
 				if (!is_array($action)) {
 					$action = SQL::fetch("SELECT * FROM bigtree_module_actions WHERE id = ?", $action);
 				}
-
+				
 				// Bad data set
 				if (!is_array($action)) {
 					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 				} else {
 					$this->ID = $action["id"];
-
+					
 					$this->Icon = $action["class"];
 					$this->InNav = $action["in_nav"] ? true : false;
 					$this->Interface = $action["interface"] ?: false;
@@ -58,7 +58,7 @@
 				}
 			}
 		}
-
+		
 		/*
 			Function: create
 				Creates a module action.
@@ -76,13 +76,13 @@
 			Returns:
 				A ModuleAction object.
 		*/
-
+		
 		static function create($module, $name, $route, $in_nav, $icon, $interface, $level = 0, $position = 0) {
 			// Get a clean unique route
-			$route = SQL::unique("bigtree_module_actions", "route", Link::urlify($route), array("module" => $module), true);
-
+			$route = SQL::unique("bigtree_module_actions", "route", Link::urlify($route), ["module" => $module], true);
+			
 			// Create
-			$id = SQL::insert("bigtree_module_actions", array(
+			$id = SQL::insert("bigtree_module_actions", [
 				"module" => $module,
 				"name" => Text::htmlEncode($name),
 				"route" => $route,
@@ -91,18 +91,18 @@
 				"level" => intval($level),
 				"interface" => ($interface ? $interface : null),
 				"position" => $position
-			));
+			]);
 			
 			AuditTrail::track("bigtree_module_actions", $id, "created");
-
+			
 			return new ModuleAction($id);
 		}
-
+		
 		/*
 			Function: delete
 				Deletes the module action and the related interface (if no other action is using it).
 		*/
-
+		
 		function delete() {
 			// If this action is the only one using the interface, delete it as well
 			if ($this->Interface) {
@@ -112,12 +112,12 @@
 					AuditTrail::track("bigtree_module_interfaces", $this->Interface, "deleted");
 				}
 			}
-
+			
 			// Delete the action
 			SQL::delete("bigtree_module_actions", $this->ID);
 			AuditTrail::track("bigtree_module_actions", $this->ID, "deleted");
 		}
-
+		
 		/*
 			Function: existsForRoute
 				Checks to see if an action exists for a given route and module.
@@ -129,11 +129,11 @@
 			Returns:
 				true if an action exists, otherwise false.
 		*/
-
+		
 		static function existsForRoute($module, $route) {
-			return SQL::exists("bigtree_module_actions", array("module" => $module, "route" => $route));
+			return SQL::exists("bigtree_module_actions", ["module" => $module, "route" => $route]);
 		}
-
+		
 		/*
 			Function: getByInterface
 				Returns the module action for a given module interface.
@@ -145,7 +145,7 @@
 			Returns:
 				A module action entry or false if none exists for the provided interface.
 		*/
-
+		
 		static function getByInterface($interface) {
 			if (is_object($interface)) {
 				$id = $interface->ID;
@@ -154,12 +154,12 @@
 			} else {
 				$id = $interface;
 			}
-
+			
 			$action = SQL::fetch("SELECT * FROM bigtree_module_actions WHERE interface = ? ORDER BY route DESC", $id);
-
+			
 			return $action ? new ModuleAction($action) : false;
 		}
-
+		
 		/*
 			Function: getUserCanAccess
 				Determines whether the logged in user has access to the action or not.
@@ -167,11 +167,11 @@
 			Returns:
 				true if the user can access the action, otherwise false.
 		*/
-
+		
 		function getUserCanAccess() {
 			return Auth::user()->canAccess($this);
 		}
-
+		
 		/*
 			Function: lookup
 				Returns a ModuleAction for the given module and route.
@@ -183,36 +183,36 @@
 			Returns:
 				An array containing the action and additional commands or false if lookup failed.
 		*/
-
+		
 		static function lookup($module, $route) {
 			// For landing routes.
 			if (!count($route)) {
-				$route = array("");
+				$route = [""];
 			}
-
-			$commands = array();
-
+			
+			$commands = [];
+			
 			while (count($route)) {
 				$action = SQL::fetch("SELECT * FROM bigtree_module_actions 
 									  WHERE module = ? AND route = ?", $module, implode("/", $route));
-
+				
 				// If we found an action for this sequence, return it with the extra URL route commands
 				if (!empty($action)) {
-					return array("action" => new ModuleAction($action), "commands" => array_reverse($commands));
+					return ["action" => new ModuleAction($action), "commands" => array_reverse($commands)];
 				}
-
+				
 				// Otherwise strip off the last route as a command and try again
 				$commands[] = array_pop($route);
 			}
-
+			
 			return false;
 		}
-
+		
 		/*
 			Function: save
 				Saves the current object properties back to the database.
 		*/
-
+		
 		function save() {
 			if (empty($this->ID)) {
 				$action = static::create($this->Module, $this->Name, $this->Route, $this->InNav, $this->Icon, $this->Interface, $this->Level, $this->Position);
@@ -221,11 +221,11 @@
 				// Make sure route is unique and clean
 				$this->Route = Link::urlify($this->Route);
 				if ($this->Route != $this->OriginalRoute) {
-					$this->Route = SQL::unique("bigtree_module_actions", "route", $this->Route, array("module" => $this->Module), true);
+					$this->Route = SQL::unique("bigtree_module_actions", "route", $this->Route, ["module" => $this->Module], true);
 					$this->OriginalRoute = $this->Route;
 				}
-
-				SQL::update("bigtree_module_actions", $this->ID, array(
+				
+				SQL::update("bigtree_module_actions", $this->ID, [
 					"name" => Text::htmlEncode($this->Name),
 					"route" => $this->Route,
 					"class" => $this->Icon,
@@ -233,12 +233,12 @@
 					"level" => $this->Level,
 					"position" => $this->Position,
 					"interface" => $this->Interface ?: null
-				));
-
+				]);
+				
 				AuditTrail::track("bigtree_module_actions", $this->ID, "updated");
 			}
 		}
-
+		
 		/*
 			Function: update
 				Updates the module action.
@@ -252,7 +252,7 @@
 				level - The required access level.
 				position - The position in navigation.
 		*/
-
+		
 		function update($name, $route, $in_nav, $icon, $interface, $level, $position) {
 			$this->Name = $name;
 			$this->Route = $route;
@@ -261,9 +261,9 @@
 			$this->Interface = $interface;
 			$this->Level = $level;
 			$this->Position = $position;
-
+			
 			$this->save();
 		}
-
+		
 	}
 	

@@ -3,11 +3,11 @@
 		Class: BigTree\JSON
 			Provides an interface for manipulating JSON.
 	*/
-
+	
 	namespace BigTree;
-
+	
 	class JSON {
-
+		
 		public static $PrettyPrint = false;
 		
 		/*
@@ -21,8 +21,8 @@
 			Returns:
 				A JSON encoded string.
 		*/
-
-		static function encode($var, $sql = false) {
+		
+		static function encode($var, bool $sql = false): string {
 			// Only run version compare once in case we're encoding a lot of JSON
 			if (static::$PrettyPrint === false) {
 				if (version_compare(PHP_VERSION, "5.4.0") >= 0) {
@@ -31,7 +31,7 @@
 					static::$PrettyPrint = 0;
 				}
 			}
-
+			
 			// Use pretty print if we have PHP 5.4 or higher
 			$json = (static::$PrettyPrint) ? json_encode($var, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) : json_encode($var);
 			
@@ -39,10 +39,10 @@
 			if ($sql) {
 				return SQL::escape($json);
 			}
-
+			
 			return $json;
 		}
-
+		
 		/*
 			Function: encodeColumns
 				Returns a JSON string of only the specified columns from each row in a dataset in compact format.
@@ -55,8 +55,8 @@
 			Returns:
 				A JSON string.
 		*/
-
-		static function encodeColumns($data, $columns = array(), $preserve_keys = false) {
+		
+		static function encodeColumns($data, array $columns = [], bool $preserve_keys = false): string {
 			// Only run version compare once in case we're encoding a lot of JSON
 			if (static::$PrettyPrint === false) {
 				if (version_compare(PHP_VERSION, "5.4.0") >= 0) {
@@ -65,21 +65,24 @@
 					static::$PrettyPrint = 0;
 				}
 			}
-
-			$simple_data = array();
+			
+			$simple_data = [];
+			
 			foreach ($data as $key => $val) {
-				$row = array();
+				$row = [];
+				
 				foreach ($columns as $column) {
 					$row[$column] = $val[$column];
 				}
+				
 				if ($preserve_keys) {
 					$simple_data[$key] = $row;
 				} else {
 					$simple_data[] = $row;
 				}
 			}
-
+			
 			return (static::$PrettyPrint) ? json_encode($simple_data, JSON_UNESCAPED_SLASHES) : json_encode($simple_data);
 		}
-
+		
 	}
