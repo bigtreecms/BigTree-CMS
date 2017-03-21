@@ -1,6 +1,10 @@
 <?php
 	namespace BigTree;
 	
+	if (is_string($_POST["options"])) {
+		$_POST["options"] = array_filter((array) json_decode($_POST["options"], true));
+	}
+	
 	$feed = Feed::create($_POST["name"], $_POST["description"], $_POST["table"], $_POST["type"], $_POST["options"], $_POST["fields"]);
 ?>
 <div class="container">

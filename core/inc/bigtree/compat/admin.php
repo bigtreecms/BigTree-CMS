@@ -378,6 +378,10 @@
 		*/
 
 		function createFeed($name, $description, $table, $type, $options, $fields) {
+			if (is_string($options)) {
+				$options = array_filter((array) json_decode($options, true));
+			}
+			
 			$feed = BigTree\Feed::create($name, $description, $table, $type, $options, $fields);
 
 			return $feed->Route;
@@ -3360,7 +3364,7 @@
 		*/
 
 		static function searchAuditTrail($user = false, $table = false, $entry = false, $start = false, $end = false) {
-			return BigTree\AuditTrail::search($user, $table, $entry, $start, $end);
+			return BigTree\AuditTrail::search($user ?: null, $table ?: null, $entry ?: null, $start ?: null, $end ?: null);
 		}
 
 		/*
@@ -3766,6 +3770,10 @@
 		*/
 
 		function updateFeed($id, $name, $description, $table, $type, $options, $fields) {
+			if (is_string($options)) {
+				$options = array_filter((array) json_decode($options, true));
+			}
+			
 			$feed = new BigTree\Feed($id);
 			$feed->update($name, $description, $table, $type, $options, $fields);
 		}

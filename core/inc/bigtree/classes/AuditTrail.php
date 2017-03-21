@@ -3,11 +3,11 @@
 		Class: BigTree\AuditTrail
 			Provides an interface for the bigtree_audit_trail table.
 	*/
-
+	
 	namespace BigTree;
 	
 	class AuditTrail {
-
+		
 		/*
 			Function: track
 				Logs a user's actions to the audit trail table.
@@ -17,21 +17,21 @@
 				entry - The primary key of the entry affected by the user.
 				type - The action taken by the user (delete, edit, create, etc.)
 		*/
-
-		static function track($table, $entry, $type) {
+		
+		static function track(string $table, string $entry, string $type): void {
 			$user = Auth::user()->ID;
-
+			
 			// If this is running fron cron or something, nobody is logged in so don't track.
 			if (!is_null($user)) {
-				SQL::insert("bigtree_audit_trail", array(
+				SQL::insert("bigtree_audit_trail", [
 					"table" => $table,
 					"user" => $user,
 					"entry" => $entry,
 					"type" => $type
-				));
+				]);
 			}
 		}
-
+		
 		/*
 			Function: search
 				Searches the audit trail for a set of data.
@@ -46,41 +46,42 @@
 			Returns:
 				An array of adds/edits/deletions from the audit trail.
 		*/
-
-		static function search($user = false, $table = false, $entry = false, $start = false, $end = false) {
-			$users = $where = $parameters = array();
+		
+		static function search(?string $user = null, ?string $table = null, ?string $entry = null,
+							   ?string $start = null, ?string $end = null): array {
+			$users = $where = $parameters = [];
 			$query = "SELECT * FROM bigtree_audit_trail";
-
-			if ($user) {
+			
+			if (!is_null($user)) {
 				$where[] = "user = ?";
 				$parameters[] = $user;
 			}
-
-			if ($table) {
+			
+			if (!is_null($table)) {
 				$where[] = "`table` = ?";
 				$parameters[] = $table;
 			}
-
-			if ($entry) {
+			
+			if (!is_null($entry)) {
 				$where[] = "entry = ?";
 				$parameters[] = $entry;
 			}
-
-			if ($start) {
+			
+			if (!is_null($start)) {
 				$where[] = "`date` >= '".date("Y-m-d H:i:s", strtotime($start))."'";
 			}
-
-			if ($end) {
+			
+			if (!is_null($end)) {
 				$where[] = "`date` <= '".date("Y-m-d H:i:s", strtotime($end))."'";
 			}
-
+			
 			if (count($where)) {
 				$query .= " WHERE ".implode(" AND ", $where);
 			}
-
+			
 			// Push query onto the parameters array since we're using call_user_func_array
 			array_unshift($parameters, $query." ORDER BY `date` DESC");
-
+			
 			$entries = call_user_func_array("BigTree\\SQL::fetchAll", $parameters);
 			
 			foreach ($entries as &$entry) {
@@ -89,10 +90,10 @@
 					$user = SQL::fetch("SELECT id,name,email,level FROM bigtree_users WHERE id = ?", $entry["user"]);
 					$users[$entry["user"]] = $user;
 				}
-
+				
 				$entry["user"] = $users[$entry["user"]];
 			}
-
+			
 			return $entries;
 		}
 		

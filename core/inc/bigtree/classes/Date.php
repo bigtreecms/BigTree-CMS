@@ -3,14 +3,14 @@
 		Class: BigTree\Date
 			Provides an interface for manipulating dates.
 	*/
-
+	
 	namespace BigTree;
-
+	
 	use DateTime;
 	use DateInterval;
-
+	
 	class Date {
-
+		
 		/*
 			Function: convertTojQuery
 				Converts a PHP date() format to jQuery date picker format.
@@ -21,8 +21,8 @@
 			Returns:
 				jQuery date picker formatting string.
 		*/
-
-		static function convertTojQuery($format) {
+		
+		static function convertTojQuery(string $format): string {
 			$new_format = "";
 			
 			for ($i = 0; $i < strlen($format); $i++) {
@@ -57,10 +57,10 @@
 					$new_format .= $c;
 				}
 			}
-
+			
 			return $new_format;
 		}
-
+		
 		/*
 			Function: format
 				Formats a date that originates in the config defined date format into another.
@@ -72,24 +72,24 @@
 			Returns:
 				A date string or false if date parsing failed
 		*/
-
-		static function format($date, $format = "Y-m-d H:i:s") {
+		
+		static function format($date, string $format = "Y-m-d H:i:s"): string {
 			global $bigtree;
-
+			
 			$date_object = DateTime::createFromFormat($bigtree["config"]["date_format"], $date);
-
+			
 			// Fallback to SQL standards for handling pre 4.2 values
 			if (!$date_object) {
 				$date_object = DateTime::createFromFormat("Y-m-d", $date);
 			}
-
+			
 			if ($date_object) {
 				return $date_object->format($format);
 			}
 			
 			return false;
 		}
-
+		
 		/*
 			Function: fromOffset
 				Returns a formatted date from a date and an offset.
@@ -108,16 +108,16 @@
 				http://php.net/manual/en/datetime.formats.relative.php (for relative time formats)
 				http://php.net/manual/en/function.date.php (for date formats)
 		*/
-
-		static function fromOffset($start_date, $offset, $format = "Y-m-d H:i:s") {
+		
+		static function fromOffset($start_date, string $offset, string $format = "Y-m-d H:i:s"): string {
 			$time = is_numeric($start_date) ? $start_date : strtotime($start_date);
-
+			
 			$date = DateTime::createFromFormat("Y-m-d H:i:s", date("Y-m-d H:i:s", $time));
 			$date->add(DateInterval::createFromDateString($offset));
-
+			
 			return $date->format($format);
 		}
-
+		
 		/*
 			Function: relativeTime
 				Turns a timestamp into "… hours ago" formatting.
@@ -128,8 +128,8 @@
 			Returns:
 				A string describing how long ago the passed time was.
 		*/
-
-		static function relativeTime($time) {
+		
+		static function relativeTime(string $time): string {
 			$minute = 60;
 			$hour = 3600;
 			$day = 86400;
@@ -140,20 +140,25 @@
 				return "1 min ago";
 			} elseif ($delta < 45 * $minute) {
 				$minutes = floor($delta / $minute);
-				return  $minutes == 1 ? "1 minute ago" : "$minutes minutes ago";
+				
+				return $minutes == 1 ? "1 minute ago" : "$minutes minutes ago";
 			} elseif ($delta < 24 * $hour) {
 				$hours = floor($delta / $hour);
+				
 				return $hours == 1 ? "1 hour ago" : "$hours hours ago";
 			} elseif ($delta < 30 * $day) {
 				$days = floor($delta / $day);
-				return  $days == 1 ? "yesterday" : "$days days ago";
+				
+				return $days == 1 ? "yesterday" : "$days days ago";
 			} elseif ($delta < 12 * $month) {
 				$months = floor($delta / $day / 30);
+				
 				return $months == 1 ? "1 month ago" : "$months months ago";
 			} else {
 				$years = floor($delta / $day / 365);
+				
 				return $years == 1 ? "1 year ago" : "$years years ago";
 			}
 		}
-
+		
 	}

@@ -3,25 +3,25 @@
 		Class: BigTree\Auth
 			Provides an interface for user authentication.
 	*/
-
+	
 	namespace BigTree;
 	
 	use BigTree\Auth\AuthenticatedUser;
 	use PasswordHash;
-
+	
 	class Auth {
-
+		
 		public static $Email;
 		public static $ID;
 		public static $Level = 0;
 		public static $Name;
 		public static $PagesTabHidden = false;
-		public static $Permissions = array();
-
+		public static $Permissions = [];
+		
 		private static $Namespace = "";
 		private static $Policies = false;
 		private static $UserClass = "";
-
+		
 		/*
 			Constructor:
 				Sets up the user class and cookie/session namespace.
@@ -32,12 +32,12 @@
 				namespace - The cookie and session namespace to store login credentials in
 				enforce_policies - Whether to enforce password/login policies
 		*/
-
+		
 		function __construct(string $user_class = 'BigTree\User', string $namespace = "bigtree_admin", bool $enforce_policies = true) {
 			static::$Namespace = $namespace;
 			static::$Policies = $enforce_policies;
 			static::$UserClass = $user_class;
-
+			
 			// Handle Login Session
 			if (isset($_SESSION[static::$Namespace]["email"])) {
 				$user = $user_class::getByEmail($_SESSION[static::$Namespace]["email"]);
@@ -49,15 +49,15 @@
 					static::$Name = $user->Name;
 					static::$Permissions = $user->Permissions;
 				}
-
-			// Handle saved cookies
+				
+				// Handle saved cookies
 			} elseif (isset($_COOKIE[static::$Namespace]["email"])) {
 				// Get chain and session broken out
 				list($session, $chain) = json_decode($_COOKIE[static::$Namespace]["login"]);
-
+				
 				// See if this is the current chain and session
 				$chain_entry = SQL::fetch("SELECT * FROM bigtree_user_sessions WHERE email = ? AND chain = ?",
-										   $_COOKIE[static::$Namespace]["email"], $chain);
+										  $_COOKIE[static::$Namespace]["email"], $chain);
 				if (!empty($chain_entry)) {
 					// If both chain and session are legit, log them in
 					if ($chain_entry["id"] == $session) {
@@ -69,33 +69,33 @@
 							$_SESSION[static::$Namespace]["email"] = $user->Email;
 							$_SESSION[static::$Namespace]["name"] = $user->Name;
 							$_SESSION[static::$Namespace]["level"] = $user->Level;
-
+							
 							// Setup auth environment
 							static::$Email = $user->Email;
 							static::$ID = $user->ID;
 							static::$Level = $user->Level;
 							static::$Name = $user->Name;
 							static::$Permissions = $user->Permissions;
-
+							
 							// Delete existing session
 							SQL::delete("bigtree_user_sessions", $session);
 							
 							// Generate a random session id
 							$session = uniqid("session-", true);
-							while (SQL::exists("bigtree_user_sessions", array("id" => $session))) {
+							while (SQL::exists("bigtree_user_sessions", ["id" => $session])) {
 								$session = uniqid("session-", true);
 							}
-
+							
 							// Create a new session with the same chain
-							SQL::insert("bigtree_user_sessions", array(
+							SQL::insert("bigtree_user_sessions", [
 								"id" => $session,
 								"chain" => $chain,
 								"email" => static::$Email
-							));
-
-							Cookie::create(static::$Namespace."[login]", json_encode(array($session, $chain)), "+1 month");
+							]);
+							
+							Cookie::create(static::$Namespace."[login]", json_encode([$session, $chain]), "+1 month");
 						}
-
+						
 						// Chain is legit and session isn't -- someone has taken your cookies
 					} else {
 						// Delete existing cookies
@@ -103,10 +103,10 @@
 						Cookie::create(static::$Namespace."[email]", "", time() - 3600);
 						
 						// Delete all sessions for this user
-						SQL::delete("bigtree_user_sessions", array("email" => $_COOKIE[static::$Namespace]["email"]));
+						SQL::delete("bigtree_user_sessions", ["email" => $_COOKIE[static::$Namespace]["email"]]);
 					}
 				}
-
+				
 				// Check the permissions to see if we should show the pages tab.
 				if (!static::$Level) {
 					static::$PagesTabHidden = true;
@@ -121,23 +121,23 @@
 				} else {
 					static::$PagesTabHidden = false;
 				}
-
+				
 				// Clean up
 				unset($user, $f, $session, $chain, $chain_entry);
 			}
 		}
-
+		
 		/*
 			Function: initSecurity
 				Sets up security environment variables and runs white/blacklists for IP checks.
 		*/
-
-		static function initSecurity() {
+		
+		static function initSecurity(): void {
 			global $bigtree;
-
+			
 			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
 			$bigtree["security-policy"] = $policy = Setting::value("bigtree-internal-security-policy");
-
+			
 			// Check banned IPs list for the user's IP
 			if (!empty($policy["banned_ips"])) {
 				$banned = explode("\n", $policy["banned_ips"]);
@@ -149,7 +149,7 @@
 					}
 				}
 			}
-
+			
 			// Check allowed IP ranges list for user's IP
 			if (!empty($policy["allowed_ips"])) {
 				$allowed = false;
@@ -164,14 +164,14 @@
 						$allowed = true;
 					}
 				}
-
+				
 				if (!$allowed) {
 					$bigtree["layout"] = "login";
 					static::stop(file_get_contents(Router::getIncludePath("admin/pages/ip-restriction.php")));
 				}
 			}
 		}
-
+		
 		/*
 			Function: login
 				Attempts to log a user into to the CMS.
@@ -184,13 +184,13 @@
 			Returns:
 				false if login failed, otherwise redirects back to the page the person requested.
 		*/
-
+		
 		static function login(string $email, string $password, bool $stay_logged_in = false): bool {
 			global $bigtree;
-
+			
 			$user_class = static::$UserClass;
 			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
-
+			
 			// Check to see if this IP is already banned from logging in.
 			if (!empty(static::$Policies)) {
 				$ban = SQL::fetch("SELECT * FROM bigtree_login_bans WHERE `expires` > NOW() AND `ip` = ?", $ip);
@@ -198,57 +198,57 @@
 				if (!empty($ban)) {
 					$bigtree["ban_expiration"] = date("F j, Y @ g:ia", strtotime($ban["expires"]));
 					$bigtree["ban_is_user"] = false;
-
+					
 					return false;
 				}
 			}
-
+			
 			// Get user, we'll be checking against the password later
 			$user = $user_class::getByEmail($email);
-
+			
 			// If the user doesn't exist, fail immediately
 			if (!$user) {
 				return false;
 			}
-
+			
 			// See if this user is banned due to failed login attempts
 			if (!empty(static::$Policies)) {
 				$ban = SQL::fetch("SELECT * FROM bigtree_login_bans WHERE `table` = ? AND `expires` > NOW() AND `user` = ?",
-								   $user_class::$Table, $user->ID);
+								  $user_class::$Table, $user->ID);
 				if (!empty($ban)) {
 					$bigtree["ban_expiration"] = date("F j, Y @ g:ia", strtotime($ban["expires"]));
 					$bigtree["ban_is_user"] = true;
-
+					
 					return false;
 				}
 			}
-
+			
 			// Verify password
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
-
+			
 			if ($phpass->CheckPassword(trim($password), $user->Password)) {
 				// Generate random session and chain ids
 				$chain = SQL::unique("bigtree_user_sessions", "chain", uniqid("chain-", true));
 				$session = SQL::unique("bigtree_user_sessions", "id", uniqid("session-", true));
-
+				
 				// Create the new session chain
-				SQL::insert("bigtree_user_sessions", array(
+				SQL::insert("bigtree_user_sessions", [
 					"id" => $session,
 					"table" => $user_class::$Table,
 					"chain" => $chain,
 					"email" => $user->Email
-				));
-
+				]);
+				
 				if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
 					// Create another unique cache session for logins across domains
-					$cache_data = array(
+					$cache_data = [
 						"user_id" => $user->ID,
 						"session" => $session,
 						"chain" => $chain,
 						"stay_logged_in" => $stay_logged_in,
 						"login_redirect" => isset($_SESSION["bigtree_login_redirect"]) ? $_SESSION["bigtree_login_redirect"] : false,
-						"remaining_sites" => array()
-					);
+						"remaining_sites" => []
+					];
 					
 					foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
 						$cache_data["remaining_sites"][$site_key] = $site_configuration["www_root"];
@@ -261,13 +261,13 @@
 					Router::redirect($next_site."?bigtree_login_redirect_session_key=".$cache_session_key);
 				} else {
 					$cookie_domain = str_replace(DOMAIN, "", WWW_ROOT);
-					$cookie_value = json_encode(array($session, $chain));
+					$cookie_value = json_encode([$session, $chain]);
 					
 					// We still set the email for BigTree bar usage even if they're not being "remembered"
 					Cookie::create(static::$Namespace."[email]", $user->Email, "+1 month");
 					
 					if ($stay_logged_in) {
-						Cookie::create(static::$Namespace."[login]", json_encode(array($session, $chain)), "+1 month");
+						Cookie::create(static::$Namespace."[login]", json_encode([$session, $chain]), "+1 month");
 					}
 					
 					$_SESSION[static::$Namespace]["id"] = $user->ID;
@@ -282,19 +282,19 @@
 						Router::redirect(ADMIN_ROOT);
 					}
 				}
-
+				
 				return true;
-
+				
 			// Failed login attempt, log it.
 			} elseif (!empty(static::$Policies)) {
-
+				
 				// Log it as a failed attempt for a user if the email address matched
-				SQL::insert("bigtree_login_attempts", array(
+				SQL::insert("bigtree_login_attempts", [
 					"ip" => $ip,
 					"table" => $user_class::$Table,
 					"user" => $user ? "'".$user->ID."'" : null
-				));
-
+				]);
+				
 				// See if this attempt earns the user a ban - first verify the policy is completely filled out (3 parts)
 				if ($user->ID && count(array_filter((array) $bigtree["security-policy"]["user_fails"])) == 3) {
 					$policy = $bigtree["security-policy"]["user_fails"];
@@ -314,12 +314,12 @@
 							SQL::query("INSERT INTO bigtree_login_bans (`ip`,`user`,`expires`) 
 										VALUES (?, ?, DATE_ADD(NOW(),INTERVAL ".$policy["ban"]." MINUTE))", $ip, $user);
 						}
-
+						
 						$bigtree["ban_expiration"] = date("F j, Y @ g:ia", strtotime("+".$policy["ban"]." minutes"));
 						$bigtree["ban_is_user"] = true;
 					}
 				}
-
+				
 				// See if this attempt earns the IP as a whole a ban - first verify the policy is completely filled out (3 parts)
 				if (count(array_filter((array) $bigtree["security-policy"]["ip_fails"])) == 3) {
 					$policy = $bigtree["security-policy"]["ip_fails"];
@@ -343,10 +343,10 @@
 						$bigtree["ban_is_user"] = false;
 					}
 				}
-
+				
 				return false;
 			}
-
+			
 			return false;
 		}
 		
@@ -357,15 +357,15 @@
 			Parameters:
 				session_key - The session key created by the login method
 		*/
-
-		static function loginChainSession(string $session_key) {
+		
+		static function loginChainSession(string $session_key): void {
 			$cache_data = Cache::get("org.bigtreecms.login-session", $session_key);
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE id = ?", $cache_data["user_id"]);
 			
 			foreach ($cache_data["remaining_sites"] as $site_key => $www_root) {
 				if ($site_key == BIGTREE_SITE_KEY) {
-					$cookie_value = json_encode(array($cache_data["session"], $cache_data["chain"]));
-
+					$cookie_value = json_encode([$cache_data["session"], $cache_data["chain"]]);
+					
 					// We still set the email for BigTree bar usage even if they're not being "remembered"
 					Cookie::create(static::$Namespace."[email]", $user["email"], "+1 month");
 					
@@ -400,22 +400,22 @@
 				Router::redirect($next_site."?bigtree_login_redirect_session_key=".$session_key);
 			}
 		}
-
+		
 		/*
 			Function: logout
 				Destroys the user's session and unsets the login cookies.
 		*/
-
-		static function logout() {
+		
+		static function logout(): void {
 			// If the user asked to be remembered, drop their chain from the legit sessions and remove cookies
 			if ($login = Cookie::get(static::$Namespace."[login]")) {
 				list($session, $chain) = $login;
-
+				
 				// Make sure this session/chain is legit before removing everything with the given chain
 				if (SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_user_sessions WHERE id = ? AND chain = ?", $session, $chain)) {
-					SQL::delete("bigtree_user_sessions", array("chain" => $chain));
+					SQL::delete("bigtree_user_sessions", ["chain" => $chain]);
 				}
-
+				
 				Cookie::delete(static::$Namespace."[email]");
 				Cookie::delete(static::$Namespace."[login]");
 			}
@@ -423,7 +423,7 @@
 			unset($_COOKIE[static::$Namespace]);
 			unset($_SESSION[static::$Namespace]);
 		}
-
+		
 		/*
 			Function: stop
 				Stops processing of the Admin area and shows a message in the default layout.
@@ -433,23 +433,23 @@
 				file - A file to load (optional, replaces message but $message will be available in the file)
 				layout_directory - The base directory for the layout to load (defaults to "admin/layouts/")
 		*/
-
-		static function stop(?string $message = null, ?string $file = null, string $layout_directory = "admin/layouts/") {
+		
+		static function stop(?string $message = null, ?string $file = null, string $layout_directory = "admin/layouts/"): void {
 			global $admin, $bigtree, $cms, $db;
-
+			
 			if ($file) {
 				include $file;
 			} else {
 				echo Text::translate($message);
 			}
-
+			
 			$bigtree["content"] = ob_get_clean();
-
+			
 			include Router::getIncludePath($layout_directory.$bigtree["layout"].".php");
-
+			
 			die();
 		}
-
+		
 		/*
 		    Function: user
 				Returns a BigTree\Auth\AuthenticatedUser object.
@@ -460,13 +460,13 @@
 			Returns:
 				A BigTree\Auth\AuthenticatedUser object.
 		*/
-
+		
 		static function user($user = null): AuthenticatedUser {
 			if (is_null($user)) {
 				if (static::$ID) {
 					return new AuthenticatedUser(static::$ID, static::$Level, static::$Permissions);
 				} else {
-					return new AuthenticatedUser(null, -1, array());
+					return new AuthenticatedUser(null, -1, []);
 				}
 			} else {
 				if (is_object($user)) {
@@ -477,11 +477,11 @@
 				
 				// Return a -1 level of anonymous user
 				if (empty($user)) {
-					return new AuthenticatedUser(null, -1, array());
+					return new AuthenticatedUser(null, -1, []);
 				} else {
-					return new AuthenticatedUser($user["id"], $user["level"], (array)json_decode($user["permissions"], true));
+					return new AuthenticatedUser($user["id"], $user["level"], (array) json_decode($user["permissions"], true));
 				}
 			}
 		}
-
+		
 	}

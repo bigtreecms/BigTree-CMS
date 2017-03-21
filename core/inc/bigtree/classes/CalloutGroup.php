@@ -3,38 +3,37 @@
 		Class: BigTree\CalloutGroup
 			Provides an interface for handling BigTree callout groups.
 	*/
-
+	
 	namespace BigTree;
-
+	
 	/**
 	 * @property-read int $ID
 	 */
-
+	
 	class CalloutGroup extends BaseObject {
-
+		
 		public static $Table = "bigtree_callout_groups";
-
+		
 		protected $ID;
-
+		
 		public $Callouts;
 		public $Name;
-
+		
 		/*
 			Constructor:
 				Builds a CalloutGroup object referencing an existing database entry.
 
 			Parameters:
-				group - Either an ID (t
-				o pull a record) or an array (to use the array as the record)
+				group - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
-
+		
 		function __construct($group = null) {
 			if ($group !== null) {
 				// Passing in just an ID
 				if (!is_array($group)) {
 					$group = SQL::fetch("SELECT * FROM bigtree_callout_groups WHERE id = ?", $group);
 				}
-
+				
 				// Bad data set
 				if (!is_array($group)) {
 					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
@@ -45,7 +44,7 @@
 				}
 			}
 		}
-
+		
 		/*
 			Function: create
 				Creates a callout group.
@@ -55,24 +54,24 @@
 				callouts - An array of callout IDs to assign to the group.
 
 			Returns:
-				The id of the newly created group.
+				A BigTree\CalloutGroup object.
 		*/
-
-		static function create($name, $callouts = array()) {
+		
+		static function create(string $name, array $callouts = []): CalloutGroup {
 			// Order callouts alphabetically by ID
 			sort($callouts);
-
+			
 			// Insert group
-			$id = SQL::insert("bigtree_callout_groups", array(
+			$id = SQL::insert("bigtree_callout_groups", [
 				"name" => Text::htmlEncode($name),
 				"callouts" => $callouts
-			));
-
+			]);
+			
 			AuditTrail::track("bigtree_callout_groups", $id, "created");
-
+			
 			return new CalloutGroup($id);
 		}
-
+		
 		/*
 			Function: delete
 				Deletes a callout group.
@@ -80,26 +79,28 @@
 			Parameters:
 				id - The id of the callout group.
 		*/
-
-		function delete() {
+		
+		function delete(): ?bool {
 			SQL::delete("bigtree_callout_groups", $this->ID);
 			AuditTrail::track("bigtree_callout_groups", $this->ID, "deleted");
+			
+			return true;
 		}
-
+		
 		/*
 			Function: save
 				Saves the current object properties back to the database.
 		*/
-
-		function save() {
+		
+		function save(): ?bool {
 			$this->Callouts = (array) $this->Callouts;
 			sort($this->Callouts);
-
-			$sql_data = array(
+			
+			$sql_data = [
 				"name" => Text::htmlEncode($this->Name),
 				"callouts" => $this->Callouts
-			);
-
+			];
+			
 			if (empty($this->ID)) {
 				$this->ID = SQL::insert("bigtree_callout_groups", $sql_data);
 				AuditTrail::track("bigtree_callout_groups", $this->ID, "created");
@@ -107,8 +108,10 @@
 				SQL::update("bigtree_callout_groups", $this->ID, $sql_data);
 				AuditTrail::track("bigtree_callout_groups", $this->ID, "updated");
 			}
+			
+			return true;
 		}
-
+		
 		/*
 			Function: update
 				Updates the callout group's name and callout list properties and saves them back to the database.
@@ -117,11 +120,12 @@
 				name - Name string.
 				callouts - An array of callout IDs to assign to the group.
 		*/
-
-		function update($name, $callouts) {
+		
+		function update(string $name, array $callouts): ?bool {
 			$this->Name = $name;
 			$this->Callouts = $callouts;
-			$this->save();
+			
+			return $this->save();
 		}
-
+		
 	}

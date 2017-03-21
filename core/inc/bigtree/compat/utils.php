@@ -203,7 +203,7 @@
 		static function cURL($url, $post = false, $options = array(), $strict_security = false, $output_file = false) {
 			global $bigtree;
 			
-			$response = BigTree\cURL::request($url, $post, $options, $strict_security, $output_file);
+			$response = BigTree\cURL::request($url, $post ?: null, $options, $strict_security, $output_file ?: null);
 			
 			// Backwards compat
 			$bigtree["last_curl_response_code"] = BigTree\cURL::$ResponseCode;

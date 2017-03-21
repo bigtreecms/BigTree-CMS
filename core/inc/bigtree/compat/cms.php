@@ -95,7 +95,7 @@
 		*/
 		
 		static function cacheDelete($identifier, $key = false) {
-			BigTree\Cache::delete($identifier, $key);
+			BigTree\Cache::delete($identifier, $key ?: null);
 		}
 		
 		/*
@@ -113,7 +113,7 @@
 		*/
 		
 		static function cacheGet($identifier, $key, $max_age = false, $decode = true) {
-			return BigTree\Cache::get($identifier, $key, $max_age, $decode);
+			return BigTree\Cache::get($identifier, $key, $max_age ?: null, $decode);
 		}
 		
 		/*
