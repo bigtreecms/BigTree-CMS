@@ -13,7 +13,7 @@
 	 * @property-read ModuleInterface $Interface
 	 */
 
-	class ModuleEmbedForm extends ModuleForm {
+	class ModuleEmbedForm extends BaseObject {
 
 		protected $EmbedCode;
 		protected $Hash;
@@ -125,6 +125,41 @@
 
 			return new ModuleEmbedForm($interface->Array);
 		}
+		
+		/*
+		    Function: getArray
+				Returns an array of form information.
+
+			Returns:
+				Array
+		*/
+		
+		function getArray(): array {
+			// For backwards compatibility with older data
+			$fields = [];
+			
+			if (is_array($this->Fields)) {
+				foreach ($this->Fields as $field) {
+					$fields[$field["column"]] = $field;
+				}
+			}
+			
+			// Old table format
+			return [
+				"id" => $this->ID,
+				"module" => $this->Module,
+				"title" => $this->Title,
+				"table" => $this->Table,
+				"fields" => $fields,
+				"default_position" => $this->DefaultPosition,
+				"default_pending" => $this->DefaultPending,
+				"css" => $this->CSS,
+				"hash" => $this->Hash,
+				"redirect_url" => $this->RedirectURL,
+				"thank_you_message" => $this->ThankYouMessage,
+				"hooks" => $this->Hooks
+			];
+		}
 
 		/*
 			Function: getByHash
@@ -151,7 +186,7 @@
 				Saves object properties back to the ModuleInterface based and the database.
 		*/
 
-		function save() {
+		function save(): ?bool {
 			if (empty($this->Interface->ID)) {
 				$new = static::create($this->Module, $this->Title, $this->Table, $this->Fields, $this->Hooks, $this->DefaultPosition, $this->DefaultPending, $this->CSS, $this->RedirectURL, $this->ThankYouMessage);
 				$this->inherit($new);
@@ -181,6 +216,8 @@
 
 				$this->Interface->save();
 			}
+			
+			return true;
 		}
 
 		/*

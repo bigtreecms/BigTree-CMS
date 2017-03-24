@@ -26,7 +26,7 @@
 		}
 		
 		static function cacheRecord() {
-			trigger_error("BigTreeAutoModule::cacheRecord is not meant to be called directly. Please use BigTree\\ModuleView::cacheItem", E_USER_WARNING);
+			trigger_error("BigTreeAutoModule::cacheRecord is not meant to be called directly. Please use BigTree\\ModuleView::cacheForAll", E_USER_WARNING);
 
 			return false;
 		}

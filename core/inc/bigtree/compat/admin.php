@@ -465,7 +465,7 @@
 		*/
 
 		function createModuleAction($module, $name, $route, $in_nav, $icon, $interface, $level = 0, $position = 0) {
-			$action = BigTree\ModuleAction::create($module, $name, $route, $in_nav, $icon, $interface, $level, $position);
+			$action = BigTree\ModuleAction::create($module, $name, $route, $in_nav ? true : false, $icon, $interface, $level, $position);
 
 			return $action->Route;
 		}
@@ -516,7 +516,7 @@
 		*/
 
 		function createModuleForm($module, $title, $table, $fields, $hooks = array(), $default_position = "", $return_view = false, $return_url = "", $tagging = "") {
-			$form = BigTree\ModuleForm::create($module, $title, $table, $fields, $hooks, $default_position, $return_view, $return_url, $tagging);
+			$form = BigTree\ModuleForm::create($module, $title, $table, $fields, $hooks, $default_position, $return_view ?: null, $return_url, $tagging ? true : false);
 
 			return $form->ID;
 		}
@@ -562,7 +562,7 @@
 				"filters" => $filters,
 				"fields" => $fields,
 				"parser" => $parser,
-				"view" => $view ? $view : null
+				"view" => $view ?: null
 			));
 
 			return $interface->ID;
@@ -589,7 +589,7 @@
 		*/
 
 		function createModuleView($module, $title, $description, $table, $type, $options, $fields, $actions, $related_form = "", $preview_url = "") {
-			$view = BigTree\ModuleView::create($module, $title, $description, $table, $type, $options, $fields, $actions, $related_form, $preview_url);
+			$view = BigTree\ModuleView::create($module, $title, $description, $table, $type, $options, $fields, $actions, $related_form ?: null, $preview_url);
 
 			return $view->ID;
 		}
@@ -1977,7 +1977,7 @@
 		*/
 
 		static function getModuleEmbedForms($sort = "title ASC", $module = false) {
-			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module, "embeddable-form", $sort, true);
+			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module ?: null, "embeddable-form", $sort, true);
 
 			// Return previous table format
 			$forms = array();
@@ -2015,7 +2015,7 @@
 		*/
 
 		static function getModuleForms($sort = "title ASC", $module = false) {
-			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module, "form", $sort, true);
+			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module ?: null, "form", $sort, true);
 
 			// Return previous table format
 			$forms = array();
@@ -2159,7 +2159,7 @@
 		*/
 
 		static function getModuleReports($sort = "title ASC", $module = false) {
-			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module, "report", $sort, true);
+			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module ?: null, "report", $sort, true);
 
 			// Support the old table format
 			$reports = array();
@@ -2241,7 +2241,7 @@
 		*/
 
 		static function getModuleViews($sort = "title ASC", $module = false) {
-			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module, "view", $sort, true);
+			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module ?: null, "view", $sort, true);
 
 			// Support the old table format
 			$views = array();
@@ -3830,7 +3830,7 @@
 
 		function updateModuleAction($id, $name, $route, $in_nav, $icon, $interface, $level, $position) {
 			$action = new BigTree\ModuleAction($id);
-			$action->update($name, $route, $in_nav, $icon, $interface, $level, $position);
+			$action->update($name, $route, $in_nav ? true : false, $icon, $interface ?: null, $level, $position);
 		}
 
 		/*
@@ -3926,7 +3926,7 @@
 
 		function updateModuleReport($id, $title, $table, $type, $filters, $fields = "", $parser = "", $view = "") {
 			$report = new BigTree\ModuleReport($id);
-			$report->update($title, $table, $type, $filters, $fields, $parser, $view);
+			$report->update($title, $table, $type, $filters, $fields ?: null, $parser, $view ?: null);
 		}
 
 		/*
