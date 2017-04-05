@@ -6531,7 +6531,7 @@
 										}
 										
 										if ($crop["prefix"]) {
-											$storage->store($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false);
+											$storage->replace($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false,array(),true);
 										}
 									}
 								}
