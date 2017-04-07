@@ -20,6 +20,14 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.17
+- NEW: A comprehensive cross site request forgery prevention system was added.
+- SECURITY FIX: Adding a space after a file extension no longer allows a file upload to bypass security checks (thanks math1as from I-team).
+- FIXED: BigTreeFlickrAlbum getPhotos call.
+- FIXED: Activating Rackspace Cloud Files failing.
+- FIXED: Deleting an extension with a missing manifest file no longer deletes all your extensions.
+- FIXED: Long file names with an exact matching crop will no longer generate improper file names.
+
 ### 4.2.16
 - ADDED: getAlbums, getAlbumPhotos, and BigTreeFlickrAlbum to the Flickr API (thanks Matt Briney)
 - ADDED: The file / image browser now shows a link to the folder a file is contained in when viewing file details
