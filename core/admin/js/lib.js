@@ -105,7 +105,11 @@ $.fn.sortSelect=function(){var b=$(this).val();var a=$("#"+this.attr("id")+" opt
 
 /* Append CSRF Tokens to AJAX requests */
 $.secureAjax = function(url, settings) {
-	if (!settings.data) {
+	if (typeof settings == "undefined") {
+		settings = {};
+	}
+	
+	if (typeof settings.data == "undefined") {
 		settings.data = {};
 	}
 	
