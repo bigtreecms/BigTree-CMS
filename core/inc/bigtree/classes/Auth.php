@@ -48,6 +48,8 @@
 					static::$Level = $user->Level;
 					static::$Name = $user->Name;
 					static::$Permissions = $user->Permissions;
+
+					CSRF::setup($_SESSION[static::$Namespace]["csrf_token_field"], $_SESSION[static::$Namespace]["csrf_token"]);
 				}
 				
 				// Handle saved cookies
@@ -64,11 +66,15 @@
 						$user = $user_class::getByEmail($_COOKIE[static::$Namespace]["email"]);
 						
 						if ($user) {
+							CSRF::generate();
+
 							// Setup session
 							$_SESSION[static::$Namespace]["id"] = $user->ID;
 							$_SESSION[static::$Namespace]["email"] = $user->Email;
 							$_SESSION[static::$Namespace]["name"] = $user->Name;
 							$_SESSION[static::$Namespace]["level"] = $user->Level;
+							$_SESSION[static::$Namespace]["csrf_token"] = CSRF::$Token;
+							$_SESSION[static::$Namespace]["csrf_token_field"] = CSRF::$Field;
 							
 							// Setup auth environment
 							static::$Email = $user->Email;
@@ -90,13 +96,15 @@
 							SQL::insert("bigtree_user_sessions", [
 								"id" => $session,
 								"chain" => $chain,
-								"email" => static::$Email
+								"email" => static::$Email,
+								"csrf_token" => CSRF::$Token,
+								"csrf_token_field" => CSRF::$Field
 							]);
 							
 							Cookie::create(static::$Namespace."[login]", json_encode([$session, $chain]), "+1 month");
 						}
 						
-						// Chain is legit and session isn't -- someone has taken your cookies
+					// Chain is legit and session isn't -- someone has taken your cookies
 					} else {
 						// Delete existing cookies
 						Cookie::create(static::$Namespace."[login]", "", time() - 3600);
@@ -230,13 +238,18 @@
 				// Generate random session and chain ids
 				$chain = SQL::unique("bigtree_user_sessions", "chain", uniqid("chain-", true));
 				$session = SQL::unique("bigtree_user_sessions", "id", uniqid("session-", true));
+
+				// Setup CSRF token
+				CSRF::generate();
 				
 				// Create the new session chain
 				SQL::insert("bigtree_user_sessions", [
 					"id" => $session,
 					"table" => $user_class::$Table,
 					"chain" => $chain,
-					"email" => $user->Email
+					"email" => $user->Email,
+					"csrf_token" => CSRF::$Token,
+					"csrf_token_field" => CSRF::$Field
 				]);
 				
 				if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
@@ -247,7 +260,9 @@
 						"chain" => $chain,
 						"stay_logged_in" => $stay_logged_in,
 						"login_redirect" => isset($_SESSION["bigtree_login_redirect"]) ? $_SESSION["bigtree_login_redirect"] : false,
-						"remaining_sites" => []
+						"remaining_sites" => [],
+						"csrf_token" => $csrf_token,
+						"csrf_token_field" => $csrf_token_field
 					];
 					
 					foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
@@ -275,6 +290,8 @@
 					$_SESSION[static::$Namespace]["level"] = $user->Level;
 					$_SESSION[static::$Namespace]["name"] = $user->Name;
 					$_SESSION[static::$Namespace]["permissions"] = $user->Permissions;
+					$_SESSION[static::$Namespace]["csrf_token"] = $csrf_token;
+					$_SESSION[static::$Namespace]["csrf_token_field"] = $csrf_token_field;
 					
 					if (isset($_SESSION["bigtree_login_redirect"])) {
 						Router::redirect($_SESSION["bigtree_login_redirect"]);
@@ -373,11 +390,13 @@
 						Cookie::create(static::$Namespace."[login]", $cookie_value, "+1 month");
 					}
 					
-					$_SESSION["bigtree_admin"]["id"] = $user["id"];
-					$_SESSION["bigtree_admin"]["email"] = $user["email"];
-					$_SESSION["bigtree_admin"]["level"] = $user["level"];
-					$_SESSION["bigtree_admin"]["name"] = $user["name"];
-					$_SESSION["bigtree_admin"]["permissions"] = json_decode($user["permissions"], true);
+					$_SESSION[static::$Namespace]["id"] = $user["id"];
+					$_SESSION[static::$Namespace]["email"] = $user["email"];
+					$_SESSION[static::$Namespace]["level"] = $user["level"];
+					$_SESSION[static::$Namespace]["name"] = $user["name"];
+					$_SESSION[static::$Namespace]["permissions"] = json_decode($user["permissions"], true);
+					$_SESSION[static::$Namespace]["csrf_token"] = $cache_data["csrf_token"];
+					$_SESSION[static::$Namespace]["csrf_token_field"] = $cache_data["csrf_token_field"];
 					
 					unset($cache_data["remaining_sites"][$site_key]);
 				}
