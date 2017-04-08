@@ -3205,6 +3205,9 @@ var BigTree = {
 		$(".time_picker").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10, timeFormat: "hh:mm tt" });
 		$(".date_time_picker").datetimepicker({ dateFormat: BigTree.dateFormat, timeFormat: "hh:mm tt", duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });	
 		
+		// Trigger picker on icon click
+		$('.icon_small_calendar.date_picker_icon, .icon_small_clock.time_picker_icon').on('click', function(){ if($(this).siblings('input').is(":focus") === false) { $(this).siblings('input').focus(); } });
+
 		// Inline pickers
 		$(".date_picker_inline").each(function() {
 			$(this).datepicker({ dateFormat: BigTree.dateFormat, defaultDate: $(this).attr("data-date"), onSelect: function(dateText) {
