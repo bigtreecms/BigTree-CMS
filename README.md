@@ -22,7 +22,7 @@ Changelog
 
 ### 4.2.17
 - NEW: A comprehensive cross site request forgery prevention system was added.
-- SECURITY FIX: Adding a space after a file extension no longer allows a file upload to bypass security checks (thanks math1as from I-team).
+- SECURITY FIX: Adding a space after a file extension no longer allows a file upload to bypass security checks (thanks math1as from L-team).
 - FIXED: BigTreeFlickrAlbum getPhotos call.
 - FIXED: Activating Rackspace Cloud Files failing.
 - FIXED: Deleting an extension with a missing manifest file no longer deletes all your extensions.
