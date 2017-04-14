@@ -7,6 +7,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/rackspace/update/" class="module">
+		<?php CSRF::drawPOSTToken(); ?>
 		<section>
 			<fieldset>
 				<label for="rackspace_field_key"><?=Text::translate("API Key")?></label>

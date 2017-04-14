@@ -1,4 +1,12 @@
 <?php
+	namespace BigTree;
+	
+	/**
+	 * @global CloudStorage\Google $google
+	 */
+	
+	CSRF::verify();
+	
 	$google->Key = trim($_POST["key"]);
 	$google->Secret = trim($_POST["secret"]);
 	$google->Project = trim($_POST["project"]);

@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
+	
 	$storage = new Storage;
 
 	if ($_POST["service"] != "local") {
@@ -24,6 +26,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/set-container/">
+		<?php CSRF::drawPOSTToken(); ?>
 		<input type="hidden" name="service" value="<?=htmlspecialchars($_POST["service"])?>" />
 		<div class="container_summary"><h2><?=$service_names[$_POST["service"]]?></h2></div>
 		<section>

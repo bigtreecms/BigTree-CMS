@@ -1,5 +1,7 @@
 <?php
 	namespace BigTree;
+	
+	CSRF::verify();
 
 	$storage = new Storage;
 	$storage->Settings["Service"] = $_POST["service"];

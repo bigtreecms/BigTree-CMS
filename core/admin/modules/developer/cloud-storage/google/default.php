@@ -7,6 +7,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/google/activate/" class="module" enctype="multipart/form-data">
+		<?php CSRF::drawPOSTToken(); ?>
 		<section>
 			<p><?=Text::translate("To activate Google Cloud Storage you must follow these steps:")?></p>
 			<hr />

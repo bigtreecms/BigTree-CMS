@@ -11,6 +11,7 @@
 <div class="container">
 	<div class="container_summary"><h2><?=Text::translate("Configure")?></h2></div>
 	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/set-default/">
+		<?php CSRF::drawPOSTToken(); ?>
 		<section>
 			<div class="contain">
 				<a class="box_select last_row<?php if ($amazon->Active) { ?> connected<?php } ?>" href="<?=DEVELOPER_ROOT?>cloud-storage/amazon/">

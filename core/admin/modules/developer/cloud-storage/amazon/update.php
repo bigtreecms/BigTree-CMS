@@ -4,6 +4,8 @@
 	/**
 	 * @global CloudStorage\Amazon $amazon
 	 */
+	
+	CSRF::verify();
 
 	$amazon->Key = trim($_POST["key"]);
 	$amazon->Secret = trim($_POST["secret"]);
