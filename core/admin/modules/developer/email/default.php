@@ -23,6 +23,7 @@
 	<section id="Local_tab"<?php if ($email_service->Service != "Local") { ?> style="display: none;"<?php } ?>>
 		<p><?=Text::translate('Mail delivery over your local server uses <a href="http://php.net/manual/en/mail.configuration.php" target="_blank">PHP\'s native mail settings</a> for email delivery. This may increase your risk of having emails marked as spam.')?></p>
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
+			<?php CSRF::drawPOSTToken(); ?>
 			<input type="hidden" name="service" value="local" />
 			<fieldset>
 				<label for="local_field_bigtree_from"><?=Text::translate('BigTree "From" Address <small>(for sending Daily Digest and Forgot Password emails)</small>')?></label>
@@ -36,6 +37,7 @@
 		<p><?=Text::translate('It is advised that you verify your "sending domain" (the domain that you plan to use in the "From" address of your emails) via DKIM and SPF to reduce the risk of your email being marked as spam.')?></p>
 		<hr />
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
+			<?php CSRF::drawPOSTToken(); ?>
 			<input type="hidden" name="service" value="mandrill" />
 			<fieldset>
 				<label for="mandrill_field_key"><?=Text::translate("API Key")?></label>
@@ -54,6 +56,7 @@
 		<p><?=Text::translate('It is <strong>required</strong> that you verify your "sending domain" (the domain that you plan to use in the "From" address of your emails) via DKIM and SPF to send more than 300 emails per day. It is also recommended even if you fall below that threshold as it will reduce the risk of your email being marked as spam.')?></p>
 		<hr />
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
+			<?php CSRF::drawPOSTToken(); ?>
 			<input type="hidden" name="service" value="mailgun" />
 			<fieldset>
 				<label for="mailgun_field_key"><?=Text::translate("API Key")?></label>
@@ -75,6 +78,7 @@
 		<p><?=Text::translate('It is advised that you verify your "sending domain" (the domain that you plan to use in the "From" address of your emails) via DKIM and SPF to reduce the risk of your email being marked as spam.')?></p>
 		<hr />
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
+			<?php CSRF::drawPOSTToken(); ?>
 			<input type="hidden" name="service" value="postmark" />
 			<fieldset>
 				<label for="postmark_field_key"><?=Text::translate("API Key")?></label>
@@ -91,6 +95,7 @@
 		<p><?=Text::translate('<a href="https://www.sendgrid.com/" target="_blank">SendGrid</a> is a transactional email delivery and management service.<br />You must enter both your API user and API key (the password that you use to log into sendgrid.com).')?></p>
 		<hr />
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
+			<?php CSRF::drawPOSTToken(); ?>
 			<input type="hidden" name="service" value="sendgrid" />
 			<fieldset>
 				<label for="sendgrid_field_user"><?=Text::translate('API User <small>(same as SMTP username)</small>')?></label>

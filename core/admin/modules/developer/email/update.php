@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
+	
 	$email_setting = new Setting("bigtree-internal-email-service");
 
 	if ($_POST["service"] == "mandrill") {
