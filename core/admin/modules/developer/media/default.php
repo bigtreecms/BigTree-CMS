@@ -67,7 +67,7 @@
 					// Remove from DOM
 					Current.remove();
 					// Remove from DB
-					$.secureAjax("<?=ADMIN_ROOT?>ajax/developer/media/delete-preset/", { type: "POST", id: data.id });
+					$.secureAjax("<?=ADMIN_ROOT?>ajax/developer/media/delete-preset/", { type: "POST", data: { id: data.id } });
 				}
 			});
 		}
