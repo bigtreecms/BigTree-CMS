@@ -8374,7 +8374,7 @@
 			$clean_domain = str_replace(array("http://","https://"),"//",DOMAIN);
 			$token = isset($_POST[$this->CSRFTokenField]) ? $_POST[$this->CSRFTokenField] : $_GET[$this->CSRFTokenField];
 			
-			if (strpos($clean_referer, $clean_domain) === false || $token != $this->CSRFToken) {
+			if (strpos($clean_referer, $clean_domain) !== 0 || $token != $this->CSRFToken) {
 				$this->stop("Cross site request forgery detected.");
 			}
 		}
