@@ -4,6 +4,8 @@
 	/**
 	 * @global array $bigtree
 	 */
+	
+	CSRF::verify();
 
 	$group = new CalloutGroup(end($bigtree["path"]));
 	$group->update($_POST["name"],$_POST["callouts"]);

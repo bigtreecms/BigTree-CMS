@@ -5,10 +5,11 @@
 	 * @global array $bigtree
 	 */
 
-	$group = new CalloutGroup(end($bigtree["path"]));
+	CSRF::verify();
+	
+	$group = new CalloutGroup($_GET["id"]);
 	$group->delete();
 
 	Utils::growl("Developer","Deleted Callout Group");
-	
 	Router::redirect(DEVELOPER_ROOT."callouts/groups/");
 	

@@ -5,6 +5,8 @@
 	 * @global array $bigtree
 	 */
 	
+	CSRF::verify();
+	
 	$results = AuditTrail::search($_GET["user"], $_GET["table"], $_GET["entry"], $_GET["start"], $_GET["end"]);
 	$json_data = array();
 	

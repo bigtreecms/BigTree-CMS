@@ -29,7 +29,7 @@
 					icon: "delete",
 					alternateSaveText: "<?=Text::translate("OK", true)?>",
 					callback: function() {
-						document.location.href = "<?=ADMIN_ROOT?>users/delete/" + id + "/";
+						document.location.href = "<?=ADMIN_ROOT?>users/delete/?id=" + id + "<?php CSRF::drawGETToken(); ?>";
 					}
 				});
 			}

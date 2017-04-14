@@ -8,7 +8,7 @@
 	CSRF::verify();
 	Auth::user()->requireLevel(1);
 
-	$id = intval($bigtree["commands"][0]);
+	$id = intval($_GET["id"]);
 
 	if ($id == Auth::user()->ID) {
 		Utils::growl("Users","You cannot delete your own user.","error");

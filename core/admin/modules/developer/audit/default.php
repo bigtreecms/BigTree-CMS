@@ -5,6 +5,7 @@
 ?>
 <div class="container">
 	<form method="get" action="<?=DEVELOPER_ROOT?>audit/search/">
+		<?php CSRF::drawPOSTToken(); ?>
 		<section>
 			<fieldset>
 				<label for="audit_field_user"><?=Text::translate("User")?></label>

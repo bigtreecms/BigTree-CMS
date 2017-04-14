@@ -7,6 +7,8 @@
 	 */
 	
 	$field_types = FieldType::reference(true, "callouts");
+	
+	CSRF::drawPOSTToken();
 ?>
 <section>
 	<p class="error_message"<?php if (!$show_error) { ?> style="display: none;"<?php } ?>><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>

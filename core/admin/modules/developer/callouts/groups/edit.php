@@ -10,6 +10,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>callouts/groups/update/<?=$group->ID?>/" class="module">
+		<?php CSRF::drawPOSTToken(); ?>
 		<section>
 			<fieldset>
 			    <label for="group_field_name" class="required"><?=Text::translate("Name")?></label>

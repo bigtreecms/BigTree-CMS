@@ -1,5 +1,7 @@
 <?php
 	namespace BigTree;
+	
+	CSRF::verify();
 
 	// Defaults
 	$id = $name = $description = $display_field = $display_default = "";
