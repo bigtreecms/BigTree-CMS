@@ -3,6 +3,8 @@
 	
 	header("Content-type: text/javascript");
 	
+	CSRF::verify();
+	
 	if (is_numeric($_POST["id"])) {
 		$revision = new PageRevision($_POST["id"]);
 		$origin_page = new Page($revision->Page);

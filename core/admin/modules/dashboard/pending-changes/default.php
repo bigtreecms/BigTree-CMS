@@ -230,14 +230,14 @@
 
 <script>
 	$(".icon_approve").click(function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/approve-change/", { data: { id: $(this).attr("href").substr(1) }, type: "POST" });
+		$.secureAjax("<?=ADMIN_ROOT?>ajax/dashboard/approve-change/", { data: { id: $(this).attr("href").substr(1) }, type: "POST" });
 		$(this).parents("li").remove();
 		BigTree.growl($(this).attr("data-module"),"<?=Text::translate("Approved Change")?>");
 		return false;
 	});
 	
 	$(".icon_deny").click(function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/reject-change/", { data: { id: $(this).attr("href").substr(1) }, type: "POST" });
+		$.secureAjax("<?=ADMIN_ROOT?>ajax/dashboard/reject-change/", { data: { id: $(this).attr("href").substr(1) }, type: "POST" });
 		$(this).parents("li").remove();
 		BigTree.growl($(this).attr("data-module"),"<?=Text::translate("Rejected Change")?>");
 		return false;

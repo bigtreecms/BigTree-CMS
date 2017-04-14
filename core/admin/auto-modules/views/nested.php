@@ -22,7 +22,7 @@
 			items: "> li",
 			placeholder: "ui-sortable-placeholder",
 			update: function(ev,ui) {
-				$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$view->ID?>", sort: ui.item.parent().sortable("serialize") } });
+				$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$view->ID?>", sort: ui.item.parent().sortable("serialize") } });
 			}
 		});
 	};
@@ -67,7 +67,7 @@
 		// Change expanded state
 		var li = $(this).parent();
 		var ul = li.toggleClass("expanded").children("ul").toggle();
-		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/set-nest-state/", { type: "POST", data: { view: <?=$view->ID?>, id: li.attr("id").replace("row_",""), expanded: li.hasClass("expanded") } });
+		$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/set-nest-state/", { type: "POST", data: { view: <?=$view->ID?>, id: li.attr("id").replace("row_",""), expanded: li.hasClass("expanded") } });
 		<?php if ($module_permission == "p") { ?>
 		BigTree.localCreateSortable(ul);
 		<?php } ?>

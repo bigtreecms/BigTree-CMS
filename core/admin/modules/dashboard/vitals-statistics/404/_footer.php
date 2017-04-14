@@ -16,14 +16,14 @@
 				BigTree.localSaveTimer = setTimeout("BigTree.localSave();",500);
 			}
 		}).blur(function() {
-			$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/update/", { data: { id: BigTree.localCurrentField, value: $("#404_" + BigTree.localCurrentField).val() }, type: "POST" });
+			$.secureAjax("<?=ADMIN_ROOT?>ajax/dashboard/404/update/", { data: { id: BigTree.localCurrentField, value: $("#404_" + BigTree.localCurrentField).val() }, type: "POST" });
 			BigTree.localCurrentField = $(this).attr("name");
 		});
 	
 		$(".icon_archive").click(function() {
 			id = $(this).attr("href").substr(1);
 			$(this).parents("li").remove();
-			$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/ignore/", { data: { id: id }, type: "POST" });
+			$.secureAjax("<?=ADMIN_ROOT?>ajax/dashboard/404/ignore/", { data: { id: id }, type: "POST" });
 			BigTree.growl("404 Report","Ignored 404");
 			
 			return false;
@@ -32,7 +32,7 @@
 		$(".icon_restore").click(function() {
 			id = $(this).attr("href").substr(1);
 			$(this).parents("li").remove();
-			$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/unignore/", { data: { id: id }, type: "POST" });
+			$.secureAjax("<?=ADMIN_ROOT?>ajax/dashboard/404/unignore/", { data: { id: id }, type: "POST" });
 			BigTree.growl("404 Report","Unignored 404");
 			
 			return false;
@@ -47,7 +47,7 @@
 				callback: $.proxy(function() {
 					id = $(this).attr("href").substr(1);
 					$(this).parents("li").remove();
-					$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/delete/", { data: { id: id }, type: "POST" });
+					$.secureAjax("<?=ADMIN_ROOT?>ajax/dashboard/404/delete/", { data: { id: id }, type: "POST" });
 					BigTree.growl("404 Report","Deleted 404");
 				},this)
 			});
@@ -57,7 +57,7 @@
 	};
 	
 	BigTree.localSave = function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/404/update/", { data: { id: BigTree.localCurrentField, value: $("#404_" + BigTree.localCurrentField).val() }, type: "POST" });
+		$.secureAjax("<?=ADMIN_ROOT?>ajax/dashboard/404/update/", { data: { id: BigTree.localCurrentField, value: $("#404_" + BigTree.localCurrentField).val() }, type: "POST" });
 	};
 
 	BigTree.localSearch = function() {

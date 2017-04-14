@@ -13,6 +13,8 @@
 		Router::redirect($_SERVER["HTTP_REFERER"]);
 	}
 	
+	CSRF::verify();
+	
 	// If there's a preprocess function for this module, run it.
 	$bigtree["preprocessed"] = array();
 	if ($form->Hooks["pre"]) {

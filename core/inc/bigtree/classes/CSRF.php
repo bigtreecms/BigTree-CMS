@@ -46,7 +46,7 @@
 
 		static function generate(): void {
 			static::$Token = base64_encode(openssl_random_pseudo_bytes(32));
-			static::$Field = "__csrf_token_".BigTree::randomString(32)."__";
+			static::$Field = "__csrf_token_".Text::getRandomString(32)."__";
 		}
 
 		/*
@@ -55,12 +55,12 @@
 
 			Parameters:
 				field - The expected GET/POST field
-				value - The expected value to be passed
+				token - The expected token to be passed
 		*/
 
-		static function setup(string $field, string $value): void {
+		static function setup(string $field, string $token): void {
 			static::$Field = $field;
-			static::$Value = $value;
+			static::$Token = $token;
 		}
 
 		/*
@@ -75,7 +75,7 @@
 			$clean_domain = str_replace(array("http://","https://"),"//",DOMAIN);
 			$token = isset($_POST[static::$Field]) ? $_POST[static::$Field] : $_GET[static::$Field];
 			
-			if (strpos($clean_referer, $clean_domain) === false || $token != static::$Token) {
+			if (strpos($clean_referer, $clean_domain) !== 0 || $token != static::$Token) {
 				Auth::stop("Cross site request forgery detected.");
 			}
 		}

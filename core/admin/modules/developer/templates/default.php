@@ -34,7 +34,7 @@
 			name: { title: "<?=Text::translate("Template Name", true)?>", largeFont: true, actionHook: "edit" }
 		},
 		draggable: function(positioning) {
-			$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-templates/", { type: "POST", data: positioning });
+			$.secureAjax("<?=ADMIN_ROOT?>ajax/developer/order-templates/", { type: "POST", data: positioning });
 		},
 		searchable: true
 	};

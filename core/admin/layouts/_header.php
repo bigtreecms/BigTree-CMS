@@ -92,6 +92,10 @@
 				}
 			}
 		?>
+		<script>
+			var CSRFTokenField = "<?=CSRF::$Field?>";
+			var CSRFToken = "<?=CSRF::$Token?>";
+		</script>
 		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
 		<script>BigTree.dateFormat = "<?=Date::convertTojQuery($bigtree["config"]["date_format"])?>";</script>

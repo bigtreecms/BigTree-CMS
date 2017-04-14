@@ -55,7 +55,7 @@
 ?>
 <script>
 	BigTree.localLockTimer = setInterval(function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/refresh-lock/", {
+		$.secureAjax("<?=ADMIN_ROOT?>ajax/refresh-lock/", {
 			type: 'POST',
 			data: { table: '<?=$bigtree["form"]["table"]?>', id: '<?=$bigtree["edit_id"]?>'
 		}});

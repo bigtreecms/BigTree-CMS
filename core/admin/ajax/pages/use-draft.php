@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
+	
 	// Get the version, check if the user has access to the page the version refers to.
 	$revision = new PageRevision($_GET["id"]);
 	$page = new Page($revision->Page);

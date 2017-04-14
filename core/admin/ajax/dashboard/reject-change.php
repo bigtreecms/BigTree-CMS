@@ -1,5 +1,7 @@
 <?php
 	namespace BigTree;
+	
+	CSRF::verify();
 
 	$change = new PendingChange($_POST["id"]);
 

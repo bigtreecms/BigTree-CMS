@@ -30,7 +30,7 @@
 	</section>
 </div>
 <script>
-	$.ajax("<?=ADMIN_ROOT?>ajax/developer/upgrade/download/", { type: "POST", data: { key: "<?=htmlspecialchars($download_key)?>" }, complete: function() {
+	$.secureAjax("<?=ADMIN_ROOT?>ajax/developer/upgrade/download/", { type: "POST", data: { key: "<?=htmlspecialchars($download_key)?>" }, complete: function() {
 		window.location.href = "<?=$page_link?>check-file/<?=$page_vars?>";
 	} });
 </script>

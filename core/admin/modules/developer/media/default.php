@@ -33,14 +33,14 @@
 				return;
 			}
 
-			$.ajax("<?=ADMIN_ROOT?>ajax/developer/media/preset/", { complete: function(e) {
+			$.secureAjax("<?=ADMIN_ROOT?>ajax/developer/media/preset/", { complete: function(e) {
 				BigTreeDialog({
 					title: "<?=Text::translate("Add Image Preset")?>",
 					icon: "add",
 					content: e.responseText,
 					callback: function(data) {
 						// We update the DB first because we need the random ID that's created
-						$.ajax("<?=ADMIN_ROOT?>ajax/developer/media/save-preset/", { type: "POST", data: data, complete: function(response) {
+						$.secureAjax("<?=ADMIN_ROOT?>ajax/developer/media/save-preset/", { type: "POST", data: data, complete: function(response) {
 							data.id = response.responseText;
 							var li = new $("<li>");
 							li.html('<input type="hidden" />' +
@@ -69,7 +69,7 @@
 					// Remove from DOM
 					Current.remove();
 					// Remove from DB
-					$.ajax("<?=ADMIN_ROOT?>ajax/developer/media/delete-preset/", { type: "POST", id: data.id });
+					$.secureAjax("<?=ADMIN_ROOT?>ajax/developer/media/delete-preset/", { type: "POST", id: data.id });
 				}
 			});
 		}
@@ -83,7 +83,7 @@
 			}
 
 			Current = $(this).parents("li");
-			$.ajax("<?=ADMIN_ROOT?>ajax/developer/media/preset/", { method: "POST", data: JSON.parse(Current.find("input").val()), complete: function(e) {
+			$.secureAjax("<?=ADMIN_ROOT?>ajax/developer/media/preset/", { method: "POST", data: JSON.parse(Current.find("input").val()), complete: function(e) {
 				BigTreeDialog({
 					title: "<?=Text::translate("Edit Image Preset", true)?>",
 					icon: "edit",
@@ -93,7 +93,7 @@
 						Current.find(".developer_image_preset").html(htmlspecialchars(data.name));
 						Current.find("input").val(JSON.stringify(data));
 						// Update DB
-						$.ajax("<?=ADMIN_ROOT?>ajax/developer/media/save-preset/", { type: "POST", data: data });
+						$.secureAjax("<?=ADMIN_ROOT?>ajax/developer/media/save-preset/", { type: "POST", data: data });
 					}
 				});
 			}});

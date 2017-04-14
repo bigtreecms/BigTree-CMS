@@ -83,14 +83,14 @@
 			?>
 			<section class="pages_restore">
 				<?php if ($access_level == "p" && $page_data->UserCanModifyChildren) { ?>
-				<a href="<?=ADMIN_ROOT?>pages/restore/<?=$item["id"]?>/" title="<?=Text::translate("Restore Page")?>" class="icon_restore"></a>
+				<a href="<?=ADMIN_ROOT?>pages/restore/?id=<?=$item["id"]?><?php CSRF::drawGETToken(); ?>" title="<?=Text::translate("Restore Page")?>" class="icon_restore"></a>
 				<?php } else { ?>
 				<span class="icon_restore disabled_icon"></span>
 				<?php } ?>
 			</section>
 			<section class="pages_delete">
 				<?php if ($access_level == "p" && $page_data->UserCanModifyChildren) { ?>
-				<a href="<?=ADMIN_ROOT?>pages/delete/<?=$item["id"]?>/" title="<?=Text::translate("Delete Page")?>" class="icon_delete"></a>
+				<a href="<?=ADMIN_ROOT?>pages/delete/?id=<?=$item["id"]?><?php CSRF::drawGETToken(); ?>" title="<?=Text::translate("Delete Page")?>" class="icon_delete"></a>
 				<?php } else { ?>
 				<span class="icon_delete disabled_icon"></span>
 				<?php } ?>
@@ -116,9 +116,9 @@
 			</section>
 			<section class="pages_archive">
 				<?php if (!isset($item["bigtree_pending"]) && $access_level == "p" && ($page->ID !== 0 || Auth::user()->Level > 1 || $class == "hidden") && $page_data->UserCanModifyChildren) { ?>
-				<a href="<?=ADMIN_ROOT?>pages/archive/<?=$item["id"]?>/" title="<?=Text::translate("Archive Page")?>" class="icon_archive"></a>
+				<a href="<?=ADMIN_ROOT?>pages/archive/?id=<?=$item["id"]?><?php CSRF::drawGETToken(); ?>" title="<?=Text::translate("Archive Page")?>" class="icon_archive"></a>
 				<?php } elseif ($item["bigtree_pending"] && $access_level == "p") { ?>
-				<a href="<?=ADMIN_ROOT?>pages/delete/<?=$item["id"]?>/" title="<?=Text::translate("Delete Pending Page")?>" class="icon_delete"></a>
+				<a href="<?=ADMIN_ROOT?>pages/delete/?id=<?=$item["id"]?><?php CSRF::drawGETToken(); ?>" title="<?=Text::translate("Delete Pending Page")?>" class="icon_delete"></a>
 				<?php } elseif ($item["bigtree_pending"]) { ?>
 				<span class="icon_delete disabled_icon"></span>
 				<?php } else { ?>
@@ -146,7 +146,7 @@
 ?>
 <script>
 	$("#pages_<?=$class?>").sortable({ axis: "y", containment: "parent",  handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
-		$.ajax("<?=ADMIN_ROOT?>ajax/pages/order/", { type: "POST", data: { id: "<?=$page->ID?>", sort: $("#pages_<?=$class?>").sortable("serialize") } });
+		$.secureAjax("<?=ADMIN_ROOT?>ajax/pages/order/", { type: "POST", data: { id: "<?=$page->ID?>", sort: $("#pages_<?=$class?>").sortable("serialize") } });
 	}});
 </script>
 <?php

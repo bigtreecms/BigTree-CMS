@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
+	
 	$page = new Page($_POST["id"]);
 	
 	if ($page->UserAccessLevel == "p") {

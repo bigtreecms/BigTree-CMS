@@ -709,6 +709,13 @@
 		SQL::query("ALTER TABLE `bigtree_pending_changes` CHANGE COLUMN `user` `user` INT(11) UNSIGNED NULL");
 	}
 	
+	// BigTree 4.2.17 update -- REVISION 203
+	function _local_bigtree_update_203() {
+		sqlquery("ALTER TABLE `bigtree_user_sessions` ADD COLUMN `csrf_token` VARCHAR(255) NULL");
+		sqlquery("ALTER TABLE `bigtree_user_sessions` ADD COLUMN `csrf_token_field` VARCHAR(255) NULL");
+		sqlquery("DELETE FROM bigtree_user_sessions");
+	}
+	
 	// BigTree 4.3 update -- REVISION 300
 	function _local_bigtree_update_300() {
 		// Extension settings

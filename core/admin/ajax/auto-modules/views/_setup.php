@@ -2,6 +2,8 @@
 	namespace BigTree;
 
 	header("Content-type: text/javascript");
+	
+	CSRF::verify();
 
 	$id = SQL::escape($_GET["id"]);
 	

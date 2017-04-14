@@ -5,6 +5,7 @@
 	 * @global array $bigtree
 	 */
 	
+	CSRF::verify();
 	Auth::user()->requireLevel(1);
 	
 	// See if we've hit post_max_size

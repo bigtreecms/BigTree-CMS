@@ -157,6 +157,7 @@
 ?>
 <div class="container">
 	<form class="module" action="<?=ADMIN_ROOT?>users/update/" method="post">
+		<?php CSRF::drawPOSTToken(); ?>
 		<input type="hidden" name="id" value="<?=$user->ID?>" />
 		<section>
 			<p class="error_message"<?php if (!$error) { ?> style="display: none;"<?php } ?>><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>

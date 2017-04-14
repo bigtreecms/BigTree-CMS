@@ -1,5 +1,7 @@
 <?php
 	namespace BigTree;
+	
+	CSRF::verify();
 
 	// Get existing presets
 	$media_settings = new Setting("bigtree-internal-media-settings");

@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
+	
 	$page = Page::getRevision($_GET["id"]);
 	
 	// Force publisher access

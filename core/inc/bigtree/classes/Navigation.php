@@ -99,7 +99,6 @@
 		*/
 
 		static function getLevel($parent = 0, $depth = 1, $follow_module = true, $only_hidden = false, $explicit_zero = false) {
-			global $bigtree;
 			static $module_nav_count = 0;
 
 			$nav = array();
@@ -156,7 +155,7 @@
 						$new_window = true;
 					}
 				} else {
-					$link = static::byPath($child["path"]);
+					$link = Link::byPath($child["path"]);
 				}
 
 				// Add it to the nav array

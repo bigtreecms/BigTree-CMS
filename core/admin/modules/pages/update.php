@@ -13,6 +13,8 @@
 		Router::redirect(ADMIN_ROOT."pages/view-tree/0/");
 	}
 	
+	CSRF::verify();
+	
 	// Check access levels on the page we're trying to modify
 	$page = Page::getPageDraft($_POST["page"]);
 	$access_level = $page->UserAccessLevel;

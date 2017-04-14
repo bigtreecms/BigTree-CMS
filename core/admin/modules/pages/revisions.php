@@ -47,9 +47,9 @@
 		<li>
 			<section class="pages_last_edited"><?=date("F j, Y @ g:ia", strtotime($draft->Date))?></section>
 			<section class="pages_draft_author"><span class="gravatar"><img src="<?=Image::gravatar($draft_author->Email, 36)?>" alt="" /></span><?=$draft_author->Name?></section>
-			<section class="pages_publish"><a class="icon_publish" href="<?=ADMIN_ROOT?>pages/publish-draft/<?=$page->ID?>/?draft=<?=$draft->ID?>"></a></section>
+			<section class="pages_publish"><a class="icon_publish" href="<?=ADMIN_ROOT?>pages/publish-draft/<?=$page->ID?>/?draft=<?=$draft->ID?><?php CSRF::drawGETToken(); ?>"></a></section>
 			<section class="pages_edit"><a class="icon_edit" href="<?=ADMIN_ROOT?>pages/edit/<?=$page->ID?>/"></a></section>
-			<section class="pages_delete"><a class="icon_delete" href="<?=ADMIN_ROOT?>ajax/pages/delete-draft/?id=<?=$page->ID?>"></a></section>
+			<section class="pages_delete"><a class="icon_delete" href="<?=ADMIN_ROOT?>ajax/pages/delete-draft/?id=<?=$page->ID?><?php CSRF::drawGETToken(); ?>"></a></section>
 		</li>
 
 	</ul>
@@ -109,7 +109,7 @@
 		var ActiveDraft = <?php if ($draft) { ?>true<?php } else { ?>false<?php } ?>;
 		
 		setInterval(function() {
-			$.ajax("<?=ADMIN_ROOT?>ajax/refresh-lock/", {
+			$.secureAjax("<?=ADMIN_ROOT?>ajax/refresh-lock/", {
 				type: "POST",
 				data: { table: "bigtree_pages", id: "<?=$lock_id?>" }
 			});
@@ -129,7 +129,7 @@
 						id = "c<?=$page->ID?>";
 					}
 					
-					$.ajax("<?=ADMIN_ROOT?>ajax/pages/save-revision/", { type: "POST", data: { id: id, description: d.description }});
+					$.secureAjax("<?=ADMIN_ROOT?>ajax/pages/save-revision/", { type: "POST", data: { id: id, description: d.description }});
 				},this)
 			});
 			
@@ -145,7 +145,7 @@
 					icon: "delete",
 					alternateSaveText: "<?=Text::translate("OK")?>",
 					callback: $.proxy(function() {
-						$.ajax("<?=ADMIN_ROOT?>ajax/pages/delete-revision/?id=" + BigTree.cleanHref($(this).attr("href")));
+						$.secureAjax("<?=ADMIN_ROOT?>ajax/pages/delete-revision/?id=" + BigTree.cleanHref($(this).attr("href")));
 						$(this).parents("li").remove();
 						BigTree.growl("Pages","<?=Text::translate("Deleted Revision")?>");
 					},this)
@@ -157,7 +157,7 @@
 					icon: "delete",
 					alternateSaveText: "<?=Text::translate("OK")?>",
 					callback: $.proxy(function() {
-						$.ajax($(this).attr("href"));
+						$.secureAjax($(this).attr("href"));
 						$(this).parents("li").remove();
 						BigTree.growl("Pages","<?=Text::translate("Deleted Draft")?>");
 					},this)

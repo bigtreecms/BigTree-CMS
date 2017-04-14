@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
 	Auth::user()->requireLevel(1);
 	
 	$folder = new ResourceFolder($_POST["folder"]);

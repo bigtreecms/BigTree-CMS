@@ -1127,7 +1127,7 @@ var BigTreeTagAdder = (function($) {
 		var tag = TagEntry.val();
 		if (tag) {
 			ActiveTagName = tag;
-			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: addedTag });
+			$.secureAjax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: addedTag });
 		}
 	}
 	
@@ -1162,7 +1162,7 @@ var BigTreeTagAdder = (function($) {
 		var tag = el.innerHTML.replace("<span>","").replace("</span>","");
 		if (tag) {
 			ActiveTagName = tag;
-			$.ajax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: addedTag });
+			$.secureAjax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: addedTag });
 		}
 		return false;
 	}
@@ -1360,7 +1360,7 @@ var BigTreeDialog = function(settings) {
 			initWindow(settings,settings.content);
 		} else {
 			var type = settings.post ? "POST" : "GET";
-			$.ajax(settings.url, { type: type, data: settings.post, complete: function(response) {
+			$.secureAjax(settings.url, { type: type, data: settings.post, complete: function(response) {
 				initWindow(settings,response.responseText);
 			}});
 		}
@@ -1481,7 +1481,7 @@ var BigTreeFileManager = (function($) {
 			var c = confirm("Are you sure you want to delete this file?");
 		}
 		if (c) {
-			$.ajax("admin_root/ajax/file-browser/delete/", { type: "POST", data: { file: $("#file_browser_selected_file").val() } });
+			$.secureAjax("admin_root/ajax/file-browser/delete/", { type: "POST", data: { file: $("#file_browser_selected_file").val() } });
 			$("#file_browser_contents .selected").remove();
 			$("#file_browser_info_pane").html("");
 			$("#file_browser .footer .blue").hide();
@@ -1497,10 +1497,10 @@ var BigTreeFileManager = (function($) {
 			return;
 		}
 
-		$.ajax("admin_root/ajax/file-browser/folder-allocation/", { type: "POST", data: { folder: CurrentFolder }, complete: function(r) {
+		$.secureAjax("admin_root/ajax/file-browser/folder-allocation/", { type: "POST", data: { folder: CurrentFolder }, complete: function(r) {
 			var j = $.parseJSON(r.responseText);
 			if (confirm("This folder has " + j.folders + " sub-folder(s) and " + j.resources + " file(s) which will be deleted.\n\nFiles in this folder are in use in " + j.allocations + " location(s).\n\nAre you sure you want to delete this folder?")) {
-				$.ajax("admin_root/ajax/file-browser/delete-folder/", { type: "POST", data: { folder: CurrentFolder }, complete: function(r) {
+				$.secureAjax("admin_root/ajax/file-browser/delete-folder/", { type: "POST", data: { folder: CurrentFolder }, complete: function(r) {
 					if (Type == "image" || Type == "photo-gallery") {
 						openImageFolder(r.responseText);	
 					} else {
@@ -1775,7 +1775,7 @@ var BigTreeFileManager = (function($) {
 		var title = $("#file_browser_detail_title_input").val();
 		var file = $("#file_browser_selected_file").val();
 		
-		$.ajax("admin_root/ajax/file-browser/save-title/", { type: "POST", data: { file: file, title: title } });
+		$.secureAjax("admin_root/ajax/file-browser/save-title/", { type: "POST", data: { file: file, title: title } });
 	}
 	
 	function search() {

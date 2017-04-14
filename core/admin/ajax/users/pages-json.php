@@ -2,6 +2,8 @@
 	namespace BigTree;
 	
 	header("Content-type: text/json");
+	
+	CSRF::verify();
 
 	$recurse_nav = function($parent) {
 		global $recurse_nav;

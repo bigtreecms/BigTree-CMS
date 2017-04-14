@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
+	
 	if (Auth::user()->Level < 1) {
 		$this->stop("You are not allowed to move pages.");
 	}

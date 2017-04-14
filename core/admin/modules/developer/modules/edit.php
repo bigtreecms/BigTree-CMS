@@ -142,7 +142,7 @@
 		},
 		data: <?=json_encode($action_data)?>,
 		draggable: function(positioning) {
-			$.ajax("<?=ADMIN_ROOT?>ajax/developer/order-module-actions/", { type: "POST", data: { positioning: positioning } }); 	
+			$.secureAjax("<?=ADMIN_ROOT?>ajax/developer/order-module-actions/", { type: "POST", data: { positioning: positioning } });
 		}
 	});
 

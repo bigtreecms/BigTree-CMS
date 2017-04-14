@@ -7,6 +7,8 @@
 		Router::redirect($_SERVER["HTTP_REFERER"]);
 	}
 	
+	CSRF::verify();
+	
 	$bigtree["layout"] = "front-end";
 	$bigtree["crops"] = array();
 	$bigtree["errors"] = array();

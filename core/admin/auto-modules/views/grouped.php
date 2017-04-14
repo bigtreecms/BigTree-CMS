@@ -30,7 +30,7 @@
 		$("#table_contents").find("ul").each(function() {
 			if ($("#search").val() == "") {
 				$(this).sortable({ axis: "y", containment: "parent", handle: ".js-hook-sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: $.proxy(function() {
-					$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$view->ID?>", table_name: $(this).attr("id"), sort: $(this).sortable("serialize") } });
+					$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$view->ID?>", table_name: $(this).attr("id"), sort: $(this).sortable("serialize") } });
 				},this) });
 			}
 		});

@@ -7,6 +7,8 @@
 		Router::redirect($_SERVER["HTTP_REFERER"]);
 	}
 	
+	CSRF::verify();
+	
 	$parent_page = new Page($_POST["parent"]);
 	$access_level = $parent_page->UserAccessLevel;
 	

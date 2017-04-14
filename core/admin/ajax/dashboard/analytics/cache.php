@@ -1,12 +1,16 @@
 <?php
+	namespace BigTree;
+	
 	header("Content-type: text/json");
+	
+	CSRF::verify();
 
-	$analytics = new BigTree\GoogleAnalytics\API;
+	$analytics = new GoogleAnalytics\API;
 	
 	try {
 		$analytics->cacheInformation();
 		echo "true";
-	} catch (Exception $e) {
+	} catch (\Exception $e) {
 		echo "false";
 	}
 	

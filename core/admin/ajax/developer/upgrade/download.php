@@ -1,5 +1,7 @@
 <?php
 	namespace BigTree;
+	
+	CSRF::verify();
 
 	// Remove existing update zips
 	FileSystem::deleteFile(SERVER_ROOT."cache/update.zip");

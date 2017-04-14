@@ -5,6 +5,10 @@
 	 * @global Page $page
 	 */
 	
+	CSRF::verify();
+	
+	$page = new Page($_GET["id"]);
+	
 	if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
 		$page->delete();
 	}

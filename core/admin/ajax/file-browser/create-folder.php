@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
+	
 	$parent_folder = new ResourceFolder($_POST["folder"]);
 	
 	if ($parent_folder->UserAccessLevel == "p") {

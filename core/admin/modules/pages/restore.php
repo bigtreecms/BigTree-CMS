@@ -5,7 +5,9 @@
 	 * @global array $bigtree
 	 */
 	
-	$page = new Page(end($bigtree["path"]));
+	CSRF::verify();
+	
+	$page = new Page($_GET["id"]);
 	
 	if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
 		$page->unarchive();

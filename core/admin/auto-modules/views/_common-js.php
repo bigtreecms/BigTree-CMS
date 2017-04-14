@@ -31,7 +31,7 @@
 						var row = Current.parents("li");
 						var list = row.parents("ul");
 
-						$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$view->ID?>&id=" + href);
+						$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/delete/?view=<?=$view->ID?>&id=" + href);
 						row.remove();
 
 						if (!list.find("li").length) {
@@ -49,7 +49,7 @@
 	
 			return false;
 		}).on("click",".js-hook-approve",function() {
-			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/approve/?view=<?=$view->ID?>&id=" + BigTree.cleanHref($(this).attr("href")));
+			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/approve/?view=<?=$view->ID?>&id=" + BigTree.cleanHref($(this).attr("href")));
 			<?php if (($view->Type == "grouped" || $view->Type == "images-grouped") && $view->Settings["group_field"] == "approved") { ?>
 			BigTree.localSearch();
 			<?php } else { ?>
@@ -57,7 +57,7 @@
 			<?php } ?>
 			return false;
 		}).on("click",".js-hook-feature",function() {
-			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/feature/?view=<?=$view->ID?>&id=" + BigTree.cleanHref($(this).attr("href")));
+			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/feature/?view=<?=$view->ID?>&id=" + BigTree.cleanHref($(this).attr("href")));
 			<?php if (($view->Type == "grouped" || $view->Type == "images-grouped") && $view->Settings["group_field"] == "featured") { ?>
 			BigTree.localSearch();
 			<?php } else { ?>
@@ -65,7 +65,7 @@
 			<?php } ?>
 			return false;
 		}).on("click",".js-hook-archive",function() {
-			$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/archive/?view=<?=$view->ID?>&id=" + BigTree.cleanHref($(this).attr("href")));
+			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/archive/?view=<?=$view->ID?>&id=" + BigTree.cleanHref($(this).attr("href")));
 			<?php if (($view->Type == "grouped" || $view->Type == "images-grouped") && $view->Settings["group_field"] == "archived") { ?>
 			BigTree.localSearch();
 			<?php } else { ?>

@@ -7,13 +7,19 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=$form->Root?>process/<?php if (!empty($form->Embedded)) { ?>?hash=<?=$form->Hash?><?php } ?>" enctype="multipart/form-data" class="module" id="auto_module_form">
-		<?php if (!empty($form->Embedded)) { ?>
+		<?php
+			if (!empty($form->Embedded)) {
+		?>
 		<fieldset>
 			<label><?=Text::translate("This is a field that shouldn't be filled out.")?></label>
 			<input type="text" name="_bigtree_email" />
 			<input type="text" name="_bigtree_hashcash" id="bigtree_hashcash_field" />
 		</fieldset>
-		<?php } ?>
+		<?php
+			} else {
+				CSRF::drawPOSTToken();
+			}
+		?>
 		<input type="hidden" id="preview_field" name="_bigtree_preview" />
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=Storage::getUploadMaxFileSize()?>" id="bigtree_max_file_size" />
 		<input type="hidden" name="_bigtree_post_check" value="success" />

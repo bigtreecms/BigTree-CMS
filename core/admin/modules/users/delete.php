@@ -5,8 +5,10 @@
 	 * @global array $bigtree
 	 */
 	
-	$id = intval($bigtree["commands"][0]);
+	CSRF::verify();
 	Auth::user()->requireLevel(1);
+
+	$id = intval($bigtree["commands"][0]);
 
 	if ($id == Auth::user()->ID) {
 		Utils::growl("Users","You cannot delete your own user.","error");

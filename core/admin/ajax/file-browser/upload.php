@@ -13,6 +13,8 @@
 <?php
 	}
 	
+	CSRF::verify();
+	
 	$storage = new Storage;
 	
 	// If we're replacing an existing file, find out its name

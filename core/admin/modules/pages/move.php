@@ -64,6 +64,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>pages/move-update/">
+		<?php CSRF::drawPOSTToken(); ?>
 		<input type="hidden" name="page" value="<?=$page->ID?>" />
 		<section>
 			<fieldset>

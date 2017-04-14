@@ -199,7 +199,7 @@
 	$(".image_list ul").each(function() {
 		if ($(this).attr("id")) {
 			$(this).sortable({ containment: "parent", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: $.proxy(function() {
-				$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/",  { type: "POST", data: { view: "<?=$view->ID?>", table_name: "image_list", sort: $(this).sortable("serialize") } });
+				$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/",  { type: "POST", data: { view: "<?=$view->ID?>", table_name: "image_list", sort: $(this).sortable("serialize") } });
 			},this)});
 		}
 	});

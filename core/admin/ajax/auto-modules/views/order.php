@@ -5,6 +5,8 @@
 	 * @global string $table
 	 * @global ModuleView $view
 	 */
+	
+	CSRF::verify();
 
 	// Grab View Data
 	$view = new ModuleView($_POST["view"]);
