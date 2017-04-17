@@ -20,6 +20,9 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.18
+- SECURITY FIX: Updated PHPMailer to the latest version which patches the sender field allowing for code execution (CVE-2017-7881)
+
 ### 4.2.17
 - NEW: A comprehensive cross site request forgery prevention system was added.
 - SECURITY FIX: Adding a space after a file extension no longer allows a file upload to bypass security checks (thanks math1as from L-team).
