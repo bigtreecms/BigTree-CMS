@@ -99,8 +99,17 @@
 		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
 		<script>BigTree.dateFormat = "<?=Date::convertTojQuery($bigtree["config"]["date_format"])?>";</script>
-		<script src="<?=ADMIN_ROOT?>js/<?=isset($bigtree["config"]["html_editor"]) ? $bigtree["config"]["html_editor"]["src"] : "tinymce3/tiny_mce.js"?>"></script>
 		<?php
+			if (!empty($bigtree["config"]["html_editor"]) && $bigtree["config"]["html_editor"] != "tinymce4/tinymce.js") {
+		?>
+		<script src="<?=ADMIN_ROOT?>js/<?=$bigtree["config"]["html_editor"]["src"]?>"></script>
+		<?php
+			} else {
+		?>
+		<script src="https://cloud.tinymce.com/stable/tinymce.min.js"></script>
+		<?php
+			}
+
 			// Configuration based JS
 			if (isset($bigtree["config"]["admin_js"]) && is_array($bigtree["config"]["admin_js"])) {
 				foreach ($bigtree["config"]["admin_js"] as $script) {
