@@ -56,6 +56,11 @@
 		*/
 		
 		function delete(): ?bool {
+			// Prevent the whole directory from being deleted if this doesn't have an ID
+			if (empty($this->ID)) {
+				return false;
+			}
+			
 			// Regular extension
 			if ($this->Type == "extesion") {
 				// Delete site files
