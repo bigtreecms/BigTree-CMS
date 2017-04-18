@@ -4,6 +4,8 @@
 	/**
 	 * @global Feed $feed
 	 */
+	
+	CSRF::drawPOSTToken();
 ?>
 <section>
 	<div class="left last">

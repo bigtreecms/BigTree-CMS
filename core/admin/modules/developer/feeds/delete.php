@@ -5,7 +5,9 @@
 	 * @global array $bigtree
 	 */
 	
-	$feed = new Feed(end($bigtree["commands"]));
+	CSRF::verify();
+	
+	$feed = new Feed($_GET["id"]);
 	$feed->delete();
 
 	Utils::growl("Developer","Deleted Feed");

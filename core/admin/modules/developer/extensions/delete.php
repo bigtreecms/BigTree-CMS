@@ -5,7 +5,9 @@
 	 * @global array $bigtree
 	 */
 	
-	$extension = new Extension($bigtree["commands"][0]);
+	CSRF::verify();
+	
+	$extension = new Extension($_GET["id"]);
 	$extension->delete();
 	
 	Utils::growl("Developer", "Uninstalled Extension");

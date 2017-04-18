@@ -18,7 +18,7 @@
 					icon: "delete",
 					alternateSaveText: "<?=Text::translate("OK", true)?>",
 					callback: function() {
-						document.location.href = "<?=DEVELOPER_ROOT?>feeds/delete/" + id + "/";
+						document.location.href = "<?=DEVELOPER_ROOT?>feeds/delete/?id=" + id + "<?php CSRF::drawGETToken(); ?>";
 					}
 				});
 			}

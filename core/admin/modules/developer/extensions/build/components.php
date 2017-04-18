@@ -14,6 +14,7 @@
 <div class="container">
 	<header><p><?=Text::translate("Add modules, templates, callouts, field types, feeds, and settings to your extension.")?></p></header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>extensions/build/save-components/" class="module">
+    <?php CSRF::drawPOSTToken(); ?>
 		<section>
 			<fieldset>
 				<article class="package_column">

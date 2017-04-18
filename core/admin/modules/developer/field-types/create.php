@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
+	
 	$id = $_POST["id"];
 	
 	if (FieldType::exists($id) ||

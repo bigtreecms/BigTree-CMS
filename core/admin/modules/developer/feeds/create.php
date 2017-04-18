@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
+	
 	if (is_string($_POST["options"])) {
 		$_POST["options"] = array_filter((array) json_decode($_POST["options"], true));
 	}

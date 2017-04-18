@@ -9,6 +9,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>field-types/update/" enctype="multipart/form-data" class="module">
+	  <?php CSRF::drawPOSTToken(); ?>
 		<input type="hidden" name="id" value="<?=$field_type->ID?>" />
 		<section>
 			<fieldset>

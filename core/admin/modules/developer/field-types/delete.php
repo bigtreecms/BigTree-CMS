@@ -5,7 +5,9 @@
 	 * @global array $bigtree
 	 */
 	
-	$field_type = new FieldType(end($bigtree["path"]));
+	CSRF::verify();
+	
+	$field_type = new FieldType($_GET["id"]);
 	$field_type->delete();
 	
 	Utils::growl("Developer","Deleted Field Type");

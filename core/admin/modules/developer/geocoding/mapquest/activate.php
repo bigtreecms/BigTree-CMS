@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
+	
 	$setting = new Setting("bigtree-internal-geocoding-service");
 	$setting->Value["service"] = "google";
 	$setting->Value["mapquest_key"] = $_POST["mapquest_key"];

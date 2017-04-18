@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
+	
 	$setting = new Setting("bigtree-internal-geocoding-service");
 	$setting->Value["service"] = "bing";
 	$setting->Value["bing_key"] = $_POST["bing_key"];
