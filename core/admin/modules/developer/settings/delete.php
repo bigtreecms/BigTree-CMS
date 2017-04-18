@@ -5,7 +5,9 @@
 	 * @global array $bigtree
 	 */
 	
-	$setting = new Setting(end($bigtree["path"]));
+	CSRF::verify();
+	
+	$setting = new Setting($_GET["id"]);
 	$setting->delete();
 	
 	Utils::growl("Developer","Deleted Setting");

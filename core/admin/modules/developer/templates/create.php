@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
+	
 	// Let's see if the ID has already been used.
 	if (SQL::exists("bigtree_templates", $_POST["id"])) {
 		$_SESSION["bigtree_admin"]["saved"] = $_POST;

@@ -18,7 +18,7 @@
 					icon: "delete",
 					alternateSaveText: "OK",
 					callback: function() {
-						document.location.href = "<?=DEVELOPER_ROOT?>settings/delete/" + id + "/";
+						document.location.href = "<?=DEVELOPER_ROOT?>settings/delete/?id=" + id + "<?php CSRF::drawGETToken(); ?>";
 					}
 				});
 			}

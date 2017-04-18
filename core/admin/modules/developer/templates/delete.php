@@ -5,7 +5,9 @@
 	 * @global array $bigtree
 	 */
 	
-	$template = new Template(end($bigtree["path"]));
+	CSRF::verify();
+	
+	$template = new Template($_GET["id"]);
 	$template->delete();
 	
 	Utils::growl("Developer","Deleted Template");

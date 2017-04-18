@@ -9,6 +9,8 @@
 	$cached_types = FieldType::reference(true);
 	$types = $cached_types["templates"];
 	$show_error = !empty($_SESSION["bigtree_admin"]["error"]);
+	
+	CSRF::drawPOSTToken();
 
 	if (isset($_GET["return"])) {
 ?>

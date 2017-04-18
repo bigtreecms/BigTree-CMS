@@ -5,7 +5,9 @@
 	 * @global array $bigtree
 	 */
 	
-	$user = new User(end($bigtree["commands"]));
+	CSRF::verify();
+	
+	$user = new User($_GET["id"]);
 
 	if (empty($user->ID)) {
 ?>

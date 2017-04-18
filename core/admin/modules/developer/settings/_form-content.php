@@ -7,6 +7,8 @@
 	 */
 	
 	$field_types = FieldType::reference(true, "settings");
+	
+	CSRF::drawPOSTToken();
 
 	if (isset($_GET["return"])) { ?>
 <input type="hidden" name="return_to_front" value="true" />

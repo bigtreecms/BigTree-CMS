@@ -20,7 +20,7 @@
 			company: { title: "<?=Text::translate("Company", true)?>", size: 0.3 }
 		},
 		actions: {
-			settings: "<?=DEVELOPER_ROOT?>user-emulator/emulate/{id}/"
+			settings: "<?=DEVELOPER_ROOT?>user-emulator/emulate/?id={id}<?php CSRF::drawGETToken(); ?>"
 		},
 		data: <?=JSON::encodeColumns($users, array("id", "gravatar", "name", "email", "company"))?>,
 		searchable: true,

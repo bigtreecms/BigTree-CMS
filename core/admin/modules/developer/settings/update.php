@@ -5,6 +5,8 @@
 	 * @global array $bigtree
 	 */
 	
+	CSRF::verify();
+	
 	$setting = new Setting(end($bigtree["path"]));
 	
 	if ($setting->System) {
