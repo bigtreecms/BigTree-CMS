@@ -1,4 +1,4 @@
-BigTree CMS 4.2
+BigTree CMS 5.0
 ===============
 <http://www.bigtreecms.org/>
 
@@ -19,6 +19,45 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 
 Changelog
 ---------
+
+### 5.0 Release
+- NEW: Entirely new object oriented API
+- CHANGED: BigTree now requires MySQL 5.5.3+ and PHP 7.1+
+- CHANGED: BigTree now employees full <?php tags across the board for better compatibility.
+- CHANGED: Module Forms, Views, Reports, and Embeddable Forms are now called Module Interfaces
+- CHANGED: phpseclib, PHPMailer, Text-Statistics, JShrink, and less.php are now submodules of the main repository
+- CHANGED: Administrator users no longer see the Developer users that they do not have permission to edit
+- CHANGED: Editing a module is now a tabbed interface rather than a long page
+- CHANGED: BigTree now triggers errors instead of exceptions
+- CHANGED: Disqus API objects now have a ForumID property rather than Forum
+- CHANGED: Callout data can no longer store sub-data as double-encoded JSON and have it decoded back to arrays automatically.
+- CHANGED: $page, $callouts, $commands, and $resources are no longer globals in template files.
+- ADDED: Users now have control over what is included in their Daily Digest (turn off content alerts, changes awaiting publication, etc)
+- ADDED: Users now have control over what is included on their Dashboard when logging into BigTree
+- ADDED: Extensions can now implement new reusable Module Interfaces (https://www.bigtreecms.org/developers/dev-guide/advanced/extensions/interfaces/)
+- ADDED: Extensions can now implement their own Cron routines that run alongside BigTree's daily digest / analytics caching (https://www.bigtreecms.org/developers/dev-guide/advanced/extensions/cron-routines/)
+- ADDED: Extensions can now implement their own Daily Digest email content blocks (https://www.bigtreecms.org/developers/dev-guide/advanced/extensions/daily-digest-blocks/)
+- ADDED: Extensions can now implement their own Dashboard panes
+- ADDED: Extensions can now define their own set of required files to include in bootstrap
+- ADDED: Modules can now define their own routing using a route registry in the module's class file enabling them to route URL endpoints. (https://www.bigtreecms.org/developers/dev-guide/modules/custom-routing/)
+- ADDED: Many new icons are now available for use as module and module action icons
+- ADDED: Kint is now included with BigTree as part of the default install
+- ADDED: BigTreeTable (Javascript) function for easily creating tabled data with search, pagination, and actions
+- ADDED: Feeds now supports creating JSON feeds.
+- ADDED: A test content generator (Lorem Ipsum) to generate test content for your site.
+- ADDED: Multi-language support has been added to the back-end (not content translation but translations for back-end users)
+- UPDATED: Form fields in the admin should now be much more accessible to blind users.
+- UPDATED: Modules can now be restricted to only developer users.
+- UPDATED: BigTreeDialog (Javascript) function now accepts "url" and "post" keys to load dialog content over AJAX
+- UPDATED: The "List" field type now supports list parser functions for database populated lists.
+- UPDATED: Developers now have a quick link to edit a setting from within the Settings tab (when changing a setting's value).
+- UDPATED: BigTreeModule's getBreadcrumb method now has two additional (optional) parameters: $routed_path and $commands (equivalent to $bigtree["routed_path"] and $bigtree["commands"])
+- REMOVED: ReCAPTCHA library is no longer included with BigTree
+- REMOVED: CSS prefixer ($bigtree["config"]["css"]["prefix"]). LESS has replaced the functionality in the admin (you can now include a /admin/css/test.less file and it will parse as LESS)
+- REMOVED: BigTreeAutoModule::autoSaveSetting method
+- REMOVED: BigTreeAdmin::htmlClean method
+- REMOVED: TinyMCE is no longer included with BigTree - the latest stable CDN version is now used (if you want to use TinyMCE 3 you can add it to /custom/admin/js/tinymce3/)
+- REMOVED: Keywords from the SEO tab of Pages (as they are not used by any search engines)
 
 ### 4.2.9 Release
 - ADDED: Clear Label button to callout editor in case you don't want to use any resource for the label
