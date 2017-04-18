@@ -24,7 +24,7 @@
 					"template" - matches patterns in a given routed template (from the location of the page)
 				
 				"pattern"
-					A pattern based on the route parameters from Slim - http://docs.slimframework.com/#Route-Parameters
+					A pattern based on the route parameters from Slim - http://docs.slimframework.com/routing/params/
 				
 				"template"
 					If the template type is used, this should be the ID of the template you're hooking.
