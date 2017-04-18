@@ -71,10 +71,16 @@
 	</ul>
 </div>
 <form method="post" action="<?=DEVELOPER_ROOT?>modules/views/update-style/<?=$view->ID?>/" class="module">
-	<?php foreach ($view->Fields as $key => $field) { ?>
+	<?php
+		CSRF::drawPOSTToken();
+		
+		foreach ($view->Fields as $key => $field) {
+	?>
 	<input type="hidden" name="<?=$key?>" id="data_<?=$key?>" value="<?=$field["width"]?>" />
-	<?php } ?>
-	<a class="button" href="<?=DEVELOPER_ROOT?>modules/views/clear-style/<?=$view->ID?>/"><?=Text::translate("Clear Existing Style")?></a>
+	<?php
+		}
+	?>
+	<a class="button" href="<?=DEVELOPER_ROOT?>modules/views/clear-style/<?=$view->ID?>/?true<?php CSRF::drawGETToken(); ?>"><?=Text::translate("Clear Existing Style")?></a>
 	<input type="submit" class="button blue" value="<?=Text::translate("Update", true)?>" />
 </form>
 <?php

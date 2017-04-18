@@ -6,6 +6,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=SECTION_ROOT?>create/<?=$module["id"]?>/" class="module">
+		<?php CSRF::drawPOSTToken(); ?>
 		<section>
 			<div class="left last">
 				<fieldset>

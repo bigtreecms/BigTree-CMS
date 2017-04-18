@@ -4,6 +4,8 @@
 	/**
 	 * @global array $bigtree
 	 */
+	
+	CSRF::verify();
 
 	$module_id = end($bigtree["path"]);
 

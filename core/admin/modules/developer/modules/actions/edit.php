@@ -9,6 +9,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/actions/update/<?=$action->ID?>/" class="module">
+		<?php CSRF::drawPOSTToken(); ?>
 		<input type="hidden" name="position" value="<?=$action->Position?>" />
 		<?php include Router::getIncludePath("admin/modules/developer/modules/actions/_form.php") ?>
 		<footer>

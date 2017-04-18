@@ -48,6 +48,7 @@
 	</header>
 	<div id="details_tab" class="section">
 		<form method="post" action="<?=DEVELOPER_ROOT?>modules/update/<?=$module->ID?>/" enctype="multipart/form-data" class="module left">
+			<?php CSRF::drawPOSTToken(); ?>
 			<section>
 				<div class="left">
 					<fieldset>
@@ -135,7 +136,7 @@
 					icon: "delete",
 					alternateSaveText: "<?=Text::translate("OK", true)?>",
 					callback: function() {
-						document.location.href = "<?=DEVELOPER_ROOT?>modules/actions/delete/" + id + "/?module=<?=$id?>";
+						document.location.href = "<?=DEVELOPER_ROOT?>modules/actions/delete/?id=" + id + "<?php CSRF::drawGETToken(); ?>";
 					}
 				});
 			}
@@ -165,7 +166,7 @@
 					icon: "delete",
 					alternateSaveText: "<?=Text::translate("OK", true)?>",
 					callback: function() {
-						document.location.href = "<?=DEVELOPER_ROOT?>modules/interfaces/delete/" + id + "/?module=<?=$id?>";
+						document.location.href = "<?=DEVELOPER_ROOT?>modules/interfaces/delete/?id=" + id + "<?php CSRF::drawGETToken(); ?>";
 					}
 				});
 			}

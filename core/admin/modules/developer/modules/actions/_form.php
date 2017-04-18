@@ -5,6 +5,8 @@
 	 * @global array $interface_list
 	 * @global ModuleAction $action
 	 */
+
+	CSRF::drawPOSTToken();
 	
 	// Get list of interfaces but dump embeddable forms since they're for the front end
 	$id = $_GET["module"];

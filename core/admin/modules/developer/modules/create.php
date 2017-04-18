@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
+	
 	if ($_POST["group_new"]) {
 		$group = ModuleGroup::create($_POST["group_new"]);
 		$group_id = $group->ID;

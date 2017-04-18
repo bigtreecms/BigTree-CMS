@@ -5,9 +5,11 @@
 	 * @global array $bigtree
 	 */
 	
-	$action = new ModuleAction(end($bigtree["path"]));
+	CSRF::verify();
+	
+	$action = new ModuleAction($_GET["id"]);
 	$action->delete();
 	
 	Utils::growl("Developer","Deleted Action");
-	Router::redirect(DEVELOPER_ROOT."modules/edit/".$_GET["module"]."/");
+	Router::redirect(DEVELOPER_ROOT."modules/edit/".$action->Module."/");
 	

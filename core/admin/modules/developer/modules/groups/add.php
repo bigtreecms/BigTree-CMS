@@ -3,6 +3,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/groups/create/" class="module">
+		<?php CSRF::drawPOSTToken(); ?>
 		<section>
 			<fieldset>
 				<label for="group_field_name" class="required"><?=Text::translate("Name")?></label>

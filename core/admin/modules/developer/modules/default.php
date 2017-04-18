@@ -32,7 +32,7 @@
 					icon: "delete",
 					alternateSaveText: "<?=Text::translate("OK", true)?>",
 					callback: function() {
-						document.location.href = "<?=DEVELOPER_ROOT?>modules/delete/" + id + "/";
+						document.location.href = "<?=DEVELOPER_ROOT?>modules/delete/?id=" + id + "<?php CSRF::drawGETToken(); ?>";
 					}
 				});
 			}

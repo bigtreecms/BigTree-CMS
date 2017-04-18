@@ -4,6 +4,8 @@
 	/**
 	 * @global array $bigtree
 	 */
+	
+	CSRF::verify();
 
 	// Easier global vars for type checks
 	$type = $_POST["type"];

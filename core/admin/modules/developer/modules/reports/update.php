@@ -4,6 +4,8 @@
 	/**
 	 * @global array $bigtree
 	 */
+	
+	CSRF::verify();
 
 	$report = new ModuleReport(end($bigtree["commands"]));
 	$report->update(

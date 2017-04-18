@@ -5,6 +5,8 @@
 	 * @global array $bigtree
 	 */
 	
+	CSRF::verify();
+	
 	$group = new ModuleGroup(end($bigtree["path"]));
 	$group->update($_POST["name"]);
 

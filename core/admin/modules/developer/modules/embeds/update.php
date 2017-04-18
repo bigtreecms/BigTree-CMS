@@ -4,6 +4,8 @@
 	/**
 	 * @global array $bigtree
 	 */
+	
+	CSRF::verify();
 
 	$form = new ModuleEmbedForm(end($bigtree["path"]));
 	$form->update($_POST["title"], $_POST["table"], $_POST["fields"], $_POST["hooks"], $_POST["default_position"],

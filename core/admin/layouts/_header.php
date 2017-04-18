@@ -153,7 +153,7 @@
 		</script>
 		<header class="main">
 			<section>
-				<a href="<?php if ($bigtree["config"]["force_secure_login"]) { echo str_replace("http://","https://",ADMIN_ROOT); } else { echo ADMIN_ROOT; } ?>login/logout/" class="logout"><span></span><?=Text::translate("Logout")?></a>
+				<a href="<?php if ($bigtree["config"]["force_secure_login"]) { echo str_replace("http://","https://",ADMIN_ROOT); } else { echo ADMIN_ROOT; } ?>login/logout/?true<?php CSRF::drawGETToken(); ?>" class="logout"><span></span><?=Text::translate("Logout")?></a>
 				<div></div>
 				<p class="messages"><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_message_string?></a></p>
 				<div></div>

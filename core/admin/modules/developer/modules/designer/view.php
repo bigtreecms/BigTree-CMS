@@ -31,6 +31,7 @@
 		<p><?=Text::translate("Step 3: Creating Your View")?></p>
 	</header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/designer/view-create/" class="module">
+		<?php CSRF::drawPOSTToken(); ?>
 		<input type="hidden" name="module" value="<?=$module->ID?>" />
 		<input type="hidden" name="table" value="<?=Text::htmlEncode($table)?>" />
 		<section>

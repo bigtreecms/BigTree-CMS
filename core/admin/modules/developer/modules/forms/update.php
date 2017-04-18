@@ -4,6 +4,8 @@
 	/**
 	 * @global array $bigtree
 	 */
+	
+	CSRF::verify();
 
 	$form = new ModuleForm(end($bigtree["path"]));
 	$form->update(

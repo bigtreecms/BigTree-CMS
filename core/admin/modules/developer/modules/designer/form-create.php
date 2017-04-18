@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
+	
 	$reserved = array("id", "position");
 	$fields = array();
 	$column_definitions = array();

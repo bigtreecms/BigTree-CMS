@@ -5,9 +5,11 @@
 	 * @global array $bigtree
 	 */
 	
-	$interface = new ModuleInterface(end($bigtree["commands"]));
+	CSRF::verify();
+	
+	$interface = new ModuleInterface($_GET["id"]);
 	$interface->delete();
 
 	Utils::growl("Developer","Deleted Interface");
-	Router::redirect(DEVELOPER_ROOT."modules/edit/".$_GET["module"]."/");
+	Router::redirect(DEVELOPER_ROOT."modules/edit/".$interface->Module."/");
 	

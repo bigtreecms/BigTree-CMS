@@ -26,6 +26,7 @@
 		<p><?=Text::translate("The module designer will guide you through making a module without needing access to the database or knowledge of database table creation.")?></p>
 	</header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/designer/create/" enctype="multipart/form-data" class="module">
+		<?php CSRF::drawPOSTToken(); ?>
 		<section>
 			<p class="error_message"<?php if (!count($errors)) { ?> style="display: none;"<?php } ?>><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 			<div class="left">

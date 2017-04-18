@@ -5,7 +5,9 @@
 	 * @global array $bigtree
 	 */
 	
-	$group = new ModuleGroup(end($bigtree["path"]));
+	CSRF::verify();
+	
+	$group = new ModuleGroup($_GET["id"]);
 	$group->delete();
 	
 	Utils::growl("Developer","Deleted Module Group");

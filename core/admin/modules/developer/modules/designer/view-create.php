@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
+	
 	// Make sure at least one field is in this view.
 	$ok = false;
 	$table = $_POST["table"];

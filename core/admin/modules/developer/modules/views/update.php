@@ -4,6 +4,8 @@
 	/**
 	 * @global array $bigtree
 	 */
+	
+	CSRF::verify();
 
 	// Get some globals for repeated vars
 	$table = $_POST["table"];

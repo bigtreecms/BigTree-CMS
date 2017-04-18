@@ -28,6 +28,7 @@
 		<p><?=Text::translate("Step 2: Creating Your Form")?></p>
 	</header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/designer/form-create/" class="module">
+		<?php CSRF::drawPOSTToken(); ?>
 		<input type="hidden" name="module" value="<?=$module->ID?>" />
 		<input type="hidden" name="table" value="<?=htmlspecialchars($table)?>" />
 		<section>

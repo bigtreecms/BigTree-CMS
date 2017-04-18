@@ -14,6 +14,8 @@
 	
 	Extension::initializeCache();
 	$forms = ModuleForm::allByModule($module->ID, "title");
+	
+	CSRF::drawPOSTToken();
 ?>
 <section>
 	<div class="left last">

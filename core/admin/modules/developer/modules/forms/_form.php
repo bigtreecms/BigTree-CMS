@@ -8,6 +8,8 @@
 
 	// Find out if we have more than one view. If so, give them an option of which one to return to.
 	$available_views = ModuleInterface::allByModuleAndType($module->ID, "view", "title ASC");
+	
+	CSRF::drawPOSTToken();
 ?>
 <section>
 	<div class="left last">

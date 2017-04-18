@@ -18,6 +18,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/create/" class="module">
+		<?php CSRF::drawPOSTToken(); ?>
 		<section>
 			<p class="error_message" style="display: none;"><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 			<div class="contain">

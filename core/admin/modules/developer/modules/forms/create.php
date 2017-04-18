@@ -4,6 +4,8 @@
 	/**
 	 * @global array $bigtree
 	 */
+	
+	CSRF::verify();
 
 	$module = end($bigtree["path"]);
 	$title = $_POST["title"];

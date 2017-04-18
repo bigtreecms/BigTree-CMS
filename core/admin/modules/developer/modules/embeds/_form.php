@@ -4,6 +4,8 @@
 	/**
 	 * @global ModuleEmbedForm $form
 	 */
+	
+	CSRF::drawPOSTToken();
 ?>
 <section>
 	<div class="left last">
