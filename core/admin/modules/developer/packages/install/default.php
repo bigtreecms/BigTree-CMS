@@ -7,6 +7,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>packages/install/unpack/" enctype="multipart/form-data">
+		<?php CSRF::drawPOSTToken(); ?>
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=Storage::getUploadMaxFileSize()?>" />
 		<input type="hidden" name="_bigtree_post_check" value="success" />
 		<section>

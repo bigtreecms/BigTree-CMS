@@ -7,6 +7,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>developer/payment-gateway/payflow/update/" class="module">
+		<?php CSRF::drawPOSTToken(); ?>
 		<section>
 			<div class="alert">
 				<p><?=Text::translate("To enable usage of PayPal Payflow Gateway as your payment gateway, enter your access information below.")?></p>

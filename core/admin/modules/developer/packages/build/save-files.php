@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
+	
 	Globalize::POST();
 	sort($files);
 	sort($tables);

@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
+	
 	$setting = new Setting("bigtree-internal-security-policy");
 	$setting->Value = array(
 		"user_fails" => array(

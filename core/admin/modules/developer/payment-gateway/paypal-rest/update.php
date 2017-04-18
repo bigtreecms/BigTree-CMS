@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
+	
 	$gateway = new PaymentGateway\PayPalREST;
 	
 	$gateway->Service = "paypal-rest";

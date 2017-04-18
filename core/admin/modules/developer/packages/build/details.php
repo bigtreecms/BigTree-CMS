@@ -19,6 +19,7 @@
 <div class="container">
 	<header><p><?=Text::translate("Build out the manifest details for your package.")?></p></header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>packages/build/save-details/" class="module">
+		<?php CSRF::drawPOSTToken(); ?>
 		<section>
 			<div class="contain">
 				<h3><?=Text::translate("Package Information")?></h3>

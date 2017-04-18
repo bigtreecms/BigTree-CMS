@@ -7,6 +7,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>developer/payment-gateway/linkpoint/update/" class="module" enctype="multipart/form-data">
+		<?php CSRF::drawPOSTToken(); ?>
 		<section>
 			<div class="alert">
 				<p><?=Text::translate("To enable usage of First Data / LinkPoint as your payment gateway, enter your access information below.")?></p>

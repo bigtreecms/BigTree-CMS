@@ -5,6 +5,7 @@
 ?>
 <div class="container" id="security_settings">
 	<form method="post" action="<?=DEVELOPER_ROOT?>security/update/">
+		<?php CSRF::drawPOSTToken(); ?>
 		<section>
 			<div class="contain">
 				<div class="left">

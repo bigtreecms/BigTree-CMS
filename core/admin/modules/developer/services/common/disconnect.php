@@ -7,6 +7,8 @@
 	 * @global string $route
 	 */
 	
+	CSRF::verify();
+	
 	$api->disconnect();
 	
 	Utils::growl("$name API","Disconnected");

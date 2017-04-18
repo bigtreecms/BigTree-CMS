@@ -17,7 +17,8 @@
 	<?php
 		if (!$api->Connected) {
 	?>
-	<form method="post" action="<?=DEVELOPER_ROOT?>services/<?=$route?>/activate/" class="module">	
+	<form method="post" action="<?=DEVELOPER_ROOT?>services/<?=$route?>/activate/" class="module">
+		<?php CSRF::drawPOSTToken(); ?>
 		<section>
 			<p><?=Text::translate("To activate the :api_name: API class you must follow these steps:", false, array(":api_name:" => $name))?></p>
 			<hr />
@@ -84,7 +85,7 @@
 		<?php } ?>
 	</section>
 	<footer>
-		<a href="<?=DEVELOPER_ROOT?>services/<?=$route?>/disconnect/" class="button red"><?=Text::translate("Disconnect")?></a>
+		<a href="<?=DEVELOPER_ROOT?>services/<?=$route?>/disconnect/?true<?php CSRF::drawGETToken(); ?>" class="button red"><?=Text::translate("Disconnect")?></a>
 	</footer>
 	<?php
 		}

@@ -4,6 +4,7 @@
 <div class="container">
 	<header><p><?=Text::translate("Add additional files and tables to your package.")?></p></header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>packages/build/save-files/" class="module">
+		<?php CSRF::drawPOSTToken(); ?>
 		<section>
 			<article class="package_column package_column_double">
 				<strong><?=Text::translate("Files")?></strong>

@@ -7,6 +7,8 @@
 		Router::redirect($_SERVER["HTTP_REFERER"]);
 	}
 	
+	CSRF::verify();
+	
 	// Make sure an upload succeeded
 	$error = $_FILES["file"]["error"];
 	$warnings = array();
