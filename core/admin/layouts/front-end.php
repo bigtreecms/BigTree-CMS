@@ -40,6 +40,10 @@
 				}
 			}
 		?>
+		<script>
+			var CSRFTokenField = "<?=CSRF::$Field?>";
+			var CSRFToken = "<?=CSRF::$Token?>";
+		</script>
 		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/pages.js"></script>
