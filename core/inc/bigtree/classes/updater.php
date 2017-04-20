@@ -22,11 +22,12 @@
 				extension - If updating an extension, the extension id (defaults to false)
 		*/
 		
-		function __construct($extension = false) {
+		function __construct(?string $extension = null) {
 			$this->Extension = $extension;
 			
 			// See if local will work
 			$path = $extension ? SERVER_ROOT."extensions/$extension/" : SERVER_ROOT."core/";
+			
 			if (is_writable(SERVER_ROOT) && is_writable($path)) {
 				$this->Method = "Local";
 			} else {
@@ -52,7 +53,7 @@
 				true if the file isn't corrupt
 		*/
 		
-		function checkZip() {
+		function checkZip(): bool {
 			include_once SERVER_ROOT."core/inc/lib/pclzip.php";
 			$zip = new PclZip(SERVER_ROOT."cache/update.zip");
 			$zip->listContent();
@@ -69,7 +70,7 @@
 				Removes update related files and directories.
 		*/
 		
-		function cleanup() {
+		function cleanup(): void {
 			if (file_exists(SERVER_ROOT."cache/update/")) {
 				FileSystem::deleteDirectory(SERVER_ROOT."cache/update/");
 			}
@@ -85,7 +86,7 @@
 				true if successful
 		*/
 		
-		function extract() {
+		function extract(): bool {
 			include_once SERVER_ROOT."core/inc/lib/pclzip.php";
 			$zip = new PclZip(SERVER_ROOT."cache/update.zip");
 			
@@ -128,7 +129,7 @@
 				true if successful.
 		*/
 		
-		function ftpLogin($user, $password) {
+		function ftpLogin(string $user, $password): bool {
 			return $this->Connection->login($user, $password) ? true : false;
 		}
 		
@@ -138,12 +139,12 @@
 
 			Returns:
 				The FTP directory if successful.
-				false if not successful.
+				null if not successful.
 		*/
 		
-		function getFTPRoot() {
+		function getFTPRoot(): ?string {
 			// Try to determine the FTP root.
-			$ftp_root = false;
+			$ftp_root = null;
 			$saved_root = Setting::value("bigtree-internal-ftp-upgrade-root");
 			
 			if ($saved_root !== false && $this->Connection->changeDirectory($saved_root."core/inc/bigtree/")) {
@@ -156,8 +157,8 @@
 				$ftp_root = "/httpdocs";
 			} elseif ($this->Connection->changeDirectory("/public_html/core/inc/bigtree")) {
 				$ftp_root = "/public_html";
-			} elseif ($this->Connection->changeDirectory("/".str_replace(array("http://", "https://"), "", DOMAIN)."inc/bigtree/")) {
-				$ftp_root = "/".str_replace(array("http://", "https://"), "", DOMAIN);
+			} elseif ($this->Connection->changeDirectory("/".str_replace(["http://", "https://"], "", DOMAIN)."inc/bigtree/")) {
+				$ftp_root = "/".str_replace(["http://", "https://"], "", DOMAIN);
 			}
 			
 			return $ftp_root;
@@ -171,7 +172,7 @@
 				ftp_root - The FTP path to the root install directory for BigTree
 		*/
 		
-		function installFTP($ftp_root) {
+		function installFTP(string $ftp_root): void {
 			$ftp_root = "/".trim($ftp_root, "/")."/";
 			
 			// Create backups folder
@@ -218,7 +219,7 @@
 				Installs an update via local file replacement.
 		*/
 		
-		function installLocal() {
+		function installLocal(): void {
 			// Create backups folder
 			FileSystem::createDirectory(SERVER_ROOT."backups/");
 			
@@ -264,9 +265,12 @@
 			Parameters:
 				file - Location of the file to unzip
 				destination - The full path to unzip the file's contents to.
+			
+			Returns:
+				true if successful
 		*/
 		
-		static function unzip($file, $destination) {
+		static function unzip(string $file, string $destination): bool {
 			// If we can't write the output directory, we're not getting anywhere.
 			if (!FileSystem::getDirectoryWritability($destination)) {
 				return false;
@@ -304,10 +308,12 @@
 					}
 					
 					$content = $z->getFromIndex($i);
+					
 					if ($content === false) {
 						// File extraction failed.
 						return false;
 					}
+					
 					FileSystem::createFile($destination.$file["name"], $content);
 				}
 				
@@ -363,25 +369,28 @@
 				zip - PclZip instance
 
 			Returns:
-				A folder name or false if the root contains more than just a folder.
+				A folder name or null if the root contains more than just a folder.
 		*/
 		
-		static function zipRoot(PclZip $zip) {
+		static function zipRoot(PclZip $zip): ?string {
 			$contents = $zip->listContent();
 			$root_count = 0;
-			$root = false;
+			$root = null;
+			
 			foreach ($contents as $content) {
 				$file = rtrim($content["filename"], "/");
 				$pieces = explode("/", $file);
+				
 				if (count($pieces) == 1) {
 					$root_count++;
 					$root = $file;
 				}
 			}
+			
 			if ($root_count == 1) {
 				return $root;
 			}
 			
-			return false;
+			return null;
 		}
 	}

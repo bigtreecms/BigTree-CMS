@@ -4,17 +4,17 @@
 			A SFTP class based on (and requiring) phpseclib.
 			Meant to be method-compatible with BigTree\FTP.
 	*/
-
+	
 	namespace BigTree;
-
+	
 	set_include_path(get_include_path().PATH_SEPARATOR.SERVER_ROOT.'core/inc/lib/phpseclib/phpseclib');
 	require_once("Net/SFTP.php");
-
+	
 	class SFTP {
 		
 		/** @var \Net_SFTP */
 		public $Connection;
-
+		
 		/*
 			Function: changeToParentDirectory
 				Changes the current working directory to its parent.
@@ -22,11 +22,11 @@
 			Returns:
 				true if successful
 		*/
-
-		function changeToParentDirectory() {
+		
+		function changeToParentDirectory(): bool {
 			return $this->Connection->chdir("..");
 		}
-
+		
 		/*
 			Function: changeDirectory
 				Changes the current working directory to given path.
@@ -36,11 +36,11 @@
 			Returns:
 				true if successful
 		*/
-
-		function changeDirectory($path) {
+		
+		function changeDirectory(string $path): bool {
 			return $this->Connection->chdir($path);
 		}
-
+		
 		/*
 			Function: connect
 				Connects to a server.
@@ -52,8 +52,8 @@
 			Returns:
 				true if successful
 		*/
-
-		function connect($host, $port = 22) {
+		
+		function connect(string $host, int $port = 22): bool {
 			// Test connection
 			$connection = @fsockopen($host, $port);
 			
@@ -63,10 +63,10 @@
 				
 				return true;
 			}
-
+			
 			return false;
 		}
-
+		
 		/*
 			Function: createDirectory
 				Creates a directory.
@@ -77,11 +77,11 @@
 			Returns:
 				true if successful.
 		*/
-
-		function createDirectory($path) {
+		
+		function createDirectory(string $path): bool {
 			return $this->Connection->mkdir($path);
 		}
-
+		
 		/*
 			Function: deleteDirectory
 				Deletes a given directory (it must be empty to be deleted).
@@ -92,11 +92,11 @@
 			Returns:
 				true if successful
 		*/
-
-		function deleteDirectory($path) {
+		
+		function deleteDirectory(string $path): bool {
 			return $this->Connection->rmdir($path);
 		}
-
+		
 		/*
 			Function: deleteFile
 				Deletes a given directory (it must be empty to be deleted).
@@ -107,20 +107,20 @@
 			Returns:
 				true if successful
 		*/
-
-		function deleteFile($path) {
+		
+		function deleteFile(string $path): bool {
 			return $this->Connection->delete($path);
 		}
-
+		
 		/*
 			Function: disconnect
 				Closes the FTP connection.
 		*/
-
-		function disconnect() {
+		
+		function disconnect(): bool {
 			return $this->Connection->_disconnect("");
 		}
-
+		
 		/*
 			Function: downloadFile
 				Downloads a file from the FTP server.
@@ -132,11 +132,11 @@
 			Returns:
 				true if successful.
 		*/
-
-		function downloadFile($remote, $local) {
+		
+		function downloadFile(string $remote, string $local): bool {
 			return $this->Connection->get($remote, $local);
 		}
-
+		
 		/*
 			Function: getCurrentDirectory
 				Returns the name of the current working directory.
@@ -144,11 +144,11 @@
 			Returns:
 				The current working directory or false if the call failed.
 		*/
-
-		function getCurrentDirectory() {
+		
+		function getCurrentDirectory(): string {
 			return $this->Connection->pwd();
 		}
-
+		
 		/*
 			Function: getDirectoryContents
 				Returns parsed directory information.
@@ -159,17 +159,17 @@
 			Returns:
 				An array of parsed information.
 		*/
-
-		function getDirectoryContents($path = "") {
-			$types = array("1" => "f", "2" => "d", "3" => "l");
+		
+		function getDirectoryContents(string $path = ""): array {
+			$types = ["1" => "f", "2" => "d", "3" => "l"];
 			$list = $this->Connection->rawlist($path);
-			$formatted_list = array();
-			$names = array();
+			$formatted_list = [];
+			$names = [];
 			
 			foreach ($list as $line) {
 				if ($line["filename"] != "." && $line["filename"] != "..") {
 					// Make this the same as the BigTree\FTP class
-					$formatted_list[] = array(
+					$formatted_list[] = [
 						"type" => $types[$line["type"]],
 						"perms" => $line["permissions"],
 						"owner" => $line["uid"],
@@ -177,17 +177,17 @@
 						"size" => $line["size"],
 						"date" => date("M d Y", $line["mtime"]),
 						"name" => $line["filename"]
-					);
+					];
 					$names[] = $line["filename"];
 				}
 			}
-
+			
 			// Sort alphabetically
 			array_multisort($names, $formatted_list);
-
+			
 			return $formatted_list;
 		}
-
+		
 		/*
 			Function: getRawDirectoryContents
 				Calls a direct LIST command to the FTP server and returns the results.
@@ -198,20 +198,20 @@
 			Returns:
 				An array of information from the FTP LIST command.
 		*/
-
-		function getRawDirectoryContents($path = "") {
+		
+		function getRawDirectoryContents(string $path = ""): array {
 			return $this->Connection->rawlist($path);
 		}
-
+		
 		/*
 			Function: getSystemType
 				This is here for method compatibility with BigTree\FTP but doesn't do anything.
 		*/
-
-		function getSystemType() {
-			return array();
+		
+		function getSystemType(): array {
+			return [];
 		}
-
+		
 		/*
 			Function: login
 				Login to the SFTP host.
@@ -223,19 +223,19 @@
 			Returns:
 				true if successful
 		*/
-
-		function login($user = null, $pass = null) {
+		
+		function login(?string $user = null, ?string $pass = null): bool {
 			if (!$this->Connection) {
 				return false;
 			}
-
+			
 			if (!$this->Connection->login($user, $pass)) {
 				return false;
 			}
 			
 			return true;
 		}
-
+		
 		/*
 			Function: rename
 				Renames a file or directory.
@@ -247,20 +247,20 @@
 			Returns:
 				true if successful
 		*/
-
-		function rename($from, $to) {
+		
+		function rename(string $from, string $to): bool {
 			return $this->Connection->rename($from, $to);
 		}
-
+		
 		/*
 			Function: setTransferType
 				This is here for compatibility with BigTree\FTP but doesn't do anything.
 		*/
-
-		function setTransferType($mode) {
+		
+		function setTransferType(string $mode): bool {
 			return true;
 		}
-
+		
 		/*
 			Function: uploadFile
 				Uploads a file to the FTP server.
@@ -272,13 +272,13 @@
 			Returns:
 				true if successful
 		*/
-
-		function uploadFile($local, $remote) {
+		
+		function uploadFile(string $local, string $remote): bool {
 			if (!@file_exists($local)) {
 				return false;
 			}
-
+			
 			return $this->Connection->put($remote, $local, NET_SFTP_LOCAL_FILE);
 		}
-
+		
 	}

@@ -67,11 +67,11 @@
 				A ResourceFolder object.
 		*/
 		
-		static function create($parent, $name) {
-			$id = SQL::insert("bigtree_resource_folders", array(
+		static function create(?int $parent, string $name): ResourceFolder {
+			$id = SQL::insert("bigtree_resource_folders", [
 				"name" => Text::htmlEncode($name),
 				"parent" => $parent
-			));
+			]);
 			
 			AuditTrail::track("bigtree_resource_folders", $id, "created");
 			
@@ -83,7 +83,7 @@
 				Deletes the resource folder and all of its sub folders and resources.
 		*/
 		
-		function delete() {
+		function delete(): ?bool {
 			// Get everything inside the folder
 			$items = $this->Contents;
 			
@@ -102,6 +102,8 @@
 			// Delete the folder
 			SQL::delete("bigtree_resource_folders", $this->ID);
 			AuditTrail::track("bigtree_resource_folders", $this->ID, "deleted");
+			
+			return true;
 		}
 		
 		/*
@@ -112,22 +114,21 @@
 				An array of arrays containing the name and id of folders above.
 		*/
 		
-		function getBreadcrumb($folder = false, $crumb = array()) {
+		function getBreadcrumb(?int $folder = null, array $crumb = []): array {
 			// First call won't have folder
 			if (!$folder) {
 				$folder = $this;
 			}
 			
 			// Add crumb part
-			$crumb[] = array("id" => $folder->ID, "name" => $folder->Name);
+			$crumb[] = ["id" => $folder->ID, "name" => $folder->Name];
 			
 			// If we have a parent, go higher up
 			if ($folder->Parent) {
 				return $this->getBreadcrumb(new ResourceFolder($this->Parent), $crumb);
-				
-			// Append home, reverse, return
 			} else {
-				$crumb[] = array("id" => 0, "name" => "Home");
+				// Append home, reverse, return
+				$crumb[] = ["id" => 0, "name" => "Home"];
 				
 				return array_reverse($crumb);
 			}
@@ -144,13 +145,13 @@
 				An array of two arrays - folders and resources.
 		*/
 		
-		function getContents($sort = "date DESC") {
+		function getContents(string $sort = "date DESC"): array {
 			$null_query = $this->ID ? "" : "OR folder IS NULL";
 			
 			$folders = SQL::fetchAll("SELECT * FROM bigtree_resource_folders WHERE parent = ? ORDER BY name", $this->ID);
 			$resources = SQL::fetchAll("SELECT * FROM bigtree_resources WHERE folder = ? $null_query ORDER BY $sort", $this->ID);
 			
-			return array("folders" => $folders, "resources" => $resources);
+			return ["folders" => $folders, "resources" => $resources];
 		}
 		
 		/*
@@ -161,7 +162,7 @@
 				A keyed array of "resources", "folders", and "allocations" for the number of resources, sub folders, and allocations.
 		*/
 		
-		function getStatistics() {
+		function getStatistics(): array {
 			$allocations = $folders = $resources = 0;
 			$items = $this->Contents;
 			
@@ -184,7 +185,7 @@
 				$allocations += $resource->AllocationCount;
 			}
 			
-			return array("allocations" => $allocations, "folders" => $folders, "resources" => $resources);
+			return ["allocations" => $allocations, "folders" => $folders, "resources" => $resources];
 		}
 		
 		/*
@@ -195,7 +196,7 @@
 				"p" if a user can create folders and upload files, "e" if the user can see/use files, "n" if a user can't access this folder.
 		*/
 		
-		function getUserAccessLevel() {
+		function getUserAccessLevel(): ?string {
 			return Auth::user()->getAccessLevel($this);
 		}
 		
@@ -207,8 +208,8 @@
 				A ResourceFolder object.
 		*/
 		
-		static function root() {
-			return new ResourceFolder(array("id" => "0", "parent" => "-1", "name" => "Home"));
+		static function root(): ResourceFolder {
+			return new ResourceFolder(["id" => "0", "parent" => "-1", "name" => "Home"]);
 		}
 		
 		/*
@@ -216,7 +217,7 @@
 				Saves the current object properties back to the database.
 		*/
 		
-		function save() {
+		function save(): ?bool {
 			// Home shouldn't be allowed to be saved
 			if ($this->ID === 0) {
 				return false;
@@ -226,10 +227,10 @@
 				
 				return true;
 			} else {
-				SQL::update("bigtree_resource_folders", $this->ID, array(
+				SQL::update("bigtree_resource_folders", $this->ID, [
 					"name" => Text::htmlEncode($this->Name),
 					"parent" => intval($this->Parent)
-				));
+				]);
 				
 				AuditTrail::track("bigtree_resource_folders", $this->ID, "updated");
 				

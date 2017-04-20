@@ -625,7 +625,7 @@
 				$trunk = "";
 			}
 
-			$page = BigTree\Page::create($trunk, $parent, $in_nav, $nav_title, $title, $route, $meta_description, $seo_invisible, $template, $external, $new_window, $resources, $publish_at, $expire_at, $max_age, $data["_tags"]);
+			$page = BigTree\Page::create($trunk, $parent, $in_nav ? true : false, $nav_title, $title, $route, $meta_description, $seo_invisible ? true : false, $template, $external, $new_window ? true : false, $resources, $publish_at, $expire_at, $max_age ? intval($max_age) : null, $data["_tags"]);
 
 			return $page->ID;
 		}
@@ -671,7 +671,7 @@
 				$data["trunk"] = SQL::escape($data["trunk"]);
 			}
 
-			$change = BigTree\PendingChange::createPage($data["trunk"], $data["parent"], $data["in_nav"], $data["nav_title"], $data["title"], $data["route"], $data["meta_description"], $data["seo_invisible"], $data["template"], $data["external"], $data["new_window"], $data["resources"], $data["publish_at"], $data["expire_at"], $data["max_age"], $data["_tags"]);
+			$change = BigTree\PendingChange::createPage($data["trunk"], $data["parent"], $data["in_nav"] ? true : false, $data["nav_title"], $data["title"], $data["route"], $data["meta_description"], $data["seo_invisible"] ? true : false, $data["template"], $data["external"], $data["new_window"] ? true : false, $data["resources"], $data["publish_at"], $data["expire_at"], $data["max_age"] ? intval($data["max_age"]) : null, $data["_tags"]);
 
 			return $change->ID;
 		}
@@ -696,7 +696,7 @@
 		*/
 
 		function createResource($folder, $file, $md5, $name, $type, $is_image = "", $height = 0, $width = 0, $thumbs = array()) {
-			$resource = BigTree\Resource::create($folder, $file, $md5, $name, $type, $is_image, $height, $width, $thumbs);
+			$resource = BigTree\Resource::create($folder, $file, $md5, $name, $type, $is_image ? true : false, $height ?: null, $width ?: null, $thumbs);
 
 			return $resource->ID;
 		}
@@ -721,7 +721,7 @@
 				return false;
 			}
 
-			$folder = BigTree\ResourceFolder::create($parent, $name);
+			$folder = BigTree\ResourceFolder::create($parent ?: null, $name);
 
 			return $folder->ID;
 		}
@@ -748,7 +748,7 @@
 				}
 			}
 
-			$setting = BigTree\Setting::create($id, $name, $description, $type, $options, $extension, $system, $encrypted, $locked);
+			$setting = BigTree\Setting::create($id, $name, $description, $type, $options, $extension, $system ? true : false, $encrypted ? true : false, $locked ? true : false);
 
 			return $setting ? true : false;
 		}
@@ -817,7 +817,7 @@
 				}
 			}
 
-			$user = BigTree\User::create($email, $password, $name, $company, $level, $permissions, $alerts, $daily_digest);
+			$user = BigTree\User::create($email, $password, $name, $company, $level, $permissions, $alerts, $daily_digest ? true : false);
 
 			return $user ? $user->ID : false;
 		}
@@ -4102,7 +4102,7 @@
 		*/
 
 		function updateProfile($name, $company = "", $daily_digest = "", $password = false) {
-			BigTree\User::updateProfile($name, $company, $daily_digest, $password);
+			BigTree\User::updateProfile($name, $company, $daily_digest ? true : false, $password);
 		}
 
 		/*
@@ -4148,7 +4148,7 @@
 
 			$setting = new BigTree\Setting($old_id, false);
 
-			return $setting->update($id, $type, $options, $name, $description, $locked, $encrypted, $system);
+			return $setting->update($id, $type, $options, $name, $description, $locked ? true : false, $encrypted ? true : false, $system ? true : false);
 		}
 
 		/*
@@ -4215,7 +4215,7 @@
 
 			$user = new BigTree\User($id);
 
-			return $user->update($email, $password, $name, $company, $level, $permissions, $alerts, $daily_digest);
+			return $user->update($email, $password, $name, $company, $level, $permissions, $alerts, $daily_digest ? true : false);
 		}
 
 		/*

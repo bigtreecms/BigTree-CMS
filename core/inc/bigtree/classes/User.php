@@ -4,23 +4,23 @@
 			Provides an interface for users.
 			Easily extended for custom user systems by overriding the static $Table property.
 	*/
-
+	
 	namespace BigTree;
-
+	
 	use PasswordHash;
-
-	/**
-	 * @property-read int $ID
-	 * @property-read string $OriginalPassword
-	 */
-
+	
 	class User extends BaseObject {
-
+		
+		/**
+		 * @property-read int $ID
+		 * @property-read string $OriginalPassword
+		 */
+		
 		public static $Table = "bigtree_users";
-
+		
 		protected $ID;
 		protected $OriginalPassword;
-
+		
 		public $Alerts;
 		public $ChangePasswordHash;
 		public $Company;
@@ -30,7 +30,7 @@
 		public $Name;
 		public $Password;
 		public $Permissions;
-
+		
 		/*
 			Constructor:
 				Builds a User object referencing an existing database entry.
@@ -38,21 +38,21 @@
 			Parameters:
 				user - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
-
+		
 		function __construct($user = null) {
 			if ($user !== null) {
 				// Passing in just an ID
 				if (!is_array($user)) {
 					$user = SQL::fetch("SELECT * FROM ".static::$Table." WHERE id = ?", $user);
 				}
-
+				
 				// Bad data set
 				if (!is_array($user)) {
 					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 				} else {
 					$this->ID = $user["id"];
 					$this->OriginalPassword = $user["password"];
-
+					
 					$this->Email = $user["email"];
 					$this->Password = $user["password"];
 					$this->Name = $user["name"] ?: null;
@@ -65,33 +65,33 @@
 					
 					// Verify a correct permissions array
 					if (!is_array($this->Permissions)) {
-						$this->Permissions = array();
+						$this->Permissions = [];
 					}
 					
 					if (!is_array($this->Permissions["page"])) {
-						$this->Permissions["page"] = array();
+						$this->Permissions["page"] = [];
 					}
 					
 					if (!is_array($this->Permissions["module"])) {
-						$this->Permissions["module"] = array();
+						$this->Permissions["module"] = [];
 					}
 					
 					if (!is_array($this->Permissions["resources"])) {
-						$this->Permissions["resources"] = array();
+						$this->Permissions["resources"] = [];
 					}
 					
 					if (!is_array($this->Permissions["module_gbp"])) {
-						$this->Permissions["module_gbp"] = array();
+						$this->Permissions["module_gbp"] = [];
 					}
 					
 					// Verify alerts is an array as well
 					if (!is_array($this->Alerts)) {
-						$this->Alerts = array();
+						$this->Alerts = [];
 					}
 				}
 			}
 		}
-
+		
 		/*
 			Function: create
 				Creates a user.
@@ -107,23 +107,24 @@
 				daily_digest - Whether the user wishes to receive the daily digest email
 
 			Returns:
-				A USer object of the newly created user or false if a user already exists with the provided email
+				A User object of the newly created user or null if a user already exists with the provided email
 		*/
-
-		static function create($email, $password = "", $name = "", $company = "", $level = 0, $permissions = array(), $alerts = array(), $daily_digest = "") {
+		
+		static function create(string $email, ?string $password = null, ?string $name = null, ?string $company = null,
+							   int $level = 0, array $permissions = [], array $alerts = [], bool $daily_digest = false): ?User {
 			global $bigtree;
-
+			
 			// See if user exists already
-			if (SQL::exists(static::$Table, array("email" => $email))) {
-				return false;
+			if (SQL::exists(static::$Table, ["email" => $email])) {
+				return null;
 			}
-
+			
 			// Hash the password.
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
 			$password = $phpass->HashPassword(trim($password));
-
+			
 			// Create the user
-			$id = SQL::insert(static::$Table, array(
+			$id = SQL::insert(static::$Table, [
 				"email" => $email,
 				"password" => $password,
 				"name" => Text::htmlEncode($name),
@@ -132,23 +133,25 @@
 				"permissions" => $permissions ?: "{}",
 				"alerts" => $alerts ?: "{}",
 				"daily_digest" => ($daily_digest ? "on" : "")
-			));
-
+			]);
+			
 			AuditTrail::track(static::$Table, $id, "created");
-
+			
 			return new User($id);
 		}
-
+		
 		/*
 			Function: delete
 				Deletes the user
 		*/
-
-		function delete() {
+		
+		function delete(): ?bool {
 			SQL::delete(static::$Table, $this->ID);
 			AuditTrail::track(static::$Table, $this->ID, "deleted");
+			
+			return true;
 		}
-
+		
 		/*
 			Function: getByEmail
 				Gets a user entry for a given email address
@@ -157,19 +160,19 @@
 				email - Email address
 
 			Returns:
-				A user array or false if the user was not found
+				A User object or null if the user was not found
 		*/
-
-		static function getByEmail($email) {
+		
+		static function getByEmail(string $email): ?User {
 			$user = SQL::fetch("SELECT * FROM ".static::$Table." WHERE LOWER(email) = ?", trim(strtolower($email)));
 			
 			if ($user) {
 				return new User($user);
 			}
-
-			return false;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: getByHash
 				Gets a user entry for a change password hash
@@ -178,63 +181,63 @@
 				hash - Change Password Hash
 
 			Returns:
-				A user array or false if the user was not found
+				A User object or null if the user was not found
 		*/
-
-		static function getByHash($hash) {
+		
+		static function getByHash(string $hash): ?User {
 			$user = SQL::fetch("SELECT * FROM ".static::$Table." WHERE change_password_hash = ?", $hash);
-
+			
 			if ($user) {
 				return new User($user);
 			}
-
-			return false;
+			
+			return null;
 		}
-
+		
 		/*
 			Function: initPasswordReset
 				Creates a new password change hash and sends an email to the user.
 		*/
-
-		function initPasswordReset() {
+		
+		function initPasswordReset(): void {
 			global $bigtree;
-
+			
 			// Update the user's password reset hash code
 			$hash = $this->setPasswordHash();
-
+			
 			// Get site title for email
 			$site_title = SQL::fetchSingle("SELECT `nav_title` FROM `bigtree_pages` WHERE id = '0'");
-
+			
 			$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://", "https://", ADMIN_ROOT) : ADMIN_ROOT)."login/";
-
+			
 			$html = file_get_contents(Router::getIncludePath("admin/email/reset-password.html"));
 			$html = str_ireplace("{www_root}", WWW_ROOT, $html);
 			$html = str_ireplace("{admin_root}", ADMIN_ROOT, $html);
 			$html = str_ireplace("{site_title}", $site_title, $html);
 			$html = str_ireplace("{reset_link}", $login_root."reset-password/$hash/", $html);
-
-			$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.", "", $_SERVER["HTTP_HOST"]) : str_replace(array("http://www.", "https://www.", "http://", "https://"), "", DOMAIN));
-
+			
+			$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.", "", $_SERVER["HTTP_HOST"]) : str_replace(["http://www.", "https://www.", "http://", "https://"], "", DOMAIN));
+			
 			$email = new Email;
-
+			
 			$email->To = $this->Email;
 			$email->Subject = "Reset Your Password";
 			$email->HTML = $html;
 			$email->From = $email->Settings["bigtree_from"] ?: $reply_to;
 			$email->ReplyTo = $reply_to;
-
+			
 			$email->send();
 		}
-
+		
 		/*
 			Function: removeBans
 				Removes all login bans for the user
 		*/
-
-		function removeBans() {
-			SQL::delete("bigtree_login_bans", array("user" => $this->ID));
+		
+		function removeBans(): void {
+			SQL::delete("bigtree_login_bans", ["user" => $this->ID]);
 		}
-
+		
 		/*
 			Function: setPasswordHash
 				Creates a change password hash for a user
@@ -242,20 +245,20 @@
 			Returns:
 				A change password hash.
 		*/
-
-		function setPasswordHash() {
+		
+		function setPasswordHash(): string {
 			$hash = md5(microtime().$this->Password);
-			SQL::update("bigtree_users", $this->ID, array("change_password_hash" => $hash));
-
+			SQL::update("bigtree_users", $this->ID, ["change_password_hash" => $hash]);
+			
 			return $hash;
 		}
-
+		
 		/*
 			Function: save
 				Saves the current object properties back to the database.
 		*/
-
-		function save() {
+		
+		function save(): ?bool {
 			if (empty($this->ID)) {
 				$new = static::create(
 					$this->Email,
@@ -267,16 +270,20 @@
 					$this->Alerts,
 					$this->DailyDigest
 				);
-
+				
 				if ($new === false) {
 					trigger_error(Text::translate("Failed to create user due to invalid email address."), E_USER_WARNING);
+					
+					return null;
 				} else {
 					$this->inherit($new);
+					
+					return true;
 				}
 			} else {
 				global $bigtree;
-
-				$update_values = array(
+				
+				$update_values = [
 					"email" => $this->Email,
 					"name" => Text::htmlEncode($this->Name),
 					"company" => Text::htmlEncode($this->Company),
@@ -284,18 +291,20 @@
 					"permissions" => (array) $this->Permissions,
 					"alerts" => (array) $this->Alerts,
 					"daily_digest" => $this->DailyDigest ? "on" : ""
-				);
-
+				];
+				
 				if ($this->Password != $this->OriginalPassword) {
 					$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
 					$update_values["password"] = $phpass->HashPassword(trim($this->Password));
 				}
-
+				
 				SQL::update(static::$Table, $this->ID, $update_values);
 				AuditTrail::track("bigtree_users", $this->ID, "updated");
+				
+				return true;
 			}
 		}
-
+		
 		/*
 			Function: update
 				Updates the user properties and saves the changes to the database.
@@ -313,13 +322,14 @@
 			Returns:
 				true if successful. false if there was an email collision.
 		*/
-
-		function update($email, $password = "", $name = "", $company = "", $level = 0, $permissions = array(), $alerts = array(), $daily_digest = "") {
+		
+		function update(string $email, ?string $password = null, ?string $name = null, ?string $company = null,
+						int $level = 0, array $permissions = [], array $alerts = [], bool $daily_digest = false): bool {
 			// See if there's an email collission
 			if (SQL::fetchSingle("SELECT COUNT(*) FROM ".static::$Table." WHERE `email` = ? AND `id` != ?", $email, $this->ID)) {
 				return false;
 			}
-
+			
 			$this->Email = $email;
 			$this->Name = $name;
 			$this->Company = $company;
@@ -327,16 +337,16 @@
 			$this->Permissions = $permissions;
 			$this->Alerts = $alerts;
 			$this->DailyDigest = $daily_digest;
-
+			
 			if ($password != "") {
 				$this->Password = $password;
 			}
-
+			
 			$this->save();
-
+			
 			return true;
 		}
-
+		
 		/*
 			Function: updateProfile
 				Updates the logged-in user's name, company, digest setting, and (optionally) password.
@@ -347,35 +357,36 @@
 				daily_digest - Whether to receive the daily digest (truthy value) or not (falsey value)
 				password - Password (leave empty or false to not update)
 		*/
-
-		static function updateProfile($name, $company = "", $daily_digest = "", $password = false) {
+		
+		static function updateProfile(string $name, ?string $company = null, bool $daily_digest = false,
+									  ?string $password = null): bool {
 			global $bigtree;
-
+			
 			$user = Auth::user()->ID;
-
+			
 			// Make sure a user is logged in
 			if (is_null($user)) {
 				trigger_error("Method updateProfile not available outside logged-in user context.");
-
+				
 				return false;
 			}
-
-			$update_values = array(
+			
+			$update_values = [
 				"name" => Text::htmlEncode($name),
 				"company" => Text::htmlEncode($company),
 				"daily_digest" => $daily_digest ? "on" : "",
-			);
-
-			if ($password !== "" && $password !== false) {
+			];
+			
+			if (!is_null($password) && $password !== "" && $password !== false) {
 				$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
 				$update_values["password"] = $phpass->HashPassword($password);
 			}
-
+			
 			SQL::update("bigtree_users", $user, $update_values);
 			
 			return true;
 		}
-
+		
 		/*
 			Function: validatePassword
 				Validates a password against the security policy.
@@ -386,31 +397,34 @@
 			Returns:
 				true if it passes all password criteria.
 		*/
-
-		static function validatePassword($password) {
+		
+		static function validatePassword(string $password): bool {
 			global $bigtree;
-
+			
 			$policy = $bigtree["security-policy"]["password"];
 			$failed = false;
-
+			
 			// Check length policy
 			if ($policy["length"] && strlen($password) < $policy["length"]) {
 				$failed = true;
 			}
+			
 			// Check case policy
 			if ($policy["multicase"] && strtolower($password) === $password) {
 				$failed = true;
 			}
+			
 			// Check numeric policy
 			if ($policy["numbers"] && !preg_match("/[0-9]/", $password)) {
 				$failed = true;
 			}
+			
 			// Check non-alphanumeric policy
 			if ($policy["nonalphanumeric"] && ctype_alnum($password)) {
 				$failed = true;
 			}
-
+			
 			return !$failed;
 		}
-
+		
 	}

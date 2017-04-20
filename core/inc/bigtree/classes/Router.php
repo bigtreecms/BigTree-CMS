@@ -3,51 +3,51 @@
 		Class: BigTree\Router
 			Provides an interface for handling BigTree routing.
 	*/
-
+	
 	namespace BigTree;
-
+	
 	use BigTree;
-
+	
 	class Router {
-
+		
 		protected static $Booted = false;
-		protected static $ReservedRoutes = array();
-
+		protected static $ReservedRoutes = [];
+		
 		public static $Registry = false;
-		public static $RouteParamNames = array();
-		public static $RouteParamNamesPath = array();
+		public static $RouteParamNames = [];
+		public static $RouteParamNamesPath = [];
 		public static $Secure = false;
-		public static $SiteRoots = array();
-
+		public static $SiteRoots = [];
+		
 		/*
 			Function: boot
 				Builds caches from the database and configuration files.
 		*/
-
-		static function boot($config) {
+		
+		static function boot($config): void {
 			if (static::$Booted) {
 				return;
 			}
-
+			
 			$cache_file = SERVER_ROOT."cache/bigtree-module-cache.json";
-
+			
 			if ($config["debug"] || !file_exists($cache_file)) {
 				// Preload the BigTreeModule class since others are based off it
 				include_once Router::getIncludePath("inc/bigtree/modules.php");
-
-				$data = array(
-					"routes" => array("admin" => array(), "public" => array(), "template" => array()),
-					"classes" => array(),
-					"extension_required_files" => array()
-				);
-
+				
+				$data = [
+					"routes" => ["admin" => [], "public" => [], "template" => []],
+					"classes" => [],
+					"extension_required_files" => []
+				];
+				
 				// Get all modules from the db
 				$modules = SQL::fetchAll("SELECT route, class FROM bigtree_modules");
 				
 				foreach ($modules as $module) {
 					$class = $module["class"];
 					$route = $module["route"];
-
+					
 					if ($class) {
 						// Get the class file path
 						if (strpos($route, "*") !== false) {
@@ -56,27 +56,30 @@
 						} else {
 							$path = "custom/inc/modules/$route.php";
 						}
+						
 						$data["classes"][$class] = $path;
-
+						
 						// Get the registered routes, load the class
 						include_once SERVER_ROOT.$path;
+						
 						if (isset($class::$RouteRegistry) && is_array($class::$RouteRegistry)) {
 							foreach ($class::$RouteRegistry as $registration) {
 								$type = $registration["type"];
 								unset($registration["type"]);
-
+								
 								$data["routes"][$type][] = $registration;
 							}
 						}
 					}
 				}
-
+				
 				// Get all extension required files and add them to a required list
 				$extensions = SQL::fetchAllSingle("SELECT id FROM bigtree_extensions");
+				
 				foreach ($extensions as $id) {
 					if (file_exists(SERVER_ROOT."extensions/$id/required/")) {
 						$required_contents = FileSystem::getDirectoryContents(SERVER_ROOT."extensions/$id/required/");
-
+						
 						foreach (array_filter((array) $required_contents) as $file) {
 							$data["extension_required_files"][] = $file;
 						}
@@ -90,15 +93,15 @@
 			} else {
 				$data = json_decode(file_get_contents($cache_file), true);
 			}
-
+			
 			Module::$ClassCache = $data["classes"];
 			Extension::$RequiredFiles = $data["extension_required_files"];
 			static::$Registry = $data["routes"];
-
+			
 			// Find root paths for all sites to include in URLs if we're in a multi-site environment
 			if (defined("BIGTREE_SITE_KEY") || (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]))) {
 				$cache_location = SERVER_ROOT."cache/multi-site-cache.json";
-
+				
 				if (!file_exists($cache_location)) {
 					foreach ($config["sites"] as $site_key => $site_data) {
 						$page = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".intval($site_data["trunk"])."'"));
@@ -121,10 +124,10 @@
 					}
 				}
 			}
-
+			
 			static::$Booted = true;
 		}
-
+		
 		/*
 			Function: checkPathHistory
 				Checks the page route history table, redirects if the page is found.
@@ -133,59 +136,60 @@
 				path - An array of routes
 		*/
 		
-		static function checkPathHistory($path) {
+		static function checkPathHistory(array $path): void {
 			$found = $new = $old = false;
 			$x = count($path);
-
+			
 			while ($x) {
 				$result = SQL::fetch("SELECT * FROM bigtree_route_history WHERE old_route = ?", implode("/", array_slice($path, 0, $x)));
-
+				
 				if ($result) {
 					$old = $result["old_route"];
 					$new = $result["new_route"];
 					$found = true;
-
+					
 					break;
 				}
-
+				
 				$x--;
 			}
-
+			
 			// If it's in the old routing table, send them to the new page.
 			if ($found) {
 				$new_url = $new.substr($_GET["bigtree_htaccess_url"], strlen($old));
 				static::redirect(WWW_ROOT.$new_url, "301");
 			}
 		}
-
+		
 		/*
 			Function: clearCache
 				Removes all files in the cache directory removing cached pages and module routes.
 		*/
-
-		static function clearCache() {
+		
+		static function clearCache(): void {
 			$d = opendir(SERVER_ROOT."cache/");
+			
 			while ($f = readdir($d)) {
 				if ($f != "." && $f != ".." && !is_dir(SERVER_ROOT."cache/".$f)) {
 					unlink(SERVER_ROOT."cache/".$f);
 				}
 			}
 		}
-
+		
 		/*
 			Function: forceHTTPS
 				Forces the site into Secure mode to be served over HTTPS.
 				When Secure mode is enabled, BigTree will enforce the user being at HTTPS and will rewrite all insecure resources (like CSS, JavaScript, and images) to use HTTPS.
 		*/
 		
-		static function forceHTTPS() {
+		static function forceHTTPS(): void {
 			if (!$_SERVER["HTTPS"]) {
 				static::redirect("https://".$_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"], "301");
 			}
-
+			
 			static::$Secure = true;
 		}
-
+		
 		/*
 			Function: getIncludePath
 				Get the proper path for a file based on whether a custom override exists.
@@ -196,40 +200,41 @@
 			Returns:
 				Hard file path to a custom/ (preferred) or core/ file depending on what exists.
 		*/
-
-		static function getIncludePath($file) {
+		
+		static function getIncludePath(string $file): string {
 			if (file_exists(SERVER_ROOT."custom/".$file)) {
 				return SERVER_ROOT."custom/".$file;
 			} else {
 				return SERVER_ROOT."core/".$file;
 			}
 		}
-
+		
 		/*
 			Function: getRegistryCommands
 				Helper function for pattern based routing.
 		*/
-
-		static function getRegistryCommands($path, $pattern) {
+		
+		static function getRegistryCommands(array $path, string $pattern): ?array {
 			// This method is based almost entirely on the Slim Framework's routing implementation (http://www.slimframework.com/)
-			static::$RouteParamNames = array();
-			static::$RouteParamNamesPath = array();
-
+			static::$RouteParamNames = [];
+			static::$RouteParamNamesPath = [];
+			
 			// Convert URL params into regex patterns, construct a regex for this route, init params
 			$regex_pattern = preg_replace_callback('#:([\w]+)\+?#', "BigTree\\Router::getRegistryCommandsCallback", str_replace(')', ')?', $pattern));
-
+			
 			if (substr($pattern, -1) === '/') {
 				$regex_pattern .= '?';
 			}
-
+			
 			$regex = '#^'.$regex_pattern.'$#';
-
+			
 			// Do the regex match
 			if (!preg_match($regex, $path, $values)) {
-				return false;
+				return null;
 			}
-
-			$params = array();
+			
+			$params = [];
+			
 			foreach (static::$RouteParamNames as $name) {
 				if (isset($values[$name])) {
 					if (isset(static::$RouteParamNamesPath[$name])) {
@@ -239,27 +244,27 @@
 					}
 				}
 			}
-
+			
 			return $params;
 		}
-
+		
 		/*
 			Function: getRegistryCommandsCallback
 				Regex callback for getRegistryCommands
 		*/
-
-		static function getRegistryCommandsCallback($match) {
+		
+		static function getRegistryCommandsCallback(array $match) {
 			static::$RouteParamNames[] = $match[1];
 			
 			if (substr($match[0], -1) === '+') {
 				static::$RouteParamNamesPath[$match[1]] = 1;
-
+				
 				return '(?P<'.$match[1].'>.+)';
 			}
-
+			
 			return '(?P<'.$match[1].'>[^/]+)';
 		}
-
+		
 		/*
 		 	Function: getReservedRoutes
 				Returns an array of already reserved top level routes.
@@ -267,14 +272,14 @@
 			Returns:
 				An array of strings.
 		*/
-
-		static function getReservedRoutes() {
+		
+		static function getReservedRoutes(): array {
 			// Already cached them
 			if (count(static::$ReservedRoutes)) {
 				return static::$ReservedRoutes;
 			}
-
-			static::$ReservedRoutes = array(
+			
+			static::$ReservedRoutes = [
 				"ajax",
 				"css",
 				"feeds",
@@ -282,15 +287,15 @@
 				"sitemap.xml",
 				"_preview",
 				"_preview-pending"
-			);
-
+			];
+			
 			// Update the reserved top level routes with the admin's route
 			list($admin_route) = explode("/", str_replace(WWW_ROOT, "", rtrim(ADMIN_ROOT, "/")));
 			static::$ReservedRoutes[] = $admin_route;
-
+			
 			return static::$ReservedRoutes;
 		}
-
+		
 		/*
 			Function: getRoutedFileAndCommands
 				Returns the proper file to include based on existence of subdirectories or .php files with given route names.
@@ -303,20 +308,20 @@
 			Returns:
 				An array with the first element being the file to include and the second element being an array containing extraneous routes from the end of the path.
 		*/
-
-		static function getRoutedFileAndCommands($directory, $path) {
-			$commands = array();
+		
+		static function getRoutedFileAndCommands(string $directory, array $path): array {
+			$commands = [];
 			$inc_file = $directory;
 			$inc_dir = $directory;
 			$ended = false;
 			$found_file = false;
-
+			
 			foreach ($path as $piece) {
 				// Prevent path exploitation
 				if ($piece == "..") {
 					die();
 				}
-
+				
 				// We're done, everything is a command now.
 				if ($ended) {
 					$commands[] = $piece;
@@ -335,7 +340,7 @@
 					$ended = true;
 				}
 			}
-
+			
 			if (!$found_file) {
 				// If we have default in the routed directory, use it.
 				if (file_exists($inc_dir."default.php")) {
@@ -345,13 +350,13 @@
 					$inc_file = rtrim($inc_dir, "/").".php";
 				// We couldn't route anywhere apparently.
 				} else {
-					return array(false, false);
+					return [false, false];
 				}
 			}
-
-			return array($inc_file, $commands);
+			
+			return [$inc_file, $commands];
 		}
-
+		
 		/*
 			Function: getRoutedLayoutPartials
 				Retrieves a list of route layout files (_header.php and _footer.php) for a given file path.
@@ -362,13 +367,13 @@
 			Returns:
 				An array containing an array of headers at the first index and footers at the second index.
 		*/
-
-		static function getRoutedLayoutPartials($path) {
+		
+		static function getRoutedLayoutPartials(string $path): array {
 			$file_location = ltrim(Text::replaceServerRoot($path), "/");
 			$include_root = false;
 			$pathed_includes = false;
-			$headers = $footers = $pieces = array();
-
+			$headers = $footers = $pieces = [];
+			
 			// Get our path pieces and include roots setup properly
 			if (strpos($file_location, "custom/admin/modules/") === 0) {
 				$include_root = "admin/modules/";
@@ -394,6 +399,7 @@
 				$pieces = explode("/", substr($file_location, 15));
 			} elseif (strpos($file_location, "extensions/") === 0) {
 				$pieces = explode("/", $file_location);
+				
 				if ($pieces[2] == "templates" && ($pieces[3] == "routed" || $pieces[3] == "ajax")) {
 					$include_root = "extensions/".$pieces[1]."/templates/".$pieces[3]."/";
 					$pieces = array_slice($pieces, 4);
@@ -405,13 +411,15 @@
 					$pieces = array_slice($pieces, 3);
 				}
 			}
-
+			
 			// Only certain places include headers and footers
 			if ($include_root) {
 				$inc_path = "";
+				
 				foreach ($pieces as $piece) {
 					if (substr($piece, -4, 4) != ".php") {
 						$inc_path .= $piece."/";
+						
 						if ($pathed_includes) {
 							$header = static::getIncludePath($include_root.$inc_path."_header.php");
 							$footer = static::getIncludePath($include_root.$inc_path."_footer.php");
@@ -419,19 +427,21 @@
 							$header = SERVER_ROOT.$include_root.$inc_path."_header.php";
 							$footer = SERVER_ROOT.$include_root.$inc_path."_footer.php";
 						}
+						
 						if (file_exists($header)) {
 							$headers[] = $header;
 						}
+						
 						if (file_exists($footer)) {
 							$footers[] = $footer;
 						}
 					}
 				}
 			}
-
-			return array($headers, array_reverse($footers));
+			
+			return [$headers, array_reverse($footers)];
 		}
-
+		
 		/*
 			Function: redirect
 				Simple URL redirect via header with proper code #
@@ -441,7 +451,7 @@
 				code - The status code of redirect, defaults to normal 302 redirect.
 		*/
 		
-		static function redirect($url, $codes = array("302")) {
+		static function redirect(string $url, array $codes = ["302"]): void {
 			global $bigtree;
 			
 			// If we're presently in the admin we don't want to allow the possibility of a redirect outside our site via malicious URLs
@@ -460,19 +470,19 @@
 					}
 					
 					if (!$ok) {
-						return false;
+						return;
 					}
 				} else {
 					$pieces = explode("/", $url);
 					$bt_domain_pieces = explode("/", DOMAIN);
 					
 					if (strtolower($pieces[2]) != strtolower($bt_domain_pieces[2])) {
-						return false;
+						return;
 					}
 				}
 			}
-
-			$status_codes = array(
+			
+			$status_codes = [
 				"200" => "OK",
 				"300" => "Multiple Choices",
 				"301" => "Moved Permanently",
@@ -488,12 +498,12 @@
 				"501" => "Not Implemented",
 				"503" => "Service Unavailable",
 				"550" => "Permission denied"
-			);
-
+			];
+			
 			if (!is_array($codes)) {
-				$codes = array($codes);
+				$codes = [$codes];
 			}
-
+			
 			foreach ($codes as $code) {
 				if ($status_codes[$code]) {
 					header($_SERVER["SERVER_PROTOCOL"]." $code ".$status_codes[$code]);
@@ -512,7 +522,7 @@
 				 page - A BigTree\Page object
 		*/
 		
-		static function redirectLower(Page $page) {
+		static function redirectLower(Page $page): void {
 			global $bigtree;
 			
 			$path = SQL::fetchSingle("SELECT path FROM bigtree_pages 
@@ -525,7 +535,7 @@
 						  		  		  WHERE in_nav != 'on' AND parent = ? 
 						                  ORDER BY position DESC, id ASC LIMIT 1", $page->ID);
 			}
-				
+			
 			if ($path) {
 				if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
 					$url = WWW_ROOT.$path;
@@ -536,7 +546,7 @@
 				Router::redirect($url, 301);
 			}
 		}
-
+		
 		/*
 			Function: routeToPage
 				Provides the page ID for a given path array.
@@ -550,31 +560,31 @@
 				An array containing [page ID, commands array, template routed status]
 		*/
 		
-		static function routeToPage($path, $previewing = false) {
-			$commands = array();
+		static function routeToPage(array $path, bool $previewing = false): array {
+			$commands = [];
 			$publish_at = $previewing ? "" : "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";
-
+			
 			// Add multi-site path
 			if (defined("BIGTREE_SITE_PATH")) {
 				$path = array_filter(array_merge(explode("/", BIGTREE_SITE_PATH), $path));
 			}
-
-            // Reset indexes
-            $path = array_values($path);
-
+			
+			// Reset indexes
+			$path = array_values($path);
+			
 			// See if we have a straight up perfect match to the path.
 			$page = SQL::fetch("SELECT bigtree_pages.id,bigtree_templates.routed
 								FROM bigtree_pages LEFT JOIN bigtree_templates
 								ON bigtree_pages.template = bigtree_templates.id
 								WHERE path = ? AND archived = '' $publish_at", implode("/", $path));
 			if ($page) {
-				return array($page["id"], array(), $page["routed"]);
+				return [$page["id"], [], $page["routed"]];
 			}
-
+			
 			// Resetting $path to ensure it's numerically indexed, chop off the end until we find a page
 			$x = 0;
 			$path = array_values($path);
-
+			
 			while ($x < count($path)) {
 				$x++;
 				$commands[] = $path[count($path) - $x];
@@ -589,11 +599,11 @@
 												   bigtree_templates.routed = 'on' $publish_at", $path_string);
 				
 				if ($page_id) {
-					return array($page_id, array_reverse($commands), "on");
+					return [$page_id, array_reverse($commands), "on"];
 				}
 			}
 			
-			return array(false, false, false);
+			return [false, false, false];
 		}
-
+		
 	}

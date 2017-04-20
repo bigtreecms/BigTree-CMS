@@ -13,8 +13,8 @@
 	
 	class Resource extends BaseObject {
 		
-		public static $CreationLog = array();
-		public static $Prefixes = array();
+		public static $CreationLog = [];
+		public static $Prefixes = [];
 		public static $Table = "bigtree_resources";
 		
 		protected $ID;
@@ -76,24 +76,24 @@
 				entry - Entry ID to assign to
 		*/
 		
-		static function allocate($module, $entry) {
+		static function allocate(int $module, string $entry): void {
 			// Wipe existing allocations
-			SQL::delete("bigtree_resource_allocation", array(
+			SQL::delete("bigtree_resource_allocation", [
 				"module" => $module,
 				"entry" => $entry
-			));
+			]);
 			
 			// Add new allocations
 			foreach (static::$CreationLog as $resource) {
-				SQL::insert("bigtree_resource_allocation", array(
+				SQL::insert("bigtree_resource_allocation", [
 					"module" => $module,
 					"entry" => $entry,
 					"resource" => $resource
-				));
+				]);
 			}
 			
 			// Clear log
-			static::$CreationLog = array();
+			static::$CreationLog = [];
 		}
 		
 		/*
@@ -101,7 +101,7 @@
 				Creates a resource.
 
 			Parameters:
-				folder - The folder to place it in.
+				folder - The folder ID to place it in.
 				file - The file path.
 				md5 - The MD5 hash of the file.
 				name - The file name.
@@ -112,21 +112,22 @@
 				thumbs - An array of thumbnails (if it's an image).
 
 			Returns:
-				The new resource id.
+				A Resource object.
 		*/
 		
-		static function create($folder, $file, $md5, $name, $type, $is_image = "", $height = 0, $width = 0, $thumbs = array()) {
-			$id = SQL::insert("bigtree_resources", array(
+		static function create(?int $folder, string $file, string $md5, string $name, string $type, bool $is_image = false,
+							   ?int $height = 0, ?int $width = 0, array $thumbs = []): Resource {
+			$id = SQL::insert("bigtree_resources", [
 				"file" => Link::tokenize($file),
 				"md5" => $md5,
 				"name" => Text::htmlEncode($name),
 				"type" => $type,
-				"folder" => $folder ? $folder : null,
-				"is_image" => $is_image,
+				"folder" => $folder,
+				"is_image" => $is_image ? "on" : "",
 				"height" => intval($height),
 				"width" => intval($width),
 				"thumbs" => Link::tokenize($thumbs)
-			));
+			]);
 			
 			AuditTrail::track("bigtree_resources", $id, "created");
 			
@@ -139,7 +140,7 @@
 				If no resource allocations remain, the file is deleted as well.
 		*/
 		
-		function delete() {
+		function delete(): ?bool {
 			// Delete resource record
 			SQL::delete("bigtree_resources", $this->ID);
 			AuditTrail::track("bigtree_resources", $this->ID, "deleted");
@@ -154,6 +155,8 @@
 					$storage->delete($thumb);
 				}
 			}
+			
+			return true;
 		}
 		
 		/*
@@ -164,7 +167,7 @@
 				An integer.
 		*/
 		
-		function getAllocationCount() {
+		function getAllocationCount(): int {
 			return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_resource_allocation WHERE resource = ?", $this->ID);
 		}
 		
@@ -176,13 +179,13 @@
 				file - The file name.
 
 			Returns:
-				A Resource object or false if no matching resource was found.
+				A Resource object or null if no matching resource was found.
 		*/
 		
-		static function getByFile($file) {
+		static function getByFile(string $file): ?Resource {
 			// Populate a list of resource prefixes if we don't already have it cached
 			if (static::$Prefixes === false) {
-				static::$Prefixes = array();
+				static::$Prefixes = [];
 				$thumbnail_sizes = Setting::value("bigtree-file-manager-thumbnail-sizes");
 				
 				foreach ($thumbnail_sizes["value"] as $ts) {
@@ -191,31 +194,33 @@
 			}
 			
 			$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ?", $file, Link::tokenize($file));
-			
-			// If we didn't find the resource, check all the prefixes
 			$last_prefix = "";
-			$tokenized_file = Link::tokenize($file);
-			$single_domain_tokenized_file = Link::stripMultipleRootTokens($tokenized_file);
-
-			$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ? OR file = ?", 
-									$file, $tokenized_file, $single_domain_tokenized_file);
+			
+			if (!$resource) {
+				// If we didn't find the resource, check all the prefixes
+				$tokenized_file = Link::tokenize($file);
+				$single_domain_tokenized_file = Link::stripMultipleRootTokens($tokenized_file);
+				
+				$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ? OR file = ?",
+									   $file, $tokenized_file, $single_domain_tokenized_file);
+			}
 			
 			if (empty($resource)) {
 				foreach (static::$Prefixes as $prefix) {
 					if (empty($resource)) {
 						$prefixed_file = str_replace("files/resources/$prefix", "files/resources/", $file);
-						$tokenized_file = Link::tokenize($sfile);
+						$tokenized_file = Link::tokenize($prefixed_file);
 						$single_domain_tokenized_file = Link::stripMultipleRootTokens($tokenized_file);
 						
-						$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ? OR file = ?", 
-												$file, $tokenized_file, $single_domain_tokenized_file);
+						$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ? OR file = ?",
+											   $file, $tokenized_file, $single_domain_tokenized_file);
 						
 						$last_prefix = $prefix;
 					}
 				}
 				
 				if (!$resource) {
-					return false;
+					return null;
 				}
 			}
 			
@@ -238,22 +243,23 @@
 				true if a match was found. If the file was already in the given folder, the date is simply updated.
 		*/
 		
-		static function md5Check($file, $new_folder) {
+		static function md5Check(string $file, ?int $new_folder): bool {
 			$md5 = md5_file($file);
 			
 			$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE md5 = ? LIMIT 1", $md5);
+			
 			if (!$resource) {
 				return false;
 			}
 			
 			// If we already have this exact resource in this exact folder, just update its modification time
 			if ($resource["folder"] == $new_folder) {
-				SQL::update("bigtree_resources", $resource["id"], array("date" => "NOW()"));
+				SQL::update("bigtree_resources", $resource["id"], ["date" => "NOW()"]);
 			} else {
 				// Make a copy of the resource
 				unset($resource["id"]);
 				$resource["date"] = "NOW()";
-				$resource["folder"] = $new_folder ? $new_folder : null;
+				$resource["folder"] = $new_folder;
 				
 				SQL::insert("bigtree_resources", $resource);
 			}
@@ -273,12 +279,13 @@
 				An array of two arrays - folders and files - with permission levels.
 		*/
 		
-		static function search($query, $sort = "date DESC") {
+		static function search(string $query, string $sort = "date DESC"): array {
 			$query = SQL::escape($query);
-			$permission_cache = array();
+			$permission_cache = [];
 			
 			// Get matching folders
 			$folders = SQL::fetchAll("SELECT * FROM bigtree_resource_folders WHERE name LIKE '%$query%' ORDER BY name");
+			
 			foreach ($folders as &$folder) {
 				$folder_object = new ResourceFolder($folder);
 				$folder["permission"] = $folder_object->UserAccessLevel;
@@ -289,6 +296,7 @@
 			
 			// Get matching resources
 			$resources = SQL::fetchAll("SELECT * FROM bigtree_resources WHERE name LIKE '%$query%' ORDER BY $sort");
+			
 			foreach ($resources as &$resource) {
 				// If we've already got the permission cahced, use it.  Otherwise, fetch it and cache it.
 				if ($permission_cache[$resource["folder"]]) {
@@ -300,7 +308,7 @@
 				}
 			}
 			
-			return array("folders" => $folders, "resources" => $resources);
+			return ["folders" => $folders, "resources" => $resources];
 		}
 		
 		/*
@@ -308,12 +316,12 @@
 				Saves the current object properties back to the database.
 		*/
 		
-		function save() {
+		function save(): ?bool {
 			if (empty($this->ID)) {
 				$new = static::create($this->Folder, $this->File, $this->MD5, $this->Name, $this->Type, $this->IsImage, $this->Height, $this->Width, $this->Thumbs);
 				$this->inherit($new);
 			} else {
-				SQL::update("bigtree_resources", $this->ID, array(
+				SQL::update("bigtree_resources", $this->ID, [
 					"folder" => $this->Folder,
 					"file" => Link::tokenize($this->File),
 					"md5" => $this->MD5,
@@ -325,10 +333,12 @@
 					"width" => intval($this->Width),
 					"thumbs" => Link::tokenize($this->Thumbs),
 					"list_thumb_margin" => intval($this->ListThumbMargin)
-				));
+				]);
 				
 				AuditTrail::track("bigtree_resources", $this->ID, "updated");
 			}
+			
+			return true;
 		}
 		
 	}

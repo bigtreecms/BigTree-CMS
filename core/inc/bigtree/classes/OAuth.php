@@ -83,7 +83,7 @@
 				Busts the cache for everything relating to an object.
 		*/
 		
-		function cacheBust(string $id) {
+		function cacheBust(string $id): void {
 			if (is_array($this->OAuthSettings["hash_table"][$id])) {
 				foreach ($this->OAuthSettings["hash_table"][$id] as $i) {
 					SQL::delete("bigtree_caches", [
@@ -99,7 +99,7 @@
 				Pushes a hash onto the cache hash table.
 		*/
 		
-		function cachePush(string $id) {
+		function cachePush(string $id): void {
 			if (!isset($this->OAuthSettings["hash_table"][$id])) {
 				$this->OAuthSettings["hash_table"][$id] = [];
 			}
@@ -318,7 +318,7 @@
 				Removes saved API information.
 		*/
 		
-		function disconnect() {
+		function disconnect(): void {
 			SQL::delete("bigtree_caches", ["identifier" => $this->CacheIdentifier]);
 			SQL::delete("bigtree_settings", $this->SettingID);
 		}
@@ -328,7 +328,7 @@
 				Redirects to the OAuth API to authenticate.
 		*/
 		
-		function oAuthRedirect() {
+		function oAuthRedirect(): void {
 			header("Location: ".$this->AuthorizeURL.
 				   "?client_id=".urlencode($this->OAuthSettings["key"]).
 				   "&redirect_uri=".urlencode($this->ReturnURL).
@@ -344,7 +344,7 @@
 				Refreshes an existing token setup.
 		*/
 		
-		function oAuthRefreshToken() {
+		function oAuthRefreshToken(): void {
 			$response = json_decode(cURL::request($this->TokenURL, [
 				"client_id" => $this->OAuthSettings["key"],
 				"client_secret" => $this->OAuthSettings["secret"],

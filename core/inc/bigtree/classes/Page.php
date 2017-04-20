@@ -114,7 +114,7 @@
 		// Array conversion
 		function getArray(): array {
 			$raw_properties = get_object_vars($this);
-			$changed_properties = array();
+			$changed_properties = [];
 			
 			foreach ($raw_properties as $key => $value) {
 				$changed_properties[$this->_camelCaseToUnderscore($key)] = $value;
@@ -138,8 +138,8 @@
 		*/
 		
 		static function allByTags(array $tags, string $type = "object"): array {
-			$results = array();
-			$relevance = array();
+			$results = [];
+			$relevance = [];
 			
 			// Loop through each tag finding related pages
 			foreach ($tags as $tag) {
@@ -174,7 +174,7 @@
 			}
 			
 			// Get the actual page data for each result
-			$items = array();
+			$items = [];
 			
 			foreach ($results as $result) {
 				$page = new Page($result);
@@ -209,9 +209,9 @@
 				<archiveChildren>
 		*/
 		
-		function archive() {
+		function archive(): void {
 			// Archive the page and the page children
-			SQL::update("bigtree_pages", $this->ID, array("archived" => "on"));
+			SQL::update("bigtree_pages", $this->ID, ["archived" => "on"]);
 			$this->archiveChildren();
 			
 			// Track
@@ -226,7 +226,7 @@
 				<archivePage>
 		*/
 		
-		function archiveChildren($recursion = false) {
+		function archiveChildren($recursion = false): void {
 			$page_id = $recursion ?: $this->ID;
 			
 			// Track and recursively archive
@@ -303,7 +303,7 @@
 		static function create(bool $trunk, ?int $parent, bool $in_nav, string $nav_title, string $title, ?string $route,
 							   ?string $meta_description, bool $seo_invisible, string $template, bool $external,
 							   bool $new_window, array $resources, ?string $publish_at, ?string $expire_at, ?int $max_age,
-							   ?array $tags = array()): Page {
+							   ?array $tags = []): Page {
 			// Clean up either their desired route or the nav title
 			$route = Link::urlify($route ?: $nav_title);
 			
@@ -330,7 +330,7 @@
 			}
 			
 			// Make sure it doesn't have the same route as any of its siblings.
-			$route = SQL::unique("bigtree_pages", "route", $route, array("parent" => $parent), true);
+			$route = SQL::unique("bigtree_pages", "route", $route, ["parent" => $parent], true);
 			
 			// If we have a parent, get the full navigation path, otherwise, just use this route as the path since it's top level.
 			if ($parent) {
@@ -343,7 +343,7 @@
 			$trunk = ($trunk ? "on" : "");
 			
 			// Create the page
-			$id = SQL::insert("bigtree_pages", array(
+			$id = SQL::insert("bigtree_pages", [
 				"trunk" => $trunk,
 				"parent" => $parent,
 				"nav_title" => Text::htmlEncode($nav_title),
@@ -362,19 +362,19 @@
 				"publish_at" => ($publish_at ? date("Y-m-d", strtotime($publish_at)) : null),
 				"expire_at" => ($expire_at ? date("Y-m-d", strtotime($expire_at)) : null),
 				"max_age" => intval($max_age)
-			));
+			]);
 			
 			// Handle tags
 			foreach (array_filter((array) $tags) as $tag) {
-				SQL::insert("bigtree_tags_rel", array(
+				SQL::insert("bigtree_tags_rel", [
 					"table" => "bigtree_pages",
 					"entry" => $id,
 					"tag" => $tag
-				));
+				]);
 			}
 			
 			// If there was an old page that had previously used this path, dump its history so we can take over the path.
-			SQL::delete("bigtree_route_history", array("old_route" => $path));
+			SQL::delete("bigtree_route_history", ["old_route" => $path]);
 			
 			// Dump the cache, we don't really know how many pages may be showing this now in their nav.
 			Router::clearCache();
@@ -406,7 +406,7 @@
 			if ($page[0] == "p") {
 				// It's still pending
 				$pending = true;
-				$existing_page = array();
+				$existing_page = [];
 				$existing_pending_change = substr($page, 1);
 			} else {
 				// It's an existing page
@@ -437,10 +437,10 @@
 				// If this is a pending page, just replace all the changes
 				if ($pending) {
 					$diff = $changes;
-				// Otherwise, we need to check what's changed.
+					// Otherwise, we need to check what's changed.
 				} else {
 					// We don't want to indiscriminately put post data in as changes, so we ensure it matches a column in the bigtree_pages table
-					$diff = array();
+					$diff = [];
 					
 					foreach ($changes as $key => $val) {
 						if (array_key_exists($key, $existing_page) && $existing_page[$key] != $val) {
@@ -450,11 +450,11 @@
 				}
 				
 				// Update existing draft and track
-				SQL::update("bigtree_pending_changes", $existing_pending_change, array(
+				SQL::update("bigtree_pending_changes", $existing_pending_change, [
 					"changes" => $diff,
 					"tags_changes" => $tags,
 					"user" => $user
-				));
+				]);
 				
 				AuditTrail::track("bigtree_pages", $page, "updated-draft");
 				
@@ -462,7 +462,7 @@
 				
 			} else {
 				// We're submitting a change to a presently published page with no pending changes.
-				$diff = array();
+				$diff = [];
 				
 				foreach ($changes as $key => $val) {
 					if (array_key_exists($key, $existing_page) && $val != $existing_page[$key]) {
@@ -473,14 +473,14 @@
 				// Create draft and track
 				AuditTrail::track("bigtree_pages", $page, "saved-draft");
 				
-				return SQL::insert("bigtree_pending_changes", array(
+				return SQL::insert("bigtree_pending_changes", [
 					"user" => $user,
 					"table" => "bigtree_pages",
 					"item_id" => $page,
 					"changes" => $diff,
 					"tags_changes" => $tags,
 					"title" => "Page Change Pending"
-				));
+				]);
 			}
 		}
 		
@@ -531,12 +531,14 @@
 				Deletes the page and all children.
 		*/
 		
-		function delete() {
+		function delete(): ?bool {
 			// Delete the children as well.
 			$this->deleteChildren($this->ID);
 			
 			SQL::delete("bigtree_pages", $this->ID);
 			AuditTrail::track("bigtree_pages", $this->ID, "deleted");
+			
+			return true;
 		}
 		
 		/*
@@ -547,7 +549,7 @@
 				recursive_id - The parent ID to delete children for (used for recursing down)
 		*/
 		
-		function deleteChildren(?int $recursive_id = null) {
+		function deleteChildren(?int $recursive_id = null): void {
 			$id = $recursive_id ?: $this->ID;
 			$children = SQL::fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ?", $id);
 			
@@ -561,13 +563,12 @@
 			}
 		}
 		
-		
 		/*
 			Function: deleteDraft
 				Deletes the pending draft of the page.
 		*/
 		
-		function deleteDraft() {
+		function deleteDraft(): void {
 			// Get the draft copy's ID
 			$draft_id = SQL::fetchSingle("SELECT id FROM bigtree_pending_changes 
 										  WHERE `table` = 'bigtree_pages' AND `item_id` = ?", $this->ID);
@@ -588,7 +589,7 @@
 				id - The page reversion id.
 		*/
 		
-		function deleteRevision(int $id) {
+		function deleteRevision(int $id): void {
 			// Delete the revision
 			SQL::delete("bigtree_page_revisions", $id);
 			
@@ -639,7 +640,7 @@
 			$user->Alerts = array_filter((array) $user->Alerts);
 			
 			if (!count($user->Alerts)) {
-				return array();
+				return [];
 			}
 			
 			// If we care about the whole tree, skip the madness.
@@ -649,7 +650,7 @@
 								      WHERE max_age > 0 AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age 
 								      ORDER BY current_age DESC");
 			} else {
-				$where = array();
+				$where = [];
 				
 				// We're going to generate a list of pages the user cares about first to get their paths.
 				foreach ($user->Alerts as $alert => $status) {
@@ -657,7 +658,7 @@
 				}
 				
 				// Now from this we'll build a path query
-				$path_query = array();
+				$path_query = [];
 				$path_strings = SQL::fetchAllSingle("SELECT path FROM bigtree_pages WHERE ".implode(" OR ", $where));
 				
 				foreach ($path_strings as $path) {
@@ -676,7 +677,7 @@
 				}
 			}
 			
-			return array();
+			return [];
 		}
 		
 		/*
@@ -706,7 +707,7 @@
 		*/
 		
 		function getChangeExists(): bool {
-			return SQL::exists("bigtree_pending_changes", array("table" => "bigtree_pages", "item_id" => $this->ID));
+			return SQL::exists("bigtree_pending_changes", ["table" => "bigtree_pages", "item_id" => $this->ID]);
 		}
 		
 		/*
@@ -769,7 +770,7 @@
 		*/
 		
 		static function getLineage(int $page): array {
-			$parents = array();
+			$parents = [];
 			
 			while ($page = SQL::fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page)) {
 				$parents[] = $page;
@@ -808,7 +809,7 @@
 		*/
 		
 		function getPendingChildren(bool $in_nav = true): array {
-			$nav = $titles = array();
+			$nav = $titles = [];
 			$changes = SQL::fetchAll("SELECT * FROM bigtree_pending_changes 
 									  WHERE pending_page_parent = ? AND `table` = 'bigtree_pages' AND item_id IS NULL 
 									  ORDER BY date DESC", $this->ID);
@@ -973,9 +974,9 @@
 		
 		function getSEORating(): array {
 			$template = new Template($this->Template);
-			$template_fields = array();
+			$template_fields = [];
 			$h1_field = "";
-			$body_fields = array();
+			$body_fields = [];
 			
 			// Figure out what fields should behave as the SEO body and H1
 			if (is_array($template->Fields)) {
@@ -1006,7 +1007,7 @@
 			include_once SERVER_ROOT."core/inc/lib/Text-Statistics/src/DaveChild/TextStatistics/Resource.php";
 			include_once SERVER_ROOT."core/inc/lib/Text-Statistics/src/DaveChild/TextStatistics/TextStatistics.php";
 			$textStats = new \DaveChild\TextStatistics\TextStatistics;
-			$recommendations = array();
+			$recommendations = [];
 			
 			$score = 0;
 			
@@ -1067,12 +1068,14 @@
 			} else {
 				$regular_text = "";
 				$stripped_text = "";
+				
 				foreach ($body_fields as $field) {
 					if (!is_array($this->Resources[$field])) {
 						$regular_text .= $this->Resources[$field]." ";
 						$stripped_text .= strip_tags($this->Resources[$field])." ";
 					}
 				}
+				
 				// Check to see if there is any content
 				if ($stripped_text) {
 					$score += 5;
@@ -1094,12 +1097,14 @@
 					// See if we have any links
 					if ($number_of_links) {
 						$score += 5;
+						
 						// See if we have at least one link per 120 words.
 						if (floor($words / 120) <= $number_of_links) {
 							$score += 5;
 						} else {
 							$recommendations[] = "You should have at least one link for every 120 words of page content.  You currently have $number_of_links link(s).  You should have at least ".floor($words / 120).".";
 						}
+						
 						// See if we have any external links.
 						if ($number_of_external_links) {
 							$score += 5;
@@ -1125,12 +1130,15 @@
 				// Check page freshness
 				$updated = strtotime($this->UpdatedAt);
 				$age = time() - $updated - (60 * 24 * 60 * 60);
+				
 				// See how much older it is than 2 months.
 				if ($age > 0) {
 					$age_score = 10 - floor(2 * ($age / (30 * 24 * 60 * 60)));
+					
 					if ($age_score < 0) {
 						$age_score = 0;
 					}
+					
 					$score += $age_score;
 					$recommendations[] = "Your content is around ".ceil(2 + ($age / (30 * 24 * 60 * 60)))." months old.  Updating your page more frequently will make it rank higher.";
 				} else {
@@ -1139,13 +1147,14 @@
 			}
 			
 			$color = "#008000";
+			
 			if ($score <= 50) {
 				$color = Utils::colorMesh("#CCAC00", "#FF0000", 100 - (100 * $score / 50));
 			} elseif ($score <= 80) {
 				$color = Utils::colorMesh("#008000", "#CCAC00", 100 - (100 * ($score - 50) / 30));
 			}
 			
-			return array("score" => $score, "recommendations" => $recommendations, "color" => $color);
+			return ["score" => $score, "recommendations" => $recommendations, "color" => $color];
 		}
 		
 		/*
@@ -1191,7 +1200,7 @@
 		*/
 		
 		function getTopLevelPageID(bool $trunk_as_top_level = false): int {
-			$paths = array();
+			$paths = [];
 			$path = "";
 			$parts = explode("/", $this->Path);
 			
@@ -1228,10 +1237,10 @@
 				user - Optional User object to check permissions for (defaults to logged in user)
 			
 			Returns:
-				A permission level ("p" for publisher, "e" for editor, false for none)
+				A permission level ("p" for publisher, "e" for editor, null for none)
 		*/
 		
-		function getUserAccessLevel(?User $user = null) {
+		function getUserAccessLevel(?User $user = null): ?string {
 			return Auth::user($user)->getAccessLevel($this);
 		}
 		
@@ -1262,7 +1271,7 @@
 			// Check all the descendants for an explicit "no" or "editor" permission
 			foreach ($descendant_ids as $id) {
 				$permission = Auth::user()->Permissions["page"][$id];
-
+				
 				if ($permission == "n" || $permission == "e") {
 					return false;
 				}
@@ -1303,7 +1312,7 @@
 				The navigation path (normally found in the "path" column in bigtree_pages).
 		*/
 		
-		function regeneratePath(?int $id = null, array $path = array()): string {
+		function regeneratePath(?int $id = null, array $path = []): string {
 			if (is_null($id)) {
 				$id = $this->ID;
 			}
@@ -1336,18 +1345,18 @@
 				An array of Page objects.
 		*/
 		
-		static function search(string $query, array $fields = array("nav_title"), int $max = 10,
+		static function search(string $query, array $fields = ["nav_title"], int $max = 10,
 							   bool $return_arrays = false): array {
 			// Since we're in JSON we have to do stupid things to the /s for URL searches.
 			$query = str_replace('/', '\\\/', $query);
 			
 			$terms = explode(" ", $query);
-			$where_parts = array("archived != 'on'");
+			$where_parts = ["archived != 'on'"];
 			
 			foreach ($terms as $term) {
 				$term = SQL::escape($term);
 				
-				$or_parts = array();
+				$or_parts = [];
 				foreach ($fields as $field) {
 					$or_parts[] = "`$field` LIKE '%$term%'";
 				}
@@ -1373,7 +1382,7 @@
 		*/
 		
 		function unarchive() {
-			SQL::update("bigtree_pages", $this->ID, array("archived" => ""));
+			SQL::update("bigtree_pages", $this->ID, ["archived" => ""]);
 			$this->unarchiveChildren();
 			
 			AuditTrail::track("bigtree_pages", $this->ID, "unarchived");
@@ -1408,8 +1417,8 @@
 		*/
 		
 		function uncache() {
-			FileSystem::deleteFile(md5(json_encode(array("bigtree_htaccess_url" => $this->Path))).".page");
-			FileSystem::deleteFile(md5(json_encode(array("bigtree_htaccess_url" => $this->Path."/"))).".page");
+			FileSystem::deleteFile(md5(json_encode(["bigtree_htaccess_url" => $this->Path])).".page");
+			FileSystem::deleteFile(md5(json_encode(["bigtree_htaccess_url" => $this->Path."/"])).".page");
 		}
 		
 		/*
@@ -1417,7 +1426,7 @@
 				Saves and validates object properties back to the database.
 		*/
 		
-		function save() {
+		function save(): ?bool {
 			// Explicitly set to -1 in the constructor for null pages
 			if ($this->ID === -1) {
 				$new = static::create(
@@ -1438,10 +1447,10 @@
 					$this->MaxAge
 				);
 				$this->inherit($new);
-
-				return;
-			}
 				
+				return true;
+			}
+			
 			// Homepage must have no route
 			if ($this->ID == 0) {
 				$this->Route = "";
@@ -1449,7 +1458,7 @@
 				// Get a unique route
 				$original_route = $route = Link::urlify($this->Route);
 				$x = 2;
-
+				
 				// Reserved paths.
 				if ($this->Parent == 0) {
 					while (file_exists(SERVER_ROOT."site/".$route."/")) {
@@ -1462,36 +1471,36 @@
 						$x++;
 					}
 				}
-
+				
 				// Make sure route isn't longer than 250
 				$route = substr($route, 0, 250);
-
+				
 				// Existing pages.
 				while (SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_pages 
 										 WHERE `route` = ? AND parent = ? AND id != ?", $route, $this->Parent, $this->ID)) {
 					$route = $original_route."-".$x;
 					$x++;
 				}
-
+				
 				$this->Route = $route;
 			}
-
+			
 			// Update the path in case the parent changed
 			$original_path = $this->Path;
 			$this->regeneratePath();
-
+			
 			// Remove old paths from the redirect list, add a new redirect and update children
 			if ($this->Path != $original_path) {
 				$this->updateChildrenPaths();
-
+				
 				SQL::query("DELETE FROM bigtree_route_history WHERE old_route = ? OR old_route = ?", $this->Path, $original_path);
-				SQL::insert("bigtree_route_history", array(
+				SQL::insert("bigtree_route_history", [
 					"old_route" => $original_path,
 					"new_route" => $this->Path
-				));
+				]);
 			}
-
-			SQL::update("bigtree_pages", $this->ID, array(
+			
+			SQL::update("bigtree_pages", $this->ID, [
 				"trunk" => $this->Trunk ? "on" : "",
 				"parent" => $this->Parent,
 				"in_nav" => $this->InNav ? "on" : "",
@@ -1509,28 +1518,30 @@
 				"expire_at" => $this->ExpireAt ?: null,
 				"max_age" => $this->MaxAge ?: 0,
 				"last_edited_by" => Auth::user()->ID ?: $this->LastEditedBy
-			));
-
+			]);
+			
 			// Remove any pending drafts
-			SQL::delete("bigtree_pending_changes", array("table" => "bigtree_pages", "item_id" => $this->ID));
-
+			SQL::delete("bigtree_pending_changes", ["table" => "bigtree_pages", "item_id" => $this->ID]);
+			
 			// Handle tags
-			SQL::delete("bigtree_tags_rel", array("table" => "bigtree_pages", "entry" => $this->ID));
-
+			SQL::delete("bigtree_tags_rel", ["table" => "bigtree_pages", "entry" => $this->ID]);
+			
 			foreach ($this->Tags as $tag) {
-				SQL::insert("bigtree_tags_rel", array(
+				SQL::insert("bigtree_tags_rel", [
 					"table" => "bigtree_pages",
 					"entry" => $this->ID,
 					"tag" => $tag->ID
-				));
+				]);
 			}
-
+			
 			// If this page is a trunk in a multi-site setup, wipe the cache
 			foreach (Router::$SiteRoots as $site_path => $site_data) {
 				if ($site_data["trunk"] == $this->ID) {
 					unlink(SERVER_ROOT."cache/multi-site-cache.json");
 				}
 			}
+			
+			return true;
 		}
 		
 		/*
@@ -1542,7 +1553,7 @@
 		*/
 		
 		function setTags(array $tags) {
-			$this->Tags = array();
+			$this->Tags = [];
 			
 			foreach ($tags as $tag_id) {
 				$this->Tags[] = new Tag($tag_id);
@@ -1576,7 +1587,7 @@
 		function update(bool $trunk, int $parent, bool $in_nav, string $nav_title, string $title, string $route,
 						?string $meta_description, bool $seo_invisible, string $template, bool $external,
 						bool $new_window, array $resources, ?string $publish_at, ?string $expire_at, ?int $max_age,
-						array $tags = array()) {
+						array $tags = []) {
 			// Save a page revision
 			PageRevision::create($this);
 			
@@ -1645,13 +1656,13 @@
 					SQL::query("DELETE FROM bigtree_route_history WHERE old_route = ? OR old_route = ?", $new_path, $child["path"]);
 					
 					// Add a new redirect
-					SQL::insert("bigtree_route_history", array(
+					SQL::insert("bigtree_route_history", [
 						"old_route" => $child["path"],
 						"new_route" => $new_path
-					));
+					]);
 					
 					// Update the primary path
-					SQL::update("bigtree_pages", $child["id"], array("path" => $new_path));
+					SQL::update("bigtree_pages", $child["id"], ["path" => $new_path]);
 					
 					// Update all this page's children as well
 					$this->updateChildrenPaths($child["id"]);
@@ -1686,7 +1697,7 @@
 		
 		function updatePosition(int $position) {
 			$this->Position = $position;
-			SQL::update("bigtree_pages", $this->ID, array("position" => $position));
+			SQL::update("bigtree_pages", $this->ID, ["position" => $position]);
 		}
 		
 	}

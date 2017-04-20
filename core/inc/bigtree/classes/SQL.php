@@ -88,7 +88,7 @@
 				true if successful.
 		*/
 		
-		static function backup($file) {
+		static function backup(string $file): bool {
 			if (!FileSystem::getDirectoryWritability($file)) {
 				return false;
 			}
@@ -137,10 +137,11 @@
 				An array of SQL calls to perform to turn Table A into Table B.
 		*/
 		
-		static function compareTables($table_a, $table_b) {
+		static function compareTables(string $table_a, string $table_b): array {
 			// Get table A's description
 			$table_a_description = static::describeTable($table_a);
 			$table_a_columns = $table_a_description["columns"];
+			
 			// Get table B's description
 			$table_b_description = static::describeTable($table_b);
 			$table_b_columns = $table_b_description["columns"];
@@ -150,6 +151,7 @@
 			
 			// Transition columns
 			$last_key = "";
+			
 			foreach ($table_b_columns as $key => $column) {
 				$action = "";
 				// If this column doesn't exist in the Table A table, add it.
@@ -161,6 +163,7 @@
 				
 				if ($action) {
 					$mod = "ALTER TABLE `$table_a` $action COLUMN `$key` ".$column["type"];
+					
 					if ($column["size"]) {
 						$mod .= "(".$column["size"].")";
 					}
@@ -185,6 +188,7 @@
 					
 					if (isset($column["default"])) {
 						$d = $column["default"];
+						
 						if ($d == "CURRENT_TIMESTAMP" || $d == "NULL") {
 							$mod .= " DEFAULT $d";
 						} else {
@@ -216,6 +220,7 @@
 			foreach ($table_b_description["indexes"] as $key => $index) {
 				if (!isset($table_a_description["indexes"][$key]) || $table_a_description["indexes"][$key] != $index) {
 					$pieces = [];
+					
 					foreach ($index["columns"] as $column) {
 						if ($column["length"]) {
 							$pieces[] = "`".$column["column"]."`(".$column["length"].")";
@@ -223,6 +228,7 @@
 							$pieces[] = "`".$column["column"]."`";
 						}
 					}
+					
 					$verb = isset($table_a_description["indexes"][$key]) ? "MODIFY" : "ADD";
 					$queries[] = "ALTER TABLE `$table_a` $verb ".($index["unique"] ? "UNIQUE " : "")."KEY `$key` (".implode(", ", $pieces).")";
 				}
@@ -238,11 +244,13 @@
 			// Drop old foreign keys -- we do this for all the existing foreign keys that don't directly match because we're going to regenrate key names
 			foreach ($table_a_description["foreign_keys"] as $key => $definition) {
 				$exists = false;
+			
 				foreach ($table_b_description["foreign_keys"] as $d) {
 					if ($d == $definition) {
 						$exists = true;
 					}
 				}
+				
 				if (!$exists) {
 					$queries[] = "ALTER TABLE `$table_a` DROP FOREIGN KEY `$key`";
 				}
@@ -251,26 +259,34 @@
 			// Import foreign keys
 			foreach ($table_b_description["foreign_keys"] as $key => $definition) {
 				$exists = false;
+				
 				foreach ($table_a_description["foreign_keys"] as $d) {
 					if ($d == $definition) {
 						$exists = true;
 					}
 				}
+				
 				if (!$exists) {
 					$source = $destination = [];
+					
 					foreach ($definition["local_columns"] as $column) {
 						$source[] = "`$column`";
 					}
+					
 					foreach ($definition["other_columns"] as $column) {
 						$destination[] = "`$column`";
 					}
+					
 					$query = "ALTER TABLE `$table_a` ADD FOREIGN KEY (".implode(", ", $source).") REFERENCES `".$definition["other_table"]."`(".implode(", ", $destination).")";
+					
 					if ($definition["on_delete"]) {
 						$query .= " ON DELETE ".$definition["on_delete"];
 					}
+					
 					if ($definition["on_update"]) {
 						$query .= " ON UPDATE ".$definition["on_update"];
 					}
+					
 					$queries[] = $query;
 				}
 			}
@@ -278,9 +294,11 @@
 			// Drop existing primary key if it's not the same
 			if ($table_a_description["primary_key"] != $table_b_description["primary_key"]) {
 				$pieces = [];
+				
 				foreach (array_filter((array) $table_b_description["primary_key"]) as $piece) {
 					$pieces[] = "`$piece`";
 				}
+				
 				$queries[] = "ALTER TABLE `$table_a` DROP PRIMARY KEY";
 				$queries[] = "ALTER TABLE `$table_a` ADD PRIMARY KEY (".implode(",", $pieces).")";
 			}
@@ -308,7 +326,7 @@
 				Sets up the internal connections to the MySQL server(s).
 		*/
 		
-		static function connect($property, $type) {
+		static function connect(string $property, string $type) {
 			global $bigtree;
 			
 			// Initializing optional params, if they don't exist yet due to older install
@@ -348,7 +366,7 @@
 				true if successful (even if no rows match)
 		*/
 		
-		static function delete($table, $id) {
+		static function delete(string $table, string $id): bool {
 			$values = $where = [];
 			
 			// If the ID is an associative array we match based on the given columns
@@ -357,7 +375,7 @@
 					$where[] = "`$column` = ?";
 					array_push($values, $value);
 				}
-				// Otherwise default to id
+			// Otherwise default to id
 			} else {
 				$where[] = "`id` = ?";
 				array_push($values, $id);
@@ -380,10 +398,10 @@
 				table - The table name.
 			
 			Returns:
-				An array of table information.
+				An array of table information or null if the table doesn't exist.
 		*/
 		
-		static function describeTable($table) {
+		static function describeTable(string $table): ?array {
 			$result = [
 				"columns" => [],
 				"indexes" => [],
@@ -393,16 +411,19 @@
 			$options = [];
 			
 			$show_statement = static::fetch("SHOW CREATE TABLE `".str_replace("`", "", $table)."`");
+			
 			if (!$show_statement) {
-				return false;
+				return null;
 			}
 			
 			$lines = explode("\n", $show_statement["Create Table"]);
 			// Line 0 is the create line and the last line is the collation and such. Get rid of them.
 			$main_lines = array_slice($lines, 1, -1);
+			
 			foreach ($main_lines as $line) {
 				$column = [];
 				$line = rtrim(trim($line), ",");
+				
 				if (strtoupper(substr($line, 0, 3)) == "KEY" || strtoupper(substr($line, 0, 10)) == "UNIQUE KEY") { // Keys
 					if (strtoupper(substr($line, 0, 10)) == "UNIQUE KEY") {
 						$line = substr($line, 12); // Take away "KEY `"
@@ -411,6 +432,7 @@
 						$line = substr($line, 5); // Take away "KEY `"
 						$unique = false;
 					}
+					
 					// Get the key's name.
 					$key_name = static::nextColumnDefinition($line);
 					// Get the key's content
@@ -418,9 +440,11 @@
 					$line = substr(rtrim($line, ","), 0, -1); // Remove trailing , and )
 					$key_parts = [];
 					$part = true;
+					
 					while ($line && $part) {
 						$part = static::nextColumnDefinition($line);
 						$size = false;
+						
 						// See if there's a size definition, include it
 						if (substr($line, strlen($part) + 1, 1) == "(") {
 							$line = substr($line, strlen($part) + 1);
@@ -429,24 +453,29 @@
 						} else {
 							$line = substr($line, strlen($part) + substr_count($part, "`") + 3);
 						}
+						
 						if ($part) {
 							$key_parts[] = ["column" => $part, "length" => $size];
 						}
 					}
+					
 					$result["indexes"][$key_name] = ["unique" => $unique, "columns" => $key_parts];
 				} elseif (strtoupper(substr($line, 0, 7)) == "PRIMARY") { // Primary Keys
 					$line = substr($line, 14); // Take away PRIMARY KEY (`
 					$key_parts = [];
 					$part = true;
+					
 					while ($line && $part) {
 						$part = static::nextColumnDefinition($line);
 						$line = substr($line, strlen($part) + substr_count($part, "`") + 3);
+						
 						if ($part) {
 							if (strpos($part, "KEY_BLOCK_SIZE=") === false) {
 								$key_parts[] = $part;
 							}
 						}
 					}
+					
 					$result["primary_key"] = $key_parts;
 				} elseif (strtoupper(substr($line, 0, 10)) == "CONSTRAINT") { // Foreign Keys
 					$line = substr($line, 12); // Remove CONSTRAINT `
@@ -457,14 +486,17 @@
 					$local_columns = [];
 					$part = true;
 					$end = false;
+					
 					while (!$end && $part) {
 						$part = static::nextColumnDefinition($line);
 						$line = substr($line, strlen($part) + 1); // Take off the trailing `
+						
 						if (substr($line, 0, 1) == ")") {
 							$end = true;
 						} else {
 							$line = substr($line, 2); // Skip the ,`
 						}
+						
 						$local_columns[] = $part;
 					}
 					
@@ -477,14 +509,17 @@
 					$other_columns = [];
 					$part = true;
 					$end = false;
+					
 					while (!$end && $part) {
 						$part = static::nextColumnDefinition($line);
 						$line = substr($line, strlen($part) + 1); // Take off the trailing `
+						
 						if (substr($line, 0, 1) == ")") {
 							$end = true;
 						} else {
 							$line = substr($line, 2); // Skip the ,`
 						}
+						
 						$other_columns[] = $part;
 					}
 					
@@ -498,6 +533,7 @@
 					$on_hit = false;
 					$current_key = "";
 					$current_val = "";
+					
 					foreach ($pieces as $piece) {
 						if ($on_hit) {
 							$current_key = strtolower("on_".$piece);
@@ -508,11 +544,13 @@
 								$current_key = "";
 								$current_val = "";
 							}
+							
 							$on_hit = true;
 						} else {
 							$current_val = trim($current_val." ".$piece);
 						}
 					}
+					
 					if ($current_key) {
 						$result["foreign_keys"][$key_name][$current_key] = $current_val;
 					}
@@ -520,10 +558,10 @@
 					$line = substr($line, 1); // Get rid of the first `
 					$key = static::nextColumnDefinition($line); // Get the column name.
 					$line = substr($line, strlen($key) + substr_count($key, "`") + 2); // Take away the key from the line.
-					
 					$size = $current_option = "";
 					// We need to figure out if the next part has a size definition
 					$parts = explode(" ", $line);
+					
 					if (strpos($parts[0], "(") !== false) { // Yes, there's a size definition
 						$type = "";
 						// We're going to walk the string finding out the definition.
@@ -532,8 +570,10 @@
 						$finished_size = false;
 						$x = 0;
 						$options = [];
+						
 						while (!$finished_size) {
 							$c = substr($line, $x, 1);
+							
 							if (!$finished_type) { // If we haven't finished the type, keep working on it.
 								if ($c == "(") { // If it's a (, we're starting the size definition
 									$finished_type = true;
@@ -568,6 +608,7 @@
 							}
 							$x++;
 						}
+						
 						$line = substr($line, $x);
 					} else { // No size definition
 						$type = $parts[0];
@@ -576,17 +617,22 @@
 					
 					$column["name"] = $key;
 					$column["type"] = $type;
+					
 					if ($size) {
 						$column["size"] = $size;
 					}
+					
 					if ($type == "enum") {
 						$column["options"] = $options;
 					}
+					
 					$column["allow_null"] = true;
 					$extras = explode(" ", $line);
 					$extras_count = count($extras);
+					
 					for ($x = 0; $x < $extras_count; $x++) {
 						$part = strtoupper($extras[$x]);
+						
 						if ($part == "NOT" && strtoupper($extras[$x + 1]) == "NULL") {
 							$column["allow_null"] = false;
 							$x++; // Skip NULL
@@ -596,6 +642,7 @@
 						} elseif ($part == "DEFAULT") {
 							$default = "";
 							$x++;
+							
 							if (substr($extras[$x], 0, 1) == "'") {
 								while (substr($default, -1, 1) != "'") {
 									$default .= " ".$extras[$x];
@@ -604,6 +651,7 @@
 							} else {
 								$default = $extras[$x];
 							}
+							
 							$column["default"] = trim(trim($default), "'");
 						} elseif ($part == "COLLATE") {
 							$column["collate"] = $extras[$x + 1];
@@ -624,8 +672,10 @@
 			
 			$last_line = substr(end($lines), 2);
 			$parts = explode(" ", $last_line);
+			
 			foreach ($parts as $part) {
 				list($key, $value) = explode("=", $part);
+				
 				if ($key && $value) {
 					$result[strtolower($key)] = $value;
 				}
@@ -644,7 +694,7 @@
 				sorting - Whether to duplicate columns into "ASC" and "DESC" versions.
 		*/
 		
-		static function drawColumnSelectOptions($table, $default = "", $sorting = false) {
+		static function drawColumnSelectOptions(string $table, ?string $default = null, bool $sorting = false): void {
 			$table_description = static::describeTable($table);
 			
 			if (!$table_description) {
@@ -686,7 +736,7 @@
 				default - The currently selected value.
 		*/
 		
-		static function drawTableSelectOptions($default = "") {
+		static function drawTableSelectOptions(?string $default = null): void {
 			global $bigtree;
 			
 			$tables = static::fetchAllSingle("SHOW TABLES");
@@ -714,7 +764,7 @@
 				An array.
 		*/
 		
-		static function dumpTable($table) {
+		static function dumpTable(string $table): array {
 			$inserts = [];
 			
 			// Figure out which columns are binary and need to be pulled as hex
@@ -750,6 +800,7 @@
 						}
 					}
 				}
+				
 				$inserts[] = "INSERT INTO `$table` (".implode(",", $keys).") VALUES (".implode(",", $vals).")";
 			}
 			
@@ -768,7 +819,7 @@
 				Escaped string
 		*/
 		
-		static function escape($string) {
+		static function escape(string $string): string {
 			if (is_object($string) || is_array($string)) {
 				$string = JSON::encode($string);
 			}
@@ -790,14 +841,15 @@
 				true if a row already exists that matches the passed in key/value pairs.
 		*/
 		
-		static function exists($table, $values) {
+		static function exists(string $table, array $values): bool {
 			// Passing an array of key/value pairs
 			if (is_array($values)) {
 				$where = [];
+				
 				foreach ($values as $key => $value) {
 					$where[] = "`$key` = ?";
 				}
-				// Allow for just passing an ID
+			// Allow for just passing an ID
 			} else {
 				$where = ["`id` = ?"];
 				$values = [$values];
@@ -826,6 +878,7 @@
 		function _local_fetch() {
 			// Allow this to be called without calling query first
 			$args = func_get_args();
+			
 			if (count($args)) {
 				$query = call_user_func_array([$this, "query"], $args);
 				
@@ -843,7 +896,7 @@
 				
 				trigger_error("SQL::fetch called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query", E_USER_ERROR);
 				
-				return false;
+				return null;
 			} else {
 				return $this->ActiveQuery->fetch_assoc();
 			}
@@ -889,7 +942,7 @@
 				
 				trigger_error("SQL::fetchAll called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query", E_USER_ERROR);
 				
-				return false;
+				return null;
 			} else {
 				$results = [];
 				
@@ -925,6 +978,7 @@
 		function _local_fetchAllSingle() {
 			// Allow this to be called without calling query first
 			$args = func_get_args();
+			
 			if (count($args)) {
 				$query = call_user_func_array([$this, "query"], $args);
 				
@@ -942,7 +996,7 @@
 				
 				trigger_error("SQL::fetchAllSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query", E_USER_ERROR);
 				
-				return false;
+				return null;
 			} else {
 				$results = [];
 				
@@ -995,7 +1049,7 @@
 				
 				trigger_error("SQL::fetchSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query", E_USER_ERROR);
 				
-				return false;
+				return null;
 			} else {
 				$result = $this->ActiveQuery->fetch_assoc();
 				
@@ -1018,14 +1072,14 @@
 				values - An associative array of columns and values (i.e. "column" => "value")
 
 			Returns:
-				Primary key of the inserted row
+				Primary key of the inserted row or null if failed
 		*/
 		
-		static function insert($table, $values) {
-			if (!is_array($values) || !count($values)) {
+		static function insert(string $table, array $values): ?int {
+			if (!count($values)) {
 				trigger_error("SQL::inserts expects a non-empty array as its second parameter");
 				
-				return false;
+				return null;
 			}
 			
 			$columns = [];
@@ -1046,7 +1100,7 @@
 			$query_response = static::query("INSERT INTO `$table` (".implode(",", $columns).") VALUES (".implode(",", $vals).")");
 			$id = $query_response->insertID();
 			
-			return $id ? $id : $query_response->ActiveQuery;
+			return $id ?: null;
 		}
 		
 		/*
@@ -1057,7 +1111,7 @@
 				The primary key for the most recently inserted row.
 		*/
 		
-		static function insertID() {
+		static function insertID(): ?int {
 			if (static::$WriteConnection && static::$WriteConnection !== "disconnected") {
 				return static::$WriteConnection->insert_id;
 			} else {
@@ -1076,7 +1130,7 @@
 				A string.
 		*/
 		
-		static function nextColumnDefinition($string) {
+		static function nextColumnDefinition(string $string): string {
 			$key_name = "";
 			$i = 0;
 			$found_key = false;
@@ -1115,7 +1169,7 @@
 				Array of data safe for MySQL.
 		*/
 		
-		static function prepareData($table, $data, $existing_description = false) {
+		static function prepareData(string $table, array $data, ?array $existing_description = null): array {
 			// Setup column info
 			$table_description = $existing_description ?: static::describeTable($table);
 			$columns = $table_description["columns"];
@@ -1204,7 +1258,7 @@
 				Another instance of BigTree\SQL for chaining fetch, fetchAll, insertID, or rows methods.
 		*/
 		
-		static function query($query) {
+		static function query(string $query): SQL {
 			global $bigtree;
 			
 			// Setup our read connection if it disconnected for some reason
@@ -1236,6 +1290,7 @@
 				// Do the replacements and escapes
 				$x = 1;
 				$offset = 0;
+				
 				while (($position = strpos($query, "?", $offset)) !== false) {
 					// Allow for these reserved keywords to be let through unescaped
 					if (is_null($args[$x])) {
@@ -1303,7 +1358,7 @@
 				true if table exists, otherwise false.
 		*/
 		
-		static function tableExists($table) {
+		static function tableExists(string $table): bool {
 			$rows = static::query("SHOW TABLES LIKE ?", $table)->rows();
 			
 			if ($rows) {
@@ -1330,7 +1385,7 @@
 				Unique version of value.
 		*/
 		
-		static function unique($table, $field, $value, $id = false, $inverse = false) {
+		static function unique(string $table, string $field, string $value, ?string $id = null, bool $inverse = false): string {
 			$original_value = $value;
 			$count = 1;
 			
@@ -1383,7 +1438,7 @@
 				true if successful (even if no rows match)
 		*/
 		
-		static function update($table, $id, $values) {
+		static function update(string $table, string $id, array $values): bool {
 			if (!is_array($values) || !count($values)) {
 				trigger_error("SQL::update expects a non-empty array as its third parameter");
 				
