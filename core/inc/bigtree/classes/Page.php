@@ -513,7 +513,7 @@
 						if (is_array($decoded_val)) {
 							$val = Link::decode($decoded_val);
 							
-						// Otherwise it's a string, just replace the {wwwroot} and ipls.
+							// Otherwise it's a string, just replace the {wwwroot} and ipls.
 						} else {
 							$val = Link::decode($val);
 						}
@@ -1068,14 +1068,12 @@
 			} else {
 				$regular_text = "";
 				$stripped_text = "";
-				
 				foreach ($body_fields as $field) {
 					if (!is_array($this->Resources[$field])) {
 						$regular_text .= $this->Resources[$field]." ";
 						$stripped_text .= strip_tags($this->Resources[$field])." ";
 					}
 				}
-				
 				// Check to see if there is any content
 				if ($stripped_text) {
 					$score += 5;
@@ -1097,14 +1095,12 @@
 					// See if we have any links
 					if ($number_of_links) {
 						$score += 5;
-						
 						// See if we have at least one link per 120 words.
 						if (floor($words / 120) <= $number_of_links) {
 							$score += 5;
 						} else {
 							$recommendations[] = "You should have at least one link for every 120 words of page content.  You currently have $number_of_links link(s).  You should have at least ".floor($words / 120).".";
 						}
-						
 						// See if we have any external links.
 						if ($number_of_external_links) {
 							$score += 5;
@@ -1130,15 +1126,12 @@
 				// Check page freshness
 				$updated = strtotime($this->UpdatedAt);
 				$age = time() - $updated - (60 * 24 * 60 * 60);
-				
 				// See how much older it is than 2 months.
 				if ($age > 0) {
 					$age_score = 10 - floor(2 * ($age / (30 * 24 * 60 * 60)));
-					
 					if ($age_score < 0) {
 						$age_score = 0;
 					}
-					
 					$score += $age_score;
 					$recommendations[] = "Your content is around ".ceil(2 + ($age / (30 * 24 * 60 * 60)))." months old.  Updating your page more frequently will make it rank higher.";
 				} else {
@@ -1147,7 +1140,6 @@
 			}
 			
 			$color = "#008000";
-			
 			if ($score <= 50) {
 				$color = Utils::colorMesh("#CCAC00", "#FF0000", 100 - (100 * $score / 50));
 			} elseif ($score <= 80) {
@@ -1454,6 +1446,7 @@
 			// Homepage must have no route
 			if ($this->ID == 0) {
 				$this->Route = "";
+				$this->Parent = -1;
 			} else {
 				// Get a unique route
 				$original_route = $route = Link::urlify($this->Route);
@@ -1552,11 +1545,13 @@
 				tags - An array of tag IDs
 		*/
 		
-		function setTags(array $tags) {
+		function setTags(?array $tags) {
 			$this->Tags = [];
 			
-			foreach ($tags as $tag_id) {
-				$this->Tags[] = new Tag($tag_id);
+			if (is_array($tags)) {
+				foreach ($tags as $tag_id) {
+					$this->Tags[] = new Tag($tag_id);
+				}
 			}
 		}
 		
@@ -1584,10 +1579,10 @@
 				tags - An array of tag IDs to apply to the page (optional)
 		*/
 		
-		function update(bool $trunk, int $parent, bool $in_nav, string $nav_title, string $title, string $route,
-						?string $meta_description, bool $seo_invisible, string $template, bool $external,
-						bool $new_window, array $resources, ?string $publish_at, ?string $expire_at, ?int $max_age,
-						array $tags = []) {
+		function update(?bool $trunk, ?int $parent, ?bool $in_nav, string $nav_title, string $title, string $route,
+						string $meta_description, ?bool $seo_invisible, string $template, ?bool $external,
+						?bool $new_window, array $resources, ?string $publish_at, ?string $expire_at, ?int $max_age,
+						?array $tags = []) {
 			// Save a page revision
 			PageRevision::create($this);
 			

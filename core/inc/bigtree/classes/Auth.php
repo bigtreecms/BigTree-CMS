@@ -52,7 +52,7 @@
 					CSRF::setup($_SESSION[static::$Namespace]["csrf_token_field"], $_SESSION[static::$Namespace]["csrf_token"]);
 				}
 				
-				// Handle saved cookies
+			// Handle saved cookies
 			} elseif (isset($_COOKIE[static::$Namespace]["email"])) {
 				// Get chain and session broken out
 				list($session, $chain) = json_decode($_COOKIE[static::$Namespace]["login"]);
@@ -261,8 +261,8 @@
 						"stay_logged_in" => $stay_logged_in,
 						"login_redirect" => isset($_SESSION["bigtree_login_redirect"]) ? $_SESSION["bigtree_login_redirect"] : false,
 						"remaining_sites" => [],
-						"csrf_token" => $csrf_token,
-						"csrf_token_field" => $csrf_token_field
+						"csrf_token" => CSRF::$Token,
+						"csrf_token_field" => CSRF::$Field
 					];
 					
 					foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
@@ -275,9 +275,6 @@
 					// Start the login chain
 					Router::redirect($next_site."?bigtree_login_redirect_session_key=".$cache_session_key);
 				} else {
-					$cookie_domain = str_replace(DOMAIN, "", WWW_ROOT);
-					$cookie_value = json_encode([$session, $chain]);
-					
 					// We still set the email for BigTree bar usage even if they're not being "remembered"
 					Cookie::create(static::$Namespace."[email]", $user->Email, "+1 month");
 					
@@ -290,8 +287,8 @@
 					$_SESSION[static::$Namespace]["level"] = $user->Level;
 					$_SESSION[static::$Namespace]["name"] = $user->Name;
 					$_SESSION[static::$Namespace]["permissions"] = $user->Permissions;
-					$_SESSION[static::$Namespace]["csrf_token"] = $csrf_token;
-					$_SESSION[static::$Namespace]["csrf_token_field"] = $csrf_token_field;
+					$_SESSION[static::$Namespace]["csrf_token"] = CSRF::$Token;
+					$_SESSION[static::$Namespace]["csrf_token_field"] = CSRF::$Field;
 					
 					if (isset($_SESSION["bigtree_login_redirect"])) {
 						Router::redirect($_SESSION["bigtree_login_redirect"]);

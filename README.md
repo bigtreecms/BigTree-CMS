@@ -39,6 +39,7 @@ Changelog
 - ADDED: Extensions can now implement their own Daily Digest email content blocks (https://www.bigtreecms.org/developers/dev-guide/advanced/extensions/daily-digest-blocks/)
 - ADDED: Extensions can now implement their own Dashboard panes
 - ADDED: Extensions can now define their own set of required files to include in bootstrap
+- ADDED: Extensions can now implement their own reusable View Types
 - ADDED: Modules can now define their own routing using a route registry in the module's class file enabling them to route URL endpoints. (https://www.bigtreecms.org/developers/dev-guide/modules/custom-routing/)
 - ADDED: Many new icons are now available for use as module and module action icons
 - ADDED: Kint is now included with BigTree as part of the default install

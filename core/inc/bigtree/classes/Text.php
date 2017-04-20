@@ -61,7 +61,11 @@
 				Encoded string.
 		*/
 		
-		static function htmlEncode(string $string): string {
+		static function htmlEncode(?string $string): ?string {
+			if (is_null($string)) {
+				return null;
+			}
+			
 			return htmlspecialchars(html_entity_decode($string, ENT_COMPAT, "UTF-8"));
 		}
 		

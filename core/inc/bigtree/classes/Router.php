@@ -214,7 +214,7 @@
 				Helper function for pattern based routing.
 		*/
 		
-		static function getRegistryCommands(array $path, string $pattern): ?array {
+		static function getRegistryCommands(string $path, string $pattern): ?array {
 			// This method is based almost entirely on the Slim Framework's routing implementation (http://www.slimframework.com/)
 			static::$RouteParamNames = [];
 			static::$RouteParamNamesPath = [];

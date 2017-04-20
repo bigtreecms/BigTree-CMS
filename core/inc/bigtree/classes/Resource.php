@@ -72,11 +72,11 @@
 				Assigns resources from creation log and wipes creation log.
 
 			Parameters:
-				module - Module ID to assign to
+				module - Module ID or content type (e.g. "settings") to assign to
 				entry - Entry ID to assign to
 		*/
 		
-		static function allocate(int $module, string $entry): void {
+		static function allocate(string $module, string $entry): void {
 			// Wipe existing allocations
 			SQL::delete("bigtree_resource_allocation", [
 				"module" => $module,

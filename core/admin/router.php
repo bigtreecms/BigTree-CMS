@@ -186,6 +186,7 @@
 	// We're loading a page in the admin, so let's pass some headers
 	header("Content-Type: text/html; charset=utf-8");
 	header("X-Frame-Options: SAMEORIGIN");
+	
 	if (function_exists("header_remove")) {
 		header_remove("Server");
 		header_remove("X-Powered-By");
@@ -252,7 +253,7 @@
 		if (!$registry_found) {
 			$registry_commands = Router::getRegistryCommands("/".implode("/", array_slice($bigtree["path"], 1)), $registration["pattern"]);
 			
-			if ($registry_commands !== false) {
+			if (!is_null($registry_commands)) {
 				$registry_found = true;
 				$registry_rule = $registration;
 			}
@@ -358,6 +359,7 @@
 	
 	// Execute cron tab functions if they haven't been run in 24 hours
 	$last_check = Setting::value("bigtree-internal-cron-last-run");
+	
 	if ((time() - $last_check) > (24 * 60 * 60)) {
 		Cron::run();
 	}

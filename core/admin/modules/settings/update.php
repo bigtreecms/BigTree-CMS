@@ -26,7 +26,7 @@
 		
 		$field = new Field(array(
 			"type" => $setting->Type,
-			"title" => $setting->Title,
+			"title" => $setting->Name,
 			"key" => "value",
 			"options" => $setting->Settings,
 			"ignore" => false,
@@ -36,6 +36,7 @@
 		
 		// Process the input
 		$output = $field->process();
+		
 		if (!is_null($output)) {
 			$setting->Value = $output;
 			$setting->save();

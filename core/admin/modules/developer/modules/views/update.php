@@ -56,6 +56,7 @@
 	} else {
 		// Clean up actions
 		$clean_actions = array();
+		
 		foreach ($actions as $key => $val) {
 			if ($val) {
 				$clean_actions[$key] = $val;
@@ -104,7 +105,7 @@
 			$options,
 			$fields,
 			$actions,
-			$_POST["related_form"],
+			$_POST["related_form"] ?: null,
 			$preview_url
 		);
 		$view->clearCache();

@@ -110,6 +110,7 @@
 					
 					if ($this->Title) {
 						echo "  <label".($this->LabelClass ? ' class="'.trim($this->LabelClass).'"' : '').">";
+						echo $this->Title;
 						
 						if ($this->Subtitle) {
 							echo "<small>".$this->Subtitle."</small>";
@@ -654,7 +655,11 @@
 				<errorMessage>
 		*/
 		
-		static function validate($data, string $type): bool {
+		static function validate($data, ?string $type): bool {
+			if (is_null($type)) {
+				return true;
+			}
+			
 			$parts = explode(" ", $type);
 			
 			// Not required and it's blank

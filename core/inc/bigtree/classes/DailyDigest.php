@@ -228,7 +228,7 @@
 				$block_markup = "";
 				
 				foreach ($blocks as $function) {
-					$block_markup .= call_user_func($function, $user);
+					$block_markup .= call_user_func($function, $user);;
 				}
 				
 				// Send it

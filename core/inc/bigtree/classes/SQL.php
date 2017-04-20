@@ -366,7 +366,7 @@
 				true if successful (even if no rows match)
 		*/
 		
-		static function delete(string $table, string $id): bool {
+		static function delete(string $table, $id): bool {
 			$values = $where = [];
 			
 			// If the ID is an associative array we match based on the given columns
@@ -819,7 +819,7 @@
 				Escaped string
 		*/
 		
-		static function escape(string $string): string {
+		static function escape($string): string {
 			if (is_object($string) || is_array($string)) {
 				$string = JSON::encode($string);
 			}
@@ -841,7 +841,7 @@
 				true if a row already exists that matches the passed in key/value pairs.
 		*/
 		
-		static function exists(string $table, array $values): bool {
+		static function exists(string $table, $values): bool {
 			// Passing an array of key/value pairs
 			if (is_array($values)) {
 				$where = [];

@@ -150,7 +150,7 @@
 				The id of the new entry in the database.
 		*/
 		
-		function createEntry(array $columns, array $many_to_many = [], array $tags = []): ?int {
+		function createEntry(array $columns, ?array $many_to_many = [], ?array $tags = []): ?int {
 			// Clean up data
 			$insert_values = Link::encode(SQL::prepareData($this->Table, $columns));
 			
@@ -481,8 +481,8 @@
 
 		*/
 		
-		function handleManyToMany(int $id, array $many_to_many): void {
-			if (array_filter((array) $many_to_many)) {
+		function handleManyToMany(int $id, ?array $many_to_many): void {
+			if (is_array($many_to_many)) {
 				foreach ($many_to_many as $mtm) {
 					// Delete existing
 					SQL::delete($mtm["table"], [$mtm["my-id"] => $id]);
@@ -519,10 +519,10 @@
 				tags - An array of tags to relate.
 		*/
 		
-		function handleTags(int $id, array $tags): void {
+		function handleTags(int $id, ?array $tags): void {
 			SQL::delete("bigtree_tags_rel", ["table" => $this->Table, "entry" => $id]);
 			
-			if (array_filter((array) $tags)) {
+			if (is_array($tags)) {
 				foreach ($tags as $tag) {
 					SQL::insert("bigtree_tags_rel", [
 						"table" => $this->Table,

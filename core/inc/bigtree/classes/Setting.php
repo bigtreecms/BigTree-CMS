@@ -345,7 +345,9 @@
 		*/
 		
 		static function value(string $id) {
-			return static::values([$id]);
+			$values = static::values([$id]);
+			
+			return is_array($values) ? array_pop($values) : null;
 		}
 		
 		static function values(array $ids): ?array {
@@ -377,11 +379,6 @@
 						$setting_values[$id] = Link::decode($value);
 					}
 				}
-			}
-			
-			// Allow for single ID
-			if (count($ids) == 1) {
-				return $setting_values[$ids[0]];
 			}
 			
 			// Allow for failed lookup

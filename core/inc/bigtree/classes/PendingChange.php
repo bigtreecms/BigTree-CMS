@@ -261,10 +261,10 @@
 				A PendingChange object.
 		*/
 		
-		static function createPage(bool $trunk, int $parent, bool $in_nav, string $nav_title, string $title,
-								   ?string $route, string $meta_description, bool $seo_invisible, string $template,
-								   string $external, bool $new_window, array $fields, ?string $publish_at,
-								   ?string $expire_at, ?int $max_age, array $tags = []): PendingChange {
+		static function createPage(?bool $trunk, ?int $parent, ?bool $in_nav, ?string $nav_title, ?string $title,
+								   ?string $route, ?string $meta_description, ?bool $seo_invisible, ?string $template,
+								   ?string $external, ?bool $new_window, ?array $fields, ?string $publish_at,
+								   ?string $expire_at, ?int $max_age, ?array $tags = []): PendingChange {
 			// Get the user creating the change
 			$user = Auth::user()->ID;
 			

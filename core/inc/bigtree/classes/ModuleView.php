@@ -274,10 +274,10 @@
 				Grabs all the data from the view and does parsing on it based on automatic assumptions and manual parsers.
 		*/
 		
-		function cacheAllData(): void {
+		function cacheAllData(): bool {
 			// See if we already have cached data.
 			if (SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_module_view_cache WHERE view = ?", $this->ID)) {
-				return;
+				return false;
 			}
 			
 			// Find out what module we're using so we can get the gbp_field
@@ -343,6 +343,8 @@
 				
 				$this->cache($item, $parsers, $poplists, $item, $group_based_permissions);
 			}
+			
+			return true;
 		}
 		
 		/*
@@ -491,14 +493,14 @@
 		*/
 		
 		static function create(int $module, string $title, string $description, string $table, string $type,
-							   array $settings, array $fields, array $actions, ?int $related_form = null,
+							   ?array $settings, ?array $fields, ?array $actions, ?int $related_form = null,
 							   string $preview_url = ""): ModuleView {
 			$interface = ModuleInterface::create("view", $module, $title, $table, [
 				"description" => Text::htmlEncode($description),
 				"type" => $type,
-				"fields" => $fields,
-				"options" => $settings,
-				"actions" => $actions,
+				"fields" => $fields ?: [],
+				"options" => $settings ?: [],
+				"actions" => $actions ?: [],
 				"preview_url" => $preview_url ? Link::encode($preview_url) : "",
 				"related_form" => $related_form
 			]);
@@ -683,6 +685,7 @@
 				// Don't query up if we have no groups
 				if ($this->Settings["ot_sort_field"]) {
 					$sort_field = $this->Settings["ot_sort_field"];
+					
 					if ($this->Settings["ot_sort_direction"]) {
 						$sort_direction = $this->Settings["ot_sort_direction"];
 					} else {
@@ -1018,14 +1021,14 @@
 				preview_url - Optional preview URL.
 		*/
 		
-		function update(string $title, string $description, string $table, string $type, array $options, array $fields,
-						array $actions, ?int $related_form = null, string $preview_url = "") {
-			$this->Actions = $actions;
+		function update(string $title, string $description, string $table, string $type, ?array $options, ?array $fields,
+						?array $actions, ?int $related_form = null, string $preview_url = "") {
+			$this->Actions = $actions ?: [];
 			$this->Description = $description;
-			$this->Fields = $fields;
+			$this->Fields = $fields ?: [];
 			$this->PreviewURL = $preview_url;
 			$this->RelatedForm = $related_form;
-			$this->Settings = $options;
+			$this->Settings = $options ?: [];
 			$this->Table = $table;
 			$this->Title = $title;
 			$this->Type = $type;

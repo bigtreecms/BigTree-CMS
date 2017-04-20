@@ -186,7 +186,7 @@
 				An array containing the action and additional commands or false if lookup failed.
 		*/
 		
-		static function lookup(int $module, string $route): ?array {
+		static function lookup(int $module, array $route): ?array {
 			// For landing routes.
 			if (!count($route)) {
 				$route = [""];
@@ -240,6 +240,8 @@
 				
 				AuditTrail::track("bigtree_module_actions", $this->ID, "updated");
 			}
+			
+			return true;
 		}
 		
 		/*

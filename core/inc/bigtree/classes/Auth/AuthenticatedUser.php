@@ -26,7 +26,7 @@
 				permissions - Array of user permissions
 		*/
 		
-		function __construct(int $id, int $level, array $permissions) {
+		function __construct(?int $id, ?int $level, ?array $permissions) {
 			$this->ID = $id;
 			$this->Level = $level;
 			$this->Permissions = $permissions;
@@ -137,7 +137,7 @@
 				$page_parent = $object->Parent;
 				$parent_permission = $this->Permissions["page"][$page_parent];
 				
-				while ((!$parent_permission || $parent_permission == "i") && $page_parent) {
+				while ((!$parent_permission || $parent_permission == "i") && $page_parent > 0) {
 					$parent_id = SQL::fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page_parent);
 					$parent_permission = $this->Permissions["page"][$parent_id];
 				}

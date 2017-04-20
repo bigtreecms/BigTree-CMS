@@ -7,6 +7,7 @@
 	 */
 
 	$view = new ModuleView($interface->Array);
+	$view->calculateFieldWidths();
 	$bigtree["view"] = $view->Array;
 
 	// Provide developers a nice handy link for edit/return of this view
