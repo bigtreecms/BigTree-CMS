@@ -5,7 +5,7 @@
 
 	foreach ($tags as $tag) {
 ?>
-<li><a href="#"><?php if ($tag == $_POST["tag"]) { ?><span><?=htmlspecialchars($tag)?></span><?php } else { ?><?=htmlspecialchars($tag)?><?php } ?></a></li>
+<li><a href="#"><?php if ($tag->Name == $_POST["tag"]) { ?><span><?=htmlspecialchars($tag->Name)?></span><?php } else { ?><?=htmlspecialchars($tag->Name)?><?php } ?></a></li>
 <?php
 	}
 	

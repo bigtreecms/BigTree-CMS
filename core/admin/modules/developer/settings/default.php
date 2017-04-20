@@ -2,6 +2,12 @@
 	namespace BigTree;
 	
 	$settings = Setting::all("name ASC", true);
+	
+	foreach ($settings as $key => $item) {
+		if ($item["system"]) {
+			unset($settings[$key]);
+		}
+	}
 ?>
 <div id="settings_table"></div>
 <script>

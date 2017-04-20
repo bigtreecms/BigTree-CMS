@@ -57,7 +57,7 @@
 			$id = Page::create($trunk, $_POST["parent"], $_POST["in_nav"], $_POST["nav_title"], $_POST["title"],
 							   $_POST["route"], $_POST["meta_description"], $_POST["seo_invisible"], $_POST["template"],
 							   $_POST["external"], $_POST["new_window"], $_POST["resources"], $_POST["publish_at"],
-							   $_POST["expire_at"], $_POST["max_age"], $_POST["tags"]);
+							   $_POST["expire_at"], $_POST["max_age"], $_POST["_tags"]);
 			
 			$change = new PendingChange(substr($id, 1));
 			$change->delete();
@@ -68,7 +68,7 @@
 			$page->update($trunk, $_POST["parent"], $_POST["in_nav"], $_POST["nav_title"], $_POST["title"],
 						  $_POST["route"], $_POST["meta_description"], $_POST["seo_invisible"], $_POST["template"],
 						  $_POST["external"], $_POST["new_window"], $_POST["resources"], $_POST["publish_at"],
-						  $_POST["expire_at"], $_POST["max_age"], $_POST["tags"]);
+						  $_POST["expire_at"], $_POST["max_age"], $_POST["_tags"]);
 			
 			Utils::growl("Pages", "Updated Page");
 		}

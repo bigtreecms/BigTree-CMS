@@ -8,7 +8,7 @@
 	$id = SQL::escape($_GET["id"]);
 	
 	// Grab View Data
-	$view = new ModuleView($id);
+	$view = new ModuleView($_GET["view"]);
 	$table = $view->Table;
 
 	// Get module

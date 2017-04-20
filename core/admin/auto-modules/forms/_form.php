@@ -88,7 +88,7 @@
 					<label for="tag_entry"><?=Text::translate("Tags")?><span></span></label>
 					<ul id="tag_list">
 						<?php foreach ($bigtree["tags"] as $tag) { ?>
-						<li><input type="hidden" name="_tags[]" value="<?=$tag["id"]?>" /><a href="#"><?=$tag["tag"]?><span>x</span></a></li>
+						<li><input type="hidden" name="_tags[]" value="<?=$tag->ID?>" /><a href="#"><?=$tag->Name?><span>x</span></a></li>
 						<?php } ?>
 					</ul>
 					<input type="text" name="tag_entry" id="tag_entry" />

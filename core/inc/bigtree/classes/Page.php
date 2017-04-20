@@ -1619,7 +1619,7 @@
 			$this->Template = $template;
 			$this->Title = $title;
 			$this->Trunk = $trunk;
-			
+	
 			// Converts tag IDs into tag objects
 			$this->setTags($tags);
 			

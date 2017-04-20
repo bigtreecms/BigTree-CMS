@@ -5,7 +5,7 @@
 	$settings = Setting::all("name ASC", true);
 
 	foreach ($settings as $key => $item) {
-		if ($item["system"] || $item["locked"] && Auth::user()->Level < 2) {
+		if ($item["system"] || ($item["locked"] && Auth::user()->Level < 2)) {
 			unset($settings[$key]);
 		} else {
 			if ($item["encrypted"]) {

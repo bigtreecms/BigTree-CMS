@@ -2,5 +2,7 @@
 	namespace BigTree;
 	
 	CSRF::verify();
-	Tag::create($_POST["tag"]);
+	
+	$tag = Tag::create($_POST["tag"]);
+	echo $tag->ID;
 	
