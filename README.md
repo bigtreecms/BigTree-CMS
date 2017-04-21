@@ -22,6 +22,8 @@ Changelog
 
 ### 4.2.18
 - SECURITY FIX: Updated PHPMailer to the latest version which patches the sender field allowing for code execution (CVE-2017-7881)
+- FIXED: When submissions exceed max_input_vars limit the user now receives a message rather than having the submission silently mangled
+- FIXED: Deleting media presets
 
 ### 4.2.17
 - NEW: A comprehensive cross site request forgery prevention system was added.
