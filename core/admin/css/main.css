@@ -437,14 +437,19 @@
 	.container .alert label { color: #999; display: block; font-size: 11px; line-height: 13px; margin: 0 0 5px 0; text-transform: uppercase; }
 	.container .alert p { color: #666; font-size: 13px; line-height: 29px; margin: 0; }
 	.container .alert h3 { line-height: 29px; margin: 0; }
+
 	.container .error_message,
 	.callout_fields .error_message,
 	.container .warning_message,
+	.bigtree_dialog_form .overflow .warning_message,
 	.bigtree_dialog_form .overflow .error_message { background: #C0362F; border-radius: 2px; color: #FFF; font-size: 12px; line-height: 18px; margin: 0 0 15px 0; padding: 5px 10px; }
+	
 	.container .error_message a,
 	.callout_fields .error_message a,
 	.container .warning_message a,
+	.bigtree_dialog_form .overflow .warning_message a,
 	.bigtree_dialog_form .overflow .error_message a { color: #FFF; text-decoration: underline; }
+	
 	.container .template_message { user-select: none; }
 	.container .template_message label { float: left; margin: 0 10px 0 0; }
 	.container .template_message p { float: left; font-size: 14px; line-height: 13px; margin: 0; }

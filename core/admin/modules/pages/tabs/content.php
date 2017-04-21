@@ -1,5 +1,5 @@
 <div id="template_type">
-	<? include BigTree::path("admin/ajax/pages/get-template-form.php") ?>
+	<? include BigTree::path("admin/ajax/pages/get-template-form.php"); ?>
 </div>
 
 <? if (!$cms->getSetting("bigtree-internal-disable-page-tagging")) { ?>

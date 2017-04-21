@@ -17,16 +17,8 @@
 <form class="bigtree_dialog_form" method="post" action="<?=ADMIN_ROOT?>pages/front-end-update/" enctype="multipart/form-data">
 	<? $admin->drawCSRFToken() ?>
 	<input type="hidden" name="page" value="<?=$bigtree["current_page"]["id"]?>" />
-	<input type="hidden" name="_bigtree_post_check" value="success" />
 	<div class="overflow">
-		<?
-			if ($_SESSION["bigtree_admin"]["post_max_hit"]) {
-				unset($_SESSION["bigtree_admin"]["post_max_hit"]);
-		?>
-		<p class="warning_message">The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.</p>
-		<?
-			}
-		?>
+		<? $admin->drawPOSTErrorMessage(); ?>
 		<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 		<div class="form_fields">
 			<?

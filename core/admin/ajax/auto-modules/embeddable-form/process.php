@@ -30,12 +30,6 @@
 		$_SESSION["bigtree_admin"]["post_hash_failed"] = true;
 		BigTree::redirect($_SERVER["HTTP_REFERER"]);
 	}
-
-	// See if we've hit post_max_size
-	if (!$_POST["_bigtree_post_check"]) {
-		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
-		BigTree::redirect($_SERVER["HTTP_REFERER"]);
-	}
 	
 	// If there's a preprocess function for this module, let's get'r'done.
 	$bigtree["preprocessed"] = array();

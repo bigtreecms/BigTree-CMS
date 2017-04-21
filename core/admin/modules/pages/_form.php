@@ -39,17 +39,16 @@
 			}
 		?>
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" id="bigtree_max_file_size" />
-		<input type="hidden" name="_bigtree_post_check" value="success" />
 		<input type="hidden" name="<? if ($bigtree["form_action"] == "create") { ?>parent<? } else { ?>page<? } ?>" value="<?=$bigtree["current_page"]["id"]?>" />
 		
 		<section id="properties_tab"<? if ($bigtree["form_action"] == "update") { ?> style="display: none;"<? } ?>>
-			<? include BigTree::path("admin/modules/pages/tabs/properties.php") ?>
+			<? include BigTree::path("admin/modules/pages/tabs/properties.php"); ?>
 		</section>
 		<section id="content_tab"<? if ($bigtree["form_action"] == "create") { ?> style="display: none;"<? } ?>>
-			<? include BigTree::path("admin/modules/pages/tabs/content.php") ?>
+			<? include BigTree::path("admin/modules/pages/tabs/content.php"); ?>
 		</section>
 		<section id="seo_tab" style="display: none;">
-			<? include BigTree::path("admin/modules/pages/tabs/seo.php") ?>
+			<? include BigTree::path("admin/modules/pages/tabs/seo.php"); ?>
 		</section>
 		<footer>
 			<a href="#" class="next button">Next Step &raquo;</a>
