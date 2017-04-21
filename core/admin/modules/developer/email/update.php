@@ -2,7 +2,13 @@
 	$admin->verifyCSRFToken();
 	$settings = $cms->getSetting("bigtree-internal-email-service");
 
-	if ($_POST["service"] == "mandrill") {
+	if ($_POST["service"] == "smtp") {
+		$settings["settings"]["smtp_host"] = $_POST["smtp_host"];
+		$settings["settings"]["smtp_port"] = $_POST["smtp_port"];
+		$settings["settings"]["smtp_security"] = $_POST["smtp_security"];
+		$settings["settings"]["smtp_user"] = $_POST["smtp_user"];
+		$settings["settings"]["smtp_password"] = $_POST["smtp_password"];
+	} elseif ($_POST["service"] == "mandrill") {
 		$settings["settings"]["mandrill_key"] = $_POST["mandrill_key"];
 	} elseif ($_POST["service"] == "mailgun") {
 		$settings["settings"]["mailgun_key"] = $_POST["mailgun_key"];

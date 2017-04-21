@@ -2085,8 +2085,23 @@
 				true if email is sent, otherwise false.
 		*/
 		
-		static function sendEmail($to,$subject,$html,$text = "",$from = false,$return = false,$cc = false,$bcc = false,$headers = array()) {
+		static function sendEmail($to,$subject,$html,$text = "",$from = false,$return = false,$cc = false,$bcc = false,$headers = array(), $smtp = array()) {
 			$mailer = new PHPMailer;
+
+			if (count($smtp)) {
+				$mailer->isSMTP();
+				$mailer->Host = $smtp["host"];
+				$mailer->Port = $smtp["port"] ?: 25;
+				$mailer->SMTPSecure = $smtp["security"] ?: null;
+	
+				if ($smtp["user"]) {
+					$mailer->SMTPAuth = true;
+					$mailer->Username = $smtp["user"];
+					$mailer->Password = $smtp["password"];
+				} else {
+					$mailer->SMTPAuth = false;
+				}
+			}
 
 			foreach ($headers as $key => $val) {
 				$mailer->addCustomHeader($key,$val);
@@ -2108,12 +2123,14 @@
 				// Parse out from and reply-to names
 				$from_name = false;
 				$from = trim($from);
+				
 				if (strpos($from,"<") !== false && substr($from,-1,1) == ">") {
 					$from_pieces = explode("<",$from);
 					$from_name = trim($from_pieces[0]);
 					$from = substr($from_pieces[1],0,-1);
 				}
 			}
+
 			$mailer->From = $from;
 			$mailer->FromName = $from_name;
 			$mailer->Sender = $from;
@@ -2121,11 +2138,13 @@
 			if ($return) {
 				$return_name = false;
 				$return = trim($return);
+				
 				if (strpos($return,"<") !== false && substr($return,-1,1) == ">") {
 					$return_pieces = explode("<",$return);
 					$return_name = trim($return_pieces[0]);
 					$return = substr($return_pieces[1],0,-1);
 				}
+
 				$mailer->addReplyTo($return,$return_name);
 			}
 			

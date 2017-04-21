@@ -3,6 +3,7 @@
 
 	$services = array(
 		"local" => "Local Server",
+		"smtp" => "SMTP",
 		"mandrill" => "Mandrill",
 		"mailgun" => "Mailgun",
 		"postmark" => "Postmark",
@@ -19,9 +20,46 @@
 	</header>
 	<section id="local_tab"<? if ($email_service->Service != "local") { ?> style="display: none;"<? } ?>>
 		<p>Mail delivery over your local server uses <a href="http://php.net/manual/en/mail.configuration.php" target="_blank">PHP's native mail settings</a> for email delivery. This may increase your risk of having emails marked as spam.</p>
+		<hr>
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
 			<? $admin->drawCSRFToken() ?>
 			<input type="hidden" name="service" value="local" />
+			<fieldset>
+				<label>BigTree "From" Address <small>(for sending Daily Digest and Forgot Password emails)</small></label>
+				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
+			</fieldset>
+		</form>
+	</section>
+	<section id="smtp_tab"<? if ($email_service->Service != "smtp") { ?> style="display: none;"<? } ?>>
+		<p>Mail delivery over a standard SMTP server uses <a href="https://github.com/PHPMailer/PHPMailer" target="_blank">PHPMailer</a> over SMTP for email delivery.</p>
+		<hr>
+		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
+			<? $admin->drawCSRFToken() ?>
+			<input type="hidden" name="service" value="smtp" />
+			<fieldset>
+				<label>Hostname</label>
+				<input type="text" name="smtp_host" value="<?=htmlspecialchars($email_service->Settings["smtp_host"])?>" />
+			</fieldset>
+			<fieldset>
+				<label>Port <small>(default is 25)</small></label>
+				<input type="text" name="smtp_port" value="<?=htmlspecialchars($email_service->Settings["smtp_port"])?>" />
+			</fieldset>
+			<fieldset>
+				<label>Username</label>
+				<input type="text" name="smtp_user" value="<?=htmlspecialchars($email_service->Settings["smtp_user"])?>" />
+			</fieldset>
+			<fieldset>
+				<label>Password</label>
+				<input type="password" name="smtp_password" value="<?=htmlspecialchars($email_service->Settings["smtp_password"])?>" />
+			</fieldset>
+			<fieldset>
+				<label>Security</label>
+				<select name="smtp_security">
+					<option value="">Plain Text</option>
+					<option value="ssl"<?php if ($email_service->Settings["smtp_security"] == "ssl") { ?> selected="selected"<?php } ?>>SSL</option>
+					<option value="tls"<?php if ($email_service->Settings["smtp_security"] == "tls") { ?> selected="selected"<?php } ?>>TLS</option>
+				</select>
+			</fieldset>
 			<fieldset>
 				<label>BigTree "From" Address <small>(for sending Daily Digest and Forgot Password emails)</small></label>
 				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />

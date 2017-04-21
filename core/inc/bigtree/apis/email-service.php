@@ -68,6 +68,14 @@
 
 			if ($this->Service == "local") {
 				return BigTree::sendEmail($to,$subject,$body,$text,($from_name ? "$from_name <$from_email>" : $from_email),$reply_to);
+			} elseif ($this->Service == "smtp") {
+				return BigTree::sendEmail($to,$subject,$body,$text,($from_name ? "$from_name <$from_email>" : $from_email),$reply_to, false, false, array(), array(
+					"host" => $this->Settings["smtp_host"],
+					"port" => $this->Settings["smtp_port"],
+					"security" => $this->Settings["smtp_security"],
+					"user" => $this->Settings["smtp_user"],
+					"password" => $this->Settings["smtp_password"]
+				));
 			} elseif ($this->Service == "mandrill") {
 				return $this->sendMandrill($subject,$body,$to,$from_email,$from_name,$reply_to,$text);
 			} elseif ($this->Service == "mailgun") {
