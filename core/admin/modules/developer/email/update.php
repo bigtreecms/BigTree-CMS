@@ -5,7 +5,13 @@
 	
 	$email_setting = new Setting("bigtree-internal-email-service");
 
-	if ($_POST["service"] == "mandrill") {
+	if ($_POST["service"] == "smtp") {
+		$email_setting->Value["settings"]["smtp_host"] = $_POST["smtp_host"];
+		$email_setting->Value["settings"]["smtp_port"] = $_POST["smtp_port"];
+		$email_setting->Value["settings"]["smtp_security"] = $_POST["smtp_security"];
+		$email_setting->Value["settings"]["smtp_user"] = $_POST["smtp_user"];
+		$email_setting->Value["settings"]["smtp_password"] = $_POST["smtp_password"];		
+	} elseif ($_POST["service"] == "mandrill") {
 		$email_setting->Value["settings"]["mandrill_key"] = $_POST["mandrill_key"];
 	} elseif ($_POST["service"] == "mailgun") {
 		$email_setting->Value["settings"]["mailgun_key"] = $_POST["mailgun_key"];

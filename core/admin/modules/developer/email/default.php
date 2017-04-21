@@ -5,6 +5,7 @@
 
 	$services = array(
 		"Local" => Text::translate("Local Server"),
+		"SMTP" => Text::translate("SMTP"),
 		"Mandrill" => Text::translate("Mandrill"),
 		"Mailgun" => Text::translate("Mailgun"),
 		"Postmark" => Text::translate("Postmark"),
@@ -24,10 +25,47 @@
 		<p><?=Text::translate('Mail delivery over your local server uses <a href="http://php.net/manual/en/mail.configuration.php" target="_blank">PHP\'s native mail settings</a> for email delivery. This may increase your risk of having emails marked as spam.')?></p>
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
 			<?php CSRF::drawPOSTToken(); ?>
-			<input type="hidden" name="service" value="local" />
+			<input type="hidden" name="service" value="Local" />
 			<fieldset>
 				<label for="local_field_bigtree_from"><?=Text::translate('BigTree "From" Address <small>(for sending Daily Digest and Forgot Password emails)</small>')?></label>
 				<input id="local_field_bigtree_from" type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
+			</fieldset>
+		</form>
+	</section>
+
+	<section id="SMTP_tab"<?php if ($email_service->Service != "SMTP") { ?> style="display: none;"<?php } ?>>
+		<p><?=Text::translate('Mail delivery over a standard SMTP server uses <a href="https://github.com/PHPMailer/PHPMailer" target="_blank">PHPMailer</a> over SMTP for email delivery.')?></p>
+		<hr>
+		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
+			<?php CSRF::drawPOSTToken(); ?>
+			<input type="hidden" name="service" value="SMTP" />
+			<fieldset>
+				<label for="smtp_field_host"><?=Text::translate("Hostname")?></label>
+				<input id="smtp_field_host" type="text" name="smtp_host" value="<?=htmlspecialchars($email_service->Settings["smtp_host"])?>" />
+			</fieldset>
+			<fieldset>
+				<label for="smtp_field_port"><?=Text::translate("Port <small>(default is 25)")?></small></label>
+				<input id="smtp_field_port" type="text" name="smtp_port" value="<?=htmlspecialchars($email_service->Settings["smtp_port"])?>" />
+			</fieldset>
+			<fieldset>
+				<label for="smtp_field_user"><?=Text::translate("Username")?></label>
+				<input id="smtp_field_user" type="text" name="smtp_user" value="<?=htmlspecialchars($email_service->Settings["smtp_user"])?>" />
+			</fieldset>
+			<fieldset>
+				<label for="smtp_field_password"><?=Text::translate("Password")?></label>
+				<input id="smtp_field_password" type="password" name="smtp_password" value="<?=htmlspecialchars($email_service->Settings["smtp_password"])?>" />
+			</fieldset>
+			<fieldset>
+				<label><?=Text::translate("Security")?></label>
+				<select name="smtp_security">
+					<option value=""><?=Text::translate("Plain Text")?></option>
+					<option value="ssl"<?php if ($email_service->Settings["smtp_security"] == "ssl") { ?> selected="selected"<?php } ?>><?=Text::translate("SSL")?></option>
+					<option value="tls"<?php if ($email_service->Settings["smtp_security"] == "tls") { ?> selected="selected"<?php } ?>><?=Text::translate("TLS")?></option>
+				</select>
+			</fieldset>
+			<fieldset>
+				<label for="smtp_field_bigtree_from"><?=Text::translate('BigTree "From" Address <small>(required for sending Daily Digest and Forgot Password emails)</small>')?></label>
+				<input id="smtp_field_bigtree_from" type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
 			</fieldset>
 		</form>
 	</section>
@@ -38,7 +76,7 @@
 		<hr />
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
 			<?php CSRF::drawPOSTToken(); ?>
-			<input type="hidden" name="service" value="mandrill" />
+			<input type="hidden" name="service" value="Mandrill" />
 			<fieldset>
 				<label for="mandrill_field_key"><?=Text::translate("API Key")?></label>
 				<input id="mandrill_field_key" type="text" name="mandrill_key" value="<?=htmlspecialchars($email_service->Settings["mandrill_key"])?>" />
@@ -57,7 +95,7 @@
 		<hr />
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
 			<?php CSRF::drawPOSTToken(); ?>
-			<input type="hidden" name="service" value="mailgun" />
+			<input type="hidden" name="service" value="Mailgun" />
 			<fieldset>
 				<label for="mailgun_field_key"><?=Text::translate("API Key")?></label>
 				<input id="mailgun_field_key" type="text" name="mailgun_key" value="<?=htmlspecialchars($email_service->Settings["mailgun_key"])?>" />
@@ -79,7 +117,7 @@
 		<hr />
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
 			<?php CSRF::drawPOSTToken(); ?>
-			<input type="hidden" name="service" value="postmark" />
+			<input type="hidden" name="service" value="Postmark" />
 			<fieldset>
 				<label for="postmark_field_key"><?=Text::translate("API Key")?></label>
 				<input id="postmark_field_key" type="text" name="postmark_key" value="<?=htmlspecialchars($email_service->Settings["postmark_key"])?>" />
@@ -96,7 +134,7 @@
 		<hr />
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
 			<?php CSRF::drawPOSTToken(); ?>
-			<input type="hidden" name="service" value="sendgrid" />
+			<input type="hidden" name="service" value="SendGrid" />
 			<fieldset>
 				<label for="sendgrid_field_user"><?=Text::translate('API User <small>(same as SMTP username)</small>')?></label>
 				<input id="sendgrid_field_user" type="text" name="sendgrid_api_user" value="<?=htmlspecialchars($email_service->Settings["sendgrid_api_user"])?>" />
