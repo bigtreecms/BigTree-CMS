@@ -1,7 +1,7 @@
 <?
 	// Setup the BigTree variable "namespace"
 	$bigtree = array();
-	
+	$bigtree["php_boot_error"] = error_get_last();
 	$bigtree["config"] = array();
 	$bigtree["config"]["debug"] = false;
 

@@ -15,7 +15,6 @@
 		?>
 		<input type="hidden" id="preview_field" name="_bigtree_preview" />
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" id="bigtree_max_file_size" />
-		<input type="hidden" name="_bigtree_post_check" value="success" />
 		<?
 			if (isset($bigtree["entry"])) {
 		?>
@@ -31,12 +30,7 @@
 		<section>
 			<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 			<?
-				if ($_SESSION["bigtree_admin"]["post_max_hit"]) {
-					unset($_SESSION["bigtree_admin"]["post_max_hit"]);
-			?>
-			<p class="warning_message">The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.</p>
-			<?
-				} elseif ($_SESSION["bigtree_admin"]["post_hash_failed"]) {
+				if (!$admin->drawPOSTErrorMessage() && $_SESSION["bigtree_admin"]["post_hash_failed"]) {
 					unset($_SESSION["bigtree_admin"]["post_hash_failed"]);
 			?>
 			<p class="warning_message">The form submission failed to pass our automated submission test. If you have JavaScript turned off, please turn it on.</p>

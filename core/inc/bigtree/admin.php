@@ -5,6 +5,7 @@
 	*/
 
 	class BigTreeAdminBase {
+
 		static $IRLPrefixes = false;
 		static $IRLsCreated = array();
 		static $PerPage = 15;		
@@ -77,6 +78,8 @@
 		*/
 
 		function __construct() {
+			$this->checkPOSTError();
+
 			if (isset($_SESSION["bigtree_admin"]["email"]) && isset($_SESSION["bigtree_admin"]["csrf_token"])) {
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$_SESSION["bigtree_admin"]["id"]."' AND email = '".sqlescape($_SESSION["bigtree_admin"]["email"])."'"));
 				if ($f) {
@@ -459,6 +462,36 @@
 			}
 
 			return false;
+		}
+
+		/*
+			Function: checkPOSTError
+				Checks if an error occurred during a POST and redirects back to the originating page with a session var.
+		*/
+
+		function checkPOSTError() {
+			global $bigtree;
+
+			if (is_null($bigtree["php_boot_error"])) {
+				return;
+			}
+
+			$error = false;
+			$message = $bigtree["php_boot_error"]["message"];
+
+			if (strpos($message, "POST Content-Length") !== false) {
+				$error = "post_max_size";
+			}
+
+			if (strpos($message, "max_input_vars") !== false) {
+				$error = "max_input_vars";
+			}
+
+			if ($error) {
+				$_SESSION["bigtree_admin"]["post_error"] = $error;
+
+				BigTree::redirect($_SERVER["HTTP_REFERER"]);
+			}
 		}
 
 		/*
@@ -2448,6 +2481,41 @@
 		
 		function drawCSRFTokenGET() {
 			echo '&'.$this->CSRFTokenField.'='.urlencode($this->CSRFToken);
+		}
+
+		/*
+			Function: drawPOSTErrorMessage
+				If a POST error occurred, draws a message for the form.
+
+			Returns:
+				true if a message was displayed
+		*/
+
+		static function drawPOSTErrorMessage($dont_unset = false) {
+			if (!empty($_SESSION["bigtree_admin"]["post_error"])) {
+				$error_code = $_SESSION["bigtree_admin"]["post_error"];
+
+				if ($dont_unset == false) {
+					unset($_SESSION["bigtree_admin"]["post_error"]);
+				}
+
+				if ($error_code == "max_input_vars") {
+					$message = "The maximum number of input variables was exceeded and the submission failed.<br>Please ask your system administrator to increase the max_input_vars limit in php.ini";
+				} elseif ($error_code == "post_max_size") {
+					$message = "The submission exceeded the web server's maximum submission size.<br>If you uploaded multiple files, try uploading one at a time or ask your system administrator to increase the post_max_size and upload_max_filesize settings in php.ini";
+				}
+
+				if (!$message) {
+					$message = "An unknown error occurred.";
+				}
+
+				echo '<p class="warning_message">'.$message.'</p>';
+				echo '<hr>';
+
+				return true;
+			} else {
+				return false;
+			}
 		}
 
 		/*
