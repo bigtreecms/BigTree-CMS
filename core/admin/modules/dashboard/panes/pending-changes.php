@@ -2,8 +2,9 @@
 	namespace BigTree;
 
 	// Get changes that the user made and can publish
-	$changes = PendingChange::allPublishableByUser(Auth::user());
-	$my_changes = PendingChange::allByUser(Auth::user()->ID, "date DESC");
+	$user_id = Auth::user()->ID;
+	$changes = PendingChange::allPublishableByUser(new User($user_id));
+	$my_changes = PendingChange::allByUser($user_id, "date DESC");
 
 	// Figure out what module each of the changes is for.
 	$change_modules = array();

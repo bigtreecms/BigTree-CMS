@@ -33,7 +33,7 @@
 		
 		function __construct($folder = null) {
 			if ($folder !== null) {
-				if ($folder === 0) {
+				if (!$folder) {
 					$this->ID = 0;
 					$this->Name = "Home";
 				} else {

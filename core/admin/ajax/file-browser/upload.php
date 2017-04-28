@@ -85,7 +85,7 @@
 						// Otherwise make the database entry for the file we uplaoded.
 						} else {
 							if (!$replacing) {
-								Resource::create($folder, $file, $md5, $file_name, $extension);
+								Resource::create($folder->ID, $file, $md5, $file_name, $extension);
 							}
 						}
 					// It's an image
@@ -153,7 +153,7 @@
 								$errors[] = "Uploading ".htmlspecialchars($file_name)." failed (unknown error).";
 							} else {
 								if (!$replacing) {
-									Resource::create($folder, $file, $md5, $file_name, $extension, "on", $image_height, $image_width, $thumbs);
+									Resource::create($folder->ID, $file, $md5, $file_name, $extension, "on", $image_height, $image_width, $thumbs);
 								} else {
 									$resource = new Resource($_POST["replace"]);
 									$resource->Date = date("Y-m-d H:i:s");

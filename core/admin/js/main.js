@@ -1456,7 +1456,8 @@ var BigTreeFileManager = (function($) {
 
 		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
 		last_dialog.attr("action","admin_root/ajax/file-browser/upload/")
-					.attr("target","file_manager_upload_frame");
+				   .attr("target","file_manager_upload_frame");
+		last_dialog.prepend('<input type="hidden" name="' + CSRFTokenField + '" value="' + CSRFToken + '">');
 		last_dialog.find("footer *").hide();
 		last_dialog.find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Uploading files. Please wait…</p>'));
 	}
@@ -1466,7 +1467,8 @@ var BigTreeFileManager = (function($) {
 
 		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
 		last_dialog.attr("action","admin_root/ajax/file-browser/create-folder/")
-					.attr("target","file_manager_upload_frame");
+				   .attr("target","file_manager_upload_frame");
+		last_dialog.prepend('<input type="hidden" name="' + CSRFTokenField + '" value="' + CSRFToken + '">');
 		last_dialog.find("footer *").hide();
 		last_dialog.find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Creating folder. Please wait…</p>'));
 	}
