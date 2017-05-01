@@ -695,7 +695,7 @@
 		*/
 		
 		function getBreadcrumb(bool $ignore_trunk = false): array {
-			return Navigation::getBreadcrumb($this->ID, $ignore_trunk);
+			return Navigation::getBreadcrumb($this, $ignore_trunk);
 		}
 		
 		/*

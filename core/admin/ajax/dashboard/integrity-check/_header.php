@@ -36,7 +36,7 @@
 				}
 				// HTML we just run through checkHTML
 			} elseif ($resource["type"] == "html") {
-				$integrity_errors[$field] = Link::integrity($local_path, $data, $external);
+				$integrity_errors[$field] = $data ? Link::integrity($local_path, $data, $external): [];
 			} elseif ($resource["type"] == "callouts" && is_array($data)) {
 				foreach ($data as $callout_data) {
 					$callout = new Callout($callout_data["type"]);
@@ -54,7 +54,7 @@
 							}
 						}
 
-						$check_data($local_path, $external, $callout["resources"], $callout_data);
+						$check_data($local_path, $external, $callout->Fields, $callout_data);
 					}
 				}
 			} elseif ($resource["type"] == "matrix" && is_array($data)) {
