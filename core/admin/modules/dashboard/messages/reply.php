@@ -15,7 +15,7 @@
 					 Router::getIncludePath("admin/layouts/_error.php"));
 	}
 
-	$users = User::all("name ASC", true);
+	$users = Utils::keyById(User::all("name ASC", true));
 		
 	if (isset($_SESSION["saved_message"])) {
 		$send_to = $_SESSION["saved_message"]["send_to"];
@@ -57,16 +57,19 @@
 					<ul>
 						<?php
 							$x = 0;
+							
 							if (is_array($send_to)) {
 								foreach ($send_to as $id) {
+									if (isset($users[$id])) {
 						?>
 						<li>
-							<input type="hidden" name="send_to[<?=$x?>]" value="<?=htmlspecialchars($id)?>" />
+							<input type="hidden" name="send_to[<?=$x?>]" value="<?=htmlspecialchars($id)?>"/>
 							<p><?=htmlspecialchars($users[$id]["name"])?></p>
 							<a href="#" class="icon_delete"></a>
 						</li>
 						<?php
-									$x++;
+										$x++;
+									}
 								}
 							}
 						?>

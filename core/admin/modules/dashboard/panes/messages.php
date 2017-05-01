@@ -11,9 +11,9 @@
 		$unread_data[] = array(
 			"id" => $message->ID,
 			"from" => '<span class="gravatar"><img src="'.Image::gravatar($message->SenderEmail, 36).'" alt="" /></span>'.$message->SenderName,
-			"subject" => $message["subject"],
-			"date" => date("n/j/y",strtotime($message["date"])),
-			"time" => date("g:ia",strtotime($message["date"]))
+			"subject" => $message->Subject,
+			"date" => date("n/j/y",strtotime($message->Date)),
+			"time" => date("g:ia",strtotime($message->Date))
 		);
 	}
 ?>

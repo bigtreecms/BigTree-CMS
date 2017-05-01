@@ -113,6 +113,33 @@
 		}
 		
 		/*
+		 	Function: keyById
+				Keys an array by the IDs of the child arrays or objects
+			
+			Parameters:
+				array - An array to key
+		
+			Returns:
+				A modified array
+		*/
+		
+		static function keyById(array &$array): array {
+			$keyed_array = [];
+			
+			foreach ($array as $item) {
+				if (is_object($item)) {
+					$keyed_array[$item->ID] = $item;
+				} elseif (is_array($item)) {
+					$keyed_array[$item["id"]] = $item;
+				} else {
+					trigger_error("A child element of the passed array was not an object or array.", E_USER_WARNING);
+				}
+			}
+			
+			return $keyed_array;
+		}
+		
+		/*
 			Function: ungrowl
 				Deletes all pending growl messages.
 		*/

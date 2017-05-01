@@ -71,7 +71,7 @@
 			</fieldset>
 		</section>
 		<footer>
-			<a href="../" class="button"><?=Text::translate("Discard")?></a>
+			<a href="<?=ADMIN_ROOT?>dashboard/messages/" class="button"><?=Text::translate("Discard")?></a>
 			<input type="submit" class="button blue" value="<?=Text::translate("Send Message", true)?>" />
 		</footer>
 		<?php } else { ?>

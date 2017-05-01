@@ -8,17 +8,21 @@
 
 	// Sent messages table data
 	$sent_data = array();
+	
 	foreach ($messages["sent"] as $message) {
-		$recipients = explode("|",trim($message["recipients"],"|"));
 		$recipient_names = array();
 		
-		foreach ($recipients as $recipient) {
+		foreach ($message["recipients"] as $recipient) {
 			if (!isset($user_cache[$recipient])) {
-				$recipient_user = new User($recipient);
-				$user_cache[$recipient] = $recipient_user->Array;
+				if (User::exists($recipient)) {
+					$recipient_user = new User($recipient);
+					$user_cache[$recipient] = $recipient_user->Array;
+				} else {
+					$user_cache[$recipient] = null;
+				}
 			}
 			
-			$recipient_names[] = $user_cache[$recipient]["name"];
+			$recipient_names[] = $user_cache[$recipient] ? $user_cache[$recipient]["name"] : null;
 		}
 
 		$sent_data[] = array(

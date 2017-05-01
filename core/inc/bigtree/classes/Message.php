@@ -25,6 +25,8 @@
 		public $SenderName;
 		public $Subject;
 		
+		public static $Table = "bigtree_messages";
+		
 		/*
 			Constructor:
 				Builds a Message object referencing an existing database entry.
@@ -48,14 +50,16 @@
 					
 					$this->Date = $message["date"];
 					$this->Message = $message["message"];
-					$this->Recipients = explode("||", trim($message["recipients"], "|"));
-					$this->ReadBy = explode("||", trim($message["read_by"], "|"));
+					$this->Recipients = array_filter((array) json_decode($message["recipients"], true));
+					$this->ReadBy = array_filter((array) json_decode($message["read_by"], true));
 					$this->ResponseTo = $message["response_to"];
 					$this->Sender = $message["sender"];
 					$this->SenderEmail = $message["sender_email"] ?: null;
 					$this->SenderName = $message["sender_name"] ?: null;
 					$this->Subject = $message["subject"];
 				}
+			} else {
+				$this->ID = -1;
 			}
 		}
 		
@@ -79,27 +83,23 @@
 											  bigtree_users.email AS sender_email 
 									   FROM bigtree_messages JOIN bigtree_users 
 									   ON bigtree_messages.sender = bigtree_users.id 
-									   WHERE sender = '$user' OR recipients LIKE '%|$user|%' 
+									   WHERE sender = '$user' OR recipients LIKE '%\\\"$user\\\"%'
 									   ORDER BY date DESC");
 			
 			foreach ($messages as $message_data) {
-				if ($return_arrays) {
-					$message = $message_data;
-				} else {
-					$message = new Message($message_data);
-					$message->SenderEmail = $message_data["sender_email"];
-					$message->SenderName = $message_data["sender_name"];
-				}
+				$message = new Message($message_data);
+				$message->SenderEmail = $message_data["sender_email"];
+				$message->SenderName = $message_data["sender_name"];
 				
 				// If we're the sender put it in the sent array.
 				if ($message_data["sender"] == $user) {
-					$sent[] = $message;
+					$sent[] = $return_arrays ? $message->Array : $message;
 				} else {
 					// If we've been marked read, put it in the read array.
-					if ($message_data["read_by"] && strpos($message_data["read_by"], "|".$user."|") !== false) {
-						$read[] = $message;
+					if (in_array($user, $message->ReadBy)) {
+						$read[] = $return_arrays ? $message->Array : $message;
 					} else {
-						$unread[] = $message;
+						$unread[] = $return_arrays ? $message->Array : $message;
 					}
 				}
 			}
@@ -124,22 +124,18 @@
 		
 		static function create(string $sender, string $subject, string $message, array $recipients,
 							   ?int $in_response_to = 0): Message {
-			// We build the send_to field this way so that we don't have to create a second table of recipients.
-			$send_to = "|";
-			
-			foreach ($recipients as $r) {
-				// Make sure they actually put in a number and didn't try to screw with the $_POST
-				$send_to .= intval($r)."|";
+			// Force recipients as a string value
+			foreach ($recipients as $index => $recipient) {
+				$recipients[$index] = strval(intval($recipient));
 			}
 			
-			// Insert the message
 			$id = SQL::insert("bigtree_messages", [
 				"sender" => $sender,
-				"recipients" => $send_to,
+				"recipients" => array_filter(array_unique($recipients)),
 				"subject" => Text::htmlEncode(strip_tags($subject)),
 				"message" => strip_tags($message, "<p><b><strong><em><i><a>"),
 				"date" => "NOW()",
-				"in_response_to" => $in_response_to
+				"response_to" => $in_response_to
 			]);
 			
 			return new Message($id);
@@ -196,7 +192,7 @@
 			}
 			
 			return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_messages 
-									 WHERE recipients LIKE '%|$user|%' AND read_by NOT LIKE '%|$user|%'");
+									 WHERE recipients LIKE '%\\\"$user\\\"%' AND read_by NOT LIKE '%\\\"$user\\\"%'");
 		}
 		
 		/*
@@ -214,8 +210,55 @@
 				return;
 			}
 			
-			$this->ReadBy = str_replace("|$user|", "", $this->ReadBy)."|$user|";
+			$this->ReadBy[] = strval($user); // Force string because we want it wrapped in quotes in JSON
 			$this->save();
+		}
+		
+		/*
+		 	Function: save
+				Saves the Message back to the database.
+		*/
+		
+		function save(): bool {
+			$recipients = array_filter(array_unique($this->Recipients));
+			$read_by = array_filter(array_unique($this->ReadBy));
+			
+			// Force recipients and read_by as strings
+			foreach ($recipients as $index => $recipient) {
+				$recipients[$index] = strval(intval($recipient));
+			}
+			
+			foreach ($read_by as $index => $reader) {
+				$read_by[$index] = strval(intval($reader));
+			}
+			
+			$sender = intval($this->Sender);
+			$subject = Text::htmlEncode(strip_tags($this->Subject));
+			$message = strip_tags($this->Message, "<p><b><strong><em><i><a>");
+			$response_to = intval($this->ResponseTo);
+			
+			if ($this->ID === -1) {
+				SQL::insert(static::$Table, [
+					"sender" => $sender,
+					"recipients" => $recipients,
+					"read_by" => $read_by,
+					"subject" => $subject,
+					"message" => $message,
+					"response_to" => $response_to,
+					"date" => "NOW()"
+				]);
+			} else {
+				SQL::update(static::$Table, $this->ID, [
+					"sender" => $sender,
+					"recipients" => $recipients,
+					"read_by" => $read_by,
+					"subject" => $subject,
+					"message" => $message,
+					"response_to" => $response_to
+				]);
+			}
+			
+			return true;
 		}
 		
 	}
