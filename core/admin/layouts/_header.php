@@ -100,13 +100,13 @@
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
 		<script>BigTree.dateFormat = "<?=Date::convertTojQuery($bigtree["config"]["date_format"])?>";</script>
 		<?php
-			if (!empty($bigtree["config"]["html_editor"]) && $bigtree["config"]["html_editor"] != "tinymce4/tinymce.js") {
+			if (!empty($bigtree["config"]["html_editor"]) && $bigtree["config"]["html_editor"]["src"] != "tinymce4/tinymce.js") {
 		?>
 		<script src="<?=ADMIN_ROOT?>js/<?=$bigtree["config"]["html_editor"]["src"]?>"></script>
 		<?php
 			} else {
 		?>
-		<script src="https://cloud.tinymce.com/stable/tinymce.min.js"></script>
+		<script src="<?=ADMIN_ROOT?>js/tinymce/tinymce.min.js"></script>
 		<?php
 			}
 
