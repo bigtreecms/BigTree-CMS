@@ -19,8 +19,12 @@
 		$bigtree["resources"] = array();
 	}
 	
-	$template = new Template($template_id);
-	$bigtree["template"] = $template->Array; // Backwards compat
+	if (!empty($template_id) && $template_id != "!") {
+		$template = new Template($template_id);
+		$bigtree["template"] = $template->Array; // Backwards compat
+	} else {
+		$template = null;
+	}
 ?>
 <div class="alert template_message">
 	<label><?=Text::translate("Template")?>:</label>
@@ -57,7 +61,7 @@
 		// We alias $bigtree["entry"] to $bigtree["resources"] so that information is in the same place for field types.
 		$bigtree["entry"] = &$bigtree["resources"];
 	
-		if (count($template->Fields)) {
+		if (!is_null($template) && count($template->Fields)) {
 			foreach ($template->Fields as $resource) {
 				$field = new Field(array(
 					"type" => $resource["type"],

@@ -1385,7 +1385,7 @@
 				Unique version of value.
 		*/
 		
-		static function unique(string $table, string $field, string $value, ?string $id = null, bool $inverse = false): string {
+		static function unique(string $table, string $field, string $value, $id = null, bool $inverse = false): string {
 			$original_value = $value;
 			$count = 1;
 			

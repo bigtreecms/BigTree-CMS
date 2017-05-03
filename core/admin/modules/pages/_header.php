@@ -7,8 +7,12 @@
 	
 	if (isset($_POST["page"])) {
 		$id = $_POST["page"];
+	} elseif (isset($_POST["parent"])) {
+		$id = $_POST["parent"];
 	} elseif (isset($bigtree["commands"][0])) {
 		$id = $bigtree["commands"][0];
+	} elseif (isset($_GET["id"])) {
+		$id = $_GET["id"];
 	} else {
 		Router::redirect(ADMIN_ROOT."pages/view-tree/0/");
 	}

@@ -16,7 +16,9 @@
 	Lock::enforce("bigtree_pages", $page->ID, "admin/modules/pages/_locked.php", $force);
 	
 	// Grab template information
-	$template = new Template($page->Template);
+	if (!empty($page->Template) && $page->Template != "!") {
+		$template = new Template($page->Template);
+	}
 	
 	// Provide developers a nice handy link for edit/return of this form and the audit trail
 	if (Auth::user()->Level > 1) {

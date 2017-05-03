@@ -108,8 +108,8 @@
 		if (!$hide_template_section && ($bigtree["form_action"] == "create" || $bigtree["current_page"]["id"])) {
 	?>
 	<fieldset class="float_margin">
-		<input id="page_field_redirect_lower" type="checkbox" name="redirect_lower" id="redirect_lower"<?php if ($bigtree["current_page"]["template"] == "!") { ?> checked="checked"<?php } ?> />
-		<label for="page_field_redirect_lower" class="for_checkbox"><?=Text::translate("Redirect Lower")?></label>
+		<input id="redirect_lower" type="checkbox" name="redirect_lower" <?php if ($bigtree["current_page"]["template"] == "!") { ?> checked="checked"<?php } ?> />
+		<label for="redirect_lower" class="for_checkbox"><?=Text::translate("Redirect Lower")?></label>
 	</fieldset>
 	<?php
 		}

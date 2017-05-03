@@ -9,11 +9,11 @@ var BigTreePages = {
 		$("input[name=redirect_lower]").click(function() {
 			if ($(this).prop("checked")) {
 				$("#template_select").get(0).customControl.disable();
-				$("#external_link").prop("disabled",true);
+				$("#external_link").prop("disabled", true);
 				$("#new_window").get(0).customControl.disable();
 			} else {
 				$("#template_select").get(0).customControl.enable();
-				$("#external_link").removeAttr("disabled");
+				$("#external_link").prop("disabled", false);
 				$("#new_window").get(0).customControl.enable();
 			}
 		});
@@ -29,7 +29,7 @@ var BigTreePages = {
 		BigTreeTagAdder.init();
 		
 		// Watch for changes in the template, update the Content tab.
-		BigTree.localTimer = setInterval(BigTreePages.CheckTemplate,500);
+		BigTree.localTimer = setInterval(BigTreePages.CheckTemplate, 500);
 		
 		$(".save_and_preview").click(function() {
 			sform = $(this).parents("form");
@@ -50,6 +50,7 @@ var BigTreePages = {
 
 	CheckTemplate: function() {
 		var template_select = $("select[name=template]");
+		
 		if (template_select.length) {
 			if ($("#redirect_lower").prop("checked")) {
 				var current_template = "!";
@@ -58,6 +59,7 @@ var BigTreePages = {
 			} else {
 				var current_template = template_select.val();
 			}
+
 			if (BigTree.currentPageTemplate != current_template) {
 				// Unload all TinyMCE fields.
 				if (tinyMCE) {
@@ -66,7 +68,9 @@ var BigTreePages = {
 						tinyMCE.execCommand("mceRemoveControl", false, BigTree.TinyMCEFields[id]);
 					}
 				}
+
 				BigTree.currentPageTemplate = current_template;
+
 				if (BigTree.currentPage !== false) {
 					$("#template_type").load("admin_root/ajax/pages/get-template-form/", { page: BigTree.currentPage, template: BigTree.currentPageTemplate }, function() { BigTreeCustomControls("#template_type"); });
 				} else {

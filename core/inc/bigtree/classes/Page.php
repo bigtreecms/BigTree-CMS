@@ -973,6 +973,10 @@
 		*/
 		
 		function getSEORating(): array {
+			if (empty($this->Template) || $this->Template == "!") {
+				return ["score" => 100, "recommendations" => [], "color" => "#00CC00"];
+			}
+
 			$template = new Template($this->Template);
 			$template_fields = [];
 			$h1_field = "";
@@ -1006,6 +1010,7 @@
 			include_once SERVER_ROOT."core/inc/lib/Text-Statistics/src/DaveChild/TextStatistics/Pluralise.php";
 			include_once SERVER_ROOT."core/inc/lib/Text-Statistics/src/DaveChild/TextStatistics/Resource.php";
 			include_once SERVER_ROOT."core/inc/lib/Text-Statistics/src/DaveChild/TextStatistics/TextStatistics.php";
+			
 			$textStats = new \DaveChild\TextStatistics\TextStatistics;
 			$recommendations = [];
 			
@@ -1068,20 +1073,24 @@
 			} else {
 				$regular_text = "";
 				$stripped_text = "";
+				
 				foreach ($body_fields as $field) {
 					if (!is_array($this->Resources[$field])) {
 						$regular_text .= $this->Resources[$field]." ";
 						$stripped_text .= strip_tags($this->Resources[$field])." ";
 					}
 				}
+
 				// Check to see if there is any content
 				if ($stripped_text) {
 					$score += 5;
 					$words = $textStats->wordCount($stripped_text);
 					$readability = $textStats->fleschKincaidReadingEase($stripped_text);
+					
 					if ($readability < 0) {
 						$readability = 0;
 					}
+
 					$number_of_links = substr_count($regular_text, "<a ");
 					$number_of_external_links = substr_count($regular_text, 'href="http://');
 					
@@ -1095,12 +1104,14 @@
 					// See if we have any links
 					if ($number_of_links) {
 						$score += 5;
+						
 						// See if we have at least one link per 120 words.
 						if (floor($words / 120) <= $number_of_links) {
 							$score += 5;
 						} else {
 							$recommendations[] = "You should have at least one link for every 120 words of page content.  You currently have $number_of_links link(s).  You should have at least ".floor($words / 120).".";
 						}
+
 						// See if we have any external links.
 						if ($number_of_external_links) {
 							$score += 5;
@@ -1126,12 +1137,15 @@
 				// Check page freshness
 				$updated = strtotime($this->UpdatedAt);
 				$age = time() - $updated - (60 * 24 * 60 * 60);
+				
 				// See how much older it is than 2 months.
 				if ($age > 0) {
 					$age_score = 10 - floor(2 * ($age / (30 * 24 * 60 * 60)));
+					
 					if ($age_score < 0) {
 						$age_score = 0;
 					}
+
 					$score += $age_score;
 					$recommendations[] = "Your content is around ".ceil(2 + ($age / (30 * 24 * 60 * 60)))." months old.  Updating your page more frequently will make it rank higher.";
 				} else {
@@ -1140,6 +1154,7 @@
 			}
 			
 			$color = "#008000";
+			
 			if ($score <= 50) {
 				$color = Utils::colorMesh("#CCAC00", "#FF0000", 100 - (100 * $score / 50));
 			} elseif ($score <= 80) {

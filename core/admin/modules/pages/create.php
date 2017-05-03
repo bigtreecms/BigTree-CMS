@@ -32,24 +32,26 @@
 	$bigtree["errors"] = array();
 	
 	// Parse resources
-	include Router::getIncludePath("admin/modules/pages/_resource-parse.php");
+	if (!empty($_POST["template"]) && $_POST["template"] != "!") {
+		include Router::getIncludePath("admin/modules/pages/_resource-parse.php");
+	}
 	
 	// Make sure trunk is only available to developers
 	$trunk = Auth::user()->Level < 2 ? "" : $_POST["trunk"];
 	
 	if ($access_level == "p" && $_POST["form_action"] == "Create & Publish") {
 		// Let's make it happen.
-		$page = Page::create($trunk, $_POST["parent"], $_POST["in_nav"], $_POST["nav_title"], $_POST["title"],
-							 $_POST["route"], $_POST["meta_description"], $_POST["seo_invisible"], $_POST["template"],
-							 $_POST["external"], $_POST["new_window"], $_POST["resources"], $_POST["publish_at"],
+		$page = Page::create($trunk ? true : false, $_POST["parent"], $_POST["in_nav"] ? true : false, $_POST["nav_title"],
+							 $_POST["title"], $_POST["route"], $_POST["meta_description"], $_POST["seo_invisible"] ? true : false, 
+							 $_POST["template"], $_POST["external"], $_POST["new_window"], $_POST["resources"], $_POST["publish_at"],
 							 $_POST["expire_at"], $_POST["max_age"], $_POST["_tags"]);
 		$page_id = $page->ID;
 		
 		Utils::growl("Pages", "Created & Published Page");
 	} else {
-		$change = PendingChange::createPage($_POST["trunk"], $_POST["parent"], $_POST["in_nav"], $_POST["nav_title"],
-											$_POST["title"], $_POST["route"], $_POST["meta_description"],
-											$_POST["seo_invisible"], $_POST["template"], $_POST["external"],
+		$change = PendingChange::createPage($_POST["trunk"] ? true : false, $_POST["parent"], $_POST["in_nav"] ? true : false, 
+											$_POST["nav_title"], $_POST["title"], $_POST["route"], $_POST["meta_description"],
+											$_POST["seo_invisible"] ? true : false, $_POST["template"], $_POST["external"],
 											$_POST["new_window"], $_POST["resources"], $_POST["publish_at"],
 											$_POST["expire_at"], $_POST["max_age"], $_POST["_tags"]);
 		
