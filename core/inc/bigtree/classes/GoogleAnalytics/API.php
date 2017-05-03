@@ -107,7 +107,7 @@
 			$start_date = date("Y-m-d", strtotime($start_date));
 			$end_date = date("Y-m-d", strtotime($end_date));
 			$metric_string = $dimension_string = "";
-			
+
 			// Clean up the metrics
 			if (is_array($metrics)) {
 				foreach ($metrics as $metric) {
@@ -120,6 +120,10 @@
 				
 				$metric_string = rtrim($metric_string, ",");
 			} else {
+				if (substr($metrics, 0, 3) != "ga:") {
+					$metrics = "ga:".$metrics;
+				}
+
 				$metric_string = trim($metrics);
 			}
 			
@@ -138,7 +142,11 @@
 				}
 				
 				$dimension_string = rtrim($dimension_string, ",");
-			} else {
+			} elseif (trim($dimensions)) {
+				if (substr($dimensions, 0, 3) != "ga:") {
+					$dimensions = "ga:".$dimensions;
+				}
+
 				$dimension_string = trim($dimensions);
 			}
 			

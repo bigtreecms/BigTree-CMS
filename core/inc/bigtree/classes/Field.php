@@ -179,7 +179,7 @@
 				A more sensible array, or a piece of that sensible array if "part" is set.
 		*/
 		
-		static function getParsedFilesArray(?string $part = null): array {
+		static function getParsedFilesArray(?string $part = null) {
 			$clean = [];
 			
 			foreach ($_FILES as $key => $first_level) {

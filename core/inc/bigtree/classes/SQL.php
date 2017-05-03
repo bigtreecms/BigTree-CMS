@@ -1438,7 +1438,7 @@
 				true if successful (even if no rows match)
 		*/
 		
-		static function update(string $table, string $id, array $values): bool {
+		static function update(string $table, $id, array $values): bool {
 			if (!is_array($values) || !count($values)) {
 				trigger_error("SQL::update expects a non-empty array as its third parameter");
 				
