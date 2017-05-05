@@ -1,27 +1,42 @@
-var BigTreePages = {
-	calloutCount: 0,
-	calloutDescription: false,
-	calloutNumber: 0,
-	currentCallout: false,
-	pageTitleDidFocus: false,
+var BigTreePages = (function() {
+	var ExternalLink;
+	var NewWindow;
+	var PageTitle;
+	var PageTitleDidFocus = false;
+	var RedirectLower;
+	var SaveAndPreview;
+	var TemplateSelect;
+	var Timer;
 
-	init: function() {
-		$("input[name=redirect_lower]").click(function() {
+	function init() {
+		PageTitle = $("#page_title");
+		RedirectLower = $("input[name=redirect_lower]");
+		ExternalLink = $("input[name=external]");
+		NewWindow = $("#new_window");
+		TemplateSelect = $("select[name=template]");
+		SaveAndPreview = $(".save_and_preview");
+
+		RedirectLower.click(function() {
 			if ($(this).prop("checked")) {
-				$("#template_select").get(0).customControl.disable();
-				$("#external_link").prop("disabled", true);
-				$("#new_window").get(0).customControl.disable();
+				TemplateSelect.get(0).customControl.disable();
+				ExternalLink.prop("disabled", true);
+				NewWindow.get(0).customControl.disable();
+				SaveAndPreview.hide();
 			} else {
-				$("#template_select").get(0).customControl.enable();
-				$("#external_link").prop("disabled", false);
-				$("#new_window").get(0).customControl.enable();
+				TemplateSelect.get(0).customControl.enable();
+				ExternalLink.prop("disabled", false);
+				NewWindow.get(0).customControl.enable();
+				SaveAndPreview.show();
 			}
 		});
-		$("input[name=external]").on("keyup",function() {
+
+		ExternalLink.on("keyup",function() {
 			if ($(this).val()) {
-				$("#template_select").get(0).customControl.disable();
+				TemplateSelect.get(0).customControl.disable();
+				SaveAndPreview.hide();
 			} else {
-				$("#template_select").get(0).customControl.enable();
+				TemplateSelect.get(0).customControl.enable();
+				SaveAndPreview.show();
 			}
 		});
 		
@@ -29,35 +44,39 @@ var BigTreePages = {
 		BigTreeTagAdder.init();
 		
 		// Watch for changes in the template, update the Content tab.
-		BigTree.localTimer = setInterval(BigTreePages.CheckTemplate, 500);
-		
-		$(".save_and_preview").click(function() {
-			sform = $(this).parents("form");
-			sform.attr("action","admin_root/pages/update/?preview=true");
-			sform.submit();
-			
-			return false;
+		Timer = setInterval(checkTemplate, 500);
+
+		SaveAndPreview.click(function(ev) {
+			ev.preventDefault();
+			ev.stopPropagation();
+
+			var form = $(this).parents("form");
+			form.attr("action", "admin_root/pages/update/?preview=true");
+			form.submit();
 		});
 		
 		// Observe the Nav Title for auto filling the Page Title the first time around.
 		$("#nav_title").keyup(function() {
-			if (!$("#page_title").get(0).defaultValue && !BigTreePages.pageTitleDidFocus) {
-				$("#page_title").val($("#nav_title").val());
+			if (!PageTitle.get(0).defaultValue && !PageTitleDidFocus) {
+				PageTitle.val($(this).val());
 			}
 		});
-		$("#page_title").focus(function() { BigTreePages.pageTitleDidFocus = true; });
-	},
 
-	CheckTemplate: function() {
-		var template_select = $("select[name=template]");
-		
-		if (template_select.length) {
-			if ($("#redirect_lower").prop("checked")) {
-				var current_template = "!";
-			} else if ($("#external_link").val()) {
-				var current_template = "";
+		PageTitle.focus(function() {
+			PageTitleDidFocus = true;
+		});
+	}
+
+	function checkTemplate() {
+		var current_template;
+
+		if (TemplateSelect.length) {
+			if (RedirectLower.prop("checked")) {
+				current_template = "!";
+			} else if (ExternalLink.val()) {
+				current_template = "";
 			} else {
-				var current_template = template_select.val();
+				current_template = TemplateSelect.val();
 			}
 
 			if (BigTree.currentPageTemplate != current_template) {
@@ -79,6 +98,8 @@ var BigTreePages = {
 			}
 		}
 	}
-};
+
+	return { init: init };
+})();
 
 $(document).ready(BigTreePages.init);
