@@ -62,7 +62,7 @@
 					}
 				} else {
 			?>
-			<a href="#" class="button save_and_preview"<?php if (empty($bigtree["current_page"]["template"]) || $bigtree["current_page"]["template"] == "!") { ?> style="display: none;"<?php } ?>><span class="icon_small icon_small_computer"></span><?=Text::translate("Save & Preview", true)?></a>
+			<a href="#" class="button save_and_preview"<?php if (!empty($bigtree["current_page"]["external"]) || $bigtree["current_page"]["template"] == "!") { ?> style="display: none;"<?php } ?>><span class="icon_small icon_small_computer"></span><?=Text::translate("Save & Preview", true)?></a>
 			<input type="submit" name="form_action" value="<?=Text::translate("Save", true)?>"<?php if ($bigtree["access_level"] != "p") { ?> class="blue"<?php } ?> />
 			<?php
 					if ($bigtree["access_level"] == "p") {

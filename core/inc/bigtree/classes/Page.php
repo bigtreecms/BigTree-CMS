@@ -301,8 +301,8 @@
 		*/
 		
 		static function create(bool $trunk, ?int $parent, bool $in_nav, string $nav_title, string $title, ?string $route,
-							   ?string $meta_description, bool $seo_invisible, string $template, bool $external,
-							   bool $new_window, array $resources, ?string $publish_at, ?string $expire_at, ?int $max_age,
+							   ?string $meta_description, bool $seo_invisible, string $template, ?string $external,
+							   bool $new_window, ?array $resources, ?string $publish_at, ?string $expire_at, ?int $max_age,
 							   ?array $tags = []): Page {
 			// Clean up either their desired route or the nav title
 			$route = Link::urlify($route ?: $nav_title);
@@ -1595,8 +1595,8 @@
 		*/
 		
 		function update(?bool $trunk, ?int $parent, ?bool $in_nav, string $nav_title, string $title, string $route,
-						string $meta_description, ?bool $seo_invisible, string $template, ?bool $external,
-						?bool $new_window, array $resources, ?string $publish_at, ?string $expire_at, ?int $max_age,
+						string $meta_description, ?bool $seo_invisible, string $template, ?string $external,
+						?bool $new_window, ?array $resources, ?string $publish_at, ?string $expire_at, ?int $max_age,
 						?array $tags = []) {
 			// Save a page revision
 			PageRevision::create($this);

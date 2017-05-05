@@ -75,7 +75,7 @@
 	<?php
 		}
 		
-		if ($preview_url) {
+		if ($preview_url && empty($page->External) && $page->Template != "!") {
 	?>
 	<article class="link">
 		<label><?=Text::translate("Preview URL")?></label>

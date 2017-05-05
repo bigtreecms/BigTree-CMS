@@ -32,7 +32,7 @@
 	$bigtree["errors"] = array();
 	
 	// Parse resources
-	if (!empty($_POST["template"]) && $_POST["template"] != "!") {
+	if (empty($_POST["external"]) && $_POST["template"] != "!") {
 		include Router::getIncludePath("admin/modules/pages/_resource-parse.php");
 	}
 	

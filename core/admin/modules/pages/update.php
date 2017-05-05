@@ -40,7 +40,9 @@
 	$bigtree["errors"] = array();
 	
 	// Parse resources
-	include Router::getIncludePath("admin/modules/pages/_resource-parse.php");
+	if (empty($_POST["external"]) && $_POST["template"] != "!") {
+		include Router::getIncludePath("admin/modules/pages/_resource-parse.php");
+	}
 	
 	// Handle permissions on trunk
 	$trunk = (Auth::user()->Level < 2) ? $page->Trunk : $_POST["trunk"];
