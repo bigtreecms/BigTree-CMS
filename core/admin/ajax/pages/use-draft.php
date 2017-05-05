@@ -37,4 +37,4 @@
 	}
 	
 	Utils::growl("Pages","Loaded Saved Revision");
-	Router::redirect(ADMIN_ROOT."pages/edit/".$revision["page"]."/");
+	Router::redirect(ADMIN_ROOT."pages/edit/".$revision->Page."/");

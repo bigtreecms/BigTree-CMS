@@ -18,7 +18,7 @@
 	
 	// Check for a page lock
 	$force = isset($_GET["force"]) ? $_GET["force"] : false;
-	$lock_id = Lock::enforce("bigtree_pages", $page->ID, "admin/modules/pages/_locked.php", $force);
+	$lock = Lock::enforce("bigtree_pages", $page->ID, "admin/modules/pages/_locked.php", $force);
 	
 	// See if there's a draft copy.
 	$draft = $page->PendingChange;
@@ -111,7 +111,7 @@
 		setInterval(function() {
 			$.secureAjax("<?=ADMIN_ROOT?>ajax/refresh-lock/", {
 				type: "POST",
-				data: { table: "bigtree_pages", id: "<?=$lock_id?>" }
+				data: { table: "bigtree_pages", id: "<?=$lock->ID?>" }
 			});
 		}, 60000);
 		
@@ -138,6 +138,7 @@
 		
 		$(".icon_delete").click(function() {
 			var href = $(this).attr("href");
+			
 			if (href.substr(0,1) == "#") {
 				BigTreeDialog({
 					title: "<?=Text::translate("Delete Revision")?>",
@@ -174,11 +175,11 @@
 					content: '<p class="confirm"><?=Text::translate("Are you sure you want to overwrite your existing draft with this revision?")?></p>',
 					alternateSaveText: "<?=Text::translate("Overwrite")?>",
 					callback: $.proxy(function() {
-						document.location.href = "<?=ADMIN_ROOT?>ajax/pages/use-draft/?id=" + BigTree.cleanHref($(this).attr("href"));
+						document.location.href = "<?=ADMIN_ROOT?>ajax/pages/use-draft/?id=" + BigTree.cleanHref($(this).attr("href") + "<?php CSRF::drawGETToken(); ?>");
 					},this)
 				});
 			} else {
-				document.location.href = "<?=ADMIN_ROOT?>ajax/pages/use-draft/?id=" + BigTree.cleanHref($(this).attr("href"));
+				document.location.href = "<?=ADMIN_ROOT?>ajax/pages/use-draft/?id=" + BigTree.cleanHref($(this).attr("href") + "<?php CSRF::drawGETToken(); ?>");
 			}
 			
 			return false;
