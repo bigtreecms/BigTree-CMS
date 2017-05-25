@@ -1525,7 +1525,7 @@
 			}
 
 			$parent = sqlescape($parent);
-			$name = sqlescape(htmlspecialchars($name));
+			$name = sqlescape(htmlspecialchars(trim($name)));
 
 			sqlquery("INSERT INTO bigtree_resource_folders (`name`,`parent`) VALUES ('$name','$parent')");
 			$id = sqlid();
