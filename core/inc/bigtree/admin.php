@@ -2303,7 +2303,8 @@
 			$id = sqlescape($id);
 			// If this person has higher access levels than the person trying to update them, fail.
 			$current = static::getUser($id);
-			if ($current["level"] > $this->Level) {
+
+			if ($current["level"] > $this->Level || $id == $this->ID) {
 				return false;
 			}
 
