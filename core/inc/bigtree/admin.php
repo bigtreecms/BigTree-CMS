@@ -1527,6 +1527,10 @@
 			$parent = sqlescape($parent);
 			$name = sqlescape(htmlspecialchars(trim($name)));
 
+			if (!$name) {
+				return false;
+			}
+
 			sqlquery("INSERT INTO bigtree_resource_folders (`name`,`parent`) VALUES ('$name','$parent')");
 			$id = sqlid();
 			$this->track("bigtree_resource_folders",$id,"created");

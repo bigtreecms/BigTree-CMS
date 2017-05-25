@@ -1399,7 +1399,7 @@ var BigTreeFileManager = (function($) {
 	function addFolder() {
 		UploadDialog = BigTreeDialog({
 			title: "New Folder",
-			content: '<input type="hidden" name="folder" value="' + CurrentFolder + '" /><fieldset><label>Folder Name</label><input type="text" name="name" /></fieldset>',
+			content: '<input type="hidden" name="folder" value="' + CurrentFolder + '" /><fieldset><label>Folder Name</label><input class="required" type="text" name="name" /></fieldset>',
 			callback: createFolder,
 			icon: "folder",
 			alternateSaveText: "Create Folder",
@@ -1444,7 +1444,7 @@ var BigTreeFileManager = (function($) {
 		return false;
 	}
 	
-	function createFile() {
+	function createFile(ev) {
 		var last_dialog = $(".bigtree_dialog_form").last();
 
 		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
@@ -1455,8 +1455,16 @@ var BigTreeFileManager = (function($) {
 		last_dialog.find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Uploading files. Please wait…</p>'));
 	}
 	
-	function createFolder(data) {
+	function createFolder(ev) {
 		var last_dialog = $(".bigtree_dialog_form").last();
+		var validator = BigTreeFormValidator(last_dialog);
+
+		if (!validator.validateForm(false,true)) {
+			ev.preventDefault();
+			ev.stopPropagation();
+			
+			return;
+		}
 
 		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
 		last_dialog.attr("action","admin_root/ajax/file-browser/create-folder/")

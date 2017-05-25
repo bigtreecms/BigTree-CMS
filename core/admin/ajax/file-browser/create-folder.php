@@ -1,8 +1,6 @@
 <?
 	$admin->verifyCSRFToken();
-
-	if ($_POST["folder"] !== "") {
-		$admin->createResourceFolder($_POST["folder"], $_POST["name"]);
+	$admin->createResourceFolder($_POST["folder"],$_POST["name"]);
 ?>
 <html>
 	<head>
@@ -15,5 +13,3 @@
 		</script>
 	</body>
 </html>
-<?php
-	}
