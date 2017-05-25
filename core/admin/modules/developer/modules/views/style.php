@@ -84,70 +84,97 @@
 ?>
 
 <script>
-	BigTree.localDragging = false;
-	BigTree.localGrowing = false;
-	BigTree.localShrinking = false;
-	BigTree.localMouseStartX = false;
-	BigTree.localShrinkingStartWidth = false;
-	BigTree.localGrowingStartWidth = false;
-	BigTree.localMovementDirection = false;
-	BigTree.localViewTitles = $(".table header .view_column");
-	BigTree.localViewRows = $(".table ul li");
+	(function() {
+		var Columns = $(".table header .view_column");
+		var Dragging = false;
+		var Growing = false;
+		var Shrinking = false;
+		var MouseStartX = false;
+		var ShrinkingStartWidth = false;
+		var GrowingStartWidth = false;
+		var MovementDirection = false;
+		var Rows = $(".table ul li");
+
+		function mousedown(ev) {
+			var objoffset = $(this).offset();
+			var obj_middle = Math.round(GrowingStartWidth / 2);
+			var offset = ev.clientX - objoffset.left;
+			var titles = $(".table .view_column");
 	
-	$(".table .view_column").mousedown(function(ev) {
-		BigTree.localGrowingStartWidth = $(this).width();
-		var objoffset = $(this).offset();
-		var obj_middle = Math.round(BigTree.localGrowingStartWidth / 2);
-		var offset = ev.clientX - objoffset.left;
-		var titles = $(".table .view_column");
-		BigTree.localGrowing = titles.index(this);
-		if (offset > obj_middle) {
-			BigTree.localShrinking = BigTree.localGrowing + 1;
-			BigTree.localMovementDirection = "right";
-			$(this).css({ cursor: "e-resize" });
-		} else {
-			if (BigTree.localGrowing == 0) {
-				return;
+			GrowingStartWidth = $(this).width();
+			Growing = titles.index(this);
+	
+			if (offset > obj_middle) {
+				Shrinking = Growing + 1;
+
+				// Don't allow the right column to shrink actions
+				if (Shrinking == Columns.length) {
+					return;
+				}
+
+				MovementDirection = "right";
+	
+				$(this).css({ cursor: "e-resize" });
+			} else {
+				if (Growing == 0) {
+					return;
+				}
+	
+				Shrinking = Growing - 1;
+				MovementDirection = "left";
+	
+				$(this).css({ cursor: "w-resize" });
 			}
-			BigTree.localShrinking = BigTree.localGrowing - 1;
-			BigTree.localMovementDirection = "left";
-			$(this).css({ cursor: "w-resize" });
-		}
-		BigTree.localMouseStartX = ev.clientX;
-		BigTree.localShrinkingStartWidth = BigTree.localViewTitles.eq(BigTree.localShrinking).width();
-		BigTree.localDragging = true;
-		
-		return false;
-	}).mouseup(function() {
-		BigTree.localDragging = false;
-		BigTree.localViewTitles.eq(BigTree.localGrowing).css({ cursor: "move" });
-		$(".table .view_column").each(function() {
-			name = $(this).attr("name");
-			width = $(this).width();
-			$("#data_" + name).val(width);
-		});
-	});
 	
-	$(window).mousemove(function(ev) {
-		if (!BigTree.localDragging) {
-			return;
+			MouseStartX = ev.clientX;
+			ShrinkingStartWidth = Columns.eq(Shrinking).width();
+			Dragging = true;
+			
+			return false;
 		}
-		var difference = ev.clientX - BigTree.localMouseStartX;
-		if (BigTree.localMovementDirection == "left") {
-			difference = difference * -1;
-		}
-		// The minimum width is 62 (20 pixels padding) because that's the size of an action column.  Figured it's a good minimum.
-		if (BigTree.localShrinkingStartWidth - difference > 41 && BigTree.localGrowingStartWidth + difference > 41) {
-			// Shrink the shrinking title
-			BigTree.localViewTitles.eq(BigTree.localShrinking).css({ width: (BigTree.localShrinkingStartWidth - difference) + "px" });
-			// Grow the growing title
-			BigTree.localViewTitles.eq(BigTree.localGrowing).css({ width: (BigTree.localGrowingStartWidth + difference) + "px" });
-			// Shrink/Grow all the rows
-			BigTree.localViewRows.each(function() {
-				sections = $(this).find("section");
-				sections.eq(BigTree.localShrinking).css({ width: (BigTree.localShrinkingStartWidth - difference) + "px" });
-				sections.eq(BigTree.localGrowing).css({ width: (BigTree.localGrowingStartWidth + difference) + "px" });
+
+		function mouseup(ev) {
+			Dragging = false;
+			Columns.eq(Growing).css({ cursor: "move" });
+			
+			Columns.each(function() {
+				var name = $(this).attr("name");
+				var width = $(this).width();
+				
+				$("#data_" + name).val(width);
 			});
 		}
-	});
+
+		function mousemove(ev) {
+			if (!Dragging) {
+				return;
+			}
+
+			var difference = ev.clientX - MouseStartX;
+			
+			if (MovementDirection == "left") {
+				difference = difference * -1;
+			}
+			
+			// The minimum width is 62 (20 pixels padding) because that's the size of an action column.  Figured it's a good minimum.
+			if (ShrinkingStartWidth - difference > 41 && GrowingStartWidth + difference > 41) {
+				// Shrink the shrinking title
+				Columns.eq(Shrinking).css({ width: (ShrinkingStartWidth - difference) + "px" });
+				
+				// Grow the growing title
+				Columns.eq(Growing).css({ width: (GrowingStartWidth + difference) + "px" });
+				
+				// Shrink/Grow all the rows
+				Rows.each(function() {
+					sections = $(this).find("section");
+					sections.eq(Shrinking).css({ width: (ShrinkingStartWidth - difference) + "px" });
+					sections.eq(Growing).css({ width: (GrowingStartWidth + difference) + "px" });
+				});
+			}
+		}
+
+		// Init hooks
+		Columns.mousedown(mousedown).mouseup(mouseup);
+		$(window).mousemove(mousemove);
+	})();
 </script>
