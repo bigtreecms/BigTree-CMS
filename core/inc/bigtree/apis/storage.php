@@ -8,7 +8,7 @@
 
 		var $AutoJPEG = false;
 		var $DisabledFileError = false;
-		var $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx)/i';
+		var $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx|phtml|pht)/i';
 		var $Service = "";
 		var $Cloud = false;
 		var $Settings;
