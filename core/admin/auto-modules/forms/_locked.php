@@ -13,7 +13,7 @@
 		</p>
 	</section>
 	<footer>
-		<a href="?force=true<?=$view_data?>" class="button blue">Unlock</a>
+		<a href="?force=true<?=$view_data?><? $admin->drawCSRFTokenGET(); ?>" class="button blue">Unlock</a>
 		&nbsp;
 		<a href="javascript:history.go(-1);" class="button white">Cancel</a>
 	</footer>

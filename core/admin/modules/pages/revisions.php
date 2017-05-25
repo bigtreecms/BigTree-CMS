@@ -32,7 +32,13 @@
 	}
 	
 	// Check for a page lock
-	$force = isset($_GET["force"]) ? $_GET["force"] : false;
+	if (!empty($_GET["force"])) {
+		$admin->verifyCSRFToken();
+		$force = true;
+	} else {
+		$force = false;
+	}
+
 	$lock_id = $admin->lockCheck("bigtree_pages",$page["id"],"admin/modules/pages/_locked.php",$force);
 	
 	// See if there's a draft copy.

@@ -12,6 +12,6 @@
 	<footer>
 		<a href="javascript:history.go(-1);" class="button white">Cancel</a>
 		&nbsp;
-		<a href="?force=true" class="button blue">Unlock</a>
+		<a href="?force=true<? $admin->drawCSRFTokenGET() ?>" class="button blue">Unlock</a>
 	</footer>
 </div>

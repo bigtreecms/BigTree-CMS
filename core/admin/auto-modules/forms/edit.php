@@ -1,6 +1,12 @@
 <?
 	// Check for a page lock
-	$force = isset($_GET["force"]) ? true : false;
+	if (!empty($_GET["force"])) {
+		$admin->verifyCSRFToken();
+		$force = true;
+	} else {
+		$force = false;
+	}
+	
 	$admin->lockCheck($bigtree["form"]["table"],$bigtree["edit_id"],"admin/auto-modules/forms/_locked.php",$force);
 	
 	$pending_entry = BigTreeAutoModule::getPendingItem($bigtree["form"]["table"],$bigtree["edit_id"]);
