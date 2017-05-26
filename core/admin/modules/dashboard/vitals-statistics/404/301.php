@@ -6,6 +6,7 @@
 ?>
 <div class="table">
 	<summary>
+		<? include "_site-key-switcher.php" ?>
 		<input type="search" class="form_search" placeholder="Search" id="404_search" />
 		<span class="form_search_icon"></span>
 		<nav id="view_paging" class="view_paging"></nav>

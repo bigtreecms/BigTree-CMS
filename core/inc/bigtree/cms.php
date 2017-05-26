@@ -1335,36 +1335,49 @@
 		*/
 		
 		static function handle404($url) {
-			$url = sqlescape(htmlspecialchars(strip_tags(rtrim($url,"/"))));
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url'"));
+			$url = sqlescape(htmlspecialchars(strip_tags(rtrim($url, "/"))));
+
+			if (defined("BIGTREE_SITE_KEY")) {
+				$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url' AND site_key = '".sqlescape(BIGTREE_SITE_KEY)."'"));
+			} else {
+				$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url'"));
+			}
+			
 			if (!$url) {
 				return true;
 			}
 
-			if ($f["redirect_url"]) {
-				$f["redirect_url"] = static::getInternalPageLink($f["redirect_url"]);
+			if ($existing["redirect_url"]) {
+				$existing["redirect_url"] = static::getInternalPageLink($existing["redirect_url"]);
 
-				if ($f["redirect_url"] == "/") {
-					$f["redirect_url"] = "";
+				if ($existing["redirect_url"] == "/") {
+					$existing["redirect_url"] = "";
 				}
 				
-				if (substr($f["redirect_url"],0,7) == "http://" || substr($f["redirect_url"],0,8) == "https://") {
-					$redirect = $f["redirect_url"];
+				if (substr($existing["redirect_url"],0,7) == "http://" || substr($existing["redirect_url"],0,8) == "https://") {
+					$redirect = $existing["redirect_url"];
 				} else {
-					$redirect = WWW_ROOT.str_replace(WWW_ROOT,"",$f["redirect_url"]);
+					$redirect = WWW_ROOT.str_replace(WWW_ROOT, "", $existing["redirect_url"]);
 				}
 				
-				sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = '".$f["id"]."'");
-				BigTree::redirect(htmlspecialchars_decode($redirect),"301");
+				sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = '".$existing["id"]."'");
+				BigTree::redirect(htmlspecialchars_decode($redirect), "301");
+				
 				return false;
 			} else {
 				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
-				if ($f) {
-					sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = '".$f["id"]."'");
-				} else {
-					sqlquery("INSERT INTO bigtree_404s (`broken_url`,`requests`) VALUES ('$url','1')");
+				define("BIGTREE_DO_NOT_CACHE", true);
+
+				if ($existing) {
+					sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = '".$existing["id"]."'");
 				}
-				define("BIGTREE_DO_NOT_CACHE",true);
+
+				if (defined("BIGTREE_SITE_KEY")) {				
+					sqlquery("INSERT INTO bigtree_404s (`broken_url`, `requests`, `site_key`) VALUES ('$url', '1', '".sqlescape(BIGTREE_SITE_KEY)."')");
+				} else {
+					sqlquery("INSERT INTO bigtree_404s (`broken_url`, `requests`) VALUES ('$url','1')");
+				}
+				
 				return true;
 			}
 		}

@@ -2,10 +2,27 @@
 	$type = isset($_POST["type"]) ? $_POST["type"] : $type;
 	$page = isset($_POST["page"]) ? intval($_POST["page"]) : 1;
 	$search = isset($_POST["search"]) ? $_POST["search"] : "";
-	
-	list($pages,$items) = $admin->search404s($type,$search,$page);
+
+	if (isset($_POST["site_key"])) {
+		BigTree::setCookie("bigtree_admin[active_site]", $_POST["site_key"]);
+	}
+
+	// Multi-site can only load one site's keys at once
+	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]) > 1) {
+		$active_site = $_POST["site_key"] ?: BigTree::getCookie("bigtree_admin[active_site]");
+
+		if (!$active_site) {
+			$keys = array_keys($bigtree["config"]["sites"]);
+			$active_site = $keys[0];
+		}
+
+		list($pages, $items) = $admin->search404s($type, $search, $page, $active_site);
+	} else {
+		list($pages, $items) = $admin->search404s($type, $search, $page);
+	}
 
 	$tabindex = 0;
+	
 	foreach ($items as $item) {
 		$tabindex++;
 ?>

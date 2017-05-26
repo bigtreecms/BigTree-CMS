@@ -617,6 +617,7 @@
 
 		function clearDead404s() {
 			sqlquery("DELETE FROM bigtree_404s WHERE redirect_url = ''");
+
 			$this->track("bigtree_404s","All","Cleared Empty");
 			static::growl("404 Report","Cleared 404s");
 		}
@@ -628,20 +629,46 @@
 			Parameters:
 				from - The 404 path
 				to - The 301 target
+				site_key - The site key for a multi-site environment (defaults to null)
 		*/
 
-		function create301($from,$to) {
-			$from = sqlescape(htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT,"",$from),"/"))));
+		function create301($from, $to, $site_key = null) {
+			global $bigtree;
+
+			if (!is_null($site_key)) {
+				$from_domain = parse_url($from, PHP_URL_HOST);
+				
+				foreach ($bigtree["config"]["sites"] as $index => $site) {
+					$domain = parse_url($site["domain"], PHP_URL_HOST);
+
+					if ($domain == $from_domain) {
+						$site_key = $index;
+						$from = str_replace($site["www_root"], "", $from);
+					}
+				}
+			}
+
+			$from = sqlescape(htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT, "", $from),"/"))));
 			$to = sqlescape(htmlspecialchars($this->autoIPL($to)));
 
 			// See if the from already exists
-			$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from'"));
+			if (!is_null($site_key)) {
+				$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from' AND `site_key` = '".sqlescape($site_key)."'"));
+			} else {
+				$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from'"));	
+			}
+			
 			if ($existing) {
 				sqlquery("UPDATE bigtree_404s SET `redirect_url` = '$to' WHERE id = '".$existing["id"]."'");
-				$this->track("bigtree_404s",$existing["id"],"updated");
+				$this->track("bigtree_404s", $existing["id"], "updated");
 			} else {
-				sqlquery("INSERT INTO bigtree_404s (`broken_url`,`redirect_url`) VALUES ('$from','$to')");
-				$this->track("bigtree_404s",sqlid(),"created");
+				if (!is_null($site_key)) {
+					sqlquery("INSERT INTO bigtree_404s (`broken_url`, `redirect_url`, `site_key`) VALUES ('$from', '$to', '".sqlescape($site_key)."')");
+				} else {
+					sqlquery("INSERT INTO bigtree_404s (`broken_url`, `redirect_url`) VALUES ('$from','$to')");
+				}
+
+				$this->track("bigtree_404s", sqlid(), "created");
 			}
 		}
 
@@ -2675,18 +2702,25 @@
 
 			Parameters:
 				type - The type to retrieve the count for (301, ignored, 404)
+				site_key - The site key to return 404 count for (defaults to all sites)
 
 			Returns:
 				The number of 404s in the table of the given type.
 		*/
 
-		static function get404Total($type) {
+		static function get404Total($type, $site_key = null) {
+			if ($site_key) {
+				$site_key_query = "AND site_key = '".sqlescape($site_key)."'";
+			} else {
+				$site_key_query = "";
+			}
+
 			if ($type == "404") {
-				$total = sqlfetch(sqlquery("SELECT COUNT(id) AS `total` FROM bigtree_404s WHERE ignored = '' AND redirect_url = ''"));
+				$total = sqlfetch(sqlquery("SELECT COUNT(id) AS `total` FROM bigtree_404s WHERE ignored = '' AND redirect_url = '' $site_key_query"));
 			} elseif ($type == "301") {
-				$total = sqlfetch(sqlquery("SELECT COUNT(id) AS `total` FROM bigtree_404s WHERE ignored = '' AND redirect_url != ''"));
+				$total = sqlfetch(sqlquery("SELECT COUNT(id) AS `total` FROM bigtree_404s WHERE ignored = '' AND redirect_url != '' $site_key_query"));
 			} elseif ($type == "ignored") {
-				$total = sqlfetch(sqlquery("SELECT COUNT(id) AS `total` FROM bigtree_404s WHERE ignored = 'on'"));
+				$total = sqlfetch(sqlquery("SELECT COUNT(id) AS `total` FROM bigtree_404s WHERE ignored = 'on' $site_key_query"));
 			}
 
 			if (!empty($total)) {
@@ -6020,6 +6054,8 @@
 		*/
 
 		static function makeIPL($url) {
+			global $bigtree;
+
 			$path_components = explode("/", rtrim(str_replace(WWW_ROOT, "", $url), "/"));
 			
 			// See if this is a file
@@ -6033,9 +6069,7 @@
 			}
 
 			// If we have multiple sites, try each domain
-			if (defined("BIGTREE_SITE_KEY")) {
-				global $bigtree;
-				
+			if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]) > 1) {
 				foreach ($bigtree["config"]["sites"] as $site_key => $configuration) {
 					// This is the site we're pointing to
 					if (strpos($url, $configuration["www_root"]) !== false) {
@@ -6775,13 +6809,20 @@
 				type - The type of results (301, 404, or ignored).
 				query - The search query.
 				page - The page to return.
+				site_key - The site key to return 404s for (leave null for all 404s).
 
 			Returns:
 				An array of entries from bigtree_404s.
 		*/
 
-		static function search404s($type,$query = "",$page = 1) {
+		static function search404s($type, $query = "", $page = 1, $site_key = null) {
 			$items = array();
+
+			if ($site_key) {
+				$site_key_query = "AND site_key = '".sqlescape($site_key)."'";
+			} else {
+				$site_key_query = "";
+			}
 
 			if ($query) {
 				$s = sqlescape(strtolower($query));
@@ -6803,12 +6844,13 @@
 			}
 
 			// Get the page count
-			$f = sqlfetch(sqlquery("SELECT COUNT(id) AS `count` FROM bigtree_404s WHERE $where"));
+			$f = sqlfetch(sqlquery("SELECT COUNT(id) AS `count` FROM bigtree_404s WHERE $where $site_key_query"));
 			$pages = ceil($f["count"] / 20);
 			$pages = ($pages < 1) ? 1 : $pages;
 
 			// Get the results
-			$q = sqlquery("SELECT * FROM bigtree_404s WHERE $where ORDER BY requests DESC LIMIT ".(($page - 1) * 20).",20");
+			$q = sqlquery("SELECT * FROM bigtree_404s WHERE $where $site_key_query ORDER BY requests DESC LIMIT ".(($page - 1) * 20).",20");
+			
 			while ($f = sqlfetch($q)) {
 				$f["redirect_url"] = BigTreeCMS::replaceInternalPageLinks($f["redirect_url"]);
 				$items[] = $f;

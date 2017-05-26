@@ -603,6 +603,9 @@
 	.table > summary h2 .embeds { background-position: -501px -53px; }
 	.table > summary h2 .reports { background-position: -525px -52px; }
 	.table > summary h2 .actions { background-position: -548px -53px; }
+	.table > summary .select { float: right; height: 26px; line-height: 26px; margin: 5px 0 0 0; }
+	.table > summary .select span { height: 26px !important; }
+	.table > summary .select .handle { background-color: #F2F2F2; height: 28px; top: -2px; }
 
 	.table > header, .table .image_pending_divider { background: #eee; border-bottom: 1px solid #ccc; border-radius: 0; clear: left; color: #666; height: 20px; line-height: 20px; margin-top: -1px; text-transform: uppercase; user-select: none; }
 	.table > header span { float: left; font-size: 9px !important; height: 20px; line-height: 21px; text-align: center; }
