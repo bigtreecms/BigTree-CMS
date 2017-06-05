@@ -82,8 +82,8 @@
 <div class="container">
 	<summary>
 		<h2>
-			<?=$json["title"]?> <?=$json["version"]?>
-			<small>by <?=$json["author"]["name"]?></small>
+			<?=BigTree::safeEncode($json["title"])?> <?=BigTree::safeEncode($json["version"])?>
+			<small>by <?=BigTree::safeEncode($json["author"]["name"])?></small>
 		</h2>
 	</summary>
 	<section>

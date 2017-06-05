@@ -11,7 +11,7 @@
 		<? foreach ($packages as $package) { ?>
 		<li>
 			<section class="developer_templates_name">
-				<?=$package["name"]?> <?=$package["version"]?>
+				<?=BigTree::safeEncode($package["name"])?> <?=BigTree::safeEncode($package["version"])?>
 			</section>
 			<section class="view_action">
 				<a href="<?=DEVELOPER_ROOT?>packages/edit/<?=$package["id"]?>/" class="icon_edit"></a>
