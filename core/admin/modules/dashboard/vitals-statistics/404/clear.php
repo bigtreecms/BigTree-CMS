@@ -1,11 +1,15 @@
 <?
 	$admin->requireLevel(1);
+	
 	if (isset($_POST["clear"])) {
+		$admin->verifyCSRFToken();
 		$admin->clearDead404s();
+		
 		BigTree::redirect(ADMIN_ROOT."dashboard/vitals-statistics/404/");
 	} else {
 ?>
 <form method="post" action="">
+	<? $admin->drawCSRFToken(); ?>
 	<div class="container">
 		<section>
 			<p>Are you sure you want to clear out all existing 404s that do not have associated 301 redirects?</p>
