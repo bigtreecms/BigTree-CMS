@@ -631,4 +631,9 @@
 		sqlquery("ALTER TABLE `bigtree_user_sessions` ADD COLUMN `csrf_token_field` VARCHAR(255) NULL");
 		sqlquery("DELETE FROM bigtree_user_sessions");
 	}
+
+	// BigTree 4.2.19 update -- REVISION 204
+	function _local_bigtree_update_204() {
+		sqlquery("ALTER TABLE `bigtree_404s` ADD COLUMN `site_key` VARCHAR(255) NULL");
+	}
 ?>
