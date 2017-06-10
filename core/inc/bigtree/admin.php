@@ -6785,7 +6785,7 @@
 			}
 
 			$page = sqlescape($page);
-			$description = sqlescape($description);
+			$description = sqlescape(htmlspecialchars($description));
 
 			// Get the current page.
 			$current = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE id = '$page'"));
