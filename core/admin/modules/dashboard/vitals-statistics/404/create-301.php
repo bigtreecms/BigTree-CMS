@@ -1,4 +1,6 @@
 <?
+	$admin->verifyCSRFToken();
+	
 	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]) > 1) {
 		$admin->create301($_POST["from"], $_POST["to"], $_POST["site_key"]);
 	} else {

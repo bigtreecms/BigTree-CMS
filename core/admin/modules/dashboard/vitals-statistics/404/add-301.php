@@ -1,4 +1,5 @@
 <form method="post" action="<?=ADMIN_ROOT?>dashboard/vitals-statistics/404/create-301/" id="create_301_form">
+	<? $admin->drawCSRFToken(); ?>
 	<div class="container">
 		<section>
 			<?
