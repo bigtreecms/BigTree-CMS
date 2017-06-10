@@ -7245,6 +7245,14 @@
 			$tags = BigTree::json($changes["_tags"],true);
 			unset($changes["_tags"]);
 
+			// Encode fields
+			$changes["title"] = htmlspecialchars($changes["title"]);
+			$changes["nav_title"] = htmlspecialchars($changes["nav_title"]);
+			$changes["meta_description"] = htmlspecialchars($changes["meta_description"]);
+			$changes["meta_keywords"] = htmlspecialchars($changes["meta_keywords"]);
+			$changes["seo_invisible"] = $changes["seo_invisible"]["seo_invisible"] ? "on" : "";
+			$changes["external"] = htmlspecialchars($changes["external"]);
+
 			// Convert to an IPL
 			if (!empty($changes["external"])) {
 				$changes["external"] = $this->makeIPL($changes["external"]);
