@@ -63,7 +63,7 @@
 			}
 		?>
 		<a class="button" href="<?=DEVELOPER_ROOT?>upgrade/remind/">Remind Me In 1 Week</a>
-		<a class="button red" href="<?=DEVELOPER_ROOT?>upgrade/ignore/?versions=<?=urlencode(json_encode($ignorable))?>">Ignore These Updates</a>
+		<a class="button red" href="<?=DEVELOPER_ROOT?>upgrade/ignore/?versions=<?=urlencode(json_encode($ignorable))?><? $admin->drawCSRFTokenGET(); ?>">Ignore These Updates</a>
 	</footer>
 </div>
 <?

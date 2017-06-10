@@ -39,6 +39,7 @@
 				$saved_root = htmlspecialchars($cms->getSetting("bigtree-internal-ftp-upgrade-root"));
 ?>
 <form method="post" action="<?=DEVELOPER_ROOT?>upgrade/set-ftp-directory/">
+	<? $admin->drawCSRFToken(); ?>
 	<div class="container">
 		<summary><h2>Upgrade BigTree</h2></summary>
 		<section>
