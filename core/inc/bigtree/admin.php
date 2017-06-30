@@ -6964,8 +6964,10 @@
 			$folders = array();
 			$resources = array();
 			$permission_cache = array();
+			$existing = array();
 
 			$q = sqlquery("SELECT * FROM bigtree_resource_folders WHERE LOWER(name) LIKE '%$query%' ORDER BY name");
+
 			while ($f = sqlfetch($q)) {
 				$f["permission"] = $this->getResourceFolderPermission($f);
 				// We're going to cache the folder permissions so we don't have to fetch them a bunch of times if many files have the same folder.
@@ -6974,17 +6976,23 @@
 				$folders[] = $f;
 			}
 
-			$q = sqlquery("SELECT * FROM bigtree_resources WHERE LOWER(name) LIKE '%$query%' GROUP BY md5 ORDER BY $sort");
-			while ($f = sqlfetch($q)) {
-				// If we've already got the permission cahced, use it. Otherwise, fetch it and cache it.
-				if ($permission_cache[$f["folder"]]) {
-					$f["permission"] = $permission_cache[$f["folder"]];
-				} else {
-					$f["permission"] = $this->getResourceFolderPermission($f["folder"]);
-					$permission_cache[$f["folder"]] = $f["permission"];
-				}
+			$q = sqlquery("SELECT * FROM bigtree_resources WHERE LOWER(name) LIKE '%$query%' ORDER BY $sort");
 
-				$resources[] = $f;
+			while ($f = sqlfetch($q)) {
+				$check = array($f["name"], $f["md5"]);
+
+				if (!in_array($check, $existing)) {
+					// If we've already got the permission cahced, use it. Otherwise, fetch it and cache it.
+					if ($permission_cache[$f["folder"]]) {
+						$f["permission"] = $permission_cache[$f["folder"]];
+					} else {
+						$f["permission"] = $this->getResourceFolderPermission($f["folder"]);
+						$permission_cache[$f["folder"]] = $f["permission"];
+					}
+	
+					$resources[] = $f;
+					$existing[] = $check;
+				}
 			}
 
 			return array("folders" => $folders, "resources" => $resources);
