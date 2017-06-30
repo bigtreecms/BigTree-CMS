@@ -6974,7 +6974,7 @@
 				$folders[] = $f;
 			}
 
-			$q = sqlquery("SELECT * FROM bigtree_resources WHERE LOWER(name) LIKE '%$query%' ORDER BY $sort");
+			$q = sqlquery("SELECT * FROM bigtree_resources WHERE LOWER(name) LIKE '%$query%' GROUP BY md5 ORDER BY $sort");
 			while ($f = sqlfetch($q)) {
 				// If we've already got the permission cahced, use it. Otherwise, fetch it and cache it.
 				if ($permission_cache[$f["folder"]]) {
