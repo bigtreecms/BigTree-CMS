@@ -17,7 +17,7 @@
 			<?=BigTree::getFieldSelectOptions($_POST["table"], $source)?>
 		</select>
 	</div>
-	<?php
+	<?
 			}
 		} else {
 	?>
@@ -28,7 +28,7 @@
 			<?=BigTree::getFieldSelectOptions($_POST["table"], $data["source"])?>
 		</select>
 	</div>
-	<?php	
+	<?
 		}
 	?>
 </fieldset>
