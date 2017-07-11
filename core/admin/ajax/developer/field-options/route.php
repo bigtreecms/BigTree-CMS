@@ -6,13 +6,31 @@
 ?>
 <fieldset id="js-source-fieldset">
 	<label>Source Fields <small>(the table columns to use for route generation)</small></label>
+	<?
+		if (is_array($data["source"]) && count($data["source"])) {
+			foreach ($data["source"] as $source) {
+	?>
 	<div class="contain route_source_field">
 		<a href="#" class="icon_small icon_small_add" title="Add Another Source"></a>
 		<a href="#" class="icon_small icon_small_delete" title="Remove Source"></a>
 		<select name="source[]">
-			<?=BigTree::getFieldSelectOptions($_POST["table"],$data["source"])?>
+			<?=BigTree::getFieldSelectOptions($_POST["table"], $source)?>
 		</select>
 	</div>
+	<?php
+			}
+		} else {
+	?>
+	<div class="contain route_source_field">
+		<a href="#" class="icon_small icon_small_add" title="Add Another Source"></a>
+		<a href="#" class="icon_small icon_small_delete" title="Remove Source"></a>
+		<select name="source[]">
+			<?=BigTree::getFieldSelectOptions($_POST["table"], $data["source"])?>
+		</select>
+	</div>
+	<?php	
+		}
+	?>
 </fieldset>
 
 <fieldset>
