@@ -19,7 +19,7 @@
 	$template_data = $cms->getTemplate($page["template"]);
 
 	// Audit Trail link
-	$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/audit/search/?table=bigtree_pages&entry=".$page["id"],"icon" => "trail","title" => "View Audit Trail");		
+	$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/audit/search/?table=bigtree_pages&entry=".$page["id"]."&".$admin->CSRFTokenField."=".$admin->CSRFToken,"icon" => "trail","title" => "View Audit Trail");		
 
 	// Provide developers a nice handy link for edit/return of this form
 	if ($admin->Level > 1) {
