@@ -7,6 +7,10 @@
 		global $check_data,$integrity_errors;
 
 		foreach ($resources as $resource_id => $resource) {
+			if (is_string($resource["options"])) {
+				$resource["options"] = (array) @json_decode($resource["options"], true);
+			}
+
 			$field = $resource["title"];
 			$data = $data_set[$resource["id"] ? $resource["id"] : $resource_id];
 
