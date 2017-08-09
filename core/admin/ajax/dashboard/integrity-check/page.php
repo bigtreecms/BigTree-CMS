@@ -3,7 +3,7 @@
 	$page = $cms->getPage($id);
 	$template = $cms->getTemplate($page["template"]);
 	$local_path = $cms->getLink($id);
-	$resources = $page["resources"];
+	$resources = BigTree::translateArray($page["resources"]);
 
 	// Loop through template resources and see if we have related page data, only check html and text fields
 	if (is_array($template["resources"])) {

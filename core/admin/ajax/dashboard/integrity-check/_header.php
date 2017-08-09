@@ -30,7 +30,7 @@
 					}
 					// Internal link
 				} elseif (substr($data,0,4) == "http") {
-					if (!BigTreeAdmin::urlExists($data)) {
+					if ($data != WWW_ROOT && $data != STATIC_ROOT && $data != ADMIN_ROOT && !BigTreeAdmin::urlExists($data)) {
 						$integrity_errors[$field] = array("a" => array($data));
 					}
 				}

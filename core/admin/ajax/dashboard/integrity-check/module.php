@@ -5,7 +5,7 @@
 	// Create a generic module class to get the decoded item data
 	$m = new BigTreeModule;
 	$m->Table = $form["table"];
-	$item = $m->get($_GET["id"]);
+	$item = BigTree::translateArray($m->get($_GET["id"]));
 	
 	// Loop through form resources and see if we have related page data, only check html and text fields
 	if (is_array($form["fields"])) {
