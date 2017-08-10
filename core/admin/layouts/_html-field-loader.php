@@ -99,7 +99,7 @@
 			paste_auto_cleanup_on_paste: true,
 			relative_urls: false,
 			remove_script_host: false,
-			gecko_spellcheck: true,
+			browser_spellcheck: true,
 			extended_valid_elements : "*[*]"
 			<? if ($width) { ?>,width: "<?=$width?>"<? } ?>
 			<? if ($height) { ?>,height: "<?=$height?>"<? } ?>
@@ -121,7 +121,7 @@
 			paste_remove_styles: true,
 			paste_strip_class_attributes: true,
 			paste_auto_cleanup_on_paste: true,
-			gecko_spellcheck: true,
+			browser_spellcheck: true,
 			relative_urls: false,
 			remove_script_host: false,
 			extended_valid_elements : "*[*]"
