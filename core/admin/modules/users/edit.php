@@ -20,7 +20,9 @@
 	BigTree::globalizeArray($user);
 
 	// Add a nice audit trail quick link
-	$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/audit/search/?user=".$user["id"]."&".$admin->CSRFTokenField."=".$admin->CSRFToken,"icon" => "trail","title" => "View Audit Trail");
+	if ($admin->Level > 1) {
+		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/audit/search/?user=".$user["id"]."&".$admin->CSRFTokenField."=".$admin->CSRFToken,"icon" => "trail","title" => "View Audit Trail");
+	}
 	
 	if (!$permissions) {
 		$permissions = array(

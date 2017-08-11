@@ -12,11 +12,11 @@
 	// Provide developers a nice handy link for edit/return of this form
 	if ($admin->Level > 1) {
 		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/modules/forms/edit/".$bigtree["form"]["id"]."/?return=front","icon" => "setup","title" => "Edit in Developer");
-	}
-
-	// Audit Trail link
-	if ($bigtree["edit_id"]) {
-		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/audit/search/?table=".$bigtree["form"]["table"]."&entry=".$bigtree["edit_id"]."&".$admin->CSRFTokenField."=".$admin->CSRFToken,"icon" => "trail","title" => "View Audit Trail");		
+	
+		// Audit Trail link
+		if ($bigtree["edit_id"]) {
+			$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/audit/search/?table=".$bigtree["form"]["table"]."&entry=".$bigtree["edit_id"]."&".$admin->CSRFTokenField."=".$admin->CSRFToken,"icon" => "trail","title" => "View Audit Trail");		
+		}
 	}
 	
 	$action = $bigtree["commands"][0];
