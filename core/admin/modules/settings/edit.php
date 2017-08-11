@@ -24,7 +24,10 @@
 	$bigtree["field_counter"] = 0;
 ?>
 <div class="container">
-	<summary><h2><?=$item["name"]?></h2></summary>
+	<summary>
+		<? if ($admin->Level > 1) { ?><a href="<?=ADMIN_ROOT?>developer/settings/edit/<?=$item["id"]?>/" class="more">Edit in Developer</a><? } ?>
+		<h2><?=$item["name"]?></h2>
+	</summary>
 	<form class="module" action="<?=ADMIN_ROOT?>settings/update/" method="post" enctype="multipart/form-data">
 		<? $admin->drawCSRFToken() ?>
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />

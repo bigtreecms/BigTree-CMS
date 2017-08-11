@@ -13,10 +13,12 @@
 	} else {
 		$e = false;
 	}
+
+	$bigtree["subnav_extras"][] = array("title" => "Edit Value", "link" => ADMIN_ROOT."settings/edit/".$item["id"]."/", "icon" => "setup");
 ?>
 <div class="container">
 	<form class="module" method="post" action="<?=DEVELOPER_ROOT?>settings/update/<?=$item["id"]?>/">
-		<? include BigTree::path("admin/modules/developer/settings/_form-content.php") ?>
+		<? include BigTree::path("admin/modules/developer/settings/_form-content.php"); ?>
 		<footer>
 			<input type="submit" class="button blue" value="Update" />
 		</footer>
