@@ -12,15 +12,19 @@
 		foreach ($fields as $field) {
 			$used[] = $field["column"];
 		}
+
 		// Figure out the fields we're not using so we can offer them back.
 		$table_description = BigTree::describeTable($table);
+
 		foreach ($table_description["columns"] as $column => $details) {
 			if (!in_array($column,$reserved) && !in_array($column,$used)) {
 				$unused[] = array("field" => $column, "title" => str_replace(array("Url","Pdf","Sql"),array("URL","PDF","SQL"),ucwords(str_replace(array("-","_")," ",$details["name"]))));
 			}
+
 			if ($column == "position") {
 				$positioned = true;
 			}
+
 			$table_columns[] = $column;
 		}
 	} else {
@@ -150,7 +154,8 @@
 
 	$cached_types = $admin->getCachedFieldTypes(true);
 	$types = $cached_types["modules"];
-	if (count($fields)) {
+
+	if (count($fields) || count($unused)) {
 ?>
 <label>Fields</label>
 
