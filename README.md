@@ -20,6 +20,34 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.19
+- ADDED: Generic SMTP Server support to the Mail Delivery options
+- ADDED: Quick link for viewing a user's audit trail when editing them
+- ADDED: Quick links to toggle between editing a Setting's value and configuration
+- UPDATED: TinyMCE to 4.6.5
+- UPDATED: 404 Manager now supports multi-domain sites
+- FIXED: Empty folder names being able to be created in the File Manager
+- FIXED: Attempting to logout on the front-end of the site throwing a CSRF error.
+- FIXED: Attempting to view an audit trail through the overflow menu shortcut throwing a CSRF error.
+- FIXED: phtml/pht files are no longer allowed file types to be uploaded to the File Manager as they are a security risk on some systems. (thanks xkfxkf)
+- FIXED: Unlocking pages being vulnerable to a CSRF attack. (thanks xkfxkf)
+- FIXED: A user being able to delete themselves if they tried very hard to do so. (thanks xkfxkf)
+- FIXED: Resizing of view columns occasionally breaking if the right column was resized.
+- FIXED: Unescaped data when viewing a package / extension's details before installing. (thanks xkfxkf)
+- FIXED: A plethora of minor CSRF vulnerable actions. (thanks xfkxfk)
+- FIXED: Unescaped description when saving page revisions. (thanks xfkxfk)
+- FIXED: Pending page changes not being properly escaped after updating. (thanks yjn818)
+- FIXED: Replacing files in the File Manager failing with a CSRF error. (thanks Joe @ Ignition 72)
+- FIXED: Duplicate results in the File Manager when searching for files that exist in multiple folders.
+- FIXED: Generated Route field type not saving its options. (thanks doon.mok)
+- FIXED: SQL Injection related data leakage in tags. (thanks songtancat)
+- FIXED: Duplicate required messages in custom fields with multiple sub-fields that are required.
+- FIXED: Recursive matrixes throwing errors in Integrity Check
+- FIXED: Deprecated TinyMCE settings (thanks mcongrove)
+- FIXED: XSS vulnerability in the photo gallery on the example site. (thanks lsg2409)
+- FIXED: An empty form not being editable.
+- FIXED: No error being thrown when a form failed to add an entry due to a SQL error.
+
 ### 4.2.18
 - SECURITY FIX: Updated PHPMailer to the latest version which patches the sender field allowing for code execution (CVE-2017-7881)
 - FIXED: When submissions exceed max_input_vars limit the user now receives a message rather than having the submission silently mangled
