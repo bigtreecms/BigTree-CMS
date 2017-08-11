@@ -15,7 +15,7 @@
 	
 		// Audit Trail link
 		if ($bigtree["edit_id"]) {
-			$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/audit/search/?table=".$bigtree["form"]["table"]."&entry=".$bigtree["edit_id"]."&".$admin->CSRFTokenField."=".$admin->CSRFToken,"icon" => "trail","title" => "View Audit Trail");		
+			$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/audit/search/?table=".$bigtree["form"]["table"]."&entry=".$bigtree["edit_id"]."&".$admin->CSRFTokenField."=".urlencode($admin->CSRFToken),"icon" => "trail","title" => "View Audit Trail");		
 		}
 	}
 	
