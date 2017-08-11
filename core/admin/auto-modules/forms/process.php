@@ -126,6 +126,14 @@
 		}
 	}
 
+	// Catch errors
+	if ($edit_id === false && $did_publish) {
+		$bigtree["errors"][] = array(
+			"field" => "SQL Query", 
+			"error" => $bigtree["sql"]["errors"][count($bigtree["sql"]["errors"]) - 1]
+		);
+	}
+
 	// Kill off any applicable locks to the entry
 	if ($edit_id) {
 		$admin->unlock($table,$edit_id);
