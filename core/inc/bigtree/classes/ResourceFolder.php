@@ -64,10 +64,16 @@
 				name - The name of the new folder.
 
 			Returns:
-				A ResourceFolder object.
+				A ResourceFolder object or null if no name was passed.
 		*/
 		
-		static function create(?int $parent, string $name): ResourceFolder {
+		static function create(?int $parent, string $name): ?ResourceFolder {
+			$name = trim($name);
+			
+			if ($name === "") {
+				return null;
+			}
+			
 			$id = SQL::insert("bigtree_resource_folders", [
 				"name" => Text::htmlEncode($name),
 				"parent" => $parent
