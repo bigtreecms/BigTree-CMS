@@ -57,7 +57,7 @@ Changelog
 - REMOVED: CSS prefixer ($bigtree["config"]["css"]["prefix"]). LESS has replaced the functionality in the admin (you can now include a /admin/css/test.less file and it will parse as LESS)
 - REMOVED: BigTreeAutoModule::autoSaveSetting method
 - REMOVED: BigTreeAdmin::htmlClean method
-- REMOVED: TinyMCE is no longer included with BigTree - the latest stable CDN version is now used (if you want to use TinyMCE 3 you can add it to /custom/admin/js/tinymce3/)
+- REMOVED: TinyMCE 3 is no longer included with BigTree (if you want to use TinyMCE 3 you can add it to /custom/admin/js/tinymce3/)
 - REMOVED: Keywords from the SEO tab of Pages (as they are not used by any search engines)
 
 ### 4.2.9 Release
