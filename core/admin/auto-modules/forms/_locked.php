@@ -24,7 +24,7 @@
 		</p>
 	</section>
 	<footer>
-		<a href="?force=true<?=$view_data?>" class="button blue"><?=Text::translate("Unlock")?></a>
+		<a href="?force=true<?=$view_data?><?php CSRF::drawGETToken(); ?>" class="button blue"><?=Text::translate("Unlock")?></a>
 		&nbsp;
 		<a href="javascript:history.go(-1);" class="button white"><?=Text::translate("Cancel")?></a>
 	</footer>

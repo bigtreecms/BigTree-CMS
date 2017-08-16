@@ -17,7 +17,13 @@
 	}
 	
 	// Check for a page lock
-	$force = isset($_GET["force"]) ? $_GET["force"] : false;
+	if (!empty($_GET["force"])) {
+		CSRF::verify();
+		$force = true;
+	} else {
+		$force = false;
+	}
+	
 	$lock = Lock::enforce("bigtree_pages", $page->ID, "admin/modules/pages/_locked.php", $force);
 	
 	// See if there's a draft copy.

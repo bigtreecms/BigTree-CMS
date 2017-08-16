@@ -27,6 +27,6 @@
 	<footer>
 		<a href="javascript:history.go(-1);" class="button white"><?=Text::translate("Cancel")?></a>
 		&nbsp;
-		<a href="?force=true" class="button blue"><?=Text::translate("Unlock")?></a>
+		<a href="?force=true<?php CSRF::drawGETToken(); ?>" class="button blue"><?=Text::translate("Unlock")?></a>
 	</footer>
 </div>

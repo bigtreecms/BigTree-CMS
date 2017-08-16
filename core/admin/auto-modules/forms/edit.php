@@ -8,7 +8,13 @@
 	 */
 	
 	// Check for a page lock
-	$force = isset($_GET["force"]) ? true : false;
+	if (!empty($_GET["force"])) {
+		CSRF::verify();
+		$force = true;
+	} else {
+		$force = false;
+	}
+	
 	Lock::enforce($form->Table, $bigtree["edit_id"], "admin/auto-modules/forms/_locked.php", $force);
 
 	$pending_entry = $form->getPendingEntry($bigtree["edit_id"]);

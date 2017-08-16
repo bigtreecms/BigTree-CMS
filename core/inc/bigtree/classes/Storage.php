@@ -10,7 +10,7 @@
 		
 		public $AutoJPEG = false;
 		public $DisabledFileError = false;
-		public $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx)/i';
+		public $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx|phtml|pht)/i';
 		public $Service = "";
 		public $Cloud;
 		public $Setting;
