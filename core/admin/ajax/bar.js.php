@@ -74,7 +74,7 @@ var BigTreeBar = {
 				}
 			}
 		?>
-		bigtree_bar_html += '<a href="#" id="bigtree_bar_close"></a><a href="<?=ADMIN_ROOT?>login/logout/" id="bigtree_logout">Logout</a><div class="divider"></div><span id="bigtree_name"><?=str_replace("'","\'",htmlspecialchars(strip_tags($_GET["username"])))?></span>';
+		bigtree_bar_html += '<a href="#" id="bigtree_bar_close"></a><a href="<?=ADMIN_ROOT?>login/logout/?true<?php CSRF::drawGETToken(); ?>" id="bigtree_logout">Logout</a><div class="divider"></div><span id="bigtree_name"><?=str_replace("'","\'",htmlspecialchars(strip_tags($_GET["username"])))?></span>';
 		<?php if (!empty($_GET["previewing"])) { ?>
 		bigtree_bar_html += '<span id="bigtree_preview_notice">THIS IS A PREVIEW OF PENDING CHANGES</span>';
 		<?php } elseif (!empty($bigtree["config"]["maintenance_url"])) { ?>

@@ -103,7 +103,7 @@
 				A navigation array containing "id", "parent", "title", "route", "link", "new_window", and "children" (containing children if depth > 1)
 		*/
 		
-		static function getLevel(int $parent = 0, int $depth = 1, bool $follow_module = true, bool $only_hidden = false,
+		static function getLevel($parent = 0, int $depth = 1, bool $follow_module = true, bool $only_hidden = false,
 								 bool $explicit_zero = false): array {
 			static $module_nav_count = 0;
 			

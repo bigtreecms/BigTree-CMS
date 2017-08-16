@@ -84,6 +84,15 @@
 			}
 		}
 		
+		// Magic Method to allow usage of a Setting object as a string
+		function __toString(): string {
+			if (is_object($this->Value) || is_array($this->Value)) {
+				return json_encode($this->Value);
+			} else {
+				return strval($this->Value);
+			}
+		}
+		
 		/*
 			Function: allSystem
 				Returns an array of user defined (no bigtree-internal- prefix) system settings.
