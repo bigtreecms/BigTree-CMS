@@ -491,9 +491,8 @@
 		*/
 		
 		static function getSetting($id) {
-			return BigTree\Setting::values($id);
+			return BigTree\Setting::value($id);
 		}
-		
 		
 		/*
 			Function: getSettings

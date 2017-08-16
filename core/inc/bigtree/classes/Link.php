@@ -652,7 +652,11 @@
 				true if link is external
 		*/
 		
-		static function isExternal(string $url): bool {
+		static function isExternal(?string $url): bool {
+			if (is_null($url)) {
+				return false;
+			}
+			
 			if (substr($url, 0, 7) != "http://" && substr($url, 0, 8) != "https://") {
 				return false;
 			}
