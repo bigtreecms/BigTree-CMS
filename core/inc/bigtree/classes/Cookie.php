@@ -19,14 +19,10 @@
 				expiration - Cookie expiration time (in seconds since UNIX epoch) or a string value compatible with strtotime (defaults to session expiration)
 		*/
 		
-		static function create(string $id, $value, int $expiration = 0): void {
-			$expiration = is_string($expiration) ? strtotime($expiration) : $expiration;
+		static function create(string $id, $value, $expiration = 0): void {
+			$expiration = is_int($expiration) ? $expiration : strtotime($expiration);
 			$value = json_encode($value);
 			
-			// Make it available immediately
-			$_COOKIE[$id] = $value;
-			
-			// Set in the browser with correct path and expiration
 			setcookie($id, $value, $expiration, str_replace(DOMAIN, "", WWW_ROOT));
 		}
 		
@@ -39,11 +35,7 @@
 		*/
 		
 		static function delete(string $id): void {
-			// Remove from the browser
 			setcookie($id, "", strtotime("-1 week"), str_replace(DOMAIN, "", WWW_ROOT));
-			
-			// Remove from runtime
-			unset($_COOKIE[$id]);
 		}
 		
 		/*
@@ -65,6 +57,7 @@
 				
 				foreach ($pieces as $piece) {
 					$piece = str_replace("]", "", $piece);
+					
 					if (isset($cookie[$piece])) {
 						$cookie = $cookie[$piece];
 					} else {
