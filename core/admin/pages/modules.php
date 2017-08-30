@@ -1,9 +1,10 @@
 <?
-		$module_count = 0;
-		$groups = $admin->getModuleGroups();
-		foreach ($groups as $group) {
-			$modules = $admin->getModulesByGroup($group["id"]);
-			if (count($modules)) {
+	$module_count = 0;
+	$groups = $admin->getModuleGroups();
+	
+	foreach ($groups as $group) {
+		$modules = $admin->getModulesByGroup($group["id"]);
+		if (count($modules)) {
 ?>
 <div class="table">
 	<summary><h2><?=$group["name"]?></h2></summary>
@@ -24,11 +25,12 @@
 	</section>
 </div>
 <?
-			}
 		}
-		
-		$misc = $admin->getModulesByGroup(0);
-		if (count($misc)) {
+	}
+	
+	$misc = $admin->getModulesByGroup(0);
+	
+	if (count($misc)) {
 ?>
 <div class="table">
 	<summary><h2>Ungrouped</h2></summary>
@@ -49,9 +51,9 @@
 	</section>
 </div>
 <?
-   		}
-   		
-		if ($module_count < 1) {
+   	}
+   	
+	if ($module_count < 1) {
 ?>
 <div class="table">
 	<summary><h2>Ungrouped</h2></summary>
@@ -60,5 +62,5 @@
 	</ul>
 </div>
 <?
-		}
+	}
 ?>
