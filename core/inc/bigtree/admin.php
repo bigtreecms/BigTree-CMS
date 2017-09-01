@@ -6988,7 +6988,7 @@
 				$check = array($f["name"], $f["md5"]);
 
 				if (!in_array($check, $existing)) {
-					// If we've already got the permission cahced, use it. Otherwise, fetch it and cache it.
+					// If we've already got the permission cached, use it. Otherwise, fetch it and cache it.
 					if ($permission_cache[$f["folder"]]) {
 						$f["permission"] = $permission_cache[$f["folder"]];
 					} else {
