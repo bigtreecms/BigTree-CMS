@@ -95,7 +95,7 @@
 				"author" => $page->LastEditedBy,
 				"updated_at" => $page->UpdatedAt,
 				"saved" => $description ? "on" : "",
-				"saved_description" => $description
+				"saved_description" => Text::htmlEncode($description)
 			]);
 			
 			AuditTrail::track("bigtree_page_revisions", $id, "created");

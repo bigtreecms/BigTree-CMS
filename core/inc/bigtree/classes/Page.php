@@ -432,12 +432,20 @@
 			// Set the in_nav flag, since it's not in the post if the checkbox became unclicked
 			$changes["in_nav"] = !empty($changes["in_nav"]) ? "on" : "";
 			
+			// Encode fields
+			$changes["title"] = Text::htmlEncode($changes["title"]);
+			$changes["nav_title"] = Text::htmlEncode($changes["nav_title"]);
+			$changes["meta_description"] = Text::htmlEncode($changes["meta_description"]);
+			$changes["meta_keywords"] = Text::htmlEncode($changes["meta_keywords"]);
+			$changes["seo_invisible"] = $changes["seo_invisible"]["seo_invisible"] ? "on" : "";
+			$changes["external"] = Text::htmlEncode($changes["external"]);
+			
 			// If there's already a change in the queue, update it with this latest info.
 			if ($existing_pending_change) {
 				// If this is a pending page, just replace all the changes
 				if ($pending) {
 					$diff = $changes;
-					// Otherwise, we need to check what's changed.
+				// Otherwise, we need to check what's changed.
 				} else {
 					// We don't want to indiscriminately put post data in as changes, so we ensure it matches a column in the bigtree_pages table
 					$diff = [];
