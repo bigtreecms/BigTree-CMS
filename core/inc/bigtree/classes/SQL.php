@@ -1301,11 +1301,29 @@
 						$replacement = "'".static::escape($args[$x])."'";
 					}
 					
-					// If the replacement contained a ? we don't want it to be replaced, so start after the replacement
-					$offset = strlen($replacement) + $position;
-					
-					// Replace
-					$query = substr($query, 0, $position).$replacement.substr($query, $position + 1);
+					// Null values require IS NOT NULL and IS NULL
+					if ($replacement == "NULL") {
+						// If there's no space before the ? (WHICH THERE SHOULD BE YOU HEATHENS) we need to account for that
+						if (substr($query, $position - 1, 1) != " ") {
+							if (substr($query, $position - 2, 2) == "!=") {
+								$query = substr($query, 0, $position - 2)." IS NOT NULL";
+							} else {
+								$query = substr($query, 0, $position - 1)." IS NULL";
+							}
+						} else {
+							if (substr($query, $position - 3, 3) == "!= ") {
+								$query = substr($query, 0, $position - 3)."IS NOT NULL";
+							} else {
+								$query = substr($query, 0, $position - 2)."IS NULL";
+							}
+						}
+					} else {
+						// If the replacement contained a ? we don't want it to be replaced, so start after the replacement
+						$offset = strlen($replacement) + $position;
+						
+						// Replace
+						$query = substr($query, 0, $position).$replacement.substr($query, $position + 1);
+					}
 					
 					// Increment argument
 					$x++;
