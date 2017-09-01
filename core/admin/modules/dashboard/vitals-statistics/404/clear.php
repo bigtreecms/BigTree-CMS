@@ -4,6 +4,7 @@
 	Auth::user()->requireLevel(1);
 	
 	if (isset($_POST["clear"])) {
+		CSRF::verify();
 		Redirect::clearEmpty();
 		Utils::growl("404 Report","Cleared 404s");
 		
@@ -11,6 +12,7 @@
 	} else {
 ?>
 <form method="post" action="">
+	<?php CSRF::drawPOSTToken(); ?>
 	<div class="container">
 		<section>
 			<p><?=Text::translate("Are you sure you want to clear out all existing 404s that do not have associated 301 redirects?")?></p>

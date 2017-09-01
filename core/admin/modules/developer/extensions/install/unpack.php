@@ -96,8 +96,8 @@
 <div class="container">
 	<div class="container_summary">
 		<h2>
-			<?=$json["title"]?> <?=$json["version"]?>
-			<small><?=Text::translate("by")?> <?=$json["author"]["name"]?></small>
+			<?=Text::htmlEncode($json["title"]." ".$json["version"])?>
+			<small><?=Text::translate("by")?> <?=Text::htmlEncode($json["author"]["name"])?></small>
 		</h2>
 	</div>
 	<section>
