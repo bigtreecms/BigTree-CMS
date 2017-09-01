@@ -5,7 +5,7 @@
 	 * @global bool $showing_updates
 	 */
 	
-	include "_update-list.php";
+	include Router::getIncludePath("admin/modules/developer/upgrade/_update-list.php");
 
 	if (!$showing_updates) {
 ?>

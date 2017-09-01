@@ -1,13 +1,16 @@
 <?php
 	namespace BigTree;
 	
-	$versions = json_decode($_GET["versions"],true);
+	CSRF::verify();
+	
+	$versions = json_decode($_GET["versions"], true);
+	
 	foreach ($versions as $version) {
 		// Prevent cookie screwage
-		$version = str_replace(array("[","]"),"",$version);
-		setcookie("bigtree_admin[ignored_update][$version]",true,time()+365*60*60*24,str_replace(DOMAIN,"",WWW_ROOT));
+		$version = str_replace(["[", "]"], "", $version);
+		Cookie::create("bigtree_admin[ignored_update][$version]", true, "+1 year");
 	}
-
-	Utils::growl("Developer","Ignored Updates");
+	
+	Utils::growl("Developer", "Ignored Updates");
 	Router::redirect(DEVELOPER_ROOT);
 	

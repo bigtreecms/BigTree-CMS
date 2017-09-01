@@ -1,6 +1,8 @@
 <?php
 	namespace BigTree;
 	
+	CSRF::verify();
+	
 	if (!Setting::exists("bigtree-internal-ftp-upgrade-root")) {
 		$setting = new Setting;
 		$setting->ID = "bigtree-internal-ftp-upgrade-root";

@@ -6,6 +6,7 @@
 	 */
 ?>
 <form method="post" action="<?=ADMIN_ROOT?>dashboard/vitals-statistics/404/create-301/" id="create_301_form">
+	<?php CSRF::drawPOSTToken(); ?>
 	<div class="container">
 		<section>
 			<?php

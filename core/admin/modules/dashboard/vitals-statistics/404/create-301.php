@@ -5,6 +5,8 @@
 	 * @global array $bigtree
 	 */
 	
+	CSRF::verify();
+	
 	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]) > 1) {
 		Redirect::create($_POST["from"], $_POST["to"], $_POST["site_key"]);
 	} else {

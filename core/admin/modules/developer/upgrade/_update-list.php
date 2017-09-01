@@ -3,14 +3,18 @@
 	
 	// Check for newer versions of BigTree
 	$ignored_all = true;
+	$updates = [];
+	
 	if (!$_COOKIE["bigtree_admin"]["deferred_update"]) {
 		$updates = array_filter((array)@json_decode(cURL::request("http://www.bigtreecms.org/ajax/version-check/?current_version=".BIGTREE_VERSION,false,array(CURLOPT_CONNECTTIMEOUT => 1,CURLOPT_TIMEOUT => 5)),true));
 		// See if we've ignored these updates
 		$ignorable = array();
+		
 		foreach ($updates as $update) {
 			if (!$_COOKIE["bigtree_admin"]["ignored_update"][$update["version"]]) {
 				$ignored_all = false;
 			}
+			
 			$ignorable[] = $update["version"];
 		}
 	}
@@ -65,8 +69,9 @@
 			}
 		?>
 		<a class="button" href="<?=DEVELOPER_ROOT?>upgrade/remind/"><?=Text::translate("Remind Me In 1 Week")?></a>
-		<a class="button red" href="<?=DEVELOPER_ROOT?>upgrade/ignore/?versions=<?=urlencode(json_encode($ignorable))?>"><?=Text::translate("Ignore These Updates")?></a>
+		<a class="button red" href="<?=DEVELOPER_ROOT?>upgrade/ignore/?versions=<?=urlencode(json_encode($ignorable))?><?php CSRF::drawGETToken(); ?>"><?=Text::translate("Ignore These Updates")?></a>
 	</footer>
 </div>
 <?php
 	}
+	

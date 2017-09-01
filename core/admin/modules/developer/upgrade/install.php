@@ -46,6 +46,7 @@
 				$saved_root = htmlspecialchars(Setting::value("bigtree-internal-ftp-upgrade-root"));
 ?>
 <form method="post" action="<?=DEVELOPER_ROOT?>upgrade/set-ftp-directory/">
+	<?php CSRF::drawPOSTToken(); ?>
 	<div class="container">
 		<div class="container_summary"><h2><?=Text::translate("Upgrade BigTree")?></h2></div>
 		<section>
