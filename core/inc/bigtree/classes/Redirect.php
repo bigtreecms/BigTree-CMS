@@ -86,15 +86,31 @@
 			Parameters:
 				from - The 404 path
 				to - The 301 target
+				site_key - The site key for a multi-site environment (defaults to null)
 				ignored - Whether to add the redirect to the ignored list (defaults to false)
 
 			Returns:
 				A Redirect object.
 		*/
 		
-		static function create(string $from, ?string $to = "", bool $ignored = false): Redirect {
+		static function create(string $from, ?string $to = "", ?string $site_key = null, bool $ignored = false): Redirect {
+			global $bigtree;
+			
+			// If this is a multi-site environment and a full URL was pasted in we're going to auto-select the key no matter what they passed in
+			if (!is_null($site_key)) {
+				$from_domain = parse_url($from, PHP_URL_HOST);
+				
+				foreach ($bigtree["config"]["sites"] as $index => $site) {
+					$domain = parse_url($site["domain"], PHP_URL_HOST);
+					
+					if ($domain == $from_domain) {
+						$site_key = $index;
+						$from = str_replace($site["www_root"], "", $from);
+					}
+				}
+			}
+			
 			$from = htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT, "", $from), "/")));
-			$to = $to ? htmlspecialchars(Link::encode($to)) : "";
 			$ignored = $ignored ? "on" : "";
 			
 			// Try to convert the short URL into a full one
@@ -116,7 +132,11 @@
 			}
 			
 			// See if the from already exists
-			$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ?", $from);
+			if (!is_null($site_key)) {
+				$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND site_key = ?", $from, $site_key);
+			} else {
+				$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ?", $from);
+			}
 			
 			if (!empty($existing)) {
 				SQL::update("bigtree_404s", $existing["id"], ["redirect_url" => $redirect_url, "ignored" => $ignored]);
@@ -127,7 +147,8 @@
 				$id = SQL::insert("bigtree_404s", [
 					"broken_url" => $from,
 					"redirect_url" => $redirect_url,
-					"ignored" => $ignored
+					"ignored" => $ignored,
+					"site_key" => $site_key
 				]);
 				
 				AuditTrail::track("bigtree_404s", $id, "created");
@@ -163,7 +184,11 @@
 				return false;
 			}
 			
-			$entry = SQL::fetch("SELECT * FROM bigtree_404s WHERE broken_url = ?", $url);
+			if (defined("BIGTREE_SITE_KEY")) {
+				$entry = SQL::fetch("SELECT * FROM bigtree_404s WHERE broken_url = ? AND site_key = ?", $url, BIGTREE_SITE_KEY);
+			} else {
+				$entry = SQL::fetch("SELECT * FROM bigtree_404s WHERE broken_url = ?", $url);
+			}
 			
 			// We already have a redirect
 			if ($entry["redirect_url"]) {
@@ -196,6 +221,12 @@
 				
 				if (!empty($entry)) {
 					SQL::query("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = ?", $entry["id"]);
+				} elseif (defined("BIGTREE_SITE_KEY")) {
+					SQL::insert("bigtree_404s", [
+						"broken_url" => $url,
+						"requests" => 1,
+						"site_key" => BIGTREE_SITE_KEY
+					]);
 				} else {
 					SQL::insert("bigtree_404s", [
 						"broken_url" => $url,
@@ -231,13 +262,21 @@
 				type - The type of results (301, 404, or ignored).
 				query - The search query.
 				page - The page to return.
+				site_key - The site key to return 404s for (leave null for all 404s).
 				return_arrays - Whether to return an array (true) or Redirect object (false)
 
 			Returns:
 				An array containing the number of pages of search results and one page of search results
 		*/
 		
-		static function search(string $type, string $query = "", int $page = 1, bool $return_arrays = false): array {
+		static function search(string $type, string $query = "", int $page = 1, ?string $site_key = null,
+							   bool $return_arrays = false): array {
+			if (!is_null($site_key)) {
+				$site_key_query = "AND site_key = '".SQL::escape($site_key)."'";
+			} else {
+				$site_key_query = "";
+			}
+
 			if ($query) {
 				$query = SQL::escape($query);
 				
@@ -259,14 +298,14 @@
 			}
 			
 			// Get the page count
-			$result_count = SQL::fetchSingle("SELECT COUNT(*) AS `count` FROM bigtree_404s WHERE $where");
+			$result_count = SQL::fetchSingle("SELECT COUNT(*) AS `count` FROM bigtree_404s WHERE $where $site_key_query");
 			$pages = ceil($result_count / 20);
 			
 			// Return 1 page even if there are 0
 			$pages = $pages ? $pages : 1;
 			
 			// Get the results
-			$results = SQL::fetchAll("SELECT * FROM bigtree_404s WHERE $where 
+			$results = SQL::fetchAll("SELECT * FROM bigtree_404s WHERE $where $site_key_query
 									  ORDER BY requests DESC LIMIT ".(($page - 1) * 20).",20");
 			
 			foreach ($results as &$result) {

@@ -314,10 +314,11 @@
 			Parameters:
 				from - The 404 path
 				to - The 301 target
+				site_key - The site key for a multi-site environment (defaults to null)
 		*/
 
-		function create301($from, $to) {
-			BigTree\Redirect::create($from, $to);
+		function create301($from, $to, $site_key = null) {
+			BigTree\Redirect::create($from, $to, $site_key);
 		}
 
 		/*
@@ -1309,18 +1310,29 @@
 
 			Parameters:
 				type - The type to retrieve the count for (301, ignored, 404)
+				site_key - The site key to return 404 count for (defaults to all sites)
 
 			Returns:
 				The number of 404s in the table of the given type.
 		*/
 
-		static function get404Total($type) {
-			if ($type == "404") {
-				return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = '' AND redirect_url = ''");
-			} elseif ($type == "301") {
-				return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = '' AND redirect_url != ''");
-			} elseif ($type == "ignored") {
-				return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = 'on'");
+		static function get404Total($type, $site_key = null) {
+			if (!is_null($site_key)) {
+				if ($type == "404") {
+					return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = '' AND redirect_url = '' AND site_key = ?", $site_key);
+				} elseif ($type == "301") {
+					return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = '' AND redirect_url != '' AND site_key = ?", $site_key);
+				} elseif ($type == "ignored") {
+					return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = 'on' AND site_key = ?", $site_key);
+				}
+			} else {
+				if ($type == "404") {
+					return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = '' AND redirect_url = ''");
+				} elseif ($type == "301") {
+					return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = '' AND redirect_url != ''");
+				} elseif ($type == "ignored") {
+					return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = 'on'");
+				}
 			}
 
 			return false;
@@ -3339,13 +3351,14 @@
 				type - The type of results (301, 404, or ignored).
 				query - The search query.
 				page - The page to return.
+				site_key - The site key to return 404s for (leave null for all 404s).
 
 			Returns:
 				An array of entries from bigtree_404s.
 		*/
 
-		static function search404s($type, $query = "", $page = 1) {
-			return BigTree\Redirect::search($type, $query, $page, true);
+		static function search404s($type, $query = "", $page = 1, $site_key = null) {
+			return BigTree\Redirect::search($type, $query, $page, $site_key, true);
 		}
 
 		/*

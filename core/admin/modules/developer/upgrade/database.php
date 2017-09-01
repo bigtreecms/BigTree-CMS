@@ -716,6 +716,31 @@
 		sqlquery("DELETE FROM bigtree_user_sessions");
 	}
 	
+	// BigTree 4.2.19 update -- REVISION 204
+	function _local_bigtree_update_204() {
+		sqlquery("ALTER TABLE `bigtree_404s` ADD COLUMN `site_key` VARCHAR(255) NULL");
+	}
+	
+	// BigTree 4.2.20 update -- REVISION 205
+	function _local_bigtree_update_205() {
+		// 4.2.17 broke the 404 list to add duplicates a plenty
+		$q = sqlquery("SELECT COUNT(*) AS `count`, `id`, `broken_url` FROM bigtree_404s WHERE `redirect_url` != '' GROUP BY `broken_url`");
+		
+		// Grab the ones with redirect URLs first as we don't want to mistakenly get the wrong one
+		while ($f = sqlfetch($q)) {
+			sqlquery("DELETE FROM bigtree_404s WHERE `broken_url` = '".sqlescape($f["broken_url"])."' AND `id` != '".$f["id"]."'");
+			sqlquery("UPDATE bigtree_404s SET `requests` = '".$f["count"]."' WHERE `id` = '".$f["id"]."'");
+		}
+		
+		// Now get ones without redirect URLs, doesn't matter which ID
+		$q = sqlquery("SELECT COUNT(*) AS `count`, `id`, `broken_url` FROM bigtree_404s WHERE `redirect_url` = '' GROUP BY `broken_url`");
+		
+		while ($f = sqlfetch($q)) {
+			sqlquery("DELETE FROM bigtree_404s WHERE `broken_url` = '".sqlescape($f["broken_url"])."' AND `id` != '".$f["id"]."'");
+			sqlquery("UPDATE bigtree_404s SET `requests` = '".$f["count"]."' WHERE `id` = '".$f["id"]."'");
+		}
+	}
+	
 	// BigTree 4.3 update -- REVISION 300
 	function _local_bigtree_update_300() {
 		// Extension settings

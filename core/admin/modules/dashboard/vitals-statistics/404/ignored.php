@@ -7,6 +7,7 @@
 ?>
 <div class="table">
 	<div class="table_summary">
+		<?php include Router::getIncludePath("admin/ajax/dashboard/404/_site-key-switcher.php"); ?>
 		<input type="search" class="form_search" placeholder="<?=Text::translate("Search")?>" id="404_search" />
 		<span class="form_search_icon"></span>
 		<nav id="view_paging" class="view_paging"></nav>
@@ -19,6 +20,6 @@
 		<span class="ignore_404"><?=Text::translate("Delete")?></span>
 	</header>
 	<ul id="results">
-		<?php include Router::getIncludePath("admin/ajax/dashboard/404/search.php") ?>
+		<?php include Router::getIncludePath("admin/ajax/dashboard/404/search.php"); ?>
 	</ul>
 </div>

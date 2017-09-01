@@ -506,6 +506,8 @@
 		*/
 		
 		static function iplEncode(string $url): string {
+			global $bigtree;
+
 			$path_components = explode("/", rtrim(str_replace(WWW_ROOT, "", $url), "/"));
 			
 			// See if this is a file
@@ -519,9 +521,7 @@
 			}
 			
 			// If we have multiple sites, try each domain
-			if (defined("BIGTREE_SITE_KEY")) {
-				global $bigtree;
-				
+			if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]) > 1) {
 				foreach ($bigtree["config"]["sites"] as $site_key => $configuration) {
 					// This is the site we're pointing to
 					if (strpos($url, $configuration["www_root"]) !== false) {
