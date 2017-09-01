@@ -282,6 +282,7 @@
 		static function search(string $query, string $sort = "date DESC"): array {
 			$query = SQL::escape($query);
 			$permission_cache = [];
+			$existing = [];
 			
 			// Get matching folders
 			$folders = SQL::fetchAll("SELECT * FROM bigtree_resource_folders WHERE name LIKE '%$query%' ORDER BY name");
@@ -296,19 +297,27 @@
 			
 			// Get matching resources
 			$resources = SQL::fetchAll("SELECT * FROM bigtree_resources WHERE name LIKE '%$query%' ORDER BY $sort");
+			$unique_resources = [];
 			
-			foreach ($resources as &$resource) {
-				// If we've already got the permission cahced, use it.  Otherwise, fetch it and cache it.
-				if ($permission_cache[$resource["folder"]]) {
-					$resource["permission"] = $permission_cache[$resource["folder"]];
-				} else {
-					$folder = new ResourceFolder($resource["folder"]);
-					$resource["permission"] = $folder->UserAccessLevel;
-					$permission_cache[$resource["folder"]] = $resource["permission"];
+			foreach ($resources as $resource) {
+				$check = array($resource["name"], $resource["md5"]);
+				
+				if (!in_array($check, $existing)) {
+					// If we've already got the permission cached, use it. Otherwise, fetch it and cache it.
+					if ($permission_cache[$resource["folder"]]) {
+						$resource["permission"] = $permission_cache[$resource["folder"]];
+					} else {
+						$folder = new ResourceFolder($resource["folder"]);
+						$resource["permission"] = $folder->UserAccessLevel;
+						$permission_cache[$resource["folder"]] = $resource["permission"];
+					}
+					
+					$existing[] = $check;
+					$unique_resources[] = $resource;
 				}
 			}
 			
-			return ["folders" => $folders, "resources" => $resources];
+			return ["folders" => $folders, "resources" => $unique_resources];
 		}
 		
 		/*

@@ -1764,7 +1764,7 @@ var BigTreeFileManager = (function($) {
 	function replaceFile() {
 		UploadDialog = BigTreeDialog({
 			title: "Replace File",
-			content: '<input type="hidden" name="replace" value="' + $(this).attr("data-replace") + '" /><fieldset><label>Select A File</label><input type="file" name="files[]" /></fieldset>',
+			content: '<input type="hidden" name="' + CSRFTokenField + '" value="' + CSRFToken + '"><input type="hidden" name="replace" value="' + $(this).attr("data-replace") + '" /><fieldset><label>Select A File</label><input type="file" name="files[]" /></fieldset>',
 			callback: replaceFileProcess,
 			icon: "folder",
 			alternateSaveText: "Replace File",
