@@ -8072,12 +8072,12 @@
 			}
 
 			// htmlspecialchars stuff so that it doesn't need to be re-encoded when echo'd on the front end.
-			$title = htmlspecialchars($title);
-			$nav_title = htmlspecialchars($nav_title);
-			$meta_description = htmlspecialchars($meta_description);
-			$meta_keywords = htmlspecialchars($meta_keywords);
+			$title = BigTree::safeEncode($title);
+			$nav_title = BigTree::safeEncode($nav_title);
+			$meta_description = BigTree::safeEncode($meta_description);
+			$meta_keywords = BigTree::safeEncode($meta_keywords);
 			$seo_invisible = $data["seo_invisible"] ? "on" : "";
-			$external = htmlspecialchars($external);
+			$external = BigTree::safeEncode($external);
 
 			// Update the database
 			sqlquery("UPDATE bigtree_pages SET `trunk` = '$trunk', `parent` = '$parent', `nav_title` = '$nav_title', `route` = '$route', `path` = '$path', `in_nav` = '$in_nav', `title` = '$title', `template` = '$template', `external` = '$external', `new_window` = '$new_window', `resources` = '$resources', `meta_keywords` = '$meta_keywords', `meta_description` = '$meta_description', `seo_invisible` = '$seo_invisible', `last_edited_by` = '".$this->ID."', updated_at = NOW(), publish_at = $publish_at, expire_at = $expire_at, max_age = '$max_age' WHERE id = '$page'");
