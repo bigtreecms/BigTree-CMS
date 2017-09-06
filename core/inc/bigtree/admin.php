@@ -640,6 +640,7 @@
 		function create301($from, $to, $site_key = null) {
 			global $bigtree;
 
+			// If this is a multi-site environment and a full URL was pasted in we're going to auto-select the key no matter what they passed in
 			if (!is_null($site_key)) {
 				$from_domain = parse_url($from, PHP_URL_HOST);
 				
@@ -6987,7 +6988,7 @@
 				$check = array($f["name"], $f["md5"]);
 
 				if (!in_array($check, $existing)) {
-					// If we've already got the permission cahced, use it. Otherwise, fetch it and cache it.
+					// If we've already got the permission cached, use it. Otherwise, fetch it and cache it.
 					if ($permission_cache[$f["folder"]]) {
 						$f["permission"] = $permission_cache[$f["folder"]];
 					} else {

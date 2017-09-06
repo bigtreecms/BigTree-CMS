@@ -1370,9 +1370,7 @@
 
 				if ($existing) {
 					sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = '".$existing["id"]."'");
-				}
-
-				if (defined("BIGTREE_SITE_KEY")) {				
+				} elseif (defined("BIGTREE_SITE_KEY")) {				
 					sqlquery("INSERT INTO bigtree_404s (`broken_url`, `requests`, `site_key`) VALUES ('$url', '1', '".sqlescape(BIGTREE_SITE_KEY)."')");
 				} else {
 					sqlquery("INSERT INTO bigtree_404s (`broken_url`, `requests`) VALUES ('$url','1')");
