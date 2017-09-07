@@ -330,6 +330,10 @@
 				$href = $link->getAttribute("href");
 				$href = str_replace(["{wwwroot}", "%7Bwwwroot%7D", "{staticroot}", "%7Bstaticroot%7D"], [WWW_ROOT, WWW_ROOT, STATIC_ROOT, STATIC_ROOT], $href);
 				
+				if ($href == WWW_ROOT || $href == STATIC_ROOT || $href == ADMIN_ROOT) {
+					continue;
+				}
+				
 				if ((substr($href, 0, 2) == "//" || substr($href, 0, 4) == "http") && strpos($href, WWW_ROOT) === false) {
 					// External link, not much we can do but alert that it's dead
 					if ($external) {

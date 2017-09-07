@@ -9,7 +9,13 @@
 	
 	// Get the form so we can walk through its fields
 	$form = new ModuleForm($_GET["form"]);
-	$item = Link::decode(SQL::fetch("SELECT * FROM `".$form->Table."` WHERE id = ?", $_GET["id"]));
+	$item = SQL::fetch("SELECT * FROM `".$form->Table."` WHERE id = ?", $_GET["id"]);
+	
+	foreach ($item as $key => $val) {
+		if (is_array(json_decode($val, true))) {
+			$item[$key] = json_decode($val, true);
+		}
+	}
 	
 	// Loop through form resources and see if we have related page data, only check html and text fields
 	if (is_array($form["fields"])) {

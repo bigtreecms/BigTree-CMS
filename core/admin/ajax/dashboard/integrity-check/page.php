@@ -12,7 +12,7 @@
 
 	// Loop through template resources and see if we have related page data, only check html and text fields
 	if (count($template->Fields)) {
-		$check_data(WWW_ROOT.$page->Path."/", $external, $template->Fields, $page->Resources);
+		$check_data(WWW_ROOT.$page->Path."/", $external, $template->Fields, Link::encode($page->Resources));
 	}
 	
 	// Loop through the errors

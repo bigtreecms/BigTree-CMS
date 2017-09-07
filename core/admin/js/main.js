@@ -2438,8 +2438,18 @@ var BigTreeFormValidator = function(selector,callback) {
 				if (!val) {
 					errors[errors.length] = $(this);
 					$(this).parents("fieldset").eq(0).addClass("form_error");
-					$(this).prevAll("label").append($('<span class="form_error_reason">Required</span>'));
-					$(this).parents("div").prevAll("label").append($('<span class="form_error_reason">Required</span>'));
+
+					var existing_error = $(this).prevAll("label").find(".form_error_reason");
+
+					if (!existing_error.length) {
+						$(this).prevAll("label").append($('<span class="form_error_reason">Required</span>'));
+					}
+
+					existing_error = $(this).parents("div").prevAll("label").find(".form_error_reason");
+
+					if (!existing_error.length) {
+						$(this).parents("div").prevAll("label").append($('<span class="form_error_reason">Required</span>'));
+					}
 				}
 			});
 			Form.find("input.numeric").each(function() {

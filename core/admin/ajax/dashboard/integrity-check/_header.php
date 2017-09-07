@@ -11,6 +11,10 @@
 		global $check_data, $integrity_errors;
 
 		foreach ($resources as $resource_id => $resource) {
+			if (is_string($resource["options"])) {
+				$resource["options"] = (array) @json_decode($resource["options"], true);
+			}
+			
 			$field = $resource["title"];
 			$data = $data_set[$resource["id"] ? $resource["id"] : $resource_id];
 
@@ -28,9 +32,9 @@
 							$integrity_errors[$field] = array("a" => array($data));
 						}
 					}
-					// Internal link
+				// Internal link
 				} elseif (substr($data, 0, 4) == "http") {
-					if (!Link::urlExists($data)) {
+					if ($data != WWW_ROOT && $data != STATIC_ROOT && $data != ADMIN_ROOT && !Link::urlExists($data)) {
 						$integrity_errors[$field] = array("a" => array($data));
 					}
 				}
