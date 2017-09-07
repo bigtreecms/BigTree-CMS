@@ -29,10 +29,10 @@
 ?>
 <div class="container">
 	<div class="container_summary">
-		<h2><?=$setting->Name?></h2>
 		<?php if (Auth::user()->Level > 1) { ?>
 		<a class="button" href="<?=ADMIN_ROOT?>developer/settings/edit/<?=$setting->ID?>/?return=front"><?=Text::translate("Edit in Developer")?></a>
 		<?php } ?>
+		<h2><?=$setting->Name?></h2>
 	</div>
 	<form class="module" action="<?=ADMIN_ROOT?>settings/update/" method="post" enctype="multipart/form-data">
 		<?php CSRF::drawPOSTToken(); ?>

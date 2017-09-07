@@ -1,6 +1,7 @@
 <?php
+	
 	namespace BigTree;
-		
+	
 	/**
 	 * @global array $bigtree
 	 * @global ModuleInterface $interface
@@ -22,20 +23,20 @@
 	
 	// Provide developers a nice handy link for edit/return of this form
 	if (Auth::user()->Level > 1) {
-		$bigtree["subnav_extras"][] = array(
+		$bigtree["subnav_extras"][] = [
 			"link" => ADMIN_ROOT."developer/modules/forms/edit/".$form->ID."/?return=front",
 			"icon" => "setup",
 			"title" => "Edit in Developer"
-		);
-	}
-	
-	// Audit Trail link
-	if ($bigtree["edit_id"]) {
-		$bigtree["subnav_extras"][] = array(
-			"link" => ADMIN_ROOT."developer/audit/search/?table=".$form->Table."&entry=".$bigtree["edit_id"],
-			"icon" => "trail",
-			"title" => "View Audit Trail"
-		);
+		];
+		
+		// Audit Trail link
+		if ($bigtree["edit_id"]) {
+			$bigtree["subnav_extras"][] = [
+				"link" => ADMIN_ROOT."developer/audit/search/?table=".$form->Table."&entry=".$bigtree["edit_id"]."&".CSRF::$Field."=".urlencode(CSRF::$Token),
+				"icon" => "trail",
+				"title" => "View Audit Trail"
+			];
+		}
 	}
 	
 	$action = $bigtree["commands"][0];

@@ -16,14 +16,23 @@
 		Auth::stop("The user you are trying to edit no longer exists or you are not allowed to edit this user.",
 					Router::getIncludePath("admin/layouts/_error.php"));
 	}
-
+	
+	// Add a nice audit trail quick link
+	if (Auth::user()->Level > 1) {
+		$bigtree["subnav_extras"][] = [
+			"link" => ADMIN_ROOT."developer/audit/search/?user=".$user["id"]."&".CSRF::$Field."=".urlencode(CSRF::$Token),
+			"icon" => "trail",
+			"title" => "View Audit Trail"
+		];
+	}
+	
 	// Show gravatar as header icon
 	$bigtree["gravatar"] = $user->Email;
 
 	// We need to gather all the page levels that should be expanded (anything that isn't "inherit" should have its parents pre-opened)
-	$page_ids = array();
-	$pre_opened_parents = array();
-	$pre_opened_folders = array();
+	$page_ids = [];
+	$pre_opened_parents = [];
+	$pre_opened_folders = [];
 		
 	foreach ($user->Permissions["page"] as $id => $permission) {
 		if ($permission != "i") {
@@ -68,18 +77,18 @@
 	<li>
 		<span class="depth"></span>
 		<a class="permission_label<?php if (!$grandchildren) { ?> disabled<?php } ?><?php if ($user->Level > 0) { ?> permission_label_admin<?php } ?><?php if (in_array($child->ID,$pre_opened_parents)) { ?> expanded<?php } ?>" href="#" data-id="<?=$child->ID?>" data-depth="<?=$depth?>"><?=$child->NavigationTitle?></a>
-		<span class="permission_alerts"><input type="checkbox" data-category="Alerts" data-key="<?=$child->ID?>" name="alerts[<?=$child->ID?>]"<?php if ((isset($user->Alerts[$child->ID]) && $user->Alerts[$child->ID] == "on") || $alert_above) { ?> checked="checked"<?php } ?><?php if ($alert_above) { ?> disabled="disabled"<?php } ?>/></span>
+		<span class="permission_alerts"><input title="Alerts" type="checkbox" data-category="Alerts" data-key="<?=$child->ID?>" name="alerts[<?=$child->ID?>]"<?php if ((isset($user->Alerts[$child->ID]) && $user->Alerts[$child->ID] == "on") || $alert_above) { ?> checked="checked"<?php } ?><?php if ($alert_above) { ?> disabled="disabled"<?php } ?>/></span>
 		<span class="permission_level"<?php if ($user->Level > 0) { ?> style="display: none;"<?php } ?>>
-			<input type="radio" data-category="Page" data-key="<?=$child->ID?>" name="permissions[page][<?=$child->ID?>]" value="p" <?php if ($user->Permissions["page"][$child->ID] == "p") { ?>checked="checked" <?php } ?>/>
+			<input title="Publisher" type="radio" data-category="Page" data-key="<?=$child->ID?>" name="permissions[page][<?=$child->ID?>]" value="p" <?php if ($user->Permissions["page"][$child->ID] == "p") { ?>checked="checked" <?php } ?>/>
 		</span>
 		<span class="permission_level"<?php if ($user->Level > 0) { ?> style="display: none;"<?php } ?>>
-			<input type="radio" data-category="Page" data-key="<?=$child->ID?>" name="permissions[page][<?=$child->ID?>]" value="e" <?php if ($user->Permissions["page"][$child->ID] == "e") { ?>checked="checked" <?php } ?>/>
+			<input title="Editor" type="radio" data-category="Page" data-key="<?=$child->ID?>" name="permissions[page][<?=$child->ID?>]" value="e" <?php if ($user->Permissions["page"][$child->ID] == "e") { ?>checked="checked" <?php } ?>/>
 		</span>
 		<span class="permission_level"<?php if ($user->Level > 0) { ?> style="display: none;"<?php } ?>>
-			<input type="radio" data-category="Page" data-key="<?=$child->ID?>" name="permissions[page][<?=$child->ID?>]" value="n" <?php if ($user->Permissions["page"][$child->ID] == "n") { ?>checked="checked" <?php } ?>/>
+			<input title="No Access" type="radio" data-category="Page" data-key="<?=$child->ID?>" name="permissions[page][<?=$child->ID?>]" value="n" <?php if ($user->Permissions["page"][$child->ID] == "n") { ?>checked="checked" <?php } ?>/>
 		</span>
 		<span class="permission_level"<?php if ($user->Level > 0) { ?> style="display: none;"<?php } ?>>
-			<input type="radio" data-category="Page" data-key="<?=$child->ID?>" name="permissions[page][<?=$child->ID?>]" value="i" <?php if (!$user->Permissions["page"][$child->ID] || $user->Permissions["page"][$child->ID] == "i") { ?>checked="checked" <?php } ?>/>
+			<input title="Inherit Access" type="radio" data-category="Page" data-key="<?=$child->ID?>" name="permissions[page][<?=$child->ID?>]" value="i" <?php if (!$user->Permissions["page"][$child->ID] || $user->Permissions["page"][$child->ID] == "i") { ?>checked="checked" <?php } ?>/>
 		</span>
 		<?php
 				if (in_array($child->ID,$pre_opened_parents)) {
@@ -112,10 +121,10 @@
 	<li>
 		<span class="depth"></span>
 		<a class="permission_label folder_label<?php if (!count($grandchildren)) { ?> disabled<?php } ?><?php if (in_array($folder->ID,$pre_opened_folders)) { ?> expanded<?php } ?>" href="#"><?=$folder->Name?></a>
-		<span class="permission_level"><input type="radio" data-category="Resource" data-key="<?=$folder->ID?>" name="permissions[resources][<?=$folder->ID?>]" value="p" <?php if ($user->Permissions["resources"][$folder->ID] == "p") { ?>checked="checked" <?php } ?>/></span>
-		<span class="permission_level"><input type="radio" data-category="Resource" data-key="<?=$folder->ID?>" name="permissions[resources][<?=$folder->ID?>]" value="e" <?php if ($user->Permissions["resources"][$folder->ID] == "e") { ?>checked="checked" <?php } ?>/></span>
-		<span class="permission_level"><input type="radio" data-category="Resource" data-key="<?=$folder->ID?>" name="permissions[resources][<?=$folder->ID?>]" value="n" <?php if ($user->Permissions["resources"][$folder->ID] == "n") { ?>checked="checked" <?php } ?>/></span>
-		<span class="permission_level"><input type="radio" data-category="Resource" data-key="<?=$folder->ID?>" name="permissions[resources][<?=$folder->ID?>]" value="i" <?php if (!$user->Permissions["resources"][$folder->ID] || $user->Permissions["resources"][$folder->ID] == "i") { ?>checked="checked" <?php } ?>/></span>
+		<span class="permission_level"><input title="Creator" type="radio" data-category="Resource" data-key="<?=$folder->ID?>" name="permissions[resources][<?=$folder->ID?>]" value="p" <?php if ($user->Permissions["resources"][$folder->ID] == "p") { ?>checked="checked" <?php } ?>/></span>
+		<span class="permission_level"><input title="Consumer" type="radio" data-category="Resource" data-key="<?=$folder->ID?>" name="permissions[resources][<?=$folder->ID?>]" value="e" <?php if ($user->Permissions["resources"][$folder->ID] == "e") { ?>checked="checked" <?php } ?>/></span>
+		<span class="permission_level"><input title="No Access" type="radio" data-category="Resource" data-key="<?=$folder->ID?>" name="permissions[resources][<?=$folder->ID?>]" value="n" <?php if ($user->Permissions["resources"][$folder->ID] == "n") { ?>checked="checked" <?php } ?>/></span>
+		<span class="permission_level"><input title="Inherit Access" type="radio" data-category="Resource" data-key="<?=$folder->ID?>" name="permissions[resources][<?=$folder->ID?>]" value="i" <?php if (!$user->Permissions["resources"][$folder->ID] || $user->Permissions["resources"][$folder->ID] == "i") { ?>checked="checked" <?php } ?>/></span>
 		<?php _local_userDrawFolderLevel($folder->ID, $depth + 1, $grandchildren) ?>
 	</li>
 	<?php
@@ -204,7 +213,7 @@
 					<input id="user_field_digest" type="checkbox" name="daily_digest" tabindex="4" <?php if ($user->DailyDigest) { ?> checked="checked"<?php } ?> />
 					<label for="user_field_digest" class="for_checkbox"><?=Text::translate("Daily Digest Email")?></label>
 				</fieldset>
-			</div>			
+			</div>
 		</section>
 		<section class="sub" id="permission_section">
 			<fieldset class="last">
@@ -235,15 +244,15 @@
 								<li class="top">
 									<span class="depth"></span>
 									<a class="permission_label expanded<?php if ($user->Level > 0) { ?> permission_label_admin<?php } ?>" href="#"><?=Text::translate("All Pages")?></a>
-									<span class="permission_alerts"><input type="checkbox" name="alerts[0]"<?php if ($user->Alerts[0] == "on") { ?> checked="checked"<?php } ?>/></span>
+									<span class="permission_alerts"><input title="Content Age Alerts" type="checkbox" name="alerts[0]"<?php if ($user->Alerts[0] == "on") { ?> checked="checked"<?php } ?>/></span>
 									<span class="permission_level"<?php if ($user->Level > 0) { ?> style="display: none;"<?php } ?>>
-										<input type="radio" data-category="Page" data-key="0" name="permissions[page][0]" value="p" <?php if ($user->Permissions["page"][0] == "p") { ?>checked="checked" <?php } ?>/>
+										<input title="Publisher" type="radio" data-category="Page" data-key="0" name="permissions[page][0]" value="p" <?php if ($user->Permissions["page"][0] == "p") { ?>checked="checked" <?php } ?>/>
 									</span>
 									<span class="permission_level"<?php if ($user->Level > 0) { ?> style="display: none;"<?php } ?>>
-										<input type="radio" data-category="Page" data-key="0" name="permissions[page][0]" value="e" <?php if ($user->Permissions["page"][0] == "e") { ?>checked="checked" <?php } ?>/>
+										<input title="Editor" type="radio" data-category="Page" data-key="0" name="permissions[page][0]" value="e" <?php if ($user->Permissions["page"][0] == "e") { ?>checked="checked" <?php } ?>/>
 									</span>
 									<span class="permission_level"<?php if ($user->Level > 0) { ?> style="display: none;"<?php } ?>>
-										<input type="radio" data-category="Page" data-key="0" name="permissions[page][0]" value="n" <?php if ($user->Permissions["page"][0] == "n" || !$user->Permissions["page"][0]) { ?>checked="checked" <?php } ?>/>
+										<input title="No Access" type="radio" data-category="Page" data-key="0" name="permissions[page][0]" value="n" <?php if ($user->Permissions["page"][0] == "n" || !$user->Permissions["page"][0]) { ?>checked="checked" <?php } ?>/>
 									</span>
 									<span class="permission_level"<?php if ($user->Level > 0) { ?> style="display: none;"<?php } ?>>&nbsp;</span>
 									<?php _local_userDrawNavLevel(0,2,$user->Alerts[0]) ?>
@@ -273,7 +282,7 @@
 								<?php
 											foreach ($modules as $module) {
 												$closed = true;
-												$gbp_categories = array();
+												$gbp_categories = [];
 												$gbp = $module->GroupBasedPermissions;
 												
 												// Determine whether we have access to anything in this section (default to open) or not (default to closed)
@@ -305,18 +314,18 @@
 								<li>
 									<span class="depth"></span>
 									<a class="permission_label permission_label_wider<?php if (!count($gbp_categories)) { ?> disabled<?php } ?><?php if (!$closed) { ?>  expanded<?php } ?>" href="#"><?=$module->Name?></a>
-									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$module->ID?>" name="permissions[module][<?=$module->ID?>]" value="p" <?php if ($user->Permissions["module"][$module->ID] == "p") { ?>checked="checked" <?php } ?>/></span>
-									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$module->ID?>" name="permissions[module][<?=$module->ID?>]" value="e" <?php if ($user->Permissions["module"][$module->ID] == "e") { ?>checked="checked" <?php } ?>/></span>
-									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$module->ID?>" name="permissions[module][<?=$module->ID?>]" value="n" <?php if (!$user->Permissions["module"][$module->ID] || $user->Permissions["module"][$module->ID] == "n") { ?>checked="checked" <?php } ?>/></span>
+									<span class="permission_level"><input title="Publisher" type="radio" data-category="Module" data-key="<?=$module->ID?>" name="permissions[module][<?=$module->ID?>]" value="p" <?php if ($user->Permissions["module"][$module->ID] == "p") { ?>checked="checked" <?php } ?>/></span>
+									<span class="permission_level"><input title="Editor" type="radio" data-category="Module" data-key="<?=$module->ID?>" name="permissions[module][<?=$module->ID?>]" value="e" <?php if ($user->Permissions["module"][$module->ID] == "e") { ?>checked="checked" <?php } ?>/></span>
+									<span class="permission_level"><input title="No Access" type="radio" data-category="Module" data-key="<?=$module->ID?>" name="permissions[module][<?=$module->ID?>]" value="n" <?php if (!$user->Permissions["module"][$module->ID] || $user->Permissions["module"][$module->ID] == "n") { ?>checked="checked" <?php } ?>/></span>
 									<?php if (count($gbp_categories)) { ?>
 									<ul class="depth_2"<?php if ($closed) { ?> style="display: none;"<?php } ?>>
 										<?php foreach ($gbp_categories as $category) { ?>
 										<li>
 											<span class="depth"></span>
 											<a class="permission_label permission_label_wider disabled" href="#"><?=$gbp["name"]?>: <?=$category["title"]?></a>
-											<span class="permission_level"><input type="radio" data-category="ModuleGBP" data-key="<?=$module->ID?>" data-sub-key="<?=$category["id"]?>" name="permissions[module_gbp][<?=$module->ID?>][<?=$category["id"]?>]" value="p" <?php if ($user->Permissions["module_gbp"][$module->ID][$category["id"]] == "p") { ?>checked="checked" <?php } ?>/></span>
-											<span class="permission_level"><input type="radio" data-category="ModuleGBP" data-key="<?=$module->ID?>" data-sub-key="<?=$category["id"]?>" name="permissions[module_gbp][<?=$module->ID?>][<?=$category["id"]?>]" value="e" <?php if ($user->Permissions["module_gbp"][$module->ID][$category["id"]] == "e") { ?>checked="checked" <?php } ?>/></span>
-											<span class="permission_level"><input type="radio" data-category="ModuleGBP" data-key="<?=$module->ID?>" data-sub-key="<?=$category["id"]?>" name="permissions[module_gbp][<?=$module->ID?>][<?=$category["id"]?>]" value="n" <?php if (!$user->Permissions["module_gbp"][$module->ID][$category["id"]] || $user->Permissions["module_gbp"][$module->ID][$category["id"]] == "n") { ?>checked="checked" <?php } ?>/></span>
+											<span class="permission_level"><input title="Publisher" type="radio" data-category="ModuleGBP" data-key="<?=$module->ID?>" data-sub-key="<?=$category["id"]?>" name="permissions[module_gbp][<?=$module->ID?>][<?=$category["id"]?>]" value="p" <?php if ($user->Permissions["module_gbp"][$module->ID][$category["id"]] == "p") { ?>checked="checked" <?php } ?>/></span>
+											<span class="permission_level"><input title="Editor" type="radio" data-category="ModuleGBP" data-key="<?=$module->ID?>" data-sub-key="<?=$category["id"]?>" name="permissions[module_gbp][<?=$module->ID?>][<?=$category["id"]?>]" value="e" <?php if ($user->Permissions["module_gbp"][$module->ID][$category["id"]] == "e") { ?>checked="checked" <?php } ?>/></span>
+											<span class="permission_level"><input title="No Access" type="radio" data-category="ModuleGBP" data-key="<?=$module->ID?>" data-sub-key="<?=$category["id"]?>" name="permissions[module_gbp][<?=$module->ID?>][<?=$category["id"]?>]" value="n" <?php if (!$user->Permissions["module_gbp"][$module->ID][$category["id"]] || $user->Permissions["module_gbp"][$module->ID][$category["id"]] == "n") { ?>checked="checked" <?php } ?>/></span>
 										</li>
 										<?php } ?>
 									</ul>
@@ -326,7 +335,7 @@
 											}
 										}
 									}
-								?>	
+								?>
 							</ul>
 						</section>
 					</div>
@@ -344,9 +353,9 @@
 								<li class="top">
 									<span class="depth"></span>
 									<a class="permission_label folder_label expanded" href="#"><?=Text::translate("Home Folder")?></a>
-									<span class="permission_level"><input type="radio" data-category="Resource" data-key="0" name="permissions[resources][0]" value="p" <?php if ($user->Permissions["resources"][0] == "p") { ?>checked="checked" <?php } ?>/></span>
-									<span class="permission_level"><input type="radio" data-category="Resource" data-key="0" name="permissions[resources][0]" value="e" <?php if ($user->Permissions["resources"][0] == "e" || !$user->Permissions["resources"][0]) { ?>checked="checked" <?php } ?>/></span>
-									<span class="permission_level"><input type="radio" data-category="Resource" data-key="0" name="permissions[resources][0]" value="n" <?php if ($user->Permissions["resources"][0] == "n") { ?>checked="checked" <?php } ?>/></span>
+									<span class="permission_level"><input title="Creator" type="radio" data-category="Resource" data-key="0" name="permissions[resources][0]" value="p" <?php if ($user->Permissions["resources"][0] == "p") { ?>checked="checked" <?php } ?>/></span>
+									<span class="permission_level"><input title="Consumer" type="radio" data-category="Resource" data-key="0" name="permissions[resources][0]" value="e" <?php if ($user->Permissions["resources"][0] == "e" || !$user->Permissions["resources"][0]) { ?>checked="checked" <?php } ?>/></span>
+									<span class="permission_level"><input title="No Access" type="radio" data-category="Resource" data-key="0" name="permissions[resources][0]" value="n" <?php if ($user->Permissions["resources"][0] == "n") { ?>checked="checked" <?php } ?>/></span>
 									<span class="permission_level">&nbsp;</span>
 									<?php _local_userDrawFolderLevel(0,2) ?>
 								</li>
@@ -410,7 +419,7 @@
 		$("#permission_section").append(permissions).append(alerts);
 	});
 	
-	$(".user_permissions header a").click(function() {		
+	$(".user_permissions header a").click(function() {
 		$(".user_permissions header a").removeClass("active");
 		$(".user_permissions > div").hide();
 		$(this).addClass("active");
@@ -424,7 +433,7 @@
 		if ($(this).hasClass("disabled")) {
 			return false;
 		}
-			
+		
 		if ($(this).hasClass("expanded")) {
 			$(this).nextAll("ul").hide();
 			$(this).removeClass("expanded");

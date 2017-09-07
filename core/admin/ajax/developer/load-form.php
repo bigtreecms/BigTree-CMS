@@ -174,7 +174,7 @@
 <?php
 	}
 	
-	if (count($fields)) {
+	if (count($fields) || count($unused)) {
 ?>
 <label><?=Text::translate("Fields")?></label>
 
@@ -210,10 +210,10 @@
 		<li id="row_<?=$key?>">
 			<section class="developer_resource_form_title">
 				<span class="icon_sort"></span>
-				<input type="text" name="fields[<?=$key?>][title]" <?php if ($field["type"] == "geocoding") { ?>disabled="disabled" value="Geocoding"<?php } else { ?>value="<?=$field["title"]?>"<?php } ?> />
+				<input title="Title" type="text" name="fields[<?=$key?>][title]" <?php if ($field["type"] == "geocoding") { ?>disabled="disabled" value="Geocoding" <?php } else { ?>value="<?=$field["title"]?>"<?php } ?> />
 			</section>
 			<section class="developer_resource_form_subtitle">
-				<input type="text" name="fields[<?=$key?>][subtitle]" <?php if ($field["type"] == "geocoding") { ?>disabled="disabled" value=""<?php } else { ?>value="<?=$field["subtitle"]?>"<?php } ?> />
+				<input title="Subtitle" type="text" name="fields[<?=$key?>][subtitle]" <?php if ($field["type"] == "geocoding") { ?>disabled="disabled" value="" <?php } else { ?>value="<?=$field["subtitle"]?>"<?php } ?> />
 			</section>
 			<section class="developer_resource_type">
 				<?php
@@ -229,7 +229,7 @@
 				<?php
 					} else {
 				?>
-				<select name="fields[<?=$key?>][type]" id="type_<?=$key?>">
+				<select title="Type" name="fields[<?=$key?>][type]" id="type_<?=$key?>">
 					<optgroup label="<?=$default_title?>">
 						<?php foreach ($field_types["default"] as $k => $v) { ?>
 						<option value="<?=$k?>"<?php if ($k == $field["type"]) { ?> selected="selected"<?php } ?>><?=$v["name"]?></option>
