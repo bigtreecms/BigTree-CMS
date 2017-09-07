@@ -12,13 +12,31 @@
 ?>
 <fieldset id="js-source-fieldset">
 	<label>Source Fields <small>(the table columns to use for route generation)</small></label>
+	<?php
+		if (is_array($options["source"]) && count($options["source"])) {
+			foreach ($options["source"] as $source) {
+	?>
 	<div class="contain route_source_field">
 		<a href="#" class="icon_small icon_small_add js-source-add-hook" title="Add Another Source"></a>
 		<a href="#" class="icon_small icon_small_delete js-source-delete-hook" title="Remove Source"></a>
-		<select name="source[]">
+		<select name="source[]" title="Source Field">
+			<?php SQL::drawColumnSelectOptions($_POST["table"], $source) ?>
+		</select>
+	</div>
+	<?php
+			}
+		} else {
+	?>
+	<div class="contain route_source_field">
+		<a href="#" class="icon_small icon_small_add" title="Add Another Source"></a>
+		<a href="#" class="icon_small icon_small_delete" title="Remove Source"></a>
+		<select name="source[]" title="Source Field">
 			<?php SQL::drawColumnSelectOptions($_POST["table"], $options["source"]) ?>
 		</select>
 	</div>
+	<?php
+		}
+	?>
 </fieldset>
 
 <fieldset>
