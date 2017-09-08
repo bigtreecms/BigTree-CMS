@@ -19,16 +19,20 @@
 	
 	foreach ($actions as $action => $state) {
 		if ($action == "approve") {
-			sqlquery("ALTER TABLE `$table` ADD COLUMN approved CHAR(2) NOT NULL");
+			sqlquery("ALTER TABLE `$table` ADD COLUMN `approved` CHAR(2) NOT NULL");
+			sqlquery("ALTER TABLE `$table` ADD INDEX `approved` (`approved`)");
 		} elseif ($action == "feature") {
-			sqlquery("ALTER TABLE `$table` ADD COLUMN featured CHAR(2) NOT NULL");
+			sqlquery("ALTER TABLE `$table` ADD COLUMN `featured` CHAR(2) NOT NULL");
+			sqlquery("ALTER TABLE `$table` ADD INDEX `featured` (`featured`)");
 		} elseif ($action == "archive") {
-			sqlquery("ALTER TABLE `$table` ADD COLUMN archived CHAR(2) NOT NULL");
+			sqlquery("ALTER TABLE `$table` ADD COLUMN `archived` CHAR(2) NOT NULL");
+			sqlquery("ALTER TABLE `$table` ADD INDEX `archived` (`archived`)");
 		}
 	}
 	
 	if ($type == "draggable") {
 		sqlquery("ALTER TABLE `$table` ADD COLUMN position INT(11) NOT NULL");
+		sqlquery("ALTER TABLE `$table` ADD INDEX `position` (`position`)");
 	}
 
 	// Figure out what the form was we created
