@@ -1,76 +1,77 @@
 <?php
 	// Set version
 	include "core/version.php";
-
+	
 	// Turn off errors
-	ini_set("log_errors",false);
+	ini_set("log_errors", false);
 	error_reporting(0);
 	
 	// Allow for passing in $_POST via command line for automatic installs.
 	if (isset($argv) && count($argv) > 1) {
 		// Cut off the first argument.
 		$vars = array_slice($argv, 1);
+		
 		// Loop through the variables passed in.
 		foreach ($vars as $v) {
-			list($key,$val) = explode("=",$v);
+			list($key, $val) = explode("=", $v);
 			$_POST[$key] = $val;
 		}
 	}
 	
 	// Issues that are game enders first.
-	$fails = array();
-	if (version_compare(PHP_VERSION,"5.3.0","<")) {
+	$fails = [];
+	if (version_compare(PHP_VERSION, "5.3.0", "<")) {
 		$fails[] = "PHP 5.3 or higher is required.";
 	}
-
+	
 	if (!extension_loaded('json')) {
 		$fails[] = "PHP does not have the JSON extension installed.";
 	}
-
+	
 	if (!extension_loaded("mysql") && !extension_loaded("mysqli")) {
 		$fails[] = "PHP does not have the MySQL extension installed.";
 	}
-
+	
 	if (!extension_loaded('gd')) {
 		$fails[] = "PHP does not have the GD extension installed.";
 	}
-
+	
 	if (!extension_loaded('curl')) {
 		$fails[] = "PHP does not have the cURL extension installed.";
 	}
-
+	
 	if (!extension_loaded('ctype')) {
 		$fails[] = "PHP does not have the ctype extension installed.";
 	}
-
+	
 	if (!ini_get('file_uploads')) {
 		$fails[] = "PHP does not have file uploads enabled.";
 	}
-
+	
 	if (!is_writable(".")) {
 		$fails[] = "Please make the current directory writable.";
 	}
-
+	
 	// Issues that could cause problems next.
-	$warnings = array();
+	$warnings = [];
 	if (get_magic_quotes_gpc()) {
 		$fails[] = "magic_quotes_gpc is on. This is a deprecated setting that will break BigTree. Please disable it in php.ini.";
 	}
-
+	
 	if (intval(ini_get('upload_max_filesize')) < 4) {
 		$warnings[] = "Max upload filesize (upload_max_filesize in php.ini) is currently less than 4MB. 8MB or higher is recommended.";
 	}
-
+	
 	if (intval(ini_get('post_max_size')) < 4) {
 		$warnings[] = "Max POST size (post_max_size in php.ini) is currently less than 4MB. 8MB or higher is recommended.";
 	}
-
+	
 	if (intval(ini_get("memory_limit")) < 32) {
 		$warnings[] = "PHP's memory limit is currently under 32MB. BigTree recommends at least 32MB of memory be available to PHP.";
 	}
-
+	
 	// Determine if we're on Apache or IIS
-	if (strpos($_SERVER["SERVER_SOFTWARE"],"IIS") !== false) {
+	if (strpos($_SERVER["SERVER_SOFTWARE"], "IIS") !== false) {
 		$iis = $iis_rewrite = true;
 		$warnings[] = "You are running Microsoft IIS. BigTree is only tested on Apache; proceed with caution in production environments.";
 		
@@ -82,10 +83,11 @@
 	} else {
 		$iis = false;
 	}
-
+	
 	// mod_rewrite check
 	$rewrite_enabled = true;
-	if (function_exists("apache_get_modules")) {		
+	
+	if (function_exists("apache_get_modules")) {
 		$apache_modules = apache_get_modules();
 		
 		if (in_array('mod_rewrite', $apache_modules) === false) {
@@ -97,16 +99,16 @@
 	$success = false;
 	$installed = false;
 	$error = false;
-
+	
 	if (count($_POST) && !($_POST["db"] && $_POST["host"] && $_POST["user"] && $_POST["cms_user"] && $_POST["cms_pass"])) {
 		$error = "Errors found! Please fix the highlighted fields and submit the form again.";
 	} elseif (count($_POST)) {
 		if ($_POST["write_host"] && $_POST["write_user"] && $_POST["write_password"]) {
 			$sql_connection = @mysqli_connect($_POST["write_host"], $_POST["write_user"], $_POST["write_password"],
-									 $_POST["write_port"] ?: 3306, $_POST["write_socket"]);
+											  $_POST["write_port"] ?: 3306, $_POST["write_socket"]);
 		} else {
 			$sql_connection = @mysqli_connect($_POST["host"], $_POST["user"], $_POST["password"],
-									 $_POST["port"] ?: 3306, $_POST["socket"]);
+											  $_POST["port"] ?: 3306, $_POST["socket"]);
 		}
 		
 		if (!$sql_connection) {
@@ -124,22 +126,22 @@
 	}
 	
 	if (!$error && count($_POST)) {
-
+		
 		// Let domain/www_root/static_root be set by post for command line installs
 		if (!isset($domain)) {
 			$domain = "http://".$_SERVER["HTTP_HOST"];
 			
 			if ($_POST["routing"] == "basic") {
-				$static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"])."site/";
+				$static_root = $domain.str_replace("install.php", "", $_SERVER["REQUEST_URI"])."site/";
 				$www_root = $static_root."index.php/";
 			} elseif ($_POST["routing"] == "iis") {
-				$www_root = $static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"])."site/";
+				$www_root = $static_root = $domain.str_replace("install.php", "", $_SERVER["REQUEST_URI"])."site/";
 			} else {
-				$www_root = $static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"]);
+				$www_root = $static_root = $domain.str_replace("install.php", "", $_SERVER["REQUEST_URI"]);
 			}
 		}
 		
-		$find = array(
+		$find = [
 			"[host]",
 			"[db]",
 			"[user]",
@@ -160,9 +162,9 @@
 			"[force_secure_login]",
 			"[routing]",
 			"[slash_behavior]"
-		);
+		];
 		
-		$replace = array(
+		$replace = [
 			$_POST["host"],
 			$_POST["db"],
 			$_POST["user"],
@@ -179,18 +181,24 @@
 			$www_root,
 			$static_root,
 			$_POST["cms_user"],
-			uniqid("",true),
+			uniqid("", true),
 			(!empty($_POST["force_secure_login"])) ? "true" : "false",
 			($_POST["routing"] == "basic") ? "basic" : "htaccess",
 			$_POST["slash_behavior"]
-		);
+		];
 		
 		// Make sure we're not running in a special mode that forces values for textareas that aren't allowing null.
 		$sql_connection->query("SET SESSION sql_mode = ''");
 		
-		// Determine if the server supports utf8mb4
+		// Grab the base SQL - we're replacing some text if we support utf8mb4
+		$charset_test_query = $sql_connection->query("SHOW CHARACTER SET WHERE Charset LIKE 'utf8mb4'");
+		$base_sql = file_get_contents("bigtree.sql");
 		
-		$sql_queries = explode("\n",file_get_contents("bigtree.sql"));
+		if ($charset_test_query->num_rows) {
+			$base_sql = str_replace("CHARSET=utf8 COLLATE=utf8_general_ci", "CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci", $base_sql);
+		}
+		
+		$sql_queries = explode("\n", $base_sql);
 		
 		foreach ($sql_queries as $query) {
 			$query = trim($query);
@@ -201,7 +209,7 @@
 		}
 		
 		include "core/inc/lib/PasswordHash.php";
-		$phpass = new PasswordHash(8, TRUE);
+		$phpass = new PasswordHash(8, true);
 		$cms_user = $sql_connection->real_escape_string($_POST["cms_user"]);
 		$enc_pass = $sql_connection->real_escape_string($phpass->HashPassword($_POST["cms_pass"]));
 		$sql_connection->query("INSERT INTO bigtree_users (`email`, `password`, `name`, `level`)
@@ -211,33 +219,33 @@
 		// We do this to determine whether we need to make the files the script writes 777
 		if (function_exists("posix_getuid")) {
 			if (posix_getuid() == getmyuid()) {
-				define("BT_SU_EXEC",true);
+				define("BT_SU_EXEC", true);
 			} else {
-				define("BT_SU_EXEC",false);
+				define("BT_SU_EXEC", false);
 			}
 		} else {
-			define("BT_SU_EXEC",false);
+			define("BT_SU_EXEC", false);
 		}
-
+		
 		function bt_mkdir_writable($dir) {
 			global $root;
 			
 			mkdir($root.$dir);
 			
 			if (!BT_SU_EXEC) {
-				chmod($root.$dir,0777);
+				chmod($root.$dir, 0777);
 			}
 		}
 		
-		function bt_touch_writable($file,$contents = "") {
-			file_put_contents($file,$contents);
+		function bt_touch_writable($file, $contents = "") {
+			file_put_contents($file, $contents);
 			
 			if (!BT_SU_EXEC) {
-				chmod($file,0777);
+				chmod($file, 0777);
 			}
 		}
 		
-		function bt_copy_dir($from,$to) {
+		function bt_copy_dir($from, $to) {
 			global $root;
 			$d = opendir($root.$from);
 			
@@ -245,19 +253,19 @@
 				@mkdir($root.$to);
 				
 				if (!BT_SU_EXEC) {
-					@chmod($root.$to,0777);
+					@chmod($root.$to, 0777);
 				}
 			}
 			
 			while ($f = readdir($d)) {
 				if ($f != "." && $f != "..") {
 					if (is_dir($root.$from.$f)) {
-						bt_copy_dir($from.$f."/",$to.$f."/");
+						bt_copy_dir($from.$f."/", $to.$f."/");
 					} else {
-						@copy($from.$f,$to.$f);
+						@copy($from.$f, $to.$f);
 						
 						if (!BT_SU_EXEC) {
-							@chmod($to.$f,0777);
+							@chmod($to.$f, 0777);
 						}
 					}
 				}
@@ -311,8 +319,8 @@
 		
 		// Install the example site if they asked for it.
 		if (!empty($_POST["install_example_site"])) {
-			bt_copy_dir("core/example-site/","");
-			$sql_queries = explode("\n",file_get_contents("example-site.sql"));
+			bt_copy_dir("core/example-site/", "");
+			$sql_queries = explode("\n", file_get_contents("example-site.sql"));
 			
 			foreach ($sql_queries as $query) {
 				$query = trim($query);
@@ -322,9 +330,9 @@
 				}
 			}
 			
-			bt_touch_writable("custom/settings.php",str_replace($find,$replace,file_get_contents("core/example-site/custom/settings.php")));
+			bt_touch_writable("custom/settings.php", str_replace($find, $replace, file_get_contents("core/example-site/custom/settings.php")));
 		} else {
-			bt_touch_writable("custom/settings.php",str_replace($find,$replace,file_get_contents("core/config.settings.php")));
+			bt_touch_writable("custom/settings.php", str_replace($find, $replace, file_get_contents("core/config.settings.php")));
 		}
 		
 		// Create site/index.php, site/.htaccess, and .htaccess (masks the 'site' directory)
@@ -418,9 +426,9 @@ RewriteRule ^(.*)$ index.php?bigtree_htaccess_url=$1 [QSA,L]
 
 RewriteRule .* - [E=HTTP_IF_MODIFIED_SINCE:%{HTTP:If-Modified-Since}]
 RewriteRule .* - [E=HTTP_BIGTREE_PARTIAL:%{HTTP:BigTree-Partial}]');
-			
+		
 		} elseif ($_POST["routing"] == "simple") {
-			bt_touch_writable("site/.htaccess",'IndexIgnore */*
+			bt_touch_writable("site/.htaccess", 'IndexIgnore */*
 
 Options -MultiViews
 
@@ -432,11 +440,11 @@ RewriteRule ^(.*)$ index.php?bigtree_htaccess_url=$1 [QSA,L]
 RewriteRule .* - [E=HTTP_IF_MODIFIED_SINCE:%{HTTP:If-Modified-Since}]
 RewriteRule .* - [E=HTTP_BIGTREE_PARTIAL:%{HTTP:BigTree-Partial}]');
 		} else {
-			bt_touch_writable("index.php",'<?php header("Location: site/index.php/"); ?>');
+			bt_touch_writable("index.php", '<?php header("Location: site/index.php/"); ?>');
 		}
 		
 		if ($_POST["routing"] != "basic" && $_POST["routing"] != "iis") {
-			bt_touch_writable(".htaccess",'RewriteEngine On
+			bt_touch_writable(".htaccess", 'RewriteEngine On
 RewriteRule ^$ site/ [L]
 RewriteRule (.*) site/$1 [L]');
 		}
