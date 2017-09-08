@@ -21,16 +21,20 @@
 	
 	foreach ($_POST["actions"] as $action => $state) {
 		if ($action == "approve") {
-			SQL::query("ALTER TABLE `$table` ADD COLUMN approved CHAR(2) NOT NULL");
+			SQL::query("ALTER TABLE `$table` ADD COLUMN `approved` CHAR(2) NOT NULL");
+			SQL::query("ALTER TABLE `$table` ADD INDEX `approved` (`approved`)");
 		} elseif ($action == "feature") {
-			SQL::query("ALTER TABLE `$table` ADD COLUMN featured CHAR(2) NOT NULL");
+			SQL::query("ALTER TABLE `$table` ADD COLUMN `featured` CHAR(2) NOT NULL");
+			SQL::query("ALTER TABLE `$table` ADD INDEX `featured` (`featured`)");
 		} elseif ($action == "archive") {
-			SQL::query("ALTER TABLE `$table` ADD COLUMN archived CHAR(2) NOT NULL");
+			SQL::query("ALTER TABLE `$table` ADD COLUMN `archived` CHAR(2) NOT NULL");
+			SQL::query("ALTER TABLE `$table` ADD INDEX `archived` (`archived`)");
 		}
 	}
 	
 	if ($_POST["type"] == "draggable") {
-		SQL::query("ALTER TABLE `$table` ADD COLUMN position INT(11) NOT NULL");
+		SQL::query("ALTER TABLE `$table` ADD COLUMN `position` INT(11) NOT NULL");
+		SQL::query("ALTER TABLE `$table` ADD INDEX `position` (`position`)");
 	}
 	
 	// Let's create the view - we're decoding options here because it's already encoded but that'd be weird to assume in the class.
