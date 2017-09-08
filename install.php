@@ -625,20 +625,20 @@ RewriteRule (.*) site/$1 [L]');
 					<hr />
 					<fieldset class="left<?php if (count($_POST) && !$write_host) { ?> form_error<?php } ?>">
 						<label>Hostname</label>
-						<input class="text" type="text" id="db_write_host" name="write_host" value="<?php echo htmlspecialchars($host) ?>" tabindex="6" />
+						<input class="text" type="text" id="db_write_host" name="write_host" value="<?php echo htmlspecialchars($write_host) ?>" tabindex="6" />
 					</fieldset>
 					<fieldset class="right<?php if (count($_POST) && !$write_db) { ?> form_error<?php } ?>">
 						<label>Database</label>
-						<input class="text" type="text" id="db_write_name" name="write_db" value="<?php echo htmlspecialchars($db) ?>" tabindex="7" />
+						<input class="text" type="text" id="db_write_name" name="write_db" value="<?php echo htmlspecialchars($write_db) ?>" tabindex="7" />
 					</fieldset>
 					<br class="clear" /><br />
 					<fieldset class="left<?php if (count($_POST) && !$write_user) { ?> form_error<?php } ?>">
 						<label>Username</label>
-						<input class="text" type="text" id="db_write_user" name="write_user" value="<?php echo htmlspecialchars($user) ?>" tabindex="8" autocomplete="off" />
+						<input class="text" type="text" id="db_write_user" name="write_user" value="<?php echo htmlspecialchars($write_user) ?>" tabindex="8" autocomplete="off" />
 					</fieldset>
 					<fieldset class="right<?php if (count($_POST) && !$write_password) { ?> form_error<?php } ?>">
 						<label>Password</label>
-						<input class="text" type="password" id="db_write_pass" name="write_password" value="<?php echo htmlspecialchars($password) ?>" tabindex="9" autocomplete="off" />
+						<input class="text" type="password" id="db_write_pass" name="write_password" value="<?php echo htmlspecialchars($write_password) ?>" tabindex="9" autocomplete="off" />
 					</fieldset>
 					<div class="db_port_or_socket_settings"<?php if (!$db_port_or_socket) { ?> style="display: none;"<?php } ?>>
 						<br class="clear" /><br />
