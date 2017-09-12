@@ -150,7 +150,12 @@
 									$class = $admin->getActionClass($action,$item);
 								}
 
-								$link = "#".$item["id"];
+								if ($action == "preview") {
+									$link = rtrim($bigtree["view"]["preview_url"],"/")."/".$item["id"].'/" target="_preview';
+								} else {
+									$link = "#".$item["id"];
+								}
+								
 								$action_title = ucwords($action);
 
 								if ($action == "archive" && $item["archived"]) {
