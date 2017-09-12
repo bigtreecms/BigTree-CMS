@@ -443,13 +443,13 @@
 	.container .warning_message,
 	.bigtree_dialog_form .overflow .warning_message,
 	.bigtree_dialog_form .overflow .error_message { background: #C0362F; border-radius: 2px; color: #FFF; font-size: 12px; line-height: 18px; margin: 0 0 15px 0; padding: 5px 10px; }
-	
+
 	.container .error_message a,
 	.callout_fields .error_message a,
 	.container .warning_message a,
 	.bigtree_dialog_form .overflow .warning_message a,
 	.bigtree_dialog_form .overflow .error_message a { color: #FFF; text-decoration: underline; }
-	
+
 	.container .template_message { user-select: none; }
 	.container .template_message label { float: left; margin: 0 10px 0 0; }
 	.container .template_message p { float: left; font-size: 14px; line-height: 13px; margin: 0; }
@@ -687,6 +687,7 @@
 	.table .status_pending a, .table .status_pending { color: #838383; font-size: 9px; }
 	.table .status_scheduled { color: #59A8E9; font-size: 9px; }
 	.table .status_expired { color: #CC3B46; font-size: 9px; }
+	.table .status_inactive { color: #838383; font-size: 9px; }
 
 	.table .integrity_errors { padding: 0 0 0 20px; text-align: left; width: 958px; }
 	.table .integrity_errors span { margin: 8px 8px 0 0; }
@@ -1195,8 +1196,8 @@
 	.bigtree.front_end_editor .front_end_editor_container textarea { width: 760px; }
 
 	.bigtree.front_end_editor .callout_fields input[type="text"],
-	.bigtree.front_end_editor .callout_fields input[type="email"], 
-	.bigtree.front_end_editor .callout_fields input[type="password"], 
+	.bigtree.front_end_editor .callout_fields input[type="email"],
+	.bigtree.front_end_editor .callout_fields input[type="password"],
 	.bigtree.front_end_editor .callout_fields input[type="url"],
 	.bigtree.front_end_editor .callout_fields textarea { width: 418px; }
 
@@ -1302,7 +1303,7 @@
 	.bigtree_dialog_form .list_options_widget .ui-sortable-placeholder { background: #FCFCFC; border: 1px dashed #CCC; border-radius: 3px; height: 20px; margin: 0 0 5px 0; width: 100%; }
 
 /* Matrix Settings */
-	
+
 	.matrix_wrapper { width: 440px; }
 	.matrix_table { border: 1px solid #CCC; border-radius: 2px; overflow: hidden; }
 	.matrix_table article { border-bottom: 1px solid #CCC; background: #FFF; }
@@ -1573,7 +1574,7 @@
 	.ui-datepicker .ui-datepicker-buttonpane { background-image: none; border-bottom: 0; border-left: 0; border-right: 0; margin: .7em 0 0 0; padding: 0 .2em; }
 	.ui-datepicker .ui-datepicker-buttonpane button { cursor: pointer; float: right; margin: .5em .2em .4em; overflow: visible; padding: .2em .6em .3em .6em; width: auto; }
 	.ui-datepicker .ui-datepicker-buttonpane button.ui-datepicker-current { float: left; }
-	
+
 	.date_picker_inline, .date_time_picker_inline { float: left; }
 	.date_picker_clear { background: #C0362F; color: #FFF; cursor: pointer; float: left; margin-left: 10px; padding: 7px 8px; }
 	.date_picker_clear:hover{ background: #AB312B; }

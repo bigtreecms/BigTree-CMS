@@ -108,12 +108,16 @@
 			// Setup the fields and VALUES to INSERT INTO the cache table.
 			$status = "l";
 			$pending_owner = 0;
+			
 			if ($item["bigtree_changes"]) {
 				$status = "c";
 			} elseif (isset($item["bigtree_pending"])) {
 				$status = "p";
 				$pending_owner = $item["bigtree_pending_owner"];
+			} elseif (!empty($item["archived"]) || (isset($item["approved"]) && $item["approved"] != "on")) {
+				$status = "i";
 			}
+			
 			$fields = array("view","id","status","position","approved","archived","featured","pending_owner");
 
 			// No more notices.
