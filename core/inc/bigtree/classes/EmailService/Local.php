@@ -7,7 +7,10 @@
 	namespace BigTree\EmailService;
 	
 	use BigTree\Email;
-	use PHPMailer;
+	use BigTree\Router;
+	use PHPMailer\PHPMailer\PHPMailer;
+	
+	include Router::getIncludePath("inc/lib/PHPMailer/src/PHPMailer.php");
 	
 	class Local extends Provider {
 		
