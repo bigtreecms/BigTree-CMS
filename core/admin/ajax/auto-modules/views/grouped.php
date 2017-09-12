@@ -148,12 +148,14 @@
 				} else {
 					$data = json_decode($data,true);
 					$link = $module_page.$data["route"]."/".$item["id"]."/";
+
 					if ($data["function"]) {
 						$link = call_user_func($data["function"],$item);
 					}
-					$action = BigTree::safeEncode($data["name"]);
+
+					$action_title = BigTree::safeEncode($data["name"]);
 		?>
-		<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>" title="<?=$action?>"></a></section>
+		<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>" title="<?=$action_title?>"></a></section>
 		<?
 				}
 			}

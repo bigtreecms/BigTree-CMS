@@ -103,7 +103,7 @@
 										$link = call_user_func($data["function"],$item);
 									}
 
-									$action_title = "";
+									$action_title = BigTree::safeEncode($action_title);
 								}
 				?>
 				<a href="<?=$link?>" class="<?=$class?>" title="<?=$action_title?>"></a>
@@ -155,7 +155,7 @@
 								} else {
 									$link = "#".$item["id"];
 								}
-								
+
 								$action_title = ucwords($action);
 
 								if ($action == "archive" && $item["archived"]) {
@@ -174,6 +174,8 @@
 									if ($data["function"]) {
 										$link = call_user_func($data["function"],$item);
 									}
+
+									$action_title = BigTree::safeEncode($action_title);
 								}
 				?>
 				<a href="<?=$link?>" class="<?=$class?>" title="<?=$action_title?>"></a>

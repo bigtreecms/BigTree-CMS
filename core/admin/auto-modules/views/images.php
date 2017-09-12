@@ -87,7 +87,7 @@
 										$link = call_user_func($data["function"],$item);
 									}
 
-									$action_title = "";
+									$action_title = BigTree::safeEncode($action_title);
 								}
 				?>
 				<a href="<?=$link?>" class="<?=$class?>" title="<?=$action_title?>"></a>
@@ -157,7 +157,7 @@
 										$link = call_user_func($data["function"],$item);
 									}
 
-									$action_title = "";
+									$action_title = BigTree::safeEncode($action_title);
 								}
 				?>
 				<a href="<?=$link?>" class="<?=$class?>" title="<?=$action_title?>"></a>
