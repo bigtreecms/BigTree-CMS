@@ -60,9 +60,11 @@
 	<?php
 				$x = 0;
 				$depth_minus = ceil((24 * $depth + 1) / count($view->Fields));
+				
 				foreach ($view->Fields as $key => $field) {
 					$x++;
 					$value = $item["column$x"];
+					
 					if ($x == 1) {
 						$field["width"] -= 20;
 					}
@@ -85,6 +87,16 @@
 							$class = $view->generateActionClass($action, $item);
 						}
 						
+						$action_title = ucwords($action);
+						
+						if ($action == "archive" && $item["archived"]) {
+							$action_title = "Restore";
+						} elseif ($action == "feature" && $item["featured"]) {
+							$action_title = "Unfeature";
+						} elseif ($action == "approve" && $item["approved"]) {
+							$action_title = "Unapprove";
+						}
+						
 						if ($action == "preview") {
 							$link = rtrim($view->PreviewURL,"/")."/".$item["id"].'/" target="_preview';
 						} elseif ($action == "edit") {
@@ -93,7 +105,7 @@
 							$link = "#".$item["id"];
 						}
 	?>
-	<section class="view_action action_<?=$action?>"><a href="<?=$link?>" class="<?=$class?>"></a></section>
+	<section class="view_action action_<?=$action?>"><a href="<?=$link?>" class="<?=$class?>" title="<?=Text::translate($action_title, true)?>"></a></section>
 	<?php
 					} else {
 						$data = json_decode($data,true);
@@ -103,7 +115,7 @@
 							$link = call_user_func($data["function"],$item);
 						}
 	?>
-	<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>"></a></section>
+	<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>" title="<?=Text::translate($data["name"], true)?>"></a></section>
 	<?php
 					}
 				}
@@ -127,6 +139,7 @@
 
 		// If we're allowing null, we're going to search by empty rather than 0
 		$table_description = SQL::describeTable($view->Table);
+		
 		if ($table_description["columns"][$view->Settings["nesting_column"]]["allow_null"]) {
 			$default_parent = "";
 		} else {

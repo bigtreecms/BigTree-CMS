@@ -35,6 +35,7 @@
 	<header>
 		<?php
 			$x = 0;
+			
 			foreach ($view->Fields as $key => $field) {
 				$x++;
 				

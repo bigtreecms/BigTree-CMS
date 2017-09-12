@@ -53,6 +53,7 @@
 <li id="row_<?=$item["id"]?>" class="<?=$status_class?>">
 	<?php
 		$x = 0;
+		
 		foreach ($view->Fields as $key => $field) {
 	?>
 	<section class="view_column" style="width: <?=$field["width"]?>px;">
@@ -84,6 +85,16 @@
 					$class = $view->generateActionClass($action, $item);
 				}
 				
+				$action_title = ucwords($action);
+				
+				if ($action == "archive" && $item["archived"]) {
+					$action_title = "Restore";
+				} elseif ($action == "feature" && $item["featured"]) {
+					$action_title = "Unfeature";
+				} elseif ($action == "approve" && $item["approved"]) {
+					$action_title = "Unapprove";
+				}
+				
 				if ($action == "preview") {
 					$link = rtrim($view->PreviewURL,"/")."/".$item["id"].'/" target="_preview';
 				} elseif ($action == "edit") {
@@ -92,7 +103,7 @@
 					$link = "#".$item["id"];
 				}
 	?>
-	<section class="view_action action_<?=$action?>"><a href="<?=$link?>" class="<?=$class?>"></a></section>
+	<section class="view_action action_<?=$action?>"><a href="<?=$link?>" class="<?=$class?>" title="<?=Text::translate($action_title, true)?>"></a></section>
 	<?php
 			} else {
 				$data = json_decode($data,true);
@@ -102,7 +113,7 @@
 					$link = call_user_func($data["function"], $item);
 				}
 	?>
-	<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>"></a></section>
+	<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>" title="<?=Text::translate($data["name"], true)?>"></a></section>
 	<?php
 			}
 		}

@@ -22,6 +22,7 @@
 	
 	// Get search query info
 	$query = "";
+	
 	if (!empty($_POST["search"]) || !empty($_GET["search"])) {
 		$query = !empty($_GET["search"]) ? $_GET["search"] : $_POST["search"];
 	}
@@ -63,6 +64,7 @@
 <header>
 	<?php
 		$x = 0;
+		
 		foreach ($view->Fields as $key => $field) {
 			$x++;
 	?>
@@ -75,6 +77,7 @@
 </header>
 <?php
 	$gc = 0;
+	
 	foreach ($groups as $group => $title) {
 		// If the group title contains the search phrase, show everything in that group.
 		if (!$query || strpos(strtolower($title), strtolower($query)) !== false) {
@@ -108,6 +111,7 @@
 	<li id="row_<?=$item["id"]?>" class="<?=$status_class?>">
 		<?php
 			$x = 0;
+			
 			foreach ($view->Fields as $key => $field) {
 				$x++;
 				$value = $item["column$x"];
@@ -135,6 +139,16 @@
 						$class = $view->generateActionClass($action, $item);
 					}
 					
+					$action_title = ucwords($action);
+					
+					if ($action == "archive" && $item["archived"]) {
+						$action_title = "Restore";
+					} elseif ($action == "feature" && $item["featured"]) {
+						$action_title = "Unfeature";
+					} elseif ($action == "approve" && $item["approved"]) {
+						$action_title = "Unapprove";
+					}
+					
 					if ($action == "preview") {
 						$link = rtrim($view->PreviewURL,"/")."/".$item["id"].'/" target="_preview';
 					} elseif ($action == "edit") {
@@ -143,7 +157,7 @@
 						$link = "#".$item["id"];
 					}
 		?>
-		<section class="view_action action_<?=$action?>"><a href="<?=$link?>" class="<?=$class?>" title="<?=ucwords($action)?>"></a></section>
+		<section class="view_action action_<?=$action?>"><a href="<?=$link?>" class="<?=$class?>" title="<?=Text::translate($action_title, true)?>"></a></section>
 		<?php
 				} else {
 					$data = json_decode($data,true);

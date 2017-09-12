@@ -23,6 +23,7 @@
 
 	// Setup custom overrides for group titles when we're grouping by a special BigTree column
 	$group_title_overrides = array();
+	
 	if ($view->Settings["group_field"] == "featured") {
 		$group_title_overrides["on"] = "Featured";
 		$group_title_overrides[""] = "Normal";
@@ -53,7 +54,9 @@
 	</div>
 	<?php
 		}
+		
 		$y = 0;
+		
 		foreach ($groups as $group => $title) {
 			$y++;
 
@@ -103,6 +106,16 @@
 									$link = "#".$item["id"];
 								}
 								
+								$action_title = ucwords($action);
+								
+								if ($action == "archive" && $item["archived"]) {
+									$action_title = "Restore";
+								} elseif ($action == "feature" && $item["featured"]) {
+									$action_title = "Unfeature";
+								} elseif ($action == "approve" && $item["approved"]) {
+									$action_title = "Unapprove";
+								}
+								
 								if ($data != "on") {
 									$data = json_decode($data,true);
 									$class = $data["class"];
@@ -111,9 +124,11 @@
 									if ($data["function"]) {
 										$link = call_user_func($data["function"],$item);
 									}
+									
+									$action_title = $data["name"];
 								}
 				?>
-				<a href="<?=$link?>" class="<?=$class?>"></a>
+				<a href="<?=$link?>" class="<?=$class?>" title="<?=Text::translate($action_title, true)?>"></a>
 				<?php
 							}
 						}
@@ -161,7 +176,22 @@
 								} else {
 									$class = ModuleView::generateActionClass($action, $item);
 								}
-								$link = "#".$item["id"];
+								
+								if ($action == "preview") {
+									$link = rtrim($view->PreviewURL,"/")."/".$item["id"].'/" target="_preview';
+								} else {
+									$link = "#".$item["id"];
+								}
+								
+								$action_title = ucwords($action);
+								
+								if ($action == "archive" && $item["archived"]) {
+									$action_title = "Restore";
+								} elseif ($action == "feature" && $item["featured"]) {
+									$action_title = "Unfeature";
+								} elseif ($action == "approve" && $item["approved"]) {
+									$action_title = "Unapprove";
+								}
 
 								if ($data != "on") {
 									$data = json_decode($data,true);
@@ -171,9 +201,11 @@
 									if ($data["function"]) {
 										$link = call_user_func($data["function"],$item);
 									}
+									
+									$action_title = $data["name"];
 								}
 				?>
-				<a href="<?=$link?>" class="<?=$class?>" title="<?=Text::translate($data["name"], true)?>"></a>
+				<a href="<?=$link?>" class="<?=$class?>" title="<?=Text::translate($action_title, true)?>"></a>
 				<?php
 							}
 						}

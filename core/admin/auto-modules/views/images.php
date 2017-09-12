@@ -44,6 +44,7 @@
 	</div>
 	<?php
 		}
+		
 		if (count($pending_items)) {
 	?>
 	<header><span><?=Text::translate("Active")?></span></header>
@@ -55,6 +56,7 @@
 			<?php
 				foreach ($items as $item) {
 					$item["column1"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["column1"]);
+					
 					if ($prefix) {
 						$preview_image = FileSystem::getPrefixedFile($item["column1"],$prefix);
 					} else {
@@ -66,6 +68,7 @@
 				<?php
 					if ($module_permission == "p" || ($module->GroupBasedPermissions["enabled"] && in_array("p",Auth::user()->Permissions["module_gbp"][$module->ID])) || $item["pending_owner"] == Auth::user()->ID) {
 						$iperm = ($module_permission == "p") ? "p" : Auth::user()->getCachedAccessLevel($module, $item, $view->Table);
+						
 						foreach ($view->Actions as $action => $data) {
 							if ($action != "edit") {
 								if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
@@ -84,18 +87,29 @@
 									$link = "#".$item["id"];
 								}
 								
-								$action = ucwords($action);
+								$action_title = ucwords($action);
+								
+								if ($action == "archive" && $item["archived"]) {
+									$action_title = "Restore";
+								} elseif ($action == "feature" && $item["featured"]) {
+									$action_title = "Unfeature";
+								} elseif ($action == "approve" && $item["approved"]) {
+									$action_title = "Unapprove";
+								}
+								
 								if ($data != "on") {
 									$data = json_decode($data,true);
 									$class = $data["class"];
 									$link = MODULE_ROOT.$data["route"]."/".$item["id"]."/";
+									
 									if ($data["function"]) {
 										$link = call_user_func($data["function"],$item);
 									}
-									$action = Text::htmlEncode($data["name"]);
+									
+									$action_title = $data["name"];
 								}
 				?>
-				<a href="<?=$link?>" class="<?=$class?>" title="<?=Text::translate($action, true)?>"></a>
+				<a href="<?=$link?>" class="<?=$class?>" title="<?=Text::translate($action_title, true)?>"></a>
 				<?php
 							}
 						}
@@ -114,6 +128,7 @@
 			<?php
 				foreach ($pending_items as $item) {
 					$item["column1"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["column1"]);
+					
 					if ($prefix) {
 						$preview_image = FileSystem::getPrefixedFile($item["column1"],$prefix);
 					} else {
@@ -125,6 +140,7 @@
 				<?php
 					if ($module_permission == "p" || ($module->GroupBasedPermissions["enabled"] && in_array("p",Auth::user()->Permissions["module_gbp"][$module->ID])) || $item["pending_owner"] == Auth::user()->ID) {
 						$iperm = ($module_permission == "p") ? "p" : Auth::user()->getCachedAccessLevel($module, $item, $view->Table);
+						
 						foreach ($view->Actions as $action => $data) {
 							if ($action != "edit") {
 								if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $iperm != "p") {
@@ -136,20 +152,36 @@
 								} else {
 									$class = ModuleView::generateActionClass($action, $item);
 								}
-								$link = "#".$item["id"];
 								
-								$action = ucwords($action);
+								if ($action == "preview") {
+									$link = rtrim($view->PreviewURL, "/")."/".$item["id"].'/" target="_preview';
+								} else {
+									$link = "#".$item["id"];
+								}
+								
+								$action_title = ucwords($action);
+								
+								if ($action == "archive" && $item["archived"]) {
+									$action_title = "Restore";
+								} elseif ($action == "feature" && $item["featured"]) {
+									$action_title = "Unfeature";
+								} elseif ($action == "approve" && $item["approved"]) {
+									$action_title = "Unapprove";
+								}
+								
 								if ($data != "on") {
 									$data = json_decode($data,true);
 									$class = $data["class"];
 									$link = MODULE_ROOT.$data["route"]."/".$item["id"]."/";
+									
 									if ($data["function"]) {
 										$link = call_user_func($data["function"],$item);
 									}
-									$action = Text::htmlEncode($data["name"]);
+									
+									$action_title = $data["name"];
 								}
 				?>
-				<a href="<?=$link?>" class="<?=$class?>" title="<?=Text::translate($action, true)?>"></a>
+				<a href="<?=$link?>" class="<?=$class?>" title="<?=Text::translate($action_title, true)?>"></a>
 				<?php
 							}
 						}

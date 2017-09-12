@@ -53,6 +53,12 @@
 			<?php if (($view->Type == "grouped" || $view->Type == "images-grouped") && $view->Settings["group_field"] == "approved") { ?>
 			BigTree.localSearch();
 			<?php } else { ?>
+			if ($(this).hasClass("icon_approve_on")) {
+				$(this).attr("title", "Approve");
+			} else {
+				$(this).attr("title", "Unapprove");
+			}
+
 			$(this).toggleClass("icon_approve_on");
 			<?php } ?>
 			return false;
@@ -61,6 +67,12 @@
 			<?php if (($view->Type == "grouped" || $view->Type == "images-grouped") && $view->Settings["group_field"] == "featured") { ?>
 			BigTree.localSearch();
 			<?php } else { ?>
+			if ($(this).hasClass("icon_feature_on")) {
+				$(this).attr("title", "Feature");
+			} else {
+				$(this).attr("title", "Unfeature");
+			}
+
 			$(this).toggleClass("icon_feature_on");
 			<?php } ?>
 			return false;
@@ -69,6 +81,12 @@
 			<?php if (($view->Type == "grouped" || $view->Type == "images-grouped") && $view->Settings["group_field"] == "archived") { ?>
 			BigTree.localSearch();
 			<?php } else { ?>
+			if ($(this).hasClass("icon_archive_on")) {
+				$(this).attr("title", "Archive");
+			} else {
+				$(this).attr("title", "Restore");
+			}
+			
 			$(this).toggleClass("icon_archive_on");
 			<?php } ?>
 			return false;
