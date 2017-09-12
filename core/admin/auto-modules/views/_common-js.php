@@ -43,6 +43,12 @@
 			<? if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["options"]["group_field"] == "approved") { ?>
 			BigTree.localSearch();
 			<? } else { ?>
+			if ($(this).hasClass("icon_approve_on")) {
+				$(this).attr("title", "Approve");
+			} else {
+				$(this).attr("title", "Unapprove");
+			}
+
 			$(this).toggleClass("icon_approve_on");
 			<? } ?>
 			return false;
@@ -51,6 +57,12 @@
 			<? if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["options"]["group_field"] == "featured") { ?>
 			BigTree.localSearch();
 			<? } else { ?>
+			if ($(this).hasClass("icon_feature_on")) {
+				$(this).attr("title", "Feature");
+			} else {
+				$(this).attr("title", "Unfeature");
+			}
+			
 			$(this).toggleClass("icon_feature_on");
 			<? } ?>
 			return false;
@@ -59,6 +71,12 @@
 			<? if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["options"]["group_field"] == "archived") { ?>
 			BigTree.localSearch();
 			<? } else { ?>
+			if ($(this).hasClass("icon_archive_on")) {
+				$(this).attr("title", "Archive");
+			} else {
+				$(this).attr("title", "Restore");
+			}
+
 			$(this).toggleClass("icon_archive_on");
 			<? } ?>
 			return false;

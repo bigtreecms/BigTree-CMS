@@ -85,8 +85,18 @@
 						} else {
 							$link = "#".$item["id"];
 						}
+
+						$action_title = ucwords($action);
+
+						if ($action == "archive" && $item["archived"]) {
+							$action_title = "Restore";
+						} elseif ($action == "feature" && $item["featured"]) {
+							$action_title = "Unfeature";
+						} elseif ($action == "approve" && $item["approved"]) {
+							$action_title = "Unapprove";
+						}
 	?>
-	<section class="view_action action_<?=$action?>"><a href="<?=$link?>" class="<?=$class?>"></a></section>
+	<section class="view_action action_<?=$action?>"><a href="<?=$link?>" class="<?=$class?>" title="<?=$action_title?>"></a></section>
 	<?
 					} else {
 						$data = json_decode($data,true);

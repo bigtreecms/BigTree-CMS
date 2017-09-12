@@ -84,19 +84,29 @@
 									$link = "#".$item["id"];
 								}
 								
-								$action = ucwords($action);
+								$action_title = ucwords($action);
+
+								if ($action == "archive" && $item["archived"]) {
+									$action_title = "Restore";
+								} elseif ($action == "feature" && $item["featured"]) {
+									$action_title = "Unfeature";
+								} elseif ($action == "approve" && $item["approved"]) {
+									$action_title = "Unapprove";
+								}
 								
 								if ($data != "on") {
 									$data = json_decode($data,true);
 									$class = $data["class"];
 									$link = MODULE_ROOT.$data["route"]."/".$item["id"]."/";
+									
 									if ($data["function"]) {
 										$link = call_user_func($data["function"],$item);
 									}
-									$action = BigTree::safeEncode($data["name"]);
+
+									$action_title = "";
 								}
 				?>
-				<a href="<?=$link?>" class="<?=$class?>"></a>
+				<a href="<?=$link?>" class="<?=$class?>" title="<?=$action_title?>"></a>
 				<?
 							}
 						}
@@ -139,20 +149,29 @@
 								} else {
 									$class = $admin->getActionClass($action,$item);
 								}
+
 								$link = "#".$item["id"];
-								
-								$action = ucwords($action);
+								$action_title = ucwords($action);
+
+								if ($action == "archive" && $item["archived"]) {
+									$action_title = "Restore";
+								} elseif ($action == "feature" && $item["featured"]) {
+									$action_title = "Unfeature";
+								} elseif ($action == "approve" && $item["approved"]) {
+									$action_title = "Unapprove";
+								}
+
 								if ($data != "on") {
 									$data = json_decode($data,true);
 									$class = $data["class"];
 									$link = MODULE_ROOT.$data["route"]."/".$item["id"]."/";
+									
 									if ($data["function"]) {
 										$link = call_user_func($data["function"],$item);
 									}
-									$action = BigTree::safeEncode($data["name"]);
 								}
 				?>
-				<a href="<?=$link?>" class="<?=$class?>" title="<?=$action?>"></a>
+				<a href="<?=$link?>" class="<?=$class?>" title="<?=$action_title?>"></a>
 				<?
 							}
 						}
@@ -172,7 +191,7 @@
 	?>
 </div>
 
-<? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
+<? include BigTree::path("admin/auto-modules/views/_common-js.php"); ?>
 <script>
 	<? if ($permission == "p" && $draggable) { ?>
 	$(".image_list ul").each(function() {
