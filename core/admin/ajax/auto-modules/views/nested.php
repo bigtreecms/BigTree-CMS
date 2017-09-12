@@ -40,6 +40,9 @@
 				} elseif ($item["status"] == "c") {
 					$status = "Changed";
 					$status_class = "pending";
+				} elseif ($item["status"] == "i") {
+					$status = "Inactive";
+					$status_class = "inactive";
 				} else {
 					$status = "Published";
 					$status_class = "published";

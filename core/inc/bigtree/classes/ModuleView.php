@@ -184,6 +184,8 @@
 			} elseif (isset($item["bigtree_pending"])) {
 				$status = "p"; // Completely Pending
 				$pending_owner = $item["bigtree_pending_owner"];
+			} elseif (!empty($item["archived"]) || (isset($item["approved"]) && $item["approved"] != "on")) {
+				$status = "i";
 			}
 			
 			// Setup our array of insert values with what we know already
