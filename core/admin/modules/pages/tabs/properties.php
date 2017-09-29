@@ -57,12 +57,12 @@
 	<div class="left date_pickers">
 		<fieldset class="last">
 			<label>Publish Date <small>(blank = immediately)</small></label>
-			<input type="text" class="date_picker" id="publish_at" name="publish_at" tabindex="3" value="<? if ($bigtree["current_page"]["publish_at"]) { echo date("Y-m-d",strtotime($bigtree["current_page"]["publish_at"])); } ?>" />
+			<input type="text" class="date_picker" id="publish_at" name="publish_at" tabindex="3" value="<? if ($bigtree["current_page"]["publish_at"]) { echo date($bigtree["config"]["date_format"], strtotime($bigtree["current_page"]["publish_at"])); } ?>" />
 			<span class="icon_small icon_small_calendar date_picker_icon"></span>
 		</fieldset>
 		<fieldset class="right last">
 			<label>Expiration Date <small>(blank = never)</small></label>
-			<input type="text" class="date_picker" id="expire_at" name="expire_at" tabindex="4" value="<? if ($bigtree["current_page"]["expire_at"]) { echo date("Y-m-d",strtotime($bigtree["current_page"]["expire_at"])); } ?>" />
+			<input type="text" class="date_picker" id="expire_at" name="expire_at" tabindex="4" value="<? if ($bigtree["current_page"]["expire_at"]) { echo date($bigtree["config"]["date_format"], strtotime($bigtree["current_page"]["expire_at"])); } ?>" />
 			<span class="icon_small icon_small_calendar date_picker_icon"></span>
 		</fieldset>
 	</div>
