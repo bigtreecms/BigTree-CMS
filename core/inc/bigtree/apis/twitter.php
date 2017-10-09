@@ -904,6 +904,7 @@
 		function __construct($tweet,&$api) {
 			$this->API = $api;
 			isset($tweet->text) ? $this->Content = $tweet->text : false;
+			isset($tweet->full_text) ? $this->Content = $tweet->full_text : false;
 			isset($tweet->favorite_count) ? $this->FavoriteCount = $tweet->favorite_count : false;
 			isset($tweet->favorited) ? $this->Favorited = $tweet->favorited : false;
 			if (isset($tweet->entities->hashtags)) {
