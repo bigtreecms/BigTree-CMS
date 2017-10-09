@@ -40,6 +40,7 @@
 	
 	// Connect to MySQL and include the shorterner functions
 	include BigTree::path("inc/bigtree/sql.php");
+	include BigTree::path("inc/bigtree/sql-class.php");
 	
 	// Setup our connections as disconnected by default.
 	$bigtree["mysql_read_connection"] = "disconnected";
