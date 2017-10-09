@@ -28,9 +28,6 @@
 				);
 				$connection->set_charset("utf8");
 				$connection->query("SET SESSION sql_mode = ''");
-				// Remove BigTree connection parameters once it is setup.
-				unset($bigtree["config"]["db"]["user"]);
-				unset($bigtree["config"]["db"]["password"]);
 			} else {
 				$connection = new mysqli(
 					$bigtree["config"]["db_write"]["host"],
@@ -42,9 +39,6 @@
 				);
 				$connection->set_charset("utf8");
 				$connection->query("SET SESSION sql_mode = ''");
-				// Remove BigTree connection parameters once it is setup.
-				unset($bigtree["config"]["db_write"]["user"]);
-				unset($bigtree["config"]["db_write"]["password"]);
 			}
 			return $connection;
 		}

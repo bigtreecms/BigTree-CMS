@@ -6,16 +6,14 @@
 
 	class SQL {
 		
-		/** @var \mysqli */
+		private static $Config = null;
+
 		public static $Connection = "disconnected";
-		/** @var \mysqli */
 		public static $WriteConnection = "disconnected";
-		
 		public static $ErrorLog = array();
 		public static $MySQLTime = "";
 		public static $QueryLog = array();
-		
-		/** @var \mysqli_result */
+
 		public $ActiveQuery = false;
 		
 		// Constructor for chain queries
@@ -314,28 +312,35 @@
 		
 		static function connect($property, $type) {
 			global $bigtree;
+
+			if (is_null(static::$Config)) {
+				static::$Config["db"] = $bigtree["config"]["db"];
+				static::$Config["db_write"] ]= $bigtree["config"]["db_write"];
+				
+				unset($bigtree["config"]["db"]["user"]);
+				unset($bigtree["config"]["db"]["password"]);
+				unset($bigtree["config"]["db_write"]["user"]);
+				unset($bigtree["config"]["db_write"]["password"]);
+			}
 			
 			// Initializing optional params, if they don't exist yet due to older install
-			!empty($bigtree["config"][$type]["host"]) || $bigtree["config"][$type]["host"] = null;
-			!empty($bigtree["config"][$type]["port"]) || $bigtree["config"][$type]["port"] = 3306;
-			!empty($bigtree["config"][$type]["socket"]) || $bigtree["config"][$type]["socket"] = null;
+			!empty(static::$Config[$type]["host"]) || static::$Config[$type]["host"] = null;
+			!empty(static::$Config[$type]["port"]) || static::$Config[$type]["port"] = 3306;
+			!empty(static::$Config[$type]["socket"]) || static::$Config[$type]["socket"] = null;
 			
 			static::${$property} = new mysqli(
-				$bigtree["config"][$type]["host"],
-				$bigtree["config"][$type]["user"],
-				$bigtree["config"][$type]["password"],
-				$bigtree["config"][$type]["name"],
-				$bigtree["config"][$type]["port"],
-				$bigtree["config"][$type]["socket"]
+				static::$Config[$type]["host"],
+				static::$Config[$type]["user"],
+				static::$Config[$type]["password"],
+				static::$Config[$type]["name"],
+				static::$Config[$type]["port"],
+				static::$Config[$type]["socket"]
 			);
 			
 			// Make sure everything is run in UTF8, turn off strict mode if set
 			static::${$property}->query("SET NAMES 'utf8'");
 			static::${$property}->query("SET SESSION sql_mode = ''");
 			
-			// Remove BigTree connection parameters once it is setup.
-			unset($bigtree["config"][$type]["user"]);
-			unset($bigtree["config"][$type]["password"]);
 			
 			return static::${$property};
 		}
