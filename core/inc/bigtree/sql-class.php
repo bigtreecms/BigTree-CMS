@@ -315,7 +315,7 @@
 
 			if (is_null(static::$Config)) {
 				static::$Config["db"] = $bigtree["config"]["db"];
-				static::$Config["db_write"] ]= $bigtree["config"]["db_write"];
+				static::$Config["db_write"] = $bigtree["config"]["db_write"];
 				
 				unset($bigtree["config"]["db"]["user"]);
 				unset($bigtree["config"]["db"]["password"]);
