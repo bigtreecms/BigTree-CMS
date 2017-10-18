@@ -316,6 +316,15 @@
 			if (is_null(static::$Config)) {
 				static::$Config["db"] = $bigtree["config"]["db"];
 				static::$Config["db_write"] = $bigtree["config"]["db_write"];
+
+				// Make sure we init the other connections as well
+				if ($bigtree["mysql_read_connection"] === "disconnected") {
+					$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection("read");
+				}
+
+				if (!empty($bigtree["config"]["db_write"]["user"]) && $bigtree["mysql_write_connection"] === "disconnected") {
+					$bigtree["mysql_write_connection"] = bigtree_setup_sql_connection("write");
+				}
 				
 				unset($bigtree["config"]["db"]["user"]);
 				unset($bigtree["config"]["db"]["password"]);
