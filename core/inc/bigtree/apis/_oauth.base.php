@@ -38,6 +38,12 @@
 
 			// If we don't have the setting for the API, create it.
 			$this->Settings = &$cms->autoSaveSetting($setting_id,false);
+			
+			// Prevent fatal error on bad setting data
+			if (!is_array($this->Settings)) {
+				$this->Settings = array();
+			}
+			
 			$this->SettingID = $setting_id;
 
 			// Setup dependency table for cache busting
