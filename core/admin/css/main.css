@@ -684,7 +684,9 @@
 	.table .site_status_status.bad { background: red; color: #FFF; }
 
 	.table .status_published { color: #4DA46E; font-size: 9px; }
-	.table .status_pending a, .table .status_pending { color: #838383; font-size: 9px; }
+	.table .status_pending a, 
+	.table .status_pending,
+	.table .status_inactive { color: #838383; font-size: 9px; }
 	.table .status_scheduled { color: #59A8E9; font-size: 9px; }
 	.table .status_expired { color: #CC3B46; font-size: 9px; }
 
