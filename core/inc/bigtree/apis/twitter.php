@@ -42,11 +42,14 @@
 
 		function blockUser($username) {
 			$response = $this->callUncached("blocks/create.json",array("screen_name" => $username),"POST");
+			
 			if (!$response) {
 				return false;
 			}
+
 			return new BigTreeTwitterUser($response,$this);
 		}
+
 		function block($username) { return $this->blockUser($username); }
 
 		/*
@@ -56,12 +59,15 @@
 
 		function callUncached($endpoint = "",$params = array(),$method = "GET",$headers = array()) {
 			$response = parent::callUncached($endpoint,$params,$method,$headers);
+			
 			if (isset($response->errors) && count($response->errors)) {
 				foreach ($response->errors as $e) {
 					$this->Errors[] = $e->message;
 				}
+
 				return false;
 			}
+
 			return $response;
 		}
 
@@ -78,9 +84,11 @@
 
 		function deleteDirectMessage($id) {
 			$response = $this->callUncached("direct_messages/destroy.json",array("id" => $id),"POST");
+			
 			if (!$response) {
 				return false;
 			}
+
 			return true;
 		}
 
@@ -97,9 +105,11 @@
 
 		function deleteTweet($id) {
 			$response = $this->callUncached("statuses/destroy/$id.json",array(),"POST");
+			
 			if (!$response) {
 				return false;
 			}
+
 			return true;
 		}
 
@@ -116,9 +126,11 @@
 
 		function favoriteTweet($id) {
 			$response = $this->callUncached("favorites/create.json",array("id" => $id),"POST");
+			
 			if (!$response) {
 				return false;
 			}
+
 			return new BigTreeTwitterTweet($response,$this);
 		}
 
@@ -135,11 +147,14 @@
 
 		function followUser($username) {
 			$response = $this->callUncached("friendships/create.json",array("screen_name" => $username),"POST");
+			
 			if (!$response) {
 				return false;
 			}
+
 			return new BigTreeTwitterUser($response,$this);
 		}
+
 		function friendUser($username) { return $this->followUser($username); }
 
 		/*
@@ -158,15 +173,19 @@
 		*/
 
 		function getBlockedUsers($skip_status = true,$params = array()) {
+			$users = array();
 			$response = $this->call("blocks/list.json",array_merge($params,array("skip_status" => $skip_status)));
+			
 			if (!$response) {
 				return false;
 			}
-			$users = array();
+
 			foreach ($response->users as $user) {
 				$users[] = new BigTreeTwitterUser($user,$this);
 			}
+
 			$params["cursor"] = $response->next_cursor;
+
 			return new BigTreeTwitterResultSet($this,"getBlockedUsers",array($skip_status,$params),$users);
 		}
 
@@ -177,6 +196,7 @@
 
 		function getConfiguration() {
 			$response = $this->call("help/configuration.json");
+			
 			if ($response) {
 				$this->Configuration = $response;
 			}
@@ -198,9 +218,11 @@
 
 		function getDirectMessage($id) {
 			$response = $this->call("direct_messages/show.json",array("id" => $id));
+			
 			if (!$response) {
 				return false;
 			}
+
 			return new BigTreeTwitterDirectMessage($response,$this);
 		}
 
@@ -220,14 +242,17 @@
 		*/
 
 		function getDirectMessages($count = 10,$params = array()) {
+			$results = array();
 			$response = $this->callUncached("direct_messages.json",array_merge($params,array("count" => $count)));
+			
 			if (!$response) {
 				return false;
 			}
-			$results = array();
+
 			foreach ($response as $message) {
 				$results[] = new BigTreeTwitterDirectMessage($message,$this);
 			}
+
 			return new BigTreeTwitterResultSet($this,"getDirectMessages",array($count,$params),$results);
 		}
 
@@ -247,14 +272,17 @@
 		*/
 
 		function getFavoriteTweets($count = 10,$params = array()) {
-			$response = $this->call("favorites/list.json",array_merge($params,array("count" => $count)));
+			$results = array();
+			$response = $this->call("favorites/list.json", array_merge($params, array("tweet_mode" => "extended", "count" => $count)));
+			
 			if (!$response) {
 				return false;
 			}
-			$results = array();
+
 			foreach ($response as $tweet) {
 				$results[] = new BigTreeTwitterTweet($tweet,$this);
 			}
+
 			return new BigTreeTwitterResultSet($this,"getFavoriteTweets",array($count,$params),$results);
 		}
 
@@ -275,15 +303,19 @@
 		*/
 
 		function getFollowers($username,$skip_status = true,$params = array()) {
+			$users = array();
 			$response = $this->call("followers/list.json",array_merge($params,array("screen_name" => $username,"skip_status" => $skip_status)));
+			
 			if (!$response) {
 				return false;
 			}
-			$users = array();
+
 			foreach ($response->users as $user) {
 				$users[] = new BigTreeTwitterUser($user,$this);
 			}
+
 			$params["cursor"] = $response->next_cursor;
+			
 			return new BigTreeTwitterResultSet($this,"getFollowers",array($username,$skip_status,$params),$users);
 		}
 
@@ -304,15 +336,19 @@
 		*/
 
 		function getFriends($username,$skip_status = true,$params = array()) {
+			$users = array();
 			$response = $this->call("friends/list.json",array_merge($params,array("screen_name" => $username,"skip_status" => $skip_status)));
+			
 			if (!$response) {
 				return false;
 			}
-			$users = array();
+
 			foreach ($response->users as $user) {
 				$users[] = new BigTreeTwitterUser($user,$this);
 			}
+
 			$params["cursor"] = $response->next_cursor;
+			
 			return new BigTreeTwitterResultSet($this,"getFriends",array($username,$skip_status,$params),$users);
 		}
 
@@ -332,14 +368,17 @@
 		*/
 
 		function getHomeTimeline($count = 10, $params = array()) {
-			$response = $this->call("statuses/home_timeline.json",array_merge($params,array("count" => $count)));
+			$tweets = array();
+			$response = $this->call("statuses/home_timeline.json", array_merge($params, array("tweet_mode" => "extended", "count" => $count)));
+			
 			if (!$response) {
 				return false;
 			}
-			$tweets = array();
+
 			foreach ($response as $tweet) {
 				$tweets[] = new BigTreeTwitterTweet($tweet,$this);
 			}
+
 			return new BigTreeTwitterResultSet($this,"getHomeTimeline",array($count,$params),$tweets);
 		}
 
@@ -359,14 +398,17 @@
 		*/
 
 		function getMentions($count = 10,$params = array()) {
-			$response = $this->call("statuses/mentions_timeline.json",array_merge($params,array("count" => $count)));
+			$tweets = array();
+			$response = $this->call("statuses/mentions_timeline.json", array_merge($params, array("tweet_mode" => "extended", "count" => $count)));
+			
 			if (!$response) {
 				return false;
 			}
-			$tweets = array();
+
 			foreach ($response as $tweet) {
 				$tweets[] = new BigTreeTwitterTweet($tweet,$this);
 			}
+
 			return new BigTreeTwitterResultSet($this,"getMentions",array($count,$params),$tweets);
 		}
 
@@ -383,9 +425,11 @@
 
 		function getPlace($id) {
 			$response = $this->call("geo/id/$id.json");
+			
 			if (!$response) {
 				return false;
 			}
+
 			return new BigTreeTwitterPlace($response,$this);
 		}
 
@@ -405,14 +449,17 @@
 		*/
 
 		function getSentDirectMessages($count = 10,$params = array()) {
+			$results = array();
 			$response = $this->call("direct_messages/sent.json",array_merge($params,array("count" => $count)));
+			
 			if (!$response) {
 				return false;
 			}
-			$results = array();
+
 			foreach ($response as $message) {
 				$results[] = new BigTreeTwitterDirectMessage($message,$this);
 			}
+
 			return new BigTreeTwitterResultSet($this,"getSentDirectMessages",array($count,$params),$results);
 		}
 
@@ -432,10 +479,12 @@
 		*/
 
 		function getTweet($id,$params = array()) {
-			$response = $this->call("statuses/show.json",array_merge($params,array("id" => $id)));
+			$response = $this->call("statuses/show.json",array_merge($params ,array("tweet_mode" => "extended", "id" => $id)));
+			
 			if (!$response) {
 				return false;
 			}
+
 			return new BigTreeTwitterTweet($response,$this);
 		}
 
@@ -460,9 +509,11 @@
 			} else {
 				$response = $this->call("users/show.json",array("screen_name" => $username));
 			}
+
 			if ($response) {
 				return new BigTreeTwitterUser($response,$this);
 			}
+
 			return false;
 		}
 
@@ -483,14 +534,17 @@
 		*/
 
 		function getUserTimeline($user_name, $count = 10, $params = array()) {
-			$response = $this->call("statuses/user_timeline.json",array_merge($params,array("screen_name" => $user_name,"count" => $count)));
+			$tweets = array();
+			$response = $this->call("statuses/user_timeline.json",array_merge($params, array("tweet_mode" => "extended", "screen_name" => $user_name, "count" => $count)));
+
 			if (!$response) {
 				return false;
 			}
-			$tweets = array();
+
 			foreach ($response as $tweet) {
 				$tweets[] = new BigTreeTwitterTweet($tweet,$this);
 			}
+
 			return new BigTreeTwitterResultSet($this,"getUserTimeline",array($user_name,$count,$params),$tweets);
 		}
 
