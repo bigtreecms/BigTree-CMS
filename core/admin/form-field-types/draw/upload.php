@@ -63,7 +63,7 @@
 		<a href="#" class="remove_resource"></a>
 		<div class="currently_wrapper">
 			<? if ($preview_image) { ?>
-			<img src="<?=$preview_image?>" alt="" />
+			<a href="<?=$field["value"]?>" target="_blank"><img src="<?=$preview_image?>" alt="" /></a>
 			<? } ?>
 		</div>
 		<label>CURRENT</label>
