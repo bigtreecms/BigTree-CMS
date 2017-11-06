@@ -972,7 +972,7 @@
 			$this->ID = $tweet->id;
 			isset($tweet->retweeted_status) ? ($this->IsRetweet = $tweet->retweeted_status ? true : false) : false;
 			isset($tweet->lang) ? $this->Language = $tweet->lang : false;
-			isset($tweet->text) ? $this->LinkedContent = preg_replace('/(^|\s)#(\w+)/','\1<a href="http://twitter.com/search?q=%23\2" target="_blank">#\2</a>',preg_replace('/(^|\s)@(\w+)/','\1<a href="http://www.twitter.com/\2" target="_blank">@\2</a>',preg_replace("@\b(https?://)?(([0-9a-zA-Z_!~*'().&=+$%-]+:)?[0-9a-zA-Z_!~*'().&=+$%-]+\@)?(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-zA-Z_!~*'()-]+\.)*([0-9a-zA-Z][0-9a-zA-Z-]{0,61})?[0-9a-zA-Z]\.[a-zA-Z]{2,6})(:[0-9]{1,4})?((/[0-9a-zA-Z_!~*'().;?:\@&=+$,%#-]+)*/?)@",'<a href="\0" target="_blank">\0</a>',$tweet->text))) : false;
+			isset($tweet->text) ? $this->LinkedContent = preg_replace('/(^|\s)#(\w+)/','\1<a href="http://twitter.com/search?q=%23\2" target="_blank">#\2</a>',preg_replace('/(^|\s)@(\w+)/','\1<a href="http://www.twitter.com/\2" target="_blank">@\2</a>',preg_replace("@\b(https?://)?(([0-9a-zA-Z_!~*'().&=+$%-]+:)?[0-9a-zA-Z_!~*'().&=+$%-]+\@)?(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-zA-Z_!~*'()-]+\.)*([0-9a-zA-Z][0-9a-zA-Z-]{0,61})?[0-9a-zA-Z]\.[a-zA-Z]{2,6})(:[0-9]{1,4})?((/[0-9a-zA-Z_!~*'().;?:\@&=+$,%#-]+)*/?)@",'<a href="\0" target="_blank">\0</a>', $this->Content))) : false;
 			if (isset($tweet->entities->media)) {
 				$this->Media = array();
 				if (is_array($tweet->entities->media)) {
