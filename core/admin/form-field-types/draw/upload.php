@@ -29,7 +29,7 @@
 	?>
 	<div class="currently_file">
 		<input type="hidden" name="<?=$field["key"]?>" value="<?=$field["value"]?>" />
-		<strong>Currently:</strong> <a class="file_link" href="<?=$field["value"]?>" target="_blank"><?=$pathinfo["basename"]?></a> <?=$pathinfo["basename"]?> <a href="#" class="remove_resource">Remove</a>
+		<strong>Currently:</strong> <a href="<?=$field["value"]?>" target="_blank"><?=$pathinfo["basename"]?></a> <a href="#" class="remove_resource">Remove</a>
 	</div>
 	<?
 			}
