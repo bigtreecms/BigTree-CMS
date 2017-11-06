@@ -753,9 +753,13 @@
 			isset($media->user_has_liked) ? $this->Liked = $media->user_has_liked : false;
 			if (isset($media->likes)) {
 				$this->LikesCount = $media->likes->count;
-				$this->Likes = array();
-				foreach ($media->likes->data as $user) {
-					$this->Likes[] = new BigTreeInstagramUser($user,$api);
+
+				if (!empty($media->likes->data)) {
+					$this->Likes = array();
+					
+					foreach ($media->likes->data as $user) {
+						$this->Likes[] = new BigTreeInstagramUser($user,$api);
+					}
 				}
 			}
 			if (isset($media->location)) {
