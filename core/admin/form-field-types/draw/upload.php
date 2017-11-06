@@ -22,14 +22,14 @@
 ?>
 <div class="<? if (empty($field["options"]["image"])) { ?>upload_field<? } else { ?>image_field<? } ?>">
 	<input<? if ($field["required"]) { ?> class="required"<? } ?> type="file" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" data-min-width="<?=$min_width?>" data-min-height="<?=$min_height?>" <? if (!empty($field["options"]["image"])) { ?> accept="image/*" <? } ?>/>
-	<?	
+	<?
 		if (!isset($field["options"]["image"]) || !$field["options"]["image"]) {
 			if ($field["value"]) {
 				$pathinfo = BigTree::pathInfo($field["value"]);
 	?>
 	<div class="currently_file">
 		<input type="hidden" name="<?=$field["key"]?>" value="<?=$field["value"]?>" />
-		<strong>Currently:</strong> <?=$pathinfo["basename"]?> <a href="#" class="remove_resource">Remove</a>
+		<strong>Currently:</strong> <a href="<?=$field["value"]?>" target="_blank"><?=$pathinfo["basename"]?></a> <a href="#" class="remove_resource">Remove</a>
 	</div>
 	<?
 			}
@@ -43,14 +43,14 @@
 			} else {
 				$preview_image = false;
 			}
-			
+
 			// Generate the file manager restrictions
 			$button_options = htmlspecialchars(json_encode(array(
 				"minWidth" => $min_width,
 				"minHeight" => $min_height,
 				"currentlyKey" => $field["key"]
 			)));
-			
+
 			if (!defined("BIGTREE_FRONT_END_EDITOR") && !$bigtree["form"]["embedded"]) {
 	?>
 	<span class="or">OR</span>
@@ -63,7 +63,7 @@
 		<a href="#" class="remove_resource"></a>
 		<div class="currently_wrapper">
 			<? if ($preview_image) { ?>
-			<img src="<?=$preview_image?>" alt="" />
+			<a href="<?=$field["value"]?>" target="_blank"><img src="<?=$preview_image?>" alt="" /></a>
 			<? } ?>
 		</div>
 		<label>CURRENT</label>
