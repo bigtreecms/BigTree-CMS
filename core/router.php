@@ -181,7 +181,7 @@
 	// Start output buffering and sessions
 	ob_start();
 	session_set_cookie_params(0,str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
-	session_start();
+	session_start(array("gc_maxlifetime" => 24 * 60 * 60));
 
 	// Check to see if we're in maintenance mode
 	if ($bigtree["config"]["maintenance_url"] && (empty($_SESSION["bigtree_admin"]["level"]) || $_SESSION["bigtree_admin"]["level"] < 2)) {
