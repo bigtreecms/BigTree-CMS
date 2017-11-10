@@ -1383,12 +1383,12 @@
 
 			// Make the title, navigation title, description, keywords, and external link htmlspecialchar'd -- these are all things we'll be echoing in the HTML so we might as well make them valid now instead of at display time.
 
-			$title = htmlspecialchars($title);
-			$nav_title = htmlspecialchars($nav_title);
-			$meta_description = htmlspecialchars($meta_description);
-			$meta_keywords = htmlspecialchars($meta_keywords);
+			$title = BigTree::safeEncode($title);
+			$nav_title = BigTree::safeEncode($nav_title);
+			$meta_description = BigTree::safeEncode($meta_description);
+			$meta_keywords = BigTree::safeEncode($meta_keywords);
 			$seo_invisible = $seo_invisible ? "on" : "";
-			$external = htmlspecialchars($external);
+			$external = BigTree::safeEncode($external);
 
 			// Set the trunk flag back to no if the user isn't a developer
 			if ($this->Level < 2) {
