@@ -1,0 +1,34 @@
+{
+    "name": "ausi/slug-generator",
+    "type": "library",
+    "description": "Slug Generator",
+    "license": "MIT",
+    "keywords": ["slug", "slugify", "slug-generator", "transliteration", "unicode", "ascii", "cldr", "pretty-url"],
+    "authors": [
+        {
+            "name": "Martin Auswöger",
+            "email": "martin@auswoeger.com"
+        }
+    ],
+    "require": {
+        "php": "^7.1",
+        "ext-intl": "*",
+        "ext-mbstring": "*",
+        "ext-pcre": "*"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^2.4",
+        "phpunit/phpunit": "^6.2",
+        "satooshi/php-coveralls": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ausi\\SlugGenerator\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ausi\\SlugGenerator\\Tests\\": "tests/"
+        }
+    }
+}
