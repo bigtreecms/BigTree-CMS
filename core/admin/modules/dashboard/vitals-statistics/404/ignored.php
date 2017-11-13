@@ -6,7 +6,7 @@
 ?>
 <div class="table">
 	<summary>
-		<? include BigTree::path("admin/ajax/dashboard/vitals-statistics/404/_site-key-switcher.php"); ?>
+		<? include BigTree::path("admin/modules/dashboard/vitals-statistics/404/_site-key-switcher.php"); ?>
 		<input type="search" class="form_search" placeholder="Search" id="404_search" />
 		<span class="form_search_icon"></span>
 		<nav id="view_paging" class="view_paging"></nav>
