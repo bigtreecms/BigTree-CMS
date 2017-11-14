@@ -656,4 +656,9 @@
 			sqlquery("UPDATE bigtree_404s SET `requests` = '".$f["count"]."' WHERE `id` = '".$f["id"]."'");
 		}
 	}
+
+	// BigTree 4.2.20 update -- REVISION 206
+	function _local_bigtree_update_206() {
+		sqlquery("ALTER TABLE `bigtree_404s` ADD COLUMN `get_vars` VARCHAR(255) NOT NULL AFTER `broken_url`");
+	}
 ?>

@@ -1336,16 +1336,41 @@
 		
 		static function handle404($url) {
 			$url = sqlescape(htmlspecialchars(strip_tags(rtrim($url, "/"))));
+			$existing = null;
 
-			if (defined("BIGTREE_SITE_KEY")) {
-				$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url' AND site_key = '".sqlescape(BIGTREE_SITE_KEY)."'"));
-			} else {
-				$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url'"));
-			}
-			
 			if (!$url) {
 				return true;
 			}
+
+			// See if there's any GET requests
+			$get = $_GET;
+			unset($get["bigtree_htaccess_url"]);
+
+			if (count($get)) {
+				$query_pieces = [];
+
+				foreach ($get as $key => $value) {
+					$query_pieces[] = $key."=".$value;
+				}
+
+				$get = sqlescape(htmlspecialchars(implode("&", $query_pieces)));
+
+				if (defined("BIGTREE_SITE_KEY")) {
+					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url' AND get_vars = '$get' AND site_key = '".sqlescape(BIGTREE_SITE_KEY)."'"));
+				} else {
+					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url' AND get_vars = '$get'"));
+				}
+			} else {
+				$get = "";
+			}
+
+			if (!$existing) {
+				if (defined("BIGTREE_SITE_KEY")) {
+					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url' AND site_key = '".sqlescape(BIGTREE_SITE_KEY)."'"));
+				} else {
+					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url'"));
+				}
+			}			
 
 			if ($existing["redirect_url"]) {
 				$existing["redirect_url"] = static::getInternalPageLink($existing["redirect_url"]);
@@ -1368,12 +1393,12 @@
 				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 				define("BIGTREE_DO_NOT_CACHE", true);
 
-				if ($existing) {
+				if ($existing && $existing["get_vars"] == $get) {
 					sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = '".$existing["id"]."'");
 				} elseif (defined("BIGTREE_SITE_KEY")) {				
-					sqlquery("INSERT INTO bigtree_404s (`broken_url`, `requests`, `site_key`) VALUES ('$url', '1', '".sqlescape(BIGTREE_SITE_KEY)."')");
+					sqlquery("INSERT INTO bigtree_404s (`broken_url`, `get_vars`, `requests`, `site_key`) VALUES ('$url', '$get', '1', '".sqlescape(BIGTREE_SITE_KEY)."')");
 				} else {
-					sqlquery("INSERT INTO bigtree_404s (`broken_url`, `requests`) VALUES ('$url','1')");
+					sqlquery("INSERT INTO bigtree_404s (`broken_url`, `get_vars`, `requests`) VALUES ('$url', '$get', '1')");
 				}
 				
 				return true;

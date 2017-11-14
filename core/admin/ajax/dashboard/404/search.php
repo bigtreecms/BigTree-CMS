@@ -28,7 +28,7 @@
 ?>
 <li>
 	<section class="requests_404"><?=$item["requests"]?></section>
-	<section class="url_404"><?=$item["broken_url"]?></section>
+	<section class="url_404"><?=$item["broken_url"]?><? if ($item["get_vars"]) { echo "?".$item["get_vars"]; } ?></section>
 	<section class="redirect_404">
 		<input type="text" tabindex="<?=$tabindex?>" name="<?=$item["id"]?>" id="404_<?=$item["id"]?>" class="autosave" value="<?=str_replace(WWW_ROOT,"",$item["redirect_url"])?>" />
 	</section>

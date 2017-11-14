@@ -654,14 +654,31 @@
 				}
 			}
 
+			// Allow for from URLs with GET vars
+			$from_parts = parse_url($from);
+			$get_vars = "";
+
+			if (!empty($from_parts["query"])) {
+				$from = str_replace("?".$from_parts["query"], "", $from);
+				$get_vars = sqlescape(htmlspecialchars($from_parts["query"]));
+			}
+
 			$from = sqlescape(htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT, "", $from),"/"))));
 			$to = sqlescape(htmlspecialchars($this->autoIPL($to)));
 
 			// See if the from already exists
-			if (!is_null($site_key)) {
-				$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from' AND `site_key` = '".sqlescape($site_key)."'"));
+			if ($get_vars) {
+				if (!is_null($site_key)) {
+					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from' AND get_vars = '$get_vars' AND `site_key` = '".sqlescape($site_key)."'"));
+				} else {
+					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from' AND get_vars = '$get_vars'"));	
+				}
 			} else {
-				$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from'"));	
+				if (!is_null($site_key)) {
+					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from' AND `site_key` = '".sqlescape($site_key)."'"));
+				} else {
+					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from'"));	
+				}
 			}
 			
 			if ($existing) {
@@ -669,9 +686,9 @@
 				$this->track("bigtree_404s", $existing["id"], "updated");
 			} else {
 				if (!is_null($site_key)) {
-					sqlquery("INSERT INTO bigtree_404s (`broken_url`, `redirect_url`, `site_key`) VALUES ('$from', '$to', '".sqlescape($site_key)."')");
+					sqlquery("INSERT INTO bigtree_404s (`broken_url`, `get_vars`, `redirect_url`, `site_key`) VALUES ('$from', '$get_vars', '$to', '".sqlescape($site_key)."')");
 				} else {
-					sqlquery("INSERT INTO bigtree_404s (`broken_url`, `redirect_url`) VALUES ('$from','$to')");
+					sqlquery("INSERT INTO bigtree_404s (`broken_url`, `get_vars`, `redirect_url`) VALUES ('$from', '$get_vars', '$to')");
 				}
 
 				$this->track("bigtree_404s", sqlid(), "created");
@@ -6833,11 +6850,11 @@
 			if ($query) {
 				$s = sqlescape(strtolower($query));
 				if ($type == "301") {
-					$where = "ignored = '' AND (LOWER(broken_url) LIKE '%$s%' OR LOWER(redirect_url) LIKE '%$s%') AND redirect_url != ''";
+					$where = "ignored = '' AND (broken_url LIKE '%$s%' OR redirect_url LIKE '%$s%' OR get_vars LIKE '%$s%') AND redirect_url != ''";
 				} elseif ($type == "ignored") {
-					$where = "ignored != '' AND (LOWER(broken_url) LIKE '%$s%' OR LOWER(redirect_url) LIKE '%$s%')";
+					$where = "ignored != '' AND (broken_url LIKE '%$s%' OR redirect_url LIKE '%$s%' OR get_vars LIKE '%$s%')";
 				} else {
-					$where = "ignored = '' AND LOWER(broken_url) LIKE '%$s%' AND redirect_url = ''";
+					$where = "ignored = '' AND (broken_url LIKE '%$s%' OR get_vars LIKE '%$s%') AND redirect_url = ''";
 				}
 			} else {
 				if ($type == "301") {
