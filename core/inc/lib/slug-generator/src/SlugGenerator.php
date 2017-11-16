@@ -31,9 +31,9 @@ class SlugGenerator
 	private $transliterators = [];
 
 	/**
-	 * @param iterable $options SlugOptions object or options array
+	 * @param $options SlugOptions object or options array
 	 */
-	public function __construct(iterable $options = [])
+	public function __construct($options = [])
 	{
 		static::checkPcreSupport();
 
@@ -49,7 +49,7 @@ class SlugGenerator
 	 *
 	 * @internal
 	 */
-	public static function checkPcreSupport(): void
+	public static function checkPcreSupport()
 	{
 		static $supported = null;
 
@@ -66,11 +66,11 @@ class SlugGenerator
 	 * Generate a slug from the specified text.
 	 *
 	 * @param string   $text
-	 * @param iterable $options SlugOptions object or options array
+	 * @param $options SlugOptions object or options array
 	 *
 	 * @return string
 	 */
-	public function generate(string $text, iterable $options = []): string
+	public function generate(string $text, $options = []): string
 	{
 		if (preg_match('//u', $text) !== 1) {
 			throw new \InvalidArgumentException('Text is invalid UTF-8');
@@ -146,7 +146,7 @@ class SlugGenerator
 	 *
 	 * @return string
 	 */
-	private function transform(string $text, string $valid, iterable $transforms, string $locale): string
+	private function transform(string $text, string $valid, $transforms, string $locale): string
 	{
 		$regexRegular = '([^'.$valid.']+)us';
 		$regexCase = $this->createCaseRegex($valid);

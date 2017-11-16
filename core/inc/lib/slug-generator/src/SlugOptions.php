@@ -59,9 +59,9 @@ class SlugOptions implements \IteratorAggregate
 	private $setOptions = [];
 
 	/**
-	 * @param iterable $options See the setter methods for available options
+	 * @param array $options See the setter methods for available options
 	 */
-	public function __construct(iterable $options = [])
+	public function __construct(array $options = [])
 	{
 		foreach ($options as $option => $value) {
 			$this->assertOptionName($option);
@@ -88,11 +88,11 @@ class SlugOptions implements \IteratorAggregate
 	/**
 	 * Merge the options with and return a new options object.
 	 *
-	 * @param iterable $options SlugOptions object or options array
+	 * @param array $options SlugOptions object or options array
 	 *
 	 * @return static
 	 */
-	public function merge(iterable $options): self
+	public function merge(array $options): self
 	{
 		$merged = clone $this;
 
@@ -228,12 +228,12 @@ class SlugOptions implements \IteratorAggregate
 	}
 
 	/**
-	 * @param iterable $transforms List of rules or rulesets to be used by the Transliterator,
+	 * @param array $transforms List of rules or rulesets to be used by the Transliterator,
 	 *                             like `Lower`, `ASCII` or `a > b; c > d`
 	 *
 	 * @return static
 	 */
-	public function setTransforms(iterable $transforms): self
+	public function setTransforms(array $transforms): self
 	{
 		$this->transforms = [];
 
@@ -258,12 +258,12 @@ class SlugOptions implements \IteratorAggregate
 	/**
 	 * Add transforms before existing ones.
 	 *
-	 * @param iterable $transforms List of rules or rulesets to be used by the Transliterator,
+	 * @param array $transforms List of rules or rulesets to be used by the Transliterator,
 	 *                             like `Lower`, `ASCII` or `a > b; c > d`
 	 *
 	 * @return static
 	 */
-	public function setPreTransforms(iterable $transforms): self
+	public function setPreTransforms(array $transforms): self
 	{
 		if (!is_array($transforms)) {
 			$transforms = iterator_to_array($transforms, false);
@@ -280,12 +280,12 @@ class SlugOptions implements \IteratorAggregate
 	/**
 	 * Add transforms after existing ones.
 	 *
-	 * @param iterable $transforms List of rules or rulesets to be used by the Transliterator,
+	 * @param array $transforms List of rules or rulesets to be used by the Transliterator,
 	 *                             like `Lower`, `ASCII` or `a > b; c > d`
 	 *
 	 * @return static
 	 */
-	public function setPostTransforms(iterable $transforms): self
+	public function setPostTransforms(array $transforms): self
 	{
 		foreach ($transforms as $transform) {
 			$this->assertTransform($transform);
@@ -300,7 +300,7 @@ class SlugOptions implements \IteratorAggregate
 	 *
 	 * @throws \InvalidArgumentException If it’s an invalid option name
 	 */
-	private function assertOptionName(string $option): void
+	private function assertOptionName(string $option)
 	{
 		static $validOptions = [
 			'delimiter',
@@ -322,7 +322,7 @@ class SlugOptions implements \IteratorAggregate
 	 *
 	 * @throws \InvalidArgumentException If it’s an invalid regex character class
 	 */
-	private function assertCharacterClass(string $chars): void
+	private function assertCharacterClass(string $chars)
 	{
 		SlugGenerator::checkPcreSupport();
 
@@ -336,7 +336,7 @@ class SlugOptions implements \IteratorAggregate
 	 *
 	 * @throws \InvalidArgumentException If it’s an invalid transform
 	 */
-	private function assertTransform($transform): void
+	private function assertTransform($transform)
 	{
 		if (!is_string($transform)) {
 			throw new \InvalidArgumentException(sprintf('Transform must be of the type string, %s given', gettype($transform)));
