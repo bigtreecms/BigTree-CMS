@@ -1534,7 +1534,7 @@
 		*/
 
 		static function urlify($title) {
-			if (version_compare(PHP_VERSION, "5.4.0") >= 0) {
+			if (version_compare(PHP_VERSION, "7.0.0") >= 0) {
 				require_once(SERVER_ROOT."core/inc/lib/slug-generator/src/SlugOptions.php");
 				require_once(SERVER_ROOT."core/inc/lib/slug-generator/src/SlugGenerator.php");
 
