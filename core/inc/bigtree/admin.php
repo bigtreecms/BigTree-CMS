@@ -5861,8 +5861,12 @@
 				return false;
 			}
 
-			$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
-			$ok = $phpass->CheckPassword($password, $user["password"]);
+			if ($user) {
+				$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
+				$ok = $phpass->CheckPassword($password, $user["password"]);
+			} else {
+				$ok = false;
+			}
 			
 			if ($ok) {
 				// Generate a random CSRF token
