@@ -460,6 +460,15 @@
 			include SERVER_ROOT."templates/basic/_404.php";
 		}
 	}
+
+	// If we have a specific URL trailing slash behavior specified, ensure it's applied to the current request now that we've ruled out 404s
+    if (array_filter($bigtree["path"])) {
+    	if (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
+    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/")."/","301");
+    	} elseif (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
+    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/"),"301");    	
+    	}
+    }
 	
 	$bigtree["content"] = ob_get_clean();
 	
