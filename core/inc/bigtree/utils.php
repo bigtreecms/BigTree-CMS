@@ -1346,25 +1346,32 @@
 			$info = getimagesize($source);
 			$source_width = $info[0];
 			$source_height = $info[1];
-
+			$bytes = $info["bits"] ? ceil($info["bits"] / 8) : 1;
+			
 			// GD takes about 70% extra memory for JPG and we're most likely running 3 bytes per pixel
 			if ($info["mime"] == "image/jpg" || $info["mime"] == "image/jpeg") {
-				$source_size = ceil($source_width * $source_height * 3 * 1.7); 
-				$target_size = ceil($width * $height * 3 * 1.7);
+				$channels = $info["channels"] ?: 3;
+				$source_size = ceil($source_width * $source_height * $bytes * $channels * 1.825); 
+				$target_size = ceil($width * $height * $bytes * $channels * 1.825);
 			// GD takes about 250% extra memory for GIFs which are most likely running 1 byte per pixel
 			} elseif ($info["mime"] == "image/gif") {
-				$source_size = ceil($source_width * $source_height * 2.5); 
-				$target_size = ceil($width * $height * 2.5);
+				$channels = $info["channels"] ?: 1;
+				$source_size = ceil($source_width * $source_height * $bytes * $channels * 2.5); 
+				$target_size = ceil($width * $height * $bytes * $channels * 2.5);
 			// GD takes about 245% extra memory for PNGs which are most likely running 4 bytes per pixel
 			} elseif ($info["mime"] == "image/png") {
-				$source_size = ceil($source_width * $source_height * 4 * 2.45);
-				$target_size = ceil($width * $height * 4 * 2.45);
+				$channels = $info["channels"] ?: 4;
+				$source_size = ceil($source_width * $source_height * $bytes * $channels * 2.45);
+				$target_size = ceil($width * $height * $bytes * $channels * 2.45);
 			}
-
-			$memory_usage = $source_size + $target_size + memory_get_usage();
+			
+			// Add 2MB for PHP
+			$memory_usage = (2 * 1024 * 1024) + $source_size + $target_size + memory_get_usage();
+			
 			if ($memory_usage > $available_memory) {
 				return false;
 			}
+
 			return true;
 		}
 		
