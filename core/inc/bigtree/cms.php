@@ -1429,10 +1429,10 @@
 						
 						
 						if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
-							return $site_data["www_root"].$path;
+							return rtrim($site_data["www_root"].$path, "/");
 						}
 						
-						return $site_data["www_root"].$path."/";
+						return rtrim($site_data["www_root"].$path, "/")."/";
 					}
 				}
 			}			
