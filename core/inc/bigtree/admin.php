@@ -5827,12 +5827,13 @@
 				email - The email address of the user.
 				password - The password of the user.
 				stay_logged_in - Whether to set a cookie to keep the user logged in.
+				domain - A secondary domain to set login cookies for (used for multi-site).
 
 			Returns:
 				false if login failed, otherwise redirects back to the page the person requested.
 		*/
 
-		static function login($email,$password,$stay_logged_in = false) {
+		static function login($email,$password,$stay_logged_in = false,$domain = null) {
 			global $bigtree;
 
 			// Check to see if this IP is already banned from logging in.
@@ -5902,9 +5903,20 @@
 						"csrf_token" => $csrf_token,
 						"csrf_token_field" => $csrf_token_field
 					);
-					
-					foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
-						$cache_data["remaining_sites"][$site_key] = $site_configuration["www_root"];
+
+					// If we have less than 4 other sites, browsers aren't going to freak out with the redirects
+					if (count($bigtree["config"]["sites"]) < 4) {
+						foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
+							$cache_data["remaining_sites"][$site_key] = $site_configuration["www_root"];
+						}
+					} else {
+						$desired_site_key = null;
+
+						foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
+							if (str_replace(array("https://", "http://"), "", rtrim($site_configuration["domain"],"/")) == $domain) {
+								$cache_data["remaining_sites"][$site_key] = $site_configuration["www_root"];
+							}
+						}
 					}
 					
 					$cache_session_key = BigTreeCMS::cacheUnique("org.bigtreecms.login-session", $cache_data);

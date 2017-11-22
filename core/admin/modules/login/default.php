@@ -1,7 +1,7 @@
 <?
 	$failure = false;
 	if (isset($_POST["user"]) && isset($_POST["password"])) {
-		if (!$admin->login($_POST["user"],$_POST["password"],$_POST["stay_logged_in"])) {
+		if (!$admin->login($_POST["user"], $_POST["password"], $_POST["stay_logged_in"], $_POST["domain"])) {
 			$failure = true;
 		}
 	}
@@ -27,6 +27,12 @@
 	?>
 	<p class="error_message clear">You've entered an invalid email address and/or password.</p>
 	<?
+			}
+
+			if (!empty($_REQUEST["domain"])) {
+	?>
+	<input type="hidden" name="domain" value="<?=BigTree::safeEncode($_REQUEST["domain"])?>" />
+	<?php
 			}
 	?>
 	<fieldset>

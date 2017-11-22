@@ -160,7 +160,19 @@
 	
 	// We're loading a page in the admin, so let's pass some headers
 	header("Content-Type: text/html; charset=utf-8");
-	header("X-Frame-Options: SAMEORIGIN");
+
+	if (count($bigtree["config"]["sites"])) {
+		$csp_domains = [];
+
+		foreach ($bigtree["config"]["sites"] as $site) {
+			$csp_domains[] = str_replace(array("https://", "http://"), "", $site["domain"]);
+		}
+
+		header("Content-Security-Policy: frame-ancestors ".implode(" ",$csp_domains));
+	} else {
+		header("Content-Security-Policy: frame-ancestors ".str_replace(array("https://", "http://"), "", DOMAIN));
+	}
+
 	if (function_exists("header_remove")) {
 		header_remove("Server");
 		header_remove("X-Powered-By");
@@ -207,7 +219,12 @@
 	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
 		if (implode(array_slice($bigtree["path"],1,3),"/") != "ajax/auto-modules/embeddable-form") {
 			$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
-			BigTree::redirect(ADMIN_ROOT."login/");
+
+			if (count($bigtree["config"]["sites"])) {
+				BigTree::redirect(ADMIN_ROOT."login/?domain=".urlencode($_SERVER["HTTP_HOST"]));
+			} else {
+				BigTree::redirect(ADMIN_ROOT."login/");
+			}
 		}
 	}
 	
