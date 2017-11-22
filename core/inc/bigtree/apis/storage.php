@@ -152,12 +152,20 @@
 
 			if ($this->Cloud) {
 				$success = $this->Cloud->uploadFile($local_file,$this->Settings->Container,$relative_path.$file_name,true);
+				
 				if ($success) {
 					sqlquery("UPDATE bigtree_caches SET value = '".sqlescape(json_encode(array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file))))."' WHERE `identifier` = 'org.bigtreecms.cloudfiles' AND `key` = '".sqlescape($relative_path.$file_name)."'");
 				}
+
 				if ($remove_original) {
 					unlink($local_file);
 				}
+
+				// CloudFront support
+				if ($this->Settings->CDNDomain && $this->Settings->Service == "amazon") {
+					return str_replace("//s3.amazonaws.com/".$this->Settings->Container, "//".$this->Settings->CDNDomain, $success);
+				}
+				
 				return $success;
 			} else {
 				if ($remove_original) {
@@ -233,12 +241,20 @@
 				}
 				// Upload it
 				$success = $this->Cloud->uploadFile($local_file,$this->Settings->Container,$relative_path.$file_name,true);
+				
 				if ($success) {
 					sqlquery("INSERT INTO bigtree_caches (`identifier`,`key`,`value`) VALUES ('org.bigtreecms.cloudfiles','".sqlescape($relative_path.$file_name)."','".sqlescape(json_encode(array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file))))."')");
 				}
+				
 				if ($remove_original) {
 					unlink($local_file);
 				}
+
+				// CloudFront support
+				if ($this->Settings->CDNDomain && $this->Settings->Service == "amazon") {
+					return str_replace("//s3.amazonaws.com/".$this->Settings->Container, "//".$this->Settings->CDNDomain, $success);
+				}
+				
 				return $success;
 			} else {
 				$safe_name = BigTree::getAvailableFileName(SITE_ROOT.$relative_path,$file_name,$prefixes);
