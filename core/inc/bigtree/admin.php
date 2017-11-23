@@ -6842,6 +6842,18 @@
 		}
 
 		/*
+			Function: remove2FASecret
+				Removes two factor authentication from a user.
+
+			Parameters:
+				user - A user ID
+		*/
+
+		function remove2FASecret($user) {
+			sqlquery("UPDATE bigtree_users SET 2fa_secret = '' WHERE id = '".sqlescape($user)."'");
+		}
+
+		/*
 			Function: requireAccess
 				Checks the logged in user's access to a given module.
 				Throws a permission denied page and stops page execution if the user doesn't have access.
