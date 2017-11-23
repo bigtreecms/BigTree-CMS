@@ -252,6 +252,24 @@
 		}
 
 		/*
+			Function: assign2FASecret
+				Assigns a two factor auth token to a user and then logs them in.
+
+			Parameters:
+				secret - A Google Authenticator secret
+		*/
+
+		function assign2FASecret($secret) {
+			$user = sqlfetch(sqlquery("SELECT 2fa_login_token FROM bigtree_users WHERE id = '".$_SESSION["bigtree_admin"]["2fa_id"]."'"));
+
+			if ($user["2fa_login_token"] == $_SESSION["bigtree_admin"]["2fa_login_token"]) {
+				sqlquery("UPDATE bigtree_users SET 2fa_secret = '".sqlescape($secret)."' WHERE id = '".$_SESSION["bigtree_admin"]["2fa_id"]."'");
+			}
+
+			$this->login2FA(null, true);
+		}
+
+		/*
 			Function: autoIPL
 				Automatically converts links to internal page links.
 
@@ -5497,12 +5515,14 @@
 
 		function initSecurity() {
 			global $bigtree;
+
 			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
 			$bigtree["security-policy"] = $p = BigTreeCMS::getSetting("bigtree-internal-security-policy");
 
 			// Check banned IPs list for the user's IP
 			if (!empty($p["banned_ips"])) {
 				$banned = explode("\n",$p["banned_ips"]);
+				
 				foreach ($banned as $address) {
 					if (ip2long(trim($address)) == $ip) {
 						$bigtree["layout"] = "login";
@@ -5516,14 +5536,17 @@
 				$allowed = false;
 				// Go through the list and see if our IP address is allowed
 				$list = explode("\n",$p["allowed_ips"]);
+				
 				foreach ($list as $item) {
 					list($begin,$end) = explode(",",$item);
 					$begin = ip2long(trim($begin));
 					$end = ip2long(trim($end));
+					
 					if ($begin <= $ip && $end >= $ip) {
 						$allowed = true;
 					}
 				}
+
 				if (!$allowed) {
 					$bigtree["layout"] = "login";
 					$this->stop(file_get_contents(BigTree::path("admin/pages/ip-restriction.php")));
@@ -5777,6 +5800,58 @@
 		}
 
 		/*
+			Function: isIPBanned
+				Checks to see if the requesting IP address is banned and should not be allowed to attempt login.
+
+			Returns:
+				true if the IP is banned
+		*/
+
+		function isIPBanned() {
+			global $bigtree;
+
+			// Check to see if this IP is already banned from logging in.
+			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
+			$ban = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND ip = '$ip'"));
+			
+			if ($ban) {
+				$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime($ban["expires"]));
+				$bigtree["ban_is_user"] = false;
+				
+				return true;
+			}
+
+			return false;
+		}
+
+		/*
+			Function: isUserBanned
+				Checks to see if the logging in user is banned and should not be allowed to attempt login.
+			
+			Parameters:
+				user - A user ID
+
+			Returns:
+				true if the user is banned
+		*/
+
+		function isUserBanned($user) {
+			global $bigtree;
+
+			// See if this user is banned due to failed login attempts
+			$ban = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND `user` = '".intval($user)."'"));
+			
+			if ($ban) {
+				$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime($ban["expires"]));
+				$bigtree["ban_is_user"] = true;
+				
+				return true;
+			}
+
+			return false;
+		}
+
+		/*
 			Function: lockCheck
 				Checks if a lock exists.
 				If a lock exists and it's currently active, stops page execution and shows the lock page.
@@ -5828,45 +5903,44 @@
 				password - The password of the user.
 				stay_logged_in - Whether to set a cookie to keep the user logged in.
 				domain - A secondary domain to set login cookies for (used for multi-site).
+				two_factor_token - A token for a login that is already in progress with 2FA.
 
 			Returns:
 				false if login failed, otherwise redirects back to the page the person requested.
 		*/
 
-		static function login($email,$password,$stay_logged_in = false,$domain = null) {
+		static function login($email,$password,$stay_logged_in = false,$domain = null,$two_factor_token = null) {
 			global $bigtree;
 
-			// Check to see if this IP is already banned from logging in.
-			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
-			$ban = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND ip = '$ip'"));
-			
-			if ($ban) {
-				$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime($ban["expires"]));
-				$bigtree["ban_is_user"] = false;
-				
-				return false;
-			}
+			if ($two_factor_token) {
+				$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE 2fa_login_token = '".sqlescape($two_factor_token)."'"));
 
-			// Get rid of whitespace and make the email lowercase for consistency
-			$email = trim(strtolower($email));
-			$password = trim($password);
-			$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE LOWER(email) = '".sqlescape($email)."'"));
-
-			// See if this user is banned due to failed login attempts
-			$ban = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND `user` = '".$user["id"]."'"));
-			
-			if ($ban) {
-				$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime($ban["expires"]));
-				$bigtree["ban_is_user"] = true;
-				
-				return false;
-			}
-
-			if ($user) {
-				$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
-				$ok = $phpass->CheckPassword($password, $user["password"]);
+				if ($user) {
+					$ok = true;
+					sqlquery("UPDATE bigtree_users SET 2fa_login_token = '' WHERE id = '".$user["id"]."'");
+				} else {
+					$ok = false;
+				}
 			} else {
-				$ok = false;
+				if ($this->isIPBanned()) {
+					return false;
+				}
+	
+				// Get rid of whitespace and make the email lowercase for consistency
+				$email = trim(strtolower($email));
+				$password = trim($password);
+				$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE LOWER(email) = '".sqlescape($email)."'"));
+	
+				if ($user) {
+					if ($this->isUserBanned($user["id"])) {
+						return false;
+					}
+	
+					$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
+					$ok = $phpass->CheckPassword($password, $user["password"]);
+				} else {
+					$ok = false;
+				}
 			}
 			
 			if ($ok) {
@@ -5891,7 +5965,7 @@
 				// Create the new session chain
 				sqlquery("INSERT INTO bigtree_user_sessions (`id`,`chain`,`email`,`csrf_token`,`csrf_token_field`) VALUES ('".sqlescape($session)."','".sqlescape($chain)."','".sqlescape($user["email"])."','$csrf_token','$csrf_token_field')");
 				
-				if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+				if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {					
 					// Create another unique cache session for logins across domains
 					$cache_data = array(
 						"user_id" => $user["id"],
@@ -6003,6 +6077,34 @@
 				return false;
 			}
 			
+			return true;
+		}
+
+		/*
+			Function: login2FA
+				Verifies an authorization token matches the user's secret and logs them in if successful.
+			
+			Parameters:
+				token - A time based token
+				bypass - For first time setup, bypass code check
+
+			Returns:
+				true if login fails, otherwise redirects
+		*/
+
+		function login2FA($token, $bypass = false) {
+			include BigTree::path("inc/lib/GoogleAuthenticator.php");
+
+			// Grab the user's secret first
+			$user = sqlfetch(sqlquery("SELECT 2fa_secret FROM bigtree_users WHERE id = '".$_SESSION["bigtree_admin"]["2fa_id"]."'"));
+			$success = GoogleAuthenticator::verifyCode($user["2fa_secret"], $token);
+
+			if ($success || $bypass) {
+				$this->login(null, null, $_SESSION["bigtree_admin"]["2fa_stay_logged_in"], $_SESSION["bigtree_admin"]["2fa_domain"], $_SESSION["bigtree_admin"]["2fa_login_token"]);
+
+				return false;
+			}
+
 			return true;
 		}
 		
@@ -8547,6 +8649,50 @@
 			if (strpos($clean_referer, $clean_domain) !== 0 || $token != $this->CSRFToken) {
 				$this->stop("Cross site request forgery detected.");
 			}
+		}
+
+		/*
+			Function: verifyLogin2FA
+				Verifies a username and password and returns the two factor auth secret.
+			
+			Parameters:
+				email - Email address
+				password - Password
+
+			Returns:
+				The two factor auth secret for the user or null if login failed.
+		*/
+
+		function verifyLogin2FA($email, $password) {
+			global $bigtree;
+
+			if ($this->isIPBanned()) {
+				return null;
+			}
+
+			// Get rid of whitespace and make the email lowercase for consistency
+			$email = trim(strtolower($email));
+			$password = trim($password);
+			$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE LOWER(email) = '".sqlescape($email)."'"));
+
+			if ($user) {
+				if ($this->isUserBanned($user["id"])) {
+					return null;
+				}
+				
+				$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
+				
+				if ($phpass->CheckPassword($password, $user["password"])) {
+					$token = $phpass->HashPassword(BigTree::randomString(64).trim($password).BigTree::randomString(64));
+					$_SESSION["bigtree_admin"]["2fa_id"] = intval($user["id"]);
+					$_SESSION["bigtree_admin"]["2fa_login_token"] = $token;
+					sqlquery("UPDATE bigtree_users SET 2fa_login_token = '".sqlescape($token)."' WHERE id = '".intval($user["id"])."'");
+
+					return $user["2fa_secret"];
+				}
+			}
+			
+			return null;
 		}
 
 		/*

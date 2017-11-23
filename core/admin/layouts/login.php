@@ -15,7 +15,7 @@
 		<script src="<?=$root?>js/lib.js"></script>
 		<script src="<?=$root?>js/main.js"></script>
 	</head>
-	<body class="login">
+	<body class="login<?php if (defined("ADMIN_BODY_CLASS")) { echo " ".ADMIN_BODY_CLASS; } ?>">
 		<div class="login_wrapper">
 			<h1><?=$site["nav_title"]?></h1>
 			<?=$bigtree["content"]?>

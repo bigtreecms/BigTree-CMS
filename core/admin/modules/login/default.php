@@ -1,14 +1,13 @@
-<?
-	$failure = false;
-	if (isset($_POST["user"]) && isset($_POST["password"])) {
-		if (!$admin->login($_POST["user"], $_POST["password"], $_POST["stay_logged_in"], $_POST["domain"])) {
-			$failure = true;
-		}
+<?	
+	if (isset($_GET["error"])) {
+		$failure = true;
+		$user = htmlspecialchars($_SESSION["bigtree_admin"]["email"]);
+	} else {
+		$user = "";
+		$failure = false;
 	}
-	
-	$user = isset($_POST["user"]) ? htmlspecialchars($_POST["user"]) : "";
 ?>
-<form method="post" action="" class="module">
+<form method="post" action="<?=ADMIN_ROOT?>login/process/" class="module">
 	<?
 		if ($bigtree["ban_expiration"]) {
 	?>
@@ -32,7 +31,7 @@
 			if (!empty($_REQUEST["domain"])) {
 	?>
 	<input type="hidden" name="domain" value="<?=BigTree::safeEncode($_REQUEST["domain"])?>" />
-	<?php
+	<?
 			}
 	?>
 	<fieldset>
@@ -42,7 +41,13 @@
 	<fieldset>
 		<label>Password</label>
 		<input type="password" id="password" name="password" class="text" />
+		<?
+			if ($bigtree["security-policy"]["remember_disabled"] != "on") {
+		?>
 		<p><input type="checkbox" name="stay_logged_in" checked="checked" /> Remember Me</p>
+		<?
+			}
+		?>
 	</fieldset>
 	<fieldset class="lower">
 		<a href="<?=$login_root?>forgot-password/" class="forgot_password">Forgot Password?</a>

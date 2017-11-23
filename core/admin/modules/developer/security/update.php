@@ -23,7 +23,9 @@
 		"suspect_geo_check" => $suspect_geo_check ? "on" : "",
 		"include_daily_bans" => $include_daily_bans ? "on" : "",
 		"allowed_ips" => $allowed_ips,
-		"banned_ips" => $banned_ips
+		"banned_ips" => $banned_ips,
+		"remember_disabled" => $remember_disabled ? "on" : "",
+		"two_factor" => $two_factor
 	));
 	
 	$admin->growl("Security","Updated Policy");

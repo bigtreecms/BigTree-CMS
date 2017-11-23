@@ -661,4 +661,10 @@
 	function _local_bigtree_update_206() {
 		sqlquery("ALTER TABLE `bigtree_404s` ADD COLUMN `get_vars` VARCHAR(255) NOT NULL AFTER `broken_url`");
 	}
+
+	// BigTree 4.2.20 update -- REVISION 207
+	function _local_bigtree_update_207() {
+		sqlquery("ALTER TABLE `bigtree_users` ADD COLUMN `2fa_secret` VARCHAR(255) NOT NULL AFTER `password`");
+		sqlquery("ALTER TABLE `bigtree_users` ADD COLUMN `2fa_login_token` VARCHAR(255) NOT NULL AFTER `2fa_secret`");
+	}
 ?>

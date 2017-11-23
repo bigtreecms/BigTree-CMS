@@ -220,7 +220,8 @@
 
 	// If we're not logged in and we're not trying to login or access an embedded form, redirect to the login page.
 	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
-		if (implode(array_slice($bigtree["path"],1,3),"/") != "ajax/auto-modules/embeddable-form") {
+		if (implode(array_slice($bigtree["path"],1,3),"/") != "ajax/auto-modules/embeddable-form" &&
+			implode(array_slice($bigtree["path"],1,2),"/") != "ajax/two-factor-check") {
 			$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
 
 			if (count($bigtree["config"]["sites"])) {
@@ -246,10 +247,12 @@
 	// See if we're requesting something in /ajax/
 	if ($bigtree["path"][1] == "ajax") {
 		$module = false;
-		$core_ajax_directories = array("auto-modules","callouts","dashboard","file-browser","pages","tags");
+		$core_ajax_directories = array("two-factor-check","auto-modules","callouts","dashboard","file-browser","pages","tags");
+		
 		if (!in_array($bigtree["path"][2],$core_ajax_directories) && $bigtree["path"]) {
 			// If the current user isn't allowed in the module for the ajax, stop them.
 			$module = $admin->getModuleByRoute($bigtree["path"][2]);
+			
 			if ($module && !$admin->checkAccess($module["id"])) {
 				die("Permission denied to module: ".$module["name"]);
 			} elseif (!$admin->ID) {

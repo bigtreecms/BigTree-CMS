@@ -38,6 +38,16 @@
 						<input type="checkbox" name="password[nonalphanumeric]"<? if ($password["nonalphanumeric"]) { ?> checked="checked"<? } ?> />
 						<label class="for_checkbox">Require Non-Alphanumeric Characters <small>(i.e. $ # ^ *)</small></label>
 					</fieldset>
+					<br />
+					<h3>Login Options</h3>
+					<fieldset>
+						<input type="checkbox" name="two_factor" value="google"<?php if ($two_factor == "google") { ?> checked<?php } ?>>
+						<label class="for_checkbox">Enable Two-Factor Authentication via Google Authenticator</label>
+					</fieldset>
+					<fieldset>
+						<input type="checkbox" name="remember_disabled" value="on"<?php if ($remember_disabled == "on") { ?> checked<?php } ?>>
+						<label class="for_checkbox">Disable "Remember Me" Function</label>
+					</fieldset>					
 				</div>
 				<div class="right">
 					<fieldset>
