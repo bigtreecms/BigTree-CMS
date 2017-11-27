@@ -5807,7 +5807,7 @@
 				true if the IP is banned
 		*/
 
-		function isIPBanned() {
+		static function isIPBanned() {
 			global $bigtree;
 
 			// Check to see if this IP is already banned from logging in.
@@ -5835,7 +5835,7 @@
 				true if the user is banned
 		*/
 
-		function isUserBanned($user) {
+		static function isUserBanned($user) {
 			global $bigtree;
 
 			// See if this user is banned due to failed login attempts
@@ -5922,7 +5922,7 @@
 					$ok = false;
 				}
 			} else {
-				if ($this->isIPBanned()) {
+				if (static::isIPBanned()) {
 					return false;
 				}
 	
@@ -5932,7 +5932,7 @@
 				$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE LOWER(email) = '".sqlescape($email)."'"));
 	
 				if ($user) {
-					if ($this->isUserBanned($user["id"])) {
+					if (static::isUserBanned($user["id"])) {
 						return false;
 					}
 	
@@ -8675,10 +8675,10 @@
 				The two factor auth secret for the user or null if login failed.
 		*/
 
-		function verifyLogin2FA($email, $password) {
+		static function verifyLogin2FA($email, $password) {
 			global $bigtree;
 
-			if ($this->isIPBanned()) {
+			if (static::isIPBanned()) {
 				return null;
 			}
 
@@ -8688,7 +8688,7 @@
 			$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE LOWER(email) = '".sqlescape($email)."'"));
 
 			if ($user) {
-				if ($this->isUserBanned($user["id"])) {
+				if (static::isUserBanned($user["id"])) {
 					return null;
 				}
 				
