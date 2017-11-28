@@ -2,9 +2,9 @@
 	/*
 		Class: BigTree
 			A utilities class with many useful functions.
-
+	
 	*/
-
+	
 	class BigTree {
 
 		static $StateList = array('AL'=>"Alabama",'AK'=>"Alaska",'AZ'=>"Arizona",'AR'=>"Arkansas",'CA'=>"California",'CO'=>"Colorado",'CT'=>"Connecticut",'DE'=>"Delaware",'DC'=>"District Of Columbia", 'FL'=>"Florida",'GA'=>"Georgia",'HI'=>"Hawaii",'ID'=>"Idaho",'IL'=>"Illinois",'IN'=>"Indiana",'IA'=>"Iowa",'KS'=>"Kansas",'KY'=>"Kentucky",'LA'=>"Louisiana",'ME'=>"Maine",'MD'=>"Maryland",'MA'=>"Massachusetts",'MI'=>"Michigan",'MN'=>"Minnesota",'MS'=>"Mississippi",'MO'=>"Missouri",'MT'=>"Montana",'NE'=>"Nebraska",'NV'=>"Nevada",'NH'=>"New Hampshire",'NJ'=>"New Jersey",'NM'=>"New Mexico",'NY'=>"New York",'NC'=>"North Carolina",'ND'=>"North Dakota",'OH'=>"Ohio",'OK'=>"Oklahoma",'OR'=>"Oregon",'PA'=>"Pennsylvania",'RI'=>"Rhode Island",'SC'=>"South Carolina",'SD'=>"South Dakota",'TN'=>"Tennessee",'TX'=>"Texas",'UT'=>"Utah",'VT'=>"Vermont",'VA'=>"Virginia",'WA'=>"Washington",'WV'=>"West Virginia",'WI'=>"Wisconsin",'WY'=>"Wyoming");
@@ -13,19 +13,19 @@
 		static $MonthList = array("1" => "January","2" => "February","3" => "March","4" => "April","5" => "May","6" => "June","7" => "July","8" => "August","9" => "September","10" => "October","11" => "November","12" => "December");
 		static $JSONEncoding = false;
 		static $SUTestResult = null;
-
+	
 		/*
 			Function: arrayToXML
 				Turns a PHP array into an XML string.
-
+			
 			Parameters:
 				array - The array to convert.
 				tab - Current tab depth (for recursion).
-
+			
 			Returns:
 				A string of XML.
-		*/
-
+		*/				
+		
 		static function arrayToXML($array,$tab = "") {
 			$xml = "";
 			foreach ($array as $key => $val) {
@@ -45,7 +45,7 @@
 		/*
 			Function: centerCrop
 				Crop from the center of an image to create a new one.
-
+			
 			Parameters:
 				file - The location of the image to crop.
 				newfile - The location to save the new cropped image.
@@ -57,10 +57,10 @@
 			Returns:
 				The new file name if successful, false if there was not enough memory available.
 		*/
-
+		
 		static function centerCrop($file, $newfile, $cw, $ch, $retina = false, $grayscale = false) {
 			list($w, $h) = getimagesize($file);
-
+			
 			// Find out what orientation we're cropping at.
 			$v = $cw / $w;
 			$nh = $h * $v;
@@ -85,7 +85,7 @@
 
 		static function classAutoLoader($class) {
 			global $bigtree;
-
+			
 			if (isset($bigtree["other_classes"][$class])) {
 				include_once BigTree::path($bigtree["other_classes"][$class]);
 				return;
@@ -134,55 +134,55 @@
 			});
 			return implode("/",$pieces);
 		}
-
+		
 		/*
 			Function: colorMesh
 				Returns a color a % of the way between two colors.
-
+			
 			Parameters:
 				first_color - The first color.
 				second_color - The second color.
 				percentage - The percentage between the first color and the second you want to move.
-
+			
 			Returns:
 				A hex value color between the first and second colors.
 		*/
-
+		
 		static function colorMesh($first_color,$second_color,$percentage) {
 			$percentage = intval(str_replace("%","",$percentage));
 			$first_color = ltrim($first_color,"#");
 			$second_color = ltrim($second_color,"#");
-
+		
 			// Get the RGB values for the colors
 			$fc_r = hexdec(substr($first_color,0,2));
 			$fc_g = hexdec(substr($first_color,2,2));
 			$fc_b = hexdec(substr($first_color,4,2));
-
+		
 			$sc_r = hexdec(substr($second_color,0,2));
 			$sc_g = hexdec(substr($second_color,2,2));
 			$sc_b = hexdec(substr($second_color,4,2));
-
+		
 			$r_diff = ceil(($sc_r - $fc_r) * $percentage / 100);
 			$g_diff = ceil(($sc_g - $fc_g) * $percentage / 100);
 			$b_diff = ceil(($sc_b - $fc_b) * $percentage / 100);
-
+		
 			$new_color = "#".str_pad(dechex($fc_r + $r_diff),2,"0",STR_PAD_LEFT).str_pad(dechex($fc_g + $g_diff),2,"0",STR_PAD_LEFT).str_pad(dechex($fc_b + $b_diff),2,"0",STR_PAD_LEFT);
-
+		
 			return strtoupper($new_color);
 		}
-
+		
 		/*
 			Function: copyFile
 				Copies a file into a directory, even if that directory doesn't exist yet.
-
+			
 			Parameters:
 				from - The current location of the file.
 				to - The location of the new copy.
-
+			
 			Returns:
 				true if the copy was successful, false if the directories were not writable.
 		*/
-
+		
 		static function copyFile($from,$to) {
 			if (!static::isDirectoryWritable($to)) {
 				return false;
@@ -200,16 +200,16 @@
 			$pathinfo = static::pathInfo($to);
 			$directory = $pathinfo["dirname"];
 			BigTree::makeDirectory($directory);
-
+			
 			$success = copy($from,$to);
 			static::setPermissions($to);
 			return $success;
 		}
-
+		
 		/*
 			Function: createCrop
 				Creates a cropped image from a source image.
-
+			
 			Parameters:
 				file - The location of the image to crop.
 				new_file - The location to save the new cropped image.
@@ -225,7 +225,7 @@
 			Returns:
 				The new file name if successful, false if there was not enough memory available or an invalid source image was provided.
 		*/
-
+		
 		static function createCrop($file,$new_file,$x,$y,$target_width,$target_height,$width,$height,$retina = false,$grayscale = false) {
 			global $bigtree;
 
@@ -233,16 +233,16 @@
 			if (!static::imageManipulationMemoryAvailable($file,$target_width,$target_height)) {
 				return false;
 			}
-
+			
 			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
-
+			
 			// If we're doing a retina image we're going to check to see if the cropping area is at least twice the desired size
 			if ($retina && ($x + $width) >= $target_width * 2 && ($y + $height) >= $target_height * 2) {
 				$jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
 				$target_width *= 2;
 				$target_height *= 2;
 			}
-
+			
 			list($w, $h, $type) = getimagesize($file);
 			$cropped_image = imagecreatetruecolor($target_width,$target_height);
 			if ($type == IMAGETYPE_JPEG) {
@@ -254,16 +254,16 @@
 			} else {
 				return false;
 			}
-
+			
 			imagealphablending($original_image, true);
 			imagealphablending($cropped_image, false);
 			imagesavealpha($cropped_image, true);
 			imagecopyresampled($cropped_image, $original_image, 0, 0, $x, $y, $target_width, $target_height, $width, $height);
-
+			
 			if ($grayscale) {
 				imagefilter($cropped_image, IMG_FILTER_GRAYSCALE);
 			}
-
+		
 			if ($type == IMAGETYPE_JPEG) {
 				imagejpeg($cropped_image,$new_file,$jpeg_quality);
 			} elseif ($type == IMAGETYPE_GIF) {
@@ -272,17 +272,17 @@
 				imagepng($cropped_image,$new_file);
 			}
 			static::setPermissions($new_file);
-
+		
 			imagedestroy($original_image);
 			imagedestroy($cropped_image);
-
+			
 			return $new_file;
 		}
-
+		
 		/*
 			Function: createThumbnail
 				Creates a thumbnailed image from a source image.
-
+			
 			Parameters:
 				file - The location of the image to crop.
 				new_file - The location to save the new cropped image.
@@ -294,22 +294,22 @@
 
 			Returns:
 				The new file name if successful, false if there was not enough memory available or an invalid source image was provided.
-
+			
 			See Also:
 				createUpscaledImage
 		*/
-
+		
 		static function createThumbnail($file,$new_file,$maxwidth,$maxheight,$retina = false,$grayscale = false,$upscale = false) {
 			global $bigtree;
-
+			
 			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
-
+			
 			if ($upscale) {
 				list($type,$w,$h,$result_width,$result_height) = static::getUpscaleSizes($file,$maxwidth,$maxheight);
 			} else {
 				list($type,$w,$h,$result_width,$result_height) = static::getThumbnailSizes($file,$maxwidth,$maxheight);
 			}
-
+			
 			// If we're doing retina, see if 2x the height/width is less than the original height/width and change the quality.
 			if ($retina && !$upscale && $result_width * 2 <= $w && $result_height * 2 <= $h) {
 				$jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
@@ -332,16 +332,16 @@
 			} else {
 				return false;
 			}
-
+		
 			imagealphablending($original_image, true);
 			imagealphablending($thumbnailed_image, false);
 			imagesavealpha($thumbnailed_image, true);
 			imagecopyresampled($thumbnailed_image, $original_image, 0, 0, 0, 0, $result_width, $result_height, $w, $h);
-
+		
 			if ($grayscale) {
 				imagefilter($thumbnailed_image, IMG_FILTER_GRAYSCALE);
 			}
-
+		
 			if ($type == IMAGETYPE_JPEG) {
 				imagejpeg($thumbnailed_image,$new_file,$jpeg_quality);
 			} elseif ($type == IMAGETYPE_GIF) {
@@ -350,50 +350,50 @@
 				imagepng($thumbnailed_image,$new_file);
 			}
 			static::setPermissions($new_file);
-
+			
 			imagedestroy($original_image);
 			imagedestroy($thumbnailed_image);
-
+			
 			return $new_file;
 		}
 
 		/*
 			Function: createUpscaledImage
 				Creates a upscaled image from a source image.
-
+			
 			Parameters:
 				file - The location of the image to crop.
 				new_file - The location to save the new cropped image.
 				min_width - The minimum width of the new image (0 for no max).
 				min_height - The minimum height of the new image (0 for no max).
-
+			
 			Returns:
 				The new file name if successful, false if there was not enough memory available or an invalid source image was provided.
 
 			See Also:
 				createThumbnail
 		*/
-
+		
 		static function createUpscaledImage($file,$new_file,$min_width,$min_height) {
 			return static::createThumbnail($file,$new_file,$min_width,$min_height,false,false,true);
 		}
-
+		
 		/*
 			Function: cURL
 				Posts to a given URL and returns the response.
 				Wrapper for cURL.
-
+			
 			Parameters:
 				url - The URL to retrieve / POST to.
 				post - A key/value pair array of things to POST (optional).
 				options - A key/value pair of extra cURL options (optional).
 				strict_security - Force SSL verification of the host and peer if true (optional, defaults to false).
 				output_file - A file location to dump the output of the request to (optional, replaces return value).
-
+			
 			Returns:
 				The string response from the URL.
 		*/
-
+		
 		static function cURL($url,$post = false,$options = array(),$strict_security = false,$output_file = false) {
 			global $bigtree;
 
@@ -404,7 +404,7 @@
 			// Determine whether we're forcing valid SSL on the peer and host
 			if (!$strict_security) {
 				curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,0);
-				curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,0);
+				curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,0); 
 			}
 
 			// If we're returning to a file we setup a file pointer rather than waste RAM capturing to a variable
@@ -449,7 +449,7 @@
 
 			return $output;
 		}
-
+		
 		/*
 			Function: currentURL
 				Return the current active URL with correct protocall and port
@@ -481,7 +481,7 @@
 
 		static function dateFormat($date,$format = "Y-m-d H:i:s") {
 			global $bigtree;
-
+			
 			$date_object = DateTime::createFromFormat($bigtree["config"]["date_format"],$date);
 
 			// Fallback to SQL standards for handling pre 4.2 values
@@ -520,23 +520,23 @@
 			$date->add(DateInterval::createFromDateString($offset));
 			return $date->format($format);
 		}
-
+				
 		/*
 			Function: deleteDirectory
 				Deletes a directory including everything in it.
-
+			
 			Parameters:
 				dir - The directory to delete.
 
 			Returns:
 				true if successful
 		*/
-
+		
 		static function deleteDirectory($dir) {
 			if (!file_exists($dir)) {
 				return false;
 			}
-
+			
 			// Make sure it has a trailing /
 			$dir = rtrim($dir,"/")."/";
 			$r = opendir($dir);
@@ -551,24 +551,24 @@
 			}
 			return rmdir($dir);
 		}
-
+		
 		/*
 			Function: describeTable
 				Gives in depth information about a MySQL table's structure and keys.
-
+			
 			Parameters:
 				table - The table name.
-
+			
 			Returns:
 				An array of table information.
 		*/
-
+		
 		static function describeTable($table) {
 			$result["columns"] = array();
 			$result["indexes"] = array();
 			$result["foreign_keys"] = array();
 			$result["primary_key"] = false;
-
+			
 			$f = sqlfetch(sqlquery("SHOW CREATE TABLE `".str_replace("`","",$table)."`"));
 			if (!$f) {
 				return false;
@@ -629,7 +629,7 @@
 					$line = substr($line,12); // Remove CONSTRAINT `
 					$key_name = static::nextSQLColumnDefinition($line);
 					$line = substr($line,strlen($key_name) + substr_count($key_name,"`") + 16); // Remove ` FOREIGN KEY (`
-
+					
 					// Get local reference columns
 					$local_columns = array();
 					$part = true;
@@ -640,7 +640,7 @@
 						if (substr($line,0,1) == ")") {
 							$end = true;
 						} else {
-							$line = substr($line,2); // Skip the ,`
+							$line = substr($line,2); // Skip the ,` 
 						}
 						$local_columns[] = $part;
 					}
@@ -660,13 +660,13 @@
 						if (substr($line,0,1) == ")") {
 							$end = true;
 						} else {
-							$line = substr($line,2); // Skip the ,`
+							$line = substr($line,2); // Skip the ,` 
 						}
 						$other_columns[] = $part;
 					}
 
-					$line = substr($line,2); // Remove )
-
+					$line = substr($line,2); // Remove ) 
+					
 					// Setup our keys
 					$result["foreign_keys"][$key_name] = array("local_columns" => $local_columns, "other_table" => $other_table, "other_columns" => $other_columns);
 
@@ -697,7 +697,7 @@
 					$line = substr($line,1); // Get rid of the first `
 					$key = static::nextSQLColumnDefinition($line); // Get the column name.
 					$line = substr($line,strlen($key) + substr_count($key,"`") + 2); // Take away the key from the line.
-
+					
 					$size = "";
 					// We need to figure out if the next part has a size definition
 					$parts = explode(" ",$line);
@@ -750,7 +750,7 @@
 						$type = $parts[0];
 						$line = substr($line,strlen($type) + 1);
 					}
-
+					
 					$column["name"] = $key;
 					$column["type"] = $type;
 					if ($size) {
@@ -793,11 +793,11 @@
 							$column["unsigned"] = true;
 						}
 					}
-
+					
 					$result["columns"][$key] = $column;
 				}
 			}
-
+			
 			$last_line = substr(end($lines),2);
 			$parts = explode(" ",$last_line);
 			foreach ($parts as $part) {
@@ -806,7 +806,7 @@
 					$result[strtolower($key)] = $value;
 				}
 			}
-
+			
 			return $result;
 		}
 
@@ -850,14 +850,14 @@
 		/*
 			Function: formatBytes
 				Formats bytes into larger units to make them more readable.
-
+			
 			Parameters:
 				size - The number of bytes.
-
+			
 			Returns:
 				A string with the number of bytes in kilobytes, megabytes, or gigabytes.
 		*/
-
+		
 		static function formatBytes($size) {
 			$units = array(' B', ' KB', ' MB', ' GB', ' TB');
 			for ($i = 0; $size >= 1024 && $i < 4; $i++) {
@@ -869,10 +869,10 @@
 		/*
 			Function: formatCSS3
 				Replaces CSS3 delcarations with vendor appropriate ones to reduce CSS redundancy.
-
+			
 			Parameters:
 				css - CSS string.
-
+			
 			Returns:
 				A string of CSS with vendor prefixes.
 		*/
@@ -892,101 +892,101 @@
 				}
 				return $response;
 			'),$css);
-
+			
 			// Border Radius - border-radius: 0px 0px 0px 0px
 			$css = preg_replace_callback('/border-radius:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
-
+			
 			// Box Shadow - box-shadow: 0px 0px 5px #color
 			$css = preg_replace_callback('/box-shadow:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
-
+			
 			// Column Count - column-count: number
 			$css = preg_replace_callback('/column-count:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
-
+			
 			// Column Rule - column-rule: 1px solid color
 			$css = preg_replace_callback('/column-rule:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
-
+			
 			// Column Gap - column-gap: number
 			$css = preg_replace_callback('/column-gap:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
-
+			
 			// Transition - transition: definition
 			$css = preg_replace_callback('/transition:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
-
+			
 			// Transform - transform: definition
-			$css = preg_replace_callback('/transform:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
+			$css = preg_replace_callback('/transform:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);			
 
 			// User Select - user-select: none | text | toggle | element | elements | all | inherit
 			$css = preg_replace_callback('/user-select:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
 
 			// Replace roots
 			$css = str_replace(array("www_root/","admin_root/","static_root/"), array($bigtree["config"]["www_root"],$bigtree["config"]["admin_root"],$bigtree["config"]["static_root"]), $css);
-
+			
 			return $css;
 		}
-
+		
 		/*
 			Function: formatVendorPrefixes
 				A preg_replace function for transforming a standard CSS3 entry into a vendor prefixed string.
-
+			
 			Parameters:
 				data - preg data
-
+			
 			Returns:
 				Replaced string.
 		*/
-
+		
 		static function formatVendorPrefixes($data) {
 			$p = explode(":", $data[0]);
 			$d = trim($data[1]);
-
+			
 			$return = $p[0] . ": $d; ";
 			$return .= "-webkit-".$p[0].": $d; ";
 			$return .= "-moz-".$p[0].": $d; ";
 			$return .= "-ms-".$p[0].": $d; ";
 			$return .= "-o-".$p[0].": $d; ";
-
+			
 			return $return;
 		}
-
+		
 		/*
 			Function: geocodeAddress
 				Returns a latitude and longitude for a given address.
 				This method is deprecated and exists only for backwards compatibility (BigTreeGeocoding should be used directly).
-
+			
 			Parameters:
 				address - The address to geocode.
-
+			
 			Returns:
 				An associative array with "latitude" and "longitude" keys (or false if geocoding failed).
 		*/
-
+		
 		static function geocodeAddress($address) {
 			$geocoder = new BigTreeGeocoding;
 			return $geocoder->geocode($address);
 		}
-
+		
 		/*
 			Function: getAvailableFileName
 				Gets a web safe available file name in a given directory.
-
+			
 			Parameters:
 				directory - The destination directory.
 				file - The desired file name.
 				prefixes - A list of file prefixes that also need to be accounted for when checking file name availability.
-
+			
 			Returns:
 				An available, web safe file name.
 		*/
-
+		
 		static function getAvailableFileName($directory,$file,$prefixes = array()) {
 			$parts = static::pathInfo($directory.$file);
-
+			
 			// Clean up the file name
 			$clean_name = BigTreeCMS::urlify($parts["filename"]);
 			if (strlen($clean_name) > 50) {
 				$clean_name = substr($clean_name,0,50);
 			}
 			$file = $clean_name.".".strtolower($parts["extension"]);
-
+			
 			// Just find a good filename that isn't used now.
 			$x = 2;
 			while (!$file || file_exists($directory.$file)) {
@@ -1023,17 +1023,17 @@
 				return json_decode($_COOKIE[$id],true);
 			}
 		}
-
+		
 		/*
 			Function: getFieldSelectOptions
 				Get the <select> options of all the fields in a table.
-
+			
 			Parameters:
 				table - The table to draw the fields for.
 				default - The currently selected value.
 				sorting - Whether to duplicate fields into "ASC" and "DESC" versions.
 		*/
-
+		
 		static function getFieldSelectOptions($table,$default = "",$sorting = false) {
 			$table_description = static::describeTable($table);
 			if (!$table_description) {
@@ -1048,7 +1048,7 @@
 					} else {
 						echo '<option>`'.$col["name"].'` ASC</option>';
 					}
-
+					
 					if ($default == $col["name"]." DESC" || $default == "`".$col["name"]."` DESC") {
 						echo '<option selected="selected">`'.$col["name"].'` DESC</option>';
 					} else {
@@ -1063,18 +1063,18 @@
 				}
 			}
 		}
-
+		
 		/*
 			Function: getTableSelectOptions
 				Get the <select> options for all of tables in the database excluding bigtree_ prefixed tables.
-
+			
 			Parameters:
 				default - The currently selected value.
 		*/
-
+		
 		static function getTableSelectOptions($default = false) {
 			global $bigtree;
-
+			
 			$q = sqlquery("SHOW TABLES");
 			while ($f = sqlfetch($q)) {
 				$table_name = current($f);
@@ -1089,18 +1089,43 @@
 		}
 
 		/*
+			Function: getIsSSL
+				Returns whether BigTree believes it's being served over SSL or not.
+		*/
+
+		static function getIsSSL() {
+			if (!empty($_SERVER["HTTPS"]) && $_SERVER['HTTPS'] !== "off") {
+				return true;
+			}
+
+			if (!empty($_SERVER["SERVER_PORT"]) && $_SERVER["SERVER_PORT"] == 443) {
+				return true;
+			}
+
+			if (!empty($_SERVER["HTTP_X_FORWARDED_PROTO"]) && $_SERVER["HTTP_X_FORWARDED_PROTO"] == "https") {
+				return true;
+			}
+
+			if (!empty($_SERVER["HTTP_X_FORWARDED_PORT"]) && $_SERVER["HTTP_X_FORWARDED_PORT"] == 443) {
+				return true;
+			}
+
+			return false;
+		}
+		
+		/*
 			Function: getThumbnailSizes
 				Returns a list of sizes of an image and the result sizes.
-
+			
 			Parameters:
 				file - The location of the image to crop.
 				maxwidth - The maximum width of the new image (0 for no max).
 				maxheight - The maximum height of the new image (0 for no max).
-
+			
 			Returns:
 				An array with (type,width,height,result width,result height)
 		*/
-
+		
 		static function getThumbnailSizes($file,$maxwidth,$maxheight) {
 			list($w, $h, $type) = getimagesize($file);
 			if ($w > $maxwidth && $maxwidth) {
@@ -1125,23 +1150,23 @@
 				$result_width = $w;
 				$result_height = $h;
 			}
-
+			
 			return array($type,$w,$h,$result_width,$result_height);
 		}
 
 		/*
 			Function: getUpscaleSizes
 				Returns a list of sizes of an image and the result sizes.
-
+			
 			Parameters:
 				file - The location of the image to crop.
 				min_width - The minimum width of the new image (0 for no min).
 				min_height - The maximum height of the new image (0 for no min).
-
+			
 			Returns:
 				An array with (type,width,height,result width,result height)
 		*/
-
+		
 		static function getUpscaleSizes($file,$min_width,$min_height) {
 			list($w, $h, $type) = getimagesize($file);
 			if ($w < $min_width && $min_width) {
@@ -1166,24 +1191,24 @@
 				$result_width = $w;
 				$result_height = $h;
 			}
-
+			
 			return array($type,$w,$h,$result_width,$result_height);
 		}
-
+		
 		/*
 			Function: globalizeArray
 				Globalizes all the keys of an array into global variables without compromising super global ($_) variables.
 				Optionally runs a list of functions (passed in after the array) on the data.
-
+			
 			Parameters:
 				array - An array with key/value pairs.
 				functions - Pass in additional arguments to run functions (i.e. "htmlspecialchars") on the data
-
+			
 			See Also:
 				<globalizeGETVars>
 				<globalizePOSTVars>
 		*/
-
+		
 		static function globalizeArray($array) {
 			if (!is_array($array)) {
 				return false;
@@ -1217,7 +1242,7 @@
 					}
 				}
 			}
-
+			
 			return true;
 		}
 
@@ -1246,55 +1271,55 @@
 			}
 			return $data;
 		}
-
+		
 		/*
 			Function: globalizeGETVars
 				Globalizes all the $_GET variables without compromising $_ variables.
 				Optionally runs a list of functions passed in as arguments on the data.
-
+			
 			Parameters:
 				functions - Pass in additional arguments to run functions (i.e. "htmlspecialchars") on the data
-
+			
 			See Also:
 				<globalizeArray>
 				<globalizePOSTVars>
-
+				
 		*/
-
+		
 		static function globalizeGETVars() {
 			$args = func_get_args();
 			return call_user_func_array("BigTree::globalizeArray",array_merge(array($_GET),$args));
 		}
-
+		
 		/*
 			Function: globalizePOSTVars
 				Globalizes all the $_POST variables without compromising $_ variables.
 				Optionally runs a list of functions passed in as arguments on the data.
-
+			
 			Parameters:
 				functions - Pass in additional arguments to run functions (i.e. "htmlspecialchars") on the data
-
+			
 			See Also:
 				<globalizeArray>
 				<globalizeGETVars>
 		*/
-
+		
 		static function globalizePOSTVars() {
 			$args = func_get_args();
 			return call_user_func_array("BigTree::globalizeArray",array_merge(array($_POST),$args));
 		}
-
+		
 		/*
 			Function: gravatar
 				Returns a properly formatted gravatar url.
-
+			
 			Parameters:
 				email - User's email address.
 				size - Image size; defaults to 56
 				default - Default profile image; defaults to BigTree icon
 				rating - Defaults to "g" (options include "g", "pg", "r", "x")
 		*/
-
+		
 		static function gravatar($email,$size = 56,$default = false,$rating = "g") {
 			if (!$default) {
 				global $bigtree;
@@ -1302,7 +1327,7 @@
 			}
 			return "https://secure.gravatar.com/avatar/".md5(strtolower($email))."?s=$size&d=".urlencode($default)."&rating=$rating";
 		}
-
+		
 		/*
 			Function: imageManipulationMemoryAvailable
 				Checks whether there is enough memory available to perform an image manipulation.
@@ -1321,35 +1346,42 @@
 			$info = getimagesize($source);
 			$source_width = $info[0];
 			$source_height = $info[1];
-
+			$bytes = $info["bits"] ? ceil($info["bits"] / 8) : 1;
+			
 			// GD takes about 70% extra memory for JPG and we're most likely running 3 bytes per pixel
 			if ($info["mime"] == "image/jpg" || $info["mime"] == "image/jpeg") {
-				$source_size = ceil($source_width * $source_height * 3 * 1.7);
-				$target_size = ceil($width * $height * 3 * 1.7);
+				$channels = $info["channels"] ?: 3;
+				$source_size = ceil($source_width * $source_height * $bytes * $channels * 1.825); 
+				$target_size = ceil($width * $height * $bytes * $channels * 1.825);
 			// GD takes about 250% extra memory for GIFs which are most likely running 1 byte per pixel
 			} elseif ($info["mime"] == "image/gif") {
-				$source_size = ceil($source_width * $source_height * 2.5);
-				$target_size = ceil($width * $height * 2.5);
+				$channels = $info["channels"] ?: 1;
+				$source_size = ceil($source_width * $source_height * $bytes * $channels * 2.5); 
+				$target_size = ceil($width * $height * $bytes * $channels * 2.5);
 			// GD takes about 245% extra memory for PNGs which are most likely running 4 bytes per pixel
 			} elseif ($info["mime"] == "image/png") {
-				$source_size = ceil($source_width * $source_height * 4 * 2.45);
-				$target_size = ceil($width * $height * 4 * 2.45);
+				$channels = $info["channels"] ?: 4;
+				$source_size = ceil($source_width * $source_height * $bytes * $channels * 2.45);
+				$target_size = ceil($width * $height * $bytes * $channels * 2.45);
 			}
-
-			$memory_usage = $source_size + $target_size + memory_get_usage();
+			
+			// Add 2MB for PHP
+			$memory_usage = (2 * 1024 * 1024) + $source_size + $target_size + memory_get_usage();
+			
 			if ($memory_usage > $available_memory) {
 				return false;
 			}
+
 			return true;
 		}
-
+		
 		/*
 			Function: isDirectoryWritable
 				Extend's PHP's is_writable to support directories that don't exist yet.
-
+			
 			Parameters:
 				path - The path to check the writable status of.
-
+			
 			Returns:
 				true if the directory exists and is writable or could be created, otherwise false.
 		*/
@@ -1386,18 +1418,18 @@
 				return static::isDirectoryWritable(implode("/",$parts));
 			}
 		}
-
+		
 		/*
 			Function: isExternalLink
 				Check if URL is external, relative to site root
-
+			
 			Parameters:
 				url - The URL to test.
 
 			Returns:
 				true if link is external
 		*/
-
+		
 		static function isExternalLink($url) {
 			return ((substr($url,0,7) == "http://" || substr($url,0,8) == "https://") && strpos($url, WWW_ROOT) === false);
 		}
@@ -1432,16 +1464,16 @@
 			}
 			return $json;
 		}
-
+		
 		/*
 			Function: makeDirectory
 				Makes a directory (and all applicable parent directories).
 				Sets permissions to 777.
-
+			
 			Parameters:
 				directory - The full path to the directory to be made.
 		*/
-
+		
 		static function makeDirectory($directory) {
 			if (file_exists($directory)) {
 				return;
@@ -1465,19 +1497,19 @@
 				$dir_path .= "/";
 			}
 		}
-
+		
 		/*
 			Function: moveFile
 				Moves a file into a directory, even if that directory doesn't exist yet.
-
+			
 			Parameters:
 				from - The current location of the file.
 				to - The location of the new copy.
-
+			
 			Returns:
 				true if the move was successful, false if the directories were not writable.
 		*/
-
+		
 		static function moveFile($from,$to) {
 			$success = static::copyFile($from,$to);
 			if (!$success) {
@@ -1497,7 +1529,7 @@
 			Returns:
 				A string.
 		*/
-
+				
 		static function nextSQLColumnDefinition($string) {
 			$key_name = "";
 			$i = 0;
@@ -1522,10 +1554,10 @@
 		/*
 			Function: parsedFilesArray
 				Parses the $_FILES array and returns an array more like a normal $_POST array.
-
+			
 			Parameters:
 				part - (Optional) The key of the file tree to return.
-
+			
 			Returns:
 				A more sensible array, or a piece of that sensible array if "part" is set.
 		*/
@@ -1566,18 +1598,18 @@
 			}
 			return $array;
 		}
-
+		
 		/*
 			Function: path
 				Get the proper path for a file based on whether a custom override exists.
-
+			
 			Parameters:
 				file - File path relative to either core/ or custom/
-
+			
 			Returns:
 				Hard file path to a custom/ (preferred) or core/ file depending on what exists.
 		*/
-
+		
 		static function path($file) {
 			if (file_exists(SERVER_ROOT."custom/".$file)) {
 				return SERVER_ROOT."custom/".$file;
@@ -1585,21 +1617,21 @@
 				return SERVER_ROOT."core/".$file;
 			}
 		}
-
+		
 		/*
 			Function: pathInfo
 				Wrapper for PHP's pathinfo to make sure it supports returning "filename"
-
+			
 			Parameters:
 				file - The full file path.
-
+			
 			Returns:
 				Everything PHP's pathinfo() returns (with "filename" even when PHP doesn't support it).
-
+			
 			See Also:
 				<http://php.net/manual/en/function.pathinfo.php>
 		*/
-
+		
 		static function pathInfo($file) {
 			$parts = pathinfo($file);
 			if (!defined('PATHINFO_FILENAME')) {
@@ -1654,11 +1686,11 @@
 			}
 			return $new_format;
 		}
-
+		
 		/*
 			Function: placeholderImage
 				Generates placeholder image data.
-
+			
 			Parameters:
 				width - The width of desired image
 				height - The height of desired image
@@ -1666,20 +1698,20 @@
 				text_color - The text color; must be full 6 charachter hex value
 				icon_path - Image to render, disables text rendering, must be gif, jpeg, or png
 				text_string - Text to render; overrides default dimension display
-
+				
 			Returns:
 				Nothing; Renders a placeholder image
 		*/
-
+		
 		static function placeholderImage($width, $height, $bg_color = false, $text_color = false, $icon_path = false, $text_string = false) {
 			// Check size
 			$width = ($width > 2000) ? 2000 : $width;
 			$height = ($height > 2000) ? 2000 : $height;
-
+			
 			// Check colors
 			$bg_color = (!$bg_color && $bg_color != "000" && $bg_color != "000000") ? "CCCCCC" : ltrim($bg_color,"#");
 			$text_color = (!$text_color  && $text_color != "000" && $text_color != "000000") ? "666666" : ltrim($text_color,"#");
-
+			
 			// Set text
 			$text = $text_string;
 			if ($icon_path) {
@@ -1689,15 +1721,15 @@
 					$text = $width . " X " . $height;
 				}
 			}
-
+			
 			// Create image
 			$image = imagecreatetruecolor($width, $height);
 			// Build rgba from hex
 			$bg_color = imagecolorallocate($image, base_convert(substr($bg_color, 0, 2), 16, 10), base_convert(substr($bg_color, 2, 2), 16, 10), base_convert(substr($bg_color, 4, 2), 16, 10));
 			$text_color = imagecolorallocate($image, base_convert(substr($text_color, 0, 2), 16, 10), base_convert(substr($text_color, 2, 2), 16, 10), base_convert(substr($text_color, 4, 2), 16, 10));
 			// Fill image
-			imagefill($image, 0, 0, $bg_color);
-
+			imagefill($image, 0, 0, $bg_color); 
+			
 			// Add icon if provided
 			if ($icon_path) {
 				$icon_size = getimagesize($icon_path);
@@ -1705,14 +1737,14 @@
 				$icon_height = $icon_size[1];
 				$icon_x = ($width - $icon_width) / 2;
 				$icon_y = ($height - $icon_height) / 2;
-
+				
 				$ext = strtolower(substr($icon_path,-3));
 				if ($ext == "jpg" || $ext == "peg") {
 					$icon = imagecreatefromjpeg($icon_path);
 				} elseif ($ext == "gif") {
 					$icon = imagecreatefromgif($icon_path);
 				} else {
-					$icon = imagecreatefrompng($icon_path);
+					$icon = imagecreatefrompng($icon_path); 
 				}
 				imagesavealpha($icon, true);
 				imagealphablending($icon, true);
@@ -1721,13 +1753,13 @@
 			} elseif ($text) {
 				$font = BigTree::path("inc/lib/fonts/arial.ttf");
 				$fontsize = ($width > $height) ? ($height / 15) : ($width / 15);
-				$textpos = imageTTFBbox($fontsize, 0, $font, $text);
+				$textpos = imageTTFBbox($fontsize, 0, $font, $text); 
 				imagettftext($image, $fontsize, 0, (($width - $textpos[2]) / 2), (($height - $textpos[5]) / 2), $text_color, $font, $text);
 			}
-
+		
 			// Serve image and die
-			header("Content-Type: image/png");
-			imagepng($image);
+			header("Content-Type: image/png"); 
+			imagepng($image);   
 			imagedestroy($image);
 			die();
 		}
@@ -1742,90 +1774,90 @@
 			if (!is_integer($post_max_size)) {
 				$post_max_size = static::unformatBytes($post_max_size);
 			}
-
+			
 			return $post_max_size;
 		}
 
 		/*
 			Function: prefixFile
 				Prefixes a file name with a given prefix.
-
+			
 			Parameters:
 				file - A file name or full file path.
 				prefix - The prefix for the file name.
-
+			
 			Returns:
 				The full path or file name with a prefix appended to the file name.
 		*/
-
+		
 		static function prefixFile($file,$prefix) {
 			$pinfo = static::pathInfo($file);
 			// Remove notices
 			$pinfo["dirname"] = isset($pinfo["dirname"]) ? $pinfo["dirname"] : "";
 			return $pinfo["dirname"]."/".$prefix.$pinfo["basename"];
 		}
-
+		
 		/*
 			Function: putFile
 				Writes data to a file, even if that directory for the file doesn't exist yet.
 				Sets the file permissions to 777 if the file did not exist.
-
+			
 			Parameters:
 				file - The location of the file.
 				contents - The data to write.
-
+			
 			Returns:
 				true if the move was successful, false if the directories were not writable.
 		*/
-
+		
 		static function putFile($file,$contents) {
 			if (!static::isDirectoryWritable($file)) {
 				return false;
 			}
-
+			
 			$pathinfo = static::pathInfo($file);
 			$directory = $pathinfo["dirname"];
 			BigTree::makeDirectory($directory);
-
+			
 			if (!file_exists($file)) {
 				file_put_contents($file,$contents);
 				static::setPermissions($file);
 			} else {
 				file_put_contents($file,$contents);
 			}
-
+			
 			return true;
 		}
 
 		/*
 			Function: randomString
 				Returns a random string.
-
+			
 			Parameters:
 				length - The number of characters to return.
 				seeds - The seed set to use ("alpha" for lowercase letters, "numeric" for numbers, "alphanum" for uppercase letters and numbers, "hexidec" for hexidecimal)
-
+			
 			Returns:
 				A random string.
 		*/
-
+		
 		static function randomString($length = 8, $seeds = 'alphanum') {
 			// Possible seeds
 			$seedings['alpha'] = 'abcdefghijklmnopqrstuvwqyz';
 			$seedings['numeric'] = '0123456789';
 			$seedings['alphanum'] = 'ABCDEFGHJKLMNPQRTUVWXY0123456789';
 			$seedings['hexidec'] = '0123456789abcdef';
-
+		
 			// Choose seed
 			if (isset($seedings[$seeds])) {
 				$seeds = $seedings[$seeds];
 			}
-
+		
 			// Seed generator
 			list($usec, $sec) = explode(' ', microtime());
 			$seed = (float) $sec + ((float) $usec * 100000);
 			mt_srand($seed);
-
+		
 			// Generate
 			$str = '';
 			$seeds_count = strlen($seeds);
@@ -1834,16 +1866,16 @@
 			}
 			return $str;
 		}
-
+		
 		/*
 			Function: redirect
 				Simple URL redirect via header with proper code #
-
+			
 			Parameters:
 				url - The URL to redirect to.
 				code - The status code of redirect, defaults to normal 302 redirect.
 		*/
-
+		
 		static function redirect($url = false, $codes = array("302")) {
 			global $bigtree;
 
@@ -1868,7 +1900,7 @@
 				} else {
 					$pieces = explode("/", $url);
 					$bt_domain_pieces = explode("/", DOMAIN);
-
+				
 					if (strtolower($pieces[2]) != strtolower($bt_domain_pieces[2])) {
 						return false;
 					}
@@ -1922,9 +1954,9 @@
 			$minute = 60;
 			$hour = 3600;
 			$day = 86400;
-			$month = 2592000;
+			$month = 2592000;			
 			$delta = strtotime(date('r')) - strtotime($time);
-
+			
 			if ($delta < 2 * $minute) {
 				return "1 min ago";
 			} elseif ($delta < 45 * $minute) {
@@ -2065,7 +2097,7 @@
 		static function safeEncode($string) {
 			return htmlspecialchars(html_entity_decode($string,ENT_COMPAT,"UTF-8"));
 		}
-
+		
 		/*
 			Function: sendEmail
 				Sends an email using PHPMailer
@@ -2084,7 +2116,7 @@
 			Returns:
 				true if email is sent, otherwise false.
 		*/
-
+		
 		static function sendEmail($to,$subject,$html,$text = "",$from = false,$return = false,$cc = false,$bcc = false,$headers = array(), $smtp = array()) {
 			$mailer = new PHPMailer;
 
@@ -2093,7 +2125,7 @@
 				$mailer->Host = $smtp["host"];
 				$mailer->Port = $smtp["port"] ?: 25;
 				$mailer->SMTPSecure = $smtp["security"] ?: null;
-
+	
 				if ($smtp["user"]) {
 					$mailer->SMTPAuth = true;
 					$mailer->Username = $smtp["user"];
@@ -2123,7 +2155,7 @@
 				// Parse out from and reply-to names
 				$from_name = false;
 				$from = trim($from);
-
+				
 				if (strpos($from,"<") !== false && substr($from,-1,1) == ">") {
 					$from_pieces = explode("<",$from);
 					$from_name = trim($from_pieces[0]);
@@ -2134,11 +2166,11 @@
 			$mailer->From = $from;
 			$mailer->FromName = $from_name;
 			$mailer->Sender = $from;
-
+			
 			if ($return) {
 				$return_name = false;
 				$return = trim($return);
-
+				
 				if (strpos($return,"<") !== false && substr($return,-1,1) == ">") {
 					$return_pieces = explode("<",$return);
 					$return_name = trim($return_pieces[0]);
@@ -2147,7 +2179,7 @@
 
 				$mailer->addReplyTo($return,$return_name);
 			}
-
+			
 			if ($cc) {
 				if (is_array($cc)) {
 					foreach ($cc as $item) {
@@ -2175,7 +2207,7 @@
 			} else {
 				$mailer->addAddress($to);
 			}
-
+			
 			return $mailer->send();
 		}
 
@@ -2260,7 +2292,7 @@
 			    } elseif ($table_a_columns[$key] !== $column) {
 			    	$action = "MODIFY";
 			    }
-
+			    
 			    if ($action) {
 			    	$mod = "ALTER TABLE `$table_a` $action COLUMN `$key` ".$column["type"];
 			    	if ($column["size"]) {
@@ -2270,7 +2302,7 @@
 			    	if ($column["unsigned"]) {
 			    		$mod .= " UNSIGNED";
 			    	}
-
+			    	
 			    	if ($column["charset"]) {
 			    		$mod .= " CHARSET ".$column["charset"];
 			    	}
@@ -2284,7 +2316,7 @@
 			    	} else {
 			    		$mod .= " NULL";
 			    	}
-
+			    	
 			    	if (isset($column["default"])) {
 			    	    $d = $column["default"];
 			    	    if ($d == "CURRENT_TIMESTAMP" || $d == "NULL") {
@@ -2293,16 +2325,16 @@
 			    	    	$mod .= " DEFAULT '".sqlescape($d)."'";
 			    	    }
 			    	}
-
+			    	
 			    	if ($last_key) {
 			    		$mod .= " AFTER `$last_key`";
 			    	} else {
 			    		$mod .= " FIRST";
 			    	}
-
+			    	
 			    	$queries[] = $mod;
 			    }
-
+			    
 			    $last_key = $key;
 			}
 
@@ -2311,7 +2343,7 @@
 			    // If this key no longer exists in the new table, we should delete it.
 			    if (!isset($table_b_columns[$key])) {
 			    	$queries[] = "ALTER TABLE `$table_a` DROP COLUMN `$key`";
-			    }
+			    }	
 			}
 
 			// Add new indexes
@@ -2401,7 +2433,7 @@
 			if (isset($table_b_description["auto_increment"]) && $table_a_description["auto_increment"] != $table_b_description["auto_increment"]) {
 				$queries[] = "ALTER TABLE `$table_a` AUTO_INCREMENT = ".$table_b_description["auto_increment"];
 			}
-
+			
 			return $queries;
 		}
 
@@ -2423,7 +2455,7 @@
 			// Figure out which columns are binary and need to be pulled as hex
 			$description = BigTree::describeTable($table);
 			$column_query = array();
-			$binary_columns = array();
+			$binary_columns = array();			
 			foreach ($description["columns"] as $key => $column) {
 				if ($column["type"] == "tinyblob" || $column["type"] == "blob" || $column["type"] == "mediumblob" || $column["type"] == "longblob" || $column["type"] == "binary" || $column["type"] == "varbinary") {
 					$column_query[] = "HEX(`$key`) AS `$key`";
@@ -2478,11 +2510,11 @@
 		/*
 			Function: touchFile
 				touch()s a file even if the directory for it doesn't exist yet.
-
+			
 			Parameters:
 				file - The file path to touch.
 		*/
-
+		
 		static function touchFile($file) {
 			if (!static::isDirectoryWritable($file)) {
 				return false;
@@ -2490,26 +2522,26 @@
 
 			$pathinfo = static::pathInfo($file);
 			static::makeDirectory($pathinfo["dirname"]);
-
+			
 			touch($file);
 			static::setPermissions($file);
 			return true;
 		}
-
+		
 		/*
 			Function: translateArray
 				Steps through an array and creates internal page links for all parts of it.
-
+			
 			Parameters:
 				array - The array to process.
-
+			
 			Returns:
 				An array with internal page links encoded.
-
+			
 			See Also:
 				<untranslateArray>
 		*/
-
+		
 		static function translateArray($array) {
 			foreach ($array as &$piece) {
 				if (is_array($piece)) {
@@ -2520,19 +2552,19 @@
 			}
 			return $array;
 		}
-
+		
 		/*
 			Function: trimLength
 				A smarter version of trim that works with HTML.
-
+			
 			Parameters:
 				string - A string of text or HTML.
 				length - The number of characters to trim to.
-
+			
 			Returns:
 				A string trimmed to the proper number of characters.
 		*/
-
+		
 		static function trimLength($string,$length) {
 			$ns = "";
 			$opentags = array();
@@ -2557,10 +2589,10 @@
 						$tag .= $char;
 					}
 					$ns .= $tag;
-
+		
 					$tagexp = explode(" ",trim($tag));
 					$tagname = str_replace(">","",$tagexp[0]);
-
+		
 					// If it's a self contained <br /> tag or similar, don't add it to open tags.
 					if ($tagexp[1] != "/" && $tagexp[1] != "/>") {
 						// See if we're opening or closing a tag.
@@ -2617,18 +2649,18 @@
 			}
 			return $ns;
 		}
-
+		
 		/*
 			Function: unformatBytes
 				Formats a string of kilobytes / megabytes / gigabytes back into bytes.
-
+			
 			Parameters:
 				size - The string of (kilo/mega/giga)bytes.
-
+			
 			Returns:
 				The number of bytes.
 		*/
-
+		
 		static function unformatBytes($size) {
 			$type = substr($size,-1,1);
 			$num = substr($size,0,-1);
@@ -2641,21 +2673,21 @@
 			}
 			return 0;
 		}
-
+		
 		/*
 			Function: untranslateArray
 				Steps through an array and creates hard links for all internal page links.
-
+			
 			Parameters:
 				array - The array to process.
-
+			
 			Returns:
 				An array with internal page links decoded.
-
+			
 			See Also:
 				<translateArray>
 		*/
-
+		
 		static function untranslateArray($array) {
 			if (!is_array($array)) {
 				return array();
@@ -2668,19 +2700,19 @@
 					$piece = BigTreeCMS::replaceInternalPageLinks($piece);
 				}
 			}
-
+			
 			return $array;
 		}
-
+		
 		/*
 			Function: unzip
 				Unzips a file.
-
+			
 			Parameters:
 				file - Location of the file to unzip
 				destination - The full path to unzip the file's contents to.
 		*/
-
+		
 		static function unzip($file,$destination) {
 			// If we can't write the output directory, we're not getting anywhere.
 			if (!BigTree::isDirectoryWritable($destination)) {
@@ -2689,30 +2721,30 @@
 
 			// Up the memory limit for the unzip.
 			ini_set("memory_limit","512M");
-
+			
 			$destination = rtrim($destination)."/";
 			BigTree::makeDirectory($destination);
-
+			
 			// If we have the built in ZipArchive extension, use that.
 			if (class_exists("ZipArchive")) {
 				$z = new ZipArchive;
-
+				
 				if (!$z->open($file)) {
 					// Bad zip file.
 					return false;
 				}
-
+				
 				for ($i = 0; $i < $z->numFiles; $i++) {
 					if (!$info = $z->statIndex($i)) {
 						// Unzipping the file failed for some reason.
 						return false;
 					}
-
+					
 					// If it's a directory, ignore it. We'll create them in putFile.
 					if (substr($info["name"],-1) == "/") {
 						continue;
 					}
-
+					
 					// Ignore __MACOSX and all it's files.
 					if (substr($info["name"],0,9) == "__MACOSX/") {
 						continue;
@@ -2725,7 +2757,7 @@
 					}
 					BigTree::putFile($destination.$file["name"],$content);
 				}
-
+				
 				$z->close();
 				return true;
 
@@ -2736,7 +2768,7 @@
 					$previous_encoding = mb_internal_encoding();
 					mb_internal_encoding('ISO-8859-1');
 				}
-
+				
 				$z = new PclZip($file);
 				$archive = $z->extract(PCLZIP_OPT_EXTRACT_AS_STRING);
 
@@ -2745,7 +2777,7 @@
 					mb_internal_encoding($previous_encoding);
 					unset($previous_encoding);
 				}
-
+				
 				// If it's not an array, it's not a good zip. Also, if it's empty it's not a good zip.
 				if (!is_array($archive) || !count($archive)) {
 					return false;
@@ -2756,38 +2788,38 @@
 					if ($item["folder"]) {
 						continue;
 					}
-
+					
 					// Ignore __MACOSX and all it's files.
 					if (substr($item["filename"],0,9) == "__MACOSX/") {
 						continue;
 					}
-
+					
 					BigTree::putFile($destination.$item["filename"],$item["content"]);
 				}
-
+				
 				return true;
 			}
 		}
-
+		
 		/*
 			Function: uploadMaxFileSize
 				Returns Apache's max file size value for use in forms.
-
+		
 			Returns:
 				The integer value for setting a form's MAX_FILE_SIZE.
 		*/
-
+		
 		static function uploadMaxFileSize() {
 			$upload_max_filesize = ini_get("upload_max_filesize");
 			if (!is_integer($upload_max_filesize)) {
 				$upload_max_filesize = static::unformatBytes($upload_max_filesize);
 			}
-
+			
 			$post_max_size = static::postMaxSize();
 			if ($post_max_size < $upload_max_filesize) {
 				$upload_max_filesize = $post_max_size;
 			}
-
+			
 			return $upload_max_filesize;
 		}
 
@@ -2830,7 +2862,7 @@
 
 			return $success;
 		}
-
+		
 	}
 
 	// For servers that don't have multibyte string extensions…
