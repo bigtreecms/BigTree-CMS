@@ -1,8 +1,22 @@
 <?
 	header("Content-type: text/javascript");
 	$permission = $admin->getPageAccessLevel($_GET["current_page_id"]);
+
+	if (count($bigtree["config"]["sites"])) {
+		foreach ($bigtree["config"]["sites"] as $site) {
+			$clean_domain = str_replace(array("https://", "http://"), "", $site["domain"]);
+			$cross_origin_domains[] = "http://".rtrim($clean_domain, "/");
+			$cross_origin_domains[] = "https://".rtrim($clean_domain, "/");
+		}
+	} else {
+		$clean_domain = str_replace(array("https://", "http://"), "", DOMAIN);
+		$cross_origin_domains[] = "http://".rtrim($clean_domain, "/");
+		$cross_origin_domains[] = "https://".rtrim($clean_domain, "/");
+	}
 ?>
 var BigTreeBar = {
+
+	allowedMessagingDomains: <?=json_encode($cross_origin_domains)?>,
 
 	cancel: function() {
 		if (document.getElementById("bigtree_bar_overlay")) {
@@ -35,6 +49,16 @@ var BigTreeBar = {
 			strValue = oElm.currentStyle[strCssRule];
 		}
 		return strValue;
+	},
+
+	messageReceiver: function(event) {
+		if (BigTreeBar.allowedMessagingDomains.indexOf(event.origin) > -1) {
+			if (event.data == "cancel") {
+				BigTreeBar.cancel();
+			} else {
+				BigTreeBar.refresh(event.data);
+			}
+		}
 	},
 
 	refresh: function(preview) {
@@ -192,6 +216,9 @@ BigTreeBar.tab.setAttribute("id","bigtree_bar_tab");
 BigTreeBar.tab.setAttribute("href","#");
 BigTreeBar.tab.onclick = BigTreeBar.show;
 BigTreeBar.body.appendChild(BigTreeBar.tab);
+
+// Add message event listener
+window.addEventListener("message", BigTreeBar.messageReceiver, false);
 
 // Add BigTree Bar class to the body, keep outside global namespace
 document.getElementsByTagName('body')[0].className = (document.getElementsByTagName('body')[0].className.replace("bigtree_bar_open", "") + " bigtree_bar_closed").trim();	
