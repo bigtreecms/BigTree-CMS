@@ -5965,7 +5965,7 @@
 				// Create the new session chain
 				sqlquery("INSERT INTO bigtree_user_sessions (`id`,`chain`,`email`,`csrf_token`,`csrf_token_field`) VALUES ('".sqlescape($session)."','".sqlescape($chain)."','".sqlescape($user["email"])."','$csrf_token','$csrf_token_field')");
 				
-				if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {					
+				if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
 					// Create another unique cache session for logins across domains
 					$cache_data = array(
 						"user_id" => $user["id"],
@@ -5984,10 +5984,12 @@
 							$cache_data["remaining_sites"][$site_key] = $site_configuration["www_root"];
 						}
 					} else {
-						$desired_site_key = null;
+						list($protocol, $unused, $admin_domain) = explode("/", ADMIN_ROOT);
 
 						foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
-							if (str_replace(array("https://", "http://"), "", rtrim($site_configuration["domain"],"/")) == $domain) {
+							$hostname = str_replace(array("https://", "http://"), "", rtrim($site_configuration["domain"],"/"));
+
+							if ($hostname == $domain || $hostname == $admin_domain) {
 								$cache_data["remaining_sites"][$site_key] = $site_configuration["www_root"];
 							}
 						}
