@@ -8659,6 +8659,17 @@
 			$token = isset($_POST[$this->CSRFTokenField]) ? $_POST[$this->CSRFTokenField] : $_GET[$this->CSRFTokenField];
 			
 			if (strpos($clean_referer, $clean_domain) !== 0 || $token != $this->CSRFToken) {
+				// See if this is a timeout and an existing token exists in the database for another session
+				$q = sqlquery("SELECT * FROM bigtree_user_sessions WHERE email = '".sqlescape($this->User)."'");
+				
+				while ($old_session = sqlfetch($q)) {
+					$token = isset($_POST[$old_session["csrf_token_field"]]) ? $_POST[$old_session["csrf_token_field"]] : $_GET[$old_session["csrf_token_field"]];
+					
+					if ($token && $token == $old_session["csrf_token"]) {
+						return;
+					}
+				}
+				
 				$this->stop("Cross site request forgery detected.");
 			}
 		}
