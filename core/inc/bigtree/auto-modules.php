@@ -810,9 +810,11 @@
 			$status = "published";
 			$many_to_many = array();
 			$owner = false;
+
 			// The entry is pending if there's a "p" prefix on the id
 			if (substr($id,0,1) == "p") {
 				$change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($id,1))."'"));
+				
 				if (!$change) {
 					return false;
 				}
@@ -821,18 +823,24 @@
 				$many_to_many = json_decode($change["mtm_changes"],true);
 				$temp_tags = json_decode($change["tags_changes"],true);
 				$tags = array();
+
 				if (!empty($temp_tags)) {
-					foreach ($temp_tags as $tid) {
-						$tags[] = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$tid'"));
+					foreach ($temp_tags as $tag_id) {
+						$tag = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '".intval($tag_id)."'"));
+
+						if ($tag) {
+							$tags[] = $tag;
+						}
 					}
 				}
+
 				$status = "pending";
 				$owner = $change["user"];
 			// Otherwise it's a live entry
 			} else {
 				$id = sqlescape($id);
-
 				$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
+
 				if (!$item) {
 					return false;
 				}
@@ -842,15 +850,22 @@
 				if ($change) {
 					$status = "updated";
 					$changes = json_decode($change["changes"],true);
+					
 					foreach ($changes as $key => $val) {
 						$item[$key] = $val;
 					}
+					
 					$many_to_many = json_decode($change["mtm_changes"],true);
 					$temp_tags = json_decode($change["tags_changes"],true);
 					$tags = array();
+					
 					if (is_array($temp_tags)) {
-						foreach ($temp_tags as $tid) {
-							$tags[] = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$tid'"));
+						foreach ($temp_tags as $tag_id) {
+							$tag = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '".intval($tag_id)."'"));
+
+							if ($tag) {
+								$tags[] = $tag;
+							}
 						}
 					}
 				// If there's no pending changes, just pull the tags
@@ -869,6 +884,7 @@
 					$item[$key] = BigTreeCMS::replaceInternalPageLinks($val);
 				}
 			}
+
 			return array("item" => $item, "mtm" => $many_to_many, "tags" => $tags, "status" => $status, "owner" => $owner);
 		}
 

@@ -1014,11 +1014,17 @@
 					// Decode the tag changes, apply them back.
 					$tags = array();
 					$tags_changes = json_decode($f["tags_changes"],true);
+					
 					if (is_array($tags_changes)) {
-						foreach ($tags_changes as $tag) {
-							$tags[] = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$tag'"));
+						foreach ($tags_changes as $tag_id) {
+							$tag = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '".intval($tag_id)."'"));
+
+							if ($tag) {
+								$tags[] = $tag;
+							}
 						}
 					}
+
 					$page["tags"] = $tags;
 				}
 			}
