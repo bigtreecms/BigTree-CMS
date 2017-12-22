@@ -1895,6 +1895,7 @@
 	.bigtree .mce-statusbar { background: #EEE; border-color: #CCC; }
 	.bigtree .mce-btn-group { margin: 0; }
 	.bigtree .mce-btn-group .mce-btn { background: transparent; border: none; border-radius: 0px; box-shadow: none; }
+	.bigtree .mce-btn-group .mce-btn.mce-active { background: #555; }
 	.bigtree .mce-btn-group .mce-first.mce-last { border-radius: 0; }
 	.bigtree .mce-btn-group:last-child { border: none; }
 	.bigtree .mce-path { padding: 3px 6px; }
