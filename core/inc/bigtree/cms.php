@@ -1540,7 +1540,7 @@
 		*/
 
 		static function urlify($title) {
-			if (version_compare(PHP_VERSION, "7.0.0") >= 0) {
+			if (class_exists("Locale")) {
 				require_once(SERVER_ROOT."core/inc/lib/slug-generator/src/SlugOptions.php");
 				require_once(SERVER_ROOT."core/inc/lib/slug-generator/src/SlugGenerator.php");
 
