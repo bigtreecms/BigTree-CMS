@@ -658,6 +658,9 @@
 		function create301($from, $to, $site_key = null) {
 			global $bigtree;
 
+			$to = trim($to);
+			$from = trim($from);
+
 			// If this is a multi-site environment and a full URL was pasted in we're going to auto-select the key no matter what they passed in
 			if (!is_null($site_key)) {
 				$from_domain = parse_url($from, PHP_URL_HOST);
@@ -7190,14 +7193,16 @@
 				url - The redirect URL.
 		*/
 
-		function set404Redirect($id,$url) {
+		function set404Redirect($id, $url) {
 			$this->requireLevel(1);
 			$id = sqlescape($id);
+			$url = trim($url);
 
 			// Try to convert the short URL into a full one
 			if (strpos($url,"//") === false) {
 				$url = WWW_ROOT.ltrim($url,"/");
 			}
+			
 			$url = sqlescape(htmlspecialchars($this->autoIPL($url)));
 
 			// Don't use static roots if they're the same as www just in case they are different when moving environments
