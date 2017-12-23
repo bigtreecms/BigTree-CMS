@@ -1243,6 +1243,88 @@
 			
 			return $data;
 		}
+
+		// Prepares SQL statements using the ? replacement syntax
+		static protected function prepareStatementIndexed($query, $values) {
+			$x = 0;
+			$offset = 0;
+			
+			while (($position = strpos($query, "?", $offset)) !== false) {
+				// Allow for these reserved keywords to be let through unescaped
+				if (is_null($values[$x])) {
+					$replacement = "NULL";
+				} elseif ($values[$x] === "NOW()") {
+					$replacement = $values[$x];
+				} else {
+					$replacement = "'".static::escape($values[$x])."'";
+				}
+				
+				// Null values require IS NOT NULL and IS NULL
+				if ($replacement == "NULL") {
+					// If there's no space before the ? we need to account for that
+					if (substr($query, $position - 1, 1) != " ") {
+						if (substr($query, $position - 2, 2) == "!=") {
+							$query = substr($query, 0, $position - 2)." IS NOT NULL";
+						} else {
+							$query = substr($query, 0, $position - 1)." IS NULL";
+						}
+					} else {
+						if (substr($query, $position - 3, 3) == "!= ") {
+							$query = substr($query, 0, $position - 3)."IS NOT NULL";
+						} else {
+							$query = substr($query, 0, $position - 2)."IS NULL";
+						}
+					}
+				} else {
+					// If the replacement contained a ? we don't want it to be replaced, so start after the replacement
+					$offset = strlen($replacement) + $position;
+					
+					// Replace
+					$query = substr($query, 0, $position).$replacement.substr($query, $position + 1);
+				}
+				
+				// Increment argument
+				$x++;
+			}
+
+			return $query;
+		}
+
+		// Prepares SQL statements using the :name replacement syntax
+		static protected function prepareStatementNamed($query, $values) {
+			foreach ($values as $key => $value) {
+				// Allow for these reserved keywords to be let through unescaped
+				if (is_null($value)) {
+					$value = "NULL";
+				} elseif ($value !== "NOW()") {
+					$value = "'".static::escape($value)."'";
+				}
+				
+				// Null values require IS NOT NULL and IS NULL
+				if ($value == "NULL") {
+					$position = strpos($query, $key);
+
+					// If there's no space before the ? we need to account for that
+					if (substr($query, $position - 1, 1) != " ") {
+						if (substr($query, $position - 2, 2) == "!=") {
+							$query = substr($query, 0, $position - 2)." IS NOT NULL";
+						} else {
+							$query = substr($query, 0, $position - 1)." IS NULL";
+						}
+					} else {
+						if (substr($query, $position - 3, 3) == "!= ") {
+							$query = substr($query, 0, $position - 3)."IS NOT NULL";
+						} else {
+							$query = substr($query, 0, $position - 2)."IS NULL";
+						}
+					}
+				} else {
+					$query = str_replace($key, $value, $query);
+				}
+			}
+
+			return $query;
+		}
 		
 		/*
 			Function: query
@@ -1281,52 +1363,17 @@
 				$query_response = $connection->query($query);
 			} else {
 				// Check argument and ? count to trigger warnings
-				$wildcard_count = substr_count($query, "?");
-				
-				if ($wildcard_count != (count($args) - 1)) {
-					throw new Exception("SQL::query error - wildcard and argument count do not match ($wildcard_count '?' found, ".(count($args) - 1)." arguments provided)");
-				}
-				
-				// Do the replacements and escapes
-				$x = 1;
-				$offset = 0;
-				
-				while (($position = strpos($query, "?", $offset)) !== false) {
-					// Allow for these reserved keywords to be let through unescaped
-					if (is_null($args[$x])) {
-						$replacement = "NULL";
-					} elseif ($args[$x] === "NOW()") {
-						$replacement = $args[$x];
-					} else {
-						$replacement = "'".static::escape($args[$x])."'";
+				$index_wildcard_count = substr_count($query, "?");
+
+				// See if we're using named parameters instead
+				if ($index_wildcard_count == 0 && count($args) == 2 && is_array($args[1])) {
+					$query = static::prepareStatementNamed($query, $args[1]);
+				} else {
+					if ($index_wildcard_count != (count($args) - 1)) {
+						throw new Exception("SQL::query error - wildcard and argument count do not match ($index_wildcard_count '?' found, ".(count($args) - 1)." arguments provided)");
 					}
-					
-					// Null values require IS NOT NULL and IS NULL
-					if ($replacement == "NULL") {
-						// If there's no space before the ? (WHICH THERE SHOULD BE YOU HEATHENS) we need to account for that
-						if (substr($query, $position - 1, 1) != " ") {
-							if (substr($query, $position - 2, 2) == "!=") {
-								$query = substr($query, 0, $position - 2)." IS NOT NULL";
-							} else {
-								$query = substr($query, 0, $position - 1)." IS NULL";
-							}
-						} else {
-							if (substr($query, $position - 3, 3) == "!= ") {
-								$query = substr($query, 0, $position - 3)."IS NOT NULL";
-							} else {
-								$query = substr($query, 0, $position - 2)."IS NULL";
-							}
-						}
-					} else {
-						// If the replacement contained a ? we don't want it to be replaced, so start after the replacement
-						$offset = strlen($replacement) + $position;
-						
-						// Replace
-						$query = substr($query, 0, $position).$replacement.substr($query, $position + 1);
-					}
-					
-					// Increment argument
-					$x++;
+				
+					$query = static::prepareStatementIndexed($query, array_slice($args, 1));
 				}
 				
 				// Return the query object
