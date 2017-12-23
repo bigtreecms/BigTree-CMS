@@ -9,6 +9,7 @@
 	if (empty($server_root)) {
 		$server_root = str_replace("core/launch.php","",strtr(__FILE__, "\\", "/"));
 	}
+	
 	include $server_root."custom/environment.php";
 	include $server_root."custom/settings.php";
 
@@ -37,6 +38,7 @@
 		if ($val == "..") {
 			die();
 		}
+
 		return true;
 	});
 	
@@ -57,6 +59,7 @@
 			if ($part != $bigtree["path"][$x])	{
 				$in_admin = false;
 			}
+
 			$x++;
 		}
 	}
@@ -67,11 +70,13 @@
 		if ($x > 1) {
 			$bigtree["path"] = array_slice($bigtree["path"],$x - 1);
 		}
+
 		if (file_exists("../custom/admin/router.php")) {
 			include "../custom/admin/router.php";
 		} else {
 			include "../core/admin/router.php";
 		}
+
 		die();
 	}
 
@@ -125,6 +130,7 @@
 	} else {
 		include "../core/bootstrap.php";
 	}
+
 	// Route BigTree
 	if (file_exists("../custom/router.php")) {
 		include "../custom/router.php";

@@ -39,19 +39,6 @@
 	// Set version
 	include SERVER_ROOT."core/version.php";
 	
-	// For servers that don't have multibyte string extensions.
-	if (!function_exists("mb_strlen")) {
-		function mb_strlen($string) {
-			return strlen($string);
-		}
-	}
-	
-	if (!function_exists("mb_strtolower")) {
-		function mb_strtolower($string) {
-			return strtolower($string);
-		}
-	}
-	
 	// Class auto loader
 	spl_autoload_register(function ($class) {
 		global $bigtree;
@@ -93,7 +80,7 @@
 	// Setup our connections as disconnected by default.
 	$bigtree["mysql_read_connection"] = "disconnected";
 	$bigtree["mysql_write_connection"] = "disconnected";
-	
+
 	// Load Up BigTree!
 	BigTree\Router::boot($bigtree["config"]);
 	include BigTree\Router::getIncludePath("inc/bigtree/compat/cms.php");
