@@ -168,7 +168,7 @@
 			$csp_domains[] = "https://".$clean_csp_domain;
 		}
 	} else {
-		$clean_csp_domain = str_replace(array("https://", "http://"), "", DOMAIN);
+		$clean_csp_domain = str_replace(array("https://", "http://"), "", $bigtree["config"]["domain"]);
 		$csp_domains[] = "http://".$clean_csp_domain;
 		$csp_domains[] = "https://".$clean_csp_domain;
 	}
