@@ -1893,8 +1893,9 @@
 	.bigtree .mce-edit-area { border-color: #CCC; }
 	.bigtree .mce-menubar { background: #EEE; border-bottom: 1px solid #CCC; }
 	.bigtree .mce-statusbar { background: #EEE; border-color: #CCC; }
+	.bigtree .mce-toolbar .mce-btn-group { padding: 0; }
 	.bigtree .mce-btn-group { margin: 0; }
-	.bigtree .mce-btn-group .mce-btn { background: transparent; border: none; border-radius: 0px; box-shadow: none; }
+	.bigtree .mce-btn-group .mce-btn { background: transparent; border: none; border-radius: 0px; box-shadow: none; margin: 0; }
 	.bigtree .mce-btn-group .mce-btn.mce-active { background: #555; }
 	.bigtree .mce-btn-group .mce-first.mce-last { border-radius: 0; }
 	.bigtree .mce-btn-group:last-child { border: none; }
@@ -1905,7 +1906,7 @@
 	.bigtree .mce-combobox .mce-btn:hover { background: rgba(0,0,0,0.15); }
 	.bigtree .mce-menu { border-color: #CCC; border-radius: 0 0 2px 2px; box-shadow: none; margin: 0; padding: 0; }
 	.bigtree .mce-menu-item { margin: 0; }
-	.bigtree .mce-menu-item:hover, .bigtree .mce-menu-item.mce-selected, .bigtree .mce-menu-item:focus { background: #59A8E9; }
+	.bigtree .mce-menu-item:hover, .bigtree .mce-menu-item.mce-selected, .bigtree .mce-menu-item:focus { background: rgba(0, 0, 0, 0.1); }
 	.bigtree .mce-menu .mce-menu-item-sep { border: none; margin: 0; }
 	.bigtree .mce-tooltip-inner { border-radius: 2px; box-shadow: none; }
 	.bigtree .mce-listbox { background: #EEE; border: 1px solid #CCC; border-radius: 2px; }
