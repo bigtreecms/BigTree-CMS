@@ -1260,7 +1260,7 @@
 				}
 				
 				// Null values require IS NOT NULL and IS NULL
-				if ($replacement == "NULL") {
+				if ($replacement == "NULL" && $action) {
 					// If there's no space before the ? we need to account for that
 					if (substr($query, $position - 1, 1) != " ") {
 						if (substr($query, $position - 2, 2) == "!=") {
@@ -1347,11 +1347,17 @@
 			$connection = (static::$Connection && static::$Connection !== "disconnected") ? static::$Connection : static::connect("Connection", "db");
 			
 			// If we have a separate write host, let's find out if we're writing and use it if so
-			if (isset($bigtree["config"]["db_write"]) && $bigtree["config"]["db_write"]["host"]) {
-				$commands = explode(" ", $query);
-				$fc = strtolower($commands[0]);
-				
-				if ($fc == "create" || $fc == "drop" || $fc == "insert" || $fc == "update" || $fc == "set" || $fc == "grant" || $fc == "flush" || $fc == "delete" || $fc == "alter" || $fc == "load" || $fc == "optimize" || $fc == "repair" || $fc == "replace" || $fc == "lock" || $fc == "restore" || $fc == "rollback" || $fc == "revoke" || $fc == "truncate" || $fc == "unlock") {
+			if (!empty($bigtree["config"]["db_write"]["host"])) {
+				$commands = explode(" ", trim($query));
+				$action = strtolower($commands[0]);
+				$write_actions = array(
+					"create", "drop", "insert", "update", "set", "grant",
+					"flush", "delete", "alter", "load", "optimize",
+					"repair", "replace", "lock", "restore", "rollback",
+					"revoke", "truncate", "unlock"
+				);
+
+				if (in_array($action, $write_actions)) {
 					$connection = (static::$WriteConnection && static::$WriteConnection !== "disconnected") ? static::$WriteConnection : static::connect("WriteConnection", "db_write");
 				}
 			}
@@ -1512,12 +1518,16 @@
 			
 			// Setup our array to implode into a query
 			$set = array();
+			$where = array();
 			
 			foreach ($values as $column => $value) {
-				$set[] = "`$column` = ?";
-			}
+				if (is_null($value)) {
+					$set[] = "`$column` = NULL";
+				} else {
+					$set[] = "`$column` = ?";
+				}
+			}			
 			
-			$where = array();
 			// If the ID is an associative array we match based on the given columns
 			if (is_array($id)) {
 				foreach ($id as $column => $value) {
