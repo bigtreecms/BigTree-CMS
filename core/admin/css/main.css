@@ -1875,7 +1875,7 @@
 	.bigtree .form_error .mce-tinymce { border-color: #C0362F; }
 	.bigtree .mce-tinymce * { font-family: Helvetica; }
 	.bigtree .mce-tinymce .mce-ico { font-family: "tinymce", Helvetica; }
-	.bigtree .mce-window { border: none; border-radius: 3px; box-shadow: none; }
+	.bigtree .mce-window { border-radius: 3px; box-shadow: none; }
 	.bigtree .mce-window-head { background: #EEE; border-bottom: 1px solid #CCC; border-radius: 2px 2px 0 0; padding: 5px 10px; }
 	.bigtree .mce-window-head .mce-title { font-family: Helvetica; font-size: 14px; font-weight: normal; height: 27px; line-height: 29px; text-transform: uppercase; }
 	.bigtree .mce-window-head .mce-close { display: none; }
@@ -1923,7 +1923,7 @@
 	.bigtree .mce-combobox.mce-has-open input { border-color: #CCC; border-radius: 2px 0 0 2px; box-shadow: none; }
 	.bigtree .mce-checked i.mce-i-checkbox { color: #777; }
 	.bigtree .mce-fade, .bigtree .mce-window { transition: none; }
-	.bigtree #mce-modal-block.mce-in { opacity: 0.6; }
+	.bigtree #mce-modal-block.mce-in { background: #000; opacity: 0.6; }
 	.bigtree .callout_fields .mce-btn-group { border: none; }
 
 /*----------------------------
