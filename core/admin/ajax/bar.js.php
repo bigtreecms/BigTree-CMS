@@ -53,10 +53,14 @@ var BigTreeBar = {
 
 	messageReceiver: function(event) {
 		if (BigTreeBar.allowedMessagingDomains.indexOf(event.origin) > -1) {
-			if (event.data == "cancel") {
-				BigTreeBar.cancel();
-			} else {
-				BigTreeBar.refresh(event.data);
+			if (event.data.substr(0, 12) == "bigtree-bar-") {
+				var message = event.data.substr(12);
+				
+				if (message == "cancel") {
+					BigTreeBar.cancel();
+				} else {
+					BigTreeBar.refresh(message);
+				}
 			}
 		}
 	},

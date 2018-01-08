@@ -64,7 +64,7 @@
 	BigTreeFormValidator(".bigtree_dialog_form");
 	
 	$(".bigtree_dialog_close").click(function() {
-		parent.window.postMessage("cancel", "*");
+		parent.window.postMessage("bigtree-bar-cancel", "*");
 		
 		return false;
 	});

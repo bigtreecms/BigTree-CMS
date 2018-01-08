@@ -1,2 +1,2 @@
-<script>parent.window.postMessage("<?=base64_decode(end($bigtree["path"]))?>", "*");</script>
+<script>parent.window.postMessage("bigtree-bar-<?=base64_decode(end($bigtree["path"]))?>", "*");</script>
 <? die(); ?>

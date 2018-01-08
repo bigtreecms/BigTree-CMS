@@ -87,7 +87,7 @@
 		include BigTree::path("admin/modules/pages/_front-end-error.php");
 	} else {
 ?>
-<script>parent.window.postMessage("<?=$refresh_link?>", "*");</script>
+<script>parent.window.postMessage("bigtree-bar-<?=$refresh_link?>", "*");</script>
 <?
 	}
 ?>
