@@ -1523,6 +1523,7 @@
 			foreach ($values as $column => $value) {
 				if (is_null($value)) {
 					$set[] = "`$column` = NULL";
+					unset($values[$column]);
 				} else {
 					$set[] = "`$column` = ?";
 				}
