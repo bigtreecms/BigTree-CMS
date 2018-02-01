@@ -85,7 +85,7 @@
 							if (!$replacing) {
 								$admin->createResource($folder,$file,$md5,$file_name,$extension);
 							} else {
-								$admin->updateResource($_POST["resource"], array("date" => date("Y-m-d H:i:s")));
+								$admin->updateResource($_POST["replace"], array("date" => date("Y-m-d H:i:s")));
 							}
 						}
 					// It's an image
