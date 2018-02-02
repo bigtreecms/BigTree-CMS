@@ -76,6 +76,7 @@
 		function delete($file_location) {
 			// Make sure we're using IPLs so we don't get it confused with cloud
 			$file_location = str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),$file_location);
+
 			// Cloud
 			if (substr($file_location,0,4) == "http" || substr($file_location,0,2) == "//") {
 				// Try to get the container and pointer
@@ -83,7 +84,12 @@
 				$domain = $parts[2];
 				$container = $parts[3];
 				$pointer_parts = array_slice($parts,4);
-				if ($domain == "s3.amazonaws.com") {
+
+				if (!empty($this->Settings->CDNDomain) && $this->Settings->CDNDomain == $domain) {
+					$service = "amazon";
+					$container = $this->Settings->Container;
+					$pointer_parts = array_slice($parts, 3);
+				} elseif ($domain == "s3.amazonaws.com") {
 					$service = "amazon";
 				} elseif ($domain == "storage.googleapis.com") {
 					$service = "google";
