@@ -3,13 +3,13 @@
 	if ($bigtree["path"][0] == "js") {
 		clearstatcache();
 
-        // Get the latest mod time on any included js files.
+		// Get the latest mod time on any included js files.
 		$mtime = 0;
 		$js_file = str_replace(".js","",$bigtree["path"][1]);
-        $cache_file = BIGTREE_CACHE_DIRECTORY.$js_file.".js";
+		$cache_file = BIGTREE_CACHE_DIRECTORY.$js_file.".js";
 		$last_modified = file_exists($cache_file) ? filemtime($cache_file) : 0;
 
-        if (is_array($bigtree["config"]["js"]["files"][$js_file])) {
+		if (is_array($bigtree["config"]["js"]["files"][$js_file])) {
 			foreach ($bigtree["config"]["js"]["files"][$js_file] as $script) {
 				$m = file_exists(SITE_ROOT."js/$script") ? filemtime(SITE_ROOT."js/$script") : 0;
 				if ($m > $mtime) {
@@ -73,13 +73,13 @@
 	if ($bigtree["path"][0] == "css") {
 		clearstatcache();
 
-        // Get the latest mod time on any included css files.
+		// Get the latest mod time on any included css files.
 		$mtime = 0;
 		$css_file = str_replace(".css","",$bigtree["path"][1]);
 		$cache_file = BIGTREE_CACHE_DIRECTORY.$css_file.".css";
 		$last_modified = file_exists($cache_file) ? filemtime($cache_file) : 0;
 
-        if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
+		if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
 			foreach ($bigtree["config"]["css"]["files"][$css_file] as $style) {
 				$m = (file_exists(SITE_ROOT."css/$style")) ? filemtime(SITE_ROOT."css/$style") : 0;
 				if ($m > $mtime) {
@@ -168,15 +168,6 @@
 			BigTree::placeholderImage($size[0], $size[1], $style["background_color"], $style["text_color"], $style["image"], $style["text"]);
 		}
 	}
-	
-	// If we have a specific URL trailing slash behavior specified, ensure it's applied to the current request
-    if (array_filter($bigtree["path"])) {
-    	if (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
-    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/")."/","301");
-    	} elseif (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
-    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/"),"301");    	
-    	}
-    }
 
 	// Start output buffering and sessions
 	ob_start();
@@ -462,13 +453,18 @@
 	}
 
 	// If we have a specific URL trailing slash behavior specified, ensure it's applied to the current request now that we've ruled out 404s
-    if (array_filter($bigtree["path"])) {
-    	if (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
-    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/")."/","301");
-    	} elseif (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
-    		BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/"),"301");    	
-    	}
-    }
+	if (array_filter($bigtree["path"]) && !defined("BIGTREE_URL_IS_404")) {
+		$last_path_element = $bigtree["path"][count($bigtree["path"]) - 1];
+		
+		// If this is a "file", ignore the fact that there is or isn't a trailing slash
+		if (strpos($last_path_element, ".") === false) {
+			if (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
+				BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/")."/","301");
+			} elseif (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
+				BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/"),"301");		
+			}
+		}
+	}
 	
 	$bigtree["content"] = ob_get_clean();
 	

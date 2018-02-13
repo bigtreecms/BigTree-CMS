@@ -420,7 +420,7 @@
 		}
 		
 		/*
-		    Function: generateReplaceableRoots
+			Function: generateReplaceableRoots
 				Caches a list of tokens and the values that are related to them.
 		*/
 		
@@ -1376,7 +1376,7 @@
 				} else {
 					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url'"));
 				}
-			}			
+			}
 
 			if ($existing["redirect_url"]) {
 				$existing["redirect_url"] = static::getInternalPageLink($existing["redirect_url"]);
@@ -1398,6 +1398,7 @@
 			} else {
 				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 				define("BIGTREE_DO_NOT_CACHE", true);
+				define("BIGTREE_URL_IS_404", true);
 
 				if ($existing && $existing["get_vars"] == $get) {
 					sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = '".$existing["id"]."'");
@@ -1412,7 +1413,7 @@
 		}
 		
 		/*
-		    Function: linkForPath
+			Function: linkForPath
 				Returns a correct link for a page's path for the current site in a multi-domain setup.
 			
 			Parameters:
