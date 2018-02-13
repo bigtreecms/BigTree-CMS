@@ -1366,15 +1366,26 @@
 				} else {
 					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url' AND get_vars = '$get'"));
 				}
+
+				// Look for a 404 that has a redirect but no get vars
+				if (empty($existing["redirect_url"])) {
+					if (defined("BIGTREE_SITE_KEY")) {
+						$non_get_existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url' AND redirect_url != '' AND get_vars = '' AND site_key = '".sqlescape(BIGTREE_SITE_KEY)."'"));
+					} else {
+						$non_get_existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url' AND redirect_url != '' AND get_vars = ''"));
+					}
+
+					if ($non_get_existing) {
+						$existing = $non_get_existing;
+					}
+				}
 			} else {
 				$get = "";
-			}
-
-			if (!$existing) {
+			
 				if (defined("BIGTREE_SITE_KEY")) {
-					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url' AND site_key = '".sqlescape(BIGTREE_SITE_KEY)."'"));
+					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url' AND get_vars = '' AND site_key = '".sqlescape(BIGTREE_SITE_KEY)."'"));
 				} else {
-					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url'"));
+					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE broken_url = '$url' AND get_vars = ''"));
 				}
 			}
 
