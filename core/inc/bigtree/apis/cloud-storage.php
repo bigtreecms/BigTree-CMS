@@ -131,7 +131,7 @@
 				if ($this->HTTPResponseCode != "200") {
 					return false;
 				}
-				return "//s3.amazonaws.com/$destination_container/$destination_pointer";
+				return "//$destination_container.s3.amazonaws.com/$destination_pointer";
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 				global $bigtree;
@@ -250,7 +250,7 @@
 				),array("x-amz-acl" => ($public ? "public-read" : "private")),$contents);
 
 				if (!$response) {
-					return "//s3.amazonaws.com/$container/$pointer";
+					return "//$container.s3.amazonaws.com/$pointer";
 				}
 				$this->_setAmazonError($response);
 				return false;
@@ -404,7 +404,7 @@
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				$pointer = str_replace(array('%2F', '%2B'),array('/', '+'),rawurlencode($pointer));
-				return "//s3.amazonaws.com/".$container."/".$pointer."?AWSAccessKeyId=".$this->Settings["amazon"]["key"]."&Expires=$expires&Signature=".urlencode($this->_hash($this->Settings["amazon"]["secret"],"GET\n\n\n$expires\n/$container/$pointer"));
+				return "//$container.s3.amazonaws.com/".$pointer."?AWSAccessKeyId=".$this->Settings["amazon"]["key"]."&Expires=$expires&Signature=".urlencode($this->_hash($this->Settings["amazon"]["secret"],"GET\n\n\n$expires\n/$container/$pointer"));
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 				// If we don't have a Temp URL key already set, we need to make one
@@ -774,7 +774,7 @@
 				// Send back the ACL
 				$this->callAmazonS3("PUT",$container,$pointer,array("acl" => ""),array("Content-Type" => "text/xml"),array(),$xml);
 
-				return "//s3.amazonaws.com/$container/$pointer";
+				return "//$container.s3.amazonaws.com/$pointer";
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$response = $this->call("b/$container/o/".rawurlencode($pointer)."/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
@@ -855,7 +855,7 @@
 				),array("x-amz-acl" => ($public ? "public-read" : "private")),false,$file);
 				
 				if (!$response) {
-					return "//s3.amazonaws.com/$container/$pointer";
+					return "//$container.s3.amazonaws.com/$pointer";
 				}
 				$this->_setAmazonError($response);
 				return false;
