@@ -667,4 +667,10 @@
 		sqlquery("ALTER TABLE `bigtree_users` ADD COLUMN `2fa_secret` VARCHAR(255) NOT NULL AFTER `password`");
 		sqlquery("ALTER TABLE `bigtree_users` ADD COLUMN `2fa_login_token` VARCHAR(255) NOT NULL AFTER `2fa_secret`");
 	}
+
+	// BigTree 4.2.20 update -- REVISION 208
+	function _local_bigtree_update_208() {
+		// Clean up duplicate 404s again
+		_local_bigtree_update_205();
+	}
 ?>
