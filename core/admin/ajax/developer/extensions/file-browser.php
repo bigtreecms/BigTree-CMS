@@ -1,17 +1,22 @@
 <?
 	// See if we have cloud support
 	$cloud_options = array();
+
 	if (!$_POST["cloud_disabled"] || $_POST["cloud_disabled"] == "false") {
 		$cloud = new BigTreeCloudStorage;
+		
 		if (!empty($cloud->Settings["amazon"]["active"])) {
 			$cloud_options[] = array("class" => "amazon","title" => "Amazon S3");
 		}
+
 		if ($cloud->Connected) {
 			$cloud_options[] = array("class" => "google","title" => "Google Cloud Storage");
 		}
+
 		if (!empty($cloud->Settings["rackspace"]["active"])) {
 			$cloud_options[] = array("class" => "rackspace","title" => "Rackspace Cloud Files");
 		}
+
 		if (count($cloud_options)) {
 			array_unshift($cloud_options,array("class" => "server","title" => "Local Server"));
 		}
@@ -21,21 +26,14 @@
 	$subdirectories = array();
 	$files = array();
 	$containers = array();
+	
 	// Get the post directory
 	$postcontainer = !empty($_POST["container"]) ? $_POST["container"] : "";
-	$parts = explode("/",$_POST["directory"]);
-	$postdirectory = array();
-	foreach ($parts as $part) {
-		if ($part == "..") {
-			unset($postdirectory[count($postdirectory)-1]);
-		} elseif ($part) {
-			$postdirectory[] = $part;
-		}
-	}
-	if (count($postdirectory)) {
-		$postdirectory = implode("/",$postdirectory)."/";
+	
+	if ($_POST["location"] == "server") {
+		$postdirectory = BigTree::cleanFile($_POST["directory"]);
 	} else {
-		$postdirectory = "";
+		$postdirectory = $_POST["directory"];
 	}
 
 	// Local storage is being browsed

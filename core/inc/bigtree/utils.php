@@ -121,18 +121,21 @@
 		*/
 
 		static function cleanFile($file) {
-			$pieces = array_filter(explode("/",$file), function($val) {
+			$pieces = array_filter(explode(DIRECTORY_SEPARATOR, $file), function($val) {
 				// Let empties through
 				if (!trim($val)) {
 					return true;
 				}
+
 				// Strip path manipulation
-				if (trim(str_replace(".","",$val)) === "") {
+				if (trim(str_replace(".", "", $val)) === "") {
 					return false;
 				}
+
 				return true;
 			});
-			return implode("/",$pieces);
+
+			return implode(DIRECTORY_SEPARATOR, $pieces);
 		}
 		
 		/*
