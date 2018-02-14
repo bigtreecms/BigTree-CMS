@@ -588,7 +588,7 @@
 	div.table { border: 1px solid #ccc; border-radius: 2px; margin: 0 0 20px 0; }
 	div.table:after { clear: both; content: ""; display: table; }
 	.table ul { list-style: none; margin: 0; }
-	.table > summary, .container summary { background: #eee; border-bottom: 1px solid #ccc; border-radius: 2px 2px 0 0; height: 36px; line-height: 36px; padding: 0 6px 0 15px; }
+	.table > summary, .container summary { background: #eee; border-bottom: 1px solid #ccc; border-radius: 2px 2px 0 0; height: 37px; line-height: 36px; padding: 0 6px 0 15px; }
 	.table > summary input { float: left; margin: 5px 25px 0 -10px; }
 	.table > summary p, .container summary p { color: #666; font-size: 12px; line-height: 37px; }
 	.table > summary.taller { height: 45px; line-height: 45px; }
