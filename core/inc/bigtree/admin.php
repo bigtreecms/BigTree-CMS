@@ -2372,15 +2372,25 @@
 
 		function deleteUser($id) {
 			$id = sqlescape($id);
+			
 			// If this person has higher access levels than the person trying to update them, fail.
-			$current = static::getUser($id);
+			$target_user = static::getUser($id);
 
-			if ($current["level"] > $this->Level || $id == $this->ID) {
+			if ($target_user["level"] > $this->Level || $id == $this->ID) {
 				return false;
 			}
 
 			sqlquery("DELETE FROM bigtree_users WHERE id = '$id'");
 			$this->track("bigtree_users",$id,"deleted");
+
+			// Add the user to the deleted users cache
+			$deleted_users = BigTreeCMS::getSetting("bigtree-internal-deleted-users");
+			$deleted_users[$target_user["id"]] = array(
+				"name" => $target_user["name"],
+				"email" => $target_user["email"],
+				"company" => $target_user["company"]
+			);
+			$this->updateSettingValue("bigtree-internal-deleted-users", $deleted_users);
 
 			return true;
 		}
@@ -7034,6 +7044,7 @@
 
 		static function searchAuditTrail($user = false,$table = false,$entry = false,$start = false,$end = false) {
 			$users = $items = $where = array();
+			$deleted_users = BigTreeCMS::getSetting("bigtree-internal-deleted-users");
 			$query = "SELECT * FROM bigtree_audit_trail";
 
 			if ($user) {
@@ -7056,12 +7067,22 @@
 			}
 
 			$q = sqlquery($query." ORDER BY `date` DESC");
+			
 			while ($f = sqlfetch($q)) {
-				if (!$users[$f["user"]]) {
-					$u = static::getUser($f["user"]);
-					$users[$f["user"]] = array("id" => $u["id"],"name" => $u["name"],"email" => $u["email"],"level" => $u["level"]);
+				if (isset($deleted_users[$f["user"]])) {
+					$user = $deleted_users[$f["user"]];
+					$user["deleted"] = true;
+					$user["id"] = $f["user"];
+					$f["user"] = $user;
+				} else {
+					if (!$users[$f["user"]]) {
+						$u = static::getUser($f["user"]);
+						$users[$f["user"]] = array("id" => $u["id"],"name" => $u["name"],"email" => $u["email"],"level" => $u["level"]);
+					}
+
+					$f["user"] = $users[$f["user"]];
 				}
-				$f["user"] = $users[$f["user"]];
+
 				$items[] = $f;
 			}
 

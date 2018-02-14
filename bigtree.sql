@@ -5,7 +5,7 @@ DROP TABLE IF EXISTS `bigtree_404s`;
 CREATE TABLE `bigtree_404s` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`broken_url` varchar(255) NOT NULL DEFAULT '',`redirect_url` varchar(255) NOT NULL DEFAULT '',`requests` int(11) unsigned NOT NULL DEFAULT '0',`ignored` char(2) NOT NULL DEFAULT '',`site_key` varchar(255) DEFAULT NULL,PRIMARY KEY (`id`),KEY `broken_url` (`broken_url`),KEY `requests` (`requests`),KEY `ignored` (`ignored`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 DROP TABLE IF EXISTS `bigtree_audit_trail`;
-CREATE TABLE `bigtree_audit_trail` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`user` int(11) unsigned NOT NULL,`table` varchar(255) NOT NULL,`entry` varchar(255) NOT NULL DEFAULT '',`type` varchar(255) NOT NULL,`date` datetime NOT NULL,PRIMARY KEY (`id`),KEY `user` (`user`),KEY `table` (`table`),KEY `entry` (`entry`),KEY `date` (`date`),FOREIGN KEY (`user`) REFERENCES `bigtree_users` (`id`) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+CREATE TABLE `bigtree_audit_trail` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`user` int(11) unsigned NOT NULL,`table` varchar(255) NOT NULL,`entry` varchar(255) NOT NULL DEFAULT '',`type` varchar(255) NOT NULL,`date` datetime NOT NULL,PRIMARY KEY (`id`),KEY `user` (`user`),KEY `table` (`table`),KEY `entry` (`entry`),KEY `date` (`date`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 DROP TABLE IF EXISTS `bigtree_caches`;
 CREATE TABLE `bigtree_caches` (`identifier` varchar(255) NOT NULL DEFAULT '', `key` varchar(10000) NOT NULL DEFAULT '', `value` longtext, `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, KEY `identifier` (`identifier`), KEY `key` (`key`), KEY `timestamp` (`timestamp`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
@@ -109,6 +109,7 @@ INSERT INTO `bigtree_settings` (`id`, `value`, `type`, `options`, `name`, `descr
 INSERT INTO `bigtree_settings` (`id`,`value`,`system`) VALUES ('bigtree-internal-revision','205','on');
 INSERT INTO `bigtree_settings` (`id`,`value`,`system`) VALUES ('bigtree-internal-security-policy','{}','on');
 INSERT INTO `bigtree_settings` (`id`,`value`,`system`) VALUES ('bigtree-internal-media-settings','{}','on');
+INSERT INTO `bigtree_settings` (`id`,`value`,`system`) VALUES ('bigtree-internal-deleted-users','{}','on');
 
 INSERT INTO `bigtree_templates` (`id`, `name`, `module`, `resources`, `position`, `level`, `routed`) VALUES ('home', 'Home', 0, '[]', 0, 2, ''), ('content', 'Content', 0, '[{"id":"page_header","title":"Page Header","subtitle":"","type":"text","validation":"","seo_h1":"on","sub_type":"","wrapper":"","name":""},{"id":"page_content","title":"Page Content","subtitle":"","type":"html","validation":"","seo_body":"on","wrapper":"","name":""}]', 1, 0, '');
 

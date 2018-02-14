@@ -1,6 +1,7 @@
 <?
 	$admin->verifyCSRFToken();
 	$results = $admin->searchAuditTrail($_GET["user"],$_GET["table"],$_GET["entry"],$_GET["start"],$_GET["end"]);
+	$deleted_users = $cms->getSetting("bigtree-internal-deleted-users");
 	
 	// Setup caches so for big trails we don't retrieve stuff multiple times
 	$page_cache = array();
@@ -24,13 +25,16 @@
 					if (!isset($page_cache[$r["entry"]])) {
 						$page_cache[$r["entry"]] = $cms->getPage($r["entry"],false);
 					}
+					
 					$page = $page_cache[$r["entry"]];
 					$link = '<a target="_blank" href="'.ADMIN_ROOT.'pages/edit/'.$page["id"].'/">'.$page["nav_title"].'</a>';
 				} elseif ($r["table"] == "bigtree_settings") {
 					if (!isset($setting_cache[$r["entry"]])) {
 						$setting_cache[$r["entry"]] = $admin->getSetting($r["entry"]);
 					}
+
 					$setting = $setting_cache[$r["entry"]];
+					
 					if ($setting && !$setting["system"]) {
 						$link = '<a target="_blank" href="'.ADMIN_ROOT.'settings/edit/'.$setting["id"].'/">'.($setting["name"] ? $setting["name"] : $setting["id"]).'</a>';
 					} else {
@@ -40,11 +44,17 @@
 					if (!isset($user_cache[$r["entry"]])) {
 						$user_cache[$r["entry"]] = $admin->getUser($r["entry"]);
 					}
+					
 					$user = $user_cache[$r["entry"]];
+					
 					if ($user) {
 						$link = '<a target="_blank" href="'.ADMIN_ROOT.'users/edit/'.$user["id"].'/">'.$user["name"].'</a>';
 					} else {
-						$link = 'Deleted User: '.$r["entry"];
+						if (isset($deleted_users[$r["entry"]])) {
+							$link = "Deleted User: ".$deleted_users[$r["entry"]]["name"];
+						} else {
+							$link = "Deleted User: ".$r["entry"];
+						}
 					}
 				} else {
 					if (!isset($form_cache[$r["table"]])) {
@@ -52,12 +62,15 @@
 						$form = BigTreeAutoModule::getRelatedFormForView($view);
 						$module = BigTreeAutoModule::getModuleForForm($form);
 						$action = $admin->getModuleActionForForm($form);
+						
 						if ($module && $action) {
 							$module = $admin->getModule($module);
 							$form_cache[$r["table"]] = ADMIN_ROOT.$module["route"]."/".$action["route"]."/";
 						}
 					}
+					
 					$form_link = $form_cache[$r["table"]];
+					
 					if ($form_link) {
 						$link = '<a target="_blank" href="'.$form_link.$r["entry"].'/">View Entry (id: '.$r["entry"].')</a>';
 					} else {
@@ -67,7 +80,13 @@
 		?>
 		<li>
 			<section class="view_column audit_date"><?=date($bigtree["config"]["date_format"]." @ g:ia",strtotime($r["date"]))?></section>
-			<section class="view_column audit_user"><a target="_blank" href="<?=ADMIN_ROOT?>users/edit/<?=$r["user"]["id"]?>/"><?=$r["user"]["name"]?></a></section>
+			<section class="view_column audit_user">
+				<? if (empty($r["user"]["deleted"])) { ?>
+				<a target="_blank" href="<?=ADMIN_ROOT?>users/edit/<?=$r["user"]["id"]?>/"><?=$r["user"]["name"]?></a>
+				<? } else { ?>
+				<a href="<?=DEVELOPER_ROOT?>audit/search/?user=<?=$r["user"]["id"]?><? $admin->drawCSRFTokenGet(); ?>"><?=$r["user"]["name"]?> (DELETED)</a>
+				<? } ?>
+			</section>
 			<section class="view_column audit_table"><?=$r["table"]?></section>
 			<section class="view_column audit_entry"><?=$link?></section>
 			<section class="view_column audit_action"><?=ucwords(str_replace("-"," ",$r["type"]))?></section>

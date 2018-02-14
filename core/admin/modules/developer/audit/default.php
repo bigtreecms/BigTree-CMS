@@ -1,5 +1,6 @@
 <?
 	$users = $admin->getUsers();
+	$deleted_users = $cms->getSetting("bigtree-internal-deleted-users");
 ?>
 <div class="container">
 	<form method="get" action="<?=DEVELOPER_ROOT?>audit/search/">
@@ -9,9 +10,19 @@
 				<label>User</label>
 				<select name="user">
 					<option></option>
-					<? foreach ($users as $user) { ?>
+					<?
+						foreach ($users as $user) {
+					?>
 					<option value="<?=$user["id"]?>"><?=$user["name"]?></option>
-					<? } ?>
+					<?
+						}
+
+						foreach ($deleted_users as $id => $user) {
+					?>
+					<option value="<?=$id?>"><?=$user["name"]?> (DELETED)</option>
+					<?
+						}
+					?>
 				</select>
 			</fieldset>
 			<fieldset>

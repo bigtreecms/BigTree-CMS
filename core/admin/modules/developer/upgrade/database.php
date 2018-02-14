@@ -673,4 +673,19 @@
 		// Clean up duplicate 404s again
 		_local_bigtree_update_205();
 	}
+
+	// BigTree 4.2.20 update -- REVISION 209
+	function _local_bigtree_update_209() {
+		// Add a setting for storing the contact information of deleted users for use in audits
+		sqlquery("INSERT INTO bigtree_settings (`id`, `value`, `system`) VALUES ('bigtree-internal-deleted-users', '[]', 'on')");
+
+		// Drop the foreign key constraint on the audit trail which previously deleted trails for non-existant users
+		$table_description = BigTree::describeTable("bigtree_audit_trail");
+
+		foreach ($table_description["foreign_keys"] as $key => $data) {
+			if ($data["local_columns"][0] == "user") {
+				sqlquery("ALTER TABLE `bigtree_audit_trail` DROP FOREIGN KEY `$key`");
+			}
+		}
+	}
 ?>
