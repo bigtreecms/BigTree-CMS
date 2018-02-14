@@ -12,8 +12,10 @@
 ?>
 <input type="hidden" name="<?=$field["key"]?>" value="<?=$field["value"]?>" />
 <div class="date_picker_inline" data-date="<?=$field["value"]?>"></div>
-<div class="date_picker_clear">Clear Date</div>
 <?
+		if (empty($field["required"])) {
+			echo '<div class="date_picker_clear">Clear Date</div>';
+		}
 	} else {
 ?>
 <input type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<?=$field["value"]?>" autocomplete="off" id="<?=$field["id"]?>" class="date_picker<? if ($field["required"]) { ?> required<? } ?>" />
