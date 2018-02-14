@@ -9,6 +9,11 @@
 	
 	// We draw the picker inline for callouts
 	if (defined("BIGTREE_CALLOUT_RESOURCES")) {
+		// Required and in-line is hard to validate, so default to today's date regardless
+		if (!empty($field["required"]) && empty($field["value"])) {
+			$field["value"] = date($bigtree["config"]["date_format"]." h:i a");
+		}
+
 		// Process hour/minute
 		if ($field["value"]) {
 			$date = DateTime::createFromFormat($bigtree["config"]["date_format"]." h:i a",$field["value"]);

@@ -9,6 +9,10 @@
 	
 	// We draw the picker inline for callouts
 	if (defined("BIGTREE_CALLOUT_RESOURCES")) {
+		// Required and in-line is hard to validate, so default to today's date regardless
+		if (!empty($field["required"]) && empty($field["value"])) {
+			$field["value"] = date($bigtree["config"]["date_format"]);
+		}
 ?>
 <input type="hidden" name="<?=$field["key"]?>" value="<?=$field["value"]?>" />
 <div class="date_picker_inline" data-date="<?=$field["value"]?>"></div>
