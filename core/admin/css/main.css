@@ -588,7 +588,7 @@
 	div.table { border: 1px solid #ccc; border-radius: 2px; margin: 0 0 20px 0; }
 	div.table:after { clear: both; content: ""; display: table; }
 	.table ul { list-style: none; margin: 0; }
-	.table > summary, .container summary { background: #eee; border-bottom: 1px solid #ccc; border-radius: 2px 2px 0 0; height: 37px; line-height: 37px; padding: 0 6px 0 15px; }
+	.table > summary, .container summary { background: #eee; border-bottom: 1px solid #ccc; border-radius: 2px 2px 0 0; height: 36px; line-height: 36px; padding: 0 6px 0 15px; }
 	.table > summary input { float: left; margin: 5px 25px 0 -10px; }
 	.table > summary p, .container summary p { color: #666; font-size: 12px; line-height: 37px; }
 	.table > summary.taller { height: 45px; line-height: 45px; }
@@ -618,9 +618,9 @@
 	.table > summary h2 .embeds { background-position: -501px -53px; }
 	.table > summary h2 .reports { background-position: -525px -52px; }
 	.table > summary h2 .actions { background-position: -548px -53px; }
-	.table > summary .select { float: right; height: 26px; line-height: 26px; margin: 5px 0 0 0; }
-	.table > summary .select span { height: 26px !important; }
-	.table > summary .select .handle { background-color: #F2F2F2; height: 28px; top: -2px; }
+	.table > summary .select { float: right; height: 24px; line-height: 24px; margin: 5px 0 0 10px; }
+	.table > summary .select span { height: 24px !important; }
+	.table > summary .select .handle { background: #F2F2F2 url(../images/icon-sprite.svg) -343px -105px; border-left: 1px solid #CCC; height: 27px; top: -3px; width: 29px; }
 
 	.table > header, .table .image_pending_divider { background: #eee; border-bottom: 1px solid #ccc; border-radius: 0; clear: left; color: #666; height: 20px; line-height: 20px; margin-top: -1px; text-transform: uppercase; user-select: none; }
 	.table > header span { float: left; font-size: 9px !important; height: 20px; line-height: 21px; text-align: center; }
@@ -897,13 +897,13 @@
 	.table .view_action { width: 40px; }
 	.table .view_status { width: 70px; }
 
-	.view_paging { background: #fff; border: 1px solid #ccc; border-radius: 3px; float: right; height: 22px; margin: 7px 0 0 0; overflow: hidden; padding: 0 0 0 1px; user-select: none; }
-	.view_paging a { background: #fff; color: #999; display: block; float: left; font-size: 12px; height: 22px; line-height: 22px; margin: 0; padding: 0 10px; transition: background-color 0.2s; }
-	.view_paging a:hover { color: #666; }
-	.view_paging .active, .view_paging .active:hover { background-color: #eee; color: #666; }
-	.view_paging .first { border-radius: 2px 0 0 2px; height: 13px; padding-top: 7px; text-indent: -1000px; width: 6px; }
+	.view_paging { background: #fff; border: 1px solid #ccc; border-radius: 3px; float: right; height: 24px; margin: 5px 0 0 0; overflow: hidden; padding: 0 0 0 1px; user-select: none; }
+	.view_paging a { background: #fff; color: #999; display: block; float: left; font-size: 12px; height: 24px; line-height: 24px; margin: 0; padding: 0 10px; transition: background-color 0.2s; }
+	.view_paging a:hover { background: #EEE; color: #666; }
+	.view_paging .active, .view_paging .active:hover { background-color: #59A8E9; color: #FFF; }
+	.view_paging .first { border-radius: 2px 0 0 2px; height: 16px; padding-top: 8px; text-indent: -1000px; width: 6px; }
 	.view_paging .first span { background: url(../images/icon-sprite.svg) no-repeat -137px -116px; display: block; height: 9px; width: 6px; }
-	.view_paging .last { border-radius: 0 2px 2px 0; border-right: none; height: 13px; padding-top: 7px; text-indent: -1000px; width: 6px; }
+	.view_paging .last { border-radius: 0 2px 2px 0; border-right: none; height: 16px; padding-top: 8px; text-indent: -1000px; width: 6px; }
 	.view_paging .last span { background: url(../images/icon-sprite.svg) no-repeat -137px -125px; display: block; height: 9px; width: 6px; }
 	.view_paging .first:hover, .view_paging .last:hover { background: #fff; }
 	.view_paging .ellipsis { padding: 0px 5px; }
