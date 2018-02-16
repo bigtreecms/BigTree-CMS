@@ -20,6 +20,46 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.20
+- ADDED: Support for non-latin characters in URL routes (they are now transliterated before generating a route)
+- ADDED: Confirmation before rejecting a change in the dashboard
+- ADDED: GET variable support for 404 Manager (e.g. ?this=that can redirect to something other than ?this=this)
+- ADDED: SSL state checking for load balancers that pass along X_FORWARDED headers.
+- ADDED: CloudFront domain support for Cloud Storage.
+- ADDED: Google Authenticator two factor login support.
+- UPDATED: TinyMCE to the latest version (4.7.6)
+- UPDATED: jQuery to the latest version (3.3.1) and jQuery UI (1.21.1)
+- CHANGED: Session lifetime is now 24 hours rather than 24 minutes by default.
+- CHANGED: Upload fields for images now link off to the full file from the small preview.
+- CHANGED: Upload fields now link to the current file when viewed.
+- CHANGED: The Status column in list based views now shows "Inactive" for an entry that is archived or not approved
+- CHANGED: Twitter API now defaults to returning non-truncated tweets.
+- CHANGED: The math used for calculating the needed RAM for image manipulation to adjust it higher.
+- CHANGED: BigTree bar now uses window.postMessage to work cross domain
+- CHANGED: Replacing a file in the file manager should now update its timestamp
+- CHANGED: Uploading a file to Amazon S3 now uses the subdomain format (bucket.s3.amazonaws.com) to support non US-standard buckets
+- FIXED: Double encoding of titles / descriptions / keywords when approving a page change from the Dashboard
+- FIXED: Duplicate 404s in the 404 Manager
+- FIXED: Module Designer not properly adding indexes on stateful columns
+- FIXED: Missing action titles of several view types
+- FIXED: Preview action not working on image-based views
+- FIXED: Publish and Expiration dates for pages not using the defined date format
+- FIXED: Group based permissions on List fields that allowed empty entry.
+- FIXED: Twitter API not returning tweets when asking for non-truncated content.
+- FIXED: One to Many field not drawing properly within callouts
+- FIXED: Dropdown styles when
+- FIXED: Trailing slash behaviors for files that are 404s
+- FIXED: Large multi-site setups failing to login (you must now access the domains you want to login to individually if > 4 sites are in one CMS)
+- FIXED: Content Security Policy should no longer restrict the front end bar from other domains in a multi-site environment
+- FIXED: Double slash appear at the end of home URLs in a multi-site environment
+- FIXED: Potential authenticated SQL injection data leakage through unsanitized tags (thanks xcold for the report)
+- FIXED: 301 redirects that targeted the homepage looking empty
+- FIXED: Table header styles being slightly non-uniform
+- FIXED: Tables with a very large number of pages getting too large and breaking
+- FIXED: Inline date and date/time pickers that have a required value now default to current time and cannot be cleared.
+- FIXED: Some obscure XSS bugs
+- FIXED: Path manipulation issues on Windows possibly leading to authenticated file inclusion
+
 ### 4.2.19
 - ADDED: Generic SMTP Server support to the Mail Delivery options
 - ADDED: Quick link for viewing a user's audit trail when editing them
