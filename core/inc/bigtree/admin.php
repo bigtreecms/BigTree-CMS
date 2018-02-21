@@ -6545,6 +6545,7 @@
 			$iheight = $image_info[1];
 			$itype = $image_info[2];
 			$channels = $image_info["channels"];
+			$temp_copy = null;
 
 			// See if we're using image presets
 			if ($field["options"]["preset"]) {
@@ -6654,10 +6655,10 @@
 							$source = imagerotate($source,90,0);
 						}
 
-						// We're going to create a PNG so that we don't lose quality when we resave
-						imagepng($source,$first_copy);
-						rename($first_copy,substr($first_copy,0,-3)."png");
-						$first_copy = substr($first_copy,0,-3)."png";
+						// We're going to create a PNG temp copy as well so that we don't lose quality when we resave
+						$temp_copy = SITE_ROOT."files/".uniqid("temp-").".png";
+						imagepng($source, $temp_copy);
+						imagejpeg($source, $first_copy);
 
 						// Force JPEG since we made the first copy a PNG
 						$storage->AutoJPEG = true;
@@ -6670,9 +6671,11 @@
 					}
 				}
 
-				// Create a temporary copy that we will use later for crops and thumbnails
-				$temp_copy = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-				BigTree::copyFile($first_copy,$temp_copy);
+				if (!$temp_copy) {
+					// Create a temporary copy that we will use later for crops and thumbnails
+					$temp_copy = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
+					BigTree::copyFile($first_copy,$temp_copy);
+				}
 
 				// Gather up an array of file prefixes
 				$prefixes = array();
