@@ -158,7 +158,7 @@
 			$strText = preg_replace('/([\.])[\. ]+/', '$1', $strText); // Check for duplicated terminators
 			$strText = trim(preg_replace('/[ ]*([\.])/', '$1 ', $strText)); // Pad sentence terminators
 			$strText = preg_replace('/[ ]+/', ' ', $strText); // Remove multiple spaces
-			$strText = preg_replace_callback('/\. [^ ]+/', create_function('$matches', 'return strtolower($matches[0]);'), $strText); // Lower case all words following terminators (for gunning fog score)
+			$strText = preg_replace_callback('/\. [^ ]+/', function($matches) { return strtolower($matches[0]); }, $strText); // Lower case all words following terminators (for gunning fog score)
 			return $strText;
 		}
 

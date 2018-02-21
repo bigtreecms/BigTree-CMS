@@ -884,7 +884,7 @@
 			global $bigtree;
 
 			// Background Gradients - background-gradient: #top #bottom
-			$css = preg_replace_callback('/background-gradient:([^\"]*);/iU',create_function('$data','
+			$css = preg_replace_callback('/background-gradient:([^\"]*);/iU', function($data) {
 				$d = trim($data[1]);
 				list($stop,$start) = explode(" ",$d);
 				$start_rgb = (substr($start,0,1) == "#") ? "rgb(".hexdec(substr($start,1,2)).",".hexdec(substr($start,3,2)).",".hexdec(substr($start,5,2)).")" : $start;
@@ -894,7 +894,7 @@
 					$response .= "filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=$start, endColorstr=$stop);-ms-filter: \"progid:DXImageTransform.Microsoft.gradient(startColorstr=$start, endColorstr=$stop)\"; zoom:1;";
 				}
 				return $response;
-			'),$css);
+			}, $css);
 			
 			// Border Radius - border-radius: 0px 0px 0px 0px
 			$css = preg_replace_callback('/border-radius:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
