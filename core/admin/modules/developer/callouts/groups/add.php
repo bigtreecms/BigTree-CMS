@@ -12,7 +12,7 @@
 			<fieldset>
 				<label>Callouts</label>
 				<div class="multi_widget many_to_many" id="group_callouts">
-					<section<? if (count($entries)) { ?> style="display: none;"<? } ?>>
+					<section>
 						<p>Click "Add Item" to add an item to this list.</p>
 					</section>
 					<ul></ul>

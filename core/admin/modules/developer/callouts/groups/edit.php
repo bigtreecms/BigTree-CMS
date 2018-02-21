@@ -15,7 +15,7 @@
 			<fieldset>
 				<label>Callouts</label>
 				<div class="multi_widget many_to_many" id="group_callouts">
-					<section<? if (count($group["callouts"])) { ?> style="display: none;"<? } ?>>
+					<section<? if (is_array($group["callouts"]) && count($group["callouts"])) { ?> style="display: none;"<? } ?>>
 						<p>Click "Add Item" to add an item to this list.</p>
 					</section>
 					<ul>
