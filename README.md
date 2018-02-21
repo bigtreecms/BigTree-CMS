@@ -20,6 +20,11 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.21
+- FIXED: Admin crashing on PHP < 7.0 when the environment had support for the Locale class
+- FIXED: Using an EXIF rotated image from the file manager using a PNG version for the non-thumbnailed/cropped copy
+- FIXED: Images uploaded to the file/image manager not properly rotating based on EXIF data.
+
 ### 4.2.20
 - ADDED: Support for non-latin characters in URL routes (they are now transliterated before generating a route)
 - ADDED: Confirmation before rejecting a change in the dashboard
