@@ -6516,9 +6516,10 @@
 
 			Parameters:
 				field - Field information (normally set to $field when running a field type's process file)
+				replace - If not looking for a unique filename (e.g. replacing an existing image) pass true
 		*/
 
-		static function processImageUpload($field) {
+		static function processImageUpload($field, $replace = false) {
 			global $bigtree;
 
 			$failed = false;
@@ -6718,7 +6719,11 @@
 				}
 
 				// Upload the original to the proper place.
-				$field["output"] = $storage->store($first_copy,$name,$field["options"]["directory"],true,$prefixes);
+				if ($replace) {
+					$field["output"] = $storage->replace($first_copy,$name,$field["options"]["directory"],true);
+				} else {
+					$field["output"] = $storage->store($first_copy,$name,$field["options"]["directory"],true,$prefixes);
+				}
 
  				// If the upload service didn't return a value, we failed to upload it for one reason or another.
  				if (!$field["output"]) {
@@ -6832,7 +6837,7 @@
 					}
 
 					// If we don't have any crops, get rid of the temporary image we made.
-					if (!count($bigtree["crops"])) {
+					if (!is_array($bigtree["crops"]) || !count($bigtree["crops"])) {
 						unlink($temp_copy);
 					}
 				}
