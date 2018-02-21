@@ -2032,7 +2032,7 @@
 					$inc_file = rtrim($inc_dir,"/").".php";
 				// We couldn't route anywhere apparently.
 				} else {
-					return array(false,false);
+					return array(false, array());
 				}
 			}
 			return array($inc_file,$commands);
