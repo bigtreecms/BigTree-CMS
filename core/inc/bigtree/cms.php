@@ -1552,7 +1552,7 @@
 		*/
 
 		static function urlify($title) {
-			if (class_exists("Locale")) {
+			if (class_exists("Locale") && version_compare(PHP_VERSION, "7.0.0") >= 0) {
 				require_once(SERVER_ROOT."core/inc/lib/slug-generator/src/SlugOptions.php");
 				require_once(SERVER_ROOT."core/inc/lib/slug-generator/src/SlugGenerator.php");
 
