@@ -6,7 +6,7 @@
 	$bigtree["config"]["locale"] = "en_US";
 
 	// URL construction behavior
-    $bigtree["config"]["trailing_slash_behavior"] = "[slash_behavior]"; // Options are none, append, remove
+	$bigtree["config"]["trailing_slash_behavior"] = "[slash_behavior]"; // Options are none, append, remove
 
 	// CSS settings
 	$bigtree["config"]["css"]["prefix"] = false; // Flag for BigTree CSS3 parsing - automatic vendor prefixing for standard CSS3
