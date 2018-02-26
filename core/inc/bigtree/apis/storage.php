@@ -169,7 +169,7 @@
 
 				// CloudFront support
 				if ($this->Settings->CDNDomain && $this->Settings->Service == "amazon") {
-					return str_replace("//s3.amazonaws.com/".$this->Settings->Container, "//".$this->Settings->CDNDomain, $success);
+					return str_replace("//".$this->Settings->Container.".s3.amazonaws.com", "//".$this->Settings->CDNDomain, $success);
 				}
 				
 				return $success;
@@ -258,7 +258,7 @@
 
 				// CloudFront support
 				if ($this->Settings->CDNDomain && $this->Settings->Service == "amazon") {
-					return str_replace("//s3.amazonaws.com/".$this->Settings->Container, "//".$this->Settings->CDNDomain, $success);
+					return str_replace("//".$this->Settings->Container.".s3.amazonaws.com", "//".$this->Settings->CDNDomain, $success);
 				}
 				
 				return $success;
