@@ -2,7 +2,7 @@
 	header("Content-type: text/javascript");
 	$permission = $admin->getPageAccessLevel($_GET["current_page_id"]);
 
-	if (count($bigtree["config"]["sites"])) {
+	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
 		foreach ($bigtree["config"]["sites"] as $site) {
 			$clean_domain = str_replace(array("https://", "http://"), "", $site["domain"]);
 			$cross_origin_domains[] = "http://".rtrim($clean_domain, "/");

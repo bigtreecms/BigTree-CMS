@@ -161,7 +161,7 @@
 	// We're loading a page in the admin, so add and remove some content / security headers
 	$csp_domains = [];
 
-	if (count($bigtree["config"]["sites"])) {
+	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
 		foreach ($bigtree["config"]["sites"] as $site) {
 			$clean_csp_domain = str_replace(array("https://", "http://"), "", $site["domain"]);
 			$csp_domains[] = "http://".$clean_csp_domain;
@@ -224,7 +224,7 @@
 			implode(array_slice($bigtree["path"],1,2),"/") != "ajax/two-factor-check") {
 			$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
 
-			if (count($bigtree["config"]["sites"])) {
+			if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
 				BigTree::redirect(ADMIN_ROOT."login/?domain=".urlencode($_SERVER["HTTP_HOST"]));
 			} else {
 				BigTree::redirect(ADMIN_ROOT."login/");

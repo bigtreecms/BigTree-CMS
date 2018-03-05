@@ -1885,7 +1885,7 @@
 			// If we're presently in the admin we don't want to allow the possibility of a redirect outside our site via malicious URLs
 			if (defined("BIGTREE_ADMIN_ROUTED")) {
 				// Multiple redirect domains allowed
-				if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+				if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
 					$ok = false;
 					$pieces = explode("/", $url);
 
