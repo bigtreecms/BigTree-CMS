@@ -1,4 +1,6 @@
 <?php
+	namespace BigTree;
+	
 	/**
 	 * @global array $bigtree
      * @global string $domain
@@ -39,7 +41,8 @@
 	// Set version
 	include SERVER_ROOT."core/version.php";
 	
-	// Class auto loader
+	// Class auto loader and composer auto loader
+	include SERVER_ROOT."vendor/autoload.php";
 	spl_autoload_register(function ($class) {
 		global $bigtree;
 		
@@ -53,7 +56,7 @@
 		
 		if (!$path) {
 			// Clear the module class list just in case we're missing something.
-			BigTree\FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
+			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
 			
 			return;
 		}
@@ -74,20 +77,20 @@
 	});
 	
 	// Connect to MySQL and include the shorterner functions
-	include BigTree\Router::getIncludePath("inc/bigtree/classes/SQL.php");
-	include BigTree\Router::getIncludePath("inc/bigtree/compat/sql.php");
+	include Router::getIncludePath("inc/bigtree/classes/SQL.php");
+	include Router::getIncludePath("inc/bigtree/compat/sql.php");
 	
 	// Setup our connections as disconnected by default.
 	$bigtree["mysql_read_connection"] = "disconnected";
 	$bigtree["mysql_write_connection"] = "disconnected";
 
 	// Load Up BigTree!
-	BigTree\Router::boot($bigtree["config"]);
-	include BigTree\Router::getIncludePath("inc/bigtree/compat/cms.php");
+	Router::boot($bigtree["config"]);
+	include Router::getIncludePath("inc/bigtree/compat/cms.php");
 
 	// If we're in the process of logging into multi-domain sites, login this session and move along
 	if (defined("BIGTREE_SITE_KEY") && isset($_GET["bigtree_login_redirect_session_key"])) {
-		session_start();
+		session_start(array("gc_maxlifetime" => 24 * 60 * 60));
 		Auth::loginChainSession($_GET["bigtree_login_redirect_session_key"]);
 	}
 	
@@ -99,9 +102,9 @@
 	}
 	
 	// Initialize DB instance
-	$db = new BigTree\SQL;
+	$db = new SQL;
 	
-	include BigTree\Router::getIncludePath("inc/bigtree/compat/admin.php");
+	include Router::getIncludePath("inc/bigtree/compat/admin.php");
 	
 	// Setup admin class if it's custom, but don't instantiate the $admin var.
 	if (defined("BIGTREE_CUSTOM_ADMIN_CLASS") && BIGTREE_CUSTOM_ADMIN_CLASS) {

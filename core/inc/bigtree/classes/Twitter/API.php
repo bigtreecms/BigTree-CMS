@@ -284,8 +284,10 @@
 		*/
 		
 		function getFavoriteTweets(int $count = 10, array $params = []): ?ResultSet {
-			$params["count"] = $count;
-			$response = $this->call("favorites/list.json", $params);
+			$response = $this->call("favorites/list.json", array_merge($params, [
+				"tweet_mode" => "extended",
+				"count" => $count
+			]));
 			$results = [];
 			
 			if (!$response) {
@@ -385,8 +387,10 @@
 		*/
 		
 		function getHomeTimeline(int $count = 10, array $params = []): ?ResultSet {
-			$params["count"] = $count;
-			$response = $this->call("statuses/home_timeline.json", $params);
+			$response = $this->call("statuses/home_timeline.json", array_merge($params, [
+				"tweet_mode" => "extended",
+				"count" => $count
+			]));
 			$tweets = [];
 			
 			if (!$response) {
@@ -416,8 +420,10 @@
 		*/
 		
 		function getMentions(int $count = 10, array $params = []): ?ResultSet {
-			$params["count"] = $count;
-			$response = $this->call("statuses/mentions_timeline.json", $params);
+			$response = $this->call("statuses/mentions_timeline.json", array_merge($params, [
+				"tweet_mode" => "extended",
+				"count" => $count
+			]));
 			$tweets = [];
 			
 			if (!$response) {
@@ -499,8 +505,7 @@
 		*/
 		
 		function getTweet(string $id, array $params = []): ?Tweet {
-			$params["id"] = $id;
-			$response = $this->call("statuses/show.json", $params);
+			$response = $this->call("statuses/show.json", array_merge($params, ["tweet_mode" => "extended", "id" => $id]));
 			
 			if (!$response) {
 				return null;
@@ -555,9 +560,11 @@
 		*/
 		
 		function getUserTimeline(string $user_name, int $count = 10, array $params = []): ?ResultSet {
-			$params["screen_name"] = $user_name;
-			$params["count"] = $count;
-			$response = $this->call("statuses/user_timeline.json", $params);
+			$response = $this->call("statuses/user_timeline.json",array_merge($params, [
+				"tweet_mode" => "extended",
+				"screen_name" => $user_name,
+				"count" => $count
+			]));
 			$tweets = [];
 			
 			if (!$response) {

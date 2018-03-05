@@ -7,7 +7,7 @@
 	namespace BigTree;
 	
 	use BigTree\Auth\AuthenticatedUser;
-	use PasswordHash;
+	use Hautelook\Phpass\PasswordHash;
 	
 	class Auth {
 		

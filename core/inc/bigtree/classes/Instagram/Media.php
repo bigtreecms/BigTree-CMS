@@ -51,8 +51,12 @@
 			if (isset($media->likes)) {
 				$this->LikesCount = $media->likes->count;
 				
-				foreach ($media->likes->data as $user) {
-					$this->Likes[] = new User($user, $api);
+				if (!empty($media->likes->data)) {
+					$this->Likes = array();
+					
+					foreach ($media->likes->data as $user) {
+						$this->Likes[] = new User($user,$api);
+					}
 				}
 			}
 			

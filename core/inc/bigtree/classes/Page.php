@@ -352,7 +352,7 @@
 				"in_nav" => ($in_nav ? "on" : ""),
 				"title" => Text::htmlEncode($title),
 				"template" => $template,
-				"external" => ($external ? Link::encode($external) : ""),
+				"external" => Text::htmlEncode(($external ? Link::encode($external) : "")),
 				"new_window" => ($new_window ? "on" : ""),
 				"resources" => $resources,
 				"meta_description" => Text::htmlEncode($meta_description),

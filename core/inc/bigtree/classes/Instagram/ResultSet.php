@@ -48,7 +48,7 @@
 		}
 		
 		// Array iterator implementation
-		function offsetSet($index, $value) {
+		function offsetSet($index, $value): void {
 			if (is_null($index)) {
 				$this->Results[] = $value;
 			} else {
@@ -56,11 +56,11 @@
 			}
 		}
 		
-		function offsetExists($index) {
+		function offsetExists($index): bool {
 			return isset($this->Results[$index]);
 		}
 		
-		function offsetUnset($index) {
+		function offsetUnset($index): void {
 			unset($this->Results[$index]);
 		}
 		

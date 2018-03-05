@@ -55,6 +55,11 @@
 			// Emulate old functionality of $this->Settings by making it a reference to the setting value
 			$this->Settings = &$this->Setting->Value;
 			
+			// Prevent fatal error on bad setting data
+			if (!is_array($this->Settings)) {
+				$this->Settings = [];
+			}
+			
 			// Make sure Settings is an array
 			$this->Settings = array_filter((array) $this->Settings);
 			

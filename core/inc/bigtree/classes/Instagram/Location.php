@@ -27,7 +27,7 @@
 				api - Reference to the BigTree\Instagram\API class instance
 		*/
 		
-		function __construct(stdClass $location, API $api) {
+		function __construct(stdClass $location, API &$api) {
 			$this->API = $api;
 			isset($location->id) ? $this->ID = $location->id : false;
 			isset($location->latitude) ? $this->Latitude = $location->latitude : false;

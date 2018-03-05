@@ -35,7 +35,7 @@
 	?>
 	<div class="currently_file">
 		<input type="hidden" name="<?=$this->Key?>" value="<?=$this->Value?>" />
-		<strong>Currently:</strong> <?=$pathinfo["basename"]?> <a href="#" class="remove_resource">Remove</a>
+		<strong>Currently:</strong> <a href="<?=$this->Value?>" target="_blank"><?=$pathinfo["basename"]?></a> <a href="#" class="remove_resource">Remove</a>
 	</div>
 	<?php
 			}
@@ -69,7 +69,7 @@
 		<a href="#" class="remove_resource"></a>
 		<div class="currently_wrapper">
 			<?php if ($preview_image) { ?>
-			<img src="<?=$preview_image?>" alt="" />
+			<a href="<?=$this->Value?>" target="_blank"><img src="<?=$preview_image?>" alt="" /></a>
 			<?php } ?>
 		</div>
 		<label>CURRENT</label>

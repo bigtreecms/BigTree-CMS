@@ -781,6 +781,8 @@
 		*/
 		
 		static function urlify(string $title): string {
+			global $bigtree;
+			
 			$replacements = [
 				'Â' => 'A',
 				'Ã' => 'A',
@@ -844,12 +846,21 @@
 				'ÿ' => 'y'
 			];
 			
-			$title = strtr($title, $replacements);
-			$title = htmlspecialchars_decode($title);
-			$title = str_replace("/", "-", $title);
-			$title = strtolower(preg_replace('/\s/', '-', preg_replace('/[^a-zA-Z0-9\s\-\_]+/', '', trim($title))));
-			$title = str_replace("--", "-", $title);
-			
-			return $title;
+			if (class_exists("Locale") && version_compare(PHP_VERSION, "7.1.0") >= 0) {
+				$options = new \Ausi\SlugGenerator\SlugOptions;
+				$options->setLocale($bigtree["config"]["locale"] ?: "en_US");
+				
+				$generator = new \Ausi\SlugGenerator\SlugGenerator($options);
+				
+				return $generator->generate($title);
+			} else {
+				$title = strtr($title, $replacements);
+				$title = htmlspecialchars_decode($title);
+				$title = str_replace("/", "-", $title);
+				$title = strtolower(preg_replace('/\s/', '-', preg_replace('/[^a-zA-Z0-9\s\-\_]+/', '', trim($title))));
+				$title = str_replace("--", "-", $title);
+				
+				return $title;
+			}
 		}
 	}

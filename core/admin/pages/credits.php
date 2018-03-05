@@ -104,5 +104,12 @@
 			<br />
 			<a href="https://github.com/DaveChild/Text-Statistics" target="_blank">https://github.com/DaveChild/Text-Statistics</a>
 		</p>
+		<br />
+		<h3>Slug Generator</h3>
+		<p class="clear">
+			Martin Auswöger (MIT License)
+			<br />
+			<a href="https://github.com/ausi/slug-generator" target="_blank">https://github.com/ausi/slug-generator</a>
+		</p>
 	</section>	
 </div>

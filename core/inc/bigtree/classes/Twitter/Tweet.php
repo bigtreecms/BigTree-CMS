@@ -16,21 +16,21 @@
 		public $Content;
 		public $FavoriteCount;
 		public $Favorited;
-		public $Hashtags = array();
+		public $Hashtags = [];
 		public $ID;
 		public $IsRetweet;
 		public $Language;
 		public $LinkedContent;
-		public $Media = array();
-		public $Mentions = array();
+		public $Media = [];
+		public $Mentions = [];
 		public $OriginalTweet;
 		public $Place;
 		public $RetweetCount;
 		public $Retweeted;
 		public $Source;
-		public $Symbols = array();
+		public $Symbols = [];
 		public $Timestamp;
-		public $URLs = array();
+		public $URLs = [];
 		public $User;
 
 		/*
@@ -42,11 +42,13 @@
 				api - Reference to the BigTree\Twitter\API class instance
 		*/
 
-		function __construct($tweet,&$api) {
+		function __construct($tweet, API &$api) {
 			$this->API = $api;
 			isset($tweet->text) ? $this->Content = $tweet->text : false;
+			isset($tweet->full_text) ? $this->Content = $tweet->full_text : false;
 			isset($tweet->favorite_count) ? $this->FavoriteCount = $tweet->favorite_count : false;
 			isset($tweet->favorited) ? $this->Favorited = $tweet->favorited : false;
+			
 			if (isset($tweet->entities->hashtags)) {
 				if (is_array($tweet->entities->hashtags)) {
 					foreach ($tweet->entities->hashtags as $hashtag) {
@@ -54,10 +56,12 @@
 					}
 				}
 			}
+			
 			$this->ID = $tweet->id;
 			isset($tweet->retweeted_status) ? ($this->IsRetweet = $tweet->retweeted_status ? true : false) : false;
 			isset($tweet->lang) ? $this->Language = $tweet->lang : false;
-			isset($tweet->text) ? $this->LinkedContent = preg_replace('/(^|\s)#(\w+)/','\1<a href="http://twitter.com/search?q=%23\2" target="_blank">#\2</a>',preg_replace('/(^|\s)@(\w+)/','\1<a href="http://www.twitter.com/\2" target="_blank">@\2</a>',preg_replace("@\b(https?://)?(([0-9a-zA-Z_!~*'().&=+$%-]+:)?[0-9a-zA-Z_!~*'().&=+$%-]+\@)?(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-zA-Z_!~*'()-]+\.)*([0-9a-zA-Z][0-9a-zA-Z-]{0,61})?[0-9a-zA-Z]\.[a-zA-Z]{2,6})(:[0-9]{1,4})?((/[0-9a-zA-Z_!~*'().;?:\@&=+$,%#-]+)*/?)@",'<a href="\0" target="_blank">\0</a>',$tweet->text))) : false;
+			isset($this->Content) ? $this->LinkedContent = preg_replace('/(^|\s)#(\w+)/','\1<a href="http://twitter.com/search?q=%23\2" target="_blank">#\2</a>',preg_replace('/(^|\s)@(\w+)/','\1<a href="http://www.twitter.com/\2" target="_blank">@\2</a>',preg_replace("@\b(https?://)?(([0-9a-zA-Z_!~*'().&=+$%-]+:)?[0-9a-zA-Z_!~*'().&=+$%-]+\@)?(([0-9]{1,3}\.){3}[0-9]{1,3}|([0-9a-zA-Z_!~*'()-]+\.)*([0-9a-zA-Z][0-9a-zA-Z-]{0,61})?[0-9a-zA-Z]\.[a-zA-Z]{2,6})(:[0-9]{1,4})?((/[0-9a-zA-Z_!~*'().;?:\@&=+$,%#-]+)*/?)@",'<a href="\0" target="_blank">\0</a>', $this->Content))) : false;
+			
 			if (isset($tweet->entities->media)) {
 				if (is_array($tweet->entities->media)) {
 					foreach ($tweet->entities->media as $media) {
@@ -81,6 +85,7 @@
 					}
 				}
 			}
+			
 			if (isset($tweet->entities->user_mentions)) {
 				if (is_array($tweet->entities->user_mentions)) {
 					foreach ($tweet->entities->user_mentions as $mention) {
@@ -88,11 +93,13 @@
 					}
 				}
 			}
+			
 			$tweet->retweeted_status ? $this->OriginalTweet = new Tweet($tweet->retweeted_status,$api) : false;
 			isset($tweet->place) ? $this->Place = new Place($tweet->place,$api) : false;
 			isset($tweet->retweet_count) ? $this->RetweetCount = $tweet->retweet_count : false;
 			isset($tweet->retweeted) ? $this->Retweeted = $tweet->retweeted : false;
 			isset($tweet->source) ? $this->Source = $tweet->source : false;
+			
 			if (isset($tweet->entities->symbols)) {
 				if (is_array($tweet->entities->symbols)) {
 					foreach ($tweet->entities->symbols as $symbol) {
@@ -100,7 +107,9 @@
 					}
 				}
 			}
+			
 			isset($tweet->created_at) ? $this->Timestamp = date("Y-m-d H:i:s",strtotime($tweet->created_at)) : false;
+			
 			if (isset($tweet->entities->url)) {
 				if (is_array($tweet->entities->url)) {
 					foreach ($tweet->entities->urls as $url) {
@@ -112,6 +121,7 @@
 					}
 				}
 			}
+			
 			isset($tweet->user) ? $this->User = new User($tweet->user,$api) : false;
 		}
 
@@ -120,7 +130,7 @@
 				Returns the Tweet's content when this object is treated as a string.
 		*/
 
-		function __toString() {
+		function __toString(): string {
 			return $this->Content;
 		}
 
@@ -133,7 +143,7 @@
 				True if successful.
 		*/
 
-		function delete() {
+		function delete(): bool {
 			return $this->API->deleteTweet($this->ID);
 		}
 
@@ -145,7 +155,7 @@
 				A BigTree\Twitter\Tweet object if successful.
 		*/
 
-		function favorite() {
+		function favorite(): ?Tweet {
 			return $this->API->favoriteTweet($this->ID);
 		}
 
@@ -157,7 +167,7 @@
 				True if successful.
 		*/
 
-		function retweet() {
+		function retweet(): bool {
 			return $this->API->retweetTweet($this->IsRetweet ? $this->OriginalTweet->ID : $this->ID);
 		}
 
@@ -169,10 +179,10 @@
 				An array of BigTree\Twitter\Tweet objects.
 		*/
 
-		function retweets() {
+		function retweets(): array {
 			// We know how many retweets the tweet has already, so don't bother asking Twitter if it's 0.
 			if (!$this->RetweetCount) {
-				return array();
+				return [];
 			}
 
 			if ($this->OriginalTweet) {
@@ -181,7 +191,8 @@
 				$response = $this->API->call("statuses/retweets/".$this->ID.".json");
 			}
 
-			$tweets = array();
+			$tweets = [];
+			
 			foreach ($response as $tweet) {
 				$tweets[] = new Tweet($tweet,$this->API);
 			}
@@ -197,7 +208,7 @@
 				An array of Twitter IDs
 		*/
 
-		function retweeters() {
+		function retweeters(): ?array {
 			$id = $this->IsRetweet ? $this->OriginalTweet->ID : $id = $this->ID;
 			$response = $this->API->call("statuses/retweeters/ids.json",array("id" => $id));
 
@@ -205,7 +216,7 @@
 				return $response->ids;
 			}
 
-			return false;
+			return null;
 		}
 
 		/*
@@ -216,7 +227,7 @@
 				A BigTree\Twitter\Tweet object if successful.
 		*/
 
-		function unfavorite() {
+		function unfavorite(): ?Tweet {
 			return $this->API->unfavoriteTweet($this->ID);
 		}
 	}

@@ -27,7 +27,11 @@
 			if ($bigtree["module"] && $bigtree["module"]["gbp"]["enabled"] && $form->Table == $bigtree["module"]["gbp"]["table"] && $this->Key == $bigtree["module"]["gbp"]["group_field"]) {
 				$module = new Module($bigtree["module"]);
 				$is_group_based_perm = true;
-
+				
+				if ($this->Settings["allow-empty"] != "No") {
+					$module_access_level = Auth::user()->getAccessLevel($bigtree["module"]);
+				}
+				
 				foreach ($entries as $entry) {
 					// Find out whether the logged in user can access a given group, and if so, specify the access level.
 					$access_level = Auth::user()->getGroupAccessLevel($module, $entry["id"]);
@@ -87,12 +91,19 @@
 		}
 ?>
 <select<?php if (count($class)) { ?> class="<?=implode(" ",$class)?>"<?php } ?> name="<?=$this->Key?>" tabindex="<?=$this->TabIndex?>" id="<?=$this->ID?>">
-	<?php if ($this->Settings["allow-empty"] != "No") { ?>
-	<option></option>
-	<?php } ?>
-	<?php foreach ($list as $option) { ?>
+	<?php
+		if ($this->Settings["allow-empty"] != "No") {
+	?>
+	<option<?php if ($is_group_based_perm && !empty($module_access_level)) { ?> data-access-level="<?=$module_access_level?>"<?php } ?>></option>
+	<?php
+		}
+	
+		foreach ($list as $option) {
+	?>
 	<option value="<?=Text::htmlEncode($option["value"])?>"<?php if ($this->Value == $option["value"]) { ?> selected="selected"<?php } ?><?php if ($option["access_level"]) { ?> data-access-level="<?=$option["access_level"]?>"<?php } ?>><?=Text::htmlEncode(Text::trimLength(strip_tags($option["description"]), 100))?></option>
-	<?php } ?>
+	<?php
+		}
+	?>
 </select>
 <?php
 	}

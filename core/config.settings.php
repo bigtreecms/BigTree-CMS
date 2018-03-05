@@ -1,7 +1,10 @@
 <?php
 	// Date settings
 	$bigtree["config"]["date_format"] = "m/d/Y"; // Format for default values for date pickers, see http://php.net/manual/en/function.date.php
-
+	
+	// Locale settings (for URL route generation)
+	$bigtree["config"]["locale"] = "en_US";
+	
 	// URL construction behavior
     $bigtree["config"]["trailing_slash_behavior"] = "[slash_behavior]"; // Options are none, append, remove
 

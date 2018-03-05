@@ -42,7 +42,7 @@
 				api - Reference to the BigTree\Twiter\API class instance
 		*/
 
-		function __construct($user,&$api) {
+		function __construct($user, API &$api) {
 			$this->API = $api;
 			isset($user->description) ? $this->Description = $user->description : false;
 			isset($user->favourites_count) ? $this->Favorites = $user->favourites_count : false;
@@ -72,7 +72,7 @@
 				Returns the User's username when this object is treated as a string.
 		*/
 
-		function __toString() {
+		function __toString(): string {
 			return $this->Username;
 		}
 
@@ -84,7 +84,7 @@
 				A BigTree\Twitter\User object on success.
 		*/
 
-		function block() {
+		function block(): ?User {
 			return $this->API->blockUser($this->ID);
 		}
 
@@ -96,10 +96,11 @@
 				A BigTree\Twitter\User object on success.
 		*/
 
-		function follow() {
+		function follow(): ?User {
 			return $this->API->followUser($this->ID);
 		}
-		function friend() {
+		
+		function friend(): ?User {
 			return $this->follow();
 		}
 
@@ -111,7 +112,7 @@
 				A BigTree\Twitter\User object on success.
 		*/
 
-		function unblock() {
+		function unblock(): ?User {
 			return $this->API->unblockUser($this->ID);
 		}
 
@@ -123,10 +124,11 @@
 				A BigTree\Twitter\User object on success.
 		*/
 
-		function unfollow() {
+		function unfollow(): ?User {
 			return $this->API->unfollowUser($this->ID);
 		}
-		function unfriend() {
+		
+		function unfriend(): ?User {
 			return $this->unfollow();
 		}
 		

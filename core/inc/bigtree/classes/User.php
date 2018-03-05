@@ -7,7 +7,7 @@
 	
 	namespace BigTree;
 	
-	use PasswordHash;
+	use Hautelook\Phpass\PasswordHash;
 	
 	class User extends BaseObject {
 		
