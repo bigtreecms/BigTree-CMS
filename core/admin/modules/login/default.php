@@ -5,23 +5,15 @@
 	 * @global string $login_root
 	 */
 	
-	$failure = false;
-	
-	if (isset($_POST["user"]) && isset($_POST["password"])) {
-		if (!Auth::login($_POST["user"],$_POST["password"],$_POST["stay_logged_in"])) {
-			$failure = true;
-		} else {
-			if (isset($_SESSION["bigtree_login_redirect"])) {
-				Router::redirect($_SESSION["bigtree_login_redirect"]);
-			} else {
-				Router::redirect(ADMIN_ROOT);
-			}
-		}
+	if (isset($_GET["error"])) {
+		$failure = true;
+		$user = Text::htmlEncode($_SESSION["bigtree_admin"]["email"]);
+	} else {
+		$user = "";
+		$failure = false;
 	}
-	
-	$user = isset($_POST["user"]) ? htmlspecialchars($_POST["user"]) : "";
 ?>
-<form method="post" action="" class="module">
+<form method="post" action="<?=ADMIN_ROOT?>login/process/" class="module">
 	<?php
 		if (!empty($bigtree["ban_expiration"])) {
 	?>
@@ -49,8 +41,14 @@
 	<fieldset>
 		<label for="password"><?=Text::translate("Password")?></label>
 		<input type="password" id="password" name="password" class="text" />
-		<label class="visually_hidden" for="login_field_stay_logged_in">Remember Me</label>
+		<?php
+			if ($bigtree["security-policy"]["remember_disabled"] != "on") {
+		?>
+		<label class="visually_hidden" for="login_field_stay_logged_in"><?=Text::translate("Remember Me")?></label>
 		<p><input id="login_field_stay_logged_in" type="checkbox" name="stay_logged_in" checked="checked" /> <?=Text::translate("Remember Me")?></p>
+		<?php
+			}
+		?>
 	</fieldset>
 	<fieldset class="lower">
 		<a href="<?=$login_root?>forgot-password/" class="forgot_password"><?=Text::translate("Forgot Password?")?></a>

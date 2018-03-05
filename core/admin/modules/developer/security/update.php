@@ -24,7 +24,9 @@
 		"suspect_geo_check" => $_POST["suspect_geo_check"] ? "on" : "",
 		"include_daily_bans" => $_POST["include_daily_bans"] ? "on" : "",
 		"allowed_ips" => $_POST["allowed_ips"],
-		"banned_ips" => $_POST["banned_ips"]
+		"banned_ips" => $_POST["banned_ips"],
+		"remember_disabled" => $_POST["remember_disabled"] ? "on" : "",
+		"two_factor" => $_POST["two_factor"]
 	);
 	$setting->save();
 

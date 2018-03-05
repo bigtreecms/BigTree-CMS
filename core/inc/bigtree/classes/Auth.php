@@ -136,6 +136,50 @@
 		}
 		
 		/*
+			Function: assign2FASecret
+				Assigns a two factor auth token to a user and then logs them in.
+
+			Parameters:
+				secret - A Google Authenticator secret
+		*/
+		
+		static function assign2FASecret(string $secret): void {
+			$user = sqlfetch(sqlquery("SELECT 2fa_login_token FROM bigtree_users WHERE id = '".$_SESSION["bigtree_admin"]["2fa_id"]."'"));
+			
+			if ($user["2fa_login_token"] == $_SESSION["bigtree_admin"]["2fa_login_token"]) {
+				sqlquery("UPDATE bigtree_users SET 2fa_secret = '".sqlescape($secret)."' WHERE id = '".$_SESSION["bigtree_admin"]["2fa_id"]."'");
+			}
+			
+			static::login2FA(null, true);
+		}
+		
+		/*
+			Function: getIsIPBanned
+				Checks to see if the requesting IP address is banned and should not be allowed to attempt login.
+
+			Returns:
+				true if the IP is banned
+		*/
+		
+		static function getIsIPBanned($ip) {
+			global $bigtree;
+			
+			if (!empty(static::$Policies)) {
+				// Check to see if this IP is already banned from logging in.
+				$ban = SQL::fetch("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND ip = ?", $ip);
+				
+				if ($ban) {
+					$bigtree["ban_expiration"] = date("F j, Y @ g:ia", strtotime($ban["expires"]));
+					$bigtree["ban_is_user"] = false;
+					
+					return true;
+				}
+			}
+			
+			return false;
+		}
+		
+		/*
 			Function: initSecurity
 				Sets up security environment variables and runs white/blacklists for IP checks.
 		*/
@@ -188,53 +232,52 @@
 				email - The email address of the user.
 				password - The password of the user.
 				stay_logged_in - Whether to set a cookie to keep the user logged in.
+				domain - A secondary domain to set login cookies for (used for multi-site).
+				two_factor_token - A token for a login that is already in progress with 2FA.
 
 			Returns:
 				false if login failed, otherwise redirects back to the page the person requested.
 		*/
 		
-		static function login(string $email, string $password, bool $stay_logged_in = false): bool {
+		static function login(string $email, string $password, bool $stay_logged_in = false, ?string $domain = null,
+							  string $two_factor_token = null): bool {
 			global $bigtree;
 			
 			$user_class = static::$UserClass;
 			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
 			
-			// Check to see if this IP is already banned from logging in.
-			if (!empty(static::$Policies)) {
-				$ban = SQL::fetch("SELECT * FROM bigtree_login_bans WHERE `expires` > NOW() AND `ip` = ?", $ip);
+			if ($two_factor_token) {
+				$user = $user_class::process2FAToken($two_factor_token);
 				
-				if (!empty($ban)) {
-					$bigtree["ban_expiration"] = date("F j, Y @ g:ia", strtotime($ban["expires"]));
-					$bigtree["ban_is_user"] = false;
-					
+				if ($user) {
+					$login_validated = true;
+				} else {
+					$login_validated = false;
+				}
+			} else {
+				if (static::getIsIPBanned($ip)) {
 					return false;
 				}
-			}
-			
-			// Get user, we'll be checking against the password later
-			$user = $user_class::getByEmail($email);
-			
-			// If the user doesn't exist, fail immediately
-			if (!$user) {
-				return false;
-			}
-			
-			// See if this user is banned due to failed login attempts
-			if (!empty(static::$Policies)) {
-				$ban = SQL::fetch("SELECT * FROM bigtree_login_bans WHERE `table` = ? AND `expires` > NOW() AND `user` = ?",
-								  $user_class::$Table, $user->ID);
-				if (!empty($ban)) {
-					$bigtree["ban_expiration"] = date("F j, Y @ g:ia", strtotime($ban["expires"]));
-					$bigtree["ban_is_user"] = true;
-					
+				
+				// Get user, we'll be checking against the password later
+				$email = trim(strtolower($email));
+				$user = $user_class::getByEmail($email);
+				
+				// If the user doesn't exist, fail immediately
+				if (!$user) {
 					return false;
 				}
+				
+				if ($user_class::getIsUserBanned($user->ID)) {
+					return false;
+				}
+				
+				// Verify password
+				$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
+				$login_validated = $phpass->CheckPassword(trim($password), $user->Password);
 			}
 			
-			// Verify password
-			$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
-			
-			if ($phpass->CheckPassword(trim($password), $user->Password)) {
+			if ($login_validated) {
 				// Generate random session and chain ids
 				$chain = SQL::unique("bigtree_user_sessions", "chain", uniqid("chain-", true));
 				$session = SQL::unique("bigtree_user_sessions", "id", uniqid("session-", true));
@@ -498,6 +541,67 @@
 					return new AuthenticatedUser($user["id"], $user["level"], (array) json_decode($user["permissions"], true));
 				}
 			}
+		}
+		
+		/*
+			Function: remove2FASecret
+				Removes two factor authentication from a user.
+		
+			Parameters:
+				user - A user ID
+		*/
+		
+		static function remove2FASecret(int $user): void {
+			SQL::update("bigtree_users", $user, ["2fa_secret" => ""]);
+		}
+		
+		/*
+			Function: verifyLogin2FA
+				Verifies a username and password and returns the two factor auth secret.
+			
+			Parameters:
+				email - Email address
+				password - Password
+
+			Returns:
+				The two factor auth secret for the user or null if login failed.
+		*/
+		
+		static function verifyLogin2FA(string $email, string $password): ?string {
+			global $bigtree;
+			
+			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
+			
+			if (static::getIsIPBanned($ip)) {
+				return null;
+			}
+			
+			// Get rid of whitespace on user input
+			$email = trim($email);
+			$password = trim($password);
+			
+			$user = $user_class::getByEmail($email);
+			
+			if (!$user) {
+				return null;
+			}
+			
+			if ($user_class::getIsUserBanned($user["id"])) {
+				return null;
+			}
+			
+			$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
+			
+			if ($phpass->CheckPassword($password, $user["password"])) {
+				$token = $phpass->HashPassword(Text::getRandomString(64).trim($password).Text::getRandomString(64));
+				$_SESSION["bigtree_admin"]["2fa_id"] = intval($user["id"]);
+				$_SESSION["bigtree_admin"]["2fa_login_token"] = $token;
+				SQL::update("bigtree_users", $user["id"], ["2fa_login_token" => $token]);
+				
+				return $user["2fa_secret"];
+			}
+			
+			return null;
 		}
 		
 	}

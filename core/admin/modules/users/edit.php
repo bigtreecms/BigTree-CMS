@@ -24,6 +24,11 @@
 			"icon" => "trail",
 			"title" => "View Audit Trail"
 		];
+		$bigtree["subnav_extras"][] = [
+			"link" => ADMIN_ROOT."developer/security/remove-2fa/?user=".$user["id"]."&".CSRF::$Field."=".urlencode(CSRF::$Token),
+			"icon" => "delete",
+			"title" => "Remove Two Factor Authentication"
+		];
 	}
 	
 	// Show gravatar as header icon

@@ -312,6 +312,56 @@
 		}
 		
 		/*
+			Function: getIsUserBanned
+				Checks to see if the logging in user is banned and should not be allowed to attempt login.
+			
+			Parameters:
+				user - A user ID
+
+			Returns:
+				true if the user is banned
+		*/
+		
+		static function getIsUserBanned(int $user): bool {
+			global $bigtree;
+			
+			// See if this user is banned due to failed login attempts
+			$ban = SQL::fetch("SELECT * FROM bigtree_login_bans WHERE `expires` > NOW() AND `user` = ?", $user);
+			
+			if ($ban) {
+				$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime($ban["expires"]));
+				$bigtree["ban_is_user"] = true;
+				
+				return true;
+			}
+			
+			return false;
+		}
+		
+		/*
+			Function: process2FAToken
+				Continues the login process of a user in the two factor login process.
+			
+			Parameters:
+				two_factor_token - The token of a user (retrieved after successfully logging in)
+		
+			Returns:
+				true if a user matches the token
+		*/
+		
+		static function process2FAToken(string $two_factor_token): ?array {
+			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE 2fa_login_token = ?", $two_factor_token);
+			
+			if ($user) {
+				SQL::update("bigtree_users", $user["id"], ["2fa_login_token" => ""]);
+				
+				return $user;
+			}
+			
+			return null;
+		}
+		
+		/*
 			Function: requireAccess
 				Checks the user's access to the requested object.
 				Throws a permission denied page and stops page execution if the user doesn't have access.

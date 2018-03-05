@@ -95,10 +95,10 @@
 				value - The data to store
 
 			Returns:
-				They unique cache key.
+				They unique cache key.`
 		*/
 		
-		static function putUnique(string $identifier, string $value): string {
+		static function putUnique(string $identifier, $value): string {
 			$success = false;
 			$key = "";
 			

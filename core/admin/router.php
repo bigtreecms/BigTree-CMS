@@ -1,4 +1,5 @@
 <?php
+	
 	namespace BigTree;
 	
 	/**
@@ -22,7 +23,7 @@
 		$bigtree["extension_context"] = $bigtree["path"][2];
 		define("EXTENSION_ROOT", $server_root."extensions/".$bigtree["path"][2]."/");
 		
-		$bigtree["path"] = array_merge(array($bigtree["path"][0]), array_slice($bigtree["path"], 3));
+		$bigtree["path"] = array_merge([$bigtree["path"][0]], array_slice($bigtree["path"], 3));
 	}
 	
 	// Images.
@@ -44,6 +45,7 @@
 		}
 		
 		$last_modified = filemtime($image_file);
+		
 		if ($ims && strtotime($ims) == $last_modified) {
 			header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
 			die();
@@ -68,6 +70,7 @@
 	// CSS
 	if ($bigtree["path"][1] == "css") {
 		$css_path = implode("/", array_slice($bigtree["path"], 2));
+		
 		if (defined("EXTENSION_ROOT")) {
 			$css_file = EXTENSION_ROOT."css/$css_path";
 		} else {
@@ -82,6 +85,7 @@
 		}
 		
 		$last_modified = filemtime($css_file);
+	
 		if ($ims && strtotime($ims) == $last_modified) {
 			header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
 			die();
@@ -103,7 +107,7 @@
 			
 			// Load LESS compiler
 			include_once $server_root."core/inc/lib/less.php/lessc.inc.php";
-			$parser = new \Less_Parser(array("compress" => true));
+			$parser = new \Less_Parser(["compress" => true]);
 			$parser->parseFile($css_file);
 			$css = $parser->getCss();
 			
@@ -123,8 +127,8 @@
 		$mul = substr($pms, -1);
 		$mul = ($mul == 'M' ? 1048576 : ($mul == 'K' ? 1024 : ($mul == 'G' ? 1073741824 : 1)));
 		$max_file_size = $mul * (int) $pms;
-		
 		$js_path = implode("/", array_slice($bigtree["path"], 2));
+		
 		if (defined("EXTENSION_ROOT")) {
 			$js_file = EXTENSION_ROOT."js/$js_path";
 		} else {
@@ -166,14 +170,16 @@
 		}
 		
 		$last_modified = filemtime($js_file);
+		
 		if ($ims && strtotime($ims) == $last_modified && count($_GET) == 1) {
 			header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
 			die();
 		}
 		
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-		$find = array('$max_file_size', "www_root/", "admin_root/", "static_root/");
-		$replace = array($max_file_size, $bigtree["config"]["www_root"], $bigtree["config"]["admin_root"], $bigtree["config"]["static_root"]);
+		$find = ['$max_file_size', "www_root/", "admin_root/", "static_root/"];
+		$replace = [$max_file_size, $bigtree["config"]["www_root"], $bigtree["config"]["admin_root"], $bigtree["config"]["static_root"]];
+		
 		// Allow GET variables to serve as replacements in JS using $var and file.js?var=whatever
 		foreach ($_GET as $key => $val) {
 			$find[] = '$'.$key;
@@ -181,6 +187,7 @@
 			$replace[] = $val;
 			$replace[] = $val;
 		}
+		
 		die(str_replace($find, $replace, file_get_contents($js_file)));
 	}
 	
@@ -189,12 +196,12 @@
 	
 	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
 		foreach ($bigtree["config"]["sites"] as $site) {
-			$clean_csp_domain = str_replace(array("https://", "http://"), "", $site["domain"]);
+			$clean_csp_domain = str_replace(["https://", "http://"], "", $site["domain"]);
 			$csp_domains[] = "http://".$clean_csp_domain;
 			$csp_domains[] = "https://".$clean_csp_domain;
 		}
 	} else {
-		$clean_csp_domain = str_replace(array("https://", "http://"), "", $bigtree["config"]["domain"]);
+		$clean_csp_domain = str_replace(["https://", "http://"], "", $bigtree["config"]["domain"]);
 		$csp_domains[] = "http://".$clean_csp_domain;
 		$csp_domains[] = "https://".$clean_csp_domain;
 	}
@@ -206,14 +213,13 @@
 		$csp_domains = [];
 		
 		foreach ($bigtree["config"]["sites"] as $site) {
-			$csp_domains[] = str_replace(array("https://", "http://"), "", $site["domain"]);
+			$csp_domains[] = str_replace(["https://", "http://"], "", $site["domain"]);
 		}
 		
-		header("Content-Security-Policy: frame-ancestors ".implode(" ",$csp_domains));
+		header("Content-Security-Policy: frame-ancestors ".implode(" ", $csp_domains));
 	} else {
-		header("Content-Security-Policy: frame-ancestors ".str_replace(array("https://", "http://"), "", DOMAIN));
+		header("Content-Security-Policy: frame-ancestors ".str_replace(["https://", "http://"], "", DOMAIN));
 	}
-	
 	
 	if (function_exists("header_remove")) {
 		header_remove("Server");
@@ -229,7 +235,7 @@
 	
 	ob_start();
 	session_set_cookie_params(0, str_replace(DOMAIN, "", WWW_ROOT), "", false, true);
-	session_start(array("gc_maxlifetime" => 24 * 60 * 60));
+	session_start(["gc_maxlifetime" => 24 * 60 * 60]);
 	
 	// Set date format if it wasn't defined in config
 	if (empty($bigtree["config"]["date_format"])) {
@@ -240,22 +246,24 @@
 	include Router::getIncludePath("admin/_nav-tree.php");
 	
 	// Initialize BigTree's additional CSS and JS arrays for inclusion in the admin's header
-	$bigtree["js"] = array();
-	$bigtree["css"] = array();
+	$bigtree["js"] = [];
+	$bigtree["css"] = [];
 	
 	// Instantiate the $admin var (user system)
 	$admin = new \BigTreeAdmin;
 	
 	// Load the default layout.
 	$bigtree["layout"] = "default";
-	$bigtree["subnav_extras"] = array();
+	$bigtree["subnav_extras"] = [];
 	
 	// Setup security policy
 	Auth::initSecurity();
 	
 	// If we're not logged in and we're not trying to login or access an embedded form, redirect to the login page.
 	if (is_null(Auth::user()->ID) && $bigtree["path"][1] != "login") {
-		if (implode(array_slice($bigtree["path"], 1, 3), "/") != "ajax/auto-modules/embeddable-form") {
+		if (implode(array_slice($bigtree["path"], 1, 3), "/") != "ajax/auto-modules/embeddable-form" &&
+			implode(array_slice($bigtree["path"], 1, 2), "/") != "ajax/two-factor-check") {
+			
 			$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
 			
 			if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]) > 1) {
@@ -280,7 +288,7 @@
 	
 	// Let route registration take over if it finds something
 	$registry_found = false;
-	$registry_commands = array();
+	$registry_commands = [];
 	$registry_rule = false;
 	
 	foreach (Router::$Registry["admin"] as $registration) {
@@ -296,8 +304,9 @@
 	
 	if ($registry_found) {
 		// Emulate commands at indexes as well as with requested variable keys
-		$bigtree["commands"] = array();
+		$bigtree["commands"] = [];
 		$x = 0;
+		
 		foreach ($registry_commands as $key => $value) {
 			$bigtree["commands"][$x] = $bigtree["commands"][$key] = $value;
 			$x++;
@@ -326,7 +335,7 @@
 	
 	// See if we're requesting something in /ajax/
 	if ($bigtree["path"][1] == "ajax") {
-		$core_ajax_directories = array("auto-modules", "callouts", "dashboard", "file-browser", "pages", "tags");
+		$core_ajax_directories = array("two-factor-check","auto-modules","callouts","dashboard","file-browser","pages","tags");
 		
 		if ($bigtree["path"] && !in_array($bigtree["path"][2], $core_ajax_directories)) {
 			// If the current user isn't allowed in the module for the ajax, stop them.
@@ -431,21 +440,21 @@
 		$actions = ModuleAction::allByModule($module->ID, "position DESC, id ASC");
 		
 		// Append module info to the admin nav to draw the headers and breadcrumb and such.
-		$bigtree["nav_tree"]["auto-module"] = array(
+		$bigtree["nav_tree"]["auto-module"] = [
 			"title" => $module->Name,
 			"link" => $module->Route,
 			"icon" => "modules",
-			"children" => array()
-		);
+			"children" => []
+		];
 		
 		foreach ($actions as $action) {
-			$bigtree["nav_tree"]["auto-module"]["children"][] = array(
+			$bigtree["nav_tree"]["auto-module"]["children"][] = [
 				"title" => $action->Name,
 				"link" => $action->Route ? $module->Route."/".$action->Route : $module->Route,
 				"nav_icon" => $action->Icon,
 				"hidden" => $action->InNav ? false : true,
 				"level" => $action->Level
-			);
+			];
 		}
 		
 		// Bring in related modules if this one is in a group.
@@ -454,14 +463,14 @@
 			$related_group = new ModuleGroup($module->Group);
 			
 			if (count($related_modules) > 1) {
-				$bigtree["related_modules"] = array();
+				$bigtree["related_modules"] = [];
 				$bigtree["related_group"] = $related_group->Name;
 				
 				foreach ($related_modules as $related_module) {
-					$bigtree["related_modules"][] = array(
+					$bigtree["related_modules"][] = [
 						"title" => $related_module->Name,
 						"link" => $related_module->Route
-					);
+					];
 				}
 			}
 		}
@@ -498,9 +507,11 @@
 			define("EXTENSION_ROOT", SERVER_ROOT."extensions/".$module->Extension."/");
 		} else {
 			list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."custom/admin/modules/", $module_path);
+			
 			// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
 			if (!$inc || count($commands)) {
 				list($core_inc, $core_commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."core/admin/modules/", $module_path);
+				
 				// If we either never found the custom file or if there are more routes found in the core file use the core.
 				if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
 					$inc = $core_inc;
@@ -508,14 +519,17 @@
 				}
 			}
 		}
+		
 		if (count($commands)) {
 			$bigtree["module_path"] = array_slice($module_path, 1, -1 * count($commands));
 		} else {
 			$bigtree["module_path"] = array_slice($module_path, 1);
 		}
+		
 		// Check pages
 		if (!$inc) {
 			$inc = Router::getIncludePath("admin/pages/$primary_route.php");
+			
 			if (file_exists($inc)) {
 				include $inc;
 				$complete = true;
@@ -529,7 +543,7 @@
 			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 			define("BIGTREE_404", true);
 			include Router::getIncludePath("admin/pages/_404.php");
-			// It's a manually created module page, include it
+		// It's a manually created module page, include it
 		} elseif (!$complete) {
 			// Setup the commands array.
 			$bigtree["commands"] = $commands;
@@ -555,3 +569,4 @@
 	$bigtree["content"] = ob_get_clean();
 	
 	include Router::getIncludePath("admin/layouts/".$bigtree["layout"].".php");
+	

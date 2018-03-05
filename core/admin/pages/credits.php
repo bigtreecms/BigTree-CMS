@@ -111,5 +111,12 @@
 			<br />
 			<a href="https://github.com/ausi/slug-generator" target="_blank">https://github.com/ausi/slug-generator</a>
 		</p>
+		<br />
+		<h3>Google Authenticator</h3>
+		<p class="clear">
+			Michael Kliewe (BSD 2-clause License)
+			<br>
+			<a href="https://github.com/PHPGangsta/GoogleAuthenticator" target="_blank">https://github.com/PHPGangsta/GoogleAuthenticator</a>
+		</p>
 	</section>	
 </div>

@@ -39,6 +39,16 @@
 						<input id="security_field_nonalphanumeric" type="checkbox" name="password[nonalphanumeric]"<?php if ($security_policy["password"]["nonalphanumeric"]) { ?> checked="checked"<?php } ?> />
 						<label for="security_field_nonalphanumeric" class="for_checkbox"><?=Text::translate('Require Non-Alphanumeric Characters <small>(i.e. $ # ^ *)</small>')?></label>
 					</fieldset>
+					<br />
+					<h3>Login Options</h3>
+					<fieldset>
+						<input id="security_field_two_factor_google" type="checkbox" name="two_factor" value="google"<?php if ($security_policy["two_factor"] == "google") { ?> checked<?php } ?>>
+						<label for="security_field_two_factor_google" class="for_checkbox"><?=Text::translate("Enable Two-Factor Authentication via Google Authenticator")?></label>
+					</fieldset>
+					<fieldset>
+						<input id="security_field_remember_disabled" type="checkbox" name="remember_disabled" value="on"<?php if ($security_policy["remember_disabled"] == "on") { ?> checked<?php } ?>>
+						<label for="security_field_remember_disabled" class="for_checkbox"><?=Text::translate('Disable "Remember Me" Function')?></label>
+					</fieldset>
 				</div>
 				<div class="right">
 					<fieldset>
