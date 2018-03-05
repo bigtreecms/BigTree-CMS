@@ -30,13 +30,25 @@
 		<input type="hidden" name="service" value="<?=htmlspecialchars($_POST["service"])?>" />
 		<div class="container_summary"><h2><?=$service_names[$_POST["service"]]?></h2></div>
 		<section>
-			<label for="storage_field_container"><?=Text::translate("Existing Container/Bucket")?> <small>(<?=Text::translate("this should be used exclusively by BigTree, if left blank BigTree will make its own")?>)</small></label>
-			<select id="storage_field_container" name="container">
-				<option></option>
-				<?php foreach ($containers as $container) { ?>
-				<option value="<?=htmlspecialchars($container["name"])?>"<?php if ($storage->Settings["Container"] == $container["name"] && $storage->Settings["Service"] == $_POST["service"]) { ?> selected="selected"<?php } ?>><?=htmlspecialchars($container["name"])?></option>
-				<?php } ?>
-			</select>
+			<fieldset>
+				<label for="storage_field_container"><?=Text::translate("Existing Container/Bucket")?> <small>(<?=Text::translate("this should be used exclusively by BigTree, if left blank BigTree will make its own")?>)</small></label>
+				<select id="storage_field_container" name="container">
+					<option></option>
+					<?php foreach ($containers as $container) { ?>
+					<option value="<?=htmlspecialchars($container["name"])?>"<?php if ($storage->Settings["Container"] == $container["name"] && $storage->Settings["Service"] == $_POST["service"]) { ?> selected="selected"<?php } ?>><?=htmlspecialchars($container["name"])?></option>
+					<?php } ?>
+				</select>
+			</fieldset>
+			<?php
+				if ($_POST["service"] == "amazon") {
+			?>
+			<fieldset>
+				<label for="storage_cdn_domain"><?=Text::translate("CloudFront Distribution Domain")?> <small>(<?=Text::translate("optional")?>)</small></label>
+				<input id="storage_cdn_domain" type="text" name="cdn_domain" value="<?=BigTree::safeEncode($storage->Settings->CDNDomain)?>" />
+			</fieldset>
+			<?php
+				}
+			?>
 		</section>
 		<footer>
 			<input type="submit" class="button blue" value="<?=Text::translate("Update", true)?>" />

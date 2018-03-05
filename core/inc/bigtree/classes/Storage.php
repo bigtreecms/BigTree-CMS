@@ -60,9 +60,20 @@
 				$container = $parts[3];
 				$pointer_parts = array_slice($parts, 4);
 				
-				if ($domain == "s3.amazonaws.com") {
+				if (!empty($this->Settings["CDNDomain"]) && $this->Settings["CDNDomain"] == $domain) {
 					$service = "amazon";
 					$cloud = ($this->Settings["service"] == $service) ? $this->Cloud : new CloudStorage\Amazon;
+					$container = $this->Settings["Container"];
+					$pointer_parts = array_slice($parts, 3);
+				} elseif (strpos($domain, "s3.amazonaws.com") !== false) {
+					$service = "amazon";
+					$cloud = ($this->Settings["service"] == $service) ? $this->Cloud : new CloudStorage\Amazon;
+					
+					if ($domain != "s3.amazonaws.com") {
+						$domain_parts = explode(".", $domain);
+						$container = $domain_parts[0];
+						$pointer_parts = array_slice($parts, 3);
+					}
 				} elseif ($domain == "storage.googleapis.com") {
 					$service = "google";
 					$cloud = ($this->Settings["service"] == $service) ? $this->Cloud : new CloudStorage\Google;
@@ -222,6 +233,11 @@
 					unlink($local_file);
 				}
 				
+				// CloudFront support
+				if (!empty($this->Settings["CDNDomain"]) && $this->Settings["service"] == "amazon") {
+					return str_replace("//".$this->Settings["Container"].".s3.amazonaws.com", "//".$this->Settings["CDNDomain"], $success);
+				}
+				
 				return $success;
 			} else {
 				if ($remove_original) {
@@ -330,6 +346,11 @@
 				
 				if ($remove_original) {
 					unlink($local_file);
+				}
+				
+				// CloudFront support
+				if (!empty($this->Settings["CDNDomain"]) && $this->Settings["service"] == "amazon") {
+					return str_replace("//".$this->Settings["Container"].".s3.amazonaws.com", "//".$this->Settings["CDNDomain"], $success);
 				}
 				
 				return $success;

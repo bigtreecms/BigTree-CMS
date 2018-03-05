@@ -2,7 +2,7 @@ SET SESSION sql_mode = "NO_AUTO_VALUE_ON_ZERO";
 SET SESSION foreign_key_checks = 0;
 
 DROP TABLE IF EXISTS `bigtree_404s`;
-CREATE TABLE `bigtree_404s` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`broken_url` varchar(255) NOT NULL DEFAULT '',`redirect_url` varchar(255) NOT NULL DEFAULT '',`requests` int(11) unsigned NOT NULL DEFAULT '0',`ignored` char(2) NOT NULL DEFAULT '',`site_key` varchar(255) DEFAULT NULL,PRIMARY KEY (`id`),KEY `broken_url` (`broken_url`),KEY `requests` (`requests`),KEY `ignored` (`ignored`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+CREATE TABLE `bigtree_404s` ( `id` int(11) unsigned NOT NULL AUTO_INCREMENT, `broken_url` varchar(1024) NOT NULL DEFAULT '', `get_vars` varchar(1024) NOT NULL DEFAULT '', `redirect_url` varchar(1024) NOT NULL DEFAULT '', `requests` int(11) unsigned NOT NULL DEFAULT '0', `ignored` char(2) NOT NULL DEFAULT '', `site_key` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`), KEY `broken_url` (`broken_url`(255)), KEY `requests` (`requests`), KEY `ignored` (`ignored`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `bigtree_audit_trail`;
 CREATE TABLE `bigtree_audit_trail` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `user` int(11) unsigned NOT NULL, `table` varchar(255) NOT NULL, `entry` varchar(255) NOT NULL DEFAULT '', `type` varchar(255) NOT NULL, `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`id`), KEY `user` (`user`), KEY `table` (`table`), KEY `entry` (`entry`), KEY `date` (`date`), CONSTRAINT `bigtree_audit_trail_ibfk_1` FOREIGN KEY (`user`) REFERENCES `bigtree_users` (`id`) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;

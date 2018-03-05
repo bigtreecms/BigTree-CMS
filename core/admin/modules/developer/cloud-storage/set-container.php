@@ -19,6 +19,11 @@
 	if ($_POST["container"]) {
 		$storage->Settings["Container"] = $_POST["container"];
 		
+		if (isset($_POST["cdn_domain"])) {
+			$cdn_domain = str_replace(array("https://", "http://"), "", rtrim($_POST["cdn_domain"], "/"));
+			$storage->Settings["CDNDomain"] = $cdn_domain;
+		}
+		
 		// If we're using Rackspace, we need to explicitly CDN enable this container.
 		if ($_POST["service"] == "rackspace") {
 			cURL::request($cloud->CDNEndpoint."/".$_POST["container"],false,array(CURLOPT_PUT => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$cloud->Settings["rackspace"]["token"],"X-Cdn-Enabled: true")));

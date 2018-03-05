@@ -233,13 +233,23 @@
 		$.secureAjax("<?=ADMIN_ROOT?>ajax/dashboard/approve-change/", { data: { id: $(this).attr("href").substr(1) }, type: "POST" });
 		$(this).parents("li").remove();
 		BigTree.growl($(this).attr("data-module"),"<?=Text::translate("Approved Change")?>");
+		
 		return false;
 	});
 	
 	$(".icon_deny").click(function() {
-		$.secureAjax("<?=ADMIN_ROOT?>ajax/dashboard/reject-change/", { data: { id: $(this).attr("href").substr(1) }, type: "POST" });
-		$(this).parents("li").remove();
-		BigTree.growl($(this).attr("data-module"),"<?=Text::translate("Rejected Change")?>");
+		BigTreeDialog({
+			title: "Approve Change",
+			content: '<p class="confirm">Are you sure you want to approve this change?</p>',
+			icon: "add",
+			alternateSaveText: "OK",
+			callback: $.proxy(function() {
+				$.secureAjax("<?=ADMIN_ROOT?>ajax/dashboard/approve-change/", { data: { id: $(this).attr("href").substr(1) }, type: "POST" });
+				$(this).parents("li").remove();
+				BigTree.growl($(this).attr("data-module"),"Approved Change");
+			}, this)
+		});
+
 		return false;
 	});
 </script>

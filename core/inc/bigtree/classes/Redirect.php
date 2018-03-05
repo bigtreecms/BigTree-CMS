@@ -110,6 +110,15 @@
 				}
 			}
 			
+			// Allow for from URLs with GET vars
+			$from_parts = parse_url($from);
+			$get_vars = "";
+			
+			if (!empty($from_parts["query"])) {
+				$from = str_replace("?".$from_parts["query"], "", $from);
+				$get_vars = sqlescape(htmlspecialchars($from_parts["query"]));
+			}
+			
 			$from = htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT, "", $from), "/")));
 			$ignored = $ignored ? "on" : "";
 			
@@ -132,10 +141,19 @@
 			}
 			
 			// See if the from already exists
-			if (!is_null($site_key)) {
-				$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND site_key = ?", $from, $site_key);
+			if ($get_vars) {
+				if (!is_null($site_key)) {
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND site_key = ? AND get_vars = ?",
+										   $from, $site_key, $get_vars);
+				} else {
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND get_vars = ?", $from, $get_vars);
+				}
 			} else {
-				$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ?", $from);
+				if (!is_null($site_key)) {
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND site_key = ?", $from, $site_key);
+				} else {
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ?", $from);
+				}
 			}
 			
 			if (!empty($existing)) {
@@ -146,6 +164,7 @@
 			} else {
 				$id = SQL::insert("bigtree_404s", [
 					"broken_url" => $from,
+					"get_vars" => $get_vars,
 					"redirect_url" => $redirect_url,
 					"ignored" => $ignored,
 					"site_key" => $site_key
@@ -178,67 +197,103 @@
 		*/
 		
 		static function handle404(string $url): bool {
-			$url = htmlspecialchars(strip_tags(rtrim($url, "/")));
+			$url = sqlescape(htmlspecialchars(strip_tags(rtrim($url, "/"))));
+			$existing = null;
 			
 			if (!$url) {
-				return false;
+				return true;
 			}
 			
-			if (defined("BIGTREE_SITE_KEY")) {
-				$entry = SQL::fetch("SELECT * FROM bigtree_404s WHERE broken_url = ? AND site_key = ?", $url, BIGTREE_SITE_KEY);
-			} else {
-				$entry = SQL::fetch("SELECT * FROM bigtree_404s WHERE broken_url = ?", $url);
-			}
+			// See if there's any GET requests
+			$get = $_GET;
+			unset($get["bigtree_htaccess_url"]);
 			
-			// We already have a redirect
-			if ($entry["redirect_url"]) {
-				$entry["redirect_url"] = Link::iplEncode($entry["redirect_url"]);
+			if (count($get)) {
+				$query_pieces = [];
 				
-				// If we're redirecting to the homepage, don't add additional trailing slashes
-				if ($entry["redirect_url"] == "/") {
-					$entry["redirect_url"] = "";
+				foreach ($get as $key => $value) {
+					$query_pieces[] = $key."=".$value;
 				}
 				
-				// Full URL, use the whole thing
-				if (substr($entry["redirect_url"], 0, 7) == "http://" || substr($entry["redirect_url"], 0, 8) == "https://") {
-					$redirect = $entry["redirect_url"];
-					
-					// Partial URL, append WWW_ROOT
+				$get = Text::htmlEncode(implode("&", $query_pieces));
+				
+				if (defined("BIGTREE_SITE_KEY")) {
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE broken_url = ? AND get_vars = ? AND site_key = ?",
+											$url, $get, BIGTREE_SITE_KEY);
 				} else {
-					$redirect = WWW_ROOT.str_replace(WWW_ROOT, "", $entry["redirect_url"]);
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE broken_url = ? AND get_vars = ?", $url, $get);
 				}
 				
-				// Update request count
-				SQL::query("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = ?", $entry["id"]);
+				// Look for a 404 that has a redirect but no get vars
+				if (empty($existing["redirect_url"])) {
+					if (defined("BIGTREE_SITE_KEY")) {
+						$non_get_existing = SQL::fetch("SELECT * FROM bigtree_404s
+														WHERE broken_url = ? AND redirect_url != ''
+														  AND get_vars = ? AND site_key = ?",
+													   $url, $get, BIGTREE_SITE_KEY);
+					} else {
+						$non_get_existing = SQL::fetch("SELECT * FROM bigtree_404s
+														WHERE broken_url = ? AND redirect_url != '' AND get_vars = ?",
+													   $url, $get);
+					}
+					
+					if ($non_get_existing) {
+						$existing = $non_get_existing;
+					}
+				}
+			} else {
+				$get = "";
 				
-				// Redirect with a 301
+				if (defined("BIGTREE_SITE_KEY")) {
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s
+											WHERE broken_url = ? AND get_vars = '' AND site_key = ?",
+											$url, BIGTREE_SITE_KEY);
+				} else {
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE broken_url = ? AND get_vars = ''", $url);
+				}
+			}
+			
+			if ($existing["redirect_url"]) {
+				$existing["redirect_url"] = Link::decode($existing["redirect_url"]);
+				
+				if ($existing["redirect_url"] == "/") {
+					$existing["redirect_url"] = "";
+				}
+				
+				if (substr($existing["redirect_url"],0,7) == "http://" || substr($existing["redirect_url"],0,8) == "https://") {
+					$redirect = $existing["redirect_url"];
+				} else {
+					$redirect = WWW_ROOT.str_replace(WWW_ROOT, "", $existing["redirect_url"]);
+				}
+				
+				SQL::query("bigtree_404s SET requests = (requests + 1) WHERE id = ?", $existing["id"]);
 				Router::redirect(htmlspecialchars_decode($redirect), "301");
 				
-			// No redirect, log the 404 and throw the 404 headers
+				return false;
 			} else {
-				// Throw 404 header
 				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
+				define("BIGTREE_DO_NOT_CACHE", true);
+				define("BIGTREE_URL_IS_404", true);
 				
-				if (!empty($entry)) {
-					SQL::query("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = ?", $entry["id"]);
+				if ($existing && $existing["get_vars"] == $get) {
+					SQL::query("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = ?", $existing["id"]);
 				} elseif (defined("BIGTREE_SITE_KEY")) {
 					SQL::insert("bigtree_404s", [
 						"broken_url" => $url,
+						"get_vars" => $get,
 						"requests" => 1,
 						"site_key" => BIGTREE_SITE_KEY
 					]);
 				} else {
 					SQL::insert("bigtree_404s", [
 						"broken_url" => $url,
+						"get_vars" => $get,
 						"requests" => 1
 					]);
 				}
 				
-				// Tell BigTree to not cache this page
-				define("BIGTREE_DO_NOT_CACHE", true);
+				return true;
 			}
-			
-			return true;
 		}
 		
 		/*
@@ -281,11 +336,11 @@
 				$query = SQL::escape($query);
 				
 				if ($type == "301") {
-					$where = "ignored = '' AND (broken_url LIKE '%$query%' OR redirect_url LIKE '%$query%') AND redirect_url != ''";
+					$where = "ignored = '' AND (broken_url LIKE '%$query%' OR redirect_url LIKE '%$query%' OR get_vars LIKE '%$query%') AND redirect_url != ''";
 				} elseif ($type == "ignored") {
-					$where = "ignored != '' AND (broken_url LIKE '%$query%' OR redirect_url LIKE '%$query%')";
+					$where = "ignored != '' AND (broken_url LIKE '%$query%' OR redirect_url LIKE '%$query%' OR get_vars LIKE '%$query%')";
 				} else {
-					$where = "ignored = '' AND broken_url LIKE '%$query%' AND redirect_url = ''";
+					$where = "ignored = '' AND (broken_url LIKE '%$query%' OR get_vars LIKE '%$query%') AND redirect_url = ''";
 				}
 			} else {
 				if ($type == "301") {

@@ -184,9 +184,36 @@
 		die(str_replace($find, $replace, file_get_contents($js_file)));
 	}
 	
-	// We're loading a page in the admin, so let's pass some headers
+	// We're loading a page in the admin, so add and remove some content / security headers
+	$csp_domains = [];
+	
+	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+		foreach ($bigtree["config"]["sites"] as $site) {
+			$clean_csp_domain = str_replace(array("https://", "http://"), "", $site["domain"]);
+			$csp_domains[] = "http://".$clean_csp_domain;
+			$csp_domains[] = "https://".$clean_csp_domain;
+		}
+	} else {
+		$clean_csp_domain = str_replace(array("https://", "http://"), "", $bigtree["config"]["domain"]);
+		$csp_domains[] = "http://".$clean_csp_domain;
+		$csp_domains[] = "https://".$clean_csp_domain;
+	}
+	
 	header("Content-Type: text/html; charset=utf-8");
-	header("X-Frame-Options: SAMEORIGIN");
+	header("Content-Security-Policy: frame-ancestors ".implode(" ", $csp_domains));
+	
+	if (count($bigtree["config"]["sites"])) {
+		$csp_domains = [];
+		
+		foreach ($bigtree["config"]["sites"] as $site) {
+			$csp_domains[] = str_replace(array("https://", "http://"), "", $site["domain"]);
+		}
+		
+		header("Content-Security-Policy: frame-ancestors ".implode(" ",$csp_domains));
+	} else {
+		header("Content-Security-Policy: frame-ancestors ".str_replace(array("https://", "http://"), "", DOMAIN));
+	}
+	
 	
 	if (function_exists("header_remove")) {
 		header_remove("Server");
@@ -230,7 +257,13 @@
 	if (is_null(Auth::user()->ID) && $bigtree["path"][1] != "login") {
 		if (implode(array_slice($bigtree["path"], 1, 3), "/") != "ajax/auto-modules/embeddable-form") {
 			$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
-			Router::redirect(ADMIN_ROOT."login/");
+			
+			if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]) > 1) {
+				Router::redirect(ADMIN_ROOT."login/?domain=".urlencode($_SERVER["HTTP_HOST"]));
+			} else {
+				Router::redirect(ADMIN_ROOT."login/");
+			}
+			
 		}
 	}
 	
