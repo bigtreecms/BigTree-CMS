@@ -21,7 +21,7 @@
 ?>
 <li id="row_<?=$item["id"]?>">
 	<section class="view_column users_name"><span class="gravatar"><img src="<?=BigTree::gravatar($item["email"], 36)?>" alt="" /></span><?=$item["name"]?></section>
-	<section class="view_column users_email"><?=$item["email"]?></section>
+	<section class="view_column users_email"><?=htmlspecialchars($item["email"])?></section>
 	<section class="view_column users_company"><?=$item["company"]?></section>
 	<section class="view_action">
 		<? if ($admin->Level >= $item["level"]) { ?>
