@@ -5820,11 +5820,10 @@
 				true if the IP is banned
 		*/
 
-		static function isIPBanned() {
+		static function isIPBanned($ip) {
 			global $bigtree;
 
 			// Check to see if this IP is already banned from logging in.
-			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
 			$ban = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND ip = '$ip'"));
 			
 			if ($ban) {
@@ -5925,6 +5924,8 @@
 		static function login($email,$password,$stay_logged_in = false,$domain = null,$two_factor_token = null) {
 			global $bigtree;
 
+			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
+
 			if ($two_factor_token) {
 				$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE 2fa_login_token = '".sqlescape($two_factor_token)."'"));
 
@@ -5935,7 +5936,7 @@
 					$ok = false;
 				}
 			} else {
-				if (static::isIPBanned()) {
+				if (static::isIPBanned($ip)) {
 					return false;
 				}
 	
@@ -8725,7 +8726,9 @@
 		static function verifyLogin2FA($email, $password) {
 			global $bigtree;
 
-			if (static::isIPBanned()) {
+			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
+
+			if (static::isIPBanned($ip)) {
 				return null;
 			}
 

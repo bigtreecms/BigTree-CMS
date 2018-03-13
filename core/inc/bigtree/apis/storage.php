@@ -89,8 +89,14 @@
 					$service = "amazon";
 					$container = $this->Settings->Container;
 					$pointer_parts = array_slice($parts, 3);
-				} elseif ($domain == "s3.amazonaws.com") {
+				} elseif (strpos($domain, "s3.amazonaws.com") !== false) {
 					$service = "amazon";
+
+					if ($domain != "s3.amazonaws.com") {
+						$domain_parts = explode(".", $domain);
+						$container = $domain_parts[0];
+						$pointer_parts = array_slice($parts, 3);
+					}
 				} elseif ($domain == "storage.googleapis.com") {
 					$service = "google";
 				} else {
