@@ -40,7 +40,11 @@
 	
 	// Connect to MySQL and include the shorterner functions
 	include BigTree::path("inc/bigtree/sql.php");
-	include BigTree::path("inc/bigtree/sql-class.php");
+
+	// Require PHP 5.4 to use the new class
+	if (version_compare(PHP_VERSION, "5.4.0") >= 0) {
+		include BigTree::path("inc/bigtree/sql-class.php");
+	}
 	
 	// Setup our connections as disconnected by default.
 	$bigtree["mysql_read_connection"] = "disconnected";

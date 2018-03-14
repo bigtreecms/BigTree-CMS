@@ -1353,7 +1353,7 @@
 			unset($get["bigtree_htaccess_url"]);
 
 			if (count($get)) {
-				$query_pieces = [];
+				$query_pieces = array();
 
 				foreach ($get as $key => $value) {
 					$query_pieces[] = $key."=".$value;
