@@ -24,6 +24,17 @@ $(document).ready(function() {
 	}).blur(function() {
 		setTimeout("$('nav.main form input[type=\"search\"]').removeClass(\"focus\").val(\"\"); $(\"#quick_search_results\").fadeOut(200, function() { $(this).html(\"\"); });", 300);
 	});
+
+	$("nav.main form .qs_image").click(function(ev) {
+		var query = $('nav.main form .qs_query');
+
+		if (!query.val()) {
+			query.focus();
+			ev.preventDefault();
+			ev.stopPropagation();
+		}
+	});
+
 	$("nav.main").on("click",".advanced_search",function() {
 		$("#quick_search_results").parents().submit();
 		return false;

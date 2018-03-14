@@ -1446,6 +1446,8 @@
 				}
 			}
 
+			$this->updateTagReferenceCounts($data["_tags"]);
+
 			// If there was an old page that had previously used this path, dump its history so we can take over the path.
 			sqlquery("DELETE FROM bigtree_route_history WHERE old_route = '$path'");
 
@@ -4418,6 +4420,35 @@
 		}
 
 		/*
+			Function: getPageOfTags
+				Returns a page of tags.
+
+			Parameters:
+				page - The page of tags to return.
+				query - Optional query string to search against.
+				sort - Order to sort the results by. Defaults to tag ASC.
+
+			Returns:
+				An array of entries from bigtree_users.
+		*/
+
+		public static function getPageOfTags($page = 1, $query = "", $sort = "tag ASC") {
+			if ($query) {
+				$q = sqlquery("SELECT * FROM bigtree_tags WHERE tag LIKE '%".sqlescape($query)."%' ORDER BY $sort LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
+			} else {
+				$q = sqlquery("SELECT * FROM bigtree_tags ORDER BY $sort LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
+			}
+
+			$items = array();
+
+			while ($f = sqlfetch($q)) {
+				$items[] = $f;
+			}
+
+			return $items;
+		}
+
+		/*
 			Function: getPageOfUsers
 				Returns a page of users.
 
@@ -5323,6 +5354,29 @@
 		public static function getTag($id) {
 			$id = sqlescape($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$id'"));
+		}
+
+		/*
+			Function: getTagsPageCount
+				Returns the number of pages of tags.
+
+			Parameters:
+				query - Optional query to search against.
+
+			Returns:
+				An integer.
+		*/
+
+		public static function getTagsPageCount($query = "") {
+			if ($query) {
+				$f = sqlfetch(sqlquery("SELECT COUNT(*) AS `count` FROM bigtree_tags WHERE tag LIKE '%".sqlescape($query)."%'"));
+			} else {
+				$f = sqlfetch(sqlquery("SELECT COUNT(*) AS `count` FROM bigtree_tags"));
+			}
+
+			$pages = ceil($f["count"] / static::$PerPage);
+
+			return $pages ?: 1;
 		}
 
 		/*
@@ -6330,6 +6384,48 @@
 				$new_folder = $new_folder ? "'".sqlescape($new_folder)."'" : "NULL";
 				sqlquery("INSERT INTO bigtree_resources (`folder`,`file`,`md5`,`date`,`name`,`type`,`is_image`,`height`,`width`,`crops`,`thumbs`,`list_thumb_margin`) VALUES ($new_folder,$file,$md5,NOW(),$name,$type,$is_image,$height,$width,$crops,$thumbs,$list_thumb_margin)");
 			}
+			return true;
+		}
+
+		/*
+			Function: mergeTags
+				Merges a set of tags into a single tag and updates references.
+
+			Parameters:
+				tag - A tag ID that will consume the other tags
+				merge_tags - An array of tag IDs that will be consumed
+
+			Returns:
+				true if successful
+		*/
+
+		public function mergeTags($tag, $merge_tags) {
+			$tag = intval($tag);
+			$target_tag_data = sqlfetch(sqlquery("SELECT `tag` FROM bigtree_tags WHERE id = '$tag'"));
+
+			if (!$target_tag_data) {
+				return false;
+			}
+
+			foreach ($merge_tags as $tag_id) {
+				$tag_id = intval($tag_id);
+				$tag_data = sqlfetch(sqlquery("SELECT `tag` FROM bigtree_tags WHERE id = '$tag_id'"));
+
+				sqlquery("UPDATE bigtree_tags_rel SET `tag` = '$tag' WHERE `tag` = '$tag_id'");
+				sqlquery("DELETE FROM bigtree_tags WHERE `id` = '$tag_id'");
+
+				$this->track("bigtree_tags", $tag_data["tag"], "merged");
+			}
+
+			// Clean up duplicate references
+			sqlquery("DELETE tags_a FROM bigtree_tags_rel AS tags_a, bigtree_tags_rel AS tags_b
+					  WHERE (tags_a.`table` = tags_b.`table`)
+					    AND (tags_a.`entry` = tags_b.`entry`)
+					    AND (tags_a.`tag` = tags_b.`tag`)
+					    AND (tags_a.`id` < tags_b.`id`)");
+
+			$this->updateTagReferenceCounts(array($tag));
+
 			return true;
 		}
 
@@ -8292,6 +8388,8 @@
 				}
 			}
 
+			$this->updateTagReferenceCounts($data["_tags"]);
+
 			// Audit trail.
 			$this->track("bigtree_pages",$page,"updated");
 			
@@ -8391,6 +8489,44 @@
 
 			sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes', mtm_changes = '$mtm_changes', tags_changes = '$tags_changes', date = NOW(), user = '".$this->ID."' WHERE id = '$id'");
 			$this->track("bigtree_pending_changes",$id,"updated");
+		}
+
+		/*
+			Function: updateTagReferenceCounts
+				Updates the reference counts for tags to accurately match active database entries.
+
+			Parameters:
+				tags - An array of tag IDs to update reference counts for (defaults to all tags)
+		*/
+
+		public static function updateTagReferenceCounts($tags = array()) {
+			if (!count($tags)) {
+				$tags = array();
+				$query = sqlquery("SELECT id FROM bigtree_tags");
+
+				while ($tag = sqlfetch($query)) {
+					$tags[] = $tag["id"];
+				}
+			}
+
+			foreach ($tags as $tag_id) {
+				$tag_id = intval($tag_id);
+				$query = sqlquery("SELECT * FROM bigtree_tags_rel WHERE `tag` = '$tag_id'");
+				$reference_count = 0;
+
+				while ($reference = sqlfetch($query)) {
+					// See if the related entry still exists
+					$row = sqlrows(sqlquery("SELECT id FROM `".$reference["table"]."` WHERE id = '".sqlescape($reference["entry"])."'"));
+
+					if ($row) {
+						$reference_count++;
+					} else {
+						sqlquery("DELETE FROM bigtree_tags_rel WHERE `id` = '".$reference["id"]."'");
+					}
+				}
+
+				sqlquery("UPDATE bigtree_tags SET usage_count = '$reference_count' WHERE id = '$tag_id'");
+			}
 		}
 
 		/*

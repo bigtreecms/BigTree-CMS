@@ -342,6 +342,9 @@
 		// Email the daily digest
 		$admin->emailDailyDigest();
 
+		// Update tag reference counts
+		$admin->updateTagReferenceCounts();
+
 		// Cache google analytics
 		$ga = new BigTreeGoogleAnalyticsAPI;
 		if (!empty($ga->Settings["profile"])) {

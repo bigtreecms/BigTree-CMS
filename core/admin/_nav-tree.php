@@ -26,6 +26,7 @@
 				array("title" => "Site Integrity","link" => "dashboard/vitals-statistics/integrity","icon" => "integrity","hidden" => true,"level" => 1)
 			))
 		)),
+		"files" => array("title" => "Files", "link" => "files", "icon" => "files", "nav_icon" => "files", "children" => array()),
 		"pages" => array("title" => "Pages","link" => "pages","icon" => "page","nav_icon" => "pages","children" => array(
 			"view-tree" => array("title" => "View Subpages","link" => "pages/view-tree/{id}","nav_icon" => "list"),
 			"add" => array("title" => "Add Subpage","link" => "pages/add/{id}","icon" => "add_page","nav_icon" => "add"),
@@ -42,6 +43,11 @@
 		)),
 		"settings" => array("title" => "Settings","link" => "settings","icon" => "settings","children" => array(
 			array("title" => "Edit Setting","link" => "settings/edit","hidden" => true)
+		)),
+		"tags" => array("title" => "Tags", "link" => "tags", "icon" => "tags", "children" => array(
+			array("title" => "View Tags", "link" => "tags", "nav_icon" => "list"),
+			array("title" => "Add Tag", "link" => "tags/add", "nav_icon" => "add"),
+			array("title" => "Merge Tag", "link" => "tags/merge", "hidden" => true)
 		)),
 		"developer" => array("title" => "Developer","link" => "developer","icon" => "developer","nav_icon" => "developer","level" => 2,"related" => true,"children" => array(
 			array("title" => "Templates","link" => "developer/templates","icon" => "templates","hidden" => true,"children" => array(

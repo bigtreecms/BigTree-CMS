@@ -385,6 +385,8 @@
 					sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = $id AND tag = $tag");
 					sqlquery("INSERT INTO bigtree_tags_rel (`table`,`entry`,`tag`) VALUES ('".sqlescape($table)."',$id,$tag)");
 				}
+
+				BigTreeAdmin::updateTagReferenceCounts($tags);
 			}
 			
 			self::cacheNewItem($id,$table);			
@@ -1717,6 +1719,7 @@
 
 			// Handle the tags
 			sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = '$id'");
+			
 			if (!empty($tags)) {
 				foreach ($tags as $tag) {
 					$tag = intval($tag);
@@ -1724,6 +1727,8 @@
 					sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = $id AND tag = $tag");
 					sqlquery("INSERT INTO bigtree_tags_rel (`table`,`entry`,`tag`) VALUES ('".sqlescape($table)."',$id,$tag)");
 				}
+
+				BigTreeAdmin::updateTagReferenceCounts($tags);
 			}
 			
 			// Clear out any pending changes.

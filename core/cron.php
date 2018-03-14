@@ -9,6 +9,9 @@
 	// Send out Daily Digests and Content Alerts
 	$admin->emailDailyDigest();
 	
+	// Update tag reference counts
+	$admin->updateTagReferenceCounts();
+	
 	// Cache Google Analytics Information
 	$analytics = new BigTreeGoogleAnalyticsAPI;
 	if ($analytics->API && $analytics->Profile) {
