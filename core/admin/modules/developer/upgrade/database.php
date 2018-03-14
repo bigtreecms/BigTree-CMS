@@ -688,4 +688,10 @@
 			}
 		}
 	}
+
+	// BigTree 4.3 update -- REVISION 300
+	function _local_bigtree_update_300() {
+		// Add a usage count column to tags
+		sqlquery("ALTER TABLE `bigtree_tags` ADD COLUMN `usage_count` int(11) unsigned NOT NULL AFTER `route`");
+	}
 ?>

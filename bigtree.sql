@@ -86,7 +86,7 @@ DROP TABLE IF EXISTS `bigtree_settings`;
 CREATE TABLE `bigtree_settings` (`id` varchar(255) NOT NULL DEFAULT '', `value` longblob NOT NULL, `type` varchar(255) NOT NULL, `options` longtext NOT NULL, `name` varchar(255) NOT NULL DEFAULT '', `description` text NOT NULL, `locked` char(2) NOT NULL, `system` char(2) NOT NULL, `encrypted` char(2) NOT NULL, `extension` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`), KEY `extension` (`extension`), FOREIGN KEY (`extension`) REFERENCES `bigtree_extensions` (`id`) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 DROP TABLE IF EXISTS `bigtree_tags`;
-CREATE TABLE `bigtree_tags` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`tag` varchar(255) NOT NULL,`metaphone` varchar(255) NOT NULL,`route` varchar(255) DEFAULT NULL,PRIMARY KEY (`id`),KEY `route` (`route`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+CREATE TABLE `bigtree_tags` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`tag` varchar(255) NOT NULL,`metaphone` varchar(255) NOT NULL,`route` varchar(255) DEFAULT NULL,`usage_count` int(11) unsigned NOT NULL,PRIMARY KEY (`id`),KEY `route` (`route`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `bigtree_tags_rel`;
 CREATE TABLE `bigtree_tags_rel` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT, `table` varchar(255) NOT NULL, `tag` int(11) unsigned NOT NULL, `entry` varchar(255) NOT NULL, PRIMARY KEY (`id`), KEY `tag` (`tag`), KEY `entry` (`entry`), FOREIGN KEY (`tag`) REFERENCES `bigtree_tags` (`id`) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
