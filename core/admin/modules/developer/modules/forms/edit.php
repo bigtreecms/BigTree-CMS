@@ -1,4 +1,4 @@
-<?
+<?php
 	$form = BigTreeAutoModule::getForm(end($bigtree["commands"]));;
 	$module = $admin->getModule(BigTreeAutoModule::getModuleForForm($form));
 
@@ -23,16 +23,16 @@
 		<a href="<?=DEVELOPER_ROOT?>modules/forms/delete/<?=$form["id"]?>/?module=<?=$module["id"]?>" class="button red">Delete Form</a>
 	</footer>
 </div>
-<?
+<?php
 	} else {
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/forms/update/<?=$form["id"]?>/" class="module">
-		<?
+		<?php
 			if ($_GET["return"] == "front") {
 		?>
 		<input type="hidden" name="return_page" value="<?=htmlspecialchars($_SERVER["HTTP_REFERER"])?>" />
-		<?
+		<?php
 			}
 			include BigTree::path("admin/modules/developer/modules/forms/_form.php");
 		?>
@@ -41,6 +41,6 @@
 		</footer>
 	</form>
 </div>
-<?
+<?php
 	}
 ?>

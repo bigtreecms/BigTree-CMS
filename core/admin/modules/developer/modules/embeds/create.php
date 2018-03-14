@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	BigTree::globalizePOSTVars();

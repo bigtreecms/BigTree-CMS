@@ -1,4 +1,4 @@
-<?
+<?php
 	// Prevent directory path shenanigans
 	$field_type = BigTree::cleanFile($_POST["type"]);
 
@@ -33,19 +33,19 @@
 	<label>Validation</label>
 	<select name="validation">
 		<option></option>
-		<? foreach ($validation_options as $k => $v) { ?>
-		<option value="<?=$k?>"<? if ($k == $validation) { ?> selected="selected"<? } ?>><?=$v?></option>
-		<? } ?>
+		<?php foreach ($validation_options as $k => $v) { ?>
+		<option value="<?=$k?>"<?php if ($k == $validation) { ?> selected="selected"<?php } ?>><?=$v?></option>
+		<?php } ?>
 	</select>
 </fieldset>
-<?
+<?php
 	} elseif ($field_type == "textarea" || $field_type == "upload" || $field_type == "html" || $field_type == "list" || $field_type == "time" || $field_type == "date" || $field_type == "datetime" || $field_type == "checkbox") {
 ?>
 <fieldset>
-	<input type="checkbox" name="validation" value="required"<? if ($validation == "required") { ?> checked="checked"<? } ?> />
+	<input type="checkbox" name="validation" value="required"<?php if ($validation == "required") { ?> checked="checked"<?php } ?> />
 	<label class="for_checkbox">Required</label>
 </fieldset>
-<?	
+<?php
 	}
 
 	// Check for extension field type
@@ -64,7 +64,7 @@
 	} elseif ($field_type != "textarea" && $field_type != "time") {
 ?>
 <p>This field type does not have any options.</p>
-<?
+<?php
 	}
 ?>
 <script>	

@@ -1,4 +1,4 @@
-<?
+<?php
 	$bigtree["group_match"] = $bigtree["module_match"] = $bigtree["route_match"] = $bigtree["class_name_match"] = $bigtree["form_id_match"] = $bigtree["view_id_match"] = $bigtree["report_id_match"] = array();
 
 	$json = json_decode(file_get_contents(SERVER_ROOT."cache/package/manifest.json"),true);
@@ -151,4 +151,3 @@
 	
 	$admin->growl("Developer","Installed Package");
 	BigTree::redirect(DEVELOPER_ROOT."packages/install/complete/");
-?>

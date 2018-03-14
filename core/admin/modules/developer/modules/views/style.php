@@ -1,4 +1,4 @@
-<?
+<?php
 	$view = BigTreeAutoModule::getView(end($bigtree["path"]));
 	$entries = BigTreeAutoModule::getSearchResults($view,1);
 	$entries = array_slice($entries["results"],0,5);
@@ -6,7 +6,7 @@
 	if ($view["type"] == "images" || $view["type"] == "images-group") {
 ?>
 <p>The view type does not have any style settings.</p>
-<?
+<?php
 	} else {
 		$fields = $view["fields"];
 		$actions = $view["actions"];
@@ -20,34 +20,34 @@
 <div class="table">
 	<summary><h2>Example View Information</h2></summary>
 	<header>
-		<?
+		<?php
 			$x = 0;
 			foreach ($fields as $key => $field) {
 				$x++;
 		?>
 		<span class="view_column" style="width: <?=$field["width"]?>px; cursor: move;" name="<?=$key?>"><?=$field["title"]?></span>
-		<?
+		<?php
 			}
 		?>
 		<span class="view_status">Status</span>
-		<span class="view_action" style="width: <?=(count($actions) * 40)?>px;"><? if (count($view["actions"]) > 1) { ?>Actions<? } ?></span>
+		<span class="view_action" style="width: <?=(count($actions) * 40)?>px;"><?php if (count($view["actions"]) > 1) { ?>Actions<?php } ?></span>
 	</header>
 	<ul>
-		<?
+		<?php
 			foreach ($entries as $entry) {
 		?>
 		<li>
-			<?
+			<?php
 				$x = 0;
 				foreach ($fields as $key => $field) {
 					$x++;
 			?>
 			<section class="view_column" style="width: <?=$field["width"]?>px;" name="<?=$key?>"><?=$entry["column$x"]?></section>
-			<?
+			<?php
 				}
 			?>
 			<section class="view_status status_published">Published</section>
-			<?	
+			<?php
 				foreach ($actions as $action => $data) {
 					if ($data != "on") {
 						$data = json_decode($data,true);
@@ -57,29 +57,29 @@
 					}
 			?>
 			<section class="view_action"><a href="#" class="<?=$class?>"></a></section>
-			<?
+			<?php
 				}
 			?>
 		</li>
-		<?
+		<?php
 			}
 		?>
 	</ul>
 </div>
 <form method="post" action="<?=DEVELOPER_ROOT?>modules/views/update-style/<?=$view["id"]?>/" class="module">
-	<?
+	<?php
 		$admin->drawCSRFToken();
 
 		foreach ($fields as $key => $field) {
 	?>
 	<input type="hidden" name="<?=$key?>" id="data_<?=$key?>" value="<?=$field["width"]?>" />
-	<?
+	<?php
 		}
 	?>
-	<a class="button" href="<?=DEVELOPER_ROOT?>modules/views/clear-style/?id=<?=$view["id"]?><? $admin->drawCSRFTokenGET() ?>">Clear Existing Style</a>
+	<a class="button" href="<?=DEVELOPER_ROOT?>modules/views/clear-style/?id=<?=$view["id"]?><?php $admin->drawCSRFTokenGET() ?>">Clear Existing Style</a>
 	<input type="submit" class="button blue" value="Update" />
 </form>
-<?
+<?php
 	}
 ?>
 

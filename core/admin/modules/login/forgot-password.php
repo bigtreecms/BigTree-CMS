@@ -1,4 +1,4 @@
-<?
+<?php
 	$failure = false;
 
 	if ($_POST["email"]) {

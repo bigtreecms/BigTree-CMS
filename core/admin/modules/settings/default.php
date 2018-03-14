@@ -1,4 +1,4 @@
-<? $admin->requireLevel(1) ?>
+<?php $admin->requireLevel(1) ?>
 <div class="table">
 	<summary>
 		<input type="search" name="query" id="query" placeholder="Search" class="form_search" autocomplete="off" />
@@ -11,7 +11,7 @@
 		<span class="view_action">Edit</span>
 	</header>
 	<ul id="results">
-		<? include BigTree::path("admin/ajax/settings/get-page.php") ?>	
+		<?php include BigTree::path("admin/ajax/settings/get-page.php"); ?>	
 	</ul>
 </div>
 

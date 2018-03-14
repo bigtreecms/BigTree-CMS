@@ -1,4 +1,4 @@
-<?
+<?php
 	include "_setup.php";
 	
 	// If you made this pending item, you should be allowed to delete it, or if you're a publisher of the module.
@@ -13,4 +13,3 @@
 			BigTreeAutoModule::deleteItem($table,$id);
 		}
 	}
-?>

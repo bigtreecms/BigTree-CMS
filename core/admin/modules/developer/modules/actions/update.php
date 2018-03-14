@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	$item = $admin->getModuleAction(end($bigtree["path"]));
@@ -6,4 +6,3 @@
 
 	$admin->growl("Developer","Updated Action");
 	BigTree::redirect(DEVELOPER_ROOT."modules/edit/".$item["module"]."/");
-?>

@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	// Remove existing update zips
@@ -23,4 +23,3 @@
 		curl_exec($curl);
 		fclose($file);
 	}
-?>

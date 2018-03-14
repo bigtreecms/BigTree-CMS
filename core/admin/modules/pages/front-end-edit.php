@@ -1,4 +1,4 @@
-<?
+<?php
 	define("BIGTREE_FRONT_END_EDITOR",true);
 	$bigtree["layout"] = "front-end";
 	// Check for a page lock
@@ -15,13 +15,13 @@
 ?>
 <h2>Edit Page Content</h2>
 <form class="bigtree_dialog_form" method="post" action="<?=ADMIN_ROOT?>pages/front-end-update/" enctype="multipart/form-data">
-	<? $admin->drawCSRFToken() ?>
+	<?php $admin->drawCSRFToken() ?>
 	<input type="hidden" name="page" value="<?=$bigtree["current_page"]["id"]?>" />
 	<div class="overflow">
-		<? $admin->drawPOSTErrorMessage(); ?>
+		<?php $admin->drawPOSTErrorMessage(); ?>
 		<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 		<div class="form_fields">
-			<?
+			<?php
 				if (is_array($bigtree["template"]["resources"]) && count($bigtree["template"]["resources"])) {
 
 					// Get field types for knowing self drawing ones
@@ -49,13 +49,13 @@
 	</div>
 	<footer>
 		<a class="button bigtree_dialog_close" href="#">Cancel</a>
-		<input type="submit" class="button<? if ($bigtree["access_level"] != "p") { ?> blue<? } ?>" name="ptype" value="Save &amp; Preview" />
-		<? if ($bigtree["access_level"] == "p") { ?>
+		<input type="submit" class="button<?php if ($bigtree["access_level"] != "p") { ?> blue<?php } ?>" name="ptype" value="Save &amp; Preview" />
+		<?php if ($bigtree["access_level"] == "p") { ?>
 		<input type="submit" class="button blue" name="ptype" value="Save &amp; Publish" />
-		<? } ?>
+		<?php } ?>
 	</footer>
 </form>
-<?
+<?php
 	$bigtree["html_editor_width"] = 760;
 	$bigtree["html_editor_height"] = 365;			
 	include BigTree::path("admin/layouts/_html-field-loader.php");

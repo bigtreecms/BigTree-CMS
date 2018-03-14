@@ -1,4 +1,4 @@
-<?
+<?php
 	$photos = is_array($field["value"]) ? $field["value"] : array();
 	$max = count($photos);
 	$current = 0;
@@ -25,7 +25,7 @@
 ?>
 <div class="photo_gallery_widget" id="<?=$field["id"]?>">
 	<ul>
-		<?
+		<?php
 			foreach ($photos as $photo) {
 
 				if ($field["options"]["preview_prefix"]) {
@@ -40,22 +40,22 @@
 			</figure>
 			<input type="hidden" name="<?=$field["key"]?>[<?=$current?>][image]" value="<?=$photo["image"]?>" />
 			<input type="hidden" name="<?=$field["key"]?>[<?=$current?>][caption]" value="<?=$photo["caption"]?>" class="caption" />
-			<? if (!$field["options"]["disable_captions"]) { ?>
+			<?php if (!$field["options"]["disable_captions"]) { ?>
 			<a href="#" class="icon_edit"></a>
-			<? } ?>
+			<?php } ?>
 			<a href="#" class="icon_delete"></a>
 		</li>
-		<?
+		<?php
 				$current++;
 			}
 		?>
 	</ul>
 	<footer class="image_field">
 		<input type="file" accept="image/*" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>[<?=$current?>][image]" data-min-width="<?=$min_width?>" data-min-height="<?=$min_height?>" />
-		<? if (!defined("BIGTREE_FRONT_END_EDITOR") && !$bigtree["form"]["embedded"]) { ?>
+		<?php if (!defined("BIGTREE_FRONT_END_EDITOR") && !$bigtree["form"]["embedded"]) { ?>
 		<span class="or">OR</span>
 		<a href="#<?=$field["id"]?>" data-options="<?=$button_options?>" class="button form_image_browser"><span class="icon_images"></span>Browse</a>
-		<? } ?>
+		<?php } ?>
 	</footer>
 </div>
 <script>
@@ -63,6 +63,6 @@
 		container: "<?=$field["id"]?>",
 		key: "<?=$field["key"]?>",
 		count: <?=$current?>
-		<? if ($field["options"]["disable_captions"]) { ?>,disableCaptions: true<? } ?>
+		<?php if ($field["options"]["disable_captions"]) { ?>,disableCaptions: true<?php } ?>
 	});
 </script>

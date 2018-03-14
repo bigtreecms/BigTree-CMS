@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	if ($_POST["group_new"]) {
@@ -20,4 +20,3 @@
 		
 	$admin->growl("Developer","Created Callout");
 	BigTree::redirect(DEVELOPER_ROOT."callouts/");
-?>

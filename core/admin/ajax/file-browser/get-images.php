@@ -1,5 +1,5 @@
 <div class="file_browser_images">
-	<?
+	<?php
 		if ($_POST["query"]) {
 			$items = $admin->searchResources($_POST["query"]);
 			$perm = "e";
@@ -14,7 +14,7 @@
 			$folder = $admin->getResourceFolder($_POST["folder"]);
 	?>
 	<a href="#<?=$folder["parent"]?>" class="file folder"><span class="file_type file_type_folder file_type_folder_back"></span> Back</a>
-	<?	
+	<?php
 		}
 	
 		$minWidth = $_POST["minWidth"];
@@ -26,7 +26,7 @@
 		<span class="file_type file_type_folder"></span>
 		<?=$folder["name"]?>
 	</a>		
-	<?
+	<?php
 		}
 		
 		foreach ($items["resources"] as $resource) {
@@ -60,7 +60,7 @@
 				)));
 	?>
 	<a href="<?=$data?>" class="image<?=$disabled?>"><img src="<?=$thumb.($_COOKIE["bigtree_admin"]["recently_replaced_file"] ? "?".uniqid() : "")?>" alt="" /></a>
-	<?
+	<?php
 			}
 		}
 		
@@ -76,20 +76,20 @@
 	?>
 </div>
 <script>
-	<? if ($perm == "p") { ?>
+	<?php if ($perm == "p") { ?>
 	BigTreeFileManager.enableCreate();
-	<? } else { ?>
+	<?php } else { ?>
 	BigTreeFileManager.disableCreate();
-	<? } ?>
-	<? if ($_POST["query"]) { ?>
+	<?php } ?>
+	<?php if ($_POST["query"]) { ?>
 	BigTreeFileManager.setTitleSuffix(": Search Results");
-	<? } else { ?>
+	<?php } else { ?>
 	BigTreeFileManager.setTitleSuffix("");
-	<? } ?>
+	<?php } ?>
 	BigTreeFileManager.setBreadcrumb("<?=str_replace('"','\"',$crumb_contents)?>");
-	<? if ($admin->Level && $_POST["folder"]) { ?>
+	<?php if ($admin->Level && $_POST["folder"]) { ?>
 	BigTreeFileManager.showDeleteFolder();
-	<? } else { ?>
+	<?php } else { ?>
 	BigTreeFileManager.hideDeleteFolder();
-	<? } ?>
+	<?php } ?>
 </script>

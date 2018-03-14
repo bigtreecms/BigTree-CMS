@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	$cloud->Settings["key"] = trim($_POST["key"]);
@@ -10,4 +10,3 @@
 		$cloud->Settings["private_key"] = SERVER_ROOT."custom/google-cloud-private-key.p12";
 	}
 	$cloud->oAuthRedirect();
-?>

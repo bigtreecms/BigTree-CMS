@@ -1,4 +1,4 @@
-<?	
+<?php
 	$relative_path = "admin/modules/dashboard/vitals-statistics/analytics/";
 	define("MODULE_ROOT",ADMIN_ROOT."dashboard/vitals-statistics/analytics/");
 	
@@ -17,4 +17,3 @@
 			BigTree::redirect(MODULE_ROOT."cache/");
 		}
 	}
-?>

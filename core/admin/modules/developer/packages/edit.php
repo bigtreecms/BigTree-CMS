@@ -1,4 +1,4 @@
-<?
+<?php
 	$package = $admin->getPackage($bigtree["commands"][0]);
 	$j = json_decode($package["manifest"],true);
 
@@ -46,4 +46,3 @@
 	}
 
 	BigTree::redirect(DEVELOPER_ROOT."packages/build/details/");
-?>

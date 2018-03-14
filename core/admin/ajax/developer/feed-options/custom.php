@@ -1,13 +1,13 @@
-<? if (!$table) { ?>
+<?php if (!$table) { ?>
 <p>Please select a table first.</p>
-<? } else { ?>
+<?php } else { ?>
 <fieldset>
 	<label>Order By</label>
 	<select name="sort">
-		<? BigTree::getFieldSelectOptions($table,$data["sort"],true); ?>
+		<?php BigTree::getFieldSelectOptions($table,$data["sort"],true); ?>
 	</select>
 </fieldset>
-<? } ?>
+<?php } ?>
 
 <fieldset>
 	<label>Limit <small>(defaults to 15)</small></label>

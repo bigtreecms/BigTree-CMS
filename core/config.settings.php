@@ -1,4 +1,4 @@
-<?
+<?php
 	// Date settings
 	$bigtree["config"]["date_format"] = "m/d/Y"; // Format for default values for date pickers, see http://php.net/manual/en/function.date.php
 
@@ -67,4 +67,3 @@
 	define("BIGTREE_CUSTOM_ADMIN_CLASS",false);
 	define("BIGTREE_CUSTOM_BASE_CLASS_PATH",false);
 	define("BIGTREE_CUSTOM_ADMIN_CLASS_PATH",false);
-?>

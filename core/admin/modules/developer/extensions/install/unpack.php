@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	// Make sure an upload succeeded
@@ -87,40 +87,40 @@
 		</h2>
 	</summary>
 	<section>
-		<?
+		<?php
 			if (count($warnings)) {
 		?>
 		<h3>Warnings</h3>
 		<ul>
-			<? foreach ($warnings as $w) { ?>
+			<?php foreach ($warnings as $w) { ?>
 			<li><?=$w?></li>
-			<? } ?>
+			<?php } ?>
 		</ul>
-		<?
+		<?php
 			}
 			
 			if (count($errors)) {
 		?>
 		<h3>Errors</h3>
 		<ul>
-			<? foreach ($errors as $e) { ?>
+			<?php foreach ($errors as $e) { ?>
 			<li><?=$e?></li>
-			<? } ?>
+			<?php } ?>
 		</ul>
 		<p><strong>ERRORS OCCURRED!</strong> &mdash; Please correct all errors.  You may not import this module while errors persist.</p>
-		<?
+		<?php
 			}
 			
 			if (!count($warnings) && !count($errors)) {
 		?>
 		<p>Extension is ready to be installed. No problems found.</p>
-		<?
+		<?php
 			}
 		?>
 	</section>
-	<? if (!count($errors)) { ?>
+	<?php if (!count($errors)) { ?>
 	<footer>
 		<a href="<?=DEVELOPER_ROOT?>extensions/install/process/" class="button blue">Install</a>
 	</footer>
-	<? } ?>
+	<?php } ?>
 </div>

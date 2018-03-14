@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	BigTree::globalizePOSTVars();
@@ -9,4 +9,3 @@
 
 	$admin->growl("Developer","Created Module Report");
 	BigTree::redirect(DEVELOPER_ROOT."modules/edit/$module/");
-?>

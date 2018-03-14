@@ -1,4 +1,4 @@
-<?
+<?php
 	//!BigTree Warnings
 	$warnings = array();
 	
@@ -16,11 +16,11 @@
 	
 	foreach ($writable_directories as $directory) {
 		if (!BigTree::isDirectoryWritable(SERVER_ROOT.$directory)) {
-		    $warnings[] = array(
-		    	"parameter" => "Directory Permissions Error",
-		    	"rec" => "Make ".SERVER_ROOT.$directory." writable.",
-		    	"status" => "bad"
-		    );
+			$warnings[] = array(
+				"parameter" => "Directory Permissions Error",
+				"rec" => "Make ".SERVER_ROOT.$directory." writable.",
+				"status" => "bad"
+			);
 		}
 	}
 	
@@ -107,7 +107,7 @@
 		<p>Critical errors appear in <span style="color: red;">red</span>, warnings appear in <span style="color: orange;">yellow</span>, and successes appear in <span style="color: green;">green</span>.</p>
 	</section>
 </div>
-<? if (count($warnings)) { ?>
+<?php if (count($warnings)) { ?>
 <div class="table">
 	<summary>
 		<h2>Warnings</h2>
@@ -118,16 +118,16 @@
 		<span class="site_status_status">Status</span>
 	</header>
 	<ul>
-		<? foreach ($warnings as $w) { ?>
+		<?php foreach ($warnings as $w) { ?>
 		<li>
 			<section class="site_status_message"><?=$w["parameter"]?></section>
 			<section class="site_status_action"><?=$w["rec"]?></section>
 			<section class="site_status_status <?=$w["status"]?>"></section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
 </div>
-<? } ?>
+<?php } ?>
 <div class="table">
 	<summary>
 		<h2>Server Parameters</h2>
@@ -148,11 +148,6 @@
 			<section class="site_status_action">&ldquo;magic_quotes_gpc = Off&rdquo; at runtime</section>
 			<section class="site_status_status <?=$magic_quotes_runtime?>"></section>
 		</li>	
-		<li>
-			<section class="site_status_message">Short Tags</section>
-			<section class="site_status_action">&ldquo;short_open_tag = On&rdquo; in php.ini</section>
-			<section class="site_status_status <?=$short_tags?>"></section>
-		</li>
 		<li>
 			<section class="site_status_message">Allow File Uploads</section>
 			<section class="site_status_action">&ldquo;file_uploads = On&rdquo; in php.ini</section>

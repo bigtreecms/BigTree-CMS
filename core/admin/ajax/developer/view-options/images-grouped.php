@@ -1,4 +1,4 @@
-<?
+<?php
 	$draggable = isset($options["draggable"]) ? $options["draggable"] : "";
 	$prefix = isset($options["prefix"]) ? $options["prefix"] : "";
 	$image = isset($options["image"]) ? $options["image"] : "";
@@ -9,7 +9,7 @@
 	$sort = isset($options["sort"]) ? $options["sort"] : "DESC";	
 ?>
 <fieldset>
-	<input type="checkbox" class="checkbox" name="draggable" <? if ($draggable) { ?>checked="checked" <? } ?>/>
+	<input type="checkbox" class="checkbox" name="draggable" <?php if ($draggable) { ?>checked="checked" <?php } ?>/>
 	<label class="for_checkbox">Draggable</label>
 </fieldset>
 
@@ -20,31 +20,31 @@
 
 <fieldset>
 	<label>Image Field</label>
-	<? if ($table) { ?>
+	<?php if ($table) { ?>
 	<select name="image">
-		<? BigTree::getFieldSelectOptions($table,$image) ?>
+		<?php BigTree::getFieldSelectOptions($table,$image) ?>
 	</select>
-	<? } else { ?>
+	<?php } else { ?>
 	<input name="image" type="text" disabled="disabled" placeholder="Choose a Data Table first." />
-	<? } ?>
+	<?php } ?>
 </fieldset>
 
 <fieldset>
 	<label>Group Field</label>
-	<? if ($table) { ?>
+	<?php if ($table) { ?>
 	<select name="group_field">
-		<? BigTree::getFieldSelectOptions($table,$group_field) ?>
+		<?php BigTree::getFieldSelectOptions($table,$group_field) ?>
 	</select>
-	<? } else { ?>
+	<?php } else { ?>
 	<input name="group_field" type="text" disabled="disabled" placeholder="Choose a Data Table first." />
-	<? } ?>
+	<?php } ?>
 </fieldset>
 
 <fieldset>
 	<label>Sort Direction<small>(inside groups, if not draggable)</small></label>
 	<select name="sort">
 		<option value="DESC">Newest First</option>
-		<option value="ASC"<? if ($sort == "ASC") { ?> selected="selected"<? } ?>>Oldest First</option>
+		<option value="ASC"<?php if ($sort == "ASC") { ?> selected="selected"<?php } ?>>Oldest First</option>
 	</select>
 </fieldset>
 
@@ -54,20 +54,20 @@
 	<label>Other Table</label>
 	<select name="other_table" class="table_select">
 		<option></option>
-		<? BigTree::getTableSelectOptions($other_table) ?>
+		<?php BigTree::getTableSelectOptions($other_table) ?>
 	</select>
 </fieldset>
 
 <fieldset>
 	<label>Field to Pull for Title</label>
 	<div data-name="title_field">
-		<? if ($other_table) { ?>
+		<?php if ($other_table) { ?>
 		<select name="title_field">
-			<? BigTree::getFieldSelectOptions($other_table,$title_field) ?>
+			<?php BigTree::getFieldSelectOptions($other_table,$title_field) ?>
 		</select>
-		<? } else { ?>
+		<?php } else { ?>
 		<input type="text" disabled="disabled" value="Please select &quot;Other Table&quot;" />
-		<? } ?>
+		<?php } ?>
 	</div>
 </fieldset>
 

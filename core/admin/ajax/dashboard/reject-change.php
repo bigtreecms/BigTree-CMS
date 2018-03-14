@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	$change = $admin->getPendingChange($_POST["id"]);
 
@@ -30,4 +30,3 @@
 	} else {
 		BigTreeAutoModule::recacheItem($item_id,$change["table"]);
 	}
-?>

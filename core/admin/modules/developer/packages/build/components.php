@@ -1,13 +1,13 @@
 <div class="container">
 	<header><p>Add modules, templates, callouts, field types, feeds, and settings to your package.</p></header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>packages/build/save-components/" class="module">
-		<? $admin->drawCSRFToken() ?>
+		<?php $admin->drawCSRFToken() ?>
 		<section>
 			<fieldset>
 				<article class="package_column">
 					<strong>Modules</strong>
 					<ul>
-						<?
+						<?php
 							foreach ((array)$modules as $mid) {
 								$module = $admin->getModule($mid);
 								if ($module) {
@@ -17,7 +17,7 @@
 							<a href="#" class="icon_small icon_small_delete"></a>
 							<span><?=$module["name"]?></span>
 						</li>
-						<?
+						<?php
 								}
 							}
 						?>
@@ -25,7 +25,7 @@
 					<div class="adder">
 						<a href="#"></a>
 						<select class="custom_control" data-key="modules">
-							<?
+							<?php
 								$groups = $admin->getModuleGroups("name ASC");
 								$groups[] = array("id" => "0", "name" => "Ungrouped");
 								foreach ($groups as $g) {
@@ -33,15 +33,15 @@
 									if (count($modules)) {
 							?>
 							<optgroup label="<?=$g["name"]?>">
-								<?
+								<?php
 										foreach ($modules as $m) {
 								?>
-								<option value="<?=$m["id"]?>"<? if ($m["id"] == $module) { ?> selected="selected"<? } ?>><?=$m["name"]?></option>
-								<?
+								<option value="<?=$m["id"]?>"<?php if ($m["id"] == $module) { ?> selected="selected"<?php } ?>><?=$m["name"]?></option>
+								<?php
 										}
 								?>
 							</optgroup>
-							<?
+							<?php
 									}
 								}
 							?>
@@ -51,7 +51,7 @@
 				<article class="package_column">
 					<strong>Templates</strong>
 					<ul>
-						<?
+						<?php
 							foreach ((array)$templates as $tid) {
 								$template = $cms->getTemplate($tid);
 								if ($template) {
@@ -61,7 +61,7 @@
 							<a href="#" class="icon_small icon_small_delete"></a>
 							<span><?=$template["name"]?></span>
 						</li>
-						<?
+						<?php
 								}
 							}
 						?>
@@ -70,22 +70,22 @@
 						<a href="#"></a>
 						<select class="custom_control" data-key="templates">
 							<optgroup label="Basic Templates">
-								<?
+								<?php
 									$templates = $admin->getBasicTemplates("name ASC");
 									foreach ($templates as $template) {
 								?>
 								<option value="<?=$template["id"]?>"><?=$template["name"]?></option>
-								<?
+								<?php
 									}
 								?>
 							</optgroup>
 							<optgroup label="Routed Templates">
-								<?
+								<?php
 									$templates = $admin->getRoutedTemplates("name ASC");
 									foreach ($templates as $template) {
 								?>
 								<option value="<?=$template["id"]?>"><?=$template["name"]?></option>
-								<?
+								<?php
 									}
 								?>
 							</optgroup>
@@ -95,7 +95,7 @@
 				<article class="package_column package_column_last">
 					<strong>Callouts</strong>
 					<ul>
-						<?
+						<?php
 							foreach ((array)$callouts as $cid) {
 								$callout = $admin->getCallout($cid);
 								if ($callout) {
@@ -105,7 +105,7 @@
 							<a href="#" class="icon_small icon_small_delete"></a>
 							<span><?=$callout["name"]?></span>
 						</li>
-						<?
+						<?php
 								}
 							}
 						?>
@@ -113,12 +113,12 @@
 					<div class="adder">
 						<a href="#"></a>
 						<select class="custom_control" data-key="callouts">
-							<?
+							<?php
 								$callouts = $admin->getCallouts("name ASC");
 								foreach ($callouts as $callout) {
 							?>
 							<option value="<?=$callout["id"]?>"><?=$callout["name"]?></option>
-							<?
+							<?php
 								}
 							?>
 						</select>
@@ -129,7 +129,7 @@
 				<article class="package_column">
 					<strong>Settings</strong>
 					<ul>
-						<?
+						<?php
 							foreach ((array)$settings as $sid) {
 								$setting = $admin->getSetting($sid);
 								if ($setting) {
@@ -139,7 +139,7 @@
 							<a href="#" class="icon_small icon_small_delete"></a>
 							<span><?=$setting["name"]?></span>
 						</li>
-						<?
+						<?php
 								}
 							}
 						?>
@@ -148,22 +148,22 @@
 						<a href="#"></a>
 						<select class="custom_control" data-key="settings">
 							<optgroup label="Public">
-								<?
+								<?php
 									$settings = $admin->getSettings();
 									foreach ($settings as $setting) {
 								?>
 								<option value="<?=$setting["id"]?>"><?=$setting["name"]?></option>
-								<?
+								<?php
 									}
 								?>
 							</optgroup>
 							<optgroup label="System">
-								<?
+								<?php
 									$settings = $admin->getSystemSettings();
 									foreach ($settings as $setting) {
 								?>
 								<option value="<?=$setting["id"]?>"><?=$setting["name"]?></option>
-								<?
+								<?php
 									}
 								?>
 							</optgroup>
@@ -173,7 +173,7 @@
 				<article class="package_column">
 					<strong>Feeds</strong>
 					<ul>
-						<?
+						<?php
 							foreach ((array)$feeds as $fid) {
 								$feed = $cms->getFeed($fid);
 								if ($feed) {
@@ -183,7 +183,7 @@
 							<a href="#" class="icon_small icon_small_delete"></a>
 							<span><?=$feed["name"]?></span>
 						</li>
-						<?
+						<?php
 								}
 							}
 						?>
@@ -191,12 +191,12 @@
 					<div class="add_feed adder">
 						<a href="#"></a>
 						<select class="custom_control" data-key="feeds">
-							<?
+							<?php
 								$feeds = $admin->getFeeds();
 								foreach ($feeds as $feed) {
 							?>
 							<option value="<?=$feed["id"]?>"><?=$feed["name"]?></option>
-							<?
+							<?php
 								}
 							?>
 						</select>
@@ -205,7 +205,7 @@
 				<article class="package_column package_column_last">
 					<strong>Field Types</strong>
 					<ul>
-						<?
+						<?php
 							foreach ((array)$field_types as $fid) {
 								$field_type = $admin->getFieldType($fid);
 								if ($field_type) {
@@ -215,7 +215,7 @@
 							<a href="#" class="icon_small icon_small_delete"></a>
 							<span><?=$field_type["name"]?></span>
 						</li>
-						<?
+						<?php
 								}
 							}
 						?>
@@ -223,12 +223,12 @@
 					<div class="add_field_type adder">
 						<a  href="#"></a>
 						<select class="custom_control" data-key="field_types">
-							<?
+							<?php
 								$field_types = $admin->getFieldTypes();
 								foreach ($field_types as $type) {
 							?>
 							<option value="<?=$type["id"]?>"><?=$type["name"]?></option>
-							<?
+							<?php
 								}
 							?>
 						</select>

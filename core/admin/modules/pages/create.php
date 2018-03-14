@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	$access_level = $admin->getPageAccessLevel($_POST["parent"]);
 	
@@ -10,7 +10,7 @@
 		<p>You do not have access to create a child for this page.</p>
 	</section>
 </div>
-<?
+<?php
 		$admin->stop();
 	}
 

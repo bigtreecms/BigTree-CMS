@@ -1,4 +1,4 @@
-<?
+<?php
 	$regions = array(
 		"ORD" => "Chicago, IL (USA)",
 		"DFW" => "Dallas/Ft. Worth, TX (USA)",
@@ -16,7 +16,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/rackspace/update/" class="module">
-		<? $admin->drawCSRFToken() ?>
+		<?php $admin->drawCSRFToken() ?>
 		<section>
 			<fieldset>
 				<label>API Key</label>
@@ -29,9 +29,9 @@
 			<fieldset>
 				<label>Region <small>(choose the location closest to your server)</small></label>
 				<select name="region">
-					<? foreach ($regions as $r => $name) { ?>
-					<option value="<?=$r?>"<? if ($r == $region) { ?> selected="selected"<? } ?>><?=$name?></option>
-					<<? } ?>
+					<?php foreach ($regions as $r => $name) { ?>
+					<option value="<?=$r?>"<?php if ($r == $region) { ?> selected="selected"<?php } ?>><?=$name?></option>
+					<<?php } ?>
 				</select>
 			</fieldset>
 		</section>

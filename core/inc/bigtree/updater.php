@@ -6,9 +6,9 @@
 
 	class BigTreeUpdater {
 
-		var $Connection = false;
-		var $Extension = false;
-		var $Method = false;
+		public $Connection = false;
+		public $Extension = false;
+		public $Method = false;
 
 		/*
 			Constructor:
@@ -18,7 +18,7 @@
 				extension - If updating an extension, the extension id (defaults to false)
 		*/
 
-		function __construct($extension = false) {
+		public function __construct($extension = false) {
 			$this->Extension = $extension;
 
 			// See if local will work
@@ -48,7 +48,7 @@
 				true if the file isn't corrupt
 		*/
 
-		function checkZip() {
+		public function checkZip() {
 			include_once SERVER_ROOT."core/inc/lib/pclzip.php";
 			$zip = new PclZip(SERVER_ROOT."cache/update.zip");
 			$zip->listContent();
@@ -63,7 +63,7 @@
 				Removes update related files and directories.
 		*/
 
-		function cleanup() {
+		public function cleanup() {
 			if (file_exists(SERVER_ROOT."cache/update/")) {
 				BigTree::deleteDirectory(SERVER_ROOT."cache/update/");
 			}
@@ -78,7 +78,7 @@
 				true if successful
 		*/
 
-		function extract() {
+		public function extract() {
 			include_once SERVER_ROOT."core/inc/lib/pclzip.php";
 			$zip = new PclZip(SERVER_ROOT."cache/update.zip");
 
@@ -119,7 +119,7 @@
 				true if successful.
 		*/
 
-		function ftpLogin($user,$password) {
+		public function ftpLogin($user,$password) {
 			return $this->Connection->login($user,$password) ? true : false;
 		}
 
@@ -132,7 +132,7 @@
 				false if not successful.
 		*/
 
-		function getFTPRoot() {
+		public function getFTPRoot() {
 			// Try to determine the FTP root.
 			$ftp_root = false;
 			$saved_root = BigTreeCMS::getSetting("bigtree-internal-ftp-upgrade-root");
@@ -160,7 +160,7 @@
 				ftp_root - The FTP path to the root install directory for BigTree
 		*/
 
-		function installFTP($ftp_root) {
+		public function installFTP($ftp_root) {
 			$ftp_root = "/".trim($ftp_root,"/")."/";
 
 			// Create backups folder
@@ -207,7 +207,7 @@
 				Installs an update via local file replacement.
 		*/
 
-		function installLocal() {
+		public function installLocal() {
 			// Create backups folder
 			BigTree::makeDirectory(SERVER_ROOT."backups/");
 
@@ -258,7 +258,7 @@
 				A folder name or false if the root contains more than just a folder.
 		*/
 
-		static function zipRoot($zip) {
+		public static function zipRoot($zip) {
 			$contents = $zip->listContent();
 			$root_count = 0;
 			$root = false;

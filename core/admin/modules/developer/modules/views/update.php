@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	BigTree::globalizePOSTVars();
@@ -32,15 +32,15 @@
 			<span></span>
 			<h3>Update Failed</h3>
 		</div>
-		<? foreach ($errors as $error) { ?>
+		<?php foreach ($errors as $error) { ?>
 		<p><?=$error?></p>
-		<? } ?>
+		<?php } ?>
 	</section>
 	<footer>
 		<a href="javascript: history.back();" class="button white">Back</a>
 	</footer>
 </div>
-<?
+<?php
 	} else {
 		// Clean up actions
 		$clean_actions = array();

@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	BigTree::globalizePOSTVars();
@@ -14,4 +14,3 @@
 	} else {
 		BigTree::redirect(DEVELOPER_ROOT."modules/edit/".$action["module"]."/");
 	}
-?>

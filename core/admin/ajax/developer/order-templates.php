@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	parse_str($_POST["sort"],$data);
@@ -8,4 +8,3 @@
 		$id = $_POST["rel"][$id];
 		$admin->setTemplatePosition($id,$max - $pos);
 	}
-?>

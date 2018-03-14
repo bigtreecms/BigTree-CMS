@@ -14,7 +14,7 @@
 
 	if (isset($bigtree["config"]["sql_interface"]) && $bigtree["config"]["sql_interface"] == "mysqli") {
 
-		function bigtree_setup_sql_connection($read_write = "read") {
+		public function bigtree_setup_sql_connection($read_write = "read") {
 			global $bigtree;
 
 			if ($read_write == "read") {
@@ -59,7 +59,7 @@
 		*/
 
 		if (isset($bigtree["config"]["db_write"]) && $bigtree["config"]["db_write"]["host"]) {
-			function sqlquery($query,$connection = false,$type = "read") {
+			public function sqlquery($query,$connection = false,$type = "read") {
 				global $bigtree;
 
 				if ($bigtree["config"]["debug"]) {
@@ -93,7 +93,7 @@
 				return $q;
 			}
 		} else {
-			function sqlquery($query,$connection = false) {
+			public function sqlquery($query,$connection = false) {
 				global $bigtree;
 
 				if ($bigtree["config"]["debug"]) {
@@ -132,7 +132,7 @@
 				A row from the query in array format with key/value pairs.
 		*/
 
-		function sqlfetch($query) {
+		public function sqlfetch($query) {
 			global $bigtree;
 			// If the query is boolean, it's probably a "false" from a failed sql query.
 			if (is_bool($query)) {
@@ -156,7 +156,7 @@
 				Equivalent to mysqli_num_rows / mysql_num_rows.
 		*/
 
-		function sqlrows($result) {
+		public function sqlrows($result) {
 			return $result->num_rows;
 		}
 
@@ -165,7 +165,7 @@
 				Equivalent to mysqli_insert_id / mysql_insert_id.
 		*/
 
-		function sqlid() {
+		public function sqlid() {
 			global $bigtree;
 			if ($bigtree["mysql_write_connection"] !== "disconnected") {
 				return $bigtree["mysql_write_connection"]->insert_id;
@@ -179,7 +179,7 @@
 				Equivalent to mysqli_real_escape_string / mysql_real_escape_string
 		*/
 
-		function sqlescape($string) {
+		public function sqlescape($string) {
 			global $bigtree;
 			if ($bigtree["mysql_read_connection"] === "disconnected") {
 				$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
@@ -192,7 +192,7 @@
 
 	// These are the older MySQL extension versions
 	} else {
-		function bigtree_setup_sql_connection($read_write = "read") {
+		public function bigtree_setup_sql_connection($read_write = "read") {
 			global $bigtree;
 
 			if ($read_write == "read") {
@@ -220,7 +220,7 @@
 		}
 
 		if (isset($bigtree["config"]["db_write"]) && $bigtree["config"]["db_write"]["host"]) {
-			function sqlquery($query,$connection = false,$type = "read") {
+			public function sqlquery($query,$connection = false,$type = "read") {
 				global $bigtree;
 
 				if ($bigtree["config"]["debug"]) {
@@ -254,7 +254,7 @@
 				return $q;
 			}
 		} else {
-			function sqlquery($query,$connection = false) {
+			public function sqlquery($query,$connection = false) {
 				global $bigtree;
 
 				if ($bigtree["config"]["debug"]) {
@@ -281,7 +281,7 @@
 			}
 		}
 
-		function sqlfetch($query) {
+		public function sqlfetch($query) {
 			global $bigtree;
 
 			// If the query is boolean, it's probably a "false" from a failed sql query.
@@ -301,11 +301,11 @@
 			}
 		}
 
-		function sqlrows($result) {
+		public function sqlrows($result) {
 			return mysql_num_rows($result);
 		}
 
-		function sqlid() {
+		public function sqlid() {
 			global $bigtree;
 
 			if ($bigtree["mysql_write_connection"] !== "disconnected") {
@@ -315,7 +315,7 @@
 			}
 		}
 
-		function sqlescape($string) {
+		public function sqlescape($string) {
 			global $bigtree;
 			if ($bigtree["mysql_read_connection"] === "disconnected") {
 				$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();

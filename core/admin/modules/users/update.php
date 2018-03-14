@@ -1,4 +1,4 @@
-<?
+<?php
 	$id = intval($_POST["id"]);
 
 	$admin->verifyCSRFToken();
@@ -8,7 +8,7 @@
 		<p>To update a user, please access the <a href="<?=ADMIN_ROOT?>users/edit/<?=$id?>/">Edit User</a> page.</p>
 	</section>
 </div>
-<?
+<?php
 	// Check security policy
 	if ($_POST["password"] && !$admin->validatePassword($_POST["password"])) {
 		$_SESSION["bigtree_admin"]["update_user"] = $_POST;

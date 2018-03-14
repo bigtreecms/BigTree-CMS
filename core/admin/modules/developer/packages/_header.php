@@ -1,4 +1,4 @@
-<?
+<?php
 	BigTree::globalizeArray($_SESSION["bigtree_admin"]["developer"]["package"],"strip_tags","htmlspecialchars");
 	$available_licenses = array(
 		"Closed Source" => array(
@@ -17,4 +17,3 @@
 			"MPL 2.0" => "http://opensource.org/licenses/MPL-2.0",
 		)
 	);
-?>

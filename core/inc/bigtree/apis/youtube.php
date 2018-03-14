@@ -8,12 +8,12 @@
 	require_once SERVER_ROOT."core/inc/bigtree/apis/_google.result-set.php";
 	class BigTreeYouTubeAPI extends BigTreeOAuthAPIBase {
 		
-		var $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
-		var $EndpointURL = "https://www.googleapis.com/youtube/v3/";
-		var $OAuthVersion = "2.0";
-		var $RequestType = "header";
-		var $Scope = "https://www.googleapis.com/auth/youtube";
-		var $TokenURL = "https://accounts.google.com/o/oauth2/token";
+		public $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
+		public $EndpointURL = "https://www.googleapis.com/youtube/v3/";
+		public $OAuthVersion = "2.0";
+		public $RequestType = "header";
+		public $Scope = "https://www.googleapis.com/auth/youtube";
+		public $TokenURL = "https://accounts.google.com/o/oauth2/token";
 		
 		/*
 			Constructor:
@@ -23,7 +23,7 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 
-		function __construct($cache = true) {
+		public function __construct($cache = true) {
 			parent::__construct("bigtree-internal-youtube-api","YouTube API","org.bigtreecms.api.youtube",$cache);
 
 			// Set OAuth Return URL
@@ -41,7 +41,7 @@
 				A BigTreeYouTubeActivity object on success.
 		*/
 
-		function createActivity($bulletin) {
+		public function createActivity($bulletin) {
 			$object = json_encode(array("snippet" => array("description" => $bulletin)));
 			$response = $this->call("activities?part=snippet",$object,"POST");
 			if (!$response->id) {
@@ -64,7 +64,7 @@
 				A BigTreeYouTubePlaylist object on success.
 		*/
 
-		function createPlaylist($title,$description = "",$privacy = "public",$tags = array()) {
+		public function createPlaylist($title,$description = "",$privacy = "public",$tags = array()) {
 			$object = json_encode(array(
 				"snippet" => array(
 					"title" => $title,
@@ -100,7 +100,7 @@
 				A BigTreeYouTubePlaylistItem object on success.
 		*/
 
-		function createPlaylistItem($playlist,$video,$position = false,$note = false,$start_at = false,$end_at = false) {
+		public function createPlaylistItem($playlist,$video,$position = false,$note = false,$start_at = false,$end_at = false) {
 			$object = array(
 				"snippet" => array(
 					"playlistId" => $playlist,
@@ -135,7 +135,7 @@
 				id - The ID of the playlist to delete.
 		*/
 
-		function deletePlaylist($id) {
+		public function deletePlaylist($id) {
 			$this->call("playlists?id=$id",array(),"DELETE");
 		}
 
@@ -147,7 +147,7 @@
 				id - The ID of the playlist item to delete.
 		*/
 
-		function deletePlaylistItem($id) {
+		public function deletePlaylistItem($id) {
 			$this->call("playlistItems?id=$id",array(),"DELETE");
 		}
 
@@ -159,7 +159,7 @@
 				id - The ID of the video to delete.
 		*/
 
-		function deleteVideo($id) {
+		public function deleteVideo($id) {
 			$this->call("videos?id=$id",array(),"DELETE");
 		}
 		
@@ -176,7 +176,7 @@
 				A BigTreeGoogleResultSet of BigTreeYouTubeActivity objects.
 		*/
 
-		function getActivities($channel = "home",$count = 10,$params = array()) {
+		public function getActivities($channel = "home",$count = 10,$params = array()) {
 			$params = array_merge(array("part" => "id,snippet,contentDetails","maxResults" => $count),$params);
 			if ($channel == "home") {
 				$params["home"] = "true";
@@ -211,7 +211,7 @@
 
 		*/
 
-		function getCategories($region = "US") {
+		public function getCategories($region = "US") {
 			$response = $this->call("videoCategories",array("part" => "id,snippet","regionCode" => $region));
 			$categories = array();
 			foreach ($response->items as $item) {
@@ -233,7 +233,7 @@
 				A BigTreeYouTubeChannel object.
 		*/
 
-		function getChannel($username = false,$id = false) {
+		public function getChannel($username = false,$id = false) {
 			$params = array("part" => "id,snippet,statistics");
 			if ($id) {
 				$params["id"] = $id;
@@ -263,7 +263,7 @@
 				A BigTreeGoogleResultSet of BigTreeYouTubeVideo objects.
 		*/
 
-		function getChannelVideos($channel,$count = 10,$order = "date",$params = array()) {
+		public function getChannelVideos($channel,$count = 10,$order = "date",$params = array()) {
 			$response = $this->call("search",array_merge(array(
 				"part" => "snippet",
 				"type" => "video",
@@ -293,7 +293,7 @@
 				A BigTreeYouTubePlaylist object.
 		*/
 
-		function getPlaylist($id) {
+		public function getPlaylist($id) {
 			$response = $this->call("playlists",array("part" => "id,snippet,status","id" => $id));
 			if (!isset($response->items)) {
 				return false;
@@ -314,7 +314,7 @@
 				A BigTreeGoogleResultSet of BigTreeYouTubePlaylist objects.
 		*/
 
-		function getPlaylists($channel = false,$count = 50,$params = array()) {
+		public function getPlaylists($channel = false,$count = 50,$params = array()) {
 			if ($channel) {
 				$params["channelId"] = $channel;
 			} else {
@@ -347,7 +347,7 @@
 				A BigTreeGoogleResultSet of BigTreeYouTubePlaylistItem objects.
 		*/
 
-		function getPlaylistItems($playlist,$count = 50,$params = array()) {
+		public function getPlaylistItems($playlist,$count = 50,$params = array()) {
 			$response = $this->call("playlistItems",array_merge(array("part" => "id,snippet,contentDetails,status","playlistId" => $playlist,"maxResults" => $count),$params));
 			if (!isset($response->items)) {
 				return false;
@@ -372,7 +372,7 @@
 				A BigTreeGoogleResultSet of channel IDs.
 		*/
 
-		function getSubscribers($count = 50,$order = "relevance",$params = array()) {
+		public function getSubscribers($count = 50,$order = "relevance",$params = array()) {
 			$response = $this->call("subscriptions",array_merge(array("part" => "id,snippet,contentDetails","mySubscribers" => "true","maxResults" => $count,"order" => $order),$params));
 			if (!isset($response->items)) {
 				return false;
@@ -397,7 +397,7 @@
 				A BigTreeGoogleResultSet of BigTreeYouTubeSubscription objects.
 		*/
 
-		function getSubscriptions($count = 50,$order = "relevance",$params = array()) {
+		public function getSubscriptions($count = 50,$order = "relevance",$params = array()) {
 			$response = $this->call("subscriptions",array_merge(array("part" => "id,snippet,contentDetails","mine" => "true","maxResults" => $count,"order" => $order),$params));
 			if (!isset($response->items)) {
 				return false;
@@ -421,7 +421,7 @@
 				A BigTreeYouTubeVideo object.
 		*/
 
-		function getVideo($id,$params = array()) {
+		public function getVideo($id,$params = array()) {
 			$response = $this->call("videos",array_merge(array(
 				"part" => "id,snippet,contentDetails,player,statistics,status,topicDetails,recordingDetails",
 				"id" => $id
@@ -444,7 +444,7 @@
 				true on success.
 		*/
 
-		function rateVideo($id,$rating) {
+		public function rateVideo($id,$rating) {
 			$response = $this->call("videos/rate?id=$id&rating=$rating",array(),"POST",array("Content-length: 0"));
 			if ($response) {
 				$this->Errors[] = array("reason" => $response[0]->reason, "message" => $response[0]->message);
@@ -466,7 +466,7 @@
 				params - Additional parameters to pass to the search API call.
 		*/
 
-		function searchChannels($query,$count = 10,$order = "relevance",$params = array()) {
+		public function searchChannels($query,$count = 10,$order = "relevance",$params = array()) {
 			$response = $this->call("search",array_merge(array(
 				"part" => "snippet",
 				"type" => "channel",
@@ -496,7 +496,7 @@
 				params - Additional parameters to pass to the search API call.
 		*/
 
-		function searchVideos($query,$count = 10,$order = "relevance",$params = array()) {
+		public function searchVideos($query,$count = 10,$order = "relevance",$params = array()) {
 			$response = $this->call("search",array_merge(array(
 				"part" => "snippet",
 				"type" => "video",
@@ -523,7 +523,7 @@
 				channel - Channel ID to subscribe to.
 		*/
 
-		function subscribe($channel) {
+		public function subscribe($channel) {
 			$this->call("subscriptions?part=snippet",json_encode(array("snippet" => array("resourceId" => array("channelId" => $channel)))),"POST");
 		}
 
@@ -532,7 +532,7 @@
 				Joins a time object made by timeSplit into one readable by the YouTube API.
 		*/
 
-		function timeJoin($time) {
+		public function timeJoin($time) {
 			$t = "PT";
 			if ($time->Hours) {
 				$t .= $time->Hours."H";
@@ -548,7 +548,7 @@
 				Splits a YouTube video time length into an object.
 		*/
 
-		function timeSplit($time) {
+		public function timeSplit($time) {
 			$t = new stdClass;
 			$t->Hours = 0;
 			$t->Minutes = 0;
@@ -582,7 +582,7 @@
 				channel - Channel ID to unsubscribe from.
 		*/
 
-		function unsubscribe($channel) {
+		public function unsubscribe($channel) {
 			// Get subscription ID
 			$response = $this->call("subscriptions",array("part" => "id","mine" => "true","forChannelId" => $channel));
 			if (!isset($response->items)) {
@@ -606,7 +606,7 @@
 				true on success.
 		*/
 
-		function updatePlaylist($id,$title,$description = "",$privacy = "public",$tags = array()) {
+		public function updatePlaylist($id,$title,$description = "",$privacy = "public",$tags = array()) {
 			$object = json_encode(array(
 				"id" => $id,
 				"snippet" => array(
@@ -644,7 +644,7 @@
 				A BigTreeYouTubePlaylistItem object on success.
 		*/
 
-		function updatePlaylistItem($item,$playlist,$video,$position = false,$note = false,$start_at = false,$end_at = false) {
+		public function updatePlaylistItem($item,$playlist,$video,$position = false,$note = false,$start_at = false,$end_at = false) {
 			$object = array(
 				"id" => $item,
 				"snippet" => array(
@@ -681,7 +681,7 @@
 	class BigTreeYouTubeActivity {
 		protected $API;
 
-		function __construct($activity,&$api) {
+		public function __construct($activity,&$api) {
 			$type = $activity->snippet->type;
 
 			$this->API = $api;
@@ -757,7 +757,7 @@
 	class BigTreeYouTubeChannel {
 		protected $API;
 
-		function __construct($channel,&$api) {
+		public function __construct($channel,&$api) {
 			$this->API = $api;
 			isset($channel->statistics->commentCount) ? $this->CommentCount = $channel->statistics->commentCount : false;
 			isset($channel->snippet->description) ? $this->Description = $channel->snippet->description : false;
@@ -788,7 +788,7 @@
 				A BigTreeGoogleResultSet of BigTreeYouTubeVideo objects.
 		*/
 
-		function getVideos($count = 10,$order = "date") {
+		public function getVideos($count = 10,$order = "date") {
 			return $this->API->getChannelVideos($this->ID,$order,$count);
 		}
 
@@ -797,7 +797,7 @@
 				Subscribes the authenticated user to the channel.
 		*/
 
-		function subscribe() {
+		public function subscribe() {
 			return $this->API->subscribe($this->ID);
 		}
 
@@ -806,7 +806,7 @@
 				Unsubscribes the authenticated user from the channel.
 		*/
 
-		function unsubscribe() {
+		public function unsubscribe() {
 			return $this->API->unsubscribe($this->ID);
 		}
 	}
@@ -819,7 +819,7 @@
 	class BigTreeYouTubePlaylist {
 		protected $API;
 
-		function __construct($playlist,&$api) {
+		public function __construct($playlist,&$api) {
 			$this->API = $api;
 			isset($playlist->snippet->channelId) ? $this->ChannelID = $playlist->snippet->channelId : false;
 			isset($playlist->snippet->channelTitle) ? $this->ChannelTitle = $playlist->snippet->channelTitle : false;
@@ -847,7 +847,7 @@
 				true if successful.
 		*/
 
-		function save() {
+		public function save() {
 			return $this->API->updatePlaylist($this->ID,$this->Title,$this->Description,$this->Privacy,$this->Tags);
 		}
 
@@ -857,7 +857,7 @@
 				Playlist must be owned by the authenticated user.
 		*/
 
-		function delete() {
+		public function delete() {
 			return $this->API->deletePlaylist($this->ID);
 		}
 	}
@@ -870,7 +870,7 @@
 	class BigTreeYouTubePlaylistItem {
 		protected $API;
 
-		function __construct($item,&$api) {
+		public function __construct($item,&$api) {
 			$this->API = $api;
 			isset($item->snippet->channelId) ? $this->ChannelID = $item->snippet->channelId : false;
 			isset($item->snippet->channelTitle) ? $this->ChannelTitle = $item->snippet->channelTitle : false;
@@ -900,7 +900,7 @@
 				Authenticated user must be the owner of the playlist.
 		*/
 
-		function delete() {
+		public function delete() {
 			return $this->API->deletePlaylistItem($this->ID);
 		}
 
@@ -910,7 +910,7 @@
 				Authenticated user must be the owner of the playlist.
 		*/
 
-		function save() {
+		public function save() {
 			return $this->API->updatePlaylistItem($this->ID,$this->PlaylistID,$this->VideoID,$this->Position,$this->Note,$this->API->timeJoin($this->VideoStartAt),$this->API->timeJoin($this->VideoEndAt));
 		}
 
@@ -922,7 +922,7 @@
 				A BigTreeYouTubeVideo object.
 		*/
 
-		function video() {
+		public function video() {
 			return $this->API->getVideo($this->VideoID);
 		}
 	}
@@ -935,7 +935,7 @@
 	class BigTreeYouTubeSubscription {
 		protected $API;
 
-		function __construct($subscription,&$api) {
+		public function __construct($subscription,&$api) {
 			$this->API = $api;
 
 			$channel = new stdClass;
@@ -955,7 +955,7 @@
 				Removes this subscription from the authenticated user's subscribed channels.
 		*/
 
-		function delete() {
+		public function delete() {
 			$this->API->call("subscriptions?id=".$this->ID,false,"DELETE");
 		}
 	}
@@ -968,7 +968,7 @@
 	class BigTreeYouTubeVideo {
 		protected $API;
 
-		function __construct($video,&$api) {
+		public function __construct($video,&$api) {
 			$this->API = $api;
 			isset($video->contentDetails->caption) ? $this->Captioned = $video->contentDetails->caption : false;
 			isset($video->snippet->categoryId) ? $this->CategoryID = $video->snippet->categoryId : false;
@@ -1021,7 +1021,7 @@
 				true on success.
 		*/
 
-		function delete() {
+		public function delete() {
 			return $this->API->deleteVideo($this->ID);
 		}
 
@@ -1034,7 +1034,7 @@
 				A new BigTreeYouTubeVideo object with more details.
 		*/
 
-		function getDetails() {
+		public function getDetails() {
 			return $this->API->getVideo($this->ID);
 		}
 
@@ -1046,7 +1046,7 @@
 				rating - "like", "dislike", or "none" (for clearing an existing rating)
 		*/
 
-		function rate($rating) {
+		public function rate($rating) {
 			return $this->API->rateVideo($this->ID,$rating);
 		}
 
@@ -1059,7 +1059,7 @@
 				true on success.
 		*/
 
-		function save() {
+		public function save() {
 			$object = json_encode(array(
 				"id" => $this->ID,
 				"snippet" => array(

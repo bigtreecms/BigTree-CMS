@@ -1,4 +1,4 @@
-<?
+<?php
 	$groups = $admin->getModuleGroups();
 	foreach ($groups as &$group) {
 		$group["modules"] = $admin->getModulesByGroup($group["id"]);
@@ -18,7 +18,7 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="group_<?=$g["id"]?>">
-		<? foreach ($g["modules"] as $item) { ?>
+		<?php foreach ($g["modules"] as $item) { ?>
 		<li id="row_<?=$item["id"]?>">
 			<section class="developer_templates_name">
 				<span class="icon_sort"></span>
@@ -28,10 +28,10 @@
 				<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$item["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>modules/delete/?id=<?=$item["id"]?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>modules/delete/?id=<?=$item["id"]?><?php $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
 			</section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
 </div>
 
@@ -40,7 +40,7 @@
 		$.secureAjax("<?=ADMIN_ROOT?>ajax/developer/order-modules/", { type: "POST", data: { sort: $("#group_<?=$g["id"]?>").sortable("serialize") } });
 	}});
 </script>
-<?
+<?php
 		}
 	}
 	
@@ -55,7 +55,7 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="group_0">
-		<? foreach ($ungrouped_modules as $item) { ?>
+		<?php foreach ($ungrouped_modules as $item) { ?>
 		<li id="row_<?=$item["id"]?>">
 			<section class="developer_templates_name">
 				<span class="icon_sort"></span>
@@ -65,13 +65,13 @@
 				<a href="<?=DEVELOPER_ROOT?>modules/edit/<?=$item["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>modules/delete/?id=<?=$item["id"]?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>modules/delete/?id=<?=$item["id"]?><?php $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
 			</section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
 </div>
-<?
+<?php
 	}
 ?>
 

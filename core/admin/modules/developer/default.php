@@ -1,4 +1,4 @@
-<?
+<?php
 	// Check whether our database is running the latest revision of BigTree or not.
 	$current_revision = $cms->getSetting("bigtree-internal-revision");
 	if ($current_revision < BIGTREE_REVISION && $admin->Level > 1) {
@@ -28,15 +28,15 @@
 <div class="container">
 	<summary><h2>Update Available</h2></summary>
 	<section>
-		<p>You are currently running BigTree <?=BIGTREE_VERSION?>. The following update<? if (count($updates) > 1) { ?>s are<? } else { ?> is<? } ?> available:</p>
+		<p>You are currently running BigTree <?=BIGTREE_VERSION?>. The following update<?php if (count($updates) > 1) { ?>s are<?php } else { ?> is<?php } ?> available:</p>
 		<ul>
-			<?
+			<?php
 				foreach ($updates as $type => $update) {
 					if (!$_COOKIE["bigtree_admin"]["ignored_update"][$update["version"]]) {
 			?>
 			<li>
 				<strong><?=$update["version"]?></strong> &mdash; Released <?=date("F j, Y",strtotime($update["release_date"]))?> &mdash; 
-				<?
+				<?php
 					if ($type == "revision") {
 						echo "This is a bugfix release and is recommended for all users.";
 					} elseif ($type == "minor") {
@@ -46,27 +46,27 @@
 					}
 				?>
 			</li>
-			<?
+			<?php
 					}
 				}
 			?>
 		</ul>
 	</section>
 	<footer>
-		<?
+		<?php
 			foreach ($updates as $type => $update) {
 				if ($type != "major" && !$_COOKIE["bigtree_admin"]["ignored_update"][$update["version"]]) {
 		?>
-		<a class="button<? if ($type == "revision") { ?> blue<? } ?>" href="<?=DEVELOPER_ROOT?>upgrade/init/?type=<?=$type?>">Upgrade To <?=$update["version"]?></a>
-		<?
+		<a class="button<?php if ($type == "revision") { ?> blue<?php } ?>" href="<?=DEVELOPER_ROOT?>upgrade/init/?type=<?=$type?>">Upgrade To <?=$update["version"]?></a>
+		<?php
 				}
 			}
 		?>
 		<a class="button" href="<?=DEVELOPER_ROOT?>upgrade/remind/">Remind Me In 1 Week</a>
-		<a class="button red" href="<?=DEVELOPER_ROOT?>upgrade/ignore/?versions=<?=urlencode(json_encode($ignorable))?><? $admin->drawCSRFTokenGET(); ?>">Ignore These Updates</a>
+		<a class="button red" href="<?=DEVELOPER_ROOT?>upgrade/ignore/?versions=<?=urlencode(json_encode($ignorable))?><?php $admin->drawCSRFTokenGET(); ?>">Ignore These Updates</a>
 	</footer>
 </div>
-<?
+<?php
 	} else {
 ?>
 <div class="table">
@@ -163,6 +163,6 @@
 		</a>
 	</section>
 </div>
-<?
+<?php
 	}
 ?>

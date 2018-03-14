@@ -7,11 +7,11 @@
 	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
 	class BigTreeSalesforceAPI extends BigTreeOAuthAPIBase {
 
-		var $AuthorizeURL = "https://login.salesforce.com/services/oauth2/authorize";
-		var $EndpointURL = "";
-		var $OAuthVersion = "2.0";
-		var $RequestType = "header";
-		var $TokenURL = "https://login.salesforce.com/services/oauth2/token";
+		public $AuthorizeURL = "https://login.salesforce.com/services/oauth2/authorize";
+		public $EndpointURL = "";
+		public $OAuthVersion = "2.0";
+		public $RequestType = "header";
+		public $TokenURL = "https://login.salesforce.com/services/oauth2/token";
 
 		/*
 			Constructor:
@@ -21,7 +21,7 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 
-		function __construct($cache = true) {
+		public function __construct($cache = true) {
 			parent::__construct("bigtree-internal-salesforce-api","Salesforce API","org.bigtreecms.api.salesforce",$cache);
 
 			// Set OAuth Return URL
@@ -62,7 +62,7 @@
 				A BigTreeSalesforceObject object.
 		*/
 
-		function getObject($name) {
+		public function getObject($name) {
 			$response = $this->call("sobjects/$name/");
 			if (!isset($response->objectDescribe)) {
 				return false;
@@ -78,7 +78,7 @@
 				An array of BigTreeSalesforceObject objects.
 		*/
 
-		function getObjects() {
+		public function getObjects() {
 			$response = $this->call("sobjects/");
 			if (!isset($response->sobjects)) {
 				return false;
@@ -109,7 +109,7 @@
 				api - Reference to BigTreeSalesforceAPI class instance
 		*/
 
-		function __construct($object,&$api) {
+		public function __construct($object,&$api) {
 			$this->Activateable = $object->activateable;
 			$this->API = $api;
 			$this->Creatable = $object->createable;
@@ -172,7 +172,7 @@
 				A BigTreeSalesforceRecord object if successful.
 		*/
 
-		function add($keys,$vals) {
+		public function add($keys,$vals) {
 			$record = array();
 			foreach ($keys as $key) {
 				$record[$key] = current($vals);
@@ -206,7 +206,7 @@
 				true if successful.
 		*/
 
-		function delete($id) {
+		public function delete($id) {
 			$response = $this->API->callUncached("sobjects/".$this->Name."/$id",false,"DELETE");
 			// If we have a response, there's an error.
 			if ($response) {
@@ -227,7 +227,7 @@
 				A BigTreeSalesforceRecord object
 		*/
 
-		function get($id) {
+		public function get($id) {
 			$response = $this->API->call("sobjects/".$this->Name."/$id");
 			if (!$response) {
 				return false;
@@ -246,7 +246,7 @@
 				An array of BigTreeSalesforceRecord objects.
 		*/
 
-		function getAll($order = "Id ASC",$full_response = false) {
+		public function getAll($order = "Id ASC",$full_response = false) {
 			return $this->query("SELECT ".$this->QueryFieldNames." FROM ".$this->Name." ORDER BY $order",$full_response);
 		}
 
@@ -264,7 +264,7 @@
 				An array of BigTreeSalesforceRecord objects.
 		*/
 
-		function getMatching($fields,$values,$order = "Id ASC",$limit = false,$full_response = false) {
+		public function getMatching($fields,$values,$order = "Id ASC",$limit = false,$full_response = false) {
 			if (!is_array($fields)) {
 				$where = "$fields = '".sqlescape($values)."'";
 			} else {
@@ -301,7 +301,7 @@
 				An array of BigTreeSalesforceRecord objects.
 		*/
 
-		function getPage($page = 1,$order = "id ASC",$perpage = 15,$where = false,$full_response = false) {
+		public function getPage($page = 1,$order = "id ASC",$perpage = 15,$where = false,$full_response = false) {
 			// Don't try for page 0
 			if ($page < 1) {
 				$page = 1;
@@ -326,7 +326,7 @@
 				An array of BigTreeSalesforceRecord objects.
 		*/
 
-		function query($query,$full_response = false) {
+		public function query($query,$full_response = false) {
 
 			if (strpos($query, "query/") > -1) {
 				$response = $this->API->call($query);
@@ -358,7 +358,7 @@
 				An array of BigTreeSalesforceRecord objects.
 		*/
 
-		function search($query,$order = "Id ASC",$limit = false,$full_response = false) {
+		public function search($query,$order = "Id ASC",$limit = false,$full_response = false) {
 			$where = array();
 			$searchable_types = array("string","picklist","textarea","phone","url");
 			foreach ($this->Fields as $field) {
@@ -386,7 +386,7 @@
 				values - Either a signle column value or an array of column values (if you pass an array you must pass an array for fields as well)
 		*/
 
-		function update($id,$fields,$values) {
+		public function update($id,$fields,$values) {
 			$record = array();
 			if (is_array($fields)) {
 				foreach ($fields as $key) {
@@ -423,7 +423,7 @@
 				api - Reference to BigTreeSalesforceAPI class instance
 		*/
 
-		function __construct($record,&$api) {
+		public function __construct($record,&$api) {
 			$this->API = $api;
 			// Save this ahead of time to keep things alphabetized.
 			$this->Columns = $record;
@@ -457,7 +457,7 @@
 				true if successful.
 		*/
 
-		function delete() {
+		public function delete() {
 			$response = $this->API->callUncached("sobjects/".$this->Type."/".$this->ID,false,"DELETE");
 			// If we have a response, there's an error.
 			if ($response) {
@@ -472,7 +472,7 @@
 				Saves changes made to the Columns property of this object back to Salesforce.
 		*/
 
-		function save() {
+		public function save() {
 			$response = $this->API->callUncached("sobjects/".$this->Type."/".$this->ID,json_encode($this->Columns),"PATCH");
 			// If we have a response, there's an error.
 			if ($response) {
@@ -491,7 +491,7 @@
 				values - Either a signle column value or an array of column values (if you pass an array you must pass an array for fields as well)
 		*/
 
-		function update($fields,$values) {
+		public function update($fields,$values) {
 			$record = array();
 			if (is_array($fields)) {
 				foreach ($fields as $key) {

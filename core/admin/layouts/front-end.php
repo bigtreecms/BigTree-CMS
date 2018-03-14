@@ -6,13 +6,13 @@
 <!--[if (gt IE 9)|!(IE)]><!--> <html lang="en"> <!--<![endif]-->
 	<head>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" type="text/css" media="screen" charset="utf-8" />
-		<?
+		<?php
 			// Configuration based CSS
 			if (isset($bigtree["config"]["admin_css"]) && is_array($bigtree["config"]["admin_css"])) {
 				foreach ($bigtree["config"]["admin_css"] as $style) {
 		?>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/<?=$style?>" type="text/css" media="screen" />
-		<?
+		<?php
 				}
 			}
 
@@ -34,7 +34,7 @@
 					}
 		?>
 		<link rel="stylesheet" href="<?=$include_path?>" type="text/css" media="screen" />
-		<?
+		<?php
 				}
 			}
 		?>
@@ -47,13 +47,13 @@
 		<script src="<?=ADMIN_ROOT?>js/pages.js"></script>
 		<script>BigTree.dateFormat = "<?=BigTree::phpDateTojQuery($bigtree["config"]["date_format"])?>";</script>
 		<script src="<?=ADMIN_ROOT?>js/<?=isset($bigtree["config"]["html_editor"]) ? $bigtree["config"]["html_editor"]["src"] : "tinymce3/tiny_mce.js"?>"></script>
-		<?
+		<?php
 			// Configuration based JS
 			if (isset($bigtree["config"]["admin_js"]) && is_array($bigtree["config"]["admin_js"])) {
 				foreach ($bigtree["config"]["admin_js"] as $script) {
 		?>
 		<script src="<?=ADMIN_ROOT?>js/<?=$script?>"></script>
-		<?
+		<?php
 				}
 			}
 
@@ -76,7 +76,7 @@
 
 		?>
 		<script src="<?=$include_path?>"></script>
-		<?
+		<?php
 				}
 			}
 		?>

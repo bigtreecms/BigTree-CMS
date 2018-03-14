@@ -1,4 +1,4 @@
-<?
+<?php
 	// See if we have cloud support
 	$cloud_options = array();
 
@@ -88,37 +88,37 @@
 ?>
 <div class="directory"><?=htmlspecialchars(str_replace(SERVER_ROOT,"/",$directory))?></div>
 <div class="navigation_pane">
-	<? if (count($cloud_options)) { ?>
+	<?php if (count($cloud_options)) { ?>
 	<ul class="cloud_options">
-		<? foreach ($cloud_options as $option) { ?>
-		<li><a data-type="location" href="<?=$option["class"]?>"<? if ($location == $option["class"]) { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=$option["class"]?>"></span><?=$option["title"]?></a></li>
-		<? } ?>
+		<?php foreach ($cloud_options as $option) { ?>
+		<li><a data-type="location" href="<?=$option["class"]?>"<?php if ($location == $option["class"]) { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=$option["class"]?>"></span><?=$option["title"]?></a></li>
+		<?php } ?>
 	</ul>
-	<? } ?>
+	<?php } ?>
 	<ul style="height: <?=$bucket_pane_height?>px;">
-		<?
+		<?php
 			foreach ($subdirectories as $d) {
 		?>
 		<li><a href="<?=$d?>"><span class="icon_small icon_small_folder"></span><?=$d?></a></li>
-		<?
+		<?php
 			}
 			foreach ($containers as $container) {
 		?>
 		<li><a data-type="container" href="<?=$container["name"]?>" title="<?=$container["name"]?>"><span class="icon_small icon_small_export"></span><?=$container["name"]?></a></li>
-		<?
+		<?php
 			}
 		?>
 	</ul>
 </div>
 <div class="browser_pane">
 	<ul>
-		<?
+		<?php
 			foreach ($files as $file) {
 				$parts = BigTree::pathInfo($file);
 				$ext = strtolower($parts["extension"]);
 		?>
-		<li class="file<? if ($file == $_POST["file"]) { ?> selected<? } ?>"><span class="icon_small icon_small_file_default icon_small_file_<?=$ext?>"></span><p><?=$file?></p></li>
-		<?
+		<li class="file<?php if ($file == $_POST["file"]) { ?> selected<?php } ?>"><span class="icon_small icon_small_file_default icon_small_file_<?=$ext?>"></span><p><?=$file?></p></li>
+		<?php
 			}
 		?>
 	</ul>

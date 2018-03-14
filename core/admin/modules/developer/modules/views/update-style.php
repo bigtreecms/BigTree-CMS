@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	$view = BigTreeAutoModule::getView(end($bigtree["path"]));
@@ -16,4 +16,3 @@
 
 	$admin->growl("Developer","Updated View Styles");
 	BigTree::redirect(DEVELOPER_ROOT."modules/edit/".$action["module"]."/");
-?>

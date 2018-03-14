@@ -1,4 +1,4 @@
-<?
+<?php
 	$extensions = $admin->getExtensions();
 
 	// Get version info on our installed extensions
@@ -15,7 +15,7 @@
 		<span style="width: 80px;">Actions</span>
 	</header>
 	<ul>
-		<?
+		<?php
 			foreach ($extensions as $extension) {
 				$new = false;
 
@@ -31,28 +31,28 @@
 		<li>
 			<section class="developer_extensions_name">
 				<?=$extension["name"]?> v<?=$extension["version"]?>
-				<? if ($new) { ?>
+				<?php if ($new) { ?>
 				<small>(version <?=$info["version"]?> available, compatible with BigTree <?=$info["compatibility"]?>)</small>
-				<? } ?>
+				<?php } ?>
 			</section>
 			<section class="developer_extensions_action">
-				<? if ($new) { ?>
+				<?php if ($new) { ?>
 				<a class="button red" href="<?=DEVELOPER_ROOT?>extensions/ignore/?id=<?=$extension["id"]?>">Ignore</a>
-				<? } ?>	
+				<?php } ?>	
 			</section>
 			<section class="developer_extensions_action">
-				<? if ($new) { ?>
+				<?php if ($new) { ?>
 				<a class="button blue" href="<?=DEVELOPER_ROOT?>extensions/upgrade/?id=<?=$extension["id"]?>">Upgrade</a>
-				<? } ?>	
+				<?php } ?>	
 			</section>
 			<section class="view_action">
 				<a href="<?=DEVELOPER_ROOT?>extensions/edit/<?=$extension["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>extensions/delete/?id=<?=$extension["id"]?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>extensions/delete/?id=<?=$extension["id"]?><?php $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
 			</section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
 </div>
 <script>

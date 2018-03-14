@@ -1,4 +1,4 @@
-<?
+<?php
 	$api = new BigTreeYouTubeAPI;
 	$name = "YouTube";
 	$route = "youtube";
@@ -19,4 +19,3 @@
 		$api->Settings["user_name"] = $info->Title;
 		$api->Settings["user_image"] = $info->Images->Default;
 	}
-?>

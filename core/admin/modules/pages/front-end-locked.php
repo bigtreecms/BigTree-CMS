@@ -1,4 +1,4 @@
-<?
+<?php
 	$user = $admin->getUser($f["user"]);
 ?>
 <h2><strong>Warning:</strong> This page is currently locked.</h2>

@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	$admin->requireLevel(1);
 	
@@ -6,4 +6,3 @@
 	$admin->deleteResourceFolder($_POST["folder"]);
 	
 	echo $folder["parent"] ? $folder["parent"] : 0;
-?>

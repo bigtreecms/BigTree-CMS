@@ -8,15 +8,15 @@
 	require_once SERVER_ROOT."core/inc/bigtree/apis/_google.result-set.php";
 	class BigTreeGoogleAnalyticsAPI extends BigTreeOAuthAPIBase {
 		
-		var $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
-		var $ClientID = "423602902679-h7bva04vid397g496l07csispa6kkth3.apps.googleusercontent.com";
-		var $ClientSecret = "lCP25m_7s7o5ua3Z2JY67mRe";
-		var $EndpointURL = "https://www.googleapis.com/analytics/v3/";
-		var $LastDataTotals = false;
-		var $OAuthVersion = "2.0";
-		var $RequestType = "header";
-		var $Scope = "https://www.googleapis.com/auth/analytics.readonly";
-		var $TokenURL = "https://accounts.google.com/o/oauth2/token";
+		public $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
+		public $ClientID = "423602902679-h7bva04vid397g496l07csispa6kkth3.apps.googleusercontent.com";
+		public $ClientSecret = "lCP25m_7s7o5ua3Z2JY67mRe";
+		public $EndpointURL = "https://www.googleapis.com/analytics/v3/";
+		public $LastDataTotals = false;
+		public $OAuthVersion = "2.0";
+		public $RequestType = "header";
+		public $Scope = "https://www.googleapis.com/auth/analytics.readonly";
+		public $TokenURL = "https://accounts.google.com/o/oauth2/token";
 
 		/*
 			Constructor:
@@ -26,7 +26,7 @@
 				cache - Whether to use cached information (15 minute cache, defaults to false)
 		*/
 
-		function __construct($cache = false) {
+		public function __construct($cache = false) {
 			parent::__construct("bigtree-internal-google-analytics-api","Google Analytics API","org.bigtreecms.api.analytics.google",$cache);
 			$this->Settings["key"] = $this->ClientID;
 			$this->Settings["secret"] = $this->ClientSecret;
@@ -44,7 +44,7 @@
 				A BigTreeGoogleResultSet of BigTreeGoogleAnalyticsAccount objects.
 		*/
 
-		function getAccounts($params = array()) {
+		public function getAccounts($params = array()) {
 			$response = $this->call("management/accounts",$params);
 			if (!isset($response->items)) {
 				return false;
@@ -74,7 +74,7 @@
 				An array of data.
 		*/
 
-		function getData($profile,$start_date,$end_date,$metrics,$dimensions = "",$sort = "",$results = 10000) {
+		public function getData($profile,$start_date,$end_date,$metrics,$dimensions = "",$sort = "",$results = 10000) {
 			$start_date = date("Y-m-d",strtotime($start_date));
 			$end_date = date("Y-m-d",strtotime($end_date));
 			$metric_string = $dimension_string = "";
@@ -165,7 +165,7 @@
 				A BigTreeGoogleResultSet of BigTreeGoogleAnalyticsProperty objects.
 		*/
 
-		function getProperties($account = "~all",$params = array()) {
+		public function getProperties($account = "~all",$params = array()) {
 			$response = $this->call("management/accounts/$account/webproperties",$params);
 			if (!isset($response->items)) {
 				return false;
@@ -190,7 +190,7 @@
 				A BigTreeGoogleResultSet of BigTreeGoogleAnalyticsProfile objects.
 		*/
 
-		function getProfiles($account = "~all",$property  = "~all", $params = array()) {
+		public function getProfiles($account = "~all",$property  = "~all", $params = array()) {
 			$response = $this->call("management/accounts/$account/webproperties/$property/profiles",$params);
 			if (!isset($response->items)) {
 				return false;
@@ -208,7 +208,7 @@
 				Also retrieves heads up views and stores them in settings for quick retrieval. Should be called every 24 hours to refresh.
 		*/
 		
-		function cacheInformation() {
+		public function cacheInformation() {
 			$cache = array();
 			
 			// First we're going to update the monthly view counts for all pages.
@@ -311,7 +311,7 @@
 	class BigTreeGoogleAnalyticsAccount {
 		protected $API;
 
-		function __construct($account,&$api) {
+		public function __construct($account,&$api) {
 			$this->API = $api;
 			$this->CreatedAt = date("Y-m-d H:i:s",strtotime($account->created));
 			$this->ID = $account->id;
@@ -319,7 +319,7 @@
 			$this->UpdatedAt = date("Y-m-d H:i:s",strtotime($account->updated));
 		}
 
-		function getProperties($params) {
+		public function getProperties($params) {
 			return $this->API->getProperties($this->ID,$params);
 		}
 	}
@@ -332,7 +332,7 @@
 	class BigTreeGoogleAnalyticsProperty {
 		protected $API;
 
-		function __construct($property,&$api) {
+		public function __construct($property,&$api) {
 			$this->AccountID = $property->accountId;
 			$this->API = $api;
 			$this->CreatedAt = date("Y-m-d H:i:s",strtotime($property->created));
@@ -342,7 +342,7 @@
 			$this->WebsiteURL = $property->websiteUrl;
 		}
 
-		function getProfiles($params) {
+		public function getProfiles($params) {
 			return $this->API->getProfiles($this->AccountID,$this->ID,$params);
 		}
 	}
@@ -355,7 +355,7 @@
 	class BigTreeGoogleAnalyticsProfile {
 		protected $API;
 
-		function __construct($profile,&$api) {
+		public function __construct($profile,&$api) {
 			$this->AccountID = $profile->accountId;
 			$this->API = $api;
 			$this->CreatedAt = date("Y-m-d H:i:s",strtotime($profile->created));

@@ -1,4 +1,4 @@
-<?
+<?php
 	// If it's an AJAX request, get our data.
 	if (isset($_POST["view"])) {
 		$bigtree["view"] = BigTreeAutoModule::getView($_POST["view"]);
@@ -52,19 +52,19 @@
 	$groups = BigTreeAutoModule::getGroupsForView($bigtree["view"]);
 ?>
 <header>
-	<?
+	<?php
 		$x = 0;
 		foreach ($fields as $key => $field) {
 			$x++;
 	?>
 	<span class="view_column" style="width: <?=$field["width"]?>px;"><?=$field["title"]?></span>
-	<?
+	<?php
 		}
 	?>
 	<span class="view_status">Status</span>
-	<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><? if (count($bigtree["view"]["actions"]) > 1) { ?>Actions<? } ?></span>
+	<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><?php if (count($bigtree["view"]["actions"]) > 1) { ?>Actions<?php } ?></span>
 </header>
-<?	
+<?php
 	$gc = 0;
 	foreach ($groups as $group => $title) {
 		// If the group title contains the search phrase, show everything in that group.
@@ -81,7 +81,7 @@
 ?>
 <header class="group"><?=(isset($group_title_overrides[$title]) ? $group_title_overrides[$title] : $title)?></header>
 <ul id="sort_table_<?=$gc?>">
-	<? 
+	<?php 
 		foreach ($r["results"] as $item) {
 			if ($item["status"] == "p") {
 				$status = "Pending";
@@ -98,23 +98,23 @@
 			}
 	?>
 	<li id="row_<?=$item["id"]?>" class="<?=$status_class?>">
-		<?
+		<?php
 			$x = 0;
 			foreach ($fields as $key => $field) {
 				$x++;
 				$value = $item["column$x"];
 		?>
 		<section class="view_column" style="width: <?=$field["width"]?>px;">
-			<? if ($x == 1 && $permission == "p" && !$search && $draggable) { ?>
+			<?php if ($x == 1 && $permission == "p" && !$search && $draggable) { ?>
 			<span class="icon_sort js-sort-hook"></span>
-			<? } ?>
+			<?php } ?>
 			<?=$value?>
 		</section>
-		<?
+		<?php
 			}
 		?>
 		<section class="view_status status_<?=$status_class?>"><?=$status?></section>
-		<?
+		<?php
 			$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);
 			foreach ($actions as $action => $data) {
 				if ($data == "on") {
@@ -147,7 +147,7 @@
 					}
 		?>
 		<section class="view_action action_<?=$action?>"><a href="<?=$link?>" class="<?=$class?>" title="<?=$action_title?>"></a></section>
-		<?
+		<?php
 				} else {
 					$data = json_decode($data,true);
 					$link = $module_page.$data["route"]."/".$item["id"]."/";
@@ -159,14 +159,14 @@
 					$action_title = BigTree::safeEncode($data["name"]);
 		?>
 		<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>" title="<?=$action_title?>"></a></section>
-		<?
+		<?php
 				}
 			}
 		?>
 	</li>
-	<? } ?>
+	<?php } ?>
 </ul>
-<?
+<?php
 		}
 	}
 ?>	

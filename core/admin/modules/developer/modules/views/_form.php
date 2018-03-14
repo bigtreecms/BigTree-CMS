@@ -1,4 +1,4 @@
-<?
+<?php
 	$forms = $admin->getModuleForms("title",$module["id"]);
 ?>
 <section>
@@ -23,24 +23,24 @@
 			<label class="required">Data Table</label>
 			<select name="table" id="view_table" class="required" >
 				<option></option>
-				<? BigTree::getTableSelectOptions($table); ?>
+				<?php BigTree::getTableSelectOptions($table); ?>
 			</select>
 		</fieldset>
 		<fieldset>
 			<label>Related Form</label>
 			<select name="related_form">
 				<option value="">&mdash;</option>
-				<? foreach ($forms as $form) { ?>
-				<option value="<?=$form["id"]?>"<? if ($form["id"] == $related_form) { ?> selected="selected"<? } ?>><?=$form["title"]?> (<?=$form["table"]?>)</option>
-				<? } ?>
+				<?php foreach ($forms as $form) { ?>
+				<option value="<?=$form["id"]?>"<?php if ($form["id"] == $related_form) { ?> selected="selected"<?php } ?>><?=$form["title"]?> (<?=$form["table"]?>)</option>
+				<?php } ?>
 			</select>
 		</fieldset>
 		<fieldset class="view_type">
 			<label>View Type</label>
 			<select name="type" id="view_type" class="left" >
-				<? foreach (BigTreeAdmin::$ViewTypes as $key => $t) { ?>
-				<option value="<?=$key?>"<? if ($key == $type) { ?> selected="selected"<? } ?>><?=$t?></option>
-				<? } ?>
+				<?php foreach (BigTreeAdmin::$ViewTypes as $key => $t) { ?>
+				<option value="<?=$key?>"<?php if ($key == $type) { ?> selected="selected"<?php } ?>><?=$t?></option>
+				<?php } ?>
 			</select>
 			&nbsp; <a href="#" class="options icon_settings centered"></a>
 			<input type="hidden" name="options" id="view_options" value="<?=htmlspecialchars(json_encode($options))?>" />
@@ -48,11 +48,11 @@
 	</div>
 </section>
 <section class="sub" id="field_area">
-	<?
+	<?php
 		if (!$table) {
 	?>
 	<p>Please choose a table to populate this area.</p>
-	<?
+	<?php
 		} else {
 			include BigTree::path("admin/ajax/developer/load-view-fields.php");
 		}

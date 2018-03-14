@@ -1,4 +1,4 @@
-<?
+<?php
 	// Don't let them move the homepage.
 	if ($page["id"] == 0) {
 		BigTree::redirect(ADMIN_ROOT."pages/edit/0/");
@@ -21,29 +21,29 @@
 		}
 		if (count($children)) {
 ?>
-<ul class="depth_<?=$depth?>"<? if ($depth > 2 && !in_array($parent,$ancestors)) { ?> style="display: none;"<? } ?>>
-	<?
+<ul class="depth_<?=$depth?>"<?php if ($depth > 2 && !in_array($parent,$ancestors)) { ?> style="display: none;"<?php } ?>>
+	<?php
 			foreach ($children as $f) {
 				if ($f["id"] != $page["id"]) {
 					$grandchildren = $admin->getPageChildren($f["id"]);
 	?>
 	<li>
 		<span class="depth"></span>
-		<a class="title<? if (!$grandchildren) { ?> disabled<? } ?><? if ($f["id"] == $page["parent"]) { ?> active<? } ?><? if (in_array($f["id"],$ancestors)) { ?> expanded<? } ?>" href="#<?=$f["id"]?>"><?=$f["nav_title"]?></a>
-		<? _local_drawNavLevel($f["id"],$depth + 1,$ancestors,$grandchildren) ?>
+		<a class="title<?php if (!$grandchildren) { ?> disabled<?php } ?><?php if ($f["id"] == $page["parent"]) { ?> active<?php } ?><?php if (in_array($f["id"],$ancestors)) { ?> expanded<?php } ?>" href="#<?=$f["id"]?>"><?=$f["nav_title"]?></a>
+		<?php _local_drawNavLevel($f["id"],$depth + 1,$ancestors,$grandchildren) ?>
 	</li>
-	<?
+	<?php
 				}
 			}
 	?>
 </ul>
-<?
+<?php
 		}
 	}
 ?>
 <div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>pages/move-update/">
-		<? $admin->drawCSRFToken() ?>
+		<?php $admin->drawCSRFToken() ?>
 		<input type="hidden" name="page" value="<?=$page["id"]?>" />
 		<section>
 			<fieldset>
@@ -57,8 +57,8 @@
 						<ul class="depth_1">
 							<li class="top">
 								<span class="depth"></span>
-								<a class="title expanded<? if ($page["parent"] == 0) { ?> active<? } ?>" href="#0">Top Level</a>
-								<? _local_drawNavLevel(0,2,$ancestors) ?>
+								<a class="title expanded<?php if ($page["parent"] == 0) { ?> active<?php } ?>" href="#0">Top Level</a>
+								<?php _local_drawNavLevel(0,2,$ancestors) ?>
 							</li>
 					</section>
 				</div>

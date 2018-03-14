@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 
 	$bigtree["layout"] = "front-end";
@@ -32,7 +32,7 @@
 		<p>You do not have access to this page.</p>
 	</section>
 </div>
-<?
+<?php
 		$admin->stop();
 	}
 
@@ -88,6 +88,6 @@
 	} else {
 ?>
 <script>parent.window.postMessage("bigtree-bar-<?=$refresh_link?>", "*");</script>
-<?
+<?php
 	}
 ?>

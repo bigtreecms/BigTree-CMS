@@ -17,7 +17,7 @@
 				results - Results to store
 		*/
 
-		function __construct(&$api,$last_call,$params,$data,$results) {
+		public function __construct(&$api,$last_call,$params,$data,$results) {
 			$this->API = $api;
 			$this->LastCall = $last_call;
 			$this->LastParameters = $params;
@@ -34,7 +34,7 @@
 				A BigTreeGoogleResultSet or false if there is not another page.
 		*/
 
-		function nextPage() {
+		public function nextPage() {
 			if ($this->NextPageToken) {
 				$params = $this->LastParameters;
 				$params[count($params) - 1]["pageToken"] = $this->NextPageToken;
@@ -51,7 +51,7 @@
 				A BigTreeGoogleResultSet or false if there is not a previous page.
 		*/
 
-		function previousPage() {
+		public function previousPage() {
 			if ($this->PreviousPageToken) {
 				$params = $this->LastParameters;
 				$params[count($params) - 1]["pageToken"] = $this->PreviousPageToken;

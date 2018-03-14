@@ -6,9 +6,9 @@
 	*/
 
 	class BigTreeFTP {
-		var $LocalEcho,$Verbose,$OS_local,$OS_remote,$_lastaction,$_errors,$_type,$_umask,$_timeout,$_passive,$_host,$_fullhost,$_port,$_datahost,$_dataport,$_ftp_control_sock,$_ftp_data_sock,$_ftp_temp_sock,$_ftp_buff_size,$_login,$_password,$_connected,$_ready,$_code,$_message,$_can_restore,$_port_available,$_curtype,$_features,$_error_array,$AuthorizedTransferMode,$OS_FullName,$_eol_code,$AutoAsciiExt;
+		public $LocalEcho,$Verbose,$OS_local,$OS_remote,$_lastaction,$_errors,$_type,$_umask,$_timeout,$_passive,$_host,$_fullhost,$_port,$_datahost,$_dataport,$_ftp_control_sock,$_ftp_data_sock,$_ftp_temp_sock,$_ftp_buff_size,$_login,$_password,$_connected,$_ready,$_code,$_message,$_can_restore,$_port_available,$_curtype,$_features,$_error_array,$AuthorizedTransferMode,$OS_FullName,$_eol_code,$AutoAsciiExt;
 
-		function __construct() {
+		public function __construct() {
 			$this->_lastaction = null;
 			$this->_error_array = array();
 			$this->_eol_code = array("u" => "\n", "m" => "\r", "w" => "\r\n");
@@ -45,7 +45,7 @@
 				true if successful
 		*/
 
-		function changeToParentDirectory() {
+		public function changeToParentDirectory() {
 			if (!$this->_exec("CDUP") || !$this->_checkCode()) {
 				return false;
 			}
@@ -62,7 +62,7 @@
 				true if successful
 		*/
 
-		function changeDirectory($path) {
+		public function changeDirectory($path) {
 			if (!$this->_exec("CWD $path") || !$this->_checkCode()) {
 				return false;
 			}
@@ -81,7 +81,7 @@
 				true if successful
 		*/
 
-		function connect($host,$port = 21) {
+		public function connect($host,$port = 21) {
 			// Setup server parameters
 			if (!is_long($port)) {
 		 		return false;
@@ -147,7 +147,7 @@
 				true if successful.
 		*/
 
-		function createDirectory($path) {
+		public function createDirectory($path) {
 			if (!$this->_exec("MKD $path") || !$this->_checkCode()) {
 				return false;
 			}
@@ -165,7 +165,7 @@
 				true if successful
 		*/
 
-		function deleteDirectory($path) {
+		public function deleteDirectory($path) {
 			if (!$this->_exec("RMD $path") || !$this->_checkCode()) {
 				return false;
 			}
@@ -183,7 +183,7 @@
 				true if successful
 		*/
 
-		function deleteFile($path) {
+		public function deleteFile($path) {
 			if (!$this->_exec("DELE ".$path) || !$this->_checkCode()) {
 				return false;
 			}
@@ -195,7 +195,7 @@
 				Closes the FTP connection.
 		*/
 
-		function disconnect() {
+		public function disconnect() {
 			if ($this->_ready) {
 				$this->_exec("QUIT");
 			}
@@ -216,7 +216,7 @@
 				true if successful.
 		*/
 
-		function downloadFile($remote,$local) {
+		public function downloadFile($remote,$local) {
 			$fp = @fopen($local, "w");
 			if (!$fp) {
 				return false;
@@ -253,7 +253,7 @@
 				The current working directory or false if the call failed.
 		*/
 
-		function getCurrentDirectory() {
+		public function getCurrentDirectory() {
 			if (!$this->_exec("PWD") || !$this->_checkCode()) {
 				return false;
 			}
@@ -271,7 +271,7 @@
 				An array of parsed information.
 		*/
 
-		function getDirectoryContents($path = "") {
+		public function getDirectoryContents($path = "") {
 			$list = $this->_list(" ".$path,"LIST","getRawDirectoryContents");
 			if (is_array($list)) {
 				foreach ($list as &$line) {
@@ -292,7 +292,7 @@
 				An array of information from the FTP LIST command.
 		*/
 
-		function getRawDirectoryContents($path = "") {
+		public function getRawDirectoryContents($path = "") {
 			return $this->_list(" ".$path,"LIST","getRawDirectoryContents");
 		}
 
@@ -304,7 +304,7 @@
 				An array of system information.
 		*/
 
-		function getSystemType() {
+		public function getSystemType() {
 			if (!$this->_exec("SYST") || !$this->_checkCode()) {
 				return false;
 			}
@@ -324,7 +324,7 @@
 				true if successful
 		*/
 
-		function login($user = null,$pass = null) {
+		public function login($user = null,$pass = null) {
 			if (!$user) {
 				$this->_login = "anonymous";
 				$this->_password = "anon@anon.com";
@@ -355,7 +355,7 @@
 				An array of information or false if the line was corrupt.
 		*/
 
-		function parseListing($list) {
+		public function parseListing($list) {
 			if (preg_match("/^([-ld])([rwxst-]+)\s+(\d+)\s+([^\s]+)\s+([^\s]+)\s+(\d+)\s+(\w{3})\s+(\d+)\s+([\:\d]+)\s+(.+)$/i", $list, $ret)) {
 				$v = array(
 					"type"	=> ($ret[1] == "-" ? "f" : $ret[1]),
@@ -403,7 +403,7 @@
 				true if successful
 		*/
 
-		function rename($from, $to) {
+		public function rename($from, $to) {
 			if (!$this->_exec("RNFR ".$from) || !$this->_checkCode() || $this->_code != 350) {
 				return false;
 			}
@@ -421,7 +421,7 @@
 				type - AUTOASCII (-1), ASCII (0), BINARY (1)
 		*/
 
-		function setTransferType($mode) {
+		public function setTransferType($mode) {
 			if (!in_array($mode, $this->AuthorizedTransferMode)) {
 				return false;
 			}
@@ -441,7 +441,7 @@
 				true if successful
 		*/
 
-		function uploadFile($local,$remote) {
+		public function uploadFile($local,$remote) {
 			if (!@file_exists($local)) {
 				return false;
 			}

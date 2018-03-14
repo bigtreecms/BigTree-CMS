@@ -1,4 +1,4 @@
-<?
+<?php
 	// Loop through all the fields to build the address
 	$source_fields = explode(",",$field["options"]["fields"]);
 	$location = array();
@@ -28,4 +28,3 @@
 		
 	// This field doesn't have it's own key to process.
 	$field["ignore"] = true;
-?>

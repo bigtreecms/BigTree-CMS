@@ -6,16 +6,16 @@
 	
 	class BigTreeGeocoding {
 		
-		var $API = false;
-		var $Service = "";
-		var $Settings = array();
+		public $API = false;
+		public $Service = "";
+		public $Settings = array();
 		
 		/*
 			Constructor:
 				Retrieves the current desired service and login credentials.
 		*/
 		
-		function __construct() {
+		public function __construct() {
 			global $cms;
 			$geo_service = $cms->getSetting("bigtree-internal-geocoding-service");
 			// If for some reason the setting doesn't exist, make one.
@@ -46,7 +46,7 @@
 				An array containing "latitude" and "longitude" keys if successful, otherwise false.
 		*/
 
-		function geocode($address,$ignore_cache = false) {
+		public function geocode($address,$ignore_cache = false) {
 			global $cms;
 			if (!$address) {
 				return false;

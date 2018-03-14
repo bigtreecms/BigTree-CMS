@@ -1,4 +1,4 @@
-<?
+<?php
 	if (isset($_GET["table"])) {
 		$table = $_GET["table"];
 	}
@@ -40,7 +40,7 @@
 	$unused[] = array("field" => "— Custom —", "title" => "");
 	if (count($tblfields)) {
 ?>
-<fieldset id="fields"<? if ($type == "images" || $type == "images-grouped") { ?> style="display: none;"<? } ?>>
+<fieldset id="fields"<?php if ($type == "images" || $type == "images-grouped") { ?> style="display: none;"<?php } ?>>
 	<label>Fields</label>
 	
 	<div class="form_table">
@@ -51,7 +51,7 @@
 			<span class="developer_resource_action">Delete</span>
 		</div>
 		<ul id="sort_table">
-			<?
+			<?php
 				// If we're loading an existing data set.
 				$mtm_count = 0;
 				if (isset($fields)) {
@@ -64,7 +64,7 @@
 				<section class="developer_view_parser"><input type="text" name="fields[<?=$key?>][parser]" value="<?=htmlspecialchars($field["parser"])?>" class="parser" placeholder="PHP code to transform $value (which contains the column value.)" /></section>
 				<section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>
 			</li>
-			<?
+			<?php
 					}			
 				// Otherwise we're loading a new data set based on a table.
 				} else {
@@ -76,7 +76,7 @@
 				<section class="developer_view_parser"><input type="text" name="fields[<?=$key?>][parser]" value="" class="parser" placeholder="PHP code to transform $value (which contains the column value.)" /></section>
 				<section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>
 			</li>
-			<?	
+			<?php
 						}
 					}
 				}
@@ -88,7 +88,7 @@
 	<label>Actions <small>(click to deselect, drag bottom tab to rearrange)</small></label>
 	<div class="developer_action_list">
 		<ul>
-			<?
+			<?php
 				$used_actions = array();
 				if (!empty($actions)) {
 					foreach ($actions as $key => $action) {
@@ -109,9 +109,9 @@
 				<a href="#" class="action active">
 					<span class="<?=$class?>"></span>
 				</a>
-				<div class="handle"><? if ($action != "on") { ?><span class="edit"></span><? } ?></div>
+				<div class="handle"><?php if ($action != "on") { ?><span class="edit"></span><?php } ?></div>
 			</li>
-			<?
+			<?php
 					}
 				}
 				foreach (BigTreeAdmin::$ViewActions as $key => $action) {
@@ -122,13 +122,13 @@
 						}
 			?>
 			<li>
-				<input class="custom_control" type="checkbox" name="actions[<?=$key?>]" value="on" <? if ($checked) { ?>checked="checked" <? } ?>/>
-				<a href="#" class="action<? if ($checked) { ?> active<? } ?>">
+				<input class="custom_control" type="checkbox" name="actions[<?=$key?>]" value="on" <?php if ($checked) { ?>checked="checked" <?php } ?>/>
+				<a href="#" class="action<?php if ($checked) { ?> active<?php } ?>">
 					<span class="<?=$action["class"]?>"></span>
 				</a>
 				<div class="handle"></div>
 			</li>
-			<?
+			<?php
 					}
 				}
 			?>
@@ -233,10 +233,10 @@
 		}
 	});
 </script>
-<?
+<?php
 	} else {
 ?>
 <p>Please choose a table to populate this area.</p>
-<?
+<?php
 	}
 ?>

@@ -1,4 +1,4 @@
-<?
+<?php
 	// Stop notices
 	if (empty($data["directory"])) {
 		if (isset($_POST["template"])) {
@@ -23,7 +23,7 @@
 	<input type="text" name="directory" value="<?=htmlspecialchars($data["directory"])?>" class="required" />
 </fieldset>
 <fieldset>
-	<input type="checkbox" name="disable_captions" <? if ($data["disable_captions"]) { ?>checked="checked" <? } ?>/>
+	<input type="checkbox" name="disable_captions" <?php if ($data["disable_captions"]) { ?>checked="checked" <?php } ?>/>
 	<label class="for_checkbox">Disable Captions</label>
 </fieldset>
-<? include BigTree::path("admin/ajax/developer/field-options/_image-options.php") ?>
+<?php include BigTree::path("admin/ajax/developer/field-options/_image-options.php"); ?>

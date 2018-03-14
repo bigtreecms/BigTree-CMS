@@ -1,4 +1,4 @@
-<?
+<?php
 	include BigTree::path("inc/lib/GoogleAuthenticator.php");
 
 	$site = $cms->getPage(0);

@@ -1,4 +1,4 @@
-<?
+<?php
 	// Prevent Notices
 	$data["list_type"] = isset($data["list_type"]) ? $data["list_type"] : "";
 	$data["allow-empty"] = isset($data["allow-empty"]) ? $data["allow-empty"] : "";
@@ -17,50 +17,50 @@
 <fieldset>
 	<label>List Type</label>
 	<select name="list_type" id="field_list_types">
-		<? foreach ($types as $val => $desc) { ?>
-		<option value="<?=$val?>"<? if ($val == $data["list_type"]) { ?> selected="selected"<? } ?>><?=$desc?></option>
-		<? } ?>
+		<?php foreach ($types as $val => $desc) { ?>
+		<option value="<?=$val?>"<?php if ($val == $data["list_type"]) { ?> selected="selected"<?php } ?>><?=$desc?></option>
+		<?php } ?>
 	</select>
 </fieldset>
 <fieldset>
 	<label>Allow Empty <small>(first option is blank)</small></label>
 	<select name="allow-empty">
 		<option value="Yes">Yes</option>
-		<option value="No"<? if ($data["allow-empty"] == "No") { ?> selected="selected"<? } ?>>No</option>
+		<option value="No"<?php if ($data["allow-empty"] == "No") { ?> selected="selected"<?php } ?>>No</option>
 	</select>
 </fieldset>
 
-<div class="list_type_options" id="static_list_options"<? if ($data["list_type"] && $data["list_type"] != "static") { ?> style="display: none;"<? } ?>></div>
+<div class="list_type_options" id="static_list_options"<?php if ($data["list_type"] && $data["list_type"] != "static") { ?> style="display: none;"<?php } ?>></div>
 
-<div class="list_type_options" id="db_list_options"<? if ($data["list_type"] != "db") { ?> style="display: none;"<? } ?>>
+<div class="list_type_options" id="db_list_options"<?php if ($data["list_type"] != "db") { ?> style="display: none;"<?php } ?>>
 	<h4>Database Populated List Options</h4>
 	<fieldset>
 		<label>Table</label>
 		<select name="pop-table" class="table_select">
 			<option></option>
-			<? BigTree::getTableSelectOptions($data["pop-table"]); ?>
+			<?php BigTree::getTableSelectOptions($data["pop-table"]); ?>
 		</select>
 	</fieldset>
 	
 	<fieldset>
 		<label>Description Field</label>
 		<div data-name="pop-description" class="pop-dependant pop-table">
-			<? if ($data["pop-table"]) { ?>
-			<select name="pop-description"><? BigTree::getFieldSelectOptions($data["pop-table"],$data["pop-description"]) ?></select>
-			<? } else { ?>
+			<?php if ($data["pop-table"]) { ?>
+			<select name="pop-description"><?php BigTree::getFieldSelectOptions($data["pop-table"],$data["pop-description"]) ?></select>
+			<?php } else { ?>
 			<input type="text" disabled="disabled" value="Please select &quot;Table&quot;" />
-			<? } ?>
+			<?php } ?>
 		</div>
 	</fieldset>
 	
 	<fieldset>
 		<label>Sort By</label>
 		<div data-name="pop-sort" class="sort_by pop-dependant pop-table">
-			<? if ($data["pop-table"]) { ?>
-			<select name="pop-sort"><? BigTree::getFieldSelectOptions($data["pop-table"],$data["pop-sort"],true) ?></select>
-			<? } else { ?>
+			<?php if ($data["pop-table"]) { ?>
+			<select name="pop-sort"><?php BigTree::getFieldSelectOptions($data["pop-table"],$data["pop-sort"],true) ?></select>
+			<?php } else { ?>
 			<input type="text" disabled="disabled" value="Please select &quot;Table&quot;" />
-			<? } ?>
+			<?php } ?>
 		</div>	
 	</fieldset>
 

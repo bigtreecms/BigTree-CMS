@@ -8,12 +8,12 @@
 	require_once SERVER_ROOT."core/inc/bigtree/apis/_google.result-set.php";
 	class BigTreeGooglePlusAPI extends BigTreeOAuthAPIBase {
 		
-		var $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
-		var $EndpointURL = "https://www.googleapis.com/plus/v1/";
-		var $OAuthVersion = "1.0";
-		var $RequestType = "custom";
-		var $Scope = "https://www.googleapis.com/auth/plus.login";
-		var $TokenURL = "https://accounts.google.com/o/oauth2/token";
+		public $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
+		public $EndpointURL = "https://www.googleapis.com/plus/v1/";
+		public $OAuthVersion = "1.0";
+		public $RequestType = "custom";
+		public $Scope = "https://www.googleapis.com/auth/plus.login";
+		public $TokenURL = "https://accounts.google.com/o/oauth2/token";
 		
 		/*
 			Constructor:
@@ -23,7 +23,7 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 
-		function __construct($cache = true) {
+		public function __construct($cache = true) {
 			parent::__construct("bigtree-internal-googleplus-api","Google+ API","org.bigtreecms.api.googleplus",$cache);
 
 			// Set OAuth Return URL
@@ -47,7 +47,7 @@
 				A BigTreeGooglePlusActivity object.
 		*/
 
-		function getActivity($id) {
+		public function getActivity($id) {
 			$response = $this->call("activities/$id");
 			if (!$response->id) {
 				return false;
@@ -69,7 +69,7 @@
 				A BigTreeGoogleResultSet of BigTreeGooglePlusActivity objects.
 		*/
 
-		function getActivities($user = "me",$count = 100,$params = array()) {
+		public function getActivities($user = "me",$count = 100,$params = array()) {
 			$response = $this->call("people/$user/activities/public",array_merge(array(
 				"maxResults" => $count
 			),$params));
@@ -99,7 +99,7 @@
 				A BigTreeGoogleResultSet of BigTreeGooglePlusPeople objects.
 		*/
 
-		function getCircledPeople($user = "me",$count = 100,$order = "best",$params = array()) {
+		public function getCircledPeople($user = "me",$count = 100,$order = "best",$params = array()) {
 			$response = $this->call("people/$user/people/visible",array_merge(array(
 				"orderBy" => $order,
 				"maxResults" => $count
@@ -126,7 +126,7 @@
 				A BigTreeGooglePlusComment object.
 		*/
 
-		function getComment($id) {
+		public function getComment($id) {
 			$response = $this->call("comments/$id");
 			if (!isset($response->id)) {
 				return false;
@@ -148,7 +148,7 @@
 				A BigTreeGoogleResultSet of BigTreeGooglePlusComment objects.
 		*/
 
-		function getComments($activity,$count = 500,$order = "ascending",$params = array()) {
+		public function getComments($activity,$count = 500,$order = "ascending",$params = array()) {
 			$response = $this->call("activities/$activity/comments",array_merge(array(
 				"orderBy" => $order,
 				"maxResults" => $count
@@ -176,7 +176,7 @@
 				A BigTreeGooglePlusPerson object.
 		*/
 
-		function getPerson($user = "me") {
+		public function getPerson($user = "me") {
 			$response = $this->call("people/$user");
 			if (!$response->id) {
 				return false;
@@ -198,7 +198,7 @@
 				A BigTreeGoogleResultSet of BigTreeGooglePlusActivity objects.
 		*/
 
-		function searchActivities($query,$count = 10,$order = "best",$params = array()) {
+		public function searchActivities($query,$count = 10,$order = "best",$params = array()) {
 			// Google+ fails if you pass too high of a count.
 			if ($count > 20) {
 				$count = 20;
@@ -231,7 +231,7 @@
 				A BigTreeGoogleResultSet of BigTreeGooglePlusPerson objects.
 		*/
 
-		function searchPeople($query,$count = 10,$params = array()) {
+		public function searchPeople($query,$count = 10,$params = array()) {
 			// Google+ fails if you pass too high of a count.
 			if ($count > 20) {
 				$count = 20;
@@ -260,7 +260,7 @@
 	class BigTreeGooglePlusActivity {
 		protected $API;
 
-		function __construct($activity,&$api) {
+		public function __construct($activity,&$api) {
 			if (is_array($activity->access->items)) {
 				$this->Access = new stdClass;
 				isset($activity->access->description) ? $this->Access->Description = $activity->access->description : false;
@@ -336,7 +336,7 @@
 				A BigTreeGoogleResultSet of BigTreeGooglePlusComment objects.
 		*/
 
-		function getComments($count = 500,$order = "ascending",$params = array()) {
+		public function getComments($count = 500,$order = "ascending",$params = array()) {
 			return $this->API->getComments($this->ID,$count,$order,$params);
 		}
 
@@ -350,7 +350,7 @@
 	class BigTreeGooglePlusComment {
 		protected $API;
 
-		function __construct($comment,&$api) {
+		public function __construct($comment,&$api) {
 			$this->API = $api;
 			isset($comment->object->content) ? $this->Content = $comment->object->content : false;
 			isset($comment->object->originalContent) ? $this->ContentPlainText = $comment->object->originalContent : false;
@@ -381,7 +381,7 @@
 	class BigTreeGooglePlusLocation {
 		protected $API;
 
-		function __construct($location,&$api) {
+		public function __construct($location,&$api) {
 			$this->API = $api;
 			isset($location->address->formatted) ? $this->Address = $location->address->formatted : false;
 			isset($location->position->latitude) ? $this->Latitude = $location->position->latitude : false;
@@ -398,7 +398,7 @@
 	class BigTreeGooglePlusPerson {
 		protected $API;
 
-		function __construct($person,&$api) {
+		public function __construct($person,&$api) {
 			$this->API = $api;
 			isset($person->ageRange->min) ? $this->AgeRangeMin = $person->ageRange->min : false;
 			isset($person->ageRange->max) ? $this->AgeRangeMax = $person->ageRange->max : false;
@@ -498,7 +498,7 @@
 				A BigTreeGoogleResultSet of BigTreeGooglePlusActivity objects.
 		*/
 
-		function getActivities($count = 100,$params = array()) {
+		public function getActivities($count = 100,$params = array()) {
 			return $this->API->getActivities($this->ID,$count,$params);
 		}
 
@@ -515,7 +515,7 @@
 				A BigTreeGoogleResultSet of BigTreeGooglePlusPeople objects.
 		*/
 
-		function getCircledPeople($count = 100,$order = "best",$params = array()) {
+		public function getCircledPeople($count = 100,$order = "best",$params = array()) {
 			return $this->API->getCircledPeople($this->ID,$count,$order,$params);
 		}
 	}

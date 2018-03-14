@@ -1,4 +1,4 @@
-<?
+<?php
 	// Setup the preview action if we have a preview URL and field.
 	if ($bigtree["view"]["preview_url"]) {
 		$bigtree["view"]["actions"]["preview"] = "on";
@@ -9,20 +9,20 @@
 		<h2>Filtered Data</h2>
 	</summary>
 	<header>
-		<?
+		<?php
 			$x = 0;
 			foreach ($bigtree["view"]["fields"] as $key => $field) {
 				$x++;
 		?>
 		<span class="view_column" style="width: <?=$field["width"]?>px;"><?=$field["title"]?></span>
-		<?
+		<?php
 			}
 		?>
 		<span class="view_status">Status</span>		
-		<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><? if (count($bigtree["view"]["actions"]) > 1) { ?>Actions<? } ?></span>
+		<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><?php if (count($bigtree["view"]["actions"]) > 1) { ?>Actions<?php } ?></span>
 	</header>
 	<ul id="sort_table">
-		<?
+		<?php
 			foreach ($items as $item) {
 				// Get the status
 				if (BigTreeAutoModule::changeExists($bigtree["view"]["table"],$item["id"])) {
@@ -36,11 +36,11 @@
 				if ($item_permission && $item_permission != "n") {
 		?>
 		<li id="row_<?=$item["id"]?>" class="<?=$status_class?>">
-			<? foreach ($bigtree["view"]["fields"] as $key => $field) { ?>
+			<?php foreach ($bigtree["view"]["fields"] as $key => $field) { ?>
 			<section class="view_column" style="width: <?=$field["width"]?>px;"><?=$item[$key]?></section>
-			<? } ?>
+			<?php } ?>
 			<section class="view_status status_<?=$status_class?>"><?=$status?></section>
-			<?
+			<?php
 				foreach ($bigtree["view"]["actions"] as $action => $data) {
 					if ($data == "on") {
 						if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $item_permission != "p") {
@@ -62,7 +62,7 @@
 						}
 			?>
 			<section class="view_action action_<?=$action?>"><a href="<?=$link?>" class="<?=$class?>" title="<?=ucwords($action)?>"></a></section>
-			<?
+			<?php
 					} else {
 						$data = json_decode($data,true);
 						$link = MODULE_ROOT.$data["route"]."/".$item["id"]."/";
@@ -71,15 +71,15 @@
 						}
 			?>
 			<section class="view_action"><a href="<?=$link?>" class="<?=$data["class"]?>" title="<?=BigTree::safeEncode($data["name"])?>"></a></section>
-			<?
+			<?php
 					}
 				}
 			?>
 		</li>
-		<?
+		<?php
 				}
 			}
 		?>
 	</ul>
 </div>
-<? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
+<?php include BigTree::path("admin/auto-modules/views/_common-js.php"); ?>

@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 
 	$page = $_GET["id"];
@@ -6,4 +6,3 @@
 	$admin->deletePage($page);
 	
 	BigTree::redirect(ADMIN_ROOT."pages/view-tree/".$page_data["parent"]."/");
-?>

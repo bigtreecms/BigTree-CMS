@@ -1,4 +1,4 @@
-<?
+<?php
 	header("Content-type: text/json");
 
 	$admin->verifyCSRFToken();
@@ -20,4 +20,3 @@
 	}
 
 	echo json_encode(_localRecurseNav(0))
-?>

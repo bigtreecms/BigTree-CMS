@@ -1,4 +1,4 @@
-<?
+<?php
 	// Handle Javascript Minifying and Caching
 	if ($bigtree["path"][0] == "js") {
 		clearstatcache();
@@ -550,4 +550,3 @@
 		}
 		BigTree::putFile(BIGTREE_CACHE_DIRECTORY.md5(json_encode($_GET)).".page",$cache);
 	}
-?>

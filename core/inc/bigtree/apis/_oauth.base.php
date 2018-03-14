@@ -6,22 +6,22 @@
 
 	class BigTreeOAuthAPIBase {
 
-		var $AuthorizeURL = "";
-		var $Cache = true;
-		var $CacheIdentifier = "";
-		var $Connected = false;
-		var $EndpointURL = "";
-		var $Errors = array();
-		var $LastCacheKey = false;
-		var $OAuthError = false;
-		var $OAuthVersion = false;
-		var $RequestParameters = array();
-		var $RequestType = false;
-		var $ReturnURL = "";
-		var $Scope = false;
-		var $Settings = array();
-		var $SettingID = false;
-		var $TokenURL = "";
+		public $AuthorizeURL = "";
+		public $Cache = true;
+		public $CacheIdentifier = "";
+		public $Connected = false;
+		public $EndpointURL = "";
+		public $Errors = array();
+		public $LastCacheKey = false;
+		public $OAuthError = false;
+		public $OAuthVersion = false;
+		public $RequestParameters = array();
+		public $RequestType = false;
+		public $ReturnURL = "";
+		public $Scope = false;
+		public $Settings = array();
+		public $SettingID = false;
+		public $TokenURL = "";
 
 		/*
 			Constructor:
@@ -31,7 +31,7 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 
-		function __construct($setting_id,$setting_name,$cache_id,$cache = true) {
+		public function __construct($setting_id,$setting_name,$cache_id,$cache = true) {
 			global $cms;
 			$this->Cache = $cache;
 			$this->CacheIdentifier = $cache_id;
@@ -65,7 +65,7 @@
 				Busts the cache for everything relating to an object.
 		*/
 
-		function cacheBust($id) {
+		public function cacheBust($id) {
 			if (is_array($this->Settings["hash_table"][$id])) {
 				foreach ($this->Settings["hash_table"][$id] as $i) {
 					sqlquery("DELETE FROM bigtree_caches WHERE `identifier` = '".sqlescape($this->CacheIdentifier)."' AND `key` = '".sqlescape($i)."'");
@@ -78,7 +78,7 @@
 				Pushes a hash onto the cache hash table.
 		*/
 
-		function cachePush($id) {
+		public function cachePush($id) {
 			if (!isset($this->Settings["hash_table"][$id])) {
 				$this->Settings["hash_table"][$id] = array();
 			}
@@ -102,7 +102,7 @@
 				Information directly from the API or the cache.
 		*/
 
-		function call($endpoint = false,$params = array(),$method = "GET",$headers = array()) {
+		public function call($endpoint = false,$params = array(),$method = "GET",$headers = array()) {
 			global $cms;
 			
 			if ($this->Cache) {
@@ -253,7 +253,7 @@
 				Information directly from the API.
 		*/
 
-		function callUncached($endpoint = "",$params = array(),$method = "GET",$headers = array()) {
+		public function callUncached($endpoint = "",$params = array(),$method = "GET",$headers = array()) {
 			if (!$this->Connected) {
 				throw new Exception("This API is not connected.");
 			}
@@ -283,7 +283,7 @@
 				Removes saved API information.
 		*/
 
-		function disconnect() {
+		public function disconnect() {
 			sqlquery("DELETE FROM bigtree_caches WHERE identifier = '".sqlescape($this->CacheIdentifier)."'");
 			sqlquery("DELETE FROM bigtree_settings WHERE id = '".$this->SettingID."'");
 		}
@@ -293,7 +293,7 @@
 				Redirects to the OAuth API to authenticate.
 		*/
 
-		function oAuthRedirect() {
+		public function oAuthRedirect() {
 			header("Location: ".$this->AuthorizeURL.
 				"?client_id=".urlencode($this->Settings["key"]).
 				"&redirect_uri=".urlencode($this->ReturnURL).
@@ -309,7 +309,7 @@
 				Refreshes an existing token setup.
 		*/
 
-		function oAuthRefreshToken() {
+		public function oAuthRefreshToken() {
 			$response = json_decode(BigTree::cURL($this->TokenURL,array(
 				"client_id" => $this->Settings["key"],
 				"client_secret" => $this->Settings["secret"],
@@ -330,7 +330,7 @@
 				A stdClass object of information if successful.
 		*/
 
-		function oAuthSetToken($code) {
+		public function oAuthSetToken($code) {
 			$response = json_decode(BigTree::cURL($this->TokenURL,array(
 				"code" => $code,
 				"client_id" => $this->Settings["key"],

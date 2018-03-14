@@ -1,4 +1,4 @@
-<?
+<?php
 	$root = ADMIN_ROOT."dashboard/vitals-statistics/";
 ?>
 <div class="developer">

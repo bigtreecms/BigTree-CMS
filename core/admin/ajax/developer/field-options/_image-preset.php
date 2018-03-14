@@ -1,4 +1,4 @@
-<?
+<?php
 	$settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
 	$data = isset($data["preset"]) ? $settings["presets"][$data["preset"]] : $settings["presets"][$_POST["id"]];
 ?>
@@ -16,7 +16,7 @@
 </fieldset>
 <fieldset>
 	<label>Create Hi-Resolution Retina Images <small><a href="http://www.bigtreecms.org/docs/dev-guide/field-types/retina-images/" target="_blank">(learn more)</a></small></label>
-	<input type="checkbox" name="retina" <? if ($data["retina"]) { ?>checked="checked" <? } ?> disabled="disabled" />
+	<input type="checkbox" name="retina" <?php if ($data["retina"]) { ?>checked="checked" <?php } ?> disabled="disabled" />
 	<label class="for_checkbox"> When Available</label>
 </fieldset>
 
@@ -26,7 +26,7 @@
 		<ul>
 			<li>Prefix:</li><li>Width:</li><li>Height:</li>
 		</ul>
-		<?
+		<?php
 			$crop_count = 0;
 			$crop_thumb_count = 0;
 			$crop_sub_count = 0;
@@ -50,11 +50,11 @@
 				<a href="#<?=$crop_count?>" title="Create Centered Sub-Crop" class="subcrop disabled"></a>
 				<a href="#<?=$crop_count?>" title="Create Thumbnail of Crop" class="thumbnail disabled"></a>
 				<input type="hidden" name="crops[<?=$crop_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-				<a href="#" title="Switch Color Mode" class="disabled color_mode<? if ($crop["grayscale"]) { ?> gray<? } ?>"></a>
+				<a href="#" title="Switch Color Mode" class="disabled color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
 				<a href="#<?=$crop_count?>" title="Remove" class="disabled delete"></a>
 			</li>
 		</ul>
-		<?
+		<?php
 						if (is_array($crop["thumbs"])) {
 							foreach ($crop["thumbs"] as $thumb) {
 								// In case a thumb was added and a prefix or width/height were missing - require prefix here because it'll replace the crop otherwise
@@ -75,11 +75,11 @@
 			<li class="actions">
 				<span class="icon_small icon_small_up disabled"></span>
 				<input type="hidden" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][grayscale]" value="<?=$thumb["grayscale"]?>" />
-				<a href="#" title="Switch Color Mode" class="disabled color_mode<? if ($thumb["grayscale"]) { ?> gray<? } ?>"></a>
+				<a href="#" title="Switch Color Mode" class="disabled color_mode<?php if ($thumb["grayscale"]) { ?> gray<?php } ?>"></a>
 				<a href="#" title="Remove" class="disabled delete"></a>
 			</li>
 		</ul>
-		<?
+		<?php
 								}
 							}
 						}
@@ -104,11 +104,11 @@
 			<li class="actions">
 				<span class="disabled icon_small icon_small_up"></span>
 				<input type="hidden" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-				<a href="#" title="Switch Color Mode" class="disabled color_mode<? if ($crop["grayscale"]) { ?> gray<? } ?>"></a>
+				<a href="#" title="Switch Color Mode" class="disabled color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
 				<a href="#" title="Remove" class="disabled delete"></a>
 			</li>
 		</ul>
-		<?
+		<?php
 								}
 							}
 						}
@@ -126,7 +126,7 @@
 		<ul>
 			<li>Prefix:</li><li>Width:</li><li>Height:</li>
 		</ul>
-		<?
+		<?php
 			// Keep a count of thumbs
 			$thumb_count = 0;
 			if (is_array($data["thumbs"])) {
@@ -147,11 +147,11 @@
 			</li>
 			<li class="actions for_thumbnail">
 				<input type="hidden" name="thumbs[<?=$crop_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-				<a href="#" title="Switch Color Mode" class="disabled color_mode<? if ($crop["grayscale"]) { ?> gray<? } ?>"></a>
+				<a href="#" title="Switch Color Mode" class="disabled color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
 				<a href="#<?=$crop_count?>" title="Remove" class="disabled delete"></a>
 			</li>
 		</ul>
-		<?
+		<?php
 					}
 				}
 			}
@@ -165,7 +165,7 @@
 		<ul>
 			<li>Prefix:</li><li>Width:</li><li>Height:</li>
 		</ul>
-		<?
+		<?php
 			// Keep a count of center crops
 			$center_crop_count = 0;
 			if (is_array($data["center_crops"])) {
@@ -186,11 +186,11 @@
 			</li>
 			<li class="actions for_thumbnail">
 				<input type="hidden" name="center_crops[<?=$center_crop_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-				<a href="#" title="Switch Color Mode" class="disabled color_mode<? if ($crop["grayscale"]) { ?> gray<? } ?>"></a>
+				<a href="#" title="Switch Color Mode" class="disabled color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
 				<a href="#<?=$center_crop_count?>" title="Remove" class="disabled delete"></a>
 			</li>
 		</ul>
-		<?
+		<?php
 					}
 				}
 			}

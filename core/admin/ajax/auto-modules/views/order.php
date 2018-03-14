@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	// Grab View Data
@@ -26,4 +26,3 @@
 	foreach ($dependant as $v) {
 		BigTreeAutoModule::clearCache($v["table"]);
 	}
-?>

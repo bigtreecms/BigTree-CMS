@@ -5,15 +5,15 @@
 	*/
 
 	class BigTreeEmailService {
-		var $Error = false;
-		var $Service = "";
+		public $Error = false;
+		public $Service = "";
 
 		/*
 			Constructor:
 				Sets up the currently configured service.
 		*/
 
-		function __construct() {
+		public function __construct() {
 			$s = BigTreeAdmin::getSetting("bigtree-internal-email-service");
 
 			// Setting doesn't exist? Create it.
@@ -45,7 +45,7 @@
 				Sets $this->Error with error response if not successful.
 		*/
 
-		function sendEmail($subject,$body,$to,$from_email = false,$from_name = false,$reply_to = false,$text = "") {
+		public function sendEmail($subject,$body,$to,$from_email = false,$from_name = false,$reply_to = false,$text = "") {
 			// No from email? Use the no-reply address.
 			if (!$from_email) {
 				$from_email = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));

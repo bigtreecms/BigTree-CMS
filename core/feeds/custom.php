@@ -1,5 +1,5 @@
 <feed>
-	<?
+	<?php
 		$sort = $feed["options"]["sort"] ? $feed["options"]["sort"] : "id desc";
 		$limit = $feed["options"]["limit"] ? $feed["options"]["limit"] : "15";
 		$items = array();
@@ -30,7 +30,7 @@
 		foreach ($items as $item) {
 	?>
 	<item>
-		<?
+		<?php
 			foreach ($feed["fields"] as $key => $options) {
 				$value = $item[$key];
 				if ($options["parser"]) {
@@ -38,11 +38,11 @@
 				}
 		?>
 		<<?=$key?>><![CDATA[<?=$value?>]]></<?=$key?>>
-		<?
+		<?php
 			}
 		?>
 	</item>
-	<?
+	<?php
 		}
 	?>
 </feed>

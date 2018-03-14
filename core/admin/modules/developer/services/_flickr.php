@@ -1,4 +1,4 @@
-<?
+<?php
 	$api = new BigTreeFlickrAPI;
 	$name = "Flickr";
 	$route = "flickr";
@@ -27,4 +27,3 @@
 		$api->Settings["user_name"] = $user->person->username->_content;
 		$api->Settings["user_image"] = $user_icon;
 	}
-?>

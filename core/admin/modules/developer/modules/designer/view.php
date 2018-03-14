@@ -1,4 +1,4 @@
-<?
+<?php
 	$module = $admin->getModule($_GET["module"]);
 	$table = htmlspecialchars($_GET["table"]);
 
@@ -19,11 +19,11 @@
 		<p>Step 3: Creating Your View</p>
 	</header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/designer/view-create/" class="module">
-		<? $admin->drawCSRFToken() ?>
+		<?php $admin->drawCSRFToken() ?>
 		<input type="hidden" name="module" value="<?=$module["id"]?>" />
 		<input type="hidden" name="table" value="<?=$table?>" />
 		<section>
-			<p class="error_message"<? if (!count($e)) { ?> style="display: none;"<? } ?>>Errors found! Please ensure you have entered an Item Title and one or more Fields.</p>
+			<p class="error_message"<?php if (!count($e)) { ?> style="display: none;"<?php } ?>>Errors found! Please ensure you have entered an Item Title and one or more Fields.</p>
 			
 			<div class="left">
 				<fieldset>
@@ -50,7 +50,7 @@
 			</div>
 		</section>
 		<section id="field_area" class="sub">
-			<?
+			<?php
 				$bigtree["module_designer_view"] = true;
 				include BigTree::path("admin/ajax/developer/load-view-fields.php");
 			?>

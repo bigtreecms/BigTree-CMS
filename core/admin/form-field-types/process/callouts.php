@@ -1,4 +1,4 @@
-<?
+<?php
 	// We're going to change these $bigtree entries, so save them to revert back.
 	$saved = array(
 		"entry" => $bigtree["entry"],
@@ -54,4 +54,3 @@
 	}
 
 	$field["output"] = $callouts;
-?>

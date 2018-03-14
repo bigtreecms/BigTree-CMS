@@ -1,4 +1,4 @@
-<?
+<?php
 	$installed = false;
 
 	if (!$updater->extract()) {
@@ -13,7 +13,7 @@
 		<a class="button" href="<?=DEVELOPER_ROOT?>extensions/">Return to Extensions List</a>
 	</footer>
 </div>
-<?
+<?php
 	} else {
 		// Save original manifest, prevent path manipulation
 		$id = BigTree::cleanFile($_GET["id"]);
@@ -58,7 +58,7 @@
 		</footer>
 	</div>
 </form>
-<?
+<?php
 			} else {
 				$updater->installFTP($ftp_root);
 				$installed = true;

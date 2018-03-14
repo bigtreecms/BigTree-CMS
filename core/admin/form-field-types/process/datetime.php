@@ -1,4 +1,4 @@
-<?
+<?php
 	$date = DateTime::createFromFormat($bigtree["config"]["date_format"]." h:i a",$field["input"]);
 	// Fallback to SQL standards for existing values
 	if (!$date) {
@@ -10,4 +10,3 @@
 	} else {
 		$field["output"] = "";
 	}
-?>

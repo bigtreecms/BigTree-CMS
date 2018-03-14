@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	$settings = $cms->getSetting("bigtree-internal-email-service");
 
@@ -25,4 +25,3 @@
 	$admin->updateSettingValue("bigtree-internal-email-service",$settings);
 	$admin->growl("Developer","Updated Email Service");
 	BigTree::redirect(DEVELOPER_ROOT);
-?>

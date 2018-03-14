@@ -1,4 +1,4 @@
-<?
+<?php
 	// BigTree Admin Nav Tree
 	$bigtree["nav_tree"] = array(
 		"dashboard" => array("title" => "Dashboard","link" => "dashboard","icon" => "dashboard","related" => true,"children" => array(
@@ -153,4 +153,3 @@
 		"search" => array("title" => "Advanced Search","link" => "search","icon" => "search","hidden" => true),
 		"credits" => array("title" => "Credits & Licenses","link" => "credits","icon" => "credits","hidden" => true)
 	);
-?>

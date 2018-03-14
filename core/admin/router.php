@@ -1,4 +1,4 @@
-<?
+<?php
 	// Set a definition to check for being in the admin
 	define("BIGTREE_ADMIN_ROUTED",true);
 	
@@ -506,4 +506,3 @@
 	$bigtree["content"] = ob_get_clean();
 
 	include BigTree::path("admin/layouts/".$bigtree["layout"].".php");
-?>

@@ -1,4 +1,4 @@
-<?
+<?php
 	// Stop notices
 	$data["source"] = isset($data["source"]) ? $data["source"] : "";
 	$data["not_unique"] = isset($data["not_unique"]) ? $data["not_unique"] : "";
@@ -6,7 +6,7 @@
 ?>
 <fieldset id="js-source-fieldset">
 	<label>Source Fields <small>(the table columns to use for route generation)</small></label>
-	<?
+	<?php
 		if (is_array($data["source"]) && count($data["source"])) {
 			foreach ($data["source"] as $source) {
 	?>
@@ -17,7 +17,7 @@
 			<?=BigTree::getFieldSelectOptions($_POST["table"], $source)?>
 		</select>
 	</div>
-	<?
+	<?php
 			}
 		} else {
 	?>
@@ -28,18 +28,18 @@
 			<?=BigTree::getFieldSelectOptions($_POST["table"], $data["source"])?>
 		</select>
 	</div>
-	<?
+	<?php
 		}
 	?>
 </fieldset>
 
 <fieldset>
-	<input type="checkbox" name="not_unique" <? if ($data["not_unique"]) { ?>checked="checked" <? } ?>/>
+	<input type="checkbox" name="not_unique" <?php if ($data["not_unique"]) { ?>checked="checked" <?php } ?>/>
 	<label class="for_checkbox">Disregard Uniqueness<small>(if this box is checked duplicate routes can exist)</small></label>
 </fieldset>
 
 <fieldset>
-	<input type="checkbox" name="keep_original" <? if ($data["keep_original"]) { ?>checked="checked" <? } ?>/>
+	<input type="checkbox" name="keep_original" <?php if ($data["keep_original"]) { ?>checked="checked" <?php } ?>/>
 	<label class="for_checkbox">Keep Original Route<small>(check to keep the first generated route)</small></label>
 </fieldset>
 

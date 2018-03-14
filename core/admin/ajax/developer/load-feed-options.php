@@ -1,4 +1,4 @@
-<?
+<?php
 	// Prevent including files outside feed-options
 	$type = BigTree::cleanFile($_POST["type"]);
 
@@ -9,4 +9,3 @@
 	if (file_exists($path)) {
 		include $path;
 	}
-?>

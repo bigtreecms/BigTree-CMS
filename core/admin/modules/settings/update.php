@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	$admin->requireLevel(1);
 
@@ -50,4 +50,3 @@
 	}
 
 	BigTree::redirect(ADMIN_ROOT."settings/");
-?>

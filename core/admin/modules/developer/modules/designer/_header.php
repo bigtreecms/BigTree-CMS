@@ -1,4 +1,4 @@
-<?
+<?php
 	if (isset($_SESSION["developer"]["saved_module"])) {
 		foreach ($_SESSION["developer"]["saved_module"] as $key => $val) {
 			if (substr($key,0,1) != "_") {
@@ -19,4 +19,3 @@
 	} else {
 		$e = array();
 	}
-?>

@@ -1,4 +1,4 @@
-<?
+<?php
 	$cached_types = $admin->getCachedFieldTypes();
 	$bigtree["field_types"] = $cached_types["templates"];
 
@@ -18,12 +18,12 @@
 ?>
 <div class="alert template_message">
 	<label>Template:</label>
-	<p><? if ($template_id == "") { ?>External Link<? } elseif ($template_id == "!") { ?>Redirect Lower<? } else { ?><?=$bigtree["template"]["name"]?><? } ?></p>
+	<p><?php if ($template_id == "") { ?>External Link<?php } elseif ($template_id == "!") { ?>Redirect Lower<?php } else { ?><?=$bigtree["template"]["name"]?><?php } ?></p>
 </div>
-<? $admin->drawPOSTErrorMessage(); ?>
+<?php $admin->drawPOSTErrorMessage(); ?>
 <p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 <div class="form_fields">
-	<?
+	<?php
 		$bigtree["html_fields"] = array();
 		$bigtree["simple_html_fields"] = array();
 		$bigtree["tabindex"] = 1;
@@ -51,7 +51,7 @@
 		}
 	?>
 </div>
-<?	
+<?php
 	$bigtree["html_editor_width"] = 898;
 	$bigtree["html_editor_height"] = 365;
 	include BigTree::path("admin/layouts/_html-field-loader.php");

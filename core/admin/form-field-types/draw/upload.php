@@ -1,4 +1,4 @@
-<?
+<?php
 	// If we're using a preset, the prefix may be there
 	if (!empty($field["options"]["preset"])) {
 		if (!isset($bigtree["media_settings"])) {
@@ -20,9 +20,9 @@
 	$min_width = $field["options"]["min_width"] ? intval($field["options"]["min_width"]) : 0;
 	$min_height = $field["options"]["min_height"] ? intval($field["options"]["min_height"]) : 0;
 ?>
-<div class="<? if (empty($field["options"]["image"])) { ?>upload_field<? } else { ?>image_field<? } ?>">
-	<input<? if ($field["required"]) { ?> class="required"<? } ?> type="file" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" data-min-width="<?=$min_width?>" data-min-height="<?=$min_height?>" <? if (!empty($field["options"]["image"])) { ?> accept="image/*" <? } ?>/>
-	<?
+<div class="<?php if (empty($field["options"]["image"])) { ?>upload_field<?php } else { ?>image_field<?php } ?>">
+	<input<?php if ($field["required"]) { ?> class="required"<?php } ?> type="file" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" data-min-width="<?=$min_width?>" data-min-height="<?=$min_height?>" <?php if (!empty($field["options"]["image"])) { ?> accept="image/*" <?php } ?>/>
+	<?php
 		if (!isset($field["options"]["image"]) || !$field["options"]["image"]) {
 			if ($field["value"]) {
 				$pathinfo = BigTree::pathInfo($field["value"]);
@@ -31,7 +31,7 @@
 		<input type="hidden" name="<?=$field["key"]?>" value="<?=$field["value"]?>" />
 		<strong>Currently:</strong> <a href="<?=$field["value"]?>" target="_blank"><?=$pathinfo["basename"]?></a> <a href="#" class="remove_resource">Remove</a>
 	</div>
-	<?
+	<?php
 			}
 		} else {
 			if ($field["value"]) {
@@ -55,21 +55,21 @@
 	?>
 	<span class="or">OR</span>
 	<a href="#<?=$field["id"]?>" data-options="<?=$button_options?>" class="button form_image_browser"><span class="icon_images"></span>Browse</a>
-	<?
+	<?php
 			}
 	?>
 	<br class="clear" />
-	<div class="currently" id="<?=$field["id"]?>"<? if (!$field["value"]) { ?> style="display: none;"<? } ?>>
+	<div class="currently" id="<?=$field["id"]?>"<?php if (!$field["value"]) { ?> style="display: none;"<?php } ?>>
 		<a href="#" class="remove_resource"></a>
 		<div class="currently_wrapper">
-			<? if ($preview_image) { ?>
+			<?php if ($preview_image) { ?>
 			<a href="<?=$field["value"]?>" target="_blank"><img src="<?=$preview_image?>" alt="" /></a>
-			<? } ?>
+			<?php } ?>
 		</div>
 		<label>CURRENT</label>
 		<input type="hidden" name="<?=$field["key"]?>" value="<?=$field["value"]?>" />
 	</div>
-	<?
+	<?php
 		}
 	?>
 </div>

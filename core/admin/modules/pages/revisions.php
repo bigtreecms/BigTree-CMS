@@ -1,4 +1,4 @@
-<?
+<?php
 	// Make sure this is a live page.
 	if (!is_numeric($page["id"])) {
 ?>
@@ -11,7 +11,7 @@
 		<p>Revisions do not function on unpublished pages.</p>
 	</section>
 </div>
-<?
+<?php
 		$admin->stop();
 	}
 
@@ -27,7 +27,7 @@
 		<p>You must be a publisher to manage revisions.</p>
 	</section>
 </div>
-<?
+<?php
 		$admin->stop();
 	}
 	
@@ -69,14 +69,14 @@
 		<li>
 			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($draft["date"]))?></section>
 			<section class="pages_draft_author"><span class="gravatar"><img src="<?=BigTree::gravatar($draft_author["email"], 36)?>" alt="" /></span><?=$draft_author["name"]?></section>
-			<section class="pages_publish"><a class="icon_publish" href="<?=ADMIN_ROOT?>pages/publish-draft/<?=$page["id"]?>/?draft=<?=$draft["id"]?><? $admin->drawCSRFTokenGET() ?>"></a></section>
+			<section class="pages_publish"><a class="icon_publish" href="<?=ADMIN_ROOT?>pages/publish-draft/<?=$page["id"]?>/?draft=<?=$draft["id"]?><?php $admin->drawCSRFTokenGET() ?>"></a></section>
 			<section class="pages_edit"><a class="icon_edit" href="<?=ADMIN_ROOT?>pages/edit/<?=$page["id"]?>/"></a></section>
-			<section class="pages_delete"><a class="icon_delete" href="<?=ADMIN_ROOT?>ajax/pages/delete-draft/?id=<?=$page["id"]?><? $admin->drawCSRFTokenGET() ?>"></a></section>
+			<section class="pages_delete"><a class="icon_delete" href="<?=ADMIN_ROOT?>ajax/pages/delete-draft/?id=<?=$page["id"]?><?php $admin->drawCSRFTokenGET() ?>"></a></section>
 		</li>
 
 	</ul>
 </div>
-<?
+<?php
 	}
 ?>
 <div class="table">
@@ -96,7 +96,7 @@
 			<section class="pages_publish"></section>
 			<section class="pages_edit"></section>
 		</li>
-		<? foreach ($revisions["unsaved"] as $r) { ?>
+		<?php foreach ($revisions["unsaved"] as $r) { ?>
 		<li>
 			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($r["updated_at"]))?></section>
 			<section class="pages_draft_author"><span class="gravatar"><img src="<?=BigTree::gravatar($r["email"], 36)?>" alt="" /></span><?=$r["name"]?></section>
@@ -104,7 +104,7 @@
 			<section class="pages_publish"><a href="#<?=$r["id"]?>" class="icon_draft"></a></section>
 			<section class="pages_edit"><a href="#<?=$r["id"]?>" class="icon_delete"></a></section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
 </div>
 <div class="table">
@@ -116,18 +116,18 @@
 		<span class="pages_edit">Delete</span>
 	</header>
 	<ul>
-		<? foreach ($revisions["saved"] as $r) { ?>
+		<?php foreach ($revisions["saved"] as $r) { ?>
 		<li>
 			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($r["updated_at"]))?></section>
 			<section class="pages_draft_description"><?=$r["saved_description"]?></section>
 			<section class="pages_publish"><a href="#<?=$r["id"]?>" class="icon_draft"></a></section>
 			<section class="pages_edit"><a href="#<?=$r["id"]?>" class="icon_delete"></a></section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
 </div>
 <script>
-	BigTree.localActiveDraft = <? if ($draft) { ?>true<? } else { ?>false<? } ?>;
+	BigTree.localActiveDraft = <?php if ($draft) { ?>true<?php } else { ?>false<?php } ?>;
 	BigTree.localLockTimer = setInterval("$.secureAjax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$lock_id?>' } });",60000);
 	
 	$(".icon_save").click(function() {
@@ -187,11 +187,11 @@
 				content: '<p class="confirm">Are you sure you want to overwrite your existing draft with this revision?</p>',
 				alternateSaveText: "Overwrite",
 				callback: $.proxy(function() {
-					document.location.href = "<?=ADMIN_ROOT?>ajax/pages/use-draft/?id=" + BigTree.cleanHref($(this).attr("href") + "<? $admin->drawCSRFTokenGET() ?>");
+					document.location.href = "<?=ADMIN_ROOT?>ajax/pages/use-draft/?id=" + BigTree.cleanHref($(this).attr("href") + "<?php $admin->drawCSRFTokenGET() ?>");
 				},this)
 			});
 		} else {
-			document.location.href = "<?=ADMIN_ROOT?>ajax/pages/use-draft/?id=" + BigTree.cleanHref($(this).attr("href") + "<? $admin->drawCSRFTokenGET() ?>");
+			document.location.href = "<?=ADMIN_ROOT?>ajax/pages/use-draft/?id=" + BigTree.cleanHref($(this).attr("href") + "<?php $admin->drawCSRFTokenGET() ?>");
 		}
 
 		return false;

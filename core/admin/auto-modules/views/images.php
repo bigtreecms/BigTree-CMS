@@ -1,4 +1,4 @@
-<?
+<?php
 	$permission = $admin->getAccessLevel($bigtree["module"]["id"]);
 	
 	// Setup defaults
@@ -20,23 +20,23 @@
 	$pending_items = BigTreeAutoModule::getViewData($bigtree["view"],$order,"pending");
 ?>
 <div class="table auto_modules image_list">
-	<?
+	<?php
 		if (($permission == "p" && $draggable) || isset($view["actions"]["edit"])) {
 	?>
 	<summary>
-		<p><? if ($permission == "p" && $draggable) { ?>Click and drag the light gray area of an item to sort the images. <? } ?><? if (isset($view["actions"]["edit"])) { ?>Click an image to edit it.<? } ?></p>
+		<p><?php if ($permission == "p" && $draggable) { ?>Click and drag the light gray area of an item to sort the images. <?php } ?><?php if (isset($view["actions"]["edit"])) { ?>Click an image to edit it.<?php } ?></p>
 	</summary>
-	<?
+	<?php
 		}
 		if (count($pending_items)) {
 	?>
 	<header><span>Active</span></header>
-	<?
+	<?php
 		}
 	?>
 	<section>
 		<ul id="image_list">
-			<?
+			<?php
 				foreach ($items as $item) {
 					$item["column1"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["column1"]);
 					if ($prefix) {
@@ -45,9 +45,9 @@
 						$preview_image = $item["column1"];
 					}
 			?>
-			<li id="row_<?=$item["id"]?>"<? if ($permission != "p" || !$draggable) { ?> class="non_draggable"<? } ?>>
-				<a class="image<? if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=$bigtree["view"]["edit_url"].$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
-				<?
+			<li id="row_<?=$item["id"]?>"<?php if ($permission != "p" || !$draggable) { ?> class="non_draggable"<?php } ?>>
+				<a class="image<?php if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<?php } ?>" href="<?=$bigtree["view"]["edit_url"].$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
+				<?php
 					if ($permission == "p" || ($bigtree["module"]["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$bigtree["module"]["id"]])) || $item["pending_owner"] == $admin->ID) {
 						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);
 						foreach ($bigtree["view"]["actions"] as $action => $data) {
@@ -91,22 +91,22 @@
 								}
 				?>
 				<a href="<?=$link?>" class="<?=$class?>" title="<?=$action_title?>"></a>
-				<?
+				<?php
 							}
 						}
 					}
 				?>
 			</li>
-			<?
+			<?php
 				}
 			?>
 		</ul>
 	</section>
-	<? if (count($pending_items)) { ?>
+	<?php if (count($pending_items)) { ?>
 	<header><span>Pending</span></header>
 	<section>
 		<ul>
-			<?
+			<?php
 				foreach ($pending_items as $item) {
 					$item["column1"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["column1"]);
 					if ($prefix) {
@@ -116,8 +116,8 @@
 					}
 			?>
 			<li id="row_<?=$item["id"]?>" class="non_draggable">
-				<a class="image<? if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=$bigtree["view"]["edit_url"].$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
-				<?
+				<a class="image<?php if (!isset($bigtree["view"]["actions"]["edit"])) { ?> image_disabled<?php } ?>" href="<?=$bigtree["view"]["edit_url"].$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
+				<?php
 					if ($permission == "p" || ($bigtree["module"]["gbp"]["enabled"] && in_array("p",$admin->Permissions["module_gbp"][$bigtree["module"]["id"]])) || $item["pending_owner"] == $admin->ID) {
 						$iperm = ($permission == "p") ? "p" : $admin->getCachedAccessLevel($bigtree["module"],$item,$bigtree["view"]["table"]);
 						foreach ($bigtree["view"]["actions"] as $action => $data) {
@@ -161,27 +161,27 @@
 								}
 				?>
 				<a href="<?=$link?>" class="<?=$class?>" title="<?=$action_title?>"></a>
-				<?
+				<?php
 							}
 						}
 					}
 				?>
 			</li>
-			<?
+			<?php
 				}
 			?>
 		</ul>
 	</section>
-	<? } ?>
+	<?php } ?>
 </div>
 
-<? include BigTree::path("admin/auto-modules/views/_common-js.php"); ?>
+<?php include BigTree::path("admin/auto-modules/views/_common-js.php"); ?>
 <script>
-	<? if ($permission == "p" && $draggable) { ?>
+	<?php if ($permission == "p" && $draggable) { ?>
 	$("#image_list").sortable({ containment: "parent", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {
 		$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/order/", { type: "POST", data: { view: "<?=$bigtree["view"]["id"]?>", table_name: "image_list", sort: $("#image_list").sortable("serialize") } });
 	}});
-	<? } ?>
+	<?php } ?>
 	
 	// Stop disabled edit action from working.
 	$(".image_list a.image_disabled").click(function() {

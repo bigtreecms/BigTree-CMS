@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	// Get existing presets
@@ -7,4 +7,3 @@
 	// Delete one of them
 	unset($settings["presets"][$_POST["id"]]);
 	$admin->updateSettingValue("bigtree-internal-media-settings",$settings);
-?>

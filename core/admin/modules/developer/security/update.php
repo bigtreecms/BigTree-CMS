@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 
 	BigTree::globalizePOSTVars();
@@ -30,4 +30,3 @@
 	
 	$admin->growl("Security","Updated Policy");
 	BigTree::redirect(DEVELOPER_ROOT);
-?>

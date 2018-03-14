@@ -1,3 +1,4 @@
-<? include "_header.php" ?>
-<?=$bigtree["content"]?>
-<? include "_footer.php" ?>
+<?php
+	include "_header.php";
+	echo $bigtree["content"];
+	include "_footer.php";

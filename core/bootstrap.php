@@ -1,4 +1,4 @@
-<?
+<?php
 	ini_set("log_errors","false");
 	
 	if (!defined("BIGTREE_SITE_KEY")) {
@@ -134,4 +134,3 @@
 	
 	// Clean up
 	unset($d,$r,$custom_required_includes);
-?>

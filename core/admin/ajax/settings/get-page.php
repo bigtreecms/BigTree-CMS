@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->requireLevel(1);
 	
 	$query = isset($_GET["query"]) ? $_GET["query"] : "";
@@ -19,7 +19,7 @@
 	<section class="settings_value"><?=$value?></section>
 	<section class="view_action"><a href="<?=ADMIN_ROOT?>settings/edit/<?=$item["id"]?>/" class="icon_edit"></a></section>
 </li>
-<?
+<?php
 	}
 ?>
 <script>

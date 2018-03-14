@@ -7,12 +7,12 @@
 	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
 	class BigTreeDisqusAPI extends BigTreeOAuthAPIBase {
 
-		var $AuthorizeURL = "https://disqus.com/api/oauth/2.0/authorize/";
-		var $EndpointURL = "https://disqus.com/api/3.0/";
-		var $OAuthVersion = "1.0";
-		var $RequestType = "custom";
-		var $Scope = "read,write,admin";
-		var $TokenURL = "https://disqus.com/api/oauth/2.0/access_token/";
+		public $AuthorizeURL = "https://disqus.com/api/oauth/2.0/authorize/";
+		public $EndpointURL = "https://disqus.com/api/3.0/";
+		public $OAuthVersion = "1.0";
+		public $RequestType = "custom";
+		public $Scope = "read,write,admin";
+		public $TokenURL = "https://disqus.com/api/oauth/2.0/access_token/";
 		
 		/*
 			Constructor:
@@ -22,7 +22,7 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 
-		function __construct($cache = true) {
+		public function __construct($cache = true) {
 			parent::__construct("bigtree-internal-disqus-api","Disqus API","org.bigtreecms.api.disqus",$cache);
 
 			// Set OAuth Return URL
@@ -40,7 +40,7 @@
 				Wrapper for better Disqus error handling.
 		*/
 
-		function callUncached($endpoint,$params = array(),$method = "GET",$headers = array()) {
+		public function callUncached($endpoint,$params = array(),$method = "GET",$headers = array()) {
 			$response = parent::callUncached($endpoint,$params,$method,$headers);
 			if ($response->code != 0) {
 				$this->Errors[] = $response->response;
@@ -70,7 +70,7 @@
 				true if successful
 		*/
 
-		function changeUsername($username) {
+		public function changeUsername($username) {
 			$response = $this->call("users/checkUsername.json",array("username" => $username),"POST");
 			if ($response) {
 				return true;
@@ -92,7 +92,7 @@
 				Returns false if the shortname is already taken.
 		*/
 
-		function createForum($shortname,$name,$url) {
+		public function createForum($shortname,$name,$url) {
 			$response = $this->call("forums/create.json",array("website" => $url,"name" => $name,"short_name" => $shortname),"POST");
 			if ($response !== false) {
 				return new BigTreeDisqusForum($response,$this);
@@ -111,7 +111,7 @@
 				A BigTreeDisqusCategory object if successful.
 		*/
 
-		function getCategory($id) {
+		public function getCategory($id) {
 			$response = $this->call("categories/details.json",array("category" => $id));
 			if ($response !== false) {
 				$this->cachePush("category".$response->id);
@@ -131,7 +131,7 @@
 				A BigTreeDisqusForum object if successful.
 		*/
 
-		function getForum($shortname) {
+		public function getForum($shortname) {
 			$response = $this->call("forums/details.json",array("forum" => $shortname));
 			if ($response !== false) {
 				$this->cachePush("forum".$response->id);
@@ -151,7 +151,7 @@
 				A BigTreeDisqusPost object if successful.
 		*/
 
-		function getPost($id) {
+		public function getPost($id) {
 			$response = $this->call("posts/details.json",array("post" => $id));
 			if ($response !== false) {
 				$this->cachePush("post".$response->id);
@@ -172,7 +172,7 @@
 				A BigTreeDisqusThread object if successful.
 		*/
 
-		function getThread($thread,$forum = false) {
+		public function getThread($thread,$forum = false) {
 			$params = array();
 			if (!is_numeric($thread)) {
 				if (substr($thread,0,7) == "http://" || substr($thread,0,8) == "https://") {
@@ -204,7 +204,7 @@
 				A BigTreeDisqusUser object if successful.
 		*/
 
-		function getUser($user = false) {
+		public function getUser($user = false) {
 			$params = array();
 			if (is_numeric($user)) {
 				$params["user"] = $user;
@@ -228,7 +228,7 @@
 	class BigTreeDisqusBlacklistEntry {
 		protected $API;
 
-		function __construct($item,&$api) {
+		public function __construct($item,&$api) {
 			$this->API = $api;
 			$this->ForumID = $item->forum;
 			$this->ID = $item->id;
@@ -243,7 +243,7 @@
 				Removes this blacklist entry.
 		*/
 
-		function remove() {
+		public function remove() {
 			$response = $this->API->call("blacklists/remove.json",array("forum" => $this->ForumID,$this->Type => $this->Value),"POST");
 			if ($response !== false) {
 				$this->API->cacheBust("blacklist".$this->ID);
@@ -262,7 +262,7 @@
 	class BigTreeDisqusCategory {
 		protected $API;
 
-		function __construct($category,&$api) {
+		public function __construct($category,&$api) {
 			$this->API = $api;
 			isset($category->isDefault) ? $this->Default = $category->isDefault : false;
 			isset($category->forum) ? $this->Forum = $category->forum : false;
@@ -280,7 +280,7 @@
 	class BigTreeDisqusForum {
 		protected $API;
 
-		function __construct($forum,&$api) {
+		public function __construct($forum,&$api) {
 			$this->API = $api;
 			isset($forum->founder) ? $this->FounderID = $forum->founder : false;
 			isset($forum->id) ? $this->ID = $forum->id : false;
@@ -303,7 +303,7 @@
 				A BigTreeDisqusCategory object.
 		*/
 
-		function addCategory($title) {
+		public function addCategory($title) {
 			$response = $this->API->call("categories/create.json",array("forum" => $this->ID,"title" => $title),"POST");
 			if ($response !== false) {
 				$this->API->cacheBust("categories".$this->ID);
@@ -321,7 +321,7 @@
 				user - The ID of the user or the person's username
 		*/
 
-		function addModerator($user) {
+		public function addModerator($user) {
 			$params = array("forum" => $this->ID);
 			if (is_numeric($user)) {
 				$params["user"] = $user;
@@ -346,7 +346,7 @@
 				notes - Notes (optional)
 		*/
 
-		function addToBlacklist($type,$value,$retroactive = false,$notes = "") {
+		public function addToBlacklist($type,$value,$retroactive = false,$notes = "") {
 			$response = $this->API->call("blacklists/add.json",array("forum" => $this->ID,$type => $value,"retroactive" => $retroactive,"notes" => $notes),"POST");
 			if ($response !== false) {
 				$this->API->cacheBust("blacklisted".$this->ID);
@@ -365,7 +365,7 @@
 				notes - Notes (optional)
 		*/
 
-		function addToWhitelist($type,$value,$notes = "") {
+		public function addToWhitelist($type,$value,$notes = "") {
 			$params = array("forum" => $this->ID,"notes" => $notes);
 			if ($type == "email") {
 				$params["email"] = $value;
@@ -396,7 +396,7 @@
 				A BigTreeDisqusResultSet of BigTreeDisqusBlacklistEntry objects
 		*/
 
-		function getBlacklist($limit = 25,$order = "asc",$params = array()) {
+		public function getBlacklist($limit = 25,$order = "asc",$params = array()) {
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
 			$params["order"] = $order;
@@ -426,7 +426,7 @@
 				A BigTreeDisqusResultSet of BigTreeDisqusCategory objects.
 		*/
 
-		function getCategories($limit = 25,$order = "asc",$params = array()) {
+		public function getCategories($limit = 25,$order = "asc",$params = array()) {
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
 			$params["order"] = $order;
@@ -451,7 +451,7 @@
 				A BigTreeDisqusUser object.
 		*/
 
-		function getFounder() {
+		public function getFounder() {
 			return $this->API->getUser($this->FounderID);
 		}
 
@@ -463,7 +463,7 @@
 				An array of BigTreeDisqusUser objects.
 		*/
 
-		function getModerators() {
+		public function getModerators() {
 			$response = $this->API->call("forums/listModerators.json",array("forum" => $this->ID));
 			if ($response !== false) {
 				$this->API->cachePush("moderators".$this->ID);
@@ -489,7 +489,7 @@
 				A BigTreeDisqusResultSet of BigTreeDisqusUser objects.
 		*/
 
-		function getMostActiveUsers($limit = 25,$params = array()) {
+		public function getMostActiveUsers($limit = 25,$params = array()) {
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
 			$response = $this->API->call("forums/listMostActiveUsers.json",$params);
@@ -516,7 +516,7 @@
 				A BigTreeDisqusResultSet of BigTreeDisqusUser objects.
 		*/
 
-		function getMostLikedUsers($limit = 25,$params = array()) {
+		public function getMostLikedUsers($limit = 25,$params = array()) {
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
 			$response = $this->API->call("forums/listMostLikedUsers.json",$params);
@@ -546,7 +546,7 @@
 				A BigTreeDisqusResultSet of BigTreeDisqusPost objects.
 		*/
 
-		function getPosts($limit = 25,$order = "desc",$include = array("approved"),$since = false,$params = array()) {
+		public function getPosts($limit = 25,$order = "desc",$include = array("approved"),$since = false,$params = array()) {
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
 			$params["include"] = $include;
@@ -580,7 +580,7 @@
 				A BigTreeDisqusResultSet of BigTreeDisqusThread objects.
 		*/
 
-		function getThreads($limit = 25,$order = "desc",$since = false,$params = array()) {
+		public function getThreads($limit = 25,$order = "desc",$since = false,$params = array()) {
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
 			if ($since) {
@@ -610,7 +610,7 @@
 				An array of BigTreeDisqusPost objects.
 		*/
 
-		function getTrendingThreads($limit = 10) {
+		public function getTrendingThreads($limit = 10) {
 			$response = $this->API->call("trends/listThreads.json",array("forum" => $this->ID,"limit" => $limit));
 			if ($response !== false) {
 				$results = array();
@@ -635,7 +635,7 @@
 				A BigTreeDisqusResultSet of BigTreeDisqusUser objects.
 		*/
 
-		function getUsers($limit = 25,$params = array()) {
+		public function getUsers($limit = 25,$params = array()) {
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
 			$response = $this->API->call("forums/listUsers.json",$params);
@@ -665,7 +665,7 @@
 				A BigTreeDisqusResultSet of BigTreeDisqusWhitelistEntry objects
 		*/
 
-		function getWhitelist($limit = 25,$order = "asc",$params = array()) {
+		public function getWhitelist($limit = 25,$order = "asc",$params = array()) {
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
 			$params["order"] = $order;
@@ -691,7 +691,7 @@
 				user - The ID of the user or the person's username
 		*/
 
-		function removeModerator($user) {
+		public function removeModerator($user) {
 			$params = array("forum" => $this->ID);
 			if (is_numeric($user)) {
 				$params["user"] = $user;
@@ -714,7 +714,7 @@
 	class BigTreeDisqusPost {
 		protected $API;
 
-		function __construct($post,&$api) {
+		public function __construct($post,&$api) {
 			$this->API = $api;
 			isset($post->isApproved) ? $this->Approved = $post->isApproved : false;
 			isset($post->author) ? $this->Author = new BigTreeDisqusUser($post->author,$api) : false;
@@ -737,7 +737,7 @@
 			isset($post->userScore) ? $this->UserScore = $post->userScore : false;
 		}
 
-		function _cacheBust() {
+		public function _cacheBust() {
 			$this->API->cacheBust("threadposts".$this->ThreadID);
 			$this->API->cacheBust("post".$this->ID);
 		}
@@ -751,7 +751,7 @@
 				true if successful.
 		*/
 
-		function approve() {
+		public function approve() {
 			$response = $this->API->call("posts/approve.json",array("post" => $this->ID),"POST");
 			if ($response !== false) {
 				$this->_cacheBust();
@@ -769,7 +769,7 @@
 				true if successful.
 		*/
 
-		function highlight() {
+		public function highlight() {
 			$response = $this->API->call("posts/highlight.json",array("post" => $this->ID),"POST");
 			if ($response !== false) {
 				$this->_cacheBust();
@@ -787,7 +787,7 @@
 				true if successful.
 		*/
 
-		function remove() {
+		public function remove() {
 			$response = $this->API->call("posts/remove.json",array("post" => $this->ID),"POST");
 			if ($response !== false) {
 				$this->_cacheBust();
@@ -804,7 +804,7 @@
 				true if successful.
 		*/
 
-		function report() {
+		public function report() {
 			$response = $this->API->call("posts/report.json",array("post" => $this->ID),"POST");
 			if ($response !== false) {
 				$this->_cacheBust();
@@ -822,7 +822,7 @@
 				true if successful.
 		*/
 
-		function restore() {
+		public function restore() {
 			$response = $this->API->call("posts/restore.json",array("post" => $this->ID),"POST");
 			if ($response !== false) {
 				$this->_cacheBust();
@@ -840,7 +840,7 @@
 				true if successful.
 		*/
 
-		function spam() {
+		public function spam() {
 			$response = $this->API->call("posts/spam.json",array("post" => $this->ID),"POST");
 			if ($response !== false) {
 				$this->_cacheBust();
@@ -858,7 +858,7 @@
 				true if successful.
 		*/
 
-		function unhighlight() {
+		public function unhighlight() {
 			$response = $this->API->call("posts/unhighlight.json",array("post" => $this->ID),"POST");
 			if ($response !== false) {
 				$this->_cacheBust();
@@ -878,7 +878,7 @@
 				true if successful.
 		*/
 
-		function vote($vote = 0) {
+		public function vote($vote = 0) {
 			$response = $this->API->call("posts/vote.json",array("post" => $this->ID,"vote" => $vote),"POST");
 			if ($response !== false) {
 				$this->_cacheBust();
@@ -907,7 +907,7 @@
 				results - Results to store.
 		*/
 
-		function __construct(&$object,$last_call,$params,$cursor,$results) {
+		public function __construct(&$object,$last_call,$params,$cursor,$results) {
 			$this->Cursor = $cursor;
 			$this->LastCall = $last_call;
 			$this->LastParameters = $params;
@@ -923,7 +923,7 @@
 				A BigTreeDisqusResultSet with the next page of results or false if there isn't another page.
 		*/
 
-		function nextPage() {
+		public function nextPage() {
 			if (!$this->Cursor->Next) {
 				return false;
 			}
@@ -940,7 +940,7 @@
 				A BigTreeDisqusResultSet with the next page of results or false if there isn't a previous page.
 		*/
 
-		function previousPage() {
+		public function previousPage() {
 			if (!$this->Cursor->Previous) {
 				return false;
 			}
@@ -958,7 +958,7 @@
 	class BigTreeDisqusThread {
 		protected $API;
 
-		function __construct($thread,&$api) {
+		public function __construct($thread,&$api) {
 			$this->API = $api;
 			isset($thread->author) ? $this->AuthorID = $thread->author : false;
 			isset($thread->category) ? $this->CategoryID = $thread->category : false;
@@ -981,7 +981,7 @@
 			isset($thread->userScore) ? $this->UserScore = $thread->userScore : false;
 		}
 
-		function _cacheBust() {
+		public function _cacheBust() {
 			$this->API->cacheBust("forumthreads".$this->ForumID);
 			$this->API->cacheBust("thread".$this->ID);
 		}
@@ -992,7 +992,7 @@
 				Authenticated user must be a moderator of this thread's forum.
 		*/
 
-		function close() {
+		public function close() {
 			$response = $this->API->call("threads/close.json",array("thread" => $this->ID),"POST");
 			if ($response !== false) {
 				$this->_cacheBust();
@@ -1014,7 +1014,7 @@
 				A BigTreeDisqusResultSet of BigTreeDisqusPost objects.
 		*/
 
-		function getPosts($limit = 25,$order = "desc",$params = array()) {
+		public function getPosts($limit = 25,$order = "desc",$params = array()) {
 			$params["thread"] = $this->ID;
 			$params["limit"] = $limit;
 			$params["order"] = $order;
@@ -1037,7 +1037,7 @@
 				Authenticated user must be a moderator of this thread's forum.
 		*/
 
-		function open() {
+		public function open() {
 			$response = $this->API->call("threads/open.json",array("thread" => $this->ID),"POST");
 			if ($response !== false) {
 				$this->_cacheBust();
@@ -1052,7 +1052,7 @@
 				Authenticated user must be a moderator of this thread's forum.
 		*/
 
-		function remove() {
+		public function remove() {
 			$response = $this->API->call("threads/remove.json",array("thread" => $this->ID),"POST");
 			if ($response !== false) {
 				$this->_cacheBust();
@@ -1067,7 +1067,7 @@
 				Authenticated user must be a moderator of this thread's forum.
 		*/
 
-		function restore() {
+		public function restore() {
 			$response = $this->API->call("threads/restore.json",array("thread" => $this->ID),"POST");
 			if ($response !== false) {
 				$this->_cacheBust();
@@ -1084,7 +1084,7 @@
 				email - Email address to use for subscription (optional)
 		*/
 
-		function subscribe($email = false) {
+		public function subscribe($email = false) {
 			$params = array("thread" => $this->ID);
 			if ($email) {
 				$params["email"] = $email;
@@ -1105,7 +1105,7 @@
 				email - Email address used for subscription (optional)
 		*/
 
-		function unsubscribe($email = false) {
+		public function unsubscribe($email = false) {
 			$params = array("thread" => $this->ID);
 			if ($email) {
 				$params["email"] = $email;
@@ -1126,7 +1126,7 @@
 				vote - Vote to cast (-1, 0, or 1)
 		*/
 
-		function vote($vote = 0) {
+		public function vote($vote = 0) {
 			$response = $this->API->call("threads/vote.json",array("thread" => $this->ID,"vote" => $vote),"POST");
 			if ($response !== false) {
 				$this->_cacheBust();
@@ -1144,7 +1144,7 @@
 	class BigTreeDisqusUser {
 		protected $API;
 
-		function __construct($user,&$api) {
+		public function __construct($user,&$api) {
 			$this->API = $api;
 			isset($user->isAnonymous) ? $this->Anonymous = $user->isAnonymous : false;
 			isset($user->about) ? $this->Description = $user->about : false;
@@ -1174,7 +1174,7 @@
 				params - Additional parameters to send to users/listActiveForums API call
 		*/
 
-		function getActiveForums($limit = 25,$params = array()) {
+		public function getActiveForums($limit = 25,$params = array()) {
 			$params["limit"] = $limit;
 			$params["user"] = $this->ID;
 			$response = $this->API->call("users/listActiveForums.json",$params);
@@ -1198,7 +1198,7 @@
 				params - Additional parameters to send to users/listActiveForums API call
 		*/
 
-		function getActiveThreads($limit = 25,$params = array()) {
+		public function getActiveThreads($limit = 25,$params = array()) {
 			$params["limit"] = $limit;
 			$params["user"] = $this->ID;
 			$response = $this->API->call("users/listActiveThreads.json",$params);
@@ -1222,7 +1222,7 @@
 				params - Additional parameters to send to users/listFollowers API call
 		*/
 
-		function getFollowers($limit = 25,$params = array()) {
+		public function getFollowers($limit = 25,$params = array()) {
 			$params["limit"] = $limit;
 			$params["user"] = $this->ID;
 			$response = $this->API->call("users/listFollowers.json",$params);
@@ -1246,7 +1246,7 @@
 				params - Additional parameters to send to users/listFollowing API call
 		*/
 
-		function getFollowing($limit = 25,$params = array()) {
+		public function getFollowing($limit = 25,$params = array()) {
 			$params["limit"] = $limit;
 			$params["user"] = $this->ID;
 			$response = $this->API->call("users/listFollowing.json",$params);
@@ -1271,7 +1271,7 @@
 				params - Additional parameters to send to users/listPosts API call
 		*/
 
-		function getPosts($limit = 25,$order = "desc",$params = array()) {
+		public function getPosts($limit = 25,$order = "desc",$params = array()) {
 			$params["limit"] = $limit;
 			$params["order"] = $order;
 			$params["user"] = $this->ID;
@@ -1296,7 +1296,7 @@
 				true if successful.
 		*/
 
-		function follow() {
+		public function follow() {
 			$response = $this->API->call("users/follow.json",array("target" => $this->ID),"POST");
 			if ($response !== false) {
 				$this->API->cacheBust("user".$this->ID);
@@ -1313,7 +1313,7 @@
 				true if successful.
 		*/
 
-		function unfollow() {
+		public function unfollow() {
 			$response = $this->API->call("users/unfollow.json",array("target" => $this->ID),"POST");
 			if ($response !== false) {
 				$this->API->cacheBust("user".$this->ID);
@@ -1331,7 +1331,7 @@
 	class BigTreeDisqusWhitelistEntry {
 		protected $API;
 
-		function __construct($item,&$api) {
+		public function __construct($item,&$api) {
 			$this->API = $api;
 			$this->ForumID = $item->forum;
 			$this->ID = $item->id;
@@ -1346,7 +1346,7 @@
 				Removes this whitelist entry.
 		*/
 
-		function remove() {
+		public function remove() {
 			$response = $this->API->call("whitelists/remove.json",array("forum" => $this->ForumID,$this->Type => $this->Value),"POST");
 			if ($response !== false) {
 				$this->API->cacheBust("whitelisted".$this->ForumID);

@@ -14,7 +14,7 @@
 		<span class="view_action"></span>
 	</header>
 	<ul id="results">
-		<? include BigTree::path("admin/ajax/users/get-emulate-page.php") ?>	
+		<?php include BigTree::path("admin/ajax/users/get-emulate-page.php"); ?>	
 	</ul>
 </div>
 

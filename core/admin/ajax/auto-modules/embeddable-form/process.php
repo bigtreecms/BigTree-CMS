@@ -1,4 +1,4 @@
-<?
+<?php
 	// Generate a hash of everything posted
 	$complete_string = "";
 	$hash_recurse = function($array) {
@@ -142,4 +142,3 @@
 	} else {
 		BigTree::redirect($bigtree["form_root"]."complete/?id=".$bigtree["form"]["id"]."&hash=".$bigtree["form"]["hash"]);
 	}
-?>

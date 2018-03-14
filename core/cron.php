@@ -1,4 +1,4 @@
-<?
+<?php
 	$server_root = str_replace("core/cron.php","",strtr(__FILE__, "\\", "/"));
 	include $server_root."custom/environment.php";
 	include $server_root."custom/settings.php";
@@ -30,4 +30,3 @@
 	if (!$bigtree["config"]["disable_ping"]) {
 		BigTree::cURL("https://www.bigtreecms.org/ajax/ping/?www_root=".urlencode(WWW_ROOT)."&version=".urlencode(BIGTREE_VERSION));
 	}
-?>

@@ -1,4 +1,4 @@
-<?
+<?php
 	// Stop random hits to the update page
 	if (!isset($_POST["page"])) {
 		BigTree::redirect(ADMIN_ROOT."pages/view-tree/0/");
@@ -32,7 +32,7 @@
 		<p>You do not have access to this page.</p>
 	</section>
 </div>
-<?
+<?php
 		$admin->stop();
 	}
 

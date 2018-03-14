@@ -1,4 +1,4 @@
-<?
+<?php
 	// Check for a page lock
 	if (!empty($_GET["force"])) {
 		$admin->verifyCSRFToken();
@@ -20,7 +20,7 @@
 		<p>The item you are trying to edit no longer exists.</p>
 	</section>
 </div>
-<?
+<?php
 	} else {
 		$bigtree["related_view"] = BigTreeAutoModule::getRelatedViewForForm($bigtree["form"]);
 		$bigtree["entry"] = $item = $pending_entry["item"];

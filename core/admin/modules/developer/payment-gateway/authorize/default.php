@@ -1,6 +1,6 @@
 <div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>developer/payment-gateway/authorize/update/" class="module">
-		<? $admin->drawCSRFToken() ?>
+		<?php $admin->drawCSRFToken() ?>
 		<section>
 			<div class="alert">
 				<p>To enable usage of Authorize.Net as your payment gateway, enter your access information below.</p>
@@ -17,7 +17,7 @@
 				<label>Processing Environment</label>
 				<select name="authorize-environment">
 					<option value="live">Live</option>
-					<option value="test"<? if ($gateway->Settings["authorize-environment"] == "test") { ?> selected="selected"<? } ?>>Test</option>
+					<option value="test"<?php if ($gateway->Settings["authorize-environment"] == "test") { ?> selected="selected"<?php } ?>>Test</option>
 				</select>
 			</fieldset>
 		</section>

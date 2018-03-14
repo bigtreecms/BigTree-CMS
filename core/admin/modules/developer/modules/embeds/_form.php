@@ -1,4 +1,4 @@
-<? $admin->drawCSRFToken() ?>
+<?php $admin->drawCSRFToken() ?>
 <section>
 	<div class="left last">
 		<fieldset>
@@ -10,7 +10,7 @@
 			<label class="required">Data Table</label>
 			<select name="table" id="form_table" class="required">
 				<option></option>
-				<? BigTree::getTableSelectOptions($table); ?>
+				<?php BigTree::getTableSelectOptions($table); ?>
 			</select>
 		</fieldset>
 
@@ -34,12 +34,12 @@
 			<a href="#" id="manage_hooks"><span class="icon_small icon_small_lightning"></span> Manage Hooks</a>
 			<input name="hooks" type="hidden" id="form_hooks" value="<?=htmlspecialchars(json_encode($form["hooks"]))?>" />
 
-			<input type="checkbox" name="default_pending"<? if ($default_pending) { ?> checked="checked"<? } ?> />
+			<input type="checkbox" name="default_pending"<?php if ($default_pending) { ?> checked="checked"<?php } ?> />
 			<label class="for_checkbox">Default Submissions to Pending</label>
 		</fieldset>
 	</div>
 </section>
-<?
+<?php
 	$bigtree["simple_html_fields"] = array("thank_you_message");
 	$bigtree["html_editor_width"] = 435;
 	include BigTree::path("admin/layouts/_html-field-loader.php");

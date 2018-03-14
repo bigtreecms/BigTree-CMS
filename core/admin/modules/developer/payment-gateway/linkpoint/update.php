@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	$gateway->Service = "linkpoint";
@@ -13,4 +13,3 @@
 	
 	$admin->growl("Developer","Updated Payment Gateway");
 	BigTree::redirect(DEVELOPER_ROOT);
-?>

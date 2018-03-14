@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->requireLevel(1);
 	
 	$query = isset($_GET["query"]) ? $_GET["query"] : "";
@@ -24,10 +24,10 @@
 	<section class="view_column users_email"><?=$item["email"]?></section>
 	<section class="view_column users_company"><?=$item["company"]?></section>
 	<section class="view_action">
-		<a href="<?=ADMIN_ROOT?>developer/user-emulator/emulate/?id=<?=$item["id"]?><? $admin->drawCSRFTokenGET() ?>" class="icon_settings ignore_quick_loader"></a>
+		<a href="<?=ADMIN_ROOT?>developer/user-emulator/emulate/?id=<?=$item["id"]?><?php $admin->drawCSRFTokenGET() ?>" class="icon_settings ignore_quick_loader"></a>
 	</section>
 </li>
-<?
+<?php
 	}
 ?>
 <script>

@@ -1,4 +1,4 @@
-<?	
+<?php
 	$integrity_errors = array();
 	$external = $_GET["external"] ? true : false;
 
@@ -53,7 +53,7 @@
 		<p>Broken <?=(($type == "img") ? "Image" : "Link")?>: <?=$error?> in field &ldquo;<?=$form["fields"][$field]["title"]?>&rdquo;</p>
 	</section>
 </li>
-<?
+<?php
 			}
 		}
 	}

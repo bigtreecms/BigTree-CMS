@@ -1,4 +1,4 @@
-<?
+<?php
 	$bigtree["layout"] = "login";
 	$site = $cms->getPage(0,false);
 ?>

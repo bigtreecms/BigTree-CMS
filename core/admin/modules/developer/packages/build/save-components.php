@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	BigTree::globalizePOSTVars();
@@ -182,4 +182,3 @@
 	}
 
 	BigTree::redirect(DEVELOPER_ROOT."packages/build/files/");
-?>

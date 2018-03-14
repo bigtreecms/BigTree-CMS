@@ -1,4 +1,4 @@
-<?
+<?php
 	$groups = $admin->getModuleGroups("name ASC");
 	
 	// Stop notices
@@ -12,7 +12,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/create/" class="module">
-		<? $admin->drawCSRFToken() ?>
+		<?php $admin->drawCSRFToken() ?>
 		<section>
 			<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="contain">
@@ -23,7 +23,7 @@
 					</fieldset>
 				</div>
 				<div class="right">
-					<fieldset<? if (isset($_GET["error"])) { ?> class="form_error"<? } ?>>
+					<fieldset<?php if (isset($_GET["error"])) { ?> class="form_error"<?php } ?>>
 						<label>Route <small>(must be unique, auto generated if left blank, valid chars: alphanumeric and "-")</small></label>
 						<input name="route" type="text" value="<?=$route?>" />
 					</fieldset>
@@ -34,9 +34,9 @@
 				<input name="group_new" type="text" placeholder="New Group" value="<?=$group_new?>" /><span>OR</span> 
 				<select name="group_existing">
 					<option value="0"></option>
-					<? foreach ($groups as $group) { ?>
-					<option value="<?=$group["id"]?>"<? if ($group_existing == $group["id"]) { ?> selected="selected"<? } ?>><?=$group["name"]?></option>
-					<? } ?>
+					<?php foreach ($groups as $group) { ?>
+					<option value="<?=$group["id"]?>"<?php if ($group_existing == $group["id"]) { ?> selected="selected"<?php } ?>><?=$group["name"]?></option>
+					<?php } ?>
 				</select>
 			</fieldset>
 			<div class="left">
@@ -44,7 +44,7 @@
 					<label>Related Table</label>
 					<select name="table" id="rel_table">
 						<option></option>
-						<? BigTree::getTableSelectOptions($table) ?>
+						<?php BigTree::getTableSelectOptions($table) ?>
 					</select>
 				</fieldset>
 				<fieldset>
@@ -55,26 +55,26 @@
 			
 			<br class="clear" />
 			<fieldset>
-		        <label class="required">Icon</label>
-		        <input type="hidden" name="icon" id="selected_icon" value="<?=$icon?>" />
-		        <ul class="developer_icon_list">
-		        	<? foreach (BigTreeAdmin::$IconClasses as $class) { ?>
-		        	<li>
-		        		<a href="#<?=$class?>"<? if ($class == "gear") { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
-		        	</li>
-		        	<? } ?>
-		        </ul>
-		    </fieldset>
+				<label class="required">Icon</label>
+				<input type="hidden" name="icon" id="selected_icon" value="<?=$icon?>" />
+				<ul class="developer_icon_list">
+					<?php foreach (BigTreeAdmin::$IconClasses as $class) { ?>
+					<li>
+						<a href="#<?=$class?>"<?php if ($class == "gear") { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
+					</li>
+					<?php } ?>
+				</ul>
+			</fieldset>
 
 			<fieldset>
-				<input type="checkbox" name="gbp[enabled]" id="gbp_on" <? if (isset($gbp["enabled"]) && $gbp["enabled"]) { ?>checked="checked" <? } ?>/>
+				<input type="checkbox" name="gbp[enabled]" id="gbp_on" <?php if (isset($gbp["enabled"]) && $gbp["enabled"]) { ?>checked="checked" <?php } ?>/>
 				<label class="for_checkbox">Enable Advanced Permissions</label>
 			</fieldset>
 		</section>
-		<? include BigTree::path("admin/modules/developer/modules/_gbp.php") ?>
+		<?php include BigTree::path("admin/modules/developer/modules/_gbp.php"); ?>
 		<footer>
 			<input type="submit" class="button blue" value="Create" />
 		</footer>
 	</form>
 </div>
-<? include BigTree::path("admin/modules/developer/modules/_js.php") ?>
+<?php include BigTree::path("admin/modules/developer/modules/_js.php"); ?>

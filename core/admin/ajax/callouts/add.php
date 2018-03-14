@@ -1,4 +1,4 @@
-<?
+<?php
 	if ($_POST["groups"]) {
 		$items = $admin->getCalloutsInGroups($_POST["groups"]);
 	} else {
@@ -13,19 +13,19 @@
 <div class="callout_type">
 	<fieldset>
 		<label>Callout Type</label>
-		<? if (count($items) > 0) { ?>
+		<?php if (count($items) > 0) { ?>
 		<select name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][type]">
-			<? foreach ($items as $item) { ?>
+			<?php foreach ($items as $item) { ?>
 			<option value="<?=$item["id"]?>"><?=$item["name"]?></option>
-			<? } ?>
+			<?php } ?>
 		</select>
-		<? } else { ?>
+		<?php } else { ?>
 		<input type="text" disabled="disabled" value="No callouts available" />
-		<? } ?>
+		<?php } ?>
 	</fieldset>
 </div>
 <div class="callout_fields">
-	<? include BigTree::path("admin/ajax/callouts/resources.php") ?>
+	<?php include BigTree::path("admin/ajax/callouts/resources.php"); ?>
 </div>
 
 <script>

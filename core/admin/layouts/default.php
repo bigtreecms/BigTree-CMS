@@ -1,4 +1,4 @@
-<?
+<?php
 	function _local_findPath($nav,$path,$last_link = "") {
 		global $bigtree,$breadcrumb;
 		foreach ($nav as $item) {
@@ -65,23 +65,23 @@
 	}
 ?>
 <div id="page">
-	<?
+	<?php
 		if ($bigtree["page"]["title"] && !defined("BIGTREE_404")) {
 	?>
 	<h1>
-		<span class="page_icon <?=$bigtree["page"]["icon"]?>"><? if ($bigtree["page"]["icon"] == "gravatar") { ?><img src="<?=BigTree::gravatar($bigtree["gravatar"])?>" alt="" /><? } ?></span>
-		<?
+		<span class="page_icon <?=$bigtree["page"]["icon"]?>"><?php if ($bigtree["page"]["icon"] == "gravatar") { ?><img src="<?=BigTree::gravatar($bigtree["gravatar"])?>" alt="" /><?php } ?></span>
+		<?php
 			$x = 0;
 			foreach ($breadcrumb as $item) {
 				$x++;
 				
 		?>
-		<a href="<?=ADMIN_ROOT.$item["link"]?>/" class="<? if ($x == 1) { ?> first<? } if ($x == count($breadcrumb)) { ?> last<? } ?>"><?=BigTree::safeEncode($item["title"])?></a>
-		<?
+		<a href="<?=ADMIN_ROOT.$item["link"]?>/" class="<?php if ($x == 1) { ?> first<?php } if ($x == count($breadcrumb)) { ?> last<?php } ?>"><?=BigTree::safeEncode($item["title"])?></a>
+		<?php
 				if ($x != count($breadcrumb)) {
 		?>
 		<span class="divider">&rsaquo;</span>
-		<?		
+		<?php
 				}
 			}
 
@@ -97,22 +97,22 @@
 			<span class="icon">Related</span>
 			<nav class="dropdown">
 				<strong><?=$bigtree["page"]["related"]["title"]?></strong>
-				<?
+				<?php
 					foreach ($bigtree["page"]["related"]["nav"] as $item) {
 						if ($item["level"] <= $admin->Level) {
 				?>
 				<a href="<?=ADMIN_ROOT.$item["link"]?>/"><?=$item["title"]?></a>
-				<?
+				<?php
 						}
 					}
 				?>
 			</nav>
 		</nav>
-		<?
+		<?php
 			}
 		?>
 	</h1>
-	<?
+	<?php
 		}
 
 		$show_nav = false;
@@ -124,7 +124,7 @@
 		if ($show_nav && !defined("BIGTREE_404")) {
 	?>
 	<nav id="sub_nav">
-		<?
+		<?php
 			$active_item = false;
 			// Figure out what the active state is.
 			foreach ($bigtree["page"]["navigation"] as $item) {
@@ -150,21 +150,21 @@
 						}
 					}
 		?>
-		<a href="<?=ADMIN_ROOT.$item["link"]?>/<?=htmlspecialchars(rtrim($get_string,"&"))?>"<? if ($active_item == $item) { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=($item["nav_icon"] ? $item["nav_icon"] : $item["icon"])?>"></span><?=$item["title"]?></a>
-		<?
+		<a href="<?=ADMIN_ROOT.$item["link"]?>/<?=htmlspecialchars(rtrim($get_string,"&"))?>"<?php if ($active_item == $item) { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=($item["nav_icon"] ? $item["nav_icon"] : $item["icon"])?>"></span><?=$item["title"]?></a>
+		<?php
 				}
 			}
 		?>
-		<menu<? if (!count($bigtree["subnav_extras"])) { ?> style="display: none;"<? } ?>>
+		<menu<?php if (!count($bigtree["subnav_extras"])) { ?> style="display: none;"<?php } ?>>
 			<span class="icon"></span>
 			<div>
-				<?
+				<?php
 					if (is_array($bigtree["subnav_extras"])) {
 						foreach ($bigtree["subnav_extras"] as $link) {
 							if ($admin->Level >= $link["level"]) {
 				?>
 				<a href="<?=$link["link"]?>"><span class="icon_small icon_small_<?=$link["icon"]?>"></span><?=$link["title"]?></a>
-				<?
+				<?php
 							}
 						}
 					}
@@ -188,13 +188,13 @@
 			$("#sub_nav menu").show().find("div").prepend(extras.html());
 		}
 	</script>
-	<?
+	<?php
 		}
 
 		echo $bigtree["content"];
 	?>
 </div>
-<?
+<?php
 	// Send JSON if we're doing a partial.
 	if ($_SERVER["HTTP_BIGTREE_PARTIAL"]) {
 		header("Content-type: text/json");

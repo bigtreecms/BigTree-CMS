@@ -1,4 +1,4 @@
-<?
+<?php
 	if (!$_SESSION["bigtree_admin"]["form_data"]) {
 		BigTree::redirect($_SESSION["bigtree_admin"]["cropper_previous_page"]);
 	}
@@ -11,16 +11,16 @@
 	$crops = $cms->cacheGet("org.bigtreecms.crops",$crop_key);
 ?>
 <div class="container">
-	<? if (count($crops) > 1) { ?>
+	<?php if (count($crops) > 1) { ?>
 	<header>
 		<h2 class="cropper"><span>Cropping Image</span> <span class="count current">1</span> <span>of</span> <span class="count total"><?=count($crops)?></span></h2>
 	</header>
-	<? } ?>
-	<form method="post" action="<?=$bigtree["form_root"]?>process-crops/<? if (is_array($bigtree["current_page"])) { echo $bigtree["current_page"]["id"]; } elseif (is_numeric($bigtree["current_page"])) { echo $bigtree["current_page"]; } ?>/" id="crop_form" class="module">
+	<?php } ?>
+	<form method="post" action="<?=$bigtree["form_root"]?>process-crops/<?php if (is_array($bigtree["current_page"])) { echo $bigtree["current_page"]["id"]; } elseif (is_numeric($bigtree["current_page"])) { echo $bigtree["current_page"]; } ?>/" id="crop_form" class="module">
 		<input type="hidden" name="return_page" value="<?=htmlspecialchars($return_link)?>" />
 		<input type="hidden" name="crop_key" value="<?=htmlspecialchars($crop_key)?>" />
 		<section id="cropper">
-			<?
+			<?php
 				$x = 0;
 				foreach ($crops as $crop) {
 					$x++;
@@ -85,7 +85,7 @@
 					// Figure out where the arrow should be
 					$arrow_margin = 13 + ceil($box_height / 2);
 			?>
-			<article<? if ($x > 1) { ?> style="display: none;"<? } ?>>
+			<article<?php if ($x > 1) { ?> style="display: none;"<?php } ?>>
 				<div class="original">
 					<p>Original</p>
 					<img src="<?=$image?>" id="cropImage<?=$x?>" width="<?=$box_width?>" height="<?=$box_height?>" />
@@ -134,7 +134,7 @@
 					};
 				</script>
 			</article>
-			<?
+			<?php
 				}
 			?>
 		</section>

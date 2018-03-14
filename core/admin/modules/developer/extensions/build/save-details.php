@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	foreach ($_POST as $key => $val) {
@@ -14,4 +14,3 @@
 	} else {
 		BigTree::redirect(DEVELOPER_ROOT."extensions/build/components/");
 	}
-?>

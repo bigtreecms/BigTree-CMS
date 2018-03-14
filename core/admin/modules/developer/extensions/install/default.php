@@ -1,4 +1,4 @@
-<?
+<?php
 	// Check writability of directories
 	$directories_to_check = array(
 		"cache/",
@@ -14,21 +14,21 @@
 		<p>Your <code>/<?=$directory?></code> directory must be writable to install extensions.</p>
 	</section>
 </div>
-<?
+<?php
 			$admin->stop();
 		}
 	}
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>extensions/install/unpack/" enctype="multipart/form-data">
-		<? $admin->drawCSRFToken() ?>
+		<?php $admin->drawCSRFToken() ?>
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
 		<section>
-			<?
+			<?php
 				if ($_SESSION["upload_error"]) {
 			?>
 			<p class="error_message"><?=$_SESSION["upload_error"]?></p>
-			<?
+			<?php
 					unset($_SESSION["upload_error"]);
 				}
 				

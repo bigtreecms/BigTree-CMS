@@ -1,4 +1,4 @@
-<?
+<?php
 	BigTree::globalizeArray($bigtree["view"]);
 		
 	$m = BigTreeAutoModule::getModuleForView($bigtree["view"]);
@@ -28,7 +28,7 @@
 		<nav id="view_paging" class="view_paging"></nav>
 	</summary>
 	<header>
-		<?
+		<?php
 			$x = 0;
 			foreach ($fields as $key => $field) {
 				$x++;
@@ -49,18 +49,18 @@
 				}
 		?>
 		<span class="view_column" style="width: <?=$field["width"]?>px;"><a class="js-sort-column sort_column<?=$active?>" href="<?=$s_direction?>" name="<?=$key?>"><?=$field["title"]?> <em><?=$achar?></em></a></span>
-		<?
+		<?php
 			}
 		?>
 		<span class="view_status">Status</span>
-		<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><? if (count($bigtree["view"]["actions"]) > 1) { ?>Actions<? } ?></span>
+		<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><?php if (count($bigtree["view"]["actions"]) > 1) { ?>Actions<?php } ?></span>
 	</header>
 	<ul id="results">
-		<? include BigTree::path("admin/ajax/auto-modules/views/searchable-page.php") ?>
+		<?php include BigTree::path("admin/ajax/auto-modules/views/searchable-page.php"); ?>
 	</ul>
 </div>
 
-<? include BigTree::path("admin/auto-modules/views/_common-js.php") ?>
+<?php include BigTree::path("admin/auto-modules/views/_common-js.php"); ?>
 <script>
 	BigTree.localSortColumn = "<?=htmlspecialchars($sort_column)?>";
 	BigTree.localSortDirection = "<?=htmlspecialchars($sort_direction)?>";

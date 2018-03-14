@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	$gateway->Service = "paypal-rest";
@@ -14,4 +14,3 @@
 
 	$admin->growl("Developer","Updated Payment Gateway");
 	BigTree::redirect(DEVELOPER_ROOT);
-?>

@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	BigTree::globalizePOSTVars();
@@ -9,4 +9,3 @@
 	$_SESSION["bigtree_admin"]["developer"]["package"]["tables"] = $tables;
 
 	BigTree::redirect(DEVELOPER_ROOT."extensions/build/review/");
-?>

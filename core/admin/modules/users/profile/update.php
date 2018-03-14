@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 
 	if ($_POST["password"] && !$admin->validatePassword($_POST["password"])) {
@@ -10,4 +10,3 @@
 	$admin->updateProfile($_POST);
 	$admin->growl("Users","Updated Profile");
 	BigTree::redirect(ADMIN_ROOT."dashboard/");
-?>

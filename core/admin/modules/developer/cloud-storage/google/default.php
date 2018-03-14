@@ -1,6 +1,6 @@
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/google/activate/" class="module" enctype="multipart/form-data">
-		<? $admin->drawCSRFToken() ?>
+		<?php $admin->drawCSRFToken() ?>
 		<section>
 			<p>To activate Google Cloud Storage you must follow these steps:</p>
 			<hr />
@@ -34,9 +34,9 @@
 			<fieldset class="developer_cloud_key">
 				<label>Certificate Private Key <small>(optional, needed only for Temporary Private URLs)</small></label>
 				<input type="file" name="private_key" />
-				<? if ($cloud->Settings["private_key"]) { ?>
+				<?php if ($cloud->Settings["private_key"]) { ?>
 				<span class="icon_approve icon_approve_on"></span>
-				<? } ?>
+				<?php } ?>
 			</fieldset>
 		</section>
 		<footer>

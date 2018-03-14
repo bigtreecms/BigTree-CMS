@@ -1,4 +1,4 @@
-<?
+<?php
 	// Find out whether this is a draggable Many to Many.
 	$table_description = BigTree::describeTable($field["options"]["mtm-connecting-table"]);
 	$cols = $table_description["columns"];
@@ -58,43 +58,43 @@
 	if (count($list) || count($entries)) {
 ?>
 <div class="multi_widget many_to_many" id="<?=$field["id"]?>">
-	<section<? if (count($entries)) { ?> style="display: none;"<? } ?>>
+	<section<?php if (count($entries)) { ?> style="display: none;"<?php } ?>>
 		<p>No items have been tagged. Click "Add Item" to add an item to this list.</p>
 	</section>
 	<ul>
-		<?
+		<?php
 			foreach ($entries as $id => $description) {
 		?>
 		<li>
 			<input type="hidden" name="<?=$field["key"]?>[<?=$x?>]" value="<?=BigTree::safeEncode($id)?>" />
-			<? if ($sortable) { ?>
+			<?php if ($sortable) { ?>
 			<span class="icon_sort"></span>
-			<? } ?>
+			<?php } ?>
 			<p><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($description),100))?></p>
 			<a href="#" class="icon_delete"></a>
 		</li>
-		<?
+		<?php
 				$x++;
 			}
 		?>
 	</ul>
 	<footer>
 		<select>
-			<? foreach ($list as $k => $v) { ?>
+			<?php foreach ($list as $k => $v) { ?>
 			<option value="<?=BigTree::safeEncode($k)?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($v),100))?></option>
-			<? } ?>
+			<?php } ?>
 		</select>
 		<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>
-		<?
+		<?php
 			if ($field["options"]["show_add_all"]) {
 		?>
 		<a href="#" class="add_all button">Add All</a>
-		<?
+		<?php
 			}
 			if ($field["options"]["show_reset"]) {
 		?>
 		<a href="#" class="reset button red">Reset</a>
-		<?
+		<?php
 			}
 		?>
 	</footer>
@@ -107,7 +107,7 @@
 		sortable: <?=($sortable ? "true" : "false")?>,
 	});
 </script>
-<?
+<?php
 	} else {
 ?>
 <div class="multi_widget">
@@ -115,6 +115,6 @@
 		<p>There are no items available to tag.</p>
 	</section>
 </div>
-<?
+<?php
 	}
 ?>

@@ -1,10 +1,10 @@
-<?
+<?php
 	$type = $admin->getFieldType(end($bigtree["commands"]));
 	BigTree::globalizeArray($type,array("htmlspecialchars"));
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>field-types/update/" enctype="multipart/form-data" class="module">
-		<? $admin->drawCSRFToken() ?>
+		<?php $admin->drawCSRFToken() ?>
 		<input type="hidden" name="id" value="<?=$id?>" />
 		<section>
 			<fieldset>
@@ -14,15 +14,15 @@
 			<fieldset>
 				<label class="required">Use Cases</label>
 				<ul class="developer_field_types_usage">
-					<li><input type="checkbox" name="use_cases[templates]"<? if ($use_cases["templates"]) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Templates</label></li>
-					<li><input type="checkbox" name="use_cases[modules]"<? if ($use_cases["modules"]) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Modules</label></li>
-					<li><input type="checkbox" name="use_cases[callouts]"<? if ($use_cases["callouts"]) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Callouts</label></li>
-					<li><input type="checkbox" name="use_cases[settings]"<? if ($use_cases["settings"]) { ?> checked="checked"<? } ?> /> <label class="for_checkbox">Settings</label></li>
+					<li><input type="checkbox" name="use_cases[templates]"<?php if ($use_cases["templates"]) { ?> checked="checked"<?php } ?> /> <label class="for_checkbox">Templates</label></li>
+					<li><input type="checkbox" name="use_cases[modules]"<?php if ($use_cases["modules"]) { ?> checked="checked"<?php } ?> /> <label class="for_checkbox">Modules</label></li>
+					<li><input type="checkbox" name="use_cases[callouts]"<?php if ($use_cases["callouts"]) { ?> checked="checked"<?php } ?> /> <label class="for_checkbox">Callouts</label></li>
+					<li><input type="checkbox" name="use_cases[settings]"<?php if ($use_cases["settings"]) { ?> checked="checked"<?php } ?> /> <label class="for_checkbox">Settings</label></li>
 				</ul>
 			</fieldset>
 			<hr />
 			<fieldset>
-				<input type="checkbox" name="self_draw"<? if ($self_draw) { ?> checked="checked"<? } ?> />
+				<input type="checkbox" name="self_draw"<?php if ($self_draw) { ?> checked="checked"<?php } ?> />
 				<label class="for_checkbox">Self Draw <small>(if checked, you will need to draw your &lt;fieldset&gt; and &lt;label&gt; manually)</small></label>
 			</fieldset>
 		</section>

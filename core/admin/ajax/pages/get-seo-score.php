@@ -1,4 +1,4 @@
-<?
+<?php
 	$_POST["live"] = true;
 	$_POST["resources"]["page_content"] = $_POST["content"];
 	$seo = $admin->getPageSEORating($_POST,$_POST["resources"]);
@@ -17,8 +17,9 @@
 		$goal_text .= "<p>You currently meet all recommended SEO goals.</p>";
 	}
 	$goal_text .= '<p><a href="'.$wiki.'SEO" target="wiki">Learn More About SEO Goals</a></p>';
+	
+	echo $goal_text;
 ?>
-<?=$goal_text?>
 <script>
 	$("li.seo_info p").html('<strong style="color: <?=$seo_color?>"><?=$seo_rating?>%</strong> SEO Rating');
 	$(".seo_goals").html("<?=str_replace('"','\"',$goal_text)?>");

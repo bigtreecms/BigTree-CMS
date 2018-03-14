@@ -1,4 +1,4 @@
-<?
+<?php
 	$settings = $admin->getSettings();
 ?>
 <div class="table">
@@ -10,7 +10,7 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul>
-		<? foreach ($settings as $setting) { ?>
+		<?php foreach ($settings as $setting) { ?>
 		<li>
 			<section class="developer_settings_name">
 				<a href="<?=DEVELOPER_ROOT?>settings/edit/<?=$setting["id"]?>/"><?=$setting["name"]?></a>
@@ -21,10 +21,10 @@
 				<a href="<?=DEVELOPER_ROOT?>settings/edit/<?=$setting["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>settings/delete/?id=<?=$setting["id"]?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>settings/delete/?id=<?=$setting["id"]?><?php $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
 			</section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
 </div>
 

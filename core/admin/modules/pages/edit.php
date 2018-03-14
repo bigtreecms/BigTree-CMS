@@ -1,4 +1,4 @@
-<?
+<?php
 	$bigtree["current_page"] = $page;
 	$bigtree["resources"] = $page["resources"];
 	
@@ -28,4 +28,3 @@
 	
 	$bigtree["form_action"] = "update";
 	include BigTree::path("admin/modules/pages/_form.php");
-?>

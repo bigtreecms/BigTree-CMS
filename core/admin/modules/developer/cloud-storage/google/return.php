@@ -1,4 +1,4 @@
-<?
+<?php
 	$token = $cloud->oAuthSetToken($_GET["code"]);
 	if ($cloud->OAuthError) {
 		$admin->growl("Google Cloud Storage",$cloud->OAuthError,"error");
@@ -7,4 +7,3 @@
 	}
 	$cloud->Settings["google"]["active"] = true;
 	BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
-?>

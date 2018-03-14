@@ -1,4 +1,4 @@
-<?
+<?php
 	if (empty($_FILES)) {
 ?>
 <html>
@@ -8,7 +8,7 @@
 		</script>
 	</body>
 </html>
-<?
+<?php
 		die();
 	}
 

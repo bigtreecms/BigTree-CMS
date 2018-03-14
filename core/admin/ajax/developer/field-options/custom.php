@@ -1,4 +1,4 @@
-<?
+<?php
 	// Stop notices
 	$data["function"] = isset($data["function"]) ? $data["function"] : "";
 	$data["process_function"] = isset($data["process_function"]) ? $data["process_function"] : "";

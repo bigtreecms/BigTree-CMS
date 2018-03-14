@@ -1,4 +1,4 @@
-<?
+<?php
 	include "_setup.php";
 	
 	if ($item["archived"]) {
@@ -26,4 +26,3 @@
 	}
 	
 	include "_recache.php";
-?>

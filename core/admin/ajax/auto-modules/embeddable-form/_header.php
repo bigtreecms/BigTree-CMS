@@ -1,4 +1,4 @@
-<?
+<?php
 	$bigtree["form"] = $form = BigTreeAutoModule::getEmbedFormByHash($_GET["hash"]);
 	$bigtree["form_root"] = ADMIN_ROOT."ajax/auto-modules/embeddable-form/";
 ?><!doctype html> 
@@ -10,13 +10,13 @@
 	<head>
 		<meta charset="utf-8" />
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" type="text/css" media="screen" />
-		<?
+		<?php
 			// Configuration based CSS
 			if (isset($bigtree["config"]["admin_css"]) && is_array($bigtree["config"]["admin_css"])) {
 				foreach ($bigtree["config"]["admin_css"] as $style) {
 		?>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/<?=$style?>" type="text/css" media="screen" />
-		<?
+		<?php
 				}
 			}
 			// Runtime based CSS
@@ -37,26 +37,26 @@
 					}
 		?>
 		<link rel="stylesheet" href="<?=$include_path?>" type="text/css" media="screen" />
-		<?
+		<?php
 				}
 			}
 			if ($form["css"]) {
 		?>
 		<link rel="stylesheet" href="<?=$form["css"]?>" type="text/css" media="screen" />
-		<?
+		<?php
 			}
 		?>
 		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
 		<script>BigTree.dateFormat = "<?=BigTree::phpDateTojQuery($bigtree["config"]["date_format"])?>";</script>
 		<script src="<?=ADMIN_ROOT?>js/<?=isset($bigtree["config"]["html_editor"]) ? $bigtree["config"]["html_editor"]["src"] : "tinymce3/tiny_mce.js"?>"></script>
-		<?
+		<?php
 			// Configuration based JS
 			if (isset($bigtree["config"]["admin_js"]) && is_array($bigtree["config"]["admin_js"])) {
 				foreach ($bigtree["config"]["admin_js"] as $script) {
 		?>
 		<script src="<?=ADMIN_ROOT?>js/<?=$script?>"></script>
-		<?
+		<?php
 				}
 			}
 
@@ -79,7 +79,7 @@
 
 		?>
 		<script src="<?=$include_path?>"></script>
-		<?
+		<?php
 				}
 			}
 		?>

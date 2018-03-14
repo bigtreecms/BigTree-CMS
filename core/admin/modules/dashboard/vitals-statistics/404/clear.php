@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->requireLevel(1);
 	
 	if (isset($_POST["clear"])) {
@@ -9,7 +9,7 @@
 	} else {
 ?>
 <form method="post" action="">
-	<? $admin->drawCSRFToken(); ?>
+	<?php $admin->drawCSRFToken(); ?>
 	<div class="container">
 		<section>
 			<p>Are you sure you want to clear out all existing 404s that do not have associated 301 redirects?</p>
@@ -19,6 +19,6 @@
 		</footer>
 	</div>
 </form>
-<?
+<?php
 	}
 ?>

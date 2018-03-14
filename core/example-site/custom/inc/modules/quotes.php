@@ -1,7 +1,7 @@
-<?
+<?php
 	class DemoQuotes extends BigTreeModule {
 
-		var $Table = "demo_quotes";
-		var $Module = "2";
+		public $Table = "demo_quotes";
+		public $Module = "2";
+
 	}
-?>

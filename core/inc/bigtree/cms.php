@@ -6,23 +6,23 @@
 
 	class BigTreeCMSBase {
 	
-		var $AutoSaveSettings = array();
+		public $AutoSaveSettings = array();
 
-		static $BreadcrumbTrunk;
-		static $IRLCache = array();
-		static $IPLCache = array();
-		static $MySQLTime = false;
-		static $ReplaceableRootKeys = array();
-		static $ReplaceableRootVals = array();
-		static $Secure;
-		static $SiteRoots = array();
+		public static $BreadcrumbTrunk;
+		public static $IRLCache = array();
+		public static $IPLCache = array();
+		public static $MySQLTime = false;
+		public static $ReplaceableRootKeys = array();
+		public static $ReplaceableRootVals = array();
+		public static $Secure;
+		public static $SiteRoots = array();
 
 		/*
 			Constructor:
 				Builds a flat file module class list so that module classes can be autoloaded instead of always in memory.
 		*/
 		
-		function __construct() {
+		public function __construct() {
 			global $bigtree;
 			
 			// If the cache exists, just use it.
@@ -75,7 +75,7 @@
 				Saves settings back to the database that were instantiated through the autoSaveSetting method.
 		*/
 
-		function __destruct() {
+		public function __destruct() {
 			foreach ($this->AutoSaveSettings as $id => $obj) {
 				if (is_object($obj)) {
 					BigTreeAdmin::updateSettingValue($id,get_object_vars($obj));
@@ -99,7 +99,7 @@
 				An object reference.
 		*/
 
-		function &autoSaveSetting($id,$return_object = true) {
+		public function &autoSaveSetting($id,$return_object = true) {
 			$id = static::extensionSettingCheck($id);
 
 			// Only want one usage to exist
@@ -152,7 +152,7 @@
 				key - The key for your data (if no key is passed, deletes all data for a given identifier)
 		*/
 
-		static function cacheDelete($identifier,$key = false) {
+		public static function cacheDelete($identifier,$key = false) {
 			$identifier = sqlescape($identifier);
 			
 			if ($key === false) {
@@ -176,7 +176,7 @@
 				Data from the table (json decoded, objects convert to keyed arrays) if it exists or false.
 		*/
 
-		static function cacheGet($identifier,$key,$max_age = false,$decode = true) {
+		public static function cacheGet($identifier,$key,$max_age = false,$decode = true) {
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
 
@@ -218,7 +218,7 @@
 				True if successful, false if the indentifier/key combination already exists and replace was set to false.
 		*/
 
-		static function cachePut($identifier,$key,$value,$replace = true) {
+		public static function cachePut($identifier,$key,$value,$replace = true) {
 			$identifier = sqlescape($identifier);
 			$key = sqlescape($key);
 			$f = sqlfetch(sqlquery("SELECT `key` FROM bigtree_caches WHERE `identifier` = '$identifier' AND `key` = '$key'"));
@@ -248,7 +248,7 @@
 				They unique cache key.
 		*/
 
-		static function cacheUnique($identifier,$value) {
+		public static function cacheUnique($identifier,$value) {
 			$success = false;
 			while (!$success) {
 				$key = uniqid("",true);
@@ -262,7 +262,7 @@
 				Manually catch and display the 404 page from a routed template; logs missing page with handle404
 		*/
 		
-		static function catch404() {
+		public static function catch404() {
 			global $admin,$bigtree,$cms;
 			
 			ob_clean();
@@ -285,7 +285,7 @@
 				path - An array of routes
 		*/
 		
-		static function checkOldRoutes($path) {
+		public static function checkOldRoutes($path) {
 			$found = false;
 			$x = count($path);
 			while ($x) {
@@ -317,7 +317,7 @@
 				An array of resources.
 		*/
 
-		static function decodeResources($data) {
+		public static function decodeResources($data) {
 			if (!is_array($data)) {
 				$data = json_decode($data,true);
 			}
@@ -344,7 +344,7 @@
 				Outputs an XML sitemap.
 		*/
 		
-		static function drawXMLSitemap() {
+		public static function drawXMLSitemap() {
 			header("Content-type: text/xml");
 			echo '<?xml version="1.0" encoding="UTF-8" ?>';
 			echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">';
@@ -394,7 +394,7 @@
 				An extension setting ID if one is found.
 		*/
 
-		static function extensionSettingCheck($id) {
+		public static function extensionSettingCheck($id) {
 			global $bigtree;
 
 			$id = sqlescape($id);
@@ -424,7 +424,7 @@
 				Caches a list of tokens and the values that are related to them.
 		*/
 		
-		static function generateReplaceableRoots() {
+		public static function generateReplaceableRoots() {
 			global $bigtree;
 			
 			$valid_root = function($root) {
@@ -478,7 +478,7 @@
 				<getBreadcrumbByPage>
 		*/
 		
-		static function getBreadcrumb($ignore_trunk = false) {
+		public static function getBreadcrumb($ignore_trunk = false) {
 			global $bigtree;
 			return static::getBreadcrumbByPage($bigtree["page"],$ignore_trunk);
 		}
@@ -499,7 +499,7 @@
 				<getBreadcrumb>
 		*/
 		
-		static function getBreadcrumbByPage($page,$ignore_trunk = false) {
+		public static function getBreadcrumbByPage($page,$ignore_trunk = false) {
 			global $bigtree;
 			
 			// Break up the pieces so we can get each piece of the path individually and pull all the pages above this one.
@@ -562,7 +562,7 @@
 				<getFeedByRoute>
 		*/
 		
-		static function getFeed($item) {
+		public static function getFeed($item) {
 			if (!is_array($item)) {
 				$item = sqlescape($item);
 				$item = sqlfetch(sqlquery("SELECT * FROM bigtree_feeds WHERE id = '$item'"));
@@ -594,7 +594,7 @@
 				<getFeed>
 		*/
 		
-		static function getFeedByRoute($route) {
+		public static function getFeedByRoute($route) {
 			$route = sqlescape($route);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_feeds WHERE route = '$route'"));
 			return static::getFeed($item);
@@ -614,7 +614,7 @@
 				<getNavByParent>
 		*/
 		
-		static function getHiddenNavByParent($parent = 0) {
+		public static function getHiddenNavByParent($parent = 0) {
 			return static::getNavByParent($parent,1,false,true);
 		}
 		
@@ -629,7 +629,7 @@
 				Public facing URL.
 		*/
 		
-		static function getInternalPageLink($ipl) {
+		public static function getInternalPageLink($ipl) {
 			global $bigtree;
 
 			// Regular links
@@ -711,7 +711,7 @@
 				Public facing URL.
 		*/
 		
-		static function getLink($id) {
+		public static function getLink($id) {
 			global $bigtree;
 			
 			// Homepage, just return the web root.
@@ -758,9 +758,9 @@
 				A multi-level navigation array containing "id", "parent", "title", "route", "link", "new_window", and "children"
 		*/
 			
-		static function getNavByParent($parent = 0, $levels = 1, $follow_module = true, $only_hidden = false, $explicit_zero = false) {
+		public static function getNavByParent($parent = 0, $levels = 1, $follow_module = true, $only_hidden = false, $explicit_zero = false) {
 			global $bigtree;
-			static $module_nav_count = 0;
+			public static $module_nav_count = 0;
 			
 			$nav = array();
 			$find_children = array();
@@ -884,7 +884,7 @@
 				An array containing the page ID and any additional commands.
 		*/
 		
-		static function getNavId($path,$previewing = false) {
+		public static function getNavId($path,$previewing = false) {
 			$commands = array();
 			
 			// Add multi-site path
@@ -936,7 +936,7 @@
 				A page array from the database.
 		*/
 		
-		static function getPage($id,$decode = true) {
+		public static function getPage($id,$decode = true) {
 			$id = sqlescape($id);
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE id = '$id'"));
 			if (!$f) {
@@ -972,7 +972,7 @@
 				A page array from the database.
 		*/
 		
-		static function getPendingPage($id,$decode = true,$return_tags = false) {
+		public static function getPendingPage($id,$decode = true,$return_tags = false) {
 			// Numeric id means the page is live.
 			if (is_numeric($id)) {
 				$page = static::getPage($id);
@@ -1059,7 +1059,7 @@
 				A URL.
 		*/
 		
-		static function getPreviewLink($id) {
+		public static function getPreviewLink($id) {
 			if (substr($id,0,1) == "p") {
 				return WWW_ROOT."_preview-pending/$id/";
 			} elseif ($id == 0) {
@@ -1082,7 +1082,7 @@
 				An array of related pages sorted by relevance (how many tags get matched).
 		*/
 		
-		static function getRelatedPagesByTags($tags = array()) {
+		public static function getRelatedPagesByTags($tags = array()) {
 			$results = array();
 			$relevance = array();
 			foreach ($tags as $tag) {
@@ -1122,7 +1122,7 @@
 				A string or array of the setting's value.
 		*/
 		
-		static function getSetting($id) {
+		public static function getSetting($id) {
 			global $bigtree;
 			$id = static::extensionSettingCheck($id);
 			$setting = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
@@ -1156,7 +1156,7 @@
 				Array containing the string or array of each setting's value.
 		*/
 		
-		static function getSettings($ids) {
+		public static function getSettings($ids) {
 			global $bigtree;
 
 			// If for some reason we only requested one, just call getSetting
@@ -1206,7 +1206,7 @@
 				A tag entry from bigtree_tags.
 		*/
 		
-		static function getTag($id) {
+		public static function getTag($id) {
 			$id = sqlescape($id);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$id'"));
 		}
@@ -1222,7 +1222,7 @@
 				A tag entry from bigtree_tags.
 		*/
 		
-		static function getTagByRoute($route) {
+		public static function getTagByRoute($route) {
 			$route = sqlescape($route);
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE route = '$route'"));
 		}
@@ -1238,7 +1238,7 @@
 				An array of tags.
 		*/
 		
-		static function getTagsForPage($page) {
+		public static function getTagsForPage($page) {
 			if (!is_numeric($page)) {
 				$page = $page["id"];
 			}
@@ -1261,7 +1261,7 @@
 				The template row from the database with resources decoded.
 		*/
 		
-		static function getTemplate($id) {
+		public static function getTemplate($id) {
 			$id = sqlescape($id);
 			$template = sqlfetch(sqlquery("SELECT * FROM bigtree_templates WHERE id = '$id'"));
 			if (!$template) {
@@ -1286,7 +1286,7 @@
 			
 		*/
 		
-		static function getTopLevelNavigationId($trunk_as_toplevel = false) {
+		public static function getTopLevelNavigationId($trunk_as_toplevel = false) {
 			global $bigtree;
 			return static::getTopLevelNavigationIdForPage($bigtree["page"],$trunk_as_toplevel);
 		}
@@ -1307,7 +1307,7 @@
 			
 		*/
 		
-		static function getTopLevelNavigationIdForPage($page,$trunk_as_toplevel = false) {
+		public static function getTopLevelNavigationIdForPage($page,$trunk_as_toplevel = false) {
 			$paths = array();
 			$path = "";
 			$parts = explode("/",$page["path"]);
@@ -1340,7 +1340,7 @@
 				url - The URL you hit that's a 404.
 		*/
 		
-		static function handle404($url) {
+		public static function handle404($url) {
 			$url = sqlescape(htmlspecialchars(strip_tags(rtrim($url, "/"))));
 			$existing = null;
 
@@ -1434,7 +1434,7 @@
 				A fully qualified URL
 		*/
 		
-		static function linkForPath($path) {
+		public static function linkForPath($path) {
 			global $bigtree;
 			
 			// Remove the site root from the path for multi-site
@@ -1468,7 +1468,7 @@
 				When Secure mode is enabled, BigTree will enforce the user being at HTTPS and will rewrite all insecure resources (like CSS, JavaScript, and images) to use HTTPS.
 		*/
 		
-		static function makeSecure() {
+		public static function makeSecure() {
 			if (!$_SERVER["HTTPS"]) {
 				BigTree::redirect("https://".$_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"],"301");
 			}
@@ -1486,7 +1486,7 @@
 				A string with relative roots.
 		*/
 
-		static function replaceHardRoots($string) {
+		public static function replaceHardRoots($string) {
 			static::generateReplaceableRoots();
 			
 			return str_replace(static::$ReplaceableRootKeys, static::$ReplaceableRootVals, $string);
@@ -1503,7 +1503,7 @@
 				An HTML block with links hard-linked.
 		*/
 		
-		static function replaceInternalPageLinks($html) {
+		public static function replaceInternalPageLinks($html) {
 			// Save time if there's no content
 			if (trim($html) === "") {
 				return "";
@@ -1519,7 +1519,7 @@
 
 			return $html;
 		}
-		static function replaceInternalPageLinksHook($matches) {
+		public static function replaceInternalPageLinksHook($matches) {
 			return '="'.static::getInternalPageLink($matches[1]).'"';
 		}
 		
@@ -1534,7 +1534,7 @@
 				A string with hard links.
 		*/
 
-		static function replaceRelativeRoots($string) {
+		public static function replaceRelativeRoots($string) {
 			static::generateReplaceableRoots();
 			
 			return str_replace(static::$ReplaceableRootVals, static::$ReplaceableRootKeys, $string);
@@ -1551,7 +1551,7 @@
 				A string suited for a URL route.
 		*/
 
-		static function urlify($title) {
+		public static function urlify($title) {
 			if (class_exists("Locale") && version_compare(PHP_VERSION, "7.0.0") >= 0) {
 				require_once(SERVER_ROOT."core/inc/lib/slug-generator/src/SlugOptions.php");
 				require_once(SERVER_ROOT."core/inc/lib/slug-generator/src/SlugGenerator.php");

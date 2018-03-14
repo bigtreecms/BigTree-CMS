@@ -1,6 +1,6 @@
 <div class="container">
 	<form method="post" action="<?=ADMIN_ROOT?>developer/payment-gateway/linkpoint/update/" class="module" enctype="multipart/form-data">
-		<? $admin->drawCSRFToken() ?>
+		<?php $admin->drawCSRFToken() ?>
 		<section>
 			<div class="alert">
 				<p>To enable usage of First Data / LinkPoint as your payment gateway, enter your access information below.</p>
@@ -20,7 +20,7 @@
 				<label>Processing Environment</label>
 				<select name="linkpoint-environment">
 					<option value="live">Live</option>
-					<option value="test"<? if ($gateway->Settings["linkpoint-environment"] == "test") { ?> selected="selected"<? } ?>>Test</option>
+					<option value="test"<?php if ($gateway->Settings["linkpoint-environment"] == "test") { ?> selected="selected"<?php } ?>>Test</option>
 				</select>
 			</fieldset>
 		</section>

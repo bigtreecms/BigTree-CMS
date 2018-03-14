@@ -1,4 +1,4 @@
-<?
+<?php
 	$api = new BigTreeDisqusAPI;
 	$name = "Disqus";
 	$route = "disqus";
@@ -17,4 +17,3 @@
 		$api->Settings["user_image"] = $user->Image;
 		$api->Settings["user_id"] = $user->ID;
 	}
-?>

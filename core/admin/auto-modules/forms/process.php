@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	// If there's a preprocess function for this module, let's get'r'done.

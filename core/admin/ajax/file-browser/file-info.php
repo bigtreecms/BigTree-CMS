@@ -1,4 +1,4 @@
-<?
+<?php
 	$file = $admin->getResourceByFile($_POST["file"]);
 	$pinfo = BigTree::pathInfo($file["file"]);
 
@@ -12,7 +12,7 @@
 <div class="file_browser_detail_thumb">
 	<img src="<?=$file["thumbs"]["bigtree_internal_detail"].($_COOKIE["bigtree_admin"]["recently_replaced_file"] ? "?".uniqid() : "")?>" alt="" />
 </div>
-<?
+<?php
 	}
 ?>
 <div class="file_browser_detail_title">
@@ -20,22 +20,22 @@
 	<input type="text" name="<?=$file["id"]?>" id="file_browser_detail_title_input" value="<?=$file["name"]?>" />
 </div>
 <div class="file_browser_detail_list">
-	<? if (!$file["is_image"]) { ?>
+	<?php if (!$file["is_image"]) { ?>
 	<p><span>File Name</span><strong><?=$pinfo["basename"]?></strong></p>
-	<? } ?>
+	<?php } ?>
 	<p><span>File Type</span><strong><?=$pinfo["extension"]?></strong></p>
-	<? if ($file["width"]) { ?>
+	<?php if ($file["width"]) { ?>
 	<p><span>Width</span><strong><?=$file["width"]?></strong></p>
-	<? } ?>
-	<? if ($file["height"]) { ?>
+	<?php } ?>
+	<?php if ($file["height"]) { ?>
 	<p><span>Height</span><strong><?=$file["height"]?></strong></p>
-	<? } ?>
+	<?php } ?>
 	<p><span>Uploaded</span><strong><?=date("n/j/y @ g:ia",strtotime($file["date"]))?></strong></p>
-	<? if ($file["folder"]) { ?>
+	<?php if ($file["folder"]) { ?>
 	<p><span>Folder</span><strong class="file_browser_detail_folder_button" data-folder="<?=$folder["id"]?>"><?=$folder["name"]?></strong></p>
-	<? } ?>
+	<?php } ?>
 </div>
-<?
+<?php
 	if ($admin->Level) {
 		$alloc = $admin->getResourceAllocation($file["id"]);
 ?>
@@ -43,6 +43,6 @@
 	<a href="#" data-replace="<?=$file["id"]?>" class="button replace">Replace</a>
 	<a href="#" data-allocation="<?=count($alloc)?>" class="button delete red">Delete</a>
 </div>
-<?
+<?php
 	}
 ?>

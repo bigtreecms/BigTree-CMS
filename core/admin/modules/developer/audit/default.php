@@ -1,26 +1,26 @@
-<?
+<?php
 	$users = $admin->getUsers();
 	$deleted_users = $cms->getSetting("bigtree-internal-deleted-users");
 ?>
 <div class="container">
 	<form method="get" action="<?=DEVELOPER_ROOT?>audit/search/">
-		<? $admin->drawCSRFToken() ?>
+		<?php $admin->drawCSRFToken() ?>
 		<section>
 			<fieldset>
 				<label>User</label>
 				<select name="user">
 					<option></option>
-					<?
+					<?php
 						foreach ($users as $user) {
 					?>
 					<option value="<?=$user["id"]?>"><?=$user["name"]?></option>
-					<?
+					<?php
 						}
 
 						foreach ($deleted_users as $id => $user) {
 					?>
 					<option value="<?=$id?>"><?=$user["name"]?> (DELETED)</option>
-					<?
+					<?php
 						}
 					?>
 				</select>
@@ -35,7 +35,7 @@
 						<option value="bigtree_settings">Settings</option>
 					</optgroup>
 					<optgroup label="Modules">
-						<? BigTree::getTableSelectOptions() ?>
+						<?php BigTree::getTableSelectOptions() ?>
 					</optgroup>
 				</select>
 			</fieldset>

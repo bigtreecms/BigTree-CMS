@@ -1,4 +1,4 @@
-<?
+<?php
 	if ($_GET["table"]) {
 		$table = $_GET["table"];
 	}
@@ -53,7 +53,7 @@
 			<span class="developer_resource_action">Delete</span>
 		</div>
 		<ul id="sort_table">
-			<? foreach ($fields as $key => $field) { ?>
+			<?php foreach ($fields as $key => $field) { ?>
 			<li id="row_<?=$key?>">
 				<input type="hidden" name="fields[<?=$key?>][width]" value="<?=$field["width"]?>" />
 				<section class="developer_view_title">
@@ -67,7 +67,7 @@
 					<a href="#" class="icon_delete"></a>
 				</section>
 			</li>
-			<? } ?>
+			<?php } ?>
 		</ul>
 	</div>
 </fieldset>
@@ -108,10 +108,10 @@
 	});
 
 </script>
-<?
+<?php
 	} else {
 ?>
 <p>Please choose a table to populate this area.</p>
-<?
+<?php
 	}
 ?>

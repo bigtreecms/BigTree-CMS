@@ -1,4 +1,4 @@
-<?
+<?php
 	if ($bigtree["security-policy"]["remember_disabled"]) {
 		$stay_logged_in = false;
 	} else {

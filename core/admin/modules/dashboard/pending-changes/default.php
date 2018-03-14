@@ -1,4 +1,4 @@
-<?
+<?php
 	// Get pending changes awaiting this user's approval.
 	$changes = $admin->getPublishableChanges();
 	
@@ -28,7 +28,7 @@
 		<p>You have no changes awaiting your approval.</p>
 	</section>
 </div>
-<?
+<?php
 	}
 
 	if (count($pages)) {
@@ -52,7 +52,7 @@
 		<span class="changes_action">Deny</span>
 	</header>
 	<ul>
-		<?
+		<?php
 			foreach ($pages as $change) {
 				if (is_numeric($change["item_id"])) {
 					$page = $cms->getPendingPage($change["item_id"]);
@@ -70,19 +70,19 @@
 		<li>
 			<section class="changes_author"><?=$change["user"]["name"]?></section>
 			<section class="changes_page"><?=$page["nav_title"]?></section>
-			<section class="changes_type"><? if (is_numeric($change["item_id"])) { ?>EDIT<? } else { ?><span class="new">NEW</span><? } ?></section>
+			<section class="changes_type"><?php if (is_numeric($change["item_id"])) { ?>EDIT<?php } else { ?><span class="new">NEW</span><?php } ?></section>
 			<section class="changes_time"><?=BigTree::relativeTime($change["date"])?></section>
 			<section class="changes_action"><a href="<?=$preview_link?>" target="_preview" class="icon_preview"></a></section>
 			<section class="changes_action"><a href="<?=$edit_link?>" class="icon_edit"></a></section>
 			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="Pages" class="icon_approve icon_approve_on"></a></section>
 			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="Pages" class="icon_deny"></a></section>
 		</li>
-		<?		
+		<?php
 			}
 		?>
 	</ul>
 </div>
-<?
+<?php
 	}
 	
 	foreach ($modules as $mod) {
@@ -101,10 +101,10 @@
 			<?=$mod["name"]?>
 		</h2>
 	</summary>
-	<? if ($view["type"] == "images" || $view["type"] == "images-grouped") { ?>
+	<?php if ($view["type"] == "images" || $view["type"] == "images-grouped") { ?>
 	<section>
 		<ul class="image_list">
-			<?
+			<?php
 				foreach ($mod["changes"] as $change) {
 					if ($view_data) {
 						if ($change["item_id"]) {
@@ -122,47 +122,47 @@
 			?>
 			<li class="non_draggable">
 				<p><?=$change["user"]["name"]?></p>
-				<?
+				<?php
 					if ($view["edit_url"]) {
 				?>
 				<a class="image" href="<?=$view["edit_url"].$item["id"]?>/"><img src="<?=$image?>" alt="" /></a>
-				<?
+				<?php
 					} else {
 				?>
 				<figure class="image"><img src="<?=$image?>" alt="" /></figure>
-				<?
+				<?php
 					}
 
 					if ($view["preview_url"]) {
 				?>
 				<a href="<?=rtrim($view["preview_url"],"/")."/".$item["id"]."/"?>" target="_preview" class="icon_preview"></a>
-				<?
+				<?php
 					}
 				?>
 				<a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_approve icon_approve_on"></a>
 				<a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_deny"></a>
 			</li>
-			<?
+			<?php
 				}
 			?>
 		</ul>
 	</section>
-	<? } else { ?>
+	<?php } else { ?>
 	<header>
 		<span class="changes_author">Author</span>
-		<?
+		<?php
 			if (is_array($view["fields"])) {
 				foreach ($view["fields"] as $field) {
 		?>
 		<span class="view_column" style="width: <?=$field["width"]?>px;"><?=$field["title"]?></span>
-		<?
+		<?php
 				}
 			}
 			
 			if ($view["preview_url"]) {
 		?>
 		<span class="changes_action">Preview</a></span>
-		<?
+		<?php
 			}
 		?>
 		<span class="changes_action">Edit</a></span>
@@ -170,7 +170,7 @@
 		<span class="changes_action">Deny</span>
 	</header>
 	<ul>
-		<?
+		<?php
 			foreach ($mod["changes"] as $change) {
 				if ($change["item_id"]) {
 					$item = $view_data[$change["item_id"]];
@@ -180,7 +180,7 @@
 		?>
 		<li>
 			<section class="changes_author"><?=$change["user"]["name"]?></section>
-			<?
+			<?php
 				if (is_array($view["fields"])) {
 					$x = 0;
 					foreach ($view["fields"] as $field => $data) {
@@ -189,36 +189,36 @@
 			<section class="view_column" style="width: <?=$data["width"]?>px;">
 				<?=$item["column$x"]?>
 			</section>
-			<?
+			<?php
 					}
 				}
 					
 				if ($view["preview_url"]) {
 			?>
 			<section class="changes_action"><a href="<?=rtrim($view["preview_url"],"/")."/".$item["id"]."/"?>" target="_preview" class="icon_preview"></a></section>
-			<?
+			<?php
 				}
 
 				if ($view["edit_url"]) {
 			?>
 			<section class="changes_action"><a href="<?=$view["edit_url"].$item["id"]?>/" class="icon_edit"></a></section>
-			<?
+			<?php
 				} else {
 			?>
 			<section class="changes_action"><span class="icon_edit disabled_icon"></span></section>
-			<?
+			<?php
 				}
 			?>
 			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_approve icon_approve_on"></a></section>
 			<section class="changes_action"><a href="#<?=$change["id"]?>" data-module="<?=$mod["name"]?>" class="icon_deny"></a></section>
 		</li>
-		<?
+		<?php
 			}
 		?>
 	</ul>
-	<? } ?>
+	<?php } ?>
 </div>
-<?
+<?php
 	}
 ?>
 

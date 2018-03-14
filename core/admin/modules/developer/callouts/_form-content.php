@@ -1,19 +1,19 @@
-<?
+<?php
 	$cached_types = $admin->getCachedFieldTypes(true);
 	$types = $cached_types["callouts"];
 
 	$admin->drawCSRFToken();
 ?>
 <section>
-	<p class="error_message"<? if (!$show_error) { ?> style="display: none;"<? } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
+	<p class="error_message"<?php if (!$show_error) { ?> style="display: none;"<?php } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 	
 	<div class="left">
-		<? if (!isset($callout)) { ?>
-		<fieldset<? if ($show_error) { ?> class="form_error"<? } ?>>
-			<label class="required">ID <small>(used for file name, alphanumeric, "-" and "_" only)</small><? if ($show_error) { ?> <span class="form_error_reason"><?=$show_error?></span><? } ?></label>
+		<?php if (!isset($callout)) { ?>
+		<fieldset<?php if ($show_error) { ?> class="form_error"<?php } ?>>
+			<label class="required">ID <small>(used for file name, alphanumeric, "-" and "_" only)</small><?php if ($show_error) { ?> <span class="form_error_reason"><?=$show_error?></span><?php } ?></label>
 			<input type="text" class="required" name="id" value="<?=$id?>" />
 		</fieldset>
-		<? } ?>
+		<?php } ?>
 		<fieldset>
 			<label class="required">Name</label>
 			<input type="text" class="required" name="name" value="<?=$name?>" />
@@ -22,8 +22,8 @@
 			<label>Access Level</label>
 			<select name="level">
 				<option value="0">Normal User</option>
-				<option value="1"<? if ($level == 1) { ?> selected="selected"<? } ?>>Administrator</option>
-				<option value="2"<? if ($level == 2) { ?> selected="selected"<? } ?>>Developer</option>
+				<option value="1"<?php if ($level == 1) { ?> selected="selected"<?php } ?>>Administrator</option>
+				<option value="2"<?php if ($level == 2) { ?> selected="selected"<?php } ?>>Developer</option>
 			</select>
 		</fieldset>
 		<fieldset>
@@ -54,7 +54,7 @@
 			<span class="developer_resource_action right">Delete</span>
 		</div>
 		<ul id="resource_table">
-			<?
+			<?php
 				$x = 0;
 				foreach ($resources as $resource) {
 					$x++;
@@ -73,29 +73,29 @@
 				<section class="developer_resource_type">
 					<select name="resources[<?=$x?>][type]" id="type_<?=$x?>">
 						<optgroup label="Default">
-							<? foreach ($types["default"] as $k => $v) { ?>
-							<option value="<?=$k?>"<? if ($k == $resource["type"]) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
-							<? } ?>
+							<?php foreach ($types["default"] as $k => $v) { ?>
+							<option value="<?=$k?>"<?php if ($k == $resource["type"]) { ?> selected="selected"<?php } ?>><?=$v["name"]?></option>
+							<?php } ?>
 						</optgroup>
-						<? if (count($types["custom"])) { ?>
+						<?php if (count($types["custom"])) { ?>
 						<optgroup label="Custom">
-							<? foreach ($types["custom"] as $k => $v) { ?>
-							<option value="<?=$k?>"<? if ($k == $resource["type"]) { ?> selected="selected"<? } ?>><?=$v["name"]?></option>
-							<? } ?>
+							<?php foreach ($types["custom"] as $k => $v) { ?>
+							<option value="<?=$k?>"<?php if ($k == $resource["type"]) { ?> selected="selected"<?php } ?>><?=$v["name"]?></option>
+							<?php } ?>
 						</optgroup>
-						<? } ?>
+						<?php } ?>
 					</select>
 					<a href="#" class="icon_settings" name="<?=$x?>"></a>
 					<input type="hidden" name="resources[<?=$x?>][options]" value="<?=htmlspecialchars(json_encode($resource["options"]))?>" id="options_<?=$x?>" />
 				</section>
 				<section class="developer_resource_display_title">
-					<input type="radio" name="display_field" value="<?=$resource["id"]?>" id="display_title_<?=$x?>"<? if ($display_field == $resource["id"]) echo ' checked="checked"'; ?> />
+					<input type="radio" name="display_field" value="<?=$resource["id"]?>" id="display_title_<?=$x?>"<?php if ($display_field == $resource["id"]) echo ' checked="checked"'; ?> />
 				</section>
 				<section class="developer_resource_action right">
 					<a href="#" class="icon_delete"></a>
 				</section>
 			</li>
-			<?
+			<?php
 				}
 			?>
 		</ul>

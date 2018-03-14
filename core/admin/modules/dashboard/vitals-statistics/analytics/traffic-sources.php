@@ -8,7 +8,7 @@
 		<span class="analytics_view_count">View Count</span>
 	</header>
 	<ul id="traffic_sources">
-		<?
+		<?php
 			if (is_array($cache["referrers"])) {
 				foreach ($cache["referrers"] as $source) {
 		?>
@@ -17,12 +17,12 @@
 			<section class="analytics_visit_count"><?=$source["visits"]?></section>
 			<section class="analytics_view_count"><?=$source["views"]?></section>
 		</li>
-		<?
+		<?php
 				}
 			} else {
 		?>
 		<li class="no_content">We have no data yet.</li>
-		<?		
+		<?php
 			}
 		?>
 	</ul>

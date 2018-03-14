@@ -1,4 +1,4 @@
-<?
+<?php
 	$id = htmlspecialchars($_GET["module"]);
 	$table = isset($_GET["table"]) ? $_GET["table"] : "";
 	$title = isset($_GET["title"]) ? htmlspecialchars($_GET["title"]) : "";
@@ -27,13 +27,13 @@
 <div class="container">
 
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/views/create/<?=$id?>/" class="module">
-		<?
+		<?php
 			$admin->drawCSRFToken();
 			
 			if (isset($_GET["new_module"]) || isset($new_module)) {
 		?>
 		<input type="hidden" name="new_module" value="true" />
-		<?
+		<?php
 			}
 			include BigTree::path("admin/modules/developer/modules/views/_form.php");
 		?>
@@ -43,4 +43,4 @@
 	</form>
 </div>
 
-<? include BigTree::path("admin/modules/developer/modules/views/_js.php") ?>
+<?php include BigTree::path("admin/modules/developer/modules/views/_js.php"); ?>

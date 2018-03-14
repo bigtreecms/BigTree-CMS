@@ -1,4 +1,4 @@
-<?
+<?php
 	// If a file upload error occurred, return the old data and set errors
 	if ($field["file_input"]["error"] == 1 || $field["file_input"]["error"] == 2) {
 		$bigtree["errors"][] = array("field" => $field["title"], "error" => "The file you uploaded (".$field["file_input"]["name"].") was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>");
@@ -55,4 +55,3 @@
 			}
 		}
 	}
-?>

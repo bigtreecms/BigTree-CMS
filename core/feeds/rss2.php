@@ -1,11 +1,11 @@
 <rss version="2.0">
 	<channel>
-		<title><? if ($feed["options"]["feed_title"]) { echo $feed["options"]["feed_title"]; } else { echo $feed["name"]; } ?></title>
-		<link><? if ($feed["options"]["feed_link"]) { echo $feed["options"]["feed_link"]; } else { ?><?=WWW_ROOT?>feeds/<?=$feed["route"]?>/<? } ?></link>
+		<title><?php if ($feed["options"]["feed_title"]) { echo $feed["options"]["feed_title"]; } else { echo $feed["name"]; } ?></title>
+		<link><?php if ($feed["options"]["feed_link"]) { echo $feed["options"]["feed_link"]; } else { ?><?=WWW_ROOT?>feeds/<?=$feed["route"]?>/<?php } ?></link>
 		<description><?=$feed["description"]?></description>
 		<language>en-us</language>
 		<generator>BigTree CMS (http://www.bigtreecms.org)</generator>
-		<?
+		<?php
 			$sort = $feed["options"]["sort"] ? $feed["options"]["sort"] : "id DESC";
 			$limit = $feed["options"]["limit"] ? $feed["options"]["limit"] : "15";
 			$items = array();
@@ -50,23 +50,23 @@
 		<item>
 			<guid><?=WWW_ROOT?>feeds/<?=$feed["route"]?>/<?=$item["id"]?>/</guid>
 			<title><![CDATA[<?=strip_tags($item[$feed["options"]["title"]])?>]]></title>
-			<description><![CDATA[<?=$blurb?><? if ($blurb != $content) { ?><p><a href="<?=$link?>">Read More</a></p><? } ?>]]></description>
+			<description><![CDATA[<?=$blurb?><?php if ($blurb != $content) { ?><p><a href="<?=$link?>">Read More</a></p><?php } ?>]]></description>
 			<link><?=$link?></link>
-			<?
+			<?php
 				if ($feed["options"]["creator"]) {
 			?>
 			<author><?=$item[$feed["options"]["creator"]]?></author>
-			<?
+			<?php
 				}
 				
 				if ($feed["options"]["date"]) {
 			?>
 			<pubDate><?=date("D, d M Y H:i:s T",strtotime($item[$feed["options"]["date"]]))?></pubDate>
-			<?
+			<?php
 				}
 			?>
 		</item>
-		<?
+		<?php
 			}
 		?>
 	</channel>

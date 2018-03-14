@@ -7,11 +7,11 @@
 	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
 	class BigTreeFlickrAPI extends BigTreeOAuthAPIBase {
 		
-		var $AuthorizeURL = "https://www.flickr.com/services/oauth/request_token";
-		var $EndpointURL = "https://api.flickr.com/services/rest";
-		var $OAuthVersion = "1.0";
-		var $RequestType = "hash";
-		var $TokenURL = "https://www.flickr.com/services/oauth/authorize";
+		public $AuthorizeURL = "https://www.flickr.com/services/oauth/request_token";
+		public $EndpointURL = "https://api.flickr.com/services/rest";
+		public $OAuthVersion = "1.0";
+		public $RequestType = "hash";
+		public $TokenURL = "https://www.flickr.com/services/oauth/authorize";
 
 		const PRIVACY_PUBLIC = 1;
 		const PRIVACY_FRIENDS = 2;
@@ -27,7 +27,7 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 
-		function __construct($cache = true) {
+		public function __construct($cache = true) {
 			parent::__construct("bigtree-internal-flickr-api","YouTube API","org.bigtreecms.api.flickr",$cache);
 
 			// Set OAuth Return URL
@@ -46,7 +46,7 @@
 				true if successful
 		*/
 
-		function addTagsToPhoto($photo,$tags) {
+		public function addTagsToPhoto($photo,$tags) {
 			if (is_array($tags)) {
 				$tags = implode(",",$tags);
 			}
@@ -63,7 +63,7 @@
 				Overrides BigTreeOAuthAPIBase to always request normal JSON.
 		*/
 
-		function callUncached($endpoint,$params = array(),$method = "GET",$headers = array()) {
+		public function callUncached($endpoint,$params = array(),$method = "GET",$headers = array()) {
 			$params["method"] = $endpoint;
 			$params["format"] = "json";
 			$params["nojsoncallback"] = true;
@@ -86,7 +86,7 @@
 				true if successful
 		*/
 
-		function deletePhoto($photo) {
+		public function deletePhoto($photo) {
 			$r = $this->call("flickr.photos.delete",array("photo_id" => $photo),"POST");
 			if ($r->stat == "ok") {
 				return true;
@@ -108,7 +108,7 @@
 				A BigTreeFlickrResultSet of BigTreeFlickrPhoto objects
 		*/
 		
-		function getAlbumPhotos($id,$privacy = 1,$info = "license,date_upload,date_taken,owner_name,icon_server,original_format,last_update") {
+		public function getAlbumPhotos($id,$privacy = 1,$info = "license,date_upload,date_taken,owner_name,icon_server,original_format,last_update") {
 			$params["photoset_id"] = $id;
 			$params["extras"] = $info;
 			$params["privacy_filter"] = $privacy;
@@ -139,7 +139,7 @@
 				A BigTreeFlickrResultSet of BigTreeFlickrAlbum objects
 		*/
 		
-		function getAlbums($user_id = false) {
+		public function getAlbums($user_id = false) {
 			$params = array();
 			$params["primary_photo_extras"] = "media,date_taken,url_sq,url_t,url_s,url_m,url_o,";
 			
@@ -176,7 +176,7 @@
 				An array of BigTreeFlickrPhoto objects or false if the call fails.
 		*/
 
-		function getContactsPhotos($count = 10,$just_friends = false,$include_self = false,$info = "license,date_upload,date_taken,owner_name,icon_server,original_format,last_update") {
+		public function getContactsPhotos($count = 10,$just_friends = false,$include_self = false,$info = "license,date_upload,date_taken,owner_name,icon_server,original_format,last_update") {
 			$params = array("count" => $count,"extras" => $info);
 			if ($just_friends) {
 				$params["just_friends"] = 1;
@@ -211,7 +211,7 @@
 				A BigTreeFlickrGroup object or false if the person isn't found.
 		*/
 
-		function getGroup($id) {
+		public function getGroup($id) {
 			$r = $this->call("flickr.groups.getInfo",array("group_id" => $id));
 			if (!isset($r->group)) {
 				return false;
@@ -232,7 +232,7 @@
 				A BigTreeFlickrResultSet of BigTreeFlickrPhoto objects or false if the call fails.
 		*/
 
-		function getMyGeotaggedPhotos($per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		public function getMyGeotaggedPhotos($per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info;
 			$r = $this->call("flickr.photos.getWithGeoData",$params);
@@ -260,7 +260,7 @@
 				A BigTreeFlickrResultSet of BigTreeFlickrPhoto objects or false if the call fails.
 		*/
 
-		function getMyRecentlyUpdatedPhotos($since = "-1 week",$per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		public function getMyRecentlyUpdatedPhotos($since = "-1 week",$per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info;
 			$params["min_date"] = date("Y-m-d H:i:s",strtotime($since));
@@ -288,7 +288,7 @@
 				A BigTreeFlickrResultSet of BigTreeFlickrPhoto objects or false if the call fails.
 		*/
 
-		function getMyUncategorizedPhotos($per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		public function getMyUncategorizedPhotos($per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info;
 			$r = $this->call("flickr.photos.getNotInSet",$params);
@@ -315,7 +315,7 @@
 				A BigTreeFlickrResultSet of BigTreeFlickrPhoto objects or false if the call fails.
 		*/
 
-		function getMyUngeotaggedPhotos($per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		public function getMyUngeotaggedPhotos($per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info;
 			$r = $this->call("flickr.photos.getWithoutGeoData",$params);
@@ -342,7 +342,7 @@
 				A BigTreeFlickrResultSet of BigTreeFlickrPhoto objects or false if the call fails.
 		*/
 
-		function getMyUntaggedPhotos($per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		public function getMyUntaggedPhotos($per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info;
 			$r = $this->call("flickr.photos.getUntagged",$params);
@@ -367,7 +367,7 @@
 				A BigTreeFlickrPerson object or false if the person isn't found.
 		*/
 
-		function getPerson($id) {
+		public function getPerson($id) {
 			$r = $this->call("flickr.people.getInfo",array("user_id" => $id));
 			if (!isset($r->person)) {
 				return false;
@@ -387,7 +387,7 @@
 				A BigTreeFlickrPhoto object or false if the photo isn't found.
 		*/
 
-		function getPhoto($id,$secret = false) {
+		public function getPhoto($id,$secret = false) {
 			$r = $this->call("flickr.photos.getInfo",array("photo_id" => $id,"secret" => $secret));
 			if (!isset($r->photo)) {
 				return false;
@@ -413,7 +413,7 @@
 				A BigTreeFlickrResultSet of BigTreeFlickrPhoto objects or false if the call fails.
 		*/
 
-		function getPhotosByLocation($latitude,$longitude,$radius = 10,$radius_unit = "mi",$per_page = 100,$sort = "date-posted-desc",$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		public function getPhotosByLocation($latitude,$longitude,$radius = 10,$radius_unit = "mi",$per_page = 100,$sort = "date-posted-desc",$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
 			$params["lat"] = $latitude;
 			$params["lon"] = $longitude;
 			$params["radius"] = $radius;
@@ -449,7 +449,7 @@
 				A BigTreeFlickrResultSet of BigTreeFlickrPhoto objects.
 		*/
 
-		function getPhotosByTag($tags,$per_page = 100,$sort = "date-posted-desc",$require_all = false,$user = false,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		public function getPhotosByTag($tags,$per_page = 100,$sort = "date-posted-desc",$require_all = false,$user = false,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
 			if (is_array($tags)) {
 				$tags = implode(",",$tags);
 			}
@@ -488,7 +488,7 @@
 				A BigTreeFlickrResultSet of BigTreeFlickrPhoto objects or false if the call fails.
 		*/
 
-		function getPhotosForPerson($person,$per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		public function getPhotosForPerson($person,$per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
 			$params["user_id"] = $person;
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info;
@@ -517,7 +517,7 @@
 				A BigTreeFlickrResultSet of BigTreeFlickrPhoto objects or false if the call fails.
 		*/
 
-		function getPhotosOfPerson($person,$per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		public function getPhotosOfPerson($person,$per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
 			$params["user_id"] = $person;
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info;
@@ -545,7 +545,7 @@
 				A BigTreeFlickrResultSet of BigTreeFlickrPhoto objects or false if the call fails.
 		*/
 
-		function getRecentPhotos($per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		public function getRecentPhotos($per_page = 100,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info;
 			$r = $this->call("flickr.photos.getRecent",$params);
@@ -564,7 +564,7 @@
 				Redirects to the OAuth API to authenticate.
 		*/
 
-		function oAuthRedirect() {
+		public function oAuthRedirect() {
 			$this->Settings["token_secret"] = "";
 			$admin = new BigTreeAdmin;
 			$r = $this->callAPI("http://www.flickr.com/services/oauth/request_token","GET",array("oauth_callback" => $this->ReturnURL));
@@ -585,7 +585,7 @@
 				Refreshes an existing token setup.
 		*/
 
-		function oAuthRefreshToken() {
+		public function oAuthRefreshToken() {
 			$r = json_decode(BigTree::cURL($this->TokenURL,array(
 				"client_id" => $this->Settings["key"],
 				"client_secret" => $this->Settings["secret"],
@@ -606,7 +606,7 @@
 				A stdClass object of information if successful.
 		*/
 
-		function oAuthSetToken($code) {
+		public function oAuthSetToken($code) {
 			$r = $this->callAPI("http://www.flickr.com/services/oauth/access_token","GET",array("oauth_verifier" => $_GET["oauth_verifier"],"oauth_token" => $_GET["oauth_token"]));
 			parse_str($r);
 			if ($fullname) {
@@ -629,7 +629,7 @@
 				true if successful
 		*/
 
-		function removeTagFromPhoto($tag) {
+		public function removeTagFromPhoto($tag) {
 			$r = $this->call("flickr.photos.removeTag",array("tag_id" => $tag));
 			if ($r !== false) {
 				return true;
@@ -648,7 +648,7 @@
 				A BigTreeFlickrPerson object or false if no person is found.
 		*/
 
-		function searchPeople($query) {
+		public function searchPeople($query) {
 			// Search by email
 			if (strpos($query,"@") !== false) {
 				$r = $this->call("flickr.people.findByEmail",array("find_email" => $query));
@@ -679,7 +679,7 @@
 				A BigTreeFlickrResultSet of BigTreeFlickrPhoto objects or false if the call fails.
 		*/
 
-		function searchPhotos($query,$per_page = 100,$sort = "date-posted-desc",$user = false,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
+		public function searchPhotos($query,$per_page = 100,$sort = "date-posted-desc",$user = false,$info = "description,license,date_upload,date_taken,icon_server,original_format,last_update,geo,tags,views,media",$params = array()) {
 			if ($user) {
 				$params["user_id"] = $user;
 			}
@@ -712,7 +712,7 @@
 				true if successful
 		*/
 
-		function setPhotoInformation($photo,$title = "",$description = "",$tags = "") {
+		public function setPhotoInformation($photo,$title = "",$description = "",$tags = "") {
 			if (is_array($tags)) {
 				$tags = implode(",",$tags);
 			}
@@ -744,7 +744,7 @@
 				The ID of the photo if successful.
 		*/
 
-		function uploadPhoto($photo,$title = "",$description = "",$tags = array(),$public = true,$family = true,$friends = true,$safety = 1,$type = 1,$hidden = false) {
+		public function uploadPhoto($photo,$title = "",$description = "",$tags = array(),$public = true,$family = true,$friends = true,$safety = 1,$type = 1,$hidden = false) {
 			$xml = $this->callAPI("http://up.flickr.com/services/upload/","POST",
 				array("photo" => "@".$photo,"title" => $title,"description" => $description,"tags" => implode(" ",$tags),"is_public" => $public,"is_family" => $family,"is_friends" => $friends,"safety_level" => $safety,"content_type" => $type,"hidden" => ($hidden ? 2 : 1)),
 				array(),
@@ -766,7 +766,7 @@
 	class BigTreeFlickrAlbum {
 		protected $API;
 
-		function __construct($album, &$api) {
+		public function __construct($album, &$api) {
 			$this->API = $api;
 			if (isset($album->primary_photo_extras->url_sq)) {
 				$this->Cover = new stdClass;
@@ -801,7 +801,7 @@
 				A BigTreeFlickrREsultSet of BigTreeFlickrPhoto objects or false if the call fails.
 		*/
 
-		function getPhotos($privacy = 1,$info = "license,date_upload,date_taken,owner_name,icon_server,original_format,last_update") {
+		public function getPhotos($privacy = 1,$info = "license,date_upload,date_taken,owner_name,icon_server,original_format,last_update") {
 			return $this->API->getAlbumPhotos($this->ID, $privacy, $info);
 		}
 	}
@@ -814,7 +814,7 @@
 	class BigTreeFlickrGroup {
 		protected $API;
 
-		function __construct($group,&$api) {
+		public function __construct($group,&$api) {
 			$this->API = $api;
 			isset($group->description->_content) ? $this->Description = $group->description->_content : false;
 			$this->ID = isset($group->nsid) ? $group->nsid : $group->id;
@@ -835,7 +835,7 @@
 	class BigTreeFlickrPerson {
 		protected $API;
 
-		function __construct($person,&$api) {
+		public function __construct($person,&$api) {
 			// Sometimes the owner is just an ID, so we'll need to fetch data
 			if (is_string($person)) {
 				$r = $api->call("flickr.people.getInfo",array("user_id" => $person));
@@ -870,7 +870,7 @@
 				An array of BigTreeFlickrGroup objects or false if the call fails.
 		*/
 
-		function getGroups() {
+		public function getGroups() {
 			$r = $this->API->call("flickr.people.getGroups",array("user_id" => $this->ID));
 			if (!isset($r->groups)) {
 				return false;
@@ -894,7 +894,7 @@
 				A BigTreeFlickrResultSet of BigTreeFlickrPhoto objects or false if the call fails.
 		*/
 
-		function getPhotos($per_page = 100,$params = array()) {
+		public function getPhotos($per_page = 100,$params = array()) {
 			return $this->API->getPhotosForPerson($this->ID,$per_page,$params);
 		}
 
@@ -910,7 +910,7 @@
 				A BigTreeFlickrResultSet of BigTreeFlickrPhoto objects or false if the call fails.
 		*/
 
-		function getPhotosOf($per_page = 100,$params = array()) {
+		public function getPhotosOf($per_page = 100,$params = array()) {
 			return $this->API->getPhotosOfPerson($this->ID,$per_page,$params);
 		}
 	}
@@ -923,10 +923,10 @@
 	class BigTreeFlickrPhoto {
 		protected $API;
 
-		var $NextPhoto = false;
-		var $PreviousPhoto = false;
+		public $NextPhoto = false;
+		public $PreviousPhoto = false;
 
-		function __construct($photo,&$api) {
+		public function __construct($photo,&$api) {
 			$image_base = "http://farm".$photo->farm.".staticflickr.com/".$photo->server."/".$photo->id."_".$photo->secret;
 
 			$this->API = $api;
@@ -1004,7 +1004,7 @@
 				true if successful
 		*/
 
-		function addTags($tags) {
+		public function addTags($tags) {
 			return $this->API->addTagsToPhoto($this->ID,$tags);
 		}
 
@@ -1013,7 +1013,7 @@
 				Gets information about the next and previous photos in the photo stream.
 		*/
 
-		function getContext() {
+		public function getContext() {
 			$r = $this->API->call("flickr.photos.getContext",array("photo_id" => $this->ID));
 			if (isset($r->nextphoto)) {
 				$this->NextPhoto = new BigTreeFlickrPhoto($r->nextphoto,$this->API);
@@ -1028,7 +1028,7 @@
 				Gets EXIF/TIFF/GPS information about this photo.
 		*/
 
-		function getExif() {
+		public function getExif() {
 			$r = $this->API->call("flickr.photos.getExif",array("photo_id" => $this->ID,"secret" => $this->Secret));
 			if (!isset($r->photo)) {
 				return false;
@@ -1059,7 +1059,7 @@
 				A BigTreeFlickrResultSet of BigTreeFlickrPerson objects.
 		*/
 
-		function getFavorites($per_page = 50,$params = array()) {
+		public function getFavorites($per_page = 50,$params = array()) {
 			$params["photo_id"] = $this->ID;
 			$params["per_page"] = $per_page;
 			$r = $this->API->call("flickr.photos.getFavorites",$params);
@@ -1082,7 +1082,7 @@
 				A new BigTreeFlickrPhoto object or false if the call fails.
 		*/
 
-		function getInfo() {
+		public function getInfo() {
 			$r = $this->API->call("flickr.photos.getInfo",array("photo_id" => $this->ID,"secret" => $this->Secret));
 			if (!isset($r->photo)) {
 				return false;
@@ -1098,7 +1098,7 @@
 				true if successful
 		*/
 
-		function delete() {
+		public function delete() {
 			return $this->API->deletePhoto($this->ID);
 		}
 
@@ -1107,7 +1107,7 @@
 				Returns the next photo in the photo stream.
 		*/
 
-		function next() {
+		public function next() {
 			if ($this->NextPhoto) {
 				return $this->NextPhoto;
 			}
@@ -1120,7 +1120,7 @@
 				Returns the previous photo in the photo stream.
 		*/
 
-		function previous() {
+		public function previous() {
 			if ($this->PreviousPhoto) {
 				return $this->PreviousPhoto;
 			}
@@ -1139,7 +1139,7 @@
 				true if successful
 		*/
 
-		function setContentType($type) {
+		public function setContentType($type) {
 			$r = $this->API->call("flickr.photos.setContentType",array("photo_id" => $this->ID,"content_type" => $type),"POST");
 			if ($r !== false) {
 				return true;
@@ -1158,7 +1158,7 @@
 				true if successful
 		*/
 
-		function setDateTaken($date) {
+		public function setDateTaken($date) {
 			$date = date("Y-m-d H:i:s",strtotime($date));
 			$r = $this->API->call("flickr.photos.setDates",array("photo_id" => $this->ID,"date_taken" => $date),"POST");
 			if ($r !== false) {
@@ -1182,7 +1182,7 @@
 				true if successful
 		*/
 
-		function setPermissions($public = true,$friends = true,$family = true,$comments = 3,$metadata = 0) {
+		public function setPermissions($public = true,$friends = true,$family = true,$comments = 3,$metadata = 0) {
 			$r = $this->API->call("flickr.photos.setPerms",array("photo_id" => $this->ID,"is_public" => $public,"is_friend" => $friends,"is_family" => $family,"perm_comment" => $comments,"perm_addmeta" => $metadata),"POST");
 			if ($r !== false) {
 				return true;
@@ -1201,7 +1201,7 @@
 				true if successful
 		*/
 
-		function setSafetyLevel($level) {
+		public function setSafetyLevel($level) {
 			$r = $this->API->call("flickr.photos.setSafetyLevel",array("photo_id" => $this->ID,"safety_level" => $level),"POST");
 			if ($r !== false) {
 				return true;
@@ -1220,7 +1220,7 @@
 				true if successful
 		*/
 
-		function setTags($tags) {
+		public function setTags($tags) {
 			if (is_array($tags)) {
 				$tags = implode(",",$tags);
 			}
@@ -1243,7 +1243,7 @@
 				true if successful
 		*/
 
-		function setTitleAndDescription($title,$description) {
+		public function setTitleAndDescription($title,$description) {
 			$r = $this->API->call("flickr.photos.setMeta",array("photo_id" => $this->ID,"title" => $title,"description" => $description),"POST");
 			if ($r !== false) {
 				return true;
@@ -1270,7 +1270,7 @@
 				results - Results to store
 		*/
 
-		function __construct(&$api,$last_call,$params,$results,$current_page,$total_pages) {
+		public function __construct(&$api,$last_call,$params,$results,$current_page,$total_pages) {
 			$this->API = $api;
 			$this->CurrentPage = $current_page;
 			$this->LastCall = $last_call;
@@ -1287,7 +1287,7 @@
 				A BigTreeFlickrResultSet with the next page of results.
 		*/
 
-		function nextPage() {
+		public function nextPage() {
 			if ($this->CurrentPage < $this->TotalPages) {
 				$params = $this->LastParameters;
 				$params["page"] = $this->CurrentPage + 1;
@@ -1304,7 +1304,7 @@
 				A BigTreeFlickrResultSet with the next page of results.
 		*/
 
-		function previousPage() {
+		public function previousPage() {
 			if ($this->CurrentPage > 1) {
 				$params = $this->LastParameters;
 				$params["page"] = $this->CurrentPage - 1;
@@ -1321,7 +1321,7 @@
 
 	class BigTreeFlickrTag {
 
-		function __construct($tag,&$api) {
+		public function __construct($tag,&$api) {
 			if (!is_string($tag)) {
 				$this->API = $api;
 				$this->Author = $tag->author;
@@ -1332,7 +1332,7 @@
 			}
 		}
 
-		function __toString() {
+		public function __toString() {
 			return $this->Name;
 		}
 
@@ -1344,7 +1344,7 @@
 				true on success
 		*/
 
-		function remove() {
+		public function remove() {
 			return $this->API->removeTagFromPhoto($this->ID);
 		}
 	}

@@ -1,10 +1,10 @@
-<?
+<?php
 	$security_policy = $cms->getSetting("bigtree-internal-security-policy");
 	BigTree::globalizeArray($security_policy,"htmlspecialchars");
 ?>
 <div class="container" id="security_settings">
 	<form method="post" action="<?=DEVELOPER_ROOT?>security/update/">
-		<? $admin->drawCSRFToken() ?>
+		<?php $admin->drawCSRFToken() ?>
 		<section>
 			<div class="contain">
 				<div class="left">
@@ -27,15 +27,15 @@
 						<input type="text" name="password[length]" value="<?=$password["length"]?>" />
 					</fieldset>
 					<fieldset>
-						<input type="checkbox" name="password[mixedcase]"<? if ($password["mixedcase"]) { ?> checked="checked"<? } ?> />
+						<input type="checkbox" name="password[mixedcase]"<?php if ($password["mixedcase"]) { ?> checked="checked"<?php } ?> />
 						<label class="for_checkbox">Require Mixed-Case <small>(both lowercase and uppercase characters)</small></label>
 					</fieldset>
 					<fieldset>
-						<input type="checkbox" name="password[numbers]"<? if ($password["numbers"]) { ?> checked="checked"<? } ?> />
+						<input type="checkbox" name="password[numbers]"<?php if ($password["numbers"]) { ?> checked="checked"<?php } ?> />
 						<label class="for_checkbox">Require Numbers</label>
 					</fieldset>
 					<fieldset>
-						<input type="checkbox" name="password[nonalphanumeric]"<? if ($password["nonalphanumeric"]) { ?> checked="checked"<? } ?> />
+						<input type="checkbox" name="password[nonalphanumeric]"<?php if ($password["nonalphanumeric"]) { ?> checked="checked"<?php } ?> />
 						<label class="for_checkbox">Require Non-Alphanumeric Characters <small>(i.e. $ # ^ *)</small></label>
 					</fieldset>
 					<br />

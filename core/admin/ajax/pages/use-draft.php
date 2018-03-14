@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	// Get the version, check if the user has access to the page the version refers to.
@@ -13,7 +13,7 @@
 		<p>You must be a publisher to manage revisions.</p>
 	</section>
 </div>
-<?
+<?php
 		$admin->stop();
 	}
 	

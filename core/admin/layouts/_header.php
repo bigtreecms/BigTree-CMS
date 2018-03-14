@@ -1,4 +1,4 @@
-<?	
+<?php
 	$nav = isset($bigtree["nav_override"]) ? $bigtree["nav_override"] : array(
 		array("link" => "dashboard", "title" => "Dashboard", "access" => 0, "children" => array(
 			array("link" => "", "title" => "Overview", "access" => 0),
@@ -55,15 +55,15 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="robots" content="noindex,nofollow" />
-		<title><? if (isset($bigtree["admin_title"])) { ?><?=BigTree::safeEncode($bigtree["admin_title"])?> | <? } ?><?=$site["nav_title"]?> Admin</title>
+		<title><?php if (isset($bigtree["admin_title"])) { ?><?=BigTree::safeEncode($bigtree["admin_title"])?> | <?php } ?><?=$site["nav_title"]?> Admin</title>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.css" type="text/css" media="screen" />
-		<?
+		<?php
 			// Configuration based CSS
 			if (isset($bigtree["config"]["admin_css"]) && is_array($bigtree["config"]["admin_css"])) {
 				foreach ($bigtree["config"]["admin_css"] as $style) {
 		?>
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/<?=$style?>" type="text/css" media="screen" />
-		<?
+		<?php
 				}
 			}
 			
@@ -85,7 +85,7 @@
 					}
 		?>
 		<link rel="stylesheet" href="<?=$include_path?>" type="text/css" media="screen" />
-		<?
+		<?php
 				}
 			}
 		?>
@@ -97,13 +97,13 @@
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
 		<script>BigTree.dateFormat = "<?=BigTree::phpDateTojQuery($bigtree["config"]["date_format"])?>";</script>
 		<script src="<?=ADMIN_ROOT?>js/<?=isset($bigtree["config"]["html_editor"]) ? $bigtree["config"]["html_editor"]["src"] : "tinymce3/tiny_mce.js"?>"></script>
-		<?
+		<?php
 			// Configuration based JS
 			if (isset($bigtree["config"]["admin_js"]) && is_array($bigtree["config"]["admin_js"])) {
 				foreach ($bigtree["config"]["admin_js"] as $script) {
 		?>
 		<script src="<?=ADMIN_ROOT?>js/<?=$script?>"></script>
-		<?
+		<?php
 				}
 			}
 
@@ -126,7 +126,7 @@
 
 		?>
 		<script src="<?=$include_path?>"></script>
-		<?
+		<?php
 				}
 			}
 		?>
@@ -144,7 +144,7 @@
 		</script>
 		<header class="main">
 			<section>
-				<a href="<? if ($bigtree["config"]["force_secure_login"]) { echo str_replace("http://","https://",ADMIN_ROOT); } else { echo ADMIN_ROOT; } ?>login/logout/?true<? $admin->drawCSRFTokenGET() ?>" class="logout"><span></span>Logout</a>
+				<a href="<?php if ($bigtree["config"]["force_secure_login"]) { echo str_replace("http://","https://",ADMIN_ROOT); } else { echo ADMIN_ROOT; } ?>login/logout/?true<?php $admin->drawCSRFTokenGET() ?>" class="logout"><span></span>Logout</a>
 				<div></div>
 				<p class="messages"><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_messages?> Unread Messages</a></p>
 				<div></div>
@@ -156,7 +156,7 @@
 		<nav class="main">
 			<section>
 				<ul>
-					<?
+					<?php
 						$x = -1;
 						foreach ($nav as $item) {
 							if ($admin->Level >= $item["access"] && (!$admin->HidePages || $item["link"] != "pages")) {
@@ -166,33 +166,33 @@
 								$path_pieces = array_slice($bigtree["path"],1,count($link_pieces));
 					?>
 					<li>
-						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<? if ($link_pieces == $path_pieces || ($item["link"] == "modules" && isset($bigtree["module"]))) { $bigtree["active_nav_item"] = $x; ?> class="active"<? } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
-						<? if (isset($item["children"]) && count($item["children"])) { ?>
+						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<?php if ($link_pieces == $path_pieces || ($item["link"] == "modules" && isset($bigtree["module"]))) { $bigtree["active_nav_item"] = $x; ?> class="active"<?php } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
+						<?php if (isset($item["children"]) && count($item["children"])) { ?>
 						<ul>
-							<?
+							<?php
 								foreach ($item["children"] as $child) {
 									if ($admin->Level >= $child["access"]) {
 										if (isset($child["group"]) && count($child["children"])) {
 							?>
 							<li class="grouper"><?=$child["title"]?></li>
-							<? 
+							<?php 
 											foreach ($child["children"] as $c) {
 							?>
 							<li><a href="<?=ADMIN_ROOT?><?=$c["link"]?>/"><?=$c["title"]?></a></li>
-							<?
+							<?php
 											}
 										} elseif (!isset($child["group"])) {
 							?>
 							<li><a href="<?=ADMIN_ROOT?><?=$item["link"]?>/<?=$child["link"]?>/"><?=$child["title"]?></a></li>
-							<?
+							<?php
 										}
 									}
 								}
 							?>
 						</ul>
-						<? } ?>
+						<?php } ?>
 					</li>
-					<?
+					<?php
 							}	
 						}
 					?>
@@ -206,9 +206,9 @@
 		</nav>
 		<div class="body">
 			<div class="wrapper">
-				<? if ($environment_alert) { ?>
+				<?php if ($environment_alert) { ?>
 				<div class="environment_alert">
 					<?=$environment_alert?>
 				</div>
-				<? } ?>
+				<?php } ?>
 				<aside id="growl"></aside>

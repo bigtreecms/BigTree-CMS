@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	$results = $admin->searchAuditTrail($_GET["user"],$_GET["table"],$_GET["entry"],$_GET["start"],$_GET["end"]);
 	$deleted_users = $cms->getSetting("bigtree-internal-deleted-users");
@@ -19,7 +19,7 @@
 		<span class="view_column audit_action">Action</span>
 	</header>
 	<ul>
-		<?
+		<?php
 			foreach ($results as $r) {
 				if ($r["table"] == "bigtree_pages") {
 					if (!isset($page_cache[$r["entry"]])) {
@@ -81,17 +81,17 @@
 		<li>
 			<section class="view_column audit_date"><?=date($bigtree["config"]["date_format"]." @ g:ia",strtotime($r["date"]))?></section>
 			<section class="view_column audit_user">
-				<? if (empty($r["user"]["deleted"])) { ?>
+				<?php if (empty($r["user"]["deleted"])) { ?>
 				<a target="_blank" href="<?=ADMIN_ROOT?>users/edit/<?=$r["user"]["id"]?>/"><?=$r["user"]["name"]?></a>
-				<? } else { ?>
-				<a href="<?=DEVELOPER_ROOT?>audit/search/?user=<?=$r["user"]["id"]?><? $admin->drawCSRFTokenGet(); ?>"><?=$r["user"]["name"]?> (DELETED)</a>
-				<? } ?>
+				<?php } else { ?>
+				<a href="<?=DEVELOPER_ROOT?>audit/search/?user=<?=$r["user"]["id"]?><?php $admin->drawCSRFTokenGet(); ?>"><?=$r["user"]["name"]?> (DELETED)</a>
+				<?php } ?>
 			</section>
 			<section class="view_column audit_table"><?=$r["table"]?></section>
 			<section class="view_column audit_entry"><?=$link?></section>
 			<section class="view_column audit_action"><?=ucwords(str_replace("-"," ",$r["type"]))?></section>
 		</li>
-		<?
+		<?php
 			}
 		?>
 	</ul>

@@ -1,4 +1,4 @@
-<?
+<?php
 	$two_week_visits = $cache["two_week"];
 	$graph_min = min($two_week_visits);
 	$graph_max = max($two_week_visits) - $graph_min;
@@ -129,7 +129,7 @@
 		<p class="value"><?=number_format($past["bounce_rate"],2)?>%</p>
 	</div>
 </div>
-<?
+<?php
 	}
 ?>
 <div class="table">
@@ -138,7 +138,7 @@
 	</summary>
 	<section>
 		<div class="graph">
-			<?
+			<?php
 				$x = 0;
 				$graph_max = ($graph_max < 1) ? 1 : $graph_max;
 				foreach ($two_week_visits as $date => $count) {
@@ -148,18 +148,18 @@
 						$count = 0;
 					}
 			?>
-			<section class="bar<? if ($x == 14) { ?> last<? } elseif ($x == 1) { ?> first<? } ?>" style="height: <?=$height?>px; margin-top: <?=(82-$height)?>px;">
+			<section class="bar<?php if ($x == 14) { ?> last<?php } elseif ($x == 1) { ?> first<?php } ?>" style="height: <?=$height?>px; margin-top: <?=(82-$height)?>px;">
 				<?=$count?>
 			</section>
-			<?
+			<?php
 				}
 				
 				$x = 0;
 				foreach ($two_week_visits as $date => $count) {
 					$x++;
 			?>
-			<section class="date<? if ($x == 14) { ?> last<? } elseif ($x == 1) { ?> first<? } ?>"><?=date("n/j/y",strtotime($date))?></section>
-			<?
+			<section class="date<?php if ($x == 14) { ?> last<?php } elseif ($x == 1) { ?> first<?php } ?>"><?=date("n/j/y",strtotime($date))?></section>
+			<?php
 				}
 			?>
 		</div>
@@ -169,14 +169,14 @@
 <section class="analytics_columns">
 	<article>
 		<summary>Current Month <small>(<?=date("n/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
-		<? _local_compareData($cache["month"],$cache["year_ago_month"]); ?>
+		<?php _local_compareData($cache["month"],$cache["year_ago_month"]); ?>
 	</article>
 	<article>
 		<summary>Current Quarter <small>(<?=date("$current_quarter_month/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
-		<? _local_compareData($cache["quarter"],$cache["year_ago_quarter"]); ?>
+		<?php _local_compareData($cache["quarter"],$cache["year_ago_quarter"]); ?>
 	</article>
 	<article class="last">
 		<summary>Current Year <small>(<?=date("1/1/Y")?> &mdash; <?=date("n/j/Y")?>)</small></summary>
-		<? _local_compareData($cache["year"],$cache["year_ago_year"]); ?>
+		<?php _local_compareData($cache["year"],$cache["year_ago_year"]); ?>
 	</article>
 </section>

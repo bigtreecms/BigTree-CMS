@@ -1,9 +1,9 @@
-<?
+<?php
 	// Load field types requested CSS and JS if it's not already loaded and then run BigTree's ready call
 ?>
 <script>
 	var Head = $("head");
-	<?
+	<?php
 		if (count($bigtree["css"])) {
 	?>
 	jQuery.each(<?=json_encode($bigtree["css"])?>,function(index,css) {
@@ -16,7 +16,7 @@
 			Head.append(link);
 		}
 	});
-	<?
+	<?php
 		}
 
 		if (count($bigtree["js"])) {
@@ -35,7 +35,7 @@
 			});
 		}
 	});
-	<?
+	<?php
 		}
 	?>
 

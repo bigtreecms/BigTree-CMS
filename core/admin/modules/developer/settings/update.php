@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	$item = $admin->getSetting(end($bigtree["path"]));
@@ -17,4 +17,3 @@
 			BigTree::redirect(DEVELOPER_ROOT."settings/edit/".end($bigtree["path"])."/");
 		}
 	}
-?>

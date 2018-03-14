@@ -8,13 +8,13 @@
 	class BigTreeCloudStorage extends BigTreeOAuthAPIBase {
 
 		// These are only applicable to Google Cloud Storage
-		var $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
-		var $EndpointURL = "https://www.googleapis.com/storage/v1/";
-		var $HTTPResponseCode = false;
-		var $OAuthVersion = "1.0";
-		var $RequestType = "header";
-		var $Scope = "https://www.googleapis.com/auth/devstorage.full_control";
-		var $TokenURL = "https://accounts.google.com/o/oauth2/token";
+		public $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
+		public $EndpointURL = "https://www.googleapis.com/storage/v1/";
+		public $HTTPResponseCode = false;
+		public $OAuthVersion = "1.0";
+		public $RequestType = "header";
+		public $Scope = "https://www.googleapis.com/auth/devstorage.full_control";
+		public $TokenURL = "https://accounts.google.com/o/oauth2/token";
 
 		/*
 			Constructor:
@@ -24,7 +24,7 @@
 				service - The service to use (amazon, rackspace, google) — if this is left empty it will use $this->Settings["service"] which can be set and auto saves.
 		*/
 		
-		function __construct($service = false) {
+		public function __construct($service = false) {
 			parent::__construct("bigtree-internal-cloud-storage","Cloud Storage","org.bigtreecms.api.cloud-storage",false);
 			$this->Service = $service ? $service : $this->Settings["service"];
 
@@ -54,7 +54,7 @@
 				A URL
 		*/
 
-		function _getRackspaceURL($container,$pointer) {
+		public function _getRackspaceURL($container,$pointer) {
 			if ($this->Settings["rackspace"]["container_cdn_urls"][$container]) {
 				return $this->Settings["rackspace"]["container_cdn_urls"][$container]."/$pointer";
 			} else {
@@ -120,7 +120,7 @@
 				The URL of the file if successful.
 		*/
 
-		function copyFile($source_container,$source_pointer,$destination_container,$destination_pointer,$public = false) {
+		public function copyFile($source_container,$source_pointer,$destination_container,$destination_pointer,$public = false) {
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				$this->callAmazonS3("PUT",$destination_container,$destination_pointer,array(),array("Content-Length" => "0"),array(
@@ -172,7 +172,7 @@
 				true if successful.
 		*/
 
-		function createContainer($name,$public = false) {
+		public function createContainer($name,$public = false) {
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				$response = $this->callAmazonS3("PUT",$name,"",array(),array(),array("x-amz-acl" => "private"));
@@ -240,7 +240,7 @@
 				The URL of the file if successful.
 		*/
 
-		function createFile($contents,$container,$pointer,$public = false,$type = "text/plain") {
+		public function createFile($contents,$container,$pointer,$public = false,$type = "text/plain") {
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				$contents = strlen($contents) ? $contents : " ";
@@ -294,7 +294,7 @@
 				true if successful.
 		*/
 
-		function createFolder($container,$pointer) {
+		public function createFolder($container,$pointer) {
 			return $this->createFile("",$container,rtrim($pointer,"/")."/");
 		}
 
@@ -310,7 +310,7 @@
 				true if successful.
 		*/
 
-		function deleteContainer($container) {
+		public function deleteContainer($container) {
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				$response = $this->callAmazonS3("DELETE",$container);
@@ -356,7 +356,7 @@
 				true if successful
 		*/
 
-		function deleteFile($container,$pointer) {
+		public function deleteFile($container,$pointer) {
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				$this->callAmazonS3("DELETE",$container,$pointer);
@@ -398,7 +398,7 @@
 				A URL.
 		*/
 
-		function getAuthenticatedFileURL($container,$pointer,$expires) {
+		public function getAuthenticatedFileURL($container,$pointer,$expires) {
 			$expires += time();
 
 			// Amazon S3
@@ -461,7 +461,7 @@
 				An array of the contents of the container.
 		*/
 
-		function getContainer($container,$simple = false) {
+		public function getContainer($container,$simple = false) {
 			$tree = array("folders" => array(),"files" => array());
 			$flat = array();
 			
@@ -607,7 +607,7 @@
 				A binary stream of data or false if the file is not found or not allowed.
 		*/
 
-		function getFile($container,$pointer) {
+		public function getFile($container,$pointer) {
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				$response = $this->callAmazonS3("GET",$container,$pointer);
@@ -639,7 +639,7 @@
 				A keyed array of files and folders inside the folder or false if the folder was not found.
 		*/
 
-		function getFolder($container,$folder) {
+		public function getFolder($container,$folder) {
 			if (!is_array($container)) {
 				$container = $this->getContainer($container);
 			}
@@ -656,7 +656,7 @@
 				Gets a new access token for the Rackspace Cloud Files API.
 		*/
 
-		function getRackspaceToken() {
+		public function getRackspaceToken() {
 			$j = json_decode(BigTree::cURL("https://identity.api.rackspacecloud.com/v2.0/tokens",json_encode(array(
 				"auth" => array(
 					"RAX-KSKEY:apiKeyCredentials" => array(
@@ -697,7 +697,7 @@
 				An array of container names.
 		*/
 
-		function listContainers() {
+		public function listContainers() {
 			$containers = array();
 			// Amazon S3
 			if ($this->Service == "amazon") {
@@ -761,7 +761,7 @@
 				The public URL if successful, otherwise false
 		*/
 
-		function makeFilePublic($container,$pointer) {
+		public function makeFilePublic($container,$pointer) {
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				// Get existing ACL
@@ -795,7 +795,7 @@
 				data - An array of file data from a container
 		*/
 
-		function resetCache($data) {
+		public function resetCache($data) {
 			sqlquery("DELETE FROM bigtree_caches WHERE `identifier` = 'org.bigtreecms.cloudfiles'");
 			foreach ($data as $item) {
 				sqlquery("INSERT INTO bigtree_caches (`identifier`,`key`,`value`) VALUES ('org.bigtreecms.cloudfiles','".sqlescape($item["path"])."','".sqlescape(json_encode(array("name" => $item["name"],"path" => $item["path"],"size" => $item["size"])))."')");
@@ -818,7 +818,7 @@
 				The URL of the file if successful.
 		*/
 
-		function uploadFile($file,$container,$pointer = false,$public = false) {
+		public function uploadFile($file,$container,$pointer = false,$public = false) {
 			// MIME Types
 			$exts = array(
 				"jpg" => "image/jpeg", "jpeg" => "image/jpeg", "gif" => "image/gif",
@@ -906,7 +906,7 @@
 				file - File to upload.
 		*/
 	
-		function callAmazonS3($verb = "GET",$bucket = "",$uri = "",$params = array(),$request_headers = array(),$amazon_headers = array(),$data = false,$file = false) {
+		public function callAmazonS3($verb = "GET",$bucket = "",$uri = "",$params = array(),$request_headers = array(),$amazon_headers = array(),$data = false,$file = false) {
 			$uri = $uri ? "/".str_replace("%2F","/",rawurlencode($uri)) : "/";
 
 			if ($bucket) {
@@ -1056,7 +1056,7 @@
 				curl_options - Additional cURL options.
 		*/
 
-		function callRackspace($endpoint = "",$data = false,$curl_options = array()) {
+		public function callRackspace($endpoint = "",$data = false,$curl_options = array()) {
 			$curl_options = $curl_options + array(CURLOPT_HTTPHEADER => array("Accept: application/json","X-Auth-Token: ".$this->Settings["rackspace"]["token"]));
 			return json_decode(BigTree::cURL($this->RackspaceAPIEndpoint.($endpoint ? "/$endpoint" : ""),$data,$curl_options));
 		}

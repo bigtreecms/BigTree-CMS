@@ -1,4 +1,4 @@
-<?
+<?php
 	$templates = $admin->getTemplates();
 	
 	// Need to create a ridiculous hack because jQuery's sortable is stupid.
@@ -12,7 +12,7 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="basic_templates">
-		<?
+		<?php
 			foreach ($templates as $template) {
 				if (!$template["routed"]) {
 					$x++;
@@ -27,10 +27,10 @@
 				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>templates/delete/?id=<?=$template["id"]?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>templates/delete/?id=<?=$template["id"]?><?php $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
 			</section>
 		</li>
-		<?
+		<?php
 				}
 			}
 		?>
@@ -44,7 +44,7 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="routed_templates">
-		<?
+		<?php
 			foreach ($templates as $template) {
 				if ($template["routed"]) {
 					$x++;
@@ -59,10 +59,10 @@
 				<a href="<?=DEVELOPER_ROOT?>templates/edit/<?=$template["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>templates/delete/?id=<?=$template["id"]?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>templates/delete/?id=<?=$template["id"]?><?php $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
 			</section>
 		</li>
-		<?
+		<?php
 				}
 			}
 		?>

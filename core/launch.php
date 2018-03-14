@@ -1,4 +1,4 @@
-<?
+<?php
 	// Setup the BigTree variable "namespace"
 	$bigtree = array();
 	$bigtree["php_boot_error"] = error_get_last();
@@ -76,38 +76,38 @@
 		die();
 	}
 
-    // See if we're in a multi-domain setup
-    if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
-        // Figure out which domain we're in
-        foreach ($bigtree["config"]["sites"] as $site_key => $site_data) {
-            $domain_match = str_replace(array("http://", "https://"), "", $site_data["domain"]);
+	// See if we're in a multi-domain setup
+	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+		// Figure out which domain we're in
+		foreach ($bigtree["config"]["sites"] as $site_key => $site_data) {
+			$domain_match = str_replace(array("http://", "https://"), "", $site_data["domain"]);
 
-            if ($domain_match == $_SERVER["HTTP_HOST"]) {
-                define("BIGTREE_SITE_KEY", $site_key);
-                define("BIGTREE_SITE_TRUNK", intval($site_data["trunk"]));
-                define("BIGTREE_CACHE_DIRECTORY", $server_root."cache/".BIGTREE_SITE_KEY."/");
+			if ($domain_match == $_SERVER["HTTP_HOST"]) {
+				define("BIGTREE_SITE_KEY", $site_key);
+				define("BIGTREE_SITE_TRUNK", intval($site_data["trunk"]));
+				define("BIGTREE_CACHE_DIRECTORY", $server_root."cache/".BIGTREE_SITE_KEY."/");
 
-                if (!file_exists(BIGTREE_CACHE_DIRECTORY)) {
-                    mkdir(BIGTREE_CACHE_DIRECTORY, 0777);
-                }
+				if (!file_exists(BIGTREE_CACHE_DIRECTORY)) {
+					mkdir(BIGTREE_CACHE_DIRECTORY, 0777);
+				}
 
-                $domain = rtrim($site_data["domain"], "/");
-                $www_root = $site_data["www_root"];
-                $static_root = !empty($site_data["static_root"]) ? $site_data["static_root"] : $www_root;
-            }
-        }
-    }
+				$domain = rtrim($site_data["domain"], "/");
+				$www_root = $site_data["www_root"];
+				$static_root = !empty($site_data["static_root"]) ? $site_data["static_root"] : $www_root;
+			}
+		}
+	}
 
-    if (!defined("BIGTREE_SITE_KEY")) {
-        define("BIGTREE_CACHE_DIRECTORY", $server_root."cache/");
-    }
+	if (!defined("BIGTREE_SITE_KEY")) {
+		define("BIGTREE_CACHE_DIRECTORY", $server_root."cache/");
+	}
 	
 	// We're not in the admin, see if caching is enabled and serve up a cached page if it exists
 	if ($bigtree["config"]["cache"] && $bigtree["path"][0] != "_preview" && $bigtree["path"][0] != "_preview-pending") {
 		$cache_location = md5(json_encode($_GET));
 		$file = BIGTREE_CACHE_DIRECTORY.$cache_location.".page";
 
-        // If the file is at least 5 minutes fresh, serve it up.
+		// If the file is at least 5 minutes fresh, serve it up.
 		clearstatcache();
 		$ttl = !empty($bigtree["config"]["cache_ttl"]) ? $bigtree["config"]["cache_ttl"] : 300;
 
@@ -126,10 +126,10 @@
 	} else {
 		include "../core/bootstrap.php";
 	}
+	
 	// Route BigTree
 	if (file_exists("../custom/router.php")) {
 		include "../custom/router.php";
 	} else {
 		include "../core/router.php";
 	}
-?>

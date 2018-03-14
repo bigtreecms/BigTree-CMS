@@ -1,4 +1,4 @@
-<?
+<?php
 	/*
 		Class: BigTree
 			A utilities class with many useful functions.
@@ -7,12 +7,12 @@
 	
 	class BigTree {
 
-		static $StateList = array('AL'=>"Alabama",'AK'=>"Alaska",'AZ'=>"Arizona",'AR'=>"Arkansas",'CA'=>"California",'CO'=>"Colorado",'CT'=>"Connecticut",'DE'=>"Delaware",'DC'=>"District Of Columbia", 'FL'=>"Florida",'GA'=>"Georgia",'HI'=>"Hawaii",'ID'=>"Idaho",'IL'=>"Illinois",'IN'=>"Indiana",'IA'=>"Iowa",'KS'=>"Kansas",'KY'=>"Kentucky",'LA'=>"Louisiana",'ME'=>"Maine",'MD'=>"Maryland",'MA'=>"Massachusetts",'MI'=>"Michigan",'MN'=>"Minnesota",'MS'=>"Mississippi",'MO'=>"Missouri",'MT'=>"Montana",'NE'=>"Nebraska",'NV'=>"Nevada",'NH'=>"New Hampshire",'NJ'=>"New Jersey",'NM'=>"New Mexico",'NY'=>"New York",'NC'=>"North Carolina",'ND'=>"North Dakota",'OH'=>"Ohio",'OK'=>"Oklahoma",'OR'=>"Oregon",'PA'=>"Pennsylvania",'RI'=>"Rhode Island",'SC'=>"South Carolina",'SD'=>"South Dakota",'TN'=>"Tennessee",'TX'=>"Texas",'UT'=>"Utah",'VT'=>"Vermont",'VA'=>"Virginia",'WA'=>"Washington",'WV'=>"West Virginia",'WI'=>"Wisconsin",'WY'=>"Wyoming");
-		static $CountryList = array("United States","Afghanistan","Åland Islands","Albania","Algeria","American Samoa","Andorra","Angola","Anguilla","Antarctica","Antigua and Barbuda","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bermuda","Bhutan","Bolivia, Plurinational State of","Bonaire, Sint Eustatius and Saba","Bosnia and Herzegovina","Botswana","Bouvet Island","Brazil","British Indian Ocean Territory","Brunei Darussalam","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Central African Republic","Chad","Chile","China","Christmas Island","Cocos (Keeling) Islands","Colombia","Comoros","Congo","Congo, The Democratic Republic of the","Cook Islands","Costa Rica","Côte d'Ivoire","Croatia","Cuba","Curaçao","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Ethiopia","Falkland Islands (Malvinas)","Faroe Islands","Fiji","Finland","France","French Guiana","French Polynesia","French Southern Territories","Gabon","Gambia","Georgia","Germany","Ghana","Gibraltar","Greece","Greenland","Grenada","Guadeloupe","Guam","Guatemala","Guernsey","Guinea","Guinea-Bissau","Guyana","Haiti","Heard Island and McDonald Islands","Holy See (Vatican City State)","Honduras","Hong Kong","Hungary","Iceland","India","Indonesia","Iran, Islamic Republic of","Iraq","Ireland","Isle of Man","Israel","Italy","Jamaica","Japan","Jersey","Jordan","Kazakhstan","Kenya","Kiribati","Korea, Democratic People's Republic of","Korea, Republic of","Kosovo","Kuwait","Kyrgyzstan","Lao People's Democratic Republic","Latvia","Lebanon","Lesotho","Liberia","Libyan Arab Jamahiriya","Liechtenstein","Lithuania","Luxembourg","Macao","Macedonia, The Former Yugoslav Republic of","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Martinique","Mauritania","Mauritius","Mayotte","Mexico","Micronesia, Federated States of","Moldova, Republic of","Monaco","Mongolia","Montenegro","Montserrat","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Caledonia","New Zealand","Nicaragua","Niger","Nigeria","Niue","Norfolk Island","Northern Mariana Islands","Norway","Occupied Palestinian Territory","Oman","Pakistan","Palau","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Pitcairn","Poland","Portugal","Puerto Rico","Qatar","Réunion","Romania","Russian Federation","Rwanda","Saint Barthélemy","Saint Helena, Ascension and Tristan da Cunha","Saint Kitts and Nevis","Saint Lucia","Saint Martin (French part)","Saint Pierre and Miquelon","Saint Vincent and The Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Sint Maarten (Dutch part)","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Georgia and the South Sandwich Islands","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Svalbard and Jan Mayen","Swaziland","Sweden","Switzerland","Syrian Arab Republic","Taiwan, Province of China","Tajikistan","Tanzania, United Republic of","Thailand","Timor-Leste","Togo","Tokelau","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Turks and Caicos Islands","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States Minor Outlying Islands","Uruguay","Uzbekistan","Vanuatu","Venezuela, Bolivarian Republic of","Viet Nam","Virgin Islands, British","Virgin Islands, U.S.","Wallis and Futuna","Western Sahara","Yemen","Zambia","Zimbabwe");
-		static $CountryListWithAbbreviations = array("AF" => "Afghanistan (‫افغانستان‬‎)","AX" => "Åland Islands (Åland)","AL" => "Albania (Shqipëri)","DZ" => "Algeria (‫الجزائر‬‎)","AS" => "American Samoa","AD" => "Andorra","AO" => "Angola","AI" => "Anguilla","AQ" => "Antarctica","AG" => "Antigua and Barbuda","AR" => "Argentina","AM" => "Armenia (Հայաստան)","AW" => "Aruba","AC" => "Ascension Island","AU" => "Australia","AT" => "Austria (Österreich)","AZ" => "Azerbaijan (Azərbaycan)","BS" => "Bahamas","BH" => "Bahrain (‫البحرين‬‎)","BD" => "Bangladesh (বাংলাদেশ)","BB" => "Barbados","BY" => "Belarus (Беларусь)","BE" => "Belgium (België)","BZ" => "Belize","BJ" => "Benin (Bénin)","BM" => "Bermuda","BT" => "Bhutan (འབྲུག)","BO" => "Bolivia","BA" => "Bosnia and Herzegovina (Босна и Херцеговина)","BW" => "Botswana","BV" => "Bouvet Island","BR" => "Brazil (Brasil)","IO" => "British Indian Ocean Territory","VG" => "British Virgin Islands","BN" => "Brunei","BG" => "Bulgaria (България)","BF" => "Burkina Faso","BI" => "Burundi (Uburundi)","KH" => "Cambodia (កម្ពុជា)","CM" => "Cameroon (Cameroun)","CA" => "Canada","IC" => "Canary Islands (islas Canarias)","CV" => "Cape Verde (Kabu Verdi)","BQ" => "Caribbean Netherlands","KY" => "Cayman Islands","CF" => "Central African Republic (République centrafricaine)","EA" => "Ceuta and Melilla (Ceuta y Melilla)","TD" => "Chad (Tchad)","CL" => "Chile","CN" => "China (中国)","CX" => "Christmas Island","CP" => "Clipperton Island","CC" => "Cocos (Keeling) Islands (Kepulauan Cocos (Keeling))","CO" => "Colombia","KM" => "Comoros (‫جزر القمر‬‎)","CD" => "Congo (DRC) (Jamhuri ya Kidemokrasia ya Kongo)","CG" => "Congo (Republic) (Congo-Brazzaville)","CK" => "Cook Islands","CR" => "Costa Rica","CI" => "Côte d’Ivoire","HR" => "Croatia (Hrvatska)","CU" => "Cuba","CW" => "Curaçao","CY" => "Cyprus (Κύπρος)","CZ" => "Czech Republic (Česká republika)","DK" => "Denmark (Danmark)","DG" => "Diego Garcia","DJ" => "Djibouti","DM" => "Dominica","DO" => "Dominican Republic (República Dominicana)","EC" => "Ecuador","EG" => "Egypt (‫مصر‬‎)","SV" => "El Salvador","GQ" => "Equatorial Guinea (Guinea Ecuatorial)","ER" => "Eritrea","EE" => "Estonia (Eesti)","ET" => "Ethiopia","FK" => "Falkland Islands (Islas Malvinas)","FO" => "Faroe Islands (Føroyar)","FJ" => "Fiji","FI" => "Finland (Suomi)","FR" => "France","GF" => "French Guiana (Guyane française)","PF" => "French Polynesia (Polynésie française)","TF" => "French Southern Territories (Terres australes françaises)","GA" => "Gabon","GM" => "Gambia","GE" => "Georgia (საქართველო)","DE" => "Germany (Deutschland)","GH" => "Ghana (Gaana)","GI" => "Gibraltar","GR" => "Greece (Ελλάδα)","GL" => "Greenland (Kalaallit Nunaat)","GD" => "Grenada","GP" => "Guadeloupe","GU" => "Guam","GT" => "Guatemala","GG" => "Guernsey","GN" => "Guinea (Guinée)","GW" => "Guinea-Bissau (Guiné Bissau)","GY" => "Guyana","HT" => "Haiti","HM" => "Heard & McDonald Islands","HN" => "Honduras","HK" => "Hong Kong (香港)","HU" => "Hungary (Magyarország)","IS" => "Iceland (Ísland)","IN" => "India (भारत)","ID" => "Indonesia","IR" => "Iran (‫ایران‬‎)","IQ" => "Iraq (‫العراق‬‎)","IE" => "Ireland","IM" => "Isle of Man","IL" => "Israel (‫ישראל‬‎)","IT" => "Italy (Italia)","JM" => "Jamaica","JP" => "Japan (日本)","JE" => "Jersey","JO" => "Jordan (‫الأردن‬‎)","KZ" => "Kazakhstan (Казахстан)","KE" => "Kenya","KI" => "Kiribati","XK" => "Kosovo (Kosovë)","KW" => "Kuwait (‫الكويت‬‎)","KG" => "Kyrgyzstan (Кыргызстан)","LA" => "Laos (ລາວ)","LV" => "Latvia (Latvija)","LB" => "Lebanon (‫لبنان‬‎)","LS" => "Lesotho","LR" => "Liberia","LY" => "Libya (‫ليبيا‬‎)","LI" => "Liechtenstein","LT" => "Lithuania (Lietuva)","LU" => "Luxembourg","MO" => "Macau (澳門)","MK" => "Macedonia (FYROM) (Македонија)","MG" => "Madagascar (Madagasikara)","MW" => "Malawi","MY" => "Malaysia","MV" => "Maldives","ML" => "Mali","MT" => "Malta","MH" => "Marshall Islands","MQ" => "Martinique","MR" => "Mauritania (‫موريتانيا‬‎)","MU" => "Mauritius (Moris)","YT" => "Mayotte","MX" => "Mexico (México)","FM" => "Micronesia","MD" => "Moldova (Republica Moldova)","MC" => "Monaco","MN" => "Mongolia (Монгол)","ME" => "Montenegro (Crna Gora)","MS" => "Montserrat","MA" => "Morocco (‫المغرب‬‎)","MZ" => "Mozambique (Moçambique)","MM" => "Myanmar (Burma) (မြန်မာ)","NA" => "Namibia (Namibië)","NR" => "Nauru","NP" => "Nepal (नेपाल)","NL" => "Netherlands (Nederland)","NC" => "New Caledonia (Nouvelle-Calédonie)","NZ" => "New Zealand","NI" => "Nicaragua","NE" => "Niger (Nijar)","NG" => "Nigeria","NU" => "Niue","NF" => "Norfolk Island","MP" => "Northern Mariana Islands","KP" => "North Korea (조선 민주주의 인민 공화국)","NO" => "Norway (Norge)","OM" => "Oman (‫عُمان‬‎)","PK" => "Pakistan (‫پاکستان‬‎)","PW" => "Palau","PS" => "Palestine (‫فلسطين‬‎)","PA" => "Panama (Panamá)","PG" => "Papua New Guinea","PY" => "Paraguay","PE" => "Peru (Perú)","PH" => "Philippines","PN" => "Pitcairn Islands","PL" => "Poland (Polska)","PT" => "Portugal","PR" => "Puerto Rico","QA" => "Qatar (‫قطر‬‎)","RE" => "Réunion (La Réunion)","RO" => "Romania (România)","RU" => "Russia (Россия)","RW" => "Rwanda","BL" => "Saint Barthélemy (Saint-Barthélemy)","SH" => "Saint Helena","KN" => "Saint Kitts and Nevis","LC" => "Saint Lucia","MF" => "Saint Martin (Saint-Martin (partie française))","PM" => "Saint Pierre and Miquelon (Saint-Pierre-et-Miquelon)","WS" => "Samoa","SM" => "San Marino","ST" => "São Tomé and Príncipe (São Tomé e Príncipe)","SA" => "Saudi Arabia (‫المملكة العربية السعودية‬‎)","SN" => "Senegal (Sénégal)","RS" => "Serbia (Србија)","SC" => "Seychelles","SL" => "Sierra Leone","SG" => "Singapore","SX" => "Sint Maarten","SK" => "Slovakia (Slovensko)","SI" => "Slovenia (Slovenija)","SB" => "Solomon Islands","SO" => "Somalia (Soomaaliya)","ZA" => "South Africa","GS" => "South Georgia & South Sandwich Islands","KR" => "South Korea (대한민국)","SS" => "South Sudan (‫جنوب السودان‬‎)","ES" => "Spain (España)","LK" => "Sri Lanka (ශ්‍රී ලංකාව)","VC" => "St. Vincent & Grenadines","SD" => "Sudan (‫السودان‬‎)","SR" => "Suriname","SJ" => "Svalbard and Jan Mayen (Svalbard og Jan Mayen)","SZ" => "Swaziland","SE" => "Sweden (Sverige)","CH" => "Switzerland (Schweiz)","SY" => "Syria (‫سوريا‬‎)","TW" => "Taiwan (台灣)","TJ" => "Tajikistan","TZ" => "Tanzania","TH" => "Thailand (ไทย)","TL" => "Timor-Leste","TG" => "Togo","TK" => "Tokelau","TO" => "Tonga","TT" => "Trinidad and Tobago","TA" => "Tristan da Cunha","TN" => "Tunisia (‫تونس‬‎)","TR" => "Turkey (Türkiye)","TM" => "Turkmenistan","TC" => "Turks and Caicos Islands","TV" => "Tuvalu","UM" => "U.S. Outlying Islands","VI" => "U.S. Virgin Islands","UG" => "Uganda","UA" => "Ukraine (Україна)","AE" => "United Arab Emirates (‫الإمارات العربية المتحدة‬‎)","GB" => "United Kingdom","US" => "United States","UY" => "Uruguay","UZ" => "Uzbekistan (Oʻzbekiston)","VU" => "Vanuatu","VA" => "Vatican City (Città del Vaticano)","VE" => "Venezuela","VN" => "Vietnam (Việt Nam)","WF" => "Wallis and Futuna","EH" => "Western Sahara (‫الصحراء الغربية‬‎)","YE" => "Yemen (‫اليمن‬‎)","ZM" => "Zambia","ZW" => "Zimbabwe");
-		static $MonthList = array("1" => "January","2" => "February","3" => "March","4" => "April","5" => "May","6" => "June","7" => "July","8" => "August","9" => "September","10" => "October","11" => "November","12" => "December");
-		static $JSONEncoding = false;
-		static $SUTestResult = null;
+		public static $StateList = array('AL'=>"Alabama",'AK'=>"Alaska",'AZ'=>"Arizona",'AR'=>"Arkansas",'CA'=>"California",'CO'=>"Colorado",'CT'=>"Connecticut",'DE'=>"Delaware",'DC'=>"District Of Columbia", 'FL'=>"Florida",'GA'=>"Georgia",'HI'=>"Hawaii",'ID'=>"Idaho",'IL'=>"Illinois",'IN'=>"Indiana",'IA'=>"Iowa",'KS'=>"Kansas",'KY'=>"Kentucky",'LA'=>"Louisiana",'ME'=>"Maine",'MD'=>"Maryland",'MA'=>"Massachusetts",'MI'=>"Michigan",'MN'=>"Minnesota",'MS'=>"Mississippi",'MO'=>"Missouri",'MT'=>"Montana",'NE'=>"Nebraska",'NV'=>"Nevada",'NH'=>"New Hampshire",'NJ'=>"New Jersey",'NM'=>"New Mexico",'NY'=>"New York",'NC'=>"North Carolina",'ND'=>"North Dakota",'OH'=>"Ohio",'OK'=>"Oklahoma",'OR'=>"Oregon",'PA'=>"Pennsylvania",'RI'=>"Rhode Island",'SC'=>"South Carolina",'SD'=>"South Dakota",'TN'=>"Tennessee",'TX'=>"Texas",'UT'=>"Utah",'VT'=>"Vermont",'VA'=>"Virginia",'WA'=>"Washington",'WV'=>"West Virginia",'WI'=>"Wisconsin",'WY'=>"Wyoming");
+		public static $CountryList = array("United States","Afghanistan","Åland Islands","Albania","Algeria","American Samoa","Andorra","Angola","Anguilla","Antarctica","Antigua and Barbuda","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bermuda","Bhutan","Bolivia, Plurinational State of","Bonaire, Sint Eustatius and Saba","Bosnia and Herzegovina","Botswana","Bouvet Island","Brazil","British Indian Ocean Territory","Brunei Darussalam","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Central African Republic","Chad","Chile","China","Christmas Island","Cocos (Keeling) Islands","Colombia","Comoros","Congo","Congo, The Democratic Republic of the","Cook Islands","Costa Rica","Côte d'Ivoire","Croatia","Cuba","Curaçao","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Ethiopia","Falkland Islands (Malvinas)","Faroe Islands","Fiji","Finland","France","French Guiana","French Polynesia","French Southern Territories","Gabon","Gambia","Georgia","Germany","Ghana","Gibraltar","Greece","Greenland","Grenada","Guadeloupe","Guam","Guatemala","Guernsey","Guinea","Guinea-Bissau","Guyana","Haiti","Heard Island and McDonald Islands","Holy See (Vatican City State)","Honduras","Hong Kong","Hungary","Iceland","India","Indonesia","Iran, Islamic Republic of","Iraq","Ireland","Isle of Man","Israel","Italy","Jamaica","Japan","Jersey","Jordan","Kazakhstan","Kenya","Kiribati","Korea, Democratic People's Republic of","Korea, Republic of","Kosovo","Kuwait","Kyrgyzstan","Lao People's Democratic Republic","Latvia","Lebanon","Lesotho","Liberia","Libyan Arab Jamahiriya","Liechtenstein","Lithuania","Luxembourg","Macao","Macedonia, The Former Yugoslav Republic of","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Martinique","Mauritania","Mauritius","Mayotte","Mexico","Micronesia, Federated States of","Moldova, Republic of","Monaco","Mongolia","Montenegro","Montserrat","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Caledonia","New Zealand","Nicaragua","Niger","Nigeria","Niue","Norfolk Island","Northern Mariana Islands","Norway","Occupied Palestinian Territory","Oman","Pakistan","Palau","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Pitcairn","Poland","Portugal","Puerto Rico","Qatar","Réunion","Romania","Russian Federation","Rwanda","Saint Barthélemy","Saint Helena, Ascension and Tristan da Cunha","Saint Kitts and Nevis","Saint Lucia","Saint Martin (French part)","Saint Pierre and Miquelon","Saint Vincent and The Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Sint Maarten (Dutch part)","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Georgia and the South Sandwich Islands","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Svalbard and Jan Mayen","Swaziland","Sweden","Switzerland","Syrian Arab Republic","Taiwan, Province of China","Tajikistan","Tanzania, United Republic of","Thailand","Timor-Leste","Togo","Tokelau","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Turks and Caicos Islands","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States Minor Outlying Islands","Uruguay","Uzbekistan","Vanuatu","Venezuela, Bolivarian Republic of","Viet Nam","Virgin Islands, British","Virgin Islands, U.S.","Wallis and Futuna","Western Sahara","Yemen","Zambia","Zimbabwe");
+		public static $CountryListWithAbbreviations = array("AF" => "Afghanistan (‫افغانستان‬‎)","AX" => "Åland Islands (Åland)","AL" => "Albania (Shqipëri)","DZ" => "Algeria (‫الجزائر‬‎)","AS" => "American Samoa","AD" => "Andorra","AO" => "Angola","AI" => "Anguilla","AQ" => "Antarctica","AG" => "Antigua and Barbuda","AR" => "Argentina","AM" => "Armenia (Հայաստան)","AW" => "Aruba","AC" => "Ascension Island","AU" => "Australia","AT" => "Austria (Österreich)","AZ" => "Azerbaijan (Azərbaycan)","BS" => "Bahamas","BH" => "Bahrain (‫البحرين‬‎)","BD" => "Bangladesh (বাংলাদেশ)","BB" => "Barbados","BY" => "Belarus (Беларусь)","BE" => "Belgium (België)","BZ" => "Belize","BJ" => "Benin (Bénin)","BM" => "Bermuda","BT" => "Bhutan (འབྲུག)","BO" => "Bolivia","BA" => "Bosnia and Herzegovina (Босна и Херцеговина)","BW" => "Botswana","BV" => "Bouvet Island","BR" => "Brazil (Brasil)","IO" => "British Indian Ocean Territory","VG" => "British Virgin Islands","BN" => "Brunei","BG" => "Bulgaria (България)","BF" => "Burkina Faso","BI" => "Burundi (Uburundi)","KH" => "Cambodia (កម្ពុជា)","CM" => "Cameroon (Cameroun)","CA" => "Canada","IC" => "Canary Islands (islas Canarias)","CV" => "Cape Verde (Kabu Verdi)","BQ" => "Caribbean Netherlands","KY" => "Cayman Islands","CF" => "Central African Republic (République centrafricaine)","EA" => "Ceuta and Melilla (Ceuta y Melilla)","TD" => "Chad (Tchad)","CL" => "Chile","CN" => "China (中国)","CX" => "Christmas Island","CP" => "Clipperton Island","CC" => "Cocos (Keeling) Islands (Kepulauan Cocos (Keeling))","CO" => "Colombia","KM" => "Comoros (‫جزر القمر‬‎)","CD" => "Congo (DRC) (Jamhuri ya Kidemokrasia ya Kongo)","CG" => "Congo (Republic) (Congo-Brazzaville)","CK" => "Cook Islands","CR" => "Costa Rica","CI" => "Côte d’Ivoire","HR" => "Croatia (Hrvatska)","CU" => "Cuba","CW" => "Curaçao","CY" => "Cyprus (Κύπρος)","CZ" => "Czech Republic (Česká republika)","DK" => "Denmark (Danmark)","DG" => "Diego Garcia","DJ" => "Djibouti","DM" => "Dominica","DO" => "Dominican Republic (República Dominicana)","EC" => "Ecuador","EG" => "Egypt (‫مصر‬‎)","SV" => "El Salvador","GQ" => "Equatorial Guinea (Guinea Ecuatorial)","ER" => "Eritrea","EE" => "Estonia (Eesti)","ET" => "Ethiopia","FK" => "Falkland Islands (Islas Malvinas)","FO" => "Faroe Islands (Føroyar)","FJ" => "Fiji","FI" => "Finland (Suomi)","FR" => "France","GF" => "French Guiana (Guyane française)","PF" => "French Polynesia (Polynésie française)","TF" => "French Southern Territories (Terres australes françaises)","GA" => "Gabon","GM" => "Gambia","GE" => "Georgia (საქართველო)","DE" => "Germany (Deutschland)","GH" => "Ghana (Gaana)","GI" => "Gibraltar","GR" => "Greece (Ελλάδα)","GL" => "Greenland (Kalaallit Nunaat)","GD" => "Grenada","GP" => "Guadeloupe","GU" => "Guam","GT" => "Guatemala","GG" => "Guernsey","GN" => "Guinea (Guinée)","GW" => "Guinea-Bissau (Guiné Bissau)","GY" => "Guyana","HT" => "Haiti","HM" => "Heard & McDonald Islands","HN" => "Honduras","HK" => "Hong Kong (香港)","HU" => "Hungary (Magyarország)","IS" => "Iceland (Ísland)","IN" => "India (भारत)","ID" => "Indonesia","IR" => "Iran (‫ایران‬‎)","IQ" => "Iraq (‫العراق‬‎)","IE" => "Ireland","IM" => "Isle of Man","IL" => "Israel (‫ישראל‬‎)","IT" => "Italy (Italia)","JM" => "Jamaica","JP" => "Japan (日本)","JE" => "Jersey","JO" => "Jordan (‫الأردن‬‎)","KZ" => "Kazakhstan (Казахстан)","KE" => "Kenya","KI" => "Kiribati","XK" => "Kosovo (Kosovë)","KW" => "Kuwait (‫الكويت‬‎)","KG" => "Kyrgyzstan (Кыргызстан)","LA" => "Laos (ລາວ)","LV" => "Latvia (Latvija)","LB" => "Lebanon (‫لبنان‬‎)","LS" => "Lesotho","LR" => "Liberia","LY" => "Libya (‫ليبيا‬‎)","LI" => "Liechtenstein","LT" => "Lithuania (Lietuva)","LU" => "Luxembourg","MO" => "Macau (澳門)","MK" => "Macedonia (FYROM) (Македонија)","MG" => "Madagascar (Madagasikara)","MW" => "Malawi","MY" => "Malaysia","MV" => "Maldives","ML" => "Mali","MT" => "Malta","MH" => "Marshall Islands","MQ" => "Martinique","MR" => "Mauritania (‫موريتانيا‬‎)","MU" => "Mauritius (Moris)","YT" => "Mayotte","MX" => "Mexico (México)","FM" => "Micronesia","MD" => "Moldova (Republica Moldova)","MC" => "Monaco","MN" => "Mongolia (Монгол)","ME" => "Montenegro (Crna Gora)","MS" => "Montserrat","MA" => "Morocco (‫المغرب‬‎)","MZ" => "Mozambique (Moçambique)","MM" => "Myanmar (Burma) (မြန်မာ)","NA" => "Namibia (Namibië)","NR" => "Nauru","NP" => "Nepal (नेपाल)","NL" => "Netherlands (Nederland)","NC" => "New Caledonia (Nouvelle-Calédonie)","NZ" => "New Zealand","NI" => "Nicaragua","NE" => "Niger (Nijar)","NG" => "Nigeria","NU" => "Niue","NF" => "Norfolk Island","MP" => "Northern Mariana Islands","KP" => "North Korea (조선 민주주의 인민 공화국)","NO" => "Norway (Norge)","OM" => "Oman (‫عُمان‬‎)","PK" => "Pakistan (‫پاکستان‬‎)","PW" => "Palau","PS" => "Palestine (‫فلسطين‬‎)","PA" => "Panama (Panamá)","PG" => "Papua New Guinea","PY" => "Paraguay","PE" => "Peru (Perú)","PH" => "Philippines","PN" => "Pitcairn Islands","PL" => "Poland (Polska)","PT" => "Portugal","PR" => "Puerto Rico","QA" => "Qatar (‫قطر‬‎)","RE" => "Réunion (La Réunion)","RO" => "Romania (România)","RU" => "Russia (Россия)","RW" => "Rwanda","BL" => "Saint Barthélemy (Saint-Barthélemy)","SH" => "Saint Helena","KN" => "Saint Kitts and Nevis","LC" => "Saint Lucia","MF" => "Saint Martin (Saint-Martin (partie française))","PM" => "Saint Pierre and Miquelon (Saint-Pierre-et-Miquelon)","WS" => "Samoa","SM" => "San Marino","ST" => "São Tomé and Príncipe (São Tomé e Príncipe)","SA" => "Saudi Arabia (‫المملكة العربية السعودية‬‎)","SN" => "Senegal (Sénégal)","RS" => "Serbia (Србија)","SC" => "Seychelles","SL" => "Sierra Leone","SG" => "Singapore","SX" => "Sint Maarten","SK" => "Slovakia (Slovensko)","SI" => "Slovenia (Slovenija)","SB" => "Solomon Islands","SO" => "Somalia (Soomaaliya)","ZA" => "South Africa","GS" => "South Georgia & South Sandwich Islands","KR" => "South Korea (대한민국)","SS" => "South Sudan (‫جنوب السودان‬‎)","ES" => "Spain (España)","LK" => "Sri Lanka (ශ්‍රී ලංකාව)","VC" => "St. Vincent & Grenadines","SD" => "Sudan (‫السودان‬‎)","SR" => "Suriname","SJ" => "Svalbard and Jan Mayen (Svalbard og Jan Mayen)","SZ" => "Swaziland","SE" => "Sweden (Sverige)","CH" => "Switzerland (Schweiz)","SY" => "Syria (‫سوريا‬‎)","TW" => "Taiwan (台灣)","TJ" => "Tajikistan","TZ" => "Tanzania","TH" => "Thailand (ไทย)","TL" => "Timor-Leste","TG" => "Togo","TK" => "Tokelau","TO" => "Tonga","TT" => "Trinidad and Tobago","TA" => "Tristan da Cunha","TN" => "Tunisia (‫تونس‬‎)","TR" => "Turkey (Türkiye)","TM" => "Turkmenistan","TC" => "Turks and Caicos Islands","TV" => "Tuvalu","UM" => "U.S. Outlying Islands","VI" => "U.S. Virgin Islands","UG" => "Uganda","UA" => "Ukraine (Україна)","AE" => "United Arab Emirates (‫الإمارات العربية المتحدة‬‎)","GB" => "United Kingdom","US" => "United States","UY" => "Uruguay","UZ" => "Uzbekistan (Oʻzbekiston)","VU" => "Vanuatu","VA" => "Vatican City (Città del Vaticano)","VE" => "Venezuela","VN" => "Vietnam (Việt Nam)","WF" => "Wallis and Futuna","EH" => "Western Sahara (‫الصحراء الغربية‬‎)","YE" => "Yemen (‫اليمن‬‎)","ZM" => "Zambia","ZW" => "Zimbabwe");
+		public static $MonthList = array("1" => "January","2" => "February","3" => "March","4" => "April","5" => "May","6" => "June","7" => "July","8" => "August","9" => "September","10" => "October","11" => "November","12" => "December");
+		public static $JSONEncoding = false;
+		public static $SUTestResult = null;
 	
 		/*
 			Function: arrayToXML
@@ -26,7 +26,7 @@
 				A string of XML.
 		*/				
 		
-		static function arrayToXML($array,$tab = "") {
+		public static function arrayToXML($array,$tab = "") {
 			$xml = "";
 			foreach ($array as $key => $val) {
 				if (is_array($val)) {
@@ -58,7 +58,7 @@
 				The new file name if successful, false if there was not enough memory available.
 		*/
 		
-		static function centerCrop($file, $newfile, $cw, $ch, $retina = false, $grayscale = false) {
+		public static function centerCrop($file, $newfile, $cw, $ch, $retina = false, $grayscale = false) {
 			list($w, $h) = getimagesize($file);
 			
 			// Find out what orientation we're cropping at.
@@ -83,7 +83,7 @@
 				Internal function to automatically load module classes as needed.
 		*/
 
-		static function classAutoLoader($class) {
+		public static function classAutoLoader($class) {
 			global $bigtree;
 			
 			if (isset($bigtree["other_classes"][$class])) {
@@ -120,7 +120,7 @@
 				Cleaned up string.
 		*/
 
-		static function cleanFile($file) {
+		public static function cleanFile($file) {
 			$pieces = array_filter(explode(DIRECTORY_SEPARATOR, $file), function($val) {
 				// Let empties through
 				if (!trim($val)) {
@@ -151,7 +151,7 @@
 				A hex value color between the first and second colors.
 		*/
 		
-		static function colorMesh($first_color,$second_color,$percentage) {
+		public static function colorMesh($first_color,$second_color,$percentage) {
 			$percentage = intval(str_replace("%","",$percentage));
 			$first_color = ltrim($first_color,"#");
 			$second_color = ltrim($second_color,"#");
@@ -186,7 +186,7 @@
 				true if the copy was successful, false if the directories were not writable.
 		*/
 		
-		static function copyFile($from,$to) {
+		public static function copyFile($from,$to) {
 			if (!static::isDirectoryWritable($to)) {
 				return false;
 			}
@@ -229,7 +229,7 @@
 				The new file name if successful, false if there was not enough memory available or an invalid source image was provided.
 		*/
 		
-		static function createCrop($file,$new_file,$x,$y,$target_width,$target_height,$width,$height,$retina = false,$grayscale = false) {
+		public static function createCrop($file,$new_file,$x,$y,$target_width,$target_height,$width,$height,$retina = false,$grayscale = false) {
 			global $bigtree;
 
 			// If we don't have the memory available, fail gracefully.
@@ -302,7 +302,7 @@
 				createUpscaledImage
 		*/
 		
-		static function createThumbnail($file,$new_file,$maxwidth,$maxheight,$retina = false,$grayscale = false,$upscale = false) {
+		public static function createThumbnail($file,$new_file,$maxwidth,$maxheight,$retina = false,$grayscale = false,$upscale = false) {
 			global $bigtree;
 			
 			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
@@ -377,7 +377,7 @@
 				createThumbnail
 		*/
 		
-		static function createUpscaledImage($file,$new_file,$min_width,$min_height) {
+		public static function createUpscaledImage($file,$new_file,$min_width,$min_height) {
 			return static::createThumbnail($file,$new_file,$min_width,$min_height,false,false,true);
 		}
 		
@@ -397,7 +397,7 @@
 				The string response from the URL.
 		*/
 		
-		static function cURL($url,$post = false,$options = array(),$strict_security = false,$output_file = false) {
+		public static function cURL($url,$post = false,$options = array(),$strict_security = false,$output_file = false) {
 			global $bigtree;
 
 			// Startup cURL and set the URL
@@ -461,7 +461,7 @@
 				port - Whether to return the port for connections not on port 80 (defaults to false)
 		*/
 
-		static function currentURL($port = false) {
+		public static function currentURL($port = false) {
 			$protocol = (@$_SERVER["HTTPS"] == "on") ? "https://" : "http://";
 			if ($_SERVER["SERVER_PORT"] != "80" && $port) {
 				return $protocol.$_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
@@ -482,7 +482,7 @@
 				A date string or false if date parsing failed
 		*/
 
-		static function dateFormat($date,$format = "Y-m-d H:i:s") {
+		public static function dateFormat($date,$format = "Y-m-d H:i:s") {
 			global $bigtree;
 			
 			$date_object = DateTime::createFromFormat($bigtree["config"]["date_format"],$date);
@@ -517,7 +517,7 @@
 				http://php.net/manual/en/function.date.php (for date formats)
 		*/
 
-		static function dateFromOffset($start_date,$offset,$format = "Y-m-d H:i:s") {
+		public static function dateFromOffset($start_date,$offset,$format = "Y-m-d H:i:s") {
 			$time = is_numeric($start_date) ? $start_date : strtotime($start_date);
 			$date = DateTime::createFromFormat("Y-m-d H:i:s",date("Y-m-d H:i:s",$time));
 			$date->add(DateInterval::createFromDateString($offset));
@@ -535,7 +535,7 @@
 				true if successful
 		*/
 		
-		static function deleteDirectory($dir) {
+		public static function deleteDirectory($dir) {
 			if (!file_exists($dir)) {
 				return false;
 			}
@@ -566,7 +566,7 @@
 				An array of table information.
 		*/
 		
-		static function describeTable($table) {
+		public static function describeTable($table) {
 			$result["columns"] = array();
 			$result["indexes"] = array();
 			$result["foreign_keys"] = array();
@@ -828,7 +828,7 @@
 				Returns false if the directory cannot be read.
 		*/
 
-		static function directoryContents($directory,$recurse = true,$extension = false,$include_git = false) {
+		public static function directoryContents($directory,$recurse = true,$extension = false,$include_git = false) {
 			$contents = array();
 			$d = @opendir($directory);
 			if (!$d) {
@@ -861,7 +861,7 @@
 				A string with the number of bytes in kilobytes, megabytes, or gigabytes.
 		*/
 		
-		static function formatBytes($size) {
+		public static function formatBytes($size) {
 			$units = array(' B', ' KB', ' MB', ' GB', ' TB');
 			for ($i = 0; $size >= 1024 && $i < 4; $i++) {
 				$size /= 1024;
@@ -880,7 +880,7 @@
 				A string of CSS with vendor prefixes.
 		*/
 
-		static function formatCSS3($css) {
+		public static function formatCSS3($css) {
 			global $bigtree;
 
 			// Background Gradients - background-gradient: #top #bottom
@@ -937,7 +937,7 @@
 				Replaced string.
 		*/
 		
-		static function formatVendorPrefixes($data) {
+		public static function formatVendorPrefixes($data) {
 			$p = explode(":", $data[0]);
 			$d = trim($data[1]);
 			
@@ -962,7 +962,7 @@
 				An associative array with "latitude" and "longitude" keys (or false if geocoding failed).
 		*/
 		
-		static function geocodeAddress($address) {
+		public static function geocodeAddress($address) {
 			$geocoder = new BigTreeGeocoding;
 			return $geocoder->geocode($address);
 		}
@@ -980,7 +980,7 @@
 				An available, web safe file name.
 		*/
 		
-		static function getAvailableFileName($directory,$file,$prefixes = array()) {
+		public static function getAvailableFileName($directory,$file,$prefixes = array()) {
 			$parts = static::pathInfo($directory.$file);
 			
 			// Clean up the file name
@@ -1013,7 +1013,7 @@
 				id - The id of the set cookie
 		*/
 
-		static function getCookie($id) {
+		public static function getCookie($id) {
 			if (strpos($id,"[") !== false) {
 				$pieces = explode("[",$id);
 				$cookie = $_COOKIE;
@@ -1037,7 +1037,7 @@
 				sorting - Whether to duplicate fields into "ASC" and "DESC" versions.
 		*/
 		
-		static function getFieldSelectOptions($table,$default = "",$sorting = false) {
+		public static function getFieldSelectOptions($table,$default = "",$sorting = false) {
 			$table_description = static::describeTable($table);
 			if (!$table_description) {
 				echo '<option>ERROR: Table Missing</option>';
@@ -1075,7 +1075,7 @@
 				default - The currently selected value.
 		*/
 		
-		static function getTableSelectOptions($default = false) {
+		public static function getTableSelectOptions($default = false) {
 			global $bigtree;
 			
 			$q = sqlquery("SHOW TABLES");
@@ -1096,7 +1096,7 @@
 				Returns whether BigTree believes it's being served over SSL or not.
 		*/
 
-		static function getIsSSL() {
+		public static function getIsSSL() {
 			if (!empty($_SERVER["HTTPS"]) && $_SERVER['HTTPS'] !== "off") {
 				return true;
 			}
@@ -1129,7 +1129,7 @@
 				An array with (type,width,height,result width,result height)
 		*/
 		
-		static function getThumbnailSizes($file,$maxwidth,$maxheight) {
+		public static function getThumbnailSizes($file,$maxwidth,$maxheight) {
 			list($w, $h, $type) = getimagesize($file);
 			if ($w > $maxwidth && $maxwidth) {
 				$perc = $maxwidth / $w;
@@ -1170,7 +1170,7 @@
 				An array with (type,width,height,result width,result height)
 		*/
 		
-		static function getUpscaleSizes($file,$min_width,$min_height) {
+		public static function getUpscaleSizes($file,$min_width,$min_height) {
 			list($w, $h, $type) = getimagesize($file);
 			if ($w < $min_width && $min_width) {
 				$perc = $min_width / $w;
@@ -1212,7 +1212,7 @@
 				<globalizePOSTVars>
 		*/
 		
-		static function globalizeArray($array) {
+		public static function globalizeArray($array) {
 			if (!is_array($array)) {
 				return false;
 			}
@@ -1254,7 +1254,7 @@
 				Used by globalizeArray for recursion.
 		*/
 
-		static function globalizeArrayRecursion($data,$functions) {
+		public static function globalizeArrayRecursion($data,$functions) {
 			foreach ($data as $key => $val) {
 				if (is_array($val)) {
 					$data[$key] = static::globalizeArrayRecursion($val,$functions);
@@ -1289,7 +1289,7 @@
 				
 		*/
 		
-		static function globalizeGETVars() {
+		public static function globalizeGETVars() {
 			$args = func_get_args();
 			return call_user_func_array("BigTree::globalizeArray",array_merge(array($_GET),$args));
 		}
@@ -1307,7 +1307,7 @@
 				<globalizeGETVars>
 		*/
 		
-		static function globalizePOSTVars() {
+		public static function globalizePOSTVars() {
 			$args = func_get_args();
 			return call_user_func_array("BigTree::globalizeArray",array_merge(array($_POST),$args));
 		}
@@ -1323,7 +1323,7 @@
 				rating - Defaults to "g" (options include "g", "pg", "r", "x")
 		*/
 		
-		static function gravatar($email,$size = 56,$default = false,$rating = "g") {
+		public static function gravatar($email,$size = 56,$default = false,$rating = "g") {
 			if (!$default) {
 				global $bigtree;
 				$default = !empty($bigtree["config"]["default_gravatar"]) ? $bigtree["config"]["default_gravatar"] : "https://www.bigtreecms.org/images/bigtree-gravatar.png";
@@ -1344,7 +1344,7 @@
 				true if the image can be created, otherwise false.
 		*/
 
-		static function imageManipulationMemoryAvailable($source,$width,$height) {
+		public static function imageManipulationMemoryAvailable($source,$width,$height) {
 			$available_memory = intval(ini_get('memory_limit')) * 1024 * 1024;
 			$info = getimagesize($source);
 			$source_width = $info[0];
@@ -1389,7 +1389,7 @@
 				true if the directory exists and is writable or could be created, otherwise false.
 		*/
 
-		static function isDirectoryWritable($path) {
+		public static function isDirectoryWritable($path) {
 			// Windows improperly returns writable status based on read-only flag instead of ACLs so we need our own version for Windows
 			if (isset($_SERVER["OS"]) && stripos($_SERVER["OS"],"windows") !== false) {
 				// Directory exists, check to see if we can create a temporary file inside it
@@ -1433,7 +1433,7 @@
 				true if link is external
 		*/
 		
-		static function isExternalLink($url) {
+		public static function isExternalLink($url) {
 			return ((substr($url,0,7) == "http://" || substr($url,0,8) == "https://") && strpos($url, WWW_ROOT) === false);
 		}
 
@@ -1449,7 +1449,7 @@
 				A JSON encoded string.
 		*/
 
-		static function json($var,$sql = false) {
+		public static function json($var,$sql = false) {
 			// Only run version compare once in case we're encoding a lot of JSON
 			if (static::$JSONEncoding === false) {
 				if (version_compare(PHP_VERSION,"5.4.0") >= 0) {
@@ -1477,7 +1477,7 @@
 				directory - The full path to the directory to be made.
 		*/
 		
-		static function makeDirectory($directory) {
+		public static function makeDirectory($directory) {
 			if (file_exists($directory)) {
 				return;
 			}
@@ -1513,7 +1513,7 @@
 				true if the move was successful, false if the directories were not writable.
 		*/
 		
-		static function moveFile($from,$to) {
+		public static function moveFile($from,$to) {
 			$success = static::copyFile($from,$to);
 			if (!$success) {
 				return false;
@@ -1533,7 +1533,7 @@
 				A string.
 		*/
 				
-		static function nextSQLColumnDefinition($string) {
+		public static function nextSQLColumnDefinition($string) {
 			$key_name = "";
 			$i = 0;
 			$found_key = false;
@@ -1565,7 +1565,7 @@
 				A more sensible array, or a piece of that sensible array if "part" is set.
 		*/
 
-		static function parsedFilesArray($part = false) {
+		public static function parsedFilesArray($part = false) {
 			$clean = array();
 			foreach ($_FILES as $key => $first_level) {
 				// Hurray, we have a first level entry, just save it to the clean array.
@@ -1613,7 +1613,7 @@
 				Hard file path to a custom/ (preferred) or core/ file depending on what exists.
 		*/
 		
-		static function path($file) {
+		public static function path($file) {
 			if (file_exists(SERVER_ROOT."custom/".$file)) {
 				return SERVER_ROOT."custom/".$file;
 			} else {
@@ -1635,7 +1635,7 @@
 				<http://php.net/manual/en/function.pathinfo.php>
 		*/
 		
-		static function pathInfo($file) {
+		public static function pathInfo($file) {
 			$parts = pathinfo($file);
 			if (!defined('PATHINFO_FILENAME')) {
 				$parts["filename"] = substr($parts["basename"],0,strrpos($parts["basename"],'.'));
@@ -1654,7 +1654,7 @@
 				jQuery date picker formatting string.
 		*/
 
-		static function phpDateTojQuery($format) {
+		public static function phpDateTojQuery($format) {
 			$new_format = "";
 			for ($i = 0; $i < strlen($format); $i++) {
 				$c = substr($format,$i,1);
@@ -1706,7 +1706,7 @@
 				Nothing; Renders a placeholder image
 		*/
 		
-		static function placeholderImage($width, $height, $bg_color = false, $text_color = false, $icon_path = false, $text_string = false) {
+		public static function placeholderImage($width, $height, $bg_color = false, $text_color = false, $icon_path = false, $text_string = false) {
 			// Check size
 			$width = ($width > 2000) ? 2000 : $width;
 			$height = ($height > 2000) ? 2000 : $height;
@@ -1772,7 +1772,7 @@
 				Returns in bytes the maximum size of a POST.
 		*/
 
-		static function postMaxSize() {
+		public static function postMaxSize() {
 			$post_max_size = ini_get("post_max_size");
 			if (!is_integer($post_max_size)) {
 				$post_max_size = static::unformatBytes($post_max_size);
@@ -1793,7 +1793,7 @@
 				The full path or file name with a prefix appended to the file name.
 		*/
 		
-		static function prefixFile($file,$prefix) {
+		public static function prefixFile($file,$prefix) {
 			$pinfo = static::pathInfo($file);
 			// Remove notices
 			$pinfo["dirname"] = isset($pinfo["dirname"]) ? $pinfo["dirname"] : "";
@@ -1813,7 +1813,7 @@
 				true if the move was successful, false if the directories were not writable.
 		*/
 		
-		static function putFile($file,$contents) {
+		public static function putFile($file,$contents) {
 			if (!static::isDirectoryWritable($file)) {
 				return false;
 			}
@@ -1844,7 +1844,7 @@
 				A random string.
 		*/
 		
-		static function randomString($length = 8, $seeds = 'alphanum') {
+		public static function randomString($length = 8, $seeds = 'alphanum') {
 			// Possible seeds
 			$seedings['alpha'] = 'abcdefghijklmnopqrstuvwqyz';
 			$seedings['numeric'] = '0123456789';
@@ -1879,7 +1879,7 @@
 				code - The status code of redirect, defaults to normal 302 redirect.
 		*/
 		
-		static function redirect($url = false, $codes = array("302")) {
+		public static function redirect($url = false, $codes = array("302")) {
 			global $bigtree;
 
 			// If we're presently in the admin we don't want to allow the possibility of a redirect outside our site via malicious URLs
@@ -1953,7 +1953,7 @@
 				A string describing how long ago the passed time was.
 		*/
 
-		static function relativeTime($time) {
+		public static function relativeTime($time) {
 			$minute = 60;
 			$hour = 3600;
 			$day = 86400;
@@ -1993,7 +1993,7 @@
 				An array with the first element being the file to include and the second element being an array containing extraneous routes from the end of the path.
 		*/
 
-		static function route($directory,$path) {
+		public static function route($directory,$path) {
 			$commands = array();
 			$inc_file = $directory;
 			$inc_dir = $directory;
@@ -2047,7 +2047,7 @@
 				true if PHP is running as the user that owns the file
 		*/
 
-		static function runningAsSU() {
+		public static function runningAsSU() {
 			// Already ran the test
 			if (!is_null(static::$SUTestResult)) {
 				return static::$SUTestResult;
@@ -2079,7 +2079,7 @@
 				Modified $value
 		*/
 
-		static function runParser($item,$value,$code) {
+		public static function runParser($item,$value,$code) {
 			eval($code);
 			return $value;
 		}
@@ -2097,7 +2097,7 @@
 				Encoded string.
 		*/
 
-		static function safeEncode($string) {
+		public static function safeEncode($string) {
 			return htmlspecialchars(html_entity_decode($string,ENT_COMPAT,"UTF-8"));
 		}
 		
@@ -2120,7 +2120,7 @@
 				true if email is sent, otherwise false.
 		*/
 		
-		static function sendEmail($to,$subject,$html,$text = "",$from = false,$return = false,$cc = false,$bcc = false,$headers = array(), $smtp = array()) {
+		public static function sendEmail($to,$subject,$html,$text = "",$from = false,$return = false,$cc = false,$bcc = false,$headers = array(), $smtp = array()) {
 			$mailer = new PHPMailer;
 
 			if (count($smtp)) {
@@ -2225,7 +2225,7 @@
 				expiration - Cookie expiration time (in seconds since UNIX epoch) or a string value compatible with strtotime (defaults to session expiration)
 		*/
 
-		static function setCookie($id,$value,$expiration = 0) {
+		public static function setCookie($id,$value,$expiration = 0) {
 			$expiration = is_string($expiration) ? strtotime($expiration) : $expiration;
 			setcookie($id,json_encode($value),$expiration,str_replace(DOMAIN,"",WWW_ROOT));
 		}
@@ -2239,7 +2239,7 @@
 				location - The directory to set permissions on.
 		*/
 
-		static function setDirectoryPermissions($location) {
+		public static function setDirectoryPermissions($location) {
 			$contents = static::directoryContents($location);
 			foreach ($contents as $file) {
 				static::setPermissions($file);
@@ -2255,7 +2255,7 @@
 				location - The file or directory to set permissions on.
 		*/
 
-		static function setPermissions($location) {
+		public static function setPermissions($location) {
 			if (!static::runningAsSU()) {
 				@chmod($location,0777);
 			}
@@ -2273,7 +2273,7 @@
 				An array of SQL calls to perform to turn Table A into Table B.
 		*/
 
-		static function tableCompare($table_a,$table_b) {
+		public static function tableCompare($table_a,$table_b) {
 			// Get table A's description
 			$table_a_description = BigTree::describeTable($table_a);
 			$table_a_columns = $table_a_description["columns"];
@@ -2287,66 +2287,66 @@
 			// Transition columns
 			$last_key = "";
 			foreach ($table_b_columns as $key => $column) {
-			    $mod = "";
-			    $action = "";
-			    // If this column doesn't exist in the Table A table, add it.
-			    if (!isset($table_a_columns[$key])) {
-			    	$action = "ADD";
-			    } elseif ($table_a_columns[$key] !== $column) {
-			    	$action = "MODIFY";
-			    }
-			    
-			    if ($action) {
-			    	$mod = "ALTER TABLE `$table_a` $action COLUMN `$key` ".$column["type"];
-			    	if ($column["size"]) {
-			    	    $mod .= "(".$column["size"].")";
-			    	}
+				$mod = "";
+				$action = "";
+				// If this column doesn't exist in the Table A table, add it.
+				if (!isset($table_a_columns[$key])) {
+					$action = "ADD";
+				} elseif ($table_a_columns[$key] !== $column) {
+					$action = "MODIFY";
+				}
+				
+				if ($action) {
+					$mod = "ALTER TABLE `$table_a` $action COLUMN `$key` ".$column["type"];
+					if ($column["size"]) {
+						$mod .= "(".$column["size"].")";
+					}
 
-			    	if ($column["unsigned"]) {
-			    		$mod .= " UNSIGNED";
-			    	}
-			    	
-			    	if ($column["charset"]) {
-			    		$mod .= " CHARSET ".$column["charset"];
-			    	}
+					if ($column["unsigned"]) {
+						$mod .= " UNSIGNED";
+					}
+					
+					if ($column["charset"]) {
+						$mod .= " CHARSET ".$column["charset"];
+					}
 
-			    	if ($column["collate"]) {
-			    		$mod .= " COLLATE ".$column["collate"];
-			    	}
+					if ($column["collate"]) {
+						$mod .= " COLLATE ".$column["collate"];
+					}
 
-			    	if (!$column["allow_null"]) {
-			    	    $mod .= " NOT NULL";
-			    	} else {
-			    		$mod .= " NULL";
-			    	}
-			    	
-			    	if (isset($column["default"])) {
-			    	    $d = $column["default"];
-			    	    if ($d == "CURRENT_TIMESTAMP" || $d == "NULL") {
-			    	    	$mod .= " DEFAULT $d";
-			    	    } else {
-			    	    	$mod .= " DEFAULT '".sqlescape($d)."'";
-			    	    }
-			    	}
-			    	
-			    	if ($last_key) {
-			    		$mod .= " AFTER `$last_key`";
-			    	} else {
-			    		$mod .= " FIRST";
-			    	}
-			    	
-			    	$queries[] = $mod;
-			    }
-			    
-			    $last_key = $key;
+					if (!$column["allow_null"]) {
+						$mod .= " NOT NULL";
+					} else {
+						$mod .= " NULL";
+					}
+					
+					if (isset($column["default"])) {
+						$d = $column["default"];
+						if ($d == "CURRENT_TIMESTAMP" || $d == "NULL") {
+							$mod .= " DEFAULT $d";
+						} else {
+							$mod .= " DEFAULT '".sqlescape($d)."'";
+						}
+					}
+					
+					if ($last_key) {
+						$mod .= " AFTER `$last_key`";
+					} else {
+						$mod .= " FIRST";
+					}
+					
+					$queries[] = $mod;
+				}
+				
+				$last_key = $key;
 			}
 
 			// Drop columns
 			foreach ($table_a_columns as $key => $column) {
-			    // If this key no longer exists in the new table, we should delete it.
-			    if (!isset($table_b_columns[$key])) {
-			    	$queries[] = "ALTER TABLE `$table_a` DROP COLUMN `$key`";
-			    }	
+				// If this key no longer exists in the new table, we should delete it.
+				if (!isset($table_b_columns[$key])) {
+					$queries[] = "ALTER TABLE `$table_a` DROP COLUMN `$key`";
+				}	
 			}
 
 			// Add new indexes
@@ -2452,7 +2452,7 @@
 				An array.
 		*/
 
-		static function tableContents($table) {
+		public static function tableContents($table) {
 			$inserts = array();
 
 			// Figure out which columns are binary and need to be pulled as hex
@@ -2502,7 +2502,7 @@
 				true if table exists, otherwise false.
 		*/
 
-		static function tableExists($table) {
+		public static function tableExists($table) {
 			$r = sqlrows(sqlquery("SHOW TABLES LIKE '".sqlescape($table)."'"));
 			if ($r) {
 				return true;
@@ -2518,7 +2518,7 @@
 				file - The file path to touch.
 		*/
 		
-		static function touchFile($file) {
+		public static function touchFile($file) {
 			if (!static::isDirectoryWritable($file)) {
 				return false;
 			}
@@ -2545,7 +2545,7 @@
 				<untranslateArray>
 		*/
 		
-		static function translateArray($array) {
+		public static function translateArray($array) {
 			foreach ($array as &$piece) {
 				if (is_array($piece)) {
 					$piece = static::translateArray($piece);
@@ -2568,7 +2568,7 @@
 				A string trimmed to the proper number of characters.
 		*/
 		
-		static function trimLength($string,$length) {
+		public static function trimLength($string,$length) {
 			$ns = "";
 			$opentags = array();
 			$string = trim($string);
@@ -2664,7 +2664,7 @@
 				The number of bytes.
 		*/
 		
-		static function unformatBytes($size) {
+		public static function unformatBytes($size) {
 			$type = substr($size,-1,1);
 			$num = substr($size,0,-1);
 			if ($type == "M") {
@@ -2691,7 +2691,7 @@
 				<translateArray>
 		*/
 		
-		static function untranslateArray($array) {
+		public static function untranslateArray($array) {
 			if (!is_array($array)) {
 				return array();
 			}
@@ -2716,7 +2716,7 @@
 				destination - The full path to unzip the file's contents to.
 		*/
 		
-		static function unzip($file,$destination) {
+		public static function unzip($file,$destination) {
 			// If we can't write the output directory, we're not getting anywhere.
 			if (!BigTree::isDirectoryWritable($destination)) {
 				return false;
@@ -2812,7 +2812,7 @@
 				The integer value for setting a form's MAX_FILE_SIZE.
 		*/
 		
-		static function uploadMaxFileSize() {
+		public static function uploadMaxFileSize() {
 			$upload_max_filesize = ini_get("upload_max_filesize");
 			if (!is_integer($upload_max_filesize)) {
 				$upload_max_filesize = static::unformatBytes($upload_max_filesize);
@@ -2837,7 +2837,7 @@
 				true if it can connect, false if connection failed.
 		*/
 
-		static function urlExists($url) {
+		public static function urlExists($url) {
 			// Handle // urls as http://
 			if (substr($url,0,2) == "//") {
 				$url = "http:".$url;
@@ -2872,6 +2872,7 @@
 	if (!function_exists("mb_strlen")) {
 		function mb_strlen($string) { return strlen($string); }
 	}
+
 	if (!function_exists("mb_strtolower")) {
 		function mb_strtolower($string) { return strtolower($string); }
 	}

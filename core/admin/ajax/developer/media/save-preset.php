@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	// Get existing presets
@@ -71,4 +71,3 @@
 
 	// Return ID for adding presets
 	echo $id;
-?>

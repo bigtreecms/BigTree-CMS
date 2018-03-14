@@ -7,12 +7,12 @@
 	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
 	class BigTreeFacebookAPI extends BigTreeOAuthAPIBase {
 		
-		var $AuthorizeURL = "https://www.facebook.com/dialog/oauth";
-		var $EndpointURL = "https://graph.facebook.com/v2.8/";
-		var $OAuthVersion = "2.0";
-		var $RequestType = "header";
-		var $Scope = "";
-		var $TokenURL = "https://graph.facebook.com/v2.8/oauth/access_token";
+		public $AuthorizeURL = "https://www.facebook.com/dialog/oauth";
+		public $EndpointURL = "https://graph.facebook.com/v2.8/";
+		public $OAuthVersion = "2.0";
+		public $RequestType = "header";
+		public $Scope = "";
+		public $TokenURL = "https://graph.facebook.com/v2.8/oauth/access_token";
 
 		const ALBUM_FIELDS = "id,name,description,link,cover_photo,count,place,type,created_time";
 		
@@ -24,7 +24,7 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 
-		function __construct($cache = true) {
+		public function __construct($cache = true) {
 			parent::__construct("bigtree-internal-facebook-api","Facebook API","org.bigtreecms.api.facebook",$cache);
 
 			// Set OAuth Return URL
@@ -46,7 +46,7 @@
 				A BigTreeFacebookPerson object.
 		*/
 
-		function getUser($user = "me") {
+		public function getUser($user = "me") {
 			$response = $this->call($user);
 			if (!$response->id) {
 				return false;
@@ -65,7 +65,7 @@
 				 A BigTreeFacebookAlbum object or false if the object id does not exist.
 		*/
 		
-		function getAlbum($album_id) {
+		public function getAlbum($album_id) {
 			$response = $this->call($album_id."?fields=". BigTreeFacebookAPI::ALBUM_FIELDS);
 
 			if (!$response->id) {
@@ -84,7 +84,7 @@
 	class BigTreeFacebookUser {
 		protected $API;
 
-		function __construct($user,&$api) {
+		public function __construct($user,&$api) {
 			$this->API = $api;
 			$this->ID = $user->id;
 			$this->Name = $user->name;
@@ -100,7 +100,7 @@
 				user - A pre-composed data set (optional, defaults to pulling from API)
 		*/
 
-		function updateDetails($user = false) {
+		public function updateDetails($user = false) {
 			if (!$user) {
 				$user = $this->API->call($this->ID);
 			}
@@ -148,7 +148,7 @@
 				A URL or false on failure
 		*/
 
-		function getPicture($width = 1000,$height = 1000) {
+		public function getPicture($width = 1000,$height = 1000) {
 			if ($this->Picture) {
 				return $this->Picture;
 			}
@@ -170,7 +170,7 @@
 				Returns an array of BigTreeFacebookAlbum objects or false on failure.
 		*/
 		
-		function getAlbums() {
+		public function getAlbums() {
 			if (isset($this->Albums)) {
 				return $this->Albums;
 			}
@@ -200,7 +200,7 @@
 	class BigTreeFacebookSchool {
 		protected $API;
 
-		function __construct($school,$type,&$api) {
+		public function __construct($school,$type,&$api) {
 			$this->API = $api;
 
 			$this->ID = $school->id;
@@ -217,7 +217,7 @@
 	class BigTreeFacebookLocation {
 		protected $API;
 
-		function __construct($location,&$api) {
+		public function __construct($location,&$api) {
 			$this->API = $api;
 
 			$this->ID = $location->id;
@@ -233,7 +233,7 @@
 	class BigTreeFacebookJobTitle {
 		protected $API;
 
-		function __construct($job,&$api) {
+		public function __construct($job,&$api) {
 			$this->API = $api;
 
 			$this->ID = $job->id;
@@ -250,9 +250,9 @@
 
 		protected $API;
 	
-		var $Pictures;
+		public $Pictures;
 	
-		function __construct($album, &$api) {
+		public function __construct($album, &$api) {
 			$this->API = $api;
 
 			$response = $this->API->call($album->cover_photo->id."?fields=source,created_time,images");
@@ -276,7 +276,7 @@
 				Returns an array of BigTreeFacebookPicture's or false on failure.
 		*/
 		
-		function getPictures() {
+		public function getPictures() {
 			if (isset($this->Pictures)) {
 				return $this->Pictures;
 			}
@@ -305,7 +305,7 @@
 	class BigTreeFacebookPicture {
 		protected $API;
 		
-		function __construct($picture, &$api) {
+		public function __construct($picture, &$api) {
 			$this->API = $api;
 
 			$this->CreatedTime = $picture->created_time;
@@ -329,7 +329,7 @@
 				Returns the url of the requested image or the default image.
 		*/
 		
-		function getSize($dimensions) {
+		public function getSize($dimensions) {
 			if (isset($this->Images[$dimensions])) {
 				return $this->Images[$dimensions];
 			}
@@ -337,4 +337,3 @@
 			return $this->Images["default"];
 		}
 	}
-?>

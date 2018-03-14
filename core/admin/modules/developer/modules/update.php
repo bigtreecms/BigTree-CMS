@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	BigTree::globalizePOSTVars();
@@ -15,4 +15,3 @@
 
 	$admin->growl("Developer","Updated Module");
 	BigTree::redirect(DEVELOPER_ROOT."modules/");
-?>

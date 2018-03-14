@@ -1,4 +1,4 @@
-<?
+<?php
 	// Simple CSRF checker
 	if (count($_POST)) {
 		$clean_referer = str_replace(array("http://","https://"),"//",$_SERVER["HTTP_REFERER"]);

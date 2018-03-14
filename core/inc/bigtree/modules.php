@@ -6,8 +6,8 @@
 	
 	class BigTreeModule {
 	
-		var $NavPosition = "bottom";
-		var $Table = "";
+		public $NavPosition = "bottom";
+		public $Table = "";
 
 		/*
 			Constructor:
@@ -17,7 +17,7 @@
 				table - The SQL table you want to perform queries on.
 		*/
 
-		function __construct($table = false) {
+		public function __construct($table = false) {
 			if ($table !== false) {
 				$this->Table = $table;
 			}
@@ -42,7 +42,7 @@
 				<update>
 		*/
 		
-		function add($fields,$values = false,$enforce_unique = false,$ignore_cache = false) {	
+		public function add($fields,$values = false,$enforce_unique = false,$ignore_cache = false) {	
 			$existing_parts = $key_parts = $value_parts = array();
 
 			// Single column/value add
@@ -104,7 +104,7 @@
 				<unapprove>
 		*/
 		
-		function approve($item) {
+		public function approve($item) {
 			if (is_array($item)) {
 				$item = $item["id"];
 			}
@@ -123,7 +123,7 @@
 				<unarchive>
 		*/
 		
-		function archive($item) {
+		public function archive($item) {
 			if (is_array($item)) {
 				$item = $item["id"];
 			}
@@ -144,7 +144,7 @@
 				<update>
 		*/
 		
-		function delete($item) {
+		public function delete($item) {
 			if (is_array($item)) {
 				$item = $item["id"];
 			}
@@ -165,7 +165,7 @@
 				<unfeature>
 		*/
 		
-		function feature($item) {
+		public function feature($item) {
 			if (is_array($item)) {
 				$item = $item["id"];
 			}
@@ -226,7 +226,7 @@
 				A translated item from the table.
 		*/
 		
-		function get($item) {
+		public function get($item) {
 			if (!is_array($item)) {
 				$item = sqlfetch(sqlquery("SELECT * FROM `".$this->Table."` WHERE id = '".sqlescape($item)."'"));
 			}
@@ -260,7 +260,7 @@
 				An array of items from the table.
 		*/
 
-		function getAll($order = false,$columns = false) {
+		public function getAll($order = false,$columns = false) {
 			return $this->fetch($order,false,false,$columns);
 		}
 		
@@ -275,7 +275,7 @@
 				An array of entries from the table.
 		*/
 		
-		function getAllPositioned($columns = false) {
+		public function getAllPositioned($columns = false) {
 			return $this->getAll("position DESC, id ASC",$columns);
 		}
 		
@@ -295,7 +295,7 @@
 				<getMatching>
 		*/
 		
-		function getApproved($order = false,$limit = false,$columns = false) {
+		public function getApproved($order = false,$limit = false,$columns = false) {
 			return $this->getMatching("approved","on",$order,$limit,false,$columns);
 		}
 
@@ -315,7 +315,7 @@
 				<getMatching>
 		*/
 		
-		function getArchived($order = false,$limit = false,$columns = false) {
+		public function getArchived($order = false,$limit = false,$columns = false) {
 			return $this->getMatching("archived","on",$order,$limit,false,$columns);
 		}
 		
@@ -331,7 +331,7 @@
 				An array of arrays with "title" and "link" key/value pairs.
 		*/
 		
-		function getBreadcrumb($page) {
+		public function getBreadcrumb($page) {
 			return array();
 		}
 		
@@ -346,7 +346,7 @@
 				An entry from the table if one is found.
 		*/
 		
-		function getByRoute($route) {
+		public function getByRoute($route) {
 			$item = sqlfetch(sqlquery("SELECT * FROM `".$this->Table."` WHERE route = '".sqlescape($route)."'"));
 
 			if (!$item) {
@@ -372,7 +372,7 @@
 				<getMatching>
 		*/
 		
-		function getFeatured($order = false,$limit = false,$columns = false) {
+		public function getFeatured($order = false,$limit = false,$columns = false) {
 			return $this->getMatching("featured","on",$order,$limit,false,$columns);
 		}
 		
@@ -392,7 +392,7 @@
 					"status" - Whether this entry has pending changes "changed" or not "published"
 		*/
 
-		function getInfo($entry) {
+		public function getInfo($entry) {
 			$info = array();
 			if (is_array($entry)) {
 				$entry = sqlescape($entry["id"]);
@@ -439,7 +439,7 @@
 				An array of entries from the table.
 		*/
 		
-		function getMatching($fields,$values,$sortby = false,$limit = false,$exact = false,$columns = false) {
+		public function getMatching($fields,$values,$sortby = false,$limit = false,$exact = false,$columns = false) {
 			if (!is_array($fields)) {
 				$search = array($fields => $values);
 			} else {
@@ -469,7 +469,7 @@
 				An array of arrays with "title" and "link" key/value pairs. Also accepts "children" for sending grandchildren as well.
 		*/
 		
-		function getNav($page) {
+		public function getNav($page) {
 			return array();
 		}
 		
@@ -489,7 +489,7 @@
 				<getMatching>
 		*/
 		
-		function getNonarchived($order = false,$limit = false,$columns = false) {
+		public function getNonarchived($order = false,$limit = false,$columns = false) {
 			return $this->getMatching("archived","",$order,$limit,false,$columns);
 		}
 		
@@ -511,7 +511,7 @@
 				<getPageCount>
 		*/
 		
-		function getPage($page = 1,$order = "id ASC",$perpage = 15,$where = false,$columns = false) {
+		public function getPage($page = 1,$order = "id ASC",$perpage = 15,$where = false,$columns = false) {
 			// Backwards compatibility with old argument order
 			if (!is_numeric($perpage)) {
 				$saved = $perpage;
@@ -540,7 +540,7 @@
 				<getPage>
 		*/
 		
-		function getPageCount($perpage = 15,$where = false) {
+		public function getPageCount($perpage = 15,$where = false) {
 			// Backwards compatibility with old argument order
 			if (!is_numeric($perpage)) {
 				$saved = $perpage;
@@ -570,7 +570,7 @@
 				The entry from the table with pending changes applied.
 		*/
 		
-		function getPending($id) {
+		public function getPending($id) {
 			$id = sqlescape($id);
 			
 			if (substr($id,0,1) == "p") {
@@ -605,7 +605,7 @@
 				If "count" is passed, an array of entries from the table. Otherwise, a single entry from the table.
 		*/
 		
-		function getRandom($count = false,$columns = false) {
+		public function getRandom($count = false,$columns = false) {
 			if ($count === false) {
 				$f = sqlfetch(sqlquery("SELECT * FROM `".$this->Table."` ORDER BY RAND() LIMIT 1"));
 				return $this->get($f);
@@ -629,7 +629,7 @@
 				<getRecentFeatured>
 		*/
 		
-		function getRecent($count = 5, $field = "date",$columns = false) {
+		public function getRecent($count = 5, $field = "date",$columns = false) {
 			return $this->fetch("$field DESC",$count,"DATE(`$field`) <= '".date("Y-m-d")."'",$columns);
 		}
 
@@ -649,7 +649,7 @@
 				<getRecent>
 		*/
 		
-		function getRecentFeatured($count = 5, $field = "date",$columns = false) {
+		public function getRecentFeatured($count = 5, $field = "date",$columns = false) {
 			return $this->fetch("$field DESC",$count,"featured = 'on' AND DATE(`$field`) <= '".date("Y-m-d")."'",$columns);
 		}
 		
@@ -664,7 +664,7 @@
 				An array of entries from the table sorted by most relevant to least.
 		*/
 		
-		function getRelatedByTags($tags = array()) {
+		public function getRelatedByTags($tags = array()) {
 			$results = array();
 			$relevance = array();
 			foreach ($tags as $tag) {
@@ -705,7 +705,7 @@
 				An array of arrays with "title" and "link" key/value pairs. Should not be a multi level array.
 		*/
 		
-		function getSitemap($page) {
+		public function getSitemap($page) {
 			return array();
 		}
 		
@@ -720,7 +720,7 @@
 				An array of tags (strings).
 		*/
 		
-		function getTagsForItem($item) {
+		public function getTagsForItem($item) {
 			if (!is_numeric($item)) {
 				$item = $item["id"];
 			}
@@ -754,7 +754,7 @@
 				<getMatching> <getNonarchived>
 		*/
 		
-		function getUnarchived($order = false,$limit = false,$columns = false) {
+		public function getUnarchived($order = false,$limit = false,$columns = false) {
 			return $this->getMatching("archived","",$order,$limit,false,$columns);
 		}
 
@@ -774,7 +774,7 @@
 				<getMatching>
 		*/
 		
-		function getUnapproved($order = false,$limit = false,$columns = false) {
+		public function getUnapproved($order = false,$limit = false,$columns = false) {
 			return $this->getMatching("approved","",$order,$limit,false,$columns);
 		}
 		
@@ -794,7 +794,7 @@
 				<getUpcomingFeatured>
 		*/
 		
-		function getUpcoming($count = 5,$field = "date",$columns = false) {
+		public function getUpcoming($count = 5,$field = "date",$columns = false) {
 			return $this->fetch("$field ASC",$count,"DATE(`$field`) >= '".date("Y-m-d")."'",$columns);
 		}
 		
@@ -814,7 +814,7 @@
 				<getUpcoming>
 		*/
 		
-		function getUpcomingFeatured($count = 5,$field = "date",$columns = false) {
+		public function getUpcomingFeatured($count = 5,$field = "date",$columns = false) {
 			return $this->fetch("$field ASC",$count,"featured = 'on' AND DATE(`$field`) >= '".date("Y-m-d")."'",$columns);
 		}
 		
@@ -832,7 +832,7 @@
 				<update>
 		*/
 		
-		function save($item,$ignore_cache = false) {
+		public function save($item,$ignore_cache = false) {
 			$id = $item["id"];
 			unset($item["id"]);
 			
@@ -856,7 +856,7 @@
 				An array of entries from the table.
 		*/
 		
-		function search($query,$order = false,$limit = false,$split_search = false,$case_sensitive = false,$columns = false) {
+		public function search($query,$order = false,$limit = false,$split_search = false,$case_sensitive = false,$columns = false) {
 			$table_description = BigTree::describeTable($this->Table);
 			$where = array();
 
@@ -897,7 +897,7 @@
 				position - The position to set. BigTree sorts by default as position DESC, id ASC.
 		*/
 		
-		function setPosition($item,$position) {
+		public function setPosition($item,$position) {
 			if (is_array($item)) {
 				$item = $item["id"];
 			}
@@ -916,7 +916,7 @@
 				<approve>
 		*/
 		
-		function unapprove($item) {
+		public function unapprove($item) {
 			if (is_array($item)) {
 				$item = $item["id"];
 			}
@@ -935,7 +935,7 @@
 				<archive>
 		*/
 		
-		function unarchive($item) {
+		public function unarchive($item) {
 			if (is_array($item)) {
 				$item = $item["id"];
 			}
@@ -954,7 +954,7 @@
 				<feature>
 		*/
 		
-		function unfeature($item) {
+		public function unfeature($item) {
 			if (is_array($item)) {
 				$item = $item["id"];
 			}
@@ -978,7 +978,7 @@
 				<save>
 		*/
 		
-		function update($id,$fields,$values = false,$ignore_cache = false) {
+		public function update($id,$fields,$values = false,$ignore_cache = false) {
 			$id = sqlescape($id);
 			// Turn a key => value array into pairs
 			if ($values === false && is_array($fields)) {
@@ -1013,4 +1013,5 @@
 				BigTreeAutoModule::recacheItem($id,$this->Table);
 			}
 		}
+		
 	}

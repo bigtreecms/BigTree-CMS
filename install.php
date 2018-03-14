@@ -63,30 +63,38 @@
 	if (version_compare(PHP_VERSION,"5.3.0","<")) {
 		$fails[] = "PHP 5.3 or higher is required.";
 	}
+
 	if (!extension_loaded('json')) {
 		$fails[] = "PHP does not have the JSON extension installed.";
 	}
+
 	if (!extension_loaded("mysql") && !extension_loaded("mysqli")) {
 		$fails[] = "PHP does not have the MySQL extension installed.";
 	}
+
 	if (!extension_loaded('gd')) {
 		$fails[] = "PHP does not have the GD extension installed.";
 	}
+
 	if (!extension_loaded('curl')) {
 		$fails[] = "PHP does not have the cURL extension installed.";
 	}
+
 	if (!extension_loaded('ctype')) {
 		$fails[] = "PHP does not have the ctype extension installed.";
 	}
+
 	if (!ini_get('file_uploads')) {
 		$fails[] = "PHP does not have file uploads enabled.";
 	}
+
 	if (!is_writable(".")) {
 		$fails[] = "Please make the current directory writable.";
 	}
 
 	// Issues that could cause problems next.
 	$warnings = array();
+	
 	if (get_magic_quotes_gpc()) {
 		if ($iis) {
 			$fails[] = "magic_quotes_gpc is on. This is a deprecated setting that will break BigTree. Please disable it in php.ini.";
@@ -94,19 +102,15 @@
 			$warnings[] = "magic_quotes_gpc is on. BigTree will attempt to override this at runtime but it is advised that you turn it off in php.ini.";
 		}
 	}
-	if (!ini_get('short_open_tag')) {
-		if ($iis) {
-			$fails[] = "PHP does not currently allow short_open_tags. Please set short_open_tag to 'On' in php.ini.";
-		} else {
-			$warnings[] = "PHP does not currently allow short_open_tags. BigTree will attempt to override this at runtime but you may need to enable it in php.ini manually.";
-		}
-	}
+
 	if (intval(ini_get('upload_max_filesize')) < 4) {
 		$warnings[] = "Max upload filesize (upload_max_filesize in php.ini) is currently less than 4MB. 8MB or higher is recommended.";
 	}
+
 	if (intval(ini_get('post_max_size')) < 4) {
 		$warnings[] = "Max POST size (post_max_size in php.ini) is currently less than 4MB. 8MB or higher is recommended.";
 	}
+
 	if (intval(ini_get("memory_limit")) < 32) {
 		$warnings[] = "PHP's memory limit is currently under 32MB. BigTree recommends at least 32MB of memory be available to PHP.";
 	}
@@ -320,9 +324,11 @@
 		bt_mkdir_writable("templates/ajax/");
 		bt_mkdir_writable("templates/layouts/");
 		bt_touch_writable("templates/layouts/_header.php");
-		bt_touch_writable("templates/layouts/default.php",'<? include "_header.php" ?>
-<?=$bigtree["content"]?>
-<? include "_footer.php" ?>');
+		bt_touch_writable("templates/layouts/default.php",'<?php
+	include "_header.php";
+	echo $bigtree["content"];
+	include "_footer.php";
+?>');
 		bt_touch_writable("templates/layouts/_footer.php");
 		bt_mkdir_writable("templates/routed/");
 		bt_mkdir_writable("templates/basic/");
@@ -352,7 +358,7 @@
 		}
 		
 		// Create site/index.php, site/.htaccess, and .htaccess (masks the 'site' directory)
-		bt_touch_writable("site/index.php",'<?
+		bt_touch_writable("site/index.php",'<?php
 	$server_root = str_replace("site/index.php","",strtr(__FILE__, "\\\\", "/"));	
 	include "../core/launch.php";
 ?>');
@@ -442,10 +448,7 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.*)$ index.php?bigtree_htaccess_url=$1 [QSA,L]
 
 RewriteRule .* - [E=HTTP_IF_MODIFIED_SINCE:%{HTTP:If-Modified-Since}]
-RewriteRule .* - [E=HTTP_BIGTREE_PARTIAL:%{HTTP:BigTree-Partial}]
-
-php_flag short_open_tag On
-php_flag magic_quotes_gpc Off');
+RewriteRule .* - [E=HTTP_BIGTREE_PARTIAL:%{HTTP:BigTree-Partial}]');
 			
 		} elseif ($routing == "simple") {
 			bt_touch_writable("site/.htaccess",'IndexIgnore */*
@@ -460,7 +463,7 @@ RewriteRule ^(.*)$ index.php?bigtree_htaccess_url=$1 [QSA,L]
 RewriteRule .* - [E=HTTP_IF_MODIFIED_SINCE:%{HTTP:If-Modified-Since}]
 RewriteRule .* - [E=HTTP_BIGTREE_PARTIAL:%{HTTP:BigTree-Partial}]');
 		} else {
-			bt_touch_writable("index.php",'<? header("Location: site/index.php/"); ?>');
+			bt_touch_writable("index.php",'<?php header("Location: site/index.php/"); ?>');
 		}
 		
 		if ($routing != "basic" && $routing != "iis") {

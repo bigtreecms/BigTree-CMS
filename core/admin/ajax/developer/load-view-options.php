@@ -1,4 +1,4 @@
-<?
+<?php
 	// Prevent path manipulation shenanigans
 	$type = BigTree::cleanFile($_POST["type"]);
 	$table = $_POST["table"];
@@ -10,7 +10,7 @@
 		<label>Filter Function <small>(function name only, <a href="http://www.bigtreecms.org/docs/dev-guide/modules/advanced-techniques/view-filters/" target="_blank">learn more</a>)</small></label>
 		<input type="text" name="filter" value="<?=htmlspecialchars($filter)?>" />
 	</fieldset>
-	<?
+	<?php
 		$path = BigTree::path("admin/ajax/developer/view-options/$type.php");
 		if (file_exists($path)) {
 			include $path;

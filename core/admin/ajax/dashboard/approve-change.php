@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	$change = $admin->getPendingChange($_POST["id"]);
 
@@ -48,4 +48,3 @@
 			}
 		}
 	}
-?>

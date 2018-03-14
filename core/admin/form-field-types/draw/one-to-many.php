@@ -1,4 +1,4 @@
-<?
+<?php
 	if (!$field["value"]) {
 		$field["value"] = array();
 	} elseif (!is_array($field["value"])) {
@@ -46,11 +46,11 @@
 	if (count($list) || count($entries)) {
 ?>
 <div class="multi_widget many_to_many" id="<?=$field["id"]?>">
-	<section<? if (count($entries)) { ?> style="display: none;"<? } ?>>
+	<section<?php if (count($entries)) { ?> style="display: none;"<?php } ?>>
 		<p>Click "Add Item" to add an item to this list.</p>
 	</section>
 	<ul>
-		<?
+		<?php
 			foreach ($entries as $id => $title) {
 		?>
 		<li>
@@ -59,28 +59,28 @@
 			<p><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($title),100))?></p>
 			<a href="#" class="icon_delete"></a>
 		</li>
-		<?
+		<?php
 				$x++;
 			}
 		?>
 	</ul>
 	<footer>
 		<select>
-			<? foreach ($list as $id => $title) { ?>
+			<?php foreach ($list as $id => $title) { ?>
 			<option value="<?=BigTree::safeEncode($id)?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($title),100))?></option>
-			<? } ?>
+			<?php } ?>
 		</select>
 		<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>
-		<?
+		<?php
 			if ($field["options"]["show_add_all"]) {
 		?>
 		<a href="#" class="add_all button">Add All</a>
-		<?
+		<?php
 			}
 			if ($field["options"]["show_reset"]) {
 		?>
 		<a href="#" class="reset button red">Reset</a>
-		<?
+		<?php
 			}
 		?>
 	</footer>
@@ -93,7 +93,7 @@
 		sortable: "true"
 	});
 </script>
-<?
+<?php
 	} else {
 ?>
 <div class="multi_widget">
@@ -101,6 +101,6 @@
 		<p>There are no items available.</p>
 	</section>
 </div>
-<?
+<?php
 	}
 ?>

@@ -1,4 +1,4 @@
-<?
+<?php
 	$packages = $admin->getPackages();
 ?>
 <div class="table">
@@ -8,7 +8,7 @@
 		<span style="width: 80px;">Actions</span>
 	</header>
 	<ul>
-		<? foreach ($packages as $package) { ?>
+		<?php foreach ($packages as $package) { ?>
 		<li>
 			<section class="developer_templates_name">
 				<?=BigTree::safeEncode($package["name"])?> <?=BigTree::safeEncode($package["version"])?>
@@ -17,10 +17,10 @@
 				<a href="<?=DEVELOPER_ROOT?>packages/edit/<?=$package["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>packages/delete/?id=<?=$package["id"]?><? $admin->drawCSRFTokenGET(); ?>" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>packages/delete/?id=<?=$package["id"]?><?php $admin->drawCSRFTokenGET(); ?>" class="icon_delete"></a>
 			</section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
 </div>
 <script>

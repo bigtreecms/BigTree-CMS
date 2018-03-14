@@ -1,4 +1,4 @@
-<?
+<?php
 	header("Content-type: text/json");
 
 	$admin->verifyCSRFToken();
@@ -10,4 +10,3 @@
 	} catch (Exception $e) {
 		echo "false";
 	}
-?>

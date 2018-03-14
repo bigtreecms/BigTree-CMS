@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	$user = $admin->getUser($_GET["id"]);
@@ -11,7 +11,7 @@
 		<p>The user you are trying to emulate no longer exists.</p>
 	</section>
 </div>
-<?
+<?php
 	} else {
 		$_SESSION["bigtree_admin"]["id"] = $user["id"];
 		$_SESSION["bigtree_admin"]["email"] = $user["email"];

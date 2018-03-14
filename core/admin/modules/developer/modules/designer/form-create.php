@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	$reserved = array("id","position");
@@ -58,4 +58,3 @@
 	$admin->createModuleAction($module,"Edit ".$_POST["title"],"edit","","edit",$form_id);
 	
 	BigTree::redirect(DEVELOPER_ROOT."modules/designer/view/?module=$module&table=".urlencode($_POST["table"])."&title=".urlencode($_POST["title"]));
-?>

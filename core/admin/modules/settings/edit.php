@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->requireLevel(1);
 	$item = $admin->getSetting(end($bigtree["path"]));
 	$value = $cms->getSetting(end($bigtree["path"]));
@@ -14,7 +14,7 @@
 		<p>The setting you are trying to edit no longer exists or you do not have permission to edit it.</p>
 	</section>
 </div>
-<?
+<?php
 		$admin->stop();
 	}
 
@@ -25,22 +25,22 @@
 ?>
 <div class="container">
 	<summary>
-		<? if ($admin->Level > 1) { ?><a href="<?=ADMIN_ROOT?>developer/settings/edit/<?=$item["id"]?>/" class="more">Edit in Developer</a><? } ?>
+		<?php if ($admin->Level > 1) { ?><a href="<?=ADMIN_ROOT?>developer/settings/edit/<?=$item["id"]?>/" class="more">Edit in Developer</a><?php } ?>
 		<h2><?=$item["name"]?></h2>
 	</summary>
 	<form class="module" action="<?=ADMIN_ROOT?>settings/update/" method="post" enctype="multipart/form-data">
-		<? $admin->drawCSRFToken() ?>
+		<?php $admin->drawCSRFToken() ?>
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
 		<input type="hidden" name="id" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />
 		<section>
-			<?
+			<?php
 				if ($item["encrypted"]) {
 			?>
 			<div class="alert">
 				<span></span>
 				<p>This setting is encrypted. The current value cannot be shown.</p>
 			</div>
-			<?
+			<?php
 				}
 		
 				$admin->drawPOSTErrorMessage();
@@ -48,7 +48,7 @@
 				echo $item["description"];
 			?>
 			<div class="form_fields">
-				<?			
+				<?php
 					$bigtree["html_fields"] = array();
 					$bigtree["simple_html_fields"] = array();
 					
@@ -71,7 +71,7 @@
 		</footer>
 	</form>
 </div>
-<?
+<?php
 	$bigtree["html_editor_width"] = 898;
 	$bigtree["html_editor_height"] = 365;
 	include BigTree::path("admin/layouts/_html-field-loader.php");

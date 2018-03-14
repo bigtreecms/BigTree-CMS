@@ -1,4 +1,4 @@
-<?
+<?php
 	$id = end($bigtree["path"]);	
 	$module = $admin->getModule($id);
 	
@@ -41,7 +41,7 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/update/<?=$module["id"]?>/" enctype="multipart/form-data" class="module left">
-		<? $admin->drawCSRFToken() ?>
+		<?php $admin->drawCSRFToken() ?>
 		<section>
 			<div class="left">
 				<fieldset>
@@ -56,9 +56,9 @@
 				<span>OR</span> 
 				<select name="group_existing">
 					<option value="0"></option>
-					<? foreach ($groups as $group) { ?>
-					<option value="<?=$group["id"]?>"<? if ($group["id"] == $module["group"]) { ?> selected="selected"<? } ?>><?=$group["name"]?></option>
-					<? } ?>
+					<?php foreach ($groups as $group) { ?>
+					<option value="<?=$group["id"]?>"<?php if ($group["id"] == $module["group"]) { ?> selected="selected"<?php } ?>><?=$group["name"]?></option>
+					<?php } ?>
 				</select>
 			</fieldset>
 			<div class="left">
@@ -70,23 +70,23 @@
 			
 			<br class="clear" />
 			<fieldset>
-		        <label class="required">Icon</label>
-		        <input type="hidden" name="icon" id="selected_icon" value="<?=$module["icon"]?>" />
-		        <ul class="developer_icon_list">
-		        	<? foreach (BigTreeAdmin::$IconClasses as $class) { ?>
-		        	<li>
-		        		<a href="#<?=$class?>"<? if ($class == $module["icon"]) { ?> class="active"<? } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
-		        	</li>
-		        	<? } ?>
-		        </ul>
-		    </fieldset>
+				<label class="required">Icon</label>
+				<input type="hidden" name="icon" id="selected_icon" value="<?=$module["icon"]?>" />
+				<ul class="developer_icon_list">
+					<?php foreach (BigTreeAdmin::$IconClasses as $class) { ?>
+					<li>
+						<a href="#<?=$class?>"<?php if ($class == $module["icon"]) { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
+					</li>
+					<?php } ?>
+				</ul>
+			</fieldset>
 			
 			<fieldset>
-				<input type="checkbox" name="gbp[enabled]" id="gbp_on" <? if (isset($gbp["enabled"]) && $gbp["enabled"]) { ?>checked="checked" <? } ?>/>
+				<input type="checkbox" name="gbp[enabled]" id="gbp_on" <?php if (isset($gbp["enabled"]) && $gbp["enabled"]) { ?>checked="checked" <?php } ?>/>
 				<label class="for_checkbox">Enable Advanced Permissions</label>
 			</fieldset>
 		</section>
-		<? include BigTree::path("admin/modules/developer/modules/_gbp.php") ?>
+		<?php include BigTree::path("admin/modules/developer/modules/_gbp.php"); ?>
 		<footer>
 			<input type="submit" class="button blue" value="Update" />	
 		</footer>
@@ -103,20 +103,20 @@
 		<span class="view_action" style="width: 120px;">Actions</span>
 	</header>
 	<ul id="module_views">
-		<? foreach ($views as $view) { ?>
+		<?php foreach ($views as $view) { ?>
 		<li>
 			<section class="developer_view_name">View <?=$view["title"]?></section>
 			<section class="view_action">
-				<? if ($view["type"] != "images" && $view["type"] != "images-grouped") { ?>
+				<?php if ($view["type"] != "images" && $view["type"] != "images-grouped") { ?>
 				<a href="<?=DEVELOPER_ROOT?>modules/views/style/<?=$view["id"]?>/" class="icon_preview"></a>
-				<? } else { ?>
+				<?php } else { ?>
 				<span class="icon_preview disabled_icon has_tooltip" data-tooltip="<p>Image-based views cannot be styled.</p>"></span>
-				<? } ?>
+				<?php } ?>
 			</section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/views/edit/<?=$view["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/views/delete/?id=<?=$view["id"]?>&module=<?=$id?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/views/delete/?id=<?=$view["id"]?>&module=<?=$id?><?php $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a></section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
 </div>
 
@@ -130,13 +130,13 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="module_forms">
-		<? foreach ($forms as $form) { ?>
+		<?php foreach ($forms as $form) { ?>
 		<li>
 			<section class="developer_templates_name">Add/Edit <?=$form["title"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/forms/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/forms/delete/?id=<?=$form["id"]?>&module=<?=$id?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/forms/delete/?id=<?=$form["id"]?>&module=<?=$id?><?php $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a></section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
 </div>
 
@@ -150,13 +150,13 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="module_forms">
-		<? foreach ($embeds as $form) { ?>
+		<?php foreach ($embeds as $form) { ?>
 		<li>
 			<section class="developer_templates_name"><?=$form["title"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/embeds/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/embeds/delete/?id=<?=$form["id"]?>&module=<?=$id?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/embeds/delete/?id=<?=$form["id"]?>&module=<?=$id?><?php $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a></section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
 </div>
 
@@ -170,13 +170,13 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="module_forms">
-		<? foreach ($reports as $report) { ?>
+		<?php foreach ($reports as $report) { ?>
 		<li>
 			<section class="developer_templates_name"><?=$report["title"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/reports/edit/<?=$report["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/reports/delete/?id=<?=$report["id"]?>&module=<?=$id?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/reports/delete/?id=<?=$report["id"]?>&module=<?=$id?><?php $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a></section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
 </div>
 
@@ -189,37 +189,37 @@
 		<span class="developer_templates_name">Title</span>
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
-	<?
+	<?php
 		if (count($actions_in_nav)) {
 	?>
 	<ul id="actions">
-		<? foreach ($actions_in_nav as $action) { ?>
+		<?php foreach ($actions_in_nav as $action) { ?>
 		<li id="row_<?=$action["id"]?>">
 			<section class="developer_templates_name"><span class="icon_sort"></span><?=$action["name"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/edit/<?=$action["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/delete/?id=<?=$action["id"]?>&module=<?=$id?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/delete/?id=<?=$action["id"]?>&module=<?=$id?><?php $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a></section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
-	<?
+	<?php
 		}
 		if (count($actions_not_in_nav)) {
 	?>
-	<ul<? if (count($actions_in_nav)) { ?> class="secondary"<? } ?>>
-		<? foreach ($actions_not_in_nav as $action) { ?>
+	<ul<?php if (count($actions_in_nav)) { ?> class="secondary"<?php } ?>>
+		<?php foreach ($actions_not_in_nav as $action) { ?>
 		<li>
 			<section class="developer_templates_name"><?=$action["name"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/edit/<?=$action["id"]?>/" class="icon_edit"></a></section>
-			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/delete/?id=<?=$action["id"]?>&module=<?=$id?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a></section>
+			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/actions/delete/?id=<?=$action["id"]?>&module=<?=$id?><?php $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a></section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
-	<?
+	<?php
 		}
 	?>
 </div>
 
-<? include BigTree::path("admin/modules/developer/modules/_js.php") ?>
+<?php include BigTree::path("admin/modules/developer/modules/_js.php"); ?>
 
 <script>
 	$("#actions").sortable({ axis: "y", containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer", update: function() {

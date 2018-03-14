@@ -1,4 +1,4 @@
-<?
+<?php
 	if (!count($_POST)) {
 		BigTree::redirect(MODULE_ROOT);
 	}
@@ -10,4 +10,3 @@
 	} else {
 		include BigTree::path("admin/auto-modules/reports/views/images.php");
 	}
-?>

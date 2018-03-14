@@ -1,4 +1,4 @@
-<?
+<?php
 	/**
 	 * $Id: rpc.php 822 2008-04-28 13:45:03Z spocke $
 	 *
@@ -116,4 +116,3 @@
 	
 	// Return JSON encoded string
 	echo $json->encode($output);
-?>

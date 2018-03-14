@@ -1,4 +1,4 @@
-<?
+<?php
 	$groups = $admin->getModuleGroups();
 ?>
 <div class="table">
@@ -10,7 +10,7 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="groups">
-		<? foreach ($groups as $item) { ?>
+		<?php foreach ($groups as $item) { ?>
 		<li id="row_<?=$item["id"]?>">
 			<section class="developer_templates_name">
 				<span class="icon_sort"></span>
@@ -20,10 +20,10 @@
 				<a href="<?=DEVELOPER_ROOT?>modules/groups/edit/<?=$item["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>modules/groups/delete/?id=<?=$item["id"]?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>modules/groups/delete/?id=<?=$item["id"]?><?php $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
 			</section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
 </div>
 

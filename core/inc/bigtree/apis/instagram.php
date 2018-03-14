@@ -7,12 +7,12 @@
 	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
 	class BigTreeInstagramAPI extends BigTreeOAuthAPIBase {
 
-		var $AuthorizeURL = "https://api.instagram.com/oauth/authorize/";
-		var $EndpointURL = "https://api.instagram.com/v1/";
-		var $OAuthVersion = "1.0";
-		var $RequestType = "custom";
-		var $Scope = "basic comments relationships likes";
-		var $TokenURL = "https://api.instagram.com/oauth/access_token";
+		public $AuthorizeURL = "https://api.instagram.com/oauth/authorize/";
+		public $EndpointURL = "https://api.instagram.com/v1/";
+		public $OAuthVersion = "1.0";
+		public $RequestType = "custom";
+		public $Scope = "basic comments relationships likes";
+		public $TokenURL = "https://api.instagram.com/oauth/access_token";
 
 		/*
 			Constructor:
@@ -22,7 +22,7 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 
-		function __construct($cache = true) {
+		public function __construct($cache = true) {
 			parent::__construct("bigtree-internal-instagram-api","Instagram API","org.bigtreecms.api.instagram",$cache);
 
 			// Set OAuth Return URL
@@ -38,7 +38,7 @@
 				Piggybacks on the base call to provide error checking for Instagram.
 		*/
 
-		function callUncached($endpoint,$params = array(),$method = "GET",$headers = array()) {
+		public function callUncached($endpoint,$params = array(),$method = "GET",$headers = array()) {
 			$response = parent::callUncached($endpoint,$params,$method,$headers);
 			if (isset($response->meta->error_message)) {
 				$this->Errors[] = $response->meta->error_message;
@@ -61,7 +61,7 @@
 				true if successful
 		*/
 
-		function comment($id,$comment) {
+		public function comment($id,$comment) {
 			$response = $this->call("media/$id/comments",array("text" => $comment),"POST");
 			if ($response->meta->code == 200) {
 				return true;
@@ -81,7 +81,7 @@
 				true if successful
 		*/
 
-		function deleteComment($id,$comment) {
+		public function deleteComment($id,$comment) {
 			$response = $this->call("media/$id/comments/$comment",array(),"DELETE");
 			if ($response->meta->code == 200) {
 				return true;
@@ -100,7 +100,7 @@
 				An array of BigTreeInstagramComment objects.
 		*/
 
-		function getComments($id) {
+		public function getComments($id) {
 			$response = $this->call("media/$id/comments");
 			if (!isset($response->data)) {
 				return false;
@@ -127,7 +127,7 @@
 				http://instagram.com/developer/endpoints/users/
 		*/
 
-		function getFeed($count = 10,$params = array()) {
+		public function getFeed($count = 10,$params = array()) {
 			$response = $this->call("users/self/feed",array_merge($params,array("count" => $count)));
 			if (!isset($response->data)) {
 				return false;
@@ -150,7 +150,7 @@
 				An array of BigTreeInstagramUser objects
 		*/
 
-		function getFriends($id) {
+		public function getFriends($id) {
 			$response = $this->call("users/$id/follows");
 			if (!isset($response->data)) {
 				return false;
@@ -173,7 +173,7 @@
 				An array of BigTreeInstagramUser objects
 		*/
 
-		function getFollowers($id) {
+		public function getFollowers($id) {
 			$response = $this->call("users/$id/followed-by");
 			if (!isset($response->data)) {
 				return false;
@@ -193,7 +193,7 @@
 				An array of BigTreeInstagramUser objects
 		*/
 
-		function getFollowRequests() {
+		public function getFollowRequests() {
 			$response = $this->call("users/self/requested-by");
 			if (!isset($response->data)) {
 				return false;
@@ -220,7 +220,7 @@
 				http://instagram.com/developer/endpoints/users/
 		*/
 
-		function getLikedMedia($count = 10,$params = array()) {
+		public function getLikedMedia($count = 10,$params = array()) {
 			$response = $this->call("users/self/media/liked",array_merge($params,array("count" => $count)));
 			if (!isset($response->data)) {
 				return false;
@@ -243,7 +243,7 @@
 				An array of BigTreeInstagramUser objects.
 		*/
 
-		function getLikes($id) {
+		public function getLikes($id) {
 			$response = $this->call("media/$id/likes");
 			if (!isset($response->data)) {
 				return false;
@@ -266,7 +266,7 @@
 				A BigTreeInstagramLocation object.
 		*/
 
-		function getLocation($id) {
+		public function getLocation($id) {
 			$response = $this->call("locations/$id");
 			if (!isset($response->data)) {
 				return false;
@@ -285,7 +285,7 @@
 				A BigTreeInstagramLocation object.
 		*/
 
-		function getLocationByFoursquareID($id) {
+		public function getLocationByFoursquareID($id) {
 			$response = $this->searchLocations(false,false,false,$id);
 			if (!$response) {
 				return false;
@@ -304,7 +304,7 @@
 				A BigTreeInstagramLocation object.
 		*/
 
-		function getLocationByLegacyFoursquareID($id) {
+		public function getLocationByLegacyFoursquareID($id) {
 			$response = $this->searchLocations(false,false,false,false,$id);
 			if (!$response) {
 				return false;
@@ -327,7 +327,7 @@
 				http://instagram.com/developer/endpoints/locations/
 		*/
 
-		function getLocationMedia($id,$params = array()) {
+		public function getLocationMedia($id,$params = array()) {
 			$response = $this->call("locations/$id/media/recent",$params);
 			if (!isset($response->data)) {
 				return false;
@@ -351,7 +351,7 @@
 				A BigTreeInstagramMedia object.
 		*/
 
-		function getMedia($id, $shortcode = false) {
+		public function getMedia($id, $shortcode = false) {
 			if ($shortcode) {
 				$response = $this->call("media/shortcode/$id");
 			} else {
@@ -374,7 +374,7 @@
 				An object containg an "Incoming" key (whether they follow you, have requested to follow you, or nothing) and "Outgoing" key (whether you follow them, block them, etc)
 		*/
 
-		function getRelationship($id) {
+		public function getRelationship($id) {
 			$response = $this->call("users/$id/relationship");
 			if (!isset($response->data)) {
 				return false;
@@ -400,7 +400,7 @@
 				http://instagram.com/developer/endpoints/tags/
 		*/
 
-		function getTaggedMedia($tag,$params = array()) {
+		public function getTaggedMedia($tag,$params = array()) {
 			$tag = (substr($tag,0,1) == "#") ? substr($tag,1) : $tag;
 			$response = $this->call("tags/$tag/media/recent",$params);
 			if (!isset($response->data)) {
@@ -424,7 +424,7 @@
 				A BigTreeInstagramUser object.
 		*/
 
-		function getUser($id) {
+		public function getUser($id) {
 			$response = $this->call("users/$id");
 			if (!isset($response->data)) {
 				return false;
@@ -448,7 +448,7 @@
 				http://instagram.com/developer/endpoints/users/
 		*/
 
-		function getUserMedia($id,$count = 10,$params = array()) {
+		public function getUserMedia($id,$count = 10,$params = array()) {
 			$response = $this->call("users/$id/media/recent",array_merge($params,array("count" => $count)));
 			if (!isset($response->data)) {
 				return false;
@@ -471,7 +471,7 @@
 				true if successful
 		*/
 
-		function like($id) {
+		public function like($id) {
 			$response = $this->call("media/$id/likes",array(),"POST");
 			if ($response->meta->code == 200) {
 				return true;
@@ -487,7 +487,7 @@
 				An array of BigTreeInstagramMedia objects.
 		*/
 
-		function popularMedia() {
+		public function popularMedia() {
 			$response = $this->call("media/popular");
 			if (!isset($response->data)) {
 				return false;
@@ -514,7 +514,7 @@
 				An array of BigTreeInstagramLocation objects
 		*/
 
-		function searchLocations($latitude = false,$longitude = false,$distance = 1000,$foursquare_id = false,$legacy_foursquare_id = false) {
+		public function searchLocations($latitude = false,$longitude = false,$distance = 1000,$foursquare_id = false,$legacy_foursquare_id = false) {
 			if ($legacy_foursquare_id) {
 				$response = $this->call("locations/search",array("foursquare_id" => $legacy_foursquare_id));
 			} elseif ($foursquare_id) {
@@ -549,7 +549,7 @@
 				http://instagram.com/developer/endpoints/media/
 		*/
 
-		function searchMedia($latitude,$longitude,$distance = 1000,$params = array()) {
+		public function searchMedia($latitude,$longitude,$distance = 1000,$params = array()) {
 			$response = $this->call("media/search",array_merge($params,array("lat" => $latitude,"lng" => $longitude,"distance" => intval($distance))));
 			if (!isset($response->data)) {
 				return false;
@@ -574,7 +574,7 @@
 				An array of BigTreeInstagramTag objects.
 		*/
 
-		function searchTags($tag) {
+		public function searchTags($tag) {
 			$response = $this->call("tags/search",array("q" => (substr($tag,0,1) == "#") ? substr($tag,1) : $tag));
 			if (!isset($response->data)) {
 				return false;
@@ -598,7 +598,7 @@
 				An array of BigTreeInstagramUser objects.
 		*/
 
-		function searchUsers($query,$count = 10) {
+		public function searchUsers($query,$count = 10) {
 			$response = $this->call("users/search",array("q" => $query,"count" => $count));
 			if (!isset($response->data)) {
 				return false;
@@ -622,7 +622,7 @@
 				true if successful.
 		*/
 
-		function setRelationship($id,$action) {
+		public function setRelationship($id,$action) {
 			$response = $this->call("users/$id/relationship",array("action" => $action),"POST");
 			if (!isset($response->data)) {
 				return false;
@@ -641,7 +641,7 @@
 				true if successful
 		*/
 
-		function unlike($id) {
+		public function unlike($id) {
 			$response = $this->call("media/$id/likes",array(),"DELETE");
 			if ($response->meta->code == 200) {
 				return true;
@@ -669,7 +669,7 @@
 				api - Reference to the BigTreeInstagramAPI class instance
 		*/
 
-		function __construct($comment,$media_id,&$api) {
+		public function __construct($comment,$media_id,&$api) {
 			$this->API = $api;
 			isset($comment->text) ? $this->Content = $comment->text : false;
 			isset($comment->id) ? $this->ID = $comment->id : false;
@@ -686,7 +686,7 @@
 				true if successful
 		*/
 
-		function delete() {
+		public function delete() {
 			return $this->API->deleteComment($this->MediaID,$this->ID);
 		}
 	}
@@ -708,7 +708,7 @@
 				api - Reference to the BigTreeInstagramAPI class instance
 		*/
 
-		function __construct($location,$api) {
+		public function __construct($location,$api) {
 			$this->API = $api;
 			isset($location->id) ? $this->ID = $location->id : false;
 			isset($location->latitude) ? $this->Latitude = $location->latitude : false;
@@ -721,7 +721,7 @@
 				Alias for BigTreeInstagramAPI::getLocationMedia
 		*/
 
-		function getMedia() {
+		public function getMedia() {
 			return $this->API->getLocationMedia($this->ID);
 		}
 
@@ -744,7 +744,7 @@
 				api - Reference to the BigTreeInstagramAPI class instance
 		*/
 
-		function __construct($media,&$api) {
+		public function __construct($media,&$api) {
 			$this->API = $api;
 			isset($media->caption) ? $this->Caption = $media->caption->text : false;
 			isset($media->filter) ? $this->Filter = $media->filter : false;
@@ -798,7 +798,7 @@
 				Alias for BigTreeInstagramAPI::comment
 		*/
 
-		function comment($comment) {
+		public function comment($comment) {
 			return $this->API->comment($this->ID,$comment);
 		}
 
@@ -807,7 +807,7 @@
 				Alias for BigTreeInstagramAPI::getComments
 		*/
 
-		function getComments() {
+		public function getComments() {
 			return $this->API->getComments($this->ID);
 		}
 
@@ -816,7 +816,7 @@
 				Alias for BigTreeInstagramAPI::getLikes
 		*/
 
-		function getLikes() {
+		public function getLikes() {
 			return $this->API->getLikes($this->ID);
 		}
 
@@ -825,7 +825,7 @@
 				Alias for BigTreeInstagramAPI::getLocation
 		*/
 
-		function getLocation() {
+		public function getLocation() {
 			return $this->API->getLikes($this->Location->ID);
 		}
 
@@ -834,7 +834,7 @@
 				Alias for BigTreeInstagramAPI::getUser
 		*/
 
-		function getUser() {
+		public function getUser() {
 			return $this->API->getUser($this->User->ID);
 		}
 
@@ -843,7 +843,7 @@
 				Alias for BigTreeInstagramAPI::like
 		*/
 
-		function like() {
+		public function like() {
 			return $this->API->like($this->ID);
 		}
 
@@ -852,7 +852,7 @@
 				Alias for BigTreeInstagramAPI::unlike
 		*/
 
-		function unlike() {
+		public function unlike() {
 			return $this->API->unlike($this->ID);
 		}
 	}
@@ -875,7 +875,7 @@
 				results - Results to store
 		*/
 
-		function __construct(&$api,$last_call,$params,$results) {
+		public function __construct(&$api,$last_call,$params,$results) {
 			$this->API = $api;
 			$this->LastCall = $last_call;
 			$this->LastParameters = $params;
@@ -890,7 +890,7 @@
 				A BigTreeInstagramResultSet with the next page of results.
 		*/
 
-		function nextPage() {
+		public function nextPage() {
 			return call_user_func_array(array($this->API,$this->LastCall),$this->LastParameters);
 		}
 	}
@@ -912,7 +912,7 @@
 				api - Reference to the BigTreeInstagramAPI class instance
 		*/
 
-		function __construct($tag,&$api) {
+		public function __construct($tag,&$api) {
 			$this->API = $api;
 			isset($tag->media_count) ? $this->MediaCount = $tag->media_count : false;
 			isset($tag->name) ? $this->Name = $tag->name : false;
@@ -923,7 +923,7 @@
 				Alias for BigTreeInstagramAPI::getTaggedMedia
 		*/
 
-		function getMedia() {
+		public function getMedia() {
 			return $this->API->getTaggedMedia($this->Name);
 		}
 	}
@@ -945,7 +945,7 @@
 				api - Reference to the BigTreeInstagramAPI class instance
 		*/
 
-		function __construct($user,&$api) {
+		public function __construct($user,&$api) {
 			$this->API = $api;
 			isset($user->bio) ? $this->Description = $user->bio : false;
 			isset($user->counts->followed_by) ? $this->FollowersCount = $user->counts->followed_by : false;
@@ -963,7 +963,7 @@
 				Alias for BigTreeInstagramAPI::getUserMedia
 		*/
 
-		function getMedia() {
+		public function getMedia() {
 			return $this->API->getUserMedia($this->ID);
 		}
 
@@ -972,7 +972,7 @@
 				Alias for BigTreeInstagramAPI::getFriends
 		*/
 
-		function getFriends() {
+		public function getFriends() {
 			return $this->API->getFriends($this->ID);
 		}
 
@@ -981,7 +981,7 @@
 				Alias for BigTreeInstagramAPI::getFollowers
 		*/
 
-		function getFollowers() {
+		public function getFollowers() {
 			return $this->API->getFollowers($this->ID);
 		}
 
@@ -990,7 +990,7 @@
 				Alias for BigTreeInstagramAPI::getRelationship
 		*/
 
-		function getRelationship() {
+		public function getRelationship() {
 			return $this->API->getRelationship($this->ID);
 		}
 
@@ -999,7 +999,7 @@
 				Alias for BigTreeInstagramAPI::setRelationship
 		*/
 
-		function setRelationship($action) {
+		public function setRelationship($action) {
 			return $this->API->setRelationship($this->ID,$action);
 		}
 	}

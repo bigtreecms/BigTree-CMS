@@ -1,4 +1,4 @@
-<?
+<?php
 	$api = new BigTreeTwitterAPI;
 	$name = "Twitter";
 	$route = "twitter";
@@ -18,4 +18,3 @@
 		$api->Settings["user_name"] = $user->screen_name;
 		$api->Settings["user_image"] = $user->profile_image_url;
 	}
-?>

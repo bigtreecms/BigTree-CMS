@@ -1,4 +1,4 @@
-<?
+<?php
 	if (is_array($field["input"])) {
 		foreach ($field["input"] as &$v) {
 			$v = BigTree::safeEncode($v);
@@ -11,4 +11,3 @@
 	} else {
 		$field["output"] = BigTree::safeEncode($field["input"]);
 	}
-?>

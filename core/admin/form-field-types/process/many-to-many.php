@@ -1,4 +1,4 @@
-<?
+<?php
 	$bigtree["many-to-many"][$field["key"]] = array(
 		"table" => $field["options"]["mtm-connecting-table"],
 		"my-id" => $field["options"]["mtm-my-id"],
@@ -8,4 +8,3 @@
 
 	// This field doesn't have it's own key to process.
 	$field["ignore"] = true;
-?>

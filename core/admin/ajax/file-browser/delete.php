@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	$admin->requireLevel(1);
 	
@@ -7,4 +7,3 @@
 	if ($resource) {
 		$admin->deleteResource($resource["id"]);
 	}
-?>

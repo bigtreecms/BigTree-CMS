@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	
 	BigTree::globalizePOSTVars();
@@ -8,4 +8,3 @@
 
 	$form = BigTreeAutoModule::getEmbedForm(end($bigtree["path"]));
 	BigTree::redirect(DEVELOPER_ROOT."modules/edit/".$form["module"]."/");
-?>

@@ -1,4 +1,4 @@
-<?
+<?php
 	$callouts = $admin->getCallouts("name ASC");	
 ?>
 <div class="table">
@@ -10,7 +10,7 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul>
-		<? foreach ($callouts as $item) { ?>
+		<?php foreach ($callouts as $item) { ?>
 		<li>
 			<section class="developer_templates_name">
 				<a href="<?=DEVELOPER_ROOT?>callouts/edit/<?=$item["id"]?>/"><?=$item["name"]?></a>
@@ -19,10 +19,10 @@
 				<a href="<?=DEVELOPER_ROOT?>callouts/edit/<?=$item["id"]?>/" class="icon_edit"></a>
 			</section>
 			<section class="view_action">
-				<a href="<?=DEVELOPER_ROOT?>callouts/delete/?id=<?=$item["id"]?><? $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
+				<a href="<?=DEVELOPER_ROOT?>callouts/delete/?id=<?=$item["id"]?><?php $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
 			</section>
 		</li>
-		<? } ?>
+		<?php } ?>
 	</ul>
 </div>
 <script>

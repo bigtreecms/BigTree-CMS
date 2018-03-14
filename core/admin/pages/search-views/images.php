@@ -1,17 +1,17 @@
-<?
+<?php
 	$mpage = ADMIN_ROOT.$module["route"]."/";
 	BigTree::globalizeArray($view);
 ?>
 <div class="table" id="" class="image_list">
 	<summary><h2>Search Results</h2></summary>
-	<? if (isset($view["actions"]["edit"])) { ?>
+	<?php if (isset($view["actions"]["edit"])) { ?>
 	<header>
 		<span class="view_column">Click an image to edit it.</span>
 	</header>
-	<? } ?>
+	<?php } ?>
 	<section>
 		<ul id="image_list_<?=$view["id"]?>" class="image_list">
-			<?
+			<?php
 				foreach ($items as $item) {
 					if ($options["preview_prefix"]) {
 						$preview_image = BigTree::prefixFile($item[$options["image"]],$options["preview_prefix"]);
@@ -20,8 +20,8 @@
 					}
 			?>
 			<li id="row_<?=$item["id"]?>">
-				<a class="image<? if (!isset($view["actions"]["edit"])) { ?> image_disabled<? } ?>" href="<?=$view["edit_url"].$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
-				<?
+				<a class="image<?php if (!isset($view["actions"]["edit"])) { ?> image_disabled<?php } ?>" href="<?=$view["edit_url"].$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
+				<?php
 					foreach ($actions as $action => $data) {
 						if ($action != "edit") {
 							$class = $admin->getActionClass($action,$item);
@@ -37,12 +37,12 @@
 							}
 				?>
 				<a href="<?=$link?>" class="<?=$class?>"></a>
-				<?
+				<?php
 						}
 					}
 				?>
 			</li>
-			<?
+			<?php
 				}
 			?>
 		</ul>

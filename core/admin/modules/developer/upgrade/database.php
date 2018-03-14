@@ -1,4 +1,4 @@
-<?
+<?php
 	$current_revision = $cms->getSetting("bigtree-internal-revision");
 	while ($current_revision < BIGTREE_REVISION) {
 		$current_revision++;
@@ -13,7 +13,7 @@
 		<p>BigTree has been updated to <?=BIGTREE_VERSION?>.</p>
 	</section>
 </div>
-<?
+<?php
 	// BigTree 4.0b5 update -- REVISION 1
 	function _local_bigtree_update_1() {
 		global $cms,$admin;

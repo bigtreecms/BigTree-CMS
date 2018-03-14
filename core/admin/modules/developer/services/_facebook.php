@@ -1,4 +1,4 @@
-<?
+<?php
 	$api = new BigTreeFacebookAPI(false);
 	$name = "Facebook";
 	$route = "facebook";
@@ -23,4 +23,3 @@
 		$api->Settings["user_image"] = $user->getPicture();
 		$api->Settings["user_id"] = $user->ID;
 	}
-?>

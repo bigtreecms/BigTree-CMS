@@ -6,19 +6,19 @@
 
 	class BigTreeStorage {
 
-		var $AutoJPEG = false;
-		var $DisabledFileError = false;
-		var $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx|phtml|pht)/i';
-		var $Service = "";
-		var $Cloud = false;
-		var $Settings;
+		public $AutoJPEG = false;
+		public $DisabledFileError = false;
+		public $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx|phtml|pht)/i';
+		public $Service = "";
+		public $Cloud = false;
+		public $Settings;
 
 		/*
 			Constructor:
 				Retrieves the current desired service and image processing availability.
 		*/
 
-		function __construct() {
+		public function __construct() {
 			global $cms;
 			
 			// Get by reference because we modify it.
@@ -73,7 +73,7 @@
 				file_location - The URL of the file.
 		*/
 
-		function delete($file_location) {
+		public function delete($file_location) {
 			// Make sure we're using IPLs so we don't get it confused with cloud
 			$file_location = str_replace(array(STATIC_ROOT,WWW_ROOT),array("{staticroot}","{wwwroot}"),$file_location);
 
@@ -146,7 +146,7 @@
 				The URL of the stored file.
 		*/
 
-		function replace($local_file,$file_name,$relative_path,$remove_original = true) {
+		public function replace($local_file,$file_name,$relative_path,$remove_original = true) {
 			// Make sure there are no path exploits
 			$file_name = BigTree::cleanFile($file_name);
 			
@@ -208,7 +208,7 @@
 				The URL of the stored file.
 		*/
 
-		function store($local_file,$file_name,$relative_path,$remove_original = true,$prefixes = array()) {
+		public function store($local_file,$file_name,$relative_path,$remove_original = true,$prefixes = array()) {
 			// Make sure there are no path exploits
 			$file_name = BigTree::cleanFile($file_name);
 
@@ -286,7 +286,7 @@
 
 	// Backwards compatibility
 	class BigTreeUploadService extends BigTreeStorage {
-		function upload($local_file,$file_name,$relative_path,$remove_original = true) {
+		public function upload($local_file,$file_name,$relative_path,$remove_original = true) {
 			return $this->store($local_file,$file_name,$relative_path,$remove_original);
 		}
 	}

@@ -10,7 +10,7 @@
 
 	class BigTreeSFTP {
 
-		var $Connection = false;
+		public $Connection = false;
 
 		/*
 			Function: changeToParentDirectory
@@ -20,7 +20,7 @@
 				true if successful
 		*/
 
-		function changeToParentDirectory() {
+		public function changeToParentDirectory() {
 			return $this->Connection->chdir("..");
 		}
 
@@ -34,7 +34,7 @@
 				true if successful
 		*/
 
-		function changeDirectory($path) {
+		public function changeDirectory($path) {
 			return $this->Connection->chdir($path);
 		}
 
@@ -50,7 +50,7 @@
 				true if successful
 		*/
 
-		function connect($host,$port = 22) {
+		public function connect($host,$port = 22) {
 			// Test connection
 			$connection = @fsockopen($host, $port);
 			if (is_resource($connection)) {
@@ -72,7 +72,7 @@
 				true if successful.
 		*/
 
-		function createDirectory($path) {
+		public function createDirectory($path) {
 			return $this->Connection->mkdir($path);
 		}
 
@@ -87,7 +87,7 @@
 				true if successful
 		*/
 
-		function deleteDirectory($path) {
+		public function deleteDirectory($path) {
 			return $this->Connection->rmdir($path);
 		}
 
@@ -102,7 +102,7 @@
 				true if successful
 		*/
 
-		function deleteFile($path) {
+		public function deleteFile($path) {
 			return $this->Connection->delete($path);
 		}
 
@@ -111,7 +111,7 @@
 				Closes the FTP connection.
 		*/
 
-		function disconnect() {
+		public function disconnect() {
 			return $this->Connection->_disconnect("");
 		}
 
@@ -127,7 +127,7 @@
 				true if successful.
 		*/
 
-		function downloadFile($remote,$local) {
+		public function downloadFile($remote,$local) {
 			return $this->Connection->get($remote,$local);
 		}
 
@@ -139,7 +139,7 @@
 				The current working directory or false if the call failed.
 		*/
 
-		function getCurrentDirectory() {
+		public function getCurrentDirectory() {
 			return $this->Connection->pwd();
 		}
 
@@ -154,7 +154,7 @@
 				An array of parsed information.
 		*/
 
-		function getDirectoryContents($path = "") {
+		public function getDirectoryContents($path = "") {
 			$types = array("1" => "f","2" => "d","3" => "l");
 			$list = $this->Connection->rawlist($path);
 			$formatted_list = array();
@@ -192,7 +192,7 @@
 				An array of information from the FTP LIST command.
 		*/
 
-		function getRawDirectoryContents($path = "") {
+		public function getRawDirectoryContents($path = "") {
 			return $this->Connection->rawlist($path);
 		}
 
@@ -201,7 +201,7 @@
 				This is here for method compatibility with BigTreeFTP but doesn't do anything.
 		*/
 
-		function getSystemType() {
+		public function getSystemType() {
 			return array();
 		}
 
@@ -217,7 +217,7 @@
 				true if successful
 		*/
 
-		function login($user = null,$pass = null) {
+		public function login($user = null,$pass = null) {
 			if (!$this->Connection) {
 				return false;
 			}
@@ -239,7 +239,7 @@
 				true if successful
 		*/
 
-		function rename($from, $to) {
+		public function rename($from, $to) {
 			return $this->Connection->rename($from,$to);
 		}
 
@@ -248,7 +248,7 @@
 				This is here for compatibility with BigTreeFTP but doesn't do anything.
 		*/
 
-		function setTransferType($mode) {
+		public function setTransferType($mode) {
 			return true;
 		}
 
@@ -264,7 +264,7 @@
 				true if successful
 		*/
 
-		function uploadFile($local,$remote) {
+		public function uploadFile($local,$remote) {
 			if (!@file_exists($local)) {
 				return false;
 			}

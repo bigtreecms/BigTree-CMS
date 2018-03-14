@@ -1,4 +1,4 @@
-<?
+<?php
 	$admin->verifyCSRFToken();
 	$r = $admin->getPageAccessLevel($_POST["id"]);
 	
@@ -10,4 +10,3 @@
 			$admin->setPagePosition($id,$max - $pos);
 		}
 	}
-?>

@@ -1,9 +1,9 @@
-<?
+<?php
 	// Date settings
 	$bigtree["config"]["date_format"] = "m/d/Y"; // Format for default values for date pickers, see http://php.net/manual/en/function.date.php
 
 	// URL construction behavior
-    $bigtree["config"]["trailing_slash_behavior"] = "[slash_behavior]"; // Options are none, append, remove
+	$bigtree["config"]["trailing_slash_behavior"] = "[slash_behavior]"; // Options are none, append, remove
 
 	// CSS settings
 	$bigtree["config"]["css"]["prefix"] = false; // Flag for BigTree CSS3 parsing - automatic vendor prefixing for standard CSS3
@@ -34,36 +34,35 @@
 	// Array containing variables to be replaced in compiled CSS files
 	// example: "variable_name" => "Variable Value" will replace all instances of $variable_name with 'Variable Value'
 	$bigtree["config"]["css"]["vars"] = array(
-		"iconIndent"  => "overflow: hidden; text-indent: 125%; white-space: nowrap",
-		"iconSprite"  => "url(https://bigtree-demo-site.s3.amazonaws.com/images/icons.svg) no-repeat",
+		"iconIndent" => "overflow: hidden; text-indent: 125%; white-space: nowrap",
+		"iconSprite" => "url(https://bigtree-demo-site.s3.amazonaws.com/images/icons.svg) no-repeat",
+		"ptSans" => 'font-family: "PTSans", sans-serif',
+		"ptSerif" => 'font-family: "PTSerif", serif',
 
-		"ptSans"      => 'font-family: "PTSans", sans-serif',
-		"ptSerif"     => 'font-family: "PTSerif", serif',
+		"white0" => "rgba(255, 255, 255, 0)",
+		"white25" => "rgba(255, 255, 255, 0.25)",
+		"white50" => "rgba(255, 255, 255, 0.5)",
+		"white75" => "rgba(255, 255, 255, 0.75)",
+		"white" => "#fff",
 
-		"white0"     => "rgba(255, 255, 255, 0)",
-		"white25"    => "rgba(255, 255, 255, 0.25)",
-		"white50"    => "rgba(255, 255, 255, 0.5)",
-		"white75"    => "rgba(255, 255, 255, 0.75)",
-		"white"		  => "#fff",
+		"black0" => "rgba(0, 0, 0, 0)",
+		"black25" => "rgba(0, 0, 0, 0.25)",
+		"black50" => "rgba(0, 0, 0, 0.5)",
+		"black75" => "rgba(0, 0, 0, 0.75)",
+		"black" => "#333",
 
-		"black0"     => "rgba(0, 0, 0, 0)",
-		"black25"    => "rgba(0, 0, 0, 0.25)",
-		"black50"    => "rgba(0, 0, 0, 0.5)",
-		"black75"    => "rgba(0, 0, 0, 0.75)",
-		"black"       => "#333",
+		"brown0" => "rgba(42, 32, 27, 0)",
+		"brown25" => "rgba(42, 32, 27, 0.25)",
+		"brown50" => "rgba(42, 32, 27, 0.5)",
+		"brown75" => "rgba(42, 32, 27, 0.75)",
+		"brown" => "#2A201C",
 
-		"brown0"     => "rgba(42, 32, 27, 0)",
-		"brown25"    => "rgba(42, 32, 27, 0.25)",
-		"brown50"    => "rgba(42, 32, 27, 0.5)",
-		"brown75"    => "rgba(42, 32, 27, 0.75)",
-		"brown"       => "#2A201C",
+		"tan50" => "rgba(164, 134, 95, 0.5)",
+		"tan" => "#A4865F",
 
-		"tan50"      => "rgba(164, 134, 95, 0.5)",
-		"tan"         => "#A4865F",
-
-		"darkGray"    => "#777",
-		"gray"        => "#999",
-		"lightGray"   => "#eee",
+		"darkGray" => "#777",
+		"gray" => "#999",
+		"lightGray" => "#eee",
 		"lighterGray" => "#ddd"
 	);
 
@@ -129,4 +128,3 @@
 	define("BIGTREE_CUSTOM_ADMIN_CLASS",false);
 	define("BIGTREE_CUSTOM_BASE_CLASS_PATH",false);
 	define("BIGTREE_CUSTOM_ADMIN_CLASS_PATH",false);
-?>
