@@ -69,7 +69,7 @@
 				$resource = $uri;
 			}
 			
-			if (count($params)) {
+			if (is_array($params) && count($params)) {
 				$query = (substr($uri, -1) !== "?") ? "?" : "&";
 				
 				// Build out the GET vars
@@ -135,7 +135,7 @@
 			}
 			
 			// Sort Amazon Headers for signature
-			if (count($amazon_header_signature)) {
+			if (is_array($amazon_header_signature) && count($amazon_header_signature)) {
 				sort($amazon_header_signature, SORT_STRING);
 				$amazon_header_signature = implode("\n", $amazon_header_signature)."\n";
 			} else {

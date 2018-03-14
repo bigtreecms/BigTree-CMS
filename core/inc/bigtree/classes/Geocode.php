@@ -125,7 +125,7 @@
 					return null;
 				}
 				
-				if (count($response["resourceSets"]["resources"]) === 0) {
+				if (is_array($response["resourceSets"]["resources"]) && count($response["resourceSets"]["resources"]) === 0) {
 					$this->Error = "No results for address.";
 					
 					return null;

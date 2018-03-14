@@ -920,8 +920,8 @@
 			// Add all the pieces of the query to check against the columns in the view
 			foreach ($search_parts as $part) {
 				$part = SQL::escape($part);
-				
 				$query_parts = [];
+
 				for ($x = 1; $x <= $view_column_count; $x++) {
 					$query_parts[] = "column$x LIKE '%$part%'";
 				}

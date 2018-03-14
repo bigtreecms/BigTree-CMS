@@ -14,6 +14,7 @@
 		public $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
 		public $CertificateEmail;
 		public $EndpointURL = "https://www.googleapis.com/storage/v1/";
+		public $Errors = [];
 		public $Key;
 		public $OAuthVersion = "1.0";
 		public $PrivateKey;

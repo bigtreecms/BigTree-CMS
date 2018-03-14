@@ -62,7 +62,7 @@
 			}
 			
 			// Any additional cURL options
-			if (count($options)) {
+			if (is_array($options) && count($options)) {
 				foreach ($options as $key => $opt) {
 					curl_setopt($ch, $key, $opt);
 				}

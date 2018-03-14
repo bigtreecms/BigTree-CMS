@@ -925,6 +925,7 @@
 		function _local_fetchAll() {
 			// Allow this to be called without calling query first
 			$args = func_get_args();
+			
 			if (count($args)) {
 				$query = call_user_func_array([$this, "query"], $args);
 				
@@ -1032,6 +1033,7 @@
 		function _local_fetchSingle() {
 			// Allow this to be called without calling query first
 			$args = func_get_args();
+			
 			if (count($args)) {
 				$query = call_user_func_array([$this, "query"], $args);
 				

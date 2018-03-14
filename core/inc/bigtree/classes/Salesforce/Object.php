@@ -71,7 +71,7 @@
 			foreach ($response->fields as $f) {
 				$field = new stdClass;
 				
-				if (count($f->picklistValues)) {
+				if (is_array($f->picklistValues) && count($f->picklistValues)) {
 					$field->AvailableValues = [];
 					
 					foreach ($f->picklistValues as $v) {
