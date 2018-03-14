@@ -1264,7 +1264,7 @@
 			
 			$actions = $view["preview_url"] ? ($view["actions"] + array("preview" => "on")) : $view["actions"];
 			$fields = json_decode($view["fields"],true);
-			if (count($fields)) {
+			if (is_array($fields) && count($fields)) {
 				$first = current($fields);
 				if (!isset($first["width"]) || !$first["width"]) {
 					$awidth = count($actions) * 40;

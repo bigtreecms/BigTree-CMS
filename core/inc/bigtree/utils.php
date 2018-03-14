@@ -434,7 +434,7 @@
 			}
 
 			// Any additional cURL options
-			if (count($options)) {
+			if (is_array($options) && count($options)) {
 				foreach ($options as $key => $opt) {
 					curl_setopt($ch, $key, $opt);
 				}
@@ -2123,7 +2123,7 @@
 		public static function sendEmail($to,$subject,$html,$text = "",$from = false,$return = false,$cc = false,$bcc = false,$headers = array(), $smtp = array()) {
 			$mailer = new PHPMailer;
 
-			if (count($smtp)) {
+			if (is_array($smtp) && count($smtp)) {
 				$mailer->isSMTP();
 				$mailer->Host = $smtp["host"];
 				$mailer->Port = $smtp["port"] ?: 25;

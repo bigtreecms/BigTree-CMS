@@ -10,6 +10,7 @@
 		// These are only applicable to Google Cloud Storage
 		public $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
 		public $EndpointURL = "https://www.googleapis.com/storage/v1/";
+		public $Errors = array();
 		public $HTTPResponseCode = false;
 		public $OAuthVersion = "1.0";
 		public $RequestType = "header";
@@ -935,7 +936,8 @@
 			}
 		
 			$query = "";
-			if (count($params)) {
+			
+			if (is_array($params) && count($params)) {
 				$query = (substr($uri,-1) !== "?") ? "?" : "&";
 				// Build out the GET vars
 				foreach ($params as $key => $val) {
@@ -991,7 +993,7 @@
 			}
 
 			// Sort Amazon Headers for signature
-			if (count($amazon_header_signature)) {
+			if (is_array($amazon_header_signature) && count($amazon_header_signature)) {
 				sort($amazon_header_signature,SORT_STRING);
 				$amazon_header_signature = implode("\n",$amazon_header_signature)."\n";
 			} else {

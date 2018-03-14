@@ -2642,7 +2642,7 @@
 				}
 
 				// Changes
-				if (count($changes)) {
+				if (is_array($changes) && count($changes)) {
 					foreach ($changes as $change) {
 						$body_changes .= '<tr>';
 						$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$change["user"]["name"].'</td>';
@@ -2664,7 +2664,7 @@
 				}
 
 				// Messages
-				if (count($unread)) {
+				if (is_array($unread) && count($unread)) {
 					foreach ($unread as $message) {
 						$body_messages .= '<tr>';
 						$body_messages .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$message["sender_name"].'</td>';
@@ -3343,9 +3343,11 @@
 			} else {
 				$paths = array();
 				$q = sqlquery("SELECT path FROM bigtree_pages WHERE ".implode(" OR ",$where));
+				
 				while ($f = sqlfetch($q)) {
 					$paths[] = "path = '".sqlescape($f["path"])."' OR path LIKE '".sqlescape($f["path"])."/%'";
 				}
+
 				if (count($paths)) {
 					// Find all the pages that are old that contain our paths
 					$q = sqlquery("SELECT nav_title,id,path,updated_at,DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age FROM bigtree_pages WHERE max_age > 0 AND (".implode(" OR ",$paths).") AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age ORDER BY current_age DESC");
@@ -6070,7 +6072,7 @@
 				}
 
 				// See if this attempt earns the IP as a whole a ban - first verify the policy is completely filled out (3 parts)
-				if (count(array_filter((array)$bigtree["security-policy"]["ip_fails"])) == 3) {
+				if (count(array_filter((array) $bigtree["security-policy"]["ip_fails"])) == 3) {
 					$p = $bigtree["security-policy"]["ip_fails"];
 					$r = sqlrows(sqlquery("SELECT * FROM bigtree_login_attempts WHERE `ip` = '$ip' AND `timestamp` >= DATE_SUB(NOW(),INTERVAL ".$p["time"]." MINUTE)"));
 					

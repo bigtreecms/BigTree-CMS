@@ -136,7 +136,7 @@
 			$field_names = array();
 			foreach ($response->fields as $f) {
 				$field = new stdClass;
-				if (count($f->picklistValues)) {
+				if (is_array($f->picklistValues) && count($f->picklistValues)) {
 					$field->AvailableValues = array();
 					foreach ($f->picklistValues as $v) {
 						$value = new stdClass;
