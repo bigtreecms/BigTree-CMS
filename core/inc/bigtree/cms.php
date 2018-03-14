@@ -760,7 +760,7 @@
 			
 		public static function getNavByParent($parent = 0, $levels = 1, $follow_module = true, $only_hidden = false, $explicit_zero = false) {
 			global $bigtree;
-			public static $module_nav_count = 0;
+			static $module_nav_count = 0;
 			
 			$nav = array();
 			$find_children = array();
@@ -1353,7 +1353,7 @@
 			unset($get["bigtree_htaccess_url"]);
 
 			if (count($get)) {
-				$query_pieces = [];
+				$query_pieces = array();
 
 				foreach ($get as $key => $value) {
 					$query_pieces[] = $key."=".$value;
