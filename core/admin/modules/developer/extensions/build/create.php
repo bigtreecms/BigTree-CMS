@@ -125,10 +125,17 @@
 			$field_type_converter("bigtree_module_embeds","fields");
 			sqlquery("UPDATE bigtree_settings SET `type` = '".sqlescape($id."*".$type)."' WHERE `type` = '".sqlescape($type)."'");
 
-			// Move files into new format
-			BigTree::moveFile(SERVER_ROOT."custom/admin/form-field-types/draw/$type.php",$extension_root."field-types/$type/draw.php");
-			BigTree::moveFile(SERVER_ROOT."custom/admin/form-field-types/process/$type.php",$extension_root."field-types/$type/process.php");
-			BigTree::moveFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$type.php",$extension_root."field-types/$type/options.php");
+			// Move files into new location
+			if (file_exists(SERVER_ROOT."custom/admin/field-types/$type/")) {
+				BigTree::moveFile(SERVER_ROOT."custom/admin/field-types/$type/draw.php", $extension_root."field-types/$type/draw.php");
+				BigTree::moveFile(SERVER_ROOT."custom/admin/field-types/$type/process.php", $extension_root."field-types/$type/process.php");
+				BigTree::moveFile(SERVER_ROOT."custom/admin/field-types/$type/settings.php", $extension_root."field-types/$type/settings.php");
+				unlink(SERVER_ROOT."custom/admin/field-types/$type/");
+			} else {
+				BigTree::moveFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$type.php",$extension_root."field-types/$type/settings.php");
+				BigTree::moveFile(SERVER_ROOT."custom/admin/form-field-types/draw/$type.php",$extension_root."field-types/$type/draw.php");
+				BigTree::moveFile(SERVER_ROOT."custom/admin/form-field-types/process/$type.php",$extension_root."field-types/$type/process.php");
+			}
 			
 			// Change type ID
 			$type = "$id*$type";

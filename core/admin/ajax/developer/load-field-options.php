@@ -4,16 +4,19 @@
 
 	// I honestly don't know why this was doing weird things with \r and \n but leaving it case it's some kind of legacy support
 	if (!empty($_POST["data"])) {
-		$data = json_decode($_POST["data"], true);
+		$settings = json_decode($_POST["data"], true);
 		
-		if (!is_array($data)) {
-			$data = json_decode(str_replace(array("\r", "\n"), array('\r', '\n'), $_POST["data"]), true);
+		if (!is_array($settings)) {
+			$settings = json_decode(str_replace(array("\r", "\n"), array('\r', '\n'), $_POST["data"]), true);
 		}
 	
-		$data = BigTree::untranslateArray($data);
+		$settings = BigTree::untranslateArray($settings);
 	} else {
-		$data = array();
+		$settings = array();
 	}
+
+	// Backwards compatibility
+	$data = $settings;
 	
 	$validation_options = array(
 		"required" => "Required",
@@ -25,13 +28,13 @@
 		"link required" => "Link (required)"
 	);
 	
-	$validation = isset($data["validation"]) ? $data["validation"] : "";
+	$validation = isset($settings["validation"]) ? $settings["validation"] : "";
 	
 	if ($field_type == "text") {
 ?>
 <fieldset>
-	<label>Validation</label>
-	<select name="validation">
+	<label for="settings_field_validation">Validation</label>
+	<select id="settings_field_validation" name="validation">
 		<option></option>
 		<?php foreach ($validation_options as $k => $v) { ?>
 		<option value="<?=$k?>"<?php if ($k == $validation) { ?> selected="selected"<?php } ?>><?=$v?></option>
@@ -42,18 +45,29 @@
 	} elseif ($field_type == "textarea" || $field_type == "upload" || $field_type == "html" || $field_type == "list" || $field_type == "time" || $field_type == "date" || $field_type == "datetime" || $field_type == "checkbox") {
 ?>
 <fieldset>
-	<input type="checkbox" name="validation" value="required"<?php if ($validation == "required") { ?> checked="checked"<?php } ?> />
-	<label class="for_checkbox">Required</label>
+	<input id="settings_field_validation" type="checkbox" name="validation" value="required"<?php if ($validation == "required") { ?> checked="checked"<?php } ?> />
+	<label for="settings_field_validation" class="for_checkbox">Required</label>
 </fieldset>
 <?php
 	}
 
 	// Check for extension field type
-	if (strpos($field_type,"*") === false) {
+	if (strpos($field_type, "*") === false) {
+		// Prefer the < 4.3 path to preserve overrides
 		$path = BigTree::path("admin/ajax/developer/field-options/$field_type.php");
+
+		if (!file_exists($path)) {
+			$path = BigTree::path("admin/field-types/$field_type/settings.php");
+		}
 	} else {
-		list($extension,$field_type) = explode("*",$field_type);
-		$path = SERVER_ROOT."extensions/$extension/field-types/$field_type/options.php";	
+		list($extension, $field_type) = explode("*",$field_type);
+
+		$path = SERVER_ROOT."extensions/$extension/field-types/$field_type/settings.php";
+
+		// < 4.3 filename
+		if (file_exists($path)) {
+			$path = SERVER_ROOT."extensions/$extension/field-types/$field_type/options.php";
+		}
 	}
 
 	if (file_exists($path)) {

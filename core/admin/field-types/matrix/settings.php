@@ -1,18 +1,18 @@
 <?php
 	$cached_types = $admin->getCachedFieldTypes(true);
 	$types = $cached_types["callouts"];
-	$columns = is_array($data["columns"]) ? $data["columns"] : array(array("id" => "","title" => "","subtitle" => "","type" => "text"));
-	$data["max"] = $data["max"] ? intval($data["max"]) : "";
+	$columns = is_array($settings["columns"]) ? $settings["columns"] : array(array("id" => "","title" => "","subtitle" => "","type" => "text"));
+	$settings["max"] = $settings["max"] ? intval($settings["max"]) : "";
 ?>
 <fieldset>
-	<label>Maximum Entries <small>(defaults to unlimited)</small></label>
-	<input type="text" name="max" value="<?=$data["max"]?>" />
+	<label for="settings_field_max">Maximum Entries <small>(defaults to unlimited)</small></label>
+	<input id="settings_field_max" type="text" name="max" value="<?=$settings["max"]?>" />
 </fieldset>
 <fieldset>
-	<label>Style</label>
-	<select name="style">
+	<label for="settings_field_style">Style</label>
+	<select id="settings_field_style" name="style">
 		<option value="list">List (like Many to Many)</option>
-		<option value="callout"<?php if ($data["style"] == "callout") { ?> selected="selected"<?php } ?>>Blocks (like Callouts)</option>
+		<option value="callout"<?php if ($settings["style"] == "callout") { ?> selected="selected"<?php } ?>>Blocks (like Callouts)</option>
 	</select>
 </fieldset>
 <div class="matrix_wrapper">

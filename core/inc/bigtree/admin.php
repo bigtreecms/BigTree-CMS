@@ -890,13 +890,11 @@
 			$use_cases = sqlescape(json_encode($use_cases));
 			$self_draw = $self_draw ? "'on'" : "NULL";
 
-			$file = "$id.php";
-
 			sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`use_cases`,`self_draw`) VALUES ('$id','$name','$use_cases',$self_draw)");
 
 			// Make the files for draw and process and options if they don't exist.
-			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/draw/$file")) {
-				BigTree::putFile(SERVER_ROOT."custom/admin/form-field-types/draw/$file",'<?php
+			if (!file_exists(SERVER_ROOT."custom/admin/field-types/$id/draw.php")) {
+				BigTree::putFile(SERVER_ROOT."custom/admin/field-types/$id/draw.php", '<?php
 	/*
 		When drawing a field type you are provided with the $field array with the following keys:
 			"title" — The title given by the developer to draw as the label (drawn automatically)
@@ -909,12 +907,13 @@
 			"required" — A boolean value of whether this form field is required or not
 	*/
 
-	include BigTree::path("admin/form-field-types/draw/text.php");
+	include BigTree::path("admin/field-types/draw/text.php");
 ');
-				BigTree::setPermissions(SERVER_ROOT."custom/admin/form-field-types/draw/$file");
+				BigTree::setPermissions(SERVER_ROOT."custom/admin/field-types/$id/draw.php");
 			}
-			if (!file_exists(SERVER_ROOT."custom/admin/form-field-types/process/$file")) {
-				BigTree::putFile(SERVER_ROOT."custom/admin/form-field-types/process/$file",'<?php
+
+			if (!file_exists(SERVER_ROOT."custom/admin/field-types/$id/process.php")) {
+				BigTree::putFile(SERVER_ROOT."custom/admin/field-types/$id/process.php", '<?php
 	/*
 		When processing a field type you are provided with the $field array with the following keys:
 			"key" — The key of the field (this could be the database column for a module or the ID of the template or callout resource)
@@ -929,11 +928,17 @@
 
 	$field["output"] = htmlspecialchars($field["input"]);
 ');
-				BigTree::setPermissions(SERVER_ROOT."custom/admin/form-field-types/process/$file");
+				BigTree::setPermissions(SERVER_ROOT."custom/admin/field-types/$id/process.php");
 			}
-			if (!file_exists(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file")) {
-				BigTree::touchFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file");
-				BigTree::setPermissions(SERVER_ROOT."custom/admin/ajax/developer/field-options/$file");
+
+			if (!file_exists(SERVER_ROOT."custom/admin/field-types/$id/settings.php")) {
+				BigTree::putFile(SERVER_ROOT."custom/admin/field-types/$id/settings.php", '<?php
+	/*
+		This file should draw form fields to save for usage by your draw and process files.
+		Field settings are set on a per instance basis.
+		The $settings variable has the current settings for the instance of this field.
+	*/');
+				BigTree::setPermissions(SERVER_ROOT."custom/admin/field-types/$id/settings.php");
 			}
 
 			unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
@@ -2526,7 +2531,12 @@
 				$bigtree["extension_context"] = $extension;
 				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/draw.php";
 			} else {
+				// < 4.3 location - we prefer it to allow old overrides to work still
 				$field_type_path = BigTree::path("admin/form-field-types/draw/".$field["type"].".php");
+
+				if (!file_exists($field_type_path)) {
+					$field_type_path = BigTree::path("admin/field-types/".$field["type"]."/draw.php");
+				}
 			}
 
 			if (file_exists($field_type_path)) {
@@ -6555,7 +6565,12 @@
 				$bigtree["extension_context"] = $extension;
 				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/process.php";
 			} else {
+				// < 4.3 location - we prefer it to allow old overrides to continue to work
 				$field_type_path = BigTree::path("admin/form-field-types/process/".$field["type"].".php");
+
+				if (!file_exists($field_type_path)) {
+					$field_type_path = BigTree::path("admin/field-types/".$field["type"]."/process.php");
+				}
 			}
 
 			// If we have a customized handler for this data type, run it.
