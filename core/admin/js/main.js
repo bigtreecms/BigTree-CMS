@@ -1916,7 +1916,7 @@ var BigTreeFormNavBar = (function() {
 			// Unset all the active states on tabs
 			Nav.removeClass("active");
 			// Figure out what section the first error occurred in and show that section.
-			Nav.filter("[href=#" + errors[0].parents("section").show().attr("id") + "]").addClass("active");
+			Nav.filter("[href='#" + errors[0].parents("section").show().attr("id") + "']").addClass("active");
 		});
 
 		// For when there are too many tabs, we need to setup scrolling

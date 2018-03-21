@@ -42,7 +42,7 @@
 		It should be alphanumeric as it is also used in tokenization of URLs.
 	*/
 
-	$bigtre["config"]["sites"] = array();
+	$bigtree["config"]["sites"] = array();
 
 	/*
 		Example
