@@ -265,7 +265,10 @@
 		static function catch404() {
 			global $admin,$bigtree,$cms;
 			
+			static::checkOldRoutes($bigtree["path"]);
+
 			ob_clean();
+
 			if (static::handle404(str_ireplace(WWW_ROOT,"",BigTree::currentURL()))) {
 				$bigtree["layout"] = "default";
 				ob_start();

@@ -1,4 +1,4 @@
-<?
+<?php
 	// Time Zone
 	date_default_timezone_set("America/New_York");
 
@@ -40,7 +40,11 @@
 		"trunk" should be set to the Page ID of the page that serves as the root-level page for the domain.
 		The array key for each site will be defined as BIGTREE_SITE_KEY when you've been routed to that site.
 		It should be alphanumeric as it is also used in tokenization of URLs.
-	
+	*/
+
+	$bigtree["config"]["sites"] = array();
+
+	/*
 		Example
 		=======
 	
@@ -59,4 +63,3 @@
 			)
 		);
 	*/
-?>
