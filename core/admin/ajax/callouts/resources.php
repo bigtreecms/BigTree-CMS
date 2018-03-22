@@ -55,10 +55,11 @@
 					"key" => $bigtree["callout_key"]."[".$bigtree["callout_count"]."][".$resource["id"]."]",
 					"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
 					"tabindex" => $bigtree["tabindex"],
-					"options" => $resource["options"]
+					"settings" => $resource["options"]
 				);
-				if (empty($field["options"]["directory"])) {
-					$field["options"]["directory"] = "files/callouts/";
+
+				if (empty($field["settings"]["directory"])) {
+					$field["settings"]["directory"] = "files/callouts/";
 				}
 	
 				BigTreeAdmin::drawField($field);

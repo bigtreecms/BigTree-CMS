@@ -6,32 +6,32 @@
 	}
 
 	// Throw an exception if they didn't setup the field type properly
-	if (!$field["options"]["table"] || !$field["options"]["title_column"]) {
+	if (!$field["settings"]["table"] || !$field["settings"]["title_column"]) {
 		throw Exception("One-to-Many field type requires a table and a title field to be setup to function.");
 	}
 
 	$entries = array();
-	$sort = $field["options"]["sort_by_column"] ? $field["options"]["sort_by_column"] : $field["options"]["title_column"]." ASC";
+	$sort = $field["settings"]["sort_by_column"] ? $field["settings"]["sort_by_column"] : $field["settings"]["title_column"]." ASC";
 
 	// Get existing entries' titles
 	foreach ($field["value"] as $entry) {
-		$g = sqlfetch(sqlquery("SELECT `id`,`".$field["options"]["title_column"]."` FROM `".$field["options"]["table"]."` WHERE id = '".sqlescape($entry)."'"));
+		$g = sqlfetch(sqlquery("SELECT `id`,`".$field["settings"]["title_column"]."` FROM `".$field["settings"]["table"]."` WHERE id = '".sqlescape($entry)."'"));
 		if ($g) {
-			$entries[$g["id"]] = $g[$field["options"]["title_column"]];
+			$entries[$g["id"]] = $g[$field["settings"]["title_column"]];
 		}			
 	}
 
 	// Gather a list of the items that could possibly be used
 	$list = array();
-	$q = sqlquery("SELECT `id`,`".$field["options"]["title_column"]."` FROM `".$field["options"]["table"]."` ORDER BY $sort");
+	$q = sqlquery("SELECT `id`,`".$field["settings"]["title_column"]."` FROM `".$field["settings"]["table"]."` ORDER BY $sort");
 	while ($f = sqlfetch($q)) {
-		$list[$f["id"]] = $f[$field["options"]["title_column"]];
+		$list[$f["id"]] = $f[$field["settings"]["title_column"]];
 	}
 
 	// If we have a parser, send a list of the entries and available items through it.
-	if (!empty($field["options"]["parser"])) {
-		$list = call_user_func($field["options"]["parser"],$list,true);
-		$entries = call_user_func($field["options"]["parser"],$entries,false);
+	if (!empty($field["settings"]["parser"])) {
+		$list = call_user_func($field["settings"]["parser"],$list,true);
+		$entries = call_user_func($field["settings"]["parser"],$entries,false);
 	}
 
 	// Remove items from the list that have already been used
@@ -72,12 +72,12 @@
 		</select>
 		<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>
 		<?php
-			if ($field["options"]["show_add_all"]) {
+			if ($field["settings"]["show_add_all"]) {
 		?>
 		<a href="#" class="add_all button">Add All</a>
 		<?php
 			}
-			if ($field["options"]["show_reset"]) {
+			if ($field["settings"]["show_reset"]) {
 		?>
 		<a href="#" class="reset button red">Reset</a>
 		<?php

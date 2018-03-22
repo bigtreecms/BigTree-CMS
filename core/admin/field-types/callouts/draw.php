@@ -3,12 +3,12 @@
 		$field["value"] = array();
 	}
 
-	$noun = $field["options"]["noun"] ? htmlspecialchars($field["options"]["noun"]) : "Callout";
-	$max = !empty($field["options"]["max"]) ? $field["options"]["max"] : 0;
+	$noun = $field["settings"]["noun"] ? htmlspecialchars($field["settings"]["noun"]) : "Callout";
+	$max = !empty($field["settings"]["max"]) ? $field["settings"]["max"] : 0;
 
 	// Work with older group info from 4.1 and lower
-	if (!is_array($field["options"]["groups"]) && $field["options"]["group"]) {
-		$field["options"]["groups"] = array($field["options"]["group"]);
+	if (!is_array($field["settings"]["groups"]) && $field["settings"]["group"]) {
+		$field["settings"]["groups"] = array($field["settings"]["group"]);
 	}
 ?>
 <fieldset class="callouts<?php if ($bigtree["last_resource_type"] == "callouts") { ?> callouts_no_margin<?php } ?>" id="<?=$field["id"]?>">
@@ -51,7 +51,7 @@
 			selector: "#<?=$field["id"]?>",
 			key: "<?=$field["key"]?>",
 			noun: "<?=$noun?>",
-			groups: <?=json_encode($field["options"]["groups"])?>,
+			groups: <?=json_encode($field["settings"]["groups"])?>,
 			max: <?=$max?>
 		});
 	</script>

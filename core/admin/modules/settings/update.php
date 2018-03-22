@@ -17,7 +17,7 @@
 			"type" => $item["type"],
 			"title" => $item["title"],
 			"key" => "value",
-			"options" => json_decode($item["options"],true),
+			"settings" => json_decode($item["options"],true),
 			"ignore" => false,
 			"input" => $bigtree["post_data"]["value"],
 			"file_input" => $bigtree["file_data"]["value"]
@@ -25,6 +25,7 @@
 
 		// Process the input
 		$output = BigTreeAdmin::processField($field);
+		
 		if (!is_null($output)) {
 			$admin->updateSettingValue($_POST["id"],$output);
 		}

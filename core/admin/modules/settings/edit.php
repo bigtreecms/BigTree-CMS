@@ -58,7 +58,7 @@
 						"subtitle" => "",
 						"key" => "value",
 						"tabindex" => 1,
-						"options" => json_decode($item["options"],true),
+						"settings" => json_decode($item["options"],true),
 						"value" => $value
 					);
 

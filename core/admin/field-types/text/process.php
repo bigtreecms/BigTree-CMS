@@ -3,9 +3,9 @@
 		foreach ($field["input"] as &$v) {
 			$v = BigTree::safeEncode($v);
 		}	
-		if ($field["options"]["sub_type"] == "phone") {
+		if ($field["settings"]["sub_type"] == "phone") {
 			$field["output"] = $field["input"]["phone_1"]."-".$field["input"]["phone_2"]."-".$field["input"]["phone_3"];
-		} elseif ($field["options"]["sub_type"] == "address" || $field["options"]["sub_type"] == "name") {
+		} elseif ($field["settings"]["sub_type"] == "address" || $field["settings"]["sub_type"] == "name") {
 			$field["output"] = $field["input"];
 		}
 	} else {

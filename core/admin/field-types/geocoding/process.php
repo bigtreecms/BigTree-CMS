@@ -1,6 +1,6 @@
 <?php
 	// Loop through all the fields to build the address
-	$source_fields = explode(",",$field["options"]["fields"]);
+	$source_fields = explode(",",$field["settings"]["fields"]);
 	$location = array();
 	foreach ($source_fields as $source_field) {
 		$data = isset($bigtree["post_data"][trim($source_field)]) ? $bigtree["post_data"][trim($source_field)] : false;

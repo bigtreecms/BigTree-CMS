@@ -4,19 +4,19 @@
 	$current = 0;
 
 	// If we're using a preset, the prefix may be there
-	if ($field["options"]["preset"]) {
+	if ($field["settings"]["preset"]) {
 		if (!isset($bigtree["media_settings"])) {
 			$bigtree["media_settings"] = $cms->getSetting("bigtree-internal-media-settings");
 		}
-		$preset = $bigtree["media_settings"]["presets"][$field["options"]["preset"]];
+		$preset = $bigtree["media_settings"]["presets"][$field["settings"]["preset"]];
 		if (!empty($preset["preview_prefix"])) {
-			$field["options"]["preview_prefix"] = $preset["preview_prefix"];
+			$field["settings"]["preview_prefix"] = $preset["preview_prefix"];
 		}
 	}
 
 	// Get min width/height designations
-	$min_width = $field["options"]["min_width"] ? intval($field["options"]["min_width"]) : 0;
-	$min_height = $field["options"]["min_height"] ? intval($field["options"]["min_height"]) : 0;
+	$min_width = $field["settings"]["min_width"] ? intval($field["settings"]["min_width"]) : 0;
+	$min_height = $field["settings"]["min_height"] ? intval($field["settings"]["min_height"]) : 0;
 
 	$button_options = htmlspecialchars(json_encode(array(
 		"minWidth" => $min_width,
@@ -28,8 +28,8 @@
 		<?php
 			foreach ($photos as $photo) {
 
-				if ($field["options"]["preview_prefix"]) {
-					$preview_image = BigTree::prefixFile($photo["image"],$field["options"]["preview_prefix"]);
+				if ($field["settings"]["preview_prefix"]) {
+					$preview_image = BigTree::prefixFile($photo["image"],$field["settings"]["preview_prefix"]);
 				} else {
 					$preview_image = $photo["image"];
 				}
@@ -40,7 +40,7 @@
 			</figure>
 			<input type="hidden" name="<?=$field["key"]?>[<?=$current?>][image]" value="<?=$photo["image"]?>" />
 			<input type="hidden" name="<?=$field["key"]?>[<?=$current?>][caption]" value="<?=$photo["caption"]?>" class="caption" />
-			<?php if (!$field["options"]["disable_captions"]) { ?>
+			<?php if (!$field["settings"]["disable_captions"]) { ?>
 			<a href="#" class="icon_edit"></a>
 			<?php } ?>
 			<a href="#" class="icon_delete"></a>
@@ -63,6 +63,6 @@
 		container: "<?=$field["id"]?>",
 		key: "<?=$field["key"]?>",
 		count: <?=$current?>
-		<?php if ($field["options"]["disable_captions"]) { ?>,disableCaptions: true<?php } ?>
+		<?php if ($field["settings"]["disable_captions"]) { ?>,disableCaptions: true<?php } ?>
 	});
 </script>

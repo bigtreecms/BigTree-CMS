@@ -1,5 +1,5 @@
 <?php
-	if (!$field["value"] && isset($field["options"]["default_now"]) && $field["options"]["default_now"]) {
+	if (!$field["value"] && isset($field["settings"]["default_now"]) && $field["settings"]["default_now"]) {
 		$field["value"] = date($bigtree["config"]["date_format"]." h:i a");
 	} elseif ($field["value"] && $field["value"] != "0000-00-00 00:00:00") {
 		$field["value"] = date($bigtree["config"]["date_format"]." h:i a",strtotime($field["value"]));

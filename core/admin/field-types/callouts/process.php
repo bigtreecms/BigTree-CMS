@@ -24,11 +24,12 @@
 						"type" => $resource["type"],
 						"title" => $resource["title"],
 						"key" => $resource["id"],
-						"options" => $resource["options"],
+						"settings" => $resource["options"],
 						"ignore" => false,
 						"input" => $bigtree["post_data"][$resource["id"]],
 						"file_input" => $bigtree["file_data"][$resource["id"]]
 					);
+
 					if (empty($sub_field["options"]["directory"])) {
 						$sub_field["options"]["directory"] = "files/pages/";
 					}
@@ -39,10 +40,12 @@
 					}
 
 					$output = BigTreeAdmin::processField($sub_field);
+
 					if (!is_null($output)) {
 						$bigtree["entry"][$sub_field["key"]] = $output;
 					}
 				}
+				
 				$callouts[] = $bigtree["entry"];
 			}
 		}

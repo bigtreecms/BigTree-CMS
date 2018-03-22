@@ -1,23 +1,23 @@
 <?php
-	$settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
-	$data = isset($settings["preset"]) ? $settings["presets"][$settings["preset"]] : $settings["presets"][$_POST["id"]];
+	$media_settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
+	$preset_data = isset($media_settings["preset"]) ? $media_settings["presets"][$settings["preset"]] : $media_settings["presets"][$_POST["id"]];
 ?>
 <fieldset>
-	<label>Minimum Width <small>(numeric value in pixels)</small></label>
-	<input type="text" name="min_width" value="<?=htmlspecialchars($settings["min_width"])?>" disabled="disabled" />
+	<label for="settings_field_min_width">Minimum Width <small>(numeric value in pixels)</small></label>
+	<input id="settings_field_min_width" type="text" name="min_width" value="<?=htmlspecialchars($preset_data["min_width"])?>" disabled="disabled" />
 </fieldset>
 <fieldset>
-	<label>Minimum Height <small>(numeric value in pixels)</small></label>
-	<input type="text" name="min_height" value="<?=htmlspecialchars($settings["min_height"])?>" disabled="disabled" />
+	<label for="settings_field_min_height">Minimum Height <small>(numeric value in pixels)</small></label>
+	<input id="settings_field_min_height" type="text" name="min_height" value="<?=htmlspecialchars($preset_data["min_height"])?>" disabled="disabled" />
 </fieldset>
 <fieldset>
-	<label>Preview Prefix <small>(for forms)</small></label>
-	<input type="text" name="preview_prefix" value="<?=htmlspecialchars($settings["preview_prefix"])?>" disabled="disabled" />
+	<label for="settings_field_preview_prefix">Preview Prefix <small>(for forms)</small></label>
+	<input id="settings_field_preview_prefix" type="text" name="preview_prefix" value="<?=htmlspecialchars($preset_data["preview_prefix"])?>" disabled="disabled" />
 </fieldset>
 <fieldset>
 	<label>Create Hi-Resolution Retina Images <small><a href="http://www.bigtreecms.org/docs/dev-guide/field-types/retina-images/" target="_blank">(learn more)</a></small></label>
-	<input type="checkbox" name="retina" <?php if ($settings["retina"]) { ?>checked="checked" <?php } ?> disabled="disabled" />
-	<label class="for_checkbox"> When Available</label>
+	<input id="settings_field_retina" type="checkbox" name="retina" <?php if ($preset_data["retina"]) { ?>checked="checked" <?php } ?> disabled="disabled" />
+	<label for="settings_field_retina" class="for_checkbox"> When Available</label>
 </fieldset>
 
 <h4>Crops <a href="#" class="add_crop icon_small icon_small_add" style="display: none;"></a></h4>
@@ -30,8 +30,8 @@
 			$crop_count = 0;
 			$crop_thumb_count = 0;
 			$crop_sub_count = 0;
-			if (is_array($settings["crops"])) {
-				foreach ($settings["crops"] as $crop) {
+			if (is_array($preset_data["crops"])) {
+				foreach ($preset_data["crops"] as $crop) {
 					// In case a crop was added but no options were set
 					if (is_array($crop) && $crop["width"] && $crop["height"]) {
 						$crop_count++;
@@ -129,8 +129,8 @@
 		<?php
 			// Keep a count of thumbs
 			$thumb_count = 0;
-			if (is_array($settings["thumbs"])) {
-				foreach ($settings["thumbs"] as $thumb) {
+			if (is_array($preset_data["thumbs"])) {
+				foreach ($preset_data["thumbs"] as $thumb) {
 					// Make sure a width or height was entered or it's pointless
 					if (is_array($thumb) && ($thumb["width"] || $thumb["height"])) {
 						$thumb_count++;
@@ -168,8 +168,8 @@
 		<?php
 			// Keep a count of center crops
 			$center_crop_count = 0;
-			if (is_array($settings["center_crops"])) {
-				foreach ($settings["center_crops"] as $crop) {
+			if (is_array($preset_data["center_crops"])) {
+				foreach ($preset_data["center_crops"] as $crop) {
 					// Make sure a width and height was entered or it's pointless
 					if (is_array($crop) && ($crop["width"] && $crop["height"])) {
 						$center_crop_count++;

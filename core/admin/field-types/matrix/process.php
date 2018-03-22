@@ -23,14 +23,14 @@
 						"type" => $resource["type"],
 						"title" => $resource["title"],
 						"key" => $resource["id"],
-						"options" => $options,
+						"settings" => $options,
 						"ignore" => false,
 						"input" => $bigtree["post_data"][$resource["id"]],
 						"file_input" => $bigtree["file_data"][$resource["id"]]
 					);
 	
-					if (empty($field["options"]["directory"])) {
-						$field["options"]["directory"] = "files/pages/";
+					if (empty($field["settings"]["directory"])) {
+						$field["settings"]["directory"] = "files/pages/";
 					}
 					
 					// If we JSON encoded this data and it hasn't changed we need to decode it or the parser will fail.
@@ -40,10 +40,12 @@
 	
 					// Process the input
 					$output = BigTreeAdmin::processField($field);
+
 					if (!is_null($output)) {
 						$bigtree["entry"][$field["key"]] = $output;
 					}
 				}
+				
 				$matrix["data"][] = $bigtree["entry"];
 			}
 		}

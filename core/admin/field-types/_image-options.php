@@ -45,21 +45,21 @@
 		} else {
 	?>
 	<fieldset>
-		<label>Minimum Width <small>(numeric value in pixels)</small></label>
-		<input type="text" name="min_width" value="<?=htmlspecialchars($settings["min_width"])?>" />
+		<label for="settings_field_min_width">Minimum Width <small>(numeric value in pixels)</small></label>
+		<input id="settings_field_min_width" type="text" name="min_width" value="<?=htmlspecialchars($settings["min_width"])?>" />
 	</fieldset>
 	<fieldset>
-		<label>Minimum Height <small>(numeric value in pixels)</small></label>
-		<input type="text" name="min_height" value="<?=htmlspecialchars($settings["min_height"])?>" />
+		<label for="settings_field_min_height">Minimum Height <small>(numeric value in pixels)</small></label>
+		<input id="settings_field_min_height" type="text" name="min_height" value="<?=htmlspecialchars($settings["min_height"])?>" />
 	</fieldset>
 	<fieldset>
-		<label>Preview Prefix <small>(for forms)</small></label>
-		<input type="text" name="preview_prefix" value="<?=htmlspecialchars($settings["preview_prefix"])?>" />
+		<label for="settings_field_preview_prefix">Preview Prefix <small>(for forms)</small></label>
+		<input id="settings_field_preview_prefix" type="text" name="preview_prefix" value="<?=htmlspecialchars($settings["preview_prefix"])?>" />
 	</fieldset>
 	<fieldset>
 		<label>Create Hi-Resolution Retina Images <small><a href="http://www.bigtreecms.org/docs/dev-guide/field-types/retina-images/" target="_blank">(learn more)</a></small></label>
-		<input type="checkbox" name="retina" <?php if ($settings["retina"]) { ?>checked="checked" <?php } ?>/>
-		<label class="for_checkbox"> When Available</label>
+		<input id="settings_field_retina" type="checkbox" name="retina" <?php if ($settings["retina"]) { ?>checked="checked" <?php } ?>/>
+		<label for="settings_field_retina" class="for_checkbox"> When Available</label>
 	</fieldset>
 	
 	<h4>Crops <a href="#" class="add_crop icon_small icon_small_add"></a></h4>

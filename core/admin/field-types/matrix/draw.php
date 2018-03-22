@@ -2,10 +2,10 @@
 	if (!is_array($field["value"])) {
 		$field["value"] = array();
 	}
-	$max = !empty($field["options"]["max"]) ? $field["options"]["max"] : 0;
+	$max = !empty($field["settings"]["max"]) ? $field["settings"]["max"] : 0;
 
 	// Callout style
-	if ($field["options"]["style"] == "callout") {
+	if ($field["settings"]["style"] == "callout") {
 		$field["type"] = "callouts"; // Pretend to be callouts to work back-to-back
 ?>
 <fieldset class="callouts<?php if ($bigtree["last_resource_type"] == "callouts") { ?> callouts_no_margin<?php } ?>" id="<?=$field["id"]?>">
@@ -45,7 +45,7 @@
 		BigTreeMatrix({
 			selector: "#<?=$field["id"]?>",
 			key: "<?=$field["key"]?>",
-			columns: <?=json_encode($field["options"]["columns"])?>,
+			columns: <?=json_encode($field["settings"]["columns"])?>,
 			max: <?=$max?>,
 			style: "callout"
 		});
@@ -93,7 +93,7 @@
 			BigTreeMatrix({
 				selector: "#<?=$field["id"]?>",
 				key: "<?=$field["key"]?>",
-				columns: <?=json_encode($field["options"]["columns"])?>,
+				columns: <?=json_encode($field["settings"]["columns"])?>,
 				max: <?=$max?>,
 				style: "list"
 			});

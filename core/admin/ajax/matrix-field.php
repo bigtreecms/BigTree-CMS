@@ -43,7 +43,7 @@
 						"key" => $bigtree["matrix_key"]."[".$bigtree["matrix_count"]."][".$resource["id"]."]",
 						"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
 						"tabindex" => $bigtree["tabindex"],
-						"options" => is_array($options) ? $options : array(),
+						"settings" => is_array($options) ? $options : array(),
 						"matrix_title_field" => $resource["display_title"] ? true : false
 					);
 

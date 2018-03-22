@@ -1,6 +1,6 @@
 <?php
 	// Find out whether this is a draggable Many to Many.
-	$table_description = BigTree::describeTable($field["options"]["mtm-connecting-table"]);
+	$table_description = BigTree::describeTable($field["settings"]["mtm-connecting-table"]);
 	$cols = $table_description["columns"];
 	$sortable = false;
 	if (isset($cols["position"])) {
@@ -11,39 +11,39 @@
 	// If we have existing data then this item is either pending or has pending changes so we use that data.
 	if (is_array($field["value"])) {
 		foreach ($field["value"] as $oid) {
-			$g = sqlfetch(sqlquery("SELECT * FROM `".$field["options"]["mtm-other-table"]."` WHERE id = '$oid'"));
+			$g = sqlfetch(sqlquery("SELECT * FROM `".$field["settings"]["mtm-other-table"]."` WHERE id = '$oid'"));
 			if ($g) {
-				$entries[$g["id"]] = $g[$field["options"]["mtm-other-descriptor"]];
+				$entries[$g["id"]] = $g[$field["settings"]["mtm-other-descriptor"]];
 			}			
 		}
 	// No pending data, let's query the connecting table directly for the entries, but only if this isn't a new entry
 	} elseif ($bigtree["edit_id"]) {
 		if ($sortable) {
-			$q = sqlquery("SELECT * FROM `".$field["options"]["mtm-connecting-table"]."` WHERE `".$field["options"]["mtm-my-id"]."` = '".$bigtree["edit_id"]."' ORDER BY `position` DESC");
+			$q = sqlquery("SELECT * FROM `".$field["settings"]["mtm-connecting-table"]."` WHERE `".$field["settings"]["mtm-my-id"]."` = '".$bigtree["edit_id"]."' ORDER BY `position` DESC");
 		} else {
-			$q = sqlquery("SELECT * FROM `".$field["options"]["mtm-connecting-table"]."` WHERE `".$field["options"]["mtm-my-id"]."` = '".$bigtree["edit_id"]."'");
+			$q = sqlquery("SELECT * FROM `".$field["settings"]["mtm-connecting-table"]."` WHERE `".$field["settings"]["mtm-my-id"]."` = '".$bigtree["edit_id"]."'");
 		}
 		
 		while ($f = sqlfetch($q)) {
 			// Get the title from the other table.
-			$g = sqlfetch(sqlquery("SELECT * FROM `".$field["options"]["mtm-other-table"]."` WHERE id = '".$f[$field["options"]["mtm-other-id"]]."'"));
+			$g = sqlfetch(sqlquery("SELECT * FROM `".$field["settings"]["mtm-other-table"]."` WHERE id = '".$f[$field["settings"]["mtm-other-id"]]."'"));
 			if ($g) {
-				$entries[$g["id"]] = $g[$field["options"]["mtm-other-descriptor"]];
+				$entries[$g["id"]] = $g[$field["settings"]["mtm-other-descriptor"]];
 			}
 		}
 	}
 
 	// Gather a list of the items that could possibly be tagged.
 	$list = array();
-	$q = sqlquery("SELECT * FROM `".$field["options"]["mtm-other-table"]."` ORDER BY ".$field["options"]["mtm-sort"]);
+	$q = sqlquery("SELECT * FROM `".$field["settings"]["mtm-other-table"]."` ORDER BY ".$field["settings"]["mtm-sort"]);
 	while ($f = sqlfetch($q)) {
-		$list[$f["id"]] = $f[$field["options"]["mtm-other-descriptor"]];
+		$list[$f["id"]] = $f[$field["settings"]["mtm-other-descriptor"]];
 	}
 	
 	// If we have a parser, send a list of the entries and available items through it.
-	if (isset($field["options"]["mtm-list-parser"]) && $field["options"]["mtm-list-parser"]) {
-		$list = call_user_func($field["options"]["mtm-list-parser"],$list,true);
-		$entries = call_user_func($field["options"]["mtm-list-parser"],$entries,false);
+	if (isset($field["settings"]["mtm-list-parser"]) && $field["settings"]["mtm-list-parser"]) {
+		$list = call_user_func($field["settings"]["mtm-list-parser"],$list,true);
+		$entries = call_user_func($field["settings"]["mtm-list-parser"],$entries,false);
 	}
 
 	// Remove items from the list that have already been tagged.
@@ -86,12 +86,12 @@
 		</select>
 		<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>
 		<?php
-			if ($field["options"]["show_add_all"]) {
+			if ($field["settings"]["show_add_all"]) {
 		?>
 		<a href="#" class="add_all button">Add All</a>
 		<?php
 			}
-			if ($field["options"]["show_reset"]) {
+			if ($field["settings"]["show_reset"]) {
 		?>
 		<a href="#" class="reset button red">Reset</a>
 		<?php

@@ -8,10 +8,10 @@
 		$field["output"] = $field["input"];
 	} else {
 		// We're processing a file.
-		if (!$field["options"]["image"]) {
+		if (!$field["settings"]["image"]) {
 			if (is_uploaded_file($field["file_input"]["tmp_name"])) {
 				$storage = new BigTreeStorage;
-				$field["output"] = $storage->store($field["file_input"]["tmp_name"],$field["file_input"]["name"],$field["options"]["directory"]);
+				$field["output"] = $storage->store($field["file_input"]["tmp_name"],$field["file_input"]["name"],$field["settings"]["directory"]);
 	
 				if (!$field["output"]) {
 					if ($storage->DisabledFileError) {

@@ -4,11 +4,11 @@
 	$list = array();
 
 	// Database populated list.
-	if ($field["options"]["list_type"] == "db") {
-		$list_table = $field["options"]["pop-table"];
-		$list_id = $field["options"]["pop-id"];
-		$list_title = $field["options"]["pop-description"];
-		$list_sort = $field["options"]["pop-sort"];
+	if ($field["settings"]["list_type"] == "db") {
+		$list_table = $field["settings"]["pop-table"];
+		$list_id = $field["settings"]["pop-id"];
+		$list_title = $field["settings"]["pop-description"];
+		$list_sort = $field["settings"]["pop-sort"];
 		
 		// If debug is on we're going to check if the tables exists...
 		if ($bigtree["config"]["debug"] && !BigTree::tableExists($list_table)) {
@@ -20,7 +20,7 @@
 			if ($bigtree["module"] && $bigtree["module"]["gbp"]["enabled"] && $bigtree["form"]["table"] == $bigtree["module"]["gbp"]["table"] && $field["key"] == $bigtree["module"]["gbp"]["group_field"]) {
 				$is_group_based_perm = true;
 
-				if ($field["options"]["allow-empty"] != "No") {
+				if ($field["settings"]["allow-empty"] != "No") {
 					$module_access_level = $admin->getAccessLevel($bigtree["module"]);
 				}
 
@@ -40,7 +40,7 @@
 			}
 		}
 	// State List
-	} elseif ($field["options"]["list_type"] == "state") {
+	} elseif ($field["settings"]["list_type"] == "state") {
 		foreach (BigTree::$StateList as $a => $s) {
 			$list[] = array(
 				"value" => $a,
@@ -48,7 +48,7 @@
 			);
 		}
 	// Country List
-	} elseif ($field["options"]["list_type"] == "country") {
+	} elseif ($field["settings"]["list_type"] == "country") {
 		foreach (BigTree::$CountryList as $c) {
 			$list[] = array(
 				"value" => $c,
@@ -57,12 +57,12 @@
 		}
 	// Static List
 	} else {
-		$list = $field["options"]["list"];
+		$list = $field["settings"]["list"];
 	}
 
 	// If we have a parser, send a list of the available items through it.
-	if (isset($field["options"]["parser"]) && $field["options"]["parser"]) {
-		$list = call_user_func($field["options"]["parser"],$list);
+	if (isset($field["settings"]["parser"]) && $field["settings"]["parser"]) {
+		$list = call_user_func($field["settings"]["parser"],$list);
 	}
 
 	// If the table was deleted for a database populated list, throw an error.
@@ -81,7 +81,7 @@
 		}
 ?>
 <select<?php if (count($class)) { ?> class="<?=implode(" ",$class)?>"<?php } ?> name="<?=$field["key"]?>" tabindex="<?=$field["tabindex"]?>" id="<?=$field["id"]?>">
-	<?php if ($field["options"]["allow-empty"] != "No") { ?>
+	<?php if ($field["settings"]["allow-empty"] != "No") { ?>
 	<option<?php if ($is_group_based_perm) { ?> data-access-level="<?=$module_access_level?>"<?php } ?>></option>
 	<?php } ?>
 	<?php foreach ($list as $option) { ?>

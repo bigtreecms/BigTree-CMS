@@ -12,7 +12,7 @@
 					"title" => "Tags to Merge In",
 					"type" => "one-to-many",
 					"key" => "merge_tags",
-					"options" => array(
+					"settings" => array(
 						"table" => "bigtree_tags",
 						"title_column" => "tag",
 						"sort_by_column" => "tag"

@@ -49,13 +49,14 @@
 			"type" => $resource["type"],
 			"title" => $resource["title"],
 			"key" => $resource["column"],
-			"options" => $resource["options"],
+			"settings" => $resource["options"],
 			"ignore" => false,
 			"input" => $bigtree["post_data"][$resource["column"]],
 			"file_input" => $bigtree["file_data"][$resource["column"]]
 		);
 
 		$output = BigTreeAdmin::processField($field);
+		
 		if (!is_null($output)) {
 			$bigtree["entry"][$field["key"]] = $output;
 		}

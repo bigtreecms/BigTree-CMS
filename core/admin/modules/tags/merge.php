@@ -16,7 +16,7 @@
 					"title" => "Tag to Merge Into",
 					"type" => "list",
 					"key" => "merge_to",
-					"options" => array(
+					"settings" => array(
 						"list_type" => "db",
 						"pop-table" => "bigtree_tags",
 						"pop-id" => "id",

@@ -760,7 +760,7 @@
 					// Backwards compatibility with BigTree 4.1 package imports
 					foreach ($resource as $k => $v) {
 						if (!in_array($k,array("id","title","subtitle","type","options"))) {
-							$field["options"][$k] = $v;
+							$field["settings"][$k] = $v;
 						}
 					}
 
@@ -1142,7 +1142,7 @@
 
 			$clean_fields = array();
 			foreach ($fields as $key => $field) {
-				$field["options"] = BigTree::translateArray(json_decode($field["options"],true));
+				$field["settings"] = BigTree::translateArray(json_decode($field["settings"],true));
 				$field["column"] = $key;
 				$clean_fields[] = $field;
 			}
@@ -1202,7 +1202,7 @@
 				// Backwards compatibility with BigTree 4.1 package imports
 				foreach ($data as $k => $v) {
 					if (!in_array($k,array("title","subtitle","type","options"))) {
-						$field["options"][$k] = $v;
+						$field["settings"][$k] = $v;
 					}
 				}
 				$clean_fields[] = $field;
@@ -1753,7 +1753,7 @@
 					// Backwards compatibility with BigTree 4.1 package imports
 					foreach ($resource as $k => $v) {
 						if (!in_array($k,array("id","title","subtitle","type","options"))) {
-							$field["options"][$k] = $v;
+							$field["settings"][$k] = $v;
 						}
 					}
 
@@ -2502,21 +2502,24 @@
 			$field["id"] = $bigtree["field_namespace"].$bigtree["field_counter"];
 
 			// Make sure options is an array to prevent warnings
-			if (!is_array($field["options"])) {
-				$field["options"] = array();
+			if (!is_array($field["settings"])) {
+				$field["settings"] = array();
 			}
 
-			$field["options"] = BigTree::untranslateArray($field["options"]);
+			$field["settings"] = BigTree::untranslateArray($field["settings"]);
 
 			// Setup Validation Classes
 			$label_validation_class = "";
 			$field["required"] = false;
-			if (!empty($field["options"]["validation"])) {
-				if (strpos($field["options"]["validation"],"required") !== false) {
+			if (!empty($field["settings"]["validation"])) {
+				if (strpos($field["settings"]["validation"],"required") !== false) {
 					$label_validation_class = ' class="required"';
 					$field["required"] = true;
 				}
 			}
+
+			// Backwards compatibility
+			$field["options"] &= $field["settings"];
 
 			// Prevent path abuse
 			$field["type"] = BigTree::cleanFile($field["type"]);
@@ -6554,6 +6557,9 @@
 
 		public static function processField($field) {
 			global $admin,$bigtree,$cms;
+			
+			// Backwards compatibility
+			$field["options"] &= $field["settings"];
 
 			// Save current context
 			$bigtree["saved_extension_context"] = $bigtree["extension_context"];
@@ -6594,8 +6600,8 @@
 			}
 
 			// Check validation
-			if (!BigTreeAutoModule::validate($output,$field["options"]["validation"])) {
-				$error = $field["options"]["error_message"] ? $field["options"]["error_message"] : BigTreeAutoModule::validationErrorMessage($output,$field["options"]["validation"]);
+			if (!BigTreeAutoModule::validate($output,$field["settings"]["validation"])) {
+				$error = $field["settings"]["error_message"] ? $field["settings"]["error_message"] : BigTreeAutoModule::validationErrorMessage($output, $field["settings"]["validation"]);
 				$bigtree["errors"][] = array(
 					"field" => $field["title"],
 					"error" => $error
@@ -6662,26 +6668,26 @@
 			$temp_copy = null;
 
 			// See if we're using image presets
-			if ($field["options"]["preset"]) {
+			if ($field["settings"]["preset"]) {
 				$media_settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
-				$preset = $media_settings["presets"][$field["options"]["preset"]];
+				$preset = $media_settings["presets"][$field["settings"]["preset"]];
 				// If the preset still exists, copy its properties over to our options
 				if ($preset) {
 					foreach ($preset as $key => $val) {
-						$field["options"][$key] = $val;
+						$field["settings"][$key] = $val;
 					}
 				}
 			}
 
 			// If the minimum height or width is not meant, do NOT let the image through. Erase the change or update from the database.
-			if ((isset($field["options"]["min_height"]) && $iheight < $field["options"]["min_height"]) || (isset($field["options"]["min_width"]) && $iwidth < $field["options"]["min_width"])) {
+			if ((isset($field["settings"]["min_height"]) && $iheight < $field["settings"]["min_height"]) || (isset($field["settings"]["min_width"]) && $iwidth < $field["settings"]["min_width"])) {
 				$error = "Image uploaded (".htmlspecialchars($name).") did not meet the minimum size of ";
-				if ($field["options"]["min_height"] && $field["options"]["min_width"]) {
-					$error .= $field["options"]["min_width"]."x".$field["options"]["min_height"]." pixels.";
-				} elseif ($field["options"]["min_height"]) {
-					$error .= $field["options"]["min_height"]." pixels tall.";
-				} elseif ($field["options"]["min_width"]) {
-					$error .= $field["options"]["min_width"]." pixels wide.";
+				if ($field["settings"]["min_height"] && $field["settings"]["min_width"]) {
+					$error .= $field["settings"]["min_width"]."x".$field["settings"]["min_height"]." pixels.";
+				} elseif ($field["settings"]["min_height"]) {
+					$error .= $field["settings"]["min_height"]." pixels tall.";
+				} elseif ($field["settings"]["min_width"]) {
+					$error .= $field["settings"]["min_width"]." pixels wide.";
 				}
 				$bigtree["errors"][] = array("field" => $field["title"], "error" => $error);
 				$failed = true;
@@ -6700,11 +6706,11 @@
 			}
 
 			// See if we have enough memory for all our crops and thumbnails
-			if (!$failed && ((is_array($field["options"]["crops"]) && count($field["options"]["crops"])) || (is_array($field["options"]["thumbs"]) && count($field["options"]["thumbs"])))) {
-				if (is_array($field["options"]["crops"])) {
-					foreach ($field["options"]["crops"] as $crop) {
+			if (!$failed && ((is_array($field["settings"]["crops"]) && count($field["settings"]["crops"])) || (is_array($field["settings"]["thumbs"]) && count($field["settings"]["thumbs"])))) {
+				if (is_array($field["settings"]["crops"])) {
+					foreach ($field["settings"]["crops"] as $crop) {
 						if (!$failed && is_array($crop) && array_filter($crop)) {
-							if ($field["options"]["retina"]) {
+							if ($field["settings"]["retina"]) {
 								$crop["width"] *= 2;
 								$crop["height"] *= 2;
 							}
@@ -6716,11 +6722,11 @@
 						}
 					}
 				}
-				if (is_array($field["options"]["thumbs"])) {
-					foreach ($field["options"]["thumbs"] as $thumb) {
+				if (is_array($field["settings"]["thumbs"])) {
+					foreach ($field["settings"]["thumbs"] as $thumb) {
 						// We don't want to add multiple errors and we also don't want to waste effort getting thumbnail sizes if we already failed.
 						if (!$failed && is_array($thumb) && array_filter($thumb)) {
-							if ($field["options"]["retina"]) {
+							if ($field["settings"]["retina"]) {
 								$thumb["width"] *= 2;
 								$thumb["height"] *= 2;
 							}
@@ -6732,8 +6738,8 @@
 						}
 					}
 				}
-				if (is_array($field["options"]["center_crops"])) {
-					foreach ($field["options"]["center_crops"] as $crop) {
+				if (is_array($field["settings"]["center_crops"])) {
+					foreach ($field["settings"]["center_crops"] as $crop) {
 						// We don't want to add multiple errors and we also don't want to waste effort getting thumbnail sizes if we already failed.
 						if (!$failed && is_array($crop) && array_filter($crop)) {
 							list($w,$h) = getimagesize($temp_name);
@@ -6793,22 +6799,22 @@
 
 				// Gather up an array of file prefixes
 				$prefixes = array();
-				if (is_array($field["options"]["thumbs"])) {
-					foreach ($field["options"]["thumbs"] as $thumb) {
+				if (is_array($field["settings"]["thumbs"])) {
+					foreach ($field["settings"]["thumbs"] as $thumb) {
 						if (!empty($thumb["prefix"])) {
 							$prefixes[] = $thumb["prefix"];
 						}
 					}
 				}
-				if (is_array($field["options"]["center_crops"])) {
-					foreach ($field["options"]["center_crops"] as $crop) {
+				if (is_array($field["settings"]["center_crops"])) {
+					foreach ($field["settings"]["center_crops"] as $crop) {
 						if (!empty($crop["prefix"])) {
 							$prefixes[] = $crop["prefix"];
 						}
 					}
 				}
-				if (is_array($field["options"]["crops"])) {
-					foreach ($field["options"]["crops"] as $crop) {
+				if (is_array($field["settings"]["crops"])) {
+					foreach ($field["settings"]["crops"] as $crop) {
 						if (is_array($crop)) {
 							if (!empty($crop["prefix"])) {
 								$prefixes[] = $crop["prefix"];
@@ -6833,9 +6839,9 @@
 
 				// Upload the original to the proper place.
 				if ($replace) {
-					$field["output"] = $storage->replace($first_copy,$name,$field["options"]["directory"],true);
+					$field["output"] = $storage->replace($first_copy,$name,$field["settings"]["directory"],true);
 				} else {
-					$field["output"] = $storage->store($first_copy,$name,$field["options"]["directory"],true,$prefixes);
+					$field["output"] = $storage->store($first_copy,$name,$field["settings"]["directory"],true,$prefixes);
 				}
 
  				// If the upload service didn't return a value, we failed to upload it for one reason or another.
@@ -6856,8 +6862,8 @@
 					$pinfo = BigTree::pathInfo($field["output"]);
 
 					// Handle Crops
-					if (is_array($field["options"]["crops"])) {
-						foreach ($field["options"]["crops"] as $crop) {
+					if (is_array($field["settings"]["crops"])) {
+						foreach ($field["settings"]["crops"] as $crop) {
 							if (is_array($crop)) {
 								// Make sure the crops have a width/height and it's numeric
 								if ($crop["width"] && $crop["height"] && is_numeric($crop["width"]) && is_numeric($crop["height"])) {
@@ -6874,8 +6880,8 @@
 										}
 										$bigtree["crops"][] = array(
 											"image" => $temp_copy,
-											"directory" => $field["options"]["directory"],
-											"retina" => $field["options"]["retina"],
+											"directory" => $field["settings"]["directory"],
+											"retina" => $field["settings"]["retina"],
 											"name" => $pinfo["basename"],
 											"width" => $cwidth,
 											"height" => $cheight,
@@ -6893,9 +6899,9 @@
 												if (($thumb["width"] && is_numeric($thumb["width"])) || ($thumb["height"] && is_numeric($thumb["height"]))) {
 													// Create a temporary thumbnail of the image on the server before moving it to it's destination.
 													$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-													BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["options"]["retina"],$thumb["grayscale"]);
+													BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["settings"]["retina"],$thumb["grayscale"]);
 													// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-													$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["options"]["directory"]);
+													$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["settings"]["directory"]);
 												}
 											}
 										}
@@ -6907,15 +6913,15 @@
 												if ($center_crop["width"] && is_numeric($center_crop["width"]) && $center_crop["height"] && is_numeric($center_crop["height"])) {
 													// Create a temporary crop of the image on the server before moving it to it's destination.
 													$temp_crop = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-													BigTree::centerCrop($temp_copy,$temp_crop,$center_crop["width"],$center_crop["height"],$field["options"]["retina"],$center_crop["grayscale"]);
+													BigTree::centerCrop($temp_copy,$temp_crop,$center_crop["width"],$center_crop["height"],$field["settings"]["retina"],$center_crop["grayscale"]);
 													// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-													$storage->replace($temp_crop,$center_crop["prefix"].$pinfo["basename"],$field["options"]["directory"]);
+													$storage->replace($temp_crop,$center_crop["prefix"].$pinfo["basename"],$field["settings"]["directory"]);
 												}
 											}
 										}
 										
 										if ($crop["prefix"]) {
-											$storage->replace($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false,array(),true);
+											$storage->replace($temp_copy,$crop["prefix"].$pinfo["basename"],$field["settings"]["directory"],false,array(),true);
 										}
 									}
 								}
@@ -6924,27 +6930,27 @@
 					}
 
 					// Handle thumbnailing
-					if (is_array($field["options"]["thumbs"])) {
-						foreach ($field["options"]["thumbs"] as $thumb) {
+					if (is_array($field["settings"]["thumbs"])) {
+						foreach ($field["settings"]["thumbs"] as $thumb) {
 							// Make sure the thumbnail has a width or height and it's numeric
 							if (($thumb["width"] && is_numeric($thumb["width"])) || ($thumb["height"] && is_numeric($thumb["height"]))) {
 								$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-								BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["options"]["retina"],$thumb["grayscale"]);
+								BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["settings"]["retina"],$thumb["grayscale"]);
 								// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-								$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["options"]["directory"]);
+								$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["settings"]["directory"]);
 							}
 						}
 					}
 
 					// Handle center crops
-					if (is_array($field["options"]["center_crops"])) {
-						foreach ($field["options"]["center_crops"] as $crop) {
+					if (is_array($field["settings"]["center_crops"])) {
+						foreach ($field["settings"]["center_crops"] as $crop) {
 							// Make sure the crop has a width and height and it's numeric
 							if ($crop["width"] && is_numeric($crop["width"]) && $crop["height"] && is_numeric($crop["height"])) {
 								$temp_crop = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
-								BigTree::centerCrop($temp_copy,$temp_crop,$crop["width"],$crop["height"],$field["options"]["retina"],$crop["grayscale"]);
+								BigTree::centerCrop($temp_copy,$temp_crop,$crop["width"],$crop["height"],$field["settings"]["retina"],$crop["grayscale"]);
 								// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-								$storage->replace($temp_crop,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"]);
+								$storage->replace($temp_crop,$crop["prefix"].$pinfo["basename"],$field["settings"]["directory"]);
 							}
 						}
 					}
@@ -8028,7 +8034,7 @@
 
 			$clean_fields = array();
 			foreach ($fields as $key => $field) {
-				$field["options"] = BigTree::translateArray(json_decode($field["options"],true));
+				$field["settings"] = BigTree::translateArray(json_decode($field["settings"],true));
 				$field["column"] = $key;
 				$clean_fields[] = $field;
 			}
@@ -8066,7 +8072,7 @@
 
 			$clean_fields = array();
 			foreach ($fields as $key => $field) {
-				$field["options"] = BigTree::translateArray(json_decode($field["options"],true));
+				$field["settings"] = BigTree::translateArray(json_decode($field["settings"],true));
 				$field["column"] = $key;
 				$field["title"] = BigTree::safeEncode($field["title"]);
 				$field["subtitle"] = BigTree::safeEncode($field["subtitle"]);

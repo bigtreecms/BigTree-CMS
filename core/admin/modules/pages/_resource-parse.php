@@ -11,16 +11,18 @@
 			"title" => $resource["title"],
 			"subtitle" => $resource["subtitle"],
 			"key" => $resource["id"],
-			"options" => $resource["options"],
+			"settings" => $resource["options"],
 			"ignore" => false,
 			"input" => $bigtree["post_data"][$resource["id"]],
 			"file_input" => $bigtree["file_data"][$resource["id"]]
 		);
+
 		if (empty($field["options"]["directory"])) {
 			$field["options"]["directory"] = $options["directory"] = "files/pages/";
 		}
 
 		$output = BigTreeAdmin::processField($field);
+		
 		if (!is_null($output)) {
 			$bigtree["entry"][$field["key"]] = $output;
 		}
