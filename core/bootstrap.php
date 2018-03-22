@@ -28,6 +28,9 @@
 		$_SERVER["REMOTE_ADDR"] = $_SERVER["HTTP_CF_CONNECTING_IP"];
 	}
 
+	// Include Composer's autoloader
+	include SERVER_ROOT."vendor/autoload.php";
+
 	// Set version
 	include SERVER_ROOT."core/version.php";
 
