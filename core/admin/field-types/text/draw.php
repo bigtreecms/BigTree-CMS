@@ -5,8 +5,28 @@
 
 		if (!$sub_type) {
 	?>
-	<input class="<?=$field["settings"]["validation"]?>" type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<?=$field["value"]?>" id="<?=$field["id"]?>"<?php if ($max_length) { ?> maxlength="<?=$max_length?>" placeholder="Maximum of <?=$max_length?> characters"<?php } ?> />
+	<input class="<?=$field["settings"]["validation"]?>" type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<?=$field["value"]?>" id="<?=$field["id"]?>"<?php if ($max_length) { ?> maxlength="<?=$max_length?>"<?php } ?> />
 	<?php
+			if ($max_length) {
+				$current_length = $max_length - strlen(htmlspecialchars_decode($field["value"]));
+	?>
+	<div class="form_sub_label" id="<?=$field["id"]?>_sub_label"><?=$current_length?> character<?php if ($current_length != 1) { ?>s<?php } ?> remaining</div>
+	<script>
+		$("#<?=$field["id"]?>").keyup(function() {
+			var remaining = <?=intval($max_length)?> - $(this).val().length;
+			var message = remaining + " character";
+	
+			if (remaining != 1) {
+				message += "s";
+			} 
+	
+			message += " remaining";
+	
+			$("#<?=$field["id"]?>_sub_label").html(message);
+		});
+	</script>
+	<?php
+			}
 		} elseif ($sub_type == "name") {
 			// To prevent warnings we'll try to extract a first name / last name from a string.
 			if (!is_array($field["value"])) {
