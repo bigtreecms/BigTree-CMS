@@ -2339,6 +2339,18 @@
 		}
 
 		/*
+			Function: deleteTag
+				Deletes a tag.
+
+			Parameters:
+				id - A tag ID
+		*/
+
+		public function deleteTag($id) {
+			sqlquery("DELETE FROM bigtree_tags WHERE id = '".sqlescape($id)."'");
+		}
+
+		/*
 			Function: deleteTemplate
 				Deletes a template and its related files.
 
@@ -4439,17 +4451,18 @@
 			Parameters:
 				page - The page of tags to return.
 				query - Optional query string to search against.
-				sort - Order to sort the results by. Defaults to tag ASC.
+				sort_column - Column to sort by - defaults to tag.
+				sort_direction - Direction to sort by - defaults to ascending.
 
 			Returns:
 				An array of entries from bigtree_users.
 		*/
 
-		public static function getPageOfTags($page = 1, $query = "", $sort = "tag ASC") {
+		public static function getPageOfTags($page = 1, $query = "", $sort_column = "tag", $sort_direction = "ASC") {
 			if ($query) {
-				$q = sqlquery("SELECT * FROM bigtree_tags WHERE tag LIKE '%".sqlescape($query)."%' ORDER BY $sort LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
+				$q = sqlquery("SELECT * FROM bigtree_tags WHERE tag LIKE '%".sqlescape($query)."%' ORDER BY $sort_column $sort_direction LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
 			} else {
-				$q = sqlquery("SELECT * FROM bigtree_tags ORDER BY $sort LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
+				$q = sqlquery("SELECT * FROM bigtree_tags ORDER BY $sort_column $sort_direction LIMIT ".(($page - 1) * static::$PerPage).",".static::$PerPage);
 			}
 
 			$items = array();

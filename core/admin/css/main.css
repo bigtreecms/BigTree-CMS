@@ -1042,7 +1042,7 @@
 
 /* Tags Stuff */
 	.table .tag_name { overflow: hidden; padding: 0 20px; text-align: left; text-overflow: ellipsis; white-space: nowrap; width: 518px; }
-	.table .tag_relationships { overflow: hidden; padding: 0 20px; text-align: left; text-overflow: ellipsis; white-space: nowrap; width: 300px; }
+	.table .tag_relationships { overflow: hidden; padding: 0 20px; text-align: left; text-overflow: ellipsis; white-space: nowrap; width: 250px; }
 
 /* Advanced Search Page */
 	.adv_search { margin: 0 0 15px 0; overflow: hidden; }
