@@ -9,7 +9,7 @@
 
 			if (is_numeric($id)) {
 				sqlquery("UPDATE `$table` SET featured = '' WHERE id = '$id'");
-				$run_publish_hook();
+				$run_publish_hook(array("featured" => ""));
 			} else {
 				BigTreeAutoModule::updatePendingItemField(substr($id,1),"featured","");
 			}
@@ -22,7 +22,7 @@
 
 			if (is_numeric($id)) {
 				sqlquery("UPDATE `$table` SET featured = 'on' WHERE id = '$id'");
-				$run_publish_hook();
+				$run_publish_hook(array("featured" => "on"));
 			} else {
 				BigTreeAutoModule::updatePendingItemField(substr($id,1),"featured","on");
 			}

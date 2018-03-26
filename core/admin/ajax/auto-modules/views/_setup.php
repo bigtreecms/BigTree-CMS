@@ -29,11 +29,10 @@
 		}
 	}
 
-	$run_publish_hook = function() use ($id, $related_form, $table) {
+	$run_publish_hook = function($changes) use ($id, $related_form, $table) {
 		if (empty($related_form["hooks"]["publish"])) {
 			return;
 		}
 		
-		$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
-		call_user_func($related_form["hooks"]["publish"], $table, $id, $item, null, null);
+		call_user_func($related_form["hooks"]["publish"], $table, $id, $changes, null, null);
 	};
