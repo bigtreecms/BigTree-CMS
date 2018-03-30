@@ -4344,7 +4344,7 @@
 			}
 			
 			// See if we have a straight up perfect match to the path.
-			$spath = sqlescape($url_parse["path"]);
+			$spath = sqlescape(implode("/", $path));
 			$f = sqlfetch(sqlquery("SELECT bigtree_pages.id,bigtree_templates.routed FROM bigtree_pages LEFT JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE path = '$spath' AND archived = '' $publish_at"));
 			
 			if ($f) {
