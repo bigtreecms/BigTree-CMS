@@ -666,12 +666,14 @@
 			}
 			
 			// New IPLs are encoded in JSON
-			$c = json_decode(base64_decode($ipl[2]));
+			$command_parts = json_decode(base64_decode($ipl[2]));
+			$get_vars = base64_decode($ipl[3]);
+			$hash = base64_decode($ipl[4]);
 			
 			// If it can't be rectified, we still don't want a warning.
-			if (is_array($c) && count($c)) {
-				$last = end($c);
-				$commands = implode("/",$c);
+			if (is_array($command_parts) && count($command_parts)) {
+				$last = end($command_parts);
+				$commands = implode("/", $command_parts);
 
 				// If the URL's last piece has a GET (?), hash (#), or appears to be a file (.) don't add a trailing slash
 				if ($bigtree["config"]["trailing_slash_behavior"] != "remove" && strpos($last,"#") === false && strpos($last,"?") === false && strpos($last,".") === false) {
@@ -682,25 +684,29 @@
 			}
 
 			// See if it's in the cache.
-			if (isset(static::$IPLCache[$navid])) {
-				if ($bigtree["config"]["trailing_slash_behavior"] != "remove" || $commands != "") {
-					return static::$IPLCache[$navid]."/".$commands;
-				} else {
-					return static::$IPLCache[$navid];
-				}
-			} else {
+			if (!isset(static::$IPLCache[$navid])) {
 				// Get the page's path
 				$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($navid)."'"));
 
 				// Set the cache
 				static::$IPLCache[$navid] = rtrim(static::linkForPath($f["path"]), "/");
-
-				if ($bigtree["config"]["trailing_slash_behavior"] != "remove" || $commands != "") {
-					return static::$IPLCache[$navid]."/".$commands;
-				} else {
-					return static::$IPLCache[$navid];
-				}
 			}
+
+			if ($bigtree["config"]["trailing_slash_behavior"] != "remove" || $commands != "") {
+				$url = static::$IPLCache[$navid]."/".$commands;
+			} else {
+				$url = static::$IPLCache[$navid];
+			}
+
+			if ($get_vars) {
+				$url .= "?".$get_vars;
+			}
+
+			if ($hash) {
+				$url .= "#".$hash;
+			}
+
+			return $url;
 		}
 		
 		/*
