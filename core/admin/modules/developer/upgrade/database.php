@@ -688,4 +688,23 @@
 			}
 		}
 	}
+
+	// BigTree 4.2.22 update -- REVISION 210
+	function _local_bigtree_update_210() {
+		// Add a location column to resources
+		sqlquery("ALTER TABLE `bigtree_resources` ADD COLUMN `location` VARCHAR(255) NOT NULL AFTER `id`");
+
+		// Try to infer the location of existing resources
+		$q = sqlquery("SELECT * FROM bigtree_resources");
+
+		while ($resource = sqlfetch($q)) {
+			if (strpos($resource["file"], "{staticroot}") !== false) {
+				$location = "local";
+			} else {
+				$location = "cloud";
+			}
+
+			sqlquery("UPDATE bigtree_resources SET location = '$location' WHERE id = '".$resource["id"]."'");
+		}
+	}
 ?>

@@ -1558,7 +1558,10 @@
 				The new resource id.
 		*/
 
-		function createResource($folder,$file,$md5,$name,$type,$is_image = "",$height = 0,$width = 0,$thumbs = array()) {
+		function createResource($folder, $file, $md5, $name, $type, $is_image = "", $height = 0, $width = 0, $thumbs = array()) {
+			$storage = new BigTreeStorage;
+			$location = $storage->Cloud ? "cloud" : "local";
+
 			$folder = $folder ? "'".sqlescape($folder)."'" : "NULL";
 			$file = sqlescape(BigTreeCMS::replaceHardRoots($file));
 			$name = sqlescape(htmlspecialchars($name));
@@ -1569,7 +1572,7 @@
 			$thumbs = BigTree::json($thumbs,true);
 			$md5 = sqlescape($md5);
 
-			sqlquery("INSERT INTO bigtree_resources (`file`,`md5`,`date`,`name`,`type`,`folder`,`is_image`,`height`,`width`,`thumbs`) VALUES ('$file','$md5',NOW(),'$name','$type',$folder,'$is_image','$height','$width','$thumbs')");
+			sqlquery("INSERT INTO bigtree_resources (`file`,`md5`,`date`,`name`,`type`,`folder`,`is_image`,`height`,`width`,`thumbs`,`location`) VALUES ('$file','$md5',NOW(),'$name','$type',$folder,'$is_image','$height','$width','$thumbs','$location')");
 			$id = sqlid();
 			$this->track("bigtree_resources",$id,"created");
 
@@ -6529,10 +6532,11 @@
 
 			Parameters:
 				field - Field information (normally set to $field when running a field type's process file)
-				replace - If not looking for a unique filename (e.g. replacing an existing image) pass true
+				replace - If not looking for a unique filename (e.g. replacing an existing image) pass truthy value
+				force_local_replace - If replacing a file, replace a local filepath regardless of default storage (defaults to false)
 		*/
 
-		static function processImageUpload($field, $replace = false) {
+		static function processImageUpload($field, $replace = false, $force_local_replace = false) {
 			global $bigtree;
 
 			$failed = false;
@@ -6733,7 +6737,7 @@
 
 				// Upload the original to the proper place.
 				if ($replace) {
-					$field["output"] = $storage->replace($first_copy,$name,$field["options"]["directory"],true);
+					$field["output"] = $storage->replace($first_copy, $name, $field["options"]["directory"], true, $force_local_replace);
 				} else {
 					$field["output"] = $storage->store($first_copy,$name,$field["options"]["directory"],true,$prefixes);
 				}
@@ -6795,7 +6799,7 @@
 													$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 													BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["options"]["retina"],$thumb["grayscale"]);
 													// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-													$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["options"]["directory"]);
+													$storage->replace($temp_thumb, $thumb["prefix"].$pinfo["basename"], $field["options"]["directory"], true, $force_local_replace);
 												}
 											}
 										}
@@ -6809,13 +6813,13 @@
 													$temp_crop = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 													BigTree::centerCrop($temp_copy,$temp_crop,$center_crop["width"],$center_crop["height"],$field["options"]["retina"],$center_crop["grayscale"]);
 													// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-													$storage->replace($temp_crop,$center_crop["prefix"].$pinfo["basename"],$field["options"]["directory"]);
+													$storage->replace($temp_crop, $center_crop["prefix"].$pinfo["basename"], $field["options"]["directory"], true, $force_local_replace);
 												}
 											}
 										}
 										
 										if ($crop["prefix"]) {
-											$storage->replace($temp_copy,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"],false,array(),true);
+											$storage->replace($temp_copy, $crop["prefix"].$pinfo["basename"], $field["options"]["directory"], false, $force_local_replace);
 										}
 									}
 								}
@@ -6831,7 +6835,7 @@
 								$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 								BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["options"]["retina"],$thumb["grayscale"]);
 								// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-								$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["options"]["directory"]);
+								$storage->replace($temp_thumb, $thumb["prefix"].$pinfo["basename"], $field["options"]["directory"], true, $force_local_replace);
 							}
 						}
 					}
@@ -6844,7 +6848,7 @@
 								$temp_crop = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 								BigTree::centerCrop($temp_copy,$temp_crop,$crop["width"],$crop["height"],$field["options"]["retina"],$crop["grayscale"]);
 								// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-								$storage->replace($temp_crop,$crop["prefix"].$pinfo["basename"],$field["options"]["directory"]);
+								$storage->replace($temp_crop, $crop["prefix"].$pinfo["basename"], $field["options"]["directory"], true, $force_local_replace);
 							}
 						}
 					}
