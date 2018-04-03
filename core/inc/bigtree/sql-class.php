@@ -1392,7 +1392,7 @@
 			}
 			
 			// Debug should log queries
-			if ($bigtree["config"]["debug"]) {
+			if ($bigtree["config"]["debug"] && !defined("BIGTREE_NO_QUERY_LOG")) {
 				static::$QueryLog[] = $query;
 			}
 			
