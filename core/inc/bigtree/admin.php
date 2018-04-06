@@ -8419,12 +8419,9 @@
 		function updateProfile($data) {
 			global $bigtree;
 
-			foreach ($data as $key => $val) {
-				if (substr($key,0,1) != "_" && !is_array($val)) {
-					$$key = sqlescape($val);
-				}
-			}
-
+			$name = sqlescape(htmlspecialchars($data["name"]));
+			$company = sqlescape(htmlspecialchars($data["company"]));
+			$daily_digest = $data["daily_digest"] ? "on" : "";
 			$id = sqlescape($this->ID);
 
 			if ($data["password"]) {
