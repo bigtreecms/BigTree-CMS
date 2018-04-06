@@ -1,5 +1,7 @@
 <?
 	$admin->verifyCSRFToken();
+	$warnings = array();
+	$errors = array();
 	
 	// Make sure an upload succeeded
 	$error = $_FILES["file"]["error"];
@@ -10,7 +12,7 @@
 	}
 	
 	if ($error) {
-		BigTree::redirect(DEVELOPER_ROOT."packages/install/");
+		BigTree::redirect(DEVELOPER_ROOT."extensions/install/");
 	}
 	
 	// We've at least got the file now, unpack it and see what's going on.

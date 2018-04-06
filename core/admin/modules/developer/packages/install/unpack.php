@@ -1,5 +1,7 @@
 <?
 	$admin->verifyCSRFToken();
+	$warnings = array();
+	$errors = array();
 	
 	// Make sure an upload succeeded
 	$error = $_FILES["file"]["error"];
