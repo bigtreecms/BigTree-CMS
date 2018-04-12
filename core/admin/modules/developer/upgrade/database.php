@@ -1,6 +1,6 @@
 <?
 	// Updating BigTree can make a lot of queries happen which can cause memory issues with debug on.
-	define("BIGTREE_NO_QUERY_LOG");
+	define("BIGTREE_NO_QUERY_LOG", true);
 
 	$current_revision = $cms->getSetting("bigtree-internal-revision");
 
