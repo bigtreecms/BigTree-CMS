@@ -20,6 +20,24 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.22
+- CHANGED: The default BigTree install no longer tries to use php_flag in htaccess
+- UPDATED: Publish hooks are now run when a user approves, features, or archives an item from a View
+- UPDATED: Internal link encoding now properly supports hashes and GET variables
+- FIXED: Many warnings that showed in PHP 7.2 environments
+- FIXED: Deprecation and strict standards warnings
+- FIXED: CDN Domain usage that broke in 4.2.21
+- FIXED: Cross-site scripting in the Users view by lower-level users (thanks CHYbeta and zhzzhz)
+- FIXED: Deleting and replacing files from S3 when using subdomain or CDN-domain URLs
+- FIXED: PHP 5.4 requirement introduced in 4.2.20 (PHP 5.3 should still be the lowest supported version)
+- FIXED: Default configuration files throwing notices related to multi-site config
+- FIXED: Form tabs not switching to the proper form tab when an error occurs
+- FIXED: Deleting / replacing local files when default storage was set to cloud
+- FIXED: Database updates are now run without query logging enabled even if debug is on to help prevent out-of-memory errors.
+- FIXED: Failed extension installs redirecting back to the package install page
+- FIXED: Manually creating a 301 not working properly when an existing 404 with GET variables attached existed
+- FIXED: Integrity checking of URLs in a multi-site setup from the non-primary domain
+
 ### 4.2.21
 - FIXED: Admin crashing on PHP < 7.0 when the environment had support for the Locale class
 - FIXED: Using an EXIF rotated image from the file manager using a PNG version for the non-thumbnailed/cropped copy
