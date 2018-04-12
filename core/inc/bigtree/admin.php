@@ -536,18 +536,26 @@
 			$links = $doc->getElementsByTagName("a");
 			foreach ($links as $link) {
 				$href = $link->getAttribute("href");
-				$href = str_replace(array("{wwwroot}","%7Bwwwroot%7D","{staticroot}","%7Bstaticroot%7D"),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT),$href);
+				$href = BigTreeCMS::replaceRelativeRoots($href);
 				
 				if ($href == WWW_ROOT || $href == STATIC_ROOT || $href == ADMIN_ROOT) {
 					continue;
 				}
 
-				if ((substr($href,0,2) == "//" || substr($href,0,4) == "http") && strpos($href,WWW_ROOT) === false) {
+				// See if the link matches something local
+				$local = false;
+
+				if (substr($href, 0, 4) == "http") {
+					foreach (BigTreeCMS::$ReplaceableRootKeys as $local_key) {
+						if (strpos($href, $local_key) === 0) {
+							$local = true;
+						}
+					}
+				}
+
+				if ((substr($href,0,2) == "//" || substr($href,0,4) == "http") && !$local) {
 					// External link, not much we can do but alert that it's dead
 					if ($external) {
-						if (strpos($href,"#") !== false) {
-							$href = substr($href,0,strpos($href,"#")-1);
-						}
 						if (!static::urlExists($href)) {
 							$errors["a"][] = $href;
 						}
@@ -567,11 +575,6 @@
 					if (!static::urlExists($href)) {
 						$errors["a"][] = $href;
 					}
-				} elseif (substr($href,0,2) == "//") {
-					// Protocol agnostic link
-					if (!static::urlExists("http:".$href)) {
-						$errors["a"][] = $href;
-					}
 				} else {
 					// Local file.
 					$local = $relative_path.$href;
@@ -584,8 +587,20 @@
 			$images = $doc->getElementsByTagName("img");
 			foreach ($images as $image) {
 				$href = $image->getAttribute("src");
-				$href = str_replace(array("{wwwroot}","%7Bwwwroot%7D","{staticroot}","%7Bstaticroot%7D"),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT),$href);
-				if (substr($href,0,4) == "http" && strpos($href,WWW_ROOT) === false) {
+				$href = BigTreeCMS::replaceRelativeRoots($href);
+
+				// See if the link matches something local
+				$local = false;
+
+				if (substr($href, 0, 4) == "http") {
+					foreach (BigTreeCMS::$ReplaceableRootKeys as $local_key) {
+						if (strpos($href, $local_key) === 0) {
+							$local = true;
+						}
+					}
+				}
+
+				if ((substr($href,0,2) == "//" || substr($href, 0, 4) == "http") && !$local) {
 					// External link, not much we can do but alert that it's dead
 					if ($external) {
 						if (!static::urlExists($href)) {
@@ -601,11 +616,6 @@
 				} elseif (substr($href,0,4) == "http") {
 					// It's a local hard link
 					if (!static::urlExists($href)) {
-						$errors["img"][] = $href;
-					}
-				} elseif (substr($href,0,2) == "//") {
-					// Protocol agnostic src
-					if (!static::urlExists("http:".$href)) {
 						$errors["img"][] = $href;
 					}
 				} else {
