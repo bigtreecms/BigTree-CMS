@@ -264,17 +264,21 @@
 				return false;
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
+				$pointer = urlencode($pointer);
 				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$pointer&uploadType=media",$contents,array(CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: $type","Content-Length: ".strlen($contents),"Authorization: Bearer ".$this->Settings["token"]))));
+				
 				if (isset($response->id)) {
 					// Set the access control level if it's publicly accessible
 					if ($public) {
 						$this->call("b/$container/o/".rawurlencode($pointer)."/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
 					}
+
 					return "//storage.googleapis.com/$container/$pointer";
 				} else {
 					foreach ($response->error->errors as $error) {
 						$this->Errors[] = $error;
 					}
+
 					return false;
 				}
 			} else {
@@ -871,19 +875,23 @@
 				return false;
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
+				$pointer = urlencode($pointer);
 				$file_pointer = fopen($file,"r");
 				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$pointer&uploadType=media",false,array(CURLOPT_INFILE => $file_pointer,CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: $content_type","Content-Length: ".filesize($file),"Authorization: Bearer ".$this->Settings["token"]))));
 				fclose($file_pointer);
+				
 				if (isset($response->id)) {
 					// Set the access control level if it's publicly accessible
 					if ($public) {
 						$this->call("b/$container/o/".rawurlencode($pointer)."/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
 					}
+
 					return "//storage.googleapis.com/$container/$pointer";
 				} else {
 					foreach ($response->error->errors as $error) {
 						$this->Errors[] = $error;
 					}
+					
 					return false;
 				}
 			} else {
