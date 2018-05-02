@@ -152,7 +152,8 @@
 			array("title" => "User Emulator","link" => "developer/user-emulator","icon" => "users","hidden" => true),
 			array("title" => "Audit Trail","link" => "developer/audit","icon" => "trail","hidden" => true),
 			array("title" => "Security","link" => "developer/security","icon" => "lock","hidden" => true),
-			array("title" => "Media","link" => "developer/media","icon" => "images","hidden" => true),
+			array("title" => "Media Presets","link" => "developer/media","icon" => "images","hidden" => true),
+			array("title" => "File Metadata","link" => "developer/files","icon" => "files","hidden" => true),
 			array("title" => "Email Delivery","link" => "developer/email","icon" => "messages","hidden" => true),
 			array("title" => "System Upgrade","link" => "developer/upgrade","icon" => "vitals","hidden" => true)
 		)),

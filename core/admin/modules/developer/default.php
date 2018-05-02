@@ -137,7 +137,11 @@
 		</a>
 		<a class="box_select last" href="<?=DEVELOPER_ROOT?>media/">
 			<span class="images"></span>
-			<p>Media</p>
+			<p>Media Presets</p>
+		</a>
+		<a class="box_select second_row" href="<?=DEVELOPER_ROOT?>files/">
+			<span class="files"></span>
+			<p>File Metadata</p>
 		</a>
 		<a class="box_select second_row" href="<?=DEVELOPER_ROOT?>security/">
 			<span class="lock"></span>

@@ -693,5 +693,10 @@
 	function _local_bigtree_update_300() {
 		// Add a usage count column to tags
 		sqlquery("ALTER TABLE `bigtree_tags` ADD COLUMN `usage_count` int(11) unsigned NOT NULL AFTER `route`");
+
+		// Add a setting for storing file metadata information
+		sqlquery("INSERT INTO bigtree_settings (`id`, `value`, `system`) VALUES ('bigtree-file-metadata-fields', '[]', 'on')");
+
+		// Add a file metadata column to bigtree_resources
+		sqlquery("ALTER TABLE `bigtree_resources` ADD COLUMN `metadata` LONGTEXT NOT NULL AFTER `type`");
 	}
-?>

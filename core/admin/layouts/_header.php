@@ -29,7 +29,8 @@
 				array("link" => "developer/geocoding", "title" => "Geocoding", "access" => 2),
 				array("link" => "developer/email", "title" => "Email Delivery", "access" => 2),
 				array("link" => "developer/services", "title" => "Service APIs", "access" => 2),
-				array("link" => "developer/media", "title" => "Media", "access" => 2),
+				array("link" => "developer/media", "title" => "Media Presets", "access" => 2),
+				array("link" => "developer/files", "title" => "File Metadata", "access" => 2),
 				array("link" => "developer/security", "title" => "Security", "access" => 2)
 			))
 		))

@@ -17,6 +17,7 @@
 		<?php } ?>
 	</ul>
 </div>
+
 <script>
 	(function() {
 		var Container = $("#image_presets_table");
