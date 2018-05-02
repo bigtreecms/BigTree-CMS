@@ -1,15 +1,16 @@
 <?php
 	// Prevent warnings
-	$data = is_array($data) ? $data : array();
+	$settings = is_array($settings) ? $settings : array();
 
 	$using_preset = false;
-	$settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
+	$presets = BigTreeCMS::getSetting("bigtree-internal-media-settings");
+	
 	// See if we're using a preset and ensure it still exists
-	if ($settings["preset"]) {
-		if ($settings["presets"][$settings["preset"]]) {
+	if (!empty($settings["preset"])) {
+		if ($presets["presets"][$settings["preset"]]) {
 			$using_preset = true;
 		} else {
-			$data = array();
+			$settings = array();
 		}
 	} 
 

@@ -1459,7 +1459,7 @@
 	.icon_menu { background: url(../images/icon-sprite.svg); background-position: -792px -80px; display: inline-block; height: 24px; width: 24px; }
 	.icon_merge { background: url(../images/icon-sprite.svg); background-position: -816px -80px; display: inline-block; height: 24px; width: 24px; }
 
-	.disabled_icon { cursor: default; opacity: 0.3; }
+	.disabled_icon { cursor: default; opacity: 0.3; pointer-events: none; }
 
 /* Smaller Icons */
 	.icon_small { background: url(../images/icon-sprite.svg) no-repeat; float: left; height: 16px; margin: 0 5px 0 0; width: 16px; }
@@ -1794,6 +1794,124 @@
 
 	.package_review label { height: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 890px; }
 	.package_review label small { float: left; width: 200px; }
+
+/*---------------------------
+	New File Manager Styles
+---------------------------*/
+
+	.file_manager_controls {
+		overflow: hidden;
+	}
+
+	.file_manager_search_form {
+		float: right;
+	}
+
+	.file_manager_controls_buttons {
+		float: left;
+	}
+
+	.file_manager_file, .file_manager_folder {
+		border-bottom: 1px solid #CCC;
+		display: block;
+		padding: 10px 0;
+	}
+
+	.file_manager_wrapper .table > ul li,
+	.file_manager_wrapper .table > ul li section {
+		height: 50px;
+		line-height: 50px;
+	}
+
+	.file_manager_wrapper .table > ul li.disabled {
+		opacity: 0.5;
+		pointer-events: none;
+	}
+
+	.file_manager_wrapper .table .view_column a {
+		margin-top: 0;
+	}
+
+	.table .file_manager_column_icon {
+		display: table-cell;
+		padding-left: 10px;
+		text-align: center;
+		vertical-align: middle;
+		width: 50px;
+	}
+
+	.table .file_manager_column_icon img {
+		display: inline-block;
+		height: auto;
+		max-width: 50px;
+	}
+
+	.table .file_manager_column_icon .icon_small {
+		display: inline-block;
+		float: none;
+		margin: 0;
+	}
+
+	.table .file_manager_column_name {
+		font-size: 16px;
+		padding-left: 10px;
+		width: 483px;
+	}
+
+	.table .file_manager_column_name a:hover {
+		color: #59A8E9;
+	}
+
+	.table .file_manager_column_type {
+		width: 175px;
+	}
+
+	.table .file_manager_column_size {
+		width: 150px;
+	}
+
+	.table .file_manager_column_icon .icon_folder {
+		margin: 13px;
+	}
+
+	.file_manager_wrapper .table .view_action a {
+		margin-top: 13px;
+	}
+
+	.file_manager_wrapper .dropzone {
+		background: #F3F3F3;
+		border: 2px dashed #DDD;
+		overflow: hidden;
+		padding: 50px;
+		text-align: center;
+	}
+
+	.file_manager_wrapper .dropzone p {
+		font-size: 16px;
+		margin: 0;		
+	}
+
+	.file_manager_wrapper .dz-message {
+		display: none;
+	}
+
+	.file_manager_wrapper .dz-preview {
+		float: left;
+		margin: 20px 20px 0 0;
+	}
+
+	.file_manager_wrapper .dz-error .dz-success-mark {
+		display: none;
+	}
+
+	.file_manager_wrapper .dz-success .dz-error-mark {
+		display: none;
+	}
+
+	/* Dropzone is causing BigTree to build this outside the proper context */
+	body > .file_wrapper {
+		display: none;
+	}
 
 /*---------------------------
 	Install Styles

@@ -6,7 +6,7 @@
 	<input type="text" name="name" value="<?=BigTree::safeEncode($_POST["name"])?>" />
 </fieldset>
 <?php
-	$data = $_POST;
+	$settings = $_POST;
 	define("BIGTREE_CREATING_PRESET",true);
-	include BigTree::path("admin/ajax/developer/field-options/_image-options.php");
+	include BigTree::path("admin/field-types/_image-options.php");
 ?>

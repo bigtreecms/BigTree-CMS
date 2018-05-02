@@ -115,12 +115,20 @@
 	<?php
 		}
 
-		$show_nav = false;
-		foreach ($bigtree["page"]["navigation"] as $item) {
-			if (!$item["hidden"]) {
-				$show_nav = true;
+		// Allow for custom navigation
+		if (!empty($bigtree["custom_subnav"])) {
+			$bigtree["page"]["navigation"] = $bigtree["custom_subnav"];
+			$show_nav = true;
+		} else {
+			$show_nav = false;
+	
+			foreach ($bigtree["page"]["navigation"] as $item) {
+				if (!$item["hidden"]) {
+					$show_nav = true;
+				}
 			}
 		}
+		
 		if ($show_nav && !defined("BIGTREE_404")) {
 	?>
 	<nav id="sub_nav">

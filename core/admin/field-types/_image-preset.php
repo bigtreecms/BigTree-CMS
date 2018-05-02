@@ -1,6 +1,5 @@
 <?php
-	$media_settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
-	$preset_data = isset($media_settings["preset"]) ? $media_settings["presets"][$settings["preset"]] : $media_settings["presets"][$_POST["id"]];
+	$preset_data = isset($presets["preset"]) ? $presets["presets"][$settings["preset"]] : $presets["presets"][$_POST["id"]];
 ?>
 <fieldset>
 	<label for="settings_field_min_width">Minimum Width <small>(numeric value in pixels)</small></label>

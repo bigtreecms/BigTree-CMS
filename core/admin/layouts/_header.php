@@ -6,9 +6,9 @@
 			array("link" => "messages", "title" => "Message Center", "access" => 0),
 			array("link" => "vitals-statistics", "title" => "Vitals &amp; Statistics", "access" => 1)
 		)),
-		array("link" => "files", "title" => "Files", "access" => 0),
 		array("link" => "pages", "title" => "Pages", "access" => 0),
 		array("link" => "modules", "title" => "Modules", "access" => 0),
+		array("link" => "files", "title" => "Files", "access" => 0),
 		array("link" => "users", "title" => "Users", "access" => 1),
 		array("link" => "settings", "title" => "Settings", "access" => 1),
 		array("link" => "tags", "title" => "Tags", "access" => 1),

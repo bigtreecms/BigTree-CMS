@@ -3096,6 +3096,9 @@
 						"textarea" => array("name" => "Text Area", "self_draw" => false),
 						"html" => array("name" => "HTML Area", "self_draw" => false),
 						"upload" => array("name" => "Upload", "self_draw" => false),
+						"file-reference" => array("name" => "File Reference", "self_draw" => false),
+						"image-reference" => array("name" => "Image Reference", "self_draw" => false),
+						"video-reference" => array("name" => "Video Reference", "self_draw" => false),
 						"list" => array("name" => "List", "self_draw" => false),
 						"checkbox" => array("name" => "Checkbox", "self_draw" => false),
 						"date" => array("name" => "Date Picker", "self_draw" => false),
@@ -8608,6 +8611,40 @@
 			}
 			sqlquery("UPDATE bigtree_resources SET ".implode(", ",$fields)." WHERE id = '$id'");
 			$this->track("bigtree_resources",$id,"updated");
+		}
+
+		/*
+			Function: updateResourceFolder
+				Updates a resource folder.
+
+			Parameters:
+				id - The id of the resource folder.
+				name - The new name for the resource folder.
+				parent - The new parent for the resource folder.
+		*/
+
+		public function updateResourceFolder($id, $name, $parent = null) {
+			if ($parent !== null && $this->Level < 1) {
+				$this->stop("Only administrators can move a resource folder.");
+			}
+
+			$permission = $this->getResourceFolderPermission($id);
+
+			if ($permission != "p") {
+				$this->stop("You do not have permission to edit this folder.");
+			}
+
+			$data = [
+				"name" => BigTree::safeEncode($name)
+			];
+
+			if ($parent !== null) {
+				$data["parent"] = intval($parent);
+			}
+
+			SQL::update("bigtree_resource_folders", $id, $data);
+			
+			$this->track("bigtree_resource_folders", $id, "updated");
 		}
 
 		/*
