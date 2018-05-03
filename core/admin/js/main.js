@@ -1842,10 +1842,15 @@ var BigTreeFileManager = (function($) {
 				container.show();
 
 				// If a user already selected something to upload, replace it
-				container.siblings("input").get(0).customControl.clear();
+				var input_sibling = container.siblings("input");
+
+				if (input_sibling.length) {
+					input_sibling.get(0).customControl.clear();
+				}
 			} else if (Type == "photo-gallery") {
 				Callback($("#file_browser_selected_file").val(),$("#file_browser_detail_title_input").val(),$(".file_browser_images .selected img").attr("src"));
 			}
+			
 			return closeFileBrowser();
 		}
 	}

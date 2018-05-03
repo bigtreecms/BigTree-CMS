@@ -1585,7 +1585,7 @@
 
 			$data = [
 				"folder" => $folder ?: null,
-				"file" => BigTreeCMS::replaceRelativeRoots($file),
+				"file" => $file,
 				"name" => BigTree::safeEncode($name),
 				"type" => pathinfo($file_path, PATHINFO_EXTENSION),
 				"mimetype" => function_exists("mime_content_type") ? mime_content_type($file_path) : "",
@@ -1601,7 +1601,7 @@
 				"location" => $location
 			];
 
-			$id = SQL::insert("bigtree_resources", $data);
+			$id = SQL::insert("bigtree_resources", BigTree::translateArray($data));
 			$this->track("bigtree_resources",$id,"created");
 
 			return $id;
@@ -5051,14 +5051,11 @@
 			}
 
 			$item["prefix"] = $last_prefix;
-			$item["file"] = BigTreeCMS::replaceRelativeRoots($item["file"]);
-			$item["thumbs"] = json_decode($item["thumbs"],true);
+			$item["crops"] = json_decode($item["crops"], true);
+			$item["thumbs"] = json_decode($item["thumbs"], true);
+			$item["metadata"] = json_decode($item["thumbs"], true);
 			
-			foreach ($item["thumbs"] as &$thumb) {
-				$thumb = BigTreeCMS::replaceRelativeRoots($thumb);
-			}
-			
-			return $item;
+			return BigTree::untranslateArray($item);
 		}
 
 		/*
