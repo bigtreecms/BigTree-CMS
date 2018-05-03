@@ -5071,6 +5071,11 @@
 
 		public static function getResource($id) {
 			$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
+
+			if (!$resource) {
+				return false;
+			}
+			
 			$resource["crops"] = json_decode($resource["crops"], true);
 			$resource["thumbs"] = json_decode($resource["thumbs"], true);
 			$resource["metadata"] = BigTree::untranslateArray(json_decode($resource["metadata"], true));

@@ -105,23 +105,3 @@
 		</ul>
 	</div>
 </div>
-
-<script>
-	(function() {
-		$(".table").on("click", ".icon_delete", function() {
-			Current = $(this);
-			BigTreeDialog({
-				title: "Delete Item",
-				content: '<p class="confirm">Are you sure you want to delete this?</p>',
-				icon: "delete",
-				alternateSaveText: "OK",
-				callback: function() {
-					var href = BigTree.cleanHref(Current.attr("href"));
-					document.location.href = href;
-				}
-			});
-	
-			return false;
-		});
-	})();
-</script>
