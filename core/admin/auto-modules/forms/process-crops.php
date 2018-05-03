@@ -38,12 +38,18 @@
 				Current++;
 
 				if (Current > Total) {
+					window.onbeforeunload = null;
 					document.location.href = "<?=$bigtree["form_root"]?>finish-crops/";
 				} else {
 					process();
 				}
 			});
 		}
+
+		window.onbeforeunload = function(ev) {
+			BigTree.growl("Cropping Images", "Please wait until all your images are finished cropping before leaving this page.", 5000, "error");
+			return false;
+		};
 
 		process();
 	})();

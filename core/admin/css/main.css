@@ -1842,8 +1842,8 @@
 
 	.table .file_manager_column_icon img {
 		display: inline-block;
-		height: auto;
-		max-width: 50px;
+		height: 40px;
+		max-width: 40px;
 	}
 
 	.table .file_manager_column_icon .icon_small {
@@ -1855,7 +1855,7 @@
 	.table .file_manager_column_name {
 		font-size: 16px;
 		padding-left: 10px;
-		width: 483px;
+		width: 443px;
 	}
 
 	.table .file_manager_column_name a:hover {

@@ -21,6 +21,7 @@
 			<span class="view_column file_manager_column_type">Type</span>
 			<span class="view_column file_manager_column_size">Size</span>
 			<span class="view_action"></span>
+			<span class="view_action"></span>
 		</header>
 
 		<ul id="js-file-manager-results">
@@ -43,6 +44,9 @@
 				<section class="view_action">
 					<a href="<?=ADMIN_ROOT?>files/edit/folder/<?=$folder["id"]?>/" class="icon_edit"></a>
 				</section>
+				<section class="view_action">
+					<a href="<?=ADMIN_ROOT?>files/delete/folder/<?=$folder["id"]?>/" class="icon_delete<?php if (!$admin->Level) { ?> disabled_icon<?php } ?>"></a>
+				</section>
 			</li>
 			<?php
 				}
@@ -53,9 +57,8 @@
 				<section class="view_column file_manager_column_icon">
 					<?php
 						if ($resource["is_image"]) {
-							$thumbs = json_decode($resource["thumbs"], true);
 					?>
-					<img src="<?=$thumbs["bigtree_internal_list"]?>" alt="">
+					<img src="<?=BigTree::prefixFile($resource["file"], "list-preview/")?>" alt="">
 					<?php
 						} else {
 					?>
@@ -70,7 +73,7 @@
 							echo $resource["name"];
 						} else {
 					?>
-					<a href="<?=ADMIN_ROOT?>files/meta/<?=$resource["id"]?>/"><?=$resource["name"]?></a>
+					<a href="<?=ADMIN_ROOT?>files/edit/<?=$resource["id"]?>/"><?=$resource["name"]?></a>
 					<?php
 						}
 					?>
@@ -90,7 +93,10 @@
 					?>
 				</section>
 				<section class="view_action">
-
+					<a href="<?=ADMIN_ROOT?>files/edit/file/<?=$resource["id"]?>/" class="icon_edit<?php if ($permission != "p") { ?> disabled_icon<?php } ?>"></a>
+				</section>
+				<section class="view_action">
+					<a href="<?=ADMIN_ROOT?>files/delete/file/<?=$resource["id"]?>/" class="icon_delete<?php if ($permission != "p") { ?> disabled_icon<?php } ?>"></a>
 				</section>
 			</li>
 			<?php
@@ -99,3 +105,23 @@
 		</ul>
 	</div>
 </div>
+
+<script>
+	(function() {
+		$(".table").on("click", ".icon_delete", function() {
+			Current = $(this);
+			BigTreeDialog({
+				title: "Delete Item",
+				content: '<p class="confirm">Are you sure you want to delete this?</p>',
+				icon: "delete",
+				alternateSaveText: "OK",
+				callback: function() {
+					var href = BigTree.cleanHref(Current.attr("href"));
+					document.location.href = href;
+				}
+			});
+	
+			return false;
+		});
+	})();
+</script>

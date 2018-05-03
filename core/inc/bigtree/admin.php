@@ -1551,32 +1551,44 @@
 
 			Parameters:
 				folder - The folder to place it in.
-				file - The file path.
-				md5 - The MD5 hash of the file.
+				file - The file path or a video URL.
 				name - The file name.
-				type - The file type.
-				is_image - Whether the resource is an image.
-				height - The image height (if it's an image).
-				width - The image width (if it's an image).
-				thumbs - An array of thumbnails (if it's an image).
+				type - "file", "image", or "video"
+				crops - An array of crop prefixes
+				thumbs - An array of thumb prefixes
 
 			Returns:
 				The new resource id.
 		*/
 
-		public function createResource($folder,$file,$md5,$name,$type,$is_image = "",$height = 0,$width = 0,$thumbs = array()) {
-			$folder = $folder ? "'".sqlescape($folder)."'" : "NULL";
-			$file = sqlescape(BigTreeCMS::replaceHardRoots($file));
-			$name = sqlescape(htmlspecialchars($name));
-			$type = sqlescape($type);
-			$is_image = sqlescape($is_image);
-			$height = intval($height);
-			$width = intval($width);
-			$thumbs = BigTree::json($thumbs,true);
-			$md5 = sqlescape($md5);
+		public function createResource($folder, $file, $name, $type = "file", $crops = [], $thumbs = []) {
+			$file_path = str_replace(STATIC_ROOT, SITE_ROOT, BigTreeCMS::replaceRelativeRoots($file));
+			
+			if ($type == "image") {
+				list($width, $height) = getimagesize($file_path);
+			} else {
+				$width = 0;
+				$height = 0;
+			}
 
-			sqlquery("INSERT INTO bigtree_resources (`file`,`md5`,`date`,`name`,`type`,`folder`,`is_image`,`height`,`width`,`thumbs`) VALUES ('$file','$md5',NOW(),'$name','$type',$folder,'$is_image','$height','$width','$thumbs')");
-			$id = sqlid();
+			$data = [
+				"folder" => $folder ?: null,
+				"file" => BigTreeCMS::replaceRelativeRoots($file),
+				"name" => BigTree::safeEncode($name),
+				"type" => pathinfo($file_path, PATHINFO_EXTENSION),
+				"mimetype" => function_exists("mime_content_type") ? mime_content_type($file_path) : "",
+				"is_image" => ($type == "image") ? "on" : "",
+				"is_video" => ($type == "video") ? "on" : "",
+				"md5" => md5($file_path),
+				"size" => filesize($file_path),
+				"width" => $width ?: 0,
+				"height" => $height ?: 0,
+				"date" => date("Y-m-d H:i:s"),
+				"crops" => $crops,
+				"thumbs" => $thumbs
+			];
+
+			$id = SQL::insert("bigtree_resources", $data);
 			$this->track("bigtree_resources",$id,"created");
 
 			return $id;
@@ -5036,10 +5048,12 @@
 		*/
 
 		public static function getResource($id) {
-			$id = sqlescape($id);
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE id = '$id'"));
-			$f["thumbs"] = json_decode($f["thumbs"],true);
-			return $f;
+			$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
+			$resource["crops"] = json_decode($resource["crops"], true);
+			$resource["thumbs"] = json_decode($resource["thumbs"], true);
+			$resource["metadata"] = BigTree::untranslateArray(json_decode($resource["metadata"], true));
+
+			return $resource;
 		}
 
 		/*
@@ -6753,6 +6767,19 @@
 						$field["settings"][$key] = $val;
 					}
 				}
+			}
+
+			// This is a file manager upload, add a 100x100 center crop
+			if ($field["settings"]["preset"] == "default") {
+				if (!is_array($field["settings"]["center_crops"])) {
+					$field["settings"]["center_crops"] = [];
+				}
+
+				$field["settings"]["center_crops"][] = [
+					"prefix" => "list-preview/",
+					"width" => 100,
+					"height" => 100
+				];
 			}
 
 			// If the minimum height or width is not meant, do NOT let the image through. Erase the change or update from the database.
@@ -8660,16 +8687,11 @@
 
 			Parameters:
 				id - The id of the resource.
-				attributes - A key/value array of fields to update.
+				data - A key/value array of fields to update.
 		*/
 
-		public function updateResource($id,$attributes) {
-			$id = sqlescape($id);
-			$fields = array();
-			foreach ($attributes as $key => $val) {
-				$fields[] = "`$key` = '".sqlescape($val)."'";
-			}
-			sqlquery("UPDATE bigtree_resources SET ".implode(", ",$fields)." WHERE id = '$id'");
+		public function updateResource($id, $data) {
+			SQL::update("bigtree_resources", $id, $data);
 			$this->track("bigtree_resources",$id,"updated");
 		}
 

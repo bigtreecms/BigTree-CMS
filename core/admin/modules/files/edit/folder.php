@@ -17,25 +17,6 @@
 	}
 
 	$folder = $admin->getResourceFolder($bigtree["commands"][0]);
-	$recurse_folders = function($parent = 0, $depth = 0) {
-		global $folder, $recurse_folders;
-
-		$folders = SQL::fetchAll("SELECT id, name FROM bigtree_resource_folders WHERE parent = ?", $parent);
-
-		foreach ($folders as $child) {
-			if ($child["id"] != $folder["id"]) {
-				echo '<option data-depth="'.$depth.'" value="'.$child["id"].'"';
-	
-				if ($child["id"] == $folder["parent"]) {
-					echo ' selected';
-				}
-	
-				echo '>'.$child["name"].'</option>';
-	
-				$recurse_folders($child["id"], $depth + 1);
-			}
-		}
-	};
 ?>
 <form method="post" action="<?=ADMIN_ROOT?>files/update/folder/" class="container">
 	<?php $admin->drawCSRFToken(); ?>
@@ -49,7 +30,7 @@
 			<label for="field_folder_parent">Parent Folder</label>
 			<select id="field_folder_parent" name="parent">
 				<option value="0"<?php if (!$folder["parent"]) { ?> selected<?php } ?>>&mdash;</option>
-				<?php $recurse_folders(); ?>
+				<?php $recurse_folders($folder["parent"]); ?>
 			</select>
 		</fieldset>
 		<?php
