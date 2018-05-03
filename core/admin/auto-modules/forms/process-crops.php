@@ -1,11 +1,50 @@
 <?php
-	$admin->processCrops($_POST["crop_key"]);
+	$crops = $cms->cacheGet("org.bigtreecms.crops", $_POST["crop_key"]);
+	$count = count($crops);
+?>
+<div class="container">
+	<header>
+		<h2 class="cropper"><span>Processing Crops</span> <span class="count current">1</span> <span>of</span> <span class="count total"><?=$count?></span></h2>
+	</header>
+	
+	<section>
+		<p>Please wait while all of your image crops are completed.</p>
+	</section>
+</div>
 
-	if (count($_SESSION["bigtree_admin"]["form_data"]["errors"])) {
-		BigTree::redirect($bigtree["form_root"]."error/");
-	} else {
-		// We set this session and destroy the other so that if someone clicks back after cropping we can redirect them to the page prior to the crop.
-		$_SESSION["bigtree_admin"]["cropper_previous_page"] = $_SESSION["bigtree_admin"]["form_data"]["edit_link"];
-		unset($_SESSION["bigtree_admin"]["form_data"]);
-		BigTree::redirect($_POST["return_page"]);
-	}
+<script>
+	(function() {
+		var Counter = $(".container .current");
+		var Current = 1;
+		var POST = <?=json_encode($_POST)?>;
+		var Total = <?=$count?>;
+
+		function process() {
+			var index = Current - 1;
+
+			Counter.html(Current);
+
+			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/process-crop/", {
+				method: "POST",
+				data: {
+					crop_key: "<?=$_POST["crop_key"]?>",
+					index: index,
+					x: POST.x[index],
+					y: POST.y[index],
+					width: POST.width[index],
+					height: POST.height[index],
+				}
+			}).done(function() {
+				Current++;
+
+				if (Current > Total) {
+					document.location.href = "<?=$bigtree["form_root"]?>finish-crops/";
+				} else {
+					process();
+				}
+			});
+		}
+
+		process();
+	})();
+</script>

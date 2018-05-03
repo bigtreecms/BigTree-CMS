@@ -6494,6 +6494,66 @@
 		}
 
 		/*
+			Function: processCrop
+				Processes a single crop of a crop set.
+
+			Parameters:
+				crop_key - A cache key pointing to the location of crop data.
+				index - The crop to process
+				x - Starting x point of the crop
+				y - Starting y point of the crop
+				width - Width of the crop
+				height - Height of the crop
+		*/
+
+		public static function processCrop($crop_key, $index, $x, $y, $width, $height) {
+			$storage = new BigTreeStorage;
+
+			$crops = BigTreeCMS::cacheGet("org.bigtreecms.crops", $crop_key);
+			$crop = $crops[$index];
+
+			$image_src = $crop["image"];
+			$target_width = $crop["width"];
+			$target_height = $crop["height"];
+			$thumbs = $crop["thumbs"];
+			$center_crops = $crop["center_crops"];
+
+			$pinfo = pathinfo($image_src);
+
+			// Create the crop and put it in a temporary location
+			$temp_crop = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
+			BigTree::createCrop($image_src,$temp_crop,$x,$y,$target_width,$target_height,$width,$height,$crop["retina"],$crop["grayscale"]);
+
+			// Make thumbnails for the crop
+			if (is_array($thumbs)) {
+				foreach ($thumbs as $thumb) {
+					if (is_array($thumb) && ($thumb["height"] || $thumb["width"])) {
+						// We're going to figure out what size the thumbs will be so we can re-crop the original image so we don't lose image quality.
+						list($type,$w,$h,$result_width,$result_height) = BigTree::getThumbnailSizes($temp_crop,$thumb["width"],$thumb["height"]);
+
+						$temp_thumb = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
+						BigTree::createCrop($image_src,$temp_thumb,$x,$y,$result_width,$result_height,$width,$height,$crop["retina"],$thumb["grayscale"]);
+						$storage->replace($temp_thumb,$thumb["prefix"].$crop["name"],$crop["directory"]);
+					}
+				}
+			}
+
+			// Make center crops of the crop
+			if (is_array($center_crops)) {
+				foreach ($center_crops as $center_crop) {
+					if (is_array($center_crop) && $center_crop["height"] && $center_crop["width"]) {
+						$temp_center_crop = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
+						BigTree::centerCrop($temp_crop,$temp_center_crop,$center_crop["width"],$center_crop["height"],$crop["retina"],$center_crop["grayscale"]);
+						$storage->replace($temp_center_crop,$center_crop["prefix"].$crop["name"],$crop["directory"]);
+					}
+				}
+			}
+
+			// Move crop into its resting place
+			$storage->replace($temp_crop,$crop["prefix"].$crop["name"],$crop["directory"]);
+		}
+
+		/*
 			Function: processCrops
 				Processes a list of cropped images.
 

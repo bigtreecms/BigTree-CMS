@@ -45,7 +45,11 @@
 		}
 	}
 
-	$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = $cms->cacheUnique("org.bigtreecms.crops", $bigtree["crops"]);
+	$_SESSION["bigtree_admin"]["form_data"] = [
+		"edit_link" => ADMIN_ROOT."files/folder/".intval($bigtree["commands"][0])."/",
+		"return_link" => ADMIN_ROOT."files/folder/".intval($bigtree["commands"][0])."/",
+		"crop_key" => $cms->cacheUnique("org.bigtreecms.crops", $bigtree["crops"])
+	];
 
 	if (count($bigtree["errors"])) {
 ?>

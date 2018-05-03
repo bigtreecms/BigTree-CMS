@@ -7,14 +7,20 @@
 		<a class="add" href="#"><span></span>Add</a>
 	</summary>
 	<ul>
-		<?php foreach (array_filter((array)$settings["presets"]) as $preset) { ?>
+		<?php
+			foreach (array_filter((array)$settings["presets"]) as $preset) {
+		?>
 		<li>
 			<input type="hidden" value="<?=htmlspecialchars(json_encode($preset))?>" />
 			<section class="developer_templates_name"><?=$preset["name"]?></section>
 			<section class="view_action"><a href="#" class="icon_edit"></a></section>
-			<section class="view_action"><a href="#" class="icon_delete"></a></section>
+			<section class="view_action">
+				<a href="#" class="icon_delete<?php if ($preset["id"] == "default") { ?> disabled_icon<?php } ?>"></a>
+			</section>
 		</li>
-		<?php } ?>
+		<?php
+			}
+		?>
 	</ul>
 </div>
 
