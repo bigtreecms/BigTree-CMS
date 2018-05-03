@@ -105,3 +105,28 @@
 		</ul>
 	</div>
 </div>
+
+<script>
+	(function() {
+		var DefaultContent;
+		var SearchTimer;
+		var QueryField = $("#js-file-manager-search");
+
+		QueryField.keyup(function() {
+			clearTimeout(SearchTimer);
+			SearchTimer = setTimeout(search, 300);
+		});
+
+		function search() {
+			if (!DefaultContent) {
+				DefaultContent = $("#js-file-manager-results").html();
+			}
+
+			if (QueryField.val()) {
+				$("#js-file-manager-results").load("<?=ADMIN_ROOT?>ajax/files/search/", { query: QueryField.val() });
+			} else {
+				$("#js-file-manager-results").html(DefaultContent);
+			}
+		}
+	})();
+</script>
