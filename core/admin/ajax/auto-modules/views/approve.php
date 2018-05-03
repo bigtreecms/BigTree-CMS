@@ -6,8 +6,10 @@
 			echo 'BigTree.growl("'.$module["name"].'","You don\'t have permission to perform this action.");';
 		} else {
 			echo 'BigTree.growl("'.$module["name"].'","Item is now unapproved.");';
+
 			if (is_numeric($id)) {
 				sqlquery("UPDATE `$table` SET approved = '' WHERE id = '$id'");
+				$run_publish_hook(array("approved" => ""));
 			} else {
 				BigTreeAutoModule::updatePendingItemField(substr($id,1),"approved","");
 			}
@@ -17,8 +19,10 @@
 			echo 'BigTree.growl("'.$module["name"].'","You don\'t have permission to perform this action.");';
 		} else {
 			echo 'BigTree.growl("'.$module["name"].'","Item is now approved.");';
+			
 			if (is_numeric($id)) {
 				sqlquery("UPDATE `$table` SET approved = 'on' WHERE id = '$id'");
+				$run_publish_hook(array("approved" => "on"));
 			} else {
 				BigTreeAutoModule::updatePendingItemField(substr($id,1),"approved","on");
 			}

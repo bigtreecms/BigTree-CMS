@@ -62,7 +62,7 @@
 			function sqlquery($query,$connection = false,$type = "read") {
 				global $bigtree;
 
-				if ($bigtree["config"]["debug"]) {
+				if ($bigtree["config"]["debug"] && !defined("BIGTREE_NO_QUERY_LOG")) {
 					$bigtree["sql"]["queries"][] = $query;
 				}
 
@@ -96,7 +96,7 @@
 			function sqlquery($query,$connection = false) {
 				global $bigtree;
 
-				if ($bigtree["config"]["debug"]) {
+				if ($bigtree["config"]["debug"] && !defined("BIGTREE_NO_QUERY_LOG")) {
 					$bigtree["sql"]["queries"][] = $query;
 				}
 
@@ -223,7 +223,7 @@
 			function sqlquery($query,$connection = false,$type = "read") {
 				global $bigtree;
 
-				if ($bigtree["config"]["debug"]) {
+				if ($bigtree["config"]["debug"] && !defined("BIGTREE_NO_QUERY_LOG")) {
 					$bigtree["sql"]["queries"][] = $query;
 				}
 
@@ -257,7 +257,7 @@
 			function sqlquery($query,$connection = false) {
 				global $bigtree;
 
-				if ($bigtree["config"]["debug"]) {
+				if ($bigtree["config"]["debug"] && !defined("BIGTREE_NO_QUERY_LOG")) {
 					$bigtree["sql"]["queries"][] = $query;
 				}
 

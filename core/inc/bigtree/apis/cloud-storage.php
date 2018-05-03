@@ -265,17 +265,21 @@
 				return false;
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
-				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$pointer&uploadType=media",$contents,array(CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: $type","Content-Length: ".strlen($contents),"Authorization: Bearer ".$this->Settings["token"]))));
+				$encoded_pointer = rawurlencode($pointer);
+				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$encoded_pointer&uploadType=media",$contents,array(CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: $type","Content-Length: ".strlen($contents),"Authorization: Bearer ".$this->Settings["token"]))));
+				
 				if (isset($response->id)) {
 					// Set the access control level if it's publicly accessible
 					if ($public) {
-						$this->call("b/$container/o/".rawurlencode($pointer)."/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
+						$this->call("b/$container/o/$encoded_pointer/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
 					}
+
 					return "//storage.googleapis.com/$container/$pointer";
 				} else {
 					foreach ($response->error->errors as $error) {
 						$this->Errors[] = $error;
 					}
+
 					return false;
 				}
 			} else {
@@ -432,18 +436,24 @@
 				if (!function_exists('openssl_x509_read')) {
 					throw new Exception("PHP's OpenSSL extension is required to use authenticated URLs with Google Cloud Storage.");
 				}
+				
 				if (!$this->Settings["private_key"] || !$this->Settings["certificate_email"]) {
 					throw new Exception("You must upload your Google Cloud Storage private key and set your Certificate Email Address to use authenticated URLs.");
 				}
+				
 				// Google's default password for these is "notasecret"
 				$certificates = array();
+				
 				if (!openssl_pkcs12_read(file_get_contents($this->Settings["private_key"]),$certificates,"notasecret")) {
 	  				throw new Exception("Unable to parse Google Cloud Storage private key file:".openssl_error_string());
 				}
+				
 				$private_key = openssl_pkey_get_private($certificates["pkey"]);
+				
 				// Sign the string
-				openssl_sign("GET\n\n\n$expires\n/$container/".str_replace(array("+","%2F"),array("%20","/"),urlencode($pointer)),$signature,$private_key,"sha256");
-
+				$encoded_pointer = str_replace(" ", "%20", $pointer);
+				openssl_sign("GET\n\n\n$expires\n/$container/$encoded_pointer",$signature,$private_key,"sha256");
+				
 				return "//storage.googleapis.com/$container/$pointer?GoogleAccessId=".$this->Settings["certificate_email"]."&Expires=$expires&Signature=".urlencode(base64_encode($signature));
 			} else {
 				return false;
@@ -872,19 +882,23 @@
 				return false;
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
+				$encoded_pointer = urlencode($pointer);
 				$file_pointer = fopen($file,"r");
-				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$pointer&uploadType=media",false,array(CURLOPT_INFILE => $file_pointer,CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: $content_type","Content-Length: ".filesize($file),"Authorization: Bearer ".$this->Settings["token"]))));
+				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$encoded_pointer&uploadType=media",false,array(CURLOPT_INFILE => $file_pointer,CURLOPT_POST => true, CURLOPT_HTTPHEADER => array("Content-Type: $content_type","Content-Length: ".filesize($file),"Authorization: Bearer ".$this->Settings["token"]))));
 				fclose($file_pointer);
+				
 				if (isset($response->id)) {
 					// Set the access control level if it's publicly accessible
 					if ($public) {
-						$this->call("b/$container/o/".rawurlencode($pointer)."/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
+						$this->call("b/$container/o/$encoded_pointer/acl",json_encode(array("entity" => "allUsers","role" => "READER")),"POST");
 					}
+
 					return "//storage.googleapis.com/$container/$pointer";
 				} else {
 					foreach ($response->error->errors as $error) {
 						$this->Errors[] = $error;
 					}
+
 					return false;
 				}
 			} else {

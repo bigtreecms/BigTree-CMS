@@ -1,11 +1,16 @@
 <?php
+	// Updating BigTree can make a lot of queries happen which can cause memory issues with debug on.
+	define("BIGTREE_NO_QUERY_LOG", true);
+
 	$current_revision = $cms->getSetting("bigtree-internal-revision");
+
 	while ($current_revision < BIGTREE_REVISION) {
 		$current_revision++;
 		if (function_exists("_local_bigtree_update_".$current_revision)) {
 			call_user_func("_local_bigtree_update_$current_revision");
 		}
 	}
+
 	$admin->updateSettingValue("bigtree-internal-revision",BIGTREE_REVISION);
 ?>
 <div class="container">
@@ -686,6 +691,25 @@
 			if ($data["local_columns"][0] == "user") {
 				sqlquery("ALTER TABLE `bigtree_audit_trail` DROP FOREIGN KEY `$key`");
 			}
+		}
+	}
+
+	// BigTree 4.2.22 update -- REVISION 210
+	function _local_bigtree_update_210() {
+		// Add a location column to resources
+		sqlquery("ALTER TABLE `bigtree_resources` ADD COLUMN `location` VARCHAR(255) NOT NULL AFTER `id`");
+
+		// Try to infer the location of existing resources
+		$q = sqlquery("SELECT * FROM bigtree_resources");
+
+		while ($resource = sqlfetch($q)) {
+			if (strpos($resource["file"], "{staticroot}") !== false) {
+				$location = "local";
+			} else {
+				$location = "cloud";
+			}
+
+			sqlquery("UPDATE bigtree_resources SET location = '$location' WHERE id = '".$resource["id"]."'");
 		}
 	}
 

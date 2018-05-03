@@ -2843,7 +2843,11 @@
 				$url = "http:".$url;
 			}
 
+			// Strip out any hash
+			list($url) = explode("#", $url);
+
 			$handle = curl_init($url);
+			
 			if ($handle === false) {
 				return false;
 			}

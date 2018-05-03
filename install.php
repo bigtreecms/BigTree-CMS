@@ -96,11 +96,7 @@
 	$warnings = array();
 	
 	if (get_magic_quotes_gpc()) {
-		if ($iis) {
-			$fails[] = "magic_quotes_gpc is on. This is a deprecated setting that will break BigTree. Please disable it in php.ini.";
-		} else {
-			$warnings[] = "magic_quotes_gpc is on. BigTree will attempt to override this at runtime but it is advised that you turn it off in php.ini.";
-		}
+		$fails[] = "magic_quotes_gpc is on. This is a deprecated setting that will break BigTree. Please disable it in php.ini.";
 	}
 
 	if (intval(ini_get('upload_max_filesize')) < 4) {

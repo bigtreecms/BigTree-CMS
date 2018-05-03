@@ -8,7 +8,7 @@
 	$(document).ready(function() {
 		<?php
 			if ($html_editor == "TinyMCE 3") {
-				if (count($bigtree["html_fields"])) {
+				if (is_array($bigtree["html_fields"]) && count($bigtree["html_fields"])) {
 		?>
 		tinyMCE.init({
   			<?php if ($content_css) { ?>content_css: "<?=$content_css?>",<?php } ?>
@@ -47,7 +47,8 @@
 		});
 		<?php
 				}
-				if (count($bigtree["simple_html_fields"])) {
+
+				if (is_array($bigtree["simple_html_fields"]) && count($bigtree["simple_html_fields"])) {
 		?>
 		tinyMCE.init({
   			<?php if ($content_css) { ?>content_css: "<?=$content_css?>",<?php } ?>
@@ -82,7 +83,7 @@
 		<?php
 				}
 			} elseif ($html_editor == "TinyMCE 4") {
-				if (count($bigtree["html_fields"])) {
+				if (is_array($bigtree["html_fields"]) && count($bigtree["html_fields"])) {
 		?>
 		tinyMCE.init({
   			<?php if ($content_css) { ?>content_css: "<?=$content_css?>",<?php } ?>
@@ -106,7 +107,8 @@
 		});
 		<?php
 				}
-				if (count($bigtree["simple_html_fields"])) {
+
+				if (is_array($bigtree["simple_html_fields"]) && count($bigtree["simple_html_fields"])) {
 		?>
 		tinyMCE.init({
   			<?php if ($content_css) { ?>content_css: "<?=$content_css?>",<?php } ?>
@@ -131,7 +133,7 @@
 		<?php
 				}
 			} elseif ($html_editor == "Redactor") {
-				if (count($bigtree["html_fields"])) {
+				if (is_array($bigtree["html_fields"]) && count($bigtree["html_fields"])) {
 					foreach ($bigtree["html_fields"] as $field) {
 		?>
 		$("#<?=$field?>").redactor({

@@ -20,6 +20,7 @@
 	if (isset($_POST["replace"])) {
 		$admin->requireLevel(1);
 		$replacing = $admin->getResource($_POST["replace"]);
+		$force_local_replace = ($replacing["location"] == "local");
 		$pinfo = BigTree::pathInfo($replacing["file"]);
 		$replacing = $pinfo["basename"];
 		// Set a recently replaced cookie so we don't use cached images
@@ -68,11 +69,13 @@
 					// It's a regular file
 					if ($itype != IMAGETYPE_GIF && $itype != IMAGETYPE_JPEG && $itype != IMAGETYPE_PNG) {
 						$type = "file";
+
 						if ($replacing) {
-							$file = $storage->replace($temp_name,$file_name,"files/resources/");
+							$file = $storage->replace($temp_name, $file_name, "files/resources/", true, $force_local_replace);
 						} else {
-							$file = $storage->store($temp_name,$file_name,"files/resources/");
+							$file = $storage->store($temp_name, $file_name, "files/resources/");
 						}
+						
 						// If we failed, either cloud storage upload failed, directory permissions are bad, or the file type isn't permitted
 						if (!$file) {
 							if ($storage->DisabledFileError) {
@@ -113,7 +116,7 @@
 							}
 						}
 		
-						$file = $admin->processImageUpload($field, $replacing);
+						$file = $admin->processImageUpload($field, $replacing, $force_local_replace);
 		
 						if ($file) {
 							$thumbs = array();

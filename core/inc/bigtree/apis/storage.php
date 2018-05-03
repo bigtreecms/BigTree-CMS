@@ -8,7 +8,7 @@
 
 		public $AutoJPEG = false;
 		public $DisabledFileError = false;
-		public $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx|phtml|pht)/i';
+		public $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx|phtml|pht|htaccess)/i';
 		public $Service = "";
 		public $Cloud = false;
 		public $Settings;
@@ -140,13 +140,14 @@
 				local_file - The absolute path to the local file you wish to store.
 				file_name - The file name at the storage end point.
 				relative_path - The path (relative to SITE_ROOT or the bucket / container root) in which to store the file.
-				remove_original - Whether to delete the local_file or not.
+				remove_original - Whether to delete the local_file or not (defaults to true)
+				force_local - Forces a local file replacement even if cloud storage is in use by default (defaults to false)
 
 			Returns:
 				The URL of the stored file.
 		*/
 
-		public function replace($local_file,$file_name,$relative_path,$remove_original = true) {
+		public function replace($local_file, $file_name, $relative_path, $remove_original = true, $force_local = false) {
 			// Make sure there are no path exploits
 			$file_name = BigTree::cleanFile($file_name);
 			
@@ -162,7 +163,7 @@
 			// Enforce trailing slashe on relative_path
 			$relative_path = $relative_path ? rtrim($relative_path,"/")."/" : "files/";
 
-			if ($this->Cloud) {
+			if ($this->Cloud && !$force_local) {
 				$success = $this->Cloud->uploadFile($local_file,$this->Settings->Container,$relative_path.$file_name,true);
 				
 				if ($success) {

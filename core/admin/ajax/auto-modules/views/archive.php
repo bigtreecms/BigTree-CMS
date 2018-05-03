@@ -6,8 +6,10 @@
 			echo 'BigTree.growl("'.$module["name"].'","You don\'t have permission to perform this action.");';
 		} else {
 			echo 'BigTree.growl("'.$module["name"].'","Item is now unarchived.");';
+
 			if (is_numeric($id)) {
 				sqlquery("UPDATE `$table` SET archived = '' WHERE id = '$id'");
+				$run_publish_hook(array("archived" => ""));
 			} else {
 				BigTreeAutoModule::updatePendingItemField(substr($id,1),"archived","");
 			}
@@ -17,8 +19,10 @@
 			echo 'BigTree.growl("'.$module["name"].'","You don\'t have permission to perform this action.");';
 		} else {
 			echo 'BigTree.growl("'.$module["name"].'","Item is now archived.");';
+
 			if (is_numeric($id)) {
 				sqlquery("UPDATE `$table` SET archived = 'on' WHERE id = '$id'");
+				$run_publish_hook(array("archived" => "on"));
 			} else {
 				BigTreeAutoModule::updatePendingItemField(substr($id,1),"archived","on");
 			}

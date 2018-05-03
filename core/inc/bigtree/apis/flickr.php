@@ -63,7 +63,7 @@
 				Overrides BigTreeOAuthAPIBase to always request normal JSON.
 		*/
 
-		public function callUncached($endpoint,$params = array(),$method = "GET",$headers = array()) {
+		public function callUncached($endpoint = "", $params = array(), $method = "GET", $headers = array()) {
 			$params["method"] = $endpoint;
 			$params["format"] = "json";
 			$params["nojsoncallback"] = true;

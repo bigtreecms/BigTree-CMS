@@ -536,18 +536,26 @@
 			$links = $doc->getElementsByTagName("a");
 			foreach ($links as $link) {
 				$href = $link->getAttribute("href");
-				$href = str_replace(array("{wwwroot}","%7Bwwwroot%7D","{staticroot}","%7Bstaticroot%7D"),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT),$href);
+				$href = BigTreeCMS::replaceRelativeRoots($href);
 				
 				if ($href == WWW_ROOT || $href == STATIC_ROOT || $href == ADMIN_ROOT) {
 					continue;
 				}
 
-				if ((substr($href,0,2) == "//" || substr($href,0,4) == "http") && strpos($href,WWW_ROOT) === false) {
+				// See if the link matches something local
+				$local = false;
+
+				if (substr($href, 0, 4) == "http") {
+					foreach (BigTreeCMS::$ReplaceableRootKeys as $local_key) {
+						if (strpos($href, $local_key) === 0) {
+							$local = true;
+						}
+					}
+				}
+
+				if ((substr($href,0,2) == "//" || substr($href,0,4) == "http") && !$local) {
 					// External link, not much we can do but alert that it's dead
 					if ($external) {
-						if (strpos($href,"#") !== false) {
-							$href = substr($href,0,strpos($href,"#")-1);
-						}
 						if (!static::urlExists($href)) {
 							$errors["a"][] = $href;
 						}
@@ -567,11 +575,6 @@
 					if (!static::urlExists($href)) {
 						$errors["a"][] = $href;
 					}
-				} elseif (substr($href,0,2) == "//") {
-					// Protocol agnostic link
-					if (!static::urlExists("http:".$href)) {
-						$errors["a"][] = $href;
-					}
 				} else {
 					// Local file.
 					$local = $relative_path.$href;
@@ -584,8 +587,20 @@
 			$images = $doc->getElementsByTagName("img");
 			foreach ($images as $image) {
 				$href = $image->getAttribute("src");
-				$href = str_replace(array("{wwwroot}","%7Bwwwroot%7D","{staticroot}","%7Bstaticroot%7D"),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT),$href);
-				if (substr($href,0,4) == "http" && strpos($href,WWW_ROOT) === false) {
+				$href = BigTreeCMS::replaceRelativeRoots($href);
+
+				// See if the link matches something local
+				$local = false;
+
+				if (substr($href, 0, 4) == "http") {
+					foreach (BigTreeCMS::$ReplaceableRootKeys as $local_key) {
+						if (strpos($href, $local_key) === 0) {
+							$local = true;
+						}
+					}
+				}
+
+				if ((substr($href,0,2) == "//" || substr($href, 0, 4) == "http") && !$local) {
 					// External link, not much we can do but alert that it's dead
 					if ($external) {
 						if (!static::urlExists($href)) {
@@ -601,11 +616,6 @@
 				} elseif (substr($href,0,4) == "http") {
 					// It's a local hard link
 					if (!static::urlExists($href)) {
-						$errors["img"][] = $href;
-					}
-				} elseif (substr($href,0,2) == "//") {
-					// Protocol agnostic src
-					if (!static::urlExists("http:".$href)) {
 						$errors["img"][] = $href;
 					}
 				} else {
@@ -696,9 +706,9 @@
 				}
 			} else {
 				if (!is_null($site_key)) {
-					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from' AND `site_key` = '".sqlescape($site_key)."'"));
+					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from' AND get_vars = '' `site_key` = '".sqlescape($site_key)."'"));
 				} else {
-					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from'"));	
+					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from' AND get_vars = ''"));	
 				}
 			}
 			
@@ -1562,6 +1572,8 @@
 		*/
 
 		public function createResource($folder, $file, $name, $type = "file", $crops = [], $thumbs = []) {
+			$storage = new BigTreeStorage;
+			$location = $storage->Cloud ? "cloud" : "local";
 			$file_path = str_replace(STATIC_ROOT, SITE_ROOT, BigTreeCMS::replaceRelativeRoots($file));
 			
 			if ($type == "image") {
@@ -1585,7 +1597,8 @@
 				"height" => $height ?: 0,
 				"date" => date("Y-m-d H:i:s"),
 				"crops" => $crops,
-				"thumbs" => $thumbs
+				"thumbs" => $thumbs,
+				"location" => $location
 			];
 
 			$id = SQL::insert("bigtree_resources", $data);
@@ -4363,14 +4376,22 @@
 				previewing - Whether we are previewing or not.
 			
 			Returns:
-				An array containing the page ID and any additional commands.
+				An array containing:
+					- The page ID (or false)
+					- An array of commands
+					- The routed status of the page
+					- GET variables
+					- URL Hash
 		*/
 		
 		public static function getPageIDForPath($path,$previewing = false) {
 			$commands = array();
 
-			// Reset array keys
-			$path = array_values($path);
+			// Get any GET variables and hashes and remove them
+			$url_parse = parse_url(implode("/", array_values($path)));
+			$query_vars = $url_parse["query"];
+			$hash = $url_parse["fragment"];
+			$path = explode("/", rtrim($url_parse["path"], "/"));
 			
 			if (!$previewing) {
 				$publish_at = "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";
@@ -4379,26 +4400,30 @@
 			}
 			
 			// See if we have a straight up perfect match to the path.
-			$spath = sqlescape(implode("/",$path));
+			$spath = sqlescape(implode("/", $path));
 			$f = sqlfetch(sqlquery("SELECT bigtree_pages.id,bigtree_templates.routed FROM bigtree_pages LEFT JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE path = '$spath' AND archived = '' $publish_at"));
+			
 			if ($f) {
-				return array($f["id"],$commands,$f["routed"]);
+				return array($f["id"], array(), $f["routed"], $query_vars, $hash);
 			}
 			
 			// Guess we don't, let's chop off commands until we find a page.
 			$x = 0;
+
 			while ($x < count($path)) {
 				$x++;
-				$commands[] = $path[count($path)-$x];
-				$spath = sqlescape(implode("/",array_slice($path,0,-1 * $x)));
+				$commands[] = $path[count($path) - $x];
+				$spath = sqlescape(implode("/", array_slice($path, 0, -1 * $x)));
+				
 				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
 				$f = sqlfetch(sqlquery("SELECT bigtree_pages.id FROM bigtree_pages JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE bigtree_pages.path = '$spath' AND bigtree_pages.archived = '' AND bigtree_templates.routed = 'on' $publish_at"));
+				
 				if ($f) {
-					return array($f["id"],array_reverse($commands),"on");
+					return array($f["id"], array_reverse($commands), "on", $query_vars, $hash);
 				}
 			}
 			
-			return array(false,false,false);
+			return array(false, false, false, false, false);
 		}
 
 		/*
@@ -6346,10 +6371,10 @@
 						$path_components = array_filter(array_merge(explode("/", $f["path"]), $path_components));
 						
 						// Check for page link
-						list($navid, $commands) = static::getPageIDForPath($path_components);
+						list($navid, $commands, $routed_state, $get_vars, $hash) = static::getPageIDForPath($path_components);
 						
 						if ($navid) {
-							return "ipl://".$navid."//".base64_encode(json_encode($commands));
+							return "ipl://".$navid."//".base64_encode(json_encode($commands))."//".base64_encode($get_vars)."//".base64_encode($hash);
 						} else {
 							return BigTreeCMS::replaceHardRoots($url);
 						}
@@ -6369,14 +6394,14 @@
 				}
 				
 				// Check for page link
-				list($navid, $commands) = static::getPageIDForPath($path_components);
+				list($navid, $commands, $routed_state, $get_vars, $hash) = static::getPageIDForPath($path_components);
 			}
 			
 			if (!$navid) {
 				return BigTreeCMS::replaceHardRoots($url);
 			}
 			
-			return "ipl://".$navid."//".base64_encode(json_encode($commands));
+			return "ipl://".$navid."//".base64_encode(json_encode($commands))."//".base64_encode($get_vars)."//".base64_encode($hash);
 		}
 
 		/*
@@ -6725,10 +6750,11 @@
 
 			Parameters:
 				field - Field information (normally set to $field when running a field type's process file)
-				replace - If not looking for a unique filename (e.g. replacing an existing image) pass true
+				replace - If not looking for a unique filename (e.g. replacing an existing image) pass truthy value
+				force_local_replace - If replacing a file, replace a local filepath regardless of default storage (defaults to false)
 		*/
 
-		public static function processImageUpload($field, $replace = false) {
+		public static function processImageUpload($field, $replace = false, $force_local_replace = false) {
 			global $bigtree;
 
 			$failed = false;
@@ -6942,7 +6968,7 @@
 
 				// Upload the original to the proper place.
 				if ($replace) {
-					$field["output"] = $storage->replace($first_copy,$name,$field["settings"]["directory"],true);
+					$field["output"] = $storage->replace($first_copy, $name, $field["options"]["directory"], true, $force_local_replace);
 				} else {
 					$field["output"] = $storage->store($first_copy,$name,$field["settings"]["directory"],true,$prefixes);
 				}
@@ -7004,7 +7030,7 @@
 													$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 													BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["settings"]["retina"],$thumb["grayscale"]);
 													// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-													$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["settings"]["directory"]);
+													$storage->replace($temp_thumb, $thumb["prefix"].$pinfo["basename"], $field["options"]["directory"], true, $force_local_replace);
 												}
 											}
 										}
@@ -7018,13 +7044,13 @@
 													$temp_crop = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 													BigTree::centerCrop($temp_copy,$temp_crop,$center_crop["width"],$center_crop["height"],$field["settings"]["retina"],$center_crop["grayscale"]);
 													// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-													$storage->replace($temp_crop,$center_crop["prefix"].$pinfo["basename"],$field["settings"]["directory"]);
+													$storage->replace($temp_crop, $center_crop["prefix"].$pinfo["basename"], $field["options"]["directory"], true, $force_local_replace);
 												}
 											}
 										}
 										
 										if ($crop["prefix"]) {
-											$storage->replace($temp_copy,$crop["prefix"].$pinfo["basename"],$field["settings"]["directory"],false,array(),true);
+											$storage->replace($temp_copy, $crop["prefix"].$pinfo["basename"], $field["options"]["directory"], false, $force_local_replace);
 										}
 									}
 								}
@@ -7040,7 +7066,7 @@
 								$temp_thumb = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 								BigTree::createThumbnail($temp_copy,$temp_thumb,$thumb["width"],$thumb["height"],$field["settings"]["retina"],$thumb["grayscale"]);
 								// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-								$storage->replace($temp_thumb,$thumb["prefix"].$pinfo["basename"],$field["settings"]["directory"]);
+								$storage->replace($temp_thumb, $thumb["prefix"].$pinfo["basename"], $field["options"]["directory"], true, $force_local_replace);
 							}
 						}
 					}
@@ -7053,7 +7079,7 @@
 								$temp_crop = SITE_ROOT."files/".uniqid("temp-").$itype_exts[$itype];
 								BigTree::centerCrop($temp_copy,$temp_crop,$crop["width"],$crop["height"],$field["settings"]["retina"],$crop["grayscale"]);
 								// We use replace here instead of upload because we want to be 100% sure that this file name doesn't change.
-								$storage->replace($temp_crop,$crop["prefix"].$pinfo["basename"],$field["settings"]["directory"]);
+								$storage->replace($temp_crop, $crop["prefix"].$pinfo["basename"], $field["options"]["directory"], true, $force_local_replace);
 							}
 						}
 					}
@@ -8664,12 +8690,9 @@
 		public function updateProfile($data) {
 			global $bigtree;
 
-			foreach ($data as $key => $val) {
-				if (substr($key,0,1) != "_" && !is_array($val)) {
-					$$key = sqlescape($val);
-				}
-			}
-
+			$name = sqlescape(htmlspecialchars($data["name"]));
+			$company = sqlescape(htmlspecialchars($data["company"]));
+			$daily_digest = $data["daily_digest"] ? "on" : "";
 			$id = sqlescape($this->ID);
 
 			if ($data["password"]) {
