@@ -58,7 +58,7 @@
 					<?php
 						if ($resource["is_image"]) {
 					?>
-					<img src="<?=BigTree::prefixFile($resource["file"], "list-preview/")?>" alt="">
+					<img src="<?=BigTree::prefixFile(BigTreeCMS::replaceRelativeRoots($resource["file"]), "list-preview/")?>" alt="">
 					<?php
 						} else {
 					?>

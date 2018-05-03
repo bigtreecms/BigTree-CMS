@@ -2547,12 +2547,17 @@
 		
 		public static function translateArray($array) {
 			foreach ($array as &$piece) {
+				if (is_null($piece)) {
+					continue;
+				}
+
 				if (is_array($piece)) {
 					$piece = static::translateArray($piece);
 				} else {
 					$piece = BigTreeAdmin::autoIPL($piece);
 				}
 			}
+			
 			return $array;
 		}
 		
