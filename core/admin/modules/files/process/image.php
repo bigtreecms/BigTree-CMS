@@ -111,7 +111,7 @@
 	<section>
 		<div class="alert">
 			<span></span>
-			<p>Some images uploaded encountered <?=count($errors)?> error<?php if (count($errors) != 1) { ?>s<?php } ?>.</p>
+			<p>Some images uploaded encountered <?=count($bigtree["errors"])?> error<?php if (count($bigtree["errors"]) != 1) { ?>s<?php } ?>.</p>
 		</div>
 		<div class="table error_table">
 			<header>
@@ -119,7 +119,7 @@
 				<span class="view_column error">Error</span>
 			</header>
 			<ul>
-				<?php foreach ($errors as $error) { ?>
+				<?php foreach ($bigtree["errors"] as $error) { ?>
 				<li>
 					<section class="view_column field"><?=$error["field"]?></section>
 					<section class="view_column error"><?=$error["error"]?></section>
