@@ -2566,7 +2566,7 @@
 			}
 
 			// Backwards compatibility
-			$field["options"] &= $field["settings"];
+			$field["options"] = &$field["settings"];
 
 			// Prevent path abuse
 			$field["type"] = BigTree::cleanFile($field["type"]);
@@ -6686,7 +6686,7 @@
 			global $admin,$bigtree,$cms;
 			
 			// Backwards compatibility
-			$field["options"] &= $field["settings"];
+			$field["options"] = &$field["settings"];
 
 			// Save current context
 			$bigtree["saved_extension_context"] = $bigtree["extension_context"];
