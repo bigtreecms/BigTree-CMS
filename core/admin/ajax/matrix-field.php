@@ -34,7 +34,7 @@
 				$bigtree["field_types"] = $cached_types["callouts"];
 
 				foreach ($bigtree["matrix_columns"] as $resource) {
-					$options = @json_decode($resource["options"],true);
+					$settings = $resource["settings"] ? @json_decode($resource["settings"], true) : @json_decode($resource["options"],true);
 					
 					$field = array(
 						"type" => $resource["type"],
@@ -43,7 +43,7 @@
 						"key" => $bigtree["matrix_key"]."[".$bigtree["matrix_count"]."][".$resource["id"]."]",
 						"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
 						"tabindex" => $bigtree["tabindex"],
-						"settings" => is_array($options) ? $options : array(),
+						"settings" => is_array($settings) ? $settings : array(),
 						"matrix_title_field" => $resource["display_title"] ? true : false
 					);
 

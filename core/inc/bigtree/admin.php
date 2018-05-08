@@ -759,17 +759,18 @@
 			foreach ($resources as $resource) {
 				// "type" is still a reserved keyword due to the way we save callout data when editing.
 				if ($resource["id"] && $resource["id"] != "type") {
+					$settings = json_decode($resource["settings"] ?: $resource["options"], true);
 					$field = array(
 						"id" => BigTree::safeEncode($resource["id"]),
 						"type" => BigTree::safeEncode($resource["type"]),
 						"title" => BigTree::safeEncode($resource["title"]),
 						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
-						"options" => BigTree::translateArray((array) @json_decode($resource["options"],true))
+						"settings" => BigTree::translateArray($settings)
 					);
 
 					// Backwards compatibility with BigTree 4.1 package imports
 					foreach ($resource as $k => $v) {
-						if (!in_array($k,array("id","title","subtitle","type","options"))) {
+						if (!in_array($k, array("id", "title", "subtitle", "type", "settings", "options"))) {
 							$field["settings"][$k] = $v;
 						}
 					}
@@ -913,7 +914,7 @@
 			"value" — The existing value for this form field
 			"id" — A unique ID you can assign to your form field for use in JavaScript
 			"tabindex" — The current tab index you can use for the "tabindex" attribute of your form field
-			"options" — An array of options provided by the developer
+			"settings" — An array of settings provided by the developer
 			"required" — A boolean value of whether this form field is required or not
 	*/
 
@@ -927,7 +928,7 @@
 	/*
 		When processing a field type you are provided with the $field array with the following keys:
 			"key" — The key of the field (this could be the database column for a module or the ID of the template or callout resource)
-			"options" — An array of options provided by the developer
+			"settings" — An array of settings provided by the developer
 			"input" — The end user\'s $_POST data input for this field
 			"file_input" — The end user\'s uploaded files for this field in a normalized entry from the $_FILES array in the same formatting you\'d expect from "input"
 
@@ -1202,16 +1203,17 @@
 
 			$clean_fields = array();
 			foreach ($fields as $key => $data) {
+				$settings = $data["settings"] ?: $data["options"];
 				$field = array(
 					"column" => $data["column"] ? $data["column"] : $key,
 					"type" => BigTree::safeEncode($data["type"]),
 					"title" => BigTree::safeEncode($data["title"]),
 					"subtitle" => BigTree::safeEncode($data["subtitle"]),
-					"options" => BigTree::translateArray(is_array($data["options"]) ? $data["options"] : (array)@json_decode($data["options"],true))
+					"settings" => BigTree::translateArray(is_array($settings) ? $settings : json_decode($settings, true))
 				);
 				// Backwards compatibility with BigTree 4.1 package imports
 				foreach ($data as $k => $v) {
-					if (!in_array($k,array("title","subtitle","type","options"))) {
+					if (!in_array($k,array("title", "subtitle", "type", "options", "settings"))) {
 						$field["settings"][$k] = $v;
 					}
 				}
@@ -1676,18 +1678,20 @@
 			$description = isset($data["description"]) ? sqlescape($data["description"]) : "";
 			
 			// We don't want this encoded since it's JSON
-			if (isset($data["options"])) {
-				if (is_string($data["options"])) {
-					$data["options"] = json_decode($data["options"], true);
+			$settings = $data["settings"] ?: $data["options"];
+
+			if (!empty($settings)) {
+				if (is_string($settings)) {
+					$settings = json_decode($settings, true);
 				}
 
-				foreach ($data["options"] as $key => $value) {
-					if ($key == "options" && is_string($value)) {
-						$data["options"][$key] = json_decode($value, true);
+				foreach ($settings as $key => $value) {
+					if (($key == "settings" || $key == "options") && is_string($value)) {
+						$settings["settings"][$key] = json_decode($value, true);
 					}
 				}
 	
-				$options = BigTree::json(BigTree::translateArray($data["options"]), true);
+				$settings = BigTree::json(BigTree::translateArray($settings), true);
 			}
 
 			// See if there's already a setting with this ID
@@ -1696,7 +1700,7 @@
 				return false;
 			}
 
-			sqlquery("INSERT INTO bigtree_settings (`id`,`name`,`description`,`type`,`options`,`locked`,`encrypted`,`system`,`extension`) VALUES ('$id','$name','$description','$type','$options','$locked','$encrypted','$system',$extension)");
+			sqlquery("INSERT INTO bigtree_settings (`id`,`name`,`description`,`type`,`settings`,`locked`,`encrypted`,`system`,`extension`) VALUES ('$id','$name','$description','$type','$settings','$locked','$encrypted','$system',$extension)");
 			$this->track("bigtree_settings",$id,"created");
 
 			return true;
@@ -1767,17 +1771,18 @@
 			$clean_resources = array();
 			foreach ($resources as $resource) {
 				if ($resource["id"]) {
+					$settings = json_decode($resource["settings"] ?: $resource["options"], true); 
 					$field = array(
 						"id" => BigTree::safeEncode($resource["id"]),
 						"type" => BigTree::safeEncode($resource["type"]),
 						"title" => BigTree::safeEncode($resource["title"]),
 						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
-						"options" => BigTree::translateArray((array)@json_decode($resource["options"],true))
+						"settings" => BigTree::translateArray($settings)
 					);
 
 					// Backwards compatibility with BigTree 4.1 package imports
 					foreach ($resource as $k => $v) {
-						if (!in_array($k,array("id","title","subtitle","type","options"))) {
+						if (!in_array($k,array("id", "title", "subtitle", "type", "options", "settings"))) {
 							$field["settings"][$k] = $v;
 						}
 					}
@@ -2538,9 +2543,13 @@
 			$bigtree["field_counter"]++;
 			$field["id"] = $bigtree["field_namespace"].$bigtree["field_counter"];
 
-			// Make sure options is an array to prevent warnings
+			// Make sure options is an array to prevent warnings, load from options as a fallback for < 4.3
 			if (!is_array($field["settings"])) {
-				$field["settings"] = array();
+				if (is_array($field["options"]) && array_filter($field["options"])) {
+					$field["settings"] = $field["options"];
+				} else {
+					$field["settings"] = array();
+				}
 			}
 
 			$field["settings"] = BigTree::untranslateArray($field["settings"]);
@@ -2548,6 +2557,7 @@
 			// Setup Validation Classes
 			$label_validation_class = "";
 			$field["required"] = false;
+			
 			if (!empty($field["settings"]["validation"])) {
 				if (strpos($field["settings"]["validation"],"required") !== false) {
 					$label_validation_class = ' class="required"';
@@ -7947,12 +7957,13 @@
 			foreach ($resources as $resource) {
 				// "type" is still a reserved keyword due to the way we save callout data when editing.
 				if ($resource["id"] && $resource["id"] != "type") {
+					$settings = json_decode($resource["settings"] ?: $resource["options"], true);
 					$clean_resources[] = array(
 						"id" => BigTree::safeEncode($resource["id"]),
 						"type" => BigTree::safeEncode($resource["type"]),
 						"title" => BigTree::safeEncode($resource["title"]),
 						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
-						"options" => BigTree::translateArray(json_decode($resource["options"],true))
+						"settings" => BigTree::translateArray($settings)
 					);
 				}
 			}
@@ -8202,13 +8213,20 @@
 			$tagging = $tagging ? "on" : "";
 
 			$clean_fields = array();
+
 			foreach ($fields as $key => $field) {
-				$field["settings"] = BigTree::translateArray(json_decode($field["settings"],true));
+				if (!empty($field["settings"])) {
+					$field["settings"] = BigTree::translateArray(json_decode($field["settings"], true));
+				} else {
+					$field["settings"] = BigTree::translateArray(json_decode($field["options"], true));
+				}
+
 				$field["column"] = $key;
 				$field["title"] = BigTree::safeEncode($field["title"]);
 				$field["subtitle"] = BigTree::safeEncode($field["subtitle"]);
 				$clean_fields[] = $field;
 			}
+
 			$fields = BigTree::json($clean_fields,true);
 
 			sqlquery("UPDATE bigtree_module_forms SET title = '$title', `table` = '$table', fields = '$fields', default_position = '$default_position', return_view = $return_view, return_url = '$return_url', `tagging` = '$tagging', `hooks` = '$hooks' WHERE id = '$id'");
@@ -8784,11 +8802,11 @@
 			$description = sqlescape($data["description"]);
 
 			// Stored as JSON encoded already
-			$options = json_decode($data["options"], true);
+			$settings = json_decode($data["settings"] ?: $data["options"], true);
 
-			foreach ($options as $key => $value) {
-				if ($key == "options" && is_string($value)) {
-					$options[$key] = json_decode($value, true);
+			foreach ($settings as $key => $value) {
+				if (($key == "options" || $key == "settings") && is_string($value)) {
+					$settings[$key] = json_decode($value, true);
 				}
 			}
 
@@ -8866,12 +8884,13 @@
 			$clean_resources = array();
 			foreach ($resources as $resource) {
 				if ($resource["id"]) {
+					$settings = json_decode($resource["settings"] ?: $resource["options"], true);
 					$clean_resources[] = array(
 						"id" => BigTree::safeEncode($resource["id"]),
 						"title" => BigTree::safeEncode($resource["title"]),
 						"subtitle" => BigTree::safeEncode($resource["subtitle"]),
 						"type" => BigTree::safeEncode($resource["type"]),
-						"options" => BigTree::translateArray(json_decode($resource["options"],true))
+						"settings" => BigTree::translateArray($settings)
 					);
 				}
 			}

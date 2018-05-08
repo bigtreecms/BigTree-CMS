@@ -55,7 +55,7 @@
 					"key" => $bigtree["callout_key"]."[".$bigtree["callout_count"]."][".$resource["id"]."]",
 					"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
 					"tabindex" => $bigtree["tabindex"],
-					"settings" => $resource["options"]
+					"settings" => $resource["settings"] ?: $resource["options"]
 				);
 
 				if (empty($field["settings"]["directory"])) {

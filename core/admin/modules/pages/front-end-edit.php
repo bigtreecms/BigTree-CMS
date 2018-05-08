@@ -36,7 +36,7 @@
 							"key" => "resources[".$resource["id"]."]",
 							"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
 							"tabindex" => $bigtree["tabindex"],
-							"settings" => $resource["options"]
+							"settings" => $resource["settings"] ?: $resource["options"]
 						);
 
 						BigTreeAdmin::drawField($field);

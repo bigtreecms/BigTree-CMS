@@ -57,7 +57,7 @@
 								"key" => $resource["column"],
 								"value" => isset($bigtree["entry"][$resource["column"]]) ? $bigtree["entry"][$resource["column"]] : "",
 								"tabindex" => $bigtree["tabindex"],
-								"settings" => $resource["options"]
+								"settings" => $resource["settings"] ?: $resource["options"] // Pre-4.3
 							);
 	
 							// Give many to many its information

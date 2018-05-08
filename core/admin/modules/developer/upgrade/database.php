@@ -735,3 +735,8 @@
 		// Delete the field type cache
 		unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 	}
+
+	// BigTree 4.3 update -- REVISION 301
+	function _local_bigtree_update_301() {
+		sqlquery("ALTER TABLE `bigtree_settings` CHANGE COLUMN `options` `settings` LONGTEXT");
+	}
