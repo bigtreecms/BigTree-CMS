@@ -52,7 +52,7 @@
 				<span class="icon_drag"></span>
 				<a href="#" class="icon_delete"></a>
 				<a href="#" class="icon_edit" name="<?=$x?>"></a>
-				<input type="hidden" name="columns[][options]" value="<?=htmlspecialchars($column["options"])?>" />
+				<input type="hidden" name="columns[][options]" value="<?=htmlspecialchars($column["settings"] ?: $column["options"])?>" />
 			</footer>
 		</article>
 		<?php
@@ -80,7 +80,7 @@
 			var type = CurrentColumn.find("select").val();
 			var options = CurrentColumn.find("input[type=hidden]").val();
 
-			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { template: "true", type: type, data: options }, complete: function(response) {
+			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-settings/", { type: "POST", data: { template: "true", type: type, data: options }, complete: function(response) {
 				BigTreeDialog({
 					title: "Column Options",
 					content: response.responseText,

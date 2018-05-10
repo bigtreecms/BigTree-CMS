@@ -24,14 +24,14 @@
 						"type" => $resource["type"],
 						"title" => $resource["title"],
 						"key" => $resource["id"],
-						"settings" => $resource["options"],
+						"settings" => $resource["settings"] ?: $resource["options"],
 						"ignore" => false,
 						"input" => $bigtree["post_data"][$resource["id"]],
 						"file_input" => $bigtree["file_data"][$resource["id"]]
 					);
 
-					if (empty($sub_field["options"]["directory"])) {
-						$sub_field["options"]["directory"] = "files/pages/";
+					if (empty($sub_field["settings"]["directory"])) {
+						$sub_field["settings"]["directory"] = "files/pages/";
 					}
 					
 					// If we JSON encoded this data and it hasn't changed we need to decode it or the parser will fail.

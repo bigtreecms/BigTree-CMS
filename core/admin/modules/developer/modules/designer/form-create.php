@@ -19,7 +19,7 @@
 			"title" => $ft,
 			"subtitle" => $_POST["subtitles"][$key],
 			"type" => $t,
-			"options" => json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["options"][$key]),true)
+			"settings" => json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["settings"][$key]),true)
 		);
 		
 		$x = 2;

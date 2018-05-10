@@ -14,16 +14,20 @@
 				$bigtree["entry"] = array("__internal-title" => $data["__internal-title"],"__internal-subtitle" => $data["__internal-subtitle"]);
 				$bigtree["post_data"] = $data;
 				$bigtree["file_data"] = $matrix["field"]["file_input"][$number];
+
+				if (empty($matrix["field"]["settings"])) {
+					$matrix["field"]["settings"] = $matrix["field"]["options"];
+				}
 				
-				foreach ($matrix["field"]["options"]["columns"] as $resource) {
-					$options = @json_decode($resource["options"],true);
-					$options = is_array($options) ? $options : array();
+				foreach ($matrix["field"]["settings"]["columns"] as $resource) {
+					$settings = @json_decode($resource["settings"], true);
+					$settings = is_array($settings) ? $settings : array();
 
 					$field = array(
 						"type" => $resource["type"],
 						"title" => $resource["title"],
 						"key" => $resource["id"],
-						"settings" => $options,
+						"settings" => $settings,
 						"ignore" => false,
 						"input" => $bigtree["post_data"][$resource["id"]],
 						"file_input" => $bigtree["file_data"][$resource["id"]]

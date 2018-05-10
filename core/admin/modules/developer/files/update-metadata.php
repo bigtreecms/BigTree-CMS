@@ -13,7 +13,7 @@
 					"title" => BigTree::safeEncode($data["titles"][$id_key]),
 					"subtitle" => BigTree::safeEncode($data["subtitles"][$id_key]),
 					"type" => $data["types"][$id_key],
-					"options" => json_decode(str_replace(["\r", "\n"], ['\r','\n'], $data["options"][$id_key]), true)
+					"settings" => json_decode(str_replace(["\r", "\n"], ['\r','\n'], $data["settings"][$id_key]), true)
 				];				
 			}
 		}

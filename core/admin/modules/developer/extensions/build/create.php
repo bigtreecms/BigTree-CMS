@@ -103,7 +103,11 @@
 				if ($item["type"] == $type) {
 					$item["type"] = $id."*".$type;
 				} elseif ($item["type"] == "matrix") {
-					foreach ($item["options"]["columns"] as &$column) {
+					if (empty($item["settings"])) {
+						$item["settings"] = $item["options"];
+					}
+					
+					foreach ($item["settings"]["columns"] as &$column) {
 						if ($column["type"] == $type) {
 							$column["type"] = $id."*".$type;
 						}

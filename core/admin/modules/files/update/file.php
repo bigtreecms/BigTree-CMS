@@ -35,7 +35,7 @@
 				"type" => $meta["type"],
 				"title" => $meta["title"],
 				"key" => "metadata[".$meta["id"]."]",
-				"settings" => json_decode($meta["options"], true),
+				"settings" => json_decode($meta["settings"] ?: $meta["options"], true),
 				"ignore" => false,
 				"input" => $_POST["metadata"][$meta["id"]],
 				"file_input" => $bigtree["file_data"]["metadata"][$meta["id"]]

@@ -6753,7 +6753,7 @@
 				Processes image upload data for form fields.
 				If you're emulating field information, the following keys are of interest in the field array:
 				"file_input" - a keyed array that needs at least "name" and "tmp_name" keys that contain the desired name of the file and the source file location, respectively.
-				"options" - a keyed array of options for the field, keys of interest for photo processing are:
+				"settings" - a keyed array of options for the field, keys of interest for photo processing are:
 					"min_height" - Minimum Height required for the image
 					"min_width" - Minimum Width required for the image
 					"retina" - Whether to try to create a 2x size image when thumbnailing / cropping (if the source file / crop is large enough)
@@ -6794,6 +6794,11 @@
 			$itype = $image_info[2];
 			$channels = $image_info["channels"];
 			$temp_copy = null;
+
+			// Backwards compat
+			if (empty($field["settings"])) {
+				$field["settings"] = $field["options"];
+			}
 
 			// See if we're using image presets
 			if ($field["settings"]["preset"]) {

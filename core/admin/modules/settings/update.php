@@ -17,7 +17,7 @@
 			"type" => $item["type"],
 			"title" => $item["title"],
 			"key" => "value",
-			"settings" => json_decode($item["options"],true),
+			"settings" => json_decode($item["settings"] ?: $item["options"],true),
 			"ignore" => false,
 			"input" => $bigtree["post_data"]["value"],
 			"file_input" => $bigtree["file_data"]["value"]

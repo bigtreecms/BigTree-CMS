@@ -1,11 +1,17 @@
 <?php
 	$list = array();
+	
 	// See if this is a DB populated list in the related form
 	$field = $bigtree["form"]["fields"][$id];
-	if ($field && $field["type"] == "list" && $field["options"]["list_type"] == "db") {
-		$q = sqlquery("SELECT id,`".$field["options"]["pop-description"]."` FROM `".$field["options"]["pop-table"]."` ORDER BY ".$field["options"]["pop-sort"]);
+
+	if (empty($field["settings"])) {
+		$field["settings"] = $field["options"];
+	}
+
+	if ($field && $field["type"] == "list" && $field["settings"]["list_type"] == "db") {
+		$q = sqlquery("SELECT id,`".$field["settings"]["pop-description"]."` FROM `".$field["settings"]["pop-table"]."` ORDER BY ".$field["settings"]["pop-sort"]);
 		while ($f = sqlfetch($q)) {
-			$list[] = array("value" => $f["id"],"description" => $f[$field["options"]["pop-description"]]);
+			$list[] = array("value" => $f["id"],"description" => $f[$field["settings"]["pop-description"]]);
 		}
 	} else {
 		$q = sqlquery("SELECT DISTINCT(`$id`) FROM `".$bigtree["report"]["table"]."` ORDER BY `$id`");

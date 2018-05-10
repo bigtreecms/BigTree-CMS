@@ -37,7 +37,7 @@
 			var key = $(this).attr("name");
 			CurrentFieldKey = key;
 			
-			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { callout: "true", type: $("#type_" + key).val(), data: $("#options_" + key).val() }, complete: function(response) {
+			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-settings/", { type: "POST", data: { callout: "true", type: $("#type_" + key).val(), data: $("#options_" + key).val() }, complete: function(response) {
 				BigTreeDialog({
 					title: "Field Options",
 					content: response.responseText,

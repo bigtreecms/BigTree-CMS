@@ -28,18 +28,22 @@
 	$directory_warnings = array();
 	$recurse_fields = function($fields) {
 		global $directory_warnings,$recurse_fields,$warnings;
-		foreach (array_filter((array)$fields) as $key => $data) {			
-			$options = is_string($data["options"]) ? array_filter((array)json_decode($data["options"],true)) : $data["options"];
+		foreach (array_filter((array)$fields) as $key => $data) {
+			if (empty($data["settings"])) {
+				$data["settings"] = $data["options"];
+			}
+
+			$settings = is_string($data["settings"]) ? array_filter((array) json_decode($data["settings"], true)) : $data["settings"];
 			
 			if ($data["type"] == "matrix") {
-				$recurse_fields($options["columns"]);
+				$recurse_fields($settings["columns"]);
 			} else {
-				if ($options["directory"]) {
-					if (!BigTree::isDirectoryWritable(SITE_ROOT.$options["directory"]) && !in_array($options["directory"],$directory_warnings)) {
-						$directory_warnings[] = $options["directory"];
+				if ($settings["directory"]) {
+					if (!BigTree::isDirectoryWritable(SITE_ROOT.$settings["directory"]) && !in_array($settings["directory"],$directory_warnings)) {
+						$directory_warnings[] = $settings["directory"];
 						$warnings[] = array(
 							"parameter" => "Directory Permissions Error",
-							"rec" => "Make ".SITE_ROOT.$options["directory"]." writable.",
+							"rec" => "Make ".SITE_ROOT.$settings["directory"]." writable.",
 							"status" => "bad"
 						);
 					}

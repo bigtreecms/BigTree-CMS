@@ -36,7 +36,7 @@
 			<?php } ?>
 		</select>
 		<a href="#" class="icon_settings" name="<?=$count?>"></a>
-		<input type="hidden" name="<?=$key?>[options][<?=$count?>]" value="<?=htmlspecialchars(json_encode($field["options"]))?>" id="options_<?=$count?>" />
+		<input type="hidden" name="<?=$key?>[settings][<?=$count?>]" value="<?=htmlspecialchars(json_encode($field["settings"]))?>" id="settings_<?=$count?>" />
 	</section>
 	<section class="developer_resource_action right">
 		<a href="#" class="icon_delete"></a>
@@ -154,13 +154,13 @@
 	
 			CurrentFieldKey = $(this).attr("name");
 			
-			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-options/", { type: "POST", data: { type: $("#type_" + CurrentFieldKey).val(), data: $("#options_" + CurrentFieldKey).val() }, complete: function(response) {
+			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-settings/", { type: "POST", data: { type: $("#type_" + CurrentFieldKey).val(), data: $("#settings_" + CurrentFieldKey).val() }, complete: function(response) {
 				BigTreeDialog({
-					title: "Field Options",
+					title: "Field Settings",
 					content: response.responseText,
 					icon: "edit",
 					callback: function(data) {
-						$("#options_" + CurrentFieldKey).val(JSON.stringify(data));
+						$("#settings_" + CurrentFieldKey).val(JSON.stringify(data));
 					}
 				});
 			}});
@@ -206,7 +206,7 @@
 							<?php } ?>
 						'</select>' +
 						'<a href="#" class="options icon_settings" name="' + KeyCount + '"></a>' +
-						'<input type="hidden" name="' + name + '[options][' + KeyCount + ']" value="" id="options_' + KeyCount + '" />' +
+						'<input type="hidden" name="' + name + '[settings][' + KeyCount + ']" value="" id="settings_' + KeyCount + '" />' +
 					'</section>' +
 					'<section class="developer_resource_action right">' +
 						'<a href="#" class="icon_delete" name="' + KeyCount + '"></a>' +

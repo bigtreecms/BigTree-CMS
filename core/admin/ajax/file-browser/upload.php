@@ -100,7 +100,7 @@
 								"name" => $replacing ?: $_FILES["files"]["name"][$number],
 								"error" => $_FILES["files"]["error"][$number]
 							),
-							"options" => array(
+							"settings" => array(
 								"directory" => "files/resources/",
 								"thumbs" => array(
 									array("width" => 100, "height" => 100, "prefix" => "bigtree_list_thumb_", "title" => "bigtree_internal_list"),
@@ -112,7 +112,7 @@
 						
 						if (is_array($more_thumb_types)) {
 							foreach ($more_thumb_types as $thumb) {
-								$field["options"]["thumbs"][] = $thumb;
+								$field["settings"]["thumbs"][] = $thumb;
 							}
 						}
 		
@@ -121,7 +121,7 @@
 						if ($file) {
 							$thumbs = array();
 
-							foreach ($field["options"]["thumbs"] as $thumb) {
+							foreach ($field["settings"]["thumbs"] as $thumb) {
 								$thumbs[$thumb["title"]] = BigTree::prefixFile($file, $thumb["prefix"]);
 							}
 

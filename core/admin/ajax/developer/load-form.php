@@ -50,7 +50,7 @@
 				$subtitle = "";
 				$type = "text";
 				$title = str_replace(array("Url","Pdf","Sql"),array("URL","PDF","SQL"),ucwords(str_replace(array("-","_")," ",$column["name"])));
-				$options = array();
+				$settings = array();
 				
 				if (strpos($title,"URL") !== false) {
 					$subtitle = "(include http://)";
@@ -66,7 +66,7 @@
 				
 				if (strpos($title,"Image") !== false) {
 					$type = "upload";
-					$options["image"] = "on";
+					$settings["image"] = "on";
 				}
 				
 				if (strpos($title,"Description") !== false) {
@@ -95,14 +95,14 @@
 					foreach ($column["options"] as $option) {
 						$list[] = array("value" => $option, "description" => $option);
 					}
-					$options = array(
+					$settings = array(
 						"list_type" => "static",
 						"list" => $list
 					);
 					if ($column["allow_null"]) {
-						$options["allow-empty"] = "Yes";
+						$settings["allow-empty"] = "Yes";
 					} else {
-						$options["allow-empty"] = "No";
+						$settings["allow-empty"] = "No";
 					}
 				}
 				
@@ -120,19 +120,22 @@
 							$desc_column = $col;
 						}
 					}
-					$options = array("list_type" => "db", "pop-table" => $foreign_keys[$column["name"]]["other_table"]);
+
+					$settings = array("list_type" => "db", "pop-table" => $foreign_keys[$column["name"]]["other_table"]);
+					
 					if ($desc_column) {
-						$options["pop-description"] = $desc_column["name"];
-						$options["pop-sort"] = $desc_column["name"]." ASC";
+						$settings["pop-description"] = $desc_column["name"];
+						$settings["pop-sort"] = $desc_column["name"]." ASC";
 					}
+					
 					if ($column["allow_null"]) {
-						$options["allow-empty"] = "Yes";
+						$settings["allow-empty"] = "Yes";
 					} else {
-						$options["allow-empty"] = "No";
+						$settings["allow-empty"] = "No";
 					}
 				}
 
-				$fields[] = array("column" => $column["name"],"title" => $title, "subtitle" => $subtitle, "type" => $type,"options" => $options);
+				$fields[] = array("column" => $column["name"],"title" => $title, "subtitle" => $subtitle, "type" => $type,"settings" => $settings);
 			}
 			
 			if ($column["name"] == "position" && $column["type"] == "int") {
@@ -225,7 +228,7 @@
 					}
 				?>
 				<a href="#" class="options icon_settings" name="<?=$key?>"></a>
-				<input type="hidden" name="fields[<?=$key?>][options]" value="<?=htmlspecialchars(json_encode($field["options"]))?>" id="options_<?=$key?>" />
+				<input type="hidden" name="fields[<?=$key?>][settings]" value="<?=htmlspecialchars(json_encode($field["settings"] ?: $field["options"]))?>" id="options_<?=$key?>" />
 			</section>
 			<section class="developer_resource_action">
 				<a href="#" class="icon_delete" name="<?=$key?>"></a>
