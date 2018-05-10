@@ -74,7 +74,7 @@
 						"subtitle" => $meta["subtitle"],
 						"key" => "metadata[".$meta["id"]."]",
 						"tabindex" => $tabindex,
-						"settings" => $meta["settings"] ? json_decode($meta["settings"], true) : json_decode($meta["options"], true),
+						"settings" => $meta["settings"] ?: $meta["options"],
 						"value" => $file["metadata"][$meta["id"]]
 					);
 
@@ -88,3 +88,7 @@
 		<input type="submit" class="button blue" value="Update File">
 	</footer>
 </form>
+
+<script>
+	BigTreeFormValidator("form.container");
+</script>
