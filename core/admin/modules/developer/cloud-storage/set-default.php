@@ -43,7 +43,7 @@
 			<input type="submit" class="button blue" value="Update" />
 		</footer>
 	</form>
-</container>
+</div>
 <?
 		}
 	} else {
