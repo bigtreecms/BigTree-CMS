@@ -1486,7 +1486,7 @@
 				The change id.
 		*/
 
-		function createPendingChange($table,$item_id,$changes,$mtm_changes = array(),$tags_changes = array(),$module = 0) {
+		function createPendingChange($table,$item_id,$changes,$mtm_changes = array(),$tags_changes = array(),$module = "") {
 			$table = sqlescape($table);
 			$item_id = ($item_id !== false) ? "'".sqlescape($item_id)."'" : "NULL";
 			$changes = BigTree::json($changes,true);
