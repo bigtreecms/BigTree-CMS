@@ -6,7 +6,7 @@
 		"saved_post_data" => $bigtree["post_data"],
 		"saved_file_data" => $bigtree["file_data"]
 	);
-	
+
 	if (count($matrix["field"]["input"])) {
 		foreach ($matrix["field"]["input"] as $number => $data) {
 			// Make sure something has been entered
@@ -21,6 +21,12 @@
 				
 				foreach ($matrix["field"]["settings"]["columns"] as $resource) {
 					$settings = @json_decode($resource["settings"], true);
+					$options = @json_decode($resource["options"], true); // Backwards compat
+
+					if (!is_array($settings)) {
+						$settings = $options;
+					}
+					
 					$settings = is_array($settings) ? $settings : array();
 
 					$field = array(

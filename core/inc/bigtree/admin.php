@@ -5063,7 +5063,7 @@
 			$item["prefix"] = $last_prefix;
 			$item["crops"] = json_decode($item["crops"], true);
 			$item["thumbs"] = json_decode($item["thumbs"], true);
-			$item["metadata"] = json_decode($item["thumbs"], true);
+			$item["metadata"] = json_decode($item["metadata"], true);
 			
 			return BigTree::untranslateArray($item);
 		}
