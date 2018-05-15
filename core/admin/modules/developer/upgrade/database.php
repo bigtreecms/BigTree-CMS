@@ -733,7 +733,7 @@
 		BigTreeAdmin::updateSettingValue("bigtree-internal-media-settings", $settings);
 
 		// Delete the field type cache
-		unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
+		@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 	}
 
 	// BigTree 4.3 update -- REVISION 301
