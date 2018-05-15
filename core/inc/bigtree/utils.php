@@ -1614,18 +1614,18 @@
 		*/
 		
 		public static function path($file) {
-			// Backwards compatibility for 4.2 and below field types
-			if (strpos($file, "admin/form-field-types/draw/") === 0) {
-				$file = "admin/field-types/".pathinfo($file, PATHINFO_FILENAME)."/draw.php";
-			} elseif (strpos($file, "admin/form-field-types/process/") === 0) {
-				$file = "admin/field-types/".pathinfo($file, PATHINFO_FILENAME)."/process.php";
-			} elseif (strpos($file, "admin/ajax/developer/field-options/") === 0) {
-				$file = "admin/field-types/".pathinfo($file, PATHINFO_FILENAME)."/settings.php";
-			}
-
 			if (file_exists(SERVER_ROOT."custom/".$file)) {
 				return SERVER_ROOT."custom/".$file;
 			} else {
+				// Backwards compatibility for 4.2 and below field types
+				if (strpos($file, "admin/form-field-types/draw/") === 0) {
+					$file = "admin/field-types/".pathinfo($file, PATHINFO_FILENAME)."/draw.php";
+				} elseif (strpos($file, "admin/form-field-types/process/") === 0) {
+					$file = "admin/field-types/".pathinfo($file, PATHINFO_FILENAME)."/process.php";
+				} elseif (strpos($file, "admin/ajax/developer/field-options/") === 0) {
+					$file = "admin/field-types/".pathinfo($file, PATHINFO_FILENAME)."/settings.php";
+				}
+	
 				return SERVER_ROOT."core/".$file;
 			}
 		}
