@@ -4,6 +4,7 @@
 		$bigtree["view"] = BigTreeAutoModule::getView($_POST["view"]);
 		$bigtree["module"] = $admin->getModule(BigTreeAutoModule::getModuleForView($bigtree["view"]));
 	}
+	
 	BigTree::globalizeArray($bigtree["view"]);
 	
 	$permission = $admin->getAccessLevel($bigtree["module"]["id"]);
@@ -12,15 +13,17 @@
 	// Defaults
 	$search = isset($_POST["search"]) ? $_POST["search"] : "";
 	$search = isset($_GET["search"]) ? $_GET["search"] : $search;
-	$draggable = (isset($options["draggable"]) && $options["draggable"]) ? true : false;
-	$bigtree["view"]["options"]["per_page"] = 10000;
-	if (isset($options["sort_field"])) {
-		$sort = $options["sort_field"]." ".$options["sort_direction"];
-	} elseif (isset($options["sort"])) {
-		$sort = $options["sort"];
+	$draggable = (isset($bigtree["view"]["settings"]["draggable"]) && $bigtree["view"]["settings"]["draggable"]) ? true : false;
+	$bigtree["view"]["settings"]["per_page"] = 10000;
+	
+	if (isset($bigtree["view"]["settings"]["sort_field"])) {
+		$sort = $bigtree["view"]["settings"]["sort_field"]." ".$bigtree["view"]["settings"]["sort_direction"];
+	} elseif (isset($bigtree["view"]["settings"]["sort"])) {
+		$sort = $bigtree["view"]["settings"]["sort"];
 	} else {
 		$sort = "id DESC";
 	}
+	
 	if ($draggable) {
 		$sort = "position DESC, id ASC";
 	}
@@ -32,13 +35,13 @@
 
 	// Setup custom overrides for group titles when we're grouping by a special BigTree column
 	$group_title_overrides = array();
-	if ($bigtree["view"]["options"]["group_field"] == "featured") {
+	if ($bigtree["view"]["settings"]["group_field"] == "featured") {
 		$group_title_overrides["on"] = "Featured";
 		$group_title_overrides[""] = "Normal";
-	} elseif ($bigtree["view"]["options"]["group_field"] == "archived") {
+	} elseif ($bigtree["view"]["settings"]["group_field"] == "archived") {
 		$group_title_overrides["on"] = "Archived";
 		$group_title_overrides[""] = "Active";
-	} elseif ($bigtree["view"]["options"]["group_field"] == "approved") {
+	} elseif ($bigtree["view"]["settings"]["group_field"] == "approved") {
 		$group_title_overrides["on"] = "Approved";
 		$group_title_overrides[""] = "Not Approved";
 	}

@@ -18,13 +18,13 @@
 
 			CurrentField = $(this).attr("name");
 			
-			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-settings/", { type: "POST", data: { template: "true", type: $("#type_" + CurrentField).val(), data: $("#options_" + CurrentField).val() }, complete: function(response) {
+			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-settings/", { type: "POST", data: { template: "true", type: $("#type_" + CurrentField).val(), data: $("#settings_" + CurrentField).val() }, complete: function(response) {
 				BigTreeDialog({
-					title: "Field Options",
+					title: "Field Settings",
 					content: response.responseText,
 					icon: "edit",
 					callback: function(data) {
-						$("#options_" + CurrentField).val(JSON.stringify(data));
+						$("#settings_" + CurrentField).val(JSON.stringify(data));
 					}
 				});
 			}});

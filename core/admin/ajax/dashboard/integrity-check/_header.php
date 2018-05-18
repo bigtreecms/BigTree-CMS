@@ -20,6 +20,7 @@
 						if (strpos($data,"#") !== false) {
 							$data = substr($data,0,strpos($data,"#") - 1);
 						}
+
 						if (!BigTreeAdmin::urlExists($data)) {
 							$integrity_errors[$field] = array("a" => array($data));
 						}
@@ -36,9 +37,11 @@
 			} elseif ($resource["type"] == "callouts" && is_array($data)) {
 				foreach ($data as $callout_data) {
 					$callout = BigTreeAdmin::getCallout($callout_data["type"]);
+					
 					if ($callout) {
 						// We're going to modify the field titles so that it makes more sense when someone is diagnosing the issue
 						$callout_resources = array_filter((array)$callout["resources"]);
+						
 						foreach ($callout_resources as &$column) {
 							// If we have an internal title saved we can give even more context to which matrix entity has the problem
 							if ($callout_data["display_title"]) {
@@ -47,13 +50,15 @@
 								$column["title"] = $field." &raquo; ".$column["title"];
 							}
 						}
+						
 						$check_data($local_path,$external,$callout["resources"],$callout_data);
 					}
 				}
 			} elseif ($resource["type"] == "matrix" && is_array($data)) {
 				foreach ($data as $matrix_data) {
 					// We're going to modify the field titles so that it makes more sense when someone is diagnosing the issue
-					$columns = array_filter((array)$resource["options"]["columns"]);
+					$columns = array_filter((array) $resource["settings"] ? $resource["settings"]["columns"] : $resource["options"]["columns"]);
+					
 					foreach ($columns as &$column) {
 						// If we have an internal title saved we can give even more context to which matrix entity has the problem
 						if ($matrix_data["__internal-title"]) {
@@ -62,6 +67,7 @@
 							$column["title"] = $field." &raquo; ".$column["title"];
 						}
 					}
+					
 					$check_data($local_path,$external,$columns,$matrix_data);
 				}
 			}

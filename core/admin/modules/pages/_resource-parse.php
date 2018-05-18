@@ -6,20 +6,22 @@
 	$bigtree["post_data"] = $_POST["resources"];
 
 	foreach ((array)$bigtree["template"]["resources"] as $resource) {
+		$settings = $resource["settings"] ?: $resource["options"];
+
+		if (empty($settings["directory"])) {
+			$settings["directory"] = "files/pages/";
+		}
+
 		$field = array(
 			"type" => $resource["type"],
 			"title" => $resource["title"],
 			"subtitle" => $resource["subtitle"],
 			"key" => $resource["id"],
-			"settings" => $resource["settings"] ?: $resource["options"],
+			"settings" => $settings,
 			"ignore" => false,
 			"input" => $bigtree["post_data"][$resource["id"]],
 			"file_input" => $bigtree["file_data"][$resource["id"]]
 		);
-
-		if (empty($field["settings"]["directory"])) {
-			$field["settings"]["directory"] = $options["directory"] = "files/pages/";
-		}
 
 		$output = BigTreeAdmin::processField($field);
 		

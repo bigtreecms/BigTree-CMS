@@ -12,10 +12,10 @@
 		<ul id="image_list">
 			<?php
 				foreach ($items as $item) {
-					if ($bigtree["view"]["options"]["prefix"]) {
-						$preview_image = BigTree::prefixFile($item[$bigtree["view"]["options"]["image"]],$bigtree["view"]["options"]["prefix"]);
+					if ($bigtree["view"]["settings"]["prefix"]) {
+						$preview_image = BigTree::prefixFile($item[$bigtree["view"]["settings"]["image"]],$bigtree["view"]["settings"]["prefix"]);
 					} else {
-						$preview_image = $item[$bigtree["view"]["options"]["image"]];
+						$preview_image = $item[$bigtree["view"]["settings"]["image"]];
 					}
 					$item_permission = $admin->getAccessLevel($bigtree["module"],$item,$bigtree["form"]["table"]);
 

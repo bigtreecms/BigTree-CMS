@@ -48,7 +48,13 @@
 
 			// Create views
 			foreach ($module["views"] as $view) {
-				$bigtree["view_id_match"][$view["id"]] = $admin->createModuleView($module_id,$view["title"],$view["description"],$view["table"],$view["type"],(is_array($view["options"]) ? $view["options"] : json_decode($view["options"],true)),(is_array($view["fields"]) ? $view["fields"] : json_decode($view["fields"],true)),(is_array($view["actions"]) ? $view["actions"] : json_decode($view["actions"],true)),$view["related_form"],$view["preview_url"]);
+				$settings = $view["settings"] ?: $view["options"];
+
+				if (!is_array($settings)) {
+					$settings = json_decode($settings, true);
+				}
+
+				$bigtree["view_id_match"][$view["id"]] = $admin->createModuleView($module_id,$view["title"],$view["description"],$view["table"],$view["type"],$settings,(is_array($view["fields"]) ? $view["fields"] : json_decode($view["fields"],true)),(is_array($view["actions"]) ? $view["actions"] : json_decode($view["actions"],true)),$view["related_form"],$view["preview_url"]);
 			}
 			
 			// Create regular forms
@@ -106,9 +112,10 @@
 	foreach ($json["components"]["feeds"] as $feed) {
 		if ($feed) {
 			$fields = sqlescape(is_array($feed["fields"]) ? BigTree::json($feed["fields"]) : $feed["fields"]);
-			$options = sqlescape(is_array($feed["options"]) ? BigTree::json($feed["options"]) : $feed["options"]);
+			$settings = $feed["settings"] ?: $feed["options"];
+			$settings = sqlescape(is_array($settings) ? BigTree::json($settings) : $settings);
 			sqlquery("DELETE FROM bigtree_feeds WHERE route = '".sqlescape($feed["route"])."'");
-			sqlquery("INSERT INTO bigtree_feeds (`route`,`name`,`description`,`type`,`table`,`fields`,`options`) VALUES ('".sqlescape($feed["route"])."','".sqlescape($feed["name"])."','".sqlescape($feed["description"])."','".sqlescape($feed["type"])."','".sqlescape($feed["table"])."','$fields','$options')");
+			sqlquery("INSERT INTO bigtree_feeds (`route`,`name`,`description`,`type`,`table`,`fields`,`settings`) VALUES ('".sqlescape($feed["route"])."','".sqlescape($feed["name"])."','".sqlescape($feed["description"])."','".sqlescape($feed["type"])."','".sqlescape($feed["table"])."','$fields','$settings')");
 		}
 	}
 

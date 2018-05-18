@@ -1,7 +1,7 @@
 <?php
 	// Defaults
-	$sort = isset($options["sort"]) ? $options["sort"] : "id DESC";
-	$per_page = isset($options["per_page"]) ? $options["per_page"] : 15;
+	$sort = isset($settings["sort"]) ? $settings["sort"] : "id DESC";
+	$per_page = isset($settings["per_page"]) ? $settings["per_page"] : 15;
 ?>
 <fieldset>
 	<label>Sort By</label>

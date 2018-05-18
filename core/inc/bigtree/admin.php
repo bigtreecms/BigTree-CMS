@@ -837,27 +837,23 @@
 				description - The description.
 				table - The data table.
 				type - The feed type.
-				options - The feed type options.
+				settings - The feed type settings.
 				fields - The fields.
 
 			Returns:
 				The route to the new feed.
 		*/
 
-		public function createFeed($name,$description,$table,$type,$options,$fields) {
-			// Options were encoded before submitting the form, so let's get them back.
-			$options = json_decode($options,true);
-			if (is_array($options)) {
-				foreach ($options as &$option) {
-					$option = BigTreeCMS::replaceHardRoots($option);
-				}
-			}
+		public function createFeed($name,$description,$table,$type,$settings,$fields) {
+			// Settings were encoded before submitting the form, so let's get them back.
+			$settings = array_filter((array) json_decode($settings, true));
 
 			// Get a unique route!
 			$route = BigTreeCMS::urlify($name);
 			$x = 2;
 			$oroute = $route;
 			$f = BigTreeCMS::getFeedByRoute($route);
+
 			while ($f) {
 				$route = $oroute."-".$x;
 				$f = BigTreeCMS::getFeedByRoute($route);
@@ -869,11 +865,11 @@
 			$description = sqlescape(BigTree::safeEncode($description));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
-			$options = BigTree::json($options,true);
+			$settings = BigTree::json(BigTree::translateArray($settings), true);
 			$fields = BigTree::json($fields,true);
 			$route = sqlescape($route);
 
-			sqlquery("INSERT INTO bigtree_feeds (`route`,`name`,`description`,`type`,`table`,`fields`,`options`) VALUES ('$route','$name','$description','$type','$table','$fields','$options')");
+			sqlquery("INSERT INTO bigtree_feeds (`route`,`name`,`description`,`type`,`table`,`fields`,`settings`) VALUES ('$route','$name','$description','$type','$table','$fields','$settings')");
 			$this->track("bigtree_feeds",sqlid(),"created");
 
 			return $route;
@@ -903,7 +899,7 @@
 
 			sqlquery("INSERT INTO bigtree_field_types (`id`,`name`,`use_cases`,`self_draw`) VALUES ('$id','$name','$use_cases',$self_draw)");
 
-			// Make the files for draw and process and options if they don't exist.
+			// Make the files for draw and process and settings if they don't exist.
 			if (!file_exists(SERVER_ROOT."custom/admin/field-types/$id/draw.php")) {
 				BigTree::putFile(SERVER_ROOT."custom/admin/field-types/$id/draw.php", '<?php
 	/*
@@ -1310,7 +1306,7 @@
 				description - Description.
 				table - Data table.
 				type - View type.
-				options - View options array.
+				settings - View settings array.
 				fields - Field array.
 				actions - Actions array.
 				related_form - Form ID to handle edits.
@@ -1320,20 +1316,20 @@
 				The id for view.
 		*/
 
-		public function createModuleView($module,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url = "") {
+		public function createModuleView($module,$title,$description,$table,$type,$settings,$fields,$actions,$related_form,$preview_url = "") {
 			$module = sqlescape($module);
 			$title = sqlescape(BigTree::safeEncode($title));
 			$description = sqlescape(BigTree::safeEncode($description));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
 
-			$options = BigTree::json($options,true);
+			$settings = BigTree::json($settings,true);
 			$fields = BigTree::json($fields,true);
 			$actions = BigTree::json($actions,true);
 			$related_form = $related_form ? intval($related_form) : "NULL";
 			$preview_url = sqlescape(BigTree::safeEncode($this->makeIPL($preview_url)));
 
-			sqlquery("INSERT INTO bigtree_module_views (`module`,`title`,`description`,`type`,`fields`,`actions`,`table`,`options`,`preview_url`,`related_form`) VALUES ('$module','$title','$description','$type','$fields','$actions','$table','$options','$preview_url',$related_form)");
+			sqlquery("INSERT INTO bigtree_module_views (`module`,`title`,`description`,`type`,`fields`,`actions`,`table`,`settings`,`preview_url`,`related_form`) VALUES ('$module','$title','$description','$type','$fields','$actions','$table','$settings','$preview_url',$related_form)");
 
 			$id = sqlid();
 			static::updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($id));
@@ -1647,7 +1643,7 @@
 				Creates a setting.
 
 			Parameters:
-				data - An array of settings information. Available fields: "id", "name", "description", "type", "locked", "module", "encrypted", "system"
+				data - An array of settings information. Available fields: "id", "name", "description", "type", "settings", locked", "module", "encrypted", "system"
 
 			Returns:
 				True if successful, false if a setting already exists with the ID given.
@@ -1655,7 +1651,7 @@
 
 		public function createSetting($data) {
 			// Setup defaults
-			$id = $name = $extension = $description = $type = $options = $locked = $encrypted = $system = "";
+			$id = $name = $extension = $description = $type = $locked = $encrypted = $system = "";
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_" && !is_array($val)) {
 					$$key = sqlescape(htmlspecialchars($val));
@@ -1996,6 +1992,11 @@
 			@unlink(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
 			@unlink(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
 			@unlink(SERVER_ROOT."custom/admin/ajax/developer/field-options/$id.php");
+			@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
+			@unlink(SERVER_ROOT."custom/admin/field-types/$id/draw/.php");
+			@unlink(SERVER_ROOT."custom/admin/field-types/$id/process.php");
+			@unlink(SERVER_ROOT."custom/admin/field-types/$id/settings.php");
+			@unlink(SERVER_ROOT."custom/admin/field-types/$id/");
 			@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 			
 			sqlquery("DELETE FROM bigtree_field_types WHERE id = '".sqlescape($id)."'");
@@ -3474,9 +3475,11 @@
 		public static function getFeeds($sort = "name ASC") {
 			$feeds = array();
 			$q = sqlquery("SELECT * FROM bigtree_feeds ORDER BY $sort");
+			
 			while ($f = sqlfetch($q)) {
 				$feeds[] = $f;
 			}
+			
 			return $feeds;
 		}
 
@@ -4116,17 +4119,21 @@
 
 		public static function getModuleViews($sort = "title",$module = false) {
 			$items = array();
+			
 			if ($module !== false) {
 				$q = sqlquery("SELECT * FROM bigtree_module_views WHERE module = '".sqlescape($module)."' ORDER BY $sort");
 			} else {
 				$q = sqlquery("SELECT * FROM bigtree_module_views ORDER BY $sort");
 			}
+
 			while ($view = sqlfetch($q)) {
-				$view["fields"] = json_decode($view["fields"],true);
-				$view["actions"] = json_decode($view["actions"],true);
-				$view["options"] = json_decode($view["options"],true);		
-				$items[] = $view;
+				$view["fields"] = json_decode($view["fields"], true);
+				$view["actions"] = json_decode($view["actions"], true);
+				$view["settings"] = json_decode($view["settings"], true);		
+
+				$items[] = BigTree::untranslateArray($view);
 			}
+			
 			return $items;
 		}
 
@@ -5774,7 +5781,8 @@
 					}
 					// Create views
 					foreach ($module["views"] as $view) {
-						$bigtree["view_id_match"][$view["id"]] = $this->createModuleView($module_id,$view["title"],$view["description"],$view["table"],$view["type"],(is_array($view["options"]) ? $view["options"] : json_decode($view["options"],true)),(is_array($view["fields"]) ? $view["fields"] : json_decode($view["fields"],true)),(is_array($view["actions"]) ? $view["actions"] : json_decode($view["actions"],true)),$view["suffix"],$view["preview_url"]);
+						$settings = $view["settings"] ?: $view["options"];
+						$bigtree["view_id_match"][$view["id"]] = $this->createModuleView($module_id,$view["title"],$view["description"],$view["table"],$view["type"],(is_array($settings) ? $settings : json_decode($settings,true)),(is_array($view["fields"]) ? $view["fields"] : json_decode($view["fields"],true)),(is_array($view["actions"]) ? $view["actions"] : json_decode($view["actions"],true)),$view["suffix"],$view["preview_url"]);
 					}
 					// Create regular forms
 					foreach ($module["forms"] as $form) {
@@ -5819,8 +5827,9 @@
 			foreach ($manifest["components"]["feeds"] as $feed) {
 				if ($feed) {
 					$fields = sqlescape(is_array($feed["fields"]) ? BigTree::json($feed["fields"]) : $feed["fields"]);
-					$options = sqlescape(is_array($feed["options"]) ? BigTree::json($feed["options"]) : $feed["options"]);
-					sqlquery("INSERT INTO bigtree_feeds (`route`,`name`,`description`,`type`,`table`,`fields`,`options`,`extension`) VALUES ('".sqlescape($feed["route"])."','".sqlescape($feed["name"])."','".sqlescape($feed["description"])."','".sqlescape($feed["type"])."','".sqlescape($feed["table"])."','$fields','$options','$extension')");
+					$settings = $feed["settings"] ?: $feed["options"];
+					$settings = sqlescape(is_array($settings) ? BigTree::json($settings) : $settings);
+					sqlquery("INSERT INTO bigtree_feeds (`route`,`name`,`description`,`type`,`table`,`fields`,`settings`,`extension`) VALUES ('".sqlescape($feed["route"])."','".sqlescape($feed["name"])."','".sqlescape($feed["description"])."','".sqlescape($feed["type"])."','".sqlescape($feed["table"])."','$fields','$settings','$extension')");
 				}
 			}
 		
@@ -8036,15 +8045,12 @@
 				description - The description.
 				table - The data table.
 				type - The feed type.
-				options - The feed type options.
+				settings - The feed type settings.
 				fields - The fields.
 		*/
 
-		public function updateFeed($id,$name,$description,$table,$type,$options,$fields) {
-			$options = json_decode($options,true);
-			foreach ($options as &$option) {
-				$option = BigTreeCMS::replaceHardRoots($option);
-			}
+		public function updateFeed($id,$name,$description,$table,$type,$settings,$fields) {
+			$settings = array_filter((array) json_decode($settings, true));			
 
 			// Fix stuff up for the db.
 			$id = sqlescape($id);
@@ -8052,10 +8058,10 @@
 			$description = sqlescape(BigTree::safeEncode($description));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
-			$options = BigTree::json($options,true);
-			$fields = BigTree::json($fields,true);
+			$settings = BigTree::json(BigTree::translateArray($settings), true);
+			$fields = BigTree::json($fields, true);
 
-			sqlquery("UPDATE bigtree_feeds SET name = '$name', description = '$description', `table` = '$table', type = '$type', fields = '$fields', options = '$options' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_feeds SET name = '$name', description = '$description', `table` = '$table', type = '$type', fields = '$fields', settings = '$settings' WHERE id = '$id'");
 			$this->track("bigtree_feeds",$id,"updated");
 		}
 
@@ -8316,7 +8322,7 @@
 				description - Description.
 				table - Data table.
 				type - View type.
-				options - View options array.
+				settings - View settings array.
 				fields - Field array.
 				actions - Actions array.
 				related_form - Form ID to handle edits.
@@ -8326,20 +8332,20 @@
 				The id for view.
 		*/
 
-		public function updateModuleView($id,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url = "") {
+		public function updateModuleView($id,$title,$description,$table,$type,$settings,$fields,$actions,$related_form,$preview_url = "") {
 			$id = sqlescape($id);
 			$title = sqlescape(BigTree::safeEncode($title));
 			$description = sqlescape(BigTree::safeEncode($description));
 			$table = sqlescape($table);
 			$type = sqlescape($type);
 
-			$options = BigTree::json($options,true);
+			$settings = BigTree::json($settings,true);
 			$fields = BigTree::json($fields,true);
 			$actions = BigTree::json($actions,true);
 			$related_form = $related_form ? intval($related_form) : "NULL";
 			$preview_url = sqlescape(BigTree::safeEncode($this->makeIPL($preview_url)));
 
-			sqlquery("UPDATE bigtree_module_views SET title = '$title', description = '$description', `table` = '$table', type = '$type', options = '$options', fields = '$fields', actions = '$actions', preview_url = '$preview_url', related_form = $related_form WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_views SET title = '$title', description = '$description', `table` = '$table', type = '$type', settings = '$settings', fields = '$fields', actions = '$actions', preview_url = '$preview_url', related_form = $related_form WHERE id = '$id'");
 			sqlquery("UPDATE bigtree_module_actions SET name = 'View $title' WHERE view = '$id'");
 
 			static::updateModuleViewColumnNumericStatus(BigTreeAutoModule::getView($id));
@@ -8815,14 +8821,14 @@
 				}
 			}
 
-			$options = BigTree::json(BigTree::translateArray($options), true);
+			$settings = BigTree::json(BigTree::translateArray($settings), true);
 
 			// See if we have an id collision with the new id.
 			if ($old_id != $id && static::settingExists($id)) {
 				return false;
 			}
 
-			sqlquery("UPDATE bigtree_settings SET id = '$id', type = '$type', `options` = '$options', name = '$name', description = '$description', locked = '$locked', system = '$system', encrypted = '$encrypted' WHERE id = '$old_id'");
+			sqlquery("UPDATE bigtree_settings SET id = '$id', type = '$type', `settings` = '$settings', name = '$name', description = '$description', locked = '$locked', system = '$system', encrypted = '$encrypted' WHERE id = '$old_id'");
 
 			// If encryption status has changed, update the value
 			if ($existing["encrypted"] && !$encrypted) {

@@ -77,7 +77,7 @@
 		include $path;
 	} elseif ($field_type != "textarea" && $field_type != "time" && $field_type != "file-reference" && $field_type != "video-reference") {
 ?>
-<p>This field type does not have any options.</p>
+<p>This field type does not have any settings.</p>
 <?php
 	}
 ?>

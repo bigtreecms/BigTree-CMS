@@ -42,8 +42,8 @@
 				<option value="<?=$key?>"<?php if ($key == $type) { ?> selected="selected"<?php } ?>><?=$t?></option>
 				<?php } ?>
 			</select>
-			&nbsp; <a href="#" class="options icon_settings centered"></a>
-			<input type="hidden" name="options" id="view_options" value="<?=htmlspecialchars(json_encode($options))?>" />
+			&nbsp; <a href="#" class="js-view-settings icon_settings centered"></a>
+			<input type="hidden" name="settings" id="view_settings" value="<?=htmlspecialchars(json_encode($settings))?>" />
 		</fieldset>
 	</div>
 </section>

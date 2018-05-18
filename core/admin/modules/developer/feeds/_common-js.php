@@ -5,7 +5,7 @@
 		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-feed-fields/?table=" + data.value);
 	});
 	
-	$(".options").click(function(ev) {
+	$(".icon_settings").click(function(ev) {
 		ev.preventDefault();
 
 		// Prevent double clicks
@@ -13,13 +13,13 @@
 			return;
 		}
 
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-feed-options/", { type: "POST", data: { table: $("#feed_table").val(), type: $("#feed_type").val(), data: $("#feed_options").val() }, complete: function(response) {
+		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-feed-settings/", { type: "POST", data: { table: $("#feed_table").val(), type: $("#feed_type").val(), data: $("#feed_settings").val() }, complete: function(response) {
 			BigTreeDialog({
-				title: "Feed Options",
+				title: "Feed Settings",
 				content: response.responseText,
 				icon: "edit",
 				callback: function(data) {
-					$("#feed_options").val(JSON.stringify(data));
+					$("#feed_settings").val(JSON.stringify(data));
 				}
 			});
 		}});

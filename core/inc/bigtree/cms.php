@@ -559,7 +559,7 @@
 				item - Either the ID of the feed to pull or a raw database row of the feed data
 			
 			Returns:
-				An array of feed information with options and fields decoded from JSON.
+				An array of feed information with settings and fields decoded from JSON.
 				
 			See Also:
 				<getFeedByRoute>
@@ -570,16 +570,15 @@
 				$item = sqlescape($item);
 				$item = sqlfetch(sqlquery("SELECT * FROM bigtree_feeds WHERE id = '$item'"));
 			}
+
 			if (!$item) {
 				return false;
 			}
-			$item["options"] = json_decode($item["options"],true);
-			if (is_array($item["options"])) {
-				foreach ($item["options"] as &$option) {
-					$option = static::replaceRelativeRoots($option);
-				}
-			}
-			$item["fields"] = json_decode($item["fields"],true);
+
+			$item["settings"] = BigTree::untranslateArray(json_decode($item["settings"], true));
+			$item["options"] = &$item["settings"]; // Backwards compatibility
+			$item["fields"] = json_decode($item["fields"], true);
+			
 			return $item;
 		}
 		
@@ -591,7 +590,7 @@
 				route - The route of the feed to pull.
 			
 			Returns:
-				An array of feed information with options and fields decoded from JSON.
+				An array of feed information with settings and fields decoded from JSON.
 			
 			See Also:
 				<getFeed>
@@ -600,6 +599,7 @@
 		public static function getFeedByRoute($route) {
 			$route = sqlescape($route);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_feeds WHERE route = '$route'"));
+			
 			return static::getFeed($item);
 		}
 		

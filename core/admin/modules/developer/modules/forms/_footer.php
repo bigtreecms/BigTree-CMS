@@ -41,13 +41,13 @@
 		var key = $(this).attr("name");
 		BigTree.localCurrentFieldKey = key;
 		
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-settings/", { type: "POST", data: { table: $("#form_table").val(), type: $("#type_" + key).val(), data: $("#options_" + key).val() }, complete: function(response) {
+		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-settings/", { type: "POST", data: { table: $("#form_table").val(), type: $("#type_" + key).val(), data: $("#settings_" + key).val() }, complete: function(response) {
 			BigTreeDialog({
-				title: "Field Options",
+				title: "Field Settings",
 				content: response.responseText,
 				icon: "edit",
 				callback: function(data) {
-					$("#options_" + BigTree.localCurrentFieldKey).val(JSON.stringify(data));
+					$("#settings_" + BigTree.localCurrentFieldKey).val(JSON.stringify(data));
 				}
 			});
 		}});
@@ -69,7 +69,7 @@
 		var li = $('<li id="row_geocoding">');
 		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="fields[__geocoding__][title]" value="Geocoding" disabled="disabled" /></section>' + 
 				'<section class="developer_resource_form_subtitle"><input type="text" name="fields[__geocoding__][subtitle]" value="" disabled="disabled" /></section>' + 
-				'<section class="developer_resource_type"><input name="fields[__geocoding__][type]" id="type_geocoding" type="hidden" value="geocoding" /><span class="resource_name">Geocoding</span><a href="#" class="options icon_settings" name="geocoding"></a><input type="hidden" name="fields[__geocoding__][options]" value="" id="options_geocoding" /></section>' +
+				'<section class="developer_resource_type"><input name="fields[__geocoding__][type]" id="type_geocoding" type="hidden" value="geocoding" /><span class="resource_name">Geocoding</span><a href="#" class="icon_settings" name="geocoding"></a><input type="hidden" name="fields[__geocoding__][settings]" value="" id="settings_geocoding" /></section>' +
 				'<section class="developer_resource_action"><a href="#" class="icon_delete" name="geocoding"></a></section>');
 		
 		$("#resource_table").append(li);
@@ -85,7 +85,7 @@
 		var li = $('<li id="mtm_row_' + BigTree.localMTMCount + '">');
 		li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="fields[__mtm-' + BigTree.localMTMCount + '__][title]" value="" /></section>' +
 				'<section class="developer_resource_form_subtitle"><input type="text" name="fields[__mtm-' + BigTree.localMTMCount + '__][subtitle]" value="" /></section>' +
-				'<section class="developer_resource_type"><input name="fields[__mtm-' + BigTree.localMTMCount + '__][type]" id="type___mtm-' + BigTree.localMTMCount + '__" type="hidden" value="many-to-many" /><span class="resource_name">Many To Many</span><a href="#" class="options icon_settings" name="__mtm-' + BigTree.localMTMCount + '__"></a><input type="hidden" name="fields[__mtm-' + BigTree.localMTMCount + '__][options]" value="" id="options___mtm-' + BigTree.localMTMCount + '__" /></section>' +
+				'<section class="developer_resource_type"><input name="fields[__mtm-' + BigTree.localMTMCount + '__][type]" id="type___mtm-' + BigTree.localMTMCount + '__" type="hidden" value="many-to-many" /><span class="resource_name">Many To Many</span><a href="#" class="icon_settings" name="__mtm-' + BigTree.localMTMCount + '__"></a><input type="hidden" name="fields[__mtm-' + BigTree.localMTMCount + '__][settings]" value="" id="settings___mtm-' + BigTree.localMTMCount + '__" /></section>' +
 				'<section class="developer_resource_action"><a href="#" class="icon_delete" name="__mtm-' + BigTree.localMTMCount + '__"></a></section>');
 		
 		$("#resource_table").append(li);

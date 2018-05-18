@@ -740,3 +740,9 @@
 	function _local_bigtree_update_301() {
 		sqlquery("ALTER TABLE `bigtree_settings` CHANGE COLUMN `options` `settings` LONGTEXT");
 	}
+
+	// BigTree 4.3 update -- REVISION 301
+	function _local_bigtree_update_302() {
+		sqlquery("ALTER TABLE `bigtree_feeds` CHANGE COLUMN `options` `settings` LONGTEXT");
+		sqlquery("ALTER TABLE `bigtree_module_views` CHANGE COLUMN `options` `settings` LONGTEXT");
+	}

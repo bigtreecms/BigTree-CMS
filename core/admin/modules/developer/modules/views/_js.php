@@ -3,7 +3,7 @@
 		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-view-fields/?table=" + data.value + "&type=" + $("#view_type").val());
 	});
 	
-	$(".options").click(function(ev) {
+	$(".js-view-settings").click(function(ev) {
 		ev.preventDefault();
 		
 		// Prevent double clicks
@@ -11,13 +11,13 @@
 			return;
 		}
 
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-view-options/", { type: "POST", data: { table: $("#view_table").val(), type: $("#view_type").val(), data: $("#view_options").val() }, complete: function(response) {
+		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-view-settings/", { type: "POST", data: { table: $("#view_table").val(), type: $("#view_type").val(), data: $("#view_settings").val() }, complete: function(response) {
 			BigTreeDialog({
-				title: "View Options",
+				title: "View Settings",
 				content: response.responseText,
 				icon: "edit",
 				callback: function(data) {
-					$("#view_options").val(JSON.stringify(data));
+					$("#view_settings").val(JSON.stringify(data));
 				}
 			});
 		}});

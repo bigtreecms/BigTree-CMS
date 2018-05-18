@@ -16,7 +16,7 @@
 	// Retrieve our results.
 	if ((isset($_POST["search"]) && $_POST["search"]) || (isset($_GET["search"]) && $_GET["search"])) {
 		$search = isset($_GET["search"]) ? $_GET["search"] : $_POST["search"];
-		$bigtree["view"]["options"]["per_page"] = 10000000;
+		$bigtree["view"]["settings"]["per_page"] = 10000000;
 		$r = BigTreeAutoModule::getSearchResults($bigtree["view"],1,$search,"column1 ASC",false);
 		$items = $r["results"];
 	} else {

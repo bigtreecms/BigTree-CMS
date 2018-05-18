@@ -6,10 +6,10 @@
 	
 	if (isset($_GET["sort"])) {
 		$sort = "`".$_GET["sort"]."` ".$_GET["sort_direction"];
-	} elseif (isset($options["sort_column"])) {
-		$sort = $options["sort_column"]." ".$options["sort_direction"];
-	} elseif (isset($options["sort"])) {
-		$sort = $options["sort"];
+	} elseif (isset($bigtree["view"]["settings"]["sort_column"])) {
+		$sort = $bigtree["view"]["settings"]["sort_column"]." ".$bigtree["view"]["settings"]["sort_direction"];
+	} elseif (isset($bigtree["view"]["settings"]["sort"])) {
+		$sort = $bigtree["view"]["settings"]["sort"];
 	} else {
 		$sort = "`id` DESC";
 	}

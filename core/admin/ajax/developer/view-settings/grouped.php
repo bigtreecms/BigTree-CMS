@@ -1,14 +1,14 @@
 <?php
 	// Defaults
-	$sort = isset($options["sort"]) ? $options["sort"] : "id DESC";
-	$group_field = isset($options["group_field"]) ? $options["group_field"] : "";
-	$per_page = isset($options["per_page"]) ? $options["per_page"] : 15;
-	$draggable = isset($options["draggable"]) ? $options["draggable"] : false;
-	$other_table = isset($options["other_table"]) ? $options["other_table"] : false;
-	$title_field = isset($options["title_field"]) ? $options["title_field"] : false;
-	$ot_sort_field = isset($options["ot_sort_field"]) ? $options["ot_sort_field"] : false;
-	$ot_sort_direction = isset($options["ot_sort_direction"]) ? $options["ot_sort_direction"] : false;
-	$group_parser = isset($options["group_parser"]) ? $options["group_parser"] : "";
+	$sort = isset($settings["sort"]) ? $settings["sort"] : "id DESC";
+	$group_field = isset($settings["group_field"]) ? $settings["group_field"] : "";
+	$per_page = isset($settings["per_page"]) ? $settings["per_page"] : 15;
+	$draggable = isset($settings["draggable"]) ? $settings["draggable"] : false;
+	$other_table = isset($settings["other_table"]) ? $settings["other_table"] : false;
+	$title_field = isset($settings["title_field"]) ? $settings["title_field"] : false;
+	$ot_sort_field = isset($settings["ot_sort_field"]) ? $settings["ot_sort_field"] : false;
+	$ot_sort_direction = isset($settings["ot_sort_direction"]) ? $settings["ot_sort_direction"] : false;
+	$group_parser = isset($settings["group_parser"]) ? $settings["group_parser"] : "";
 ?>
 <fieldset>
 	<input type="checkbox" class="checkbox" name="draggable" <?php if ($draggable) { ?>checked="checked" <?php } ?>/>

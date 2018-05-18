@@ -29,7 +29,7 @@
 					</optgroup>
 					<?php } ?>
 				</select> &nbsp; <a class="icon_settings" href="#"></a>
-				<input type="hidden" name="settings" value="<?=$settings?>" id="options_settings" />
+				<input type="hidden" name="settings" value="<?=$settings?>" id="field_settings" />
 			</fieldset>
 			<fieldset>
 				 <input type="checkbox" name="locked"<?php if ($locked) { ?> checked="checked"<?php } ?> />
@@ -55,12 +55,12 @@
 			return;
 		}
 
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-settings/", { type: "POST", data: { setting: "true", type: $("#settings_type").val(), data: $("#options_settings").val() }, complete: function(response) {
+		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-settings/", { type: "POST", data: { setting: "true", type: $("#settings_type").val(), data: $("#field_settings").val() }, complete: function(response) {
 			BigTreeDialog({
-				title: "Settings Options",
+				title: "Field Settings",
 				content: response.responseText,
 				icon: "edit",
-				callback: function(data) { $("#options_settings").val(JSON.stringify(data)); }
+				callback: function(data) { $("#field_settings").val(JSON.stringify(data)); }
 			});
 		}});
 	});

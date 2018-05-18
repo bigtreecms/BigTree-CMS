@@ -20,10 +20,10 @@
 		// Append information to the end of an edit string so that we can return to the same set of search results after submitting a form.
 		$edit_append = "?view_data=".base64_encode(json_encode(array("view" => $bigtree["view"]["id"], "sort" => $_GET["sort"], "sort_direction" => $_GET["sort_direction"], "search" => $search, "page" => $page)));
 	} else {
-		if (isset($options["sort_column"])) {
-			$sort = $options["sort_column"]." ".$options["sort_direction"];
-		} elseif (isset($options["sort"])) {
-			$sort = $options["sort"];
+		if (isset($bigtree["view"]["settings"]["sort_column"])) {
+			$sort = $bigtree["view"]["settings"]["sort_column"]." ".$bigtree["view"]["settings"]["sort_direction"];
+		} elseif (isset($bigtree["view"]["settings"]["sort"])) {
+			$sort = $bigtree["view"]["settings"]["sort"];
 		} else {
 			$sort = "id DESC";
 		}

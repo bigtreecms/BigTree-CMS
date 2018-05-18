@@ -39,7 +39,7 @@
 			
 			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-settings/", { type: "POST", data: { callout: "true", type: $("#type_" + key).val(), data: $("#settings_" + key).val() }, complete: function(response) {
 				BigTreeDialog({
-					title: "Field Options",
+					title: "Field Settings",
 					content: response.responseText,
 					icon: "edit",
 					callback: function(data) {

@@ -47,9 +47,10 @@
 					sqlquery("DELETE FROM bigtree_module_view_cache WHERE `view` = '".$view["id"]."' AND id = '".$item["id"]."'");
 				}
 				
-				$view["fields"] = json_decode($view["fields"],true);
-				$view["actions"] = json_decode($view["actions"],true);
-				$view["options"] = json_decode($view["options"],true);
+				$view["fields"] = json_decode($view["fields"], true);
+				$view["actions"] = json_decode($view["actions"], true);
+				$view["settings"] = json_decode($view["settings"], true);
+				$view["options"] = &$view["settings"]; // Backwards compatibility
 				
 				// In case this view has never been cached, run the whole view, otherwise just this one.
 				if (!self::cacheViewData($view)) {
@@ -66,8 +67,8 @@
 					foreach ($view["fields"] as $key => $field) {
 						if ($field["parser"]) {
 							$parsers[$key] = $field["parser"];
-						} elseif ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["options"]["list_type"] == "db") {
-							$poplists[$key] = array("description" => $form["fields"][$key]["options"]["pop-description"], "table" => $form["fields"][$key]["options"]["pop-table"]);
+						} elseif ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["settings"]["list_type"] == "db") {
+							$poplists[$key] = array("description" => $form["fields"][$key]["settings"]["pop-description"], "table" => $form["fields"][$key]["settings"]["pop-table"]);
 						}
 					}
 					
@@ -90,8 +91,8 @@
 		
 		public static function cacheRecord($item,$view,$parsers,$poplists,$original_item) {
 			// If we have a filter function, ask it first if we should cache it
-			if (isset($view["options"]["filter"]) && $view["options"]["filter"]) {
-				if (!call_user_func($view["options"]["filter"],$item)) {
+			if (isset($view["settings"]["filter"]) && $view["settings"]["filter"]) {
+				if (!call_user_func($view["settings"]["filter"],$item)) {
 					return false;
 				}
 			}
@@ -129,37 +130,38 @@
 			$vals = array("'".$view["id"]."'","'".$item["id"]."'","'$status'","'$position'","'$approved'","'$archived'","'$featured'","'".$pending_owner."'");
 
 			// Figure out which column we're going to use to sort the view.
-			if ($view["options"]["sort"]) {
-				$sort_field = BigTree::nextSQLColumnDefinition(ltrim($view["options"]["sort"],"`"));
+			if ($view["settings"]["sort"]) {
+				$sort_field = BigTree::nextSQLColumnDefinition(ltrim($view["settings"]["sort"],"`"));
 			} else {
 				$sort_field = false;
 			}
 			
 			// Let's see if we have a grouping field.  If we do, let's get all that info and cache it as well.
-			if (isset($view["options"]["group_field"]) && $view["options"]["group_field"]) {
-				$value = $item[$view["options"]["group_field"]];
+			if (isset($view["settings"]["group_field"]) && $view["settings"]["group_field"]) {
+				$value = $item[$view["settings"]["group_field"]];
 
 				// Check for a parser
-				if (isset($view["options"]["group_parser"]) && $view["options"]["group_parser"]) {
-					$value = BigTree::runParser($item,$value,$view["options"]["group_parser"]);
+				if (isset($view["settings"]["group_parser"]) && $view["settings"]["group_parser"]) {
+					$value = BigTree::runParser($item,$value,$view["settings"]["group_parser"]);
 				}
 
 				$fields[] = "group_field";
 				$vals[] = "'".sqlescape($value)."'";
 				
-				if (is_numeric($value) && $view["options"]["other_table"]) {
-					$f = sqlfetch(sqlquery("SELECT * FROM `".$view["options"]["other_table"]."` WHERE id = '$value'"));
-					if ($view["options"]["ot_sort_field"]) {
+				if (is_numeric($value) && $view["settings"]["other_table"]) {
+					$f = sqlfetch(sqlquery("SELECT * FROM `".$view["settings"]["other_table"]."` WHERE id = '$value'"));
+					
+					if ($view["settings"]["ot_sort_field"]) {
 						$fields[] = "group_sort_field";
-						$vals[] = "'".sqlescape($f[$view["options"]["ot_sort_field"]])."'";
+						$vals[] = "'".sqlescape($f[$view["settings"]["ot_sort_field"]])."'";
 					}
 				}
 			}
 
 			// Check for a nesting column
-			if (isset($view["options"]["nesting_column"]) && $view["options"]["nesting_column"]) {
+			if (isset($view["settings"]["nesting_column"]) && $view["settings"]["nesting_column"]) {
 				$fields[] = "group_field";
-				$vals[] = "'".sqlescape($item[$view["options"]["nesting_column"]])."'";
+				$vals[] = "'".sqlescape($item[$view["settings"]["nesting_column"]])."'";
 			}
 			
 			// Group based permissions data
@@ -178,6 +180,7 @@
 			// Run pop lists
 			foreach ($poplists as $key => $pop) {
 				$f = sqlfetch(sqlquery("SELECT `".$pop["description"]."` FROM `".$pop["table"]."` WHERE id = '".$item[$key]."'"));
+
 				if (is_array($f)) {
 					$item[$key] = current($f);
 				}
@@ -186,20 +189,23 @@
 			// Insert into the view cache			
 			if ($view["type"] == "images" || $view["type"] == "images-grouped") {
 				$fields[] = "column1";
-				$vals[] = "'".$item[$view["options"]["image"]]."'";
+				$vals[] = "'".$item[$view["settings"]["image"]]."'";
 			} else {
 				$x = 1;
 				foreach ($view["fields"] as $field => $options) {
 					$item[$field] = $cms->replaceInternalPageLinks($item[$field]);
 					$fields[] = "column$x";
+
 					if (isset($parsers[$field]) && $parsers[$field]) {
 						$vals[] = "'".sqlescape(BigTree::safeEncode($item[$field]))."'";					
 					} else {
 						$vals[] = "'".sqlescape(BigTree::safeEncode(strip_tags($item[$field])))."'";
 					}
+					
 					$x++;
 				}
 			}
+
 			if ($sort_field) {
 				$fields[] = "`sort_field`";
 				$vals[] = "'".sqlescape($item[$sort_field])."'";
@@ -234,12 +240,12 @@
 			
 			foreach ($view["fields"] as $key => $field) {
 				// Get the form field
-				$ff = $form["fields"][$key];
+				$form_field = $form["fields"][$key];
 				
 				if ($field["parser"]) {
 					$parsers[$key] = $field["parser"];
-				} elseif ($ff["type"] == "list" && $ff["options"]["list_type"] == "db") {
-					$poplists[$key] = array("description" => $ff["options"]["pop-description"], "table" => $ff["options"]["pop-table"]);
+				} elseif ($form_field["type"] == "list" && $form_field["settings"]["list_type"] == "db") {
+					$poplists[$key] = array("description" => $form_field["settings"]["pop-description"], "table" => $form_field["settings"]["pop-table"]);
 				}
 			}
 			
@@ -489,7 +495,7 @@
 
 		public static function getDependantViews($table) {
 			$views = array();
-			$q = sqlquery("SELECT * FROM bigtree_module_views WHERE options LIKE '%".sqlescape($table)."%'");
+			$q = sqlquery("SELECT * FROM bigtree_module_views WHERE settings LIKE '%".sqlescape($table)."%'");
 			while ($f = sqlfetch($q)) {
 				$views[] = $f;
 			}
@@ -585,7 +591,7 @@
 				if (is_array($groups)) {
 					$gfl = array();
 					foreach ($groups as $g) {
-						if ($view["type"] == "nested" && $module["gbp"]["group_field"] == $view["options"]["nesting_column"]) {
+						if ($view["type"] == "nested" && $module["gbp"]["group_field"] == $view["settings"]["nesting_column"]) {
 							$gfl[] = "`id` = '".sqlescape($g)."' OR `gbp_field` = '".sqlescape($g)."'";
 						} else {
 							$gfl[] = "`gbp_field` = '".sqlescape($g)."'";
@@ -650,39 +656,46 @@
 		public static function getGroupsForView($view) {
 			$groups = array();
 			$query = "SELECT DISTINCT(group_field) FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'";
-			if (isset($view["options"]["ot_sort_field"]) && $view["options"]["ot_sort_field"]) {
+			
+			if (isset($view["settings"]["ot_sort_field"]) && $view["settings"]["ot_sort_field"]) {
 				// We're going to determine whether the group sort field is numeric or not first.
 				$is_numeric = true;
 				$q = sqlquery("SELECT DISTINCT(group_sort_field) FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'");
+				
 				while ($f = sqlfetch($q)) {
 					if (!is_numeric($f["group_sort_field"])) {
 						$is_numeric = false;
 					}
 				}
+
 				// If all of the groups are numeric we'll cast the sorting field as decimal so it's not interpretted as a string.
 				if ($is_numeric) {
-					$query .= " ORDER BY CAST(group_sort_field AS DECIMAL) ".$view["options"]["ot_sort_direction"];
+					$query .= " ORDER BY CAST(group_sort_field AS DECIMAL) ".$view["settings"]["ot_sort_direction"];
 				} else {
-					$query .= " ORDER BY group_sort_field ".$view["options"]["ot_sort_direction"];
+					$query .= " ORDER BY group_sort_field ".$view["settings"]["ot_sort_direction"];
 				}
 			} else {
 				$query .= " ORDER BY group_field";
 			}
+
 			$q = sqlquery($query);
 			
 			// If there's another table, we're going to query it separately.
-			if ($view["options"]["other_table"] && !$view["options"]["group_parser"]) {
+			if ($view["settings"]["other_table"] && !$view["settings"]["group_parser"]) {
 				$otq = array();
+				
 				while ($f = sqlfetch($q)) {
 					$otq[] = "id = '".$f["group_field"]."'";
 					// We need to instatiate all of these as empty first in case the database relationship doesn't exist.
 					$groups[$f["group_field"]] = "";
 				}
+				
 				if (count($otq)) {
-					if ($view["options"]["ot_sort_field"]) {
-						$otsf = $view["options"]["ot_sort_field"];
-						if ($view["options"]["ot_sort_direction"]) {
-							$otsd = $view["options"]["ot_sort_direction"];
+					if ($view["settings"]["ot_sort_field"]) {
+						$otsf = $view["settings"]["ot_sort_field"];
+						
+						if ($view["settings"]["ot_sort_direction"]) {
+							$otsd = $view["settings"]["ot_sort_direction"];
 						} else {
 							$otsd = "ASC";
 						}
@@ -690,7 +703,9 @@
 						$otsf = "id";
 						$otsd = "ASC";
 					}
-					$q = sqlquery("SELECT id,`".$view["options"]["title_field"]."` AS `title` FROM `".$view["options"]["other_table"]."` WHERE ".implode(" OR ",$otq)." ORDER BY `$otsf` $otsd");
+
+					$q = sqlquery("SELECT id,`".$view["settings"]["title_field"]."` AS `title` FROM `".$view["settings"]["other_table"]."` WHERE ".implode(" OR ",$otq)." ORDER BY `$otsf` $otsd");
+					
 					while ($f = sqlfetch($q)) {
 						$groups[$f["id"]] = $f["title"];
 					}
@@ -1003,8 +1018,8 @@
 			// Prevent SQL injection
 			$sort_field = "`".str_replace("`","",$sort_field)."`";
 			$sort_direction = ($sort_direction == "ASC") ? "ASC" : "DESC";
-
 			$where = $items = $parsers = $poplists = array();
+			
 			// Figure out if we have db populated lists and parsers
 			if ($report["type"] == "view") {
 				foreach ($view["fields"] as $key => $field) {
@@ -1016,8 +1031,8 @@
 			
 			if (is_array($form["fields"])) {
 				foreach ($form["fields"] as $key => $field) {
-					if ($field["type"] == "list" && $field["options"]["list_type"] == "db") {
-						$poplists[$key] = array("description" => $form["fields"][$key]["options"]["pop-description"], "table" => $form["fields"][$key]["options"]["pop-table"]);
+					if ($field["type"] == "list" && $field["settings"]["list_type"] == "db") {
+						$poplists[$key] = array("description" => $form["fields"][$key]["settings"]["pop-description"], "table" => $form["fields"][$key]["settings"]["pop-table"]);
 					}
 				}
 			}
@@ -1131,7 +1146,7 @@
 				}
 			}
 			
-			$per_page = $view["options"]["per_page"] ? $view["options"]["per_page"] : BigTreeAdmin::$PerPage;
+			$per_page = $view["settings"]["per_page"] ? $view["settings"]["per_page"] : BigTreeAdmin::$PerPage;
 			$pages = ceil(sqlrows(sqlquery($query)) / $per_page);
 			$pages = ($pages > 0) ? $pages : 1;
 			$results = array();
@@ -1147,21 +1162,25 @@
 
 			if ($sort_field != "id") {
 				$x = 0;
+
 				if (isset($view["fields"][$sort_field]["numeric"]) && $view["fields"][$sort_field]["numeric"]) {
 					$convert_numeric = true;
 				} else {
 					$convert_numeric = false;
 				}
+
 				foreach ($view["fields"] as $field => $options) {
 					$x++;
 					if ($field == $sort_field) {
 						$sort_field = "column$x";
 					}
 				}
+				
 				// If we didn't find a column, let's assume it's the default sort field.
 				if (substr($sort_field,0,6) != "column") {
 					$sort_field = "sort_field";
 				}
+				
 				if ($convert_numeric) {
 					$sort_field = "CONVERT(".$sort_field.",SIGNED)";
 				}
@@ -1220,7 +1239,7 @@
 				decode_ipl - Whether we want to decode internal page link on the preview url (defaults to true)
 				
 			Returns:
-				A view entry with actions, options, and fields decoded.  fields also receive a width column for the view.
+				A view entry with actions, settings, and fields decoded.  fields also receive a width column for the view.
 		*/
 
 		public static function getView($id,$decode_ipl = true) {
@@ -1244,7 +1263,9 @@
 			}
 			
 			$view["actions"] = json_decode($view["actions"],true);
-			$view["options"] = json_decode($view["options"],true);
+			$view["settings"] = json_decode($view["settings"] ?: $view["options"], true);
+			$view["options"] = &$view["settings"]; // Backwards compatibility
+
 			if ($decode_ipl) {
 				$view["preview_url"] = $cms->replaceInternalPageLinks($view["preview_url"]);
 			}
@@ -1360,7 +1381,7 @@
 				table - Table name.
 			
 			Returns:
-				A view entry with options, and fields decoded and field widths set for Pending Changes.
+				A view entry with settings, and fields decoded and field widths set for Pending Changes.
 		*/
 		
 		public static function getViewForTable($table) {
@@ -1368,13 +1389,16 @@
 			
 			$table = sqlescape($table);
 			$view = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '$table'"));
+
 			if (!$view) {
 				return false;
 			}
-			$view["options"] = json_decode($view["options"],true);
-			$view["actions"] = json_decode($view["actions"],true);
+
+			$view["settings"] = json_decode($view["settings"], true);
+			$view["actions"] = json_decode($view["actions"], true);
 			$view["preview_url"] = $cms->replaceInternalPageLinks($view["preview_url"]);
-			
+			$view["options"] = &$view["settings"]; // Backwards compatibility
+
 			// Get the edit link
 			if (isset($view["actions"]["edit"])) {
 				$module = sqlfetch(sqlquery("SELECT * FROM bigtree_modules WHERE id = '".$view["module"]."'"));
@@ -1424,6 +1448,7 @@
 		public static function parseViewData($view,$items) {
 			$form = self::getRelatedFormForView($view);
 			$parsed = array();
+			
 			foreach ($items as $item) {
 				if (is_array($view["fields"])) {
 					foreach ($view["fields"] as $key => $field) {
@@ -1433,10 +1458,10 @@
 							$item[$key] = BigTree::runParser($item,$value,$field["parser"]);
 						// If we know this field is a populated list, get the title they entered in the form.
 						} else {
-							if ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["options"]["list_type"] == "db") {
-								$fdata = $form["fields"][$key];
-								$f = sqlfetch(sqlquery("SELECT `".$fdata["options"]["pop-description"]."` FROM `".$fdata["options"]["pop-table"]."` WHERE `id` = '".sqlescape($value)."'"));
-								$value = $f[$fdata["options"]["pop-description"]];
+							if ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["settings"]["list_type"] == "db") {
+								$field_data = $form["fields"][$key];
+								$f = sqlfetch(sqlquery("SELECT `".$field_data["settings"]["pop-description"]."` FROM `".$field_data["settings"]["pop-table"]."` WHERE `id` = '".sqlescape($value)."'"));
+								$value = $f[$field_data["settings"]["pop-description"]];
 							}
 							
 							$item[$key] = strip_tags($value);
@@ -1445,6 +1470,7 @@
 				}
 				$parsed[] = $item;
 			}
+
 			return $parsed;
 		}
 

@@ -4,12 +4,15 @@
 	$title = isset($_GET["title"]) ? htmlspecialchars($_GET["title"]) : "";
 	// See if we can default to positioned
 	$is_positioned = false;
+
 	if ($table) {
 		$table_description = BigTree::describeTable($table);
+		
 		if (isset($table_description["columns"]["position"]) && $table_description["columns"]["position"]["type"] == "int") {
 			$is_positioned = true;
 		}
 	}
+
 	$module = $admin->getModule($id);
 
 	if (isset($_SESSION["bigtree_admin"]["developer"]["saved_view"])) {
@@ -18,7 +21,8 @@
 	} else {
 		// Stop notices
 		$description = $type = $preview_url = "";
-		$options = array();
+		$settings = array();
+
 		if ($is_positioned) {
 			$type = "draggable";
 		}
@@ -35,6 +39,7 @@
 		<input type="hidden" name="new_module" value="true" />
 		<?php
 			}
+			
 			include BigTree::path("admin/modules/developer/modules/views/_form.php");
 		?>
 		<footer>

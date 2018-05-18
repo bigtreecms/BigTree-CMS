@@ -2,8 +2,8 @@
 	// Prevent path manipulation shenanigans
 	$type = BigTree::cleanFile($_POST["type"]);
 	$table = $_POST["table"];
-	$options = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["data"]),true);
-	$filter = isset($options["filter"]) ? $options["filter"] : "";
+	$settings = json_decode(str_replace(array("\r","\n"),array('\r','\n'),$_POST["data"]),true);
+	$filter = isset($settings["filter"]) ? $settings["filter"] : "";
 ?>
 <div style="width: 450px;">
 	<fieldset>
@@ -11,7 +11,8 @@
 		<input type="text" name="filter" value="<?=htmlspecialchars($filter)?>" />
 	</fieldset>
 	<?php
-		$path = BigTree::path("admin/ajax/developer/view-options/$type.php");
+		$path = BigTree::path("admin/ajax/developer/view-settings/$type.php");
+		
 		if (file_exists($path)) {
 			include $path;
 		}

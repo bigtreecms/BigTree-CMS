@@ -1,8 +1,8 @@
 <?php
-	$draggable = isset($options["draggable"]) ? $options["draggable"] : "";
-	$prefix = isset($options["prefix"]) ? $options["prefix"] : "";
-	$image = isset($options["image"]) ? $options["image"] : "";
-	$sort = isset($options["sort"]) ? $options["sort"] : "DESC";
+	$draggable = isset($settings["draggable"]) ? $settings["draggable"] : "";
+	$prefix = isset($settings["prefix"]) ? $settings["prefix"] : "";
+	$image = isset($settings["image"]) ? $settings["image"] : "";
+	$sort = isset($settings["sort"]) ? $settings["sort"] : "DESC";
 ?>
 <fieldset>
 	<input type="checkbox" class="checkbox" name="draggable" <?php if ($draggable) { ?>checked="checked" <?php } ?>/>

@@ -1,12 +1,12 @@
 <?php
-	$draggable = isset($options["draggable"]) ? $options["draggable"] : "";
-	$prefix = isset($options["prefix"]) ? $options["prefix"] : "";
-	$image = isset($options["image"]) ? $options["image"] : "";
-	$group_field = isset($options["group_field"]) ? $options["group_field"] : "";
-	$other_table = isset($options["other_table"]) ? $options["other_table"] : "";
-	$title_field = isset($options["title_field"]) ? $options["title_field"] : "";
-	$group_parser = isset($options["group_parser"]) ? $options["group_parser"] : "";
-	$sort = isset($options["sort"]) ? $options["sort"] : "DESC";	
+	$draggable = isset($settings["draggable"]) ? $settings["draggable"] : "";
+	$prefix = isset($settings["prefix"]) ? $settings["prefix"] : "";
+	$image = isset($settings["image"]) ? $settings["image"] : "";
+	$group_field = isset($settings["group_field"]) ? $settings["group_field"] : "";
+	$other_table = isset($settings["other_table"]) ? $settings["other_table"] : "";
+	$title_field = isset($settings["title_field"]) ? $settings["title_field"] : "";
+	$group_parser = isset($settings["group_parser"]) ? $settings["group_parser"] : "";
+	$sort = isset($settings["sort"]) ? $settings["sort"] : "DESC";	
 ?>
 <fieldset>
 	<input type="checkbox" class="checkbox" name="draggable" <?php if ($draggable) { ?>checked="checked" <?php } ?>/>

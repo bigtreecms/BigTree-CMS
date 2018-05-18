@@ -3,13 +3,13 @@
 	
 	BigTree::globalizePOSTVars();
 
-	$options = json_decode($options,true);
+	$settings = json_decode($settings, true);
 
 	$table_description = @BigTree::describeTable($table);
 	$columns = $table_description["columns"];
 	$errors = array();
 	// Check for errors
-	if (($type == "draggable" || $type == "draggable-group" || $options["draggable"]) && !$columns["position"]) {
+	if (($type == "draggable" || $type == "draggable-group" || $settings["draggable"]) && !$columns["position"]) {
 		$errors[] = "Sorry, but you can't create a draggable view without a 'position' column in your table.  Please create a position column (integer) in your table and try again.";
 	}
 	if (isset($actions["archive"]) && !(($columns["archived"]["type"] == "char" || $columns["archived"]["type"] == "varchar") && $columns["archived"]["size"] == "2")) {
@@ -55,7 +55,7 @@
 		$module = end($bigtree["path"]);
 
 		// Create the view
-		$view_id = $admin->createModuleView($module,$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url);
+		$view_id = $admin->createModuleView($module,$title,$description,$table,$type,$settings,$fields,$actions,$related_form,$preview_url);
 
 		// Check to see if there's a default view for the module. If not our route is going to be blank.
 		$route = "";

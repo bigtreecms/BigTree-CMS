@@ -9,7 +9,7 @@
 	} else {
 		// Prevent notices
 		$name = $group_new = $group_existing = $table = $class = $title = "";
-		$view = array("description" => "", "options" => "");
+		$view = array("description" => "", "settings" => "");
 		$type = "searchable";
 	}
 	

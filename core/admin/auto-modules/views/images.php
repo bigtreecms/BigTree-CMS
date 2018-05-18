@@ -2,15 +2,15 @@
 	$permission = $admin->getAccessLevel($bigtree["module"]["id"]);
 	
 	// Setup defaults
-	$draggable = (isset($bigtree["view"]["options"]["draggable"]) && $bigtree["view"]["options"]["draggable"]) ? true : false;
-	$prefix = (isset($bigtree["view"]["options"]["prefix"]) && $bigtree["view"]["options"]["prefix"]) ? $bigtree["view"]["options"]["prefix"] : "";
+	$draggable = (isset($bigtree["view"]["settings"]["draggable"]) && $bigtree["view"]["settings"]["draggable"]) ? true : false;
+	$prefix = (isset($bigtree["view"]["settings"]["prefix"]) && $bigtree["view"]["settings"]["prefix"]) ? $bigtree["view"]["settings"]["prefix"] : "";
 	
 	$items = array();
 	if ($draggable) {
 		$order = "position DESC, CAST(id AS UNSIGNED) ASC";
 	} else {
-		if ($bigtree["view"]["options"]["sort"] && ($bigtree["view"]["options"]["sort"] == "ASC" || $bigtree["view"]["options"]["sort"] == "DESC")) {
-			$order = "CAST(id AS UNSIGNED) ".$bigtree["view"]["options"]["sort"];
+		if ($bigtree["view"]["settings"]["sort"] && ($bigtree["view"]["settings"]["sort"] == "ASC" || $bigtree["view"]["settings"]["sort"] == "DESC")) {
+			$order = "CAST(id AS UNSIGNED) ".$bigtree["view"]["settings"]["sort"];
 		} else {
 			$order = "CAST(id AS UNSIGNED) DESC";
 		}

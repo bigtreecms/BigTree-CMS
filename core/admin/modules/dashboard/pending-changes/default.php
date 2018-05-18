@@ -115,9 +115,11 @@
 					} else {
 						$item = array("id" => $change["item_id"] ? $change["item_id"] : "p".$change["id"]);
 					}
-					$image = str_replace(array("{staticroot}","{wwwroot}"),array(STATIC_ROOT,WWW_ROOT),$item["column1"]);
-					if ($view["options"]["prefix"]) {
-						$image = BigTree::prefixFile($image,$view["options"]["prefix"]);
+					
+					$image = str_replace(array("{staticroot}", "{wwwroot}"), array(STATIC_ROOT, WWW_ROOT), $item["column1"]);
+					
+					if ($view["settings"]["prefix"]) {
+						$image = BigTree::prefixFile($image, $view["settings"]["prefix"]);
 					}
 			?>
 			<li class="non_draggable">

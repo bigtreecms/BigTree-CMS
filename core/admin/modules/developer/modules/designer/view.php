@@ -37,8 +37,8 @@
 						<option value="searchable">Searchable List</option>
 						<option value="draggable">Draggable List</option>
 					</select>
-					&nbsp; <a href="#" class="options icon_settings centered"></a>
-					<input type="hidden" name="options" id="view_options" />
+					&nbsp; <a href="#" class="js-view-settings icon_settings centered"></a>
+					<input type="hidden" name="settings" id="view_settings" />
 				</fieldset>
 			</div>
 			
@@ -64,7 +64,7 @@
 <script>	
 	BigTreeFormValidator("form.module");
 	
-	$(".options").click(function(ev) {
+	$(".js-view-settings").click(function(ev) {
 		ev.preventDefault();
 
 		// Prevent double clicks
@@ -72,13 +72,13 @@
 			return;
 		}
 
-		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-view-options/", { type: "POST", data: { table: "<?=$table?>", type: $("#view_type").val(), data: $("#view_options").val() }, complete: function(response) {
+		$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-view-settings/", { type: "POST", data: { table: "<?=$table?>", type: $("#view_type").val(), data: $("#view_settings").val() }, complete: function(response) {
 			BigTreeDialog({
-				title: "View Options",
+				title: "View Settings",
 				content: response.responseText,
 				icon: "edit",
 				callback: function(data) {
-					$("#view_options").val(JSON.stringify(data));
+					$("#view_settings").val(JSON.stringify(data));
 				}
 			});
 		}});

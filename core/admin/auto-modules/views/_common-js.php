@@ -39,7 +39,7 @@
 	
 			return false;
 		}).on("click",".js-approve-hook",function() {
-			<?php if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["options"]["group_field"] == "approved") { ?>
+			<?php if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["settings"]["group_field"] == "approved") { ?>
 			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/approve/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href"))).done(BigTree.localSearch);
 			<?php } else { ?>
 			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/approve/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
@@ -54,7 +54,7 @@
 			<?php } ?>
 			return false;
 		}).on("click",".js-feature-hook",function() {
-			<?php if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["options"]["group_field"] == "featured") { ?>
+			<?php if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["settings"]["group_field"] == "featured") { ?>
 			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/feature/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href"))).done(BigTree.localSearch);
 			<?php } else { ?>
 			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/feature/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
@@ -69,7 +69,7 @@
 			<?php } ?>
 			return false;
 		}).on("click",".js-archive-hook",function() {
-			<?php if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["options"]["group_field"] == "archived") { ?>
+			<?php if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["settings"]["group_field"] == "archived") { ?>
 			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/archive/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href"))).done(BigTree.localSearch);
 			<?php } else { ?>
 			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/archive/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));

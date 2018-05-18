@@ -1,5 +1,6 @@
 <?php
 	$item = $cms->getFeed(end($bigtree["commands"]));
+	
 	BigTree::globalizeArray($item);
 ?>
 <div class="container">

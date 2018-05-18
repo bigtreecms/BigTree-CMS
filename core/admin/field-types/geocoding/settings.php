@@ -4,7 +4,7 @@
 		if (is_string($data["fields"])) {
 			$data["fields"] = explode(",", $data["fields"]);
 		} else {
-			$data["fields"] = is_array($data["fields"]) ? $data["fields"] : [];
+			$data["fields"] = is_array($data["fields"]) ? $data["fields"] : [""];
 		}
 
 		foreach ($data["fields"] as $field) {

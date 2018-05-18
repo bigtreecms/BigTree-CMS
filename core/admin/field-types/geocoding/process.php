@@ -1,9 +1,9 @@
 <?php
 	// Loop through all the fields to build the address
-	if (is_array($field["options"]["fields"])) {
-		$source_fields = $field["options"]["fields"];
+	if (is_array($field["settings"]["fields"])) {
+		$source_fields = $field["settings"]["fields"];
 	} else {
-		$source_fields = explode(",", $field["options"]["fields"]);
+		$source_fields = explode(",", $field["settings"]["fields"]);
 	}
 
 	$location = array();

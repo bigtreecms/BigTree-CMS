@@ -1,10 +1,10 @@
 <feed>
 	<?php
-		$sort = $feed["options"]["sort"] ? $feed["options"]["sort"] : "id desc";
-		$limit = $feed["options"]["limit"] ? $feed["options"]["limit"] : "15";
+		$sort = $feed["settings"]["sort"] ? $feed["settings"]["sort"] : "id desc";
+		$limit = $feed["settings"]["limit"] ? $feed["settings"]["limit"] : "15";
 		$items = array();
 
-		if ($feed["options"]["parser"]) {
+		if ($feed["settings"]["parser"]) {
 			$q = sqlquery("SELECT * FROM ".$feed["table"]." ORDER BY $sort");
 		} else {
 			$q = sqlquery("SELECT * FROM ".$feed["table"]." ORDER BY $sort LIMIT $limit");
@@ -22,8 +22,8 @@
 			$items[] = $item;
 		}
 
-		if ($feed["options"]["parser"]) {
-			$items = call_user_func_array($feed["options"]["parser"], array($items));
+		if ($feed["settings"]["parser"]) {
+			$items = call_user_func_array($feed["settings"]["parser"], array($items));
 			$items = array_slice($items, 0, $limit);
 		}
 
@@ -31,10 +31,11 @@
 	?>
 	<item>
 		<?php
-			foreach ($feed["fields"] as $key => $options) {
+			foreach ($feed["fields"] as $key => $field) {
 				$value = $item[$key];
-				if ($options["parser"]) {
-					$value = BigTree::runParser($item,$value,$options["parser"]);
+				
+				if ($field["parser"]) {
+					$value = BigTree::runParser($item,$value,$field["parser"]);
 				}
 		?>
 		<<?=$key?>><![CDATA[<?=$value?>]]></<?=$key?>>

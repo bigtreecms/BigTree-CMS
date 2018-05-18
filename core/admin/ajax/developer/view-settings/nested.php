@@ -1,6 +1,6 @@
 <?php
 	// Defaults
-	$nesting_column = isset($options["nesting_column"]) ? $options["nesting_column"] : "";
+	$nesting_column = isset($settings["nesting_column"]) ? $settings["nesting_column"] : "";
 ?>
 <fieldset>
 	<label>Nesting Column <small>(i.e. "parent")</small></label>

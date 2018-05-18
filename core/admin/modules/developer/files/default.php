@@ -205,7 +205,7 @@
 							'</optgroup>' +
 							<?php } ?>
 						'</select>' +
-						'<a href="#" class="options icon_settings" name="' + KeyCount + '"></a>' +
+						'<a href="#" class="icon_settings" name="' + KeyCount + '"></a>' +
 						'<input type="hidden" name="' + name + '[settings][' + KeyCount + ']" value="" id="settings_' + KeyCount + '" />' +
 					'</section>' +
 					'<section class="developer_resource_action right">' +

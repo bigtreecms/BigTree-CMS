@@ -155,11 +155,25 @@
 			if (file_exists(SERVER_ROOT."custom/admin/form-field-types/draw/$type.php")) {
 				$p["files"][] = SERVER_ROOT."custom/admin/form-field-types/draw/$type.php";
 			}
+
 			if (file_exists(SERVER_ROOT."custom/admin/form-field-types/process/$type.php")) {
 				$p["files"][] = SERVER_ROOT."custom/admin/form-field-types/process/$type.php";
 			}
+			
 			if (file_exists(SERVER_ROOT."custom/admin/ajax/developer/field-options/$type.php")) {
 				$p["files"][] = SERVER_ROOT."custom/admin/ajax/developer/field-options/$type.php";
+			}
+
+			if (file_exists(SERVER_ROOT."custom/admin/field-types/$type/draw.php")) {
+				$p["files"][] = SERVER_ROOT."custom/admin/field-types/$type/draw.php";
+			}
+
+			if (file_exists(SERVER_ROOT."custom/admin/field-types/$type/process.php")) {
+				$p["files"][] = SERVER_ROOT."custom/admin/field-types/$type/process.php";
+			}
+			
+			if (file_exists(SERVER_ROOT."custom/admin/field-types/$type/settings.php")) {
+				$p["files"][] = SERVER_ROOT."custom/admin/field-types/$type/settings.php";
 			}
 		}
 	}

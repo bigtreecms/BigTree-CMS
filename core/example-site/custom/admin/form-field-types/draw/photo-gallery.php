@@ -6,16 +6,16 @@
 	$current = 0;
 	
 	$button_options = htmlspecialchars(json_encode(array(
-		"minWidth" => $field["options"]["min_width"],
-		"minHeight" => $field["options"]["min_height"]
+		"minWidth" => $field["settings"]["min_width"],
+		"minHeight" => $field["settings"]["min_height"]
 	)));
 ?>
 <div class="photo_gallery_widget" id="<?=$field["id"]?>">
 	<ul>
 		<?php
 			foreach ($photos as $photo) {
-				if ($field["options"]["preview_prefix"]) {
-					$preview_image = BigTree::prefixFile($photo["image"],$field["options"]["preview_prefix"]);
+				if ($field["settings"]["preview_prefix"]) {
+					$preview_image = BigTree::prefixFile($photo["image"],$field["settings"]["preview_prefix"]);
 				} else {
 					$preview_image = $photo["image"];
 				}
@@ -28,7 +28,7 @@
 			<input type="hidden" name="<?=$field["key"]?>[<?=$current?>][caption]" value="<?=$photo["caption"]?>" class="caption" />
 			<input type="hidden" name="<?=$field["key"]?>[<?=$current?>][attribution]" value="<?=$photo["attribution"]?>" class="attribution" />
 			<input type="hidden" name="<?=$field["key"]?>[<?=$current?>][link]" value="<?=$photo["link"]?>" class="link_field" />
-			<?php if (!$field["options"]["disable_captions"]) { ?>
+			<?php if (!$field["settings"]["disable_captions"]) { ?>
 			<a href="#" class="icon_edit"></a>
 			<?php } ?>
 			<a href="#" class="icon_delete"></a>
@@ -51,6 +51,6 @@
 		container: "<?=$field["id"]?>",
 		key: "<?=$field["key"]?>",
 		count: <?=$current?>
-		<?php if ($field["options"]["disable_captions"]) { ?>,disableCaptions: true<?php } ?>
+		<?php if ($field["settings"]["disable_captions"]) { ?>,disableCaptions: true<?php } ?>
 	});
 </script>

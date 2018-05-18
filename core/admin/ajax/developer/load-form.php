@@ -92,13 +92,16 @@
 				if ($column["type"] == "enum") {
 					$type = "list";
 					$list = array();
+
 					foreach ($column["options"] as $option) {
 						$list[] = array("value" => $option, "description" => $option);
 					}
+					
 					$settings = array(
 						"list_type" => "static",
 						"list" => $list
 					);
+					
 					if ($column["allow_null"]) {
 						$settings["allow-empty"] = "Yes";
 					} else {
@@ -113,9 +116,11 @@
 					$other_table = BigTree::describeTable($foreign_keys[$column["name"]]["other_table"]);
 					$ot_columns = $other_table["columns"];
 					$desc_column = "";
+
 					// Find the first short title-esque column and use it as the populated list descriptor
 					while (!$desc_column && next($ot_columns)) {
 						$col = current($ot_columns);
+						
 						if (($col["type"] == "varchar" || $col["type"] == "char") && $col["size"] > 2) {
 							$desc_column = $col;
 						}
@@ -227,7 +232,7 @@
 				<?php
 					}
 				?>
-				<a href="#" class="options icon_settings" name="<?=$key?>"></a>
+				<a href="#" class="icon_settings" name="<?=$key?>"></a>
 				<input type="hidden" name="fields[<?=$key?>][settings]" value="<?=htmlspecialchars(json_encode($field["settings"] ?: $field["options"]))?>" id="options_<?=$key?>" />
 			</section>
 			<section class="developer_resource_action">

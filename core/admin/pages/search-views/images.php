@@ -13,10 +13,10 @@
 		<ul id="image_list_<?=$view["id"]?>" class="image_list">
 			<?php
 				foreach ($items as $item) {
-					if ($options["preview_prefix"]) {
-						$preview_image = BigTree::prefixFile($item[$options["image"]],$options["preview_prefix"]);
+					if ($view["settings"]["preview_prefix"]) {
+						$preview_image = BigTree::prefixFile($item[$view["settings"]["image"]],$view["settings"]["preview_prefix"]);
 					} else {
-						$preview_image = $item[$options["image"]];
+						$preview_image = $item[$view["settings"]["image"]];
 					}
 			?>
 			<li id="row_<?=$item["id"]?>">

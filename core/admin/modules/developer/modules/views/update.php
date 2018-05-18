@@ -6,11 +6,11 @@
 	$table_description = BigTree::describeTable($table);
 	$columns = $table_description["columns"];
 	
-	$options = json_decode($options, true);
+	$settings = json_decode($settings, true);
 	
 	$errors = array();
 	// Check for errors
-	if (($type == "draggable" || $type == "draggable-group" || $options["draggable"]) && !$columns["position"]) {
+	if (($type == "draggable" || $type == "draggable-group" || $settings["draggable"]) && !$columns["position"]) {
 		$errors[] = "Sorry, but you can't create a draggable view without a 'position' column in your table.  Please create a position column (integer) in your table and try again.";
 	}
 	
@@ -84,7 +84,7 @@
 		}
 		
 		// Let's update the view and clear its cache
-		$admin->updateModuleView(end($bigtree["path"]),$title,$description,$table,$type,$options,$fields,$actions,$related_form,$preview_url);
+		$admin->updateModuleView(end($bigtree["path"]),$title,$description,$table,$type,$settings,$fields,$actions,$related_form,$preview_url);
 		BigTreeAutoModule::clearCache(end($bigtree["path"]));
 		
 		$action = $admin->getModuleActionForView(end($bigtree["path"]));

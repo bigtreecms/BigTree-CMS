@@ -5,13 +5,13 @@
 	BigTreeAutoModule::cacheViewData($bigtree["view"]);
 	
 	$permission = $admin->getAccessLevel($bigtree["module"]["id"]);
-	$draggable = (isset($bigtree["view"]["options"]["draggable"]) && $bigtree["view"]["options"]["draggable"]) ? true : false;
+	$draggable = (isset($bigtree["view"]["settings"]["draggable"]) && $bigtree["view"]["settings"]["draggable"]) ? true : false;
 	$groups = BigTreeAutoModule::getGroupsForView($bigtree["view"]);
 	if ($draggable) {
 		$order = "position DESC, id ASC";
 	} else {
-		if ($bigtree["view"]["options"]["sort"] && ($bigtree["view"]["options"]["sort"] == "ASC" || $bigtree["view"]["options"]["sort"] == "DESC")) {
-			$order = "CAST(id AS UNSIGNED) ".$bigtree["view"]["options"]["sort"];
+		if ($bigtree["view"]["settings"]["sort"] && ($bigtree["view"]["settings"]["sort"] == "ASC" || $bigtree["view"]["settings"]["sort"] == "DESC")) {
+			$order = "CAST(id AS UNSIGNED) ".$bigtree["view"]["settings"]["sort"];
 		} else {
 			$order = "CAST(id AS UNSIGNED) DESC";
 		}
@@ -19,13 +19,13 @@
 
 	// Setup custom overrides for group titles when we're grouping by a special BigTree column
 	$group_title_overrides = array();
-	if ($bigtree["view"]["options"]["group_field"] == "featured") {
+	if ($bigtree["view"]["settings"]["group_field"] == "featured") {
 		$group_title_overrides["on"] = "Featured";
 		$group_title_overrides[""] = "Normal";
-	} elseif ($bigtree["view"]["options"]["group_field"] == "archived") {
+	} elseif ($bigtree["view"]["settings"]["group_field"] == "archived") {
 		$group_title_overrides["on"] = "Archived";
 		$group_title_overrides[""] = "Active";
-	} elseif ($bigtree["view"]["options"]["group_field"] == "approved") {
+	} elseif ($bigtree["view"]["settings"]["group_field"] == "approved") {
 		$group_title_overrides["on"] = "Approved";
 		$group_title_overrides[""] = "Not Approved";
 	}
@@ -55,8 +55,8 @@
 			<?php
 				foreach ($items as $item) {
 					$item["column1"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["column1"]);
-					if ($options["prefix"]) {
-						$preview_image = BigTree::prefixFile($item["column1"],$options["prefix"]);
+					if ($bigtree["view"]["settings"]["prefix"]) {
+						$preview_image = BigTree::prefixFile($item["column1"],$bigtree["view"]["settings"]["prefix"]);
 					} else {
 						$preview_image = $item["column1"];
 					}
@@ -127,8 +127,8 @@
 			<?php
 				foreach ($pending_items as $item) {
 					$item["column1"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["column1"]);
-					if ($options["prefix"]) {
-						$preview_image = BigTree::prefixFile($item["column1"],$options["prefix"]);
+					if ($bigtree["view"]["settings"]["prefix"]) {
+						$preview_image = BigTree::prefixFile($item["column1"],$bigtree["view"]["settings"]["prefix"]);
 					} else {
 						$preview_image = $item["column1"];
 					}
