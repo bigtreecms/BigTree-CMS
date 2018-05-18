@@ -197,7 +197,7 @@
 				<?
 					if ($field["type"] == "geocoding") {
 				?>
-				<input type="hidden" name="fields[<?=$key?>][type]" value="geocoding" id="type_geocoding" />
+				<input type="hidden" name="fields[<?=$key?>][type]" value="geocoding" id="type_<?=$key?>" />
 				<span class="resource_name">Geocoding</span>
 				<?
 					} elseif ($field["type"] == "many-to-many") {
