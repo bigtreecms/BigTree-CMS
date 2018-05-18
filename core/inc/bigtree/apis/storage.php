@@ -174,9 +174,12 @@
 					unlink($local_file);
 				}
 
-				// CloudFront support
-				if ($this->Settings->CDNDomain && $this->Settings->Service == "amazon") {
-					return str_replace("//".$this->Settings->Container.".s3.amazonaws.com", "//".$this->Settings->CDNDomain, $success);
+				// If this bucket is behind a CloudFront distribution, invalidate the cache and return the CloudFront domain
+				if (!empty($this->Cloud->Settings["amazon"]["cloudfront_distribution"])) {
+					$this->Cloud->invalidateCache($relative_path.$file_name);
+					$protocol = $this->Cloud->Settings["amazon"]["cloudfront_ssl"] ? "https" : "http";
+
+					return $protocol."://".$this->Cloud->Settings["amazon"]["cloudfront_domain"]."/".$relative_path.$file_name;
 				}
 				
 				return $success;
@@ -228,14 +231,18 @@
 			if ($this->Cloud) {
 				// Clean up the file name
 				global $cms;
+
 				$parts = BigTree::pathInfo($file_name);
 				$clean_name = $cms->urlify($parts["filename"]);
+				
 				if (strlen($clean_name) > 50) {
 					$clean_name = substr($clean_name,0,50);
 				}
+				
 				// Best case name
 				$file_name = $clean_name.".".strtolower($parts["extension"]);
 				$x = 2;
+				
 				// Make sure we have a unique name
 				while (!$file_name || sqlrows(sqlquery("SELECT `timestamp` FROM bigtree_caches WHERE `identifier` = 'org.bigtreecms.cloudfiles' AND `key` = '".sqlescape($relative_path.$file_name)."'"))) {
 					$file_name = $clean_name."-$x.".strtolower($parts["extension"]);
@@ -244,14 +251,17 @@
 					// Check all the prefixes, make sure they don't exist either
 					if (is_array($prefixes) && count($prefixes)) {
 						$prefix_query = array();
+				
 						foreach ($prefixes as $prefix) {
 							$prefix_query[] = "`key` = '".sqlescape($relative_path.$prefix.$file_name)."'";
 						}
+				
 						if (sqlrows(sqlquery("SELECT `timestamp` FROM bigtree_caches WHERE identifier = 'org.bigtreecms.cloudfiles' AND (".implode(" OR ",$prefix_query).")"))) {
 							$file_name = false;
 						}
 					}
 				}
+				
 				// Upload it
 				$success = $this->Cloud->uploadFile($local_file,$this->Settings->Container,$relative_path.$file_name,true);
 				
@@ -263,9 +273,12 @@
 					unlink($local_file);
 				}
 
-				// CloudFront support
-				if ($this->Settings->CDNDomain && $this->Settings->Service == "amazon") {
-					return str_replace("//".$this->Settings->Container.".s3.amazonaws.com", "//".$this->Settings->CDNDomain, $success);
+				// If this bucket is behind a CloudFront distribution, invalidate the cache and return the CloudFront domain
+				if (!empty($this->Cloud->Settings["amazon"]["cloudfront_distribution"])) {
+					$this->Cloud->invalidateCache($relative_path.$file_name);
+					$protocol = $this->Cloud->Settings["amazon"]["cloudfront_ssl"] ? "https" : "http";
+
+					return $protocol."://".$this->Cloud->Settings["amazon"]["cloudfront_domain"]."/".$relative_path.$file_name;
 				}
 				
 				return $success;

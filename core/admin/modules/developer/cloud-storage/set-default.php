@@ -20,8 +20,8 @@
 		<summary><h2><?=$service_names[$_POST["service"]]?></h2></summary>
 		<section>
 			<fieldset>
-				<label>Existing Container/Bucket <small>(this should be used exclusively by BigTree, if left blank BigTree will make its own)</small></label>
-				<select name="container">
+				<label for="cloud_field_container">Existing Container/Bucket <small>(this should be used exclusively by BigTree, if left blank BigTree will make its own)</small></label>
+				<select id="cloud_field_container" name="container">
 					<option></option>
 					<?php foreach ($containers as $container) { ?>
 					<option value="<?=htmlspecialchars($container["name"])?>"<?php if ($storage->Settings->Container == $container["name"] && $storage->Settings->Service == $_POST["service"]) { ?> selected="selected"<?php } ?>><?=htmlspecialchars($container["name"])?></option>
@@ -30,12 +30,43 @@
 			</fieldset>
 			<?php
 				if ($_POST["service"] == "amazon") {
+					$cloudfront_distribution = $storage->Cloud->Settings["amazon"]["cloudfront_distribution"];
+					$cloudfront_ssl = $storage->Cloud->Settings["amazon"]["cloudfront_ssl"];
+					$cloudfront_domain = $storage->Cloud->Settings["amazon"]["cloudfront_domain"];
+					$distributions = $cloud->getCloudFrontDistributions();
+
+					if (is_array($distributions) && count($distributions)) {
 			?>
 			<fieldset>
-				<label>CloudFront Distribution Domain <small>(optional)</small></label>
-				<input type="text" name="cdn_domain" value="<?=BigTree::safeEncode($storage->Settings->CDNDomain)?>" />
+				<label for="cloud_field_distribution">CloudFront Distribution <small>(optional)</small></label>
+				<select id="cloud_field_distribution" name="cloudfront_distribution">
+					<option></option>
+					<?php
+						foreach ($distributions as $dist) {
+							if (!count($dist["aliases"])) {
+					?>
+					<option value="<?=htmlspecialchars($dist["id"])?>"<?php if ($cloudfront_distribution == $dist["id"]) { ?> selected<?php } ?> data-domain="<?=htmlspecialchars($dist["domain"])?>"><?=$dist["domain"]?> (<?=$dist["id"]?>)</option>
+					<?php
+							}
+							
+							foreach ($dist["aliases"] as $alias) {
+					?>
+					<option value="<?=htmlspecialchars($dist["id"])?>"<?php if ($cloudfront_distribution == $dist["id"]) { ?> selected<?php } ?> data-domain="<?=htmlspecialchars($alias)?>"><?=$alias?> (<?=$dist["id"]?>)</option>
+					<?php
+							}
+						}
+					?>
+				</select>
+
+				<input id="cloud_field_domain" name="cloudfront_domain" value="<?=$cloudfront_domain?>" type="hidden">
+			</fieldset>
+
+			<fieldset id="cloud_fieldset_https"<?php if (!$cloudfront_distribution) { ?> style="display: none;"<?php } ?>>
+				<input id="cloud_field_https" type="checkbox" name="cloudfront_ssl"<?php if ($cloudfront_ssl) { ?> checked<?php } ?>>
+				<label for="cloud_field_https" class="for_checkbox">CloudFront Domain Supports HTTPS</label>
 			</fieldset>
 			<?php
+					}
 				}
 			?>
 		</section>
@@ -44,6 +75,18 @@
 		</footer>
 	</form>
 </div>
+
+<script>
+	$("#cloud_field_distribution").change(function() {
+		if ($(this).val()) {
+			$("#cloud_fieldset_https").show();
+		} else {
+			$("#cloud_fieldset_https").hide();
+		}
+
+		$("#cloud_field_domain").val($(this).find(":selected").data("domain"));
+	});
+</script>
 <?php
 		}
 	} else {

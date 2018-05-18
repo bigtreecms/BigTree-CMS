@@ -9,24 +9,37 @@
 	if ($_POST["container"]) {
 		$storage->Settings->Container = $_POST["container"];
 
-		if ($_POST["cdn_domain"]) {
-			$cdn_domain = str_replace(array("https://", "http://"), "", rtrim($_POST["cdn_domain"], "/"));
-			$storage->Settings->CDNDomain = $cdn_domain;
-		}
-
 		// If we're using Rackspace, we need to explicitly CDN enable this container.
 		if ($_POST["service"] == "rackspace") {
 			BigTree::cURL($cloud->RackspaceCDNEndpoint."/".$_POST["container"],"",array(CURLOPT_PUT => true,CURLOPT_HTTPHEADER => array("X-Auth-Token: ".$cloud->Settings["rackspace"]["token"],"X-Cdn-Enabled: true")));
+		}
+
+		// Set AWS specifics
+		if ($_POST["service"] == "amazon") {			
+			$cloud->Settings["amazon"]["cloudfront_distribution"] = $_POST["cloudfront_distribution"];
+			$cloud->Settings["amazon"]["cloudfront_domain"] = $_POST["cloudfront_domain"];
+			$cloud->Settings["amazon"]["cloudfront_ssl"] = $_POST["cloudfront_ssl"];
+			$cloud->Settings["amazon"]["region"] = $cloud->getS3BucketRegion($_POST["container"]);
 		}
 	} else {
 		// We're only going to try to get a unique bucket 10 times to prevent an infinite loop
 		$x = 0;
 		$success = false;
+		
 		while (!$success && $x < 10) {
 			$container = $cms->urlify(uniqid("bigtree-container-",true));
-			$success = $cloud->createContainer($container,true);
+
+			if ($_POST["service"] == "amazon") {
+				if (!$cloud->getS3BucketExists($container)) {
+					$success = $cloud->createContainer($container, true);
+				}
+			} else {
+				$success = $cloud->createContainer($container, true);
+			}
+
 			$x++;
 		}
+
 		if ($success) {
 			$storage->Settings->Container = $container;
 		} else {
@@ -37,6 +50,7 @@
 
 	// Get a list of files
 	$container = $cloud->getContainer($storage->Settings->Container,true);
+
 	if ($container === false) {
 		$admin->growl("Developer","Failed to read container.","error");
 		BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
