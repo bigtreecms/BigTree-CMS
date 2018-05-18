@@ -4,6 +4,10 @@
 		if (is_string($data["fields"])) {
 			$data["fields"] = explode(",", $data["fields"]);
 		}
+		
+		if (!is_array($data["fields"]) || !count($data["fields"])) {
+			$data["fields"] = array("");
+		}
 
 		foreach ($data["fields"] as $field) {
 			$field = trim($field);
