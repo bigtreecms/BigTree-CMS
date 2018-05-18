@@ -5088,9 +5088,9 @@
 			
 			$resource["crops"] = json_decode($resource["crops"], true);
 			$resource["thumbs"] = json_decode($resource["thumbs"], true);
-			$resource["metadata"] = BigTree::untranslateArray(json_decode($resource["metadata"], true));
+			$resource["metadata"] = json_decode($resource["metadata"], true);
 
-			return $resource;
+			return BigTree::untranslateArray($resource);
 		}
 
 		/*
