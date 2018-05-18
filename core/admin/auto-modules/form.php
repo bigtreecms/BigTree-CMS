@@ -8,6 +8,7 @@
 	}
 	$bigtree["form"] = $form = BigTreeAutoModule::getForm($bigtree["module_action"]["form"]);
 	$bigtree["form_root"] = ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/";
+	$bigtree["related_view"] = BigTreeAutoModule::getRelatedViewForForm($bigtree["form"]);
 	
 	// Provide developers a nice handy link for edit/return of this form
 	if ($admin->Level > 1) {

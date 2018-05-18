@@ -57,7 +57,7 @@
 		var title = li.find("input").val();
 		if (title) {
 			var key = $(this).attr("name");
-			if (key != "geocoding" && key.indexOf("__mtm-") != 0) {
+			if (key != "__geocoding__" && key.indexOf("__mtm-") != 0) {
 				BigTree.localFieldSelect.addField(key,title);
 			}
 		}

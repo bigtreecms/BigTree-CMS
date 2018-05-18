@@ -22,7 +22,6 @@
 </div>
 <?php
 	} else {
-		$bigtree["related_view"] = BigTreeAutoModule::getRelatedViewForForm($bigtree["form"]);
 		$bigtree["entry"] = $item = $pending_entry["item"];
 		
 		// See if we have an editing hook

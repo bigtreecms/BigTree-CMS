@@ -7,6 +7,7 @@
 	class BigTreeGeocoding {
 		
 		public $API = false;
+		public $Error = false;
 		public $Service = "";
 		public $Settings = array();
 		
@@ -85,17 +86,28 @@
 
 		private function geocodeBing($address) {
 			$response = BigTree::cURL("http://dev.virtualearth.net/REST/v1/Locations/".str_replace("?","",str_replace(" ","%20",$address))."?key=".$this->Settings["bing_key"]);
+			
 			try {
 				if (is_string($response)) {
 					$response = json_decode($response,true);
 				}
-				list($latitude,$longitude) = $response["resourceSets"][0]["resources"][0]["point"]["coordinates"];
+
+				if (empty($response["resourceSets"][0]["resources"][0]["point"]["coordinates"])) {
+					$this->Error = $response["errorDetails"][0];
+
+					return false;
+				}
+
+				list($latitude, $longitude) = $response["resourceSets"][0]["resources"][0]["point"]["coordinates"];
+				
 				if ($latitude && $longitude) {
 					return array("latitude" => $latitude, "longitude" => $longitude);
 				} else {
 					return false;
 				}
 			} catch (Exception $e) {
+				$this->Error = $e->getMessage();
+
 				return false;
 			}
 		}
@@ -106,18 +118,29 @@
 		*/
 
 		private function geocodeGoogle($address) {
-			$response = BigTree::cURL("http://maps.googleapis.com/maps/api/geocode/json?address=".urlencode($address)."&sensor=false");
+			$response = BigTree::cURL("https://maps.googleapis.com/maps/api/geocode/json?address=".urlencode($address)."&sensor=false&key=".$this->Settings["google_key"]);
+
 			try {
 				if (is_string($response)) {
 					$response = json_decode($response, true);
 				}
+
+				if (empty($response["results"][0]["geometry"]["location"])) {
+					$this->Error = $response["error_message"];
+
+					return false;
+				}
+
 				$latlng = $response["results"][0]["geometry"]["location"];
+
 				if ($latlng["lat"] && $latlng["lng"]) {
 					return array("latitude" => $latlng["lat"], "longitude" => $latlng["lng"]);
 				} else {
 					return false;
 				}
 			} catch (Exception $e) {
+				$this->Error = $e->getMessage();
+
 				return false;
 			}
 		}
@@ -128,18 +151,33 @@
 		*/
 
 		private function geocodeMapQuest($address) {
-			$response = BigTree::cURL("http://www.mapquestapi.com/geocoding/v1/address?key=".$this->Settings["mapquest_key"]."&location=".urlencode($address));
+			global $bigtree;
+
+			$raw_response = BigTree::cURL("http://www.mapquestapi.com/geocoding/v1/address?key=".$this->Settings["mapquest_key"]."&location=".urlencode($address));
+			
+			if ($bigtree["last_curl_response_code"] != 200) {
+				$this->Error = $response;
+
+				return false;
+			}
+
 			try {
-				if (is_string($response)) {
-					$response = json_decode($response, true);
+				if (is_string($raw_response)) {
+					$response = json_decode($raw_response, true);
 				}
+
 				$latlng = $response["results"][0]["locations"][0]["latLng"];
+
 				if ($latlng["lat"] && $latlng["lng"]) {
 					return array("latitude" => $latlng["lat"], "longitude" => $latlng["lng"]);
 				} else {
+					$this->Error = $raw_response;
+
 					return false;
 				}
 			} catch (Exception $e) {
+				$this->Error = $e->getMessage();
+
 				return false;
 			}
 		}
