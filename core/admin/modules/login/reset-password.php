@@ -32,7 +32,7 @@
 ?>
 <div id="login">
 	<form method="post" action="" class="module">
-		<h2>Reset Your Password</h2>
+		<h2><?php if (isset($_GET["welcome"])) { ?>Set<?php } else { ?>Reset<?php } ?> Your Password</h2>
 		<?php
 			if ($failure) {
 		?>
@@ -45,6 +45,7 @@
 		</p>
 		<?php
 			}
+			
 			if (!$user) {
 		?>
 		<fieldset class="clear">

@@ -1,5 +1,6 @@
 <?php
 	$error = "";
+	
 	if (isset($_SESSION["bigtree_admin"]["create_user"])) {
 		BigTree::globalizeArray($_SESSION["bigtree_admin"]["create_user"],array("htmlspecialchars"));
 		$daily_digest = isset($daily_digest) ? $daily_digest : false;
@@ -24,6 +25,9 @@
 					<span class="gravatar"<?php if ($email != "") echo ' style="display: block;"'; ?>><img src="<?=BigTree::gravatar($email, 36)?>" alt="" /></span>
 				</fieldset>
 				
+				<?php
+					if (empty($policy["invitations"])) {
+				?>
 				<fieldset<?php if ($error == "password") { ?> class="form_error"<?php } ?>>
 					<label class="required">Password <?php if ($error == "password") { ?><span class="form_error_reason">Did Not Meet Requirements</span><?php } ?></label>
 					<input type="password" class="required<?php if ($policy) { ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><?php } ?>" name="password" value="" tabindex="3" />
@@ -31,6 +35,9 @@
 					<p class="password_policy">Password Policy In Effect</p>
 					<?php } ?>
 				</fieldset>
+				<?php
+					}
+				?>
 				
 				<fieldset>
 					<label class="required">User Level</label>

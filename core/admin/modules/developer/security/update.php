@@ -15,6 +15,7 @@
 			"ban" => $ip_fails["ban"] ? intval($ip_fails["ban"]) : ""
 		),
 		"password" => array(
+			"invitations" => $password["invitations"] ? "on" : "",
 			"length" => $password["length"] ? intval($password["length"]) : "",
 			"mixedcase" => $password["mixedcase"] ? "on" : "",
 			"numbers" => $password["numbers"] ? "on" : "",

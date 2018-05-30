@@ -426,18 +426,23 @@
 
 		*/
 
-		public static function changePassword($hash,$password) {
+		public static function changePassword($hash, $password) {
 			global $bigtree;
 
-			$hash = sqlescape($hash);
-			$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE change_password_hash = '$hash'"));
+			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE change_password_hash = ?", $hash);
 
-			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-			$password = sqlescape($phpass->HashPassword(trim($password)));
+			if (!$user) {
+				return false;
+			}
 
-			sqlquery("UPDATE bigtree_users SET password = '$password', change_password_hash = '' WHERE id = '".$user["id"]."'");
-			sqlquery("UPDATE bigtree_login_bans SET expires = DATE_SUB(NOW(),INTERVAL 1 MINUTE) WHERE user = '".$user["id"]."'");
-			BigTree::redirect(($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/reset-success/");
+			SQL::update("bigtree_users", $user["id"], [
+				"password" => password_hash(trim($password), PASSWORD_DEFAULT),
+				"new_hash" => "on",
+				"change_password_hash" => ""
+			]);
+			SQL::query("UPDATE bigtree_login_bans SET expires = DATE_SUB(NOW(),INTERVAL 1 MINUTE) WHERE user = ?", $user["id"]);
+
+			BigTree::redirect(($bigtree["config"]["force_secure_login"] ? str_replace("http://", "https://", ADMIN_ROOT) : ADMIN_ROOT)."login/reset-success/");
 		}
 
 		/*
@@ -1833,32 +1838,58 @@
 		public function createUser($data) {
 			global $bigtree;
 
-			$level = intval($data["level"]);
-			$email = sqlescape($data["email"]);
-			$name = sqlescape(htmlspecialchars($data["name"]));
-			$company = sqlescape(htmlspecialchars($data["company"]));
-			$daily_digest = $data["daily_digest"] ? "on" : "";
-
 			// See if the user already exists
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_users WHERE email = '$email'"));
-			if ($r > 0) {
+			if (SQL::exists("bigtree_users", ["email" => $data["email"]])) {
 				return false;
 			}
 
-			$permissions = $data["permissions"] ? BigTree::json($data["permissions"],true) : "[]";
-			$alerts = $data["alerts"] ? BigTree::json($data["alerts"],true) : "[]";
-
 			// Don't allow the level to be set higher than the logged in user's level
+			$level = intval($data["level"]);
+
 			if ($level > $this->Level) {
 				$level = $this->Level;
 			}
 
-			// Hash the password.
-			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-			$password = sqlescape($phpass->HashPassword(trim($data["password"])));
+			$insert = [
+				"email" => BigTree::safeEncode($data["email"]),
+				"level" => $level,
+				"name" => BigTree::safeEncode($data["name"]),
+				"company" => BigTree::safeEncode($data["company"]),
+				"daily_digest" => !empty($data["daily_digest"]) ? "on" : "",
+				"alerts" => is_array($data["alerts"]) ? $data["alerts"] : [],
+				"permissions" => is_array($data["permissions"]) ? $data["permissions"] : []
+			];
 
-			sqlquery("INSERT INTO bigtree_users (`email`,`password`,`name`,`company`,`level`,`permissions`,`alerts`,`daily_digest`) VALUES ('$email','$password','$name','$company','$level','$permissions','$alerts','$daily_digest')");
-			$id = sqlid();
+			// Only store a password if we aren't sending an invitation
+			if (empty($bigtree["security-policy"]["password"]["invitations"])) {
+				$insert["password"] = password_hash(trim($data["password"]), PASSWORD_DEFAULT);
+				$insert["new_hash"] = "on";
+			} else {
+				$insert["change_password_hash"] = BigTree::randomString(64);
+
+				while (SQL::exists("bigtree_users", ["change_password_hash" => $insert["change_password_hash"]])) {
+					$insert["change_password_hash"] = BigTree::randomString(64);
+				}
+
+				$html = file_get_contents(BigTree::path("admin/email/welcome.html"));
+				$html = str_ireplace("{www_root}", WWW_ROOT, $html);
+				$html = str_ireplace("{admin_root}", ADMIN_ROOT, $html);
+				$html = str_ireplace("{site_title}", $site_title, $html);
+				$html = str_ireplace("{person}", $this->Name, $html);
+				$html = str_ireplace("{reset_link}", $login_root."reset-password/$hash/?welcome", $html);
+	
+				$email_service = new BigTreeEmailService;
+				
+				// Only use a custom email service if a from email has been set
+				if ($email_service->Settings["bigtree_from"]) {
+					$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.", "", $_SERVER["HTTP_HOST"]) : str_replace(array("http://www.", "https://www.", "http://", "https://"), "", DOMAIN));
+					$email_service->sendEmail("$site_title - Set Your Password", $html, $user["email"], $email_service->Settings["bigtree_from"], "BigTree CMS", $reply_to);
+				} else {
+					BigTree::sendEmail($user["email"],"Reset Your Password",$html);
+				}
+			}
+
+			$id = SQL::insert("bigtree_users", $insert);
 			$this->track("bigtree_users",$id,"created");
 
 			return $id;
@@ -6071,11 +6102,11 @@
 			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
 
 			if ($two_factor_token) {
-				$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE 2fa_login_token = '".sqlescape($two_factor_token)."'"));
+				$user = SQL::fetch("SELECT * FROM bigtree_users WHERE 2fa_login_token = ?", $two_factor_token);
 
 				if ($user) {
 					$ok = true;
-					sqlquery("UPDATE bigtree_users SET 2fa_login_token = '' WHERE id = '".$user["id"]."'");
+					SQL::update("bigtree_users", $user["id"], ["2fa_login_token" => ""]);
 				} else {
 					$ok = false;
 				}
@@ -6087,17 +6118,34 @@
 				// Get rid of whitespace and make the email lowercase for consistency
 				$email = trim(strtolower($email));
 				$password = trim($password);
-				$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE LOWER(email) = '".sqlescape($email)."'"));
+				$user = SQL::fetch("SELECT * FROM bigtree_users WHERE LOWER(email) = ?", $email);
+				$ok = false;
 	
 				if ($user) {
 					if (static::isUserBanned($user["id"])) {
 						return false;
 					}
-	
-					$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
-					$ok = $phpass->CheckPassword($password, $user["password"]);
-				} else {
-					$ok = false;
+
+					// BigTree 4.3+ switch to password_hash
+					if ($user["new_hash"]) {
+						$ok = password_verify($password, $user["password"]);
+
+						// New algorithm
+						if ($ok && password_needs_rehash($user["password"], PASSWORD_DEFAULT)) {
+							SQL::update("bigtree_users", $user["id"], ["password" => password_hash($password, PASSWORD_DEFAULT)]);
+						}
+					} else {
+						$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
+						$ok = $phpass->CheckPassword($password, $user["password"]);
+
+						// Switch to password_hash
+						if ($ok) {
+							SQL::update("bigtree_users", $user["id"], [
+								"password" => password_hash($password, PASSWORD_DEFAULT),
+								"new_hash" => "on"
+							]);
+						}
+					}
 				}
 			}
 			
@@ -8721,18 +8769,18 @@
 		public function updateProfile($data) {
 			global $bigtree;
 
-			$name = sqlescape(htmlspecialchars($data["name"]));
-			$company = sqlescape(htmlspecialchars($data["company"]));
-			$daily_digest = $data["daily_digest"] ? "on" : "";
-			$id = sqlescape($this->ID);
+			$update = [
+				"name" => BigTree::safeEncode($data["name"]),
+				"company" => BigTree::safeEncode($data["company"]),
+				"daily_digest" => !empty($data["daily_digest"]) ? "on" : ""
+			];
 
 			if ($data["password"]) {
-				$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-				$password = sqlescape($phpass->HashPassword($data["password"]));
-				sqlquery("UPDATE bigtree_users SET `password` = '$password', `name` = '$name', `company` = '$company', `daily_digest` = '$daily_digest' WHERE id = '$id'");
-			} else {
-				sqlquery("UPDATE bigtree_users SET `name` = '$name', `company` = '$company', `daily_digest` = '$daily_digest' WHERE id = '$id'");
+				$update["password"] = password_hash($data["password"], PASSWORD_DEFAULT);
+				$update["new_hash"] = "on";
 			}
+
+			SQL::update("bigtree_users", $this->ID, $update);
 		}
 
 		/*
@@ -8929,29 +8977,21 @@
 		*/
 
 		public function updateUser($id,$data) {
-			global $bigtree;
-			$id = sqlescape($id);
+			$level = intval($data["level"]);
 
 			// See if there's an email collission
-			$r = sqlrows(sqlquery("SELECT * FROM bigtree_users WHERE email = '".sqlescape($data["email"])."' AND id != '$id'"));
+			$r = SQL::query("SELECT * FROM bigtree_users WHERE email = ? AND id != ?", $data["email"], $id)->rows();
+
 			if ($r) {
 				return false;
 			}
 
 			// If this person has higher access levels than the person trying to update them, fail.
 			$current = static::getUser($id);
+
 			if ($current["level"] > $this->Level) {
 				return false;
 			}
-
-			$level = intval($data["level"]);
-			$email = sqlescape($data["email"]);
-			$name = sqlescape(htmlspecialchars($data["name"]));
-			$company = sqlescape(htmlspecialchars($data["company"]));
-			$daily_digest = $data["daily_digest"] ? "on" : "";
-
-			$permissions = BigTree::json($data["permissions"],true);
-			$alerts = BigTree::json($data["alerts"],true);
 
 			// If the user is editing themselves, they can't change the level.
 			if ($this->ID == $current["id"]) {
@@ -8963,15 +9003,23 @@
 				$level = $this->Level;
 			}
 
+			$update = [
+				"level" => $level,
+				"email" => BigTree::safeEncode($data["email"]),
+				"name" => BigTree::safeEncode($data["name"]),
+				"company" => BigTree::safeEncode($data["company"]),
+				"daily_digest" => !empty($data["daily_digest"]) ? "on" : "",
+				"permissions" => is_array($data["permissions"]) ? $data["permissions"] : [],
+				"alerts" => is_array($data["alerts"]) ? $data["alerts"] : []
+			];
+
 			if ($data["password"]) {
-				$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-				$password = sqlescape($phpass->HashPassword(trim($data["password"])));
-				sqlquery("UPDATE bigtree_users SET `email` = '$email', `password` = '$password', `name` = '$name', `company` = '$company', `level` = '$level', `permissions` = '$permissions', `alerts` = '$alerts', `daily_digest` = '$daily_digest' WHERE id = '$id'");
-			} else {
-				sqlquery("UPDATE bigtree_users SET `email` = '$email', `name` = '$name', `company` = '$company', `level` = '$level', `permissions` = '$permissions', `alerts` = '$alerts', `daily_digest` = '$daily_digest' WHERE id = '$id'");
+				$update["password"] = password_hash(trim($data["password"]), PASSWORD_DEFAULT);
+				$update["new_hash"] = "on";
 			}
 
-			$this->track("bigtree_users",$id,"updated");
+			SQL::update("bigtree_users", $id, $update);
+			$this->track("bigtree_users", $id, "updated");
 
 			return true;
 		}
@@ -8986,12 +9034,10 @@
 		*/
 
 		public static function updateUserPassword($id,$password) {
-			global $bigtree;
-
-			$id = sqlescape($id);
-			$phpass = new PasswordHash($bigtree["config"]["password_depth"], TRUE);
-			$password = sqlescape($phpass->HashPassword(trim($password)));
-			sqlquery("UPDATE bigtree_users SET password = '$password' WHERE id = '$id'");
+			SQL::update("bigtree_users", $id, [
+				"password" => password_hash(trim($password), PASSWORD_DEFAULT),
+				"new_hash" => "on"
+			]);
 		}
 
 		/*
@@ -9080,20 +9126,40 @@
 			// Get rid of whitespace and make the email lowercase for consistency
 			$email = trim(strtolower($email));
 			$password = trim($password);
-			$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE LOWER(email) = '".sqlescape($email)."'"));
+			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE LOWER(email) = ?", $email);
 
 			if ($user) {
 				if (static::isUserBanned($user["id"])) {
 					return null;
 				}
 				
-				$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
+				// BigTree 4.3+ uses password_hash instead of PHPass
+				if ($user["new_hash"]) {
+					$validated = password_verify($password, $user["password"]);
+
+					// If the latest algorithm is available and needs a rehash, update it now
+					if ($validated && password_needs_rehash($user["password"], PASSWORD_DEFAULT)) {
+						SQL::update("bigtree_users", $user["id"], ["password" => password_hash($password, PASSWORD_DEFAULT)]);
+					}
+				} else {
+					$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
+					$validated = $phpass->CheckPassword($password, $user["password"]);
+
+					// Switch to password_hash
+					if ($validated) {
+						SQL::update("bigtree_users", $user["id"], [
+							"password" => password_hash($password, PASSWORD_DEFAULT),
+							"new_hash" => "on"
+						]);
+					}
+				}
 				
-				if ($phpass->CheckPassword($password, $user["password"])) {
+				if ($validated) {
 					$token = $phpass->HashPassword(BigTree::randomString(64).trim($password).BigTree::randomString(64));
 					$_SESSION["bigtree_admin"]["2fa_id"] = intval($user["id"]);
 					$_SESSION["bigtree_admin"]["2fa_login_token"] = $token;
-					sqlquery("UPDATE bigtree_users SET 2fa_login_token = '".sqlescape($token)."' WHERE id = '".intval($user["id"])."'");
+					
+					SQL::update("bigtree_users", $user["id"], ["2fa_login_token" => $token]);
 
 					return $user["2fa_secret"];
 				}

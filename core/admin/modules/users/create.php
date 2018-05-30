@@ -8,7 +8,7 @@
 </div>
 <?php
 	// Check security policy
-	if (!$admin->validatePassword($_POST["password"])) {
+	if (empty($policy["invitations"]) && !$admin->validatePassword($_POST["password"])) {
 		$_SESSION["bigtree_admin"]["create_user"] = $_POST;
 		$_SESSION["bigtree_admin"]["create_user"]["error"] = "password";
 		$admin->growl("Users","Invalid Password","error");
@@ -16,6 +16,7 @@
 	}
 
 	$id = $admin->createUser($_POST);
+
 	if (!$id) {
 		$_SESSION["bigtree_admin"]["create_user"] = $_POST;
 		$_SESSION["bigtree_admin"]["create_user"]["error"] = "email";

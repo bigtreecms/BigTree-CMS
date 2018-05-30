@@ -716,16 +716,16 @@
 	// BigTree 4.3 update -- REVISION 300
 	function _local_bigtree_update_300() {
 		// Add a usage count column to tags
-		sqlquery("ALTER TABLE `bigtree_tags` ADD COLUMN `usage_count` int(11) unsigned NOT NULL AFTER `route`");
+		SQL::query("ALTER TABLE `bigtree_tags` ADD COLUMN `usage_count` int(11) unsigned NOT NULL AFTER `route`");
 
 		// Add a setting for storing file metadata information
-		sqlquery("INSERT INTO bigtree_settings (`id`, `value`, `system`) VALUES ('bigtree-file-metadata-fields', '[]', 'on')");
+		SQL::query("INSERT INTO bigtree_settings (`id`, `value`, `system`) VALUES ('bigtree-file-metadata-fields', '[]', 'on')");
 
 		// Add new file manager columns
-		sqlquery("ALTER TABLE `bigtree_resources` ADD COLUMN `metadata` LONGTEXT NOT NULL AFTER `type`");
-		sqlquery("ALTER TABLE `bigtree_resources` ADD COLUMN `is_video` CHAR(2) NOT NULL AFTER `is_image`");
-		sqlquery("ALTER TABLE `bigtree_resources` ADD COLUMN `mimetype` VARCHAR(255) NOT NULL AFTER `type`");
-		sqlquery("ALTER TABLE `bigtree_resources` ADD COLUMN `size` INT(11) NOT NULL AFTER `width`");
+		SQL::query("ALTER TABLE `bigtree_resources` ADD COLUMN `metadata` LONGTEXT NOT NULL AFTER `type`");
+		SQL::query("ALTER TABLE `bigtree_resources` ADD COLUMN `is_video` CHAR(2) NOT NULL AFTER `is_image`");
+		SQL::query("ALTER TABLE `bigtree_resources` ADD COLUMN `mimetype` VARCHAR(255) NOT NULL AFTER `type`");
+		SQL::query("ALTER TABLE `bigtree_resources` ADD COLUMN `size` INT(11) NOT NULL AFTER `width`");
 
 		// Add the file manager preset to media presets
 		$settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
@@ -738,11 +738,16 @@
 
 	// BigTree 4.3 update -- REVISION 301
 	function _local_bigtree_update_301() {
-		sqlquery("ALTER TABLE `bigtree_settings` CHANGE COLUMN `options` `settings` LONGTEXT");
+		SQL::query("ALTER TABLE `bigtree_settings` CHANGE COLUMN `options` `settings` LONGTEXT");
 	}
 
-	// BigTree 4.3 update -- REVISION 301
+	// BigTree 4.3 update -- REVISION 302
 	function _local_bigtree_update_302() {
-		sqlquery("ALTER TABLE `bigtree_feeds` CHANGE COLUMN `options` `settings` LONGTEXT");
-		sqlquery("ALTER TABLE `bigtree_module_views` CHANGE COLUMN `options` `settings` LONGTEXT");
+		SQL::query("ALTER TABLE `bigtree_feeds` CHANGE COLUMN `options` `settings` LONGTEXT");
+		SQL::query("ALTER TABLE `bigtree_module_views` CHANGE COLUMN `options` `settings` LONGTEXT");
+	}
+
+	// BigTree 4.3 update -- REVISION 303
+	function _local_bigtree_update_303() {
+		SQL::query("ALTER TABLE `bigtree_users` ADD COLUMN `new_hash` CHAR(2) NOT NULL AFTER `password`");
 	}

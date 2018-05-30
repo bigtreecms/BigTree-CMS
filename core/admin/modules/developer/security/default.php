@@ -21,10 +21,10 @@
 						<input type="text" name="ip_fails[ban]" value="<?=$ip_fails["ban"]?>" /> <strong>hours</strong>
 					</fieldset>
 					<br />
-					<h3>Password Strength</h3>
+					<h3>Passwords</h3>
 					<fieldset>
-						<label>Minimum Password Length <small>(leave blank or 0 to have no restriction)</small></label>
-						<input type="text" name="password[length]" value="<?=$password["length"]?>" />
+						<input type="checkbox" id="security_settings_field_send_invites" name="password[invitations]"<?php if ($password["invitations"]) { ?> checked<?php } ?>>
+						<label class="for_checkbox" for="security_settings_field_send_invites">Send Invitations for Users to Set Initial Password</label>
 					</fieldset>
 					<fieldset>
 						<input type="checkbox" name="password[mixedcase]"<?php if ($password["mixedcase"]) { ?> checked="checked"<?php } ?> />
@@ -37,6 +37,10 @@
 					<fieldset>
 						<input type="checkbox" name="password[nonalphanumeric]"<?php if ($password["nonalphanumeric"]) { ?> checked="checked"<?php } ?> />
 						<label class="for_checkbox">Require Non-Alphanumeric Characters <small>(i.e. $ # ^ *)</small></label>
+					</fieldset>
+					<fieldset>
+						<label>Minimum Password Length <small>(leave blank or 0 to have no restriction)</small></label>
+						<input type="text" name="password[length]" value="<?=$password["length"]?>" />
 					</fieldset>
 					<br />
 					<h3>Login Options</h3>
