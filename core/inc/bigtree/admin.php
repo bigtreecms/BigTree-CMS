@@ -1059,7 +1059,7 @@
 			if ($class) {
 				// Create class module.
 				$f = fopen(SERVER_ROOT."custom/inc/modules/$route.php","w");
-				fwrite($f,"<php?\n");
+				fwrite($f,"<?php\n");
 				fwrite($f,"	class $class extends BigTreeModule {\n\n");
 				fwrite($f,'		public $Table = "'.$table.'";'."\n\n");
 				fwrite($f,"	}\n\n");
