@@ -82,6 +82,9 @@ CREATE TABLE `bigtree_resources` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
 DROP TABLE IF EXISTS `bigtree_route_history`;
 CREATE TABLE `bigtree_route_history` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`old_route` varchar(255) NOT NULL,`new_route` varchar(255) NOT NULL,PRIMARY KEY (`id`),KEY `old_route` (`old_route`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
+DROP TABLE IF EXISTS `bigtree_sessions`;
+CREATE TABLE `bigtree_sessions` (`id` varchar(32) NOT NULL,`last_accessed` int(10) unsigned DEFAULT NULL,`data` longtext,`is_login` char(2) NOT NULL DEFAULT '',PRIMARY KEY (`id`)ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
 DROP TABLE IF EXISTS `bigtree_settings`;
 CREATE TABLE `bigtree_settings` (`id` varchar(255) NOT NULL DEFAULT '', `value` longblob NOT NULL, `type` varchar(255) NOT NULL, `options` longtext NOT NULL, `name` varchar(255) NOT NULL DEFAULT '', `description` text NOT NULL, `locked` char(2) NOT NULL, `system` char(2) NOT NULL, `encrypted` char(2) NOT NULL, `extension` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`), KEY `extension` (`extension`), FOREIGN KEY (`extension`) REFERENCES `bigtree_extensions` (`id`) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 

@@ -118,6 +118,7 @@
 							$this->CSRFToken = $csrf_token;
 							$this->CSRFTokenField = $csrf_token_field;
 							
+							SQL::update("bigtree_sessions", session_id(), ["is_login" => "on"]);
 							$_SESSION["bigtree_admin"]["id"] = $f["id"];
 							$_SESSION["bigtree_admin"]["email"] = $f["email"];
 							$_SESSION["bigtree_admin"]["name"] = $f["name"];
@@ -6217,6 +6218,7 @@
 						setcookie('bigtree_admin[login]', $cookie_value, strtotime("+1 month"), $cookie_domain, "", false, true);
 					}
 					
+					SQL::update("bigtree_sessions", session_id(), ["is_login" => "on"]);
 					$_SESSION["bigtree_admin"]["id"] = $user["id"];
 					$_SESSION["bigtree_admin"]["email"] = $user["email"];
 					$_SESSION["bigtree_admin"]["level"] = $user["level"];
@@ -6332,6 +6334,7 @@
 						setcookie('bigtree_admin[login]', $cookie_value, strtotime("+1 month"), $cookie_domain, "", false, true);
 					}
 					
+					SQL::update("bigtree_sessions", session_id(), ["is_login" => "on"]);
 					$_SESSION["bigtree_admin"]["id"] = $user["id"];
 					$_SESSION["bigtree_admin"]["email"] = $user["email"];
 					$_SESSION["bigtree_admin"]["level"] = $user["level"];

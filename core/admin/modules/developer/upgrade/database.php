@@ -751,3 +751,8 @@
 	function _local_bigtree_update_303() {
 		SQL::query("ALTER TABLE `bigtree_users` ADD COLUMN `new_hash` CHAR(2) NOT NULL AFTER `password`");
 	}
+
+	// BigTree 4.3 update -- REVISION 304
+	function _local_bigtree_update_304() {
+		SQL::query("CREATE TABLE `bigtree_sessions` (`id` varchar(32) NOT NULL,`last_accessed` int(10) unsigned DEFAULT NULL,`data` longtext,`is_login` char(2) NOT NULL DEFAULT '',PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci");
+	}

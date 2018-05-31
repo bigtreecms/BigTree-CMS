@@ -83,6 +83,7 @@
 		"BigTreeFTP" => "inc/bigtree/ftp.php",
 		"BigTreeSFTP" => "inc/bigtree/sftp.php",
 		"BigTreeUpdater" => "inc/bigtree/updater.php",
+		"BigTreeSessionHandler" => "inc/bigtree/sessions.php",
 		"BigTreeGoogleAnalyticsAPI" => "inc/bigtree/apis/google-analytics.php",
 		"BigTreePaymentGateway" => "inc/bigtree/apis/payment-gateway.php",
 		"BigTreeUploadService" => "inc/bigtree/apis/storage.php", // Backwards compat
@@ -121,7 +122,7 @@
 	
 	// If we're in the process of logging into sites
 	if (defined("BIGTREE_SITE_KEY") && isset($_GET["bigtree_login_redirect_session_key"])) {
-		session_start(array("gc_maxlifetime" => 24 * 60 * 60));
+		BigTreeSessionHandler::start();
 		BigTreeAdmin::loginSession($_GET["bigtree_login_redirect_session_key"]);
 	}
 
