@@ -85,6 +85,18 @@
 				$container = $parts[3];
 				$pointer_parts = array_slice($parts,4);
 
+				// If this bucket is behind a CloudFront distribution, invalidate the cache and delete the file from the currently active bucket
+				if (!empty($this->Cloud->Settings["amazon"]["cloudfront_distribution"]) && $this->Cloud->Settings["amazon"]["cloudfront_domain"] == $domain) {
+					$file_name = implode("/", array_slice($parts, 3));
+
+					$this->Cloud->deleteFile($this->Settings->Container, $file_name);
+					$this->Cloud->invalidateCache($file_name);
+
+					SQL::query("DELETE FROM bigtree_caches WHERE `identifier` = 'org.bigtreecms.cloudfiles' AND `key` = ?", $file_name);
+
+					return;
+				}
+
 				if (!empty($this->Settings->CDNDomain) && $this->Settings->CDNDomain == $domain) {
 					$service = "amazon";
 					$container = $this->Settings->Container;
@@ -104,20 +116,24 @@
 					// Need to figure out the actual container
 					$container = false;
 					$cloud = ($this->Settings->Service == $service) ? $this->Cloud : new BigTreeCloudStorage;
+					
 					foreach ($cloud->Settings["rackspace"]["container_cdn_urls"] as $c => $url) {
 						if ($url == "http://$domain") {
 							$container = $c;
 						}
 					}
+					
 					if (!$container) {
 						return false;
 					}
+					
 					$pointer_parts = array_slice($parts,3);
 				}
 
 				if ($this->Settings->Service == $service) {
 					$pointer = implode("/",$pointer_parts);
 					$this->Cloud->deleteFile($container,$pointer);
+
 					if ($this->Settings->Container == $container) {
 						sqlquery("DELETE FROM bigtree_caches WHERE `identifier` = 'org.bigtreecms.cloudfiles' AND `key` = '".sqlescape($pointer)."'");
 					}
