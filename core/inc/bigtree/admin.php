@@ -6411,6 +6411,19 @@
 		}
 
 		/*
+			Function: logoutAll
+				Logs all users out of the CMS.
+				Requires the "db" state for sessions.
+		*/
+
+		public function logoutAll() {
+			$this->requireLevel(2);
+
+			SQL::query("DELETE FROM bigtree_sessions");
+			SQL::query("DELETE FROM bigtree_user_sessions");
+		}
+
+		/*
 			Function: makeIPL
 				Creates an internal page link out of a URL.
 

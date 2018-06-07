@@ -1,6 +1,12 @@
 <?php
 	$security_policy = $cms->getSetting("bigtree-internal-security-policy");
 	BigTree::globalizeArray($security_policy,"htmlspecialchars");
+
+	if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+		$session_handler = "db";
+	} else {
+		$session_handler = "default";
+	}
 ?>
 <div class="container" id="security_settings">
 	<form method="post" action="<?=DEVELOPER_ROOT?>security/update/">
@@ -53,7 +59,7 @@
 						<label for="security_settings_field_disable_remember" class="for_checkbox">Disable "Remember Me" Function</label>
 					</fieldset>
 					<?php
-						if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+						if ($session_handler == "db") {
 					?>
 					<fieldset>
 						<input id="security_settings_field_logout_all" type="checkbox" name="logout_all" value="on"<?php if ($logout_all == "on") { ?> checked<?php } ?>>
@@ -74,6 +80,14 @@
 						<p>Include a list of IP addresses you wish to permanently ban from logging into the admin area (one per line).</p>
 						<textarea name="banned_ips"><?=$banned_ips?></textarea>
 					</fieldset>
+
+					<?php
+						if ($session_handler == "db") {
+					?>
+					<a class="button red" href="<?=DEVELOPER_ROOT?>security/logout-all/">Logout All Users</a>
+					<?php
+						}
+					?>
 				</div>
 			</div>
 		</section>
