@@ -61,15 +61,18 @@
 				static::$Timeout = intval($bigtree["config"]["session_lifetime"]);
 			}
 
+			if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+				session_set_save_handler(
+					"BigTreeSessionHandler::open",
+					"BigTreeSessionHandler::close",
+					"BigTreeSessionHandler::read",
+					"BigTreeSessionHandler::write",
+					"BigTreeSessionHandler::destroy",
+					"BigTreeSessionHandler::clean"
+				);
+			}
+
 			session_set_cookie_params(0, str_replace(DOMAIN, "", WWW_ROOT), "", false, true);
-			session_set_save_handler(
-				"BigTreeSessionHandler::open",
-				"BigTreeSessionHandler::close",
-				"BigTreeSessionHandler::read",
-				"BigTreeSessionHandler::write",
-				"BigTreeSessionHandler::destroy",
-				"BigTreeSessionHandler::clean"
-			);
 			session_start(array("gc_maxlifetime" => static::$Timeout));
 		}
 

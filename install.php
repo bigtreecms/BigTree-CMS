@@ -200,7 +200,8 @@
 			"[settings_key]",
 			"[force_secure_login]",
 			"[routing]",
-			"[slash_behavior]"
+			"[slash_behavior]",
+			"[session_handler]"
 		);
 		
 		$replace = array(
@@ -223,7 +224,8 @@
 			uniqid("",true),
 			(isset($force_secure_login)) ? "true" : "false",
 			($routing == "basic") ? "basic" : "htaccess",
-			$slash_behavior
+			$slash_behavior,
+			$session_handler
 		);
 		
 		// Make sure we're not running in a special mode that forces values for textareas that aren't allowing null.
@@ -573,7 +575,7 @@ RewriteRule (.*) site/$1 [L]');
 				?>
 				<hr />
 				
-				<h2 class="database"><span></span>Database Properties</h2>
+				<h2 class="database"><span></span>Session &amp; Database Properties</h2>
 				<fieldset class="clear">
 					<p>Enter your MySQL database information below.</p>
 				</fieldset>
@@ -613,6 +615,15 @@ RewriteRule (.*) site/$1 [L]');
 					<input type="checkbox" class="checkbox" name="loadbalanced" id="loadbalanced"<?php if ($loadbalanced) { ?> checked="checked"<?php } ?> tabindex="6" />
 					<label class="for_checkbox">Load Balanced MySQL</label>
 				</fieldset>
+
+				<fieldset>
+					<br /><br />
+					<label>Session Storage <small>(BigTree Database Handler required for enhanced security features)</label>
+					<select name="session_handler" tabindex="7">
+						<option value="db">BigTree Database Handler</option>
+						<option value="native">Native PHP Handler</option>
+					</select>
+				</fieldset>
 				
 				<div id="loadbalanced_settings"<?php if (!$loadbalanced) { ?> style="display: none;"<?php } ?>>
 					<hr />
@@ -624,30 +635,30 @@ RewriteRule (.*) site/$1 [L]');
 					<hr />
 					<fieldset class="left<?php if (count($_POST) && !$write_host) { ?> form_error<?php } ?>">
 						<label>Hostname</label>
-						<input class="text" type="text" id="db_write_host" name="write_host" value="<?php echo htmlspecialchars($write_host) ?>" tabindex="6" />
+						<input class="text" type="text" id="db_write_host" name="write_host" value="<?php echo htmlspecialchars($write_host) ?>" tabindex="8" />
 					</fieldset>
 					<fieldset class="right<?php if (count($_POST) && !$write_db) { ?> form_error<?php } ?>">
 						<label>Database</label>
-						<input class="text" type="text" id="db_write_name" name="write_db" value="<?php echo htmlspecialchars($write_db) ?>" tabindex="7" />
+						<input class="text" type="text" id="db_write_name" name="write_db" value="<?php echo htmlspecialchars($write_db) ?>" tabindex="9" />
 					</fieldset>
 					<br class="clear" /><br />
 					<fieldset class="left<?php if (count($_POST) && !$write_user) { ?> form_error<?php } ?>">
 						<label>Username</label>
-						<input class="text" type="text" id="db_write_user" name="write_user" value="<?php echo htmlspecialchars($write_user) ?>" tabindex="8" autocomplete="off" />
+						<input class="text" type="text" id="db_write_user" name="write_user" value="<?php echo htmlspecialchars($write_user) ?>" tabindex="10" autocomplete="off" />
 					</fieldset>
 					<fieldset class="right<?php if (count($_POST) && !$write_password) { ?> form_error<?php } ?>">
 						<label>Password</label>
-						<input class="text" type="password" id="db_write_pass" name="write_password" value="<?php echo htmlspecialchars($write_password) ?>" tabindex="9" autocomplete="off" />
+						<input class="text" type="password" id="db_write_pass" name="write_password" value="<?php echo htmlspecialchars($write_password) ?>" tabindex="11" autocomplete="off" />
 					</fieldset>
 					<div class="db_port_or_socket_settings"<?php if (!$db_port_or_socket) { ?> style="display: none;"<?php } ?>>
 						<br class="clear" /><br />
 						<fieldset class="left">
 							<label>Port <small>(defaults to 3306)</small></label>
-							<input class="text" type="text" name="write_port" value="<?php echo htmlspecialchars($write_port) ?>" tabindex="7" />
+							<input class="text" type="text" name="write_port" value="<?php echo htmlspecialchars($write_port) ?>" tabindex="12" />
 						</fieldset>
 						<fieldset class="right">
 							<label>Socket</label>
-							<input class="text" type="text" name="write_socket" value="<?php echo htmlspecialchars($write_socket) ?>" tabindex="8" />
+							<input class="text" type="text" name="write_socket" value="<?php echo htmlspecialchars($write_socket) ?>" tabindex="13" />
 						</fieldset>
 					</div>
 					<br class="clear" /><br />
@@ -662,15 +673,15 @@ RewriteRule (.*) site/$1 [L]');
 				<hr />
 				<fieldset class="left<?php if (count($_POST) && !$cms_user) { ?> form_error<?php } ?>">
 					<label>Email Address</label>
-					<input class="text" type="text" id="cms_user" name="cms_user" value="<?php echo htmlspecialchars($cms_user) ?>" tabindex="10" autocomplete="off" />
+					<input class="text" type="text" id="cms_user" name="cms_user" value="<?php echo htmlspecialchars($cms_user) ?>" tabindex="14" autocomplete="off" />
 				</fieldset>
 				<fieldset class="right<?php if (count($_POST) && !$cms_pass) { ?> form_error<?php } ?>">
 					<label>Password</label>
-					<input class="text" type="password" id="cms_pass" name="cms_pass" value="<?php echo htmlspecialchars($cms_pass) ?>" tabindex="11" autocomplete="off" />
+					<input class="text" type="password" id="cms_pass" name="cms_pass" value="<?php echo htmlspecialchars($cms_pass) ?>" tabindex="15" autocomplete="off" />
 				</fieldset>
 				<fieldset class="clear">
 					<br /><br />
-					<input type="checkbox" class="checkbox" name="force_secure_login" id="force_secure_login"<?php if ($force_secure_login) { ?> checked="checked"<?php } ?> tabindex="12" />
+					<input type="checkbox" class="checkbox" name="force_secure_login" id="force_secure_login"<?php if ($force_secure_login) { ?> checked="checked"<?php } ?> tabindex="16" />
 					<label class="for_checkbox">Force HTTPS Logins</label>
 				</fieldset>
 				
@@ -699,7 +710,7 @@ RewriteRule (.*) site/$1 [L]');
 				<div class="contain">
 					<fieldset class="left">
 						<label>Routing</label>
-						<select name="routing" tabindex="13">
+						<select name="routing" tabindex="17">
 							<?php
 								if ($iis) {
 							?>
@@ -722,7 +733,7 @@ RewriteRule (.*) site/$1 [L]');
 					</fieldset>
 					<fieldset class="left">
 						<label>URL Behavior</label>
-						<select name="slash_behavior">
+						<select name="slash_behavior" tabindex="18">
 							<option value="append">URLs End With /</option>
 							<option value="remove"<?php if ($slash_behavior == "remove") { ?> selected="selected"<?php } ?>>URLs End With Page Slug</option>
 							<option value="none"<?php if ($slash_behavior == "none") { ?> selected="selected"<?php } ?>>Allow Either</option>
@@ -741,12 +752,12 @@ RewriteRule (.*) site/$1 [L]');
 				</fieldset>
 				<br />
 				<fieldset class="clear">
-					<input type="checkbox" class="checkbox" name="install_example_site" id="install_example_site"<?php if ($install_example_site) { ?> checked="checked"<?php } ?> tabindex="14" />
+					<input type="checkbox" class="checkbox" name="install_example_site" id="install_example_site"<?php if ($install_example_site) { ?> checked="checked"<?php } ?> tabindex="19" />
 					<label class="for_checkbox">Install Example Site</label>
 				</fieldset>
 								
 				<fieldset class="lower">
-					<input type="submit" class="button blue" value="Install Now" tabindex="15" />
+					<input type="submit" class="button blue" value="Install Now" tabindex="20" />
 				</fieldset>
 				<?php
 					}
