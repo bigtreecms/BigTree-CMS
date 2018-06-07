@@ -15,6 +15,8 @@
 	<form class="module" action="<?=ADMIN_ROOT?>users/profile/update/" method="post">
 		<?php $admin->drawCSRFToken(); ?>
 		<section>
+			<p><strong>Note:</strong> Changing your password will require you to login again.</p>
+			<hr>
 			<p class="error_message"<?php if (!$error) { ?> style="display: none;"<?php } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 			<div class="left">
 				<fieldset>
@@ -23,8 +25,8 @@
 				</fieldset>
 				<fieldset<?php if ($error) { ?> class="form_error"<?php } ?>>
 					<label>Password <small>(leave blank to remain unchanged)</small> <?php if ($error) { ?><span class="form_error_reason">Did Not Meet Requirements</span><?php } ?></label>
-					<input type="password" name="password" value="" tabindex="3" autocomplete="off" <?php if ($policy) { ?> class="has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?>"<?php } ?> />
-					<?php if ($policy) { ?>
+					<input type="password" name="password" value="" tabindex="3" autocomplete="off" <?php if ($policy_text) { ?> class="has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?>"<?php } ?> />
+					<?php if ($policy_text) { ?>
 					<p class="password_policy">Password Policy In Effect</p>
 					<?php } ?>
 				</fieldset>

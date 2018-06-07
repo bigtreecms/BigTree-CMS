@@ -4,8 +4,9 @@
 	}
 
 	$policy = array_filter((array)$bigtree["security-policy"]["password"]) ? $bigtree["security-policy"]["password"] : false;
+	$policy_text = "";
 	
-	if ($policy) {
+	if (!empty($policy["length"]) || !empty($policy["mixedcase"]) || !empty($policy["numbers"]) || !empty($policy["nonalphanumeric"]))  {
 		$policy_text = "<p>Requirements</p><ul>";
 		
 		if ($policy["length"]) {

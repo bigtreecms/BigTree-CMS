@@ -171,8 +171,8 @@
 				
 				<fieldset<?php if ($error == "password") { ?> class="form_error"<?php } ?> >
 					<label>Password <small>(Leave blank to remain unchanged)</small> <?php if ($error == "password") { ?><span class="form_error_reason">Did Not Meet Requirements</span><?php } ?></label>
-					<input type="password" name="password" value="" tabindex="3" autocomplete="off" id="password_field"<?php if ($policy) { ?> class="has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?>"<?php } ?> />
-					<?php if ($policy) { ?>
+					<input type="password" name="password" value="" tabindex="3" autocomplete="off" id="password_field"<?php if ($policy_text) { ?> class="has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?>"<?php } ?> />
+					<?php if ($policy_text) { ?>
 					<p class="password_policy">Password Policy In Effect</p>
 					<?php } ?>
 				</fieldset>

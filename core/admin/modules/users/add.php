@@ -30,8 +30,8 @@
 				?>
 				<fieldset<?php if ($error == "password") { ?> class="form_error"<?php } ?>>
 					<label class="required">Password <?php if ($error == "password") { ?><span class="form_error_reason">Did Not Meet Requirements</span><?php } ?></label>
-					<input type="password" class="required<?php if ($policy) { ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><?php } ?>" name="password" value="" tabindex="3" />
-					<?php if ($policy) { ?>
+					<input type="password" class="required<?php if ($policy_text) { ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><?php } ?>" name="password" value="" tabindex="3" />
+					<?php if ($policy_text) { ?>
 					<p class="password_policy">Password Policy In Effect</p>
 					<?php } ?>
 				</fieldset>

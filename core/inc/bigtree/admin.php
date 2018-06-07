@@ -443,6 +443,10 @@
 			]);
 			SQL::query("UPDATE bigtree_login_bans SET expires = DATE_SUB(NOW(),INTERVAL 1 MINUTE) WHERE user = ?", $user["id"]);
 
+			// Clean existing sessions
+			SQL::delete("bigtree_sessions", ["logged_in_user" => $user["id"]]);
+			SQL::delete("bigtree_user_sessions", ["email" => $user["email"]]);
+
 			BigTree::redirect(($bigtree["config"]["force_secure_login"] ? str_replace("http://", "https://", ADMIN_ROOT) : ADMIN_ROOT)."login/reset-success/");
 		}
 
@@ -8793,6 +8797,11 @@
 			if ($data["password"]) {
 				$update["password"] = password_hash($data["password"], PASSWORD_DEFAULT);
 				$update["new_hash"] = "on";
+
+				// Clean existing sessions
+				$email = SQL::fetchSingle("SELECT email FROM bigtree_users WHERE id = ?", $this->ID);
+				SQL::delete("bigtree_sessions", ["logged_in_user" => $this->ID]);
+				SQL::delete("bigtree_user_sessions", ["email" => $email]);
 			}
 
 			SQL::update("bigtree_users", $this->ID, $update);
@@ -8991,7 +9000,7 @@
 				True if successful. False if the logged in user doesn't have permission to change the user or there was an email collision.
 		*/
 
-		public function updateUser($id,$data) {
+		public function updateUser($id, $data) {
 			$level = intval($data["level"]);
 
 			// See if there's an email collission
@@ -9031,6 +9040,10 @@
 			if ($data["password"]) {
 				$update["password"] = password_hash(trim($data["password"]), PASSWORD_DEFAULT);
 				$update["new_hash"] = "on";
+
+				// Clean existing sessions on password change
+				SQL::delete("bigtree_sessions", ["logged_in_user" => $id]);
+				SQL::delete("bigtree_user_sessions", ["email" => $current["email"]]);
 			}
 
 			SQL::update("bigtree_users", $id, $update);
@@ -9053,6 +9066,11 @@
 				"password" => password_hash(trim($password), PASSWORD_DEFAULT),
 				"new_hash" => "on"
 			]);
+
+			// Clean existing sessions
+			$email = SQL::fetchSingle("SELECT email FROM bigtree_users WHERE id = ?", $id);
+			SQL::delete("bigtree_sessions", ["logged_in_user" => $id]);
+			SQL::delete("bigtree_user_sessions", ["email" => $email]);
 		}
 
 		/*
