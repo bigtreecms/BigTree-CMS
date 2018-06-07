@@ -18,13 +18,13 @@
 				Retrieves the current desired service and image processing availability.
 		*/
 
-		public function __construct() {
+		public function __construct($force_local = false) {
 			global $cms;
 			
 			// Get by reference because we modify it.
 			$this->Settings = &$cms->autoSaveSetting("bigtree-internal-storage");
 			
-			if (!empty($this->Settings->Service)) {
+			if (!$force_local && !empty($this->Settings->Service)) {
 				if ($this->Settings->Service == "s3" || $this->Settings->Service == "amazon") {
 					$this->Cloud = new BigTreeCloudStorage("amazon");
 				} elseif ($this->Settings->Service == "rackspace") {
