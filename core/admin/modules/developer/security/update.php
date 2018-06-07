@@ -26,7 +26,8 @@
 		"allowed_ips" => $allowed_ips,
 		"banned_ips" => $banned_ips,
 		"remember_disabled" => $remember_disabled ? "on" : "",
-		"two_factor" => $two_factor
+		"two_factor" => $two_factor,
+		"logout_all" => $logout_all ? "on" : ""
 	));
 	
 	$admin->growl("Security","Updated Policy");

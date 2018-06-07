@@ -118,7 +118,7 @@
 							$this->CSRFToken = $csrf_token;
 							$this->CSRFTokenField = $csrf_token_field;
 							
-							SQL::update("bigtree_sessions", session_id(), ["is_login" => "on"]);
+							SQL::update("bigtree_sessions", session_id(), ["is_login" => "on", "logged_in_user" => $f["id"]]);
 							$_SESSION["bigtree_admin"]["id"] = $f["id"];
 							$_SESSION["bigtree_admin"]["email"] = $f["email"];
 							$_SESSION["bigtree_admin"]["name"] = $f["name"];
@@ -6218,7 +6218,7 @@
 						setcookie('bigtree_admin[login]', $cookie_value, strtotime("+1 month"), $cookie_domain, "", false, true);
 					}
 					
-					SQL::update("bigtree_sessions", session_id(), ["is_login" => "on"]);
+					SQL::update("bigtree_sessions", session_id(), ["is_login" => "on", "logged_in_user" => $user["id"]]);
 					$_SESSION["bigtree_admin"]["id"] = $user["id"];
 					$_SESSION["bigtree_admin"]["email"] = $user["email"];
 					$_SESSION["bigtree_admin"]["level"] = $user["level"];
@@ -6334,7 +6334,7 @@
 						setcookie('bigtree_admin[login]', $cookie_value, strtotime("+1 month"), $cookie_domain, "", false, true);
 					}
 					
-					SQL::update("bigtree_sessions", session_id(), ["is_login" => "on"]);
+					SQL::update("bigtree_sessions", session_id(), ["is_login" => "on", "logged_in_user" => $user["id"]]);
 					$_SESSION["bigtree_admin"]["id"] = $user["id"];
 					$_SESSION["bigtree_admin"]["email"] = $user["email"];
 					$_SESSION["bigtree_admin"]["level"] = $user["level"];
@@ -6372,6 +6372,8 @@
 		*/
 
 		public static function logout() {
+			global $bigtree;
+
 			// If the user asked to be remembered, drop their chain from the legit sessions and remove cookies
 			if (!empty($_COOKIE["bigtree_admin"]["login"])) {
 				list($session,$chain) = json_decode($_COOKIE["bigtree_admin"]["login"], true);
@@ -6386,6 +6388,16 @@
 
 				setcookie("bigtree_admin[email]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
 				setcookie("bigtree_admin[login]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
+			}
+
+			// Determine whether we should log out all instances of this user
+			if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+				$security_policy = BigTreeCMS::getSetting("bigtree-internal-security-policy");
+
+				if (!empty($security_policy["logout_all"])) {
+					SQL::delete("bigtree_sessions", ["logged_in_user" => $_SESSION["bigtree_admin"]["id"]]);
+					SQL::delete("bigtree_user_sessions", ["email" => $_SESSION["bigtree_admin"]["email"]]);
+				}
 			}
 
 			unset($_COOKIE["bigtree_admin"]);

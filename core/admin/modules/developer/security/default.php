@@ -27,31 +27,41 @@
 						<label class="for_checkbox" for="security_settings_field_send_invites">Send Invitations for Users to Set Initial Password</label>
 					</fieldset>
 					<fieldset>
-						<input type="checkbox" name="password[mixedcase]"<?php if ($password["mixedcase"]) { ?> checked="checked"<?php } ?> />
-						<label class="for_checkbox">Require Mixed-Case <small>(both lowercase and uppercase characters)</small></label>
+						<input type="checkbox" id="security_settings_field_mixed_case" name="password[mixedcase]"<?php if ($password["mixedcase"]) { ?> checked="checked"<?php } ?> />
+						<label for="security_settings_field_mixed_case" class="for_checkbox">Require Mixed-Case <small>(both lowercase and uppercase characters)</small></label>
 					</fieldset>
 					<fieldset>
-						<input type="checkbox" name="password[numbers]"<?php if ($password["numbers"]) { ?> checked="checked"<?php } ?> />
-						<label class="for_checkbox">Require Numbers</label>
+						<input id="security_settings_field_require_numbers" type="checkbox" name="password[numbers]"<?php if ($password["numbers"]) { ?> checked="checked"<?php } ?> />
+						<label for="security_settings_field_require_numbers" class="for_checkbox">Require Numbers</label>
 					</fieldset>
 					<fieldset>
-						<input type="checkbox" name="password[nonalphanumeric]"<?php if ($password["nonalphanumeric"]) { ?> checked="checked"<?php } ?> />
-						<label class="for_checkbox">Require Non-Alphanumeric Characters <small>(i.e. $ # ^ *)</small></label>
+						<input id="security_settings_field_nonalphanumeric" type="checkbox" name="password[nonalphanumeric]"<?php if ($password["nonalphanumeric"]) { ?> checked="checked"<?php } ?> />
+						<label for="security_settings_field_nonalphanumeric" class="for_checkbox">Require Non-Alphanumeric Characters <small>(i.e. $ # ^ *)</small></label>
 					</fieldset>
 					<fieldset>
-						<label>Minimum Password Length <small>(leave blank or 0 to have no restriction)</small></label>
-						<input type="text" name="password[length]" value="<?=$password["length"]?>" />
+						<label for="security_settings_field_password_length">Minimum Password Length <small>(leave blank or 0 to have no restriction)</small></label>
+						<input id="security_settings_field_password_length" type="text" name="password[length]" value="<?=$password["length"]?>" />
 					</fieldset>
 					<br />
 					<h3>Login Options</h3>
 					<fieldset>
-						<input type="checkbox" name="two_factor" value="google"<?php if ($two_factor == "google") { ?> checked<?php } ?>>
-						<label class="for_checkbox">Enable Two-Factor Authentication via Google Authenticator</label>
+						<input id="security_settings_field_google_authenticator" type="checkbox" name="two_factor" value="google"<?php if ($two_factor == "google") { ?> checked<?php } ?>>
+						<label for="security_settings_field_google_authenticator" class="for_checkbox">Enable Two-Factor Authentication via Google Authenticator</label>
 					</fieldset>
 					<fieldset>
-						<input type="checkbox" name="remember_disabled" value="on"<?php if ($remember_disabled == "on") { ?> checked<?php } ?>>
-						<label class="for_checkbox">Disable "Remember Me" Function</label>
-					</fieldset>					
+						<input id="security_settings_field_disable_remember" type="checkbox" name="remember_disabled" value="on"<?php if ($remember_disabled == "on") { ?> checked<?php } ?>>
+						<label for="security_settings_field_disable_remember" class="for_checkbox">Disable "Remember Me" Function</label>
+					</fieldset>
+					<?php
+						if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+					?>
+					<fieldset>
+						<input id="security_settings_field_logout_all" type="checkbox" name="logout_all" value="on"<?php if ($logout_all == "on") { ?> checked<?php } ?>>
+						<label for="security_settings_field_logout_all" class="for_checkbox">Logout All Users Sessions When User Clicks Logout</label>
+					</fieldset>
+					<?php
+						}
+					?>
 				</div>
 				<div class="right">
 					<fieldset>
