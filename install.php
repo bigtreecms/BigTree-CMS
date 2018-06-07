@@ -621,7 +621,7 @@ RewriteRule (.*) site/$1 [L]');
 					<label>Session Storage <small>(BigTree Database Handler required for enhanced security features)</label>
 					<select name="session_handler" tabindex="7">
 						<option value="db">BigTree Database Handler</option>
-						<option value="native">Native PHP Handler</option>
+						<option value="default">Default PHP Handler</option>
 					</select>
 				</fieldset>
 				

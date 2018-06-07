@@ -17,7 +17,7 @@
 	$bigtree["config"]["cache"] = false; // Enable Simple Caching
 	$bigtree["config"]["cache_ttl"] = 300; // Number of seconds to keep a cached page
 	$bigtree["config"]["sql_interface"] = "mysqli"; // Change to "mysql" to use legacy MySQL interface in PHP.
-	$bigtree["config"]["session_handler"] = "[session_handler]";
+	$bigtree["config"]["session_handler"] = "[session_handler]"; // Change to "db" to use BigTree's session handler or "default" for PHP's default
 
 	// Database Environment
 	$bigtree["config"]["db"]["host"] = "[host]";
