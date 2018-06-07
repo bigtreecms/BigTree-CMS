@@ -1,5 +1,9 @@
 <?php
 	if ($permission == "p") {
+		if (empty($folder["id"])) {
+			$folder["id"] = 0;
+		}
+		
 		$bigtree["custom_subnav"] = [
 			["link" => "files/add/image/".$folder["id"], "title" => "Add Images", "icon" => "picture"],
 			["link" => "files/add/file/".$folder["id"], "title" => "Add Files", "icon" => "file_default"],
