@@ -49,7 +49,57 @@
 		}
 	}
 
-	$admin->updateResource($_POST["id"], $data);
+	if (!empty($_FILES["file"]["tmp_name"])) {
+		$storage = new BigTreeStorage;
+		$file_name = pathinfo($file["file"], PATHINFO_BASENAME);
+
+		if ($file["is_image"]) {
+			include BigTree::path("admin/modules/files/process/_crop-setup.php");
+			$min_height = intval($preset["min_height"]);
+			$min_width = intval($preset["min_width"]);
+
+			list($width, $height, $type, $attr) = getimagesize($_FILES["file"]["tmp_name"]);
+
+			// Scale up content that doesn't meet minimums
+			if ($width < $min_width || $height < $min_height) {
+				BigTree::createUpscaledImage($_FILES["file"]["tmp_name"], $_FILES["file"]["tmp_name"], $min_width, $min_height);
+				list($width, $height, $type, $attr) = getimagesize($_FILES["file"]["tmp_name"]);
+			}
+
+			$field = [
+				"title" => $file["name"],
+				"file_input" => [
+					"tmp_name" => $_FILES["file"]["tmp_name"],
+					"name" => $file_name,
+					"error" => 0
+				],
+				"settings" => [
+					"directory" => "files/resources/",
+					"preset" => "default"
+				]
+			];
+
+			$data["width"] = $width;
+			$data["height"] = $height;
+			$data["size"] = filesize($_FILES["file"]["tmp_name"]);
+
+			$admin->processImageUpload($field, true);
+			$admin->updateResource($_POST["id"], $data);
+
+			$_SESSION["bigtree_admin"]["form_data"] = [
+				"edit_link" => ADMIN_ROOT."files/folder/".intval($bigtree["commands"][0])."/",
+				"return_link" => ADMIN_ROOT."files/folder/".intval($bigtree["commands"][0])."/",
+				"crop_key" => $cms->cacheUnique("org.bigtreecms.crops", $bigtree["crops"])
+			];
+
+			BigTree::redirect(ADMIN_ROOT."files/crop/".intval($bigtree["commands"][0])."/");
+
+			die();
+		} elseif (!$file["is_video"]) {
+			$storage->replace($_FILES["file"]["tmp_name"], $file_name, "files/resources/");
+		}
+	}
+
 	$admin->growl("File Manager", "Updated File");
 
 	BigTree::redirect(ADMIN_ROOT."files/folder/".$file["folder"]."/");

@@ -20,10 +20,10 @@
 
 		public function __construct($force_local = false) {
 			global $cms;
-			
+
 			// Get by reference because we modify it.
 			$this->Settings = &$cms->autoSaveSetting("bigtree-internal-storage");
-			
+
 			if (!$force_local && !empty($this->Settings->Service)) {
 				if ($this->Settings->Service == "s3" || $this->Settings->Service == "amazon") {
 					$this->Cloud = new BigTreeCloudStorage("amazon");
@@ -116,17 +116,17 @@
 					// Need to figure out the actual container
 					$container = false;
 					$cloud = ($this->Settings->Service == $service) ? $this->Cloud : new BigTreeCloudStorage;
-					
+
 					foreach ($cloud->Settings["rackspace"]["container_cdn_urls"] as $c => $url) {
 						if ($url == "http://$domain") {
 							$container = $c;
 						}
 					}
-					
+
 					if (!$container) {
 						return false;
 					}
-					
+
 					$pointer_parts = array_slice($parts,3);
 				}
 
@@ -166,7 +166,7 @@
 		public function replace($local_file, $file_name, $relative_path, $remove_original = true, $force_local = false) {
 			// Make sure there are no path exploits
 			$file_name = BigTree::cleanFile($file_name);
-			
+
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
 				$this->DisabledFileError = true;
@@ -181,7 +181,7 @@
 
 			if ($this->Cloud && !$force_local) {
 				$success = $this->Cloud->uploadFile($local_file,$this->Settings->Container,$relative_path.$file_name,true);
-				
+
 				if ($success) {
 					sqlquery("UPDATE bigtree_caches SET value = '".sqlescape(json_encode(array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file))))."' WHERE `identifier` = 'org.bigtreecms.cloudfiles' AND `key` = '".sqlescape($relative_path.$file_name)."'");
 				}
@@ -197,7 +197,7 @@
 
 					return $protocol."://".$this->Cloud->Settings["amazon"]["cloudfront_domain"]."/".$relative_path.$file_name;
 				}
-				
+
 				return $success;
 			} else {
 				if ($remove_original) {
@@ -250,15 +250,15 @@
 
 				$parts = BigTree::pathInfo($file_name);
 				$clean_name = $cms->urlify($parts["filename"]);
-				
+
 				if (strlen($clean_name) > 50) {
 					$clean_name = substr($clean_name,0,50);
 				}
-				
+
 				// Best case name
 				$file_name = $clean_name.".".strtolower($parts["extension"]);
 				$x = 2;
-				
+
 				// Make sure we have a unique name
 				while (!$file_name || sqlrows(sqlquery("SELECT `timestamp` FROM bigtree_caches WHERE `identifier` = 'org.bigtreecms.cloudfiles' AND `key` = '".sqlescape($relative_path.$file_name)."'"))) {
 					$file_name = $clean_name."-$x.".strtolower($parts["extension"]);
@@ -267,24 +267,24 @@
 					// Check all the prefixes, make sure they don't exist either
 					if (is_array($prefixes) && count($prefixes)) {
 						$prefix_query = array();
-				
+
 						foreach ($prefixes as $prefix) {
 							$prefix_query[] = "`key` = '".sqlescape($relative_path.$prefix.$file_name)."'";
 						}
-				
+
 						if (sqlrows(sqlquery("SELECT `timestamp` FROM bigtree_caches WHERE identifier = 'org.bigtreecms.cloudfiles' AND (".implode(" OR ",$prefix_query).")"))) {
 							$file_name = false;
 						}
 					}
 				}
-				
+
 				// Upload it
 				$success = $this->Cloud->uploadFile($local_file,$this->Settings->Container,$relative_path.$file_name,true);
-				
+
 				if ($success) {
 					sqlquery("INSERT INTO bigtree_caches (`identifier`,`key`,`value`) VALUES ('org.bigtreecms.cloudfiles','".sqlescape($relative_path.$file_name)."','".sqlescape(json_encode(array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file))))."')");
 				}
-				
+
 				if ($remove_original) {
 					unlink($local_file);
 				}
@@ -296,7 +296,7 @@
 
 					return $protocol."://".$this->Cloud->Settings["amazon"]["cloudfront_domain"]."/".$relative_path.$file_name;
 				}
-				
+
 				return $success;
 			} else {
 				$safe_name = BigTree::getAvailableFileName(SITE_ROOT.$relative_path,$file_name,$prefixes);

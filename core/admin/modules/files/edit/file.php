@@ -34,7 +34,7 @@
 		$meta_fields = $metadata["file"];
 	}
 ?>
-<form class="container" method="post" action="<?=ADMIN_ROOT?>files/update/file/">
+<form class="container" method="post" action="<?=ADMIN_ROOT?>files/update/file/" enctype="multipart/form-data">
 	<?php $admin->drawCSRFToken(); ?>
 	<input type="hidden" name="id" value="<?=$file["id"]?>">
 
@@ -54,11 +54,26 @@
 		?>
 
 		<fieldset>
-			<label>File Name <small>(used for search)</small></label>
-			<input type="text" name="name" value="<?=$file["name"]?>">
+			<label for="field_file_name">Resource Name <small>(used for search)</small></label>
+			<input id="field_file_name" type="text" name="name" value="<?=$file["name"]?>">
 		</fieldset>
 
 		<?php
+			if (!$file["is_video"]) {
+				BigTreeAdmin::drawField([
+					"title" => "Replace File",
+					"subtitle" => "(leave empty to preserve current file)",
+					"type" => "upload",
+					"key" => "file",
+					"id" => "field_file",
+					"value" => $file["file"],
+					"options" => [
+						"image" => $file["is_image"] ? "on" : "",
+						"preview_prefix" => "list-preview/"
+					]
+				]);
+			}
+
 			if (is_array($meta_fields) && count($meta_fields)) {
 				echo "<hr>";
 
