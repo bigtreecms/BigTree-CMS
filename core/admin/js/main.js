@@ -8,7 +8,7 @@ $(document).ready(function() {
 	}).ajaxStop(function() {
 		BigTree.Busy = false;
 	});
-	
+
 	// BigTree Quick Search
 	$('nav.main form .qs_query').keyup(function(ev) {
 		var v = $(this).val();
@@ -100,17 +100,17 @@ var BigTreePageLoadHooks = (function($) {
 				});
 			}
 		});
-		
+
 		// Sticky Controls
 		StickyControls.element = $(".sticky_controls");
 		if (StickyControls.element.length) {
 			StickyControls.top = StickyControls.element.offset().top;
-			
+
 			if (window.scrollY >= StickyControls.top && !StickyControls.stuck) {
 				StickyControls.stuck = true;
 				StickyControls.element.addClass("stuck");
 			}
-			
+
 			$(window).scroll(function() {
 				if (window.scrollY >= StickyControls.top && !StickyControls.stuck) {
 					StickyControls.stuck = true;
@@ -122,7 +122,7 @@ var BigTreePageLoadHooks = (function($) {
 				}
 			});
 		}
-	
+
 		// Property Block Hide/Show
 		$("h3.properties").click(function() {
 			if ($(this).find(".icon_small").hasClass("icon_small_caret_right")) {
@@ -135,13 +135,13 @@ var BigTreePageLoadHooks = (function($) {
 			$(".property_block").toggle().next().toggle();
 			return false;
 		});
-	
+
 		$(".inset_block .hide").click(function() {
 			var id = $(this).attr("data-id");
 			$.cookie("bigtree_admin[ignore_view_description][" + id + "]","on", { expires: 365, path: "/" });
 			$(this).parent().hide();
 		});
-		
+
 		// Tooltips
 		$(".has_tooltip").each(function() {
 			var width = BigTree.windowWidth();
@@ -157,7 +157,7 @@ var BigTreePageLoadHooks = (function($) {
 				position: position
 			});
 		});
-	
+
 		BigTree.formHooks(".container form");
 	}
 
@@ -238,12 +238,12 @@ var BigTreeCheckbox = function(element) {
 			}
 			return false;
 		}
-	
+
 		function disable() {
 			Link.addClass("disabled");
 			Element.prop("disabled",true);
 		}
-		
+
 		function enable() {
 			Link.removeClass("disabled");
 			Element.prop("disabled",false);
@@ -254,7 +254,7 @@ var BigTreeCheckbox = function(element) {
 				Link.addClass("focused");
 			}
 		}
-		
+
 		function keydown(event) {
 			if (event.keyCode == 32) {
 				click();
@@ -271,21 +271,21 @@ var BigTreeCheckbox = function(element) {
 		Element.addClass("custom_control")
 			   .next("label").click(click)
 			   .find("a").click(function(ev) { ev.stopPropagation(); });
-		
+
 		// Create our clickable fake checkbox
 		Link = $("<a>").attr("href","#checkbox").click(click).focus(focus).blur(blur).keydown(keydown);
 
 		if (element.checked) {
 			Link.addClass("checked");
 		}
-		
+
 		if (element.disabled) {
 			Link.addClass("disabled")
 				.attr("tabindex","-1");
 		} else if (element.tabIndex) {
 			Link.attr("tabindex",element.tabIndex);
 		}
-		
+
 		$(element).hide().after($('<div class="checkbox">').append(Link));
 
 		return { Element: Element, Link: Link, blur: blur, clear: clear, click: click, disable: disable, enable: enable, focus: focus };
@@ -308,15 +308,15 @@ var BigTreeSelect = function(element) {
 			// Add to the styled select.
 			var a = $('<a href="#">' + text + '</a>').attr("data-value",value);
 			Container.find(".select_options").append(a);
-	
+
 			// Test the size of this new element and see if we need to increase the width.
 			var tester = $("<div>").css({ position: "absolute", top: "-1000px", left: "-1000px", "font-size": "11px", "font-family": "Helvetica", "white-space": "nowrap" });
 			$("body").append(tester);
 			tester.html(text);
 			var width = tester.width();
-			
+
 			var span = Container.find("span");
-	
+
 			// If we're in a section cell we may need to be smaller.
 			if (Element.parent().get(0).tagName.toLowerCase() == "section") {
 				var sectionwidth = Element.parent().width();
@@ -325,33 +325,33 @@ var BigTreeSelect = function(element) {
 					span.css({ overflow: "hidden", padding: "0 0 0 10px" });
 				}
 			}
-	
+
 			if (width > span.width()) {
 				span.css({ width: (width + 10) + "px" });
 				Container.find(".select_options").css({ width: (width + 64) + "px" });
 			}
-	
+
 			tester.remove();
 		}
-		
+
 		function blur() {
 			Container.removeClass("focused");
 		}
-	
+
 		function click() {
 			if (Container.hasClass("disabled")) {
 				return false;
 			}
-	
+
 			if (!Open) {
 				// Tooltips and menus sometimes show over the dropdown when using TinyMCE 4
 				try {
 					tinyMCE.ui.FloatPanel.hideAll();
 				} catch (err) {}
-			
+
 				$("select").not(Element).trigger("closeNow");
 				Element.focus();
-				
+
 				// Check if we're in a sortable row and disable it's relative position if so.
 				var li = Element.parent("li");
 				if (li.length) {
@@ -360,12 +360,12 @@ var BigTreeSelect = function(element) {
 						WasRelative = true;
 					}
 				}
-				
+
 				var select_options = Container.find(".select_options").show();
 				Open = true;
 				Container.addClass("open");
 				$("body").click(close);
-				
+
 				// Find out if we're in a dialog and have an overflow
 				var overflow = Container.parents(".overflow");
 				if (overflow.length) {
@@ -401,7 +401,7 @@ var BigTreeSelect = function(element) {
 			} else {
 				close();
 			}
-	
+
 			return false;
 		}
 
@@ -412,48 +412,48 @@ var BigTreeSelect = function(element) {
 			$("body").unbind("click",close);
 			$(".callout_fields").unbind("scroll",close);
 			Container.parents(".overflow").unbind("scroll",close);
-			
+
 			// Reset relative position if applicable
 			if (WasRelative) {
 				Element.parent("li").css("position", "relative");
 				WasRelative = false;
 			}
-			
+
 			return false;
 		}
-	
+
 		function disable() {
 			Element.prop("disabled",true);
 			Container.addClass("disabled");
 		}
-	
+
 		function enable() {
 			Element.prop("disabled",false);
 			Container.removeClass("disabled");
 		}
-	
+
 		function focus() {
 			Container.addClass("focused");
 		}
-		
+
 		function keydown(ev) {
 			// If a modifier has been pressed, ignore this.
 			if (ev.ctrlKey || ev.altKey || ev.metaKey) {
 				return true;
 			}
-	
+
 			if (ev.keyCode == 13 && Open) {
 				close();
 				return false;
 			}
-	
+
 			// The original select element that's hidden off screen.
 			var el = Element.get(0);
-			
+
 			// Get the original index and save it so we know when it changes.
 			var index = el.selectedIndex;
 			var originalIndex = index;
-			
+
 			// Up or left arrow pressed
 			if (ev.keyCode == 38 || ev.keyCode == 37) {
 				index--;
@@ -479,7 +479,7 @@ var BigTreeSelect = function(element) {
 				var spot = ev.keyCode - 65;
 				var letters = "abcdefghijklmnopqrstuvwxyz";
 				var letter = letters[spot];
-				
+
 				// Go through all the options in the select to see if any of them start with the letter that was pressed.
 				for (var i = index + 1; i < el.options.length; i++) {
 					if (!el.options[i].disabled) {
@@ -493,7 +493,7 @@ var BigTreeSelect = function(element) {
 						}
 					}
 				}
-				
+
 				// If we were already on that letter, find the next one with that same letter.
 				if (index == originalIndex) {
 					for (var i = 0; i < originalIndex; i++) {
@@ -518,7 +518,7 @@ var BigTreeSelect = function(element) {
 				var ops = select_options_container.find("a");
 				ops.eq(originalIndex).removeClass("active");
 				ops.eq(index).addClass("active");
-	
+
 				// Find out if we can see this option
 				var selected_y = (index + 1) * 25;
 				if (selected_y >= select_options_container.height() + select_options_container.scrollTop()) {
@@ -526,7 +526,7 @@ var BigTreeSelect = function(element) {
 				} else if (selected_y <= select_options_container.scrollTop()) {
 					select_options_container.animate({ scrollTop: selected_y - 25 + "px" }, 250);
 				}
-		
+
 				// Firefox wants to handle this change itself, so we'll give it a shot until they fix their browser engine.
 				if ($.browser.mozilla && ev.keyCode > 36 && ev.keyCode < 41) {
 					// Fire delayed change event since Firefox doesn't cooperate
@@ -537,18 +537,18 @@ var BigTreeSelect = function(element) {
 					el.selectedIndex = index;
 					Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
 				}
-	
+
 				Container.find("span").html('<figure class="handle"></figure>' + el.options[index].text);
-				
+
 				return false;
 			}
-			
+
 			// Stop the event if it's not a tab.
 			if (ev.keyCode != 9) {
 				return false;
 			}
 		}
-	
+
 		function remove(value) {
 			// Remove it from the actual select.
 			var ops = Element.find("option");
@@ -576,7 +576,7 @@ var BigTreeSelect = function(element) {
 				sel.html('<figure class="handle"></figure>');
 			}
 		}
-		
+
 		function select(ev) {
 			ev.preventDefault();
 			var option = $(this);
@@ -594,10 +594,10 @@ var BigTreeSelect = function(element) {
 			Container.find("span").html('<figure class="handle"></figure>' + option.html());
 			Container.find("a").removeClass("active");
 			option.addClass("active");
-			
+
 			// Close the dropdown
 			close();
-			
+
 			// Tell the <select> it has changed.
 			Element.trigger("change", { value: option.attr("data-value"), text: option.innerHTML });
 		}
@@ -613,7 +613,7 @@ var BigTreeSelect = function(element) {
 			return false;
 		}
 		Element.addClass("custom_control");
-		
+
 		// WebKit likes to freak out when we focus a position: absolute <select> in an overflow: scroll area
 		if ($.browser.webkit) {
 			Element.css({ position: "relative", left: "-1000000px", float: "left", width: "1px", marginRight: "-1px" });
@@ -624,11 +624,11 @@ var BigTreeSelect = function(element) {
 		var tester = $("<div>").css({ position: "absolute", top: "-1000px", left: "-1000px", "font-size": "11px", "font-family": "Helvetica", "white-space": "nowrap" });
 		$("body").append(tester);
 		var maxwidth = 0;
-		
+
 		var html = "";
 		var selected = "";
 		var selected_option = "";
-		
+
 		// Need to find all children since we have to account for options in and out of optgroups
 		var first_level = Element.children();
 		var y = 0;
@@ -643,7 +643,7 @@ var BigTreeSelect = function(element) {
 				if (width > maxwidth) {
 					maxwidth = width;
 				}
-				
+
 				var options = $(el).find("option");
 				for (x = 0; x < options.length; x++) {
 					y++;
@@ -653,18 +653,18 @@ var BigTreeSelect = function(element) {
 					if (!val) {
 						val = text;
 					}
-					
+
 					// Get the size of this text.
 					tester.html(text);
 					width = tester.width();
 					if (width + 20 > maxwidth) {
 						maxwidth = width + 20;
 					}
-					
+
 					if (y == 1) {
 						selected_option = text;
 					}
-					
+
 					if (option.prop("selected")) {
 						Options.push($('<a class="optgroup active" href="#" data-value="' + val + '">' + text + '</a>'));
 						selected_option = text;
@@ -682,7 +682,7 @@ var BigTreeSelect = function(element) {
 				if (!val) {
 					val = text;
 				}
-				
+
 				// If we're making a tree-like dropdown
 				if (option.attr("data-depth")) {
 					var depth = parseInt(option.attr("data-depth")) * 10;
@@ -696,11 +696,11 @@ var BigTreeSelect = function(element) {
 				if (width > maxwidth) {
 					maxwidth = width;
 				}
-				
+
 				if (y == 1) {
 					selected_option = text;
 				}
-				
+
 				if (option.prop("selected")) {
 					Options.push($('<a style="border-left: ' + depth + 'px solid #CCC;" class="active" href="#" data-value="' + val + '">' + text + '</a>'));
 					selected_option = text;
@@ -711,7 +711,7 @@ var BigTreeSelect = function(element) {
 				}
 			}
 		}
-		
+
 		Container.html('<span><figure class="handle"></figure>' + selected_option + '</span><div class="select_options" style="display: none;"></div>');
 
 		var spanwidth = maxwidth;
@@ -724,20 +724,20 @@ var BigTreeSelect = function(element) {
 				Container.find("span").css({ overflow: "hidden", padding: "0 0 0 10px" });
 			}
 		}
-		
+
 		Container.find("span").css({ width: (spanwidth + 10) + "px", height: "30px" }).html('<figure class="handle"></figure>' + selected_option).click(click);
 		Container.find(".select_options").append(Options).css({ width: (maxwidth + 64) + "px" });
 		Container.on("click","a",select);
 		Container.find(".handle").click(click);
-		
+
 		// Add it to the DOM
-		Element.before(Container);		
+		Element.before(Container);
 
 		// See if this select is disabled
 		if (Element.prop("disabled")) {
 			Container.addClass("disabled");
 		}
-		
+
 		// Observe focus, blur, and keydown on the hidden element.
 		Element.focus(focus).blur(blur).keydown(keydown);
 		// Custom event to force open lists closed when another select opens.
@@ -760,7 +760,7 @@ var BigTreeFileInput = function(element) {
 		function checkUploads() {
 			// Max file size
 			var max_size = parseInt($("#bigtree_max_file_size").val());
-	
+
 			// No content or early browser fallback? Just draw the input's value
 			if (!Element.get(0).files.length) {
 				Container.find(".data").html('<span class="name wider">' + Element.get(0).value + '	</span>');
@@ -772,7 +772,7 @@ var BigTreeFileInput = function(element) {
 				} else {
 					// Get file reference
 					var file = Element.get(0).files[0];
-	
+
 					// See if the file is too big
 					if (max_size && max_size < file.size) {
 						// Clear it out
@@ -830,7 +830,7 @@ var BigTreeFileInput = function(element) {
 			Element.val("");
 			checkUploads();
 		}
-	
+
 		function connect(el) {
 			Element = $(el).on("change",checkUploads);
 			return { Container: Container, Element: Element, clear: clear, connect: connect };
@@ -845,7 +845,7 @@ var BigTreeFileInput = function(element) {
 			Element.prop("disabled", false);
 			Container.removeClass("disabled");
 		}
-	
+
 		// Courtesy of Aliceljm on StackOverflow
 		function formatBytes(bytes) {
 			var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
@@ -864,7 +864,7 @@ var BigTreeFileInput = function(element) {
 		if (Element.prop("disabled")) {
 			Container.addClass("disabled");
 		}
-		
+
 		return { Container: Container, Element: Element, clear: clear, connect: connect, disable: disable, enable: enable };
 
 	})(jQuery,element);
@@ -917,7 +917,7 @@ var BigTreeRadioButton = function(element) {
 		function focus() {
 			Link.addClass("focused");
 		}
-	
+
 		function keydown(ev) {
 			if (ev.keyCode == 32) {
 				click(ev);
@@ -932,7 +932,7 @@ var BigTreeRadioButton = function(element) {
 				return false;
 			}
 		}
-	
+
 		function next(ev) {
 			var all = $('input[name="' + Element.attr("name") + '"]');
 			var index = all.index(Element);
@@ -941,7 +941,7 @@ var BigTreeRadioButton = function(element) {
 				all[index + 1].customControl.click(ev);
 			}
 		}
-		
+
 		function previous(ev) {
 			var all = $('input[name="' + Element.attr("name") + '"]');
 			var index = all.index(Element);
@@ -955,25 +955,25 @@ var BigTreeRadioButton = function(element) {
 		if (Element.hasClass("custom_control")) {
 			return false;
 		}
-		
+
 		// Have label clicks affect the checkbox but let links inside of the labels still work properly
 		Element.addClass("custom_control")
 			   .next("label").click(click)
 			   .find("a").click(function(ev) { ev.stopPropagation(); });
 
 		Link = $("<a>").attr("href","#radio").click(click).focus(focus).blur(blur).keydown(keydown);
-		
+
 		if (element.checked) {
 			Link.addClass("checked");
 		}
-		
+
 		if (element.disabled) {
 			Link.addClass("disabled")
 				.attr("tabindex","-1");
 		} else if (element.tabIndex) {
 			Link.attr("tabindex",element.tabIndex);
 		}
-		
+
 		Element.hide().after($('<div class="radio_button">').append(Link));
 
 		return { Element: Element, Link: Link, blur: blur, click: click, clear: clear, disable: disable, enable: enable, focus: focus };
@@ -1012,7 +1012,7 @@ var BigTreePhotoGallery = function(settings) {
 			}
 			return false;
 		}
-		
+
 		function deletePhoto() {
 			BigTreeDialog({
 				title: "Remove Photo",
@@ -1021,21 +1021,21 @@ var BigTreePhotoGallery = function(settings) {
 				alternateSaveText: "OK",
 				callback: $.proxy(function() { $(this).parents("li").remove(); },this)
 			});
-			
+
 			return false;
 		}
-		
+
 		function editPhoto(ev) {
 			var link = $(ev.target);
 			ActiveCaption = link.siblings(".caption");
-	
+
 			BigTreeDialog({
 				title: "Image Caption",
 				content: '<fieldset><label>Caption</label><input type="text" name="caption" value="' + htmlspecialchars(ActiveCaption.val()) + '"/></fieldset>',
 				callback: saveCaption,
 				icon: "caption"
 			});
-	
+
 			return false;
 		}
 
@@ -1043,7 +1043,7 @@ var BigTreePhotoGallery = function(settings) {
 			var target = $(ev.target);
 			// In case they click the span instead of the button.
 			if (!target.attr("href")) {
-				var field = target.parent().attr("href").substr(1);	
+				var field = target.parent().attr("href").substr(1);
 				var options = $.parseJSON(target.parent().attr("data-options"));
 			} else {
 				var field = target.attr("href").substr(1);
@@ -1057,13 +1057,13 @@ var BigTreePhotoGallery = function(settings) {
 			ActiveCaption.val(data.caption);
 			ActiveCaption = false;
 		}
-		
+
 		function saveNewFile(data) {
 			var li = $('<li>').html('<figure></figure><a href="#" class="icon_delete"></a>');
 			if (!DisableCaptions) {
 				li.find("a").before('<a href="#" class="icon_edit"></a>');
 			}
-	
+
 			// Try to get an image preview but fallback to the old upload message
 			var img = FileInput.prev(".file_wrapper").find("img");
 			if (img.length) {
@@ -1071,19 +1071,19 @@ var BigTreePhotoGallery = function(settings) {
 			} else {
 				li.find("figure").append('<figcaption>Awaiting Upload</figcaption>');
 			}
-	
+
 			// Move the hidden input into an image box for upload
 			li.append(FileInput.hide());
 			li.append($('<input type="hidden" name="' + Key + '[' + Counter + '][caption]" class="caption" />').val(data.caption));
 			Container.find("ul").append(li);
-	
+
 			// Increment the photo counter
 			Counter++;
-			
+
 			// Create a new hidden file input for the next image to be uploaded
 			var new_file = $('<input type="file" class="custom_control photo_gallery_input" name="' + Key + '[' + Counter + '][image]">').hide();
 			Container.find(".file_wrapper").after(new_file);
-			
+
 			// Wipe existing custom control information, assign the new input to it
 			var customControl = FileInput.get(0).customControl;
 			customControl.Container.find(".data").html("");
@@ -1091,7 +1091,7 @@ var BigTreePhotoGallery = function(settings) {
 			FileInput.get(0).customControl = false;
 			FileInput = new_file;
 		}
-		
+
 		function useExistingFile(path,caption,thumbnail) {
 			var li = $('<li>').html('<figure><img src="' + thumbnail + '" alt="" /></figure><a href="#" class="icon_edit"></a><a href="#" class="icon_delete"></a>');
 			li.append($('<input type="hidden" name="' + Key + '[' + Counter + '][existing]" />').val(path));
@@ -1106,7 +1106,7 @@ var BigTreePhotoGallery = function(settings) {
 		Counter = settings.count ? settings.count : 0;
 		DisableCaptions = settings.disableCaptions;
 		FileInput = Container.find("footer input").addClass("photo_gallery_input");
-		
+
 		Container.on("click",".icon_delete",deletePhoto)
 				 .on("click",".icon_edit",editPhoto)
 				 .on("imageloaded","input[type=file]",addPhoto);
@@ -1119,7 +1119,7 @@ var BigTreePhotoGallery = function(settings) {
 };
 
 var BigTreeTagAdder = (function($) {
-	
+
 	var Dropdown = false;
 	var LastSearch = false;
 	var Searching = false;
@@ -1127,7 +1127,7 @@ var BigTreeTagAdder = (function($) {
 	var TagEntry = false;
 	var TagList = false;
 	var TagResults = false;
-	
+
 	function init() {
 		TagEntry = $("#tag_entry").keydown(checkKeys).keyup(searchTags);
 		TagList = $("#tag_list").on("click","a",deleteHook);
@@ -1143,14 +1143,14 @@ var BigTreeTagAdder = (function($) {
 			$.secureAjax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: addedTag });
 		}
 	}
-	
+
 	function addedTag(id) {
 		TagList.append($('<li class="tag">').html('<a href="#"><input type="hidden" name="_tags[]" value="' + id + '" />' + ActiveTagName + '<span>x</span></a>'));
 		TagEntry.val("").focus();
 		TagResults.hide();
 		Dropdown = false;
 	}
-	
+
 	function checkKeys(ev) {
 		if (ev.keyCode == 13) {
 			if (SelectedTag > -1 && Dropdown) {
@@ -1212,7 +1212,7 @@ var BigTreeTagAdder = (function($) {
 		SelectedTag++;
 		li.eq(SelectedTag).addClass("selected");
 	}
-	
+
 	function moveUp(ev) {
 		if (!Dropdown || SelectedTag < 0) {
 			return;
@@ -1224,7 +1224,7 @@ var BigTreeTagAdder = (function($) {
 			li.eq(SelectedTag).addClass("selected");
 		}
 	}
-	
+
 	function searchTags(ev) {
 		var tag = TagEntry.val();
 		if (tag != LastSearch) {
@@ -1259,7 +1259,7 @@ var BigTreeDialog = function(settings) {
 				dialogClose();
 			}
 		}
-	
+
 		function dialogClose() {
 			// Call the cancel hook once, if it requests that we close the dialog, don't run it again.
 			if (OnCancel) {
@@ -1273,11 +1273,11 @@ var BigTreeDialog = function(settings) {
 			}
 			return false;
 		}
-	
+
 		function dialogSubmit(ev) {
 			ev.preventDefault();
 			ev.stopPropagation();
-	
+
 			// Let's move all the TinyMCE content back.
 			if (typeof tinyMCE != "undefined") {
 				DialogWindow.find("textarea:hidden").each(function() {
@@ -1285,10 +1285,10 @@ var BigTreeDialog = function(settings) {
 					$(this).val(tinyMCE.get(id).getContent());
 				});
 			}
-	
+
 			// Pass the form data to our callback as JSON
 			OnComplete(BigTree.cleanObject(DialogWindow.find(".bigtree_dialog_form").serializeJSON()));
-			
+
 			// Remove the dialog
 			$(".bigtree_dialog_overlay").last().remove();
 			$(".bigtree_dialog_window").last().remove();
@@ -1306,7 +1306,7 @@ var BigTreeDialog = function(settings) {
 		function windowResize(ev,animate) {
 			var left_offset = parseInt((BigTree.windowWidth() - DialogWidth) / 2);
 			var top_offset = parseInt((BigTree.windowHeight() - DialogHeight) / 2);
-			
+
 			if (animate) {
 				DialogWindow.animate({ "top": top_offset + "px", "left": left_offset + "px" }, 200);
 			} else {
@@ -1349,23 +1349,23 @@ var BigTreeDialog = function(settings) {
 		DialogWindow.css({ left: parseInt((BigTree.windowWidth() - DialogWidth) / 2) + "px", top: parseInt((BigTree.windowHeight() - DialogHeight) / 2) + "px" });
 
 		BigTree.formHooks(DialogWindow);
-				
+
 		// Hook cancel button
 		DialogWindow.find(".bigtree_dialog_close").click(dialogClose);
-		
+
 		// Hook form submission, if they don't want the submission just call the complete callback
 		if (settings.preSubmissionCallback) {
 			DialogWindow.find(".bigtree_dialog_form").submit(OnComplete);
 		} else {
 			DialogWindow.find(".bigtree_dialog_form").submit(dialogSubmit);
 		}
-		
+
 		// For confirmation dialogs, enter should immediately close
 		DialogWindow.find("input[type=submit]").focus();
-		
+
 		// Handle moving the dialog around if the window changes
 		$(window).resize(windowResize);
-		
+
 		// Set a timer to watch for a change in the dialog height to recenter.
 		HeightWatchTimer = setInterval(watchHeight,250);
 
@@ -1391,35 +1391,9 @@ var BigTreeFileManager = (function($) {
 	var TitleSaveTimer = false;
 	var Type = false;
 	var UploadDialog = false;
-	
-	// Methods
-	
-	function addFile() {
-		UploadDialog = BigTreeDialog({
-			title: "Upload Files",
-			content: '<input type="hidden" name="folder" value="' + CurrentFolder + '" /><fieldset><label>Select File(s)</label><input type="file" multiple name="files[]" /></fieldset>',
-			icon: "folder",
-			alternateSaveText: "Upload Files",
-			preSubmissionCallback: true,
-			callback: createFile
-		});
 
-		return false;
-	}
-	
-	function addFolder() {
-		UploadDialog = BigTreeDialog({
-			title: "New Folder",
-			content: '<input type="hidden" name="folder" value="' + CurrentFolder + '" /><fieldset><label>Folder Name</label><input class="required" type="text" name="name" /></fieldset>',
-			callback: createFolder,
-			icon: "folder",
-			alternateSaveText: "Create Folder",
-			preSubmissionCallback: true
-		});
-		
-		return false;
-	}
-	
+	// Methods
+
 	function chooseImageSize() {
 		$("#file_browser_upload").unbind("click").html("").css({ cursor: "default" }).click(function() { return false; });
 		$("#file_browser_form .footer input.blue").hide();
@@ -1445,114 +1419,31 @@ var BigTreeFileManager = (function($) {
 
 		return false;
 	}
-	
+
 	function closeFileBrowser() {
 		$(".bigtree_dialog_overlay").last().remove();
 		$("#file_browser").remove();
 		BigTree.ZIndex = BigTree.ZIndexBackup;
 		$("#mceModalBlocker, #mce-modal-block").show();
-		
+
 		return false;
 	}
-	
-	function createFile(ev) {
-		var last_dialog = $(".bigtree_dialog_form").last();
 
-		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
-		last_dialog.attr("action","admin_root/ajax/file-browser/upload/")
-				   .attr("target","file_manager_upload_frame");
-		last_dialog.prepend('<input type="hidden" name="' + CSRFTokenField + '" value="' + CSRFToken + '">');
-		last_dialog.find("footer *").hide();
-		last_dialog.find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Uploading files. Please wait…</p>'));
-	}
-	
-	function createFolder(ev) {
-		var last_dialog = $(".bigtree_dialog_form").last();
-		var validator = BigTreeFormValidator(last_dialog);
-
-		if (!validator.validateForm(false,true)) {
-			ev.preventDefault();
-			ev.stopPropagation();
-			
-			return;
-		}
-
-		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
-		last_dialog.attr("action","admin_root/ajax/file-browser/create-folder/")
-				   .attr("target","file_manager_upload_frame");
-		last_dialog.prepend('<input type="hidden" name="' + CSRFTokenField + '" value="' + CSRFToken + '">');
-		last_dialog.find("footer *").hide();
-		last_dialog.find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Creating folder. Please wait…</p>'));
-	}
-
-	function deleteFile(ev) {
-		var count = parseInt($(this).attr("data-allocation"));
-		
-		ev.preventDefault();
-		ev.stopPropagation();
-		
-		if (count) {
-			var c = confirm("This file is in use in " + count + " locations.\nThese links or images will become empty or broken.\n\nAre you sure you want to delete this file?");
-		} else {
-			var c = confirm("Are you sure you want to delete this file?");
-		}
-
-		if (c) {
-			$.secureAjax("admin_root/ajax/file-browser/delete/", { type: "POST", data: { file: $("#file_browser_selected_file").val() } });
-			
-			$("#file_browser_contents .selected").remove();
-			$("#file_browser_info_pane").html("");
-			$("#file_browser .footer .blue").hide();
-		}
-	}
-
-	function deleteFolder(ev) {
-		ev.stopPropagation();
-		ev.preventDefault();
-
-		// Prevent double clicks
-		if (BigTree.Busy) {
-			return;
-		}
-
-		$.ajax("admin_root/ajax/file-browser/folder-allocation/", { type: "POST", data: { folder: CurrentFolder }, complete: function(r) {
-			var j = $.parseJSON(r.responseText);
-			
-			if (confirm("This folder has " + j.folders + " sub-folder(s) and " + j.resources + " file(s) which will be deleted.\n\nFiles in this folder are in use in " + j.allocations + " location(s).\n\nAre you sure you want to delete this folder?")) {
-				$.secureAjax("admin_root/ajax/file-browser/delete-folder/", { type: "POST", data: { folder: CurrentFolder }, complete: function(r) {
-					if (Type == "image" || Type == "photo-gallery") {
-						openImageFolder(r.responseText);	
-					} else {
-						openFileFolder(r.responseText);
-					}
-				}});
-			}
-		}});
-	}
-	
-	function disableCreate() {
-		$("#file_browser .header a").hide();		
-	}
-	
-	function enableCreate() {
-		$("#file_browser .header a").show();
-	}
-	
 	function fileBrowser() {
 		$("#file_browser_type_icon").addClass("icon_folder");
 		$("#file_browser_type .title").html("File Browser");
 		openFileFolder(0);
 	}
-	
+
 	function fileBrowserPopulated() {
 		$("#file_browser_contents a").click(fileClick);
 	}
-	
-	function fileClick() {				
+
+	function fileClick() {
 		if ($(this).hasClass("disabled")) {
 			return false;
 		}
-		
+
 		if ($(this).hasClass("folder")) {
 			$("#file_browser .footer .blue").hide();
 			openFileFolder($(this).attr("href").substr(1));
@@ -1561,40 +1452,26 @@ var BigTreeFileManager = (function($) {
 
 		// Show the "Use" button now that something is selected.
 		$("#file_browser .footer .blue").show();
-		
 		$("#file_browser_contents a").removeClass("selected");
 		$(this).addClass("selected");
 		$("#file_browser_selected_file").val($(this).attr("href").replace("{wwwroot}","www_root/").replace("{staticroot}","static_root/"));
 		$("#file_browser_info_pane").html('<span class="spinner"></span>');
-		$("#file_browser_info_pane").load("admin_root/ajax/file-browser/file-info/",
+		$("#file_browser_info_pane").load("admin_root/ajax/files/get-info/",
 			{ file: $(this).attr("href") },
 			function() {
 				$("#file_browser_detail_title_input").keyup(function() {
 					clearTimeout(TitleSaveTimer);
 					TitleSaveTimer = setTimeout(saveFileTitle,500);
 				});
-				$("#file_browser_info_pane .replace").click(replaceFile);
-				$("#file_browser_info_pane .delete").click(deleteFile);
 				$(".file_browser_detail_folder_button").click(function() {
 					openFileFolder($(this).data("folder"));
 				});
 			}
 		);
-		
+
 		return false;
 	}
-	
-	function finishedUpload(errors) {
-		UploadDialog.close();
-		UploadDialog = false;
-		
-		if (Type == "image" || Type == "photo-gallery") {
-			openImageFolder(CurrentFolder);	
-		} else {
-			openFileFolder(CurrentFolder);
-		}
-	}
-	
+
 	function formOpen(type,field_name,options,callback) {
 		CurrentlyName = field_name;
 		CurrentlyKey = options.currentlyKey;
@@ -1604,25 +1481,21 @@ var BigTreeFileManager = (function($) {
 		open(type,options.minWidth,options.minHeight);
 	}
 
-	function hideDeleteFolder() {
-		$("#file_browser .delete_folder").hide();
-	}
-	
 	function imageBrowser() {
 		$("#file_browser_type_icon").addClass("icon_images");
 		$("#file_browser_type .title").html("Image Library");
 		openImageFolder(0);
 	}
-	
+
 	function imageBrowserPopulated() {
 		$("#file_browser_contents a").click(imageClick);
 	}
-	
+
 	function imageClick() {
 		if ($(this).hasClass("disabled")) {
 			return false;
 		}
-		
+
 		if ($(this).hasClass("folder")) {
 			$("#file_browser .footer .blue").hide();
 			openImageFolder($(this).attr("href").substr(1));
@@ -1631,34 +1504,30 @@ var BigTreeFileManager = (function($) {
 
 		// Show the "Use" button now that something is selected.
 		$("#file_browser .footer .blue").show();
-
-		
 		$("#file_browser_contents a").removeClass("selected");
 		$(this).addClass("selected");
-		
+
 		var data = $.parseJSON($(this).attr("href"));
 		AvailableThumbs = data.thumbs;
+
 		$("#file_browser_selected_file").val(data.file.replace("{wwwroot}","www_root/").replace("{staticroot}","static_root/"));
-		
 		$("#file_browser_info_pane").html('<span class="spinner"></span>');
-		$("#file_browser_info_pane").load("admin_root/ajax/file-browser/file-info/",
+		$("#file_browser_info_pane").load("admin_root/ajax/files/get-info/",
 			{ file: data.file },
 			function() {
 				$("#file_browser_detail_title_input").keyup(function() {
 					clearTimeout(TitleSaveTimer);
 					TitleSaveTimer = setTimeout(saveFileTitle,500);
 				});
-				$("#file_browser_info_pane .replace").click(replaceFile);
-				$("#file_browser_info_pane .delete").click(deleteFile);
 				$(".file_browser_detail_folder_button").click(function() {
 					openImageFolder($(this).data("folder"));
 				});
 			}
 		);
-		
+
 		return false;
 	}
-	
+
 	function open(type,min_width,min_height) {
 		if ($.browser.msie  && parseInt($.browser.version, 10) === 7) {
 			alert("This feature is not supported in Internet Explorer 7.  Please upgrade your browser.");
@@ -1668,7 +1537,7 @@ var BigTreeFileManager = (function($) {
 		Type = type;
 		MinWidth = min_width;
 		MinHeight = min_height;
-			
+
 		// Figure out where to put the window.
 		var width = BigTree.windowWidth();
 		var height = BigTree.windowHeight();
@@ -1678,32 +1547,21 @@ var BigTreeFileManager = (function($) {
 		// Set BigTree's zIndex super high because TinyMCE will try to be on top
 		BigTree.ZIndexBackup = BigTree.ZIndex;
 		BigTree.ZIndex = 500000;
-		
+
 		// Create the window.
 		var overlay = $('<div class="bigtree_dialog_overlay" style="z-index:' + (BigTree.ZIndex++) + ';">');
-		
+
 		Browser = $('<div id="file_browser" style="z-index: ' + (BigTree.ZIndex++) + ';">');
 		Browser.css({ top: top_offset + "px", left: left_offset + "px" });
 		Browser.html('\
 <div class="header">\
 	<input class="form_search" id="file_browser_search" placeholder="Search" />\
 	<span class="form_search_icon"></span>\
-	<a href="#" class="button add_file">Upload Files</a>\
-	<a href="#" class="button add_folder">New Folder</a>\
-	<a href="#" class="button red delete_folder" style="display: none;">Delete Folder</a>\
+	<a href="admin_root/files/" class="button" target="_blank">Manage Files</a>\
 	<span id="file_browser_type_icon"></span>\
 	<h2 id="file_browser_type"><em class="title"></em><em class="suffix"></em></h2>\
 </div>\
 <ul id="file_browser_breadcrumb"><li><a href="#0">Home</a></li></ul>\
-<div id="file_browser_upload_window" style="display: none;">\
-	<span style="display: none;" id="file_browser_spinner" class="spinner"></span>\
-	<iframe name="resource_frame" id="file_browser_upload_frame" style="display: none;" src="admin_root/ajax/file-browser/busy/"></iframe>\
-	<form id="file_browser_upload_form" target="resource_frame" method="post" enctype="multipart/form-data" action="admin_root/ajax/file-browser/upload/">\
-		<input type="hidden" name="MAX_FILE_SIZE" value="$max_file_size" />\
-		<input type="file" name="file" id="file_browser_file_input" /> \
-		<input type="submit" class="shorter blue" value="Upload" />\
-	</form>\
-</div>\
 <form method="post" action="" id="file_browser_form">\
 	<input type="hidden" id="file_browser_selected_file" value="" />\
 	<div id="file_browser_contents"></div>\
@@ -1716,7 +1574,7 @@ var BigTreeFileManager = (function($) {
 </form>');
 
 		$("body").append(overlay).append(Browser);
-		
+
 		// Hook the cancel, submit, and search.
 		$("#file_browser_cancel").click(closeFileBrowser);
 		$("#file_browser_form").submit(submitSelectedFile);
@@ -1724,10 +1582,10 @@ var BigTreeFileManager = (function($) {
 			clearTimeout(StartSearchTimer);
 			StartSearchTimer = setTimeout(search,300);
 		});
-		
+
 		// Hide TinyMCE's default modal background, we're using our own.
 		$("#mceModalBlocker, #mce-modal-block").hide();
-		
+
 		// Handle the clicks on the breadcrumb of folders
 		$("#file_browser_breadcrumb").on("click","a",function() {
 			var folder = $(this).attr("href").substr(1);
@@ -1737,15 +1595,10 @@ var BigTreeFileManager = (function($) {
 			} else {
 				openFileFolder(folder);
 			}
-			
+
 			return false;
 		});
-		
-		// Handle the create new folder / file clicks
-		$("#file_browser .header .add_file").click(addFile);
-		$("#file_browser .header .add_folder").click(addFolder);
-		$("#file_browser .header .delete_folder").click(deleteFolder);
-		
+
 		// Open the right browser
 		if (Type == "image" || Type == "photo-gallery") {
 			imageBrowser();
@@ -1753,74 +1606,43 @@ var BigTreeFileManager = (function($) {
 			fileBrowser();
 		}
 	}
-	
+
 	function openFileFolder(folder) {
 		CurrentFolder = folder;
 		$("#file_browser_selected_file").val("");
 		$("#file_browser_info_pane").html("");
 		$("#file_browser_form .footer .blue").hide();
-		$("#file_browser_contents").scrollTop(0).load("admin_root/ajax/file-browser/get-files/", { folder: folder }, fileBrowserPopulated);
+		$("#file_browser_contents").scrollTop(0).load("admin_root/ajax/files/get-files/", { folder: folder }, fileBrowserPopulated);
 	}
-	
+
 	function openImageFolder(folder) {
 		CurrentFolder = folder;
 		$("#file_browser_selected_file").val("");
 		$("#file_browser_info_pane").html("");
 		$("#file_browser_form .footer .blue").hide();
-		$("#file_browser_contents").scrollTop(0).load("admin_root/ajax/file-browser/get-images/", { minWidth: MinWidth, minHeight: MinHeight, folder: folder }, imageBrowserPopulated);
+		$("#file_browser_contents").scrollTop(0).load("admin_root/ajax/files/get-images/", { minWidth: MinWidth, minHeight: MinHeight, folder: folder }, imageBrowserPopulated);
 	}
 
-	function replaceFile() {
-		UploadDialog = BigTreeDialog({
-			title: "Replace File",
-			content: '<input type="hidden" name="' + CSRFTokenField + '" value="' + CSRFToken + '"><input type="hidden" name="replace" value="' + $(this).attr("data-replace") + '" /><fieldset><label>Select A File</label><input type="file" name="files[]" /></fieldset>',
-			callback: replaceFileProcess,
-			icon: "folder",
-			alternateSaveText: "Replace File",
-			preSubmissionCallback: true
-		});
-
-		return false;
-	}
-
-	function replaceFileProcess(data) {
-		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
-		$(".bigtree_dialog_form").last().attr("action","admin_root/ajax/file-browser/upload/").attr("target","file_manager_upload_frame");
-		$(".bigtree_dialog_form").last().find("footer *").hide();
-		$(".bigtree_dialog_form").last().find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Replacing file. Please wait…</p>'));
-	}
-	
-	function saveFileTitle() {
-		var title = $("#file_browser_detail_title_input").val();
-		var file = $("#file_browser_selected_file").val();
-
-		$.secureAjax("admin_root/ajax/file-browser/save-title/", { type: "POST", data: { file: file, title: title } });
-	}
-	
 	function search() {
 		var query = $("#file_browser_search").val();
 		$("#file_browser_info_pane").html("");
 		$("#file_browser_selected_file").val("");
-		
+
 		if (Type == "image" || Type == "photo-gallery") {
-			$("#file_browser_contents").load("admin_root/ajax/file-browser/get-images/", { minWidth: MinWidth, minHeight: MinHeight, query: query, folder: CurrentFolder }, imageBrowserPopulated);
+			$("#file_browser_contents").load("admin_root/ajax/files/get-images/", { minWidth: MinWidth, minHeight: MinHeight, query: query, folder: CurrentFolder }, imageBrowserPopulated);
 		} else {
-			$("#file_browser_contents").load("admin_root/ajax/file-browser/get-files/", { query: query, folder: CurrentFolder }, fileBrowserPopulated);
+			$("#file_browser_contents").load("admin_root/ajax/files/get-files/", { query: query, folder: CurrentFolder }, fileBrowserPopulated);
 		}
 	}
-	
+
 	function setBreadcrumb(contents) {
 		$("#file_browser_breadcrumb").html(contents);
 	}
-	
+
 	function setTitleSuffix(suffix) {
 		$("#file_browser_type .suffix").html(suffix);
 	}
 
-	function showDeleteFolder() {
-		$("#file_browser .delete_folder").show();
-	}
-	
 	function submitSelectedFile() {
 		if (FieldName) {
 			if (Type == "image" && AvailableThumbs.length) {
@@ -1850,11 +1672,11 @@ var BigTreeFileManager = (function($) {
 			} else if (Type == "photo-gallery") {
 				Callback($("#file_browser_selected_file").val(),$("#file_browser_detail_title_input").val(),$(".file_browser_images .selected img").attr("src"));
 			}
-			
+
 			return closeFileBrowser();
 		}
 	}
-	
+
 	function tinyMCEOpen(field_name,url,type,win) {
 		CurrentlyName = false;
 		// TinyMCE 3
@@ -1865,30 +1687,11 @@ var BigTreeFileManager = (function($) {
 		open(type,false,false);
 	}
 
-	function uploadError(message,successes) {
-		var last_dialog = $(".bigtree_dialog_form").last();
-		last_dialog.find("p,fieldset,input").remove();
-		last_dialog.find(".overflow").prepend($('<p class="error_message">' + message + '</p><p>' + successes + '</p>'));
-		last_dialog.find("footer a").show().html("Ok");
-
-		if (Type == "image" || Type == "photo-gallery") {
-			openImageFolder(CurrentFolder);	
-		} else {
-			openFileFolder(CurrentFolder);
-		}
-	}
-
 	return {
-		disableCreate: disableCreate,
-		enableCreate: enableCreate,
-		finishedUpload: finishedUpload,
 		formOpen: formOpen,
-		hideDeleteFolder: hideDeleteFolder,
 		setBreadcrumb: setBreadcrumb,
 		setTitleSuffix: setTitleSuffix,
-		showDeleteFolder: showDeleteFolder,
-		tinyMCEOpen: tinyMCEOpen,
-		uploadError: uploadError
+		tinyMCEOpen: tinyMCEOpen
 	};
 
 }(jQuery));
@@ -1901,7 +1704,7 @@ var BigTreeFormNavBar = (function() {
 	var Nav;
 	var NextButton;
 	var Sections;
-	
+
 	function init() {
 		Container = $(".container");
 		ContainerOffset = Container.offset().top;
@@ -1930,13 +1733,13 @@ var BigTreeFormNavBar = (function() {
 		if (nav_width > 928) {
 			// If we're larger than 928, we're splitting into pages
 			MoreContainer = calc_nav_container.parent();
-			
+
 			var page_count = 0;
 			var current_width = 0;
 			var current_page = $('<div class="nav_page active">');
 			Nav.each(function() {
 				var width = $(this).width() + 47;
-				
+
 				if ((current_width + width) > 848) {
 					page_count++;
 					if (page_count > 1) {
@@ -1946,23 +1749,23 @@ var BigTreeFormNavBar = (function() {
 						});
 						current_page.prepend(lessButton);
 					}
-					
+
 					var moreButton = $('<a class="more_nav" href="#">').html("&raquo;").click(function() {
 						MoreContainer.animate({ marginLeft: + (parseInt(MoreContainer.css("margin-left")) - 928) + "px" }, 300);
 						return false;
 					});
 					current_page.append(moreButton);
-					
+
 					MoreContainer.append(current_page);
 					current_page = $('<div class="nav_page">');
 					current_width = 0;
 				}
-				
+
 				current_width += width;
 				current_page.append($(this));
 			});
-			
-			
+
+
 			var lessButton = $('<a class="more_nav" href="#">').html("&laquo;").click(function() {
 				MoreContainer.animate({ marginLeft: + (parseInt(MoreContainer.css("margin-left")) + 928) + "px" }, 300);
 				return false;
@@ -1986,7 +1789,7 @@ var BigTreeFormNavBar = (function() {
 		next.addClass("active");
 		$("#" + next.attr("href").substr(1)).show();
 		$("#" + tab.attr("href").substr(1)).hide();
-		
+
 		if (tabs.length - 2 == index) {
 			$(this).hide();
 		}
@@ -2017,19 +1820,19 @@ var BigTreeFormNavBar = (function() {
 		if (window.scrollY > ContainerOffset) {
 			$("html, body").animate({ scrollTop: ContainerOffset + 3 }, 200);
 		}
-		
+
 		var href = $(this).attr("href").substr(1);
 		Sections.hide();
 		Nav.removeClass("active");
 		$(this).addClass("active");
 		$("#" + href).show();
-		
+
 		// Manage the "Next" buttons
 		var index = Nav.index(this);
 		if (index == Nav.filter(":visible").length - 1) {
 			NextButton.hide();
 		} else {
-			NextButton.show();				
+			NextButton.show();
 		}
 	}
 
@@ -2042,7 +1845,7 @@ var BigTreeListMaker = function(settings) {
 	if (!is_object(settings)) {
 		settings = { element: arguments[0], name: arguments[1], title: arguments[2], columns: arguments[3], keys: arguments[4], existing: arguments[5] };
 	}
-	
+
 	return (function($,settings) {
 
 		var Container;
@@ -2071,10 +1874,10 @@ var BigTreeListMaker = function(settings) {
 
 			// We're guaranteed at least one option now, so show the header.
 			Container.find("summary").show();
-	
+
 			return false;
 		}
-		
+
 		function deleteOption() {
 			var ul = $(this).parents("ul").eq(0);
 			$(this).parents("li").eq(0).remove();
@@ -2082,7 +1885,7 @@ var BigTreeListMaker = function(settings) {
 			if (ul.find("li").length == 0) {
 				ul.prev("summary").hide();
 			}
-	
+
 			return false;
 		}
 
@@ -2184,11 +1987,11 @@ var BigTreeManyToMany = function(settings) {
 			for (var i = 0; i < Select.options.length; i++) {
 				var val = Select.options[i].value;
 				var text = Select.options[i].text;
-	
+
 				if (Sortable) {
 					var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a></li>');
 				} else {
-					var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><p></p><a href="#" class="icon_delete"></a></li>');		
+					var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><p></p><a href="#" class="icon_delete"></a></li>');
 				}
 				li.find("p").html(text);
 				li.find("input").val(val);
@@ -2198,7 +2001,7 @@ var BigTreeManyToMany = function(settings) {
 				Count++;
 				vals.push(val);
 			}
-			
+
 			// Remove the options from the select.
 			if (!KeepOptions) {
 				for (i = 0; i < vals.length; i++) {
@@ -2223,11 +2026,11 @@ var BigTreeManyToMany = function(settings) {
 			if (Sortable) {
 				var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a></li>');
 			} else {
-				var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><p></p><a href="#" class="icon_delete"></a></li>');		
+				var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><p></p><a href="#" class="icon_delete"></a></li>');
 			}
 			li.find("p").html(text);
 			li.find("input").val(val);
-	
+
 			// Remove the option from the select.
 			if (!KeepOptions) {
 				Select.customControl.remove(val);
@@ -2236,11 +2039,11 @@ var BigTreeManyToMany = function(settings) {
 			List.append(li);
 			Field.trigger("addedItem", { element: li, index: Count });
 			Count++;
-			
+
 			// Hide the instructions saying there haven't been any items tagged.
 			Field.find("section").hide();
 		}
-	
+
 		function deleteItem(ev) {
 			ev.preventDefault();
 
@@ -2248,11 +2051,11 @@ var BigTreeManyToMany = function(settings) {
 			if (List.find("li").length == 1) {
 				Field.find("section").show();
 			}
-			
+
 			var li = $(this).parents("li");
 			var val = li.find("input").val();
 			var text = li.find("p").html();
-			
+
 			// Add the option back to the select
 			if (!KeepOptions) {
 				Select.customControl.add(val,text);
@@ -2270,12 +2073,12 @@ var BigTreeManyToMany = function(settings) {
 				var li = $(this);
 				var val = li.find("input").val();
 				var text = li.find("p").html();
-				
+
 				// Add the option back to the select
 				if (!KeepOptions) {
 					Select.customControl.add(val,text);
 				}
-	
+
 				li.remove();
 				Field.trigger("removedItem", { value: val, description: text });
 			});
@@ -2334,7 +2137,7 @@ var BigTreeFieldSelect = function(settings) {
 				Container.show();
 			}
 		}
-		
+
 		function click(ev) {
 			if (Dropdown.hasClass("open")) {
 				close();
@@ -2346,18 +2149,18 @@ var BigTreeFieldSelect = function(settings) {
 			}
 			return false;
 		}
-		
+
 		function close() {
 			$(window).unbind("click",close);
 			Dropdown.removeClass("open").hide();
 		}
-		
+
 		function removeCurrent() {
 			Dropdown.find("a").eq(CurrentElement).remove();
 			CurrentlyContainer.find("a").eq(CurrentElement).remove();
 			Elements.splice(CurrentElement,1);
 			CurrentElement = 0;
-			
+
 			if (Elements.length == 0) {
 				Container.hide();
 			} else {
@@ -2386,7 +2189,7 @@ var BigTreeFieldSelect = function(settings) {
 		Dropdown = Container.find(".dd");
 		CurrentlyContainer = Container.find(".current");
 		CurrentlyP = CurrentlyContainer.find("p");
-		
+
 		// Action hooks
 		Container.find("p, .handle").click(click);
 		Container.find(".add_field").click(function() {
@@ -2401,7 +2204,7 @@ var BigTreeFieldSelect = function(settings) {
 			CurrentElement = Dropdown.hide().find("a").index(element);
 			return false;
 		});
-		
+
 		if (Elements.length == 0) {
 			Container.hide();
 		}
@@ -2422,7 +2225,7 @@ var BigTreeFormValidator = function(selector,callback) {
 			var errors = [];
 
 			Form.data("initial-state",Form.serialize());
-			
+
 			Form.find(".form_error").removeClass("form_error");
 			Form.find(".form_error_reason").remove();
 			Form.find("input.required, select.required, textarea.required").each(function() {
@@ -2499,7 +2302,7 @@ var BigTreeFormValidator = function(selector,callback) {
 					$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be A Valid URL</span>'));
 				}
 			});
-	
+
 			// If this is an embedded form, we want to generate a hash of everything
 			var complete_submission = "";
 			if ($("#bigtree_hashcash_field").length) {
@@ -2522,7 +2325,7 @@ var BigTreeFormValidator = function(selector,callback) {
 				});
 				$("#bigtree_hashcash_field").val(md5(complete_submission));
 			}
-			
+
 			if (Form.find(".form_error").length) {
 				Form.find(".warning_message").hide();
 				Form.find(".error_message").show();
@@ -2572,7 +2375,7 @@ var BigTreeFormValidator = function(selector,callback) {
 				} catch (er) {}
 				// Save initial state
 				Form.data("initial-state",Form.serialize());
-				
+
 				// Hook unload
 				window.onbeforeunload = function(ev) {
 					// Try to save TinyMCE fields
@@ -2581,7 +2384,7 @@ var BigTreeFormValidator = function(selector,callback) {
 							tinymce.editors[editor_id].save();
 						}
 					} catch (er) {}
-		
+
 					if (Form.serialize() != Form.data("initial-state")) {
 						return "You have unsaved changes.";
 					}
@@ -2608,37 +2411,37 @@ var BigTreeToolTip = function(settings) {
 			BigTree.ZIndex--;
 			return false;
 		}
-		
+
 		function show() {
 			// Figure out where the target is in the DOM, add the container to the DOM so we can get its width/height for some positions.
 			var offset = Target.offset();
 			var w = parseInt(Target.css("width"));
 			var h = parseInt(Target.css("height"));
-			
+
 			// The tip is below the target.
 			if (Settings.position == "below") {
 				var l = offset.left - 28 + Math.round(w / 2);
 				var t = offset.top + h + 5;
 			}
-			
+
 			// The tip is to the right of the target.
 			if (Settings.position == "right") {
 				var l = offset.left + w + 5;
 				var t = offset.top - 28 + Math.round(h / 2);
 			}
-			
+
 			// The tip is to the left of the target.
 			if (Settings.position == "left") {
 				var l = offset.left - Container.width() - 5;
 				var t = offset.top - 28 + Math.round(h / 2);
 			}
-			
+
 			// The tip is above of the target.
 			if (Settings.position == "above") {
 				var l = offset.left - 28 + Math.round(w / 2);
 				var t = offset.top - Container.height() - 5;
 			}
-			
+
 			Container.css({ left: l + "px", top: t + "px", zIndex: (BigTree.ZIndex++) }).stop().fadeTo(200, 1);
 		}
 
@@ -2649,7 +2452,7 @@ var BigTreeToolTip = function(settings) {
 		Target = $(settings.selector);
 		Content = settings.content;
 		Container = $('<div class="tooltip" style="display: none;">');
-		
+
 		// The arrow is below the tip if the position is above.
 		if (Settings.position != "above") {
 			Container.append($('<span class="arrow">'));
@@ -2668,7 +2471,7 @@ var BigTreeToolTip = function(settings) {
 		}
 
 		$("body").append(Container);
-		
+
 		if (Settings.hover) {
 			Target.mouseenter(show).mouseleave(hide);
 		} else {
@@ -2800,11 +2603,11 @@ var BigTreeCallouts = function(settings) {
 					content: response.responseText,
 					icon: "callout",
 					preSubmissionCallback: true,
-					callback: function(e) {		
+					callback: function(e) {
 						e.preventDefault();
-						
+
 						var item;
-						if (item = getCallout()) {		
+						if (item = getCallout()) {
 							// Add the callout and hide the dialog.
 							List.append(item);
 							removeDialog();
@@ -2858,7 +2661,7 @@ var BigTreeCallouts = function(settings) {
 					preSubmissionCallback: true,
 					callback: function(e) {
 						e.preventDefault();
-						
+
 						var item;
 						if (item = getCallout()) {
 							CurrentItem.replaceWith(item);
@@ -2875,16 +2678,16 @@ var BigTreeCallouts = function(settings) {
 			BigTree.TabIndexDepth--;
 
 			var type_select = LastDialog.find(".callout_type select").get(0);
-	
+
 			// Validate required fields.
 			var validator = BigTreeFormValidator(LastDialog);
 			if (!validator.validateForm(false,true)) {
 				return false;
 			}
-			
+
 			var article = $('<article>');
 			article.html('<h4></h4><p>' + type_select.options[type_select.selectedIndex].text + '</p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
-			
+
 			// Try our best to find some way to describe the callout
 			Description = "";
 			DescriptionField = LastDialog.find("[name='" + LastDialog.find(".display_field").val() + "']");
@@ -2896,7 +2699,7 @@ var BigTreeCallouts = function(settings) {
 			if ($.trim(Description) == "") {
 				Description = LastDialog.find(".display_default").val();
 			}
-			
+
 			// Append all the relevant fields into the callout field so that it gets saved on submit with the rest of the form.
 			LastDialog.find("input, textarea, select").each(function() {
 				if ($(this).attr("type") != "submit") {
@@ -2913,7 +2716,7 @@ var BigTreeCallouts = function(settings) {
 			});
 
 			article.find("h4").html(strip_tags(Description) + '<input type="hidden" name="' + Key + '[' + Count + '][display_title]" value="' + htmlspecialchars(strip_tags(Description)) + '" />');
-	
+
 			return article;
 		}
 
@@ -2936,7 +2739,7 @@ var BigTreeCallouts = function(settings) {
 		List.sortable({ containment: "parent", handle: ".icon_drag", items: "article", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 
 		return { Container: Container, Count: Count, Key: Key, Groups: Groups, List: List, addCallout: addCallout };
-			
+
 	})(jQuery,settings);
 };
 
@@ -2976,15 +2779,15 @@ var BigTreeMatrix = function(settings) {
 						content: response.responseText,
 						icon: "add",
 						preSubmissionCallback: true,
-						callback: function(e) {		
+						callback: function(e) {
 							e.preventDefault();
-							
+
 							var item;
 							if (item = getItem()) {
 								// Add the item, remove the dialog, increase the count.
 								List.append(item);
 								NoItemsMessage.hide();
-								removeDialog();						
+								removeDialog();
 								Count++;
 								var count = List.find("article, li").length;
 								if (Max && count >= Max) {
@@ -3040,7 +2843,7 @@ var BigTreeMatrix = function(settings) {
 			} else {
 				CurrentItem = $(this).parents("article");
 			}
-			
+
 			$.ajax("admin_root/ajax/matrix-field/", {
 				type: "POST",
 				data: { columns: Columns, count: Count, data: CurrentItem.find(".bigtree_matrix_data").val(), key: Key, tab_depth: BigTree.TabIndexDepth },
@@ -3052,7 +2855,7 @@ var BigTreeMatrix = function(settings) {
 						preSubmissionCallback: true,
 						callback: function(e) {
 							e.preventDefault();
-							
+
 							var item;
 							if (item = getItem()) {
 								// Replace the item, remove the dialog, increase the count
@@ -3065,23 +2868,23 @@ var BigTreeMatrix = function(settings) {
 				}
 			});
 		}
-		
+
 		function getItem() {
 			LastDialog = $(".bigtree_dialog_form").last();
 			BigTree.TabIndexDepth--;
-	
+
 			// Validate required fields.
 			var validator = BigTreeFormValidator(LastDialog);
 			if (!validator.validateForm(false,true)) {
 				return false;
 			}
-			
+
 			if (Style == "list") {
 				var entry = $('<li>').html('<span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a>');
 			} else {
 				var entry = $('<article>').html('<h4></h4><p></p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
 			}
-	
+
 			// Try our best to find some way to describe the item
 			Title = Subtitle = "";
 			LastDialog.find(".matrix_title_field").each(function(index,el) {
@@ -3116,11 +2919,11 @@ var BigTreeMatrix = function(settings) {
 							} else {
 								Subtitle = strip_tags(value);
 							}
-						} 
+						}
 					}
 				}
 			});
-			
+
 			// Append all the relevant fields into the matrix field so that it gets saved on submit with the rest of the form.
 			LastDialog.find("input, textarea, select").each(function() {
 				if ($(this).attr("type") != "submit") {
@@ -3224,7 +3027,7 @@ var BigTree = {
 	formHooks: function(selector) {
 		// Undo any existing click handlers.
 		$(selector).off("click");
-		
+
 		// Remove Existing Uploads
 		$(selector).on("click",".remove_resource",function() {
 			var p = $(this).parent();
@@ -3244,18 +3047,18 @@ var BigTree = {
 			$(this).siblings('input').val("");
 			$(this).siblings('.date_picker_inline, .date_time_picker_inline').find('.ui-state-default.ui-state-active').removeClass('ui-state-active');
 		});
-		
+
 		// Pickers
 		$(".date_picker").datepicker({ dateFormat: BigTree.dateFormat, duration: 200, showAnim: "slideDown" });
 		$(".time_picker").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10, timeFormat: "hh:mm tt" });
-		$(".date_time_picker").datetimepicker({ dateFormat: BigTree.dateFormat, timeFormat: "hh:mm tt", duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });	
-		
+		$(".date_time_picker").datetimepicker({ dateFormat: BigTree.dateFormat, timeFormat: "hh:mm tt", duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
+
 		// Inline pickers
 		$(".date_picker_inline").each(function() {
 			$(this).datepicker({ dateFormat: BigTree.dateFormat, defaultDate: $(this).attr("data-date"), onSelect: function(dateText) {
 				$(this).prev("input").val(dateText);
 			}});
-			
+
 			if (typeof $(this).attr("data-date") == 'undefined' || $(this).attr("data-date") == '') {
 				$(this).find('.ui-state-default.ui-state-highlight.ui-state-active').removeClass('ui-state-active');
 			}
@@ -3271,7 +3074,7 @@ var BigTree = {
 			$(this).datetimepicker({ dateFormat: BigTree.dateFormat, timeFormat: "hh:mm tt", defaultDate: $(this).attr("data-date"), ampm: true, hour: $(this).attr("data-hour"), minute: $(this).attr("data-minute"), hourGrid: 6, minuteGrid: 10, onSelect: function(dateText) {
 				$(this).prev("input").val(dateText);
 			}});
-			
+
 			if (typeof $(this).attr("data-date") == 'undefined' || $(this).attr("data-date") == '') {
 				$(this).find('.ui-state-default.ui-state-highlight.ui-state-active').removeClass('ui-state-active');
 			}
@@ -3328,7 +3131,7 @@ var BigTree = {
 			BigTree.ReadyHooks = [];
 		}
 	},
-	
+
 	setPageCount: function(selector,pages,current_page) {
 		// We have to have at least one page.
 		if (pages == 0) {
@@ -3346,7 +3149,7 @@ var BigTree = {
 		} else {
 			var next_page = current_page + 1;
 		}
-		
+
 		// If we have 10 or less pages, just draw them all.
 		if (pages < 11) {
 			var start_page = 1;
@@ -3393,12 +3196,12 @@ var BigTree = {
 			}
 
 			if (current_page + 1 < pages) {
-				content += '<a class="ellipsis" href="#' + pages + '">…</a>';				
+				content += '<a class="ellipsis" href="#' + pages + '">…</a>';
 			}
 		}
 
 		content += '<a class="last" href="#' + next_page + '"><span>&raquo;</span></a>';
-		
+
 		$(selector).html(content);
 
 		if (pages == 1) {

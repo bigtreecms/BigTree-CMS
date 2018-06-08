@@ -39,7 +39,7 @@
 			}
 
 			$video = [
-				"service" => "youtube",
+				"service" => "YouTube",
 				"id" => $video_id,
 				"title" => $oembed_data["title"],
 				"description" => null,
@@ -98,7 +98,7 @@
 			$source_image = $source_image ? $source_image : $json[0]["thumbnail_small"];
 
 			$video = [
-				"service" => "vimeo",
+				"service" => "Vimeo",
 				"id" => $video_id,
 				"title" => $json[0]["title"],
 				"description" => $json[0]["description"],

@@ -5143,6 +5143,7 @@
 			$item["crops"] = json_decode($item["crops"], true);
 			$item["thumbs"] = json_decode($item["thumbs"], true);
 			$item["metadata"] = json_decode($item["metadata"], true);
+			$item["video_data"] = json_decode($item["video_data"], true);
 
 			return BigTree::untranslateArray($item);
 		}
@@ -5168,6 +5169,7 @@
 			$resource["crops"] = json_decode($resource["crops"], true);
 			$resource["thumbs"] = json_decode($resource["thumbs"], true);
 			$resource["metadata"] = json_decode($resource["metadata"], true);
+			$resource["video_data"] = json_decode($resource["video_data"], true);
 
 			return BigTree::untranslateArray($resource);
 		}
