@@ -1594,14 +1594,22 @@
 			if ($type != "video") {
 				$storage = new BigTreeStorage;
 				$location = $storage->Cloud ? "cloud" : "local";
-				$file_path = str_replace(STATIC_ROOT, SITE_ROOT, BigTreeCMS::replaceRelativeRoots($file));
-				$file_size = filesize($file_path);
-				$md5 = md5($file_path);
-				$mimetype = function_exists("mime_content_type") ? mime_content_type($file_path) : "";
-				$file_extension = pathinfo($file_path, PATHINFO_EXTENSION);
+				$file_extension = pathinfo($file, PATHINFO_EXTENSION);
+
+				// Local storage will let us lookup file size and md5 already
+				if ($location == "local") {
+					$file_path = str_replace(STATIC_ROOT, SITE_ROOT, BigTreeCMS::replaceRelativeRoots($file));
+				} else {
+					$file_path = SITE_ROOT."files/temporary/".$admin->ID."/".uniqid(true).".".$file_extension;
+					BigTree::copyFile($file, $file_path);
+				}
 
 				if ($type == "image") {
 					list($width, $height) = getimagesize($file_path);
+				}
+
+				if ($location != "local") {
+					unlink($file_path);
 				}
 			} else {
 				$location = $video_data["service"];

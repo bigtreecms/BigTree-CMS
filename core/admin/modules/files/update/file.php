@@ -96,10 +96,12 @@
 
 			die();
 		} elseif (!$file["is_video"]) {
+			$data["size"] = filesize($_FILES["file"]["tmp_name"]);
 			$storage->replace($_FILES["file"]["tmp_name"], $file_name, "files/resources/");
 		}
 	}
 
+	$admin->updateResource($_POST["id"], $data);
 	$admin->growl("File Manager", "Updated File");
 
 	BigTree::redirect(ADMIN_ROOT."files/folder/".$file["folder"]."/");

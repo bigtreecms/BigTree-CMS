@@ -17,7 +17,7 @@
 		if ($extension == "jpg" || $extension == "jpeg" || $extension == "png" || $extension == "gif") {
 			continue;
 		}
-	
+
 		$file_name = SITE_ROOT."files/temporary/".$admin->ID."/".$file;
 
 		$storage = new BigTreeStorage;
@@ -31,4 +31,3 @@
 	$admin->growl("File Manager", "Uploaded Files");
 
 	BigTree::redirect(ADMIN_ROOT."files/folder/".intval($bigtree["commands"][0])."/");
-	
