@@ -1461,9 +1461,11 @@
 
 	.disabled_icon { cursor: default; opacity: 0.3; pointer-events: none; }
 
-/* Smaller Icons */
-	.icon_small { background: url(../images/icon-sprite.svg) no-repeat; float: left; height: 16px; margin: 0 5px 0 0; width: 16px; }
+	.icon_large { background: url(../images/icon-sprite.svg) no-repeat; display: inline-block; height: 32px; width: 32px; }
+	.icon_large_vimeo { background-position: -160px -250px; }
+	.icon_large_youtube { background-position: -224px -250px; }
 
+	.icon_small { background: url(../images/icon-sprite.svg) no-repeat; float: left; height: 16px; margin: 0 5px 0 0; width: 16px; }
 	.icon_small_caret_down { background-position: 0px -140px; }
 	.icon_small_caret_right { background-position: -16px -140px; }
 	.icon_small_add { background-position: -32px -140px; }
@@ -1538,7 +1540,6 @@
 	.icon_small_lightning { background-position: -544px -156px; }
 	.icon_small_trail { background-position: -560px -156px; }
 	.icon_small_crop { background-position: -576px -156px; }
-
 
 	.icon_small_file_default { background-position: -240px -156px; }
 	.icon_small_file_bmp { background-position: 0px -156px; }
@@ -1850,6 +1851,10 @@
 		display: inline-block;
 		float: none;
 		margin: 0;
+	}
+
+	.table .file_manager_column_icon .icon_large {
+		margin: 9px 0 0 0;
 	}
 
 	.table .file_manager_column_name {

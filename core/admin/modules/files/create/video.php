@@ -37,7 +37,7 @@
 				$admin->growl("Files", "Invalid URL", "error");
 				BigTree::redirect($_SERVER["HTTP_REFERER"]."?error=The URL you entered is not a valid YouTube video URL.");
 			}
-	
+
 			$video = [
 				"service" => "youtube",
 				"id" => $video_id,
@@ -89,7 +89,7 @@
 		$url_pieces = explode("/",$url);
 		$video_id = end($url_pieces);
 		$json = json_decode(BigTree::cURL("http://vimeo.com/api/v2/video/$video_id.json"),true);
-		
+
 		// Good video
 		if (array_filter((array)$json)) {
 			// Try to get the largest source image available
@@ -124,4 +124,44 @@
 		BigTree::redirect($_SERVER["HTTP_REFERER"]."?error=The URL you entered is not a valid video service URL.");
 	}
 
-	print_r($video);
+	// Setup crops and thumbs and scale up our image if needed
+	include BigTree::path("admin/modules/files/process/_crop-setup.php");
+
+	$extension = strtolower(pathinfo($video["image"], PATHINFO_EXTENSION));
+	$file_name = SITE_ROOT."files/temporary/".$admin->ID."/".$video["id"].".".$extension;
+	BigTree::copyFile($video["image"], $file_name);
+
+	$min_height = intval($preset["min_height"]);
+	$min_width = intval($preset["min_width"]);
+
+	list($width, $height, $type, $attr) = getimagesize($file_name);
+
+	// Scale up content that doesn't meet minimums
+	if ($width < $min_width || $height < $min_height) {
+		BigTree::createUpscaledImage($file_name, $file_name, $min_width, $min_height);
+	}
+
+	$field = [
+		"title" => $video["title"],
+		"file_input" => [
+			"tmp_name" => $file_name,
+			"name" => $video["id"].".".$extension,
+			"error" => 0
+		],
+		"settings" => [
+			"directory" => "files/resources/",
+			"preset" => "default"
+		]
+	];
+
+	$video["image"] = $admin->processImageUpload($field);
+	$admin->createResource($_POST["folder"], null, null, $type = "video", [], [], $video);
+	$admin->growl("Files", "Created Video");
+
+	$_SESSION["bigtree_admin"]["form_data"] = [
+		"edit_link" => ADMIN_ROOT."files/folder/".intval($bigtree["commands"][0])."/",
+		"return_link" => ADMIN_ROOT."files/folder/".intval($bigtree["commands"][0])."/",
+		"crop_key" => $cms->cacheUnique("org.bigtreecms.crops", $bigtree["crops"])
+	];
+
+	BigTree::redirect(ADMIN_ROOT."files/crop/".intval($bigtree["commands"][0])."/");

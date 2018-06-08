@@ -8,7 +8,7 @@
 
 		public static $IRLPrefixes = false;
 		public static $IRLsCreated = array();
-		public static $PerPage = 15;		
+		public static $PerPage = 15;
 
 		// !View Types
 		public static $ViewTypes = array(
@@ -108,7 +108,7 @@
 							// Generate a random CSRF token
 							$csrf_token = base64_encode(openssl_random_pseudo_bytes(32));
 							$csrf_token_field = "__csrf_token_".BigTree::randomString(32)."__";
-				
+
 							// Setup session
 							$this->ID = $f["id"];
 							$this->User = $user;
@@ -117,7 +117,7 @@
 							$this->Permissions = json_decode($f["permissions"],true);
 							$this->CSRFToken = $csrf_token;
 							$this->CSRFTokenField = $csrf_token_field;
-							
+
 							SQL::update("bigtree_sessions", session_id(), ["is_login" => "on", "logged_in_user" => $f["id"]]);
 							$_SESSION["bigtree_admin"]["id"] = $f["id"];
 							$_SESSION["bigtree_admin"]["email"] = $f["email"];
@@ -128,13 +128,13 @@
 
 							// Delete existing session
 							sqlquery("DELETE FROM bigtree_user_sessions WHERE id = '".sqlescape($session)."'");
-							
+
 							// Generate a random session id
 							$session = uniqid("session-",true);
 							while (sqlrows(sqlquery("SELECT id FROM bigtree_user_sessions WHERE id = '".sqlescape($session)."'"))) {
 								$session = uniqid("session-",true);
 							}
-							
+
 							// Create a new session with the same chain
 							sqlquery("INSERT INTO bigtree_user_sessions (`id`,`chain`,`email`,`csrf_token`,`csrf_token_field`) VALUES ('".sqlescape($session)."','".sqlescape($chain)."','$user','$csrf_token','$csrf_token_field')");
 							setcookie('bigtree_admin[login]',json_encode(array($session,$chain)),strtotime("+1 month"),str_replace(DOMAIN,"",WWW_ROOT),"",false,true);
@@ -144,7 +144,7 @@
 						// Delete existing cookies
 						setcookie("bigtree_admin[email]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
 						setcookie("bigtree_admin[login]","",time()-3600,str_replace(DOMAIN,"",WWW_ROOT));
-						
+
 						// Delete all sessions for this user
 						sqlquery("DELETE FROM bigtree_user_sessions WHERE email = '$user'");
 					}
@@ -293,7 +293,7 @@
 			}
 			return $html;
 		}
-		
+
 		private static function autoIPLCallbackHref($matches) {
 			$href = static::makeIPL(BigTreeCMS::replaceRelativeRoots($matches[1]));
 			return 'href="'.$href.'"';
@@ -327,7 +327,7 @@
 			$q = sqlquery("SHOW TABLES");
 			while ($f = sqlfetch($q)) {
 				$table = current($f);
-				
+
 				// Write the drop / create statements
 				fwrite($pointer,"DROP TABLE IF EXISTS `$table`;\n");
 				$definition = sqlfetch(sqlquery("SHOW CREATE TABLE `$table`"));
@@ -338,7 +338,7 @@
 				foreach ($rows as $row) {
 					fwrite($pointer,$row.";\n");
 				}
-				
+
 				// Separate it from the next table
 				fwrite($pointer,"\n");
 			}
@@ -474,7 +474,7 @@
 			if ($this->Level > 0) {
 				return true;
 			}
-			
+
 			if ($this->Permissions["module"][$module] && $this->Permissions["module"][$module] != "n") {
 				return true;
 			}
@@ -547,7 +547,7 @@
 			foreach ($links as $link) {
 				$href = $link->getAttribute("href");
 				$href = BigTreeCMS::replaceRelativeRoots($href);
-				
+
 				if ($href == WWW_ROOT || $href == STATIC_ROOT || $href == ADMIN_ROOT) {
 					continue;
 				}
@@ -684,7 +684,7 @@
 			// If this is a multi-site environment and a full URL was pasted in we're going to auto-select the key no matter what they passed in
 			if (!is_null($site_key)) {
 				$from_domain = parse_url($from, PHP_URL_HOST);
-				
+
 				foreach ($bigtree["config"]["sites"] as $index => $site) {
 					$domain = parse_url($site["domain"], PHP_URL_HOST);
 
@@ -712,16 +712,16 @@
 				if (!is_null($site_key)) {
 					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from' AND get_vars = '$get_vars' AND `site_key` = '".sqlescape($site_key)."'"));
 				} else {
-					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from' AND get_vars = '$get_vars'"));	
+					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from' AND get_vars = '$get_vars'"));
 				}
 			} else {
 				if (!is_null($site_key)) {
 					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from' AND get_vars = '' `site_key` = '".sqlescape($site_key)."'"));
 				} else {
-					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from' AND get_vars = ''"));	
+					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from' AND get_vars = ''"));
 				}
 			}
-			
+
 			if ($existing) {
 				sqlquery("UPDATE bigtree_404s SET `redirect_url` = '$to' WHERE id = '".$existing["id"]."'");
 				$this->track("bigtree_404s", $existing["id"], "updated");
@@ -1119,7 +1119,7 @@
 			$route = $this->uniqueModuleActionRoute($module,$route);
 
 			sqlquery("INSERT INTO bigtree_module_actions (`module`,`name`,`route`,`in_nav`,`class`,`level`,`form`,`view`,`report`,`position`) VALUES ('$module','$name','$route','$in_nav','$icon','$level',$form,$view,$report,'$position')");
-			
+
 			$this->track("bigtree_module_actions",sqlid(),"created");
 
 			return $route;
@@ -1574,39 +1574,63 @@
 				type - "file", "image", or "video"
 				crops - An array of crop prefixes
 				thumbs - An array of thumb prefixes
+				video_data - An array of video data
+				metadata - An array of metadata
 
 			Returns:
 				The new resource id.
 		*/
 
-		public function createResource($folder, $file, $name, $type = "file", $crops = [], $thumbs = []) {
-			$storage = new BigTreeStorage;
-			$location = $storage->Cloud ? "cloud" : "local";
-			$file_path = str_replace(STATIC_ROOT, SITE_ROOT, BigTreeCMS::replaceRelativeRoots($file));
-			
-			if ($type == "image") {
-				list($width, $height) = getimagesize($file_path);
+		public function createResource($folder, $file, $name, $type = "file", $crops = [], $thumbs = [], $video_data = [], $metadata = []) {
+			$perm = $this->getResourceFolderPermission($folder);
+
+			if ($perm != "p") {
+				die("You don't have permission to create a resource in the chosen folder.");
+			}
+
+			$width = null;
+			$height = null;
+
+			if ($type != "video") {
+				$storage = new BigTreeStorage;
+				$location = $storage->Cloud ? "cloud" : "local";
+				$file_path = str_replace(STATIC_ROOT, SITE_ROOT, BigTreeCMS::replaceRelativeRoots($file));
+				$file_size = filesize($file_path);
+				$md5 = md5($file_path);
+				$mimetype = function_exists("mime_content_type") ? mime_content_type($file_path) : "";
+				$type = pathinfo($file_path, PATHINFO_EXTENSION);
+
+				if ($type == "image") {
+					list($width, $height) = getimagesize($file_path);
+				}
 			} else {
-				$width = 0;
-				$height = 0;
+				$location = $video_data["service"];
+				$type = "video";
+				$name = $video_data["title"];
+				$file = $video_data["url"];
+				$file_size = null;
+				$md5 = null;
+				$mimetype = null;
 			}
 
 			$data = [
 				"folder" => $folder ?: null,
 				"file" => $file,
 				"name" => BigTree::safeEncode($name),
-				"type" => pathinfo($file_path, PATHINFO_EXTENSION),
-				"mimetype" => function_exists("mime_content_type") ? mime_content_type($file_path) : "",
+				"type" => $type,
+				"mimetype" => $mimetype,
 				"is_image" => ($type == "image") ? "on" : "",
 				"is_video" => ($type == "video") ? "on" : "",
-				"md5" => md5($file_path),
-				"size" => filesize($file_path),
-				"width" => $width ?: 0,
-				"height" => $height ?: 0,
+				"md5" => $md5,
+				"size" => $file_size,
+				"width" => $width,
+				"height" => $height,
 				"date" => date("Y-m-d H:i:s"),
 				"crops" => $crops,
 				"thumbs" => $thumbs,
-				"location" => $location
+				"location" => $location,
+				"video_data" => $video_data,
+				"metadata" => $metadata
 			];
 
 			$id = SQL::insert("bigtree_resources", BigTree::translateArray($data));
@@ -1667,7 +1691,7 @@
 					$$key = sqlescape(htmlspecialchars($val));
 				}
 			}
-			
+
 			$extension = $extension ? "'$extension'" : "NULL";
 
 			// If an extension is creating a setting, make it a reference back to the extension
@@ -1682,7 +1706,7 @@
 
 			// We don't want this encoded since it's a WYSIWYG field.
 			$description = isset($data["description"]) ? sqlescape($data["description"]) : "";
-			
+
 			// We don't want this encoded since it's JSON
 			$settings = $data["settings"] ?: $data["options"];
 
@@ -1696,7 +1720,7 @@
 						$settings["settings"][$key] = json_decode($value, true);
 					}
 				}
-	
+
 				$settings = BigTree::json(BigTree::translateArray($settings), true);
 			}
 
@@ -1777,7 +1801,7 @@
 			$clean_resources = array();
 			foreach ($resources as $resource) {
 				if ($resource["id"]) {
-					$settings = json_decode($resource["settings"] ?: $resource["options"], true); 
+					$settings = json_decode($resource["settings"] ?: $resource["options"], true);
 					$field = array(
 						"id" => BigTree::safeEncode($resource["id"]),
 						"type" => BigTree::safeEncode($resource["type"]),
@@ -1882,9 +1906,9 @@
 				$html = str_ireplace("{site_title}", $site_title, $html);
 				$html = str_ireplace("{person}", $this->Name, $html);
 				$html = str_ireplace("{reset_link}", $login_root."reset-password/$hash/?welcome", $html);
-	
+
 				$email_service = new BigTreeEmailService;
-				
+
 				// Only use a custom email service if a from email has been set
 				if ($email_service->Settings["bigtree_from"]) {
 					$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.", "", $_SERVER["HTTP_HOST"]) : str_replace(array("http://www.", "https://www.", "http://", "https://"), "", DOMAIN));
@@ -1972,7 +1996,7 @@
 			}
 
 			$j = json_decode($extension["manifest"],true);
-			
+
 			// Don't delete the whole directory if the manifest fails to load
 			if ($j["id"]) {
 				// Delete site files
@@ -1980,7 +2004,7 @@
 				// Delete extensions directory
 				BigTree::deleteDirectory(SERVER_ROOT."extensions/".$j["id"]."/");
 			}
-		
+
 			// Delete components
 			foreach ($j["components"] as $type => $list) {
 				if ($type == "tables") {
@@ -2034,7 +2058,7 @@
 			@unlink(SERVER_ROOT."custom/admin/field-types/$id/settings.php");
 			@unlink(SERVER_ROOT."custom/admin/field-types/$id/");
 			@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
-			
+
 			sqlquery("DELETE FROM bigtree_field_types WHERE id = '".sqlescape($id)."'");
 			$this->track("bigtree_field_types",$id,"deleted");
 		}
@@ -2192,12 +2216,12 @@
 		public function deletePackage($id) {
 			$package = $this->getPackage($id);
 			$j = json_decode($package["manifest"],true);
-		
+
 			// Delete related files
 			foreach ($j["files"] as $file) {
 				@unlink(SERVER_ROOT.$file);
 			}
-		
+
 			// Delete components
 			foreach ($j["components"] as $type => $list) {
 				if ($type == "tables") {
@@ -2225,7 +2249,7 @@
 					}
 				}
 			}
-		
+
 			sqlquery("DELETE FROM bigtree_extensions WHERE id = '".sqlescape($package["id"])."'");
 			$this->track("bigtree_extensions",$package["id"],"deleted");
 		}
@@ -2457,7 +2481,7 @@
 
 		public function deleteUser($id) {
 			$id = sqlescape($id);
-			
+
 			// If this person has higher access levels than the person trying to update them, fail.
 			$target_user = static::getUser($id);
 
@@ -2594,7 +2618,7 @@
 			// Setup Validation Classes
 			$label_validation_class = "";
 			$field["required"] = false;
-			
+
 			if (!empty($field["settings"]["validation"])) {
 				if (strpos($field["settings"]["validation"],"required") !== false) {
 					$label_validation_class = ' class="required"';
@@ -2648,12 +2672,12 @@
 			// Restore context
 			$bigtree["extension_context"] = $bigtree["saved_extension_context"];
 		}
-		
+
 		/*
 			Function: drawCSRFToken
 				Draws an input field for the CSRF token.
 		*/
-		
+
 		public function drawCSRFToken() {
 			echo '<input type="hidden" value="'.htmlspecialchars($this->CSRFToken).'" name="'.$this->CSRFTokenField.'" />';
 		}
@@ -2662,7 +2686,7 @@
 			Function: drawCSRFTokenGET
 				Draws a GET variable in a URL for the CSRF token.
 		*/
-		
+
 		public function drawCSRFTokenGET() {
 			echo '&'.$this->CSRFTokenField.'='.urlencode($this->CSRFToken);
 		}
@@ -2836,7 +2860,7 @@
 			$html = str_ireplace("{reset_link}",$login_root."reset-password/$hash/",$html);
 
 			$es = new BigTreeEmailService;
-			
+
 			// Only use a custom email service if a from email has been set
 			if ($es->Settings["bigtree_from"]) {
 				$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.","",$_SERVER["HTTP_HOST"]) : str_replace(array("http://www.","https://www.","http://","https://"),"",DOMAIN));
@@ -2990,7 +3014,7 @@
 			}
 			if ($action == "feature") {
 				$class = "icon_feature js-feature-hook";
-				
+
 				if ($item["featured"]) {
 					$class .= " icon_feature_on";
 				}
@@ -3076,7 +3100,7 @@
 		/*
 			Function: getBasicTemplates
 				Returns a list of non-routed templates ordered by position.
-			
+
 			Parameters:
 				sort - Sort order, defaults to positioned
 
@@ -3340,7 +3364,7 @@
 					}
 				}
 			}
-			
+
 			array_multisort($names,$items);
 			return $items;
 		}
@@ -3445,7 +3469,7 @@
 			} else {
 				$paths = array();
 				$q = sqlquery("SELECT path FROM bigtree_pages WHERE ".implode(" OR ",$where));
-				
+
 				while ($f = sqlfetch($q)) {
 					$paths[] = "path = '".sqlescape($f["path"])."' OR path LIKE '".sqlescape($f["path"])."/%'";
 				}
@@ -3472,7 +3496,7 @@
 			Returns:
 				A package/extension.
 		*/
-		
+
 		public static function getExtension($id) {
 			return sqlfetch(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"));
 		}
@@ -3487,7 +3511,7 @@
 			Returns:
 				An array of extensions.
 		*/
-		
+
 		public static function getExtensions($sort = "last_updated DESC") {
 			$items = array();
 			$q = sqlquery("SELECT * FROM bigtree_extensions WHERE type = 'extension' ORDER BY $sort");
@@ -3511,11 +3535,11 @@
 		public static function getFeeds($sort = "name ASC") {
 			$feeds = array();
 			$q = sqlquery("SELECT * FROM bigtree_feeds ORDER BY $sort");
-			
+
 			while ($f = sqlfetch($q)) {
 				$feeds[] = $f;
 			}
-			
+
 			return $feeds;
 		}
 
@@ -4155,7 +4179,7 @@
 
 		public static function getModuleViews($sort = "title",$module = false) {
 			$items = array();
-			
+
 			if ($module !== false) {
 				$q = sqlquery("SELECT * FROM bigtree_module_views WHERE module = '".sqlescape($module)."' ORDER BY $sort");
 			} else {
@@ -4165,11 +4189,11 @@
 			while ($view = sqlfetch($q)) {
 				$view["fields"] = json_decode($view["fields"], true);
 				$view["actions"] = json_decode($view["actions"], true);
-				$view["settings"] = json_decode($view["settings"], true);		
+				$view["settings"] = json_decode($view["settings"], true);
 
 				$items[] = BigTree::untranslateArray($view);
 			}
-			
+
 			return $items;
 		}
 
@@ -4381,14 +4405,14 @@
 		/*
 			Function: getPageLineage
 				Returns all the ids of pages above this page.
-			
+
 			Parameters:
 				page - Page ID
-			
+
 			Returns:
 				Array of IDs
 		*/
-		
+
 		public function getPageLineage($page) {
 			$parents = array();
 			$f = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".sqlescape($page)."'"));
@@ -4423,11 +4447,11 @@
 			Function: getPageIDForPath
 				Provides the page ID for a given path array.
 				This is equivalent to BigTreeCMS::getNavId.
-			
+
 			Parameters:
 				path - An array of path elements from a URL
 				previewing - Whether we are previewing or not.
-			
+
 			Returns:
 				An array containing:
 					- The page ID (or false)
@@ -4436,7 +4460,7 @@
 					- GET variables
 					- URL Hash
 		*/
-		
+
 		public static function getPageIDForPath($path,$previewing = false) {
 			$commands = array();
 
@@ -4445,21 +4469,21 @@
 			$query_vars = $url_parse["query"];
 			$hash = $url_parse["fragment"];
 			$path = explode("/", rtrim($url_parse["path"], "/"));
-			
+
 			if (!$previewing) {
 				$publish_at = "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";
 			} else {
 				$publish_at = "";
 			}
-			
+
 			// See if we have a straight up perfect match to the path.
 			$spath = sqlescape(implode("/", $path));
 			$f = sqlfetch(sqlquery("SELECT bigtree_pages.id,bigtree_templates.routed FROM bigtree_pages LEFT JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE path = '$spath' AND archived = '' $publish_at"));
-			
+
 			if ($f) {
 				return array($f["id"], array(), $f["routed"], $query_vars, $hash);
 			}
-			
+
 			// Guess we don't, let's chop off commands until we find a page.
 			$x = 0;
 
@@ -4467,15 +4491,15 @@
 				$x++;
 				$commands[] = $path[count($path) - $x];
 				$spath = sqlescape(implode("/", array_slice($path, 0, -1 * $x)));
-				
+
 				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
 				$f = sqlfetch(sqlquery("SELECT bigtree_pages.id FROM bigtree_pages JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE bigtree_pages.path = '$spath' AND bigtree_pages.archived = '' AND bigtree_templates.routed = 'on' $publish_at"));
-				
+
 				if ($f) {
 					return array($f["id"], array_reverse($commands), "on", $query_vars, $hash);
 				}
 			}
-			
+
 			return array(false, false, false, false, false);
 		}
 
@@ -5076,7 +5100,7 @@
 			if (static::$IRLPrefixes === false) {
 				static::$IRLPrefixes = array();
 				$thumbnail_sizes = static::getSetting("bigtree-file-manager-thumbnail-sizes");
-				
+
 				foreach ($thumbnail_sizes["value"] as $ts) {
 					static::$IRLPrefixes[] = $ts["prefix"];
 				}
@@ -5086,7 +5110,7 @@
 			$tokenized_file = BigTreeCMS::replaceHardRoots($file);
 			$single_domain_tokenized_file = static::stripMultipleRootTokens($tokenized_file);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($file)."' OR file = '".sqlescape($tokenized_file)."' OR file = '".sqlescape($single_domain_tokenized_file)."'"));
-			
+
 			if (!$item) {
 				foreach (static::$IRLPrefixes as $prefix) {
 					if (!$item) {
@@ -5107,7 +5131,7 @@
 			$item["crops"] = json_decode($item["crops"], true);
 			$item["thumbs"] = json_decode($item["thumbs"], true);
 			$item["metadata"] = json_decode($item["metadata"], true);
-			
+
 			return BigTree::untranslateArray($item);
 		}
 
@@ -5128,7 +5152,7 @@
 			if (!$resource) {
 				return false;
 			}
-			
+
 			$resource["crops"] = json_decode($resource["crops"], true);
 			$resource["thumbs"] = json_decode($resource["thumbs"], true);
 			$resource["metadata"] = json_decode($resource["metadata"], true);
@@ -5338,7 +5362,7 @@
 			global $bigtree;
 			$id = BigTreeCMS::extensionSettingCheck($id);
 			$setting = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
-			
+
 			// Setting doesn't exist
 			if (!$setting) {
 				return false;
@@ -5353,7 +5377,7 @@
 			// Decode the JSON value
 			if ($decode) {
 				$setting["value"] = json_decode($setting["value"],true);
-	
+
 				if (is_array($setting["value"])) {
 					$setting["value"] = BigTree::untranslateArray($setting["value"]);
 				} else {
@@ -5713,7 +5737,7 @@
 			// Check banned IPs list for the user's IP
 			if (!empty($p["banned_ips"])) {
 				$banned = explode("\n",$p["banned_ips"]);
-				
+
 				foreach ($banned as $address) {
 					if (ip2long(trim($address)) == $ip) {
 						$bigtree["layout"] = "login";
@@ -5727,12 +5751,12 @@
 				$allowed = false;
 				// Go through the list and see if our IP address is allowed
 				$list = explode("\n",$p["allowed_ips"]);
-				
+
 				foreach ($list as $item) {
 					list($begin,$end) = explode(",",$item);
 					$begin = ip2long(trim($begin));
 					$end = ip2long(trim($end));
-					
+
 					if ($begin <= $ip && $end >= $ip) {
 						$allowed = true;
 					}
@@ -5774,7 +5798,7 @@
 				sqlquery("DELETE FROM bigtree_feeds WHERE extension = '$extension'");
 
 			// Import tables for new installs
-			} else { 
+			} else {
 				foreach ($manifest["components"]["tables"] as $table_name => $sql_statement) {
 					sqlquery("DROP TABLE IF EXISTS `$table_name`");
 					sqlquery($sql_statement);
@@ -5790,7 +5814,7 @@
 					sqlquery("UPDATE bigtree_module_groups SET extension = '$extension' WHERE id = '".$group["id"]."'");
 				}
 			}
-		
+
 			// Import modules
 			foreach ($manifest["components"]["modules"] as &$module) {
 				if ($module) {
@@ -5810,7 +5834,7 @@
 					$bigtree["route_match"][$module["route"]] = $route;
 					// Update the module ID since we're going to save this manifest locally for uninstalling
 					$module["id"] = $module_id;
-			
+
 					// Create the embed forms
 					foreach ($module["embed_forms"] as $form) {
 						$this->createModuleEmbedForm($module_id,$form["title"],$form["table"],(is_array($form["fields"]) ? $form["fields"] : json_decode($form["fields"],true)),$form["hooks"],$form["default_position"],$form["default_pending"],$form["css"],$form["redirect_url"],$form["thank_you_message"]);
@@ -5834,7 +5858,7 @@
 					}
 				}
 			}
-		
+
 			// Import templates
 			foreach ($manifest["components"]["templates"] as $template) {
 				if ($template) {
@@ -5842,15 +5866,15 @@
 					sqlquery("INSERT INTO bigtree_templates (`id`,`name`,`module`,`resources`,`level`,`routed`,`extension`) VALUES ('".sqlescape($template["id"])."','".sqlescape($template["name"])."','".$bigtree["module_match"][$template["module"]]."','$resources','".sqlescape($template["level"])."','".sqlescape($template["routed"])."','$extension')");
 				}
 			}
-		
+
 			// Import callouts
 			foreach ($manifest["components"]["callouts"] as $callout) {
 				if ($callout) {
 					$resources = sqlescape(is_array($callout["resources"]) ? BigTree::json($callout["resources"]) : $callout["resources"]);
-					sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`display_default`,`display_field`,`resources`,`level`,`position`,`extension`) VALUES ('".sqlescape($callout["id"])."','".sqlescape($callout["name"])."','".sqlescape($callout["description"])."','".sqlescape($callout["display_default"])."','".sqlescape($callout["display_field"])."','$resources','".sqlescape($callout["level"])."','".sqlescape($callout["position"])."','$extension')");	
+					sqlquery("INSERT INTO bigtree_callouts (`id`,`name`,`description`,`display_default`,`display_field`,`resources`,`level`,`position`,`extension`) VALUES ('".sqlescape($callout["id"])."','".sqlescape($callout["name"])."','".sqlescape($callout["description"])."','".sqlescape($callout["display_default"])."','".sqlescape($callout["display_field"])."','$resources','".sqlescape($callout["level"])."','".sqlescape($callout["position"])."','$extension')");
 				}
 			}
-		
+
 			// Import Settings
 			foreach ($manifest["components"]["settings"] as $setting) {
 				if ($setting) {
@@ -5858,7 +5882,7 @@
 					sqlquery("UPDATE bigtree_settings SET extension = '$extension' WHERE id = '".sqlescape($setting["id"])."'");
 				}
 			}
-		
+
 			// Import Feeds
 			foreach ($manifest["components"]["feeds"] as $feed) {
 				if ($feed) {
@@ -5868,7 +5892,7 @@
 					sqlquery("INSERT INTO bigtree_feeds (`route`,`name`,`description`,`type`,`table`,`fields`,`settings`,`extension`) VALUES ('".sqlescape($feed["route"])."','".sqlescape($feed["name"])."','".sqlescape($feed["description"])."','".sqlescape($feed["type"])."','".sqlescape($feed["table"])."','$fields','$settings','$extension')");
 				}
 			}
-		
+
 			// Import Field Types
 			foreach ($manifest["components"]["field_types"] as $type) {
 				if ($type) {
@@ -5895,11 +5919,11 @@
 
 				// Update the extension
 				sqlquery("UPDATE bigtree_extensions SET name = '".sqlescape($manifest["title"])."', version = '".sqlescape($manifest["version"])."', last_updated = NOW(), manifest = '".BigTree::json($manifest,true)."' WHERE id = '".sqlescape($manifest["id"])."'");
-			
+
 			// Straight installs move files into place locally
 			} else {
 				// Make sure destination doesn't exist
-				$destination_path = SERVER_ROOT."extensions/".$manifest["id"]."/"; 
+				$destination_path = SERVER_ROOT."extensions/".$manifest["id"]."/";
 				BigTree::deleteDirectory($destination_path);
 
 				// Move the package to the extension directory
@@ -5907,7 +5931,7 @@
 				BigTree::setDirectoryPermissions($destination_path);
 
 				// Create the extension
-				sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($manifest["id"])."','extension','".sqlescape($manifest["title"])."','".sqlescape($manifest["version"])."',NOW(),'".BigTree::json($manifest,true)."')");	
+				sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($manifest["id"])."','extension','".sqlescape($manifest["title"])."','".sqlescape($manifest["version"])."',NOW(),'".BigTree::json($manifest,true)."')");
 			}
 
 			// Re-enable foreign key checks
@@ -6005,11 +6029,11 @@
 
 			// Check to see if this IP is already banned from logging in.
 			$ban = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND ip = '$ip'"));
-			
+
 			if ($ban) {
 				$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime($ban["expires"]));
 				$bigtree["ban_is_user"] = false;
-				
+
 				return true;
 			}
 
@@ -6019,7 +6043,7 @@
 		/*
 			Function: isUserBanned
 				Checks to see if the logging in user is banned and should not be allowed to attempt login.
-			
+
 			Parameters:
 				user - A user ID
 
@@ -6032,11 +6056,11 @@
 
 			// See if this user is banned due to failed login attempts
 			$ban = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND `user` = '".intval($user)."'"));
-			
+
 			if ($ban) {
 				$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime($ban["expires"]));
 				$bigtree["ban_is_user"] = true;
-				
+
 				return true;
 			}
 
@@ -6119,13 +6143,13 @@
 				if (static::isIPBanned($ip)) {
 					return false;
 				}
-	
+
 				// Get rid of whitespace and make the email lowercase for consistency
 				$email = trim(strtolower($email));
 				$password = trim($password);
 				$user = SQL::fetch("SELECT * FROM bigtree_users WHERE LOWER(email) = ?", $email);
 				$ok = false;
-	
+
 				if ($user) {
 					if (static::isUserBanned($user["id"])) {
 						return false;
@@ -6153,12 +6177,12 @@
 					}
 				}
 			}
-			
+
 			if ($ok) {
 				// Generate a random CSRF token
 				$csrf_token = base64_encode(openssl_random_pseudo_bytes(32));
 				$csrf_token_field = "__csrf_token_".BigTree::randomString(32)."__";
-				
+
 				// Generate a random chain id
 				$chain = uniqid("chain-",true);
 
@@ -6175,7 +6199,7 @@
 
 				// Create the new session chain
 				sqlquery("INSERT INTO bigtree_user_sessions (`id`,`chain`,`email`,`csrf_token`,`csrf_token_field`) VALUES ('".sqlescape($session)."','".sqlescape($chain)."','".sqlescape($user["email"])."','$csrf_token','$csrf_token_field')");
-				
+
 				if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
 					// Create another unique cache session for logins across domains
 					$cache_data = array(
@@ -6205,23 +6229,23 @@
 							}
 						}
 					}
-					
+
 					$cache_session_key = BigTreeCMS::cacheUnique("org.bigtreecms.login-session", $cache_data);
 					$next_site = array_shift(array_values($cache_data["remaining_sites"]));
-					
+
 					// Start the login chain
 					BigTree::redirect($next_site."?bigtree_login_redirect_session_key=".$cache_session_key);
 				} else {
 					$cookie_domain = str_replace(DOMAIN,"",WWW_ROOT);
 					$cookie_value = json_encode(array($session, $chain));
-					
+
 					// We still set the email for BigTree bar usage even if they're not being "remembered"
 					setcookie('bigtree_admin[email]', $user["email"], strtotime("+1 month"), $cookie_domain, "", false, true);
-					
+
 					if ($stay_logged_in) {
 						setcookie('bigtree_admin[login]', $cookie_value, strtotime("+1 month"), $cookie_domain, "", false, true);
 					}
-					
+
 					SQL::update("bigtree_sessions", session_id(), ["is_login" => "on", "logged_in_user" => $user["id"]]);
 					$_SESSION["bigtree_admin"]["id"] = $user["id"];
 					$_SESSION["bigtree_admin"]["email"] = $user["email"];
@@ -6230,7 +6254,7 @@
 					$_SESSION["bigtree_admin"]["permissions"] = json_decode($user["permissions"],true);
 					$_SESSION["bigtree_admin"]["csrf_token"] = $csrf_token;
 					$_SESSION["bigtree_admin"]["csrf_token_field"] = $csrf_token_field;
-					
+
 					if (isset($_SESSION["bigtree_login_redirect"])) {
 						BigTree::redirect($_SESSION["bigtree_login_redirect"]);
 					} else {
@@ -6244,25 +6268,25 @@
 				} else {
 					$user_id = "NULL";
 				}
-				
+
 				sqlquery("INSERT INTO bigtree_login_attempts (`ip`,`user`) VALUES ('$ip', $user_id)");
 
 				// See if this attempt earns the user a ban - first verify the policy is completely filled out (3 parts)
 				if ($user["id"] && count(array_filter((array)$bigtree["security-policy"]["user_fails"])) == 3) {
 					$p = $bigtree["security-policy"]["user_fails"];
 					$r = sqlrows(sqlquery("SELECT * FROM bigtree_login_attempts WHERE `user` = $user_id AND `timestamp` >= DATE_SUB(NOW(),INTERVAL ".$p["time"]." MINUTE)"));
-					
+
 					// Earned a ban
 					if ($r >= $p["count"]) {
 						// See if they have an existing ban that hasn't expired, if so, extend it
 						$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE `user` = $user_id AND expires >= NOW()"));
-						
+
 						if ($existing) {
 							sqlquery("UPDATE bigtree_login_bans SET expires = DATE_ADD(NOW(),INTERVAL ".$p["ban"]." MINUTE) WHERE id = '".$existing["id"]."'");
 						} else {
 							sqlquery("INSERT INTO bigtree_login_bans (`ip`,`user`,`expires`) VALUES ('$ip', $user_id, DATE_ADD(NOW(), INTERVAL ".$p["ban"]." MINUTE))");
 						}
-						
+
 						$bigtree["ban_expiration"] = date("F j, Y @ g:ia",strtotime("+".$p["ban"]." minutes"));
 						$bigtree["ban_is_user"] = true;
 					}
@@ -6272,17 +6296,17 @@
 				if (count(array_filter((array) $bigtree["security-policy"]["ip_fails"])) == 3) {
 					$p = $bigtree["security-policy"]["ip_fails"];
 					$r = sqlrows(sqlquery("SELECT * FROM bigtree_login_attempts WHERE `ip` = '$ip' AND `timestamp` >= DATE_SUB(NOW(),INTERVAL ".$p["time"]." MINUTE)"));
-					
+
 					// Earned a ban
 					if ($r >= $p["count"]) {
 						$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_login_bans WHERE `ip` = '$ip' AND expires >= NOW()"));
-						
+
 						if ($existing) {
-							sqlquery("UPDATE bigtree_login_bans SET expires = DATE_ADD(NOW(),INTERVAL ".$p["ban"]." HOUR) WHERE id = '".$existing["id"]."'");						
+							sqlquery("UPDATE bigtree_login_bans SET expires = DATE_ADD(NOW(),INTERVAL ".$p["ban"]." HOUR) WHERE id = '".$existing["id"]."'");
 						} else {
 							sqlquery("INSERT INTO bigtree_login_bans (`ip`,`expires`) VALUES ('$ip',DATE_ADD(NOW(),INTERVAL ".$p["ban"]." HOUR))");
 						}
-						
+
 						$bigtree["ban_expiration"] = date("F j, Y @ g:ia", strtotime("+".$p["ban"]." hours"));
 						$bigtree["ban_is_user"] = false;
 					}
@@ -6290,14 +6314,14 @@
 
 				return false;
 			}
-			
+
 			return true;
 		}
 
 		/*
 			Function: login2FA
 				Verifies an authorization token matches the user's secret and logs them in if successful.
-			
+
 			Parameters:
 				token - A time based token
 				bypass - For first time setup, bypass code check
@@ -6321,11 +6345,11 @@
 
 			return true;
 		}
-		
+
 		public static function loginSession($session_key) {
 			$cache_data = BigTreeCMS::cacheGet("org.bigtreecms.login-session", $session_key);
 			$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$cache_data["user_id"]."'"));
-			
+
 			foreach ($cache_data["remaining_sites"] as $site_key => $www_root) {
 				if ($site_key == BIGTREE_SITE_KEY) {
 					$cookie_domain = str_replace(DOMAIN, "", WWW_ROOT);
@@ -6333,11 +6357,11 @@
 
 					// We still set the email for BigTree bar usage even if they're not being "remembered"
 					setcookie('bigtree_admin[email]', $user["email"], strtotime("+1 month"), $cookie_domain, "", false, true);
-					
+
 					if ($cache_data["stay_logged_in"]) {
 						setcookie('bigtree_admin[login]', $cookie_value, strtotime("+1 month"), $cookie_domain, "", false, true);
 					}
-					
+
 					SQL::update("bigtree_sessions", session_id(), ["is_login" => "on", "logged_in_user" => $user["id"]]);
 					$_SESSION["bigtree_admin"]["id"] = $user["id"];
 					$_SESSION["bigtree_admin"]["email"] = $user["email"];
@@ -6346,15 +6370,15 @@
 					$_SESSION["bigtree_admin"]["permissions"] = json_decode($user["permissions"], true);
 					$_SESSION["bigtree_admin"]["csrf_token"] = $cache_data["csrf_token"];
 					$_SESSION["bigtree_admin"]["csrf_token_field"] = $cache_data["csrf_token_field"];
-					
+
 					unset($cache_data["remaining_sites"][$site_key]);
 				}
 			}
-			
+
 			if (count($cache_data["remaining_sites"]) == 0) {
 				// Done logging in, delete session
 				BigTreeCMS::cacheDelete("org.bigtreecms.login-session", $session_key);
-				
+
 				if (!empty($cache_data["login_redirect"])) {
 					BigTree::redirect($cache_data["login_redirect"]);
 				} else {
@@ -6363,7 +6387,7 @@
 			} else {
 				$next_site = array_shift(array_values($cache_data["remaining_sites"]));
 				BigTreeCMS::cachePut("org.bigtreecms.login-session", $session_key, $cache_data);
-				
+
 				// Redirect to the next site that needs a session/cookie
 				BigTree::redirect($next_site."?bigtree_login_redirect_session_key=".$session_key);
 			}
@@ -6438,14 +6462,14 @@
 			global $bigtree;
 
 			$path_components = explode("/", rtrim(str_replace(WWW_ROOT, "", $url), "/"));
-			
+
 			// See if this is a file
 			$local_path = str_replace(WWW_ROOT,SITE_ROOT,$url);
-			
-			if (($path_components[0] != "files" || $path_components[1] != "resources") && 
-				(substr($local_path,0,1) == "/" || substr($local_path,0,2) == "\\\\") && 
+
+			if (($path_components[0] != "files" || $path_components[1] != "resources") &&
+				(substr($local_path,0,1) == "/" || substr($local_path,0,2) == "\\\\") &&
 				file_exists($local_path)) {
-				
+
 				return BigTreeCMS::replaceHardRoots($url);
 			}
 
@@ -6455,25 +6479,25 @@
 					// This is the site we're pointing to
 					if (strpos($url, $configuration["www_root"]) !== false) {
 						$path_components = explode("/", rtrim(str_replace($configuration["www_root"], "", $url), "/"));
-						
+
 						// Check for resource link
 						if ($path_components[0] == "files" && $path_components[1] == "resources") {
 							$resource = static::getResourceByFile($url);
 
 							if ($resource) {
 								static::$IRLsCreated[] = $resource["id"];
-								
+
 								return "irl://".$resource["id"]."//".$resource["prefix"];
 							}
 						}
-						
+
 						// Get the root path of the site for calculating an IPL and add it to the path components
 						$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".$configuration["trunk"]."'"));
 						$path_components = array_filter(array_merge(explode("/", $f["path"]), $path_components));
-						
+
 						// Check for page link
 						list($navid, $commands, $routed_state, $get_vars, $hash) = static::getPageIDForPath($path_components);
-						
+
 						if ($navid) {
 							return "ipl://".$navid."//".base64_encode(json_encode($commands))."//".base64_encode($get_vars)."//".base64_encode($hash);
 						} else {
@@ -6481,7 +6505,7 @@
 						}
 					}
 				}
-				
+
 				return BigTreeCMS::replaceHardRoots($url);
 			} else {
 				// Check for resource link
@@ -6489,19 +6513,19 @@
 					$resource = static::getResourceByFile($url);
 					if ($resource) {
 						static::$IRLsCreated[] = $resource["id"];
-						
+
 						return "irl://".$resource["id"]."//".$resource["prefix"];
 					}
 				}
-				
+
 				// Check for page link
 				list($navid, $commands, $routed_state, $get_vars, $hash) = static::getPageIDForPath($path_components);
 			}
-			
+
 			if (!$navid) {
 				return BigTreeCMS::replaceHardRoots($url);
 			}
-			
+
 			return "ipl://".$navid."//".base64_encode(json_encode($commands))."//".base64_encode($get_vars)."//".base64_encode($hash);
 		}
 
@@ -6724,7 +6748,7 @@
 				// Create the crop and put it in a temporary location
 				$temp_crop = SITE_ROOT."files/".uniqid("temp-").".".$pinfo["extension"];
 				BigTree::createCrop($image_src,$temp_crop,$x,$y,$target_width,$target_height,$width,$height,$crop["retina"],$crop["grayscale"]);
-				
+
 				// Make thumbnails for the crop
 				if (is_array($thumbs)) {
 					foreach ($thumbs as $thumb) {
@@ -6773,7 +6797,7 @@
 
 		public static function processField($field) {
 			global $admin,$bigtree,$cms;
-			
+
 			// Backwards compatibility
 			$field["options"] = &$field["settings"];
 
@@ -7104,7 +7128,7 @@
 								if ($crop["width"] && $crop["height"] && is_numeric($crop["width"]) && is_numeric($crop["height"])) {
 									$cwidth = $crop["width"];
 									$cheight = $crop["height"];
-		
+
 									// Check to make sure each dimension is greater then or equal to, but not both equal to the crop.
 									if (($iheight >= $cheight && $iwidth > $cwidth) || ($iwidth >= $cwidth && $iheight > $cheight)) {
 										// Make a square if for some reason someone only entered one dimension for a crop.
@@ -7140,7 +7164,7 @@
 												}
 											}
 										}
-	
+
 										// See if we want center crops
 										if (is_array($crop["center_crops"])) {
 											foreach ($crop["center_crops"] as $center_crop) {
@@ -7154,7 +7178,7 @@
 												}
 											}
 										}
-										
+
 										if ($crop["prefix"]) {
 											$storage->replace($temp_copy, $crop["prefix"].$pinfo["basename"], $field["settings"]["directory"], false, $force_local_replace);
 										}
@@ -7309,7 +7333,7 @@
 
 		public function saveCurrentPageRevision($page,$description) {
 			$access = $this->getPageAccessLevel($page);
-			
+
 			if ($access != "p") {
 				$this->stop("You must be a publisher to manage revisions.");
 			}
@@ -7380,7 +7404,7 @@
 
 			// Get the results
 			$q = sqlquery("SELECT * FROM bigtree_404s WHERE $where $site_key_query ORDER BY requests DESC LIMIT ".(($page - 1) * 20).",20");
-			
+
 			while ($f = sqlfetch($q)) {
 				$f["redirect_url"] = BigTreeCMS::replaceInternalPageLinks($f["redirect_url"]);
 				$items[] = $f;
@@ -7429,7 +7453,7 @@
 			}
 
 			$q = sqlquery($query." ORDER BY `date` DESC");
-			
+
 			while ($f = sqlfetch($q)) {
 				if (isset($deleted_users[$f["user"]])) {
 					$user = $deleted_users[$f["user"]];
@@ -7530,7 +7554,7 @@
 						$f["permission"] = $this->getResourceFolderPermission($f["folder"]);
 						$permission_cache[$f["folder"]] = $f["permission"];
 					}
-	
+
 					$resources[] = $f;
 					$existing[] = $check;
 				}
@@ -7585,7 +7609,7 @@
 			if (strpos($url,"//") === false) {
 				$url = WWW_ROOT.ltrim($url,"/");
 			}
-			
+
 			$url = sqlescape(htmlspecialchars($this->autoIPL($url)));
 
 			// Don't use static roots if they're the same as www just in case they are different when moving environments
@@ -7777,7 +7801,7 @@
 
 		public function submitPageChange($page,$changes) {
 			$page = sqlescape($page);
-			
+
 			if ($page[0] == "p") {
 				// It's still pending...
 				$type = "NEW";
@@ -8130,7 +8154,7 @@
 		*/
 
 		public function updateFeed($id,$name,$description,$table,$type,$settings,$fields) {
-			$settings = array_filter((array) json_decode($settings, true));			
+			$settings = array_filter((array) json_decode($settings, true));
 
 			// Fix stuff up for the db.
 			$id = sqlescape($id);
@@ -8653,7 +8677,7 @@
 
 			// Audit trail.
 			$this->track("bigtree_pages",$page,"updated");
-			
+
 			// If this page is a trunk in a multi-site setup, wipe the cache
 			foreach (BigTreeCMS::$SiteRoots as $site_path => $site_data) {
 				if ($site_data["trunk"] == $page) {
@@ -8864,7 +8888,7 @@
 			}
 
 			SQL::update("bigtree_resource_folders", $id, $data);
-			
+
 			$this->track("bigtree_resource_folders", $id, "updated");
 		}
 
@@ -9121,29 +9145,29 @@
 			}
 			return !$failed;
 		}
-		
+
 		/*
 			Function: verifyCSRFToken
 				Verifies the referring host and session token and stops processing if they fail.
 		*/
-		
+
 		public function verifyCSRFToken() {
 			$clean_referer = str_replace(array("http://","https://"),"//",$_SERVER["HTTP_REFERER"]);
 			$clean_domain = str_replace(array("http://","https://"),"//",DOMAIN);
 			$token = isset($_POST[$this->CSRFTokenField]) ? $_POST[$this->CSRFTokenField] : $_GET[$this->CSRFTokenField];
-			
+
 			if (strpos($clean_referer, $clean_domain) !== 0 || $token != $this->CSRFToken) {
 				// See if this is a timeout and an existing token exists in the database for another session
 				$q = sqlquery("SELECT * FROM bigtree_user_sessions WHERE email = '".sqlescape($this->User)."'");
-				
+
 				while ($old_session = sqlfetch($q)) {
 					$token = isset($_POST[$old_session["csrf_token_field"]]) ? $_POST[$old_session["csrf_token_field"]] : $_GET[$old_session["csrf_token_field"]];
-					
+
 					if ($token && $token == $old_session["csrf_token"]) {
 						return;
 					}
 				}
-				
+
 				$this->stop("Cross site request forgery detected.");
 			}
 		}
@@ -9151,7 +9175,7 @@
 		/*
 			Function: verifyLogin2FA
 				Verifies a username and password and returns the two factor auth secret.
-			
+
 			Parameters:
 				email - Email address
 				password - Password
@@ -9178,7 +9202,7 @@
 				if (static::isUserBanned($user["id"])) {
 					return null;
 				}
-				
+
 				// BigTree 4.3+ uses password_hash instead of PHPass
 				if ($user["new_hash"]) {
 					$validated = password_verify($password, $user["password"]);
@@ -9199,18 +9223,18 @@
 						]);
 					}
 				}
-				
+
 				if ($validated) {
 					$token = $phpass->HashPassword(BigTree::randomString(64).trim($password).BigTree::randomString(64));
 					$_SESSION["bigtree_admin"]["2fa_id"] = intval($user["id"]);
 					$_SESSION["bigtree_admin"]["2fa_login_token"] = $token;
-					
+
 					SQL::update("bigtree_users", $user["id"], ["2fa_login_token" => $token]);
 
 					return $user["2fa_secret"];
 				}
 			}
-			
+
 			return null;
 		}
 

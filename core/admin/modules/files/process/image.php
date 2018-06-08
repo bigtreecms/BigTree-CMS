@@ -5,60 +5,8 @@
 		$admin->stop("You do not have permission to create content in this folder.");
 	}
 
-	// Scale up images that don't meet our minimum
-	$settings = $cms->getSetting("bigtree-internal-media-settings");
-	$preset = $settings["presets"]["default"];
-	$dir = opendir(SITE_ROOT."files/temporary/".$admin->ID."/");
-	$crop_prefixes = [];
-	$thumb_prefixes = [];
-
-	if (is_array($preset["crops"])) {
-		foreach ($preset["crops"] as $crop) {
-			if ($crop["prefix"]) {
-				$crop_prefixes[] = $crop["prefix"];
-			}
-	
-			if (is_array($crop["thumbs"])) {
-				foreach ($crop["thumbs"] as $thumb) {
-					if ($thumb["prefix"]) {
-						$crop_prefixes[] = $thumb["prefix"];
-					}
-				}
-			}
-
-			if (is_array($crop["center_crops"])) {
-				foreach ($crop["center_crops"] as $center_crop) {
-					if ($center_crop["prefix"]) {
-						$crop_prefixes[] = $center_crop["prefix"];
-					}
-				}
-			}
-		}
-	}
-
-	if (is_array($preset["center_crops"])) {
-		foreach ($preset["center_crops"] as $crop) {
-			if ($crop["prefix"]) {
-				$crop_prefixes[] = $crop["prefix"];
-			}
-	
-			if (is_array($crop["thumbs"])) {
-				foreach ($crop["thumbs"] as $thumb) {
-					if ($thumb["prefix"]) {
-						$crop_prefixes[] = $thumb["prefix"];
-					}
-				}
-			}
-		}
-	}
-
-	if (is_array($preset["thumbs"])) {
-		foreach ($preset["thumbs"] as $thumb) {
-			if ($thumb["prefix"]) {
-				$thumb_prefixes[] = $thumb["prefix"];
-			}
-		}
-	}
+	// Get crop and thumb prefix info
+	include BigTree::path("admin/modules/files/process/_crop-setup.php");
 
 	while ($file = readdir($dir)) {
 		if ($file == "." || $file == "..") {
@@ -74,6 +22,7 @@
 
 			list($width, $height, $type, $attr) = getimagesize($file_name);
 
+			// Scale up content that doesn't meet minimums
 			if ($width < $min_width || $height < $min_height) {
 				BigTree::createUpscaledImage($file_name, $file_name, $min_width, $min_height);
 			}
@@ -136,4 +85,3 @@
 	} else {
 		BigTree::redirect(ADMIN_ROOT."files/crop/".intval($bigtree["commands"][0])."/");
 	}
-	

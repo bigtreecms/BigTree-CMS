@@ -8,6 +8,7 @@
 ?>
 <form action="<?=ADMIN_ROOT?>files/create/video/" method="post" class="container">
 	<?php $admin->drawCSRFToken(); ?>
+	<input type="hidden" name="folder" value="<?=intval($bigtree["commands"][0])?>">
 
 	<section>
 		<fieldset>

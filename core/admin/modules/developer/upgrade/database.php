@@ -762,3 +762,14 @@
 		SQL::query("ALTER TABLE `bigtree_sessions` ADD COLUMN `logged_in_user` int(11) unsigned DEFAULT NULL AFTER `is_login`");
 		SQL::query("ALTER TABLE `bigtree_sessions` ADD CONSTRAINT fk_logged_in_user FOREIGN KEY (`logged_in_user`) REFERENCES bigtree_users(id) ON DELETE CASCADE");
 	}
+
+	// BigTree 4.3 update -- REVISION 306
+	function _local_bigtree_update_306() {
+		SQL::query("ALTER TABLE `bigtree_resources` ADD COLUMN `video_data` longtext DEFAULT NULL AFTER `thumbs`");
+		SQL::query("ALTER TABLE `bigtree_resources` CHANGE COLUMN `size` `size` int(11) unsigned DEFAULT NULL");
+		SQL::query("ALTER TABLE `bigtree_resources` CHANGE COLUMN `height` `height` int(11) unsigned DEFAULT NULL");
+		SQL::query("ALTER TABLE `bigtree_resources` CHANGE COLUMN `width` `width` int(11) unsigned DEFAULT NULL");
+		SQL::query("ALTER TABLE `bigtree_resources` CHANGE COLUMN `md5` `md5` varchar(255) DEFAULT NULL");
+		SQL::query("ALTER TABLE `bigtree_resources` CHANGE COLUMN `mimetype` `mimetype` varchar(255) DEFAULT NULL");
+		SQL::query("ALTER TABLE `bigtree_resources` CHANGE COLUMN `location` `location` varchar(255) DEFAULT NULL");
+	}

@@ -3,7 +3,7 @@
 		if (empty($folder["id"])) {
 			$folder["id"] = 0;
 		}
-		
+
 		$bigtree["custom_subnav"] = [
 			["link" => "files/add/image/".$folder["id"], "title" => "Add Images", "icon" => "picture"],
 			["link" => "files/add/file/".$folder["id"], "title" => "Add Files", "icon" => "file_default"],
@@ -18,7 +18,7 @@
 			<input class="form_search" id="js-file-manager-search" placeholder="Search" value="" type="search">
 			<span class="form_search_icon"></span>
 		</summary>
-		
+
 		<header>
 			<span class="view_column file_manager_column_icon"></span>
 			<span class="view_column file_manager_column_name">Name</span>
@@ -40,7 +40,7 @@
 					<a href="<?=ADMIN_ROOT?>files/folder/<?=$folder["id"]?>/"><?=$folder["name"]?></a>
 				</section>
 				<section class="view_column file_manager_column_type">
-					Folder
+					folder
 				</section>
 				<section class="view_column file_manager_column_size">
 					&mdash;
@@ -63,6 +63,10 @@
 						if ($resource["is_image"]) {
 					?>
 					<img src="<?=BigTree::prefixFile(BigTreeCMS::replaceRelativeRoots($resource["file"]), "list-preview/")?>" alt="">
+					<?php
+						} elseif ($resource["is_video"]) {
+					?>
+					<span class="icon_large icon_large_<?=$resource["location"]?>"></span>
 					<?php
 						} else {
 					?>
