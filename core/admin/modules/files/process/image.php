@@ -8,6 +8,8 @@
 	// Get crop and thumb prefix info
 	include BigTree::path("admin/modules/files/process/_crop-setup.php");
 
+	$total_files = 0;
+
 	while ($file = readdir($dir)) {
 		if ($file == "." || $file == "..") {
 			continue;
@@ -43,14 +45,15 @@
 			$output = $admin->processImageUpload($field);
 
 			if ($output) {
-				$admin->createResource($bigtree["commands"][0], $output, $file, "image", $crop_prefixes, $thumb_prefixes);
+				$last_resource_id = $admin->createResource($bigtree["commands"][0], $output, $file, "image", $crop_prefixes, $thumb_prefixes);
+				$total_files++;
 			}
 		}
 	}
 
 	$_SESSION["bigtree_admin"]["form_data"] = [
 		"edit_link" => ADMIN_ROOT."files/folder/".intval($bigtree["commands"][0])."/",
-		"return_link" => ADMIN_ROOT."files/folder/".intval($bigtree["commands"][0])."/",
+		"return_link" =>($total_files > 1) ? ADMIN_ROOT."files/folder/".intval($bigtree["commands"][0])."/" :  ADMIN_ROOT."files/edit/file/$last_resource_id/",
 		"crop_key" => $cms->cacheUnique("org.bigtreecms.crops", $bigtree["crops"])
 	];
 

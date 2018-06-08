@@ -1598,14 +1598,14 @@
 				$file_size = filesize($file_path);
 				$md5 = md5($file_path);
 				$mimetype = function_exists("mime_content_type") ? mime_content_type($file_path) : "";
-				$type = pathinfo($file_path, PATHINFO_EXTENSION);
+				$file_extension = pathinfo($file_path, PATHINFO_EXTENSION);
 
 				if ($type == "image") {
 					list($width, $height) = getimagesize($file_path);
 				}
 			} else {
 				$location = $video_data["service"];
-				$type = "video";
+				$file_extension = "video";
 				$name = $video_data["title"];
 				$file = $video_data["url"];
 				$file_size = null;
@@ -1617,7 +1617,7 @@
 				"folder" => $folder ?: null,
 				"file" => $file,
 				"name" => BigTree::safeEncode($name),
-				"type" => $type,
+				"type" => $file_extension,
 				"mimetype" => $mimetype,
 				"is_image" => ($type == "image") ? "on" : "",
 				"is_video" => ($type == "video") ? "on" : "",
