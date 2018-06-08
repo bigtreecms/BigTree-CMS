@@ -1604,6 +1604,10 @@
 					BigTree::copyFile($file, $file_path);
 				}
 
+				$file_size = filesize($file_path);
+				$md5 = md5($file_path);
+				$mimetype = function_exists("mime_content_type") ? mime_content_type($file_path) : "";
+
 				if ($type == "image") {
 					list($width, $height) = getimagesize($file_path);
 				}
