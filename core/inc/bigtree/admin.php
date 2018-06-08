@@ -7231,8 +7231,10 @@
 						unlink($temp_copy);
 					}
 				}
-			// We failed, keep the current value.
+			// We failed, keep the current value and remove the temporary file.
 			} else {
+				@unlink($field["file_input"]["tmp_name"]);
+
 				return false;
 			}
 
