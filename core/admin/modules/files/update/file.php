@@ -54,7 +54,6 @@
 		$file_name = pathinfo($file["file"], PATHINFO_BASENAME);
 
 		if ($file["is_image"]) {
-			include BigTree::path("admin/modules/files/process/_crop-setup.php");
 			$min_height = intval($preset["min_height"]);
 			$min_width = intval($preset["min_width"]);
 
@@ -65,6 +64,9 @@
 				BigTree::createUpscaledImage($_FILES["file"]["tmp_name"], $_FILES["file"]["tmp_name"], $min_width, $min_height);
 				list($width, $height, $type, $attr) = getimagesize($_FILES["file"]["tmp_name"]);
 			}
+			
+			// Get updated crop/thumb arrays
+			include BigTree::path("admin/modules/files/process/_resource-prefixes.php");
 
 			$field = [
 				"title" => $file["name"],
@@ -81,6 +83,8 @@
 
 			$data["width"] = $width;
 			$data["height"] = $height;
+			$data["crops"] = $crop_prefixes;
+			$data["thumbs"] = $thumb_prefixes;
 			$data["size"] = filesize($_FILES["file"]["tmp_name"]);
 
 			$admin->processImageUpload($field, true);

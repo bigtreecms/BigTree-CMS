@@ -1378,6 +1378,8 @@ var BigTreeFileManager = (function($) {
 
 	// Properties
 
+	var ActiveImage = false;
+	var AvailableCrops = false;
 	var AvailableThumbs = false;
 	var Browser = false;
 	var Callback = false;
@@ -1400,20 +1402,37 @@ var BigTreeFileManager = (function($) {
 		$("#file_browser_info_pane").css({ height: "437px", marginTop: 0, marginLeft: "-1px" });
 
 		var size_pane = $("#file_browser_size_pane").html('<h3>Select Image Size</h3><p>Click on an image size below to insert into your content.</p>');
+		size_pane.append($('<button class="file_browser_size_button">Original Size</button>').data("prefix", ""));
+
 		// Add all available thumbnail sizes as buttons
-		for (var i = 0; i < AvailableThumbs.length; i++) {
-			var size = AvailableThumbs[i];
-			var link = $('<a class="button">').attr("href",size.file.replace("{wwwroot}", "www_root/").replace("{staticroot}","static_root/")).html(size.name);
-			size_pane.append(link);
+		if (!$.isEmptyObject(AvailableCrops)) {
+			size_pane.append('<h4>Crops</h4>');
+
+			for (var prefix in AvailableCrops) {
+				if (AvailableCrops.hasOwnProperty(prefix)) {
+					size_pane.append($('<button class="file_browser_size_button">').html(AvailableCrops[prefix].width + "x" + AvailableCrops[prefix].height).data("prefix", prefix));
+				}
+			}
 		}
-		// Add original size button and move the size pane to the left
-		size_pane.append($('<a class="button">').attr("href",$("#file_browser_selected_file").val().replace("{wwwroot}", "www_root/").replace("{staticroot}","static_root/")).html("Original"));
+
+		if (!$.isEmptyObject(AvailableThumbs)) {
+			size_pane.append('<h4>Thumbnails</h4>');
+
+			for (var prefix in AvailableThumbs) {
+				if (AvailableThumbs.hasOwnProperty(prefix)) {
+					size_pane.append($('<button class="file_browser_size_button">').html(AvailableThumbs[prefix].width + "x" + AvailableThumbs[prefix].height).data("prefix", prefix));
+				}
+			}
+		}
+
+		// Move the size pane to the left
 		size_pane.css({ marginLeft: "210px" });
 
 		// Hook the size buttons to change the selected URL
-		size_pane.find("a").click(function() {
-			FieldName.value = $(this).attr("href");
+		size_pane.find("button").click(function() {
+			FieldName.value = BigTree.prefixFile(ActiveImage, $(this).data("prefix"));
 			closeFileBrowser();
+
 			return false;
 		});
 
@@ -1433,10 +1452,6 @@ var BigTreeFileManager = (function($) {
 		$("#file_browser_type_icon").addClass("icon_folder");
 		$("#file_browser_type .title").html("File Browser");
 		openFileFolder(0);
-	}
-
-	function fileBrowserPopulated() {
-		$("#file_browser_contents a").click(fileClick);
 	}
 
 	function fileClick() {
@@ -1472,6 +1487,20 @@ var BigTreeFileManager = (function($) {
 		return false;
 	}
 
+	function folderClick() {
+		var folder = $(this).data("folder");
+
+		$("#file_browser .footer .blue").hide();
+
+		if (Type == "image") {
+			openImageFolder(folder);
+		} else {
+			openFileFolder(folder);
+		}
+
+		return false;
+	}
+
 	function formOpen(type,field_name,options,callback) {
 		CurrentlyName = field_name;
 		CurrentlyKey = options.currentlyKey;
@@ -1487,27 +1516,19 @@ var BigTreeFileManager = (function($) {
 		openImageFolder(0);
 	}
 
-	function imageBrowserPopulated() {
-		$("#file_browser_contents a").click(imageClick);
-	}
-
 	function imageClick() {
 		if ($(this).hasClass("disabled")) {
 			return false;
 		}
 
-		if ($(this).hasClass("folder")) {
-			$("#file_browser .footer .blue").hide();
-			openImageFolder($(this).attr("href").substr(1));
-			return false;
-		}
-
 		// Show the "Use" button now that something is selected.
 		$("#file_browser .footer .blue").show();
-		$("#file_browser_contents a").removeClass("selected");
+		$("#file_browser_contents button").removeClass("selected");
 		$(this).addClass("selected");
 
-		var data = $.parseJSON($(this).attr("href"));
+		var data = $(this).data("image");
+		ActiveImage = data.file;
+		AvailableCrops = data.crops;
 		AvailableThumbs = data.thumbs;
 
 		$("#file_browser_selected_file").val(data.file.replace("{wwwroot}","www_root/").replace("{staticroot}","static_root/"));
@@ -1582,6 +1603,9 @@ var BigTreeFileManager = (function($) {
 			clearTimeout(StartSearchTimer);
 			StartSearchTimer = setTimeout(search,300);
 		});
+		$("#file_browser_contents").on("click", "button.image", imageClick);
+		$("#file_browser_contents").on("click", "button.file", fileClick);
+		$("#file_browser_contents").on("click", "button.folder", folderClick);
 
 		// Hide TinyMCE's default modal background, we're using our own.
 		$("#mceModalBlocker, #mce-modal-block").hide();
@@ -1612,7 +1636,7 @@ var BigTreeFileManager = (function($) {
 		$("#file_browser_selected_file").val("");
 		$("#file_browser_info_pane").html("");
 		$("#file_browser_form .footer .blue").hide();
-		$("#file_browser_contents").scrollTop(0).load("admin_root/ajax/files/get-files/", { folder: folder }, fileBrowserPopulated);
+		$("#file_browser_contents").scrollTop(0).load("admin_root/ajax/files/get-files/", { folder: folder });
 	}
 
 	function openImageFolder(folder) {
@@ -1620,7 +1644,7 @@ var BigTreeFileManager = (function($) {
 		$("#file_browser_selected_file").val("");
 		$("#file_browser_info_pane").html("");
 		$("#file_browser_form .footer .blue").hide();
-		$("#file_browser_contents").scrollTop(0).load("admin_root/ajax/files/get-images/", { minWidth: MinWidth, minHeight: MinHeight, folder: folder }, imageBrowserPopulated);
+		$("#file_browser_contents").scrollTop(0).load("admin_root/ajax/files/get-images/", { minWidth: MinWidth, minHeight: MinHeight, folder: folder });
 	}
 
 	function search() {
@@ -1629,9 +1653,9 @@ var BigTreeFileManager = (function($) {
 		$("#file_browser_selected_file").val("");
 
 		if (Type == "image" || Type == "photo-gallery") {
-			$("#file_browser_contents").load("admin_root/ajax/files/get-images/", { minWidth: MinWidth, minHeight: MinHeight, query: query, folder: CurrentFolder }, imageBrowserPopulated);
+			$("#file_browser_contents").load("admin_root/ajax/files/get-images/", { minWidth: MinWidth, minHeight: MinHeight, query: query, folder: CurrentFolder });
 		} else {
-			$("#file_browser_contents").load("admin_root/ajax/files/get-files/", { query: query, folder: CurrentFolder }, fileBrowserPopulated);
+			$("#file_browser_contents").load("admin_root/ajax/files/get-files/", { query: query, folder: CurrentFolder });
 		}
 	}
 
@@ -1645,11 +1669,13 @@ var BigTreeFileManager = (function($) {
 
 	function submitSelectedFile() {
 		if (FieldName) {
-			if (Type == "image" && AvailableThumbs.length) {
+			if (Type == "image") {
 				chooseImageSize();
+
 				return false;
 			} else {
 				FieldName.value = $("#file_browser_selected_file").val();
+
 				return closeFileBrowser();
 			}
 		} else {
@@ -3118,6 +3144,12 @@ var BigTree = {
 
 	hookReady: function(callback) {
 		BigTree.ReadyHooks.push(callback);
+	},
+
+	prefixFile: function(file, prefix) {
+		var path_info = pathinfo(file);
+
+		return path_info["dirname"] + "/" + prefix + path_info["basename"];
 	},
 
 	ready: function() {

@@ -6,7 +6,7 @@
 	}
 
 	// Get crop and thumb prefix info
-	include BigTree::path("admin/modules/files/process/_crop-setup.php");
+	$dir = opendir(SITE_ROOT."files/temporary/".$admin->ID."/");
 
 	$total_files = 0;
 
@@ -14,7 +14,7 @@
 		if ($file == "." || $file == "..") {
 			continue;
 		}
-
+		
 		$extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
 
 		if ($extension == "jpg" || $extension == "jpeg" || $extension == "png" || $extension == "gif") {
@@ -23,10 +23,13 @@
 			$min_width = intval($preset["min_width"]);
 
 			list($width, $height, $type, $attr) = getimagesize($file_name);
-
+			
 			// Scale up content that doesn't meet minimums
 			if ($width < $min_width || $height < $min_height) {
 				BigTree::createUpscaledImage($file_name, $file_name, $min_width, $min_height);
+
+				// Get these again for resource prefixes
+				list($width, $height) = getimagesize($file_name);
 			}
 
 			$field = [
@@ -43,8 +46,9 @@
 			];
 
 			$output = $admin->processImageUpload($field);
-
+			
 			if ($output) {
+				include BigTree::path("admin/modules/files/process/_resource-prefixes.php");
 				$last_resource_id = $admin->createResource($bigtree["commands"][0], $output, $file, "image", $crop_prefixes, $thumb_prefixes);
 				$total_files++;
 			}

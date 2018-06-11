@@ -13,7 +13,9 @@
 		if (!$_POST["query"] && $_POST["folder"] > 0) {
 			$folder = $admin->getResourceFolder($_POST["folder"]);
 	?>
-	<a href="#<?=$folder["parent"]?>" class="file folder"><span class="file_type file_type_folder file_type_folder_back"></span> Back</a>
+	<button data-folder="<?=$folder["parent"]?>" class="folder">
+		<span class="file_type file_type_folder file_type_folder_back"></span> Back
+	</button>
 	<?php
 		}
 
@@ -22,10 +24,10 @@
 
 		foreach ($items["folders"] as $folder) {
 	?>
-	<a href="#<?=$folder["id"]?>" class="file folder">
+	<button data-folder="<?=$folder["id"]?>" class="folder">
 		<span class="file_type file_type_folder"></span>
 		<?=$folder["name"]?>
-	</a>
+	</button>
 	<?php
 		}
 
@@ -35,11 +37,13 @@
 
 				$data = htmlspecialchars(json_encode(array(
 					"file" => $resource["file"],
-					"thumbs" => $resource["thumbs"],
-					"crops" => $resource["crops"]
+					"thumbs" => json_decode($resource["thumbs"]),
+					"crops" => json_decode($resource["crops"])
 				)));
 	?>
-	<a href="<?=$data?>" class="image<?=$disabled?>"><img src="<?=BigTree::prefixFile($resource["file"], "list-preview/").$thumb.($_COOKIE["bigtree_admin"]["recently_replaced_file"] ? "?".uniqid() : "")?>" alt="" /></a>
+	<button data-image="<?=$data?>" class="image<?=$disabled?>">
+		<img src="<?=BigTree::prefixFile($resource["file"], "list-preview/").$thumb.($_COOKIE["bigtree_admin"]["recently_replaced_file"] ? "?".uniqid() : "")?>" alt="" />
+	</button>
 	<?php
 			}
 		}

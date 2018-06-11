@@ -124,9 +124,6 @@
 		BigTree::redirect($_SERVER["HTTP_REFERER"]."?error=The URL you entered is not a valid video service URL.");
 	}
 
-	// Setup crops and thumbs and scale up our image if needed
-	include BigTree::path("admin/modules/files/process/_crop-setup.php");
-
 	$extension = strtolower(pathinfo($video["image"], PATHINFO_EXTENSION));
 	$file_name = SITE_ROOT."files/temporary/".$admin->ID."/".$video["id"].".".$extension;
 	BigTree::copyFile($video["image"], $file_name);

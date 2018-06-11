@@ -52,6 +52,8 @@ function md5(a){var b;var c=function(a,b){return a<<b|a>>>32-b};var d=function(a
 function is_object(a){if(Object.prototype.toString.call(a)==="[object Array]"){return false}return a!==null&&typeof a==="object"};
 function str_repeat(a,c){var b="";while(true){if(c&1){b+=a}c>>=1;if(c){a+=a}else{break}}return b};
 function strip_tags(a,c){c=(((c||"")+"").toLowerCase().match(/<[a-z][a-z0-9]*>/g)||[]).join("");var b=/<\/?([a-z][a-z0-9]*)\b[^>]*>/gi,d=/<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;return a.replace(d,"").replace(b,function(f,e){return c.indexOf("<"+e.toLowerCase()+">")>-1?f:""})};
+function basename(e,t){var n=e,r=n.charAt(n.length-1);return"/"!==r&&"\\"!==r||(n=n.slice(0,-1)),n=n.replace(/^.*[/\\]/g,""),"string"==typeof t&&n.substr(n.length-t.length)===t&&(n=n.substr(0,n.length-t.length)),n}
+function pathinfo(e,n){var A="",r="",a="",N=0,I={},t=0,O=0,E=!1,F=!1,P=!1;if(!e)return!1;n||(n="PATHINFO_ALL");var T={PATHINFO_DIRNAME:1,PATHINFO_BASENAME:2,PATHINFO_EXTENSION:4,PATHINFO_FILENAME:8,PATHINFO_ALL:0};for(a in T)T.hasOwnProperty(a)&&(T.PATHINFO_ALL=T.PATHINFO_ALL|T[a]);if("number"!=typeof n){for(n=[].concat(n),O=0;O<n.length;O++)T[n[O]]&&(N|=T[n[O]]);n=N}var f=function(e){var n=e+"",A=n.lastIndexOf(".")+1;return!!A&&(A!==n.length?n.substr(A):"")};if(n&T.PATHINFO_DIRNAME){var i=e.replace(/\\/g,"/").replace(/\/[^/]*\/?$/,"");I.dirname=i===e?".":i}n&T.PATHINFO_BASENAME&&(!1===E&&(E=basename(e)),I.basename=E),n&T.PATHINFO_EXTENSION&&(!1===E&&(E=basename(e)),!1===F&&(F=f(E)),!1!==F&&(I.extension=F)),n&T.PATHINFO_FILENAME&&(!1===E&&(E=basename(e)),!1===F&&(F=f(E)),!1===P&&(P=E.slice(0,E.length-(F?F.length+1:!1===F?0:1))),I.filename=P),t=0;for(A in I)I.hasOwnProperty(A)&&(t++,r=A);return 1===t?I[r]:I}
 
 /*!
  * jQuery Cookie Plugin v1.4.0
