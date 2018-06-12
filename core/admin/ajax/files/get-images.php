@@ -1,38 +1,35 @@
+<?php
+	if ($_POST["query"]) {
+		$items = $admin->searchResources($_POST["query"]);
+		$perm = "e";
+		$bc = array(array("name" => "Clear Results","id" => ""));
+	} else {
+		$perm = $admin->getResourceFolderPermission($_POST["folder"]);
+		$items = $admin->getContentsOfResourceFolder($_POST["folder"]);
+		$bc = $admin->getResourceFolderBreadcrumb($_POST["folder"]);
+	}
+	
+	if (!$_POST["query"] && $_POST["folder"] > 0) {
+		$folder = $admin->getResourceFolder($_POST["folder"]);
+?>
+<button data-folder="<?=$folder["parent"]?>" class="file_list_button js-folder"><span class="icon_small icon_small_back"></span>Back</button>
+<?php
+	}
+	
+	foreach ($items["folders"] as $folder) {
+?>
+<button data-folder=<?=$folder["id"]?>" class="file_list_button js-folder"><span class="icon_small icon_small_folder"></span> <?=$folder["name"]?></button>
+<?php
+	}
+
+	$minWidth = $_POST["minWidth"];
+	$minHeight = $_POST["minHeight"];
+?>
 <div class="file_browser_images">
 	<?php
-		if ($_POST["query"]) {
-			$items = $admin->searchResources($_POST["query"]);
-			$perm = "e";
-			$bc = array(array("name" => "Clear Results","id" => ""));
-		} else {
-			$perm = $admin->getResourceFolderPermission($_POST["folder"]);
-			$items = $admin->getContentsOfResourceFolder($_POST["folder"]);
-			$bc = $admin->getResourceFolderBreadcrumb($_POST["folder"]);
-		}
-
-		if (!$_POST["query"] && $_POST["folder"] > 0) {
-			$folder = $admin->getResourceFolder($_POST["folder"]);
-	?>
-	<button data-folder="<?=$folder["parent"]?>" class="js-folder folder">
-		<span class="file_type file_type_folder file_type_folder_back"></span> Back
-	</button>
-	<?php
-		}
-
-		$minWidth = $_POST["minWidth"];
-		$minHeight = $_POST["minHeight"];
-
-		foreach ($items["folders"] as $folder) {
-	?>
-	<button data-folder="<?=$folder["id"]?>" class="js-folder folder">
-		<span class="file_type file_type_folder"></span>
-		<?=$folder["name"]?>
-	</button>
-	<?php
-		}
-
 		foreach ($items["resources"] as $resource) {
 			if ($resource["is_image"]) {
+				$resource["file"] = BigTreeCMS::replaceRelativeRoots($resource["file"]);
 				$disabled = (($minWidth && $minWidth !== "false" && $resource["width"] < $minWidth) || ($minHeight && $minHeight !== "false" && $resource["height"] < $minHeight)) ? " disabled" : "";
 
 				$data = htmlspecialchars(json_encode(array(
