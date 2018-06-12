@@ -1384,6 +1384,9 @@ var BigTreeFileManager = (function($) {
 	var AvailableThumbs = false;
 	var Browser = false;
 	var Callback = false;
+	var CurrentFileHref = false;
+	var CurrentFileID = false;
+	var CurrentFileName = false;
 	var CurrentFolder = 0;
 	var CurrentlyKey = false;
 	var CurrentlyName = false;
@@ -1455,6 +1458,10 @@ var BigTreeFileManager = (function($) {
 		if ($(this).hasClass("disabled")) {
 			return false;
 		}
+
+		CurrentFileId = $(this).data("id");
+		CurrentFileHref = $(this).data("href");
+		CurrentFileName = $(this).data("name");
 
 		// Show the "Use" button now that something is selected.
 		$("#file_browser .footer .blue").show();
@@ -1668,6 +1675,12 @@ var BigTreeFileManager = (function($) {
 
 				container.find("iframe").remove();
 				container.append(input).find(".currently_wrapper").append(ActiveVideoEmbed);
+				container.show();
+			} else if (Type == "file") {
+				var container = $(document.getElementById(CurrentlyName));
+
+				container.find(".js-input").val(CurrentFileId);
+				container.find(".js-current-file").attr("href", CurrentFileHref).html(CurrentFileName);
 				container.show();
 			}
 
