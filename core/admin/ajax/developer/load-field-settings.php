@@ -75,7 +75,7 @@
 			echo "<hr />";
 		}
 		include $path;
-	} elseif ($field_type != "textarea" && $field_type != "time" && $field_type != "file-reference" && $field_type != "video-reference") {
+	} elseif ($field_type != "textarea" && $field_type != "time" && $field_type != "file-reference" && $field_type != "video-reference" && $field_type != "image-reference") {
 ?>
 <p>This field type does not have any settings.</p>
 <?php

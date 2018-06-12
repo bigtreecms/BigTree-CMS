@@ -1673,7 +1673,7 @@ var BigTreeFileManager = (function($) {
 				var input = $('<input type="hidden" name="' + CurrentlyKey + '">').val($("#file_browser_selected_file").val());
 				var container = $(document.getElementById(CurrentlyName));
 
-				container.find("iframe").remove();
+				container.find("iframe, input").remove();
 				container.append(input).find(".currently_wrapper").append(ActiveVideoEmbed);
 				container.show();
 			} else if (Type == "file") {
@@ -2258,7 +2258,7 @@ var BigTreeFormValidator = function(selector,callback) {
 
 			Form.find(".form_error").removeClass("form_error");
 			Form.find(".form_error_reason").remove();
-			Form.find("input.required, select.required, textarea.required").each(function() {
+			Form.find("input.required, select.required, textarea.required, .reference_required").each(function() {
 				// TinyMCE 3
 				if ($(this).nextAll(".mceEditor").length) {
 					var val = tinyMCE.get($(this).attr("id")).getContent();
@@ -2268,12 +2268,17 @@ var BigTreeFormValidator = function(selector,callback) {
 				// File/Image Uploads
 				} else if ($(this).parents("fieldset").find(".currently, .currently_file").length) {
 					var val = $(this).parents("fieldset").find(".currently, .currently_file").find("input").val();
+
 					if (!val) {
 						val = $(this).val();
 					}
+					// Reference field
+				} else if ($(this).hasClass("reference_required")) {
+					val = $(this).find("input").val();
 				// Regular input fields
 				} else {
 					var val = $(this).val();
+
 					// If this is a file field, see if there's a regular input with the same name
 					if (!val && $(this).attr("type") == "file") {
 						$("input[name='" + $(this).attr("name") + "']").each(function(index) {
