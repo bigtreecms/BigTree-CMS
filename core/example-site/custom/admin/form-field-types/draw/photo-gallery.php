@@ -4,10 +4,11 @@
 	$photos = is_array($field["value"]) ? $field["value"] : array();
 	$max = count($photos);
 	$current = 0;
-	
+
 	$button_options = htmlspecialchars(json_encode(array(
 		"minWidth" => $field["settings"]["min_width"],
-		"minHeight" => $field["settings"]["min_height"]
+		"minHeight" => $field["settings"]["min_height"],
+		"type" => "image"
 	)));
 ?>
 <div class="photo_gallery_widget" id="<?=$field["id"]?>">
@@ -42,7 +43,7 @@
 		<input type="file" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>[<?=$current?>][image]" />
 		<?php if (!defined("BIGTREE_FRONT_END_EDITOR")) { ?>
 		<span class="or">OR</span>
-		<a href="#<?=$field["id"]?>" data-options="<?=$button_options?>" class="button form_image_browser"><span class="icon_images"></span>Browse</a>
+		<a href="#<?=$field["id"]?>" data-options="<?=$button_options?>" class="button resource_browser_button"><span class="icon_images"></span>Browse</a>
 		<?php } ?>
 	</footer>
 </div>

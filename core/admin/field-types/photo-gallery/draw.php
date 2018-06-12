@@ -20,7 +20,8 @@
 
 	$button_options = htmlspecialchars(json_encode(array(
 		"minWidth" => $min_width,
-		"minHeight" => $min_height
+		"minHeight" => $min_height,
+		"type" => "image"
 	)));
 ?>
 <div class="photo_gallery_widget" id="<?=$field["id"]?>">
@@ -54,7 +55,7 @@
 		<input type="file" accept="image/*" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>[<?=$current?>][image]" data-min-width="<?=$min_width?>" data-min-height="<?=$min_height?>" />
 		<?php if (!defined("BIGTREE_FRONT_END_EDITOR") && !$bigtree["form"]["embedded"]) { ?>
 		<span class="or">OR</span>
-		<a href="#<?=$field["id"]?>" data-options="<?=$button_options?>" class="button form_image_browser"><span class="icon_images"></span>Browse</a>
+		<a href="#<?=$field["id"]?>" data-options="<?=$button_options?>" class="button resource_browser_button"><span class="icon_images"></span>Browse</a>
 		<?php } ?>
 	</footer>
 </div>

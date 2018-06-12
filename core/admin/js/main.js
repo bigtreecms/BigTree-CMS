@@ -1110,7 +1110,7 @@ var BigTreePhotoGallery = function(settings) {
 		Container.on("click",".icon_delete",deletePhoto)
 				 .on("click",".icon_edit",editPhoto)
 				 .on("imageloaded","input[type=file]",addPhoto);
-		Container.find(".form_image_browser").click(openFileManager);
+		Container.find(".resource_browser_button").click(openFileManager);
 		Container.find("ul").sortable({ items: "li", placeholder: "ui-sortable-placeholder" });
 
 		return { ActiveCaption: ActiveCaption, Container: Container, Counter: Counter, DisableCaptions: DisableCaptions, FileInput: FileInput, Key: Key, addPhoto: addPhoto, openFileManager: openFileManager, useExistingFile: useExistingFile };
@@ -1379,6 +1379,7 @@ var BigTreeFileManager = (function($) {
 	// Properties
 
 	var ActiveImage = false;
+	var ActiveVideoEmbed = false;
 	var AvailableCrops = false;
 	var AvailableThumbs = false;
 	var Browser = false;
@@ -1387,6 +1388,7 @@ var BigTreeFileManager = (function($) {
 	var CurrentlyKey = false;
 	var CurrentlyName = false;
 	var FieldName = false;
+	var FolderAjaxURL = false;
 	var MinHeight = false;
 	var MinWidth = false;
 	var StartSearchTimer = false;
@@ -1432,7 +1434,7 @@ var BigTreeFileManager = (function($) {
 		// Hook the size buttons to change the selected URL
 		size_pane.find("button").click(function() {
 			FieldName.value = BigTree.prefixFile(ActiveImage, $(this).data("prefix"));
-			closeFileBrowser();
+			close();
 
 			return false;
 		});
@@ -1440,19 +1442,13 @@ var BigTreeFileManager = (function($) {
 		return false;
 	}
 
-	function closeFileBrowser() {
+	function close() {
+		BigTree.ZIndex = BigTree.ZIndexBackup;
 		$(".bigtree_dialog_overlay").last().remove();
 		$("#file_browser").remove();
-		BigTree.ZIndex = BigTree.ZIndexBackup;
 		$("#mceModalBlocker, #mce-modal-block").show();
 
 		return false;
-	}
-
-	function fileBrowser() {
-		$("#file_browser_type_icon").addClass("icon_folder");
-		$("#file_browser_type .title").html("File Browser");
-		openFileFolder(0);
 	}
 
 	function fileClick() {
@@ -1460,30 +1456,15 @@ var BigTreeFileManager = (function($) {
 			return false;
 		}
 
-		if ($(this).hasClass("folder")) {
-			$("#file_browser .footer .blue").hide();
-			openFileFolder($(this).attr("href").substr(1));
-			return false;
-		}
-
 		// Show the "Use" button now that something is selected.
 		$("#file_browser .footer .blue").show();
-		$("#file_browser_contents a").removeClass("selected");
+		$("#file_browser_contents .selected").removeClass("selected");
 		$(this).addClass("selected");
-		$("#file_browser_selected_file").val($(this).attr("href").replace("{wwwroot}","www_root/").replace("{staticroot}","static_root/"));
+		$("#file_browser_selected_file").val($(this).data("file").replace("{wwwroot}","www_root/").replace("{staticroot}","static_root/"));
+
+		// Load info panel
 		$("#file_browser_info_pane").html('<span class="spinner"></span>');
-		$("#file_browser_info_pane").load("admin_root/ajax/files/get-info/",
-			{ file: $(this).attr("href") },
-			function() {
-				$("#file_browser_detail_title_input").keyup(function() {
-					clearTimeout(TitleSaveTimer);
-					TitleSaveTimer = setTimeout(saveFileTitle,500);
-				});
-				$(".file_browser_detail_folder_button").click(function() {
-					openFileFolder($(this).data("folder"));
-				});
-			}
-		);
+		$("#file_browser_info_pane").load("admin_root/ajax/files/get-info/", { file: $(this).data("file") });
 
 		return false;
 	}
@@ -1491,13 +1472,7 @@ var BigTreeFileManager = (function($) {
 	function folderClick() {
 		var folder = $(this).data("folder");
 
-		$("#file_browser .footer .blue").hide();
-
-		if (Type == "image") {
-			openImageFolder(folder);
-		} else {
-			openFileFolder(folder);
-		}
+		openFolder(folder);
 
 		return false;
 	}
@@ -1509,12 +1484,6 @@ var BigTreeFileManager = (function($) {
 		FieldName = false;
 		Callback = callback;
 		open(type,options.minWidth,options.minHeight);
-	}
-
-	function imageBrowser() {
-		$("#file_browser_type_icon").addClass("icon_images");
-		$("#file_browser_type .title").html("Image Library");
-		openImageFolder(0);
 	}
 
 	function imageClick() {
@@ -1534,18 +1503,7 @@ var BigTreeFileManager = (function($) {
 
 		$("#file_browser_selected_file").val(data.file.replace("{wwwroot}","www_root/").replace("{staticroot}","static_root/"));
 		$("#file_browser_info_pane").html('<span class="spinner"></span>');
-		$("#file_browser_info_pane").load("admin_root/ajax/files/get-info/",
-			{ file: data.file },
-			function() {
-				$("#file_browser_detail_title_input").keyup(function() {
-					clearTimeout(TitleSaveTimer);
-					TitleSaveTimer = setTimeout(saveFileTitle,500);
-				});
-				$(".file_browser_detail_folder_button").click(function() {
-					openImageFolder($(this).data("folder"));
-				});
-			}
-		);
+		$("#file_browser_info_pane").load("admin_root/ajax/files/get-info/", { file: data.file });
 
 		return false;
 	}
@@ -1598,15 +1556,21 @@ var BigTreeFileManager = (function($) {
 		$("body").append(overlay).append(Browser);
 
 		// Hook the cancel, submit, and search.
-		$("#file_browser_cancel").click(closeFileBrowser);
+		$("#file_browser_cancel").click(close);
 		$("#file_browser_form").submit(submitSelectedFile);
 		$("#file_browser_search").keyup(function() {
 			clearTimeout(StartSearchTimer);
 			StartSearchTimer = setTimeout(search,300);
 		});
-		$("#file_browser_contents").on("click", "button.image", imageClick);
-		$("#file_browser_contents").on("click", "button.file", fileClick);
-		$("#file_browser_contents").on("click", "button.folder", folderClick);
+		$("#file_browser_contents").on("click", "button.js-image", imageClick);
+		$("#file_browser_contents").on("click", "button.js-file", fileClick);
+		$("#file_browser_contents").on("click", "button.js-folder", folderClick);
+		$("#file_browser_contents").on("click", "button.js-video", videoClick);
+		$("#file_browser_info_pane").on("click", "button.js-folder", folderClick);
+		$("#file_browser_info_pane").on("keyup", "#file_browser_detail_title_input", function() {
+			clearTimeout(TitleSaveTimer);
+			TitleSaveTimer = setTimeout(saveFileTitle,500);
+		});
 
 		// Hide TinyMCE's default modal background, we're using our own.
 		$("#mceModalBlocker, #mce-modal-block").hide();
@@ -1615,37 +1579,37 @@ var BigTreeFileManager = (function($) {
 		$("#file_browser_breadcrumb").on("click","a",function() {
 			var folder = $(this).attr("href").substr(1);
 
-			if (Type == "image" || Type == "photo-gallery") {
-				openImageFolder(folder);
-			} else {
-				openFileFolder(folder);
-			}
+			openFolder(folder);
 
 			return false;
 		});
 
 		// Open the right browser
 		if (Type == "image" || Type == "photo-gallery") {
-			imageBrowser();
+			FolderAjaxURL = "admin_root/ajax/files/get-images/";
+			$("#file_browser_type_icon").addClass("icon_images");
+			$("#file_browser_type .title").html("Image Library");
+		} else if (Type == "video") {
+			FolderAjaxURL = "admin_root/ajax/files/get-videos/";
+			$("#file_browser_type_icon").addClass("icon_video");
+			$("#file_browser_type .title").html("Video Library");
 		} else {
-			fileBrowser();
+			FolderAjaxURL = "admin_root/ajax/files/get-files/";
+			$("#file_browser_type_icon").addClass("icon_folder");
+			$("#file_browser_type .title").html("File Browser");
 		}
+
+		openFolder(0);
 	}
 
-	function openFileFolder(folder) {
+	function openFolder(folder) {
 		CurrentFolder = folder;
+		$("#file_browser_search").val("");
 		$("#file_browser_selected_file").val("");
 		$("#file_browser_info_pane").html("");
 		$("#file_browser_form .footer .blue").hide();
-		$("#file_browser_contents").scrollTop(0).load("admin_root/ajax/files/get-files/", { folder: folder });
-	}
-
-	function openImageFolder(folder) {
-		CurrentFolder = folder;
-		$("#file_browser_selected_file").val("");
-		$("#file_browser_info_pane").html("");
-		$("#file_browser_form .footer .blue").hide();
-		$("#file_browser_contents").scrollTop(0).load("admin_root/ajax/files/get-images/", { minWidth: MinWidth, minHeight: MinHeight, folder: folder });
+		$("#file_browser .footer .blue").hide();
+		$("#file_browser_contents").scrollTop(0).load(FolderAjaxURL, { folder: folder, minWidth: MinWidth, minHeight: MinHeight });
 	}
 
 	function search() {
@@ -1677,7 +1641,7 @@ var BigTreeFileManager = (function($) {
 			} else {
 				FieldName.value = $("#file_browser_selected_file").val();
 
-				return closeFileBrowser();
+				return close();
 			}
 		} else {
 			if (Type == "image") {
@@ -1698,9 +1662,16 @@ var BigTreeFileManager = (function($) {
 				}
 			} else if (Type == "photo-gallery") {
 				Callback($("#file_browser_selected_file").val(),$("#file_browser_detail_title_input").val(),$(".file_browser_images .selected img").attr("src"));
+			} else if (Type == "video") {
+				var input = $('<input type="hidden" name="' + CurrentlyKey + '">').val($("#file_browser_selected_file").val());
+				var container = $(document.getElementById(CurrentlyName));
+
+				container.find("iframe").remove();
+				container.append(input).find(".currently_wrapper").append(ActiveVideoEmbed);
+				container.show();
 			}
 
-			return closeFileBrowser();
+			return close();
 		}
 	}
 
@@ -1712,6 +1683,25 @@ var BigTreeFileManager = (function($) {
 			FieldName = $("#" + field_name).get(0);
 		}
 		open(type,false,false);
+	}
+
+	function videoClick() {
+		if ($(this).hasClass("disabled")) {
+			return false;
+		}
+
+		// Show the "Use" button now that something is selected.
+		$("#file_browser .footer .blue").show();
+		$("#file_browser_contents .selected").removeClass("selected");
+		$(this).addClass("selected");
+		$("#file_browser_selected_file").val($(this).data("video"));
+		ActiveVideoEmbed = $(this).data("embed");
+
+		// Load info panel
+		$("#file_browser_info_pane").html('<span class="spinner"></span>');
+		$("#file_browser_info_pane").load("admin_root/ajax/files/get-info/", { id: $(this).data("video") });
+
+		return false;
 	}
 
 	return {
@@ -3065,10 +3055,12 @@ var BigTree = {
 			}
 			return false;
 		// Form Image Browser
-		}).on("click",".form_image_browser",function() {
+		}).on("click",".resource_browser_button",function() {
 			var options = $.parseJSON($(this).attr("data-options"));
 			var field = $(this).attr("href").substr(1);
-			BigTreeFileManager.formOpen("image",field,options);
+
+			BigTreeFileManager.formOpen(options.type, field, options);
+
 			return false;
 		}).on("click",".date_picker_clear",function() {
 			$(this).siblings('input').val("");

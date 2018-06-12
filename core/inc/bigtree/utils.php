@@ -41,7 +41,7 @@
 			}
 			return $xml;
 		}
-		
+
 		/*
 			Function: calculateThumbnailSizes
 				Returns a width and height that are constrained to the passed in max width and height.
@@ -55,13 +55,13 @@
 			Returns:
 				An array with "width" and "height" keys.
 		*/
-		
+
 		public static function calculateThumbnailSizes($width, $height, $max_width, $max_height) {
 			if ($width > $max_width && $max_width) {
 				$perc = $max_width / $width;
 				$result_width = $max_width;
 				$result_height = round($height * $perc,0);
-				
+
 				if ($result_height > $max_height && $max_height) {
 					$perc = $max_height / $result_height;
 					$result_height = $max_height;
@@ -71,7 +71,7 @@
 				$perc = $max_height / $height;
 				$result_height = $max_height;
 				$result_width = round($width * $perc,0);
-				
+
 				if ($result_width > $max_width && $max_width) {
 					$perc = $max_width / $result_width;
 					$result_width = $max_width;
@@ -81,7 +81,7 @@
 				$result_width = $width;
 				$result_height = $height;
 			}
-			
+
 			return ["width" => $result_width, "height" => $result_height];
 		}
 
@@ -1175,8 +1175,8 @@
 		public static function getThumbnailSizes($file,$maxwidth,$maxheight) {
 			list($w, $h, $type) = getimagesize($file);
 			$result = static::calculateThumbnailSizes($w, $h, $maxwidth, $maxheight);
-			
-			
+
+
 			return array($type,$w,$h,$result["width"],$result["height"]);
 		}
 

@@ -1,21 +1,19 @@
-<div class="image_field">
-	<?php
-		if ($field["value"]) {
-			$resource = $admin->getResource($field["value"]);
-
-			if ($resource) {
-				$preview_image = BigTree::prefixFile($resource["file"], "list-preview/");
-			}
+<?php
+	if ($field["value"]) {
+		$resource = $admin->getResource($field["value"]);
+		
+		if ($resource) {
+			$preview_image = BigTree::prefixFile($resource["file"], "list-preview/");
 		}
-
-		// Generate the file manager restrictions
-		$button_options = htmlspecialchars(json_encode(array(
-			"currentlyKey" => $field["key"]
-		)));
-	?>
-	<a href="#<?=$field["id"]?>" data-options="<?=$button_options?>" class="button form_image_browser"><span class="icon_images"></span>Browse</a>
+	}
+	
+	// Generate the file manager restrictions
+	$button_options = htmlspecialchars(json_encode(["currentlyKey" => $field["key"], "type" => "image"]));
+?>
+<div class="image_field">
+	<a href="#<?=$field["id"]?>" data-options="<?=$button_options?>" class="button resource_browser_button"><span class="icon_images"></span>Browse</a>
 	<br class="clear" />
-	<div class="currently" id="<?=$field["id"]?>"<?php if (!$field["value"] || !$resource) { ?> style="display: none;"<?php } ?>>
+	<div class="currently currently_image_reference" id="<?=$field["id"]?>"<?php if (!$field["value"] || !$resource) { ?> style="display: none;"<?php } ?>>
 		<a href="#" class="remove_resource"></a>
 		<div class="currently_wrapper">
 			<?php if ($preview_image) { ?>

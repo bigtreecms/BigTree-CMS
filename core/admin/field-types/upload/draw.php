@@ -48,13 +48,14 @@
 			$button_options = htmlspecialchars(json_encode(array(
 				"minWidth" => $min_width,
 				"minHeight" => $min_height,
-				"currentlyKey" => $field["key"]
+				"currentlyKey" => $field["key"],
+				"type" => "image"
 			)));
 
 			if (!defined("BIGTREE_FRONT_END_EDITOR") && !$bigtree["form"]["embedded"]) {
 	?>
 	<span class="or">OR</span>
-	<a href="#<?=$field["id"]?>" data-options="<?=$button_options?>" class="button form_image_browser"><span class="icon_images"></span>Browse</a>
+	<a href="#<?=$field["id"]?>" data-options="<?=$button_options?>" class="button resource_browser_button"><span class="icon_images"></span>Browse</a>
 	<?php
 			}
 	?>

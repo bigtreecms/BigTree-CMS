@@ -1,5 +1,10 @@
 <?php
-	$file = $admin->getResourceByFile($_POST["file"]);
+	if (!empty($_POST["file"])) {
+		$file = $admin->getResourceByFile($_POST["file"]);
+	} else {
+		$file = $admin->getResource($_POST["id"]);
+	}
+	
 	$pinfo = BigTree::pathInfo($file["file"]);
 
 	if ($file["folder"]) {
@@ -14,9 +19,14 @@
 </div>
 <?php
 	} elseif ($file["is_video"]) {
+		if ($file["location"] == "YouTube") {
+			$embed = '<iframe src="https://youtube.com/embed/'.$file["video_data"]["id"].'?autoplay=false&showinfo=false&showrel=false&showcontrols=false"></iframe>';
+		} elseif ($file["location"] == "Vimeo") {
+			$embed = '<iframe src="https://player.vimeo.com/video/'.$file["video_data"]["id"].'?autoplay=false&showinfo=false&showrel=false&showcontrols=false"></iframe>';
+		}
 ?>
-<div class="file_browser_detail_thumb">
-	<img src="<?=BigTree::prefixFile($file["video_data"]["image"], "list-preview/")?>" alt="" />
+<div class="file_browser_detail_video">
+	<?=$embed?>
 </div>
 <?php
 	}
@@ -54,7 +64,7 @@
 	<?php
 		if ($file["folder"]) {
 	?>
-	<p><span>Folder</span><strong class="file_browser_detail_folder_button" data-folder="<?=$folder["id"]?>"><?=$folder["name"]?></strong></p>
+	<p><span>Folder</span><strong class="js-folder" data-folder="<?=$folder["id"]?>"><?=$folder["name"]?></strong></p>
 	<?php
 		}
 	?>

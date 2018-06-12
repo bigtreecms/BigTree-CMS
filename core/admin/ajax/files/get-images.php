@@ -13,7 +13,7 @@
 		if (!$_POST["query"] && $_POST["folder"] > 0) {
 			$folder = $admin->getResourceFolder($_POST["folder"]);
 	?>
-	<button data-folder="<?=$folder["parent"]?>" class="folder">
+	<button data-folder="<?=$folder["parent"]?>" class="js-folder folder">
 		<span class="file_type file_type_folder file_type_folder_back"></span> Back
 	</button>
 	<?php
@@ -24,7 +24,7 @@
 
 		foreach ($items["folders"] as $folder) {
 	?>
-	<button data-folder="<?=$folder["id"]?>" class="folder">
+	<button data-folder="<?=$folder["id"]?>" class="js-folder folder">
 		<span class="file_type file_type_folder"></span>
 		<?=$folder["name"]?>
 	</button>
@@ -41,7 +41,7 @@
 					"crops" => json_decode($resource["crops"])
 				)));
 	?>
-	<button data-image="<?=$data?>" class="image<?=$disabled?>">
+	<button data-image="<?=$data?>" class="js-image<?=$disabled?> image">
 		<img src="<?=BigTree::prefixFile($resource["file"], "list-preview/").$thumb.($_COOKIE["bigtree_admin"]["recently_replaced_file"] ? "?".uniqid() : "")?>" alt="" />
 	</button>
 	<?php
