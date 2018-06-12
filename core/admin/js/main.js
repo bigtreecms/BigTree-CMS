@@ -1403,6 +1403,7 @@ var BigTreeFileManager = (function($) {
 
 		var size_pane = $("#file_browser_size_pane").html('<h3>Select Image Size</h3><p>Click on an image size below to insert into your content.</p>');
 		size_pane.append($('<button class="file_browser_size_button">Original Size</button>').data("prefix", ""));
+		size_pane.append("<br><br>");
 
 		// Add all available thumbnail sizes as buttons
 		if (!$.isEmptyObject(AvailableCrops)) {
@@ -1416,7 +1417,7 @@ var BigTreeFileManager = (function($) {
 		}
 
 		if (!$.isEmptyObject(AvailableThumbs)) {
-			size_pane.append('<h4>Thumbnails</h4>');
+			size_pane.append('<br><br><h4>Thumbnails</h4>');
 
 			for (var prefix in AvailableThumbs) {
 				if (AvailableThumbs.hasOwnProperty(prefix)) {
