@@ -773,3 +773,78 @@
 		SQL::query("ALTER TABLE `bigtree_resources` CHANGE COLUMN `mimetype` `mimetype` varchar(255) DEFAULT NULL");
 		SQL::query("ALTER TABLE `bigtree_resources` CHANGE COLUMN `location` `location` varchar(255) DEFAULT NULL");
 	}
+	
+	// BigTree 4.3 update -- REVISION 307
+	function _local_bigtree_update_307() {
+		$storage = new BigTreeStorage;
+		$local_storage = new BigTreeStorage(true);
+		
+		// Generate list preview images for the new file manager and fix the thumbs array
+		$resources = SQL::fetchAll("SELECT * FROM bigtree_resources WHERE is_image = 'on'");
+		
+		foreach ($resources as $resource) {
+			$source = str_replace("{staticroot}", SITE_ROOT, $resource["file"]);
+			$thumbs = json_decode($resource["thumbs"], true);
+			$basename = pathinfo($source, PATHINFO_BASENAME);
+			$extension = pathinfo($source, PATHINFO_EXTENSION);
+			$temp_file = SERVER_ROOT."cache/".BigTree::getAvailableFileName(SERVER_ROOT."cache/", "temp.$extension");
+			
+			// See if this is an earlier 4.3 upload or a 4.2 or lower
+			$is_43 = (count(array_filter(array_keys($thumbs), "is_int")) == count($thumbs));
+
+			if ($is_43) {
+				$fixed_thumbs = [];
+
+				foreach ($thumbs as $key => $prefix) {
+					if (!is_array($prefix)) {
+						// Make a copy to get height/width
+						if (BigTree::copyFile(BigTree::prefixFile($source, $prefix), $temp_file)) {
+							list($width, $height) = getimagesize($temp_file);
+							$fixed_thumbs[$prefix] = ["width" => $width, "height" => $height];
+						}
+					} else {
+						$fixed_thumbs[$key] = $prefix;
+					}
+				}
+
+				$fixed_crops = [];
+				$crops = json_decode($resource["crops"], true);
+
+				foreach ($crops as $key => $prefix) {
+					if (!is_array($prefix)) {
+						// Make a copy to get height/width
+						if (BigTree::copyFile(BigTree::prefixFile($source, $prefix), $temp_file)) {
+							list($width, $height) = getimagesize($temp_file);
+							$fixed_crops[$prefix] = ["width" => $width, "height" => $height];
+						}
+					} else {
+						$fixed_crops[$key] = $prefix;
+					}
+				}
+				
+				SQL::update("bigtree_resources", $resource["id"], ["thumbs" => $fixed_thumbs, "crops" => $fixed_crops]);
+			} else {
+				BigTree::centerCrop($source, $temp_file, 100, 100);
+				
+				if ($resource["location"] == "local") {
+					$local_storage->store($temp_file, $basename, "files/resources/list-preview/");
+				} else {
+					$storage->store($temp_file, $basename, "files/resources/list-preview/");
+				}
+				
+				$fixed_thumbs = [];
+				
+				foreach ($thumbs as $prefix => $location) {
+					// Make a copy to get height/width
+					if (BigTree::copyFile(BigTree::prefixFile($source, $prefix), $temp_file)) {
+						list($width, $height) = getimagesize($temp_file);
+						$fixed_thumbs[$prefix] = ["width" => $width, "height" => $height];
+					}
+				}
+				
+				SQL::update("bigtree_resources", $resource["id"], ["thumbs" => $fixed_thumbs]);
+			}
+			
+			@unlink($temp_file);
+		}
+	}
