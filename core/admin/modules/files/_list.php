@@ -66,7 +66,7 @@
 					<?php
 						} elseif ($resource["is_video"]) {
 					?>
-					<span class="icon_large icon_large_<?=$resource["location"]?>"></span>
+					<span class="icon_large icon_large_<?=strtolower($resource["location"])?>"></span>
 					<?php
 						} else {
 					?>

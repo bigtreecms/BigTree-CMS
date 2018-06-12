@@ -1,6 +1,8 @@
 <?php
 	$video = null;
 	$url = $_POST["video"];
+	$settings = $cms->getSetting("bigtree-internal-media-settings");
+	$preset = $settings["presets"]["default"];
 
 	// YouTube
 	if (strpos($url,"youtu.be") !== false || strpos($url,"youtube.com") !== false) {
