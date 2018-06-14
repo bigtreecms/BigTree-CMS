@@ -152,8 +152,69 @@
 	a.button { display: inline-block; height: 34px; line-height: 37px; padding: 0 15px; }
 	a.button .icon_small { float: left; margin: 9px 7px 0 0; }
 	a.button.green, a.button.blue, a.button.red { height: 36px; }
+	a.button.disabled { opacity: 0.3; pointer-events: none; }
 	input[type=submit].shorter, a.button.shorter { height: 28px; line-height: 30px; }
 	input[type=submit].shorter { padding: 4px 18px 6px; }
+
+	.button_loader,
+	.button_loader:before,
+	.button_loader:after {
+		border-radius: 50%;
+		width: 5px;
+		height: 5px;
+		-webkit-animation-fill-mode: both;
+		animation-fill-mode: both;
+		-webkit-animation: button_loader 1.8s infinite ease-in-out;
+		animation: button_loader 1.8s infinite ease-in-out;
+	}
+	.button_loader {
+		color: #59A8E9;
+		display: inline-block;
+		font-size: 10px;
+		margin: 10px 0 0 0;
+		position: relative;
+		text-indent: -9999em;
+		-webkit-transform: translateZ(0);
+		-ms-transform: translateZ(0);
+		transform: translateZ(0);
+		-webkit-animation-delay: -0.16s;
+		animation-delay: -0.16s;
+	}
+	.button_loader:before,
+	.button_loader:after {
+		content: '';
+		position: absolute;
+		top: 0;
+	}
+	.button_loader:before {
+		left: -7px;
+		-webkit-animation-delay: -0.32s;
+		animation-delay: -0.32s;
+	}
+	.button_loader:after {
+		left: 7px;
+	}
+	@-webkit-keyframes button_loader {
+		0%,
+		80%,
+		100% {
+			box-shadow: 0 5px 0 -2.5px;
+		}
+		40% {
+			box-shadow: 0 5px 0 0;
+		}
+	}
+	@keyframes button_loader {
+		0%,
+		80%,
+		100% {
+			box-shadow: 0 5px 0 -2.5px;
+		}
+		40% {
+			box-shadow: 0 5px 0 0;
+		}
+	}
+
 
 	input[type=text], input[type=password], input[type=email], input[type=url] { background: #FFF; border: 1px solid #CCC; border-radius: 2px; color: #333; display: block; font-family: "Helvetica", Arial; font-size: 13px; height: 30px; margin: 0; padding: 0 10px; transition: border-color 0.2s; width: 876px; }
 	input[type=text]:focus, input[type=password]:focus { border-color: #AAA; }

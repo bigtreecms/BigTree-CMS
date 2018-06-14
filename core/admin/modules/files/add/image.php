@@ -15,12 +15,21 @@
 	</section>
 
 	<footer>
-		<a href="<?=ADMIN_ROOT?>files/process/image/<?=intval($bigtree["commands"][0])?>/" class="blue button">Continue</a>
-	</footer>	
+		<a href="<?=ADMIN_ROOT?>files/process/image/<?=intval($bigtree["commands"][0])?>/" class="blue button js-continue-button">Continue</a>
+	</footer>
 </div>
 
 <script>
 	Dropzone.options.fileManagerDropzone = {
 		acceptedFiles: ".jpg, .jpeg, .gif, .png"
 	};
+
+	$(".js-continue-button").click(function() {
+		if ($(this).hasClass("disabled")) {
+			return false;
+		}
+
+		$(this).addClass("disabled");
+		$(this).after('<span class="button_loader"></span>');
+	});
 </script>

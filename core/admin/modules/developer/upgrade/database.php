@@ -772,6 +772,7 @@
 		SQL::query("ALTER TABLE `bigtree_resources` CHANGE COLUMN `md5` `md5` varchar(255) DEFAULT NULL");
 		SQL::query("ALTER TABLE `bigtree_resources` CHANGE COLUMN `mimetype` `mimetype` varchar(255) DEFAULT NULL");
 		SQL::query("ALTER TABLE `bigtree_resources` CHANGE COLUMN `location` `location` varchar(255) DEFAULT NULL");
+		SQL::query("ALTER TABLE `bigtree_resources` DROP COLUMN `list_thumb_margin`");
 	}
 	
 	// BigTree 4.3 update -- REVISION 307
