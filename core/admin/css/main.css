@@ -929,6 +929,8 @@
 	.bigtree_dialog_form .photo_gallery_widget footer { overflow: hidden; }
 	.bigtree_dialog_form .photo_gallery_widget .or, .bigtree_dialog_form .photo_gallery_widget .resource_browser_button { display: none; }
 	.bigtree_dialog_form .photo_gallery_widget li:nth-child(9n), .front_end_editor .photo_gallery_widget li:nth-child(9n) { margin-right: 10px; }
+	.resource_browser_button .icon_folder { float: left; margin: 5px 5px 0 -1px; }
+	.resource_browser_button .icon_video { float: left; margin: 2px 5px 0 -1px; }
 
 /* Cropper Styles */
 	#cropper { overflow: hidden; }
@@ -1521,6 +1523,7 @@
 	.icon_settings.centered { margin-top: 4px; }
 	.icon_images, .icon_dialog_caption { background: url(../images/icon-sprite.svg); background-position: -480px -80px; display: inline-block; height: 24px; width: 24px; }
 	.icon_folder, .icon_dialog_folder { background: url(../images/icon-sprite.svg); background-position: -504px -80px; display: inline-block; height: 24px; width: 24px; }
+	.icon_video { background: url(../images/icon-sprite.svg); background-position: -840px -80px; display: inline-block; height: 24px; width: 24px; }
 	.icon_disabled, .icon_deny { background: url(../images/icon-sprite.svg); background-position: -528px -80px; display: inline-block; height: 24px; width: 24px; }
 	.icon_preview, .icon_view, .icon_view_details { background: url(../images/icon-sprite.svg); background-position: -552px -80px; display: inline-block; height: 24px; width: 24px; }
 	.icon_draft { background: url(../images/icon-sprite.svg); background-position: -576px -80px; display: inline-block; height: 24px; width: 24px; }
