@@ -18,7 +18,7 @@
 	
 	foreach ($items["folders"] as $folder) {
 ?>
-<button data-folder=<?=$folder["id"]?>" class="file_list_button js-folder"><span class="icon_small icon_small_folder"></span> <?=$folder["name"]?></button>
+<button data-folder="<?=$folder["id"]?>" class="file_list_button js-folder"><span class="icon_small icon_small_folder"></span> <?=$folder["name"]?></button>
 <?php
 	}
 	
@@ -32,7 +32,7 @@
 				$embed = '<iframe src="https://player.vimeo.com/video/'.$data["id"].'?autoplay=false&showinfo=false&showrel=false&showcontrols=false"></iframe>';
 			}
 ?>
-<button class="file_list_button js-video<?php if ($perm == "n") { ?> disabled<?php } ?>" data-video="<?=$resource["id"]?>" data-embed="<?=htmlspecialchars($embed)?>">
+<button data-id="<?=$resource["id"]?>" class="file_list_button js-video<?php if ($perm == "n") { ?> disabled<?php } ?>" data-video="<?=$resource["id"]?>" data-name="<?=$resource["name"]?>" data-embed="<?=htmlspecialchars($embed)?>">
 	<span class="icon_small icon_small_video"></span> <?=$resource["name"]?>
 </button>
 <?php

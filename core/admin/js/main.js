@@ -1378,7 +1378,10 @@ var BigTreeFileManager = (function($) {
 
 	// Properties
 
+	var ActiveID = false;
 	var ActiveImage = false;
+	var ActiveImageThumbnail = false;
+	var ActiveName = false;
 	var ActiveVideoEmbed = false;
 	var AvailableCrops = false;
 	var AvailableThumbs = false;
@@ -1459,7 +1462,8 @@ var BigTreeFileManager = (function($) {
 			return false;
 		}
 
-		CurrentFileId = $(this).data("id");
+		ActiveID = $(this).data("id");
+		ActiveName = $(this).data("name");
 		CurrentFileHref = $(this).data("href");
 		CurrentFileName = $(this).data("name");
 
@@ -1504,7 +1508,9 @@ var BigTreeFileManager = (function($) {
 		$(this).addClass("selected");
 
 		var data = $(this).data("image");
+		ActiveName = $(this).data("name");
 		ActiveImage = data.file;
+		ActiveImageThumbnail = $(this).find("img").attr("src");
 		AvailableCrops = data.crops;
 		AvailableThumbs = data.thumbs;
 
@@ -1652,17 +1658,15 @@ var BigTreeFileManager = (function($) {
 			}
 		} else {
 			if (Type == "image") {
-				var input = $('<input type="hidden" name="' + CurrentlyKey + '">');
-				input.val("resource://" + $("#file_browser_selected_file").val());
-				var img = new $('<img alt="">');
-				img.attr("src",$("#file_browser_selected_file").val());
+				var dummy_input = $('<input type="hidden">').val(ActiveName);
+				var input = $('<input type="hidden" name="' + CurrentlyKey + '">').val("resource://" + $("#file_browser_selected_file").val());
+				var img = $('<img alt="">').attr("src", ActiveImageThumbnail);
 				var container = $(document.getElementById(CurrentlyName));
-				container.find("img, input").remove();
-				container.append(input).find(".currently_wrapper").append(img);
-				container.show();
-
-				// If a user already selected something to upload, replace it
 				var input_sibling = container.siblings("input");
+
+				container.find("img, input").remove();
+				container.append(dummy_input).append(input).find(".currently_wrapper").append(img);
+				container.show();
 
 				if (input_sibling.length) {
 					input_sibling.get(0).customControl.clear();
@@ -1670,16 +1674,20 @@ var BigTreeFileManager = (function($) {
 			} else if (Type == "photo-gallery") {
 				Callback($("#file_browser_selected_file").val(),$("#file_browser_detail_title_input").val(),$(".file_browser_images .selected img").attr("src"));
 			} else if (Type == "video") {
-				var input = $('<input type="hidden" name="' + CurrentlyKey + '">').val($("#file_browser_selected_file").val());
+				var dummy_input = $('<input type="hidden">').val(ActiveName);
+				var input = $('<input type="hidden" name="' + CurrentlyKey + '">').val(ActiveID);
 				var container = $(document.getElementById(CurrentlyName));
 
 				container.find("iframe, input").remove();
-				container.append(input).find(".currently_wrapper").append(ActiveVideoEmbed);
+				container.append(dummy_input).append(input).find(".currently_wrapper").append(ActiveVideoEmbed);
 				container.show();
 			} else if (Type == "file") {
+				var dummy_input = $('<input type="hidden">').val(ActiveName);
+				var input = $('<input type="hidden" name="' + CurrentlyKey + '">').val(ActiveID);
 				var container = $(document.getElementById(CurrentlyName));
 
-				container.find(".js-input").val(CurrentFileId);
+				container.find("img, input").remove();
+				container.append(dummy_input).append(input);
 				container.find(".js-current-file").attr("href", CurrentFileHref).html(CurrentFileName);
 				container.show();
 			}
@@ -1709,6 +1717,8 @@ var BigTreeFileManager = (function($) {
 		$(this).addClass("selected");
 		$("#file_browser_selected_file").val($(this).data("video"));
 		ActiveVideoEmbed = $(this).data("embed");
+		ActiveName = $(this).data("name");
+		ActiveID = $(this).data("id");
 
 		// Load info panel
 		$("#file_browser_info_pane").html('<span class="spinner"></span>');

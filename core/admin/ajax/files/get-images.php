@@ -18,7 +18,7 @@
 	
 	foreach ($items["folders"] as $folder) {
 ?>
-<button data-folder=<?=$folder["id"]?>" class="file_list_button js-folder"><span class="icon_small icon_small_folder"></span> <?=$folder["name"]?></button>
+<button data-folder="<?=$folder["id"]?>" class="file_list_button js-folder"><span class="icon_small icon_small_folder"></span> <?=$folder["name"]?></button>
 <?php
 	}
 
@@ -38,7 +38,7 @@
 					"crops" => json_decode($resource["crops"])
 				)));
 	?>
-	<button data-image="<?=$data?>" class="js-image<?=$disabled?> image">
+	<button data-id="<?=$resource["id"]?>" data-image="<?=$data?>" data-name="<?=$resource["name"]?>" class="js-image<?=$disabled?> image">
 		<img src="<?=BigTree::prefixFile($resource["file"], "list-preview/").$thumb.($_COOKIE["bigtree_admin"]["recently_replaced_file"] ? "?".uniqid() : "")?>" alt="" />
 	</button>
 	<?php

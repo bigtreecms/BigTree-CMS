@@ -18,7 +18,7 @@
 
 	foreach ($items["folders"] as $folder) {
 ?>
-<button data-folder=<?=$folder["id"]?>" class="file_list_button js-folder"><span class="icon_small icon_small_folder"></span> <?=$folder["name"]?></button>
+<button data-folder="<?=$folder["id"]?>" class="file_list_button js-folder"><span class="icon_small icon_small_folder"></span> <?=$folder["name"]?></button>
 <?php
 	}
 
