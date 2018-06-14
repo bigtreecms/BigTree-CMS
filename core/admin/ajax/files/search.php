@@ -35,9 +35,13 @@
 		?>
 		<img src="<?=BigTree::prefixFile(BigTreeCMS::replaceRelativeRoots($resource["file"]), "list-preview/")?>" alt="">
 		<?php
+			} elseif ($resource["is_video"]) {
+		?>
+		<span class="icon_large icon_large_<?=strtolower($resource["location"])?>"></span>
+		<?php
 			} else {
 		?>
-		<span class="icon_small icon_small_file icon_small_file_<?=$resource["type"]?>"></span>
+		<span class="icon_small icon_small_file_default icon_small_file_<?=$resource["type"]?>"></span>
 		<?php
 			}
 		?>

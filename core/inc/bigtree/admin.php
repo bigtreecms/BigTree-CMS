@@ -7541,37 +7541,33 @@
 		*/
 
 		public function searchResources($query, $sort = "date DESC") {
-			$query = sqlescape(strtolower($query));
+			$query = SQL::escape($query);
 			$folders = array();
 			$resources = array();
 			$permission_cache = array();
 			$existing = array();
 
-			$q = sqlquery("SELECT * FROM bigtree_resource_folders WHERE LOWER(name) LIKE '%$query%' ORDER BY name");
+			$q = SQL::query("SELECT * FROM bigtree_resource_folders WHERE name LIKE '%$query%' ORDER BY name");
 
-			while ($f = sqlfetch($q)) {
-				$f["permission"] = $this->getResourceFolderPermission($f);
-				// We're going to cache the folder permissions so we don't have to fetch them a bunch of times if many files have the same folder.
-				$permission_cache[$f["id"]] = $f["permission"];
-
-				$folders[] = $f;
+			while ($folder = $q->fetch()) {
+				$folder["permission"] = $permission_cache[$folder["id"]] = $this->getResourceFolderPermission($folder);
+				$folders[] = $folder;
 			}
 
-			$q = sqlquery("SELECT * FROM bigtree_resources WHERE LOWER(name) LIKE '%$query%' ORDER BY $sort");
+			$q = SQL::query("SELECT * FROM bigtree_resources WHERE name LIKE '%$query%' OR metadata LIKE '%$query%' ORDER BY $sort");
 
-			while ($f = sqlfetch($q)) {
-				$check = array($f["name"], $f["md5"]);
+			while ($resource = $q->fetch()) {
+				$check = array($resource["name"], $resource["md5"]);
 
 				if (!in_array($check, $existing)) {
 					// If we've already got the permission cached, use it. Otherwise, fetch it and cache it.
-					if ($permission_cache[$f["folder"]]) {
-						$f["permission"] = $permission_cache[$f["folder"]];
+					if ($permission_cache[$resource["folder"]]) {
+						$resource["permission"] = $permission_cache[$resource["folder"]];
 					} else {
-						$f["permission"] = $this->getResourceFolderPermission($f["folder"]);
-						$permission_cache[$f["folder"]] = $f["permission"];
+						$resource["permission"] = $permission_cache[$resource["folder"]] = $this->getResourceFolderPermission($resource["folder"]);
 					}
 
-					$resources[] = $f;
+					$resources[] = $resource;
 					$existing[] = $check;
 				}
 			}
