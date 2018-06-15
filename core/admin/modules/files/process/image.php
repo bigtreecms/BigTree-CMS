@@ -21,17 +21,27 @@
 			$file_name = SITE_ROOT."files/temporary/".$admin->ID."/".$file;
 			$min_height = intval($preset["min_height"]);
 			$min_width = intval($preset["min_width"]);
-
+			
 			list($width, $height, $type, $attr) = getimagesize($file_name);
 			
-			// Scale up content that doesn't meet minimums
-			if ($width < $min_width || $height < $min_height) {
-				BigTree::createUpscaledImage($file_name, $file_name, $min_width, $min_height);
-
-				// Get these again for resource prefixes
-				list($width, $height) = getimagesize($file_name);
+			if ($min_height > $height || $min_width > $width) {
+				$error = "Image uploaded (".htmlspecialchars($file_name).") did not meet the minimum size of ";
+				
+				if ($min_height && $min_width) {
+					$error .= $min_width."x".$min_height." pixels.";
+				} elseif ($min_height) {
+					$error .= $min_height." pixels tall.";
+				} elseif ($min_width) {
+					$error .= $min_width." pixels wide.";
+				}
+				
+				$bigtree["errors"][] = array("field" => "Image", "error" => $error);
+				
+				@unlink($file_name);
+				
+				continue;
 			}
-
+		
 			$field = [
 				"title" => $file,
 				"file_input" => [

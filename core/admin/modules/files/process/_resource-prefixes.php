@@ -6,6 +6,10 @@
 
 	if (is_array($preset["crops"])) {
 		foreach ($preset["crops"] as $crop) {
+			if ($crop["width"] > $width || $crop["height"] > $height) {
+				continue;
+			}
+			
 			if ($crop["prefix"]) {
 				$crop_prefixes[$crop["prefix"]] = ["width" => $crop["width"], "height" => $crop["height"]];
 			}
@@ -30,6 +34,10 @@
 
 	if (is_array($preset["center_crops"])) {
 		foreach ($preset["center_crops"] as $crop) {
+			if ($crop["width"] > $width || $crop["height"] > $height) {
+				continue;
+			}
+			
 			if ($crop["prefix"]) {
 				$crop_prefixes[$crop["prefix"]] = ["width" => $crop["width"], "height" => $crop["height"]];
 			}
@@ -46,6 +54,10 @@
 
 	if (is_array($preset["thumbs"])) {
 		foreach ($preset["thumbs"] as $thumb) {
+			if ($thumb["width"] > $width && $thumb["height"] > $height) {
+				continue;
+			}
+			
 			if ($thumb["prefix"]) {
 				$thumb_prefixes[$thumb["prefix"]] = BigTree::calculateThumbnailSizes($width, $height, $thumb["width"], $thumb["height"]);
 			}
