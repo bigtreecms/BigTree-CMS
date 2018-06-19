@@ -1395,8 +1395,6 @@
 			
 			// Add 2MB for PHP
 			$memory_usage = (2 * 1024 * 1024) + $source_size + $target_size + memory_get_usage();
-
-			echo "Guessing ".BigTree::formatBytes($memory_usage);
 			
 			if ($memory_usage > $available_memory) {
 				return false;
