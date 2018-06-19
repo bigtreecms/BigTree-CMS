@@ -6,6 +6,10 @@
 		} else {
 			$data["fields"] = is_array($data["fields"]) ? $data["fields"] : [""];
 		}
+		
+		if (!is_array($data["fields"]) || !count($data["fields"])) {
+			$data["fields"] = array("");
+		}
 
 		foreach ($data["fields"] as $field) {
 			$field = trim($field);

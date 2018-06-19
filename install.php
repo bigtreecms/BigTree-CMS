@@ -84,6 +84,10 @@
 		$fails[] = "PHP does not have the ctype extension installed.";
 	}
 
+	if (!extension_loaded("openssl")) {
+		$fails[] = "PHP does not have the OpenSSL extension installed.";
+	}
+
 	if (!ini_get('file_uploads')) {
 		$fails[] = "PHP does not have file uploads enabled.";
 	}
@@ -237,6 +241,18 @@
 				$q = sqlquery($query);
 			}
 		}
+
+		// Allow for a theme SQL
+		if (file_exists("bigtree-theme.sql")) {
+			$sql_queries = explode("\n",file_get_contents("bigtree-theme.sql"));
+			foreach ($sql_queries as $query) {
+				$query = trim($query);
+				
+				if ($query != "") {
+					$q = sqlquery($query);
+				}
+			}
+		}
 		
 		include "core/inc/lib/PasswordHash.php";
 		$phpass = new PasswordHash(8, TRUE);
@@ -257,14 +273,19 @@
 
 		function bt_mkdir_writable($dir) {
 			global $root;
+
 			mkdir($root.$dir);
+
 			if (!BT_SU_EXEC) {
 				chmod($root.$dir,0777);
 			}
 		}
 		
 		function bt_touch_writable($file,$contents = "") {
-			file_put_contents($file,$contents);
+			if (!file_exists($file)) {
+				file_put_contents($file,$contents);
+			}
+
 			if (!BT_SU_EXEC) {
 				chmod($file,0777);
 			}
@@ -272,19 +293,25 @@
 		
 		function bt_copy_dir($from,$to) {
 			global $root;
+
 			$d = opendir($root.$from);
+
 			if (!file_exists($root.$to)) {
 				@mkdir($root.$to);
 				if (!BT_SU_EXEC) {
 					@chmod($root.$to,0777);
 				}
 			}
+
 			while ($f = readdir($d)) {
 				if ($f != "." && $f != "..") {
 					if (is_dir($root.$from.$f)) {
 						bt_copy_dir($from.$f."/",$to.$f."/");
 					} else {
-						@copy($from.$f,$to.$f);
+						if (!file_exists($to.$f)) {
+							@copy($from.$f,$to.$f);
+						}
+
 						if (!BT_SU_EXEC) {
 							@chmod($to.$f,0777);
 						}
@@ -476,6 +503,7 @@ RewriteRule (.*) site/$1 [L]');
 	if ($installed) {
 		@unlink("install.php");
 		@unlink("bigtree.sql");
+		@unlink("bigtree-theme.sql");
 		@unlink("example-site.sql");
 		@unlink("README.md");
 	}
