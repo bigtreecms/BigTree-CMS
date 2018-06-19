@@ -17,6 +17,7 @@
 	$bigtree["config"]["cache"] = false; // Enable Simple Caching
 	$bigtree["config"]["cache_ttl"] = 300; // Number of seconds to keep a cached page
 	$bigtree["config"]["sql_interface"] = "mysqli"; // Change to "mysql" to use legacy MySQL interface in PHP.
+	$bigtree["config"]["image_memory_limit"] = "256M"; // Change to a higher value to allow BigTree to use more RAM when processing images.
 
 	// Database Environment
 	$bigtree["config"]["db"]["host"] = "[host]";
