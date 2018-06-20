@@ -1600,7 +1600,7 @@
 				if ($location == "local") {
 					$file_path = str_replace(STATIC_ROOT, SITE_ROOT, BigTreeCMS::replaceRelativeRoots($file));
 				} else {
-					$file_path = SITE_ROOT."files/temporary/".$admin->ID."/".uniqid(true).".".$file_extension;
+					$file_path = SITE_ROOT."files/temporary/".$this->ID."/".uniqid(true).".".$file_extension;
 					BigTree::copyFile($file, $file_path);
 				}
 
@@ -1906,11 +1906,14 @@
 				$insert["password"] = password_hash(trim($data["password"]), PASSWORD_DEFAULT);
 				$insert["new_hash"] = "on";
 			} else {
-				$insert["change_password_hash"] = BigTree::randomString(64);
+				$insert["change_password_hash"] = $hash = BigTree::randomString(64);
 
 				while (SQL::exists("bigtree_users", ["change_password_hash" => $insert["change_password_hash"]])) {
 					$insert["change_password_hash"] = BigTree::randomString(64);
 				}
+				
+				$site_title = SQL::fetchSingle("SELECT `nav_title` FROM `bigtree_pages` WHERE id = 0");
+				$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/";
 
 				$html = file_get_contents(BigTree::path("admin/email/welcome.html"));
 				$html = str_ireplace("{www_root}", WWW_ROOT, $html);
@@ -1924,9 +1927,9 @@
 				// Only use a custom email service if a from email has been set
 				if ($email_service->Settings["bigtree_from"]) {
 					$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.", "", $_SERVER["HTTP_HOST"]) : str_replace(array("http://www.", "https://www.", "http://", "https://"), "", DOMAIN));
-					$email_service->sendEmail("$site_title - Set Your Password", $html, $user["email"], $email_service->Settings["bigtree_from"], "BigTree CMS", $reply_to);
+					$email_service->sendEmail("$site_title - Set Your Password", $html, $insert["email"], $email_service->Settings["bigtree_from"], "BigTree CMS", $reply_to);
 				} else {
-					BigTree::sendEmail($user["email"],"Reset Your Password",$html);
+					BigTree::sendEmail($insert["email"], "$site_title - Set Your Password", $html);
 				}
 			}
 
@@ -2661,7 +2664,7 @@
 					$field_type_path = BigTree::path("admin/field-types/".$field["type"]."/draw.php");
 				}
 			}
-
+			
 			if (file_exists($field_type_path)) {
 				// Don't draw the fieldset for field types that are declared as self drawing.
 				if ($bigtree["field_types"][$field["type"]]["self_draw"]) {
@@ -6562,39 +6565,6 @@
 		}
 
 		/*
-			Function: matchResourceMD5
-				Checks if the given file is a MD5 match for any existing resources.
-				If a match is found, the resource is "copied" into the given folder (unless it already exists in that folder).
-
-			Parameters:
-				file - Uploaded file to run MD5 hash on
-				new_folder - Folder the given file is being uploaded into
-
-			Returns:
-				true if a match was found. If the file was already in the given folder, the date is simply updated.
-		*/
-
-		public static function matchResourceMD5($file,$new_folder) {
-			$md5 = sqlescape(md5_file($file));
-			$resource = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE md5 = '$md5' LIMIT 1"));
-			if (!$resource) {
-				return false;
-			}
-
-			// If we already have this exact resource in this exact folder, just update its modification time
-			if ($resource["folder"] == $new_folder) {
-				sqlquery("UPDATE bigtree_resources SET date = NOW() WHERE id = '".$resource["id"]."'");
-			} else {
-				foreach ($resource as $key => $val) {
-					$$key = "'".sqlescape($val)."'";
-				}
-				$new_folder = $new_folder ? "'".sqlescape($new_folder)."'" : "NULL";
-				sqlquery("INSERT INTO bigtree_resources (`folder`,`file`,`md5`,`date`,`name`,`type`,`is_image`,`height`,`width`,`crops`,`thumbs`) VALUES ($new_folder,$file,$md5,NOW(),$name,$type,$is_image,$height,$width,$crops,$thumbs)");
-			}
-			return true;
-		}
-
-		/*
 			Function: mergeTags
 				Merges a set of tags into a single tag and updates references.
 
@@ -7369,19 +7339,26 @@
 				$this->stop("You must be a publisher to manage revisions.");
 			}
 
-			$page = sqlescape($page);
-			$description = sqlescape(htmlspecialchars($description));
-
 			// Get the current page.
-			$current = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE id = '$page'"));
-			foreach ($current as $key => $val) {
-				$$key = sqlescape($val);
-			}
+			$current = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $page);
 
 			// Copy it to the saved versions
-			sqlquery("INSERT INTO bigtree_page_revisions (`page`,`title`,`meta_keywords`,`meta_description`,`template`,`external`,`new_window`,`resources`,`author`,`updated_at`,`saved`,`saved_description`) VALUES ('$page','$title','$meta_keywords','$meta_description','$template','$external','$new_window','$resources','$last_edited_by','$updated_at','on','$description')");
-			$id = sqlid();
-			$this->track("bigtree_page_revisions",$id,"created");
+			$id = SQL::insert("bigtree_page_revisions", [
+				"page" => $page,
+				"title" => $current["title"],
+				"meta_keywords" => $current["meta_keywords"],
+				"meta_description" => $current["meta_description"],
+				"template" => $current["template"],
+				"external" => $current["external"],
+				"new_window" => $current["new_window"],
+				"resources" => $current["resources"],
+				"author" => $current["last_edited_by"],
+				"updated_at" => $current["updated_at"],
+				"saved" => "on",
+				"saved_description" => BigTree::safeEncode($description)
+			]);
+
+			$this->track("bigtree_page_revisions", $id, "created");
 
 			return $id;
 		}
@@ -8540,72 +8517,79 @@
 				data - The page data to update with.
 		*/
 
-		public function updatePage($page,$data) {
+		public function updatePage($page, $data) {
 			$page = sqlescape($page);
 
 			// Save the existing copy as a draft, remove drafts for this page that are one month old or older.
 			$current = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE id = '$page'"));
-			foreach ($current as $key => $val) {
-				$$key = sqlescape($val);
-			}
+			
 			// Figure out if we currently have a template that the user isn't allowed to use. If they do, we're not letting them change it.
-			$template_data = BigTreeCMS::getTemplate($template);
+			$template_data = BigTreeCMS::getTemplate($current["template"]);
+			
 			if (is_array($template_data) && $template_data["level"] > $this->Level) {
-				$data["template"] = $template;
+				$data["template"] = $current["template"];
 			}
+			
 			// Copy it to the saved versions
-			sqlquery("INSERT INTO bigtree_page_revisions (`page`,`title`,`meta_keywords`,`meta_description`,`template`,`external`,`new_window`,`resources`,`author`,`updated_at`) VALUES ('$page','$title','$meta_keywords','$meta_description','$template','$external','$new_window','$resources','$last_edited_by','$updated_at')");
+			SQL::insert("bigtree_page_revisions", $page, [
+				"title" => $current["title"],
+				"meta_keywords" => $current["meta_keywords"],
+				"meta_description" => $current["meta_description"],
+				"template" => $current["template"],
+				"external" => $current["external"],
+				"new_window" => $current["new_window"],
+				"resources" => $current["resources"],
+				"author" => $current["last_edited_by"],
+				"updated_at" => $current["updated_at"]
+			]);
+			
 			// Count the page revisions
-			$r = sqlrows(sqlquery("SELECT id FROM bigtree_page_revisions WHERE page = '$page' AND saved = ''"));
+			$revision_count = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_page_revisions WHERE page = ? AND saved = ''", $page);
+			
 			// If we have more than 10, delete any that are more than a month old
-			if ($r > 10) {
-				sqlquery("DELETE FROM bigtree_page_revisions WHERE page = '$page' AND updated_at < '".date("Y-m-d",strtotime("-1 month"))."' AND saved = '' ORDER BY updated_at ASC LIMIT ".($r - 10));
+			if ($revision_count > 10) {
+				$one_month_ago = date("Y-m-d",strtotime("-1 month"));
+				SQL::query("DELETE FROM bigtree_page_revisions
+						    WHERE page = ?
+							  AND updated_at < '$one_month_ago'
+							  AND saved = ''
+						    ORDER BY updated_at ASC LIMIT ".($revision_count - 10), $page);
 			}
 
 			// Remove this page from the cache
 			static::unCache($page);
 
-			// Set local variables in a clean fashion that prevents _SESSION exploitation. Also, don't let them somehow overwrite $page and $current.
-			foreach ($data as $key => $val) {
-				if (substr($key,0,1) != "_" && $key != "current" && $key != "page") {
-					if (is_array($val)) {
-						$$key = BigTree::json($val,true);
-					} else {
-						$$key = sqlescape($val);
-					}
-				}
-			}
-
 			// Set the trunk flag back to the current value if the user isn't a developer
 			if ($this->Level < 2) {
 				$trunk = $current["trunk"];
 			} else {
-				$trunk = sqlescape($data["trunk"]);
+				$trunk = $data["trunk"] ? "on" : "";
 			}
 
 			// If this is top level nav and the user isn't a developer, use what the current state is.
 			if (!$current["parent"] && $this->Level < 2) {
-				$in_nav = sqlescape($current["in_nav"]);
+				$in_nav = $current["in_nav"];
 			} else {
-				$in_nav = sqlescape($data["in_nav"]);
+				$in_nav = $data["in_nav"];
 			}
 
 			// Make an ipl:// or {wwwroot}'d version of the URL
-			if ($external) {
-				$external = static::makeIPL($external);
+			if ($data["external"]) {
+				$data["external"] = static::makeIPL($data["external"]);
 			}
 
 			// If somehow we didn't provide a parent page (like, say, the user didn't have the right to change it) then pull the one from before. Actually, this might be exploitable… look into it later.
 			if (!isset($data["parent"])) {
-				$parent = $current["parent"];
+				$data["parent"] = $current["parent"];
 			}
 
 			if ($page == 0) {
 				// Home page doesn't get a route - fixes sitemap bug
-				$route = "";
+				$data["route"] = "";
 			} else {
 				// Create a route if we don't have one, otherwise, make sure the one they provided doesn't suck.
 				$route = $data["route"];
+				
 				if (!$route) {
 					$route = BigTreeCMS::urlify($data["nav_title"]);
 				} else {
@@ -8615,12 +8599,14 @@
 				// Get a unique route
 				$oroute = $route;
 				$x = 2;
+				
 				// Reserved paths.
-				if ($parent == 0) {
+				if ($data["parent"] == 0) {
 					while (file_exists(SERVER_ROOT."site/".$route."/")) {
 						$route = $oroute."-".$x;
 						$x++;
 					}
+					
 					while (in_array($route,static::$ReservedTLRoutes)) {
 						$route = $oroute."-".$x;
 						$x++;
@@ -8628,64 +8614,80 @@
 				}
 
 				// Existing pages.
-				$f = sqlfetch(sqlquery("SELECT id FROM bigtree_pages WHERE `route` = '$route' AND parent = '$parent' AND id != '$page'"));
-				while ($f) {
+				$exists = SQL::exists("bigtree_pages", ["route" => $route, "parent" => $data["parent"]], $page);
+
+				while ($exists) {
 					$route = $oroute."-".$x;
-					$f = sqlfetch(sqlquery("SELECT id FROM bigtree_pages WHERE `route` = '$route' AND parent = '$parent' AND id != '$page'"));
+					$exists = SQL::exists("bigtree_pages", ["route" => $route, "parent" => $data["parent"]], $page);
 					$x++;
 				}
 
 				// Make sure route isn't longer than 255
-				$route = substr($route,0,255);
+				$data["route"] = substr($route, 0, 255);
 			}
 
 			// We have no idea how this affects the nav, just wipe it all.
-			if ($current["nav_title"] != $nav_title || $current["route"] != $route || $current["in_nav"] != $in_nav || $current["parent"] != $parent) {
+			if ($current["nav_title"] != $data["nav_title"] || $current["route"] != $data["route"] ||
+				$current["in_nav"] != $in_nav || $current["parent"] != $data["parent"]) {
 				static::clearCache();
 			}
 
 			// Make sure we set the publish date to NULL if it wasn't provided or we'll have a page that got published at 0000-00-00
-			if ($publish_at && $publish_at != "NULL") {
-				$publish_at = "'".date("Y-m-d",strtotime($publish_at))."'";
+			if ($data["publish_at"] && $data["publish_at"] != "NULL") {
+				$publish_at = "'".date("Y-m-d",strtotime($data["publish_at"]))."'";
 			} else {
-				$publish_at = "NULL";
+				$publish_at = null;
 			}
 
 			// If we set an expiration date, make it the proper MySQL format.
-			if ($expire_at && $expire_at != "NULL") {
-				$expire_at = "'".date("Y-m-d",strtotime($expire_at))."'";
+			if ($data["expire_at"] && $data["expire_at"] != "NULL") {
+				$expire_at = "'".date("Y-m-d",strtotime($data["expire_at"]))."'";
 			} else {
-				$expire_at = "NULL";
+				$expire_at = null;
 			}
 
 			// Set the full path, saves DB access time on the front end.
-			if ($parent > 0) {
-				$path = static::getFullNavigationPath($parent)."/".$route;
+			if ($data["parent"] > 0) {
+				$path = static::getFullNavigationPath($data["parent"])."/".$data["route"];
 			} else {
-				$path = $route;
+				$path = $data["route"];
 			}
-
-			// htmlspecialchars stuff so that it doesn't need to be re-encoded when echo'd on the front end.
-			$title = BigTree::safeEncode($title);
-			$nav_title = BigTree::safeEncode($nav_title);
-			$meta_description = BigTree::safeEncode($meta_description);
-			$meta_keywords = BigTree::safeEncode($meta_keywords);
-			$seo_invisible = $data["seo_invisible"] ? "on" : "";
-			$external = BigTree::safeEncode($external);
-
-			// Update the database
-			sqlquery("UPDATE bigtree_pages SET `trunk` = '$trunk', `parent` = '$parent', `nav_title` = '$nav_title', `route` = '$route', `path` = '$path', `in_nav` = '$in_nav', `title` = '$title', `template` = '$template', `external` = '$external', `new_window` = '$new_window', `resources` = '$resources', `meta_keywords` = '$meta_keywords', `meta_description` = '$meta_description', `seo_invisible` = '$seo_invisible', `last_edited_by` = '".$this->ID."', updated_at = NOW(), publish_at = $publish_at, expire_at = $expire_at, max_age = '$max_age' WHERE id = '$page'");
-
+			
+			SQL::update("bigtree_pages", $page, [
+				"trunk" => $data["trunk"],
+				"parent" => $data["parent"],
+				"nav_title" => BigTree::safeEncode($data["nav_title"]),
+				"title" => BigTree::safeEncode($data["title"]),
+				"route" => $data["route"],
+				"path" => $path,
+				"in_nav" => $in_nav ? "on" : "",
+				"template" => $data["template"],
+				"external" => BigTree::safeEncode($data["external"]),
+				"new_window" => $data["new_window"] ? "on" : "",
+				"resources" => $data["resources"],
+				"meta_keywords" => BigTree::safeEncode($data["meta_keywords"]),
+				"meta_description" => BigTree::safeEncode($data["meta_description"]),
+				"seo_invisible" => $data["seo_invisible"] ? "on" : "",
+				"publish_at" => $publish_at,
+				"expire_at" => $expire_at,
+				"max_age" => $data["max_age"],
+				"last_edited_by" => $this->ID,
+				"updated_at" => "NOW()"
+			]);
+			
 			// Remove any pending drafts
-			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = '$page'");
+			SQL::delete("bigtree_pending_changes", ["table" => "bigtree_pages", "item_id" => $page]);
 
 			// Remove old paths from the redirect list
-			sqlquery("DELETE FROM bigtree_route_history WHERE old_route = '$path' OR old_route = '".$current["path"]."'");
+			SQL::query("DELETE FROM bigtree_route_history WHERE old_route = ? OR old_route = ?", $path, $current["path"]);
 
 			// Create an automatic redirect from the old path to the new one.
 			if ($current["path"] != $path) {
-				sqlquery("INSERT INTO bigtree_route_history (`old_route`,`new_route`) VALUES ('".$current["path"]."','$path')");
-
+				SQL::insert("bigtree_route_history", [
+					"old_route" => $current["path"],
+					"new_route" => $path
+				]);
+				
 				// Update all child page routes, ping those engines, clean those caches
 				static::updateChildPagePaths($page);
 				static::pingSearchEngines();
@@ -8693,10 +8695,15 @@
 			}
 
 			// Handle tags
-			sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = 'bigtree_pages' AND entry = '$page'");
+			SQL::delete("bigtree_tags_rel", ["table" => "bigtree_pages", "entry" => $page]);
+
 			if (is_array($data["_tags"])) {
 				foreach ($data["_tags"] as $tag) {
-					sqlquery("INSERT INTO bigtree_tags_rel (`table`,`entry`,`tag`) VALUES ('bigtree_pages','$page','$tag')");
+					SQL::insert("bigtree_tags_rel", [
+						"table" => "bigtree_pages",
+						"entry" => $page,
+						"tag" => $tag
+					]);
 				}
 			}
 
@@ -8950,6 +8957,7 @@
 
 			// Stored as JSON encoded already
 			$settings = json_decode($data["settings"] ?: $data["options"], true);
+			$id = $type = $name = $description = $system = $locked = $encrypted = "";
 
 			foreach ($settings as $key => $value) {
 				if (($key == "options" || $key == "settings") && is_string($value)) {

@@ -35,7 +35,7 @@
 				"type" => $meta["type"],
 				"title" => $meta["title"],
 				"key" => "metadata[".$meta["id"]."]",
-				"settings" => json_decode($meta["settings"] ?: $meta["options"], true),
+				"settings" => $meta["settings"] ?: $meta["options"],
 				"ignore" => false,
 				"input" => $_POST["metadata"][$meta["id"]],
 				"file_input" => $bigtree["file_data"]["metadata"][$meta["id"]]
@@ -88,24 +88,27 @@
 			$data["size"] = filesize($_FILES["file"]["tmp_name"]);
 
 			$admin->processImageUpload($field, true);
-			$admin->updateResource($_POST["id"], $data);
-
-			$_SESSION["bigtree_admin"]["form_data"] = [
-				"edit_link" => ADMIN_ROOT."files/folder/".intval($bigtree["commands"][0])."/",
-				"return_link" => ADMIN_ROOT."files/folder/".intval($bigtree["commands"][0])."/",
-				"crop_key" => $cms->cacheUnique("org.bigtreecms.crops", $bigtree["crops"])
-			];
-
-			BigTree::redirect(ADMIN_ROOT."files/crop/".intval($bigtree["commands"][0])."/");
-
-			die();
 		} elseif (!$file["is_video"]) {
 			$data["size"] = filesize($_FILES["file"]["tmp_name"]);
 			$storage->replace($_FILES["file"]["tmp_name"], $file_name, "files/resources/");
 		}
 	}
-
+	
 	$admin->updateResource($_POST["id"], $data);
 	$admin->growl("File Manager", "Updated File");
+	
+	$_SESSION["bigtree_admin"]["form_data"] = [
+		"edit_link" => ADMIN_ROOT."files/edit/file/".$_POST["id"]."/",
+		"return_link" => ADMIN_ROOT."files/folder/".intval($bigtree["commands"][0])."/",
+		"errors" => $bigtree["errors"]
+	];
+	
+	if (count($bigtree["crops"])) {
+		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = $cms->cacheUnique("org.bigtreecms.crops", $bigtree["crops"]);
+		BigTree::redirect(ADMIN_ROOT."files/crop/");
+	} elseif (count($bigtree["errors"])) {
+		BigTree::redirect(ADMIN_ROOT."files/error/");
+	} else {
+		BigTree::redirect(ADMIN_ROOT."files/folder/".$file["folder"]."/");
+	}
 
-	BigTree::redirect(ADMIN_ROOT."files/folder/".$file["folder"]."/");
