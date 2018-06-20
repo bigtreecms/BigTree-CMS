@@ -1,4 +1,8 @@
 <?php
+	if (!$_SESSION["bigtree_admin"]["form_data"]) {
+		BigTree::redirect($_SESSION["bigtree_admin"]["cropper_previous_page"]);
+	}
+	
 	$crops = $cms->cacheGet("org.bigtreecms.crops", $_POST["crop_key"]);
 	$count = count($crops);
 ?>
