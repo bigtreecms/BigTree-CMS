@@ -65,7 +65,7 @@
 		$path = SERVER_ROOT."extensions/$extension/field-types/$field_type/settings.php";
 
 		// < 4.3 filename
-		if (file_exists($path)) {
+		if (!file_exists($path)) {
 			$path = SERVER_ROOT."extensions/$extension/field-types/$field_type/options.php";
 		}
 	}
