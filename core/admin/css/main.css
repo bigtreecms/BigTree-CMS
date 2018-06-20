@@ -940,6 +940,7 @@
 	.container header h2.cropper { line-height: 46px; }
 	.container header h2.cropper span { background-image: none; display: block; float: left; height: auto; margin: 0 8px 0 0; width: auto; }
 	.container header h2.cropper span.count { color: #59A8E9; font-size: 20px; }
+	.container header h2.cropper .button_loader { float: left; margin: 14px 0 0 20px; }
 
 /*---------------------------
 	Analytics

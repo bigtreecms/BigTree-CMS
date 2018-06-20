@@ -4,7 +4,7 @@
 ?>
 <div class="container">
 	<header>
-		<h2 class="cropper"><span>Processing Crops</span> <span class="count current">1</span> <span>of</span> <span class="count total"><?=$count?></span></h2>
+		<h2 class="cropper"><span>Processing Crops</span> <span class="count current">1</span> <span>of</span> <span class="count total"><?=$count?></span><div class="button_loader"></div></h2>
 	</header>
 	
 	<section>
