@@ -836,12 +836,13 @@
 			Parameters:
 				table - The table to search
 				values - An array of key/value pairs to match against (i.e. "id" => "10") or just an ID
+				ignored_id - An ID to ignore
 
 			Returns:
 				true if a row already exists that matches the passed in key/value pairs.
 		*/
 		
-		public static function exists($table, $values) {
+		public static function exists($table, $values, $ignored_id = null) {
 			// Passing an array of key/value pairs
 			if (is_array($values)) {
 				$where = array();
@@ -853,6 +854,11 @@
 			} else {
 				$where = ["`id` = ?"];
 				$values = [$values];
+			}
+			
+			if (!is_null($ignored_id)) {
+				$where[] = "id != ?";
+				$values[] = $ignored_id;
 			}
 			
 			// Push the query onto the array stack so it's the first query parameter
