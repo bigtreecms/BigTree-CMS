@@ -7,7 +7,7 @@
 		"saved_file_data" => $bigtree["file_data"]
 	);
 
-	if (count($matrix["field"]["input"])) {
+	if (is_array($matrix["field"]["input"]) && count($matrix["field"]["input"])) {
 		foreach ($matrix["field"]["input"] as $number => $data) {
 			// Make sure something has been entered
 			if (array_filter((array)$data) || array_filter((array)$matrix["field"]["file_input"][$number])) {

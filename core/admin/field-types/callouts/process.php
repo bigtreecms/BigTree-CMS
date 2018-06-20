@@ -8,7 +8,7 @@
 
 	$callouts = array();
 
-	if (count($field["input"])) {
+	if (is_array($field["input"]) && count($field["input"])) {
 		foreach ($field["input"] as $number => $data) {
 			// Make sure there's a callout here
 			if ($data["type"]) {

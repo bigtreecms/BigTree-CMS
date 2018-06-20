@@ -1469,7 +1469,7 @@
 				}
 			}
 
-			$this->updateTagReferenceCounts($data["_tags"]);
+			$this->updateTagReferenceCounts($data["_tags"] ?: []);
 
 			// If there was an old page that had previously used this path, dump its history so we can take over the path.
 			sqlquery("DELETE FROM bigtree_route_history WHERE old_route = '$path'");
@@ -8531,7 +8531,8 @@
 			}
 			
 			// Copy it to the saved versions
-			SQL::insert("bigtree_page_revisions", $page, [
+			SQL::insert("bigtree_page_revisions", [
+				"page" => $page,
 				"title" => $current["title"],
 				"meta_keywords" => $current["meta_keywords"],
 				"meta_description" => $current["meta_description"],
@@ -8707,7 +8708,7 @@
 				}
 			}
 
-			$this->updateTagReferenceCounts($data["_tags"]);
+			$this->updateTagReferenceCounts($data["_tags"] ?: []);
 
 			// Audit trail.
 			$this->track("bigtree_pages",$page,"updated");
