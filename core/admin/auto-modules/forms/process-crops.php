@@ -3,8 +3,14 @@
 		BigTree::redirect($_SESSION["bigtree_admin"]["cropper_previous_page"]);
 	}
 	
+	if ($_POST["front_end_editor"]) {
+		$bigtree["layout"] = "front-end";
+	}
+	
 	$crops = $cms->cacheGet("org.bigtreecms.crops", $_POST["crop_key"]);
 	$count = count($crops);
+	
+	$return_link = $_POST["return_page"] ?: $bigtree["form_root"]."finish-crops/";
 ?>
 <div class="container">
 	<header>
@@ -43,7 +49,7 @@
 
 				if (Current > Total) {
 					window.onbeforeunload = null;
-					document.location.href = "<?=$bigtree["form_root"]?>finish-crops/";
+					document.location.href = "<?=$return_link?>";
 				} else {
 					process();
 				}

@@ -2,6 +2,7 @@
 <form class="bigtree_dialog_form" method="post" action="<?=ADMIN_ROOT?>pages/process-crops/" id="crop_form">
 	<div class="overflow">
 		<p>You have <?=count($bigtree["crops"])?> image<?php if (count($bigtree["crops"]) > 1) { ?>s<?php } ?> that need<?php if (count($bigtree["crops"]) == 1) { ?>s<?php } ?> to be cropped.</p>
+		<input type="hidden" name="front_end_editor" value="true" />
 		<input type="hidden" name="return_page" value="<?=ADMIN_ROOT?>pages/front-end-return/<?=base64_encode($refresh_link)?>/" />
 		<input type="hidden" name="crop_key" value="<?=htmlspecialchars($_SESSION["bigtree_admin"]["form_data"]["crop_key"])?>" />
 		<section id="cropper">
