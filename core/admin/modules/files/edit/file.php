@@ -104,6 +104,8 @@
 	</footer>
 </form>
 
+<?php include BigTree::path("admin/layouts/_html-field-loader.php"); ?>
+
 <script>
 	BigTreeFormValidator("form.container");
 </script>
