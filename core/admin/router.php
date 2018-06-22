@@ -99,7 +99,6 @@
 			}
 			
 			// Load LESS compiler
-			include_once $server_root."core/inc/lib/less.php/lessc.inc.php";
 			$parser = new \Less_Parser(["compress" => true]);
 			$parser->parseFile($css_file);
 			$css = $parser->getCss();
