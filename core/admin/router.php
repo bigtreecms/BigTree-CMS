@@ -85,10 +85,13 @@
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
 		
 		// Handle LESS
-		if (strtolower(substr($css_file, -5, 5)) == ".less") {
+		if (strtolower(substr($css_file, -5, 5)) == ".less") {						
 			$server_root = isset($server_root) ? $server_root : str_replace("core/admin/router.php", "", strtr(__FILE__, "\\", "/"));
 			$cache_file = $server_root."cache/admin-compiled-css-".md5($css_file).".css";
 			
+			require_once $server_root."vendor/oyejorge/less.php/lib/Less/Autoloader.php";
+			Less_Autoloader::register();
+
 			// Already compiled this, just return it
 			if (file_exists($cache_file) && filemtime($cache_file) >= $last_modified) {
 				readfile($cache_file);
