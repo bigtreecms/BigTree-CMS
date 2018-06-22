@@ -59,35 +59,56 @@
 
 	// CSS
 	if ($bigtree["path"][1] == "css") {
-		// Load utils since it has the CSS3 auto-formatter
-		if (file_exists("../custom/inc/bigtree/utils.php")) {
-			include "../custom/inc/bigtree/utils.php";
-		} else {
-			include "../core/inc/bigtree/utils.php";
-		}
-
-		$css_path = implode("/",array_slice($bigtree["path"],2));
+		$css_path = implode("/", array_slice($bigtree["path"], 2));
+		
 		if (defined("EXTENSION_ROOT")) {
 			$css_file = EXTENSION_ROOT."css/$css_path";
 		} else {
 			$css_file = file_exists("../custom/admin/css/$css_path") ? "../custom/admin/css/$css_path" : "../core/admin/css/$css_path";
 		}
-
+		
 		if (function_exists("apache_request_headers")) {
 			$headers = apache_request_headers();
 			$ims = isset($headers["If-Modified-Since"]) ? $headers["If-Modified-Since"] : "";
 		} else {
 			$ims = isset($_SERVER["HTTP_IF_MODIFIED_SINCE"]) ? $_SERVER["HTTP_IF_MODIFIED_SINCE"] : "";
 		}
-
+		
 		$last_modified = filemtime($css_file);
+	
 		if ($ims && strtotime($ims) == $last_modified) {
 			header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
 			die();
 		}
+		
 		header("Content-type: text/css");
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-		die(BigTree::formatCSS3(file_get_contents($css_file)));
+		
+		// Handle LESS
+		if (strtolower(substr($css_file, -5, 5)) == ".less") {
+			$server_root = isset($server_root) ? $server_root : str_replace("core/admin/router.php", "", strtr(__FILE__, "\\", "/"));
+			$cache_file = $server_root."cache/admin-compiled-css-".md5($css_file).".css";
+			
+			// Already compiled this, just return it
+			if (file_exists($cache_file) && filemtime($cache_file) >= $last_modified) {
+				readfile($cache_file);
+				die();
+			}
+			
+			// Load LESS compiler
+			include_once $server_root."core/inc/lib/less.php/lessc.inc.php";
+			$parser = new \Less_Parser(["compress" => true]);
+			$parser->parseFile($css_file);
+			$css = $parser->getCss();
+			
+			// Cache and return
+			file_put_contents($cache_file, $css);
+			die($css);
+		}
+		
+		// Regular old CSS
+		readfile($css_file);
+		die();
 	}
 
 	// JavaScript

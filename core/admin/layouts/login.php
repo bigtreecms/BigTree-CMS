@@ -11,7 +11,7 @@
 		<meta charset="utf-8">
 		<meta name="robots" content="noindex,nofollow" />
 		<title><?=$site["nav_title"]?> Login</title>
-		<link rel="stylesheet" href="<?=$root?>css/main.css" type="text/css" media="screen" charset="utf-8" />
+		<link rel="stylesheet" href="<?=$root?>css/main.less" type="text/css" media="screen" charset="utf-8" />
 		<script src="<?=$root?>js/lib.js"></script>
 		<script src="<?=$root?>js/main.js"></script>
 	</head>

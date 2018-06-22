@@ -1961,38 +1961,105 @@
 		margin: 13px;
 	}
 
-	.file_manager_wrapper .table .view_action a {
-		margin-top: 13px;
-	}
+	.file_manager_wrapper {
+		.table .view_action a {
+			margin-top: 13px;
+		}
 
-	.file_manager_wrapper .dropzone {
-		background: #F3F3F3;
-		border: 2px dashed #DDD;
-		overflow: hidden;
-		padding: 50px;
-		text-align: center;
-	}
+		.dropzone {
+			background: #F3F3F3;
+			border: 2px dashed #DDD;
+			overflow: hidden;
+			padding: 50px;
 
-	.file_manager_wrapper .dropzone p {
-		font-size: 16px;
-		margin: 0;		
-	}
+			p {
+				font-size: 16px;
+				margin: 0;
+				text-align: center;
+			}
 
-	.file_manager_wrapper .dz-message {
-		display: none;
-	}
+			&.dz-started p {
+				margin: 0 0 40px 0;
+			}
+		}
 
-	.file_manager_wrapper .dz-preview {
-		float: left;
-		margin: 20px 20px 0 0;
-	}
+		.dz-preview .dz-image {
+			display: none;
+		}
 
-	.file_manager_wrapper .dz-error .dz-success-mark {
-		display: none;
-	}
+		.dz-image-preview .dz-image {
+			display: block;
+		}
 
-	.file_manager_wrapper .dz-success .dz-error-mark {
-		display: none;
+		.dz-message {
+			display: none;
+		}
+
+		.dz-preview {
+			border: 1px solid #DDD;
+			background: #FCFCFC;
+			display: block;
+			margin: 10px 0 0 0;
+			overflow: hidden;
+			padding: 10px;
+			position: relative;
+		}
+
+		.dz-image {
+			height: 40px;
+			float: left;
+			margin: 0 10px 0 0;
+			width: 40px;
+			
+			img {
+				display: block;
+				width: 100%;
+			}
+		}
+
+		.dz-filename {
+			font-size: 14px;
+		}
+
+		.dz-error-message {
+			color: #C0362F;
+			display: none;
+			font-size: 12px;
+			font-weight: bold;
+			margin: 5px 0 0 0;
+		}
+
+		.dz-error .dz-error-message {
+			display: block;
+		}
+
+		.dz-size, .dz-success-mark, .dz-error-mark {
+			display: none;
+		}
+
+		.dz-success {
+			&:after {
+				content: "";
+				background: url(../images/icon-sprite.svg) no-repeat -512px -140px;
+				height: 16px;
+				width: 16px;
+				position: absolute;
+				right: 10px;
+				top: 9px;
+			}
+		}
+
+		.dz-error {
+			&:after {
+				content: "";
+				background: url(../images/icon-sprite.svg) no-repeat -528px -140px;
+				height: 16px;
+				width: 16px;
+				position: absolute;
+				right: 10px;
+				top: 9px;
+			}
+		}
 	}
 
 	/* Dropzone is causing BigTree to build this outside the proper context */
