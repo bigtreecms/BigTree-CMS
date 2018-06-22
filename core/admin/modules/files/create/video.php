@@ -59,17 +59,19 @@
 
 			if ($youtube->Connected) {
 				// Try a higher authenticated version that gets us file dimensions, must own the file
-				$response = $youtube->callUncached("videos", [
-					"part" => "id,snippet,contentDetails,player,statistics,status,topicDetails,recordingDetails,fileDetails",
-					"id" => $video_id
-				]);
-
-				if (isset($response->items) && count($response->items)) {
-					if (!empty($response->items[0]->fileDetails->videoStreams[0])) {
-						$video["height"] = $response->items[0]->fileDetails->videoStreams[0]->heightPixels;
-						$video["width"] = $response->items[0]->fileDetails->videoStreams[0]->widthPixels;
+				try {
+					$response = $youtube->callUncached("videos", [
+						"part" => "id,snippet,contentDetails,player,statistics,status,topicDetails,recordingDetails,fileDetails",
+						"id" => $video_id
+					]);
+	
+					if (isset($response->items) && count($response->items)) {
+						if (!empty($response->items[0]->fileDetails->videoStreams[0])) {
+							$video["height"] = $response->items[0]->fileDetails->videoStreams[0]->heightPixels;
+							$video["width"] = $response->items[0]->fileDetails->videoStreams[0]->widthPixels;
+						}
 					}
-				}
+				} catch (Exception $e) {}
 
 				// Now use the standard
 				$video_data = $youtube->getVideo($video_id);
