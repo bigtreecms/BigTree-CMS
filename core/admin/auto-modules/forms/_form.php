@@ -72,15 +72,30 @@
 			</div>
 			<?php if ($bigtree["form"]["tagging"]) { ?>
 			<div class="tags" id="bigtree_tag_browser">
-				<fieldset>
+				<?php
+					if ($admin->Level > 0) {
+				?>
+				<a href="<?=ADMIN_ROOT?>tags/" class="bigtree_tag_browser_manager">Manage All Tags</a>
+				<?php
+					}
+				?>
+				<fieldset class="tag_browser_entry">
 					<label>Tags<span></span></label>
+					<div class="tag_browser_input_wrapper">
+						<input type="text" name="tag_entry" id="tag_entry" placeholder="Search for or add new tags..." />
+						<ul id="tag_results" style="display: none;"></ul>
+					</div>
 					<ul id="tag_list">
-						<?php foreach ($bigtree["tags"] as $tag) { ?>
-						<li><input type="hidden" name="_tags[]" value="<?=$tag["id"]?>" /><a href="#"><?=$tag["tag"]?><span>x</span></a></li>
-						<?php } ?>
+						<?php
+							if (is_array($bigtree["tags"])) {
+								foreach ($bigtree["tags"] as $tag) {
+						?>
+						<li><input type="hidden" name="_tags[]" value="<?=$tag["id"]?>" /><a href="#"><?=$tag["tag"]?></a></li>
+						<?php
+								}
+							}
+						?>
 					</ul>
-					<input type="text" name="tag_entry" id="tag_entry" />
-					<ul id="tag_results" style="display: none;"></ul>
 				</fieldset>
 			</div>
 			<script>

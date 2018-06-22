@@ -7620,25 +7620,34 @@
 
 			Parameters:
 				tag - A tag to find similar tags for.
+				full_row - Set to true to return a whole tag row rather than just the name (defaults to false)
 
 			Returns:
 				An array of up to 8 similar tags.
 		*/
 
-		public static function searchTags($tag) {
+		public static function searchTags($tag, $full_row = false) {
 			$tags = $dist = array();
 			$meta = metaphone($tag);
 			$q = sqlquery("SELECT * FROM bigtree_tags");
+			
 			while ($f = sqlfetch($q)) {
 				$distance = levenshtein($f["metaphone"],$meta);
+				
 				if ($distance < 2) {
-					$tags[] = $f["tag"];
+					if ($full_row) {
+						$tags[] = $f;
+					} else {
+						$tags[] = $f["tag"];
+					}
+
 					$dist[] = $distance;
 				}
 			}
 
 			array_multisort($dist,SORT_ASC,$tags);
-			return array_slice($tags,0,8);
+
+			return array_slice($tags, 0, 8);
 		}
 
 		/*

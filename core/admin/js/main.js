@@ -1145,7 +1145,7 @@ var BigTreeTagAdder = (function($) {
 	}
 
 	function addedTag(id) {
-		TagList.append($('<li class="tag">').html('<a href="#"><input type="hidden" name="_tags[]" value="' + id + '" />' + ActiveTagName + '<span>x</span></a>'));
+		TagList.append($('<li class="tag">').html('<a href="#"><input type="hidden" name="_tags[]" value="' + id + '" />' + ActiveTagName + '</a>'));
 		TagEntry.val("").focus();
 		TagResults.hide();
 		Dropdown = false;
@@ -1154,25 +1154,29 @@ var BigTreeTagAdder = (function($) {
 	function checkKeys(ev) {
 		if (ev.keyCode == 13) {
 			if (SelectedTag > -1 && Dropdown) {
-				var v = TagResults.find("li").eq(SelectedTag).find("a").html().replace("<span>","").replace("</span>","");
+				var v = TagResults.find("li").eq(SelectedTag).find("a").data("tag");
 				TagEntry.val(v);
 			}
+
 			addTag(ev);
+
 			return false;
 		}
 		if (ev.keyCode == 38) {
 			moveUp(ev);
+
 			return false;
 		}
 		if (ev.keyCode == 40) {
 			moveDown(ev);
+			
 			return false;
 		}
 	}
 
 	function chooseTag(ev) {
 		var el = ev.target;
-		var tag = el.innerHTML.replace("<span>","").replace("</span>","");
+		var tag = $(el).data("tag");
 
 		if (tag) {
 			ActiveTagName = tag;
@@ -1190,6 +1194,7 @@ var BigTreeTagAdder = (function($) {
 
 	function hookResults() {
 		SelectedTag = -1;
+
 		if (TagResults.html()) {
 			TagResults.show();
 			Dropdown = true;
@@ -1203,12 +1208,15 @@ var BigTreeTagAdder = (function($) {
 	function moveDown(ev) {
 		var li = TagResults.find("li");
 		var max = li.length - 1;
+
 		if (!Dropdown || SelectedTag == max) {
 			return;
 		}
+		
 		if (SelectedTag > -1) {
 			li.eq(SelectedTag).removeClass("selected");
 		}
+		
 		SelectedTag++;
 		li.eq(SelectedTag).addClass("selected");
 	}
@@ -1217,9 +1225,12 @@ var BigTreeTagAdder = (function($) {
 		if (!Dropdown || SelectedTag < 0) {
 			return;
 		}
+
 		var li = TagResults.find("li");
+		
 		li.eq(SelectedTag).removeClass("selected");
 		SelectedTag--;
+		
 		if (SelectedTag > -1) {
 			li.eq(SelectedTag).addClass("selected");
 		}
@@ -1227,8 +1238,10 @@ var BigTreeTagAdder = (function($) {
 
 	function searchTags(ev) {
 		var tag = TagEntry.val();
+		
 		if (tag != LastSearch) {
 			LastSearch = tag;
+		
 			if (tag.length > 3) {
 				TagResults.load("admin_root/ajax/tags/search/", { tag: tag }, hookResults);
 			} else {
