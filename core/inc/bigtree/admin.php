@@ -1355,26 +1355,23 @@
 
 			Parameters:
 				data - An array of page information.
+				publishing_change - Set to change ID if publishing a change (causes audit trail to reflect original user as author, defaults false)
 
 			Returns:
 				The id of the newly created page.
 		*/
 
-		public function createPage($data) {
+		public function createPage($data, $publishing_change = false) {
 			// Defaults
 			$parent = 0;
 			$title = $nav_title = $meta_description = $meta_keywords = $external = $template = $in_nav = "";
-			$seo_invisible = $publish_at = $expire_at = $trunk = $new_window = $max_age = false;
+			$seo_invisible = $publish_at = $expire_at = $trunk = $new_window = $max_age = null;
 			$resources = array();
 
 			// Loop through the posted data, make sure no session hijacking is done.
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_") {
-					if (is_array($val)) {
-						$$key = BigTree::json($val,true);
-					} else {
-						$$key = sqlescape($val);
-					}
+					$$key = $val;
 				}
 			}
 
@@ -1383,9 +1380,9 @@
 				$external = $this->makeIPL($external);
 			}
 
-
 			// Who knows what they may have put in for a route, so we're not going to use the sqlescape version.
 			$route = $data["route"];
+			
 			if (!$route) {
 				// If they didn't specify a route use the navigation title
 				$route = BigTreeCMS::urlify($data["nav_title"]);
@@ -1397,12 +1394,14 @@
 			// We need to figure out a unique route for the page. Make sure it doesn't match a directory in /site/
 			$original_route = $route;
 			$x = 2;
+
 			// Reserved paths.
 			if ($parent == 0) {
 				while (file_exists(SERVER_ROOT."site/".$route."/")) {
 					$route = $original_route."-".$x;
 					$x++;
 				}
+
 				while (in_array($route,static::$ReservedTLRoutes)) {
 					$route = $original_route."-".$x;
 					$x++;
@@ -1411,6 +1410,7 @@
 
 			// Make sure it doesn't have the same route as any of its siblings.
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE `route` = '$route' AND parent = '$parent'"));
+			
 			while ($f) {
 				$route = $original_route."-".$x;
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE `route` = '$route' AND parent = '$parent'"));
@@ -1429,38 +1429,83 @@
 
 			// If we set a publish at date, make it the proper MySQL format.
 			if ($publish_at && $publish_at != "NULL") {
-				$publish_at = "'".date("Y-m-d",strtotime($publish_at))."'";
+				$publish_at = date("Y-m-d",strtotime($publish_at));
 			} else {
-				$publish_at = "NULL";
+				$publish_at = null;
 			}
 
 			// If we set an expiration date, make it the proper MySQL format.
 			if ($expire_at && $expire_at != "NULL") {
-				$expire_at = "'".date("Y-m-d",strtotime($expire_at))."'";
+				$expire_at = date("Y-m-d",strtotime($expire_at));
 			} else {
-				$expire_at = "NULL";
+				$expire_at = null;
 			}
-
-			// Make the title, navigation title, description, keywords, and external link htmlspecialchar'd -- these are all things we'll be echoing in the HTML so we might as well make them valid now instead of at display time.
-
-			$title = BigTree::safeEncode($title);
-			$nav_title = BigTree::safeEncode($nav_title);
-			$meta_description = BigTree::safeEncode($meta_description);
-			$meta_keywords = BigTree::safeEncode($meta_keywords);
-			$seo_invisible = $seo_invisible ? "on" : "";
-			$external = BigTree::safeEncode($external);
 
 			// Set the trunk flag back to no if the user isn't a developer
 			if ($this->Level < 2) {
 				$trunk = "";
+			}
+
+			$insert = [
+				"trunk" => $trunk ? "on" : "",
+				"parent" => $parent,
+				"nav_title" => BigTree::safeEncode($nav_title),
+				"route" => $route,
+				"path" => $path,
+				"in_nav" => $in_nav,
+				"title" => BigTree::safeEncode($title),
+				"template" => $template,
+				"external" => BigTree::safeEncode($external),
+				"new_window" => $new_window,
+				"resources" => $resources,
+				"meta_keywords" => BigTree::safeEncode($meta_keywords),
+				"meta_description" => BigTree::safeEncode($meta_description),
+				"seo_invisible" => $seo_invisible ? "on" : "",
+				"last_edited_by" => $this->ID,
+				"created_at" => "NOW()",
+				"updated_at" => "NOW()",
+				"expire_at" => $expire_at,
+				"publish_at" => $publish_at,
+				"max_age" => $max_age
+			];
+
+			if ($publishing_change) {
+				$pending_change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $publishing_change);
+
+				if ($pending_change) {
+					$changes = BigTree::untranslateArray(json_decode($pending_change["changes"], true));
+					$exact = true;
+
+					foreach ($changes as $key => $value) {
+						if ($key == "route" && empty($value)) {
+							continue;
+						}
+
+						if (isset($insert[$key]) && $insert[$key] != $value) {
+							$exact = false;
+						}
+					}
+
+					if ($exact) {
+						$insert["last_edited_by"] = $pending_change["user"];
+					}
+
+					SQL::delete("bigtree_pending_changes", $publishing_change);
+				}
 			} else {
-				$trunk = sqlescape($trunk);
+				$pending_change = false;
 			}
 
 			// Make the page!
-			sqlquery("INSERT INTO bigtree_pages (`trunk`,`parent`,`nav_title`,`route`,`path`,`in_nav`,`title`,`template`,`external`,`new_window`,`resources`,`meta_keywords`,`meta_description`,`seo_invisible`,`last_edited_by`,`created_at`,`updated_at`,`publish_at`,`expire_at`,`max_age`) VALUES ('$trunk','$parent','$nav_title','$route','$path','$in_nav','$title','$template','$external','$new_window','$resources','$meta_keywords','$meta_description','$seo_invisible','".$this->ID."',NOW(),NOW(),$publish_at,$expire_at,'$max_age')");
+			$id = SQL::insert("bigtree_pages", $insert);
 
-			$id = sqlid();
+			// Audit trail
+			if ($pending_change && $pending_change["user"] != $this->ID && $exact) {	
+				$this->track("bigtree_pages", $id, "created via publisher", $pending_change["user"]);
+				$this->track("bigtree_pages", $id, "published");
+			} else {
+				$this->track("bigtree_pages", $id, "created");
+			}
 
 			// Handle tags
 			if (is_array($data["_tags"])) {
@@ -1476,10 +1521,9 @@
 
 			// Dump the cache, we don't really know how many pages may be showing this now in their nav.
 			$this->clearCache();
+
 			// Let search engines know this page now exists.
 			$this->pingSearchEngines();
-			// Audit trail.
-			$this->track("bigtree_pages",$id,"created");
 
 			return $id;
 		}
@@ -7954,13 +7998,16 @@
 				type - The action taken by the user (delete, edit, create, etc.)
 		*/
 
-		public function track($table,$entry,$type) {
+		public function track($table, $entry, $type, $user = null) {
 			// If this is running fron cron or something, nobody is logged in so don't track.
-			if (isset($this->ID)) {
-				$table = sqlescape($table);
-				$entry = sqlescape($entry);
-				$type = sqlescape($type);
-				sqlquery("INSERT INTO bigtree_audit_trail (`table`,`user`,`entry`,`date`,`type`) VALUES ('$table','".$this->ID."','$entry',NOW(),'$type')");
+			if (isset($this->ID) || !is_null($user)) {
+				SQL::insert("bigtree_audit_trail", [
+					"table" => $table,
+					"user" => !is_null($user) ? $user : $this->ID,
+					"entry" => $entry,
+					"date" => "NOW()",
+					"type" => $type
+				]);
 			}
 		}
 
@@ -8571,6 +8618,7 @@
 			Parameters:
 				page - The page id to update.
 				data - The page data to update with.
+				publisher - If set to true, the owner of the current pending change will be marked as the author of this page. (defaults to false)
 		*/
 
 		public function updatePage($page, $data) {
@@ -8709,8 +8757,8 @@
 			} else {
 				$path = $data["route"];
 			}
-			
-			SQL::update("bigtree_pages", $page, [
+
+			$update = [
 				"trunk" => $data["trunk"],
 				"parent" => $data["parent"],
 				"nav_title" => BigTree::safeEncode($data["nav_title"]),
@@ -8730,8 +8778,34 @@
 				"max_age" => $data["max_age"],
 				"last_edited_by" => $this->ID,
 				"updated_at" => "NOW()"
-			]);
+			];
+
+			// Check if this data is exactly the same as the pending copy -- if it is, attribute it to the change author, not the publisher
+			$pending = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = ?", $page);
+
+			if ($pending && $pending["user"] != $admin->ID) {
+				$exact = true;
+				$changes = BigTree::untranslateArray(json_decode($pending["changes"], true));
+
+				foreach ($changes as $key => $value) {
+					if ($update[$key] != $value) {
+						$exact = false;
+					}
+				}
+
+				if ($exact) {
+					$update["last_edited_by"] = $pending["user"];
+					$this->track("bigtree_pages", $page, "updated via publisher", $pending["user"]);
+					$this->track("bigtree_pages", $page, "published");
+				} else {
+					$this->track("bigtree_pages", $page, "updated");
+				}
+			} else {
+				$this->track("bigtree_pages", $page, "updated");
+			}
 			
+			SQL::update("bigtree_pages", $page, $update);
+
 			// Remove any pending drafts
 			SQL::delete("bigtree_pending_changes", ["table" => "bigtree_pages", "item_id" => $page]);
 
@@ -8765,9 +8839,6 @@
 			}
 
 			$this->updateTagReferenceCounts($data["_tags"] ?: []);
-
-			// Audit trail.
-			$this->track("bigtree_pages",$page,"updated");
 
 			// If this page is a trunk in a multi-site setup, wipe the cache
 			foreach (BigTreeCMS::$SiteRoots as $site_path => $site_data) {

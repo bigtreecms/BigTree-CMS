@@ -32,6 +32,7 @@
 			$admin->updatePage($change["item_id"],$page_data);
 		} else {
 			BigTreeAutoModule::updateItem($change["table"],$change["item_id"],$change["changes"],$change["mtm_changes"],$change["tags_changes"]);
+			
 			if ($change["publish_hook"]) {
 				call_user_func($change["publish_hook"],$change["table"],$change["item_id"],$change["changes"],$change["mtm_changes"],$change["tags_changes"]);
 			}
@@ -39,10 +40,10 @@
 	// It's a new entry, let's publish it.
 	} else {
 		if ($change["table"] == "bigtree_pages") {
-			$page = $admin->createPage($change["changes"]);
-			$admin->deletePendingChange($change["id"]);
+			$page = $admin->createPage($change["changes"], $change["id"]);
 		} else {
 			$id = BigTreeAutoModule::publishPendingItem($change["table"],$change["id"],$change["changes"],$change["mtm_changes"],$change["tags_changes"]);
+			
 			if ($change["publish_hook"]) {
 				call_user_func($change["publish_hook"],$change["table"],$id,$change["changes"],$change["mtm_changes"],$change["tags_changes"]);
 			}

@@ -64,8 +64,7 @@
 				$_POST["parent"] = $bigtree["current_page_data"]["parent"];
 			}
 			
-			$admin->deletePendingChange(substr($id,1));
-			$id = $admin->createPage($_POST);
+			$id = $admin->createPage($_POST, substr($id, 1));
 			$admin->growl("Pages","Created & Published Page");
 		} else {
 			// It's an existing page.

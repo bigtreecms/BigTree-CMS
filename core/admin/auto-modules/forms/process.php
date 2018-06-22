@@ -5,6 +5,7 @@
 	$bigtree["preprocessed"] = array();
 	if ($bigtree["form"]["hooks"]["pre"]) {
 		$bigtree["preprocessed"] = call_user_func($bigtree["form"]["hooks"]["pre"],$_POST);
+		
 		// Update the $_POST
 		if (is_array($bigtree["preprocessed"])) {
 			foreach ($bigtree["preprocessed"] as $key => $val) {
@@ -25,6 +26,7 @@
 		if ($previous_permission != "p") {
 			$bigtree["access_level"] = $previous_permission;
 		}
+
 		// Check the original. If we're not already at "you're not allowed" then apply the original permission.
 		if ($bigtree["access_level"] != "n" && $original_permission != "p") {
 			$bigtree["access_level"] = $original_permission;
@@ -85,6 +87,7 @@
 	// Check to see if this is a positioned element
 	// If it is and the form is setup to create new items at the top and this is a new record, update the position column.
 	$table_description = BigTree::describeTable($table);
+	
 	if (isset($table_description["columns"]["position"]) && $bigtree["form"]["default_position"] == "Top" && !$_POST["id"]) {
 		$max = sqlrows(sqlquery("SELECT id FROM `$table`")) + sqlrows(sqlquery("SELECT id FROM `bigtree_pending_changes` WHERE `table` = '".sqlescape($table)."'"));
 		$item["position"] = $max;
@@ -93,6 +96,7 @@
 	// Let's stick it in the database or whatever!
 	$data_action = ($_POST["save_and_publish"] || $_POST["save_and_publish_x"] || $_POST["save_and_publish_y"]) ? "publish" : "save";
 	$did_publish = false;
+
 	// We're an editor or "Save" was chosen
 	if ($bigtree["access_level"] == "e" || $data_action == "save") {
 		// We have an existing module entry we're saving a change to.
@@ -143,12 +147,15 @@
 	// Figure out if we should return to a view with search results / page / sorting preset.
 	if (isset($_POST["_bigtree_return_view_data"])) {
 		$return_view_data = json_decode(base64_decode($_POST["_bigtree_return_view_data"]),true);
+		
 		if (!$bigtree["form"]["return_view"] || $bigtree["form"]["return_view"] == $return_view_data["view"]) {
 			$redirect_append = array();
 			unset($return_view_data["view"]); // We don't need the view passed back.
+			
 			foreach ($return_view_data as $key => $val) {
 				$redirect_append[] = "$key=".urlencode($val);
 			}
+			
 			$redirect_append = "?".implode("&",$redirect_append);
 		}
 	} else {
@@ -161,6 +168,7 @@
 	if ($bigtree["form"]["return_view"]) {
 		$view = BigTreeAutoModule::getView($bigtree["form"]["return_view"]);
 		$action = $admin->getModuleActionForView($bigtree["form"]["return_view"]);
+		
 		if ($action["route"]) {
 			$redirect_url = ADMIN_ROOT.$bigtree["module"]["route"]."/".$action["route"]."/".$redirect_append;
 		} else {

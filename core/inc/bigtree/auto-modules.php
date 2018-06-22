@@ -335,24 +335,28 @@
 				data - An array of form data to enter into the table. This function determines what data in the array applies to a column in the database and discards the rest.
 				many_to_many - Many to many relationship entries.
 				tags - Tags for the entry.
+				publishing_change - A change ID that is being published (defaults to null)
 			
 			Returns:
 				The id of the new entry in the database.
 		*/
 
-		public static function createItem($table,$data,$many_to_many = array(),$tags = array()) {			
+		public static function createItem($table, $data, $many_to_many = array(), $tags = array(), $publishing_change = null) {			
 			$table_description = BigTree::describeTable($table);
 			$query_fields = array();
 			$query_vals = array();
+
 			foreach ($data as $key => $val) {
 				if (array_key_exists($key,$table_description["columns"])) {
 					$query_fields[] = "`".$key."`";
+					
 					if ($val === "NULL" || $val == "NOW()") {
 						$query_vals[] = $val;
 					} else {
 						if (is_array($val)) {
 							$val = json_encode(BigTree::translateArray($val));
 						}
+						
 						$query_vals[] = "'".sqlescape($val)."'";
 					}
 				}
@@ -360,6 +364,7 @@
 			
 			// Insert, if there's a failure return false instead of doing the rest
 			$success = sqlquery("INSERT INTO `$table` (".implode(",",$query_fields).") VALUES (".implode(",",$query_vals).")");
+			
 			if (!$success) {
 				return false;
 			}
@@ -369,14 +374,17 @@
 			// Handle many to many
 			foreach ($many_to_many as $mtm) {
 				$table_description = BigTree::describeTable($mtm["table"]);
+				
 				if (is_array($mtm["data"])) {
 					$x = count($mtm["data"]);
+				
 					foreach ($mtm["data"] as $position => $item) {
 						if (isset($table_description["columns"]["position"])) {
 							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$x')");
 						} else {
 							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`) VALUES ('$id','$item')");
 						}
+				
 						$x--;
 					}
 				}
@@ -384,6 +392,7 @@
 
 			// Handle the tags
 			sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = '$id'");
+			
 			if (is_array($tags)) {
 				foreach ($tags as $tag) {
 					$tag = intval($tag);
@@ -395,7 +404,34 @@
 				BigTreeAdmin::updateTagReferenceCounts($tags);
 			}
 			
-			self::cacheNewItem($id,$table);			
+			self::cacheNewItem($id,$table);
+
+			// Attribute this to the original pending change author if the data hasn't changed
+			if ($publishing_change) {
+				$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $publishing_change);
+
+				if ($change) {
+					$change_data = BigTree::untranslateArray(json_decode($change["changes"], true));
+					$exact = true;
+
+					foreach ($change_data as $key => $value) {
+						if (isset($data[$key]) && $data[$key] != $value) {
+							$exact = false;
+						}
+					}
+
+					SQL::delete("bigtree_pending_changes", $publishing_change);
+					self::uncacheItem("p".$publishing_change, $table);
+
+					if ($exact) {
+						self::track($table, $id, "created via publisher", $change["user"]);
+						self::track($table, $id, "published");
+
+						return $id;
+					}
+				}
+			}
+
 			self::track($table,$id,"created");
 
 			return $id;
@@ -1489,9 +1525,8 @@
 				The id of the new entry.
 		*/
 		
-		public static function publishPendingItem($table,$id,$data,$many_to_many = array(),$tags = array()) {
-			self::deletePendingItem($table,$id);
-			return self::createItem($table,$data,$many_to_many,$tags);
+		public static function publishPendingItem($table, $id, $data, $many_to_many = array(), $tags = array()) {
+			return self::createItem($table, $data, $many_to_many, $tags, $id);
 		}
 		
 		/*
@@ -1663,12 +1698,14 @@
 				table - The table that is being changed
 				id - The id of the record being changed
 				action - The action being taken
+				user - A user ID to attribute the change to
 		*/
 
-		public static function track($table,$id,$action) {
+		public static function track($table, $id, $action, $user = null) {
 			global $admin;
-			if (isset($admin) && get_class($admin) == "BigTreeAdmin" && $admin->ID) {
-				$admin->track($table,$id,$action);
+
+			if (isset($admin) && get_class($admin) == "BigTreeAdmin" && (!is_null($user) || $admin->ID)) {
+				$admin->track($table, $id, $action, $user);
 			}
 		}
 		
@@ -1716,6 +1753,7 @@
 						if (is_array($val)) {
 							$val = json_encode(BigTree::translateArray($val));
 						}
+
 						$query .= "`$key` = '".sqlescape($val)."',";
 					}
 				}
@@ -1729,14 +1767,17 @@
 				foreach ($many_to_many as $mtm) {
 					sqlquery("DELETE FROM `".$mtm["table"]."` WHERE `".$mtm["my-id"]."` = '$id'");
 					$table_description = BigTree::describeTable($mtm["table"]);
+					
 					if (is_array($mtm["data"])) {
 						$x = count($mtm["data"]);
+						
 						foreach ($mtm["data"] as $item) {
 							if (isset($table_description["columns"]["position"])) {
 								sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$x')");
 							} else {
 								sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`) VALUES ('$id','$item')");
 							}
+
 							$x--;
 						}
 					}
@@ -1755,16 +1796,36 @@
 				}
 
 				BigTreeAdmin::updateTagReferenceCounts($tags);
+			}			
+
+			// See if there's a pending change that's being published
+			$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = ? AND `item_id` = ?", $table, $id);
+
+			if ($change) {
+				$change_data = BigTree::untranslateArray(json_decode($change["changes"], true));
+				$exact = true;
+
+				foreach ($change_data as $key => $value) {
+					if (isset($data[$key]) && $data[$key] != $value) {
+						$exact = false;
+					}
+				}
+
+				SQL::delete("bigtree_pending_changes", $change["id"]);
+
+				if ($exact) {
+					self::track($table, $id, "updated via publisher", $change["user"]);
+					self::track($table, $id, "published");
+				} else {
+					self::track($table, $id, "updated");
+				}
+			} else {
+				self::track($table, $id, "updated");
 			}
-			
-			// Clear out any pending changes.
-			sqlquery("DELETE FROM bigtree_pending_changes WHERE item_id = '$id' AND `table` = '$table'");
-			
+
 			if ($table != "bigtree_pages") {
 				self::recacheItem($id,$table);
 			}
-			
-			self::track($table,$id,"updated");
 		}
 
 		/*
