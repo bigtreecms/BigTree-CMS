@@ -70,7 +70,7 @@
 					<?php
 						} else {
 					?>
-					<span class="icon_small icon_small_file_default icon_small_file_<?=$resource["type"]?>"></span>
+					<span class="icon_file_default icon_file_<?=$resource["type"]?>"></span>
 					<?php
 						}
 					?>
