@@ -6996,7 +6996,7 @@
 			}
 			
 			// For crops that don't meet the required image size, see if a sub-crop will work.
-			if (is_array($field["settings"]["crops"])) {
+			if (!$failed && is_array($field["settings"]["crops"])) {
 				foreach ($field["settings"]["crops"] as $crop_index => $crop) {
 					// Let's see if we can elevate another crop to the top.
 					if (($image_width < $crop["width"] || $image_height < $crop["height"]) && is_array($crop["thumbs"]) && count($crop["thumbs"]))  {
