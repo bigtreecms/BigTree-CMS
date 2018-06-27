@@ -2,6 +2,7 @@
 	$bigtree["js"][] = "dropzone.js";
 	$bigtree["breadcrumb"][] = ["link" => "#", "title" => "Add Files"];
 	$permission = $admin->getResourceFolderPermission($bigtree["commands"][0]);
+	$storage = new BigTreeStorage;
 
 	if ($permission != "p") {
 		$admin->stop("You do not have permission to create content in this folder.");
@@ -28,7 +29,9 @@
 
 		Dropzone.options.fileManagerDropzone = {
 			accept: function(file, done) {
-				if (file.type.indexOf("image") !== -1) {
+				if (file.name.match(<?=$storage->DisabledExtensionRegEx?>)) {
+					done("This file type is disabled for security reasons.");
+				} else if (file.type.indexOf("image") !== -1) {
 					done("This form does not accept images.");
 				} else {
 					done();
