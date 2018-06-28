@@ -19,30 +19,8 @@
 
 		if ($extension == "jpg" || $extension == "jpeg" || $extension == "png" || $extension == "gif") {
 			$file_name = SITE_ROOT."files/temporary/".$admin->ID."/".$file;
-			$min_height = intval($preset["min_height"]);
-			$min_width = intval($preset["min_width"]);
-			
 			list($width, $height, $type, $attr) = getimagesize($file_name);
-			
-			if ($min_height > $height || $min_width > $width) {
-				$error = "Image uploaded (".htmlspecialchars($file_name).") did not meet the minimum size of ";
-				
-				if ($min_height && $min_width) {
-					$error .= $min_width."x".$min_height." pixels.";
-				} elseif ($min_height) {
-					$error .= $min_height." pixels tall.";
-				} elseif ($min_width) {
-					$error .= $min_width." pixels wide.";
-				}
-				
-				$bigtree["errors"][] = array("field" => "Image", "error" => $error);
-				
-				@unlink($file_name);
-				
-				continue;
-			}
-		
-			$field = [
+			$output = $admin->processImageUpload([
 				"title" => $file,
 				"file_input" => [
 					"tmp_name" => $file_name,
@@ -53,9 +31,7 @@
 					"directory" => "files/resources/",
 					"preset" => "default"
 				]
-			];
-
-			$output = $admin->processImageUpload($field);
+			]);
 			
 			if ($output) {
 				include BigTree::path("admin/modules/files/process/_resource-prefixes.php");
