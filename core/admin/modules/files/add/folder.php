@@ -6,7 +6,7 @@
 		$admin->stop("You do not have permission to create content in this folder.");
 	}
 ?>
-<form method="post" action="<?=ADMIN_ROOT?>files/create/folder/" class="container">
+<form method="post" action="<?=ADMIN_ROOT?>files/process/folder/" class="container">
 	<?php $admin->drawCSRFToken(); ?>
 	<input type="hidden" name="folder" value="<?=intval($bigtree["commands"][0])?>">
 	
