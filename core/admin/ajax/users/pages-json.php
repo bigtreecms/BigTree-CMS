@@ -19,4 +19,4 @@
 		return $response;
 	}
 
-	echo json_encode(_localRecurseNav(0))
+	echo json_encode(_localRecurseNav(0));
