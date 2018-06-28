@@ -32,6 +32,8 @@
 ?>
 <div class="table auto_modules image_list">
 	<?php
+		include "_developer-buttons.php";
+		
 		if (($permission == "p" && $draggable) || isset($view["actions"]["edit"])) {
 	?>
 	<summary>

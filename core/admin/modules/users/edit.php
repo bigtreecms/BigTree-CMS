@@ -19,12 +19,6 @@
 	$bigtree["gravatar"] = $user["email"];
 	BigTree::globalizeArray($user);
 
-	// Add a nice audit trail quick link
-	if ($admin->Level > 1) {
-		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/audit/search/?user=".$user["id"]."&".$admin->CSRFTokenField."=".urlencode($admin->CSRFToken),"icon" => "trail","title" => "View Audit Trail");
-		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/security/remove-2fa/?user=".$user["id"]."&".$admin->CSRFTokenField."=".urlencode($admin->CSRFToken),"icon" => "delete","title" => "Remove Two Factor Authentication");
-	}
-	
 	if (!$permissions) {
 		$permissions = array(
 			"page" => array(),
@@ -144,6 +138,7 @@
 	}
 	
 	$error = "";
+
 	if (isset($_SESSION["bigtree_admin"]["update_user"])) {
 		BigTree::globalizeArray($_SESSION["bigtree_admin"]["update_user"],array("htmlspecialchars"));
 		unset($_SESSION["bigtree_admin"]["update_user"]);
@@ -157,6 +152,28 @@
 	$groups = $admin->getModuleGroups("name ASC");
 ?>
 <div class="container">
+	<?php
+		if ($admin->Level > 1) {
+	?>
+	<div class="developer_buttons">
+		<a href="<?=ADMIN_ROOT?>developer/audit/search/?user=<?=$user["id"]."&".$admin->CSRFTokenField."=".urlencode($admin->CSRFToken)?>" title="View Audit Trail for User">
+			View Audit Trail for User
+			<span class="icon_small icon_small_trail"></span>
+		</a>
+		<?php
+			if ($user["2fa_secret"]) {
+		?>
+		<a href="<?=ADMIN_ROOT?>developer/security/remove-2fa/?user=<?=$user["id"]."&".$admin->CSRFTokenField."=".urlencode($admin->CSRFToken)?>" title="Remove Two Factor Authentication for User">
+			Remove Two Factor Authentication for User
+			<span class="icon_small icon_small_warning"></span>
+		</a>
+		<?php
+			}
+		?>
+	</div>
+	<?php
+		}
+	?>
 	<form class="module" action="<?=ADMIN_ROOT?>users/update/" method="post">
 		<?php $admin->drawCSRFToken() ?>
 		<input type="hidden" name="id" value="<?=$user["id"]?>" />

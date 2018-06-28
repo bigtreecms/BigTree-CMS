@@ -2,6 +2,7 @@
 	$search = isset($_GET["search"]) ? htmlspecialchars($_GET["search"]) : "";
 ?>
 <div class="table auto_modules">
+	<?php include "_developer-buttons.php" ?>
 	<summary>
 		<input type="search" class="form_search" id="search" placeholder="Search" value="<?=$search?>" />
 		<span class="form_search_icon"></span>

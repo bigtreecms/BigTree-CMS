@@ -27,6 +27,7 @@
 	}
 </script>
 <div class="table auto_modules nested_table" id="nested_container">
+	<?php include "_developer-buttons.php" ?>
 	<summary>
 		<input type="search" class="form_search" id="search" placeholder="Search" value="<?=$search?>" />
 		<span class="form_search_icon"></span>

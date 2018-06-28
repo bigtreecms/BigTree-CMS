@@ -1,5 +1,17 @@
 <div class="container">
 	<form method="post" action="<?=ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/".$bigtree["report"]["type"]?>/">
+		<?php
+			if ($admin->Level > 1) {
+		?>
+		<div class="developer_buttons">
+			<a href="<?=ADMIN_ROOT?>developer/modules/reports/edit/<?=$bigtree["report"]["id"]?>/?return=front" title="Edit Report in Developer">
+				Edit Report in Developer
+				<span class="icon_small icon_small_edit_yellow"></span>
+			</a>
+		</div>
+		<?php
+			}
+		?>
 		<section>
 			<?php
 				foreach ($bigtree["report"]["filters"] as $id => $filter) {

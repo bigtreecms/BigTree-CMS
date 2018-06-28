@@ -10,6 +10,23 @@
 		</fieldset>
 		<?php
 			} else {
+				if ($admin->Level > 1) {
+		?>
+		<div class="developer_buttons">
+			<a href="<?=ADMIN_ROOT?>developer/modules/forms/edit/<?=$bigtree["form"]["id"]?>/?return=front" title="Edit Form in Developer">
+				Edit Form in Developer
+				<span class="icon_small icon_small_edit_yellow"></span>
+			</a>
+			<?php if ($bigtree["edit_id"]) { ?>
+			<a href="<?=ADMIN_ROOT?>developer/audit/search/?table=<?=$bigtree["form"]["table"]?>&entry=<?=$bigtree["edit_id"]."&".$admin->CSRFTokenField."=".urlencode($admin->CSRFToken)?>" title="View Entry Audit Trail">
+				View Entry Audit Trail
+				<span class="icon_small icon_small_trail"></span>
+			</a>
+			<?php } ?>
+		</div>
+		<?php
+				}
+
 				$admin->drawCSRFToken();
 			}
 		?>

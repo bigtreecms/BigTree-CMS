@@ -24,8 +24,19 @@
 	$bigtree["field_counter"] = 0;
 ?>
 <div class="container">
+	<?php
+		if ($admin->Level > 1) {
+	?>
+	<div class="developer_buttons">
+		<a href="<?=ADMIN_ROOT?>developer/settings/edit/<?=$item["id"]?>/" title="Edit Setting in Developer">
+			Edit Setting in Developer
+			<span class="icon_small icon_small_edit_yellow"></span>
+		</a>
+	</div>
+	<?php
+		}
+	?>
 	<summary>
-		<?php if ($admin->Level > 1) { ?><a href="<?=ADMIN_ROOT?>developer/settings/edit/<?=$item["id"]?>/" class="more">Edit in Developer</a><?php } ?>
 		<h2><?=$item["name"]?></h2>
 	</summary>
 	<form class="module" action="<?=ADMIN_ROOT?>settings/update/" method="post" enctype="multipart/form-data">

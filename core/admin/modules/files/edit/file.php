@@ -35,7 +35,24 @@
 	}
 ?>
 <form class="container" method="post" action="<?=ADMIN_ROOT?>files/update/file/" enctype="multipart/form-data">
-	<?php $admin->drawCSRFToken(); ?>
+	<?php
+		if ($admin->Level > 1) {
+	?>
+	<div class="developer_buttons">
+		<a href="<?=ADMIN_ROOT?>developer/files/" title="Edit Metadata Settings">
+			Edit Metadata Settings
+			<span class="icon_small icon_small_edit_yellow"></span>
+		</a>
+		<a href="<?=ADMIN_ROOT?>developer/audit/?table=bigtree_resources&entry=<?=$file["id"]?><?php $admin->drawCSRFTokenGET(); ?>" title="View File Audit Trail">
+			View File Audit Trail
+			<span class="icon_small icon_small_trail"></span>
+		</a>
+	</div>
+	<?php
+		}
+
+		$admin->drawCSRFToken();
+	?>
 	<input type="hidden" name="id" value="<?=$file["id"]?>">
 
 	<section>

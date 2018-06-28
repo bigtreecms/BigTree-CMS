@@ -6,19 +6,10 @@
 	} else {
 		$bigtree["edit_id"] = $edit_id = $_POST["id"] ? $_POST["id"] : false;
 	}
+	
 	$bigtree["form"] = $form = BigTreeAutoModule::getForm($bigtree["module_action"]["form"]);
 	$bigtree["form_root"] = ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/";
 	$bigtree["related_view"] = BigTreeAutoModule::getRelatedViewForForm($bigtree["form"]);
-	
-	// Provide developers a nice handy link for edit/return of this form
-	if ($admin->Level > 1) {
-		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/modules/forms/edit/".$bigtree["form"]["id"]."/?return=front","icon" => "setup","title" => "Edit in Developer");
-	
-		// Audit Trail link
-		if ($bigtree["edit_id"]) {
-			$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/audit/search/?table=".$bigtree["form"]["table"]."&entry=".$bigtree["edit_id"]."&".$admin->CSRFTokenField."=".urlencode($admin->CSRFToken),"icon" => "trail","title" => "View Audit Trail");		
-		}
-	}
 	
 	$action = $bigtree["commands"][0];
 

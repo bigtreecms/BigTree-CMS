@@ -512,7 +512,12 @@
 	footer.main .fastspot a:hover { color: #59A8E9; }
 
 /* Form Container Styles */
-	.container { background: #FFF; border: 1px solid #ccc; border-radius: 3px; margin: 0 0 25px 0; overflow: hidden; }
+	.container { background: #FFF; border: 1px solid #ccc; border-radius: 3px; margin: 0 0 25px 0; position: relative; }
+	.container:after {
+		content: "";
+		display: table;
+		clear: both;
+	}
 	.container header { background: #eee; border-bottom: 1px solid #ccc; border-radius: 2px 2px 0 0; height: 45px; }
 	.container header p { color: #666; font-size: 12px; line-height: 45px; padding: 0 15px; }
 	.container header h2 { float: left; font-size: 14px; line-height: 37px; margin: 0; padding: 0 15px 0 15px; text-transform: uppercase; }
@@ -540,6 +545,36 @@
 	.container .alert label { color: #999; display: block; font-size: 11px; line-height: 13px; margin: 0 0 5px 0; text-transform: uppercase; }
 	.container .alert p { color: #666; font-size: 13px; line-height: 29px; margin: 0; }
 	.container .alert h3 { line-height: 29px; margin: 0; }
+	
+	.developer_buttons {
+		position: absolute;
+		padding: 5px 0 0 0;
+		right: -26px;
+		top: 0px;
+
+		a {
+			display: block;
+			height: 24px;
+			width: 24px;
+			
+			border-radius: 0 3px 3px 0;
+			border-right: 1px solid #CCC;
+			border-top: 1px solid #CCC;
+			border-bottom: 1px solid #CCC;
+
+			font-size: 0;
+			margin: 5px 0;
+			transition: background 0.25s;
+
+			&:hover {
+				background: #F3F3F3;
+			}
+	
+			span {
+				margin: 4px 0 0 4px;
+			}
+		}
+	}
 
 	.container .error_message,
 	.callout_fields .error_message,
@@ -673,7 +708,7 @@
 	#properties_tab .checkbox_bump { float: left; }
 
 /* Table Styles */
-	div.table { border: 1px solid #ccc; border-radius: 2px; margin: 0 0 20px 0; }
+	div.table { border: 1px solid #ccc; border-radius: 2px; margin: 0 0 20px 0; position: relative; }
 	div.table:after { clear: both; content: ""; display: table; }
 	.table ul { list-style: none; margin: 0; }
 	.table > summary, .container summary { background: #eee; border-bottom: 1px solid #ccc; border-radius: 2px 2px 0 0; height: 37px; line-height: 36px; padding: 0 6px 0 15px; }
@@ -1671,6 +1706,7 @@
 	.icon_small_add { background-position: -32px -140px; }
 	.icon_small_list, .icon_small_home { background-position: -48px -140px; }
 	.icon_small_edit { background-position: -64px -140px; }
+	.icon_small_edit_yellow { background-position: -928px -140px; }
 	.icon_small_refresh { background-position: -80px -140px; }
 	.icon_small_truck { background-position: -96px -140px; }
 	.icon_small_token { background-position: -112px -140px; }

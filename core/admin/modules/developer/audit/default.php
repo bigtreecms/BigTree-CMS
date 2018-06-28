@@ -33,6 +33,7 @@
 						<option value="bigtree_pages">Pages</option>
 						<option value="bigtree_users">Users</option>
 						<option value="bigtree_settings">Settings</option>
+						<option value="bigtree_resources">Files</option>
 					</optgroup>
 					<optgroup label="Modules">
 						<?php BigTree::getTableSelectOptions() ?>

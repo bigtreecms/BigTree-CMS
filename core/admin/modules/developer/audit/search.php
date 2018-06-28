@@ -8,6 +8,7 @@
 	$user_cache = array();
 	$setting_cache = array();
 	$form_cache = array();
+	$resource_cache = array();
 ?>
 <div class="table audit_trail">
 	<summary><h2>Search Results</h2></summary>
@@ -37,6 +38,18 @@
 					
 					if ($setting && !$setting["system"]) {
 						$link = '<a target="_blank" href="'.ADMIN_ROOT.'settings/edit/'.$setting["id"].'/">'.($setting["name"] ? $setting["name"] : $setting["id"]).'</a>';
+					} else {
+						$link = $r["entry"];
+					}
+				} elseif ($r["table"] == "bigtree_resources") {
+					if (!isset($resource_cache[$r["entry"]])) {
+						$resource_cache[$r["entry"]] = $admin->getResource($r["entry"]);
+					}
+					
+					$resource = $resource_cache[$r["entry"]];
+					
+					if ($resource) {
+						$link = '<a target="_blank" href="'.ADMIN_ROOT.'files/edit/file/'.$resource["id"].'/">'.$resource["name"].'</a>';
 					} else {
 						$link = $r["entry"];
 					}

@@ -9,6 +9,22 @@
 	}
 ?>
 <div class="container">
+	<?php
+		if (!empty($bigtree["current_page"]["id"])) {
+	?>
+	<div class="developer_buttons">
+		<a href="<?=ADMIN_ROOT?>developer/templates/edit/<?=$page["template"]?>/?return=<?=$page["id"]?>" title="Edit Current Template in Developer">
+			Edit Current Template in Developer
+			<span class="icon_small icon_small_edit_yellow"></span>
+		</a>
+		<a href="<?=ADMIN_ROOT?>developer/audit/search/?table=bigtree_pages&entry=<?=$page["id"]."&".$admin->CSRFTokenField."=".urlencode($admin->CSRFToken)?>" title="View Page in Audit Trail">
+			View Page in Audit Trail
+			<span class="icon_small icon_small_trail"></span>
+		</a>
+	</div>
+	<?php
+		}
+	?>
 	<header>
 		<div class="sticky_controls">
 			<div class="shadow">
@@ -32,6 +48,7 @@
 		<input type="hidden" name="return_to_front" value="true" />
 		<?php
 			}
+
 			if (isset($_GET["return_to_self"])) {
 		?>
 		<input type="hidden" name="return_to_self" value="true" />
