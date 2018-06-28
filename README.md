@@ -20,6 +20,28 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.23
+- ADDED: A setting for session lifetime
+- ADDED: Support for a "bigtree-theme.sql" file in the install directory for bootstrapping a BigTree install
+- UPDATED: Geocoding API now provides better error responses
+- UPDATED: Geocoding API now supports API keys for Google
+- UPDATED: Installer no longer replaces files that already exist in the directory (for use in boilerplate installs)
+- UPDATED: BigTree will now dynamically increase memory limit when processing images to lead to less image processing failures due to RAM requirements
+- FIXED: Editor level users not being able to Save & Preview from the front end editor
+- FIXED: Uploading to a Google Cloud Storage pointer that wasn't URL safe
+- FIXED: Broken stored pointers for Google Cloud Storage
+- FIXED: Authenticated URLs for Google Cloud Storage when the URLs had unsafe characters
+- FIXED: .htaccess files are no longer allowed to store via BigTreeStorage
+- FIXED: Some warnings thrown by PHP 7.2
+- FIXED: Next buttons in forms not respecting the hidden state of tabs
+- FIXED: Incorrect closing tag on cloud storage form
+- FIXED: Using a draft of a page causing that pending change to not show on the dashboard properly
+- FIXED: Geocoding field getting added back into the form dropdown when deleted
+- FIXED: Not being able to edit Geocoding field settings after adding it to the form
+- FIXED: Forms that supported Save & Preview not showing the button on initially adding content
+- FIXED: OpenSSL not being verified in the installer
+- FIXED: Leftover temporary files sticking around when an image upload fails
+
 ### 4.2.22
 - CHANGED: The default BigTree install no longer tries to use php_flag in htaccess
 - UPDATED: Publish hooks are now run when a user approves, features, or archives an item from a View
