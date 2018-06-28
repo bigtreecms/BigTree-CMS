@@ -20,6 +20,30 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.3
+- ADDED: File Manager with metadata and a dedicated tab
+- ADDED: Tag Manager with the ability to delete and merge tags
+- ADDED: Maximum length restriction to textarea
+- ADDED: Character counter to text and textarea when a max length exists
+- ADDED: Image Reference, File Reference, and Video Reference fields
+- ADDED: Database based session handling for better compatibility with load balancers and session timeout control
+- ADDED: Security settings to force logout all users, logout all user sessions when logging out, and logout user sessions when changing passwords.
+- ADDED: Progress indicators and some other UI improvements
+- ADDED: Support for processing LESS files in the admin CSS
+- ADDED: Support for external CSS and JS in admin_css / admin_js configuration settings
+- UPDATED: Tagging interface now shows you the number of existing relationships
+- UPDATED: Audit trail now keeps track of who the originator of a change was if published without additional changes
+- UPDATED: Advanced search now respects view filters when showing results
+- CHANGED: BigTree now uses Composer rather than submodules for third party libraries
+- CHANGED: BigTree now uses full <?php tags for better compatibility
+- CHANGED: BigTree now requires PHP 5.4+
+- CHANGED: Field types now live in /custom/admin/field-types/{id}/ directories with draw, process, and settings files
+- CHANGED: Fields, module forms, module views, etc. now have "settings" rather than "options"
+- CHANGED: Processing crops now occurs via AJAX to prevent timeouts of large crop sets
+- CHANGED: Amazon S3 storage now uses the official AWS library for better cross region support and CloudFront invalidation
+- CHANGED: Passwords now use PHP's password_hash and will be re-hashed upon login to the default algorithm
+- CHANGED: When a minimum image width / height is not set, BigTree will try to create thumbnails of crops if the image is large enough for them.
+
 ### 4.2.22
 - CHANGED: The default BigTree install no longer tries to use php_flag in htaccess
 - UPDATED: Publish hooks are now run when a user approves, features, or archives an item from a View
