@@ -18,11 +18,8 @@
 	// Grab template information
 	$template_data = $cms->getTemplate($page["template"]);
 
-	// Audit Trail link
-	$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/audit/search/?table=bigtree_pages&entry=".$page["id"]."&".$admin->CSRFTokenField."=".urlencode($admin->CSRFToken),"icon" => "trail","title" => "View Audit Trail");		
-
-	// Provide developers a nice handy link for edit/return of this form
 	if ($admin->Level > 1) {
+		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/audit/search/?table=bigtree_pages&entry=".$page["id"]."&".$admin->CSRFTokenField."=".urlencode($admin->CSRFToken),"icon" => "trail","title" => "View Audit Trail");		
 		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/templates/edit/".$page["template"]."/?return=".$page["id"],"icon" => "setup","title" => "Edit Current Template in Developer");
 	}
 	
