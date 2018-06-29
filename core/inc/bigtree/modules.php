@@ -715,26 +715,30 @@
 			
 			Parameters:
 				item - Either a table entry or the "id" of a table entry.
+				full - Whether to return a full tag array or only the tag string (defaults to only the tag string)
 			
 			Returns:
 				An array of tags (strings).
 		*/
 		
-		public function getTagsForItem($item) {
+		public function getTagsForItem($item, $full = false) {
 			if (!is_numeric($item)) {
 				$item = $item["id"];
 			}
 			
-			$item = sqlescape($item);
-			
-			$q = sqlquery("SELECT bigtree_tags.tag FROM bigtree_tags JOIN bigtree_tags_rel ON bigtree_tags.id = bigtree_tags_rel.tag WHERE bigtree_tags_rel.`table` = '".sqlescape($this->Table)."' AND bigtree_tags_rel.entry = '$item' ORDER BY bigtree_tags.tag");
-
-			$tags = array();
-			while ($f = sqlfetch($q)) {
-				$tags[] = $f["tag"];
+			if ($full) {
+				return SQL::fetchAll("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel
+									  ON bigtree_tags_rel.tag = bigtree_tags.id
+									  WHERE bigtree_tags_rel.`table` = ?
+									    AND bigtree_tags_rel.`entry` = ?
+						  			  ORDER BY bigtree_tags.tag ASC", $this->Table, $item);
 			}
 			
-			return $tags;
+			return SQL::fetchAllSingle("SELECT bigtree_tags.tag FROM bigtree_tags JOIN bigtree_tags_rel
+									    ON bigtree_tags_rel.tag = bigtree_tags.id
+									    WHERE bigtree_tags_rel.`table` = ?
+									      AND bigtree_tags_rel.`entry` = ?
+						  			    ORDER BY bigtree_tags.tag ASC", $this->Table, $item);
 		}
 
 		/*

@@ -519,6 +519,7 @@
 			// Get all the ancestors, ordered by the page length so we get the latest first and can count backwards to the trunk.
 			$q = sqlquery("SELECT id,nav_title,path,trunk FROM bigtree_pages WHERE (".implode(" OR ",$paths).") ORDER BY LENGTH(path) DESC");
 			$trunk_hit = false;
+			
 			while ($f = sqlfetch($q)) {
 				// In case we want to know what the trunk is.
 				if ($f["trunk"] || $f["id"] == BIGTREE_SITE_TRUNK) {
@@ -1216,8 +1217,7 @@
 		*/
 		
 		public static function getTag($id) {
-			$id = sqlescape($id);
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '$id'"));
+			return SQL::fetch("SELECT * FROM bigtree_tags WHERE id = ?", $id);
 		}
 		
 		/*
@@ -1232,8 +1232,7 @@
 		*/
 		
 		public static function getTagByRoute($route) {
-			$route = sqlescape($route);
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE route = '$route'"));
+			return SQL::fetch("SELECT * FROM bigtree_tags WHERE route = ?", $route);
 		}
 		
 		/*
@@ -1242,21 +1241,30 @@
 			
 			Parameters:
 				page - Either a page array (containing at least the page's ID) or a page ID.
+				full - Whether to return a full tag array or just the tag string (defaults to full tag array)
 			
 			Returns:
 				An array of tags.
 		*/
 		
-		public static function getTagsForPage($page) {
+		public static function getTagsForPage($page, $full = true) {
 			if (!is_numeric($page)) {
 				$page = $page["id"];
 			}
-			$q = sqlquery("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel ON bigtree_tags.id = bigtree_tags_rel.tag WHERE bigtree_tags_rel.`table` = 'bigtree_pages' AND bigtree_tags_rel.entry = '".sqlescape($page)."' ORDER BY bigtree_tags.tag");
-			$tags = array();
-			while ($f = sqlfetch($q)) {
-				$tags[] = $f;
+			
+			if ($full) {
+				return SQL::fetchAll("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel
+									  ON bigtree_tags.id = bigtree_tags_rel.tag
+									  WHERE bigtree_tags_rel.`table` = 'bigtree_pages'
+									    AND bigtree_tags_rel.`entry` = ?
+									  ORDER BY bigtree_tags.`tag` ASC", $page);
 			}
-			return $tags;
+			
+			return SQL::fetchAllSingle("SELECT bigtree_tags.tag FROM bigtree_tags JOIN bigtree_tags_rel
+										ON bigtree_tags.id = bigtree_tags_rel.tag
+										WHERE bigtree_tags_rel.`table` = 'bigtree_pages'
+										  AND bigtree_tags_rel.`entry` = ?
+										ORDER BY bigtree_tags.`tag` ASC", $page);
 		}
 		
 		/*
