@@ -442,9 +442,11 @@
 	});
 	
 	// Expand and collapse
-	$(".user_permissions").on("click",".permission_label",function() {
+	$(".user_permissions").on("click",".permission_label",function(ev) {
+		ev.preventDefault();
+		
 		if ($(this).hasClass("disabled")) {
-			return false;
+			return;
 		}
 			
 		if ($(this).hasClass("expanded")) {
@@ -510,7 +512,7 @@
 			$(this).addClass("expanded");
 		}
 		
-		return false;
+		return;
 	});
 	
 	function _localObservers(selector) {
