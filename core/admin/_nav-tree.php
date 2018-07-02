@@ -32,7 +32,8 @@
 			"add" => array("title" => "Add Subpage","link" => "pages/add/{id}","icon" => "add_page","nav_icon" => "add"),
 			"edit" => array("title" => "Edit Page","link" => "pages/edit/{id}","icon" => "edit_page","nav_icon" => "edit"),
 			"revisions" => array("title" => "Revisions","link" => "pages/revisions/{id}","icon" => "page_versions","nav_icon" => "refresh"),
-			"move" => array("title" => "Move Page","link" => "pages/move/{id}","icon" => "move_page","nav_icon" => "truck","level" => 1)
+			"move" => array("title" => "Move Page","link" => "pages/move/{id}","icon" => "move_page","nav_icon" => "truck","level" => 1),
+			"duplicate" => array("title" => "Duplicate Page","link" => "pages/duplicate/{id}","icon" => "duplicate","nav_icon" => "duplicate")
 		)),
 		"modules" => array("title" => "Modules","link" => "modules","icon" => "modules","children" => array()),
 		"users" => array("title" => "Users","link" => "users","icon" => "users","level" => 1,"children" => array(
