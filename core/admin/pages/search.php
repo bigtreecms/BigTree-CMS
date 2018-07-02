@@ -113,7 +113,7 @@
 								foreach ($results as $key => $page_results) {
 									$x++;
 							?>
-							<a<?php if ($x == 1) { ?> class="active"<?php } ?> href="#<?=$cms->urlify($key)?>"><?=htmlspecialchars($key)?></a>
+							<a<?php if ($x == 1) { ?> class="active"<?php } ?> href="#<?=$cms->urlify($key)?>"><?=BigTree::safeEncode($key)?></a>
 							<?php
 								}
 							?>
