@@ -505,19 +505,50 @@
 		public static function getBreadcrumbByPage($page,$ignore_trunk = false) {
 			global $bigtree;
 			
-			// Break up the pieces so we can get each piece of the path individually and pull all the pages above this one.
-			$bc = array();
-			$pieces = explode("/", $page["path"]);
-			$paths = array();
-			$path = "";
-			
-			foreach ($pieces as $piece) {
-				$path = $path.$piece."/";
-				$paths[] = "path = '".sqlescape(trim($path,"/"))."'";
+			$bc = [];
+
+			if ($page["changes_applied"]) {
+				$parent = $page["parent"];
+				
+				while ($parent > 0) {
+					$parent_page = SQL::fetch("SELECT id, nav_title, path, parent FROM bigtree_pages WHERE id = ?", $parent);
+					
+					if ($parent_page) {
+						$bc[] = [
+							"title" => $parent_page["nav_title"],
+							"link" => static::linkForPath($parent_page["path"]),
+							"id" => $parent_page["id"]
+						];
+					} else {
+						break;
+					}
+					
+					$parent = $parent_page["parent"];
+				}
+				
+				$bc = array_reverse($bc);
+				$bc[] = [
+					"title" => $page["nav_title"],
+					"link" => "",
+					"id" => $page["id"]
+				];
+				
+				return $bc;
+			} else {
+				// Break up the pieces so we can get each piece of the path individually and pull all the pages above this one.
+				$pieces = explode("/", $page["path"]);
+				$paths = [];
+				$path = "";
+				
+				foreach ($pieces as $piece) {
+					$path = $path.$piece."/";
+					$paths[] = "path = '".sqlescape(trim($path, "/"))."'";
+				}
+				
+				// Get all the ancestors, ordered by the page length so we get the latest first and can count backwards to the trunk.
+				$q = sqlquery("SELECT id,nav_title,path,trunk FROM bigtree_pages WHERE (".implode(" OR ", $paths).") ORDER BY LENGTH(path) DESC");
 			}
 			
-			// Get all the ancestors, ordered by the page length so we get the latest first and can count backwards to the trunk.
-			$q = sqlquery("SELECT id,nav_title,path,trunk FROM bigtree_pages WHERE (".implode(" OR ",$paths).") ORDER BY LENGTH(path) DESC");
 			$trunk_hit = false;
 			
 			while ($f = sqlfetch($q)) {
@@ -540,9 +571,11 @@
 			
 			// Check for module breadcrumbs
 			$mod = sqlfetch(sqlquery("SELECT bigtree_modules.class FROM bigtree_modules JOIN bigtree_templates ON bigtree_modules.id = bigtree_templates.module WHERE bigtree_templates.id = '".$page["template"]."'"));
+			
 			if ($mod["class"]) {
 				if (class_exists($mod["class"])) {
 					$module = new $mod["class"];
+			
 					if (method_exists($module, "getBreadcrumb")) {
 						$bc = array_merge($bc,$module->getBreadcrumb($page));
 					}
