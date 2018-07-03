@@ -28,7 +28,13 @@
 	// This is an update to an existing entry.
 	if (!is_null($change["item_id"])) {
 		if ($change["table"] == "bigtree_pages") {
-			$page_data = $cms->getPendingPage($change["item_id"]);
+			$page_data = $cms->getPendingPage($change["item_id"], true, true);
+			$page_data["_tags"] = array();
+
+			foreach ($page_data["tags"] as $tag) {
+				$page_data["_tags"][] = $tag["id"];
+			}
+
 			$admin->updatePage($change["item_id"],$page_data);
 		} else {
 			BigTreeAutoModule::updateItem($change["table"],$change["item_id"],$change["changes"],$change["mtm_changes"],$change["tags_changes"]);
