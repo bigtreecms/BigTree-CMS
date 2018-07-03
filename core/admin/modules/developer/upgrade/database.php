@@ -848,4 +848,12 @@
 			
 			@unlink($temp_file);
 		}
+		
+		// BigTree 4.3 update -- REVISION 308
+		function _local_bigtree_update_308() {
+			SQL::query("CREATE TABLE `bigtree_open_graph` ( `id` int(11) unsigned NOT NULL AUTO_INCREMENT, `table` varchar(255) NOT NULL DEFAULT '', `entry` int(11) unsigned NOT NULL, `type` varchar(255) DEFAULT NULL, `title` varchar(255) DEFAULT NULL, `description` text, `image` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+			SQL::query("ALTER TABLE `bigtree_module_forms` ADD COLUMN `open_graph` CHAR(2) NOT NULL AFTER `return_url`");
+			SQL::query("ALTER TABLE `bigtree_pending_changes` ADD COLUMN `open_graph_changes` LONGTEXT NOT NULL AFTER `tags_changes`");
+		}
+		
 	}

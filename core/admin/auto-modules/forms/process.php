@@ -99,13 +99,15 @@
 
 	// We're an editor or "Save" was chosen
 	if ($bigtree["access_level"] == "e" || $data_action == "save") {
+		$open_graph = $admin->handleOpenGraph($table, null, $_POST["_open_graph_"], true);
+
 		// We have an existing module entry we're saving a change to.
 		if ($edit_id) {
-			BigTreeAutoModule::submitChange($bigtree["module"]["id"],$table,$edit_id,$item,$many_to_many,$tags,$bigtree["form"]["hooks"]["publish"]);
+			BigTreeAutoModule::submitChange($bigtree["module"]["id"],$table,$edit_id,$item,$many_to_many,$tags,$bigtree["form"]["hooks"]["publish"],$open_graph);
 			$admin->growl($bigtree["module"]["name"],"Saved ".$bigtree["form"]["title"]." Draft");
 		// It's a new entry, so we create a pending item.
 		} else {
-			$edit_id = "p".BigTreeAutoModule::createPendingItem($bigtree["module"]["id"],$table,$item,$many_to_many,$tags,$bigtree["form"]["hooks"]["publish"]);
+			$edit_id = "p".BigTreeAutoModule::createPendingItem($bigtree["module"]["id"],$table,$item,$many_to_many,$tags,$bigtree["form"]["hooks"]["publish"],false,$open_graph);
 			$admin->growl($bigtree["module"]["name"],"Created ".$bigtree["form"]["title"]." Draft");
 		}
 	// We're a publisher and we want to publish
@@ -114,18 +116,18 @@
 		if ($edit_id) {
 			// If the edit id starts with a "p" it's a pending entry we're publishing.
 			if (substr($edit_id,0,1) == "p") {
-				$edit_id = BigTreeAutoModule::publishPendingItem($table,substr($edit_id,1),$item,$many_to_many,$tags);
+				$edit_id = BigTreeAutoModule::publishPendingItem($table,substr($edit_id,1),$item,$many_to_many,$tags,$_POST["_open_graph_"]);
 				$admin->growl($bigtree["module"]["name"],"Updated & Published ".$bigtree["form"]["title"]);
 				$did_publish = true;
 			// Otherwise we're updating something that is already published
 			} else {
-				BigTreeAutoModule::updateItem($table,$edit_id,$item,$many_to_many,$tags);
+				BigTreeAutoModule::updateItem($table,$edit_id,$item,$many_to_many,$tags,$_POST["_open_graph_"]);
 				$admin->growl($bigtree["module"]["name"],"Updated ".$bigtree["form"]["title"]);
 				$did_publish = true;
 			}
 		// We're creating a new published entry.
 		} else {
-			$edit_id = BigTreeAutoModule::createItem($table,$item,$many_to_many,$tags);
+			$edit_id = BigTreeAutoModule::createItem($table,$item,$many_to_many,$tags,null,$_POST["_open_graph_"]);
 			$admin->growl($bigtree["module"]["name"],"Created ".$bigtree["form"]["title"]);
 			$did_publish = true;
 		}

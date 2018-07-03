@@ -4,6 +4,7 @@
 	
 	// See if the user isn't allowed to use the currently in use template. If they can't, we hide the section altogether.
 	$hide_template_section = false;
+
 	if (is_array($template_data) && $template_data["level"] > $admin->Level) {
 		$hide_template_section = true;
 	}
@@ -32,6 +33,7 @@
 					<a href="#properties_tab"<?php if ($bigtree["form_action"] == "create") { ?> class="active"<?php } ?>>Properties</a>
 					<a href="#content_tab"<?php if ($bigtree["form_action"] == "update") { ?> class="active"<?php } ?>>Content</a>
 					<a href="#seo_tab">SEO</a>
+					<a href="#sharing_tab">Sharing</a>
 				</nav>
 				<div id="link_finder_results" style="display: none;"></div>
 				<input type="search" id="link_finder" class="form_search" autocomplete="off" placeholder="Link Finder" />
@@ -66,6 +68,12 @@
 		</section>
 		<section id="seo_tab" style="display: none;">
 			<?php include BigTree::path("admin/modules/pages/tabs/seo.php"); ?>
+		</section>
+		<section id="sharing_tab" style="display: none;">
+			<?php
+				$og_data = $bigtree["current_page"]["open_graph"];
+				include BigTree::path("admin/auto-modules/forms/_open-graph.php");
+			?>
 		</section>
 		<footer>
 			<a href="#" class="next button">Next Step &raquo;</a>

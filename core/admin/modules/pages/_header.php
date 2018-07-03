@@ -4,7 +4,7 @@
 	$action = $bigtree["module_path"][0];
 
 	// Get the end command as the current working page, only decode resources and get tags if we're editing
-	$bigtree["current_page"] = $page = $cms->getPendingPage($id,($action == "edit"),($action == "edit"));
+	$bigtree["current_page"] = $page = $cms->getPendingPage($id, ($action == "edit"), ($action == "edit"), ($action == "edit"));
 
 	// Get permissions
 	if (is_numeric($id)) {

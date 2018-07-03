@@ -28,24 +28,34 @@
 	// This is an update to an existing entry.
 	if (!is_null($change["item_id"])) {
 		if ($change["table"] == "bigtree_pages") {
-			$page_data = $cms->getPendingPage($change["item_id"]);
-			$admin->updatePage($change["item_id"],$page_data);
+			$page_data = $cms->getPendingPage($change["item_id"], true, true, true);
+			$page_data["_open_graph_"] = $page_data["open_graph"];
+			$page_data["_tags"] = [];
+
+			foreach ($page_data["tags"] as $tag) {
+				$page_data["_tags"][] = $tag["id"];
+			}
+
+			$admin->updatePage($change["item_id"], $page_data);
 		} else {
-			BigTreeAutoModule::updateItem($change["table"],$change["item_id"],$change["changes"],$change["mtm_changes"],$change["tags_changes"]);
+			BigTreeAutoModule::updateItem($change["table"],$change["item_id"],$change["changes"],$change["mtm_changes"],$change["tags_changes"],$change["open_graph_changes"]);
 			
 			if ($change["publish_hook"]) {
-				call_user_func($change["publish_hook"],$change["table"],$change["item_id"],$change["changes"],$change["mtm_changes"],$change["tags_changes"]);
+				call_user_func($change["publish_hook"],$change["table"],$change["item_id"],$change["changes"],$change["mtm_changes"],$change["tags_changes"],$change["open_graph_changes"]);
 			}
 		}
 	// It's a new entry, let's publish it.
 	} else {
 		if ($change["table"] == "bigtree_pages") {
+			$change["changes"]["_tags"] = $change["tags_changes"];
+			$change["changes"]["_open_graph_"] = $change["open_graph_changes"];
 			$page = $admin->createPage($change["changes"], $change["id"]);
 		} else {
-			$id = BigTreeAutoModule::publishPendingItem($change["table"],$change["id"],$change["changes"],$change["mtm_changes"],$change["tags_changes"]);
+			$id = BigTreeAutoModule::publishPendingItem($change["table"],$change["id"],$change["changes"],$change["mtm_changes"],$change["tags_changes"],$change["open_graph_changes"]);
 			
 			if ($change["publish_hook"]) {
-				call_user_func($change["publish_hook"],$change["table"],$id,$change["changes"],$change["mtm_changes"],$change["tags_changes"]);
+				call_user_func($change["publish_hook"],$change["table"],$id,$change["changes"],$change["mtm_changes"],$change["tags_changes"],$change["open_graph_changes"]);
 			}
 		}
 	}
+	

@@ -1,4 +1,20 @@
 <div class="container">
+	<?php
+		if ($bigtree["form"]["open_graph"] && !$bigtree["form"]["embedded"]) {
+	?>
+	<header>
+		<div class="sticky_controls">
+			<div class="shadow">
+				<nav class="left">
+					<a href="#content_tab" class="active">Content</a>
+					<a href="#sharing_tab">Sharing</a>
+				</nav>
+			</div>
+		</div>
+	</header>
+	<?php
+		}
+	?>
 	<form method="post" action="<?=$bigtree["form_root"]?>process/<?php if ($bigtree["form"]["embedded"]) { ?>?hash=<?=$bigtree["form"]["hash"]?><?php } ?>" enctype="multipart/form-data" class="module" id="auto_module_form">
 		<?php
 			if ($bigtree["form"]["embedded"]) {
@@ -44,7 +60,7 @@
 		<?php
 			}
 		?>
-		<section>
+		<section id="content_tab">
 			<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 			<?php
 				if (!$admin->drawPOSTErrorMessage() && $_SESSION["bigtree_admin"]["post_hash_failed"]) {
@@ -87,7 +103,9 @@
 					}
 				?>
 			</div>
-			<?php if ($bigtree["form"]["tagging"]) { ?>
+			<?php
+				if ($bigtree["form"]["tagging"]) {
+			?>
 			<div class="tags" id="bigtree_tag_browser">
 				<?php
 					if ($admin->Level > 0) {
@@ -118,8 +136,22 @@
 			<script>
 				BigTreeTagAdder.init();
 			</script>
-			<?php } ?>
+			<?php
+				}
+			?>
 		</section>
+		<?php
+			if ($bigtree["form"]["open_graph"]) {
+		?>
+		<section id="sharing_tab" style="display: none;">
+			<?php
+				$og_data = $pending_entry["open_graph"];
+				include BigTree::path("admin/auto-modules/forms/_open-graph.php");
+			?>
+		</section>
+		<?php
+			}
+		?>
 		<footer>
 			<?php
 				if ($bigtree["form"]["embedded"]) {
@@ -147,6 +179,7 @@
 <?php include BigTree::path("admin/layouts/_html-field-loader.php"); ?>
 <script>
 	BigTreeFormValidator("#auto_module_form",false<?php if ($bigtree["form"]["embedded"]) { ?>,true<?php } ?>);
+	BigTreeFormNavBar.init();
 	
 	$(".save_and_preview").click(function() {
 		$("#preview_field").val("true");

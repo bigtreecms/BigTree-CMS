@@ -3,16 +3,10 @@
 	<label>URL Route <small>(leave blank to auto generate)</small></label>
 	<input type="text" name="route" value="<?=$bigtree["current_page"]["route"]?>" tabindex="2" />
 </fieldset>
-<div class="contain">
-	<fieldset class="left">
-		<label>Meta Keywords</label>
-		<textarea name="meta_keywords"><?=$bigtree["current_page"]["meta_keywords"]?></textarea>
-	</fieldset>
-	<fieldset class="right">
-		<label>Meta Description</label>
-		<textarea name="meta_description"><?=$bigtree["current_page"]["meta_description"]?></textarea>
-	</fieldset>
-</div>
+<fieldset>
+	<label>Meta Description</label>
+	<textarea name="meta_description"><?=$bigtree["current_page"]["meta_description"]?></textarea>
+</fieldset>
 <fieldset class="last">
 	<input type="checkbox" name="seo_invisible"<?php if ($bigtree["current_page"]["seo_invisible"]) { ?> checked="checked"<?php } ?> />
 	<label class="for_checkbox">Hide From Search Engines</label>

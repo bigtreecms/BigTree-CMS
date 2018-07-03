@@ -9,6 +9,31 @@
 		public static $IRLPrefixes = false;
 		public static $IRLsCreated = array();
 		public static $PerPage = 15;
+		
+		// Open Graph Types
+		public static $OpenGraphTypes = [
+			"website",
+			"article",
+			"book",
+			"business.business",
+			"fitness.course",
+			"game.achievement",
+			"music.album",
+			"music.playlist",
+			"music.radio_station",
+			"music.song",
+			"place",
+			"product",
+			"profile",
+			"restaurant.menu",
+			"restaurant.menu_item",
+			"restaurant.menu_section",
+			"restaurant.restaurant",
+			"video.episode",
+			"video.movie",
+			"video.other",
+			"video.tv_show"
+		];
 
 		// !View Types
 		public static $ViewTypes = array(
@@ -1192,12 +1217,13 @@
 				return_view - The view to return to after completing the form.
 				return_url - The alternative URL to return to after completing the form.
 				tagging - Whether or not to enable tagging.
+				open_graph - Whether to enable open graph attributes.
 
 			Returns:
 				The new form id.
 		*/
 
-		public function createModuleForm($module,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
+		public function createModuleForm($module,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "",$open_graph = "") {
 			$module = sqlescape($module);
 			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
@@ -1206,6 +1232,7 @@
 			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
 			$return_url = sqlescape($this->makeIPL($return_url));
 			$tagging = $tagging ? "on" : "";
+			$open_graph = $open_graph ? "on" : "";
 
 			$clean_fields = array();
 			foreach ($fields as $key => $data) {
@@ -1227,7 +1254,7 @@
 			}
 			$fields = BigTree::json($clean_fields,true);
 
-			sqlquery("INSERT INTO bigtree_module_forms (`module`,`title`,`table`,`fields`,`default_position`,`return_view`,`return_url`,`tagging`,`hooks`) VALUES ('$module','$title','$table','$fields','$default_position',$return_view,'$return_url','$tagging','$hooks')");
+			sqlquery("INSERT INTO bigtree_module_forms (`module`,`title`,`table`,`fields`,`default_position`,`return_view`,`return_url`,`tagging`,`open_graph`,`hooks`) VALUES ('$module','$title','$table','$fields','$default_position',$return_view,'$return_url','$tagging','$open_graph','$hooks')");
 			$id = sqlid();
 			$this->track("bigtree_module_forms",$id,"created");
 
@@ -1516,6 +1543,9 @@
 
 			$this->updateTagReferenceCounts($data["_tags"] ?: []);
 
+			// Handle open graph
+			$this->handleOpenGraph("bigtree_pages", $id, $data["_open_graph_"]);
+
 			// If there was an old page that had previously used this path, dump its history so we can take over the path.
 			sqlquery("DELETE FROM bigtree_route_history WHERE old_route = '$path'");
 
@@ -1573,10 +1603,6 @@
 				$data["external"] = $this->makeIPL($data["external"]);
 			}
 
-			// Save the tags, then dump them from the saved changes array.
-			$tags = BigTree::json($data["_tags"],true);
-			unset($data["_tags"]);
-
 			// Make the nav title, title, external link, keywords, and description htmlspecialchar'd for displaying on the front end / the form again.
 			$data["nav_title"] = htmlspecialchars($data["nav_title"]);
 			$data["title"] = htmlspecialchars($data["title"]);
@@ -1593,13 +1619,28 @@
 
 			$parent = sqlescape($data["parent"]);
 
-			// JSON encode the changes and stick them in the database.
+			// Handle open graph and tags
+			$open_graph = $this->handleOpenGraph("bigtree_pages", null, $data["_open_graph_"], true);
+			$tags = $data["_tags"];
+
+			// Remove POST vars that shouldn't be stored
 			unset($data["MAX_FILE_SIZE"]);
 			unset($data["ptype"]);
-			$data = BigTree::json($data,true);
+			unset($data["_open_graph_"]);
+			unset($data["_tags"]);
 
-			sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`title`,`table`,`changes`,`tags_changes`,`type`,`module`,`pending_page_parent`) VALUES ('".$this->ID."',NOW(),'New Page Created','bigtree_pages','$data','$tags','NEW','','$parent')");
-			$id = sqlid();
+			$id = SQL::insert("bigtree_pending_changes", [
+				"user" => $this->ID,
+				"date" => "NOW()",
+				"title" => "New Page Created",
+				"table" => "bigtree_pages",
+				"changes" => $data,
+				"tags_changes" => $tags,
+				"open_graph_changes" => $open_graph,
+				"type" => "NEW",
+				"module" => "",
+				"pending_page_parent" => $parent
+			]);
 
 			// Audit trail
 			$this->track("bigtree_pages","p$id","created-pending");
@@ -4953,13 +4994,17 @@
 		public static function getPendingChange($id) {
 			$id = sqlescape($id);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '$id'"));
+			
 			if (!$item) {
 				return false;
 			}
-			$item["changes"] = json_decode($item["changes"],true);
-			$item["mtm_changes"] = json_decode($item["mtm_changes"],true);
-			$item["tags_changes"] = json_decode($item["tags_changes"],true);
-			return $item;
+
+			$item["changes"] = json_decode($item["changes"], true);
+			$item["mtm_changes"] = json_decode($item["mtm_changes"], true);
+			$item["tags_changes"] = json_decode($item["tags_changes"], true);
+			$item["open_graph_changes"] = json_decode($item["open_graph_changes"], true);
+
+			return BigTree::untranslateArray($item);
 		}
 
 		/*
@@ -5751,6 +5796,63 @@
 
 		public static function growl($title,$message,$type = "success") {
 			$_SESSION["bigtree_admin"]["growl"] = array("message" => $message, "title" => $title, "type" => $type);
+		}
+
+		/*
+			Function: handleOpenGraph
+				Handles open graph updates for a piece of data.
+
+			Parameters:
+				table - The table for the entry
+				id - The ID of the entry
+				data_source - Data Source (defaults to $_POST["_open_graph_"] if left empty)
+				pending - Whether this is a pending entry, if true returns the array of pending data to store
+
+			Returns:
+				An array of data if pending flag is true, otherwise the ID of the open graph table entry
+		*/
+
+		public static function handleOpenGraph($table, $id, $data_source = null, $pending = false) {
+			if (!$data_source) {
+				$data_source = $_POST["_open_graph_"];
+			}
+
+			SQL::delete("bigtree_open_graph", ["table" => $table, "entry" => $id]);
+			
+			if (!empty($_FILES["_open_graph_"]["tmp_name"]["image"])) {
+				$og_image = static::processImageUpload([
+					"file_input" => [
+						"name" => $_FILES["_open_graph_"]["name"]["image"],
+						"tmp_name" => $_FILES["_open_graph_"]["tmp_name"]["image"],
+						"error" => $_FILES["_open_graph_"]["error"]["image"]
+					],
+					"title" => "Open Graph Image",
+					"settings" => [
+						"directory" => "files/open-graph/",
+						"min_width" => 1200,
+						"min_height" => 630
+					]
+				]);
+			}
+
+			if (!$og_image) {
+				$og_image = $data_source["image"];
+			}
+
+			$data = [
+				"table" => $table,
+				"entry" => $id,
+				"title" => BigTree::safeEncode($data_source["title"]),
+				"description" => BigTree::safeEncode($data_source["description"]),
+				"type" => BigTree::safeEncode($data_source["type"]),
+				"image" => BigTree::safeEncode($og_image)
+			];
+
+			if ($pending) {
+				return $data;
+			}
+
+			return SQL::insert("bigtree_open_graph", $data);
 		}
 
 		/*
@@ -6918,9 +7020,11 @@
 			// If a file upload error occurred, return the old image and set errors
 			if ($error == 1 || $error == 2) {
 				$bigtree["errors"][] = array("field" => $field["title"], "error" => "The file you uploaded ($name) was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>");
+				
 				return false;
 			} elseif ($error == 3) {
 				$bigtree["errors"][] = array("field" => $field["title"], "error" => "The file upload failed ($name).");
+				
 				return false;
 			}
 
@@ -6929,7 +7033,7 @@
 			$storage->AutoJPEG = $bigtree["config"]["image_force_jpeg"];
 
 			// Let's check the minimum requirements for the image first before we store it anywhere.
-			$image_info = @getimagesize($temp_name);
+			$image_info = getimagesize($temp_name);
 			$image_width = $image_info[0];
 			$image_height = $image_info[1];
 			$image_type = $image_info[2];
@@ -6967,32 +7071,39 @@
 				];
 			}
 
-			// If the minimum height or width is not met, do NOT let the image through. Erase the change or update from the database.
-			if ((isset($field["settings"]["min_height"]) && $image_height < $field["settings"]["min_height"]) || (isset($field["settings"]["min_width"]) && $image_width < $field["settings"]["min_width"])) {
-				$error = "Image uploaded (".htmlspecialchars($name).") did not meet the minimum size of ";
-				
-				if ($field["settings"]["min_height"] && $field["settings"]["min_width"]) {
-					$error .= $field["settings"]["min_width"]."x".$field["settings"]["min_height"]." pixels.";
-				} elseif ($field["settings"]["min_height"]) {
-					$error .= $field["settings"]["min_height"]." pixels tall.";
-				} elseif ($field["settings"]["min_width"]) {
-					$error .= $field["settings"]["min_width"]." pixels wide.";
-				}
-
-				$bigtree["errors"][] = array("field" => $field["title"], "error" => $error);
-				$failed = true;
-			}
-
 			// If it's not a valid image, throw it out!
 			if ($image_type != IMAGETYPE_GIF && $image_type != IMAGETYPE_JPEG && $image_type != IMAGETYPE_PNG) {
+				var_dump($temp_name);
+				print_r($_FILES);
+				var_dump($image_info);
+				var_dump($image_type);
+				die();
 				$bigtree["errors"][] = array("field" => $field["title"], "error" => "An invalid file was uploaded. Valid file types: JPG, GIF, PNG.");
 				$failed = true;
 			}
 
 			// See if it's CMYK
-			if ($channels == 4) {
+			if (!$failed && $channels == 4) {
 				$bigtree["errors"][] = array("field" => $field["title"], "error" => "A CMYK encoded file was uploaded. Please upload an RBG image.");
 				$failed = true;
+			}
+
+			// If the minimum height or width is not met, do NOT let the image through. Erase the change or update from the database.
+			if ((isset($field["settings"]["min_height"]) && $image_height < $field["settings"]["min_height"]) || (isset($field["settings"]["min_width"]) && $image_width < $field["settings"]["min_width"])) {
+				if (!$failed) {
+					$error = "Image uploaded (".htmlspecialchars($name).") did not meet the minimum size of ";
+					
+					if ($field["settings"]["min_height"] && $field["settings"]["min_width"]) {
+						$error .= $field["settings"]["min_width"]."x".$field["settings"]["min_height"]." pixels.";
+					} elseif ($field["settings"]["min_height"]) {
+						$error .= $field["settings"]["min_height"]." pixels tall.";
+					} elseif ($field["settings"]["min_width"]) {
+						$error .= $field["settings"]["min_width"]." pixels wide.";
+					}
+	
+					$bigtree["errors"][] = array("field" => $field["title"], "error" => $error);
+					$failed = true;
+				}
 			}
 			
 			// For crops that don't meet the required image size, see if a sub-crop will work.
@@ -7932,6 +8043,10 @@
 			$changes["seo_invisible"] = $changes["seo_invisible"]["seo_invisible"] ? "on" : "";
 			$changes["external"] = htmlspecialchars($changes["external"]);
 
+			// Handle open graph
+			$open_graph = BigTree::json($this->handleOpenGraph("bigtree_pages", null, $changes["_open_graph_"], true));
+			unset($changes["_open_graph_"]);
+
 			// Convert to an IPL
 			if (!empty($changes["external"])) {
 				$changes["external"] = $this->makeIPL($changes["external"]);
@@ -7967,7 +8082,7 @@
 				}
 
 				// Update existing draft and track
-				sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes', tags_changes = '$tags', date = NOW(), user = '".$this->ID."', type = '$type' WHERE id = '".$existing_pending_change["id"]."'");
+				sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes', tags_changes = '$tags', open_graph_changes = '$open_graph', date = NOW(), user = '".$this->ID."', type = '$type' WHERE id = '".$existing_pending_change["id"]."'");
 				$this->track("bigtree_pages",$page,"updated-draft");
 
 			// We're submitting a change to a presently published page with no pending changes.
@@ -7981,7 +8096,7 @@
 				$changes = BigTree::json($diff,true);
 
 				// Create draft and track
-				sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`tags_changes`,`type`,`title`) VALUES ('".$this->ID."',NOW(),'bigtree_pages','$page','$changes','$tags','EDIT','Page Change Pending')");
+				sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`tags_changes`,`open_graph_changes`,`type`,`title`) VALUES ('".$this->ID."',NOW(),'bigtree_pages','$page','$changes','$tags','$open_graph','EDIT','Page Change Pending')");
 				$this->track("bigtree_pages",$page,"saved-draft");
 			}
 
@@ -8422,9 +8537,10 @@
 				return_view - The view to return to when the form is completed.
 				return_url - The alternative URL to return to when the form is completed.
 				tagging - Whether or not to enable tagging.
+				open_graph - Whether or not to enable open graph attributes.
 		*/
 
-		public function updateModuleForm($id,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "") {
+		public function updateModuleForm($id,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "",$open_graph = "") {
 			$id = sqlescape($id);
 			$title = sqlescape(BigTree::safeEncode($title));
 			$table = sqlescape($table);
@@ -8433,6 +8549,7 @@
 			$return_view = $return_view ? "'".sqlescape($return_view)."'" : "NULL";
 			$return_url = sqlescape($this->makeIPL($return_url));
 			$tagging = $tagging ? "on" : "";
+			$open_graph = $open_graph ? "on" : "";
 
 			$clean_fields = array();
 
@@ -8451,7 +8568,7 @@
 
 			$fields = BigTree::json($clean_fields,true);
 
-			sqlquery("UPDATE bigtree_module_forms SET title = '$title', `table` = '$table', fields = '$fields', default_position = '$default_position', return_view = $return_view, return_url = '$return_url', `tagging` = '$tagging', `hooks` = '$hooks' WHERE id = '$id'");
+			sqlquery("UPDATE bigtree_module_forms SET title = '$title', `table` = '$table', fields = '$fields', default_position = '$default_position', return_view = $return_view, return_url = '$return_url', `open_graph` = '$open_graph', `tagging` = '$tagging', `hooks` = '$hooks' WHERE id = '$id'");
 			sqlquery("UPDATE bigtree_module_actions SET name = 'Add $title' WHERE form = '$id' AND route LIKE 'add%'");
 			sqlquery("UPDATE bigtree_module_actions SET name = 'Edit $title' WHERE form = '$id' AND route LIKE 'edit%'");
 
@@ -8739,14 +8856,14 @@
 
 			// Make sure we set the publish date to NULL if it wasn't provided or we'll have a page that got published at 0000-00-00
 			if ($data["publish_at"] && $data["publish_at"] != "NULL") {
-				$publish_at = "'".date("Y-m-d",strtotime($data["publish_at"]))."'";
+				$publish_at = date("Y-m-d",strtotime($data["publish_at"]));
 			} else {
 				$publish_at = null;
 			}
 
 			// If we set an expiration date, make it the proper MySQL format.
 			if ($data["expire_at"] && $data["expire_at"] != "NULL") {
-				$expire_at = "'".date("Y-m-d",strtotime($data["expire_at"]))."'";
+				$expire_at = date("Y-m-d",strtotime($data["expire_at"]));
 			} else {
 				$expire_at = null;
 			}
@@ -8783,7 +8900,7 @@
 			// Check if this data is exactly the same as the pending copy -- if it is, attribute it to the change author, not the publisher
 			$pending = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = ?", $page);
 
-			if ($pending && $pending["user"] != $admin->ID) {
+			if ($pending && $pending["user"] != $this->ID) {
 				$exact = true;
 				$changes = BigTree::untranslateArray(json_decode($pending["changes"], true));
 
@@ -8839,7 +8956,10 @@
 			}
 
 			$this->updateTagReferenceCounts($data["_tags"] ?: []);
-
+			
+			// Handle Open Graph
+			$this->handleOpenGraph("bigtree_pages", $page, $data["_open_graph_"]);
+			
 			// If this page is a trunk in a multi-site setup, wipe the cache
 			foreach (BigTreeCMS::$SiteRoots as $site_path => $site_data) {
 				if ($site_data["trunk"] == $page) {

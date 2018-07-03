@@ -288,7 +288,8 @@
 	form .right { float: right; margin: 0 0 15px 0; width: 435px; }
 	form .left input[type=text], form .right input[type=text], form .left input[type=password], form .right input[type=password], form .left input[type=email], form .right input[type=email], form .left input[type=url], form .right input[type=url] { width: 413px; }
 	form .left textarea, form .right textarea { width: 413px; }
-	form .triplets { float: left; margin: 15px 0; overflow: hidden; }
+	form .triplets { float: left; margin: 15px 0; }
+	form .triplets:after { clear: both; content: ""; display: table; }
 	form .triplets fieldset { float: left; margin: 0 29px 0 0; width: 280px; }
 	form .triplets fieldset:last-child { margin: 0; }
 	form .triplets .select > span { width: 224px !important; }
@@ -878,8 +879,8 @@
 /* Error Table Styles */
 
 	div.error_table { border-bottom: none; border-left: none; border-radius: 0; border-right: none; margin: -30px; }
-	div.error_table .field { padding: 0 0 0 40px; width: calc(28.1837% - 40px); }
-	div.error_table .error { padding: 0 0 0 40px; width: calc(71.8163% - 40px); }
+	div.error_table .field { padding: 0 0 0 40px; width: ~"calc(28.1837% - 40px)"; }
+	div.error_table .error { padding: 0 0 0 40px; width: ~"calc(71.8163% - 40px)"; }
 
 /* Tags */
 	.container .tags, .container .sub_section { background: #fff; border-top: 1px solid #ccc; clear: both; margin: 0 -30px -15px -30px; padding: 30px; width: 898px; }
@@ -1047,7 +1048,7 @@
 	.callout_fields fieldset.callouts:first-child { margin-top: 0; padding-top: 0; }
 	.callout_fields fieldset.callouts.callouts_no_margin { margin-top: -16px; }
 	.callout_fields fieldset.callouts:last-child { margin-bottom: 0; }
-	.callout_fields fieldset.callouts article { width: calc(50% - 10px); margin: 0 10px 10px 0; }
+	.callout_fields fieldset.callouts article { width: ~"calc(50% - 10px)"; margin: 0 10px 10px 0; }
 	.callout_fields fieldset.callouts article:nth-child(even) { margin-right: 0; }
 	.callout_fields fieldset.callouts h4 { margin: 0; }
 
@@ -1295,8 +1296,23 @@
 	.developer form fieldset.view_type .select .select_options { width: 247px !important; }
 	.developer form fieldset.view_description textarea { height: 90px; }
 
-	.developer #manage_hooks { float: right; height: 16px; line-height: 16px; color: #666; margin: 0 7px 0 15px; }
-	.developer #manage_hooks:hover { background: #F3F3F3; border-radius: 2px; margin-top: -5px; margin-right: 0; margin-bottom: -5px; padding: 4px 6px 4px 4px; border: 1px solid #DDD; }
+	.developer #manage_hooks {
+		background: #F3F3F3;
+		border-radius: 2px;
+		border: 1px solid #DDD;
+		display: inline-block;
+		height: 16px;
+		line-height: 16px;
+		color: #666;
+		margin: -5px 7px -5px 15px;
+		padding: 4px 6px 4px 4px;
+		transition: border-color 0.25s, background 0.25s;
+
+		&:hover {
+			border-color: #4E9EE6;
+			background: #FFF;
+		}
+	}
 
 	.table .developer_templates_name { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 863px; }
 	.table .developer_templates_name a { color: #333; display: block; margin: 0; width: 846px; }
@@ -2291,11 +2307,11 @@
 	body.embedded .container form > fieldset { display: none; }
 	body.embedded .container .alert { background: transparent; margin: 0 0 30px -30px; }
 	body.embedded div.error_table { border: 1px solid #CCC; margin: -30px 0 0 0; }
-	body.embedded div.error_table .field { padding: 0 0 0 20px; width: calc(28.1837% - 20px); }
-	body.embedded div.error_table .error { padding: 0 0 0 20px; width: calc(71.8163% - 20px); }
+	body.embedded div.error_table .field { padding: 0 0 0 20px; width: ~"calc(28.1837% - 20px)"; }
+	body.embedded div.error_table .error { padding: 0 0 0 20px; width: ~"calc(71.8163% - 20px)"; }
 	body.embedded .bigtree_dialog_overlay { display: none; }
 	body.embedded .bigtree_dialog_window { border: 1px solid #CCC; box-shadow: 0px 0px 5px rgba(0,0,0,0.3); }
-	body.embedded .multi_widget li p { width: calc(100% - 34px); }
+	body.embedded .multi_widget li p { width: ~"calc(100% - 34px)"; }
 	body.embedded fieldset.callouts { border: none; }
 
 /*----------------------------
@@ -2378,7 +2394,7 @@
 	#redactor_modal #redactor_modal_inner label { color: #666 !important; font-size: 13px !important; margin: 0 0 10px 0 !important; }
 	#redactor_modal section { padding: 20px !important; }
 	#redactor_modal footer { background: #EEE; border-radius: 0 0 2px 2px !important; border-top: 1px solid #CCC; padding: 20px !important; text-align: left !important; }
-	#redactor_modal input[type=text] { margin: 0 0 15px 0 !important; width: calc(100% - 6px) !important; }
+	#redactor_modal input[type=text] { margin: 0 0 15px 0 !important; width: ~"calc(100% - 6px)" !important; }
 	#redactor_modal .redactor_modal_btn { background-color: #CCC; background-color: rgba(0, 0, 0, 0.1); border: 1px solid #ccc; border-radius: 3px; color: #444; cursor: pointer; font-family: Helvetica, sans-serif; font-size: 14px; height: 36px; line-height: 14px; margin: 0 10px 0 0; padding: 10px 18px 12px 18px; transition: background-color 0.2s, border-color 0.2s; user-select: none; }
 	#redactor_modal .redactor_modal_action_btn { background-color: #59A8E9; border: none; color: #FFF; }
 	#redactor_modal .redactor_modal_btn:hover { background-color: #BBB; background-color: rgba(0, 0, 0, 0.15); }

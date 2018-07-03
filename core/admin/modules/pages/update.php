@@ -75,7 +75,8 @@
 		if (!$_POST["parent"]) {
 			$_POST["parent"] = $bigtree["current_page_data"]["parent"];
 		}
-		$admin->submitPageChange($id,$_POST);
+		
+		$admin->submitPageChange($id, $_POST);
 		$admin->growl("Pages","Saved Page Draft");
 	}
 	

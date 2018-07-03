@@ -968,38 +968,81 @@
 		}
 		
 		/*
+		 	Function: getOpenGraph
+		 		Returns Open Graph data for the specified table/id combination.
+			
+			Paremeters:
+				table - The table for the entry
+				id - The ID of the entry
+		
+			Returns:
+				An array of Open Graph data or null on failure.
+		*/
+		
+		public static function getOpenGraph($table, $id) {
+			global $bigtree;
+
+			$og = SQL::fetch("SELECT * FROM bigtree_open_graph WHERE `table` = ? AND `entry` = ?", $table, $id);
+			
+			if (!$id || !$og) {
+				if (!empty($bigtree["page"])) {
+					return [
+						"title" => $bigtree["page"]["title"],
+						"description" => $bigtree["page"]["meta_description"],
+						"type" => "website",
+						"image" => ""
+					];
+				}
+
+				return [
+					"title" => "",
+					"description" => "",
+					"type" => "website",
+					"image" => ""
+				];
+			}
+			
+			return BigTree::untranslateArray($og);
+		}
+		
+		/*
 			Function: getPage
 				Returns a page along with its resources and callouts decoded.
 			
 			Parameters:
 				id - The ID of the page.
-				decode - Whether to decode resources and callouts or not (setting to false saves processing time)
+				decode - Whether to decode resources and callouts or not and retrieve open graph info (setting to false saves processing time)
 			
 			Returns:
 				A page array from the database.
 		*/
 		
-		public static function getPage($id,$decode = true) {
-			$id = sqlescape($id);
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE id = '$id'"));
-			if (!$f) {
+		public static function getPage($id, $decode = true) {
+			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+			
+			if (!$page) {
 				return false;
 			}
-			if ($f["external"] && $f["template"] == "") {
-				$f["external"] = static::getInternalPageLink($f["external"]);
+			
+			if ($page["external"] && $page["template"] == "") {
+				$page["external"] = static::getInternalPageLink($page["external"]);
 			}
+
 			if ($decode) {
-				$f["resources"] = static::decodeResources($f["resources"]);
+				$page["open_graph"] = static::getOpenGraph("bigtree_pages", $id);
+				$page["resources"] = static::decodeResources($page["resources"]);
+			
 				// Backwards compatibility with 4.0 callout system
-				if (isset($f["resources"]["4.0-callouts"])) {
-					$f["callouts"] = $f["resources"]["4.0-callouts"];
+				if (isset($page["resources"]["4.0-callouts"])) {
+					$page["callouts"] = $page["resources"]["4.0-callouts"];
 				} elseif (isset($f["resources"]["callouts"])) {
-					$f["callouts"] = $f["resources"]["callouts"];
+					$page["callouts"] = $page["resources"]["callouts"];
 				} else {
-					$f["callouts"] = array();
+					$page["callouts"] = array();
 				}
 			}
-			return $f;
+			
+			return $page;
 		}
 		
 		/*
@@ -1010,22 +1053,30 @@
 				id - The ID of the page.
 				decode - Whether to decode resources and callouts or not (setting to false saves processing time, defaults true).
 				return_tags - Whether to return tags for the page (defaults false).
+				return_open_graph - Whether to return open graph for the page (defaults false).
 			
 			Returns:
 				A page array from the database.
 		*/
 		
-		public static function getPendingPage($id,$decode = true,$return_tags = false) {
+		public static function getPendingPage($id, $decode = true, $return_tags = false, $return_open_graph = false) {
 			// Numeric id means the page is live.
 			if (is_numeric($id)) {
 				$page = static::getPage($id);
+
 				if (!$page) {
 					return false;
 				}
+				
 				// If we're looking for tags, apply them to the page.
 				if ($return_tags) {
 					$page["tags"] = static::getTagsForPage($id);
 				}
+
+				if ($return_open_graph) {
+					$page["open_graph"] = static::getOpenGraph("bigtree_pages", $id);
+				}
+				
 				// Get pending changes for this page.
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = '".$page["id"]."'"));
 
@@ -1033,8 +1084,10 @@
 			} else {
 				// Set the page to empty, we're going to loop through the change later and apply the fields.
 				$page = array();
+				
 				// Get the changes.
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `id` = '".sqlescape(substr($id,1))."'"));
+				
 				if ($f) {
 					$f["id"] = $id;
 				} else {
@@ -1047,12 +1100,15 @@
 				$page["changes_applied"] = true;
 				$page["updated_at"] = $f["date"];
 				$changes = json_decode($f["changes"],true);
+				
 				foreach ($changes as $key => $val) {
 					if ($key == "external") {
 						$val = static::getInternalPageLink($val);
 					}
+				
 					$page[$key] = $val;
 				}
+				
 				if ($return_tags) {
 					// Decode the tag changes, apply them back.
 					$tags = array();
@@ -1069,6 +1125,10 @@
 					}
 
 					$page["tags"] = $tags;
+				}
+
+				if ($return_open_graph) {
+					$page["open_graph"] = BigTree::untranslateArray(json_decode($f["open_graph_changes"], true));
 				}
 			}
 			

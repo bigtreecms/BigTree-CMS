@@ -336,12 +336,13 @@
 				many_to_many - Many to many relationship entries.
 				tags - Tags for the entry.
 				publishing_change - A change ID that is being published (defaults to null)
+				open_graph - Open Graph information.
 			
 			Returns:
 				The id of the new entry in the database.
 		*/
 
-		public static function createItem($table, $data, $many_to_many = array(), $tags = array(), $publishing_change = null) {			
+		public static function createItem($table, $data, $many_to_many = array(), $tags = array(), $publishing_change = null, $open_graph = array()) {	
 			$table_description = BigTree::describeTable($table);
 			$query_fields = array();
 			$query_vals = array();
@@ -406,6 +407,9 @@
 			
 			self::cacheNewItem($id,$table);
 
+			// Handle Open Graph
+			BigTreeAdmin::handleOpenGraph($table, $id, $open_graph);
+
 			// Attribute this to the original pending change author if the data hasn't changed
 			if ($publishing_change) {
 				$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $publishing_change);
@@ -449,12 +453,13 @@
 				tags - Tags for the entry.
 				publish_hook - A function to call when this change is published from the Dashboard.
 				embedded_form - If this is being called from an embedded form, set the user to NULL (defaults to false)
+				open_graph - Open Graph information.
 			
 			Returns:
 				The id of the new entry in the bigtree_pending_changes table.
 		*/
 
-		public static function createPendingItem($module,$table,$data,$many_to_many = array(),$tags = array(),$publish_hook = null,$embedded_form = false) {
+		public static function createPendingItem($module,$table,$data,$many_to_many = array(),$tags = array(),$publish_hook = null,$embedded_form = false,$open_graph = array()) {
 			global $admin;
 			
 			foreach ($data as $key => $val) {
@@ -467,11 +472,12 @@
 			}
 
 			$user = $embedded_form ? "NULL" : $admin->ID;
-			$data = sqlescape(json_encode($data));
-			$many_data = sqlescape(json_encode($many_to_many));
-			$tags_data = sqlescape(json_encode($tags));
+			$data = BigTree::json($data, true);
+			$many_data = BigTree::json($many_to_many, true);
+			$tags_data = BigTree::json($tags, true);
+			$open_graph_data = BigTree::json($open_graph, true);
 			$publish_hook = is_null($publish_hook) ? "NULL" : "'".sqlescape($publish_hook)."'";
-			sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`changes`,`mtm_changes`,`tags_changes`,`module`,`type`,`publish_hook`) VALUES ($user,NOW(),'$table','$data','$many_data','$tags_data','$module','NEW',$publish_hook)");
+			sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`changes`,`mtm_changes`,`tags_changes`,`open_graph_changes`,`module`,`type`,`publish_hook`) VALUES ($user,NOW(),'$table','$data','$many_data','$tags_data','$open_graph_data','$module','NEW',$publish_hook)");
 			
 			$id = sqlid();
 
@@ -872,9 +878,10 @@
 					return false;
 				}
 				
-				$item = json_decode($change["changes"],true);
-				$many_to_many = json_decode($change["mtm_changes"],true);
-				$temp_tags = json_decode($change["tags_changes"],true);
+				$item = json_decode($change["changes"], true);
+				$many_to_many = json_decode($change["mtm_changes"], true);
+				$temp_tags = json_decode($change["tags_changes"], true);
+				$open_graph = json_decode($change["open_graph_changes"], true);
 				$tags = array();
 
 				if (!empty($temp_tags)) {
@@ -900,6 +907,7 @@
 				
 				// Apply changes that are pending
 				$change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = '$table' AND `item_id` = '$id'"));
+
 				if ($change) {
 					$status = "updated";
 					$changes = json_decode($change["changes"],true);
@@ -908,8 +916,9 @@
 						$item[$key] = $val;
 					}
 					
-					$many_to_many = json_decode($change["mtm_changes"],true);
-					$temp_tags = json_decode($change["tags_changes"],true);
+					$many_to_many = json_decode($change["mtm_changes"], true);
+					$temp_tags = json_decode($change["tags_changes"], true);
+					$open_graph = json_decode($change["open_graph_changes"], true);
 					$tags = array();
 					
 					if (is_array($temp_tags)) {
@@ -924,6 +933,7 @@
 				// If there's no pending changes, just pull the tags
 				} else {
 					$tags = self::getTagsForEntry($table,$id);
+					$open_graph = BigTreeCMS::getOpenGraph($table, $id);
 				}
 			}
 			
@@ -938,7 +948,7 @@
 				}
 			}
 
-			return array("item" => $item, "mtm" => $many_to_many, "tags" => $tags, "status" => $status, "owner" => $owner);
+			return array("item" => $item, "mtm" => $many_to_many, "tags" => $tags, "open_graph" => $open_graph, "status" => $status, "owner" => $owner);
 		}
 
 		/*
@@ -1528,13 +1538,14 @@
 				data - The form data to create an entry with.
 				many_to_many - Many to Many information
 				tags - Tag information
+				open_graph - Open Graph information
 			
 			Returns:
 				The id of the new entry.
 		*/
 		
-		public static function publishPendingItem($table, $id, $data, $many_to_many = array(), $tags = array()) {
-			return self::createItem($table, $data, $many_to_many, $tags, $id);
+		public static function publishPendingItem($table, $id, $data, $many_to_many = array(), $tags = array(), $open_graph = array()) {
+			return self::createItem($table, $data, $many_to_many, $tags, $id, $open_graph);
 		}
 		
 		/*
@@ -1645,19 +1656,22 @@
 				many_to_many - The many to many changes.
 				tags - The tag changes.
 				publish_hook - A function to call when this change is published from the Dashboard.
+				open_graph - Open Graph changes.
 			
 			Returns:
 				The id of the pending change.
 		*/
 		
-		public static function submitChange($module,$table,$id,$data,$many_to_many = array(),$tags = array(),$publish_hook = null) {
+		public static function submitChange($module, $table, $id, $data, $many_to_many = array(), $tags = array(), $publish_hook = null, $open_graph = array()) {
 			global $admin;
+
 			if (!isset($admin) || get_class($admin) != "BigTreeAdmin" || !$admin->ID) {
 				throw new Exception("BigTreeAutoModule::submitChange must be called by a logged in user.");
 			}
 
 			$id = sqlescape($id);
 			$original = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
+			
 			foreach ($data as $key => $val) {
 				if ($val === "NULL") {
 					$data[$key] = "";
@@ -1666,9 +1680,11 @@
 					unset($data[$key]);
 				}
 			}
-			$changes = sqlescape(json_encode($data));
-			$many_data = sqlescape(json_encode($many_to_many));
-			$tags_data = sqlescape(json_encode($tags));
+			
+			$changes = BigTree::json($data, true);
+			$many_data = BigTree::json($many_to_many, true);
+			$tags_data = BigTree::json($tags, true);
+			$open_graph_data = BigTree::json($open_graph, true);
 
 			// Find out if there's already a change waiting
 			if (substr($id,0,1) == "p") {
@@ -1676,8 +1692,9 @@
 			} else {
 				$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = '$table' AND item_id = '$id'"));
 			}
+
 			if ($existing) {
-				sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes', mtm_changes = '$many_data', tags_changes = '$tags_data', date = NOW(), user = '".$admin->ID."', type = 'EDIT' WHERE id = '".$existing["id"]."'");
+				sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes', mtm_changes = '$many_data', tags_changes = '$tags_data', open_graph_changes = '$open_graph_data', date = NOW(), user = '".$admin->ID."', type = 'EDIT' WHERE id = '".$existing["id"]."'");
 				
 				// If the id has a "p" it's still pending and we need to recache over the pending one.
 				if (substr($id,0,1) == "p") {
@@ -1687,13 +1704,16 @@
 				}
 				
 				$admin->track($table,$id,"updated-draft");
+
 				return $existing["id"];
 			} else {
+				$id = $id ? intval($id) : "NULL";
 				$publish_hook = is_null($publish_hook) ? "NULL" : "'".sqlescape($publish_hook)."'";
-				sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`mtm_changes`,`tags_changes`,`module`,`type`,`publish_hook`) VALUES ('".$admin->ID."',NOW(),'$table','$id','$changes','$many_data','$tags_data','$module','EDIT',$publish_hook)");
+				sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`mtm_changes`,`tags_changes`,`open_graph_changes`,`module`,`type`,`publish_hook`) VALUES ('".$admin->ID."',NOW(),'$table',$id,'$changes','$many_data','$tags_data','$open_graph_data','$module','EDIT',$publish_hook)");
 				self::recacheItem($id,$table);
 				
 				$admin->track($table,$id,"saved-draft");
+				
 				return sqlid();
 			}
 		}
@@ -1746,9 +1766,10 @@
 				data - The data to update in the entry.
 				many_to_many - Many To Many information
 				tags - Tag information.
+				open_graph - Open Graph information.
 		*/
 		
-		public static function updateItem($table,$id,$data,$many_to_many = array(),$tags = array()) {
+		public static function updateItem($table,$id,$data,$many_to_many = array(),$tags = array(),$open_graph = array()) {
 			$id = sqlescape($id);
 			$table_description = BigTree::describeTable($table);
 			$query = "UPDATE `$table` SET ";
@@ -1804,7 +1825,10 @@
 				}
 
 				BigTreeAdmin::updateTagReferenceCounts($tags);
-			}			
+			}
+
+			// Handle Open Graph
+			BigTreeAdmin::handleOpenGraph($table, $id, $open_graph);
 
 			// See if there's a pending change that's being published
 			$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = ? AND `item_id` = ?", $table, $id);
