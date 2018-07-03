@@ -8,8 +8,9 @@
 	<input id="open_graph_field_description" type="text" name="_open_graph_[description]" value="<?=$og_data["description"]?>">
 </fieldset>
 <fieldset>
-	<label for="open_graph_field_type">Open Graph Type <small>(if you are unsure, choose "website")</small></label>
+	<label for="open_graph_field_type">Open Graph Type</label>
 	<select id="open_graph_field_type" name="_open_graph_[type]">
+		<option></option>
 		<?php
 			foreach (BigTreeAdmin::$OpenGraphTypes as $og_type) {
 				?>

@@ -357,42 +357,62 @@
 		public static function drawHeadTags($site_title = "", $divider = "|") {
 			global $bigtree;
 
-			if (empty(static::$HeadContext["table"]) || empty(static::$HeadContext["entry"])) {
-				$og = $bigtree["page"]["open_graph"];
-				$title = !empty($HeadContext["title"]) ? $HeadContext["title"] : $bigtree["page"]["title"];
-				$description = !empty($HeadContext["meta_description"]) ? $HeadContext["meta_description"] : $bigtree["page"]["meta_description"];
-			} else {
-				$og = static::getOpenGraph(static::$HeadContext["table"], static::$HeadContext["entry"]);
+			$context = static::$HeadContext;
 
-				if (!empty($HeadContext["title"])) {
-					$title = $HeadContext["title"];
+			if (empty($context)) {
+				$og = $bigtree["page"]["open_graph"];
+				$title = !empty($context["title"]) ? $context["title"] : $bigtree["page"]["title"];
+				$description = !empty($context["meta_description"]) ? $context["meta_description"] : $bigtree["page"]["meta_description"];
+				$image = $og["image"];
+				$type = $og["type"] ?: "website";
+			} else {
+				$og = static::getOpenGraph($context["table"], $context["entry"]) ?: $bigtree["page"]["open_graph"];
+
+				if (!empty($context["title"])) {
+					$title = $context["title"];
 				} elseif (!empty($og["title"])) {
 					$title = $og["title"];
 				} else {
 					$title = $bigtree["page"]["title"];
 				}
 
-				if (!empty($HeadContext["description"])) {
-					$description = $HeadContext["description"];
+				if (!empty($context["description"])) {
+					$description = $context["description"];
 				} elseif (!empty($og["title"])) {
 					$description = $og["description"];
 				} else {
 					$description = $bigtree["page"]["meta_description"];
+				}
+
+				if (!empty($og["type"])) {
+					$type = $og["type"];
+				} elseif (!empty($context["type"])) {
+					$type = $context["type"];
+				} else {
+					$type = "website";
+				}
+
+				if (!empty($og["image"])) {
+					$image = $og["image"];
+				} elseif (!empty($context["image"])) {
+					$image = $context["image"];
+				} else {
+					$image = "";
 				}
 			}
 
 			echo "<title>".$title.(($site_title && $bigtree["page"]["id"]) ? " $divider ".BigTree::safeEncode($site_title) : "")."</title>\n";
 			echo '		<meta name="description" content="'.$description.'" />'."\n";
 			echo '		<meta property="og:title" content="'.(!empty($og["title"]) ? $og["title"] : $title).'" />'."\n";
-			echo '		<meta property="og:description" content="'.(!empty($og["description"]) ? $og["description"] : $description).'" />'."\n";
-			echo '		<meta property="og:type" content="'.(!empty($og["type"]) ? $og["type"] : "website").'" />'."\n";
+			echo '		<meta property="og:description" content="'.$description.'" />'."\n";
+			echo '		<meta property="og:type" content="'.$type.'" />'."\n";
 
 			if ($site_title) {
 				echo '		<meta property="og:site_name" content="'.BigTree::safeEncode($site_title).'" />'."\n";
 			}
 
-			if ($og["image"]) {
-				echo '		<meta property="og:image" content="'.$og["image"].'" />'."\n";
+			if ($image) {
+				echo '		<meta property="og:image" content="'.$image.'" />'."\n";
 			}
 		}
 
@@ -1704,14 +1724,18 @@
 				entry - The ID of the entry to pull open graph information for
 				title - A page title to use (optional, will use Open Graph information if not entered)
 				description - A meta description to use (optional, will use Open Graph information if not entered)
+				image - An image to use for Open Graph (if OG data is empty)
+				type - An Open Graph type to default to (if left empty and OG data is empty, will use "website")
 		*/
 
-		public static function setHeadContext($table, $entry, $title = null, $description = null) {
+		public static function setHeadContext($table, $entry, $title = null, $description = null, $image = null, $type = null) {
 			static::$HeadContext = [
 				"table" => $table,
 				"entry" => $entry,
 				"title" => $title,
-				"description" => $description
+				"description" => $description,
+				"image" => $image,
+				"type" => $type
 			];
 		}
 
