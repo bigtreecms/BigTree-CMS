@@ -31,10 +31,26 @@
 	<p class="note">The first parameter passed in is an array of data. The second is a boolean of whether you're receiving currently tagged entries (false) or the list of available entries that aren't currently tagged (true).</p>
 </fieldset>
 <fieldset>
+	<label for="settings_field_max">Maximum Entries <small>(defaults to unlimited)</small></label>
+	<input id="settings_field_max" type="text" name="max" value="<?=$settings["max"]?>" autocomplete="off" />
+</fieldset>
+<fieldset id="settings_fieldset_add_all"<?php if ($settings["max"]) { ?> style="display: none;"<?php } ?>>
 	<input id="settings_field_add_all" type="checkbox" name="show_add_all"<?php if ($data["show_add_all"]) { ?> checked="checked"<?php } ?>>
-	<label for="settings_field_add_all" class="for_checkbox">Enable Add All Button</label>
+	<label for="settings_field_add_all" class="for_checkbox">Enable Add All Button <small>(will not show if Maximum Entries is set)</small></label>
 </fieldset>
 <fieldset>
 	<input id="settings_field_reset" type="checkbox" name="show_reset"<?php if ($data["show_reset"]) { ?> checked="checked"<?php } ?>>
 	<label for="settings_field_reset" class="for_checkbox">Enable Reset Button</label>
 </fieldset>
+
+<script>
+	$("#settings_field_max").keyup(function() {
+		var max = parseInt($(this).val());
+
+		if (max > 0) {
+			$("#settings_fieldset_add_all").hide();
+		} else {
+			$("#settings_fieldset_add_all").show();
+		}
+	});
+</script>

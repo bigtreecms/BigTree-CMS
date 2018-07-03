@@ -5,6 +5,8 @@
 		$field["value"] = json_decode($field["value"],true);
 	}
 
+	$max = !empty($field["settings"]["max"]) ? $field["settings"]["max"] : 0;
+
 	// Throw an exception if they didn't setup the field type properly
 	if (!$field["settings"]["table"] || !$field["settings"]["title_column"]) {
 		throw Exception("One-to-Many field type requires a table and a title field to be setup to function.");
@@ -65,18 +67,25 @@
 		?>
 	</ul>
 	<footer>
-		<select>
-			<?php foreach ($list as $id => $title) { ?>
-			<option value="<?=BigTree::safeEncode($id)?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($title),100))?></option>
-			<?php } ?>
-		</select>
-		<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>
+		<div class="many_to_many_add_container">
+			<select>
+				<?php foreach ($list as $id => $title) { ?>
+				<option value="<?=BigTree::safeEncode($id)?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($title),100))?></option>
+				<?php } ?>
+			</select>
+			<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>
+		</div>
 		<?php
-			if ($field["settings"]["show_add_all"]) {
+			if ($max) {
+		?>
+		<small class="max">LIMIT <?=$max?></small>
+		<?php
+			} elseif ($field["settings"]["show_add_all"]) {
 		?>
 		<a href="#" class="add_all button">Add All</a>
 		<?php
 			}
+
 			if ($field["settings"]["show_reset"]) {
 		?>
 		<a href="#" class="reset button red">Reset</a>
@@ -90,7 +99,8 @@
 		id: "<?=$field["id"]?>",
 		count: <?=$x?>,
 		key: "<?=$field["key"]?>",
-		sortable: "true"
+		sortable: "true",
+		max: <?=$max?>
 	});
 </script>
 <?php

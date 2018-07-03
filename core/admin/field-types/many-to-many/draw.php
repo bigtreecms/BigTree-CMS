@@ -3,6 +3,8 @@
 	$table_description = BigTree::describeTable($field["settings"]["mtm-connecting-table"]);
 	$cols = $table_description["columns"];
 	$sortable = false;
+	$max = !empty($field["settings"]["max"]) ? $field["settings"]["max"] : 0;
+
 	if (isset($cols["position"])) {
 		$sortable = true;
 	}
@@ -79,14 +81,20 @@
 		?>
 	</ul>
 	<footer>
-		<select>
-			<?php foreach ($list as $k => $v) { ?>
-			<option value="<?=BigTree::safeEncode($k)?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($v),100))?></option>
-			<?php } ?>
-		</select>
-		<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>
+		<div class="many_to_many_add_container">
+			<select>
+				<?php foreach ($list as $k => $v) { ?>
+				<option value="<?=BigTree::safeEncode($k)?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($v),100))?></option>
+				<?php } ?>
+			</select>
+			<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>
+		</div>
 		<?php
-			if ($field["settings"]["show_add_all"]) {
+			if ($max) {
+		?>
+		<small class="max">LIMIT <?=$max?></small>
+		<?php
+			} elseif ($field["settings"]["show_add_all"]) {
 		?>
 		<a href="#" class="add_all button">Add All</a>
 		<?php
@@ -105,6 +113,7 @@
 		count: <?=$x?>,
 		key: "<?=$field["key"]?>",
 		sortable: <?=($sortable ? "true" : "false")?>,
+		max: <?=$max?>
 	});
 </script>
 <?php

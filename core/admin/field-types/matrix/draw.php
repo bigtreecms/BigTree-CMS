@@ -2,6 +2,7 @@
 	if (!is_array($field["value"])) {
 		$field["value"] = array();
 	}
+	
 	$max = !empty($field["settings"]["max"]) ? $field["settings"]["max"] : 0;
 
 	// Callout style

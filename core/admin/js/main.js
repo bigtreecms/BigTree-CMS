@@ -2022,11 +2022,13 @@ var BigTreeManyToMany = function(settings) {
 	}
 
 	return (function($,settings) {
+		var AddContainer;
 		var Count = 0;
 		var DeleteTarget;
 		var Field;
 		var Key;
 		var List;
+		var Max = 0;
 		var Select;
 		var Sortable;
 		var KeepOptions;
@@ -2046,6 +2048,7 @@ var BigTreeManyToMany = function(settings) {
 				} else {
 					var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><p></p><a href="#" class="icon_delete"></a></li>');
 				}
+
 				li.find("p").html(text);
 				li.find("input").val(val);
 
@@ -2081,6 +2084,7 @@ var BigTreeManyToMany = function(settings) {
 			} else {
 				var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><p></p><a href="#" class="icon_delete"></a></li>');
 			}
+
 			li.find("p").html(text);
 			li.find("input").val(val);
 
@@ -2095,6 +2099,13 @@ var BigTreeManyToMany = function(settings) {
 
 			// Hide the instructions saying there haven't been any items tagged.
 			Field.find("section").hide();
+
+			// If we've hit max, hide the add button
+			var total = Field.find("li").length;
+
+			if (total >= Max) {
+				AddContainer.hide();
+			}
 		}
 
 		function deleteItem(ev) {
@@ -2116,6 +2127,13 @@ var BigTreeManyToMany = function(settings) {
 
 			li.remove();
 			Field.trigger("removedItem", { value: val, description: text });
+
+			// If we've hit max, hide the add button
+			var total = Field.find("li").length;
+
+			if (total < Max) {
+				AddContainer.show();
+			}
 		}
 
 		function reset(ev) {
@@ -2142,13 +2160,20 @@ var BigTreeManyToMany = function(settings) {
 
 		// Init routine
 		Field = $("#" + settings.id);
+		AddContainer = Field.find(".many_to_many_add_container");
 		Count = settings.count;
 		Key = settings.key;
+
 		if (settings.sortable) {
 			Sortable = true;
 		}
+		
 		if (settings.keepOptions) {
 			KeepOptions = true;
+		}
+
+		if (settings.max) {
+			Max = parseInt(settings.max);
 		}
 
 		List = Field.find("ul");
@@ -2156,6 +2181,10 @@ var BigTreeManyToMany = function(settings) {
 
 		if (Sortable) {
 			List.sortable({ items: "li", handle: ".icon_sort" });
+		}
+
+		if (Count >= Max) {
+			AddButton.hide();
 		}
 
 		Field.find(".add").click(addItem);
