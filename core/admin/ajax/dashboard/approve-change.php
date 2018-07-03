@@ -39,6 +39,7 @@
 	// It's a new entry, let's publish it.
 	} else {
 		if ($change["table"] == "bigtree_pages") {
+			$change["changes"]["_tags"] = $change["tags_changes"];
 			$page = $admin->createPage($change["changes"]);
 			$admin->deletePendingChange($change["id"]);
 		} else {
