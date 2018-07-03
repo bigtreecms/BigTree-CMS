@@ -2784,10 +2784,12 @@
 			}
 
 			foreach ($array as &$piece) {
-				if (is_array($piece)) {
-					$piece = static::untranslateArray($piece);
-				} else {
-					$piece = BigTreeCMS::replaceInternalPageLinks($piece);
+				if (!is_null($piece)) {
+					if (is_array($piece)) {
+						$piece = static::untranslateArray($piece);
+					} else {
+						$piece = BigTreeCMS::replaceInternalPageLinks($piece);
+					}
 				}
 			}
 
