@@ -17,6 +17,8 @@
 		public static $Secure;
 		public static $SiteRoots = array();
 
+		protected static $HeadContext;
+
 		/*
 			Constructor:
 				Builds a flat file module class list so that module classes can be autoloaded instead of always in memory.
@@ -341,7 +343,59 @@
 			}
 			return $data;
 		}
+
+		/*
+			Function: drawHeadTags
+				Draws the <title>, meta description, and open graph tags for the given context.
+				The context defaults to the current page and can be changed via BigTreeCMS::setHeadContext
+
+			Parameters:
+				site_title - A site title that draws after the page title if entered, also used for og:site_name
+				divider - The divider between the page title and site title, defaults to |
+		*/
 		
+		public static function drawHeadTags($site_title = "", $divider = "|") {
+			global $bigtree;
+
+			if (empty(static::$HeadContext["table"]) || empty(static::$HeadContext["entry"])) {
+				$og = $bigtree["page"]["open_graph"];
+				$title = !empty($HeadContext["title"]) ? $HeadContext["title"] : $bigtree["page"]["title"];
+				$description = !empty($HeadContext["meta_description"]) ? $HeadContext["meta_description"] : $bigtree["page"]["meta_description"];
+			} else {
+				$og = static::getOpenGraph(static::$HeadContext["table"], static::$HeadContext["entry"]);
+
+				if (!empty($HeadContext["title"])) {
+					$title = $HeadContext["title"];
+				} elseif (!empty($og["title"])) {
+					$title = $og["title"];
+				} else {
+					$title = $bigtree["page"]["title"];
+				}
+
+				if (!empty($HeadContext["description"])) {
+					$description = $HeadContext["description"];
+				} elseif (!empty($og["title"])) {
+					$description = $og["description"];
+				} else {
+					$description = $bigtree["page"]["meta_description"];
+				}
+			}
+
+			echo "<title>".$title.(($site_title && $bigtree["page"]["id"]) ? " $divider ".BigTree::safeEncode($site_title) : "")."</title>\n";
+			echo '		<meta name="description" content="'.$description.'" />'."\n";
+			echo '		<meta property="og:title" content="'.(!empty($og["title"]) ? $og["title"] : $title).'" />'."\n";
+			echo '		<meta property="og:description" content="'.(!empty($og["description"]) ? $og["description"] : $description).'" />'."\n";
+			echo '		<meta property="og:type" content="'.(!empty($og["type"]) ? $og["type"] : "website").'" />'."\n";
+
+			if ($site_title) {
+				echo '		<meta property="og:site_name" content="'.BigTree::safeEncode($site_title).'" />'."\n";
+			}
+
+			if ($og["image"]) {
+				echo '		<meta property="og:image" content="'.$og["image"].'" />'."\n";
+			}
+		}
+
 		/*
 			Function: drawXMLSitemap
 				Outputs an XML sitemap.
@@ -985,15 +1039,6 @@
 			$og = SQL::fetch("SELECT * FROM bigtree_open_graph WHERE `table` = ? AND `entry` = ?", $table, $id);
 			
 			if (!$id || !$og) {
-				if (!empty($bigtree["page"])) {
-					return [
-						"title" => $bigtree["page"]["title"],
-						"description" => $bigtree["page"]["meta_description"],
-						"type" => "website",
-						"image" => ""
-					];
-				}
-
 				return [
 					"title" => "",
 					"description" => "",
@@ -1648,6 +1693,26 @@
 			static::generateReplaceableRoots();
 			
 			return str_replace(static::$ReplaceableRootVals, static::$ReplaceableRootKeys, $string);
+		}
+
+		/*
+			Function: setHeadContext
+				Sets the context for the drawHeadTags method.
+
+			Parameters:
+				table - A data table to pull open graph information from
+				entry - The ID of the entry to pull open graph information for
+				title - A page title to use (optional, will use Open Graph information if not entered)
+				description - A meta description to use (optional, will use Open Graph information if not entered)
+		*/
+
+		public static function setHeadContext($table, $entry, $title = null, $description = null) {
+			static::$HeadContext = [
+				"table" => $table,
+				"entry" => $entry,
+				"title" => $title,
+				"description" => $description
+			];
 		}
 
 		/*
