@@ -8,6 +8,7 @@
 		BigTree::redirect(DEVELOPER_ROOT."settings/");
 	} else {
 		$success = $admin->updateSetting(end($bigtree["path"]),$_POST);
+		
 		if ($success) {
 			$admin->growl("Developer","Updated Setting");
 			BigTree::redirect(DEVELOPER_ROOT."settings/");

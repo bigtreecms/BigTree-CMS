@@ -7073,11 +7073,6 @@
 
 			// If it's not a valid image, throw it out!
 			if ($image_type != IMAGETYPE_GIF && $image_type != IMAGETYPE_JPEG && $image_type != IMAGETYPE_PNG) {
-				var_dump($temp_name);
-				print_r($_FILES);
-				var_dump($image_info);
-				var_dump($image_type);
-				die();
 				$bigtree["errors"][] = array("field" => $field["title"], "error" => "An invalid file was uploaded. Valid file types: JPG, GIF, PNG.");
 				$failed = true;
 			}
@@ -9189,6 +9184,8 @@
 		public function updateSetting($old_id,$data) {
 			global $bigtree;
 
+			$id = $type = $name = $description = $system = $locked = $encrypted = "";
+
 			// Get the existing setting information.
 			$existing = static::getSetting($old_id);
 			$old_id = sqlescape($existing["id"]);
@@ -9205,7 +9202,6 @@
 
 			// Stored as JSON encoded already
 			$settings = json_decode($data["settings"] ?: $data["options"], true);
-			$id = $type = $name = $description = $system = $locked = $encrypted = "";
 
 			foreach ($settings as $key => $value) {
 				if (($key == "options" || $key == "settings") && is_string($value)) {
@@ -9217,6 +9213,7 @@
 
 			// See if we have an id collision with the new id.
 			if ($old_id != $id && static::settingExists($id)) {
+				echo "ID is $id and old id is $old_id";
 				return false;
 			}
 
