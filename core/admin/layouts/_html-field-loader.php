@@ -2,7 +2,6 @@
 	$width = isset($bigtree["html_editor_width"]) ? $bigtree["html_editor_width"] : false;
 	$height = isset($bigtree["html_editor_height"]) ? $bigtree["html_editor_height"] : false;
 	$content_css = $cms->getSetting("tinymce-content-css");
-	$html_editor = isset($bigtree["config"]["html_editor"]) ? $bigtree["config"]["html_editor"]["name"] : "TinyMCE 3";
 ?>
 <script>
 	$(document).ready(function() {
