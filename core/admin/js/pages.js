@@ -12,6 +12,7 @@ var BigTreePages = (function() {
 	var LockTimer;
 	var PageTitle;
 	var PageTitleDidFocus = false;
+	var PageTitleTimer;
 	var RedirectLowerField;
 	var RedirectLowerFieldControl;
 	var TemplateSelect;
@@ -50,6 +51,16 @@ var BigTreePages = (function() {
 		// Watch for changes in the template, update the Content tab.
 		ExternalTimer = setInterval(checkExternal, 300);
 		TemplateTimer = setInterval(checkTemplate, 300);
+
+		if (!PageTitle.get(0).defaultValue) {
+			PageTitleTimer = setInterval(checkPageTitle, 300);
+
+			PageTitle.focus(function() {
+				if (PageTitleTimer) {
+					clearTimer(PageTitleTimer);
+				}
+			});
+		}
 		
 		$(".save_and_preview").click(function(ev) {
 			ev.preventDefault();
@@ -57,17 +68,6 @@ var BigTreePages = (function() {
 			var sform = $(this).parents("form");
 			sform.attr("action","admin_root/pages/update/?preview=true");
 			sform.submit();
-		});
-		
-		// Observe the Nav Title for auto filling the Page Title the first time around.
-		NavTitle.keyup(function() {
-			if (!PageTitle.get(0).defaultValue && !PageTitleDidFocus) {
-				PageTitle.val(NavTitle.val());
-			}
-		});
-
-		PageTitle.focus(function() {
-			PageTitleDidFocus = true;
 		});
 
 		// Setup lock timer if we're editing a page
@@ -103,6 +103,10 @@ var BigTreePages = (function() {
 				TemplateSelectControl.enable();
 			}
 		}
+	}
+
+	function checkPageTitle() {
+		PageTitle.val(NavTitle.val());
 	}
 
 	function checkTemplate() {
