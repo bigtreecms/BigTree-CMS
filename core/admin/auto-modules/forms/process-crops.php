@@ -25,15 +25,11 @@
 <script>
 	(function() {
 		var Counter = $(".container .current");
-		var Current = 1;
+		var Completed = 0;
 		var POST = <?=json_encode($_POST)?>;
 		var Total = <?=$count?>;
 
-		function process() {
-			var index = Current - 1;
-
-			Counter.html(Current);
-
+		for (var index = 0; index < Total; index++) {
 			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/process-crop/", {
 				method: "POST",
 				data: {
@@ -45,13 +41,12 @@
 					height: POST.height[index],
 				}
 			}).done(function() {
-				Current++;
+				Completed++;
+				Counter.html(Completed);
 
-				if (Current > Total) {
+				if (Completed == Total) {
 					window.onbeforeunload = null;
 					document.location.href = "<?=$return_link?>";
-				} else {
-					process();
 				}
 			});
 		}
@@ -60,7 +55,5 @@
 			BigTree.growl("Cropping Images", "Please wait until all your images are finished cropping before leaving this page.", 5000, "error");
 			return false;
 		};
-
-		process();
 	})();
 </script>
