@@ -1769,6 +1769,7 @@ var BigTreeFormNavBar = (function() {
 		Nav.click(tabClick);
 		// Next Button controls
 		NextButton.click(nextClick);
+		toggleNextVisibility();
 
 		// Form Validation
 		BigTreeFormValidator(Container.find("form"),function(errors) {
@@ -1783,6 +1784,7 @@ var BigTreeFormNavBar = (function() {
 		// For when there are too many tabs, we need to setup scrolling
 		var calc_nav_container = Container.find("nav .more div");
 		var nav_width = calc_nav_container.width();
+
 		if (nav_width > 928) {
 			// If we're larger than 928, we're splitting into pages
 			MoreContainer = calc_nav_container.parent();
@@ -1790,6 +1792,7 @@ var BigTreeFormNavBar = (function() {
 			var page_count = 0;
 			var current_width = 0;
 			var current_page = $('<div class="nav_page active">');
+
 			Nav.each(function() {
 				var width = $(this).width() + 47;
 
@@ -1842,10 +1845,8 @@ var BigTreeFormNavBar = (function() {
 		next.addClass("active");
 		$("#" + next.attr("href").substr(1)).show();
 		$("#" + tab.attr("href").substr(1)).hide();
-
-		if (tabs.length - 2 == index) {
-			$(this).hide();
-		}
+		
+		toggleNextVisibility();
 	}
 
 	function switchPanel(id) {
@@ -1865,6 +1866,7 @@ var BigTreeFormNavBar = (function() {
 
 		// Show new panel
 		$(id).show();
+		toggleNextVisibility();
 	}
 
 	function tabClick(ev) {
@@ -1875,14 +1877,20 @@ var BigTreeFormNavBar = (function() {
 		}
 
 		var href = $(this).attr("href").substr(1);
+		
 		Sections.hide();
 		Nav.removeClass("active");
 		$(this).addClass("active");
 		$("#" + href).show();
+		toggleNextVisibility();
+	}
 
-		// Manage the "Next" buttons
-		var index = Nav.index(this);
-		if (index == Nav.filter(":visible").length - 1) {
+	function toggleNextVisibility() {
+		var tab = Nav.filter(".active");
+		var tabs = Nav.filter(":visible");
+		var index = tabs.index(tab);
+		
+		if (tabs.length - 1 == index) {
 			NextButton.hide();
 		} else {
 			NextButton.show();

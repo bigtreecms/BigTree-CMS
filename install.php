@@ -348,21 +348,8 @@
 		bt_mkdir_writable("templates");
 		bt_mkdir_writable("templates/ajax/");
 		bt_mkdir_writable("templates/layouts/");
-		bt_touch_writable("templates/layouts/_header.php");
-		bt_touch_writable("templates/layouts/default.php",'<?php
-	include "_header.php";
-	echo $bigtree["content"];
-	include "_footer.php";
-?>');
-		bt_touch_writable("templates/layouts/_footer.php");
 		bt_mkdir_writable("templates/routed/");
 		bt_mkdir_writable("templates/basic/");
-		bt_touch_writable("templates/basic/_404.php","<h1>404 - Page Not Found</h1>");
-		bt_touch_writable("templates/basic/_maintenance.php","<h1>Under Construction</h1><p>Maintenance mode has been enabled.</p>");
-		bt_touch_writable("templates/basic/_sitemap.php","<h1>Sitemap</h1>");
-		bt_touch_writable("templates/basic/home.php");
-		bt_touch_writable("templates/basic/content.php",'<h1><?=$page_header?></h1>
-<?=$page_content?>');
 		bt_mkdir_writable("templates/callouts/");
 		
 		bt_touch_writable("custom/environment.php",str_replace($find,$replace,file_get_contents("core/config.environment.php")));
@@ -381,6 +368,21 @@
 		} else {
 			bt_touch_writable("custom/settings.php",str_replace($find,$replace,file_get_contents("core/config.settings.php")));
 		}
+
+		// Now copy over the default templates
+		bt_touch_writable("templates/layouts/_header.php");
+		bt_touch_writable("templates/layouts/default.php",'<?php
+	include "_header.php";
+	echo $bigtree["content"];
+	include "_footer.php";
+?>');
+		bt_touch_writable("templates/layouts/_footer.php");
+		bt_touch_writable("templates/basic/_404.php","<h1>404 - Page Not Found</h1>");
+		bt_touch_writable("templates/basic/_maintenance.php","<h1>Under Construction</h1><p>Maintenance mode has been enabled.</p>");
+		bt_touch_writable("templates/basic/_sitemap.php","<h1>Sitemap</h1>");
+		bt_touch_writable("templates/basic/home.php");
+		bt_touch_writable("templates/basic/content.php",'<h1><?=$page_header?></h1>
+<?=$page_content?>');
 		
 		// Create site/index.php, site/.htaccess, and .htaccess (masks the 'site' directory)
 		bt_touch_writable("site/index.php",'<?php

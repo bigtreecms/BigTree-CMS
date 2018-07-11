@@ -8112,11 +8112,11 @@
 			// If this is running fron cron or something, nobody is logged in so don't track.
 			if (isset($this->ID) || !is_null($user)) {
 				SQL::insert("bigtree_audit_trail", [
-					"table" => $table,
+					"table" => BigTree::safeEncode($table),
 					"user" => !is_null($user) ? $user : $this->ID,
-					"entry" => $entry,
+					"entry" => BigTree::safeEncode($entry),
 					"date" => "NOW()",
-					"type" => $type
+					"type" => BigTree::safeEncode($type)
 				]);
 			}
 		}
