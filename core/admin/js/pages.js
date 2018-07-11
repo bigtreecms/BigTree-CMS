@@ -1,64 +1,121 @@
-var BigTreePages = {
-	calloutCount: 0,
-	calloutDescription: false,
-	calloutNumber: 0,
-	currentCallout: false,
-	pageTitleDidFocus: false,
+var BigTreePages = (function() {
+	var CalloutCount = 0;
+	var CalloutDescription = false;
+	var CalloutNumber = 0;
+	var CurrentCallout = false;
+	var CurrentPage;
+	var CurrentPageTemplate;
+	var ExternalLinkField;
+	var ExternalTimer;
+	var NavTitle;
+	var NewWindowControl;
+	var LockTimer;
+	var PageTitle;
+	var PageTitleDidFocus = false;
+	var RedirectLowerField;
+	var RedirectLowerFieldControl;
+	var TemplateSelect;
+	var TemplateSelectControl;
+	var TemplateTimer;
+	var TrunkField;
 
-	init: function() {
-		$("input[name=redirect_lower]").click(function() {
+	function init(settings) {
+		CurrentPage = settings.page;
+		CurrentPageTemplate = settings.template;
+		ExternalLinkField = $("#external_link");
+		NavTitle = $("#nav_title");
+		NewWindowControl = $("#new_window").get(0).customControl;
+		PageTitle = $("#page_title");
+		RedirectLowerField = $("#redirect_lower");
+		RedirectLowerFieldControl = RedirectLowerField.get(0).customControl;
+		TemplateSelect = $("#template_select");
+		TemplateSelectControl = TemplateSelect.get(0).customControl;
+		TrunkField = $("#trunk_field");
+
+		RedirectLowerField.click(function() {
 			if ($(this).prop("checked")) {
-				$("#template_select").get(0).customControl.disable();
-				$("#external_link").prop("disabled",true);
-				$("#new_window").get(0).customControl.disable();
+				TemplateSelectControl.disable();
+				ExternalLinkField.prop("disabled", true);
+				NewWindowControl.disable();
 			} else {
-				$("#template_select").get(0).customControl.enable();
-				$("#external_link").removeAttr("disabled");
-				$("#new_window").get(0).customControl.enable();
+				TemplateSelectControl.enable();
+				ExternalLinkField.prop("disabled", false);
+				NewWindowControl.enable();
 			}
 		});
-		$("input[name=external]").on("keyup",function() {
-			if ($(this).val()) {
-				$("#template_select").get(0).customControl.disable();
-			} else {
-				$("#template_select").get(0).customControl.enable();
-			}
-		});
-		
+
 		// Tagger
 		BigTreeTagAdder.init();
 		
 		// Watch for changes in the template, update the Content tab.
-		BigTree.localTimer = setInterval(BigTreePages.CheckTemplate,500);
+		ExternalTimer = setInterval(checkExternal, 300);
+		TemplateTimer = setInterval(checkTemplate, 300);
 		
-		$(".save_and_preview").click(function() {
-			sform = $(this).parents("form");
+		$(".save_and_preview").click(function(ev) {
+			ev.preventDefault();
+
+			var sform = $(this).parents("form");
 			sform.attr("action","admin_root/pages/update/?preview=true");
 			sform.submit();
-			
-			return false;
 		});
 		
 		// Observe the Nav Title for auto filling the Page Title the first time around.
-		$("#nav_title").keyup(function() {
-			if (!$("#page_title").get(0).defaultValue && !BigTreePages.pageTitleDidFocus) {
-				$("#page_title").val($("#nav_title").val());
+		NavTitle.keyup(function() {
+			if (!PageTitle.get(0).defaultValue && !PageTitleDidFocus) {
+				PageTitle.val(NavTitle.val());
 			}
 		});
-		$("#page_title").focus(function() { BigTreePages.pageTitleDidFocus = true; });
-	},
 
-	CheckTemplate: function() {
-		var template_select = $("select[name=template]");
-		if (template_select.length) {
-			if ($("#redirect_lower").prop("checked")) {
+		PageTitle.focus(function() {
+			PageTitleDidFocus = true;
+		});
+
+		// Setup lock timer if we're editing a page
+		if (CurrentPage) {
+			LockTimer = setInterval(function() {
+				$.secureAjax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { 
+					type: 'POST', 
+					data: { 
+						table: 'bigtree_pages', 
+						id: CurrentPage
+					}
+				});
+			}, 60000);
+		}
+	}
+
+	function checkExternal() {
+		if (ExternalLinkField.val()) {
+			TemplateSelectControl.disable();
+			RedirectLowerFieldControl.disable();
+
+			if (TrunkField.length) {
+				TrunkField.get(0).customControl.disable();
+			}
+		} else {
+			RedirectLowerFieldControl.enable();
+
+			if (TrunkField.length) {
+				TrunkField.get(0).customControl.enable();
+			}
+
+			if (!RedirectLowerField.prop("checked")) {
+				TemplateSelectControl.enable();
+			}
+		}
+	}
+
+	function checkTemplate() {
+		if (TemplateSelect.length) {
+			if (RedirectLowerField.prop("checked")) {
 				var current_template = "!";
-			} else if ($("#external_link").val()) {
+			} else if (ExternalLinkField.val()) {
 				var current_template = "";
 			} else {
-				var current_template = template_select.val();
+				var current_template = TemplateSelect.val();
 			}
-			if (BigTree.currentPageTemplate != current_template) {
+
+			if (CurrentPageTemplate != current_template) {
 				// Unload all TinyMCE fields.
 				if (tinyMCE) {
 					for (id in BigTree.TinyMCEFields) {
@@ -66,15 +123,26 @@ var BigTreePages = {
 						tinyMCE.execCommand("mceRemoveControl", false, BigTree.TinyMCEFields[id]);
 					}
 				}
-				BigTree.currentPageTemplate = current_template;
-				if (BigTree.currentPage !== false) {
-					$("#template_type").load("admin_root/ajax/pages/get-template-form/", { page: BigTree.currentPage, template: BigTree.currentPageTemplate }, function() { BigTreeCustomControls("#template_type"); });
+
+				CurrentPageTemplate = current_template;
+
+				if (CurrentPage !== false) {
+					$("#template_type").load("admin_root/ajax/pages/get-template-form/", {
+						page: CurrentPage, 
+						template: CurrentPageTemplate 
+					}, function() { 
+						BigTreeCustomControls("#template_type"); 
+					});
 				} else {
-					$("#template_type").load("admin_root/ajax/pages/get-template-form/", { template: BigTree.currentPageTemplate }, function() { BigTreeCustomControls("#template_type"); });
+					$("#template_type").load("admin_root/ajax/pages/get-template-form/", { 
+						template: CurrentPageTemplate 
+					}, function() { 
+						BigTreeCustomControls("#template_type"); 
+					});
 				}
 			}
 		}
 	}
-};
 
-$(document).ready(BigTreePages.init);
+	return { init: init };
+})();

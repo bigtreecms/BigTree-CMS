@@ -106,12 +106,10 @@
 
 <script>
 	BigTreeFormNavBar.init();
-
-	BigTree.currentPageTemplate = "<?=$bigtree["current_page"]["template"]?>";
-	<?php if ($bigtree["form_action"] == "create") { ?>
-	BigTree.currentPage = false;
-	<?php } else { ?>
-	BigTree.currentPage = "<?=$bigtree["current_page"]["id"]?>";
-	BigTree.localLockTimer = setInterval("$.secureAjax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { type: 'POST', data: { table: 'bigtree_pages', id: '<?=$bigtree["current_page"]["id"]?>' } });",60000);
-	<?php } ?>
+	BigTree.ReadyHooks.push(function() {
+		BigTreePages.init({
+			template: "<?=$bigtree["current_page"]["template"]?>",
+			page: <?php if ($bigtree["form_action"] == "create") { echo "false"; } else { echo $bigtree["current_page"]["id"]; } ?>,
+		});
+	});
 </script>

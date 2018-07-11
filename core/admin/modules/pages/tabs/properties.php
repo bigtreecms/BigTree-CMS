@@ -99,7 +99,7 @@
 		if ($admin->Level > 1 && ($bigtree["form_action"] == "create" || $bigtree["current_page"]["id"])) {
 	?>
 	<fieldset class="float_margin">
-		<input type="checkbox" name="trunk" <?php if ($bigtree["current_page"]["trunk"]) { ?>checked="checked" <?php } ?> tabindex="6" />
+		<input type="checkbox" name="trunk" id="trunk_field" <?php if ($bigtree["current_page"]["trunk"]) { ?>checked="checked" <?php } ?> tabindex="6" />
 		<label class="for_checkbox">Trunk</label>
 	</fieldset>
 	<?php
