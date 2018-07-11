@@ -7548,9 +7548,9 @@
 		function track($table,$entry,$type) {
 			// If this is running fron cron or something, nobody is logged in so don't track.
 			if (isset($this->ID)) {
-				$table = sqlescape($table);
-				$entry = sqlescape($entry);
-				$type = sqlescape($type);
+				$table = sqlescape(BigTree::safeEncode($table));
+				$entry = sqlescape(BigTree::safeEncode($entry));
+				$type = sqlescape(BigTree::safeEncode($type));
 				sqlquery("INSERT INTO bigtree_audit_trail (`table`,`user`,`entry`,`date`,`type`) VALUES ('$table','".$this->ID."','$entry',NOW(),'$type')");
 			}
 		}
