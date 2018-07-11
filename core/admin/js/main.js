@@ -1908,9 +1908,19 @@ var BigTreeFormNavBar = (function() {
 			Nav.filter("[href='#" + errors[0].parents("section").show().attr("id") + "']").addClass("active");
 		});
 
+		// Hide Next button if there's no next visible tab
+		var tab = Nav.filter(".active");
+		var tabs = Nav.filter(":visible");
+		var index = tabs.index(tab);
+		
+		if (tabs.length - 1 == index) {
+			NextButton.hide();
+		}
+
 		// For when there are too many tabs, we need to setup scrolling
 		var calc_nav_container = Container.find("nav .more div");
 		var nav_width = calc_nav_container.width();
+
 		if (nav_width > 928) {
 			// If we're larger than 928, we're splitting into pages
 			MoreContainer = calc_nav_container.parent();
@@ -1918,6 +1928,7 @@ var BigTreeFormNavBar = (function() {
 			var page_count = 0;
 			var current_width = 0;
 			var current_page = $('<div class="nav_page active">');
+
 			Nav.each(function() {
 				var width = $(this).width() + 47;
 				
