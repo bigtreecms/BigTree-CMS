@@ -136,12 +136,6 @@ var BigTreePageLoadHooks = (function($) {
 			return false;
 		});
 
-		$(".inset_block .hide").click(function() {
-			var id = $(this).attr("data-id");
-			$.cookie("bigtree_admin[ignore_view_description][" + id + "]","on", { expires: 365, path: "/" });
-			$(this).parent().hide();
-		});
-
 		// Tooltips
 		$(".has_tooltip").each(function() {
 			var width = BigTree.windowWidth();

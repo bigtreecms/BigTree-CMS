@@ -7,6 +7,21 @@
 			clearTimeout(SearchTimer);
 			SearchTimer = setTimeout("BigTree.localSearch();",400);
 		});
+
+		$(".js-view-description-show").click(function() {
+			var id = $(".js-view-description").show().data("id");
+
+			$(this).hide();
+			$.cookie("bigtree_admin[ignore_view_description][" + id + "]", "", { expires: 365, path: "/" });
+		});
+
+		$(".js-view-description-hide").click(function() {
+			var id = $(this).parent().data("id");
+			
+			$.cookie("bigtree_admin[ignore_view_description][" + id + "]","on", { expires: 365, path: "/" });
+			$(this).parent().hide();
+			$(".js-view-description-show").show();
+		});
 		
 		$(".table").on("click",".js-delete-hook",function() {
 			Current = $(this);
