@@ -80,10 +80,10 @@
 <div class="contain">
 	<fieldset class="float_margin">
 		<?php if ($parent_to_check > 0 || $admin->Level > 1) { ?>
-		<input type="checkbox" name="in_nav" <?php if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <?php } ?>class="checkbox" tabindex="7" />
+		<input type="checkbox" name="in_nav" <?php if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <?php } ?>class="checkbox" tabindex="6" />
 		<label class="for_checkbox">Visible In Navigation</label>
 		<?php } else { ?>
-		<input type="checkbox" name="in_nav" <?php if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <?php } ?>disabled="disabled" class="checkbox" tabindex="7" />
+		<input type="checkbox" name="in_nav" <?php if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <?php } ?>disabled="disabled" class="checkbox" tabindex="6" />
 		<label class="for_checkbox">Visible In Navigation <small>(only developers can change the visibility of top level navigation)</small></label>
 		<?php } ?>
 	</fieldset>
@@ -91,15 +91,16 @@
 		if (!$hide_template_section && ($bigtree["form_action"] == "create" || $bigtree["current_page"]["id"])) {
 	?>
 	<fieldset class="float_margin">
-		<input type="checkbox" name="redirect_lower" id="redirect_lower"<?php if ($bigtree["current_page"]["template"] == "!") { ?> checked="checked"<?php } ?> />
+		<input type="checkbox" name="redirect_lower" id="redirect_lower"<?php if ($bigtree["current_page"]["template"] == "!") { ?> checked="checked"<?php } ?> tabindex="7" />
 		<label class="for_checkbox">Redirect Lower</label>
 	</fieldset>
 	<?php
 		}
+
 		if ($admin->Level > 1 && ($bigtree["form_action"] == "create" || $bigtree["current_page"]["id"])) {
 	?>
 	<fieldset class="float_margin">
-		<input type="checkbox" name="trunk" id="trunk_field" <?php if ($bigtree["current_page"]["trunk"]) { ?>checked="checked" <?php } ?> tabindex="6" />
+		<input type="checkbox" name="trunk" id="trunk_field" <?php if ($bigtree["current_page"]["trunk"]) { ?>checked="checked" <?php } ?> tabindex="8" />
 		<label class="for_checkbox">Trunk</label>
 	</fieldset>
 	<?php
@@ -113,7 +114,7 @@
 <div class="contain">
 	<fieldset class="template last">
 		<label>Template</label>
-		<select id="template_select" name="template"<?php if ($bigtree["current_page"]["template"] == "!" || $bigtree["current_page"]["external"]) { ?> disabled="disabled"<?php } ?>>
+		<select id="template_select" name="template" tabindex="9"><?php if ($bigtree["current_page"]["template"] == "!" || $bigtree["current_page"]["external"]) { ?> disabled="disabled"<?php } ?>>
 			<optgroup label="Flexible Templates">
 				<?php foreach ($basic_templates as $t) { ?>
 				<option value="<?=$t["id"]?>"<?php if ($t["id"] == $bigtree["current_page"]["template"]) { ?> selected="selected"<?php } ?>><?=$t["name"]?></option>
@@ -129,10 +130,10 @@
 	<?php if ($bigtree["form_action"] == "create" || $bigtree["current_page"]["id"]) { ?>
 	<fieldset class="external last">
 		<label>External Link <small>(include http://, overrides template)</small></label>
-		<input id="external_link" type="text" name="external" value="<?=$bigtree["current_page"]["external"]?>" id="external_link"<?php if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<?php } ?> />
+		<input id="external_link" type="text" name="external" tabindex="10" value="<?=$bigtree["current_page"]["external"]?>" id="external_link"<?php if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<?php } ?> />
 	</fieldset>
 	<fieldset class="checkbox_bump last">
-		<input id="new_window" type="checkbox" name="new_window" value="Yes"<?php if ($bigtree["current_page"]["new_window"] == "Yes") { ?> checked="checked"<?php } ?><?php if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<?php } ?> />
+		<input id="new_window" type="checkbox" name="new_window" tabindex="11" value="Yes"<?php if ($bigtree["current_page"]["new_window"] == "Yes") { ?> checked="checked"<?php } ?><?php if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<?php } ?> />
 		<label class="for_checkbox">Open in New Window</label>
 	</fieldset>
 	<?php } ?>

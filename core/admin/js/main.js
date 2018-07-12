@@ -234,12 +234,12 @@ var BigTreeCheckbox = function(element) {
 		}
 
 		function disable() {
-			Link.addClass("disabled");
+			Link.addClass("disabled").attr("tabindex", "-1");
 			Element.prop("disabled",true);
 		}
 
 		function enable() {
-			Link.removeClass("disabled");
+			Link.removeClass("disabled").attr("tabindex", Element.attr("tabindex"));
 			Element.prop("disabled",false);
 		}
 
@@ -256,6 +256,20 @@ var BigTreeCheckbox = function(element) {
 			}
 		}
 
+		function update() {
+			if (Element.prop("disabled")) {
+				disable();
+			} else {
+				enable();
+			}
+
+			if (Element.prop("checked")) {
+				Link.addClass("checked");
+			} else {
+				Link.removeClass("checked");
+			}
+		}
+
 		// Init routine
 		if (Element.hasClass("custom_control")) {
 			return false;
@@ -265,19 +279,19 @@ var BigTreeCheckbox = function(element) {
 		Element.addClass("custom_control")
 			   .next("label").click(click)
 			   .find("a").click(function(ev) { ev.stopPropagation(); });
-
+		Element.focus(focus).blur(blur).change(update);
+		
 		// Create our clickable fake checkbox
 		Link = $("<a>").attr("href","#checkbox").click(click).focus(focus).blur(blur).keydown(keydown);
 
-		if (element.checked) {
+		if (Element.prop("checked")) {
 			Link.addClass("checked");
 		}
-
-		if (element.disabled) {
-			Link.addClass("disabled")
-				.attr("tabindex","-1");
-		} else if (element.tabIndex) {
-			Link.attr("tabindex",element.tabIndex);
+		
+		if (Element.prop("disabled")) {
+			disable();
+		} else {
+			enable();
 		}
 
 		$(element).hide().after($('<div class="checkbox">').append(Link));
@@ -291,10 +305,13 @@ var BigTreeSelect = function(element) {
 	return (function($,element) {
 
 		var Container = $("<div>").addClass("select");
+		var CurrentContainer;
 		var Element = $(element);
 		var Open = false;
 		var Options = [];
+		var TabIndex = 0;
 		var WasRelative = false;
+		var ValueContainer;
 
 		function add(value,text) {
 			// Add to the actual select.
@@ -307,21 +324,20 @@ var BigTreeSelect = function(element) {
 			var tester = $("<div>").css({ position: "absolute", top: "-1000px", left: "-1000px", "font-size": "11px", "font-family": "Helvetica", "white-space": "nowrap" });
 			$("body").append(tester);
 			tester.html(text);
-			var width = tester.width();
 
-			var span = Container.find("span");
+			var width = tester.width();
 
 			// If we're in a section cell we may need to be smaller.
 			if (Element.parent().get(0).tagName.toLowerCase() == "section") {
 				var sectionwidth = Element.parent().width();
 				if (sectionwidth < (width + 56)) {
 					width = sectionwidth - 80;
-					span.css({ overflow: "hidden", padding: "0 0 0 10px" });
+					CurrentContainer.css({ overflow: "hidden", padding: "0 0 0 10px" });
 				}
 			}
 
 			if (width > span.width()) {
-				span.css({ width: (width + 10) + "px" });
+				CurrentContainer.css({ width: (width + 10) + "px" });
 				Container.find(".select_options").css({ width: (width + 64) + "px" });
 			}
 
@@ -520,19 +536,11 @@ var BigTreeSelect = function(element) {
 				} else if (selected_y <= select_options_container.scrollTop()) {
 					select_options_container.animate({ scrollTop: selected_y - 25 + "px" }, 250);
 				}
-
-				// Firefox wants to handle this change itself, so we'll give it a shot until they fix their browser engine.
-				if ($.browser.mozilla && ev.keyCode > 36 && ev.keyCode < 41) {
-					// Fire delayed change event since Firefox doesn't cooperate
-					setTimeout(function() {
-						Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
-					},200);
-				} else {
-					el.selectedIndex = index;
-					Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
-				}
-
-				Container.find("span").html('<figure class="handle"></figure>' + el.options[index].text);
+			
+				Element.get(0).selectedIndex = index;
+				Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
+	
+				ValueContainer.html(el.options[index].text);
 
 				return false;
 			}
@@ -560,14 +568,14 @@ var BigTreeSelect = function(element) {
 				}
 			}
 			// If the current selected state is the value we're removing, switch to the first available.
-			var sel = Container.find("span").eq(0);
 			var select_options = Container.find(".select_options a");
+			
 			if (select_options.length > 0) {
-				if (sel.html() == '<figure class="handle"></figure>' + text_was) {
-					sel.html('<figure class="handle"></figure>' + select_options.eq(0).html());
+				if (ValueContainer.html() == text_was) {
+					ValueContainer.html(select_options.eq(0).html());
 				}
 			} else {
-				sel.html('<figure class="handle"></figure>');
+				ValueContainer.html("");
 			}
 		}
 
@@ -585,7 +593,7 @@ var BigTreeSelect = function(element) {
 			Element.val(option.attr("data-value"));
 
 			// Update the selected state of the custom dropdown
-			Container.find("span").html('<figure class="handle"></figure>' + option.html());
+			ValueContainer.html(option.html());
 			Container.find("a").removeClass("active");
 			option.addClass("active");
 
@@ -598,14 +606,21 @@ var BigTreeSelect = function(element) {
 
 		function update() {
 			var el = Element.get(0);
-			Container.find("span").html('<figure class="handle"></figure>' + el.options[el.selectedIndex].text);
+			ValueContainer.html(el.options[el.selectedIndex].text);
 			Container.find("a").removeClass("active").eq(el.selectedIndex).addClass("active");
+
+			if (Element.prop("disabled")) {
+				disable();
+			} else {
+				enable();
+			}
 		}
 
 		// Init routine
 		if (Element.hasClass("custom_control")) {
 			return false;
 		}
+
 		Element.addClass("custom_control");
 
 		// WebKit likes to freak out when we focus a position: absolute <select> in an overflow: scroll area
@@ -705,37 +720,40 @@ var BigTreeSelect = function(element) {
 				}
 			}
 		}
+		
+		// Add it to the DOM
+		TabIndex = parseInt(Element.attr("tabindex"));
+		Element.attr("tabindex", "-1").before(Container);
 
-		Container.html('<span><figure class="handle"></figure>' + selected_option + '</span><div class="select_options" style="display: none;"></div>');
+		Container.html('<div class="current_select_container"><a class="handle" tabindex="' + TabIndex + '"></a><span class="current_select_value">' + selected_option + '</span></div><div class="select_options" style="display: none;"></div>');
+		Container.find(".select_options").append(Options).css({ width: (maxwidth + 64) + "px" });
+		Container.on("click", "a", select);
+		Container.find(".handle").attr("tabindex", TabIndex).click(click).focus(focus).blur(blur).keydown(keydown);
 
-		var spanwidth = maxwidth;
+		CurrentContainer = Container.find(".current_select_container");
+		ValueContainer = Container.find(".current_select_value");
+
 		// If we're in a section cell we may need to be smaller.
+		var spanwidth = maxwidth;
+		
 		if (Element.parent().get(0).tagName.toLowerCase() == "section") {
 			var sectionwidth = $(element).parent().width();
 			if (sectionwidth < (maxwidth + 56)) {
 				spanwidth = sectionwidth - 80;
 				maxwidth = spanwidth - 44;
-				Container.find("span").css({ overflow: "hidden", padding: "0 0 0 10px" });
+				CurrentContainer.css({ overflow: "hidden", padding: "0 0 0 10px" });
 			}
 		}
 
-		Container.find("span").css({ width: (spanwidth + 10) + "px", height: "30px" }).html('<figure class="handle"></figure>' + selected_option).click(click);
-		Container.find(".select_options").append(Options).css({ width: (maxwidth + 64) + "px" });
-		Container.on("click","a",select);
-		Container.find(".handle").click(click);
-
-		// Add it to the DOM
-		Element.before(Container);
+		CurrentContainer.css({ width: (spanwidth + 10) + "px", height: "30px" }).click(click);
 
 		// See if this select is disabled
 		if (Element.prop("disabled")) {
-			Container.addClass("disabled");
+			disable();
 		}
 
-		// Observe focus, blur, and keydown on the hidden element.
-		Element.focus(focus).blur(blur).keydown(keydown);
 		// Custom event to force open lists closed when another select opens.
-		Element.on("closeNow",close);
+		Element.on("closeNow", close);
 
 		// Cleanup
 		tester.remove();
@@ -853,7 +871,7 @@ var BigTreeFileInput = function(element) {
 		}
 
 		Container.find(".handle").click(function() { Element.click(); });
-		Element.addClass("custom_control").hide().on("change",checkUploads).before(Container);
+		Element.addClass("custom_control").hide().attr("tabindex", "-1").on("change",checkUploads).before(Container);
 
 		if (Element.prop("disabled")) {
 			Container.addClass("disabled");
@@ -899,12 +917,12 @@ var BigTreeRadioButton = function(element) {
 		}
 
 		function disable() {
-			Link.addClass("disabled");
+			Link.addClass("disabled").attr("tabindex", "-1");
 			Element.prop("disabled", true);
 		}
 
 		function enable() {
-			Link.removeClass("disabled");
+			Link.removeClass("disabled").attr("tabindex", Element.attr("tabindex"));
 			Element.prop("disabled", false);
 		}
 
@@ -930,6 +948,7 @@ var BigTreeRadioButton = function(element) {
 		function next(ev) {
 			var all = $('input[name="' + Element.attr("name") + '"]');
 			var index = all.index(Element);
+
 			if (index != all.length - 1) {
 				all[index + 1].customControl.Link.focus();
 				all[index + 1].customControl.click(ev);
@@ -939,9 +958,24 @@ var BigTreeRadioButton = function(element) {
 		function previous(ev) {
 			var all = $('input[name="' + Element.attr("name") + '"]');
 			var index = all.index(Element);
+
 			if (index != 0) {
 				all[index - 1].customControl.Link.focus();
 				all[index - 1].customControl.click(ev);
+			}
+		}
+
+		function update() {
+			if (Element.prop("disabled")) {
+				disable();
+			} else {
+				enable();
+			}
+
+			if (Element.prop("checked")) {
+				Link.addClass("checked");
+			} else {
+				Link.removeClass("checked");
 			}
 		}
 
@@ -954,18 +988,18 @@ var BigTreeRadioButton = function(element) {
 		Element.addClass("custom_control")
 			   .next("label").click(click)
 			   .find("a").click(function(ev) { ev.stopPropagation(); });
+		Element.focus(focus).blur(blur).change(update);
 
 		Link = $("<a>").attr("href","#radio").click(click).focus(focus).blur(blur).keydown(keydown);
-
-		if (element.checked) {
+		
+		if (Element.prop("checked")) {
 			Link.addClass("checked");
 		}
-
-		if (element.disabled) {
-			Link.addClass("disabled")
-				.attr("tabindex","-1");
-		} else if (element.tabIndex) {
-			Link.attr("tabindex",element.tabIndex);
+		
+		if (Element.prop("disabled")) {
+			disable();
+		} else {
+			enable();
 		}
 
 		Element.hide().after($('<div class="radio_button">').append(Link));

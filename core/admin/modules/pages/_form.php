@@ -76,26 +76,26 @@
 			?>
 		</section>
 		<footer>
-			<a href="#" class="next button">Next Step &raquo;</a>
+			<a href="#" class="next button" tabindex="200">Next Step &raquo;</a>
 
 			<?php
 				if ($bigtree["form_action"] == "create") {
 			?>
-			<input type="submit" name="ptype" value="Create" <?php if ($bigtree["access_level"] != "p") { ?>class="blue" <?php } ?>/>
+			<input type="submit" name="ptype" value="Create" tabindex="201" <?php if ($bigtree["access_level"] != "p") { ?>class="blue" <?php } ?>/>
 			<?php
 					if ($bigtree["access_level"] == "p") {
 			?>
-			<input type="submit" name="ptype" value="Create &amp; Publish" class="blue" />
+			<input type="submit" name="ptype" value="Create &amp; Publish" tabindex="202" class="blue" />
 			<?php
 					}
 				} else {
 			?>
-			<a href="#" class="button save_and_preview"><span class="icon_small icon_small_computer"></span>Save &amp; Preview</a>
-			<input type="submit" name="ptype" value="Save"<?php if ($bigtree["access_level"] != "p") { ?> class="blue"<?php } ?> />
+			<a href="#" class="button save_and_preview" tabindex="203"><span class="icon_small icon_small_computer"></span>Save &amp; Preview</a>
+			<input type="submit" name="ptype" value="Save" tabindex="204" <?php if ($bigtree["access_level"] != "p") { ?> class="blue"<?php } ?> />
 			<?php
 					if ($bigtree["access_level"] == "p") {
 			?>
-			<input type="submit" name="ptype" value="Save &amp; Publish" class="blue" />
+			<input type="submit" name="ptype" value="Save &amp; Publish" tabindex="205" class="blue" />
 			<?php
 					}
 				}
