@@ -1069,13 +1069,23 @@
 		*/
 		
 		static function getPreviewLink($id) {
+			global $bigtree;
+			
 			if (substr($id,0,1) == "p") {
 				return WWW_ROOT."_preview-pending/$id/";
 			} elseif ($id == 0) {
 				return WWW_ROOT."_preview/";
 			} else {
 				$link = static::getLink($id);
-
+				
+				if (defined("BIGTREE_SITE_KEY") || (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]))) {
+					foreach (static::$SiteRoots as $site_path => $site_data) {
+						if (strpos($link, $site_data["www_root"]) === 0) {
+							return str_replace($site_data["www_root"], $site_data["www_root"]."_preview/", $link);
+						}
+					}
+				}
+				
 				return str_replace(WWW_ROOT, WWW_ROOT."_preview/", $link);
 			}
 		}
