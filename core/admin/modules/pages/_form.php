@@ -51,26 +51,26 @@
 			<? include BigTree::path("admin/modules/pages/tabs/seo.php"); ?>
 		</section>
 		<footer>
-			<a href="#" class="next button">Next Step &raquo;</a>
+			<a href="#" class="next button" tabindex="200">Next Step &raquo;</a>
 
 			<?
 				if ($bigtree["form_action"] == "create") {
 			?>
-			<input type="submit" name="ptype" value="Create" <? if ($bigtree["access_level"] != "p") { ?>class="blue" <? } ?>/>
+			<input type="submit" name="ptype" tabindex="201" value="Create" <? if ($bigtree["access_level"] != "p") { ?>class="blue" <? } ?>/>
 			<?
 					if ($bigtree["access_level"] == "p") {
 			?>
-			<input type="submit" name="ptype" value="Create &amp; Publish" class="blue" />
+			<input type="submit" name="ptype" tabindex="202" value="Create &amp; Publish" class="blue" />
 			<?
 					}
 				} else {
 			?>
-			<a href="#" class="button save_and_preview"><span class="icon_small icon_small_computer"></span>Save &amp; Preview</a>
-			<input type="submit" name="ptype" value="Save"<? if ($bigtree["access_level"] != "p") { ?> class="blue"<? } ?> />
+			<a href="#" class="button save_and_preview" tabindex="203"><span class="icon_small icon_small_computer"></span>Save &amp; Preview</a>
+			<input type="submit" name="ptype" tabindex="204" value="Save"<? if ($bigtree["access_level"] != "p") { ?> class="blue"<? } ?> />
 			<?
 					if ($bigtree["access_level"] == "p") {
 			?>
-			<input type="submit" name="ptype" value="Save &amp; Publish" class="blue" />
+			<input type="submit" name="ptype" tabindex="205" value="Save &amp; Publish" class="blue" />
 			<?
 					}
 				}

@@ -1,7 +1,7 @@
 <p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 <fieldset>
 	<label>URL Route <small>(leave blank to auto generate)</small></label>
-	<input type="text" name="route" value="<?=$bigtree["current_page"]["route"]?>" tabindex="2" />
+	<input type="text" name="route" value="<?=$bigtree["current_page"]["route"]?>" />
 </fieldset>
 <div class="contain">
 	<fieldset class="left">

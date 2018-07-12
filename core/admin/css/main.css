@@ -145,6 +145,8 @@
 	input[type=submit].blue:hover, a.button.blue:hover { background-color: #4287CE; }
 	input[type=submit].red, a.button.red { background-color: #C0362F; border-color: #C0362F; color: #FFF; }
 	input[type=submit].red:hover, a.button.red:hover { background-color: #AB312B; }
+	input[type=submit]:focus, a.button:focus { border-color: #AAA; }
+	input[type=submit].blue:focus, a.button.blue:focus { border-color: #1c7fd1; }
 
 	a.button { display: inline-block; height: 34px; line-height: 37px; padding: 0 15px; }
 	a.button .icon_small { float: left; margin: 9px 7px 0 0; }
@@ -188,18 +190,18 @@
 
 	.select { background: #FFF; border: 1px solid #CCCCCC; border-radius: 2px; color: #333; cursor: pointer; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 0; transition: border-color 0.2s; user-select: none; }
 	.select.disabled { opacity: 0.5; }
+	.select.focused { border-color: #AAA; }
+	.select.open { border-color: #AAA; border-radius: 2px 2px 0px 0px; }
 	.select .handle { background: url(../images/icon-sprite.svg) -340px -105px; float: right; height: 30px; position: absolute; right: 0; width: 34px; z-index: 2; }
-	.select span { display: block; overflow: hidden; padding: 0 44px 0 10px; position: relative; text-overflow: ellipsis; white-space: nowrap; max-width: 841px; }
+	.select .current_select_container { display: block; overflow: hidden; padding: 0 44px 0 10px; position: relative; text-overflow: ellipsis; white-space: nowrap; max-width: 841px; }
 	.select .group { background: #F6F6F6; color: #666; cursor: default; font-size: 10px; line-height: 15px; padding: 5px 10px; }
 	.select .select_options { background: #FFF; border: 1px solid #AAA; border-radius: 0px 0px 2px 2px; display: block; margin: 0 0 0 -1px; max-width: 896px; max-height: 300px; overflow: auto; position: absolute; z-index: 5;}
-	.select a { color: #333; display: block; font-size: 11px; line-height: 15px; min-height: 15px; padding: 5px 10px; transition: background 0.2s; user-select: none; }
-	.select a:last-child { border-radius: 0px 0px 2px 2px; }
-	.select a.active { background: #EFF7FD; }
-	.select a:hover { background: #eee; }
-	.select a.optgroup { padding: 5px 20px; }
-	.select a.disabled { color: #CCC; cursor: default; }
-	.select.focused { border-color: #AAA; }
-	.select.open { border-radius: 2px 2px 0px 0px; }
+	.select .select_options a { color: #333; display: block; font-size: 11px; line-height: 15px; min-height: 15px; padding: 5px 10px; transition: background 0.2s; user-select: none; }
+	.select .select_options a:last-child { border-radius: 0px 0px 2px 2px; }
+	.select .select_options a.active { background: #EFF7FD; }
+	.select .select_options a:hover { background: #eee; }
+	.select .select_options a.optgroup { padding: 5px 20px; }
+	.select .select_options a.disabled { color: #CCC; cursor: default; }
 	.form_error .select { border-color: #C0362F; }
 	.form_error .select .handle { background-position: -374px -105px; }
 
@@ -579,7 +581,7 @@
 	#properties_tab .date_pickers fieldset.right { float: right; }
 	#properties_tab .float_margin { margin-top: 15px; }
 	#properties_tab .template { float: left; margin: 0 40px 0 0; }
-	#properties_tab .template .select span { width: 325px !important; }
+	#properties_tab .template .select .current_select_container { width: 325px !important; }
 	#properties_tab .template .select_options { width: 379px !important; }
 	#properties_tab .external { float: left; margin: 0 20px 0 0; }
 	#properties_tab .external input { width: 270px; }
@@ -620,7 +622,7 @@
 	.table > summary h2 .reports { background-position: -525px -52px; }
 	.table > summary h2 .actions { background-position: -548px -53px; }
 	.table > summary .select { float: right; height: 24px; line-height: 24px; margin: 5px 0 0 10px; }
-	.table > summary .select span { height: 24px !important; }
+	.table > summary .select .current_select_container { height: 24px !important; }
 	.table > summary .select .handle { background: #F2F2F2 url(../images/icon-sprite.svg) -343px -105px; border-left: 1px solid #CCC; height: 27px; top: -3px; width: 29px; }
 
 	.table > header, .table .image_pending_divider { background: #eee; border-bottom: 1px solid #ccc; border-radius: 0; clear: left; color: #666; height: 20px; line-height: 20px; margin-top: -1px; text-transform: uppercase; user-select: none; }
@@ -1097,7 +1099,7 @@
 	.developer .form_table .developer_resource_form_subtitle { text-align: left; width: 267px; }
 	.developer .form_table .developer_resource_form_subtitle input { width: 235px; }
 	.developer .form_table .developer_resource_type { padding: 0; text-align: left; white-space: nowrap; width: 240px; }
-	.developer .form_table .developer_resource_type .select span { width: 155px !important; }
+	.developer .form_table .developer_resource_type .select .current_select_container { width: 155px !important; }
 	.developer .form_table .developer_resource_type .select .select_options { width: 209px !important; }
 	.developer .form_table .developer_resource_type .icon_settings { margin: 9px 0 0 5px; }
 	.developer .form_table .developer_resource_type .resource_name { background: #F6F6F6; border: 1px solid #CCCCCC; border-radius: 2px; color: #333; display: block; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 5px 0; opacity: 0.5; padding: 0 44px 0 10px; user-select: none; width: 155px; }
@@ -1136,7 +1138,7 @@
 	.developer .form_table .developer_report_filter_title input { width: 607px; }
 	.developer .form_table .developer_report_filter_title span { margin-top: 9px; }
 	.developer .form_table .developer_report_filter_type { padding: 0 0 0 10px; text-align: left; width: 190px; }
-	.developer .form_table .developer_report_filter_type .select span { width: 134px !important; }
+	.developer .form_table .developer_report_filter_type .select .current_select_container { width: 134px !important; }
 	.developer .form_table .developer_report_filter_type .select .select_options { width: 188px !important; }
 	.developer .form_table .developer_report_action { padding: 9px 0 0 0; width: 40px; }
 
@@ -1190,7 +1192,7 @@
 	.route_source_field { margin: 0 0 5px 0; }
 	.route_source_field:last-child { margin: 0; }
 	.route_source_field .select { float: none; width: 415px; }
-	.route_source_field .select span { width: 361px !important; }
+	.route_source_field .select .current_select_container { width: 361px !important; }
 	.route_source_field .select .select_options { width: 415px !important; }
 	.route_source_field .icon_small_add { display: none; }
 	.route_source_field:last-child .icon_small_add { display: block; }

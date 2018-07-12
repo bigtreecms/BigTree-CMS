@@ -80,10 +80,10 @@
 <div class="contain">
 	<fieldset class="float_margin">
 		<? if ($parent_to_check > 0 || $admin->Level > 1) { ?>
-		<input type="checkbox" name="in_nav" <? if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <? } ?>class="checkbox" tabindex="7" />
+		<input type="checkbox" name="in_nav" <? if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <? } ?>class="checkbox" tabindex="6" />
 		<label class="for_checkbox">Visible In Navigation</label>
 		<? } else { ?>
-		<input type="checkbox" name="in_nav" <? if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <? } ?>disabled="disabled" class="checkbox" tabindex="7" />
+		<input type="checkbox" name="in_nav" <? if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <? } ?>disabled="disabled" class="checkbox" tabindex="6" />
 		<label class="for_checkbox">Visible In Navigation <small>(only developers can change the visibility of top level navigation)</small></label>
 		<? } ?>
 	</fieldset>
@@ -91,15 +91,16 @@
 		if (!$hide_template_section && ($bigtree["form_action"] == "create" || $bigtree["current_page"]["id"])) {
 	?>
 	<fieldset class="float_margin">
-		<input type="checkbox" name="redirect_lower" id="redirect_lower"<? if ($bigtree["current_page"]["template"] == "!") { ?> checked="checked"<? } ?> />
+		<input type="checkbox" name="redirect_lower" id="redirect_lower"<? if ($bigtree["current_page"]["template"] == "!") { ?> checked="checked"<? } ?> tabindex="7" />
 		<label class="for_checkbox">Redirect Lower</label>
 	</fieldset>
 	<?
 		}
+
 		if ($admin->Level > 1 && ($bigtree["form_action"] == "create" || $bigtree["current_page"]["id"])) {
 	?>
 	<fieldset class="float_margin">
-		<input type="checkbox" name="trunk" <? if ($bigtree["current_page"]["trunk"]) { ?>checked="checked" <? } ?> tabindex="6" />
+		<input type="checkbox" name="trunk" <? if ($bigtree["current_page"]["trunk"]) { ?>checked="checked" <? } ?> tabindex="8" />
 		<label class="for_checkbox">Trunk</label>
 	</fieldset>
 	<?
@@ -113,7 +114,7 @@
 <div class="contain">
 	<fieldset class="template last">
 		<label>Template</label>
-		<select id="template_select" name="template"<? if ($bigtree["current_page"]["template"] == "!" || $bigtree["current_page"]["external"]) { ?> disabled="disabled"<? } ?>>
+		<select id="template_select" name="template" tabindex="9" <? if ($bigtree["current_page"]["template"] == "!" || $bigtree["current_page"]["external"]) { ?> disabled="disabled"<? } ?>>
 			<optgroup label="Flexible Templates">
 				<? foreach ($basic_templates as $t) { ?>
 				<option value="<?=$t["id"]?>"<? if ($t["id"] == $bigtree["current_page"]["template"]) { ?> selected="selected"<? } ?>><?=$t["name"]?></option>
@@ -129,10 +130,10 @@
 	<? if ($bigtree["form_action"] == "create" || $bigtree["current_page"]["id"]) { ?>
 	<fieldset class="external last">
 		<label>External Link <small>(include http://, overrides template)</small></label>
-		<input id="external_link" type="text" name="external" value="<?=$bigtree["current_page"]["external"]?>" id="external_link"<? if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<? } ?> />
+		<input id="external_link" type="text" name="external" tabindex="10" value="<?=$bigtree["current_page"]["external"]?>" id="external_link"<? if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<? } ?> />
 	</fieldset>
 	<fieldset class="checkbox_bump last">
-		<input id="new_window" type="checkbox" name="new_window" value="Yes"<? if ($bigtree["current_page"]["new_window"] == "Yes") { ?> checked="checked"<? } ?><? if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<? } ?> />
+		<input id="new_window" type="checkbox" name="new_window" tabindex="11" value="Yes"<? if ($bigtree["current_page"]["new_window"] == "Yes") { ?> checked="checked"<? } ?><? if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<? } ?> />
 		<label class="for_checkbox">Open in New Window</label>
 	</fieldset>
 	<? } ?>
