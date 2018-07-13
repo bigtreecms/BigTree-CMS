@@ -784,7 +784,7 @@
 			$setting_value["amazon"]["region"] = "us-east-1";
 			$admin->updateSettingValue("bigtree-internal-cloud-storage", $setting_value);
 		}
-		
+
 		$storage = new BigTreeStorage;
 		$local_storage = new BigTreeStorage(true);
 		
@@ -793,6 +793,11 @@
 		
 		foreach ($resources as $resource) {
 			$source = str_replace("{staticroot}", SITE_ROOT, $resource["file"]);
+
+			if (strpos($source, "//") === 0) {
+				$source = "https:".$source;
+			}
+
 			$thumbs = json_decode($resource["thumbs"], true);
 			$basename = pathinfo($source, PATHINFO_BASENAME);
 			$extension = pathinfo($source, PATHINFO_EXTENSION);
