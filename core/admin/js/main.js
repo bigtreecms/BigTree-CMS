@@ -2139,7 +2139,7 @@ var BigTreeManyToMany = function(settings) {
 			// If we've hit max, hide the add button
 			var total = Field.find("li").length;
 
-			if (total >= Max) {
+			if (Max && total >= Max) {
 				AddContainer.hide();
 			}
 		}
@@ -2167,7 +2167,7 @@ var BigTreeManyToMany = function(settings) {
 			// If we've hit max, hide the add button
 			var total = Field.find("li").length;
 
-			if (total < Max) {
+			if (Max && total < Max) {
 				AddContainer.show();
 			}
 		}
@@ -2219,8 +2219,8 @@ var BigTreeManyToMany = function(settings) {
 			List.sortable({ items: "li", handle: ".icon_sort" });
 		}
 
-		if (Count >= Max) {
-			AddButton.hide();
+		if (Max && Count >= Max) {
+			AddContainer.hide();
 		}
 
 		Field.find(".add").click(addItem);
