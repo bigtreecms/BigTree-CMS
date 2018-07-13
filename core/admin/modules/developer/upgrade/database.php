@@ -777,6 +777,8 @@
 	
 	// BigTree 4.3 update -- REVISION 307
 	function _local_bigtree_update_307() {
+		global $admin;
+		
 		// Set region for AWS if it's configured
 		$setting_value = BigTreeCMS::getSetting("bigtree-internal-cloud-storage");
 		
