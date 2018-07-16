@@ -28,9 +28,6 @@
 		$_SERVER["REMOTE_ADDR"] = $_SERVER["HTTP_CF_CONNECTING_IP"];
 	}
 
-	// Include Composer's autoloader
-	include SERVER_ROOT."vendor/autoload.php";
-
 	// Set version
 	include SERVER_ROOT."core/version.php";
 
@@ -40,6 +37,28 @@
 	} else {
 		include SERVER_ROOT."core/inc/bigtree/utils.php";
 	}
+
+	// Include Composer's autoloader
+	if (!file_exists(SERVER_ROOT."vendor/autoload.php")) {
+		BigTree::makeDirectory(SERVER_ROOT."vendor/");
+
+		$path = str_replace("core/bootstrap.php", "", __FILE__);
+		$off_path = str_replace(SERVER_ROOT, "", $path);
+
+		symlink(SERVER_ROOT.$off_path."vendor/autoload.php", SERVER_ROOT."vendor/autoload.php");
+		symlink(SERVER_ROOT.$off_path."vendor/aws", SERVER_ROOT."vendor/aws");
+		symlink(SERVER_ROOT.$off_path."vendor/composer", SERVER_ROOT."vendor/composer");
+		symlink(SERVER_ROOT.$off_path."vendor/guzzlehttp", SERVER_ROOT."vendor/guzzlehttp");
+		symlink(SERVER_ROOT.$off_path."vendor/mtdowling", SERVER_ROOT."vendor/mtdowling");
+		symlink(SERVER_ROOT.$off_path."vendor/oyejorge", SERVER_ROOT."vendor/oyejorge");
+		symlink(SERVER_ROOT.$off_path."vendor/psr", SERVER_ROOT."vendor/psr");
+
+		BigTree::copyFile(SERVER_ROOT.$off_path."vendor/autoload.php", SERVER_ROOT."vendor/autoload.php");
+		BigTree::copyFile(SERVER_ROOT.$off_path."composer.lock", SERVER_ROOT."composer.lock");
+		BigTree::copyFile(SERVER_ROOT.$off_path."composer.json", SERVER_ROOT."composer.json");
+	}
+
+	include SERVER_ROOT."vendor/autoload.php";
 	
 	// Connect to MySQL and include the shorterner functions
 	include BigTree::path("inc/bigtree/sql.php");
