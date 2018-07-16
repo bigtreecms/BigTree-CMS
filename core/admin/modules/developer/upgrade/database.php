@@ -726,6 +726,7 @@
 		SQL::query("ALTER TABLE `bigtree_resources` ADD COLUMN `is_video` CHAR(2) NOT NULL AFTER `is_image`");
 		SQL::query("ALTER TABLE `bigtree_resources` ADD COLUMN `mimetype` VARCHAR(255) NOT NULL AFTER `type`");
 		SQL::query("ALTER TABLE `bigtree_resources` ADD COLUMN `size` INT(11) NOT NULL AFTER `width`");
+		SQL::query("UPDATE bigtree_resources SET metadata = '{}'");
 
 		// Add the file manager preset to media presets
 		$settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
