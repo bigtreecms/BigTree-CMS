@@ -6018,27 +6018,14 @@
 					);
 
 					// If we have less than 4 other sites, browsers aren't going to freak out with the redirects
-					if (count($bigtree["config"]["sites"]) < 4) {
-						foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
-							$cache_data["remaining_sites"][$site_key] = $site_configuration["www_root"];
-						}
-					} else {
-						list($protocol, $unused, $admin_domain) = explode("/", ADMIN_ROOT);
-
-						foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
-							$hostname = str_replace(array("https://", "http://"), "", rtrim($site_configuration["domain"],"/"));
-
-							if ($hostname == $domain || $hostname == $admin_domain) {
-								$cache_data["remaining_sites"][$site_key] = $site_configuration["www_root"];
-							}
-						}
+					foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
+						$cache_data["remaining_sites"][$site_key] = $site_configuration["www_root"];
 					}
-
+			
 					$cache_session_key = BigTreeCMS::cacheUnique("org.bigtreecms.login-session", $cache_data);
-					$next_site = array_shift(array_values($cache_data["remaining_sites"]));
 
 					// Start the login chain
-					BigTree::redirect($next_site."?bigtree_login_redirect_session_key=".$cache_session_key);
+					BigTree::redirect(ADMIN_ROOT."login/cors/?key=".$cache_session_key);
 				} else {
 					$cookie_domain = str_replace(DOMAIN,"",WWW_ROOT);
 					$cookie_value = json_encode(array($session, $chain));
@@ -6151,6 +6138,18 @@
 
 		static function loginSession($session_key) {
 			$cache_data = BigTreeCMS::cacheGet("org.bigtreecms.login-session", $session_key);
+			
+			if (empty($cache_data)) {
+				die();
+			}
+
+			$admin_parts = parse_url(ADMIN_ROOT);
+
+			// Allow setting cookies and sessions
+			header("Access-Control-Allow-Origin: ".$admin_parts["scheme"]."://".$admin_parts["host"]);
+			header("Access-Control-Allow-Credentials: true");
+			session_start(array("gc_maxlifetime" => 24 * 60 * 60));
+
 			$user = sqlfetch(sqlquery("SELECT * FROM bigtree_users WHERE id = '".$cache_data["user_id"]."'"));
 
 			foreach ($cache_data["remaining_sites"] as $site_key => $www_root) {
@@ -6172,26 +6171,7 @@
 					$_SESSION["bigtree_admin"]["permissions"] = json_decode($user["permissions"], true);
 					$_SESSION["bigtree_admin"]["csrf_token"] = $cache_data["csrf_token"];
 					$_SESSION["bigtree_admin"]["csrf_token_field"] = $cache_data["csrf_token_field"];
-
-					unset($cache_data["remaining_sites"][$site_key]);
 				}
-			}
-
-			if (count($cache_data["remaining_sites"]) == 0) {
-				// Done logging in, delete session
-				BigTreeCMS::cacheDelete("org.bigtreecms.login-session", $session_key);
-
-				if (!empty($cache_data["login_redirect"])) {
-					BigTree::redirect($cache_data["login_redirect"]);
-				} else {
-					BigTree::redirect(ADMIN_ROOT);
-				}
-			} else {
-				$next_site = array_shift(array_values($cache_data["remaining_sites"]));
-				BigTreeCMS::cachePut("org.bigtreecms.login-session", $session_key, $cache_data);
-
-				// Redirect to the next site that needs a session/cookie
-				BigTree::redirect($next_site."?bigtree_login_redirect_session_key=".$session_key);
 			}
 		}
 
