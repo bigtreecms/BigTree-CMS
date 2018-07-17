@@ -14,6 +14,9 @@
 		if (!empty($bigtree["current_page"]["id"])) {
 	?>
 	<div class="developer_buttons">
+		<?php
+			if ($admin->Level > 1) {
+		?>
 		<a href="<?=ADMIN_ROOT?>developer/templates/edit/<?=$page["template"]?>/?return=<?=$page["id"]?>" title="Edit Current Template in Developer">
 			Edit Current Template in Developer
 			<span class="icon_small icon_small_edit_yellow"></span>
@@ -22,6 +25,18 @@
 			View Page in Audit Trail
 			<span class="icon_small icon_small_trail"></span>
 		</a>
+		<?php
+			}
+
+			if ($admin->Level > 0) {
+		?>
+		<a href="<?=ADMIN_ROOT?>pages/access-levels/<?=$page["id"]?>/" title="View User Access Levels">
+			View User Access Levels
+			<span class="icon_small icon_small_user"></span>
+		</a>
+		<?php
+			}
+		?>
 	</div>
 	<?php
 		}
