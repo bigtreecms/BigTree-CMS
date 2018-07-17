@@ -6155,6 +6155,10 @@
 
 			$admin_parts = parse_url(ADMIN_ROOT);
 
+			if (!empty($_GET["no_ssl"])) {
+				$admin_parts["scheme"] = "http";
+			}
+
 			// Allow setting cookies and sessions
 			header("Access-Control-Allow-Origin: ".$admin_parts["scheme"]."://".$admin_parts["host"]);
 			header("Access-Control-Allow-Credentials: true");

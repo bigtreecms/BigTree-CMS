@@ -23,7 +23,7 @@
 
 		for (var i = 0; i < Total; i++) {
 			$.ajax({
-				url: Domains[i] + "?bigtree_login_redirect_session_key=" + escape("<?=$_GET["key"]?>"),
+				url: Domains[i] + "?<?php if (!BigTree::getIsSSL()) { ?>no_ssl&<?php } ?>bigtree_login_redirect_session_key=" + escape("<?=$_GET["key"]?>"),
 				xhrFields: { withCredentials: true }
 			}).done(function() {
 				Completed++;
