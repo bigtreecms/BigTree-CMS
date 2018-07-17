@@ -6018,14 +6018,24 @@
 					);
 
 					// If we have less than 4 other sites, browsers aren't going to freak out with the redirects
+					$all_ssl = true;
+
 					foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
 						$cache_data["remaining_sites"][$site_key] = $site_configuration["www_root"];
+
+						if (strpos($site_configuration["www_root"], "https://") !== 0) {
+							$all_ssl = false;
+						}
 					}
 			
 					$cache_session_key = BigTreeCMS::cacheUnique("org.bigtreecms.login-session", $cache_data);
 
 					// Start the login chain
-					BigTree::redirect(ADMIN_ROOT."login/cors/?key=".$cache_session_key);
+					if (strpos(ADMIN_ROOT, "https://") === 0 && !$all_ssl) {
+						BigTree::redirect(str_replace("https://", "http://", ADMIN_ROOT)."login/cors/?key=".$cache_session_key);
+					} else {
+						BigTree::redirect(ADMIN_ROOT."login/cors/?key=".$cache_session_key);
+					}
 				} else {
 					$cookie_domain = str_replace(DOMAIN,"",WWW_ROOT);
 					$cookie_value = json_encode(array($session, $chain));
