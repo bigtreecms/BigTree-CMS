@@ -6155,7 +6155,7 @@
 
 			$admin_parts = parse_url(ADMIN_ROOT);
 
-			if (!empty($_GET["no_ssl"])) {
+			if (isset($_GET["no_ssl"])) {
 				$admin_parts["scheme"] = "http";
 			}
 
