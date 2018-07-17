@@ -140,22 +140,86 @@
 
 	.form_sub_label { font-size: 11px; color: #666; margin: 5px 0 10px 0; }
 
-	input[type=submit], a.button { background-color: #CCC; background-color: rgba(0, 0, 0, 0.1); border: 1px solid #ccc; border-radius: 3px; color: #444; cursor: pointer; font-family: Helvetica, sans-serif; font-size: 14px; height: 36px; line-height: 14px; padding: 10px 18px 12px 18px; transition: background-color 0.2s, border-color 0.2s; user-select: none; }
-	input[type=submit] { padding: 11px 18px 9px; }
-	input[type=submit]:hover, a.button:hover { background-color: #BBB; background-color: rgba(0, 0, 0, 0.15); }
-	input[type=submit].green, a.button.green { background-color: #4DA46E; border-color: #4DA46E; color: #FFF; }
-	input[type=submit].green:hover, a.button.green:hover { background-color: #459464; }
-	input[type=submit].blue, a.button.blue { background-color: #59A8E9; border-color: #59A8E9; color: #FFF; }
-	input[type=submit].blue:hover, a.button.blue:hover { background-color: #4287CE; }
-	input[type=submit].red, a.button.red { background-color: #C0362F; border-color: #C0362F; color: #FFF; }
-	input[type=submit].red:hover, a.button.red:hover { background-color: #AB312B; }
-	input[type=submit]:focus, a.button:focus { border-color: #AAA; }
-	input[type=submit].blue:focus, a.button.blue:focus { border-color: #1c7fd1; }
+	input[type=submit],
+	a.button {
+		background-color: #CCC;
+		background-color: rgba(0, 0, 0, 0.1);
+		border: 1px solid #ccc;
+		border-radius: 3px;
+		color: #444;
+		cursor: pointer;
+		font-family: Helvetica, sans-serif;
+		font-size: 14px;
+		height: 36px; 
+		line-height: 14px;
+		transition: background-color 0.2s, border-color 0.2s;
+		user-select: none;
 
-	a.button { display: inline-block; height: 34px; line-height: 37px; padding: 0 15px; }
-	a.button .icon_small { float: left; margin: 9px 7px 0 0; }
-	a.button.green, a.button.blue, a.button.red { height: 36px; }
-	a.button.disabled { opacity: 0.3; pointer-events: none; }
+		&:hover {
+			 background-color: #BBB;
+			 background-color: rgba(0, 0, 0, 0.15);
+		}
+
+		&:focus {
+			border-color: #AAA;
+		}
+
+		&.green {
+			background-color: #4DA46E;
+			border-color: #4DA46E;
+			color: #FFF;
+
+			&:hover {
+				background-color: #459464;
+			}
+		}
+
+		&.blue {
+			background-color: #59A8E9;
+			border-color: #59A8E9;
+			color: #FFF;
+
+			&:hover {
+				background-color: #4287CE;
+			}
+
+			&:focus {
+				border-color: #1c7fd1;
+			}
+		}
+
+		&.red {
+			background-color: #C0362F;
+			border-color: #C0362F;
+			color: #FFF;
+
+			&:hover {
+				background-color: #AB312B;
+			}
+		}
+
+		&.disabled {
+			opacity: 0.3;
+			pointer-events: none;
+		}
+	}
+
+	a.button {
+		display: inline-block;
+		height: 34px;
+		line-height: 37px;
+		padding: 0 15px;
+
+		.icon_small {
+			float: left;
+			margin: 9px 7px 0 0;
+		}
+	}
+	
+	input[type=submit] {
+		padding: 11px 18px 9px;
+	}
+
 	input[type=submit].shorter, a.button.shorter { height: 28px; line-height: 30px; }
 	input[type=submit].shorter { padding: 4px 18px 6px; }
 
