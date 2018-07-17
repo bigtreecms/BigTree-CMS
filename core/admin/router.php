@@ -247,11 +247,7 @@
 			implode(array_slice($bigtree["path"],1,2),"/") != "ajax/two-factor-check") {
 			$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
 
-			if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
-				BigTree::redirect(ADMIN_ROOT."login/?domain=".urlencode($_SERVER["HTTP_HOST"]));
-			} else {
-				BigTree::redirect(ADMIN_ROOT."login/");
-			}
+			BigTree::redirect(ADMIN_ROOT."login/");
 		}
 	}
 	
