@@ -1623,7 +1623,7 @@
 
 			// Handle open graph and tags
 			$open_graph = $this->handleOpenGraph("bigtree_pages", null, $data["_open_graph_"], true);
-			$tags = array_unique($data["_tags"]);
+			$tags = array_unique($data["_tags"]) ?: "[]";
 
 			// Remove POST vars that shouldn't be stored
 			unset($data["MAX_FILE_SIZE"]);
@@ -8024,7 +8024,7 @@
 			}
 
 			// Save tags separately
-			$tags = BigTree::json(array_unique($changes["_tags"]), true);
+			$tags = BigTree::json(array_unique($changes["_tags"]) ?: [], true);
 			unset($changes["_tags"]);
 
 			// Encode fields

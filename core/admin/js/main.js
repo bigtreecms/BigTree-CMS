@@ -2452,6 +2452,9 @@ var BigTreeFormValidator = function(selector,callback) {
 			if (Form.find(".form_error").length) {
 				Form.find(".warning_message").hide();
 				Form.find(".error_message").show();
+				Form.find("footer").find(".button, input[type=submit]").removeClass("disabled");
+				Form.find("footer").find(".button_loader").remove();
+				
 				if (!in_dialog) {
 					$("html, body").animate({ scrollTop: $(".container").offset().top }, 200);
 					if (window.parent.BigTreeEmbeddableForm) {
