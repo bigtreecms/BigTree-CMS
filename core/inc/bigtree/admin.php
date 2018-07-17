@@ -1536,6 +1536,8 @@
 
 			// Handle tags
 			if (is_array($data["_tags"])) {
+				$data["_tags"] = array_unique($data["_tags"]);
+
 				foreach ($data["_tags"] as $tag) {
 					sqlquery("INSERT INTO bigtree_tags_rel (`table`,`entry`,`tag`) VALUES ('bigtree_pages','$id','$tag')");
 				}
@@ -1621,7 +1623,7 @@
 
 			// Handle open graph and tags
 			$open_graph = $this->handleOpenGraph("bigtree_pages", null, $data["_open_graph_"], true);
-			$tags = $data["_tags"];
+			$tags = array_unique($data["_tags"]);
 
 			// Remove POST vars that shouldn't be stored
 			unset($data["MAX_FILE_SIZE"]);
@@ -8022,7 +8024,7 @@
 			}
 
 			// Save tags separately
-			$tags = BigTree::json($changes["_tags"],true);
+			$tags = BigTree::json(array_unique($changes["_tags"]), true);
 			unset($changes["_tags"]);
 
 			// Encode fields
@@ -8936,6 +8938,8 @@
 			SQL::delete("bigtree_tags_rel", ["table" => "bigtree_pages", "entry" => $page]);
 
 			if (is_array($data["_tags"])) {
+				$data["_tags"] = array_unique($data["_tags"]);
+
 				foreach ($data["_tags"] as $tag) {
 					SQL::insert("bigtree_tags_rel", [
 						"table" => "bigtree_pages",

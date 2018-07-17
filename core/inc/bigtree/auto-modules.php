@@ -395,6 +395,8 @@
 			sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = '$id'");
 			
 			if (is_array($tags)) {
+				$tags = array_unique($tags);
+
 				foreach ($tags as $tag) {
 					$tag = intval($tag);
 
@@ -474,7 +476,7 @@
 			$user = $embedded_form ? "NULL" : $admin->ID;
 			$data = BigTree::json($data, true);
 			$many_data = BigTree::json($many_to_many, true);
-			$tags_data = BigTree::json($tags, true);
+			$tags_data = BigTree::json(array_unique($tags), true);
 			$open_graph_data = BigTree::json($open_graph, true);
 			$publish_hook = is_null($publish_hook) ? "NULL" : "'".sqlescape($publish_hook)."'";
 			sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`changes`,`mtm_changes`,`tags_changes`,`open_graph_changes`,`module`,`type`,`publish_hook`) VALUES ($user,NOW(),'$table','$data','$many_data','$tags_data','$open_graph_data','$module','NEW',$publish_hook)");
@@ -1817,6 +1819,8 @@
 			sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = '$id'");
 			
 			if (!empty($tags)) {
+				$tags = array_unique($tags);
+				
 				foreach ($tags as $tag) {
 					$tag = intval($tag);
 					
