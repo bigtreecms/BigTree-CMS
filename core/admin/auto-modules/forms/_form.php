@@ -152,7 +152,7 @@
 		<?php
 			}
 		?>
-		<footer>
+		<footer class="js-auto-modules-footer">
 			<?php
 				if ($bigtree["form"]["embedded"]) {
 			?>
@@ -178,27 +178,40 @@
 </div>
 <?php include BigTree::path("admin/layouts/_html-field-loader.php"); ?>
 <script>
-	BigTreeFormValidator("#auto_module_form",false<?php if ($bigtree["form"]["embedded"]) { ?>,true<?php } ?>);
-	BigTreeFormNavBar.init();
+	(function() {
+		BigTreeFormValidator("#auto_module_form",false<?php if ($bigtree["form"]["embedded"]) { ?>,true<?php } ?>);
+		BigTreeFormNavBar.init();
+		
+		$(".save_and_preview").click(function() {
+			submit();
+
+			$("#preview_field").val("true");
+			$(this).parents("form").submit();
 	
-	$(".save_and_preview").click(function() {
-		$("#preview_field").val("true");
-		$(this).parents("form").submit();
+			return false;
+		});
 
-		return false;
-	});
+		$(".js-auto-modules-footer input").click(submit);
 
-	<?php if ($bigtree["access_level"] == "p" || !$bigtree["edit_id"]) { ?>
-	$(".gbp_select").change(function() {
-		var access_level = $(this).find("option").eq($(this).get(0).selectedIndex).attr("data-access-level");
-		if (access_level == "p") {
-			$("input[name=save]").removeClass("blue");
-			$("input[name=save_and_publish]").show();
-		} else {
-			$("input[name=save]").addClass("blue");
-			$("input[name=save_and_publish]").hide();
+		<?php if ($bigtree["access_level"] == "p" || !$bigtree["edit_id"]) { ?>
+		$(".gbp_select").change(function() {
+			var access_level = $(this).find("option").eq($(this).get(0).selectedIndex).attr("data-access-level");
+			if (access_level == "p") {
+				$("input[name=save]").removeClass("blue");
+				$("input[name=save_and_publish]").show();
+			} else {
+				$("input[name=save]").addClass("blue");
+				$("input[name=save_and_publish]").hide();
+			}
+		});
+		$(".gbp_select").trigger("change");
+		<?php } ?>
+
+		function submit() {
+			var footer = $(".js-auto-modules-footer");
+			
+			footer.find("input, .button").addClass("disabled");
+			footer.append('<span class="button_loader"></span>');
 		}
-	});
-	$(".gbp_select").trigger("change");
-	<?php } ?>
+	})();
 </script>

@@ -75,7 +75,7 @@
 				include BigTree::path("admin/auto-modules/forms/_open-graph.php");
 			?>
 		</section>
-		<footer>
+		<footer class="js-pages-form-footer">
 			<a href="#" class="next button" tabindex="200">Next Step &raquo;</a>
 
 			<?php

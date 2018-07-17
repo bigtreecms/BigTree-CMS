@@ -7,6 +7,7 @@ var BigTreePages = (function() {
 	var CurrentPageTemplate;
 	var ExternalLinkField;
 	var ExternalTimer;
+	var FooterInputs;
 	var NavTitle;
 	var NewWindowControl;
 	var LockTimer;
@@ -15,6 +16,7 @@ var BigTreePages = (function() {
 	var PageTitleTimer;
 	var RedirectLowerField;
 	var RedirectLowerFieldControl;
+	var SaveAndPreviewButton;
 	var TemplateSelect;
 	var TemplateSelectControl;
 	var TemplateTimer;
@@ -24,11 +26,13 @@ var BigTreePages = (function() {
 		CurrentPage = settings.page;
 		CurrentPageTemplate = settings.template;
 		ExternalLinkField = $("#external_link");
+		FooterInputs = $(".js-pages-form-footer input");
 		NavTitle = $("#nav_title");
 		NewWindowControl = $("#new_window").get(0).customControl;
 		PageTitle = $("#page_title");
 		RedirectLowerField = $("#redirect_lower");
 		RedirectLowerFieldControl = RedirectLowerField.get(0).customControl;
+		SaveAndPreviewButton = $(".save_and_preview");
 		TemplateSelect = $("#template_select");
 		TemplateSelectControl = TemplateSelect.get(0).customControl;
 		TrunkField = $("#trunk_field");
@@ -62,13 +66,21 @@ var BigTreePages = (function() {
 			});
 		}
 		
-		$(".save_and_preview").click(function(ev) {
+		SaveAndPreviewButton.click(function(ev) {
 			ev.preventDefault();
+
+			if ($(this).hasClass("disabled")) {
+				return;
+			}
+
+			submit();
 
 			var sform = $(this).parents("form");
 			sform.attr("action","admin_root/pages/update/?preview=true");
 			sform.submit();
 		});
+
+		FooterInputs.click(submit);
 
 		// Setup lock timer if we're editing a page
 		if (CurrentPage) {
@@ -82,6 +94,14 @@ var BigTreePages = (function() {
 				});
 			}, 60000);
 		}
+	}
+
+	function submit() {
+		SaveAndPreviewButton.addClass("disabled");
+		FooterInputs.addClass("disabled");
+		$(".next").addClass("disabled");
+
+		$(".js-pages-form-footer").append('<span class="button_loader"></span>');
 	}
 
 	function checkExternal() {
