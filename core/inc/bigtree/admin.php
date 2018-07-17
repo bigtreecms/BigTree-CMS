@@ -8712,7 +8712,7 @@
 					}
 				}
 
-				$this->stop("Cross site request forgery detected.");
+				$this->stop("An error has occurred. Please try your submission again.");
 			}
 		}
 
