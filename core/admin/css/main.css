@@ -227,7 +227,7 @@
 	form .triplets { float: left; margin: 15px 0; overflow: hidden; }
 	form .triplets fieldset { float: left; margin: 0 29px 0 0; width: 280px; }
 	form .triplets fieldset:last-child { margin: 0; }
-	form .triplets .select > span { width: 224px !important; }
+	form .triplets .select .current_select_container { width: 224px !important; }
 	form .triplets .select .select_options { width: 278px !important; }
 	form .last { margin-bottom: 0; }
 
@@ -251,10 +251,10 @@
 	.container .input_address_city input { width: 284px; }
 	.container .input_address_zip input { width: 150px; }
 	.container .input_address_state { width: 160px; }
-	.container .input_address_state .select > span { width: 104px !important; }
+	.container .input_address_state .select .current_select_container { width: 104px !important; }
 	.container .input_address_state .select .select_options { width: 158px !important; }
 	.container .text_input .input_address_country { margin: 0; width: 200px; }
-	.container .input_address_country .select > span { width: 188px !important; }
+	.container .input_address_country .select .current_select_container { width: 188px !important; }
 	.container .input_address_country .select .select_options { width: 198px !important; }
 	.container .text_input .input_phone_3 { margin: 0; }
 	.container .input_phone_3 input { float: left; text-align: center; width: 30px; }
@@ -799,7 +799,7 @@
 	.callout_type fieldset { margin: 0; }
 
 	.callout_fields { height: 250px; margin: -20px; overflow: auto; padding: 20px; width: 450px; }
-	.callout_fields .select > span { max-width: 384px !important; }
+	.callout_fields .select .current_select_container { max-width: 384px !important; }
 	.callout_fields .select .select_options { max-width: 438px !important; }
 	.callout_fields .error_message { width: 420px; }
 	.callout_fields .callout_description { border-bottom: 1px solid #EEE; margin: 0 -20px 20px -20px; padding: 0 20px 20px 20px; }
@@ -1042,7 +1042,7 @@
 	.developer .table .box_select.second_row { margin-top: 20px; }
 	.developer .table > section { padding: 30px; }
 
-	.developer form fieldset.view_type .select > span { width: 193px !important; }
+	.developer form fieldset.view_type .select .current_select_container { width: 193px !important; }
 	.developer form fieldset.view_type .select .select_options { width: 247px !important; }
 	.developer form fieldset.view_description textarea { height: 90px; }
 
@@ -1269,7 +1269,7 @@
 	.bigtree_dialog_form .text_input .input_address_city { float: left; margin: 0 10px 10px 0; width: 270px; }
 	.bigtree_dialog_form .text_input .input_address_city input { width: 248px; }
 	.bigtree_dialog_form .text_input .input_address_state { float: left; margin: 0 0 10px 0; width: 160px; }
-	.bigtree_dialog_form .text_input .input_address_state .select > span { width: 104px !important; }
+	.bigtree_dialog_form .text_input .input_address_state .select .current_select_container { width: 104px !important; }
 	.bigtree_dialog_form .text_input .input_address_state .select .select_options { width: 158px !important; }
 	.bigtree_dialog_form .text_input .input_address_country { float: left; margin: 0; width: 258px; }
 
@@ -1331,7 +1331,7 @@
 	.matrix_table article:last-child { border: none; }
 	.matrix_table article input:nth-child(odd) { margin-right: 0; }
 	.matrix_table .select { margin: 0 10px 10px 0; }
-	.matrix_table .select > span { width: 148px !important; }
+	.matrix_table .select .current_select_container { width: 148px !important; }
 	.matrix_table .select_options { width: 202px !important; }
 	.matrix_table footer { color: #FCFCFC; border-top: 1px solid #CCC; overflow: hidden; padding: 5px 10px; }
 	.matrix_table footer span { float: left; margin: 0 10px 0 0; }
@@ -1692,9 +1692,9 @@
 	.bigtree_dialog_form .multi_widget li p { width: 330px; }
 	.many_to_many section, .matrix_list section { border-bottom: 1px solid #CCC; padding: 30px; }
 	.many_to_many footer .button { float: left; margin: 0 0 0 10px; }
-	.many_to_many footer .select > span { max-width: 679px !important; }
+	.many_to_many footer .select .current_select_container { max-width: 679px !important; }
 	.many_to_many footer .select .select_options { max-width: 733px !important; }
-	.callout_fields .multi_widget footer .select > span { width: 352px !important; }
+	.callout_fields .multi_widget footer .select .current_select_container { width: 352px !important; }
 	.callout_fields .multi_widget footer .button { float: none; margin: 10px 0 0 0; }
 	.callout_fields .multi_widget footer .button:first-child { margin: 0; }
 	.callout_fields .multi_widget footer .select .select_options { width: 406px !important; }
