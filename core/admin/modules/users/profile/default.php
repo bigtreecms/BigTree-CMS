@@ -35,7 +35,7 @@
 				</fieldset>
 
 				<fieldset>
-					<input type="checkbox" name="daily_digest" tabindex="4" <?php if ($daily_digest) { ?> checked="checked"<?php } ?> />
+					<input type="checkbox" name="daily_digest" tabindex="5" <?php if ($daily_digest) { ?> checked="checked"<?php } ?> />
 					<label class="for_checkbox">Daily Digest Email</label>
 				</fieldset>
 			</div>
@@ -46,8 +46,8 @@
 				</fieldset>
 				
 				<fieldset>
-					<label>Timezone</label>
-					<select name="timezone" id="profile_field_timezone">
+					<label for="profile_field_timezone">Timezone</label>
+					<select name="timezone" id="profile_field_timezone" tabindex="4">
 						<option value="">Default (<?=date_default_timezone_get()?>)</option>
 						<?php
 							$last_continent = "";

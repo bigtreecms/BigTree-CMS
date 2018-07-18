@@ -2068,7 +2068,8 @@
 				"company" => BigTree::safeEncode($data["company"]),
 				"daily_digest" => !empty($data["daily_digest"]) ? "on" : "",
 				"alerts" => is_array($data["alerts"]) ? $data["alerts"] : [],
-				"permissions" => is_array($data["permissions"]) ? $data["permissions"] : []
+				"permissions" => is_array($data["permissions"]) ? $data["permissions"] : [],
+				"timezone" => $data["timezone"] ?: ""
 			];
 
 			// Only store a password if we aren't sending an invitation
@@ -9458,7 +9459,8 @@
 				"company" => BigTree::safeEncode($data["company"]),
 				"daily_digest" => !empty($data["daily_digest"]) ? "on" : "",
 				"permissions" => is_array($data["permissions"]) ? $data["permissions"] : [],
-				"alerts" => is_array($data["alerts"]) ? $data["alerts"] : []
+				"alerts" => is_array($data["alerts"]) ? $data["alerts"] : [],
+				"timezone" => $data["timezone"] ?: ""
 			];
 
 			if ($data["password"]) {

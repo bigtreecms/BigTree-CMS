@@ -204,6 +204,13 @@
 					</select>
 				</fieldset>
 				<?php } ?>
+
+				<br />
+				
+				<fieldset>
+					<input type="checkbox" name="daily_digest" tabindex="7" <?php if ($daily_digest) { ?> checked="checked"<?php } ?> />
+					<label class="for_checkbox">Daily Digest Email</label>
+				</fieldset>
 			</div>
 			<div class="right">
 				<fieldset>
@@ -216,11 +223,39 @@
 					<input type="text" name="company" value="<?=$company?>" tabindex="4" />
 				</fieldset>
 				
-				<br />
-				
 				<fieldset>
-					<input type="checkbox" name="daily_digest" tabindex="4" <?php if ($daily_digest) { ?> checked="checked"<?php } ?> />
-					<label class="for_checkbox">Daily Digest Email</label>
+					<label for="profile_field_timezone">Timezone</label>
+					<select name="timezone" id="profile_field_timezone" tabindex="6">
+						<option value="">Default (<?=date_default_timezone_get()?>)</option>
+						<?php
+							$last_continent = "";
+							$timezone_list = DateTimeZone::listIdentifiers();
+
+							foreach ($timezone_list as $tz) {
+								list($continent, $city, $locality) = explode("/", $tz);
+
+								if ($continent != $last_continent) {
+									if ($last_continent) {
+										echo "</optgroup>";
+									}
+
+									echo '<optgroup label="'.$continent.'">';
+									$last_continent = $continent;
+								}
+
+								if (!$city) {
+									$city = "UTC";
+								}
+
+								$city = str_replace("_", " ", $city);
+						?>
+						<option value="<?=$tz?>"<?php if ($timezone == $tz) { ?> selected<?php } ?>><?=$city?><?php if ($locality) { echo " - ".str_replace("_", " ", $locality); } ?></option>
+						<?php
+							}
+
+							echo "</optgroup>";
+						?>
+					</select>
 				</fieldset>
 			</div>			
 		</section>
