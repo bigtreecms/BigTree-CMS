@@ -2,11 +2,15 @@
 	// Draw field types as callout resources
 	define("BIGTREE_CALLOUT_RESOURCES",true);
 
+	if (!empty($_POST["front_end_editor"])) {
+		define("BIGTREE_FRONT_END_EDITOR", true);
+	}
+
 	$bigtree["matrix_count"] = intval($_POST["count"]);
 	$bigtree["matrix_key"] = htmlspecialchars($_POST["key"]);
 	$bigtree["matrix_columns"] = $_POST["columns"];
-
 	$bigtree["resources"] = isset($_POST["data"]) ? json_decode(base64_decode($_POST["data"]),true) : array();
+	
 	foreach ($bigtree["resources"] as &$val) {
 		if (is_array($val)) {
 			$val = BigTree::untranslateArray($val);
@@ -16,6 +20,7 @@
 			$val = $cms->replaceInternalPageLinks($val);
 		}
 	}
+
 	unset($val);
 ?>
 <div id="matrix_resources" class="callout_fields">

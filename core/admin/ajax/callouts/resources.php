@@ -4,11 +4,17 @@
 	if (isset($_POST["resources"])) {
 		$bigtree["resources"] = json_decode(base64_decode($_POST["resources"]),true);
 	}
+	
 	if (isset($_POST["type"])) {
 		$bigtree["resources"]["type"] = $_POST["type"];
 	}
+
 	if (isset($_POST["key"])) {
 		$bigtree["callout_key"] = htmlspecialchars($_POST["key"]);
+	}
+
+	if (!empty($_POST["front_end_editor"])) {
+		define("BIGTREE_FRONT_END_EDITOR", true);
 	}
 
 	foreach ($bigtree["resources"] as &$val) {

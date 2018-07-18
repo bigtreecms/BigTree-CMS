@@ -2706,6 +2706,7 @@ var BigTreeCallouts = function(settings) {
 		var CurrentItem;
 		var Description;
 		var DescriptionField;
+		var FrontEndEditor = settings.front_end_editor;
 		var Groups = settings.groups;
 		var Key = settings.key;
 		var LastDialog;
@@ -2723,7 +2724,7 @@ var BigTreeCallouts = function(settings) {
 
 			BigTree.TabIndexDepth++;
 
-			$.ajax("admin_root/ajax/callouts/add/", { type: "POST", data: { count: Count, groups: Groups, key: Key, tab_depth: BigTree.TabIndexDepth }, complete: function(response) {
+			$.ajax("admin_root/ajax/callouts/add/", { type: "POST", data: { count: Count, groups: Groups, key: Key, tab_depth: BigTree.TabIndexDepth, front_end_editor: FrontEndEditor }, complete: function(response) {
 				BigTreeDialog({
 					title: "Add " + Noun,
 					content: response.responseText,
@@ -2779,7 +2780,7 @@ var BigTreeCallouts = function(settings) {
 			BigTree.TabIndexDepth++;
 
 			CurrentItem = $(this).parents("article");
-			$.ajax("admin_root/ajax/callouts/edit/", { type: "POST", data: { count: Count, data: CurrentItem.find(".callout_data").val(), groups: Groups, key: Key, tab_depth: BigTree.TabIndexDepth }, complete: function(response) {
+			$.ajax("admin_root/ajax/callouts/edit/", { type: "POST", data: { count: Count, data: CurrentItem.find(".callout_data").val(), groups: Groups, key: Key, tab_depth: BigTree.TabIndexDepth, front_end_editor: FrontEndEditor }, complete: function(response) {
 				BigTreeDialog({
 					title: "Edit " + Noun,
 					content: response.responseText,
@@ -2877,6 +2878,7 @@ var BigTreeMatrix = function(settings) {
 		var Container;
 		var Count;
 		var CurrentItem;
+		var FrontEndEditor;
 		var Key;
 		var LastDialog;
 		var List;
@@ -2898,7 +2900,7 @@ var BigTreeMatrix = function(settings) {
 
 			$.ajax("admin_root/ajax/matrix-field/", {
 				type: "POST",
-				data: { columns: Columns, count: Count, key: Key, tab_depth: BigTree.TabIndexDepth },
+				data: { columns: Columns, count: Count, key: Key, tab_depth: BigTree.TabIndexDepth, front_end_editor: FrontEndEditor },
 				complete: function(response) {
 					BigTreeDialog({
 						title: "Add Item",
@@ -2972,7 +2974,7 @@ var BigTreeMatrix = function(settings) {
 
 			$.ajax("admin_root/ajax/matrix-field/", {
 				type: "POST",
-				data: { columns: Columns, count: Count, data: CurrentItem.find(".bigtree_matrix_data").val(), key: Key, tab_depth: BigTree.TabIndexDepth },
+				data: { columns: Columns, count: Count, data: CurrentItem.find(".bigtree_matrix_data").val(), key: Key, tab_depth: BigTree.TabIndexDepth, front_end_editor: FrontEndEditor },
 				complete: function(response) {
 					BigTreeDialog({
 						title: "Edit Item",
@@ -3094,6 +3096,7 @@ var BigTreeMatrix = function(settings) {
 		Max = settings.max ? settings.max : 0;
 		Style = settings.style ? settings.style : "list";
 		NoItemsMessage = Container.find("section");
+		FrontEndEditor = settings.front_end_editor;
 
 		// If they've exceed or are at the max, hide the add button
 		if (Max && Count >= Max) {

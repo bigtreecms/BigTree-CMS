@@ -8,6 +8,10 @@
 	$bigtree["callout_count"] = intval($_POST["count"]);
 	$bigtree["callout_key"] = htmlspecialchars($_POST["key"]);
 	$bigtree["resources"] = json_decode(base64_decode($_POST["data"]),true);
+
+	if (!empty($_POST["front_end_editor"])) {
+		define("BIGTREE_FRONT_END_EDITOR", true);
+	}
 ?>
 <div class="callout_type">
 	<fieldset>
@@ -38,7 +42,8 @@
 				key: "<?=$bigtree["callout_key"]?>",
 				resources: "<?=htmlspecialchars($_POST["data"])?>",
 				type: data.value,
-				tab_depth: <?=intval($_POST["tab_depth"])?>
+				tab_depth: <?=intval($_POST["tab_depth"])?>,
+				front_end_editor: <?=defined("BIGTREE_FRONT_END_EDITOR")?>
 			}, BigTreeCustomControls).scrollTop(0);
 		});
 	})();

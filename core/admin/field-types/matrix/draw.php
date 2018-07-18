@@ -48,7 +48,8 @@
 			key: "<?=$field["key"]?>",
 			columns: <?=json_encode($field["settings"]["columns"])?>,
 			max: <?=$max?>,
-			style: "callout"
+			style: "callout",
+			front_end_editor: <?=defined("BIGTREE_FRONT_END_EDITOR")?>
 		});
 	</script>
 </fieldset>
@@ -96,7 +97,8 @@
 				key: "<?=$field["key"]?>",
 				columns: <?=json_encode($field["settings"]["columns"])?>,
 				max: <?=$max?>,
-				style: "list"
+				style: "list",
+				front_end_editor: <?=defined("BIGTREE_FRONT_END_EDITOR")?>
 			});
 		</script>
 	</div>

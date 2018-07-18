@@ -52,7 +52,8 @@
 			key: "<?=$field["key"]?>",
 			noun: "<?=$noun?>",
 			groups: <?=json_encode($field["settings"]["groups"])?>,
-			max: <?=$max?>
+			max: <?=$max?>,
+			front_end_editor: <?=defined("BIGTREE_FRONT_END_EDITOR")?>
 		});
 	</script>
 </fieldset>
