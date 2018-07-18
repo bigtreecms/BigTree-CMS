@@ -1,2 +1,2 @@
 <?php
-	$field["output"] = BigTree::dateFormat($field["input"],"Y-m-d");
+	$field["output"] = BigTree::dateFormat($admin->convertTimestampFromUser($field["input"]), "Y-m-d");

@@ -115,6 +115,7 @@
 					$this->Permissions = json_decode($f["permissions"],true);
 					$this->CSRFToken = $_SESSION["bigtree_admin"]["csrf_token"];
 					$this->CSRFTokenField = $_SESSION["bigtree_admin"]["csrf_token_field"];
+					$this->Timezone = $f["timezone"];
 				}
 			} elseif (isset($_COOKIE["bigtree_admin"]["email"])) {
 				$user = sqlescape($_COOKIE["bigtree_admin"]["email"]);
@@ -142,6 +143,7 @@
 							$this->Permissions = json_decode($f["permissions"],true);
 							$this->CSRFToken = $csrf_token;
 							$this->CSRFTokenField = $csrf_token_field;
+							$this->Timezone = $f["timezone"];
 
 							SQL::update("bigtree_sessions", session_id(), ["is_login" => "on", "logged_in_user" => $f["id"]]);
 							$_SESSION["bigtree_admin"]["id"] = $f["id"];
@@ -688,6 +690,78 @@
 
 			$this->track("bigtree_404s","All","Cleared Empty");
 			static::growl("404 Report","Cleared 404s");
+		}
+
+		/*
+			Function: convertTimestampFromUser
+				Converts a timestamp from the logged in user's timezone frame of reference to the server's frame of reference
+
+			Parameters:
+				time - A timestamp readable by strtotime
+
+			Returns:
+				An adjusted timestamp in Y-m-d H:i:s format
+		*/
+
+		function convertTimestampFromUser($time) {
+			if (!$this->Timezone) {
+				return date("Y-m-d H:i:s", strtotime($time));
+			}
+
+			$time = strtotime($time);
+			$date = date("Y-m-d H:i:s", $time);
+
+			$user_tz = new DateTimeZone($this->Timezone);
+			$system_tz = new DateTimeZone(date_default_timezone_get());
+
+			$user_offset = $user_tz->getOffset(new DateTime($date));
+			$system_offset = $system_tz->getOffset(new DateTime($date));
+
+			$time += ($system_offset - $user_offset);
+
+			return date("Y-m-d H:i:s", $time);
+		}
+
+		/*
+			Function: convertTimestampToUser
+				Converts a timestamp from the logged in user's timezone frame of reference to the server's frame of reference
+
+			Parameters:
+				time - A timestamp readable by strtotime
+				format - A date format (defaults to the $bigtree["config"]["date_format"] value)
+
+			Returns:
+				An adjusted timestamp
+		*/
+
+		function convertTimestampToUser($time, $format = null, $timezone = null) {
+			global $bigtree;
+
+			if (is_null($format)) {
+				$format = !empty($bigtree["config"]["date_format"]) ? $bigtree["config"]["date_format"]." g:i a" : "Y-m-d H:i:s";
+			}
+
+			if (is_null($timezone)) {
+				$timezone = $this->Timezone;
+			}
+
+			if (!$timezone) {
+				return date($format, strtotime($time));
+			}
+
+			$time = strtotime($time);
+			$date = date("Y-m-d H:i:s", $time);
+
+			$user_tz = new DateTimeZone($timezone);
+			$system_tz = new DateTimeZone(date_default_timezone_get());
+
+			$user_offset = $user_tz->getOffset(new DateTime($date));
+			$system_offset = $system_tz->getOffset(new DateTime($date));
+
+			$time += ($user_offset - $system_offset);
+
+			return date($format, $time);
+
 		}
 
 		/*
@@ -1456,14 +1530,14 @@
 
 			// If we set a publish at date, make it the proper MySQL format.
 			if ($publish_at && $publish_at != "NULL") {
-				$publish_at = date("Y-m-d",strtotime($publish_at));
+				$publish_at = $this->convertTimestampFromUser($publish_at);
 			} else {
 				$publish_at = null;
 			}
 
 			// If we set an expiration date, make it the proper MySQL format.
 			if ($expire_at && $expire_at != "NULL") {
-				$expire_at = date("Y-m-d",strtotime($expire_at));
+				$expire_at = $this->convertTimestampFromUser($expire_at);
 			} else {
 				$expire_at = null;
 			}
@@ -1630,6 +1704,15 @@
 			unset($data["ptype"]);
 			unset($data["_open_graph_"]);
 			unset($data["_tags"]);
+
+			// Convert times from user's timezone
+			if ($data["publish_at"] && $data["publish_at"] != "NULL") {
+				$data["publish_at"] = $this->convertTimestampFromUser($data["publish_at"]);
+			}
+
+			if ($data["expire_at"] && $data["expire_at"] != "NULL") {
+				$data["expire_at"] = $this->convertTimestampFromUser($data["expire_at"]);
+			}
 
 			$id = SQL::insert("bigtree_pending_changes", [
 				"user" => $this->ID,
@@ -2894,7 +2977,7 @@
 						$body_messages .= '<tr>';
 						$body_messages .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$message["sender_name"].'</td>';
 						$body_messages .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$message["subject"].'</td>';
-						$body_messages .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.date("n/j/y g:ia",strtotime($message["date"])).'</td>';
+						$body_messages .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$this->convertTimestampToUser($message["date"], $bigtree["config"]["date_format"]." @ g:i a", $user["timezone"]).'</td>';
 						$body_messages .= '</tr>';
 					}
 				} else {
@@ -7631,6 +7714,8 @@
 		*/
 
 		public static function searchAuditTrail($user = false,$table = false,$entry = false,$start = false,$end = false) {
+			global $admin;
+
 			$users = $items = $where = array();
 			$deleted_users = BigTreeCMS::getSetting("bigtree-internal-deleted-users");
 			$query = "SELECT * FROM bigtree_audit_trail";
@@ -7638,18 +7723,31 @@
 			if ($user) {
 				$where[] = "user = '".sqlescape($user)."'";
 			}
+
 			if ($table) {
 				$where[] = "`table` = '".sqlescape($table)."'";
 			}
+
 			if ($entry) {
 				$where[] = "entry = '".sqlescape($entry)."'";
 			}
+
 			if ($start) {
-				$where[] = "`date` >= '".date("Y-m-d H:i:s",strtotime($start))."'";
+				if ($admin instanceof BigTreeAdmin && $admin->Timezone) {
+					$where[] = "`date` >= '".$admin->convertTimestampFromUser($start, "Y-m-d H:i:s")."'";
+				} else {
+					$where[] = "`date` >= '".date("Y-m-d H:i:s",strtotime($start))."'";
+				}
 			}
+
 			if ($end) {
-				$where[] = "`date` <= '".date("Y-m-d H:i:s",strtotime($end))."'";
+				if ($admin instanceof BigTreeAdmin && $admin->Timezone) {
+					$where[] = "`date` >= '".$admin->convertTimestampFromUser($end, "Y-m-d H:i:s")."'";
+				} else {
+					$where[] = "`date` <= '".date("Y-m-d H:i:s",strtotime($end))."'";
+				}
 			}
+
 			if (count($where)) {
 				$query .= " WHERE ".implode(" AND ",$where);
 			}
@@ -8034,6 +8132,15 @@
 			$changes["meta_keywords"] = htmlspecialchars($changes["meta_keywords"]);
 			$changes["seo_invisible"] = $changes["seo_invisible"]["seo_invisible"] ? "on" : "";
 			$changes["external"] = htmlspecialchars($changes["external"]);
+
+			// Convert times from user's timezone
+			if ($changes["publish_at"] && $changes["publish_at"] != "NULL") {
+				$changes["publish_at"] = $this->convertTimestampFromUser($changes["publish_at"]);
+			}
+
+			if ($changes["expire_at"] && $changes["expire_at"] != "NULL") {
+				$changes["expire_at"] = $this->convertTimestampFromUser($changes["expire_at"]);
+			}
 
 			// Handle open graph
 			$open_graph = BigTree::json($this->handleOpenGraph("bigtree_pages", null, $changes["_open_graph_"], true));
@@ -8848,14 +8955,14 @@
 
 			// Make sure we set the publish date to NULL if it wasn't provided or we'll have a page that got published at 0000-00-00
 			if ($data["publish_at"] && $data["publish_at"] != "NULL") {
-				$publish_at = date("Y-m-d",strtotime($data["publish_at"]));
+				$publish_at = $this->convertTimestampFromUser($data["publish_at"]);
 			} else {
 				$publish_at = null;
 			}
 
 			// If we set an expiration date, make it the proper MySQL format.
 			if ($data["expire_at"] && $data["expire_at"] != "NULL") {
-				$expire_at = date("Y-m-d",strtotime($data["expire_at"]));
+				$expire_at = $this->convertTimestampFromUser($data["expire_at"]);
 			} else {
 				$expire_at = null;
 			}
@@ -9104,7 +9211,8 @@
 			$update = [
 				"name" => BigTree::safeEncode($data["name"]),
 				"company" => BigTree::safeEncode($data["company"]),
-				"daily_digest" => !empty($data["daily_digest"]) ? "on" : ""
+				"daily_digest" => !empty($data["daily_digest"]) ? "on" : "",
+				"timezone" => $data["timezone"]
 			];
 
 			if ($data["password"]) {

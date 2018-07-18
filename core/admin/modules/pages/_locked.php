@@ -5,7 +5,7 @@
 			<h3>LOCKED</h3>
 		</div>
 		<p>
-			<strong><?=$locked_by["name"]?></strong> currently has this page locked for editing.  It was last accessed by <strong><?=$locked_by["name"]?></strong> on <strong><?=date("F j, Y @ g:ia",strtotime($last_accessed))?></strong>.<br />
+			<strong><?=$locked_by["name"]?></strong> currently has this page locked for editing.  It was last accessed by <strong><?=$locked_by["name"]?></strong> on <strong><?=$admin->convertTimestampToUser($last_accessed, $bigtree["config"]["date_format"]." @ g:i a")?></strong>.<br />
 		If you would like to edit this page anyway, please click "Unlock" below.  Otherwise, click "Cancel".
 		</p>
 	</section>

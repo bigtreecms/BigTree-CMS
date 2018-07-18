@@ -1,8 +1,8 @@
 <?php
 	if (!$field["value"] && isset($field["settings"]["default_now"]) && $field["settings"]["default_now"]) {
-		$field["value"] = date($bigtree["config"]["date_format"]." h:i a");
+		$field["value"] = $admin->convertTimestampToUser("now", $bigtree["config"]["date_format"]." h:i a");
 	} elseif ($field["value"] && $field["value"] != "0000-00-00 00:00:00") {
-		$field["value"] = date($bigtree["config"]["date_format"]." h:i a",strtotime($field["value"]));
+		$field["value"] = $admin->convertTimestampToUser($field["value"], $bigtree["config"]["date_format"]." h:i a");
 	} else {
 		$field["value"] = "";
 	}
@@ -11,7 +11,7 @@
 	if (defined("BIGTREE_CALLOUT_RESOURCES")) {
 		// Required and in-line is hard to validate, so default to today's date regardless
 		if (!empty($field["required"]) && empty($field["value"])) {
-			$field["value"] = date($bigtree["config"]["date_format"]." h:i a");
+			$field["value"] =  $admin->convertTimestampToUser("now", $bigtree["config"]["date_format"]." h:i a");
 		}
 
 		// Process hour/minute

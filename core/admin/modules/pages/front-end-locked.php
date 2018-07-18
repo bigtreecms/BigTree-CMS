@@ -5,7 +5,7 @@
 <form class="bigtree_dialog_form" method="post" action="">
 	<div class="overflow">
 		<p>
-			<strong><?=$user["name"]?></strong> currently has this page locked for editing.  It was last accessed by <strong><?=$user["name"]?></strong> on <strong><?=date("F j, Y @ g:ia",strtotime($f["last_accessed"]))?></strong>.<br />
+			<strong><?=$user["name"]?></strong> currently has this page locked for editing.  It was last accessed by <strong><?=$user["name"]?></strong> on <strong><?=$admin->convertTimestampToUser($last_accessed, $bigtree["config"]["date_format"]." @ g:i a")?></strong>.<br />
 		If you would like to edit this page anyway, please click "Unlock" below.  Otherwise, click "Cancel".
 		</p>			
 	</div>

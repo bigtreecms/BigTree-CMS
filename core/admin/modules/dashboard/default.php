@@ -225,8 +225,8 @@
 		<li>
 			<section class="messages_from_to"><span class="gravatar"><img src="<?=BigTree::gravatar($item["sender_email"], 36)?>" alt="" /></span><?=$item["sender_name"]?></section>
 			<section class="messages_subject"><?=$item["subject"]?></section>
-			<section class="messages_date_time"><?=date("n/j/y",strtotime($item["date"]))?></section>
-			<section class="messages_date_time"><?=date("g:ia",strtotime($item["date"]))?></section>
+			<section class="messages_date_time"><?=$admin->convertTimestampToUser($item["date"], "n/j/y")?></section>
+			<section class="messages_date_time"><?=$admin->convertTimestampToUser($item["date"], "g:i a")?></section>
 			<section class="messages_view"><a href="<?=ADMIN_ROOT?>dashboard/messages/view/<?=$item["id"]?>/" class="icon_message"></a></section>
 		</li>
 		<?php

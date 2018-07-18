@@ -1,4 +1,8 @@
 <?php
+	if ($field["value"]) {
+		$field["value"] = $admin->convertTimestampToUser($field["value"] ?: "now", "h:i a");
+	}
+
 	// We draw the picker inline for callouts
 	if (defined("BIGTREE_CALLOUT_RESOURCES")) {
 		$time = strtotime($field["value"] ? $field["value"] : "Today");

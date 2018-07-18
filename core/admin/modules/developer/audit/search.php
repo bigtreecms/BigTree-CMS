@@ -92,7 +92,7 @@
 				}
 		?>
 		<li>
-			<section class="view_column audit_date"><?=date($bigtree["config"]["date_format"]." @ g:ia",strtotime($r["date"]))?></section>
+			<section class="view_column audit_date"><?=$admin->convertTimestampToUser($r["date"], "Y-m-d g:i a")?></section>
 			<section class="view_column audit_user">
 				<?php if (empty($r["user"]["deleted"])) { ?>
 				<a target="_blank" href="<?=ADMIN_ROOT?>users/edit/<?=$r["user"]["id"]?>/"><?=$r["user"]["name"]?></a>

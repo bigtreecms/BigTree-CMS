@@ -871,5 +871,12 @@
 			SQL::query("ALTER TABLE `bigtree_module_forms` ADD COLUMN `open_graph` CHAR(2) NOT NULL AFTER `return_url`");
 			SQL::query("ALTER TABLE `bigtree_pending_changes` ADD COLUMN `open_graph_changes` LONGTEXT NOT NULL AFTER `tags_changes`");
 		}
+
+		// BigTree 4.3 update -- REVISION 309
+		function _local_bigtree_update_309() {
+			SQL::query("ALTER TABLE `bigtree_users` ADD COLUMN `timezone` VARCHAR(255) NOT NULL AFTER `daily_digest`");
+			SQL::query("ALTER TABLE `bigtree_pages` CHANGE COLUMN `publish_at` `publish_at` DATETIME NULL");
+			SQL::query("ALTER TABLE `bigtree_pages` CHANGE COLUMN `expire_at` `expire_at` DATETIME NULL");
+		}
 		
 	}
