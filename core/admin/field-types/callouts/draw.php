@@ -53,7 +53,7 @@
 			noun: "<?=$noun?>",
 			groups: <?=json_encode($field["settings"]["groups"])?>,
 			max: <?=$max?>,
-			front_end_editor: <?=defined("BIGTREE_FRONT_END_EDITOR")?>
+			front_end_editor: <?=(defined("BIGTREE_FRONT_END_EDITOR") ? "true" : "false")?>
 		});
 	</script>
 </fieldset>

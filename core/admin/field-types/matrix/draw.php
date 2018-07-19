@@ -49,7 +49,7 @@
 			columns: <?=json_encode($field["settings"]["columns"])?>,
 			max: <?=$max?>,
 			style: "callout",
-			front_end_editor: <?=defined("BIGTREE_FRONT_END_EDITOR")?>
+			front_end_editor: <?=(defined("BIGTREE_FRONT_END_EDITOR") ? "true" : "false")?>
 		});
 	</script>
 </fieldset>
