@@ -2,6 +2,7 @@
 	$admin->requireLevel(1);
 	$item = $admin->getSetting(end($bigtree["path"]));
 	$value = $cms->getSetting(end($bigtree["path"]));
+	
 	if ($item["encrypted"]) {
 		$value = "";
 	}
@@ -70,6 +71,7 @@
 						"key" => "value",
 						"tabindex" => 1,
 						"settings" => json_decode($item["settings"], true),
+						"has_value" => !is_null($value),
 						"value" => $value
 					);
 

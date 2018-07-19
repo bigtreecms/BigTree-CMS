@@ -1302,8 +1302,10 @@
 		
 		public static function getSetting($id) {
 			global $bigtree;
+			
 			$id = static::extensionSettingCheck($id);
 			$setting = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
+			
 			// Setting doesn't exist
 			if (!$setting) {
 				return false;
@@ -1315,7 +1317,10 @@
 			}
 
 			$value = json_decode($setting["value"],true);
-			if (is_array($value)) {
+			
+			if (is_null($value)) {
+				return $value;
+			} elseif (is_array($value)) {
 				return BigTree::untranslateArray($value);
 			} else {
 				return static::replaceInternalPageLinks($value);

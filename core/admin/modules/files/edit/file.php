@@ -107,7 +107,8 @@
 						"key" => "metadata[".$meta["id"]."]",
 						"tabindex" => $tabindex,
 						"settings" => $meta["settings"] ?: $meta["options"],
-						"value" => $file["metadata"][$meta["id"]]
+						"has_value" => isset($file["metadata"][$meta["id"]]),
+						"value" => isset($file["metadata"][$meta["id"]]) ? $file["metadata"][$meta["id"]] : ""
 					);
 
 					BigTreeAdmin::drawField($field);

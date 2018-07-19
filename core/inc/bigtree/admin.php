@@ -1912,7 +1912,7 @@
 				return false;
 			}
 
-			sqlquery("INSERT INTO bigtree_settings (`id`,`name`,`description`,`type`,`settings`,`locked`,`encrypted`,`system`,`extension`) VALUES ('$id','$name','$description','$type','$settings','$locked','$encrypted','$system',$extension)");
+			sqlquery("INSERT INTO bigtree_settings (`id`,`name`,`description`,`type`,`value`,`settings`,`locked`,`encrypted`,`system`,`extension`) VALUES ('$id','$name','$description','$type','null','$settings','$locked','$encrypted','$system',$extension)");
 			$this->track("bigtree_settings",$id,"created");
 
 			return true;
