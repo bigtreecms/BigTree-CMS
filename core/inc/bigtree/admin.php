@@ -2795,7 +2795,7 @@
 				if (is_array($field["options"]) && array_filter($field["options"])) {
 					$field["settings"] = $field["options"];
 				} else {
-					$field["settings"] = array();
+					$field["settings"] = [];
 				}
 			}
 
@@ -7009,7 +7009,15 @@
 		public static function processField($field) {
 			global $admin,$bigtree,$cms;
 
-			// Backwards compatibility
+			// Make sure options is an array to prevent warnings, load from options as a fallback for < 4.3
+			if (!is_array($field["settings"])) {
+				if (is_array($field["options"]) && array_filter($field["options"])) {
+					$field["settings"] = $field["options"];
+				} else {
+					$field["settings"] = [];
+				}
+			}
+
 			$field["options"] = &$field["settings"];
 
 			// Save current context
