@@ -9,7 +9,7 @@
 	$bigtree["callout_key"] = htmlspecialchars($_POST["key"]);
 	$bigtree["resources"] = json_decode(base64_decode($_POST["data"]),true);
 
-	if (!empty($_POST["front_end_editor"])) {
+	if (!empty($_POST["front_end_editor"]) && $_POST["front_end_editor"] != "false") {
 		define("BIGTREE_FRONT_END_EDITOR", true);
 	}
 ?>

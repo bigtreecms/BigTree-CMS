@@ -2,7 +2,7 @@
 	// Draw field types as callout resources
 	define("BIGTREE_CALLOUT_RESOURCES",true);
 
-	if (!empty($_POST["front_end_editor"])) {
+	if (!empty($_POST["front_end_editor"]) && $_POST["front_end_editor"] != "false") {
 		define("BIGTREE_FRONT_END_EDITOR", true);
 	}
 
