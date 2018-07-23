@@ -36,14 +36,14 @@
 		Select.change(function(event,data) {
 			// TinyMCE tooltips and menus sometimes get stuck
 			$(".mce-tooltip, .mce-menu").remove();
-	
+
 			Fields.load("<?=ADMIN_ROOT?>ajax/callouts/resources/", {
 				count: <?=$bigtree["callout_count"]?>,
 				key: "<?=$bigtree["callout_key"]?>",
 				resources: "<?=htmlspecialchars($_POST["data"])?>",
 				type: data.value,
 				tab_depth: <?=intval($_POST["tab_depth"])?>,
-				front_end_editor: <?=defined("BIGTREE_FRONT_END_EDITOR")?>
+				front_end_editor: <?=(defined("BIGTREE_FRONT_END_EDITOR") ? "true" : "false")?>
 			}, BigTreeCustomControls).scrollTop(0);
 		});
 	})();

@@ -47,7 +47,7 @@
 				count: <?=$bigtree["callout_count"]?>,
 				key: "<?=$bigtree["callout_key"]?>",
 				tab_depth: <?=intval($_POST["tab_depth"])?>,
-				front_end_editor: <?=defined("BIGTREE_FRONT_END_EDITOR")?>
+				front_end_editor: <?=(defined("BIGTREE_FRONT_END_EDITOR") ? "true" : "false")?>
 			},BigTree.formHooks).scrollTop(0);
 		});
 	})();
