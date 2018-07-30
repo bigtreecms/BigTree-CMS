@@ -7,6 +7,7 @@
 	class BigTreeSessionHandler {
 
 		private static $Exists = false;
+		private static $Started = false;
 		private static $Timeout = 3600;
 
 		// These aren't needed as the SQL class handles the connection
@@ -56,6 +57,12 @@
 
 		static function start() {
 			global $bigtree;
+
+			if (static::$Started) {
+				return;
+			}
+			
+			static::$Started = true;
 
 			if (!empty($bigtree["config"]["session_lifetime"])) {
 				static::$Timeout = intval($bigtree["config"]["session_lifetime"]);

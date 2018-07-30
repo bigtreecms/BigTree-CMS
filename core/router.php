@@ -171,7 +171,7 @@
 
 	// Start output buffering and sessions
 	ob_start();
-	BigTreeSessionHandler::start();	
+	BigTreeSessionHandler::start();
 
 	// Check to see if we're in maintenance mode
 	if ($bigtree["config"]["maintenance_url"] && (empty($_SESSION["bigtree_admin"]["level"]) || $_SESSION["bigtree_admin"]["level"] < 2)) {
