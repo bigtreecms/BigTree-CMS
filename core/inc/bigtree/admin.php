@@ -698,12 +698,13 @@
 
 			Parameters:
 				time - A timestamp readable by strtotime
+				format - Return format, defaults to "Y-m-d H:i:s"
 
 			Returns:
 				An adjusted timestamp in Y-m-d H:i:s format
 		*/
 
-		function convertTimestampFromUser($time) {
+		function convertTimestampFromUser($time, $format = null) {
 			if (!$this->Timezone) {
 				return date("Y-m-d H:i:s", strtotime($time));
 			}
@@ -719,7 +720,7 @@
 
 			$time += ($system_offset - $user_offset);
 
-			return date("Y-m-d H:i:s", $time);
+			return date($format ?: "Y-m-d H:i:s", $time);
 		}
 
 		/*
