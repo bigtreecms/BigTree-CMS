@@ -1,2 +1,4 @@
 <?php
-	$field["output"] = $admin->convertTimestampFromUser($field["input"], "Y-m-d");
+	if ($field["input"]) {
+		$field["output"] = $admin->convertTimestampFromUser($field["input"], "Y-m-d");
+	}
