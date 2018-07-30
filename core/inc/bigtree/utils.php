@@ -555,10 +555,16 @@
 			if (!$date_object) {
 				$date_object = DateTime::createFromFormat("Y-m-d",$date);
 			}
+			
+			// Fallback to full format
+			if (!$date_object) {
+				$date_object = DateTime::createFromFormat("Y-m-d H:i:s",$date);
+			}
 
 			if ($date_object) {
 				return $date_object->format($format);
 			}
+			
 			return false;
 		}
 
