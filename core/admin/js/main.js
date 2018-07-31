@@ -330,7 +330,7 @@ var BigTreeSelect = function(element) {
 				}
 			}
 	
-			if (width > span.width()) {
+			if (width > CurrentContainer.width()) {
 				CurrentContainer.css({ width: (width + 10) + "px" });
 				Container.find(".select_options").css({ width: (width + 64) + "px" });
 			}
