@@ -524,12 +524,31 @@ RewriteRule (.*) site/$1 [L]');
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 		<title>Install BigTree <?=BIGTREE_VERSION?></title>
 		<?php if ($installed && $routing != "iis") { ?>
-		<link rel="stylesheet" href="<?php echo $www_root ?>admin/css/main.css" type="text/css" media="all" />
+		<link rel="stylesheet" href="<?=$www_root?>admin/css/install.css" type="text/css" media="all" />
 		<?php } else { ?>
-		<link rel="stylesheet" href="core/admin/css/main.css" type="text/css" media="all" />
 		<script src="core/admin/js/lib.js"></script>
 		<script src="core/admin/js/main.js"></script>
 		<?php } ?>
+
+		<style type="text/css">
+			<?php
+				$protocol = (@$_SERVER["HTTPS"] == "on") ? "https://" : "http://";
+				
+				if ($_SERVER["SERVER_PORT"] != "80" && $port) {
+					$base = $protocol.$_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].str_replace("install.php", "", $_SERVER["REQUEST_URI"]);
+				} else {
+					$base = $protocol.$_SERVER["SERVER_NAME"].str_replace("install.php", "", $_SERVER["REQUEST_URI"]);
+				}
+
+				require_once "vendor/oyejorge/less.php/lib/Less/Autoloader.php";
+				Less_Autoloader::register();
+
+				// Load LESS compiler
+				$parser = new \Less_Parser(["compress" => true]);
+				$parser->parseFile("core/admin/css/install.less", $base."core/admin/filler/");
+				echo $parser->getCss();
+			?>
+		</style>
 	</head>
 	<body class="install">
 		<div class="install_wrapper">
@@ -556,14 +575,14 @@ RewriteRule (.*) site/$1 [L]');
 				
 				<h2>Public Site</h2>
 				<fieldset class="clear">
-					<p><small>URL</small><a href="<?php echo $www_root; ?>"><?php echo $www_root; ?></a></p>
+					<p><small>URL</small><a href="<?=$www_root?>"><?=$www_root?></a></p>
 				</fieldset>
 				<br /><br />
 				<h2>Administration Area</h2>
 				<fieldset class="clear">
 					<p>
-						<small>URL</small><a href="<?php echo $www_root."admin/"; ?>"><?php echo $www_root."admin/"; ?></a><br />
-						<small>EMAIL</small><?php echo $cms_user; ?><br />
+						<small>URL</small><a href="<?=$www_root?>admin/"><?=$www_root?>admin/</a><br />
+						<small>EMAIL</small><?=$cms_user?><br />
 						<small>PASSWORD</small><?php for ($i = 0, $count = strlen($cms_pass); $i < $count; $i++) { echo "*"; } ?><br />
 					</p>
 				</fieldset>
@@ -583,7 +602,7 @@ RewriteRule (.*) site/$1 [L]');
 						echo '<br />';
 						foreach ($warnings as $warning) {
 				?>
-				<p class="warning_message clear"><?php echo $warning?></p>
+				<p class="warning_message clear"><?=$warning?></p>
 				<?php
 						}
 					}
@@ -591,7 +610,7 @@ RewriteRule (.*) site/$1 [L]');
 						echo '<br />';
 						foreach ($fails as $fail) {
 				?>
-				<p class="error_message clear"><?php echo $fail?></p>
+				<p class="error_message clear"><?=$fail?></p>
 				<?php
 						}
 						echo '<br /><fieldset class="clear"><p><strong>Please resolve all the errors marked in red above to install BigTree.</strong></p></fieldset><br /><br />';
@@ -599,7 +618,7 @@ RewriteRule (.*) site/$1 [L]');
 						if ($error) {
 							echo '<br />';
 				?>
-				<p class="error_message clear"><?php echo $error?></p>
+				<p class="error_message clear"><?=$error?></p>
 				<?php
 						}
 				?>
@@ -612,30 +631,30 @@ RewriteRule (.*) site/$1 [L]');
 				<hr />
 				<fieldset class="left<?php if (count($_POST) && !$host) { ?> form_error<?php } ?>">
 					<label>Hostname</label>
-					<input class="text" type="text" id="db_host" name="host" value="<?php echo htmlspecialchars($host) ?>" tabindex="1" />
+					<input class="text" type="text" id="db_host" name="host" value="<?=htmlspecialchars($host)?>" tabindex="1" />
 				</fieldset>
 				<fieldset class="right<?php if (count($_POST) && !$db) { ?> form_error<?php } ?>">
 					<label>Database</label>
-					<input class="text" type="text" id="db_name" name="db" value="<?php echo htmlspecialchars($db) ?>" tabindex="2" />
+					<input class="text" type="text" id="db_name" name="db" value="<?=htmlspecialchars($db)?>" tabindex="2" />
 				</fieldset>
 				<br class="clear" /><br />
 				<fieldset class="left<?php if (count($_POST) && !$user) { ?> form_error<?php } ?>">
 					<label>Username</label>
-					<input class="text" type="text" id="db_user" name="user" value="<?php echo htmlspecialchars($user) ?>" tabindex="3" autocomplete="off" />
+					<input class="text" type="text" id="db_user" name="user" value="<?=htmlspecialchars($user)?>" tabindex="3" autocomplete="off" />
 				</fieldset>
 				<fieldset class="right">
 					<label>Password</label>
-					<input class="text" type="password" id="db_pass" name="password" value="<?php echo htmlspecialchars($password) ?>" tabindex="4" autocomplete="off" />
+					<input class="text" type="password" id="db_pass" name="password" value="<?=htmlspecialchars($password)?>" tabindex="4" autocomplete="off" />
 				</fieldset>
 				<div class="db_port_or_socket_settings"<?php if (!$db_port_or_socket) { ?> style="display: none;"<?php } ?>>
 					<br class="clear" /><br />
 					<fieldset class="left">
 						<label>Port <small>(defaults to 3306)</small></label>
-						<input class="text" type="text" name="port" value="<?php echo htmlspecialchars($port) ?>" tabindex="7" />
+						<input class="text" type="text" name="port" value="<?=htmlspecialchars($port)?>" tabindex="7" />
 					</fieldset>
 					<fieldset class="right">
 						<label>Socket</label>
-						<input class="text" type="text" name="socket" value="<?php echo htmlspecialchars($socket) ?>" tabindex="8" />
+						<input class="text" type="text" name="socket" value="<?=htmlspecialchars($socket)?>" tabindex="8" />
 					</fieldset>
 				</div>
 				<fieldset>
@@ -648,7 +667,7 @@ RewriteRule (.*) site/$1 [L]');
 
 				<fieldset>
 					<br /><br />
-					<label>Session Storage <small>(BigTree Database Handler required for enhanced security features)</label>
+					<label>Session Storage <small>(BigTree Database Handler required for enhanced security features)</small></label>
 					<select name="session_handler" tabindex="7">
 						<option value="db">BigTree Database Handler</option>
 						<option value="default">Default PHP Handler</option>
@@ -665,30 +684,30 @@ RewriteRule (.*) site/$1 [L]');
 					<hr />
 					<fieldset class="left<?php if (count($_POST) && !$write_host) { ?> form_error<?php } ?>">
 						<label>Hostname</label>
-						<input class="text" type="text" id="db_write_host" name="write_host" value="<?php echo htmlspecialchars($write_host) ?>" tabindex="8" />
+						<input class="text" type="text" id="db_write_host" name="write_host" value="<?=htmlspecialchars($write_host)?>" tabindex="8" />
 					</fieldset>
 					<fieldset class="right<?php if (count($_POST) && !$write_db) { ?> form_error<?php } ?>">
 						<label>Database</label>
-						<input class="text" type="text" id="db_write_name" name="write_db" value="<?php echo htmlspecialchars($write_db) ?>" tabindex="9" />
+						<input class="text" type="text" id="db_write_name" name="write_db" value="<?=htmlspecialchars($write_db)?>" tabindex="9" />
 					</fieldset>
 					<br class="clear" /><br />
 					<fieldset class="left<?php if (count($_POST) && !$write_user) { ?> form_error<?php } ?>">
 						<label>Username</label>
-						<input class="text" type="text" id="db_write_user" name="write_user" value="<?php echo htmlspecialchars($write_user) ?>" tabindex="10" autocomplete="off" />
+						<input class="text" type="text" id="db_write_user" name="write_user" value="<?=htmlspecialchars($write_user)?>" tabindex="10" autocomplete="off" />
 					</fieldset>
 					<fieldset class="right<?php if (count($_POST) && !$write_password) { ?> form_error<?php } ?>">
 						<label>Password</label>
-						<input class="text" type="password" id="db_write_pass" name="write_password" value="<?php echo htmlspecialchars($write_password) ?>" tabindex="11" autocomplete="off" />
+						<input class="text" type="password" id="db_write_pass" name="write_password" value="<?=htmlspecialchars($write_password)?>" tabindex="11" autocomplete="off" />
 					</fieldset>
 					<div class="db_port_or_socket_settings"<?php if (!$db_port_or_socket) { ?> style="display: none;"<?php } ?>>
 						<br class="clear" /><br />
 						<fieldset class="left">
 							<label>Port <small>(defaults to 3306)</small></label>
-							<input class="text" type="text" name="write_port" value="<?php echo htmlspecialchars($write_port) ?>" tabindex="12" />
+							<input class="text" type="text" name="write_port" value="<?=htmlspecialchars($write_port)?>" tabindex="12" />
 						</fieldset>
 						<fieldset class="right">
 							<label>Socket</label>
-							<input class="text" type="text" name="write_socket" value="<?php echo htmlspecialchars($write_socket) ?>" tabindex="13" />
+							<input class="text" type="text" name="write_socket" value="<?=htmlspecialchars($write_socket)?>" tabindex="13" />
 						</fieldset>
 					</div>
 					<br class="clear" /><br />
@@ -703,11 +722,11 @@ RewriteRule (.*) site/$1 [L]');
 				<hr />
 				<fieldset class="left<?php if (count($_POST) && !$cms_user) { ?> form_error<?php } ?>">
 					<label>Email Address</label>
-					<input class="text" type="text" id="cms_user" name="cms_user" value="<?php echo htmlspecialchars($cms_user) ?>" tabindex="14" autocomplete="off" />
+					<input class="text" type="text" id="cms_user" name="cms_user" value="<?=htmlspecialchars($cms_user)?>" tabindex="14" autocomplete="off" />
 				</fieldset>
 				<fieldset class="right<?php if (count($_POST) && !$cms_pass) { ?> form_error<?php } ?>">
 					<label>Password</label>
-					<input class="text" type="password" id="cms_pass" name="cms_pass" value="<?php echo htmlspecialchars($cms_pass) ?>" tabindex="15" autocomplete="off" />
+					<input class="text" type="password" id="cms_pass" name="cms_pass" value="<?=htmlspecialchars($cms_pass)?>" tabindex="15" autocomplete="off" />
 				</fieldset>
 				<fieldset class="clear">
 					<br /><br />
@@ -813,7 +832,7 @@ RewriteRule (.*) site/$1 [L]');
 		    </script>
 			<?php } ?>
 			<a href="http://www.bigtreecms.com" class="install_logo" target="_blank">BigTree</a>
-			<a href="http://www.fastspot.com" class="install_copyright" target="_blank">&copy; <?php echo date("Y") ?> Fastspot</a>
+			<a href="http://www.fastspot.com" class="install_copyright" target="_blank">&copy; <?=date("Y")?> Fastspot</a>
 		</div>
 	</body>
 </html>
