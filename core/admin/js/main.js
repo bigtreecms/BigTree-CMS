@@ -379,25 +379,19 @@ var BigTreeSelect = function(element) {
 				// Find out if we're in a dialog and have an overflow
 				var overflow = Container.parents(".overflow");
 				if (overflow.length) {
+					// Adjust by scroll offset - then someone scrolls the overflow, close the select or the dropdown will detach.
 					if (Container.parents(".callout_fields, #matrix_resources").length) {
-						// WebKit needs fixin.
-						if ($.browser.webkit) {
-							select_options.css("marginTop",-1 * $(".callout_fields, #matrix_resources").last().scrollTop() + "px");
-						}
-						// When someone scrolls the overflow, close the select or the dropdown will detach.
+						select_options.css("marginTop",-1 * $(".callout_fields, #matrix_resources").last().scrollTop() + "px");						
 						setTimeout(function() { $(".callout_fields, #matrix_resources").last().scroll(close); },500);
 					} else {
-						// WebKit needs fixin.
-						if ($.browser.webkit) {
-							select_options.css("marginTop",-1 * overflow.scrollTop() + "px");
-						}
-						// When someone scrolls the overflow, close the select or the dropdown will detach.
+						select_options.css("marginTop",-1 * overflow.scrollTop() + "px");
 						setTimeout(function() { overflow.scroll(close); },500);
 					}
 
 					// If the options would hang off the window, shrink the options menu down
 					var offset = select_options.offset().top - window.scrollY + select_options.height();
 					var difference = offset - BigTree.windowHeight();
+					
 					if (difference > 0) {
 						select_options.css({ height: select_options.height() - difference - 5 + "px" });
 					}
@@ -722,7 +716,12 @@ var BigTreeSelect = function(element) {
 		}
 		
 		// Add it to the DOM
-		TabIndex = parseInt(Element.attr("tabindex"));
+		if (Element.attr("tabindex")) {
+			TabIndex = parseInt(Element.attr("tabindex"));
+		} else {
+			TabIndex = 0;
+		}
+
 		Element.attr("tabindex", "-1").before(Container);
 
 		Container.html('<div class="current_select_container"><a class="handle" tabindex="' + TabIndex + '"></a><span class="current_select_value">' + selected_option + '</span></div><div class="select_options" style="display: none;"></div>');
