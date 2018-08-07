@@ -52,7 +52,7 @@
 				echo $resource["name"];
 			} else {
 		?>
-		<a href="<?=ADMIN_ROOT?>files/edit/<?=$resource["id"]?>/"><?=$resource["name"]?></a>
+		<a href="<?=ADMIN_ROOT?>files/edit/file/<?=$resource["id"]?>/"><?=$resource["name"]?></a>
 		<?php
 			}
 		?>
