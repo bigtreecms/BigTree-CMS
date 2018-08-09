@@ -57,12 +57,12 @@
 	<div class="left date_pickers">
 		<fieldset class="last">
 			<label>Publish At <small>(blank = immediately)</small></label>
-			<input type="text" class="date_time_picker" id="publish_at" name="publish_at" tabindex="3" value="<?php if ($bigtree["current_page"]["publish_at"]) { echo $admin->convertTimestampToUser($bigtree["current_page"]["publish_at"], $bigtree["config"]["date_format"]." h:i a"); } ?>" />
+			<input type="text" class="date_time_picker" id="publish_at" name="publish_at" autocomplete="off" tabindex="3" value="<?php if ($bigtree["current_page"]["publish_at"]) { echo $admin->convertTimestampToUser($bigtree["current_page"]["publish_at"], $bigtree["config"]["date_format"]." h:i a"); } ?>" />
 			<span class="icon_small icon_small_calendar date_picker_icon"></span>
 		</fieldset>
 		<fieldset class="right last">
 			<label>Expire At <small>(blank = never)</small></label>
-			<input type="text" class="date_time_picker" id="expire_at" name="expire_at" tabindex="4" value="<?php if ($bigtree["current_page"]["expire_at"]) { echo $admin->convertTimestampToUser($bigtree["current_page"]["expire_at"], $bigtree["config"]["date_format"]." h:i a"); } ?>" />
+			<input type="text" class="date_time_picker" id="expire_at" name="expire_at" autocomplete="off" tabindex="4" value="<?php if ($bigtree["current_page"]["expire_at"]) { echo $admin->convertTimestampToUser($bigtree["current_page"]["expire_at"], $bigtree["config"]["date_format"]." h:i a"); } ?>" />
 			<span class="icon_small icon_small_calendar date_picker_icon"></span>
 		</fieldset>
 	</div>

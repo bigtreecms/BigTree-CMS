@@ -271,7 +271,7 @@
 						<nav>
 							<a href="#page_permissions" class="active">Pages</a>
 							<a href="#module_permissions">Modules</a>
-							<a href="#resource_permissions">Resources</a>
+							<a href="#resource_permissions">Files</a>
 						</nav>
 					</header>
 					<div id="page_permissions">
