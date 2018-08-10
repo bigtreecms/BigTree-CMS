@@ -22,7 +22,7 @@
 	} else {
 ?>
 <div class="container">
-	<form method="post" action="<?=DEVELOPER_ROOT?>modules/embeds/update/<?=$form["id"]?>/" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>modules/embeds/update/<?=$form["id"]?>/" class="module module_embed_form_form">
 		<?php include BigTree::path("admin/modules/developer/modules/embeds/_form.php"); ?>
 		<section class="sub">
 			<label>Embed Code <small>(not editable)</small></label>

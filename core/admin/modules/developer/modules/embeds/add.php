@@ -3,7 +3,7 @@
 	$form = array("hooks" => array());
 ?>
 <div class="container">
-	<form method="post" action="<?=DEVELOPER_ROOT?>modules/embeds/create/<?=$module["id"]?>/" class="module">
+	<form method="post" action="<?=DEVELOPER_ROOT?>modules/embeds/create/<?=$module["id"]?>/" class="module module_embed_form_form">
 		<?php include BigTree::path("admin/modules/developer/modules/embeds/_form.php"); ?>
 		<section class="sub" id="field_area">
 			<p>Please choose a table to populate this area.</p>
