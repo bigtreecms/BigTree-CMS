@@ -1024,7 +1024,7 @@
 			"required" — A boolean value of whether this form field is required or not
 	*/
 
-	include BigTree::path("admin/field-types/draw/text.php");
+	include BigTree::path("admin/field-types/text/draw.php");
 ');
 				BigTree::setPermissions(SERVER_ROOT."custom/admin/field-types/$id/draw.php");
 			}
