@@ -2,7 +2,7 @@
 	$mpage = ADMIN_ROOT.$module["route"]."/";
 	BigTree::globalizeArray($view);
 ?>
-<div class="table" id="" class="image_list">
+<div class="table" class="image_list"<?php if ($set_index == $total_sets) { ?> style="margin: 0;"<?php } ?>>
 	<summary><h2>Search Results</h2></summary>
 	<?php if (isset($view["actions"]["edit"])) { ?>
 	<header>

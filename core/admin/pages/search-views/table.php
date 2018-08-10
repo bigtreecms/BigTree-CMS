@@ -13,7 +13,7 @@
 	
 	$items = BigTreeAutoModule::parseViewData($view,$items);
 ?>
-<div class="table" style="margin: 0;">
+<div class="table"<?php if ($set_index == $total_sets) { ?> style="margin: 0;"<?php } ?>>
 	<summary><h2>Search Results</h2></summary>
 	<header>
 		<?php

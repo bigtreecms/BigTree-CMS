@@ -133,7 +133,11 @@
 		<section class="content" id="content_<?=$cms->urlify($key)?>"<?php if ($x != 1) { ?> style="display: none;"<?php } ?>>
 			<?php
 				if ($key != "Pages") {
+					$total_sets = count($set);
+					$set_index = 0;
+
 					foreach ($set as $data) {
+						$set_index++;
 						$view = $data["view"];
 						$items = $data["results"];
 						$module = $data["module"];
