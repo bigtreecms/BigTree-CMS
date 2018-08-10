@@ -79,7 +79,7 @@
 	}
 	
 	// If user doesn't have publish access to the parent, don't allow them to duplicate a page
-	if (!$bigtree["current_page"]["parent"] || $bigtree["current_page"]["parent"] == -1 || $admin->getPageAccessLevel($bigtree["current_page"]["parent"]) != "p") {
+	if (!is_numeric($id) || !$bigtree["current_page"]["parent"] || $bigtree["current_page"]["parent"] == -1 || $admin->getPageAccessLevel($bigtree["current_page"]["parent"]) != "p") {
 		unset($pages_nav["children"]["duplicate"]);
 	}
 
