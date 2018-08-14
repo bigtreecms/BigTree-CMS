@@ -1623,6 +1623,13 @@
 			// Handle open graph
 			$this->handleOpenGraph("bigtree_pages", $id, $data["_open_graph_"]);
 
+			// See if this template has a publish hook
+			$template = BigTreeCMS::getTemplate($insert["template"]);
+
+			if (!empty($template["hooks"]["publish"])) {
+				call_user_func($template["hooks"]["publish"], "bigtree_pages", $id, $insert, [], $data["_tags"], $data["_open_graph_"]);
+			}
+
 			// If there was an old page that had previously used this path, dump its history so we can take over the path.
 			sqlquery("DELETE FROM bigtree_route_history WHERE old_route = '$path'");
 
@@ -1967,9 +1974,10 @@
 				level - Access level (0 for everyone, 1 for administrators, 2 for developers)
 				module - Related module id
 				resources - An array of resources
+				hooks - An array of hooks
 		*/
 
-		public function createTemplate($id,$name,$routed,$level,$module,$resources) {
+		public function createTemplate($id,$name,$routed,$level,$module,$resources,$hooks = []) {
 			// Check to see if it's a valid ID
 			if (!ctype_alnum(str_replace(array("-","_"),"",$id)) || strlen($id) > 127) {
 				return false;
@@ -2020,16 +2028,19 @@
 				BigTree::putFile(SERVER_ROOT."templates/basic/".$id.".php",$file_contents);
 			}
 
-			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($name));
-			$module = sqlescape($module);
-			$resources = BigTree::json($clean_resources,true);
-			$level = sqlescape($level);
-			$routed = sqlescape($routed);
-
 			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
-			sqlquery("UPDATE bigtree_templates SET position = position + 1");
-			sqlquery("INSERT INTO bigtree_templates (`id`,`name`,`module`,`resources`,`level`,`routed`) VALUES ('$id','$name','$module','$resources','$level','$routed')");
+			SQL::query("UPDATE bigtree_templates SET position = position + 1");
+			
+			SQL::insert("bigtree_templates", [
+				"id" => $id,
+				"name" => BigTree::safeEncode($name),
+				"module" => $module,
+				"resources" => $clean_resources,
+				"level" => $level,
+				"routed" => $routed,
+				"hooks" => $hooks
+			]);
+
 			$this->track("bigtree_templates",$id,"created");
 
 			return $id;
@@ -8114,7 +8125,7 @@
 				changes - An array of changes
 		*/
 
-		public function submitPageChange($page,$changes) {
+		public function submitPageChange($page, $changes) {
 			$page = sqlescape($page);
 
 			if ($page[0] == "p") {
@@ -9070,6 +9081,13 @@
 			
 			// Handle Open Graph
 			$this->handleOpenGraph("bigtree_pages", $page, $data["_open_graph_"]);
+
+			// See if this template has a publish hook
+			$template = BigTreeCMS::getTemplate($data["template"]);
+
+			if (!empty($template["hooks"]["publish"])) {
+				call_user_func($template["hooks"]["publish"], "bigtree_pages", $page, $update, [], $data["_tags"], $data["_open_graph_"]);
+			}
 			
 			// If this page is a trunk in a multi-site setup, wipe the cache
 			foreach (BigTreeCMS::$SiteRoots as $site_path => $site_data) {
@@ -9395,10 +9413,12 @@
 				level - Access level (0 for everyone, 1 for administrators, 2 for developers)
 				module - Related module id
 				resources - An array of resources
+				hooks - An array of hooks
 		*/
 
-		public function updateTemplate($id,$name,$level,$module,$resources) {
+		public function updateTemplate($id,$name,$level,$module,$resources,$hooks = []) {
 			$clean_resources = array();
+
 			foreach ($resources as $resource) {
 				if ($resource["id"]) {
 					$settings = json_decode($resource["settings"] ?: $resource["options"], true);
@@ -9412,13 +9432,14 @@
 				}
 			}
 
-			$id = sqlescape($id);
-			$name = sqlescape(htmlspecialchars($name));
-			$module = sqlescape($module);
-			$resources = BigTree::json($clean_resources,true);
-			$level = sqlescape($level);
+			SQL::update("bigtree_templates", $id, [
+				"resources" => $clean_resources,
+				"name" => BigTree::safeEncode($name),
+				"module" => $module,
+				"level" => $level,
+				"hooks" => $hooks
+			]);
 
-			sqlquery("UPDATE bigtree_templates SET resources = '$resources', name = '$name', module = '$module', level = '$level' WHERE id = '$id'");
 			$this->track("bigtree_templates",$id,"updated");
 		}
 

@@ -3,6 +3,21 @@
 	$bigtree["entry"] = array();
 	$bigtree["template"] = $cms->getTemplate($_POST["template"]);
 	$bigtree["file_data"] = BigTree::parsedFilesArray("resources");
+	
+	// Run any pre-process hook
+	$bigtree["preprocessed"] = [];
+
+	if (!empty($bigtree["template"]["hooks"]["pre"]))) {
+		$bigtree["preprocessed"] = call_user_func($bigtree["template"]["hooks"]["pre"], $_POST["resources"]);
+		
+		// Update the $_POST
+		if (is_array($bigtree["preprocessed"])) {
+			foreach ($bigtree["preprocessed"] as $key => $val) {
+				$_POST["resources"][$key] = $val;
+			}
+		}
+	}
+
 	$bigtree["post_data"] = $_POST["resources"];
 
 	foreach ((array)$bigtree["template"]["resources"] as $resource) {

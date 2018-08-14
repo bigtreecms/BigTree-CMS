@@ -3,6 +3,7 @@
 	
 	$cached_types = $admin->getCachedFieldTypes(true);
 	$types = $cached_types["templates"];
+	$hooks = is_array($hooks) ? $hooks : [];
 
 	if (isset($_GET["return"])) {
 ?>
@@ -10,7 +11,7 @@
 <?php
 	}
 ?>
-<section>
+<section class="developer_template_form">
 	<p class="error_message"<?php if (!$show_error) { ?> style="display: none;"<?php } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 	
 	<div class="contain">
@@ -80,6 +81,10 @@
 			<option value="2"<?php if ($level == 2) { ?> selected="selected"<?php } ?>>Developer</option>
 		</select>
 	</fieldset>
+	<fieldset class="float_margin">
+		<a href="#" id="manage_hooks"><span class="icon_small icon_small_lightning"></span> Manage Hooks</a>
+		<input name="hooks" type="hidden" id="form_hooks" value="<?=htmlspecialchars(json_encode($hooks))?>" />
+	</fieldset>
 </section>
 <section class="sub">
 	<label>Resources</label>
@@ -140,3 +145,25 @@
 		</ul>
 	</div>
 </section>
+
+<script>
+	$("#manage_hooks").click(function() {
+		var data = $.parseJSON($("#form_hooks").val());
+		var html = '<fieldset><label>Editing Hook</label><input type="text" name="edit" value="' + htmlspecialchars(data.edit ? data.edit : "") + '" /></fieldset>';
+		html += '<fieldset><label>Pre-processing Hook</label><input type="text" name="pre" value="' + htmlspecialchars(data.pre ? data.pre : "") + '" /></fieldset>';
+		html += '<fieldset><label>Post-processing Hook</label><input type="text" name="post" value="' + htmlspecialchars(data.post ? data.post : "") + '" /></fieldset>';
+		html += '<fieldset><label>Publishing Hook</label><input type="text" name="publish" value="' + htmlspecialchars(data.publish ? data.publish : "") + '" /></fieldset>';
+		
+		BigTreeDialog({
+			title: "Manage Hooks",
+			content: html,
+			helpLink: "http://www.bigtreecms.org/docs/dev-guide/modules/advanced-techniques/form-hooks/",
+			icon: "edit",
+			callback: function(data) {
+				$("#form_hooks").val(JSON.stringify(data));
+			}
+		});
+		
+		return false;
+	});
+</script>

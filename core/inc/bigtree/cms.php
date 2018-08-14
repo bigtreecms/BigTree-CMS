@@ -1452,12 +1452,15 @@
 		*/
 		
 		public static function getTemplate($id) {
-			$id = sqlescape($id);
-			$template = sqlfetch(sqlquery("SELECT * FROM bigtree_templates WHERE id = '$id'"));
+			$template = SQL::fetch("SELECT * FROM bigtree_templates WHERE id = ?", $id);
+
 			if (!$template) {
 				return false;
 			}
-			$template["resources"] = json_decode($template["resources"],true);
+
+			$template["resources"] = json_decode($template["resources"], true);
+			$template["hooks"] = json_decode($template["hooks"], true);
+
 			return $template;
 		}
 		

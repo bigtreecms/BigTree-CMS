@@ -26,7 +26,7 @@
 		
 		// See if we have an editing hook
 		if (!empty($bigtree["form"]["hooks"]["edit"])) {
-			$bigtree["entry"] = call_user_func($bigtree["form"]["hooks"]["edit"], $bigtree["entry"], $bigtree["form"]);
+			$bigtree["entry"] = call_user_func($bigtree["form"]["hooks"]["edit"], $bigtree["entry"], $bigtree["form"], false);
 		}
 
 		// Check access levels

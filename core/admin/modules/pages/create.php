@@ -37,10 +37,17 @@
 	if ($access_level == "p" && $_POST["ptype"] == "Create & Publish") {
 		// Let's make it happen.
 		$page = $admin->createPage($_POST);
+		$did_publish = true;
 		$admin->growl("Pages","Created & Published Page");
 	} else {
 		$page = "p".$admin->createPendingPage($_POST);
+		$did_publish = false;
 		$admin->growl("Pages","Created Page Draft");
+	}
+
+	// Run any post-processing hook
+	if (!empty($bigtree["template"]["hooks"]["post"])) {
+		call_user_func($bigtree["template"]["hooks"]["post"], $page, $bigtree["entry"], $did_publish);
 	}
 
 	// Track resource allocation

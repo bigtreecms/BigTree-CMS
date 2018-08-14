@@ -57,9 +57,10 @@
 	$id = $_POST["page"];
 	
 	if ($bigtree["access_level"] == "p" && $_POST["ptype"] == "Save & Publish") {
-		// Let's make it happen.
+		$did_publish = true;
+
+		// It's a pending page, so create a published one
 		if ($id[0] == "p") {
-			// It's a pending page, so let's create one.
 			if (!$_POST["parent"]) {
 				$_POST["parent"] = $bigtree["current_page_data"]["parent"];
 			}
@@ -72,12 +73,19 @@
 			$admin->growl("Pages","Updated Page");
 		}
 	} else {
+		$did_publish = false;
+		
 		if (!$_POST["parent"]) {
 			$_POST["parent"] = $bigtree["current_page_data"]["parent"];
 		}
 		
 		$admin->submitPageChange($id, $_POST);
 		$admin->growl("Pages","Saved Page Draft");
+	}
+
+	// Run any post-processing hook
+	if (!empty($bigtree["template"]["hooks"]["post"])) {
+		call_user_func($bigtree["template"]["hooks"]["post"], $page, $bigtree["entry"], $did_publish);
 	}
 	
 	$admin->unlock("bigtree_pages",$id);

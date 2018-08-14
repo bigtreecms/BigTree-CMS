@@ -879,3 +879,8 @@
 		SQL::query("ALTER TABLE `bigtree_pages` CHANGE COLUMN `publish_at` `publish_at` DATETIME NULL");
 		SQL::query("ALTER TABLE `bigtree_pages` CHANGE COLUMN `expire_at` `expire_at` DATETIME NULL");
 	}
+
+	// BigTree 4.3 update -- REVISION 310
+	function _local_bigtree_update_310() {
+		SQL::query("ALTER TABLE `bigtree_templates` ADD COLUMN `hooks` TEXT NOT NULL AFTER `resources`");
+	}

@@ -2,7 +2,7 @@
 	$admin->verifyCSRFToken();
 	
 	BigTree::globalizePOSTVars();
-	$admin->updateTemplate($id,$name,$level,$module,$resources);
+	$admin->updateTemplate($id,$name,$level,$module,$resources,$hooks);
 	$admin->growl("Developer","Updated Template");
 
 	if (isset($_POST["return_to_front"])) {

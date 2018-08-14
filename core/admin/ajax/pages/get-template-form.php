@@ -15,6 +15,11 @@
 	}
 
 	$bigtree["template"] = $cms->getTemplate($template_id);
+
+	// See if we have an editing hook
+	if (!empty($bigtree["template"]["hooks"]["edit"])) {
+		$bigtree["resources"] = call_user_func($bigtree["template"]["hooks"]["edit"], $bigtree["resources"], $bigtree["template"], true);
+	}
 ?>
 <div class="alert template_message">
 	<label>Template:</label>
