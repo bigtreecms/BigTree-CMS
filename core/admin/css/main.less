@@ -2044,14 +2044,31 @@
 	body.embedded .multi_widget li p { width: ~"calc(100% - 34px)"; }
 	body.embedded fieldset.callouts { border: none; }
 
-/*----------------------------
-	Custom TinyMCE 3 Styles
------------------------------*/
-	.form_error .mceEditor table.mceLayout { border-color: #C0362F; }
-	.form_error .defaultSkin table.mceLayout tr.mceFirst td { border-color: #C0362F; }
-	.form_error .defaultSkin table.mceLayout tr.mceLast td { border-color: #C0362F; }
-	.form_error .defaultSkin .mceIframeContainer { border-color: #C0362F; }
-	#message_path_row, .defaultSkin .mceListBox .mceText, .defaultSkin .mceMenuItemTitle span.mceText, .defaultSkin .mce_p span.mceText, .defaultSkin .mce_h2 span.mceText,.defaultSkin .mce_h3 span.mceText, .defaultSkin .mce_h4 span.mceText { user-select: none; }
+/*---------------------------
+	BigTree Foundry Browser
+---------------------------*/
+
+	#bigtree_foundry_browser_window { background: #FFF; border: 1px solid #666; border-radius: 2px; bottom: 0; height: 400px; left: 0; margin: auto; overflow: hidden; position: fixed; right: 0; top: 0; width: 600px; }
+	#bigtree_foundry_browser_window h2 { background: #eee; border-bottom: 1px solid #ccc; border-radius: 2px 2px 0 0; font-family: Helvetica; font-size: 16px; height: 27px; line-height: 29px; margin: 0; padding: 5px 0 5px 10px; }
+	#bigtree_foundry_browser_close { background: url(../images/icons/cross.png); display: block; float: right; height: 16px; margin: -2px 3px 0 0; width: 16px; }
+	#bigtree_foundry_browser_form { clear: both; margin: 0; }
+	#bigtree_foundry_browser_window .directory { background: #F6F6F6; border-bottom: 1px solid #ccc; color: #666; font-size: 11px; height: 24px; line-height: 24px; overflow: hidden; padding: 0px 10px; text-overflow: ellipsis; white-space: nowrap; }
+	#bigtree_foundry_browser_window .navigation_pane { background: #F6F6F6; border-radius-bottom-left: 2px; border-right: 1px solid #ccc; float: left; height: 338px; padding: 0; width: 149px; }
+	#bigtree_foundry_browser_window .navigation_pane ul { list-style: none; margin: 0; overflow: auto; user-select: none; }
+	#bigtree_foundry_browser_window .navigation_pane li a { color: #333; display: block; font-size: 10px; height: 20px; line-height: 20px; overflow: hidden; padding: 3px 5px; text-overflow: ellipsis; white-space: nowrap; }
+	#bigtree_foundry_browser_window .navigation_pane li a:hover { background: #e2e2e2; }
+	#bigtree_foundry_browser_window .navigation_pane .cloud_options { background: #FFF; border-bottom: 1px solid #CCC; }
+	#bigtree_foundry_browser_window .navigation_pane .cloud_options li .active { background: #EFF7FD; }
+	#bigtree_foundry_browser_window .browser_pane { background: #F6F6F6; border-radius-bottom-right: 2px; float: left; height: 338px; overflow: hidden; width: 450px; }
+	#bigtree_foundry_browser_window .browser_pane .files { background: url(../images/icons/page_white_text.png) no-repeat 2px 2px; border: 1px solid #FFF; float: right; height: 16px; margin: 0 3px 0 0; padding: 2px; width: 16px; }
+	#bigtree_foundry_browser_window .browser_pane .images { background: url(../images/icons/images.png) no-repeat 2px 2px; border: 1px solid #FFF; float: right; height: 16px; margin: 0; padding: 2px; width: 16px; }
+	#bigtree_foundry_browser_window .browser_pane ul { background: #fff; border-bottom: 1px solid #ccc; height: 290px; list-style: none; margin: 0; overflow: auto; user-select: none; width: 450px; }
+	#bigtree_foundry_browser_window .browser_pane li { border-bottom: 1px solid #EEE; cursor: pointer; font-size: 12px; line-height: 20px; padding: 3px 5px; }
+	#bigtree_foundry_browser_window .browser_pane li:hover { background: #eee; }
+	#bigtree_foundry_browser_window .browser_pane li div { height: 48px; overflow: hidden; padding: 11px 0 12px 0; text-align: center; }
+	#bigtree_foundry_browser_window .browser_pane li img { max-height: 48px; }
+	#bigtree_foundry_browser_window .browser_pane li.selected { background: #EFF7FD; }
+	#bigtree_foundry_browser_window .browser_pane .button { float: right; margin: 5px 5px 0 0; }
 
 /*----------------------------
 	Custom TinyMCE 4 Styles

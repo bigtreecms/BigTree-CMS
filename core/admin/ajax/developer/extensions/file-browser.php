@@ -39,10 +39,13 @@
 	// Local storage is being browsed
 	if ($location == "server") {
 		$directory = SERVER_ROOT.$postdirectory;
+		
 		if ($postdirectory && $postdirectory != ltrim($_POST["base_directory"],"/")) {
 			$subdirectories[] = "..";
 		}
+
 		$o = opendir($directory);
+
 		while ($r = readdir($o)) {
 			if ($r != "." && $r != ".." && $r != ".DS_Store") {
 				if (is_dir($directory.$r)) {
@@ -59,22 +62,27 @@
 		}
 
 		$cloud = new BigTreeCloudStorage($location);
+		
 		if (!$postcontainer) {
 			$containers = $cloud->listContainers();
 		} else {
 			$subdirectories[] = "..";
 			$container = $cloud->getContainer($_POST["container"]);
+			
 			if (!$postdirectory) {
 				$folder = $container["tree"];
 			} else {
 				$folder = $cloud->getFolder($container,$postdirectory);
 			}
+
 			foreach ($folder["folders"] as $name => $contents) {
 				$subdirectories[] = $name;
 			}
+
 			foreach ($folder["files"] as $file) {
 				$files[] = $file["name"];
 			}
+
 			// Give it a nice directory name
 			$directory = $postcontainer."/".$postdirectory;
 		}
@@ -86,7 +94,7 @@
 		$bucket_pane_height = 338;
 	}
 ?>
-<div class="directory"><?=htmlspecialchars(str_replace(SERVER_ROOT,"/",$directory))?></div>
+<div class="directory"><?=htmlspecialchars(str_replace(SERVER_ROOT, "", $directory))?></div>
 <div class="navigation_pane">
 	<?php if (count($cloud_options)) { ?>
 	<ul class="cloud_options">
@@ -102,6 +110,7 @@
 		<li><a href="<?=$d?>"><span class="icon_small icon_small_folder"></span><?=$d?></a></li>
 		<?php
 			}
+
 			foreach ($containers as $container) {
 		?>
 		<li><a data-type="container" href="<?=$container["name"]?>" title="<?=$container["name"]?>"><span class="icon_small icon_small_export"></span><?=$container["name"]?></a></li>
@@ -123,7 +132,7 @@
 		?>
 	</ul>
 	<input type="hidden" name="file" id="bigtree_foundry_file" value="<?=htmlspecialchars($_POST["file"])?>" />
-	<input type="hidden" name="directory" value="<?=$postdirectory?>" id="bigtree_foundry_directory" />
+	<input type="hidden" name="directory" value="<?=ltrim($postdirectory, "/")?>" id="bigtree_foundry_directory" />
 	<input type="hidden" name="container" value="<?=$postcontainer?>" id="bigtree_foundry_container" />
 	<input type="hidden" name="location" value="<?=$location?>" id="bigtree_foundry_location" />
 	<input type="submit" value="Use Selected File" class="button blue" />
