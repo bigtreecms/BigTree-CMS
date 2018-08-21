@@ -7,6 +7,12 @@
 		$admin->stop("Access denied.");
 	}
 
+	if ($file["is_image"]) {
+		$settings = $cms->getSetting("bigtree-internal-media-settings");
+		$preset = $settings["presets"]["default"];
+		$preset["directory"] = "files/resources/";
+	}
+
 	$data = [
 		"name" => BigTree::safeEncode($_POST["name"]),
 		"metadata" => []
@@ -25,6 +31,8 @@
 	} else {
 		$meta_fields = $metadata["file"];
 	}
+
+	$bigtree["crops"] = [];
 
 	if (is_array($meta_fields) && count($meta_fields)) {
 		$bigtree["post_data"] = $_POST;
@@ -57,12 +65,12 @@
 			$min_height = intval($preset["min_height"]);
 			$min_width = intval($preset["min_width"]);
 
-			list($width, $height, $type, $attr) = getimagesize($_FILES["file"]["tmp_name"]);
+			$image = new BigTreeImage($_FILES["file"]["tmp_name"]);
+			$image->fixRotation();
 
 			// Scale up content that doesn't meet minimums
-			if ($width < $min_width || $height < $min_height) {
-				BigTree::createUpscaledImage($_FILES["file"]["tmp_name"], $_FILES["file"]["tmp_name"], $min_width, $min_height);
-				list($width, $height, $type, $attr) = getimagesize($_FILES["file"]["tmp_name"]);
+			if ($image->Width < $min_width || $image->Height < $min_height) {
+				$image->upscale(null, $min_width, $min_height);
 			}
 			
 			// Get updated crop/thumb arrays
@@ -92,6 +100,14 @@
 			$data["size"] = filesize($_FILES["file"]["tmp_name"]);
 			$storage->replace($_FILES["file"]["tmp_name"], $file_name, "files/resources/");
 		}
+	} elseif (!empty($_POST["__file_recrop__"])) {
+		// User has asked for a re-crop
+		$image = new BigTreeImage(str_replace(STATIC_ROOT, SITE_ROOT, $file["file"]), $preset);
+		$image_copy = $image->copy();
+		$image_copy->StoredName = pathinfo($file["file"], PATHINFO_BASENAME);
+		$image_copy->filterGeneratableCrops();
+
+		$bigtree["crops"] += $image_copy->processCrops();
 	}
 	
 	$admin->updateResource($_POST["id"], $data);

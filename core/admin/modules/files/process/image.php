@@ -6,8 +6,11 @@
 	}
 
 	// Get crop and thumb prefix info
-	$dir = opendir(SITE_ROOT."files/temporary/".$admin->ID."/");
+	$settings = $cms->getSetting("bigtree-internal-media-settings");
+	$preset = $settings["presets"]["default"];
+	$preset["directory"] = "files/resources/";
 
+	$dir = opendir(SITE_ROOT."files/temporary/".$admin->ID."/");
 	$total_files = 0;
 
 	while ($file = readdir($dir)) {
@@ -15,15 +18,13 @@
 			continue;
 		}
 		
-		$extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-
-		if ($extension == "jpg" || $extension == "jpeg" || $extension == "png" || $extension == "gif") {
-			$file_name = SITE_ROOT."files/temporary/".$admin->ID."/".$file;
-			list($width, $height, $type, $attr) = getimagesize($file_name);
+		$image = new BigTreeImage(SITE_ROOT."files/temporary/".$admin->ID."/".$file);
+		
+		if (empty($image->Error)) {
 			$output = $admin->processImageUpload([
 				"title" => $file,
 				"file_input" => [
-					"tmp_name" => $file_name,
+					"tmp_name" => $image->File,
 					"name" => $file,
 					"error" => 0
 				],
@@ -39,6 +40,11 @@
 				$total_files++;
 			}
 		}
+	}
+	
+	if ($total_files == 0) {
+		$admin->growl("Files", "Upload failed.");
+		BigTree::redirect(ADMIN_ROOT."files/folder/".intval($bigtree["commands"][0])."/");
 	}
 
 	$_SESSION["bigtree_admin"]["form_data"] = [

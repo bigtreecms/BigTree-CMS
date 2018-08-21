@@ -118,6 +118,7 @@
 		"BigTreeSalesforceAPI" => "inc/bigtree/apis/salesforce.php",
 		"BigTreeDisqusAPI" => "inc/bigtree/apis/disqus.php",
 		"BigTreeFacebookAPI" => "inc/bigtree/apis/facebook.php",
+		"BigTreeImage" => "inc/bigtree/image.php",
 		"S3" => "inc/lib/amazon-s3.php",
 		"CF_Authentication" => "inc/lib/rackspace/cloud.php",
 		"CSSMin" => "inc/lib/CSSMin.php",

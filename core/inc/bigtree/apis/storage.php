@@ -46,7 +46,7 @@
 			// Try to figure out what this file is
 			list($iwidth,$iheight,$itype,$iattr) = @getimagesize($file);
 
-			if (($this->AutoJPEG || $bigtree["config"]["image_force_jpeg"]) && $itype == IMAGETYPE_PNG) {
+			if (($this->AutoJPEG || !empty($bigtree["config"]["image_force_jpeg"])) && $itype == IMAGETYPE_PNG) {
 				// See if this PNG has any alpha channels, if it does we're not doing a JPG conversion.
 				$alpha = ord(@file_get_contents($file,null,null,25,1));
 				if ($alpha != 4 && $alpha != 6) {

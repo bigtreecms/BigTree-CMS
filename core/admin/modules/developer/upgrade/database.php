@@ -841,7 +841,8 @@
 				
 				SQL::update("bigtree_resources", $resource["id"], ["thumbs" => $fixed_thumbs, "crops" => $fixed_crops]);
 			} else {
-				BigTree::centerCrop($source, $temp_file, 100, 100);
+				$image = new BigTreeImage($source);
+				$image->centerCrop($temp_file, 100, 100);
 				
 				if ($resource["location"] == "local") {
 					$local_storage->store($temp_file, $basename, "files/resources/list-preview/");
@@ -883,4 +884,9 @@
 	// BigTree 4.3 update -- REVISION 310
 	function _local_bigtree_update_310() {
 		SQL::query("ALTER TABLE `bigtree_templates` ADD COLUMN `hooks` TEXT NOT NULL AFTER `resources`");
+	}
+
+	// BigTree 4.3 update -- REVISION 311
+	function _local_bigtree_update_311() {
+		SQL::query("UPDATE bigtree_pages SET new_window = '' WHERE new_window = 'No'");
 	}

@@ -1,6 +1,9 @@
 <?php
-	$settings = $cms->getSetting("bigtree-internal-media-settings");
-	$preset = $settings["presets"]["default"];
+	/**
+	 * @global BigTreeImage $image
+	 * @global array $preset
+	 */
+
 	$crop_prefixes = [];
 	$thumb_prefixes = [];
 
@@ -17,7 +20,7 @@
 					$cleaned_thumbs = [];
 					
 					foreach ($crop["thumbs"] as $thumb_index => $thumb) {
-						$size = BigTree::calculateThumbnailSizes($crop["width"], $crop["height"], $thumb["width"], $thumb["height"]);
+						$size = $image->getThumbnailSize($crop["width"], $crop["height"], $thumb["width"], $thumb["height"]);
 						
 						if ($size["width"] <= $width && $size["height"] <= $height) {
 							$cleaned_thumbs[$thumb_index] = $thumb;
@@ -64,7 +67,7 @@
 			if (is_array($crop["thumbs"])) {
 				foreach ($crop["thumbs"] as $thumb) {
 					if ($thumb["prefix"]) {
-						$crop_prefixes[$thumb["prefix"]] = BigTree::calculateThumbnailSizes($crop["width"], $crop["height"], $thumb["width"], $thumb["height"]);
+						$crop_prefixes[$thumb["prefix"]] = $image->getThumbnailSize($crop["width"], $crop["height"], $thumb["width"], $thumb["height"]);
 					}
 				}
 			}
@@ -92,7 +95,7 @@
 			if (is_array($crop["thumbs"])) {
 				foreach ($crop["thumbs"] as $thumb) {
 					if ($thumb["prefix"]) {
-						$crop_prefixes[$thumb["prefix"]] = BigTree::calculateThumbnailSizes($crop["width"], $crop["height"], $thumb["width"], $thumb["height"]);
+						$crop_prefixes[$thumb["prefix"]] = $image->getThumbnailSize($crop["width"], $crop["height"], $thumb["width"], $thumb["height"]);
 					}
 				}
 			}
@@ -106,7 +109,7 @@
 			}
 			
 			if ($thumb["prefix"]) {
-				$thumb_prefixes[$thumb["prefix"]] = BigTree::calculateThumbnailSizes($width, $height, $thumb["width"], $thumb["height"]);
+				$thumb_prefixes[$thumb["prefix"]] = $image->getThumbnailSize($width, $height, $thumb["width"], $thumb["height"]);
 			}
 		}
 	}

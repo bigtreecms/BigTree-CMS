@@ -3159,11 +3159,14 @@ var BigTree = {
 		// Remove Existing Uploads
 		$(selector).on("click",".remove_resource",function() {
 			var p = $(this).parent();
+			
 			if (p.hasClass("currently_file")) {
 				p.remove();
 			} else {
 				p.hide().find("input, img").remove();
+				p.siblings("button").remove();
 			}
+
 			return false;
 		// Form Image Browser
 		}).on("click",".resource_browser_button",function() {

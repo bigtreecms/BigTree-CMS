@@ -33,6 +33,8 @@
 	} else {
 		$meta_fields = $metadata["file"];
 	}
+	
+	$bigtree["field_namespace"] = "file_field_";
 ?>
 <form class="container" method="post" action="<?=ADMIN_ROOT?>files/update/file/" enctype="multipart/form-data">
 	<?php
@@ -77,17 +79,24 @@
 
 		<?php
 			if (!$file["is_video"]) {
+				$field_settings = [];
+
+				if ($file["is_image"]) {		
+					$settings = $cms->getSetting("bigtree-internal-media-settings");
+					$field_settings = $settings["presets"]["default"];
+					$field_settings["directory"] = "files/resources/";
+					$field_settings["image"] = "on";
+					$field_settings["preview_prefix"] = "list-preview/";
+					$field_settings["preview_files_square"] = true;
+				}
+
 				BigTreeAdmin::drawField([
 					"title" => "Replace File",
 					"subtitle" => "(leave empty to preserve current file)",
 					"type" => "upload",
 					"key" => "file",
-					"id" => "field_file",
 					"value" => $file["file"],
-					"options" => [
-						"image" => $file["is_image"] ? "on" : "",
-						"preview_prefix" => "list-preview/"
-					]
+					"settings" => $field_settings
 				]);
 			}
 

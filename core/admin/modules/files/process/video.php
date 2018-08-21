@@ -139,7 +139,8 @@
 
 	// Scale up content that doesn't meet minimums
 	if ($width < $min_width || $height < $min_height) {
-		BigTree::createUpscaledImage($file_name, $file_name, $min_width, $min_height);
+		$image = new BigTreeImage($file_name);
+		$image->upscale(null, $min_width, $min_height);
 	}
 
 	$field = [

@@ -15,7 +15,8 @@
 	.form_sub_label { font-size: 11px; color: #666; margin: 5px 0 10px 0; }
 
 	input[type=submit],
-	a.button {
+	a.button,
+	button {
 		background-color: #CCC;
 		background-color: rgba(0, 0, 0, 0.1);
 		border: 1px solid #ccc;
@@ -96,14 +97,20 @@
 			float: left;
 			margin: 9px 7px 0 0;
 		}
+
+		&.small {
+			font-size: 12px;
+			height: 24px;
+			line-height: 25px;
+		}
 	}
 	
 	input[type=submit] {
 		padding: 11px 18px 9px;
 	}
 
-	input[type=submit].shorter, a.button.shorter { height: 28px; line-height: 30px; }
-	input[type=submit].shorter { padding: 4px 18px 6px; }
+	input[type=submit].shorter, a.button.shorter, button.shorter { height: 28px; line-height: 30px; }
+	input[type=submit].shorter, button.shorter { padding: 4px 18px 6px; }
 
 	.button_loader,
 	.button_loader:before,
@@ -206,7 +213,8 @@
 	.image_field .or { float: left; height: 30px; line-height: 30px; padding: 0 10px; }
 	.image_field .button { border-radius: 3px; height: 30px; line-height: 30px; padding: 0 13px; }
 	.image_field .button .icon_images { float: left; height: 24px; margin: 3px 5px 0 -1px; }
-	.currently { max-height: 100px; margin: 15px 0 0 0; overflow: hidden; padding: 3px 5px 0px 0px; width: 150px; }
+
+	.currently { float: left; max-height: 100px; margin: 15px 15px 0 0; overflow: hidden; padding: 3px 5px 0px 0px; width: 150px; }
 	.currently_wrapper { max-height: 100px; overflow: hidden; width: 150px; }
 	.currently_wrapper iframe { height: 84px; width: 150px; }
 	.currently_wrapper img { display: block; height: auto; max-height: 100px; max-width: 150px; }
@@ -219,6 +227,57 @@
 	.currently_image_reference .currently_wrapper img { height: 100px; width: 100px; }
 	.currently_image_reference label { width: 90px; }
 	.currently_image_reference .remove_resource { margin-left: 90px; }
+
+	.currently_files_square {
+		height: 100px;
+		width: 100px;
+
+		label {
+			width: 90px;
+		}
+
+		.remove_resource {
+			margin-left: 90px;
+		}
+	}
+
+	.recrop_button_container {
+		.button_loader {
+			top: -7px;
+			margin-left: 20px;
+		}
+	}
+
+	.recrop_button {
+		margin: 20px 0 10px 0;
+	}
+
+	.existing_crops_container {
+		border-bottom: 1px solid #E1E1E1;
+		border-top: 1px solid #E1E1E1;
+		column-count: 4;
+		column-gap: 20px;
+		margin: 20px -30px;
+		padding: 30px;
+		width: 898px;
+
+		fieldset:last-child & {
+			border-bottom: none;
+			margin-bottom: -30px;
+		}
+	}
+
+	.existing_crops_open + hr {
+		display: none;
+	}
+
+	.existing_crops_image {
+		display: block;
+		height: auto;
+		margin-bottom: 20px;
+		max-width: 100%;
+	}
+
 	.image_field_error { color: #CC0000; font-size: 10px; margin: 10px 0 0 0; }
 
 	.container .text_input section { float: left; margin: 0 20px 0 0; padding: 0; }
