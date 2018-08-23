@@ -64,13 +64,13 @@
 				if (!defined("BIGTREE_FRONT_END_EDITOR") && !$bigtree["form"]["embedded"]) {
 		?>
 		<span class="or">OR</span>
-		<a href="#<?=$field["id"]?>" data-options="<?=$button_options?>" class="button resource_browser_button"><span class="icon_images"></span>Browse</a>
+		<a href="#<?=$field["id"]?>_currently" data-options="<?=$button_options?>" class="button resource_browser_button"><span class="icon_images"></span>Browse</a>
 		<?php
 				}
 		?>
 	</div>
 	<div class="contain">
-		<div class="currently<?php if (!empty($field["settings"]["preview_files_square"])) { ?> currently_files_square<?php } ?>" <?php if (!$field["value"]) { ?> style="display: none;"<?php } ?>>
+		<div class="currently<?php if (!empty($field["settings"]["preview_files_square"])) { ?> currently_files_square<?php } ?>" <?php if (!$field["value"]) { ?> style="display: none;"<?php } ?> id="<?=$field["id"]?>_currently">
 			<a href="#" class="remove_resource"></a>
 			<div class="currently_wrapper">
 				<?php if ($preview_image) { ?>
