@@ -88,11 +88,29 @@
 					$field_settings["image"] = "on";
 					$field_settings["preview_prefix"] = "list-preview/";
 					$field_settings["preview_files_square"] = true;
+
+					// Figure out what the minimum size should be based on the current one
+					$field_settings["min_height"] = 0;
+					$field_settings["min_width"] = 0;
+
+					foreach ($file["crops"] as $prefix => $data) {
+						if ($data["width"] > $field_settings["min_width"]) {
+							$field_settings["min_width"] = $data["width"];
+						}
+
+						if ($data["height"] > $field_settings["min_height"]) {
+							$field_settings["min_height"] = $data["height"];
+						}
+					}
+
+					$min_message = " — replacing the current file requires a minimum image size of ".$field_settings["min_width"]."x".$field_settings["min_height"];
+				} else {
+					$min_message = "";
 				}
 
 				BigTreeAdmin::drawField([
 					"title" => "Replace File",
-					"subtitle" => "(leave empty to preserve current file)",
+					"subtitle" => "(leave empty to preserve current file".$min_message.")",
 					"type" => "upload",
 					"key" => "file",
 					"value" => $file["file"],

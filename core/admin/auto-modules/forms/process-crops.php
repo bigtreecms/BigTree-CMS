@@ -24,12 +24,19 @@
 
 <script>
 	(function() {
+		var AllowedThreads = 3;
 		var Counter = $(".container .current");
 		var Completed = 0;
 		var POST = <?=json_encode($_POST)?>;
 		var Total = <?=$count?>;
 
-		for (var index = 0; index < Total; index++) {
+		for (var index = 0; index < AllowedThreads; index++) {
+			if (index < Total) {
+				makeCropRequest(index);
+			}
+		}
+
+		function makeCropRequest(index) {
 			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/process-crop/", {
 				method: "POST",
 				data: {
@@ -47,6 +54,8 @@
 				if (Completed == Total) {
 					window.onbeforeunload = null;
 					document.location.href = "<?=$return_link?>";
+				} else {
+					makeCropRequest(Completed - 1);
 				}
 			});
 		}

@@ -2578,6 +2578,7 @@
 		public function deleteResource($id) {
 			$id = sqlescape($id);
 			$r = $this->getResource($id);
+
 			if ($r) {
 				sqlquery("DELETE FROM bigtree_resources WHERE id = '".sqlescape($r["id"])."'");
 
@@ -2585,11 +2586,21 @@
 				if (!sqlrows(sqlquery("SELECT id FROM bigtree_resources WHERE file = '".sqlescape($r["file"])."'"))) {
 					$storage = new BigTreeStorage;
 					$storage->delete($r["file"]);
-					foreach ($r["thumbs"] as $thumb) {
-						$storage->delete($thumb);
+
+					if ($r["is_image"]) {
+						$storage->delete(BigTree::prefixFile($r["file"],"list-preview/"));
+					}
+
+					foreach ($r["crops"] as $prefix => $data) {
+						$storage->delete(BigTree::prefixFile($r["file"], $prefix));
+					}
+					
+					foreach ($r["thumbs"] as $prefix => $data) {
+						$storage->delete(BigTree::prefixFile($r["file"], $prefix));
 					}
 				}
 			}
+
 			$this->track("bigtree_resources",$id,"deleted");
 		}
 
@@ -7150,19 +7161,15 @@
 			
 			// Load up the image class for doing manipulation / calculation and fix any EXIF rotations
 			$image = new BigTreeImage($temp_name, $field["settings"]);
-			
-			// Check for valid image dimensions, channels, and type
-			$error = $image->getRequirementsError();
-			
-			if ($error) {
-				$bigtree["errors"][] = ["field" => $field["title"], "error" => $error];
+						
+			if ($image->Error) {
+				$bigtree["errors"][] = ["field" => $field["title"], "error" => $image->Error];
 				$image->destroy();
 				
 				return false;
 			}
 			
 			// For crops that don't meet the required image size, see if a sub-crop will work.
-			$image->fixRotation();
 			$image->filterGeneratableCrops();
 			
 			// Get largest crop and thumbnail to check if we have the memory available to make them
@@ -7196,6 +7203,7 @@
 			// Handle crops and thumbnails
 			$crops = $image->processCrops();
 			$image->processThumbnails();
+			$image->processCenterCrops();
 		 
 			// If we don't have any crops, get rid of the temporary image we made.
 			if (!count($crops)) {
@@ -7205,7 +7213,7 @@
 					$bigtree["crops"] = [];
 				}
 				
-				$bigtree["crops"] += $crops;
+				$bigtree["crops"] = array_merge($bigtree["crops"], $crops);
 			}
 			
 			return $field["output"];

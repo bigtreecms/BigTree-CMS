@@ -32,9 +32,23 @@
 				$resource["file"] = BigTreeCMS::replaceRelativeRoots($resource["file"]);
 				$disabled = (($minWidth && $minWidth !== "false" && $resource["width"] < $minWidth) || ($minHeight && $minHeight !== "false" && $resource["height"] < $minHeight)) ? " disabled" : "";
 
+				// Filter out duplicate thumbnails
+				$used = [];
+				$thumbs = [];
+				$resource_thumbs = json_decode($resource["thumbs"], true);
+
+				foreach ($resource_thumbs as $prefix => $data) {
+					$id = $data["width"]."x".$data["height"];
+
+					if (!in_array($id, $used)) {
+						$used[] = $id;
+						$thumbs[$prefix] = $data;
+					}
+				}
+
 				$data = htmlspecialchars(json_encode(array(
 					"file" => $resource["file"],
-					"thumbs" => json_decode($resource["thumbs"]),
+					"thumbs" => $thumbs,
 					"crops" => json_decode($resource["crops"])
 				)));
 	?>

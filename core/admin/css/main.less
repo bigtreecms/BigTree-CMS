@@ -1948,22 +1948,8 @@
 			display: none;
 		}
 
-		.dz-image-preview .dz-image {
-			display: block;
-		}
-
 		.dz-message {
 			display: none;
-		}
-
-		.dz-preview {
-			border: 1px solid #DDD;
-			background: #FCFCFC;
-			display: block;
-			margin: 10px 0 0 0;
-			overflow: hidden;
-			padding: 10px;
-			position: relative;
 		}
 
 		.dz-image {
@@ -1978,6 +1964,28 @@
 			}
 		}
 
+		.dz-preview {
+			border: 1px solid #DDD;
+			background: #FCFCFC;
+			display: block;
+			float: left;
+			margin: 10px 0 0 10px;
+			overflow: hidden;
+			padding: 10px 36px 10px 10px;
+			position: relative;
+			width: 344px;
+
+			&:nth-child(2n) {
+				margin-left: 0;
+			}
+		}
+
+		.dz-image-preview {			
+			.dz-image {
+				display: block;
+			}
+		}
+
 		.dz-filename {
 			font-size: 14px;
 		}
@@ -1987,6 +1995,7 @@
 			display: none;
 			font-size: 12px;
 			font-weight: bold;
+			line-height: 16px;
 			margin: 5px 0 0 0;
 		}
 
@@ -2020,6 +2029,12 @@
 				right: 10px;
 				top: 9px;
 			}
+		}
+
+		.button_loader {
+			position: absolute;
+			right: 20px;
+			top: 0px;
 		}
 	}
 

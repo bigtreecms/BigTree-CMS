@@ -4,13 +4,17 @@
 		if (!isset($bigtree["media_settings"])) {
 			$bigtree["media_settings"] = $cms->getSetting("bigtree-internal-media-settings");
 		}
+
 		$preset = $bigtree["media_settings"]["presets"][$field["settings"]["preset"]];
+		
 		if (!empty($preset["preview_prefix"])) {
 			$field["settings"]["preview_prefix"] = $preset["preview_prefix"];
 		}
+		
 		if (!empty($preset["min_width"])) {
 			$field["settings"]["min_width"] = $preset["min_width"];
 		}
+		
 		if (!empty($preset["min_height"])) {
 			$field["settings"]["min_height"] = $preset["min_height"];
 		}
@@ -41,6 +45,10 @@
 					} else {
 						$preview_image = $field["value"];
 					}
+
+					$image = new BigTreeImage($field["value"], $field["settings"]);
+					$image->filterGeneratableCrops();
+					$filtered_crops = json_encode($image->Settings["crops"]);
 				} else {
 					$preview_image = false;
 				}
@@ -72,12 +80,24 @@
 			<label>CURRENT</label>
 			<input type="hidden" name="<?=$field["key"]?>" value="<?=$field["value"]?>" />
 		</div>
+		<?php
+			if (!empty($field["value"])) {
+		?>
 		<div class="recrop_button_container">
 			<button class="button green recrop_button">Choose New Crops</button>
+			<?php
+				if (!empty($image->Settings["crops"]) && count($image->Settings["crops"])) {
+			?>
 			&nbsp;&nbsp;&nbsp;
 			<button class="button show_crops_button">Show Existing Crops</button>
+			<?php
+				}
+			?>
 			<p class="recrop_status_text"><strong>Currently:</strong> Using existing crops</p>
 		</div>
+		<?php
+			}
+		?>
 	</div>
 	<div class="existing_crops_container" style="display: none;"></div>
 	<?php
@@ -121,7 +141,7 @@
 		
 					ExistingCropsContainer.load("<?=ADMIN_ROOT?>ajax/files/load-crops-preview/", {
 						file: "<?=$field["value"]?>",
-						settings: <?=json_encode($field["settings"])?>
+						crops: <?=$filtered_crops?>
 					}, cropsContainerLoaded);
 				}
 			}

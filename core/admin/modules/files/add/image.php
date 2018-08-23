@@ -1,7 +1,8 @@
 <?php
 	$bigtree["js"][] = "dropzone.js";
 	$bigtree["breadcrumb"][] = ["link" => "#", "title" => "Add Images"];
-	$permission = $admin->getResourceFolderPermission($bigtree["commands"][0]);
+	$folder = intval($bigtree["commands"][0]);
+	$permission = $admin->getResourceFolderPermission($folder);
 
 	if ($permission != "p") {
 		$admin->stop("You do not have permission to create content in this folder.");
@@ -12,19 +13,26 @@
 ?>
 <div class="container file_manager_wrapper">	
 	<section>
-		<form action="<?=ADMIN_ROOT?>ajax/files/dropzone-upload/?1<?php $admin->drawCSRFTokenGET(); ?>" class="dropzone" id="file_manager_dropzone">
+		<form action="<?=ADMIN_ROOT?>ajax/files/dropzone-upload-image/" class="dropzone" id="file_manager_dropzone">
+			<?php $admin->drawCSRFToken(); ?>
 			<p>Drag and drop files into this zone or click to manually upload.</p>
 		</form>
 	</section>
 
 	<footer>
-		<a href="<?=ADMIN_ROOT?>files/process/image/<?=intval($bigtree["commands"][0])?>/" class="blue button js-continue-button disabled">Continue</a>
+		<form method="post" action="<?=ADMIN_ROOT?>files/process/image/<?=$folder?>/" id="files_form">
+			<input type="hidden" name="folder" value="<?=$folder?>">
+			<input type="submit" class="blue button js-continue-button disabled" value="Continue">
+		</form>
 	</footer>
 </div>
 
 <script>
 	(function() {
 		var ContinueButton = $(".js-continue-button");
+		var Form = $("#files_form");
+		var Processed = 0;
+		var Total = 0;
 
 		Dropzone.options.fileManagerDropzone = {
 			accept: function(file, done) {
@@ -35,8 +43,24 @@
 				}
 			},
 			init: function() {
-				this.on("success", function() {
-					ContinueButton.removeClass("disabled");
+				this.on("addedfile", function(ev) {
+					Total++;
+					$(ev.previewElement).find(".dz-details").append('<span class="button_loader"></span>');
+				});
+
+				this.on("success", function(ev, response) {
+					Processed++;
+					Form.append($('<input name="files[]" type="hidden">').val(response));
+
+					$(ev.previewElement).removeClass("dz-processing").find(".button_loader").remove();
+
+					if (Processed == Total) {
+						ContinueButton.removeClass("disabled");
+					}
+				});
+
+				this.on("error", function(ev, response) {
+					Processed++;
 				});
 			}
 		};

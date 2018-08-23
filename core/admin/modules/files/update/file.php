@@ -7,12 +7,6 @@
 		$admin->stop("Access denied.");
 	}
 
-	if ($file["is_image"]) {
-		$settings = $cms->getSetting("bigtree-internal-media-settings");
-		$preset = $settings["presets"]["default"];
-		$preset["directory"] = "files/resources/";
-	}
-
 	$data = [
 		"name" => BigTree::safeEncode($_POST["name"]),
 		"metadata" => []
@@ -62,16 +56,12 @@
 		$file_name = pathinfo($file["file"], PATHINFO_BASENAME);
 
 		if ($file["is_image"]) {
-			$min_height = intval($preset["min_height"]);
-			$min_width = intval($preset["min_width"]);
-
-			$image = new BigTreeImage($_FILES["file"]["tmp_name"]);
-			$image->fixRotation();
-
-			// Scale up content that doesn't meet minimums
-			if ($image->Width < $min_width || $image->Height < $min_height) {
-				$image->upscale(null, $min_width, $min_height);
-			}
+			$settings = $cms->getSetting("bigtree-internal-media-settings");
+			$preset = $settings["presets"]["default"];
+			$preset["directory"] = "files/resources/";
+			
+			$image = new BigTreeImage($_FILES["file"]["tmp_name"], $preset);
+			$image->filterGeneratableCrops();
 			
 			// Get updated crop/thumb arrays
 			include BigTree::path("admin/modules/files/process/_resource-prefixes.php");
@@ -79,7 +69,7 @@
 			$field = [
 				"title" => $file["name"],
 				"file_input" => [
-					"tmp_name" => $_FILES["file"]["tmp_name"],
+					"tmp_name" => $image->File,
 					"name" => $file_name,
 					"error" => 0
 				],
@@ -93,9 +83,16 @@
 			$data["height"] = $height;
 			$data["crops"] = $crop_prefixes;
 			$data["thumbs"] = $thumb_prefixes;
-			$data["size"] = filesize($_FILES["file"]["tmp_name"]);
+			$data["size"] = filesize($image->File);
 
-			$admin->processImageUpload($field, true);
+			if ($admin->processImageUpload($field, true)) {
+				// Remove any crops that no longer work with the new image
+				foreach ($file["crops"] as $prefix => $size) {
+					if (!isset($size["crops"][$prefix])) {
+						$storage->delete(BigTree::prefixFile($file["file"], $prefix));
+					}
+				}
+			}
 		} elseif (!$file["is_video"]) {
 			$data["size"] = filesize($_FILES["file"]["tmp_name"]);
 			$storage->replace($_FILES["file"]["tmp_name"], $file_name, "files/resources/");
@@ -109,10 +106,10 @@
 
 		$bigtree["crops"] += $image_copy->processCrops();
 	}
-	
+
 	$admin->updateResource($_POST["id"], $data);
 	$admin->growl("File Manager", "Updated File");
-	
+
 	$_SESSION["bigtree_admin"]["form_data"] = [
 		"edit_link" => ADMIN_ROOT."files/edit/file/".$_POST["id"]."/",
 		"return_link" => ADMIN_ROOT."files/folder/".intval($bigtree["commands"][0])."/",
