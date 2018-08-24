@@ -457,7 +457,7 @@
 		}
 		
 		private function _generatableCropsFilter($crop) {
-			if ($this->Width > $crop["width"] && $this->Height > $crop["height"]) {
+			if ($this->Width >= $crop["width"] && $this->Height >= $crop["height"]) {
 				return $crop;
 			}
 			
