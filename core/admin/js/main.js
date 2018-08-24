@@ -1785,7 +1785,7 @@ var BigTreeFormNavBar = (function() {
 	var NextButton;
 	var Sections;
 
-	function init() {
+	function init(skip_validation) {
 		Container = $(".container");
 		ContainerOffset = Container.offset().top;
 		Nav = Container.find("nav a");
@@ -1799,14 +1799,16 @@ var BigTreeFormNavBar = (function() {
 		toggleNextVisibility();
 
 		// Form Validation
-		BigTreeFormValidator(Container.find("form"),function(errors) {
-			// Hide all the pages tab sections
-			Sections.hide();
-			// Unset all the active states on tabs
-			Nav.removeClass("active");
-			// Figure out what section the first error occurred in and show that section.
-			Nav.filter("[href='#" + errors[0].parents("section").show().attr("id") + "']").addClass("active");
-		});
+		if (typeof skip_validation === "undefined" || !skip_validation) {
+			BigTreeFormValidator(Container.find("form"),function(errors) {
+				// Hide all the pages tab sections
+				Sections.hide();
+				// Unset all the active states on tabs
+				Nav.removeClass("active");
+				// Figure out what section the first error occurred in and show that section.
+				Nav.filter("[href='#" + errors[0].parents("section").show().attr("id") + "']").addClass("active");
+			});
+		}
 
 		// For when there are too many tabs, we need to setup scrolling
 		var calc_nav_container = Container.find("nav .more div");

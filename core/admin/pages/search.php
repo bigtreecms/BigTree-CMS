@@ -188,5 +188,5 @@
 		return false;
 	});
 
-	BigTreeFormNavBar.init();
+	BigTreeFormNavBar.init(true);
 </script>

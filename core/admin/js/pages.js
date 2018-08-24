@@ -28,32 +28,37 @@ var BigTreePages = (function() {
 		ExternalLinkField = $("#external_link");
 		FooterInputs = $(".js-pages-form-footer input");
 		NavTitle = $("#nav_title");
-		NewWindowControl = $("#new_window").get(0).customControl;
 		PageTitle = $("#page_title");
-		RedirectLowerField = $("#redirect_lower");
-		RedirectLowerFieldControl = RedirectLowerField.get(0).customControl;
 		SaveAndPreviewButton = $(".save_and_preview");
 		TemplateSelect = $("#template_select");
 		TemplateSelectControl = TemplateSelect.get(0).customControl;
 		TrunkField = $("#trunk_field");
 
-		RedirectLowerField.click(function() {
-			if ($(this).prop("checked")) {
-				TemplateSelectControl.disable();
-				ExternalLinkField.prop("disabled", true);
-				NewWindowControl.disable();
-			} else {
-				TemplateSelectControl.enable();
-				ExternalLinkField.prop("disabled", false);
-				NewWindowControl.enable();
-			}
-		});
+		// Homepage editing won't have these controls
+		if ($("#new_window").length) {
+			NewWindowControl = $("#new_window").get(0).customControl;
+			RedirectLowerField = $("#redirect_lower");
+			RedirectLowerFieldControl = RedirectLowerField.get(0).customControl;
+
+			RedirectLowerField.click(function() {
+				if ($(this).prop("checked")) {
+					TemplateSelectControl.disable();
+					ExternalLinkField.prop("disabled", true);
+					NewWindowControl.disable();
+				} else {
+					TemplateSelectControl.enable();
+					ExternalLinkField.prop("disabled", false);
+					NewWindowControl.enable();
+				}
+			});
+
+			ExternalTimer = setInterval(checkExternal, 300);
+		}
 
 		// Tagger
 		BigTreeTagAdder.init();
 		
 		// Watch for changes in the template, update the Content tab.
-		ExternalTimer = setInterval(checkExternal, 300);
 		TemplateTimer = setInterval(checkTemplate, 300);
 
 		if (!PageTitle.get(0).defaultValue) {
@@ -131,7 +136,7 @@ var BigTreePages = (function() {
 
 	function checkTemplate() {
 		if (TemplateSelect.length) {
-			if (RedirectLowerField.prop("checked")) {
+			if (typeof RedirectLowerField !== "undefined" && RedirectLowerField.prop("checked")) {
 				var current_template = "!";
 			} else if (ExternalLinkField.val()) {
 				var current_template = "";
