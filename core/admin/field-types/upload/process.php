@@ -32,7 +32,7 @@
 			// Using an existing image or one from the Image Browser
 			} else {
 				$field["output"] = $field["input"];
-	
+
 				// We're trying to use an image from the Image Browser.
 				if (substr($field["output"],0,11) == "resource://") {
 					// It's technically a new file now, but we pulled it from resources so we might need to crop it.
@@ -57,8 +57,13 @@
 					$image_copy = $image->copy();
 					$image_copy->StoredName = pathinfo($field["input"], PATHINFO_BASENAME);
 					$image_copy->filterGeneratableCrops();
+					$crops = $image_copy->processCrops();
 
-					$bigtree["crops"] += $image_copy->processCrops();
+					if (!count($crops)) {
+						$image_copy->destroy();
+					}
+
+					$bigtree["crops"] = array_merge($bigtree["crops"], $crops);
 				}
 			}
 		}

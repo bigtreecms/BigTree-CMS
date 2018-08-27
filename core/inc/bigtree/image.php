@@ -125,12 +125,12 @@
 				$x = ceil(($new_width - $crop_width) / 2 * $this->Width / $new_width);
 				$y = 0;
 				
-				return static::crop($location, $x, $y, $crop_width, $crop_height, ($this->Width - $x * 2), $this->Height, $retina, $grayscale);
+				return $this->crop($location, $x, $y, $crop_width, $crop_height, ($this->Width - $x * 2), $this->Height, $retina, $grayscale);
 			} else {
 				$y = ceil(($new_height - $crop_height) / 2 * $this->Height / $new_height);
 				$x = 0;
 				
-				return static::crop($location, $x, $y, $crop_width, $crop_height, $this->Width, ($this->Height - $y * 2), $retina, $grayscale);
+				return $this->crop($location, $x, $y, $crop_width, $crop_height, $this->Width, ($this->Height - $y * 2), $retina, $grayscale);
 			}
 		}
 		

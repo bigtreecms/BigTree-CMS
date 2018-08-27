@@ -48,7 +48,13 @@
 
 					$image = new BigTreeImage($field["value"], $field["settings"]);
 					$image->filterGeneratableCrops();
-					$filtered_crops = json_encode($image->Settings["crops"]);
+					$filtered_crops = $image->Settings["crops"];
+
+					foreach ($filtered_crops as $index => $crop) {
+						if ($crop["width"] == $image->Width && $crop["height"] == $image["height"]) {
+							unset($filtered_crops[$index]);
+						}
+					}
 				} else {
 					$preview_image = false;
 				}
@@ -81,7 +87,7 @@
 			<input type="hidden" name="<?=$field["key"]?>" value="<?=$field["value"]?>" />
 		</div>
 		<?php
-			if (!empty($field["value"])) {
+			if (!empty($field["value"]) && count($filtered_crops)) {
 		?>
 		<div class="recrop_button_container">
 			<button class="button green recrop_button">Choose New Crops</button>
@@ -119,9 +125,19 @@
 
 			if ($(this).hasClass("green")) {
 				$(this).addClass("red").removeClass("green");
-				$(this).after('<input type="hidden" name="__<?=$field["key"]?>_recrop__" value="true">');
 				$(this).html("Use Existing Crops");
 				$(this).siblings(".recrop_status_text").html("<strong>Currently:</strong> Generating new crops after saving");
+
+				if ("<?=$field["key"]?>".indexOf("[") > -1) {
+					var parts = "<?=$field["key"]?>".split("[");
+					var last_part = parts[parts.length - 1];
+
+					parts[parts.length - 1] = "__" + last_part.substr(0, last_part.length - 1) + "_recrop__]";
+
+					$(this).after('<input type="hidden" name="' + parts.join("[") + '" value="true">');
+				} else {
+					$(this).after('<input type="hidden" name="__<?=$field["key"]?>_recrop__" value="true">');
+				}
 			} else {
 				$(this).removeClass("red").addClass("green");
 				$(this).siblings("input").remove();
@@ -145,7 +161,7 @@
 		
 					ExistingCropsContainer.load("<?=ADMIN_ROOT?>ajax/files/load-crops-preview/", {
 						file: "<?=$field["value"]?>",
-						crops: <?=$filtered_crops?>
+						crops: <?=json_encode($filtered_crops)?>
 					}, cropsContainerLoaded);
 				}
 			}
