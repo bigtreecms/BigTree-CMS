@@ -86,7 +86,7 @@
 		<div class="recrop_button_container">
 			<button class="button green recrop_button">Choose New Crops</button>
 			<?php
-				if (!empty($image->Settings["crops"]) && count($image->Settings["crops"])) {
+				if (!defined("BIGTREE_CALLOUT_RESOURCES") && !empty($image->Settings["crops"]) && count($image->Settings["crops"])) {
 			?>
 			&nbsp;&nbsp;&nbsp;
 			<button class="button show_crops_button">Show Existing Crops</button>
@@ -99,8 +99,12 @@
 			}
 		?>
 	</div>
+	<?php
+			if (!defined("BIGTREE_CALLOUT_RESOURCES")) {
+	?>
 	<div class="existing_crops_container" style="display: none;"></div>
 	<?php
+			}
 		}
 	?>
 </div>
