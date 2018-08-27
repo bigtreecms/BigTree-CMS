@@ -28,6 +28,7 @@
 		var Counter = $(".container .current");
 		var Completed = 0;
 		var POST = <?=json_encode($_POST)?>;
+		var Requested = 0;
 		var Total = <?=$count?>;
 
 		for (var index = 0; index < AllowedThreads; index++) {
@@ -36,16 +37,16 @@
 			}
 		}
 
-		function makeCropRequest(index) {
+		function makeCropRequest() {
 			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/process-crop/", {
 				method: "POST",
 				data: {
 					crop_key: "<?=$_POST["crop_key"]?>",
-					index: index,
-					x: POST.x[index],
-					y: POST.y[index],
-					width: POST.width[index],
-					height: POST.height[index],
+					index: Requested,
+					x: POST.x[Requested],
+					y: POST.y[Requested],
+					width: POST.width[Requested],
+					height: POST.height[Requested],
 				}
 			}).done(function() {
 				Completed++;
@@ -54,10 +55,12 @@
 				if (Completed == Total) {
 					window.onbeforeunload = null;
 					document.location.href = "<?=$return_link?>";
-				} else {
-					makeCropRequest(Completed - 1);
+				} else if (Requested < Total) {
+					makeCropRequest(Requested - 1);
 				}
 			});
+
+			Requested++;
 		}
 
 		window.onbeforeunload = function(ev) {
