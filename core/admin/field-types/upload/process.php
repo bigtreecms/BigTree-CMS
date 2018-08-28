@@ -53,7 +53,7 @@
 					$field["output"] = $file ? $file : $field["input"];
 				} elseif (!empty($bigtree["post_data"]["__".$field["key"]."_recrop__"])) {
 					// User has asked for a re-crop
-					$image = new BigTreeImage(str_replace(STATIC_ROOT, SITE_ROOT, $field["input"]), $field["settings"]);
+					$image = new BigTreeImage(str_replace(STATIC_ROOT, SITE_ROOT, $field["input"]), $field["settings"], true);
 					$image_copy = $image->copy();
 					$image_copy->StoredName = pathinfo($field["input"], PATHINFO_BASENAME);
 					$image_copy->filterGeneratableCrops();

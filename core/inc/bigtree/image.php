@@ -25,11 +25,12 @@
 		
 		private $Extensions = [IMAGETYPE_PNG => ".png", IMAGETYPE_JPEG => ".jpg", IMAGETYPE_GIF => ".gif"];
 		private $ForcingLocalReplace = false;
+		private $IgnoringMinimums = false;
 		
-		
-		public function __construct($file, $settings = []) {
+		public function __construct($file, $settings = [], $ignore_minimums = false) {
 			global $bigtree;
 
+			$this->IgnoringMinimums = $ignore_minimums;
 			$this->Settings = $settings;
 			$this->cleanSettings();
 
@@ -51,7 +52,7 @@
 			$this->MinWidth = (!empty($settings["min_width"]) && is_numeric($settings["min_width"])) ? intval($settings["min_width"]) : 0;
 			$this->fixRotation();
 
-			if ($this->Height < $this->MinHeight || $this->Width < $this->MinWidth) {
+			if (!$ignore_minimums && ($this->Height < $this->MinHeight || $this->Width < $this->MinWidth)) {
 				$error = "The image did not meet the minimum size of ";
 				
 				if ($this->MinHeight && $this->MinWidth) {
@@ -179,15 +180,15 @@
 		
 		// Cleans up crops, center crops, etc to make sure values are numeric and present
 		private function cleanSettings() {
-			if (!is_array($this->Settings["crops"])) {
+			if (empty($this->Settings["crops"]) || !is_array($this->Settings["crops"])) {
 				$this->Settings["crops"] = [];
 			}
 			
-			if (!is_array($this->Settings["thumbs"])) {
+			if (empty($this->Settings["thumbs"]) || !is_array($this->Settings["thumbs"])) {
 				$this->Settings["thumbs"] = [];
 			}
 			
-			if (!is_array($this->Settings["center_crops"])) {
+			if (empty($this->Settings["center_crops"]) || !is_array($this->Settings["center_crops"])) {
 				$this->Settings["center_crops"] = [];
 			}
 
@@ -232,11 +233,11 @@
 			$crop["grayscale"] = !empty($crop["grayscale"]) ? true : false;
 			
 			if (!$recursion) {
-				if (!is_array($crop["thumbs"])) {
+				if (empty(is_array($crop["thumbs"])) || !is_array($crop["thumbs"])) {
 					$crop["thumbs"] = [];
 				}
 				
-				if (!is_array($crop["center_crops"])) {
+				if (empty($crop["center_crops"]) || !is_array($crop["center_crops"])) {
 					$crop["center_crops"] = [];
 				}
 				
@@ -284,11 +285,11 @@
 			if (is_null($location)) {
 				$location = $this->getTempFileName();
 			}
-			
+
 			$success = BigTree::copyFile($this->File, $location);
 			
 			if ($success) {
-				return new BigTreeImage($location, $this->Settings);
+				return new BigTreeImage($location, $this->Settings, $this->IgnoringMinimums);
 			}
 			
 			return null;
