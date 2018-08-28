@@ -38,7 +38,7 @@
 			}
 		?>
 	</div>
-	<a href="#" class="add_item button"><span class="icon_small icon_small_add"></span>Add Item</a>
+	<a href="#" class="add_item add_item_button button"><span class="icon_small icon_small_add"></span>Add Item</a>
 	<?php if ($max) { ?>
 	<small class="max">LIMIT <?=$max?></small>
 	<?php } ?>
@@ -86,7 +86,7 @@
 			?>
 		</ul>
 		<footer>
-			<a href="#" class="add_item button"><span class="icon_small icon_small_add"></span>Add Item</a>
+			<a href="#" class="add_item add_item_button button"><span class="icon_small icon_small_add"></span>Add Item</a>
 			<?php if ($max) { ?>
 			<small class="max">LIMIT <?=$max?></small>
 			<?php } ?>

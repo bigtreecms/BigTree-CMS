@@ -42,7 +42,7 @@
 			}
 		?>
 	</div>
-	<a href="#" class="add_callout button"><span class="icon_small icon_small_add"></span>Add <?=$noun?></a>
+	<a href="#" class="add_callout add_item_button button"><span class="icon_small icon_small_add"></span>Add <?=$noun?></a>
 	<?php if ($max) { ?>
 	<small class="max">LIMIT <?=$max?></small>
 	<?php } ?>
