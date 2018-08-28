@@ -51,7 +51,7 @@
 					$filtered_crops = $image->Settings["crops"];
 
 					foreach ($filtered_crops as $index => $crop) {
-						if ($crop["width"] == $image->Width && $crop["height"] == $image["height"]) {
+						if ($crop["width"] == $image->Width && $crop["height"] == $image->Height) {
 							unset($filtered_crops[$index]);
 						}
 					}
