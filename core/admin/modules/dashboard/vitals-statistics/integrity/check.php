@@ -49,19 +49,25 @@
 	BigTree.localDownloadPage = function() {
 		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/integrity-check/page/?external=<?=$external?>&id=" + BigTree.localPageList[BigTree.localCurrentPage], {
 			complete: function(response) {
-				if (response.responseText) {
-					$("#pages_updates").append(response.responseText);
-				}
-				BigTree.localCurrentPage++;
-				$("#pages_progress").html((Math.round(BigTree.localCurrentPage / BigTree.localTotalPages * 10000) / 100) + "%");
-				if (BigTree.localCurrentPage < BigTree.localTotalPages) {
-					BigTree.localDownloadPage();
-				} else {
-					$("#pages_progress").addClass("complete");
-					if (!$("#pages_updates").html()) {
-						$("#pages_updates").append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span>No errors found in Pages.</section></li>'));
+				if (response.status == 200) {
+					if (response.responseText) {
+						$("#pages_updates").append(response.responseText);
 					}
-					BigTree.localDownloadModule(0);
+
+					BigTree.localCurrentPage++;
+					$("#pages_progress").html((Math.round(BigTree.localCurrentPage / BigTree.localTotalPages * 10000) / 100) + "%");
+					
+					if (BigTree.localCurrentPage < BigTree.localTotalPages) {
+						BigTree.localDownloadPage();
+					} else {
+						$("#pages_progress").addClass("complete");
+						
+						if (!$("#pages_updates").html()) {
+							$("#pages_updates").append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span>No errors found in Pages.</section></li>'));
+						}
+						
+						BigTree.localDownloadModule(0);
+					}
 				}
 			}
 		});
@@ -86,20 +92,26 @@
 	BigTree.localDownloadItem = function(number) {
 		$.ajax("<?=ADMIN_ROOT?>ajax/dashboard/integrity-check/module/?external=<?=$external?>&form=" + BigTree.localModuleList[BigTree.localCurrentModule].id + "&id=" + BigTree.localModuleList[BigTree.localCurrentModule].items[number], {
 			complete: function(response) {
-				if (response.responseText) {
-					$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").append(response.responseText);
-				}
-				BigTree.localCurrentItem++;
-				$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_progress").html((Math.round(BigTree.localCurrentItem / BigTree.localTotalItems * 10000) / 100) + "%");
-				if (BigTree.localCurrentItem < BigTree.localTotalItems) {
-					BigTree.localDownloadItem(BigTree.localCurrentItem);
-				} else {
-					$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_progress").addClass("complete");
-					if (!$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").html()) {
-						$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span> No errors found in ' + BigTree.localModuleList[BigTree.localCurrentModule].module_name + '.</section></li>'));
+				if (response.status == 200) {
+					if (response.responseText) {
+						$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").append(response.responseText);
 					}
-					if (BigTree.localCurrentModule + 1 < BigTree.localTotalModules) {
-						BigTree.localDownloadModule(BigTree.localCurrentModule + 1);
+
+					BigTree.localCurrentItem++;
+					$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_progress").html((Math.round(BigTree.localCurrentItem / BigTree.localTotalItems * 10000) / 100) + "%");
+					
+					if (BigTree.localCurrentItem < BigTree.localTotalItems) {
+						BigTree.localDownloadItem(BigTree.localCurrentItem);
+					} else {
+						$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_progress").addClass("complete");
+					
+						if (!$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").html()) {
+							$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span> No errors found in ' + BigTree.localModuleList[BigTree.localCurrentModule].module_name + '.</section></li>'));
+						}
+					
+						if (BigTree.localCurrentModule + 1 < BigTree.localTotalModules) {
+							BigTree.localDownloadModule(BigTree.localCurrentModule + 1);
+						}
 					}
 				}
 			}
