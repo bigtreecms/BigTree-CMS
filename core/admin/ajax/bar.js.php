@@ -130,25 +130,27 @@ var BigTreeBar = {
 			return false;
 		};
 		
-		document.getElementById("bigtree_edit_content").onclick = function() {
-			if (!document.getElementById("bigtree_bar_overlay")) {
-				leftd = parseInt((BigTreeBar.windowWidth() - 820) / 2);
-				topd = parseInt((BigTreeBar.windowHeight() - 615) / 2);
+		if (document.getElementById("bigtree_edit_content")) {
+			document.getElementById("bigtree_edit_content").onclick = function() {
+				if (!document.getElementById("bigtree_bar_overlay")) {
+					leftd = parseInt((BigTreeBar.windowWidth() - 820) / 2);
+					topd = parseInt((BigTreeBar.windowHeight() - 615) / 2);
+					
+					bigtree_bar_overlay = document.createElement("div");
+					bigtree_bar_overlay.setAttribute("id","bigtree_bar_overlay");
+					BigTreeBar.body.appendChild(bigtree_bar_overlay);
+					
+					bigtree_bar_frame = document.createElement("iframe");
+					bigtree_bar_frame.setAttribute("id","bigtree_bar_frame");
+					bigtree_bar_frame.setAttribute("src","<?=ADMIN_ROOT?>pages/front-end-edit/<?=htmlspecialchars(strip_tags($_GET["current_page_id"]))?>/");
+					bigtree_bar_frame.style.left = leftd + "px";
+					bigtree_bar_frame.style.top = topd + "px";
+					BigTreeBar.body.appendChild(bigtree_bar_frame);
+				}
 				
-				bigtree_bar_overlay = document.createElement("div");
-				bigtree_bar_overlay.setAttribute("id","bigtree_bar_overlay");
-				BigTreeBar.body.appendChild(bigtree_bar_overlay);
-				
-				bigtree_bar_frame = document.createElement("iframe");
-				bigtree_bar_frame.setAttribute("id","bigtree_bar_frame");
-				bigtree_bar_frame.setAttribute("src","<?=ADMIN_ROOT?>pages/front-end-edit/<?=htmlspecialchars(strip_tags($_GET["current_page_id"]))?>/");
-				bigtree_bar_frame.style.left = leftd + "px";
-				bigtree_bar_frame.style.top = topd + "px";
-				BigTreeBar.body.appendChild(bigtree_bar_frame);
-			}
-			
-			return false;
-		};
+				return false;
+			};
+		}
 		
 		BigTreeBar.dispatch("openbigtreebar");
 		
