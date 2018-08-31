@@ -22,7 +22,7 @@
 		<a href="#" class="remove_resource"></a>
 		<div class="currently_wrapper">
 			<?php if ($preview_image) { ?>
-			<a href="<?=$field["value"]?>" target="_blank"><img src="<?=$preview_image?>" alt="" /></a>
+			<a href="<?=ADMIN_ROOT?>files/edit/file/<?=$field["value"]?>/" target="_blank"><img src="<?=$preview_image?>" alt="" /></a>
 			<?php } ?>
 		</div>
 		<label>CURRENT</label>

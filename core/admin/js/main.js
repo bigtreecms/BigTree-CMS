@@ -1728,7 +1728,7 @@ var BigTreeFileManager = (function($) {
 
 				container.find("img, input").remove();
 				container.append(dummy_input).append(input);
-				container.find(".js-current-file").attr("href", CurrentFileHref).html(CurrentFileName);
+				container.find(".js-current-file").attr("href", "admin_root/files/edit/file/" + ActiveID + "/").html(CurrentFileName);
 				container.show();
 			}
 

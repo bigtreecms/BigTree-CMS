@@ -6,7 +6,6 @@
 	if ($field["value"]) {
 		$resource = $admin->getResource($field["value"]);
 		$name = $resource["name"];
-		$link = BigTreeCMS::replaceRelativeRoots($resource["file"]);
 	}
 ?>
 <div class="upload_field<?php if ($field["options"]["validation"] == "required") { ?> reference_required<?php } ?>">
@@ -15,7 +14,7 @@
 	<div class="currently_file" id="<?=$field["id"]?>"<?php if (empty($field["value"])) { ?> style="display: none;"<?php } ?>>
 		<input type="hidden" name="<?=$field["key"]?>" value="<?=$field["value"]?>" class="js-input">
 		<strong>Currently:</strong>
-		<a href="<?=$link?>" target="_blank" class="js-current-file"><?=$name?></a>
+		<a href="<?=ADMIN_ROOT?>files/edit/file/<?=$field["value"]?>/" target="_blank" class="js-current-file"><?=$name?></a>
 		<a href="#" class="remove_resource">Remove</a>
 	</div>
 </div>
