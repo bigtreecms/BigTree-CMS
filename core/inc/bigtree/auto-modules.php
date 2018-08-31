@@ -394,7 +394,7 @@
 			// Handle the tags
 			sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = '$id'");
 			
-			if (is_array($tags)) {
+			if (is_array($tags) && count($tags)) {
 				$tags = array_unique($tags);
 
 				foreach ($tags as $tag) {
@@ -1816,9 +1816,10 @@
 			}
 
 			// Handle the tags
+			$existing_tags = SQL::fetchAllSingle("SELECT `tag` FROM bigtree_tags_rel WHERE `table` = ? AND `entry` = ?", $table, $id);
 			sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = '$id'");
 			
-			if (!empty($tags)) {
+			if (!empty($tags) && is_array($tags)) {
 				$tags = array_unique($tags);
 				
 				foreach ($tags as $tag) {
@@ -1827,8 +1828,14 @@
 					sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = $id AND tag = $tag");
 					sqlquery("INSERT INTO bigtree_tags_rel (`table`,`entry`,`tag`) VALUES ('".sqlescape($table)."',$id,$tag)");
 				}
+			} else {
+				$tags = [];
+			}
 
-				BigTreeAdmin::updateTagReferenceCounts($tags);
+			$update_tags = array_merge($tags, $existing_tags);
+
+			if (count($update_tags)) {
+				BigTreeAdmin::updateTagReferenceCounts($update_tags);
 			}
 
 			// Handle Open Graph

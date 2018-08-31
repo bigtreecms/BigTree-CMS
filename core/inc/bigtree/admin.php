@@ -1618,7 +1618,9 @@
 				}
 			}
 
-			$this->updateTagReferenceCounts($data["_tags"] ?: []);
+			if (is_array($data["_tags"]) && count($data["_tags"])) {
+				$this->updateTagReferenceCounts($data["_tags"]);
+			}
 
 			// Handle open graph
 			$this->handleOpenGraph("bigtree_pages", $id, $data["_open_graph_"]);
@@ -8756,6 +8758,7 @@
 			}
 
 			// Handle tags
+			$existing_tags = SQL::fetchAllSingle("SELECT `tag` FROM bigtree_tags_rel WHERE `table` = 'bigtree_pages' AND `entry` = ?", $page);
 			SQL::delete("bigtree_tags_rel", ["table" => "bigtree_pages", "entry" => $page]);
 
 			if (is_array($data["_tags"])) {
@@ -8768,9 +8771,15 @@
 						"tag" => $tag
 					]);
 				}
+			} else {
+				$data["_tags"] = [];
 			}
 
-			$this->updateTagReferenceCounts($data["_tags"] ?: []);
+			$update_tags = array_merge($data["_tags"], $existing_tags);
+
+			if (count($update_tags)) {
+				$this->updateTagReferenceCounts($update_tags);
+			}
 			
 			// Handle Open Graph
 			$this->handleOpenGraph("bigtree_pages", $page, $data["_open_graph_"]);
