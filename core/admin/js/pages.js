@@ -66,7 +66,7 @@ var BigTreePages = (function() {
 
 			PageTitle.focus(function() {
 				if (PageTitleTimer) {
-					clearTimer(PageTitleTimer);
+					clearInterval(PageTitleTimer);
 				}
 			});
 		}
