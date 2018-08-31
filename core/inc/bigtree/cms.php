@@ -1058,7 +1058,7 @@
 
 			$og = SQL::fetch("SELECT * FROM bigtree_open_graph WHERE `table` = ? AND `entry` = ?", $table, $id);
 			
-			if (!$id || !$og) {
+			if (!$og) {
 				return [
 					"title" => "",
 					"description" => "",
@@ -1118,13 +1118,12 @@
 				id - The ID of the page.
 				decode - Whether to decode resources and callouts or not (setting to false saves processing time, defaults true).
 				return_tags - Whether to return tags for the page (defaults false).
-				return_open_graph - Whether to return open graph for the page (defaults false).
 			
 			Returns:
 				A page array from the database.
 		*/
 		
-		public static function getPendingPage($id, $decode = true, $return_tags = false, $return_open_graph = false) {
+		public static function getPendingPage($id, $decode = true, $return_tags = false) {
 			// Numeric id means the page is live.
 			if (is_numeric($id)) {
 				$page = static::getPage($id);
@@ -1138,10 +1137,6 @@
 					$page["tags"] = static::getTagsForPage($id);
 				}
 
-				if ($return_open_graph) {
-					$page["open_graph"] = static::getOpenGraph("bigtree_pages", $id);
-				}
-				
 				// Get pending changes for this page.
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = '".$page["id"]."'"));
 
@@ -1192,9 +1187,7 @@
 					$page["tags"] = $tags;
 				}
 
-				if ($return_open_graph) {
-					$page["open_graph"] = BigTree::untranslateArray(json_decode($f["open_graph_changes"], true));
-				}
+				$page["open_graph"] = BigTree::untranslateArray(json_decode($f["open_graph_changes"], true));
 			}
 			
 			// Turn resource entities into arrays that have been IPL decoded.
