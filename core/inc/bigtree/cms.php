@@ -403,7 +403,7 @@
 				} elseif (!empty($context["image"])) {
 					$image = $context["image"];
 				} else {
-					$image = "";
+					$image = $bigtree["page"]["open_graph"]["image"];
 				}
 			}
 
