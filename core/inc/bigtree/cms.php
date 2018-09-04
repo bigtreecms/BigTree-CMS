@@ -362,6 +362,7 @@
 			if (empty($context)) {
 				$og = $bigtree["page"]["open_graph"];
 				$title = !empty($og["title"]) ? $og["title"] : $bigtree["page"]["title"];
+				$meta_description = !empty($bigtree["page"]["meta_description"]) ? $bigtree["page"]["meta_description"] : $og["description"];
 				$description = !empty($og["description"]) ? $og["description"] : $bigtree["page"]["meta_description"];
 				$image = $og["image"];
 				$type = $og["type"] ?: "website";
@@ -384,6 +385,8 @@
 					$description = $bigtree["page"]["meta_description"];
 				}
 
+				$meta_description = $description;
+
 				if (!empty($og["type"])) {
 					$type = $og["type"];
 				} elseif (!empty($context["type"])) {
@@ -402,7 +405,7 @@
 			}
 
 			echo "<title>".$title.(($site_title && $bigtree["page"]["id"]) ? " $divider ".BigTree::safeEncode($site_title) : "")."</title>\n";
-			echo '		<meta name="description" content="'.$description.'" />'."\n";
+			echo '		<meta name="description" content="'.$meta_description.'" />'."\n";
 			echo '		<meta property="og:title" content="'.(!empty($og["title"]) ? $og["title"] : $title).'" />'."\n";
 			echo '		<meta property="og:description" content="'.$description.'" />'."\n";
 			echo '		<meta property="og:type" content="'.$type.'" />'."\n";
