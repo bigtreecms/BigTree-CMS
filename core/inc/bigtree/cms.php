@@ -361,8 +361,8 @@
 
 			if (empty($context)) {
 				$og = $bigtree["page"]["open_graph"];
-				$title = !empty($context["title"]) ? $context["title"] : $bigtree["page"]["title"];
-				$description = !empty($context["meta_description"]) ? $context["meta_description"] : $bigtree["page"]["meta_description"];
+				$title = !empty($og["title"]) ? $og["title"] : $bigtree["page"]["title"];
+				$description = !empty($og["description"]) ? $og["description"] : $bigtree["page"]["meta_description"];
 				$image = $og["image"];
 				$type = $og["type"] ?: "website";
 			} else {
