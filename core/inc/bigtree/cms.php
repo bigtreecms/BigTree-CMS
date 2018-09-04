@@ -361,9 +361,10 @@
 
 			if (empty($context)) {
 				$og = $bigtree["page"]["open_graph"];
-				$title = !empty($og["title"]) ? $og["title"] : $bigtree["page"]["title"];
-				$meta_description = !empty($bigtree["page"]["meta_description"]) ? $bigtree["page"]["meta_description"] : $og["description"];
-				$description = !empty($og["description"]) ? $og["description"] : $bigtree["page"]["meta_description"];
+				$title = $bigtree["page"]["title"];
+				$og_title = !empty($og["title"]) ? $og["title"] : $bigtree["page"]["title"];
+				$description = !empty($bigtree["page"]["meta_description"]) ? $bigtree["page"]["meta_description"] : $og["description"];
+				$og_description = !empty($og["description"]) ? $og["description"] : $bigtree["page"]["meta_description"];
 				$image = $og["image"];
 				$type = $og["type"] ?: "website";
 			} else {
@@ -377,6 +378,8 @@
 					$title = $bigtree["page"]["title"];
 				}
 
+				$og_title = $title;
+
 				if (!empty($context["description"])) {
 					$description = $context["description"];
 				} elseif (!empty($og["title"])) {
@@ -385,7 +388,7 @@
 					$description = $bigtree["page"]["meta_description"];
 				}
 
-				$meta_description = $description;
+				$og_description = $description;
 
 				if (!empty($og["type"])) {
 					$type = $og["type"];
@@ -405,9 +408,9 @@
 			}
 
 			echo "<title>".$title.(($site_title && $bigtree["page"]["id"]) ? " $divider ".BigTree::safeEncode($site_title) : "")."</title>\n";
-			echo '		<meta name="description" content="'.$meta_description.'" />'."\n";
-			echo '		<meta property="og:title" content="'.(!empty($og["title"]) ? $og["title"] : $title).'" />'."\n";
-			echo '		<meta property="og:description" content="'.$description.'" />'."\n";
+			echo '		<meta name="description" content="'.$description.'" />'."\n";
+			echo '		<meta property="og:title" content="'.$og_title.'" />'."\n";
+			echo '		<meta property="og:description" content="'.$og_description.'" />'."\n";
 			echo '		<meta property="og:type" content="'.$type.'" />'."\n";
 
 			if ($site_title) {
