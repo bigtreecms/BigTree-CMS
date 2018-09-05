@@ -79,8 +79,8 @@
 				]
 			];
 
-			$data["width"] = $width;
-			$data["height"] = $height;
+			$data["width"] = $image->Width;
+			$data["height"] = $image->Height;
 			$data["crops"] = $crop_prefixes;
 			$data["thumbs"] = $thumb_prefixes;
 			$data["size"] = filesize($image->File);
