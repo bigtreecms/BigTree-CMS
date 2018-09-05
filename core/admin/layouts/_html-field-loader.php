@@ -9,8 +9,8 @@
 			if (is_array($bigtree["html_fields"]) && count($bigtree["html_fields"])) {
 		?>
 		tinyMCE.init({
-  			<?php if ($content_css) { ?>content_css: "<?=$content_css?>",<?php } ?>
-  			theme: "modern",
+			<?php if ($content_css) { ?>content_css: "<?=$content_css?>",<?php } ?>
+			theme: "modern",
 			mode: "exact",
 			elements: "<?=implode(",",$bigtree["html_fields"])?>",
 			file_browser_callback: BigTreeFileManager.tinyMCEOpen,
@@ -35,8 +35,8 @@
 			if (is_array($bigtree["simple_html_fields"]) && count($bigtree["simple_html_fields"])) {
 		?>
 		tinyMCE.init({
-  			<?php if ($content_css) { ?>content_css: "<?=$content_css?>",<?php } ?>
-  			theme: "modern",
+			<?php if ($content_css) { ?>content_css: "<?=$content_css?>",<?php } ?>
+			theme: "modern",
 			mode: "exact",
 			elements: "<?=implode(",",$bigtree["simple_html_fields"])?>",
 			file_browser_callback: BigTreeFileManager.tinyMCEOpen,
