@@ -1,6 +1,6 @@
 <?php
 	// Stop random hits to the update page
-	if (!isset($_POST["page"])) {
+	if (!isset($_POST["page"]) || $_POST["page"] === "") {
 		BigTree::redirect(ADMIN_ROOT."pages/view-tree/0/");
 	}
 

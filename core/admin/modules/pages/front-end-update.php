@@ -4,6 +4,10 @@
 	$bigtree["layout"] = "front-end";
 
 	$page = $_POST["page"];
+	
+	if ($page === "") {
+		$admin->stop("Invalid page update.");
+	}
 
 	if ($page[0] == "p") {
 		$change_id = substr($page,1);

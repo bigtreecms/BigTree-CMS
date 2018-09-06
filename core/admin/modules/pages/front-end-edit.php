@@ -1,6 +1,11 @@
 <?php
 	define("BIGTREE_FRONT_END_EDITOR",true);
 	$bigtree["layout"] = "front-end";
+	
+	if ($page["id"] === "") {
+		$admin->stop("You have reached an invalid edit page.");	
+	}
+	
 	// Check for a page lock
 	$force = isset($_GET["force"]) ? $_GET["force"] : false;
 	$admin->lockCheck("bigtree_pages",$bigtree["current_page"]["id"],"admin/modules/pages/front-end-locked.php",$force);

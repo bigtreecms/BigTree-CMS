@@ -2,6 +2,10 @@
 	$bigtree["current_page"] = $page;
 	$bigtree["resources"] = $page["resources"];
 	
+	if ($page["id"] === "") {
+		$admin->stop("You have reached an invalid edit page.");	
+	}
+	
 	// Show the properties section
 	include BigTree::path("admin/modules/pages/_properties.php");
 	
