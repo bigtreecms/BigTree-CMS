@@ -1,6 +1,11 @@
 <?php
 	header("Content-type: text/javascript");
-	$permission = $admin->getPageAccessLevel($_GET["current_page_id"]);
+
+	if (!empty($_GET["is_404"])) {
+		$permission = false;
+	} else {
+		$permission = $admin->getPageAccessLevel($_GET["current_page_id"]);
+	}
 
 	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
 		foreach ($bigtree["config"]["sites"] as $site) {

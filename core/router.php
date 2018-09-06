@@ -515,26 +515,32 @@
 	}
 	
 	/* To load the BigTree Bar, meet the following qualifications:
-	   - Not a 404 page
-	   - Not a forced secure page (i.e. checkout)
 	   - User is logged BigTree admin
 	   - User is logged into the BigTree admin FOR THIS PAGE
 	   - Developer mode is either disabled OR the logged in user is a Developer
 	*/
-	if (isset($bigtree["page"]) && !BigTreeCMS::$Secure && $_SESSION["bigtree_admin"]["id"] && $_COOKIE["bigtree_admin"]["email"] && (empty($bigtree["config"]["developer_mode"]) || $_SESSION["bigtree_admin"]["level"] > 1)) {
+	if ($_SESSION["bigtree_admin"]["id"] && $_COOKIE["bigtree_admin"]["email"] && (empty($bigtree["config"]["developer_mode"]) || $_SESSION["bigtree_admin"]["level"] > 1)) {
 		$show_bar_default = $_COOKIE["hide_bigtree_bar"] ? false : true;
 		$show_preview_bar = false;
 		$return_link = "";
+		
 		if (!empty($_GET["bigtree_preview_return"])) {
 			$show_bar_default = false;
 			$show_preview_bar = true;
 			$return_link = htmlspecialchars(urlencode($_GET["bigtree_preview_return"]));
 		}
+
 		// Pending Pages don't have their ID set.
 		if (!isset($bigtree["page"]["id"])) {
 			$bigtree["page"]["id"] = $bigtree["page"]["page"];
 		}
-		$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(array("http://","https://"),"//",$bigtree["config"]["admin_root"]).'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&amp;current_page_id='.$bigtree["page"]["id"].'&amp;show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;show_preview='.$show_preview_bar.'&amp;return_link='.$return_link.'&amp;custom_edit_link='.(empty($bigtree["bar_edit_link"]) ? "" : BigTree::safeEncode($bigtree["bar_edit_link"])).'"></script></body>',$bigtree["content"]);
+
+		if (defined("BIGTREE_URL_IS_404")) {
+			$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(array("http://","https://"),"//",$bigtree["config"]["admin_root"]).'ajax/bar.js/?show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;is_404=true"></script></body>',$bigtree["content"]);	
+		} else {
+			$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(array("http://","https://"),"//",$bigtree["config"]["admin_root"]).'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&amp;current_page_id='.$bigtree["page"]["id"].'&amp;show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;show_preview='.$show_preview_bar.'&amp;return_link='.$return_link.'&amp;custom_edit_link='.(empty($bigtree["bar_edit_link"]) ? "" : BigTree::safeEncode($bigtree["bar_edit_link"])).'"></script></body>',$bigtree["content"]);
+		}
+
 		// Don't cache the page with the BigTree bar
 		$bigtree["config"]["cache"] = false;
 	}
