@@ -349,7 +349,17 @@
 			// Make sure everything is run in UTF8, turn off strict mode if set
 			static::${$property}->query("SET NAMES 'utf8'");
 			static::${$property}->query("SET SESSION sql_mode = ''");
+
+			// Sync MySQL timezone
+			$now = new DateTime();
+			$minutes = $now->getOffset() / 60;
+			$sign = ($minutes < 0 ? -1 : 1);
+			$minutes = abs($minutes);
+			$hours = floor($minutes / 60);
+			$minutes -= $hours * 60;
+			$offset = sprintf('%+d:%02d', $hours * $sign, $minutes);
 			
+			static::${$property}->query("SET time_zone = '$offset'");			
 			
 			return static::${$property};
 		}

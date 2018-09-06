@@ -17,6 +17,15 @@
 		function bigtree_setup_sql_connection($read_write = "read") {
 			global $bigtree;
 
+			// Sync MySQL timezone
+			$now = new DateTime();
+			$minutes = $now->getOffset() / 60;
+			$sign = ($minutes < 0 ? -1 : 1);
+			$minutes = abs($minutes);
+			$hours = floor($minutes / 60);
+			$minutes -= $hours * 60;
+			$offset = sprintf('%+d:%02d', $hours * $sign, $minutes);
+
 			if ($read_write == "read") {
 				$connection = new mysqli(
 					$bigtree["config"]["db"]["host"],
@@ -28,6 +37,7 @@
 				);
 				$connection->set_charset("utf8");
 				$connection->query("SET SESSION sql_mode = ''");
+				$connection->query("SET time_zone = '$offset'");
 			} else {
 				$connection = new mysqli(
 					$bigtree["config"]["db_write"]["host"],
@@ -39,7 +49,9 @@
 				);
 				$connection->set_charset("utf8");
 				$connection->query("SET SESSION sql_mode = ''");
+				$connection->query("SET time_zone = '$offset'");
 			}
+			
 			return $connection;
 		}
 
