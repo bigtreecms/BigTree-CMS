@@ -1,4 +1,4 @@
-<?
+<?php
 	$cache_data = BigTreeCMS::cacheGet("org.bigtreecms.login-session", $_GET["key"]);
 	$domains = array();
 

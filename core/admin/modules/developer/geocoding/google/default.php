@@ -1,9 +1,9 @@
-<?
+<?php
 	$geocoding_service = $cms->getSetting("bigtree-internal-geocoding-service");
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>geocoding/google/activate/">
-		<? $admin->drawCSRFToken() ?>
+		<?php $admin->drawCSRFToken() ?>
 		<section>
 			<p>To use the Google Maps Geocoder API you will need a Google Maps API Key. To acquire a key, please reference <a href="https://developers.google.com/maps/documentation/geocoding/start" target="_blank">Getting Started</a> at Google Maps Platform.</p>
 			<hr />
