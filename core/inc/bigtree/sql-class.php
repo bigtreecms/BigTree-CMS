@@ -1478,7 +1478,7 @@
 			$count = 1;
 			
 			// If we're checking against an ID
-			if ($id !== false) {
+			if (!is_null($id)) {
 				
 				// Allow for passing array("column" => "value")
 				if (is_array($id)) {
