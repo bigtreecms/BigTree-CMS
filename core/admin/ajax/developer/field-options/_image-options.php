@@ -190,7 +190,7 @@
 				<li class="actions for_thumbnail">
 					<input type="hidden" name="thumbs[<?=$thumb_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
 					<a href="#" title="Switch Color Mode" class="color_mode<? if ($crop["grayscale"]) { ?> gray<? } ?>"></a>
-					<a href="#<?=$thumb_count?>" title="Remove" class="delete"></a>
+					<a href="#" title="Remove" class="delete"></a>
 				</li>
 			</ul>
 			<?
@@ -296,7 +296,7 @@
 				'<li class="actions for_thumbnail">' +
 					'<input type="hidden" name="thumbs[' + ThumbCount + '][grayscale]" value="" />' +
 					'<a href="#" title="Switch Color Mode" class="color_mode"></a>' +
-					'<a href="#' + ThumbCount + '" title="Remove" class="delete"></a>' +
+					'<a href="#" title="Remove" class="delete"></a>' +
 				'</li></ul>');
 		}
 
@@ -317,8 +317,11 @@
 		}).on("click",".image_attr .delete",function(ev) {
 			ev.preventDefault();
 
-			var count = $(this).attr("href").substr(1);
-			$(".image_attr_thumbs_" + count).remove();
+			if ($(this).attr("href") != "#") {
+				var count = $(this).attr("href").substr(1);
+				$(".image_attr_thumbs_" + count).remove();
+			}
+			
 			$(this).parents("ul").remove();
 	
 		// Add thumbnail of crops
