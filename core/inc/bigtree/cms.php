@@ -1488,9 +1488,10 @@
 		*/
 		
 		static function makeSecure() {
-			if (!$_SERVER["HTTPS"]) {
+			if (!BigTree::getIsSSL()) {
 				BigTree::redirect("https://".$_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"],"301");
 			}
+			
 			static::$Secure = true;
 		}
 		
@@ -1508,7 +1509,7 @@
 		static function replaceHardRoots($string) {
 			static::generateReplaceableRoots();
 			
-			return str_replace(static::$ReplaceableRootKeys, static::$ReplaceableRootVals, $string);
+			return strtr($string, array_combine(static::$ReplaceableRootKeys, static::$ReplaceableRootVals));
 		}
 
 		/*
@@ -1556,7 +1557,7 @@
 		static function replaceRelativeRoots($string) {
 			static::generateReplaceableRoots();
 			
-			return str_replace(static::$ReplaceableRootVals, static::$ReplaceableRootKeys, $string);
+			return strtr($string, array_combine(static::$ReplaceableRootVals, static::$ReplaceableRootKeys));
 		}
 
 		/*

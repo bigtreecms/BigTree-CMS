@@ -4962,6 +4962,10 @@
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($file)."' OR file = '".sqlescape($tokenized_file)."' OR file = '".sqlescape($single_domain_tokenized_file)."'"));
 
 			if (!$item) {
+				$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($file)."' OR file = '".sqlescape(str_replace("{wwwroot}", "{staticroot}", $tokenized_file))."' OR file = '".sqlescape($single_domain_tokenized_file)."'"));	
+			}
+
+			if (!$item) {
 				foreach (static::$IRLPrefixes as $prefix) {
 					if (!$item) {
 						$sfile = str_replace("files/resources/$prefix", "files/resources/", $file);
