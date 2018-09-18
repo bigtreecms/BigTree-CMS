@@ -2061,6 +2061,7 @@
 		function deleteModuleEmbedForm($id) {
 			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_module_embeds WHERE id = '$id'");
+			$this->track("bigtree_module_embeds",$id,"deleted");
 		}
 
 		/*
@@ -2104,6 +2105,7 @@
 			$id = sqlescape($id);
 			sqlquery("DELETE FROM bigtree_module_reports WHERE id = '$id'");
 			sqlquery("DELETE FROM bigtree_module_actions WHERE report = '$id'");
+			$this->track("bigtree_module_reports",$id,"deleted");
 		}
 
 		/*
