@@ -20,6 +20,9 @@
 
 	if ($file["is_image"]) {
 		$meta_fields = $metadata["image"];
+		$settings = $cms->getSetting("bigtree-internal-media-settings");
+		$preset = $settings["presets"]["default"];
+		$preset["directory"] = "files/resources/";
 	} elseif ($file["is_video"]) {
 		$meta_fields = $metadata["video"];
 	} else {
@@ -55,11 +58,7 @@
 		$storage = new BigTreeStorage;
 		$file_name = pathinfo($file["file"], PATHINFO_BASENAME);
 
-		if ($file["is_image"]) {
-			$settings = $cms->getSetting("bigtree-internal-media-settings");
-			$preset = $settings["presets"]["default"];
-			$preset["directory"] = "files/resources/";
-			
+		if ($file["is_image"]) {			
 			$image = new BigTreeImage($_FILES["file"]["tmp_name"], $preset);
 			$image->filterGeneratableCrops();
 			
