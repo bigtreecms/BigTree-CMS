@@ -2,8 +2,8 @@
 	$admin->verifyCSRFToken();
 	
 	parse_str($_POST["sort"],$data);
-	$max = count($data["row"]);
+	$max = count($data["row_modules"]);
 	
-	foreach ($data["row"] as $pos => $id) {
-		$admin->setModulePosition($id,$max - $pos);
+	foreach ($data["row_modules"] as $pos => $id) {
+		$admin->setModulePosition("modules-".$id, $max - $pos);
 	}

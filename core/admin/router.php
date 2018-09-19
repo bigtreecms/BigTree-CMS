@@ -249,8 +249,7 @@
 
 			BigTree::redirect(ADMIN_ROOT."login/");
 		}
-	}
-	
+	}	
 
 	// Developer Mode On?
 	if (isset($admin->ID) && !empty($bigtree["config"]["developer_mode"]) && $admin->Level < 2) {
@@ -385,11 +384,13 @@
 	$module_path = array_slice($bigtree["path"],1);
 	$module = $admin->getModuleByRoute($primary_route);
 	$complete = false;
+
 	// We're routing through a module, so get module information and check permissions
 	if ($module) {
 		// Setup environment vars
 		$bigtree["current_module"] = $bigtree["module"] = $module;
 		define("MODULE_ROOT",ADMIN_ROOT.$module["route"]."/");
+		
 		if ($module["extension"]) {
 			$bigtree["extension_context"] = $module["extension"];
 			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$module["extension"]."/");
@@ -397,6 +398,7 @@
 
 		// Find out what module action we're trying to hit
 		$route_response = $admin->getModuleActionByRoute($module["id"],array_slice($bigtree["path"],2));
+
 		if ($route_response) {
 			$bigtree["module_action"] = $route_response["action"];
 			$bigtree["commands"] = $route_response["commands"];
@@ -412,6 +414,7 @@
 	
 		// Append module info to the admin nav to draw the headers and breadcrumb and such.
 		$bigtree["nav_tree"]["auto-module"] = array("title" => $module["name"],"link" => $module["route"],"icon" => "modules","children" => array());
+		
 		foreach ($actions as $action) {
 			$hidden = $action["in_nav"] ? false : true;
 			$route = $action["route"] ? $module["route"]."/".$action["route"] : $module["route"];

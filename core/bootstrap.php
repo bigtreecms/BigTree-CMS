@@ -119,6 +119,8 @@
 		"BigTreeDisqusAPI" => "inc/bigtree/apis/disqus.php",
 		"BigTreeFacebookAPI" => "inc/bigtree/apis/facebook.php",
 		"BigTreeImage" => "inc/bigtree/image.php",
+		"BigTreeJSONDB" => "inc/bigtree/json-db.php",
+		"BigTreeJSONDBSubset" => "inc/bigtree/json-db-subset.php",
 		"S3" => "inc/lib/amazon-s3.php",
 		"CF_Authentication" => "inc/lib/rackspace/cloud.php",
 		"CSSMin" => "inc/lib/CSSMin.php",

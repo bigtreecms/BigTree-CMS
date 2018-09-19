@@ -890,3 +890,8 @@
 	function _local_bigtree_update_311() {
 		SQL::query("UPDATE bigtree_pages SET new_window = '' WHERE new_window = 'No'");
 	}
+
+	// BigTree 4.3 update -- REVISION 312
+	function _local_bigtree_update_312() {
+		
+	}

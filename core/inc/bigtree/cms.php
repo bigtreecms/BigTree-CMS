@@ -119,10 +119,11 @@
 							$id = "$extension*$id";
 						}
 						
-						sqlquery("INSERT INTO bigtree_settings (`id`,`encrypted`,`system`,`extension`) VALUES ('".sqlescape($id)."','on','on','$extension')");
+						sqlquery("INSERT INTO bigtree_settings (`id`,`encrypted`,`extension`,`system`) VALUES ('".sqlescape($id)."','on','on','$extension','on')");
 					} else {
-						sqlquery("INSERT INTO bigtree_settings (`id`,`encrypted`,`system`) VALUES ('".sqlescape($id)."','on','on')");
+						sqlquery("INSERT INTO bigtree_settings (`id`,`encrypted`,`system`) VALUES ('".sqlescape($id)."','on','on','on')");
 					}
+
 					$data = array();
 				}
 
@@ -492,9 +493,9 @@
 				}
 
 				// See if namespaced version exists
-				$f = sqlfetch(sqlquery("SELECT id FROM bigtree_settings WHERE id = '$extension*$id'"));
+				$exists = SQL::exists("SELECT id FROM bigtree_settings WHERE id = '$extension*$id'");
 
-				if ($f) {
+				if ($exists) {
 					return "$extension*$id";
 				}
 			}
@@ -670,30 +671,24 @@
 				Gets a feed's information from the database.
 			
 			Parameters:
-				item - Either the ID of the feed to pull or a raw database row of the feed data
+				id - A feed ID
 			
 			Returns:
-				An array of feed information with settings and fields decoded from JSON.
+				An array of feed information.
 				
 			See Also:
 				<getFeedByRoute>
 		*/
 		
-		public static function getFeed($item) {
-			if (!is_array($item)) {
-				$item = sqlescape($item);
-				$item = sqlfetch(sqlquery("SELECT * FROM bigtree_feeds WHERE id = '$item'"));
+		public static function getFeed($id) {
+			if (is_array($id)) {
+				$id = $id["id"];
 			}
 
-			if (!$item) {
-				return false;
-			}
-
-			$item["settings"] = BigTree::untranslateArray(json_decode($item["settings"], true));
-			$item["options"] = &$item["settings"]; // Backwards compatibility
-			$item["fields"] = json_decode($item["fields"], true);
+			$feed = BigTreeJSONDB::get("feeds", $id);
+			$feed["options"] = &$feed["settings"]; // Backwards compatibility
 			
-			return $item;
+			return $feed;
 		}
 		
 		/*
@@ -711,10 +706,10 @@
 		*/
 		
 		public static function getFeedByRoute($route) {
-			$route = sqlescape($route);
-			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_feeds WHERE route = '$route'"));
+			$feed = BigTreeJSONDB::get("feeds", $route, "route");
+			$feed["options"] = &$feed["settings"]; // Backwards compatibility
 			
-			return static::getFeed($item);
+			return $feed;
 		}
 		
 		/*
@@ -1303,19 +1298,13 @@
 			global $bigtree;
 			
 			$id = static::extensionSettingCheck($id);
-			$setting = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
-			
-			// Setting doesn't exist
+			$setting = SQL::fetch("SELECT *, AES_DECRYPT(value, ?) AS `decrypted_value` FROM bigtree_settings WHERE id = ?", $bigtree["config"]["settings_key"], $id);
+
 			if (!$setting) {
 				return false;
 			}
-
-			// If the setting is encrypted, we need to re-pull just the value.
-			if ($setting["encrypted"]) {
-				$setting = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value`, system FROM bigtree_settings WHERE id = '$id'"));
-			}
-
-			$value = json_decode($setting["value"],true);
+			
+			$value = json_decode($setting["encrypted"] ? $setting["decrypted_value"] : $setting["value"], true);
 			
 			if (is_null($value)) {
 				return $value;
@@ -1325,7 +1314,6 @@
 				return static::replaceInternalPageLinks($value);
 			}
 		}
-		
 		
 		/*
 			Function: getSettings
@@ -1341,39 +1329,16 @@
 		public static function getSettings($ids) {
 			global $bigtree;
 
-			// If for some reason we only requested one, just call getSetting
-			if (!is_array($ids)) {
-				return array(static::getSetting($ids));
+			$settings = [];
+
+			foreach ($settings as $setting_id) {
+				$value = static::getSetting($setting_id);
+
+				if ($value !== false) {
+					$settings[$setting_id] = $value;
+				}
 			}
 
-			// If we're in an extension, just call getSetting on the whole array since we need to make inferences on each ID
-			if (defined("EXTENSION_ROOT")) {
-				$settings = array();
-				foreach ($ids as $id) {
-					$settings[$id] = static::getSetting($id);
-				}
-				return $settings;
-			}
-
-			// Not in an extension, we can query them all at once
-			$parts = array();
-			foreach ($ids as $id) {
-				$parts[] = "id = '".sqlescape($id)."'";
-			}
-			$settings = array();
-			$q = sqlquery("SELECT * FROM bigtree_settings WHERE (".implode(" OR ",$parts).") ORDER BY id ASC");
-			while ($f = sqlfetch($q)) {
-				// If the setting is encrypted, we need to re-pull just the value.
-				if ($f["encrypted"]) {
-					$f = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '".$f["id"]."'"));
-				}
-				$value = json_decode($f["value"],true);
-				if (is_array($value)) {
-					$settings[$f["id"]] = BigTree::untranslateArray($value);
-				} else {
-					$settings[$f["id"]] = static::replaceInternalPageLinks($value);
-				}
-			}
 			return $settings;
 		}
 		
@@ -1682,7 +1647,7 @@
 		public static function replaceHardRoots($string) {
 			static::generateReplaceableRoots();
 			
-			return str_replace(static::$ReplaceableRootKeys, static::$ReplaceableRootVals, $string);
+			return strtr($string, array_combine(static::$ReplaceableRootKeys, static::$ReplaceableRootVals));
 		}
 
 		/*
@@ -1730,7 +1695,7 @@
 		public static function replaceRelativeRoots($string) {
 			static::generateReplaceableRoots();
 			
-			return str_replace(static::$ReplaceableRootVals, static::$ReplaceableRootKeys, $string);
+			return strtr($string, array_combine(static::$ReplaceableRootVals, static::$ReplaceableRootKeys));
 		}
 
 		/*

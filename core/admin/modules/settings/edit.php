@@ -70,7 +70,7 @@
 						"subtitle" => "",
 						"key" => "value",
 						"tabindex" => 1,
-						"settings" => json_decode($item["settings"], true),
+						"settings" => $item["settings"],
 						"has_value" => !is_null($value),
 						"value" => $value
 					);

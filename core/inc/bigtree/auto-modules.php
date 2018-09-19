@@ -40,39 +40,39 @@
 				$item["id"] = "p".$f["id"];
 				$original_item = $item;
 			}
-			
-			$q = sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '$table'");
-			while ($view = sqlfetch($q)) {
-				if ($recache) {
-					sqlquery("DELETE FROM bigtree_module_view_cache WHERE `view` = '".$view["id"]."' AND id = '".$item["id"]."'");
-				}
-				
-				$view["fields"] = json_decode($view["fields"], true);
-				$view["actions"] = json_decode($view["actions"], true);
-				$view["settings"] = json_decode($view["settings"], true);
-				$view["options"] = &$view["settings"]; // Backwards compatibility
-				
-				// In case this view has never been cached, run the whole view, otherwise just this one.
-				if (!self::cacheViewData($view)) {
-				
-					// Find out what module we're using so we can get the gbp_field
-					$module = sqlfetch(sqlquery("SELECT gbp FROM bigtree_modules WHERE id = '".self::getModuleForView($view)."'"));
-					$view["gbp"] = json_decode($module["gbp"],true);
-					
-					$form = self::getRelatedFormForView($view);
-					
-					$parsers = array();
-					$poplists = array();
-					
-					foreach ($view["fields"] as $key => $field) {
-						if ($field["parser"]) {
-							$parsers[$key] = $field["parser"];
-						} elseif ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["settings"]["list_type"] == "db") {
-							$poplists[$key] = array("description" => $form["fields"][$key]["settings"]["pop-description"], "table" => $form["fields"][$key]["settings"]["pop-table"]);
+
+			$modules = BigTreeJSONDB::getAll("modules");
+
+			foreach ($modules as $module) {
+				foreach ($views as $view) {
+					if ($view["table"] == $table) {
+						if ($recache) {
+							sqlquery("DELETE FROM bigtree_module_view_cache WHERE `view` = '".$view["id"]."' AND id = '".$item["id"]."'");
+						}
+						
+						$view["options"] = &$view["settings"]; // Backwards compatibility
+						
+						// In case this view has never been cached, run the whole view, otherwise just this one.
+						if (!self::cacheViewData($view)) {
+							// Find out what module we're using so we can get the gbp_field
+							$view["gbp"] = $module["gbp"];
+							
+							$form = self::getRelatedFormForView($view);
+							
+							$parsers = array();
+							$poplists = array();
+							
+							foreach ($view["fields"] as $key => $field) {
+								if ($field["parser"]) {
+									$parsers[$key] = $field["parser"];
+								} elseif ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["settings"]["list_type"] == "db") {
+									$poplists[$key] = array("description" => $form["fields"][$key]["settings"]["pop-description"], "table" => $form["fields"][$key]["settings"]["pop-table"]);
+								}
+							}
+							
+							self::cacheRecord($item,$view,$parsers,$poplists,$original_item);
 						}
 					}
-					
-					self::cacheRecord($item,$view,$parsers,$poplists,$original_item);
 				}
 			}
 		}
@@ -310,18 +310,23 @@
 				Clears the cache of a view or all views with a given table.
 			
 			Parameters:
-				view - The view id or view entry to clear the cache for or a table to find all views for (and clear their caches).
+				entry - The view id or view entry to clear the cache for or a table to find all views for (and clear their caches).
 		*/
 		
-		public static function clearCache($view) {
+		public static function clearCache($entry) {
 			if (is_array($view)) {
-				sqlquery("DELETE FROM bigtree_module_view_cache WHERE view = '".sqlescape($view["id"])."'");		
-			} elseif (is_numeric($view)) {
-				sqlquery("DELETE FROM bigtree_module_view_cache WHERE view = '$view'");
+				SQL::query("DELETE FROM bigtree_module_view_cache WHERE view = ?", $entry["id"]);		
+			} elseif (substr($view, 0, 13) == "module-views-") {
+				SQL::query("DELETE FROM bigtree_module_view_cache WHERE view = ?", $entry);
 			} else {
-				$q = sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '".sqlescape($view)."'");
-				while ($f = sqlfetch($q)) {
-					sqlquery("DELETE FROM bigtree_module_view_cache WHERE view = '".$f["id"]."'");
+				$modules = BigTreeJSONDB::getAll("modules");
+
+				foreach ($modules as $module) {
+					foreach ($module["views"] as $view) {
+						if ($view["table"] == $entry) {
+							SQL::query("DELETE FROM bigtree_module_view_cache WHERE view = ?", $view["id"]);
+						}
+					}
 				}
 			}
 		}
@@ -538,11 +543,19 @@
 		*/
 
 		public static function getDependantViews($table) {
-			$views = array();
-			$q = sqlquery("SELECT * FROM bigtree_module_views WHERE settings LIKE '%".sqlescape($table)."%'");
-			while ($f = sqlfetch($q)) {
-				$views[] = $f;
+			$dependent_views = [];
+			$modules = BigTreeJSONDB::getAll("modules");
+
+			foreach ($modules as $module) {
+				foreach ($module["views"] as $view) {
+					if ($view["type"] == "grouped" || $view["type"] == "images-grouped") {
+						if ($view["settings"]["other_table"] == $table) {
+							$dependent_views[] = $view;
+						}
+					}
+				}
 			}
+
 			return $views;
 		}
 
@@ -558,8 +571,17 @@
 				A bigtree_module_actions entry.
 		*/
 
-		public static function getEditAction($module,$form) {
-			return sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '".sqlescape($form)."' AND module = '".sqlescape($module)."' AND route LIKE 'edit%'"));
+		public static function getEditAction($module, $form) {
+			$context = BigTreeJSONDB::getSubset("modules", $module);
+			$actions = $context->getAll("actions");
+
+			foreach ($actions as $action) {
+				if ($action["form"] == $form && substr($action["route"], 0, 4) == "edit") {
+					return $action;
+				}
+			}
+
+			return null;
 		}
 
 		/*
@@ -568,27 +590,29 @@
 			
 			Parameters:
 				id - The id of the form.
-				decode_ipl - Whether we want to decode internal page link on the css file (defaults to true)
 			
 			Returns:
-				A module form entry with fields decoded.
+				An embeddable module form entry.
 		*/
 
-		public static function getEmbedForm($id,$decode_ipl = true) {
-			global $cms;
-
+		public static function getEmbedForm($id) {
 			if (is_array($id)) {
 				$id = $id["id"];
 			}
 
-			$form = sqlfetch(sqlquery("SELECT * FROM bigtree_module_embeds WHERE id = '".sqlescape($id)."'"));
-			$form["fields"] = json_decode($form["fields"],true);
-			if ($decode_ipl) {
-				$form["css"] = $cms->getInternalPageLink($form["css"]);
-			}
-			$form["hooks"] = json_decode($form["hooks"],true);
+			$modules = BigTreeJSONDB::getAll("modules");
 
-			return $form;
+			foreach ($modules as $module) {
+				foreach ($module["embeddable-forms"] as $form) {
+					if ($form["id"] == $id) {
+						$form["module"] = $module["id"];
+
+						return $form;
+					}
+				}
+			}
+
+			return null;
 		}
 
 		/*
@@ -603,14 +627,17 @@
 		*/
 
 		public static function getEmbedFormByHash($hash) {
-			global $cms;
+			$modules = BigTreeJSONDB::getAll("modules");
 
-			$form = sqlfetch(sqlquery("SELECT * FROM bigtree_module_embeds WHERE hash = '".sqlescape($hash)."'"));
-			$form["fields"] = json_decode($form["fields"],true);
-			$form["css"] = $cms->getInternalPageLink($form["css"]);
-			$form["hooks"] = json_decode($form["hooks"],true);
+			foreach ($modules as $module) {
+				foreach ($module["embeddable-forms"] as $form) {
+					if ($form["hash"] == $hash) {
+						return $form;
+					}
+				}
+			}
 
-			return $form;
+			return null;
 		}
 		
 		/*
@@ -653,33 +680,41 @@
 				Returns a module form.
 			
 			Parameters:
-				id - The id of the form.
-				decode_ipl - Whether we want to decode internal page link on the return url (defaults to true)
+				id - The id of the form or a form entry to generate backwards compatibility tweaks for.
 			
 			Returns:
-				A module form entry with fields decoded.
+				A module form entry.
 		*/
 
-		public static function getForm($id,$decode_ipl = true) {
-			global $cms;
-
-			if (is_array($id)) {
-				$id = $id["id"];
-			}
-
-			$form = sqlfetch(sqlquery("SELECT * FROM bigtree_module_forms WHERE id = '".sqlescape($id)."'"));
-			$form["fields"] = json_decode($form["fields"],true);
-			$form["hooks"] = json_decode($form["hooks"],true);
-			if ($decode_ipl) {
-				$form["return_url"] = $cms->getInternalPageLink($form["return_url"]);
+		public static function getForm($id) {
+			if (!is_array($id)) {
+				$modules = BigTreeJSONDB::getAll("modules");
+				$form = null;
+	
+				foreach ($modules as $module) {
+					foreach ($module["forms"] as $module_form) {
+						if ($module_form["id"] == $id) {
+							$form = $module_form;
+							$form["module"] = $module["id"];
+						}
+					}
+				}
+	
+				if (!$form) {
+					return null;
+				}
+			} else {
+				$form = $id;
 			}
 
 			// For backwards compatibility
 			if (is_array($form["fields"])) {
 				$related_fields = array();
+				
 				foreach ($form["fields"] as $field) {
 					$related_fields[$field["column"]] = $field;
 				}
+				
 				$form["fields"] = $related_fields;
 			}
 
@@ -810,21 +845,28 @@
 				Returns the associated module id for the given form.
 			
 			Parameters:
-				form - Either a form entry or form id.
+				form_id - Either a form entry or form id.
 			
 			Returns:
 				The id of the module the form is a member of.
 		*/
 		
-		public static function getModuleForForm($form) {
-			if (is_array($form)) {
-				if ($form["module"]) {
-					return $form["module"];
-				}
-				$form = $form["id"];
+		public static function getModuleForForm($form_id) {
+			if (is_array($form_id)) {
+				$form_id = $form_id["id"];
 			}
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '$form'"));
-			return $f["module"];
+
+			$modules = BigTreeJSONDB::getAll("modules");
+
+			foreach ($modules as $module) {
+				foreach ($module["forms"] as $form) {
+					if ($form["id"] == $form_id) {
+						return $module;
+					}
+				}
+			}
+
+			return null;
 		}
 		
 		/*
@@ -838,15 +880,22 @@
 				The id of the module the view is a member of.
 		*/
 
-		public static function getModuleForView($view) {
-			if (is_array($view)) {
-				if ($view["module"]) {
-					return $view["module"];
-				}
-				$view = $view["id"];
+		public static function getModuleForView($view_id) {
+			if (is_array($view_id)) {
+				$view_id = $view_id["id"];
 			}
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE view = '$view'"));
-			return $f["module"];
+
+			$modules = BigTreeJSONDB::getAll("modules");
+
+			foreach ($modules as $module) {
+				foreach ($module["views"] as $view) {
+					if ($view["id"] == $view_id) {
+						return $module;
+					}
+				}
+			}
+
+			return null;
 		}
 		
 		/*
@@ -965,8 +1014,15 @@
 		*/
 
 		public static function getRelatedFormForReport($report) {
-			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_forms WHERE `table` = '".sqlescape($report["table"])."'"));
-			return self::getForm($f["id"]);
+			$modules = BigTreeJSONDB::getAll("modules");
+
+			foreach ($modules as $module) {
+				foreach ($module["forms"] as $form) {
+					if ($form["table"] == $report["table"]) {
+						return static::getForm($form);
+					}
+				}
+			}
 		}
 		
 		/*
@@ -981,11 +1037,27 @@
 		*/
 
 		public static function getRelatedFormForView($view) {
+			$modules = BigTreeJSONDB::getAll("modules");
+		
 			if ($view["related_form"]) {
-				return self::getForm($view["related_form"]);
+				foreach ($modules as $module) {
+					foreach ($module["forms"] as $form) {
+						if ($form["id"] == $view["table"]) {
+							return static::getForm($form);
+						}
+					}
+				}
 			}
-			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_forms WHERE `table` = '".sqlescape($view["table"])."'"));
-			return self::getForm($f["id"]);
+
+			foreach ($modules as $module) {
+				foreach ($module["forms"] as $form) {
+					if ($form["table"] == $view["table"]) {
+						return static::getForm($form);
+					}
+				}
+			}
+
+			return null;
 		}
 		
 		/*
@@ -1000,16 +1072,26 @@
 		*/
 
 		public static function getRelatedViewForForm($form) {
-			$view = false;
-			// Try to find a view that's relating back to this form first
-			if ($form["id"]) {
-				$view = sqlfetch(sqlquery("SELECT id FROM bigtree_module_views WHERE `related_form` = '".$form["id"]."'"));
+			$modules = BigTreeJSONDB::getAll("modules");
+			
+			// Prioritize a view that has this form as the related form
+			foreach ($modules as $module) {
+				foreach ($module["views"] as $view) {
+					if ($form["id"] == $view["related_form"]) {
+						return static::getView($view);
+					}
+				}
 			}
-			// Fall back to any view that uses the same table
-			if (!$view) {
-				$view = sqlfetch(sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '".sqlescape($form["table"])."'"));
+
+			foreach ($modules as $module) {
+				foreach ($module["views"] as $view) {
+					if ($form["table"] == $view["table"]) {
+						return static::getView($view);
+					}
+				}
 			}
-			return self::getView($view["id"]);
+
+			return null;
 		}
 
 		/*
@@ -1024,8 +1106,15 @@
 		*/
 
 		public static function getRelatedViewForReport($report) {
-			$f = sqlfetch(sqlquery("SELECT id FROM bigtree_module_views WHERE `table` = '".sqlescape($report["table"])."'"));
-			return self::getView($f["id"]);
+			$modules = BigTreeJSONDB::getAll("modules");
+			
+			foreach ($modules as $module) {
+				foreach ($module["views"] as $view) {
+					if ($report["table"] == $view["table"]) {
+						return static::getView($view);
+					}
+				}
+			}
 		}
 
 		/*
@@ -1040,10 +1129,19 @@
 		*/
 
 		public static function getReport($id) {
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_reports WHERE id = '".sqlescape($id)."'"));
-			$f["fields"] = json_decode($f["fields"],true);
-			$f["filters"] = json_decode($f["filters"],true);
-			return $f;
+			$modules = BigTreeJSONDB::getAll("modules");
+			
+			foreach ($modules as $module) {
+				foreach ($module["reports"] as $report) {
+					if ($report["id"] == $id) {
+						$report["module"] = $module["id"];
+						
+						return $report;
+					}
+				}
+			}
+
+			return null;
 		}
 
 		/*
@@ -1291,60 +1389,80 @@
 				Returns a view.
 			
 			Parameters:
-				id - The id of the view.
+				view_id - The id of the view or a view entry.
 				decode_ipl - Whether we want to decode internal page link on the preview url (defaults to true)
 				
 			Returns:
 				A view entry with actions, settings, and fields decoded.  fields also receive a width column for the view.
 		*/
 
-		public static function getView($id,$decode_ipl = true) {
-			global $cms;
-			
-			if (is_array($id)) {
-				$id = $id["id"];
+		public static function getView($view_id, $decode_ipl = true) {
+			if (is_array($view_id)) {
+				$view_id = $view_id["id"];
 			}
-			
-			$view = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE id = '".sqlescape($id)."'"));
+
+			$modules = BigTreeJSONDB::getAll("modules");
+			$view = null;
+
+			foreach ($modules as $module) {
+				foreach ($module["views"] as $module_view) {
+					if ($module_view["id"] == $view_id) {
+						$view = $module_view;
+						$view["module"] = $module["id"];
+						$module_for_view = $module;
+
+						break 2;
+					}
+				}
+			}
+
 			if (!$view) {
-				return false;
+				return null;
 			}
 
 			// We may be in AJAX, so we need to define MODULE_ROOT if it's not available
 			if (!defined("MODULE_ROOT")) {
-				$module = sqlfetch(sqlquery("SELECT route FROM bigtree_modules WHERE id = '".$view["module"]."'"));
-				$module_root = ADMIN_ROOT.$module["route"]."/";
+				$module_root = ADMIN_ROOT.$module_for_view["route"]."/";
 			} else {
 				$module_root = MODULE_ROOT;
 			}
-			
-			$view["actions"] = json_decode($view["actions"],true);
-			$view["settings"] = json_decode($view["settings"] ?: $view["options"], true);
-			$view["options"] = &$view["settings"]; // Backwards compatibility
 
-			if ($decode_ipl) {
-				$view["preview_url"] = $cms->replaceInternalPageLinks($view["preview_url"]);
-			}
+			$view["options"] = &$view["settings"]; // Backwards compatibility
 
 			// Get the edit link
 			if (isset($view["actions"]["edit"])) {
 				if ($view["related_form"]) {
-					// Try for actions beginning with edit first
-					$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '".$view["related_form"]."' AND route LIKE 'edit%'"));
-					if (!$f) {
-						// Try any action with this form
-						$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '".$view["related_form"]."'"));
+					$edit_action = null;
+					$regular_action = null;
+
+					foreach ($module_for_view["actions"] as $action) {
+						if ($form["id"] == $view["related_form"] && substr($action["route"], 0, 4) == "edit") {
+							$edit_action = $action;
+
+							break;
+						} elseif ($form["id"] == $view["related_form"]) {
+							$regular_action = $action;
+						}
 					}
-					$view["edit_url"] = $module_root.$f["route"]."/";
+
+					if ($edit_action) {
+						$view["edit_url"] = $module_root.$edit_action["route"]."/";
+					} elseif ($regular_action) {
+						$view["edit_url"] = $module_root.$regular_action["route"]."/";
+					} else {
+						$view["edit_url"] = null;
+					}
 				} else {
 					$view["edit_url"] = $module_root."edit/";
 				}
 			}
 			
-			$actions = $view["preview_url"] ? ($view["actions"] + array("preview" => "on")) : $view["actions"];
-			$fields = json_decode($view["fields"],true);
+			$actions = $view["preview_url"] ? ($view["actions"] + ["preview" => "on"]) : $view["actions"];
+			$fields = $view["fields"];
+			
 			if (is_array($fields) && count($fields)) {
 				$first = current($fields);
+				
 				if (!isset($first["width"]) || !$first["width"]) {
 					$awidth = count($actions) * 40;
 					$available = 888 - $awidth;
@@ -1356,7 +1474,7 @@
 				}
 				$view["fields"] = $fields;
 			} else {
-				$view["fields"] = array();
+				$view["fields"] = [];
 			}
 
 			return $view;
@@ -1443,35 +1561,57 @@
 		public static function getViewForTable($table) {
 			global $cms;
 			
-			$table = sqlescape($table);
-			$view = sqlfetch(sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '$table'"));
+			$modules = BigTreeJSONDB::getAll("modules");
+			$view = null;
+			$module_for_view = null;
 
-			if (!$view) {
-				return false;
+			foreach ($modules as $module) {
+				foreach ($module["views"] as $module_view) {
+					if ($module_view["table"] == $table) {
+						$view = $module_view;
+						$module_for_view = $module;
+
+						break 2;
+					}
+				}
 			}
 
-			$view["settings"] = json_decode($view["settings"], true);
-			$view["actions"] = json_decode($view["actions"], true);
-			$view["preview_url"] = $cms->replaceInternalPageLinks($view["preview_url"]);
+			if (!$view) {
+				return null;
+			}
+
 			$view["options"] = &$view["settings"]; // Backwards compatibility
 
 			// Get the edit link
 			if (isset($view["actions"]["edit"])) {
-				$module = sqlfetch(sqlquery("SELECT * FROM bigtree_modules WHERE id = '".$view["module"]."'"));
 				if ($view["related_form"]) {
-					// Try for actions beginning with edit first
-					$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '".$view["related_form"]."' AND route LIKE 'edit%'"));
-					if (!$f) {
-						// Try any action with this form
-						$f = sqlfetch(sqlquery("SELECT * FROM bigtree_module_actions WHERE form = '".$view["related_form"]."'"));
+					$edit_action = null;
+					$regular_action = null;
+
+					foreach ($module_for_view["actions"] as $action) {
+						if ($form["id"] == $view["related_form"] && substr($action["route"], 0, 4) == "edit") {
+							$edit_action = $action;
+
+							break;
+						} elseif ($form["id"] == $view["related_form"]) {
+							$regular_action = $action;
+						}
 					}
-					$view["edit_url"] = ADMIN_ROOT.$module["route"]."/".$f["route"]."/";
+
+					if ($edit_action) {
+						$view["edit_url"] = $module_root.$edit_action["route"]."/";
+					} elseif ($regular_action) {
+						$view["edit_url"] = $module_root.$regular_action["route"]."/";
+					} else {
+						$view["edit_url"] = null;
+					}
 				} else {
-					$view["edit_url"] = ADMIN_ROOT.$module["route"]."/edit/";
+					$view["edit_url"] = $module_root."edit/";
 				}
 			}
 			
-			$fields = json_decode($view["fields"],true);
+			$fields = $view["fields"];
+
 			if (is_array($fields)) {
 				// Three or four actions, depending on preview availability.
 				if ($view["preview_url"]) {
@@ -1479,10 +1619,13 @@
 				} else {
 					$available = 633;
 				}
+
 				$percol = floor($available / count($fields));
+				
 				foreach ($fields as $key => $field) {
 					$fields[$key]["width"] = $percol - 20;
 				}
+				
 				$view["fields"] = $fields;
 			}
 
@@ -1749,12 +1892,14 @@
 		*/
 		
 		public static function uncacheItem($id,$table) {
-			$id = sqlescape($id);
-			$table = sqlescape($table);
+			$modules = BigTreeJSONDB::getAll("modules");
 
-			$q = sqlquery("SELECT * FROM bigtree_module_views WHERE `table` = '$table'");
-			while ($view = sqlfetch($q)) {
-				sqlquery("DELETE FROM bigtree_module_view_cache WHERE `view` = '".$view["id"]."' AND id = '$id'");
+			foreach ($modules as $module) {
+				foreach ($module["views"] as $view) {
+					if ($view["table"] == $table) {
+						SQL::query("DELETE FROM bigtree_module_view_cache WHERE `view` = ? AND `id` = ?", $view["id"], $id);
+					}
+				}
 			}
 		}
 
