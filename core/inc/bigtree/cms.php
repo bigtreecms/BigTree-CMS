@@ -32,10 +32,10 @@
 				$items = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-module-class-list.json"),true);
 			} else {
 				// Get the Module Class List
-				$q = sqlquery("SELECT * FROM bigtree_modules");
-				$items = array();
-				while ($f = sqlfetch($q)) {
-					$items[$f["class"]] = $f["route"];
+				$modules = BigTreeJSONDB::getAll("modules");
+
+				foreach ($modules as $module) {
+					$items[$module["class"]] = $module["route"];
 				}
 				
 				// Cache it so we don't hit the database.

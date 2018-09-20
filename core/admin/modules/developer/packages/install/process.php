@@ -25,19 +25,19 @@
 			$group = ($module["group"] && isset($bigtree["group_match"][$module["group"]])) ? $bigtree["group_match"][$module["group"]] : "NULL";
 			$gbp = sqlescape(is_array($module["gbp"]) ? BigTree::json($module["gbp"]) : $module["gbp"]);
 			
-			// Find a unique route
-			$oroute = $route = $module["route"];
-			$x = 2;
-			while (sqlrows(sqlquery("SELECT * FROM bigtree_modules WHERE route = '".sqlescape($route)."'"))) {
-				$route = $oroute."-$x";
-				$x++;
-			}
-			
-			// Create the module
-			sqlquery("INSERT INTO bigtree_modules (`name`,`route`,`class`,`icon`,`group`,`gbp`) VALUES ('".sqlescape($module["name"])."','".sqlescape($route)."','".sqlescape($module["class"])."','".sqlescape($module["icon"])."',$group,'$gbp')");
-			$module_id = sqlid();
+			$route = $this->getUniqueModuleRoute($module["route"]);
+			$module_id = BigTreeJSONDB::insert("modules", [
+				"name" => $module["name"],
+				"route" => $route,
+				"class" => $module["class"],
+				"icon" => $module["icon"],
+				"group" => $module["group"] && isset($bigtree["group_match"][$module["group"]])) ? $bigtree["group_match"][$module["group"]] : null,
+				"gbp" => $module["gbp"]
+			]);
+
 			$bigtree["module_match"][$module["id"]] = $module_id;
 			$bigtree["route_match"][$module["route"]] = $route;
+			
 			// Update the module ID since we're going to save this manifest locally for uninstalling
 			$module["id"] = $module_id;
 	
@@ -153,7 +153,14 @@
 	@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 	@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
-	sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($json["id"])."','package','".sqlescape($json["title"])."','".sqlescape($json["version"])."',NOW(),'".BigTree::json($json,true)."')");
+	BigTreeJSONDB::insert("bigtree_extensions", [
+		"id" => $json["id"],
+		"name" => $json["title"],
+		"version" => $json["version"],
+		"last_updated" => date("Y-m-d H:i:s"),
+		"manifest" => $json
+	]);
+
 	sqlquery("SET foreign_key_checks = 1");
 	
 	$admin->growl("Developer","Installed Package");

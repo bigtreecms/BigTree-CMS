@@ -229,8 +229,8 @@
 			}
 			
 			// Find out what module we're using so we can get the gbp_field
-			$module = sqlfetch(sqlquery("SELECT gbp FROM bigtree_modules WHERE id = '".self::getModuleForView($view)."'"));
-			$view["gbp"] = json_decode($module["gbp"],true);
+			BigTreeJSONDB::get("modules", self::getModuleForView($view));
+			$view["gbp"] = $module["gbp"];
 			
 			// Setup information on our parsers and populated lists.
 			$form = self::getRelatedFormForView($view);

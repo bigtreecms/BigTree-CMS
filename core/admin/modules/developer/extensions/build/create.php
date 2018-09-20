@@ -159,24 +159,37 @@
 		$module = $admin->getModule($module);
 		
 		// If the module isn't namespaced yet, namespace it
-		if (strpos($module["route"],"*") === false) {
-			sqlquery("UPDATE bigtree_modules SET route = CONCAT('$extension*',route), extension = '$extension' WHERE id = '".sqlescape($module["id"])."'");
+		if (!$module["extension"]) {
 			$new_route = $extension."*".$module["route"];
+			BigTreeJSONDB::update("modules", $module["id"], [
+				"route" => $new_route,
+				"extension" => $extension
+			]);
 		} else {
-			sqlquery("UPDATE bigtree_modules SET extension = '$extension' WHERE id = '".sqlescape($module["id"])."'");
 			$new_route = false;
 		}
 		
 		$module["actions"] = $admin->getModuleActions($module["id"]);
+		
 		// Loop through actions to update URLs for preview / return if we've moved this module into an extension namespace
 		if ($new_route) {
 			foreach ($module["actions"] as $a) {
 				// Adjust return view URLs for forms
 				if ($a["form"]) {
-					sqlquery("UPDATE bigtree_module_forms SET return_url = REPLACE(return_url,'{adminroot}".$module["route"]."/','{adminroot}$new_route/') WHERE id = '".$a["form"]."'");
+					$form = BigTreeAutoModules::getForm($a["form"]);
+
+					if ($form && $form["return_url"]) {
+						$context = BigTreeJSONDB::getSubset("modules", $module["id"]);
+						$context->update("forms", $a["form"], ["return_url" => str_replace($module["route"]."/", $new_route."/", $form["return_url"])]);
+					}
 				// Adjust preview URLs for views
 				} elseif ($a["view"]) {
-					sqlquery("UPDATE bigtree_module_views SET preview_url = REPLACE(preview_url,'{adminroot}".$module["route"]."/','{adminroot}$new_route/') WHERE id = '".$a["view"]."'");
+					$view = BigTreeAutoModules::getView($a["view"]);
+
+					if ($view && $view["preview_url"]) {
+						$context = BigTreeJSONDB::getSubset("modules", $module["id"]);
+						$context->update("views", $a["view"], ["preview_url" => str_replace($module["route"]."/", $new_route."/", $view["preview_url"])]);
+					}
 				}
 			}
 		}
@@ -241,9 +254,10 @@
 	}
 
 	// If this package already exists, we need to do a diff of the tables, increment revision numbers, and add SQL statements.
-	$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."' AND type = 'extension'"));
+	$existing = BigTreeJSONDB::get("extensions", $id);
+
 	if ($existing) {
-		$existing_json = json_decode($existing["manifest"],true);
+		$existing_json = $existing["manifest"];
 
 		// Increment revision numbers
 		$revision = $package["revision"] = intval($existing_json["revision"]) + 1;
@@ -298,10 +312,21 @@
 	$zip->create(BigTree::directoryContents(SERVER_ROOT."extensions/$id/"),PCLZIP_OPT_REMOVE_PATH,SERVER_ROOT."extensions/$id/");
 
 	// Store it in the database for future updates -- existing packages might be replaced
-	if (sqlrows(sqlquery("SELECT id FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"))) {
-		sqlquery("UPDATE bigtree_extensions SET type = 'extension', name = '".sqlescape($title)."', version = '".sqlescape($version)."', last_updated = NOW(), manifest = '".sqlescape($json)."' WHERE id = '".sqlescape($id)."'");
+	if (BigTreeJSONDB::exists("extensions", $id)) {
+		BigTreeJSONDB::update("extensions", $id, [
+			"name" => $title,
+			"version" => $version,
+			"last_updated" => date("Y-m-d H:i:s"),
+			"manifest" => $json
+		]);
 	} else {
-		sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($id)."','extension','".sqlescape($title)."','".sqlescape($version)."',NOW(),'".sqlescape($json)."')");
+		BigTreeJSONDB::insert("extensions", [
+			"id" => $id,
+			"name" => $title,
+			"version" => $version,
+			"last_updated" => date("Y-m-d H:i:s"),
+			"manifest" => $json
+		]);
 	}
 
 	// Turn foreign key checks back on

@@ -157,10 +157,21 @@
 	BigTree::deleteDirectory(SERVER_ROOT."cache/package/");
 
 	// Store it in the database for future updates
-	if (sqlrows(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($id)."'"))) {
-		sqlquery("UPDATE bigtree_extensions SET name = '".sqlescape($title)."', version = '".sqlescape($version)."', last_updated = NOW(), manifest = '".sqlescape($json)."' WHERE id = '".sqlescape($id)."'");
+	if (BigTreeJSONDB::exists("packages", $id)) {
+		BigTreeJSONDB::update("packages", $id, [
+			"name" => $title,
+			"version" => $version,
+			"last_updated" => date("Y-m-d H:i:s"),
+			"manifest" => $json
+		]);
 	} else {
-		sqlquery("INSERT INTO bigtree_extensions (`id`,`type`,`name`,`version`,`last_updated`,`manifest`) VALUES ('".sqlescape($id)."','package','".sqlescape($title)."','".sqlescape($version)."',NOW(),'".sqlescape($json)."')");
+		BigTreeJSONDB::insert("packages", [
+			"id" => $id,
+			"name" => $title,
+			"version" => $version,
+			"last_updated" => date("Y-m-d H:i:s"),
+			"manifest" => $json
+		]);
 	}
 ?>
 <div class="container">
