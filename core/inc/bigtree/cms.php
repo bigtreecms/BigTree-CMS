@@ -445,20 +445,24 @@
 					echo "<url><loc>".$link."</loc></url>\n";
 					
 					// Added routed template support
-					$tf = sqlfetch(sqlquery("SELECT bigtree_modules.class AS module_class FROM bigtree_templates JOIN bigtree_modules ON bigtree_modules.id = bigtree_templates.module WHERE bigtree_templates.id = '".$f["template"]."'"));
-					
-					if ($tf["module_class"]) {
-						$mod = new $tf["module_class"];
+					$template = BigTreeJSONDB::get("templates", $f["template"]);
+
+					if ($template["module"]) {
+						$module = BigTreeJSONDB::get("modules", $template["module"]);
+
+						if ($module && $module["class"]) {
+							$mod = new $module["class"];
 						
-						if (method_exists($mod,"getSitemap")) {
-							$subnav = $mod->getSitemap($f);
-							
-							foreach ($subnav as $s) {
-								echo "<url><loc>".$s["link"]."</loc></url>\n";
+							if (method_exists($mod,"getSitemap")) {
+								$subnav = $mod->getSitemap($f);
+								
+								foreach ($subnav as $s) {
+									echo "<url><loc>".$s["link"]."</loc></url>\n";
+								}
 							}
+							
+							$mod = $subnav = null;
 						}
-						
-						$mod = $subnav = null;
 					}
 				}
 			}
@@ -651,14 +655,18 @@
 			$bc = array_reverse($bc);
 			
 			// Check for module breadcrumbs
-			$mod = sqlfetch(sqlquery("SELECT bigtree_modules.class FROM bigtree_modules JOIN bigtree_templates ON bigtree_modules.id = bigtree_templates.module WHERE bigtree_templates.id = '".$page["template"]."'"));
-			
-			if ($mod["class"]) {
-				if (class_exists($mod["class"])) {
-					$module = new $mod["class"];
-			
-					if (method_exists($module, "getBreadcrumb")) {
-						$bc = array_merge($bc,$module->getBreadcrumb($page));
+			$template = BigTreeJSONDB::get("templates", $page["template"]);
+
+			if ($template["module"]) {
+				$module = BigTreeJSONDB::get("modules", $template["module"]);
+
+				if ($module["class"]) {
+					if (class_exists($module["class"])) {
+						$moduleClass = new $mod["class"];
+				
+						if (method_exists($moduleClass, "getBreadcrumb")) {
+							$bc = array_merge($bc, $moduleClass->getBreadcrumb($page));
+						}
 					}
 				}
 			}
@@ -905,7 +913,14 @@
 			$in_nav = $only_hidden ? "" : "on";
 			$sort = $only_hidden ? "nav_title ASC" : "position DESC, id ASC";
 			
-			$q = sqlquery("SELECT id,nav_title,parent,external,new_window,template,route,path FROM bigtree_pages WHERE $where_parent AND in_nav = '$in_nav' AND archived != 'on' AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL) ORDER BY $sort");
+			$q = sqlquery("SELECT id,nav_title,parent,external,new_window,template,route,path 
+						   FROM bigtree_pages 
+						   WHERE $where_parent 
+						     AND in_nav = '$in_nav' 
+						     AND archived != 'on' 
+						     AND (publish_at <= NOW() OR publish_at IS NULL) 
+						     AND (expire_at >= NOW() OR expire_at IS NULL) 
+						   ORDER BY $sort");
 			
 			// Wrangle up some kids
 			while ($f = sqlfetch($q)) {
@@ -943,46 +958,63 @@
 				// This is a recursed iteration.
 				if (is_array($parent)) {
 					$where_parent = array();
+
 					foreach ($parent as $p) {
-						$where_parent[] = "bigtree_pages.id = '".sqlescape($p)."'";
+						$where_parent[] = "id = '".sqlescape($p)."'";
 					}
-					$q = sqlquery("SELECT bigtree_modules.class,bigtree_templates.routed,bigtree_templates.module,bigtree_pages.id,bigtree_pages.path,bigtree_pages.template FROM bigtree_modules JOIN bigtree_templates JOIN bigtree_pages ON bigtree_templates.id = bigtree_pages.template WHERE bigtree_modules.id = bigtree_templates.module AND (".implode(" OR ",$where_parent).")");
+					
+					$q = sqlquery("SELECT id, path, template FROM bigtree_pages WHERE (".implode(" OR ",$where_parent).")");
+					
 					while ($f = sqlfetch($q)) {
-						// If the class exists, instantiate it and call it
-						if ($f["class"] && class_exists($f["class"])) {
-							$module = new $f["class"];
-							if (method_exists($module,"getNav")) {
-								$modNav = $module->getNav($f);
-								// Give the parent back to each of the items it returned so they can be reassigned to the proper parent.
-								$module_nav = array();
-								foreach ($modNav as $item) {
-									$item["parent"] = $f["id"];
-									$item["id"] = "module_nav_".$module_nav_count;
-									$module_nav[] = $item;
-									$module_nav_count++;
-								}
-								if ($module->NavPosition == "top") {
-									$nav = array_merge($module_nav,$nav);
-								} else {
-									$nav = array_merge($nav,$module_nav);
+						$template = BigTreeJSONDB::get("templates", $f["template"]);
+
+						if ($template["module"]) {
+							$module = BigTreeJSONDB::get("modules", $template["module"]);
+
+							if ($module["class"] && class_exists($module["class"])) {
+								$instance = new $module["class"];
+
+								if (method_exists($instance, "getNav")) {
+									$modNav = $instance->getNav($f);
+									// Give the parent back to each of the items it returned so they can be reassigned to the proper parent.
+									$module_nav = array();
+									
+									foreach ($modNav as $item) {
+										$item["parent"] = $f["id"];
+										$item["id"] = "module_nav_".$module_nav_count;
+										$module_nav[] = $item;
+										$module_nav_count++;
+									}
+									
+									if ($instance->NavPosition == "top") {
+										$nav = array_merge($module_nav, $nav);
+									} else {
+										$nav = array_merge($nav, $module_nav);
+									}
 								}
 							}
 						}
 					}
 				// This is the first iteration.
 				} else {
-					$f = sqlfetch(sqlquery("SELECT bigtree_modules.class,bigtree_templates.routed,bigtree_templates.module,bigtree_pages.id,bigtree_pages.path,bigtree_pages.template FROM bigtree_modules JOIN bigtree_templates JOIN bigtree_pages ON bigtree_templates.id = bigtree_pages.template WHERE bigtree_modules.id = bigtree_templates.module AND bigtree_pages.id = '$parent'"));
-					// If the class exists, instantiate it and call it.
-					if ($f["class"] && class_exists($f["class"])) {
-						$module = new $f["class"];
-						if (method_exists($module,"getNav")) {
-							if ($module->NavPosition == "top") {
-								$nav = array_merge($module->getNav($f),$nav);
-							} else {
-								$nav = array_merge($nav,$module->getNav($f));
+					$f = sqlfetch(sqlquery("SELECT id, path, template FROM bigtree_pages WHERE id = '$parent'"));
+					$template = BigTreeJSONDB::get("templates", $f["template"]);
+
+					if ($template["module"]) {
+						$module = BigTreeJSONDB::get("modules", $template["module"]);
+
+						if ($module["class"] && class_exists($module["class"])) {
+							$instance = new $module["class"];
+
+							if (method_exists($instance, "getNav")) {
+								if ($module->NavPosition == "top") {
+									$nav = array_merge($instance->getNav($f), $nav);
+								} else {
+									$nav = array_merge($nav, $instance->getNav($f));
+								}
 							}
 						}
-					}
+					}	
 				}
 			}
 			
@@ -1020,10 +1052,12 @@
 			}
 			
 			// See if we have a straight up perfect match to the path.
-			$spath = sqlescape(implode("/",$path));
-			$f = sqlfetch(sqlquery("SELECT bigtree_pages.id,bigtree_templates.routed FROM bigtree_pages LEFT JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE path = '$spath' AND archived = '' $publish_at"));
-			if ($f) {
-				return array($f["id"],$commands,$f["routed"]);
+			$page = SQL::fetch("SELECT id, template FROM bigtree_pages WHERE path = ? AND archived = '' $publish_at", implode("/", $path));
+
+			if ($page) {
+				$template = BigTreeJSONDB::get("templates", $page["template"]);
+
+				return array($page["id"], $commands, $template["routed"]);
 			}
 			
 			// Guess we don't, let's chop off commands until we find a page.
@@ -1031,11 +1065,16 @@
 			while ($x < count($path)) {
 				$x++;
 				$commands[] = $path[count($path)-$x];
-				$spath = sqlescape(implode("/",array_slice($path,0,-1 * $x)));
+
 				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
-				$f = sqlfetch(sqlquery("SELECT bigtree_pages.id FROM bigtree_pages JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE bigtree_pages.path = '$spath' AND bigtree_pages.archived = '' AND bigtree_templates.routed = 'on' $publish_at"));
-				if ($f) {
-					return array($f["id"],array_reverse($commands),"on");
+				$page = SQL::fetch("SELECT id, template FROM bigtree_pages WHERE path = ? AND archived = '' $publish_at", implode("/", array_slice($path, 0, -1 * $x)));
+
+				if ($page) {
+					$template = BigTreeJSONDB::get("templates", $page["template"]);
+
+					if ($template["routed"]) {
+						return array($page["id"], array_reverse($commands), "on");
+					}
 				}
 			}
 			
@@ -1416,16 +1455,7 @@
 		*/
 		
 		public static function getTemplate($id) {
-			$template = SQL::fetch("SELECT * FROM bigtree_templates WHERE id = ?", $id);
-
-			if (!$template) {
-				return false;
-			}
-
-			$template["resources"] = json_decode($template["resources"], true);
-			$template["hooks"] = json_decode($template["hooks"], true);
-
-			return $template;
+			return BigTreeJSONDB::get("templates", $id);
 		}
 		
 		/*

@@ -912,7 +912,7 @@
 			BigTreeJSONDB::incrementPosition("callouts");
 			BigTreeJSONDB::insert("callouts", $callout);
 
-			$this->track("bigtree_callouts", $id, "created");
+			$this->track("jsondb -> callouts", $id, "created");
 
 			return $id;
 		}
@@ -936,7 +936,7 @@
 				"name" => BigTree::safeEncode($name),
 				"callouts" => $callouts
 			]);
-			$this->track("bigtree_callout_groups",$id,"created");
+			$this->track("jsondb -> callout-groups",$id,"created");
 
 			return $id;
 		}
@@ -982,7 +982,7 @@
 				"route" => $route
 			]);
 			
-			$this->track("bigtree_feeds", $id, "created");
+			$this->track("jsondb -> feeds", $id, "created");
 
 			return $route;
 		}
@@ -1062,7 +1062,7 @@
 
 			unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
-			$this->track("bigtree_field_types",$id,"created");
+			$this->track("jsondb -> field-types", $id, "created");
 
 			return $id;
 		}
@@ -1195,7 +1195,7 @@
 				"route"
 			]);
 
-			$this->track("bigtree_module_actions", $id, "created");
+			$this->track("jsondb -> module-actions", $id, "created");
 
 			return $route;
 		}
@@ -1260,7 +1260,7 @@
 				"hash" => $hash
 			]);
 
-			$this->track("bigtree_module_embeds", $id, "created");
+			$this->track("jsondb -> module-embeddable-forms", $id, "created");
 
 			return htmlspecialchars('<div id="bigtree_embeddable_form_container_'.$id.'">'.BigTree::safeEncode($title).'</div>'."\n".'<script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?id='.$id.'&hash='.$hash.'"></script>');
 		}
@@ -1321,7 +1321,7 @@
 				"hooks" => is_array($hooks) ? $hooks : json_decode($hooks, true),
 			]);
 
-			$this->track("bigtree_module_forms",$id,"created");
+			$this->track("jsondb -> module-forms",$id,"created");
 
 			// Get related views for this table and update numeric status
 			static::updateModuleViewColumnNumericStatusForTable($table);
@@ -1356,7 +1356,7 @@
 				"route" => $route
 			]);
 
-			$this->track("bigtree_module_groups",$id,"created");
+			$this->track("jsondb -> module-groups",$id,"created");
 
 			return $id;
 		}
@@ -1391,7 +1391,7 @@
 				"view" => $view ?: null
 			]);
 
-			$this->track("bigtree_module_reports", $id, "created");
+			$this->track("jsondb -> module-reports", $id, "created");
 
 			return $id;
 		}
@@ -1431,7 +1431,7 @@
 			]);
 			
 			static::updateModuleViewColumnNumericStatusForTable($table);
-			$this->track("bigtree_module_views", $id, "created");
+			$this->track("jsondb -> module-views", $id, "created");
 
 			return $id;
 		}
@@ -1875,7 +1875,7 @@
 				}
 			}
 
-			if (SQL::exists("bigtree_settings", $id)) {
+			if (SQL::exists("bigtree_settings", $id) || BigTreeJSONDB::exists("settings", $id)) {
 				return false;
 			}
 
@@ -1906,7 +1906,7 @@
 			]);
 			SQL::insert("bigtree_settings", ["id" => $data["id"], "encrypted" => !empty($data["encrypted"]) ? "on" : "", "value" => ""]);
 
-			$this->track("bigtree_settings", $id, "created");
+			$this->track("jsondb -> settings", $id, "created");
 
 			return true;
 		}
@@ -2026,7 +2026,7 @@
 				"hooks" => is_array($hooks) ? $hooks : array_filter((array) json_decode($hooks, true))
 			]);
 
-			$this->track("bigtree_templates",$id,"created");
+			$this->track("jsondb -> templates", $id, "created");
 
 			return $id;
 		}
@@ -2149,7 +2149,7 @@
 			}
 
 			// Track deletion
-			$this->track("bigtree_callouts",$id,"deleted");
+			$this->track("jsondb -> callouts", $id, "deleted");
 		}
 
 		/*
@@ -2162,7 +2162,7 @@
 
 		public function deleteCalloutGroup($id) {
 			BigTreeJSONDB::delete("callout-groups", $id);
-			$this->track("bigtree_callout_groups",$id,"deleted");
+			$this->track("jsondb -> callout-groups",$id,"deleted");
 		}
 
 		/*
@@ -2211,7 +2211,7 @@
 			// Delete extension entry
 			BigTreeJSONDB::delete("extensions", $id);
 
-			$this->track("bigtree_extensions", $extension["id"], "deleted");
+			$this->track("jsondb -> extensions", $extension["id"], "deleted");
 		}
 
 		/*
@@ -2224,7 +2224,7 @@
 
 		public function deleteFeed($id) {
 			BigTreeJSONDB::delete("feeds", $id);
-			$this->track("bigtree_feeds", $id, "deleted");
+			$this->track("jsondb -> feeds", $id, "deleted");
 		}
 
 		/*
@@ -2247,7 +2247,7 @@
 			@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
 			BigTreeJSONDB::delete("field-types", $id);
-			$this->track("bigtree_field_types",$id,"deleted");
+			$this->track("jsondb -> field-types", $id, "deleted");
 		}
 
 		/*
@@ -2327,7 +2327,7 @@
 				}
 			}
 
-			$this->track("bigtree_module_actions", $id, "deleted");
+			$this->track("jsondb -> module-actions", $id, "deleted");
 		}
 
 		/*
@@ -2350,7 +2350,7 @@
 				}
 			}
 
-			$this->track("bigtree_module_embeds", $id, "deleted");
+			$this->track("jsondb -> module-embeddable-forms", $id, "deleted");
 		}
 
 		/*
@@ -2379,7 +2379,7 @@
 				}
 			}
 
-			$this->track("bigtree_module_forms", $id, "deleted");
+			$this->track("jsondb -> module-forms", $id, "deleted");
 		}
 
 		/*
@@ -2392,7 +2392,7 @@
 
 		public function deleteModuleGroup($id) {
 			BigTreeJSONDB::delete("module-groups", $id);
-			$this->track("bigtree_module_groups",$id,"deleted");
+			$this->track("jsondb -> module-groups",$id,"deleted");
 		}
 
 		/*
@@ -2421,7 +2421,7 @@
 				}
 			}
 
-			$this->track("bigtree_module_reports", $id, "deleted");
+			$this->track("jsondb -> module-reports", $id, "deleted");
 		}
 
 		/*
@@ -2450,60 +2450,7 @@
 				}
 			}
 
-			$this->track("bigtree_module_views", $id, "deleted");
-		}
-
-		/*
-			Function: deletePackage
-				Uninstalls a package from BigTree and removes its related components and files.
-
-			Parameters:
-				id - The package ID.
-		*/
-
-		public function deletePackage($id) {
-			$package = $this->getPackage($id);
-			$j = json_decode($package["manifest"],true);
-
-			// Delete related files
-			foreach ($j["files"] as $file) {
-				@unlink(SERVER_ROOT.$file);
-			}
-
-			// Delete components
-			foreach ($j["components"] as $type => $list) {
-				if ($type == "tables") {
-					// Turn off foreign key checks since we're going to be dropping tables.
-					SQL::query("SET SESSION foreign_key_checks = 0");
-					
-					foreach ($list as $table) {
-						SQL::query("DROP TABLE IF EXISTS `$table`");
-					}
-					
-					SQL::query("SET SESSION foreign_key_checks = 1");
-				} else {
-					foreach ($list as $item) {
-						BigTreeJSONDB::delete(str_replace("_", "-", $type), $item["id"]);
-					}
-
-					// Modules might have their own directories
-					if ($type == "modules") {
-						foreach ($list as $item) {
-							@rmdir(SERVER_ROOT."custom/admin/modules/".$item["route"]."/");
-							@rmdir(SERVER_ROOT."custom/admin/ajax/".$item["route"]."/");
-							@rmdir(SERVER_ROOT."custom/admin/images/".$item["route"]."/");
-						}
-					} elseif ($type == "templates") {
-						foreach ($list as $item) {
-							@rmdir(SERVER_ROOT."templates/routed/".$item["id"]."/");
-						}
-					}
-				}
-			}
-
-			BigTreeJSONDB::delete("packages", $id);
-
-			$this->track("bigtree_packages",$package["id"],"deleted");
+			$this->track("jsondb -> module-views", $id, "deleted");
 		}
 
 		/*
@@ -2688,7 +2635,10 @@
 
 		public function deleteSetting($id) {
 			$id = BigTreeCMS::extensionSettingCheck($id);
-			sqlquery("DELETE FROM bigtree_settings WHERE id = '$id'");
+
+			BigTreeJSONDB::delete("settings", $id);
+			SQL::delete("bigtree_settings", $id);
+
 			$this->track("bigtree_settings",$id,"deleted");
 		}
 
@@ -2729,7 +2679,7 @@
 			}
 
 			BigTreeJSONDB::delete("templates", $id);
-			$this->track("bigtree_templates",$template["id"],"deleted");
+			$this->track("jsondb -> templates", $template["id"], "deleted");
 
 			return true;
 		}
@@ -3514,7 +3464,7 @@
 				id - The id of the callout.
 
 			Returns:
-				A callout entry from bigtree_callouts with resources decoded.
+				A callout entry from callouts database with resources decoded.
 		*/
 
 		public static function getCallout($id) {
@@ -3523,7 +3473,7 @@
 
 		/*
 			Function: getCalloutGroup
-				Returns a callout group entry from the bigtree_callout_groups table.
+				Returns a callout group entry from the callout groups database.
 
 			Parameters:
 				id - The id of the callout group.
@@ -3541,7 +3491,7 @@
 				Returns a list of callout groups sorted by name.
 
 			Returns:
-				An array of callout group entries from bigtree_callout_groups.
+				An array of callout group entries from callout groups database.
 		*/
 
 		public static function getCalloutGroups() {
@@ -3556,7 +3506,7 @@
 				sort - The order to return the callouts. Defaults to positioned.
 
 			Returns:
-				An array of callout entries from bigtree_callouts.
+				An array of callout entries from callouts database.
 		*/
 
 		public static function getCallouts($sort = "position") {
@@ -3573,7 +3523,7 @@
 				sort - The order to return the callouts. Defaults to positioned.
 
 			Returns:
-				An array of callout entries from bigtree_callouts.
+				An array of callout entries from callouts database.
 		*/
 
 		public function getCalloutsAllowed($sort = "position") {
@@ -3598,7 +3548,7 @@
 				auth - If set to true, only returns callouts the logged in user has access to. Defaults to true.
 
 			Returns:
-				An array of entries from the bigtree_callouts table.
+				An array of entries from the callouts database.
 		*/
 
 		public function getCalloutsInGroups($groups, $auth = true) {
@@ -3795,7 +3745,7 @@
 				sort - The sort direction, defaults to name.
 
 			Returns:
-				An array of feed elements from bigtree_feeds sorted by name.
+				An array of feed elements from the feeds database sorted by name.
 		*/
 
 		public static function getFeeds($sort = "name ASC") {
@@ -3827,7 +3777,7 @@
 				sort - The sort directon, defaults to name ASC.
 
 			Returns:
-				An array of entries from bigtree_field_types.
+				An array of entries from the field types database.
 		*/
 
 		public static function getFieldTypes($sort = "name ASC") {
@@ -3993,7 +3943,7 @@
 
 		/*
 			Function: getModuleAction
-				Returns an entry from the bigtree_module_actions table.
+				Returns an action entry from the modules database.
 
 			Parameters:
 				id - The id of the action.
@@ -4018,7 +3968,7 @@
 
 		/*
 			Function: getModuleActionByRoute
-				Returns an entry from the bigtree_module_actions table for the given module and route.
+				Returns an action entry from the modules database for the given module and route.
 
 			Parameters:
 				module - The module to lookup an action for.
@@ -4201,14 +4151,14 @@
 
 		/*
 			Function: getModuleEmbedForms
-				Gets forms from bigtree_module_embeds with fields decoded.
+				Gets embeddable forms from the modules database.
 
 			Parameters:
 				sort - The field to sort by.
 				module - Specific module to pull forms for (defaults to all modules).
 
 			Returns:
-				An array of entries from bigtree_module_embeds with "fields" decoded.
+				An array of embeddable form entries from modules database with "fields" decoded.
 		*/
 
 		public static function getModuleEmbedForms($sort = "title", $module = false) {
@@ -4243,14 +4193,14 @@
 
 		/*
 			Function: getModuleForms
-				Gets forms from bigtree_module_forms with fields decoded.
+				Gets forms from the modules database with fields decoded.
 
 			Parameters:
 				sort - The field to sort by.
 				module - Specific module to pull forms for (defaults to all modules).
 
 			Returns:
-				An array of entries from bigtree_module_forms with "fields" decoded.
+				An array of form entries from modules database with "fields" decoded.
 		*/
 
 		public static function getModuleForms($sort = "title",$module = false) {
@@ -4285,7 +4235,7 @@
 
 		/*
 			Function: getModuleGroup
-				Returns a module group entry from the bigtree_module_groups table.
+				Returns a module group entry from the module groups database.
 
 			Parameters:
 				id - The id of the module group.
@@ -4304,7 +4254,7 @@
 
 		/*
 			Function: getModuleGroupByName
-				Returns a module group entry from the bigtree_module_groups table.
+				Returns a module group entry from the module groups database.
 
 			Parameters:
 				name - The name of the module group.
@@ -4316,7 +4266,6 @@
 				<getModuleGroup>
 				<getModuleGroupByRoute>
 		*/
-
 
 		public static function getModuleGroupByName($name) {
 			$groups = BigTreeJSONDB::getAll("module-groups");
@@ -4333,7 +4282,7 @@
 
 		/*
 			Function: getModuleGroupByRoute
-				Returns a module group entry from the bigtree_module_groups table.
+				Returns a module group entry from the module groups database.
 
 			Parameters:
 				route - The route of the module group.
@@ -4358,7 +4307,7 @@
 				sort - Sort by (defaults to positioned)
 
 			Returns:
-				An array of module group entries from bigtree_module_groups.
+				An array of module group entries from the module groups database.
 		*/
 
 		public static function getModuleGroups($sort = "position DESC") {
@@ -4375,7 +4324,7 @@
 				module - A module id or a module entry.
 
 			Returns:
-				An array of module actions from bigtree_module_actions.
+				An array of module actions from the modules database.
 		*/
 
 		public static function getModuleNavigation($module) {
@@ -4398,14 +4347,14 @@
 
 		/*
 			Function: getModuleReports
-				Gets reports from the bigtree_module_reports table.
+				Gets reports from the modules database.
 
 			Parameters:
 				sort - The field to sort by.
 				module - Specific module to pull reports for (defaults to all modules).
 
 			Returns:
-				An array of entries from bigtree_module_reports.
+				An array of report entries from the modules database.
 		*/
 
 		public static function getModuleReports($sort = "title",$module = false) {
@@ -4513,7 +4462,7 @@
 
 		/*
 			Function: getModuleViews
-				Returns a list of all entries in the bigtree_module_views table.
+				Returns a list of all views in the modules database.
 
 			Parameters:
 				sort - The column to sort by.
@@ -4576,38 +4525,6 @@
 				$nav[] = $nav_item;
 			}
 			return $nav;
-		}
-
-		/*
-			Function: getPackage
-				Returns information about a package or extension.
-
-			Parameters:
-				id - The package/extension ID.
-
-			Returns:
-				A package/extension.
-		*/
-
-		public static function getPackage($id) {
-			return BigTreeJSONDB::get("packages", $id);
-		}
-
-		/*
-			Function: getPackages
-				Returns a list of installed/created packages.
-
-			Parameters:
-				sort - Column/direction to sort (defaults to last_updated DESC)
-
-			Returns:
-				An array of packages.
-		*/
-
-		public static function getPackages($sort = "last_updated DESC") {
-			list($sort_column, $sort_direction) = explode(" ", $sort);
-
-			return BigTreeJSONDB::getAll("packages", $sort_column, $sort_direction ?: "ASC");
 		}
 
 		/*
@@ -4814,7 +4731,7 @@
 					- URL Hash
 		*/
 
-		public static function getPageIDForPath($path,$previewing = false) {
+		public static function getPageIDForPath($path, $previewing = false) {
 			$commands = array();
 
 			// Get any GET variables and hashes and remove them
@@ -4830,11 +4747,12 @@
 			}
 
 			// See if we have a straight up perfect match to the path.
-			$spath = sqlescape(implode("/", $path));
-			$f = sqlfetch(sqlquery("SELECT bigtree_pages.id,bigtree_templates.routed FROM bigtree_pages LEFT JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE path = '$spath' AND archived = '' $publish_at"));
+			$page = SQL::fetch("SELECT id, template FROM bigtree_pages WHERE path = ? AND archived = '' $publish_at", implode("/", $path));
 
-			if ($f) {
-				return array($f["id"], array(), $f["routed"], $query_vars, $hash);
+			if ($page) {
+				$template = BigTreeJSONDB::get("templates", $page["template"]);
+
+				return array($page["id"], [], $template["routed"], $query_vars, $hash);
 			}
 
 			// Guess we don't, let's chop off commands until we find a page.
@@ -4843,13 +4761,16 @@
 			while ($x < count($path)) {
 				$x++;
 				$commands[] = $path[count($path) - $x];
-				$spath = sqlescape(implode("/", array_slice($path, 0, -1 * $x)));
 
 				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
-				$f = sqlfetch(sqlquery("SELECT bigtree_pages.id FROM bigtree_pages JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE bigtree_pages.path = '$spath' AND bigtree_pages.archived = '' AND bigtree_templates.routed = 'on' $publish_at"));
+				$page = SQL::fetch("SELECT id, template FROM bigtree_pages WHERE path = ? AND archived = '' $publish_at", implode("/", array_slice($path, 0, -1 * $x)));
 
-				if ($f) {
-					return array($f["id"], array_reverse($commands), "on", $query_vars, $hash);
+				if ($page) {
+					$template = BigTreeJSONDB::get("templates", $page["template"]);
+
+					if ($template["routed"]) {
+						return array($page["id"], array_reverse($commands), "on", $query_vars, $hash);
+					}
 				}
 			}
 
@@ -4866,7 +4787,7 @@
 				sort - Sort order. Defaults to name ASC.
 
 			Returns:
-				An array of entries from bigtree_settings.
+				An array of entries from the settings database.
 				If the setting is encrypted the value will be "[Encrypted Text]", otherwise it will be decoded.
 				If the calling user is a developer, returns locked settings, otherwise they are left out.
 		*/
@@ -5748,7 +5669,7 @@
 				sort - Order to return the settings. Defaults to name ASC.
 
 			Returns:
-				An array of entries from bigtree_settings.
+				An array of entries from the settings database.
 				If the setting is encrypted the value will be "[Encrypted Text]", otherwise it will be decoded.
 				If the calling user is a developer, returns locked settings, otherwise they are left out.
 		*/
@@ -5794,7 +5715,7 @@
 				sort - Order to return the settings. Defaults to name ASC.
 
 			Returns:
-				An array of entries from bigtree_settings.
+				An array of entries from the settings database.
 		*/
 
 		public static function getSystemSettings($sort = "name ASC") {
@@ -6388,9 +6309,16 @@
 			foreach ($manifest["components"]["feeds"] as &$feed) {
 				if ($feed) {
 					$settings = $feed["settings"] ?: $feed["options"];
-					$feed["id"] = $this->createFeed($feed["name"], $feed["description"], $feed["table"], $feed["type"], $settings, $feed["fields"]);
-
-					BigTreeJSONDB::update("feeds", $feed["id"], ["extension" => $extension]);
+					$feed["id"] = BigTreeJSONDB::insert("feeds", [
+						"route" => $feed["route"],
+						"name" => $feed["name"],
+						"description" => $feed["description"],
+						"type" => $feed["type"],
+						"table" => $feed["table"],
+						"fields" => $feed["fields"],
+						"settings" => $settings,
+						"extension" => $extension
+					]);
 				}
 			}
 
@@ -6489,25 +6417,34 @@
 
 			// See if the page it references still exists.
 			$nav_id = $ipl[1];
+
 			if (!sqlrows(sqlquery("SELECT id FROM bigtree_pages WHERE id = '$nav_id'"))) {
 				return false;
 			}
 
 			// Decode the commands attached to the page
 			$commands = json_decode(base64_decode($ipl[2]),true);
+			
 			// If there are no commands, we're good.
 			if (empty($commands[0])) {
 				return true;
 			}
+			
 			// If it's a hash tag link, we're also good.
 			if (substr($commands[0],0,1) == "#") {
 				return true;
 			}
+			
 			// Get template for the navigation id to see if it's a routed template
-			$t = sqlfetch(sqlquery("SELECT bigtree_templates.routed FROM bigtree_templates JOIN bigtree_pages ON bigtree_templates.id = bigtree_pages.template WHERE bigtree_pages.id = '$nav_id'"));
+			$template_id = SQL::fetchSingle("SELECT template FROM bigtree_pages WHERE id = ?", $nav_id);
+			
 			// If we're a routed template, we're good.
-			if ($t["routed"]) {
-				return true;
+			if ($template_id) {
+				$template = BigTreeJSONDB::get("templates", $template_id);
+
+				if (!empty($template["routed"])) {
+					return true;
+				}
 			}
 
 			// We may have been on a page, but there's extra routes that don't go anywhere or do anything so it's a 404.
@@ -8383,7 +8320,7 @@
 				"display_field" => BigTree::safeEncode($display_field)
 			]);
 
-			$this->track("bigtree_callouts", $id, "updated");
+			$this->track("jsondb -> callouts", $id, "updated");
 		}
 
 		/*
@@ -8404,7 +8341,7 @@
 				"callouts" => $callouts
 			]);
 			
-			$this->track("bigtree_callout_groups",$id,"updated");
+			$this->track("jsondb -> callout-groups",$id,"updated");
 		}
 
 		/*
@@ -8459,7 +8396,7 @@
 				"fields" => $fields
 			]);
 
-			$this->track("bigtree_feeds", $id, "updated");
+			$this->track("jsondb -> feeds", $id, "updated");
 		}
 
 		/*
@@ -8479,7 +8416,7 @@
 				"use_cases" => $use_cases,
 				"self_draw" => $self_draw ? "on" : null
 			]);
-			$this->track("bigtree_field_types",$id,"updated");
+			$this->track("jsondb -> field-types", $id, "updated");
 		}
 
 		/*
@@ -8554,7 +8491,7 @@
 				}
 			}
 
-			$this->track("bigtree_module_actions", $id, "updated");
+			$this->track("jsondb -> module-actions", $id, "updated");
 		}
 
 		/*
@@ -8604,7 +8541,7 @@
 				}
 			}
 			
-			$this->track("bigtree_module_embeds",$id,"updated");
+			$this->track("jsondb -> module-embeddable-forms",$id,"updated");
 		}
 
 		/*
@@ -8676,7 +8613,7 @@
 			// Get related views for this table and update numeric status
 			static::updateModuleViewColumnNumericStatusForTable($table);
 			
-			$this->track("bigtree_module_forms",$id,"updated");
+			$this->track("jsondb -> module-forms",$id,"updated");
 		}
 
 		/*
@@ -8705,7 +8642,7 @@
 				"route" => $route
 			]);
 
-			$this->track("bigtree_module_groups", $id, "updated");
+			$this->track("jsondb -> module-groups", $id, "updated");
 		}
 
 		/*
@@ -8750,7 +8687,7 @@
 				}
 			}
 
-			$this->track("bigtree_module_reports",$id,"updated");
+			$this->track("jsondb -> module-reports",$id,"updated");
 		}
 
 		/*
@@ -8803,7 +8740,7 @@
 			}
 
 			static::updateModuleViewColumnNumericStatusForTable($table);
-			$this->track("bigtree_module_views", $id, "updated");
+			$this->track("jsondb -> module-views", $id, "updated");
 		}
 
 		/*
@@ -8868,7 +8805,7 @@
 				}
 			}
 
-			$this->track("bigtree_module_views", $view, "updated");
+			$this->track("jsondb -> module-views", $view, "updated");
 		}
 
 		/*
@@ -9383,7 +9320,7 @@
 			]);
 
 			if ($old_id != $data["id"]) {
-				SQL::update("bigtree_settings", $old_id, ["id" => $data["id"]]);
+				SQL::update("jsondb -> settings", $old_id, ["id" => $data["id"]]);
 			}
 
 			// If encryption status has changed, update the value
@@ -9397,10 +9334,10 @@
 
 			// Audit trail.
 			if ($old_id != $data["id"]) {
-				$this->track("bigtree_settings", $old_id, "id -> ".$data["id"]);
+				$this->track("jsondb -> settings", $old_id, "id -> ".$data["id"]);
 			}
 
-			$this->track("bigtree_settings", $data["id"], "updated");
+			$this->track("jsondb -> settings", $data["id"], "updated");
 
 			return true;
 		}
@@ -9477,7 +9414,7 @@
 				"hooks" => is_array($hooks) ? $hooks : array_filter((array) json_decode($hooks, true))
 			]);
 
-			$this->track("bigtree_templates",$id,"updated");
+			$this->track("jsondb -> templates", $id, "updated");
 		}
 
 		/*

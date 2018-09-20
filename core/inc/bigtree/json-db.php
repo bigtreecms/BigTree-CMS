@@ -14,11 +14,13 @@
 			}
 		}
 
-		static function delete($type, $id) {
+		static function delete($type, $id, $alternate_id_column) {
 			static::cache($type);
 
 			foreach (static::$Cache[$type] as $index => $entry) {
-				if (isset($entry["id"]) && $entry["id"] == $id) {
+				if ($alternate_id_column !== false && isset($item[$alternate_id_column]) && $item[$alternate_id_column] == $id) {
+					unset(static::$Cache[$type][$index]);
+				} elseif (isset($entry["id"]) && $entry["id"] == $id) {
 					unset(static::$Cache[$type][$index]);
 				}
 			}

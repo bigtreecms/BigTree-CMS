@@ -539,7 +539,7 @@
 				table - Table name
 
 			Returns:
-				An array of rows from bigtree_module_views.
+				An array of views from the modules database.
 		*/
 
 		public static function getDependantViews($table) {
@@ -1149,9 +1149,9 @@
 				Returns rows from the table that match the filters provided.
 
 			Parameters:
-				report - A bigtree_module_reports entry.
-				view - A bigtree_module_views entry.
-				form - A bigtree_module_forms entry.
+				report - A module reports entry.
+				view - A module views entry.
+				form - A module forms entry.
 				filters - The submitted filters to run.
 				sort_field - The field to sort by.
 				sort_direction - The direction to sort by.

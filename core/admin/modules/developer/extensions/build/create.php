@@ -66,7 +66,7 @@
 	$used_forms = array();
 	$used_views = array();
 	$used_reports = array();
-	$extension = sqlescape($id);
+	$extension = $id;
 
 	foreach (array_filter((array)$module_groups) as $group) {
 		$package["components"]["module_groups"][] = $admin->getModuleGroup($group);
@@ -74,60 +74,116 @@
 	
 	foreach (array_filter((array)$callouts) as $callout) {
 		if (strpos($callout,"*") === false) {
-			sqlquery("UPDATE bigtree_callouts SET extension = '$extension', id = '$extension*".sqlescape($callout)."' WHERE id = '".sqlescape($callout)."'");
-			$callout = "$id*$callout";
+			BigTreeJSONDB::update("callouts", $callout, [
+				"extension" => $id,
+				"id" => $id."*".$callout
+			]);
+
+			$callout = $id."*".$callout;
 		}
 		$package["components"]["callouts"][] = $admin->getCallout($callout);
 	}
 	
 	foreach (array_filter((array)$feeds) as $feed) {
-		sqlquery("UPDATE bigtree_feeds SET route = CONCAT('$extension/',route), extension = '$extension' WHERE id = '".sqlescape($feed)."'");
-		$package["components"]["feeds"][] = $cms->getFeed($feed);
+		$feed = BigTreeJSONDB::get("feed", $feed);
+
+		if (!$feed["extension"]) {
+			BigTreeJSONDB::update("feeds", $feed["id"], ["route" => $extension."/".$feed["route"], "extension" => $extension]);
+		}
+
+		$package["components"]["feeds"][] = $feed;
 	}
 	
 	foreach (array_filter((array)$settings) as $setting) {
 		if (strpos($setting,"*") === false) {
-			sqlquery("UPDATE bigtree_settings SET id = CONCAT('$extension*',id), extension = '$extension' WHERE id = '".sqlescape($setting)."'");
+			BigTreeJSONDB::update("settings", $setting, ["id" => $extension."*".$setting, "extension" => $extension]);
 			$setting = "$id*$setting";
 		}
+
 		$package["components"]["settings"][] = $admin->getSetting($setting);
 	}
 
 	// Setup anonymous function for converting old field type IDs to new ones
-	$field_type_converter = function($table,$field) {
-		global $id,$type;
-		$q = sqlquery("SELECT * FROM `$table` WHERE `$field` LIKE '%\"type\":\"".sqlescape($type)."\"%' OR `$field` LIKE '%\"type\": \"".sqlescape($type)."\"%'");
-		while ($f = sqlfetch($q)) {
-			$array = json_decode($f[$field],true);
-			foreach ($array as &$item) {
-				if ($item["type"] == $type) {
-					$item["type"] = $id."*".$type;
-				} elseif ($item["type"] == "matrix") {
-					if (empty($item["settings"])) {
-						$item["settings"] = $item["options"];
+	$field_type_converter = function($table, $field, $subset = "") {
+		global $id, $type;
+
+		if ($subset) {
+			$modules = BigTreeJSONDB::getAll("modules");
+
+			foreach ($modules as $module) {
+				$context = BigTreeJSONDB::getSubset("modules", $module["id"]);
+				$rows = $context->getAll($subset);
+
+				foreach ($rows as $row) {
+					$array = $row[$field];
+
+					foreach ($array as &$item) {
+						if ($item["type"] == $type) {
+							$item["type"] = $id."*".$type;
+						} elseif ($item["type"] == "matrix") {
+							if (empty($item["settings"])) {
+								$item["settings"] = $item["options"];
+							}
+							
+							foreach ($item["settings"]["columns"] as &$column) {
+								if ($column["type"] == $type) {
+									$column["type"] = $id."*".$type;
+								}
+							}
+						}
 					}
-					
-					foreach ($item["settings"]["columns"] as &$column) {
-						if ($column["type"] == $type) {
-							$column["type"] = $id."*".$type;
+	
+					$context->update($subset, $row["id"], [$field => $array]);
+				}
+			}
+		} else {
+			$rows = BigTreeJSONDB::getAll($table);
+
+			foreach ($rows as $row) {
+				$array = $row[$field];
+
+				foreach ($array as &$item) {
+					if ($item["type"] == $type) {
+						$item["type"] = $id."*".$type;
+					} elseif ($item["type"] == "matrix") {
+						if (empty($item["settings"])) {
+							$item["settings"] = $item["options"];
+						}
+						
+						foreach ($item["settings"]["columns"] as &$column) {
+							if ($column["type"] == $type) {
+								$column["type"] = $id."*".$type;
+							}
 						}
 					}
 				}
+
+				BigTreeJSONDB::update($table, $row["id"], [$field => $array]);
 			}
-			sqlquery("UPDATE `$table` SET `$field` = '".BigTree::json($array,true)."' WHERE id = '".$f["id"]."'");
 		}
 	};
 
 	foreach (array_filter((array)$field_types) as $type) {
 		// Currently non-extension field type becoming an extension one
 		if (strpos($type,"*") === false) {
-			sqlquery("UPDATE bigtree_field_types SET extension = '$extension', id = CONCAT('$extension*',id) WHERE id = '".sqlescape($type)."'");
+			BigTreeJSONDB::update("field-types", $type, [
+				"extension" => $extension,
+				"id" => $extension."*".$type
+			]);
+
 			// Convert old usage of field type ID to extension usage
-			$field_type_converter("bigtree_templates","resources");
-			$field_type_converter("bigtree_callouts","resources");
-			$field_type_converter("bigtree_module_forms","fields");
-			$field_type_converter("bigtree_module_embeds","fields");
-			sqlquery("UPDATE bigtree_settings SET `type` = '".sqlescape($id."*".$type)."' WHERE `type` = '".sqlescape($type)."'");
+			$field_type_converter("templates", "resources");
+			$field_type_converter("callouts", "resources");
+			$field_type_converter("modules", "fields", "forms");
+			$field_type_converter("modules", "fields", "embeddable-forms");
+
+			$settings = BigTreeJSONDB::getAll("settings");
+
+			foreach ($settings as $setting) {
+				if ($setting["type"] == $type) {
+					BigTreeJSONDB::update("settings", $setting["id"], ["type" => $extension."*".$type]);
+				}
+			}
 
 			// Move files into new location
 			if (file_exists(SERVER_ROOT."custom/admin/field-types/$type/")) {
@@ -149,9 +205,13 @@
 
 	foreach (array_filter((array)$templates) as $template) {
 		if (strpos($template,"*") === false) {
-			sqlquery("UPDATE bigtree_templates SET extension = '$extension', id = CONCAT('$extension*',id) WHERE id = '".sqlescape($template)."'");
+			BigTreeJSONDB::update("templates", $template, [
+				"extension" => $extension,
+				"id" => $extension."*".$template
+			]);
 			$template = "$id*$template";
 		}
+
 		$package["components"]["templates"][] = $cms->getTemplate($template);
 	}
 
