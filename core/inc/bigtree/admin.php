@@ -804,7 +804,7 @@
 				$get_vars = sqlescape(htmlspecialchars($from_parts["query"]));
 			}
 
-			$from = sqlescape(htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT, "", $from),"/"))));
+			$from = sqlescape(htmlspecialchars(strip_tags(trim(str_replace(WWW_ROOT, "", $from),"/"))));
 			$to = sqlescape(htmlspecialchars($this->autoIPL($to)));
 
 			// See if the from already exists
