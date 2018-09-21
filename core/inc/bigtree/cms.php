@@ -497,7 +497,7 @@
 				}
 
 				// See if namespaced version exists
-				$exists = SQL::exists("SELECT id FROM bigtree_settings WHERE id = '$extension*$id'");
+				$exists = SQL::exists("bigtree_settings", $extension."*".$id);
 
 				if ($exists) {
 					return "$extension*$id";

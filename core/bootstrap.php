@@ -82,19 +82,8 @@
 	} else {
 		ini_set("display_errors","off");
 	}
-	
-	// Load Up BigTree!
-	include BigTree::path("inc/bigtree/cms.php");
-	if (defined("BIGTREE_CUSTOM_BASE_CLASS") && BIGTREE_CUSTOM_BASE_CLASS) {
-		include SITE_ROOT.BIGTREE_CUSTOM_BASE_CLASS_PATH;
-		eval("class BigTreeCMS extends ".BIGTREE_CUSTOM_BASE_CLASS." {}");
-	} else {
-		class BigTreeCMS extends BigTreeCMSBase {};
-	}
-	$cms = new BigTreeCMS;
 
-	// Lazy loading of modules
-	$bigtree["module_list"] = $cms->ModuleClassList;
+	// Core classes for auto-loading
 	$bigtree["other_classes"] = array(
 		"BigTreeAdminBase" => "inc/bigtree/admin.php",
 		"BigTreeAutoModule" => "inc/bigtree/auto-modules.php",
@@ -130,9 +119,21 @@
 		"TextStatistics" => "inc/lib/text-statistics.php",
 		"lessc" => "inc/lib/less-compiler.php"
 	);
-	
-	// Auto load classes	
+
 	spl_autoload_register("BigTree::classAutoLoader");
+	
+	// Load Up BigTree!
+	include BigTree::path("inc/bigtree/cms.php");
+	if (defined("BIGTREE_CUSTOM_BASE_CLASS") && BIGTREE_CUSTOM_BASE_CLASS) {
+		include SITE_ROOT.BIGTREE_CUSTOM_BASE_CLASS_PATH;
+		eval("class BigTreeCMS extends ".BIGTREE_CUSTOM_BASE_CLASS." {}");
+	} else {
+		class BigTreeCMS extends BigTreeCMSBase {};
+	}
+	$cms = new BigTreeCMS;
+
+	// Lazy loading of modules
+	$bigtree["module_list"] = $cms->ModuleClassList;
 
 	// Setup admin class if it's custom, but don't instantiate the $admin var.
 	if (defined("BIGTREE_CUSTOM_ADMIN_CLASS") && BIGTREE_CUSTOM_ADMIN_CLASS) {

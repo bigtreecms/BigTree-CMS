@@ -6226,7 +6226,7 @@
 						"route" => $route,
 						"class" => $module["class"],
 						"icon" => $module["icon"],
-						"group" => $module["group"] && isset($bigtree["group_match"][$module["group"]])) ? $bigtree["group_match"][$module["group"]] : null,
+						"group" => $module["group"] && isset($bigtree["group_match"][$module["group"]]) ? $bigtree["group_match"][$module["group"]] : null,
 						"gbp" => $module["gbp"],
 						"extension" => $extension
 					]);

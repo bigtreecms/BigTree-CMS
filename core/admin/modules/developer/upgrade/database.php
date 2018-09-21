@@ -907,15 +907,11 @@
 		$json = [];
 	
 		foreach ($groups as $group) {
-			$old_id = $group["id"];
-			$group["id"] = $get_unique_id("callout-groups-");
 			$group["callouts"] = json_decode($group["callouts"], true);
 			$json[] = $group;
-
-			SQL::update("bigtree_audit_trail", ["table" => "bigtree_callout_groups", "entry" => $old_id], ["entry" => $group["id"]]);
 		}
 	
-		file_put_contents(SERVER_ROOT."custom/json-db/callout-groups.json", BigTree::json($json));
+		BigTree::putFile(SERVER_ROOT."custom/json-db/callout-groups.json", BigTree::json($json));
 	
 		$callouts = SQL::fetchAll("SELECT * FROM bigtree_callouts");
 		$json = [];
@@ -925,7 +921,7 @@
 			$json[] = $callout;
 		}
 	
-		file_put_contents(SERVER_ROOT."custom/json-db/callouts.json", BigTree::json($json));
+		BigTree::putFile(SERVER_ROOT."custom/json-db/callouts.json", BigTree::json($json));
 	
 		$templates = SQL::fetchAll("SELECT * FROM bigtree_templates");
 		$json = [];
@@ -936,7 +932,7 @@
 			$json[] = $template;
 		}
 	
-		file_put_contents(SERVER_ROOT."custom/json-db/templates.json", BigTree::json($json));
+		BigTree::putFile(SERVER_ROOT."custom/json-db/templates.json", BigTree::json($json));
 	
 		$field_types = SQL::fetchAll("SELECT * FROM bigtree_field_types");
 		$json = [];
@@ -946,7 +942,7 @@
 			$json[] = $field_type;
 		}
 	
-		file_put_contents(SERVER_ROOT."custom/json-db/field-types.json", BigTree::json($json));
+		BigTree::putFile(SERVER_ROOT."custom/json-db/field-types.json", BigTree::json($json));
 		
 		$settings = SQL::fetchAll("SELECT * FROM bigtree_settings WHERE system != 'on'");
 		$json = [];
@@ -958,7 +954,7 @@
 			$json[] = $setting;
 		}
 	
-		file_put_contents(SERVER_ROOT."custom/json-db/settings.json", BigTree::json($json));
+		BigTree::putFile(SERVER_ROOT."custom/json-db/settings.json", BigTree::json($json));
 	
 		$feeds = SQL::fetchAll("SELECT * FROM bigtree_feeds");
 		$json = [];
@@ -973,7 +969,7 @@
 			SQL::update("bigtree_audit_trail", ["table" => "bigtree_feeds", "entry" => $old_id], ["entry" => $feed["id"]]);
 		}
 	
-		file_put_contents(SERVER_ROOT."custom/json-db/feeds.json", BigTree::json($json));
+		BigTree::putFile(SERVER_ROOT."custom/json-db/feeds.json", BigTree::json($json));
 	
 		$module_groups = SQL::fetchAll("SELECT * FROM bigtree_module_groups");
 		$module_groups_rel = [];
@@ -987,7 +983,7 @@
 			$module_groups_rel[$old_group_id] = $group["id"];
 		}
 	
-		file_put_contents(SERVER_ROOT."custom/json-db/module-groups.json", BigTree::json($json));
+		BigTree::putFile(SERVER_ROOT."custom/json-db/module-groups.json", BigTree::json($json));
 	
 		$modules = SQL::fetchAll("SELECT * FROM bigtree_modules");
 		$modules_rel = [];
@@ -1104,7 +1100,7 @@
 			$modules_rel[$old_module_id] = $module["id"];
 		}
 	
-		file_put_contents(SERVER_ROOT."custom/json-db/modules.json", BigTree::json($modules_json));
+		BigTree::putFile(SERVER_ROOT."custom/json-db/modules.json", BigTree::json($modules_json));
 
 		// Update user's module permissions based on the new IDs
 		$users = SQL::fetchAll("SELECT * FROM bigtree_users");
