@@ -14,7 +14,7 @@
 			}
 		}
 
-		static function delete($type, $id, $alternate_id_column) {
+		static function delete($type, $id, $alternate_id_column = false) {
 			static::cache($type);
 
 			foreach (static::$Cache[$type] as $index => $entry) {
@@ -28,7 +28,7 @@
 			static::save($type);
 		}
 
-		static function exists($type, $id, $alternate_id_column) {
+		static function exists($type, $id, $alternate_id_column = false) {
 			static::cache($type);
 
 			foreach (static::$Cache[$type] as $item) {

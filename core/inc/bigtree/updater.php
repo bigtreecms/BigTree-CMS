@@ -262,14 +262,19 @@
 			$contents = $zip->listContent();
 			$root_count = 0;
 			$root = false;
-			foreach ($contents as $content) {
-				$file = rtrim($content["filename"],"/");
-				$pieces = explode("/",$file);
-				if (count($pieces) == 1) {
-					$root_count++;
-					$root = $file;
+
+			if (is_array($contents)) {
+				foreach ($contents as $content) {
+					$file = rtrim($content["filename"],"/");
+					$pieces = explode("/",$file);
+					
+					if (count($pieces) == 1) {
+						$root_count++;
+						$root = $file;
+					}
 				}
 			}
+			
 			if ($root_count == 1) {
 				return $root;
 			}

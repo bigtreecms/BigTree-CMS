@@ -1122,4 +1122,13 @@
 			SQL::update("bigtree_users", $user["id"], ["permissions" => $new_permissions]);
 		}
 
+		$extensions = SQL::fetchAll("SELECT * FROM bigtree_extensions WHERE type = 'extension'");
+		$json = [];
+
+		foreach ($extensions as $extension) {
+			$extension["manifest"] = json_decode($extension["manifest"], true);
+			$json[] = $extension;
+		}
+
+		BigTree::putFile(SERVER_ROOT."custom/json-db/extensions.json", BigTree::json($json));
 	}

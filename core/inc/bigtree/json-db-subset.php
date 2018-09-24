@@ -23,11 +23,13 @@
 			}
 		}
 
-		function delete($type, $id) {
+		function delete($type, $id, $alternate_id_column = false) {
 			$this->check($type);
 
 			foreach ($this->Cache[$type] as $index => $entry) {
-				if (isset($entry["id"]) && $entry["id"] == $id) {
+				if ($alternate_id_column !== false && isset($item[$alternate_id_column]) && $item[$alternate_id_column] == $id) {
+					unset($this->Cache[$type][$index]);
+				} elseif (isset($entry["id"]) && $entry["id"] == $id) {
 					unset($this->Cache[$type][$index]);
 				}
 			}
@@ -35,7 +37,7 @@
 			$this->save();
 		}
 
-		function exists($type, $id, $alternate_id_column) {
+		function exists($type, $id, $alternate_id_column = false) {
 			$this->check($type);
 
 			foreach ($this->Cache[$type] as $item) {

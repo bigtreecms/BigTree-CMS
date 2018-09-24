@@ -108,7 +108,7 @@
 			if (isset($bigtree["config"]["admin_js"]) && is_array($bigtree["config"]["admin_js"])) {
 				foreach ($bigtree["config"]["admin_js"] as $script) {
 					if (strpos($script, "https://") === false && strpos($script, "http://") === false) {
-						$script = ADMIN_ROOT."css/".$script;
+						$script = ADMIN_ROOT."js/".$script;
 					}
 		?>
 		<script src="<?=$script?>"></script>
