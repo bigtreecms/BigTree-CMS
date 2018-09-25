@@ -1709,7 +1709,7 @@
 
 				return $existing["id"];
 			} else {
-				$id = $id ? intval($id) : "NULL";
+				$id = $id ? "'$id'": "NULL";
 				$publish_hook = is_null($publish_hook) ? "NULL" : "'".sqlescape($publish_hook)."'";
 				sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`mtm_changes`,`tags_changes`,`open_graph_changes`,`module`,`type`,`publish_hook`) VALUES ('".$admin->ID."',NOW(),'$table',$id,'$changes','$many_data','$tags_data','$open_graph_data','$module','EDIT',$publish_hook)");
 				self::recacheItem($id,$table);
