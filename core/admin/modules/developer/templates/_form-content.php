@@ -18,14 +18,14 @@
 		<div class="left">
 			<fieldset<? if ($show_error) { ?> class="form_error"<? } ?>>
 				<label class="required">ID <small>(used for file/directory name, alphanumeric, "-" and "_" only)</small><? if ($show_error) { ?> <span class="form_error_reason"><?=$show_error?></span><? } ?></label>
-				<input type="text" class="required" name="id" value="<?=$id?>" />
+				<input type="text" class="required" name="id" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($id))))?>" />
 			</fieldset>
 		</div>
 		<? } ?>
 		<div class="<? if (isset($template)) { ?>left<? } else { ?>right<? } ?>">
 			<fieldset>
 				<label class="required">Name</label>
-				<input type="text" class="required" name="name" value="<?=$name?>" />
+				<input type="text" class="required" name="name" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($name))))?>" />
 			</fieldset>
 		</div>
 	</div>
