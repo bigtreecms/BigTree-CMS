@@ -11,12 +11,12 @@
 		<? if (!isset($callout)) { ?>
 		<fieldset<? if ($show_error) { ?> class="form_error"<? } ?>>
 			<label class="required">ID <small>(used for file name, alphanumeric, "-" and "_" only)</small><? if ($show_error) { ?> <span class="form_error_reason"><?=$show_error?></span><? } ?></label>
-			<input type="text" class="required" name="id" value="<?=$id?>" />
+			<input type="text" class="required" name="id" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($id))))?>" />
 		</fieldset>
 		<? } ?>
 		<fieldset>
 			<label class="required">Name</label>
-			<input type="text" class="required" name="name" value="<?=$name?>" />
+			<input type="text" class="required" name="name" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($name))))?>" />
 		</fieldset>
 		<fieldset>
 			<label>Access Level</label>
@@ -28,7 +28,7 @@
 		</fieldset>
 		<fieldset>
 			<label class="required">Default Display Label <small>(displays if no resources are assigned as "Label")</small></label>
-			<input type="text" name="display_default" value="<?=$display_default?>" />
+			<input type="text" name="display_default" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($display_default))))?>" />
 		</fieldset>
 	</div>
 	<div class="right">
