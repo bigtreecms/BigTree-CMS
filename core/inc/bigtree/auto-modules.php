@@ -44,33 +44,35 @@
 			$modules = BigTreeJSONDB::getAll("modules");
 
 			foreach ($modules as $module) {
-				foreach ($views as $view) {
-					if ($view["table"] == $table) {
-						if ($recache) {
-							sqlquery("DELETE FROM bigtree_module_view_cache WHERE `view` = '".$view["id"]."' AND id = '".$item["id"]."'");
-						}
-						
-						$view["options"] = &$view["settings"]; // Backwards compatibility
-						
-						// In case this view has never been cached, run the whole view, otherwise just this one.
-						if (!self::cacheViewData($view)) {
-							// Find out what module we're using so we can get the gbp_field
-							$view["gbp"] = $module["gbp"];
-							
-							$form = self::getRelatedFormForView($view);
-							
-							$parsers = array();
-							$poplists = array();
-							
-							foreach ($view["fields"] as $key => $field) {
-								if ($field["parser"]) {
-									$parsers[$key] = $field["parser"];
-								} elseif ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["settings"]["list_type"] == "db") {
-									$poplists[$key] = array("description" => $form["fields"][$key]["settings"]["pop-description"], "table" => $form["fields"][$key]["settings"]["pop-table"]);
-								}
+				if (is_array($module["views"])) {
+					foreach ($module["views"] as $view) {
+						if ($view["table"] == $table) {
+							if ($recache) {
+								sqlquery("DELETE FROM bigtree_module_view_cache WHERE `view` = '".$view["id"]."' AND id = '".$item["id"]."'");
 							}
 							
-							self::cacheRecord($item,$view,$parsers,$poplists,$original_item);
+							$view["options"] = &$view["settings"]; // Backwards compatibility
+							
+							// In case this view has never been cached, run the whole view, otherwise just this one.
+							if (!self::cacheViewData($view)) {
+								// Find out what module we're using so we can get the gbp_field
+								$view["gbp"] = $module["gbp"];
+								
+								$form = self::getRelatedFormForView($view);
+								
+								$parsers = array();
+								$poplists = array();
+								
+								foreach ($view["fields"] as $key => $field) {
+									if ($field["parser"]) {
+										$parsers[$key] = $field["parser"];
+									} elseif ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["settings"]["list_type"] == "db") {
+										$poplists[$key] = array("description" => $form["fields"][$key]["settings"]["pop-description"], "table" => $form["fields"][$key]["settings"]["pop-table"]);
+									}
+								}
+								
+								self::cacheRecord($item,$view,$parsers,$poplists,$original_item);
+							}
 						}
 					}
 				}
@@ -322,9 +324,11 @@
 				$modules = BigTreeJSONDB::getAll("modules");
 
 				foreach ($modules as $module) {
-					foreach ($module["views"] as $view) {
-						if ($view["table"] == $entry) {
-							SQL::query("DELETE FROM bigtree_module_view_cache WHERE view = ?", $view["id"]);
+					if (is_array($module["views"])) {
+						foreach ($module["views"] as $view) {
+							if ($view["table"] == $entry) {
+								SQL::query("DELETE FROM bigtree_module_view_cache WHERE view = ?", $view["id"]);
+							}
 						}
 					}
 				}
@@ -547,10 +551,12 @@
 			$modules = BigTreeJSONDB::getAll("modules");
 
 			foreach ($modules as $module) {
-				foreach ($module["views"] as $view) {
-					if ($view["type"] == "grouped" || $view["type"] == "images-grouped") {
-						if ($view["settings"]["other_table"] == $table) {
-							$dependent_views[] = $view;
+				if (is_array($module["views"])) {
+					foreach ($module["views"] as $view) {
+						if ($view["type"] == "grouped" || $view["type"] == "images-grouped") {
+							if ($view["settings"]["other_table"] == $table) {
+								$dependent_views[] = $view;
+							}
 						}
 					}
 				}
@@ -603,11 +609,13 @@
 			$modules = BigTreeJSONDB::getAll("modules");
 
 			foreach ($modules as $module) {
-				foreach ($module["embeddable-forms"] as $form) {
-					if ($form["id"] == $id) {
-						$form["module"] = $module["id"];
+				if (is_array($module["embeddable-forms"])) {
+					foreach ($module["embeddable-forms"] as $form) {
+						if ($form["id"] == $id) {
+							$form["module"] = $module["id"];
 
-						return $form;
+							return $form;
+						}
 					}
 				}
 			}
@@ -630,9 +638,11 @@
 			$modules = BigTreeJSONDB::getAll("modules");
 
 			foreach ($modules as $module) {
-				foreach ($module["embeddable-forms"] as $form) {
-					if ($form["hash"] == $hash) {
-						return $form;
+				if (is_array($module["embeddable-forms"])) {
+					foreach ($module["embeddable-forms"] as $form) {
+						if ($form["hash"] == $hash) {
+							return $form;
+						}
 					}
 				}
 			}
@@ -692,10 +702,12 @@
 				$form = null;
 	
 				foreach ($modules as $module) {
-					foreach ($module["forms"] as $module_form) {
-						if ($module_form["id"] == $id) {
-							$form = $module_form;
-							$form["module"] = $module["id"];
+					if (is_array($module["forms"])) {
+						foreach ($module["forms"] as $module_form) {
+							if ($module_form["id"] == $id) {
+								$form = $module_form;
+								$form["module"] = $module["id"];
+							}
 						}
 					}
 				}
@@ -859,9 +871,11 @@
 			$modules = BigTreeJSONDB::getAll("modules");
 
 			foreach ($modules as $module) {
-				foreach ($module["forms"] as $form) {
-					if ($form["id"] == $form_id) {
-						return $module;
+				if (is_array($module["forms"])) {
+					foreach ($module["forms"] as $form) {
+						if ($form["id"] == $form_id) {
+							return $module;
+						}
 					}
 				}
 			}
@@ -888,9 +902,11 @@
 			$modules = BigTreeJSONDB::getAll("modules");
 
 			foreach ($modules as $module) {
-				foreach ($module["views"] as $view) {
-					if ($view["id"] == $view_id) {
-						return $module;
+				if (is_array($module["views"])) {
+					foreach ($module["views"] as $view) {
+						if ($view["id"] == $view_id) {
+							return $module;
+						}
 					}
 				}
 			}
@@ -1017,9 +1033,11 @@
 			$modules = BigTreeJSONDB::getAll("modules");
 
 			foreach ($modules as $module) {
-				foreach ($module["forms"] as $form) {
-					if ($form["table"] == $report["table"]) {
-						return static::getForm($form);
+				if (is_array($module["forms"])) {
+					foreach ($module["forms"] as $form) {
+						if ($form["table"] == $report["table"]) {
+							return static::getForm($form);
+						}
 					}
 				}
 			}
@@ -1041,18 +1059,22 @@
 		
 			if ($view["related_form"]) {
 				foreach ($modules as $module) {
-					foreach ($module["forms"] as $form) {
-						if ($form["id"] == $view["table"]) {
-							return static::getForm($form);
+					if (is_array($module["forms"])) {
+						foreach ($module["forms"] as $form) {
+							if ($form["id"] == $view["table"]) {
+								return static::getForm($form);
+							}
 						}
 					}
 				}
 			}
 
 			foreach ($modules as $module) {
-				foreach ($module["forms"] as $form) {
-					if ($form["table"] == $view["table"]) {
-						return static::getForm($form);
+				if (is_array($module["forms"])) {
+					foreach ($module["forms"] as $form) {
+						if ($form["table"] == $view["table"]) {
+							return static::getForm($form);
+						}
 					}
 				}
 			}
@@ -1076,17 +1098,21 @@
 			
 			// Prioritize a view that has this form as the related form
 			foreach ($modules as $module) {
-				foreach ($module["views"] as $view) {
-					if ($form["id"] == $view["related_form"]) {
-						return static::getView($view);
+				if (is_array($module["views"])) {
+					foreach ($module["views"] as $view) {
+						if ($form["id"] == $view["related_form"]) {
+							return static::getView($view);
+						}
 					}
 				}
 			}
 
 			foreach ($modules as $module) {
-				foreach ($module["views"] as $view) {
-					if ($form["table"] == $view["table"]) {
-						return static::getView($view);
+				if (is_array($module["views"])) {
+					foreach ($module["views"] as $view) {
+						if ($form["table"] == $view["table"]) {
+							return static::getView($view);
+						}
 					}
 				}
 			}
@@ -1109,9 +1135,11 @@
 			$modules = BigTreeJSONDB::getAll("modules");
 			
 			foreach ($modules as $module) {
-				foreach ($module["views"] as $view) {
-					if ($report["table"] == $view["table"]) {
-						return static::getView($view);
+				if (is_array($module["views"])) {
+					foreach ($module["views"] as $view) {
+						if ($report["table"] == $view["table"]) {
+							return static::getView($view);
+						}
 					}
 				}
 			}
@@ -1132,11 +1160,13 @@
 			$modules = BigTreeJSONDB::getAll("modules");
 			
 			foreach ($modules as $module) {
-				foreach ($module["reports"] as $report) {
-					if ($report["id"] == $id) {
-						$report["module"] = $module["id"];
-						
-						return $report;
+				if (is_array($module["reports"])) {
+					foreach ($module["reports"] as $report) {
+						if ($report["id"] == $id) {
+							$report["module"] = $module["id"];
+							
+							return $report;
+						}
 					}
 				}
 			}
@@ -1405,13 +1435,15 @@
 			$view = null;
 
 			foreach ($modules as $module) {
-				foreach ($module["views"] as $module_view) {
-					if ($module_view["id"] == $view_id) {
-						$view = $module_view;
-						$view["module"] = $module["id"];
-						$module_for_view = $module;
+				if (is_array($module["views"])) {
+					foreach ($module["views"] as $module_view) {
+						if ($module_view["id"] == $view_id) {
+							$view = $module_view;
+							$view["module"] = $module["id"];
+							$module_for_view = $module;
 
-						break 2;
+							break 2;
+						}
 					}
 				}
 			}
@@ -1436,11 +1468,11 @@
 					$regular_action = null;
 
 					foreach ($module_for_view["actions"] as $action) {
-						if ($form["id"] == $view["related_form"] && substr($action["route"], 0, 4) == "edit") {
+						if ($action["form"] == $view["related_form"] && substr($action["route"], 0, 4) == "edit") {
 							$edit_action = $action;
 
 							break;
-						} elseif ($form["id"] == $view["related_form"]) {
+						} elseif ($action["form"] == $view["related_form"]) {
 							$regular_action = $action;
 						}
 					}
@@ -1566,12 +1598,14 @@
 			$module_for_view = null;
 
 			foreach ($modules as $module) {
-				foreach ($module["views"] as $module_view) {
-					if ($module_view["table"] == $table) {
-						$view = $module_view;
-						$module_for_view = $module;
+				if (is_array($module["views"])) {
+					foreach ($module["views"] as $module_view) {
+						if ($module_view["table"] == $table) {
+							$view = $module_view;
+							$module_for_view = $module;
 
-						break 2;
+							break 2;
+						}
 					}
 				}
 			}
@@ -1895,9 +1929,11 @@
 			$modules = BigTreeJSONDB::getAll("modules");
 
 			foreach ($modules as $module) {
-				foreach ($module["views"] as $view) {
-					if ($view["table"] == $table) {
-						SQL::query("DELETE FROM bigtree_module_view_cache WHERE `view` = ? AND `id` = ?", $view["id"], $id);
+				if (is_array($module["views"])) {
+					foreach ($module["views"] as $view) {
+						if ($view["table"] == $table) {
+							SQL::query("DELETE FROM bigtree_module_view_cache WHERE `view` = ? AND `id` = ?", $view["id"], $id);
+						}
 					}
 				}
 			}
