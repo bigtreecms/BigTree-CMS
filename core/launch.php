@@ -34,6 +34,10 @@
 	}
 
 	// Prevent path manipulations
+	if (strpos($_GET["bigtree_htaccess_url"], "..\\") !== false) {
+		die();
+	}
+	
 	$bigtree["path"] = array_filter($bigtree["path"],function($val) {
 		if ($val == "..") {
 			die();
