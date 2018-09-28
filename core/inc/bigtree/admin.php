@@ -3725,13 +3725,13 @@
 				Returns a list of installed/created extensions.
 
 			Parameters:
-				sort - Column/direction to sort (defaults to last_updated DESC)
+				sort - Column/direction to sort (defaults to name ASC)
 
 			Returns:
 				An array of extensions.
 		*/
 
-		public static function getExtensions($sort = "last_updated DESC") {
+		public static function getExtensions($sort = "name ASC") {
 			list($sort_column, $sort_direction) = explode(" ", $sort);
 
 			return BigTreeJSONDB::getAll("extensions", $sort_column, $sort_direction ?: "ASC");
