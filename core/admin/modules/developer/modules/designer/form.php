@@ -27,7 +27,7 @@
 			<div class="left">
 				<fieldset>
 					<label class="required">Item Title <small>(for example, "Question" as in "Adding Question")</small></label>
-					<input type="text" class="required" name="title" value="<?=$title?>" />
+					<input type="text" class="required" name="title" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($title))))?>" /> <!--To prevent XSS when one or more fields are empty-->
 				</fieldset>
 			</div>
 		</section>
