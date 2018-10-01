@@ -4,6 +4,11 @@
 	BigTree::globalizePOSTVars();
 	
 	$errors = array();
+
+	// To prevent XSS that can be triggered via $table as follows:
+	// 1. Developer->Modules->View Modules->edit any Module with vulnerable $table, or
+	// 2. Developer->Feeds->Add Feed
+	$table = htmlspecialchars(trim(stripslashes(strip_tags($table))));
 	
 	// Check if the table exists
 	if (BigTree::tableExists($table)) {
