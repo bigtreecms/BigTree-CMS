@@ -89,7 +89,8 @@
 					<input type="hidden" name="resources[<?=$x?>][options]" value="<?=htmlspecialchars(json_encode($resource["options"]))?>" id="options_<?=$x?>" />
 				</section>
 				<section class="developer_resource_display_title">
-					<input type="radio" name="display_field" value="<?=$resource["id"]?>" id="display_title_<?=$x?>"<? if ($display_field == $resource["id"]) echo ' checked="checked"'; ?> />
+					<!--Sanitize $resource["id"] to prevent XSS when entering invalid ID-->
+					<input type="radio" name="display_field" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($resource["id"]))))?>" id="display_title_<?=$x?>"<? if ($display_field == $resource["id"]) echo ' checked="checked"'; ?> />
 				</section>
 				<section class="developer_resource_action right">
 					<a href="#" class="icon_delete"></a>
