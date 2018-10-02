@@ -12,13 +12,13 @@
 			<div class="left">
 				<fieldset>
 					<label class="required">Module Name <small>(for example, News)</small></label>
-					<input name="name" class="required" type="text" value="<?=$name?>" />
+					<input name="name" class="required" type="text" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($name))))?>" />
 				</fieldset>
 			</div>
 			<br class="clear" /><br />
 			<fieldset class="clear developer_module_group">
 				<label>Module Group <small>(if a new group name is chosen, the select box is ignored)</small></label> 
-				<input name="group_new" type="text" placeholder="New Group" value="<?=$group_new?>" />
+				<input name="group_new" type="text" placeholder="New Group" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($group_new))))?>" /> <!--To prevent XSS when Table already exist-->
 				<span>OR</span>
 				<select name="group_existing">
 					<option value="0"></option>
@@ -30,11 +30,11 @@
 			<div class="left">
 				<fieldset<? if (isset($e["table"])) { ?> class="form_error"<? } ?>>
 					<label class="required">Table Name <small>(for example, my_site_news)</small><? if (isset($e["table"])) { ?><span class="form_error_reason">Table Already Exists</span><? } ?></label>
-					<input name="table" class="required" type="text" value="<?=$table?>" />
+					<input name="table" class="required" type="text" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($table))))?>" />
 				</fieldset>
 				<fieldset<? if (isset($e["class"])) { ?> class="form_error"<? } ?>>
 					<label class="required">Class Name <small>(for example, MySiteNews)</small><? if (isset($e["class"])) { ?><span class="form_error_reason">Class Already Exists</span><? } ?></label>
-					<input name="class" class="required" type="text" value="<?=$class?>" />
+					<input name="class" class="required" type="text" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($class))))?>" />
 				</fieldset>
 			</div>
 			<br class="clear" />
