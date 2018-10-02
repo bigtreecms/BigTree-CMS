@@ -117,7 +117,7 @@
 	}
 
 	// Track resource allocation
-	$admin->allocateResources($bigtree["module"]["id"],$edit_id);
+	$admin->allocateResources($bigtree["form"]["table"], $edit_id);
 
 	// Put together saved form information for the error or crop page in case we need it.
 	$_SESSION["bigtree_admin"]["form_data"] = array(

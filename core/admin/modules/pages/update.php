@@ -55,6 +55,7 @@
 	include BigTree::path("admin/modules/pages/_resource-parse.php");
 	
 	$id = $_POST["page"];
+	$change_allocation_id = false;
 	
 	if ($bigtree["access_level"] == "p" && $_POST["ptype"] == "Save & Publish") {
 		$did_publish = true;
@@ -66,10 +67,12 @@
 			}
 			
 			$id = $admin->createPage($_POST, substr($id, 1));
+			$admin->updateResourceAllocation("bigtree_pages", $id, substr($_POST["page"], 1));
 			$admin->growl("Pages","Created & Published Page");
 		} else {
 			// It's an existing page.
-			$admin->updatePage($id,$_POST);
+			$admin->updatePage($id, $_POST);
+			$admin->allocateResources("bigtree_pages", $id);
 			$admin->growl("Pages","Updated Page");
 		}
 	} else {
@@ -79,7 +82,8 @@
 			$_POST["parent"] = $bigtree["current_page_data"]["parent"];
 		}
 		
-		$admin->submitPageChange($id, $_POST);
+		$change_allocation_id = $admin->submitPageChange($id, $_POST);
+		$admin->allocateResources("bigtree_pages", "p".$change_allocation_id);
 		$admin->growl("Pages","Saved Page Draft");
 	}
 
@@ -113,9 +117,6 @@
 	} else {
 		$redirect_url = ADMIN_ROOT."pages/view-tree/".$bigtree["current_page_data"]["parent"]."/";
 	}
-
-	// Track resource allocation
-	$admin->allocateResources("pages",$id);
 
 	$_SESSION["bigtree_admin"]["form_data"] = array(
 		"page" => $id,

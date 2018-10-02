@@ -41,7 +41,7 @@
 	);
 
 	// Track resource allocation
-	$admin->allocateResources("settings",$_POST["id"]);
+	$admin->allocateResources("bigtree_settings", $_POST["id"]);
 
 	if (count($bigtree["crops"])) {
 		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = $cms->cacheUnique("org.bigtreecms.crops",$bigtree["crops"]);
