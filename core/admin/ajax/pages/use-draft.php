@@ -43,10 +43,13 @@
 		// Update an existing draft with our changes and new author
 		$admin->updatePendingChange($existing["id"], $changes);
 		$admin->deallocateResources("bigtree_pages", "p".$existing["id"]);
+		$change_id = $existing["id"];
 	} else {
 		// If we don't have an existing copy, make a new draft.
-		$admin->createPendingChange("bigtree_pages", $revision["page"], $changes);
+		$change_id = $admin->createPendingChange("bigtree_pages", $revision["page"], $changes);
 	}
+
+	$admin->allocateResources("bigtree_pages", "p".$change_id);
 	
 	$admin->growl("Pages","Loaded Saved Revision");
 	BigTree::redirect(ADMIN_ROOT."pages/edit/".$revision["page"]."/");
