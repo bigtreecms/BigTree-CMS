@@ -23,7 +23,8 @@
 				<select name="group_existing">
 					<option value="0"></option>
 					<? foreach ($groups as $group) { ?>
-					<option value="<?=$group["id"]?>"<? if ($group_existing == $group["id"]) { ?> selected="selected"<? } ?>><?=$group["name"]?></option>
+					<!--Sanitize $group["id"] and $group["name"] to prevent XSS when adding Template-->
+					<option value="<?=htmlspecialchars(trim(stripslashes(strip_tags($group["id"]))))?>"<? if ($group_existing == $group["id"]) { ?> selected="selected"<? } ?>><?=htmlspecialchars(trim(stripslashes(strip_tags($group["name"]))))?></option>
 					<? } ?>
 				</select>
 			</fieldset>
