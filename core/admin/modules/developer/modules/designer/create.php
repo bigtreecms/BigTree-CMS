@@ -10,6 +10,11 @@
 	// 2. Modules->select any Module with vulnerable $table->Edit in Developer, or
 	// 3. Developer->Feeds->Add Feed
 	$table = htmlspecialchars(trim(stripslashes(strip_tags($table))));
+
+	// Sanitize $group_new, $group["id"], and $group["name"] to prevent XSS when adding Template
+	$group_new = htmlspecialchars(trim(stripslashes(strip_tags($group_new))));
+	$group["id"] = htmlspecialchars(trim(stripslashes(strip_tags($group["id"]))));
+	$group["name"] = htmlspecialchars(trim(stripslashes(strip_tags($group["name"]))));
 	
 	// Check if the table exists
 	if (BigTree::tableExists($table)) {
