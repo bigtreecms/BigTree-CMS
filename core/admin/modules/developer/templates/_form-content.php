@@ -18,14 +18,14 @@
 		<div class="left">
 			<fieldset<? if ($show_error) { ?> class="form_error"<? } ?>>
 				<label class="required">ID <small>(used for file/directory name, alphanumeric, "-" and "_" only)</small><? if ($show_error) { ?> <span class="form_error_reason"><?=$show_error?></span><? } ?></label>
-				<input type="text" class="required" name="id" value="<?=$id?>" />
+				<input type="text" class="required" name="id" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($id))))?>" />
 			</fieldset>
 		</div>
 		<? } ?>
 		<div class="<? if (isset($template)) { ?>left<? } else { ?>right<? } ?>">
 			<fieldset>
 				<label class="required">Name</label>
-				<input type="text" class="required" name="name" value="<?=$name?>" />
+				<input type="text" class="required" name="name" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($name))))?>" />
 			</fieldset>
 		</div>
 	</div>
@@ -104,13 +104,13 @@
 			<li>
 				<section class="developer_resource_id">
 					<span class="icon_sort"></span>
-					<input type="text" name="resources[<?=$x?>][id]" value="<?=$resource["id"]?>" />
+					<input type="text" name="resources[<?=$x?>][id]" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($resource["id"]))))?>" />
 				</section>
 				<section class="developer_resource_title">
-					<input type="text" name="resources[<?=$x?>][title]" value="<?=$resource["title"]?>" />
+					<input type="text" name="resources[<?=$x?>][title]" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($resource["title"]))))?>" />
 				</section>
 				<section class="developer_resource_subtitle">
-					<input type="text" name="resources[<?=$x?>][subtitle]" value="<?=$resource["subtitle"]?>" />
+					<input type="text" name="resources[<?=$x?>][subtitle]" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($resource["subtitle"]))))?>" />
 				</section>
 				<section class="developer_resource_type">
 					<select name="resources[<?=$x?>][type]" id="type_<?=$x?>">

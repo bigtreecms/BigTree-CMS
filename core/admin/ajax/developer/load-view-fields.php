@@ -60,7 +60,7 @@
 			?>
 			<li id="row_<?=$key?>">
 				<input type="hidden" name="fields[<?=$key?>][width]" value="<?=$field["width"]?>" />
-				<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[<?=$key?>][title]" value="<?=$field["title"]?>" /></section>
+				<section class="developer_view_title"><span class="icon_sort"></span><input type="text" name="fields[<?=$key?>][title]" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($field["title"]))))?>" /></section> <!--Prevent XSS when editing View (Developer->Modules->Edit View)-->
 				<section class="developer_view_parser"><input type="text" name="fields[<?=$key?>][parser]" value="<?=htmlspecialchars($field["parser"])?>" class="parser" placeholder="PHP code to transform $value (which contains the column value.)" /></section>
 				<section class="developer_resource_action"><a href="#" class="icon_delete"></a></section>
 			</li>

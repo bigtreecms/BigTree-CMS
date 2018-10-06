@@ -12,7 +12,8 @@
 			foreach ($bigtree["view"]["fields"] as $key => $field) {
 				$x++;
 		?>
-		<span class="view_column" style="width: <?=$field["width"]?>px;"><?=$field["title"]?></span>
+		<!--Prevent XSS when viewing module name or "by clicking here" once module created-->
+		<span class="view_column" style="width: <?=$field["width"]?>px;"><?=htmlspecialchars(trim(stripslashes(strip_tags($field["title"]))))?></span>
 		<?
 			}
 		?>

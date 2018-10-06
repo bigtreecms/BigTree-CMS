@@ -48,7 +48,8 @@
 					$achar = "";
 				}
 		?>
-		<span class="view_column" style="width: <?=$field["width"]?>px;"><a class="js-sort-column sort_column<?=$active?>" href="<?=$s_direction?>" name="<?=$key?>"><?=$field["title"]?> <em><?=$achar?></em></a></span>
+		<!--Prevent XSS when viewing module name or "by clicking here" once module created-->
+		<span class="view_column" style="width: <?=$field["width"]?>px;"><a class="js-sort-column sort_column<?=$active?>" href="<?=$s_direction?>" name="<?=$key?>"><?=htmlspecialchars(trim(stripslashes(strip_tags($field["title"]))))?> <em><?=$achar?></em></a></span>
 		<?
 			}
 		?>

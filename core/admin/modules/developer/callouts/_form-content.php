@@ -11,12 +11,12 @@
 		<? if (!isset($callout)) { ?>
 		<fieldset<? if ($show_error) { ?> class="form_error"<? } ?>>
 			<label class="required">ID <small>(used for file name, alphanumeric, "-" and "_" only)</small><? if ($show_error) { ?> <span class="form_error_reason"><?=$show_error?></span><? } ?></label>
-			<input type="text" class="required" name="id" value="<?=$id?>" />
+			<input type="text" class="required" name="id" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($id))))?>" />
 		</fieldset>
 		<? } ?>
 		<fieldset>
 			<label class="required">Name</label>
-			<input type="text" class="required" name="name" value="<?=$name?>" />
+			<input type="text" class="required" name="name" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($name))))?>" />
 		</fieldset>
 		<fieldset>
 			<label>Access Level</label>
@@ -28,7 +28,7 @@
 		</fieldset>
 		<fieldset>
 			<label class="required">Default Display Label <small>(displays if no resources are assigned as "Label")</small></label>
-			<input type="text" name="display_default" value="<?=$display_default?>" />
+			<input type="text" name="display_default" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($display_default))))?>" />
 		</fieldset>
 	</div>
 	<div class="right">
@@ -62,13 +62,13 @@
 			<li>
 				<section class="developer_resource_callout_id">
 					<span class="icon_sort"></span>
-					<input type="text" name="resources[<?=$x?>][id]" value="<?=$resource["id"]?>" />
+					<input type="text" name="resources[<?=$x?>][id]" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($resource["id"]))))?>" />
 				</section>
 				<section class="developer_resource_callout_title">
-					<input type="text" name="resources[<?=$x?>][title]" value="<?=$resource["title"]?>" />
+					<input type="text" name="resources[<?=$x?>][title]" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($resource["title"]))))?>" />
 				</section>
 				<section class="developer_resource_callout_subtitle">
-					<input type="text" name="resources[<?=$x?>][subtitle]" value="<?=$resource["subtitle"]?>" />
+					<input type="text" name="resources[<?=$x?>][subtitle]" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($resource["subtitle"]))))?>" />
 				</section>
 				<section class="developer_resource_type">
 					<select name="resources[<?=$x?>][type]" id="type_<?=$x?>">
@@ -89,7 +89,8 @@
 					<input type="hidden" name="resources[<?=$x?>][options]" value="<?=htmlspecialchars(json_encode($resource["options"]))?>" id="options_<?=$x?>" />
 				</section>
 				<section class="developer_resource_display_title">
-					<input type="radio" name="display_field" value="<?=$resource["id"]?>" id="display_title_<?=$x?>"<? if ($display_field == $resource["id"]) echo ' checked="checked"'; ?> />
+					<!--Sanitize $resource["id"] to prevent XSS when entering invalid ID-->
+					<input type="radio" name="display_field" value="<?=htmlspecialchars(trim(stripslashes(strip_tags($resource["id"]))))?>" id="display_title_<?=$x?>"<? if ($display_field == $resource["id"]) echo ' checked="checked"'; ?> />
 				</section>
 				<section class="developer_resource_action right">
 					<a href="#" class="icon_delete"></a>
