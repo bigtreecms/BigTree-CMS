@@ -51,7 +51,7 @@
 	}
 
 	// Track resource allocation
-	$admin->allocateResources("pages",$page);
+	$admin->allocateResources("bigtree_pages", $page);
 
 	$_SESSION["bigtree_admin"]["form_data"] = array(
 		"page" => $page,

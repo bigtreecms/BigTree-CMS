@@ -1657,7 +1657,7 @@
 		
 		public static function makeSecure() {
 			if (!BigTree::getIsSSL()) {
-				BigTree::redirect("https://".$_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"],"301");
+				BigTree::redirect("https://".$_SERVER["HTTP_HOST"].$_SERVER["REQUEST_URI"],"301");
 			}
 
 			static::$Secure = true;

@@ -24,6 +24,7 @@
 	}
 	
 	$admin->deletePendingChange($change["id"]);
+	$admin->deallocateResources($change["table"], "p".$change["id"]);
 	
 	if (!is_numeric($item_id)) {
 		BigTreeAutoModule::uncacheItem($item_id,$change["table"]);

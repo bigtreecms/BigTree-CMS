@@ -507,14 +507,19 @@
 				id - The id of the entry.
 		*/
 
-		public static function deleteItem($table,$id) {
-			$id = sqlescape($id);
+		public static function deleteItem($table, $id) {
+			SQL::delete($table, $id);
+			SQL::delete("bigtree_resource_allocation", ["table" => $table, "entry" => $id]);
 
-			sqlquery("DELETE FROM `$table` WHERE id = '$id'");
-			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = '$table' AND item_id = '$id'");
+			$pending_change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = ? AND `item_id` = ?", $table, $id);
 
-			self::uncacheItem($id,$table);
-			self::track($table,$id,"deleted");
+			if ($pending_change) {
+				SQL::delete("bigtree_resource_allocation", ["table" => $table, "entry" => "p".$pending_change["id"]]);
+				SQL::delete("bigtree_pending_changes", $pending_change["id"]);
+			}
+
+			self::uncacheItem($id, $table);
+			self::track($table, $id, "deleted");
 		}
 		
 		/*
@@ -526,13 +531,14 @@
 				id - The id of the pending entry.
 		*/
 		
-		public static function deletePendingItem($table,$id) {
-			$id = sqlescape($id);
+		public static function deletePendingItem($table, $id) {
+			$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $id);
 
-			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = '$table' AND id = '$id'");
+			SQL::delete("bigtree_pending_changes", ["table" => $table, "id" => $id]);
+			SQL::delete("bigtree_resource_allocation", ["table" => $table, "entry" => $change["item_id"] ?: "p".$change["id"]]);
 
-			self::uncacheItem("p$id",$table);
-			self::track($table,"p$id","deleted-pending");
+			self::uncacheItem("p$id", $table);
+			self::track($table,"p$id", "deleted-pending");
 		}
 
 		/*
@@ -1848,52 +1854,71 @@
 				throw new Exception("BigTreeAutoModule::submitChange must be called by a logged in user.");
 			}
 
-			$id = sqlescape($id);
-			$original = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '$id'"));
+			$original = SQL::fetch("SELECT * FROM `$table` WHERE id = ?", $id);
 			
 			foreach ($data as $key => $val) {
 				if ($val === "NULL") {
 					$data[$key] = "";
 				}
+
 				if ($original && $original[$key] === $val) {
 					unset($data[$key]);
 				}
 			}
-			
-			$changes = BigTree::json($data, true);
-			$many_data = BigTree::json($many_to_many, true);
-			$tags_data = BigTree::json($tags, true);
-			$open_graph_data = BigTree::json($open_graph, true);
+
+			$tags = $tags ?: [];
+			$many_to_many = $many_to_many ?: [];
+			$open_graph = $open_graph ?: [];
 
 			// Find out if there's already a change waiting
-			if (substr($id,0,1) == "p") {
-				$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".substr($id,1)."'"));
+			if (substr($id, 0, 1) == "p") {
+				$existing = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", substr($id, 1));
 			} else {
-				$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = '$table' AND item_id = '$id'"));
+				$existing = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = ? AND `item_id` = ?", $table, $id);
 			}
 
 			if ($existing) {
-				sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes', mtm_changes = '$many_data', tags_changes = '$tags_data', open_graph_changes = '$open_graph_data', date = NOW(), user = '".$admin->ID."', type = 'EDIT' WHERE id = '".$existing["id"]."'");
-				
+				SQL::update("bigtree_pending_changes", $existing["id"], [
+					"user" => $admin->ID,
+					"date" => "NOW()",
+					"changes" => $data,
+					"mtm_changes" => $many_to_many,
+					"tags_changes" => $tags,
+					"open_graph_changes" => $open_graph,
+					"module" => $module,
+					"type" => "EDIT",
+					"publish_hook" => $publish_hook ?: null
+				]);
+
 				// If the id has a "p" it's still pending and we need to recache over the pending one.
 				if (substr($id,0,1) == "p") {
-					self::recacheItem(substr($id,1),$table,true);
+					self::recacheItem(substr($id, 1), $table, true);
 				} else {
-					self::recacheItem($id,$table);					
+					self::recacheItem($id, $table);					
 				}
 				
-				$admin->track($table,$id,"updated-draft");
+				$admin->track($table, $id, "updated-draft");
 
 				return $existing["id"];
 			} else {
-				$insert_id = $id ? "'$id'": "NULL";
-				$publish_hook = is_null($publish_hook) ? "NULL" : "'".sqlescape($publish_hook)."'";
-				sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`mtm_changes`,`tags_changes`,`open_graph_changes`,`module`,`type`,`publish_hook`) VALUES ('".$admin->ID."',NOW(),'$table',$insert_id,'$changes','$many_data','$tags_data','$open_graph_data','$module','EDIT',$publish_hook)");
-				self::recacheItem($id,$table);
-				
+				$change_id = SQL::insert("bigtree_pending_changes", [
+					"user" => $admin->ID,
+					"date" => "NOW()",
+					"table" => $table,
+					"item_id" => $id ?: null,
+					"changes" => $data,
+					"mtm_changes" => $many_to_many,
+					"tags_changes" => $tags,
+					"open_graph_changes" => $open_graph,
+					"module" => $module,
+					"type" => "EDIT",
+					"publish_hook" => $publish_hook ?: null
+				]);
+
+				self::recacheItem($id, $table);
 				$admin->track($table,$id,"saved-draft");
 				
-				return sqlid();
+				return $change_id;
 			}
 		}
 

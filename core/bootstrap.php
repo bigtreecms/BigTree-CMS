@@ -23,11 +23,6 @@
 	define("SITE_ROOT", $site_root);
 	define("ADMIN_ROOT", $admin_root);
 
-	// Adjust server parameters in case we're running on CloudFlare
-	if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
-		$_SERVER["REMOTE_ADDR"] = $_SERVER["HTTP_CF_CONNECTING_IP"];
-	}
-
 	// Set version
 	include SERVER_ROOT."core/version.php";
 

@@ -891,8 +891,37 @@
 		SQL::query("UPDATE bigtree_pages SET new_window = '' WHERE new_window = 'No'");
 	}
 
-	// BigTree 4.3 update -- REVISION 320
-	function _local_bigtree_update_320() {
+	// BigTree 4.3 update -- REVISION 312
+	function _local_bigtree_update_312() {
+		SQL::query("ALTER TABLE `bigtree_resource_allocation` CHANGE COLUMN `module` `table` VARCHAR(255)");
+		SQL::query("ALTER TABLE `bigtree_page_revisions` ADD COLUMN `resource_allocation` TEXT NOT NULL AFTER `saved_description`");
+		SQL::query("ALTER TABLE `bigtree_page_revisions` ADD COLUMN `has_deleted_resources` CHAR(2) NOT NULL AFTER `resource_allocation`");
+
+		// Update allocations from module to table based
+		$allocations = SQL::fetchAll("SELECT * FROM bigtree_resource_allocation");
+
+		foreach ($allocations as $alloc) {
+			if ($alloc["table"] == "pages" || $alloc["table"] == "settings") {
+				SQL::update("bigtree_resource_allocation", $alloc["id"], ["table" => "bigtree_".$alloc["table"]]);
+			} else {
+				$class_name = SQL::fetch("SELECT `class` FROM bigtree_modules WHERE id = ?", $alloc["table"]);
+
+				if ($class_name && class_exists($class_name)) {
+					$module = new $$class_name;
+					SQL::update("bigtree_resource_allocation", $alloc["id"], ["table" => $module->Table]);
+				}
+			}
+		}
+	}
+
+	// BigTree 4.3 update -- REVISION 313
+	function _local_bigtree_update_313() {
+		SQL::query("ALTER TABLE `bigtree_sessions` ADD COLUMN `ip_address` VARCHAR(255) NOT NULL AFTER `last_accessed`");
+		SQL::query("ALTER TABLE `bigtree_sessions` ADD COLUMN `user_agent` TEXT NOT NULL AFTER `ip_address`");
+	}
+
+	// BigTree 4.4 update -- REVISION 400
+	function _local_bigtree_update_400() {
 		// We're going to convert all the database configuration to JSON
 		$used_ids = [];
 		$get_unique_id = function($prefix) use ($used_ids) {

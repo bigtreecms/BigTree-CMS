@@ -145,7 +145,18 @@
 							$this->CSRFTokenField = $csrf_token_field;
 							$this->Timezone = $f["timezone"];
 
-							SQL::update("bigtree_sessions", session_id(), ["is_login" => "on", "logged_in_user" => $f["id"]]);
+							// Regenerate session ID on user state change
+							$old_session_id = session_id();
+							session_regenerate_id();
+							
+							if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+								SQL::update("bigtree_sessions", $old_session_id, [
+									"id" => session_id(), 
+									"is_login" => "on", 
+									"logged_in_user" => $f["id"]
+								]);
+							}
+
 							$_SESSION["bigtree_admin"]["id"] = $f["id"];
 							$_SESSION["bigtree_admin"]["email"] = $f["email"];
 							$_SESSION["bigtree_admin"]["name"] = $f["name"];
@@ -213,16 +224,20 @@
 				Assigns resources from $this->IRLsCreated
 
 			Parameters:
-				module - Module ID to assign to
+				table - Table in which the entry resides
 				entry - Entry ID to assign to
 		*/
 
-		public static function allocateResources($module,$entry) {
-			$module = sqlescape($module);
-			$entry = sqlescape($entry);
-			sqlquery("DELETE FROM bigtree_resource_allocation WHERE module = '$module' AND entry = '$entry'");
+		public static function allocateResources($table, $entry) {
+			SQL::delete("bigtree_resource_allocation", ["table" => $table, "entry" => $entry]);
+
 			foreach (static::$IRLsCreated as $resource) {
-				sqlquery("INSERT INTO bigtree_resource_allocation (`module`,`entry`,`resource`,`updated_at`) VALUES ('$module','$entry','".sqlescape($resource)."',NOW())");
+				SQL::insert("bigtree_resource_allocation", [
+					"table" => $table,
+					"entry" => $entry,
+					"resource" => $resource,
+					"updated_at" => "NOW()"
+				]);
 			}
 		}
 
@@ -1655,6 +1670,7 @@
 			$module = sqlescape($module);
 
 			sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`mtm_changes`,`tags_changes`,`module`) VALUES ('".$this->ID."',NOW(),'$table',$item_id,'$changes','$mtm_changes','$tags_changes','$module')");
+			
 			return sqlid();
 		}
 
@@ -2108,6 +2124,19 @@
 		}
 
 		/*
+			Function: deallocateResources
+				Removes resource allocation from a deleted entry.
+
+			Parameters:
+				table - The table of the entry
+				entry - The ID of the entry
+		*/
+
+		public static function deallocateResources($table, $entry) {
+			SQL::delete("bigtree_resource_allocation", ["table" => $table, "entry" => $entry]);
+		}
+
+		/*
 			Function: delete404
 				Deletes a 404 error.
 				Checks permissions.
@@ -2467,8 +2496,8 @@
 
 		public function deletePage($page) {
 			$page = sqlescape($page);
-
 			$r = $this->getPageAccessLevel($page);
+			
 			if ($r == "p" && $this->canModifyChildren(BigTreeCMS::getPage($page))) {
 				// If the page isn't numeric it's most likely prefixed by the "p" so it's pending.
 				if (!is_numeric($page)) {
@@ -2483,9 +2512,13 @@
 					$this->track("bigtree_pages",$page,"deleted");
 				}
 
+				$this->deallocateResources("bigtree_pages", $page);
+
 				return true;
 			}
+
 			$this->stop("You do not have permission to delete this page.");
+			
 			return false;
 		}
 
@@ -2499,12 +2532,15 @@
 		*/
 
 		public function deletePageChildren($id) {
-			$q = sqlquery("SELECT * FROM bigtree_pages WHERE parent = '$id'");
-			while ($f = sqlfetch($q)) {
-				$this->deletePageChildren($f["id"]);
-				$this->track("bigtree_pages",$f["id"],"deleted-inherited");
+			$child_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ?", $id);
+
+			foreach ($child_ids as $child_id) {
+				$this->deallocateResources("bigtree_pages", $child_id);
+				$this->deletePageChildren($child_id);
+				$this->track("bigtree_pages", $child_id, "deleted-inherited");
 			}
-			sqlquery("DELETE FROM bigtree_pages WHERE parent = '$id'");
+
+			SQL::delete("bigtree_pages", ["parent" => $id]);
 		}
 
 		/*
@@ -2577,32 +2613,32 @@
 		*/
 
 		public function deleteResource($id) {
-			$id = sqlescape($id);
-			$r = $this->getResource($id);
+			$resource = $this->getResource($id);
 
-			if ($r) {
-				sqlquery("DELETE FROM bigtree_resources WHERE id = '".sqlescape($r["id"])."'");
+			if ($resource) {
+				SQL::delete("bigtree_resources", $id);
+	
+				$storage = new BigTreeStorage;
+				$storage->delete($resource["file"]);
 
-				// If this file isn't located in any other folders, delete it from the file system
-				if (!sqlrows(sqlquery("SELECT id FROM bigtree_resources WHERE file = '".sqlescape($r["file"])."'"))) {
-					$storage = new BigTreeStorage;
-					$storage->delete($r["file"]);
-
-					if ($r["is_image"]) {
-						$storage->delete(BigTree::prefixFile($r["file"],"list-preview/"));
-					}
-
-					foreach ($r["crops"] as $prefix => $data) {
-						$storage->delete(BigTree::prefixFile($r["file"], $prefix));
-					}
-					
-					foreach ($r["thumbs"] as $prefix => $data) {
-						$storage->delete(BigTree::prefixFile($r["file"], $prefix));
-					}
+				if ($resource["is_image"]) {
+					$storage->delete(BigTree::prefixFile($resource["file"],"list-preview/"));
 				}
-			}
 
-			$this->track("bigtree_resources",$id,"deleted");
+				foreach ($resource["crops"] as $prefix => $data) {
+					$storage->delete(BigTree::prefixFile($resource["file"], $prefix));
+				}
+				
+				foreach ($resource["thumbs"] as $prefix => $data) {
+					$storage->delete(BigTree::prefixFile($resource["file"], $prefix));
+				}
+
+				// Update any page revisions that used this as containing deleted content
+				SQL::query("UPDATE bigtree_page_revisions SET has_deleted_resources = 'on' 
+							WHERE resource_allocation LIKE '%\"".$resource["id"]."\"%' OR resources LIKE '%\"".$resource["id"]."\"%'");
+
+				$this->track("bigtree_resources", $id, "deleted");
+			}
 		}
 
 		/*
@@ -2639,7 +2675,8 @@
 			BigTreeJSONDB::delete("settings", $id);
 			SQL::delete("bigtree_settings", $id);
 
-			$this->track("bigtree_settings",$id,"deleted");
+			$this->deallocateResources("bigtree_settings", $id);
+			$this->track("bigtree_settings", $id, "deleted");
 		}
 
 		/*
@@ -4915,17 +4952,20 @@
 		*/
 
 		public static function getPageRevisions($page) {
-			$page = sqlescape($page);
-
 			// Get all previous revisions, add them to the saved or unsaved list
-			$unsaved = array();
-			$saved = array();
-			$q = sqlquery("SELECT bigtree_users.name, bigtree_users.email, bigtree_page_revisions.saved, bigtree_page_revisions.saved_description, bigtree_page_revisions.updated_at, bigtree_page_revisions.id FROM bigtree_page_revisions JOIN bigtree_users ON bigtree_page_revisions.author = bigtree_users.id WHERE page = '$page' ORDER BY updated_at DESC");
-			while ($f = sqlfetch($q)) {
-				if ($f["saved"]) {
-					$saved[] = $f;
+			$unsaved = [];
+			$saved = [];
+			$revisions = SQL::fetchAll("SELECT bigtree_users.name, bigtree_users.email, bigtree_page_revisions.saved,  bigtree_page_revisions.has_deleted_resources,
+											   bigtree_page_revisions.saved_description, bigtree_page_revisions.updated_at, bigtree_page_revisions.id 
+										FROM bigtree_page_revisions JOIN bigtree_users ON bigtree_page_revisions.author = bigtree_users.id
+										WHERE page = ?
+										ORDER BY updated_at DESC", $page);
+			
+			foreach ($revisions as $revision) {
+				if ($revision["saved"]) {
+					$saved[] = $revision;
 				} else {
-					$unsaved[] = $f;
+					$unsaved[] = $revision;
 				}
 			}
 
@@ -5362,10 +5402,32 @@
 		public static function getResourceByFile($file) {
 			if (static::$IRLPrefixes === false) {
 				static::$IRLPrefixes = array();
-				$thumbnail_sizes = static::getSetting("bigtree-file-manager-thumbnail-sizes");
+				$settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
 
-				foreach ($thumbnail_sizes["value"] as $ts) {
-					static::$IRLPrefixes[] = $ts["prefix"];
+				foreach ($settings["presets"]["default"]["crops"] as $crop) {
+					if (!empty($crop["prefix"])) {
+						static::$IRLPrefixes[] = $crop["prefix"];
+					}
+
+					if (!empty($crop["thumbs"]) && is_array($crop["thumbs"])) {
+						foreach ($crop["thumbs"] as $thumb) {
+							if (!empty($thumb["prefix"])) {
+								static::$IRLPrefixes[] = $thumb["prefix"];
+							}
+						}
+					} 
+				}
+
+				foreach ($settings["presets"]["default"]["thumbs"] as $thumb) {
+					if (!empty($thumb["prefix"])) {
+						static::$IRLPrefixes[] = $thumb["prefix"];
+					}
+				}
+
+				foreach ($settings["presets"]["default"]["center_crops"] as $crop) {
+					if (!empty($crop["prefix"])) {
+						static::$IRLPrefixes[] = $crop["prefix"];
+					}
 				}
 			}
 
@@ -5442,13 +5504,7 @@
 		*/
 
 		public static function getResourceAllocation($id) {
-			$id = sqlescape($id);
-			$items = array();
-			$q = sqlquery("SELECT * FROM bigtree_resource_allocation WHERE resource = '$id' ORDER BY updated_at DESC");
-			while ($f = sqlfetch($q)) {
-				$items[] = $f;
-			}
-			return $items;
+			return SQL::fetchAll("SELECT * FROM bigtree_resource_allocation WHERE resource = ? ORDER BY updated_at DESC", $id);
 		}
 
 		/*
@@ -6092,7 +6148,7 @@
 		public function initSecurity() {
 			global $bigtree;
 
-			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
+			$ip = ip2long(BigTree::remoteIP());
 			$bigtree["security-policy"] = $p = BigTreeCMS::getSetting("bigtree-internal-security-policy");
 
 			// Check banned IPs list for the user's IP
@@ -6583,7 +6639,7 @@
 		public static function login($email,$password,$stay_logged_in = false,$domain = null,$two_factor_token = null) {
 			global $bigtree;
 
-			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
+			$ip = ip2long(BigTree::remoteIP());
 
 			if ($two_factor_token) {
 				$user = SQL::fetch("SELECT * FROM bigtree_users WHERE 2fa_login_token = ?", $two_factor_token);
@@ -6698,7 +6754,18 @@
 						setcookie('bigtree_admin[login]', $cookie_value, strtotime("+1 month"), $cookie_domain, "", false, true);
 					}
 
-					SQL::update("bigtree_sessions", session_id(), ["is_login" => "on", "logged_in_user" => $user["id"]]);
+					// Regenerate session ID on user state change
+					$old_session_id = session_id();
+					session_regenerate_id();
+					
+					if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+						SQL::update("bigtree_sessions", $old_session_id, [
+							"id" => session_id(), 
+							"is_login" => "on", 
+							"logged_in_user" => $user["id"]
+						]);
+					}
+
 					$_SESSION["bigtree_admin"]["id"] = $user["id"];
 					$_SESSION["bigtree_admin"]["email"] = $user["email"];
 					$_SESSION["bigtree_admin"]["level"] = $user["level"];
@@ -6799,6 +6866,8 @@
 		}
 
 		public static function loginSession($session_key) {
+			global $bigtree;
+
 			BigTreeSessionHandler::start();
 			$cache_data = BigTreeCMS::cacheGet("org.bigtreecms.login-session", $session_key);
 			
@@ -6831,7 +6900,18 @@
 						setcookie('bigtree_admin[login]', $cookie_value, strtotime("+1 month"), $cookie_domain, "", false, true);
 					}
 
-					SQL::update("bigtree_sessions", session_id(), ["is_login" => "on", "logged_in_user" => $user["id"]]);
+					// Regenerate session ID on user state change
+					$old_session_id = session_id();
+					session_regenerate_id();
+					
+					if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+						SQL::update("bigtree_sessions", $old_session_id, [
+							"id" => session_id(), 
+							"is_login" => "on", 
+							"logged_in_user" => $user["id"]
+						]);
+					}
+
 					$_SESSION["bigtree_admin"]["id"] = $user["id"];
 					$_SESSION["bigtree_admin"]["email"] = $user["email"];
 					$_SESSION["bigtree_admin"]["level"] = $user["level"];
@@ -8079,6 +8159,8 @@
 				sqlquery("UPDATE bigtree_pending_changes SET changes = '$changes', tags_changes = '$tags', open_graph_changes = '$open_graph', date = NOW(), user = '".$this->ID."', type = '$type' WHERE id = '".$existing_pending_change["id"]."'");
 				$this->track("bigtree_pages",$page,"updated-draft");
 
+				return $existing_pending_change["id"];
+
 			// We're submitting a change to a presently published page with no pending changes.
 			} else {
 				$diff = array();
@@ -8092,9 +8174,9 @@
 				// Create draft and track
 				sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`item_id`,`changes`,`tags_changes`,`open_graph_changes`,`type`,`title`) VALUES ('".$this->ID."',NOW(),'bigtree_pages','$page','$changes','$tags','$open_graph','EDIT','Page Change Pending')");
 				$this->track("bigtree_pages",$page,"saved-draft");
+				
+				return sqlid();
 			}
-
-			return sqlid();
 		}
 
 		/*
@@ -8843,7 +8925,8 @@
 				"new_window" => $current["new_window"],
 				"resources" => $current["resources"],
 				"author" => $current["last_edited_by"],
-				"updated_at" => $current["updated_at"]
+				"updated_at" => $current["updated_at"],
+				"resource_allocation" => SQL::fetchAllSingle("SELECT resource FROM bigtree_resource_allocation WHERE `table` = 'bigtree_pages' AND `entry` = ?", $page)
 			]);
 			
 			// Count the page revisions
@@ -9239,6 +9322,21 @@
 		}
 
 		/*
+			Function: updateResourceAllocation
+				Updates resource allocation to move pending changes to the live entry.
+
+			Parameters:
+				table - Table the entry is in
+				entry - Entry ID
+				pending_id - The pending entry ID
+		*/
+
+		public function updateResourceAllocation($table, $entry, $pending_id) {
+			SQL::delete("bigtree_resource_allocation", ["table" => $table, "entry" => $entry]);
+			SQL::update("bigtree_resource_allocation", ["table" => $table, "entry" => "p".$pending_id], ["entry" => $entry]);
+		}
+
+		/*
 			Function: updateResourceFolder
 				Updates a resource folder.
 
@@ -9580,7 +9678,7 @@
 		public static function verifyLogin2FA($email, $password) {
 			global $bigtree;
 
-			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
+			$ip = ip2long(BigTree::remoteIP());
 
 			if (static::isIPBanned($ip)) {
 				return null;
