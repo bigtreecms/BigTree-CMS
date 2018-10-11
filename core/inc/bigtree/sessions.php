@@ -28,6 +28,11 @@
 				SQL::update("bigtree_sessions", $id, ["data" => "", "last_accessed" => time()]);
 
 				return "";
+			// Invalidate sessions with incorrect user agents of IP addresses
+			} elseif ($session["ip_address"] != BigTree::remoteIP() || $session["user_agent"] != $_SERVER["HTTP_USER_AGENT"]) {
+				SQL::update("bigtree_sessions", $id, ["data" => "", "last_accessed" => time()]);
+
+				return "";
 			} else {
 				SQL::update("bigtree_sessions", $id, ["last_accessed" => time()]);
 
@@ -37,7 +42,7 @@
 
 		static function write($id, $data) {
 			if (!static::$Exists) {
-				SQL::query("INSERT INTO bigtree_sessions (`id`, `last_accessed`, `data`) VALUES (?, ?, ?)", $id, time(), $data);
+				SQL::query("INSERT INTO bigtree_sessions (`id`, `last_accessed`, `data`, `ip_address`, `user_agent`) VALUES (?, ?, ?, ?, ?)", $id, time(), $data, BigTree::remoteIP(), $_SERVER["HTTP_USER_AGENT"]);
 			} else {
 				SQL::update("bigtree_sessions", $id, ["last_accessed" => time(), "data" => $data]);
 			}

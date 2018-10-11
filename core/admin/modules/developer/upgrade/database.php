@@ -913,3 +913,9 @@
 			}
 		}
 	}
+
+	// BigTree 4.3 update -- REVISION 313
+	function _local_bigtree_update_313() {
+		SQL::query("ALTER TABLE `bigtree_sessions` ADD COLUMN `ip_address` VARCHAR(255) NOT NULL AFTER `last_accessed`");
+		SQL::query("ALTER TABLE `bigtree_sessions` ADD COLUMN `user_agent` TEXT NOT NULL AFTER `ip_address`");
+	}

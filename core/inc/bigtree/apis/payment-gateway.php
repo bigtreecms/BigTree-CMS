@@ -239,7 +239,7 @@
 					"ordertype" => "POSTAUTH"
 				),
 				"transactiondetails" => array(
-					"ip" => $_SERVER["REMOTE_ADDR"],
+					"ip" => BigTree::remoteIP(),
 					"oid" => $transaction
 				)
 			);
@@ -439,7 +439,7 @@
 			$params["x_phone"] = $phone;
 			$params["x_email"] = $email;
 			$params["x_cust_id"] = $customer;
-			$params["x_customer_ip"] = $_SERVER["REMOTE_ADDR"];
+			$params["x_customer_ip"] = BigTree::remoteIP();
 
 			$params["x_card_num"] = $card_number;
 			$params["x_exp_date"] = $card_expiration;
@@ -501,7 +501,7 @@
 					"cvmindicator" => "provided"
 				),
 				"transactiondetails" => array(
-					"ip" => $_SERVER["REMOTE_ADDR"]
+					"ip" => BigTree::remoteIP()
 				),
 				"billing" => array(
 					"name" => $card_name,
@@ -577,7 +577,7 @@
 			$params["EXPDATE"] = $card_expiration;
 			$params["CVV2"] = $cvv;
 			
-			$params["IPADDRESS"] = $_SERVER["REMOTE_ADDR"];
+			$params["IPADDRESS"] = BigTree::remoteIP();
 			
 			$params["FIRSTNAME"] = $first_name;
 			$params["LASTNAME"] = $last_name;
@@ -745,7 +745,7 @@
 			$params["EXPDATE"] = substr($card_expiration,0,4);
 			$params["CVV2"] = $cvv;
 			
-			$params["IPADDRESS"] = $_SERVER["REMOTE_ADDR"];
+			$params["IPADDRESS"] = BigTree::remoteIP();
 			
 			$params["FIRSTNAME"] = $first_name;
 			$params["LASTNAME"] = $last_name;
@@ -1483,7 +1483,7 @@
 					"cardnumber" => $card_number
 				),
 				"transactiondetails" => array(
-					"ip" => $_SERVER["REMOTE_ADDR"],
+					"ip" => BigTree::remoteIP(),
 					"oid" => $transaction
 				)
 			);
@@ -1999,7 +1999,7 @@
 					"ordertype" => "VOID"
 				),
 				"transactiondetails" => array(
-					"ip" => $_SERVER["REMOTE_ADDR"],
+					"ip" => BigTree::remoteIP(),
 					"oid" => $authorization
 				)
 			);

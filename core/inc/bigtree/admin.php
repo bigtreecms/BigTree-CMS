@@ -145,7 +145,18 @@
 							$this->CSRFTokenField = $csrf_token_field;
 							$this->Timezone = $f["timezone"];
 
-							SQL::update("bigtree_sessions", session_id(), ["is_login" => "on", "logged_in_user" => $f["id"]]);
+							// Regenerate session ID on user state change
+							$old_session_id = session_id();
+							session_regenerate_id();
+							
+							if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+								SQL::update("bigtree_sessions", $old_session_id, [
+									"id" => session_id(), 
+									"is_login" => "on", 
+									"logged_in_user" => $f["id"]
+								]);
+							}
+
 							$_SESSION["bigtree_admin"]["id"] = $f["id"];
 							$_SESSION["bigtree_admin"]["email"] = $f["email"];
 							$_SESSION["bigtree_admin"]["name"] = $f["name"];
@@ -6051,7 +6062,7 @@
 		public function initSecurity() {
 			global $bigtree;
 
-			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
+			$ip = ip2long(BigTree::remoteIP());
 			$bigtree["security-policy"] = $p = BigTreeCMS::getSetting("bigtree-internal-security-policy");
 
 			// Check banned IPs list for the user's IP
@@ -6448,7 +6459,7 @@
 		public static function login($email,$password,$stay_logged_in = false,$domain = null,$two_factor_token = null) {
 			global $bigtree;
 
-			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
+			$ip = ip2long(BigTree::remoteIP());
 
 			if ($two_factor_token) {
 				$user = SQL::fetch("SELECT * FROM bigtree_users WHERE 2fa_login_token = ?", $two_factor_token);
@@ -6563,7 +6574,18 @@
 						setcookie('bigtree_admin[login]', $cookie_value, strtotime("+1 month"), $cookie_domain, "", false, true);
 					}
 
-					SQL::update("bigtree_sessions", session_id(), ["is_login" => "on", "logged_in_user" => $user["id"]]);
+					// Regenerate session ID on user state change
+					$old_session_id = session_id();
+					session_regenerate_id();
+					
+					if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+						SQL::update("bigtree_sessions", $old_session_id, [
+							"id" => session_id(), 
+							"is_login" => "on", 
+							"logged_in_user" => $user["id"]
+						]);
+					}
+
 					$_SESSION["bigtree_admin"]["id"] = $user["id"];
 					$_SESSION["bigtree_admin"]["email"] = $user["email"];
 					$_SESSION["bigtree_admin"]["level"] = $user["level"];
@@ -6664,6 +6686,8 @@
 		}
 
 		public static function loginSession($session_key) {
+			global $bigtree;
+
 			BigTreeSessionHandler::start();
 			$cache_data = BigTreeCMS::cacheGet("org.bigtreecms.login-session", $session_key);
 			
@@ -6696,7 +6720,18 @@
 						setcookie('bigtree_admin[login]', $cookie_value, strtotime("+1 month"), $cookie_domain, "", false, true);
 					}
 
-					SQL::update("bigtree_sessions", session_id(), ["is_login" => "on", "logged_in_user" => $user["id"]]);
+					// Regenerate session ID on user state change
+					$old_session_id = session_id();
+					session_regenerate_id();
+					
+					if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+						SQL::update("bigtree_sessions", $old_session_id, [
+							"id" => session_id(), 
+							"is_login" => "on", 
+							"logged_in_user" => $user["id"]
+						]);
+					}
+
 					$_SESSION["bigtree_admin"]["id"] = $user["id"];
 					$_SESSION["bigtree_admin"]["email"] = $user["email"];
 					$_SESSION["bigtree_admin"]["level"] = $user["level"];
@@ -9372,7 +9407,7 @@
 		public static function verifyLogin2FA($email, $password) {
 			global $bigtree;
 
-			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
+			$ip = ip2long(BigTree::remoteIP());
 
 			if (static::isIPBanned($ip)) {
 				return null;
