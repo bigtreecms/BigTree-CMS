@@ -56,7 +56,9 @@
 				include_once BigTree::path($bigtree["other_classes"][$class]);
 				
 				return;
-			} elseif ($route = $bigtree["module_list"][$class]) {
+			} elseif (isset($bigtree["module_list"][$class])) {
+				$route = $bigtree["module_list"][$class];
+
 				if (strpos($route, "*") !== false) {
 					list($extension, $class) = explode("*", $route);
 					$path = SERVER_ROOT."extensions/$extension/classes/$class.php";
@@ -74,6 +76,7 @@
 					}
 				}
 			}
+			
 			// Clear the module class list just in case we're missing something.
 			@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 		}
