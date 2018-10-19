@@ -545,7 +545,13 @@ RewriteRule (.*) site/$1 [L]');
 
 				// Load LESS compiler
 				$parser = new \Less_Parser(["compress" => true]);
-				$parser->parseFile("core/admin/css/install.less", $base."core/admin/filler/");
+
+				if ($installed) {
+					$parser->parseFile("core/admin/css/install.less", $base."admin/filler/");
+				} else {
+					$parser->parseFile("core/admin/css/install.less", $base."core/admin/filler/");
+				}
+
 				echo $parser->getCss();
 			?>
 		</style>
