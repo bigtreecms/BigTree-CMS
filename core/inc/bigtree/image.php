@@ -30,13 +30,17 @@
 		public function __construct($file, $settings = [], $ignore_minimums = false) {
 			global $bigtree;
 
+			if (strpos($file, "//") === 0) {
+				$file = "http:".$file;
+			}
+
 			$this->IgnoringMinimums = $ignore_minimums;
 			$this->Settings = $settings;
 			$this->cleanSettings();
 
 			$this->Storage = new BigTreeStorage;
 			$this->Storage->AutoJPEG = $bigtree["config"]["image_force_jpeg"];
-			
+
 			$info = getimagesize($file);
 			$this->Type = $info[2];
 			
