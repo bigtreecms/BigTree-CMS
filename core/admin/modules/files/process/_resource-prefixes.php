@@ -14,7 +14,7 @@
 		if (is_array($crop["thumbs"])) {
 			foreach ($crop["thumbs"] as $thumb) {
 				if ($thumb["prefix"]) {
-					$crop_prefixes[$thumb["prefix"]] = $image->getThumbnailSize($crop["width"], $crop["height"], $thumb["width"], $thumb["height"]);
+					$crop_prefixes[$thumb["prefix"]] = $image->getThumbnailSize($thumb["width"], $thumb["height"], $crop["width"], $crop["height"]);
 				}
 			}
 		}
@@ -36,7 +36,7 @@
 		if (is_array($crop["thumbs"])) {
 			foreach ($crop["thumbs"] as $thumb) {
 				if ($thumb["prefix"]) {
-					$crop_prefixes[$thumb["prefix"]] = $image->getThumbnailSize($crop["width"], $crop["height"], $thumb["width"], $thumb["height"]);
+					$crop_prefixes[$thumb["prefix"]] = $image->getThumbnailSize($thumb["width"], $thumb["height"], $crop["width"], $crop["height"]);
 				}
 			}
 		}
