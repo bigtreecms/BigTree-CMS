@@ -42,7 +42,7 @@
 			file_browser_callback: BigTreeFileManager.tinyMCEOpen,
 			menubar: false,
 			plugins: "link,code,visualblocks,lists",
-			toolbar: "link unlink bold italic underline code",
+			toolbar: "link unlink bold italic underline removeformat",
 			paste_remove_spans: true,
 			paste_remove_styles: true,
 			paste_strip_class_attributes: true,
