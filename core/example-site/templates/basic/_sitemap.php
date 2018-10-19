@@ -1,1 +1,2 @@
-<h1>Sitemap</h1>
+<?php
+	BigTree::redirect(WWW_ROOT."sitemap.xml");
