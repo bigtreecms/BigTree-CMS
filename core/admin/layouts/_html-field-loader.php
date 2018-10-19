@@ -16,7 +16,7 @@
 			file_browser_callback: BigTreeFileManager.tinyMCEOpen,
 			menubar: false,
 			plugins: "code,anchor,image,link,table,visualblocks,lists,hr",
-			toolbar: "undo redo | styleselect | bold italic underline | bullist numlist outdent indent | hr anchor link unlink image table | visualblocks code",
+			toolbar: "undo redo | styleselect | bold italic underline removeformat | bullist numlist outdent indent | hr anchor link unlink image table | visualblocks code",
 			image_dimensions: false,
 			paste_remove_spans: true,
 			paste_remove_styles: true,
