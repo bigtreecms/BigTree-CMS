@@ -145,7 +145,45 @@
 			
 			return strtoupper($new_color);
 		}
-		
+
+		/*
+			Function: copyDirectory
+				Copies a directory and sets writable permissions.
+
+			Parameters:
+				source - The location of the directory to copy.
+				destination - The new folder location.
+
+			Returns:
+				true if the copy was successful
+		*/
+
+		public static function copyDirectory($source, $destination) {
+			if (!static::isDirectoryWritable($destination) || !is_dir($source) || !is_readable($source) || file_exists($destination)) {
+				return false;
+			}
+
+			$source = rtrim(rtrim($source, "/"), "\\")."/";
+			$contents = static::directoryContents($source);
+			$destination = rtrim(rtrim($destination, "/"), "\\")."/";
+
+			mkdir($destination);
+			static::setPermissions($destination);
+
+			foreach ($contents as $file) {
+				$new_location = $destination.str_replace($source, "", $file);
+
+				if (is_dir($file)) {
+					mkdir($new_location);
+					static::setPermissions($new_location);
+				} else {
+					BigTree::copyFile($file, $destination.str_replace($source, "", $file));
+				}
+			}
+
+			return true;
+		}
+
 		/*
 			Function: copyFile
 				Copies a file into a directory, even if that directory doesn't exist yet.
@@ -641,16 +679,20 @@
 		public static function directoryContents($directory, $recurse = true, $extension = false, $include_git = false) {
 			$contents = [];
 			$d = @opendir($directory);
+
 			if (!$d) {
 				return false;
 			}
+
 			while ($r = readdir($d)) {
 				if ($r != "." && $r != ".." && $r != ".DS_Store" && $r != "__MACOSX") {
 					if ($include_git || ($r != ".git" && $r != ".gitignore")) {
 						$path = rtrim($directory, "/")."/".$r;
+						
 						if ($extension === false || substr($path, -1 * strlen($extension)) == $extension) {
 							$contents[] = $path;
 						}
+
 						if (is_dir($path) && $recurse) {
 							$contents = array_merge($contents, BigTree::directoryContents($path, $recurse, $extension, $include_git));
 						}
@@ -1189,11 +1231,13 @@
 			$dir_parts = explode("/", trim($directory, "/"));
 			foreach ($dir_parts as $part) {
 				$dir_path .= $part;
+				
 				// Silence situations with open_basedir restrictions.
 				if (!@file_exists($dir_path)) {
 					@mkdir($dir_path);
 					static::setPermissions($dir_path);
 				}
+				
 				$dir_path .= "/";
 			}
 		}
@@ -1212,9 +1256,11 @@
 		
 		public static function moveFile($from, $to) {
 			$success = static::copyFile($from, $to);
+			
 			if (!$success) {
 				return false;
 			}
+			
 			unlink($from);
 			
 			return true;

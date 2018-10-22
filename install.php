@@ -1,6 +1,7 @@
 <?php
 	// Set version
 	include "core/version.php";
+	include "core/inc/bigtree/utils.php";
 
 	// Setup SQL functions for MySQL extension if we have it.
 	if (function_exists("mysql_connect")) {
@@ -270,16 +271,6 @@
 		} else {
 			define("BT_SU_EXEC",false);
 		}
-
-		function bt_mkdir_writable($dir) {
-			global $root;
-
-			mkdir($root.$dir);
-
-			if (!BT_SU_EXEC) {
-				chmod($root.$dir,0777);
-			}
-		}
 		
 		function bt_touch_writable($file,$contents = "") {
 			if (!file_exists($file)) {
@@ -291,75 +282,48 @@
 			}
 		}
 		
-		function bt_copy_dir($from,$to) {
-			global $root;
-
-			$d = opendir($root.$from);
-
-			if (!file_exists($root.$to)) {
-				@mkdir($root.$to);
-				if (!BT_SU_EXEC) {
-					@chmod($root.$to,0777);
-				}
-			}
-
-			while ($f = readdir($d)) {
-				if ($f != "." && $f != "..") {
-					if (is_dir($root.$from.$f)) {
-						bt_copy_dir($from.$f."/",$to.$f."/");
-					} else {
-						if (!file_exists($to.$f)) {
-							@copy($from.$f,$to.$f);
-						}
-
-						if (!BT_SU_EXEC) {
-							@chmod($to.$f,0777);
-						}
-					}
-				}
-			}
-		}
-		
 		$root = "";
 		
-		bt_mkdir_writable("cache/");
-		bt_mkdir_writable("custom/");
-		bt_mkdir_writable("custom/admin/");
-		bt_mkdir_writable("custom/admin/ajax/");
-		bt_mkdir_writable("custom/admin/css/");
-		bt_mkdir_writable("custom/admin/images/");
-		bt_mkdir_writable("custom/admin/modules/");
-		bt_mkdir_writable("custom/admin/pages/");
-		bt_mkdir_writable("custom/admin/form-field-types/");
-		bt_mkdir_writable("custom/admin/form-field-types/draw/");
-		bt_mkdir_writable("custom/admin/form-field-types/process/");
-		bt_mkdir_writable("custom/inc/");
-		bt_mkdir_writable("custom/inc/modules/");
-		bt_mkdir_writable("custom/inc/required/");
-		bt_mkdir_writable("extensions/");
-		bt_mkdir_writable("site");
-		bt_mkdir_writable("site/css/");
-		bt_mkdir_writable("site/extensions/");
-		bt_mkdir_writable("site/files/");
-		bt_mkdir_writable("site/files/pages/");
-		bt_mkdir_writable("site/files/resources/");
-		bt_mkdir_writable("site/images/");
-		bt_mkdir_writable("site/js/");
-		bt_mkdir_writable("templates");
-		bt_mkdir_writable("templates/ajax/");
-		bt_mkdir_writable("templates/layouts/");
-		bt_mkdir_writable("templates/routed/");
-		bt_mkdir_writable("templates/basic/");
-		bt_mkdir_writable("templates/callouts/");
+		BigTree::makeDirectory("cache/");
+		BigTree::makeDirectory("custom/");
+		BigTree::makeDirectory("custom/admin/");
+		BigTree::makeDirectory("custom/admin/ajax/");
+		BigTree::makeDirectory("custom/admin/css/");
+		BigTree::makeDirectory("custom/admin/images/");
+		BigTree::makeDirectory("custom/admin/modules/");
+		BigTree::makeDirectory("custom/admin/pages/");
+		BigTree::makeDirectory("custom/admin/form-field-types/");
+		BigTree::makeDirectory("custom/admin/form-field-types/draw/");
+		BigTree::makeDirectory("custom/admin/form-field-types/process/");
+		BigTree::makeDirectory("custom/inc/");
+		BigTree::makeDirectory("custom/inc/modules/");
+		BigTree::makeDirectory("custom/inc/required/");
+		BigTree::makeDirectory("extensions/");
+		BigTree::makeDirectory("site");
+		BigTree::makeDirectory("site/css/");
+		BigTree::makeDirectory("site/extensions/");
+		BigTree::makeDirectory("site/files/");
+		BigTree::makeDirectory("site/files/pages/");
+		BigTree::makeDirectory("site/files/resources/");
+		BigTree::makeDirectory("site/images/");
+		BigTree::makeDirectory("site/js/");
+		BigTree::makeDirectory("templates");
+		BigTree::makeDirectory("templates/ajax/");
+		BigTree::makeDirectory("templates/layouts/");
+		BigTree::makeDirectory("templates/routed/");
+		BigTree::makeDirectory("templates/basic/");
+		BigTree::makeDirectory("templates/callouts/");
 		
 		bt_touch_writable("custom/environment.php",str_replace($find,$replace,file_get_contents("core/config.environment.php")));
 		
 		// Install the example site if they asked for it.
 		if ($install_example_site) {
-			bt_copy_dir("core/example-site/","");
+			BigTree::copyDirectory("core/example-site/","");
 			$sql_queries = explode("\n",file_get_contents("example-site.sql"));
+			
 			foreach ($sql_queries as $query) {
 				$query = trim($query);
+			
 				if ($query != "") {
 					$q = sqlquery($query);
 				}
