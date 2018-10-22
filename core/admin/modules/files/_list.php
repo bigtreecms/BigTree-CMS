@@ -46,7 +46,7 @@
 					&mdash;
 				</section>
 				<section class="view_action">
-					<a href="<?=ADMIN_ROOT?>files/edit/folder/<?=$folder["id"]?>/" class="icon_edit"></a>
+					<a href="<?=ADMIN_ROOT?>files/edit/folder/<?=$folder["id"]?>/" class="icon_edit<?php if ($admin->getResourceFolderPermission($folder["id"]) != "p") { ?> disabled_icon<?php } ?>"></a>
 				</section>
 				<section class="view_action">
 					<a href="<?=ADMIN_ROOT?>files/delete/folder/<?=$folder["id"]?>/" class="icon_delete<?php if (!$admin->Level) { ?> disabled_icon<?php } ?>"></a>
