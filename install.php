@@ -351,8 +351,9 @@
 		bt_mkdir_writable("templates/routed/");
 		bt_mkdir_writable("templates/basic/");
 		bt_mkdir_writable("templates/callouts/");
-		
+
 		bt_touch_writable("custom/environment.php",str_replace($find,$replace,file_get_contents("core/config.environment.php")));
+		bt_touch_writable("cache/composer-check.flag", "true");
 		
 		// Install the example site if they asked for it.
 		if ($install_example_site) {
