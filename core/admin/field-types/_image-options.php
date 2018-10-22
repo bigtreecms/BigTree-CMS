@@ -97,64 +97,71 @@
 					<a href="#<?=$crop_count?>" title="Remove" class="delete"></a>
 				</li>
 			</ul>
-			<?php
-							if (is_array($crop["thumbs"])) {
-								foreach ($crop["thumbs"] as $thumb) {
-									// In case a thumb was added and a prefix or width/height were missing - require prefix here because it'll replace the crop otherwise
-									if (is_array($thumb) && $thumb["prefix"] && ($thumb["width"] || $thumb["height"])) {
-										$crop_thumb_count++;
-			?>
-			<ul class="image_attr_thumbs_<?=$crop_count?>">
-				<li class="thumbed">
-					<span class="icon_small icon_small_picture" title="Thumbnail"></span>
-					<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][prefix]" value="<?=htmlspecialchars($thumb["prefix"])?>" />
-				</li>
-				<li>
-					<input type="text" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][width]" value="<?=htmlspecialchars($thumb["width"])?>" />
-				</li>
-				<li>
-					<input type="text" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][height]" value="<?=htmlspecialchars($thumb["height"])?>" />
-				</li>
-				<li class="actions">
-					<span class="icon_small icon_small_up"></span>
-					<input type="hidden" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][grayscale]" value="<?=$thumb["grayscale"]?>" />
-					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($thumb["grayscale"]) { ?> gray<?php } ?>"></a>
-					<a href="#" title="Remove" class="delete"></a>
-				</li>
-			</ul>
-			<?php
+			<div class="image_attr_crop_thumbs">
+				<?php
+								if (is_array($crop["thumbs"])) {
+									foreach ($crop["thumbs"] as $thumb) {
+										// In case a thumb was added and a prefix or width/height were missing - require prefix here because it'll replace the crop otherwise
+										if (is_array($thumb) && $thumb["prefix"] && ($thumb["width"] || $thumb["height"])) {
+											$crop_thumb_count++;
+				?>
+				<ul class="image_attr_thumbs_<?=$crop_count?>">
+					<li class="thumbed">
+						<span class="icon_small icon_small_picture" title="Thumbnail"></span>
+						<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][prefix]" value="<?=htmlspecialchars($thumb["prefix"])?>" />
+					</li>
+					<li>
+						<input type="text" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][width]" value="<?=htmlspecialchars($thumb["width"])?>" />
+					</li>
+					<li>
+						<input type="text" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][height]" value="<?=htmlspecialchars($thumb["height"])?>" />
+					</li>
+					<li class="actions">
+						<span class="icon_small icon_small_up"></span>
+						<input type="hidden" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][grayscale]" value="<?=$thumb["grayscale"]?>" />
+						<a href="#" title="Switch Color Mode" class="color_mode<?php if ($thumb["grayscale"]) { ?> gray<?php } ?>"></a>
+						<a href="#" title="Remove" class="delete"></a>
+					</li>
+				</ul>
+				<?php
 									}
 								}
 							}
-	
+				?>
+			</div>
+			<div class="image_attr_crop_center_crops">
+				<?php	
 							if (is_array($crop["center_crops"])) {
 								foreach ($crop["center_crops"] as $crop) {
 									// In case a sub crop was added and a prefix or width/height were missing - require prefix here because it'll replace the crop otherwise
 									if (is_array($crop) && $crop["prefix"] && $crop["width"] && $crop["height"]) {
 										$crop_sub_count++;
-			?>
-			<ul class="image_attr_thumbs_<?=$crop_count?>">
-				<li class="thumbed">
-					<span class="icon_small icon_small_crop" title="Sub-Crop"></span>
-					<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][prefix]" value="<?=htmlspecialchars($crop["prefix"])?>" />
-				</li>
-				<li>
-					<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][width]" value="<?=htmlspecialchars($crop["width"])?>" />
-				</li>
-				<li>
-					<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][height]" value="<?=htmlspecialchars($crop["height"])?>" />
-				</li>
-				<li class="actions">
-					<span class="icon_small icon_small_up"></span>
-					<input type="hidden" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
-					<a href="#" title="Remove" class="delete"></a>
-				</li>
-			</ul>
-			<?php
+				?>
+				<ul class="image_attr_thumbs_<?=$crop_count?>">
+					<li class="thumbed">
+						<span class="icon_small icon_small_crop" title="Sub-Crop"></span>
+						<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][prefix]" value="<?=htmlspecialchars($crop["prefix"])?>" />
+					</li>
+					<li>
+						<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][width]" value="<?=htmlspecialchars($crop["width"])?>" />
+					</li>
+					<li>
+						<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][height]" value="<?=htmlspecialchars($crop["height"])?>" />
+					</li>
+					<li class="actions">
+						<span class="icon_small icon_small_up"></span>
+						<input type="hidden" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
+						<a href="#" title="Switch Color Mode" class="color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
+						<a href="#" title="Remove" class="delete"></a>
+					</li>
+				</ul>
+				<?php
 									}
 								}
 							}
+				?>
+			</div>
+			<?php
 						}
 					}
 				}
@@ -283,7 +290,9 @@
 					'<input type="hidden" name="crops[' + CropCount + '][grayscale]" value="" />' +
 					'<a href="#" title="Switch Color Mode" class="color_mode"></a>' +
 					'<a href="#' + CropCount + '" title="Remove" class="delete"></a>' +
-				'</li></ul>');
+				'</li></ul>' + 
+				'<div class="image_attr_crop_thumbs"></div>' +
+				'<div class="image_attr_crop_center_crops"></div>');
 		}
 
 		function addThumb(ev) {
@@ -331,7 +340,7 @@
 
 			var count = $(this).attr("href").substr(1);
 			CropThumbCount++;			
-			$(this).parents("ul").after('<ul class="require_width_or_height image_attr_thumbs_' + count + '">' +
+			$(this).parents("ul").next(".image_attr_crop_thumbs").append('<ul class="require_width_or_height image_attr_thumbs_' + count + '">' +
 				'<li class="thumbed">' +
 					'<span class="icon_small icon_small_picture" title="Thumbnail"></span>' +
 					'<input type="text" class="image_attr_thumbs" name="crops[' + count + '][thumbs][' + CropThumbCount + '][prefix]" value="" />' +
@@ -351,7 +360,7 @@
 
 			var count = $(this).attr("href").substr(1);
 			CropSubCount++;			
-			$(this).parents("ul").after('<ul class="require_width_or_height image_attr_thumbs_' + count + '">' +
+			$(this).parents("ul").nextAll(".image_attr_crop_center_crops:first").append('<ul class="require_width_or_height image_attr_thumbs_' + count + '">' +
 				'<li class="thumbed">' +
 					'<span class="icon_small icon_small_crop" title="Sub-Crop"></span>' +
 					'<input type="text" class="image_attr_thumbs" name="crops[' + count + '][center_crops][' + CropSubCount + '][prefix]" value="" />' +
