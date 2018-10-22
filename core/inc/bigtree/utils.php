@@ -43,6 +43,27 @@
 			
 			return $xml;
 		}
+
+		/*
+			Function: arrayFilterRecursive
+				Recursively filters an array.
+
+			Parameters:
+				array - A multi-dimensional array
+
+			Returns:
+				A filtered array
+		*/
+
+		public static function arrayFilterRecursive($array) {
+			foreach ($array as $key => $value) {
+				if (is_array($value)) {
+					$array[$key] = static::arrayFilterRecursive($value);
+				}
+			}
+
+			return array_filter($array);
+		}
 		
 		/*
 			Function: classAutoLoader

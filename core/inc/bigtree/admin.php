@@ -900,6 +900,7 @@
 						}
 					}
 
+					$field["settings"] = BigTree::arrayFilterRecursive($field["settings"]);
 					$clean_resources[] = $field;
 
 					$file_contents .= '		"'.$resource["id"].'" = '.$resource["title"].' - '.$types[$resource["type"]]["name"]."\n";
@@ -1273,11 +1274,14 @@
 			$hash = uniqid();
 
 			$clean_fields = array();
+
 			foreach ($fields as $key => $field) {
 				$field["settings"] = BigTree::translateArray(json_decode($field["settings"],true));
+				$field["settings"] = BigTree::arrayFilterRecursive($field["settings"]);
 				$field["column"] = $key;
 				$clean_fields[] = $field;
 			}
+
 			$fields = BigTree::json($clean_fields,true);
 
 			// Make sure this isn't used already
@@ -1325,6 +1329,7 @@
 			$open_graph = $open_graph ? "on" : "";
 
 			$clean_fields = array();
+
 			foreach ($fields as $key => $data) {
 				$settings = $data["settings"] ?: $data["options"];
 				$field = array(
@@ -1334,14 +1339,19 @@
 					"subtitle" => BigTree::safeEncode($data["subtitle"]),
 					"settings" => BigTree::translateArray(is_array($settings) ? $settings : json_decode($settings, true))
 				);
+				
+				$field["settings"] = BigTree::arrayFilterRecursive($field["settings"]);
+
 				// Backwards compatibility with BigTree 4.1 package imports
 				foreach ($data as $k => $v) {
 					if (!in_array($k,array("title", "subtitle", "type", "options", "settings"))) {
 						$field["settings"][$k] = $v;
 					}
 				}
+
 				$clean_fields[] = $field;
 			}
+
 			$fields = BigTree::json($clean_fields,true);
 
 			sqlquery("INSERT INTO bigtree_module_forms (`module`,`title`,`table`,`fields`,`default_position`,`return_view`,`return_url`,`tagging`,`open_graph`,`hooks`) VALUES ('$module','$title','$table','$fields','$default_position',$return_view,'$return_url','$tagging','$open_graph','$hooks')");
@@ -1894,6 +1904,7 @@
 		public function createSetting($data) {
 			// Setup defaults
 			$id = $name = $extension = $description = $type = $locked = $encrypted = $system = "";
+
 			foreach ($data as $key => $val) {
 				if (substr($key,0,1) != "_" && !is_array($val)) {
 					$$key = sqlescape(htmlspecialchars($val));
@@ -1929,6 +1940,7 @@
 					}
 				}
 
+				$settings = BigTree::arrayFilterRecursive($settings);
 				$settings = BigTree::json(BigTree::translateArray($settings), true);
 			}
 
@@ -2026,6 +2038,7 @@
 						}
 					}
 
+					$field["settings"] = BigTree::arrayFilterRecursive($field["settings"]);
 					$clean_resources[] = $field;
 
 					$file_contents .= '		$'.$resource["id"].' = '.$resource["title"].' - '.$types[$resource["type"]]["name"]."\n";
@@ -8196,6 +8209,8 @@
 				// "type" is still a reserved keyword due to the way we save callout data when editing.
 				if ($resource["id"] && $resource["id"] != "type") {
 					$settings = json_decode($resource["settings"] ?: $resource["options"], true);
+					$settings = BigTree::arrayFilterRecursive($settings);
+					
 					$clean_resources[] = array(
 						"id" => BigTree::safeEncode($resource["id"]),
 						"type" => BigTree::safeEncode($resource["type"]),
@@ -8410,11 +8425,14 @@
 			$thank_you_message = sqlescape($thank_you_message);
 
 			$clean_fields = array();
+
 			foreach ($fields as $key => $field) {
 				$field["settings"] = BigTree::translateArray(json_decode($field["settings"],true));
+				$field["settings"] = BigTree::arrayFilterRecursive($field["settings"]);
 				$field["column"] = $key;
 				$clean_fields[] = $field;
 			}
+			
 			$fields = BigTree::json($clean_fields,true);
 
 			sqlquery("UPDATE bigtree_module_embeds SET `title` = '$title', `table` = '$table', `fields` = '$fields', `default_position` = '$default_position', `default_pending` = '$default_pending', `css` = '$css', `redirect_url` = '$redirect_url', `thank_you_message` = '$thank_you_message', `hooks` = '$hooks' WHERE id = '$id'");
@@ -8458,6 +8476,7 @@
 					$field["settings"] = BigTree::translateArray(json_decode($field["options"], true));
 				}
 
+				$field["settings"] = BigTree::arrayFilterRecursive($field["settings"]);
 				$field["column"] = $key;
 				$field["title"] = BigTree::safeEncode($field["title"]);
 				$field["subtitle"] = BigTree::safeEncode($field["subtitle"]);
@@ -9145,6 +9164,7 @@
 				}
 			}
 
+			$settings = BigTree::arrayFilterRecursive($settings);
 			$settings = BigTree::json(BigTree::translateArray($settings), true);
 
 			// See if we have an id collision with the new id.
@@ -9223,6 +9243,8 @@
 			foreach ($resources as $resource) {
 				if ($resource["id"]) {
 					$settings = json_decode($resource["settings"] ?: $resource["options"], true);
+					$settings = BigTree::arrayFilterRecursive($settings);
+
 					$clean_resources[] = array(
 						"id" => BigTree::safeEncode($resource["id"]),
 						"title" => BigTree::safeEncode($resource["title"]),
