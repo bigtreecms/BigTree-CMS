@@ -158,14 +158,17 @@
 				relative_path - The path (relative to SITE_ROOT or the bucket / container root) in which to store the file.
 				remove_original - Whether to delete the local_file or not (defaults to true)
 				force_local - Forces a local file replacement even if cloud storage is in use by default (defaults to false)
+				sanitize_file_name - Whether to sanitize a file name (defaults to true)
 
 			Returns:
 				The URL of the stored file.
 		*/
 
-		public function replace($local_file, $file_name, $relative_path, $remove_original = true, $force_local = false) {
-			// Make sure there are no path exploits
-			$file_name = BigTree::cleanFile($file_name);
+		public function replace($local_file, $file_name, $relative_path, $remove_original = true, $force_local = false, $sanitize_file_name = true) {
+			if ($sanitize_file_name) {
+				// Make sure there are no path exploits
+				$file_name = BigTree::cleanFile($file_name);
+			}
 
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
@@ -223,14 +226,17 @@
 				relative_path - The path (relative to SITE_ROOT or the bucket / container root) in which to store the file.
 				remove_original - Whether to delete the local_file or not.
 				prefixes - A list of file prefixes that also need to be accounted for when checking file name availability.
+				sanitize_file_name - Whether to sanitize a file name (defaults to true)
 
 			Returns:
 				The URL of the stored file.
 		*/
 
-		public function store($local_file,$file_name,$relative_path,$remove_original = true,$prefixes = array()) {
-			// Make sure there are no path exploits
-			$file_name = BigTree::cleanFile($file_name);
+		public function store($local_file, $file_name, $relative_path, $remove_original = true, $prefixes = [], $sanitize_file_name = true) {
+			if ($sanitize_file_name) {
+				// Make sure there are no path exploits
+				$file_name = BigTree::cleanFile($file_name);
+			}
 
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {

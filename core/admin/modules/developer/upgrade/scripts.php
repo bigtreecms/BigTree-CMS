@@ -57,11 +57,13 @@
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/upgrade/" + script, { data: data }).done(function(json) {
 			$(".upgrade_message").html(json.response);
 
-			if (json.complete) {
+			if (json.error) {
+				$(".upgrade_message").html('<div class="error_message">An error occurred. Try refreshing this page to proceed with the upgrade.<br>Error: ' + json.error + '</div>');
+			} else if (json.complete) {
 				index++;
 
 				if (index == queue.length) {
-					alert("Done");
+					$(".upgrade_message").html("<strong>Upgrade Complete.</strong>");
 				} else {
 					run_script(queue[index]);
 				}

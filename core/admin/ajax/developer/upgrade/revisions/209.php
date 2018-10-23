@@ -39,7 +39,7 @@
 	if ($page < $total_pages) {
 		echo BigTree::json([
 			"complete" => false,
-			"response" => "Cleaning up 404s: page $page of $total_pages"
+			"response" => "Cleaning up 404s: page $page of $total_pages complete."
 		]);
 	} else {
 		$admin->updateSettingValue("bigtree-internal-revision", 209);
