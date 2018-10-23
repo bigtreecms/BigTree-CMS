@@ -2,7 +2,7 @@
 	// Check whether our database is running the latest revision of BigTree or not.
 	$current_revision = $cms->getSetting("bigtree-internal-revision");
 	if ($current_revision < BIGTREE_REVISION && $admin->Level > 1) {
-		BigTree::redirect(DEVELOPER_ROOT."upgrade/database/");
+		BigTree::redirect(DEVELOPER_ROOT."upgrade/scripts/");
 	}
 	// Check for newer versions of BigTree
 	$ignored_all = true;
