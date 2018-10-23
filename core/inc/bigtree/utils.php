@@ -269,6 +269,13 @@
 				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 			}
+
+			// Limit request to 5 seconds less than max execution time
+			$max_execution_time = ini_get("max_execution_time");
+
+			if ($max_execution_time !== 0) {
+				curl_setopt($ch, CURLOPT_TIMEOUT,  $max_execution_time - 5);
+			}
 			
 			// If we're returning to a file we setup a file pointer rather than waste RAM capturing to a variable
 			if ($output_file) {
@@ -2670,34 +2677,37 @@
 		
 		public static function urlExists($url) {
 			// Handle // urls as http://
-			if (substr($url, 0, 2) == "//") {
+			if (substr($url,0,2) == "//") {
 				$url = "http:".$url;
 			}
-			
+
 			// Strip out any hash
 			list($url) = explode("#", $url);
-			
+
 			$handle = curl_init($url);
 			
 			if ($handle === false) {
 				return false;
 			}
-			
+
+			// Limit the request to 5 seconds
+			curl_setopt($handle, CURLOPT_TIMEOUT, 5);
+
 			// We want just the header (NOBODY sets it to a HEAD request)
 			curl_setopt($handle, CURLOPT_HEADER, true);
 			curl_setopt($handle, CURLOPT_NOBODY, true);
 			curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
-			
+
 			// Fail on error should make it so response codes > 400 result in a fail
 			curl_setopt($handle, CURLOPT_FAILONERROR, true);
-			
+
 			// Request as Firefox so that servers don't reject us for not having headers.
-			curl_setopt($handle, CURLOPT_HTTPHEADER, ["User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.15) Gecko/20080623 Firefox/2.0.0.15"]);
-			
+			curl_setopt($handle, CURLOPT_HTTPHEADER, array("User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"));
+
 			// Execute the request and close the handle
 			$success = curl_exec($handle) ? true : false;
 			curl_close($handle);
-			
+
 			return $success;
 		}
 		
