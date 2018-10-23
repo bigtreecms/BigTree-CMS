@@ -158,27 +158,26 @@
 				relative_path - The path (relative to SITE_ROOT or the bucket / container root) in which to store the file.
 				remove_original - Whether to delete the local_file or not (defaults to true)
 				force_local - Forces a local file replacement even if cloud storage is in use by default (defaults to false)
-				sanitize_file_name - Whether to sanitize a file name (defaults to true)
 
 			Returns:
 				The URL of the stored file.
 		*/
 
-		public function replace($local_file, $file_name, $relative_path, $remove_original = true, $force_local = false, $sanitize_file_name = true) {
-			if ($sanitize_file_name) {
-				// Make sure there are no path exploits
-				$file_name = BigTree::cleanFile($file_name);
-			}
+		public function replace($local_file, $file_name, $relative_path, $remove_original = true, $force_local = false) {
+			// Make sure there are no path exploits
+			$file_name = BigTree::cleanFile($file_name);
 
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
 				$this->DisabledFileError = true;
 				unlink($local_file);
+
 				return false;
 			}
 
 			// If we're auto converting images to JPG from PNG
 			$file_name = $this->convertJPEG($local_file,$file_name);
+
 			// Enforce trailing slashe on relative_path
 			$relative_path = $relative_path ? rtrim($relative_path,"/")."/" : "files/";
 
@@ -208,6 +207,7 @@
 				} else {
 					$success = BigTree::copyFile($local_file,SITE_ROOT.$relative_path.$file_name);
 				}
+				
 				if ($success) {
 					return "{staticroot}".$relative_path.$file_name;
 				} else {
@@ -233,20 +233,20 @@
 		*/
 
 		public function store($local_file, $file_name, $relative_path, $remove_original = true, $prefixes = [], $sanitize_file_name = true) {
-			if ($sanitize_file_name) {
-				// Make sure there are no path exploits
-				$file_name = BigTree::cleanFile($file_name);
-			}
-
+			// Make sure there are no path exploits
+			$file_name = BigTree::cleanFile($file_name);
+			
 			// If the file name ends in a disabled extension, fail.
 			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
 				$this->DisabledFileError = true;
 				unlink($local_file);
+
 				return false;
 			}
 
 			// If we're auto converting images to JPG from PNG
 			$file_name = $this->convertJPEG($local_file,$file_name);
+
 			// Enforce trailing slashe on relative_path
 			$relative_path = $relative_path ? rtrim($relative_path,"/")."/" : "files/";
 
@@ -255,7 +255,7 @@
 				global $cms;
 
 				$parts = BigTree::pathInfo($file_name);
-				$clean_name = $cms->urlify($parts["filename"]);
+				$clean_name = $sanitize_file_name ? $cms->urlify($parts["filename"]) : $parts["filename"];
 
 				if (strlen($clean_name) > 50) {
 					$clean_name = substr($clean_name,0,50);
@@ -306,11 +306,13 @@
 				return $success;
 			} else {
 				$safe_name = BigTree::getAvailableFileName(SITE_ROOT.$relative_path,$file_name,$prefixes);
+
 				if ($remove_original) {
 					$success = BigTree::moveFile($local_file,SITE_ROOT.$relative_path.$safe_name);
 				} else {
 					$success = BigTree::copyFile($local_file,SITE_ROOT.$relative_path.$safe_name);
 				}
+
 				if ($success) {
 					return "{staticroot}".$relative_path.$safe_name;
 				} else {

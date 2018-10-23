@@ -76,9 +76,9 @@
 		$image->centerCrop($temp_crop, 100, 100);
 		
 		if ($resource["location"] == "local") {
-			$local_storage->store($temp_crop, $basename, "files/resources/list-preview/", true, [], false);
+			$local_storage->replace($temp_crop, $basename, "files/resources/list-preview/");
 		} else {
-			$storage->store($temp_crop, $basename, "files/resources/list-preview/", true, [], false);
+			$storage->replace($temp_crop, $basename, "files/resources/list-preview/");
 		}
 		
 		$fixed_thumbs = [];
