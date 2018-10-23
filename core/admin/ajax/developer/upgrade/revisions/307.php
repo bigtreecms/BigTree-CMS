@@ -64,8 +64,8 @@
 
 		$image = new BigTreeImage($temp_file);
 		
-		// Turn CMYK uploads into regular files rather than treat them as images
-		if ($image->Error == "A CMYK encoded file was uploaded. Please upload an RBG image.") {
+		// Turn bad image uploads into regular files rather than treat them as images
+		if ($image->Error) {
 			SQL::update("bigtree_resources", $resource["id"], ["is_image" => ""]);
 			@unlink($temp_file);
 			
