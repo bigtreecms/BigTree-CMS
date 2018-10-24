@@ -20,6 +20,20 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.2.24
+- UPDATED: Logging into a multi-site environment now uses CORS to login to all sites in one go
+- CHANGED: The error users receive when a session timeout occurs now sounds less scary (used to be "Cross site request forgery detected.")
+- FIXED: Select dropdowns should now work better in Firefox
+- FIXED: Page editing should now be more accessible
+- FIXED: Page previewing in a multi-site environment
+- FIXED: SQL::unique call when not passing in an ID
+- FIXED: Deleting a top level thumbnail of an image deleting the thumbnails of the first crop
+- FIXED: SSL state lookups to be more accurate
+- FIXED: Audit trail not properly tracking the deletion of embeddable forms and reports
+- FIXED: Path manipulation on Windows environments (Thanks pupiles!)
+- FIXED: Session IDs are now regenerated on login for better security (Thanks Juttikhun Khamchaiyaphum!)
+- FIXED: cURL requests should no longer hang indefinitely when blocked by a firewall (maximum of 5 seconds for urlExists requests and 5 seconds less than max execution time for cURL requests)
+
 ### 4.2.23
 - ADDED: A setting for session lifetime
 - ADDED: Support for a "bigtree-theme.sql" file in the install directory for bootstrapping a BigTree install
