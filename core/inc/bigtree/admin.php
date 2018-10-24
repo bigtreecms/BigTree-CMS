@@ -1313,7 +1313,7 @@
 					"title" => BigTree::safeEncode($data["title"]),
 					"subtitle" => BigTree::safeEncode($data["subtitle"]),
 					"settings" => BigTree::translateArray(is_array($settings) ? $settings : json_decode($settings, true))
-				);
+				];
 				
 				$field["settings"] = BigTree::arrayFilterRecursive($field["settings"]);
 
