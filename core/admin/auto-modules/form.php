@@ -7,7 +7,7 @@
 		$bigtree["edit_id"] = $edit_id = $_POST["id"] ? $_POST["id"] : false;
 	}
 
-	if (!is_numeric($bigtree["edit_id"]) && !is_numeric(substr($bigtree["edit_id"], 1))) {
+	if (!empty($bigtree["edit_id"]) && !is_numeric($bigtree["edit_id"]) && !is_numeric(substr($bigtree["edit_id"], 1))) {
 		$admin->stop();
 	}
 
