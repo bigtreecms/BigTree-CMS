@@ -6,6 +6,11 @@
 	} else {
 		$bigtree["edit_id"] = $edit_id = $_POST["id"] ? $_POST["id"] : false;
 	}
+
+	if (!is_numeric($bigtree["edit_id"]) && !is_numeric(substr($bigtree["edit_id"], 1))) {
+		$admin->stop();
+	}
+
 	$bigtree["form"] = $form = BigTreeAutoModule::getForm($bigtree["module_action"]["form"]);
 	$bigtree["form_root"] = ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/";
 	$bigtree["related_view"] = BigTreeAutoModule::getRelatedViewForForm($bigtree["form"]);

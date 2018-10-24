@@ -21,6 +21,9 @@ Changelog
 ---------
 
 ### 4.2.24
+- SECURITY FIX: Cross site scripting vulnerability for developers through form posts (Thanks Mithat Gögebakan!)
+- SECURITY FIX: Session IDs are now regenerated on login for better security (Thanks Juttikhun Khamchaiyaphum!)
+- SECURITY FIX: Path manipulation on Windows environments (Thanks pupiles!)
 - UPDATED: Logging into a multi-site environment now uses CORS to login to all sites in one go
 - CHANGED: The error users receive when a session timeout occurs now sounds less scary (used to be "Cross site request forgery detected.")
 - FIXED: Select dropdowns should now work better in Firefox
@@ -30,8 +33,6 @@ Changelog
 - FIXED: Deleting a top level thumbnail of an image deleting the thumbnails of the first crop
 - FIXED: SSL state lookups to be more accurate
 - FIXED: Audit trail not properly tracking the deletion of embeddable forms and reports
-- FIXED: Path manipulation on Windows environments (Thanks pupiles!)
-- FIXED: Session IDs are now regenerated on login for better security (Thanks Juttikhun Khamchaiyaphum!)
 - FIXED: cURL requests should no longer hang indefinitely when blocked by a firewall (maximum of 5 seconds for urlExists requests and 5 seconds less than max execution time for cURL requests)
 
 ### 4.2.23
