@@ -8,8 +8,10 @@
 		echo 'BigTree.growl("'.$module["name"].'","Deleted Item");';
 		
 		if (substr($id,0,1) == "p") {
-			BigTreeAutoModule::deletePendingItem($table,substr($id,1));
+			BigTreeAutoModule::deletePendingItem($table, substr($id, 1));
 		} else {
-			BigTreeAutoModule::deleteItem($table,$id);
+			BigTreeAutoModule::deleteItem($table, $id);
 		}
+
+		$admin->deallocateResources($table, $id);
 	}

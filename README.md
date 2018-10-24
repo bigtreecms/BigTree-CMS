@@ -1,4 +1,4 @@
-BigTree CMS 4.2
+BigTree CMS 4.3
 ===============
 <http://www.bigtreecms.org/>
 
@@ -23,26 +23,59 @@ Changelog
 ### 4.3
 - ADDED: File Manager with metadata and a dedicated tab
 - ADDED: Tag Manager with the ability to delete and merge tags
-- ADDED: Maximum length restriction to textarea
-- ADDED: Character counter to text and textarea when a max length exists
+- ADDED: Open Graph data support for pages and modules and the new BigTreeCMS::setHeadContext and BigTreeCMS::drawHeadTags methods to support the data
+- ADDED: New more robust example site that shows off more functionality and links to documentation
 - ADDED: Image Reference, File Reference, and Video Reference fields
 - ADDED: Database based session handling for better compatibility with load balancers and session timeout control
 - ADDED: Security settings to force logout all users, logout all user sessions when logging out, and logout user sessions when changing passwords.
 - ADDED: Progress indicators and some other UI improvements
 - ADDED: Support for processing LESS files in the admin CSS
 - ADDED: Support for external CSS and JS in admin_css / admin_js configuration settings
+- ADDED: Administrators can now view a report of a page to see what users have access to it
+- ADDED: Timezone support in the admin (users can now see and set dates and times in their frame of reference)
+- ADDED: New BigTreeImage class that encapsulates many image modification functions
 - UPDATED: Tagging interface now shows you the number of existing relationships
 - UPDATED: Audit trail now keeps track of who the originator of a change was if published without additional changes
 - UPDATED: Advanced search now respects view filters when showing results
+- UPDATED: The latest version of TinyMCE (4.8.3) is included
+- UPDATED: Checkbox fields can now have a default checked status
+- UPDATED: You can now reveal help text for a module's view after it has been hidden
+- UPDATED: Textarea field now supports maximum length restrictions
+- UPDATED: Added character counter to text and textarea when a max length exists
+- UPDATED: Files associated with pages and module content are now much more accurate at warning when the file is in use when trying to delete the file.
+- UPDATED: Previous page revisions now show when they contain deleted file manager referenecs.
 - CHANGED: BigTree now uses Composer rather than submodules for third party libraries
 - CHANGED: BigTree now uses full <?php tags for better compatibility
-- CHANGED: BigTree now requires PHP 5.4+
+- CHANGED: BigTree now requires PHP 5.5+
+- CHANGED: BigTree now upgrades via paginated AJAX to prevent timeouts of long running upgrade scripts
 - CHANGED: Field types now live in /custom/admin/field-types/{id}/ directories with draw, process, and settings files
 - CHANGED: Fields, module forms, module views, etc. now have "settings" rather than "options"
 - CHANGED: Processing crops now occurs via AJAX to prevent timeouts of large crop sets
 - CHANGED: Amazon S3 storage now uses the official AWS library for better cross region support and CloudFront invalidation
 - CHANGED: Passwords now use PHP's password_hash and will be re-hashed upon login to the default algorithm
 - CHANGED: When a minimum image width / height is not set, BigTree will try to create thumbnails of crops if the image is large enough for them.
+- CHANGED: Duplicate tags are now merged on saving a page / module entry
+- CHANGED: "Resources" permissions are now "Files" permissions when editing a user.
+- CHANGED: BigTree bar no longer shows edit buttons on 404 page and will draw on secure pages
+- CHANGED: BigTree should now be more reliable at getting the remote IP address when behind load balancers or firewalls
+- CHANGED: Simple mode HTML fields no longer contain the code button and instead have the remove formatting button
+- CHANGED: Simple mode HTML fields now remove any tags that are not supported (only leaves bold, italic, underline, links, paragraphs, and line breaks)
+
+### 4.2.24
+- SECURITY FIX: Cross site scripting vulnerability for developers through form posts (Thanks Mithat Gögebakan!)
+- SECURITY FIX: Session IDs are now regenerated on login for better security (Thanks Juttikhun Khamchaiyaphum!)
+- SECURITY FIX: Path manipulation on Windows environments (Thanks pupiles!)
+- UPDATED: Logging into a multi-site environment now uses CORS to login to all sites in one go
+- CHANGED: The error users receive when a session timeout occurs now sounds less scary (used to be "Cross site request forgery detected.")
+- FIXED: Select dropdowns should now work better in Firefox
+- FIXED: Page editing should now be more accessible
+- FIXED: Page previewing in a multi-site environment
+- FIXED: SQL::unique call when not passing in an ID
+- FIXED: Deleting a top level thumbnail of an image deleting the thumbnails of the first crop
+- FIXED: SSL state lookups to be more accurate
+- FIXED: Audit trail not properly tracking the deletion of embeddable forms and reports
+- FIXED: Session IDs are now regenerated on login for better security (Thanks Juttikhun Khamchaiyaphum!)
+- FIXED: cURL requests should no longer hang indefinitely when blocked by a firewall (maximum of 5 seconds for urlExists requests and 5 seconds less than max execution time for cURL requests)
 
 ### 4.2.23
 - ADDED: A setting for session lifetime

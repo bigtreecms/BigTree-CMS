@@ -13,8 +13,11 @@
 	}
 
 	$policy = array_filter((array)$bigtree["security-policy"]["password"]) ? $bigtree["security-policy"]["password"] : false;
-	if ($policy) {
+	$policy_text = null;
+	
+	if (!empty($policy["length"]) || !empty($policy["mixedcase"]) || !empty($policy["numbers"]) || !empty($policy["nonalphanumeric"]))  {
 		$policy_text = "<p>Requirements</p><ul>";
+		
 		if ($policy["length"]) {
 			$policy_text .= "<li>Minimum length &mdash; ".$policy["length"]." characters</li>";
 		}
@@ -27,6 +30,7 @@
 		if ($policy["nonalphanumeric"]) {
 			$policy_text .= "<li>At least one special character (i.e. $%*)</li>";
 		}
+		
 		$policy_text .= "</ul>";
 	}
 ?>
@@ -57,8 +61,8 @@
 		?>
 		<fieldset>
 			<label>New Password</label>
-			<input class="text<?php if ($policy) { ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><?php } ?>" type="password" name="password" />
-			<?php if ($policy) { ?>
+			<input class="text<?php if ($policy_text) { ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><?php } ?>" type="password" name="password" />
+			<?php if ($policy_text) { ?>
 			<p class="password_policy">Password Policy In Effect</p>
 			<?php } ?>
 		</fieldset>
@@ -67,7 +71,7 @@
 			<input class="text" type="password" name="confirm_password" />
 		</fieldset>
 		<fieldset class="lower">
-			<input type="submit" class="button blue" value="Reset" />
+			<input type="submit" class="button blue" value="<?php if (isset($_GET["welcome"])) { echo "Set Password"; } else { echo "Reset Password"; } ?>" />
 		</fieldset>
 		<?php
 			}

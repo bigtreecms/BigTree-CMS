@@ -16,6 +16,7 @@
 
 	// Find out what kind of permissions we're allowed on this item.  We need to check the EXISTING copy of the data AND what it's turning into and find the lowest of the two permissions.
 	$bigtree["access_level"] = $admin->getAccessLevel($bigtree["module"],$_POST,$bigtree["form"]["table"]);
+
 	if ($_POST["id"] && $bigtree["access_level"] && $bigtree["access_level"] != "n") {
 		$original_item = BigTreeAutoModule::getItem($bigtree["form"]["table"],$_POST["id"]);
 		$existing_item = BigTreeAutoModule::getPendingItem($bigtree["form"]["table"],$_POST["id"]);
@@ -79,6 +80,7 @@
 	// Make some easier to write out vars for below.
 	$tags = $_POST["_tags"];
 	$edit_id = $_POST["id"] ? $_POST["id"] : false;
+	$change_allocation_id = false;
 	$new_id = false;
 	$table = $bigtree["form"]["table"];
 	$item = $bigtree["entry"];
@@ -103,11 +105,13 @@
 
 		// We have an existing module entry we're saving a change to.
 		if ($edit_id) {
-			BigTreeAutoModule::submitChange($bigtree["module"]["id"],$table,$edit_id,$item,$many_to_many,$tags,$bigtree["form"]["hooks"]["publish"],$open_graph);
+			$change_allocation_id = BigTreeAutoModule::submitChange($bigtree["module"]["id"],$table,$edit_id,$item,$many_to_many,$tags,$bigtree["form"]["hooks"]["publish"],$open_graph);
 			$admin->growl($bigtree["module"]["name"],"Saved ".$bigtree["form"]["title"]." Draft");
+			$admin->allocateResources($table, "p".$change_allocation_id);
 		// It's a new entry, so we create a pending item.
 		} else {
 			$edit_id = "p".BigTreeAutoModule::createPendingItem($bigtree["module"]["id"],$table,$item,$many_to_many,$tags,$bigtree["form"]["hooks"]["publish"],false,$open_graph);
+			$admin->allocateResources($table, $edit_id);
 			$admin->growl($bigtree["module"]["name"],"Created ".$bigtree["form"]["title"]." Draft");
 		}
 	// We're a publisher and we want to publish
@@ -117,17 +121,26 @@
 			// If the edit id starts with a "p" it's a pending entry we're publishing.
 			if (substr($edit_id,0,1) == "p") {
 				$edit_id = BigTreeAutoModule::publishPendingItem($table,substr($edit_id,1),$item,$many_to_many,$tags,$_POST["_open_graph_"]);
+				$admin->updateResourceAllocation($table, $edit_id, substr($_POST["id"], 1));
 				$admin->growl($bigtree["module"]["name"],"Updated & Published ".$bigtree["form"]["title"]);
 				$did_publish = true;
 			// Otherwise we're updating something that is already published
 			} else {
+				$pending_change_id = SQL::fetchSingle("SELECT id FROM bigtree_pending_changes WHERE `table` = ? AND `item_id` = ?", $table, $edit_id);
+
+				if ($pending_change_id) {
+					$admin->deallocateResources($table, "p".$pending_change_id);
+				}
+
 				BigTreeAutoModule::updateItem($table,$edit_id,$item,$many_to_many,$tags,$_POST["_open_graph_"]);
+				$admin->allocateResources($table, $edit_id);
 				$admin->growl($bigtree["module"]["name"],"Updated ".$bigtree["form"]["title"]);
 				$did_publish = true;
 			}
 		// We're creating a new published entry.
 		} else {
 			$edit_id = BigTreeAutoModule::createItem($table,$item,$many_to_many,$tags,null,$_POST["_open_graph_"]);
+			$admin->allocateResources($table, $edit_id);
 			$admin->growl($bigtree["module"]["name"],"Created ".$bigtree["form"]["title"]);
 			$did_publish = true;
 		}
@@ -198,9 +211,6 @@
 	if ($did_publish && $bigtree["form"]["hooks"]["publish"]) {
 		call_user_func($bigtree["form"]["hooks"]["publish"],$table,$edit_id,$item,$many_to_many,$tags);
 	}
-
-	// Track resource allocation
-	$admin->allocateResources($bigtree["module"]["id"],$edit_id);
 
 	// Put together saved form information for the error or crop page in case we need it.
 	$edit_action = BigTreeAutoModule::getEditAction($bigtree["module"]["id"],$bigtree["form"]["id"]);

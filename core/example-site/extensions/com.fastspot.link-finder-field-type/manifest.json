@@ -1,0 +1,47 @@
+{
+    "type": "extension",
+    "id": "com.fastspot.link-finder-field-type",
+    "version": "2.2",
+    "revision": 10,
+    "compatibility": "4.2+",
+    "title": "Link Finder",
+    "description": "A field type that allows a user to begin typing and find links to existing pages and files on the site through a search interface.",
+    "keywords": [
+        "link finder",
+        "links",
+        "search",
+        "files"
+    ],
+    "author": {
+        "name": "Fastspot",
+        "url": "http://www.fastspot.com",
+        "email": "tim@fastspot.com"
+    },
+    "licenses": {
+        "LGPL v3": "http://opensource.org/licenses/LGPL-3.0"
+    },
+    "components": {
+        "module_groups": [],
+        "modules": [],
+        "templates": [],
+        "callouts": [],
+        "settings": [],
+        "feeds": [],
+        "field_types": [
+            {
+                "id": "com.fastspot.link-finder-field-type*link-finder",
+                "name": "Link Finder",
+                "use_cases": {
+                    "templates": "on",
+                    "modules": "on",
+                    "callouts": "on",
+                    "settings": "on"
+                },
+                "self_draw": null,
+                "extension": "com.fastspot.link-finder-field-type"
+            }
+        ],
+        "tables": []
+    },
+    "sql_revisions": []
+}

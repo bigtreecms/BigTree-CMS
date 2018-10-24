@@ -1,9 +1,12 @@
-<div class="page">
-	<article class="row">
-		<div class="mobile-full tablet-4 tablet-push-1 desktop-6 desktop-push-3">
-			<h1>Page Not Found</h1>
-			<hr />
-			<p class="emphasized">404 Error</p>
+<div class="fs-row page_row">
+	<div class="fs-cell fs-lg-8">
+		<div class="typography">
+			<h1>404 Error</h1>
 		</div>
-	</article>
+	</div>
+	<div class="fs-cell fs-lg-8 page_content">
+		<div class="typography">
+			<p>Page not found.</p>
+		</div>
+	</div>
 </div>

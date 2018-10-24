@@ -43,6 +43,27 @@
 			
 			return $xml;
 		}
+
+		/*
+			Function: arrayFilterRecursive
+				Recursively filters an array.
+
+			Parameters:
+				array - A multi-dimensional array
+
+			Returns:
+				A filtered array
+		*/
+
+		public static function arrayFilterRecursive($array) {
+			foreach ($array as $key => $value) {
+				if (is_array($value)) {
+					$array[$key] = static::arrayFilterRecursive($value);
+				}
+			}
+
+			return array_filter($array);
+		}
 		
 		/*
 			Function: classAutoLoader
@@ -56,7 +77,9 @@
 				include_once BigTree::path($bigtree["other_classes"][$class]);
 				
 				return;
-			} elseif ($route = $bigtree["module_list"][$class]) {
+			} elseif (isset($bigtree["module_list"][$class])) {
+				$route = $bigtree["module_list"][$class];
+
 				if (strpos($route, "*") !== false) {
 					list($extension, $class) = explode("*", $route);
 					$path = SERVER_ROOT."extensions/$extension/classes/$class.php";
@@ -74,6 +97,7 @@
 					}
 				}
 			}
+			
 			// Clear the module class list just in case we're missing something.
 			@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 		}
@@ -142,7 +166,45 @@
 			
 			return strtoupper($new_color);
 		}
-		
+
+		/*
+			Function: copyDirectory
+				Copies a directory and sets writable permissions.
+
+			Parameters:
+				source - The location of the directory to copy.
+				destination - The new folder location.
+
+			Returns:
+				true if the copy was successful
+		*/
+
+		public static function copyDirectory($source, $destination) {
+			if (!static::isDirectoryWritable($destination) || !is_dir($source) || !is_readable($source) || file_exists($destination)) {
+				return false;
+			}
+
+			$source = rtrim(rtrim($source, "/"), "\\")."/";
+			$contents = static::directoryContents($source);
+			$destination = rtrim(rtrim($destination, "/"), "\\")."/";
+
+			mkdir($destination);
+			static::setPermissions($destination);
+
+			foreach ($contents as $file) {
+				$new_location = $destination.str_replace($source, "", $file);
+
+				if (is_dir($file)) {
+					mkdir($new_location);
+					static::setPermissions($new_location);
+				} else {
+					BigTree::copyFile($file, $destination.str_replace($source, "", $file));
+				}
+			}
+
+			return true;
+		}
+
 		/*
 			Function: copyFile
 				Copies a file into a directory, even if that directory doesn't exist yet.
@@ -152,7 +214,7 @@
 				to - The location of the new copy.
 
 			Returns:
-				true if the copy was successful, false if the directories were not writable.
+				true if the copy was successful, false if the directories were not writable or the source was not readable.
 		*/
 		
 		public static function copyFile($from, $to) {
@@ -173,7 +235,7 @@
 			$directory = $pathinfo["dirname"];
 			BigTree::makeDirectory($directory);
 			
-			$success = copy($from, $to);
+			$success = @copy($from, $to);
 			static::setPermissions($to);
 			
 			return $success;
@@ -206,6 +268,13 @@
 			if (!$strict_security) {
 				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+			}
+
+			// Limit request to 5 seconds less than max execution time
+			$max_execution_time = ini_get("max_execution_time");
+
+			if ($max_execution_time !== 0) {
+				curl_setopt($ch, CURLOPT_TIMEOUT,  $max_execution_time - 5);
 			}
 			
 			// If we're returning to a file we setup a file pointer rather than waste RAM capturing to a variable
@@ -638,16 +707,20 @@
 		public static function directoryContents($directory, $recurse = true, $extension = false, $include_git = false) {
 			$contents = [];
 			$d = @opendir($directory);
+
 			if (!$d) {
 				return false;
 			}
+
 			while ($r = readdir($d)) {
 				if ($r != "." && $r != ".." && $r != ".DS_Store" && $r != "__MACOSX") {
 					if ($include_git || ($r != ".git" && $r != ".gitignore")) {
 						$path = rtrim($directory, "/")."/".$r;
+						
 						if ($extension === false || substr($path, -1 * strlen($extension)) == $extension) {
 							$contents[] = $path;
 						}
+
 						if (is_dir($path) && $recurse) {
 							$contents = array_merge($contents, BigTree::directoryContents($path, $recurse, $extension, $include_git));
 						}
@@ -1186,11 +1259,13 @@
 			$dir_parts = explode("/", trim($directory, "/"));
 			foreach ($dir_parts as $part) {
 				$dir_path .= $part;
+				
 				// Silence situations with open_basedir restrictions.
 				if (!@file_exists($dir_path)) {
 					@mkdir($dir_path);
 					static::setPermissions($dir_path);
 				}
+				
 				$dir_path .= "/";
 			}
 		}
@@ -1209,9 +1284,11 @@
 		
 		public static function moveFile($from, $to) {
 			$success = static::copyFile($from, $to);
+			
 			if (!$success) {
 				return false;
 			}
+			
 			unlink($from);
 			
 			return true;
@@ -1694,6 +1771,36 @@
 				
 				return $years == 1 ? "1 year ago" : "$years years ago";
 			}
+		}
+
+		/*
+			Function: remoteIP
+				Returns the remote user's IP address (works with load balancers).
+	
+			Returns:
+				An IP address
+		*/
+
+		public static function remoteIP() {
+			if (!empty($_SERVER["HTTP_CLIENT_IP"])) {
+				return $_SERVER["HTTP_CLIENT_IP"];
+			} elseif (!empty($_SERVER["HTTP_X_FORWARDED_FOR"])) {
+				return $_SERVER["HTTP_X_FORWARDED_FOR"];
+			} elseif (!empty($_SERVER["HTTP_X_FORWARDED"])) {
+				return $_SERVER["HTTP_X_FORWARDED"];
+			} elseif (!empty($_SERVER["HTTP_FORWARDED_FOR"])) {
+				return $_SERVER["HTTP_FORWARDED_FOR"];
+			} elseif (!empty($_SERVER["HTTP_FORWARDED"])) {
+				return $_SERVER["HTTP_FORWARDED"];
+			} elseif (!empty($_SERVER["HTTP_X_CLUSTER_CLIENT_IP"])) {
+				return $_SERVER["HTTP_X_CLUSTER_CLIENT_IP"];
+			} elseif (!empty($_SERVER["HTTP_CF_CONNECTING_IP"])) {
+				return $_SERVER["HTTP_CF_CONNECTING_IP"];
+			} elseif (!empty($_SERVER["REMOTE_ADDR"])) {
+				return $_SERVER["REMOTE_ADDR"];
+			}
+
+			return null;
 		}
 		
 		/*
@@ -2570,34 +2677,37 @@
 		
 		public static function urlExists($url) {
 			// Handle // urls as http://
-			if (substr($url, 0, 2) == "//") {
+			if (substr($url,0,2) == "//") {
 				$url = "http:".$url;
 			}
-			
+
 			// Strip out any hash
 			list($url) = explode("#", $url);
-			
+
 			$handle = curl_init($url);
 			
 			if ($handle === false) {
 				return false;
 			}
-			
+
+			// Limit the request to 5 seconds
+			curl_setopt($handle, CURLOPT_TIMEOUT, 5);
+
 			// We want just the header (NOBODY sets it to a HEAD request)
 			curl_setopt($handle, CURLOPT_HEADER, true);
 			curl_setopt($handle, CURLOPT_NOBODY, true);
 			curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
-			
+
 			// Fail on error should make it so response codes > 400 result in a fail
 			curl_setopt($handle, CURLOPT_FAILONERROR, true);
-			
+
 			// Request as Firefox so that servers don't reject us for not having headers.
-			curl_setopt($handle, CURLOPT_HTTPHEADER, ["User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.15) Gecko/20080623 Firefox/2.0.0.15"]);
-			
+			curl_setopt($handle, CURLOPT_HTTPHEADER, array("User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"));
+
 			// Execute the request and close the handle
 			$success = curl_exec($handle) ? true : false;
 			curl_close($handle);
-			
+
 			return $success;
 		}
 		

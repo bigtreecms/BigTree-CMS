@@ -351,8 +351,9 @@
 		bt_mkdir_writable("templates/routed/");
 		bt_mkdir_writable("templates/basic/");
 		bt_mkdir_writable("templates/callouts/");
-		
+
 		bt_touch_writable("custom/environment.php",str_replace($find,$replace,file_get_contents("core/config.environment.php")));
+		bt_touch_writable("cache/composer-check.flag", "true");
 		
 		// Install the example site if they asked for it.
 		if ($install_example_site) {
@@ -545,7 +546,13 @@ RewriteRule (.*) site/$1 [L]');
 
 				// Load LESS compiler
 				$parser = new \Less_Parser(["compress" => true]);
-				$parser->parseFile("core/admin/css/install.less", $base."core/admin/filler/");
+
+				if ($installed) {
+					$parser->parseFile("core/admin/css/install.less", $base."admin/filler/");
+				} else {
+					$parser->parseFile("core/admin/css/install.less", $base."core/admin/filler/");
+				}
+
 				echo $parser->getCss();
 			?>
 		</style>

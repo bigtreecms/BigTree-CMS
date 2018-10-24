@@ -37,9 +37,11 @@
 			}
 
 			$admin->updatePage($change["item_id"], $page_data);
+			$admin->updateResourceAllocation("bigtree_pages", $change["item_id"], $change["id"]);
 		} else {
 			BigTreeAutoModule::updateItem($change["table"],$change["item_id"],$change["changes"],$change["mtm_changes"],$change["tags_changes"],$change["open_graph_changes"]);
-			
+			$admin->updateResourceAllocation($change["table"], $change["item_id"], $change["id"]);
+
 			if ($change["publish_hook"]) {
 				call_user_func($change["publish_hook"],$change["table"],$change["item_id"],$change["changes"],$change["mtm_changes"],$change["tags_changes"],$change["open_graph_changes"]);
 			}
@@ -50,12 +52,13 @@
 			$change["changes"]["_tags"] = $change["tags_changes"];
 			$change["changes"]["_open_graph_"] = $change["open_graph_changes"];
 			$page = $admin->createPage($change["changes"], $change["id"]);
+			$admin->updateResourceAllocation($change["table"], $page, $change["id"]);
 		} else {
 			$id = BigTreeAutoModule::publishPendingItem($change["table"],$change["id"],$change["changes"],$change["mtm_changes"],$change["tags_changes"],$change["open_graph_changes"]);
-			
+			$admin->updateResourceAllocation($change["table"], $id, $change["id"]);
+
 			if ($change["publish_hook"]) {
 				call_user_func($change["publish_hook"],$change["table"],$id,$change["changes"],$change["mtm_changes"],$change["tags_changes"],$change["open_graph_changes"]);
 			}
 		}
 	}
-	

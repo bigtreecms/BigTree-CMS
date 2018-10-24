@@ -23,11 +23,6 @@
 	define("SITE_ROOT", $site_root);
 	define("ADMIN_ROOT", $admin_root);
 
-	// Adjust server parameters in case we're running on CloudFlare
-	if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
-		$_SERVER["REMOTE_ADDR"] = $_SERVER["HTTP_CF_CONNECTING_IP"];
-	}
-
 	// Set version
 	include SERVER_ROOT."core/version.php";
 
@@ -38,24 +33,33 @@
 		include SERVER_ROOT."core/inc/bigtree/utils.php";
 	}
 
-	// Include Composer's autoloader
-	if (!file_exists(SERVER_ROOT."vendor/autoload.php")) {
-		BigTree::makeDirectory(SERVER_ROOT."vendor/");
-
+	// Setup the vendor folder if we haven't done this check before
+	if (!file_exists(SERVER_ROOT."cache/composer-check.flag")) {
 		$path = str_replace("core/bootstrap.php", "", __FILE__);
 		$off_path = str_replace(SERVER_ROOT, "", $path);
 
-		symlink(SERVER_ROOT.$off_path."vendor/autoload.php", SERVER_ROOT."vendor/autoload.php");
-		symlink(SERVER_ROOT.$off_path."vendor/aws", SERVER_ROOT."vendor/aws");
-		symlink(SERVER_ROOT.$off_path."vendor/composer", SERVER_ROOT."vendor/composer");
-		symlink(SERVER_ROOT.$off_path."vendor/guzzlehttp", SERVER_ROOT."vendor/guzzlehttp");
-		symlink(SERVER_ROOT.$off_path."vendor/mtdowling", SERVER_ROOT."vendor/mtdowling");
-		symlink(SERVER_ROOT.$off_path."vendor/oyejorge", SERVER_ROOT."vendor/oyejorge");
-		symlink(SERVER_ROOT.$off_path."vendor/psr", SERVER_ROOT."vendor/psr");
+		if (!file_exists(SERVER_ROOT."vendor/")) {
+			BigTree::putFile(SERVER_ROOT."cache/composer-check.flag", "done");
+			BigTree::copyDirectory(SERVER_ROOT.$off_path."vendor/", SERVER_ROOT."vendor/");
+		} else {
+			if (file_exists(SERVER_ROOT."composer.json") && !is_writable(SERVER_ROOT."composer.json")) {
+				die("BigTree needs to write to your composer.json file to ensure a composer update does not wipe required libraries.");
+			}
 
-		BigTree::copyFile(SERVER_ROOT.$off_path."vendor/autoload.php", SERVER_ROOT."vendor/autoload.php");
-		BigTree::copyFile(SERVER_ROOT.$off_path."composer.lock", SERVER_ROOT."composer.lock");
-		BigTree::copyFile(SERVER_ROOT.$off_path."composer.json", SERVER_ROOT."composer.json");
+			$bigtree_composer_json = json_decode(file_get_contents(SERVER_ROOT.$off_path."composer.json"), true);
+			$existing_json = json_decode(file_get_contents(SERVER_ROOT."composer.json"), true);
+
+			foreach ($bigtree_composer_json["require"] as $key => $value) {
+				if (!isset($existing_json["require"][$key])) {
+					$existing_json["require"][$key] = $value;
+				}
+			}
+
+			BigTree::putFile(SERVER_ROOT."composer.json", BigTree::json($existing_json));
+			BigTree::putFile(SERVER_ROOT."cache/composer-check.flag", "done");
+
+			die("BigTree has updated your composer.json file with required libraries. Please run `composer update` before attempting to use BigTree 4.3.");
+		}
 	}
 
 	include SERVER_ROOT."vendor/autoload.php";

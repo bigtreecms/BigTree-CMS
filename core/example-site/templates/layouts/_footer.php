@@ -1,46 +1,67 @@
 <?php
-	$main_nav = $cms->getNavByParent(0,2);
-	$social_nav = $cms->getSetting("nav-social");
+	$social_nav = $cms->getSetting("navigation-social");
+
+	$navigation_options = [
+		"type"    => "reveal",
+		"gravity" => "right"
+	];
 ?>
-			<footer id="footer" class="row">
-				<p>
-					&copy; <?=date("Y")?> <?=$home_page["nav_title"]?>
-				</p>
+			<footer class="footer">
+				<div class="fs-row">
+					<div class="fs-cell fs-md-half fs-lg-half">
+						<a href="<?=WWW_ROOT?>" class="footer_logo"><?=$home_page["title"]?></a>
+						<p class="footer_content">
+							<strong>Disclaimer:</strong> We are not actual lumberjacks. <br>
+							&copy; <?=date("Y")?> Timber Lumberjack Co
+						</p>
+					</div>
+
+					<div class="fs-cell-right fs-md-2 fs-lg-4 fs-xl-3">
+						<nav class="social_nav">
+							<h2 class="social_nav_heading">Stay Connected</h2>
+							<?php
+								foreach ($social_nav as $item) {
+							?>
+							<div class="social_nav_item">
+								<a href="<?=$item["link"]?>" class="social_nav_link"><?=$item["title"]?></a>
+							</div>
+							<?php
+								}
+							?>
+						</nav>
+					</div>
+				</div>
 			</footer>
 		</div>
-		<div class="shifter-navigation">
-			<nav class="navigation">
-				<div class="item home">
-					<a href="<?=WWW_ROOT?>">Home</a>
-				</div>
+
+		<div class="mobile_sidebar js-navigation" data-navigation-options="<?=htmlspecialchars(json_encode($navigation_options))?>" data-navigation-handle=".js-navigation_handle" data-navigation-content=".js-navigation_content">
+			<nav class="main_nav main_nav_mobile">
+				<h2 class="nav_heading">Main Navigation</h2>
 				<?php
-					foreach ($main_nav as $navItem) {
-						$active = (strpos($current_url,$navItem["link"]) !== false);
+					foreach ($primary_nav as $item) {
 				?>
-				<div class="item">
-					<a href="<?=$navItem["link"]?>"<?php if ($active) { ?> class="active"<?php } ?><?=targetBlank($navItem["link"])?>><?=$navItem["title"]?></a>
-					<?php
-						if ($active && count($navItem["children"])) {
-							foreach ($navItem["children"] as $child) {
-					?>
-					<a href="<?=$child["link"]?>" class="secondary<?php if (strpos($current_url,$child["link"]) !== false) { ?> active<?php } ?>"<?=targetBlank($child["link"])?>><?=$child["title"]?></a>
-					<?php
-							}
-						}
-					?>
+				<div class="main_nav_item">
+					<a href="<?=$item["link"]?>" class="main_nav_link<?php if (strpos($current_url, $item["link"]) !== false) { ?> active<?php } ?>"<?php if ($item["new_window"]) { ?> target="_blank"<?php } ?>><?=$item["title"]?></a>
 				</div>
 				<?php
 					}
 				?>
-				<div class="social">
-					<?php foreach ($social_nav as $navItem) { ?>
-					<a href="<?=$navItem["link"]?>" class="<?=$navItem["class"]?>"<?=targetBlank($navItem["link"])?>><?=$navItem["title"]?></a>
-					<?php } ?>
+			</nav>
+
+			<nav class="secondary_nav secondary_nav_mobile">
+				<h2 class="nav_heading">Secondary Navigation</h2>
+				<?php
+					foreach ($secondary_nav as $item) {
+				?>
+				<div class="secondary_nav_item">
+					<a href="<?=$item["link"]?>" class="secondary_nav_link"><?=$item["title"]?></a>
 				</div>
-				<div class="colophon">
-					<?=$cms->getSetting("colophon")?>
-				</div>
+				<?php
+					}
+				?>
 			</nav>
 		</div>
+
+		<script src="<?=STATIC_ROOT?>js/site.js?<?=filemtime(SITE_ROOT."js/main.js")?>"></script>
 	</body>
 </html>

@@ -10,6 +10,7 @@
 
 	// Try fopen first
 	$resource = @fopen($url,"r");
+	
 	if ($resource) {
 		BigTree::putFile(SERVER_ROOT."cache/update.zip",$resource);
 	} else {

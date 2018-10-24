@@ -17,7 +17,7 @@
 		// Very simple if we're updating locally
 		if ($updater->Method == "Local") {
 			$updater->installLocal();
-			BigTree::redirect(DEVELOPER_ROOT."upgrade/database/");
+			BigTree::redirect(DEVELOPER_ROOT."upgrade/scripts/");
 		
 		// If we're using FTP or SFTP we have to make sure we know where the files exist
 		} else {
@@ -61,7 +61,7 @@
 <?php
 			} else {
 				$updater->installFTP($ftp_root);
-				BigTree::redirect(DEVELOPER_ROOT."upgrade/database/");
+				BigTree::redirect(DEVELOPER_ROOT."upgrade/scripts/");
 			}
 		}
 	}

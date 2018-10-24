@@ -1,66 +1,96 @@
 <?php
+	$site_title = "Timber Lumberjack Co";
+	$primary_nav = $cms->getNavByParent(0,2);
+	$secondary_nav = $cms->getSetting("navigation-secondary");
 	$current_url = BigTree::currentURL();
-	$home_page = $cms->getPage(0);
 	
-	if ($bigtree["page"]["id"]) {
-		$bigtree["page"]["title"] .= "&nbsp;&middot;&nbsp;".$home_page["nav_title"];
+	if (empty($page_image)) {
+		$page_image = $cms->getSetting("page-image-fallback");
 	}
+
+	$background_options = [
+		"source" => [
+			"0px"    => BigTree::prefixFile($page_image, "sqr_"),
+			"500px"  => BigTree::prefixFile($page_image, "sml_"),
+			"740px"  => BigTree::prefixFile($page_image, "med_"),
+			"980px"  => BigTree::prefixFile($page_image, "lrg_"),
+			"1220px" => $page_image
+		]
+	];
 ?><!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 	<head>
-		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-		<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
-		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="mobile-web-app-capable" content="yes">
 		
-		<meta name="keywords" content="<?=$bigtree["page"]["meta_keywords"]?>" />
-		<meta name="description" content="<?=$bigtree["page"]["meta_description"]?>" />
-		<meta name="author" content="<?=$home_page["nav_title"]?>" />
-		
-		<!-- G+ AND FACEBOOK META TAGS -->
-		<meta property="og:title" content="<?=$bigtree["page"]["title"]?>" />
-		<meta property="og:url" content="<?=htmlspecialchars($current_url)?>" />
-		<meta property="og:type" content="website">
-		<meta property="og:image" content="<?=STATIC_ROOT?>images/facebook.jpg" />
-		<meta property="og:description" content="<?=$page["meta_description"]?>" />
-		<meta property="og:site_name" content="<?=$home_page["nav_title"]?>" />
-		
-		<!-- TWITTER CARD -->
-		<meta name="twitter:card" content="summary" />
-		<meta name="twitter:site" content="@" />
-		<meta name="twitter:creator" content="@" />
-		<meta name="twitter:url" content="<?=htmlspecialchars($current_url)?>" />
-		<meta name="twitter:title" content="<?=$bigtree["page"]["title"]?>" />
-		<meta name="twitter:description" content="<?=$page["meta_description"]?>" />
-		<meta name="twitter:image" content="<?=STATIC_ROOT?>images/facebook.jpg" />
-		
-		<title><?=$bigtree["page"]["title"]?></title>
-		
-		<link rel="icon" href="<?=STATIC_ROOT?>favicon.ico" type="image/x-icon" />
-		<link rel="shortcut icon" href="<?=STATIC_ROOT?>favicon.ico" type="image/x-icon" />
-		
-		<link rel="stylesheet" href="<?=WWW_ROOT?>css/site.css" type="text/css" media="all" />
-		<link rel="stylesheet" href="<?=STATIC_ROOT?>css/print.css" type="text/css" media="print" />
-		
-		<!--[if IE 9]>
-			<link rel="stylesheet" href="<?=WWW_ROOT?>css/site-ie9.css" type="text/css" media="all" />
-			<script src="<?=WWW_ROOT?>js/site-ie9.js"></script>
-		<![endif]-->
-		<!--[if IE 8]>
-			<link rel="stylesheet" href="<?=WWW_ROOT?>css/site-ie8.css" type="text/css" media="all" />
-			<script src="<?=WWW_ROOT?>js/site-ie8.js"></script>
-		<![endif]-->
-		
-		<script src="<?=WWW_ROOT?>js/site.js" defer></script>
-		
-		<noscript>
-			<style>
-				body { opacity: 1; }
-			</style>
-		</noscript>
+		<?php $cms->drawHeadTags($site_title, "&middot;"); ?>
+
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,700,400italic,600italic">
+		<link rel="stylesheet" href="<?=STATIC_ROOT?>css/site.css?<?=filemtime(SITE_ROOT."css/main.less")?>">
+
+		<script src="<?=STATIC_ROOT?>js/modernizr.js"></script>
 	</head>
-	<body class="gridlock shifter">
-		<div class="shifter-page">
-			<header id="header">
-				<a href="<?=WWW_ROOT?>" class="branding"><?=$home_page["nav_title"]?></a>
-				<span class="shifter-handle">Menu</span>
+	<body class="fs-grid">
+		<a href="#page" id="skip_to_content" class="offscreen">Skip to Main Content</a>
+
+		<div class="page_wrapper js-navigation_content">
+			<header id="header" class="header js-background" data-background-options="<?=htmlentities(json_encode($background_options))?>">
+				<div class="header_position">
+					<div class="fs-row header_row">
+						<div class="fs-cell fs-sm-half fs-md-half fs-lg-3">
+							<a href="<?=WWW_ROOT?>" class="header_logo"><?=$site_title?></a>
+						</div>
+						<div class="fs-cell fs-sm-half fs-md-half fs-lg-9">
+							<div class="desktop_nav">
+								<nav class="secondary_nav secondary_nav_desktop">
+									<h2 class="nav_heading">Secondary Navigation</h2>
+									<?php
+										foreach ($secondary_nav as $item) {
+									?>
+									<div class="secondary_nav_item">
+										<a href="<?=$item["link"]?>" class="secondary_nav_link"><?=$item["title"]?></a>
+									</div>
+									<?php
+										}
+									?>
+								</nav>
+
+								<nav class="main_nav main_nav_desktop">
+									<h2 class="nav_heading">Main Navigation</h2>
+									<?php
+										foreach ($primary_nav as $item) {
+									?>
+									<div class="main_nav_item">
+										<a href="<?=$item["link"]?>" class="main_nav_link<?php if (strpos($current_url, $item["link"]) !== false) { ?> active<?php } ?>"<?php if ($item["new_window"]) { ?> target="_blank"<?php } ?>><?=$item["title"]?></a>
+									</div>
+									<?php
+										}
+									?>
+								</nav>
+								<button class="mobile_nav_handle js-navigation_handle">Menu</button>
+							</div>
+						</div>
+					</div>
+					<div class="fs-row">
+						<?php
+							if ($is_home) {
+						?>
+						<div class="fs-cell fs-md-5 fs-lg-10 fs-xl-8">
+							<div class="home_header">
+								<h1><?=str_ireplace(array("{","}"), array("<span>","</span>"), $page_header);?></h1>
+							</div>
+						</div>
+						<?php
+							} else {
+						?>
+						<div class="fs-cell">
+							<?php include SERVER_ROOT."templates/layouts/_breadcrumb.php"; ?>
+						</div>
+						<?php
+							}
+						?>
+					</div>
+				</div>
 			</header>

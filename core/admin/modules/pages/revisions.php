@@ -84,6 +84,7 @@
 	<header>
 		<span class="pages_last_edited">Published</span>
 		<span class="pages_draft_author">Author</span>
+		<span class="pages_draft_deleted"></span>
 		<span class="pages_delete">Save</span>
 		<span class="pages_publish">New Draft</span>
 		<span class="pages_edit">Delete</span>
@@ -92,6 +93,7 @@
 		<li class="active">
 			<section class="pages_last_edited"><?=$admin->convertTimestampToUser($page["updated_at"], $bigtree["config"]["date_format"]." @ g:i a")?></section>
 			<section class="pages_draft_author"><span class="gravatar"><img src="<?=BigTree::gravatar($current_author["email"], 36)?>" alt="" /></span><?=$current_author["name"]?><span class="active_draft">Active</span></section>
+			<section class="pages_draft_deleted"></section>
 			<section class="pages_delete"><a href="#" class="icon_save"></a></section>
 			<section class="pages_publish"></section>
 			<section class="pages_edit"></section>
@@ -100,6 +102,15 @@
 		<li>
 			<section class="pages_last_edited"><?=$admin->convertTimestampToUser($r["updated_at"], $bigtree["config"]["date_format"]." @ g:i a")?></section>
 			<section class="pages_draft_author"><span class="gravatar"><img src="<?=BigTree::gravatar($r["email"], 36)?>" alt="" /></span><?=$r["name"]?></section>
+			<section class="pages_draft_deleted">
+				<?php
+					if ($r["has_deleted_resources"]) {
+				?>
+				<div class="pages_draft_description_deleted_text">Contains Deleted Files</div>
+				<?php
+					}
+				?>
+			</section>
 			<section class="pages_delete"><a href="#<?=$r["id"]?>" class="icon_save"></a></section>
 			<section class="pages_publish"><a href="#<?=$r["id"]?>" class="icon_draft"></a></section>
 			<section class="pages_edit"><a href="#<?=$r["id"]?>" class="icon_delete"></a></section>
@@ -119,7 +130,17 @@
 		<?php foreach ($revisions["saved"] as $r) { ?>
 		<li>
 			<section class="pages_last_edited"><?=$admin->convertTimestampToUser($r["updated_at"], $bigtree["config"]["date_format"]." @ g:i a")?></section>
-			<section class="pages_draft_description"><?=$r["saved_description"]?></section>
+			<section class="pages_draft_description">
+				<?php
+					echo $r["saved_description"];
+
+					if ($r["has_deleted_resources"]) {
+				?>
+				<div class="pages_draft_description_deleted_text">Contains Deleted Files</div>
+				<?php
+					}
+				?>
+			</section>
 			<section class="pages_publish"><a href="#<?=$r["id"]?>" class="icon_draft"></a></section>
 			<section class="pages_edit"><a href="#<?=$r["id"]?>" class="icon_delete"></a></section>
 		</li>
