@@ -93,13 +93,15 @@
 					$field_settings["min_height"] = 0;
 					$field_settings["min_width"] = 0;
 
-					foreach ($file["crops"] as $prefix => $data) {
-						if ($data["width"] > $field_settings["min_width"]) {
-							$field_settings["min_width"] = $data["width"];
-						}
-
-						if ($data["height"] > $field_settings["min_height"]) {
-							$field_settings["min_height"] = $data["height"];
+					if (is_array($file["crops"])) {
+						foreach ($file["crops"] as $prefix => $data) {
+							if ($data["width"] > $field_settings["min_width"]) {
+								$field_settings["min_width"] = $data["width"];
+							}
+	
+							if ($data["height"] > $field_settings["min_height"]) {
+								$field_settings["min_height"] = $data["height"];
+							}
 						}
 					}
 
