@@ -13,6 +13,7 @@
 	}
 
 	$policy = array_filter((array)$bigtree["security-policy"]["password"]) ? $bigtree["security-policy"]["password"] : false;
+	$policy_text = null;
 	
 	if (!empty($policy["length"]) || !empty($policy["mixedcase"]) || !empty($policy["numbers"]) || !empty($policy["nonalphanumeric"]))  {
 		$policy_text = "<p>Requirements</p><ul>";
@@ -60,8 +61,8 @@
 		?>
 		<fieldset>
 			<label>New Password</label>
-			<input class="text<?php if ($policy) { ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><?php } ?>" type="password" name="password" />
-			<?php if ($policy) { ?>
+			<input class="text<?php if ($policy_text) { ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><?php } ?>" type="password" name="password" />
+			<?php if ($policy_text) { ?>
 			<p class="password_policy">Password Policy In Effect</p>
 			<?php } ?>
 		</fieldset>
