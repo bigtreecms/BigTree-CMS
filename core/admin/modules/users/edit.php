@@ -325,13 +325,9 @@
 								</li>
 								<?php
 											foreach ($modules as $m) {
-												$gbp = json_decode($m["gbp"],true);
-												if (!is_array($gbp)) {
-													$gbp = array();
-												}
-
 												// Determine whether we have access to anything in this section (default to open) or not (default to closed)
 												$closed = true;
+												
 												if (is_array($permissions["module_gbp"][$m["id"]])) {
 													foreach ($permissions["module_gbp"][$m["id"]] as $id => $permission) {
 														if ($permission != "n") {
@@ -341,17 +337,18 @@
 												}
 
 												$gbp_categories = array();
-												if (!empty($gbp["enabled"])) {
-													if (BigTree::tableExists($gbp["other_table"])) {
+
+												if (!empty($m["gbp"]["enabled"])) {
+													if (BigTree::tableExists($m["gbp"]["other_table"])) {
 														$categories = array();
-														$ot = sqlescape($gbp["other_table"]);
-														$tf = sqlescape($gbp["title_field"]);
+														$ot = sqlescape($m["gbp"]["other_table"]);
+														$tf = sqlescape($m["gbp"]["title_field"]);
 														if ($tf && $ot) {
 															$q = sqlquery("SELECT id,`$tf` FROM `$ot` ORDER BY `$tf` ASC");
 															while ($c = sqlfetch($q)) {
 																// Run parser on the name if it exists
-																if (!empty($gbp["item_parser"])) {
-																	$c[$tf] = call_user_func($gbp["item_parser"], $c[$tf], $c["id"]);
+																if (!empty($m["gbp"]["item_parser"])) {
+																	$c[$tf] = call_user_func($m["gbp"]["item_parser"], $c[$tf], $c["id"]);
 																}
 																$gbp_categories[] = $c;
 															}
@@ -370,7 +367,7 @@
 										<?php foreach ($gbp_categories as $c) { ?>
 										<li>
 											<span class="depth"></span>
-											<a class="permission_label permission_label_wider disabled" href="#"><?=$gbp["name"]?>: <?=$c[$tf]?></a>
+											<a class="permission_label permission_label_wider disabled" href="#"><?=$m["gbp"]["name"]?>: <?=$c[$tf]?></a>
 											<span class="permission_level"><input type="radio" data-category="ModuleGBP" data-key="<?=$m["id"]?>" data-sub-key="<?=$c["id"]?>" name="permissions[module_gbp][<?=$m["id"]?>][<?=$c["id"]?>]" value="p" <?php if ($permissions["module_gbp"][$m["id"]][$c["id"]] == "p") { ?>checked="checked" <?php } ?>/></span>
 											<span class="permission_level"><input type="radio" data-category="ModuleGBP" data-key="<?=$m["id"]?>" data-sub-key="<?=$c["id"]?>" name="permissions[module_gbp][<?=$m["id"]?>][<?=$c["id"]?>]" value="e" <?php if ($permissions["module_gbp"][$m["id"]][$c["id"]] == "e") { ?>checked="checked" <?php } ?>/></span>
 											<span class="permission_level"><input type="radio" data-category="ModuleGBP" data-key="<?=$m["id"]?>" data-sub-key="<?=$c["id"]?>" name="permissions[module_gbp][<?=$m["id"]?>][<?=$c["id"]?>]" value="n" <?php if (!$permissions["module_gbp"][$m["id"]][$c["id"]] || $permissions["module_gbp"][$m["id"]][$c["id"]] == "n") { ?>checked="checked" <?php } ?>/></span>
