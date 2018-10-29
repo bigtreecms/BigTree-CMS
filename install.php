@@ -256,8 +256,8 @@
 		
 		include "core/inc/lib/PasswordHash.php";
 		$phpass = new PasswordHash(8, TRUE);
-		$enc_pass = sqlescape($phpass->HashPassword($cms_pass));
-		sqlquery("INSERT INTO bigtree_users (`email`,`password`,`name`,`level`) VALUES ('$cms_user','$enc_pass','Developer','2')");
+		$enc_pass = sqlescape($password_hash(trim($cms_pass), PASSWORD_DEFAULT));
+		sqlquery("INSERT INTO bigtree_users (`email`,`password`,`new_hash`,`name`,`level`) VALUES ('$cms_user','$enc_pass','on','Developer','2')");
 		
 		// Determine whether Apache is running as the owner of the BigTree files -- only works if we have posix_getuid
 		// We do this to determine whether we need to make the files the script writes 777
