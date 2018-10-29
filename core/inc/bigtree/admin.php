@@ -1306,6 +1306,10 @@
 		public function createModuleForm($module,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "",$open_graph = "") {
 			$clean_fields = [];
 
+			if (is_string($hooks)) {
+				$hooks = json_decode($hooks, true);
+			}
+
 			foreach ($fields as $key => $data) {
 				$settings = $data["settings"] ?: $data["options"];
 				$field = [
@@ -8679,6 +8683,10 @@
 		public function updateModuleForm($id,$title,$table,$fields,$hooks = array(),$default_position = "",$return_view = false,$return_url = "",$tagging = "",$open_graph = "") {
 			$clean_fields = [];
 			$modules = BigTreeJSONDB::getAll("modules");
+
+			if (is_string($hooks)) {
+				$hooks = json_decode($hooks, true);
+			}
 			
 			foreach ($fields as $key => $field) {
 				if (!empty($field["settings"])) {
