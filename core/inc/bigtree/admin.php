@@ -683,13 +683,14 @@
 
 		/*
 			Function: clearCache
-				Removes all files in the cache directory.
+				Removes all page cache files in the cache directory.
 		*/
 
 		public static function clearCache() {
 			$d = opendir(SERVER_ROOT."cache/");
+
 			while ($f = readdir($d)) {
-				if ($f != "." && $f != ".." && !is_dir(SERVER_ROOT."cache/".$f)) {
+				if (substr($f, -5, 5) == ".page") {
 					unlink(SERVER_ROOT."cache/".$f);
 				}
 			}
