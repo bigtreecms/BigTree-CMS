@@ -3983,7 +3983,29 @@
 		*/
 
 		public static function getModule($id) {
-			return BigTreeJSONDB::get("modules", $id);
+			$module = BigTreeJSONDB::get("modules", $id);
+
+			if (!is_array($module["actions"])) {
+				$module["actions"] = [];
+			}
+
+			if (!is_array($module["views"])) {
+				$module["views"] = [];
+			}
+
+			if (!is_array($module["forms"])) {
+				$module["forms"] = [];
+			}
+
+			if (!is_array($module["embeddable-forms"])) {
+				$module["embeddable-forms"] = [];
+			}
+
+			if (!is_array($module["reports"])) {
+				$module["reports"] = [];
+			}
+
+			return $module;
 		}
 
 		/*
