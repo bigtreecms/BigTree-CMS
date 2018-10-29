@@ -20,6 +20,10 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.3.1
+- FIXED: Creating or updating a page clearing all of /cache/ and resetting the composer check flag
+- FIXED: Installer creating an old password hash on install
+
 ### 4.3
 - ADDED: File Manager with metadata and a dedicated tab
 - ADDED: Tag Manager with the ability to delete and merge tags
