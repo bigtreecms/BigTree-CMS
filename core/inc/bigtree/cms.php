@@ -662,7 +662,7 @@
 
 				if ($module["class"]) {
 					if (class_exists($module["class"])) {
-						$moduleClass = new $mod["class"];
+						$moduleClass = new $module["class"];
 				
 						if (method_exists($moduleClass, "getBreadcrumb")) {
 							$bc = array_merge($bc, $moduleClass->getBreadcrumb($page));
