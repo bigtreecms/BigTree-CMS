@@ -45,7 +45,7 @@
 				BigTree::copyFile(SERVER_ROOT.$off_path."composer.json", SERVER_ROOT."composer.json");
 			} else {
 				die("BigTree needs to copy it's vendor directory to ".SERVER_ROOT.
-					"<br>If you are unable to provide writable permissions to PHP, copy ".SERVER_ROOT.$off_path."vendor/ and ".SERVER_ROOT.$off_path."composer.json to ".SERVER_ROOT." and add a file named composer-check.flag to ".SERVER_ROOT."cache/ to bypass this step.");
+					"<br><br>If you are unable to provide writable permissions to PHP, copy ".SERVER_ROOT.$off_path."vendor/ and ".SERVER_ROOT.$off_path."composer.json to ".SERVER_ROOT." and add a file named composer-check.flag to ".SERVER_ROOT."cache/ to bypass this step.");
 			}
 		} else {
 			if (file_exists(SERVER_ROOT."composer.json") && !is_writable(SERVER_ROOT."composer.json")) {
