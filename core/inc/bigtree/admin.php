@@ -9507,10 +9507,18 @@
 
 			$value = BigTree::json($value);
 			
-			if ($item["encrypted"]) {
-				SQL::query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?, ?) WHERE id = ?", $value, $bigtree["config"]["settings_key"], $id);
+			if (SQL::exists("bigtree_settings", $id)) {
+				if ($item["encrypted"]) {
+					SQL::query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?, ?) WHERE id = ?", $value, $bigtree["config"]["settings_key"], $id);
+				} else {
+					SQL::update("bigtree_settings", $id, ["value" => $value]);
+				}
 			} else {
-				SQL::update("bigtree_settings", $id, ["value" => $value]);
+				if ($item["encrypted"]) {
+					SQL::query("INSERT INTO bigtree_settings (`id`, `value`, `encrypted`) VALUES (?, AES_ENCRYPT(?, ?), 'on')", $id, $value, $bigtree["config"]["settings_key"]);
+				} else {
+					SQL::insert("bigtree_settings", ["id" => $id, "value" => $value]);
+				}
 			}
 
 			if (!$item["system"] && is_object($admin) && method_exists($admin, "track")) {
