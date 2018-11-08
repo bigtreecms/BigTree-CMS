@@ -315,12 +315,12 @@
 		// If this is a different domain's site redirect to it
 		foreach (BigTreeCMS::$SiteRoots as $site_root => $site_data) {
 			if ($site_root === $bigtree["page"]["path"] && BIGTREE_SITE_TRUNK !== $site_data["trunk"]) {
-				BigTree::redirect($site_data["www_root"]);
+				BigTree::redirect($site_data["www_root"], "301");
 			} elseif (strpos($bigtree["page"]["path"], $site_root."/") === 0 && BIGTREE_SITE_TRUNK !== $site_data["trunk"]) {
 				$request = ltrim($_SERVER["REQUEST_URI"], "/");
 				$url = substr($request, strlen($site_root) + 1);
 				
-				BigTree::redirect($site_data["www_root"].$url);
+				BigTree::redirect($site_data["www_root"].$url, "301");
 			}
 		}
 
