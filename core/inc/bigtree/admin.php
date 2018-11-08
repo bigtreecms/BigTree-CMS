@@ -5371,29 +5371,36 @@
 				static::$IRLPrefixes = array();
 				$settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
 
-				foreach ($settings["presets"]["default"]["crops"] as $crop) {
-					if (!empty($crop["prefix"])) {
-						static::$IRLPrefixes[] = $crop["prefix"];
-					}
-
-					if (!empty($crop["thumbs"]) && is_array($crop["thumbs"])) {
-						foreach ($crop["thumbs"] as $thumb) {
-							if (!empty($thumb["prefix"])) {
-								static::$IRLPrefixes[] = $thumb["prefix"];
-							}
+				if (is_array($settings["presets"]["default"]["crops"])) {
+					foreach ($settings["presets"]["default"]["crops"] as $crop) {
+						if (!empty($crop["prefix"])) {
+							static::$IRLPrefixes[] = $crop["prefix"];
 						}
-					} 
-				}
-
-				foreach ($settings["presets"]["default"]["thumbs"] as $thumb) {
-					if (!empty($thumb["prefix"])) {
-						static::$IRLPrefixes[] = $thumb["prefix"];
+	
+						if (!empty($crop["thumbs"]) && is_array($crop["thumbs"])) {
+							foreach ($crop["thumbs"] as $thumb) {
+								if (!empty($thumb["prefix"])) {
+									static::$IRLPrefixes[] = $thumb["prefix"];
+								}
+							}
+						} 
 					}
 				}
 
-				foreach ($settings["presets"]["default"]["center_crops"] as $crop) {
-					if (!empty($crop["prefix"])) {
-						static::$IRLPrefixes[] = $crop["prefix"];
+				if (is_array($settings["presets"]["default"]["thumbs"])) {
+					foreach ($settings["presets"]["default"]["thumbs"] as $thumb) {
+						if (!empty($thumb["prefix"])) {
+							static::$IRLPrefixes[] = $thumb["prefix"];
+						}
+					}
+				}
+
+
+				if (is_array($settings["presets"]["default"]["center_crops"])) {
+					foreach ($settings["presets"]["default"]["center_crops"] as $crop) {
+						if (!empty($crop["prefix"])) {
+							static::$IRLPrefixes[] = $crop["prefix"];
+						}
 					}
 				}
 			}
