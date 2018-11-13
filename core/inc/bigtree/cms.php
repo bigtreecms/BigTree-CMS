@@ -380,10 +380,10 @@
 
 				$og_title = $title;
 
-				if (!empty($context["description"])) {
-					$description = $context["description"];
-				} elseif (!empty($og["title"])) {
+				if (!empty($og["title"])) {
 					$description = $og["description"];
+				} elseif (!empty($context["description"])) {
+					$description = $context["description"];
 				} else {
 					$description = $bigtree["page"]["meta_description"];
 				}
