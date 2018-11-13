@@ -25,6 +25,7 @@
 ?>
 <div class="container">
 	<summary>
+		<span class="button_loader"></span>
 		<h2>BigTree Is Upgrading</h2>
 	</summary>
 	<section>
@@ -64,6 +65,7 @@
 
 				if (index == queue.length) {
 					$(".upgrade_message").html("<strong>Upgrade Complete.</strong>");
+					$(".container .button_loader").remove();
 				} else {
 					run_script(queue[index]);
 				}
