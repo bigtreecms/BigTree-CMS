@@ -6233,7 +6233,7 @@
 		*/
 
 		public function installExtension($manifest,$upgrade = false) {
-			$bigtree["group_match"] = $bigtree["module_match"] = $bigtree["route_match"] = $bigtree["class_name_match"] = $bigtree["form_id_match"] = $bigtree["view_id_match"] = $bigtree["report_id_match"] = array();
+			$bigtree["group_match"] = $bigtree["module_match"] = $bigtree["class_name_match"] = $bigtree["form_id_match"] = $bigtree["view_id_match"] = $bigtree["report_id_match"] = array();
 			$extension = sqlescape($manifest["id"]);
 
 			// Turn off foreign key checks so we can reference the extension before creating it
@@ -6310,10 +6310,9 @@
 			// Import modules
 			foreach ($manifest["components"]["modules"] as &$module) {
 				if ($module) {
-					$route = $this->getUniqueModuleRoute($module["route"]);
 					$module_id = BigTreeJSONDB::insert("modules", [
 						"name" => $module["name"],
-						"route" => $route,
+						"route" => $module["route"],
 						"class" => $module["class"],
 						"icon" => $module["icon"],
 						"group" => $module["group"] && isset($bigtree["group_match"][$module["group"]]) ? $bigtree["group_match"][$module["group"]] : null,
@@ -6322,7 +6321,6 @@
 					]);
 					
 					$bigtree["module_match"][$module["id"]] = $module_id;
-					$bigtree["route_match"][$module["route"]] = $route;
 
 					// Update the module ID since we're going to save this manifest locally for uninstalling
 					$module["id"] = $module_id;
