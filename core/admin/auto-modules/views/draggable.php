@@ -28,7 +28,7 @@
 <?php include BigTree::path("admin/auto-modules/views/_common-js.php"); ?>
 <script>
 	BigTree.localSearch = function() {
-		$("#sort_table").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/draggable/", { view: <?=$bigtree["view"]["id"]?>, search: $("#search").val() }, BigTree.localCreateSortable);
+		$("#sort_table").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/draggable/", { view: "<?=$bigtree["view"]["id"]?>", search: $("#search").val() }, BigTree.localCreateSortable);
 	};
 
 	BigTree.localCreateSortable = function() {
