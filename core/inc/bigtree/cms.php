@@ -51,7 +51,7 @@
 				if (!file_exists($cache_location)) {
 					foreach ($bigtree["config"]["sites"] as $site_key => $site_data) {
 						$page = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".intval($site_data["trunk"])."'"));
-						
+						$site_data["key"] = $site_key;
 						static::$SiteRoots[$page["path"]] = $site_data;
 					}
 					

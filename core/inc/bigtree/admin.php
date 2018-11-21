@@ -820,8 +820,19 @@
 				$get_vars = sqlescape(htmlspecialchars($from_parts["query"]));
 			}
 
-			$from = sqlescape(htmlspecialchars(strip_tags(trim(str_replace(WWW_ROOT, "", $from),"/"))));
+			$cleaned_from = trim(str_replace(WWW_ROOT, "", $from),"/"));
+			$from = sqlescape(htmlspecialchars(strip_tags($cleaned_from));
 			$to = sqlescape(htmlspecialchars($this->autoIPL($to)));
+
+			if ($site_key) {
+				foreach (BigTreeCMS::$SiteRoots as $path => $site_data) {
+					if ($site_data["key"] == $site_key) {
+						$cleaned_from = $path."/".$cleaned_from;
+					}
+				}
+			}
+
+			SQL::delete("bigtree_route_history", ["old_route" => $cleaned_from]);
 
 			// See if the from already exists
 			if ($get_vars) {
