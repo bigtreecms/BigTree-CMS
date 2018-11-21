@@ -250,22 +250,38 @@
 				url - The URL to retrieve / POST to.
 				post - A key/value pair array of things to POST (optional).
 				options - A key/value pair of extra cURL options (optional).
-				strict_security - Force SSL verification of the host and peer if true (optional, defaults to false).
+				strict_security - SSL verification of the host and peer if true (defaults to true).
 				output_file - A file location to dump the output of the request to (optional, replaces return value).
 
 			Returns:
 				The string response from the URL.
 		*/
 		
-		public static function cURL($url, $post = false, $options = [], $strict_security = false, $output_file = false) {
+		public static function cURL($url, $post = false, $options = [], $strict_security = true, $output_file = false) {
 			global $bigtree;
+
+			$cert_bundle = SERVER_ROOT."cache/bigtree-ca-cert.pem";
+
+			// Use the core bundle which may be out of date to grab the latest bundle
+			if (!file_exists($cert_bundle)) {
+				BigTree::copyFile(SERVER_ROOT."core/cacert.pem", $cert_bundle);
+			}
+
+			// Check CA cert bundle has been updated in the past month
+			if (filemtime($cert_bundle) < time() - 31 * 24 * 60 * 60) {
+				BigTree::cURL("https://curl.haxx.se/ca/cacert.pem", false, [], true, $cert_bundle);
+			}
 			
 			// Startup cURL and set the URL
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_URL, $url);
 			
 			// Determine whether we're forcing valid SSL on the peer and host
-			if (!$strict_security) {
+			if ($strict_security) {
+				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+			    curl_setopt($ch, CURLOPT_CAINFO, $cert_bundle);
+			} else {
 				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 			}
