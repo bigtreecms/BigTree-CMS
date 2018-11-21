@@ -820,7 +820,7 @@
 				$get_vars = sqlescape(htmlspecialchars($from_parts["query"]));
 			}
 
-			$cleaned_from = trim(str_replace(WWW_ROOT, "", $from),"/"));
+			$cleaned_from = trim(str_replace(WWW_ROOT, "", $from), "/");
 			$from = sqlescape(htmlspecialchars(strip_tags($cleaned_from));
 			$to = sqlescape(htmlspecialchars($this->autoIPL($to)));
 
