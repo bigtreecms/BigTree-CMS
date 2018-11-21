@@ -103,7 +103,7 @@
 		</a>
 		<a class="box_select last" href="<?=DEVELOPER_ROOT?>extensions/">
 			<span class="package"></span>
-			<p>Extensions &amp; Packages</p>
+			<p>Extensions</p>
 		</a>
 	</section>
 </div>
