@@ -8905,7 +8905,7 @@
 			// If this page is a trunk in a multi-site setup, wipe the cache
 			foreach (BigTreeCMS::$SiteRoots as $site_path => $site_data) {
 				if ($site_data["trunk"] == $page) {
-					unlink(SERVER_ROOT."cache/multi-site-cache.json");
+					unlink(SERVER_ROOT."cache/bigtree-multi-site-cache.json");
 				}
 			}
 

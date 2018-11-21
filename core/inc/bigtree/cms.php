@@ -46,7 +46,7 @@
 			
 			// Find root paths for all sites to include in URLs if we're in a multi-site environment
 			if (defined("BIGTREE_SITE_KEY") || (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]))) {
-				$cache_location = SERVER_ROOT."cache/multi-site-cache.json";
+				$cache_location = SERVER_ROOT."cache/bigtree-multi-site-cache.json";
 
 				if (!file_exists($cache_location)) {
 					foreach ($bigtree["config"]["sites"] as $site_key => $site_data) {
