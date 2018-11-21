@@ -1,5 +1,5 @@
 <?php
-	$preset_data = isset($presets["preset"]) ? $presets["presets"][$settings["preset"]] : $presets["presets"][$_POST["id"]];
+	$preset_data = isset($settings) ? $presets[$settings["preset"]] : $presets[$_POST["id"]];
 ?>
 <fieldset>
 	<label for="settings_field_min_width">Minimum Width <small>(numeric value in pixels)</small></label>
