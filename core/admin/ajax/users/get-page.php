@@ -3,15 +3,23 @@
 	
 	$query = isset($_GET["query"]) ? $_GET["query"] : "";
 	$page = isset($_GET["page"]) ? intval($_GET["page"]) : 1;
+	$levels = [
+		0 => "Normal",
+		1 => "Administrator",
+		2 => "Developer"
+	];
 
 	// Prevent SQL shenanigans
 	$sort_by = "name";
+
 	if (isset($_GET["sort"])) {
-		$valid_columns = array("name","company","email");
+		$valid_columns = ["name","company","email","level"];
+		
 		if (in_array($_GET["sort"],$valid_columns)) {
 			$sort_by = $_GET["sort"];
 		}
 	}
+
 	$sort_dir = (isset($_GET["sort_direction"]) && $_GET["sort_direction"] == "DESC") ? "DESC" : "ASC";
 
 	$pages = $admin->getUsersPageCount($query);
@@ -23,6 +31,7 @@
 	<section class="view_column users_name"><span class="gravatar"><img src="<?=BigTree::gravatar($item["email"], 36)?>" alt="" /></span><?=$item["name"]?></section>
 	<section class="view_column users_email"><?=htmlspecialchars($item["email"])?></section>
 	<section class="view_column users_company"><?=$item["company"]?></section>
+	<section class="view_column users_user_level"><?=$levels[$item["level"]]?></section>
 	<section class="view_action">
 		<?php if ($admin->Level >= $item["level"]) { ?>
 		<a href="<?=ADMIN_ROOT?>users/edit/<?=$item["id"]?>/" class="icon_edit"></a>
