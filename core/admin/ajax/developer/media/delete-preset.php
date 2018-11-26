@@ -6,4 +6,4 @@
 
 	// Delete one of them
 	unset($settings["presets"][$_POST["id"]]);
-	$admin->updateSettingValue("bigtree-internal-media-settings",$settings);
+	$admin->updateInternalSettingValue("bigtree-internal-media-settings", $settings);

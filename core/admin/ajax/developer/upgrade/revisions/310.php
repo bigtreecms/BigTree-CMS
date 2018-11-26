@@ -3,7 +3,7 @@
 
 	SQL::query("ALTER TABLE `bigtree_templates` ADD COLUMN `hooks` TEXT NOT NULL AFTER `resources`");
 
-	$admin->updateSettingValue("bigtree-internal-revision", 310);
+	$admin->updateInternalSettingValue("bigtree-internal-revision", 310);
 	
 	echo BigTree::json([
 		"complete" => true,

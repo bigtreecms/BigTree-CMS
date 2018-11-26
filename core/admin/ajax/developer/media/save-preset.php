@@ -80,7 +80,7 @@
 	array_multisort($names, $settings["presets"]);
 
 	// Update Settings
-	$admin->updateSettingValue("bigtree-internal-media-settings",$settings);
+	$admin->updateInternalSettingValue("bigtree-internal-media-settings", $settings);
 
 	// Return ID for adding presets
 	echo $id;

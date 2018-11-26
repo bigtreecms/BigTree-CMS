@@ -127,4 +127,4 @@
 	// Reinstate foreign keys
 	sqlquery("SET SESSION foreign_key_checks = 1");
 
-	$admin->updateSettingValue("bigtree-internal-revision", 100);
+	$admin->updateInternalSettingValue("bigtree-internal-revision", 100);

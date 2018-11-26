@@ -17,7 +17,7 @@
 		sqlquery("UPDATE bigtree_resources SET location = '$location' WHERE id = '".$resource["id"]."'");
 	}
 
-	$admin->updateSettingValue("bigtree-internal-revision", 210);
+	$admin->updateInternalSettingValue("bigtree-internal-revision", 210);
 	
 	echo BigTree::json([
 		"complete" => true,

@@ -16,17 +16,11 @@
 	$ga_password = $cms->getSetting("bigtree-internal-google-analytics-password");
 	$ga_profile = $cms->getSetting("bigtree-internal-google-analytics-profile");
 
-	$admin->createSetting(array(
-		"id" => "bigtree-internal-google-analytics",
-		"system" => "on",
-		"encrypted" => "on"
-	));
-	$admin->updateSettingValue("bigtree-internal-google-analytics",array(
+	$admin->updateInternalSettingValue("bigtree-internal-google-analytics", [
 		"email" => $ga_email,
 		"password" => $ga_password,
 		"profile" => $ga_profile
-	));
-
+	], true);
 
 	// Update the upload service setting to be encrypted.
 	$admin->updateSetting("bigtree-internal-upload-service",array(
@@ -55,13 +49,7 @@
 	);
 
 	// Update the upload service value.
-	$admin->updateSettingValue("bigtree-internal-upload-service",$us);
-
-	// Create the revision counter
-	$admin->createSetting(array(
-		"id" => "bigtree-internal-revision",
-		"system" => "on"
-	));
+	$admin->updateInternalSettingValue("bigtree-internal-upload-service", $us, true);
 
 	// Delete all the old settings.
 	sqlquery("DELETE FROM bigtree_settings WHERE id = 'bigtree-internal-google-analytics-email' OR id = 'bigtree-internal-google-analytics-password' OR id = 'bigtree-internal-google-analytics-profile' OR id = 'bigtree-internal-rackspace-keys' OR id = 'bigtree-internal-rackspace-containers' OR id = 'bigtree-internal-s3-buckets' OR id = 'bigtree-internal-s3-keys'");
@@ -177,4 +165,4 @@
 		sqlquery("UPDATE bigtree_module_views SET `fields` = '$fields' WHERE id = '".$f["id"]."'");
 	}
 	
-	$admin->updateSettingValue("bigtree-internal-revision", 21);
+	$admin->updateInternalSettingValue("bigtree-internal-revision", 21);

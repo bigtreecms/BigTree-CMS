@@ -8,7 +8,7 @@
 		sqlquery("UPDATE bigtree_404s SET `requests` = '".$f["requests"]."' WHERE `id` = '".$f["id"]."'");
 	}
 
-	$admin->updateSettingValue("bigtree-internal-revision", 208);
+	$admin->updateInternalSettingValue("bigtree-internal-revision", 208);
 
 	echo BigTree::json([
 		"complete" => true,

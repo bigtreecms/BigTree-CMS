@@ -17,18 +17,13 @@
 		*/
 		
 		public function __construct() {
-			global $cms;
-			$geo_service = $cms->getSetting("bigtree-internal-geocoding-service");
+			$geo_service = BigTreeCMS::getSetting("bigtree-internal-geocoding-service");
+
 			// If for some reason the setting doesn't exist, make one.
-			if (!is_array($geo_service) || !$geo_service["service"]) {
+			if (!is_array($geo_service) || empty($geo_service["service"])) {
 				$this->Service = "google";
 				$admin = new BigTreeAdmin;
-				$admin->createSetting(array(
-					"id" => "bigtree-internal-geocoding-service",
-					"encrypted" => "on",
-					"system" => "on"
-				));
-				$admin->updateSettingValue("bigtree-internal-geocoding-service",array("service" => "google"));
+				$admin->updateInternalSettingValue("bigtree-internal-geocoding-service", ["service" => "google"], true);
 			} else {
 				$this->Service = $geo_service["service"];
 				$this->Settings = $geo_service;

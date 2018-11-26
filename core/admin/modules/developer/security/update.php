@@ -3,7 +3,7 @@
 
 	BigTree::globalizePOSTVars();
 	
-	$admin->updateSettingValue("bigtree-internal-security-policy",array(
+	$admin->updateInternalSettingValue("bigtree-internal-security-policy", array(
 		"user_fails" => array(
 			"count" => $user_fails["count"] ? intval($user_fails["count"]) : "",
 			"time" => $user_fails["time"] ? intval($user_fails["time"]) : "",

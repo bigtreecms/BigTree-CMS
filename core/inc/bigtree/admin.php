@@ -2776,7 +2776,7 @@
 				"email" => $target_user["email"],
 				"company" => $target_user["company"]
 			);
-			$this->updateSettingValue("bigtree-internal-deleted-users", $deleted_users);
+			$this->updateInternalSettingValue("bigtree-internal-deleted-users", $deleted_users);
 
 			return true;
 		}
@@ -8551,6 +8551,42 @@
 				"self_draw" => $self_draw ? "on" : null
 			]);
 			$this->track("jsondb -> field-types", $id, "updated");
+		}
+
+		/*
+			Function: updateInternalSettingValue
+				Updates the value of an internal BigTree setting.
+
+			Parameters:
+				id - The id of the setting to update.
+				value - A value to set (can be a string or array).
+				encrypted - Whether the value should be encrypted (defaults to false).
+		*/
+
+		public static function updateInternalSettingValue($id, $value, $encrypted = false) {
+			global $bigtree;
+
+			if (is_array($value)) {
+				$value = BigTree::translateArray($value);
+			} else {
+				$value = static::autoIPL($value);
+			}
+
+			$value = BigTree::json($value);
+			
+			if (!SQL::exists("bigtree_settings", $id)) {
+				SQL::insert("bigtree_settings", [
+					"id" => $id,
+					"system" => "on",
+					"encrypted" => $encrypted ? "on" : ""
+				]);
+			}
+
+			if ($encrypted) {
+				SQL::query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?, ?) WHERE id = ?", $value, $bigtree["config"]["settings_key"], $id);
+			} else {
+				SQL::update("bigtree_settings", $id, ["value" => $value]);
+			}
 		}
 
 		/*

@@ -3,7 +3,7 @@
 
 	SQL::query("ALTER TABLE `bigtree_settings` CHANGE COLUMN `options` `settings` LONGTEXT");
 
-	$admin->updateSettingValue("bigtree-internal-revision", 301);
+	$admin->updateInternalSettingValue("bigtree-internal-revision", 301);
 
 	echo BigTree::json([
 		"complete" => true,

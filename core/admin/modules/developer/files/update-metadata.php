@@ -19,7 +19,7 @@
 		}
 	}
 
-	$admin->updateSettingValue("bigtree-file-metadata-fields", $metadata);
+	$admin->updateInternalSettingValue("bigtree-file-metadata-fields", $metadata);
 	$admin->growl("File Metadata", "Updated Fields");
 
 	BigTree::redirect(DEVELOPER_ROOT."files/");

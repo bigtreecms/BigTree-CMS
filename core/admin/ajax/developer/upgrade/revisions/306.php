@@ -10,7 +10,7 @@
 	SQL::query("ALTER TABLE `bigtree_resources` CHANGE COLUMN `location` `location` varchar(255) DEFAULT NULL");
 	SQL::query("ALTER TABLE `bigtree_resources` DROP COLUMN `list_thumb_margin`");
 
-	$admin->updateSettingValue("bigtree-internal-revision", 306);
+	$admin->updateInternalSettingValue("bigtree-internal-revision", 306);
 
 	echo BigTree::json([
 		"complete" => true,

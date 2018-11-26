@@ -80,18 +80,16 @@
 		public function __destruct() {
 			foreach ($this->AutoSaveSettings as $id => $obj) {
 				if (is_object($obj)) {
-					BigTreeAdmin::updateSettingValue($id,get_object_vars($obj));
+					BigTreeAdmin::updateInternalSettingValue($id, get_object_vars($obj), true);
 				} else {
-					BigTreeAdmin::updateSettingValue($id,$obj);
+					BigTreeAdmin::updateInternalSettingValue($id, $obj, true);
 				}
 			}
 		}
 
 		/*
 			Function: autoSaveSetting
-				Returns a reference to an object that can be modified which will automatically save back to a bigtree_settings entry on the $cms class destruction.
-				The entry in bigtree_settings should be an associate array. If the setting doesn't exist, an encrypted setting with the passed in id will be created.
-				You MUST set your variable to be a reference using $var = &$cms->autoSaveSetting("my-id") for this to function properly.
+				This method is deprecated. Do not use this method.
 
 			Parameters:
 				id - The bigtree_settings id.
@@ -110,21 +108,7 @@
 
 				// Create a setting if it doesn't exist yet
 				if ($data === false) {
-					// If an extension is creating an auto save setting, make it a reference back to the extension
-					if (defined("EXTENSION_ROOT") && strpos($id,"bigtree-internal-") !== 0) {
-						$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
-						
-						// Don't append extension again if it's already being called via the namespace
-						if (strpos($id,"$extension*") === false) {
-							$id = "$extension*$id";
-						}
-						
-						sqlquery("INSERT INTO bigtree_settings (`id`,`encrypted`,`extension`,`system`) VALUES ('".sqlescape($id)."','on','on','$extension','on')");
-					} else {
-						sqlquery("INSERT INTO bigtree_settings (`id`,`encrypted`,`system`) VALUES ('".sqlescape($id)."','on','on','on')");
-					}
-
-					$data = array();
+					$data = [];
 				}
 
 				// Asking for an object? Return it as an object

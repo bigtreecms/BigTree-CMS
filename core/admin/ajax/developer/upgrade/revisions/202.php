@@ -3,7 +3,7 @@
 
 	sqlquery("ALTER TABLE `bigtree_pending_changes` CHANGE COLUMN `user` `user` int(11) unsigned NULL");
 
-	$admin->updateSettingValue("bigtree-internal-revision", 202);
+	$admin->updateInternalSettingValue("bigtree-internal-revision", 202);
 
 	echo BigTree::json([
 		"complete" => true,

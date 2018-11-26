@@ -21,7 +21,7 @@
 		}
 	}
 
-	$admin->updateSettingValue("bigtree-internal-revision", 312);
+	$admin->updateInternalSettingValue("bigtree-internal-revision", 312);
 
 	echo BigTree::json([
 		"complete" => true,
