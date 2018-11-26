@@ -1153,7 +1153,7 @@
 				
 				// Get the changes.
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `id` = '".sqlescape(substr($id,1))."'"));
-				
+
 				if ($f) {
 					$f["id"] = $id;
 				} else {
@@ -1210,6 +1210,11 @@
 				} else {
 					$page["callouts"] = array();
 				}
+			}
+
+			// Make sure the pending page gets it's ID
+			if (!is_numeric($id)) {
+				$page["id"] = $id;
 			}
 
 			return $page;
