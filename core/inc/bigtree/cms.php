@@ -46,12 +46,12 @@
 			
 			// Find root paths for all sites to include in URLs if we're in a multi-site environment
 			if (defined("BIGTREE_SITE_KEY") || (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]))) {
-				$cache_location = SERVER_ROOT."cache/multi-site-cache.json";
+				$cache_location = SERVER_ROOT."cache/bigtree-multi-site-cache.json";
 
 				if (!file_exists($cache_location)) {
 					foreach ($bigtree["config"]["sites"] as $site_key => $site_data) {
 						$page = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".intval($site_data["trunk"])."'"));
-						
+						$site_data["key"] = $site_key;
 						static::$SiteRoots[$page["path"]] = $site_data;
 					}
 					
@@ -381,10 +381,10 @@
 
 				$og_title = $title;
 
-				if (!empty($context["description"])) {
-					$description = $context["description"];
-				} elseif (!empty($og["title"])) {
+				if (!empty($og["title"])) {
 					$description = $og["description"];
+				} elseif (!empty($context["description"])) {
+					$description = $context["description"];
 				} else {
 					$description = $bigtree["page"]["meta_description"];
 				}

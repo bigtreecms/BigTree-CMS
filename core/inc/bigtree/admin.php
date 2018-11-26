@@ -820,8 +820,19 @@
 				$get_vars = sqlescape(htmlspecialchars($from_parts["query"]));
 			}
 
-			$from = sqlescape(htmlspecialchars(strip_tags(trim(str_replace(WWW_ROOT, "", $from),"/"))));
+			$cleaned_from = trim(str_replace(WWW_ROOT, "", $from), "/");
+			$from = sqlescape(htmlspecialchars(strip_tags($cleaned_from)));
 			$to = sqlescape(htmlspecialchars($this->autoIPL($to)));
+
+			if ($site_key) {
+				foreach (BigTreeCMS::$SiteRoots as $path => $site_data) {
+					if ($site_data["key"] == $site_key) {
+						$cleaned_from = $path."/".$cleaned_from;
+					}
+				}
+			}
+
+			SQL::delete("bigtree_route_history", ["old_route" => $cleaned_from]);
 
 			// See if the from already exists
 			if ($get_vars) {
@@ -5438,29 +5449,36 @@
 				static::$IRLPrefixes = array();
 				$settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
 
-				foreach ($settings["presets"]["default"]["crops"] as $crop) {
-					if (!empty($crop["prefix"])) {
-						static::$IRLPrefixes[] = $crop["prefix"];
-					}
-
-					if (!empty($crop["thumbs"]) && is_array($crop["thumbs"])) {
-						foreach ($crop["thumbs"] as $thumb) {
-							if (!empty($thumb["prefix"])) {
-								static::$IRLPrefixes[] = $thumb["prefix"];
-							}
+				if (is_array($settings["presets"]["default"]["crops"])) {
+					foreach ($settings["presets"]["default"]["crops"] as $crop) {
+						if (!empty($crop["prefix"])) {
+							static::$IRLPrefixes[] = $crop["prefix"];
 						}
-					} 
-				}
-
-				foreach ($settings["presets"]["default"]["thumbs"] as $thumb) {
-					if (!empty($thumb["prefix"])) {
-						static::$IRLPrefixes[] = $thumb["prefix"];
+	
+						if (!empty($crop["thumbs"]) && is_array($crop["thumbs"])) {
+							foreach ($crop["thumbs"] as $thumb) {
+								if (!empty($thumb["prefix"])) {
+									static::$IRLPrefixes[] = $thumb["prefix"];
+								}
+							}
+						} 
 					}
 				}
 
-				foreach ($settings["presets"]["default"]["center_crops"] as $crop) {
-					if (!empty($crop["prefix"])) {
-						static::$IRLPrefixes[] = $crop["prefix"];
+				if (is_array($settings["presets"]["default"]["thumbs"])) {
+					foreach ($settings["presets"]["default"]["thumbs"] as $thumb) {
+						if (!empty($thumb["prefix"])) {
+							static::$IRLPrefixes[] = $thumb["prefix"];
+						}
+					}
+				}
+
+
+				if (is_array($settings["presets"]["default"]["center_crops"])) {
+					foreach ($settings["presets"]["default"]["center_crops"] as $crop) {
+						if (!empty($crop["prefix"])) {
+							static::$IRLPrefixes[] = $crop["prefix"];
+						}
 					}
 				}
 			}
@@ -9183,7 +9201,7 @@
 			// If this page is a trunk in a multi-site setup, wipe the cache
 			foreach (BigTreeCMS::$SiteRoots as $site_path => $site_data) {
 				if ($site_data["trunk"] == $page) {
-					unlink(SERVER_ROOT."cache/multi-site-cache.json");
+					unlink(SERVER_ROOT."cache/bigtree-multi-site-cache.json");
 				}
 			}
 

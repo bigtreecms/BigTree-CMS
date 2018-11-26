@@ -90,7 +90,7 @@ var BigTreePages = (function() {
 		// Setup lock timer if we're editing a page
 		if (CurrentPage) {
 			LockTimer = setInterval(function() {
-				$.secureAjax('<?=ADMIN_ROOT?>ajax/refresh-lock/', { 
+				$.secureAjax('admin_root/ajax/refresh-lock/', { 
 					type: 'POST', 
 					data: { 
 						table: 'bigtree_pages', 

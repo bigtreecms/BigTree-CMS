@@ -3,16 +3,17 @@
 	$settings = is_array($settings) ? $settings : array();
 
 	$using_preset = false;
-	$presets = BigTreeCMS::getSetting("bigtree-internal-media-settings");
+	$media_settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
+	$presets = $media_settings["presets"];
 	
 	// See if we're using a preset and ensure it still exists
 	if (!empty($settings["preset"])) {
-		if ($presets["presets"][$settings["preset"]]) {
+		if ($presets[$settings["preset"]]) {
 			$using_preset = true;
 		} else {
 			$settings = array();
 		}
-	} 
+	}
 
 	$settings["min_width"] = isset($settings["min_width"]) ? $settings["min_width"] : "";
 	$settings["min_height"] = isset($settings["min_height"]) ? $settings["min_height"] : "";
@@ -21,14 +22,14 @@
 	$settings["thumbs"] = isset($settings["thumbs"]) ? $settings["thumbs"] : array();
 
 	// We use this file for creating presets so we don't want to show the dropdown in that context
-	if (!defined("BIGTREE_CREATING_PRESET") && array_filter((array)$settings["presets"])) {
+	if (!defined("BIGTREE_CREATING_PRESET") && array_filter((array) $presets)) {
 ?>
 <fieldset>
 	<label for="preset_select">Existing Preset</label>
 	<select name="preset" id="preset_select">
 		<option></option>
 		<?php
-			foreach ($settings["presets"] as $preset) {
+			foreach ($presets as $preset) {
 		?>
 		<option value="<?=$preset["id"]?>"<?php if ($preset["id"] == $settings["preset"]) { ?> selected="selected"<?php } ?>><?=$preset["name"]?></option>
 		<?php
@@ -404,7 +405,7 @@
 		// Preset choosing
 		$("#preset_select").change(function() {
 			if ($(this).val()) {
-				OptionsContainer.load("<?=ADMIN_ROOT?>ajax/developer/field-options/_image-preset/", { id: $(this).val() }, function() {
+				OptionsContainer.load("<?=ADMIN_ROOT?>ajax/developer/media/load-preset/", { id: $(this).val() }, function() {
 					BigTreeCustomControls();
 				});
 			} else {

@@ -39,8 +39,14 @@
 		$off_path = str_replace(SERVER_ROOT, "", $path);
 
 		if (!file_exists(SERVER_ROOT."vendor/")) {
-			BigTree::putFile(SERVER_ROOT."cache/composer-check.flag", "done");
-			BigTree::copyDirectory(SERVER_ROOT.$off_path."vendor/", SERVER_ROOT."vendor/");
+			if (BigTree::isDirectoryWritable(SERVER_ROOT."vendor/")) {
+				BigTree::putFile(SERVER_ROOT."cache/composer-check.flag", "done");
+				BigTree::copyDirectory(SERVER_ROOT.$off_path."vendor/", SERVER_ROOT."vendor/");
+				BigTree::copyFile(SERVER_ROOT.$off_path."composer.json", SERVER_ROOT."composer.json");
+			} else {
+				die("BigTree needs to copy it's vendor directory to ".SERVER_ROOT.
+					"<br><br>If you are unable to provide writable permissions to PHP, copy ".SERVER_ROOT.$off_path."vendor/ and ".SERVER_ROOT.$off_path."composer.json to ".SERVER_ROOT." and add a file named composer-check.flag to ".SERVER_ROOT."cache/ to bypass this step.");
+			}
 		} else {
 			if (file_exists(SERVER_ROOT."composer.json") && !is_writable(SERVER_ROOT."composer.json")) {
 				die("BigTree needs to write to your composer.json file to ensure a composer update does not wipe required libraries.");
