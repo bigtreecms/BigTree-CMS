@@ -316,9 +316,9 @@
 		*/
 		
 		public static function clearCache($entry) {
-			if (is_array($view)) {
+			if (is_array($entry)) {
 				SQL::query("DELETE FROM bigtree_module_view_cache WHERE view = ?", $entry["id"]);		
-			} elseif (substr($view, 0, 13) == "module-views-") {
+			} elseif (substr($entry, 0, 6) == "views-") {
 				SQL::query("DELETE FROM bigtree_module_view_cache WHERE view = ?", $entry);
 			} else {
 				$modules = BigTreeJSONDB::getAll("modules");
