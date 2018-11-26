@@ -54,6 +54,7 @@
 	BigTree::putFile(SERVER_ROOT."custom/json-db/settings.json", BigTree::json($json));
 
 	$feeds = SQL::fetchAll("SELECT * FROM bigtree_feeds");
+	$feeds_rel = [];
 	$json = [];
 
 	foreach ($feeds as $feed) {
@@ -62,6 +63,7 @@
 		$feed["fields"] = json_decode($feed["fields"], true);
 		$feed["settings"] = json_decode($feed["settings"], true);
 		$json[] = $feed;
+		$feeds_rel[$old_id] = $feed["id"];
 
 		SQL::update("bigtree_audit_trail", ["table" => "bigtree_feeds", "entry" => $old_id], ["entry" => $feed["id"]]);
 	}
@@ -242,6 +244,25 @@
 
 	foreach ($extensions as $extension) {
 		$extension["manifest"] = json_decode($extension["manifest"], true);
+
+		if (is_array($extension["manifest"]["modules"])) {
+			foreach ($extension["manifest"]["modules"] as &$module) {
+				$module["id"] = $modules_rel[$module["id"]];
+			}
+		}
+
+		if (is_array($extension["manifest"]["feeds"])) {
+			foreach ($extension["manifest"]["feeds"] as &$feed) {
+				$feed["id"] = $feeds_rel[$feed["id"]];
+			}
+		}
+
+		if (is_array($extension["manifest"]["module_groups"])) {
+			foreach ($extension["manifest"]["module_groups"] as &$group) {
+				$group["id"] = $module_groups_rel[$group["id"]];
+			}
+		}
+
 		$json[] = $extension;
 	}
 
