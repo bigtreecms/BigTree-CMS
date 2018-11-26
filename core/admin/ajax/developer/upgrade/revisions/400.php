@@ -31,17 +31,6 @@
 
 	BigTree::putFile(SERVER_ROOT."custom/json-db/callouts.json", BigTree::json($json));
 
-	$templates = SQL::fetchAll("SELECT * FROM bigtree_templates");
-	$json = [];
-
-	foreach ($templates as $template) {
-		$template["hooks"] = json_decode($template["hooks"], true);
-		$template["resources"] = json_decode($template["resources"], true);
-		$json[] = $template;
-	}
-
-	BigTree::putFile(SERVER_ROOT."custom/json-db/templates.json", BigTree::json($json));
-
 	$field_types = SQL::fetchAll("SELECT * FROM bigtree_field_types");
 	$json = [];
 
@@ -209,6 +198,24 @@
 	}
 
 	BigTree::putFile(SERVER_ROOT."custom/json-db/modules.json", BigTree::json($modules_json));
+
+	$templates = SQL::fetchAll("SELECT * FROM bigtree_templates");
+	$json = [];
+
+	foreach ($templates as $template) {
+		$template["hooks"] = json_decode($template["hooks"], true);
+		$template["resources"] = json_decode($template["resources"], true);
+
+		if ($template["module"]) {
+			$template["module"] = $modules_rel[$template["module"]];
+		} else {
+			$template["module"] = null;
+		}
+
+		$json[] = $template;
+	}
+
+	BigTree::putFile(SERVER_ROOT."custom/json-db/templates.json", BigTree::json($json));
 
 	// Update user's module permissions based on the new IDs
 	$users = SQL::fetchAll("SELECT * FROM bigtree_users");
