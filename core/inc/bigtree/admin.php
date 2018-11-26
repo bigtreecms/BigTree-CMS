@@ -1208,8 +1208,14 @@
 				return false;
 			}
 
+			$position = intval($position);
 			$route = $this->uniqueModuleActionRoute($module, $route);
 			$context = BigTreeJSONDB::getSubset("modules", $module);
+
+			if ($position === 0) {
+				$context->incrementPosition("actions");
+			}
+
 			$id = $context->insert("actions", [
 				"route" => $route,
 				"in_nav" => $in_nav ? "on" : "",
@@ -1219,7 +1225,7 @@
 				"view" => $view ?: null,
 				"report" => $report ?: null,
 				"level" => intval($level),
-				"position" => intval($position),
+				"position" => $position,
 				"route"
 			]);
 
