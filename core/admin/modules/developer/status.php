@@ -9,7 +9,8 @@
 		"templates/routed/",
 		"templates/basic/",
 		"templates/callouts/",
-		"site/files/"
+		"site/files/",
+		"custom/json-db/"
 	);
 	
 	foreach ($writable_directories as $directory) {

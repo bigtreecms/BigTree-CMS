@@ -14,6 +14,24 @@
 			}
 		}
 
+		private static function cleanArray(&$array) {
+			$is_numeric = true;
+
+			foreach ($array as $key => &$value) {
+				if (!is_int($key)) {
+					$is_numeric = false;
+				}
+
+				if (is_array($value)) {
+					static::cleanArray($value);
+				}
+			}
+
+			if ($is_numeric) {
+				$array = array_values($array);
+			}
+		}
+
 		static function delete($type, $id, $alternate_id_column = false) {
 			static::cache($type);
 
@@ -149,6 +167,9 @@
 		static function save($type) {
 			// Make sure we don't blow away the whole result set if someone saves before doing anything
 			self::cache($type);
+
+			// Make sure numeric arrays save as arrays
+			static::cleanArray(self::$Cache[$type]);
 
 			file_put_contents(SERVER_ROOT."custom/json-db/$type.json", BigTree::json(self::$Cache[$type]));
 			BigTree::setPermissions(SERVER_ROOT."custom/json-db/$type.json");
