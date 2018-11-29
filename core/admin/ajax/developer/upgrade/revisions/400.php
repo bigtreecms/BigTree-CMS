@@ -267,3 +267,11 @@
 	}
 
 	BigTree::putFile(SERVER_ROOT."custom/json-db/extensions.json", BigTree::json($json));
+
+	$admin->updateInternalSettingValue("bigtree-internal-revision", 400);
+
+	echo BigTree::json([
+		"complete" => true,
+		"response" => "Upgraded to BigTree 4.4"
+	]);
+	
