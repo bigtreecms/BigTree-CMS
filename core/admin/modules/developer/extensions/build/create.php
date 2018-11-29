@@ -377,7 +377,7 @@
 			"name" => $title,
 			"version" => $version,
 			"last_updated" => date("Y-m-d H:i:s"),
-			"manifest" => $json
+			"manifest" => $package
 		]);
 	} else {
 		BigTreeJSONDB::insert("extensions", [
@@ -385,7 +385,7 @@
 			"name" => $title,
 			"version" => $version,
 			"last_updated" => date("Y-m-d H:i:s"),
-			"manifest" => $json
+			"manifest" => $package
 		]);
 	}
 
