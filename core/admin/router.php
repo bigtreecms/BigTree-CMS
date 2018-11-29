@@ -407,7 +407,13 @@
 		$actions = $admin->getModuleActions($module);
 	
 		// Append module info to the admin nav to draw the headers and breadcrumb and such.
-		$bigtree["nav_tree"]["auto-module"] = array("title" => $module["name"],"link" => $module["route"],"icon" => "modules","children" => array());
+		$bigtree["nav_tree"]["auto-module"] = [
+			"title" => $module["name"],
+			"link" => $module["route"],
+			"icon" => "modules",
+			"children" => [], 
+			"hidden" => true
+		];
 		
 		foreach ($actions as $action) {
 			$hidden = $action["in_nav"] ? false : true;
