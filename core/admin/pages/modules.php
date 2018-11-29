@@ -1,4 +1,6 @@
 <?php
+	$admin->runHooks("markup", "modules-top");
+
 	$module_count = 0;
 	$groups = $admin->getModuleGroups();
 	
@@ -63,4 +65,6 @@
 </div>
 <?php
 	}
+
+	$admin->runHooks("markup", "modules-bottom");
 ?>

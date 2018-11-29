@@ -68,6 +68,7 @@
 </div>
 <?php
 	} else {
+		$admin->runHooks("markup", "developer-top");
 ?>
 <div class="table">
 	<summary><h2>Create</h2></summary>
@@ -105,6 +106,9 @@
 			<span class="package"></span>
 			<p>Extensions</p>
 		</a>
+		<?php
+			$admin->runHooks("markup", "developer-buttons-create");
+		?>
 	</section>
 </div>
 
@@ -147,6 +151,9 @@
 			<span class="lock"></span>
 			<p>Security</p>
 		</a>
+		<?php
+			$admin->runHooks("markup", "developer-buttons-configure");
+		?>
 	</section>
 </div>
 
@@ -165,8 +172,12 @@
 			<span class="users"></span>
 			<p>User Emulator</p>
 		</a>
+		<?php
+			$admin->runHooks("markup", "developer-buttons-debug");
+		?>
 	</section>
 </div>
 <?php
+		$admin->runHooks("markup", "developer-bottom");
 	}
 ?>

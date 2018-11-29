@@ -47,6 +47,13 @@
 	$bigtree["post_data"] = $_POST;
 	$bigtree["file_data"] = BigTree::parsedFilesArray();
 
+	$bigtree["form"]["fields"] = $admin->runHooks("fields", "form", $bigtree["form"]["fields"], [
+		"form" => $bigtree["form"],
+		"step" => "process",
+		"post_data" => $bigtree["post_data"],
+		"file_data" => $bigtree["file_data"]
+	]);
+
 	foreach ($bigtree["form"]["fields"] as $resource) {
 		$field = array(
 			"type" => $resource["type"],

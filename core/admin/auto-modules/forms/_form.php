@@ -80,6 +80,11 @@
 	
 					$cached_types = $admin->getCachedFieldTypes();
 					$bigtree["field_types"] = $cached_types["modules"];
+
+					$bigtree["form"]["fields"] = $admin->runHooks("fields", "form", $bigtree["form"]["fields"], [
+						"form" => $bigtree["form"],
+						"step" => "draw"
+					]);
 	
 					foreach ($bigtree["form"]["fields"] as $resource) {
 						if (is_array($resource)) {

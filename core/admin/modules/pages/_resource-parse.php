@@ -19,8 +19,15 @@
 	}
 
 	$bigtree["post_data"] = $_POST["resources"];
+	$bigtree["template"]["resources"] = array_filter((array) $bigtree["template"]["resources"]);
+	$bigtree["template"]["resources"] = $admin->runHooks("fields", "template", $bigtree["template"]["resources"], [
+		"template" => $bigtree["template"],
+		"step" => "process",
+		"post_data" => $bigtree["post_data"],
+		"file_data" => $bigtree["file_data"]
+	]);
 
-	foreach ((array)$bigtree["template"]["resources"] as $resource) {
+	foreach ($bigtree["template"]["resources"] as $resource) {
 		$settings = $resource["settings"] ?: $resource["options"];
 
 		if (empty($settings["directory"])) {

@@ -392,6 +392,36 @@
 		}
 
 		/*
+			Function: cacheHooks
+				Caches extension hooks.
+		*/
+
+		public function cacheHooks() {
+			$hooks = [];
+			$extensions = BigTreeJSONDB::getAll("extensions");
+
+			foreach ($extensions as $extension) {
+				$base_dir = SERVER_ROOT."extensions/".$extension["id"]."/hooks/";
+
+				if (file_exists($base_dir)) {
+					$hook_files = BigTree::directoryContents($base_dir, true, "php");
+
+					foreach ($hook_files as $file) {
+						$parts = explode("/", str_replace($base_dir, "", substr($file, 0, -4)));
+
+						if (count($parts) == 2) {
+							$hooks[$parts[0]][$parts[1]][] = str_replace(SERVER_ROOT, "", $file);
+						} elseif (count($parts) == 1) {
+							$hooks[$parts[0]][] = str_replace(SERVER_ROOT, "", $file);
+						}
+					}
+				}
+			}
+
+			BigTree::putFile(SERVER_ROOT."cache/bigtree-hooks.json", BigTree::json($hooks));
+		}
+
+		/*
 			Function: canAccessGroup
 				Returns whether or not the logged in user can access a module group.
 				Utility for form field types / views -- we already know module group permissions are enabled so we skip some overhead
@@ -7628,6 +7658,56 @@
 				die();
 			}
 			return true;
+		}
+
+		/*
+			Function: runHooks
+				Runs extension hooks of a given type for a given context.
+
+			Parameters:
+				type - Hook type
+				context - Hook context
+				data - Data to modify (will be returned modified)
+				data_context - Additional data context (will be global variables in the context of the hook, not returned)
+
+			Returns:
+				Data modified by hook script
+		*/
+
+		public function runHooks($type, $context = "", $data = "", $data_context = []) {
+			if (!file_exists(SERVER_ROOT."cache/bigtree-hooks.json")) {
+				$this->cacheHooks();
+			}
+
+			if (!isset($this->Hooks)) {
+				$this->Hooks = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-hooks.json"), true);
+			}
+
+			// Anonymous function so that hooks can't pollute context
+			$run_hook = function($hook, $data, $data_context = []) {
+				foreach ($data_context as $key => $value) {
+					$$key = $value;
+				}
+
+				include SERVER_ROOT.$hook;
+				return $data;
+			};
+
+			if ($context) {
+				if (!empty($this->Hooks[$type][$context]) && is_array($this->Hooks[$type][$context])) {
+					foreach ($this->Hooks[$type][$context] as $hook) {
+						$data = $run_hook($hook, $data, $data_context);
+					}
+				} 
+			} else {
+				if (!empty($this->Hooks[$type]) && is_array($this->Hooks[$type])) {
+					foreach ($this->Hooks[$type] as $hook) {
+						$data = $run_hook($hook, $data, $data_context);
+					}
+				} 
+			}			
+
+			return $data;
 		}
 
 		/*
