@@ -224,15 +224,15 @@
 		$bigtree["config"]["date_format"] = "m/d/Y";
 	}
 
-	// Make it easier to extend the nav tree without overwriting important things.
-	include BigTree::path("admin/_nav-tree.php");
-
 	// Initialize BigTree's additional CSS and JS arrays for inclusion in the admin's header
 	$bigtree["js"] = array();
 	$bigtree["css"] = array();
 	
 	// Instantiate the $admin var (user system)
 	$admin = new BigTreeAdmin;
+
+	// Make it easier to extend the nav tree without overwriting important things.
+	include BigTree::path("admin/_nav-tree.php");
 
 	// Load the default layout.
 	$bigtree["layout"] = "default";
