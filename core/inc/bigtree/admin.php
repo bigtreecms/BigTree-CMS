@@ -6039,6 +6039,16 @@
 				$og_image = $data_source["image"];
 			}
 
+			if (strpos($og_image, "resource://") === 0) {
+				$resource = static::getResourceByFile(substr($og_image, 11));
+
+				if ($resource) {
+					$og_image = "irl://".$resource["id"];
+				} else {
+					$og_image = "";
+				}
+			}
+
 			$data = [
 				"table" => $table,
 				"entry" => $id,

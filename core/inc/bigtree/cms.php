@@ -1292,6 +1292,21 @@
 			}
 			return $items;
 		}
+
+		/*
+			Function: getResource
+				Returns a resource.
+
+			Parameters:
+				id - The id of the resource.
+
+			Returns:
+				A resource entry.
+		*/
+
+		public static function getResource($id) {
+			return BigTreeAdmin::getResource($id);
+		}
 		
 		/*
 			Function: getSetting
