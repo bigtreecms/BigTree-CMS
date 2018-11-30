@@ -2781,7 +2781,15 @@ var BigTreeCallouts = function(settings) {
 			BigTree.TabIndexDepth++;
 
 			CurrentItem = $(this).parents("article");
-			$.ajax("admin_root/ajax/callouts/edit/", { type: "POST", data: { count: Count, data: CurrentItem.find(".callout_data").val(), groups: Groups, key: Key, tab_depth: BigTree.TabIndexDepth, front_end_editor: FrontEndEditor }, complete: function(response) {
+			$.ajax("admin_root/ajax/callouts/edit/", { type: "POST", data: { 
+				count: Count, 
+				data: CurrentItem.find(".callout_data").val(), 
+				groups: Groups, 
+				key: Key, 
+				tab_depth: BigTree.TabIndexDepth, 
+				front_end_editor: FrontEndEditor,
+				original_type: $(this).data("type")
+			}, complete: function(response) {
 				BigTreeDialog({
 					title: "Edit " + Noun,
 					content: response.responseText,

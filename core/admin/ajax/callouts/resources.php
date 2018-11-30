@@ -31,6 +31,13 @@
 	$bigtree["callout_count"] = intval($_POST["count"]);
 	$bigtree["callout"] = $admin->getCallout($bigtree["resources"]["type"]);
 
+	if ($_POST["type"] != $_POST["original_type"]) {
+		$original_callout = $admin->getCallout($_POST["original_type"]);
+		$forced_recrops = $admin->rectifyResourceTypeChange($bigtree["resources"], $bigtree["callout"]["resources"], $original_callout["resources"]);
+	} else {
+		$forced_recrops = [];
+	}
+
 	$cached_types = $admin->getCachedFieldTypes();
 	$bigtree["field_types"] = $cached_types["callouts"];
 	
@@ -62,7 +69,8 @@
 					"has_value" => isset($bigtree["resources"][$resource["id"]]),
 					"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
 					"tabindex" => $bigtree["tabindex"],
-					"settings" => $resource["settings"] ?: $resource["options"]
+					"settings" => $resource["settings"] ?: $resource["options"],
+					"forced_recrop" => isset($forced_recrops[$resource["id"]]) ? true : false
 				);
 
 				if (empty($field["settings"]["directory"])) {

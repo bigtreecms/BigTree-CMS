@@ -85,9 +85,24 @@
 			</div>
 			<label>CURRENT</label>
 			<input type="hidden" name="<?=$field["key"]?>" value="<?=$field["value"]?>" />
+			<?php
+				if (!empty($field["forced_recrop"])) {
+					if (strpos($field["key"], "[") === false) {
+						$recrop_key = "__".$field["key"]."_recrop__";
+					} else {
+						$parts = explode("[", $field["key"]);
+						$last_part = $parts[count($parts) - 1];
+						$parts[count($parts) - 1] = "__".substr($last_part, 0, -1)."_recrop__]";
+						$recrop_key = implode("[", $parts);
+					}
+			?>
+			<input type="hidden" name="<?=$recrop_key?>" value="true">
+			<?php
+				}
+			?>
 		</div>
 		<?php
-			if (!empty($field["value"]) && count($filtered_crops)) {
+			if (!empty($field["value"]) && empty($field["forced_recrop"]) && count($filtered_crops)) {
 		?>
 		<div class="recrop_button_container">
 			<button class="button green recrop_button">Choose New Crops</button>

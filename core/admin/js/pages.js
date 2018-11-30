@@ -157,15 +157,15 @@ var BigTreePages = (function() {
 
 				if (CurrentPage !== false) {
 					$("#template_type").load("admin_root/ajax/pages/get-template-form/", {
-						page: CurrentPage, 
-						template: CurrentPageTemplate 
+						page: CurrentPage,
+						template: CurrentPageTemplate
 					}, function() { 
 						BigTreeCustomControls("#template_type"); 
 					});
 				} else {
 					$("#template_type").load("admin_root/ajax/pages/get-template-form/", { 
-						template: CurrentPageTemplate 
-					}, function() { 
+						template: CurrentPageTemplate
+					}, function() {
 						BigTreeCustomControls("#template_type"); 
 					});
 				}
