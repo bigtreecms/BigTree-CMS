@@ -391,6 +391,8 @@
 
 	// Turn foreign key checks back on
 	sqlquery("SET foreign_key_checks = 1");
+
+	$admin->cacheHooks();
 ?>
 <div class="container">
 	<section>

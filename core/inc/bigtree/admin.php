@@ -6540,6 +6540,8 @@
 			@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 			@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 
+			$this->cacheHooks();
+
 			return $manifest;
 		}
 
