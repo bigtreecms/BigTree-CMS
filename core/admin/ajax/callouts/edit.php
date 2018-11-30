@@ -43,7 +43,8 @@
 				resources: "<?=htmlspecialchars($_POST["data"])?>",
 				type: data.value,
 				tab_depth: <?=intval($_POST["tab_depth"])?>,
-				front_end_editor: <?=(defined("BIGTREE_FRONT_END_EDITOR") ? "true" : "false")?>
+				front_end_editor: <?=(defined("BIGTREE_FRONT_END_EDITOR") ? "true" : "false")?>,
+				original_type: "<?=BigTree::safeEncode($_POST["original_type"])?>"
 			}, BigTreeCustomControls).scrollTop(0);
 		});
 	})();

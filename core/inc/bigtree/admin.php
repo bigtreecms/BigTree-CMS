@@ -6181,6 +6181,16 @@
 				$og_image = $data_source["image"];
 			}
 
+			if (strpos($og_image, "resource://") === 0) {
+				$resource = static::getResourceByFile(substr($og_image, 11));
+
+				if ($resource) {
+					$og_image = "irl://".$resource["id"];
+				} else {
+					$og_image = "";
+				}
+			}
+
 			$data = [
 				"table" => $table,
 				"entry" => $id,
@@ -7568,6 +7578,86 @@
 			}
 			
 			return $field["output"];
+		}
+
+		/*
+			Function: rectifyResourceTypeChange
+				Verifies that existing data for a resource set will fit with the new resource set.
+
+			Parameters:
+				data - Data, passed by reference and modified upon return
+				new_resources - The resource fields for the data set to conform to
+				old_resources - The resource fields the data set originated in
+
+			Returns:
+				An array of fields which should force re-crops
+		*/
+
+		public function rectifyResourceTypeChange(&$data, $new_resources, $old_resources) {
+			$forced_recrops = [];
+			$old_resources_keyed = [];
+
+			foreach ($old_resources as $resource) {
+				$old_resources_keyed[$resource["id"]] = $resource;
+			}
+
+			foreach ($new_resources as $new) {
+				$id = $new["id"];
+
+				if (empty($data[$id])) {
+					continue;
+				}
+
+				if (isset($old_resources_keyed[$id])) {
+					$old = $old_resources_keyed[$id];
+
+					if ($old["type"] != $new["type"]) {
+						// Not even the same resource type, wipe data
+						unset($data[$id]);
+					} elseif (($new["type"] == "callouts" || $new["type"] == "matrix" || $new["type"] == "list" || $new["type"] == "one-to-many" || $new["type"] == "photo-gallery") && $new["settings"] != $old["settings"]) {
+						// These fields need to match exactly to allow data to move over
+						unset($data[$id]);
+					} elseif ($new["type"] == "image-reference") {
+						// Image references just need to ensure that the existing data meets the new requirements
+						$new_min_width = empty($new["settings"]["min_width"]) ? 0 : intval($new["settings"]["min_width"]);
+						$new_min_height = empty($new["settings"]["min_height"]) ? 0 : intval($new["settings"]["min_height"]);
+						$resource = $this->getResource($data[$id]);
+
+						if (!$resource) {
+							unset($data[$id]);
+							continue;
+						}
+
+						if ($resource["width"] < $new_min_width || $resource["height"] < $new_min_height) {
+							unset($data[$id]);
+						}
+					} elseif ($new["type"] == "text" && $new["settings"]["sub_type"] != $old["settings"]["sub_type"]) {
+						// Sub-types changed, the data won't fit anymore
+						unset($data[$id]);
+					} elseif ($new["type"] == "html" && !empty($new["settings"]["simple"]) && empty($old["settings"]["simple"])) {
+						// New HTML is simple
+						unset($data[$id]);
+					} elseif ($new["type"] == "upload" && !empty($new["settings"]["image"])) {
+						if ($new["settings"] == $old["settings"]) {
+							continue;
+						}
+
+						$new_min_width = empty($new["settings"]["min_width"]) ? 0 : intval($new["settings"]["min_width"]);
+						$new_min_height = empty($new["settings"]["min_height"]) ? 0 : intval($new["settings"]["min_height"]);
+						list($w, $h) = @getimagesize($data[$id]);
+
+						// Existing base image won't work
+						if (empty($w) || empty($h) || $w < $new_min_width || $h < $new_min_height) {
+							unset($data[$id]);
+							continue;
+						}
+
+						$forced_recrops[$id] = true;
+					}
+				}
+			}
+
+			return $forced_recrops;
 		}
 
 		/*

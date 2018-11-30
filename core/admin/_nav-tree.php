@@ -60,8 +60,9 @@
 			]],
 			["title" => "Modules", "link" => "developer/modules", "icon" => "modules", "hidden" => true, "children" => [
 				["title" => "View Modules", "link" => "developer/modules", "nav_icon" => "list"],
-				["title" => "Add Module", "link" => "developer/modules/add", "nav_icon" => "add"],
-				["title" => "Module Designer", "link" => "developer/modules/designer", "nav_icon" => "edit"],
+				["title" => "Add Module","link" => "developer/modules/start","nav_icon" => "add"],
+				["title" => "Add Module","link" => "developer/modules/add","nav_icon" => "add", "hidden" => true],
+				["title" => "Module Designer","link" => "developer/modules/designer","nav_icon" => "edit", "hidden" => true],
 				["title" => "View Groups", "link" => "developer/modules/groups", "nav_icon" => "list"],
 				["title" => "Add Group", "link" => "developer/modules/groups/add", "nav_icon" => "add"],
 				["title" => "Edit Module", "link" => "developer/modules/edit", "hidden" => true],

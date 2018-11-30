@@ -1,8 +1,8 @@
 <?php
 	$cached_types = $admin->getCachedFieldTypes();
 	$bigtree["field_types"] = $cached_types["templates"];
-
 	$template_id = $bigtree["current_page"]["template"];
+
 	if (isset($_POST["page"])) {
 		$template_id = $_POST["template"];
 		$bigtree["current_page"] = $cms->getPendingPage($_POST["page"]);
@@ -15,6 +15,13 @@
 	}
 
 	$bigtree["template"] = $cms->getTemplate($template_id);
+
+	if (isset($_POST["page"]) && $template_id != $bigtree["current_page"]["template"]) {
+		$original_template = $cms->getTemplate($bigtree["current_page"]["template"]);
+		$forced_recrops = $admin->rectifyResourceTypeChange($bigtree["resources"], $bigtree["template"]["resources"], $original_template["resources"]);
+	} else {
+		$forced_recrops = [];
+	}
 
 	// See if we have an editing hook
 	if (!empty($bigtree["template"]["hooks"]["edit"])) {
@@ -53,7 +60,8 @@
 					"has_value" => isset($bigtree["resources"][$resource["id"]]),
 					"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
 					"tabindex" => $bigtree["tabindex"],
-					"settings" => $resource["settings"] ?: $resource["options"]
+					"settings" => $resource["settings"] ?: $resource["options"],
+					"forced_recrop" => isset($forced_recrops[$resource["id"]]) ? true : false
 				);
 	
 				BigTreeAdmin::drawField($field);

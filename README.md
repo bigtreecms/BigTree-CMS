@@ -20,6 +20,22 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.3.2
+- FIXED: Better checking of the writability of the vendor directory in bootstrapping (to properly throw errors on updated installs)
+- FIXED: Warnings when file manager presets are missing crops / center crops / thumbnails
+- FIXED: Pages lock not refreshing
+- FIXED: Redirects in a multi-site environment using 302 instead of 301 redirects
+- FIXED: One to Many not throwing a proper exception when setup incorrectly
+- FIXED: The BigTreeCMS::setHeadContext description being prioritized over an explicit open graph description
+- FIXED: Choosing a media preset for a field should now work again.
+- FIXED: Javascript errors when editing a pending page
+- FIXED: Previewing a pending page not providing proper edit buttons in the BigTree toolbar
+- CHANGED: Folders are now sorted by name when choosing a new parent folder for a file or folder
+- CHANGED: Multi-site cache JSON is now named more similarly to other BigTree static caches
+- CHANGED: When adding an explicit 301 redirect, route history that would override the redirect is now removed
+- CHANGED: BigTree::cURL requests now use strict SSL verification by default (via auto-updated cacert.pem)
+- ADDED: A progress indicator/animation to the upgrade screen
+
 ### 4.3.1
 - FIXED: Creating or updating a page clearing all of /cache/ and resetting the composer check flag
 - FIXED: Installer creating an old password hash on install
