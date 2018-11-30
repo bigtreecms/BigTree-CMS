@@ -58,8 +58,9 @@
 			)),
 			array("title" => "Modules","link" => "developer/modules","icon" => "modules","hidden" => true,"children" => array(
 				array("title" => "View Modules","link" => "developer/modules","nav_icon" => "list"),
-				array("title" => "Add Module","link" => "developer/modules/add","nav_icon" => "add"),
-				array("title" => "Module Designer","link" => "developer/modules/designer","nav_icon" => "edit"),
+				array("title" => "Add Module","link" => "developer/modules/start","nav_icon" => "add"),
+				array("title" => "Add Module","link" => "developer/modules/add","nav_icon" => "add", "hidden" => true),
+				array("title" => "Module Designer","link" => "developer/modules/designer","nav_icon" => "edit", "hidden" => true),
 				array("title" => "View Groups","link" => "developer/modules/groups","nav_icon" => "list"),
 				array("title" => "Add Group","link" => "developer/modules/groups/add","nav_icon" => "add"),
 				array("title" => "Edit Module","link" => "developer/modules/edit","hidden" => true),
