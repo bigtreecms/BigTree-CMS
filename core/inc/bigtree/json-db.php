@@ -22,7 +22,8 @@
 					$is_numeric = false;
 				}
 
-				if (is_array($value)) {
+				// SQL Revisions in extensions are numeric but need to stay keyed properly
+				if (is_array($value) && $key != "sql_revisions") {
 					static::cleanArray($value);
 				}
 			}
