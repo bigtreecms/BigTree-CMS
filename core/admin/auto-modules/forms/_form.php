@@ -53,10 +53,17 @@
 		?>
 		<input type="hidden" name="id" value="<?=htmlspecialchars($bigtree["edit_id"])?>" />
 		<?php
-			}	
+			}
+
 			if (isset($_GET["view_data"])) {
 		?>
 		<input type="hidden" name="_bigtree_return_view_data" value="<?=htmlspecialchars($_GET["view_data"])?>" />
+		<?php
+			}
+
+			if (isset($_GET["return_link"])) {
+		?>
+		<input type="hidden" name="_bigtree_return_link" value="<?=htmlspecialchars($_GET["return_link"])?>" />
 		<?php
 			}
 		?>
