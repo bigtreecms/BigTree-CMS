@@ -72,7 +72,7 @@
 				true if successful.
 		*/
 		
-		public static function backup($file) {
+		public static function backup($file, $tables = []) {
 			if (!BigTree::isDirectoryWritable($file)) {
 				return false;
 			}
@@ -81,7 +81,9 @@
 			fwrite($pointer, "SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO';\n");
 			fwrite($pointer, "SET foreign_key_checks = 0;\n\n");
 			
-			$tables = static::fetchAllSingle("SHOW TABLES");
+			if (!count($tables)) {
+				$tables = static::fetchAllSingle("SHOW TABLES");
+			}
 			
 			foreach ($tables as $table) {
 				// Write the drop / create statements
