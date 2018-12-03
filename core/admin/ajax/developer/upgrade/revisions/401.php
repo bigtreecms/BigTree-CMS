@@ -44,3 +44,5 @@
 		"complete" => true,
 		"response" => "Upgraded to BigTree 4.4"
 	]);
+
+	$admin->updateInternalSettingValue("bigtree-internal-revision", 401);
