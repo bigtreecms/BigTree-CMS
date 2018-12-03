@@ -27,6 +27,7 @@
 	$directory_warnings = array();
 	$recurse_fields = function($fields) {
 		global $directory_warnings,$recurse_fields,$warnings;
+		
 		foreach (array_filter((array)$fields) as $key => $data) {
 			if (empty($data["settings"])) {
 				$data["settings"] = $data["options"];
@@ -52,19 +53,22 @@
 	};
 	
 	// Go through every module form and look for uploads, make sure the directories exist and are writable.
-	$forms = array_merge($admin->getModuleForms(),$admin->getModuleEmbedForms());
+	$forms = array_merge($admin->getModuleForms(), $admin->getModuleEmbedForms());
+	
 	foreach ($forms as $form) {
 		$recurse_fields($form["fields"]);
 	}
 	
 	// Now templates and callouts
-	$templates = array_merge($admin->getTemplates(),$admin->getCallouts());
+	$templates = array_merge($admin->getTemplates(), $admin->getCallouts());
+	
 	foreach ($templates as $template) {
-		$recurse_fields(json_decode($template["resources"],true));
+		$recurse_fields($template["resources"]);
 	}
 		
 	// Search all content for links to the admin.
 	$bad = $admin->getPageAdminLinks();
+
 	foreach ($bad as $f) {
 		$warnings[] = array(
 			"parameter" => "Bad Admin Links",
