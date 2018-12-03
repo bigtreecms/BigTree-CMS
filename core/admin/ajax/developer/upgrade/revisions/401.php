@@ -13,8 +13,8 @@
 		"bigtree_module_reports",
 		"bigtree_module_views",
 		"bigtree_modules",
-		"bigtree_settings"
-		"bigtree_templates",
+		"bigtree_settings",
+		"bigtree_templates"
 	]);
 
 	SQL::query("DROP TABLE `bigtree_callout_groups`");
