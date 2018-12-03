@@ -12,6 +12,8 @@
 			if (!isset(self::$Cache[$type])) {
 				if (file_exists(SERVER_ROOT."custom/json-db/$type.json")) {
 					self::$Cache[$type] = json_decode(file_get_contents(SERVER_ROOT."custom/json-db/$type.json"), true);
+				} else {
+					self::$Cache[$type] = [];
 				}
 			}
 		}
