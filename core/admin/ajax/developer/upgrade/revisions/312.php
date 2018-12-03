@@ -15,7 +15,7 @@
 			$class_name = SQL::fetch("SELECT `class` FROM bigtree_modules WHERE id = ?", $alloc["table"]);
 
 			if ($class_name && class_exists($class_name)) {
-				$module = new $$class_name;
+				$module = new $class_name;
 				SQL::update("bigtree_resource_allocation", $alloc["id"], ["table" => $module->Table]);
 			}
 		}

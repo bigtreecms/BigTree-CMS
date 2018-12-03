@@ -10,7 +10,9 @@
 
 		private static function cache($type) {
 			if (!isset(self::$Cache[$type])) {
-				self::$Cache[$type] = json_decode(file_get_contents(SERVER_ROOT."custom/json-db/$type.json"), true);
+				if (file_exists(SERVER_ROOT."custom/json-db/$type.json")) {
+					self::$Cache[$type] = json_decode(file_get_contents(SERVER_ROOT."custom/json-db/$type.json"), true);
+				}
 			}
 		}
 

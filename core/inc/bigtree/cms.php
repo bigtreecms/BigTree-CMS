@@ -469,19 +469,17 @@
 		public static function extensionSettingCheck($id) {
 			global $bigtree;
 
-			$id = sqlescape($id);
-
 			// See if we're in an extension
 			if (!empty($bigtree["extension_context"])) {
 				$extension = $bigtree["extension_context"];
 
 				// If we're already asking for it by it's namespaced name, don't append again.
-				if (substr($id,0,strlen($extension)) == $extension) {
+				if (substr($id, 0, strlen($extension)) == $extension) {
 					return $id;
 				}
 
 				// See if namespaced version exists
-				$exists = SQL::exists("bigtree_settings", $extension."*".$id);
+				$exists = BigTreeJSONDB::exists("bigtree_settings", $extension."*".$id);
 
 				if ($exists) {
 					return "$extension*$id";
