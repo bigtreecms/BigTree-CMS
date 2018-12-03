@@ -272,6 +272,6 @@
 
 	echo BigTree::json([
 		"complete" => true,
-		"response" => "Upgraded to BigTree 4.4"
+		"response" => "Upgrading to BigTree 4.4 revision 1"
 	]);
 	

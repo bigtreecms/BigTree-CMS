@@ -1947,6 +1947,10 @@
 				}
 			}
 
+			if (strpos($id, "bigtree-internal-") === 0) {
+				return false;
+			}
+
 			if (SQL::exists("bigtree_settings", $id) || BigTreeJSONDB::exists("settings", $id)) {
 				return false;
 			}
@@ -2735,7 +2739,7 @@
 			SQL::delete("bigtree_settings", $id);
 
 			$this->deallocateResources("bigtree_settings", $id);
-			$this->track("bigtree_settings",$id,"deleted");
+			$this->track("jsondb -> settings", $id, "deleted");
 		}
 
 		/*
@@ -5852,26 +5856,6 @@
 		}
 
 		/*
-			Function: getSystemSettings
-				Returns a list of user defined (no bigtree-internal- prefix) system settings without decoded values.
-
-			Parameters:
-				sort - Order to return the settings. Defaults to name ASC.
-
-			Returns:
-				An array of entries from the settings database.
-		*/
-
-		public static function getSystemSettings($sort = "name ASC") {
-			$items = array();
-			$q = sqlquery("SELECT * FROM bigtree_settings WHERE id NOT LIKE 'bigtree-internal-%' AND system != '' ORDER BY $sort");
-			while ($f = sqlfetch($q)) {
-				$items[] = $f;
-			}
-			return $items;
-		}
-
-		/*
 			Function: getTag
 				Returns a tag for the given id.
 
@@ -8755,7 +8739,6 @@
 			if (!SQL::exists("bigtree_settings", $id)) {
 				SQL::insert("bigtree_settings", [
 					"id" => $id,
-					"system" => "on",
 					"encrypted" => $encrypted ? "on" : ""
 				]);
 			}

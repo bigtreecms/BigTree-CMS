@@ -155,28 +155,17 @@
 					<div class="add_setting adder">
 						<a href="#"></a>
 						<select class="custom_control" data-key="settings">
-							<optgroup label="Public">
-								<?php
-									$settings = $admin->getSettings();
-									foreach ($settings as $setting) {
-										if (!$setting["extension"] || $setting["extension"] == $id) {
-								?>
-								<option value="<?=$setting["id"]?>"><?=$setting["name"]?></option>
-								<?php
-										}
+							<?php
+								$settings = $admin->getSettings();
+								
+								foreach ($settings as $setting) {
+									if (!$setting["extension"] || $setting["extension"] == $id) {
+							?>
+							<option value="<?=$setting["id"]?>"><?=$setting["name"]?></option>
+							<?php
 									}
-								?>
-							</optgroup>
-							<optgroup label="System">
-								<?php
-									$settings = $admin->getSystemSettings();
-									foreach ($settings as $setting) {
-								?>
-								<option value="<?=$setting["id"]?>"><?=$setting["name"]?></option>
-								<?php
-									}
-								?>
-							</optgroup>
+								}
+							?>
 						</select>
 					</div>
 				</article>
