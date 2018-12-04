@@ -27,7 +27,6 @@
 				["title" => "Site Integrity", "link" => "dashboard/vitals-statistics/integrity", "icon" => "integrity", "hidden" => true, "level" => 1]
 			]]
 		]],
-		"files" => ["title" => "Files", "link" => "files", "icon" => "files", "nav_icon" => "files", "children" => []],
 		"pages" => ["title" => "Pages", "link" => "pages", "icon" => "page", "nav_icon" => "pages", "no_top_level_children" => true, "children" => [
 			"view-tree" => ["title" => "View Subpages", "link" => "pages/view-tree/{id}", "nav_icon" => "list"],
 			"add" => ["title" => "Add Subpage", "link" => "pages/add/{id}", "icon" => "add_page", "nav_icon" => "add"],
@@ -37,6 +36,7 @@
 			"duplicate" => ["title" => "Duplicate Page", "link" => "pages/duplicate/{id}", "icon" => "duplicate", "nav_icon" => "duplicate"]
 		]],
 		"modules" => ["title" => "Modules", "link" => "modules", "icon" => "modules", "no_top_level_children" => true, "children" => []],
+		"files" => ["title" => "Files", "link" => "files", "icon" => "files", "nav_icon" => "files", "children" => []],
 		"users" => ["title" => "Users", "link" => "users", "icon" => "users", "level" => 1, "no_top_level_children" => true, "children" => [
 			["title" => "View Users", "link" => "users", "nav_icon" => "list"],
 			["title" => "Add User", "link" => "users/add", "nav_icon" => "add"],
