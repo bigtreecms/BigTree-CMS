@@ -1523,7 +1523,7 @@
 		public function createPage($data, $publishing_change = false) {
 			// Defaults
 			$parent = 0;
-			$title = $nav_title = $meta_description = $meta_keywords = $external = $template = $in_nav = "";
+			$title = $nav_title = $meta_description = $external = $template = $in_nav = "";
 			$seo_invisible = $publish_at = $expire_at = $trunk = $new_window = $max_age = null;
 			$resources = array();
 
@@ -1617,7 +1617,6 @@
 				"external" => BigTree::safeEncode($external),
 				"new_window" => $new_window,
 				"resources" => $resources,
-				"meta_keywords" => BigTree::safeEncode($meta_keywords),
 				"meta_description" => BigTree::safeEncode($meta_description),
 				"seo_invisible" => $seo_invisible ? "on" : "",
 				"last_edited_by" => $this->ID,
@@ -1751,7 +1750,6 @@
 			$data["nav_title"] = htmlspecialchars($data["nav_title"]);
 			$data["title"] = htmlspecialchars($data["title"]);
 			$data["external"] = htmlspecialchars($data["external"]);
-			$data["meta_keywords"] = htmlspecialchars($data["meta_keywords"]);
 			$data["meta_description"] = htmlspecialchars($data["meta_description"]);
 
 			// Set the trunk flag back to no if the user isn't a developer
@@ -7812,7 +7810,6 @@
 			$id = SQL::insert("bigtree_page_revisions", [
 				"page" => $page,
 				"title" => $current["title"],
-				"meta_keywords" => $current["meta_keywords"],
 				"meta_description" => $current["meta_description"],
 				"template" => $current["template"],
 				"external" => $current["external"],
@@ -8316,7 +8313,6 @@
 			$changes["title"] = htmlspecialchars($changes["title"]);
 			$changes["nav_title"] = htmlspecialchars($changes["nav_title"]);
 			$changes["meta_description"] = htmlspecialchars($changes["meta_description"]);
-			$changes["meta_keywords"] = htmlspecialchars($changes["meta_keywords"]);
 			$changes["seo_invisible"] = $changes["seo_invisible"]["seo_invisible"] ? "on" : "";
 			$changes["external"] = htmlspecialchars($changes["external"]);
 
@@ -9173,7 +9169,6 @@
 			SQL::insert("bigtree_page_revisions", [
 				"page" => $page,
 				"title" => $current["title"],
-				"meta_keywords" => $current["meta_keywords"],
 				"meta_description" => $current["meta_description"],
 				"template" => $current["template"],
 				"external" => $current["external"],
@@ -9306,7 +9301,6 @@
 				"external" => BigTree::safeEncode($data["external"]),
 				"new_window" => $data["new_window"] ? "Yes" : "",
 				"resources" => $data["resources"],
-				"meta_keywords" => BigTree::safeEncode($data["meta_keywords"]),
 				"meta_description" => BigTree::safeEncode($data["meta_description"]),
 				"seo_invisible" => $data["seo_invisible"] ? "on" : "",
 				"publish_at" => $publish_at,
