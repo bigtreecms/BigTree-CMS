@@ -7361,8 +7361,10 @@
 			$forced_recrops = [];
 			$old_resources_keyed = [];
 
-			foreach ($old_resources as $resource) {
-				$old_resources_keyed[$resource["id"]] = $resource;
+			if (is_array($old_resources)) {
+				foreach ($old_resources as $resource) {
+					$old_resources_keyed[$resource["id"]] = $resource;
+				}
 			}
 
 			foreach ($new_resources as $new) {
