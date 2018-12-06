@@ -163,7 +163,7 @@
 							<?php
 										} else {
 							?>
-							<li><a href="<?=ADMIN_ROOT?><?=$item["link"]?>/<?=$child["link"]?>/"><?=$child["title"]?></a></li>
+							<li><a href="<?=ADMIN_ROOT?><?php if ($child["link"]) { echo $child["link"]."/"; } ?>"><?=$child["title"]?></a></li>
 							<?php
 										}
 									}
