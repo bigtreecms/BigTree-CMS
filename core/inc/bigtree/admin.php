@@ -6215,7 +6215,7 @@
 					// Create views
 					foreach ($module["views"] as $view) {
 						$settings = $view["settings"] ?: $view["options"];
-						$bigtree["view_id_match"][$view["id"]] = $this->createModuleView($module_id,$view["title"],$view["description"],$view["table"],$view["type"],(is_array($settings) ? $settings : json_decode($settings,true)),(is_array($view["fields"]) ? $view["fields"] : json_decode($view["fields"],true)),(is_array($view["actions"]) ? $view["actions"] : json_decode($view["actions"],true)),$view["suffix"],$view["preview_url"]);
+						$bigtree["view_id_match"][$view["id"]] = $this->createModuleView($module_id,$view["title"],$view["description"],$view["table"],$view["type"],(is_array($settings) ? $settings : json_decode($settings,true)),(is_array($view["fields"]) ? $view["fields"] : json_decode($view["fields"],true)),(is_array($view["actions"]) ? $view["actions"] : json_decode($view["actions"],true)),null,$view["preview_url"]);
 					}
 					// Create regular forms
 					foreach ($module["forms"] as $form) {
@@ -6228,6 +6228,15 @@
 					// Create actions
 					foreach ($module["actions"] as $action) {
 						$this->createModuleAction($module_id,$action["name"],$action["route"],$action["in_nav"],$action["class"],$bigtree["form_id_match"][$action["form"]],$bigtree["view_id_match"][$action["view"]],$bigtree["report_id_match"][$action["report"]],$action["level"],$action["position"]);
+					}
+
+					// Update related form state for views
+					foreach ($module["views"] as $view) {
+						if ($view["related_form"]) {
+							SQL::update("bigtree_module_views", $bigtree["view_id_match"][$view["id"]], [
+								"related_form" => $bigtree["form_id_match"][$view["related_form"]]
+							]);
+						}
 					}
 				}
 			}
