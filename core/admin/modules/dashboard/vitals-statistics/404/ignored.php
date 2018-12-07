@@ -1,5 +1,4 @@
 <?php
-	$admin->requireLevel(1);
 	$total = $admin->get404Total("ignored");
 	$type = "ignored";
 	$delete_action = "unignore";

@@ -1,5 +1,4 @@
 <?php
-	$admin->requireLevel(1);
 	$total = $admin->get404Total("301");
 	$type = "301";
 	$delete_action = "ignore";
