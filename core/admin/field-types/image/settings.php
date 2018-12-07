@@ -1,4 +1,5 @@
 <?php
+	// Stop notices
 	if (empty($settings["directory"])) {
 		if (isset($_POST["template"])) {
 			$settings["directory"] = "files/pages/";
@@ -11,15 +12,10 @@
 		}
 	}
 ?>
-<hr>
-
-<h3>Thumbnail / Poster Image Options</h3>
-
 <fieldset>
-	<label>Upload Directory <small>(relative to SITE_ROOT)</small></label>
-	<input type="text" name="directory" value="<?=htmlspecialchars($settings["directory"])?>" />
+	<label for="settings_field_directory">Upload Directory <small>(required, relative to SITE_ROOT)</small></label>
+	<input id="settings_field_directory" type="text" name="directory" value="<?=htmlspecialchars($settings["directory"])?>" class="required" />
 </fieldset>
-
 <?php
-	// Just use the regular image options
 	include BigTree::path("admin/field-types/_image-options.php");
+?>
