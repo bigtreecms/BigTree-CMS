@@ -3465,27 +3465,30 @@
 		*/
 
 		public static function getCachedFieldTypes($split = false) {
-			$types["modules"] = $types["templates"] = $types["callouts"] = $types["settings"] = array(
-				"default" => array(
-					"text" => array("name" => "Text", "self_draw" => false),
-					"textarea" => array("name" => "Text Area", "self_draw" => false),
-					"html" => array("name" => "HTML Area", "self_draw" => false),
-					"upload" => array("name" => "Upload", "self_draw" => false),
-					"file-reference" => array("name" => "File Reference", "self_draw" => false),
-					"image-reference" => array("name" => "Image Reference", "self_draw" => false),
-					"video-reference" => array("name" => "Video Reference", "self_draw" => false),
-					"list" => array("name" => "List", "self_draw" => false),
-					"checkbox" => array("name" => "Checkbox", "self_draw" => false),
-					"date" => array("name" => "Date Picker", "self_draw" => false),
-					"time" => array("name" => "Time Picker", "self_draw" => false),
-					"datetime" => array("name" => "Date &amp; Time Picker", "self_draw" => false),
-					"photo-gallery" => array("name" => "Photo Gallery", "self_draw" => false),
-					"callouts" => array("name" => "Callouts", "self_draw" => true),
-					"matrix" => array("name" => "Matrix", "self_draw" => true),
-					"one-to-many" => array("name" => "One to Many", "self_draw" => false)
-				),
-				"custom" => array()
-			);
+			$types["modules"] = $types["templates"] = $types["callouts"] = $types["settings"] = [
+				"default" => [
+					"text" => ["name" => "Text", "self_draw" => false],
+					"textarea" => ["name" => "Text Area", "self_draw" => false],
+					"html" => ["name" => "HTML Area", "self_draw" => false],
+					"link" => ["name" => "Link", "self_draw" => false],
+					"upload" => ["name" => "File Upload", "self_draw" => false],
+					"image" => ["name" => "Image Upload", "self_draw" => false],
+					"video" => ["name" => "YouTube or Vimeo Video", "self_draw" => false],
+					"file-reference" => ["name" => "File Reference", "self_draw" => false],
+					"image-reference" => ["name" => "Image Reference", "self_draw" => false],
+					"video-reference" => ["name" => "Video Reference", "self_draw" => false],
+					"list" => ["name" => "List", "self_draw" => false],
+					"checkbox" => ["name" => "Checkbox", "self_draw" => false],
+					"date" => ["name" => "Date Picker", "self_draw" => false],
+					"time" => ["name" => "Time Picker", "self_draw" => false],
+					"datetime" => ["name" => "Date &amp; Time Picker", "self_draw" => false],
+					"media-gallery" => ["name" => "Media Gallery", "self_draw" => false],
+					"callouts" => ["name" => "Callouts", "self_draw" => true],
+					"matrix" => ["name" => "Matrix", "self_draw" => true],
+					"one-to-many" => ["name" => "One to Many", "self_draw" => false]
+				],
+				"custom" => []
+			];
 
 			$types["modules"]["default"]["route"] = array("name" => "Generated Route","self_draw" => true);
 			$field_types = BigTreeJSONDB::getAll("field-types", "name", "ASC");

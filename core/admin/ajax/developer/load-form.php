@@ -54,6 +54,7 @@
 				
 				if (strpos($title,"URL") !== false) {
 					$subtitle = "(include http://)";
+					$type = "link";
 				}
 
 				if ($column["name"] == "route") {

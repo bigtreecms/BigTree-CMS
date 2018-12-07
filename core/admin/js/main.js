@@ -2361,7 +2361,7 @@ var BigTreeFormValidator = function(selector,callback) {
 					if (!val) {
 						val = $(this).val();
 					}
-					// Reference field
+				// Reference field
 				} else if ($(this).hasClass("reference_required")) {
 					val = $(this).find("input").val();
 				// Regular input fields
@@ -2877,6 +2877,70 @@ var BigTreeCallouts = function(settings) {
 		return { Container: Container, Count: Count, Key: Key, Groups: Groups, List: List, addCallout: addCallout };
 
 	})(jQuery,settings);
+};
+
+var BigTreeLinkField = function(selector) {
+	return (function($, selector) {
+		var Field = $(selector);
+		var Container = Field.parent();
+		var ValueField = Field.siblings("input[type=hidden]");
+		var Results = Field.siblings(".link_field_results_container");
+		var ResultWidth = Field.outerWidth(true) - 2;
+
+		Field.on("keyup", function() {
+			var query = Field.val().trim();
+
+			queryChange(query);
+		});
+
+		Field.on("paste", function(e) {
+			var clipboard_data = e.originalEvent.clipboardData || window.clipboardData;
+    		var pasted_data = clipboard_data.getData('Text');
+
+    		queryChange(pasted_data);
+		});
+
+		Field.on("blur", function() {
+			setTimeout(function() {
+				Results.hide();
+			}, 250);
+		});
+
+		Field.on("focus", function() {
+			if (Results.html()) {
+				Results.show();
+			}
+		});
+
+		Container.on("click", "a", function(ev) {
+			ev.preventDefault();
+			ev.stopPropagation();
+
+			ValueField.val($(this).attr("href"));
+			Field.val("").attr("placeholder", $(this).attr("data-placeholder"));
+			Results.hide().html("");
+		});
+
+		function queryChange(query) {
+			Results.css({ width: ResultWidth }).scrollTop(0);
+			ValueField.val(query);
+			Field.attr("placeholder", "");
+
+			if (!query.length) {
+				Results.hide().html("");
+			} else {
+				if (query.substr(0, 7) == "http://" || query.substr(0, 8) == "https://") {
+					Results.hide().html("");
+				} else {
+					Results.load("admin_root/ajax/link-field-search/", { query: query }, function() {
+						Results.show();
+					});
+				}
+			}
+		}
+
+		return { field: Field };
+	})(jQuery, selector);
 };
 
 var BigTreeMatrix = function(settings) {

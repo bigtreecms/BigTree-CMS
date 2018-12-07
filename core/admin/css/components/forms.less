@@ -296,3 +296,45 @@
 	.container .input_phone_3 input { float: left; text-align: center; width: 30px; }
 	.container .input_phone_3 span { float: left; height: 32px; line-height: 32px; text-align: center; width: 20px; }
 	.container .input_phone_4 input { text-align: center; width: 40px; }
+
+	// Link Field
+	.link_field_results_container {
+		background: #FFF;
+		border: 1px solid #AAA;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+		max-height: 200px;
+		overflow-y: auto;
+		margin: -2px 0 0 0;
+		width: 896px;
+	}
+
+	.link_field_results_header {
+		background: #59A8E9;
+		color: #FFF;
+		font-size: 13px;
+		height: auto;
+		line-height: 20px;
+		padding: 4px 10px 3px;
+	}
+
+	.link_field_result {
+		border-bottom: 1px solid #DDD;
+		color: #333;
+		display: block;
+		font-size: 10px;
+		height: auto;
+		line-height: 14px;
+		padding: 3px 10px; 
+
+		&:nth-child(odd) { background: #FAFAFA; }
+		&:last-child { border-bottom: none; }
+		&:hover { background: #EEE; }
+	}
+
+	.link_field_no_results {
+		color: #333;
+		display: block;
+		font-size: 10px;
+		line-height: 14px;
+		padding: 3px 10px;
+	}
