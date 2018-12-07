@@ -8,24 +8,22 @@
 				["title" => "View Messages", "link" => "dashboard/messages", "icon" => "messages", "nav_icon" => "list"],
 				["title" => "New Message", "link" => "dashboard/messages/new", "icon" => "add_message", "nav_icon" => "add"]
 			]],
-			"vitals-statistics" => ["title" => "Vitals & Statistics", "link" => "dashboard/vitals-statistics", "icon" => "vitals", "related" => true, "hidden" => true, "level" => 1, "children" => [
-				["title" => "Analytics", "link" => "dashboard/vitals-statistics/analytics", "hidden" => true, "icon" => "analytics", "children" => [
-					["title" => "Statistics", "link" => "dashboard/vitals-statistics/analytics", "nav_icon" => "bar_graph"],
-					["title" => "Service Providers", "link" => "dashboard/vitals-statistics/analytics/service-providers", "nav_icon" => "network"],
-					["title" => "Traffic Sources", "link" => "dashboard/vitals-statistics/analytics/traffic-sources", "nav_icon" => "car"],
-					["title" => "Keywords", "link" => "dashboard/vitals-statistics/analytics/keywords", "nav_icon" => "key"],
-					["title" => "Configure", "link" => "dashboard/vitals-statistics/analytics/configure", "nav_icon" => "setup", "level" => 1],
-					["title" => "Caching Data", "link" => "dashboard/vitals-statistics/analytics/cache", "hidden" => true]
-				]],
-				["title" => "404 Report", "link" => "dashboard/vitals-statistics/404", "hidden" => true, "level" => 1, "icon" => "page_404", "children" => [
-					["title" => "Active 404s", "link" => "dashboard/vitals-statistics/404", "nav_icon" => "error"],
-					["title" => "Ignored 404s", "link" => "dashboard/vitals-statistics/404/ignored", "nav_icon" => "ignored"],
-					["title" => "Clear 404s", "link" => "dashboard/vitals-statistics/404/clear", "nav_icon" => "delete"],
-					["title" => "301 Redirects", "link" => "dashboard/vitals-statistics/404/301", "nav_icon" => "redirect"],
-					["title" => "Add 301 Redirect", "link" => "dashboard/vitals-statistics/404/add-301", "nav_icon" => "add"]
-				]],
-				["title" => "Site Integrity", "link" => "dashboard/vitals-statistics/integrity", "icon" => "integrity", "hidden" => true, "level" => 1]
-			]]
+			"analytics" => ["title" => "Analytics", "link" => "dashboard/vitals-statistics/analytics", "hidden" => true, "icon" => "analytics", "children" => [
+				["title" => "Statistics", "link" => "dashboard/vitals-statistics/analytics", "nav_icon" => "bar_graph"],
+				["title" => "Service Providers", "link" => "dashboard/vitals-statistics/analytics/service-providers", "nav_icon" => "network"],
+				["title" => "Traffic Sources", "link" => "dashboard/vitals-statistics/analytics/traffic-sources", "nav_icon" => "car"],
+				["title" => "Keywords", "link" => "dashboard/vitals-statistics/analytics/keywords", "nav_icon" => "key"],
+				["title" => "Configure", "link" => "dashboard/vitals-statistics/analytics/configure", "nav_icon" => "setup", "level" => 1],
+				["title" => "Caching Data", "link" => "dashboard/vitals-statistics/analytics/cache", "hidden" => true]
+			]],
+			"404-report" => ["title" => "404 Report", "link" => "dashboard/vitals-statistics/404", "hidden" => true, "level" => 1, "icon" => "page_404", "children" => [
+				["title" => "Active 404s", "link" => "dashboard/vitals-statistics/404", "nav_icon" => "error"],
+				["title" => "Ignored 404s", "link" => "dashboard/vitals-statistics/404/ignored", "nav_icon" => "ignored"],
+				["title" => "Clear 404s", "link" => "dashboard/vitals-statistics/404/clear", "nav_icon" => "delete"],
+				["title" => "301 Redirects", "link" => "dashboard/vitals-statistics/404/301", "nav_icon" => "redirect"],
+				["title" => "Add 301 Redirect", "link" => "dashboard/vitals-statistics/404/add-301", "nav_icon" => "add"]
+			]],
+			"integrity" => ["title" => "Site Integrity", "link" => "dashboard/vitals-statistics/integrity", "icon" => "integrity", "hidden" => true, "level" => 1]
 		]],
 		"pages" => ["title" => "Pages", "link" => "pages", "icon" => "page", "nav_icon" => "pages", "no_top_level_children" => true, "children" => [
 			"view-tree" => ["title" => "View Subpages", "link" => "pages/view-tree/{id}", "nav_icon" => "list"],
