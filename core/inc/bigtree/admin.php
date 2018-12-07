@@ -6396,6 +6396,16 @@
 					foreach ($module["actions"] as $action) {
 						$this->createModuleAction($module_id,$action["name"],$action["route"],$action["in_nav"],$action["class"],$bigtree["form_id_match"][$action["form"]],$bigtree["view_id_match"][$action["view"]],$bigtree["report_id_match"][$action["report"]],$action["level"],$action["position"]);
 					}
+
+					// Update related form state for views
+					foreach ($module["views"] as $view) {
+						if ($view["related_form"]) {
+							$context = BigTreeJSONDB::getSubset("modules", $module_id);
+							$context->update("views", $bigtree["view_id_match"][$view["id"]], [
+								"related_form" => $bigtree["form_id_match"][$view["related_form"]]
+							]);
+						}
+					}
 				}
 			}
 
