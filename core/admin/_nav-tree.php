@@ -21,7 +21,10 @@
 				["title" => "Ignored 404s", "link" => "dashboard/vitals-statistics/404/ignored", "nav_icon" => "ignored"],
 				["title" => "Clear 404s", "link" => "dashboard/vitals-statistics/404/clear", "nav_icon" => "delete"],
 				["title" => "301 Redirects", "link" => "dashboard/vitals-statistics/404/301", "nav_icon" => "redirect"],
-				["title" => "Add 301 Redirect", "link" => "dashboard/vitals-statistics/404/add-301", "nav_icon" => "add"]
+				["title" => "Add 301 Redirect", "link" => "dashboard/vitals-statistics/404/add-301", "nav_icon" => "add"],
+				["title" => "Upload 301 Redirect CSV", "link" => "dashboard/vitals-statistics/404/upload-csv", "nav_icon" => "up"],
+				["title" => "Import 301 Redirect CSV", "link" => "dashboard/vitals-statistics/404/import-csv", "hidden" => true],
+				["title" => "301 Redirect CSV Processed", "link" => "dashboard/vitals-statistics/404/process-csv", "hidden" => true]
 			]],
 			"integrity" => ["title" => "Site Integrity", "link" => "dashboard/vitals-statistics/integrity", "icon" => "integrity", "hidden" => true, "level" => 1]
 		]],
