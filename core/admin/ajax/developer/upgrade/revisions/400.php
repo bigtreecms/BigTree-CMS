@@ -70,14 +70,16 @@
 
 	BigTree::putFile(SERVER_ROOT."custom/json-db/feeds.json", BigTree::json($json));
 
-	$module_groups = SQL::fetchAll("SELECT * FROM bigtree_module_groups");
+	$module_groups = SQL::fetchAll("SELECT * FROM bigtree_module_groups ORDER BY position DESC, id ASC");
 	$module_groups_rel = [];
 	$json = [];
+	$position = count($module_groups);
 
 	foreach ($module_groups as $group) {
 		$old_group_id = $group["id"];
 		unset($group["id"]);
 		$group["id"] = $get_unique_id("module-groups-");
+		$group["position"] = $position--;
 		$json[] = $group;
 		$module_groups_rel[$old_group_id] = $group["id"];
 	}
@@ -174,11 +176,13 @@
 			$reports_rel[$old_report_id] = $report["id"];
 		}
 
-		$actions = SQL::fetchAll("SELECT * FROM bigtree_module_actions WHERE module = ?", $old_module_id);
+		$actions = SQL::fetchAll("SELECT * FROM bigtree_module_actions WHERE module = ? ORDER BY position DESC, id ASC", $old_module_id);
+		$position = count($actions);
 
 		foreach ($actions as $action) {
 			unset($action["module"]);
 			$action["id"] = $get_unique_id("actions-");
+			$action["position"] = $position--;			
 
 			if ($action["report"]) {
 				$action["report"] = isset($reports_rel[$action["report"]]) ? $reports_rel[$action["report"]] : null;
@@ -201,12 +205,14 @@
 
 	BigTree::putFile(SERVER_ROOT."custom/json-db/modules.json", BigTree::json($modules_json));
 
-	$templates = SQL::fetchAll("SELECT * FROM bigtree_templates");
+	$templates = SQL::fetchAll("SELECT * FROM bigtree_templates ORDER BY position DESC, id ASC");
 	$json = [];
+	$position = count($templates);
 
 	foreach ($templates as $template) {
 		$template["hooks"] = json_decode($template["hooks"], true);
 		$template["resources"] = json_decode($template["resources"], true);
+		$template["position"] = $position--;
 
 		if ($template["module"]) {
 			$template["module"] = $modules_rel[$template["module"]];
