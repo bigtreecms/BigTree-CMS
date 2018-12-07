@@ -20,7 +20,6 @@
 	</section>
 	<footer>
 		<a href="javascript:history.go(-1);" class="button">Back</a>
-		<a href="<?=DEVELOPER_ROOT?>modules/forms/delete/<?=$form["id"]?>/?module=<?=$module["id"]?>" class="button red">Delete Form</a>
 	</footer>
 </div>
 <?php
