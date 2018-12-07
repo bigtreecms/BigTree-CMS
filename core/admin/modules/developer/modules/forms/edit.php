@@ -4,6 +4,7 @@
 
 	$table = $form["table"];
 	$fields = $form["fields"];
+	
 	if (!is_array($form["hooks"])) {
 		$form["hooks"] = array("pre" => "","post" => "","publish" => "");
 	}

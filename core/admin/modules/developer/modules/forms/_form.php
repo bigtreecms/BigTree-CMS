@@ -1,6 +1,6 @@
 <?php
 	// Find out if we have more than one view. If so, give them an option of which one to return to.
-	$available_views = $admin->getModuleViews("title",$module["id"]);
+	$available_views = $admin->getModuleViews("title", $module["id"]);
 
 	$admin->drawCSRFToken();
 ?>

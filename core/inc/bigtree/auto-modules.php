@@ -871,6 +871,10 @@
 		
 		public static function getModuleForForm($form_id) {
 			if (is_array($form_id)) {
+				if (!empty($form_id["module"])) {
+					return $form_id["module"];
+				}
+
 				$form_id = $form_id["id"];
 			}
 
@@ -880,7 +884,7 @@
 				if (is_array($module["forms"])) {
 					foreach ($module["forms"] as $form) {
 						if ($form["id"] == $form_id) {
-							return $module;
+							return $module["id"];
 						}
 					}
 				}
@@ -902,6 +906,10 @@
 
 		public static function getModuleForView($view_id) {
 			if (is_array($view_id)) {
+				if (!empty($view_id["module"])) {
+					return $view_id["module"];
+				}
+
 				$view_id = $view_id["id"];
 			}
 
@@ -911,7 +919,7 @@
 				if (is_array($module["views"])) {
 					foreach ($module["views"] as $view) {
 						if ($view["id"] == $view_id) {
-							return $module;
+							return $module["id"];
 						}
 					}
 				}
