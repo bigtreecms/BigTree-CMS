@@ -251,20 +251,20 @@
 	foreach ($extensions as $extension) {
 		$extension["manifest"] = json_decode($extension["manifest"], true);
 
-		if (is_array($extension["manifest"]["modules"])) {
-			foreach ($extension["manifest"]["modules"] as &$module) {
+		if (is_array($extension["manifest"]["components"]["modules"])) {
+			foreach ($extension["manifest"]["components"]["modules"] as &$module) {
 				$module["id"] = $modules_rel[$module["id"]];
 			}
 		}
 
-		if (is_array($extension["manifest"]["feeds"])) {
-			foreach ($extension["manifest"]["feeds"] as &$feed) {
+		if (is_array($extension["manifest"]["components"]["feeds"])) {
+			foreach ($extension["manifest"]["components"]["feeds"] as &$feed) {
 				$feed["id"] = $feeds_rel[$feed["id"]];
 			}
 		}
 
-		if (is_array($extension["manifest"]["module_groups"])) {
-			foreach ($extension["manifest"]["module_groups"] as &$group) {
+		if (is_array($extension["manifest"]["components"]["module_groups"])) {
+			foreach ($extension["manifest"]["components"]["module_groups"] as &$group) {
 				$group["id"] = $module_groups_rel[$group["id"]];
 			}
 		}
