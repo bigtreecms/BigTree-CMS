@@ -6,6 +6,12 @@
 
 		foreach ($resources as $key => $item) {
 			$settings = $item["settings"] ?: $item["options"];
+			$was_string = false;
+
+			if (is_string($settings)) {
+				$was_string = true;
+				$settings = json_decode($settings, true);
+			}
 
 			if ($item["type"] == "matrix") {
 				$settings["columns"] = $resource_converter($settings["columns"]);
@@ -22,6 +28,10 @@
 				} else {
 					$settings["columns"] = [];
 				}
+			}
+
+			if ($was_string) {
+				$settings = json_encode($settings);
 			}
 
 			$item["settings"] = $settings;
