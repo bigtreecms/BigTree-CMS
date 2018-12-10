@@ -1,7 +1,7 @@
 <?php
 	$video = null;
 	$url = $_POST["video"];
-	$settings = $cms->getSetting("bigtree-internal-media-settings");
+	$settings = BigTreeJSONDB::get("config", "media-settings");
 	$preset = $settings["presets"]["default"];
 
 	// YouTube

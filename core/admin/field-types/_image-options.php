@@ -3,7 +3,7 @@
 	$settings = is_array($settings) ? $settings : array();
 
 	$using_preset = false;
-	$media_settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
+	$media_settings = BigTreeJSONDB::get("config", "media-settings");
 	$presets = $media_settings["presets"];
 	
 	// See if we're using a preset and ensure it still exists

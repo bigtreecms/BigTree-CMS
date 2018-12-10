@@ -5471,7 +5471,7 @@
 		public static function getResourceByFile($file) {
 			if (static::$IRLPrefixes === false) {
 				static::$IRLPrefixes = array();
-				$settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
+				$settings = BigTreeJSONDB::get("config", "media-settings");
 
 				if (is_array($settings["presets"]["default"]["crops"])) {
 					foreach ($settings["presets"]["default"]["crops"] as $crop) {
@@ -7518,7 +7518,7 @@
 
 			// See if we're using image presets
 			if ($field["settings"]["preset"]) {
-				$media_settings = BigTreeCMS::getSetting("bigtree-internal-media-settings");
+				$media_settings = BigTreeJSONDB::get("config", "media-settings");
 				$preset = $media_settings["presets"][$field["settings"]["preset"]];
 				
 				// If the preset still exists, copy its properties over to our options

@@ -1,5 +1,5 @@
 <?php
-	// BigTree 4.4
+	// BigTree 4.4 -- prerelease
 	
 	// We're going to convert all the database configuration to JSON
 	$used_ids = [];

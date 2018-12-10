@@ -1,5 +1,5 @@
 <?php
-	$settings = $cms->getSetting("bigtree-internal-media-settings");
+	$settings = BigTreeJSONDB::get("config", "media-settings");
 ?>
 <div class="table" id="image_presets_table">
 	<summary>

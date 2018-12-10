@@ -6,7 +6,7 @@
 	// If we're using a preset, the prefix may be there
 	if (!empty($settings["preset"])) {
 		if (!isset($bigtree["media_settings"])) {
-			$bigtree["media_settings"] = $cms->getSetting("bigtree-internal-media-settings");
+			$bigtree["media_settings"] = BigTreeJSONDB::get("config", "media-settings");
 		}
 		
 		$preset = $bigtree["media_settings"]["presets"][$settings["preset"]];

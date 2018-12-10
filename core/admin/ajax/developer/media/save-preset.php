@@ -2,7 +2,7 @@
 	$admin->verifyCSRFToken();
 	
 	// Get existing presets
-	$settings = $cms->getSetting("bigtree-internal-media-settings");
+	$settings = BigTreeJSONDB::get("config", "media-settings");
 
 	// New preset? Create a unique ID
 	if (!$_POST["id"]) {
@@ -80,7 +80,7 @@
 	array_multisort($names, $settings["presets"]);
 
 	// Update Settings
-	$admin->updateInternalSettingValue("bigtree-internal-media-settings", $settings);
+	BigTreeJSONDB::update("config", "media-settings", $settings);
 
 	// Return ID for adding presets
 	echo $id;

@@ -1,4 +1,6 @@
 <?php
+	// BigTree 4.4 -- prerelease
+
 	$resource_converter = function($resources) {
 		global $resource_converter;
 
@@ -82,5 +84,10 @@
 			}
 		}
 	}
+
+	echo BigTree::json([
+		"complete" => true,
+		"response" => "Upgrading to BigTree 4.4 revision 3"
+	]);
 	
 	$admin->updateInternalSettingValue("bigtree-internal-revision", 402);

@@ -24,7 +24,7 @@
 
 	$bigtree["breadcrumb"][] = ["link" => "#", "title" => "Edit File"];
 
-	$metadata = $cms->getSetting("bigtree-file-metadata-fields");
+	$metadata = BigTreeJSONDB::get("config", "file-metadata");
 
 	if ($file["is_image"]) {
 		$meta_fields = $metadata["image"];
@@ -82,7 +82,7 @@
 				$field_settings = [];
 
 				if ($file["is_image"]) {		
-					$settings = $cms->getSetting("bigtree-internal-media-settings");
+					$settings = BigTreeJSONDB::get("config", "media-settings");
 					$field_settings = $settings["presets"]["default"];
 					$field_settings["directory"] = "files/resources/";
 					$field_settings["image"] = "on";

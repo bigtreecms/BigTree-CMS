@@ -1,7 +1,7 @@
 <?php
 	$cached_types = $admin->getCachedFieldTypes(true);
 	$field_types = $cached_types["settings"];
-	$metadata = $cms->getSetting("bigtree-file-metadata-fields");
+	$metadata = BigTreeJSONDB::get("config", "file-metadata");
 	$count = 0;
 
 	$draw_field = function($key, $field) {

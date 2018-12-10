@@ -1,4 +1,6 @@
 <?php
+	// BigTree 4.4 -- prerelease
+
 	// Backup the tables we're destroying
 	SQL::backup(SERVER_ROOT."cache/backup-4.3.sql", [
 		"bigtree_callout_groups",
@@ -42,7 +44,7 @@
 
 	echo BigTree::json([
 		"complete" => true,
-		"response" => "Upgraded to BigTree 4.4"
+		"response" => "Upgrading to BigTree 4.4 revision 2"
 	]);
 
 	$admin->updateInternalSettingValue("bigtree-internal-revision", 401);
