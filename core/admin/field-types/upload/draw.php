@@ -1,6 +1,6 @@
 <div class="upload_field" id="<?=$field["id"]?>">
 	<div class="contain">
-		<input<?php if ($field["required"]) { ?> class="required"<?php } ?> type="file" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" />
+		<input<?php if ($field["required"]) { ?> class="required"<?php } ?> type="file" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>"<?php if (!empty($field["settings"]["valid_extensions"])) { ?> accept="<?=BigTree::safeEncode($field["settings"]["valid_extensions"])?>"<?php } ?> />
 		<?php
 			if ($field["value"]) {
 				$pathinfo = BigTree::pathInfo($field["value"]);
