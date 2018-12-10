@@ -88,7 +88,7 @@
 			foreach ($tables as $table) {
 				// Write the drop / create statements
 				fwrite($pointer, "DROP TABLE IF EXISTS `$table`;\n");
-				$definition = static::fetchSingle("SHOW CREATE TABLE `$table`");
+				$definition = static::fetch("SHOW CREATE TABLE `$table`");
 				
 				if (is_array($definition)) {
 					fwrite($pointer, str_replace(["\n  ", "\n"], "", end($definition)).";\n");
