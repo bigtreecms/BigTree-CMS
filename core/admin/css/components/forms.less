@@ -336,7 +336,7 @@
 		display: block;
 		font-size: 10px;
 		line-height: 14px;
-		padding: 3px 10px;
+		padding: 3px 10px !important;
 	}
 
 	// Media Gallery field
@@ -407,4 +407,15 @@
 		margin: 5px 0 0 -37px;
 		position: absolute;
 		width: 20px;
+	}
+
+	// Video Field
+
+	.video_field input[type=url] {
+		float: left;
+		width: 400px;
+
+		.callout_fields & {
+			width: 283px;
+		}
 	}

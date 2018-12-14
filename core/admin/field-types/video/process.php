@@ -98,7 +98,7 @@
 				$source_image = $source_image ? $source_image : $json[0]["thumbnail_small"];
 				
 				$field["output"] = [
-					"service" => "vimeo",
+					"service" => "Vimeo",
 					"id" => $video_id,
 					"height" => $json[0]["height"],
 					"width" => $json[0]["width"],
@@ -124,7 +124,7 @@
 			list($width, $height) = getimagesize($local_image_copy);
 			
 			// If this is a YouTube video we don't have video dimensions so we're going to guess them from the image size
-			if ($field["output"]["service"] == "youtube") {
+			if ($field["output"]["service"] == "YouTube") {
 				$field["output"]["height"] = $height;
 				$field["output"]["width"] = $width;
 				$field["output"]["embed"] = '<iframe width="'.$width.'" height="'.$height.'" src="https://www.youtube.com/embed/'.$video_id.'" frameborder="0" allowfullscreen></iframe>';
@@ -140,21 +140,39 @@
 			$field_copy["file_input"] = ["name" => $field["output"]["service"]."-video-".$video_id.".jpg", "tmp_name" => $local_image_copy, "error" => false];
 			$field["output"]["image"] = BigTreeAdmin::processImageUpload($field_copy);
 		}
-		
-		// Either this field has never been used or was explicitly deleted
+	// An existing managed resource needs to be replicated
+	} elseif (!empty($field["input"]["managed"])) {
+		$resource = BigTreeAdmin::getResource($field["input"]["managed"]);
+
+		if ($resource["type"] != "video") {
+			$bigtree["errors"][] = ["field" => $field["title"], "error" => "The chosen resource was not a video."];
+			$field["output"] = null;
+		} else {
+			$source_image = $resource["video_data"]["image"];
+			$local_image_copy = SITE_ROOT."files/".uniqid("temp-").".jpg";
+			BigTree::cURL($source_image, false, [], false, $local_image_copy);
+			list($width, $height) = getimagesize($local_image_copy);
+
+			if ($width < $min_width || $height < $min_height) {
+				BigTree::createUpscaledImage($local_image_copy, $local_image_copy, $min_width, $min_height);
+			}
+
+			$field_copy = $field;
+			$field_copy["file_input"] = ["name" => strtolower($resource["location"])."-video-".$resource["video_data"]["id"].".jpg", "tmp_name" => $local_image_copy, "error" => false];
+			$field["output"] = $resource["video_data"];
+			$field["output"]["image"] = BigTreeAdmin::processImageUpload($field_copy);
+		}
+	// Either this field has never been used or was explicitly deleted
 	} elseif (empty($field["input"])) {
 		$field["output"] = [];
-		
-		// Using existing value
+	// Using existing value
 	} else {
 		// Directly in the form, unchanged
 		if ($field["input"]["existing"]) {
-			$field["output"] = json_decode($field["input"]["existing"], true);
-			
+			$field["output"] = json_decode($field["input"]["existing"], true);			
 		// For when use in a callout or matrix and unchanged
 		} elseif ($field["input"]["service"] && $field["input"]["id"]) {
 			$field["output"] = $field["input"];
-			
 		// Wiped
 		} else {
 			$field["output"] = null;

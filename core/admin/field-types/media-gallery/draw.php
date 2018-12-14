@@ -1,7 +1,4 @@
 <?php
-	$bigtree["css"][] = "*/com.fastspot.media-gallery-field-type/css/media-gallery.css";
-	$bigtree["js"][] = "*/com.fastspot.media-gallery-field-type/js/media-gallery.js";
-
 	$items = is_array($field["value"]) ? $field["value"] : array();
 	$max = !empty($field["settings"]["max"]) ? $field["settings"]["max"] : 0;
 	$current = 0;
