@@ -11,7 +11,7 @@
 ?>
 <div class="container">
 	<?php
-		if (!empty($bigtree["current_page"]["id"]) && $bigtree["form_action"] != "create") {
+		if ($bigtree["form_action"] != "create") {
 	?>
 	<div class="developer_buttons">
 		<?php
