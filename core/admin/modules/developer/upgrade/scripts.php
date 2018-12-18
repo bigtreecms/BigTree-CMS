@@ -76,6 +76,8 @@
 					run_script(queue[index], page + 1, total_pages);
 				}
 			}
+		}).fail(function(xhr, status) {
+			$(".upgrade_message").html('<div class="error_message">An error occurred (most likely a timeout). Try refreshing this page to proceed with the upgrade.</div>');	
 		});
 	}
 
