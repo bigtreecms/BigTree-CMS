@@ -48,6 +48,19 @@
 		}
 	}
 
+	// For Amazon S3 we're going to redirect to do a paginated cache bust
+	if ($_POST["service"] == "amazon") {
+		$check = $cloud->getS3BucketPage($storage->Settings->Container);
+
+		if ($check === false) {
+			$admin->growl("Developer","Failed to read bucket.", "error");
+			BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
+		} else {
+			$admin->growl("Developer","Changed Default Storage");
+			BigTree::redirect(DEVELOPER_ROOT."cloud-storage/amazon/recache/");
+		}
+	}
+
 	// Get a list of files
 	$container = $cloud->getContainer($storage->Settings->Container,true);
 
