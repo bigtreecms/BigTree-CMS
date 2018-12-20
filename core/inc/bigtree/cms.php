@@ -1372,7 +1372,7 @@
 
 			$settings = [];
 
-			foreach ($settings as $setting_id) {
+			foreach ($ids as $setting_id) {
 				$value = static::getSetting($setting_id);
 
 				if ($value !== false) {
