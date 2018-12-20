@@ -6,7 +6,7 @@
 <div class="container">
 	<summary>
 		<span class="button_loader"></span>
-		<h2>Caching existing Amazon S3 file database.</h2>
+		<h2>Caching existing Amazon S3 file database</h2>
 	</summary>
 	<section>
 		<p class="cache_message">Please wait while BigTree caches existing filenames to prevent inadvertantly overwriting existing files.</p>
