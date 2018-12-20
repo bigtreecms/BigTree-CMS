@@ -1062,8 +1062,12 @@
 		public static function getOpenGraph($table, $id) {
 			global $bigtree;
 
-			$og = SQL::fetch("SELECT * FROM bigtree_open_graph WHERE `table` = ? AND `entry` = ?", $table, $id);
-			
+			try {
+				$og = SQL::fetch("SELECT * FROM bigtree_open_graph WHERE `table` = ? AND `entry` = ?", $table, $id);
+			} catch (Exception $e) {
+				$og = null;
+			}
+
 			if (!$og) {
 				return [
 					"title" => "",

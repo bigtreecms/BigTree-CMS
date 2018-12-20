@@ -38,7 +38,7 @@
 				return call_user_func_array([$this, "_local_rows"], $arguments);
 			}
 			
-			trigger_error("Invalid method called on BigTree\\SQL: $method", E_USER_WARNING);
+			trigger_error("Invalid method called on BigTree\\SQL: $method", E_USER_ERROR);
 			
 			return null;
 		}
@@ -56,7 +56,7 @@
 				return call_user_func_array("static::_static_rows", $arguments);
 			}
 			
-			trigger_error("Invalid static method called on BigTree\\SQL: $method", E_USER_WARNING);
+			trigger_error("Invalid static method called on BigTree\\SQL: $method", E_USER_ERROR);
 			
 			return null;
 		}
@@ -910,7 +910,7 @@
 					$last_query = htmlspecialchars($last_query);
 				}
 				
-				trigger_error("SQL::fetch called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query", E_USER_ERROR);
+				throw new Exception("SQL::fetch called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query");
 				
 				return null;
 			} else {
@@ -956,7 +956,7 @@
 					$last_query = htmlspecialchars($last_query);
 				}
 				
-				trigger_error("SQL::fetchAll called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query", E_USER_ERROR);
+				throw new Exception("SQL::fetchAll called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query");
 				
 				return null;
 			} else {
@@ -1010,7 +1010,7 @@
 					$last_query = htmlspecialchars($last_query);
 				}
 				
-				trigger_error("SQL::fetchAllSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query", E_USER_ERROR);
+				throw new Exception("SQL::fetchAllSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query");
 				
 				return null;
 			} else {
@@ -1064,7 +1064,7 @@
 					$last_query = htmlspecialchars($last_query);
 				}
 				
-				trigger_error("SQL::fetchSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query", E_USER_ERROR);
+				throw new Exception("SQL::fetchSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query");
 				
 				return null;
 			} else {
@@ -1094,7 +1094,7 @@
 		
 		public static function insert($table, $values) {
 			if (!count($values)) {
-				trigger_error("SQL::inserts expects a non-empty array as its second parameter");
+				trigger_error("SQL::inserts expects a non-empty array as its second parameter", E_USER_ERROR);
 				
 				return null;
 			}
@@ -1528,7 +1528,7 @@
 		
 		public static function update($table, $id, $values) {
 			if (!is_array($values) || !count($values)) {
-				trigger_error("SQL::update expects a non-empty array as its third parameter");
+				trigger_error("SQL::update expects a non-empty array as its third parameter", E_USER_ERROR);
 				
 				return false;
 			}
