@@ -48,6 +48,7 @@
 			// Throw a growl error
 			if ($error) {
 				$file_name = htmlspecialchars($file_name);
+				
 				if ($error == 2 || $error == 1) {
 					$errors[] = $file_name." was too large ".BigTree::formatBytes(BigTree::uploadMaxFileSize())." max)";
 				} else {
@@ -79,9 +80,9 @@
 						// If we failed, either cloud storage upload failed, directory permissions are bad, or the file type isn't permitted
 						if (!$file) {
 							if ($storage->DisabledFileError) {
-								$errors[] = "$file_name has a disallowed extension: $extension.";
+								$errors[] = htmlspecialchars($file_name)." has a disallowed extension: $extension.";
 							} else {
-								$errors[] = "Uploading $file_name failed (unknown error).";
+								$errors[] = "Uploading ".htmlspecialchars($file_name)." failed (unknown error).";
 							}
 						// Otherwise make the database entry for the file we uplaoded.
 						} else {
@@ -138,7 +139,7 @@
 							}
 						} else {
 							$last_error = array_pop($bigtree["errors"]);
-							$errors[] = $last_error["error"];
+							$errors[] = BigTree::safeEncode($last_error["error"]);
 						}
 					}
 				}
