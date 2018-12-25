@@ -7,7 +7,7 @@
 
 	// Throw an exception if they didn't setup the field type properly
 	if (!$field["options"]["table"] || !$field["options"]["title_column"]) {
-		throw Exception("One-to-Many field type requires a table and a title field to be setup to function.");
+		throw new Exception("One-to-Many field type requires a table and a title field to be setup to function.");
 	}
 
 	$entries = array();
