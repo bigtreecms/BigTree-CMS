@@ -84,7 +84,7 @@
 				);
 			}
 
-			session_set_cookie_params(0, str_replace(DOMAIN, "", WWW_ROOT), "", false, true);
+			session_set_cookie_params(0, str_replace(DOMAIN, "", WWW_ROOT), "", !empty($bigtree["config"]["ssl_only_session_cookie"]), true);
 			session_start(array("gc_maxlifetime" => static::$Timeout));
 		}
 
