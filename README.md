@@ -20,6 +20,23 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.3.3
+- ADDED: BigTreeCMS::getResource method for use with reference fields
+- ADDED: A confirmation dialog now appears when permanently deleting archived pages.
+- ADDED: Paginated caching when switching your cloud storage to an existing Amazon S3 bucket to prevent timeouts.
+- ADDED: $bigtree["config"]["ssl_only_session_cookie"] option to force delivery of session cookies over SSL.
+- CHANGED: Module Designer is no longer a nav element but rather an option after clicking Add Module in Developer
+- CHANGED: Resources are now "rectified" when switching templates in pages or types of callouts so that bad data doesn't persist.
+- FIXED: An error in the 4.3.2 upgrade script
+- FIXED: Warnings when switching from an empty callout to a non-empty callout
+- FIXED: Extensions not importing form relationships correctly
+- FIXED: SQL::backup not backing up table definitions
+- FIXED: The "View Analytics" button should no longer appear in the dashboard for non-admins
+- FIXED: Quick action buttons not showing when editing the homepage
+- FIXED: The site front end is now fault tolerant of a missing bigtree_open_graph table so that upgrading on a live site does not cause downtime
+- FIXED: Amazon S3 now uses local CA certificates for better tolerance of bad cURL environments
+- FIXED: CA Bundle updating causing an infinite loop
+
 ### 4.3.2
 - FIXED: Better checking of the writability of the vendor directory in bootstrapping (to properly throw errors on updated installs)
 - FIXED: Warnings when file manager presets are missing crops / center crops / thumbnails
