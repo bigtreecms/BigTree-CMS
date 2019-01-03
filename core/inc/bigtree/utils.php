@@ -257,21 +257,23 @@
 				The string response from the URL.
 		*/
 		
-		public static function cURL($url, $post = false, $options = [], $strict_security = true, $output_file = false) {
+		public static function cURL($url, $post = false, $options = [], $strict_security = true, $output_file = false, $updating_bundle = false) {
 			global $bigtree;
 
 			$cert_bundle = SERVER_ROOT."cache/bigtree-ca-cert.pem";
 
 			// Use the core bundle which may be out of date to grab the latest bundle
-			if (!file_exists($cert_bundle)) {
+			if (!file_exists($cert_bundle) || empty(file_get_contents($cert_bundle))) {
 				BigTree::copyFile(SERVER_ROOT."core/cacert.pem", $cert_bundle);
 			}
 
 			// Check CA cert bundle has been updated in the past month
-			if (filemtime($cert_bundle) < time() - 31 * 24 * 60 * 60) {
-				BigTree::cURL("https://curl.haxx.se/ca/cacert.pem", false, [], true, $cert_bundle);
+			if (!$updating_bundle && filemtime($cert_bundle) < time()) {
+				BigTree::cURL("https://curl.haxx.se/ca/cacert.pem", false, [], true, SERVER_ROOT."cache/bigtree-ca-cert-new.pem", true);
+				@unlink($cert_bundle);
+				@rename(SERVER_ROOT."cache/bigtree-ca-cert-new.pem", $cert_bundle);
 			}
-			
+
 			// Startup cURL and set the URL
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_URL, $url);
@@ -281,6 +283,7 @@
 				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
 				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
 			    curl_setopt($ch, CURLOPT_CAINFO, $cert_bundle);
+			    curl_setopt($ch, CURLOPT_CAPATH, $cert_bundle);
 			} else {
 				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
@@ -325,6 +328,11 @@
 			
 			$output = curl_exec($ch);
 			$bigtree["last_curl_response_code"] = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+			if (empty($bigtree["last_curl_response_code"])) {
+				$bigtree["last_curl_error"] = curl_error($ch);
+			}
+
 			curl_close($ch);
 			
 			// If we're outputting to a file, close the handle and return nothing
