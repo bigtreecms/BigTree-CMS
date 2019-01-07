@@ -707,7 +707,7 @@
 				}
 			} else {
 				if (!is_null($site_key)) {
-					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from' AND get_vars = '' `site_key` = '".sqlescape($site_key)."'"));
+					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from' AND get_vars = '' AND `site_key` = '".sqlescape($site_key)."'"));
 				} else {
 					$existing = sqlfetch(sqlquery("SELECT * FROM bigtree_404s WHERE `broken_url` = '$from' AND get_vars = ''"));
 				}
