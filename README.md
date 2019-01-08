@@ -20,6 +20,45 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.4
+- OVERHAUL: Environment independent configuration such as Modules, Templates, Callouts, Settings (structure, not value), etc is now stored in JSON files within /custom/ rather than the database for version control and deployment ease.
+- ADDED: User levels are now shown in the Users list view
+- ADDED: An indicator has been added to the Pages list view showing whether a page has child pages
+- ADDED: More hooks for Extensions:
+	- Add content to the top and bottom of: Dashboard, Modules (landing), Developer (landing)
+	- Add buttons to each of the sections of the Developer landing
+	- Modify the BigTree admin navigation tree to add navigation entries
+	- Add fields to callouts, templates, and module forms (draw and process)
+- ADDED: CSV Import for 301 redirects
+- ADDED: Link field type (based on the Link Finder extension)
+- ADDED: Video field type (based on the Video extension)
+- ADDED: Media Gallery field type (based on the Media Gallery extension)
+- ADDED: File Upload field type can now restrict the types of files being uploaded based on extension
+- CHANGED: The Upload field type has now been separated into "Image Upload" and "File Upload"
+- CHANGED: $bigtree["bar_edit_link"] on your front end templates will now redirect the user back to the front-end after editing
+- CHANGED: The Vitals & Statistics landing no longer exists -- you can access the sub-sections directly via a dropdown from Dashboard now.
+- REMOVED: Packages are no longer supported. With the move to file based configuration, moving database configuration is no longer needed and was the only remaining use case for Packages over Extensions.
+- REMOVED: You can no longer upgrade from BigTree < 4.1 directly to 4.4, you will need to first upgrade to 4.1 at minimum before moving to 4.0.
+- REMOVED: Meta Keywords (which are no longer used by any significant search engine)
+- REMOVED: Photo Gallery field type (this has been replaced with the more robust Media Gallery and existing fields have been converted)
+
+### 4.3.3
+- ADDED: BigTreeCMS::getResource method for use with reference fields
+- ADDED: A confirmation dialog now appears when permanently deleting archived pages.
+- ADDED: Paginated caching when switching your cloud storage to an existing Amazon S3 bucket to prevent timeouts.
+- ADDED: $bigtree["config"]["ssl_only_session_cookie"] option to force delivery of session cookies over SSL.
+- CHANGED: Module Designer is no longer a nav element but rather an option after clicking Add Module in Developer
+- CHANGED: Resources are now "rectified" when switching templates in pages or types of callouts so that bad data doesn't persist.
+- FIXED: An error in the 4.3.2 upgrade script
+- FIXED: Warnings when switching from an empty callout to a non-empty callout
+- FIXED: Extensions not importing form relationships correctly
+- FIXED: SQL::backup not backing up table definitions
+- FIXED: The "View Analytics" button should no longer appear in the dashboard for non-admins
+- FIXED: Quick action buttons not showing when editing the homepage
+- FIXED: The site front end is now fault tolerant of a missing bigtree_open_graph table so that upgrading on a live site does not cause downtime
+- FIXED: Amazon S3 now uses local CA certificates for better tolerance of bad cURL environments
+- FIXED: CA Bundle updating causing an infinite loop
+
 ### 4.3.2
 - FIXED: Better checking of the writability of the vendor directory in bootstrapping (to properly throw errors on updated installs)
 - FIXED: Warnings when file manager presets are missing crops / center crops / thumbnails
