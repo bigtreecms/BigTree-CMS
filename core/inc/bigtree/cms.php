@@ -407,7 +407,15 @@
 				}
 			}
 
-			echo "<title>".$title.(($site_title && $bigtree["page"]["id"]) ? " $divider ".BigTree::safeEncode($site_title) : "")."</title>\n";
+			if (empty($title) && defined("BIGTREE_URL_IS_404")) {
+				$title = "404";
+			}
+
+			if ($site_title && (defined("BIGTREE_URL_IS_404") || !empty($bigtree["page"]["id"]))) {
+				$title .= BigTree::safeEncode(" $divider $site_title");
+			}
+
+			echo "<title>$title</title>\n";
 			echo '		<meta name="description" content="'.$description.'" />'."\n";
 			echo '		<meta property="og:title" content="'.$og_title.'" />'."\n";
 			echo '		<meta property="og:description" content="'.$og_description.'" />'."\n";
