@@ -370,17 +370,17 @@
 			} else {
 				$og = static::getOpenGraph($context["table"], $context["entry"]) ?: $bigtree["page"]["open_graph"];
 
-				if (!empty($context["title"])) {
-					$title = $context["title"];
-				} elseif (!empty($og["title"])) {
+				if (!empty($og["title"])) {
 					$title = $og["title"];
+				} elseif (!empty($context["title"])) {
+					$title = $context["title"];
 				} else {
 					$title = $bigtree["page"]["title"];
 				}
 
 				$og_title = $title;
 
-				if (!empty($og["title"])) {
+				if (!empty($og["description"])) {
 					$description = $og["description"];
 				} elseif (!empty($context["description"])) {
 					$description = $context["description"];
