@@ -20,6 +20,11 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.3.4
+- FIXED: Multi-site 301 creation when an existing 404 was already in place
+- FIXED: Head tags context when on a 404 page
+- FIXED: Open graph priorities for module content so that Open Graph explicit data title > context title.
+
 ### 4.3.3
 - ADDED: BigTreeCMS::getResource method for use with reference fields
 - ADDED: A confirmation dialog now appears when permanently deleting archived pages.
