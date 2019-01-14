@@ -144,7 +144,12 @@
 								// Need to check custom nav states better
 								$link_pieces = explode("/",$item["link"]);
 								$path_pieces = array_slice($bigtree["path"],1,count($link_pieces));
-								$link = $item["link"] ? ADMIN_ROOT.$item["link"]."/" : ADMIN_ROOT;
+
+								if (strpos($item["link"], "https://") === 0 || strpos($item["link"], "http://") === 0) {
+									$link = $item["link"];
+								} else {
+									$link = $item["link"] ? ADMIN_ROOT.$item["link"]."/" : ADMIN_ROOT;
+								}
 					?>
 					<li>
 						<a href="<?=$link?>"<?php if ($link_pieces == $path_pieces || ($item["link"] == "modules" && isset($bigtree["module"]))) { $bigtree["active_nav_item"] = $x; ?> class="active"<?php } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
@@ -155,6 +160,12 @@
 									if (!empty($child["top_level_hidden"])) {
 										continue;
 									}
+
+									if (strpos($child["link"], "https://") === 0 || strpos($child["link"], "http://") === 0) {
+										$child_link = $child["link"];
+									} else {
+										$child_link = $child["link"] ? ADMIN_ROOT.rtrim($child["link"], "/")."/" : ADMIN_ROOT;
+									}
 									
 									if ($admin->Level >= $child["access"]) {
 										if (!empty($child["group"])) {
@@ -163,7 +174,7 @@
 							<?php
 										} else {
 							?>
-							<li><a href="<?=ADMIN_ROOT?><?php if ($child["link"]) { echo $child["link"]."/"; } ?>"><?=$child["title"]?></a></li>
+							<li><a href="<?=$child_link?>"><?=$child["title"]?></a></li>
 							<?php
 										}
 									}

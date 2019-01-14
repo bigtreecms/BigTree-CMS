@@ -72,7 +72,7 @@
 ?>
 <div class="table">
 	<summary><h2>Create</h2></summary>
-	<section>
+	<section class="box_select_buttons">
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>templates/">
 			<span class="templates"></span>
 			<p>Templates</p>
@@ -102,7 +102,7 @@
 			<span class="settings"></span>
 			<p>Settings</p>
 		</a>
-		<a class="box_select last" href="<?=DEVELOPER_ROOT?>extensions/">
+		<a class="box_select" href="<?=DEVELOPER_ROOT?>extensions/">
 			<span class="package"></span>
 			<p>Extensions</p>
 		</a>
@@ -114,7 +114,7 @@
 
 <div class="table">
 	<summary><h2>Configure</h2></summary>
-	<section>
+	<section class="box_select_buttons">
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>cloud-storage/">
 			<span class="cloud"></span>
 			<p>Cloud Storage</p>
@@ -139,15 +139,15 @@
 			<span class="api"></span>
 			<p>Service APIs</p>
 		</a>
-		<a class="box_select last" href="<?=DEVELOPER_ROOT?>media/">
+		<a class="box_select" href="<?=DEVELOPER_ROOT?>media/">
 			<span class="images"></span>
 			<p>Media Presets</p>
 		</a>
-		<a class="box_select second_row" href="<?=DEVELOPER_ROOT?>files/">
+		<a class="box_select" href="<?=DEVELOPER_ROOT?>files/">
 			<span class="files"></span>
 			<p>File Metadata</p>
 		</a>
-		<a class="box_select second_row" href="<?=DEVELOPER_ROOT?>security/">
+		<a class="box_select" href="<?=DEVELOPER_ROOT?>security/">
 			<span class="lock"></span>
 			<p>Security</p>
 		</a>
@@ -159,7 +159,7 @@
 
 <div class="table">
 	<summary><h2>Debug</h2></summary>
-	<section>
+	<section class="box_select_buttons">
 		<a class="box_select" href="<?=DEVELOPER_ROOT?>status/">
 			<span class="vitals"></span>
 			<p>Site Status</p>
@@ -168,7 +168,7 @@
 			<span class="trail"></span>
 			<p>Audit Trail</p>
 		</a>
-		<a class="box_select last" href="<?=DEVELOPER_ROOT?>user-emulator/">
+		<a class="box_select" href="<?=DEVELOPER_ROOT?>user-emulator/">
 			<span class="users"></span>
 			<p>User Emulator</p>
 		</a>

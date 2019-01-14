@@ -831,10 +831,8 @@
 	.box_select { background: #fff; border: 1px solid #ccc; border-radius: 3px; color: #333; float: left; height: 75px; margin: 0 15px 15px 0; padding: 25px 10px 10px 10px; text-align: center; transition: background-color 0.2s, border-color 0.2s; user-select: none; width: 89px; }
 	.box_select:hover { background: #EFF7FD; color: #222; }
 	.box_select.active { background: #EFF7FD; }
-	.box_select.last_row { margin-bottom: 0; }
 	.box_select img { margin: 0 0 10px 0; }
 	.box_select p { font-size: 11px; line-height: 15px; }
-	.box_select.last { margin-right: 0; }
 	.box_select span { background: url(../images/icon-sprite.svg) no-repeat; display: inline-block; height: 32px; margin: 0 0 10px 0; width: 32px; }
 	.box_select.connected { position: relative; }
 	.box_select.connected p:after { background: url(../images/icon-sprite.svg) no-repeat -544px -156px; content: ""; display: block; height: 16px; position: absolute; right: 5px; top: 5px; width: 16px; }
@@ -1063,9 +1061,10 @@
 /* Developer Stuff */
 	.developer .box_select span { margin: 0 0 10px 0; }
 
-	.developer .table .box_select { margin: 0 20px 0 0; }
-	.developer .table .box_select.last { margin: 0; }
-	.developer .table .box_select.second_row { margin-top: 20px; }
+	.developer .table .box_select_buttons { padding-top: 10px; }
+	.developer .table .box_select { margin: 20px 20px 0 0; }
+	.developer .table .box_select:nth-child(7n) { margin-right: 0; }
+
 	.developer .table > section { padding: 30px; }
 
 	.developer form fieldset.view_type .select .current_select_container { width: 193px !important; }
