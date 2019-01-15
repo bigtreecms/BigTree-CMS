@@ -31,7 +31,7 @@
 		</div>
 		<?php
 			foreach ($sub_nav as $item) {
-				$has_children = count($item["children"]);
+				$has_children = is_array($item["children"]) && count($item["children"]);
 				$is_active = (strpos($current_url, $item["link"]) !== false);
 		?>
 		<div class="sub_nav_item<?php if ($is_active) { ?> sub_nav_item_active<?php } ?><?php if ($is_active && $has_children) { ?> sub_nav_has_children<?php } ?>">
