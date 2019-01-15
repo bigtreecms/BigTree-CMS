@@ -74,5 +74,6 @@ INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-revision
 INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-security-policy','{"password":{"invitations": "on"}}');
 INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-deleted-users','{}','on');
 INSERT INTO `bigtree_settings` (`id`, `value`) VALUES ('bigtree-file-metadata-fields', '{}', 'on');
+INSERT INTO `bigtree_settings` (`id`, `value`) VALUES ('bigtree-internal-per-page', '15');
 
 SET SESSION foreign_key_checks = 1;

@@ -234,7 +234,7 @@
 		
 		// Make sure we're not running in a special mode that forces values for textareas that aren't allowing null.
 		sqlquery("SET SESSION sql_mode = ''");
-		$sql_queries = explode("\n",file_get_contents("core/setup/bigtree.sql"));
+		$sql_queries = explode("\n",file_get_contents("core/setup/base.sql"));
 		
 		foreach ($sql_queries as $query) {
 			$query = trim($query);
@@ -369,7 +369,8 @@
 			bt_touch_writable("custom/settings.php",str_replace($find,$replace,file_get_contents("core/example-site/custom/settings.php")));
 		} else {
 			bt_touch_writable("custom/settings.php",str_replace($find,$replace,file_get_contents("core/setup/settings.php")));
-			bt_copy_dir("core/setup/json-db/","custom/");
+			bt_mkdir_writable("custom/json-db/");
+			bt_copy_dir("core/setup/json-db/","custom/json-db/");
 		}
 
 		// Now copy over the default templates
