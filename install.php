@@ -234,9 +234,11 @@
 		
 		// Make sure we're not running in a special mode that forces values for textareas that aren't allowing null.
 		sqlquery("SET SESSION sql_mode = ''");
-		$sql_queries = explode("\n",file_get_contents("bigtree.sql"));
+		$sql_queries = explode("\n",file_get_contents("core/setup/base.sql"));
+		
 		foreach ($sql_queries as $query) {
 			$query = trim($query);
+		
 			if ($query != "") {
 				$q = sqlquery($query);
 			}
@@ -245,6 +247,7 @@
 		// Allow for a theme SQL
 		if (file_exists("bigtree-theme.sql")) {
 			$sql_queries = explode("\n",file_get_contents("bigtree-theme.sql"));
+		
 			foreach ($sql_queries as $query) {
 				$query = trim($query);
 				
@@ -254,8 +257,6 @@
 			}
 		}
 		
-		include "core/inc/lib/PasswordHash.php";
-		$phpass = new PasswordHash(8, TRUE);
 		$enc_pass = sqlescape(password_hash(trim($cms_pass), PASSWORD_DEFAULT));
 		sqlquery("INSERT INTO bigtree_users (`email`,`password`,`new_hash`,`name`,`level`) VALUES ('$cms_user','$enc_pass','on','Developer','2')");
 		
@@ -352,13 +353,13 @@
 		bt_mkdir_writable("templates/basic/");
 		bt_mkdir_writable("templates/callouts/");
 
-		bt_touch_writable("custom/environment.php",str_replace($find,$replace,file_get_contents("core/config.environment.php")));
+		bt_touch_writable("custom/environment.php",str_replace($find,$replace,file_get_contents("core/setup/environment.php")));
 		bt_touch_writable("cache/composer-check.flag", "true");
 		
 		// Install the example site if they asked for it.
 		if ($install_example_site) {
 			bt_copy_dir("core/example-site/","");
-			$sql_queries = explode("\n",file_get_contents("example-site.sql"));
+			$sql_queries = explode("\n",file_get_contents("core/setup/example-site.sql"));
 			foreach ($sql_queries as $query) {
 				$query = trim($query);
 				if ($query != "") {
@@ -367,7 +368,9 @@
 			}
 			bt_touch_writable("custom/settings.php",str_replace($find,$replace,file_get_contents("core/example-site/custom/settings.php")));
 		} else {
-			bt_touch_writable("custom/settings.php",str_replace($find,$replace,file_get_contents("core/config.settings.php")));
+			bt_touch_writable("custom/settings.php",str_replace($find,$replace,file_get_contents("core/setup/settings.php")));
+			bt_mkdir_writable("custom/json-db/");
+			bt_copy_dir("core/setup/json-db/","custom/json-db/");
 		}
 
 		// Now copy over the default templates
@@ -505,9 +508,7 @@ RewriteRule (.*) site/$1 [L]');
 
 	if ($installed) {
 		@unlink("install.php");
-		@unlink("bigtree.sql");
 		@unlink("bigtree-theme.sql");
-		@unlink("example-site.sql");
 		@unlink("README.md");
 	}
 	
@@ -574,7 +575,7 @@ RewriteRule (.*) site/$1 [L]');
 						RewriteCond %{REQUEST_FILENAME} !-f<br />
 						RewriteRule ^(.*)$ index.php?bigtree_htaccess_url=$1 [QSA,L]
 					</code>
-					<p class="delete_message">To remove the /site/ path from your BigTree install you will need to setup a separate IIS Site for your BigTree install and set its document root to the /site/ folder (as well as moving the rewrite rules to apply the the main Site instead of the /site/ directory). After doing so, edit your /templates/config.php file to adjust your domain, www_root, static_root, and admin_root variables.</p>
+					<p class="delete_message">To remove the /site/ path from your BigTree install you will need to setup a separate IIS Site for your BigTree install and set its document root to the /site/ folder (as well as moving the rewrite rules to apply the the main Site instead of the /site/ directory). After doing so, edit your /custom/environment.php file to adjust your domain, www_root, static_root, and admin_root variables.</p>
 					<?php } ?>
 				</fieldset>
 				

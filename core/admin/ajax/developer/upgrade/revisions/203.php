@@ -5,7 +5,7 @@
 	sqlquery("ALTER TABLE `bigtree_user_sessions` ADD COLUMN `csrf_token_field` VARCHAR(255) NULL");
 	sqlquery("DELETE FROM bigtree_user_sessions");
 
-	$admin->updateSettingValue("bigtree-internal-revision", 203);
+	$admin->updateInternalSettingValue("bigtree-internal-revision", 203);
 
 	echo BigTree::json([
 		"complete" => true,

@@ -19,6 +19,13 @@
 				$bigtree["file_data"] = $field["file_input"][$number];
 
 				$callout_info = $admin->getCallout($data["type"]);
+				$callout_info["resources"] =  $admin->runHooks("fields", "callout", $callout_info["resources"], [
+					"callout" => $callout_info,
+					"step" => "process",
+					"post_data" => $bigtree["post_data"],
+					"file_data" => $bigtree["file_data"]
+				]);
+
 				foreach ($callout_info["resources"] as $resource) {
 					$sub_field = array(
 						"type" => $resource["type"],

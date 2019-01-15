@@ -33,8 +33,11 @@
 		
 		// Figure out what to make the MySQL field.
 		$a = "ADD COLUMN `$field_name` ";
-		if ($t == "textarea" || $t == "html" || $t == "photo-gallery" || $t == "array" || $t == "matrix" || $t == "callouts") {
+
+		if ($t == "textarea" || $t == "html" || $t == "video") {
 			$a .= "TEXT";
+		} elseif ($t == "media-gallery" || $t == "matrix" || $t == "callouts") {
+			$a .= "LONGTEXT";
 		} elseif ($t == "date") {
 			$a .= "DATE";
 		} elseif ($t == "time") {
@@ -44,6 +47,7 @@
 		} else {
 			$a .= "VARCHAR(255)";
 		}
+
 		$adds[] = $a;
 	}
 	

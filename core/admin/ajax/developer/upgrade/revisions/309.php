@@ -5,7 +5,7 @@
 	SQL::query("ALTER TABLE `bigtree_pages` CHANGE COLUMN `publish_at` `publish_at` DATETIME NULL");
 	SQL::query("ALTER TABLE `bigtree_pages` CHANGE COLUMN `expire_at` `expire_at` DATETIME NULL");
 	
-	$admin->updateSettingValue("bigtree-internal-revision", 309);
+	$admin->updateInternalSettingValue("bigtree-internal-revision", 309);
 
 	echo BigTree::json([
 		"complete" => true,

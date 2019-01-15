@@ -10,7 +10,7 @@
 		die();
 	}
 	
-	$settings = $cms->getSetting("bigtree-internal-media-settings");
+	$settings = BigTreeJSONDB::get("config", "media-settings");
 	$preset = $settings["presets"]["default"];
 	$preset["directory"] = "files/resources/";
 

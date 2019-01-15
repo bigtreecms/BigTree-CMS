@@ -1,6 +1,10 @@
 <?php
 	$id = end($bigtree["path"]);	
 	$module = $admin->getModule($id);
+
+	if (!$module) {
+		$admin->stop("The module by the given ID no longer exists.");
+	}
 	
 	$actions = $admin->getModuleActions($id);
 	$views = array();
@@ -9,25 +13,8 @@
 	$reports = array();
 	$actions_in_nav = array();
 	$actions_not_in_nav = array();
+
 	foreach ($actions as $action) {
-		if ($action["view"]) {
-			$view = BigTreeAutoModule::getView($action["view"]);
-			if (!in_array($view,$views)) {
-				$views[] = $view;
-			}
-		}
-		if ($action["form"]) {
-			$form = BigTreeAutoModule::getForm($action["form"]);
-			if (!in_array($form,$forms)) {
-				$forms[] = $form;
-			}
-		}
-		if ($action["report"]) {
-			$report = BigTreeAutoModule::getReport($action["report"]);
-			if (!in_array($report,$reports)) {
-				$reports[] = $report;
-			}
-		}
 		if ($action["in_nav"]) {
 			$actions_in_nav[] = $action;
 		} else {
@@ -103,7 +90,7 @@
 		<span class="view_action" style="width: 120px;">Actions</span>
 	</header>
 	<ul id="module_views">
-		<?php foreach ($views as $view) { ?>
+		<?php foreach ($module["views"] as $view) { ?>
 		<li>
 			<section class="developer_view_name">View <?=$view["title"]?></section>
 			<section class="view_action">
@@ -130,7 +117,7 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="module_forms">
-		<?php foreach ($forms as $form) { ?>
+		<?php foreach ($module["forms"] as $form) { ?>
 		<li>
 			<section class="developer_templates_name">Add/Edit <?=$form["title"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/forms/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
@@ -150,7 +137,7 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="module_forms">
-		<?php foreach ($embeds as $form) { ?>
+		<?php foreach ($module["embeddable-forms"] as $form) { ?>
 		<li>
 			<section class="developer_templates_name"><?=$form["title"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/embeds/edit/<?=$form["id"]?>/" class="icon_edit"></a></section>
@@ -170,7 +157,7 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul id="module_forms">
-		<?php foreach ($reports as $report) { ?>
+		<?php foreach ($module["reports"] as $report) { ?>
 		<li>
 			<section class="developer_templates_name"><?=$report["title"]?></section>
 			<section class="view_action"><a href="<?=DEVELOPER_ROOT?>modules/reports/edit/<?=$report["id"]?>/" class="icon_edit"></a></section>

@@ -18,9 +18,8 @@
 
 			// Setting doesn't exist? Create it.
 			if ($s === false) {
-				sqlquery("INSERT INTO bigtree_settings (`id`,`system`,`encrypted`) VALUES ('bigtree-internal-email-service','on','on')");
-				$s = array("service" => "", "settings" => array());
-				BigTreeAdmin::updateSettingValue("bigtree-internal-email-service",$s);
+				$s = ["service" => "", "settings" => []];
+				BigTreeAdmin::updateInternalSettingValue("bigtree-internal-email-service", $s, true);
 			}
 
 			$this->Service = !empty($s["value"]["service"]) ? $s["value"]["service"] : "local";

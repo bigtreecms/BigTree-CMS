@@ -12,7 +12,7 @@
 	$w = "'%".sqlescape($search_term)."%'";
 	
 	// Get the "Pages" results.
-	$page_results = $admin->searchPages($search_term, array("title", "resources", "meta_keywords", "meta_description", "nav_title"), "50");
+	$page_results = $admin->searchPages($search_term, array("title", "resources", "meta_description", "nav_title"), "50");
 	$pages = array();
 	
 	foreach ($page_results as $page_result) {

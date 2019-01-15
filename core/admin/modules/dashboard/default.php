@@ -1,9 +1,12 @@
 <?php
 	// Check whether our database is running the latest revision of BigTree or not.
 	$current_revision = $cms->getSetting("bigtree-internal-revision");
+
 	if ($current_revision < BIGTREE_REVISION && $admin->Level > 1) {
 		BigTree::redirect(ADMIN_ROOT."developer/upgrade/scripts/");
 	}
+
+	$admin->runHooks("markup", "dashboard-top");
 	
 	// Get all the messages we've received.
 	$messages = $admin->getMessages();
@@ -15,6 +18,7 @@
 	$changes = $admin->getPublishableChanges();
 	// Figure out what module each of the changes is for.
 	$change_modules = array();
+
 	foreach ($changes as $c) {
 		// If we didn't get the info for this module already, get it.
 		if (!$c["module"]) {
@@ -37,11 +41,13 @@
 	$my_changes = $admin->getPendingChanges();
 	// Figure out what module each of the changes is for.
 	$my_change_modules = array();
+
 	foreach ($my_changes as $c) {
 		// If we didn't get the info for this module already, get it.
 		if (!$c["module"]) {
 			$c["module"] = 0;
 		}
+
 		if (!array_key_exists($c["module"],$my_change_modules)) {
 			// Pages
 			if ($c["module"] == 0) {
@@ -61,6 +67,7 @@
 	} else {
 		$ga_cache = false;
 	}
+
 	// Only show this thing if they have Google Analytics setup already
 	if ($ga_cache && count($ga_cache["two_week"])) {
 		$visits = $ga_cache["two_week"];
@@ -241,3 +248,7 @@
 		?>
 	</ul>
 </div>
+
+<?php
+	$admin->runHooks("markup", "dashboard-bottom");
+?>

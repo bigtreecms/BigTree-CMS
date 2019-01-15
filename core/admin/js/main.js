@@ -1986,35 +1986,54 @@ var BigTreeListMaker = function(settings) {
 
 		var html = '<h4>' + settings.title + ' <a href="#" class="add_option icon_small icon_small_add"></a></h4>';
 		html += '<fieldset class="list_options_widget list_options_widget_' + Keys.length + '">';
+		
 		// Add column headers
 		html += '<summary>';
+		
 		for (var i = 0; i < settings.columns.length; i++) {
 			html += '<span>' + settings.columns[i] + '</span>';
 		}
+		
 		html += '</summary>';
+
 		// Add options
 		html += '<ul>';
 		var count = 0;
+		var value;
+		
 		for (var i in settings.existing) {
 			html += '<li><span class="icon_sort"></span>';
+		
 			for (var x = 0; x < Keys.length; x++) {
+				if (typeof settings.existing[i][Keys[x].key] !== "undefined") {
+					value = settings.existing[i][Keys[x].key];
+				} else {
+					value = "";
+				}
+
 				if (Keys[x].type == "select") {
 					html += '<span><select class="custom_control" name="' + Name + '[' + count + '][' + Keys[x].key + ']">';
+		
 					for (var v in Keys[x].list) {
 						html += '<option value="' + htmlspecialchars(v) + '"';
-						if (v == settings.existing[i][Keys[x].key]) {
+
+						if (v == value) {
 							html += ' selected="selected"';
 						}
+
 						html += '>' + htmlspecialchars(Keys[x].list[v]) + '</option>';
 					}
+		
 					html += '</select></span>';
 				} else {
-					html += '<span><input type="text" name="' + Name + '[' + count + '][' + Keys[x].key + ']" value="' + htmlspecialchars(settings.existing[i][Keys[x].key]) + '" /></span>';
+					html += '<span><input type="text" name="' + Name + '[' + count + '][' + Keys[x].key + ']" value="' + htmlspecialchars(value) + '" /></span>';
 				}
 			}
+		
 			html += '<a class="delete icon_small icon_small_delete" href="#"></a></li>';
 			count++;
 		}
+
 		html += '</ul>';
 		Count = count;
 		Container.html(html);
@@ -2361,7 +2380,7 @@ var BigTreeFormValidator = function(selector,callback) {
 					if (!val) {
 						val = $(this).val();
 					}
-					// Reference field
+				// Reference field
 				} else if ($(this).hasClass("reference_required")) {
 					val = $(this).find("input").val();
 				// Regular input fields
@@ -2879,6 +2898,70 @@ var BigTreeCallouts = function(settings) {
 	})(jQuery,settings);
 };
 
+var BigTreeLinkField = function(selector) {
+	return (function($, selector) {
+		var Field = $(selector);
+		var Container = Field.parent();
+		var ValueField = Field.siblings("input[type=hidden]");
+		var Results = Field.siblings(".link_field_results_container");
+		var ResultWidth = Field.outerWidth(true) - 2;
+
+		Field.on("keyup", function() {
+			var query = Field.val().trim();
+
+			queryChange(query);
+		});
+
+		Field.on("paste", function(e) {
+			var clipboard_data = e.originalEvent.clipboardData || window.clipboardData;
+    		var pasted_data = clipboard_data.getData('Text');
+
+    		queryChange(pasted_data);
+		});
+
+		Field.on("blur", function() {
+			setTimeout(function() {
+				Results.hide();
+			}, 250);
+		});
+
+		Field.on("focus", function() {
+			if (Results.html()) {
+				Results.show();
+			}
+		});
+
+		Container.on("click", "a", function(ev) {
+			ev.preventDefault();
+			ev.stopPropagation();
+
+			ValueField.val($(this).attr("href"));
+			Field.val("").attr("placeholder", $(this).attr("data-placeholder"));
+			Results.hide().html("");
+		});
+
+		function queryChange(query) {
+			Results.css({ width: ResultWidth }).scrollTop(0);
+			ValueField.val(query);
+			Field.attr("placeholder", "");
+
+			if (!query.length) {
+				Results.hide().html("");
+			} else {
+				if (query.substr(0, 7) == "http://" || query.substr(0, 8) == "https://") {
+					Results.hide().html("");
+				} else {
+					Results.load("admin_root/ajax/link-field-search/", { query: query }, function() {
+						Results.show();
+					});
+				}
+			}
+		}
+
+		return { field: Field };
+	})(jQuery, selector);
+};
+
 var BigTreeMatrix = function(settings) {
 	return (function($,settings) {
 
@@ -3368,3 +3451,202 @@ var BigTree = {
 		return $("body").innerWidth();
 	}
 }
+
+var BigTreeMediaGallery = function(settings) {
+	return (function($,settings) {
+
+		var AddButtons;
+		var Columns;
+		var Container;
+		var Count;
+		var CurrentItem;
+		var Key;
+		var LastDialog;
+		var List;
+		var Max;
+		var Settings;
+		var Style;
+		var Subtitle;
+		var Title;
+		var Type;
+
+		function addItem(e) {
+			e.preventDefault();
+
+			Type = $(this).data("type");
+
+			// Prevent double clicks
+			if (BigTree.Busy) {
+				return;
+			}
+
+			$.ajax("admin_root/ajax/media-gallery-field/", {
+				type: "POST",
+				data: { columns: Columns, count: Count, key: Key, type: Type, settings: Settings },
+				complete: function(response) {
+					BigTreeDialog({
+						title: "Add Item",
+						content: response.responseText,
+						icon: "add",
+						preSubmissionCallback: true,
+						callback: function(e) {		
+							e.preventDefault();
+							
+							var item;
+							if (item = getItem()) {
+								// Add the item, remove the dialog, increase the count.
+								List.append(item);
+								removeDialog();						
+								Count++;
+								var count = List.find("article, li").length;
+								if (Max && count >= Max) {
+									AddButtons.hide();
+									Container.addClass("max_items_hit");
+								}
+							}
+						}
+					});
+				}
+			});
+		};
+
+		function deleteItem(e) {
+			e.preventDefault();
+
+			CurrentItem = $(this).parents("li");
+			
+			BigTreeDialog({
+				title: "Delete Item",
+				content: '<p class="confirm">Are you sure you want to delete this item?</p>',
+				callback: function() {
+					CurrentItem.remove();
+					var count = List.find("article, li").length;
+					if (count < Max) {
+						AddButtons.show();
+						Container.removeClass("max_items_hit");
+					}
+				},
+				icon: "delete",
+				alternateSaveText: "OK"
+			});
+		};
+
+		function editItem(e) {
+			e.preventDefault();
+
+			Type = $(this).data("type");
+
+			// Prevent double clicks
+			if (BigTree.Busy) {
+				return;
+			}
+
+			CurrentItem = $(this).parents("li");
+			
+			$.ajax("admin_root/ajax/media-gallery-field/", {
+				type: "POST",
+				data: { columns: Columns, count: Count, data: CurrentItem.find(".bigtree_matrix_data").val(), key: Key, settings: Settings },
+				complete: function(response) {
+					BigTreeDialog({
+						title: "Edit Item",
+						content: response.responseText,
+						icon: "edit",
+						preSubmissionCallback: true,
+						callback: function(e) {
+							e.preventDefault();
+							
+							var item;
+							if (item = getItem()) {
+								// Replace the item, remove the dialog, increase the count
+								CurrentItem.replaceWith(item);
+								removeDialog();
+								Count++;
+							}
+						}
+					});
+				}
+			});
+		};
+		
+		function getItem() {
+			LastDialog = $(".bigtree_dialog_form").last();
+	
+			// Validate required fields.
+			var validator = BigTreeFormValidator(LastDialog);
+			if (!validator.validateForm(false,true)) {
+				return false;
+			}
+			
+			var entry = $('<li>').html('<figure></figure><a href="#" class="icon_delete"></a>');
+			
+			// Try to get an image preview but fallback to the old upload message
+			var img = LastDialog.find("fieldset").first().find("img").eq(0);
+
+			if (Type == "image" && img.length) {
+				entry.find("figure").append(img);
+			} else if (img.length) {
+				entry.find("figure").append(img).addClass("media_gallery_type_" + Type);
+			} else {
+				if (Type == "vimeo") {
+					var klass = "media_gallery_vimeo_block";
+				} else if (Type == "youtube") {
+					var klass = "media_gallery_youtube_block";
+				} else {
+					var klass = "";
+				}
+
+				entry.find("figure").append('<figcaption class="' + klass + '"></figcaption>');
+			}
+	
+			// Append all the relevant fields into the matrix field so that it gets saved on submit with the rest of the form.
+			LastDialog.find("input, textarea, select").each(function() {
+				if ($(this).attr("type") != "submit") {
+					if ($(this).is("textarea") && $(this).css("display") == "none") {
+						var mce = tinyMCE.get($(this).attr("id"));
+					
+						if (mce) {
+							mce.save();
+							tinyMCE.execCommand('mceRemoveControl',false,$(this).attr("id"));
+						}
+					}
+
+					$(this).hide().get(0).className = "";
+					entry.append($(this));
+				}
+			});
+
+			return entry;
+		};
+
+		function removeDialog() {
+			LastDialog.parents("div").remove();
+			LastDialog.remove();
+			$(".bigtree_dialog_overlay").last().remove();
+			BigTree.zIndex -= 2;
+		};
+
+		// Init routine
+		Key = settings.key;
+		Columns = settings.columns;
+		Container = $(settings.selector);
+		AddButtons = Container.find(".add_item");
+		List = Container.find(".contain, ul");
+		Count = List.find("article, li").length;
+		Max = settings.max ? settings.max : 0;
+		Settings = settings.settings;
+
+		// If they've exceed or are at the max, hide the add button
+		if (Max && Count >= Max) {
+			AddButtons.hide();
+			Container.addClass("max_items_hit");
+		}
+
+		Container.on("click",".add_item",addItem)
+				 .on("click",".icon_edit",editItem)
+				 .on("click",".icon_delete",deleteItem)
+				 .find("ul").sortable({ items: "li", placeholder: "ui-sortable-placeholder" });
+
+		return { Container: Container, Count: Count, Key: Key, List: List, addItem: addItem };
+
+	})(jQuery,settings);
+};

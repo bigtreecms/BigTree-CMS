@@ -16,11 +16,11 @@
 		$data["folder"] = $_POST["folder"] ? intval($_POST["folder"]) : null;
 	}
 
-	$metadata = $cms->getSetting("bigtree-file-metadata-fields");
+	$metadata = BigTreeJSONDB::get("config", "file-metadata");
 
 	if ($file["is_image"]) {
 		$meta_fields = $metadata["image"];
-		$settings = $cms->getSetting("bigtree-internal-media-settings");
+		$settings = BigTreeJSONDB::get("config", "media-settings");
 		$preset = $settings["presets"]["default"];
 		$preset["directory"] = "files/resources/";
 	} elseif ($file["is_video"]) {

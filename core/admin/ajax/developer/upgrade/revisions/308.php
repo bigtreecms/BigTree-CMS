@@ -5,7 +5,7 @@
 	SQL::query("ALTER TABLE `bigtree_module_forms` ADD COLUMN `open_graph` CHAR(2) NOT NULL AFTER `return_url`");
 	SQL::query("ALTER TABLE `bigtree_pending_changes` ADD COLUMN `open_graph_changes` LONGTEXT NOT NULL AFTER `tags_changes`");
 
-	$admin->updateSettingValue("bigtree-internal-revision", 308);
+	$admin->updateInternalSettingValue("bigtree-internal-revision", 308);
 
 	echo BigTree::json([
 		"complete" => true,

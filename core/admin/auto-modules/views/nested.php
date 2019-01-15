@@ -4,7 +4,7 @@
 <script>
 	BigTree.localSearch = function() {
 		// If a search has been entered, revert to draggable
-		$("#table_data").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/nested/", { view: <?=$bigtree["view"]["id"]?>, search: $("#search").val() });
+		$("#table_data").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/nested/", { view: "<?=$bigtree["view"]["id"]?>", search: $("#search").val() });
 	};
 	BigTree.localCreateSortable = function(element) {
 		$(element).sortable({
@@ -60,7 +60,7 @@
 		// Change expanded state
 		var li = $(this).parent();
 		var ul = li.toggleClass("expanded").children("ul").toggle();
-		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/set-nest-state/", { type: "POST", data: { view: <?=$bigtree["view"]["id"]?>, id: li.attr("id").replace("row_",""), expanded: li.hasClass("expanded") } });
+		$.ajax("<?=ADMIN_ROOT?>ajax/auto-modules/views/set-nest-state/", { type: "POST", data: { view: "<?=$bigtree["view"]["id"]?>", id: li.attr("id").replace("row_",""), expanded: li.hasClass("expanded") } });
 		<?php if ($permission == "p") { ?>
 		BigTree.localCreateSortable(ul);
 		<?php } ?>

@@ -282,4 +282,4 @@
 		BigTreeAdmin::updateSettingValue($f["id"],$value);
 	}
 	
-	$admin->updateSettingValue("bigtree-internal-revision", 200);
+	$admin->updateInternalSettingValue("bigtree-internal-revision", 200);

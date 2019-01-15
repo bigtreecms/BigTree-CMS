@@ -19,7 +19,12 @@
 		}
 	}
 
-	$admin->updateSettingValue("bigtree-file-metadata-fields", $metadata);
+	BigTreeJSONDB::update("config", "file-metadata", [
+		"file" => $metadata["file"],
+		"image" => $metadata["image"],
+		"video" => $metadata["video"]
+	]);
+	
 	$admin->growl("File Metadata", "Updated Fields");
 
 	BigTree::redirect(DEVELOPER_ROOT."files/");

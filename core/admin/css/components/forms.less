@@ -296,3 +296,126 @@
 	.container .input_phone_3 input { float: left; text-align: center; width: 30px; }
 	.container .input_phone_3 span { float: left; height: 32px; line-height: 32px; text-align: center; width: 20px; }
 	.container .input_phone_4 input { text-align: center; width: 40px; }
+
+	// Link Field
+	.link_field_results_container {
+		background: #FFF;
+		border: 1px solid #AAA;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+		max-height: 200px;
+		overflow-y: auto;
+		margin: -2px 0 0 0;
+		width: 896px;
+	}
+
+	.link_field_results_header {
+		background: #59A8E9;
+		color: #FFF;
+		font-size: 13px;
+		height: auto;
+		line-height: 20px;
+		padding: 4px 10px 3px;
+	}
+
+	.link_field_result {
+		border-bottom: 1px solid #DDD;
+		color: #333;
+		display: block;
+		font-size: 10px;
+		height: auto;
+		line-height: 14px;
+		padding: 3px 10px; 
+
+		&:nth-child(odd) { background: #FAFAFA; }
+		&:last-child { border-bottom: none; }
+		&:hover { background: #EEE; }
+	}
+
+	.link_field_no_results {
+		color: #333;
+		display: block;
+		font-size: 10px;
+		line-height: 14px;
+		padding: 3px 10px !important;
+	}
+
+	// Media Gallery field
+	.media_gallery_footer {
+		.button {
+			height: 30px;
+			line-height: 30px;
+
+			.icon_small {
+				margin-top: 6px;
+			}
+		}
+
+		.callout_fields & .button {
+			font-size: 12px;
+			padding: 0 10px;
+		}
+
+		.max {
+			display: inline-block;
+			padding-top: 10px;
+		}
+
+		.max_items_hit & .max {
+			padding: 0;
+		}
+	}
+
+	.media_gallery_vimeo_block {
+		background: url(../../images/icon-sprite.svg) no-repeat -160px -250px !important;
+		height: 32px;
+		margin: 21px 0 0 22px;
+		padding: 0 !important;
+		text-indent: -1000px;
+		transform: scale(2);
+		width: 32px;
+	}
+	
+	.media_gallery_youtube_block {
+		background: url(../../images/icon-sprite.svg) no-repeat -224px -250px !important;
+		height: 32px;
+		margin: 21px 0 0 22px;
+		padding: 0 !important;
+		text-indent: -1000px;
+		transform: scale(2);
+		width: 32px;
+	}	
+	
+	.media_gallery_type_youtube img,
+	.media_gallery_type_vimeo img {
+		opacity: 0.65;
+		position: relative;
+	}
+		
+	.media_gallery_type_youtube:after {
+		background: url(../../images/icon-sprite.svg) no-repeat -224px -250px;
+		content: "";
+		height: 32px;
+		margin: 5px 0 0 -37px;
+		position: absolute;
+		width: 32px;
+	}
+	
+	.media_gallery_type_vimeo:after {
+		background: url(../../images/icon-sprite.svg) no-repeat -160px -250px;
+		content: "";
+		height: 20px;
+		margin: 5px 0 0 -37px;
+		position: absolute;
+		width: 20px;
+	}
+
+	// Video Field
+
+	.video_field input[type=url] {
+		float: left;
+		width: 400px;
+
+		.callout_fields & {
+			width: 283px;
+		}
+	}

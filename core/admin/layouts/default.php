@@ -99,7 +99,7 @@
 				<strong><?=$bigtree["page"]["related"]["title"]?></strong>
 				<?php
 					foreach ($bigtree["page"]["related"]["nav"] as $item) {
-						if ($item["level"] <= $admin->Level) {
+						if ($item["level"] <= $admin->Level && empty($item["group"]) && empty($item["top_level_hidden"])) {
 				?>
 				<a href="<?=ADMIN_ROOT.$item["link"]?>/"><?=$item["title"]?></a>
 				<?php
@@ -123,7 +123,7 @@
 			$show_nav = false;
 	
 			foreach ($bigtree["page"]["navigation"] as $item) {
-				if (!$item["hidden"]) {
+				if (!$item["hidden"] && empty($item["group"])) {
 					$show_nav = true;
 				}
 			}
@@ -136,7 +136,7 @@
 			$active_item = false;
 			// Figure out what the active state is.
 			foreach ($bigtree["page"]["navigation"] as $item) {
-				if (strpos($current_path,$item["link"]) !== false) {
+				if ($item["link"] && strpos($current_path,$item["link"]) !== false) {
 					// If we already have an active item, see if the new one is deeper in the paths.
 					if (!$active_item) {
 						$active_item = $item;

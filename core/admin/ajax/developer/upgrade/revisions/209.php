@@ -15,7 +15,7 @@
 				"pages" => $total_pages
 			]);
 		} else {
-			$admin->updateSettingValue("bigtree-internal-revision", 209);
+			$admin->updateInternalSettingValue("bigtree-internal-revision", 209);
 
 			echo BigTree::json([
 				"complete" => true,
@@ -42,7 +42,7 @@
 			"response" => "Cleaning up 404s: page $page of $total_pages complete."
 		]);
 	} else {
-		$admin->updateSettingValue("bigtree-internal-revision", 209);
+		$admin->updateInternalSettingValue("bigtree-internal-revision", 209);
 
 		echo BigTree::json([
 			"complete" => true,

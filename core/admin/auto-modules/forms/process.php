@@ -47,6 +47,13 @@
 	$bigtree["post_data"] = $_POST;
 	$bigtree["file_data"] = BigTree::parsedFilesArray();
 
+	$bigtree["form"]["fields"] = $admin->runHooks("fields", "form", $bigtree["form"]["fields"], [
+		"form" => $bigtree["form"],
+		"step" => "process",
+		"post_data" => $bigtree["post_data"],
+		"file_data" => $bigtree["file_data"]
+	]);
+
 	foreach ($bigtree["form"]["fields"] as $resource) {
 		$field = array(
 			"type" => $resource["type"],
@@ -179,8 +186,12 @@
 	
 	// Get the redirect location.
 	$view = BigTreeAutoModule::getRelatedViewForForm($bigtree["form"]);
+
+	// Specified in the URL
+	if (!empty($_POST["_bigtree_return_link"])) {
+		$redirect_url = $_POST["_bigtree_return_link"];
 	// If we specify a specific return view, get that information
-	if ($bigtree["form"]["return_view"]) {
+	} elseif ($bigtree["form"]["return_view"]) {
 		$view = BigTreeAutoModule::getView($bigtree["form"]["return_view"]);
 		$action = $admin->getModuleActionForView($bigtree["form"]["return_view"]);
 		
@@ -196,6 +207,7 @@
 	} else {
 		$redirect_url = ADMIN_ROOT.$bigtree["module"]["route"]."/".$redirect_append;
 	}
+	
 	// If we've specified a preview URL in our module and the user clicked Save & Preview, return to preview page.
 	if ($_POST["_bigtree_preview"]) {
 		$admin->ungrowl();

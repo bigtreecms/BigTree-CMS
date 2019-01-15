@@ -7,7 +7,7 @@
 	
 		if (!empty($setting_value["amazon"]["key"])) {
 			$setting_value["amazon"]["region"] = "us-east-1";
-			$admin->updateSettingValue("bigtree-internal-cloud-storage", $setting_value);
+			$admin->updateInternalSettingValue("bigtree-internal-cloud-storage", $setting_value, true);
 		}
 		
 		SQL::query("ALTER TABLE `bigtree_resources` ADD COLUMN `image_fixed` CHAR(2) NOT NULL AFTER `is_image`");
@@ -23,7 +23,7 @@
 				"pages" => $total_pages
 			]);
 		} else {
-			$admin->updateSettingValue("bigtree-internal-revision", 307);
+			$admin->updateInternalSettingValue("bigtree-internal-revision", 307);
 
 			echo BigTree::json([
 				"complete" => true,
@@ -111,7 +111,7 @@
 			"response" => "Updating file manager data: page $page of $total_pages complete."
 		]);
 	} else {
-		$admin->updateSettingValue("bigtree-internal-revision", 307);
+		$admin->updateInternalSettingValue("bigtree-internal-revision", 307);
 		SQL::query("ALTER TABLE `bigtree_resources` DROP COLUMN `image_fixed`");
 
 		echo BigTree::json([

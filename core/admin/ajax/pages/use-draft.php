@@ -31,7 +31,6 @@
 	}
 
 	$changes["title"] = $title;
-	$changes["meta_keywords"] = $meta_keywords;
 	$changes["meta_description"] = $meta_description;
 	$changes["template"] = $template;
 	$changes["external"] = $external;

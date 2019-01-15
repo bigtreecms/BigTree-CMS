@@ -32,10 +32,10 @@
 				$items = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-module-class-list.json"),true);
 			} else {
 				// Get the Module Class List
-				$q = sqlquery("SELECT * FROM bigtree_modules");
-				$items = array();
-				while ($f = sqlfetch($q)) {
-					$items[$f["class"]] = $f["route"];
+				$modules = BigTreeJSONDB::getAll("modules");
+
+				foreach ($modules as $module) {
+					$items[$module["class"]] = $module["route"];
 				}
 				
 				// Cache it so we don't hit the database.
@@ -80,18 +80,16 @@
 		public function __destruct() {
 			foreach ($this->AutoSaveSettings as $id => $obj) {
 				if (is_object($obj)) {
-					BigTreeAdmin::updateSettingValue($id,get_object_vars($obj));
+					BigTreeAdmin::updateInternalSettingValue($id, get_object_vars($obj), true);
 				} else {
-					BigTreeAdmin::updateSettingValue($id,$obj);
+					BigTreeAdmin::updateInternalSettingValue($id, $obj, true);
 				}
 			}
 		}
 
 		/*
 			Function: autoSaveSetting
-				Returns a reference to an object that can be modified which will automatically save back to a bigtree_settings entry on the $cms class destruction.
-				The entry in bigtree_settings should be an associate array. If the setting doesn't exist, an encrypted setting with the passed in id will be created.
-				You MUST set your variable to be a reference using $var = &$cms->autoSaveSetting("my-id") for this to function properly.
+				This method is deprecated. Do not use this method.
 
 			Parameters:
 				id - The bigtree_settings id.
@@ -110,20 +108,7 @@
 
 				// Create a setting if it doesn't exist yet
 				if ($data === false) {
-					// If an extension is creating an auto save setting, make it a reference back to the extension
-					if (defined("EXTENSION_ROOT") && strpos($id,"bigtree-internal-") !== 0) {
-						$extension = sqlescape(rtrim(str_replace(SERVER_ROOT."extensions/","",EXTENSION_ROOT),"/"));
-						
-						// Don't append extension again if it's already being called via the namespace
-						if (strpos($id,"$extension*") === false) {
-							$id = "$extension*$id";
-						}
-						
-						sqlquery("INSERT INTO bigtree_settings (`id`,`encrypted`,`system`,`extension`) VALUES ('".sqlescape($id)."','on','on','$extension')");
-					} else {
-						sqlquery("INSERT INTO bigtree_settings (`id`,`encrypted`,`system`) VALUES ('".sqlescape($id)."','on','on')");
-					}
-					$data = array();
+					$data = [];
 				}
 
 				// Asking for an object? Return it as an object
@@ -452,20 +437,24 @@
 					echo "<url><loc>".$link."</loc></url>\n";
 					
 					// Added routed template support
-					$tf = sqlfetch(sqlquery("SELECT bigtree_modules.class AS module_class FROM bigtree_templates JOIN bigtree_modules ON bigtree_modules.id = bigtree_templates.module WHERE bigtree_templates.id = '".$f["template"]."'"));
-					
-					if ($tf["module_class"]) {
-						$mod = new $tf["module_class"];
+					$template = BigTreeJSONDB::get("templates", $f["template"]);
+
+					if ($template["module"]) {
+						$module = BigTreeJSONDB::get("modules", $template["module"]);
+
+						if ($module && $module["class"]) {
+							$mod = new $module["class"];
 						
-						if (method_exists($mod,"getSitemap")) {
-							$subnav = $mod->getSitemap($f);
-							
-							foreach ($subnav as $s) {
-								echo "<url><loc>".$s["link"]."</loc></url>\n";
+							if (method_exists($mod,"getSitemap")) {
+								$subnav = $mod->getSitemap($f);
+								
+								foreach ($subnav as $s) {
+									echo "<url><loc>".$s["link"]."</loc></url>\n";
+								}
 							}
+							
+							$mod = $subnav = null;
 						}
-						
-						$mod = $subnav = null;
 					}
 				}
 			}
@@ -488,21 +477,19 @@
 		public static function extensionSettingCheck($id) {
 			global $bigtree;
 
-			$id = sqlescape($id);
-
 			// See if we're in an extension
 			if (!empty($bigtree["extension_context"])) {
 				$extension = $bigtree["extension_context"];
 
 				// If we're already asking for it by it's namespaced name, don't append again.
-				if (substr($id,0,strlen($extension)) == $extension) {
+				if (substr($id, 0, strlen($extension)) == $extension) {
 					return $id;
 				}
 
 				// See if namespaced version exists
-				$f = sqlfetch(sqlquery("SELECT id FROM bigtree_settings WHERE id = '$extension*$id'"));
+				$exists = BigTreeJSONDB::exists("bigtree_settings", $extension."*".$id);
 
-				if ($f) {
+				if ($exists) {
 					return "$extension*$id";
 				}
 			}
@@ -658,14 +645,18 @@
 			$bc = array_reverse($bc);
 			
 			// Check for module breadcrumbs
-			$mod = sqlfetch(sqlquery("SELECT bigtree_modules.class FROM bigtree_modules JOIN bigtree_templates ON bigtree_modules.id = bigtree_templates.module WHERE bigtree_templates.id = '".$page["template"]."'"));
-			
-			if ($mod["class"]) {
-				if (class_exists($mod["class"])) {
-					$module = new $mod["class"];
-			
-					if (method_exists($module, "getBreadcrumb")) {
-						$bc = array_merge($bc,$module->getBreadcrumb($page));
+			$template = BigTreeJSONDB::get("templates", $page["template"]);
+
+			if ($template["module"]) {
+				$module = BigTreeJSONDB::get("modules", $template["module"]);
+
+				if ($module["class"]) {
+					if (class_exists($module["class"])) {
+						$moduleClass = new $module["class"];
+				
+						if (method_exists($moduleClass, "getBreadcrumb")) {
+							$bc = array_merge($bc, $moduleClass->getBreadcrumb($page));
+						}
 					}
 				}
 			}
@@ -678,30 +669,24 @@
 				Gets a feed's information from the database.
 			
 			Parameters:
-				item - Either the ID of the feed to pull or a raw database row of the feed data
+				id - A feed ID
 			
 			Returns:
-				An array of feed information with settings and fields decoded from JSON.
+				An array of feed information.
 				
 			See Also:
 				<getFeedByRoute>
 		*/
 		
-		public static function getFeed($item) {
-			if (!is_array($item)) {
-				$item = sqlescape($item);
-				$item = sqlfetch(sqlquery("SELECT * FROM bigtree_feeds WHERE id = '$item'"));
+		public static function getFeed($id) {
+			if (is_array($id)) {
+				$id = $id["id"];
 			}
 
-			if (!$item) {
-				return false;
-			}
-
-			$item["settings"] = BigTree::untranslateArray(json_decode($item["settings"], true));
-			$item["options"] = &$item["settings"]; // Backwards compatibility
-			$item["fields"] = json_decode($item["fields"], true);
+			$feed = BigTreeJSONDB::get("feeds", $id);
+			$feed["options"] = &$feed["settings"]; // Backwards compatibility
 			
-			return $item;
+			return $feed;
 		}
 		
 		/*
@@ -719,10 +704,10 @@
 		*/
 		
 		public static function getFeedByRoute($route) {
-			$route = sqlescape($route);
-			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_feeds WHERE route = '$route'"));
+			$feed = BigTreeJSONDB::get("feeds", $route, "route");
+			$feed["options"] = &$feed["settings"]; // Backwards compatibility
 			
-			return static::getFeed($item);
+			return $feed;
 		}
 		
 		/*
@@ -918,7 +903,14 @@
 			$in_nav = $only_hidden ? "" : "on";
 			$sort = $only_hidden ? "nav_title ASC" : "position DESC, id ASC";
 			
-			$q = sqlquery("SELECT id,nav_title,parent,external,new_window,template,route,path FROM bigtree_pages WHERE $where_parent AND in_nav = '$in_nav' AND archived != 'on' AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL) ORDER BY $sort");
+			$q = sqlquery("SELECT id,nav_title,parent,external,new_window,template,route,path 
+						   FROM bigtree_pages 
+						   WHERE $where_parent 
+						     AND in_nav = '$in_nav' 
+						     AND archived != 'on' 
+						     AND (publish_at <= NOW() OR publish_at IS NULL) 
+						     AND (expire_at >= NOW() OR expire_at IS NULL) 
+						   ORDER BY $sort");
 			
 			// Wrangle up some kids
 			while ($f = sqlfetch($q)) {
@@ -956,46 +948,63 @@
 				// This is a recursed iteration.
 				if (is_array($parent)) {
 					$where_parent = array();
+
 					foreach ($parent as $p) {
-						$where_parent[] = "bigtree_pages.id = '".sqlescape($p)."'";
+						$where_parent[] = "id = '".sqlescape($p)."'";
 					}
-					$q = sqlquery("SELECT bigtree_modules.class,bigtree_templates.routed,bigtree_templates.module,bigtree_pages.id,bigtree_pages.path,bigtree_pages.template FROM bigtree_modules JOIN bigtree_templates JOIN bigtree_pages ON bigtree_templates.id = bigtree_pages.template WHERE bigtree_modules.id = bigtree_templates.module AND (".implode(" OR ",$where_parent).")");
+					
+					$q = sqlquery("SELECT id, path, template FROM bigtree_pages WHERE (".implode(" OR ",$where_parent).")");
+					
 					while ($f = sqlfetch($q)) {
-						// If the class exists, instantiate it and call it
-						if ($f["class"] && class_exists($f["class"])) {
-							$module = new $f["class"];
-							if (method_exists($module,"getNav")) {
-								$modNav = $module->getNav($f);
-								// Give the parent back to each of the items it returned so they can be reassigned to the proper parent.
-								$module_nav = array();
-								foreach ($modNav as $item) {
-									$item["parent"] = $f["id"];
-									$item["id"] = "module_nav_".$module_nav_count;
-									$module_nav[] = $item;
-									$module_nav_count++;
-								}
-								if ($module->NavPosition == "top") {
-									$nav = array_merge($module_nav,$nav);
-								} else {
-									$nav = array_merge($nav,$module_nav);
+						$template = BigTreeJSONDB::get("templates", $f["template"]);
+
+						if ($template["module"]) {
+							$module = BigTreeJSONDB::get("modules", $template["module"]);
+
+							if ($module["class"] && class_exists($module["class"])) {
+								$instance = new $module["class"];
+
+								if (method_exists($instance, "getNav")) {
+									$modNav = $instance->getNav($f);
+									// Give the parent back to each of the items it returned so they can be reassigned to the proper parent.
+									$module_nav = array();
+									
+									foreach ($modNav as $item) {
+										$item["parent"] = $f["id"];
+										$item["id"] = "module_nav_".$module_nav_count;
+										$module_nav[] = $item;
+										$module_nav_count++;
+									}
+									
+									if ($instance->NavPosition == "top") {
+										$nav = array_merge($module_nav, $nav);
+									} else {
+										$nav = array_merge($nav, $module_nav);
+									}
 								}
 							}
 						}
 					}
 				// This is the first iteration.
 				} else {
-					$f = sqlfetch(sqlquery("SELECT bigtree_modules.class,bigtree_templates.routed,bigtree_templates.module,bigtree_pages.id,bigtree_pages.path,bigtree_pages.template FROM bigtree_modules JOIN bigtree_templates JOIN bigtree_pages ON bigtree_templates.id = bigtree_pages.template WHERE bigtree_modules.id = bigtree_templates.module AND bigtree_pages.id = '$parent'"));
-					// If the class exists, instantiate it and call it.
-					if ($f["class"] && class_exists($f["class"])) {
-						$module = new $f["class"];
-						if (method_exists($module,"getNav")) {
-							if ($module->NavPosition == "top") {
-								$nav = array_merge($module->getNav($f),$nav);
-							} else {
-								$nav = array_merge($nav,$module->getNav($f));
+					$f = sqlfetch(sqlquery("SELECT id, path, template FROM bigtree_pages WHERE id = '$parent'"));
+					$template = BigTreeJSONDB::get("templates", $f["template"]);
+
+					if ($template["module"]) {
+						$module = BigTreeJSONDB::get("modules", $template["module"]);
+
+						if ($module["class"] && class_exists($module["class"])) {
+							$instance = new $module["class"];
+
+							if (method_exists($instance, "getNav")) {
+								if ($module->NavPosition == "top") {
+									$nav = array_merge($instance->getNav($f), $nav);
+								} else {
+									$nav = array_merge($nav, $instance->getNav($f));
+								}
 							}
 						}
-					}
+					}	
 				}
 			}
 			
@@ -1033,10 +1042,12 @@
 			}
 			
 			// See if we have a straight up perfect match to the path.
-			$spath = sqlescape(implode("/",$path));
-			$f = sqlfetch(sqlquery("SELECT bigtree_pages.id,bigtree_templates.routed FROM bigtree_pages LEFT JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE path = '$spath' AND archived = '' $publish_at"));
-			if ($f) {
-				return array($f["id"],$commands,$f["routed"]);
+			$page = SQL::fetch("SELECT id, template FROM bigtree_pages WHERE path = ? AND archived = '' $publish_at", implode("/", $path));
+
+			if ($page) {
+				$template = BigTreeJSONDB::get("templates", $page["template"]);
+
+				return array($page["id"], $commands, $template["routed"]);
 			}
 			
 			// Guess we don't, let's chop off commands until we find a page.
@@ -1044,11 +1055,16 @@
 			while ($x < count($path)) {
 				$x++;
 				$commands[] = $path[count($path)-$x];
-				$spath = sqlescape(implode("/",array_slice($path,0,-1 * $x)));
+
 				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
-				$f = sqlfetch(sqlquery("SELECT bigtree_pages.id FROM bigtree_pages JOIN bigtree_templates ON bigtree_pages.template = bigtree_templates.id WHERE bigtree_pages.path = '$spath' AND bigtree_pages.archived = '' AND bigtree_templates.routed = 'on' $publish_at"));
-				if ($f) {
-					return array($f["id"],array_reverse($commands),"on");
+				$page = SQL::fetch("SELECT id, template FROM bigtree_pages WHERE path = ? AND archived = '' $publish_at", implode("/", array_slice($path, 0, -1 * $x)));
+
+				if ($page) {
+					$template = BigTreeJSONDB::get("templates", $page["template"]);
+
+					if ($template["routed"]) {
+						return array($page["id"], array_reverse($commands), "on");
+					}
 				}
 			}
 			
@@ -1335,19 +1351,13 @@
 			global $bigtree;
 			
 			$id = static::extensionSettingCheck($id);
-			$setting = sqlfetch(sqlquery("SELECT * FROM bigtree_settings WHERE id = '$id'"));
-			
-			// Setting doesn't exist
+			$setting = SQL::fetch("SELECT *, AES_DECRYPT(value, ?) AS `decrypted_value` FROM bigtree_settings WHERE id = ?", $bigtree["config"]["settings_key"], $id);
+
 			if (!$setting) {
 				return false;
 			}
-
-			// If the setting is encrypted, we need to re-pull just the value.
-			if ($setting["encrypted"]) {
-				$setting = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value`, system FROM bigtree_settings WHERE id = '$id'"));
-			}
-
-			$value = json_decode($setting["value"],true);
+			
+			$value = json_decode($setting["encrypted"] ? $setting["decrypted_value"] : $setting["value"], true);
 			
 			if (is_null($value)) {
 				return $value;
@@ -1357,7 +1367,6 @@
 				return static::replaceInternalPageLinks($value);
 			}
 		}
-		
 		
 		/*
 			Function: getSettings
@@ -1373,39 +1382,16 @@
 		public static function getSettings($ids) {
 			global $bigtree;
 
-			// If for some reason we only requested one, just call getSetting
-			if (!is_array($ids)) {
-				return array(static::getSetting($ids));
+			$settings = [];
+
+			foreach ($ids as $setting_id) {
+				$value = static::getSetting($setting_id);
+
+				if ($value !== false) {
+					$settings[$setting_id] = $value;
+				}
 			}
 
-			// If we're in an extension, just call getSetting on the whole array since we need to make inferences on each ID
-			if (defined("EXTENSION_ROOT")) {
-				$settings = array();
-				foreach ($ids as $id) {
-					$settings[$id] = static::getSetting($id);
-				}
-				return $settings;
-			}
-
-			// Not in an extension, we can query them all at once
-			$parts = array();
-			foreach ($ids as $id) {
-				$parts[] = "id = '".sqlescape($id)."'";
-			}
-			$settings = array();
-			$q = sqlquery("SELECT * FROM bigtree_settings WHERE (".implode(" OR ",$parts).") ORDER BY id ASC");
-			while ($f = sqlfetch($q)) {
-				// If the setting is encrypted, we need to re-pull just the value.
-				if ($f["encrypted"]) {
-					$f = sqlfetch(sqlquery("SELECT AES_DECRYPT(`value`,'".sqlescape($bigtree["config"]["settings_key"])."') AS `value` FROM bigtree_settings WHERE id = '".$f["id"]."'"));
-				}
-				$value = json_decode($f["value"],true);
-				if (is_array($value)) {
-					$settings[$f["id"]] = BigTree::untranslateArray($value);
-				} else {
-					$settings[$f["id"]] = static::replaceInternalPageLinks($value);
-				}
-			}
 			return $settings;
 		}
 		
@@ -1483,16 +1469,7 @@
 		*/
 		
 		public static function getTemplate($id) {
-			$template = SQL::fetch("SELECT * FROM bigtree_templates WHERE id = ?", $id);
-
-			if (!$template) {
-				return false;
-			}
-
-			$template["resources"] = json_decode($template["resources"], true);
-			$template["hooks"] = json_decode($template["hooks"], true);
-
-			return $template;
+			return BigTreeJSONDB::get("templates", $id);
 		}
 		
 		/*
@@ -1714,7 +1691,7 @@
 		public static function replaceHardRoots($string) {
 			static::generateReplaceableRoots();
 			
-			return str_replace(static::$ReplaceableRootKeys, static::$ReplaceableRootVals, $string);
+			return strtr($string, array_combine(static::$ReplaceableRootKeys, static::$ReplaceableRootVals));
 		}
 
 		/*
@@ -1762,7 +1739,7 @@
 		public static function replaceRelativeRoots($string) {
 			static::generateReplaceableRoots();
 			
-			return str_replace(static::$ReplaceableRootVals, static::$ReplaceableRootKeys, $string);
+			return strtr($string, array_combine(static::$ReplaceableRootVals, static::$ReplaceableRootKeys));
 		}
 
 		/*

@@ -1,5 +1,5 @@
 /*---------------------------
-	 BigTree CMS 4.2 CSS
+	 BigTree CMS 4.4 CSS
 ---------------------------*/
 
 	@import "partials/reset.less";
@@ -565,6 +565,8 @@
 
 	/* Pages Specific */
 	.table .pages_title { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 712px; }
+	.table .pages_title .icon_small,
+	.table .pages_title_wider .icon_small { float: right; margin-top: 8px; }
 	.table .pages_title_wider { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 763px; }
 	.table .pages_title_widest { font-size: 15px; padding: 0 0 0 15px; text-align: left; width: 833px; }
 	.table .pages_title a, .table .pages_title_wider a, .table .pages_title_widest a { color: #333; display: block; margin: 0; }
@@ -829,10 +831,8 @@
 	.box_select { background: #fff; border: 1px solid #ccc; border-radius: 3px; color: #333; float: left; height: 75px; margin: 0 15px 15px 0; padding: 25px 10px 10px 10px; text-align: center; transition: background-color 0.2s, border-color 0.2s; user-select: none; width: 89px; }
 	.box_select:hover { background: #EFF7FD; color: #222; }
 	.box_select.active { background: #EFF7FD; }
-	.box_select.last_row { margin-bottom: 0; }
 	.box_select img { margin: 0 0 10px 0; }
 	.box_select p { font-size: 11px; line-height: 15px; }
-	.box_select.last { margin-right: 0; }
 	.box_select span { background: url(../images/icon-sprite.svg) no-repeat; display: inline-block; height: 32px; margin: 0 0 10px 0; width: 32px; }
 	.box_select.connected { position: relative; }
 	.box_select.connected p:after { background: url(../images/icon-sprite.svg) no-repeat -544px -156px; content: ""; display: block; height: 16px; position: absolute; right: 5px; top: 5px; width: 16px; }
@@ -963,10 +963,11 @@
 	.message_thread .selected header { border-bottom: 1px solid #CCC; margin-bottom: 30px; opacity: 1; }
 
 /* Users Stuff */
-	.table .users_name { padding: 0 0 0 20px; text-align: left; width: 318px; }
+	.table .users_name { padding: 0 0 0 20px; text-align: left; width: 288px; }
 	.table .users_name_emulate { padding: 0 0 0 20px; text-align: left; width: 358px; }
-	.table .users_email { text-align: left; width: 250px; }
-	.table .users_company { text-align: left; width: 250px; }
+	.table .users_email { text-align: left; width: 200px; }
+	.table .users_company { text-align: left; width: 200px; }
+	.table .users_user_level { text-align: left; width: 110px; }
 	.table .users_api_type { text-align: left; width: 250px; }
 
 	.user_permissions .labels { background: #AFAFAF; border: none; color: #FFF; position: absolute; }
@@ -1060,9 +1061,10 @@
 /* Developer Stuff */
 	.developer .box_select span { margin: 0 0 10px 0; }
 
-	.developer .table .box_select { margin: 0 20px 0 0; }
-	.developer .table .box_select.last { margin: 0; }
-	.developer .table .box_select.second_row { margin-top: 20px; }
+	.developer .table .box_select_buttons { padding-top: 10px; }
+	.developer .table .box_select { margin: 20px 20px 0 0; }
+	.developer .table .box_select:nth-child(7n) { margin-right: 0; }
+
 	.developer .table > section { padding: 30px; }
 
 	.developer form fieldset.view_type .select .current_select_container { width: 193px !important; }
@@ -1575,6 +1577,9 @@
 	.icon_small_lightning { background-position: -544px -156px; }
 	.icon_small_trail { background-position: -560px -156px; }
 	.icon_small_crop { background-position: -576px -156px; }
+	.icon_small_down_arrow { background-position: -592px -156px; }
+	.icon_small_vimeo { background-position: -608px -156px; }
+	.icon_small_youtube { background-position: -624px -156px; }
 
 	.icon_small_file_default { background-position: -240px -156px; }
 	.icon_small_file_bmp { background-position: 0px -156px; }

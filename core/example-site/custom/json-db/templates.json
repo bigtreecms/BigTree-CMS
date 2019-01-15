@@ -1,0 +1,453 @@
+[
+    {
+        "id": "content",
+        "name": "Content",
+        "routed": "",
+        "resources": [
+            {
+                "id": "page_header",
+                "title": "Page Header",
+                "subtitle": "",
+                "type": "text",
+                "options": null,
+                "settings": null
+            },
+            {
+                "id": "page_image",
+                "title": "Page Image",
+                "subtitle": "Min 1440x810px",
+                "type": "image",
+                "options": {
+                    "directory": "files/pages/",
+                    "image": "on",
+                    "min_width": "1440",
+                    "min_height": "810",
+                    "preview_prefix": "sml_",
+                    "crops": [
+                        {
+                            "prefix": "",
+                            "width": "1440",
+                            "height": "810",
+                            "grayscale": "",
+                            "center_crops": [
+                                null,
+                                {
+                                    "prefix": "sqr_",
+                                    "width": "500",
+                                    "height": "500",
+                                    "grayscale": ""
+                                }
+                            ],
+                            "thumbs": [
+                                null,
+                                null,
+                                null,
+                                {
+                                    "prefix": "sml_",
+                                    "width": "740",
+                                    "height": "",
+                                    "grayscale": ""
+                                },
+                                {
+                                    "prefix": "med_",
+                                    "width": "980",
+                                    "height": "",
+                                    "grayscale": ""
+                                },
+                                {
+                                    "prefix": "lrg_",
+                                    "width": "1220",
+                                    "height": "",
+                                    "grayscale": ""
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "settings": {
+                    "directory": "files/pages/",
+                    "min_width": "1440",
+                    "min_height": "810",
+                    "preview_prefix": "sml_",
+                    "crops": [
+                        {
+                            "prefix": "",
+                            "width": "1440",
+                            "height": "810",
+                            "grayscale": "",
+                            "center_crops": [
+                                null,
+                                {
+                                    "prefix": "sqr_",
+                                    "width": "500",
+                                    "height": "500",
+                                    "grayscale": ""
+                                }
+                            ],
+                            "thumbs": [
+                                null,
+                                null,
+                                null,
+                                {
+                                    "prefix": "sml_",
+                                    "width": "740",
+                                    "height": "",
+                                    "grayscale": ""
+                                },
+                                {
+                                    "prefix": "med_",
+                                    "width": "980",
+                                    "height": "",
+                                    "grayscale": ""
+                                },
+                                {
+                                    "prefix": "lrg_",
+                                    "width": "1220",
+                                    "height": "",
+                                    "grayscale": ""
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "id": "page_intro",
+                "title": "Page Intro",
+                "subtitle": "",
+                "type": "textarea",
+                "options": {
+                    "simple": "on",
+                    "simple_by_permission": "0"
+                },
+                "settings": {
+                    "simple": "on",
+                    "simple_by_permission": "0"
+                }
+            },
+            {
+                "id": "page_content",
+                "title": "Page Content",
+                "subtitle": "",
+                "type": "html",
+                "options": null,
+                "settings": null
+            },
+            {
+                "id": "callouts_content",
+                "title": "Callouts - In-Content",
+                "subtitle": "",
+                "type": "callouts",
+                "options": {
+                    "groups": [
+                        "2"
+                    ],
+                    "noun": "",
+                    "max": ""
+                },
+                "settings": {
+                    "groups": [
+                        "2"
+                    ],
+                    "noun": "",
+                    "max": ""
+                }
+            },
+            {
+                "id": "callouts_full",
+                "title": "Callouts - Full Width",
+                "subtitle": "",
+                "type": "callouts",
+                "options": {
+                    "groups": [
+                        "3"
+                    ],
+                    "noun": "",
+                    "max": ""
+                },
+                "settings": {
+                    "groups": [
+                        "3"
+                    ],
+                    "noun": "",
+                    "max": ""
+                }
+            },
+            {
+                "id": "callouts_sidebar",
+                "title": "Callouts - Sidebar",
+                "subtitle": "",
+                "type": "callouts",
+                "options": {
+                    "groups": [
+                        "1"
+                    ],
+                    "noun": "",
+                    "max": ""
+                },
+                "settings": {
+                    "groups": [
+                        "1"
+                    ],
+                    "noun": "",
+                    "max": ""
+                }
+            }
+        ],
+        "hooks": null,
+        "module": null,
+        "level": "0",
+        "position": "3",
+        "extension": null
+    },
+    {
+        "id": "home",
+        "name": "Home",
+        "routed": "",
+        "resources": [
+            {
+                "id": "page_header",
+                "title": "Page Header",
+                "subtitle": "Use {} to highlight a word. ",
+                "type": "text",
+                "options": null,
+                "settings": null
+            },
+            {
+                "id": "page_image",
+                "title": "Page Image",
+                "subtitle": "Min 1440x810px",
+                "type": "image",
+                "options": {
+                    "directory": "files/pages/",
+                    "image": "on",
+                    "min_width": "1440",
+                    "min_height": "810",
+                    "preview_prefix": "sml_",
+                    "crops": [
+                        {
+                            "prefix": "",
+                            "width": "1440",
+                            "height": "810",
+                            "grayscale": "",
+                            "center_crops": [
+                                null,
+                                {
+                                    "prefix": "sqr_",
+                                    "width": "500",
+                                    "height": "500",
+                                    "grayscale": ""
+                                }
+                            ],
+                            "thumbs": [
+                                null,
+                                null,
+                                null,
+                                {
+                                    "prefix": "sml_",
+                                    "width": "740",
+                                    "height": "",
+                                    "grayscale": ""
+                                },
+                                {
+                                    "prefix": "med_",
+                                    "width": "980",
+                                    "height": "",
+                                    "grayscale": ""
+                                },
+                                {
+                                    "prefix": "lrg_",
+                                    "width": "1220",
+                                    "height": "",
+                                    "grayscale": ""
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "settings": {
+                    "directory": "files/pages/",
+                    "min_width": "1440",
+                    "min_height": "810",
+                    "preview_prefix": "sml_",
+                    "crops": [
+                        {
+                            "prefix": "",
+                            "width": "1440",
+                            "height": "810",
+                            "grayscale": "",
+                            "center_crops": [
+                                null,
+                                {
+                                    "prefix": "sqr_",
+                                    "width": "500",
+                                    "height": "500",
+                                    "grayscale": ""
+                                }
+                            ],
+                            "thumbs": [
+                                null,
+                                null,
+                                null,
+                                {
+                                    "prefix": "sml_",
+                                    "width": "740",
+                                    "height": "",
+                                    "grayscale": ""
+                                },
+                                {
+                                    "prefix": "med_",
+                                    "width": "980",
+                                    "height": "",
+                                    "grayscale": ""
+                                },
+                                {
+                                    "prefix": "lrg_",
+                                    "width": "1220",
+                                    "height": "",
+                                    "grayscale": ""
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "id": "callouts_full",
+                "title": "Callouts - Full Width",
+                "subtitle": "",
+                "type": "callouts",
+                "options": {
+                    "groups": [
+                        "4"
+                    ],
+                    "noun": "",
+                    "max": ""
+                },
+                "settings": {
+                    "groups": [
+                        "4"
+                    ],
+                    "noun": "",
+                    "max": ""
+                }
+            }
+        ],
+        "hooks": null,
+        "module": null,
+        "level": "2",
+        "position": "2",
+        "extension": null
+    },
+    {
+        "id": "news",
+        "name": "News",
+        "routed": "on",
+        "resources": [
+            {
+                "id": "page_image",
+                "title": "Page Image",
+                "subtitle": "Min 1440x810px",
+                "type": "image",
+                "options": {
+                    "directory": "files/pages/",
+                    "image": "on",
+                    "min_width": "1440",
+                    "min_height": "810",
+                    "preview_prefix": "sml_",
+                    "crops": [
+                        {
+                            "prefix": "",
+                            "width": "1440",
+                            "height": "810",
+                            "grayscale": "",
+                            "center_crops": [
+                                null,
+                                {
+                                    "prefix": "sqr_",
+                                    "width": "500",
+                                    "height": "500",
+                                    "grayscale": ""
+                                }
+                            ],
+                            "thumbs": [
+                                null,
+                                null,
+                                null,
+                                {
+                                    "prefix": "sml_",
+                                    "width": "740",
+                                    "height": "",
+                                    "grayscale": ""
+                                },
+                                {
+                                    "prefix": "med_",
+                                    "width": "980",
+                                    "height": "",
+                                    "grayscale": ""
+                                },
+                                {
+                                    "prefix": "lrg_",
+                                    "width": "1220",
+                                    "height": "",
+                                    "grayscale": ""
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "settings": {
+                    "directory": "files/pages/",
+                    "min_width": "1440",
+                    "min_height": "810",
+                    "preview_prefix": "sml_",
+                    "crops": [
+                        {
+                            "prefix": "",
+                            "width": "1440",
+                            "height": "810",
+                            "grayscale": "",
+                            "center_crops": [
+                                null,
+                                {
+                                    "prefix": "sqr_",
+                                    "width": "500",
+                                    "height": "500",
+                                    "grayscale": ""
+                                }
+                            ],
+                            "thumbs": [
+                                null,
+                                null,
+                                null,
+                                {
+                                    "prefix": "sml_",
+                                    "width": "740",
+                                    "height": "",
+                                    "grayscale": ""
+                                },
+                                {
+                                    "prefix": "med_",
+                                    "width": "980",
+                                    "height": "",
+                                    "grayscale": ""
+                                },
+                                {
+                                    "prefix": "lrg_",
+                                    "width": "1220",
+                                    "height": "",
+                                    "grayscale": ""
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        ],
+        "hooks": null,
+        "module": "modules-15c3df733b7e8c",
+        "level": "0",
+        "position": "1",
+        "extension": null
+    }
+]

@@ -224,15 +224,15 @@
 		$bigtree["config"]["date_format"] = "m/d/Y";
 	}
 
-	// Make it easier to extend the nav tree without overwriting important things.
-	include BigTree::path("admin/_nav-tree.php");
-
 	// Initialize BigTree's additional CSS and JS arrays for inclusion in the admin's header
 	$bigtree["js"] = array();
 	$bigtree["css"] = array();
 	
 	// Instantiate the $admin var (user system)
 	$admin = new BigTreeAdmin;
+
+	// Make it easier to extend the nav tree without overwriting important things.
+	include BigTree::path("admin/_nav-tree.php");
 
 	// Load the default layout.
 	$bigtree["layout"] = "default";
@@ -249,8 +249,7 @@
 
 			BigTree::redirect(ADMIN_ROOT."login/");
 		}
-	}
-	
+	}	
 
 	// Developer Mode On?
 	if (isset($admin->ID) && !empty($bigtree["config"]["developer_mode"]) && $admin->Level < 2) {
@@ -345,18 +344,12 @@
 	}
 
 	// Execute cron tab functions if they haven't been run in 24 hours
-	$last_check = $cms->getSetting("bigtree-internal-cron-last-run");
-	if ($last_check === false) {
-		$admin->createSetting(array(
-			"id" => "bigtree-internal-cron-last-run",
-			"system" => "on"
-		));
-	}
+	$last_check = intval($cms->getSetting("bigtree-internal-cron-last-run"));
 
 	// It's been more than 24 hours since we last ran cron.
 	if ((time() - $last_check) > (24 * 60 * 60)) {
 		// Update the setting.
-		$admin->updateSettingValue("bigtree-internal-cron-last-run",time());
+		$admin->updateInternalSettingValue("bigtree-internal-cron-last-run", time());
 
 		// Email the daily digest
 		$admin->emailDailyDigest();
@@ -385,11 +378,13 @@
 	$module_path = array_slice($bigtree["path"],1);
 	$module = $admin->getModuleByRoute($primary_route);
 	$complete = false;
+
 	// We're routing through a module, so get module information and check permissions
 	if ($module) {
 		// Setup environment vars
 		$bigtree["current_module"] = $bigtree["module"] = $module;
 		define("MODULE_ROOT",ADMIN_ROOT.$module["route"]."/");
+		
 		if ($module["extension"]) {
 			$bigtree["extension_context"] = $module["extension"];
 			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$module["extension"]."/");
@@ -397,6 +392,7 @@
 
 		// Find out what module action we're trying to hit
 		$route_response = $admin->getModuleActionByRoute($module["id"],array_slice($bigtree["path"],2));
+
 		if ($route_response) {
 			$bigtree["module_action"] = $route_response["action"];
 			$bigtree["commands"] = $route_response["commands"];
@@ -411,7 +407,14 @@
 		$actions = $admin->getModuleActions($module);
 	
 		// Append module info to the admin nav to draw the headers and breadcrumb and such.
-		$bigtree["nav_tree"]["auto-module"] = array("title" => $module["name"],"link" => $module["route"],"icon" => "modules","children" => array());
+		$bigtree["nav_tree"]["auto-module"] = [
+			"title" => $module["name"],
+			"link" => $module["route"],
+			"icon" => "modules",
+			"children" => [], 
+			"hidden" => true
+		];
+		
 		foreach ($actions as $action) {
 			$hidden = $action["in_nav"] ? false : true;
 			$route = $action["route"] ? $module["route"]."/".$action["route"] : $module["route"];

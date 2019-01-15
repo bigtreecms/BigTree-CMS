@@ -18,16 +18,8 @@
 		$analytics->cacheInformation();
 	}
 	
-	// Let the CMS know we're running cron properly
-	if (!$admin->settingExists("bigtree-internal-cron-last-run")) {
-		$admin->createSetting(array(
-			"id" => "bigtree-internal-cron-last-run",
-			"system" => "on"
-		));
-	}
-	
 	// Tell the admin we've ran cron recently.
-	$admin->updateSettingValue("bigtree-internal-cron-last-run",time());
+	$admin->updateInternalSettingValue("bigtree-internal-cron-last-run", time());
 
 	// Ping bigtreecms.org with current version stats
 	if (!$bigtree["config"]["disable_ping"]) {

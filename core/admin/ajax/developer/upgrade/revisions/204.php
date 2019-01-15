@@ -3,7 +3,7 @@
 
 	sqlquery("ALTER TABLE `bigtree_404s` ADD COLUMN `site_key` VARCHAR(255) NULL");
 
-	$admin->updateSettingValue("bigtree-internal-revision", 204);
+	$admin->updateInternalSettingValue("bigtree-internal-revision", 204);
 
 	echo BigTree::json([
 		"complete" => true,

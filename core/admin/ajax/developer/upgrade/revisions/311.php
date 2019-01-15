@@ -3,7 +3,7 @@
 
 	SQL::query("UPDATE bigtree_pages SET new_window = '' WHERE new_window = 'No'");
 
-	$admin->updateSettingValue("bigtree-internal-revision", 311);
+	$admin->updateInternalSettingValue("bigtree-internal-revision", 311);
 
 	echo BigTree::json([
 		"complete" => true,

@@ -1,41 +1,4 @@
 <?php
-	$nav = isset($bigtree["nav_override"]) ? $bigtree["nav_override"] : array(
-		array("link" => "dashboard", "title" => "Dashboard", "access" => 0, "children" => array(
-			array("link" => "", "title" => "Overview", "access" => 0),
-			array("link" => "pending-changes", "title" => "Pending Changes", "access" => 0),
-			array("link" => "messages", "title" => "Message Center", "access" => 0),
-			array("link" => "vitals-statistics", "title" => "Vitals &amp; Statistics", "access" => 1)
-		)),
-		array("link" => "pages", "title" => "Pages", "access" => 0),
-		array("link" => "modules", "title" => "Modules", "access" => 0),
-		array("link" => "files", "title" => "Files", "access" => 0),
-		array("link" => "users", "title" => "Users", "access" => 1),
-		array("link" => "settings", "title" => "Settings", "access" => 1),
-		array("link" => "tags", "title" => "Tags", "access" => 1),
-		array("link" => "developer", "title" => "Developer", "access" => 2, "children" => array(
-			array("link" => "", "title" => "Create", "access" => 2, "group" => true, "children" => array(
-				array("link" => "developer/templates", "title" => "Templates", "access" => 2),
-				array("link" => "developer/modules", "title" => "Modules", "access" => 2),
-				array("link" => "developer/callouts", "title" => "Callouts", "access" => 2),
-				array("link" => "developer/field-types", "title" => "Field Types", "access" => 2),
-				array("link" => "developer/feeds", "title" => "Feeds", "access" => 2),
-				array("link" => "developer/settings", "title" => "Settings", "access" => 2),
-				array("link" => "developer/extensions", "title" => "Extensions &amp; Packages", "access" => 2),
-			)),
-			array("link" => "", "title" => "Configure", "access" => 2, "group" => true, "children" => array(
-				array("link" => "developer/cloud-storage", "title" => "Cloud Storage", "access" => 2),
-				array("link" => "developer/payment-gateway", "title" => "Payment Gateway", "access" => 2),
-				array("link" => "dashboard/vitals-statistics/analytics/configure/", "title" => "Analytics", "access" => 1),
-				array("link" => "developer/geocoding", "title" => "Geocoding", "access" => 2),
-				array("link" => "developer/email", "title" => "Email Delivery", "access" => 2),
-				array("link" => "developer/services", "title" => "Service APIs", "access" => 2),
-				array("link" => "developer/media", "title" => "Media Presets", "access" => 2),
-				array("link" => "developer/files", "title" => "File Metadata", "access" => 2),
-				array("link" => "developer/security", "title" => "Security", "access" => 2)
-			))
-		))
-	);
-	
 	$unread_messages = $admin->getUnreadMessageCount();	
 	$site = $cms->getPage(0,false);
 
@@ -167,32 +130,51 @@
 				<ul>
 					<?php
 						$x = -1;
-						foreach ($nav as $item) {
-							if ($admin->Level >= $item["access"] && (!$admin->HidePages || $item["link"] != "pages")) {
+						foreach ($bigtree["nav_tree"] as $item) {
+							if ($item["hidden"]) {
+								continue;
+							}
+							
+							if (empty($item["level"])) {
+								$item["level"] = 0;
+							}
+							
+							if ($admin->Level >= $item["level"] && (!$admin->HidePages || $item["link"] != "pages")) {
 								$x++;
 								// Need to check custom nav states better
 								$link_pieces = explode("/",$item["link"]);
 								$path_pieces = array_slice($bigtree["path"],1,count($link_pieces));
+
+								if (strpos($item["link"], "https://") === 0 || strpos($item["link"], "http://") === 0) {
+									$link = $item["link"];
+								} else {
+									$link = $item["link"] ? ADMIN_ROOT.$item["link"]."/" : ADMIN_ROOT;
+								}
 					?>
 					<li>
-						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<?php if ($link_pieces == $path_pieces || ($item["link"] == "modules" && isset($bigtree["module"]))) { $bigtree["active_nav_item"] = $x; ?> class="active"<?php } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
-						<?php if (isset($item["children"]) && count($item["children"])) { ?>
+						<a href="<?=$link?>"<?php if ($link_pieces == $path_pieces || ($item["link"] == "modules" && isset($bigtree["module"]))) { $bigtree["active_nav_item"] = $x; ?> class="active"<?php } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
+						<?php if (empty($item["no_top_level_children"]) && isset($item["children"]) && count($item["children"])) { ?>
 						<ul>
 							<?php
 								foreach ($item["children"] as $child) {
+									if (!empty($child["top_level_hidden"])) {
+										continue;
+									}
+
+									if (strpos($child["link"], "https://") === 0 || strpos($child["link"], "http://") === 0) {
+										$child_link = $child["link"];
+									} else {
+										$child_link = $child["link"] ? ADMIN_ROOT.rtrim($child["link"], "/")."/" : ADMIN_ROOT;
+									}
+									
 									if ($admin->Level >= $child["access"]) {
-										if (isset($child["group"]) && count($child["children"])) {
+										if (!empty($child["group"])) {
 							?>
 							<li class="grouper"><?=$child["title"]?></li>
-							<?php 
-											foreach ($child["children"] as $c) {
-							?>
-							<li><a href="<?=ADMIN_ROOT?><?=$c["link"]?>/"><?=$c["title"]?></a></li>
 							<?php
-											}
-										} elseif (!isset($child["group"])) {
+										} else {
 							?>
-							<li><a href="<?=ADMIN_ROOT?><?=$item["link"]?>/<?=$child["link"]?>/"><?=$child["title"]?></a></li>
+							<li><a href="<?=$child_link?>"><?=$child["title"]?></a></li>
 							<?php
 										}
 									}

@@ -42,7 +42,7 @@
 	</select>
 </fieldset>
 <?php
-	} elseif ($field_type == "textarea" || $field_type == "upload" || $field_type == "html" || $field_type == "list" || $field_type == "time" || $field_type == "date" || $field_type == "datetime" || $field_type == "checkbox" || $field_type == "image-reference" || $field_type == "video-reference" || $field_type == "file-reference") {
+	} elseif ($field_type == "textarea" || $field_type == "upload" || $field_type == "image" || $field_type == "video" || $field_type == "link" || $field_type == "html" || $field_type == "list" || $field_type == "time" || $field_type == "date" || $field_type == "datetime" || $field_type == "checkbox" || $field_type == "image-reference" || $field_type == "video-reference" || $field_type == "file-reference") {
 ?>
 <fieldset>
 	<input id="settings_field_validation" type="checkbox" name="validation" value="required"<?php if ($validation == "required") { ?> checked="checked"<?php } ?> />
@@ -75,7 +75,7 @@
 			echo "<hr />";
 		}
 		include $path;
-	} elseif ($field_type != "textarea" && $field_type != "time" && $field_type != "file-reference" && $field_type != "video-reference" && $field_type != "image-reference") {
+	} elseif ($field_type != "link" && $field_type != "textarea" && $field_type != "time" && $field_type != "file-reference" && $field_type != "video-reference" && $field_type != "image-reference") {
 ?>
 <p>This field type does not have any settings.</p>
 <?php

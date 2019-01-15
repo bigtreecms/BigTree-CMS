@@ -55,9 +55,9 @@
 	}
 
 	// Check if it's already installed
-	if (sqlrows(sqlquery("SELECT * FROM bigtree_extensions WHERE id = '".sqlescape($json["id"])."'"))) {
-		BigTree::deleteDirectory($cache_root);
+	if (BigTreeJSONDB::exists("extensions", $json["id"])) {
 		$_SESSION["upload_error"] = "An extension with the id of ".htmlspecialchars($json["id"])." is already installed.";
+		BigTree::deleteDirectory($cache_root);
 		BigTree::redirect(DEVELOPER_ROOT."extensions/install/");
 	}
 	

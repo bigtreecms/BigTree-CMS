@@ -4,6 +4,7 @@
 
 	$table = $form["table"];
 	$fields = $form["fields"];
+	
 	if (!is_array($form["hooks"])) {
 		$form["hooks"] = array("pre" => "","post" => "","publish" => "");
 	}
@@ -20,7 +21,6 @@
 	</section>
 	<footer>
 		<a href="javascript:history.go(-1);" class="button">Back</a>
-		<a href="<?=DEVELOPER_ROOT?>modules/forms/delete/<?=$form["id"]?>/?module=<?=$module["id"]?>" class="button red">Delete Form</a>
 	</footer>
 </div>
 <?php

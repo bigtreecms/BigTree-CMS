@@ -1,4 +1,4 @@
-<?php
+<?php	
 	if (isset($_POST["clear"])) {
 		$admin->verifyCSRFToken();
 		$admin->clearDead404s();

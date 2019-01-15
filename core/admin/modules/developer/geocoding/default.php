@@ -1,14 +1,9 @@
 <?php
-	if (!$admin->settingExists("bigtree-internal-geocoding-service")) {
-		$admin->createSetting(array(
-			"id" => "bigtree-internal-geocoding-service",
-			"system" => "on",
-			"encrypted" => "on"
-		));
-		$admin->updateSettingValue("bigtree-internal-geocoding-service",array("service" => "google", "settings" => array()));
-	}
 	$gateway = $cms->getSetting("bigtree-internal-geocoding-service");
-	$gateway["service"] = isset($gateway["service"]) ? $gateway["service"] : "";
+
+	if (empty($gateway["service"])) {
+		$gateway = ["service" => ""];
+	}
 ?>
 <div class="table">
 	<summary><h2>Configure</h2></summary>
