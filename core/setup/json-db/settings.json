@@ -1,0 +1,22 @@
+[
+    {
+        "id": "bigtree-internal-disable-page-tagging",
+        "type": "checkbox",
+        "settings": null,
+        "name": "Disable Tagging in Pages",
+        "description": "<p>Disables the ability for users to tag pages. Check this box if you do not use tags on your front end for related content.</p>",
+        "locked": "",
+        "encrypted": "",
+        "extension": null
+    },
+    {
+        "id": "bigtree-internal-per-page",
+        "type": "text",
+        "settings": null,
+        "name": "Number of Items Per Page",
+        "description": "<p>This should be a numeric amount and controls the number of items per page in areas such as views, settings, users, etc.</p>",
+        "locked": "on",
+        "encrypted": "",
+        "extension": null
+    }
+]

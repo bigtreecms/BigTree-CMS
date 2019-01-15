@@ -1,0 +1,40 @@
+[
+    {
+        "file": [],
+        "image": [],
+        "video": [],
+        "id": "file-metadata"
+    },
+    {
+        "presets": {
+            "default": {
+                "id": "default",
+                "name": "File Manager Preset",
+                "min_width": "",
+                "min_height": "",
+                "preview_prefix": "small-",
+                "thumbs": [
+                    {
+                        "prefix": "small-",
+                        "width": "500",
+                        "height": "300",
+                        "grayscale": ""
+                    },
+                    {
+                        "prefix": "medium-",
+                        "width": "720",
+                        "height": "600",
+                        "grayscale": ""
+                    },
+                    {
+                        "prefix": "large-",
+                        "width": "1280",
+                        "height": "",
+                        "grayscale": ""
+                    }
+                ]
+            }
+        },
+        "id": "media-settings"
+    }
+]

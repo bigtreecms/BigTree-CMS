@@ -1,0 +1,300 @@
+[
+    {
+        "id": "modules-15c3df733b7e8c",
+        "group": null,
+        "name": "News",
+        "route": "news",
+        "class": "TimberNews",
+        "icon": "news",
+        "gbp": {
+            "name": "",
+            "table": "",
+            "item_parser": "",
+            "other_table": ""
+        },
+        "position": "0",
+        "extension": null,
+        "actions": [
+            {
+                "id": "actions-15c3df733b8932",
+                "name": "View News",
+                "route": "",
+                "in_nav": "on",
+                "form": null,
+                "view": "views-15c3df733b83c2",
+                "report": null,
+                "class": "list",
+                "level": "0",
+                "position": 3
+            },
+            {
+                "id": "actions-15c3df733b8935",
+                "name": "Add News",
+                "route": "add",
+                "in_nav": "on",
+                "form": "forms-15c3df733b85c4",
+                "view": null,
+                "report": null,
+                "class": "add",
+                "level": "0",
+                "position": 2
+            },
+            {
+                "id": "actions-15c3df733b8936",
+                "name": "Edit News",
+                "route": "edit",
+                "in_nav": "",
+                "form": "forms-15c3df733b85c4",
+                "view": null,
+                "report": null,
+                "class": "edit",
+                "level": "0",
+                "position": 1
+            }
+        ],
+        "embeddable-forms": [
+            {
+                "id": "1",
+                "title": "Submit A Story",
+                "table": "timber_news",
+                "fields": [
+                    {
+                        "title": "Date",
+                        "subtitle": "",
+                        "type": "date",
+                        "settings": {
+                            "validation": "required",
+                            "default_today": "on"
+                        },
+                        "column": "date"
+                    },
+                    {
+                        "title": "Title",
+                        "subtitle": "",
+                        "type": "text",
+                        "settings": {
+                            "validation": "required",
+                            "sub_type": "",
+                            "max_length": ""
+                        },
+                        "column": "title"
+                    },
+                    {
+                        "title": "Blurb",
+                        "subtitle": "",
+                        "type": "textarea",
+                        "settings": null,
+                        "column": "blurb"
+                    },
+                    {
+                        "title": "Content",
+                        "subtitle": "",
+                        "type": "html",
+                        "settings": {
+                            "validation": "required",
+                            "simple": "on",
+                            "simple_by_permission": "0"
+                        },
+                        "column": "content"
+                    }
+                ],
+                "default_position": "",
+                "default_pending": "on",
+                "css": "{staticroot}css/forms.css",
+                "hash": "57a8a4619e039",
+                "redirect_url": "",
+                "thank_you_message": "<p>Thanks for the tip! Your submission is pending review.&nbsp;</p>",
+                "hooks": []
+            }
+        ],
+        "forms": [
+            {
+                "id": "forms-15c3df733b85c4",
+                "title": "News",
+                "table": "timber_news",
+                "fields": [
+                    {
+                        "title": "Title",
+                        "subtitle": "",
+                        "type": "text",
+                        "options": [],
+                        "column": "title",
+                        "settings": []
+                    },
+                    {
+                        "title": "Route",
+                        "subtitle": "",
+                        "type": "route",
+                        "options": {
+                            "source": "title"
+                        },
+                        "column": "route",
+                        "settings": {
+                            "source": "title"
+                        }
+                    },
+                    {
+                        "title": "Date",
+                        "subtitle": "",
+                        "type": "date",
+                        "options": [],
+                        "column": "date",
+                        "settings": []
+                    },
+                    {
+                        "title": "Image",
+                        "subtitle": "Min 980x654px",
+                        "type": "image",
+                        "options": {
+                            "directory": "files/modules/",
+                            "image": "on",
+                            "min_width": "980",
+                            "min_height": "654",
+                            "preview_prefix": "sml_",
+                            "crops": [
+                                {
+                                    "prefix": "",
+                                    "width": "980",
+                                    "height": "654",
+                                    "grayscale": "",
+                                    "thumbs": [
+                                        null,
+                                        {
+                                            "prefix": "lrg_",
+                                            "width": "740",
+                                            "height": "",
+                                            "grayscale": ""
+                                        },
+                                        {
+                                            "prefix": "med_",
+                                            "width": "500",
+                                            "height": "",
+                                            "grayscale": ""
+                                        }
+                                    ],
+                                    "center_crops": [
+                                        null,
+                                        {
+                                            "prefix": "sml_",
+                                            "width": "300",
+                                            "height": "200",
+                                            "grayscale": ""
+                                        },
+                                        {
+                                            "prefix": "sqr_",
+                                            "width": "300",
+                                            "height": "300",
+                                            "grayscale": ""
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "column": "image",
+                        "settings": {
+                            "directory": "files/modules/",
+                            "min_width": "980",
+                            "min_height": "654",
+                            "preview_prefix": "sml_",
+                            "crops": [
+                                {
+                                    "prefix": "",
+                                    "width": "980",
+                                    "height": "654",
+                                    "grayscale": "",
+                                    "thumbs": [
+                                        null,
+                                        {
+                                            "prefix": "lrg_",
+                                            "width": "740",
+                                            "height": "",
+                                            "grayscale": ""
+                                        },
+                                        {
+                                            "prefix": "med_",
+                                            "width": "500",
+                                            "height": "",
+                                            "grayscale": ""
+                                        }
+                                    ],
+                                    "center_crops": [
+                                        null,
+                                        {
+                                            "prefix": "sml_",
+                                            "width": "300",
+                                            "height": "200",
+                                            "grayscale": ""
+                                        },
+                                        {
+                                            "prefix": "sqr_",
+                                            "width": "300",
+                                            "height": "300",
+                                            "grayscale": ""
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "title": "Blurb",
+                        "subtitle": "",
+                        "type": "textarea",
+                        "options": [],
+                        "column": "blurb",
+                        "settings": []
+                    },
+                    {
+                        "title": "Content",
+                        "subtitle": "",
+                        "type": "html",
+                        "options": [],
+                        "column": "content",
+                        "settings": []
+                    }
+                ],
+                "default_position": "",
+                "return_view": null,
+                "return_url": "",
+                "open_graph": "",
+                "tagging": "",
+                "hooks": []
+            }
+        ],
+        "reports": [],
+        "views": [
+            {
+                "id": "views-15c3df733b83c2",
+                "title": "News",
+                "description": "This is an example of a view that uses a Parser and has had it's columns resized through the view resizing interface.",
+                "type": "searchable",
+                "table": "timber_news",
+                "fields": {
+                    "date": {
+                        "width": "173",
+                        "title": "Date",
+                        "parser": "$value = date(\"Y-m-d\", strtotime($value));",
+                        "numeric": false
+                    },
+                    "title": {
+                        "width": "595",
+                        "title": "Title",
+                        "parser": "",
+                        "numeric": false
+                    }
+                },
+                "settings": {
+                    "filter": "",
+                    "sort": "`date` DESC",
+                    "per_page": "15"
+                },
+                "actions": {
+                    "edit": "on",
+                    "delete": "on"
+                },
+                "preview_url": "",
+                "related_form": null
+            }
+        ]
+    }
+]

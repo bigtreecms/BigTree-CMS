@@ -1,0 +1,141 @@
+[
+    {
+        "id": "bigtree-internal-disable-page-tagging",
+        "type": "checkbox",
+        "settings": null,
+        "name": "Disable Tagging in Pages",
+        "description": "<p>Disables the ability for users to tag pages. Check this box if you do not use tags on your front end for related content.</p>",
+        "locked": "",
+        "encrypted": "",
+        "extension": null
+    },
+    {
+        "id": "bigtree-internal-per-page",
+        "type": "text",
+        "settings": null,
+        "name": "Number of Items Per Page",
+        "description": "<p>This should be a numeric amount and controls the number of items per page in areas such as views, settings, users, etc.</p>",
+        "locked": "on",
+        "encrypted": "",
+        "extension": null
+    },
+    {
+        "id": "navigation-secondary",
+        "type": "matrix",
+        "settings": {
+            "max": "",
+            "style": "list",
+            "columns": [
+                {
+                    "type": "text",
+                    "id": "title",
+                    "title": "Title",
+                    "subtitle": "",
+                    "display_title": "on",
+                    "options": "",
+                    "settings": "null"
+                },
+                {
+                    "type": "link",
+                    "id": "link",
+                    "title": "Link",
+                    "subtitle": "Including 'http://'",
+                    "options": "",
+                    "settings": "null"
+                }
+            ]
+        },
+        "name": "Navigation - Secondary",
+        "description": "",
+        "locked": "",
+        "encrypted": "",
+        "extension": null
+    },
+    {
+        "id": "navigation-social",
+        "type": "matrix",
+        "settings": {
+            "max": "",
+            "style": "list",
+            "columns": [
+                {
+                    "type": "text",
+                    "id": "title",
+                    "title": "Title",
+                    "subtitle": "",
+                    "display_title": "on",
+                    "options": "",
+                    "settings": "null"
+                },
+                {
+                    "type": "link",
+                    "id": "link",
+                    "title": "Link",
+                    "subtitle": "Including 'http://'",
+                    "options": "",
+                    "settings": "null"
+                }
+            ]
+        },
+        "name": "Navigation - Social",
+        "description": "",
+        "locked": "",
+        "encrypted": "",
+        "extension": null
+    },
+    {
+        "id": "page-image-fallback",
+        "type": "image",
+        "settings": {
+            "directory": "files/settings/",
+            "min_width": "1440",
+            "min_height": "810",
+            "preview_prefix": "sml_",
+            "crops": [
+                {
+                    "prefix": "",
+                    "width": "1440",
+                    "height": "810",
+                    "grayscale": "",
+                    "center_crops": [
+                        null,
+                        {
+                            "prefix": "sqr_",
+                            "width": "500",
+                            "height": "500",
+                            "grayscale": ""
+                        }
+                    ],
+                    "thumbs": [
+                        null,
+                        null,
+                        null,
+                        {
+                            "prefix": "sml_",
+                            "width": "740",
+                            "height": "",
+                            "grayscale": ""
+                        },
+                        {
+                            "prefix": "med_",
+                            "width": "980",
+                            "height": "",
+                            "grayscale": ""
+                        },
+                        {
+                            "prefix": "lrg_",
+                            "width": "1220",
+                            "height": "",
+                            "grayscale": ""
+                        }
+                    ]
+                }
+            ]
+        },
+        "name": "Page Image Fallback",
+        "description": "",
+        "locked": "",
+        "encrypted": "",
+        "extension": null
+    }
+]

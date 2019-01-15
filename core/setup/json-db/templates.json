@@ -1,0 +1,34 @@
+[
+    {
+        "id": "content",
+        "name": "Content",
+        "routed": "",
+        "resources": [
+            {
+                "id": "page_header",
+                "title": "Page Header",
+                "subtitle": "",
+                "type": "text",
+                "settings": {
+                    "validation": "required",
+                    "max_length": "125",
+                    "seo_h1": "on"
+                }
+            },
+            {
+                "id": "page_content",
+                "title": "Page Content",
+                "subtitle": "",
+                "type": "html",
+                "settings": {
+                    "seo_body": "on"
+                }
+            }
+        ],
+        "hooks": [],
+        "module": null,
+        "level": "0",
+        "position": "0",
+        "extension": null
+    }
+]

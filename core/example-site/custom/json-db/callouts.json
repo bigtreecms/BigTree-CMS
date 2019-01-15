@@ -1,0 +1,454 @@
+[
+    {
+        "id": "content-callout",
+        "name": "Flexible Callout - In-Content",
+        "description": "",
+        "display_default": "Callout",
+        "display_field": "heading",
+        "resources": [
+            {
+                "id": "image",
+                "type": "image",
+                "title": "Image",
+                "subtitle": "Min 500x300px",
+                "options": {
+                    "directory": "files/callouts/",
+                    "image": "on",
+                    "min_width": "500",
+                    "min_height": "300",
+                    "preview_prefix": "",
+                    "crops": [
+                        {
+                            "prefix": "",
+                            "width": "500",
+                            "height": "282",
+                            "grayscale": ""
+                        },
+                        {
+                            "prefix": "sqr_",
+                            "width": "300",
+                            "height": "300",
+                            "grayscale": ""
+                        }
+                    ]
+                },
+                "settings": {
+                    "directory": "files/callouts/",
+                    "min_width": "500",
+                    "min_height": "300",
+                    "preview_prefix": "",
+                    "crops": [
+                        {
+                            "prefix": "",
+                            "width": "500",
+                            "height": "282",
+                            "grayscale": ""
+                        },
+                        {
+                            "prefix": "sqr_",
+                            "width": "300",
+                            "height": "300",
+                            "grayscale": ""
+                        }
+                    ]
+                }
+            },
+            {
+                "id": "heading",
+                "type": "text",
+                "title": "Heading",
+                "subtitle": "",
+                "options": [],
+                "settings": []
+            },
+            {
+                "id": "blurb",
+                "type": "html",
+                "title": "Blurb",
+                "subtitle": "",
+                "options": {
+                    "simple": "on",
+                    "simple_by_permission": "0"
+                },
+                "settings": {
+                    "simple": "on",
+                    "simple_by_permission": "0"
+                }
+            },
+            {
+                "id": "link_title",
+                "type": "text",
+                "title": "Link Title",
+                "subtitle": "",
+                "options": [],
+                "settings": []
+            },
+            {
+                "id": "link_url",
+                "type": "link",
+                "title": "Link URL",
+                "subtitle": "Including 'http://'",
+                "options": [],
+                "settings": []
+            }
+        ],
+        "level": "0",
+        "position": "2",
+        "extension": null
+    },
+    {
+        "id": "full-callout",
+        "name": "Flexible Callout - Full Width",
+        "description": "",
+        "display_default": "Callout",
+        "display_field": "heading",
+        "resources": [
+            {
+                "id": "image",
+                "type": "image",
+                "title": "Image",
+                "subtitle": "Min 740x416px",
+                "options": {
+                    "directory": "files/callouts/",
+                    "image": "on",
+                    "min_width": "740",
+                    "min_height": "416",
+                    "preview_prefix": "sml_",
+                    "crops": [
+                        {
+                            "prefix": "",
+                            "width": "740",
+                            "height": "416",
+                            "grayscale": "",
+                            "thumbs": [
+                                null,
+                                {
+                                    "prefix": "sml_",
+                                    "width": "500",
+                                    "height": "",
+                                    "grayscale": ""
+                                }
+                            ],
+                            "center_crops": [
+                                null,
+                                {
+                                    "prefix": "sqr_",
+                                    "width": "300",
+                                    "height": "300",
+                                    "grayscale": ""
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "settings": {
+                    "directory": "files/callouts/",
+                    "min_width": "740",
+                    "min_height": "416",
+                    "preview_prefix": "sml_",
+                    "crops": [
+                        {
+                            "prefix": "",
+                            "width": "740",
+                            "height": "416",
+                            "grayscale": "",
+                            "thumbs": [
+                                null,
+                                {
+                                    "prefix": "sml_",
+                                    "width": "500",
+                                    "height": "",
+                                    "grayscale": ""
+                                }
+                            ],
+                            "center_crops": [
+                                null,
+                                {
+                                    "prefix": "sqr_",
+                                    "width": "300",
+                                    "height": "300",
+                                    "grayscale": ""
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "id": "heading",
+                "type": "text",
+                "title": "Heading",
+                "subtitle": "",
+                "options": [],
+                "settings": []
+            },
+            {
+                "id": "blurb",
+                "type": "html",
+                "title": "Blurb",
+                "subtitle": "",
+                "options": {
+                    "simple": "on",
+                    "simple_by_permission": "0"
+                },
+                "settings": {
+                    "simple": "on",
+                    "simple_by_permission": "0"
+                }
+            },
+            {
+                "id": "link_title",
+                "type": "text",
+                "title": "Link Title",
+                "subtitle": "",
+                "options": [],
+                "settings": []
+            },
+            {
+                "id": "link_url",
+                "type": "link",
+                "title": "Link URL",
+                "subtitle": "Including 'http://'",
+                "options": [],
+                "settings": []
+            }
+        ],
+        "level": "0",
+        "position": "1",
+        "extension": null
+    },
+    {
+        "id": "full-gallery",
+        "name": "Image Gallery - Full Width",
+        "description": "",
+        "display_default": "Gallery",
+        "display_field": "heading",
+        "resources": [
+            {
+                "id": "heading",
+                "type": "text",
+                "title": "Heading",
+                "subtitle": "",
+                "options": [],
+                "settings": []
+            },
+            {
+                "id": "images",
+                "type": "media-gallery",
+                "title": "Images",
+                "subtitle": "Min 1220x686px",
+                "options": {
+                    "directory": "files/callouts/",
+                    "min_width": "1220",
+                    "min_height": "686",
+                    "preview_prefix": "sml_",
+                    "crops": [
+                        {
+                            "prefix": "",
+                            "width": "1220",
+                            "height": "686",
+                            "grayscale": "",
+                            "thumbs": [
+                                null,
+                                {
+                                    "prefix": "sml_",
+                                    "width": "500",
+                                    "height": "",
+                                    "grayscale": ""
+                                },
+                                {
+                                    "prefix": "med_",
+                                    "width": "740",
+                                    "height": "",
+                                    "grayscale": ""
+                                },
+                                {
+                                    "prefix": "lrg_",
+                                    "width": "980",
+                                    "height": "",
+                                    "grayscale": ""
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "settings": {
+                    "directory": "files/callouts/",
+                    "min_width": "1220",
+                    "min_height": "686",
+                    "preview_prefix": "sml_",
+                    "crops": [
+                        {
+                            "prefix": "",
+                            "width": "1220",
+                            "height": "686",
+                            "grayscale": "",
+                            "thumbs": [
+                                null,
+                                {
+                                    "prefix": "sml_",
+                                    "width": "500",
+                                    "height": "",
+                                    "grayscale": ""
+                                },
+                                {
+                                    "prefix": "med_",
+                                    "width": "740",
+                                    "height": "",
+                                    "grayscale": ""
+                                },
+                                {
+                                    "prefix": "lrg_",
+                                    "width": "980",
+                                    "height": "",
+                                    "grayscale": ""
+                                }
+                            ]
+                        }
+                    ],
+                    "disable_youtube": "on",
+                    "disable_vimeo": "on",
+                    "columns": [
+                        {
+                            "type": "text",
+                            "id": "caption",
+                            "title": "Caption"
+                        }
+                    ]
+                }
+            }
+        ],
+        "level": "0",
+        "position": "3",
+        "extension": null
+    },
+    {
+        "id": "full-news",
+        "name": "News - Full Width",
+        "description": "",
+        "display_default": "News",
+        "display_field": "heading",
+        "resources": [
+            {
+                "id": "heading",
+                "type": "text",
+                "title": "Heading",
+                "subtitle": "",
+                "options": [],
+                "settings": []
+            }
+        ],
+        "level": "0",
+        "position": "0",
+        "extension": null
+    },
+    {
+        "id": "sidebar-callout",
+        "name": "Flexible Callout - Sidebar",
+        "description": "",
+        "display_default": "Callout",
+        "display_field": "heading",
+        "resources": [
+            {
+                "id": "image",
+                "type": "image",
+                "title": "Image",
+                "subtitle": "Min 500x334px",
+                "options": {
+                    "directory": "files/callouts/",
+                    "image": "on",
+                    "min_width": "500",
+                    "min_height": "334",
+                    "preview_prefix": "",
+                    "crops": [
+                        {
+                            "prefix": "",
+                            "width": "500",
+                            "height": "334",
+                            "grayscale": ""
+                        }
+                    ],
+                    "center_crops": [
+                        {
+                            "prefix": "sqr_",
+                            "width": "300",
+                            "height": "300",
+                            "grayscale": ""
+                        }
+                    ]
+                },
+                "settings": {
+                    "directory": "files/callouts/",
+                    "min_width": "500",
+                    "min_height": "334",
+                    "preview_prefix": "",
+                    "crops": [
+                        {
+                            "prefix": "",
+                            "width": "500",
+                            "height": "334",
+                            "grayscale": ""
+                        }
+                    ],
+                    "center_crops": [
+                        {
+                            "prefix": "sqr_",
+                            "width": "300",
+                            "height": "300",
+                            "grayscale": ""
+                        }
+                    ]
+                }
+            },
+            {
+                "id": "heading",
+                "type": "text",
+                "title": "Heading",
+                "subtitle": "",
+                "options": {
+                    "validation": "",
+                    "sub_type": "",
+                    "max_length": ""
+                },
+                "settings": {
+                    "validation": "",
+                    "sub_type": "",
+                    "max_length": ""
+                }
+            },
+            {
+                "id": "blurb",
+                "type": "html",
+                "title": "Blurb",
+                "subtitle": "",
+                "options": {
+                    "simple": "on",
+                    "simple_by_permission": "0"
+                },
+                "settings": {
+                    "simple": "on",
+                    "simple_by_permission": "0"
+                }
+            },
+            {
+                "id": "link_title",
+                "type": "text",
+                "title": "Link Title",
+                "subtitle": "",
+                "options": [],
+                "settings": []
+            },
+            {
+                "id": "link_url",
+                "type": "link",
+                "title": "Link URL",
+                "subtitle": "Including 'http://'",
+                "options": [],
+                "settings": []
+            }
+        ],
+        "level": "0",
+        "position": "4",
+        "extension": null
+    }
+]

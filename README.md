@@ -42,6 +42,11 @@ Changelog
 - REMOVED: Meta Keywords (which are no longer used by any significant search engine)
 - REMOVED: Photo Gallery field type (this has been replaced with the more robust Media Gallery and existing fields have been converted)
 
+### 4.3.4
+- FIXED: Multi-site 301 creation when an existing 404 was already in place
+- FIXED: Head tags context when on a 404 page
+- FIXED: Open graph priorities for module content so that Open Graph explicit data title > context title.
+
 ### 4.3.3
 - ADDED: BigTreeCMS::getResource method for use with reference fields
 - ADDED: A confirmation dialog now appears when permanently deleting archived pages.
