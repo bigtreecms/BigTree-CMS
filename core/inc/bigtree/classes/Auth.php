@@ -295,7 +295,7 @@
 					"csrf_token_field" => CSRF::$Field
 				]);
 				
-				if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+				if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
 					// Create another unique cache session for logins across domains
 					$cache_data = [
 						"user_id" => $user->ID,

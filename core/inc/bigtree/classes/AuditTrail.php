@@ -50,6 +50,7 @@
 		static function search(?string $user = null, ?string $table = null, ?string $entry = null,
 							   ?string $start = null, ?string $end = null): array {
 			$users = $where = $parameters = [];
+			$deleted_users = Setting::value("bigtree-internal-deleted-users");
 			$query = "SELECT * FROM bigtree_audit_trail";
 			
 			if (!is_null($user)) {
@@ -86,12 +87,18 @@
 			
 			foreach ($entries as &$entry) {
 				// Check the user cache
-				if (!$users[$entry["user"]] && $entry["user"]) {
+				if (!isset($users[$entry["user"]]) && $entry["user"]) {
 					$user = SQL::fetch("SELECT id,name,email,level FROM bigtree_users WHERE id = ?", $entry["user"]);
 					$users[$entry["user"]] = $user;
 				}
 				
-				$entry["user"] = $users[$entry["user"]];
+				if (empty($users[$entry["user"]])) {
+					$entry["user"] = $deleted_users[$entry["user"]];
+					$entry["user"]["deleted"] = true;
+				} else {
+					$entry["user"] = $users[$entry["user"]];
+					$entry["user"]["deleted"] = false;
+				}
 			}
 			
 			return $entries;

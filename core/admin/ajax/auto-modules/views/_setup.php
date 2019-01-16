@@ -9,6 +9,7 @@
 	
 	// Grab View Data
 	$view = new ModuleView($_GET["view"]);
+	$related_form = $view->RelatedForm;
 	$table = $view->Table;
 
 	// Get module
@@ -31,3 +32,12 @@
 			$access_level = $original_access_level;
 		}
 	}
+	
+	$run_publish_hook = function($changes) use ($id, $related_form, $table) {
+		if (empty($related_form->Hooks["publish"])) {
+			return;
+		}
+		
+		call_user_func($related_form->Hooks["publish"], $table, $id, $changes, null, null);
+	};
+	

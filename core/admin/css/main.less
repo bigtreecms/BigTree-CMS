@@ -580,7 +580,7 @@
 		border-bottom: 1px solid #ccc;
 		border-radius: 2px 2px 0 0;
 		height: 37px;
-		line-height: 37px;
+		line-height: 36px;
 		padding: 0 6px 0 15px;
 
 		input { float: left; margin: 5px 25px 0 -10px; }
@@ -605,17 +605,19 @@
 
 		.select {
 			float: right;
-			height: 26px;
-			line-height: 26px;
-			margin: 5px 0 0 0;
+			height: 24px;
+			line-height: 24px;
+			margin: 5px 0 0 10px;
 
 			span {
-				height: 26px !important;
+				height: 24px !important;
 
 				.handle {
-					background-color: #F2F2F2;
-					height: 28px;
-					top: -2px;
+					background: #F2F2F2 url(../images/icon-sprite.svg) -343px -105px;
+					border-left: 1px solid #CCC;
+					height: 27px;
+					top: -3px;
+					width: 29px;
 				}
 			}
 		}
@@ -696,13 +698,13 @@
 	.table .table_sort_column em { font-size: 7px; padding: 0 0 0 5px; }
 
 	/* Pagination Styles */
-	.view_paging { background: #fff; border: 1px solid #ccc; border-radius: 3px; float: right; height: 24px; margin: 5px 0 0 10px; overflow: hidden; padding: 0 0 0 1px; .no_user_select; }
+	.view_paging { background: #fff; border: 1px solid #ccc; border-radius: 3px; float: right; height: 24px; margin: 5px 0 0 0; overflow: hidden; padding: 0 0 0 1px; user-select: none; }
 	.view_paging a { background: #fff; color: #999; display: block; float: left; font-size: 12px; height: 24px; line-height: 24px; margin: 0; padding: 0 10px; transition: background-color 0.2s; }
-	.view_paging a:hover { color: #666; }
-	.view_paging .active, .view_paging .active:hover { background-color: #eee; color: #666; }
-	.view_paging .first { border-radius: 2px 0 0 2px; height: 17px; padding-top: 7px; text-indent: -1000px; width: 6px; }
+	.view_paging a:hover { background: #EEE; color: #666; }
+	.view_paging .active, .view_paging .active:hover { background-color: #59A8E9; color: #FFF; }
+	.view_paging .first { border-radius: 2px 0 0 2px; height: 16px; padding-top: 8px; text-indent: -1000px; width: 6px; }
 	.view_paging .first span { background: url(../images/icon-sprite.svg) no-repeat -137px -116px; display: block; height: 9px; width: 6px; }
-	.view_paging .last { border-radius: 0 2px 2px 0; border-right: none; height: 17px; padding-top: 7px; text-indent: -1000px; width: 6px; }
+	.view_paging .last { border-radius: 0 2px 2px 0; border-right: none; height: 16px; padding-top: 8px; text-indent: -1000px; width: 6px; }
 	.view_paging .last span { background: url(../images/icon-sprite.svg) no-repeat -137px -125px; display: block; height: 9px; width: 6px; }
 	.view_paging .first:hover, .view_paging .last:hover { background: #fff; }
 	.view_paging .ellipsis { padding: 0 5px; }

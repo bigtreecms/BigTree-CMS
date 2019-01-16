@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	// See if we have cloud support
-	$cloud_options = array();
+	$cloud_options = [];
 	$directory = "";
 
 	if (!$_POST["cloud_disabled"] || $_POST["cloud_disabled"] == "false") {
@@ -28,27 +28,17 @@
 	}
 
 	$location = !empty($_POST["location"]) ? $_POST["location"] : "server";
-	$subdirectories = array();
-	$files = array();
-	$containers = array();
-
+	$subdirectories = [];
+	$files = [];
+	$containers = [];
+	
 	// Get the post directory
 	$postcontainer = !empty($_POST["container"]) ? $_POST["container"] : "";
-	$parts = explode("/", $_POST["directory"]);
-	$postdirectory = array();
-
-	foreach ($parts as $part) {
-		if ($part == "..") {
-			unset($postdirectory[count($postdirectory) - 1]);
-		} elseif ($part) {
-			$postdirectory[] = $part;
-		}
-	}
-
-	if (count($postdirectory)) {
-		$postdirectory = implode("/", $postdirectory)."/";
+	
+	if ($_POST["location"] == "server") {
+		$postdirectory = FileSystem::getSafePath($_POST["directory"]);
 	} else {
-		$postdirectory = "";
+		$postdirectory = $_POST["directory"];
 	}
 
 	// Local storage is being browsed

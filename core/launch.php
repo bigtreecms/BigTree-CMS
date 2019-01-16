@@ -81,7 +81,7 @@
 	}
 
     // See if we're in a multi-domain setup
-    if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+    if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
         // Figure out which domain we're in
         foreach ($bigtree["config"]["sites"] as $site_key => $site_data) {
             $domain_match = str_replace(array("http://", "https://"), "", $site_data["domain"]);

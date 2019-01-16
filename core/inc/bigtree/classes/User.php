@@ -149,6 +149,15 @@
 			SQL::delete(static::$Table, $this->ID);
 			AuditTrail::track(static::$Table, $this->ID, "deleted");
 			
+			// Add the user to the deleted users cache
+			$deleted_users = new Setting("bigtree-internal-deleted-users");
+			$deleted_users->Value[$this->ID] = array(
+				"name" => $this->Name,
+				"email" => $this->Email,
+				"company" => $this->Company
+			);
+			$deleted_users->save();
+			
 			return true;
 		}
 		

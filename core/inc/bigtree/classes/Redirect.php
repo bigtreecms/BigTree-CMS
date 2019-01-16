@@ -52,6 +52,8 @@
 		static function catch404(): void {
 			global $admin, $bigtree, $cms, $db;
 			
+			Router::checkPathHistory($bigtree["path"]);
+			
 			// Wipe any content that's already been drawn
 			ob_clean();
 			

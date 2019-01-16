@@ -1,6 +1,6 @@
 <?php
 	namespace BigTree;
-
+	
 	/**
 	 * @global string $access_level
 	 * @global ModuleForm $form
@@ -8,8 +8,9 @@
 	 * @global array $item
 	 * @global Module $module
 	 * @global string $table
+	 * @global callable $run_publish_hook
 	 */
-
+	
 	include "_setup.php";
 	
 	if ($item["approved"]) {
@@ -19,7 +20,8 @@
 			$message = "Item is now unapproved.";
 			
 			if (is_numeric($id)) {
-				SQL::update($table, $id, array("approved" => ""));
+				SQL::update($table, $id, ["approved" => ""]);
+				$run_publish_hook(["approved" => ""]);
 			} else {
 				$form->updatePendingEntryField(substr($id, 1), "approved", "");
 			}
@@ -29,9 +31,10 @@
 			$message = "You don't have permission to perform this action.";
 		} else {
 			$message = "Item is now approved.";
-
+			
 			if (is_numeric($id)) {
-				SQL::update($table, $id, array("approved" => "on"));
+				SQL::update($table, $id, ["approved" => "on"]);
+				$run_publish_hook(["approved" => "on"]);
 			} else {
 				$form->updatePendingEntryField(substr($id, 1), "approved", "on");
 			}

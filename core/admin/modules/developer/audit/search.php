@@ -9,6 +9,7 @@
 	
 	$results = AuditTrail::search($_GET["user"], $_GET["table"], $_GET["entry"], $_GET["start"], $_GET["end"]);
 	$json_data = array();
+	$deleted_translation = Text::translate("DELETED");
 	
 	// Setup a cache so we don't query for things more than once
 	$cache = array();
@@ -42,6 +43,7 @@
 				if (!$data) {
 					$data = SQL::fetch("SELECT name FROM bigtree_extensions WHERE id = ?", $result["entry"]);
 				}
+				
 				$title = $data ? $data["name"] : $result["entry"];
 				$link = $data ? DEVELOPER_ROOT."extensions/edit/".$result["entry"]."/" : false;
 			}
@@ -51,6 +53,7 @@
 				if (!$data) {
 					$data = SQL::fetch("SELECT name FROM bigtree_feeds WHERE id = ?", $result["entry"]);
 				}
+				
 				$title = $data ? $data["name"] : $result["entry"];
 				$link = $data ? DEVELOPER_ROOT."feeds/edit/".$result["entry"]."/" : false;
 			}
@@ -60,6 +63,7 @@
 				if (!$data) {
 					$data = SQL::fetch("SELECT name FROM bigtree_field_types WHERE id = ?", $result["entry"]);
 				}
+				
 				$title = $data ? $data["name"] : $result["entry"];
 				$link = $data ? DEVELOPER_ROOT."field-types/edit/".$result["entry"]."/" : false;
 			}
@@ -69,6 +73,7 @@
 				if (!$data) {
 					$data = SQL::fetch("SELECT name,system FROM bigtree_settings WHERE id = ?", $result["entry"]);
 				}
+				
 				if (!$data || $data["system"]) {
 					$title = $result["entry"];
 				} elseif ($data) {
@@ -82,6 +87,7 @@
 				if (!$data) {
 					$data = SQL::fetch("SELECT name FROM bigtree_callouts WHERE id = ?", $result["entry"]);
 				}
+				
 				$title = $data ? $data["name"] : $result["entry"];
 				$link = $data ? DEVELOPER_ROOT."callouts/edit/".$result["entry"]."/" : false;
 			}
@@ -91,6 +97,7 @@
 				if (!$data) {
 					$data = SQL::fetch("SELECT name FROM bigtree_callout_groups WHERE id = ?", $result["entry"]);
 				}
+				
 				$title = $data ? $data["name"] : $result["entry"];
 				$link = $data ? DEVELOPER_ROOT."callouts/groups/edit/".$result["entry"]."/" : false;
 			}
@@ -100,6 +107,7 @@
 				if (!$data) {
 					$data = SQL::fetch("SELECT name FROM bigtree_templates WHERE id = ?", $result["entry"]);
 				}
+				
 				$title = $data ? $data["name"] : $result["entry"];
 				$link = $data ? DEVELOPER_ROOT."templates/edit/".$result["entry"]."/" : false;
 			}
@@ -109,6 +117,7 @@
 				if (!$data) {
 					$data = SQL::fetch("SELECT name FROM bigtree_modules WHERE id = ?", $result["entry"]);
 				}
+				
 				$title = $data ? $data["name"] : $result["entry"];
 				$link = $data ? DEVELOPER_ROOT."modules/edit/".$result["entry"]."/" : false;
 			}
@@ -118,6 +127,7 @@
 				if (!$data) {
 					$data = SQL::fetch("SELECT name FROM bigtree_module_groups WHERE id = ?", $result["entry"]);
 				}
+				
 				$title = $data ? $data["name"] : $result["entry"];
 				$link = $data ? DEVELOPER_ROOT."modules/groups/edit/".$result["entry"]."/" : false;
 			}
@@ -127,10 +137,12 @@
 				if (!$data) {
 					$data = SQL::fetch("SELECT title,type FROM bigtree_module_interfaces WHERE id = ?", $result["entry"]);
 				}
+				
 				if (!$data) {
 					$title = $result["entry"];
 				} else {
 					$title = $data["title"];
+					
 					if ($data["type"] == "form") {
 						$link = DEVELOPER_ROOT."modules/forms/edit/".$result["entry"]."/";
 					} elseif ($data["type"] == "view") {
@@ -151,6 +163,7 @@
 				if (!$data) {
 					$data = SQL::fetch("SELECT name FROM bigtree_module_actions WHERE id = ?", $result["entry"]);
 				}
+				
 				$title = $data ? $data["name"] : $result["entry"];
 				$link = $data ? DEVELOPER_ROOT."modules/actions/edit/".$result["entry"]."/" : false;
 			}
@@ -160,6 +173,7 @@
 				if (!$data) {
 					$data = SQL::fetch("SELECT name FROM bigtree_users WHERE id = ?", $result["entry"]);
 				}
+				
 				$title = $data ? $data["name"] : $result["entry"];
 				$link = $data ? ADMIN_ROOT."users/edit/".$result["entry"]."/" : false;
 			}
@@ -169,6 +183,7 @@
 				if (!$data) {
 					$data = SQL::fetch("SELECT nav_title FROM bigtree_pages WHERE id = ?", $result["entry"]);
 				}
+				
 				$title = $data ? $data["nav_title"] : $result["entry"];
 				$link = $data ? ADMIN_ROOT."pages/edit/".$result["entry"]."/" : false;
 			}
@@ -178,6 +193,7 @@
 				if (!$data) {
 					$data = SQL::fetch("SELECT file FROM bigtree_resources WHERE id = ?", $result["entry"]);
 				}
+				
 				if ($data) {
 					$path = pathinfo($data["file"]);
 					$title = $path["basename"];
@@ -191,6 +207,7 @@
 				if (!$data) {
 					$data = SQL::fetch("SELECT name FROM bigtree_resource_folders WHERE id = ?", $result["entry"]);
 				}
+				
 				$title = $data ? $data["name"] : $result["entry"];
 			}
 			
@@ -199,6 +216,7 @@
 				if (!$data) {
 					$data = SQL::fetch("SELECT tag FROM bigtree_tags WHERE id = ?", $result["entry"]);
 				}
+				
 				$title = $data ? $data["tag"] : $result["entry"];
 			}
 			
@@ -211,6 +229,7 @@
 					$action = SQL::fetch("SELECT route, module FROM bigtree_module_actions 
 										  WHERE interface = ? AND route LIKE 'edit%'", $data["id"]);
 					$module = SQL::fetch("SELECT route FROM bigtree_modules WHERE id = ?", $action["module"]);
+					
 					if (!empty($action) && !empty($module)) {
 						$title = "View Entry";
 						$link = ADMIN_ROOT.$module["route"]."/".$action["route"]."/".$result["entry"]."/";
@@ -227,9 +246,19 @@
 			$link = "";
 		}
 		
+		if ($result["user"]["deleted"]) {
+			$user_text = '<a href="'.DEVELOPER_ROOT.'audit/search/?user='.$result["user"]["id"].CSRF::drawGETToken().'">'.
+							$result["user"]["name"]." ($deleted_translation)".
+						 '</a>';
+		} else {
+			$user_text = '<a target="_blank" href="'.ADMIN_ROOT.'users/edit/'.$result["user"]["id"].'/">'.
+							$result["user"]["name"].
+						 '</a>';
+		}
+		
 		$json_data[] = array(
 			"date" => date($bigtree["config"]["date_format"]." @ g:ia", strtotime($result["date"])),
-			"user" => '<a target="_blank" href="'.ADMIN_ROOT.'users/edit/'.$result["user"]["id"].'/">'.$result["user"]["name"].'</a>',
+			"user" => $user_text,
 			"table" => $result["table"],
 			"entry" => $link ? '<a href="'.$link.'" target="_blank">'.$title.'</a>' : $title,
 			"action" => $colors[$result["type"]] ?: Text::translate(ucwords(str_replace("-", " ", $result["type"]))),

@@ -209,7 +209,7 @@
 	header("Content-Type: text/html; charset=utf-8");
 	header("Content-Security-Policy: frame-ancestors ".implode(" ", $csp_domains));
 	
-	if (count($bigtree["config"]["sites"])) {
+	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
 		$csp_domains = [];
 		
 		foreach ($bigtree["config"]["sites"] as $site) {

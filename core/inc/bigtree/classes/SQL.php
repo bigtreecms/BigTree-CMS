@@ -1541,7 +1541,12 @@
 			$where = [];
 			
 			foreach ($values as $column => $value) {
-				$set[] = "`$column` = ?";
+				if (is_null($value)) {
+					$set[] = "`$column` = NULL";
+					unset($values[$column]);
+				} else {
+					$set[] = "`$column` = ?";
+				}
 			}
 			
 			// If the ID is an associative array we match based on the given columns

@@ -32,7 +32,7 @@
 			global $bigtree;
 			
 			// Remove the site root from the path for multi-site
-			if (defined("BIGTREE_SITE_KEY") || (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]))) {
+			if (defined("BIGTREE_SITE_KEY") || (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]))) {
 				foreach (Router::$SiteRoots as $site_path => $site_data) {
 					if ($site_path == "" || strpos($path, $site_path) === 0) {
 						if ($site_path) {
@@ -74,7 +74,7 @@
 					static::$TokenValues[] = "{adminroot}";
 				}
 				
-				if (!empty($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+				if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
 					foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
 						if ($valid_root($site_configuration["static_root"])) {
 							static::$TokenKeys[] = $site_configuration["static_root"];

@@ -1908,7 +1908,7 @@ var BigTreeFormNavBar = (function() {
 				// Unset all the active states on tabs
 				Nav.removeClass("active");
 				// Figure out what section the first error occurred in and show that section.
-				Nav.filter("[href=#" + errors[0].parents("section").show().attr("id") + "]").addClass("active");
+				Nav.filter("[href='#" + errors[0].parents("section").show().attr("id") + "']").addClass("active");
 			});
 		}
 
@@ -3718,8 +3718,8 @@ var BigTree = {
 			BigTree.ReadyHooks = [];
 		}
 	},
-	
-	setPageCount: function(selector,pages,current_page,always_show) {
+
+	setPageCount: function(selector, pages, current_page) {
 		// We have to have at least one page.
 		if (pages == 0) {
 			pages = 1;
@@ -3736,12 +3736,12 @@ var BigTree = {
 		} else {
 			var next_page = current_page + 1;
 		}
-		
+
 		// If we have 10 or less pages, just draw them all.
 		if (pages < 11) {
 			var start_page = 1;
 			var end_page = pages;
-		// Otherwise we need to figure out where we are...
+			// Otherwise we need to figure out where we are...
 		} else {
 			if (current_page < 7) {
 				var start_page = 1;
@@ -3756,23 +3756,42 @@ var BigTree = {
 		}
 
 		var content = '<a class="first" href="#' + prev_page + '"><span>&laquo;</span></a>';
-		if (start_page > 1) {
-			content += '<a class="ellipsis" href="#1">…</a>';
-		}
-		for (var i = start_page; i <= end_page; i++) {
-			content += '<a href="#' + i + '"';
-			if (i == current_page) {
-				content += ' class="active"';
+
+		if (end_page < 99) {
+			if (start_page > 1) {
+				content += '<a class="ellipsis" href="#1">…</a>';
 			}
-			content += '>' + i + '</a>';
+
+			for (var i = start_page; i <= end_page; i++) {
+				content += '<a href="#' + i + '"';
+				if (i == current_page) {
+					content += ' class="active"';
+				}
+				content += '>' + i + '</a>';
+			}
+
+			if (end_page < pages) {
+				content += '<a class="ellipsis" href="#' + pages + '">…</a>';
+			}
+		} else {
+			content += '<a class="ellipsis" href="#1">…</a>';
+			content += '<a href="#' + (current_page - 1) + '">' + (current_page - 1) + '</a>';
+			content += '<a href="#' + current_page + '" class="active">' + current_page + '</a>';
+
+			if (current_page != pages) {
+				content += '<a href="#' + (current_page + 1) + '">' + (current_page + 1) + '</a>';
+			}
+
+			if (current_page + 1 < pages) {
+				content += '<a class="ellipsis" href="#' + pages + '">…</a>';
+			}
 		}
-		if (end_page < pages) {
-			content += '<a class="ellipsis" href="#' + pages + '">…</a>';
-		}
+
 		content += '<a class="last" href="#' + next_page + '"><span>&raquo;</span></a>';
-		
+
 		$(selector).html(content);
-		if (pages == 1 && !always_show) {
+
+		if (pages == 1) {
 			$(selector).hide();
 		} else {
 			$(selector).show();

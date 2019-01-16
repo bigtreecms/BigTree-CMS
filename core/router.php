@@ -541,10 +541,15 @@
 			$bigtree["config"]["trailing_slash_behavior"] = "";
 		}
 		
-		if (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
-			Router::redirect(WWW_ROOT.implode($bigtree["path"], "/")."/", "301");
-		} elseif (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
-			Router::redirect(WWW_ROOT.implode($bigtree["path"], "/"), "301");
+		$last_path_element = $bigtree["path"][count($bigtree["path"]) - 1];
+		
+		// If this is a "file", ignore the fact that there is or isn't a trailing slash
+		if (strpos($last_path_element, ".") === false) {
+			if (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
+				Router::redirect(WWW_ROOT.implode($bigtree["path"], "/")."/", "301");
+			} elseif (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
+				Router::redirect(WWW_ROOT.implode($bigtree["path"], "/"), "301");
+			}
 		}
 	}
 	
