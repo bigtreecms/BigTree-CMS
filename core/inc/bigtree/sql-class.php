@@ -10,9 +10,9 @@
 
 		public static $Connection = "disconnected";
 		public static $WriteConnection = "disconnected";
-		public static $ErrorLog = array();
+		public static $ErrorLog = [];
 		public static $MySQLTime = "";
-		public static $QueryLog = array();
+		public static $QueryLog = [];
 
 		public $ActiveQuery = false;
 		
@@ -133,7 +133,7 @@
 			$table_b_columns = $table_b_description["columns"];
 			
 			// Setup up query array
-			$queries = array();
+			$queries = [];
 			
 			// Transition columns
 			$last_key = "";
@@ -205,7 +205,7 @@
 			// Add new indexes
 			foreach ($table_b_description["indexes"] as $key => $index) {
 				if (!isset($table_a_description["indexes"][$key]) || $table_a_description["indexes"][$key] != $index) {
-					$pieces = array();
+					$pieces = [];
 					
 					foreach ($index["columns"] as $column) {
 						if ($column["length"]) {
@@ -253,7 +253,7 @@
 				}
 				
 				if (!$exists) {
-					$source = $destination = array();
+					$source = $destination = [];
 					
 					foreach ($definition["local_columns"] as $column) {
 						$source[] = "`$column`";
@@ -279,7 +279,7 @@
 			
 			// Drop existing primary key if it's not the same
 			if ($table_a_description["primary_key"] != $table_b_description["primary_key"]) {
-				$pieces = array();
+				$pieces = [];
 				
 				foreach (array_filter((array) $table_b_description["primary_key"]) as $piece) {
 					$pieces[] = "`$piece`";
@@ -379,7 +379,7 @@
 		*/
 		
 		public static function delete($table, $id) {
-			$values = $where = array();
+			$values = $where = [];
 			
 			// If the ID is an associative array we match based on the given columns
 			if (is_array($id)) {
@@ -420,7 +420,7 @@
 				"foreign_keys" => [],
 				"primary_key" => []
 			];
-			$options = array();
+			$options = [];
 			
 			$show_statement = static::fetch("SHOW CREATE TABLE `".str_replace("`", "", $table)."`");
 			
@@ -433,7 +433,7 @@
 			$main_lines = array_slice($lines, 1, -1);
 			
 			foreach ($main_lines as $line) {
-				$column = array();
+				$column = [];
 				$line = rtrim(trim($line), ",");
 				
 				if (strtoupper(substr($line, 0, 3)) == "KEY" || strtoupper(substr($line, 0, 10)) == "UNIQUE KEY") { // Keys
@@ -450,7 +450,7 @@
 					// Get the key's content
 					$line = substr($line, strlen($key_name) + substr_count($key_name, "`") + 4); // Skip ` (`
 					$line = substr(rtrim($line, ","), 0, -1); // Remove trailing , and )
-					$key_parts = array();
+					$key_parts = [];
 					$part = true;
 					
 					while ($line && $part) {
@@ -474,7 +474,7 @@
 					$result["indexes"][$key_name] = ["unique" => $unique, "columns" => $key_parts];
 				} elseif (strtoupper(substr($line, 0, 7)) == "PRIMARY") { // Primary Keys
 					$line = substr($line, 14); // Take away PRIMARY KEY (`
-					$key_parts = array();
+					$key_parts = [];
 					$part = true;
 					
 					while ($line && $part) {
@@ -495,7 +495,7 @@
 					$line = substr($line, strlen($key_name) + substr_count($key_name, "`") + 16); // Remove ` FOREIGN KEY (`
 					
 					// Get local reference columns
-					$local_columns = array();
+					$local_columns = [];
 					$part = true;
 					$end = false;
 					
@@ -518,7 +518,7 @@
 					$line = substr($line, strlen($other_table) + substr_count($other_table, "`") + 4); // Remove ` (`
 					
 					// Get other table columns
-					$other_columns = array();
+					$other_columns = [];
 					$part = true;
 					$end = false;
 					
@@ -581,7 +581,7 @@
 						$finished_type = false;
 						$finished_size = false;
 						$x = 0;
-						$options = array();
+						$options = [];
 						
 						while (!$finished_size) {
 							$c = substr($line, $x, 1);
@@ -777,12 +777,12 @@
 		*/
 		
 		public static function dumpTable($table) {
-			$inserts = array();
+			$inserts = [];
 			
 			// Figure out which columns are binary and need to be pulled as hex
 			$description = static::describeTable($table);
-			$column_query = array();
-			$binary_columns = array();
+			$column_query = [];
+			$binary_columns = [];
 			
 			foreach ($description["columns"] as $key => $column) {
 				if ($column["type"] == "tinyblob" || $column["type"] == "blob" || $column["type"] == "mediumblob" || $column["type"] == "longblob" || $column["type"] == "binary" || $column["type"] == "varbinary") {
@@ -797,7 +797,7 @@
 			$query = static::query("SELECT ".implode(", ", $column_query)." FROM `$table`");
 			
 			while ($row = $query->fetch()) {
-				$keys = $vals = array();
+				$keys = $vals = [];
 				
 				foreach ($row as $key => $val) {
 					$keys[] = "`$key`";
@@ -857,7 +857,7 @@
 		public static function exists($table, $values, $ignored_id = null) {
 			// Passing an array of key/value pairs
 			if (is_array($values)) {
-				$where = array();
+				$where = [];
 				
 				foreach ($values as $key => $value) {
 					$where[] = "`$key` = ?";
@@ -962,7 +962,7 @@
 				
 				return null;
 			} else {
-				$results = array();
+				$results = [];
 				
 				while ($result = $this->ActiveQuery->fetch_assoc()) {
 					$results[] = $result;
@@ -1016,7 +1016,7 @@
 				
 				return null;
 			} else {
-				$results = array();
+				$results = [];
 				
 				while ($result = $this->ActiveQuery->fetch_assoc()) {
 					$results[] = current($result);
@@ -1101,8 +1101,8 @@
 				return null;
 			}
 			
-			$columns = array();
-			$vals = array();
+			$columns = [];
+			$vals = [];
 			
 			foreach ($values as $column => $value) {
 				$columns[] = "`$column`";
@@ -1539,8 +1539,8 @@
 			}
 			
 			// Setup our array to implode into a query
-			$set = array();
-			$where = array();
+			$set = [];
+			$where = [];
 			
 			foreach ($values as $column => $value) {
 				if (is_null($value)) {
