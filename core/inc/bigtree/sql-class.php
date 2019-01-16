@@ -1267,6 +1267,7 @@
 		static protected function prepareStatementIndexed($query, $values) {
 			$x = 0;
 			$offset = 0;
+			$where_position = stripos($query, " where ");
 			
 			while (($position = strpos($query, "?", $offset)) !== false) {
 				// Allow for these reserved keywords to be let through unescaped
@@ -1278,8 +1279,8 @@
 					$replacement = "'".static::escape($values[$x])."'";
 				}
 				
-				// Null values require IS NOT NULL and IS NULL
-				if ($replacement == "NULL" && $action) {
+				// We use "IS NULL" and "IS NOT NULL" in where, but just set things equal to null elsewhere
+				if ($replacement == "NULL" && $where_position && $position > $where_position) {
 					// If there's no space before the ? we need to account for that
 					if (substr($query, $position - 1, 1) != " ") {
 						if (substr($query, $position - 2, 2) == "!=") {
@@ -1311,6 +1312,8 @@
 
 		// Prepares SQL statements using the :name replacement syntax
 		static protected function prepareStatementNamed($query, $values) {
+			$where_position = stripos($query, " where ");
+
 			foreach ($values as $key => $value) {
 				// Allow for these reserved keywords to be let through unescaped
 				if (is_null($value)) {
@@ -1318,11 +1321,11 @@
 				} elseif ($value !== "NOW()") {
 					$value = "'".static::escape($value)."'";
 				}
-				
-				// Null values require IS NOT NULL and IS NULL
-				if ($value == "NULL") {
-					$position = strpos($query, $key);
 
+				$position = strpos($query, $key);
+				
+				// We use "IS NULL" and "IS NOT NULL" in where, but just set things equal to null elsewhere
+				if ($value == "NULL" && $where_position && $position > $where_position) {
 					// If there's no space before the ? we need to account for that
 					if (substr($query, $position - 1, 1) != " ") {
 						if (substr($query, $position - 2, 2) == "!=") {
