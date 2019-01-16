@@ -50,6 +50,10 @@
 			}
 		}
 		
+		public function __toString() {
+			return (string) $this->Name;
+		}
+		
 		/*
 			Function: allForEntry
 				Returns the tags for an entry.

@@ -20,7 +20,7 @@
 			$mailer->Port = $this->Settings["smtp_port"] ?: 25;
 			$mailer->SMTPSecure = $this->Settings["smtp_security"] ?: null;
 
-			if ($this->Settings["smtp_user"]) {
+			if (!empty($this->Settings["smtp_user"])) {
 				$mailer->SMTPAuth = true;
 				$mailer->Username = $this->Settings["smtp_user"];
 				$mailer->Password = $this->Settings["smtp_password"];

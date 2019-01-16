@@ -1918,7 +1918,7 @@
 	.bigtree .form_error .mce-tinymce { border-color: #C0362F; }
 	.bigtree .mce-tinymce * { font-family: Helvetica, sans-serif; }
 	.bigtree .mce-tinymce .mce-ico { font-family: "tinymce", Helvetica, sans-serif; }
-	.bigtree .mce-window { border: none; border-radius: 3px; box-shadow: none; }
+	.bigtree .mce-window { border-radius: 3px; box-shadow: none; }
 	.bigtree .mce-window-head { background: #EEE; border-bottom: 1px solid #CCC; border-radius: 2px 2px 0 0; padding: 5px 10px; }
 	.bigtree .mce-window-head .mce-title { font-family: Helvetica, sans-serif; font-size: 14px; font-weight: normal; height: 27px; line-height: 29px; text-transform: uppercase; }
 	.bigtree .mce-window-head .mce-close { display: none; }
@@ -1932,12 +1932,14 @@
 	.bigtree .mce-toolbar .mce-btn { background: transparent; }
 	.bigtree .mce-toolbar .mce-btn:hover { background: rgba(0,0,0,0.1); box-shadow: none; }
 	.bigtree .mce-toolbar .mce-flow-layout-item { margin: 0; }
+	.bigtree .mce-toolbar .mce-btn-group { padding: 0; }
 	.bigtree .mce-toolbar-grp { background: #F6F6F6; padding: 0; }
 	.bigtree .mce-edit-area { border-color: #CCC; }
 	.bigtree .mce-menubar { background: #EEE; border-bottom: 1px solid #CCC; }
 	.bigtree .mce-statusbar { background: #EEE; border-color: #CCC; }
 	.bigtree .mce-btn-group { margin: 0; }
-	.bigtree .mce-btn-group .mce-btn { background: transparent; border: none; border-radius: 0; box-shadow: none; }
+	.bigtree .mce-btn-group .mce-btn { background: transparent; border: none; border-radius: 0px; box-shadow: none; margin: 0; }
+	.bigtree .mce-btn-group .mce-btn.mce-active { background: #555; }
 	.bigtree .mce-btn-group .mce-first.mce-last { border-radius: 0; }
 	.bigtree .mce-btn-group:last-child { border: none; }
 	.bigtree .mce-path { padding: 3px 6px; }
@@ -1947,7 +1949,7 @@
 	.bigtree .mce-combobox .mce-btn:hover { background: rgba(0,0,0,0.15); }
 	.bigtree .mce-menu { border-color: #CCC; border-radius: 0 0 2px 2px; box-shadow: none; margin: 0; padding: 0; }
 	.bigtree .mce-menu-item { margin: 0; }
-	.bigtree .mce-menu-item:hover, .bigtree .mce-menu-item.mce-selected, .bigtree .mce-menu-item:focus { background: #59A8E9; }
+	.bigtree .mce-menu-item:hover, .bigtree .mce-menu-item.mce-selected, .bigtree .mce-menu-item:focus { background: rgba(0, 0, 0, 0.1); }
 	.bigtree .mce-menu .mce-menu-item-sep { border: none; margin: 0; }
 	.bigtree .mce-tooltip-inner { border-radius: 2px; box-shadow: none; }
 	.bigtree .mce-listbox { background: #EEE; border: 1px solid #CCC; border-radius: 2px; }
@@ -1964,7 +1966,7 @@
 	.bigtree .mce-combobox.mce-has-open input { border-color: #CCC; border-radius: 2px 0 0 2px; box-shadow: none; }
 	.bigtree .mce-checked i.mce-i-checkbox { color: #777; }
 	.bigtree .mce-fade, .bigtree .mce-window { transition: none; }
-	.bigtree #mce-modal-block.mce-in { opacity: 0.6; }
+	.bigtree #mce-modal-block.mce-in { background: #000; opacity: 0.6; }
 	.bigtree .callout_fields .mce-btn-group { border: none; }
 
 /* Retina Query for Installer */

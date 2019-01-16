@@ -96,6 +96,9 @@
 		static function create(string $from, ?string $to = "", ?string $site_key = null, bool $ignored = false): Redirect {
 			global $bigtree;
 			
+			$to = trim($to);
+			$from = trim($from);
+			
 			// If this is a multi-site environment and a full URL was pasted in we're going to auto-select the key no matter what they passed in
 			if (!is_null($site_key)) {
 				$from_domain = parse_url($from, PHP_URL_HOST);

@@ -24,6 +24,7 @@
 		public $Headers = [];
 		public $HTML = "";
 		public $ReplyTo = "";
+		public $SMTP = [];
 		public $Subject = "";
 		public $Text = "";
 		public $To = "";
@@ -62,6 +63,25 @@
 			}
 			
 			return $success;
+		}
+		
+		/*
+			Function: setService
+				Sets the email provider service for this email to a non-default provider.
+			
+			Parameters:
+				provider - The provider class to use
+				settings - An array of settings to pass to the provider (optional)
+		*/
+		
+		function setService(string $provider, ?array $settings = []): void {
+			$this->Service = $provider;
+			
+			if (is_array($settings)) {
+				foreach ($settings as $key => $value) {
+					$this->Settings[$key] = $value;
+				}
+			}
 		}
 		
 	}

@@ -54,7 +54,7 @@
 				return call_user_func_array([$this, "_local_rows"], $arguments);
 			}
 			
-			trigger_error("Invalid method called on BigTree\\SQL: $method", E_USER_WARNING);
+			trigger_error("Invalid method called on BigTree\\SQL: $method", E_USER_ERROR);
 			
 			return null;
 		}
@@ -72,7 +72,7 @@
 				return call_user_func_array("static::_static_rows", $arguments);
 			}
 			
-			trigger_error("Invalid static method called on BigTree\\SQL: $method", E_USER_WARNING);
+			trigger_error("Invalid static method called on BigTree\\SQL: $method", E_USER_ERROR);
 			
 			return null;
 		}
@@ -88,7 +88,7 @@
 				true if successful.
 		*/
 		
-		static function backup(string $file): bool {
+		static function backup(string $file, ?array $tables = []): bool {
 			if (!FileSystem::getDirectoryWritability($file)) {
 				return false;
 			}
@@ -97,12 +97,14 @@
 			fwrite($pointer, "SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO';\n");
 			fwrite($pointer, "SET foreign_key_checks = 0;\n\n");
 			
-			$tables = static::fetchAllSingle("SHOW TABLES");
+			if (!is_array($tables) || !count($tables)) {
+				$tables = static::fetchAllSingle("SHOW TABLES");
+			}
 			
 			foreach ($tables as $table) {
 				// Write the drop / create statements
 				fwrite($pointer, "DROP TABLE IF EXISTS `$table`;\n");
-				$definition = static::fetchSingle("SHOW CREATE TABLE `$table`");
+				$definition = static::fetch("SHOW CREATE TABLE `$table`");
 				
 				if (is_array($definition)) {
 					fwrite($pointer, str_replace(["\n  ", "\n"], "", end($definition)).";\n");
@@ -346,6 +348,17 @@
 			// Make sure everything is run in UTF8, turn off strict mode if set
 			static::${$property}->query("SET NAMES 'utf8'");
 			static::${$property}->query("SET SESSION sql_mode = ''");
+			
+			// Sync MySQL timezone
+			$now = new \DateTime();
+			$minutes = $now->getOffset() / 60;
+			$sign = ($minutes < 0 ? -1 : 1);
+			$minutes = abs($minutes);
+			$hours = floor($minutes / 60);
+			$minutes -= $hours * 60;
+			$offset = sprintf('%+d:%02d', $hours * $sign, $minutes);
+			
+			static::${$property}->query("SET time_zone = '$offset'");
 			
 			// Remove BigTree connection parameters once it is setup.
 			unset($bigtree["config"][$type]["user"]);
@@ -836,12 +849,13 @@
 			Parameters:
 				table - The table to search
 				values - An array of key/value pairs to match against (i.e. "id" => "10") or just an ID
+				ignored_id - An ID to ignore
 
 			Returns:
 				true if a row already exists that matches the passed in key/value pairs.
 		*/
 		
-		static function exists(string $table, $values): bool {
+		static function exists(string $table, $values, $ignored_id = null): bool {
 			// Passing an array of key/value pairs
 			if (is_array($values)) {
 				$where = [];
@@ -853,6 +867,11 @@
 			} else {
 				$where = ["`id` = ?"];
 				$values = [$values];
+			}
+			
+			if (!is_null($ignored_id)) {
+				$where[] = "id != ?";
+				$values[] = $ignored_id;
 			}
 			
 			// Push the query onto the array stack so it's the first query parameter
@@ -894,7 +913,7 @@
 					$last_query = htmlspecialchars($last_query);
 				}
 				
-				trigger_error("SQL::fetch called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query", E_USER_ERROR);
+				throw new Exception("SQL::fetch called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query");
 				
 				return null;
 			} else {
@@ -941,7 +960,7 @@
 					$last_query = htmlspecialchars($last_query);
 				}
 				
-				trigger_error("SQL::fetchAll called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query", E_USER_ERROR);
+				throw new Exception("SQL::fetchAll called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query");
 				
 				return null;
 			} else {
@@ -995,7 +1014,7 @@
 					$last_query = htmlspecialchars($last_query);
 				}
 				
-				trigger_error("SQL::fetchAllSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query", E_USER_ERROR);
+				throw new Exception("SQL::fetchAllSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query");
 				
 				return null;
 			} else {
@@ -1049,7 +1068,7 @@
 					$last_query = htmlspecialchars($last_query);
 				}
 				
-				trigger_error("SQL::fetchSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query", E_USER_ERROR);
+				throw new Exception("SQL::fetchSingle called on invalid query resource. The most likely cause is an invalid query call. Last error returned was: $last_query");
 				
 				return null;
 			} else {
@@ -1079,7 +1098,7 @@
 		
 		static function insert(string $table, array $values): ?int {
 			if (!count($values)) {
-				trigger_error("SQL::inserts expects a non-empty array as its second parameter");
+				trigger_error("SQL::inserts expects a non-empty array as its second parameter", E_USER_ERROR);
 				
 				return null;
 			}
@@ -1250,6 +1269,7 @@
 		static protected function prepareStatementIndexed($query, $values) {
 			$x = 0;
 			$offset = 0;
+			$where_position = stripos($query, " where ");
 			
 			while (($position = strpos($query, "?", $offset)) !== false) {
 				// Allow for these reserved keywords to be let through unescaped
@@ -1261,8 +1281,8 @@
 					$replacement = "'".static::escape($values[$x])."'";
 				}
 				
-				// Null values require IS NOT NULL and IS NULL
-				if ($replacement == "NULL") {
+				// We use "IS NULL" and "IS NOT NULL" in where, but just set things equal to null elsewhere
+				if ($replacement == "NULL" && $where_position && $position > $where_position) {
 					// If there's no space before the ? we need to account for that
 					if (substr($query, $position - 1, 1) != " ") {
 						if (substr($query, $position - 2, 2) == "!=") {
@@ -1294,6 +1314,8 @@
 
 		// Prepares SQL statements using the :name replacement syntax
 		static protected function prepareStatementNamed($query, $values) {
+			$where_position = stripos($query, " where ");
+			
 			foreach ($values as $key => $value) {
 				// Allow for these reserved keywords to be let through unescaped
 				if (is_null($value)) {
@@ -1302,8 +1324,10 @@
 					$value = "'".static::escape($value)."'";
 				}
 				
-				// Null values require IS NOT NULL and IS NULL
-				if ($value == "NULL") {
+				$position = strpos($query, $key);
+				
+				// We use "IS NULL" and "IS NOT NULL" in where, but just set things equal to null elsewhere
+				if ($value == "NULL" && $where_position && $position > $where_position) {
 					$position = strpos($query, $key);
 
 					// If there's no space before the ? we need to account for that
@@ -1388,7 +1412,7 @@
 			}
 			
 			// Debug should log queries
-			if ($bigtree["config"]["debug"]) {
+			if ($bigtree["config"]["debug"] && !defined("BIGTREE_NO_QUERY_LOG")) {
 				static::$QueryLog[] = $query;
 			}
 			
@@ -1457,7 +1481,7 @@
 			$count = 1;
 			
 			// If we're checking against an ID
-			if ($id !== false) {
+			if (!is_null($id)) {
 				
 				// Allow for passing array("column" => "value")
 				if (is_array($id)) {
@@ -1507,7 +1531,7 @@
 		
 		static function update(string $table, $id, array $values): bool {
 			if (!is_array($values) || !count($values)) {
-				trigger_error("SQL::update expects a non-empty array as its third parameter");
+				trigger_error("SQL::update expects a non-empty array as its third parameter", E_USER_ERROR);
 				
 				return false;
 			}

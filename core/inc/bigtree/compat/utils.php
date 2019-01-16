@@ -921,7 +921,7 @@
 				true if email is sent, otherwise false.
 		*/
 		
-		static function sendEmail($to, $subject, $html, $text = "", $from = false, $return = false, $cc = false, $bcc = false, $headers = array()) {
+		static function sendEmail($to, $subject, $html, $text = "", $from = false, $return = false, $cc = false, $bcc = false, $headers = array(), $smtp = []) {
 			$email = new BigTree\Email;
 			
 			$email->To = $to;
@@ -933,6 +933,16 @@
 			$email->CC = $cc;
 			$email->BCC = $bcc;
 			$email->Headers = $headers;
+			
+			if (!empty($smtp["host"])) {
+				$email->setService("SMTP", [
+					"smtp_host" => $smtp["host"],
+					"smtp_port" => $smtp["port"],
+					"smtp_security" => $smtp["security"] ?: null,
+					"smtp_user" => $smtp["user"],
+					"smtp_password" => $smtp["password"]
+				]);
+			}
 			
 			$email->send();
 		}

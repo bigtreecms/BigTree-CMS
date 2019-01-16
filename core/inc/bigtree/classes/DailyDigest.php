@@ -107,7 +107,7 @@
 							</table>
 						</div>';
 			
-			if (count($changes)) {
+			if (is_array($changes) && count($changes)) {
 				foreach ($changes as $change) {
 					$changes_markup .= '<tr>';
 					$changes_markup .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$change->User->Name.'</td>';
@@ -164,7 +164,7 @@
 							</table>
 						</div>';
 			
-			if (count($messages["unread"])) {
+			if (is_array($messages["unread"]) && count($messages["unread"])) {
 				foreach ($messages["unread"] as $message) {
 					$messages_markup .= '<tr>
 											<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$message["sender_name"].'</td>
