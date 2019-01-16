@@ -1,4 +1,8 @@
 <?php
+	/**
+	 * @global array $bigtree
+	 */
+	
 	namespace BigTree;
 
 	header("Content-type: text/javascript");
@@ -7,15 +11,6 @@
 	$permission = $page->UserAccessLevel;
 ?>
 var BigTreeBar = {
-
-	cancel: function() {
-		if (document.getElementById("bigtree_bar_overlay")) {
-			BigTreeBar.body.removeChild(document.getElementById("bigtree_bar_overlay"));
-		}
-		if (document.getElementById("bigtree_bar_frame")) {
-			BigTreeBar.body.removeChild(document.getElementById("bigtree_bar_frame"));
-		}
-	},
 
 	createCookie: function(name,value,days) {
 		var expires = "";
@@ -65,11 +60,11 @@ var BigTreeBar = {
 			if ($permission) {
 				if (!empty($_GET["custom_edit_link"])) {
 		?>
-		bigtree_bar_html += '<a class="bigtree_link" href="<?=Text::htmlEncode($_GET["custom_edit_link"])?>">Edit in BigTree</a>';
+		bigtree_bar_html += '<a class="bigtree_link" href="<?=Text::htmlEncode($_GET["custom_edit_link"])?>">Edit Content</a>';
 		<?php
 				} else {
 		?>
-		bigtree_bar_html += '<a class="bigtree_link" id="bigtree_edit_content" href="#">Edit Content</a><a class="bigtree_link" href="<?=ADMIN_ROOT?>pages/edit/<?=htmlspecialchars(strip_tags($_GET["current_page_id"]))?>/?return=front">Edit in BigTree</a>';
+		bigtree_bar_html += '<a class="bigtree_link" href="<?=ADMIN_ROOT?>pages/edit/<?=htmlspecialchars(strip_tags($_GET["current_page_id"]))?>/?return=front">Edit Content</a>';
 		<?php
 				}
 			}
@@ -107,26 +102,6 @@ var BigTreeBar = {
 			return false;
 		};
 		
-		document.getElementById("bigtree_edit_content").onclick = function() {
-			if (!document.getElementById("bigtree_bar_overlay")) {
-				var leftd = parseInt((BigTreeBar.windowWidth() - 820) / 2);
-				var topd = parseInt((BigTreeBar.windowHeight() - 615) / 2);
-				
-				var bigtree_bar_overlay = document.createElement("div");
-				bigtree_bar_overlay.setAttribute("id","bigtree_bar_overlay");
-				BigTreeBar.body.appendChild(bigtree_bar_overlay);
-				
-				var bigtree_bar_frame = document.createElement("iframe");
-				bigtree_bar_frame.setAttribute("id","bigtree_bar_frame");
-				bigtree_bar_frame.setAttribute("src","<?=ADMIN_ROOT?>pages/front-end-edit/<?=htmlspecialchars(strip_tags($_GET["current_page_id"]))?>/");
-				bigtree_bar_frame.style.left = leftd + "px";
-				bigtree_bar_frame.style.top = topd + "px";
-				BigTreeBar.body.appendChild(bigtree_bar_frame);
-			}
-			
-			return false;
-		};
-		
 		BigTreeBar.dispatch("openbigtreebar");
 		
 		return false;
@@ -147,34 +122,6 @@ var BigTreeBar = {
 		BigTreeBar.body.appendChild(bigtree_bar);
 		
 		return false;
-	},
-
-	windowHeight: function() {
-		var windowHeight;
-
-		if (window.innerHeight) {
-			windowHeight = window.innerHeight;
-		} else if (document.documentElement && document.documentElement.clientHeight) {
-			windowHeight = document.documentElement.clientHeight;
-		} else if (document.body) {
-			windowHeight = document.body.clientHeight;
-		}
-
-		return windowHeight;
-	},
-
-	windowWidth: function() {
-		var windowWidth;
-
-		if (window.innerWidth) {
-			windowWidth = window.innerWidth;
-		} else if (document.documentElement && document.documentElement.clientWidth) {
-			windowWidth = document.documentElement.clientWidth;
-		} else if (document.body) {
-			windowWidth = document.body.clientWidth;
-		}
-		
-		return windowWidth;
 	},
 	
 	dispatch: function(evtName) {
