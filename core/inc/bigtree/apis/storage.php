@@ -22,7 +22,7 @@
 			global $cms;
 
 			// Get by reference because we modify it.
-			$this->Settings = &$cms->autoSaveSetting("bigtree-internal-storage");
+			$this->Settings = $cms->getSetting("bigtree-internal-storage");
 
 			if (!$force_local && !empty($this->Settings->Service)) {
 				if ($this->Settings->Service == "s3" || $this->Settings->Service == "amazon") {
@@ -214,6 +214,15 @@
 					return false;
 				}
 			}
+		}
+
+		/*
+			Function: saveSettings
+				Saves the object's settings back to the database.
+		*/
+
+		public function saveSettings() {
+			BigTreeAdmin::updateSettingValue("bigtree-internal-storage", get_object_vars($this->Settings));
 		}
 
 		/*

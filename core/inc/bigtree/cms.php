@@ -6,6 +6,7 @@
 
 	class BigTreeCMSBase {
 	
+		// Deprecated
 		public $AutoSaveSettings = array();
 
 		public static $BreadcrumbTrunk;
@@ -75,6 +76,7 @@
 		/*
 			Destructor:
 				Saves settings back to the database that were instantiated through the autoSaveSetting method.
+				The autoSaveSetting feature is deprecated.
 		*/
 
 		public function __destruct() {
@@ -87,18 +89,7 @@
 			}
 		}
 
-		/*
-			Function: autoSaveSetting
-				This method is deprecated. Do not use this method.
-
-			Parameters:
-				id - The bigtree_settings id.
-				return_object - Return the data an object (default, set to false to return as array)
-
-			Returns:
-				An object reference.
-		*/
-
+		// Deprecated
 		public function &autoSaveSetting($id,$return_object = true) {
 			$id = static::extensionSettingCheck($id);
 

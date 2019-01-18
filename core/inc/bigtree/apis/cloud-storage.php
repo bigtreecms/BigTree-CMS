@@ -119,6 +119,7 @@
 				
 				if ($cdn) {
 					$this->Settings["rackspace"]["container_cdn_urls"][$container] = $cdn;
+					$this->saveSettings();
 					
 					return "$cdn/$pointer";
 				}
@@ -525,6 +526,8 @@
 							CURLOPT_HTTPHEADER => ["X-Auth-Token: ".$this->Settings["rackspace"]["token"], "X-Account-Meta-Temp-Url-Key: ".$this->Settings["rackspace"]["temp_url_key"]]
 						]);
 					}
+
+					$this->saveSettings();
 				}
 				
 				list($domain, $client_id) = explode("/v1/", $this->RackspaceAPIEndpoint);
@@ -886,6 +889,8 @@
 						}
 					}
 				}
+
+				$this->saveSettings();
 				
 				return true;
 			}
@@ -947,21 +952,23 @@
 				$response = $this->S3Client->listObjects(["Bucket" => $bucket, "Marker" => $marker]);
 				$x = 0;
 				
-				foreach ($response["Contents"] as $item) {
-					$x++;
-					
-					if ($x == 1 && $marker) {
-						continue;
+				if (is_array($response["Contents"])) {
+					foreach ($response["Contents"] as $item) {
+						$x++;
+						
+						if ($x == 1 && $marker) {
+							continue;
+						}
+						
+						$page[] = [
+							"name" => $item["Key"],
+							"path" => $item["Key"],
+							"size" => $item["Size"]
+						];
 					}
-					
-					$page[] = [
-						"name" => $item["Key"],
-						"path" => $item["Key"],
-						"size" => $item["Size"]
-					];
 				}
 				
-				if ($response["IsTruncated"]) {
+				if (!empty($response["IsTruncated"])) {
 					$this->NextPage = $item["Key"];
 				}
 				

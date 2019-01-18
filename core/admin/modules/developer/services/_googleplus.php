@@ -19,4 +19,5 @@
 		$api->Settings["user_id"] = $info->ID;
 		$api->Settings["user_name"] = $info->DisplayName;
 		$api->Settings["user_image"] = $info->Image;
+		$api->saveSettings();
 	}

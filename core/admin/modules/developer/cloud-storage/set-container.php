@@ -48,6 +48,8 @@
 		}
 	}
 
+	$storage->saveSettings();
+
 	// For Amazon S3 we're going to redirect to do a paginated cache bust
 	if ($_POST["service"] == "amazon") {
 		$check = $cloud->getS3BucketPage($storage->Settings->Container);

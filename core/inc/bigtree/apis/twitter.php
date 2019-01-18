@@ -586,8 +586,10 @@
 			// Update Token information and save it back.
 			$this->Settings["token"] = $oauth_token;
 			$this->Settings["token_secret"] = $oauth_token_secret;
+			$this->saveSettings();
 
 			$this->Connected = true;
+
 			return true;
 		}
 

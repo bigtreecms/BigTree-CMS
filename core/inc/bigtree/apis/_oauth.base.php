@@ -32,12 +32,11 @@
 		*/
 
 		public function __construct($setting_id,$setting_name,$cache_id,$cache = true) {
-			global $cms;
 			$this->Cache = $cache;
 			$this->CacheIdentifier = $cache_id;
 
 			// If we don't have the setting for the API, create it.
-			$this->Settings = &$cms->autoSaveSetting($setting_id,false);
+			$this->Settings = BigTreeCMS::getSetting($setting_id);
 			
 			// Prevent fatal error on bad setting data
 			if (!is_array($this->Settings)) {
@@ -82,9 +81,12 @@
 			if (!isset($this->Settings["hash_table"][$id])) {
 				$this->Settings["hash_table"][$id] = array();
 			}
+
 			if (!in_array($this->LastCacheKey,$this->Settings["hash_table"][$id])) {
 				$this->Settings["hash_table"][$id][] = $this->LastCacheKey;
 			}
+
+			$this->saveSettings();
 		}
 		
 		/*
@@ -316,9 +318,11 @@
 				"refresh_token" => $this->Settings["refresh_token"],
 				"grant_type" => "refresh_token"
 			)));
+
 			if ($response->access_token) {
 				$this->Settings["token"] = $response->access_token;
 				$this->Settings["expires"] = strtotime("+".$response->expires_in." seconds");
+				$this->saveSettings();
 			}
 		}
 
@@ -348,8 +352,19 @@
 			$this->Settings["token"] = $response->access_token;
 			$this->Settings["refresh_token"] = $response->refresh_token;
 			$this->Settings["expires"] = $response->expires_in ? strtotime("+".$response->expires_in." seconds") : false;
+			$this->saveSettings();
 
 			$this->Connected = true;
+
 			return $response;
+		}
+
+		/*
+			Function: saveSettings
+				Saves the object's settings back to the database.
+		*/
+
+		public function saveSettings() {
+			BigTreeAdmin::updateSettingValue($this->SettingID, is_object($this->Settings) ? get_object_vars($this->Settings) : $this->Settings);
 		}
 	}

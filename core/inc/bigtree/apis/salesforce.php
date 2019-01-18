@@ -35,6 +35,7 @@
 
 			// Get a new access token for this session.
 			$this->Connected = false;
+			
 			if ($this->Settings["refresh_token"]) {
 				$response = json_decode(BigTree::cURL($this->TokenURL,array(
 					"grant_type" => "refresh_token",
@@ -42,11 +43,13 @@
 					"client_secret" => $this->Settings["secret"],
 					"refresh_token" => $this->Settings["refresh_token"]
 				)),true);
+
 				if ($response["access_token"]) {
 					$this->InstanceURL = $response["instance_url"];
 					$this->EndpointURL = $this->InstanceURL."/services/data/v28.0/";
 					$this->Settings["token"] = $response["access_token"];
 					$this->Connected = true;
+					$this->saveSettings();
 				}
 			}
 		}

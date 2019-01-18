@@ -91,7 +91,9 @@
 		}
 	} else {
 		$storage->Settings->Service = "local";
+		$storage->saveSettings();
 		$admin->growl("Developer","Changed Default Storage");
+
 		BigTree::redirect(DEVELOPER_ROOT);
 	}
 ?>

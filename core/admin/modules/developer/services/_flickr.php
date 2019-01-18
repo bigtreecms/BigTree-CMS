@@ -26,4 +26,5 @@
 		$api->Settings["user_id"] = $user->person->id;
 		$api->Settings["user_name"] = $user->person->username->_content;
 		$api->Settings["user_image"] = $user_icon;
+		$api->saveSettings();
 	}

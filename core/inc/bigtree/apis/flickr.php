@@ -569,13 +569,18 @@
 			$admin = new BigTreeAdmin;
 			$r = $this->callAPI("http://www.flickr.com/services/oauth/request_token","GET",array("oauth_callback" => $this->ReturnURL));
 			parse_str($r);
+			
 			if ($oauth_callback_confirmed) {
 				$this->Settings["token"] = $oauth_token;
 				$this->Settings["token_secret"] = $oauth_token_secret;
+				$this->saveSettings();
+
 				header("Location: http://www.flickr.com/services/oauth/authorize?perms=delete&oauth_token=".$oauth_token);
 				die();
 			} else {
+				$this->saveSettings();
 				$admin->growl($oauth_problem,"Flickr API","error");
+
 				BigTree::redirect(ADMIN_ROOT."developer/services/flickr/");
 			}
 		}
@@ -592,9 +597,11 @@
 				"refresh_token" => $this->Settings["refresh_token"],
 				"grant_type" => "refresh_token"
 			)));
+
 			if ($r->access_token) {
 				$this->Settings["token"] = $r->access_token;
 				$this->Settings["expires"] = strtotime("+".$r->expires_in." seconds");
+				$this->saveSettings();
 			}
 		}
 
@@ -609,12 +616,16 @@
 		public function oAuthSetToken($code) {
 			$r = $this->callAPI("http://www.flickr.com/services/oauth/access_token","GET",array("oauth_verifier" => $_GET["oauth_verifier"],"oauth_token" => $_GET["oauth_token"]));
 			parse_str($r);
+
 			if ($fullname) {
 				$this->Settings["token"] = $oauth_token;
 				$this->Settings["token_secret"] = $oauth_token_secret;
+				$this->saveSettings();
 				$this->Connected = true;
+
 				return true;
 			}
+			
 			return false;
 		}
 
