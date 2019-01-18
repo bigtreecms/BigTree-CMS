@@ -365,6 +365,6 @@
 		*/
 
 		public function saveSettings() {
-			BigTreeAdmin::updateSettingValue($this->SettingID, is_object($this->Settings) ? get_object_vars($this->Settings) : $this->Settings);
+			BigTreeAdmin::updateInternalSettingValue($this->SettingID, is_object($this->Settings) ? get_object_vars($this->Settings) : $this->Settings, true);
 		}
 	}

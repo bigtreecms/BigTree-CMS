@@ -21,8 +21,13 @@
 		public function __construct($force_local = false) {
 			global $cms;
 
-			// Get by reference because we modify it.
-			$this->Settings = $cms->getSetting("bigtree-internal-storage");
+			// Backwards compatibility
+			$this->Settings = new stdClass;
+			$settings_array = $cms->getSetting("bigtree-internal-storage");
+			
+			foreach ($settings_array as $key => $value) {
+				$this->Settings->$key = $value;
+			}
 
 			if (!$force_local && !empty($this->Settings->Service)) {
 				if ($this->Settings->Service == "s3" || $this->Settings->Service == "amazon") {
@@ -222,7 +227,7 @@
 		*/
 
 		public function saveSettings() {
-			BigTreeAdmin::updateSettingValue("bigtree-internal-storage", get_object_vars($this->Settings));
+			BigTreeAdmin::updateInternalSettingValue("bigtree-internal-storage", get_object_vars($this->Settings));
 		}
 
 		/*
