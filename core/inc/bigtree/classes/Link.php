@@ -181,7 +181,7 @@
 			
 			static::cacheTokens();
 			
-			return str_replace(static::$TokenValues, static::$TokenKeys, $input);
+			return strtr($input, array_combine(static::$TokenValues, static::$TokenKeys));
 		}
 		
 		/*
@@ -758,7 +758,7 @@
 			
 			static::cacheTokens();
 			
-			return str_replace(static::$TokenKeys, static::$TokenValues, $input);
+			return strtr($input, array_combine(static::$TokenKeys, static::$TokenValues));
 		}
 		
 		/*

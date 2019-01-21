@@ -114,7 +114,7 @@
 					<a href="#<?=$crop_count?>" title="<?=$crop_thumb_title?>" class="thumbnail"></a>
 					<input type="hidden" name="crops[<?=$crop_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
 					<a href="#" title="<?=$color_mode_title?>" class="color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
-					<a href="#<?=$crop_count?>" title="<?=$remove_title?>" class="delete"></a>
+					<a href="#" title="<?=$remove_title?>" class="delete"></a>
 				</li>
 			</ul>
 			<?php
@@ -321,7 +321,7 @@
 				'<li class="actions for_thumbnail">' +
 					'<input type="hidden" name="thumbs[' + ThumbCount + '][grayscale]" value="" />' +
 					'<a href="#" title="<?=$color_mode_title?>" class="color_mode"></a>' +
-					'<a href="#' + ThumbCount + '" title="<?=$remove_title?>" class="delete"></a>' +
+					'<a href="#" title="<?=$remove_title?>" class="delete"></a>' +
 				'</li></ul>');
 		}
 
@@ -342,8 +342,11 @@
 		}).on("click",".image_attr .delete",function(ev) {
 			ev.preventDefault();
 
-			var count = $(this).attr("href").substr(1);
-			$(".image_attr_thumbs_" + count).remove();
+			if ($(this).attr("href") != "#") {
+				var count = $(this).attr("href").substr(1);
+				$(".image_attr_thumbs_" + count).remove();
+			}
+
 			$(this).parents("ul").remove();
 	
 		// Add thumbnail of crops

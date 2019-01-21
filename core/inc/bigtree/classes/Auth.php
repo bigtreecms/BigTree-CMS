@@ -69,6 +69,7 @@
 							CSRF::generate();
 
 							// Setup session
+							session_regenerate_id();
 							$_SESSION[static::$Namespace]["id"] = $user->ID;
 							$_SESSION[static::$Namespace]["email"] = $user->Email;
 							$_SESSION[static::$Namespace]["name"] = $user->Name;
@@ -335,6 +336,7 @@
 						Cookie::create(static::$Namespace."[login]", json_encode([$session, $chain]), "+1 month");
 					}
 					
+					session_regenerate_id();
 					$_SESSION[static::$Namespace]["id"] = $user->ID;
 					$_SESSION[static::$Namespace]["email"] = $user->Email;
 					$_SESSION[static::$Namespace]["level"] = $user->Level;
@@ -469,6 +471,7 @@
 						]);
 					}
 					
+					session_regenerate_id();
 					$_SESSION[static::$Namespace]["id"] = $user["id"];
 					$_SESSION[static::$Namespace]["email"] = $user["email"];
 					$_SESSION[static::$Namespace]["level"] = $user["level"];

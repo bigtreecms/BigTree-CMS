@@ -249,6 +249,11 @@
 				
 				$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ? OR file = ?",
 									   $file, $tokenized_file, $single_domain_tokenized_file);
+
+				if (!$resource) {
+					$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ? OR file = ?",
+											$file, str_replace("{wwwroot}", "{staticroot}", $tokenized_file), $single_domain_tokenized_file);	
+				}
 			}
 			
 			if (empty($resource)) {
