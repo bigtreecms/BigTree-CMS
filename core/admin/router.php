@@ -235,7 +235,12 @@
 	
 	ob_start();
 	session_set_cookie_params(0, str_replace(DOMAIN, "", WWW_ROOT), "", false, true);
-	session_start(["gc_maxlifetime" => 24 * 60 * 60]);
+	
+	if (!empty($bigtree["config"]["session_lifetime"])) {
+		session_start(array("gc_maxlifetime" => intval($bigtree["config"]["session_lifetime"])));
+	} else {
+		session_start(array("gc_maxlifetime" => 24 * 60 * 60));
+	}
 	
 	// Set date format if it wasn't defined in config
 	if (empty($bigtree["config"]["date_format"])) {

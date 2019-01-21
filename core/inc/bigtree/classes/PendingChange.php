@@ -188,7 +188,7 @@
 		*/
 		
 		static function create(string $table, string $item_id, array $changes, array $mtm_changes = [],
-							   array $tags_changes = [], int $module = 0, ?string $publish_hook = null,
+							   array $tags_changes = [], $module = "", ?string $publish_hook = null,
 							   bool $embedded_form = false): PendingChange {
 			// Clean up data for JSON storage
 			foreach ($changes as $key => $val) {

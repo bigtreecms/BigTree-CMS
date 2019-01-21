@@ -647,7 +647,7 @@
 				The change id.
 		*/
 
-		function createPendingChange($table, $item_id, $changes, $mtm_changes = array(), $tags_changes = array(), $module = 0) {
+		function createPendingChange($table, $item_id, $changes, $mtm_changes = array(), $tags_changes = array(), $module = "") {
 			$change = BigTree\PendingChange::create($table, $item_id, $changes, $mtm_changes, $tags_changes, $module);
 
 			return $change->ID;
@@ -683,21 +683,20 @@
 
 			Parameters:
 				folder - The folder to place it in.
-				file - The file path.
-				md5 - The MD5 hash of the file.
+				file - The file path or a video URL.
 				name - The file name.
-				type - The file type.
-				is_image - Whether the resource is an image.
-				height - The image height (if it's an image).
-				width - The image width (if it's an image).
-				thumbs - An array of thumbnails (if it's an image).
+				type - "file", "image", or "video"
+				crops - An array of crop prefixes
+				thumbs - An array of thumb prefixes
+				video_data - An array of video data
+				metadata - An array of metadata
 
 			Returns:
 				The new resource id.
 		*/
-
-		function createResource($folder, $file, $md5, $name, $type, $is_image = "", $height = 0, $width = 0, $thumbs = array()) {
-			$resource = BigTree\Resource::create($folder, $file, $md5, $name, $type, $is_image ? true : false, $height ?: null, $width ?: null, $thumbs);
+		
+		public function createResource($folder, $file, $name, $type = "file", $crops = [], $thumbs = [], $video_data = [], $metadata = []) {
+			$resource = BigTree\Resource::create($folder, $file, $name, $type, $crops, $thumbs, $video_data, $metadata);
 
 			return $resource->ID;
 		}
@@ -2458,7 +2457,12 @@
 				previewing - Whether we are previewing or not.
 
 			Returns:
-				An array containing the page ID and any additional commands.
+				An array containing:
+					- The page ID (or false)
+					- An array of commands
+					- The routed status of the page
+					- GET variables
+					- URL Hash
 		*/
 
 		static function getPageIDForPath($path, $previewing = false) {
@@ -3245,12 +3249,14 @@
 
 			Parameters:
 				field - Field information (normally set to $field when running a field type's process file)
+				replace - If not looking for a unique filename (e.g. replacing an existing image) pass truthy value
+				force_local_replace - If replacing a file, replace a local filepath regardless of default storage (defaults to false)
 		*/
 
-		static function processImageUpload($field) {
+		static function processImageUpload($field, $replace = false, $force_local_replace = false) {
 			$field = new BigTree\Field($field);
 			
-			return $field->processImageUpload();
+			return $field->processImageUpload($replace, $force_local_replace);
 		}
 
 		/*

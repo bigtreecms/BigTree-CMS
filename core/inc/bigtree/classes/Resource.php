@@ -101,34 +101,80 @@
 				Creates a resource.
 
 			Parameters:
-				folder - The folder ID to place it in.
-				file - The file path.
-				md5 - The MD5 hash of the file.
+				folder - The folder to place it in.
+				file - The file path or a video URL.
 				name - The file name.
-				type - The file type.
-				is_image - Whether the resource is an image.
-				height - The image height (if it's an image).
-				width - The image width (if it's an image).
-				thumbs - An array of thumbnails (if it's an image).
+				type - "file", "image", or "video"
+				crops - An array of crop prefixes
+				thumbs - An array of thumb prefixes
+				video_data - An array of video data
+				metadata - An array of metadata
 
 			Returns:
 				A Resource object.
 		*/
 		
-		static function create(?int $folder, string $file, string $md5, string $name, string $type, bool $is_image = false,
-							   ?int $height = 0, ?int $width = 0, array $thumbs = []): Resource {
-			$id = SQL::insert("bigtree_resources", [
-				"file" => Link::tokenize($file),
-				"md5" => $md5,
-				"name" => Text::htmlEncode($name),
-				"type" => $type,
-				"folder" => $folder,
-				"is_image" => $is_image ? "on" : "",
-				"height" => intval($height),
-				"width" => intval($width),
-				"thumbs" => Link::tokenize($thumbs)
-			]);
+		static function create(?int $folder, string $file, string $name, string $type, array $crops = [],
+							   array $thumbs = [], array $video_data = [], array $metadata = []): Resource {
+			$width = null;
+			$height = null;
 			
+			if ($type != "video") {
+				$storage = new Storage;
+				$location = $storage->Cloud ? "cloud" : "local";
+				$file_extension = pathinfo($file, PATHINFO_EXTENSION);
+				$authenticated_user_id = Auth::user()->ID;
+				
+				// Local storage will let us lookup file size and md5 already
+				if ($location == "local") {
+					$file_path = str_replace(STATIC_ROOT, SITE_ROOT, BigTreeCMS::replaceRelativeRoots($file));
+				} else {
+					$file_path = SITE_ROOT."files/temporary/$authenticated_user_id/".uniqid(true).".".$file_extension;
+					FileSystem::copyFile($file, $file_path);
+				}
+				
+				$file_size = filesize($file_path);
+				$md5 = md5($file_path);
+				$mimetype = function_exists("mime_content_type") ? mime_content_type($file_path) : "";
+				
+				if ($type == "image") {
+					list($width, $height) = getimagesize($file_path);
+				}
+				
+				if ($location != "local") {
+					unlink($file_path);
+				}
+			} else {
+				$location = $video_data["service"];
+				$file_extension = "video";
+				$name = $video_data["title"];
+				$file = $video_data["url"];
+				$file_size = null;
+				$md5 = null;
+				$mimetype = null;
+			}
+			
+			$data = [
+				"folder" => $folder ?: null,
+				"file" => Link::tokenize($file),
+				"name" => Text::htmlEncode($name),
+				"type" => $file_extension,
+				"mimetype" => $mimetype,
+				"is_image" => ($type == "image") ? "on" : "",
+				"is_video" => ($type == "video") ? "on" : "",
+				"md5" => $md5,
+				"size" => $file_size,
+				"width" => $width,
+				"height" => $height,
+				"date" => date("Y-m-d H:i:s"),
+				"crops" => Link::tokenize($crops),
+				"thumbs" => Link::tokenize($thumbs),
+				"location" => $location,
+				"video_data" => $video_data,
+				"metadata" => Link::tokenize($metadata)
+			];
+			
+			$id = SQL::insert("bigtree_resources", $data);
 			AuditTrail::track("bigtree_resources", $id, "created");
 			
 			return new Resource($id);

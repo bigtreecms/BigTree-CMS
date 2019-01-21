@@ -1966,13 +1966,17 @@ var BigTreeFormNavBar = (function() {
 		ev.preventDefault();
 
 		var tab = Nav.filter(".active");
+		var tabs = Nav.filter(":visible");
+		var index = tabs.index(tab);
+		var next = tabs.eq(index + 1);
+
 		tab.removeClass("active");
-		var next = tab.next("a").addClass("active");
-		
+		next.addClass("active");
+
 		$("#" + next.attr("href").substr(1)).show().find(".watcher").trigger("visible");
 		$("#" + tab.attr("href").substr(1)).hide().find(".watcher").trigger("hidden");
-		
-		if (Nav.index(tab) == Nav.filter(":visible").length - 2) {
+
+		if (tabs.length - 2 === index) {
 			$(this).hide();
 		}
 	}

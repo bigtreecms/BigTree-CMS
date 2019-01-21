@@ -8,6 +8,10 @@
         "phpseclib/phpseclib": "~1.0",
         "davechild/textstatistics": "^1.0",
         "hautelook/phpass": "^1.1",
-        "pclzip/pclzip": "^2.8"
+        "pclzip/pclzip": "^2.8",
+        "ext-gd": "*",
+        "ext-json": "*",
+        "ext-openssl": "*",
+        "ext-curl": "*"
     }
 }

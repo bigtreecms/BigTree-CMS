@@ -582,7 +582,7 @@
 				previewing - Whether we are previewing or not.
 			
 			Returns:
-				An array containing [page ID, commands array, template routed status]
+				An array containing [page ID, commands array, template routed status, GET variables, URL hash]
 		*/
 		
 		static function routeToPage(array $path, bool $previewing = false): array {
@@ -594,8 +594,11 @@
 				$path = array_filter(array_merge(explode("/", BIGTREE_SITE_PATH), $path));
 			}
 			
-			// Reset indexes
-			$path = array_values($path);
+			// Get any GET variables and hashes and remove them
+			$url_parse = parse_url(implode("/", array_values($path)));
+			$query_vars = $url_parse["query"];
+			$hash = $url_parse["fragment"];
+			$path = explode("/", rtrim($url_parse["path"], "/"));
 			
 			// See if we have a straight up perfect match to the path.
 			$page = SQL::fetch("SELECT bigtree_pages.id,bigtree_templates.routed
@@ -603,7 +606,7 @@
 								ON bigtree_pages.template = bigtree_templates.id
 								WHERE path = ? AND archived = '' $publish_at", implode("/", $path));
 			if ($page) {
-				return [$page["id"], [], $page["routed"]];
+				return [$page["id"], [], $page["routed"], $query_vars, $hash];
 			}
 			
 			// Resetting $path to ensure it's numerically indexed, chop off the end until we find a page
@@ -624,11 +627,11 @@
 												   bigtree_templates.routed = 'on' $publish_at", $path_string);
 				
 				if ($page_id) {
-					return [$page_id, array_reverse($commands), "on"];
+					return [$page_id, array_reverse($commands), "on", $query_vars, $hash];
 				}
 			}
 			
-			return [false, false, false];
+			return [false, false, false, [], false];
 		}
 		
 	}

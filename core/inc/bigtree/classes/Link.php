@@ -207,7 +207,7 @@
 			// If this string is actually just a URL, IPL it.
 			if ((substr($input, 0, 7) == "http://" || substr($input, 0, 8) == "https://") && strpos($input, "\n") === false && strpos($input, "\r") === false) {
 				$input = static::iplEncode($input);
-			// Otherwise, switch all the image srcs and javascripts srcs and whatnot to {wwwroot}.
+				// Otherwise, switch all the image srcs and javascripts srcs and whatnot to {wwwroot}.
 			} else {
 				$input = preg_replace_callback('/href="([^"]*)"/', ['BigTree\Link', "encodeHref"], $input);
 				$input = preg_replace_callback('/src="([^"]*)"/', ['BigTree\Link', "encodeSrc"], $input);
@@ -315,7 +315,7 @@
 			$errors = [];
 			
 			// Make sure HTML is valid.
-			$doc = new DOMDocument();
+			$doc = new DOMDocument;
 			
 			try {
 				$doc->loadHTML($html);
@@ -327,14 +327,24 @@
 			$links = $doc->getElementsByTagName("a");
 			
 			foreach ($links as $link) {
-				$href = $link->getAttribute("href");
-				$href = str_replace(["{wwwroot}", "%7Bwwwroot%7D", "{staticroot}", "%7Bstaticroot%7D"], [WWW_ROOT, WWW_ROOT, STATIC_ROOT, STATIC_ROOT], $href);
+				$href = static::detokenize($link->getAttribute("href"));
 				
 				if ($href == WWW_ROOT || $href == STATIC_ROOT || $href == ADMIN_ROOT) {
 					continue;
 				}
 				
-				if ((substr($href, 0, 2) == "//" || substr($href, 0, 4) == "http") && strpos($href, WWW_ROOT) === false) {
+				// See if the link matches something local
+				$local = false;
+				
+				if (substr($href, 0, 4) == "http") {
+					foreach (static::$TokenKeys as $local_key) {
+						if (strpos($href, $local_key) === 0) {
+							$local = true;
+						}
+					}
+				}
+				
+				if ((substr($href, 0, 2) == "//" || substr($href, 0, 4) == "http") && !$local) {
 					// External link, not much we can do but alert that it's dead
 					if ($external) {
 						if (strpos($href, "#") !== false) {
@@ -359,11 +369,6 @@
 					if (!static::urlExists($href)) {
 						$errors["a"][] = $href;
 					}
-				} elseif (substr($href, 0, 2) == "//") {
-					// Protocol agnostic link
-					if (!static::urlExists("http:".$href)) {
-						$errors["a"][] = $href;
-					}
 				} else {
 					// Local file.
 					$local = $relative_path.$href;
@@ -377,10 +382,20 @@
 			$images = $doc->getElementsByTagName("img");
 			
 			foreach ($images as $image) {
-				$href = $image->getAttribute("src");
-				$href = str_replace(["{wwwroot}", "%7Bwwwroot%7D", "{staticroot}", "%7Bstaticroot%7D"], [WWW_ROOT, WWW_ROOT, STATIC_ROOT, STATIC_ROOT], $href);
+				$href = static::detokenize($image->getAttribute("src"));
 				
-				if (substr($href, 0, 4) == "http" && strpos($href, WWW_ROOT) === false) {
+				// See if the link matches something local
+				$local = false;
+				
+				if (substr($href, 0, 4) == "http") {
+					foreach (static::$TokenKeys as $local_key) {
+						if (strpos($href, $local_key) === 0) {
+							$local = true;
+						}
+					}
+				}
+				
+				if ((substr($href, 0, 2) == "//" || substr($href, 0, 4) == "http") && !$local) {
 					// External link, not much we can do but alert that it's dead
 					if ($external) {
 						if (!static::urlExists($href)) {
@@ -436,6 +451,7 @@
 			}
 			
 			$ipl = explode("//", $ipl);
+			
 			$navid = $ipl[1];
 			
 			// Resource Links
@@ -461,12 +477,14 @@
 			}
 			
 			// New IPLs are encoded in JSON
-			$c = json_decode(base64_decode($ipl[2]));
+			$command_parts = json_decode(base64_decode($ipl[2]));
+			$get_vars = base64_decode($ipl[3]);
+			$hash = base64_decode($ipl[4]);
 			
 			// If it can't be rectified, we still don't want a warning.
-			if (is_array($c) && count($c)) {
-				$last = end($c);
-				$commands = implode("/", $c);
+			if (is_array($command_parts) && count($command_parts)) {
+				$last = end($command_parts);
+				$commands = implode("/", $command_parts);
 				
 				// If the URL's last piece has a GET (?), hash (#), or appears to be a file (.) don't add a trailing slash
 				if ($bigtree["config"]["trailing_slash_behavior"] != "remove" && strpos($last, "#") === false && strpos($last, "?") === false && strpos($last, ".") === false) {
@@ -477,25 +495,29 @@
 			}
 			
 			// See if it's in the cache.
-			if (isset(static::$IPLCache[$navid])) {
-				if ($bigtree["config"]["trailing_slash_behavior"] != "remove" || $commands != "") {
-					return static::$IPLCache[$navid]."/".$commands;
-				} else {
-					return static::$IPLCache[$navid];
-				}
-			} else {
+			if (!isset(static::$IPLCache[$navid])) {
 				// Get the page's path
 				$path = SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $navid);
 				
 				// Set the cache
 				static::$IPLCache[$navid] = rtrim(static::byPath($path), "/");
-				
-				if (!empty($bigtree["config"]["trailing_slash_behavior"]) && $bigtree["config"]["trailing_slash_behavior"] != "remove" || $commands != "") {
-					return static::$IPLCache[$navid]."/".$commands;
-				} else {
-					return static::$IPLCache[$navid];
-				}
 			}
+			
+			if (!empty($bigtree["config"]["trailing_slash_behavior"]) && $bigtree["config"]["trailing_slash_behavior"] != "remove" || $commands != "") {
+				$url = static::$IPLCache[$navid]."/".$commands;
+			} else {
+				$url = static::$IPLCache[$navid];
+			}
+			
+			if ($get_vars) {
+				$url .= "?".$get_vars;
+			}
+			
+			if ($hash) {
+				$url .= "#".$hash;
+			}
+			
+			return $url;
 		}
 		
 		/*
@@ -511,7 +533,7 @@
 		
 		static function iplEncode(string $url): string {
 			global $bigtree;
-
+			
 			$path_components = explode("/", rtrim(str_replace(WWW_ROOT, "", $url), "/"));
 			
 			// See if this is a file
@@ -741,12 +763,16 @@
 		*/
 		
 		static function urlExists(string $url): bool {
+			// Strip out any hash
+			list($url) = explode("#", $url);
+			
 			// Handle // urls as http://
 			if (substr($url, 0, 2) == "//") {
 				$url = "http:".$url;
 			}
 			
 			$handle = curl_init($url);
+			
 			if ($handle === false) {
 				return false;
 			}

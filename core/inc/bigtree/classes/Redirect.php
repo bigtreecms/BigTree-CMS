@@ -155,9 +155,9 @@
 				}
 			} else {
 				if (!is_null($site_key)) {
-					$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND site_key = ?", $from, $site_key);
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND get_vars = '' AND site_key = ?", $from, $site_key);
 				} else {
-					$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ?", $from);
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND get_vars = ''", $from);
 				}
 			}
 			

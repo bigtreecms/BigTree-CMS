@@ -27,22 +27,25 @@
 		
 		static function request(string $url, $post = null, array $options = [], bool $strict_security = false,
 								?string $output_file = null) {
+			// Strip out any hash
+			list($url) = explode("#", $url);
+			
 			// Startup cURL and set the URL
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $url);
+			$handle = curl_init();
+			curl_setopt($handle, CURLOPT_URL, $url);
 			
 			// Determine whether we're forcing valid SSL on the peer and host
 			if (!$strict_security) {
-				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+				curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, 0);
+				curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, 0);
 			}
 			
 			// If we're returning to a file we setup a file pointer rather than waste RAM capturing to a variable
 			if (!is_null($output_file)) {
 				$file_pointer = fopen($output_file, "w");
-				curl_setopt($ch, CURLOPT_FILE, $file_pointer);
+				curl_setopt($handle, CURLOPT_FILE, $file_pointer);
 			} else {
-				curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+				curl_setopt($handle, CURLOPT_RETURNTRANSFER, 1);
 			}
 			
 			// Setup post data
@@ -58,24 +61,24 @@
 					unset($post_field);
 				}
 				
-				curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+				curl_setopt($handle, CURLOPT_POSTFIELDS, $post);
 			}
 			
 			// Any additional cURL options
 			if (is_array($options) && count($options)) {
 				foreach ($options as $key => $opt) {
-					curl_setopt($ch, $key, $opt);
+					curl_setopt($handle, $key, $opt);
 				}
 			}
 			
 			// Get the output
-			$output = curl_exec($ch);
+			$output = curl_exec($handle);
 			
 			// Log response code for checking for failed HTTP codes
-			static::$ResponseCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+			static::$ResponseCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
 			
 			// Close connection
-			curl_close($ch);
+			curl_close($handle);
 			
 			// If we're outputting to a file, close the handle and return nothing
 			if ($output_file) {

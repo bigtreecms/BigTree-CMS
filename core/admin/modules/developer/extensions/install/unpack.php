@@ -11,8 +11,8 @@
 	
 	// Make sure an upload succeeded
 	$error = $_FILES["file"]["error"];
-	$errors = array();
-	$warnings = array();
+	$errors = [];
+	$warnings = [];
 	
 	if ($error == 1 || $error == 2) {
 		$_SESSION["upload_error"] = "The file you uploaded is too large.  You may need to edit your php.ini to upload larger files.";
@@ -21,7 +21,7 @@
 	}
 	
 	if ($error) {
-		Router::redirect(DEVELOPER_ROOT."packages/install/");
+		Router::redirect(DEVELOPER_ROOT."extensions/install/");
 	}
 	
 	// We've at least got the file now, unpack it and see what's going on.

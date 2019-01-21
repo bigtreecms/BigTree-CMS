@@ -129,7 +129,7 @@
 				Information directly from the API or the cache.
 		*/
 		
-		function call(string $endpoint = "", array $params = [], string $method = "GET", array $headers = []): ?stdClass {
+		function call(string $endpoint = "", $params = [], string $method = "GET", array $headers = []): ?stdClass {
 			if ($this->Cache) {
 				$this->LastCacheKey = md5($endpoint.json_encode($params));
 				$record = Cache::get($this->CacheIdentifier, $this->LastCacheKey, 900);

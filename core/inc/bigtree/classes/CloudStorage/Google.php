@@ -47,12 +47,14 @@
 		// Implements Provider::copyFile
 		function copyFile(string $source_container, string $source_pointer, string $destination_container,
 						  string $destination_pointer, bool $public = false): ?string {
-			$response = $this->call("b/$source_container/o/".rawurlencode($source_pointer)."/copyTo/b/$destination_container/o/".rawurlencode($destination_pointer), "{}", "POST");
+			$encoded_source_pointer = urlencode($source_pointer);
+			$encoded_pointer = urlencode($destination_pointer);
+			$response = $this->call("b/$source_container/o/$encoded_source_pointer/copyTo/b/$encoded_pointer/o/".rawurlencode($destination_pointer), "{}", "POST");
 			
 			if (isset($response->id)) {
 				// Set the access control level if it's publicly accessible
 				if ($public) {
-					$this->call("b/$destination_container/o/".rawurlencode($destination_pointer)."/acl", json_encode(["entity" => "allUsers", "role" => "READER"]), "POST");
+					$this->call("b/$destination_container/o/$$encoded_pointer/acl", json_encode(["entity" => "allUsers", "role" => "READER"]), "POST");
 				}
 				
 				return "//storage.googleapis.com/$destination_container/$destination_pointer";
@@ -80,7 +82,8 @@
 		// Implements Provider::createFile
 		function createFile(string $contents, string $container, string $pointer, bool $public = false,
 							string $type = "text/plain"): ?string {
-			$response = json_decode(cURL::request("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$pointer&uploadType=media", $contents, [
+			$encoded_pointer = urlencode($pointer);
+			$response = json_decode(cURL::request("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$encoded_pointer&uploadType=media", $contents, [
 				CURLOPT_POST => true,
 				CURLOPT_HTTPHEADER => [
 					"Content-Type: $type",
@@ -93,7 +96,7 @@
 			if (isset($response->id)) {
 				// Set the access control level if it's publicly accessible
 				if ($public) {
-					$this->call("b/$container/o/".rawurlencode($pointer)."/acl", json_encode(["entity" => "allUsers", "role" => "READER"]), "POST");
+					$this->call("b/$container/o/$encoded_pointer/acl", json_encode(["entity" => "allUsers", "role" => "READER"]), "POST");
 				}
 				
 				return "//storage.googleapis.com/$container/$pointer";
@@ -124,7 +127,7 @@
 		function deleteFile(string $container, string $pointer): ?bool {
 			$error_count = count($this->Errors);
 			
-			$this->call("b/$container/o/".rawurlencode($pointer), false, "DELETE");
+			$this->call("b/$container/o/".urlencode($pointer), false, "DELETE");
 			
 			// The call stack will register a new error if it fails
 			if (count($this->Errors) > $error_count) {
@@ -161,8 +164,9 @@
 			
 			// Sign the string
 			$private_key = openssl_pkey_get_private($certificates["pkey"]);
-			openssl_sign("GET\n\n\n$expires\n/$container/".str_replace(["+", "%2F"], ["%20", "/"], urlencode($pointer)),
-						 $signature, $private_key, "sha256");
+			$encoded_pointer = str_replace(" ", "%20", $pointer);
+			openssl_sign("GET\n\n\n$expires\n/$container/$encoded_pointer", $signature, $private_key, "sha256");
+			
 			$signature = urlencode(base64_encode($signature));
 			$access_id = $this->CertificateEmail;
 			
@@ -209,6 +213,8 @@
 		
 		// Implements Provider::getfile
 		function getFile(string $container, string $pointer): ?string {
+			$pointer = rawurlencode($pointer);
+			
 			return cURL::request("https://storage.googleapis.com/$container/$pointer", false, [
 				CURLOPT_HTTPHEADER => ["Authorization: Bearer ".$this->Token]
 			]);
@@ -261,8 +267,9 @@
 			
 			// Open file pointer for cURL to upload
 			$file_pointer = fopen($file, "r");
+			$encoded_pointer = rawurlencode($pointer);
 			
-			$response = json_decode(cURL::request("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$pointer&uploadType=media", false, [
+			$response = json_decode(cURL::request("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$encoded_pointer&uploadType=media", false, [
 				CURLOPT_INFILE => $file_pointer,
 				CURLOPT_POST => true,
 				CURLOPT_HTTPHEADER => [
@@ -277,7 +284,7 @@
 			if (isset($response->id)) {
 				// Set the access control level if it's publicly accessible
 				if ($public) {
-					$this->call("b/$container/o/".rawurlencode($pointer)."/acl", json_encode(["entity" => "allUsers", "role" => "READER"]), "POST");
+					$this->call("b/$container/o/$encoded_pointer/acl", json_encode(["entity" => "allUsers", "role" => "READER"]), "POST");
 				}
 				
 				return "//storage.googleapis.com/$container/$pointer";

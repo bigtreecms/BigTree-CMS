@@ -78,8 +78,8 @@
 			var li = $(this).parents("li");
 			var title = li.find("input").val();
 			var key = $(this).attr("name");
-			
-			if (title && key != "geocoding" && key.indexOf("__mtm-") != 0) {
+
+			if (title && key !== "__geocoding__" && key.indexOf("__mtm-") !== 0) {
 				FieldSelect.addField(key, title);
 			}
 			

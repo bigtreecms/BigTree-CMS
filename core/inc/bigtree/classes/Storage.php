@@ -9,10 +9,10 @@
 	class Storage {
 		
 		public $AutoJPEG = false;
-		public $DisabledFileError = false;
-		public $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx|phtml|pht)/i';
-		public $Service = "";
 		public $Cloud;
+		public $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx|phtml|pht|htaccess)/i';
+		public $DisabledFileError = false;
+		public $Service = "";
 		public $Setting;
 		public $Settings;
 		
@@ -186,12 +186,14 @@
 				file_name - The file name at the storage end point.
 				relative_path - The path (relative to SITE_ROOT or the bucket / container root) in which to store the file.
 				remove_original - Whether to delete the local_file or not.
+				force_local - Forces a local file replacement even if cloud storage is in use by default (defaults to false)
 
 			Returns:
 				The URL of the stored file if successful.
 		*/
 		
-		function replace(string $local_file, string $file_name, string $relative_path, bool $remove_original = true): ?string {
+		function replace(string $local_file, string $file_name, string $relative_path,
+						 bool $remove_original = true, bool $force_local = false): ?string {
 			global $bigtree;
 			
 			// Make sure there are no path exploits
@@ -213,7 +215,7 @@
 			// Enforce trailing slashe on relative_path
 			$relative_path = $relative_path ? rtrim($relative_path, "/")."/" : "files/";
 			
-			if ($this->Cloud) {
+			if ($this->Cloud && !$force_local) {
 				$success = $this->Cloud->uploadFile($local_file, $this->Settings["Container"], $relative_path.$file_name, true);
 				
 				if ($success) {
