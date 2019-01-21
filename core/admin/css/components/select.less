@@ -1,0 +1,89 @@
+/*
+	<select> styles for BigTreeSelect
+*/
+
+	.select {
+		background: #FFF;
+		border: 1px solid #CCCCCC;
+		border-radius: 2px;
+		color: #333;
+		cursor: pointer;
+		float: left;
+		font-family: "Helvetica", Arial;
+		font-size: 11px;
+		height: 30px;
+		line-height: 30px;
+		margin: 0;
+		transition: border-color 0.2s; user-select: none;
+
+		&.disabled { opacity: 0.5; }
+		&.focused { border-color: #AAA; }
+		&.open { border-color: #AAA; border-radius: 2px 2px 0px 0px; }
+
+		.handle {
+			background: url(../../images/icon-sprite.svg) -340px -105px;
+			float: right;
+			height: 30px;
+			position: absolute;
+			right: 0;
+			width: 34px;
+			z-index: 2;
+		}
+
+		.current_select_container {
+			display: block;
+			overflow: hidden;
+			padding: 0 44px 0 10px;
+			position: relative;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			max-width: 841px;
+		}
+
+		.group {
+			background: #F6F6F6;
+			color: #666;
+			cursor: default;
+			font-size: 10px;
+			line-height: 15px;
+			padding: 5px 10px;
+		}
+
+		.select_options {
+			background: #FFF;
+			border: 1px solid #AAA;
+			border-radius: 0px 0px 2px 2px;
+			display: block;
+			margin: 0 0 0 -1px;
+			max-width: 896px;
+			max-height: 300px;
+			overflow: auto;
+			position: absolute;
+			z-index: 5;
+
+			a {
+				color: #333;
+				display: block;
+				font-size: 11px;
+				line-height: 15px;
+				min-height: 15px;
+				padding: 5px 10px;
+				transition: background 0.2s;
+				user-select: none; 
+
+				&:hover { background: #eee; }
+				&:last-child { border-radius: 0px 0px 2px 2px; }
+				&.active { background: #EFF7FD; }
+				&.optgroup { padding: 5px 20px; }
+				&.disabled { color: #CCC; cursor: default; }
+			}
+		}
+	}
+
+	.form_error .select {
+		border-color: #C0362F;
+
+		.handle {
+			background-position: -374px -105px;
+		}
+	}

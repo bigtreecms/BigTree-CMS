@@ -1,0 +1,100 @@
+/*
+	<input type="file"> styles for BigTreeFileInput
+*/
+
+	.file_wrapper {
+		background: #FFF;
+		border: 1px solid #CCC;
+		border-radius: 2px;
+		color: #333;
+		display: block;
+		height: 30px;
+		margin: 0;
+		overflow: hidden;
+		width: 300px;
+
+		&.disabled {
+			cursor: default;
+			opacity: 0.3;
+			pointer-events: none;
+		}
+
+		.form_error & {
+			border-color: #C0362F;
+		}
+
+		input {
+			cursor: pointer;
+			height: 30px;
+			opacity: 0;
+			position: absolute;
+			width: auto;
+		}
+
+		.handle {
+			background: rgba(0, 0, 0, 0.1);
+			border-left: 1px solid #CCC;
+			border-radius: 0px 2px 2px 0px;
+			color: #333;
+			cursor: pointer;
+			display: block;
+			font-size: 14px;
+			height: 30px;
+			line-height: 30px;
+			text-align: center;
+			width: 70px;
+			float: right;
+
+			&:hover { background: rgba(0,0,0,0.15); }
+		}
+
+		.data {
+			float: left;
+			font-size: 12px;
+			height: 30px;
+			line-height: 30px;
+			overflow: hidden;
+			padding: 0 5px;
+			position: relative;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			width: 219px;
+
+			.size {
+				float: right;
+				color: #999;
+				font-size: 10px;
+				height: 30px;
+				max-width: 40px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+
+			.name {
+				float: left;
+				overflow: hidden;
+				padding: 0 0 0 5px;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+				width: 129px;
+			}
+
+			.wider {
+				width: 174px;
+			}
+
+			.error {
+				color: #CC0000;
+			}
+
+			img {
+				float: left;
+				height: 26px;
+				margin: 0 0 0 -3px;
+				max-width: 40px;
+				position: relative;
+				top: 50%;
+				transform: translateY(-50%);
+			}
+		}
+	}

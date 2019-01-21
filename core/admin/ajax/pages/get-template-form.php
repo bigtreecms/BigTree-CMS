@@ -53,7 +53,7 @@
 	<?php
 		$bigtree["html_fields"] = array();
 		$bigtree["simple_html_fields"] = array();
-		$bigtree["tabindex"] = 1;
+		$bigtree["tabindex"] = 11;
 		$bigtree["field_types"] = FieldType::reference(false,"templates");
 
 		Field::$Namespace = uniqid("template_field_");

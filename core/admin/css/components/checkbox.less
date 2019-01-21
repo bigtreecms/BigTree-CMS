@@ -1,0 +1,21 @@
+/*
+	<input type="checkbox"> styles for BigTreeCheckbox
+*/
+
+	.checkbox {
+		float: left;
+		margin: 0 7px 0 0;
+
+		a {
+			background: url(../../images/icon-sprite.svg) -150px -105px;
+			cursor: pointer;
+			display: block;
+			height: 16px;
+			width: 16px; 
+
+			&.checked { background-position: -150px -121px; }
+			&.focused { background-position: -166px -105px; }
+			&.checked.focused { background-position: -166px -121px; }
+			&.disabled { cursor: default; opacity: 0.3; pointer-events: none; }
+		}
+	}

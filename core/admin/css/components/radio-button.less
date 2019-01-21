@@ -1,0 +1,25 @@
+/*
+	<input type="radio"> styles for BigTreeRadioButton
+*/
+
+	.radio_button {
+		float: left;
+		margin: 0 7px 0 0;
+
+		a {
+			background: url(../../images/icon-sprite.svg) -256px -124px;
+			cursor: pointer;
+			display: block;
+			height: 16px;
+			width: 16px;
+
+			&.checked { background-position: -240px -124px; }
+			&.focused { background-position: -320px -124px; }
+			&.checked.focused { background-position: -304px -124px; }
+			&.disabled {
+				cursor: default;
+				opacity: 0.3;
+				pointer-events: none;
+			}
+		}
+	}

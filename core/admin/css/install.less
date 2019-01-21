@@ -1,0 +1,50 @@
+	@import "partials/reset.less";
+	@import "components/forms.less";
+	@import "components/checkbox.less";
+	@import "components/radio-button.less";
+	@import "components/select.less";
+	@import "components/file-input.less";
+
+	body.install { background: #eee; background-attachment: fixed, scroll; background-position: top center, top center; background-repeat: repeat-x, repeat; }
+	.install_wrapper { margin: 0 auto; padding: 75px 0 25px; width: 650px; }
+	.install_wrapper hr { border: 1px solid #fff; border-top-color: #ccc; margin: 25px -1px; }
+	.install_wrapper h1 { color: #333; font-size: 30px; font-weight: normal; margin: 0 0 25px 0; text-align: center; }
+	.install_wrapper form { background: #FFF; border: 1px solid #CCCCCC; border-radius: 5px; overflow: hidden; padding: 30px 0 0; }
+	.install_wrapper h2 { color: #444; float: left; font-size: 20px; font-weight: normal; line-height: 30px; margin: 0 30px 5px; overflow: hidden; padding: 0; }
+	.install_wrapper h2 span { background: url(../images/install-sprite.png) no-repeat; display: block; float: left; height: 25px; margin: 0 7px 0 0; width: 25px; }
+	.install_wrapper h2.getting_started span { background-position: -125px 0px; }
+	.install_wrapper h2.database span { background-position: -100px 0px; }
+	.install_wrapper h2.security span { background-position: -75px 0px; }
+	.install_wrapper h2.account span { background-position: -50px 0px; }
+	.install_wrapper h2.routing span { background-position: 0px 0px; }
+	.install_wrapper h2.example span { background-position: -25px 0px; }
+	.install_wrapper fieldset { margin: 0; padding: 0 30px; }
+	.install_wrapper fieldset.left { float: left; margin: 0; padding: 0 0 0 30px; width: auto; }
+	.install_wrapper fieldset.right { float: right; margin: 0; padding: 0 30px 0 0; width: auto; }
+	.install_wrapper label { color: #666; display: block; font-size: 13px; margin: 0 0 12px 0; }
+	.install_wrapper input.text { border: 1px solid #CCC; border-radius: 3px; color: #666; display: block; height: 32px; margin: 0 0 20px 0; padding: 0 10px; width: 260px !important; }
+	.install_wrapper input.text:focus { border-color: #AAA; }
+	.install_wrapper input.text:last-child { margin: 0; }
+	.install_wrapper input.text:focus { border-color: #AAA; }
+	.install_wrapper p { clear: both; color: #666; font-size: 13px; line-height: 1.3; margin: 0; }
+	.install_wrapper p small { color: #999; display: block; float: left; font-size: 10px; text-transform: uppercase; width: 100px; }
+	.install_wrapper fieldset.lower { background: #F5F5F5; border-top: 1px solid #E5E5E5; margin: 20px 0 0; padding: 25px 30px; }
+	.install_wrapper .forgot_password { color: #666; float: right; line-height: 36px; }
+	.install_wrapper .forgot_password:hover { color: #3E667D; }
+	.install_wrapper .error_message { background: #C0362F; border-radius: 2px; color: #FFF; font-size: 12px; line-height: 18px; margin: 0 30px 10px 30px; padding: 5px 10px; }
+	.install_wrapper .warning_message { background: #D58410; border-radius: 2px; color: #FFF; font-size: 12px; line-height: 18px; margin: 0 30px 10px 30px; padding: 5px 10px; }
+	.install_wrapper .delete_message { background: #D58410; border-radius: 2px; color: #FFF; font-size: 12px; line-height: 18px; margin: 10px 0 0 0; padding: 5px 10px; }
+	.install_wrapper .iis_message { background: #990000; margin: 20px 0 0 0; }
+	.install_logo { background: url(../images/icon-sprite.svg) 0px -173px; display: block; height: 36px; margin: 40px auto 0; text-indent: -99999px; width: 150px; }
+	.install_copyright { color: #777; display: block; margin: 25px auto 0; text-align: center; width: 100px; }
+	.install_copyright:hover { color: #ccc; }
+	.install_wrapper ul { line-height: 1.6; list-style: disc outside; margin: 20px 30px 0 30px; }
+	.install_wrapper ul li { margin: 5px 0; }
+	.install_wrapper code { background: #FCFCFC; border: 1px solid #CCC; color: #333; display: block; line-height: 200%; margin: 20px 0; padding: 10px 20px; }
+	.install_wrapper .select .handle { background: url(../images/install-sprite.png) -32px -25px; }
+	.install_wrapper .checkbox a { background: url(../images/install-sprite.png) 0px -25px; }
+	.install_wrapper .checkbox a.checked { background-position: 0px -41px; }
+	.install_wrapper .checkbox a.focused { background-position: -16px -25px; }
+	.install_wrapper .checkbox a.checked.focused { background-position: -16px -41px; }
+	.install_wrapper .form_error input { border-color: #C0362F; }
+	.install_wrapper .form_error label { color: #C0362F; }

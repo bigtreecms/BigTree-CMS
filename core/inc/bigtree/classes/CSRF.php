@@ -76,7 +76,7 @@
 			$token = isset($_POST[static::$Field]) ? $_POST[static::$Field] : $_GET[static::$Field];
 			
 			if (strpos($clean_referer, $clean_domain) !== 0 || $token != static::$Token) {
-				Auth::stop("Cross site request forgery detected.");
+				Auth::stop("An error has occurred. Please try your submission again.");
 			}
 		}
 

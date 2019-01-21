@@ -286,10 +286,13 @@ var BigTreeSelect = function(element) {
 	return (function($,element) {
 
 		var Container = $("<div>").addClass("select");
+		var CurrentContainer;
 		var Element = $(element);
 		var Open = false;
 		var Options = [];
+		var TabIndex = 0;
 		var WasRelative = false;
+		var ValueContainer;
 
 		function add(value,text) {
 			// Add to the actual select.
@@ -297,50 +300,49 @@ var BigTreeSelect = function(element) {
 			// Add to the styled select.
 			var a = $('<a href="#">' + text + '</a>').attr("data-value",value);
 			Container.find(".select_options").append(a);
-	
+
 			// Test the size of this new element and see if we need to increase the width.
 			var tester = $("<div>").css({ position: "absolute", top: "-1000px", left: "-1000px", "font-size": "11px", "font-family": "Helvetica", "white-space": "nowrap" });
 			$("body").append(tester);
 			tester.html(text);
+
 			var width = tester.width();
-			
-			var span = Container.find("span");
-	
+
 			// If we're in a section cell we may need to be smaller.
 			if (Element.parent().get(0).tagName.toLowerCase() == "section") {
 				var sectionwidth = Element.parent().width();
 				if (sectionwidth < (width + 56)) {
 					width = sectionwidth - 80;
-					span.css({ overflow: "hidden", padding: "0 0 0 10px" });
+					CurrentContainer.css({ overflow: "hidden", padding: "0 0 0 10px" });
 				}
 			}
-	
-			if (width > span.width()) {
-				span.css({ width: (width + 10) + "px" });
+
+			if (width > CurrentContainer.width()) {
+				CurrentContainer.css({ width: (width + 10) + "px" });
 				Container.find(".select_options").css({ width: (width + 64) + "px" });
 			}
-	
+
 			tester.remove();
 		}
-		
+
 		function blur() {
 			Container.removeClass("focused");
 		}
-	
+
 		function click() {
 			if (Container.hasClass("disabled")) {
 				return false;
 			}
-	
+
 			if (!Open) {
 				// Tooltips and menus sometimes show over the dropdown when using TinyMCE 4
 				try {
 					tinyMCE.ui.FloatPanel.hideAll();
 				} catch (err) {}
-			
+
 				$("select").not(Element).trigger("closeNow");
 				Element.focus();
-				
+
 				// Check if we're in a sortable row and disable it's relative position if so.
 				var li = Element.parent("li");
 				if (li.length) {
@@ -349,34 +351,28 @@ var BigTreeSelect = function(element) {
 						WasRelative = true;
 					}
 				}
-				
+
 				var select_options = Container.find(".select_options").show();
 				Open = true;
 				Container.addClass("open");
 				$("body").click(close);
-				
+
 				// Find out if we're in a dialog and have an overflow
 				var overflow = Container.parents(".overflow");
 				if (overflow.length) {
-					if (Container.parents("#callout_resources, #matrix_resources").length) {
-						// WebKit needs fixin.
-						if ($.browser.webkit) {
-							select_options.css("marginTop",-1 * $("#callout_resources, #matrix_resources").last().scrollTop() + "px");
-						}
-						// When someone scrolls the overflow, close the select or the dropdown will detach.
-						setTimeout(function() { $("#callout_resources, #matrix_resources").last().scroll(close); },500);
+					// Adjust by scroll offset - then someone scrolls the overflow, close the select or the dropdown will detach.
+					if (Container.parents(".callout_fields, #matrix_resources").length) {
+						select_options.css("marginTop",-1 * $(".callout_fields, #matrix_resources").last().scrollTop() + "px");
+						setTimeout(function() { $(".callout_fields, #matrix_resources").last().scroll(close); },500);
 					} else {
-						// WebKit needs fixin.
-						if ($.browser.webkit) {
-							select_options.css("marginTop",-1 * overflow.scrollTop() + "px");
-						}
-						// When someone scrolls the overflow, close the select or the dropdown will detach.
+						select_options.css("marginTop",-1 * overflow.scrollTop() + "px");
 						setTimeout(function() { overflow.scroll(close); },500);
 					}
 
 					// If the options would hang off the window, shrink the options menu down
 					var offset = select_options.offset().top - window.scrollY + select_options.height();
 					var difference = offset - BigTree.windowHeight();
+
 					if (difference > 0) {
 						select_options.css({ height: select_options.height() - difference - 5 + "px" });
 					}
@@ -390,7 +386,7 @@ var BigTreeSelect = function(element) {
 			} else {
 				close();
 			}
-	
+
 			return false;
 		}
 
@@ -399,50 +395,50 @@ var BigTreeSelect = function(element) {
 			Container.removeClass("open").find(".select_options").hide();
 			// Remove events for closing the dropdown
 			$("body").unbind("click",close);
-			$("#callout_resources").unbind("scroll",close);
+			$(".callout_fields").unbind("scroll",close);
 			Container.parents(".overflow").unbind("scroll",close);
-			
+
 			// Reset relative position if applicable
 			if (WasRelative) {
 				Element.parent("li").css("position", "relative");
 				WasRelative = false;
 			}
-			
+
 			return false;
 		}
-	
+
 		function disable() {
 			Element.prop("disabled",true);
 			Container.addClass("disabled");
 		}
-	
+
 		function enable() {
 			Element.prop("disabled",false);
 			Container.removeClass("disabled");
 		}
-	
+
 		function focus() {
 			Container.addClass("focused");
 		}
-		
+
 		function keydown(ev) {
 			// If a modifier has been pressed, ignore this.
 			if (ev.ctrlKey || ev.altKey || ev.metaKey) {
 				return true;
 			}
-	
+
 			if (ev.keyCode == 13 && Open) {
 				close();
 				return false;
 			}
-	
+
 			// The original select element that's hidden off screen.
 			var el = Element.get(0);
-			
+
 			// Get the original index and save it so we know when it changes.
 			var index = el.selectedIndex;
 			var originalIndex = index;
-			
+
 			// Up or left arrow pressed
 			if (ev.keyCode == 38 || ev.keyCode == 37) {
 				index--;
@@ -453,7 +449,7 @@ var BigTreeSelect = function(element) {
 						index = originalIndex;
 					}
 				}
-			// Down or right arrow pressed
+				// Down or right arrow pressed
 			} else if (ev.keyCode == 40 || ev.keyCode == 39) {
 				index++;
 				// Make sure we're not on a disabled option
@@ -463,12 +459,12 @@ var BigTreeSelect = function(element) {
 						index = originalIndex;
 					}
 				}
-			// A letter key was pressed
+				// A letter key was pressed
 			} else if (ev.keyCode > 64 && ev.keyCode < 91) {
 				var spot = ev.keyCode - 65;
 				var letters = "abcdefghijklmnopqrstuvwxyz";
 				var letter = letters[spot];
-				
+
 				// Go through all the options in the select to see if any of them start with the letter that was pressed.
 				for (var i = index + 1; i < el.options.length; i++) {
 					if (!el.options[i].disabled) {
@@ -482,7 +478,7 @@ var BigTreeSelect = function(element) {
 						}
 					}
 				}
-				
+
 				// If we were already on that letter, find the next one with that same letter.
 				if (index == originalIndex) {
 					for (var i = 0; i < originalIndex; i++) {
@@ -507,7 +503,7 @@ var BigTreeSelect = function(element) {
 				var ops = select_options_container.find("a");
 				ops.eq(originalIndex).removeClass("active");
 				ops.eq(index).addClass("active");
-	
+
 				// Find out if we can see this option
 				var selected_y = (index + 1) * 25;
 				if (selected_y >= select_options_container.height() + select_options_container.scrollTop()) {
@@ -515,29 +511,21 @@ var BigTreeSelect = function(element) {
 				} else if (selected_y <= select_options_container.scrollTop()) {
 					select_options_container.animate({ scrollTop: selected_y - 25 + "px" }, 250);
 				}
-		
-				// Firefox wants to handle this change itself, so we'll give it a shot until they fix their browser engine.
-				if ($.browser.mozilla && ev.keyCode > 36 && ev.keyCode < 41) {
-					// Fire delayed change event since Firefox doesn't cooperate
-					setTimeout(function() {
-						Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
-					},200);
-				} else {
-					el.selectedIndex = index;
-					Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
-				}
-	
-				Container.find("span").html('<figure class="handle"></figure>' + el.options[index].text);
-				
+
+				Element.get(0).selectedIndex = index;
+				Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
+
+				ValueContainer.html(el.options[index].text);
+
 				return false;
 			}
-			
+
 			// Stop the event if it's not a tab.
 			if (ev.keyCode != 9) {
 				return false;
 			}
 		}
-	
+
 		function remove(value) {
 			// Remove it from the actual select.
 			var ops = Element.find("option");
@@ -555,17 +543,17 @@ var BigTreeSelect = function(element) {
 				}
 			}
 			// If the current selected state is the value we're removing, switch to the first available.
-			var sel = Container.find("span").eq(0);
 			var select_options = Container.find(".select_options a");
+
 			if (select_options.length > 0) {
-				if (sel.html() == '<figure class="handle"></figure>' + text_was) {
-					sel.html('<figure class="handle"></figure>' + select_options.eq(0).html());
+				if (ValueContainer.html() == text_was) {
+					ValueContainer.html(select_options.eq(0).html());
 				}
 			} else {
-				sel.html('<figure class="handle"></figure>');
+				ValueContainer.html("");
 			}
 		}
-		
+
 		function select(ev) {
 			ev.preventDefault();
 			var option = $(this);
@@ -580,29 +568,36 @@ var BigTreeSelect = function(element) {
 			Element.val(option.attr("data-value"));
 
 			// Update the selected state of the custom dropdown
-			Container.find("span").html('<figure class="handle"></figure>' + option.html());
+			ValueContainer.html(option.html());
 			Container.find("a").removeClass("active");
 			option.addClass("active");
-			
+
 			// Close the dropdown
 			close();
-			
+
 			// Tell the <select> it has changed.
 			Element.trigger("change", { value: option.attr("data-value"), text: option.innerHTML });
 		}
 
 		function update() {
 			var el = Element.get(0);
-			Container.find("span").html('<figure class="handle"></figure>' + el.options[el.selectedIndex].text);
+			ValueContainer.html(el.options[el.selectedIndex].text);
 			Container.find("a").removeClass("active").eq(el.selectedIndex).addClass("active");
+
+			if (Element.prop("disabled")) {
+				disable();
+			} else {
+				enable();
+			}
 		}
 
 		// Init routine
 		if (Element.hasClass("custom_control")) {
 			return false;
 		}
+
 		Element.addClass("custom_control");
-		
+
 		// WebKit likes to freak out when we focus a position: absolute <select> in an overflow: scroll area
 		if ($.browser.webkit) {
 			Element.css({ position: "relative", left: "-1000000px", float: "left", width: "1px", marginRight: "-1px" });
@@ -613,11 +608,11 @@ var BigTreeSelect = function(element) {
 		var tester = $("<div>").css({ position: "absolute", top: "-1000px", left: "-1000px", "font-size": "11px", "font-family": "Helvetica", "white-space": "nowrap" });
 		$("body").append(tester);
 		var maxwidth = 0;
-		
+
 		var html = "";
 		var selected = "";
 		var selected_option = "";
-		
+
 		// Need to find all children since we have to account for options in and out of optgroups
 		var first_level = Element.children();
 		var y = 0;
@@ -632,7 +627,7 @@ var BigTreeSelect = function(element) {
 				if (width > maxwidth) {
 					maxwidth = width;
 				}
-				
+
 				var options = $(el).find("option");
 				for (x = 0; x < options.length; x++) {
 					y++;
@@ -642,18 +637,18 @@ var BigTreeSelect = function(element) {
 					if (!val) {
 						val = text;
 					}
-					
+
 					// Get the size of this text.
 					tester.html(text);
 					width = tester.width();
 					if (width + 20 > maxwidth) {
 						maxwidth = width + 20;
 					}
-					
+
 					if (y == 1) {
 						selected_option = text;
 					}
-					
+
 					if (option.prop("selected")) {
 						Options.push($('<a class="optgroup active" href="#" data-value="' + val + '">' + text + '</a>'));
 						selected_option = text;
@@ -671,7 +666,7 @@ var BigTreeSelect = function(element) {
 				if (!val) {
 					val = text;
 				}
-				
+
 				// If we're making a tree-like dropdown
 				if (option.attr("data-depth")) {
 					var depth = parseInt(option.attr("data-depth")) * 10;
@@ -685,11 +680,11 @@ var BigTreeSelect = function(element) {
 				if (width > maxwidth) {
 					maxwidth = width;
 				}
-				
+
 				if (y == 1) {
 					selected_option = text;
 				}
-				
+
 				if (option.prop("selected")) {
 					Options.push($('<a style="border-left: ' + depth + 'px solid #CCC;" class="active" href="#" data-value="' + val + '">' + text + '</a>'));
 					selected_option = text;
@@ -700,37 +695,45 @@ var BigTreeSelect = function(element) {
 				}
 			}
 		}
-		
-		Container.html('<span><figure class="handle"></figure>' + selected_option + '</span><div class="select_options" style="display: none;"></div>');
 
-		var spanwidth = maxwidth;
+		// Add it to the DOM
+		if (Element.attr("tabindex")) {
+			TabIndex = parseInt(Element.attr("tabindex"));
+		} else {
+			TabIndex = 0;
+		}
+
+		Element.attr("tabindex", "-1").before(Container);
+
+		Container.html('<div class="current_select_container"><a class="handle" tabindex="' + TabIndex + '"></a><span class="current_select_value">' + selected_option + '</span></div><div class="select_options" style="display: none;"></div>');
+		Container.find(".select_options").append(Options).css({ width: (maxwidth + 64) + "px" });
+		Container.on("click", "a", select);
+		Container.find(".handle").attr("tabindex", TabIndex).click(click).focus(focus).blur(blur).keydown(keydown);
+
+		CurrentContainer = Container.find(".current_select_container");
+		ValueContainer = Container.find(".current_select_value");
+
 		// If we're in a section cell we may need to be smaller.
+		var spanwidth = maxwidth;
+
 		if (Element.parent().get(0).tagName.toLowerCase() == "section") {
 			var sectionwidth = $(element).parent().width();
 			if (sectionwidth < (maxwidth + 56)) {
 				spanwidth = sectionwidth - 80;
 				maxwidth = spanwidth - 44;
-				Container.find("span").css({ overflow: "hidden", padding: "0 0 0 10px" });
+				CurrentContainer.css({ overflow: "hidden", padding: "0 0 0 10px" });
 			}
 		}
-		
-		Container.find("span").css({ width: (spanwidth + 10) + "px", height: "30px" }).html('<figure class="handle"></figure>' + selected_option).click(click);
-		Container.find(".select_options").append(Options).css({ width: (maxwidth + 64) + "px" });
-		Container.on("click","a",select);
-		Container.find(".handle").click(click);
-		
-		// Add it to the DOM
-		Element.before(Container);		
+
+		CurrentContainer.css({ width: (spanwidth + 10) + "px", height: "30px" }).click(click);
 
 		// See if this select is disabled
 		if (Element.prop("disabled")) {
-			Container.addClass("disabled");
+			disable();
 		}
-		
-		// Observe focus, blur, and keydown on the hidden element.
-		Element.focus(focus).blur(blur).keydown(keydown);
+
 		// Custom event to force open lists closed when another select opens.
-		Element.on("closeNow",close);
+		Element.on("closeNow", close);
 
 		// Cleanup
 		tester.remove();
@@ -1887,21 +1890,22 @@ var BigTreeFormNavBar = (function() {
 	var Nav;
 	var NextButton;
 	var Sections;
-	
-	function init() {
+
+	function init(skip_validation) {
 		Container = $(".container");
 		ContainerOffset = Container.offset().top;
 		Nav = Container.find("nav a");
 		NextButton = Container.find("footer .next");
-		Sections = $(".container > form > section, .container > section, .container .section");
+		Sections = $(".container > form > section, .container > section");
 
 		// Generic tab controls
 		Nav.click(tabClick);
 		// Next Button controls
 		NextButton.click(nextClick);
+		toggleNextVisibility();
 
 		// Form Validation
-		if (Container.find("form").length) {
+		if (typeof skip_validation === "undefined" || !skip_validation) {
 			BigTreeFormValidator(Container.find("form"),function(errors) {
 				// Hide all the pages tab sections
 				Sections.hide();
@@ -1915,16 +1919,18 @@ var BigTreeFormNavBar = (function() {
 		// For when there are too many tabs, we need to setup scrolling
 		var calc_nav_container = Container.find("nav .more div");
 		var nav_width = calc_nav_container.width();
+
 		if (nav_width > 928) {
 			// If we're larger than 928, we're splitting into pages
 			MoreContainer = calc_nav_container.parent();
-			
+
 			var page_count = 0;
 			var current_width = 0;
 			var current_page = $('<div class="nav_page active">');
+
 			Nav.each(function() {
 				var width = $(this).width() + 47;
-				
+
 				if ((current_width + width) > 848) {
 					page_count++;
 					if (page_count > 1) {
@@ -1934,29 +1940,29 @@ var BigTreeFormNavBar = (function() {
 						});
 						current_page.prepend(lessButton);
 					}
-					
+
 					var moreButton = $('<a class="more_nav" href="#">').html("&raquo;").click(function() {
 						MoreContainer.animate({ marginLeft: + (parseInt(MoreContainer.css("margin-left")) - 928) + "px" }, 300);
 						return false;
 					});
 					current_page.append(moreButton);
-					
+
 					MoreContainer.append(current_page);
 					current_page = $('<div class="nav_page">');
 					current_width = 0;
 				}
-				
+
 				current_width += width;
 				current_page.append($(this));
 			});
-			
-			
+
+
 			var lessButton = $('<a class="more_nav" href="#">').html("&laquo;").click(function() {
 				MoreContainer.animate({ marginLeft: + (parseInt(MoreContainer.css("margin-left")) + 928) + "px" }, 300);
 				return false;
 			});
+
 			current_page.prepend(lessButton);
-			
 			MoreContainer.append(current_page);
 			calc_nav_container.remove();
 		}
@@ -1972,13 +1978,10 @@ var BigTreeFormNavBar = (function() {
 
 		tab.removeClass("active");
 		next.addClass("active");
+		$("#" + next.attr("href").substr(1)).show();
+		$("#" + tab.attr("href").substr(1)).hide();
 
-		$("#" + next.attr("href").substr(1)).show().find(".watcher").trigger("visible");
-		$("#" + tab.attr("href").substr(1)).hide().find(".watcher").trigger("hidden");
-
-		if (tabs.length - 2 === index) {
-			$(this).hide();
-		}
+		toggleNextVisibility();
 	}
 
 	function switchPanel(id) {
@@ -1986,7 +1989,7 @@ var BigTreeFormNavBar = (function() {
 		id = id[0] == "#" ? id : "#" + id;
 
 		// Reset
-		Sections.hide().find(".watcher").trigger("hidden");
+		Sections.hide();
 		Nav.removeClass("active");
 
 		// Figure out which tab it is
@@ -1997,7 +2000,8 @@ var BigTreeFormNavBar = (function() {
 		}
 
 		// Show new panel
-		$(id).show().find(".watcher").trigger("visible");
+		$(id).show();
+		toggleNextVisibility();
 	}
 
 	function tabClick(ev) {
@@ -2006,19 +2010,25 @@ var BigTreeFormNavBar = (function() {
 		if (window.scrollY > ContainerOffset) {
 			$("html, body").animate({ scrollTop: ContainerOffset + 3 }, 200);
 		}
-		
+
 		var href = $(this).attr("href").substr(1);
-		Sections.hide().find(".watcher").trigger("hidden");
+
+		Sections.hide();
 		Nav.removeClass("active");
 		$(this).addClass("active");
-		$("#" + href).show().find(".watcher").trigger("visible");
-		
-		// Manage the "Next" buttons
-		var index = Nav.index(this);
-		if (index == Nav.filter(":visible").length - 1) {
+		$("#" + href).show();
+		toggleNextVisibility();
+	}
+
+	function toggleNextVisibility() {
+		var tab = Nav.filter(".active");
+		var tabs = Nav.filter(":visible");
+		var index = tabs.index(tab);
+
+		if (tabs.length - 1 == index) {
 			NextButton.hide();
 		} else {
-			NextButton.show();				
+			NextButton.show();
 		}
 	}
 

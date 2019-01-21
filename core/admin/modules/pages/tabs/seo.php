@@ -8,7 +8,7 @@
 <p class="error_message" style="display: none;"><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 <fieldset>
 	<label for="page_field_route"><?=Text::translate("URL Route")?> <small>(leave blank to auto generate)</small></label>
-	<input id="page_field_route" type="text" name="route" value="<?=$bigtree["current_page"]["route"]?>" tabindex="2" />
+	<input id="page_field_route" type="text" name="route" value="<?=$bigtree["current_page"]["route"]?>" />
 </fieldset>
 <fieldset>
 	<label for="page_field_meta_description"><?=Text::translate("Meta Description")?></label>

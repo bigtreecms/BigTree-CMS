@@ -98,10 +98,10 @@
 <div class="contain">
 	<fieldset class="float_margin">
 		<?php if ($parent_to_check > 0 || Auth::user()->Level > 1) { ?>
-		<input id="page_field_in_nav" type="checkbox" name="in_nav" <?php if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <?php } ?>class="checkbox" tabindex="7" />
+		<input id="page_field_in_nav" type="checkbox" name="in_nav" <?php if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <?php } ?>class="checkbox" tabindex="6" />
 		<label for="page_field_in_nav" class="for_checkbox"><?=Text::translate("Visible In Navigation")?></label>
 		<?php } else { ?>
-		<input id="page_field_in_nav" type="checkbox" name="in_nav" <?php if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <?php } ?>disabled="disabled" class="checkbox" tabindex="7" />
+		<input id="page_field_in_nav" type="checkbox" name="in_nav" <?php if ($bigtree["current_page"]["in_nav"]) { ?>checked="checked" <?php } ?>disabled="disabled" class="checkbox" tabindex="6" />
 		<label for="page_field_in_nav" class="for_checkbox"><?=Text::translate("Visible In Navigation")?> <small>(<?=Text::translate("only developers can change the visibility of top level navigation")?>)</small></label>
 		<?php } ?>
 	</fieldset>
@@ -109,7 +109,7 @@
 		if (!$hide_template_section && ($bigtree["form_action"] == "create" || $bigtree["current_page"]["id"])) {
 	?>
 	<fieldset class="float_margin">
-		<input id="redirect_lower" type="checkbox" name="redirect_lower" <?php if ($bigtree["current_page"]["template"] == "!") { ?> checked="checked"<?php } ?> />
+		<input id="redirect_lower" type="checkbox" name="redirect_lower" tabindex="7" <?php if ($bigtree["current_page"]["template"] == "!") { ?> checked="checked"<?php } ?> />
 		<label for="redirect_lower" class="for_checkbox"><?=Text::translate("Redirect Lower")?></label>
 	</fieldset>
 	<?php
@@ -117,7 +117,7 @@
 		if (Auth::user()->Level > 1 && ($bigtree["form_action"] == "create" || $bigtree["current_page"]["id"])) {
 	?>
 	<fieldset class="float_margin">
-		<input id="page_field_trunk" type="checkbox" name="trunk" <?php if ($bigtree["current_page"]["trunk"]) { ?>checked="checked" <?php } ?> tabindex="6" />
+		<input id="page_field_trunk" type="checkbox" name="trunk" <?php if ($bigtree["current_page"]["trunk"]) { ?>checked="checked" <?php } ?> tabindex="8" />
 		<label for="page_field_trunk" class="for_checkbox"><?=Text::translate("Trunk")?></label>
 	</fieldset>
 	<?php
@@ -131,7 +131,7 @@
 <div class="contain">
 	<fieldset class="template last">
 		<label for="template_select"><?=Text::translate("Template")?></label>
-		<select id="template_select" name="template"<?php if ($bigtree["current_page"]["template"] == "!" || $bigtree["current_page"]["external"]) { ?> disabled="disabled"<?php } ?>>
+		<select id="template_select" tabindex="9" name="template"<?php if ($bigtree["current_page"]["template"] == "!" || $bigtree["current_page"]["external"]) { ?> disabled="disabled"<?php } ?>>
 			<optgroup label="<?=Text::translate("Flexible Templates", true)?>">
 				<?php foreach ($basic_templates as $template) { ?>
 				<option value="<?=$template->ID?>"<?php if ($template->ID == $bigtree["current_page"]["template"]) { ?> selected="selected"<?php } ?>><?=$template->Name?></option>
@@ -147,10 +147,10 @@
 	<?php if ($bigtree["form_action"] == "create" || $bigtree["current_page"]["id"]) { ?>
 	<fieldset class="external last">
 		<label for="external_link"><?=Text::translate("External Link")?> <small>(<?=Text::translate("include http://, overrides template")?>)</small></label>
-		<input id="external_link" type="text" name="external" value="<?=$bigtree["current_page"]["external"]?>" id="external_link"<?php if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<?php } ?> />
+		<input id="external_link" type="text" tabindex="10" name="external" value="<?=$bigtree["current_page"]["external"]?>" id="external_link"<?php if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<?php } ?> />
 	</fieldset>
 	<fieldset class="checkbox_bump last">
-		<input id="new_window" type="checkbox" name="new_window"<?php if ($bigtree["current_page"]["new_window"]) { ?> checked="checked"<?php } ?><?php if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<?php } ?> />
+		<input id="new_window" type="checkbox" tabindex="11"  name="new_window"<?php if ($bigtree["current_page"]["new_window"]) { ?> checked="checked"<?php } ?><?php if ($bigtree["current_page"]["template"] == "!") { ?> disabled="disabled"<?php } ?> />
 		<label for="new_window" class="for_checkbox"><?=Text::translate("Open in New Window")?></label>
 	</fieldset>
 	<?php } ?>

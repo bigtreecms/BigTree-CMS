@@ -308,15 +308,25 @@
 						"csrf_token_field" => CSRF::$Field
 					];
 					
+					// If we have less than 4 other sites, browsers aren't going to freak out with the redirects
+					$all_ssl = true;
+					
 					foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
 						$cache_data["remaining_sites"][$site_key] = $site_configuration["www_root"];
+						
+						if (strpos($site_configuration["www_root"], "https://") !== 0) {
+							$all_ssl = false;
+						}
 					}
 					
 					$cache_session_key = Cache::putUnique("org.bigtreecms.login-session", $cache_data);
-					$next_site = array_shift(array_values($cache_data["remaining_sites"]));
 					
 					// Start the login chain
-					Router::redirect($next_site."?bigtree_login_redirect_session_key=".$cache_session_key);
+					if (strpos(ADMIN_ROOT, "https://") === 0 && !$all_ssl) {
+						Router::redirect(str_replace("https://", "http://", ADMIN_ROOT)."login/cors/?key=".$cache_session_key);
+					} else {
+						Router::redirect(ADMIN_ROOT."login/cors/?key=".$cache_session_key);
+					}
 				} else {
 					// We still set the email for BigTree bar usage even if they're not being "remembered"
 					Cookie::create(static::$Namespace."[email]", $user->Email, "+1 month");
@@ -417,17 +427,46 @@
 		
 		static function loginChainSession(string $session_key): void {
 			$cache_data = Cache::get("org.bigtreecms.login-session", $session_key);
+			
+			if (empty($cache_data)) {
+				die();
+			}
+			
+			$admin_parts = parse_url(ADMIN_ROOT);
+			
+			if (isset($_GET["no_ssl"])) {
+				$admin_parts["scheme"] = "http";
+			}
+			
+			// Allow setting cookies and sessions
+			header("Access-Control-Allow-Origin: ".$admin_parts["scheme"]."://".$admin_parts["host"]);
+			header("Access-Control-Allow-Credentials: true");
+			session_start(array("gc_maxlifetime" => 24 * 60 * 60));
+			
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE id = ?", $cache_data["user_id"]);
 			
 			foreach ($cache_data["remaining_sites"] as $site_key => $www_root) {
 				if ($site_key == BIGTREE_SITE_KEY) {
-					$cookie_value = json_encode([$cache_data["session"], $cache_data["chain"]]);
+					$cookie_domain = str_replace(DOMAIN, "", WWW_ROOT);
+					$cookie_value = json_encode(array($cache_data["session"], $cache_data["chain"]));
 					
 					// We still set the email for BigTree bar usage even if they're not being "remembered"
-					Cookie::create(static::$Namespace."[email]", $user["email"], "+1 month");
+					setcookie('bigtree_admin[email]', $user["email"], strtotime("+1 month"), $cookie_domain, "", false, true);
 					
 					if ($cache_data["stay_logged_in"]) {
-						Cookie::create(static::$Namespace."[login]", $cookie_value, "+1 month");
+						setcookie('bigtree_admin[login]', $cookie_value, strtotime("+1 month"), $cookie_domain, "", false, true);
+					}
+					
+					// Regenerate session ID on user state change
+					$old_session_id = session_id();
+					session_regenerate_id();
+					
+					if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+						SQL::update("bigtree_sessions", $old_session_id, [
+							"id" => session_id(),
+							"is_login" => "on",
+							"logged_in_user" => $user["id"]
+						]);
 					}
 					
 					$_SESSION[static::$Namespace]["id"] = $user["id"];
@@ -437,26 +476,7 @@
 					$_SESSION[static::$Namespace]["permissions"] = json_decode($user["permissions"], true);
 					$_SESSION[static::$Namespace]["csrf_token"] = $cache_data["csrf_token"];
 					$_SESSION[static::$Namespace]["csrf_token_field"] = $cache_data["csrf_token_field"];
-					
-					unset($cache_data["remaining_sites"][$site_key]);
 				}
-			}
-			
-			if (count($cache_data["remaining_sites"]) == 0) {
-				// Done logging in, delete session
-				Cache::delete("org.bigtreecms.login-session", $session_key);
-				
-				if (!empty($cache_data["login_redirect"])) {
-					Router::redirect($cache_data["login_redirect"]);
-				} else {
-					Router::redirect(ADMIN_ROOT);
-				}
-			} else {
-				$next_site = array_shift(array_values($cache_data["remaining_sites"]));
-				Cache::put("org.bigtreecms.login-session", $session_key, $cache_data);
-				
-				// Redirect to the next site that needs a session/cookie
-				Router::redirect($next_site."?bigtree_login_redirect_session_key=".$session_key);
 			}
 		}
 		

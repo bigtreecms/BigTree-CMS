@@ -271,12 +271,7 @@
 			
 			$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
 			
-			if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]) > 1) {
-				Router::redirect(ADMIN_ROOT."login/?domain=".urlencode($_SERVER["HTTP_HOST"]));
-			} else {
-				Router::redirect(ADMIN_ROOT."login/");
-			}
-			
+			Router::redirect(ADMIN_ROOT."login/");
 		}
 	}
 	

@@ -24,10 +24,10 @@
 			// If this is running fron cron or something, nobody is logged in so don't track.
 			if (!is_null($user)) {
 				SQL::insert("bigtree_audit_trail", [
-					"table" => $table,
+					"table" => Text::htmlEncode($table),
 					"user" => $user,
-					"entry" => $entry,
-					"type" => $type
+					"entry" => Text::htmlEncode($entry),
+					"type" => Text::htmlEncode($type)
 				]);
 			}
 		}
