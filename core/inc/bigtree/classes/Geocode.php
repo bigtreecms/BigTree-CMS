@@ -119,23 +119,21 @@
 					$response = json_decode($response, true);
 				}
 				
-				if ($response["statusDescription"] != "OK") {
-					$this->Error = "Invalid API Key";
-					
-					return null;
-				}
-				
-				if (is_array($response["resourceSets"]["resources"]) && count($response["resourceSets"]["resources"]) === 0) {
-					$this->Error = "No results for address.";
+				if (empty($response["resourceSets"][0]["resources"][0]["point"]["coordinates"])) {
+					$this->Error = $response["errorDetails"][0];
 					
 					return null;
 				}
 				
 				list($latitude, $longitude) = $response["resourceSets"][0]["resources"][0]["point"]["coordinates"];
 				
-				return ["latitude" => $latitude, "longitude" => $longitude];
+				if ($latitude && $longitude) {
+					return ["latitude" => $latitude, "longitude" => $longitude];
+				} else {
+					return null;
+				}
 			} catch (Exception $e) {
-				$this->Error = (string) $e;
+				$this->Error = $e->getMessage();
 				
 				return null;
 			}
@@ -147,24 +145,29 @@
 		*/
 		
 		private function geocodeGoogle(string $address): ?array {
-			$response = cURL::request("http://maps.googleapis.com/maps/api/geocode/json?address=".urlencode($address)."&sensor=false");
+			$response = cURL::request("https://maps.googleapis.com/maps/api/geocode/json?address=".urlencode($address).
+									  "&sensor=false&key=".static::$Settings["google_key"]);
 			
 			try {
 				if (is_string($response)) {
 					$response = json_decode($response, true);
 				}
 				
-				if ($response["status"] == "ZERO_RESULTS") {
-					$this->Error = "No results for address.";
+				if (empty($response["results"][0]["geometry"]["location"])) {
+					$this->Error = $response["error_message"];
 					
 					return null;
 				}
 				
 				$latlng = $response["results"][0]["geometry"]["location"];
 				
-				return ["latitude" => $latlng["lat"], "longitude" => $latlng["lng"]];
+				if ($latlng["lat"] && $latlng["lng"]) {
+					return ["latitude" => $latlng["lat"], "longitude" => $latlng["lng"]];
+				} else {
+					return null;
+				}
 			} catch (Exception $e) {
-				$this->Error = (string) $e;
+				$this->Error = $e->getMessage();
 				
 				return null;
 			}
@@ -175,18 +178,21 @@
 				Private function for using MapQuest as the geocoder.
 		*/
 		
-		private function geocodeMapQuest(string $address): ?null {
-			$response = cURL::request("http://www.mapquestapi.com/geocoding/v1/address?key=".$this->Settings["mapquest_key"]."&location=".urlencode($address));
+		private function geocodeMapQuest(string $address): ?array {
+			global $bigtree;
 			
-			if ($response == "The AppKey submitted with this request is invalid.") {
-				$this->Error = "Invalid API Key";
+			$raw_response = cURL::request("http://www.mapquestapi.com/geocoding/v1/address?key=".
+										  static::$Settings["mapquest_key"]."&location=".urlencode($address));
+			
+			if ($bigtree["last_curl_response_code"] != 200) {
+				$this->Error = $raw_response;
 				
 				return null;
 			}
 			
 			try {
-				if (is_string($response)) {
-					$response = json_decode($response, true);
+				if (is_string($raw_response)) {
+					$response = json_decode($raw_response, true);
 				}
 				
 				$latlng = $response["results"][0]["locations"][0]["latLng"];
@@ -194,10 +200,12 @@
 				if ($latlng["lat"] && $latlng["lng"]) {
 					return ["latitude" => $latlng["lat"], "longitude" => $latlng["lng"]];
 				} else {
+					$this->Error = $raw_response;
+					
 					return null;
 				}
 			} catch (Exception $e) {
-				$this->Error = (string) $e;
+				$this->Error = $e->getMessage();
 				
 				return null;
 			}

@@ -20,6 +20,7 @@
 	
 	// In case someone is relying on $bigtree["form"] for backwards compatibility
 	$bigtree["form"] = $form->Array;
+	$bigtree["related_view"] = $form->RelatedModuleView;
 	
 	// Provide developers a nice handy link for edit/return of this form
 	if (Auth::user()->Level > 1) {

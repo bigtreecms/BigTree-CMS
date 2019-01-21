@@ -30,7 +30,6 @@
 </div>
 <?php
 	} else {
-		$bigtree["related_view"] = $form->RelatedModuleView;
 		$bigtree["entry"] = $item = $pending_entry["item"];
 		
 		// See if we have an editing hook
