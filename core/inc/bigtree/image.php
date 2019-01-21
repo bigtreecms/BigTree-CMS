@@ -930,9 +930,6 @@
 	
 			Returns:
 				The new file name if successful, false if there was not enough memory available or an invalid source image was provided.
-	
-			See Also:
-				createUpscaledImage
 		*/
 		
 		public function thumbnail($location, $width, $height, $retina = false, $grayscale = false, $upscale = false) {
@@ -1046,9 +1043,6 @@
 	
 			Returns:
 				The new file name if successful, false if there was not enough memory available or an invalid source image was provided.
-	
-			See Also:
-				createThumbnail
 		*/
 		
 		public function upscale($location, $min_width, $min_height) {
