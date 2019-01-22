@@ -99,7 +99,7 @@
 			static::$Registry = $data["routes"];
 			
 			// Find root paths for all sites to include in URLs if we're in a multi-site environment
-			if (defined("BIGTREE_SITE_KEY") || (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]))) {
+			if (defined("BIGTREE_SITE_KEY") || (!empty($config["sites"]) && is_array($config["sites"]) && count($config["sites"]))) {
 				$cache_location = SERVER_ROOT."cache/multi-site-cache.json";
 				
 				if (!file_exists($cache_location)) {

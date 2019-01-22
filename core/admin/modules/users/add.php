@@ -25,7 +25,7 @@
 				<fieldset<?php if ($error == "email") { ?> class="form_error"<?php } ?> style="position: relative;">
 					<label for="user_field_email" class="required"><?=Text::translate("Email")?> <small>(<?=Text::translate("Profile images from")?> <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <?php if ($error == "email") { ?><span class="form_error_reason"><?=Text::translate("Already In Use")?></span><?php } ?></label>
 					<input id="user_field_email" type="text" class="required email" name="email" autocomplete="off" value="<?=$email?>" tabindex="1" />
-					<span class="gravatar"<?php if ($email != "") echo ' style="display: block;"'; ?>><img src="<?=Image::gravatar($email, 36)?>" alt="" /></span>
+					<span class="gravatar"<?php if ($email != "") echo ' style="display: block;"'; ?>><img src="<?=User::gravatar($email, 36)?>" alt="" /></span>
 				</fieldset>
 				
 				<fieldset<?php if ($error == "password") { ?> class="form_error"<?php } ?>>

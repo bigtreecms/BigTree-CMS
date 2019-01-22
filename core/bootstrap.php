@@ -1,5 +1,8 @@
 <?php
-	namespace BigTree;
+	use BigTree\Auth;
+	use BigTree\FileSystem;
+	use BigTree\Router;
+	use BigTree\SQL;
 	
 	/**
 	 * @global array $bigtree
@@ -43,6 +46,7 @@
 	
 	// Class auto loader and composer auto loader
 	include SERVER_ROOT."vendor/autoload.php";
+	
 	spl_autoload_register(function ($class) {
 		global $bigtree;
 		
@@ -85,9 +89,11 @@
 	$bigtree["mysql_write_connection"] = "disconnected";
 
 	// Load Up BigTree!
+	error_reporting(E_ALL);
+	ini_set("display_errors", "on");
 	Router::boot($bigtree["config"]);
 	include Router::getIncludePath("inc/bigtree/compat/cms.php");
-
+	
 	// If we're in the process of logging into multi-domain sites, login this session and move along
 	if (defined("BIGTREE_SITE_KEY") && isset($_GET["bigtree_login_redirect_session_key"])) {
 		Auth::loginChainSession($_GET["bigtree_login_redirect_session_key"]);

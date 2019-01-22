@@ -4,7 +4,7 @@
 	$users = User::all("name ASC", true);
 	
 	foreach ($users as &$user) {
-		$user["gravatar"] = Image::gravatar($user["email"], 36);
+		$user["gravatar"] = User::gravatar($user["email"], 36);
 	}
 ?>
 <section class="inset_block">

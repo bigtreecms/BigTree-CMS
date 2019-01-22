@@ -157,7 +157,7 @@
 				<div></div>
 				<p class="messages"><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_message_string?></a></p>
 				<div></div>
-				<p class="welcome"><span class="gravatar"><img src="<?=Image::gravatar(Auth::$Email, 28)?>" alt="" /></span><?=Text::translate("Welcome Back")?> <a href="<?=ADMIN_ROOT?>users/profile/"><?=Auth::$Name?></a></p>
+				<p class="welcome"><span class="gravatar"><img src="<?=User::gravatar(Auth::$Email, 28)?>" alt="" /></span><?=Text::translate("Welcome Back")?> <a href="<?=ADMIN_ROOT?>users/profile/"><?=Auth::$Name?></a></p>
 				<strong><?=$site->NavigationTitle?></strong>
 				<a href="<?=WWW_ROOT?>" target="_blank" class="view_site"><?=Text::translate("View Site")?></a>
 			</section>

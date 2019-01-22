@@ -12,7 +12,9 @@
 	class User extends BaseObject {
 		
 		/**
+		 * @property-read string $Gravatar
 		 * @property-read int $ID
+		 * @property-read bool $IsBanned
 		 * @property-read string $OriginalPassword
 		 */
 		
@@ -201,6 +203,46 @@
 			}
 			
 			return null;
+		}
+		
+		/*
+			Function: getGravatar
+				Returns a user gravatar.
+		*/
+		
+		public static function gravatar(string $email, int $size = 56, ?string $default = null, string $rating = "g"): string {
+			if (!$default) {
+				global $bigtree;
+				
+				if (!empty($bigtree["config"]["default_gravatar"])) {
+					$default = $bigtree["config"]["default_gravatar"];
+				} else {
+					$default = "https://www.bigtreecms.org/images/bigtree-gravatar.png";
+				}
+			}
+			
+			return "https://secure.gravatar.com/avatar/".md5(strtolower($email))."?s=$size&d=".urlencode($default)."&rating=$rating";
+		}
+		
+		/*
+			Function: getIsBanned
+				Checks to see if the user is banned and should not be allowed to attempt login.
+		
+			Returns:
+				true if the user is banned
+		*/
+		
+		public function getIsBanned(): bool {
+			// See if this user is banned due to failed login attempts
+			$ban = SQL::fetch("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND `user` = ?", $this->ID);
+			
+			if ($ban) {
+				Auth::$BanExpiration = date("F j, Y @ g:ia", strtotime($ban["expires"]));
+				
+				return true;
+			}
+			
+			return false;
 		}
 		
 		/*

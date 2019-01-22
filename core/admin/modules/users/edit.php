@@ -179,7 +179,7 @@
 				<fieldset<?php if ($error == "email") { ?> class="form_error"<?php } ?> style="position: relative;">
 					<label for="user_field_email" class="required"><?=Text::translate("Email")?> <small>(<?=Text::translate("Profile images from")?> <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <?php if ($error == "email") { ?><span class="form_error_reason"><?=Text::translate("Already In Use By Another User")?></span><?php } ?></label>
 					<input id="user_field_email" type="text" class="required email" name="email" autocomplete="off" value="<?=$user->Email?>" tabindex="1" />
-					<span class="gravatar"<?php if ($user->Email) { ?> style="display: block;"<?php } ?>><img src="<?=Image::gravatar($user->Email, 36)?>" alt="" /></span>
+					<span class="gravatar"<?php if ($user->Email) { ?> style="display: block;"<?php } ?>><img src="<?=User::gravatar($user->Email, 36)?>" alt="" /></span>
 				</fieldset>
 				
 				<fieldset<?php if ($error == "password") { ?> class="form_error"<?php } ?> >

@@ -7,14 +7,17 @@
 	} else {
 		$ga_cache = false;
 	}
+	
 	// Only show this thing if they have Google Analytics setup already
-	if ($ga_cache && count($ga_cache["two_week"])) {
+	if (is_array($ga_cache) && !empty($ga_cache["two_week"]) && count($ga_cache["two_week"])) {
 		$visits = $ga_cache["two_week"];
 		$min = min((is_array($visits)) ? $visits : array($visits));
 		$max = max((is_array($visits)) ? $visits : array($visits)) - $min;
+		
 		if ($max == 0) {
 			$max = 1;
 		}
+		
 		$bar_height = 70;
 ?>
 <div class="container">
@@ -35,6 +38,7 @@
 				foreach ($visits as $date => $count) {
 					$height = round($bar_height * ($count - $min) / $max) + 12;
 					$x++;
+					
 					if (!$count) {
 						$count = 0;
 					}
@@ -46,6 +50,7 @@
 				}
 			   	
 			   	$x = 0;
+				
 			   	foreach ($visits as $date => $count) {
 			   		$x++;
 			?>

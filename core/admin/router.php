@@ -1,5 +1,4 @@
 <?php
-	
 	namespace BigTree;
 	
 	/**
@@ -105,15 +104,22 @@
 				die();
 			}
 			
-			// Load LESS compiler
-			include_once $server_root."core/inc/lib/less.php/lessc.inc.php";
-			$parser = new \Less_Parser(["compress" => true]);
-			$parser->parseFile($css_file);
-			$css = $parser->getCss();
 			
-			// Cache and return
-			file_put_contents($cache_file, $css);
-			die($css);
+			// Load LESS compiler
+			require_once $server_root."vendor/oyejorge/less.php/lib/Less/Autoloader.php";
+			\Less_Autoloader::register();
+			$parser = new \Less_Parser(["compress" => true]);
+			
+			try {
+				$parser->parseFile($css_file);
+				$css = $parser->getCss();
+				
+				// Cache and return
+				file_put_contents($cache_file, $css);
+				die($css);
+			} catch (\Exception $e) {
+				die("Failed to parse LESS.");
+			}
 		}
 		
 		// Regular old CSS

@@ -522,7 +522,7 @@
 		*/
 		
 		static function gravatar($email, $size = 56, $default = false, $rating = "g") {
-			return BigTree\Image::gravatar($email, $size, $default, $rating);
+			return BigTree\User::gravatar($email, $size, $default, $rating);
 		}
 		
 		/*

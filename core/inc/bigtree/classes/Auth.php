@@ -11,6 +11,7 @@
 	
 	class Auth {
 		
+		public static $BanExpiration;
 		public static $Email;
 		public static $ID;
 		public static $Level = 0;
@@ -269,7 +270,7 @@
 					return false;
 				}
 				
-				if ($user_class::getIsUserBanned($user->ID)) {
+				if ($user->IsBanned) {
 					return false;
 				}
 				

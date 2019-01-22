@@ -52,7 +52,7 @@
 	<ul>
 		<li>
 			<section class="pages_last_edited"><?=date("F j, Y @ g:ia", strtotime($draft->Date))?></section>
-			<section class="pages_draft_author"><span class="gravatar"><img src="<?=Image::gravatar($draft_author->Email, 36)?>" alt="" /></span><?=$draft_author->Name?></section>
+			<section class="pages_draft_author"><span class="gravatar"><img src="<?=User::gravatar($draft_author->Email, 36)?>" alt="" /></span><?=$draft_author->Name?></section>
 			<section class="pages_publish"><a class="icon_publish" href="<?=ADMIN_ROOT?>pages/publish-draft/<?=$page->ID?>/?draft=<?=$draft->ID?><?php CSRF::drawGETToken(); ?>"></a></section>
 			<section class="pages_edit"><a class="icon_edit" href="<?=ADMIN_ROOT?>pages/edit/<?=$page->ID?>/"></a></section>
 			<section class="pages_delete"><a class="icon_delete" href="<?=ADMIN_ROOT?>ajax/pages/delete-draft/?id=<?=$page->ID?><?php CSRF::drawGETToken(); ?>"></a></section>
@@ -75,7 +75,7 @@
 	<ul>
 		<li class="active">
 			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($page->UpdatedAt))?></section>
-			<section class="pages_draft_author"><span class="gravatar"><img src="<?=Image::gravatar($current_author->Email, 36)?>" alt="" /></span><?=$current_author->Name?><span class="active_draft"><?=Text::translate("Active")?></span></section>
+			<section class="pages_draft_author"><span class="gravatar"><img src="<?=User::gravatar($current_author->Email, 36)?>" alt="" /></span><?=$current_author->Name?><span class="active_draft"><?=Text::translate("Active")?></span></section>
 			<section class="pages_delete"><a href="#" class="icon_save"></a></section>
 			<section class="pages_publish"></section>
 			<section class="pages_edit"></section>
@@ -83,7 +83,7 @@
 		<?php foreach ($revisions["unsaved"] as $revision) { ?>
 		<li>
 			<section class="pages_last_edited"><?=date("F j, Y @ g:ia",strtotime($revision["updated_at"]))?></section>
-			<section class="pages_draft_author"><span class="gravatar"><img src="<?=Image::gravatar($revision["email"], 36)?>" alt="" /></span><?=$revision["name"]?></section>
+			<section class="pages_draft_author"><span class="gravatar"><img src="<?=User::gravatar($revision["email"], 36)?>" alt="" /></span><?=$revision["name"]?></section>
 			<section class="pages_delete"><a href="#<?=$revision["id"]?>" class="icon_save"></a></section>
 			<section class="pages_publish"><a href="#<?=$revision["id"]?>" class="icon_draft"></a></section>
 			<section class="pages_edit"><a href="#<?=$revision["id"]?>" class="icon_delete"></a></section>

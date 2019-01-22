@@ -30,7 +30,7 @@
 		<header>
 			<h3><?=$message->Subject?></h3>
 			<div class="from">
-				<span class="gravatar"><img src="<?=Image::gravatar($sender_gravatar)?>" alt="" /></span>
+				<span class="gravatar"><img src="<?=User::gravatar($sender_gravatar)?>" alt="" /></span>
 				<p><?=$sender_name?></p>
 			</div>
 		</header>

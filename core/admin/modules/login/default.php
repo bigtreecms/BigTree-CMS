@@ -17,7 +17,7 @@
 	<?php
 		if (!empty($bigtree["ban_expiration"])) {
 	?>
-	<p class="error_message clear"><?=Text::translate("You are temporarily banned due to failed login attempts.<br />You may try logging in again after :ban_expiration:.", false, array(":ban_expiration:" => $bigtree["ban_expiration"]))?></p>
+	<p class="error_message clear"><?=Text::translate("You are temporarily banned due to failed login attempts.<br />You may try logging in again after :ban_expiration:.", false, array(":ban_expiration:" => Auth::$BanExpiration))?></p>
 	<?php
 			if ($bigtree["ban_is_user"]) {
 	?>

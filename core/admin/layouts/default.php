@@ -82,7 +82,7 @@
 		if ($bigtree["page"]["title"] && !defined("BIGTREE_404")) {
 	?>
 	<h1>
-		<span class="page_icon <?=$bigtree["page"]["icon"]?>"><?php if ($bigtree["page"]["icon"] == "gravatar") { ?><img src="<?=Image::gravatar($bigtree["gravatar"])?>" alt="" /><?php } ?></span>
+		<span class="page_icon <?=$bigtree["page"]["icon"]?>"><?php if ($bigtree["page"]["icon"] == "gravatar") { ?><img src="<?=User::gravatar($bigtree["gravatar"])?>" alt="" /><?php } ?></span>
 		<?php
 			$x = 0;
 			foreach ($bigtree["breadcrumb"] as $item) {

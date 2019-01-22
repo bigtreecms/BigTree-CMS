@@ -10,7 +10,7 @@
 	foreach ($messages["unread"] as $message) {
 		$unread_data[] = array(
 			"id" => $message->ID,
-			"from" => '<span class="gravatar"><img src="'.Image::gravatar($message->SenderEmail, 36).'" alt="" /></span>'.$message->SenderName,
+			"from" => '<span class="gravatar"><img src="'.User::gravatar($message->SenderEmail, 36).'" alt="" /></span>'.$message->SenderName,
 			"subject" => $message->Subject,
 			"date" => date("n/j/y",strtotime($message->Date)),
 			"time" => date("g:ia",strtotime($message->Date))
