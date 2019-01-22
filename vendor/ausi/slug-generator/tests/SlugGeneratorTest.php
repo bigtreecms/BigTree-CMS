@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Ausi\SlugGenerator\Tests;
 
 use Ausi\SlugGenerator\SlugGenerator;
+use Ausi\SlugGenerator\SlugGeneratorInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -25,6 +26,7 @@ class SlugGeneratorTest extends TestCase
 	{
 		$this->assertInstanceOf(SlugGenerator::class, new SlugGenerator);
 		$this->assertInstanceOf(SlugGenerator::class, new SlugGenerator([]));
+		$this->assertInstanceOf(SlugGeneratorInterface::class, new SlugGenerator);
 	}
 
 	/**
@@ -33,14 +35,50 @@ class SlugGeneratorTest extends TestCase
 	 * @param string $source
 	 * @param string $expected
 	 * @param array  $options
+	 * @param bool   $skip
 	 */
-	public function testGenerate(string $source, string $expected, array $options = [])
+	public function testGenerate(string $source, string $expected, array $options = [], bool $skip = false)
 	{
+		if ($skip) {
+			$this->markTestSkipped();
+		}
+
 		$generator = new SlugGenerator($options);
 		$this->assertSame($expected, $generator->generate($source));
 
 		$generator = new SlugGenerator;
 		$this->assertSame($expected, $generator->generate($source, $options));
+	}
+
+	/**
+	 * @dataProvider getGenerate
+	 *
+	 * @param string $source
+	 * @param string $expected
+	 * @param array  $options
+	 * @param bool   $skip
+	 */
+	public function testGenerateWithIntlErrors(string $source, string $expected, array $options = [], bool $skip = false)
+	{
+		$errorLevel = ini_get('intl.error_level');
+		$useExceptions = ini_get('intl.use_exceptions');
+
+		try {
+			ini_set('intl.error_level', (string) E_WARNING);
+			$this->testGenerate($source, $expected, $options, $skip);
+			$this->assertSame((string) E_WARNING, ini_get('intl.error_level'));
+
+			ini_set('intl.error_level', (string) E_ERROR);
+			$this->testGenerate($source, $expected, $options, $skip);
+			$this->assertSame((string) E_ERROR, ini_get('intl.error_level'));
+
+			ini_set('intl.use_exceptions', '1');
+			$this->testGenerate($source, $expected, $options, $skip);
+			$this->assertSame('1', ini_get('intl.use_exceptions'));
+		} finally {
+			ini_set('intl.error_level', $errorLevel);
+			ini_set('intl.use_exceptions', $useExceptions);
+		}
 	}
 
 	/**
@@ -101,6 +139,7 @@ class SlugGeneratorTest extends TestCase
 					'validChars' => 'a-pr-vyzçğıöşü', // Turkish alphabet
 					'locale' => 'tr',
 				],
+				version_compare(INTL_ICU_VERSION, '51.2', '<'),
 			],
 			[
 				'inatçı',
@@ -109,6 +148,7 @@ class SlugGeneratorTest extends TestCase
 					'validChars' => 'A-PR-VYZÇĞİÖŞÜ', // Turkish alphabet
 					'locale' => 'tr',
 				],
+				version_compare(INTL_ICU_VERSION, '51.2', '<'),
 			],
 			['Καλημέρα', 'kalemera'],
 			[
@@ -248,9 +288,14 @@ class SlugGeneratorTest extends TestCase
 	 *
 	 * @param array  $parameters
 	 * @param string $expected
+	 * @param bool   $skip
 	 */
-	public function testPrivateApplyTransformRule(array $parameters, string $expected)
+	public function testPrivateApplyTransformRule(array $parameters, string $expected, bool $skip = false)
 	{
+		if ($skip) {
+			$this->markTestSkipped();
+		}
+
 		$generator = new SlugGenerator;
 		$reflection = new \ReflectionClass(get_class($generator));
 		$method = $reflection->getMethod('applyTransformRule');
@@ -280,6 +325,7 @@ class SlugGeneratorTest extends TestCase
 			[
 				['iı', 'Upper', 'tr', '/.+/'],
 				'İI',
+				version_compare(INTL_ICU_VERSION, '51.2', '<'),
 			],
 			[
 				['iı', 'Upper', '', '/.+/'],
@@ -288,6 +334,7 @@ class SlugGeneratorTest extends TestCase
 			[
 				['İI', 'Lower', 'tr_Latn_AT', '/.+/'],
 				'iı',
+				version_compare(INTL_ICU_VERSION, '51.2', '<'),
 			],
 			[
 				['İI', 'Lower', '', '/.+/'],

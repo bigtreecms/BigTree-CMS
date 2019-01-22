@@ -15,12 +15,12 @@
         "ext-intl": "*",
         "ext-mbstring": "*",
         "ext-pcre": "*",
-        "lib-icu": ">=4.6"
+        "lib-icu": ">=4.2.1"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.4",
-        "phpunit/phpunit": "^6.2",
-        "satooshi/php-coveralls": "^1.0"
+        "phpunit/phpunit": "^7.0",
+        "php-coveralls/php-coveralls": "^2.0"
     },
     "autoload": {
         "psr-4": {

@@ -321,6 +321,22 @@ class File_X509
     var $challenge;
 
     /**
+     * Recursion Limit
+     *
+     * @var int
+     * @access private
+     */
+    var $recur_limit = 5;
+
+    /**
+     * URL fetch flag
+     *
+     * @var bool
+     * @access private
+     */
+    var $disable_url_fetch = false;
+
+    /**
      * Default Constructor.
      *
      * @return File_X509
@@ -2106,7 +2122,7 @@ class File_X509
      *
      * If $date isn't defined it is assumed to be the current date.
      *
-     * @param int $date optional
+     * @param \DateTime|int|string $date optional
      * @access public
      */
     function validateDate($date = null)
@@ -2117,7 +2133,7 @@ class File_X509
 
         if (!isset($date)) {
             $date = class_exists('DateTime') ?
-                new DateTime($date, new DateTimeZone(@date_default_timezone_get())) :
+                new DateTime(null, new DateTimeZone(@date_default_timezone_get())) :
                 time();
         }
 
@@ -2127,12 +2143,18 @@ class File_X509
         $notAfter = $this->currentCert['tbsCertificate']['validity']['notAfter'];
         $notAfter = isset($notAfter['generalTime']) ? $notAfter['generalTime'] : $notAfter['utcTime'];
 
-        if (class_exists('DateTime')) {
-            $notBefore = new DateTime($notBefore, new DateTimeZone(@date_default_timezone_get()));
-            $notAfter = new DateTime($notAfter, new DateTimeZone(@date_default_timezone_get()));
-        } else {
-            $notBefore = @strtotime($notBefore);
-            $notAfter = @strtotime($notAfter);
+        switch (true) {
+            case is_string($date) && class_exists('DateTime'):
+                $date = new DateTime($date, new DateTimeZone(@date_default_timezone_get()));
+            case is_object($date) && strtolower(get_class($date)) == 'datetime':
+                $notBefore = new DateTime($notBefore, new DateTimeZone(@date_default_timezone_get()));
+                $notAfter = new DateTime($notAfter, new DateTimeZone(@date_default_timezone_get()));
+                break;
+            case is_string($date):
+                $date = @strtotime($date);
+            default:
+                $notBefore = @strtotime($notBefore);
+                $notAfter = @strtotime($notAfter);
         }
 
         switch (true) {
@@ -2140,6 +2162,117 @@ class File_X509
             case $date > $notAfter:
                 return false;
         }
+
+        return true;
+    }
+
+    /**
+     * Fetches a URL
+     *
+     * @param string $url
+     * @access private
+     * @return bool|string
+     */
+    function _fetchURL($url)
+    {
+        if ($this->disable_url_fetch) {
+            return false;
+        }
+
+        $parts = parse_url($url);
+        $data = '';
+        switch ($parts['scheme']) {
+            case 'http':
+                $fsock = @fsockopen($parts['host'], isset($parts['port']) ? $parts['port'] : 80);
+                if (!$fsock) {
+                    return false;
+                }
+                fputs($fsock, "GET $parts[path] HTTP/1.0\r\n");
+                fputs($fsock, "Host: $parts[host]\r\n\r\n");
+                $line = fgets($fsock, 1024);
+                if (strlen($line) < 3) {
+                    return false;
+                }
+                preg_match('#HTTP/1.\d (\d{3})#', $line, $temp);
+                if ($temp[1] != '200') {
+                    return false;
+                }
+
+                // skip the rest of the headers in the http response
+                while (!feof($fsock) && fgets($fsock, 1024) != "\r\n") {
+                }
+
+                while (!feof($fsock)) {
+                    $data.= fread($fsock, 1024);
+                }
+
+                break;
+            //case 'ftp':
+            //case 'ldap':
+            //default:
+        }
+
+        return $data;
+    }
+
+    /**
+     * Validates an intermediate cert as identified via authority info access extension
+     *
+     * See https://tools.ietf.org/html/rfc4325 for more info
+     *
+     * @param bool $caonly
+     * @param int $count
+     * @access private
+     * @return bool
+     */
+    function _testForIntermediate($caonly, $count)
+    {
+        $opts = $this->getExtension('id-pe-authorityInfoAccess');
+        if (!is_array($opts)) {
+            return false;
+        }
+        foreach ($opts as $opt) {
+            if ($opt['accessMethod'] == 'id-ad-caIssuers') {
+                // accessLocation is a GeneralName. GeneralName fields support stuff like email addresses, IP addresses, LDAP,
+                // etc, but we're only supporting URI's. URI's and LDAP are the only thing https://tools.ietf.org/html/rfc4325
+                // discusses
+                if (isset($opt['accessLocation']['uniformResourceIdentifier'])) {
+                    $url = $opt['accessLocation']['uniformResourceIdentifier'];
+                    break;
+                }
+            }
+        }
+
+        if (!isset($url)) {
+            return false;
+        }
+
+        $cert = $this->_fetchURL($url);
+        if (!is_string($cert)) {
+            return false;
+        }
+
+        $parent = new static();
+        $parent->CAs = $this->CAs;
+        /*
+         "Conforming applications that support HTTP or FTP for accessing
+          certificates MUST be able to accept .cer files and SHOULD be able
+          to accept .p7c files." -- https://tools.ietf.org/html/rfc4325
+
+         A .p7c file is 'a "certs-only" CMS message as specified in RFC 2797"
+
+         These are currently unsupported
+        */
+        if (!is_array($parent->loadX509($cert))) {
+            return false;
+        }
+
+        if (!$parent->_validateSignatureCountable($caonly, ++$count)) {
+            return false;
+        }
+
+        $this->CAs[] = $parent->currentCert;
+        //$this->loadCA($cert);
 
         return true;
     }
@@ -2161,8 +2294,27 @@ class File_X509
      */
     function validateSignature($caonly = true)
     {
+        return $this->_validateSignatureCountable($caonly, 0);
+    }
+
+    /**
+     * Validate a signature
+     *
+     * Performs said validation whilst keeping track of how many times validation method is called
+     *
+     * @param bool $caonly
+     * @param int $count
+     * @access private
+     * @return mixed
+     */
+    function _validateSignatureCountable($caonly, $count)
+    {
         if (!is_array($this->currentCert) || !isset($this->signatureSubject)) {
             return null;
+        }
+
+        if ($count == $this->recur_limit) {
+            return false;
         }
 
         /* TODO:
@@ -2210,10 +2362,10 @@ class File_X509
                         }
                     }
                     if (count($this->CAs) == $i && $caonly) {
-                        return false;
+                        return $this->_testForIntermediate($caonly, $count) && $this->validateSignature($caonly);
                     }
                 } elseif (!isset($signingCert) || $caonly) {
-                    return false;
+                    return $this->_testForIntermediate($caonly, $count) && $this->validateSignature($caonly);
                 }
                 return $this->_validateSignature(
                     $signingCert['tbsCertificate']['subjectPublicKeyInfo']['algorithm']['algorithm'],
@@ -2321,6 +2473,41 @@ class File_X509
         }
 
         return true;
+    }
+
+    /**
+     * Sets the recursion limit
+     *
+     * When validating a signature it may be necessary to download intermediate certs from URI's.
+     * An intermediate cert that linked to itself would result in an infinite loop so to prevent
+     * that we set a recursion limit. A negative number means that there is no recursion limit.
+     *
+     * @param int $count
+     * @access public
+     */
+    function setRecurLimit($count)
+    {
+        $this->recur_limit = $count;
+    }
+
+    /**
+     * Prevents URIs from being automatically retrieved
+     *
+     * @access public
+     */
+    function disableURLFetch()
+    {
+        $this->disable_url_fetch = true;
+    }
+
+    /**
+     * Allows URIs to be automatically retrieved
+     *
+     * @access public
+     */
+    function enableURLFetch()
+    {
+        $this->disable_url_fetch = false;
     }
 
     /**
@@ -3517,7 +3704,7 @@ class File_X509
                 'tbsCertificate' =>
                     array(
                         'version' => 'v3',
-                        'serialNumber' => $serialNumber, // $this->setserialNumber()
+                        'serialNumber' => $serialNumber, // $this->setSerialNumber()
                         'signature' => array('algorithm' => $signatureAlgorithm),
                         'issuer' => false, // this is going to be overwritten later
                         'validity' => array(

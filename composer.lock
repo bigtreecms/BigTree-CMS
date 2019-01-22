@@ -4,33 +4,34 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "0727dcedbc2be9622174b3c4a99c70a0",
+    "hash": "6e983baf3e12fce6491c7180871afd29",
+    "content-hash": "76518af74b590e504e75996688093287",
     "packages": [
         {
             "name": "ausi/slug-generator",
-            "version": "v1.0.1",
+            "version": "v1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ausi/slug-generator.git",
-                "reference": "b0ad8d0438aabc198344724af45f583b44a31112"
+                "reference": "59b641dfa764658e1fbf37f75312e702817cd319"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ausi/slug-generator/zipball/b0ad8d0438aabc198344724af45f583b44a31112",
-                "reference": "b0ad8d0438aabc198344724af45f583b44a31112",
+                "url": "https://api.github.com/repos/ausi/slug-generator/zipball/59b641dfa764658e1fbf37f75312e702817cd319",
+                "reference": "59b641dfa764658e1fbf37f75312e702817cd319",
                 "shasum": ""
             },
             "require": {
                 "ext-intl": "*",
                 "ext-mbstring": "*",
                 "ext-pcre": "*",
-                "lib-icu": ">=4.6",
+                "lib-icu": ">=4.2.1",
                 "php": "^7.1"
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^2.4",
-                "phpunit/phpunit": "^6.2",
-                "satooshi/php-coveralls": "^1.0"
+                "php-coveralls/php-coveralls": "^2.0",
+                "phpunit/phpunit": "^7.0"
             },
             "type": "library",
             "autoload": {
@@ -59,27 +60,27 @@
                 "transliteration",
                 "unicode"
             ],
-            "time": "2018-02-18T09:54:34+00:00"
+            "time": "2018-12-11 20:59:21"
         },
         {
             "name": "davechild/textstatistics",
-            "version": "1.0.1",
+            "version": "1.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/DaveChild/Text-Statistics.git",
-                "reference": "6196462b4fe730a8ff0019036baf362295c161b3"
+                "reference": "e83d5f82726db80e662ae305fce3b3c41299b4f5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/DaveChild/Text-Statistics/zipball/6196462b4fe730a8ff0019036baf362295c161b3",
-                "reference": "6196462b4fe730a8ff0019036baf362295c161b3",
+                "url": "https://api.github.com/repos/DaveChild/Text-Statistics/zipball/e83d5f82726db80e662ae305fce3b3c41299b4f5",
+                "reference": "e83d5f82726db80e662ae305fce3b3c41299b4f5",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.0"
+                "php": ">=7.2.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "4.2.*"
+                "phpunit/phpunit": "^7"
             },
             "suggest": {
                 "ext-bcmath": "More accurate floating point calculations.",
@@ -110,7 +111,7 @@
             ],
             "description": "PHP package to measure the readability of text according to various algorithms.",
             "homepage": "https://github.com/DaveChild/Text-Statistics",
-            "time": "2015-04-22T14:55:55+00:00"
+            "time": "2018-08-21 08:17:10"
         },
         {
             "name": "hautelook/phpass",
@@ -154,38 +155,50 @@
                 "password",
                 "security"
             ],
-            "time": "2012-08-31T00:00:00+00:00"
+            "time": "2012-08-31 00:00:00"
         },
         {
             "name": "kint-php/kint",
-            "version": "2.2",
+            "version": "3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kint-php/kint.git",
-                "reference": "b091715eadaf6e1a7ef927f3e81d1004611d2aea"
+                "reference": "3228e1162ed4dfdfbaffa8d81e30d38ffdb66054"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kint-php/kint/zipball/b091715eadaf6e1a7ef927f3e81d1004611d2aea",
-                "reference": "b091715eadaf6e1a7ef927f3e81d1004611d2aea",
+                "url": "https://api.github.com/repos/kint-php/kint/zipball/3228e1162ed4dfdfbaffa8d81e30d38ffdb66054",
+                "reference": "3228e1162ed4dfdfbaffa8d81e30d38ffdb66054",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.1.2"
+                "php": ">=5.3.6"
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^2.0",
                 "phpunit/phpunit": "^4.0",
-                "symfony/finder": "^2.6"
+                "seld/phar-utils": "^1.0",
+                "symfony/finder": "^2.0 || ^3.0 || ^4.0",
+                "vimeo/psalm": "^2.0"
+            },
+            "suggest": {
+                "ext-ctype": "Simple data type tests",
+                "ext-iconv": "Provides fallback detection for ambiguous legacy string encodings such as the Windows and ISO 8859 code pages",
+                "ext-mbstring": "Provides string encoding detection",
+                "kint-php/kint-js": "Provides a simplified dump to console.log()",
+                "kint-php/kint-twig": "Provides d() and s() functions in twig templates",
+                "symfony/polyfill-ctype": "Replacement for ext-ctype if missing",
+                "symfony/polyfill-iconv": "Replacement for ext-iconv if missing",
+                "symfony/polyfill-mbstring": "Replacement for ext-mbstring if missing"
             },
             "type": "library",
             "autoload": {
                 "files": [
                     "init.php"
                 ],
-                "classmap": [
-                    "src/"
-                ]
+                "psr-4": {
+                    "Kint\\": "src/"
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -212,7 +225,7 @@
                 "kint",
                 "php"
             ],
-            "time": "2017-09-06T17:46:03+00:00"
+            "time": "2018-11-30 09:54:22"
         },
         {
             "name": "oyejorge/less.php",
@@ -274,7 +287,7 @@
                 "php",
                 "stylesheet"
             ],
-            "time": "2017-03-28T22:19:25+00:00"
+            "time": "2017-03-28 22:19:25"
         },
         {
             "name": "pclzip/pclzip",
@@ -311,20 +324,20 @@
                 "php",
                 "zip"
             ],
-            "time": "2014-06-05T11:42:24+00:00"
+            "time": "2014-06-05 11:42:24"
         },
         {
             "name": "phpmailer/phpmailer",
-            "version": "v6.0.3",
+            "version": "v6.0.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPMailer/PHPMailer.git",
-                "reference": "44d49bab5ab1fef721d3ee07e75dc0865ddf4cc6"
+                "reference": "8190d73eb5def11a43cfb020b7f36db65330698c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPMailer/PHPMailer/zipball/44d49bab5ab1fef721d3ee07e75dc0865ddf4cc6",
-                "reference": "44d49bab5ab1fef721d3ee07e75dc0865ddf4cc6",
+                "url": "https://api.github.com/repos/PHPMailer/PHPMailer/zipball/8190d73eb5def11a43cfb020b7f36db65330698c",
+                "reference": "8190d73eb5def11a43cfb020b7f36db65330698c",
                 "shasum": ""
             },
             "require": {
@@ -377,20 +390,20 @@
                 }
             ],
             "description": "PHPMailer is a full-featured email creation and transfer class for PHP",
-            "time": "2018-01-05T13:19:58+00:00"
+            "time": "2018-11-16 00:41:32"
         },
         {
             "name": "phpseclib/phpseclib",
-            "version": "1.0.10",
+            "version": "1.0.13",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpseclib/phpseclib.git",
-                "reference": "1468ef1a23f66b09b8e906f05ddfa6c3f5236202"
+                "reference": "a9c0e2d4300533de468503587ad4021d42393ccd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/1468ef1a23f66b09b8e906f05ddfa6c3f5236202",
-                "reference": "1468ef1a23f66b09b8e906f05ddfa6c3f5236202",
+                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/a9c0e2d4300533de468503587ad4021d42393ccd",
+                "reference": "a9c0e2d4300533de468503587ad4021d42393ccd",
                 "shasum": ""
             },
             "require": {
@@ -476,20 +489,20 @@
                 "x.509",
                 "x509"
             ],
-            "time": "2018-02-08T03:22:54+00:00"
+            "time": "2018-12-16 17:44:58"
         },
         {
             "name": "tedivm/jshrink",
-            "version": "v1.3.0",
+            "version": "v1.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tedious/JShrink.git",
-                "reference": "68ce379b213741e86f02bf6053b0d26b9f833448"
+                "reference": "21254058dc3ce6aba6bef458cff4bfa25cf8b198"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tedious/JShrink/zipball/68ce379b213741e86f02bf6053b0d26b9f833448",
-                "reference": "68ce379b213741e86f02bf6053b0d26b9f833448",
+                "url": "https://api.github.com/repos/tedious/JShrink/zipball/21254058dc3ce6aba6bef458cff4bfa25cf8b198",
+                "reference": "21254058dc3ce6aba6bef458cff4bfa25cf8b198",
                 "shasum": ""
             },
             "require": {
@@ -522,7 +535,7 @@
                 "javascript",
                 "minifier"
             ],
-            "time": "2017-12-08T00:59:56+00:00"
+            "time": "2018-09-16 00:02:51"
         }
     ],
     "packages-dev": [],
@@ -531,6 +544,11 @@
     "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
+    "platform": {
+        "ext-gd": "*",
+        "ext-json": "*",
+        "ext-openssl": "*",
+        "ext-curl": "*"
+    },
     "platform-dev": []
 }

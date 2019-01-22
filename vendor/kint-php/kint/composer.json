@@ -20,28 +20,34 @@
         }
     ],
     "require": {
-        "php": ">=5.1.2"
+        "php": ">=5.3.6"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.0",
         "phpunit/phpunit": "^4.0",
-        "symfony/finder": "^2.6"
+        "symfony/finder": "^2.0 || ^3.0 || ^4.0",
+        "seld/phar-utils": "^1.0",
+        "vimeo/psalm": "^2.0"
     },
     "autoload": {
         "files": ["init.php"],
-        "classmap": ["src/"]
+        "psr-4": {
+            "Kint\\": "src/"
+        }
     },
     "autoload-dev": {
-        "classmap": ["tests/"]
+        "psr-4": {
+            "Kint\\Test\\": "tests/"
+        }
     },
     "config": {
         "platform": {
-            "php": "5.3.6"
+            "php": "7.0"
         }
     },
     "scripts": {
         "post-update-cmd": [
-            "npm install",
+            "npm ci",
             "bundler install --deployment"
         ],
         "post-install-cmd": "@post-update-cmd",
@@ -64,10 +70,17 @@
         ],
         "build:sass": "bundler exec sass --sourcemap=none --update -fCt compressed resources/sass:resources/compiled",
         "build:js": "npm run build:js",
-        "build:php": "php ./build.php"
+        "build:php": "php ./build.php",
+        "analyze": "psalm --show-info=false"
     },
-    "suggests": {
+    "suggest": {
         "kint-php/kint-twig": "Provides d() and s() functions in twig templates",
-        "kint-php/kint-js": "Provides a simplified dump to console.log()"
+        "kint-php/kint-js": "Provides a simplified dump to console.log()",
+        "ext-mbstring": "Provides string encoding detection",
+        "ext-iconv": "Provides fallback detection for ambiguous legacy string encodings such as the Windows and ISO 8859 code pages",
+        "ext-ctype": "Simple data type tests",
+        "symfony/polyfill-mbstring": "Replacement for ext-mbstring if missing",
+        "symfony/polyfill-iconv": "Replacement for ext-iconv if missing",
+        "symfony/polyfill-ctype": "Replacement for ext-ctype if missing"
     }
 }
