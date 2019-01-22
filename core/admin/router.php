@@ -89,17 +89,16 @@
 			$server_root = isset($server_root) ? $server_root : str_replace("core/admin/router.php", "", strtr(__FILE__, "\\", "/"));
 			$cache_file = $server_root."cache/admin-compiled-css-".md5($css_file).".css";
 			
-			require_once $server_root."vendor/oyejorge/less.php/lib/Less/Autoloader.php";
-			Less_Autoloader::register();
-
 			// Already compiled this, just return it
 			if (file_exists($cache_file) && filemtime($cache_file) >= $last_modified) {
 				readfile($cache_file);
 				die();
 			}
-			
+		
 			// Load LESS compiler
-			$parser = new \Less_Parser(["compress" => true]);
+			require_once $server_root."vendor/oyejorge/less.php/lib/Less/Autoloader.php";
+			Less_Autoloader::register();
+			$parser = new Less_Parser(["compress" => true]);
 			$parser->parseFile($css_file);
 			$css = $parser->getCss();
 			
