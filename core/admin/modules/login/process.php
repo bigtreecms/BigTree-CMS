@@ -23,7 +23,7 @@
 		}
 	} else {
 		if (!$admin->login($_POST["user"], $_POST["password"], $stay_logged_in, $_POST["domain"])) {
-			$_SESSION["bigtree_admin"]["email"] = $_POST["user"];
+			$_SESSION["bigtree_admin"]["failed_login_email"] = $_POST["user"];
 			BigTree::redirect(ADMIN_ROOT."login/?error");
 		}
 	}
