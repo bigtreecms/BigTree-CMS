@@ -40,10 +40,10 @@
 		static function delete($type, $id, $alternate_id_column = false) {
 			static::cache($type);
 
-			foreach (static::$Cache[$type] as $index => $entry) {
+			foreach (static::$Cache[$type] as $index => $item) {
 				if ($alternate_id_column !== false && isset($item[$alternate_id_column]) && $item[$alternate_id_column] == $id) {
 					unset(static::$Cache[$type][$index]);
-				} elseif (isset($entry["id"]) && $entry["id"] == $id) {
+				} elseif (isset($item["id"]) && $item["id"] == $id) {
 					unset(static::$Cache[$type][$index]);
 				}
 			}

@@ -26,10 +26,10 @@
 		function delete($type, $id, $alternate_id_column = false) {
 			$this->check($type);
 
-			foreach ($this->Cache[$type] as $index => $entry) {
+			foreach ($this->Cache[$type] as $index => $item) {
 				if ($alternate_id_column !== false && isset($item[$alternate_id_column]) && $item[$alternate_id_column] == $id) {
 					unset($this->Cache[$type][$index]);
-				} elseif (isset($entry["id"]) && $entry["id"] == $id) {
+				} elseif (isset($item["id"]) && $item["id"] == $id) {
 					unset($this->Cache[$type][$index]);
 				}
 			}
