@@ -151,7 +151,7 @@
 			$raw_response = BigTree::cURL("http://www.mapquestapi.com/geocoding/v1/address?key=".$this->Settings["mapquest_key"]."&location=".urlencode($address));
 			
 			if ($bigtree["last_curl_response_code"] != 200) {
-				$this->Error = $response;
+				$this->Error = $raw_response;
 
 				return false;
 			}
