@@ -202,7 +202,7 @@
 	
 	// Start output buffering and sessions
 	ob_start();
-	session_set_cookie_params(0, str_replace(DOMAIN, "", WWW_ROOT), "", false, true);
+	session_set_cookie_params(0, str_replace(DOMAIN, "", WWW_ROOT), "", !empty($bigtree["config"]["ssl_only_session_cookie"]), true);
 	
 	if (!empty($bigtree["config"]["session_lifetime"])) {
 		session_start(array("gc_maxlifetime" => intval($bigtree["config"]["session_lifetime"])));
@@ -405,10 +405,10 @@
 					}
 					
 					if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
-						Router::redirect($site_data["domain"].$bigtree["page"]["path"]);
+						Router::redirect($site_data["domain"].$bigtree["page"]["path"], ["301"]);
 					}
 					
-					Router::redirect($site_data["domain"].$bigtree["page"]["path"]."/");
+					Router::redirect($site_data["domain"].$bigtree["page"]["path"]."/", ["301"]);
 				}
 			}
 		}

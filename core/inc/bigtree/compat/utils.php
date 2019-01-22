@@ -188,25 +188,25 @@
 			Function: cURL
 				Posts to a given URL and returns the response.
 				Wrapper for cURL.
-			
+
 			Parameters:
 				url - The URL to retrieve / POST to.
 				post - A key/value pair array of things to POST (optional).
 				options - A key/value pair of extra cURL options (optional).
-				strict_security - Force SSL verification of the host and peer if true (optional, defaults to false).
+				strict_security - SSL verification of the host and peer if true (defaults to true).
 				output_file - A file location to dump the output of the request to (optional, replaces return value).
-			
+
 			Returns:
 				The string response from the URL.
 		*/
 		
-		static function cURL($url, $post = false, $options = array(), $strict_security = false, $output_file = false) {
+		static function cURL($url, $post = false, $options = [], $strict_security = true, $output_file = false, $updating_bundle = false) {
 			global $bigtree;
 			
-			$response = BigTree\cURL::request($url, $post ?: null, $options, $strict_security, $output_file ?: null);
+			$response = BigTree\cURL::request($url, $post ?: null, $options, $strict_security, $output_file ?: null, $updating_bundle);
 			
-			// Backwards compat
 			$bigtree["last_curl_response_code"] = BigTree\cURL::$ResponseCode;
+			$bigtree["last_curl_error"] = BigTree\cURL::$Error;
 			
 			return $response;
 		}

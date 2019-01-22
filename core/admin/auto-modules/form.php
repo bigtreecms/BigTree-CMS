@@ -15,6 +15,10 @@
 		$bigtree["edit_id"] = $edit_id = $_POST["id"] ? $_POST["id"] : false;
 	}
 	
+	if (!empty($bigtree["edit_id"]) && !is_numeric($bigtree["edit_id"]) && !is_numeric(substr($bigtree["edit_id"], 1))) {
+		Auth::stop();
+	}
+	
 	$form = new ModuleForm($interface->Array);
 	$form->Root = ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/";
 	
