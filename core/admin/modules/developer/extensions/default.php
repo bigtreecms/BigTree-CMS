@@ -6,7 +6,7 @@
 	foreach ($extensions as $extension) {
 		$query[] = "extensions[]=".urlencode($extension["id"]);
 	}
-	$version_info = array_filter((array)@json_decode(BigTree::cURL("http://www.bigtreecms.org/ajax/extensions/version/?".implode("&",$query),false,array(CURLOPT_CONNECTTIMEOUT => 1,CURLOPT_TIMEOUT => 5)),true));
+	$version_info = array_filter((array)@json_decode(BigTree::cURL("https://www.bigtreecms.org/ajax/extensions/version/?".implode("&",$query),false,array(CURLOPT_CONNECTTIMEOUT => 1,CURLOPT_TIMEOUT => 5)),true));
 ?>
 <div class="table">
 	<summary><h2>Extensions</h2></summary>

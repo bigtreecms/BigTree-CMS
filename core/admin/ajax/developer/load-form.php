@@ -279,7 +279,7 @@
 <?php
 	} elseif (array_filter((array)$table_description["columns"])) {
 ?>
-<p>The chosen table does not have any <a href="http://www.bigtreecms.org/docs/dev-guide/sql-queries/table-structure/#ReservedColumns" target="_blank">non-reserved columns</a>.</p>
+<p>The chosen table does not have any <a href="https://www.bigtreecms.org/docs/dev-guide/sql-queries/table-structure/#ReservedColumns" target="_blank">non-reserved columns</a>.</p>
 <?php
 	} else {
 ?>

@@ -11,7 +11,7 @@
 		<hr />
 		<ol>
 			<li>Backup your existing database.</li>
-			<li>Download the version of BigTree you wish to upgrade to from the <a href="http://www.bigtreecms.org/" target="_blank">official BigTree website</a>.</li>
+			<li>Download the version of BigTree you wish to upgrade to from the <a href="https://www.bigtreecms.org/" target="_blank">official BigTree website</a>.</li>
 			<li>Extract the zip file locally and rename the "core" directory to "core-new".</li>
 			<li>Upload the "core-new" directory to the root of your website via SFTP or any other method.</li>
 			<li>Rename your existing "core" directory to "core-old".</li>

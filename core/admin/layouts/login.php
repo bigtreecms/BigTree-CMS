@@ -20,7 +20,7 @@
 			<h1><?=$site["nav_title"]?></h1>
 			<?=$bigtree["content"]?>
 			
-			<a href="http://www.bigtreecms.com" class="login_logo" target="_blank"></a>
+			<a href="https://www.bigtreecms.com" class="login_logo" target="_blank"></a>
 		</div>
 	</body>
 </html>

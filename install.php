@@ -602,7 +602,7 @@ RewriteRule (.*) site/$1 [L]');
 			<form method="post" action="" class="module">
 				<h2 class="getting_started"><span></span>Getting Started</h2>
 				<fieldset class="clear">
-					<p>Welcome to the BigTree installer. If you need help with installation, <a href="http://www.bigtreecms.org/docs/dev-guide/installation/" target="_blank">check out the developer docs</a>.</p>
+					<p>Welcome to the BigTree installer. If you need help with installation, <a href="https://www.bigtreecms.org/docs/dev-guide/installation/" target="_blank">check out the developer docs</a>.</p>
 					<br />
 				</fieldset>
 				<?php
@@ -839,8 +839,8 @@ RewriteRule (.*) site/$1 [L]');
 		        });
 		    </script>
 			<?php } ?>
-			<a href="http://www.bigtreecms.com" class="install_logo" target="_blank">BigTree</a>
-			<a href="http://www.fastspot.com" class="install_copyright" target="_blank">&copy; <?=date("Y")?> Fastspot</a>
+			<a href="https://www.bigtreecms.com" class="install_logo" target="_blank">BigTree</a>
+			<a href="https://www.fastspot.com" class="install_copyright" target="_blank">&copy; <?=date("Y")?> Fastspot</a>
 		</div>
 	</body>
 </html>

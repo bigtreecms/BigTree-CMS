@@ -4,7 +4,7 @@
 		<link><?php if ($feed["settings"]["feed_link"]) { echo $feed["settings"]["feed_link"]; } else { ?><?=WWW_ROOT?>feeds/<?=$feed["route"]?>/<?php } ?></link>
 		<description><?=$feed["description"]?></description>
 		<language>en-us</language>
-		<generator>BigTree CMS (http://www.bigtreecms.org)</generator>
+		<generator>BigTree CMS (https://www.bigtreecms.org)</generator>
 		<?php
 			$sort = $feed["settings"]["sort"] ?: "id DESC";
 			$limit = $feed["settings"]["limit"] ?: "15";

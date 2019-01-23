@@ -59,7 +59,7 @@
 		<input id="settings_field_preview_prefix" type="text" name="preview_prefix" value="<?=htmlspecialchars($settings["preview_prefix"])?>" />
 	</fieldset>
 	<fieldset>
-		<label>Create Hi-Resolution Retina Images <small><a href="http://www.bigtreecms.org/docs/dev-guide/field-types/retina-images/" target="_blank">(learn more)</a></small></label>
+		<label>Create Hi-Resolution Retina Images <small><a href="https://www.bigtreecms.org/docs/dev-guide/field-types/retina-images/" target="_blank">(learn more)</a></small></label>
 		<input id="settings_field_retina" type="checkbox" name="retina" <?php if ($settings["retina"]) { ?>checked="checked" <?php } ?>/>
 		<label for="settings_field_retina" class="for_checkbox"> When Available</label>
 	</fieldset>

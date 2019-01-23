@@ -4,7 +4,7 @@
 		BigTree::redirect(DEVELOPER_ROOT."upgrade/failed/");
 	}
 	
-	$updates = @json_decode(BigTree::cURL("http://www.bigtreecms.org/ajax/version-check/?current_version=".BIGTREE_VERSION),true);
+	$updates = @json_decode(BigTree::cURL("https://www.bigtreecms.org/ajax/version-check/?current_version=".BIGTREE_VERSION),true);
 	$update = $updates[$_GET["type"]];
 	if (!$update) {
 		$admin->growl("Developer","Couldn't Get Download Information","error");
