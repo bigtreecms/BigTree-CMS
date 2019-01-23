@@ -2714,6 +2714,10 @@
 				return false;
 			}
 
+			// Ignore HTTPS rules when just checking if it exists
+			curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, 0);
+			curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, 0);
+
 			// Limit the request to 5 seconds
 			curl_setopt($handle, CURLOPT_TIMEOUT, 5);
 
