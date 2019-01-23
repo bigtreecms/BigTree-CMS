@@ -14,7 +14,7 @@
 		*/
 
 		public function __construct() {
-			$s = BigTreeAdmin::getSetting("bigtree-internal-email-service");
+			$s = BigTreeCMS::getSetting("bigtree-internal-email-service");
 
 			// Setting doesn't exist? Create it.
 			if ($s === false) {

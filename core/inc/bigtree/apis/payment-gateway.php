@@ -48,7 +48,7 @@
 		*/
 		
 		public function __construct($gateway_override = false) {
-			$s = BigTreeAdmin::getSetting("bigtree-internal-payment-gateway");
+			$s = BigTreeCMS::getSetting("bigtree-internal-payment-gateway");
 
 			// Setting doesn't exist? Create it.
 			if ($s === false) {
