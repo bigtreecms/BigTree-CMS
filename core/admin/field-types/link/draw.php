@@ -28,7 +28,7 @@
 	}
 ?>
 <div class="text_input">
-	<input class="<?=$field["options"]["validation"]?>" type="hidden" name="<?=$field["key"]?>" value="<?=$field["value"]?>" />
+	<input class="<?=$field["settings"]["validation"]?>" type="hidden" name="<?=$field["key"]?>" value="<?=$field["value"]?>" />
 	<input type="text" tabindex="<?=$field["tabindex"]?>" placeholder="<?=$placeholder?>"<?php if ($show_value) { ?> value="<?=$field["value"]?>"<?php } ?> id="<?=$field["id"]?>" />
 	<div class="link_field_results_container" style="display: none;"></div>
 </div>

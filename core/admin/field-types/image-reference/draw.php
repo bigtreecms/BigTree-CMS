@@ -15,7 +15,7 @@
 		"minHeight" => intval($field["settings"]["min_height"])
 	]));
 ?>
-<div class="image_field<?php if ($field["options"]["validation"] == "required") { ?> reference_required<?php } ?>">
+<div class="image_field<?php if ($field["settings"]["validation"] == "required") { ?> reference_required<?php } ?>">
 	<a href="#<?=$field["id"]?>" data-options="<?=$button_options?>" class="button resource_browser_button"><span class="icon_images"></span>Browse</a>
 	<br class="clear" />
 	<div class="currently currently_image_reference" id="<?=$field["id"]?>"<?php if (!$field["value"] || !$resource) { ?> style="display: none;"<?php } ?>>
