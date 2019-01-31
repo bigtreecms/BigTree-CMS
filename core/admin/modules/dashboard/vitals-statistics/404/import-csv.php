@@ -23,13 +23,13 @@
 			} else {
 				$parsed = BigTreeAdmin::parse404SourceURL($row[0], $_POST["site_key"] ?: null);
 
-				if (in_array($parsed["url"], $to_import)) {
+				if (in_array($parsed["url"]."?".$parsed["get_vars"], $to_import)) {
 					$dupes++;
 				} else {
 					fputcsv($temp_file, $row, ",", '"');
 
 					$existing = BigTreeAdmin::getExisting404($parsed["url"], $parsed["get_vars"], $_POST["site_key"] ?: null);
-					$to_import[] = $parsed["url"];
+					$to_import[] = $parsed["url"]."?".$parsed["get_vars"];
 
 					if ($existing && $existing["redirect_url"]) {
 						$overwrite++;

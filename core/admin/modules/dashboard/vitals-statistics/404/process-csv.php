@@ -11,10 +11,10 @@
 	while ($row = fgetcsv($temp_file, 0, ",", '"')) {
 		$parsed = BigTreeAdmin::parse404SourceURL($row[0], $_POST["site_key"] ?: null);
 
-		if (!in_array($parsed["url"], $imported)) {
+		if (!in_array($parsed["url"]."?".$parsed["get_vars"], $imported)) {
 			$x++;
 			$admin->create301($row[0], $row[1], $site_key);
-			$imported[] = $parsed["url"];
+			$imported[] = $parsed["url"]."?".$parsed["get_vars"];
 		}
 	}
 
