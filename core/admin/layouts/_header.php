@@ -1,46 +1,13 @@
 <?php
 	namespace BigTree;
 
-	$nav = isset($bigtree["nav_override"]) ? $bigtree["nav_override"] : array(
-		array("link" => "dashboard", "title" => "Dashboard", "access" => 0, "children" => array(
-			array("link" => "", "title" => "Overview", "access" => 0),
-			array("link" => "pending-changes", "title" => "Pending Changes", "access" => 0),
-			array("link" => "messages", "title" => "Message Center", "access" => 0),
-			array("link" => "vitals-statistics", "title" => "Vitals &amp; Statistics", "access" => 1)
-		)),
-		array("link" => "pages", "title" => "Pages", "access" => 0),
-		array("link" => "modules", "title" => "Modules", "access" => 0),
-		array("link" => "users", "title" => "Users", "access" => 1),
-		array("link" => "settings", "title" => "Settings", "access" => 1),
-		array("link" => "developer", "title" => "Developer", "access" => 2, "children" => array(
-			array("link" => "", "title" => "Create", "access" => 2, "group" => true, "children" => array(
-				array("link" => "developer/templates", "title" => "Templates", "access" => 2),
-				array("link" => "developer/modules", "title" => "Modules", "access" => 2),
-				array("link" => "developer/callouts", "title" => "Callouts", "access" => 2),
-				array("link" => "developer/field-types", "title" => "Field Types", "access" => 2),
-				array("link" => "developer/feeds", "title" => "Feeds", "access" => 2),
-				array("link" => "developer/settings", "title" => "Settings", "access" => 2),
-				array("link" => "developer/extensions", "title" => "Extensions &amp; Packages", "access" => 2),
-			)),
-			array("link" => "", "title" => "Configure", "access" => 2, "group" => true, "children" => array(
-				array("link" => "developer/cloud-storage", "title" => "Cloud Storage", "access" => 2),
-				array("link" => "developer/payment-gateway", "title" => "Payment Gateway", "access" => 2),
-				array("link" => "dashboard/vitals-statistics/analytics/configure/", "title" => "Analytics", "access" => 1),
-				array("link" => "developer/geocoding", "title" => "Geocoding", "access" => 2),
-				array("link" => "developer/email", "title" => "Email Delivery", "access" => 2),
-				array("link" => "developer/services", "title" => "Service APIs", "access" => 2),
-				array("link" => "developer/media", "title" => "Media", "access" => 2),
-				array("link" => "developer/security", "title" => "Security", "access" => 2)
-			))
-		))
-	);
-	
 	$unread_messages = Message::getUserUnreadCount();
 	$unread_message_string = Text::translate(":count: Unread Message".(($unread_messages == 1) ? "" : "s"), false, array(":count:" => $unread_messages));
 	$site = new Page(0, false);
 
 	// Show an alert for being on the development site of a live site, in maintenance mode, or in developer mode
 	$environment_alert = false;
+
 	if (!empty($bigtree["config"]["maintenance_url"])) {
 		$environment_alert = '<span><strong>'.Text::translate("Maintenance Mode").'</strong> &middot; '.Text::translate("Entire Site Restricted To Developers").'</span>';
 	} elseif (!empty($bigtree["config"]["developer_mode"])) {
@@ -73,6 +40,7 @@
 			// Runtime based CSS
 			if (isset($bigtree["css"]) && is_array($bigtree["css"])) {
 				$bigtree["css"] = array_unique($bigtree["css"]);
+
 				foreach ($bigtree["css"] as $style) {
 					$css_path = explode("/",$style);
 
@@ -122,6 +90,7 @@
 			// Runtime based JS
 			if (isset($bigtree["js"]) && is_array($bigtree["js"])) {
 				$bigtree["js"] = array_unique($bigtree["js"]);
+
 				foreach ($bigtree["js"] as $script) {
 					$js_path = explode("/",$script);
 
@@ -167,39 +136,63 @@
 				<ul>
 					<?php
 						$x = -1;
-						foreach ($nav as $item) {
-							if (Auth::user()->Level >= $item["access"] && (!Auth::$PagesTabHidden || $item["link"] != "pages")) {
+
+						foreach ($bigtree["nav_tree"] as $item) {
+							if ($item["hidden"]) {
+								continue;
+							}
+							
+							if (empty($item["level"])) {
+								$item["level"] = 0;
+							}
+							
+							if (Auth::user()->Level >= $item["level"] && (!Auth::$PagesTabHidden || $item["link"] != "pages")) {
 								$x++;
 								// Need to check custom nav states better
 								$link_pieces = explode("/",$item["link"]);
 								$path_pieces = array_slice($bigtree["path"],1,count($link_pieces));
+
+								if (strpos($item["link"], "https://") === 0 || strpos($item["link"], "http://") === 0) {
+									$link = $item["link"];
+								} else {
+									$link = $item["link"] ? ADMIN_ROOT.$item["link"]."/" : ADMIN_ROOT;
+								}
 					?>
 					<li>
-						<a href="<?=ADMIN_ROOT?><?=$item["link"]?>/"<?php if ($link_pieces == $path_pieces || ($item["link"] == "modules" && isset($bigtree["module"]))) { $bigtree["active_nav_item"] = $x; ?> class="active"<?php } ?>><span class="<?=Link::urlify($item["title"])?>"></span><?=Text::translate($item["title"])?></a>
-						<?php if (isset($item["children"]) && count($item["children"])) { ?>
+						<a href="<?=$link?>"<?php if ($link_pieces == $path_pieces || ($item["link"] == "modules" && isset($bigtree["module"]))) { $bigtree["active_nav_item"] = $x; ?> class="active"<?php } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
+						<?php
+								if (empty($item["no_top_level_children"]) && isset($item["children"]) && count($item["children"])) {
+						?>
 						<ul>
 							<?php
-								foreach ($item["children"] as $child) {
-									if (Auth::user()->Level >= $child["access"]) {
-										if (isset($child["group"]) && count($child["children"])) {
+									foreach ($item["children"] as $child) {
+										if (!empty($child["top_level_hidden"])) {
+											continue;
+										}
+	
+										if (strpos($child["link"], "https://") === 0 || strpos($child["link"], "http://") === 0) {
+											$child_link = $child["link"];
+										} else {
+											$child_link = $child["link"] ? ADMIN_ROOT.rtrim($child["link"], "/")."/" : ADMIN_ROOT;
+										}
+										
+										if (Auth::user()->Level >= $child["access"]) {
+											if (!empty($child["group"])) {
 							?>
-							<li class="grouper"><?=Text::translate($child["title"])?></li>
-							<?php 
-											foreach ($child["children"] as $c) {
+							<li class="grouper"><?=$child["title"]?></li>
+							<?php
+											} else {
 							?>
-							<li><a href="<?=ADMIN_ROOT?><?=$c["link"]?>/"><?=Text::translate($c["title"])?></a></li>
+							<li><a href="<?=$child_link?>"><?=$child["title"]?></a></li>
 							<?php
 											}
-										} elseif (!isset($child["group"])) {
-							?>
-							<li><a href="<?=ADMIN_ROOT?><?=$item["link"]?>/<?=$child["link"]?>/"><?=Text::translate($child["title"])?></a></li>
-							<?php
 										}
 									}
-								}
 							?>
 						</ul>
-						<?php } ?>
+						<?php
+								}
+						?>
 					</li>
 					<?php
 							}	

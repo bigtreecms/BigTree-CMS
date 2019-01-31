@@ -35,6 +35,9 @@
 				// Send daily digest
 				DailyDigest::send();
 				
+				// Update tag reference counts
+				Tag::updateReferenceCounts();
+				
 				// Cache Google Analytics Information
 				$analytics = new GoogleAnalytics\API;
 				

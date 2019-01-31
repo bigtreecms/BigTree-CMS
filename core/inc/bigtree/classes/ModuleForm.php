@@ -166,6 +166,7 @@
 			$this->handleTags($id, $tags);
 			
 			// Cache and track
+			Tag::updateReferenceCounts($tags);
 			ModuleView::cacheForAll($id, $this->Table);
 			AuditTrail::track($this->Table, $id, "created");
 			
@@ -643,6 +644,7 @@
 			SQL::delete("bigtree_pending_changes", ["item_id" => $id, "table" => $this->Table]);
 			
 			// Cache and track
+			Tag::updateReferenceCounts($tags);
 			ModuleView::cacheForAll($id, $this->Table);
 			AuditTrail::track($this->Table, $id, "updated");
 		}

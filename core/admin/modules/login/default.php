@@ -7,7 +7,7 @@
 	
 	if (isset($_GET["error"])) {
 		$failure = true;
-		$user = Text::htmlEncode($_SESSION["bigtree_admin"]["email"]);
+		$user = Text::htmlEncode($_SESSION["bigtree_admin"]["failed_login_email"]);
 	} else {
 		$user = "";
 		$failure = false;

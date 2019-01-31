@@ -51,7 +51,7 @@
 			$this->Input = $field["input"] ?: null;
 			$this->Key = $field["key"] ?: null;
 			$this->Output = false;
-			$this->Settings = Link::decode(array_filter((array) ($field["options"] ?: [])));
+			$this->Settings = Link::decode(array_filter((array) ($field["settings"] ?: [])));
 			$this->Subtitle = $field["subtitle"] ?: null;
 			$this->TabIndex = $field["tabindex"] ?: null;
 			$this->Title = $field["title"] ?: null;

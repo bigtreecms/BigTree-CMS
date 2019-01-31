@@ -11,7 +11,6 @@
 	 * @property-read string $Metaphone
 	 * @property-read string $Route
 	 */
-	
 	class Tag extends BaseObject {
 		
 		public static $Table = "bigtree_tags";
@@ -156,6 +155,60 @@
 			AuditTrail::track("bigtree_tags", $id, "created");
 			
 			return new Tag($id);
+		}
+		
+		/*
+			Function: merge
+				Merges another tag into this tag.
+		
+			Parameters:
+				id - The tag ID to merge into this tag.
+		*/
+		
+		function merge($id) {
+			SQL::update("bigtree_tags_rel", ["tag" => $id], ["tag" => $this->ID]);
+			SQL::delete("bigtree_tags", $id);
+			
+			AuditTrail::track("bigtree_tags", $id, "merged");
+		
+			// Clean up duplicate references
+			SQL::query("DELETE tags_a FROM bigtree_tags_rel AS tags_a, bigtree_tags_rel AS tags_b
+						WHERE (tags_a.`table` = tags_b.`table`)
+						  AND (tags_a.`entry` = tags_b.`entry`)
+						  AND (tags_a.`tag` = tags_b.`tag`)
+						  AND (tags_a.`id` < tags_b.`id`)");
+			
+			static::updateReferenceCounts([$this->ID]);
+		}
+		
+		/*
+			Function: updateReferenceCounts
+				Updates the reference counts for tags to accurately match active database entries.
+
+			Parameters:
+				tags - An array of tag IDs to update reference counts for (defaults to all tags)
+		*/
+		
+		public static function updateReferenceCounts($tags = []) {
+			if (!count($tags)) {
+				$tags = SQL::fetchAllSingle("SELECT id FROM bigtree_tags");
+			}
+			
+			foreach ($tags as $tag_id) {
+				$tag_id = intval($tag_id);
+				$query = SQL::query("SELECT * FROM bigtree_tags_rel WHERE `tag` = '$tag_id'");
+				$reference_count = 0;
+				
+				while ($reference = $query->fetch()) {
+					if (SQL::exists($reference["table"], $reference["entry"])) {
+						$reference_count++;
+					} else {
+						SQL::delete("bigtree_tags_rel", ["table" => $reference["table"], "entry" => $reference["entry"]]);
+					}
+				}
+				
+				SQL::update("bigtree_tags", $tag_id, ["usage_count" => $reference_count]);
+			}
 		}
 		
 	}

@@ -3179,6 +3179,32 @@
 		static function matchResourceMD5($file, $new_folder) {
 			return BigTree\Resource::md5Check($file, $new_folder);
 		}
+		
+		/*
+			Function: mergeTags
+				Merges a set of tags into a single tag and updates references.
+
+			Parameters:
+				tag - A tag ID that will consume the other tags
+				merge_tags - An array of tag IDs that will be consumed
+
+			Returns:
+				true if successful
+		*/
+		
+		public function mergeTags($tag, $merge_tags) {
+			$tag = new BigTree\Tag($tag);
+			
+			if (empty($tag->ID)) {
+				return false;
+			}
+			
+			foreach ($merge_tags as $merge_id) {
+				$tag->merge($merge_id);
+			}
+			
+			return true;
+		}
 
 		/*
 			Function: pageChangeExists

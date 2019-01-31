@@ -2,7 +2,7 @@
 	namespace BigTree;
 
 	$users = User::all("name ASC", true);
-	$user_data = array();
+	$user_data = [];
 	
 	foreach ($users as $user) {
 		if ($user["level"] <= Auth::user()->Level) {
@@ -34,7 +34,7 @@
 				});
 			}
 		},
-		data: <?=JSON::encodeColumns($user_data,array("id","gravatar","name","email","company"))?>,
+		data: <?=JSON::encodeColumns($user_data, ["id", "gravatar", "name", "email", "company"])?>,
 		searchable: true,
 		sortable: true,
 		perPage: 10

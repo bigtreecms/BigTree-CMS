@@ -30,7 +30,7 @@
 		}
 	} else {
 		if (!Auth::login($_POST["user"], $_POST["password"], $stay_logged_in)) {
-			$_SESSION["bigtree_admin"]["email"] = $_POST["user"];
+			$_SESSION["bigtree_admin"]["failed_login_email"] = $_POST["user"];
 			Router::redirect(ADMIN_ROOT."login/?error");
 		} else {
 			if (isset($_SESSION["bigtree_login_redirect"])) {
