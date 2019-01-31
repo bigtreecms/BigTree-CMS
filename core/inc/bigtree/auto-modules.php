@@ -260,18 +260,29 @@
 				sqlquery("ALTER TABLE bigtree_module_view_cache ADD COLUMN column$cc TEXT NOT NULL AFTER column".($cc-1));
 			}
 			
-			// Cache all records that are published (and include their pending changes)
-			$q = sqlquery("SELECT `".$view["table"]."`.*,bigtree_pending_changes.changes AS bigtree_changes FROM `".$view["table"]."` LEFT JOIN bigtree_pending_changes ON (bigtree_pending_changes.item_id = `".$view["table"]."`.id AND bigtree_pending_changes.table = '".$view["table"]."')");
-			while ($item = sqlfetch($q)) {
-				$original_item = $item;
-				if ($item["bigtree_changes"]) {
-					$changes = json_decode($item["bigtree_changes"],true);
-					foreach ($changes as $key => $change) {
-						$item[$key] = $change;
-					}
-				}	
-
-				self::cacheRecord($item,$view,$parsers,$poplists,$original_item);
+			// Paginate out for high record counts to avoid out of memory errors
+			$record_count = SQL::fetchSingle("SELECT COUNT(*) FROM `".$view["table"]."`");
+			$total_pages = ceil($record_count / 1000);
+			
+			for ($page = 1; $page <= $total_pages; $page++) {
+				$limit = ($page - 1) * 1000;
+				
+				// Cache all records that are published (and include their pending changes)
+				$q = sqlquery("SELECT `".$view["table"]."`.*,bigtree_pending_changes.changes AS bigtree_changes FROM `".$view["table"]."` LEFT JOIN bigtree_pending_changes ON (bigtree_pending_changes.item_id = `".$view["table"]."`.id AND bigtree_pending_changes.table = '".$view["table"]."') ORDER BY `".$view["table"]."`.id ASC LIMIT $limit, 1000");
+			
+				while ($item = sqlfetch($q)) {
+					$original_item = $item;
+					
+					if ($item["bigtree_changes"]) {
+						$changes = json_decode($item["bigtree_changes"],true);
+						
+						foreach ($changes as $key => $change) {
+							$item[$key] = $change;
+						}
+					}	
+				
+					self::cacheRecord($item,$view,$parsers,$poplists,$original_item);
+				}
 			}
 
 			$q = sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = '".$view["table"]."' AND item_id IS NULL");
