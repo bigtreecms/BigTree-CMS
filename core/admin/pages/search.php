@@ -2,103 +2,115 @@
 	$total_results = 0;
 	$results = array();
 	
-	$search_term = $_GET["query"];
+
+	if (!empty($_GET["query"])) {
+		$search_term = $_GET["query"];
 	
-	// If this is a link, see if it's internal.
-	if (substr($search_term,0,7) == "http://" || substr($search_term,0,8) == "https://") {
-		$search_term = $admin->makeIPL($search_term);
-	}
-	
-	$w = "'%".sqlescape($search_term)."%'";
-	
-	// Get the "Pages" results.
-	$page_results = $admin->searchPages($search_term, array("title", "resources", "meta_description", "nav_title"), "50");
-	$pages = array();
-	
-	foreach ($page_results as $page_result) {
-		$access_level = $admin->getPageAccessLevel($page_result["id"]);
-		
-		if ($access_level) {
-			$res = json_decode($page_result["resources"], true);
-			$bc = $cms->getBreadcrumbByPage($page_result);
-			$bc_parts = array();
-			
-			foreach ($bc as $part) {
-				$bc_parts[] = '<a href="'.ADMIN_ROOT.'pages/view-tree/'.$part["id"].'/">'.$part["title"].'</a>';
-			}
-			
-			$result = array(
-				"id" => $page_result["id"],
-				"title" => $page_result["nav_title"],
-				"description" => BigTree::trimLength(strip_tags($res["page_content"]),450),
-				"link" => ADMIN_ROOT."pages/edit/".$page_result["id"]."/",
-				"breadcrumb" => implode(" &rsaquo; ",$bc_parts)
-			);
-			$pages[] = $result;
-			$total_results++;
+		// If this is a link, see if it's internal.
+		if (substr($search_term,0,7) == "http://" || substr($search_term,0,8) == "https://") {
+			$search_term = $admin->makeIPL($search_term);
 		}
-	}
-	
-	if (count($pages)) {
-		$results["Pages"] = $pages;
-	}
-	
-	// Get every module's results based on auto module views.
-	$modules = $admin->getModules("name ASC");
-	
-	foreach ($modules as $module) {
-		// Get all auto module view actions for this module.
-		$actions = $admin->getModuleActions($module);
 		
-		foreach ($actions as $action) {
-			if ($action["view"]) {
-				$view = BigTreeAutoModule::getView($action["view"]);
-				$m_results = array();
+		$w = "'%".sqlescape($search_term)."%'";
+		
+		// Get the "Pages" results.
+		$page_results = $admin->searchPages($search_term, array("title", "resources", "meta_description", "nav_title"), "50");
+		$pages = array();
+		
+		foreach ($page_results as $page_result) {
+			$access_level = $admin->getPageAccessLevel($page_result["id"]);
+			
+			if ($access_level) {
+				$res = json_decode($page_result["resources"], true);
+				$bc = $cms->getBreadcrumbByPage($page_result);
+				$bc_parts = array();
 				
-				$table_description = BigTree::describeTable($view["table"]);
-				$qparts = array();
-				
-				foreach ($table_description["columns"] as $column => $data) {
-					$qparts[] = "`$column` LIKE $w";
+				foreach ($bc as $part) {
+					$bc_parts[] = '<a href="'.ADMIN_ROOT.'pages/view-tree/'.$part["id"].'/">'.$part["title"].'</a>';
 				}
 				
-				// Get matching results
-				$qs = sqlquery("SELECT * FROM `".$view["table"]."` WHERE ".implode(" OR ",$qparts));
-				
-				// Ignore SQL failures because we might have bad collation.
-				while ($module_row = sqlfetch($qs, true)) {
-					if (isset($view["settings"]["filter"]) && $view["settings"]["filter"]) {
-						if (!call_user_func($view["settings"]["filter"], $module_row)) {
-							continue;
+				$result = array(
+					"id" => $page_result["id"],
+					"title" => $page_result["nav_title"],
+					"description" => BigTree::trimLength(strip_tags($res["page_content"]),450),
+					"link" => ADMIN_ROOT."pages/edit/".$page_result["id"]."/",
+					"breadcrumb" => implode(" &rsaquo; ",$bc_parts)
+				);
+				$pages[] = $result;
+				$total_results++;
+			}
+		}
+		
+		if (count($pages)) {
+			$results["Pages"] = $pages;
+		}
+		
+		// Get every module's results based on auto module views.
+		$modules = $admin->getModules("name ASC");
+		
+		foreach ($modules as $module) {
+			// Get all auto module view actions for this module.
+			$actions = $admin->getModuleActions($module);
+			
+			foreach ($actions as $action) {
+				if ($action["view"]) {
+					$view = BigTreeAutoModule::getView($action["view"]);
+					$m_results = array();
+					
+					$table_description = BigTree::describeTable($view["table"]);
+					$qparts = array();
+					
+					foreach ($table_description["columns"] as $column => $data) {
+						$qparts[] = "`$column` LIKE $w";
+					}
+					
+					// Get matching results
+					$qs = sqlquery("SELECT * FROM `".$view["table"]."` WHERE ".implode(" OR ",$qparts));
+					
+					// Ignore SQL failures because we might have bad collation.
+					while ($module_row = sqlfetch($qs, true)) {
+						if (isset($view["settings"]["filter"]) && $view["settings"]["filter"]) {
+							if (!call_user_func($view["settings"]["filter"], $module_row)) {
+								continue;
+							}
 						}
+						
+						foreach ($module_row as &$piece) {
+							$piece = $cms->replaceInternalPageLinks($piece);
+						}
+						
+						unset($piece);
+						$m_results[] = $module_row;
+						$total_results++;
 					}
 					
-					foreach ($module_row as &$piece) {
-						$piece = $cms->replaceInternalPageLinks($piece);
+					if (count($m_results)) {
+						$results[$module["name"]][] = array(
+							"view" => $view,
+							"results" => $m_results,
+							"module" => $module
+						);
 					}
-					
-					unset($piece);
-					$m_results[] = $module_row;
-					$total_results++;
-				}
-				
-				if (count($m_results)) {
-					$results[$module["name"]][] = array(
-						"view" => $view,
-						"results" => $m_results,
-						"module" => $module
-					);
 				}
 			}
 		}
 	}
 ?>
 <form class="adv_search" method="get" action="<?=ADMIN_ROOT?>search/">
+	<?php
+		if (!empty($_GET["query"])) {
+	?>
 	<h3><?=number_format($total_results)?> Search results for &ldquo;<?=htmlspecialchars($_GET["query"])?>&rdquo;</h3>
+	<?php
+		}
+	?>
 	<input type="search" name="query" autocomplete="off" value="<?=htmlspecialchars($_GET["query"])?>" />
 	<input type="submit" />
 </form>
 
+<?php
+	if (!empty($_GET["query"])) {
+?>
 <div class="container">
 	<?php if (count($results)) { ?>
 	<header>
@@ -174,11 +186,14 @@
 	</section>
 	<?php } ?>
 </div>
+
 <script>
 	// Override default controls
 	$(".container nav a").click(function() {
-		$(".content_container .content").hide();
 		var href = "content_" + $(this).attr("href").substr(1);
+		
+		$(".content_container .content").hide();
+		
 		if ($(href)) {
 			$(".container nav a").removeClass("active");
 			$(this).addClass("active");
@@ -190,3 +205,6 @@
 
 	BigTreeFormNavBar.init(true);
 </script>
+<?php
+	}
+?>
