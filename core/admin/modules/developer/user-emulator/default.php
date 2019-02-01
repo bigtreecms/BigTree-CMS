@@ -11,6 +11,7 @@
 		<span class="view_column users_name_emulate"><a class="sort_column asc" href="ASC" name="name">Name <em>&#9650;</em></a></span>
 		<span class="view_column users_email"><a class="sort_column" href="ASC" name="email">Email <em></em></a></span>
 		<span class="view_column users_company"><a class="sort_column" href="ASC" name="company">Company <em></em></a></span>
+		<span class="view_column users_user_level"><a class="sort_column" href="ASC" name="level">User Level <em></em></a></span>
 		<span class="view_action"></span>
 	</header>
 	<ul id="results">

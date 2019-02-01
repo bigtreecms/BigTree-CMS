@@ -3,6 +3,11 @@
 	
 	$query = isset($_GET["query"]) ? $_GET["query"] : "";
 	$page = isset($_GET["page"]) ? intval($_GET["page"]) : 1;
+	$levels = [
+		0 => "Normal",
+		1 => "Administrator",
+		2 => "Developer"
+	];
 	
 	// Prevent SQL shenanigans
 	$sort_by = "name";
@@ -23,6 +28,7 @@
 	<section class="view_column users_name_emulate"><span class="gravatar"><img src="<?=BigTree::gravatar($item["email"], 36)?>" alt="" /></span><?=$item["name"]?></section>
 	<section class="view_column users_email"><?=$item["email"]?></section>
 	<section class="view_column users_company"><?=$item["company"]?></section>
+	<section class="view_column users_user_level"><?=$levels[$item["level"]]?></section>
 	<section class="view_action">
 		<a href="<?=ADMIN_ROOT?>developer/user-emulator/emulate/?id=<?=$item["id"]?><?php $admin->drawCSRFTokenGET() ?>" class="icon_settings ignore_quick_loader"></a>
 	</section>
