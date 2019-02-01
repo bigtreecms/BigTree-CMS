@@ -72,8 +72,8 @@ INSERT INTO `bigtree_pages` (`id`, `trunk`, `parent`, `in_nav`, `nav_title`, `ro
 INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-storage','{"Service":"local"}');
 INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-revision','403');
 INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-security-policy','{"password":{"invitations": "on"}}');
-INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-deleted-users','{}','on');
-INSERT INTO `bigtree_settings` (`id`, `value`) VALUES ('bigtree-file-metadata-fields', '{}', 'on');
+INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-deleted-users','{}');
+INSERT INTO `bigtree_settings` (`id`, `value`) VALUES ('bigtree-file-metadata-fields', '{}');
 INSERT INTO `bigtree_settings` (`id`, `value`) VALUES ('bigtree-internal-per-page', '15');
 
 SET SESSION foreign_key_checks = 1;
