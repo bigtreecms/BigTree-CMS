@@ -22,7 +22,7 @@
 		<meta charset="utf-8" />
 		<meta name="robots" content="noindex,nofollow" />
 		<title><?php if (isset($bigtree["admin_title"])) { ?><?=BigTree::safeEncode($bigtree["admin_title"])?> | <?php } ?><?=$site["nav_title"]?> Admin</title>
-		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.less" type="text/css" media="screen" />
+		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.less?<?=BIGTREE_VERSION?>" type="text/css" media="screen" />
 		<?php
 			// Configuration based CSS
 			if (isset($bigtree["config"]["admin_css"]) && is_array($bigtree["config"]["admin_css"])) {
@@ -62,9 +62,9 @@
 			var CSRFTokenField = "<?=$admin->CSRFTokenField?>";
 			var CSRFToken = "<?=$admin->CSRFToken?>";
 		</script>
-		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
-		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
-		<script src="<?=ADMIN_ROOT?>js/tinymce/tinymce.min.js"></script>
+		<script src="<?=ADMIN_ROOT?>js/lib.js?<?=BIGTREE_VERSION?>"></script>
+		<script src="<?=ADMIN_ROOT?>js/main.js?<?=BIGTREE_VERSION?>"></script>
+		<script src="<?=ADMIN_ROOT?>js/tinymce/tinymce.min.js?<?=BIGTREE_VERSION?>"></script>
 		<script>BigTree.dateFormat = "<?=BigTree::phpDateTojQuery($bigtree["config"]["date_format"])?>";</script>
 		<?php
 			// Configuration based JS
@@ -102,9 +102,6 @@
 				}
 			}
 		?>
-		<!--[if lt IE 9]>
-		<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
-		<![endif]-->
 	</head>
 	<body class="bigtree">
 		<script>
