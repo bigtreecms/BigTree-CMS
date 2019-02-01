@@ -5,7 +5,7 @@
 ?>
 <fieldset>
 	<input id="settings_field_default_on" name="default_checked" type="checkbox"<?php if ($settings["default_checked"]) { ?> checked<?php } ?> />
-	<label for="settings_field_default_on" class="for_checkbox">Default to Checked</label></fieldset>
+	<label for="settings_field_default_on" class="for_checkbox">Default to Checked</label>
 </fieldset>
 
 <fieldset>

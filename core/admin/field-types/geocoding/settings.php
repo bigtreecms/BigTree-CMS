@@ -1,17 +1,17 @@
 <fieldset id="js-source-fieldset" class="last">
 	<label>Source Fields <small>(the table columns to use for address generation)</small></label>
 	<?php
-		if (is_string($data["fields"])) {
-			$data["fields"] = explode(",", $data["fields"]);
+		if (is_string($settings["fields"])) {
+			$settings["fields"] = explode(",", $settings["fields"]);
 		} else {
-			$data["fields"] = is_array($data["fields"]) ? $data["fields"] : [""];
+			$settings["fields"] = is_array($settings["fields"]) ? $settings["fields"] : [""];
 		}
 		
-		if (!is_array($data["fields"]) || !count($data["fields"])) {
-			$data["fields"] = array("");
+		if (!is_array($settings["fields"]) || !count($settings["fields"])) {
+			$settings["fields"] = array("");
 		}
 
-		foreach ($data["fields"] as $field) {
+		foreach ($settings["fields"] as $field) {
 			$field = trim($field);
 	?>
 	<div class="contain route_source_field">
