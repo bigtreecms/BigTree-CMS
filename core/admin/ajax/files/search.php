@@ -27,6 +27,9 @@
 	}
 
 	foreach ($results["resources"] as $resource) {
+		if ($resource["permission"] == "n") {
+			continue;
+		}
 ?>
 <li<?php if ($resource["permission"] == "n") { ?> class="disabled"<?php } ?>>
 	<section class="view_column file_manager_column_icon">
@@ -48,8 +51,10 @@
 	</section>
 	<section class="view_column file_manager_column_name">
 		<?php
-			if ($resource["permission"] == "n") {
-				echo $resource["name"];
+			if ($resource["permission"] != "p") {
+		?>
+		<a href="<?=$resource["file"]?>" target="_blank"><?=$resource["name"]?></a>
+		<?php
 			} else {
 		?>
 		<a href="<?=ADMIN_ROOT?>files/edit/file/<?=$resource["id"]?>/"><?=$resource["name"]?></a>

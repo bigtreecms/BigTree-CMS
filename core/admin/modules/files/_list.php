@@ -77,8 +77,10 @@
 				</section>
 				<section class="view_column file_manager_column_name">
 					<?php
-						if ($permission == "n") {
-							echo $resource["name"];
+						if ($permission != "p") {
+					?>
+					<a href="<?=$resource["file"]?>" target="_blank"><?=$resource["name"]?></a>
+					<?php
 						} else {
 					?>
 					<a href="<?=ADMIN_ROOT?>files/edit/file/<?=$resource["id"]?>/"><?=$resource["name"]?></a>

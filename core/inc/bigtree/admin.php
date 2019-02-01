@@ -5702,7 +5702,12 @@
 				$id = $folder;
 			}
 
+			if (empty($id)) {
+				$id = 0;
+			}
+
 			$p = $this->Permissions["resources"][$id];
+
 			// If p is already no, creator, or consumer we can just return it.
 			if ($p && $p != "i") {
 				return $p;
@@ -5716,6 +5721,7 @@
 				if (!is_array($folder)) {
 					$folder = sqlfetch(sqlquery("SELECT parent FROM bigtree_resource_folders WHERE id = '".sqlescape($id)."'"));
 				}
+				
 				// If we couldn't find the folder anymore, just say they can consume.
 				if (!$folder) {
 					return "e";
