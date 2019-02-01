@@ -55,6 +55,11 @@
 			foreach ($actions as $action) {
 				if ($action["view"]) {
 					$view = BigTreeAutoModule::getView($action["view"]);
+
+					if ($view["exclude_from_search"]) {
+						continue;
+					}
+					
 					$m_results = array();
 					
 					$table_description = BigTree::describeTable($view["table"]);

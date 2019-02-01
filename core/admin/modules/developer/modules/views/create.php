@@ -55,11 +55,12 @@
 		$module = end($bigtree["path"]);
 
 		// Create the view
-		$view_id = $admin->createModuleView($module,$title,$description,$table,$type,$settings,$fields,$actions,$related_form,$preview_url);
+		$view_id = $admin->createModuleView($module, $title, $description, $table, $type, $settings, $fields, $actions, $related_form, $preview_url, $exclude_from_search);
 
 		// Check to see if there's a default view for the module. If not our route is going to be blank.
 		$route = "";
 		$landing_exists = $admin->doesModuleLandingActionExist($module);
+
 		if ($landing_exists) {
 			$route = $admin->uniqueModuleActionRoute($module,$cms->urlify("View $title"));
 		}

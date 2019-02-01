@@ -84,7 +84,7 @@
 		}
 		
 		// Let's update the view and clear its cache
-		$admin->updateModuleView(end($bigtree["path"]),$title,$description,$table,$type,$settings,$fields,$actions,$related_form,$preview_url);
+		$admin->updateModuleView(end($bigtree["path"]), $title, $description, $table, $type, $settings, $fields, $actions, $related_form, $preview_url, $exclude_from_search);
 		BigTreeAutoModule::clearCache(end($bigtree["path"]));
 		
 		$action = $admin->getModuleActionForView(end($bigtree["path"]));

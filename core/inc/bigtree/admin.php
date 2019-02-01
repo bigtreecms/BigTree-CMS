@@ -1436,12 +1436,13 @@
 				actions - Actions array.
 				related_form - Form ID to handle edits.
 				preview_url - Optional preview URL.
+				exclude_from_search - Excludes view data from admin search.
 
 			Returns:
 				The id for view.
 		*/
 
-		public function createModuleView($module,$title,$description,$table,$type,$settings,$fields,$actions,$related_form,$preview_url = "") {
+		public function createModuleView($module, $title, $description, $table, $type, $settings, $fields, $actions, $related_form, $preview_url = "", $exclude_from_search = false) {
 			$context = BigTreeJSONDB::getSubset("modules", $module);
 			$id = $context->insert("views", [
 				"title" => BigTree::safeEncode($title),
@@ -1452,7 +1453,8 @@
 				"fields" => $fields,
 				"actions" => $actions,
 				"related_form" => $related_form ?: null,
-				"preview_url" => BigTree::safeEncode($preview_url)
+				"preview_url" => BigTree::safeEncode($preview_url),
+				"exclude_from_search" => !empty($exclude_from_search) ? true : false
 			]);
 			
 			static::updateModuleViewColumnNumericStatusForTable($table);
@@ -9079,12 +9081,13 @@
 				actions - Actions array.
 				related_form - Form ID to handle edits.
 				preview_url - Optional preview URL.
+				exclude_from_search - Excludes view data from admin search.
 
 			Returns:
 				The id for view.
 		*/
 
-		public function updateModuleView($id,$title,$description,$table,$type,$settings,$fields,$actions,$related_form,$preview_url = "") {
+		public function updateModuleView($id, $title, $description, $table, $type, $settings, $fields, $actions, $related_form, $preview_url = "", $exclude_from_search = false) {
 			$modules = BigTreeJSONDB::getAll("modules");
 			
 			foreach ($modules as $module) {
@@ -9100,7 +9103,8 @@
 							"fields" => $fields,
 							"actions" => $actions,
 							"preview_url" => BigTree::safeEncode($preview_url),
-							"related_form" => $related_form ?: null
+							"related_form" => $related_form ?: null,
+							"exclude_from_search" => !empty($exclude_from_search) ? true : false
 						]);
 					}
 				}
