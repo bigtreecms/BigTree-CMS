@@ -29,7 +29,7 @@
 					</optgroup>
 					<?php } ?>
 				</select> &nbsp; <a class="icon_settings" href="#"></a>
-				<input type="hidden" name="settings" value="<?=$settings?>" id="field_settings" />
+				<input type="hidden" name="settings" value="<?=htmlspecialchars(json_encode($settings))?>" id="field_settings" />
 			</fieldset>
 			<fieldset>
 				 <input type="checkbox" name="locked"<?php if ($locked) { ?> checked="checked"<?php } ?> />

@@ -263,7 +263,7 @@
 			$cert_bundle = SERVER_ROOT."cache/bigtree-ca-cert.pem";
 
 			// Use the core bundle which may be out of date to grab the latest bundle
-			if (!file_exists($cert_bundle) || empty(file_get_contents($cert_bundle))) {
+			if (!file_exists($cert_bundle) || !file_get_contents($cert_bundle)) {
 				BigTree::copyFile(SERVER_ROOT."core/cacert.pem", $cert_bundle);
 			}
 

@@ -23,6 +23,7 @@
 	// Get min width/height designations
 	$min_width = $field["settings"]["min_width"] ? intval($field["settings"]["min_width"]) : 0;
 	$min_height = $field["settings"]["min_height"] ? intval($field["settings"]["min_height"]) : 0;
+	$filtered_crops = [];
 
 	// Get preview data and existing crops
 	if ($field["value"]) {
