@@ -81,7 +81,8 @@
 			$("#db_list_options").show();
 		}
 	});
-	var localList = BigTreeListMaker({
+
+	BigTreeListMaker({
 		element: "#static_list_options",
 		name: "list",
 		title: "Static List Options",
