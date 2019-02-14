@@ -29,6 +29,7 @@
 		public $IsVideo;
 		public $Location;
 		public $MD5;
+		public $Metadata;
 		public $MimeType;
 		public $Name;
 		public $Thumbs;
@@ -67,6 +68,7 @@
 					$this->IsVideo = $resource["is_video"] ? true : false;
 					$this->Location = $resource["location"];
 					$this->MD5 = $resource["md5"];
+					$this->Metadata = Link::detokenize(array_filter((array) @json_decode($resource["metadata"], true)));
 					$this->MimeType = $resource["mimetype"];
 					$this->Name = $resource["name"];
 					$this->Thumbs = Link::detokenize(array_filter((array) @json_decode($resource["thumbs"], true)));

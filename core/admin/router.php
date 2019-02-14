@@ -450,7 +450,8 @@
 			"title" => $module->Name,
 			"link" => $module->Route,
 			"icon" => "modules",
-			"children" => []
+			"children" => [],
+			"hidden" => true
 		];
 		
 		foreach ($actions as $action) {
