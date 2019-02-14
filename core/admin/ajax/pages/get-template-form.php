@@ -25,6 +25,13 @@
 	} else {
 		$template = null;
 	}
+
+	if (isset($_POST["page"]) && $template_id != $bigtree["current_page"]["template"]) {
+		$original_template = new Template($bigtree["current_page"]["template"]);
+		$forced_recrops = $admin->rectifyResourceTypeChange($bigtree["resources"], $bigtree["template"]["resources"], $original_template->Fields);
+	} else {
+		$forced_recrops = [];
+	}
 ?>
 <div class="alert template_message">
 	<label><?=Text::translate("Template")?>:</label>
@@ -68,9 +75,11 @@
 					"title" => $resource["title"],
 					"subtitle" => $resource["subtitle"],
 					"key" => "resources[".$resource["id"]."]",
+					"has_value" => isset($bigtree["resources"][$resource["id"]]),
 					"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
 					"tabindex" => $bigtree["tabindex"],
-					"options" => $resource["options"]
+					"options" => $resource["options"],
+					"forced_recrop" => isset($forced_recrops[$resource["id"]]) ? true : false
 				));
 	
 				$field->draw();

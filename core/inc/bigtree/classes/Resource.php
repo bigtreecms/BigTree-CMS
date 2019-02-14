@@ -19,17 +19,22 @@
 		
 		protected $ID;
 		
+		public $Crops;
 		public $Date;
 		public $File;
+		public $FileSize;
 		public $Folder;
 		public $Height;
 		public $IsImage;
-		public $ListThumbMargin;
+		public $IsVideo;
+		public $Location;
 		public $MD5;
+		public $MimeType;
 		public $Name;
 		public $Thumbs;
 		public $Type;
 		public $Width;
+		public $VideoData;
 		
 		/*
 			Constructor:
@@ -52,17 +57,22 @@
 				} else {
 					$this->ID = $resource["id"];
 					
+					$this->Crops = Link::detokenize(array_filter((array) @json_decode($resource["crops"], true)));
 					$this->Date = $resource["date"];
 					$this->File = Link::detokenize($resource["file"]);
+					$this->FileSize = $resource["size"];
 					$this->Folder = $resource["folder"];
 					$this->Height = $resource["height"];
 					$this->IsImage = $resource["is_image"] ? true : false;
-					$this->ListThumbMargin = $resource["list_thumb_margin"];
+					$this->IsVideo = $resource["is_video"] ? true : false;
+					$this->Location = $resource["location"];
 					$this->MD5 = $resource["md5"];
+					$this->MimeType = $resource["mimetype"];
 					$this->Name = $resource["name"];
 					$this->Thumbs = Link::detokenize(array_filter((array) @json_decode($resource["thumbs"], true)));
 					$this->Type = $resource["type"];
 					$this->Width = $resource["width"];
+					$this->VideoData = Link::detokenize(array_filter((array) @json_decode($resource["video_data"], true)));
 				}
 			}
 		}

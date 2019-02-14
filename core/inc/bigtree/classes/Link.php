@@ -11,11 +11,10 @@
 	class Link {
 		
 		public static $IRLCache = [];
+		public static $IRLsCreated = [];
 		public static $IPLCache = [];
 		public static $TokenKeys = [];
-		public static $TokenValues = [];
-		
-		private static $IRLsCreated = [];
+		public static $TokenValues = [];		
 		
 		/*
 			Function: byPath

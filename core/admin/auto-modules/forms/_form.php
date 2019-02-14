@@ -66,6 +66,7 @@
 								"title" => $resource["title"],
 								"subtitle" => $resource["subtitle"],
 								"key" => $resource["column"],
+								"has_value" => isset($bigtree["entry"][$resource["column"]]),
 								"value" => isset($bigtree["entry"][$resource["column"]]) ? $bigtree["entry"][$resource["column"]] : "",
 								"tabindex" => $bigtree["tabindex"],
 								"options" => $resource["options"]

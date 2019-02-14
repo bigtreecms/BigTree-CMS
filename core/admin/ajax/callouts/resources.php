@@ -24,6 +24,13 @@
 
 	$callout = new Callout($bigtree["resources"]["type"]);
 	$bigtree["callout"] = $callout->Array; // Backwards compatibility with fields that might read the callout array
+
+	if ($_POST["type"] != $_POST["original_type"]) {
+		$original_callout = $admin->getCallout($_POST["original_type"]);
+		$forced_recrops = $admin->rectifyResourceTypeChange($bigtree["resources"], $bigtree["callout"]["resources"], $original_callout->Fields);
+	} else {
+		$forced_recrops = [];
+	}
 	
 	if ($callout->Description) {
 ?>
@@ -49,9 +56,11 @@
 					"title" => $field["title"],
 					"subtitle" => $field["subtitle"],
 					"key" => $bigtree["callout_key"]."[".$bigtree["callout_count"]."][".$field["id"]."]",
+					"has_value" => isset($bigtree["resources"][$field["id"]]),
 					"value" => isset($bigtree["resources"][$field["id"]]) ? $bigtree["resources"][$field["id"]] : "",
 					"tabindex" => $bigtree["tabindex"],
-					"options" => $field["options"]
+					"settings" => $resource["settings"] ?: $resource["options"],
+					"forced_recrop" => isset($forced_recrops[$resource["id"]]) ? true : false
 				);
 
 				if (empty($field["options"]["directory"])) {

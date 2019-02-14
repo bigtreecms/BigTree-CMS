@@ -34,6 +34,7 @@
 						"title" => htmlspecialchars($resource["title"]),
 						"subtitle" => htmlspecialchars($resource["subtitle"]),
 						"key" => $bigtree["matrix_key"]."[".$bigtree["matrix_count"]."][".$resource["id"]."]",
+						"has_value" => isset($bigtree["resources"][$resource["id"]]),
 						"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
 						"tabindex" => $bigtree["tabindex"],
 						"options" => is_array($options) ? $options : array()
