@@ -197,8 +197,8 @@
 					<input type="text" name="thumbs[<?=$thumb_count?>][height]" value="<?=htmlspecialchars($thumb["height"])?>" />
 				</li>
 				<li class="actions for_thumbnail">
-					<input type="hidden" name="thumbs[<?=$thumb_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
+					<input type="hidden" name="thumbs[<?=$thumb_count?>][grayscale]" value="<?=$thumb["grayscale"]?>" />
+					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($thumb["grayscale"]) { ?> gray<?php } ?>"></a>
 					<a href="#" title="Remove" class="delete"></a>
 				</li>
 			</ul>
@@ -220,24 +220,24 @@
 				// Keep a count of center crops
 				$center_crop_count = 0;
 				if (is_array($settings["center_crops"])) {
-					foreach ($settings["center_crops"] as $crop) {
+					foreach ($settings["center_crops"] as $center_crop) {
 						// Make sure a width and height was entered or it's pointless
-						if (is_array($crop) && ($crop["width"] && $crop["height"])) {
+						if (is_array($center_crop) && ($center_crop["width"] && $center_crop["height"])) {
 							$center_crop_count++;
 			?>
 			<ul>
 				<li>
-					<input type="text" name="center_crops[<?=$center_crop_count?>][prefix]" value="<?=htmlspecialchars($crop["prefix"])?>" />
+					<input type="text" name="center_crops[<?=$center_crop_count?>][prefix]" value="<?=htmlspecialchars($center_crop["prefix"])?>" />
 				</li>
 				<li>
-					<input type="text" name="center_crops[<?=$center_crop_count?>][width]" value="<?=htmlspecialchars($crop["width"])?>" />
+					<input type="text" name="center_crops[<?=$center_crop_count?>][width]" value="<?=htmlspecialchars($center_crop["width"])?>" />
 				</li>
 				<li>
-					<input type="text" name="center_crops[<?=$center_crop_count?>][height]" value="<?=htmlspecialchars($crop["height"])?>" />
+					<input type="text" name="center_crops[<?=$center_crop_count?>][height]" value="<?=htmlspecialchars($center_crop["height"])?>" />
 				</li>
 				<li class="actions for_thumbnail">
-					<input type="hidden" name="center_crops[<?=$center_crop_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
+					<input type="hidden" name="center_crops[<?=$center_crop_count?>][grayscale]" value="<?=$center_crop["grayscale"]?>" />
+					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($center_crop["grayscale"]) { ?> gray<?php } ?>"></a>
 					<a href="#<?=$center_crop_count?>" title="Remove" class="delete"></a>
 				</li>
 			</ul>
