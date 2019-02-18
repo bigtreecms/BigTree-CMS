@@ -111,7 +111,7 @@
 
 	$_SESSION["bigtree_admin"]["form_data"] = [
 		"edit_link" => ADMIN_ROOT."files/edit/file/".$_POST["id"]."/",
-		"return_link" => ADMIN_ROOT."files/folder/".intval($bigtree["commands"][0])."/",
+		"return_link" => ADMIN_ROOT."files/folder/".$file["folder"]."/",
 		"errors" => $bigtree["errors"]
 	];
 	
