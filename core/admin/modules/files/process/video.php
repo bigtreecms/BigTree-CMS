@@ -115,7 +115,7 @@
 				"height" => $json[0]["height"],
 				"width" => $json[0]["width"],
 				"duration" => $json[0]["duration"],
-				"embed" => '<iframe src="https://player.vimeo.com/video/'.$video_id.'?byline=0&portrait=0" width="'.$width.'" height="'.$height.'" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>'
+				"embed" => '<iframe src="https://player.vimeo.com/video/'.$video_id.'?byline=0&portrait=0" width="'.$json[0]["width"].'" height="'.$json[0]["height"].'" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>'
 			];
 		// No video :(
 		} else {
