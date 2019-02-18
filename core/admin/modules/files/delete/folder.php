@@ -23,6 +23,6 @@
 	</section>
 
 	<footer>
-		<input type="submit" class="button red" value="Delete File">
+		<input type="submit" class="button red" value="Delete Folder">
 	</footer>
 </form>
