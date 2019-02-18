@@ -169,7 +169,7 @@
 			}
 		}
 
-		if (!filter_var($cms_user, FILTER_VALIDATE_EMAIL))) {
+		if (!filter_var($cms_user, FILTER_VALIDATE_EMAIL)) {
 			$error = "An invalid email address was entered for the CMS user.";
 		}
 	}
@@ -644,20 +644,20 @@ RewriteRule (.*) site/$1 [L]');
 				<hr />
 				<fieldset class="left<?php if (count($_POST) && !$host) { ?> form_error<?php } ?>">
 					<label>Hostname</label>
-					<input class="text" type="text" id="db_host" name="host" value="<?=htmlspecialchars($host)?>" tabindex="1" />
+					<input class="text" type="text" id="db_host" required name="host" value="<?=htmlspecialchars($host)?>" tabindex="1" />
 				</fieldset>
 				<fieldset class="right<?php if (count($_POST) && !$db) { ?> form_error<?php } ?>">
 					<label>Database</label>
-					<input class="text" type="text" id="db_name" name="db" value="<?=htmlspecialchars($db)?>" tabindex="2" />
+					<input class="text" type="text" id="db_name" required name="db" value="<?=htmlspecialchars($db)?>" tabindex="2" />
 				</fieldset>
 				<br class="clear" /><br />
 				<fieldset class="left<?php if (count($_POST) && !$user) { ?> form_error<?php } ?>">
 					<label>Username</label>
-					<input class="text" type="text" id="db_user" name="user" value="<?=htmlspecialchars($user)?>" tabindex="3" autocomplete="off" />
+					<input class="text" type="text" id="db_user" required name="user" value="<?=htmlspecialchars($user)?>" tabindex="3" autocomplete="off" />
 				</fieldset>
 				<fieldset class="right">
 					<label>Password</label>
-					<input class="text" type="password" id="db_pass" name="password" value="<?=htmlspecialchars($password)?>" tabindex="4" autocomplete="off" />
+					<input class="text" type="password" id="db_pass" required name="password" value="<?=htmlspecialchars($password)?>" tabindex="4" autocomplete="off" />
 				</fieldset>
 				<div class="db_port_or_socket_settings"<?php if (!$db_port_or_socket) { ?> style="display: none;"<?php } ?>>
 					<br class="clear" /><br />
@@ -697,20 +697,20 @@ RewriteRule (.*) site/$1 [L]');
 					<hr />
 					<fieldset class="left<?php if (count($_POST) && !$write_host) { ?> form_error<?php } ?>">
 						<label>Hostname</label>
-						<input class="text" type="text" required id="db_write_host" name="write_host" value="<?=htmlspecialchars($write_host)?>" tabindex="8" />
+						<input class="text" type="text" id="db_write_host" name="write_host" value="<?=htmlspecialchars($write_host)?>" tabindex="8" />
 					</fieldset>
 					<fieldset class="right<?php if (count($_POST) && !$write_db) { ?> form_error<?php } ?>">
 						<label>Database</label>
-						<input class="text" type="text" required id="db_write_name" name="write_db" value="<?=htmlspecialchars($write_db)?>" tabindex="9" />
+						<input class="text" type="text" id="db_write_name" name="write_db" value="<?=htmlspecialchars($write_db)?>" tabindex="9" />
 					</fieldset>
 					<br class="clear" /><br />
 					<fieldset class="left<?php if (count($_POST) && !$write_user) { ?> form_error<?php } ?>">
 						<label>Username</label>
-						<input class="text" type="text" required id="db_write_user" name="write_user" value="<?=htmlspecialchars($write_user)?>" tabindex="10" autocomplete="off" />
+						<input class="text" type="text" id="db_write_user" name="write_user" value="<?=htmlspecialchars($write_user)?>" tabindex="10" autocomplete="off" />
 					</fieldset>
 					<fieldset class="right<?php if (count($_POST) && !$write_password) { ?> form_error<?php } ?>">
 						<label>Password</label>
-						<input class="text" type="password" required id="db_write_pass" name="write_password" value="<?=htmlspecialchars($write_password)?>" tabindex="11" autocomplete="off" />
+						<input class="text" type="password" id="db_write_pass" name="write_password" value="<?=htmlspecialchars($write_password)?>" tabindex="11" autocomplete="off" />
 					</fieldset>
 					<div class="db_port_or_socket_settings"<?php if (!$db_port_or_socket) { ?> style="display: none;"<?php } ?>>
 						<br class="clear" /><br />
