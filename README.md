@@ -20,6 +20,34 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.4.1
+- ADDED: Module views can now be explicitly excluded from search to improve performance
+- CHANGED: When calling BigTree::urlExists HTTPS validation is skipped
+- CHANGED: BigTree no longer saves failed login info in $_SESSION["bigtree_admin"]["email"] for security reasons
+- CHANGED: BigTreeCMS::autoSaveSetting is deprecated and no longer used by the core
+- FIXED: Using NULL in SQL::query calls when used in places other than WHERE statements.
+- FIXED: Some inaccuracies in documentation
+- FIXED: Deleting of alternate IDs in BigTreeJSONDB
+- FIXED: Error responses from MapQuest geocoding API
+- FIXED: Calls to the bigtreecms.org site not using HTTPS
+- FIXED: Email Service and Payment Gateway data being overwritten when upgrading to 4.4
+- FIXED: 301 CSV importer not respecting GET variables as distinct URLs
+- FIXED: Very large module view data caches are now paginated to avoid out of memory errors
+- FIXED: Some legacy calls in field types to options rather than settings
+- FIXED: Search no longer shows the entire database as results if you don't enter a query
+- FIXED: Resource permissions on a null parent now resolve properly
+- FIXED: Resources that a user does not have permission to edit now open in a new window rather than show just the name. 
+- FIXED: Admin CSS/JS is now cache busted by version number
+- FIXED: Base install SQL not adding the deleted users and file metadata settings
+- FIXED: Date fields no longer attempt to convert a date to/from a user's timezone since there's no way to know exactly what it should convert to without time.
+- FIXED: Extension settings being overwritten if they were value-only settings.
+- FIXED: User level column missing from user emulator
+- FIXED: Editing the settings for the field of a setting.
+- FIXED: Multiple sub-crops not persisting through save.
+- FIXED: Vimeo video embed width/height not being correct when adding a video to the file manager (or using a video field).
+- FIXED: Incorrect button text when confirming the deletion of a folder.
+- FIXED: Installer not validating the CMS user's email address.
+
 ### 4.4
 - OVERHAUL: Environment independent configuration such as Modules, Templates, Callouts, Settings (structure, not value), etc is now stored in JSON files within /custom/ rather than the database for version control and deployment ease.
 - ADDED: User levels are now shown in the Users list view
