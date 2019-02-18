@@ -30,7 +30,14 @@
 		foreach ($items["resources"] as $resource) {
 			if ($resource["is_image"]) {
 				$resource["file"] = BigTreeCMS::replaceRelativeRoots($resource["file"]);
-				$disabled = (($minWidth && $minWidth !== "false" && $resource["width"] < $minWidth) || ($minHeight && $minHeight !== "false" && $resource["height"] < $minHeight)) ? " disabled" : "";
+				$disabled = "";
+
+				if (($minWidth && $minWidth !== "false" && $resource["width"] < $minWidth) ||
+					($minHeight && $minHeight !== "false" && $resource["height"] < $minHeight) ||
+					$access_level == "n"
+				) {
+					$disabled = " disabled";
+				}
 
 				// Filter out duplicate thumbnails
 				$used = [];
@@ -53,7 +60,7 @@
 				)));
 	?>
 	<button data-id="<?=$resource["id"]?>" data-image="<?=$data?>" data-name="<?=$resource["name"]?>" class="js-image<?=$disabled?> image">
-		<img src="<?=BigTree::prefixFile($resource["file"], "list-preview/").$thumb.($_COOKIE["bigtree_admin"]["recently_replaced_file"] ? "?".uniqid() : "")?>" alt="" />
+		<img src="<?=BigTree::prefixFile($resource["file"], "list-preview/")?>" alt="" />
 	</button>
 	<?php
 			}
