@@ -79,45 +79,51 @@
 
 		<?php
 			if (!$file["is_video"]) {
-				$field_settings = [];
+				$field = [
+					"title" => "Replace File",
+					"type" => "upload",
+					"key" => "file",
+					"value" => $file["file"],
+					"settings" => [
+						"disable_remove" => true,
+						"directory" => "files/resources/"
+					]
+				];
 
-				if ($file["is_image"]) {		
-					$settings = BigTreeJSONDB::get("config", "media-settings");
-					$field_settings = $settings["presets"]["default"];
-					$field_settings["directory"] = "files/resources/";
-					$field_settings["image"] = "on";
-					$field_settings["preview_prefix"] = "list-preview/";
-					$field_settings["preview_files_square"] = true;
+				if ($file["is_image"]) {
+					$field["type"] = "image";
+
+					$media_settings = BigTreeJSONDB::get("config", "media-settings");
+					$field["settings"] = $media_settings["presets"]["default"];
+					$field["settings"]["directory"] = "files/resources/";
+					$field["settings"]["disable_remove"] = true;
+					$field["settings"]["preview_prefix"] = "list-preview/";
+					$field["settings"]["preview_files_square"] = true;
 
 					// Figure out what the minimum size should be based on the current one
-					$field_settings["min_height"] = 0;
-					$field_settings["min_width"] = 0;
+					$field["settings"]["min_height"] = 0;
+					$field["settings"]["min_width"] = 0;
 
 					if (is_array($file["crops"])) {
 						foreach ($file["crops"] as $prefix => $data) {
-							if ($data["width"] > $field_settings["min_width"]) {
-								$field_settings["min_width"] = $data["width"];
+							if ($data["width"] > $field["settings"]["min_width"]) {
+								$field["settings"]["min_width"] = $data["width"];
 							}
 	
-							if ($data["height"] > $field_settings["min_height"]) {
-								$field_settings["min_height"] = $data["height"];
+							if ($data["height"] > $field["settings"]["min_height"]) {
+								$field["settings"]["min_height"] = $data["height"];
 							}
 						}
 					}
 
-					$min_message = " — replacing the current file requires a minimum image size of ".$field_settings["min_width"]."x".$field_settings["min_height"];
+					$min_message = " — replacing the current file requires a minimum image size of ".$field["settings"]["min_width"]."x".$field["settings"]["min_height"];
 				} else {
 					$min_message = "";
 				}
 
-				BigTreeAdmin::drawField([
-					"title" => "Replace File",
-					"subtitle" => "(leave empty to preserve current file".$min_message.")",
-					"type" => "upload",
-					"key" => "file",
-					"value" => $file["file"],
-					"settings" => $field_settings
-				]);
+				$field["subtitle"] = "(leave empty to preserve current file".$min_message.")";
+
+				BigTreeAdmin::drawField($field);
 			}
 
 			if (is_array($meta_fields) && count($meta_fields)) {

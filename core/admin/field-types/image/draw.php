@@ -68,7 +68,13 @@
 	</div>
 	<div class="contain">
 		<div class="currently<?php if (!empty($field["settings"]["preview_files_square"])) { ?> currently_files_square<?php } ?>" <?php if (!$field["value"]) { ?> style="display: none;"<?php } ?> id="<?=$field["id"]?>_currently">
+			<?php
+				if (empty($field["settings"]["disable_remove"])) {
+			?>
 			<a href="#" class="remove_resource"></a>
+			<?php
+				}
+			?>
 			<div class="currently_wrapper">
 				<?php if ($preview_image) { ?>
 				<a href="<?=$field["value"]?>" target="_blank"><img src="<?=$preview_image?>" alt="" /></a>
