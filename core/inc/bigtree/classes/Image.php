@@ -524,9 +524,9 @@
 				An array with width and height keys.
 		*/
 		
-		public function getLargestCrop(): array {
+		public function getLargestCrop(): ?array {
 			$largest = 0;
-			$largest_dims = [];
+			$largest_dims = null;
 			
 			if (is_array($this->Settings["crops"])) {
 				foreach ($this->Settings["crops"] as $crop) {
@@ -565,9 +565,9 @@
 				An array with width and height keys.
 		*/
 		
-		public function getLargestThumbnail(): array {
+		public function getLargestThumbnail(): ?array {
 			$largest = 0;
-			$largest_dims = [];
+			$largest_dims = null;
 			
 			if (is_array($this->Settings["thumbnails"])) {
 				foreach ($this->Settings["thumbnails"] as $thumbnail) {
@@ -714,10 +714,15 @@
 		*/
 		
 		public function getTempFileName(): string {
-			$temp_file = SITE_ROOT."files/".uniqid("temp-").$this->Extensions[$this->Type];
+			if (!file_exists(SITE_ROOT."files/temporary/")) {
+				mkdir(SITE_ROOT."files/temporary/");
+				FileSystem::setDirectoryPermissions(SITE_ROOT."files/temporary/");
+			}
+			
+			$temp_file = SITE_ROOT."files/temporary/".uniqid("temp-").$this->Extensions[$this->Type];
 			
 			while (file_exists($temp_file)) {
-				$temp_file = SITE_ROOT."files/".uniqid("temp-").$this->Extensions[$this->Type];
+				$temp_file = SITE_ROOT."files/temporary/".uniqid("temp-").$this->Extensions[$this->Type];
 			}
 			
 			return $temp_file;
@@ -773,9 +778,64 @@
 		public function processCenterCrops(): void {
 			foreach ($this->Settings["center_crops"] as $crop) {
 				$temp = $this->getTempFileName();
-				$this->centerCrop($temp, $crop["width"], $crop["height"], $this->Settings["retina"], $crop["grayscale"]);
+				$this->centerCrop($temp, intval($crop["width"]), intval($crop["height"]),
+								  !empty($this->Settings["retina"]), !empty($crop["grayscale"]));
 				$this->Storage->replace($temp, $crop["prefix"].$this->StoredName, $this->Settings["directory"], true, $this->ForcingLocalReplace);
 			}
+		}
+		
+		/*
+			Function: processCrop
+				Processes a single crop of a crop set.
+
+			Parameters:
+				crop_key - A cache key pointing to the location of crop data.
+				index - The crop to process
+				x - Starting x point of the crop
+				y - Starting y point of the crop
+				width - Width of the crop
+				height - Height of the crop
+		*/
+		
+		public static function processCrop(string $crop_key, int $index, int $x, int $y, int $width, int $height): void {
+			$storage = new Storage;
+			
+			$crops = Cache::get("org.bigtreecms.crops", $crop_key);
+			$crop = $crops[$index];
+			
+			$image_src = $crop["image"];
+			$target_width = $crop["width"];
+			$target_height = $crop["height"];
+			$thumbs = $crop["thumbs"];
+			$center_crops = $crop["center_crops"];
+			
+			$image = new Image($image_src);
+			$temp_crop = $image->getTempFileName();
+			$image->crop($temp_crop, $x, $y, $target_width, $target_height, $width, $height, $crop["retina"], $crop["grayscale"]);
+			$temp_image = new Image($temp_crop);
+			
+			// Make thumbnails for the crop
+			if (is_array($thumbs)) {
+				foreach ($thumbs as $thumb) {
+					// We're going to figure out what size the thumbs will be so we can re-crop the original image so we don't lose image quality.
+					$temp_thumb = $temp_image->getTempFileName();
+					$size = $temp_image->getThumbnailSize($thumb["width"], $thumb["height"]);
+					$image->crop($temp_thumb, $x, $y, $size["width"], $size["height"], $width, $height, $crop["retina"], $thumb["grayscale"]);
+					$storage->replace($temp_thumb, $thumb["prefix"].$crop["name"], $crop["directory"]);
+				}
+			}
+			
+			// Make center crops of the crop
+			if (is_array($center_crops)) {
+				foreach ($center_crops as $center_crop) {
+					$temp_center_crop = $image->getTempFileName();
+					$temp_image->centerCrop($temp_center_crop, $center_crop["width"], $center_crop["height"], $crop["retina"], $center_crop["grayscale"]);
+					$storage->replace($temp_center_crop, $center_crop["prefix"].$crop["name"], $crop["directory"]);
+				}
+			}
+			
+			// Move crop into its resting place
+			$storage->replace($temp_crop, $crop["prefix"].$crop["name"], $crop["directory"]);
 		}
 		
 		/*
@@ -797,7 +857,8 @@
 					if (is_array($crop["thumbs"])) {
 						foreach ($crop["thumbs"] as $thumb) {
 							$temp = $this->getTempFileName();
-							$this->thumbnail($temp, $thumb["width"], $thumb["height"], $this->Settings["retina"], $thumb["grayscale"]);
+							$this->thumbnail($temp, intval($thumb["width"]), intval($thumb["height"]),
+											 !empty($this->Settings["retina"]), !empty($thumb["grayscale"]));
 							$this->Storage->replace($temp, $thumb["prefix"].$this->StoredName, $this->Settings["directory"], true, $this->ForcingLocalReplace);
 						}
 					}
@@ -805,7 +866,8 @@
 					// See if we want center crops
 					foreach ($crop["center_crops"] as $center_crop) {
 						$temp = $this->getTempFileName();
-						$this->centerCrop($temp, $center_crop["width"], $center_crop["height"], $this->Settings["retina"], $center_crop["grayscale"]);
+						$this->centerCrop($temp, intval($center_crop["width"]), intval($center_crop["height"]),
+										  !empty($this->Settings["retina"]), !empty($center_crop["grayscale"]));
 						$this->Storage->replace($temp, $center_crop["prefix"].$this->StoredName, $this->Settings["directory"], true, $this->ForcingLocalReplace);
 					}
 					
@@ -831,7 +893,8 @@
 			
 			foreach ($this->Settings["center_crops"] as $crop) {
 				$temp = $this->getTempFileName();
-				$this->centerCrop($temp, $crop["width"], $crop["height"], $this->Settings["retina"], $crop["grayscale"]);
+				$this->centerCrop($temp, intval($crop["width"]), intval($crop["height"]),
+								  !empty($this->Settings["retina"]), !empty($crop["grayscale"]) ? true : false);
 				$this->Storage->replace($temp, $crop["prefix"].$this->StoredName, $this->Settings["directory"], true, $this->ForcingLocalReplace);
 			}
 			
@@ -847,7 +910,8 @@
 		public function processThumbnails(): void {
 			foreach ($this->Settings["thumbs"] as $thumb) {
 				$temp = $this->getTempFileName();
-				$this->thumbnail($temp, $thumb["width"], $thumb["height"], $this->Settings["retina"], $thumb["grayscale"]);
+				$this->thumbnail($temp, intval($thumb["width"]), intval($thumb["height"]),
+								 !empty($this->Settings["retina"]), !empty($thumb["grayscale"]));
 				$this->Storage->replace($temp, $thumb["prefix"].$this->StoredName, $this->Settings["directory"], true, $this->ForcingLocalReplace);
 			}
 		}

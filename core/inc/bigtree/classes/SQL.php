@@ -1121,7 +1121,7 @@
 			$query_response = static::query("INSERT INTO `$table` (".implode(",", $columns).") VALUES (".implode(",", $vals).")");
 			$id = $query_response->insertID();
 			
-			return $id ?: null;
+			return $id;
 		}
 		
 		/*

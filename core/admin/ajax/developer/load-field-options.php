@@ -42,7 +42,7 @@
 	</select>
 </fieldset>
 <?php
-	} elseif ($field_type == "textarea" || $field_type == "upload" || $field_type == "html" || $field_type == "list" || $field_type == "time" || $field_type == "date" || $field_type == "datetime" || $field_type == "checkbox") {
+	} elseif ($field_type == "textarea" || $field_type == "upload" || $field_type == "html" || $field_type == "list" || $field_type == "time" || $field_type == "date" || $field_type == "datetime" || $field_type == "checkbox" || $field_type == "image-reference" || $field_type == "video-reference" || $field_type == "file-reference") {
 ?>
 <fieldset>
 	<input id="option_field_validation" type="checkbox" name="validation" value="required"<?php if ($validation == "required") { ?> checked="checked"<?php } ?> />
@@ -63,8 +63,9 @@
 		if ($field_type == "text" || $field_type == "textarea" || $field_type == "upload" || $field_type == "html" || $field_type == "list") {
 			echo "<hr />";
 		}
+		
 		include $path;
-	} elseif ($field_type != "textarea" && $field_type != "time") {
+	} elseif ($field_type != "textarea" && $field_type != "time" && $field_type != "file-reference" && $field_type != "video-reference") {
 ?>
 <p><?=Text::translate("This field type does not have any options.")?></p>
 <?php
@@ -74,6 +75,7 @@
 	$(".table_select").change(function() {
 		var name = $(this).attr("name");
 		var table = $(this).val();
+		
 		$(".pop-dependant").each(function() {
 			if ($(this).hasClass(name)) {
 				if ($(this).hasClass("sort_by")) {

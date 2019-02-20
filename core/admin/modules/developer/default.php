@@ -81,7 +81,11 @@
 		</a>
 		<a class="box_select last" href="<?=DEVELOPER_ROOT?>media/">
 			<span class="images"></span>
-			<p><?=Text::translate("Media")?></p>
+			<p><?=Text::translate("Media Presets")?></p>
+		</a>
+		<a class="box_select second_row" href="<?=DEVELOPER_ROOT?>files/">
+			<span class="files"></span>
+			<p><?=Text::translate("File Metadata")?></p>
 		</a>
 		<a class="box_select second_row" href="<?=DEVELOPER_ROOT?>security/">
 			<span class="lock"></span>

@@ -10,7 +10,14 @@
 		?>
 		<div class="currently_file">
 			<input type="hidden" name="<?=$this->Key?>" value="<?=$this->Value?>" />
-			<strong><?=Text::translate("Currently:")?></strong> <a href="<?=$this->Value?>" target="_blank"><?=$pathinfo["basename"]?></a> <a href="#" class="remove_resource"><?=Text::translate("Remove")?></a>
+			<strong><?=Text::translate("Currently:")?></strong> <a href="<?=$this->Value?>" target="_blank"><?=$pathinfo["basename"]?></a>
+			<?php
+				if (empty($this->Settings["disable_remove"])) {
+			?>
+			<a href="#" class="remove_resource"><?=Text::translate("Remove")?></a>
+			<?php
+				}
+			?>
 		</div>
 		<?php
 			}

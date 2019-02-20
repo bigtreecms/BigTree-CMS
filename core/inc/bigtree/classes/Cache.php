@@ -70,7 +70,7 @@
 				True if successful, false if the indentifier/key combination already exists and replace was set to false.
 		*/
 		
-		static function put(string $identifier, string $key, $value, bool $replace = true) {
+		static function put(string $identifier, string $key, $value, bool $replace = true): bool {
 			$exists = SQL::exists("bigtree_caches", ["identifier" => $identifier, "key" => $key]);
 			
 			if (!$replace && $exists) {
@@ -80,10 +80,12 @@
 			$value = JSON::encode($value);
 			
 			if ($exists) {
-				return SQL::update("bigtree_caches", ["identifier" => $identifier, "key" => $key], ["value" => $value]);
+				SQL::update("bigtree_caches", ["identifier" => $identifier, "key" => $key], ["value" => $value]);
 			} else {
-				return SQL::insert("bigtree_caches", ["identifier" => $identifier, "key" => $key, "value" => $value]);
+				SQL::insert("bigtree_caches", ["identifier" => $identifier, "key" => $key, "value" => $value]);
 			}
+			
+			return true;
 		}
 		
 		/*
@@ -95,7 +97,7 @@
 				value - The data to store
 
 			Returns:
-				They unique cache key.`
+				They unique cache key.
 		*/
 		
 		static function putUnique(string $identifier, $value): string {

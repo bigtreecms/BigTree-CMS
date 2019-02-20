@@ -113,6 +113,26 @@
 		}
 		
 		/*
+			Function: exists
+				Determines whether a resource folder exists for a given id.
+				If an id of 0 is passed (the root folder) this returns true.
+
+			Parameters:
+				id - The ID to check for.
+
+			Returns:
+				true if the folder exists, otherwise false.
+		*/
+		
+		static function exists(string $id): bool {
+			if (intval($id) === 0) {
+				return true;
+			}
+			
+			return parent::exists($id);
+		}
+		
+		/*
 			Function: getBreadcrumb
 				Returns the breadcrumb for the folder.
 
@@ -124,6 +144,12 @@
 			// First call won't have folder
 			if (!$folder) {
 				$folder = $this;
+			} else {
+				$folder = new ResourceFolder($folder);
+			}
+			
+			if (empty($folder->ID)) {
+				return [["id" => 0, "name" => "Home"]];
 			}
 			
 			// Add crumb part
@@ -131,7 +157,7 @@
 			
 			// If we have a parent, go higher up
 			if ($folder->Parent) {
-				return $this->getBreadcrumb(new ResourceFolder($this->Parent), $crumb);
+				return $this->getBreadcrumb($this->Parent, $crumb);
 			} else {
 				// Append home, reverse, return
 				$crumb[] = ["id" => 0, "name" => "Home"];
@@ -154,10 +180,10 @@
 		function getContents(string $sort = "date DESC"): array {
 			$null_query = $this->ID ? "" : "OR folder IS NULL";
 			
-			$folders = SQL::fetchAll("SELECT * FROM bigtree_resource_folders WHERE parent = ? ORDER BY name", $this->ID);
-			$resources = SQL::fetchAll("SELECT * FROM bigtree_resources WHERE folder = ? $null_query ORDER BY $sort", $this->ID);
-			
-			return ["folders" => $folders, "resources" => $resources];
+			return [
+				"folders" => SQL::fetchAll("SELECT * FROM bigtree_resource_folders WHERE parent = ? ORDER BY name", $this->ID),
+				"resources" => SQL::fetchAll("SELECT * FROM bigtree_resources WHERE folder = ? $null_query ORDER BY $sort", $this->ID)
+			];
 		}
 		
 		/*

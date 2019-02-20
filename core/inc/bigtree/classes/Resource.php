@@ -9,8 +9,8 @@
 	/**
 	 * @property-read int $ID
 	 * @property-read int $AllocationCount
+	 * @property-read string $UserAccessLevel
 	 */
-	
 	class Resource extends BaseObject {
 		
 		public static $CreationLog = [];
@@ -28,7 +28,6 @@
 		public $IsImage;
 		public $IsVideo;
 		public $Location;
-		public $MD5;
 		public $Metadata;
 		public $MimeType;
 		public $Name;
@@ -67,7 +66,6 @@
 					$this->IsImage = $resource["is_image"] ? true : false;
 					$this->IsVideo = $resource["is_video"] ? true : false;
 					$this->Location = $resource["location"];
-					$this->MD5 = $resource["md5"];
 					$this->Metadata = Link::detokenize(array_filter((array) @json_decode($resource["metadata"], true)));
 					$this->MimeType = $resource["mimetype"];
 					$this->Name = $resource["name"];
@@ -126,7 +124,7 @@
 				A Resource object.
 		*/
 		
-		static function create(?int $folder, string $file, string $name, string $type, array $crops = [],
+		static function create(?int $folder, ?string $file, ?string $name, string $type, array $crops = [],
 							   array $thumbs = [], array $video_data = [], array $metadata = []): Resource {
 			$width = null;
 			$height = null;
@@ -137,16 +135,15 @@
 				$file_extension = pathinfo($file, PATHINFO_EXTENSION);
 				$authenticated_user_id = Auth::user()->ID;
 				
-				// Local storage will let us lookup file size and md5 already
+				// Local storage will let us lookup file size
 				if ($location == "local") {
-					$file_path = str_replace(STATIC_ROOT, SITE_ROOT, BigTreeCMS::replaceRelativeRoots($file));
+					$file_path = str_replace(STATIC_ROOT, SITE_ROOT, Link::detokenize($file));
 				} else {
 					$file_path = SITE_ROOT."files/temporary/$authenticated_user_id/".uniqid(true).".".$file_extension;
 					FileSystem::copyFile($file, $file_path);
 				}
 				
 				$file_size = filesize($file_path);
-				$md5 = md5($file_path);
 				$mimetype = function_exists("mime_content_type") ? mime_content_type($file_path) : "";
 				
 				if ($type == "image") {
@@ -162,7 +159,6 @@
 				$name = $video_data["title"];
 				$file = $video_data["url"];
 				$file_size = null;
-				$md5 = null;
 				$mimetype = null;
 			}
 			
@@ -174,7 +170,6 @@
 				"mimetype" => $mimetype,
 				"is_image" => ($type == "image") ? "on" : "",
 				"is_video" => ($type == "video") ? "on" : "",
-				"md5" => $md5,
 				"size" => $file_size,
 				"width" => $width,
 				"height" => $height,
@@ -208,10 +203,17 @@
 				$storage = new Storage;
 				$storage->delete($this->File);
 				
-				// Delete any thumbnails as well
-				foreach (array_filter((array) $this->Thumbs) as $thumb) {
-					$storage->delete($thumb);
+				// Delete any thumbnails and crops as well
+				foreach (array_filter((array) $this->Thumbs) as $prefix => $dimensions) {
+					$storage->delete(FileSystem::getPrefixedFile($this->File, $prefix));
 				}
+				
+				foreach (array_filter((array) $this->Crops) as $prefix => $dimensions) {
+					$storage->delete(FileSystem::getPrefixedFile($this->File, $prefix));
+				}
+				
+				// Delete the list preview
+				$storage->delete(FileSystem::getPrefixedFile($this->File, "list-preview/"));
 			}
 			
 			return true;
@@ -261,10 +263,10 @@
 				
 				$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ? OR file = ?",
 									   $file, $tokenized_file, $single_domain_tokenized_file);
-
+				
 				if (!$resource) {
 					$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ? OR file = ?",
-											$file, str_replace("{wwwroot}", "{staticroot}", $tokenized_file), $single_domain_tokenized_file);	
+										   $file, str_replace("{wwwroot}", "{staticroot}", $tokenized_file), $single_domain_tokenized_file);
 				}
 			}
 			
@@ -294,40 +296,17 @@
 		}
 		
 		/*
-			Function: md5Check
-				Checks if the given file is a MD5 match for any existing resources.
-				If a match is found, the resource is "copied" into the given folder (unless it already exists in that folder).
-
-			Parameters:
-				file - Uploaded file to run MD5 hash on
-				new_folder - Folder the given file is being uploaded into
+			Function: getUserAccessLevel
+				Returns the permission level of the current user for this file.
 
 			Returns:
-				true if a match was found. If the file was already in the given folder, the date is simply updated.
+				"p" if a user can modify this file, "e" if the user can use this file, "n" if a user can't access this file.
 		*/
 		
-		static function md5Check(string $file, ?int $new_folder): bool {
-			$md5 = md5_file($file);
+		function getUserAccessLevel(): ?string {
+			$folder = new ResourceFolder($this->Folder);
 			
-			$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE md5 = ? LIMIT 1", $md5);
-			
-			if (!$resource) {
-				return false;
-			}
-			
-			// If we already have this exact resource in this exact folder, just update its modification time
-			if ($resource["folder"] == $new_folder) {
-				SQL::update("bigtree_resources", $resource["id"], ["date" => "NOW()"]);
-			} else {
-				// Make a copy of the resource
-				unset($resource["id"]);
-				$resource["date"] = "NOW()";
-				$resource["folder"] = $new_folder;
-				
-				SQL::insert("bigtree_resources", $resource);
-			}
-			
-			return true;
+			return $folder->UserAccessLevel;
 		}
 		
 		/*
@@ -360,27 +339,22 @@
 			
 			// Get matching resources
 			$resources = SQL::fetchAll("SELECT * FROM bigtree_resources WHERE name LIKE '%$query%' ORDER BY $sort");
-			$unique_resources = [];
+			$matching_resources = [];
 			
 			foreach ($resources as $resource) {
-				$check = array($resource["name"], $resource["md5"]);
-				
-				if (!in_array($check, $existing)) {
-					// If we've already got the permission cached, use it. Otherwise, fetch it and cache it.
-					if ($permission_cache[$resource["folder"]]) {
-						$resource["permission"] = $permission_cache[$resource["folder"]];
-					} else {
-						$folder = new ResourceFolder($resource["folder"]);
-						$resource["permission"] = $folder->UserAccessLevel;
-						$permission_cache[$resource["folder"]] = $resource["permission"];
-					}
-					
-					$existing[] = $check;
-					$unique_resources[] = $resource;
+				// If we've already got the permission cached, use it. Otherwise, fetch it and cache it.
+				if ($permission_cache[$resource["folder"]]) {
+					$resource["permission"] = $permission_cache[$resource["folder"]];
+				} else {
+					$folder = new ResourceFolder($resource["folder"]);
+					$resource["permission"] = $folder->UserAccessLevel;
+					$permission_cache[$resource["folder"]] = $resource["permission"];
 				}
+				
+				$matching_resources[] = $resource;
 			}
 			
-			return ["folders" => $folders, "resources" => $unique_resources];
+			return ["folders" => $folders, "resources" => $matching_resources];
 		}
 		
 		/*
@@ -390,21 +364,26 @@
 		
 		function save(): ?bool {
 			if (empty($this->ID)) {
-				$new = static::create($this->Folder, $this->File, $this->MD5, $this->Name, $this->Type, $this->IsImage, $this->Height, $this->Width, $this->Thumbs);
+				$new = static::create($this->Folder, $this->File, $this->Name, $this->Type, $this->Crops, $this->Thumbs,
+									  $this->VideoData, $this->Metadata);
 				$this->inherit($new);
 			} else {
 				SQL::update("bigtree_resources", $this->ID, [
-					"folder" => $this->Folder,
+					"folder" => intval($this->Folder) ?: null,
 					"file" => Link::tokenize($this->File),
-					"md5" => $this->MD5,
 					"date" => date("Y-m-d H:i:s", strtotime($this->Date)),
-					"name" => $this->Name,
+					"name" => Text::htmlEncode($this->Name),
 					"type" => $this->Type,
+					"mimetype" => $this->MimeType,
+					"metadata" => Link::encode($this->Metadata),
 					"is_image" => $this->IsImage ? "on" : "",
+					"is_video" => $this->IsVideo ? "on" : "",
 					"height" => intval($this->Height),
 					"width" => intval($this->Width),
+					"size" => intval($this->FileSize),
+					"crops" => Link::tokenize($this->Crops),
 					"thumbs" => Link::tokenize($this->Thumbs),
-					"list_thumb_margin" => intval($this->ListThumbMargin)
+					"video_data" => Link::tokenize($this->VideoData)
 				]);
 				
 				AuditTrail::track("bigtree_resources", $this->ID, "updated");

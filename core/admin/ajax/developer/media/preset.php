@@ -12,7 +12,7 @@
 	<input id="preset_field_name" type="text" name="name" value="<?=Text::htmlEncode($_POST["name"])?>" />
 </fieldset>
 <?php
-	$data = $_POST;
+	$settings = $_POST;
 	define("BIGTREE_CREATING_PRESET",true);
-	include Router::getIncludePath("admin/ajax/developer/field-options/_image-options.php");
+	include Router::getIncludePath("admin/field-types/_image-options.php");
 ?>

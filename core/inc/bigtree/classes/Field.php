@@ -59,7 +59,11 @@
 			$this->Subtitle = $field["subtitle"] ?: null;
 			$this->TabIndex = $field["tabindex"] ?: null;
 			$this->Title = $field["title"] ?: null;
-			$this->Type = FileSystem::getSafePath($field["type"]);
+			
+			if (!empty($field["type"])) {
+				$this->Type = FileSystem::getSafePath($field["type"]);
+			}
+			
 			$this->Value = $field["value"] ?: null;
 			
 			// Give this field a unique ID within the field namespace
@@ -394,8 +398,8 @@
 			$largest_thumb = $image->getLargestThumbnail();
 			$largest_crop = $image->getLargestCrop();
 			
-			if (!$image->checkMemory($largest_thumb["width"], $largest_thumb["height"]) ||
-				!$image->checkMemory($largest_crop["width"], $largest_crop["height"])
+			if ((!is_null($largest_thumb) && $image->checkMemory($largest_thumb["width"], $largest_thumb["height"])) ||
+				(!is_null($largest_crop) && !$image->checkMemory($largest_crop["width"], $largest_crop["height"]))
 			) {
 				$bigtree["errors"][] = [
 					"field" => $this->Title,

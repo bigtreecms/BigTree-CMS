@@ -2462,7 +2462,15 @@ var BigTreeFormValidator = function(selector,callback) {
 				}
 				if (!val) {
 					errors[errors.length] = $(this);
-					$(this).parents("fieldset").eq(0).addClass("form_error");
+
+					var fieldset = $(this).parents("fieldset");
+
+					if (fieldset.length) {
+						fieldset.eq(0).addClass("form_error");
+					} else {
+						$(this).parents("section").eq(0).addClass("form_error");
+					}
+
 
 					var existing_error = $(this).prevAll("label").find(".form_error_reason");
 

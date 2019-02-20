@@ -87,7 +87,13 @@
 	
 	<div class="contain">
 		<div class="currently<?php if (!empty($this->Settings["preview_files_square"])) { ?> currently_files_square<?php } ?>" <?php if (!$this->Value) { ?> style="display: none;"<?php } ?> id="<?=$this->ID?>_currently">
+			<?php
+				if (empty($this->Settings["disable_remove"])) {
+			?>
 			<a href="#" class="remove_resource"></a>
+			<?php
+				}
+			?>
 			
 			<div class="currently_wrapper">
 				<?php if ($preview_image) { ?>

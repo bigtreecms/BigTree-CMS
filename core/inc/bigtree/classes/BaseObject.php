@@ -201,7 +201,7 @@
 				id - The object ID to check for.
 
 			Returns:
-				1 if the setting exists, otherwise 0.
+				true if the setting exists, otherwise false.
 		*/
 		
 		static function exists(string $id): ?bool {
