@@ -62,6 +62,7 @@ Changelog
 - ADDED: Video field type (based on the Video extension)
 - ADDED: Media Gallery field type (based on the Media Gallery extension)
 - ADDED: File Upload field type can now restrict the types of files being uploaded based on extension
+- ADDED: You can now duplicate pages (that are not top-level) as a new pending page
 - CHANGED: The Upload field type has now been separated into "Image Upload" and "File Upload"
 - CHANGED: $bigtree["bar_edit_link"] on your front end templates will now redirect the user back to the front-end after editing
 - CHANGED: The Vitals & Statistics landing no longer exists -- you can access the sub-sections directly via a dropdown from Dashboard now.
