@@ -7,7 +7,7 @@
 	$bigtree["matrix_count"] = intval($_POST["count"]);
 	$bigtree["matrix_key"] = htmlspecialchars($_POST["key"]);
 	$bigtree["matrix_columns"] = $_POST["columns"];
-	$bigtree["resources"] = array();
+	$bigtree["resources"] = [];
 
 	if (isset($_POST["data"])) {
 		$bigtree["resources"] = Link::decode(json_decode(base64_decode($_POST["data"]),true));
@@ -21,15 +21,15 @@
 
 				$bigtree["field_types"] = FieldType::reference(false,"callouts");
 				$bigtree["tabindex"] = 1000 * intval($_POST["tab_depth"]);
-				$bigtree["html_fields"] = array();
-				$bigtree["simple_html_fields"] = array();
+				$bigtree["html_fields"] = [];
+				$bigtree["simple_html_fields"] = [];
 
 				Field::$Namespace = uniqid("matrix_field_");
 				
 				foreach ($bigtree["matrix_columns"] as $resource) {
-					$options = @json_decode($resource["options"],true);
+					$settings = $resource["settings"] ? @json_decode($resource["settings"], true) : @json_decode($resource["options"],true);
 					
-					$field = new Field(array(
+					$field = new Field([
 						"type" => $resource["type"],
 						"title" => htmlspecialchars($resource["title"]),
 						"subtitle" => htmlspecialchars($resource["subtitle"]),
@@ -37,8 +37,8 @@
 						"has_value" => isset($bigtree["resources"][$resource["id"]]),
 						"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
 						"tabindex" => $bigtree["tabindex"],
-						"options" => is_array($options) ? $options : array()
-					));
+						"settings" => is_array($settings) ? $settings : []
+					]);
 
 					// Apply custom fieldset class
 					if ($resource["display_title"]) {

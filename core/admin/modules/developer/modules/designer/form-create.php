@@ -3,9 +3,9 @@
 	
 	CSRF::verify();
 	
-	$reserved = array("id", "position");
-	$fields = array();
-	$column_definitions = array();
+	$reserved = ["id", "position"];
+	$fields = [];
+	$column_definitions = [];
 	$module = $_POST["module"];
 	$table = "`".str_replace("`", "", $_POST["table"])."`";
 	
@@ -17,15 +17,15 @@
 	
 	foreach ($_POST["titles"] as $key => $field_title) {
 		$field_type = $_POST["type"][$key];
-		$field = array(
+		$field = [
 			"title" => $field_title,
 			"subtitle" => $_POST["subtitles"][$key],
 			"type" => $field_type,
-			"options" => json_decode(str_replace(array("\r", "\n"), array('\r', '\n'), $_POST["options"][$key]), true)
-		);
+			"settings" => json_decode(str_replace(["\r", "\n"], ['\r', '\n'], $_POST["settings"][$key]), true)
+		];
 		
 		$x = 2;
-		$field_name = str_replace(array("`", "-"), array("", "_"), Link::urlify($field_title));
+		$field_name = str_replace(["`", "-"], ["", "_"], Link::urlify($field_title));
 		$original_field_name = $field_name;
 		
 		while (isset($fields[$field_name]) && !in_array($field_name, $reserved)) {

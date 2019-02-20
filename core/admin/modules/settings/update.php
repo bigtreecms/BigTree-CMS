@@ -19,20 +19,20 @@
 	if ($setting->System || ($setting->Locked && Auth::user()->Level < 2)) {
 		Utils::growl("Settings", "Access Denied", "error");
 	} else {
-		$bigtree["crops"] = array();
-		$bigtree["errors"] = array();
+		$bigtree["crops"] = [];
+		$bigtree["errors"] = [];
 		$bigtree["post_data"] = $_POST;
 		$bigtree["file_data"] = Field::getParsedFilesArray();
 		
-		$field = new Field(array(
+		$field = new Field([
 			"type" => $setting->Type,
 			"title" => $setting->Name,
 			"key" => "value",
-			"options" => $setting->Settings,
+			"settings" => $setting->Settings,
 			"ignore" => false,
 			"input" => $bigtree["post_data"]["value"],
 			"file_input" => $bigtree["file_data"]["value"]
-		));
+		]);
 		
 		// Process the input
 		$output = $field->process();
@@ -45,12 +45,12 @@
 		Utils::growl("Settings", "Updated Setting");
 	}
 	
-	$_SESSION["bigtree_admin"]["form_data"] = array(
+	$_SESSION["bigtree_admin"]["form_data"] = [
 		"page" => true,
 		"return_link" => ADMIN_ROOT."settings/",
 		"edit_link" => ADMIN_ROOT."settings/edit/".$_POST["id"]."/",
 		"errors" => $bigtree["errors"]
-	);
+	];
 	
 	// Track resource allocation
 	Resource::allocate("settings", $_POST["id"]);

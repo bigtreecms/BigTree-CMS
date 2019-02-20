@@ -6,23 +6,24 @@
 	 * @global ModuleReport $report
 	 */
 	
-	$list = array();
+	$list = [];
 	$form = $report->RelatedModuleForm;
 	$field = $form->Fields[$id];
 
 	// See if this is a DB populated list in the related form
-	if ($field && $field["type"] == "list" && $field["options"]["list_type"] == "db") {
-		$query = SQL::query("SELECT id, `".$field["options"]["pop-description"]."` AS `description` 
-							 FROM `".$field["options"]["pop-table"]."` 
-							 ORDER BY ".$field["options"]["pop-sort"]);
+	if ($field && $field["type"] == "list" && $field["settings"]["list_type"] == "db") {
+		$query = SQL::query("SELECT id, `".$field["settings"]["pop-description"]."` AS `description` 
+							 FROM `".$field["settings"]["pop-table"]."` 
+							 ORDER BY ".$field["settings"]["pop-sort"]);
+		
 		while ($entry = $query->fetch()) {
-			$list[] = array("value" => $entry["id"],"description" => $entry["description"]);
+			$list[] = ["value" => $entry["id"], "description" => $entry["description"]];
 		}
 	} else {
 		$ids = SQL::fetchAllSingle("SELECT DISTINCT(`$id`) FROM `".$report->Table."` ORDER BY `$id`");
 
 		foreach ($ids as $id) {
-			$list[] = array("value" => $id,"description" => $id);
+			$list[] = ["value" => $id, "description" => $id];
 		}
 	}
 ?>

@@ -65,8 +65,8 @@
 			FieldKey = $(this).attr("name");
 			
 			BigTreeDialog({
-				title: "<?=Text::translate("Field Options", true)?>",
-				url: "<?=ADMIN_ROOT?>ajax/developer/load-field-options/",
+				title: "<?=Text::translate("Field Settings", true)?>",
+				url: "<?=ADMIN_ROOT?>ajax/developer/load-field-settings/",
 				post: { table: $("#form_table").val(), type: $("#type_" + FieldKey).val(), data: $("#options_" + FieldKey).val() },
 				icon: "edit",
 				callback: function(data) {

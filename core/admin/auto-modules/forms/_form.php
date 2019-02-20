@@ -2,6 +2,7 @@
 	namespace BigTree;
 
 	/**
+	 * @global array $bigtree
 	 * @global ModuleForm $form
 	 */
 ?>
@@ -69,7 +70,7 @@
 								"has_value" => isset($bigtree["entry"][$resource["column"]]),
 								"value" => isset($bigtree["entry"][$resource["column"]]) ? $bigtree["entry"][$resource["column"]] : "",
 								"tabindex" => $bigtree["tabindex"],
-								"options" => $resource["options"]
+								"options" => $resource["settings"] ?: $resource["options"]
 							);
 	
 							// Give many to many its information

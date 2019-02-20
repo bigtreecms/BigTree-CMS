@@ -25,8 +25,8 @@
 			CurrentField = $(this).attr("name");
 			
 			BigTreeDialog({
-				title: "<?=Text::translate("Field Options", true)?>",
-				url: "<?=ADMIN_ROOT?>ajax/developer/load-field-options/",
+				title: "<?=Text::translate("Field Settings", true)?>",
+				url: "<?=ADMIN_ROOT?>ajax/developer/load-field-settings/",
 				post: { template: "true", type: $("#type_" + CurrentField).val(), data: $("#options_" + CurrentField).val() },
 				icon: "edit",
 				callback: function(data) {

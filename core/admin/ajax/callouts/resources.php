@@ -26,8 +26,12 @@
 	$bigtree["callout"] = $callout->Array; // Backwards compatibility with fields that might read the callout array
 
 	if ($_POST["type"] != $_POST["original_type"]) {
-		$original_callout = $admin->getCallout($_POST["original_type"]);
-		$forced_recrops = $admin->rectifyResourceTypeChange($bigtree["resources"], $bigtree["callout"]["resources"], $original_callout->Fields);
+		if (Callout::exists($_POST["original_type"])) {
+			$original_callout = new Callout($_POST["original_type"]);
+			$forced_recrops = Field::rectifyTypeChange($bigtree["resources"], $bigtree["callout"]["resources"], $original_callout->Fields);
+		} else {
+			$bigtree["resources"] = [];
+		}
 	} else {
 		$forced_recrops = [];
 	}
@@ -59,7 +63,7 @@
 					"has_value" => isset($bigtree["resources"][$field["id"]]),
 					"value" => isset($bigtree["resources"][$field["id"]]) ? $bigtree["resources"][$field["id"]] : "",
 					"tabindex" => $bigtree["tabindex"],
-					"settings" => $resource["settings"] ?: $resource["options"],
+					"settings" => $field["settings"] ?: $field["options"],
 					"forced_recrop" => isset($forced_recrops[$resource["id"]]) ? true : false
 				);
 

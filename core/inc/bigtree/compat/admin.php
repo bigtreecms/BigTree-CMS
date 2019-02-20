@@ -371,19 +371,19 @@
 				description - The description.
 				table - The data table.
 				type - The feed type.
-				options - The feed type options.
+				settings - The feed type settings.
 				fields - The fields.
 
 			Returns:
 				The route to the new feed.
 		*/
 
-		function createFeed($name, $description, $table, $type, $options, $fields) {
-			if (is_string($options)) {
-				$options = array_filter((array) json_decode($options, true));
+		function createFeed($name, $description, $table, $type, $settings, $fields) {
+			if (is_string($settings)) {
+				$settings = array_filter((array) json_decode($settings, true));
 			}
 			
-			$feed = BigTree\Feed::create($name, $description, $table, $type, $options, $fields);
+			$feed = BigTree\Feed::create($name, $description, $table, $type, $settings, $fields);
 
 			return $feed->Route;
 		}
@@ -579,7 +579,7 @@
 				description - Description.
 				table - Data table.
 				type - View type.
-				options - View options array.
+				settings - View settings array.
 				fields - Field array.
 				actions - Actions array.
 				related_form - Form ID to handle edits.
@@ -589,8 +589,8 @@
 				The id for view.
 		*/
 
-		function createModuleView($module, $title, $description, $table, $type, $options, $fields, $actions, $related_form = "", $preview_url = "") {
-			$view = BigTree\ModuleView::create($module, $title, $description, $table, $type, $options, $fields, $actions, $related_form ?: null, $preview_url);
+		function createModuleView($module, $title, $description, $table, $type, $settings, $fields, $actions, $related_form = "", $preview_url = "") {
+			$view = BigTree\ModuleView::create($module, $title, $description, $table, $type, $settings, $fields, $actions, $related_form ?: null, $preview_url);
 
 			return $view->ID;
 		}
@@ -739,7 +739,7 @@
 
 		function createSetting($data) {
 			// Setup defaults
-			$id = $name = $extension = $description = $type = $options = $locked = $encrypted = $system = "";
+			$id = $name = $extension = $description = $type = $settings = $locked = $encrypted = $system = "";
 
 			// Loop through and create our expected parameters.
 			foreach ($data as $key => $val) {
@@ -748,7 +748,7 @@
 				}
 			}
 
-			$setting = BigTree\Setting::create($id, $name, $description, $type, $options, $extension, $system ? true : false, $encrypted ? true : false, $locked ? true : false);
+			$setting = BigTree\Setting::create($id, $name, $description, $type, $settings, $extension, $system ? true : false, $encrypted ? true : false, $locked ? true : false);
 
 			return $setting ? true : false;
 		}
@@ -2265,7 +2265,7 @@
 					"table" => $interface["table"],
 					"type" => $settings["type"],
 					"fields" => $settings["fields"],
-					"options" => $settings["options"],
+					"settings" => $settings["settings"],
 					"actions" => $settings["actions"],
 					"preview_url" => $settings["preview_url"],
 					"related_form" => $settings["related_form"]
@@ -2694,6 +2694,10 @@
 		*/
 
 		static function getResource($id) {
+			if (!BigTree\Resource::exists($id)) {
+				return false;
+			}
+			
 			$resource = new BigTree\Resource($id);
 
 			return $resource->Array;
@@ -3266,7 +3270,7 @@
 				Processes image upload data for form fields.
 				If you're emulating field information, the following keys are of interest in the field array:
 				"file_input" - a keyed array that needs at least "name" and "tmp_name" keys that contain the desired name of the file and the source file location, respectively.
-				"options" - a keyed array of options for the field, keys of interest for photo processing are:
+				"settings" - a keyed array of settings for the field, keys of interest for photo processing are:
 					"min_height" - Minimum Height required for the image
 					"min_width" - Minimum Width required for the image
 					"retina" - Whether to try to create a 2x size image when thumbnailing / cropping (if the source file / crop is large enough)
@@ -3810,17 +3814,17 @@
 				description - The description.
 				table - The data table.
 				type - The feed type.
-				options - The feed type options.
+				settings - The feed type settings.
 				fields - The fields.
 		*/
 
-		function updateFeed($id, $name, $description, $table, $type, $options, $fields) {
-			if (is_string($options)) {
-				$options = array_filter((array) json_decode($options, true));
+		function updateFeed($id, $name, $description, $table, $type, $settings, $fields) {
+			if (is_string($settings)) {
+				$settings = array_filter((array) json_decode($settings, true));
 			}
 			
 			$feed = new BigTree\Feed($id);
-			$feed->update($name, $description, $table, $type, $options, $fields);
+			$feed->update($name, $description, $table, $type, $settings, $fields);
 		}
 
 		/*
@@ -3984,16 +3988,16 @@
 				description - Description.
 				table - Data table.
 				type - View type.
-				options - View options array.
+				settings - View settings array.
 				fields - Field array.
 				actions - Actions array.
 				related_form - Form ID to handle edits.
 				preview_url - Optional preview URL.
 		*/
 
-		function updateModuleView($id, $title, $description, $table, $type, $options, $fields, $actions, $related_form, $preview_url = "") {
+		function updateModuleView($id, $title, $description, $table, $type, $settings, $fields, $actions, $related_form, $preview_url = "") {
 			$view = new BigTree\ModuleView($id);
-			$view->update($title, $description, $table, $type, $options, $fields, $actions, $related_form, $preview_url);
+			$view->update($title, $description, $table, $type, $settings, $fields, $actions, $related_form, $preview_url);
 		}
 
 		/*
@@ -4183,7 +4187,7 @@
 
 		function updateSetting($old_id, $data) {
 			$id = $type = $name = $description = $locked = $encrypted = $system = "";
-			$options = array();
+			$settings = array();
 
 			foreach ($data as $key => $val) {
 				if (substr($key, 0, 1) != "_") {
@@ -4193,7 +4197,7 @@
 
 			$setting = new BigTree\Setting($old_id, false);
 
-			return $setting->update($id, $type, $options, $name, $description, $locked ? true : false, $encrypted ? true : false, $system ? true : false);
+			return $setting->update($id, $type, $settings, $name, $description, $locked ? true : false, $encrypted ? true : false, $system ? true : false);
 		}
 
 		/*

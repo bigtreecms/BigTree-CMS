@@ -1,20 +1,17 @@
 <?php
 	namespace BigTree;
 	
-	//!BigTree Warnings
-	$warnings = array();
-	
-	$writable_directories = array(
+	$warnings = [];
+	$writable_directories = [
 		"cache/",
 		"custom/inc/modules/",
-		"custom/admin/ajax/developer/field-options/",
-		"custom/admin/form-field-types/draw/",
-		"custom/admin/form-field-types/process/",
+		"custom/admin/field-types/",
 		"templates/routed/",
 		"templates/basic/",
 		"templates/callouts/",
-		"site/files/"
-	);
+		"site/files/",
+		"custom/json-db/"
+	];
 	
 	foreach ($writable_directories as $directory) {
 		if (!FileSystem::getDirectoryWritability(SERVER_ROOT.$directory)) {
@@ -27,23 +24,23 @@
 	}
 	
 	// Setup a recursive function to loop through fields
-	$directory_warnings = array();
+	$directory_warnings = [];
 	
 	$recurse_fields = function($fields) {
 		global $directory_warnings, $recurse_fields, $warnings;
 		
 		foreach (array_filter((array)$fields) as $key => $data) {
-			$options = is_string($data["options"]) ? array_filter((array)json_decode($data["options"],true)) : $data["options"];
+			$settings = is_string($data["settings"]) ? array_filter((array)json_decode($data["settings"],true)) : $data["settings"];
 			
 			if ($data["type"] == "matrix") {
-				$recurse_fields($options["columns"]);
+				$recurse_fields($settings["columns"]);
 			} else {
-				if ($options["directory"]) {
-					if (!FileSystem::getDirectoryWritability(SITE_ROOT.$options["directory"]) && !in_array($options["directory"], $directory_warnings)) {
-						$directory_warnings[] = $options["directory"];
+				if ($settings["directory"]) {
+					if (!FileSystem::getDirectoryWritability(SITE_ROOT.$settings["directory"]) && !in_array($settings["directory"], $directory_warnings)) {
+						$directory_warnings[] = $settings["directory"];
 						$warnings[] = array(
 							"name" => Text::translate("Directory Permissions Error"),
-							"description" => Text::translate("Make :directory: writable.", false, array(":directory:" => SITE_ROOT.$options["directory"])),
+							"description" => Text::translate("Make :directory: writable.", false, [":directory:" => SITE_ROOT.$settings["directory"]]),
 							"status" => "bad"
 						);
 					}
@@ -81,10 +78,10 @@
 		$warnings[] = array(
 			"name" => Text::translate("Bad Admin Links"),
 			"description" => Text::translate('Remove links to Admin on <a href=":link:">:link_title:</a>', false,
-											 array(
+											 [
 											 	":link:" => ADMIN_ROOT.'pages/edit/'.$link["id"]."/",
-												 ":link_title:" => $link["nav_title"]
-											 )),
+												":link_title:" => $link["nav_title"]
+											 ]),
 			"status" => "ok"
 		);
 	}
@@ -110,57 +107,57 @@
 	if ($max_file >= 8) {
 		$max_check = "good";
 	}
-
-	$server_parameters = array(
-		array(
+	
+	$server_parameters = [
+		[
 			"name" => "Magic Quotes",
 			"description" => Text::translate('&ldquo;magic_quotes_gpc = Off&rdquo; in php.ini'),
 			"status" => !get_magic_quotes_gpc() ? "good" : "bad",
 			"value" => ""
-		),
-		array(
+		],
+		[
 			"name" => "Magic Quotes Runtime Setting",
 			"description" => Text::translate("&ldquo;magic_quotes_gpc = Off&rdquo; at runtime"),
 			"status" => !get_magic_quotes_runtime() ? "good" : "bad",
 			"value" => ""
-		),
-		array(
+		],
+		[
 			"name" => "MySQL Support",
-			"description" => Text::translate('MySQL or <a href=":mysqli_link:" target="_blank">MySQLi extension</a> is required', false, array(":mysqli_link" => "http://www.php.net/manual/en/mysqli.installation.php")),
+			"description" => Text::translate('MySQL or <a href=":mysqli_link:" target="_blank">MySQLi extension</a> is required', false, [":mysqli_link" => "http://www.php.net/manual/en/mysqli.installation.php"]),
 			"status" => (extension_loaded('mysql') || extension_loaded("mysqli")) ? "good" : "bad",
 			"value" => ""
-		),
-		array(
+		],
+		[
 			"name" => "Allow File Uploads",
 			"description" => Text::translate("&ldquo;file_uploads = On&rdquo; in php.ini"),
 			"status" => ini_get('file_uploads') ? "good" : "bad",
 			"value" => ""
-		),
-		array(
+		],
+		[
 			"name" => "Allow 4MB Uploads",
 			"description" => Text::translate("&ldquo;upload_max_filesize&rdquo; and &ldquo;post_max_size&rdquo; > 4M &mdash; ideally 8M or higher in php.ini"),
 			"status" => $max_check,
 			"value" => $max_file."M"
-		),
-		array(
+		],
+		[
 			"name" => "Memory Limit",
 			"description" => Text::translate("&ldquo;memory_limit&rdquo; > 32M in php.ini"),
 			"status" => (intval(ini_get("memory_limit")) > 32) ? "good" : "bad",
 			"value" => ini_get("memory_limit")
-		),
-		array(
+		],
+		[
 			"name" => "Image Processing",
-			"description" => Text::translate('<a href=":gd_link:" target="_blank">GD extension</a> is required', false, array(":gd_link:" => "http://www.php.net/manual/en/image.installation.php")),
+			"description" => Text::translate('<a href=":gd_link:" target="_blank">GD extension</a> is required', false, [":gd_link:" => "http://www.php.net/manual/en/image.installation.php"]),
 			"status" => extension_loaded('gd') ? "good" : "bad",
 			"value" => ""
-		),
-		array(
+		],
+		[
 			"name" => "cURL Support",
-			"description" => Text::translate('<a href=":curl_link:" target="_blank">cURL extension</a> is required', false, array(":curl_link:" => "http://www.php.net/manual/en/curl.installation.php")),
+			"description" => Text::translate('<a href=":curl_link:" target="_blank">cURL extension</a> is required', false, [":curl_link:" => "http://www.php.net/manual/en/curl.installation.php"]),
 			"status" => extension_loaded('curl') ? "good" : "bad",
 			"value" => ""
-		)
-	);
+		]
+	];
 ?>
 <div class="container">
 	<section>

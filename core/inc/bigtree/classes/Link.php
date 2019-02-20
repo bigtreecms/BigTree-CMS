@@ -132,6 +132,10 @@
 			// Allow for arrays to recurse
 			if (is_array($input)) {
 				foreach ($input as $key => $value) {
+					if (is_null($value)) {
+						continue;
+					}
+					
 					$input[$key] = static::decode($value);
 				}
 				
@@ -496,7 +500,9 @@
 				$commands = implode("/", $command_parts);
 				
 				// If the URL's last piece has a GET (?), hash (#), or appears to be a file (.) don't add a trailing slash
-				if ($bigtree["config"]["trailing_slash_behavior"] != "remove" && strpos($last, "#") === false && strpos($last, "?") === false && strpos($last, ".") === false) {
+				if ($bigtree["config"]["trailing_slash_behavior"] != "remove" && strpos($last, "#") === false &&
+					strpos($last, "?") === false && strpos($last, ".") === false)
+				{
 					$commands .= "/";
 				}
 			} else {
@@ -512,7 +518,9 @@
 				static::$IPLCache[$navid] = rtrim(static::byPath($path), "/");
 			}
 			
-			if (!empty($bigtree["config"]["trailing_slash_behavior"]) && $bigtree["config"]["trailing_slash_behavior"] != "remove" || $commands != "") {
+			if ((!empty($bigtree["config"]["trailing_slash_behavior"]) && $bigtree["config"]["trailing_slash_behavior"] != "remove")
+				|| $commands != "")
+			{
 				$url = static::$IPLCache[$navid]."/".$commands;
 			} else {
 				$url = static::$IPLCache[$navid];

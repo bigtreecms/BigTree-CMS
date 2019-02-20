@@ -8,12 +8,12 @@
 
 	$reserved = ModuleForm::$ReservedColumns;
 	
-	$used = array();
-	$unused = array();
+	$used = [];
+	$unused = [];
 	$positioned = false;
 	$field_types = FieldType::reference(true, "modules");
 	$table = isset($_POST["table"]) ? $_POST["table"] : $table;
-	$table_columns = array();
+	$table_columns = [];
 
 	if (isset($fields)) {
 		foreach ($fields as $field) {
@@ -38,7 +38,7 @@
 			$table_columns[] = $column;
 		}
 	} else {
-		$fields = array();
+		$fields = [];
 		
 		// To tolerate someone selecting the blank spot in the table dropdown again when creating a form.
 		if ($table) {
@@ -48,7 +48,7 @@
 		}
 
 		// Let's relate the foreign keys based on the local column so we can check easier.
-		$foreign_keys = array();
+		$foreign_keys = [];
 		
 		foreach ($table_description["foreign_keys"] as $key) {
 			if (count($key["local_columns"]) == 1) {
@@ -64,7 +64,7 @@
 				$subtitle = "";
 				$type = "text";
 				$title = str_replace(array("Url","Pdf","Sql"),array("URL","PDF","SQL"),ucwords(str_replace(array("-","_")," ",$column["name"])));
-				$options = array();
+				$settings = [];
 				
 				if (strpos($title,"URL") !== false) {
 					$subtitle = Text::translate("(include http://)");
@@ -80,7 +80,7 @@
 				
 				if (strpos($title,"Image") !== false) {
 					$type = "upload";
-					$options["image"] = "on";
+					$settings["image"] = "on";
 				}
 				
 				if (strpos($title,"Description") !== false) {
@@ -105,21 +105,21 @@
 				
 				if ($column["type"] == "enum") {
 					$type = "list";
-					$list = array();
+					$list = [];
 					
 					foreach ($column["options"] as $option) {
 						$list[] = array("value" => $option, "description" => $option);
 					}
 					
-					$options = array(
+					$settings = [
 						"list_type" => "static",
 						"list" => $list
-					);
+					];
 					
 					if ($column["allow_null"]) {
-						$options["allow-empty"] = "Yes";
+						$settings["allow-empty"] = "Yes";
 					} else {
-						$options["allow-empty"] = "No";
+						$settings["allow-empty"] = "No";
 					}
 				}
 				
@@ -140,21 +140,27 @@
 						}
 					}
 					
-					$options = array("list_type" => "db", "pop-table" => $foreign_keys[$column["name"]]["other_table"]);
+					$settings = ["list_type" => "db", "pop-table" => $foreign_keys[$column["name"]]["other_table"]];
 					
 					if ($desc_column) {
-						$options["pop-description"] = $desc_column["name"];
-						$options["pop-sort"] = $desc_column["name"]." ASC";
+						$settings["pop-description"] = $desc_column["name"];
+						$settings["pop-sort"] = $desc_column["name"]." ASC";
 					}
 					
 					if ($column["allow_null"]) {
-						$options["allow-empty"] = "Yes";
+						$settings["allow-empty"] = "Yes";
 					} else {
-						$options["allow-empty"] = "No";
+						$settings["allow-empty"] = "No";
 					}
 				}
 
-				$fields[] = array("column" => $column["name"],"title" => $title, "subtitle" => $subtitle, "type" => $type,"options" => $options);
+				$fields[] = [
+					"column" => $column["name"],
+					"title" => $title,
+					"subtitle" => $subtitle,
+					"type" => $type,
+					"settings" => $settings
+				];
 			}
 			
 			if ($column["name"] == "position" && $column["type"] == "int") {

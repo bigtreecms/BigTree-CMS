@@ -50,7 +50,7 @@
 					</optgroup>
 					<?php } ?>
 				</select> <a class="icon_settings" href="#"></a>
-				<input type="hidden" name="options" value="<?=Text::htmlEncode(json_encode($setting->Options))?>" id="options_settings" />
+				<input type="hidden" name="options" value="<?=Text::htmlEncode(json_encode($setting->Settings))?>" id="options_settings" />
 			</fieldset>
 			<fieldset>
 				<input id="setting_field_locked" type="checkbox" name="locked"<?php if ($setting->Locked) { ?> checked="checked"<?php } ?> />
@@ -77,8 +77,8 @@
 		}
 
 		BigTreeDialog({
-			title: "<?=Text::translate("Setting Options", true)?>",
-			url: "<?=ADMIN_ROOT?>ajax/developer/load-field-options/",
+			title: "<?=Text::translate("Field Settings", true)?>",
+			url: "<?=ADMIN_ROOT?>ajax/developer/load-field-settings/",
 			post: { setting: "true", type: $("#settings_type").val(), data: $("#options_settings").val() },
 			icon: "edit",
 			callback: function(data) { $("#options_settings").val(JSON.stringify(data)); }

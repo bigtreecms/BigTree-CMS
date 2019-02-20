@@ -72,7 +72,7 @@
 			"type" => $resource["type"],
 			"title" => $resource["title"],
 			"key" => $resource["column"],
-			"options" => $resource["options"],
+			"settings" => $resource["settings"],
 			"ignore" => false,
 			"input" => $bigtree["post_data"][$resource["column"]],
 			"file_input" => $bigtree["file_data"][$resource["column"]]

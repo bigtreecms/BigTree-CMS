@@ -70,7 +70,7 @@
 						"subtitle" => "",
 						"key" => "value",
 						"tabindex" => 1,
-						"options" => $setting->Settings,
+						"settings" => $setting->Settings,
 						"value" => $value
 					));
 
