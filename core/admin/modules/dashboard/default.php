@@ -22,11 +22,11 @@
 	foreach ($changes as $c) {
 		// If we didn't get the info for this module already, get it.
 		if (!$c["module"]) {
-			$c["module"] = 0;
+			$c["module"] = "pages";
 		}
 		if (!array_key_exists($c["module"],$change_modules)) {
 			// Pages
-			if ($c["module"] == 0) {
+			if ($c["table"] == "bigtree_pages") {
 				$change_modules[0] = array("title" => "Pages", "count" => 1);
 			} else {
 				$module = $admin->getModule($c["module"]);
@@ -45,7 +45,7 @@
 	foreach ($my_changes as $c) {
 		// If we didn't get the info for this module already, get it.
 		if (!$c["module"]) {
-			$c["module"] = 0;
+			$c["module"] = "pages";
 		}
 
 		if (!array_key_exists($c["module"],$my_change_modules)) {
