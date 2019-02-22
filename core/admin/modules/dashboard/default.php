@@ -50,7 +50,7 @@
 
 		if (!array_key_exists($c["module"],$my_change_modules)) {
 			// Pages
-			if ($c["module"] == 0) {
+			if ($c["table"] == "bigtree_pages") {
 				$my_change_modules[0] = array("title" => "Pages", "count" => 1);
 			} else {
 				$module = $admin->getModule($c["module"]);
