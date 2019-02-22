@@ -39,26 +39,29 @@
 
 	// Get the current user's changes.
 	$my_changes = $admin->getPendingChanges();
+
 	// Figure out what module each of the changes is for.
-	$my_change_modules = array();
+	$my_change_modules = [];
+	$modules = BigTreeJSONDB::getAll("modules");
+	$table_cache = [
+		"bigtree_pages" => ["title" => "Pages", "icon" => "page"]
+	];
 
 	foreach ($my_changes as $c) {
 		// If we didn't get the info for this module already, get it.
-		if (!$c["module"]) {
-			$c["module"] = 0;
+		if (empty($table_cache[$c["table"]])) {
+			foreach ($modules as $module) {
+				foreach ($module["views"] as $view) {
+					if ($view["table"] == $c["table"]) {
+						$table_cache[$c["table"]] = ["title" => $module["name"], "icon" => $module["icon"]];
+
+						break 2;
+					}
+				}
+			}
 		}
 
-		if (!array_key_exists($c["module"],$my_change_modules)) {
-			// Pages
-			if ($c["module"] == 0) {
-				$my_change_modules[0] = array("title" => "Pages", "count" => 1);
-			} else {
-				$module = $admin->getModule($c["module"]);
-				$my_change_modules[$c["module"]] = array("title" => $module["name"], "icon" => $module["icon"], "count" => 1);
-			}
-		} else {
-			$my_change_modules[$c["module"]]["count"]++;
-		}
+		$my_change_modules[$c["table"]]++;
 	}
 
 	// Get Google Analytics Traffic
@@ -189,19 +192,14 @@
 		<h3>Your Changes Pending Approval</h3>
 		<section class="changes">
 			<?php
-				foreach ($my_change_modules as $m => $cm) {
-					if ($m == 0) {
-						$icon = "page";
-					} elseif ($cm["icon"]) {
-						$icon = $cm["icon"];
-					} else {
-						$icon = "gear";
-					}
+				foreach ($my_change_modules as $table => $count) {
+					if ($count) {
 			?>
 			<div>
-				<span class="icon_small icon_small_<?=$icon?>"></span> <?=$cm["count"]?> change<?php if ($cm["count"] != 1) { ?>s<?php } ?> for <?=$cm["title"]?>
+				<span class="icon_small icon_small_<?=($table_cache[$table]["icon"] ?: "gear")?>"></span> <?=$count?> change<?php if ($count != 1) { ?>s<?php } ?> for <?=$table_cache[$table]["title"]?>
 			</div>
 			<?php
+					}
 				}
 			?>
 		</section>
