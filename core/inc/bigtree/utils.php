@@ -290,7 +290,7 @@
 			}
 
 			// Limit request to 5 seconds less than max execution time
-			$max_execution_time = ini_get("max_execution_time");
+			$max_execution_time = intval(ini_get("max_execution_time"));
 
 			if ($max_execution_time !== 0) {
 				curl_setopt($ch, CURLOPT_TIMEOUT,  $max_execution_time - 5);
