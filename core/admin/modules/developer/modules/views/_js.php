@@ -6,7 +6,7 @@
 		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-view-fields/?table=" + data.value + "&type=" + $("#view_type").val());
 	});
 	
-	$(".options").click(function(ev) {
+	$(".icon_settings").click(function(ev) {
 		ev.preventDefault();
 		
 		// Prevent double clicks
@@ -15,12 +15,12 @@
 		}
 
 		BigTreeDialog({
-			url: "<?=ADMIN_ROOT?>ajax/developer/load-view-options/",
-			post: { table: $("#view_table").val(), type: $("#view_type").val(), data: $("#view_options").val() },
-			title: "<?=Text::translate("View Options", true)?>",
+			url: "<?=ADMIN_ROOT?>ajax/developer/load-view-settings/",
+			post: { table: $("#view_table").val(), type: $("#view_type").val(), data: $("#view_settings").val() },
+			title: "<?=Text::translate("View Settings", true)?>",
 			icon: "edit",
 			callback: function(data) {
-				$("#view_options").val(JSON.stringify(data));
+				$("#view_settings").val(JSON.stringify(data));
 			}
 		});
 	});

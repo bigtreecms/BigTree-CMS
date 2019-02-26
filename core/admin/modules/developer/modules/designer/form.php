@@ -95,10 +95,10 @@
 			BigTreeDialog({
 				title: "<?=Text::translate("Field Settings")?>",
 				url: "<?=ADMIN_ROOT?>ajax/developer/load-field-settings/",
-				post: { type: $("#type_" + CurrentFieldKey).val(), data: $("#options_" + CurrentFieldKey).val() },
+				post: { type: $("#type_" + CurrentFieldKey).val(), data: $("#settings_" + CurrentFieldKey).val() },
 				icon: "edit",
 				callback: function(data) {
-					$("#options_" + CurrentFieldKey).val(JSON.stringify(data));
+					$("#settings_" + CurrentFieldKey).val(JSON.stringify(data));
 				}
 			});
 			
@@ -132,8 +132,8 @@
 							'</optgroup>' +
 							<?php } ?>
 						'</select>' +
-						'<a href="#" class="options icon_settings" name="' + KeyCount + '"></a>' +
-						'<input type="hidden" name="options[' + KeyCount + ']" value="" id="options_' + KeyCount + '" />' +
+						'<a href="#" class="icon_settings" name="' + KeyCount + '"></a>' +
+						'<input type="hidden" name="settings[' + KeyCount + ']" value="" id="settings' + KeyCount + '" />' +
 					'</section>' +
 					'<section class="developer_resource_action">' +
 						'<a href="#" class="icon_delete" name="' + KeyCount + '"></a>' +

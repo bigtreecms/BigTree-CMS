@@ -3,11 +3,11 @@
 	
 	CSRF::verify();
 	
-	if (is_string($_POST["options"])) {
-		$_POST["options"] = array_filter((array) json_decode($_POST["options"], true));
+	if (is_string($_POST["settings"])) {
+		$_POST["settings"] = array_filter((array) json_decode($_POST["settings"], true));
 	}
 	
-	$feed = Feed::create($_POST["name"], $_POST["description"], $_POST["table"], $_POST["type"], $_POST["options"], $_POST["fields"]);
+	$feed = Feed::create($_POST["name"], $_POST["description"], $_POST["table"], $_POST["type"], $_POST["settings"], $_POST["fields"]);
 ?>
 <div class="container">
 	<section>

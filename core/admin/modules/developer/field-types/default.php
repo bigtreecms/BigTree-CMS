@@ -14,7 +14,7 @@
 			"delete": function(id,state) {
 				BigTreeDialog({
 					title: "<?=Text::translate("Delete Field Type", true)?>",
-					content: '<p class="confirm"><?=Text::translate('Are you sure you want to delete this field type?<br /><br />Deleting a field type also deletes its draw, process, and options files.<br /><br />Fields using this type will revert to text fields.')?></p>',
+					content: '<p class="confirm"><?=Text::translate('Are you sure you want to delete this field type?<br /><br />Deleting a field type also deletes its draw, process, and settings files.<br /><br />Fields using this type will revert to text fields.')?></p>',
 					icon: "delete",
 					alternateSaveText: "<?=Text::translate("OK", true)?>",
 					callback: function() {

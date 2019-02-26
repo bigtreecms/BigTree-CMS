@@ -9,7 +9,7 @@
 
 	// Easier global vars for type checks
 	$type = $_POST["type"];
-	$options = json_decode($_POST["options"], true);
+	$settings = json_decode($_POST["settings"], true);
 	$actions = $_POST["actions"];
 	$module_id = end($bigtree["commands"]);
 	$title = $_POST["title"];
@@ -20,7 +20,7 @@
 	$errors = array();
 	
 	// Check for errors
-	if (($type == "draggable" || $type == "draggable-group" || $options["draggable"]) && !$columns["position"]) {
+	if (($type == "draggable" || $type == "draggable-group" || $settings["draggable"]) && !$columns["position"]) {
 		$errors[] = Text::translate("Sorry, but you can't create a draggable view without a 'position' column in your table.  Please create a position column (integer) in your table and try again.");
 	}
 	if (isset($actions["archive"]) && !(($columns["archived"]["type"] == "char" || $columns["archived"]["type"] == "varchar") && $columns["archived"]["size"] == "2")) {
@@ -67,7 +67,7 @@
 			$_POST["description"],
 			$table,
 			$type,
-			$options,
+			$settings,
 			$_POST["fields"],
 			$clean_actions,
 			$_POST["related_form"],

@@ -49,10 +49,10 @@
 	
 			return false;
 		}).on("click",".js-hook-approve",function() {
-			<?php if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["settings"]["group_field"] == "approved") { ?>
-			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/approve/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href"))).done(BigTree.localSearch);
+			<?php if (($view->Type == "grouped" || $view->Type == "images-grouped") && $view->Settings["group_field"] == "approved") { ?>
+			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/approve/?view=<?=$view->ID?>&id=" + BigTree.cleanHref($(this).attr("href"))).done(BigTree.localSearch);
 			<?php } else { ?>
-			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/approve/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
+			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/approve/?view=<?=$view->ID?>&id=" + BigTree.cleanHref($(this).attr("href")));
 			
 			if ($(this).hasClass("icon_approve_on")) {
 				$(this).attr("title", "Approve");
@@ -65,10 +65,10 @@
 
 			return false;
 		}).on("click",".js-hook-feature",function() {
-			<?php if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["settings"]["group_field"] == "featured") { ?>
-			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/feature/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href"))).done(BigTree.localSearch);
+			<?php if (($view->Type == "grouped" || $view->Type == "images-grouped") && $view->Settings["group_field"] == "featured") { ?>
+			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/feature/?view=<?=$view->ID?>&id=" + BigTree.cleanHref($(this).attr("href"))).done(BigTree.localSearch);
 			<?php } else { ?>
-			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/feature/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
+			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/feature/?view=<?=$view->ID?>&id=" + BigTree.cleanHref($(this).attr("href")));
 
 			if ($(this).hasClass("icon_feature_on")) {
 				$(this).attr("title", "Feature");
@@ -81,10 +81,10 @@
 
 			return false;
 		}).on("click",".js-hook-archive",function() {
-			<?php if (($bigtree["view"]["type"] == "grouped" || $bigtree["view"]["type"] == "images-grouped") && $bigtree["view"]["settings"]["group_field"] == "archived") { ?>
-			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/archive/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href"))).done(BigTree.localSearch);
+			<?php if (($view->Type == "grouped" || $view->Type == "images-grouped") && $view->Settings["group_field"] == "archived") { ?>
+			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/archive/?view=<?=$view->ID?>&id=" + BigTree.cleanHref($(this).attr("href"))).done(BigTree.localSearch);
 			<?php } else { ?>
-			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/archive/?view=<?=$bigtree["view"]["id"]?>&id=" + BigTree.cleanHref($(this).attr("href")));
+			$.secureAjax("<?=ADMIN_ROOT?>ajax/auto-modules/views/archive/?view=<?=$view->ID?>&id=" + BigTree.cleanHref($(this).attr("href")));
 
 			if ($(this).hasClass("icon_archive_on")) {
 				$(this).attr("title", "Archive");

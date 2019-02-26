@@ -259,7 +259,7 @@
 				item - Either the ID of the feed to pull or a raw database row of the feed data
 			
 			Returns:
-				An array of feed information with options and fields decoded from JSON.
+				An array of feed information with settings and fields decoded from JSON.
 				
 			See Also:
 				<getFeedByRoute>
@@ -268,7 +268,6 @@
 		static function getFeed($item) {
 			$feed = new BigTree\Feed($item);
 			$feed = $feed->Array;
-			$feed["options"] = $feed["settings"];
 			
 			return $feed;
 		}
@@ -281,7 +280,7 @@
 				route - The route of the feed to pull.
 			
 			Returns:
-				An array of feed information with options and fields decoded from JSON.
+				An array of feed information with settings and fields decoded from JSON.
 			
 			See Also:
 				<getFeed>

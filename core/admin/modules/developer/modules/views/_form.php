@@ -4,7 +4,7 @@
 	/**
 	 * @global string $description
 	 * @global Module $module
-	 * @global array $options
+	 * @global array $settings
 	 * @global string $preview_url
 	 * @global int $related_form
 	 * @global string $table
@@ -72,8 +72,8 @@
 					?>
 				</optgroup>
 			</select>
-			&nbsp; <a href="#" class="options icon_settings centered"></a>
-			<input type="hidden" name="options" id="view_options" value="<?=htmlspecialchars(json_encode($options))?>" />
+			&nbsp; <a href="#" class="icon_settings centered"></a>
+			<input type="hidden" name="settings" id="view_settings" value="<?=htmlspecialchars(json_encode($settings))?>" />
 		</fieldset>
 	</div>
 </section>

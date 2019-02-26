@@ -67,10 +67,10 @@
 			BigTreeDialog({
 				title: "<?=Text::translate("Field Settings", true)?>",
 				url: "<?=ADMIN_ROOT?>ajax/developer/load-field-settings/",
-				post: { table: $("#form_table").val(), type: $("#type_" + FieldKey).val(), data: $("#options_" + FieldKey).val() },
+				post: { table: $("#form_table").val(), type: $("#type_" + FieldKey).val(), data: $("#settings_" + FieldKey).val() },
 				icon: "edit",
 				callback: function(data) {
-					$("#options_" + FieldKey).val(JSON.stringify(data));
+					$("#settings_" + FieldKey).val(JSON.stringify(data));
 				}
 			});
 			
@@ -93,7 +93,7 @@
 			
 			li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="fields[__geocoding__][title]" value="<?=Text::translate("Geocoding", true)?>" disabled="disabled" /></section>' +
 				'<section class="developer_resource_form_subtitle"><input type="text" name="fields[__geocoding__][subtitle]" value="" disabled="disabled" /></section>' +
-				'<section class="developer_resource_type"><input name="fields[__geocoding__][type]" id="type_geocoding" type="hidden" value="geocoding" /><span class="resource_name"><?=Text::translate("Geocoding", true)?></span><a href="#" class="options icon_settings" name="geocoding"></a><input type="hidden" name="fields[__geocoding__][options]" value="" id="options_geocoding" /></section>' +
+				'<section class="developer_resource_type"><input name="fields[__geocoding__][type]" id="type_geocoding" type="hidden" value="geocoding" /><span class="resource_name"><?=Text::translate("Geocoding", true)?></span><a href="#" class="icon_settings" name="geocoding"></a><input type="hidden" name="fields[__geocoding__][settings]" value="" id="settings_geocoding" /></section>' +
 				'<section class="developer_resource_action"><a href="#" class="icon_delete" name="geocoding"></a></section>');
 			
 			$("#resource_table").append(li);
@@ -109,7 +109,7 @@
 			MTMCount++;
 			li.html('<section class="developer_resource_form_title"><span class="icon_sort"></span><input type="text" name="fields[__mtm-' + MTMCount + '__][title]" value="" /></section>' +
 				'<section class="developer_resource_form_subtitle"><input type="text" name="fields[__mtm-' + MTMCount + '__][subtitle]" value="" /></section>' +
-				'<section class="developer_resource_type"><input name="fields[__mtm-' + MTMCount + '__][type]" id="type___mtm-' + MTMCount + '__" type="hidden" value="many-to-many" /><span class="resource_name"><?=Text::translate("Many To Many", true)?></span><a href="#" class="options icon_settings" name="__mtm-' + MTMCount + '__"></a><input type="hidden" name="fields[__mtm-' + MTMCount + '__][options]" value="" id="options___mtm-' + MTMCount + '__" /></section>' +
+				'<section class="developer_resource_type"><input name="fields[__mtm-' + MTMCount + '__][type]" id="type___mtm-' + MTMCount + '__" type="hidden" value="many-to-many" /><span class="resource_name"><?=Text::translate("Many To Many", true)?></span><a href="#" class="icon_settings" name="__mtm-' + MTMCount + '__"></a><input type="hidden" name="fields[__mtm-' + MTMCount + '__][settings]" value="" id="settings___mtm-' + MTMCount + '__" /></section>' +
 				'<section class="developer_resource_action"><a href="#" class="icon_delete" name="__mtm-' + MTMCount + '__"></a></section>');
 			
 			$("#resource_table").append(li);

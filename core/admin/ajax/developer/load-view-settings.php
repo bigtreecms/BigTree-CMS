@@ -4,20 +4,20 @@
 	// Prevent path manipulation shenanigans
 	$type = FileSystem::getSafePath($_POST["type"]);
 	$table = $_POST["table"];
-	$options = json_decode(str_replace(array("\r", "\n"), array('\r', '\n'), $_POST["data"]), true);
-	$filter = isset($options["filter"]) ? $options["filter"] : "";
+	$settings = json_decode(str_replace(array("\r", "\n"), array('\r', '\n'), $_POST["data"]), true);
+	$filter = isset($settings["filter"]) ? $settings["filter"] : "";
 ?>
 <div style="width: 450px;">
 	<fieldset>
-		<label for="options_field_filter_function"><?=Text::translate('Filter Function <small>(function name only, <a href=":doc_link:" target="_blank">learn more</a>)</small>', false, array(":doc_link:" => "http://www.bigtreecms.org/docs/dev-guide/modules/advanced-techniques/view-filters/"))?></label>
-		<input id="options_field_filter_function" type="text" name="filter" value="<?=htmlspecialchars($filter)?>" />
+		<label for="settings_field_filter_function"><?=Text::translate('Filter Function <small>(function name only, <a href=":doc_link:" target="_blank">learn more</a>)</small>', false, array(":doc_link:" => "http://www.bigtreecms.org/docs/dev-guide/modules/advanced-techniques/view-filters/"))?></label>
+		<input id="settings_field_filter_function" type="text" name="filter" value="<?=htmlspecialchars($filter)?>" />
 	</fieldset>
 	<?php
 		if (strpos($type,"*") !== false) {
 			list($extension,$view_type) = explode("*",$type);
-			$path = SERVER_ROOT."extensions/$extension/plugins/view-types/$view_type/options.php";
+			$path = SERVER_ROOT."extensions/$extension/plugins/view-types/$view_type/settings.php";
 		} else {
-			$path = Router::getIncludePath("admin/ajax/developer/view-options/$type.php");
+			$path = Router::getIncludePath("admin/ajax/developer/view-settings/$type.php");
 		}
 		
 		if (file_exists($path)) {

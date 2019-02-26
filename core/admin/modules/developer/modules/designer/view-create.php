@@ -37,9 +37,9 @@
 		SQL::query("ALTER TABLE `$table` ADD INDEX `position` (`position`)");
 	}
 	
-	// Let's create the view - we're decoding options here because it's already encoded but that'd be weird to assume in the class.
+	// Let's create the view - we're decoding settings here because it's already encoded but that'd be weird to assume in the class.
 	$view = ModuleView::create($_POST["module"], $_POST["title"], $_POST["description"], $table, $_POST["type"],
-							   json_decode($_POST["options"], true), $_POST["fields"], $_POST["actions"]);
+							   json_decode($_POST["settings"], true), $_POST["fields"], $_POST["actions"]);
 	
 	ModuleAction::create($_POST["module"], "View ".$_POST["title"], "", "on", "list", $view->ID, 0, 1);
 	Router::redirect(DEVELOPER_ROOT."modules/designer/complete/?module=".$_POST["module"]);

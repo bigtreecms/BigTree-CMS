@@ -49,8 +49,8 @@
 						<option value="searchable"><?=Text::translate("Searchable List")?></option>
 						<option value="draggable"<?php if ($type == "draggable") { ?> selected="selected"<?php } ?>><?=Text::translate("Draggable List")?></option>
 					</select>
-					&nbsp; <a href="#" class="options icon_settings centered"></a>
-					<input type="hidden" name="options" id="view_options" />
+					&nbsp; <a href="#" class="icon_settings centered"></a>
+					<input type="hidden" name="settings" id="view_settings" />
 				</fieldset>
 			</div>
 			
@@ -76,7 +76,7 @@
 <script>	
 	BigTreeFormValidator("form.module");
 	
-	$(".options").click(function(ev) {
+	$(".icon_settings").click(function(ev) {
 		ev.preventDefault();
 
 		// Prevent double clicks
@@ -85,12 +85,12 @@
 		}
 
 		BigTreeDialog({
-			title: "<?=Text::translate("View Options", true)?>",
-			url: "<?=ADMIN_ROOT?>ajax/developer/load-view-options/",
-			post: { table: "<?=$table?>", type: $("#view_type").val(), data: $("#view_options").val() },
+			title: "<?=Text::translate("View Settings", true)?>",
+			url: "<?=ADMIN_ROOT?>ajax/developer/load-view-settings/",
+			post: { table: "<?=$table?>", type: $("#view_type").val(), data: $("#view_settings").val() },
 			icon: "edit",
 			callback: function(data) {
-				$("#view_options").val(JSON.stringify(data));
+				$("#view_settings").val(JSON.stringify(data));
 			}
 		});
 	});

@@ -22,7 +22,7 @@
 	} else {
 		// Stop notices
 		$description = $type = $preview_url = "";
-		$options = array();
+		$settings = array();
 
 		if ($is_positioned) {
 			$type = "draggable";

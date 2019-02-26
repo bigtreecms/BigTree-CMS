@@ -559,7 +559,7 @@
 				decode_ipl - Whether we want to decode internal page link on the preview url (defaults to true)
 				
 			Returns:
-				A view entry with actions, options, and fields decoded.  fields also receive a width column for the view.
+				A view entry with actions, settings, and fields decoded.  fields also receive a width column for the view.
 		*/
 
 		static function getView($id) {
@@ -615,7 +615,7 @@
 				table - Table name.
 			
 			Returns:
-				A view entry with options, and fields decoded and field widths set for Pending Changes.
+				A view entry with settings, and fields decoded and field widths set for Pending Changes.
 		*/
 		
 		static function getViewForTable($table) {

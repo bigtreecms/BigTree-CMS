@@ -9,7 +9,7 @@
 
 	// Get some globals for repeated vars
 	$table = $_POST["table"];
-	$options = json_decode($_POST["options"], true);
+	$settings = json_decode($_POST["settings"], true);
 	$type = $_POST["type"];
 	$actions = $_POST["actions"];
 	$fields = $_POST["fields"];
@@ -20,7 +20,7 @@
 	$columns = $table_description["columns"];
 	$errors = array();
 
-	if (($type == "draggable" || $type == "draggable-group" || $options["draggable"]) && !$columns["position"]) {
+	if (($type == "draggable" || $type == "draggable-group" || $settings["draggable"]) && !$columns["position"]) {
 		$errors[] = Text::translate("Sorry, but you can't create a draggable view without a 'position' column in your table.  Please create a position column (integer) in your table and try again.");
 	}
 	
@@ -102,7 +102,7 @@
 			$_POST["description"],
 			$table,
 			$type,
-			$options,
+			$settings,
 			$fields,
 			$actions,
 			$_POST["related_form"] ?: null,

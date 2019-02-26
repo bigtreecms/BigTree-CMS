@@ -93,7 +93,7 @@
 						<?php } ?>
 					</select>
 					<a href="#" class="icon_settings" name="<?=$field_count?>"></a>
-					<input type="hidden" name="fields[<?=$field_count?>][options]" value="<?=htmlspecialchars(json_encode($field["options"]))?>" id="options_<?=$field_count?>" />
+					<input type="hidden" name="fields[<?=$field_count?>][options]" value="<?=htmlspecialchars(json_encode($field["settings"]))?>" id="settings_<?=$field_count?>" />
 				</section>
 				<section class="developer_resource_display_title">
 					<input type="radio" name="display_field" value="<?=$field["id"]?>" id="display_title_<?=$field_count?>"<?php if ($callout->DisplayField == $field["id"]) echo ' checked="checked"'; ?> />

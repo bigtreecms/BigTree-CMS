@@ -20,6 +20,7 @@
 		<?php
 			foreach ($feed->Fields as $key => $options) {
 				$value = $item[$key];
+				
 				if ($options["parser"]) {
 					$value = Module::runParser($item, $value, $options["parser"]);
 				}
