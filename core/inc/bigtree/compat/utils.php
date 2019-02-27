@@ -807,6 +807,18 @@
 		}
 		
 		/*
+			Function: remoteIP
+				Returns the remote user's IP address (works with load balancers).
+	
+			Returns:
+				An IP address
+		*/
+		
+		static function remoteIP() {
+			return BigTree\Utils::getRemoteIP();
+		}
+		
+		/*
 			Function: replaceServerRoot
 				Replaces the server root in a string (as long as it is at the beginning of the string)
 

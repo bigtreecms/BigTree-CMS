@@ -68,9 +68,19 @@
 						
 						if ($user) {
 							CSRF::generate();
-
-							// Setup session
+							
+							// Regenerate session ID on user state change
+							$old_session_id = session_id();
 							session_regenerate_id();
+							
+							if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+								SQL::update("bigtree_sessions", $old_session_id, [
+									"id" => session_id(),
+									"is_login" => "on",
+									"logged_in_user" => $user->ID
+								]);
+							}
+							
 							$_SESSION[static::$Namespace]["id"] = $user->ID;
 							$_SESSION[static::$Namespace]["email"] = $user->Email;
 							$_SESSION[static::$Namespace]["name"] = $user->Name;
@@ -355,7 +365,18 @@
 						Cookie::create(static::$Namespace."[login]", json_encode([$session, $chain]), "+1 month");
 					}
 					
+					// Regenerate session ID on user state change
+					$old_session_id = session_id();
 					session_regenerate_id();
+					
+					if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+						SQL::update("bigtree_sessions", $old_session_id, [
+							"id" => session_id(),
+							"is_login" => "on",
+							"logged_in_user" => $user->ID
+						]);
+					}
+					
 					$_SESSION[static::$Namespace]["id"] = $user->ID;
 					$_SESSION[static::$Namespace]["email"] = $user->Email;
 					$_SESSION[static::$Namespace]["level"] = $user->Level;
@@ -490,7 +511,6 @@
 						]);
 					}
 					
-					session_regenerate_id();
 					$_SESSION[static::$Namespace]["id"] = $user["id"];
 					$_SESSION[static::$Namespace]["email"] = $user["email"];
 					$_SESSION[static::$Namespace]["level"] = $user["level"];

@@ -365,6 +365,10 @@
 				if ($this->Password != $this->OriginalPassword) {
 					$update_values["password"] = password_hash(trim($this->Password), PASSWORD_DEFAULT);
 					$update_values["new_hash"] = "on";
+					
+					// Clean existing sessions
+					SQL::delete("bigtree_sessions", ["logged_in_user" => $this->ID]);
+					SQL::delete("bigtree_user_sessions", ["email" => $this->Email]);
 				}
 				
 				SQL::update(static::$Table, $this->ID, $update_values);
