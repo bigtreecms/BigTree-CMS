@@ -8,9 +8,11 @@
 	CSRF::verify();
 
 	$amazon->Key = trim($_POST["key"]);
+	$amazon->Region = $_POST["region"];
 	$amazon->Secret = trim($_POST["secret"]);
 
 	// Try to list buckets
+	$amazon->setup();
 	$amazon->listContainers();
 	
 	if (count($amazon->Errors)) {

@@ -244,14 +244,14 @@
 		}
 		
 		// Implements Provider::makeFilePublic
-		function makeFilePublic(string $container, string $pointer): ?string {
+		function makeFilePublic(string $container, string $pointer): bool {
 			$response = $this->call("b/$container/o/".rawurlencode($pointer)."/acl", json_encode(["entity" => "allUsers", "role" => "READER"]), "POST");
 			
 			if ($response) {
-				return "//storage.googleapis.com/$container/".str_replace("%2F", "/", rawurlencode($pointer));
+				return true;
 			}
 			
-			return null;
+			return false;
 		}
 		
 		// Implements Provider::uploadFile

@@ -235,9 +235,12 @@
 					unlink($local_file);
 				}
 				
-				// CloudFront support
-				if (!empty($this->Settings["CDNDomain"]) && $this->Settings["service"] == "amazon") {
-					return str_replace("//".$this->Settings["Container"].".s3.amazonaws.com", "//".$this->Settings["CDNDomain"], $success);
+				// If this bucket is behind a CloudFront distribution, invalidate the cache and return the CloudFront domain
+				if (!empty($this->Cloud->Settings["amazon"]["cloudfront_distribution"])) {
+					$this->Cloud->invalidateCache($relative_path.$file_name);
+					$protocol = $this->Cloud->Settings["amazon"]["cloudfront_ssl"] ? "https" : "http";
+					
+					return $protocol."://".$this->Cloud->Settings["amazon"]["cloudfront_domain"]."/".$relative_path.$file_name;
 				}
 				
 				return $success;
@@ -350,9 +353,12 @@
 					unlink($local_file);
 				}
 				
-				// CloudFront support
-				if (!empty($this->Settings["CDNDomain"]) && $this->Settings["service"] == "amazon") {
-					return str_replace("//".$this->Settings["Container"].".s3.amazonaws.com", "//".$this->Settings["CDNDomain"], $success);
+				// If this bucket is behind a CloudFront distribution, invalidate the cache and return the CloudFront domain
+				if (!empty($this->Cloud->Settings["amazon"]["cloudfront_distribution"])) {
+					$this->Cloud->invalidateCache($relative_path.$file_name);
+					$protocol = $this->Cloud->Settings["amazon"]["cloudfront_ssl"] ? "https" : "http";
+					
+					return $protocol."://".$this->Cloud->Settings["amazon"]["cloudfront_domain"]."/".$relative_path.$file_name;
 				}
 				
 				return $success;

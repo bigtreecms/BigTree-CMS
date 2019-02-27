@@ -11,9 +11,27 @@
 	
 	class Provider extends OAuth {
 		
-		public $Active;
-		public $Errors;
-		public $Settings;
+		public $Active = false;
+		public $Errors = [];
+		public $Settings = [];
+		
+		protected $MimeExtensions = [
+			"jpg" => "image/jpeg", "jpeg" => "image/jpeg", "gif" => "image/gif",
+			"png" => "image/png", "ico" => "image/x-icon", "pdf" => "application/pdf",
+			"tif" => "image/tiff", "tiff" => "image/tiff", "svg" => "image/svg+xml",
+			"svgz" => "image/svg+xml", "swf" => "application/x-shockwave-flash",
+			"zip" => "application/zip", "gz" => "application/x-gzip",
+			"tar" => "application/x-tar", "bz" => "application/x-bzip",
+			"bz2" => "application/x-bzip2",  "rar" => "application/x-rar-compressed",
+			"exe" => "application/x-msdownload", "msi" => "application/x-msdownload",
+			"cab" => "application/vnd.ms-cab-compressed", "txt" => "text/plain",
+			"asc" => "text/plain", "htm" => "text/html", "html" => "text/html",
+			"css" => "text/css", "js" => "text/javascript",
+			"xml" => "text/xml", "xsl" => "application/xsl+xml",
+			"ogg" => "application/ogg", "mp3" => "audio/mpeg", "wav" => "audio/x-wav",
+			"avi" => "video/x-msvideo", "mpg" => "video/mpeg", "mpeg" => "video/mpeg",
+			"mov" => "video/quicktime", "flv" => "video/x-flv", "php" => "text/x-php"
+		];
 		
 		/*
 			Constructor:
@@ -312,6 +330,23 @@
 		}
 		
 		/*
+			Function: invalidateCache
+				Invalidates the CloudFront cache for a given pointer.
+
+			Parameters:
+				pointer - The pointer to invalidate
+
+			Returns:
+				true if successful
+		*/
+		
+		public function invalidateCache($pointer): bool {
+			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
+			
+			return false;
+		}
+		
+		/*
 			Function: listContainers
 				Lists containers/buckets that are available in this cloud account.
 
@@ -338,10 +373,10 @@
 				The public URL if successful, otherwise null
 		*/
 		
-		function makeFilePublic(string $container, string $pointer): ?string {
+		function makeFilePublic(string $container, string $pointer): bool {
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
-			return null;
+			return false;
 		}
 		
 		/*
