@@ -156,6 +156,7 @@
 		} else {
 			$sql_connection = @sqlconnect($host,$user,$password,$port,$socket);
 		}
+
 		if (!$sql_connection) {
 			$error = "Could not connect to MySQL server.";
 		} else {
@@ -166,6 +167,10 @@
 			if (!$select) {
 				$error = "Error accessing/creating database &ldquo;$db&rdquo;.";
 			}
+		}
+
+		if (!filter_var($cms_user, FILTER_VALIDATE_EMAIL)) {
+			$error = "An invalid email address was entered for the CMS user.";
 		}
 	}
 	
@@ -602,7 +607,7 @@ RewriteRule (.*) site/$1 [L]');
 			<form method="post" action="" class="module">
 				<h2 class="getting_started"><span></span>Getting Started</h2>
 				<fieldset class="clear">
-					<p>Welcome to the BigTree installer. If you need help with installation, <a href="http://www.bigtreecms.org/docs/dev-guide/installation/" target="_blank">check out the developer docs</a>.</p>
+					<p>Welcome to the BigTree installer. If you need help with installation, <a href="https://www.bigtreecms.org/docs/dev-guide/installation/" target="_blank">check out the developer docs</a>.</p>
 					<br />
 				</fieldset>
 				<?php
@@ -639,20 +644,20 @@ RewriteRule (.*) site/$1 [L]');
 				<hr />
 				<fieldset class="left<?php if (count($_POST) && !$host) { ?> form_error<?php } ?>">
 					<label>Hostname</label>
-					<input class="text" type="text" id="db_host" name="host" value="<?=htmlspecialchars($host)?>" tabindex="1" />
+					<input class="text" type="text" id="db_host" required name="host" value="<?=htmlspecialchars($host)?>" tabindex="1" />
 				</fieldset>
 				<fieldset class="right<?php if (count($_POST) && !$db) { ?> form_error<?php } ?>">
 					<label>Database</label>
-					<input class="text" type="text" id="db_name" name="db" value="<?=htmlspecialchars($db)?>" tabindex="2" />
+					<input class="text" type="text" id="db_name" required name="db" value="<?=htmlspecialchars($db)?>" tabindex="2" />
 				</fieldset>
 				<br class="clear" /><br />
 				<fieldset class="left<?php if (count($_POST) && !$user) { ?> form_error<?php } ?>">
 					<label>Username</label>
-					<input class="text" type="text" id="db_user" name="user" value="<?=htmlspecialchars($user)?>" tabindex="3" autocomplete="off" />
+					<input class="text" type="text" id="db_user" required name="user" value="<?=htmlspecialchars($user)?>" tabindex="3" autocomplete="off" />
 				</fieldset>
 				<fieldset class="right">
 					<label>Password</label>
-					<input class="text" type="password" id="db_pass" name="password" value="<?=htmlspecialchars($password)?>" tabindex="4" autocomplete="off" />
+					<input class="text" type="password" id="db_pass" required name="password" value="<?=htmlspecialchars($password)?>" tabindex="4" autocomplete="off" />
 				</fieldset>
 				<div class="db_port_or_socket_settings"<?php if (!$db_port_or_socket) { ?> style="display: none;"<?php } ?>>
 					<br class="clear" /><br />
@@ -730,11 +735,11 @@ RewriteRule (.*) site/$1 [L]');
 				<hr />
 				<fieldset class="left<?php if (count($_POST) && !$cms_user) { ?> form_error<?php } ?>">
 					<label>Email Address</label>
-					<input class="text" type="text" id="cms_user" name="cms_user" value="<?=htmlspecialchars($cms_user)?>" tabindex="14" autocomplete="off" />
+					<input class="text" type="email" required id="cms_user" name="cms_user" value="<?=htmlspecialchars($cms_user)?>" tabindex="14" autocomplete="off" />
 				</fieldset>
 				<fieldset class="right<?php if (count($_POST) && !$cms_pass) { ?> form_error<?php } ?>">
 					<label>Password</label>
-					<input class="text" type="password" id="cms_pass" name="cms_pass" value="<?=htmlspecialchars($cms_pass)?>" tabindex="15" autocomplete="off" />
+					<input class="text" type="password" required id="cms_pass" name="cms_pass" value="<?=htmlspecialchars($cms_pass)?>" tabindex="15" autocomplete="off" />
 				</fieldset>
 				<fieldset class="clear">
 					<br /><br />
@@ -839,8 +844,8 @@ RewriteRule (.*) site/$1 [L]');
 		        });
 		    </script>
 			<?php } ?>
-			<a href="http://www.bigtreecms.com" class="install_logo" target="_blank">BigTree</a>
-			<a href="http://www.fastspot.com" class="install_copyright" target="_blank">&copy; <?=date("Y")?> Fastspot</a>
+			<a href="https://www.bigtreecms.com" class="install_logo" target="_blank">BigTree</a>
+			<a href="https://www.fastspot.com" class="install_copyright" target="_blank">&copy; <?=date("Y")?> Fastspot</a>
 		</div>
 	</body>
 </html>
