@@ -12,6 +12,7 @@
         "ext-gd": "*",
         "ext-json": "*",
         "ext-openssl": "*",
-        "ext-curl": "*"
+        "ext-curl": "*",
+        "aws/aws-sdk-php": "^3.87"
     }
 }
