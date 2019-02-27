@@ -18,6 +18,7 @@
 	 * @method static array fetchAllSingle() fetchAllSingle(string $query = "", ...) query the database and return all results for a single column
 	 * @method static int rows() rows(string $query = "", ...) query the database and return the number of results
 	 */
+
 	class SQL {
 		
 		/** @var \mysqli */

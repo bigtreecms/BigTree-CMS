@@ -10,8 +10,9 @@
 	}
 
 	$policy = array_filter((array)$bigtree["security-policy"]["password"]) ? $bigtree["security-policy"]["password"] : false;
-
-	if ($policy) {
+	$policy_text = "";
+	
+	if (!empty($policy["length"]) || !empty($policy["mixedcase"]) || !empty($policy["numbers"]) || !empty($policy["nonalphanumeric"]))  {
 		$policy_text = "<p>".Text::translate("Requirements")."</p><ul>";
 		
 		if ($policy["length"]) {

@@ -528,6 +528,8 @@
 		*/
 		
 		static function logout(): void {
+			global $bigtree;
+			
 			// If the user asked to be remembered, drop their chain from the legit sessions and remove cookies
 			if ($login = Cookie::get(static::$Namespace."[login]")) {
 				list($session, $chain) = $login;
@@ -541,8 +543,29 @@
 				Cookie::delete(static::$Namespace."[login]");
 			}
 			
+			// Determine whether we should log out all instances of this user
+			if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+				$security_policy = Setting::value("bigtree-internal-security-policy");
+				
+				if (!empty($security_policy["logout_all"])) {
+					SQL::delete("bigtree_sessions", ["logged_in_user" => $_SESSION["bigtree_admin"]["id"]]);
+					SQL::delete("bigtree_user_sessions", ["email" => $_SESSION["bigtree_admin"]["email"]]);
+				}
+			}
+			
 			unset($_COOKIE[static::$Namespace]);
 			unset($_SESSION[static::$Namespace]);
+		}
+		
+		/*
+			Function: logoutAllUsers
+				Logs all users out of the CMS.
+				Requires the "db" state for sessions.
+		*/
+		
+		public function logoutAllUsers(): void {
+			SQL::query("DELETE FROM bigtree_sessions");
+			SQL::query("DELETE FROM bigtree_user_sessions");
 		}
 		
 		/*

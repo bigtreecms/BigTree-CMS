@@ -33,8 +33,8 @@
 				?>
 				<fieldset<?php if ($error == "password") { ?> class="form_error"<?php } ?>>
 					<label for="user_field_password" class="required"><?=Text::translate("Password")?> <?php if ($error == "password") { ?><span class="form_error_reason"><?=Text::translate("Did Not Meet Requirements")?></span><?php } ?></label>
-					<input id="user_field_password" type="password" class="required<?php if ($policy) { ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><?php } ?>" name="password" value="" tabindex="3" />
-					<?php if ($policy) { ?>
+					<input id="user_field_password" type="password" class="required<?php if ($policy_text) { ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><?php } ?>" name="password" value="" tabindex="3" />
+					<?php if ($policy_text) { ?>
 					<p class="password_policy"><?=Text::translate("Password Policy In Effect")?></p>
 					<?php } ?>
 				</fieldset>

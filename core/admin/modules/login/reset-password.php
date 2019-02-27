@@ -57,7 +57,7 @@
 ?>
 <div id="login">
 	<form method="post" action="" class="module">
-		<h2><?=Text::translate(isset($_GET["welcome"]) ? "Set Your Password" : "Reset Your Password"))?></h2>
+		<h2><?=Text::translate(isset($_GET["welcome"]) ? "Set Your Password" : "Reset Your Password")?></h2>
 		<?php
 			if ($failure) {
 		?>

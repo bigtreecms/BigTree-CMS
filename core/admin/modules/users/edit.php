@@ -184,8 +184,8 @@
 				
 				<fieldset<?php if ($error == "password") { ?> class="form_error"<?php } ?> >
 					<label for="password_field"><?=Text::translate("Password")?> <small>(<?=Text::translate("Leave blank to remain unchanged")?>)</small> <?php if ($error == "password") { ?><span class="form_error_reason"><?=Text::translate("Did Not Meet Requirements")?></span><?php } ?></label>
-					<input type="password" name="password" value="" tabindex="3" autocomplete="off" id="password_field"<?php if ($policy) { ?> class="has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?>"<?php } ?> />
-					<?php if ($policy) { ?>
+					<input type="password" name="password" value="" tabindex="3" autocomplete="off" id="password_field"<?php if ($policy_text) { ?> class="has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?>"<?php } ?> />
+					<?php if ($policy_text) { ?>
 					<p class="password_policy"><?=Text::translate("Password Policy In Effect")?></p>
 					<?php } ?>
 				</fieldset>

@@ -27,7 +27,8 @@
 		"allowed_ips" => $_POST["allowed_ips"],
 		"banned_ips" => $_POST["banned_ips"],
 		"remember_disabled" => $_POST["remember_disabled"] ? "on" : "",
-		"two_factor" => $_POST["two_factor"]
+		"two_factor" => $_POST["two_factor"],
+		"logout_all" => !empty($_POST["logout_all"]) ? "on" : ""
 	];
 	$setting->save();
 	

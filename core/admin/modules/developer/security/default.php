@@ -1,7 +1,17 @@
 <?php
 	namespace BigTree;
+	
+	/**
+	 * @global array $bigtree
+	 */
 
 	$security_policy = Setting::value("bigtree-internal-security-policy");
+	
+	if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+		$session_handler = "db";
+	} else {
+		$session_handler = "default";
+	}
 ?>
 <div class="container" id="security_settings">
 	<form method="post" action="<?=DEVELOPER_ROOT?>security/update/">
@@ -65,7 +75,19 @@
 						<input id="security_field_remember_disabled" type="checkbox" name="remember_disabled" value="on"<?php if ($security_policy["remember_disabled"] == "on") { ?> checked<?php } ?>>
 						<label for="security_field_remember_disabled" class="for_checkbox"><?=Text::translate('Disable "Remember Me" Function')?></label>
 					</fieldset>
+					
+					<?php
+						if ($session_handler == "db") {
+					?>
+					<fieldset>
+						<input id="security_settings_field_logout_all" type="checkbox" name="logout_all" value="on"<?php if ($security_policy["logout_all"] == "on") { ?> checked<?php } ?>>
+						<label for="security_settings_field_logout_all" class="for_checkbox"><?=Text::translate("Logout All Users Sessions When User Clicks Logout")?></label>
+					</fieldset>
+					<?php
+						}
+					?>
 				</div>
+				
 				<div class="right">
 					<fieldset>
 						<h3><?=Text::translate("Allowed IP Ranges")?></h3>
@@ -78,6 +100,15 @@
 						<p><?=Text::translate("Include a list of IP addresses you wish to permanently ban from logging into the admin area (one per line).")?></p>
 						<textarea name="banned_ips"><?=Text::htmlEncode($security_policy["banned_ips"])?></textarea>
 					</fieldset>
+					
+					<?php
+						if ($session_handler == "db") {
+					?>
+					<a class="button red" href="<?=DEVELOPER_ROOT?>security/logout-all/">Logout All Users</a>
+					<?php
+						}
+					?>
+
 				</div>
 			</div>
 		</section>
