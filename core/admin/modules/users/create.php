@@ -1,12 +1,17 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global array $policy
+	 */
+	
 	CSRF::verify();
 	
 	// Check security policy
-	if (!User::validatePassword($_POST["password"])) {
+	if (empty($policy["invitations"]) && !User::validatePassword($_POST["password"])) {
 		$_SESSION["bigtree_admin"]["create_user"] = $_POST;
 		$_SESSION["bigtree_admin"]["create_user"]["error"] = "password";
+		
 		Utils::growl("Users", "Invalid Password", "error");
 		Router::redirect(ADMIN_ROOT."users/add/");
 	}
@@ -22,6 +27,7 @@
 	if ($user === false) {
 		$_SESSION["bigtree_admin"]["create_user"] = $_POST;
 		$_SESSION["bigtree_admin"]["create_user"]["error"] = "email";
+		
 		Utils::growl("Users", "Creation Failed", "error");
 		Router::redirect(ADMIN_ROOT."users/add/");
 	}

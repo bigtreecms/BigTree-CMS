@@ -11,7 +11,6 @@
 	 * @property-read string $Service
 	 * @property-read array $Settings
 	 */
-	
 	class Email extends BaseObject {
 		
 		protected $Service;
@@ -45,6 +44,20 @@
 			if (!$this->Service) {
 				$this->Service = "Local";
 			}
+			
+			if (empty($this->Settings["bigtree_from"])) {
+				$from_email = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.", "", $_SERVER["HTTP_HOST"]) : str_replace(["http://www.", "https://www.", "http://", "https://"], "", DOMAIN));
+			} else {
+				$from_email = $this->Settings["bigtree_from"];
+			}
+			
+			if (empty($this->Settings["bigtree_from_name"])) {
+				$from_name = "BigTree CMS";
+			} else {
+				$from_name = $this->Settings["bigtree_from_name"];
+			}
+			
+			$this->From = $from_name." <".$from_email.">";
 		}
 		
 		/*

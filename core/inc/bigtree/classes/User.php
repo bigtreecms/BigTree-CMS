@@ -9,7 +9,8 @@
 	
 	use Hautelook\Phpass\PasswordHash;
 	
-	class User extends BaseObject {
+	class User extends BaseObject
+	{
 		
 		/**
 		 * @property-read string $Gravatar
@@ -41,7 +42,8 @@
 				user - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($user = null) {
+		function __construct($user = null)
+		{
 			if ($user !== null) {
 				// Passing in just an ID
 				if (!is_array($user)) {
@@ -113,7 +115,9 @@
 		*/
 		
 		static function create(string $email, ?string $password = null, ?string $name = null, ?string $company = null,
-							   int $level = 0, array $permissions = [], array $alerts = [], bool $daily_digest = false): ?User {
+							   int $level = 0, array $permissions = [], array $alerts = [], bool $daily_digest = false,
+							   ?string $timezone = ""): ?User
+		{
 			global $bigtree;
 			
 			// See if user exists already
@@ -121,22 +125,46 @@
 				return null;
 			}
 			
-			// Hash the password.
-			$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
-			$password = $phpass->HashPassword(trim($password));
-			
-			// Create the user
-			$id = SQL::insert(static::$Table, [
-				"email" => $email,
-				"password" => $password,
+			$insert = [
+				"email" => Text::htmlEncode($email),
+				"level" => $level,
 				"name" => Text::htmlEncode($name),
 				"company" => Text::htmlEncode($company),
-				"level" => intval($level),
-				"permissions" => $permissions ?: "{}",
-				"alerts" => $alerts ?: "{}",
-				"daily_digest" => ($daily_digest ? "on" : "")
-			]);
+				"daily_digest" => $daily_digest ? "on" : "",
+				"alerts" => $alerts,
+				"permissions" => $permissions,
+				"timezone" => $timezone
+			];
 			
+			if (empty($bigtree["security-policy"]["password"]["invitations"])) {
+				$insert["password"] = password_hash(trim($password), PASSWORD_DEFAULT);
+				$insert["new_hash"] = "on";
+			} else {
+				$insert["change_password_hash"] = $hash = Text::getRandomString(64);
+				
+				while (SQL::exists("bigtree_users", ["change_password_hash" => $insert["change_password_hash"]])) {
+					$insert["change_password_hash"] = Text::getRandomString(64);
+				}
+				
+				$site_title = SQL::fetchSingle("SELECT `nav_title` FROM `bigtree_pages` WHERE id = 0");
+				$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://", "https://", ADMIN_ROOT) : ADMIN_ROOT)."login/";
+				
+				$html = file_get_contents(Router::getIncludePath("admin/email/welcome.html"));
+				$html = str_ireplace("{www_root}", WWW_ROOT, $html);
+				$html = str_ireplace("{admin_root}", ADMIN_ROOT, $html);
+				$html = str_ireplace("{site_title}", $site_title, $html);
+				$html = str_ireplace("{person}", Auth::$Name, $html);
+				$html = str_ireplace("{reset_link}", $login_root."reset-password/$hash/?welcome", $html);
+				
+				$email_obj = new Email;
+				$email_obj->To = $email;
+				$email_obj->Title = "$site_title - Set Your Password";
+				$email_obj->HTML = $html;
+				$email_obj->ReplyTo = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.", "", $_SERVER["HTTP_HOST"]) : str_replace(["http://www.", "https://www.", "http://", "https://"], "", DOMAIN));
+				$email_obj->send();
+			}
+			
+			$id = SQL::insert(static::$Table, $insert);
 			AuditTrail::track(static::$Table, $id, "created");
 			
 			return new User($id);
@@ -147,7 +175,8 @@
 				Deletes the user
 		*/
 		
-		function delete(): ?bool {
+		function delete(): ?bool
+		{
 			SQL::delete(static::$Table, $this->ID);
 			AuditTrail::track(static::$Table, $this->ID, "deleted");
 			
@@ -174,7 +203,8 @@
 				A User object or null if the user was not found
 		*/
 		
-		static function getByEmail(string $email): ?User {
+		static function getByEmail(string $email): ?User
+		{
 			$user = SQL::fetch("SELECT * FROM ".static::$Table." WHERE LOWER(email) = ?", trim(strtolower($email)));
 			
 			if ($user) {
@@ -195,7 +225,8 @@
 				A User object or null if the user was not found
 		*/
 		
-		static function getByHash(string $hash): ?User {
+		static function getByHash(string $hash): ?User
+		{
 			$user = SQL::fetch("SELECT * FROM ".static::$Table." WHERE change_password_hash = ?", $hash);
 			
 			if ($user) {
@@ -210,7 +241,8 @@
 				Returns a user gravatar.
 		*/
 		
-		public static function gravatar(string $email, int $size = 56, ?string $default = null, string $rating = "g"): string {
+		public static function gravatar(string $email, int $size = 56, ?string $default = null, string $rating = "g"): string
+		{
 			if (!$default) {
 				global $bigtree;
 				
@@ -232,7 +264,8 @@
 				true if the user is banned
 		*/
 		
-		public function getIsBanned(): bool {
+		public function getIsBanned(): bool
+		{
 			// See if this user is banned due to failed login attempts
 			$ban = SQL::fetch("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND `user` = ?", $this->ID);
 			
@@ -250,7 +283,8 @@
 				Creates a new password change hash and sends an email to the user.
 		*/
 		
-		function initPasswordReset(): void {
+		function initPasswordReset(): void
+		{
 			global $bigtree;
 			
 			// Update the user's password reset hash code
@@ -274,7 +308,6 @@
 			$email->To = $this->Email;
 			$email->Subject = "Reset Your Password";
 			$email->HTML = $html;
-			$email->From = $email->Settings["bigtree_from"] ?: $reply_to;
 			$email->ReplyTo = $reply_to;
 			
 			$email->send();
@@ -285,23 +318,9 @@
 				Removes all login bans for the user
 		*/
 		
-		function removeBans(): void {
+		function removeBans(): void
+		{
 			SQL::delete("bigtree_login_bans", ["user" => $this->ID]);
-		}
-		
-		/*
-			Function: setPasswordHash
-				Creates a change password hash for a user
-
-			Returns:
-				A change password hash.
-		*/
-		
-		function setPasswordHash(): string {
-			$hash = md5(microtime().$this->Password);
-			SQL::update("bigtree_users", $this->ID, ["change_password_hash" => $hash]);
-			
-			return $hash;
 		}
 		
 		/*
@@ -309,7 +328,8 @@
 				Saves the current object properties back to the database.
 		*/
 		
-		function save(): ?bool {
+		function save(): ?bool
+		{
 			if (empty($this->ID)) {
 				$new = static::create(
 					$this->Email,
@@ -332,8 +352,6 @@
 					return true;
 				}
 			} else {
-				global $bigtree;
-				
 				$update_values = [
 					"email" => $this->Email,
 					"name" => Text::htmlEncode($this->Name),
@@ -345,8 +363,8 @@
 				];
 				
 				if ($this->Password != $this->OriginalPassword) {
-					$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
-					$update_values["password"] = $phpass->HashPassword(trim($this->Password));
+					$update_values["password"] = password_hash(trim($this->Password), PASSWORD_DEFAULT);
+					$update_values["new_hash"] = "on";
 				}
 				
 				SQL::update(static::$Table, $this->ID, $update_values);
@@ -354,6 +372,22 @@
 				
 				return true;
 			}
+		}
+		
+		/*
+			Function: setPasswordHash
+				Creates a change password hash for a user
+
+			Returns:
+				A change password hash.
+		*/
+		
+		function setPasswordHash(): string
+		{
+			$hash = md5(microtime().$this->Password);
+			SQL::update("bigtree_users", $this->ID, ["change_password_hash" => $hash]);
+			
+			return $hash;
 		}
 		
 		/*
@@ -375,7 +409,8 @@
 		*/
 		
 		function update(string $email, ?string $password = null, ?string $name = null, ?string $company = null,
-						int $level = 0, array $permissions = [], array $alerts = [], bool $daily_digest = false): bool {
+						int $level = 0, array $permissions = [], array $alerts = [], bool $daily_digest = false): bool
+		{
 			// See if there's an email collission
 			if (SQL::fetchSingle("SELECT COUNT(*) FROM ".static::$Table." WHERE `email` = ? AND `id` != ?", $email, $this->ID)) {
 				return false;
@@ -410,7 +445,8 @@
 		*/
 		
 		static function updateProfile(string $name, ?string $company = null, bool $daily_digest = false,
-									  ?string $password = null): bool {
+									  ?string $password = null): bool
+		{
 			global $bigtree;
 			
 			$user = Auth::user()->ID;
@@ -449,7 +485,8 @@
 				true if it passes all password criteria.
 		*/
 		
-		static function validatePassword(string $password): bool {
+		static function validatePassword(string $password): bool
+		{
 			global $bigtree;
 			
 			$policy = $bigtree["security-policy"]["password"];
@@ -471,7 +508,7 @@
 			}
 			
 			// Check non-alphanumeric policy
-			if ($policy["nonalphanumeric"] && ctype_alnum($password)) {
+			if (function_exists("ctype_alnum") && $policy["nonalphanumeric"] && ctype_alnum($password)) {
 				$failed = true;
 			}
 			

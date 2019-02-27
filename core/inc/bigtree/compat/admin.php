@@ -799,7 +799,7 @@
 				Supports pre-4.3 syntax by passing an array as the first parameter.
 
 			Parameters:
-				data - An array of user data. ("email", "password", "name", "company", "level", "permissions","alerts")
+				data - An array of user data. ("email", "password", "name", "company", "level", "permissions", "alerts", "timezone")
 
 			Returns:
 				id of the newly created user or false if a user already exists with the provided email.
@@ -807,7 +807,7 @@
 
 		function createUser($data) {
 			// Set defaults
-			$email = $password = $name = $company = $level = $daily_digest = "";
+			$email = $password = $name = $company = $level = $daily_digest = $timezone = "";
 			$permissions = $alerts = array();
 
 			// Loop through and create our expected parameters.
@@ -817,7 +817,7 @@
 				}
 			}
 
-			$user = BigTree\User::create($email, $password, $name, $company, $level, $permissions, $alerts, $daily_digest ? true : false);
+			$user = BigTree\User::create($email, $password, $name, $company, $level, $permissions, $alerts, $daily_digest ? true : false, $timezone);
 
 			return $user ? $user->ID : false;
 		}
@@ -4245,13 +4245,14 @@
 				level - User Level (0 for regular, 1 for admin, 2 for developer)
 				permission - Array of permissions data
 				alerts - Array of alerts data
-				daily_digest - Whether the user wishes to receive the daily digest email
+				daily_digest - Whether the user wishes to receive the daily digest email,
+				timezone - The user's timezone
 
 			Returns:
 				True if successful.  False if the logged in user doesn't have permission to change the user or there was an email collision.
 		*/
 
-		function updateUser($id, $email, $password = "", $name = "", $company = "", $level = 0, $permissions = array(), $alerts = array(), $daily_digest = "") {
+		function updateUser($id, $email, $password = "", $name = "", $company = "", $level = 0, $permissions = array(), $alerts = array(), $daily_digest = "", $timezone = "") {
 			// Allow for pre-4.3 syntax
 			if (is_array($email)) {
 				$data = $email;
@@ -4264,7 +4265,7 @@
 
 			$user = new BigTree\User($id);
 
-			return $user->update($email, $password, $name, $company, $level, $permissions, $alerts, $daily_digest ? true : false);
+			return $user->update($email, $password, $name, $company, $level, $permissions, $alerts, $daily_digest ? true : false, $timezone);
 		}
 
 		/*

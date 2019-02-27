@@ -25,6 +25,7 @@
 	
 	$email_setting->Value["service"] = $_POST["service"];
 	$email_setting->Value["settings"]["bigtree_from"] = $_POST["bigtree_from"];
+	$email_setting->Value["settings"]["bigtree_from_name"] = $_POST["bigtree_from_name"];
 	
 	$email_setting->save();
 

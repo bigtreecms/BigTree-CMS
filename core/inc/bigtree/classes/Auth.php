@@ -242,7 +242,8 @@
 		*/
 		
 		static function login(string $email, string $password, bool $stay_logged_in = false, ?string $domain = null,
-							  string $two_factor_token = null): bool {
+							  string $two_factor_token = null): bool
+		{
 			global $bigtree;
 			
 			$user_class = static::$UserClass;
@@ -274,9 +275,26 @@
 					return false;
 				}
 				
-				// Verify password
-				$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
-				$login_validated = $phpass->CheckPassword(trim($password), $user->Password);
+				// BigTree 4.3+ switch to password_hash
+				if ($user["new_hash"]) {
+					$login_validated = password_verify($password, $user["password"]);
+					
+					// New algorithm
+					if ($login_validated && password_needs_rehash($user["password"], PASSWORD_DEFAULT)) {
+						SQL::update("bigtree_users", $user["id"], ["password" => password_hash($password, PASSWORD_DEFAULT)]);
+					}
+				} else {
+					$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
+					$login_validated = $phpass->CheckPassword($password, $user["password"]);
+					
+					// Switch to password_hash
+					if ($login_validated) {
+						SQL::update("bigtree_users", $user["id"], [
+							"password" => password_hash($password, PASSWORD_DEFAULT),
+							"new_hash" => "on"
+						]);
+					}
+				}
 			}
 			
 			if ($login_validated) {

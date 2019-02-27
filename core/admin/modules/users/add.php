@@ -28,6 +28,9 @@
 					<span class="gravatar"<?php if ($email != "") echo ' style="display: block;"'; ?>><img src="<?=User::gravatar($email, 36)?>" alt="" /></span>
 				</fieldset>
 				
+				<?php
+					if (empty($policy["invitations"])) {
+				?>
 				<fieldset<?php if ($error == "password") { ?> class="form_error"<?php } ?>>
 					<label for="user_field_password" class="required"><?=Text::translate("Password")?> <?php if ($error == "password") { ?><span class="form_error_reason"><?=Text::translate("Did Not Meet Requirements")?></span><?php } ?></label>
 					<input id="user_field_password" type="password" class="required<?php if ($policy) { ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><?php } ?>" name="password" value="" tabindex="3" />
@@ -35,6 +38,9 @@
 					<p class="password_policy"><?=Text::translate("Password Policy In Effect")?></p>
 					<?php } ?>
 				</fieldset>
+				<?php
+					}
+				?>
 				
 				<fieldset>
 					<label for="user_field_level" class="required"><?=Text::translate("User Level")?></label>
