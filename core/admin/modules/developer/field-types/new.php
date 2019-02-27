@@ -1,5 +1,5 @@
 <?php
-	$id = end($bigtree["path"]);
+	$id = htmlspecialchars(end($bigtree["path"]));
 ?>
 <div class="container">
 	<section>
