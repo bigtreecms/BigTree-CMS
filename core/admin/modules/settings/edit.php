@@ -14,24 +14,25 @@
 		Auth::stop("The setting you are trying to edit no longer exists or you do not have permission to edit it.",
 					Router::getIncludePath("admin/layouts/_error.php"));
 	}
-
-	// Provide developers a nice handy link for edit/return of this view
-	if (Auth::user()->Level > 1) {
-		$bigtree["subnav_extras"][] = array("link" => ADMIN_ROOT."developer/settings/edit/".$setting->ID."/?return=front",
-											"icon" => "setup",
-											"title" => "Edit in Developer"
-		);
-	}
-
+	
 	$bigtree["field_types"] = FieldType::reference(false,"settings");
 
 	Field::$Namespace = uniqid("setting_field_");
 ?>
 <div class="container">
+	<?php
+		if (Auth::user()->Level > 1) {
+	?>
+	<div class="developer_buttons">
+		<a href="<?=ADMIN_ROOT?>developer/settings/edit/<?=$setting->ID?>/" title="<?=Text::translate("Edit Setting in Developer", true)?>">
+			<?=Text::translate("Edit Setting in Developer")?>
+			<span class="icon_small icon_small_edit_yellow"></span>
+		</a>
+	</div>
+	<?php
+		}
+	?>
 	<div class="container_summary">
-		<?php if (Auth::user()->Level > 1) { ?>
-		<a class="button" href="<?=ADMIN_ROOT?>developer/settings/edit/<?=$setting->ID?>/?return=front"><?=Text::translate("Edit in Developer")?></a>
-		<?php } ?>
 		<h2><?=$setting->Name?></h2>
 	</div>
 	<form class="module" action="<?=ADMIN_ROOT?>settings/update/" method="post" enctype="multipart/form-data">

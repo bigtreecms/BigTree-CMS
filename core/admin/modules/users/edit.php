@@ -17,20 +17,6 @@
 					Router::getIncludePath("admin/layouts/_error.php"));
 	}
 	
-	// Add a nice audit trail quick link
-	if (Auth::user()->Level > 1) {
-		$bigtree["subnav_extras"][] = [
-			"link" => ADMIN_ROOT."developer/audit/search/?user=".$user["id"]."&".CSRF::$Field."=".urlencode(CSRF::$Token),
-			"icon" => "trail",
-			"title" => "View Audit Trail"
-		];
-		$bigtree["subnav_extras"][] = [
-			"link" => ADMIN_ROOT."developer/security/remove-2fa/?user=".$user["id"]."&".CSRF::$Field."=".urlencode(CSRF::$Token),
-			"icon" => "delete",
-			"title" => "Remove Two Factor Authentication"
-		];
-	}
-	
 	// Show gravatar as header icon
 	$bigtree["gravatar"] = $user->Email;
 
@@ -170,6 +156,29 @@
 	$groups[] = array("id" => 0, "name" => Text::translate("- Ungrouped -"));
 ?>
 <div class="container">
+	<?php
+		if (Auth::user()->Level > 1) {
+	?>
+	<div class="developer_buttons">
+		<a href="<?=ADMIN_ROOT?>developer/audit/search/?user=<?=$user->ID?>&<?php CSRF::drawGETToken(); ?>" title="<?=Text::translate("View Audit Trail for User", true)?>">
+			<?=Text::translate("View Audit Trail for User")?>
+			<span class="icon_small icon_small_trail"></span>
+		</a>
+		<?php
+			if (!empty($user->TwoFactorSecret)) {
+		?>
+		<a href="<?=ADMIN_ROOT?>developer/security/remove-2fa/?user=<?=$user-ID?>&<?php CSRF::drawGETToken(); ?>" title="<?=Text::translate("Remove Two Factor Authentication for User", true)?>">
+			<?=Text::translate("Remove Two Factor Authentication for User")?>
+			<span class="icon_small icon_small_warning"></span>
+		</a>
+		<?php
+			}
+		?>
+	</div>
+	<?php
+		}
+	?>
+
 	<form class="module" action="<?=ADMIN_ROOT?>users/update/" method="post">
 		<?php CSRF::drawPOSTToken(); ?>
 		<input type="hidden" name="id" value="<?=$user->ID?>" />

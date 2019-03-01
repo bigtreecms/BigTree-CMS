@@ -27,6 +27,8 @@
 ?>
 <div class="table auto_modules image_list">
 	<?php
+		include Router::getIncludePath("admin/auto-modules/views/_developer-buttons.php");
+
 		if (($module_permission == "p" && $draggable) || isset($view["actions"]["edit"])) {
 	?>
 	<div class="table_summary">

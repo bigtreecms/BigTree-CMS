@@ -18,6 +18,23 @@
 		</fieldset>
 		<?php
 			} else {
+				if (Auth::user()->Level > 1) {
+		?>
+		<div class="developer_buttons">
+			<a href="<?=ADMIN_ROOT?>developer/modules/forms/edit/<?=$form->ID?>/?return=front" title="<?=Text::translate("Edit Form in Developer", true)?>">
+				<?=Text::translate("Edit Form in Developer")?>
+				<span class="icon_small icon_small_edit_yellow"></span>
+			</a>
+			<?php if (!empty($bigtree["edit_id"])) { ?>
+			<a href="<?=ADMIN_ROOT?>developer/audit/search/?table=<?=$form->Table?>&entry=<?=$bigtree["edit_id"]?><?php CSRF::drawGETToken(); ?>" title="<?=Text::translate("View Entry Audit Trail", true)?>">
+				<?=Text::translate("View Entry Audit Trail")?>
+				<span class="icon_small icon_small_trail"></span>
+			</a>
+			<?php } ?>
+		</div>
+		<?php
+				}
+
 				CSRF::drawPOSTToken();
 			}
 		?>
@@ -87,7 +104,7 @@
 			<?php if (!empty($form->Tagging)) { ?>
 			<div class="tags" id="bigtree_tag_browser">
 				<?php
-					if ($admin->Level > 0) {
+					if (Auth::user()->Level > 0) {
 				?>
 				<a href="<?=ADMIN_ROOT?>tags/" class="bigtree_tag_browser_manager"><?=Text::translate("Manage All Tags")?></a>
 				<?php

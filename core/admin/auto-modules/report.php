@@ -6,16 +6,7 @@
 	 * @global ModuleInterface $interface
 	 */
 	
-	$report = new ModuleReport($interface->Array);
-
-	if (Auth::user()->Level > 1) {
-		$bigtree["subnav_extras"][] = array(
-			"link" => ADMIN_ROOT."developer/modules/reports/edit/".$report->ID."/?return=front",
-			"icon" => "setup",
-			"title" => "Edit in Developer"
-		);
-	}
-	
+	$report = new ModuleReport($interface->Array);	
 	$action = $bigtree["commands"][0];
 
 	if ($action == "csv") {

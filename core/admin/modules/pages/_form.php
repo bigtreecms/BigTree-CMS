@@ -1,10 +1,50 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global array $bigtree
+	 */
+	
 	// Include pages.js
 	$bigtree["js"][] = "pages.js";
 ?>
 <div class="container">
+	<?php
+		if ($bigtree["form_action"] != "create") {
+	?>
+	<div class="developer_buttons">
+		<?php
+			if (Auth::user()->Level > 1) {
+				if ($bigtree["current_page"]["template"] && $bigtree["current_page"]["template"] != "!") {
+		?>
+		<a href="<?=ADMIN_ROOT?>developer/templates/edit/<?=$bigtree["current_page"]["template"]?>/?return=<?=$bigtree["current_page"]["id"]?>" title="<?=Text::translate("Edit Current Template in Developer", true)?>">
+			<?=Text::translate("Edit Current Template in Developer")?>
+			<span class="icon_small icon_small_edit_yellow"></span>
+		</a>
+		<?php
+				}
+		?>
+		<a href="<?=ADMIN_ROOT?>developer/audit/search/?table=bigtree_pages&entry=<?=$bigtree["current_page"]["id"]?>&<?php CSRF::drawGETToken(); ?>" title="<?=Text::translate("View Page in Audit Trail", true)?>">
+			<?=Text::translate("View Page in Audit Trail")?>
+			<span class="icon_small icon_small_trail"></span>
+		</a>
+		<?php
+			}
+
+			if (Auth::user()->Level > 0) {
+		?>
+		<a href="<?=ADMIN_ROOT?>pages/access-levels/<?=$bigtree["current_page"]["id"]?>/" title="<?=Text::translate("View User Access Levels", true)?>">
+			<?=Text::translate("View User Access Levels")?>
+			<span class="icon_small icon_small_user"></span>
+		</a>
+		<?php
+			}
+		?>
+	</div>
+	<?php
+		}
+	?>
+
 	<header>
 		<div class="sticky_controls">
 			<div class="shadow">

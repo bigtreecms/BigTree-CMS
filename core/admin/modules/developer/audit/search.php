@@ -8,12 +8,12 @@
 	CSRF::verify();
 	
 	$results = AuditTrail::search($_GET["user"], $_GET["table"], $_GET["entry"], $_GET["start"], $_GET["end"]);
-	$json_data = array();
+	$json_data = [];
 	$deleted_translation = Text::translate("DELETED");
 	
 	// Setup a cache so we don't query for things more than once
-	$cache = array();
-	$colors = array(
+	$cache = [];
+	$colors = [
 		"created" => '<span style="color: green;">'.Text::translate("Created").'</span>',
 		"deleted" => '<span style="color: #CC0000;">'.Text::translate("Deleted").'</span>',
 		"updated" => Text::translate("Updated"),
@@ -25,7 +25,7 @@
 		"saved-draft" => Text::translate("Saved Draft"),
 		"created-pending" => '<span style="color: green;">'.Text::translate("Created Pending").'</span>',
 		"cleared-empty" => Text::translate("Cleared Empty")
-	);
+	];
 	
 	foreach ($results as $result) {
 		$link = $data = false;
@@ -248,22 +248,22 @@
 		
 		if ($result["user"]["deleted"]) {
 			$user_text = '<a href="'.DEVELOPER_ROOT.'audit/search/?user='.$result["user"]["id"].CSRF::drawGETToken().'">'.
-							$result["user"]["name"]." ($deleted_translation)".
-						 '</a>';
+				$result["user"]["name"]." ($deleted_translation)".
+				'</a>';
 		} else {
 			$user_text = '<a target="_blank" href="'.ADMIN_ROOT.'users/edit/'.$result["user"]["id"].'/">'.
-							$result["user"]["name"].
-						 '</a>';
+				$result["user"]["name"].
+				'</a>';
 		}
 		
-		$json_data[] = array(
+		$json_data[] = [
 			"date" => date($bigtree["config"]["date_format"]." @ g:ia", strtotime($result["date"])),
 			"user" => $user_text,
 			"table" => $result["table"],
 			"entry" => $link ? '<a href="'.$link.'" target="_blank">'.$title.'</a>' : $title,
 			"action" => $colors[$result["type"]] ?: Text::translate(ucwords(str_replace("-", " ", $result["type"]))),
 			"type" => $result["type"]
-		);
+		];
 		
 		// Save data to cache if we retrieved some
 		if ($data && !isset($cache[$result["table"]][$result["entry"]])) {

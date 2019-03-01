@@ -13,14 +13,15 @@
 	} else {
 		$setting = new Setting(end($bigtree["path"]));
 	}
-	
-	$bigtree["subnav_extras"][] = [
-		"title" => "Edit Value",
-		"link" => ADMIN_ROOT."settings/edit/".$setting->ID."/",
-		"icon" => "setup"
-	];
 ?>
 <div class="container">
+	<div class="developer_buttons">
+		<a href="<?=ADMIN_ROOT?>settings/edit/<?=$setting->ID?>/" title="<?=Text::translate("Edit Setting Value", true)?>">
+			<?=Text::translate("Edit Setting Value")?>
+			<span class="icon_small icon_small_edit_yellow"></span>
+		</a>
+	</div>
+
 	<form class="module" method="post" action="<?=DEVELOPER_ROOT?>settings/update/<?=$setting->ID?>/">
 		<?php include Router::getIncludePath("admin/modules/developer/settings/_form-content.php"); ?>
 		<footer>

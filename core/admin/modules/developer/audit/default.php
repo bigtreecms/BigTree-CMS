@@ -36,6 +36,7 @@
 						<option value="bigtree_pages"><?=Text::translate("Pages")?></option>
 						<option value="bigtree_users"><?=Text::translate("Users")?></option>
 						<option value="bigtree_settings"><?=Text::translate("Settings")?></option>
+						<option value="bigtree_resources"><?=Text::translate("Files")?></option>
 					</optgroup>
 					<optgroup label="Modules">
 						<?php SQL::drawTableSelectOptions() ?>

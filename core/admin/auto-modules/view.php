@@ -10,15 +10,6 @@
 	$view->calculateFieldWidths();
 	$bigtree["view"] = $view->Array;
 
-	// Provide developers a nice handy link for edit/return of this view
-	if (Auth::user()->Level > 1) {
-		$bigtree["subnav_extras"][] = array(
-			"link" => ADMIN_ROOT."developer/modules/views/edit/".$view->ID."/?return=front",
-			"icon" => "setup",
-			"title" => "Edit in Developer"
-		);
-	}
-
 	if ($view->Description && !$_COOKIE["bigtree_admin"]["ignore_view_description"][$view->ID]) {
 ?>
 <section class="inset_block">

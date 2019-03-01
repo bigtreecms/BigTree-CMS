@@ -10,6 +10,9 @@
 	$query = isset($_GET["search"]) ? htmlspecialchars($_GET["search"]) : "";
 ?>
 <div class="table">
+	<?php
+		include Router::getIncludePath("admin/auto-modules/views/_developer-buttons.php");
+	?>
 	<div class="table_summary">
 		<input type="search" class="form_search" id="search" placeholder="<?=Text::translate("Search", true)?>" value="<?=$query?>" />
 		<span class="form_search_icon"></span>

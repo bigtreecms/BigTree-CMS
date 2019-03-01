@@ -35,6 +35,9 @@
 	}
 </script>
 <div class="table auto_modules nested_table" id="nested_container">
+	<?php
+		include Router::getIncludePath("admin/auto-modules/views/_developer-buttons.php");
+	?>
 	<div class="table_summary">
 		<input type="search" class="form_search" id="search" placeholder="<?=Text::translate("Search", true)?>" value="<?=$query?>" />
 		<span class="form_search_icon"></span>

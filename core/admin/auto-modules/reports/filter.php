@@ -9,6 +9,18 @@
 ?>
 <div class="container">
 	<form method="post" action="<?=ADMIN_ROOT.$module->Route."/".$bigtree["module_action"]["route"]."/".$report->Type?>/">
+		<?php
+			if (Auth::user()->Level > 1) {
+		?>
+		<div class="developer_buttons">
+			<a href="<?=ADMIN_ROOT?>developer/modules/reports/edit/<?=$report->ID?>/?return=front" title="<?=Text::translate("Edit Report in Developer", true)?>">
+				<?=Text::translate("Edit Report in Developer")?>
+				<span class="icon_small icon_small_edit_yellow"></span>
+			</a>
+		</div>
+		<?php
+			}
+		?>
 		<section>
 			<?php
 				foreach ($report->Filters as $id => $filter) {
