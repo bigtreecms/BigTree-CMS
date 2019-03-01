@@ -295,6 +295,7 @@
 				expire_at - Expiration time (or false for no expiration)
 				max_age - Content age (in days) allowed before alerts are sent (0 for no max)
 				tags - An array of tags to apply to the page (optional)
+				change_being_published - The ID of the change being published (optional)
 
 			Returns:
 				A Page object.
@@ -303,7 +304,7 @@
 		static function create(bool $trunk, ?int $parent, bool $in_nav, string $nav_title, string $title, ?string $route,
 							   ?string $meta_description, bool $seo_invisible, string $template, ?string $external,
 							   bool $new_window, ?array $resources, ?string $publish_at, ?string $expire_at, ?int $max_age,
-							   ?array $tags = []): Page {
+							   ?array $tags = [], ?int $change_being_published = null): Page {
 			// Clean up either their desired route or the nav title
 			$route = Link::urlify($route ?: $nav_title);
 			
@@ -342,8 +343,7 @@
 			// Set the trunk flag back to no if the user isn't a developer
 			$trunk = ($trunk ? "on" : "");
 			
-			// Create the page
-			$id = SQL::insert("bigtree_pages", [
+			$insert = [
 				"trunk" => $trunk,
 				"parent" => $parent,
 				"nav_title" => Text::htmlEncode($nav_title),
@@ -362,15 +362,53 @@
 				"publish_at" => ($publish_at ? date("Y-m-d", strtotime($publish_at)) : null),
 				"expire_at" => ($expire_at ? date("Y-m-d", strtotime($expire_at)) : null),
 				"max_age" => intval($max_age)
-			]);
+			];
+			
+			if (!is_null($change_being_published)) {
+				$pending_change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $change_being_published);
+				
+				if ($pending_change) {
+					$changes = Link::decode(json_decode($pending_change["changes"], true));
+					$exact = true;
+					
+					foreach ($changes as $key => $value) {
+						if ($key == "route" && empty($value)) {
+							continue;
+						}
+						
+						if (isset($insert[$key]) && $insert[$key] != $value) {
+							$exact = false;
+						}
+					}
+					
+					if ($exact) {
+						$insert["last_edited_by"] = $pending_change["user"];
+					}
+					
+					SQL::delete("bigtree_pending_changes", $change_being_published);
+				}
+			} else {
+				$pending_change = null;
+			}
+			
+			// Create the page
+			$id = SQL::insert("bigtree_pages", $insert);
 			
 			// Handle tags
-			foreach (array_filter((array) $tags) as $tag) {
-				SQL::insert("bigtree_tags_rel", [
-					"table" => "bigtree_pages",
-					"entry" => $id,
-					"tag" => $tag
-				]);
+			if (is_array($tags)) {
+				$tags = array_filter($tags);
+
+				foreach ($tags as $tag) {
+					SQL::insert("bigtree_tags_rel", [
+						"table" => "bigtree_pages",
+						"entry" => $id,
+						"tag" => $tag
+					]);
+				}
+
+				if (count($tags)) {
+					Tag::updateReferenceCounts($tags);
+				}
 			}
 			
 			// If there was an old page that had previously used this path, dump its history so we can take over the path.
@@ -382,8 +420,13 @@
 			// Let search engines know this page now exists.
 			Sitemap::pingSearchEngines();
 			
-			// Track
-			AuditTrail::track("bigtree_pages", $id, "created");
+			// Audit trail
+			if ($pending_change && $pending_change["user"] != Auth::user()->ID && !empty($exact)) {
+				AuditTrail::track("bigtree_pages", $id, "created via publisher", $pending_change["user"]);
+				AuditTrail::track("bigtree_pages", $id, "published");
+			} else {
+				AuditTrail::track("bigtree_pages", $id, "created");
+			}
 			
 			return new Page($id);
 		}
@@ -1452,7 +1495,9 @@
 					$this->Resources,
 					$this->PublishAt,
 					$this->ExpireAt,
-					$this->MaxAge
+					$this->MaxAge,
+					$this->Tags,
+					$this->ChangeID
 				);
 				$this->inherit($new);
 				
@@ -1534,13 +1579,20 @@
 			
 			// Handle tags
 			SQL::delete("bigtree_tags_rel", ["table" => "bigtree_pages", "entry" => $this->ID]);
-			
+			$tag_ids = [];
+
 			foreach ($this->Tags as $tag) {
 				SQL::insert("bigtree_tags_rel", [
 					"table" => "bigtree_pages",
 					"entry" => $this->ID,
 					"tag" => $tag->ID
 				]);
+
+				$tag_ids[] = $tag->ID;
+			}
+
+			if (count($tag_ids)) {
+				Tag::updateReferenceCounts($tag_ids);
 			}
 			
 			// If this page is a trunk in a multi-site setup, wipe the cache

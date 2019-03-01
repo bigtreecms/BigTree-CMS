@@ -602,12 +602,13 @@
 
 			Parameters:
 				data - An array of page information.
+				publishing_change - Set to change ID if publishing a change (causes audit trail to reflect original user as author, defaults false)
 
 			Returns:
 				The id of the newly created page.
 		*/
 
-		function createPage($data) {
+		function createPage($data, $publishing_change = false) {
 			// Defaults
 			$parent = 0;
 			$title = $nav_title = $meta_description = $external = $template = $in_nav = $route = "";
@@ -626,7 +627,7 @@
 				$trunk = "";
 			}
 
-			$page = BigTree\Page::create($trunk, $parent, $in_nav ? true : false, $nav_title, $title, $route, $meta_description, $seo_invisible ? true : false, $template, $external, $new_window ? true : false, $resources, $publish_at, $expire_at, $max_age ? intval($max_age) : null, $data["_tags"]);
+			$page = BigTree\Page::create($trunk, $parent, $in_nav ? true : false, $nav_title, $title, $route, $meta_description, $seo_invisible ? true : false, $template, $external, $new_window ? true : false, $resources, $publish_at, $expire_at, $max_age ? intval($max_age) : null, $data["_tags"], $publishing_change ?: null);
 
 			return $page->ID;
 		}
@@ -3455,13 +3456,26 @@
 
 			Parameters:
 				tag - A tag to find similar tags for.
+				full_row - Set to true to return a whole tag row rather than just the name (defaults to false)
 
 			Returns:
 				An array of up to 8 similar tags.
 		*/
 
-		static function searchTags($tag) {
-			return BigTree\Tag::allSimilar($tag, 8, true);
+		static function searchTags($tag, $full_row = false) {
+			if ($full_row) {
+				$tags = BigTree\Tag::allSimilar($tag, 8);
+				$tags_array = [];
+				
+				foreach ($tags as $tag) {
+					$tag_array["tag"] = $tag_array["name"];
+					$tags_array[] = $tag_array;
+				}
+
+				return $tags_array;
+			} else {
+				return BigTree\Tag::allSimilar($tag, 8, true);
+			}
 		}
 
 		/*

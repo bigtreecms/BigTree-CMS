@@ -1122,7 +1122,7 @@ var BigTreePhotoGallery = function(settings) {
 };
 
 var BigTreeTagAdder = (function($) {
-	
+
 	var Dropdown = false;
 	var LastSearch = false;
 	var Searching = false;
@@ -1130,7 +1130,7 @@ var BigTreeTagAdder = (function($) {
 	var TagEntry = false;
 	var TagList = false;
 	var TagResults = false;
-	
+
 	function init() {
 		TagEntry = $("#tag_entry").keydown(checkKeys).keyup(searchTags);
 		TagList = $("#tag_list").on("click","a",deleteHook);
@@ -1139,45 +1139,54 @@ var BigTreeTagAdder = (function($) {
 
 	function addTag(ev) {
 		var tag = TagEntry.val();
+
 		if (tag) {
 			ActiveTagName = tag;
+
 			$.secureAjax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: addedTag });
 		}
 	}
-	
+
 	function addedTag(id) {
-		TagList.append($('<li class="tag">').html('<a href="#"><input type="hidden" name="_tags[]" value="' + id + '" />' + ActiveTagName + '<span>x</span></a>'));
+		TagList.append($('<li class="tag">').html('<a href="#"><input type="hidden" name="_tags[]" value="' + id + '" />' + ActiveTagName + '</a>'));
 		TagEntry.val("").focus();
 		TagResults.hide();
 		Dropdown = false;
 	}
-	
+
 	function checkKeys(ev) {
 		if (ev.keyCode == 13) {
 			if (SelectedTag > -1 && Dropdown) {
-				var v = TagResults.find("li").eq(SelectedTag).find("a").html().replace("<span>","").replace("</span>","");
+				var v = TagResults.find("li").eq(SelectedTag).find("a").data("tag");
 				TagEntry.val(v);
 			}
+
 			addTag(ev);
+
 			return false;
 		}
 		if (ev.keyCode == 38) {
 			moveUp(ev);
+
 			return false;
 		}
 		if (ev.keyCode == 40) {
 			moveDown(ev);
+			
 			return false;
 		}
 	}
 
 	function chooseTag(ev) {
 		var el = ev.target;
-		var tag = el.innerHTML.replace("<span>","").replace("</span>","");
+		var tag = $(el).data("tag");
+
 		if (tag) {
 			ActiveTagName = tag;
+
 			$.secureAjax("admin_root/ajax/tags/create-tag/", { type: "POST", data: { tag: tag }, success: addedTag });
 		}
+
 		return false;
 	}
 
@@ -1188,6 +1197,7 @@ var BigTreeTagAdder = (function($) {
 
 	function hookResults() {
 		SelectedTag = -1;
+
 		if (TagResults.html()) {
 			TagResults.show();
 			Dropdown = true;
@@ -1201,32 +1211,40 @@ var BigTreeTagAdder = (function($) {
 	function moveDown(ev) {
 		var li = TagResults.find("li");
 		var max = li.length - 1;
+
 		if (!Dropdown || SelectedTag == max) {
 			return;
 		}
+		
 		if (SelectedTag > -1) {
 			li.eq(SelectedTag).removeClass("selected");
 		}
+		
 		SelectedTag++;
 		li.eq(SelectedTag).addClass("selected");
 	}
-	
+
 	function moveUp(ev) {
 		if (!Dropdown || SelectedTag < 0) {
 			return;
 		}
+
 		var li = TagResults.find("li");
+		
 		li.eq(SelectedTag).removeClass("selected");
 		SelectedTag--;
+		
 		if (SelectedTag > -1) {
 			li.eq(SelectedTag).addClass("selected");
 		}
 	}
-	
+
 	function searchTags(ev) {
 		var tag = TagEntry.val();
+		
 		if (tag != LastSearch) {
 			LastSearch = tag;
+		
 			if (tag.length > 3) {
 				TagResults.load("admin_root/ajax/tags/search/", { tag: tag }, hookResults);
 			} else {
@@ -1388,218 +1406,116 @@ var BigTreeFileManager = (function($) {
 
 	// Properties
 
+	var ActiveID = false;
+	var ActiveImage = false;
+	var ActiveImageThumbnail = false;
+	var ActiveName = false;
+	var ActiveVideoEmbed = false;
+	var AvailableCrops = false;
 	var AvailableThumbs = false;
 	var Browser = false;
 	var Callback = false;
+	var CurrentFileHref = false;
+	var CurrentFileID = false;
+	var CurrentFileName = false;
 	var CurrentFolder = 0;
 	var CurrentlyKey = false;
 	var CurrentlyName = false;
 	var FieldName = false;
+	var FolderAjaxURL = false;
 	var MinHeight = false;
 	var MinWidth = false;
 	var StartSearchTimer = false;
 	var TitleSaveTimer = false;
 	var Type = false;
 	var UploadDialog = false;
-	
-	// Methods
-	
-	function addFile() {
-		UploadDialog = BigTreeDialog({
-			title: "Upload Files",
-			content: '<input type="hidden" name="folder" value="' + CurrentFolder + '" /><fieldset><label>Select File(s)</label><input type="file" multiple name="files[]" /></fieldset>',
-			icon: "folder",
-			alternateSaveText: "Upload Files",
-			preSubmissionCallback: true,
-			callback: createFile
-		});
 
-		return false;
-	}
-	
-	function addFolder() {
-		UploadDialog = BigTreeDialog({
-			title: "New Folder",
-			content: '<input type="hidden" name="folder" value="' + CurrentFolder + '" /><fieldset><label>Folder Name</label><input class="required" type="text" name="name" /></fieldset>',
-			callback: createFolder,
-			icon: "folder",
-			alternateSaveText: "Create Folder",
-			preSubmissionCallback: true
-		});
-		
-		return false;
-	}
-	
+	// Methods
+
 	function chooseImageSize() {
 		$("#file_browser_upload").unbind("click").html("").css({ cursor: "default" }).click(function() { return false; });
 		$("#file_browser_form .footer input.blue").hide();
 		$("#file_browser_info_pane").css({ height: "437px", marginTop: 0, marginLeft: "-1px" });
 
 		var size_pane = $("#file_browser_size_pane").html('<h3>Select Image Size</h3><p>Click on an image size below to insert into your content.</p>');
+		size_pane.append($('<button class="file_browser_size_button">Original Size</button>').data("prefix", ""));
+		size_pane.append("<br><br>");
+
 		// Add all available thumbnail sizes as buttons
-		for (var i = 0; i < AvailableThumbs.length; i++) {
-			var size = AvailableThumbs[i];
-			var link = $('<a class="button">').attr("href",size.file.replace("{wwwroot}", "www_root/").replace("{staticroot}","static_root/")).html(size.name);
-			size_pane.append(link);
+		if (!$.isEmptyObject(AvailableCrops)) {
+			size_pane.append('<h4>Crops</h4>');
+
+			for (var prefix in AvailableCrops) {
+				if (AvailableCrops.hasOwnProperty(prefix)) {
+					size_pane.append($('<button class="file_browser_size_button">').html(AvailableCrops[prefix].width + "x" + AvailableCrops[prefix].height).data("prefix", prefix));
+				}
+			}
 		}
-		// Add original size button and move the size pane to the left
-		size_pane.append($('<a class="button">').attr("href",$("#file_browser_selected_file").val().replace("{wwwroot}", "www_root/").replace("{staticroot}","static_root/")).html("Original"));
+
+		if (!$.isEmptyObject(AvailableThumbs)) {
+			size_pane.append('<br><br><h4>Thumbnails</h4>');
+
+			for (var prefix in AvailableThumbs) {
+				if (AvailableThumbs.hasOwnProperty(prefix)) {
+					size_pane.append($('<button class="file_browser_size_button">').html(AvailableThumbs[prefix].width + "x" + AvailableThumbs[prefix].height).data("prefix", prefix));
+				}
+			}
+		}
+
+		// Move the size pane to the left
 		size_pane.css({ marginLeft: "210px" });
 
 		// Hook the size buttons to change the selected URL
-		size_pane.find("a").click(function() {
-			FieldName.value = $(this).attr("href");
-			closeFileBrowser();
+		size_pane.find("button").click(function() {
+			FieldName.value = BigTree.prefixFile(ActiveImage, $(this).data("prefix"));
+			close();
+
 			return false;
 		});
 
 		return false;
 	}
-	
-	function closeFileBrowser() {
+
+	function close() {
+		BigTree.ZIndex = BigTree.ZIndexBackup;
 		$(".bigtree_dialog_overlay").last().remove();
 		$("#file_browser").remove();
-		BigTree.ZIndex = BigTree.ZIndexBackup;
 		$("#mceModalBlocker, #mce-modal-block").show();
-		
+
 		return false;
 	}
-	
-	function createFile(ev) {
-		var last_dialog = $(".bigtree_dialog_form").last();
 
-		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
-		last_dialog.attr("action","admin_root/ajax/file-browser/upload/")
-				   .attr("target","file_manager_upload_frame");
-		last_dialog.prepend('<input type="hidden" name="' + CSRFTokenField + '" value="' + CSRFToken + '">');
-		last_dialog.find("footer *").hide();
-		last_dialog.find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Uploading files. Please wait…</p>'));
-	}
-	
-	function createFolder(ev) {
-		var last_dialog = $(".bigtree_dialog_form").last();
-		var validator = BigTreeFormValidator(last_dialog);
-
-		if (!validator.validateForm(false,true)) {
-			ev.preventDefault();
-			ev.stopPropagation();
-
-			return;
-		}
-
-		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
-		last_dialog.attr("action","admin_root/ajax/file-browser/create-folder/")
-				   .attr("target","file_manager_upload_frame");
-		last_dialog.prepend('<input type="hidden" name="' + CSRFTokenField + '" value="' + CSRFToken + '">');
-		last_dialog.find("footer *").hide();
-		last_dialog.find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Creating folder. Please wait…</p>'));
-	}
-
-	function deleteFile(ev) {
-		ev.preventDefault();
-		ev.stopPropagation();
-		var count = parseInt($(this).attr("data-allocation"));
-		if (count) {
-			var c = confirm("This file is in use in " + count + " locations.\nThese links or images will become empty or broken.\n\nAre you sure you want to delete this file?");
-		} else {
-			var c = confirm("Are you sure you want to delete this file?");
-		}
-		if (c) {
-			$.secureAjax("admin_root/ajax/file-browser/delete/", { type: "POST", data: { file: $("#file_browser_selected_file").val() } });
-			$("#file_browser_contents .selected").remove();
-			$("#file_browser_info_pane").html("");
-			$("#file_browser .footer .blue").hide();
-		}
-	}
-
-	function deleteFolder(ev) {
-		ev.stopPropagation();
-		ev.preventDefault();
-
-		// Prevent double clicks
-		if (BigTree.Busy) {
-			return;
-		}
-
-		$.secureAjax("admin_root/ajax/file-browser/folder-allocation/", { type: "POST", data: { folder: CurrentFolder }, complete: function(r) {
-			var j = $.parseJSON(r.responseText);
-			if (confirm("This folder has " + j.folders + " sub-folder(s) and " + j.resources + " file(s) which will be deleted.\n\nFiles in this folder are in use in " + j.allocations + " location(s).\n\nAre you sure you want to delete this folder?")) {
-				$.secureAjax("admin_root/ajax/file-browser/delete-folder/", { type: "POST", data: { folder: CurrentFolder }, complete: function(r) {
-					if (Type == "image" || Type == "photo-gallery") {
-						openImageFolder(r.responseText);	
-					} else {
-						openFileFolder(r.responseText);
-					}
-				}});
-			}
-		}});
-	}
-	
-	function disableCreate() {
-		$("#file_browser .header a").hide();		
-	}
-	
-	function enableCreate() {
-		$("#file_browser .header a").show();
-	}
-	
-	function fileBrowser() {
-		$("#file_browser_type_icon").addClass("icon_folder");
-		$("#file_browser_type .title").html("File Browser");
-		openFileFolder(0);
-	}
-	
-	function fileBrowserPopulated() {
-		$("#file_browser_contents a").click(fileClick);
-	}
-	
-	function fileClick() {				
+	function fileClick() {
 		if ($(this).hasClass("disabled")) {
 			return false;
 		}
-		
-		if ($(this).hasClass("folder")) {
-			$("#file_browser .footer .blue").hide();
-			openFileFolder($(this).attr("href").substr(1));
-			return false;
-		}
+
+		ActiveID = $(this).data("id");
+		ActiveName = $(this).data("name");
+		CurrentFileHref = $(this).data("href");
+		CurrentFileName = $(this).data("name");
 
 		// Show the "Use" button now that something is selected.
 		$("#file_browser .footer .blue").show();
-		
-		$("#file_browser_contents a").removeClass("selected");
+		$("#file_browser_contents .selected").removeClass("selected");
 		$(this).addClass("selected");
-		$("#file_browser_selected_file").val($(this).attr("href").replace("{wwwroot}","www_root/").replace("{staticroot}","static_root/"));
+		$("#file_browser_selected_file").val($(this).data("file").replace("{wwwroot}","www_root/").replace("{staticroot}","static_root/"));
+
+		// Load info panel
 		$("#file_browser_info_pane").html('<span class="spinner"></span>');
-		$("#file_browser_info_pane").load("admin_root/ajax/file-browser/file-info/",
-			{ file: $(this).attr("href") },
-			function() {
-				$("#file_browser_detail_title_input").keyup(function() {
-					clearTimeout(TitleSaveTimer);
-					TitleSaveTimer = setTimeout(saveFileTitle,500);
-				});
-				$("#file_browser_info_pane .replace").click(replaceFile);
-				$("#file_browser_info_pane .delete").click(deleteFile);
-        $(".file_browser_detail_folder_button").click(function() {
-          openFileFolder($(this).data("folder"));
-        });
-      }
-		);
-		
+		$("#file_browser_info_pane").load("admin_root/ajax/files/get-info/", { file: $(this).data("file") });
+
 		return false;
 	}
-	
-	function finishedUpload(errors) {
-		UploadDialog.close();
-		UploadDialog = false;
-		
-		if (Type == "image" || Type == "photo-gallery") {
-			openImageFolder(CurrentFolder);	
-		} else {
-			openFileFolder(CurrentFolder);
-		}
+
+	function folderClick() {
+		var folder = $(this).data("folder");
+
+		openFolder(folder);
+
+		return false;
 	}
-	
+
 	function formOpen(type,field_name,options,callback) {
 		CurrentlyName = field_name;
 		CurrentlyKey = options.currentlyKey;
@@ -1609,61 +1525,30 @@ var BigTreeFileManager = (function($) {
 		open(type,options.minWidth,options.minHeight);
 	}
 
-	function hideDeleteFolder() {
-		$("#file_browser .delete_folder").hide();
-	}
-	
-	function imageBrowser() {
-		$("#file_browser_type_icon").addClass("icon_images");
-		$("#file_browser_type .title").html("Image Library");
-		openImageFolder(0);
-	}
-	
-	function imageBrowserPopulated() {
-		$("#file_browser_contents a").click(imageClick);
-	}
-	
 	function imageClick() {
 		if ($(this).hasClass("disabled")) {
-			return false;
-		}
-		
-		if ($(this).hasClass("folder")) {
-			$("#file_browser .footer .blue").hide();
-			openImageFolder($(this).attr("href").substr(1));
 			return false;
 		}
 
 		// Show the "Use" button now that something is selected.
 		$("#file_browser .footer .blue").show();
-
-		
-		$("#file_browser_contents a").removeClass("selected");
+		$("#file_browser_contents button").removeClass("selected");
 		$(this).addClass("selected");
-		
-		var data = $.parseJSON($(this).attr("href"));
+
+		var data = $(this).data("image");
+		ActiveName = $(this).data("name");
+		ActiveImage = data.file;
+		ActiveImageThumbnail = $(this).find("img").attr("src");
+		AvailableCrops = data.crops;
 		AvailableThumbs = data.thumbs;
+
 		$("#file_browser_selected_file").val(data.file.replace("{wwwroot}","www_root/").replace("{staticroot}","static_root/"));
-		
 		$("#file_browser_info_pane").html('<span class="spinner"></span>');
-		$("#file_browser_info_pane").load("admin_root/ajax/file-browser/file-info/",
-			{ file: data.file },
-			function() {
-				$("#file_browser_detail_title_input").keyup(function() {
-					clearTimeout(TitleSaveTimer);
-					TitleSaveTimer = setTimeout(saveFileTitle,500);
-				});
-				$("#file_browser_info_pane .replace").click(replaceFile);
-				$("#file_browser_info_pane .delete").click(deleteFile);
-        $(".file_browser_detail_folder_button").click(function() {
-          openImageFolder($(this).data("folder"));
-        });
-      }
-		);
-		
+		$("#file_browser_info_pane").load("admin_root/ajax/files/get-info/", { file: data.file });
+
 		return false;
 	}
-	
+
 	function open(type,min_width,min_height) {
 		if ($.browser.msie  && parseInt($.browser.version, 10) === 7) {
 			alert("This feature is not supported in Internet Explorer 7.  Please upgrade your browser.");
@@ -1673,7 +1558,7 @@ var BigTreeFileManager = (function($) {
 		Type = type;
 		MinWidth = min_width;
 		MinHeight = min_height;
-			
+
 		// Figure out where to put the window.
 		var width = BigTree.windowWidth();
 		var height = BigTree.windowHeight();
@@ -1683,32 +1568,21 @@ var BigTreeFileManager = (function($) {
 		// Set BigTree's zIndex super high because TinyMCE will try to be on top
 		BigTree.ZIndexBackup = BigTree.ZIndex;
 		BigTree.ZIndex = 500000;
-		
+
 		// Create the window.
 		var overlay = $('<div class="bigtree_dialog_overlay" style="z-index:' + (BigTree.ZIndex++) + ';">');
-		
+
 		Browser = $('<div id="file_browser" style="z-index: ' + (BigTree.ZIndex++) + ';">');
 		Browser.css({ top: top_offset + "px", left: left_offset + "px" });
 		Browser.html('\
 <div class="header">\
 	<input class="form_search" id="file_browser_search" placeholder="Search" />\
 	<span class="form_search_icon"></span>\
-	<a href="#" class="button add_file">Upload Files</a>\
-	<a href="#" class="button add_folder">New Folder</a>\
-	<a href="#" class="button red delete_folder" style="display: none;">Delete Folder</a>\
+	<a href="admin_root/files/" class="button" target="_blank">Manage Files</a>\
 	<span id="file_browser_type_icon"></span>\
 	<h2 id="file_browser_type"><em class="title"></em><em class="suffix"></em></h2>\
 </div>\
 <ul id="file_browser_breadcrumb"><li><a href="#0">Home</a></li></ul>\
-<div id="file_browser_upload_window" style="display: none;">\
-	<span style="display: none;" id="file_browser_spinner" class="spinner"></span>\
-	<iframe name="resource_frame" id="file_browser_upload_frame" style="display: none;" src="admin_root/ajax/file-browser/busy/"></iframe>\
-	<form id="file_browser_upload_form" target="resource_frame" method="post" enctype="multipart/form-data" action="admin_root/ajax/file-browser/upload/">\
-		<input type="hidden" name="MAX_FILE_SIZE" value="$max_file_size" />\
-		<input type="file" name="file" id="file_browser_file_input" /> \
-		<input type="submit" class="shorter blue" value="Upload" />\
-	</form>\
-</div>\
 <form method="post" action="" id="file_browser_form">\
 	<input type="hidden" id="file_browser_selected_file" value="" />\
 	<div id="file_browser_contents"></div>\
@@ -1721,143 +1595,135 @@ var BigTreeFileManager = (function($) {
 </form>');
 
 		$("body").append(overlay).append(Browser);
-		
+
 		// Hook the cancel, submit, and search.
-		$("#file_browser_cancel").click(closeFileBrowser);
+		$("#file_browser_cancel").click(close);
 		$("#file_browser_form").submit(submitSelectedFile);
 		$("#file_browser_search").keyup(function() {
 			clearTimeout(StartSearchTimer);
 			StartSearchTimer = setTimeout(search,300);
 		});
-		
+		$("#file_browser_contents").on("click", "button.js-image", imageClick);
+		$("#file_browser_contents").on("click", "button.js-file", fileClick);
+		$("#file_browser_contents").on("click", "button.js-folder", folderClick);
+		$("#file_browser_contents").on("click", "button.js-video", videoClick);
+		$("#file_browser_info_pane").on("click", "button.js-folder", folderClick);
+		$("#file_browser_info_pane").on("keyup", "#file_browser_detail_title_input", function() {
+			clearTimeout(TitleSaveTimer);
+			TitleSaveTimer = setTimeout(saveFileTitle,500);
+		});
+
 		// Hide TinyMCE's default modal background, we're using our own.
 		$("#mceModalBlocker, #mce-modal-block").hide();
-		
+
 		// Handle the clicks on the breadcrumb of folders
 		$("#file_browser_breadcrumb").on("click","a",function() {
 			var folder = $(this).attr("href").substr(1);
 
-			if (Type == "image" || Type == "photo-gallery") {
-				openImageFolder(folder);
-			} else {
-				openFileFolder(folder);
-			}
-			
+			openFolder(folder);
+
 			return false;
 		});
-		
-		// Handle the create new folder / file clicks
-		$("#file_browser .header .add_file").click(addFile);
-		$("#file_browser .header .add_folder").click(addFolder);
-		$("#file_browser .header .delete_folder").click(deleteFolder);
-		
+
 		// Open the right browser
 		if (Type == "image" || Type == "photo-gallery") {
-			imageBrowser();
+			FolderAjaxURL = "admin_root/ajax/files/get-images/";
+			$("#file_browser_type_icon").addClass("icon_images");
+			$("#file_browser_type .title").html("Image Library");
+		} else if (Type == "video") {
+			FolderAjaxURL = "admin_root/ajax/files/get-videos/";
+			$("#file_browser_type_icon").addClass("icon_video");
+			$("#file_browser_type .title").html("Video Library");
 		} else {
-			fileBrowser();
+			FolderAjaxURL = "admin_root/ajax/files/get-files/";
+			$("#file_browser_type_icon").addClass("icon_folder");
+			$("#file_browser_type .title").html("File Browser");
 		}
+
+		openFolder(0);
 	}
-	
-	function openFileFolder(folder) {
+
+	function openFolder(folder) {
 		CurrentFolder = folder;
+		$("#file_browser_search").val("");
 		$("#file_browser_selected_file").val("");
 		$("#file_browser_info_pane").html("");
 		$("#file_browser_form .footer .blue").hide();
-		$("#file_browser_contents").scrollTop(0).load("admin_root/ajax/file-browser/get-files/", { folder: folder }, fileBrowserPopulated);
-	}
-	
-	function openImageFolder(folder) {
-		CurrentFolder = folder;
-		$("#file_browser_selected_file").val("");
-		$("#file_browser_info_pane").html("");
-		$("#file_browser_form .footer .blue").hide();
-		$("#file_browser_contents").scrollTop(0).load("admin_root/ajax/file-browser/get-images/", { minWidth: MinWidth, minHeight: MinHeight, folder: folder }, imageBrowserPopulated);
+		$("#file_browser .footer .blue").hide();
+		$("#file_browser_contents").scrollTop(0).load(FolderAjaxURL, { folder: folder, minWidth: MinWidth, minHeight: MinHeight });
 	}
 
-	function replaceFile() {
-		UploadDialog = BigTreeDialog({
-			title: "Replace File",
-			content: '<input type="hidden" name="' + CSRFTokenField + '" value="' + CSRFToken + '"><input type="hidden" name="replace" value="' + $(this).attr("data-replace") + '" /><fieldset><label>Select A File</label><input type="file" name="files[]" /></fieldset>',
-			callback: replaceFileProcess,
-			icon: "folder",
-			alternateSaveText: "Replace File",
-			preSubmissionCallback: true
-		});
-
-		return false;
-	}
-
-	function replaceFileProcess(data) {
-		$("body").append($('<iframe name="file_manager_upload_frame" style="display: none;" id="file_manager_upload_frame">'));
-		$(".bigtree_dialog_form").last().attr("action","admin_root/ajax/file-browser/upload/").attr("target","file_manager_upload_frame");
-		$(".bigtree_dialog_form").last().find("footer *").hide();
-		$(".bigtree_dialog_form").last().find("footer").append($('<p style="line-height: 16px; color: #333;"><img src="admin_root/images/spinner.gif" alt="" style="float: left; margin: 0 5px 0 0;" /> Replacing file. Please wait…</p>'));
-	}
-	
-	function saveFileTitle() {
-		var title = $("#file_browser_detail_title_input").val();
-		var file = $("#file_browser_selected_file").val();
-		
-		$.secureAjax("admin_root/ajax/file-browser/save-title/", { type: "POST", data: { file: file, title: title } });
-	}
-	
 	function search() {
 		var query = $("#file_browser_search").val();
 		$("#file_browser_info_pane").html("");
 		$("#file_browser_selected_file").val("");
-		
+
 		if (Type == "image" || Type == "photo-gallery") {
-			$("#file_browser_contents").load("admin_root/ajax/file-browser/get-images/", { minWidth: MinWidth, minHeight: MinHeight, query: query, folder: CurrentFolder }, imageBrowserPopulated);
+			$("#file_browser_contents").load("admin_root/ajax/files/get-images/", { minWidth: MinWidth, minHeight: MinHeight, query: query, folder: CurrentFolder });
 		} else {
-			$("#file_browser_contents").load("admin_root/ajax/file-browser/get-files/", { query: query, folder: CurrentFolder }, fileBrowserPopulated);
+			$("#file_browser_contents").load("admin_root/ajax/files/get-files/", { query: query, folder: CurrentFolder });
 		}
 	}
-	
+
 	function setBreadcrumb(contents) {
 		$("#file_browser_breadcrumb").html(contents);
 	}
-	
+
 	function setTitleSuffix(suffix) {
 		$("#file_browser_type .suffix").html(suffix);
 	}
 
-	function showDeleteFolder() {
-		$("#file_browser .delete_folder").show();
-	}
-	
 	function submitSelectedFile() {
 		if (FieldName) {
-			if (Type == "image" && AvailableThumbs.length) {
+			if (Type == "image") {
 				chooseImageSize();
+
 				return false;
 			} else {
 				FieldName.value = $("#file_browser_selected_file").val();
-				return closeFileBrowser();
+
+				return close();
 			}
 		} else {
 			if (Type == "image") {
-				var input = $('<input type="hidden" name="' + CurrentlyKey + '">');
-				input.val("resource://" + $("#file_browser_selected_file").val());
-				var img = new $('<img alt="">');
-				img.attr("src",$("#file_browser_selected_file").val());
+				var dummy_input = $('<input type="hidden">').val(ActiveName);
+				var input = $('<input type="hidden" name="' + CurrentlyKey + '">').val("resource://" + $("#file_browser_selected_file").val());
+				var img = $('<img alt="">').attr("src", ActiveImageThumbnail);
 				var container = $(document.getElementById(CurrentlyName));
-				container.find("img, input").remove();
-				container.append(input).find(".currently_wrapper").append(img);
-				container.show();
-
-				// If a user already selected something to upload, replace it
 				var input_sibling = container.siblings("input");
+
+				container.find("img, input").remove();
+				container.append(dummy_input).append(input).find(".currently_wrapper").append(img);
+				container.show();
 
 				if (input_sibling.length) {
 					input_sibling.get(0).customControl.clear();
 				}
+			} else if (Type == "photo-gallery") {
+				Callback($("#file_browser_selected_file").val(),$("#file_browser_detail_title_input").val(),$(".file_browser_images .selected img").attr("src"));
+			} else if (Type == "video") {
+				var dummy_input = $('<input type="hidden">').val(ActiveName);
+				var input = $('<input type="hidden" name="' + CurrentlyKey + '">').val(ActiveID);
+				var container = $(document.getElementById(CurrentlyName));
+
+				container.find("iframe, input").remove();
+				container.append(dummy_input).append(input).find(".currently_wrapper").append(ActiveVideoEmbed);
+				container.show();
+			} else if (Type == "file") {
+				var dummy_input = $('<input type="hidden">').val(ActiveName);
+				var input = $('<input type="hidden" name="' + CurrentlyKey + '">').val(ActiveID);
+				var container = $(document.getElementById(CurrentlyName));
+
+				container.find("img, input").remove();
+				container.append(dummy_input).append(input);
+				container.find(".js-current-file").attr("href", "admin_root/files/edit/file/" + ActiveID + "/").html(CurrentFileName);
+				container.show();
 			}
 
-			return closeFileBrowser();
+			return close();
 		}
 	}
-	
+
 	function tinyMCEOpen(field_name,url,type,win) {
 		CurrentlyName = false;
 		// TinyMCE 3
@@ -1868,30 +1734,32 @@ var BigTreeFileManager = (function($) {
 		open(type,false,false);
 	}
 
-	function uploadError(message,successes) {
-		var last_dialog = $(".bigtree_dialog_form").last();
-		last_dialog.find("p,fieldset,input").remove();
-		last_dialog.find(".overflow").prepend($('<p class="error_message">' + message + '</p><p>' + successes + '</p>'));
-		last_dialog.find("footer a").show().html("Ok");
-
-		if (Type == "image" || Type == "photo-gallery") {
-			openImageFolder(CurrentFolder);	
-		} else {
-			openFileFolder(CurrentFolder);
+	function videoClick() {
+		if ($(this).hasClass("disabled")) {
+			return false;
 		}
+
+		// Show the "Use" button now that something is selected.
+		$("#file_browser .footer .blue").show();
+		$("#file_browser_contents .selected").removeClass("selected");
+		$(this).addClass("selected");
+		$("#file_browser_selected_file").val($(this).data("video"));
+		ActiveVideoEmbed = $(this).data("embed");
+		ActiveName = $(this).data("name");
+		ActiveID = $(this).data("id");
+
+		// Load info panel
+		$("#file_browser_info_pane").html('<span class="spinner"></span>');
+		$("#file_browser_info_pane").load("admin_root/ajax/files/get-info/", { id: $(this).data("video") });
+
+		return false;
 	}
 
 	return {
-		disableCreate: disableCreate,
-		enableCreate: enableCreate,
-		finishedUpload: finishedUpload,
 		formOpen: formOpen,
-		hideDeleteFolder: hideDeleteFolder,
 		setBreadcrumb: setBreadcrumb,
 		setTitleSuffix: setTitleSuffix,
-		showDeleteFolder: showDeleteFolder,
-		tinyMCEOpen: tinyMCEOpen,
-		uploadError: uploadError
+		tinyMCEOpen: tinyMCEOpen
 	};
 
 }(jQuery));

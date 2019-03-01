@@ -31,8 +31,11 @@
 			// Configuration based CSS
 			if (isset($bigtree["config"]["admin_css"]) && is_array($bigtree["config"]["admin_css"])) {
 				foreach ($bigtree["config"]["admin_css"] as $style) {
+					if (strpos($style, "https://") === false && strpos($style, "http://") === false) {
+						$style = ADMIN_ROOT."css/".$style;
+					}
 		?>
-		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/<?=$style?>" type="text/css" media="screen" />
+		<link rel="stylesheet" href="<?=$style?>" type="text/css" />
 		<?php
 				}
 			}

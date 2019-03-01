@@ -338,7 +338,9 @@
 			}
 			
 			// Get matching resources
-			$resources = SQL::fetchAll("SELECT * FROM bigtree_resources WHERE name LIKE '%$query%' ORDER BY $sort");
+			$resources = SQL::fetchAll("SELECT * FROM bigtree_resources
+										WHERE name LIKE '%$query%' OR metadata LIKE '%$query%'
+										ORDER BY $sort");
 			$matching_resources = [];
 			
 			foreach ($resources as $resource) {

@@ -42,9 +42,9 @@
 				} else {
 					$this->ID = $tag["id"];
 					$this->Metaphone = $tag["metaphone"];
-					$this->Route = $tag["route"];
-					
 					$this->Name = $tag["tag"];
+					$this->Route = $tag["route"];
+					$this->UsageCount = $tag["usage_count"];
 				}
 			}
 		}

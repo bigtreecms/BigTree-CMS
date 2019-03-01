@@ -5,7 +5,12 @@
 
 	foreach ($tags as $tag) {
 ?>
-<li><a href="#"><?php if ($tag->Name == $_POST["tag"]) { ?><span><?=htmlspecialchars($tag->Name)?></span><?php } else { ?><?=htmlspecialchars($tag->Name)?><?php } ?></a></li>
+<li>
+	<a href="#" data-tag="<?=Text::htmlEncode($tag)?>"<?php if ($tag == strtolower($_POST["tag"])) { ?> class="match"<?php } ?>>
+		<?=Text::htmlEncode($tag)?>
+		<span class="tag_usage_count">(<?=$tag->UsageCount?>)</span>
+	</a>
+</li>
 <?php
 	}
 	

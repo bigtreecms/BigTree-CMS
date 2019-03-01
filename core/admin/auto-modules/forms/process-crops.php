@@ -9,13 +9,8 @@
 		Router::redirect($_SESSION["bigtree_admin"]["cropper_previous_page"]);
 	}
 	
-	if ($_POST["front_end_editor"]) {
-		$bigtree["layout"] = "front-end";
-	}
-	
 	$crops = Cache::get("org.bigtreecms.crops", $_POST["crop_key"]);
-	$count = count($crops);
-	
+	$count = count($crops);	
 	$return_link = $_POST["return_page"] ?: $form->Root."finish-crops/";
 ?>
 <div class="container">

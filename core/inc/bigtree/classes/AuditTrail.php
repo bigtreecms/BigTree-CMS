@@ -16,10 +16,11 @@
 				table - The table affected by the user.
 				entry - The primary key of the entry affected by the user.
 				type - The action taken by the user (delete, edit, create, etc.)
+				user_id - A user ID to override the logged in user's ID
 		*/
 		
-		static function track(string $table, string $entry, string $type): void {
-			$user = Auth::user()->ID;
+		static function track(string $table, string $entry, string $type, ?int $user_id = null): void {
+			$user = !is_null($user_id) ? $user_id : Auth::user()->ID;
 			
 			// If this is running fron cron or something, nobody is logged in so don't track.
 			if (!is_null($user)) {
