@@ -16,12 +16,14 @@
 		 * @property-read string $Gravatar
 		 * @property-read int $ID
 		 * @property-read bool $IsBanned
+		 * @property-read bool $NewHash
 		 * @property-read string $OriginalPassword
 		 */
 		
 		public static $Table = "bigtree_users";
 		
 		protected $ID;
+		protected $NewHash;
 		protected $OriginalPassword;
 		
 		public $Alerts;
@@ -66,6 +68,7 @@
 					$this->Alerts = $user["alerts"] ? json_decode($user["alerts"], true) : null;
 					$this->DailyDigest = $user["daily_digest"] ? true : false;
 					$this->ChangePasswordHash = $user["change_password_hash"] ?: null;
+					$this->NewHash = !empty($user["new_hash"]);
 					
 					// Verify a correct permissions array
 					if (!is_array($this->Permissions)) {

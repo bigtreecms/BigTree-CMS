@@ -664,9 +664,7 @@
 		*/
 		
 		static function publishPendingItem($table, $id, $data, $many_to_many = array(), $tags = array()) {
-			self::deletePendingItem($table, $id);
-
-			return self::createItem($table, $data, $many_to_many, $tags);
+			return self::createItem($table, $data, $many_to_many, $tags, $id);
 		}
 		
 		/*

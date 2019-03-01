@@ -286,20 +286,20 @@
 				}
 				
 				// BigTree 4.3+ switch to password_hash
-				if ($user["new_hash"]) {
-					$login_validated = password_verify($password, $user["password"]);
+				if ($user->NewHash) {
+					$login_validated = password_verify($password, $user->Password);
 					
 					// New algorithm
-					if ($login_validated && password_needs_rehash($user["password"], PASSWORD_DEFAULT)) {
-						SQL::update("bigtree_users", $user["id"], ["password" => password_hash($password, PASSWORD_DEFAULT)]);
+					if ($login_validated && password_needs_rehash($user->Password, PASSWORD_DEFAULT)) {
+						SQL::update("bigtree_users", $user->ID, ["password" => password_hash($password, PASSWORD_DEFAULT)]);
 					}
 				} else {
 					$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
-					$login_validated = $phpass->CheckPassword($password, $user["password"]);
+					$login_validated = $phpass->CheckPassword($password, $user->Password);
 					
 					// Switch to password_hash
 					if ($login_validated) {
-						SQL::update("bigtree_users", $user["id"], [
+						SQL::update("bigtree_users", $user->ID, [
 							"password" => password_hash($password, PASSWORD_DEFAULT),
 							"new_hash" => "on"
 						]);

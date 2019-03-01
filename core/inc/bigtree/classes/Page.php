@@ -1554,7 +1554,7 @@
 				]);
 			}
 			
-			SQL::update("bigtree_pages", $this->ID, [
+			$update = [
 				"trunk" => $this->Trunk ? "on" : "",
 				"parent" => $this->Parent,
 				"in_nav" => $this->InNav ? "on" : "",
@@ -1572,7 +1572,33 @@
 				"expire_at" => $this->ExpireAt ?: null,
 				"max_age" => $this->MaxAge ?: 0,
 				"last_edited_by" => Auth::user()->ID ?: $this->LastEditedBy
-			]);
+			];
+			
+			// Check if this data is exactly the same as the pending copy -- if it is, attribute it to the change author, not the publisher
+			$pending = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND item_id = ?", $this->ID);
+			
+			if ($pending && $pending["user"] != Auth::user()->ID) {
+				$exact = true;
+				$changes = Link::decode(json_decode($pending["changes"], true));
+				
+				foreach ($changes as $key => $value) {
+					if ($update[$key] != $value) {
+						$exact = false;
+					}
+				}
+				
+				if ($exact) {
+					$update["last_edited_by"] = $pending["user"];
+					AuditTrail::track("bigtree_pages", $this->ID, "updated via publisher", $pending["user"]);
+					AuditTrail::track("bigtree_pages", $this->ID, "published");
+				} else {
+					AuditTrail::track("bigtree_pages", $this->ID, "updated");
+				}
+			} else {
+				AuditTrail::track("bigtree_pages", $this->ID, "updated");
+			}
+			
+			SQL::update("bigtree_pages", $this->ID, $update);
 			
 			// Remove any pending drafts
 			SQL::delete("bigtree_pending_changes", ["table" => "bigtree_pages", "item_id" => $this->ID]);

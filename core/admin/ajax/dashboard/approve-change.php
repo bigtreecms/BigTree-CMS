@@ -72,7 +72,7 @@
 				$change->TagsChanges
 			);
 		} else {
-			$id = $form->createEntry($change->Changes, $change->ManyToManyChanges, $change->TagsChanges);
+			$id = $form->createEntry($change->Changes, $change->ManyToManyChanges, $change->TagsChanges, $change->ID);
 
 			if ($change->PublishHook) {
 				call_user_func($change->PublishHook, $change->Table, $id, $change->Changes, $change->ManyToManyChanges, $change->TagsChanges);

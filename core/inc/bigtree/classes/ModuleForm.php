@@ -13,7 +13,8 @@
 	 * @property-read ModuleView $RelatedModuleView
 	 */
 	
-	class ModuleForm extends BaseObject {
+	class ModuleForm extends BaseObject
+	{
 		
 		public static $ReservedColumns = [
 			"id",
@@ -45,7 +46,8 @@
 				interface - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($interface = null) {
+		function __construct($interface = null)
+		{
 			if ($interface !== null) {
 				// Passing in just an ID
 				if (!is_array($interface)) {
@@ -93,7 +95,8 @@
 		
 		static function create(int $module, string $title, string $table, array $fields, array $hooks = [],
 							   string $default_position = "", ?int $return_view = null, string $return_url = "",
-							   bool $tagging = false): ModuleForm {
+							   bool $tagging = false): ModuleForm
+		{
 			// Clean up fields for backwards compatibility
 			foreach ($fields as $key => $data) {
 				$options = is_array($data["options"]) ? $data["options"] : json_decode($data["options"], true);
@@ -145,12 +148,15 @@
 				columns - An array of form user data.
 				many_to_many - Many to many relationship entries.
 				tags - Tags for the entry.
+				change_being_published - The change ID being published.
 
 			Returns:
 				The id of the new entry in the database.
 		*/
 		
-		function createEntry(array $columns, ?array $many_to_many = [], ?array $tags = []): ?int {
+		function createEntry(array $columns, ?array $many_to_many = [], ?array $tags = [],
+							 ?int $change_being_published = null): ?int
+		{
 			// Clean up data
 			$insert_values = Link::encode(SQL::prepareData($this->Table, $columns));
 			
@@ -168,6 +174,33 @@
 			// Cache and track
 			Tag::updateReferenceCounts($tags);
 			ModuleView::cacheForAll($id, $this->Table);
+			
+			// Attribute this to the original pending change author if the data hasn't changed
+			if ($change_being_published) {
+				$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $change_being_published);
+				
+				if ($change) {
+					$change_data = Link::decode(json_decode($change["changes"], true));
+					$exact = true;
+					
+					foreach ($change_data as $key => $value) {
+						if (isset($data[$key]) && $columns[$key] != $value) {
+							$exact = false;
+						}
+					}
+					
+					SQL::delete("bigtree_pending_changes", $change_being_published);
+					ModuleView::uncacheForAll("p".$change_being_published, $this->Table);
+					
+					if ($exact) {
+						AuditTrail::track($this->Table, $id, "created via publisher", $change["user"]);
+						AuditTrail::track($this->Table, $id, "published");
+						
+						return $id;
+					}
+				}
+			}
+			
 			AuditTrail::track($this->Table, $id, "created");
 			
 			return $id;
@@ -187,7 +220,8 @@
 				The id of the pending change.
 		*/
 		
-		function createChangeRequest(string $id, array $changes, array $many_to_many = [], array $tags = []): int {
+		function createChangeRequest(string $id, array $changes, array $many_to_many = [], array $tags = []): int
+		{
 			$hook = !empty($this->Hooks["publish"]) ? $this->Hooks["publish"] : false;
 			
 			// Allow for "p#" IDs to reference pending table
@@ -222,7 +256,8 @@
 				The id of the new entry in the bigtree_pending_changes table.
 		*/
 		
-		function createPendingEntry(array $columns, array $many_to_many = [], array $tags = []): int {
+		function createPendingEntry(array $columns, array $many_to_many = [], array $tags = []): int
+		{
 			$hook = !empty($this->Hooks["publish"]) ? $this->Hooks["publish"] : false;
 			$change = PendingChange::create($this->Table, false, $columns, $many_to_many, $tags, $this->Module, $hook, $this->Embedded);
 			
@@ -237,7 +272,8 @@
 				id - The id of the entry.
 		*/
 		
-		function deleteEntry(int $id): void {
+		function deleteEntry(int $id): void
+		{
 			SQL::delete($this->Table, $id);
 			SQL::delete("bigtree_pending_changes", ["table" => $this->Table, "item_id" => $id]);
 			
@@ -253,7 +289,8 @@
 				id - The id of the pending entry.
 		*/
 		
-		function deletePendingEntry(int $id): void {
+		function deletePendingEntry(int $id): void
+		{
 			SQL::delete("bigtree_pending_changes", $id);
 			
 			ModuleView::uncacheForAll("p$id", $this->Table);
@@ -268,7 +305,8 @@
 				Array
 		*/
 		
-		function getArray(): array {
+		function getArray(): array
+		{
 			// For backwards compatibility with older data
 			$fields = [];
 			
@@ -309,7 +347,8 @@
 				Returns null if the entry could not be found.
 		*/
 		
-		function getEntry(string $id): ?array {
+		function getEntry(string $id): ?array
+		{
 			// The entry is pending if there's a "p" prefix on the id
 			if (substr($id, 0, 1) == "p") {
 				return $this->getPendingEntry($id);
@@ -357,7 +396,8 @@
 				Returns null if the entry could not be found.
 		*/
 		
-		function getPendingEntry(string $id): ?array {
+		function getPendingEntry(string $id): ?array
+		{
 			$status = "published";
 			$many_to_many = [];
 			$owner = false;
@@ -452,7 +492,8 @@
 				A ModuleView object or null.
 		*/
 		
-		function getRelatedModuleView(): ?ModuleView {
+		function getRelatedModuleView(): ?ModuleView
+		{
 			// Explicitly set related view
 			if ($this->ReturnView) {
 				return new ModuleView($this->ReturnView);
@@ -482,7 +523,8 @@
 
 		*/
 		
-		function handleManyToMany(int $id, ?array $many_to_many): void {
+		function handleManyToMany(int $id, ?array $many_to_many): void
+		{
 			if (is_array($many_to_many)) {
 				foreach ($many_to_many as $mtm) {
 					// Delete existing
@@ -520,7 +562,8 @@
 				tags - An array of tags to relate.
 		*/
 		
-		function handleTags(int $id, ?array $tags): void {
+		function handleTags(int $id, ?array $tags): void
+		{
 			SQL::delete("bigtree_tags_rel", ["table" => $this->Table, "entry" => $id]);
 			
 			if (is_array($tags)) {
@@ -539,7 +582,8 @@
 				Saves the current object properties back to the database.
 		*/
 		
-		function save(): ?bool {
+		function save(): ?bool
+		{
 			if (empty($this->Interface->ID)) {
 				$new = static::create($this->Module, $this->Title, $this->Table, $this->Fields, $this->Hooks, $this->DefaultPosition, $this->ReturnView, $this->ReturnURL, $this->Tagging);
 				$this->inherit($new);
@@ -590,7 +634,8 @@
 		*/
 		
 		function update(string $title, string $table, array $fields, array $hooks = [], string $default_position = "",
-						?int $return_view = null, string $return_url = "", bool $tagging = false): void {
+						?int $return_view = null, string $return_url = "", bool $tagging = false): void
+		{
 			$this->DefaultPosition = $default_position;
 			$this->Fields = $fields;
 			$this->Hooks = $hooks;
@@ -629,7 +674,8 @@
 				tags - Tag information.
 		*/
 		
-		function updateEntry(int $id, array $columns, array $many_to_many = [], array $tags = []): void {
+		function updateEntry(int $id, array $columns, array $many_to_many = [], array $tags = []): void
+		{
 			// Prepare update dat
 			$update_columns = Link::encode(SQL::prepareData($this->Table, $columns));
 			
@@ -640,13 +686,36 @@
 			$this->handleManyToMany($id, $many_to_many);
 			$this->handleTags($id, $tags);
 			
-			// Clear out any pending changes.
-			SQL::delete("bigtree_pending_changes", ["item_id" => $id, "table" => $this->Table]);
+			// See if there's a pending change that's being published
+			$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = ? AND `item_id` = ?", $this->Table, $id);
 			
-			// Cache and track
+			if ($change) {
+				$change_data = Link::decode(json_decode($change["changes"], true));
+				$exact = true;
+				
+				foreach ($change_data as $key => $value) {
+					if (isset($data[$key]) && $columns[$key] != $value) {
+						$exact = false;
+					}
+				}
+				
+				SQL::delete("bigtree_pending_changes", $change["id"]);
+				
+				if ($exact) {
+					AuditTrail::track($this->Table, $id, "updated via publisher", $change["user"]);
+					AuditTrail::track($this->Table, $id, "published");
+				} else {
+					AuditTrail::track($this->Table, $id, "updated");
+				}
+			} else {
+				AuditTrail::track($this->Table, $id, "updated");
+			}
+			
+			if ($this->Table != "bigtree_pages") {
+				ModuleView::cacheForAll($id, $this->Table);
+			}
+			
 			Tag::updateReferenceCounts($tags);
-			ModuleView::cacheForAll($id, $this->Table);
-			AuditTrail::track($this->Table, $id, "updated");
 		}
 		
 		/*
@@ -659,7 +728,8 @@
 				value - The value to set.
 		*/
 		
-		static function updatePendingEntryField(int $id, string $field, $value): void {
+		static function updatePendingEntryField(int $id, string $field, $value): void
+		{
 			$changes = json_decode(SQL::fetchSingle("SELECT changes FROM bigtree_pending_changes WHERE id = ?", $id), true);
 			
 			if (is_array($value)) {
