@@ -546,15 +546,27 @@
 			
 			Parameters:
 				page - Either a page array (containing at least the page's ID) or a page ID.
+				full - Whether to return a full tag array or just the tag string (defaults to full tag array)
 			
 			Returns:
 				An array of tags.
 		*/
 		
-		static function getTagsForPage($page) {
+		static function getTagsForPage($page, $full = true) {
 			$page = new BigTree\Page($page, false);
+			$tags = $page->getTags(true);
 			
-			return $page->Tags;
+			if ($full) {
+				return $tags;
+			} else {
+				$tag_names = [];
+				
+				foreach ($tags as $tag) {
+					$tag_names[] = $tag["name"];
+				}
+				
+				return $tag_names;
+			}
 		}
 		
 		/*

@@ -538,16 +538,26 @@
 			Parameters:
 				table - The table the entry is in.
 				id - The id of the entry.
+				full - Whether to return a full tag array or just the tag string (defaults to full tag array)
 			
 			Returns:
 				An array ot tags from bigtree_tags.
 		*/
 		
-		static function getTagsForEntry($table, $id) {
-			return SQL::fetchAll("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel 
-								  ON bigtree_tags_rel.tag = bigtree_tags.id 
-								  WHERE bigtree_tags_rel.`table` = ? AND bigtree_tags_rel.entry = ? 
-								  ORDER BY bigtree_tags.tag ASC", $table, $id);
+		public static function getTagsForEntry($table, $id, $full = true) {
+			if ($full) {
+				return SQL::fetchAll("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel
+									  ON bigtree_tags_rel.tag = bigtree_tags.id
+									  WHERE bigtree_tags_rel.`table` = ?
+									    AND bigtree_tags_rel.`entry` = ?
+						  			  ORDER BY bigtree_tags.tag ASC", $table, $id);
+			}
+			
+			return SQL::fetchAllSingle("SELECT bigtree_tags.tag FROM bigtree_tags JOIN bigtree_tags_rel
+									    ON bigtree_tags_rel.tag = bigtree_tags.id
+									    WHERE bigtree_tags_rel.`table` = ?
+									      AND bigtree_tags_rel.`entry` = ?
+						  			    ORDER BY bigtree_tags.tag ASC", $table, $id);
 		}
 		
 		/*
