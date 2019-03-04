@@ -9200,7 +9200,6 @@
 			Parameters:
 				page - The page id to update.
 				data - The page data to update with.
-				publisher - If set to true, the owner of the current pending change will be marked as the author of this page. (defaults to false)
 		*/
 
 		public function updatePage($page, $data) {
