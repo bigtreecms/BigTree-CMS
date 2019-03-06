@@ -9616,6 +9616,8 @@
 		*/
 
 		public function updateResource($id, $data) {
+			$data["last_updated"] = "NOW()";
+
 			SQL::update("bigtree_resources", $id, $data);
 			$this->track("bigtree_resources",$id,"updated");
 		}
