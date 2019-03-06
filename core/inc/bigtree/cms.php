@@ -1071,12 +1071,10 @@
 				id - The ID of the entry
 		
 			Returns:
-				An array of Open Graph data or null on failure.
+				An array of Open Graph data.
 		*/
 		
 		public static function getOpenGraph($table, $id) {
-			global $bigtree;
-
 			try {
 				$og = SQL::fetch("SELECT * FROM bigtree_open_graph WHERE `table` = ? AND `entry` = ?", $table, $id);
 			} catch (Exception $e) {

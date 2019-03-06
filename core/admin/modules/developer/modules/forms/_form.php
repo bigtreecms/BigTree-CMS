@@ -51,7 +51,7 @@
 			<a href="#" id="manage_hooks"><span class="icon_small icon_small_lightning"></span> Manage Hooks</a>
 			<input name="hooks" type="hidden" id="form_hooks" value="<?=htmlspecialchars(json_encode($form["hooks"]))?>" />
 		</fieldset>
-	</fieldset>
+	</div>
 </section>
 <section class="sub" id="field_area">
 	<?php
