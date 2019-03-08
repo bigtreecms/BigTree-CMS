@@ -1,7 +1,6 @@
-<?php
-	$admin->requireLevel(1);
-	
+<?php	
 	$token = $analytics->oAuthSetToken($_GET["code"]);
+
 	if ($analytics->OAuthError) {
 		$admin->growl("Google Analytics",$analytics->OAuthError,"error");
 		BigTree::redirect(MODULE_ROOT."configure/");

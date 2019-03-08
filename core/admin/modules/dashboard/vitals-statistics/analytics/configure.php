@@ -1,14 +1,3 @@
-<?php
-	if ($admin->Level < 1) {
-?>
-<div class="container">
-	<section>
-		<p>You are not authorized to view this section.</p>
-	</section>
-</div>
-<?php
-	} else {
-?>
 <div class="container">
 	<?php
 		if ($analytics->Settings["token"]) {
@@ -87,6 +76,3 @@
 		return false;
 	});
 </script>
-<?php
-	}
-?>

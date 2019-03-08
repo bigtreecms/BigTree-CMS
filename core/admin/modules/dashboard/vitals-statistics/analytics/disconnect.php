@@ -1,4 +1,6 @@
 <?php
 	$admin->disconnectGoogleAnalytics();
-	$analytics->Settings = array();
+	$analytics->Settings = [];
+	$analytics->saveSettings();
+	
 	BigTree::redirect(MODULE_ROOT);
