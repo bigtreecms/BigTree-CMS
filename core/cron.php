@@ -3,7 +3,7 @@
 	include $server_root."custom/environment.php";
 	include $server_root."custom/settings.php";
 	include $server_root."core/bootstrap.php";
-    include $server_root."core/inc/bigtree/sitemap.php";
+	include $server_root."core/inc/bigtree/sitemap.php";
 
 	$admin = new BigTreeAdmin;
 	
@@ -28,6 +28,6 @@
 	}
 
 	// Re-generate sitemap.xml.
-    $sitemap = new BigTreeSitemapGenerator();
-    $xml = $sitemap->generateSitemap();
-    $sitemap->saveFile($xml);
+	$sitemap = new BigTreeSitemapGenerator();
+	$xml = $sitemap->generateSitemap();
+	$sitemap->saveFile($xml);
