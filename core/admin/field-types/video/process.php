@@ -61,7 +61,7 @@
 					$field["ignore"] = true;
 				} else {
 					$field["output"] = [
-						"service" => "youtube",
+						"service" => "YouTube",
 						"id" => $video_id,
 						"height" => false,
 						"width" => false,
