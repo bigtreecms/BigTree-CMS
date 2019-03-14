@@ -22,6 +22,7 @@ Changelog
 
 ### 4.4.2
 - ADDED: Creation / modification / file change status when editing files in the file manager
+- CHANGED: Sitemap.xml is no longer generated on the fly and is instead cached and updated during the cron run (thanks afi13)
 - FIXED: Images not showing image previews / the ability to re-crop in the file manager
 - FIXED: The "Remove" option showing up for a file in the file manager
 - FIXED: Pending Changes dashboard behavior
