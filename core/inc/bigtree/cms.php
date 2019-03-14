@@ -412,23 +412,27 @@
 		*/
 		
 		public static function drawXMLSitemap() {
-      include SERVER_ROOT."core/inc/bigtree/sitemap.php";
-      header("Content-type: text/xml");
+			include SERVER_ROOT."core/inc/bigtree/sitemap.php";
+			
+			header("Content-type: text/xml");
 
-      // Send file content if sitemap.xml is already generated and saved.
-      $filename = SERVER_ROOT . BigTreeSitemapGenerator::FILE_PATH;
-      if (file_exists($filename)) {
-          $fp = fopen($filename, 'rb');
-          fpassthru($fp);
-          die();
-      }
+			// Send file content if sitemap.xml is already generated and saved.
+			$filename = SERVER_ROOT.BigTreeSitemapGenerator::FILE_PATH;
+			
+			if (file_exists($filename)) {
+				$fp = fopen($filename, 'rb');
+				fpassthru($fp);
 
-      // As fallback, we should generate sitemap on the fly.
-      $sitemap = new BigTreeSitemapGenerator();
-      $xml = $sitemap->generateSitemap();
-      $sitemap->saveFile($xml);
-      echo $xml;
-      die();
+				die();
+			}
+			
+			// As fallback, we should generate sitemap on the fly.
+			$sitemap = new BigTreeSitemapGenerator;
+			$xml = $sitemap->generateSitemap();
+			$sitemap->saveFile($xml);
+			echo $xml;
+
+			die();
 		}
 
 		/*
@@ -875,10 +879,10 @@
 			$q = sqlquery("SELECT id,nav_title,parent,external,new_window,template,route,path 
 						   FROM bigtree_pages 
 						   WHERE $where_parent 
-						     AND in_nav = '$in_nav' 
-						     AND archived != 'on' 
-						     AND (publish_at <= NOW() OR publish_at IS NULL) 
-						     AND (expire_at >= NOW() OR expire_at IS NULL) 
+							 AND in_nav = '$in_nav' 
+							 AND archived != 'on' 
+							 AND (publish_at <= NOW() OR publish_at IS NULL) 
+							 AND (expire_at >= NOW() OR expire_at IS NULL) 
 						   ORDER BY $sort");
 			
 			// Wrangle up some kids
@@ -1413,7 +1417,7 @@
 				return SQL::fetchAll("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel
 									  ON bigtree_tags.id = bigtree_tags_rel.tag
 									  WHERE bigtree_tags_rel.`table` = 'bigtree_pages'
-									    AND bigtree_tags_rel.`entry` = ?
+										AND bigtree_tags_rel.`entry` = ?
 									  ORDER BY bigtree_tags.`tag` ASC", $page);
 			}
 			
@@ -1604,6 +1608,10 @@
 		
 		public static function linkForPath($path) {
 			global $bigtree;
+
+			if (empty($path)) {
+				return WWW_ROOT;
+			}
 			
 			// Remove the site root from the path for multi-site
 			if (defined("BIGTREE_SITE_KEY") || (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]))) {

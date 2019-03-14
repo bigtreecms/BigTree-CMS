@@ -28,6 +28,6 @@
 	}
 
 	// Re-generate sitemap.xml.
-	$sitemap = new BigTreeSitemapGenerator();
+	$sitemap = new BigTreeSitemapGenerator;
 	$xml = $sitemap->generateSitemap();
 	$sitemap->saveFile($xml);
