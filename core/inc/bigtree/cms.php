@@ -412,45 +412,23 @@
 		*/
 		
 		public static function drawXMLSitemap() {
-			header("Content-type: text/xml");
-			echo '<?xml version="1.0" encoding="UTF-8" ?>';
-			echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">';
-			$q = sqlquery("SELECT id,template,external,path FROM bigtree_pages WHERE archived = '' AND (publish_at >= NOW() OR publish_at IS NULL) ORDER BY id ASC");
+      include SERVER_ROOT."core/inc/bigtree/sitemap.php";
+      header("Content-type: text/xml");
 
-			while ($f = sqlfetch($q)) {
-				if ($f["template"] || strpos($f["external"],DOMAIN)) {	
-					if (!$f["template"]) {
-						$link = static::getInternalPageLink($f["external"]);
-					} else {
-						$link = static::linkForPath($f["path"]);
-					}
-					
-					echo "<url><loc>".$link."</loc></url>\n";
-					
-					// Added routed template support
-					$template = BigTreeJSONDB::get("templates", $f["template"]);
+      // Send file content if sitemap.xml is already generated and saved.
+      $filename = SERVER_ROOT . BigTreeSitemapGenerator::FILE_PATH;
+      if (file_exists($filename)) {
+          $fp = fopen($filename, 'rb');
+          fpassthru($fp);
+          die();
+      }
 
-					if ($template["module"]) {
-						$module = BigTreeJSONDB::get("modules", $template["module"]);
-
-						if ($module && $module["class"]) {
-							$mod = new $module["class"];
-						
-							if (method_exists($mod,"getSitemap")) {
-								$subnav = $mod->getSitemap($f);
-								
-								foreach ($subnav as $s) {
-									echo "<url><loc>".$s["link"]."</loc></url>\n";
-								}
-							}
-							
-							$mod = $subnav = null;
-						}
-					}
-				}
-			}
-			echo '</urlset>';
-			die();
+      // As fallback, we should generate sitemap on the fly.
+      $sitemap = new BigTreeSitemapGenerator();
+      $xml = $sitemap->generateSitemap();
+      $sitemap->saveFile($xml);
+      echo $xml;
+      die();
 		}
 
 		/*
