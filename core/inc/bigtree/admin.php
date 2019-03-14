@@ -1246,6 +1246,11 @@
 			
 			foreach ($fields as $key => $field) {
 				$field["settings"] = json_decode($field["settings"], true);
+
+				if (!is_array($field["settings"])) {
+					$field["settings"] = [];
+				}
+				
 				$field["settings"] = BigTree::arrayFilterRecursive($field["settings"]);
 				$field["column"] = $key;
 

@@ -141,7 +141,7 @@
 		}
 	};
 
-	window.parent.BigTreeEmbeddableForm<?=$bigtree["form"]["id"]?>.scrollToTop();
+	window.parent.BigTreeEmbeddableForm<?=str_replace("-", "_", $bigtree["form"]["id"])?>.scrollToTop();
 	BigTree.localCurrentCrop = 1;
 	BigTree.localMaxCrops = <?=count($crops)?>;
 	BigTree.localWindowWidth = window.innerWidth;
