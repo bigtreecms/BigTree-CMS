@@ -26,6 +26,22 @@
 		
 		// YouTube
 		if (strpos($url, "youtu.be") !== false || strpos($url, "youtube.com") !== false) {
+			// Fix issues with URLs that contain timestamps.
+			$parsed = parse_url($url);
+			$get = explode("&", $parsed["query"]);
+
+			foreach ($get as $index => $get_item) {
+				if (strpos($get_item, "t=") === 0) {
+					unset($get[$index]);
+				}
+			}
+
+			$url = $parsed["scheme"]."://".$parsed["host"].$parsed["path"];
+
+			if (count($get)) {
+				$url .= "?".implode("&", $get);
+			}
+
 			// Try to grab the ID from the YouTube URL (courtesy of various Stack Overflow authors)
 			$pattern =
 				'%^# Match any youtube URL
@@ -44,7 +60,7 @@
 				($|&).*		    # if additional parameters are also in query string after video id.
 				$%x';
 			$result = preg_match($pattern, $url, $matches);
-			
+
 			// No ID match? Bad URL.
 			if ($result === false) {
 				$bigtree["errors"][] = ["field" => $field["title"], "error" => "The URL you entered is not a valid YouTube URL."];
