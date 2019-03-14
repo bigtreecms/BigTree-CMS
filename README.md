@@ -20,6 +20,25 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.4.2
+- ADDED: Creation / modification / file change status when editing files in the file manager
+- FIXED: Images not showing image previews / the ability to re-crop in the file manager
+- FIXED: The "Remove" option showing up for a file in the file manager
+- FIXED: Pending Changes dashboard behavior
+- FIXED: Module based pending changes not properly applying the module ID to the change (this is not retroactive, existing broken content is not able to be fixed)
+- FIXED: cURL requests on servers with an unlimited maximum execution time ending immediately
+- FIXED: A cross-site-scripting issue when creating field types
+- FIXED: Giant set of crops coming by default in the file manager (should now be the defaults from earlier versions of BigTree - just 3 thumbnails)
+- FIXED: Some incorrect code documentation
+- FIXED: Warnings on empty responses breaking the caching of Google Analytics data
+- FIXED: Disconnecting and setting a profile for Google Analytics
+- FIXED: The drop zone for uploading images and files not being clickable directly on the help text.
+- FIXED: Video data in the Video and Media Gallery field types sometimes storing "YouTube" as the service and other times "youtube". It is now always "YouTube".
+- FIXED: File manager failing to detect an upload of a file that exceeds post_max_size as an error
+- FIXED: Trailing whitespace on URL requests not being stripped
+- FIXED: Embeddable forms not functioning properly post 4.4
+- FIXED: Video URLs that contained timestamp GET parameters failing to be recognized as valid YouTube URLs.
+
 ### 4.4.1
 - ADDED: Module views can now be explicitly excluded from search to improve performance
 - CHANGED: When calling BigTree::urlExists HTTPS validation is skipped
