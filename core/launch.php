@@ -19,7 +19,7 @@
 			$bigtree["path"] = array();
 			$bigtree["trailing_slash_present"] = false;
 		} else {
-			$bigtree["path"] = explode("/",trim($_SERVER["PATH_INFO"],"/"));
+			$bigtree["path"] = explode("/",trim(trim($_SERVER["PATH_INFO"]),"/"));
 			$bigtree["trailing_slash_present"] = (substr($_SERVER["PATH_INFO"],-1,1) === "/");
 		}
 
@@ -29,7 +29,7 @@
 			$_GET["bigtree_htaccess_url"] = "";
 		}
 	
-		$bigtree["path"] = explode("/",rtrim($_GET["bigtree_htaccess_url"],"/"));
+		$bigtree["path"] = explode("/",rtrim(trim($_GET["bigtree_htaccess_url"]),"/"));
 		$bigtree["trailing_slash_present"] = (substr($_GET["bigtree_htaccess_url"],-1,1) === "/");
 	}
 
