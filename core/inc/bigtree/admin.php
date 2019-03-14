@@ -6,6 +6,8 @@
 
 	class BigTreeAdminBase {
 
+		public $POSTError;
+
 		public static $IRLPrefixes = [];
 		public static $IRLsCreated = [];
 		public static $PerPage = 15;
@@ -587,10 +589,11 @@
 				$error = "max_input_vars";
 			}
 
-			if ($error) {
+			if ($error && $bigtree["path"][1] != "ajax") {
 				$_SESSION["bigtree_admin"]["post_error"] = $error;
-
 				BigTree::redirect($_SERVER["HTTP_REFERER"]);
+			} else {
+				$this->POSTError = $error;
 			}
 		}
 

@@ -1,4 +1,11 @@
 <?php
+	if (!empty($admin->POSTError)) {
+		http_response_code(406);
+		header("Content-type: text/plain");
+		echo "The uploaded image exceeded the server's maximum upload size. Please try a smaller image.";
+		die();
+	}
+
 	$admin->verifyCSRFToken();
 	$folder = intval($_POST["folder"]);
 	$permission = $admin->getResourceFolderPermission($folder);

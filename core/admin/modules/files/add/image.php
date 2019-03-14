@@ -15,6 +15,7 @@
 	<section>
 		<form action="<?=ADMIN_ROOT?>ajax/files/dropzone-upload-image/" class="dropzone" id="file_manager_dropzone">
 			<?php $admin->drawCSRFToken(); ?>
+			<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>">
 			<input type="hidden" name="folder" value="<?=$folder?>">
 			<p>Drag and drop files into this zone or click to manually upload.</p>
 		</form>
@@ -61,6 +62,7 @@
 				});
 
 				this.on("error", function(ev, response) {
+					$(ev.previewElement).removeClass("dz-processing").find(".button_loader").remove();
 					Processed++;
 				});
 			}

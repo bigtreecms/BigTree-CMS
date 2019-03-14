@@ -1,4 +1,11 @@
 <?php
+	if (!empty($admin->POSTError)) {
+		http_response_code(406);
+		header("Content-type: text/plain");
+		echo "The uploaded file exceeded the server's maximum upload size.";
+		die();
+	}
+
 	$admin->verifyCSRFToken();
 	
 	$storage = new BigTreeStorage(true);
