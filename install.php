@@ -1,6 +1,7 @@
 <?php
 	// Set version
 	include "core/version.php";
+	include "core/inc/bigtree/utils.php";
 
 	// Setup SQL functions for MySQL extension if we have it.
 	if (function_exists("mysql_connect")) {
@@ -178,7 +179,9 @@
 
 		// Let domain/www_root/static_root be set by post for command line installs
 		if (!isset($domain)) {
-			$domain = "http://".$_SERVER["HTTP_HOST"];
+			$scheme = BigTree::getIsSSL() ? "https" : "http";
+			$domain = $scheme."://".$_SERVER["HTTP_HOST"];
+			
 			if ($routing == "basic") {
 				$static_root = $domain.str_replace("install.php","",$_SERVER["REQUEST_URI"])."site/";
 				$www_root = $static_root."index.php/";
