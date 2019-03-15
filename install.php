@@ -695,20 +695,20 @@ RewriteRule (.*) site/$1 [L]');
 						<p>If you are hosting a load balanced setup with multiple MySQL servers, enter the master write server information below.</p>
 					</fieldset>
 					<hr />
-					<fieldset class="left<?php if (count($_POST) && !$write_host) { ?> form_error<?php } ?>">
+					<fieldset class="left<?php if (count($_POST) && $loadbalanced && !$write_host) { ?> form_error<?php } ?>">
 						<label>Hostname</label>
 						<input class="text" type="text" id="db_write_host" name="write_host" value="<?=htmlspecialchars($write_host)?>" tabindex="8" />
 					</fieldset>
-					<fieldset class="right<?php if (count($_POST) && !$write_db) { ?> form_error<?php } ?>">
+					<fieldset class="right<?php if (count($_POST) && $loadbalanced && !$write_db) { ?> form_error<?php } ?>">
 						<label>Database</label>
 						<input class="text" type="text" id="db_write_name" name="write_db" value="<?=htmlspecialchars($write_db)?>" tabindex="9" />
 					</fieldset>
 					<br class="clear" /><br />
-					<fieldset class="left<?php if (count($_POST) && !$write_user) { ?> form_error<?php } ?>">
+					<fieldset class="left<?php if (count($_POST) && $loadbalanced && !$write_user) { ?> form_error<?php } ?>">
 						<label>Username</label>
 						<input class="text" type="text" id="db_write_user" name="write_user" value="<?=htmlspecialchars($write_user)?>" tabindex="10" autocomplete="off" />
 					</fieldset>
-					<fieldset class="right<?php if (count($_POST) && !$write_password) { ?> form_error<?php } ?>">
+					<fieldset class="right<?php if (count($_POST) && $loadbalanced && !$write_password) { ?> form_error<?php } ?>">
 						<label>Password</label>
 						<input class="text" type="password" id="db_write_pass" name="write_password" value="<?=htmlspecialchars($write_password)?>" tabindex="11" autocomplete="off" />
 					</fieldset>
