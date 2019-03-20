@@ -151,6 +151,8 @@
 				$field["subtitle"] = "(leave empty to preserve current file".$min_message.")";
 
 				BigTreeAdmin::drawField($field);
+			} else {
+				echo $file["video_data"]["embed"];
 			}
 
 			if (is_array($meta_fields) && count($meta_fields)) {
