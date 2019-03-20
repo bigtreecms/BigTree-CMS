@@ -5304,7 +5304,7 @@
 
 			$changes = array();
 			// Setup the default search array to just be pages
-			$search = array("`module` = ''");
+			$search = array("`module` = '' OR `module` IS NULL");
 			// Add each module the user has publisher permissions to
 			if (is_array($user["permissions"]["module"])) {
 				foreach ($user["permissions"]["module"] as $module => $permission) {

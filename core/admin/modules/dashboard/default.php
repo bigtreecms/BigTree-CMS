@@ -24,10 +24,11 @@
 		if (!$c["module"]) {
 			$c["module"] = "pages";
 		}
+		
 		if (!array_key_exists($c["module"],$change_modules)) {
 			// Pages
 			if ($c["table"] == "bigtree_pages") {
-				$change_modules[0] = array("title" => "Pages", "count" => 1);
+				$change_modules["pages"] = array("title" => "Pages", "count" => 1);
 			} else {
 				$module = $admin->getModule($c["module"]);
 				$change_modules[$c["module"]] = array("title" => $module["name"], "icon" => $module["icon"], "count" => 1);
@@ -51,7 +52,7 @@
 		if (!array_key_exists($c["module"],$my_change_modules)) {
 			// Pages
 			if ($c["table"] == "bigtree_pages") {
-				$my_change_modules[0] = array("title" => "Pages", "count" => 1);
+				$my_change_modules["pages"] = array("title" => "Pages", "count" => 1);
 			} else {
 				$module = $admin->getModule($c["module"]);
 				$my_change_modules[$c["module"]] = array("title" => $module["name"], "icon" => $module["icon"], "count" => 1);
