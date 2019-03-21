@@ -6802,7 +6802,7 @@
 				// Create the new session chain
 				sqlquery("INSERT INTO bigtree_user_sessions (`id`,`chain`,`email`,`csrf_token`,`csrf_token_field`) VALUES ('".sqlescape($session)."','".sqlescape($chain)."','".sqlescape($user["email"])."','$csrf_token','$csrf_token_field')");
 
-				if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+				if (count($bigtree["config"]["sites"])) {
 					// Create another unique cache session for logins across domains
 					$cache_data = array(
 						"user_id" => $user["id"],

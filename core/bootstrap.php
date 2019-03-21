@@ -23,6 +23,15 @@
 	define("SITE_ROOT", $site_root);
 	define("ADMIN_ROOT", $admin_root);
 
+	// Clean up some recently added config indexes that we rely on
+	if (empty($bigtree["config"]["sites"]) || !is_array($bigtree["config"]["sites"])) {
+		$bigtree["config"]["sites"] = [];
+	}
+
+	if (!isset($bigtree["config"]["trailing_slash_behavior"])) {
+		$bigtree["config"]["trailing_slash_behavior"] = "";
+	}
+
 	// Set version
 	include SERVER_ROOT."core/version.php";
 

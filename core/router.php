@@ -294,7 +294,7 @@
 	}
 	
 	// If we haven't already received our nav id through previewing...
-	if (!$navid) {
+	if (empty($navid)) {
 		list($navid,$bigtree["commands"],$routed) = $cms->getNavId($bigtree["path"],$bigtree["preview"]);
 		$commands = $bigtree["commands"]; // Backwards compatibility
 	}
@@ -469,11 +469,13 @@
 	
 	// Load the content again into the layout.
 	ob_start();
-	if ($bigtree["extension_layout"]) {
+
+	if (!empty($bigtree["extension_layout"])) {
 		include SERVER_ROOT."extensions/".$bigtree["extension_layout"]."/templates/layouts/".$bigtree["layout"].".php";
 	} else {
 		include SERVER_ROOT."templates/layouts/".$bigtree["layout"].".php";
 	}
+
 	$bigtree["content"] = ob_get_clean();
 	
 	// Allow for special output filter functions.

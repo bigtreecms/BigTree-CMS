@@ -183,7 +183,7 @@
 	// We're loading a page in the admin, so add and remove some content / security headers
 	$csp_domains = [];
 
-	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+	if (!empty($bigtree["config"]["sites"]) && is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
 		foreach ($bigtree["config"]["sites"] as $site) {
 			$clean_csp_domain = str_replace(array("https://", "http://"), "", $site["domain"]);
 			$csp_domains[] = "http://".$clean_csp_domain;

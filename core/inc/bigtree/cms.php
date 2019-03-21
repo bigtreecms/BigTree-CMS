@@ -46,7 +46,7 @@
 			$this->ModuleClassList = $items;
 			
 			// Find root paths for all sites to include in URLs if we're in a multi-site environment
-			if (defined("BIGTREE_SITE_KEY") || (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]))) {
+			if (defined("BIGTREE_SITE_KEY") || count($bigtree["config"]["sites"])) {
 				$cache_location = SERVER_ROOT."cache/bigtree-multi-site-cache.json";
 
 				if (!file_exists($cache_location)) {
@@ -489,17 +489,15 @@
 					static::$ReplaceableRootVals[] = "{adminroot}";
 				}
 				
-				if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
-					foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
-						if ($valid_root($site_configuration["static_root"])) {
-							static::$ReplaceableRootKeys[] = $site_configuration["static_root"];
-							static::$ReplaceableRootVals[] = "{staticroot:$site_key}";
-						}
-						
-						if ($valid_root($site_configuration["www_root"])) {
-							static::$ReplaceableRootKeys[] = $site_configuration["www_root"];
-							static::$ReplaceableRootVals[] = "{wwwroot:$site_key}";
-						}
+				foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
+					if ($valid_root($site_configuration["static_root"])) {
+						static::$ReplaceableRootKeys[] = $site_configuration["static_root"];
+						static::$ReplaceableRootVals[] = "{staticroot:$site_key}";
+					}
+					
+					if ($valid_root($site_configuration["www_root"])) {
+						static::$ReplaceableRootKeys[] = $site_configuration["www_root"];
+						static::$ReplaceableRootVals[] = "{wwwroot:$site_key}";
 					}
 				}
 				
@@ -746,9 +744,9 @@
 			}
 			
 			// New IPLs are encoded in JSON
-			$command_parts = json_decode(base64_decode($ipl[2]));
-			$get_vars = base64_decode($ipl[3]);
-			$hash = base64_decode($ipl[4]);
+			$command_parts = json_decode(base64_decode(isset($ipl[2]) ? $ipl[2] : ""));
+			$get_vars = base64_decode(isset($ipl[3]) ? $ipl[3] : "");
+			$hash = base64_decode(isset($ipl[4]) ? $ipl[4]: "");
 			
 			// If it can't be rectified, we still don't want a warning.
 			if (is_array($command_parts) && count($command_parts)) {
@@ -1240,7 +1238,7 @@
 			} else {
 				$link = static::getLink($id);
 				
-				if (defined("BIGTREE_SITE_KEY") || (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]))) {
+				if (defined("BIGTREE_SITE_KEY") || count($bigtree["config"]["sites"])) {
 					foreach (static::$SiteRoots as $site_path => $site_data) {
 						if (strpos($link, $site_data["www_root"]) === 0) {
 							return str_replace($site_data["www_root"], $site_data["www_root"]."_preview/", $link);
@@ -1614,7 +1612,7 @@
 			}
 			
 			// Remove the site root from the path for multi-site
-			if (defined("BIGTREE_SITE_KEY") || (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]))) {
+			if (defined("BIGTREE_SITE_KEY") || count($bigtree["config"]["sites"])) {
 				foreach (static::$SiteRoots as $site_path => $site_data) {
 					if ($site_path == "" || strpos($path, $site_path) === 0) {
 						if ($site_path) {
