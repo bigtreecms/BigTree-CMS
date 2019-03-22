@@ -6,9 +6,11 @@
 	$field["output"] = [];
 
 	// Make sure file-only entries are represented
-	foreach ($field["file_input"] as $index => $data) {
-		if (!isset($field["input"][$index])) {
-			$field["input"][$index] = [];
+	if (is_array($field["file_input"])) {
+		foreach ($field["file_input"] as $index => $data) {
+			if (!isset($field["input"][$index])) {
+				$field["input"][$index] = [];
+			}
 		}
 	}
 	
