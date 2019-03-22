@@ -5,6 +5,13 @@
 
 	$field["output"] = [];
 
+	// Make sure file-only entries are represented
+	foreach ($field["file_input"] as $index => $data) {
+		if (!isset($field["input"][$index])) {
+			$field["input"][$index] = [];
+		}
+	}
+
 	foreach ($field["input"] as $index => $data) {
 		// Make sure something has been entered
 		if (!array_filter((array) $data) && !array_filter((array) $field["file_input"][$index])) {
@@ -44,7 +51,6 @@
 				"title" => $resource["title"],
 				"key" => $resource["id"],
 				"settings" => $settings,
-				"ignore" => false,
 				"input" => $input,
 				"file_input" => $field["file_input"][$index][$resource["id"]]
 			]);

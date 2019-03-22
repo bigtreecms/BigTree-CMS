@@ -1,158 +1,146 @@
 <?php
-	$matrix = [
-		"data" => [],
-		"field" => $field,
-		"saved_entry" => $bigtree["entry"],
-		"saved_post_data" => $bigtree["post_data"],
-		"saved_file_data" => $bigtree["file_data"]
-	];
-	
-	// Find things that are strictly file based inputs and make a phantom entry in the POST so we don't miss it
-	foreach ($matrix["field"]["file_input"] as $number => $data) {
-		if (!isset($matrix["field"]["input"][$number])) {
-			$matrix["field"]["input"][$number] = [];
+	if (!is_array($field["input"])) {
+		$field["input"] = [];
+	}
+
+	$field["output"] = [];
+
+	// Make sure file-only entries are represented
+	foreach ($field["file_input"] as $index => $data) {
+		if (!isset($field["input"][$index])) {
+			$field["input"][$index] = [];
 		}
 	}
 	
-	if (count($matrix["field"]["input"])) {
-		foreach ($matrix["field"]["input"] as $number => $data) {
-			// Make sure something has been entered
-			if (array_filter((array) $data) || array_filter((array) $matrix["field"]["file_input"][$number])) {
-				$bigtree["entry"] = [];
-				$bigtree["post_data"] = $data["info"];
-				$bigtree["file_data"] = $matrix["field"]["file_input"][$number]["info"];
+	foreach ($field["input"] as $index => $data) {
+		// Make sure something has been entered
+		if (!array_filter((array) $data) && !array_filter((array) $field["file_input"][$index])) {
+			continue;
+		}
+
+		$entry = [];
+
+		// Process a manual video upload
+		if ($data["info"]["*localvideo"] || $field["file_input"][$index]["info"]["*localvideo"]["tmp_name"]) {
+			// Process the uploaded video
+			$output = BigTreeAdmin::processField([
+				"title" => "Video",
+				"key" => "*localvideo",
+				"type" => "upload",
+				"input" => $data["info"]["*localvideo"],
+				"file_input" => $field["file_input"][$index]["info"]["*localvideo"],
+				"settings" => $field["settings"]
+			]);
+			
+			// If this field fails, we shouldn't upload the image
+			if ($output) {
+				$entry["type"] = "video";
+				$entry["video"] = [
+					"service" => "local",
+					"url" => $output
+				];
+
+				// Process the cover image
+				$output = BigTreeAdmin::processField([
+					"title" => "Photo",
+					"key" => "*photo",
+					"type" => "image",
+					"input" => $data["info"]["*photo"],
+					"file_input" => $field["file_input"][$index]["info"]["*photo"],
+					"settings" => $field["settings"]
+				]);
 				
-				// Process a manual video upload
-				if ($data["info"]["*localvideo"] || $bigtree["file_data"]["*localvideo"]["tmp_name"]) {
-					$bigtree["entry"]["type"] = "video";
-					
-					$field = [
-						"title" => "Photo",
-						"key" => "*photo",
-						"type" => "image",
-						"input" => $bigtree["post_data"]["*photo"],
-						"file_input" => $bigtree["file_data"]["*photo"],
-						"settings" => $matrix["field"]["settings"],
-						"ignore" => false
-					];
-					$output = BigTreeAdmin::processField($field);
-					
-					if ($output) {
-						$bigtree["entry"]["image"] = $output;
-					}
-					
-					$field = [
-						"title" => "Video",
-						"key" => "*localvideo",
-						"type" => "upload",
-						"input" => $bigtree["post_data"]["*localvideo"],
-						"file_input" => $bigtree["file_data"]["*localvideo"],
-						"settings" => $matrix["field"]["settings"],
-						"ignore" => false
-					];
-					$output = BigTreeAdmin::processField($field);
-					
-					if ($output) {
-						$bigtree["entry"]["video"] = [
-							"service" => "local",
-							"url" => $output
-						];
-					}
-					
-				// Process a photo upload
-				} elseif ($data["info"]["*photo"] || $bigtree["file_data"]["*photo"]["tmp_name"]) {
-					$field = [
-						"title" => "Photo",
-						"key" => "*photo",
-						"type" => "image",
-						"input" => $bigtree["post_data"]["*photo"],
-						"file_input" => $bigtree["file_data"]["*photo"],
-						"settings" => $matrix["field"]["settings"],
-						"ignore" => false
-					];
-					$output = BigTreeAdmin::processField($field);
-					
-					if ($output) {
-						$bigtree["entry"]["type"] = "photo";
-						$bigtree["entry"]["image"] = $output;
-					}
-					
-				// Process a video
-				} elseif ($data["info"]["*video"]) {
-					$field = [
-						"title" => "Video URL",
-						"key" => "*video",
-						"type" => "video",
-						"input" => $bigtree["post_data"]["*video"],
-						"file_input" => $bigtree["file_data"]["*video"],
-						"settings" => $matrix["field"]["settings"],
-						"ignore" => false
-					];
-					$output = BigTreeAdmin::processField($field);
-					
-					if ($output) {
-						$bigtree["entry"]["type"] = "video";
-						$bigtree["entry"]["image"] = $output["image"];
-						unset($output["image"]);
-						$bigtree["entry"]["video"] = $output;
-					}
-					
-				// Existing unchanged field
-				} elseif ($data["type"]) {
-					$bigtree["entry"] = $data;
-				}
-				
-				// Only run the rest if we successfully processed a video or photo
-				if (array_filter((array) $bigtree["entry"])) {
-					
-					// Handle all the additional columns
-					foreach (array_filter((array) $matrix["field"]["settings"]["columns"]) as $resource) {
-						$settings = @json_decode($resource["settings"], true);
-						$settings = is_array($settings) ? $settings : [];
-						
-						$field = [
-							"type" => $resource["type"],
-							"title" => $resource["title"],
-							"key" => $resource["id"],
-							"settings" => $settings,
-							"ignore" => false,
-							"input" => $bigtree["post_data"][$resource["id"]],
-							"file_input" => $bigtree["file_data"][$resource["id"]]
-						];
-						
-						if (empty($field["settings"]["directory"])) {
-							$field["settings"]["directory"] = "files/pages/";
-						}
-						
-						// If we JSON encoded this data and it hasn't changed we need to decode it or the parser will fail.
-						if (is_string($field["input"]) && is_array(json_decode($field["input"], true))) {
-							$field["input"] = json_decode($field["input"], true);
-						}
-						
-						// Process the input
-						$output = BigTreeAdmin::processField($field);
-						
-						if (!is_null($output)) {
-							$bigtree["entry"]["info"][$field["key"]] = $output;
-						}
-					}
-					
-					$matrix["data"][] = $bigtree["entry"];
+				if ($output) {
+					$entry["image"] = $output;
 				}
 			}
+			
+		// Process a photo upload
+		} elseif ($data["info"]["*photo"] || $field["file_input"][$index]["info"]["*photo"]["tmp_name"]) {
+			$output = BigTreeAdmin::processField([
+				"title" => "Photo",
+				"key" => "*photo",
+				"type" => "image",
+				"input" => $data["info"]["*photo"],
+				"file_input" => $field["file_input"][$index]["info"]["*photo"],
+				"settings" => $field["settings"]
+			]);
+			
+			if ($output) {
+				$entry["type"] = "photo";
+				$entry["image"] = $output;
+			}
+			
+		// Process a video
+		} elseif ($data["info"]["*video"]) {
+			$output = BigTreeAdmin::processField([
+				"title" => "Video URL",
+				"key" => "*video",
+				"type" => "video",
+				"input" => $data["info"]["*video"],
+				"file_input" => $field["file_input"][$index]["info"]["*video"],
+				"settings" => $field["settings"]
+			]);
+			
+			if ($output) {
+				$entry["type"] = "video";
+				$entry["image"] = $output["image"];
+				unset($output["image"]);
+				$entry["video"] = $output;
+			}
+			
+		// Existing unchanged field
+		} elseif ($data["type"]) {
+			$entry = $data;
 		}
+		
+		// Only run the rest if we successfully processed a video or photo
+		if (!array_filter((array) $entry)) {
+			continue;
+		}
+			
+		// Handle all the additional columns
+		foreach (array_filter((array) $field["settings"]["columns"]) as $resource) {
+			// Sanitize field settings
+			$settings = @json_decode($resource["settings"], true);
+			$options = @json_decode($resource["options"], true); // Backwards compat
+
+			if (empty($settings) || !is_array($settings)) {
+				$settings = $options;
+			}
+			
+			$settings = is_array($settings) ? $settings : [];
+
+			if (empty($settings["directory"])) {
+				$settings["directory"] = "files/pages/";
+			}
+
+			// Sanitize user input
+			$input = $data["info"][$resource["id"]];
+
+			if (is_string($input) && is_array(json_decode($input, true))) {
+				$input = json_decode($input, true);
+			}
+			
+			$output = BigTreeAdmin::processField([
+				"type" => $resource["type"],
+				"title" => $resource["title"],
+				"key" => $resource["id"],
+				"settings" => $settings,
+				"input" => $input,
+				"file_input" => $field["file_input"][$index]["info"][$resource["id"]]
+			]);
+			
+			if (!is_null($output)) {
+				$entry["info"][$resource["id"]] = $output;
+			}
+		}
+		
+		$field["output"][] = $entry;
 	}
 	
-	foreach ($matrix["data"] as &$item) {
-		if (!empty($item["info"]["caption"])) {
-			$item["caption"] = $item["info"]["caption"];
+	foreach ($field["output"] as $index => $entry) {
+		if (!empty($entry["info"]["caption"])) {
+			$field["output"][$index]["caption"] = BigTree::safeEncode(strip_tags($entry["info"]["caption"]));
 		}
 	}
-	
-	$bigtree["entry"] = $matrix["saved_entry"];
-	$bigtree["post_data"] = $matrix["saved_post_data"];
-	$bigtree["file_data"] = $matrix["saved_file_data"];
-	
-	$field = $matrix["field"];
-	$field["output"] = $matrix["data"];
-	

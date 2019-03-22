@@ -7452,7 +7452,7 @@
 				include $field_type_path;
 
 				// If it's explicitly ignored return null
-				if ($field["ignore"]) {
+				if (!empty($field["ignore"])) {
 					return null;
 				} else {
 					$output = $field["output"];

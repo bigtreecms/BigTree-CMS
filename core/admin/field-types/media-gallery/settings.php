@@ -44,6 +44,7 @@
 	<input id="field_settings_directory" type="text" name="directory" value="<?=htmlspecialchars($settings["directory"])?>" />
 </fieldset>
 <?php
+	$image_options_prefix = "gallery_".uniqid()."_";
 	include BigTree::path("admin/field-types/_image-options.php");
 ?>
 <hr />
@@ -56,6 +57,10 @@
 
 			foreach ($columns as $column) {
 				$x++;
+
+				if (empty($column["settings"]) && !empty($column["options"])) {
+					$column["settings"] = $column["options"];
+				}
 		?>
 		<article>
 			<div>
@@ -81,7 +86,7 @@
 				<span class="icon_drag"></span>
 				<a href="#" class="icon_delete"></a>
 				<a href="#" class="icon_edit" name="<?=$x?>"></a>
-				<input type="hidden" name="columns[][options]" value="<?=htmlspecialchars($column["options"])?>" />
+				<input type="hidden" name="columns[][settings]" value="<?=htmlspecialchars($column["settings"])?>" />
 			</footer>
 		</article>
 		<?php
@@ -96,7 +101,7 @@
 		var ColumnCount = <?=$x?>;
 		var MatrixTable = $(".bigtree_dialog_window").last().find(".matrix_table");
 
-		// Handle editing the options on fields
+		// Handle editing the settings on fields
 		MatrixTable.on("click",".icon_edit",function(e) {
 			e.preventDefault();
 
@@ -107,11 +112,11 @@
 
 			CurrentColumn = $(this).parents("article");
 			var type = CurrentColumn.find("select").val();
-			var options = CurrentColumn.find("input[type=hidden]").val();
+			var settings = CurrentColumn.find("input[type=hidden]").val();
 
-			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-<?=(BIGTREE_REVISION < 300 ? "options" : "settings")?>/", { type: "POST", data: { template: "true", type: type, data: options }, complete: function(response) {
+			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-<?=(BIGTREE_REVISION < 300 ? "options" : "settings")?>/", { type: "POST", data: { template: "true", type: type, data: settings }, complete: function(response) {
 				BigTreeDialog({
-					title: "Column Options",
+					title: "Column Settings",
 					content: response.responseText,
 					icon: "edit",
 					callback: function(data) {
@@ -138,7 +143,7 @@
 												'<span class="icon_drag"></span>' + 
 										   		'<a href="#" tabindex="-1" class="icon_delete"></a>' +
 										   		'<a href="#" tabindex="-1" class="icon_edit" name="' + ColumnCount + '"></a>' +
-										   		'<input type="hidden" name="columns[' + ColumnCount + '][options]" value="" />' +
+										   		'<input type="hidden" name="columns[' + ColumnCount + '][settings]" value="" />' +
 										   	'</footer>');
 	
 			MatrixTable.sortable({ axis: "y", containment: "parent", handle: ".icon_drag", items: "article", placeholder: "ui-sortable-placeholder", tolerance: "pointer" })
