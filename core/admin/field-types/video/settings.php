@@ -22,4 +22,5 @@
 
 <?php
 	// Just use the regular image options
+	$image_options_prefix = null;
 	include BigTree::path("admin/field-types/_image-options.php");

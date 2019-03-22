@@ -17,5 +17,6 @@
 	<input id="settings_field_directory" type="text" name="directory" value="<?=htmlspecialchars($settings["directory"])?>" class="required" />
 </fieldset>
 <?php
+	$image_options_prefix = null;
 	include BigTree::path("admin/field-types/_image-options.php");
 ?>

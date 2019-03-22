@@ -25,8 +25,8 @@
 	if (!defined("BIGTREE_CREATING_PRESET") && array_filter((array) $presets)) {
 ?>
 <fieldset>
-	<label for="preset_select">Existing Preset</label>
-	<select name="preset" id="preset_select">
+	<label for="<?=$image_options_prefix?>preset_select">Existing Preset</label>
+	<select name="preset" id="<?=$image_options_prefix?>preset_select">
 		<option></option>
 		<?php
 			foreach ($presets as $preset) {
@@ -40,33 +40,33 @@
 <?php
 	}
 ?>
-<div id="image_options_container">
+<div id="<?=$image_options_prefix?>image_options_container">
 	<?php
 		if ($using_preset) {
 			include "_image-preset.php";
 		} else {
 	?>
 	<fieldset>
-		<label for="settings_field_min_width">Minimum Width <small>(numeric value in pixels)</small></label>
-		<input id="settings_field_min_width" type="text" name="min_width" value="<?=htmlspecialchars($settings["min_width"])?>" />
+		<label for="<?=$image_options_prefix?>settings_field_min_width">Minimum Width <small>(numeric value in pixels)</small></label>
+		<input id="<?=$image_options_prefix?>settings_field_min_width" type="text" name="min_width" value="<?=htmlspecialchars($settings["min_width"])?>" />
 	</fieldset>
 	<fieldset>
-		<label for="settings_field_min_height">Minimum Height <small>(numeric value in pixels)</small></label>
-		<input id="settings_field_min_height" type="text" name="min_height" value="<?=htmlspecialchars($settings["min_height"])?>" />
+		<label for="<?=$image_options_prefix?>settings_field_min_height">Minimum Height <small>(numeric value in pixels)</small></label>
+		<input id="<?=$image_options_prefix?>settings_field_min_height" type="text" name="min_height" value="<?=htmlspecialchars($settings["min_height"])?>" />
 	</fieldset>
 	<fieldset>
-		<label for="settings_field_preview_prefix">Preview Prefix <small>(for forms)</small></label>
-		<input id="settings_field_preview_prefix" type="text" name="preview_prefix" value="<?=htmlspecialchars($settings["preview_prefix"])?>" />
+		<label for="<?=$image_options_prefix?>settings_field_preview_prefix">Preview Prefix <small>(for forms)</small></label>
+		<input id="<?=$image_options_prefix?>settings_field_preview_prefix" type="text" name="preview_prefix" value="<?=htmlspecialchars($settings["preview_prefix"])?>" />
 	</fieldset>
 	<fieldset>
 		<label>Create Hi-Resolution Retina Images <small><a href="https://www.bigtreecms.org/docs/dev-guide/field-types/retina-images/" target="_blank">(learn more)</a></small></label>
-		<input id="settings_field_retina" type="checkbox" name="retina" <?php if ($settings["retina"]) { ?>checked="checked" <?php } ?>/>
-		<label for="settings_field_retina" class="for_checkbox"> When Available</label>
+		<input id="<?=$image_options_prefix?>settings_field_retina" type="checkbox" name="retina" <?php if ($settings["retina"]) { ?>checked="checked" <?php } ?>/>
+		<label for="<?=$image_options_prefix?>settings_field_retina" class="for_checkbox"> When Available</label>
 	</fieldset>
 	
 	<h4>Crops <a href="#" class="add_crop icon_small icon_small_add"></a></h4>
 	<fieldset>
-		<div class="image_attr" id="pop_crop_list">
+		<div class="image_attr" id="<?=$image_options_prefix?>pop_crop_list">
 			<ul>
 				<li>Prefix:</li><li>Width:</li><li>Height:</li>
 			</ul>
@@ -74,6 +74,7 @@
 				$crop_count = 0;
 				$crop_thumb_count = 0;
 				$crop_sub_count = 0;
+
 				if (is_array($settings["crops"])) {
 					foreach ($settings["crops"] as $crop) {
 						// In case a crop was added but no options were set
@@ -171,9 +172,9 @@
 	</fieldset>
 	
 	<h4>Thumbnails <a href="#" class="add_thumb icon_small icon_small_add"></a></h4>
-	<p class="error_message" style="display: none;" id="thumbnail_dialog_error">You must enter a height or width for each thumbnail.</p>
+	<p class="error_message" style="display: none;" id="<?=$image_options_prefix?>thumbnail_dialog_error">You must enter a height or width for each thumbnail.</p>
 	<fieldset>
-		<div class="image_attr" id="pop_thumb_list">
+		<div class="image_attr" id="<?=$image_options_prefix?>pop_thumb_list">
 			<ul>
 				<li>Prefix:</li><li>Width:</li><li>Height:</li>
 			</ul>
@@ -212,7 +213,7 @@
 	
 	<h4>Center Crops <small>(automatically crops from the center of image)</small> <a href="#" class="add_center_crop icon_small icon_small_add"></a></h4>
 	<fieldset>
-		<div class="image_attr" id="pop_center_crop_list">
+		<div class="image_attr" id="<?=$image_options_prefix?>pop_center_crop_list">
 			<ul>
 				<li>Prefix:</li><li>Width:</li><li>Height:</li>
 			</ul>
@@ -254,19 +255,23 @@
 </div>
 
 <script>
-	var ImageOptions = (function() {
+	var <?=$image_options_prefix?>ImageOptions = (function() {
 		var CenterCropCount = <?=$center_crop_count?>;
 		var CropCount = <?=$crop_count?>;
 		var CropSubCount = <?=$crop_sub_count?>;
 		var CropThumbCount = <?=$crop_thumb_count?>;
-		var OptionsContainer = $("#image_options_container");
+		var OptionsContainer = $("#<?=$image_options_prefix?>image_options_container");
+		var PopCropList = $("#<?=$image_options_prefix?>pop_crop_list");
+		var PopCenterCropList = $("#<?=$image_options_prefix?>pop_center_crop_list");
+		var PopThumbList = $("#<?=$image_options_prefix?>pop_thumb_list");
+		var PresetSelect = $("#<?=$image_options_prefix?>preset_select");
 		var ThumbCount = <?=$thumb_count?>;
 
 		function addCenterCrop(ev) {
 			ev.preventDefault();
 
 			CenterCropCount++;
-			$("#pop_center_crop_list").append('<ul class="require_width_or_height">' +
+			PopCenterCropList.append('<ul class="require_width_or_height">' +
 				'<li><input type="text" name="center_crops[' + CenterCropCount + '][prefix]" value="" /></li>' +
 				'<li><input type="text" name="center_crops[' + CenterCropCount + '][width]" value="" /></li>' +
 				'<li><input type="text" name="center_crops[' + CenterCropCount + '][height]" value="" /></li>' +
@@ -281,7 +286,7 @@
 			ev.preventDefault();
 
 			CropCount++;
-			$("#pop_crop_list").append('<ul>' +
+			PopCropList.append('<ul>' +
 				'<li><input type="text" name="crops[' + CropCount + '][prefix]" value="" /></li>' +
 				'<li><input type="text" class="required" name="crops[' + CropCount + '][width]" value="" /></li>' +
 				'<li><input type="text" class="required" name="crops[' + CropCount + '][height]" value="" /></li>' +
@@ -300,7 +305,7 @@
 			ev.preventDefault();
 
 			ThumbCount++;
-			$("#pop_thumb_list").append('<ul class="require_width_or_height">' +
+			PopThumbList.append('<ul class="require_width_or_height">' +
 				'<li><input type="text" name="thumbs[' + ThumbCount + '][prefix]" value="" /></li>' +
 				'<li><input type="text" name="thumbs[' + ThumbCount + '][width]" value="" /></li>' +
 				'<li><input type="text" name="thumbs[' + ThumbCount + '][height]" value="" /></li>' +
@@ -330,7 +335,7 @@
 
 			if ($(this).attr("href") != "#") {
 				var count = $(this).attr("href").substr(1);
-				$(".image_attr_thumbs_" + count).remove();
+				OptionsContainer.find(".image_attr_thumbs_" + count).remove();
 			}
 
 			$(this).parents("ul").remove();
@@ -387,13 +392,13 @@
 			}		
 
 		// Allow you to hit enter in a crop/thumb box to create another automatically
-		}).on("keydown","#pop_crop_list input",function(ev) {
+		}).on("keydown","#<?=$image_options_prefix?>pop_crop_list input",function(ev) {
 			if (ev.keyCode == 13) {
 				ev.preventDefault();
 				addCrop();
 			}
 
-		}).on("keydown","#pop_thumb_list input",function(ev) {
+		}).on("keydown","#<?=$image_options_prefix?>pop_thumb_list input",function(ev) {
 			if (ev.keyCode == 13) {
 				ev.preventDefault();
 				addThumb();
@@ -403,9 +408,9 @@
 		}).on("click",".add_crop",addCrop).on("click",".add_thumb",addThumb).on("click",".add_center_crop",addCenterCrop);
 
 		// Preset choosing
-		$("#preset_select").change(function() {
+		PresetSelect.change(function() {
 			if ($(this).val()) {
-				OptionsContainer.load("<?=ADMIN_ROOT?>ajax/developer/media/load-preset/", { id: $(this).val() }, function() {
+				OptionsContainer.load("<?=ADMIN_ROOT?>ajax/developer/media/load-preset/", { id: $(this).val(), prefix: "<?=$image_options_prefix?>" }, function() {
 					BigTreeCustomControls();
 				});
 			} else {
@@ -416,8 +421,9 @@
 		});
 
 		// Make sure a height and width is entered for each crop
-		$(".bigtree_dialog_form").submit(function(ev) {
+		$(".bigtree_dialog_form").last().submit(function(ev) {
 			var errors = false;
+
 			// Find required fields for crops
 			$(this).find("input.required").each(function(index,el) {
 				if (!$(el).val()) {
@@ -425,6 +431,7 @@
 					$(el).addClass("error");
 				}
 			});
+
 			if (errors) {
 				ev.stopImmediatePropagation();
 				return false;
