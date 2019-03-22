@@ -90,12 +90,15 @@
 					// We can grab a little more info from the API
 					if ($youtube->Connected) {
 						$video = $youtube->getVideo($video_id);
-						// Try for max resolution first, then high, then default
-						$source_image = $video->Images->Maxres ? $video->Images->Maxres : $video->Images->High;
-						$source_image = $source_image ? $source_image : $video->Images->Default;
-						
-						$field["output"]["duration"] = ($video->Duration->Hours * 3600 + $video->Duration->Minutes * 60 + $video->Duration->Seconds);
-						$field["output"]["embed"] = $video->Embed;
+
+						if ($video) {
+							// Try for max resolution first, then high, then default
+							$source_image = $video->Images->Maxres ? $video->Images->Maxres : $video->Images->High;
+							$source_image = $source_image ? $source_image : $video->Images->Default;
+							
+							$field["output"]["duration"] = ($video->Duration->Hours * 3600 + $video->Duration->Minutes * 60 + $video->Duration->Seconds);
+							$field["output"]["embed"] = $video->Embed;
+						}
 					}
 				}
 			}
