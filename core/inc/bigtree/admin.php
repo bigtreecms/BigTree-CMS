@@ -7592,7 +7592,7 @@
 
 			// If the upload service didn't return a value, we failed to upload it for one reason or another.
 			if (!$field["output"]) {
-				$bigtree["errors"][] = ["field" => $field["title"], $image->Error];
+				$bigtree["errors"][] = ["field" => $field["title"], "error" => $image->Error];
 				$image->destroy();
 
 				return false;
