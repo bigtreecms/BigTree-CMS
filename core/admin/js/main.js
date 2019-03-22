@@ -3587,9 +3587,9 @@ var BigTreeMediaGallery = function(settings) {
 			} else if (img.length) {
 				entry.find("figure").append(img).addClass("media_gallery_type_" + Type);
 			} else {
-				if (Type == "Vimeo") {
+				if (Type == "Vimeo" || Type == "vimeo") {
 					var klass = "media_gallery_vimeo_block";
-				} else if (Type == "YouTube") {
+				} else if (Type == "YouTube" || Type == "youtube") {
 					var klass = "media_gallery_youtube_block";
 				} else {
 					var klass = "";
