@@ -1,69 +1,58 @@
 <?php
-	$matrix = array(
-		"data" => array(),
-		"field" => $field,
-		"saved_entry" => $bigtree["entry"],
-		"saved_post_data" => $bigtree["post_data"],
-		"saved_file_data" => $bigtree["file_data"]
-	);
+	if (!is_array($field["input"])) {
+		$field["input"] = [];
+	}
 
-	if (is_array($matrix["field"]["input"]) && count($matrix["field"]["input"])) {
-		foreach ($matrix["field"]["input"] as $number => $data) {
-			// Make sure something has been entered
-			if (array_filter((array)$data) || array_filter((array)$matrix["field"]["file_input"][$number])) {
-				$bigtree["entry"] = array("__internal-title" => $data["__internal-title"],"__internal-subtitle" => $data["__internal-subtitle"]);
-				$bigtree["post_data"] = $data;
-				$bigtree["file_data"] = $matrix["field"]["file_input"][$number];
+	$field["output"] = [];
 
-				if (empty($matrix["field"]["settings"])) {
-					$matrix["field"]["settings"] = $matrix["field"]["options"];
-				}
-				
-				foreach ($matrix["field"]["settings"]["columns"] as $resource) {
-					$settings = @json_decode($resource["settings"], true);
-					$options = @json_decode($resource["options"], true); // Backwards compat
+	foreach ($field["input"] as $index => $data) {
+		// Make sure something has been entered
+		if (!array_filter((array) $data) && !array_filter((array) $field["file_input"][$index])) {
+			continue;
+		}
 
-					if (!is_array($settings)) {
-						$settings = $options;
-					}
-					
-					$settings = is_array($settings) ? $settings : array();
+		$entry = [
+			"__internal-title" => $data["__internal-title"],
+			"__internal-subtitle" => $data["__internal-subtitle"]
+		];
+		
+		foreach ($field["settings"]["columns"] as $resource) {
+			// Sanitize field settings
+			$settings = @json_decode($resource["settings"], true);
+			$options = @json_decode($resource["options"], true); // Backwards compat
 
-					$field = array(
-						"type" => $resource["type"],
-						"title" => $resource["title"],
-						"key" => $resource["id"],
-						"settings" => $settings,
-						"ignore" => false,
-						"input" => $bigtree["post_data"][$resource["id"]],
-						"file_input" => $bigtree["file_data"][$resource["id"]]
-					);
-	
-					if (empty($field["settings"]["directory"])) {
-						$field["settings"]["directory"] = "files/pages/";
-					}
-					
-					// If we JSON encoded this data and it hasn't changed we need to decode it or the parser will fail.
-					if (is_string($field["input"]) && is_array(json_decode($field["input"],true))) {
-						$field["input"] = json_decode($field["input"],true);
-					}
-	
-					// Process the input
-					$output = BigTreeAdmin::processField($field);
+			if (empty($settings) || !is_array($settings)) {
+				$settings = $options;
+			}
+			
+			$settings = is_array($settings) ? $settings : [];
 
-					if (!is_null($output)) {
-						$bigtree["entry"][$field["key"]] = $output;
-					}
-				}
-				
-				$matrix["data"][] = $bigtree["entry"];
+			if (empty($settings["directory"])) {
+				$settings["directory"] = "files/pages/";
+			}
+
+			// Sanitize user input
+			$input = $data[$resource["id"]];
+
+			if (is_string($input) && is_array(json_decode($input, true))) {
+				$input = json_decode($input, true);
+			}
+
+			// Process the sub-field
+			$output = BigTreeAdmin::processField([
+				"type" => $resource["type"],
+				"title" => $resource["title"],
+				"key" => $resource["id"],
+				"settings" => $settings,
+				"ignore" => false,
+				"input" => $input,
+				"file_input" => $field["file_input"][$index][$resource["id"]]
+			]);
+
+			if (!is_null($output)) {
+				$entry[$resource["id"]] = $output;
 			}
 		}
+		
+		$field["output"][] = $entry;
 	}
-	
-	$bigtree["entry"] = $matrix["saved_entry"];
-	$bigtree["post_data"] = $matrix["saved_post_data"];
-	$bigtree["file_data"] = $matrix["saved_file_data"];
-	
-	$field = $matrix["field"];
-	$field["output"] = $matrix["data"];
