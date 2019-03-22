@@ -268,7 +268,7 @@
 			}
 
 			// Check CA cert bundle has been updated in the past month
-			if (!$updating_bundle && filemtime($cert_bundle) < time()) {
+			if (!$updating_bundle && filemtime($cert_bundle) < strtotime("-1 month")) {
 				BigTree::cURL("https://curl.haxx.se/ca/cacert.pem", false, [], true, SERVER_ROOT."cache/bigtree-ca-cert-new.pem", true);
 				@unlink($cert_bundle);
 				@rename(SERVER_ROOT."cache/bigtree-ca-cert-new.pem", $cert_bundle);
