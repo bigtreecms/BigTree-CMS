@@ -19,9 +19,9 @@
 </div>
 <?php
 	} elseif ($file["is_video"]) {
-		if ($file["location"] == "YouTube") {
+		if (strtolower($file["location"]) == "youtube") {
 			$embed = '<iframe src="https://youtube.com/embed/'.$file["video_data"]["id"].'?autoplay=false&showinfo=false&showrel=false&showcontrols=false"></iframe>';
-		} elseif ($file["location"] == "Vimeo") {
+		} elseif (strtolower($file["location"]) == "vimeo") {
 			$embed = '<iframe src="https://player.vimeo.com/video/'.$file["video_data"]["id"].'?autoplay=false&showinfo=false&showrel=false&showcontrols=false"></iframe>';
 		}
 ?>

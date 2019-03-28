@@ -19,9 +19,9 @@
 		<div class="currently_wrapper">
 			<?php
 				if ($field["value"]) {
-					if ($field["value"]["service"] == "YouTube") {
+					if (strtolower($field["value"]["service"]) == "youtube") {
 						echo '<iframe src="https://youtube.com/embed/'.$field["value"]["id"].'?autoplay=false&showinfo=false&showrel=false&showcontrols=false"></iframe>';
-					} elseif ($field["value"]["service"] == "Vimeo") {
+					} elseif (strtolower($field["value"]["service"]) == "vimeo") {
 						echo '<iframe src="https://player.vimeo.com/video/'.$field["value"]["id"].'?autoplay=false&showinfo=false&showrel=false&showcontrols=false"></iframe>';
 					}
 				}

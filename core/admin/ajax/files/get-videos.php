@@ -26,9 +26,9 @@
 		if ($resource["type"] == "video") {
 			$data = json_decode($resource["video_data"], true);
 			
-			if ($resource["location"] == "YouTube") {
+			if (strtolower($resource["location"]) == "youtube") {
 				$embed =  '<iframe src="https://youtube.com/embed/'.$data["id"].'?autoplay=false&showinfo=false&showrel=false&showcontrols=false"></iframe>';
-			} elseif ($resource["location"] == "Vimeo") {
+			} elseif (strtolower($resource["location"]) == "vimeo") {
 				$embed = '<iframe src="https://player.vimeo.com/video/'.$data["id"].'?autoplay=false&showinfo=false&showrel=false&showcontrols=false"></iframe>';
 			}
 ?>
