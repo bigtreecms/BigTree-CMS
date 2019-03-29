@@ -254,6 +254,7 @@
 				options - A key/value pair of extra cURL options (optional).
 				strict_security - SSL verification of the host and peer if true (defaults to true).
 				output_file - A file location to dump the output of the request to (optional, replaces return value).
+				updating_bundle - Internal use only.
 
 			Returns:
 				The string response from the URL.
