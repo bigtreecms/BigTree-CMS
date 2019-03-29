@@ -1,5 +1,6 @@
 <?php
-	$server_root = str_replace("core/cron.php","",strtr(__FILE__, "\\", "/"));
+	// Store the BigTree root path.
+	$server_root = realpath('') . '/';
 	include $server_root."custom/environment.php";
 	include $server_root."custom/settings.php";
 	include $server_root."core/bootstrap.php";
