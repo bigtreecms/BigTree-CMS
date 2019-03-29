@@ -245,6 +245,8 @@
 			Function: cURL
 				Posts to a given URL and returns the response.
 				Wrapper for cURL.
+				The last response code is stored in $bigtree["last_curl_response_code"].
+				The last error is stored in $bigtree["last_curl_error"].
 
 			Parameters:
 				url - The URL to retrieve / POST to.
