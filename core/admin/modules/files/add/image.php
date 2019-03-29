@@ -52,6 +52,12 @@
 
 				this.on("success", function(ev, response) {
 					Processed++;
+					window.onbeforeunload = function(ev) {
+						BigTree.growl("Cropping Image", "Please continue to the next page to process your images.", 5000, "error");
+						
+						return false;
+					};
+
 					Form.append($('<input name="files[]" type="hidden">').val(response));
 
 					$(ev.previewElement).removeClass("dz-processing").find(".button_loader").remove();
@@ -73,6 +79,7 @@
 				return false;
 			}
 	
+			window.onbeforeunload = null;
 			$(this).addClass("disabled");
 			$(this).after('<span class="button_loader"></span>');
 		});
