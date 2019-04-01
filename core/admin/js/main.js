@@ -2833,9 +2833,8 @@ var BigTreeCallouts = function(settings) {
 			BigTree.TabIndexDepth--;
 
 			var type_select = LastDialog.find(".callout_type select").get(0);
-
-			// Validate required fields.
 			var validator = BigTreeFormValidator(LastDialog);
+
 			if (!validator.validateForm(false,true)) {
 				return false;
 			}
@@ -2846,11 +2845,20 @@ var BigTreeCallouts = function(settings) {
 			// Try our best to find some way to describe the callout
 			Description = "";
 			DescriptionField = LastDialog.find("[name='" + LastDialog.find(".display_field").val() + "']");
+
 			if (DescriptionField.is('select')) {
 				Description = DescriptionField.find("option:selected").text();
+			} else if (DescriptionField.is("textarea") && DescriptionField.css("display") == "none") {
+				var mce = tinyMCE.get(DescriptionField.attr("id"));
+				
+				if (mce) {
+					mce.save();
+					Description = DescriptionField.val();
+				}
 			} else {
 				Description = DescriptionField.val();
 			}
+
 			if ($.trim(Description) == "") {
 				Description = LastDialog.find(".display_default").val();
 			}
@@ -3113,6 +3121,7 @@ var BigTreeMatrix = function(settings) {
 					if (item.length) {
 						// Going to check for multi-part inputs like names, address, phone
 						var parent = item.parent();
+						
 						if (parent.hasClass("input_name") || parent.hasClass("input_phone_3") || parent.hasClass("input_address_street")) {
 							var value = "";
 							item.parent().siblings('section').each(function() {
@@ -3126,13 +3135,22 @@ var BigTreeMatrix = function(settings) {
 							value = $.trim(value.substr(1));
 						} else if (item.is("select")) {
 							var value = $.trim(item.find("option:selected").text());
+						} else if (item.is("textarea") && item.css("display") == "none") {
+							var mce = tinyMCE.get(item.attr("id"));
+							
+							if (mce) {
+								mce.save();
+								var value = $.trim(item.val());
+							}
 						} else {
 							var value = $.trim(item.val());
 						}
+
 						// Reset value if item is an unchecked checkbox
 						if (item.attr('type') == 'checkbox' && !item.is(":checked")){
 							value = false;
 						}
+						
 						if (value) {
 							if (!Title) {
 								Title = strip_tags(value);
