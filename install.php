@@ -395,7 +395,13 @@
 		bt_touch_writable("templates/basic/home.php");
 		bt_touch_writable("templates/basic/content.php",'<h1><?=$page_header?></h1>
 <?=$page_content?>');
-		
+
+		// Create a cron runner script for symlinked cores
+		bt_touch_writable("cron-run.php", '<?php
+	$server_root = str_replace("cron-run.php", "", strtr(__FILE__, "\\\\", "/"));	
+	include $server_root."core/cron.php";
+');
+
 		// Create site/index.php, site/.htaccess, and .htaccess (masks the 'site' directory)
 		bt_touch_writable("site/index.php",'<?php
 	$server_root = str_replace("site/index.php","",strtr(__FILE__, "\\\\", "/"));	
