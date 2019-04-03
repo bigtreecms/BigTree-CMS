@@ -23,6 +23,7 @@ Changelog
 ### 4.4.3
 - ADDED: An alert is now thrown when attempting to navigate away from images that have been uploaded to the Files manager that are not yet processed
 - ADDED: Embed preview for the Video field type
+- ADDED: cron-run.php to the root directory as a replacement for /core/cron.php for sites that use a symlinked core for BigTree
 - CHANGED: The processing code for Matrix and Media Gallery field types was cleaned up dramatically to be more understandable
 - FIXED: Video / Media Gallery field types no longer check case sensitive values when determining what service a video is from
 - FIXED: BigTreeImage errors not properly showing when an error occurred processing a user uploaded image
@@ -31,6 +32,7 @@ Changelog
 - FIXED: cURL requests getting a new cert bundle on every request
 - FIXED: Pending Changes returning inaccurate sets of results
 - FIXED: Video field type failing on YouTube URLs that contained a timestamp
+- FIXED: TinyMCE fields being used for titles not saving data properly on first save in Matrix and Callouts
 
 ### 4.4.2
 - ADDED: Creation / modification / file change status when editing files in the file manager
