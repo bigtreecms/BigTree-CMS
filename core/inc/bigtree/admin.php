@@ -7012,6 +7012,8 @@
 					$_SESSION["bigtree_admin"]["csrf_token_field"] = $cache_data["csrf_token_field"];
 				}
 			}
+
+			die();
 		}
 
 		/*
