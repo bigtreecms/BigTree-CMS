@@ -4925,8 +4925,14 @@
 			// If we're querying...
 			if ($query) {
 				foreach ($settings as $index => $setting) {
-					if (stripos($setting["name"], $query) === false && stripos($setting["value"], $query) === false) {
-						unset($settings[$index]);
+					if (is_string($setting["value"])) {
+						if (stripos($setting["name"], $query) === false && stripos($setting["value"], $query) === false) {
+							unset($settings[$index]);
+						}
+					} else {
+						if (stripos($setting["name"], $query) === false ) {
+							unset($settings[$index]);
+						}
 					}
 				}
 			}
