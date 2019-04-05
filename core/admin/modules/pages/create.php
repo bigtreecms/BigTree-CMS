@@ -1,6 +1,6 @@
 <?php
 	$admin->verifyCSRFToken();
-	$access_level = $admin->getPageAccessLevel($_POST["parent"]);
+	$access_level = $admin->getPageAccessLevel(intval($_POST["parent"]));
 	
 	if ($access_level != "p" && $access_level != "e") {
 ?>

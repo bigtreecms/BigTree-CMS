@@ -1498,6 +1498,9 @@
 				}
 			}
 
+			// Sanitize parent
+			$parent = intval($parent);
+
 			// If there's an external link, make sure it's a relative URL
 			if ($external) {
 				$external = $this->makeIPL($external);
@@ -1532,11 +1535,11 @@
 			}
 
 			// Make sure it doesn't have the same route as any of its siblings.
-			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE `route` = '$route' AND parent = '$parent'"));
-			
-			while ($f) {
+			$exists = SQL::exists("bigtree_pages", ["route" => $route, "parent" => $parent], $page);
+
+			while ($exists) {
 				$route = $original_route."-".$x;
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pages WHERE `route` = '$route' AND parent = '$parent'"));
+				$exists = SQL::exists("bigtree_pages", ["route" => $route, "parent" => $parent], $page);
 				$x++;
 			}
 
