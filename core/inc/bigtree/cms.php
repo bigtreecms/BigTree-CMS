@@ -1606,19 +1606,18 @@
 		
 		public static function linkForPath($path) {
 			global $bigtree;
-
-			if (empty($path)) {
-				return WWW_ROOT;
-			}
 			
 			// Remove the site root from the path for multi-site
-			if (defined("BIGTREE_SITE_KEY") || count($bigtree["config"]["sites"])) {
+			if (defined("BIGTREE_SITE_KEY") || (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]))) {
 				foreach (static::$SiteRoots as $site_path => $site_data) {
+					if ($path === "" && $site_path === "") {
+						return $site_data["www_root"];
+					}
+
 					if ($site_path == "" || strpos($path, $site_path) === 0) {
 						if ($site_path) {
 							$path = substr($path, strlen($site_path) + 1);
-						}
-						
+						}						
 						
 						if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
 							return rtrim($site_data["www_root"].$path, "/");
@@ -1627,7 +1626,11 @@
 						return rtrim($site_data["www_root"].$path, "/")."/";
 					}
 				}
-			}			
+			}
+
+			if ($path === "") {
+				return WWW_ROOT;
+			}
 			
 			if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
 				return WWW_ROOT.$path;
