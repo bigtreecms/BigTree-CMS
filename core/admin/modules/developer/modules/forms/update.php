@@ -12,11 +12,12 @@
 		$_POST["title"],
 		$_POST["table"],
 		$_POST["fields"],
-		$_POST["hooks"],
+		json_decode($_POST["hooks"], true),
 		$_POST["default_position"],
 		$_POST["return_view"],
 		$_POST["return_url"],
-		$_POST["tagging"]
+		!empty($_POST["tagging"]),
+		!empty($_POST["open_graph"])
 	);
 
 	Utils::growl("Developer","Updated Module Form");

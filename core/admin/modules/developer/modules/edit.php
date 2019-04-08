@@ -8,7 +8,7 @@
 	
 	$id = end($bigtree["path"]);	
 	$module = new Module($id);
-	$actions = ModuleAction::allByModule($id, "position DESC, id ASC");;
+	$actions = ModuleAction::allByModule($id, "position DESC, id ASC");
 	$groups = ModuleGroup::all("name ASC");
 	$action_data = array();
 	$interface_data = array();
@@ -16,9 +16,9 @@
 	// Set the drag disabled flag for non-visible actions
 	foreach ($actions as $action) {
 		$action_data[] = array(
-			"id" => $action["id"],
-			"name" => $action["name"],
-			"!disable_drag" => $action["in_nav"] ? false : true
+			"id" => $action->ID,
+			"name" => $action->Name,
+			"!disable_drag" => !$action->InNav
 		);
 	}
 	
@@ -108,11 +108,11 @@
 		</form>
 	</div>
 
-	<div id="actions_tab" style="display: none;">
+	<div id="actions_tab" style="display: none;" class="section">
 		<div id="actions_table"></div>
 	</div>
 
-	<div id="interfaces_tab" style="display: none;">
+	<div id="interfaces_tab" style="display: none;" class="section">
 		<div id="interfaces_table"></div>
 	</div>
 </section>

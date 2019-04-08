@@ -86,16 +86,18 @@
 				data - An array of form data to enter into the table. This function determines what data in the array applies to a column in the database and discards the rest.
 				many_to_many - Many to many relationship entries.
 				tags - Tags for the entry.
+				publishing_change - A change ID that is being published (defaults to null)
+				open_graph - Open Graph information.
 			
 			Returns:
 				The id of the new entry in the database.
 		*/
 
-		static function createItem($table, $data, $many_to_many = array(), $tags = array()) {
+		static function createItem($table, $data, $many_to_many = array(), $tags = array(), $publishing_change = null, $open_graph = array()) {
 			// Create a generic module form
 			$form = new BigTree\ModuleForm(array("table" => $table));
 
-			return $form->createEntry($data, $many_to_many, $tags);
+			return $form->createEntry($data, $many_to_many, $tags, $publishing_change, $open_graph);
 		}
 		
 		/*

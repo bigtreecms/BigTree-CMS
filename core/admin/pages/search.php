@@ -71,9 +71,9 @@
 	}
 ?>
 <form class="adv_search" method="get" action="<?=ADMIN_ROOT?>search/">
-	<h3><?=number_format($total_results)?> <?=Text::translate("Search results for")?> &ldquo;<?=htmlspecialchars($_GET["query"])?>&rdquo;</h3>
+	<h3><?=number_format($total_results)?> <?=Text::translate("Search results for")?> &ldquo;<?=Text::htmlEncode($_GET["query"])?>&rdquo;</h3>
 	<label for="search_field_query" class="visually_hidden">Query</label>
-	<input id="search_field_query" type="search" name="query" autocomplete="off" value="<?=htmlspecialchars($_GET["query"])?>"/>
+	<input id="search_field_query" type="search" name="query" autocomplete="off" value="<?=Text::htmlEncode($_GET["query"])?>"/>
 	<input type="submit"/>
 </form>
 
@@ -90,7 +90,7 @@
 								foreach ($results as $key => $page_results) {
 									$x++;
 							?>
-							<a<?php if ($x == 1) { ?> class="active"<?php } ?> href="#<?=Link::urlify($key)?>"><?=htmlspecialchars($key)?></a>
+							<a<?php if ($x == 1) { ?> class="active"<?php } ?> href="#<?=Link::urlify($key)?>"><?=Text::htmlEncode($key)?></a>
 							<?php
 								}
 							?>

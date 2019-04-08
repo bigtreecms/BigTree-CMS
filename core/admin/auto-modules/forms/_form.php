@@ -4,9 +4,27 @@
 	/**
 	 * @global array $bigtree
 	 * @global ModuleForm $form
+	 * @global array $pending_entry
 	 */
 ?>
 <div class="container">
+	<?php
+		if ($form->OpenGraph && !$form->Embedded) {
+	?>
+	<header>
+		<div class="sticky_controls">
+			<div class="shadow">
+				<nav class="left">
+					<a href="#content_tab" class="active">Content</a>
+					<a href="#sharing_tab">Sharing</a>
+				</nav>
+			</div>
+		</div>
+	</header>
+	<?php
+		}
+		
+	?>
 	<form method="post" action="<?=$form->Root?>process/<?php if (!empty($form->Embedded)) { ?>?hash=<?=$form->Hash?><?php } ?>" enctype="multipart/form-data" class="module" id="auto_module_form">
 		<?php
 			if (!empty($form->Embedded)) {
@@ -53,7 +71,7 @@
 		<?php
 			}
 		?>
-		<section>
+		<section id="content_tab">
 			<p class="error_message" style="display: none;"><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 			<?php
 				if ($_SESSION["bigtree_admin"]["post_max_hit"]) {
@@ -134,7 +152,29 @@
 			</script>
 			<?php } ?>
 		</section>
-		<footer>
+		<?php
+			if ($bigtree["form"]["open_graph"]) {
+		?>
+		<section id="sharing_tab" style="display: none;">
+			<?php
+				if (!empty($pending_entry)) {
+					$og_data = $pending_entry["open_graph"];
+				} else {
+					$og_data = [
+						"title" => "",
+						"description" => "",
+						"image" => "",
+						"type" => ""
+					];
+				}
+				
+				include Router::getIncludePath("admin/auto-modules/forms/_open-graph.php");
+			?>
+		</section>
+		<?php
+			}
+		?>
+		<footer class="js-auto-modules-footer">
 			<?php
 				if (!empty($form->Embedded)) {
 			?>
@@ -160,25 +200,40 @@
 </div>
 <?php include Router::getIncludePath("admin/layouts/_html-field-loader.php") ?>
 <script>
-	BigTreeFormValidator("#auto_module_form",false<?php if (!empty($form->Embedded)) { ?>,true<?php } ?>);
-	
-	$(".save_and_preview").click(function() {
-		$("#preview_field").val("true");
-		$(this).parents("form").submit();
+	(function() {
+		BigTreeFormValidator("#auto_module_form",false<?php if ($bigtree["form"]["embedded"]) { ?>,true<?php } ?>);
+		BigTreeFormNavBar.init();
 
-		return false;
-	});
+		$(".save_and_preview").click(function() {
+			submit();
 
-	<?php if ($bigtree["access_level"] == "p" || !$bigtree["edit_id"]) { ?>
-	$(".gbp_select").change(function() {
-		var access_level = $(this).find("option").eq($(this).get(0).selectedIndex).attr("data-access-level");
-		if (access_level == "p") {
-			$("input[name=save]").removeClass("blue");
-			$("input[name=save_and_publish]").show();
-		} else {
-			$("input[name=save]").addClass("blue");
-			$("input[name=save_and_publish]").hide();
+			$("#preview_field").val("true");
+			$(this).parents("form").submit();
+
+			return false;
+		});
+
+		$(".js-auto-modules-footer input").click(submit);
+		
+		<?php if ($bigtree["access_level"] == "p" || !$bigtree["edit_id"]) { ?>
+		$(".gbp_select").change(function() {
+			var access_level = $(this).find("option").eq($(this).get(0).selectedIndex).attr("data-access-level");
+			if (access_level == "p") {
+				$("input[name=save]").removeClass("blue");
+				$("input[name=save_and_publish]").show();
+			} else {
+				$("input[name=save]").addClass("blue");
+				$("input[name=save_and_publish]").hide();
+			}
+		});
+		$(".gbp_select").trigger("change");
+		<?php } ?>
+
+		function submit() {
+			var footer = $(".js-auto-modules-footer");
+
+			footer.find("input, .button").addClass("disabled");
+			footer.append('<span class="button_loader"></span>');
 		}
-	}).trigger("change");
-	<?php } ?>
-</script>
+	})();
+</script></script>

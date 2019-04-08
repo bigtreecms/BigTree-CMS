@@ -11,6 +11,7 @@
 	 * @property-read string $CreatedAt
 	 * @property-read int $ID
 	 * @property-read int $LastEditedBy
+	 * @property-read Page $ParentPage
 	 * @property-read PendingChange $PendingChange
 	 * @property-read int $PendingID
 	 * @property-read array $Tags
@@ -72,6 +73,7 @@
 				
 				// Bad data set
 				if (!is_array($page)) {
+					print_r(debug_backtrace());
 					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 				} else {
 					// Allow for empty page creation (for creating a page from a pending entry)
@@ -83,7 +85,7 @@
 					
 					// Protected vars first
 					$this->CreatedAt = $page["created_at"];
-					$this->ID = $page["id"];
+					$this->ID = intval($page["id"]);
 					$this->LastEditedBy = $page["last_edited_by"];
 					$this->UpdatedAt = $page["updated_at"];
 					
@@ -97,7 +99,7 @@
 					$this->MetaDescription = $page["meta_description"];
 					$this->NavigationTitle = $page["nav_title"];
 					$this->NewWindow = $page["new_window"] ? true : false;
-					$this->Parent = $page["parent"];
+					$this->Parent = intval($page["parent"]);
 					$this->Path = $page["path"];
 					$this->Position = $page["position"];
 					$this->PublishAt = $page["publish_at"] ?: false;
@@ -272,6 +274,25 @@
 			}
 			
 			return $pages;
+		}
+		
+		/*
+			Function: copyToPending
+				Copies this page to a pending page draft with the titles changed.
+		
+			Parameters:
+				title_change - The additional copy to add to the end of the navigation and page title (e.g. " (Copy)")
+		
+			Returns:
+				PendingChange object
+		*/
+		
+		public function copyToPending(string $title_change = ""): PendingChange {
+			return PendingChange::createPage($this->Trunk, $this->Parent, $this->InNav, $this->NavigationTitle.$title_change,
+											 $this->Title.$title_change, null, $this->MetaDescription, $this->SEOInvisible,
+											 $this->Template, $this->External, $this->NewWindow, $this->Resources,
+											 $this->PublishAt, $this->ExpireAt, $this->MaxAge, $this->Tags);
+			
 		}
 		
 		/*
@@ -784,7 +805,7 @@
 			
 			return $children;
 		}
-		
+
 		/*
 			Function: getHiddenChildren
 				Returns an alphabetic array of hidden child pages.
@@ -828,6 +849,22 @@
 			}
 			
 			return $parents;
+		}
+		
+		/*
+			Function: getParentPage
+				Returns the parent page for the current page (or null if this page is top level)
+			
+			Returns:
+				Page object or null.
+		*/
+		
+		public function getParentPage(): ?Page {
+			if (empty($this->Parent) || $this->Parent === -1) {
+				return null;
+			}
+			
+			return new Page($this->Parent);
 		}
 		
 		/*
@@ -896,7 +933,7 @@
 				A Page object or false if no page was found.
 		*/
 		
-		static function getPageDraft(string $id): ?Page {
+		static function getPageDraft($id): ?Page {
 			if (is_numeric($id)) {
 				// Numeric id means the page is live.
 				$page = new Page($id);
@@ -904,6 +941,8 @@
 				if (!$page) {
 					return null;
 				}
+				
+				$page->OpenGraph = OpenGraph::getData("bigtree_pages", $id);
 				
 				// Get pending changes for this page.
 				$pending = SQL::fetch("SELECT * FROM bigtree_pending_changes 
@@ -952,6 +991,7 @@
 			isset($changes["meta_description"]) ? ($page->MetaDescription = $changes["meta_description"]) : false;
 			isset($changes["nav_title"]) ? ($page->NavigationTitle = $changes["nav_title"]) : false;
 			isset($changes["new_window"]) ? ($page->NewWindow = $changes["new_window"] ? true : false) : false;
+			isset($changes["open_graph"]) ? ($page->OpenGraph = $changes["open_graph"]) : false;
 			isset($changes["path"]) ? ($page->Path = $changes["path"]) : false;
 			isset($changes["publish_at"]) ? ($page->PublishAt = $changes["publish_at"] ?: false) : false;
 			isset($changes["resources"]) ? ($page->Resources = $changes["resources"]) : false;

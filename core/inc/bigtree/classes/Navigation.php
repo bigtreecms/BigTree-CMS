@@ -37,6 +37,36 @@
 			
 			$bc = [];
 			
+			// Pending page data is treated differently
+			if ($page["changes_applied"]) {
+				$parent = $page["parent"];
+				
+				while ($parent > 0) {
+					$parent_page = SQL::fetch("SELECT id, nav_title, path, parent FROM bigtree_pages WHERE id = ?", $parent);
+					
+					if ($parent_page) {
+						$bc[] = [
+							"title" => $parent_page["nav_title"],
+							"link" => Link::byPath($parent_page["path"]),
+							"id" => $parent_page["id"]
+						];
+					} else {
+						break;
+					}
+					
+					$parent = $parent_page["parent"];
+				}
+				
+				$bc = array_reverse($bc);
+				$bc[] = [
+					"title" => $page["nav_title"],
+					"link" => "",
+					"id" => $page["id"]
+				];
+				
+				return $bc;
+			}
+			
 			// Break up the pieces so we can get each piece of the path individually and pull all the pages above this one.
 			$pieces = explode("/", $page["path"]);
 			$paths = [];

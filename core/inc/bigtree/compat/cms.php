@@ -375,12 +375,28 @@
 		}
 		
 		/*
+		 	Function: getOpenGraph
+		 		Returns Open Graph data for the specified table/id combination.
+			
+			Paremeters:
+				table - The table for the entry
+				id - The ID of the entry
+		
+			Returns:
+				An array of Open Graph data.
+		*/
+		
+		public static function getOpenGraph($table, $id) {
+			return BigTree\OpenGraph::getData($table, $id);
+		}
+		
+		/*
 			Function: getPage
 				Returns a page along with its resources and callouts decoded.
 			
 			Parameters:
 				id - The ID of the page.
-				decode - Whether to decode resources and callouts or not (setting to false saves processing time)
+				decode - Whether to decode resources and callouts or not and retrieve open graph info (setting to false saves processing time)
 			
 			Returns:
 				A page array from the database.
@@ -402,6 +418,8 @@
 				} else {
 					$page["callouts"] = array();
 				}
+				
+				$page["open_graph"] = BigTree\OpenGraph::getData("bigtree_pages", $id);
 			}
 			
 			return $page;

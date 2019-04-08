@@ -12,7 +12,7 @@
 	CSRF::drawPOSTToken();
 ?>
 <section>
-	<div class="left last">
+	<div class="left">
 		<fieldset>
 			<label for="form_field_title" class="required"><?=Text::translate('Item Title <small>(for example, "Question" as in "Adding Question")</small>')?></label>
 			<input id="form_field_title" type="text" name="title" value="<?=$form->Title?>" class="required" />
@@ -25,25 +25,18 @@
 				<?php SQL::drawTableSelectOptions($form->Table); ?>
 			</select>
 		</fieldset>
-
-		<fieldset>
-			<a href="#" id="manage_hooks"><span class="icon_small icon_small_lightning"></span> <?=Text::translate("Manage Hooks")?></a>
-			<input name="hooks" type="hidden" id="form_hooks" value="<?=htmlspecialchars(json_encode($form->Hooks))?>" />
-
-			<input id="form_field_tagging" type="checkbox" name="tagging" <?php if ($form->Tagging) { ?>checked="checked" <?php } ?>/>
-			<label for="form_field_tagging" class="for_checkbox"><?=Text::translate("Enable Tagging")?></label>
-		</fieldset>
 	</div>
-	<div class="right last">
+	
+	<div class="right">
 		<?php if (count($available_views) > 1) { ?>
-		<fieldset>
-			<label for="form_field_return_view"><?=Text::translate("Return View <small>(after the form is submitted, it will return to this view)")?></small></label>
-			<select id="form_field_return_view" name="return_view">
-				<?php foreach ($available_views as $view) { ?>
-				<option value="<?=$view->ID?>"<?php if ($form->ReturnView == $view->ID) { ?> selected="selected"<?php } ?>><?=$view->Title?></option>
-				<?php } ?>
-			</select>
-		</fieldset>
+			<fieldset>
+				<label for="form_field_return_view"><?=Text::translate("Return View <small>(after the form is submitted, it will return to this view)")?></small></label>
+				<select id="form_field_return_view" name="return_view">
+					<?php foreach ($available_views as $view) { ?>
+						<option value="<?=$view->ID?>"<?php if ($form->ReturnView == $view->ID) { ?> selected="selected"<?php } ?>><?=$view->Title?></option>
+					<?php } ?>
+				</select>
+			</fieldset>
 		<?php } ?>
 
 		<fieldset>
@@ -51,7 +44,25 @@
 			<input id="form_field_return_url" type="text" name="return_url" value="<?=htmlspecialchars($form->ReturnURL)?>" />
 		</fieldset>
 	</div>
+
+	<div class="triplets">
+		<fieldset>
+			<input id="form_field_open_graph" type="checkbox" name="open_graph" <?php if ($form->OpenGraph) { ?>checked="checked" <?php } ?>/>
+			<label for="form_field_open_graph" class="for_checkbox"><?=Text::translate("Enable Open Graph")?></label>
+		</fieldset>
+
+		<fieldset>
+			<input id="form_field_tagging" type="checkbox" name="tagging" <?php if ($form->Tagging) { ?>checked="checked" <?php } ?>/>
+			<label for="form_field_tagging" class="for_checkbox"><?=Text::translate("Enable Tagging")?></label>
+		</fieldset>
+		
+		<fieldset>
+			<a href="#" id="manage_hooks"><span class="icon_small icon_small_lightning"></span> <?=Text::translate("Manage Hooks")?></a>
+			<input name="hooks" type="hidden" id="form_hooks" value="<?=htmlspecialchars(json_encode($form->Hooks))?>" />
+		</fieldset>
+	</div>
 </section>
+
 <section class="sub" id="field_area">
 	<?php
 		if ($form->Table) {

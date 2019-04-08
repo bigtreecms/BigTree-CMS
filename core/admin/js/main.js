@@ -1778,7 +1778,7 @@ var BigTreeFormNavBar = (function() {
 		ContainerOffset = Container.offset().top;
 		Nav = Container.find("nav a");
 		NextButton = Container.find("footer .next");
-		Sections = $(".container > form > section, .container > section");
+		Sections = $(".container > form > section, .container > section, .container .section");
 
 		// Generic tab controls
 		Nav.click(tabClick);
@@ -1860,8 +1860,8 @@ var BigTreeFormNavBar = (function() {
 
 		tab.removeClass("active");
 		next.addClass("active");
-		$("#" + next.attr("href").substr(1)).show();
-		$("#" + tab.attr("href").substr(1)).hide();
+		$("#" + next.attr("href").substr(1)).show().find(".watcher").trigger("visible");
+		$("#" + tab.attr("href").substr(1)).hide().find(".watcher").trigger("hidden");
 
 		toggleNextVisibility();
 	}
@@ -1871,7 +1871,7 @@ var BigTreeFormNavBar = (function() {
 		id = id[0] == "#" ? id : "#" + id;
 
 		// Reset
-		Sections.hide();
+		Sections.hide().find(".watcher").trigger("hidden");
 		Nav.removeClass("active");
 
 		// Figure out which tab it is
@@ -1882,7 +1882,7 @@ var BigTreeFormNavBar = (function() {
 		}
 
 		// Show new panel
-		$(id).show();
+		$(id).show().find(".watcher").trigger("visible");
 		toggleNextVisibility();
 	}
 
@@ -1895,10 +1895,10 @@ var BigTreeFormNavBar = (function() {
 
 		var href = $(this).attr("href").substr(1);
 
-		Sections.hide();
+		Sections.hide().find(".watcher").trigger("hidden");
 		Nav.removeClass("active");
 		$(this).addClass("active");
-		$("#" + href).show();
+		$("#" + href).show().find(".watcher").trigger("visible");
 		toggleNextVisibility();
 	}
 

@@ -7,6 +7,7 @@
 
 	$form = new ModuleForm(end($bigtree["commands"]));
 	$module = new Module($form->Module);
+	$table = $form->Table;
 
 	if (!SQL::tableExists($form->Table)) {
 ?>

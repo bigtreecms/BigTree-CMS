@@ -32,6 +32,7 @@
 		public $Fields;
 		public $Hooks = ["edit" => "", "pre" => "", "post" => "", "publish" => ""];
 		public $Module;
+		public $OpenGraph;
 		public $ReturnURL;
 		public $ReturnView;
 		public $Root;
@@ -65,6 +66,7 @@
 					$this->Fields = Link::decode($this->Interface->Settings["fields"]);
 					$this->Hooks = array_filter((array) $this->Interface->Settings["hooks"]);
 					$this->Module = $interface["module"];
+					$this->OpenGraph = !empty($this->Interface->Settings["open_graph"]);
 					$this->ReturnURL = $this->Interface->Settings["return_url"];
 					$this->ReturnView = $this->Interface->Settings["return_view"];
 					$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the BaseObject class
@@ -88,6 +90,7 @@
 				return_view - The view to return to after completing the form.
 				return_url - The alternative URL to return to after completing the form.
 				tagging - Whether or not to enable tagging.
+				open_graph - Whether or not to enable open graph data entry.
 
 			Returns:
 				A ModuleForm object.
@@ -95,18 +98,18 @@
 		
 		static function create(int $module, string $title, string $table, array $fields, array $hooks = [],
 							   string $default_position = "", ?int $return_view = null, string $return_url = "",
-							   bool $tagging = false): ModuleForm
+							   bool $tagging = false, bool $open_graph = false): ModuleForm
 		{
 			// Clean up fields for backwards compatibility
 			foreach ($fields as $key => $data) {
-				$options = is_array($data["options"]) ? $data["options"] : json_decode($data["options"], true);
+				$settings = is_array($data["settings"]) ? $data["settings"] : json_decode($data["settings"], true);
 				
 				$field = [
 					"column" => $data["column"] ? $data["column"] : $key,
 					"type" => Text::htmlEncode($data["type"]),
 					"title" => Text::htmlEncode($data["title"]),
 					"subtitle" => Text::htmlEncode($data["subtitle"]),
-					"options" => Link::encode((array) $options)
+					"settings" => Link::encode((array) $settings)
 				];
 				
 				// Backwards compatibility with BigTree 4.1 package imports
@@ -126,6 +129,7 @@
 				"return_view" => $return_view,
 				"return_url" => $return_url ? Link::encode($return_url) : "",
 				"tagging" => $tagging ? "on" : "",
+				"open_graph" => $open_graph ? "on" : "",
 				"hooks" => is_string($hooks) ? json_decode($hooks, true) : $hooks
 			]);
 			
@@ -149,13 +153,14 @@
 				many_to_many - Many to many relationship entries.
 				tags - Tags for the entry.
 				change_being_published - The change ID being published.
+				open_graph - Open Graph data array.
 
 			Returns:
 				The id of the new entry in the database.
 		*/
 		
 		function createEntry(array $columns, ?array $many_to_many = [], ?array $tags = [],
-							 ?int $change_being_published = null): ?int
+							 ?int $change_being_published = null, ?array $open_graph = null): ?int
 		{
 			// Clean up data
 			$insert_values = Link::encode(SQL::prepareData($this->Table, $columns));
@@ -170,6 +175,7 @@
 			// Handle Many to Many and tags
 			$this->handleManyToMany($id, $many_to_many);
 			$this->handleTags($id, $tags);
+			OpenGraph::handleData($this->Table, $id, $open_graph);
 			
 			// Cache and track
 			Tag::updateReferenceCounts($tags);
@@ -327,7 +333,8 @@
 				"return_view" => $this->ReturnView,
 				"return_url" => $this->ReturnURL,
 				"tagging" => $this->Tagging,
-				"hooks" => $this->Hooks
+				"hooks" => $this->Hooks,
+				"open_graph" => $this->OpenGraph
 			];
 		}
 		
@@ -585,14 +592,16 @@
 		function save(): ?bool
 		{
 			if (empty($this->Interface->ID)) {
-				$new = static::create($this->Module, $this->Title, $this->Table, $this->Fields, $this->Hooks, $this->DefaultPosition, $this->ReturnView, $this->ReturnURL, $this->Tagging);
+				$new = static::create($this->Module, $this->Title, $this->Table, $this->Fields, $this->Hooks,
+									  $this->DefaultPosition, $this->ReturnView, $this->ReturnURL, $this->Tagging,
+									  $this->OpenGraph);
 				$this->inherit($new);
 			} else {
 				// Clean up fields in case old format was used
 				foreach ($this->Fields as $key => $field) {
-					$options = is_array($field["options"]) ? $field["options"] : json_decode($field["options"], true);
+					$settings = is_array($field["settings"]) ? $field["settings"] : json_decode($field["settings"], true);
 					
-					$field["options"] = Link::encode((array) $options);
+					$field["settings"] = Link::encode((array) $settings);
 					$field["column"] = $key;
 					$field["title"] = Text::htmlEncode($field["title"]);
 					$field["subtitle"] = Text::htmlEncode($field["subtitle"]);
@@ -606,6 +615,7 @@
 					"return_view" => intval($this->ReturnView) ?: null,
 					"return_url" => $this->ReturnURL,
 					"tagging" => $this->Tagging ? "on" : "",
+					"open_graph" => $this->OpenGraph ? "on": "",
 					"hooks" => array_filter((array) $this->Hooks)
 				];
 				$this->Interface->Table = $this->Table;
@@ -631,14 +641,17 @@
 				return_view - The view to return to when the form is completed.
 				return_url - The alternative URL to return to when the form is completed.
 				tagging - Whether or not to enable tagging.
+				open_graph - Whether to enable open graph data population.
 		*/
 		
 		function update(string $title, string $table, array $fields, array $hooks = [], string $default_position = "",
-						?int $return_view = null, string $return_url = "", bool $tagging = false): void
+						?int $return_view = null, string $return_url = "", bool $tagging = false,
+						bool $open_graph = false): void
 		{
 			$this->DefaultPosition = $default_position;
 			$this->Fields = $fields;
 			$this->Hooks = $hooks;
+			$this->OpenGraph = $open_graph;
 			$this->ReturnURL = $return_url;
 			$this->ReturnView = $return_view;
 			$this->Table = $table;

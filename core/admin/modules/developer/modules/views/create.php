@@ -70,7 +70,7 @@
 			$settings,
 			$_POST["fields"],
 			$clean_actions,
-			$_POST["related_form"],
+			$_POST["related_form"] ? intval($_POST["related_form"]) : null,
 			$_POST["preview_url"]
 		);
 
