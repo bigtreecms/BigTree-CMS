@@ -385,6 +385,8 @@
 			$page = new Page($navid);
 			$bigtree["page"] = $page->Array;
 		}
+		
+		Router::$CurrentPage = $page;
 
 		// If we're in multi-site and the path contains a different site, 301 away
 		if (defined("BIGTREE_SITE_KEY")) {

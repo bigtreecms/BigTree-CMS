@@ -9,7 +9,7 @@
 	
 	class OpenGraph
 	{
-		
+		public static $Context = [];
 		public static $Types = [
 			"website",
 			"article",
@@ -35,6 +35,95 @@
 		];
 		
 		/*
+			Function: drawHeadTags
+				Draws the <title>, meta description, and open graph tags for the given context.
+				The context defaults to the current page and can be changed via BigTreeCMS::setHeadContext
+
+			Parameters:
+				site_title - A site title that draws after the page title if entered, also used for og:site_name
+				divider - The divider between the page title and site title, defaults to |
+				fallback_image - A fallback image for when no OG image exists (defaults to null)
+		*/
+		
+		public static function drawHeadTags(string $site_title = "", string $divider = "|",
+											?string $fallback_image = null): void
+		{
+			/** @var Page $current_page */
+			$current_page = Router::$CurrentPage;
+			$context = static::$Context;
+			$og = static::getData("bigtree_pages", $current_page->ID);
+			
+			if (empty($context)) {
+				$title = $current_page->Title;
+				$og_title = !empty($og["title"]) ? $og["title"] : $current_page->Title;
+				$description = !empty($current_page->MetaDescription) ? $current_page->MetaDescription : $og["description"];
+				$og_description = !empty($og["description"]) ? $og["description"] : $current_page->MetaDescription;
+				$image = $og["image"] ?: $fallback_image;
+				$type = $og["type"] ?: "website";
+			} else {
+				$context_og = static::getData($context["table"], $context["entry"]) ?: $og;
+				
+				if (!empty($context_og["title"])) {
+					$title = $context_og["title"];
+				} elseif (!empty($context["title"])) {
+					$title = $context["title"];
+				} else {
+					$title = $og["title"] ?: $current_page->Title;
+				}
+				
+				$og_title = $title;
+				
+				if (!empty($context_og["description"])) {
+					$description = $context_og["description"];
+				} elseif (!empty($context["description"])) {
+					$description = $context["description"];
+				} else {
+					$description = $og["description"] ?: $current_page->MetaDescription;
+				}
+				
+				$og_description = $description;
+				
+				if (!empty($context_og["type"])) {
+					$type = $context_og["type"];
+				} elseif (!empty($context["type"])) {
+					$type = $context["type"];
+				} else {
+					$type = $og["type"] ?: "website";
+				}
+				
+				if (!empty($context_og["image"])) {
+					$image = $context_og["image"];
+				} elseif (!empty($context["image"])) {
+					$image = $context["image"];
+				} else {
+					$image = $og["image"] ?: $fallback_image;
+				}
+			}
+			
+			if (empty($title) && defined("BIGTREE_URL_IS_404")) {
+				$title = "404";
+			}
+			
+			if ($site_title && (defined("BIGTREE_URL_IS_404") || !empty($current_page->ID))) {
+				$title .= Text::htmlEncode(" $divider $site_title");
+			}
+			
+			echo "<title>$title</title>\n";
+			echo '		<meta name="description" content="'.$description.'" />'."\n";
+			echo '		<meta property="og:title" content="'.$og_title.'" />'."\n";
+			echo '		<meta property="og:description" content="'.$og_description.'" />'."\n";
+			echo '		<meta property="og:type" content="'.$type.'" />'."\n";
+			
+			if ($site_title) {
+				echo '		<meta property="og:site_name" content="'.Text::htmlEncode($site_title).'" />'."\n";
+			}
+			
+			if ($image) {
+				echo '		<meta property="og:image" content="'.$image.'" />'."\n";
+			}
+		}
+		
+		/*
 			 Function: getData
 				 Returns Open Graph data for the specified table/id combination.
 			
@@ -58,7 +147,7 @@
 				return [
 					"title" => "",
 					"description" => "",
-					"type" => "website",
+					"type" => "",
 					"image" => ""
 				];
 			}
@@ -81,7 +170,8 @@
 				An array of data if pending flag is true, otherwise the ID of the open graph table entry
 		*/
 		
-		public static function handleData(string $table, $id, array $data, ?array $image = null, bool $pending = false)
+		public static function handleData(string $table, $id, array $data, ?array $image = null,
+										  bool $pending = false): void
 		{
 			SQL::delete("bigtree_open_graph", ["table" => $table, "entry" => $id]);
 			
@@ -126,5 +216,30 @@
 			return SQL::insert("bigtree_open_graph", $data);
 		}
 		
+		/*
+			Function: setContext
+				Sets the context for the open graph data.
+
+			Parameters:
+				table - A data table to pull open graph information from
+				entry - The ID of the entry to pull open graph information for
+				title - A page title to use (optional, will use Open Graph information if not entered)
+				description - A meta description to use (optional, will use Open Graph information if not entered)
+				image - An image to use for Open Graph (if OG data is empty)
+				type - An Open Graph type to default to (if left empty and OG data is empty, will use "website")
+		*/
+		
+		public static function setContext(string $table, $entry, ?string $title = null, ?string $description = null,
+										  ?string $image = null, ?string $type = null): void
+		{
+			static::$Context = [
+				"table" => $table,
+				"entry" => $entry,
+				"title" => $title,
+				"description" => $description,
+				"image" => $image,
+				"type" => $type
+			];
+		}
 	}
 	

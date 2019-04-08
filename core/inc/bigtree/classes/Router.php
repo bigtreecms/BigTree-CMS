@@ -13,6 +13,8 @@
 		protected static $Booted = false;
 		protected static $ReservedRoutes = [];
 		
+		/** @property BigTree\Page $CurrentPage */
+		public static $CurrentPage = null;
 		public static $Registry = false;
 		public static $RouteParamNames = [];
 		public static $RouteParamNamesPath = [];
