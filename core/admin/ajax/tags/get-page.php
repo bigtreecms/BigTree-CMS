@@ -20,7 +20,7 @@
 	foreach ($results as $item) {
 ?>
 <li>
-	<section class="tag_name"><?=$item["tag"]?></section>
+	<section class="tag_name"><?=BigTree::safeEncode($item["tag"])?></section>
 	<section class="tag_relationships"><?=$item["usage_count"]?></section>
 	<section class="view_action view_action_merge"><a href="<?=ADMIN_ROOT?>tags/merge/<?=$item["id"]?>/" class="icon_merge"></a></section>
 	<section class="view_action"><a href="#" data-id="<?=$item["id"]?>" class="icon_delete"></a></section>
