@@ -2929,7 +2929,7 @@
 				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/draw.php";
 			} else {
 				// < 4.3 location - we prefer it to allow old overrides to work still
-				$field_type_path = BigTree::path("admin/form-field-types/draw/".$field["type"].".php");
+				$field_type_path = SERVER_ROOT."custom/admin/form-field-types/draw/".$field["type"].".php";
 
 				if (!file_exists($field_type_path)) {
 					$field_type_path = BigTree::path("admin/field-types/".$field["type"]."/draw.php");
@@ -7451,7 +7451,7 @@
 				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/process.php";
 			} else {
 				// < 4.3 location - we prefer it to allow old overrides to continue to work
-				$field_type_path = BigTree::path("admin/form-field-types/process/".$field["type"].".php");
+				$field_type_path = SERVER_ROOT."custom/admin/form-field-types/process/".$field["type"].".php";
 
 				if (!file_exists($field_type_path)) {
 					$field_type_path = BigTree::path("admin/field-types/".$field["type"]."/process.php");
