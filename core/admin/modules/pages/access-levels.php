@@ -34,7 +34,7 @@
 				<?php
 					foreach ($editors as $user) {
 				?>
-				<li><a href="<?=ADMIN_ROOT?>users/edit/<?=$user["id"]?>/"><?=$user["name"]?></a></li>
+				<li><a href="<?=ADMIN_ROOT?>users/edit/<?=$user->ID?>/"><?=$user->Name?></a></li>
 				<?php
 					}
 				?>
@@ -46,7 +46,7 @@
 				<?php
 					foreach ($publishers as $user) {
 				?>
-				<li><a href="<?=ADMIN_ROOT?>users/edit/<?=$user["id"]?>/"><?=$user["name"]?></a></li>
+				<li><a href="<?=ADMIN_ROOT?>users/edit/<?=$user->ID?>/"><?=$user->Name?></a></li>
 				<?php
 					}
 				?>
@@ -54,6 +54,6 @@
 		</div>
 	</section>
 	<footer>
-		<a href="<?=ADMIN_ROOT?>pages/edit/<?=$bigtree["current_page"]["id"]?>/" class="button blue"><?=Text::translate("Return to Editing")?></a>
+		<a href="<?=ADMIN_ROOT?>pages/edit/<?=$page->ID?>/" class="button blue"><?=Text::translate("Return to Editing")?></a>
 	</footer>
 </form>

@@ -171,7 +171,7 @@
 		*/
 		
 		public static function handleData(string $table, $id, array $data, ?array $image = null,
-										  bool $pending = false): void
+										  bool $pending = false)
 		{
 			SQL::delete("bigtree_open_graph", ["table" => $table, "entry" => $id]);
 			

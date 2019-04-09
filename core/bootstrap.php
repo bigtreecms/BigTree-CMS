@@ -1,6 +1,7 @@
 <?php
 	use BigTree\Auth;
 	use BigTree\FileSystem;
+	use BigTree\JSON;
 	use BigTree\Router;
 	use BigTree\SQL;
 	use BigTree\Text;
@@ -49,6 +50,7 @@
 	if (!file_exists(SERVER_ROOT."cache/composer-check.flag")) {
 		// Include FileSystem and Text handlers to do composer checks
 		include SERVER_ROOT."core/inc/bigtree/classes/FileSystem.php";
+		include SERVER_ROOT."core/inc/bigtree/classes/JSON.php";
 		include SERVER_ROOT."core/inc/bigtree/classes/Text.php";
 		
 		$path = str_replace("core/bootstrap.php", "", __FILE__);
@@ -85,7 +87,7 @@
 				}
 			}
 			
-			FileSystem::createFile(SERVER_ROOT."composer.json", BigTree::json($existing_json));
+			FileSystem::createFile(SERVER_ROOT."composer.json", JSON::encode($existing_json));
 			FileSystem::createFile(SERVER_ROOT."cache/composer-check.flag", "done");
 			
 			die(Text::translate("BigTree has updated your composer.json file with required libraries. Please run `composer update` before continuing."));
