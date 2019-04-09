@@ -12,8 +12,8 @@
 			"id" => $message->ID,
 			"from" => '<span class="gravatar"><img src="'.User::gravatar($message->SenderEmail, 36).'" alt="" /></span>'.$message->SenderName,
 			"subject" => $message->Subject,
-			"date" => date("n/j/y",strtotime($message->Date)),
-			"time" => date("g:ia",strtotime($message->Date))
+			"date" => Auth::user()->convertTimestampTo($message->Date, "n/j/y"),
+			"time" => Auth::user()->convertTimestampTo($message->Date, "g:ia")
 		);
 	}
 ?>

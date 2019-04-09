@@ -75,12 +75,12 @@
 	<div class="left date_pickers">
 		<fieldset class="last">
 			<label for="publish_at"><?=Text::translate("Publish Date")?> <small>(<?=Text::translate("blank = immediately")?>)</small></label>
-			<input type="text" class="date_picker" id="publish_at" name="publish_at" tabindex="3" value="<?php if ($bigtree["current_page"]["publish_at"]) { echo date($bigtree["config"]["date_format"], strtotime($bigtree["current_page"]["publish_at"])); } ?>" />
+			<input type="text" class="date_picker" id="publish_at" name="publish_at" tabindex="3" value="<?php if ($bigtree["current_page"]["publish_at"]) { echo Auth::user()->convertTimestampTo($bigtree["current_page"]["publish_at"]); } ?>" />
 			<span class="icon_small icon_small_calendar date_picker_icon"></span>
 		</fieldset>
 		<fieldset class="right last">
 			<label for="expire_at"><?=Text::translate("Expiration Date")?> <small>(<?=Text::translate("blank = never")?>)</small></label>
-			<input type="text" class="date_picker" id="expire_at" name="expire_at" tabindex="4" value="<?php if ($bigtree["current_page"]["expire_at"]) { echo date($bigtree["config"]["date_format"], strtotime($bigtree["current_page"]["expire_at"])); } ?>" />
+			<input type="text" class="date_picker" id="expire_at" name="expire_at" tabindex="4" value="<?php if ($bigtree["current_page"]["expire_at"]) { echo Auth::user()->convertTimestampTo($bigtree["current_page"]["expire_at"]); } ?>" />
 			<span class="icon_small icon_small_calendar date_picker_icon"></span>
 		</fieldset>
 	</div>

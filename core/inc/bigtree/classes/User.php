@@ -35,6 +35,7 @@
 		public $Name;
 		public $Password;
 		public $Permissions;
+		public $Timezone;
 		
 		/*
 			Constructor:
@@ -59,16 +60,17 @@
 					$this->ID = $user["id"];
 					$this->OriginalPassword = $user["password"];
 					
-					$this->Email = $user["email"];
-					$this->Password = $user["password"];
-					$this->Name = $user["name"] ?: null;
-					$this->Company = $user["company"] ?: null;
-					$this->Level = $user["level"] ?: 0;
-					$this->Permissions = $user["permissions"] ? json_decode($user["permissions"], true) : null;
 					$this->Alerts = $user["alerts"] ? json_decode($user["alerts"], true) : null;
-					$this->DailyDigest = $user["daily_digest"] ? true : false;
+					$this->Company = $user["company"] ?: null;
 					$this->ChangePasswordHash = $user["change_password_hash"] ?: null;
+					$this->DailyDigest = $user["daily_digest"] ? true : false;
+					$this->Email = $user["email"];
+					$this->Level = $user["level"] ?: 0;
+					$this->Name = $user["name"] ?: null;
 					$this->NewHash = !empty($user["new_hash"]);
+					$this->Password = $user["password"];
+					$this->Permissions = $user["permissions"] ? json_decode($user["permissions"], true) : null;
+					$this->Timezone = $user["timezone"];
 					
 					// Verify a correct permissions array
 					if (!is_array($this->Permissions)) {
@@ -452,7 +454,7 @@
 		*/
 		
 		static function updateProfile(string $name, ?string $company = null, bool $daily_digest = false,
-									  ?string $password = null): bool
+									  string $timezone = "", ?string $password = null): bool
 		{
 			global $bigtree;
 			
@@ -469,6 +471,7 @@
 				"name" => Text::htmlEncode($name),
 				"company" => Text::htmlEncode($company),
 				"daily_digest" => $daily_digest ? "on" : "",
+				"timezone" => $timezone
 			];
 			
 			if (!is_null($password) && $password !== "" && $password !== false) {

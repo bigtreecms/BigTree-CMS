@@ -9,12 +9,17 @@
 	use BigTree\Module;
 	use BigTree\Router;
 	use BigTree\SQL;
+	use DateTime;
+	use DateTimeZone;
+	use Exception;
 	
-	class AuthenticatedUser {
+	class AuthenticatedUser
+	{
 		
 		public $ID;
 		public $Level;
 		public $Permissions;
+		public $Timezone;
 		
 		/*
 			Constructor:
@@ -24,12 +29,15 @@
 				id - User ID
 				level - User level (-1 = anonymous, 0 = normal user, 1 = administrator, 2 = developer)
 				permissions - Array of user permissions
+				timezone - The user's timezone
 		*/
 		
-		function __construct(?int $id, ?int $level, ?array $permissions) {
+		function __construct(?int $id, ?int $level, ?array $permissions, ?string $timezone)
+		{
 			$this->ID = $id;
 			$this->Level = $level;
 			$this->Permissions = $permissions;
+			$this->Timezone = $timezone;
 		}
 		
 		/*
@@ -43,7 +51,8 @@
 				Boolean
 		*/
 		
-		function canAccess($object): bool {
+		function canAccess($object): bool
+		{
 			if (get_class($object) == 'BigTree\ModuleAction') {
 				if ($object->Level > $this->Level) {
 					return false;
@@ -54,6 +63,89 @@
 				return $this->canAccess($module);
 			} else {
 				return $this->getAccessLevel($object) ? true : false;
+			}
+		}
+		
+		/*
+			Function: convertTimestampFrom
+				Converts a timestamp from the authenticated user's  frame of reference to the server's frame of reference
+
+			Parameters:
+				time - A timestamp readable by strtotime
+				format - Return format, defaults to "Y-m-d H:i:s"
+
+			Returns:
+				An adjusted timestamp or null if conversion fails.
+		*/
+		
+		function convertTimestampFrom(string $time, ?string $format = null): ?string
+		{
+			if (!$this->Timezone) {
+				return date("Y-m-d H:i:s", strtotime($time));
+			}
+			
+			$time = strtotime($time);
+			$date = date("Y-m-d H:i:s", $time);
+			
+			$user_tz = new DateTimeZone($this->Timezone);
+			$system_tz = new DateTimeZone(date_default_timezone_get());
+			
+			try {
+				$user_offset = $user_tz->getOffset(new DateTime($date));
+				$system_offset = $system_tz->getOffset(new DateTime($date));
+				
+				$time += ($system_offset - $user_offset);
+				
+				return date($format ?: "Y-m-d H:i:s", $time);
+			} catch (Exception $e) {
+				return null;
+			}
+		}
+		
+		/*
+			Function: convertTimestampTo
+				Converts a timestamp from the authenticated user's frame of reference to the server's frame of reference
+
+			Parameters:
+				time - A timestamp readable by strtotime
+				format - A date format (defaults to the $bigtree["config"]["date_format"] value)
+				timezone - An alternative timezone to convert to (defaults to this user's timezone).
+
+			Returns:
+				An adjusted timestamp or null if conversion fails.
+		*/
+		
+		function convertTimestampTo(string $time, ?string $format = null, ?string $timezone = null): ?string
+		{
+			global $bigtree;
+			
+			if (is_null($format)) {
+				$format = !empty($bigtree["config"]["date_format"]) ? $bigtree["config"]["date_format"]." g:i a" : "Y-m-d H:i:s";
+			}
+			
+			if (is_null($timezone)) {
+				$timezone = $this->Timezone;
+			}
+			
+			if (!$timezone) {
+				return date($format, strtotime($time));
+			}
+			
+			$time = strtotime($time);
+			$date = date("Y-m-d H:i:s", $time);
+			
+			$user_tz = new DateTimeZone($timezone);
+			$system_tz = new DateTimeZone(date_default_timezone_get());
+			
+			try {
+				$user_offset = $user_tz->getOffset(new DateTime($date));
+				$system_offset = $system_tz->getOffset(new DateTime($date));
+				
+				$time += ($user_offset - $system_offset);
+				
+				return date($format, $time);
+			} catch (Exception $e) {
+				return null;
 			}
 		}
 		
@@ -70,7 +162,8 @@
 				The permission level of the user.
 		*/
 		
-		function getAccessLevel($object, ?array $entry = null, ?string $table = null): ?string {
+		function getAccessLevel($object, ?array $entry = null, ?string $table = null): ?string
+		{
 			// Developers have universal access
 			if ($this->Level > 1) {
 				return "p";
@@ -203,7 +296,8 @@
 				An array of groups if the user has limited access to a module or "true" if the user has access to all groups.
 		*/
 		
-		function getAccessibleModuleGroups(Module $module): ?array {
+		function getAccessibleModuleGroups(Module $module): ?array
+		{
 			$access = $this->getAccessLevel($module);
 			
 			if ($access == "p") {
@@ -237,7 +331,8 @@
 				The permission level for the given item or module (if item was not passed).
 		*/
 		
-		function getCachedAccessLevel(Module $module, ?array $item = null, ?string $table = null): ?string {
+		function getCachedAccessLevel(Module $module, ?array $item = null, ?string $table = null): ?string
+		{
 			$module_id = $module->ID;
 			$permission = $this->getAccessLevel($module);
 			
@@ -284,7 +379,8 @@
 				The permission level if the user can access this group, otherwise false.
 		*/
 		
-		function getGroupAccessLevel(Module $module, int $group): ?string {
+		function getGroupAccessLevel(Module $module, int $group): ?string
+		{
 			if ($this->Level > 0) {
 				return "p";
 			}
@@ -322,7 +418,8 @@
 				true if the user is banned
 		*/
 		
-		static function getIsUserBanned(int $user): bool {
+		static function getIsUserBanned(int $user): bool
+		{
 			global $bigtree;
 			
 			// See if this user is banned due to failed login attempts
@@ -349,7 +446,8 @@
 				true if a user matches the token
 		*/
 		
-		static function process2FAToken(string $two_factor_token): ?array {
+		static function process2FAToken(string $two_factor_token): ?array
+		{
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE 2fa_login_token = ?", $two_factor_token);
 			
 			if ($user) {
@@ -373,7 +471,8 @@
 				The permission level of the user.
 		*/
 		
-		function requireAccess($object): ?string {
+		function requireAccess($object): ?string
+		{
 			$access = $this->getAccessLevel($object);
 			
 			if ($access) {
@@ -396,7 +495,8 @@
 				error_path - Path (relative to SERVER_ROOT) of the error page to serve.
 		*/
 		
-		function requireLevel($level, $error_path = "admin/pages/_denied.php"): void {
+		function requireLevel($level, $error_path = "admin/pages/_denied.php"): void
+		{
 			if (empty($this->Level) || $this->Level < $level) {
 				define("BIGTREE_ACCESS_DENIED", true);
 				Auth::stop(file_get_contents(Router::getIncludePath($error_path)));
@@ -412,7 +512,8 @@
 				object - A BigTree\Module, BigTree\Page, or BigTree\ResourceFolder object.
 		*/
 		
-		function requirePublisher($object): void {
+		function requirePublisher($object): void
+		{
 			$access = $this->getAccessLevel($object);
 			
 			if ($access !== "p") {

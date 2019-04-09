@@ -1,4 +1,7 @@
-<?php
+<?php /** @noinspection Annotator */
+	/** @noinspection ALL */
+	/** @noinspection Annotator */
+	
 	/*
 		Class: BigTree\Auth
 			Provides an interface for user authentication.
@@ -18,6 +21,7 @@
 		public static $Name;
 		public static $PagesTabHidden = false;
 		public static $Permissions = [];
+		public static $Timezone = "";
 		
 		private static $Namespace = "";
 		private static $Policies = false;
@@ -35,6 +39,7 @@
 		*/
 		
 		function __construct(string $user_class = 'BigTree\User', string $namespace = "bigtree_admin", bool $enforce_policies = true) {
+			/** @var User $user_class */
 			static::$Namespace = $namespace;
 			static::$Policies = $enforce_policies;
 			static::$UserClass = $user_class;
@@ -49,6 +54,7 @@
 					static::$Level = $user->Level;
 					static::$Name = $user->Name;
 					static::$Permissions = $user->Permissions;
+					static::$Timezone = $user->Timezone;
 
 					CSRF::setup($_SESSION[static::$Namespace]["csrf_token_field"], $_SESSION[static::$Namespace]["csrf_token"]);
 				}
@@ -94,6 +100,7 @@
 							static::$Level = $user->Level;
 							static::$Name = $user->Name;
 							static::$Permissions = $user->Permissions;
+							static::$Timezone = $user->Timezone;
 							
 							// Delete existing session
 							SQL::delete("bigtree_user_sessions", $session);
@@ -256,6 +263,7 @@
 		{
 			global $bigtree;
 			
+			/** @var $user_class User */
 			$user_class = static::$UserClass;
 			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
 			
@@ -599,32 +607,36 @@
 				Returns a BigTree\Auth\AuthenticatedUser object.
 
 			Parameters:
-				user - Either a user ID, BigTree\User object, or false to use the currently logged in user.
+				user - Either a user ID, BigTree\User object, or null to use the currently logged in user.
 
 			Returns:
 				A BigTree\Auth\AuthenticatedUser object.
 		*/
 		
 		static function user($user = null): AuthenticatedUser {
+			/** @var User $user */
+			
 			if (is_null($user)) {
 				if (static::$ID) {
-					return new AuthenticatedUser(static::$ID, static::$Level, static::$Permissions);
+					return new AuthenticatedUser(static::$ID, static::$Level, static::$Permissions, static::$Timezone);
 				} else {
-					return new AuthenticatedUser(null, -1, []);
+					return new AuthenticatedUser(null, -1, [], null);
 				}
 			} else {
 				if (is_object($user)) {
-					return new AuthenticatedUser($user->ID, $user->Level, $user->Permissions);
+					return new AuthenticatedUser($user->ID, $user->Level, $user->Permissions, $user->Timezone);
 				}
 				
 				$user = SQL::fetch("SELECT id, level, permissions FROM bigtree_users WHERE id = ?", $user);
 				
 				// Return a -1 level of anonymous user
 				if (empty($user)) {
-					return new AuthenticatedUser(null, -1, []);
-				} else {
-					return new AuthenticatedUser($user["id"], $user["level"], (array) json_decode($user["permissions"], true));
+					return new AuthenticatedUser(null, -1, [], null);
 				}
+				
+				$permissions = (array) @json_decode($user["permissions"], true);
+					
+				return new AuthenticatedUser($user["id"], $user["level"], $permissions, $user["timezone"]);
 			}
 		}
 		

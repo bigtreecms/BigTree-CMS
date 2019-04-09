@@ -5,9 +5,12 @@
 	 * @global Module $module
 	 * @global ModuleReport $report
 	 */
+
+	$date = Auth::user()->convertTimestampTo("now", "Y-m-d");
+	$module = Link::urlify($module->Name);
 	
 	header("Content-type: text/csv");
-	header("Content-Disposition: attachment; filename=".Link::urlify($module->Name)."-".date("Y-m-d").".csv");
+	header("Content-Disposition: attachment; filename=$module-$date.csv");
 	header("Pragma: no-cache");
 	header("Expires: 0");
 	

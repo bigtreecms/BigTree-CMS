@@ -257,7 +257,7 @@
 		}
 		
 		$json_data[] = [
-			"date" => date($bigtree["config"]["date_format"]." @ g:ia", strtotime($result["date"])),
+			"date" => Auth::user()->convertTimestampTo($result["date"], $bigtree["config"]["date_format"]." @ g:ia"),
 			"user" => $user_text,
 			"table" => $result["table"],
 			"entry" => $link ? '<a href="'.$link.'" target="_blank">'.$title.'</a>' : $title,

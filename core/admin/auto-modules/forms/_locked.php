@@ -7,6 +7,14 @@
 	 */
 	
 	$view_data = isset($_GET["view_data"]) ? "&view_data=".htmlspecialchars($_GET["view_data"]) : "";
+	$lock_message = Text::translate('<strong>:locked_by:</strong> currently has this entry locked for editing. '.
+									'It was last accessed by <strong>:locked_by:</strong> on </strong>:datetime:</strong>.'.
+									'If you would like to edit it anyway, please click "Unlock" below. '.
+									'Otherwise, click "Cancel".', false,
+									[
+										":locked_by:" => $locked_by["name"],
+										":datetime:" => Auth::user()->convertTimestampTo($last_accessed, "F j, Y @ g:ia")
+									]);
 ?>
 <div class="container">
 	<section>
@@ -14,14 +22,7 @@
 			<span></span>
 			<h3><?=Text::translate("Locked")?></h3>
 		</div>
-		<p>
-			<strong><?=$locked_by["name"]?></strong>
-			<?=Text::translate("currently has this entry locked for editing.  It was last accessed by")?>
-			<strong><?=$locked_by["name"]?></strong>
-			<?=Text::translate("on")?>
-			<strong><?=date("F j, Y @ g:ia",strtotime($last_accessed))?></strong>.<br />
-			<?=Text::translate('If you would like to edit it anyway, please click "Unlock" below.  Otherwise, click "Cancel".')?>
-		</p>
+		<p><?=$lock_message?></p>
 	</section>
 	<footer>
 		<a href="?force=true<?=$view_data?><?php CSRF::drawGETToken(); ?>" class="button blue"><?=Text::translate("Unlock")?></a>
