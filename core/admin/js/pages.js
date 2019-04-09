@@ -1,99 +1,171 @@
 var BigTreePages = (function() {
-	var ExternalLink;
-	var NewWindow;
+	var CurrentPage;
+	var CurrentPageTemplate;
+	var ExternalLinkField;
+	var ExternalTimer;
+	var FooterInputs;
+	var NavTitle;
+	var NewWindowCheckbox;
+	var NewWindowControl;
+	var LockTimer;
 	var PageTitle;
-	var PageTitleDidFocus = false;
-	var RedirectLower;
-	var SaveAndPreview;
+	var PageTitleTimer;
+	var RedirectLowerField;
+	var RedirectLowerFieldControl;
+	var SaveAndPreviewButton;
 	var TemplateSelect;
-	var Timer;
+	var TemplateSelectControl;
+	var TemplateTimer;
+	var TrunkField;
 
-	function init() {
+	function init(settings) {
+		CurrentPage = settings.page;
+		CurrentPageTemplate = settings.template;
+		ExternalLinkField = $("#external_link");
+		FooterInputs = $(".js-pages-form-footer input");
+		NavTitle = $("#nav_title");
+		NewWindowCheckbox = $("#new_window");
 		PageTitle = $("#page_title");
-		RedirectLower = $("input[name=redirect_lower]");
-		ExternalLink = $("input[name=external]");
-		NewWindow = $("#new_window");
-		TemplateSelect = $("select[name=template]");
-		SaveAndPreview = $(".save_and_preview");
+		SaveAndPreviewButton = $(".save_and_preview");
+		TemplateSelect = $("#template_select");
+		TemplateSelectControl = TemplateSelect.get(0).customControl;
+		TrunkField = $("#page_field_trunk");
 
-		RedirectLower.click(function() {
-			if ($(this).prop("checked")) {
-				TemplateSelect.get(0).customControl.disable();
-				ExternalLink.prop("disabled", true);
-				NewWindow.get(0).customControl.disable();
-				SaveAndPreview.hide();
-			} else {
-				TemplateSelect.get(0).customControl.enable();
-				ExternalLink.prop("disabled", false);
-				NewWindow.get(0).customControl.enable();
-				SaveAndPreview.show();
-			}
-		});
+		// Homepage editing won't have these controls
+		if (NewWindowCheckbox.length) {
+			NewWindowControl = NewWindowCheckbox.get(0).customControl;
+			RedirectLowerField = $("#redirect_lower");
+			RedirectLowerFieldControl = RedirectLowerField.get(0).customControl;
 
-		ExternalLink.on("keyup",function() {
-			if ($(this).val()) {
-				TemplateSelect.get(0).customControl.disable();
-				SaveAndPreview.hide();
-			} else {
-				TemplateSelect.get(0).customControl.enable();
-				SaveAndPreview.show();
-			}
-		});
-		
+			RedirectLowerField.on("click", function() {
+				if ($(this).prop("checked")) {
+					TemplateSelectControl.disable();
+					ExternalLinkField.prop("disabled", true);
+					NewWindowControl.disable();
+				} else {
+					TemplateSelectControl.enable();
+					ExternalLinkField.prop("disabled", false);
+					NewWindowControl.enable();
+				}
+			});
+
+			ExternalTimer = setInterval(checkExternal, 300);
+		}
+
 		// Tagger
 		BigTreeTagAdder.init();
-		
+
 		// Watch for changes in the template, update the Content tab.
-		Timer = setInterval(checkTemplate, 500);
+		TemplateTimer = setInterval(checkTemplate, 300);
 
-		SaveAndPreview.click(function(ev) {
+		if (!PageTitle.get(0).defaultValue) {
+			PageTitleTimer = setInterval(checkPageTitle, 300);
+
+			PageTitle.focus(function() {
+				if (PageTitleTimer) {
+					clearInterval(PageTitleTimer);
+				}
+			});
+		}
+
+		SaveAndPreviewButton.on("click", function(ev) {
 			ev.preventDefault();
-			ev.stopPropagation();
 
-			var form = $(this).parents("form");
-			form.attr("action", "admin_root/pages/update/?preview=true");
-			form.submit();
-		});
-		
-		// Observe the Nav Title for auto filling the Page Title the first time around.
-		$("#nav_title").keyup(function() {
-			if (!PageTitle.get(0).defaultValue && !PageTitleDidFocus) {
-				PageTitle.val($(this).val());
+			if ($(this).hasClass("disabled")) {
+				return;
 			}
+
+			submit();
+
+			var sform = $(this).parents("form");
+			sform.attr("action","admin_root/pages/update/?preview=true");
+			sform.submit();
 		});
 
-		PageTitle.focus(function() {
-			PageTitleDidFocus = true;
-		});
+		FooterInputs.on("click", submit);
+
+		// Setup lock timer if we're editing a page
+		if (CurrentPage) {
+			LockTimer = setInterval(function() {
+				$.secureAjax('admin_root/ajax/refresh-lock/', {
+					type: 'POST',
+					data: {
+						table: 'bigtree_pages',
+						id: CurrentPage
+					}
+				});
+			}, 60000);
+		}
+	}
+
+	function submit() {
+		SaveAndPreviewButton.addClass("disabled");
+		FooterInputs.addClass("disabled");
+		$(".next").addClass("disabled");
+		$(".js-pages-form-footer").append('<span class="button_loader"></span>');
+	}
+
+	function checkExternal() {
+		if (ExternalLinkField.val()) {
+			TemplateSelectControl.disable();
+			RedirectLowerFieldControl.disable();
+
+			if (TrunkField.length) {
+				TrunkField.get(0).customControl.disable();
+			}
+		} else {
+			RedirectLowerFieldControl.enable();
+
+			if (TrunkField.length) {
+				TrunkField.get(0).customControl.enable();
+			}
+
+			if (!RedirectLowerField.prop("checked")) {
+				TemplateSelectControl.enable();
+			}
+		}
+	}
+
+	function checkPageTitle() {
+		PageTitle.val(NavTitle.val());
 	}
 
 	function checkTemplate() {
-		var current_template;
-
 		if (TemplateSelect.length) {
-			if (RedirectLower.prop("checked")) {
+			var current_template;
+
+			if (typeof RedirectLowerField !== "undefined" && RedirectLowerField.prop("checked")) {
 				current_template = "!";
-			} else if (ExternalLink.val()) {
+			} else if (ExternalLinkField.val()) {
 				current_template = "";
 			} else {
 				current_template = TemplateSelect.val();
 			}
 
-			if (BigTree.currentPageTemplate != current_template) {
+			if (CurrentPageTemplate !== current_template) {
 				// Unload all TinyMCE fields.
 				if (tinyMCE) {
-					for (id in BigTree.TinyMCEFields) {
-						tinyMCE.execCommand('mceFocus', false, BigTree.TinyMCEFields[id]);
-						tinyMCE.execCommand("mceRemoveControl", false, BigTree.TinyMCEFields[id]);
+					for (var x = 0; x < BigTree.TinyMCEFields.length; x++) {
+						tinyMCE.execCommand('mceFocus', false, BigTree.TinyMCEFields[x]);
+						tinyMCE.execCommand("mceRemoveControl", false, BigTree.TinyMCEFields[x]);
 					}
 				}
 
-				BigTree.currentPageTemplate = current_template;
+				CurrentPageTemplate = current_template;
 
-				if (BigTree.currentPage !== false) {
-					$("#template_type").load("admin_root/ajax/pages/get-template-form/", { page: BigTree.currentPage, template: BigTree.currentPageTemplate }, function() { BigTreeCustomControls("#template_type"); });
+				if (CurrentPage !== false) {
+					$("#template_type").load("admin_root/ajax/pages/get-template-form/", {
+						page: CurrentPage,
+						template: CurrentPageTemplate
+					}, function() {
+						BigTreeCustomControls("#template_type");
+					});
 				} else {
-					$("#template_type").load("admin_root/ajax/pages/get-template-form/", { template: BigTree.currentPageTemplate }, function() { BigTreeCustomControls("#template_type"); });
+					$("#template_type").load("admin_root/ajax/pages/get-template-form/", {
+						template: CurrentPageTemplate
+					}, function() {
+						BigTreeCustomControls("#template_type");
+					});
 				}
 			}
 		}
@@ -101,5 +173,3 @@ var BigTreePages = (function() {
 
 	return { init: init };
 })();
-
-$(document).ready(BigTreePages.init);

@@ -265,7 +265,9 @@
 		function createPendingEntry(array $columns, array $many_to_many = [], array $tags = []): int
 		{
 			$hook = !empty($this->Hooks["publish"]) ? $this->Hooks["publish"] : false;
-			$change = PendingChange::create($this->Table, false, $columns, $many_to_many, $tags, $this->Module, $hook, $this->Embedded);
+			$tags = array_unique($tags);
+			$change = PendingChange::create($this->Table, false, $columns, $many_to_many, $tags, $this->Module, $hook,
+											$this->Embedded);
 			
 			return $change->ID;
 		}
@@ -574,6 +576,8 @@
 			SQL::delete("bigtree_tags_rel", ["table" => $this->Table, "entry" => $id]);
 			
 			if (is_array($tags)) {
+				$tags = array_unique($tags);
+
 				foreach ($tags as $tag) {
 					SQL::insert("bigtree_tags_rel", [
 						"table" => $this->Table,

@@ -417,7 +417,7 @@
 			
 			// Handle tags
 			if (is_array($tags)) {
-				$tags = array_filter($tags);
+				$tags = array_unique(array_filter($tags));
 
 				foreach ($tags as $tag) {
 					SQL::insert("bigtree_tags_rel", [
@@ -482,7 +482,7 @@
 			}
 			
 			// Save tags separately
-			$tags = JSON::encode($changes["_tags"], true);
+			$tags = JSON::encode(array_unique(array_filter((array) $changes["_tags"])), true);
 			unset($changes["_tags"]);
 			
 			// Convert to an IPL
@@ -1645,6 +1645,7 @@
 			
 			// Handle tags
 			SQL::delete("bigtree_tags_rel", ["table" => "bigtree_pages", "entry" => $this->ID]);
+			$this->Tags = array_unique($this->Tags);
 			$tag_ids = [];
 
 			foreach ($this->Tags as $tag) {

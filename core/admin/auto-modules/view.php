@@ -10,10 +10,10 @@
 	$view->calculateFieldWidths();
 	$bigtree["view"] = $view->Array;
 
-	if ($view->Description && !$_COOKIE["bigtree_admin"]["ignore_view_description"][$view->ID]) {
+	if ($view->Description) {
 ?>
-<section class="inset_block">
-	<span class="hide" data-id="<?=$view->ID?>">x</span>
+<section class="inset_block js-view-description"<?php if ($_COOKIE["bigtree_admin"]["ignore_view_description"][$view->ID]) { ?> style="display: none;"<?php } ?> data-id="<?=$view->ID?>">
+	<span class="hide js-view-description-hide">x</span>
 	<p><?=$view->Description?></p>
 </section>
 <?php

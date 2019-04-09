@@ -8,7 +8,8 @@
 	
 	use BigTree\SQL;
 	
-	class BigTree {
+	class BigTree
+	{
 		
 		// Static properties
 		public static $CountryList = array("United States", "Afghanistan", "Åland Islands", "Albania", "Algeria", "American Samoa", "Andorra", "Angola", "Anguilla", "Antarctica", "Antigua and Barbuda", "Argentina", "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia, Plurinational State of", "Bonaire, Sint Eustatius and Saba", "Bosnia and Herzegovina", "Botswana", "Bouvet Island", "Brazil", "British Indian Ocean Territory", "Brunei Darussalam", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada", "Cape Verde", "Cayman Islands", "Central African Republic", "Chad", "Chile", "China", "Christmas Island", "Cocos (Keeling) Islands", "Colombia", "Comoros", "Congo", "Congo, The Democratic Republic of the", "Cook Islands", "Costa Rica", "Côte d'Ivoire", "Croatia", "Cuba", "Curaçao", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Ethiopia", "Falkland Islands (Malvinas)", "Faroe Islands", "Fiji", "Finland", "France", "French Guiana", "French Polynesia", "French Southern Territories", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Gibraltar", "Greece", "Greenland", "Grenada", "Guadeloupe", "Guam", "Guatemala", "Guernsey", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Heard Island and McDonald Islands", "Holy See (Vatican City State)", "Honduras", "Hong Kong", "Hungary", "Iceland", "India", "Indonesia", "Iran, Islamic Republic of", "Iraq", "Ireland", "Isle of Man", "Israel", "Italy", "Jamaica", "Japan", "Jersey", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Korea, Democratic People's Republic of", "Korea, Republic of", "Kuwait", "Kyrgyzstan", "Lao People's Democratic Republic", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libyan Arab Jamahiriya", "Liechtenstein", "Lithuania", "Luxembourg", "Macao", "Macedonia, The Former Yugoslav Republic of", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Martinique", "Mauritania", "Mauritius", "Mayotte", "Mexico", "Micronesia, Federated States of", "Moldova, Republic of", "Monaco", "Mongolia", "Montenegro", "Montserrat", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Caledonia", "New Zealand", "Nicaragua", "Niger", "Nigeria", "Niue", "Norfolk Island", "Northern Mariana Islands", "Norway", "Occupied Palestinian Territory", "Oman", "Pakistan", "Palau", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Pitcairn", "Poland", "Portugal", "Puerto Rico", "Qatar", "Réunion", "Romania", "Russian Federation", "Rwanda", "Saint Barthélemy", "Saint Helena, Ascension and Tristan da Cunha", "Saint Kitts and Nevis", "Saint Lucia", "Saint Martin (French part)", "Saint Pierre and Miquelon", "Saint Vincent and The Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Sint Maarten (Dutch part)", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Georgia and the South Sandwich Islands", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Svalbard and Jan Mayen", "Swaziland", "Sweden", "Switzerland", "Syrian Arab Republic", "Taiwan, Province of China", "Tajikistan", "Tanzania, United Republic of", "Thailand", "Timor-Leste", "Togo", "Tokelau", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Turks and Caicos Islands", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States Minor Outlying Islands", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela, Bolivarian Republic of", "Viet Nam", "Virgin Islands, British", "Virgin Islands, U.S.", "Wallis and Futuna", "Western Sahara", "Yemen", "Zambia", "Zimbabwe");
@@ -28,7 +29,7 @@
 				A string of XML.
 		*/
 		
-		static function arrayToXML($array, $tab = "") {
+		public static function arrayToXML($array, $tab = "") {
 			return BigTree\Utils::arrayToXML($array, $tab);
 		}
 		
@@ -43,7 +44,7 @@
 				An array.
 		*/
 		
-		static function arrayValue($value) {
+		public static function arrayValue($value) {
 			return BigTree\Utils::arrayValue($value);
 		}
 		
@@ -63,8 +64,10 @@
 				The new file name if successful, false if there was not enough memory available.
 		*/
 		
-		static function centerCrop($file, $newfile, $cw, $ch, $retina = false, $grayscale = false) {
-			return BigTree\Image::centerCrop($file, $newfile, $cw, $ch, $retina, $grayscale);
+		public static function centerCrop($file, $newfile, $cw, $ch, $retina = false, $grayscale = false) {
+			$image = new BigTree\Image($file);
+			
+			return $image->centerCrop($newfile, $cw, $ch, $retina, $grayscale);
 		}
 		
 		/*
@@ -78,7 +81,7 @@
 				Cleaned up string.
 		*/
 		
-		static function cleanFile($file) {
+		public static function cleanFile($file) {
 			return BigTree\FileSystem::getSafePath($file);
 		}
 		
@@ -95,8 +98,24 @@
 				A hex value color between the first and second colors.
 		*/
 		
-		static function colorMesh($first_color, $second_color, $percentage) {
+		public static function colorMesh($first_color, $second_color, $percentage) {
 			return BigTree\Utils::colorMesh($first_color, $second_color, $percentage);
+		}
+		
+		/*
+			Function: copyDirectory
+				Copies a directory and sets writable permissions.
+
+			Parameters:
+				source - The location of the directory to copy.
+				destination - The new folder location.
+
+			Returns:
+				true if the copy was successful
+		*/
+		
+		public static function copyDirectory($source, $destination) {
+			return BigTree\FileSystem::copyDirectory($source, $destination);
 		}
 		
 		/*
@@ -111,7 +130,7 @@
 				true if the copy was successful, false if the directories were not writable.
 		*/
 		
-		static function copyFile($from, $to) {
+		public static function copyFile($from, $to) {
 			return BigTree\FileSystem::copyFile($from, $to);
 		}
 		
@@ -135,7 +154,7 @@
 				The new file name if successful, false if there was not enough memory available or an invalid source image was provided.
 		*/
 		
-		static function createCrop($file, $new_file, $x, $y, $target_width, $target_height, $width, $height, $retina = false, $grayscale = false) {
+		public static function createCrop($file, $new_file, $x, $y, $target_width, $target_height, $width, $height, $retina = false, $grayscale = false) {
 			return BigTree\Image::createCrop($file, $new_file, $x, $y, $target_width, $target_height, $width, $height, $retina, $grayscale);
 		}
 		
@@ -159,7 +178,7 @@
 				createUpscaledImage
 		*/
 		
-		static function createThumbnail($file, $new_file, $max_width, $max_height, $retina = false, $grayscale = false, $upscale = false) {
+		public static function createThumbnail($file, $new_file, $max_width, $max_height, $retina = false, $grayscale = false, $upscale = false) {
 			return BigTree\Image::createThumbnail($file, $new_file, $max_width, $max_height, $retina, $grayscale, $upscale);
 		}
 		
@@ -180,7 +199,7 @@
 				createThumbnail
 		*/
 		
-		static function createUpscaledImage($file, $new_file, $min_width, $min_height) {
+		public static function createUpscaledImage($file, $new_file, $min_width, $min_height) {
 			return static::createThumbnail($file, $new_file, $min_width, $min_height, false, false, true);
 		}
 		
@@ -200,7 +219,7 @@
 				The string response from the URL.
 		*/
 		
-		static function cURL($url, $post = false, $options = [], $strict_security = true, $output_file = false, $updating_bundle = false) {
+		public static function cURL($url, $post = false, $options = [], $strict_security = true, $output_file = false, $updating_bundle = false) {
 			global $bigtree;
 			
 			$response = BigTree\cURL::request($url, $post ?: null, $options, $strict_security, $output_file ?: null, $updating_bundle);
@@ -219,7 +238,7 @@
 				port - Whether to return the port for connections not on port 80 (defaults to false)
 		*/
 		
-		static function currentURL($port = false) {
+		public static function currentURL($port = false) {
 			return BigTree\Link::currentURL($port);
 		}
 		
@@ -235,7 +254,7 @@
 				A date string or false if date parsing failed
 		*/
 		
-		static function dateFormat($date, $format = "Y-m-d H:i:s") {
+		public static function dateFormat($date, $format = "Y-m-d H:i:s") {
 			return BigTree\Date::format($date, $format);
 		}
 		
@@ -258,7 +277,7 @@
 				http://php.net/manual/en/function.date.php (for date formats)
 		*/
 		
-		static function dateFromOffset($start_date, $offset, $format = "Y-m-d H:i:s") {
+		public static function dateFromOffset($start_date, $offset, $format = "Y-m-d H:i:s") {
 			return BigTree\Date::fromOffset($start_date, $offset, $format);
 		}
 		
@@ -273,7 +292,7 @@
 				true if successful
 		*/
 		
-		static function deleteDirectory($dir) {
+		public static function deleteDirectory($dir) {
 			return BigTree\FileSystem::deleteDirectory($dir);
 		}
 		
@@ -288,7 +307,7 @@
 				true if successful
 		*/
 		
-		static function deleteFile($file) {
+		public static function deleteFile($file) {
 			return BigTree\FileSystem::deleteFile($file);
 		}
 		
@@ -303,7 +322,7 @@
 				An array of table information.
 		*/
 		
-		static function describeTable($table) {
+		public static function describeTable($table) {
 			return BigTree\SQL::describeTable($table);
 		}
 		
@@ -322,7 +341,7 @@
 				Returns false if the directory cannot be read.
 		*/
 		
-		static function directoryContents($directory, $recurse = true, $extension = false, $include_git = false) {
+		public static function directoryContents($directory, $recurse = true, $extension = false, $include_git = false) {
 			return BigTree\FileSystem::getDirectoryContents($directory, $recurse, $extension, $include_git);
 		}
 		
@@ -337,7 +356,7 @@
 				A string with the number of bytes in kilobytes, megabytes, or gigabytes.
 		*/
 		
-		static function formatBytes($size) {
+		public static function formatBytes($size) {
 			return BigTree\Storage::formatBytes($size);
 		}
 		
@@ -353,7 +372,7 @@
 				An associative array with "latitude" and "longitude" keys (or false if geocoding failed).
 		*/
 		
-		static function geocodeAddress($address) {
+		public static function geocodeAddress($address) {
 			$geocode = new BigTree\Geocode($address);
 			
 			return $geocode ? $geocode->Array : false;
@@ -372,7 +391,7 @@
 				An available, web safe file name.
 		*/
 		
-		static function getAvailableFileName($directory, $file, $prefixes = array()) {
+		public static function getAvailableFileName($directory, $file, $prefixes = array()) {
 			return BigTree\FileSystem::getAvailableFileName($directory, $file, $prefixes);
 		}
 		
@@ -387,7 +406,7 @@
 				Decoded cookie or false if the cookie was not found.
 		*/
 		
-		static function getCookie($id) {
+		public static function getCookie($id) {
 			return BigTree\Cookie::get($id);
 		}
 		
@@ -401,7 +420,7 @@
 				sorting - Whether to duplicate fields into "ASC" and "DESC" versions.
 		*/
 		
-		static function getFieldSelectOptions($table, $default = "", $sorting = false) {
+		public static function getFieldSelectOptions($table, $default = "", $sorting = false) {
 			BigTree\SQL::drawColumnSelectOptions($table, $default, $sorting);
 		}
 		
@@ -413,7 +432,7 @@
 				default - The currently selected value.
 		*/
 		
-		static function getTableSelectOptions($default = "") {
+		public static function getTableSelectOptions($default = "") {
 			BigTree\SQL::drawTableSelectOptions($default);
 		}
 		
@@ -430,7 +449,7 @@
 				An array with (type,width,height,result width,result height)
 		*/
 		
-		static function getThumbnailSizes($file, $maxwidth, $maxheight) {
+		public static function getThumbnailSizes($file, $maxwidth, $maxheight) {
 			return BigTree\Image::getThumbnailSizes($file, $maxwidth, $maxheight);
 		}
 		
@@ -447,7 +466,7 @@
 				An array with (type,width,height,result width,result height)
 		*/
 		
-		static function getUpscaleSizes($file, $min_width, $min_height) {
+		public static function getUpscaleSizes($file, $min_width, $min_height) {
 			return BigTree\Image::getUpscaleSizes($file, $min_width, $min_height);
 		}
 		
@@ -465,7 +484,7 @@
 				<globalizePOSTVars>
 		*/
 		
-		static function globalizeArray($array) {
+		public static function globalizeArray($array) {
 			$args = func_get_args();
 			
 			return call_user_func_array("BigTree\\Globalize::arrayObject", $args);
@@ -485,7 +504,7 @@
 				
 		*/
 		
-		static function globalizeGETVars() {
+		public static function globalizeGETVars() {
 			$args = func_get_args();
 			
 			return call_user_func_array("BigTree\\Globalize::GET", $args);
@@ -504,7 +523,7 @@
 				<globalizeGETVars>
 		*/
 		
-		static function globalizePOSTVars() {
+		public static function globalizePOSTVars() {
 			$args = func_get_args();
 			
 			return call_user_func_array("BigTree\\Globalize::POST", $args);
@@ -521,7 +540,7 @@
 				rating - Defaults to "g" (options include "g", "pg", "r", "x")
 		*/
 		
-		static function gravatar($email, $size = 56, $default = false, $rating = "g") {
+		public static function gravatar($email, $size = 56, $default = false, $rating = "g") {
 			return BigTree\User::gravatar($email, $size, $default, $rating);
 		}
 		
@@ -538,7 +557,7 @@
 				true if the image can be created, otherwise false.
 		*/
 		
-		static function imageManipulationMemoryAvailable($source, $width, $height) {
+		public static function imageManipulationMemoryAvailable($source, $width, $height) {
 			return BigTree\Image::getMemoryAvailability($source, $width, $height);
 		}
 		
@@ -553,7 +572,7 @@
 				true if the directory exists and is writable or could be created, otherwise false.
 		*/
 		
-		static function isDirectoryWritable($path, $recursion = false) {
+		public static function isDirectoryWritable($path, $recursion = false) {
 			return BigTree\FileSystem::getDirectoryWritability($path);
 		}
 		
@@ -568,7 +587,7 @@
 				true if link is external
 		*/
 		
-		static function isExternalLink($url) {
+		public static function isExternalLink($url) {
 			return BigTree\Link::isExternal($url);
 		}
 		
@@ -584,7 +603,7 @@
 				A JSON encoded string.
 		*/
 		
-		static function json($var, $sql = false) {
+		public static function json($var, $sql = false) {
 			return BigTree\JSON::encode($var, $sql);
 		}
 		
@@ -601,7 +620,7 @@
 				A JSON string.
 		*/
 		
-		static function jsonExtract($data, $columns = array(), $preserve_keys = false) {
+		public static function jsonExtract($data, $columns = array(), $preserve_keys = false) {
 			return BigTree\JSON::encodeColumns($data, $columns, $preserve_keys);
 		}
 		
@@ -617,7 +636,7 @@
 				true if successful
 		*/
 		
-		static function makeDirectory($directory) {
+		public static function makeDirectory($directory) {
 			return BigTree\FileSystem::createDirectory($directory);
 		}
 		
@@ -633,7 +652,7 @@
 				true if the move was successful, false if the directories were not writable.
 		*/
 		
-		static function moveFile($from, $to) {
+		public static function moveFile($from, $to) {
 			return BigTree\FileSystem::moveFile($from, $to);
 		}
 		
@@ -648,7 +667,7 @@
 				A more sensible array, or a piece of that sensible array if "part" is set.
 		*/
 		
-		static function parsedFilesArray($part = "") {
+		public static function parsedFilesArray($part = "") {
 			return BigTree\Field::getParsedFilesArray($part);
 		}
 		
@@ -663,7 +682,7 @@
 				Hard file path to a custom/ (preferred) or core/ file depending on what exists.
 		*/
 		
-		static function path($file) {
+		public static function path($file) {
 			return BigTree\Router::getIncludePath($file);
 		}
 		
@@ -681,7 +700,7 @@
 				<http://php.net/manual/en/function.pathinfo.php>
 		*/
 		
-		static function pathInfo($file) {
+		public static function pathInfo($file) {
 			return pathinfo($file);
 		}
 		
@@ -716,7 +735,7 @@
 				Nothing; Renders a placeholder image
 		*/
 		
-		static function placeholderImage($width, $height, $bg_color = false, $text_color = false, $icon_path = false, $text_string = false) {
+		public static function placeholderImage($width, $height, $bg_color = false, $text_color = false, $icon_path = false, $text_string = false) {
 			BigTree\Image::placeholder($width, $height, $bg_color, $text_color, $icon_path, $text_string);
 		}
 		
@@ -725,7 +744,7 @@
 				Returns in bytes the maximum size of a POST.
 		*/
 		
-		static function postMaxSize() {
+		public static function postMaxSize() {
 			return BigTree\Storage::getPOSTMaxSize();
 		}
 		
@@ -741,7 +760,7 @@
 				The full path or file name with a prefix appended to the file name.
 		*/
 		
-		static function prefixFile($file, $prefix) {
+		public static function prefixFile($file, $prefix) {
 			return BigTree\FileSystem::getPrefixedFile($file, $prefix);
 		}
 		
@@ -758,7 +777,7 @@
 				true if the move was successful, false if the directories were not writable.
 		*/
 		
-		static function putFile($file, $contents) {
+		public static function putFile($file, $contents) {
 			return BigTree\FileSystem::createFile($file, $contents);
 		}
 		
@@ -774,7 +793,7 @@
 				A random string.
 		*/
 		
-		static function randomString($length = 8, $type = "alphanum") {
+		public static function randomString($length = 8, $type = "alphanum") {
 			return BigTree\Text::getRandomString($length, $type);
 		}
 		
@@ -787,7 +806,7 @@
 				code - The status code of redirect, defaults to normal 302 redirect.
 		*/
 		
-		static function redirect($url, $codes = array("302")) {
+		public static function redirect($url, $codes = array("302")) {
 			BigTree\Router::redirect($url, $codes);
 		}
 		
@@ -802,7 +821,7 @@
 				A string describing how long ago the passed time was.
 		*/
 		
-		static function relativeTime($time) {
+		public static function relativeTime($time) {
 			return BigTree\Date::relativeTime($time);
 		}
 		
@@ -814,7 +833,7 @@
 				An IP address
 		*/
 		
-		static function remoteIP() {
+		public static function remoteIP() {
 			return BigTree\Utils::getRemoteIP();
 		}
 		
@@ -830,7 +849,7 @@
 				A string.
 		*/
 		
-		static function replaceServerRoot($string, $replace = "") {
+		public static function replaceServerRoot($string, $replace = "") {
 			return BigTree\Text::replaceServerRoot($string, $replace);
 		}
 		
@@ -847,7 +866,7 @@
 				An array with the first element being the file to include and the second element being an array containing extraneous routes from the end of the path.
 		*/
 		
-		static function route($directory, $path) {
+		public static function route($directory, $path) {
 			return BigTree\Router::getRoutedFileAndCommands($directory, $path);
 		}
 		
@@ -862,7 +881,7 @@
 				An array of headers and an array of footers.
 		*/
 		
-		static function routeLayouts($path) {
+		public static function routeLayouts($path) {
 			return BigTree\Router::getRoutedLayoutPartials($path);
 		}
 		
@@ -875,7 +894,7 @@
 				true if PHP is running as the user that owns the file
 		*/
 		
-		static function runningAsSU() {
+		public static function runningAsSU() {
 			return BigTree\FileSystem::getRunningAsOwner();
 		}
 		
@@ -893,7 +912,7 @@
 				Modified $value
 		*/
 		
-		static function runParser($item, $value, $code) {
+		public static function runParser($item, $value, $code) {
 			return BigTree\Module::runParser($item, $value, $code);
 		}
 		
@@ -910,7 +929,7 @@
 				Encoded string.
 		*/
 		
-		static function safeEncode($string) {
+		public static function safeEncode($string) {
 			return BigTree\Text::htmlEncode($string);
 		}
 		
@@ -933,7 +952,7 @@
 				true if email is sent, otherwise false.
 		*/
 		
-		static function sendEmail($to, $subject, $html, $text = "", $from = false, $return = false, $cc = false, $bcc = false, $headers = array(), $smtp = []) {
+		public static function sendEmail($to, $subject, $html, $text = "", $from = false, $return = false, $cc = false, $bcc = false, $headers = array(), $smtp = []) {
 			$email = new BigTree\Email;
 			
 			$email->To = $to;
@@ -970,7 +989,7 @@
 				expiration - Cookie expiration time (in seconds since UNIX epoch) or a string value compatible with strtotime (defaults to session expiration)
 		*/
 		
-		static function setCookie($id, $value, $expiration = 0) {
+		public static function setCookie($id, $value, $expiration = 0) {
 			BigTree\Cookie::create($id, $value, $expiration);
 		}
 		
@@ -983,7 +1002,7 @@
 				location - The directory to set permissions on.
 		*/
 		
-		static function setDirectoryPermissions($location) {
+		public static function setDirectoryPermissions($location) {
 			return BigTree\FileSystem::setDirectoryPermissions($location);
 		}
 		
@@ -999,7 +1018,7 @@
 				true if successful
 		*/
 		
-		static function setPermissions($location) {
+		public static function setPermissions($location) {
 			return BigTree\FileSystem::setPermissions($location);
 		}
 		
@@ -1015,7 +1034,7 @@
 				An array of SQL calls to perform to turn Table A into Table B.
 		*/
 		
-		static function tableCompare($table_a, $table_b) {
+		public static function tableCompare($table_a, $table_b) {
 			return SQL::compareTables($table_a, $table_b);
 		}
 		
@@ -1031,7 +1050,7 @@
 				An array.
 		*/
 		
-		static function tableContents($table) {
+		public static function tableContents($table) {
 			return SQL::dumpTable($table);
 		}
 		
@@ -1046,7 +1065,7 @@
 				true if table exists, otherwise false.
 		*/
 		
-		static function tableExists($table) {
+		public static function tableExists($table) {
 			return SQL::tableExists($table);
 		}
 		
@@ -1058,7 +1077,7 @@
 				file - The file path to touch.
 		*/
 		
-		static function touchFile($file) {
+		public static function touchFile($file) {
 			return BigTree\FileSystem::touchFile($file);
 		}
 		
@@ -1076,7 +1095,7 @@
 				<untranslateArray>
 		*/
 		
-		static function translateArray($array) {
+		public static function translateArray($array) {
 			return BigTree\Link::encode($array);
 		}
 		
@@ -1092,7 +1111,7 @@
 				A string trimmed to the proper number of characters.
 		*/
 		
-		static function trimLength($string, $length) {
+		public static function trimLength($string, $length) {
 			return BigTree\Text::trimLength($string, $length);
 		}
 		
@@ -1107,7 +1126,7 @@
 				The number of bytes.
 		*/
 		
-		static function unformatBytes($size) {
+		public static function unformatBytes($size) {
 			return BigTree\Storage::unformatBytes($size);
 		}
 		
@@ -1119,7 +1138,7 @@
 				id - The cookie identifier
 		*/
 		
-		static function unsetCookie($id) {
+		public static function unsetCookie($id) {
 			BigTree\Cookie::delete($id);
 		}
 		
@@ -1137,7 +1156,7 @@
 				<translateArray>
 		*/
 		
-		static function untranslateArray($array) {
+		public static function untranslateArray($array) {
 			return BigTree\Link::decode($array);
 		}
 		
@@ -1150,7 +1169,7 @@
 				destination - The full path to unzip the file's contents to.
 		*/
 		
-		static function unzip($file, $destination) {
+		public static function unzip($file, $destination) {
 			return BigTree\Updater::unzip($file, $destination);
 		}
 		
@@ -1162,7 +1181,7 @@
 				The integer value for setting a form's MAX_FILE_SIZE.
 		*/
 		
-		static function uploadMaxFileSize() {
+		public static function uploadMaxFileSize() {
 			return BigTree\Storage::getUploadMaxFileSize();
 		}
 		
@@ -1177,7 +1196,7 @@
 				true if it can connect, false if connection failed.
 		*/
 		
-		static function urlExists($url) {
+		public static function urlExists($url) {
 			return BigTree\Link::urlExists($url);
 		}
 		

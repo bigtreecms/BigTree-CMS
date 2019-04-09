@@ -8,9 +8,52 @@
 	
 	use Exception;
 	
-	class FileSystem {
+	class FileSystem
+	{
 		
 		public static $OwnerResult = false;
+		
+		/*
+			Function: copyDirectory
+				Copies a directory and sets writable permissions.
+
+			Parameters:
+				source - The location of the directory to copy.
+				destination - The new folder location.
+
+			Returns:
+				true if the copy was successful
+		*/
+		
+		public static function copyDirectory(string $source, string $destination): bool {
+			if (!static::getDirectoryWritability($destination) ||
+				!is_dir($source) ||
+				!is_readable($source) ||
+				file_exists($destination)
+			) {
+				return false;
+			}
+			
+			$source = rtrim(rtrim($source, "/"), "\\")."/";
+			$contents = static::getDirectoryContents($source);
+			$destination = rtrim(rtrim($destination, "/"), "\\")."/";
+			
+			mkdir($destination);
+			static::setPermissions($destination);
+			
+			foreach ($contents as $file) {
+				$new_location = $destination.str_replace($source, "", $file);
+				
+				if (is_dir($file)) {
+					mkdir($new_location);
+					static::setPermissions($new_location);
+				} else {
+					static::copyFile($file, $destination.str_replace($source, "", $file));
+				}
+			}
+			
+			return true;
+		}
 		
 		/*
 			Function: copyFile
@@ -24,7 +67,7 @@
 				true if the copy was successful, false if the directories were not writable.
 		*/
 		
-		static function copyFile(string $from, string $to): bool {
+		public static function copyFile(string $from, string $to): bool {
 			if (!static::getDirectoryWritability($to)) {
 				return false;
 			}
@@ -61,7 +104,7 @@
 				true if successful
 		*/
 		
-		static function createDirectory(string $directory): bool {
+		public static function createDirectory(string $directory): bool {
 			// Make sure we skip open_basedir issues
 			if (!static::getDirectoryWritability($directory)) {
 				return false;
@@ -109,7 +152,7 @@
 				true if the creation was successful, false if the directories were not writable.
 		*/
 		
-		static function createFile(string $file, string $contents): bool {
+		public static function createFile(string $file, string $contents): bool {
 			if (!static::getDirectoryWritability($file)) {
 				return false;
 			}
@@ -139,7 +182,7 @@
 				true if successful
 		*/
 		
-		static function deleteDirectory(string $directory): bool {
+		public static function deleteDirectory(string $directory): bool {
 			if (!file_exists($directory)) {
 				return false;
 			}
@@ -172,7 +215,7 @@
 				true if successful
 		*/
 		
-		static function deleteFile(string $file): bool {
+		public static function deleteFile(string $file): bool {
 			if (file_exists($file)) {
 				return unlink($file);
 			}
@@ -193,7 +236,7 @@
 				An available, web safe file name.
 		*/
 		
-		static function getAvailableFileName(string $directory, string $file, array $prefixes = []): string {
+		public static function getAvailableFileName(string $directory, string $file, array $prefixes = []): string {
 			$parts = pathinfo($directory.$file);
 			
 			// Clean up the file name
@@ -239,7 +282,7 @@
 				Returns null if the directory cannot be read.
 		*/
 		
-		static function getDirectoryContents(string $directory, bool $recurse = true, ?string $extension = null,
+		public static function getDirectoryContents(string $directory, bool $recurse = true, ?string $extension = null,
 											 bool $include_git = false): ?array {
 			$contents = [];
 			
@@ -281,7 +324,7 @@
 				true if the directory exists and is writable or could be created, otherwise false.
 		*/
 		
-		static function getDirectoryWritability(string $path, bool $recursion = false): bool {
+		public static function getDirectoryWritability(string $path, bool $recursion = false): bool {
 			// We need to setup an error handler to catch open_basedir restrictions
 			if (!$recursion) {
 				set_error_handler(function ($error_number, $error_string) {
@@ -357,7 +400,7 @@
 				The full path or file name with a prefix appended to the file name.
 		*/
 		
-		static function getPrefixedFile(string $file, string $prefix): string {
+		public static function getPrefixedFile(string $file, string $prefix): string {
 			$path_info = pathinfo($file);
 			$path_info["dirname"] = isset($path_info["dirname"]) ? $path_info["dirname"] : "";
 			
@@ -373,7 +416,7 @@
 				true if PHP is running as the user that owns the file
 		*/
 		
-		static function getRunningAsOwner(): bool {
+		public static function getRunningAsOwner(): bool {
 			// Already ran the test
 			if (!is_null(static::$OwnerResult)) {
 				return static::$OwnerResult;
@@ -404,7 +447,7 @@
 				Cleaned up string.
 		*/
 		
-		static function getSafePath(string $file): string {
+		public static function getSafePath(string $file): string {
 			$pieces = array_filter(explode("/", $file), function ($val) {
 				// Let empties through
 				if (!trim($val)) {
@@ -434,7 +477,7 @@
 				true if the move was successful, false if the directories were not writable.
 		*/
 		
-		static function moveFile(string $from, string $to): bool {
+		public static function moveFile(string $from, string $to): bool {
 			$success = static::copyFile($from, $to);
 			
 			if (!$success) {
@@ -458,7 +501,7 @@
 				true if successful
 		*/
 		
-		static function setDirectoryPermissions(string $location): bool {
+		public static function setDirectoryPermissions(string $location): bool {
 			$contents = static::getDirectoryContents($location);
 			$success = true;
 			
@@ -485,7 +528,7 @@
 				true if successful
 		*/
 		
-		static function setPermissions(string $location): bool {
+		public static function setPermissions(string $location): bool {
 			if (!static::getRunningAsOwner()) {
 				try {
 					chmod($location, 0777);
@@ -505,7 +548,7 @@
 				file - The file path to touch.
 		*/
 		
-		static function touchFile(string $file): bool {
+		public static function touchFile(string $file): bool {
 			if (!static::getDirectoryWritability($file)) {
 				return false;
 			}

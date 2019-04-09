@@ -291,7 +291,7 @@
 				"date" => "NOW()",
 				"table" => "bigtree_pages",
 				"changes" => $changes,
-				"tags_changes" => $tags,
+				"tags_changes" => array_unique($tags),
 				"pending_page_parent" => intval($parent)
 			]);
 			

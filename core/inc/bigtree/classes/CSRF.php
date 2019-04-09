@@ -13,7 +13,7 @@
 
 		private static function checkSetup(): void {
 			if (empty(static::$Field) || empty(static::$Token)) {
-				trigger_error("You must call CSRF::generate or CSRF::setup before any other CSRF method.", E_USER_ERROR);
+				trigger_error(Text::translate("You must call CSRF::generate or CSRF::setup before any other CSRF method."), E_USER_ERROR);
 			}
 		}
 
@@ -76,7 +76,7 @@
 			$token = isset($_POST[static::$Field]) ? $_POST[static::$Field] : $_GET[static::$Field];
 			
 			if (strpos($clean_referer, $clean_domain) !== 0 || $token != static::$Token) {
-				Auth::stop("An error has occurred. Please try your submission again.");
+				Auth::stop(Text::translate("An error has occurred. Please try your submission again."));
 			}
 		}
 

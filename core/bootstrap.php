@@ -3,6 +3,7 @@
 	use BigTree\FileSystem;
 	use BigTree\Router;
 	use BigTree\SQL;
+	use BigTree\Text;
 	
 	/**
 	 * @global array $bigtree
@@ -44,9 +45,56 @@
 	// Set version
 	include SERVER_ROOT."core/version.php";
 	
-	// Class auto loader and composer auto loader
+	// Setup the vendor folder if we haven't done this check before
+	if (!file_exists(SERVER_ROOT."cache/composer-check.flag")) {
+		// Include FileSystem and Text handlers to do composer checks
+		include SERVER_ROOT."core/inc/bigtree/classes/FileSystem.php";
+		include SERVER_ROOT."core/inc/bigtree/classes/Text.php";
+		
+		$path = str_replace("core/bootstrap.php", "", __FILE__);
+		$off_path = str_replace(SERVER_ROOT, "", $path);
+		
+		if (!file_exists(SERVER_ROOT."vendor/")) {
+			if (FileSystem::getDirectoryWritability(SERVER_ROOT."vendor/")) {
+				FileSystem::createFile(SERVER_ROOT."cache/composer-check.flag", "done");
+				FileSystem::copyDirectory(SERVER_ROOT.$off_path."vendor/", SERVER_ROOT."vendor/");
+				FileSystem::copyFile(SERVER_ROOT.$off_path."composer.json", SERVER_ROOT."composer.json");
+			} else {
+				die(Text::translate("BigTree needs to copy it's vendor directory to ".SERVER_ROOT.
+					"<br><br>If you are unable to provide writable permissions to PHP, copy :path1: and :path2: to :server_root: and add a file named composer-check.flag to :cache_root: to bypass this step.",
+					false,
+					[
+						":path1:" => SERVER_ROOT.$off_path."vendor/",
+						":path2:" => SERVER_ROOT.$off_path."composer.json",
+						":server_root:" => SERVER_ROOT,
+						":cache_root:" => SERVER_ROOT."cache/"
+					]
+				));
+			}
+		} else {
+			if (file_exists(SERVER_ROOT."composer.json") && !is_writable(SERVER_ROOT."composer.json")) {
+				die(Text::translate("BigTree needs to write to your composer.json file to ensure a composer update does not wipe required libraries."));
+			}
+			
+			$bigtree_composer_json = json_decode(file_get_contents(SERVER_ROOT.$off_path."composer.json"), true);
+			$existing_json = json_decode(file_get_contents(SERVER_ROOT."composer.json"), true);
+			
+			foreach ($bigtree_composer_json["require"] as $key => $value) {
+				if (!isset($existing_json["require"][$key])) {
+					$existing_json["require"][$key] = $value;
+				}
+			}
+			
+			FileSystem::createFile(SERVER_ROOT."composer.json", BigTree::json($existing_json));
+			FileSystem::createFile(SERVER_ROOT."cache/composer-check.flag", "done");
+			
+			die(Text::translate("BigTree has updated your composer.json file with required libraries. Please run `composer update` before continuing."));
+		}
+	}
+	
 	include SERVER_ROOT."vendor/autoload.php";
 	
+	// Class auto loader
 	spl_autoload_register(function ($class) {
 		global $bigtree;
 		

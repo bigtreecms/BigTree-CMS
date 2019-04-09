@@ -6,7 +6,8 @@
 	
 	namespace BigTree;
 	
-	class Text {
+	class Text
+	{
 		
 		public static $Language = [];
 		

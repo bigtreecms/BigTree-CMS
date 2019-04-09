@@ -135,12 +135,6 @@ var BigTreePageLoadHooks = (function($) {
 			$(".property_block").toggle().next().toggle();
 			return false;
 		});
-	
-		$(".inset_block .hide").click(function() {
-			var id = $(this).attr("data-id");
-			$.cookie("bigtree_admin[ignore_view_description][" + id + "]","on", { expires: 365, path: "/" });
-			$(this).parent().hide();
-		});
 		
 		// Tooltips
 		$(".has_tooltip").each(function() {
@@ -2047,11 +2041,12 @@ var BigTreeManyToMany = function(settings) {
 	}
 
 	return (function($,settings) {
+		var AddContainer;
 		var Count = 0;
-		var DeleteTarget;
 		var Field;
 		var Key;
 		var List;
+		var Max = 0;
 		var Select;
 		var Sortable;
 		var KeepOptions;
@@ -2065,12 +2060,13 @@ var BigTreeManyToMany = function(settings) {
 			for (var i = 0; i < Select.options.length; i++) {
 				var val = Select.options[i].value;
 				var text = Select.options[i].text;
-	
+
 				if (Sortable) {
 					var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a></li>');
 				} else {
-					var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><p></p><a href="#" class="icon_delete"></a></li>');		
+					var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><p></p><a href="#" class="icon_delete"></a></li>');
 				}
+
 				li.find("p").html(text);
 				li.find("input").val(val);
 
@@ -2079,7 +2075,7 @@ var BigTreeManyToMany = function(settings) {
 				Count++;
 				vals.push(val);
 			}
-			
+
 			// Remove the options from the select.
 			if (!KeepOptions) {
 				for (i = 0; i < vals.length; i++) {
@@ -2104,11 +2100,12 @@ var BigTreeManyToMany = function(settings) {
 			if (Sortable) {
 				var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a></li>');
 			} else {
-				var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><p></p><a href="#" class="icon_delete"></a></li>');		
+				var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><p></p><a href="#" class="icon_delete"></a></li>');
 			}
+
 			li.find("p").html(text);
 			li.find("input").val(val);
-	
+
 			// Remove the option from the select.
 			if (!KeepOptions) {
 				Select.customControl.remove(val);
@@ -2117,11 +2114,18 @@ var BigTreeManyToMany = function(settings) {
 			List.append(li);
 			Field.trigger("addedItem", { element: li, index: Count });
 			Count++;
-			
+
 			// Hide the instructions saying there haven't been any items tagged.
 			Field.find("section").hide();
+
+			// If we've hit max, hide the add button
+			var total = Field.find("li").length;
+
+			if (Max && total >= Max) {
+				AddContainer.hide();
+			}
 		}
-	
+
 		function deleteItem(ev) {
 			ev.preventDefault();
 
@@ -2129,11 +2133,11 @@ var BigTreeManyToMany = function(settings) {
 			if (List.find("li").length == 1) {
 				Field.find("section").show();
 			}
-			
+
 			var li = $(this).parents("li");
 			var val = li.find("input").val();
 			var text = li.find("p").html();
-			
+
 			// Add the option back to the select
 			if (!KeepOptions) {
 				Select.customControl.add(val,text);
@@ -2141,6 +2145,13 @@ var BigTreeManyToMany = function(settings) {
 
 			li.remove();
 			Field.trigger("removedItem", { value: val, description: text });
+
+			// If we've hit max, hide the add button
+			var total = Field.find("li").length;
+
+			if (Max && total < Max) {
+				AddContainer.show();
+			}
 		}
 
 		function reset(ev) {
@@ -2151,12 +2162,12 @@ var BigTreeManyToMany = function(settings) {
 				var li = $(this);
 				var val = li.find("input").val();
 				var text = li.find("p").html();
-				
+
 				// Add the option back to the select
 				if (!KeepOptions) {
 					Select.customControl.add(val,text);
 				}
-	
+
 				li.remove();
 				Field.trigger("removedItem", { value: val, description: text });
 			});
@@ -2167,13 +2178,20 @@ var BigTreeManyToMany = function(settings) {
 
 		// Init routine
 		Field = $("#" + settings.id);
+		AddContainer = Field.find(".many_to_many_add_container");
 		Count = settings.count;
 		Key = settings.key;
+
 		if (settings.sortable) {
 			Sortable = true;
 		}
+
 		if (settings.keepOptions) {
 			KeepOptions = true;
+		}
+
+		if (settings.max) {
+			Max = parseInt(settings.max);
 		}
 
 		List = Field.find("ul");
@@ -2181,6 +2199,10 @@ var BigTreeManyToMany = function(settings) {
 
 		if (Sortable) {
 			List.sortable({ items: "li", handle: ".icon_sort" });
+		}
+
+		if (Max && Count >= Max) {
+			AddContainer.hide();
 		}
 
 		Field.find(".add").click(addItem);
@@ -2408,6 +2430,9 @@ var BigTreeFormValidator = function(selector,callback) {
 			if (Form.find(".form_error").length) {
 				Form.find(".warning_message").hide();
 				Form.find(".error_message").show();
+				Form.find("footer").find(".button, input[type=submit]").removeClass("disabled");
+				Form.find("footer").find(".button_loader").remove();
+				
 				if (!in_dialog) {
 					$("html, body").animate({ scrollTop: $(".container").offset().top }, 200);
 					if (window.parent.BigTreeEmbeddableForm) {
