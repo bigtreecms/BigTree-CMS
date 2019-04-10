@@ -18,7 +18,7 @@
 <?php
 	}
 ?>
-<section>
+<section class="developer_template_form">
 	<p class="error_message"<?php if (!$show_error) { ?> style="display: none;"<?php } ?>><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 	
 	<div class="contain">
@@ -87,6 +87,11 @@
 			<option value="2"<?php if ($template->Level == 2) { ?> selected="selected"<?php } ?>><?=Text::translate("Developer")?></option>
 		</select>
 	</fieldset>
+
+	<fieldset class="float_margin">
+		<a href="#" id="manage_hooks"><span class="icon_small icon_small_lightning"></span> <?=Text::translate("Manage Hooks")?></a>
+		<input name="hooks" type="hidden" id="form_hooks" value="<?=htmlspecialchars(json_encode($template->Hooks))?>" />
+	</fieldset>
 </section>
 <section class="sub">
 	<label><?=Text::translate("Fields")?></label>
@@ -147,3 +152,25 @@
 		</ul>
 	</div>
 </section>
+
+<script>
+	$("#manage_hooks").click(function() {
+		var data = $.parseJSON($("#form_hooks").val());
+		var html = '<fieldset><label><?=Text::translate("Editing Hook")?></label><input type="text" name="edit" value="' + htmlspecialchars(data.edit ? data.edit : "") + '" /></fieldset>';
+		html += '<fieldset><label><?=Text::translate("Pre-processing Hook")?></label><input type="text" name="pre" value="' + htmlspecialchars(data.pre ? data.pre : "") + '" /></fieldset>';
+		html += '<fieldset><label><?=Text::translate("Post-processing Hook")?></label><input type="text" name="post" value="' + htmlspecialchars(data.post ? data.post : "") + '" /></fieldset>';
+		html += '<fieldset><label><?=Text::translate("Publishing Hook")?></label><input type="text" name="publish" value="' + htmlspecialchars(data.publish ? data.publish : "") + '" /></fieldset>';
+
+		BigTreeDialog({
+			title: "<?=Text::translate("Manage Hooks")?>",
+			content: html,
+			helpLink: "http://www.bigtreecms.org/docs/dev-guide/modules/advanced-techniques/form-hooks/",
+			icon: "edit",
+			callback: function(data) {
+				$("#form_hooks").val(JSON.stringify(data));
+			}
+		});
+
+		return false;
+	});
+</script>

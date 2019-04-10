@@ -12,14 +12,20 @@
 		
 		protected $ID;
 		protected $Routed;
+		protected $Resources;
 		
 		public $Extension;
-		public $Fields;
+		public $Fields = [];
+		public $Hooks = [
+			"edit" => null,
+			"pre" => null,
+			"post" => null,
+			"publish" => null
+		];
 		public $Level;
 		public $Module;
 		public $Name;
 		public $Position;
-		public $Resources;
 		
 		/*
 			Constructor:
@@ -44,6 +50,7 @@
 					
 					$this->Extension = $template["extension"];
 					$this->Fields = Link::decode(array_filter((array) @json_decode($template["resources"], true)));
+					$this->Hooks = static::cleanHooks(@json_decode($template["hooks"], true));
 					$this->Level = $template["level"];
 					$this->Module = $template["module"];
 					$this->Name = $template["name"];
@@ -52,6 +59,39 @@
 					$this->Routed = $template["route"] ? true : false;
 				}
 			}
+		}
+		
+		/*
+			Function: cleanHooks
+				Cleans up the hooks array for saving.
+			
+			Parameters:
+				hooks - An array of hooks (or non-array value)
+			
+			Returns:
+				A cleaned up array of hooks with the proper keys.
+		*/
+		
+		static function cleanHooks($hooks): array {
+			if (!is_array($hooks)) {
+				return ["pre" => "", "post" => "", "edit" => "", "publish" => ""];
+			} else {
+				$allowed_keys = ["pre", "post", "edit", "publish"];
+				
+				foreach ($hooks as $index => $hook) {
+					if (!in_array($index, $allowed_keys)) {
+						unset($hooks[$index]);
+					}
+				}
+				
+				foreach ($allowed_keys as $key) {
+					if (!isset($hooks[$key])) {
+						$hooks[$key] = "";
+					}
+				}
+			}
+			
+			return $hooks;
 		}
 		
 		/*
@@ -65,12 +105,13 @@
 				level - Access level (0 for everyone, 1 for administrators, 2 for developers)
 				module - Related module id
 				fields - An array of fields
+				hooks - An array of hooks ("pre", "post", "edit", and "publish" keys)
 
 			Returns:
 				Template object if successful, null if there's an ID collision or a bad ID is passed
 		*/
 		
-		static function create(string $id, string $name, bool $routed, int $level, ?int $module, array $fields): ?Template {
+		static function create(string $id, string $name, bool $routed, int $level, ?int $module, array $fields, ?array $hooks = null): ?Template {
 			// Check to see if it's a valid ID
 			if (!ctype_alnum(str_replace(["-", "_"], "", $id)) || strlen($id) > 127) {
 				return null;
@@ -141,7 +182,8 @@
 				"module" => $module,
 				"resources" => $fields,
 				"level" => $level,
-				"routed" => $routed ? "on" : ""
+				"routed" => $routed ? "on" : "",
+				"hooks" => static::cleanHooks($hooks)
 			]);
 			
 			AuditTrail::track("bigtree_templates", $id, "created");
@@ -177,7 +219,7 @@
 		function save(): ?bool {
 			// Templates specify their own ID so we check for DB existance to determine save behavior
 			if (!SQL::exists("bigtree_templates", $this->ID)) {
-				$new = static::create($this->ID, $this->Name, $this->Routed, $this->Level, $this->Module, $this->Fields);
+				$new = static::create($this->ID, $this->Name, $this->Routed, $this->Level, $this->Module, $this->Fields, $this->Hooks);
 				$this->inherit($new);
 			} else {
 				// Clean up fields
@@ -203,7 +245,8 @@
 					"resources" => array_filter($fields),
 					"module" => $this->Module,
 					"level" => $this->Level,
-					"position" => $this->Position
+					"position" => $this->Position,
+					"hooks" => static::cleanHooks($this->Hooks)
 				]);
 				
 				// Track
@@ -222,10 +265,12 @@
 				level - Access level (0 for everyone, 1 for administrators, 2 for developers)
 				module - Related module id
 				fields - An array of fields
+				hooks - An array of hooks (pre, post, edit, and publish keys) or null
 		*/
 		
-		function update(string $name, int $level, ?int $module, array $fields): void {
+		function update(string $name, int $level, ?int $module, array $fields, ?array $hooks): void {
 			$this->Fields = $fields;
+			$this->Hooks = $hooks;
 			$this->Level = $level;
 			$this->Module = $module;
 			$this->Name = $name;

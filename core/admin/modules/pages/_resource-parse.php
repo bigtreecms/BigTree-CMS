@@ -7,8 +7,23 @@
 	$bigtree["entry"] = [];
 	$bigtree["template"] = $template->Array;
 	$bigtree["file_data"] = Field::getParsedFilesArray("resources");
-	$bigtree["post_data"] = $_POST["resources"];
 	
+	// Run any pre-process hook
+	$bigtree["preprocessed"] = [];
+	
+	if (!empty($template->Hooks["pre"]))) {
+		$bigtree["preprocessed"] = call_user_func($template->Hooks["pre"], $_POST["resources"]);
+		
+		// Update the $_POST
+		if (is_array($bigtree["preprocessed"])) {
+			foreach ($bigtree["preprocessed"] as $key => $val) {
+				$_POST["resources"][$key] = $val;
+			}
+		}
+	}
+	
+	$bigtree["post_data"] = $_POST["resources"];
+
 	foreach ($template->Fields as $resource) {
 		$field = [
 			"type" => $resource["type"],

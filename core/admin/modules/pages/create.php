@@ -1,6 +1,10 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global Template $template
+	 */
+	
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
@@ -38,6 +42,7 @@
 	
 	// Make sure trunk is only available to developers
 	$trunk = Auth::user()->Level < 2 ? "" : $_POST["trunk"];
+	$og_files = Field::getParsedFilesArray("_open_graph_");
 	
 	if ($access_level == "p" && $_POST["form_action"] == "Create & Publish") {
 		// Let's make it happen.
@@ -46,18 +51,27 @@
 							 $_POST["template"], $_POST["external"], $_POST["new_window"], $_POST["resources"], $_POST["publish_at"],
 							 $_POST["expire_at"], $_POST["max_age"], $_POST["_tags"]);
 		$page_id = $page->ID;
-		
+		$did_publish = true;
+
+		OpenGraph::handleData("bigtree_pages", $page_id, $_POST["_open_graph_"], $og_files["image"]);
 		Utils::growl("Pages", "Created & Published Page");
 	} else {
+		$og_change_data = OpenGraph::handleData(null, null, $_POST["_open_graph_"], $og_files["image"], true);
 		$change = PendingChange::createPage($_POST["trunk"] ? true : false, $_POST["parent"], $_POST["in_nav"] ? true : false, 
 											$_POST["nav_title"], $_POST["title"], $_POST["route"], $_POST["meta_description"],
 											$_POST["seo_invisible"] ? true : false, $_POST["template"], $_POST["external"],
 											$_POST["new_window"], $_POST["resources"], $_POST["publish_at"],
-											$_POST["expire_at"], $_POST["max_age"], $_POST["_tags"]);
+											$_POST["expire_at"], $_POST["max_age"], $_POST["_tags"], $og_change_data);
 		
 		$page_id = "p".$change->ID;
+		$did_publish = false;
 		
 		Utils::growl("Pages", "Created Page Draft");
+	}
+	
+	// Run any post-processing hook
+	if (!empty($template->Hooks["post"])) {
+		call_user_func($template->Hooks["post"], $page_id, $_POST["resources"], $did_publish);
 	}
 	
 	// Track resource allocation

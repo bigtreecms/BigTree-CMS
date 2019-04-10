@@ -21,7 +21,7 @@
 	// Run any parsers on the data
 	$items = $view->parseData($items);
 ?>
-<div class="table" style="margin: 0;">
+<div class="table"<?php if ($set_index == $total_sets) { ?> style="margin: 0;"<?php } ?>>
 	<div class="table_summary"><h2><?=Text::translate("Search Results")?></h2></div>
 	<header>
 		<?php

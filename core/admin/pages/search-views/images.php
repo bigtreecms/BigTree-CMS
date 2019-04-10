@@ -9,7 +9,7 @@
 	
 	$module_link = ADMIN_ROOT.$module["route"]."/";
 ?>
-<div class="table" class="image_list">
+<div class="table" class="image_list"<?php if ($set_index == $total_sets) { ?> style="margin: 0;"<?php } ?>>
 	<div class="table_summary"><h2><?=Text::translate("Search Results")?></h2></div>
 	<?php if (!empty($view->Actions["edit"])) { ?>
 	<header>

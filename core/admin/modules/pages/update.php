@@ -1,6 +1,10 @@
 <?php
 	namespace BigTree;
 	
+	/**
+	 * @global Template $template
+	 */
+	
 	// See if we've hit post_max_size
 	if (!$_POST["_bigtree_post_check"]) {
 		$_SESSION["bigtree_admin"]["post_max_hit"] = true;
@@ -47,22 +51,24 @@
 	// Handle permissions on trunk
 	$trunk = (Auth::user()->Level < 2) ? $page->Trunk : $_POST["trunk"];
 	$id = $_POST["page"];
+	$og_files = Field::getParsedFilesArray("_open_graph_");
 	
 	if ($access_level == "p" && $_POST["form_action"] == "Save & Publish") {
 		// Let's make it happen.
 		if ($id[0] == "p") {
-			// It's a pending page, so let's create one.
+			// It's a pending page, so let's create a published one.
 			if (!$_POST["parent"]) {
 				$_POST["parent"] = $bigtree["current_page_data"]["parent"];
 			}
 			
-			$id = Page::create($trunk, $_POST["parent"], $_POST["in_nav"], $_POST["nav_title"], $_POST["title"],
-							   $_POST["route"], $_POST["meta_description"], $_POST["seo_invisible"], $_POST["template"],
-							   $_POST["external"], $_POST["new_window"], $_POST["resources"], $_POST["publish_at"],
-							   $_POST["expire_at"], $_POST["max_age"], $_POST["_tags"], substr($id, 1));
+			$page_id = Page::create($trunk, $_POST["parent"], $_POST["in_nav"], $_POST["nav_title"], $_POST["title"],
+									$_POST["route"], $_POST["meta_description"], $_POST["seo_invisible"], $_POST["template"],
+									$_POST["external"], $_POST["new_window"], $_POST["resources"], $_POST["publish_at"],
+									$_POST["expire_at"], $_POST["max_age"], $_POST["_tags"], substr($id, 1));
 			
 			$change = new PendingChange(substr($id, 1));
 			$change->delete();
+			$did_publish = true;
 			
 			Utils::growl("Pages", "Created & Published Page");
 		} else {
@@ -72,15 +78,28 @@
 						  $_POST["external"], $_POST["new_window"], $_POST["resources"], $_POST["publish_at"],
 						  $_POST["expire_at"], $_POST["max_age"], $_POST["_tags"]);
 			
+			$did_publish = true;
+			$page_id = $page->ID;
+			
 			Utils::growl("Pages", "Updated Page");
 		}
+		
+		OpenGraph::handleData("bigtree_pages", $page_id, $_POST["_open_graph_"], $og_files["image"]);
 	} else {
 		if (!$_POST["parent"]) {
 			$_POST["parent"] = $bigtree["current_page_data"]["parent"];
 		}
 		
-		Page::createChangeRequest($id, $_POST);
+		$did_publish = false;
+		$og_pending_data = OpenGraph::handleData(null, null, $_POST["_open_graph_"], $og_files["image"]);
+		
+		Page::createChangeRequest($id, $_POST, array_filter((array) $_POST["_tags"]), $og_pending_data);
 		Utils::growl("Pages", "Saved Page Draft");
+	}
+	
+	// Run any post-processing hook
+	if (!empty($template->Hooks["post"])) {
+		call_user_func($template->Hooks["post"], $page, $_POST["resources"], $did_publish);
 	}
 	
 	Lock::remove("bigtree_pages", $id);

@@ -25,7 +25,12 @@
 	} else {
 		$template = null;
 	}
-
+	
+	// See if we have an editing hook
+	if (!empty($template->Hooks["edit"])) {
+		$bigtree["resources"] = call_user_func($template->Hooks["edit"], $bigtree["resources"], $template->Array, true);
+	}
+	
 	if (isset($_POST["page"]) && $template_id != $bigtree["current_page"]["template"]) {
 		if (Template::exists($bigtree["current_page"]["template"])) {
 			$original_template = new Template($bigtree["current_page"]["template"]);

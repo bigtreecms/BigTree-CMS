@@ -107,7 +107,7 @@
 		$bucket_pane_height = 338;
 	}
 ?>
-<div class="directory"><?=htmlspecialchars(Text::replaceServerRoot($directory, "/"))?></div>
+<div class="directory"><?=htmlspecialchars(Text::replaceServerRoot($directory, ""))?></div>
 <div class="navigation_pane">
 	<?php if (count($cloud_options)) { ?>
 	<ul class="cloud_options">
@@ -157,7 +157,7 @@
 		?>
 	</ul>
 	<input type="hidden" name="file" id="bigtree_foundry_file" value="<?=htmlspecialchars($_POST["file"])?>"/>
-	<input type="hidden" name="directory" value="<?=$postdirectory?>" id="bigtree_foundry_directory"/>
+	<input type="hidden" name="directory" value="<?=ltrim($postdirectory, "/")?>" id="bigtree_foundry_directory" />
 	<input type="hidden" name="container" value="<?=$postcontainer?>" id="bigtree_foundry_container"/>
 	<input type="hidden" name="location" value="<?=$location?>" id="bigtree_foundry_location"/>
 	<input type="submit" value="<?=Text::translate("Use Selected File", true)?>" class="button blue"/>

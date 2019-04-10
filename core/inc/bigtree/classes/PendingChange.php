@@ -11,7 +11,8 @@
 	 * @property-read int $ID
 	 */
 	
-	class PendingChange extends BaseObject {
+	class PendingChange extends BaseObject
+	{
 		
 		public static $Table = "bigtree_pending_changes";
 		
@@ -36,7 +37,8 @@
 				change - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($change = null) {
+		function __construct($change = null)
+		{
 			if ($change !== null) {
 				// Passing in just an ID
 				if (!is_array($change)) {
@@ -75,7 +77,8 @@
 				An array of PendingChange objects sorted by most recent.
 		*/
 		
-		static function allPublishableByUser(User $user): array {
+		static function allPublishableByUser(User $user): array
+		{
 			$publishable_changes = [];
 			$module_cache = [];
 			
@@ -187,7 +190,8 @@
 		*/
 		
 		static function create(string $table, string $item_id, array $changes, array $mtm_changes = [],
-							   array $tags_changes = [], $module = "", ?string $publish_hook = null): PendingChange {
+							   array $tags_changes = [], $module = "", ?string $publish_hook = null): PendingChange
+		{
 			// Clean up data for JSON storage
 			foreach ($changes as $key => $val) {
 				if ($val === "NULL") {
@@ -247,6 +251,7 @@
 				expire_at - Expiration time (or null for no expiration)
 				max_age - Content age (in days) allowed before alerts are sent (null for no max)
 				tags - An array of tags to apply to the page (optional)
+				open_graph - An array of open graph data (optional)
 
 			Returns:
 				A PendingChange object.
@@ -255,9 +260,19 @@
 		static function createPage(?bool $trunk, ?int $parent, ?bool $in_nav, ?string $nav_title, ?string $title,
 								   ?string $route, ?string $meta_description, ?bool $seo_invisible, ?string $template,
 								   ?string $external, ?bool $new_window, ?array $fields, ?string $publish_at,
-								   ?string $expire_at, ?int $max_age, ?array $tags = []): PendingChange {
+								   ?string $expire_at, ?int $max_age, ?array $tags = [],
+								   ?array $open_graph = null): PendingChange
+		{
 			// Get the user creating the change
 			$user = Auth::user()->ID;
+			
+			// See if the template has a hook
+			$publish_hook = "";
+			
+			if ($template && $template != "!") {
+				$template_obj = new Template($template);
+				$publish_hook = $template_obj->Hooks["publish"];
+			}
 			
 			$changes = [
 				"trunk" => $trunk ? "on" : "",
@@ -283,7 +298,9 @@
 				"table" => "bigtree_pages",
 				"changes" => $changes,
 				"tags_changes" => array_unique($tags),
-				"pending_page_parent" => intval($parent)
+				"open_graph_changes" => $open_graph,
+				"pending_page_parent" => intval($parent),
+				"publish_hook" => $publish_hook
 			]);
 			
 			AuditTrail::track("bigtree_pages", "p".$id, "created-pending");
@@ -303,7 +320,8 @@
 				true or false
 		*/
 		
-		static function existsForEntry(string $table, string $id): bool {
+		static function existsForEntry(string $table, string $id): bool
+		{
 			$change_count = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_pending_changes 
 											  WHERE `table` = ? AND item_id = ?", $table, $id);
 			
@@ -318,7 +336,8 @@
 				A string containing a link to the admin.
 		*/
 		
-		function getEditLink(): string {
+		function getEditLink(): string
+		{
 			global $bigtree;
 			
 			// Pages are easy
@@ -358,7 +377,8 @@
 				Saves the object properties back to the database.
 		*/
 		
-		function save(): ?bool {
+		function save(): ?bool
+		{
 			if (empty($this->ID)) {
 				$new = static::create($this->Table, $this->ItemID, $this->Changes, $this->ManyToManyChanges, $this->TagsChanges, $this->Module, $this->PublishHook);
 				$this->inherit($new);
@@ -405,7 +425,8 @@
 				tags_changes - Tags changes.
 		*/
 		
-		function update(array $changes, array $mtm_changes = [], array $tags_changes = []): void {
+		function update(array $changes, array $mtm_changes = [], array $tags_changes = []): void
+		{
 			$this->Changes = $changes;
 			$this->ManyToManyChanges = $mtm_changes;
 			$this->TagsChanges = $tags_changes;

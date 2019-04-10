@@ -160,8 +160,8 @@
 				Handles user input open graph data for an entry.
 
 			Parameters:
-				table - The table for the entry
-				id - The ID of the entry
+				table - The table for the entry (not required for pending entry processing)
+				id - The ID of the entry (not required for pending entry processing)
 				data - Generic text data for open graph keys
 				image - $_FILES array data for an open graph image
 				pending - Whether this is a pending entry, if true returns the array of pending data to store
@@ -170,10 +170,12 @@
 				An array of data if pending flag is true, otherwise the ID of the open graph table entry
 		*/
 		
-		public static function handleData(string $table, $id, array $data, ?array $image = null,
+		public static function handleData(?string $table, $id, array $data, ?array $image = null,
 										  bool $pending = false)
 		{
-			SQL::delete("bigtree_open_graph", ["table" => $table, "entry" => $id]);
+			if (!empty($table)) {
+				SQL::delete("bigtree_open_graph", ["table" => $table, "entry" => $id]);
+			}
 			
 			if (!empty($image["tmp_name"])) {
 				$image_obj = new Image($image["tmp_name"], [

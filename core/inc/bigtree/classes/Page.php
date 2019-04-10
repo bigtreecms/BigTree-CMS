@@ -457,10 +457,12 @@
 
 			Parameters:
 				page - The page id or pending page id (prefixed with a "p")
-				changes - An array of changes
+				changes - An array of page changes
+				tags - An array of tags changes
+				open_graph - An array of open graph changes
 		*/
 		
-		static function createChangeRequest(string $page, array $changes): int {
+		static function createChangeRequest(string $page, array $changes, array $tags, array $open_graph): int {
 			// Get the user creating the change
 			$user = Auth::user()->ID;
 			
@@ -480,7 +482,6 @@
 			}
 			
 			// Save tags separately
-			$tags = JSON::encode(array_unique(array_filter((array) $changes["_tags"])), true);
 			unset($changes["_tags"]);
 			
 			// Convert to an IPL
@@ -501,6 +502,8 @@
 			$changes["meta_keywords"] = Text::htmlEncode($changes["meta_keywords"]);
 			$changes["seo_invisible"] = $changes["seo_invisible"]["seo_invisible"] ? "on" : "";
 			$changes["external"] = Text::htmlEncode($changes["external"]);
+			
+			$tags = array_unique($tags);
 			
 			// If there's already a change in the queue, update it with this latest info.
 			if ($existing_pending_change) {
@@ -523,6 +526,7 @@
 				SQL::update("bigtree_pending_changes", $existing_pending_change, [
 					"changes" => $diff,
 					"tags_changes" => $tags,
+					"open_graph_changes" => $open_graph,
 					"user" => $user
 				]);
 				
@@ -549,6 +553,7 @@
 					"item_id" => $page,
 					"changes" => $diff,
 					"tags_changes" => $tags,
+					"open_graph_changes" => $open_graph,
 					"title" => "Page Change Pending"
 				]);
 			}

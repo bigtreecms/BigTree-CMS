@@ -11,7 +11,7 @@
 	}
 	
 	$template = Template::create($_POST["id"], $_POST["name"], $_POST["routed"], $_POST["level"],
-								 $_POST["module"], $_POST["resources"]);
+								 $_POST["module"], $_POST["resources"], $_POST["hooks"]);
 	
 	if ($template === false) {
 		$_SESSION["bigtree_admin"]["saved"] = $_POST;

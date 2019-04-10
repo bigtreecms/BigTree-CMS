@@ -34,7 +34,7 @@
 		
 		// See if we have an editing hook
 		if (!empty($form->Hooks["edit"])) {
-			$bigtree["entry"] = call_user_func($form->Hooks["edit"], $bigtree["entry"], $form->Array);
+			$bigtree["entry"] = call_user_func($form->Hooks["edit"], $bigtree["entry"], $form->Array, false);
 		}
 		
 		// Check access levels
