@@ -421,6 +421,7 @@
 				
 				$item = json_decode($change["changes"], true);
 				$many_to_many = json_decode($change["mtm_changes"], true);
+				$open_graph = json_decode($change["open_graph_changes"], true);
 				$temp_tags = json_decode($change["tags_changes"], true);
 				
 				// If we have temporary tag IDs, get the full list
@@ -444,9 +445,12 @@
 					return null;
 				}
 				
+				$open_graph = OpenGraph::getData($this->Table, $id);
+				
 				// Apply changes that are pending
 				$change = SQL::fetch("SELECT * FROM bigtree_pending_changes
 									  WHERE `table` = ? AND `item_id` = ?", $this->Table, $id);
+				
 				if (!empty($change)) {
 					$status = "updated";
 					
@@ -458,6 +462,7 @@
 					}
 					
 					$many_to_many = json_decode($change["mtm_changes"], true);
+					$open_graph = json_decode($change["open_graph_changes"], true);
 					$temp_tags = json_decode($change["tags_changes"], true);
 					
 					// If we have temporary tag IDs, get the full list
@@ -488,6 +493,7 @@
 				"item" => $item,
 				"mtm" => $many_to_many,
 				"tags" => $tags,
+				"open_graph" => $open_graph,
 				"status" => $status,
 				"owner" => $owner
 			];
@@ -505,7 +511,9 @@
 		{
 			// Explicitly set related view
 			if ($this->ReturnView) {
-				return new ModuleView($this->ReturnView);
+				if (ModuleView::exists($this->ReturnView)) {
+					return new ModuleView($this->ReturnView);
+				}
 			}
 			
 			// Try to find a view that's relating back to this form first

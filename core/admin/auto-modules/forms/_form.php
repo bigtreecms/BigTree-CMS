@@ -9,7 +9,7 @@
 ?>
 <div class="container">
 	<?php
-		if ($form->OpenGraph) {
+		if ($form->OpenGraphEnabled) {
 	?>
 	<header>
 		<div class="sticky_controls">

@@ -95,7 +95,7 @@
 	$bigtree["entry"] = SQL::prepareData($form->Table, $bigtree["entry"]);
 	
 	// Make some easier to write out vars for below.
-	$tags = $_POST["_tags"];
+	$tags = $_POST["_tags"] ?: [];
 	$edit_id = $_POST["id"] ? $_POST["id"] : false;
 	$table = $form->Table;
 	$item = $bigtree["entry"];
