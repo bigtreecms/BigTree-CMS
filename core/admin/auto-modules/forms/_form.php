@@ -9,7 +9,7 @@
 ?>
 <div class="container">
 	<?php
-		if ($form->OpenGraph && !$form->Embedded) {
+		if ($form->OpenGraph) {
 	?>
 	<header>
 		<div class="sticky_controls">
@@ -25,18 +25,9 @@
 		}
 		
 	?>
-	<form method="post" action="<?=$form->Root?>process/<?php if (!empty($form->Embedded)) { ?>?hash=<?=$form->Hash?><?php } ?>" enctype="multipart/form-data" class="module" id="auto_module_form">
+	<form method="post" action="<?=$form->Root?>process/" enctype="multipart/form-data" class="module" id="auto_module_form">
 		<?php
-			if (!empty($form->Embedded)) {
-		?>
-		<fieldset>
-			<label><?=Text::translate("This is a field that shouldn't be filled out.")?></label>
-			<input type="text" name="_bigtree_email" />
-			<input type="text" name="_bigtree_hashcash" id="bigtree_hashcash_field" />
-		</fieldset>
-		<?php
-			} else {
-				if (Auth::user()->Level > 1) {
+			if (Auth::user()->Level > 1) {
 		?>
 		<div class="developer_buttons">
 			<a href="<?=ADMIN_ROOT?>developer/modules/forms/edit/<?=$form->ID?>/?return=front" title="<?=Text::translate("Edit Form in Developer", true)?>">
@@ -51,10 +42,9 @@
 			<?php } ?>
 		</div>
 		<?php
-				}
-
-				CSRF::drawPOSTToken();
 			}
+
+			CSRF::drawPOSTToken();
 		?>
 		<input type="hidden" id="preview_field" name="_bigtree_preview" />
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=Storage::getUploadMaxFileSize()?>" id="bigtree_max_file_size" />
@@ -176,32 +166,24 @@
 		?>
 		<footer class="js-auto-modules-footer">
 			<?php
-				if (!empty($form->Embedded)) {
-			?>
-			<input type="submit" class="button" tabindex="<?=$bigtree["tabindex"]?>" value="Submit" />
-			<?php
-				} else {
-					if (isset($bigtree["related_view"]) && $bigtree["related_view"]->PreviewURL) {
+				if (isset($bigtree["related_view"]) && $bigtree["related_view"]->PreviewURL) {
 			?>
 			<a class="button save_and_preview" href="#">
 				<span class="icon_small icon_small_computer"></span>
 				<?=Text::translate("Save & Preview", true)?>
 			</a>
 			<?php
-					}
+				}
 			?>
 			<input type="submit" class="button<?php if ($bigtree["access_level"] != "p") { ?> blue<?php } ?>" tabindex="<?=$bigtree["tabindex"]?>" value="<?=Text::translate("Save", true)?>" name="save" />
 			<input type="submit" class="button blue" tabindex="<?=($bigtree["tabindex"] + 1)?>" value="<?=Text::translate("Save & Publish", true)?>" name="save_and_publish" <?php if ($bigtree["access_level"] != "p") { ?>style="display: none;" <?php } ?>/>
-			<?php
-				}
-			?>
 		</footer>
 	</form>
 </div>
 <?php include Router::getIncludePath("admin/layouts/_html-field-loader.php") ?>
 <script>
 	(function() {
-		BigTreeFormValidator("#auto_module_form",false<?php if ($bigtree["form"]["embedded"]) { ?>,true<?php } ?>);
+		BigTreeFormValidator("#auto_module_form",false);
 		BigTreeFormNavBar.init();
 
 		$(".save_and_preview").click(function() {

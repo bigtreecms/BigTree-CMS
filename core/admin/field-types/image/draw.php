@@ -75,14 +75,8 @@
 <div class="image_field" id="<?=$this->ID?>">
 	<div class="contain">
 		<input<?php if ($this->Required) { ?> class="required"<?php } ?> type="file" tabindex="<?=$this->TabIndex?>" name="<?=$this->Key?>" data-min-width="<?=$min_width?>" data-min-height="<?=$min_height?>" accept="image/*" />
-		<?php
-			if (empty($bigtree["form"]["embedded"])) {
-		?>
 		<span class="or"><?=$text_or?></span>
 		<a href="#<?=$this->ID?>_currently" data-options="<?=$button_options?>" class="button resource_browser_button"><span class="icon_images"></span><?=$text_browse?></a>
-		<?php
-			}
-		?>
 	</div>
 	
 	<div class="contain">

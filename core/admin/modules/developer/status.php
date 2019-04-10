@@ -51,15 +51,10 @@
 	
 	// Go through every module form and look for uploads, make sure the directories exist and are writable.
 	$forms = ModuleForm::all("name ASC");
-	$embed_forms = ModuleEmbedForm::all("name ASC");
 	$templates = Template::all("name ASC");
 	$callouts = Callout::all("name ASC");
 	
 	foreach ($forms as $form) {
-		$recurse_fields($form->Fields);
-	}
-	
-	foreach ($embed_forms as $form) {
 		$recurse_fields($form->Fields);
 	}
 	

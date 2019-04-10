@@ -29,8 +29,6 @@
 				
 				$interface["title"] = "View ".$interface["title"];
 				$interface["edit_url"] = "views/edit/".$interface["id"]."/";
-			} elseif ($interface["type"] == "embeddable-form") {
-				$interface["edit_url"] = "embeds/edit/".$interface["id"]."/";
 			} elseif ($interface["type"] == "report") {
 				$interface["edit_url"] = "reports/edit/".$interface["id"]."/";
 			}

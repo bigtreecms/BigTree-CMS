@@ -6,12 +6,9 @@
 	 * @global ModuleAction $action
 	 */
 
-	CSRF::drawPOSTToken();
-	
-	// Get list of interfaces but dump embeddable forms since they're for the front end
+	CSRF::drawPOSTToken();	
 	$id = $_GET["module"];
 	include Router::getIncludePath("admin/modules/developer/modules/_interface-sort.php");
-	unset($interface_list["embeddable-form"]);
 ?>
 <section>
 	<fieldset>

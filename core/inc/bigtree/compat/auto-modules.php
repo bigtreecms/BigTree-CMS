@@ -111,7 +111,7 @@
 				many_to_many - Many to many relationship entries.
 				tags - Tags for the entry.
 				publish_hook - A function to call when this change is published from the Dashboard.
-				embedded_form - If this is being called from an embedded form, set the user to NULL (defaults to false)
+				embedded_form - Disabled in BigTree 5.0+
 			
 			Returns:
 				The id of the new entry in the bigtree_pending_changes table.
@@ -120,11 +120,7 @@
 		static function createPendingItem($module, $table, $data, $many_to_many = array(), $tags = array(), $publish_hook = null, $embedded_form = false) {
 			// Create fake module form
 			if ($embedded_form) {
-				$form = new BigTree\ModuleEmbedForm(array(
-					"module" => $module,
-					"table" => $table,
-					"settings" => json_encode(array("hooks" => array("publish" => $publish_hook)))
-				));
+				trigger_error("BigTree 5.0 does not support embeddable forms.", E_USER_ERROR);
 			} else {
 				$form = new BigTree\ModuleForm(array(
 					"module" => $module,
@@ -207,36 +203,20 @@
 
 		/*
 			Function: getEmbedForm
-				Returns a module embeddable form.
-			
-			Parameters:
-				id - The id of the form.
-			
-			Returns:
-				A module form entry with fields decoded.
+				This function is disabled in BigTree 5.0+
 		*/
 
 		static function getEmbedForm($id) {
-			$form = new BigTree\ModuleEmbedForm($id);
-
-			return $form ? $form->Array : false;
+			trigger_error("BigTree 5.0 does not support embeddable forms.", E_USER_ERROR);
 		}
 
 		/*
 			Function: getEmbedFormByHash
-				Returns a module embeddable form.
-			
-			Parameters:
-				hash - The hash of the form.
-			
-			Returns:
-				A module form entry with fields decoded.
+				This function is disabled in BigTree 5.0+
 		*/
 
 		static function getEmbedFormByHash($hash) {
-			$form = BigTree\ModuleEmbedForm::getByHash($hash);
-
-			return $form ? $form->Array : false;
+			trigger_error("BigTree 5.0 does not support embeddable forms.", E_USER_ERROR);
 		}
 		
 		/*

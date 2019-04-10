@@ -261,9 +261,8 @@
 			$partial_root = SQL::escape(str_replace($bigtree["config"]["www_root"], "{wwwroot}", $bigtree["config"]["admin_root"]));
 			
 			$pages = SQL::fetchAll("SELECT * FROM bigtree_pages 
-									WHERE resources LIKE '%$admin_root%' OR 
-										  resources LIKE '%$partial_root%' OR
-										  REPLACE(resources,'{adminroot}js/embeddable-form.js','') LIKE '%{adminroot}%'
+									WHERE resources LIKE '%$admin_root%' 
+									   OR resources LIKE '%$partial_root%'
 									ORDER BY nav_title ASC");
 			
 			if (!$return_arrays) {

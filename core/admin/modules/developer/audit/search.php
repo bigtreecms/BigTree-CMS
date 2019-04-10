@@ -147,8 +147,6 @@
 						$link = DEVELOPER_ROOT."modules/forms/edit/".$result["entry"]."/";
 					} elseif ($data["type"] == "view") {
 						$link = DEVELOPER_ROOT."modules/views/edit/".$result["entry"]."/";
-					} elseif ($data["type"] == "embeddable-form") {
-						$link = DEVELOPER_ROOT."modules/embeds/edit/".$result["entry"]."/";
 					} elseif ($data["type"] == "report") {
 						$link = DEVELOPER_ROOT."modules/reports/edit/".$result["entry"]."/";
 					} else {

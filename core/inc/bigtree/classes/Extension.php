@@ -270,11 +270,6 @@
 					// Update the module ID since we're going to save this manifest locally for uninstalling
 					$module["id"] = $module_id;
 					
-					// Create the embed forms
-					foreach ($module["embed_forms"] as $form) {
-						ModuleEmbedForm::create($module_id, $form["title"], $form["table"], Utils::arrayValue($form["fields"]), $form["hooks"], $form["default_position"], $form["default_pending"], $form["css"], $form["redirect_url"], $form["thank_you_message"]);
-					}
-					
 					// Create views
 					foreach ($module["views"] as $view) {
 						$view_object = ModuleView::create($module_id, $view["title"], $view["description"], $view["table"], $view["type"], Utils::arrayValue($view["options"]), Utils::arrayValue($view["fields"]), Utils::arrayValue($view["actions"]), $view["suffix"], $view["preview_url"]);

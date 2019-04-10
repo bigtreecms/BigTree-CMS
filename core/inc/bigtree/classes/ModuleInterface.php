@@ -27,11 +27,6 @@
 				"name" => "Form",
 				"icon" => "form",
 				"description" => "Forms are used for creating and editing database content by admin users."
-			],
-			"embeds" => [
-				"name" => "Embeddable Form",
-				"icon" => "file_default",
-				"description" => "Embeddable forms allow your front-end users to create database content using your existing field types via iframes."
 			]
 		];
 		public static $Plugins = [];
@@ -128,7 +123,7 @@
 				Creates a module interface.
 
 			Parameters:
-				type - Interface type ("view", "form", "report", "embeddable-form", or an extension interface identifier)
+				type - Interface type ("view", "form", "report", or an extension interface identifier)
 				module - The module ID the interface is for
 				title - The interface title (for admin purposes)
 				table - The related table

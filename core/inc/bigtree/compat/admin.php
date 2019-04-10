@@ -473,28 +473,11 @@
 
 		/*
 			Function: createModuleEmbedForm
-				Creates an embeddable form.
-
-			Parameters:
-				module - The module ID that this form relates to.
-				title - The title of the form.
-				table - The table for the form data.
-				fields - The form fields.
-				hooks - An array of "pre", "post", and "publish" keys that can be function names to call
-				default_position - Default position for entries to the form (if the view is positioned).
-				default_pending - Whether the submissions to default to pending or not ("on" or "").
-				css - URL of a CSS file to include.
-				redirect_url - The URL to redirect to upon completion of submission.
-				thank_you_message - The message to display upon completeion of submission.
-
-			Returns:
-				The embed code.
+				This function is disabled in BigTree 5.0+
 		*/
 
 		function createModuleEmbedForm($module, $title, $table, $fields, $hooks = array(), $default_position = "", $default_pending = "", $css = "", $redirect_url = "", $thank_you_message = "") {
-			$form = BigTree\ModuleEmbedForm::create($module, $title, $table, $fields, $hooks, $default_position, $default_pending, $css, $redirect_url, $thank_you_message);
-
-			return htmlspecialchars($form->EmbedCode);
+			trigger_error("BigTree 5.0 does not support embeddable forms.", E_USER_ERROR);
 		}
 
 		/*
@@ -933,19 +916,11 @@
 
 		/*
 			Function: deleteModuleEmbedForm
-				Deletes an embeddable module form.
-				This method is deprecated in favor of deleteModuleInterface.
-
-			Parameters:
-				id - The id of the embeddable form.
-
-			See Also:
-				<deleteModuleInterface>
+				This function is disabled in BigTree 5.0+
 		*/
 
 		function deleteModuleEmbedForm($id) {
-			$form = new BigTree\ModuleEmbedForm($id);
-			$form->delete();
+			trigger_error("BigTree 5.0 does not support embeddable forms.", E_USER_ERROR);
 		}
 
 		/*
@@ -1978,40 +1953,11 @@
 
 		/*
 			Function: getModuleEmbedForms
-				Gets embeddable forms from bigtree_module_interfaces.
-
-			Parameters:
-				sort - The field to sort by (defaults to title ASC)
-				module - Specific module to pull forms for (defaults to all modules).
-
-			Returns:
-				An array of embeddable form entries from bigtree_module_interfaces.
+				This function is disabled in BigTree 5.0+
 		*/
 
 		static function getModuleEmbedForms($sort = "title ASC", $module = false) {
-			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module ?: null, "embeddable-form", $sort, true);
-
-			// Return previous table format
-			$forms = array();
-			foreach ($interfaces as $interface) {
-				$settings = json_decode($interface["settings"], true);
-				$forms[] = array(
-					"id" => $interface["id"],
-					"module" => $interface["module"],
-					"title" => $interface["title"],
-					"table" => $interface["table"],
-					"fields" => BigTree\Utils::arrayValue($settings["fields"]),
-					"default_position" => $settings["default_position"],
-					"default_pending" => $settings["default_pending"],
-					"css" => $settings["css"],
-					"hash" => $settings["hash"],
-					"redirect_url" => $settings["redirect_url"],
-					"thank_you_message" => $settings["thank_you_message"],
-					"hooks" => $settings["hooks"]
-				);
-			}
-
-			return $forms;
+			trigger_error("BigTree 5.0 does not support embeddable forms.", E_USER_ERROR);
 		}
 
 		/*
@@ -3898,24 +3844,11 @@
 
 		/*
 			Function: updateModuleEmbedForm
-				Updates an embeddable form.
-
-			Parameters:
-				id - The ID of the form.
-				title - The title of the form.
-				table - The table for the form data.
-				fields - The form fields.
-				hooks - An array of "pre", "post", and "publish" keys that can be function names to call
-				default_position - Default position for entries to the form (if the view is positioned).
-				default_pending - Whether the submissions to default to pending or not ("on" or "").
-				css - URL of a CSS file to include.
-				redirect_url - The URL to redirect to upon completion of submission.
-				thank_you_message - The message to display upon completeion of submission.
+				This function is disabled in BigTree 5.0+
 		*/
 
 		function updateModuleEmbedForm($id, $title, $table, $fields, $hooks = array(), $default_position = "", $default_pending = "", $css = "", $redirect_url = "", $thank_you_message = "") {
-			$form = new BigTree\ModuleEmbedForm($id);
-			$form->update($title, $table, $fields, $hooks, $default_position, $default_pending, $css, $redirect_url, $thank_you_message);
+			trigger_error("BigTree 5.0 does not support embeddable forms.", E_USER_ERROR);
 		}
 
 		/*

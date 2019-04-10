@@ -226,7 +226,6 @@
 		
 		$module["views"] = ModuleView::allByModule($module["id"], "title ASC", true);
 		$module["forms"] = ModuleForm::allByModule($module["id"], "title ASC", true);
-		$module["embed_forms"] = ModuleEmbedForm::allByModule($module["id"], "title ASC", true);
 		$module["reports"] = ModuleReport::allByModule($module["id"], "title ASC", true);
 		
 		$package["components"]["modules"][] = $module;

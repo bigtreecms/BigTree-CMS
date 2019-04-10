@@ -81,9 +81,7 @@
 				["title" => "Add Action", "link" => "developer/modules/actions/add", "hidden" => true],
 				["title" => "Edit Action", "link" => "developer/modules/actions/edit", "hidden" => true],
 				["title" => "Add Report", "link" => "developer/modules/reports/add", "hidden" => true],
-				["title" => "Edit Report", "link" => "developer/modules/reports/edit", "hidden" => true],
-				["title" => "Add Embeddable Form", "link" => "developer/modules/embeds/add", "hidden" => true],
-				["title" => "Edit Embeddable Form", "link" => "developer/modules/embeds/edit", "hidden" => true]
+				["title" => "Edit Report", "link" => "developer/modules/reports/edit", "hidden" => true]
 			]],
 			["title" => "Callouts", "link" => "developer/callouts", "icon" => "callouts", "hidden" => true, "children" => [
 				["title" => "View Callouts", "link" => "developer/callouts", "nav_icon" => "list"],
