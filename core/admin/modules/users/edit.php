@@ -241,7 +241,7 @@
 						<nav>
 							<a href="#page_permissions" class="active"><?=Text::translate("Pages")?></a>
 							<a href="#module_permissions"><?=Text::translate("Modules")?></a>
-							<a href="#resource_permissions"><?=Text::translate("Resources")?></a>
+							<a href="#resource_permissions"><?=Text::translate("Files")?></a>
 						</nav>
 					</header>
 					<div id="page_permissions">

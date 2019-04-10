@@ -73,7 +73,6 @@
 				
 				// Bad data set
 				if (!is_array($page)) {
-					print_r(debug_backtrace());
 					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 				} else {
 					// Allow for empty page creation (for creating a page from a pending entry)

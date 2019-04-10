@@ -6,7 +6,8 @@
 	
 	namespace BigTree;
 	
-	class SessionHandler {
+	class SessionHandler
+	{
 		
 		private static $Exists = false;
 		private static $Started = false;

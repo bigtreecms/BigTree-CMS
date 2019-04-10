@@ -90,14 +90,14 @@
 	}
 	
 	// If user doesn't have publish access to the parent, don't allow them to duplicate a page
-	if (!$bigtree["current_page"]["parent"] || $bigtree["current_page"]["parent"] == -1) {
+	$parent_page = new Page($bigtree["current_page"]["parent"]);
+	
+	if (!is_numeric($page->ID) ||
+		!$page->Parent ||
+		$bigtree["current_page"]["parent"] == -1 ||
+		$page->ParentPage->getUserAccessLevel() != "p"
+	) {
 		unset($pages_nav["children"]["duplicate"]);
-	} else {
-		$parent_page = new Page($bigtree["current_page"]["parent"]);
-		
-		if (Auth::user()->getAccessLevel($parent_page) != "p") {
-			unset($pages_nav["children"]["duplicate"]);
-		}
 	}
 	
 	// If the user doesn't have access to this page, take away the nav for it.

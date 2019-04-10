@@ -72,6 +72,7 @@
 						"key" => "value",
 						"tabindex" => 1,
 						"settings" => $setting->Settings,
+						"has_value" => !is_null($value),
 						"value" => $value
 					));
 
