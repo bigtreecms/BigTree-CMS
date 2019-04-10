@@ -104,6 +104,7 @@
 	// Check to see if this is a positioned element
 	// If it is and the form is setup to create new items at the top and this is a new record, update the position column.
 	$table_description = SQL::describeTable($table);
+	
 	if (isset($table_description["columns"]["position"]) && $form->DefaultPosition == "Top" && !$_POST["id"]) {
 		$max = (int) SQL::fetchSingle("SELECT COUNT(*) FROM `$table`") +
 			   (int) SQL::fetchSingle("SELECT COUNT(*) FROM `bigtree_pending_changes` WHERE `table` = ?", $table);
@@ -116,13 +117,15 @@
 	
 	// We're an editor or "Save" was chosen
 	if ($bigtree["access_level"] == "e" || $data_action == "save") {
+		$og_changes = OpenGraph::handleData(null, null, $_POST["_open_graph_"], $_FILES["_open_graph_"]["image"]);
+		
 		// We have an existing module entry we're saving a change to.
 		if ($edit_id) {
-			$form->createChangeRequest($edit_id, $item, $many_to_many, $tags);
+			$form->createChangeRequest($edit_id, $item, $many_to_many, $tags, $og_changes);
 			Utils::growl($module->Name, "Saved ".$form->Title." Draft");
 		// It's a new entry, so we create a pending item.
 		} else {
-			$edit_id = "p".$form->createPendingEntry($item, $many_to_many, $tags);
+			$edit_id = "p".$form->createPendingEntry($item, $many_to_many, $tags, $og_changes);
 			Utils::growl($module->Name, "Created ".$form->Title." Draft");
 		}
 	// We're a publisher and we want to publish
@@ -134,19 +137,27 @@
 				$form->deletePendingEntry(substr($edit_id, 1));
 				$edit_id = $form->createEntry($item, $many_to_many, $tags);
 				$did_publish = true;
+				
 				Utils::growl($module->Name, "Updated & Published ".$form->Title);
 			// Otherwise we're updating something that is already published
 			} else {
 				$form->updateEntry($edit_id, $item, $many_to_many, $tags);
 				$did_publish = true;
+				
 				Utils::growl($module->Name, "Updated ".$form->Title);
 			}
 		// We're creating a new published entry.
 		} else {
 			$edit_id = $form->createEntry($item, $many_to_many, $tags);
 			$did_publish = true;
+			
 			Utils::growl($module->Name, "Created ".$form->Title);
 		}
+	}
+	
+	if ($did_publish && $form->OpenGraphEnabled) {
+		OpenGraph::handleData($form->Table, $edit_id, $_POST["_open_graph_"],
+							  $_FILES["_open_graph_"]["image"]);
 	}
 	
 	// Catch errors

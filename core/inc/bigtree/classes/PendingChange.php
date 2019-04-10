@@ -23,6 +23,7 @@
 		public $ItemID;
 		public $ManyToManyChanges;
 		public $Module;
+		public $OpenGraphChanges;
 		public $PendingPageParent;
 		public $PublishHook;
 		public $TagsChanges;
@@ -56,6 +57,7 @@
 					$this->ItemID = ($change["item_id"] !== null) ? $change["item_id"] : null;
 					$this->ManyToManyChanges = (array) @json_decode($change["mtm_changes"], true);
 					$this->Module = $change["module"];
+					$this->OpenGraphChanges = (array) @json_decode($change["open_graph_changes"], true);
 					$this->PendingPageParent = $change["pending_page_parent"];
 					$this->PublishHook = $change["publish_hook"];
 					$this->Table = $change["table"];
@@ -182,6 +184,7 @@
 				changes - The changes to the fields in the entry.
 				mtm_changes - Many to Many changes.
 				tags_changes - Tags changes.
+				open_graph_changes - Open Graph changes.
 				module - The module id for the change.
 				publish_hook - An optional publishing hook.
 
@@ -190,7 +193,8 @@
 		*/
 		
 		static function create(string $table, string $item_id, array $changes, array $mtm_changes = [],
-							   array $tags_changes = [], $module = "", ?string $publish_hook = null): PendingChange
+							   array $tags_changes = [], array $open_graph_changes = [], $module = "",
+							   ?string $publish_hook = null): PendingChange
 		{
 			// Clean up data for JSON storage
 			foreach ($changes as $key => $val) {
@@ -220,6 +224,7 @@
 				"changes" => $changes,
 				"mtm_changes" => $mtm_changes,
 				"tags_changes" => $tags_changes,
+				"open_graph_changes" => $open_graph_changes,
 				"module" => $module,
 				"publish_hook" => $publish_hook ?: null
 			]);
@@ -380,7 +385,8 @@
 		function save(): ?bool
 		{
 			if (empty($this->ID)) {
-				$new = static::create($this->Table, $this->ItemID, $this->Changes, $this->ManyToManyChanges, $this->TagsChanges, $this->Module, $this->PublishHook);
+				$new = static::create($this->Table, $this->ItemID, $this->Changes, $this->ManyToManyChanges,
+									  $this->TagsChanges, $this->OpenGraphChanges, $this->Module, $this->PublishHook);
 				$this->inherit($new);
 			} else {
 				// Get the user creating the change
@@ -405,6 +411,7 @@
 					"pending_page_parent" => $this->PendingPageParent,
 					"publish_hook" => $this->PublishHook ?: null,
 					"tags_changes" => $this->TagsChanges,
+					"open_graph_changes" => $this->OpenGraphChanges,
 					"title" => Text::htmlEncode($this->Title),
 					"user" => $user ?: $this->User
 				]);
@@ -421,15 +428,17 @@
 
 			Parameters:
 				changes - The changes to the fields in the entry.
-				mtm_changes - Many to Many changes.
-				tags_changes - Tags changes.
+				many_to_many - Many to Many changes.
+				tags - Tags changes.
+				open_graph - Open Graph changes.
 		*/
 		
-		function update(array $changes, array $mtm_changes = [], array $tags_changes = []): void
+		function update(array $changes, array $many_to_many = [], array $tags = [], array $open_graph = []): void
 		{
 			$this->Changes = $changes;
-			$this->ManyToManyChanges = $mtm_changes;
-			$this->TagsChanges = $tags_changes;
+			$this->ManyToManyChanges = $many_to_many;
+			$this->OpenGraphChanges = $open_graph;
+			$this->TagsChanges = $tags;
 			
 			$this->save();
 		}

@@ -289,7 +289,7 @@
 			return PendingChange::createPage($this->Trunk, $this->Parent, $this->InNav, $this->NavigationTitle.$title_change,
 											 $this->Title.$title_change, null, $this->MetaDescription, $this->SEOInvisible,
 											 $this->Template, $this->External, $this->NewWindow, $this->Resources,
-											 $this->PublishAt, $this->ExpireAt, $this->MaxAge, $this->Tags);
+											 $this->PublishAt, $this->ExpireAt, $this->MaxAge, $this->Tags, $this->OpenGraph);
 			
 		}
 		

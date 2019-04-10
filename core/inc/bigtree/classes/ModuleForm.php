@@ -31,7 +31,7 @@
 		public $Fields;
 		public $Hooks = ["edit" => "", "pre" => "", "post" => "", "publish" => ""];
 		public $Module;
-		public $OpenGraph;
+		public $OpenGraphEnabled;
 		public $ReturnURL;
 		public $ReturnView;
 		public $Root;
@@ -65,7 +65,7 @@
 					$this->Fields = Link::decode($this->Interface->Settings["fields"]);
 					$this->Hooks = array_filter((array) $this->Interface->Settings["hooks"]);
 					$this->Module = $interface["module"];
-					$this->OpenGraph = !empty($this->Interface->Settings["open_graph"]);
+					$this->OpenGraphEnabled = !empty($this->Interface->Settings["open_graph"]);
 					$this->ReturnURL = $this->Interface->Settings["return_url"];
 					$this->ReturnView = $this->Interface->Settings["return_view"];
 					$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the BaseObject class
@@ -152,14 +152,13 @@
 				many_to_many - Many to many relationship entries.
 				tags - Tags for the entry.
 				change_being_published - The change ID being published.
-				open_graph - Open Graph data array.
 
 			Returns:
 				The id of the new entry in the database.
 		*/
 		
 		function createEntry(array $columns, ?array $many_to_many = [], ?array $tags = [],
-							 ?int $change_being_published = null, ?array $open_graph = null): ?int
+							 ?int $change_being_published = null): ?int
 		{
 			// Clean up data
 			$insert_values = Link::encode(SQL::prepareData($this->Table, $columns));
@@ -174,7 +173,6 @@
 			// Handle Many to Many and tags
 			$this->handleManyToMany($id, $many_to_many);
 			$this->handleTags($id, $tags);
-			OpenGraph::handleData($this->Table, $id, $open_graph);
 			
 			// Cache and track
 			Tag::updateReferenceCounts($tags);
@@ -220,12 +218,14 @@
 				changes - The change request data.
 				many_to_many - The many to many changes.
 				tags - The tag changes.
+				open_graph - The open graph changes.
 
 			Returns:
 				The id of the pending change.
 		*/
 		
-		function createChangeRequest(string $id, array $changes, array $many_to_many = [], array $tags = []): int
+		function createChangeRequest(string $id, array $changes, array $many_to_many = [], array $tags = [],
+									 array $open_graph = []): int
 		{
 			$hook = !empty($this->Hooks["publish"]) ? $this->Hooks["publish"] : false;
 			
@@ -241,7 +241,8 @@
 				$change->PublishHook = $hook;
 				$change->update($changes, $many_to_many, $tags);
 			} else {
-				$change = PendingChange::create($this->Table, $id, $changes, $many_to_many, $tags, $this->Module, $hook);
+				$change = PendingChange::create($this->Table, $id, $changes, $many_to_many, $tags, $open_graph,
+												$this->Module, $hook);
 			}
 			
 			return $existing ?: $change->ID;
@@ -260,11 +261,13 @@
 				The id of the new entry in the bigtree_pending_changes table.
 		*/
 		
-		function createPendingEntry(array $columns, array $many_to_many = [], array $tags = []): int
+		function createPendingEntry(array $columns, array $many_to_many = [], array $tags = [],
+									array $open_graph = []): int
 		{
 			$hook = !empty($this->Hooks["publish"]) ? $this->Hooks["publish"] : false;
 			$tags = array_unique($tags);
-			$change = PendingChange::create($this->Table, false, $columns, $many_to_many, $tags, $this->Module, $hook);
+			$change = PendingChange::create($this->Table, false, $columns, $many_to_many, $tags, $open_graph,
+											$this->Module, $hook);
 			
 			return $change->ID;
 		}
@@ -333,7 +336,7 @@
 				"return_url" => $this->ReturnURL,
 				"tagging" => $this->Tagging,
 				"hooks" => $this->Hooks,
-				"open_graph" => $this->OpenGraph
+				"open_graph" => $this->OpenGraphEnabled
 			];
 		}
 		
@@ -595,7 +598,7 @@
 			if (empty($this->Interface->ID)) {
 				$new = static::create($this->Module, $this->Title, $this->Table, $this->Fields, $this->Hooks,
 									  $this->DefaultPosition, $this->ReturnView, $this->ReturnURL, $this->Tagging,
-									  $this->OpenGraph);
+									  $this->OpenGraphEnabled);
 				$this->inherit($new);
 			} else {
 				// Clean up fields in case old format was used
@@ -616,7 +619,7 @@
 					"return_view" => intval($this->ReturnView) ?: null,
 					"return_url" => $this->ReturnURL,
 					"tagging" => $this->Tagging ? "on" : "",
-					"open_graph" => $this->OpenGraph ? "on": "",
+					"open_graph" => $this->OpenGraphEnabled ? "on": "",
 					"hooks" => array_filter((array) $this->Hooks)
 				];
 				$this->Interface->Table = $this->Table;
@@ -652,7 +655,7 @@
 			$this->DefaultPosition = $default_position;
 			$this->Fields = $fields;
 			$this->Hooks = $hooks;
-			$this->OpenGraph = $open_graph;
+			$this->OpenGraphEnabled = $open_graph;
 			$this->ReturnURL = $return_url;
 			$this->ReturnView = $return_view;
 			$this->Table = $table;
