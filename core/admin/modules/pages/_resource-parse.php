@@ -11,7 +11,7 @@
 	// Run any pre-process hook
 	$bigtree["preprocessed"] = [];
 	
-	if (!empty($template->Hooks["pre"]))) {
+	if (!empty($template->Hooks["pre"])) {
 		$bigtree["preprocessed"] = call_user_func($template->Hooks["pre"], $_POST["resources"]);
 		
 		// Update the $_POST

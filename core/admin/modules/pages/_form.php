@@ -52,6 +52,7 @@
 					<a href="#properties_tab"<?php if ($bigtree["form_action"] == "create") { ?> class="active"<?php } ?>><?=Text::translate("Properties")?></a>
 					<a href="#content_tab"<?php if ($bigtree["form_action"] == "update") { ?> class="active"<?php } ?>><?=Text::translate("Content")?></a>
 					<a href="#seo_tab"><?=Text::translate("SEO")?></a>
+					<a href="#sharing_tab"><?=Text::translate("Sharing")?></a>
 				</nav>
 				<div id="link_finder_results" style="display: none;"></div>
 				<input type="search" id="link_finder" class="form_search" autocomplete="off" placeholder="<?=Text::translate("Link Finder")?>" />
@@ -86,6 +87,12 @@
 		</section>
 		<section id="seo_tab" style="display: none;">
 			<?php include Router::getIncludePath("admin/modules/pages/tabs/seo.php") ?>
+		</section>
+		<section id="sharing_tab" style="display: none;">
+			<?php
+				$og_data = $bigtree["current_page"]["open_graph"];
+				include Router::getIncludePath("admin/auto-modules/forms/_open-graph.php");
+			?>
 		</section>
 		<footer class="js-pages-form-footer">
 			<a href="#" class="next button" tabindex="200"><?=Text::translate("Next Step", true)?> &raquo;</a>
