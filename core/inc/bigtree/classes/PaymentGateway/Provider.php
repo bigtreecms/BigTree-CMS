@@ -61,9 +61,9 @@
 				$this->Message will contain an error message if not successful.
 		*/
 		
-		public function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
-						   int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
-						   ?string $customer = ""): ?string
+		public function authorize(float $amount, float $tax, string $card_name, string $card_number,
+								  int $card_expiration, int $cvv, array $address, ?string $description = "",
+								  ?string $email = "", ?string $phone = "", ?string $customer = ""): ?string
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
@@ -89,7 +89,7 @@
 		*/
 		
 		public function authorizeByProfile(string $id, string $user_id, float $amount, ?float $tax = 0.0,
-									?string $description = "", ?string $email = ""): ?string
+										   ?string $description = "", ?string $email = ""): ?string
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
@@ -174,8 +174,8 @@
 		*/
 		
 		public function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
-						int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
-						?string $customer = "", ?string $action = null): ?string
+							   int $cvv, array $address, ?string $description = "", ?string $email = "",
+							   ?string $phone = "", ?string $customer = "", ?string $action = null): ?string
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
@@ -200,8 +200,9 @@
 				$this->Message will contain an error message if not successful.
 		*/
 		
-		public function chargeByProfile(string $id, string $user_id, float $amount, ?float $tax = 0.0, ?string $description = "",
-								 ?string $email = "", ?string $action = "sale"): ?string
+		public function chargeByProfile(string $id, string $user_id, float $amount, ?float $tax = 0.0,
+										?string $description = "", ?string $email = "",
+										?string $action = "sale"): ?string
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
@@ -246,8 +247,8 @@
 				A card/profile ID to be used for later recall.
 		*/
 		
-		public function createProfile(string $name, string $number, int $expiration_date, int $cvv, array $address,
-							   string $user_id): ?string
+		public function createProfile(string $name, string $number, int $expiration_date, int $cvv,
+									  array $address, string $user_id): ?string
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
@@ -281,10 +282,10 @@
 		*/
 		
 		public function createRecurringPayment(string $description, float $amount, ?string $start_date, string $period,
-										int $frequency, string $card_name, string $card_number, int $card_expiration,
-										int $cvv, array $address, string $email, ?float $trial_amount = null,
-										?string $trial_period = null, ?int $trial_frequency = null,
-										?int $trial_length = null): ?string
+											   int $frequency, string $card_name, string $card_number,
+											   int $card_expiration, int $cvv, array $address, string $email,
+											   ?float $trial_amount = null, ?string $trial_period = null,
+											   ?int $trial_frequency = null, ?int $trial_length = null): ?string
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			

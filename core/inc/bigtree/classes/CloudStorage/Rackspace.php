@@ -72,7 +72,7 @@
 		*/
 		
 		public function callRackspace(string $endpoint = "", ?array $data = null, string $method = "GET",
-							   array $curl_options = []): ?stdClass
+									  array $curl_options = []): ?stdClass
 		{
 			// Add authentication headers and ask for JSON in return
 			if (!is_array($curl_options[CURLOPT_HTTPHEADER])) {
@@ -94,7 +94,7 @@
 		
 		// Implements Provider::copyFile
 		public function copyFile(string $source_container, string $source_pointer, string $destination_container,
-						  string $destination_pointer, bool $public = false): ?string
+								 string $destination_pointer, bool $public = false): ?string
 		{
 			cURL::request($this->Endpoint."/$source_container/$source_pointer", false, [
 				CURLOPT_CUSTOMREQUEST => "COPY",
@@ -136,7 +136,7 @@
 		
 		// Implements Provider::createFile
 		public function createFile(string $contents, string $container, string $pointer, bool $public = false,
-							string $type = "text/plain"): ?string
+								   string $type = "text/plain"): ?string
 		{
 			cURL::request($this->Endpoint."/$container/$pointer", $contents, [
 				CURLOPT_CUSTOMREQUEST => "PUT",
@@ -356,7 +356,8 @@
 		}
 		
 		// Implements Provider::uploadFile
-		public function uploadFile(string $file, string $container, ?string $pointer = null, bool $public = false): ?string
+		public function uploadFile(string $file, string $container, ?string $pointer = null,
+								   bool $public = false): ?string
 		{
 			// No target destination, just use root folder w/ file name
 			if (!$pointer) {

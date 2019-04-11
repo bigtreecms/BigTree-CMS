@@ -61,7 +61,7 @@
 		*/
 		
 		public function copyFile(string $source_container, string $source_pointer, string $destination_container,
-						  string $destination_pointer, bool $public = false): ?string
+								 string $destination_pointer, bool $public = false): ?string
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
@@ -107,7 +107,7 @@
 		*/
 		
 		public function createFile(string $contents, string $container, string $pointer, bool $public = false,
-							string $type = "text/plain"): ?string
+								   string $type = "text/plain"): ?string
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
@@ -437,7 +437,8 @@
 				The URL of the file if successful.
 		*/
 		
-		public function uploadFile(string $file, string $container, ?string $pointer = null, bool $public = false): ?string
+		public function uploadFile(string $file, string $container, ?string $pointer = null,
+								   bool $public = false): ?string
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			

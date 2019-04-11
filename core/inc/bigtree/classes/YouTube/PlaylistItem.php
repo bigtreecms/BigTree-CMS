@@ -76,7 +76,9 @@
 		
 		public function save(): ?PlaylistItem
 		{
-			return $this->API->updatePlaylistItem($this->ID, $this->PlaylistID, $this->VideoID, $this->Position, $this->Note, $this->API->timeJoin($this->VideoStartAt), $this->API->timeJoin($this->VideoEndAt));
+			return $this->API->updatePlaylistItem($this->ID, $this->PlaylistID, $this->VideoID, $this->Position,
+												  $this->Note, $this->API->timeJoin($this->VideoStartAt),
+												  $this->API->timeJoin($this->VideoEndAt));
 		}
 		
 		/*

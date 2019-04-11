@@ -52,9 +52,9 @@
 		}
 		
 		// Implements Provider::authorize
-		public function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
-						   int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
-						   ?string $customer = ""): ?string
+		public function authorize(float $amount, float $tax, string $card_name, string $card_number,
+								  int $card_expiration, int $cvv, array $address, ?string $description = "",
+								  ?string $email = "", ?string $phone = "", ?string $customer = ""): ?string
 		{
 			return $this->charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description,
 								 $email, $phone, $customer, "AUTH_ONLY");
@@ -138,8 +138,8 @@
 		
 		// Implements Provider::charge
 		public function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
-						int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
-						?string $customer = "", ?string $action = null): ?string
+							   int $cvv, array $address, ?string $description = "", ?string $email = "",
+							   ?string $phone = "", ?string $customer = "", ?string $action = null): ?string
 		{
 			// Make card number only have numeric digits
 			$card_number = preg_replace('/\D/', '', $card_number);

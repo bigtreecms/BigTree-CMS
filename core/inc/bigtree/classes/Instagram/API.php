@@ -45,7 +45,7 @@
 		*/
 		
 		public function callUncached(string $endpoint = "", array $params = [], string $method = "GET",
-							  array $headers = []): ?stdClass
+									 array $headers = []): ?stdClass
 		{
 			$response = parent::callUncached($endpoint, $params, $method, $headers);
 			
@@ -613,7 +613,7 @@
 		*/
 		
 		public function searchLocations(?string $latitude = "", ?string $longitude = "", ?int $distance = 1000,
-								 ?string $foursquare_id = null, ?string $legacy_foursquare_id = null): ?array
+										?string $foursquare_id = null, ?string $legacy_foursquare_id = null): ?array
 		{
 			if ($legacy_foursquare_id) {
 				$params = ["foursquare_id" => $legacy_foursquare_id];
@@ -654,7 +654,8 @@
 				http://instagram.com/developer/endpoints/media/
 		*/
 		
-		public function searchMedia(string $latitude, string $longitude, int $distance = 1000, array $params = []): ?ResultSet
+		public function searchMedia(string $latitude, string $longitude, int $distance = 1000,
+									array $params = []): ?ResultSet
 		{
 			$response = $this->call("media/search", array_merge($params, ["lat" => $latitude, "lng" => $longitude, "distance" => intval($distance)]));
 			$results = [];

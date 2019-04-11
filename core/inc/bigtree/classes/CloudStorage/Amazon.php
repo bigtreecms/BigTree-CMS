@@ -64,7 +64,7 @@
 		
 		// Implements Provider::copyFile
 		public function copyFile(string $source_container, string $source_pointer, string $destination_container,
-						  string $destination_pointer, bool $public = false): ?string
+								 string $destination_pointer, bool $public = false): ?string
 		{
 			try {
 				$response = $this->S3Client->copyObject([
@@ -101,7 +101,7 @@
 		
 		// Implements Provider::createFile
 		public function createFile(string $contents, string $container, string $pointer, bool $public = false,
-							string $type = "text/plain"): ?string
+								   string $type = "text/plain"): ?string
 		{
 			$contents = strlen($contents) ? $contents : " ";
 			$extension = strtolower(pathinfo($pointer, PATHINFO_EXTENSION));
@@ -337,7 +337,8 @@
 		}
 		
 		// Implements Provider::uploadFile
-		public function uploadFile(string $file, string $container, ?string $pointer = null, bool $public = false): ?string
+		public function uploadFile(string $file, string $container, ?string $pointer = null,
+								   bool $public = false): ?string
 		{
 			// Default the pointer to the name of the file if not provided.
 			if (!$pointer) {

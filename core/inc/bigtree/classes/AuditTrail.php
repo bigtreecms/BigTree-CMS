@@ -51,7 +51,7 @@
 		*/
 		
 		public static function search(?string $user = null, ?string $table = null, ?string $entry = null,
-							   ?string $start = null, ?string $end = null): array
+									  ?string $start = null, ?string $end = null): array
 		{
 			$users = $where = $parameters = [];
 			$deleted_users = Setting::value("bigtree-internal-deleted-users");

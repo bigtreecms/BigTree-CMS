@@ -49,9 +49,9 @@
 		}
 		
 		// Implements Provider::authorize
-		public function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
-						   int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
-						   ?string $customer = ""): ?string
+		public function authorize(float $amount, float $tax, string $card_name, string $card_number,
+								  int $card_expiration, int $cvv, array $address, ?string $description = "",
+								  ?string $email = "", ?string $phone = "", ?string $customer = ""): ?string
 		{
 			return $this->charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description,
 								 $email, $phone, $customer, "AUTH_ONLY");
@@ -125,8 +125,8 @@
 		
 		// Implements Provider::charge
 		public function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
-						int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
-						?string $customer = "", ?string $action = null): ?string
+							   int $cvv, array $address, ?string $description = "", ?string $email = "",
+							   ?string $phone = "", ?string $customer = "", ?string $action = null): ?string
 		{
 			// Make card number only have numeric digits
 			$card_number = preg_replace('/\D/', '', $card_number);
@@ -193,10 +193,10 @@
 		
 		// Implements Provider::createRecurringPayment
 		public function createRecurringPayment(string $description, float $amount, ?string $start_date, string $period,
-										int $frequency, string $card_name, string $card_number, int $card_expiration,
-										int $cvv, array $address, string $email, ?float $trial_amount = null,
-										?string $trial_period = null, ?int $trial_frequency = null,
-										?int $trial_length = null): ?string
+											   int $frequency, string $card_name, string $card_number,
+											   int $card_expiration, int $cvv, array $address, string $email,
+											   ?float $trial_amount = null, ?string $trial_period = null,
+											   ?int $trial_frequency = null, ?int $trial_length = null): ?string
 		{
 			// Default to today for start
 			$start_time = $start_date ? strtotime($start_date) : time();

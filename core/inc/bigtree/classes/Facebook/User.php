@@ -54,7 +54,8 @@
 				Returns an array of BigTree\Facebook\Album objects or false on failure.
 		*/
 		
-		public function getAlbums(): ?array {
+		public function getAlbums(): ?array
+		{
 			if (isset($this->Albums)) {
 				return $this->Albums;
 			}
@@ -83,7 +84,8 @@
 				user - A pre-composed data set (optional, defaults to pulling from API)
 		*/
 		
-		public function updateDetails(?stdClass $user = null) {
+		public function updateDetails(?stdClass $user = null): void
+		{
 			if (is_null($user)) {
 				$user = $this->API->call($this->ID);
 			}
@@ -135,7 +137,8 @@
 				A URL or false on failure
 		*/
 		
-		public function getPicture(int $width = 1000, int $height = 1000): ?string {
+		public function getPicture(int $width = 1000, int $height = 1000): ?string
+		{
 			if ($this->Picture) {
 				return $this->Picture;
 			}

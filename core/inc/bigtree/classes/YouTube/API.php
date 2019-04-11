@@ -74,7 +74,7 @@
 		*/
 		
 		public function createPlaylist(string $title, string $description = "",string  $privacy = "public",
-								array $tags = []): ?Playlist
+									   array $tags = []): ?Playlist
 		{
 			$object = json_encode([
 				"snippet" => [
@@ -114,7 +114,7 @@
 		*/
 		
 		public function createPlaylistItem(string $playlist, string $video, ?int $position = null, ?string $note = null,
-									?stdClass $start_at = null, ?stdClass $end_at = null): ?PlaylistItem
+										   ?stdClass $start_at = null, ?stdClass $end_at = null): ?PlaylistItem
 		{
 			$object = [
 				"snippet" => [
@@ -303,7 +303,7 @@
 		*/
 		
 		public function getChannelVideos(string $channel, int $count = 10, string $order = "date",
-								  array $params = []): ?GoogleResultSet
+										 array $params = []): ?GoogleResultSet
 		{
 			$response = $this->call("search", array_merge([
 				"part" => "snippet",
@@ -432,7 +432,8 @@
 				A BigTree\GoogleResultSet of channel IDs.
 		*/
 		
-		public function getSubscribers(int $count = 50, string $order = "relevance", array $params = []): ?GoogleResultSet
+		public function getSubscribers(int $count = 50, string $order = "relevance",
+									   array $params = []): ?GoogleResultSet
 		{
 			$results = [];
 			$response = $this->call("subscriptions", array_merge([
@@ -466,7 +467,8 @@
 				A BigTree\GoogleResultSet of BigTree\YouTube\Subscription objects.
 		*/
 		
-		public function getSubscriptions(int $count = 50, string $order = "relevance", array $params = []): ?GoogleResultSet
+		public function getSubscriptions(int $count = 50, string $order = "relevance",
+										 array $params = []): ?GoogleResultSet
 		{
 			$results = [];
 			$response = $this->call("subscriptions", array_merge([
@@ -555,7 +557,7 @@
 		*/
 		
 		public function searchChannels(string $query, int $count = 10, string $order = "relevance",
-								array $params = []): ?GoogleResultSet
+									   array $params = []): ?GoogleResultSet
 		{
 			$results = [];
 			$response = $this->call("search", array_merge([
@@ -592,7 +594,7 @@
 		*/
 		
 		public function searchVideos(string $query, int $count = 10, string $order = "relevance",
-							  array $params = []): ?GoogleResultSet
+									 array $params = []): ?GoogleResultSet
 		{
 			$results = [];
 			$response = $this->call("search", array_merge([
@@ -721,7 +723,7 @@
 		*/
 		
 		public function updatePlaylist(string $id, string $title, string $description = "", string $privacy = "public",
-								array $tags = []): bool
+									   array $tags = []): bool
 		{
 			$object = json_encode([
 				"id" => $id,
@@ -763,8 +765,8 @@
 		*/
 		
 		public function updatePlaylistItem(string $item, string $playlist, string $video, ?int $position = null,
-									?string $note = null, ?stdClass $start_at = null,
-									?stdClass $end_at = null): ?PlaylistItem
+										   ?string $note = null, ?stdClass $start_at = null,
+										   ?stdClass $end_at = null): ?PlaylistItem
 		{
 			$object = [
 				"id" => $item,

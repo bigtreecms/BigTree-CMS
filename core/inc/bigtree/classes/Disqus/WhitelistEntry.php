@@ -38,7 +38,10 @@
 		
 		public function remove(): bool
 		{
-			$response = $this->API->call("whitelists/remove.json", ["forum" => $this->ForumID, $this->Type => $this->Value], "POST");
+			$response = $this->API->call("whitelists/remove.json", [
+				"forum" => $this->ForumID,
+				$this->Type => $this->Value
+			], "POST");
 			
 			if ($response !== false) {
 				$this->API->cacheBust("whitelisted".$this->ForumID);

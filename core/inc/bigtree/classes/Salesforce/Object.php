@@ -264,7 +264,8 @@
 				An array of BigTree\Salesforce\Record objects.
 		*/
 		
-		public function getPage(int $page = 1, string $order = "Id ASC", int $perpage = 15, ?string $where = null): ?array
+		public function getPage(int $page = 1, string $order = "Id ASC", int $perpage = 15,
+								?string $where = null): ?array
 		{
 			// Don't try for page 0
 			if ($page < 1) {

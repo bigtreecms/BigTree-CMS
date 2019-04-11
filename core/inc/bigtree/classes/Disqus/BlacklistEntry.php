@@ -39,7 +39,10 @@
 		
 		public function remove(): bool
 		{
-			$response = $this->API->call("blacklists/remove.json", ["forum" => $this->ForumID, $this->Type => $this->Value], "POST");
+			$response = $this->API->call("blacklists/remove.json", [
+				"forum" => $this->ForumID,
+				$this->Type => $this->Value
+			], "POST");
 		
 			if (!is_null($response)) {
 				$this->API->cacheBust("blacklist".$this->ID);

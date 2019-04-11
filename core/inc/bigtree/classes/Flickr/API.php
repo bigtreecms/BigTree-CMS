@@ -71,7 +71,7 @@
 		*/
 		
 		public function callUncached(string $endpoint = "", array $params = [], string $method = "GET",
-							  array $headers = []): ?stdClass
+									 array $headers = []): ?stdClass
 		{
 			$params["method"] = $endpoint;
 			$params["format"] = "json";
@@ -140,7 +140,8 @@
 				$photos[] = new Photo($photo, $this);
 			}
 			
-			return new ResultSet($this, "getAlbumPhotos", [$id, $privacy, $info], $photos, $r->photoset->page, $r->photoset->pages);
+			return new ResultSet($this, "getAlbumPhotos", [$id, $privacy, $info], $photos,
+								 $r->photoset->page, $r->photoset->pages);
 		}
 		
 		/*
@@ -193,7 +194,7 @@
 		*/
 		
 		public function getContactsPhotos(int $count = 10, bool $just_friends = false, bool $include_self = false,
-								   string $info = ""): ?array
+										  string $info = ""): ?array
 		{
 			$params = ["count" => $count, "extras" => $info ?: $this->DefaultInfo];
 			
@@ -293,7 +294,7 @@
 		*/
 		
 		public function getMyRecentlyUpdatedPhotos(string $since = "-1 week", int $per_page = 100, string $info = "",
-											array $params = []): ?ResultSet
+												   array $params = []): ?ResultSet
 		{
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info ?: $this->DefaultInfo;
@@ -473,8 +474,9 @@
 		*/
 		
 		public function getPhotosByLocation(string $latitude, string $longitude, float $radius = 10.0,
-									 string $radius_unit = "mi", int $per_page = 100, string $sort = "date-posted-desc",
-									 string $info = "", array $params = []): ?ResultSet
+											string $radius_unit = "mi", int $per_page = 100,
+											string $sort = "date-posted-desc", string $info = "",
+											array $params = []): ?ResultSet
 		{
 			$params["lat"] = $latitude;
 			$params["lon"] = $longitude;
@@ -516,8 +518,9 @@
 				A ResultSet of Photo objects.
 		*/
 		
-		public function getPhotosByTag($tags, int $per_page = 100, string $sort = "date-posted-desc", bool $require_all = false,
-								bool $user = false, string $info = "", array $params = []): ?ResultSet
+		public function getPhotosByTag($tags, int $per_page = 100, string $sort = "date-posted-desc",
+									   bool $require_all = false, bool $user = false, string $info = "",
+									   array $params = []): ?ResultSet
 		{
 			if (is_array($tags)) {
 				$tags = implode(",", $tags);
@@ -565,7 +568,7 @@
 		*/
 		
 		public function getPhotosForPerson(string $person, int $per_page = 100, string $info = "",
-									array $params = []): ?ResultSet
+										   array $params = []): ?ResultSet
 		{
 			$params["user_id"] = $person;
 			$params["per_page"] = $per_page;
@@ -600,7 +603,7 @@
 		*/
 		
 		public function getPhotosOfPerson(string $person, int $per_page = 100, string $info = "",
-								   array $params = []): ?ResultSet
+										  array $params = []): ?ResultSet
 		{
 			$params["user_id"] = $person;
 			$params["per_page"] = $per_page;
@@ -804,7 +807,7 @@
 		*/
 		
 		public function searchPhotos(string $query, int $per_page = 100, string $sort = "date-posted-desc",
-							  ?string $user = null, string $info = "",  array $params = []): ?ResultSet
+									 ?string $user = null, string $info = "",  array $params = []): ?ResultSet
 		{
 			if ($user) {
 				$params["user_id"] = $user;
@@ -844,7 +847,7 @@
 		*/
 		
 		public function setPhotoInformation(string $photo, ?string $title = null, ?string $description = null,
-									 $tags = ""): bool
+											$tags = ""): bool
 		{
 			if (is_array($tags)) {
 				$tags = implode(",", $tags);
@@ -885,8 +888,8 @@
 		*/
 		
 		public function uploadPhoto(string $photo, ?string $title = null, ?string $description = null, array $tags = [],
-							 bool $public = true, bool $family = true, bool $friends = true, int $safety = 1,
-							 int $type = 1, bool $hidden = false): ?string
+									bool $public = true, bool $family = true, bool $friends = true, int $safety = 1,
+									int $type = 1, bool $hidden = false): ?string
 		{
 			$xml = $this->callAPI("http://up.flickr.com/services/upload/", "POST", [
 				"photo" => "@".$photo,

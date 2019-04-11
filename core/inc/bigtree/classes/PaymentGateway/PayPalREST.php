@@ -48,9 +48,9 @@
 		}
 		
 		// Implements Provider::authorize
-		public function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
-						   int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
-						   ?string $customer = ""): ?string
+		public function authorize(float $amount, float $tax, string $card_name, string $card_number,
+								  int $card_expiration, int $cvv, array $address, ?string $description = "",
+								  ?string $email = "", ?string $phone = "", ?string $customer = ""): ?string
 		{
 			return $this->charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description,
 								 $email, $phone, $customer, "AUTH_ONLY");
@@ -58,7 +58,7 @@
 		
 		// Implements Provider::authorizeByProfile
 		public function authorizeByProfile(string $id, string $user_id, float $amount, ?float $tax = 0.0,
-									?string $description = "", ?string $email = ""): ?string
+										   ?string $description = "", ?string $email = ""): ?string
 		{
 			return $this->chargeByProfile($id, $user_id, $amount, $tax, $description, $email, "authorize");
 		}
@@ -102,8 +102,8 @@
 		
 		// Implements Provider::charge
 		public function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
-						int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
-						?string $customer = "", ?string $action = null): ?string
+							   int $cvv, array $address, ?string $description = "", ?string $email = "",
+							   ?string $phone = "", ?string $customer = "", ?string $action = null): ?string
 		{
 			// Make card number only have numeric digits
 			$card_number = preg_replace('/\D/', '', $card_number);
@@ -204,7 +204,8 @@
 		
 		// Implements Provider::chargeByProfile
 		public function chargeByProfile(string $id, string $user_id, float $amount, ?float $tax = 0.0,
-								 ?string $description = "", ?string $email = "", ?string $action = "sale"): ?string
+										?string $description = "", ?string $email = "",
+										?string $action = "sale"): ?string
 		{
 			$amount = $this->formatCurrency($amount);
 			$tax = $this->formatCurrency($tax);
@@ -270,7 +271,7 @@
 		
 		// Implements Provider::createProfile
 		public function createProfile(string $name, string $number, int $expiration_date, int $cvv, array $address,
-							   string $user_id): ?string
+									  string $user_id): ?string
 		{
 			// Split the card name into first name and last name.
 			$first_name = substr($name, 0, strpos($name, " "));
@@ -324,10 +325,10 @@
 		
 		// Implements Provider::createRecurringPayment
 		public function createRecurringPayment(string $description, float $amount, ?string $start_date, string $period,
-										int $frequency, string $card_name, string $card_number, int $card_expiration,
-										int $cvv, array $address, string $email, ?float $trial_amount = null,
-										?string $trial_period = null, ?int $trial_frequency = null,
-										?int $trial_length = null): ?string
+											   int $frequency, string $card_name, string $card_number,
+											   int $card_expiration, int $cvv, array $address, string $email,
+											   ?float $trial_amount = null, ?string $trial_period = null,
+											   ?int $trial_frequency = null, ?int $trial_length = null): ?string
 		{
 			// Default to today for start
 			$start_time = $start_date ? strtotime($start_date) : time();

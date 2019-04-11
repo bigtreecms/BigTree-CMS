@@ -48,7 +48,7 @@
 		
 		// Implements Provider::copyFile
 		public function copyFile(string $source_container, string $source_pointer, string $destination_container,
-						  string $destination_pointer, bool $public = false): ?string
+								 string $destination_pointer, bool $public = false): ?string
 		{
 			$encoded_source_pointer = urlencode($source_pointer);
 			$encoded_pointer = urlencode($destination_pointer);
@@ -85,7 +85,7 @@
 		
 		// Implements Provider::createFile
 		public function createFile(string $contents, string $container, string $pointer, bool $public = false,
-							string $type = "text/plain"): ?string
+								   string $type = "text/plain"): ?string
 		{
 			$encoded_pointer = urlencode($pointer);
 			$response = json_decode(cURL::request("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$encoded_pointer&uploadType=media", $contents, [
@@ -267,7 +267,8 @@
 		}
 		
 		// Implements Provider::uploadFile
-		public function uploadFile(string $file, string $container, string $pointer = null, bool $public = false): ?string
+		public function uploadFile(string $file, string $container, string $pointer = null,
+								   bool $public = false): ?string
 		{
 			// No target destination, just use root folder w/ file name
 			if (!$pointer) {

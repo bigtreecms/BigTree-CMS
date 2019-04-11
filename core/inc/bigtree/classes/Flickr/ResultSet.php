@@ -34,7 +34,7 @@
 		*/
 		
 		public function __construct(API &$api, string $last_call, array $params, array $results, int $current_page,
-							 int $total_pages)
+									int $total_pages)
 		{
 			$this->API = $api;
 			$this->CurrentPage = $current_page;

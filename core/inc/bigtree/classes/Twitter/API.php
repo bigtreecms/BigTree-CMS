@@ -70,7 +70,7 @@
 		*/
 		
 		public function callUncached(string $endpoint = "", $params = [], string $method = "GET",
-							  array $headers = []): ?stdClass
+									 array $headers = []): ?stdClass
 		{
 			$response = parent::callUncached($endpoint, $params, $method, $headers);
 			
@@ -527,7 +527,10 @@
 		
 		public function getTweet(string $id, array $params = []): ?Tweet
 		{
-			$response = $this->call("statuses/show.json", array_merge($params, ["tweet_mode" => "extended", "id" => $id]));
+			$response = $this->call("statuses/show.json", array_merge($params, [
+				"tweet_mode" => "extended",
+				"id" => $id
+			]));
 			
 			if (!$response) {
 				return null;
@@ -613,7 +616,9 @@
 			$oauth_token = "";
 			
 			// Get a token first because Twitter is silly.
-			$response = $this->callAPI("https://api.twitter.com/oauth/request_token", "GET", ["oauth_callback" => $this->ReturnURL]);
+			$response = $this->callAPI("https://api.twitter.com/oauth/request_token", "GET", [
+				"oauth_callback" => $this->ReturnURL
+			]);
 			parse_str($response);
 			
 			if ($oauth_callback_confirmed != "true") {
@@ -671,7 +676,7 @@
 		*/
 		
 		public function sendDirectMessage(string $recipient_username, string $content,
-								   ?string $recipient_id = null): ?DirectMessage
+										  ?string $recipient_id = null): ?DirectMessage
 		{
 			// Figure out how long our content can be
 			if (!$this->Configuration) {
@@ -854,7 +859,7 @@
 		*/
 		
 		public function searchTweets(string $query, int $count = 10, string $type = "recent", ?string $latitude = null,
-							  ?string $longitude = null, ?string $radius = null, array $params = []): ?ResultSet
+									 ?string $longitude = null, ?string $radius = null, array $params = []): ?ResultSet
 		{
 			// Setup default parameters
 			$params["q"] = $query;

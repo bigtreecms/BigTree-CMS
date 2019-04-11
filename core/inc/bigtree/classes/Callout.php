@@ -168,7 +168,7 @@
 		*/
 		
 		public static function create(string $id, string $name, string $description, int $level, array $fields,
-							   string $display_field, string $display_default): ?Callout
+									  string $display_field, string $display_default): ?Callout
 		{
 			// Check to see if it's a valid ID
 			if (!ctype_alnum(str_replace(["-", "_"], "", $id)) || strlen($id) > 127) {
@@ -344,7 +344,7 @@
 		*/
 		
 		public function update(string $name, string $description, int $level, array $fields, string $display_field,
-						string $display_default): ?bool
+							   string $display_default): ?bool
 		{
 			$this->Name = $name;
 			$this->Description = $description;

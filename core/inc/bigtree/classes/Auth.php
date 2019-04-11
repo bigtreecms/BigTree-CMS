@@ -40,7 +40,7 @@
 		*/
 		
 		public function __construct(string $user_class = 'BigTree\User', string $namespace = "bigtree_admin",
-							 bool $enforce_policies = true)
+									bool $enforce_policies = true)
 		{
 			/** @var User $user_class */
 			static::$Namespace = $namespace;
@@ -265,8 +265,8 @@
 				false if login failed, otherwise redirects back to the page the person requested.
 		*/
 		
-		public static function login(string $email, string $password, bool $stay_logged_in = false, ?string $domain = null,
-							  string $two_factor_token = null): bool
+		public static function login(string $email, string $password, bool $stay_logged_in = false,
+									 ?string $domain = null, string $two_factor_token = null): bool
 		{
 			global $bigtree;
 			
@@ -597,7 +597,7 @@
 		*/
 		
 		public static function stop(?string $message = null, ?string $file = null,
-							 string $layout_directory = "admin/layouts/"): void
+									string $layout_directory = "admin/layouts/"): void
 		{
 			global $admin, $bigtree, $cms, $db;
 			

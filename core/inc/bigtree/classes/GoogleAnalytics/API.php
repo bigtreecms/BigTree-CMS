@@ -107,7 +107,7 @@
 		*/
 		
 		public function getData(string $profile, string $start_date, string $end_date, $metrics, $dimensions = "",
-						 ?string $sort = null, int $results = 10000): ?array
+								?string $sort = null, int $results = 10000): ?array
 		{
 			$start_date = date("Y-m-d", strtotime($start_date));
 			$end_date = date("Y-m-d", strtotime($end_date));
@@ -252,7 +252,8 @@
 				A BigTree\GoogleResultSet of BigTree\GoogleAnalytics\Profile objects.
 		*/
 		
-		public function getProfiles(string $account = "~all", string $property = "~all", array $params = []): ?GoogleResultSet
+		public function getProfiles(string $account = "~all", string $property = "~all",
+									array $params = []): ?GoogleResultSet
 		{
 			$results = [];
 			$response = $this->call("management/accounts/$account/webproperties/$property/profiles", $params);

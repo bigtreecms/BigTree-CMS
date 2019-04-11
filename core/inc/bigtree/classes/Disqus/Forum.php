@@ -103,7 +103,12 @@
 		public function addToBlacklist(string $type, string $value, bool $retroactive = false, string $notes = ""): bool
 		{
 			$response = $this->API->call("blacklists/add.json",
-										 ["forum" => $this->ID, $type => $value, "retroactive" => $retroactive, "notes" => $notes],
+										 [
+										 	"forum" => $this->ID,
+											$type => $value,
+											"retroactive" => $retroactive,
+											"notes" => $notes
+										 ],
 										 "POST");
 			
 			if (!is_null($response)) {
@@ -338,8 +343,8 @@
 				A BigTree\Disqus\ResultSet of BigTree\Disqus\Post objects.
 		*/
 		
-		public function getPosts(int $limit = 25, string $order = "desc", array $include = ["approved"], bool $since = false,
-						  array $params = []): ?ResultSet
+		public function getPosts(int $limit = 25, string $order = "desc", array $include = ["approved"],
+								 bool $since = false, array $params = []): ?ResultSet
 		{
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
@@ -381,7 +386,7 @@
 		*/
 		
 		public function getThreads(int $limit = 25, string $order = "desc", ?string $since = null,
-							array $params = []): ?ResultSet
+								   array $params = []): ?ResultSet
 		{
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;

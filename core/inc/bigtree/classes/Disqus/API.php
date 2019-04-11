@@ -47,7 +47,7 @@
 		*/
 		
 		public function callUncached(string $endpoint = "", array $params = [], string $method = "GET",
-							  array $headers = []): stdClass
+									 array $headers = []): stdClass
 		{
 			$response = parent::callUncached($endpoint, $params, $method, $headers);
 			
@@ -111,7 +111,11 @@
 		
 		public function createForum(string $shortname, string $name, string $url): ?Forum
 		{
-			$response = $this->call("forums/create.json", ["website" => $url, "name" => $name, "short_name" => $shortname], "POST");
+			$response = $this->call("forums/create.json", [
+				"website" => $url,
+				"name" => $name,
+				"short_name" => $shortname
+			], "POST");
 			
 			if ($response !== false) {
 				return new Forum($response, $this);
