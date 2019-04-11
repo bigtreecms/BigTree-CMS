@@ -1,11 +1,11 @@
-<?
+<?php
 	/**
 	 * @global array $bigtree
 	 */
 ?>
 <script>
 	var Head = $("head");
-	<?
+	<?php
 		if (count($bigtree["css"])) {
 	?>
 	jQuery.each(<?=json_encode($bigtree["css"])?>,function(index,css) {
@@ -18,7 +18,7 @@
 			Head.append(link);
 		}
 	});
-	<?
+	<?php
 		}
 
 		if (count($bigtree["js"])) {
@@ -37,7 +37,7 @@
 			});
 		}
 	});
-	<?
+	<?php
 		}
 	?>
 

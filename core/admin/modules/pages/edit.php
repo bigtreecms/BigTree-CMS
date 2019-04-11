@@ -8,6 +8,10 @@
 	
 	$bigtree["resources"] = $page->Resources;
 	
+	if ($page->ID === -1) {
+		Auth::stop("You have reached an invalid edit page.");
+	}
+	
 	// Show the properties section
 	include Router::getIncludePath("admin/modules/pages/_properties.php");
 	

@@ -1,7 +1,7 @@
 <?php
 	// Setup the BigTree variable "namespace"
 	$bigtree = [];
-	
+	$bigtree["php_boot_error"] = error_get_last();
 	$bigtree["config"] = [];
 	$bigtree["config"]["debug"] = false;
 	
@@ -19,17 +19,17 @@
 			$bigtree["path"] = [];
 			$bigtree["trailing_slash_present"] = false;
 		} else {
-			$bigtree["path"] = explode("/", trim($_SERVER["PATH_INFO"], "/"));
+			$bigtree["path"] = explode("/", trim(trim($_SERVER["PATH_INFO"]), "/"));
 			$bigtree["trailing_slash_present"] = (substr($_SERVER["PATH_INFO"], -1, 1) === "/");
 		}
 		
-	// "Advanced" or "Simple Rewrite" routing
+		// "Advanced" or "Simple Rewrite" routing
 	} else {
 		if (!isset($_GET["bigtree_htaccess_url"])) {
 			$_GET["bigtree_htaccess_url"] = "";
 		}
 		
-		$bigtree["path"] = explode("/", rtrim($_GET["bigtree_htaccess_url"], "/"));
+		$bigtree["path"] = explode("/", rtrim(trim($_GET["bigtree_htaccess_url"]), "/"));
 		$bigtree["trailing_slash_present"] = (substr($_GET["bigtree_htaccess_url"], -1, 1) === "/");
 	}
 	
@@ -63,7 +63,6 @@
 			if ($part != $bigtree["path"][$x]) {
 				$in_admin = false;
 			}
-			
 			$x++;
 		}
 	}
@@ -85,7 +84,10 @@
 	}
 	
 	// See if we're in a multi-domain setup
-	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+	if (!empty($bigtree["config"]["sites"]) &&
+		is_array($bigtree["config"]["sites"]) &&
+		count($bigtree["config"]["sites"])
+	) {
 		// Figure out which domain we're in
 		foreach ($bigtree["config"]["sites"] as $site_key => $site_data) {
 			$domain_match = str_replace(["http://", "https://"], "", $site_data["domain"]);
@@ -111,7 +113,10 @@
 	}
 	
 	// We're not in the admin, see if caching is enabled and serve up a cached page if it exists
-	if ($bigtree["config"]["cache"] && $bigtree["path"][0] != "_preview" && $bigtree["path"][0] != "_preview-pending") {
+	if ($bigtree["config"]["cache"] &&
+		$bigtree["path"][0] != "_preview" &&
+		$bigtree["path"][0] != "_preview-pending"
+	) {
 		$cache_location = md5(json_encode($_GET));
 		$file = BIGTREE_CACHE_DIRECTORY.$cache_location.".page";
 		

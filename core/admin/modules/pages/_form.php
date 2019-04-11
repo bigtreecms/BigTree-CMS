@@ -15,7 +15,10 @@
 	<div class="developer_buttons">
 		<?php
 			if (Auth::user()->Level > 1) {
-				if ($bigtree["current_page"]["template"] && $bigtree["current_page"]["template"] != "!") {
+				if ($bigtree["current_page"]["template"] &&
+					$bigtree["current_page"]["template"] != "!" &&
+					$bigtree["form_action"] != "create"
+				) {
 		?>
 		<a href="<?=ADMIN_ROOT?>developer/templates/edit/<?=$bigtree["current_page"]["template"]?>/?return=<?=$bigtree["current_page"]["id"]?>" title="<?=Text::translate("Edit Current Template in Developer", true)?>">
 			<?=Text::translate("Edit Current Template in Developer")?>

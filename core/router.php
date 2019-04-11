@@ -610,21 +610,48 @@
 	}
 	
 	/* To load the BigTree Bar, meet the following qualifications:
-	   - Not a 404 page
-	   - Not a forced secure page (i.e. checkout)
 	   - User is logged BigTree admin
 	   - User is logged into the BigTree admin FOR THIS PAGE
 	   - Developer mode is either disabled OR the logged in user is a Developer
 	*/
-	if (isset($bigtree["page"]) && !Router::$Secure && $_SESSION["bigtree_admin"]["id"] && $_COOKIE["bigtree_admin"]["email"] && (empty($bigtree["config"]["developer_mode"]) || $_SESSION["bigtree_admin"]["level"] > 1)) {
+	if ($_SESSION["bigtree_admin"]["id"] &&
+		$_COOKIE["bigtree_admin"]["email"] &&
+		(empty($bigtree["config"]["developer_mode"]) || $_SESSION["bigtree_admin"]["level"] > 1)
+	) {
 		$show_bar_default = $_COOKIE["hide_bigtree_bar"] ? false : true;
 		$show_preview_bar = false;
 		$return_link = "";
+		$bar_edit_link = "";
 		
 		if (!empty($_GET["bigtree_preview_return"])) {
 			$show_bar_default = false;
 			$show_preview_bar = true;
-			$return_link = htmlspecialchars(urlencode($_GET["bigtree_preview_return"]));
+			$return_link = Text::htmlEncode(urlencode($_GET["bigtree_preview_return"]));
+		}
+		
+		if (!empty($bigtree["bar_edit_link"])) {
+			$bar_edit_link_query = parse_url($bigtree["bar_edit_link"], PHP_URL_QUERY);
+			
+			if (!empty($bar_edit_link_query)) {
+				$bar_edit_link_query_parts = explode("&", $bar_edit_link_query);
+				$has_return_link = false;
+				
+				foreach ($bar_edit_link_query_parts as $bar_edit_link_query_part) {
+					list($bar_edit_link_query_param, $bar_edit_link_query_value) = explode("=", $bar_edit_link_query_part);
+					
+					if (strtolower($bar_edit_link_query_param) == "return_link") {
+						$has_return_link = true;
+					}
+				}
+				
+				if (!$has_return_link) {
+					$bigtree["bar_edit_link"] .= "&return_link=".Text::htmlEncode(urlencode(Link::currentURL()));
+				}
+			} else {
+				$bigtree["bar_edit_link"] .= "?return_link=".Text::htmlEncode(urlencode(Link::currentURL()));
+			}
+			
+			$bar_edit_link = Text::htmlEncode(urlencode($bigtree["bar_edit_link"]));
 		}
 		
 		// Pending Pages don't have their ID set.
@@ -632,7 +659,12 @@
 			$bigtree["page"]["id"] = $bigtree["page"]["page"];
 		}
 		
-		$bigtree["content"] = str_ireplace('</body>', '<script type="text/javascript" src="'.str_replace(array("http://", "https://"), "//", $bigtree["config"]["admin_root"]).'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&amp;current_page_id='.$bigtree["page"]["id"].'&amp;show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;show_preview='.$show_preview_bar.'&amp;return_link='.$return_link.'&amp;custom_edit_link='.(empty($bigtree["bar_edit_link"]) ? "" : Text::htmlEncode($bigtree["bar_edit_link"])).'"></script></body>', $bigtree["content"]);
+		if (defined("BIGTREE_URL_IS_404")) {
+			$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(array("http://","https://"),"//",$bigtree["config"]["admin_root"]).'ajax/bar.js/?show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;is_404=true"></script></body>',$bigtree["content"]);
+		} else {
+			$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(array("http://","https://"),"//",$bigtree["config"]["admin_root"]).'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&amp;current_page_id='.$bigtree["page"]["id"].'&amp;show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;show_preview='.$show_preview_bar.'&amp;return_link='.$return_link.'&amp;custom_edit_link='.$bar_edit_link.'"></script></body>',$bigtree["content"]);
+		}
+		
 		// Don't cache the page with the BigTree bar
 		$bigtree["config"]["cache"] = false;
 	}

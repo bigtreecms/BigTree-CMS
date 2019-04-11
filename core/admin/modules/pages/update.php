@@ -13,7 +13,10 @@
 	}
 	
 	// Stop random hits to the update page
-	if (!isset($_POST["page"])) {
+	if (!isset($_POST["page"]) ||
+		$_POST["page"] === -1 ||
+		$_POST["page"] === ""
+	) {
 		Router::redirect(ADMIN_ROOT."pages/view-tree/0/");
 	}
 	
