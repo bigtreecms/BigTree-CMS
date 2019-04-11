@@ -46,7 +46,7 @@
 						// We're going to modify the field titles so that it makes more sense when someone is diagnosing the issue
 						$callout_resources = array_filter((array) $callout->Fields);
 						
-						foreach ($callout_resources as &$column) {
+						foreach ($callout_resources as $column) {
 							// If we have an internal title saved we can give even more context to which matrix entity has the problem
 							if ($callout_data["display_title"]) {
 								$column["title"] = $field." &raquo; ".$callout_data["display_title"]." &raquo; ".$column["title"];
@@ -60,10 +60,16 @@
 				}
 			} elseif ($resource["type"] == "matrix" && is_array($data)) {
 				foreach ($data as $matrix_data) {
+					if (isset($resource["settings"]) && is_string($resource["settings"])) {
+						$resource["settings"] = json_decode($resource["settings"], true);
+					} elseif (isset($resource["options"]) && is_string($resource["options"])) {
+						$resource["options"] = json_decode($resource["options"], true);
+					}
+					
 					// We're going to modify the field titles so that it makes more sense when someone is diagnosing the issue
 					$columns = array_filter((array) $resource["settings"]["columns"]);
 					
-					foreach ($columns as &$column) {
+					foreach ($columns as $column) {
 						// If we have an internal title saved we can give even more context to which matrix entity has the problem
 						if ($matrix_data["__internal-title"]) {
 							$column["title"] = $field." &raquo; ".$matrix_data["__internal-title"]." &raquo; ".$column["title"];

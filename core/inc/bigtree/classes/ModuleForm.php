@@ -174,8 +174,11 @@
 			$this->handleManyToMany($id, $many_to_many);
 			$this->handleTags($id, $tags);
 			
-			// Cache and track
-			Tag::updateReferenceCounts($tags);
+			if (count($tags)) {
+				Tag::updateReferenceCounts($tags);
+			}
+
+			// Update view cache
 			ModuleView::cacheForAll($id, $this->Table);
 			
 			// Attribute this to the original pending change author if the data hasn't changed
@@ -708,8 +711,11 @@
 			SQL::update($this->Table, $id, $update_columns);
 			
 			// Handle Many to Many and tags
+			$existing_tags = SQL::fetchAllSingle("SELECT `tag` FROM bigtree_tags_rel
+												  WHERE `table` = ? AND `entry` = ?", $this->Table, $id);
 			$this->handleManyToMany($id, $many_to_many);
 			$this->handleTags($id, $tags);
+			Tag::updateReferenceCounts(array_merge($existing_tags, $tags));
 			
 			// See if there's a pending change that's being published
 			$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = ? AND `item_id` = ?", $this->Table, $id);
@@ -739,8 +745,6 @@
 			if ($this->Table != "bigtree_pages") {
 				ModuleView::cacheForAll($id, $this->Table);
 			}
-			
-			Tag::updateReferenceCounts($tags);
 		}
 		
 		/*

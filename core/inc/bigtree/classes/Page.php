@@ -1692,6 +1692,8 @@
 			SQL::delete("bigtree_pending_changes", ["table" => "bigtree_pages", "item_id" => $this->ID]);
 			
 			// Handle tags
+			$existing_tags = SQL::fetchAllSingle("SELECT tag FROM bigtree_tags_rel
+												  WHERE `table` = 'bigtree_pages' AND `entry` = ?", $this->ID);
 			SQL::delete("bigtree_tags_rel", ["table" => "bigtree_pages", "entry" => $this->ID]);
 			$this->Tags = array_unique($this->Tags);
 			$tag_ids = [];
@@ -1705,9 +1707,11 @@
 
 				$tag_ids[] = $tag->ID;
 			}
+			
+			$update_tags = array_merge($existing_tags, $tag_ids);
 
-			if (count($tag_ids)) {
-				Tag::updateReferenceCounts($tag_ids);
+			if (count($update_tags)) {
+				Tag::updateReferenceCounts($update_tags);
 			}
 			
 			// If this page is a trunk in a multi-site setup, wipe the cache
