@@ -8,9 +8,10 @@
 	
 	use stdClass;
 	
-	class Activity {
+	class Activity
+	{
 		
-		/** @var \BigTree\YouTube\API */
+		/** @var API */
 		protected $API;
 		
 		public $ChannelID;
@@ -31,7 +32,8 @@
 		public $Type;
 		public $Upload;
 		
-		function __construct(stdClass $activity, API &$api) {
+		function __construct(stdClass $activity, API &$api)
+		{
 			$type = $activity->snippet->type;
 			
 			$this->API = $api;

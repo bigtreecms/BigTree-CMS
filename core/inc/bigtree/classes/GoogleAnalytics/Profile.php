@@ -9,8 +9,10 @@
 	
 	use stdClass;
 	
-	class Profile {
+	class Profile
+	{
 		
+		/** @var API */
 		protected $API;
 		
 		public $AccountID;
@@ -24,7 +26,8 @@
 		public $UpdatedAt;
 		public $WebsiteURL;
 		
-		function __construct(stdClass $profile, API &$api) {
+		function __construct(stdClass $profile, API &$api)
+		{
 			$this->AccountID = $profile->accountId;
 			$this->API = $api;
 			$this->CreatedAt = date("Y-m-d H:i:s", strtotime($profile->created));

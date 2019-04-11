@@ -10,10 +10,11 @@
 	
 	class Picture {
 		
-		/** @var \BigTree\Facebook\API */
+		/** @var API */
 		protected $API;
 		
-		function __construct(stdClass $picture, API &$api) {
+		function __construct(stdClass $picture, API &$api)
+		{
 			$this->API = $api;
 			
 			$this->CreatedTime = $picture->created_time;
@@ -37,7 +38,8 @@
 				Returns the url of the requested image or the default image.
 		*/
 		
-		function getSize(string $dimensions): string {
+		function getSize(string $dimensions): string
+		{
 			if (isset($this->Images[$dimensions])) {
 				return $this->Images[$dimensions];
 			}

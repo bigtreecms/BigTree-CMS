@@ -9,10 +9,12 @@
 	use BigTree\cURL;
 	use BigTree\Email;
 	
-	class Mailgun extends Provider {
+	class Mailgun extends Provider
+	{
 		
 		// Implements Provider::send
-		function send(Email $email): ?bool {
+		function send(Email $email): ?bool
+		{
 			// Get formatted name/email
 			list($from_email, $from_name) = $this->parseAddress($email->From);
 			
@@ -62,4 +64,5 @@
 				return false;
 			}
 		}
+		
 	}

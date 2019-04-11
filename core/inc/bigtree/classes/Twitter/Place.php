@@ -6,9 +6,10 @@
 
 	namespace BigTree\Twitter;
 
-	class Place {
+	class Place
+	{
 
-		/** @var \BigTree\Twitter\API */
+		/** @var API */
 		protected $API;
 
 		public $BoundingBox;
@@ -29,7 +30,8 @@
 				api - Reference to the BigTree\Twitter\API class instance
 		*/
 
-		function __construct($place, API &$api) {
+		function __construct($place, API &$api)
+		{
 			$this->API = $api;
 			isset($place->bounding_box->coordinates) ? $this->BoundingBox = $place->bounding_box->coordinates : false;
 			isset($place->country) ? $this->Country = $place->country : false;
@@ -46,7 +48,8 @@
 				Returns the Places's name when this object is treated as a string.
 		*/
 
-		function __toString(): string {
+		function __toString(): string
+		{
 			return $this->Name;
 		}
 

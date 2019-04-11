@@ -8,7 +8,8 @@
 	
 	use BigTree\Email;
 	
-	class Provider {
+	class Provider
+	{
 		
 		protected $Settings;
 		
@@ -19,7 +20,8 @@
 				Sets up the current service settings.
 		*/
 		
-		function __construct(?array $settings = []) {
+		function __construct(?array $settings = [])
+		{
 			$this->Settings = $settings;
 		}
 		
@@ -35,7 +37,8 @@
 				Properly formatted name & email as an array
 		*/
 		
-		function parseAddress(?string $address = null, bool $use_default = true): array {
+		function parseAddress(?string $address = null, bool $use_default = true): array
+		{
 			$email = $name = "";
 			
 			if (empty($address) && $use_default) {
@@ -73,7 +76,8 @@
 				Sets $this->Error with error response if not successful.
 		*/
 		
-		function send(Email $email): ?bool {
+		function send(Email $email): ?bool
+		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
 			return null;

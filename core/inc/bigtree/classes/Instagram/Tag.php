@@ -8,9 +8,10 @@
 	
 	use stdClass;
 	
-	class Tag {
+	class Tag
+	{
 		
-		/** @var \BigTree\Instagram\API */
+		/** @var API */
 		protected $API;
 		
 		public $MediaCount;
@@ -25,7 +26,8 @@
 				api - Reference to the BigTree\Instagram\API class instance
 		*/
 		
-		function __construct(stdClass $tag, API &$api) {
+		function __construct(stdClass $tag, API &$api)
+		{
 			$this->API = $api;
 			isset($tag->media_count) ? $this->MediaCount = $tag->media_count : false;
 			isset($tag->name) ? $this->Name = $tag->name : false;
@@ -36,7 +38,8 @@
 				Alias for BigTree\Instagram\API::getTaggedMedia
 		*/
 		
-		function getMedia(): ?ResultSet {
+		function getMedia(): ?ResultSet
+		{
 			return $this->API->getTaggedMedia($this->Name);
 		}
 		

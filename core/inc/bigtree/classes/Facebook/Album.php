@@ -8,14 +8,16 @@
 	
 	use stdClass;
 	
-	class Album {
+	class Album
+	{
 		
-		/** @var \BigTree\Facebook\API */
+		/** @var API */
 		protected $API;
 		
 		public $Pictures;
 		
-		function __construct(stdClass $album, API &$api) {
+		function __construct(stdClass $album, API &$api)
+		{
 			$this->API = $api;
 			
 			$response = $this->API->call($album->cover_photo->id."?fields=source,created_time,images");
@@ -39,7 +41,8 @@
 				Returns an array of BigTree\Facebook\Picture objects or false on failure.
 		*/
 		
-		function getPictures(): ?array {
+		function getPictures(): ?array
+		{
 			if (isset($this->Pictures)) {
 				return $this->Pictures;
 			}
@@ -58,5 +61,6 @@
 			
 			return null;
 		}
+		
 	}
 	

@@ -6,7 +6,8 @@
 	
 	namespace BigTree\PaymentGateway;
 	
-	class LinkPoint extends Provider {
+	class LinkPoint extends Provider
+	{
 		
 		protected $Certificate;
 		protected $DefaultParameters;
@@ -19,7 +20,8 @@
 				Prepares an environment for LinkPoint payments.
 		*/
 		
-		function __construct() {
+		function __construct()
+		{
 			parent::__construct();
 			
 			$this->Store = $this->Settings["linkpoint-store"];
@@ -37,7 +39,8 @@
 		// Implements Provider::authorize
 		function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
 						   int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
-						   ?string $customer = ""): ?string {
+						   ?string $customer = ""): ?string
+		{
 			return $this->charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description,
 								 $email, $phone, $customer, "AUTH_ONLY");
 		}
@@ -47,7 +50,8 @@
 				Sends an API call to LinkPoint.
 		*/
 		
-		function call($params) {
+		function call($params)
+		{
 			$count = 0;
 			$this->Unresponsive = false;
 			
@@ -102,7 +106,8 @@
 		}
 		
 		// Implements Provider::capture
-		function capture(string $transaction, ?float $amount = null): ?string {
+		function capture(string $transaction, ?float $amount = null): ?string
+		{
 			$params = [
 				"orderoptions" => [
 					"ordertype" => "POSTAUTH"
@@ -133,7 +138,8 @@
 		// Implements Provider::charge
 		function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
 						int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
-						?string $customer = "", ?string $action = null): ?string {
+						?string $customer = "", ?string $action = null): ?string
+		{
 			// Clean up the amount and tax.
 			$amount = $this->formatCurrency($amount);
 			$tax = $this->formatCurrency($tax);
@@ -214,7 +220,8 @@
 		}
 		
 		// Implements Provider::refund
-		function refund(string $transaction, ?string $card_number = null, ?float $amount = null): ?string {
+		function refund(string $transaction, ?string $card_number = null, ?float $amount = null): ?string
+		{
 			$params = [
 				"orderoptions" => [
 					"ordertype" => "CREDIT"
@@ -246,7 +253,8 @@
 		}
 		
 		// Implements Provider::void
-		function void(string $authorization): ?string {
+		function void(string $authorization): ?string
+		{
 			$params = [
 				"orderoptions" => [
 					"ordertype" => "VOID"

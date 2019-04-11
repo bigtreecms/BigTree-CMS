@@ -291,7 +291,7 @@
 				Information directly from the API.
 		*/
 		
-		function callUncached(string $endpoint = "", array $params = [], string $method = "GET", array $headers = []): ?stdClass {
+		function callUncached(string $endpoint = "", $params = [], string $method = "GET", array $headers = []): ?stdClass {
 			if (!$this->Connected) {
 				trigger_error("This API is not connected.", E_USER_ERROR);
 			}

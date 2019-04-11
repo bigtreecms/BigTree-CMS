@@ -9,10 +9,12 @@
 	use BigTree\cURL;
 	use BigTree\Email;
 	
-	class Postmark extends Provider {
+	class Postmark extends Provider
+	{
 		
 		// Implements Provider::send
-		function send(Email $email): ?bool {
+		function send(Email $email): ?bool
+		{
 			// Get formatted name/email
 			list($from_email, $from_name) = $this->parseAddress($email->From);
 			

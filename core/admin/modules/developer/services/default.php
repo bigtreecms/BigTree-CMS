@@ -19,7 +19,6 @@
 		$facebook = new Facebook\API;
 		$twitter = new Twitter\API;
 		$instagram = new Instagram\API;
-		$google = new GooglePlus\API;
 		$youtube = new YouTube\API;
 		$flickr = new Flickr\API;
 		$disqus = new Disqus\API;
@@ -41,11 +40,6 @@
 		<a class="box_select<?php if ($instagram->Connected) { ?> connected<?php } ?>" href="instagram/">
 			<span class="instagram"></span>
 			<p>Instagram</p>
-		</a>
-		
-		<a class="box_select<?php if ($google->Connected) { ?> connected<?php } ?>" href="googleplus/">
-			<span class="googleplus"></span>
-			<p>Google+</p>
 		</a>
 		
 		<a class="box_select<?php if ($youtube->Connected) { ?> connected<?php } ?>" href="youtube/">

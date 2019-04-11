@@ -10,9 +10,10 @@
 	use BigTree\GoogleResultSet;
 	use stdClass;
 	
-	class Account {
+	class Account
+	{
 		
-		/** @var \BigTree\GoogleAnalytics\API */
+		/** @var API */
 		protected $API;
 		
 		public $CreatedAt;
@@ -20,7 +21,8 @@
 		public $Name;
 		public $UpdatedAt;
 		
-		function __construct(stdClass $account, API &$api) {
+		function __construct(stdClass $account, API &$api)
+		{
 			$this->API = $api;
 			$this->CreatedAt = date("Y-m-d H:i:s", strtotime($account->created));
 			$this->ID = $account->id;
@@ -28,7 +30,8 @@
 			$this->UpdatedAt = date("Y-m-d H:i:s", strtotime($account->updated));
 		}
 		
-		function getProperties(array $params): ?GoogleResultSet {
+		function getProperties(array $params): ?GoogleResultSet
+		{
 			return $this->API->getProperties($this->ID, $params);
 		}
 		

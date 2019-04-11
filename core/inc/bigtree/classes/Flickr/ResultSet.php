@@ -8,9 +8,10 @@
 	
 	use ArrayAccess;
 	
-	class ResultSet implements ArrayAccess{
+	class ResultSet implements ArrayAccess
+	{
 		
-		/** @var \BigTree\Flickr\API */
+		/** @var API */
 		protected $API;
 		protected $LastCall;
 		protected $LastParameters;
@@ -33,7 +34,8 @@
 		*/
 		
 		function __construct(API &$api, string $last_call, array $params, array $results, int $current_page,
-							 int $total_pages) {
+							 int $total_pages)
+		{
 			$this->API = $api;
 			$this->CurrentPage = $current_page;
 			$this->LastCall = $last_call;
@@ -50,7 +52,8 @@
 				A ResultSet with the next page of results.
 		*/
 		
-		function nextPage(): ?ResultSet {
+		function nextPage(): ?ResultSet
+		{
 			if ($this->CurrentPage < $this->TotalPages) {
 				$params = $this->LastParameters;
 				$params["page"] = $this->CurrentPage + 1;
@@ -62,7 +65,8 @@
 		}
 		
 		// Array iterator implementation
-		function offsetSet($index, $value) {
+		function offsetSet($index, $value)
+		{
 			if (is_null($index)) {
 				$this->Results[] = $value;
 			} else {
@@ -70,15 +74,18 @@
 			}
 		}
 		
-		function offsetExists($index) {
+		function offsetExists($index)
+		{
 			return isset($this->Results[$index]);
 		}
 		
-		function offsetUnset($index) {
+		function offsetUnset($index)
+		{
 			unset($this->Results[$index]);
 		}
 		
-		function offsetGet($index) {
+		function offsetGet($index)
+		{
 			return isset($this->Results[$index]) ? $this->Results[$index] : null;
 		}
 		
@@ -90,7 +97,8 @@
 				A ResultSet with the next page of results.
 		*/
 		
-		function previousPage(): ?ResultSet {
+		function previousPage(): ?ResultSet
+		{
 			if ($this->CurrentPage > 1) {
 				$params = $this->LastParameters;
 				$params["page"] = $this->CurrentPage - 1;

@@ -8,9 +8,10 @@
 	
 	use stdClass;
 	
-	class Person {
+	class Person
+	{
 		
-		/** @var \BigTree\Flickr\API */
+		/** @var API */
 		protected $API;
 		
 		public $Description;
@@ -26,7 +27,8 @@
 		public $ProfileURL;
 		public $Username;
 		
-		function __construct(stdClass $person, API &$api) {
+		function __construct(stdClass $person, API &$api)
+		{
 			// Sometimes the owner is just an ID, so we'll need to fetch data
 			if (is_string($person)) {
 				$r = $api->call("flickr.people.getInfo", ["user_id" => $person]);
@@ -61,7 +63,8 @@
 				An array of BigTree\Flickr\Group objects or null if the call fails.
 		*/
 		
-		function getGroups(): ?array {
+		function getGroups(): ?array
+		{
 			$response = $this->API->call("flickr.people.getGroups", ["user_id" => $this->ID]);
 			$groups = [];
 			
@@ -88,8 +91,9 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 		
-		function getPhotos(int $per_page = 100, array $params = []): ?ResultSet {
-			return $this->API->getPhotosForPerson($this->ID, $per_page, $params);
+		function getPhotos(int $per_page = 100, array $params = []): ?ResultSet
+		{
+			return $this->API->getPhotosForPerson($this->ID, $per_page, "", $params);
 		}
 		
 		/*
@@ -104,8 +108,9 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 		
-		function getPhotosOf(int $per_page = 100, array $params = []): ?ResultSet {
-			return $this->API->getPhotosOfPerson($this->ID, $per_page, $params);
+		function getPhotosOf(int $per_page = 100, array $params = []): ?ResultSet
+		{
+			return $this->API->getPhotosOfPerson($this->ID, $per_page, "", $params);
 		}
 		
 	}

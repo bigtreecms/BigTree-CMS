@@ -8,9 +8,10 @@
 	
 	use stdClass;
 	
-	class Playlist {
+	class Playlist
+	{
 		
-		/** @var \BigTree\YouTube\API */
+		/** @var API */
 		protected $API;
 		
 		public $ChannelID;
@@ -23,7 +24,8 @@
 		public $Timestamp;
 		public $Title;
 		
-		function __construct(stdClass $playlist, API &$api) {
+		function __construct(stdClass $playlist, API &$api)
+		{
 			$this->API = $api;
 			isset($playlist->snippet->channelId) ? $this->ChannelID = $playlist->snippet->channelId : false;
 			isset($playlist->snippet->channelTitle) ? $this->ChannelTitle = $playlist->snippet->channelTitle : false;
@@ -54,7 +56,8 @@
 				true if successful.
 		*/
 		
-		function save(): bool {
+		function save(): bool
+		{
 			return $this->API->updatePlaylist($this->ID, $this->Title, $this->Description, $this->Privacy, $this->Tags);
 		}
 		
@@ -64,8 +67,9 @@
 				Playlist must be owned by the authenticated user.
 		*/
 		
-		function delete(): void {
-			return $this->API->deletePlaylist($this->ID);
+		function delete(): void
+		{
+			$this->API->deletePlaylist($this->ID);
 		}
 		
 	}

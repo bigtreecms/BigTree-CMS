@@ -8,9 +8,10 @@
 	
 	use stdClass;
 	
-	class Group {
+	class Group
+	{
 		
-		/** @var \BigTree\Flickr\API */
+		/** @var API */
 		protected $API;
 		
 		public $Description;
@@ -22,7 +23,8 @@
 		public $Rules;
 		public $TopicCount;
 		
-		function __construct(stdClass $group, API &$api) {
+		function __construct(stdClass $group, API &$api)
+		{
 			$this->API = $api;
 			isset($group->description->_content) ? $this->Description = $group->description->_content : false;
 			$this->ID = isset($group->nsid) ? $group->nsid : $group->id;

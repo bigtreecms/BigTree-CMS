@@ -8,9 +8,10 @@
 	
 	use stdClass;
 	
-	class JobTitle {
+	class JobTitle
+	{
 		
-		/** @var \BigTree\Facebook\API */
+		/** @var API */
 		protected $API;
 		
 		function __construct(stdClass $job, API &$api) {

@@ -8,7 +8,8 @@
 	
 	use BigTree\cURL;
 	
-	class PayPalPaymentsPro extends Provider {
+	class PayPalPaymentsPro extends Provider
+	{
 		
 		protected $DefaultParameters;
 		protected $Environment;
@@ -24,7 +25,8 @@
 				Prepares an environment for Authorize.Net payments.
 		*/
 		
-		function __construct() {
+		function __construct()
+		{
 			parent::__construct();
 			
 			$this->Username = $this->Settings["paypal-username"];
@@ -49,7 +51,8 @@
 		// Implements Provider::authorize
 		function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
 						   int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
-						   ?string $customer = ""): ?string {
+						   ?string $customer = ""): ?string
+		{
 			return $this->charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description,
 								 $email, $phone, $customer, "AUTH_ONLY");
 		}
@@ -59,7 +62,8 @@
 				Sends an API call to PayPal Payments Pro.
 		*/
 		
-		function call(array $params): ?array {
+		function call(array $params): ?array
+		{
 			$count = 0;
 			$this->Unresponsive = false;
 			
@@ -97,7 +101,8 @@
 		}
 		
 		// Implements Provider::capture
-		function capture(string $transaction, ?float $amount = null): ?string {
+		function capture(string $transaction, ?float $amount = null): ?string
+		{
 			$params = [
 				"METHOD" => "DoCapture",
 				"COMPLETETYPE" => "Complete",
@@ -121,7 +126,8 @@
 		// Implements Provider::charge
 		function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
 						int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
-						?string $customer = "", ?string $action = null): ?string {
+						?string $customer = "", ?string $action = null): ?string
+		{
 			// Make card number only have numeric digits
 			$card_number = preg_replace('/\D/', '', $card_number);
 			
@@ -190,7 +196,8 @@
 										int $frequency, string $card_name, string $card_number, int $card_expiration,
 										int $cvv, array $address, string $email, ?float $trial_amount = null,
 										?string $trial_period = null, ?int $trial_frequency = null,
-										?int $trial_length = null): ?string {
+										?int $trial_length = null): ?string
+		{
 			// Default to today for start
 			$start_time = $start_date ? strtotime($start_date) : time();
 			
@@ -244,7 +251,8 @@
 		}
 		
 		// Implements Provider::paypalExpressCheckoutDetails
-		function paypalExpressCheckoutDetails(string $token): ?array {
+		function paypalExpressCheckoutDetails(string $token): ?array
+		{
 			$params = [
 				"METHOD" => "GetExpressCheckoutDetails",
 				"TOKEN" => $token
@@ -261,7 +269,8 @@
 		}
 		
 		// Implements Provider::paypalExpressCheckoutProcess
-		function paypalExpressCheckoutProcess(string $token, string $payer_id, ?float $amount = null): ?array {
+		function paypalExpressCheckoutProcess(string $token, string $payer_id, ?float $amount = null): ?array
+		{
 			// Clean up the amount.
 			$amount = $this->formatCurrency($amount);
 			
@@ -287,7 +296,8 @@
 		}
 		
 		// Implements Provider::paypalExpressCheckoutRedirect
-		function paypalExpressCheckoutRedirect(float $amount, string $success_url, string $cancel_url): void {
+		function paypalExpressCheckoutRedirect(float $amount, string $success_url, string $cancel_url): void
+		{
 			// Clean up the amount.
 			$amount = $this->formatCurrency($amount);
 			
@@ -311,7 +321,8 @@
 		}
 		
 		// Implements Provider::refund
-		function refund(string $transaction, ?string $card_number = null, ?float $amount = null): ?string {
+		function refund(string $transaction, ?string $card_number = null, ?float $amount = null): ?string
+		{
 			$params = [
 				"METHOD" => "RefundTransaction",
 				"TRANSACTIONID" => $transaction
@@ -338,7 +349,8 @@
 		}
 		
 		// Implements Provider::void
-		function void(string $authorization): ?string {
+		function void(string $authorization): ?string
+		{
 			$params = [
 				"METHOD" => "DoVoid",
 				"AUTHORIZATIONID" => $authorization

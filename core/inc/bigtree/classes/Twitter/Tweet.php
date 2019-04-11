@@ -8,9 +8,10 @@
 
 	use stdClass;
 
-	class Tweet {
+	class Tweet
+	{
 
-		/** @var \BigTree\Twitter\API */
+		/** @var API */
 		protected $API;
 
 		public $Content;
@@ -42,7 +43,8 @@
 				api - Reference to the BigTree\Twitter\API class instance
 		*/
 
-		function __construct($tweet, API &$api) {
+		function __construct($tweet, API &$api)
+		{
 			$this->API = $api;
 			isset($tweet->text) ? $this->Content = $tweet->text : false;
 			isset($tweet->full_text) ? $this->Content = $tweet->full_text : false;
@@ -130,7 +132,8 @@
 				Returns the Tweet's content when this object is treated as a string.
 		*/
 
-		function __toString(): string {
+		function __toString(): string
+		{
 			return $this->Content;
 		}
 
@@ -143,7 +146,8 @@
 				True if successful.
 		*/
 
-		function delete(): bool {
+		function delete(): bool
+		{
 			return $this->API->deleteTweet($this->ID);
 		}
 
@@ -155,7 +159,8 @@
 				A BigTree\Twitter\Tweet object if successful.
 		*/
 
-		function favorite(): ?Tweet {
+		function favorite(): ?Tweet
+		{
 			return $this->API->favoriteTweet($this->ID);
 		}
 
@@ -167,7 +172,8 @@
 				True if successful.
 		*/
 
-		function retweet(): bool {
+		function retweet(): bool
+		{
 			return $this->API->retweetTweet($this->IsRetweet ? $this->OriginalTweet->ID : $this->ID);
 		}
 
@@ -179,7 +185,8 @@
 				An array of BigTree\Twitter\Tweet objects.
 		*/
 
-		function retweets(): array {
+		function retweets(): array
+		{
 			// We know how many retweets the tweet has already, so don't bother asking Twitter if it's 0.
 			if (!$this->RetweetCount) {
 				return [];
@@ -208,7 +215,8 @@
 				An array of Twitter IDs
 		*/
 
-		function retweeters(): ?array {
+		function retweeters(): ?array
+		{
 			$id = $this->IsRetweet ? $this->OriginalTweet->ID : $id = $this->ID;
 			$response = $this->API->call("statuses/retweeters/ids.json",array("id" => $id));
 
@@ -227,7 +235,9 @@
 				A BigTree\Twitter\Tweet object if successful.
 		*/
 
-		function unfavorite(): ?Tweet {
+		function unfavorite(): ?Tweet
+		{
 			return $this->API->unfavoriteTweet($this->ID);
 		}
+		
 	}

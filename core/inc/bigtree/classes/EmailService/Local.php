@@ -9,10 +9,12 @@
 	use BigTree\Email;
 	use PHPMailer\PHPMailer\PHPMailer;
 	
-	class Local extends Provider {
+	class Local extends Provider
+	{
 		
 		// Implements Provider::send
-		function send(Email $email): ?bool {
+		function send(Email $email): ?bool
+		{
 			$mailer = new PHPMailer;
 			
 			foreach ($email->Headers as $key => $val) {

@@ -8,11 +8,14 @@
 	
 	use stdClass;
 	
-	class Album {
+	class Album
+	{
 		
+		/** @var API */
 		protected $API;
 		
-		function __construct(stdClass $album, API &$api) {
+		function __construct(stdClass $album, API &$api)
+		{
 			$this->API = $api;
 			
 			if (isset($album->primary_photo_extras->url_sq)) {
@@ -46,10 +49,11 @@
 				info - A comma separated list of additional information to retrieve (defaults to license, date_upload, date_taken, owner_name, icon_server, original_format, last_update)
 
 			Returns:
-				A BigTreeFlickrREsultSet of BigTreeFlickrPhoto objects or false if the call fails.
+				A BigTree\Flickr\ResultSet of BigTree\Flickr\Photo objects or null if the call fails.
 		*/
 		
-		function getPhotos($privacy = 1, $info = "license,date_upload,date_taken,owner_name,icon_server,original_format,last_update") {
+		function getPhotos($privacy = 1, $info = ""): ?ResultSet
+		{
 			return $this->API->getAlbumPhotos($this->ID, $privacy, $info);
 		}
 		

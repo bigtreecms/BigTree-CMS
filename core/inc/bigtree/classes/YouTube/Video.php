@@ -8,9 +8,10 @@
 
 	use stdClass;
 
-	class Video {
+	class Video
+	{
 
-		/** @var \BigTree\YouTube\API */
+		/** @var API */
 		protected $API;
 
 		public $Captioned;
@@ -43,7 +44,8 @@
 		public $UploadStatus;
 		public $ViewCount;
 
-		function __construct($video,&$api) {
+		function __construct($video,&$api)
+		{
 			$this->API = $api;
 			isset($video->contentDetails->caption) ? $this->Captioned = $video->contentDetails->caption : false;
 			isset($video->snippet->categoryId) ? $this->CategoryID = $video->snippet->categoryId : false;
@@ -101,8 +103,9 @@
 				true on success.
 		*/
 
-		function delete(): bool {
-			return $this->API->deleteVideo($this->ID);
+		function delete(): void
+		{
+			$this->API->deleteVideo($this->ID);
 		}
 
 		/*
@@ -114,7 +117,8 @@
 				A new Video object with more details.
 		*/
 
-		function getDetails(): ?Video {
+		function getDetails(): ?Video
+		{
 			return $this->API->getVideo($this->ID);
 		}
 
@@ -126,7 +130,8 @@
 				rating - "like", "dislike", or "none" (for clearing an existing rating)
 		*/
 
-		function rate(string $rating): bool {
+		function rate(string $rating): bool
+		{
 			return $this->API->rateVideo($this->ID,$rating);
 		}
 
@@ -139,7 +144,8 @@
 				true on success.
 		*/
 
-		function save(): bool {
+		function save(): bool
+		{
 			$object = json_encode(array(
 				"id" => $this->ID,
 				"snippet" => array(

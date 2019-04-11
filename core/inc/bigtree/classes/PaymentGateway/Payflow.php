@@ -8,7 +8,8 @@
 	
 	use BigTree\cURL;
 	
-	class Payflow extends Provider {
+	class Payflow extends Provider
+	{
 		
 		protected $DefaultParameters;
 		protected $Environment;
@@ -26,7 +27,8 @@
 				Prepares an environment for Authorize.Net payments.
 		*/
 		
-		function __construct() {
+		function __construct()
+		{
 			parent::__construct();
 			
 			$this->Username = $this->Settings["payflow-username"];
@@ -52,7 +54,8 @@
 		// Implements Provider::authorize
 		function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
 						   int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
-						   ?string $customer = ""): ?string {
+						   ?string $customer = ""): ?string
+		{
 			return $this->charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description,
 								 $email, $phone, $customer, "AUTH_ONLY");
 		}
@@ -62,7 +65,8 @@
 				Sends an API call to PayPal Payflow Gateway.
 		*/
 		
-		function call(array $params): ?array {
+		function call(array $params): ?array
+		{
 			$count = 0;
 			$this->Unresponsive = false;
 			
@@ -108,7 +112,8 @@
 		}
 		
 		// Implements Provider::capture
-		function capture(string $transaction, ?float $amount = null): ?string {
+		function capture(string $transaction, ?float $amount = null): ?string
+		{
 			$params = [
 				"TRXTYPE" => "D",
 				"ORIGID" => $transaction
@@ -134,7 +139,8 @@
 		// Implements Provider::charge
 		function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
 						int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
-						?string $customer = "", ?string $action = null): ?string {
+						?string $customer = "", ?string $action = null): ?string
+		{
 			// Make card number only have numeric digits
 			$card_number = preg_replace('/\D/', '', $card_number);
 			
@@ -196,7 +202,8 @@
 		}
 		
 		// Implements Provider::paypalExpressCheckoutDetails
-		function paypalExpressCheckoutDetails(string $token): ?array {
+		function paypalExpressCheckoutDetails(string $token): ?array
+		{
 			$params = [
 				"TOKEN" => $token,
 				"TRXTYPE" => "S",
@@ -215,7 +222,8 @@
 		}
 		
 		// Implements Provider::paypalExpressCheckoutProcess
-		function paypalExpressCheckoutProcess(string $token, string $payer_id, ?float $amount = null): ?array {
+		function paypalExpressCheckoutProcess(string $token, string $payer_id, ?float $amount = null): ?array
+		{
 			$amount = $this->formatCurrency($amount);
 			
 			$params = [
@@ -242,7 +250,8 @@
 		}
 		
 		// Implements Provider::paypalExpressCheckoutRedirect
-		function paypalExpressCheckoutRedirect(float $amount, string $success_url, string $cancel_url): void {
+		function paypalExpressCheckoutRedirect(float $amount, string $success_url, string $cancel_url): void
+		{
 			// Clean up the amount.
 			$amount = $this->formatCurrency($amount);
 			
@@ -267,7 +276,8 @@
 		}
 		
 		// Implements Provider::refund
-		function refund(string $transaction, ?string $card_number = null, ?float $amount = null): ?string {
+		function refund(string $transaction, ?string $card_number = null, ?float $amount = null): ?string
+		{
 			$params = [
 				"TRXTYPE" => "C",
 				"ORIGID" => $transaction
@@ -291,7 +301,8 @@
 		}
 		
 		// Implements Provider::void
-		function void(string $authorization): ?string {
+		function void(string $authorization): ?string
+		{
 			$params = [
 				"TRXTYPE" => "V",
 				"ORIGID" => $authorization

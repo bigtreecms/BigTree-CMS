@@ -8,7 +8,8 @@
 	
 	use BigTree\cURL;
 	
-	class AuthorizeNet extends Provider {
+	class AuthorizeNet extends Provider
+	{
 		
 		protected $APILogin;
 		protected $DefaultParameters;
@@ -21,7 +22,8 @@
 				Prepares an environment for Authorize.Net payments.
 		*/
 		
-		function __construct() {
+		function __construct()
+		{
 			parent::__construct();
 			
 			$this->APILogin = $this->Settings["authorize-api-login"];
@@ -49,7 +51,8 @@
 		// Implements Provider::authorize
 		function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
 						   int $cvv, array $address, ?string $description = "", ?string $email = "",
-						   ?string $phone = "", ?string $customer = ""): ?string {
+						   ?string $phone = "", ?string $customer = ""): ?string
+		{
 			return $this->charge($amount, $tax, $card_name, $card_number, $card_expiration, $cvv, $address, $description,
 								 $email, $phone, $customer, "AUTH_ONLY");
 		}
@@ -59,7 +62,8 @@
 				Sends an API call to Authorize.Net.
 		*/
 		
-		function call(array $params): ?array {
+		function call(array $params): ?array
+		{
 			$count = 0;
 			$possibilities = ["", "approved", "declined", "error"];
 			$this->Unresponsive = false;
@@ -101,7 +105,8 @@
 		}
 		
 		// Implements Provider::capture
-		function capture(string $transaction, ?float $amount = null): ?string {
+		function capture(string $transaction, ?float $amount = null): ?string
+		{
 			$params = [
 				"x_type" => "PRIOR_AUTH_CAPTURE",
 				"x_trans_id" => $transaction
@@ -128,7 +133,8 @@
 		// Implements Provider::charge
 		function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
 						int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
-						?string $customer = "", ?string $action = null): ?string {
+						?string $customer = "", ?string $action = null): ?string
+		{
 			
 			if (!$action) {
 				$action = "AUTH_CAPTURE";
@@ -200,7 +206,8 @@
 		}
 		
 		// Implements Provider::refund
-		function refund(string $transaction, ?string $card_number = "", ?float $amount = 0.0): ?string {
+		function refund(string $transaction, ?string $card_number = "", ?float $amount = 0.0): ?string
+		{
 			// Setup request params
 			$params = [
 				"x_type" => "CREDIT",
@@ -226,7 +233,8 @@
 		}
 		
 		// Implements Provider::void
-		function void(string $authorization): ?string {
+		function void(string $authorization): ?string
+		{
 			$params = [
 				"x_type" => "VOID",
 				"x_trans_id" => $authorization

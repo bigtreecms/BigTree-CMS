@@ -8,16 +8,18 @@
 	
 	use stdClass;
 	
-	class Subscription {
+	class Subscription
+	{
 		
-		/** @var \BigTree\YouTube\API */
+		/** @var API */
 		protected $API;
 		
 		public $Channel;
 		public $ID;
 		public $Timestamp;
 		
-		function __construct(stdClass $subscription, API &$api) {
+		function __construct(stdClass $subscription, API &$api)
+		{
 			$this->API = $api;
 			
 			$channel = new stdClass;
@@ -37,7 +39,8 @@
 				Removes this subscription from the authenticated user's subscribed channels.
 		*/
 		
-		function delete(): void {
+		function delete(): void
+		{
 			$this->API->call("subscriptions?id=".$this->ID, false, "DELETE");
 		}
 		

@@ -8,9 +8,10 @@
 	
 	use stdClass;
 	
-	class Media {
+	class Media
+	{
 		
-		/** @var \BigTree\Instagram\API */
+		/** @var API */
 		protected $API;
 		
 		public $Caption;
@@ -40,7 +41,8 @@
 				api - Reference to the BigTree\Instagram\API class instance
 		*/
 		
-		function __construct(stdClass $media, API &$api) {
+		function __construct(stdClass $media, API &$api)
+		{
 			$this->API = $api;
 			isset($media->caption) ? $this->Caption = $media->caption->text : false;
 			isset($media->filter) ? $this->Filter = $media->filter : false;
@@ -99,7 +101,8 @@
 				Alias for BigTree\Instagram\API::comment
 		*/
 		
-		function comment(string $comment): bool {
+		function comment(string $comment): bool
+		{
 			return $this->API->comment($this->ID, $comment);
 		}
 		
@@ -108,7 +111,8 @@
 				Alias for BigTree\Instagram\API::getComments
 		*/
 		
-		function getComments(): ?array {
+		function getComments(): ?array
+		{
 			return $this->API->getComments($this->ID);
 		}
 		
@@ -117,7 +121,8 @@
 				Alias for BigTree\Instagram\API::getLikes
 		*/
 		
-		function getLikes(): ?array {
+		function getLikes(): ?array
+		{
 			return $this->API->getLikes($this->ID);
 		}
 		
@@ -126,8 +131,9 @@
 				Alias for BigTree\Instagram\API::getLocation
 		*/
 		
-		function getLocation(): ?Location {
-			return $this->API->getLikes($this->Location->ID);
+		function getLocation(): ?Location
+		{
+			return $this->API->getLocation($this->Location->ID);
 		}
 		
 		/*
@@ -135,7 +141,8 @@
 				Alias for BigTree\Instagram\API::getUser
 		*/
 		
-		function getUser(): ?User {
+		function getUser(): ?User
+		{
 			return $this->API->getUser($this->User->ID);
 		}
 		
@@ -144,7 +151,8 @@
 				Alias for BigTree\Instagram\API::like
 		*/
 		
-		function like(): bool {
+		function like(): bool
+		{
 			return $this->API->like($this->ID);
 		}
 		
@@ -153,7 +161,8 @@
 				Alias for BigTree\Instagram\API::unlike
 		*/
 		
-		function unlike(): bool {
+		function unlike(): bool
+		{
 			return $this->API->unlike($this->ID);
 		}
 		

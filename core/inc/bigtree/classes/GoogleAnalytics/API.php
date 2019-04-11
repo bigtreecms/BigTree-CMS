@@ -14,7 +14,8 @@
 	use BigTree\SQL;
 	use stdClass;
 	
-	class API extends OAuth {
+	class API extends OAuth
+	{
 		
 		public $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
 		public $ClientID = "423602902679-h7bva04vid397g496l07csispa6kkth3.apps.googleusercontent.com";
@@ -34,7 +35,8 @@
 				cache - Whether to use cached information (15 minute cache, defaults to false)
 		*/
 		
-		function __construct(bool $cache = false) {
+		function __construct(bool $cache = false)
+		{
 			parent::__construct("bigtree-internal-google-analytics-api", "Google Analytics API", "org.bigtreecms.api.analytics.google", $cache);
 			$this->Settings["key"] = $this->ClientID;
 			$this->Settings["secret"] = $this->ClientSecret;
@@ -46,7 +48,8 @@
 				Turns of Google Analytics settings in BigTree and deletes cached information.
 		*/
 		
-		function disconnect(): void {
+		function disconnect(): void
+		{
 			// Delete cache
 			FileSystem::deleteFile(SERVER_ROOT."cache/analytics.json");
 			SQL::delete("bigtree_caches", ["identifier" => "org.bigtreecms.api.analytics.google"]);
@@ -69,7 +72,8 @@
 				A BigTree\GoogleResultSet object of BigTree\GoogleAnalaytics\Account objects.
 		*/
 		
-		function getAccounts(array $params = []): ?GoogleResultSet {
+		function getAccounts(array $params = []): ?GoogleResultSet
+		{
 			$results = [];
 			$response = $this->call("management/accounts", $params);
 			
@@ -103,7 +107,8 @@
 		*/
 		
 		function getData(string $profile, string $start_date, string $end_date, $metrics, $dimensions = "",
-						 ?string $sort = null, int $results = 10000): ?array {
+						 ?string $sort = null, int $results = 10000): ?array
+		{
 			$start_date = date("Y-m-d", strtotime($start_date));
 			$end_date = date("Y-m-d", strtotime($end_date));
 			$metric_string = $dimension_string = "";
@@ -218,7 +223,8 @@
 				A BigTree\GoogleResultSet object of BigTree\GoogleAnalytics\Property objects.
 		*/
 		
-		function getProperties(string $account = "~all", array $params = []): ?GoogleResultSet {
+		function getProperties(string $account = "~all", array $params = []): ?GoogleResultSet
+		{
 			$results = [];
 			$response = $this->call("management/accounts/$account/webproperties", $params);
 			
@@ -246,7 +252,8 @@
 				A BigTree\GoogleResultSet of BigTree\GoogleAnalytics\Profile objects.
 		*/
 		
-		function getProfiles(string $account = "~all", string $property = "~all", array $params = []): ?GoogleResultSet {
+		function getProfiles(string $account = "~all", string $property = "~all", array $params = []): ?GoogleResultSet
+		{
 			$results = [];
 			$response = $this->call("management/accounts/$account/webproperties/$property/profiles", $params);
 			
@@ -267,7 +274,8 @@
 				Also retrieves heads up views and stores them in settings for quick retrieval. Should be called every 24 hours to refresh.
 		*/
 		
-		function cacheInformation(): void {
+		function cacheInformation(): void
+		{
 			// First we're going to update the monthly view counts for all pages.
 			$results = $this->getData($this->Settings["profile"], "1 month ago", "today", "pageviews", "pagePath");
 			$used_paths = [];
@@ -343,7 +351,8 @@
 				Private method for cacheInformation to stop so much repeat code.  Returns total visits, views, bounces, and time on site.
 		*/
 		
-		private function cacheParseLastData(): array {
+		private function cacheParseLastData(): array
+		{
 			$data_set = $this->LastDataTotals;
 			
 			if ($data_set->visits) {
@@ -372,4 +381,5 @@
 				"average_time_seconds" => $time_on_site
 			];
 		}
+		
 	}

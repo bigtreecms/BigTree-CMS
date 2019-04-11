@@ -6,16 +6,18 @@
 
 	namespace BigTree\Flickr;
 	
-	class Tag {
+	class Tag
+	{
 
-		/** @var \BigTree\Flickr\API */
+		/** @var API */
 		protected $API;
 
 		public $Author;
 		public $ID;
 		public $Name;
 
-		function __construct($tag, API &$api) {
+		function __construct($tag, API &$api)
+		{
 			if (!is_string($tag)) {
 				$this->API = $api;
 				$this->Author = $tag->author;
@@ -26,7 +28,8 @@
 			}
 		}
 
-		function __toString() {
+		function __toString()
+		{
 			return $this->Name;
 		}
 
@@ -38,7 +41,8 @@
 				true on success
 		*/
 
-		function remove(): bool {
+		function remove(): bool
+		{
 			return $this->API->removeTagFromPhoto($this->ID);
 		}
 

@@ -9,7 +9,8 @@
 	use BigTree\cURL;
 	use BigTree\OAuth;
 	
-	class API extends OAuth {
+	class API extends OAuth
+	{
 		
 		public $AuthorizeURL = "https://login.salesforce.com/services/oauth2/authorize";
 		public $EndpointURL = "";
@@ -25,7 +26,8 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 		
-		function __construct(bool $cache = true) {
+		function __construct(bool $cache = true)
+		{
 			parent::__construct("bigtree-internal-salesforce-api", "Salesforce API", "org.bigtreecms.api.salesforce", $cache);
 			
 			// Set OAuth Return URL
@@ -68,7 +70,8 @@
 				A BigTree\Salesforce\Object object.
 		*/
 		
-		function getObject(string $name): ?Object {
+		function getObject(string $name): ?Object
+		{
 			$response = $this->call("sobjects/$name/");
 			
 			if (!isset($response->objectDescribe)) {
@@ -86,7 +89,8 @@
 				An array of BigTree\Salesforce\Object objects.
 		*/
 		
-		function getObjects(): ?array {
+		function getObjects(): ?array
+		{
 			$response = $this->call("sobjects/");
 			
 			if (!isset($response->sobjects)) {
@@ -101,4 +105,5 @@
 			
 			return $objects;
 		}
+		
 	}

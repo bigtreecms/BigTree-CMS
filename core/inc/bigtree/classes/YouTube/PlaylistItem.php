@@ -8,9 +8,10 @@
 	
 	use stdClass;
 	
-	class PlaylistItem {
+	class PlaylistItem
+	{
 		
-		/** @var \BigTree\YouTube\API */
+		/** @var API */
 		protected $API;
 		
 		public $ChannelID;
@@ -28,7 +29,8 @@
 		public $VideoEndAt;
 		public $VideoStartAt;
 		
-		function __construct(stdClass $item, API &$api) {
+		function __construct(stdClass $item, API &$api)
+		{
 			$this->API = $api;
 			isset($item->snippet->channelId) ? $this->ChannelID = $item->snippet->channelId : false;
 			isset($item->snippet->channelTitle) ? $this->ChannelTitle = $item->snippet->channelTitle : false;
@@ -61,8 +63,9 @@
 				Authenticated user must be the owner of the playlist.
 		*/
 		
-		function delete(): bool {
-			return $this->API->deletePlaylistItem($this->ID);
+		function delete(): void
+		{
+			$this->API->deletePlaylistItem($this->ID);
 		}
 		
 		/*
@@ -71,7 +74,8 @@
 				Authenticated user must be the owner of the playlist.
 		*/
 		
-		function save(): bool {
+		function save(): ?PlaylistItem
+		{
 			return $this->API->updatePlaylistItem($this->ID, $this->PlaylistID, $this->VideoID, $this->Position, $this->Note, $this->API->timeJoin($this->VideoStartAt), $this->API->timeJoin($this->VideoEndAt));
 		}
 		
@@ -83,7 +87,8 @@
 				A BigTree\YouTube\Video object.
 		*/
 		
-		function video(): ?Video {
+		function video(): ?Video
+		{
 			return $this->API->getVideo($this->VideoID);
 		}
 		

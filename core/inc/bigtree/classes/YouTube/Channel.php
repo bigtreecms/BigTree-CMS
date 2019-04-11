@@ -9,9 +9,10 @@
 	use BigTree\GoogleResultSet;
 	use stdClass;
 	
-	class Channel {
+	class Channel
+	{
 		
-		/** @var \BigTree\YouTube\API */
+		/** @var API */
 		protected $API;
 		
 		public $CommentCount;
@@ -24,7 +25,8 @@
 		public $VideoCount;
 		public $ViewCount;
 		
-		function __construct(stdClass $channel, API &$api) {
+		function __construct(stdClass $channel, API &$api)
+		{
 			$this->API = $api;
 			isset($channel->statistics->commentCount) ? $this->CommentCount = $channel->statistics->commentCount : false;
 			isset($channel->snippet->description) ? $this->Description = $channel->snippet->description : false;
@@ -58,7 +60,8 @@
 				A BigTree\GoogleResultSet of BigTree\YouTube\Video objects.
 		*/
 		
-		function getVideos(int $count = 10, string $order = "date"): ?GoogleResultSet {
+		function getVideos(int $count = 10, string $order = "date"): ?GoogleResultSet
+		{
 			return $this->API->getChannelVideos($this->ID, $order, $count);
 		}
 		
@@ -67,8 +70,9 @@
 				Subscribes the authenticated user to the channel.
 		*/
 		
-		function subscribe(): bool {
-			return $this->API->subscribe($this->ID);
+		function subscribe(): void
+		{
+			$this->API->subscribe($this->ID);
 		}
 		
 		/*
@@ -76,7 +80,8 @@
 				Unsubscribes the authenticated user from the channel.
 		*/
 		
-		function unsubscribe(): bool {
+		function unsubscribe(): bool
+		{
 			return $this->API->unsubscribe($this->ID);
 		}
 		

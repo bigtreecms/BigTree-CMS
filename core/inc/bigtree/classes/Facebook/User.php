@@ -10,7 +10,7 @@
 	
 	class User {
 		
-		/** @var \BigTree\Facebook\API */
+		/** @var API */
 		protected $API;
 		
 		public $Albums;
@@ -37,7 +37,8 @@
 		public $Verified;
 		public $Work;
 		
-		function __construct(stdClass $user, API &$api) {
+		function __construct(stdClass $user, API &$api)
+		{
 			$this->API = $api;
 			$this->ID = $user->id;
 			$this->Name = $user->name;

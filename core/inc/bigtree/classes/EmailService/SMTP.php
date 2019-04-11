@@ -7,12 +7,15 @@
 	namespace BigTree\EmailService;
 	
 	use BigTree\Email;
-	use PHPMailer;
+	use Exception;
+	use PHPMailer\PHPMailer\PHPMailer;
 	
-	class SMTP extends Provider {
+	class SMTP extends Provider
+	{
 		
 		// Implements Provider::send
-		function send(Email $email): ?bool {
+		function send(Email $email): ?bool
+		{
 			$mailer = new PHPMailer;
 
 			$mailer->isSMTP();
@@ -81,7 +84,11 @@
 				$mailer->addAddress($email->To);
 			}
 			
-			return $mailer->send();
+			try {
+				return $mailer->send();
+			} catch (Exception $e) {
+				return false;
+			}
 		}
 		
 	}

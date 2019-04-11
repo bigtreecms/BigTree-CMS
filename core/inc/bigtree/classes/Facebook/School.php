@@ -8,16 +8,18 @@
 	
 	use stdClass;
 	
-	class School {
+	class School
+	{
 		
-		/** @var \BigTree\Facebook\API */
+		/** @var API */
 		protected $API;
 		
 		public $ID;
 		public $Name;
 		public $Type;
 		
-		function __construct(stdClass $school, string $type, API &$api) {
+		function __construct(stdClass $school, string $type, API &$api)
+		{
 			$this->API = $api;
 			
 			$this->ID = $school->id;

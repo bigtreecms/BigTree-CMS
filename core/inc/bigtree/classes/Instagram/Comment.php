@@ -8,9 +8,10 @@
 	
 	use stdClass;
 	
-	class Comment {
+	class Comment
+	{
 		
-		/** @var \BigTree\Instagram\API */
+		/** @var API */
 		protected $API;
 		
 		public $Content;
@@ -29,7 +30,8 @@
 				api - Reference to the BigTree\Instagram\API class instance
 		*/
 		
-		function __construct(stdClass $comment, string $media_id, API &$api) {
+		function __construct(stdClass $comment, string $media_id, API &$api)
+		{
 			$this->API = $api;
 			isset($comment->text) ? $this->Content = $comment->text : false;
 			isset($comment->id) ? $this->ID = $comment->id : false;
@@ -46,7 +48,8 @@
 				true if successful
 		*/
 		
-		function delete(): bool {
+		function delete(): bool
+		{
 			return $this->API->deleteComment($this->MediaID, $this->ID);
 		}
 		

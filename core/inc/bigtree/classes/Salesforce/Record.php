@@ -10,7 +10,7 @@
 	
 	class Record {
 		
-		/** @var \BigTree\Salesforce\API */
+		/** @var API */
 		protected $API;
 		
 		public $Columns;
@@ -30,7 +30,8 @@
 				api - Reference to BigTree\Salesforce\API class instance
 		*/
 		
-		function __construct(stdClass $record, API &$api) {
+		function __construct(stdClass $record, API &$api)
+		{
 			$this->API = $api;
 			
 			// Save this ahead of time to keep things alphabetized.

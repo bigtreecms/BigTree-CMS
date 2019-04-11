@@ -9,7 +9,8 @@
 	use BigTree\OAuth;
 	use stdClass;
 	
-	class API extends OAuth {
+	class API extends OAuth
+	{
 		
 		public $AuthorizeURL = "https://www.facebook.com/dialog/oauth";
 		public $EndpointURL = "https://graph.facebook.com/v2.8/";
@@ -28,7 +29,8 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 		
-		function __construct(bool $cache = true) {
+		function __construct(bool $cache = true)
+		{
 			parent::__construct("bigtree-internal-facebook-api", "Facebook API", "org.bigtreecms.api.facebook", $cache);
 			
 			// Set OAuth Return URL
@@ -49,7 +51,8 @@
 				 A BigTree\Facebook\Album object or false if the object id does not exist.
 		*/
 		
-		function getAlbum(string $album_id): ?Album {
+		function getAlbum(string $album_id): ?Album
+		{
 			$response = $this->call($album_id."?fields=".API::ALBUM_FIELDS);
 			
 			if (!$response->id) {
@@ -71,7 +74,8 @@
 				A BigTree\Facebook\Person object.
 		*/
 		
-		function getUser(string $user = "me"): ?User {
+		function getUser(string $user = "me"): ?User
+		{
 			$response = $this->call($user);
 			
 			if (!$response->id) {

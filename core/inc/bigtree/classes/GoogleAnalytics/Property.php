@@ -9,9 +9,10 @@
 	use BigTree\GoogleResultSet;
 	use stdClass;
 	
-	class Property {
+	class Property
+	{
 		
-		/** @var \BigTree\GoogleAnalytics\API */
+		/** @var API */
 		protected $API;
 		
 		public $AccountID;
@@ -21,7 +22,8 @@
 		public $UpdatedAt;
 		public $WebsiteURL;
 		
-		function __construct(stdClass $property, API &$api) {
+		function __construct(stdClass $property, API &$api)
+		{
 			$this->AccountID = $property->accountId;
 			$this->API = $api;
 			$this->CreatedAt = date("Y-m-d H:i:s", strtotime($property->created));
@@ -31,7 +33,8 @@
 			$this->WebsiteURL = $property->websiteUrl;
 		}
 		
-		function getProfiles($params): ?GoogleResultSet {
+		function getProfiles($params): ?GoogleResultSet
+		{
 			return $this->API->getProfiles($this->AccountID, $this->ID, $params);
 		}
 		
