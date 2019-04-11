@@ -9,7 +9,8 @@
 	use ArrayAccess;
 	use stdClass;
 	
-	class ResultSet implements ArrayAccess{
+	class ResultSet implements ArrayAccess
+	{
 		
 		protected $Cursor;
 		protected $LastCall;
@@ -30,7 +31,8 @@
 				results - Results to store.
 		*/
 		
-		function __construct(&$object, string $last_call, array $params, stdClass $cursor, array $results) {
+		function __construct(&$object, string $last_call, array $params, stdClass $cursor, array $results)
+		{
 			$this->Cursor = $cursor;
 			$this->LastCall = $last_call;
 			$this->LastParameters = $params;
@@ -46,7 +48,8 @@
 				A BigTree\Disqus\ResultSet with the next page of results or false if there isn't another page.
 		*/
 		
-		function nextPage(): ?ResultSet {
+		function nextPage(): ?ResultSet
+		{
 			if (!$this->Cursor->Next) {
 				return null;
 			}
@@ -58,7 +61,8 @@
 		}
 		
 		// Array iterator implementation
-		function offsetSet($index, $value) {
+		function offsetSet($index, $value)
+		{
 			if (is_null($index)) {
 				$this->Results[] = $value;
 			} else {
@@ -66,15 +70,18 @@
 			}
 		}
 		
-		function offsetExists($index) {
+		function offsetExists($index)
+		{
 			return isset($this->Results[$index]);
 		}
 		
-		function offsetUnset($index) {
+		function offsetUnset($index)
+		{
 			unset($this->Results[$index]);
 		}
 		
-		function offsetGet($index) {
+		function offsetGet($index)
+		{
 			return isset($this->Results[$index]) ? $this->Results[$index] : null;
 		}
 		
@@ -86,7 +93,8 @@
 				A BigTree\Disqus\ResultSet with the next page of results or false if there isn't a previous page.
 		*/
 		
-		function previousPage(): ?ResultSet {
+		function previousPage(): ?ResultSet
+		{
 			if (!$this->Cursor->Previous) {
 				return null;
 			}

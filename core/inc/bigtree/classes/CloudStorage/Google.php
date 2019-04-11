@@ -9,7 +9,8 @@
 	
 	use BigTree\cURL;
 	
-	class Google extends Provider {
+	class Google extends Provider
+	{
 		
 		public $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
 		public $CertificateEmail;
@@ -26,7 +27,8 @@
 		public $Token;
 		public $TokenURL = "https://accounts.google.com/o/oauth2/token";
 		
-		function __construct() {
+		function __construct()
+		{
 			// Tell the OAuth API to store things in "google" since we use a common setting for all APIs
 			$this->SettingNamespace = "google";
 			$this->ReturnURL = ADMIN_ROOT."developer/cloud-storage/google/return/";
@@ -46,7 +48,8 @@
 		
 		// Implements Provider::copyFile
 		function copyFile(string $source_container, string $source_pointer, string $destination_container,
-						  string $destination_pointer, bool $public = false): ?string {
+						  string $destination_pointer, bool $public = false): ?string
+		{
 			$encoded_source_pointer = urlencode($source_pointer);
 			$encoded_pointer = urlencode($destination_pointer);
 			$response = $this->call("b/$source_container/o/$encoded_source_pointer/copyTo/b/$encoded_pointer/o/".rawurlencode($destination_pointer), "{}", "POST");
@@ -64,7 +67,8 @@
 		}
 		
 		// Implements Provider::createContainer
-		function createContainer(string $name, bool $public = false): ?bool {
+		function createContainer(string $name, bool $public = false): ?bool
+		{
 			$request = ["name" => $name];
 			
 			if ($public) {
@@ -81,7 +85,8 @@
 		
 		// Implements Provider::createFile
 		function createFile(string $contents, string $container, string $pointer, bool $public = false,
-							string $type = "text/plain"): ?string {
+							string $type = "text/plain"): ?string
+		{
 			$encoded_pointer = urlencode($pointer);
 			$response = json_decode(cURL::request("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$encoded_pointer&uploadType=media", $contents, [
 				CURLOPT_POST => true,
@@ -110,7 +115,8 @@
 		}
 		
 		// Implements Provider::deleteContainer
-		function deleteContainer(string $container): ?bool {
+		function deleteContainer(string $container): ?bool
+		{
 			$error_count = count($this->Errors);
 			
 			$this->call("b/$container", false, "DELETE");
@@ -124,7 +130,8 @@
 		}
 		
 		// Implements Provider::deleteFile
-		function deleteFile(string $container, string $pointer): ?bool {
+		function deleteFile(string $container, string $pointer): ?bool
+		{
 			$error_count = count($this->Errors);
 			
 			$this->call("b/$container/o/".urlencode($pointer), false, "DELETE");
@@ -138,7 +145,8 @@
 		}
 		
 		// Implements Provider::getAuthenticatedFileURL
-		function getAuthenticatedFileURL(string $container, string $pointer, int $expires): ?string {
+		function getAuthenticatedFileURL(string $container, string $pointer, int $expires): ?string
+		{
 			$expires += time();
 			
 			if (!function_exists('openssl_x509_read')) {
@@ -174,7 +182,8 @@
 		}
 		
 		// Implements Provider::getContainer
-		function getContainer(string $container, bool $simple = false): ?array {
+		function getContainer(string $container, bool $simple = false): ?array
+		{
 			$flat = [];
 			$response = $this->call("b/$container/o");
 			
@@ -212,7 +221,8 @@
 		}
 		
 		// Implements Provider::getfile
-		function getFile(string $container, string $pointer): ?string {
+		function getFile(string $container, string $pointer): ?string
+		{
 			$pointer = rawurlencode($pointer);
 			
 			return cURL::request("https://storage.googleapis.com/$container/$pointer", false, [
@@ -221,7 +231,8 @@
 		}
 		
 		// Implements Provider::listContainers
-		function listContainers(): ?array {
+		function listContainers(): ?array
+		{
 			$containers = [];
 			$response = $this->call("b", ["project" => $this->Project]);
 			
@@ -244,7 +255,8 @@
 		}
 		
 		// Implements Provider::makeFilePublic
-		function makeFilePublic(string $container, string $pointer): bool {
+		function makeFilePublic(string $container, string $pointer): bool
+		{
 			$response = $this->call("b/$container/o/".rawurlencode($pointer)."/acl", json_encode(["entity" => "allUsers", "role" => "READER"]), "POST");
 			
 			if ($response) {
@@ -255,7 +267,8 @@
 		}
 		
 		// Implements Provider::uploadFile
-		function uploadFile(string $file, string $container, string $pointer = null, bool $public = false): ?string {
+		function uploadFile(string $file, string $container, string $pointer = null, bool $public = false): ?string
+		{
 			// No target destination, just use root folder w/ file name
 			if (!$pointer) {
 				$path_info = pathinfo($file);

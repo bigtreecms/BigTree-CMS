@@ -1,18 +1,21 @@
 <?php
+	
 	namespace BigTree\Auth;
 	
 	// Based on PHPGangsta/GoogleAuthenticator - Copyright (c) 2012, Michael Kliewe All rights reserved.
-	class GoogleAuthenticator {
+	class GoogleAuthenticator
+	{
 		
-		private static $ValidChars = array(
+		private static $ValidChars = [
 			'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', //  7
 			'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', // 15
 			'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', // 23
 			'Y', 'Z', '2', '3', '4', '5', '6', '7', // 31
 			'=',  // padding char
-		);
+		];
 		
-		public static function generateSecret() {
+		public static function generateSecret(): string
+		{
 			$secret = '';
 			$rnd = false;
 			
@@ -37,12 +40,16 @@
 			return $secret;
 		}
 		
-		public static function getCode($secret, $timeSlice = null) {
-			$timeSlice = floor(time() / 30);
+		public static function getCode(string $secret, int $time_slice = null): string
+		{
+			if (is_null($time_slice)) {
+				$time_slice = floor(time() / 30);
+			}
+			
 			$secret = static::base32Decode($secret);
 			
 			// Pack time into binary string
-			$time = chr(0).chr(0).chr(0).chr(0).pack('N*', $timeSlice);
+			$time = chr(0).chr(0).chr(0).chr(0).pack('N*', $time_slice);
 			// Hash it with users secret key
 			$hm = hash_hmac('SHA1', $time, $secret, true);
 			// Use last nipple of result as index/offset
@@ -61,11 +68,15 @@
 			return str_pad($value % $modulo, 6, '0', STR_PAD_LEFT);
 		}
 		
-		public static function getQRCode($name, $secret, $title = null) {
-			return 'https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl='.rawurlencode('otpauth://totp/'.str_replace(" ", "%20", $name).'?secret='.$secret.'&issuer=BigTree');
+		public static function getQRCode(string $name, string $secret): string
+		{
+			$chl = rawurlencode('otpauth://totp/'.str_replace(" ", "%20", $name).'?secret='.$secret.'&issuer=BigTree');
+			
+			return 'https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl='.$chl;
 		}
 		
-		public static function verifyCode($secret, $code, $discrepancy = 1) {
+		public static function verifyCode(string $secret, int $code, int $discrepancy = 1): bool
+		{
 			$currentTimeSlice = floor(time() / 30);
 			
 			if (strlen($code) != 6) {
@@ -83,7 +94,8 @@
 			return false;
 		}
 		
-		protected static function base32Decode($secret) {
+		protected static function base32Decode(string $secret): string
+		{
 			if (empty($secret)) {
 				return '';
 			}
@@ -92,17 +104,17 @@
 			$base32charsFlipped = array_flip($base32chars);
 			
 			$paddingCharCount = substr_count($secret, $base32chars[32]);
-			$allowedValues = array(6, 4, 3, 1, 0);
+			$allowedValues = [6, 4, 3, 1, 0];
 			
 			if (!in_array($paddingCharCount, $allowedValues)) {
-				return false;
+				return '';
 			}
 			
 			for ($i = 0; $i < 4; ++$i) {
 				if ($paddingCharCount == $allowedValues[$i] &&
 					substr($secret, -($allowedValues[$i])) != str_repeat($base32chars[32], $allowedValues[$i])) {
 					
-					return false;
+					return '';
 				}
 			}
 			
@@ -114,7 +126,7 @@
 				$x = '';
 				
 				if (!in_array($secret[$i], $base32chars)) {
-					return false;
+					return '';
 				}
 				
 				for ($j = 0; $j < 8; ++$j) {

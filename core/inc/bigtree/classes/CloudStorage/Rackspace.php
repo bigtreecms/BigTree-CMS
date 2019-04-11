@@ -10,7 +10,8 @@
 	use BigTree\cURL;
 	use stdClass;
 	
-	class Rackspace extends Provider {
+	class Rackspace extends Provider
+	{
 		
 		protected $CDNContainerURLs;
 		protected $CDNEndpoints;
@@ -33,7 +34,8 @@
 		public $Region;
 		public $Username;
 		
-		function __construct() {
+		function __construct()
+		{
 			parent::__construct();
 			
 			// Setup references to the main cloud storage setting
@@ -70,7 +72,8 @@
 		*/
 		
 		function callRackspace(string $endpoint = "", ?array $data = null, string $method = "GET",
-							   array $curl_options = []): ?stdClass {
+							   array $curl_options = []): ?stdClass
+		{
 			// Add authentication headers and ask for JSON in return
 			if (!is_array($curl_options[CURLOPT_HTTPHEADER])) {
 				$curl_options[CURLOPT_HTTPHEADER] = [];
@@ -91,7 +94,8 @@
 		
 		// Implements Provider::copyFile
 		function copyFile(string $source_container, string $source_pointer, string $destination_container,
-						  string $destination_pointer, bool $public = false): ?string {
+						  string $destination_pointer, bool $public = false): ?string
+		{
 			cURL::request($this->Endpoint."/$source_container/$source_pointer", false, [
 				CURLOPT_CUSTOMREQUEST => "COPY",
 				CURLOPT_HTTPHEADER => [
@@ -108,8 +112,9 @@
 		}
 		
 		// Implements Provider::createContainer
-		function createContainer(string $name, bool $public = false): ?bool {
-			$this->callRackspace($name, "", "PUT", [CURLOPT_PUT => true]);
+		function createContainer(string $name, bool $public = false): ?bool
+		{
+			$this->callRackspace($name, null, "PUT", [CURLOPT_PUT => true]);
 			
 			if (cURL::$ResponseCode == 201) {
 				// CDN Enable this container if it's public
@@ -131,7 +136,8 @@
 		
 		// Implements Provider::createFile
 		function createFile(string $contents, string $container, string $pointer, bool $public = false,
-							string $type = "text/plain"): ?string {
+							string $type = "text/plain"): ?string
+		{
 			cURL::request($this->Endpoint."/$container/$pointer", $contents, [
 				CURLOPT_CUSTOMREQUEST => "PUT",
 				CURLOPT_HTTPHEADER => [
@@ -148,8 +154,9 @@
 		}
 		
 		// Implements Provider::deleteContainer
-		function deleteContainer(string $container): ?bool {
-			$this->callRackspace($container, "", "DELETE", [CURLOPT_CUSTOMREQUEST => "DELETE"]);
+		function deleteContainer(string $container): ?bool
+		{
+			$this->callRackspace($container, null, "DELETE", [CURLOPT_CUSTOMREQUEST => "DELETE"]);
 			
 			if (cURL::$ResponseCode == 204) {
 				return true;
@@ -163,8 +170,9 @@
 		}
 		
 		// Implements Provider::deleteFile
-		function deleteFile(string $container, string $pointer): ?bool {
-			$this->callRackspace("$container/$pointer", "", "DELETE", [CURLOPT_CUSTOMREQUEST => "DELETE"]);
+		function deleteFile(string $container, string $pointer): ?bool
+		{
+			$this->callRackspace("$container/$pointer", null, "DELETE", [CURLOPT_CUSTOMREQUEST => "DELETE"]);
 			
 			if (cURL::$ResponseCode == 204) {
 				return true;
@@ -174,7 +182,8 @@
 		}
 		
 		// Implements Provider::getAuthenticatedFileURL
-		function getAuthenticatedFileURL(string $container, string $pointer, int $expires): ?string {
+		function getAuthenticatedFileURL(string $container, string $pointer, int $expires): ?string
+		{
 			$expires += time();
 			
 			// If we don't have a Temp URL key already set, we need to make one
@@ -208,14 +217,15 @@
 				}
 			}
 			
-			list($domain, $client_id) = explode("/v1/", $this->Endpoint);
+			list(, $client_id) = explode("/v1/", $this->Endpoint);
 			$hash = urlencode(hash_hmac("sha1", "GET\n$expires\n/v1/$client_id/$container/$pointer", $this->TempURLKey));
 			
 			return $this->Endpoint."/$container/$pointer?temp_url_sig=$hash&temp_url_expires=$expires";
 		}
 		
 		// Implements Provider::getContainer
-		function getContainer(string $container, bool $simple = false): ?array {
+		function getContainer(string $container, bool $simple = false): ?array
+		{
 			$flat = [];
 			$response = $this->callRackspace($container);
 			
@@ -247,14 +257,16 @@
 		}
 		
 		// Implements Provider::getFile
-		function getFile(string $container, string $pointer): ?string {
+		function getFile(string $container, string $pointer): ?string
+		{
 			return cURL::request($this->Endpoint."/$container/$pointer", false, [
 				CURLOPT_HTTPHEADER => ["X-Auth-Token: ".$this->Token]
 			]);
 		}
 		
 		// Internal method for refreshing a Rackspace token
-		function getToken() {
+		function getToken()
+		{
 			$data = [
 				"auth" => [
 					"RAX-KSKEY:apiKeyCredentials" => [
@@ -296,7 +308,8 @@
 		}
 		
 		// Internal method for getting the live URL of an asset
-		function getURL(string $container, string $pointer): string {
+		function getURL(string $container, string $pointer): string
+		{
 			if ($this->CDNContainerURLs[$container]) {
 				return $this->CDNContainerURLs[$container]."/$pointer";
 			} else {
@@ -326,7 +339,8 @@
 		}
 		
 		// Implements Provider::listContainers
-		function listContainers(): ?array {
+		function listContainers(): ?array
+		{
 			$containers = [];
 			$response = $this->call();
 			
@@ -342,7 +356,8 @@
 		}
 		
 		// Implements Provider::uploadFile
-		function uploadFile(string $file, string $container, ?string $pointer = null, bool $public = false): ?string {
+		function uploadFile(string $file, string $container, ?string $pointer = null, bool $public = false): ?string
+		{
 			// No target destination, just use root folder w/ file name
 			if (!$pointer) {
 				$path_info = pathinfo($file);

@@ -8,9 +8,10 @@
 	
 	use stdClass;
 	
-	class User {
+	class User
+	{
 		
-		/** @var \BigTree\Disqus\API */
+		/** @var API */
 		protected $API;
 		
 		public $Anonymous;
@@ -31,7 +32,8 @@
 		public $URL;
 		public $Verified;
 		
-		function __construct(stdClass $user, API &$api) {
+		function __construct(stdClass $user, API &$api)
+		{
 			$this->API = $api;
 			isset($user->isAnonymous) ? $this->Anonymous = $user->isAnonymous : false;
 			isset($user->about) ? $this->Description = $user->about : false;
@@ -61,7 +63,8 @@
 				params - Additional parameters to send to users/listActiveForums API call
 		*/
 		
-		function getActiveForums(int $limit = 25, array $params = []): ?ResultSet {
+		function getActiveForums(int $limit = 25, array $params = []): ?ResultSet
+		{
 			$params["limit"] = $limit;
 			$params["user"] = $this->ID;
 			$response = $this->API->call("users/listActiveForums.json", $params);
@@ -89,7 +92,8 @@
 				params - Additional parameters to send to users/listActiveForums API call
 		*/
 		
-		function getActiveThreads(int $limit = 25, array$params = []): ?ResultSet {
+		function getActiveThreads(int $limit = 25, array$params = []): ?ResultSet
+		{
 			$params["limit"] = $limit;
 			$params["user"] = $this->ID;
 			$response = $this->API->call("users/listActiveThreads.json", $params);
@@ -117,7 +121,8 @@
 				params - Additional parameters to send to users/listFollowers API call
 		*/
 		
-		function getFollowers(int $limit = 25, array$params = []): ?ResultSet {
+		function getFollowers(int $limit = 25, array$params = []): ?ResultSet
+		{
 			$params["limit"] = $limit;
 			$params["user"] = $this->ID;
 			$response = $this->API->call("users/listFollowers.json", $params);
@@ -145,7 +150,8 @@
 				params - Additional parameters to send to users/listFollowing API call
 		*/
 		
-		function getFollowing(int $limit = 25, array$params = []): ?ResultSet {
+		function getFollowing(int $limit = 25, array$params = []): ?ResultSet
+		{
 			$params["limit"] = $limit;
 			$params["user"] = $this->ID;
 			$response = $this->API->call("users/listFollowing.json", $params);
@@ -174,7 +180,8 @@
 				params - Additional parameters to send to users/listPosts API call
 		*/
 		
-		function getPosts(int $limit = 25, string $order = "desc", array $params = []): ?ResultSet {
+		function getPosts(int $limit = 25, string $order = "desc", array $params = []): ?ResultSet
+		{
 			$params["limit"] = $limit;
 			$params["order"] = $order;
 			$params["user"] = $this->ID;
@@ -203,7 +210,8 @@
 				true if successful.
 		*/
 		
-		function follow(): bool {
+		function follow(): bool
+		{
 			$response = $this->API->call("users/follow.json", ["target" => $this->ID], "POST");
 			
 			if (!empty($response)) {
@@ -223,7 +231,8 @@
 				true if successful.
 		*/
 		
-		function unfollow(): bool {
+		function unfollow(): bool
+		{
 			$response = $this->API->call("users/unfollow.json", ["target" => $this->ID], "POST");
 			
 			if (!empty($response)) {
@@ -234,4 +243,5 @@
 			
 			return false;
 		}
+		
 	}

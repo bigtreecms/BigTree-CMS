@@ -9,7 +9,8 @@
 	use BigTree\OAuth;
 	use BigTree\SQL;
 	
-	class Provider extends OAuth {
+	class Provider extends OAuth
+	{
 		
 		public $Active = false;
 		public $Errors = [];
@@ -38,7 +39,8 @@
 				Retrieves the current service settings.
 		*/
 		
-		function __construct() {
+		function __construct()
+		{
 			parent::__construct("bigtree-internal-cloud-storage", "Cloud Storage", "org.bigtreecms.cloudstorage.api");
 		}
 		
@@ -59,7 +61,8 @@
 		*/
 		
 		function copyFile(string $source_container, string $source_pointer, string $destination_container,
-						  string $destination_pointer, bool $public = false): ?string {
+						  string $destination_pointer, bool $public = false): ?string
+		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
 			return null;
@@ -80,7 +83,8 @@
 				true if successful.
 		*/
 		
-		function createContainer(string $name, bool $public = false): ?bool {
+		function createContainer(string $name, bool $public = false): ?bool
+		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
 			return null;
@@ -103,7 +107,8 @@
 		*/
 		
 		function createFile(string $contents, string $container, string $pointer, bool $public = false,
-							string $type = "text/plain"): ?string {
+							string $type = "text/plain"): ?string
+		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
 			return null;
@@ -121,7 +126,8 @@
 				The URL of the folder if successful.
 		*/
 		
-		function createFolder(string $container, string $pointer): ?string {
+		function createFolder(string $container, string $pointer): ?string
+		{
 			return $this->createFile("", $container, rtrim($pointer, "/")."/");
 		}
 		
@@ -137,7 +143,8 @@
 				true if successful.
 		*/
 		
-		function deleteContainer(string $container): ?bool {
+		function deleteContainer(string $container): ?bool
+		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
 			return null;
@@ -155,7 +162,8 @@
 				true if successful
 		*/
 		
-		function deleteFile(string $container, string $pointer): ?bool {
+		function deleteFile(string $container, string $pointer): ?bool
+		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
 			return null;
@@ -174,7 +182,8 @@
 				A URL for accessing the file if successful.
 		*/
 		
-		function getAuthenticatedFileURL(string $container, string $pointer, int $expires): ?string {
+		function getAuthenticatedFileURL(string $container, string $pointer, int $expires): ?string
+		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
 			return null;
@@ -192,7 +201,8 @@
 				An array of the contents of the container.
 		*/
 		
-		function getContainer(string $container, bool $simple = false): ?array {
+		function getContainer(string $container, bool $simple = false): ?array
+		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
 			return null;
@@ -209,7 +219,8 @@
 				A nested array emulating a branching folder tree.
 		*/
 		
-		function getContainerTree(array $flat): array {
+		function getContainerTree(array $flat): array
+		{
 			$tree = ["folders" => [], "files" => []];
 			
 			foreach ($flat as $raw_item) {
@@ -255,7 +266,8 @@
 				MIME Type
 		*/
 		
-		function getContentType(string $file): string {
+		function getContentType(string $file): string
+		{
 			$mime_types = [
 				"jpg" => "image/jpeg", "jpeg" => "image/jpeg", "gif" => "image/gif",
 				"png" => "image/png", "ico" => "image/x-icon", "pdf" => "application/pdf",
@@ -292,7 +304,8 @@
 				A binary stream of data or false if the file is not found or not allowed.
 		*/
 		
-		function getFile(string $container, string $pointer): ?string {
+		function getFile(string $container, string $pointer): ?string
+		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
 			return null;
@@ -310,7 +323,8 @@
 				A keyed array of files and folders inside the folder or false if the folder was not found.
 		*/
 		
-		function getFolder(string $container, string $folder): ?array {
+		function getFolder(string $container, string $folder): ?array
+		{
 			if (!is_array($container)) {
 				$container = $this->getContainer($container);
 				
@@ -340,7 +354,8 @@
 				true if successful
 		*/
 		
-		public function invalidateCache($pointer): bool {
+		public function invalidateCache($pointer): bool
+		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
 			return false;
@@ -354,7 +369,8 @@
 				An array of container names.
 		*/
 		
-		function listContainers(): ?array {
+		function listContainers(): ?array
+		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
 			return null;
@@ -373,7 +389,8 @@
 				The public URL if successful, otherwise null
 		*/
 		
-		function makeFilePublic(string $container, string $pointer): bool {
+		function makeFilePublic(string $container, string $pointer): bool
+		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
 			return false;
@@ -387,7 +404,8 @@
 				data - An array of file data from a container
 		*/
 		
-		function resetCache(array $data): void {
+		function resetCache(array $data): void
+		{
 			SQL::delete("bigtree_caches", ["identifier" => "org.bigtreecms.cloudfiles"]);
 			
 			foreach ($data as $item) {
@@ -419,7 +437,8 @@
 				The URL of the file if successful.
 		*/
 		
-		function uploadFile(string $file, string $container, ?string $pointer = null, bool $public = false): ?string {
+		function uploadFile(string $file, string $container, ?string $pointer = null, bool $public = false): ?string
+		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
 			return null;

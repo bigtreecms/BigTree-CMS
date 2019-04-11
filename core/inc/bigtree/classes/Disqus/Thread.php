@@ -8,9 +8,10 @@
 	
 	use stdClass;
 	
-	class Thread {
+	class Thread
+	{
 		
-		/** @var \BigTree\Disqus\API */
+		/** @var API */
 		protected $API;
 		
 		public $AuthorID;
@@ -33,7 +34,8 @@
 		public $URL;
 		public $UserScore;
 		
-		function __construct(stdClass $thread, API &$api) {
+		function __construct(stdClass $thread, API &$api)
+		{
 			$this->API = $api;
 			isset($thread->author) ? $this->AuthorID = $thread->author : false;
 			isset($thread->category) ? $this->CategoryID = $thread->category : false;
@@ -56,7 +58,8 @@
 			isset($thread->userScore) ? $this->UserScore = $thread->userScore : false;
 		}
 		
-		private function _cacheBust() {
+		private function _cacheBust(): void
+		{
 			$this->API->cacheBust("forumthreads".$this->ForumID);
 			$this->API->cacheBust("thread".$this->ID);
 		}
@@ -67,7 +70,8 @@
 				Authenticated user must be a moderator of this thread's forum.
 		*/
 		
-		function close(): bool {
+		function close(): bool
+		{
 			$response = $this->API->call("threads/close.json", ["thread" => $this->ID], "POST");
 			
 			if (!empty($response)) {
@@ -92,7 +96,8 @@
 				A BigTree\Disqus\ResultSet of BigTree\Disqus\Post objects.
 		*/
 		
-		function getPosts(int $limit = 25, string $order = "desc", array $params = []): ?ResultSet {
+		function getPosts(int $limit = 25, string $order = "desc", array $params = []): ?ResultSet
+		{
 			$params["thread"] = $this->ID;
 			$params["limit"] = $limit;
 			$params["order"] = $order;
@@ -119,7 +124,8 @@
 				Authenticated user must be a moderator of this thread's forum.
 		*/
 		
-		function open(): bool {
+		function open(): bool
+		{
 			$response = $this->API->call("threads/open.json", ["thread" => $this->ID], "POST");
 			
 			if (!empty($response)) {
@@ -137,7 +143,8 @@
 				Authenticated user must be a moderator of this thread's forum.
 		*/
 		
-		function remove(): bool {
+		function remove(): bool
+		{
 			$response = $this->API->call("threads/remove.json", ["thread" => $this->ID], "POST");
 			
 			if (!empty($response)) {
@@ -155,7 +162,8 @@
 				Authenticated user must be a moderator of this thread's forum.
 		*/
 		
-		function restore(): bool {
+		function restore(): bool
+		{
 			$response = $this->API->call("threads/restore.json", ["thread" => $this->ID], "POST");
 			
 			if (!empty($response)) {
@@ -175,7 +183,8 @@
 				email - Email address to use for subscription (optional)
 		*/
 		
-		function subscribe(?string $email = null): bool {
+		function subscribe(?string $email = null): bool
+		{
 			$params = ["thread" => $this->ID];
 			
 			if ($email) {
@@ -201,7 +210,8 @@
 				email - Email address used for subscription (optional)
 		*/
 		
-		function unsubscribe(?string $email = null): bool {
+		function unsubscribe(?string $email = null): bool
+		{
 			$params = ["thread" => $this->ID];
 			
 			if ($email) {
@@ -227,7 +237,8 @@
 				vote - Vote to cast (-1, 0, or 1)
 		*/
 		
-		function vote(int $vote = 0): bool {
+		function vote(int $vote = 0): bool
+		{
 			$response = $this->API->call("threads/vote.json", ["thread" => $this->ID, "vote" => $vote], "POST");
 			
 			if (!empty($response)) {

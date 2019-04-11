@@ -8,9 +8,10 @@
 	
 	use stdClass;
 	
-	class Post {
+	class Post
+	{
 		
-		/** @var \BigTree\Disqus\API */
+		/** @var API */
 		protected $API;
 		
 		public $Approved;
@@ -33,7 +34,8 @@
 		public $Timestamp;
 		public $UserScore;
 		
-		function __construct(stdClass $post, API &$api) {
+		function __construct(stdClass $post, API &$api)
+		{
 			$this->API = $api;
 			isset($post->isApproved) ? $this->Approved = $post->isApproved : false;
 			isset($post->author) ? $this->Author = new User($post->author, $api) : false;
@@ -56,7 +58,8 @@
 			isset($post->userScore) ? $this->UserScore = $post->userScore : false;
 		}
 		
-		private function _cacheBust() {
+		private function _cacheBust(): void
+		{
 			$this->API->cacheBust("threadposts".$this->ThreadID);
 			$this->API->cacheBust("post".$this->ID);
 		}
@@ -70,7 +73,8 @@
 				true if successful.
 		*/
 		
-		function approve(): bool {
+		function approve(): bool
+		{
 			$response = $this->API->call("posts/approve.json", ["post" => $this->ID], "POST");
 			
 			if (!empty($response)) {
@@ -91,7 +95,8 @@
 				true if successful.
 		*/
 		
-		function highlight(): bool {
+		function highlight(): bool
+		{
 			$response = $this->API->call("posts/highlight.json", ["post" => $this->ID], "POST");
 			
 			if (!empty($response)) {
@@ -112,7 +117,8 @@
 				true if successful.
 		*/
 		
-		function remove(): bool {
+		function remove(): bool
+		{
 			$response = $this->API->call("posts/remove.json", ["post" => $this->ID], "POST");
 			
 			if (!empty($response)) {
@@ -132,7 +138,8 @@
 				true if successful.
 		*/
 		
-		function report(): bool {
+		function report(): bool
+		{
 			$response = $this->API->call("posts/report.json", ["post" => $this->ID], "POST");
 			
 			if (!empty($response)) {
@@ -153,7 +160,8 @@
 				true if successful.
 		*/
 		
-		function restore(): bool {
+		function restore(): bool
+		{
 			$response = $this->API->call("posts/restore.json", ["post" => $this->ID], "POST");
 			
 			if (!empty($response)) {
@@ -174,7 +182,8 @@
 				true if successful.
 		*/
 		
-		function spam(): bool {
+		function spam(): bool
+		{
 			$response = $this->API->call("posts/spam.json", ["post" => $this->ID], "POST");
 			
 			if (!empty($response)) {
@@ -195,7 +204,8 @@
 				true if successful.
 		*/
 		
-		function unhighlight(): bool {
+		function unhighlight(): bool
+		{
 			$response = $this->API->call("posts/unhighlight.json", ["post" => $this->ID], "POST");
 			
 			if (!empty($response)) {
@@ -218,7 +228,8 @@
 				true if successful.
 		*/
 		
-		function vote(int $vote = 0): bool {
+		function vote(int $vote = 0): bool
+		{
 			$response = $this->API->call("posts/vote.json", ["post" => $this->ID, "vote" => $vote], "POST");
 			
 			if (!empty($response)) {
@@ -229,4 +240,5 @@
 			
 			return false;
 		}
+		
 	}

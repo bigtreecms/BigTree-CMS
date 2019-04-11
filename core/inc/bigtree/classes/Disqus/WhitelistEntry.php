@@ -10,7 +10,7 @@
 	
 	class WhitelistEntry {
 		
-		/** @var \BigTree\Disqus\API */
+		/** @var API */
 		protected $API;
 		
 		public $ForumID;
@@ -20,7 +20,8 @@
 		public $Type;
 		public $Value;
 		
-		function __construct(stdClass $item, API &$api) {
+		function __construct(stdClass $item, API &$api)
+		{
 			$this->API = $api;
 			$this->ForumID = $item->forum;
 			$this->ID = $item->id;
@@ -35,7 +36,8 @@
 				Removes this whitelist entry.
 		*/
 		
-		function remove(): bool {
+		function remove(): bool
+		{
 			$response = $this->API->call("whitelists/remove.json", ["forum" => $this->ForumID, $this->Type => $this->Value], "POST");
 			
 			if ($response !== false) {

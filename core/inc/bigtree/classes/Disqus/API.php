@@ -9,7 +9,8 @@
 	use BigTree\OAuth;
 	use stdClass;
 	
-	class API extends OAuth {
+	class API extends OAuth
+	{
 		
 		public $AuthorizeURL = "https://disqus.com/api/oauth/2.0/authorize/";
 		public $EndpointURL = "https://disqus.com/api/3.0/";
@@ -26,7 +27,8 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 		
-		function __construct(bool $cache = true) {
+		function __construct(bool $cache = true)
+		{
 			parent::__construct("bigtree-internal-disqus-api", "Disqus API", "org.bigtreecms.api.disqus", $cache);
 			
 			// Set OAuth Return URL
@@ -44,7 +46,9 @@
 				Wrapper for better Disqus error handling.
 		*/
 		
-		function callUncached(string $endpoint = "", array $params = [], string $method = "GET", array $headers = []): stdClass {
+		function callUncached(string $endpoint = "", array $params = [], string $method = "GET",
+							  array $headers = []): stdClass
+		{
 			$response = parent::callUncached($endpoint, $params, $method, $headers);
 			
 			if ($response->code != 0) {
@@ -80,7 +84,8 @@
 				true if successful
 		*/
 		
-		function changeUsername(string $username): bool {
+		function changeUsername(string $username): bool
+		{
 			$response = $this->call("users/checkUsername.json", ["username" => $username], "POST");
 			
 			if ($response) {
@@ -104,7 +109,8 @@
 				Returns null if the shortname is already taken.
 		*/
 		
-		function createForum(string $shortname, string $name, string $url): ?Forum {
+		function createForum(string $shortname, string $name, string $url): ?Forum
+		{
 			$response = $this->call("forums/create.json", ["website" => $url, "name" => $name, "short_name" => $shortname], "POST");
 			
 			if ($response !== false) {
@@ -125,7 +131,8 @@
 				A BigTree\Disqus\Category object if successful.
 		*/
 		
-		function getCategory(string $id): ?Category {
+		function getCategory(string $id): ?Category
+		{
 			$response = $this->call("categories/details.json", ["category" => $id]);
 			
 			if (!empty($response)) {
@@ -148,7 +155,8 @@
 				A BigTree\Disqus\Forum object if successful.
 		*/
 		
-		function getForum(string $shortname): ?Forum {
+		function getForum(string $shortname): ?Forum
+		{
 			$response = $this->call("forums/details.json", ["forum" => $shortname]);
 			
 			if (!empty($response)) {
@@ -171,7 +179,8 @@
 				A BigTree\Disqus\Post object if successful.
 		*/
 		
-		function getPost(string $id): ?Post {
+		function getPost(string $id): ?Post
+		{
 			$response = $this->call("posts/details.json", ["post" => $id]);
 			
 			if (!empty($response)) {
@@ -195,7 +204,8 @@
 				A BigTree\Disqus\Thread object if successful.
 		*/
 		
-		function getThread(string $thread, ?string $forum = null): Thread {
+		function getThread(string $thread, ?string $forum = null): Thread
+		{
 			$params = [];
 			
 			if (!is_numeric($thread)) {
@@ -232,7 +242,8 @@
 				A BigTree\Disqus\User object if successful.
 		*/
 		
-		function getUser(?string $user = null): ?User {
+		function getUser(?string $user = null): ?User
+		{
 			$params = [];
 		
 			if (is_numeric($user)) {

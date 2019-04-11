@@ -7,6 +7,8 @@
 	
 	namespace BigTree\CloudStorage;
 	
+	use Aws\CloudFront\CloudFrontClient;
+	use AWS\S3\S3Client;
 	use Exception;
 	
 	class Amazon extends Provider
@@ -40,12 +42,13 @@
 		public $Region;
 		public $Secret;
 		
-		/** @var \AWS\CloudFront\CloudFrontClient */
+		/** @var CloudFrontClient */
 		public $CloudFrontClient;
-		/** @var \AWS\S3\S3Client */
+		/** @var S3Client */
 		public $S3Client;
 		
-		function __construct() {
+		function __construct()
+		{
 			parent::__construct();
 			
 			$this->Active = &$this->Settings["amazon"]["active"];
@@ -115,7 +118,7 @@
 				]);
 				
 				return $response["ObjectURL"];
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				$this->Errors[] = $e->getMessage();
 				
 				return null;
@@ -129,7 +132,7 @@
 				$this->S3Client->deleteBucket(["Bucket" => $container]);
 				
 				return true;
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				$this->Errors[] = $e->getMessage();
 				
 				return false;
@@ -143,7 +146,7 @@
 				$this->S3Client->deleteObject(["Bucket" => $container, "Key" => $pointer]);
 				
 				return true;
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				$this->Errors[] = $e->getMessage();
 				
 				return false;
@@ -163,6 +166,7 @@
 		{
 			$continue = true;
 			$marker = "";
+			$contents = [];
 			
 			while ($continue) {
 				try {
@@ -178,13 +182,13 @@
 						}
 						
 						if ($simple) {
-							$flat[] = [
+							$contents[] = [
 								"name" => $item["Key"],
 								"path" => $item["Key"],
 								"size" => $item["Size"]
 							];
 						} else {
-							$flat[$item["Key"]] = [
+							$contents[$item["Key"]] = [
 								"name" => $item["Key"],
 								"path" => $item["Key"],
 								"updated_at" => date("Y-m-d H:i:s", strtotime((string) $item["LastModified"])),
@@ -212,6 +216,8 @@
 					return null;
 				}
 			}
+			
+			return $contents;
 		}
 		
 		// Implements Provider::getFile
@@ -239,7 +245,8 @@
 		}
 		
 		// Implements Provider::invalidateCache
-		public function invalidateCache($pointer): bool {
+		public function invalidateCache($pointer): bool
+		{
 			try {
 				$this->CloudFrontClient->createInvalidation([
 					"DistributionId" => $this->Settings["amazon"]["cloudfront_distribution"],
@@ -261,6 +268,8 @@
 		// Implements Provider::listContainers
 		function listContainers(): ?array
 		{
+			$containers = [];
+			
 			try {
 				$response = $this->S3Client->listBuckets();
 				
@@ -275,6 +284,8 @@
 				
 				return null;
 			}
+			
+			return $containers;
 		}
 		
 		// Implements Provider::makeFilePublic
@@ -300,7 +311,7 @@
 		{
 			$ca_cert = file_exists(SERVER_ROOT."cache/bigtree-ca-cert.pem") ? SERVER_ROOT."cache/bigtree-ca-cert.pem" : SERVER_ROOT."core/cacert.pem";
 			
-			$this->S3Client = new \Aws\S3\S3Client([
+			$this->S3Client = new S3Client([
 				"version" => "latest",
 				"region" => $this->Region,
 				"credentials" => [
@@ -312,7 +323,7 @@
 				]
 			]);
 			
-			$this->CloudFrontClient = new \Aws\CloudFront\CloudFrontClient([
+			$this->CloudFrontClient = new CloudFrontClient([
 				"version" => "latest",
 				"region" => $this->Region,
 				"credentials" => [
