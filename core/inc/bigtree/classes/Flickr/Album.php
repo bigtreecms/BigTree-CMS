@@ -14,7 +14,7 @@
 		/** @var API */
 		protected $API;
 		
-		function __construct(stdClass $album, API &$api)
+		public function __construct(stdClass $album, API &$api)
 		{
 			$this->API = $api;
 			
@@ -52,7 +52,7 @@
 				A BigTree\Flickr\ResultSet of BigTree\Flickr\Photo objects or null if the call fails.
 		*/
 		
-		function getPhotos($privacy = 1, $info = ""): ?ResultSet
+		public function getPhotos($privacy = 1, $info = ""): ?ResultSet
 		{
 			return $this->API->getAlbumPhotos($this->ID, $privacy, $info);
 		}

@@ -22,7 +22,7 @@
 				Prepares an environment for Authorize.Net payments.
 		*/
 		
-		function __construct()
+		public function __construct()
 		{
 			parent::__construct();
 			
@@ -49,7 +49,7 @@
 		}
 		
 		// Implements Provider::authorize
-		function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
+		public function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
 						   int $cvv, array $address, ?string $description = "", ?string $email = "",
 						   ?string $phone = "", ?string $customer = ""): ?string
 		{
@@ -62,7 +62,7 @@
 				Sends an API call to Authorize.Net.
 		*/
 		
-		function call(array $params): ?array
+		public function call(array $params): ?array
 		{
 			$count = 0;
 			$possibilities = ["", "approved", "declined", "error"];
@@ -105,7 +105,7 @@
 		}
 		
 		// Implements Provider::capture
-		function capture(string $transaction, ?float $amount = null): ?string
+		public function capture(string $transaction, ?float $amount = null): ?string
 		{
 			$params = [
 				"x_type" => "PRIOR_AUTH_CAPTURE",
@@ -131,7 +131,7 @@
 		}
 		
 		// Implements Provider::charge
-		function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
+		public function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
 						int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
 						?string $customer = "", ?string $action = null): ?string
 		{
@@ -206,7 +206,7 @@
 		}
 		
 		// Implements Provider::refund
-		function refund(string $transaction, ?string $card_number = "", ?float $amount = 0.0): ?string
+		public function refund(string $transaction, ?string $card_number = "", ?float $amount = 0.0): ?string
 		{
 			// Setup request params
 			$params = [
@@ -233,7 +233,7 @@
 		}
 		
 		// Implements Provider::void
-		function void(string $authorization): ?string
+		public function void(string $authorization): ?string
 		{
 			$params = [
 				"x_type" => "VOID",

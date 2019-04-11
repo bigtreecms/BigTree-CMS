@@ -18,7 +18,7 @@
 		public $Name;
 		public $Type;
 		
-		function __construct(stdClass $school, string $type, API &$api)
+		public function __construct(stdClass $school, string $type, API &$api)
 		{
 			$this->API = $api;
 			

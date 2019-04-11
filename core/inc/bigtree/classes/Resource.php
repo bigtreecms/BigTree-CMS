@@ -11,11 +11,8 @@
 	 * @property-read int $AllocationCount
 	 * @property-read string $UserAccessLevel
 	 */
-	class Resource extends BaseObject {
-		
-		public static $CreationLog = [];
-		public static $Prefixes = [];
-		public static $Table = "bigtree_resources";
+	class Resource extends BaseObject
+	{
 		
 		protected $ID;
 		
@@ -36,6 +33,10 @@
 		public $Width;
 		public $VideoData;
 		
+		public static $CreationLog = [];
+		public static $Prefixes = [];
+		public static $Table = "bigtree_resources";
+		
 		/*
 			Constructor:
 				Builds a Resource object referencing an existing database entry.
@@ -44,7 +45,8 @@
 				resource - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($resource = null) {
+		public function __construct($resource = null)
+		{
 			if ($resource !== null) {
 				// Passing in just an ID
 				if (!is_array($resource)) {
@@ -86,7 +88,8 @@
 				entry - Entry ID to assign to
 		*/
 		
-		static function allocate(string $module, string $entry): void {
+		public static function allocate(string $module, string $entry): void
+		{
 			// Wipe existing allocations
 			SQL::delete("bigtree_resource_allocation", [
 				"module" => $module,
@@ -124,8 +127,9 @@
 				A Resource object.
 		*/
 		
-		static function create(?int $folder, ?string $file, ?string $name, string $type, array $crops = [],
-							   array $thumbs = [], array $video_data = [], array $metadata = []): Resource {
+		public static function create(?int $folder, ?string $file, ?string $name, string $type, array $crops = [],
+									  array $thumbs = [], array $video_data = [], array $metadata = []): Resource
+		{
 			$width = null;
 			$height = null;
 			
@@ -193,7 +197,8 @@
 				If no resource allocations remain, the file is deleted as well.
 		*/
 		
-		function delete(): ?bool {
+		public function delete(): ?bool
+		{
 			// Delete resource record
 			SQL::delete("bigtree_resources", $this->ID);
 			AuditTrail::track("bigtree_resources", $this->ID, "deleted");
@@ -227,7 +232,8 @@
 				An integer.
 		*/
 		
-		function getAllocationCount(): int {
+		public function getAllocationCount(): int
+		{
 			return SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_resource_allocation WHERE resource = ?", $this->ID);
 		}
 		
@@ -242,7 +248,8 @@
 				A Resource object or null if no matching resource was found.
 		*/
 		
-		static function getByFile(string $file): ?Resource {
+		public static function getByFile(string $file): ?Resource
+		{
 			// Populate a list of resource prefixes if we don't already have it cached
 			if (static::$Prefixes === false) {
 				static::$Prefixes = [];
@@ -266,7 +273,8 @@
 				
 				if (!$resource) {
 					$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ? OR file = ?",
-										   $file, str_replace("{wwwroot}", "{staticroot}", $tokenized_file), $single_domain_tokenized_file);
+										   $file, str_replace("{wwwroot}", "{staticroot}", $tokenized_file),
+										   $single_domain_tokenized_file);
 				}
 			}
 			
@@ -303,7 +311,8 @@
 				"p" if a user can modify this file, "e" if the user can use this file, "n" if a user can't access this file.
 		*/
 		
-		function getUserAccessLevel(): ?string {
+		public function getUserAccessLevel(): ?string
+		{
 			$folder = new ResourceFolder($this->Folder);
 			
 			return $folder->UserAccessLevel;
@@ -321,10 +330,10 @@
 				An array of two arrays - folders and files - with permission levels.
 		*/
 		
-		static function search(string $query, string $sort = "date DESC"): array {
+		public static function search(string $query, string $sort = "date DESC"): array
+		{
 			$query = SQL::escape($query);
 			$permission_cache = [];
-			$existing = [];
 			
 			// Get matching folders
 			$folders = SQL::fetchAll("SELECT * FROM bigtree_resource_folders WHERE name LIKE '%$query%' ORDER BY name");
@@ -364,7 +373,8 @@
 				Saves the current object properties back to the database.
 		*/
 		
-		function save(): ?bool {
+		public function save(): ?bool
+		{
 			if (empty($this->ID)) {
 				$new = static::create($this->Folder, $this->File, $this->Name, $this->Type, $this->Crops, $this->Thumbs,
 									  $this->VideoData, $this->Metadata);

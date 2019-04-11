@@ -23,7 +23,8 @@
 				A random string.
 		*/
 		
-		static function getRandomString(int $length = 8, string $type = "alphanum"): string {
+		public static function getRandomString(int $length = 8, string $type = "alphanum"): string
+		{
 			// Character sets
 			$types = [
 				"alpha" => "abcdefghijklmnopqrstuvwqyz",
@@ -62,7 +63,8 @@
 				Encoded string.
 		*/
 		
-		static function htmlEncode(?string $string): ?string {
+		public static function htmlEncode(?string $string): ?string
+		{
 			if (is_null($string)) {
 				return null;
 			}
@@ -82,7 +84,8 @@
 				A string.
 		*/
 		
-		static function replaceServerRoot(string $string, string $replace = ""): string {
+		public static function replaceServerRoot(string $string, string $replace = ""): string
+		{
 			if (strpos($string, SERVER_ROOT) === 0) {
 				return $replace.substr($string, strlen(SERVER_ROOT));
 			}
@@ -98,7 +101,8 @@
 				An array of key/value pairs of the english text and the translation.
 		*/
 		
-		static function setLanguage(string $language): void {
+		public static function setLanguage(string $language): void
+		{
 			static::$Language = $language;
 		}
 		
@@ -111,7 +115,8 @@
 				html_encode - Whether to return an encoded string (safer for things inside an attribute, defaults to false)
 		*/
 		
-		static function translate(string $string, bool $html_encode = false, array $replacements = []): string {
+		public static function translate(string $string, bool $html_encode = false, array $replacements = []): string
+		{
 			$string = isset(static::$Language[$string]) ? static::$Language[$string] : $string;
 			
 			// Allow for wildcard replacements where language isn't an issue
@@ -134,7 +139,8 @@
 				A string trimmed to the proper number of characters.
 		*/
 		
-		static function trimLength(string $string, int $length): string {
+		public static function trimLength(string $string, int $length): string
+		{
 			$ns = "";
 			$opentags = [];
 			$string = trim($string);
@@ -247,7 +253,8 @@
 				A number
 		*/
 		
-		static function versionToDecimal(string $version): int {
+		public static function versionToDecimal(string $version): int
+		{
 			$pieces = explode(".", $version);
 			$number = $pieces[0] * 10000;
 			

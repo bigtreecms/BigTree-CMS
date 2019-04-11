@@ -16,7 +16,7 @@
 		public $ID;
 		public $Name;
 
-		function __construct($tag, API &$api)
+		public function __construct($tag, API &$api)
 		{
 			if (!is_string($tag)) {
 				$this->API = $api;
@@ -28,7 +28,7 @@
 			}
 		}
 
-		function __toString()
+		public function __toString()
 		{
 			return $this->Name;
 		}
@@ -41,7 +41,7 @@
 				true on success
 		*/
 
-		function remove(): bool
+		public function remove(): bool
 		{
 			return $this->API->removeTagFromPhoto($this->ID);
 		}

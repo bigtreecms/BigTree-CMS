@@ -33,7 +33,7 @@
 				api - Reference to the BigTree\Instagram\API class instance
 		*/
 		
-		function __construct(stdClass $user, API &$api)
+		public function __construct(stdClass $user, API &$api)
 		{
 			$this->API = $api;
 			isset($user->bio) ? $this->Description = $user->bio : false;
@@ -52,7 +52,7 @@
 				Alias for BigTree\Instagram\API::getUserMedia
 		*/
 		
-		function getMedia(): ?ResultSet
+		public function getMedia(): ?ResultSet
 		{
 			return $this->API->getUserMedia($this->ID);
 		}
@@ -62,7 +62,7 @@
 				Alias for BigTree\Instagram\API::getFriends
 		*/
 		
-		function getFriends(): ?array
+		public function getFriends(): ?array
 		{
 			return $this->API->getFriends($this->ID);
 		}
@@ -72,7 +72,7 @@
 				Alias for BigTree\Instagram\API::getFollowers
 		*/
 		
-		function getFollowers(): ?array
+		public function getFollowers(): ?array
 		{
 			return $this->API->getFollowers($this->ID);
 		}
@@ -82,7 +82,7 @@
 				Alias for BigTree\Instagram\API::getRelationship
 		*/
 		
-		function getRelationship()
+		public function getRelationship()
 		{
 			return $this->API->getRelationship($this->ID);
 		}
@@ -92,7 +92,7 @@
 				Alias for BigTree\Instagram\API::setRelationship
 		*/
 		
-		function setRelationship($action)
+		public function setRelationship($action)
 		{
 			return $this->API->setRelationship($this->ID, $action);
 		}

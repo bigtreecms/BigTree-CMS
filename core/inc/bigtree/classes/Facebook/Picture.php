@@ -13,7 +13,7 @@
 		/** @var API */
 		protected $API;
 		
-		function __construct(stdClass $picture, API &$api)
+		public function __construct(stdClass $picture, API &$api)
 		{
 			$this->API = $api;
 			
@@ -38,7 +38,7 @@
 				Returns the url of the requested image or the default image.
 		*/
 		
-		function getSize(string $dimensions): string
+		public function getSize(string $dimensions): string
 		{
 			if (isset($this->Images[$dimensions])) {
 				return $this->Images[$dimensions];

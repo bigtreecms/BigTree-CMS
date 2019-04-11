@@ -47,7 +47,7 @@
 		/** @var S3Client */
 		public $S3Client;
 		
-		function __construct()
+		public function __construct()
 		{
 			parent::__construct();
 			
@@ -63,7 +63,7 @@
 		}
 		
 		// Implements Provider::copyFile
-		function copyFile(string $source_container, string $source_pointer, string $destination_container,
+		public function copyFile(string $source_container, string $source_pointer, string $destination_container,
 						  string $destination_pointer, bool $public = false): ?string
 		{
 			try {
@@ -83,7 +83,7 @@
 		}
 		
 		// Implements Provider::createContainer
-		function createContainer(string $name, bool $public = false): ?bool
+		public function createContainer(string $name, bool $public = false): ?bool
 		{
 			try {
 				$this->S3Client->createBucket([
@@ -100,7 +100,7 @@
 		}
 		
 		// Implements Provider::createFile
-		function createFile(string $contents, string $container, string $pointer, bool $public = false,
+		public function createFile(string $contents, string $container, string $pointer, bool $public = false,
 							string $type = "text/plain"): ?string
 		{
 			$contents = strlen($contents) ? $contents : " ";
@@ -126,7 +126,7 @@
 		}
 		
 		// Implements Provider::deleteContainer
-		function deleteContainer(string $container): ?bool
+		public function deleteContainer(string $container): ?bool
 		{
 			try {
 				$this->S3Client->deleteBucket(["Bucket" => $container]);
@@ -140,7 +140,7 @@
 		}
 		
 		// Implements Provider::deleteFile
-		function deleteFile(string $container, string $pointer): ?bool
+		public function deleteFile(string $container, string $pointer): ?bool
 		{
 			try {
 				$this->S3Client->deleteObject(["Bucket" => $container, "Key" => $pointer]);
@@ -154,7 +154,7 @@
 		}
 		
 		// Implements Provider::getAuthenticatedFileURL
-		function getAuthenticatedFileURL(string $container, string $pointer, int $expires): ?string
+		public function getAuthenticatedFileURL(string $container, string $pointer, int $expires): ?string
 		{
 			$pointer = str_replace(['%2F', '%2B'], ['/', '+'], rawurlencode($pointer));
 			
@@ -162,7 +162,7 @@
 		}
 		
 		// Implements Provider::getContainer
-		function getContainer(string $container, bool $simple = false): ?array
+		public function getContainer(string $container, bool $simple = false): ?array
 		{
 			$continue = true;
 			$marker = "";
@@ -221,7 +221,7 @@
 		}
 		
 		// Implements Provider::getFile
-		function getFile(string $container, string $pointer): ?string
+		public function getFile(string $container, string $pointer): ?string
 		{
 			try {
 				$response = $this->S3Client->getObject(["Bucket" => $container, "Key" => $pointer]);
@@ -266,7 +266,7 @@
 		}
 		
 		// Implements Provider::listContainers
-		function listContainers(): ?array
+		public function listContainers(): ?array
 		{
 			$containers = [];
 			
@@ -289,7 +289,7 @@
 		}
 		
 		// Implements Provider::makeFilePublic
-		function makeFilePublic(string $container, string $pointer): bool
+		public function makeFilePublic(string $container, string $pointer): bool
 		{
 			try {
 				$this->S3Client->putObjectAcl([
@@ -337,7 +337,7 @@
 		}
 		
 		// Implements Provider::uploadFile
-		function uploadFile(string $file, string $container, ?string $pointer = null, bool $public = false): ?string
+		public function uploadFile(string $file, string $container, ?string $pointer = null, bool $public = false): ?string
 		{
 			// Default the pointer to the name of the file if not provided.
 			if (!$pointer) {

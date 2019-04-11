@@ -27,7 +27,7 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 		
-		function __construct(bool $cache = true)
+		public function __construct(bool $cache = true)
 		{
 			parent::__construct("bigtree-internal-instagram-api", "Instagram API", "org.bigtreecms.api.instagram", $cache);
 			
@@ -44,7 +44,7 @@
 				Piggybacks on the base call to provide error checking for Instagram.
 		*/
 		
-		function callUncached(string $endpoint = "", array $params = [], string $method = "GET",
+		public function callUncached(string $endpoint = "", array $params = [], string $method = "GET",
 							  array $headers = []): ?stdClass
 		{
 			$response = parent::callUncached($endpoint, $params, $method, $headers);
@@ -72,7 +72,7 @@
 				true if successful
 		*/
 		
-		function comment(string $id, string $comment): bool
+		public function comment(string $id, string $comment): bool
 		{
 			$response = $this->call("media/$id/comments", ["text" => $comment], "POST");
 			
@@ -95,7 +95,7 @@
 				true if successful
 		*/
 		
-		function deleteComment(string $id, string $comment): bool
+		public function deleteComment(string $id, string $comment): bool
 		{
 			$response = $this->call("media/$id/comments/$comment", [], "DELETE");
 			
@@ -117,7 +117,7 @@
 				An array of BigTree\Instagram\Comment objects.
 		*/
 		
-		function getComments(string $id): ?array
+		public function getComments(string $id): ?array
 		{
 			$response = $this->call("media/$id/comments");
 			$comments = [];
@@ -148,7 +148,7 @@
 				http://instagram.com/developer/endpoints/users/
 		*/
 		
-		function getFeed(int $count = 10, array $params = []): ?ResultSet
+		public function getFeed(int $count = 10, array $params = []): ?ResultSet
 		{
 			$response = $this->call("users/self/feed", array_merge($params, ["count" => $count]));
 			$results = [];
@@ -178,7 +178,7 @@
 				An array of BigTree\Instagram\User objects
 		*/
 		
-		function getFriends(string $id): ?array
+		public function getFriends(string $id): ?array
 		{
 			$response = $this->call("users/$id/follows");
 			$results = [];
@@ -205,7 +205,7 @@
 				An array of BigTree\Instagram\User objects
 		*/
 		
-		function getFollowers(string $id): ?array
+		public function getFollowers(string $id): ?array
 		{
 			$response = $this->call("users/$id/followed-by");
 			$results = [];
@@ -229,7 +229,7 @@
 				An array of BigTree\Instagram\User objects
 		*/
 		
-		function getFollowRequests(): ?array
+		public function getFollowRequests(): ?array
 		{
 			$response = $this->call("users/self/requested-by");
 			$results = [];
@@ -260,7 +260,7 @@
 				http://instagram.com/developer/endpoints/users/
 		*/
 		
-		function getLikedMedia(int $count = 10, array $params = []): ?ResultSet
+		public function getLikedMedia(int $count = 10, array $params = []): ?ResultSet
 		{
 			$response = $this->call("users/self/media/liked", array_merge($params, ["count" => $count]));
 			$results = [];
@@ -290,7 +290,7 @@
 				An array of BigTree\Instagram\User objects.
 		*/
 		
-		function getLikes(string $id): ?array
+		public function getLikes(string $id): ?array
 		{
 			$response = $this->call("media/$id/likes");
 			$users = [];
@@ -317,7 +317,7 @@
 				A BigTree\Instagram\Location object.
 		*/
 		
-		function getLocation(string $id): ?Location
+		public function getLocation(string $id): ?Location
 		{
 			$response = $this->call("locations/$id");
 			
@@ -339,7 +339,7 @@
 				A BigTree\Instagram\Location object.
 		*/
 		
-		function getLocationByFoursquareID($id): ?Location
+		public function getLocationByFoursquareID($id): ?Location
 		{
 			$response = $this->searchLocations(null, null, null, $id);
 			
@@ -361,7 +361,7 @@
 				A BigTree\Instagram\Location object.
 		*/
 		
-		function getLocationByLegacyFoursquareID(string $id): ?Location
+		public function getLocationByLegacyFoursquareID(string $id): ?Location
 		{
 			$response = $this->searchLocations(null, null, null, null, $id);
 			
@@ -387,7 +387,7 @@
 				http://instagram.com/developer/endpoints/locations/
 		*/
 		
-		function getLocationMedia(string $id, array $params = []): ?ResultSet
+		public function getLocationMedia(string $id, array $params = []): ?ResultSet
 		{
 			$response = $this->call("locations/$id/media/recent", $params);
 			$results = [];
@@ -418,7 +418,7 @@
 				A BigTree\Instagram\Media object.
 		*/
 		
-		function getMedia(string $id, bool $shortcode = false): ?Media
+		public function getMedia(string $id, bool $shortcode = false): ?Media
 		{
 			if ($shortcode) {
 				$response = $this->call("media/shortcode/$id");
@@ -444,7 +444,7 @@
 				An object containg an "Incoming" key (whether they follow you, have requested to follow you, or nothing) and "Outgoing" key (whether you follow them, block them, etc)
 		*/
 		
-		function getRelationship(string $id): ?stdClass
+		public function getRelationship(string $id): ?stdClass
 		{
 			$response = $this->call("users/$id/relationship");
 			
@@ -474,7 +474,7 @@
 				http://instagram.com/developer/endpoints/tags/
 		*/
 		
-		function getTaggedMedia(string $tag, array $params = []): ?ResultSet
+		public function getTaggedMedia(string $tag, array $params = []): ?ResultSet
 		{
 			$tag = (substr($tag, 0, 1) == "#") ? substr($tag, 1) : $tag;
 			$response = $this->call("tags/$tag/media/recent", $params);
@@ -505,7 +505,7 @@
 				A BigTree\Instagram\User object.
 		*/
 		
-		function getUser(string $id): ?User
+		public function getUser(string $id): ?User
 		{
 			$response = $this->call("users/$id");
 			
@@ -532,7 +532,7 @@
 				http://instagram.com/developer/endpoints/users/
 		*/
 		
-		function getUserMedia(string $id, int $count = 10, array $params = []): ?ResultSet
+		public function getUserMedia(string $id, int $count = 10, array $params = []): ?ResultSet
 		{
 			$response = $this->call("users/$id/media/recent", array_merge($params, ["count" => $count]));
 			$results = [];
@@ -562,7 +562,7 @@
 				true if successful
 		*/
 		
-		function like(string $id): bool
+		public function like(string $id): bool
 		{
 			$response = $this->call("media/$id/likes", [], "POST");
 			
@@ -581,7 +581,7 @@
 				An array of BigTree\Instagram\Media objects.
 		*/
 		
-		function popularMedia(): ?array
+		public function popularMedia(): ?array
 		{
 			$response = $this->call("media/popular");
 			$results = [];
@@ -612,7 +612,7 @@
 				An array of BigTree\Instagram\Location objects
 		*/
 		
-		function searchLocations(?string $latitude = "", ?string $longitude = "", ?int $distance = 1000,
+		public function searchLocations(?string $latitude = "", ?string $longitude = "", ?int $distance = 1000,
 								 ?string $foursquare_id = null, ?string $legacy_foursquare_id = null): ?array
 		{
 			if ($legacy_foursquare_id) {
@@ -654,7 +654,7 @@
 				http://instagram.com/developer/endpoints/media/
 		*/
 		
-		function searchMedia(string $latitude, string $longitude, int $distance = 1000, array $params = []): ?ResultSet
+		public function searchMedia(string $latitude, string $longitude, int $distance = 1000, array $params = []): ?ResultSet
 		{
 			$response = $this->call("media/search", array_merge($params, ["lat" => $latitude, "lng" => $longitude, "distance" => intval($distance)]));
 			$results = [];
@@ -686,7 +686,7 @@
 				An array of BigTree\Instagram\Tag objects.
 		*/
 		
-		function searchTags(string $tag): ?array
+		public function searchTags(string $tag): ?array
 		{
 			$response = $this->call("tags/search", ["q" => (substr($tag, 0, 1) == "#") ? substr($tag, 1) : $tag]);
 			$tags = [];
@@ -714,7 +714,7 @@
 				An array of BigTree\Instagram\User objects.
 		*/
 		
-		function searchUsers(string $query, int $count = 10): ?array
+		public function searchUsers(string $query, int $count = 10): ?array
 		{
 			$response = $this->call("users/search", ["q" => $query, "count" => $count]);
 			$users = [];
@@ -742,7 +742,7 @@
 				true if successful.
 		*/
 		
-		function setRelationship(string $id, string $action): bool
+		public function setRelationship(string $id, string $action): bool
 		{
 			$response = $this->call("users/$id/relationship", ["action" => $action], "POST");
 			
@@ -764,7 +764,7 @@
 				true if successful
 		*/
 		
-		function unlike(string $id): bool
+		public function unlike(string $id): bool
 		{
 			$response = $this->call("media/$id/likes", [], "DELETE");
 			

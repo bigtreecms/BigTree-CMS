@@ -10,7 +10,8 @@
 	 * @property-read array $Chain
 	 */
 	
-	class Message extends BaseObject {
+	class Message extends BaseObject
+	{
 		
 		protected $ID;
 		
@@ -35,7 +36,8 @@
 				message - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($message = null) {
+		public function __construct($message = null)
+		{
 			if ($message !== null) {
 				// Passing in just an ID
 				if (!is_array($message)) {
@@ -75,7 +77,8 @@
 				An array containing "sent", "read", and "unread" keys that contain an array of messages each.
 		*/
 		
-		static function allByUser(string $user, bool $return_arrays = false): array {
+		public static function allByUser(string $user, bool $return_arrays = false): array
+		{
 			$sent = $read = $unread = [];
 			$user = SQL::escape($user);
 			$messages = SQL::fetchAll("SELECT bigtree_messages.*, 
@@ -122,8 +125,9 @@
 				A Message object.
 		*/
 		
-		static function create(string $sender, string $subject, string $message, array $recipients,
-							   ?int $in_response_to = 0): Message {
+		public static function create(string $sender, string $subject, string $message, array $recipients,
+							   ?int $in_response_to = 0): Message
+		{
 			// Force recipients as a string value
 			foreach ($recipients as $index => $recipient) {
 				$recipients[$index] = strval(intval($recipient));
@@ -149,7 +153,8 @@
 				An array of Message objects with the current message's Selected property set to true.
 		*/
 		
-		function getChain(): array {
+		public function getChain(): array
+		{
 			// Show this message as special in the chain
 			$message = clone $this;
 			$message->Selected = true;
@@ -181,7 +186,8 @@
 				The number of unread messages.
 		*/
 		
-		static function getUserUnreadCount(): ?int {
+		public static function getUserUnreadCount(): ?int
+		{
 			$user = Auth::user()->ID;
 			
 			// Make sure a user is logged in
@@ -200,7 +206,8 @@
 				Marks the message as read by the currently logged in user.
 		*/
 		
-		function markRead(): void {
+		public function markRead(): void
+		{
 			$user = Auth::user()->ID;
 			
 			// Make sure a user is logged in
@@ -219,7 +226,8 @@
 				Saves the Message back to the database.
 		*/
 		
-		function save(): bool {
+		public function save(): bool
+		{
 			$recipients = array_filter(array_unique($this->Recipients));
 			$read_by = array_filter(array_unique($this->ReadBy));
 			

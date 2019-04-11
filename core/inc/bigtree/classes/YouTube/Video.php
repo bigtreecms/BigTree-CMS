@@ -44,7 +44,7 @@
 		public $UploadStatus;
 		public $ViewCount;
 
-		function __construct($video,&$api)
+		public function __construct($video,&$api)
 		{
 			$this->API = $api;
 			isset($video->contentDetails->caption) ? $this->Captioned = $video->contentDetails->caption : false;
@@ -103,7 +103,7 @@
 				true on success.
 		*/
 
-		function delete(): void
+		public function delete(): void
 		{
 			$this->API->deleteVideo($this->ID);
 		}
@@ -117,7 +117,7 @@
 				A new Video object with more details.
 		*/
 
-		function getDetails(): ?Video
+		public function getDetails(): ?Video
 		{
 			return $this->API->getVideo($this->ID);
 		}
@@ -130,7 +130,7 @@
 				rating - "like", "dislike", or "none" (for clearing an existing rating)
 		*/
 
-		function rate(string $rating): bool
+		public function rate(string $rating): bool
 		{
 			return $this->API->rateVideo($this->ID,$rating);
 		}
@@ -144,7 +144,7 @@
 				true on success.
 		*/
 
-		function save(): bool
+		public function save(): bool
 		{
 			$object = json_encode(array(
 				"id" => $this->ID,

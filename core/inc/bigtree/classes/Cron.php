@@ -6,7 +6,8 @@
 	
 	namespace BigTree;
 	
-	class Cron {
+	class Cron
+	{
 		
 		public static $Plugins = [];
 		
@@ -16,7 +17,8 @@
 				Certain tasks will only be run once every 24 hours (Daily Digest, Analytics Caching, Version Ping)
 		*/
 		
-		static function run(): void {
+		public static function run(): void
+		{
 			global $bigtree;
 			
 			// Track when we last sent a daily digest
@@ -76,4 +78,5 @@
 			$cronLastRun->Value = time();
 			$cronLastRun->save();
 		}
+		
 	}

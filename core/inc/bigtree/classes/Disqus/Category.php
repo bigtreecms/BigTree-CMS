@@ -20,7 +20,7 @@
 		public $Name;
 		public $Order;
 		
-		function __construct(stdClass $category, API &$api)
+		public function __construct(stdClass $category, API &$api)
 		{
 			$this->API = $api;
 			isset($category->isDefault) ? $this->Default = $category->isDefault : false;

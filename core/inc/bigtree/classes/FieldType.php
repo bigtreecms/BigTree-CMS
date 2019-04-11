@@ -6,14 +6,15 @@
 	
 	namespace BigTree;
 	
-	class FieldType extends BaseObject {
-		
-		public static $Table = "bigtree_field_types";
+	class FieldType extends BaseObject
+	{
 		
 		public $ID;
 		public $Name;
 		public $SelfDraw;
 		public $UseCases;
+		
+		public static $Table = "bigtree_field_types";
 		
 		/*
 			Constructor:
@@ -23,7 +24,8 @@
 				field_type - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($field_type = null) {
+		public function __construct($field_type = null)
+		{
 			// Passing in just an ID
 			if (!is_array($field_type)) {
 				$field_type = SQL::fetch("SELECT * FROM bigtree_field_types WHERE id = ?", $field_type);
@@ -54,7 +56,8 @@
 				A BigTree\FieldType object if successful, null if an invalid ID was passed or the ID is already in use
 		*/
 		
-		static function create(string $id, string $name, array $use_cases, bool $self_draw): ?FieldType {
+		public static function create(string $id, string $name, array $use_cases, bool $self_draw): ?FieldType
+		{
 			// Check to see if it's a valid ID
 			if (!ctype_alnum(str_replace(["-", "_"], "", $id)) || strlen($id) > 127) {
 				return null;
@@ -127,7 +130,8 @@
 				Deletes the field type and erases its files.
 		*/
 		
-		function delete(): ?bool {
+		public function delete(): ?bool
+		{
 			$id = $this->ID;
 			
 			// Remove related files
@@ -157,7 +161,8 @@
 				Array of three arrays of field types (template, module, and callout).
 		*/
 		
-		static function reference(bool $split = false, ?string $use_case_type = null) {
+		public static function reference(bool $split = false, ?string $use_case_type = null)
+		{
 			// Used cached values if available, otherwise query the DB
 			if (file_exists(SERVER_ROOT."cache/bigtree-form-field-types.json")) {
 				$types = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-form-field-types.json"), true);
@@ -224,7 +229,8 @@
 				Saves the current object properties back to the database.
 		*/
 		
-		function save(): ?bool {
+		public function save(): ?bool
+		{
 			// IDs are user defined so the database entry may not exist but an ID still exists
 			if (SQL::exists("bigtree_field_types", $this->ID)) {
 				SQL::update("bigtree_field_types", $this->ID, [
@@ -261,7 +267,7 @@
 				self_draw - Whether this field type will draw its <fieldset> and <label> ("on" or a falsey value)
 		*/
 		
-		function update(string $name, array $use_cases, bool $self_draw): ?bool {
+		public function update(string $name, array $use_cases, bool $self_draw): ?bool {
 			$this->Name = $name;
 			$this->UseCases = $use_cases;
 			$this->SelfDraw = $self_draw;

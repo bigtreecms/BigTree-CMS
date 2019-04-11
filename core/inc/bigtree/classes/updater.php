@@ -8,7 +8,8 @@
 	
 	use PclZip;
 	
-	class Updater {
+	class Updater
+	{
 		
 		public $Connection;
 		public $Extension = false;
@@ -22,7 +23,8 @@
 				extension - If updating an extension, the extension id (defaults to false)
 		*/
 		
-		function __construct(?string $extension = null) {
+		public function __construct(?string $extension = null)
+		{
 			$this->Extension = $extension;
 			
 			// See if local will work
@@ -53,7 +55,8 @@
 				true if the file isn't corrupt
 		*/
 		
-		function checkZip(): bool {
+		public function checkZip(): bool
+		{
 			include_once SERVER_ROOT."core/inc/lib/pclzip.php";
 			$zip = new PclZip(SERVER_ROOT."cache/update.zip");
 			$zip->listContent();
@@ -70,7 +73,8 @@
 				Removes update related files and directories.
 		*/
 		
-		function cleanup(): void {
+		public function cleanup(): void
+		{
 			if (file_exists(SERVER_ROOT."cache/update/")) {
 				FileSystem::deleteDirectory(SERVER_ROOT."cache/update/");
 			}
@@ -86,7 +90,8 @@
 				true if successful
 		*/
 		
-		function extract(): bool {
+		public function extract(): bool
+		{
 			include_once SERVER_ROOT."core/inc/lib/pclzip.php";
 			$zip = new PclZip(SERVER_ROOT."cache/update.zip");
 			
@@ -129,7 +134,8 @@
 				true if successful.
 		*/
 		
-		function ftpLogin(string $user, $password): bool {
+		public function ftpLogin(string $user, $password): bool
+		{
 			return $this->Connection->login($user, $password) ? true : false;
 		}
 		
@@ -142,7 +148,8 @@
 				null if not successful.
 		*/
 		
-		function getFTPRoot(): ?string {
+		public function getFTPRoot(): ?string
+		{
 			// Try to determine the FTP root.
 			$ftp_root = null;
 			$saved_root = Setting::value("bigtree-internal-ftp-upgrade-root");
@@ -172,7 +179,8 @@
 				ftp_root - The FTP path to the root install directory for BigTree
 		*/
 		
-		function installFTP(string $ftp_root): void {
+		public function installFTP(string $ftp_root): void
+		{
 			$ftp_root = "/".trim($ftp_root, "/")."/";
 			
 			// Create backups folder
@@ -219,7 +227,8 @@
 				Installs an update via local file replacement.
 		*/
 		
-		function installLocal(): void {
+		public function installLocal(): void
+		{
 			// Create backups folder
 			FileSystem::createDirectory(SERVER_ROOT."backups/");
 			
@@ -270,7 +279,8 @@
 				true if successful
 		*/
 		
-		static function unzip(string $file, string $destination): bool {
+		public static function unzip(string $file, string $destination): bool
+		{
 			// If we can't write the output directory, we're not getting anywhere.
 			if (!FileSystem::getDirectoryWritability($destination)) {
 				return false;
@@ -372,7 +382,8 @@
 				A folder name or null if the root contains more than just a folder.
 		*/
 		
-		static function zipRoot(PclZip $zip): ?string {
+		public static function zipRoot(PclZip $zip): ?string
+		{
 			$contents = $zip->listContent();
 			$root_count = 0;
 			$root = null;
@@ -393,4 +404,6 @@
 			
 			return null;
 		}
+		
 	}
+	

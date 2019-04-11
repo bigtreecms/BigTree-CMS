@@ -22,7 +22,7 @@
 		public $UpdatedAt;
 		public $WebsiteURL;
 		
-		function __construct(stdClass $property, API &$api)
+		public function __construct(stdClass $property, API &$api)
 		{
 			$this->AccountID = $property->accountId;
 			$this->API = $api;
@@ -33,7 +33,7 @@
 			$this->WebsiteURL = $property->websiteUrl;
 		}
 		
-		function getProfiles($params): ?GoogleResultSet
+		public function getProfiles($params): ?GoogleResultSet
 		{
 			return $this->API->getProfiles($this->AccountID, $this->ID, $params);
 		}

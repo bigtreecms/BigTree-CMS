@@ -6,9 +6,8 @@
 	
 	namespace BigTree;
 	
-	class Template extends BaseObject {
-		
-		public static $Table = "bigtree_templates";
+	class Template extends BaseObject
+	{
 		
 		protected $ID;
 		protected $Routed;
@@ -27,6 +26,8 @@
 		public $Name;
 		public $Position;
 		
+		public static $Table = "bigtree_templates";
+		
 		/*
 			Constructor:
 				Builds a Template object referencing an existing database entry.
@@ -35,7 +36,8 @@
 				template - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($template = null) {
+		public function __construct($template = null)
+		{
 			if ($template !== null) {
 				// Passing in just an ID
 				if (!is_array($template)) {
@@ -72,7 +74,8 @@
 				A cleaned up array of hooks with the proper keys.
 		*/
 		
-		static function cleanHooks($hooks): array {
+		public static function cleanHooks($hooks): array
+		{
 			if (!is_array($hooks)) {
 				return ["pre" => "", "post" => "", "edit" => "", "publish" => ""];
 			} else {
@@ -111,7 +114,9 @@
 				Template object if successful, null if there's an ID collision or a bad ID is passed
 		*/
 		
-		static function create(string $id, string $name, bool $routed, int $level, ?int $module, array $fields, ?array $hooks = null): ?Template {
+		public static function create(string $id, string $name, bool $routed, int $level, ?int $module, array $fields,
+									  ?array $hooks = null): ?Template
+		{
 			// Check to see if it's a valid ID
 			if (!ctype_alnum(str_replace(["-", "_"], "", $id)) || strlen($id) > 127) {
 				return null;
@@ -196,7 +201,8 @@
 				Deletes the template and its related files.
 		*/
 		
-		function delete(): ?bool {
+		public function delete(): ?bool
+		{
 			// Delete related files
 			if ($this->Routed) {
 				FileSystem::deleteDirectory(SERVER_ROOT."templates/routed/".$this->ID."/");
@@ -216,10 +222,12 @@
 				Saves the current object properties back to the database.
 		*/
 		
-		function save(): ?bool {
+		public function save(): ?bool
+		{
 			// Templates specify their own ID so we check for DB existance to determine save behavior
 			if (!SQL::exists("bigtree_templates", $this->ID)) {
-				$new = static::create($this->ID, $this->Name, $this->Routed, $this->Level, $this->Module, $this->Fields, $this->Hooks);
+				$new = static::create($this->ID, $this->Name, $this->Routed, $this->Level, $this->Module, $this->Fields,
+									  $this->Hooks);
 				$this->inherit($new);
 			} else {
 				// Clean up fields
@@ -268,7 +276,8 @@
 				hooks - An array of hooks (pre, post, edit, and publish keys) or null
 		*/
 		
-		function update(string $name, int $level, ?int $module, array $fields, ?array $hooks): void {
+		public function update(string $name, int $level, ?int $module, array $fields, ?array $hooks): void
+		{
 			$this->Fields = $fields;
 			$this->Hooks = $hooks;
 			$this->Level = $level;

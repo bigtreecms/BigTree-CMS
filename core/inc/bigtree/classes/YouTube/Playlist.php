@@ -24,7 +24,7 @@
 		public $Timestamp;
 		public $Title;
 		
-		function __construct(stdClass $playlist, API &$api)
+		public function __construct(stdClass $playlist, API &$api)
 		{
 			$this->API = $api;
 			isset($playlist->snippet->channelId) ? $this->ChannelID = $playlist->snippet->channelId : false;
@@ -56,7 +56,7 @@
 				true if successful.
 		*/
 		
-		function save(): bool
+		public function save(): bool
 		{
 			return $this->API->updatePlaylist($this->ID, $this->Title, $this->Description, $this->Privacy, $this->Tags);
 		}
@@ -67,7 +67,7 @@
 				Playlist must be owned by the authenticated user.
 		*/
 		
-		function delete(): void
+		public function delete(): void
 		{
 			$this->API->deletePlaylist($this->ID);
 		}

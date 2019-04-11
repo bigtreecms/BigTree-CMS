@@ -6,7 +6,8 @@
 	
 	namespace BigTree;
 	
-	class cURL {
+	class cURL
+	{
 		
 		public static $Error;
 		public static $ResponseCode;
@@ -27,7 +28,8 @@
 		*/
 		
 		public static function request(string $url, $post = null, array $options = [], bool $strict_security = true,
-									   ?string $output_file = null, bool $updating_bundle = false): ?string {
+									   ?string $output_file = null, bool $updating_bundle = false): ?string
+		{
 			global $bigtree;
 			
 			$cert_bundle = SERVER_ROOT."cache/bigtree-ca-cert.pem";
@@ -119,3 +121,4 @@
 		}
 		
 	}
+	

@@ -6,7 +6,8 @@
 	
 	namespace BigTree;
 	
-	class Lock extends BaseObject {
+	class Lock extends BaseObject
+	{
 		
 		public static $Table = "bigtree_locks";
 		
@@ -24,7 +25,8 @@
 				lock - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($lock = null) {
+		public function __construct($lock = null)
+		{
 			if ($lock !== null) {
 				// Passing in just an ID
 				if (!is_array($lock)) {
@@ -61,7 +63,8 @@
 				A Lock object or null if the logged in user does not own the lock.
 		*/
 		
-		static function enforce(string $table, string $id, string $include, bool $force = false): ?Lock {
+		public static function enforce(string $table, string $id, string $include, bool $force = false): ?Lock
+		{
 			global $admin, $bigtree, $cms, $db;
 			
 			$user = Auth::user()->ID;
@@ -115,7 +118,8 @@
 
 		*/
 		
-		static function refresh(string $table, string $id): void {
+		public static function refresh(string $table, string $id): void
+		{
 			$user = Auth::user()->ID;
 			
 			// Make sure a user is logged in
@@ -136,7 +140,8 @@
 				id - The ID of the locked entry.
 		*/
 		
-		static function remove(string $table, string $id): void {
+		public static function remove(string $table, string $id): void
+		{
 			SQL::delete("bigtree_locks", ["table" => $table, "item_id" => $id]);
 		}
 		

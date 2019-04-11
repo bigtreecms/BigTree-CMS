@@ -32,7 +32,7 @@
 				timezone - The user's timezone
 		*/
 		
-		function __construct(?int $id, ?int $level, ?array $permissions, ?string $timezone)
+		public function __construct(?int $id, ?int $level, ?array $permissions, ?string $timezone)
 		{
 			$this->ID = $id;
 			$this->Level = $level;
@@ -51,7 +51,7 @@
 				Boolean
 		*/
 		
-		function canAccess($object): bool
+		public function canAccess($object): bool
 		{
 			if (get_class($object) == 'BigTree\ModuleAction') {
 				if ($object->Level > $this->Level) {
@@ -78,7 +78,7 @@
 				An adjusted timestamp or null if conversion fails.
 		*/
 		
-		function convertTimestampFrom(string $time, ?string $format = null): ?string
+		public function convertTimestampFrom(string $time, ?string $format = null): ?string
 		{
 			if (!$this->Timezone) {
 				return date("Y-m-d H:i:s", strtotime($time));
@@ -115,7 +115,7 @@
 				An adjusted timestamp or null if conversion fails.
 		*/
 		
-		function convertTimestampTo(string $time, ?string $format = null, ?string $timezone = null): ?string
+		public function convertTimestampTo(string $time, ?string $format = null, ?string $timezone = null): ?string
 		{
 			global $bigtree;
 			
@@ -162,7 +162,7 @@
 				The permission level of the user.
 		*/
 		
-		function getAccessLevel($object, ?array $entry = null, ?string $table = null): ?string
+		public function getAccessLevel($object, ?array $entry = null, ?string $table = null): ?string
 		{
 			// Developers have universal access
 			if ($this->Level > 1) {
@@ -296,7 +296,7 @@
 				An array of groups if the user has limited access to a module or "true" if the user has access to all groups.
 		*/
 		
-		function getAccessibleModuleGroups(Module $module): ?array
+		public function getAccessibleModuleGroups(Module $module): ?array
 		{
 			$access = $this->getAccessLevel($module);
 			
@@ -331,7 +331,7 @@
 				The permission level for the given item or module (if item was not passed).
 		*/
 		
-		function getCachedAccessLevel(Module $module, ?array $item = null, ?string $table = null): ?string
+		public function getCachedAccessLevel(Module $module, ?array $item = null, ?string $table = null): ?string
 		{
 			$module_id = $module->ID;
 			$permission = $this->getAccessLevel($module);
@@ -379,7 +379,7 @@
 				The permission level if the user can access this group, otherwise false.
 		*/
 		
-		function getGroupAccessLevel(Module $module, int $group): ?string
+		public function getGroupAccessLevel(Module $module, int $group): ?string
 		{
 			if ($this->Level > 0) {
 				return "p";
@@ -418,7 +418,7 @@
 				true if the user is banned
 		*/
 		
-		static function getIsUserBanned(int $user): bool
+		public static function getIsUserBanned(int $user): bool
 		{
 			global $bigtree;
 			
@@ -446,7 +446,7 @@
 				true if a user matches the token
 		*/
 		
-		static function process2FAToken(string $two_factor_token): ?array
+		public static function process2FAToken(string $two_factor_token): ?array
 		{
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE 2fa_login_token = ?", $two_factor_token);
 			
@@ -471,7 +471,7 @@
 				The permission level of the user.
 		*/
 		
-		function requireAccess($object): ?string
+		public function requireAccess($object): ?string
 		{
 			$access = $this->getAccessLevel($object);
 			
@@ -495,7 +495,7 @@
 				error_path - Path (relative to SERVER_ROOT) of the error page to serve.
 		*/
 		
-		function requireLevel($level, $error_path = "admin/pages/_denied.php"): void
+		public function requireLevel($level, $error_path = "admin/pages/_denied.php"): void
 		{
 			if (empty($this->Level) || $this->Level < $level) {
 				define("BIGTREE_ACCESS_DENIED", true);
@@ -512,7 +512,7 @@
 				object - A BigTree\Module, BigTree\Page, or BigTree\ResourceFolder object.
 		*/
 		
-		function requirePublisher($object): void
+		public function requirePublisher($object): void
 		{
 			$access = $this->getAccessLevel($object);
 			

@@ -27,7 +27,7 @@
 		public $Token;
 		public $TokenURL = "https://accounts.google.com/o/oauth2/token";
 		
-		function __construct()
+		public function __construct()
 		{
 			// Tell the OAuth API to store things in "google" since we use a common setting for all APIs
 			$this->SettingNamespace = "google";
@@ -47,7 +47,7 @@
 		}
 		
 		// Implements Provider::copyFile
-		function copyFile(string $source_container, string $source_pointer, string $destination_container,
+		public function copyFile(string $source_container, string $source_pointer, string $destination_container,
 						  string $destination_pointer, bool $public = false): ?string
 		{
 			$encoded_source_pointer = urlencode($source_pointer);
@@ -67,7 +67,7 @@
 		}
 		
 		// Implements Provider::createContainer
-		function createContainer(string $name, bool $public = false): ?bool
+		public function createContainer(string $name, bool $public = false): ?bool
 		{
 			$request = ["name" => $name];
 			
@@ -84,7 +84,7 @@
 		}
 		
 		// Implements Provider::createFile
-		function createFile(string $contents, string $container, string $pointer, bool $public = false,
+		public function createFile(string $contents, string $container, string $pointer, bool $public = false,
 							string $type = "text/plain"): ?string
 		{
 			$encoded_pointer = urlencode($pointer);
@@ -115,7 +115,7 @@
 		}
 		
 		// Implements Provider::deleteContainer
-		function deleteContainer(string $container): ?bool
+		public function deleteContainer(string $container): ?bool
 		{
 			$error_count = count($this->Errors);
 			
@@ -130,7 +130,7 @@
 		}
 		
 		// Implements Provider::deleteFile
-		function deleteFile(string $container, string $pointer): ?bool
+		public function deleteFile(string $container, string $pointer): ?bool
 		{
 			$error_count = count($this->Errors);
 			
@@ -145,7 +145,7 @@
 		}
 		
 		// Implements Provider::getAuthenticatedFileURL
-		function getAuthenticatedFileURL(string $container, string $pointer, int $expires): ?string
+		public function getAuthenticatedFileURL(string $container, string $pointer, int $expires): ?string
 		{
 			$expires += time();
 			
@@ -182,7 +182,7 @@
 		}
 		
 		// Implements Provider::getContainer
-		function getContainer(string $container, bool $simple = false): ?array
+		public function getContainer(string $container, bool $simple = false): ?array
 		{
 			$flat = [];
 			$response = $this->call("b/$container/o");
@@ -221,7 +221,7 @@
 		}
 		
 		// Implements Provider::getfile
-		function getFile(string $container, string $pointer): ?string
+		public function getFile(string $container, string $pointer): ?string
 		{
 			$pointer = rawurlencode($pointer);
 			
@@ -231,7 +231,7 @@
 		}
 		
 		// Implements Provider::listContainers
-		function listContainers(): ?array
+		public function listContainers(): ?array
 		{
 			$containers = [];
 			$response = $this->call("b", ["project" => $this->Project]);
@@ -255,7 +255,7 @@
 		}
 		
 		// Implements Provider::makeFilePublic
-		function makeFilePublic(string $container, string $pointer): bool
+		public function makeFilePublic(string $container, string $pointer): bool
 		{
 			$response = $this->call("b/$container/o/".rawurlencode($pointer)."/acl", json_encode(["entity" => "allUsers", "role" => "READER"]), "POST");
 			
@@ -267,7 +267,7 @@
 		}
 		
 		// Implements Provider::uploadFile
-		function uploadFile(string $file, string $container, string $pointer = null, bool $public = false): ?string
+		public function uploadFile(string $file, string $container, string $pointer = null, bool $public = false): ?string
 		{
 			// No target destination, just use root folder w/ file name
 			if (!$pointer) {

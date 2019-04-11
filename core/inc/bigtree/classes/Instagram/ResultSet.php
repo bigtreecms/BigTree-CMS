@@ -29,7 +29,7 @@
 				results - Results to store
 		*/
 		
-		function __construct(API &$api, string $last_call, array $params, array $results)
+		public function __construct(API &$api, string $last_call, array $params, array $results)
 		{
 			$this->API = $api;
 			$this->LastCall = $last_call;
@@ -45,13 +45,13 @@
 				A BigTree\Instagram\ResultSet with the next page of results.
 		*/
 		
-		function nextPage(): ?ResultSet
+		public function nextPage(): ?ResultSet
 		{
 			return call_user_func_array([$this->API, $this->LastCall], $this->LastParameters);
 		}
 		
 		// Array iterator implementation
-		function offsetSet($index, $value): void
+		public function offsetSet($index, $value): void
 		{
 			if (is_null($index)) {
 				$this->Results[] = $value;
@@ -60,17 +60,17 @@
 			}
 		}
 		
-		function offsetExists($index): bool
+		public function offsetExists($index): bool
 		{
 			return isset($this->Results[$index]);
 		}
 		
-		function offsetUnset($index): void
+		public function offsetUnset($index): void
 		{
 			unset($this->Results[$index]);
 		}
 		
-		function offsetGet($index)
+		public function offsetGet($index)
 		{
 			return isset($this->Results[$index]) ? $this->Results[$index] : null;
 		}

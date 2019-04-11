@@ -10,14 +10,15 @@
 	 * @property-read int $ID
 	 */
 	
-	class CalloutGroup extends BaseObject {
-		
-		public static $Table = "bigtree_callout_groups";
+	class CalloutGroup extends BaseObject
+	{
 		
 		protected $ID;
 		
 		public $Callouts;
 		public $Name;
+		
+		public static $Table = "bigtree_callout_groups";
 		
 		/*
 			Constructor:
@@ -27,7 +28,7 @@
 				group - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($group = null) {
+		public function __construct($group = null) {
 			if ($group !== null) {
 				// Passing in just an ID
 				if (!is_array($group)) {
@@ -57,7 +58,7 @@
 				A BigTree\CalloutGroup object.
 		*/
 		
-		static function create(string $name, array $callouts = []): CalloutGroup {
+		public static function create(string $name, array $callouts = []): CalloutGroup {
 			// Order callouts alphabetically by ID
 			sort($callouts);
 			
@@ -80,7 +81,7 @@
 				id - The id of the callout group.
 		*/
 		
-		function delete(): ?bool {
+		public function delete(): ?bool {
 			SQL::delete("bigtree_callout_groups", $this->ID);
 			AuditTrail::track("bigtree_callout_groups", $this->ID, "deleted");
 			
@@ -92,7 +93,7 @@
 				Saves the current object properties back to the database.
 		*/
 		
-		function save(): ?bool {
+		public function save(): ?bool {
 			$this->Callouts = (array) $this->Callouts;
 			sort($this->Callouts);
 			
@@ -121,7 +122,7 @@
 				callouts - An array of callout IDs to assign to the group.
 		*/
 		
-		function update(string $name, array $callouts): ?bool {
+		public function update(string $name, array $callouts): ?bool {
 			$this->Name = $name;
 			$this->Callouts = $callouts;
 			

@@ -20,7 +20,7 @@
 				Prepares an environment for LinkPoint payments.
 		*/
 		
-		function __construct()
+		public function __construct()
 		{
 			parent::__construct();
 			
@@ -37,7 +37,7 @@
 		}
 		
 		// Implements Provider::authorize
-		function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
+		public function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
 						   int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
 						   ?string $customer = ""): ?string
 		{
@@ -50,7 +50,7 @@
 				Sends an API call to LinkPoint.
 		*/
 		
-		function call($params)
+		public function call($params)
 		{
 			$count = 0;
 			$this->Unresponsive = false;
@@ -106,7 +106,7 @@
 		}
 		
 		// Implements Provider::capture
-		function capture(string $transaction, ?float $amount = null): ?string
+		public function capture(string $transaction, ?float $amount = null): ?string
 		{
 			$params = [
 				"orderoptions" => [
@@ -136,7 +136,7 @@
 		}
 		
 		// Implements Provider::charge
-		function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
+		public function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
 						int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
 						?string $customer = "", ?string $action = null): ?string
 		{
@@ -220,7 +220,7 @@
 		}
 		
 		// Implements Provider::refund
-		function refund(string $transaction, ?string $card_number = null, ?float $amount = null): ?string
+		public function refund(string $transaction, ?string $card_number = null, ?float $amount = null): ?string
 		{
 			$params = [
 				"orderoptions" => [
@@ -253,7 +253,7 @@
 		}
 		
 		// Implements Provider::void
-		function void(string $authorization): ?string
+		public function void(string $authorization): ?string
 		{
 			$params = [
 				"orderoptions" => [

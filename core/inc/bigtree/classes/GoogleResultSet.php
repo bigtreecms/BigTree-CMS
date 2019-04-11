@@ -10,7 +10,8 @@
 	use BigTree\Disqus\ResultSet;
 	use stdClass;
 	
-	class GoogleResultSet implements ArrayAccess {
+	class GoogleResultSet implements ArrayAccess
+	{
 		
 		public $API;
 		public $LastCall = "";
@@ -31,7 +32,8 @@
 				results - Results to store
 		*/
 		
-		function __construct(&$api, string $last_call, array $params, stdClass $data, array $results) {
+		public function __construct(&$api, string $last_call, array $params, stdClass $data, array $results)
+		{
 			$this->API = $api;
 			$this->LastCall = $last_call;
 			$this->LastParameters = $params;
@@ -48,7 +50,8 @@
 				A BigTree\GoogleResultSet or false if there is not another page.
 		*/
 		
-		function nextPage(): ?ResultSet {
+		public function nextPage(): ?ResultSet
+		{
 			if ($this->NextPageToken) {
 				$params = $this->LastParameters;
 				$params[count($params) - 1]["pageToken"] = $this->NextPageToken;
@@ -60,7 +63,8 @@
 		}
 		
 		// Array iterator implementation
-		function offsetSet($index, $value) {
+		public function offsetSet($index, $value)
+		{
 			if (is_null($index)) {
 				$this->Results[] = $value;
 			} else {
@@ -68,15 +72,18 @@
 			}
 		}
 		
-		function offsetExists($index) {
+		public function offsetExists($index)
+		{
 			return isset($this->Results[$index]);
 		}
 		
-		function offsetUnset($index) {
+		public function offsetUnset($index)
+		{
 			unset($this->Results[$index]);
 		}
 		
-		function offsetGet($index) {
+		public function offsetGet($index)
+		{
 			return isset($this->Results[$index]) ? $this->Results[$index] : null;
 		}
 		
@@ -88,7 +95,8 @@
 				A BigTree\GoogleResultSet or false if there is not a previous page.
 		*/
 		
-		function previousPage(): ?ResultSet {
+		public function previousPage(): ?ResultSet
+		{
 			if ($this->PreviousPageToken) {
 				$params = $this->LastParameters;
 				$params[count($params) - 1]["pageToken"] = $this->PreviousPageToken;
@@ -98,4 +106,6 @@
 			
 			return null;
 		}
+		
 	}
+	

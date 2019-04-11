@@ -16,7 +16,7 @@
 		
 		public $Pictures;
 		
-		function __construct(stdClass $album, API &$api)
+		public function __construct(stdClass $album, API &$api)
 		{
 			$this->API = $api;
 			
@@ -41,7 +41,7 @@
 				Returns an array of BigTree\Facebook\Picture objects or false on failure.
 		*/
 		
-		function getPictures(): ?array
+		public function getPictures(): ?array
 		{
 			if (isset($this->Pictures)) {
 				return $this->Pictures;

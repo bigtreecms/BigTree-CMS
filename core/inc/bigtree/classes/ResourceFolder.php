@@ -14,14 +14,15 @@
 	 * @property-read string $UserAccessLevel
 	 */
 	
-	class ResourceFolder extends BaseObject {
-		
-		public static $Table = "bigtree_resource_folders";
+	class ResourceFolder extends BaseObject
+	{
 		
 		protected $ID;
 		
 		public $Name;
 		public $Parent;
+		
+		public static $Table = "bigtree_resource_folders";
 		
 		/*
 			Constructor:
@@ -31,7 +32,8 @@
 				folder - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($folder = null) {
+		public function __construct($folder = null)
+		{
 			if ($folder !== null) {
 				if (!$folder) {
 					$this->ID = 0;
@@ -67,7 +69,8 @@
 				A ResourceFolder object or null if no name was passed.
 		*/
 		
-		static function create(?int $parent, string $name): ?ResourceFolder {
+		public static function create(?int $parent, string $name): ?ResourceFolder
+		{
 			$name = trim($name);
 			
 			if ($name === "") {
@@ -89,7 +92,8 @@
 				Deletes the resource folder and all of its sub folders and resources.
 		*/
 		
-		function delete(): ?bool {
+		public function delete(): ?bool
+		{
 			// Get everything inside the folder
 			$items = $this->Contents;
 			
@@ -124,7 +128,8 @@
 				true if the folder exists, otherwise false.
 		*/
 		
-		static function exists(string $id): bool {
+		public static function exists(string $id): bool
+		{
 			if (intval($id) === 0) {
 				return true;
 			}
@@ -140,7 +145,8 @@
 				An array of arrays containing the name and id of folders above.
 		*/
 		
-		function getBreadcrumb(?int $folder = null, array $crumb = []): array {
+		public function getBreadcrumb(?int $folder = null, array $crumb = []): array
+		{
 			// First call won't have folder
 			if (!$folder) {
 				$folder = $this;
@@ -177,7 +183,8 @@
 				An array of two arrays - folders and resources.
 		*/
 		
-		function getContents(string $sort = "date DESC"): array {
+		public function getContents(string $sort = "date DESC"): array
+		{
 			$null_query = $this->ID ? "" : "OR folder IS NULL";
 			
 			return [
@@ -194,7 +201,8 @@
 				A keyed array of "resources", "folders", and "allocations" for the number of resources, sub folders, and allocations.
 		*/
 		
-		function getStatistics(): array {
+		public function getStatistics(): array
+		{
 			$allocations = $folders = $resources = 0;
 			$items = $this->Contents;
 			
@@ -228,7 +236,8 @@
 				"p" if a user can create folders and upload files, "e" if the user can see/use files, "n" if a user can't access this folder.
 		*/
 		
-		function getUserAccessLevel(): ?string {
+		public function getUserAccessLevel(): ?string
+		{
 			return Auth::user()->getAccessLevel($this);
 		}
 		
@@ -240,7 +249,8 @@
 				A ResourceFolder object.
 		*/
 		
-		static function root(): ResourceFolder {
+		public static function root(): ResourceFolder
+		{
 			return new ResourceFolder(["id" => "0", "parent" => "-1", "name" => "Home"]);
 		}
 		
@@ -249,7 +259,8 @@
 				Saves the current object properties back to the database.
 		*/
 		
-		function save(): ?bool {
+		public function save(): ?bool
+		{
 			// Home shouldn't be allowed to be saved
 			if ($this->ID === 0) {
 				return false;

@@ -34,7 +34,7 @@
 		public $URL;
 		public $UserScore;
 		
-		function __construct(stdClass $thread, API &$api)
+		public function __construct(stdClass $thread, API &$api)
 		{
 			$this->API = $api;
 			isset($thread->author) ? $this->AuthorID = $thread->author : false;
@@ -70,7 +70,7 @@
 				Authenticated user must be a moderator of this thread's forum.
 		*/
 		
-		function close(): bool
+		public function close(): bool
 		{
 			$response = $this->API->call("threads/close.json", ["thread" => $this->ID], "POST");
 			
@@ -96,7 +96,7 @@
 				A BigTree\Disqus\ResultSet of BigTree\Disqus\Post objects.
 		*/
 		
-		function getPosts(int $limit = 25, string $order = "desc", array $params = []): ?ResultSet
+		public function getPosts(int $limit = 25, string $order = "desc", array $params = []): ?ResultSet
 		{
 			$params["thread"] = $this->ID;
 			$params["limit"] = $limit;
@@ -124,7 +124,7 @@
 				Authenticated user must be a moderator of this thread's forum.
 		*/
 		
-		function open(): bool
+		public function open(): bool
 		{
 			$response = $this->API->call("threads/open.json", ["thread" => $this->ID], "POST");
 			
@@ -143,7 +143,7 @@
 				Authenticated user must be a moderator of this thread's forum.
 		*/
 		
-		function remove(): bool
+		public function remove(): bool
 		{
 			$response = $this->API->call("threads/remove.json", ["thread" => $this->ID], "POST");
 			
@@ -162,7 +162,7 @@
 				Authenticated user must be a moderator of this thread's forum.
 		*/
 		
-		function restore(): bool
+		public function restore(): bool
 		{
 			$response = $this->API->call("threads/restore.json", ["thread" => $this->ID], "POST");
 			
@@ -183,7 +183,7 @@
 				email - Email address to use for subscription (optional)
 		*/
 		
-		function subscribe(?string $email = null): bool
+		public function subscribe(?string $email = null): bool
 		{
 			$params = ["thread" => $this->ID];
 			
@@ -210,7 +210,7 @@
 				email - Email address used for subscription (optional)
 		*/
 		
-		function unsubscribe(?string $email = null): bool
+		public function unsubscribe(?string $email = null): bool
 		{
 			$params = ["thread" => $this->ID];
 			
@@ -237,7 +237,7 @@
 				vote - Vote to cast (-1, 0, or 1)
 		*/
 		
-		function vote(int $vote = 0): bool
+		public function vote(int $vote = 0): bool
 		{
 			$response = $this->API->call("threads/vote.json", ["thread" => $this->ID, "vote" => $vote], "POST");
 			

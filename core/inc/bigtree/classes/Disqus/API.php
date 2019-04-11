@@ -27,7 +27,7 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 		
-		function __construct(bool $cache = true)
+		public function __construct(bool $cache = true)
 		{
 			parent::__construct("bigtree-internal-disqus-api", "Disqus API", "org.bigtreecms.api.disqus", $cache);
 			
@@ -46,7 +46,7 @@
 				Wrapper for better Disqus error handling.
 		*/
 		
-		function callUncached(string $endpoint = "", array $params = [], string $method = "GET",
+		public function callUncached(string $endpoint = "", array $params = [], string $method = "GET",
 							  array $headers = []): stdClass
 		{
 			$response = parent::callUncached($endpoint, $params, $method, $headers);
@@ -84,7 +84,7 @@
 				true if successful
 		*/
 		
-		function changeUsername(string $username): bool
+		public function changeUsername(string $username): bool
 		{
 			$response = $this->call("users/checkUsername.json", ["username" => $username], "POST");
 			
@@ -109,7 +109,7 @@
 				Returns null if the shortname is already taken.
 		*/
 		
-		function createForum(string $shortname, string $name, string $url): ?Forum
+		public function createForum(string $shortname, string $name, string $url): ?Forum
 		{
 			$response = $this->call("forums/create.json", ["website" => $url, "name" => $name, "short_name" => $shortname], "POST");
 			
@@ -131,7 +131,7 @@
 				A BigTree\Disqus\Category object if successful.
 		*/
 		
-		function getCategory(string $id): ?Category
+		public function getCategory(string $id): ?Category
 		{
 			$response = $this->call("categories/details.json", ["category" => $id]);
 			
@@ -155,7 +155,7 @@
 				A BigTree\Disqus\Forum object if successful.
 		*/
 		
-		function getForum(string $shortname): ?Forum
+		public function getForum(string $shortname): ?Forum
 		{
 			$response = $this->call("forums/details.json", ["forum" => $shortname]);
 			
@@ -179,7 +179,7 @@
 				A BigTree\Disqus\Post object if successful.
 		*/
 		
-		function getPost(string $id): ?Post
+		public function getPost(string $id): ?Post
 		{
 			$response = $this->call("posts/details.json", ["post" => $id]);
 			
@@ -204,7 +204,7 @@
 				A BigTree\Disqus\Thread object if successful.
 		*/
 		
-		function getThread(string $thread, ?string $forum = null): Thread
+		public function getThread(string $thread, ?string $forum = null): Thread
 		{
 			$params = [];
 			
@@ -242,7 +242,7 @@
 				A BigTree\Disqus\User object if successful.
 		*/
 		
-		function getUser(?string $user = null): ?User
+		public function getUser(?string $user = null): ?User
 		{
 			$params = [];
 		

@@ -6,7 +6,8 @@
 	
 	namespace BigTree;
 	
-	class Globalize {
+	class Globalize
+	{
 		
 		/*
 			Function: arrayObject
@@ -15,10 +16,11 @@
 			
 			Parameters:
 				array - An array with key/value pairs.
-				functions - Pass in additional arguments to run functions (i.e. "htmlspecialchars") on the data
+				public functions - Pass in additional arguments to run functions (i.e. "htmlspecialchars") on the data
 		*/
 		
-		static function arrayObject($array): bool {
+		public static function arrayObject($array): bool
+		{
 			if (is_object($array)) {
 				$array = get_object_vars($array);
 			}
@@ -56,7 +58,8 @@
 			return true;
 		}
 		
-		static function recurse(array $data, array $functions): array {
+		public static function recurse(array $data, array $functions): array
+		{
 			foreach ($data as $key => $val) {
 				if (is_array($val)) {
 					$data[$key] = static::recurse($val, $functions);
@@ -84,11 +87,12 @@
 				Optionally runs a list of functions passed in as arguments on the data.
 
 			Parameters:
-				functions - Pass in additional arguments to run functions (i.e. "htmlspecialchars") on the data
+				public functions - Pass in additional arguments to run functions (i.e. "htmlspecialchars") on the data
 
 		*/
 		
-		static function GET(): bool {
+		public static function GET(): bool
+		{
 			$args = func_get_args();
 			
 			return call_user_func_array("static::arrayObject", array_merge([$_GET], $args));
@@ -100,10 +104,11 @@
 				Optionally runs a list of functions passed in as arguments on the data.
 
 			Parameters:
-				functions - Pass in additional arguments to run functions (i.e. "htmlspecialchars") on the data
+				public functions - Pass in additional arguments to run functions (i.e. "htmlspecialchars") on the data
 		*/
 		
-		static function POST(): bool {
+		public static function POST(): bool
+		{
 			$args = func_get_args();
 			
 			return call_user_func_array("static::arrayObject", array_merge([$_POST], $args));

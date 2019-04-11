@@ -43,7 +43,7 @@
 				api - Reference to the BigTree\Twitter\API class instance
 		*/
 
-		function __construct($tweet, API &$api)
+		public function __construct($tweet, API &$api)
 		{
 			$this->API = $api;
 			isset($tweet->text) ? $this->Content = $tweet->text : false;
@@ -132,7 +132,7 @@
 				Returns the Tweet's content when this object is treated as a string.
 		*/
 
-		function __toString(): string
+		public function __toString(): string
 		{
 			return $this->Content;
 		}
@@ -146,7 +146,7 @@
 				True if successful.
 		*/
 
-		function delete(): bool
+		public function delete(): bool
 		{
 			return $this->API->deleteTweet($this->ID);
 		}
@@ -159,7 +159,7 @@
 				A BigTree\Twitter\Tweet object if successful.
 		*/
 
-		function favorite(): ?Tweet
+		public function favorite(): ?Tweet
 		{
 			return $this->API->favoriteTweet($this->ID);
 		}
@@ -172,7 +172,7 @@
 				True if successful.
 		*/
 
-		function retweet(): bool
+		public function retweet(): bool
 		{
 			return $this->API->retweetTweet($this->IsRetweet ? $this->OriginalTweet->ID : $this->ID);
 		}
@@ -185,7 +185,7 @@
 				An array of BigTree\Twitter\Tweet objects.
 		*/
 
-		function retweets(): array
+		public function retweets(): array
 		{
 			// We know how many retweets the tweet has already, so don't bother asking Twitter if it's 0.
 			if (!$this->RetweetCount) {
@@ -215,7 +215,7 @@
 				An array of Twitter IDs
 		*/
 
-		function retweeters(): ?array
+		public function retweeters(): ?array
 		{
 			$id = $this->IsRetweet ? $this->OriginalTweet->ID : $id = $this->ID;
 			$response = $this->API->call("statuses/retweeters/ids.json",array("id" => $id));
@@ -235,7 +235,7 @@
 				A BigTree\Twitter\Tweet object if successful.
 		*/
 
-		function unfavorite(): ?Tweet
+		public function unfavorite(): ?Tweet
 		{
 			return $this->API->unfavoriteTweet($this->ID);
 		}

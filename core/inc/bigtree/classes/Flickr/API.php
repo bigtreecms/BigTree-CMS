@@ -30,7 +30,7 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 		
-		function __construct(bool $cache = true)
+		public function __construct(bool $cache = true)
 		{
 			parent::__construct("bigtree-internal-flickr-api", "YouTube API", "org.bigtreecms.api.flickr", $cache);
 			
@@ -50,7 +50,7 @@
 				true if successful
 		*/
 		
-		function addTagsToPhoto(string $photo, $tags): bool
+		public function addTagsToPhoto(string $photo, $tags): bool
 		{
 			if (is_array($tags)) {
 				$tags = implode(",", $tags);
@@ -70,7 +70,7 @@
 				Overrides BigTree\OAuth to always request normal JSON.
 		*/
 		
-		function callUncached(string $endpoint = "", array $params = [], string $method = "GET",
+		public function callUncached(string $endpoint = "", array $params = [], string $method = "GET",
 							  array $headers = []): ?stdClass
 		{
 			$params["method"] = $endpoint;
@@ -98,7 +98,7 @@
 				true if successful
 		*/
 		
-		function deletePhoto(string $photo): bool
+		public function deletePhoto(string $photo): bool
 		{
 			$response = $this->callUncached("flickr.photos.delete", ["photo_id" => $photo], "POST");
 			
@@ -122,7 +122,7 @@
 				A BigTree\Flickr\ResultSet of BigTree\Flickr\Photo objects
 		*/
 		
-		function getAlbumPhotos(string $id, int $privacy = 1, string $info = ""): ?ResultSet
+		public function getAlbumPhotos(string $id, int $privacy = 1, string $info = ""): ?ResultSet
 		{
 			$params["photoset_id"] = $id;
 			$params["extras"] = $info ?: $this->DefaultInfo;
@@ -154,7 +154,7 @@
 				A BigTree\Flickr\ResultSet of BigTree\Flickr\Album objects
 		*/
 		
-		function getAlbums(?string $user_id = null): ?ResultSet
+		public function getAlbums(?string $user_id = null): ?ResultSet
 		{
 			$params = [];
 			$params["primary_photo_extras"] = "media,date_taken,url_sq,url_t,url_s,url_m,url_o,";
@@ -192,7 +192,7 @@
 				An array of Photo objects or false if the call fails.
 		*/
 		
-		function getContactsPhotos(int $count = 10, bool $just_friends = false, bool $include_self = false,
+		public function getContactsPhotos(int $count = 10, bool $just_friends = false, bool $include_self = false,
 								   string $info = ""): ?array
 		{
 			$params = ["count" => $count, "extras" => $info ?: $this->DefaultInfo];
@@ -235,7 +235,7 @@
 				A BigTree\Flickr\Group object or false if the person isn't found.
 		*/
 		
-		function getGroup(string $id): ?Group
+		public function getGroup(string $id): ?Group
 		{
 			$response = $this->call("flickr.groups.getInfo", ["group_id" => $id]);
 			
@@ -259,7 +259,7 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 		
-		function getMyGeotaggedPhotos(int $per_page = 100, string $info = "", array $params = []): ?ResultSet
+		public function getMyGeotaggedPhotos(int $per_page = 100, string $info = "", array $params = []): ?ResultSet
 		{
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info ?: $this->DefaultInfo;
@@ -292,7 +292,7 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 		
-		function getMyRecentlyUpdatedPhotos(string $since = "-1 week", int $per_page = 100, string $info = "",
+		public function getMyRecentlyUpdatedPhotos(string $since = "-1 week", int $per_page = 100, string $info = "",
 											array $params = []): ?ResultSet
 		{
 			$params["per_page"] = $per_page;
@@ -326,7 +326,7 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 		
-		function getMyUncategorizedPhotos(int $per_page = 100, string $info = "", array $params = []): ?ResultSet
+		public function getMyUncategorizedPhotos(int $per_page = 100, string $info = "", array $params = []): ?ResultSet
 		{
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info ?: $this->DefaultInfo;
@@ -358,7 +358,7 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 		
-		function getMyUngeotaggedPhotos(int $per_page = 100, string $info = "", array $params = []): ?ResultSet
+		public function getMyUngeotaggedPhotos(int $per_page = 100, string $info = "", array $params = []): ?ResultSet
 		{
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info ?: $this->DefaultInfo;
@@ -390,7 +390,7 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 		
-		function getMyUntaggedPhotos(int $per_page = 100, string $info = "", array $params = []): ?ResultSet
+		public function getMyUntaggedPhotos(int $per_page = 100, string $info = "", array $params = []): ?ResultSet
 		{
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info ?: $this->DefaultInfo;
@@ -420,7 +420,7 @@
 				A BigTree\Flickr\Person object or false if the person isn't found.
 		*/
 		
-		function getPerson(string $id): ?Person
+		public function getPerson(string $id): ?Person
 		{
 			$response = $this->call("flickr.people.getInfo", ["user_id" => $id]);
 			
@@ -443,7 +443,7 @@
 				A Photo object or false if the photo isn't found.
 		*/
 		
-		function getPhoto(string $id, ?string $secret = null): ?Photo
+		public function getPhoto(string $id, ?string $secret = null): ?Photo
 		{
 			$response = $this->call("flickr.photos.getInfo", ["photo_id" => $id, "secret" => $secret]);
 			
@@ -472,7 +472,7 @@
 				A ResultSet of Photo objects or null if the call fails.
 		*/
 		
-		function getPhotosByLocation(string $latitude, string $longitude, float $radius = 10.0,
+		public function getPhotosByLocation(string $latitude, string $longitude, float $radius = 10.0,
 									 string $radius_unit = "mi", int $per_page = 100, string $sort = "date-posted-desc",
 									 string $info = "", array $params = []): ?ResultSet
 		{
@@ -516,7 +516,7 @@
 				A ResultSet of Photo objects.
 		*/
 		
-		function getPhotosByTag($tags, int $per_page = 100, string $sort = "date-posted-desc", bool $require_all = false,
+		public function getPhotosByTag($tags, int $per_page = 100, string $sort = "date-posted-desc", bool $require_all = false,
 								bool $user = false, string $info = "", array $params = []): ?ResultSet
 		{
 			if (is_array($tags)) {
@@ -564,7 +564,7 @@
 				A ResultSet of Photo objects or null if the call fails.
 		*/
 		
-		function getPhotosForPerson(string $person, int $per_page = 100, string $info = "",
+		public function getPhotosForPerson(string $person, int $per_page = 100, string $info = "",
 									array $params = []): ?ResultSet
 		{
 			$params["user_id"] = $person;
@@ -599,7 +599,7 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 		
-		function getPhotosOfPerson(string $person, int $per_page = 100, string $info = "",
+		public function getPhotosOfPerson(string $person, int $per_page = 100, string $info = "",
 								   array $params = []): ?ResultSet
 		{
 			$params["user_id"] = $person;
@@ -633,7 +633,7 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 		
-		function getRecentPhotos(int $per_page = 100, string $info = "", array $params = []): ?ResultSet
+		public function getRecentPhotos(int $per_page = 100, string $info = "", array $params = []): ?ResultSet
 		{
 			$params["per_page"] = $per_page;
 			$params["extras"] = $info ?: $this->DefaultInfo;
@@ -657,7 +657,7 @@
 				Redirects to the OAuth API to authenticate.
 		*/
 		
-		function oAuthRedirect(): void
+		public function oAuthRedirect(): void
 		{
 			$this->Settings["token_secret"] = "";
 			$response = $this->callAPI("http://www.flickr.com/services/oauth/request_token", "GET", ["oauth_callback" => $this->ReturnURL]);
@@ -687,7 +687,7 @@
 				Refreshes an existing token setup.
 		*/
 		
-		function oAuthRefreshToken(): void
+		public function oAuthRefreshToken(): void
 		{
 			$response = json_decode(cURL::request($this->TokenURL, [
 				"client_id" => $this->Settings["key"],
@@ -710,7 +710,7 @@
 				A stdClass object of information if successful.
 		*/
 		
-		function oAuthSetToken(string $code): ?stdClass
+		public function oAuthSetToken(string $code): ?stdClass
 		{
 			$response = $this->callAPI("http://www.flickr.com/services/oauth/access_token", "GET",
 									   ["oauth_verifier" => $_GET["oauth_verifier"], "oauth_token" => $_GET["oauth_token"]]);
@@ -748,7 +748,7 @@
 				true if successful
 		*/
 		
-		function removeTagFromPhoto(string $tag): bool
+		public function removeTagFromPhoto(string $tag): bool
 		{
 			$response = $this->callUncached("flickr.photos.removeTag", ["tag_id" => $tag]);
 			
@@ -770,7 +770,7 @@
 				A BigTree\Flickr\Person object or false if no person is found.
 		*/
 		
-		function searchPeople(string $query): ?Person
+		public function searchPeople(string $query): ?Person
 		{
 			// Search by email
 			if (strpos($query, "@") !== false) {
@@ -803,7 +803,7 @@
 				A ResultSet of Photo objects or false if the call fails.
 		*/
 		
-		function searchPhotos(string $query, int $per_page = 100, string $sort = "date-posted-desc",
+		public function searchPhotos(string $query, int $per_page = 100, string $sort = "date-posted-desc",
 							  ?string $user = null, string $info = "",  array $params = []): ?ResultSet
 		{
 			if ($user) {
@@ -843,7 +843,7 @@
 				true if successful
 		*/
 		
-		function setPhotoInformation(string $photo, ?string $title = null, ?string $description = null,
+		public function setPhotoInformation(string $photo, ?string $title = null, ?string $description = null,
 									 $tags = ""): bool
 		{
 			if (is_array($tags)) {
@@ -884,7 +884,7 @@
 				The ID of the photo if successful.
 		*/
 		
-		function uploadPhoto(string $photo, ?string $title = null, ?string $description = null, array $tags = [],
+		public function uploadPhoto(string $photo, ?string $title = null, ?string $description = null, array $tags = [],
 							 bool $public = true, bool $family = true, bool $friends = true, int $safety = 1,
 							 int $type = 1, bool $hidden = false): ?string
 		{

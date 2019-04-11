@@ -13,12 +13,14 @@
 	 * @property-read array $Array
 	 */
 	
-	class BaseObject {
+	class BaseObject
+	{
 		
 		public static $Table = "";
 		
 		// Magic method to allow for getBy and allBy methods where you pass in a column name
-		static function __callStatic($method, $arguments) {
+		public static function __callStatic($method, $arguments)
+		{
 			// Magic methods only work for sub classes with table set
 			if (static::$Table) {
 				
@@ -73,13 +75,14 @@
 			throw new Exception("Invalid method on ".get_called_class().": $method");
 		}
 		
-		function __call($method, $arguments) {
+		public function __call($method, $arguments)
+		{
 			return static::__callStatic($method, $arguments);
 		}
 		
 		// Get magic methods to allow for Array and ID returns
-		function __get($property) {
-			
+		public function __get($property)
+		{
 			// Many inherited objects will have read-only properties
 			if (property_exists($this, $property)) {
 				return $this->$property;
@@ -109,7 +112,8 @@
 			return null;
 		}
 		
-		function __isset($property) {
+		public function __isset($property): bool
+		{
 			// Many inherited objects will have read-only properties
 			if (property_exists($this, $property)) {
 				return true;
@@ -128,7 +132,8 @@
 		}
 		
 		// Courtesy of StackOverflow: http://stackoverflow.com/questions/1993721/how-to-convert-camelcase-to-camel-case
-		static function _camelCaseToUnderscore(string $string): string {
+		public static function _camelCaseToUnderscore(string $string): string
+		{
 			preg_match_all('!([A-Z][A-Z0-9]*(?=$|[A-Z][a-z0-9])|[A-Za-z][a-z0-9]+)!', $string, $matches);
 			$ret = $matches[0];
 			
@@ -151,7 +156,8 @@
 				An array of the calling object types (or arrays).
 		*/
 		
-		static function all(?string $sort = null, bool $return_arrays = false) {
+		public static function all(?string $sort = null, bool $return_arrays = false): array
+		{
 			// Must have a static Table var.
 			if (empty(static::$Table)) {
 				trigger_error('Method "all" must be called from a subclass where the static variable $Table has been set.', E_USER_ERROR);
@@ -179,7 +185,8 @@
 				Deletes the database record for the calling object and records the action in the audit trail (if logged in).
 		*/
 		
-		function delete(): ?bool {
+		public function delete(): ?bool
+		{
 			// Must have a static Table var.
 			if (empty(static::$Table)) {
 				trigger_error('Method "delete" must be called from a subclass where the static variable $Table has been set.', E_USER_ERROR);
@@ -204,7 +211,8 @@
 				true if the setting exists, otherwise false.
 		*/
 		
-		static function exists(string $id): ?bool {
+		public static function exists(string $id): ?bool
+		{
 			// Must have a static Table var.
 			if (empty(static::$Table)) {
 				trigger_error('Method "exists" must be called from a subclass where the static variable $Table has been set.', E_USER_ERROR);
@@ -223,7 +231,8 @@
 				object - Another object
 		*/
 		
-		function inherit($object) {
+		public function inherit($object): void
+		{
 			$properties = get_object_vars($object);
 			
 			foreach ($properties as $key => $value) {
@@ -237,7 +246,8 @@
 				Saves matching columns to the database and logs the audit trail (if logged in).
 		*/
 		
-		function save(): ?bool {
+		public function save(): ?bool
+		{
 			// Must have a static Table var.
 			if (empty(static::$Table)) {
 				trigger_error('Method "save" must be called from a subclass where the static variable $Table has been set.', E_USER_ERROR);
@@ -269,3 +279,4 @@
 		}
 		
 	}
+	

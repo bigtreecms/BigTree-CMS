@@ -27,7 +27,7 @@
 				api - Reference to the BigTree\Instagram\API class instance
 		*/
 		
-		function __construct(stdClass $location, API &$api)
+		public function __construct(stdClass $location, API &$api)
 		{
 			$this->API = $api;
 			isset($location->id) ? $this->ID = $location->id : false;
@@ -41,7 +41,7 @@
 				Alias for BigTree\Instagram\API::getLocationMedia
 		*/
 		
-		function getMedia(): ?ResultSet
+		public function getMedia(): ?ResultSet
 		{
 			return $this->API->getLocationMedia($this->ID);
 		}

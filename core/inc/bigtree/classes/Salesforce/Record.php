@@ -30,7 +30,7 @@
 				api - Reference to BigTree\Salesforce\API class instance
 		*/
 		
-		function __construct(stdClass $record, API &$api)
+		public function __construct(stdClass $record, API &$api)
 		{
 			$this->API = $api;
 			
@@ -66,7 +66,7 @@
 				true if successful.
 		*/
 		
-		function delete(): bool {
+		public function delete(): bool {
 			$response = $this->API->callUncached("sobjects/".$this->Type."/".$this->ID, false, "DELETE");
 			
 			// If we have a response, there's an error.
@@ -84,7 +84,7 @@
 				Saves changes made to the Columns property of this object back to Salesforce.
 		*/
 		
-		function save(): bool {
+		public function save(): bool {
 			$response = $this->API->callUncached("sobjects/".$this->Type."/".$this->ID, json_encode($this->Columns), "PATCH");
 			
 			// If we have a response, there's an error.
@@ -106,7 +106,7 @@
 				values - Either a signle column value or an array of column values (if you pass an array you must pass an array for fields as well)
 		*/
 		
-		function update($fields, $values): bool {
+		public function update($fields, $values): bool {
 			if (is_array($fields)) {
 				$record = array_combine($fields, $values);
 			} else {

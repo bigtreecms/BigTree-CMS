@@ -24,7 +24,7 @@
 		public $Transaction;
 		public $Unresponsive;
 		
-		function __construct()
+		public function __construct()
 		{
 			$this->Setting = new Setting("bigtree-internal-payment-gateway");
 			
@@ -61,7 +61,7 @@
 				$this->Message will contain an error message if not successful.
 		*/
 		
-		function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
+		public function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
 						   int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
 						   ?string $customer = ""): ?string
 		{
@@ -88,7 +88,7 @@
 				$this->Message will contain an error message if not successful.
 		*/
 		
-		function authorizeByProfile(string $id, string $user_id, float $amount, ?float $tax = 0.0,
+		public function authorizeByProfile(string $id, string $user_id, float $amount, ?float $tax = 0.0,
 									?string $description = "", ?string $email = ""): ?string
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
@@ -109,7 +109,7 @@
 				$this->Message will contain an error message if not successful.
 		*/
 		
-		function capture(string $transaction, ?float $amount = null): ?string
+		public function capture(string $transaction, ?float $amount = null): ?string
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
@@ -127,7 +127,7 @@
 				The name of the card issuer.
 		*/
 		
-		static function cardType(string $card_number): ?string
+		public static function cardType(string $card_number): ?string
 		{
 			$cards = [
 				"visa" => "(4\d{12}(?:\d{3})?)",
@@ -173,7 +173,7 @@
 				$this->Message will contain an error message if not successful.
 		*/
 		
-		function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
+		public function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
 						int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
 						?string $customer = "", ?string $action = null): ?string
 		{
@@ -200,7 +200,7 @@
 				$this->Message will contain an error message if not successful.
 		*/
 		
-		function chargeByProfile(string $id, string $user_id, float $amount, ?float $tax = 0.0, ?string $description = "",
+		public function chargeByProfile(string $id, string $user_id, float $amount, ?float $tax = 0.0, ?string $description = "",
 								 ?string $email = "", ?string $action = "sale"): ?string
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
@@ -219,7 +219,7 @@
 				Two letter country code (if found)
 		*/
 		
-		function countryCode(string $country): string
+		public function countryCode(string $country): string
 		{
 			if (strlen($country) == 2) {
 				return $country;
@@ -246,7 +246,7 @@
 				A card/profile ID to be used for later recall.
 		*/
 		
-		function createProfile(string $name, string $number, int $expiration_date, int $cvv, array $address,
+		public function createProfile(string $name, string $number, int $expiration_date, int $cvv, array $address,
 							   string $user_id): ?string
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
@@ -280,7 +280,7 @@
 				$this->Message will contain an error message if not successful.
 		*/
 		
-		function createRecurringPayment(string $description, float $amount, ?string $start_date, string $period,
+		public function createRecurringPayment(string $description, float $amount, ?string $start_date, string $period,
 										int $frequency, string $card_name, string $card_number, int $card_expiration,
 										int $cvv, array $address, string $email, ?float $trial_amount = null,
 										?string $trial_period = null, ?int $trial_frequency = null,
@@ -299,7 +299,7 @@
 				id - The card / profile ID returned when the card / profile was stored.
 		*/
 		
-		function deleteProfile(string $id): void
+		public function deleteProfile(string $id): void
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
@@ -317,7 +317,7 @@
 				A float version of the passed amount.
 		*/
 		
-		static function formatCurrency(string $amount): float
+		public static function formatCurrency(string $amount): float
 		{
 			return number_format(round(floatval(str_replace(['$', ','], "", $amount)), 2), 2, ".", "");
 		}
@@ -333,7 +333,7 @@
 				Credit card / Profile information (only the last 4 digits of the credit card number are visible)
 		*/
 		
-		function getProfile(string $id): ?stdClass
+		public function getProfile(string $id): ?stdClass
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
@@ -352,7 +352,7 @@
 				An array of buyer information.
 		*/
 		
-		function paypalExpressCheckoutDetails(string $token): ?array
+		public function paypalExpressCheckoutDetails(string $token): ?array
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
@@ -373,7 +373,7 @@
 				An array of buyer information.
 		*/
 		
-		function paypalExpressCheckoutProcess(string $token, string $payer_id, ?float $amount = null): ?array
+		public function paypalExpressCheckoutProcess(string $token, string $payer_id, ?float $amount = null): ?array
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
@@ -394,7 +394,7 @@
 				Redirects the user on success.
 		*/
 		
-		function paypalExpressCheckoutRedirect(float $amount, string $success_url, string $cancel_url): void
+		public function paypalExpressCheckoutRedirect(float $amount, string $success_url, string $cancel_url): void
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 		}
@@ -413,7 +413,7 @@
 				$this->Message will contain an error message if not successful.
 		*/
 		
-		function refund(string $transaction, ?string $card_number = null, ?float $amount = null): ?string
+		public function refund(string $transaction, ?string $card_number = null, ?float $amount = null): ?string
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			
@@ -446,7 +446,7 @@
 				$this->Message will contain an error message if not successful.
 		*/
 		
-		function void(string $authorization): ?string
+		public function void(string $authorization): ?string
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			

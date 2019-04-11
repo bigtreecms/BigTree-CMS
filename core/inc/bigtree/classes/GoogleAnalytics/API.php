@@ -35,7 +35,7 @@
 				cache - Whether to use cached information (15 minute cache, defaults to false)
 		*/
 		
-		function __construct(bool $cache = false)
+		public function __construct(bool $cache = false)
 		{
 			parent::__construct("bigtree-internal-google-analytics-api", "Google Analytics API", "org.bigtreecms.api.analytics.google", $cache);
 			$this->Settings["key"] = $this->ClientID;
@@ -48,7 +48,7 @@
 				Turns of Google Analytics settings in BigTree and deletes cached information.
 		*/
 		
-		function disconnect(): void
+		public function disconnect(): void
 		{
 			// Delete cache
 			FileSystem::deleteFile(SERVER_ROOT."cache/analytics.json");
@@ -72,7 +72,7 @@
 				A BigTree\GoogleResultSet object of BigTree\GoogleAnalaytics\Account objects.
 		*/
 		
-		function getAccounts(array $params = []): ?GoogleResultSet
+		public function getAccounts(array $params = []): ?GoogleResultSet
 		{
 			$results = [];
 			$response = $this->call("management/accounts", $params);
@@ -106,7 +106,7 @@
 				An array of data.
 		*/
 		
-		function getData(string $profile, string $start_date, string $end_date, $metrics, $dimensions = "",
+		public function getData(string $profile, string $start_date, string $end_date, $metrics, $dimensions = "",
 						 ?string $sort = null, int $results = 10000): ?array
 		{
 			$start_date = date("Y-m-d", strtotime($start_date));
@@ -223,7 +223,7 @@
 				A BigTree\GoogleResultSet object of BigTree\GoogleAnalytics\Property objects.
 		*/
 		
-		function getProperties(string $account = "~all", array $params = []): ?GoogleResultSet
+		public function getProperties(string $account = "~all", array $params = []): ?GoogleResultSet
 		{
 			$results = [];
 			$response = $this->call("management/accounts/$account/webproperties", $params);
@@ -252,7 +252,7 @@
 				A BigTree\GoogleResultSet of BigTree\GoogleAnalytics\Profile objects.
 		*/
 		
-		function getProfiles(string $account = "~all", string $property = "~all", array $params = []): ?GoogleResultSet
+		public function getProfiles(string $account = "~all", string $property = "~all", array $params = []): ?GoogleResultSet
 		{
 			$results = [];
 			$response = $this->call("management/accounts/$account/webproperties/$property/profiles", $params);
@@ -274,7 +274,7 @@
 				Also retrieves heads up views and stores them in settings for quick retrieval. Should be called every 24 hours to refresh.
 		*/
 		
-		function cacheInformation(): void
+		public function cacheInformation(): void
 		{
 			// First we're going to update the monthly view counts for all pages.
 			$results = $this->getData($this->Settings["profile"], "1 month ago", "today", "pageviews", "pagePath");

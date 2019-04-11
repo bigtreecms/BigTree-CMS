@@ -32,7 +32,7 @@
 		public $URL;
 		public $Verified;
 		
-		function __construct(stdClass $user, API &$api)
+		public function __construct(stdClass $user, API &$api)
 		{
 			$this->API = $api;
 			isset($user->isAnonymous) ? $this->Anonymous = $user->isAnonymous : false;
@@ -63,7 +63,7 @@
 				params - Additional parameters to send to users/listActiveForums API call
 		*/
 		
-		function getActiveForums(int $limit = 25, array $params = []): ?ResultSet
+		public function getActiveForums(int $limit = 25, array $params = []): ?ResultSet
 		{
 			$params["limit"] = $limit;
 			$params["user"] = $this->ID;
@@ -92,7 +92,7 @@
 				params - Additional parameters to send to users/listActiveForums API call
 		*/
 		
-		function getActiveThreads(int $limit = 25, array$params = []): ?ResultSet
+		public function getActiveThreads(int $limit = 25, array$params = []): ?ResultSet
 		{
 			$params["limit"] = $limit;
 			$params["user"] = $this->ID;
@@ -121,7 +121,7 @@
 				params - Additional parameters to send to users/listFollowers API call
 		*/
 		
-		function getFollowers(int $limit = 25, array$params = []): ?ResultSet
+		public function getFollowers(int $limit = 25, array$params = []): ?ResultSet
 		{
 			$params["limit"] = $limit;
 			$params["user"] = $this->ID;
@@ -150,7 +150,7 @@
 				params - Additional parameters to send to users/listFollowing API call
 		*/
 		
-		function getFollowing(int $limit = 25, array$params = []): ?ResultSet
+		public function getFollowing(int $limit = 25, array$params = []): ?ResultSet
 		{
 			$params["limit"] = $limit;
 			$params["user"] = $this->ID;
@@ -180,7 +180,7 @@
 				params - Additional parameters to send to users/listPosts API call
 		*/
 		
-		function getPosts(int $limit = 25, string $order = "desc", array $params = []): ?ResultSet
+		public function getPosts(int $limit = 25, string $order = "desc", array $params = []): ?ResultSet
 		{
 			$params["limit"] = $limit;
 			$params["order"] = $order;
@@ -210,7 +210,7 @@
 				true if successful.
 		*/
 		
-		function follow(): bool
+		public function follow(): bool
 		{
 			$response = $this->API->call("users/follow.json", ["target" => $this->ID], "POST");
 			
@@ -231,7 +231,7 @@
 				true if successful.
 		*/
 		
-		function unfollow(): bool
+		public function unfollow(): bool
 		{
 			$response = $this->API->call("users/unfollow.json", ["target" => $this->ID], "POST");
 			

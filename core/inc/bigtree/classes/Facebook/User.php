@@ -37,7 +37,7 @@
 		public $Verified;
 		public $Work;
 		
-		function __construct(stdClass $user, API &$api)
+		public function __construct(stdClass $user, API &$api)
 		{
 			$this->API = $api;
 			$this->ID = $user->id;
@@ -54,7 +54,7 @@
 				Returns an array of BigTree\Facebook\Album objects or false on failure.
 		*/
 		
-		function getAlbums(): ?array {
+		public function getAlbums(): ?array {
 			if (isset($this->Albums)) {
 				return $this->Albums;
 			}
@@ -83,7 +83,7 @@
 				user - A pre-composed data set (optional, defaults to pulling from API)
 		*/
 		
-		function updateDetails(?stdClass $user = null) {
+		public function updateDetails(?stdClass $user = null) {
 			if (is_null($user)) {
 				$user = $this->API->call($this->ID);
 			}
@@ -135,7 +135,7 @@
 				A URL or false on failure
 		*/
 		
-		function getPicture(int $width = 1000, int $height = 1000): ?string {
+		public function getPicture(int $width = 1000, int $height = 1000): ?string {
 			if ($this->Picture) {
 				return $this->Picture;
 			}

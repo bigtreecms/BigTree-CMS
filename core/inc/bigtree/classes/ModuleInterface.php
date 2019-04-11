@@ -10,7 +10,15 @@
 	 * @property-read int $ID
 	 */
 	
-	class ModuleInterface extends BaseObject {
+	class ModuleInterface extends BaseObject
+	{
+		
+		protected $ID;
+		
+		public $Module;
+		public $Settings;
+		public $Title;
+		public $Type;
 		
 		public static $CoreTypes = [
 			"views" => [
@@ -32,13 +40,6 @@
 		public static $Plugins = [];
 		public static $Table = "bigtree_module_interfaces";
 		
-		protected $ID;
-		
-		public $Module;
-		public $Settings;
-		public $Title;
-		public $Type;
-		
 		/*
 			Constructor:
 				Builds a ModuleInterface object referencing an existing database entry.
@@ -47,7 +48,8 @@
 				interface - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($interface = null) {
+		public function __construct($interface = null)
+		{
 			if ($interface !== null) {
 				// Passing in just an ID
 				if (!is_array($interface)) {
@@ -83,8 +85,9 @@
 				An array of interfaces.
 		*/
 		
-		static function allByModuleAndType(?int $module = null, ?string $type = null, string $order = "`title` ASC",
-										   bool $return_arrays = false): array {
+		public static function allByModuleAndType(?int $module = null, ?string $type = null,
+												  string $order = "`title` ASC",  bool $return_arrays = false): array
+		{
 			$where = $parameters = [];
 			
 			// Add module restriction
@@ -133,7 +136,9 @@
 				A ModuleInterface object.
 		*/
 		
-		static function create(string $type, int $module, string $title, string $table, array $settings = []): ModuleInterface {
+		public static function create(string $type, int $module, string $title, string $table,
+									  array $settings = []): ModuleInterface
+		{
 			$id = SQL::insert("bigtree_module_interfaces", [
 				"type" => $type,
 				"module" => intval($module),
@@ -152,7 +157,8 @@
 				Deletes the module interface and the actions that use it.
 		*/
 		
-		function delete(): ?bool {
+		public function delete(): ?bool
+		{
 			SQL::delete("bigtree_module_actions", ["interface" => $this->ID]);
 			SQL::delete("bigtree_module_interfaces", $this->ID);
 			
@@ -166,7 +172,8 @@
 				Saves the current object properties back to the database.
 		*/
 		
-		function save(): ?bool {
+		public function save(): ?bool
+		{
 			if (empty($this->ID)) {
 				$new = static::create($this->Type, $this->Module, $this->Title, $this->Table, $this->Settings);
 				$this->inherit($new);

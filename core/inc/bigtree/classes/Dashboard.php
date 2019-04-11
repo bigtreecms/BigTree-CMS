@@ -6,7 +6,8 @@
 	
 	namespace BigTree;
 	
-	class Dashboard {
+	class Dashboard
+	{
 		
 		public static $CoreOptions = [
 			"analytics" => "Google Analytics",

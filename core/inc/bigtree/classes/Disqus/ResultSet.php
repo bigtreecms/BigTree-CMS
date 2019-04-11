@@ -31,7 +31,7 @@
 				results - Results to store.
 		*/
 		
-		function __construct(&$object, string $last_call, array $params, stdClass $cursor, array $results)
+		public function __construct(&$object, string $last_call, array $params, stdClass $cursor, array $results)
 		{
 			$this->Cursor = $cursor;
 			$this->LastCall = $last_call;
@@ -48,7 +48,7 @@
 				A BigTree\Disqus\ResultSet with the next page of results or false if there isn't another page.
 		*/
 		
-		function nextPage(): ?ResultSet
+		public function nextPage(): ?ResultSet
 		{
 			if (!$this->Cursor->Next) {
 				return null;
@@ -61,7 +61,7 @@
 		}
 		
 		// Array iterator implementation
-		function offsetSet($index, $value)
+		public function offsetSet($index, $value)
 		{
 			if (is_null($index)) {
 				$this->Results[] = $value;
@@ -70,17 +70,17 @@
 			}
 		}
 		
-		function offsetExists($index)
+		public function offsetExists($index)
 		{
 			return isset($this->Results[$index]);
 		}
 		
-		function offsetUnset($index)
+		public function offsetUnset($index)
 		{
 			unset($this->Results[$index]);
 		}
 		
-		function offsetGet($index)
+		public function offsetGet($index)
 		{
 			return isset($this->Results[$index]) ? $this->Results[$index] : null;
 		}
@@ -93,7 +93,7 @@
 				A BigTree\Disqus\ResultSet with the next page of results or false if there isn't a previous page.
 		*/
 		
-		function previousPage(): ?ResultSet
+		public function previousPage(): ?ResultSet
 		{
 			if (!$this->Cursor->Previous) {
 				return null;

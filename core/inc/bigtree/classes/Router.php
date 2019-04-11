@@ -8,7 +8,8 @@
 	
 	use BigTree;
 	
-	class Router {
+	class Router
+	{
 		
 		protected static $Booted = false;
 		protected static $ReservedRoutes = [];
@@ -26,7 +27,8 @@
 				Builds caches from the database and configuration files.
 		*/
 		
-		static function boot($config): void {
+		public static function boot($config): void
+		{
 			if (static::$Booted) {
 				return;
 			}
@@ -138,7 +140,8 @@
 				path - An array of routes
 		*/
 		
-		static function checkPathHistory(array $path): void {
+		public static function checkPathHistory(array $path): void
+		{
 			$found = $new = $old = false;
 			$x = count($path);
 			
@@ -168,7 +171,8 @@
 				Removes all files in the cache directory removing cached pages and module routes.
 		*/
 		
-		static function clearCache(): void {
+		public static function clearCache(): void
+		{
 			$d = opendir(SERVER_ROOT."cache/");
 			
 			while ($f = readdir($d)) {
@@ -184,7 +188,8 @@
 				When Secure mode is enabled, BigTree will enforce the user being at HTTPS and will rewrite all insecure resources (like CSS, JavaScript, and images) to use HTTPS.
 		*/
 		
-		static function forceHTTPS(): void {
+		public static function forceHTTPS(): void
+		{
 			if (!static::getIsSSL()) {
 				static::redirect("https://".$_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"], "301");
 			}
@@ -203,7 +208,8 @@
 				Hard file path to a custom/ (preferred) or core/ file depending on what exists.
 		*/
 		
-		static function getIncludePath(string $file): string {
+		public static function getIncludePath(string $file): string
+		{
 			if (file_exists(SERVER_ROOT."custom/".$file)) {
 				return SERVER_ROOT."custom/".$file;
 			} else {
@@ -216,7 +222,8 @@
 				Returns whether BigTree believes it's being served over SSL or not.
 		*/
 		
-		static function getIsSSL(): bool {
+		public static function getIsSSL(): bool
+		{
 			if (!empty($_SERVER["HTTPS"]) && $_SERVER['HTTPS'] !== "off") {
 				return true;
 			}
@@ -241,13 +248,15 @@
 				Helper function for pattern based routing.
 		*/
 		
-		static function getRegistryCommands(string $path, string $pattern): ?array {
+		public static function getRegistryCommands(string $path, string $pattern): ?array
+		{
 			// This method is based almost entirely on the Slim Framework's routing implementation (http://www.slimframework.com/)
 			static::$RouteParamNames = [];
 			static::$RouteParamNamesPath = [];
 			
 			// Convert URL params into regex patterns, construct a regex for this route, init params
-			$regex_pattern = preg_replace_callback('#:([\w]+)\+?#', "BigTree\\Router::getRegistryCommandsCallback", str_replace(')', ')?', $pattern));
+			$regex_pattern = preg_replace_callback('#:([\w]+)\+?#', "BigTree\\Router::getRegistryCommandsCallback",
+												   str_replace(')', ')?', $pattern));
 			
 			if (substr($pattern, -1) === '/') {
 				$regex_pattern .= '?';
@@ -280,7 +289,8 @@
 				Regex callback for getRegistryCommands
 		*/
 		
-		static function getRegistryCommandsCallback(array $match) {
+		public static function getRegistryCommandsCallback(array $match)
+		{
 			static::$RouteParamNames[] = $match[1];
 			
 			if (substr($match[0], -1) === '+') {
@@ -300,7 +310,8 @@
 				An array of strings.
 		*/
 		
-		static function getReservedRoutes(): array {
+		public static function getReservedRoutes(): array
+		{
 			// Already cached them
 			if (count(static::$ReservedRoutes)) {
 				return static::$ReservedRoutes;
@@ -336,7 +347,8 @@
 				An array with the first element being the file to include and the second element being an array containing extraneous routes from the end of the path.
 		*/
 		
-		static function getRoutedFileAndCommands(string $directory, array $path): array {
+		public static function getRoutedFileAndCommands(string $directory, array $path): array
+		{
 			$commands = [];
 			$inc_file = $directory;
 			$inc_dir = $directory;
@@ -395,7 +407,8 @@
 				An array containing an array of headers at the first index and footers at the second index.
 		*/
 		
-		static function getRoutedLayoutPartials(string $path): array {
+		public static function getRoutedLayoutPartials(string $path): array
+		{
 			$file_location = ltrim(Text::replaceServerRoot($path), "/");
 			$include_root = false;
 			$pathed_includes = false;
@@ -478,7 +491,8 @@
 				code - The status code of redirect, defaults to normal 302 redirect.
 		*/
 		
-		static function redirect(string $url, array $codes = ["302"]): void {
+		public static function redirect(string $url, string $code = "302"): void
+		{
 			global $bigtree;
 			
 			// If we're presently in the admin we don't want to allow the possibility of a redirect outside our site via malicious URLs
@@ -527,14 +541,8 @@
 				"550" => "Permission denied"
 			];
 			
-			if (!is_array($codes)) {
-				$codes = [$codes];
-			}
-			
-			foreach ($codes as $code) {
-				if ($status_codes[$code]) {
-					header($_SERVER["SERVER_PROTOCOL"]." $code ".$status_codes[$code]);
-				}
+			if ($status_codes[$code]) {
+				header($_SERVER["SERVER_PROTOCOL"]." $code ".$status_codes[$code]);
 			}
 			
 			header("Location: $url");
@@ -549,7 +557,8 @@
 				 page - A BigTree\Page object
 		*/
 		
-		static function redirectLower(Page $page): void {
+		public static function redirectLower(Page $page): void
+		{
 			global $bigtree;
 			
 			$path = SQL::fetchSingle("SELECT path FROM bigtree_pages 
@@ -570,7 +579,7 @@
 					$url = WWW_ROOT.$path."/";
 				}
 				
-				Router::redirect($url, 301);
+				Router::redirect($url, "301");
 			}
 		}
 		
@@ -587,7 +596,8 @@
 				An array containing [page ID, commands array, template routed status, GET variables, URL hash]
 		*/
 		
-		static function routeToPage(array $path, bool $previewing = false): array {
+		public static function routeToPage(array $path, bool $previewing = false): array
+		{
 			$commands = [];
 			$publish_at = $previewing ? "" : "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";
 			

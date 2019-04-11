@@ -13,7 +13,7 @@
 	{
 		
 		// Implements Provider::send
-		function send(Email $email): ?bool
+		public function send(Email $email): ?bool
 		{
 			// Get formatted name/email
 			list($from_email, $from_name) = $this->parseAddress($email->From);

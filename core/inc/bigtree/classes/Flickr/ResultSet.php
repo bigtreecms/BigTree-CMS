@@ -33,7 +33,7 @@
 				total_pages - Total number of pages
 		*/
 		
-		function __construct(API &$api, string $last_call, array $params, array $results, int $current_page,
+		public function __construct(API &$api, string $last_call, array $params, array $results, int $current_page,
 							 int $total_pages)
 		{
 			$this->API = $api;
@@ -52,7 +52,7 @@
 				A ResultSet with the next page of results.
 		*/
 		
-		function nextPage(): ?ResultSet
+		public function nextPage(): ?ResultSet
 		{
 			if ($this->CurrentPage < $this->TotalPages) {
 				$params = $this->LastParameters;
@@ -65,7 +65,7 @@
 		}
 		
 		// Array iterator implementation
-		function offsetSet($index, $value)
+		public function offsetSet($index, $value)
 		{
 			if (is_null($index)) {
 				$this->Results[] = $value;
@@ -74,17 +74,17 @@
 			}
 		}
 		
-		function offsetExists($index)
+		public function offsetExists($index)
 		{
 			return isset($this->Results[$index]);
 		}
 		
-		function offsetUnset($index)
+		public function offsetUnset($index)
 		{
 			unset($this->Results[$index]);
 		}
 		
-		function offsetGet($index)
+		public function offsetGet($index)
 		{
 			return isset($this->Results[$index]) ? $this->Results[$index] : null;
 		}
@@ -97,7 +97,7 @@
 				A ResultSet with the next page of results.
 		*/
 		
-		function previousPage(): ?ResultSet
+		public function previousPage(): ?ResultSet
 		{
 			if ($this->CurrentPage > 1) {
 				$params = $this->LastParameters;

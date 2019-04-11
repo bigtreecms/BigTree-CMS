@@ -6,7 +6,8 @@
 	
 	namespace BigTree;
 	
-	class JSON {
+	class JSON
+	{
 		
 		public static $PrettyPrint = false;
 		
@@ -22,7 +23,8 @@
 				A JSON encoded string.
 		*/
 		
-		static function encode($var, bool $sql = false): string {
+		public static function encode($var, bool $sql = false): string
+		{
 			// Only run version compare once in case we're encoding a lot of JSON
 			if (static::$PrettyPrint === false) {
 				if (version_compare(PHP_VERSION, "5.4.0") >= 0) {
@@ -56,7 +58,8 @@
 				A JSON string.
 		*/
 		
-		static function encodeColumns($data, array $columns = [], bool $preserve_keys = false): string {
+		public static function encodeColumns($data, array $columns = [], bool $preserve_keys = false): string
+		{
 			// Only run version compare once in case we're encoding a lot of JSON
 			if (static::$PrettyPrint === false) {
 				if (version_compare(PHP_VERSION, "5.4.0") >= 0) {

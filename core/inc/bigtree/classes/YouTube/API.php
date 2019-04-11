@@ -28,7 +28,7 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 		
-		function __construct(bool $cache = true)
+		public function __construct(bool $cache = true)
 		{
 			parent::__construct("bigtree-internal-youtube-api", "YouTube API", "org.bigtreecms.api.youtube", $cache);
 			
@@ -47,7 +47,7 @@
 				A BigTree\YouTube\Activity object on success.
 		*/
 		
-		function createActivity(string $bulletin): ?Activity
+		public function createActivity(string $bulletin): ?Activity
 		{
 			$object = json_encode(["snippet" => ["description" => $bulletin]]);
 			$response = $this->call("activities?part=snippet", $object, "POST");
@@ -73,7 +73,7 @@
 				A BigTree\YouTube\Playlist object on success.
 		*/
 		
-		function createPlaylist(string $title, string $description = "",string  $privacy = "public",
+		public function createPlaylist(string $title, string $description = "",string  $privacy = "public",
 								array $tags = []): ?Playlist
 		{
 			$object = json_encode([
@@ -113,7 +113,7 @@
 				A BigTree\YouTube\PlaylistItem object on success.
 		*/
 		
-		function createPlaylistItem(string $playlist, string $video, ?int $position = null, ?string $note = null,
+		public function createPlaylistItem(string $playlist, string $video, ?int $position = null, ?string $note = null,
 									?stdClass $start_at = null, ?stdClass $end_at = null): ?PlaylistItem
 		{
 			$object = [
@@ -157,7 +157,7 @@
 				id - The ID of the playlist to delete.
 		*/
 		
-		function deletePlaylist(string $id): void
+		public function deletePlaylist(string $id): void
 		{
 			$this->call("playlists?id=$id", [], "DELETE");
 		}
@@ -170,7 +170,7 @@
 				id - The ID of the playlist item to delete.
 		*/
 		
-		function deletePlaylistItem(string $id): void
+		public function deletePlaylistItem(string $id): void
 		{
 			$this->call("playlistItems?id=$id", [], "DELETE");
 		}
@@ -183,7 +183,7 @@
 				id - The ID of the video to delete.
 		*/
 		
-		function deleteVideo(string $id): void
+		public function deleteVideo(string $id): void
 		{
 			$this->call("videos?id=$id", [], "DELETE");
 		}
@@ -201,7 +201,7 @@
 				A BigTree\GoogleResultSet of BigTree\YouTube\Activity objects.
 		*/
 		
-		function getActivities(string $channel = "home", int $count = 10, array $params = []): ?GoogleResultSet
+		public function getActivities(string $channel = "home", int $count = 10, array $params = []): ?GoogleResultSet
 		{
 			$params = array_merge(["part" => "id,snippet,contentDetails", "maxResults" => $count], $params);
 			
@@ -242,7 +242,7 @@
 
 		*/
 		
-		function getCategories(string $region = "US"): array
+		public function getCategories(string $region = "US"): array
 		{
 			$response = $this->call("videoCategories", ["part" => "id,snippet", "regionCode" => $region]);
 			$categories = [];
@@ -267,7 +267,7 @@
 				A BigTree\YouTube\Channel object.
 		*/
 		
-		function getChannel(?string $username = null, ?string $id = null): ?Channel
+		public function getChannel(?string $username = null, ?string $id = null): ?Channel
 		{
 			$params = ["part" => "id,snippet,statistics"];
 			
@@ -302,7 +302,7 @@
 				A BigTree\GoogleResultSet of BigTree\YouTube\Video objects.
 		*/
 		
-		function getChannelVideos(string $channel, int $count = 10, string $order = "date",
+		public function getChannelVideos(string $channel, int $count = 10, string $order = "date",
 								  array $params = []): ?GoogleResultSet
 		{
 			$response = $this->call("search", array_merge([
@@ -337,7 +337,7 @@
 				A BigTree\YouTube\Playlist object.
 		*/
 		
-		function getPlaylist(string $id): ?Playlist
+		public function getPlaylist(string $id): ?Playlist
 		{
 			$response = $this->call("playlists", ["part" => "id,snippet,status", "id" => $id]);
 			
@@ -361,7 +361,7 @@
 				A BigTree\GoogleResultSet of BigTree\YouTube\Playlist objects.
 		*/
 		
-		function getPlaylists(?string $channel = null, int $count = 50, array $params = []): ?GoogleResultSet
+		public function getPlaylists(?string $channel = null, int $count = 50, array $params = []): ?GoogleResultSet
 		{
 			if ($channel) {
 				$params["channelId"] = $channel;
@@ -399,7 +399,7 @@
 				A BigTree\GoogleResultSet of BigTree\YouTube\PlaylistItem objects.
 		*/
 		
-		function getPlaylistItems(string $playlist, int $count = 50, array $params = []): ?GoogleResultSet
+		public function getPlaylistItems(string $playlist, int $count = 50, array $params = []): ?GoogleResultSet
 		{
 			$results = [];
 			$response = $this->call("playlistItems", array_merge([
@@ -432,7 +432,7 @@
 				A BigTree\GoogleResultSet of channel IDs.
 		*/
 		
-		function getSubscribers(int $count = 50, string $order = "relevance", array $params = []): ?GoogleResultSet
+		public function getSubscribers(int $count = 50, string $order = "relevance", array $params = []): ?GoogleResultSet
 		{
 			$results = [];
 			$response = $this->call("subscriptions", array_merge([
@@ -466,7 +466,7 @@
 				A BigTree\GoogleResultSet of BigTree\YouTube\Subscription objects.
 		*/
 		
-		function getSubscriptions(int $count = 50, string $order = "relevance", array $params = []): ?GoogleResultSet
+		public function getSubscriptions(int $count = 50, string $order = "relevance", array $params = []): ?GoogleResultSet
 		{
 			$results = [];
 			$response = $this->call("subscriptions", array_merge([
@@ -499,7 +499,7 @@
 				A BigTree\YouTube\Video object.
 		*/
 		
-		function getVideo(string $id, array $params = []): ?Video
+		public function getVideo(string $id, array $params = []): ?Video
 		{
 			$response = $this->call("videos", array_merge([
 	  			"part" => "id,snippet,contentDetails,player,statistics,status,topicDetails,recordingDetails", 
@@ -525,7 +525,7 @@
 				true on success.
 		*/
 		
-		function rateVideo(string $id, string $rating): bool
+		public function rateVideo(string $id, string $rating): bool
 		{
 			$response = $this->call("videos/rate?id=$id&rating=$rating", [], "POST", ["Content-length: 0"]);
 			
@@ -554,7 +554,7 @@
 				A BigTree\GoogleResultSet object of BigTree\YouTube\Channel objects.
 		*/
 		
-		function searchChannels(string $query, int $count = 10, string $order = "relevance",
+		public function searchChannels(string $query, int $count = 10, string $order = "relevance",
 								array $params = []): ?GoogleResultSet
 		{
 			$results = [];
@@ -591,7 +591,7 @@
 				A BigTree\GoogleResultSet object of BigTree\YouTube\Video objects.
 		*/
 		
-		function searchVideos(string $query, int $count = 10, string $order = "relevance",
+		public function searchVideos(string $query, int $count = 10, string $order = "relevance",
 							  array $params = []): ?GoogleResultSet
 		{
 			$results = [];
@@ -622,7 +622,7 @@
 				channel - Channel ID to subscribe to.
 		*/
 		
-		function subscribe(string $channel): void
+		public function subscribe(string $channel): void
 		{
 			$this->call("subscriptions?part=snippet", json_encode(["snippet" => ["resourceId" => ["channelId" => $channel]]]), "POST");
 		}
@@ -632,7 +632,7 @@
 				Joins a time object made by timeSplit into one readable by the YouTube API.
 		*/
 		
-		function timeJoin(stdClass $time): string
+		public function timeJoin(stdClass $time): string
 		{
 			$t = "PT";
 			
@@ -652,7 +652,7 @@
 				Splits a YouTube video time length into an object.
 		*/
 		
-		function timeSplit(string $time): stdClass
+		public function timeSplit(string $time): stdClass
 		{
 			$t = new stdClass;
 			$t->Hours = 0;
@@ -691,7 +691,7 @@
 				channel - Channel ID to unsubscribe from.
 		*/
 		
-		function unsubscribe(string $channel): bool
+		public function unsubscribe(string $channel): bool
 		{
 			// Get subscription ID
 			$response = $this->call("subscriptions", ["part" => "id", "mine" => "true", "forChannelId" => $channel]);
@@ -720,7 +720,7 @@
 				true on success.
 		*/
 		
-		function updatePlaylist(string $id, string $title, string $description = "", string $privacy = "public",
+		public function updatePlaylist(string $id, string $title, string $description = "", string $privacy = "public",
 								array $tags = []): bool
 		{
 			$object = json_encode([
@@ -762,7 +762,7 @@
 				A BigTree\YouTube\PlaylistItem object on success.
 		*/
 		
-		function updatePlaylistItem(string $item, string $playlist, string $video, ?int $position = null,
+		public function updatePlaylistItem(string $item, string $playlist, string $video, ?int $position = null,
 									?string $note = null, ?stdClass $start_at = null,
 									?stdClass $end_at = null): ?PlaylistItem
 		{

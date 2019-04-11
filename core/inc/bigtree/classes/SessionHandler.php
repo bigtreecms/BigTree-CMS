@@ -14,17 +14,17 @@
 		private static $Timeout = 3600;
 		
 		// These aren't needed as the SQL class handles the connection
-		static function open()
+		public static function open()
 		{
 			return true;
 		}
 		
-		static function close()
+		public static function close()
 		{
 			return true;
 		}
 		
-		static function read($id)
+		public static function read($id)
 		{
 			$session = SQL::fetch("SELECT * FROM bigtree_sessions WHERE id = ?", $id);
 			
@@ -51,10 +51,16 @@
 			}
 		}
 		
-		static function write($id, $data)
+		public static function write($id, $data)
 		{
 			if (!static::$Exists) {
-				SQL::query("INSERT INTO bigtree_sessions (`id`, `last_accessed`, `data`, `ip_address`, `user_agent`) VALUES (?, ?, ?, ?, ?)", $id, time(), $data, Utils::getRemoteIP(), $_SERVER["HTTP_USER_AGENT"]);
+				SQL::insert("bigtree_sessions", [
+					"id" => $id,
+					"last_accessed" => time(),
+					"data" => $data,
+					"ip_address" => Utils::getRemoteIP(),
+					"user_agent" => $_SERVER["HTTP_USER_AGENT"]
+				]);
 			} else {
 				SQL::update("bigtree_sessions", $id, ["last_accessed" => time(), "data" => $data]);
 			}
@@ -62,19 +68,19 @@
 			return true;
 		}
 		
-		static function destroy($id)
+		public static function destroy($id)
 		{
 			return SQL::delete("bigtree_sessions", $id);
 		}
 		
-		static function clean($max_age)
+		public static function clean($max_age)
 		{
 			SQL::query("DELETE FROM bigtree_sessions WHERE last_accessed < ?", time() - $max_age);
 			
 			return true;
 		}
 		
-		static function start()
+		public static function start()
 		{
 			global $bigtree;
 			

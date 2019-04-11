@@ -6,7 +6,8 @@
 	
 	namespace BigTree;
 	
-	class Utils {
+	class Utils
+	{
 		
 		static $Hooks = null;
 		
@@ -22,7 +23,8 @@
 				A string of XML.
 		*/
 		
-		public static function arrayToXML(array $array, string $tab = ""): string {
+		public static function arrayToXML(array $array, string $tab = ""): string
+		{
 			$xml = "";
 			
 			foreach ($array as $key => $val) {
@@ -56,7 +58,8 @@
 				An array.
 		*/
 		
-		public static function arrayValue($value): array {
+		public static function arrayValue($value): array
+		{
 			if (is_string($value)) {
 				$value = (array) @json_decode($value, true);
 			}
@@ -69,7 +72,8 @@
 				Caches extension hooks.
 		*/
 
-		public static function cacheHooks() {
+		public static function cacheHooks()
+		{
 			$hooks = [];
 			$extensions = DB::getAll("extensions");
 
@@ -107,7 +111,8 @@
 				A hex value color between the first and second colors.
 		*/
 		
-		public static function colorMesh(string $first_color, string $second_color, float $percentage): string {
+		public static function colorMesh(string $first_color, string $second_color, float $percentage): string
+		{
 			$percentage = intval(str_replace("%", "", $percentage));
 			$first_color = ltrim($first_color, "#");
 			$second_color = ltrim($second_color, "#");
@@ -138,7 +143,8 @@
 				An IP address
 		*/
 		
-		public static function getRemoteIP() {
+		public static function getRemoteIP()
+		{
 			if (!empty($_SERVER["HTTP_CLIENT_IP"])) {
 				return $_SERVER["HTTP_CLIENT_IP"];
 			} elseif (!empty($_SERVER["HTTP_X_FORWARDED_FOR"])) {
@@ -170,7 +176,8 @@
 				type - The icon to draw.
 		*/
 		
-		public static function growl(string $title, string $message, string $type = "success"): void {
+		public static function growl(string $title, string $message, string $type = "success"): void
+		{
 			$_SESSION["bigtree_admin"]["growl"] = ["message" => Text::translate($message), "title" => Text::translate($title), "type" => $type];
 		}
 		
@@ -185,7 +192,8 @@
 				A modified array
 		*/
 		
-		public static function keyById(array &$array): array {
+		public static function keyById(array &$array): array
+		{
 			$keyed_array = [];
 			
 			foreach ($array as $item) {
@@ -215,7 +223,8 @@
 				Data modified by hook script
 		*/
 
-		public static function runHooks($type, $context = "", $data = "", $data_context = []) {
+		public static function runHooks($type, $context = "", $data = "", $data_context = []): void
+		{
 			if (!file_exists(SERVER_ROOT."cache/bigtree-hooks.json")) {
 				static::cacheHooks();
 			}
@@ -256,7 +265,8 @@
 				Deletes all pending growl messages.
 		*/
 		
-		public static function ungrowl(): void {
+		public static function ungrowl(): void
+		{
 			unset($_SESSION["bigtree_admin"]["growl"]);
 		}
 		

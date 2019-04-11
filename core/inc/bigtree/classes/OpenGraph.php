@@ -9,6 +9,7 @@
 	
 	class OpenGraph
 	{
+		
 		public static $Context = [];
 		public static $Types = [
 			"website",
@@ -243,5 +244,6 @@
 				"type" => $type
 			];
 		}
+		
 	}
 	

@@ -9,7 +9,8 @@
 	use DateTime;
 	use DateInterval;
 	
-	class Date {
+	class Date
+	{
 		
 		/*
 			Function: convertTojQuery
@@ -22,7 +23,8 @@
 				jQuery date picker formatting string.
 		*/
 		
-		static function convertTojQuery(string $format): string {
+		public static function convertTojQuery(string $format): string
+		{
 			$new_format = "";
 			
 			for ($i = 0; $i < strlen($format); $i++) {
@@ -73,7 +75,8 @@
 				A date string or false if date parsing failed
 		*/
 		
-		static function format($date, string $format = "Y-m-d H:i:s"): string {
+		public static function format($date, string $format = "Y-m-d H:i:s"): string
+		{
 			global $bigtree;
 			
 			$date_object = DateTime::createFromFormat($bigtree["config"]["date_format"], $date);
@@ -109,7 +112,8 @@
 				http://php.net/manual/en/function.date.php (for date formats)
 		*/
 		
-		static function fromOffset($start_date, string $offset, string $format = "Y-m-d H:i:s"): string {
+		public static function fromOffset($start_date, string $offset, string $format = "Y-m-d H:i:s"): string
+		{
 			$time = is_numeric($start_date) ? $start_date : strtotime($start_date);
 			
 			$date = DateTime::createFromFormat("Y-m-d H:i:s", date("Y-m-d H:i:s", $time));
@@ -129,7 +133,8 @@
 				A string describing how long ago the passed time was.
 		*/
 		
-		static function relativeTime(string $time): string {
+		public static function relativeTime(string $time): string
+		{
 			$minute = 60;
 			$hour = 3600;
 			$day = 86400;

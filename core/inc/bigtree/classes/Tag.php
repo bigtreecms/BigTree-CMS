@@ -11,15 +11,16 @@
 	 * @property-read string $Metaphone
 	 * @property-read string $Route
 	 */
-	class Tag extends BaseObject {
-		
-		public static $Table = "bigtree_tags";
+	class Tag extends BaseObject
+	{
 		
 		protected $ID;
 		protected $Metaphone;
 		protected $Route;
 		
 		public $Name;
+		
+		public static $Table = "bigtree_tags";
 		
 		/*
 			Constructor:
@@ -29,7 +30,8 @@
 				tag - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($tag = null) {
+		public function __construct($tag = null)
+		{
 			if ($tag !== null) {
 				// Passing in just an ID
 				if (!is_array($tag)) {
@@ -49,7 +51,8 @@
 			}
 		}
 		
-		public function __toString() {
+		public function __toString()
+		{
 			return (string) $this->Name;
 		}
 		
@@ -66,7 +69,8 @@
 				An array of tags from bigtree_tags.
 		*/
 		
-		static function allForEntry(string $table, string $id, bool $return_arrays = false): array {
+		public static function allForEntry(string $table, string $id, bool $return_arrays = false): array
+		{
 			$tags = SQL::fetchAll("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel 
 								   ON bigtree_tags_rel.tag = bigtree_tags.id 
 								   WHERE bigtree_tags_rel.`table` = ? AND bigtree_tags_rel.entry = ? 
@@ -94,7 +98,8 @@
 				An array of Tag objects.
 		*/
 		
-		static function allSimilar(string $name, int $count = 8, bool $return_only_name = false): array {
+		public static function allSimilar(string $name, int $count = 8, bool $return_only_name = false): array
+		{
 			$tags = $distances = [];
 			$meta = metaphone($name);
 			
@@ -135,7 +140,8 @@
 				A Tag object.
 		*/
 		
-		static function create(string $name): Tag {
+		public static function create(string $name): Tag
+		{
 			$name = strtolower(html_entity_decode(trim($name)));
 			
 			// If this tag already exists, just ignore it and return the ID
@@ -165,7 +171,8 @@
 				id - The tag ID to merge into this tag.
 		*/
 		
-		function merge($id) {
+		public function merge(int $id) : void
+		{
 			SQL::update("bigtree_tags_rel", ["tag" => $id], ["tag" => $this->ID]);
 			SQL::delete("bigtree_tags", $id);
 			
@@ -189,7 +196,8 @@
 				tags - An array of tag IDs to update reference counts for (defaults to all tags)
 		*/
 		
-		public static function updateReferenceCounts($tags = []) {
+		public static function updateReferenceCounts(?array $tags = []): void
+		{
 			if (!count($tags)) {
 				$tags = SQL::fetchAllSingle("SELECT id FROM bigtree_tags");
 			}

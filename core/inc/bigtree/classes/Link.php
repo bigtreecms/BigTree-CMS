@@ -6,9 +6,14 @@
 	
 	namespace BigTree;
 	
+	use Ausi\SlugGenerator\SlugOptions;
+	use Ausi\SlugGenerator\SlugGenerator;
 	use DOMDocument;
+	use DOMElement;
+	use Exception;
 	
-	class Link {
+	class Link
+	{
 		
 		public static $IRLCache = [];
 		public static $IRLsCreated = [];
@@ -27,7 +32,8 @@
 				A string.
 		*/
 		
-		static function byPath(string $path): string {
+		public static function byPath(string $path): string
+		{
 			global $bigtree;
 			
 			// Remove the site root from the path for multi-site
@@ -59,7 +65,8 @@
 				Caches a list of tokens and the values that are related to them.
 		*/
 		
-		static function cacheTokens(): void {
+		public static function cacheTokens(): void
+		{
 			global $bigtree;
 			
 			$valid_root = function ($root) {
@@ -107,7 +114,8 @@
 				port - Whether to return the port for connections not on port 80 (defaults to false)
 		*/
 		
-		static function currentURL(bool $port = false): string {
+		public static function currentURL(bool $port = false): string
+		{
 			$protocol = (@$_SERVER["HTTPS"] == "on") ? "https://" : "http://";
 			
 			if ($_SERVER["SERVER_PORT"] != "80" && $port) {
@@ -128,7 +136,8 @@
 				A string or array with internal page links decoded.
 		*/
 		
-		static function decode($input) {
+		public static function decode($input)
+		{
 			// Allow for arrays to recurse
 			if (is_array($input)) {
 				foreach ($input as $key => $value) {
@@ -158,7 +167,8 @@
 			return $input;
 		}
 		
-		private static function decodeHook(array $matches): string {
+		private static function decodeHook(array $matches): string
+		{
 			return '="'.static::iplDecode($matches[1]).'"';
 		}
 		
@@ -173,7 +183,8 @@
 				A string or array with hard links.
 		*/
 		
-		static function detokenize($input) {
+		public static function detokenize($input)
+		{
 			if (is_array($input)) {
 				foreach ($input as $key => $value) {
 					$input[$key] = static::detokenize($value);
@@ -198,7 +209,8 @@
 				A string or array with hard links converted into internal page links.
 		*/
 		
-		static function encode($input) {
+		public static function encode($input)
+		{
 			if (is_array($input)) {
 				foreach ($input as $key => $value) {
 					$input[$key] = static::encode($value);
@@ -220,13 +232,15 @@
 			return $input;
 		}
 		
-		private static function encodeHref(array $matches): string {
+		private static function encodeHref(array $matches): string
+		{
 			$href = static::iplEncode(static::detokenize($matches[1]));
 			
 			return 'href="'.$href.'"';
 		}
 		
-		private static function encodeSrc(array $matches): string {
+		private static function encodeSrc(array $matches): string
+		{
 			$src = static::iplEncode(static::detokenize($matches[1]));
 			
 			return 'src="'.$src.'"';
@@ -243,7 +257,8 @@
 				Public facing URL.
 		*/
 		
-		static function get(string $id): string {
+		public static function get(string $id): string
+		{
 			global $bigtree;
 			
 			// Homepage, just return the web root.
@@ -285,7 +300,8 @@
 				A URL.
 		*/
 		
-		static function getPreview(string $id): string {
+		public static function getPreview(string $id): string
+		{
 			global $bigtree;
 			
 			if (substr($id, 0, 1) == "p") {
@@ -320,7 +336,8 @@
 				An array containing two possible keys (a and img) which each could contain an array of errors.
 		*/
 		
-		static function integrity(string $relative_path, string $html, bool $external = false): array {
+		public static function integrity(string $relative_path, string $html, bool $external = false): array
+		{
 			if (empty($html)) {
 				return [];
 			}
@@ -332,7 +349,7 @@
 			
 			try {
 				$doc->loadHTML($html);
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				return [];
 			}
 			
@@ -340,6 +357,7 @@
 			$links = $doc->getElementsByTagName("a");
 			
 			foreach ($links as $link) {
+				/** @var DOMElement $link */
 				$href = static::detokenize($link->getAttribute("href"));
 				
 				if ($href == WWW_ROOT || $href == STATIC_ROOT || $href == ADMIN_ROOT) {
@@ -395,6 +413,7 @@
 			$images = $doc->getElementsByTagName("img");
 			
 			foreach ($images as $image) {
+				/** @var DOMElement $image */
 				$href = static::detokenize($image->getAttribute("src"));
 				
 				// See if the link matches something local
@@ -455,7 +474,8 @@
 				Public facing URL.
 		*/
 		
-		static function iplDecode(string $ipl): string {
+		public static function iplDecode(string $ipl): string
+		{
 			global $bigtree;
 			
 			// Regular links
@@ -548,7 +568,8 @@
 				An internal page link (if possible) or just the same URL (if it's not internal).
 		*/
 		
-		static function iplEncode(string $url): string {
+		public static function iplEncode(string $url): string
+		{
 			global $bigtree;
 			
 			$path_components = explode("/", rtrim(str_replace(WWW_ROOT, "", $url), "/"));
@@ -631,7 +652,8 @@
 				True if it is still a valid link, otherwise false.
 		*/
 		
-		static function iplExists(string $ipl): bool {
+		public static function iplExists(string $ipl): bool
+		{
 			$ipl = explode("//", $ipl);
 			
 			// See if the page it references still exists.
@@ -678,7 +700,8 @@
 				True if it is still a valid link, otherwise false.
 		*/
 		
-		static function irlExists(string $irl): bool {
+		public static function irlExists(string $irl): bool
+		{
 			$irl = explode("//", $irl);
 			
 			return Resource::exists($irl[1]) ? true : false;
@@ -695,7 +718,8 @@
 				true if link is external
 		*/
 		
-		static function isExternal(?string $url): bool {
+		public static function isExternal(?string $url): bool
+		{
 			if (is_null($url)) {
 				return false;
 			}
@@ -725,7 +749,8 @@
 				A modified string.
 		*/
 		
-		static function stripMultipleRootTokens(string $string): string {
+		public static function stripMultipleRootTokens(string $string): string
+		{
 			global $bigtree;
 			
 			if (empty($bigtree["config"]["sites"]) || !array_filter((array) $bigtree["config"]["sites"])) {
@@ -754,7 +779,8 @@
 				A string or array with tokens.
 		*/
 		
-		static function tokenize($input) {
+		public static function tokenize($input)
+		{
 			if (is_array($input)) {
 				foreach ($input as $key => $value) {
 					$input[$key] = static::tokenize($value);
@@ -779,7 +805,8 @@
 				true if it can connect, false if connection failed.
 		*/
 		
-		static function urlExists(string $url): bool {
+		public static function urlExists(string $url): bool
+		{
 			// Strip out any hash
 			list($url) = explode("#", $url);
 			
@@ -826,7 +853,8 @@
 				A string suited for a URL route.
 		*/
 		
-		static function urlify(string $title): string {
+		public static function urlify(string $title): string
+		{
 			global $bigtree;
 			
 			$replacements = [
@@ -893,10 +921,10 @@
 			];
 			
 			if (class_exists("Locale") && version_compare(PHP_VERSION, "7.1.0") >= 0) {
-				$options = new \Ausi\SlugGenerator\SlugOptions;
+				$options = new SlugOptions;
 				$options->setLocale($bigtree["config"]["locale"] ?: "en_US");
 				
-				$generator = new \Ausi\SlugGenerator\SlugGenerator($options);
+				$generator = new SlugGenerator($options);
 				
 				return $generator->generate($title);
 			} else {
@@ -909,4 +937,5 @@
 				return $title;
 			}
 		}
+		
 	}

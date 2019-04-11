@@ -11,7 +11,8 @@
 	 * @property-read string $Service
 	 * @property-read array $Settings
 	 */
-	class Email extends BaseObject {
+	class Email extends BaseObject
+	{
 		
 		protected $Service;
 		protected $Settings;
@@ -28,7 +29,8 @@
 		public $Text = "";
 		public $To = "";
 		
-		function __construct() {
+		public function __construct()
+		{
 			$setup = Setting::value("bigtree-internal-email-service");
 			
 			// Setting doesn't exist? Create it.
@@ -65,7 +67,8 @@
 				Sends the email with the preferred selected email service provider.
 		*/
 		
-		function send(): bool {
+		public function send(): bool
+		{
 			$provider_string = "BigTree\\EmailService\\".$this->Service;
 			
 			$provider = new $provider_string($this->Settings);
@@ -87,7 +90,8 @@
 				settings - An array of settings to pass to the provider (optional)
 		*/
 		
-		function setService(string $provider, ?array $settings = []): void {
+		public function setService(string $provider, ?array $settings = []): void
+		{
 			$this->Service = $provider;
 			
 			if (is_array($settings)) {
@@ -98,4 +102,4 @@
 		}
 		
 	}
-
+	

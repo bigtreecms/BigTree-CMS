@@ -16,14 +16,6 @@
 	class ModuleForm extends BaseObject
 	{
 		
-		public static $ReservedColumns = [
-			"id",
-			"position",
-			"archived",
-			"approved"
-		];
-		public static $Table = "bigtree_module_interfaces";
-		
 		protected $ID;
 		protected $Interface;
 		
@@ -38,6 +30,14 @@
 		public $Tagging;
 		public $Title;
 		
+		public static $ReservedColumns = [
+			"id",
+			"position",
+			"archived",
+			"approved"
+		];
+		public static $Table = "bigtree_module_interfaces";
+		
 		/*
 			Constructor:
 				Builds a ModuleForm object referencing an existing database entry.
@@ -46,7 +46,7 @@
 				interface - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($interface = null)
+		public function __construct($interface = null)
 		{
 			if ($interface !== null) {
 				// Passing in just an ID
@@ -95,9 +95,9 @@
 				A ModuleForm object.
 		*/
 		
-		static function create(int $module, string $title, string $table, array $fields, array $hooks = [],
-							   string $default_position = "", ?int $return_view = null, string $return_url = "",
-							   bool $tagging = false, bool $open_graph = false): ModuleForm
+		public static function create(int $module, string $title, string $table, array $fields, array $hooks = [],
+									  string $default_position = "", ?int $return_view = null, string $return_url = "",
+									  bool $tagging = false, bool $open_graph = false): ModuleForm
 		{
 			// Clean up fields for backwards compatibility
 			foreach ($fields as $key => $data) {
@@ -157,8 +157,8 @@
 				The id of the new entry in the database.
 		*/
 		
-		function createEntry(array $columns, ?array $many_to_many = [], ?array $tags = [],
-							 ?int $change_being_published = null): ?int
+		public function createEntry(array $columns, ?array $many_to_many = [], ?array $tags = [],
+									?int $change_being_published = null): ?int
 		{
 			// Clean up data
 			$insert_values = Link::encode(SQL::prepareData($this->Table, $columns));
@@ -224,8 +224,8 @@
 				The id of the pending change.
 		*/
 		
-		function createChangeRequest(string $id, array $changes, array $many_to_many = [], array $tags = [],
-									 array $open_graph = []): int
+		public function createChangeRequest(string $id, array $changes, array $many_to_many = [], array $tags = [],
+											array $open_graph = []): int
 		{
 			$hook = !empty($this->Hooks["publish"]) ? $this->Hooks["publish"] : false;
 			
@@ -261,8 +261,8 @@
 				The id of the new entry in the bigtree_pending_changes table.
 		*/
 		
-		function createPendingEntry(array $columns, array $many_to_many = [], array $tags = [],
-									array $open_graph = []): int
+		public function createPendingEntry(array $columns, array $many_to_many = [], array $tags = [],
+										   array $open_graph = []): int
 		{
 			$hook = !empty($this->Hooks["publish"]) ? $this->Hooks["publish"] : false;
 			$tags = array_unique($tags);
@@ -280,7 +280,7 @@
 				id - The id of the entry.
 		*/
 		
-		function deleteEntry(int $id): void
+		public function deleteEntry(int $id): void
 		{
 			SQL::delete($this->Table, $id);
 			SQL::delete("bigtree_pending_changes", ["table" => $this->Table, "item_id" => $id]);
@@ -297,7 +297,7 @@
 				id - The id of the pending entry.
 		*/
 		
-		function deletePendingEntry(int $id): void
+		public function deletePendingEntry(int $id): void
 		{
 			SQL::delete("bigtree_pending_changes", $id);
 			
@@ -313,7 +313,7 @@
 				Array
 		*/
 		
-		function getArray(): array
+		public function getArray(): array
 		{
 			// For backwards compatibility with older data
 			$fields = [];
@@ -356,7 +356,7 @@
 				Returns null if the entry could not be found.
 		*/
 		
-		function getEntry(string $id): ?array
+		public function getEntry(string $id): ?array
 		{
 			// The entry is pending if there's a "p" prefix on the id
 			if (substr($id, 0, 1) == "p") {
@@ -405,7 +405,7 @@
 				Returns null if the entry could not be found.
 		*/
 		
-		function getPendingEntry(string $id): ?array
+		public function getPendingEntry(string $id): ?array
 		{
 			$status = "published";
 			$many_to_many = [];
@@ -507,7 +507,7 @@
 				A ModuleView object or null.
 		*/
 		
-		function getRelatedModuleView(): ?ModuleView
+		public function getRelatedModuleView(): ?ModuleView
 		{
 			// Explicitly set related view
 			if ($this->ReturnView) {
@@ -540,7 +540,7 @@
 
 		*/
 		
-		function handleManyToMany(int $id, ?array $many_to_many): void
+		public function handleManyToMany(int $id, ?array $many_to_many): void
 		{
 			if (is_array($many_to_many)) {
 				foreach ($many_to_many as $mtm) {
@@ -579,7 +579,7 @@
 				tags - An array of tags to relate.
 		*/
 		
-		function handleTags(int $id, ?array $tags): void
+		public function handleTags(int $id, ?array $tags): void
 		{
 			SQL::delete("bigtree_tags_rel", ["table" => $this->Table, "entry" => $id]);
 			
@@ -601,7 +601,7 @@
 				Saves the current object properties back to the database.
 		*/
 		
-		function save(): ?bool
+		public function save(): ?bool
 		{
 			if (empty($this->Interface->ID)) {
 				$new = static::create($this->Module, $this->Title, $this->Table, $this->Fields, $this->Hooks,
@@ -656,9 +656,9 @@
 				open_graph - Whether to enable open graph data population.
 		*/
 		
-		function update(string $title, string $table, array $fields, array $hooks = [], string $default_position = "",
-						?int $return_view = null, string $return_url = "", bool $tagging = false,
-						bool $open_graph = false): void
+		public function update(string $title, string $table, array $fields, array $hooks = [],
+							   string $default_position = "", ?int $return_view = null, string $return_url = "",
+							   bool $tagging = false, bool $open_graph = false): void
 		{
 			$this->DefaultPosition = $default_position;
 			$this->Fields = $fields;
@@ -699,7 +699,7 @@
 				tags - Tag information.
 		*/
 		
-		function updateEntry(int $id, array $columns, array $many_to_many = [], array $tags = []): void
+		public function updateEntry(int $id, array $columns, array $many_to_many = [], array $tags = []): void
 		{
 			// Prepare update dat
 			$update_columns = Link::encode(SQL::prepareData($this->Table, $columns));
@@ -753,7 +753,7 @@
 				value - The value to set.
 		*/
 		
-		static function updatePendingEntryField(int $id, string $field, $value): void
+		public static function updatePendingEntryField(int $id, string $field, $value): void
 		{
 			$changes = json_decode(SQL::fetchSingle("SELECT changes FROM bigtree_pending_changes WHERE id = ?", $id), true);
 			

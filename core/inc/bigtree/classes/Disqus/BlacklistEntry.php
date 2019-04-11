@@ -21,7 +21,7 @@
 		public $Type;
 		public $Value;
 		
-		function __construct(stdClass $item, API &$api)
+		public function __construct(stdClass $item, API &$api)
 		{
 			$this->API = $api;
 			$this->ForumID = $item->forum;
@@ -37,7 +37,7 @@
 				Removes this blacklist entry.
 		*/
 		
-		function remove(): bool
+		public function remove(): bool
 		{
 			$response = $this->API->call("blacklists/remove.json", ["forum" => $this->ForumID, $this->Type => $this->Value], "POST");
 		

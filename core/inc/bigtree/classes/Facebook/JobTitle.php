@@ -14,7 +14,7 @@
 		/** @var API */
 		protected $API;
 		
-		function __construct(stdClass $job, API &$api) {
+		public function __construct(stdClass $job, API &$api) {
 			$this->API = $api;
 			
 			$this->ID = $job->id;

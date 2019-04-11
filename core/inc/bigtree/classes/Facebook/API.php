@@ -29,7 +29,7 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 		
-		function __construct(bool $cache = true)
+		public function __construct(bool $cache = true)
 		{
 			parent::__construct("bigtree-internal-facebook-api", "Facebook API", "org.bigtreecms.api.facebook", $cache);
 			
@@ -51,7 +51,7 @@
 				 A BigTree\Facebook\Album object or false if the object id does not exist.
 		*/
 		
-		function getAlbum(string $album_id): ?Album
+		public function getAlbum(string $album_id): ?Album
 		{
 			$response = $this->call($album_id."?fields=".API::ALBUM_FIELDS);
 			
@@ -74,7 +74,7 @@
 				A BigTree\Facebook\Person object.
 		*/
 		
-		function getUser(string $user = "me"): ?User
+		public function getUser(string $user = "me"): ?User
 		{
 			$response = $this->call($user);
 			

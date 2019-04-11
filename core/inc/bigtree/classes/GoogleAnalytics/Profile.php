@@ -26,7 +26,7 @@
 		public $UpdatedAt;
 		public $WebsiteURL;
 		
-		function __construct(stdClass $profile, API &$api)
+		public function __construct(stdClass $profile, API &$api)
 		{
 			$this->AccountID = $profile->accountId;
 			$this->API = $api;

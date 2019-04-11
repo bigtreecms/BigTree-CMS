@@ -7,11 +7,17 @@
 	
 	namespace BigTree;
 	
-	class FTP {
+	class FTP
+	{
 		
-		public $LocalEcho, $Verbose, $OS_local, $OS_remote, $_lastaction, $_errors, $_type, $_umask, $_timeout, $_passive, $_host, $_fullhost, $_port, $_datahost, $_dataport, $_ftp_control_sock, $_ftp_data_sock, $_ftp_temp_sock, $_ftp_buff_size, $_login, $_password, $_connected, $_ready, $_code, $_message, $_can_restore, $_port_available, $_curtype, $_features, $_error_array, $AuthorizedTransferMode, $OS_FullName, $_eol_code, $AutoAsciiExt;
+		public $LocalEcho, $Verbose, $OS_local, $OS_remote, $_lastaction, $_errors, $_type, $_umask, $_timeout,
+			$_passive, $_host, $_fullhost, $_port, $_datahost, $_dataport, $_ftp_control_sock, $_ftp_data_sock,
+			$_ftp_temp_sock, $_ftp_buff_size, $_login, $_password, $_connected, $_ready, $_code, $_message,
+			$_can_restore, $_port_available, $_curtype, $_features, $_error_array, $AuthorizedTransferMode,
+			$OS_FullName, $_eol_code, $AutoAsciiExt;
 		
-		function __construct() {
+		public function __construct()
+		{
 			$this->_lastaction = null;
 			$this->_error_array = [];
 			$this->_eol_code = ["u" => "\n", "m" => "\r", "w" => "\r\n"];
@@ -49,7 +55,8 @@
 				true if successful
 		*/
 		
-		function changeToParentDirectory(): bool {
+		public function changeToParentDirectory(): bool
+		{
 			if (!$this->_exec("CDUP") || !$this->_checkCode()) {
 				return false;
 			}
@@ -67,7 +74,8 @@
 				true if successful
 		*/
 		
-		function changeDirectory(string $path): bool {
+		public function changeDirectory(string $path): bool
+		{
 			if (!$this->_exec("CWD $path") || !$this->_checkCode()) {
 				return false;
 			}
@@ -87,7 +95,8 @@
 				true if successful
 		*/
 		
-		function connect(string $host, int $port = 21): bool {
+		public function connect(string $host, int $port = 21): bool
+		{
 			// Setup server parameters
 			if (!is_long($port)) {
 				return false;
@@ -163,7 +172,8 @@
 				true if successful.
 		*/
 		
-		function createDirectory(string $path): bool {
+		public function createDirectory(string $path): bool
+		{
 			if (!$this->_exec("MKD $path") || !$this->_checkCode()) {
 				return false;
 			}
@@ -182,7 +192,8 @@
 				true if successful
 		*/
 		
-		function deleteDirectory(string $path): bool {
+		public function deleteDirectory(string $path): bool
+		{
 			if (!$this->_exec("RMD $path") || !$this->_checkCode()) {
 				return false;
 			}
@@ -201,7 +212,8 @@
 				true if successful
 		*/
 		
-		function deleteFile(string $path): bool {
+		public function deleteFile(string $path): bool
+		{
 			if (!$this->_exec("DELE ".$path) || !$this->_checkCode()) {
 				return false;
 			}
@@ -214,7 +226,8 @@
 				Closes the FTP connection.
 		*/
 		
-		function disconnect(): void {
+		public function disconnect(): void
+		{
 			if ($this->_ready) {
 				$this->_exec("QUIT");
 			}
@@ -239,7 +252,8 @@
 				true if successful.
 		*/
 		
-		function downloadFile(string $remote, string $local): bool {
+		public function downloadFile(string $remote, string $local): bool
+		{
 			$fp = @fopen($local, "w");
 			
 			if (!$fp) {
@@ -286,7 +300,8 @@
 				The current working directory or null if the call failed.
 		*/
 		
-		function getCurrentDirectory(): ?string {
+		public function getCurrentDirectory(): ?string
+		{
 			if (!$this->_exec("PWD") || !$this->_checkCode()) {
 				return null;
 			}
@@ -305,7 +320,8 @@
 				An array of parsed information.
 		*/
 		
-		function getDirectoryContents(?string $path = null): array {
+		public function getDirectoryContents(?string $path = null): array
+		{
 			$list = $this->_list(" ".$path, "LIST");
 			
 			if (is_array($list)) {
@@ -328,7 +344,8 @@
 				An array of information from the FTP LIST command.
 		*/
 		
-		function getRawDirectoryContents(?string $path): array {
+		public function getRawDirectoryContents(?string $path): array
+		{
 			return $this->_list(" ".$path, "LIST");
 		}
 		
@@ -340,7 +357,8 @@
 				An array of system information.
 		*/
 		
-		function getSystemType(): ?array {
+		public function getSystemType(): ?array
+		{
 			if (!$this->_exec("SYST") || !$this->_checkCode()) {
 				return null;
 			}
@@ -362,7 +380,8 @@
 				true if successful
 		*/
 		
-		function login(?string $user = null, ?string $pass = null): bool {
+		public function login(?string $user = null, ?string $pass = null): bool
+		{
 			if (is_null($user)) {
 				$this->_login = "anonymous";
 				$this->_password = "anon@anon.com";
@@ -395,7 +414,8 @@
 				An array of information or false if the line was corrupt.
 		*/
 		
-		function parseListing(string $list): ?array {
+		public function parseListing(string $list): ?array
+		{
 			if (preg_match("/^([-ld])([rwxst-]+)\s+(\d+)\s+([^\s]+)\s+([^\s]+)\s+(\d+)\s+(\w{3})\s+(\d+)\s+([\:\d]+)\s+(.+)$/i", $list, $ret)) {
 				$v = [
 					"type" => ($ret[1] == "-" ? "f" : $ret[1]),
@@ -448,7 +468,8 @@
 				true if successful
 		*/
 		
-		function rename(string $from, string $to): bool {
+		public function rename(string $from, string $to): bool
+		{
 			if (!$this->_exec("RNFR ".$from) || !$this->_checkCode() || $this->_code != 350) {
 				return false;
 			}
@@ -468,7 +489,8 @@
 				type - AUTOASCII (-1), ASCII (0), BINARY (1)
 		*/
 		
-		function setTransferType(string $mode): bool {
+		public function setTransferType(string $mode): bool
+		{
 			if (!in_array($mode, $this->AuthorizedTransferMode)) {
 				return false;
 			}
@@ -490,7 +512,8 @@
 				true if successful
 		*/
 		
-		function uploadFile(string $local, string $remote): bool {
+		public function uploadFile(string $local, string $remote): bool
+		{
 			if (!@file_exists($local)) {
 				return false;
 			}
@@ -535,11 +558,13 @@
 		
 		/* Private Functions */
 		
-		private function _checkCode() {
+		private function _checkCode()
+		{
 			return ($this->_code < 400 && $this->_code > 0);
 		}
 		
-		private function _connect($host, $port) {
+		private function _connect($host, $port)
+		{
 			$sock = @fsockopen($host, $port, $errno, $errstr, $this->_timeout);
 			if (!$sock) {
 				return false;
@@ -549,7 +574,8 @@
 			return $sock;
 		}
 		
-		private function _data_close() {
+		private function _data_close()
+		{
 			if ($this->_ftp_data_sock) {
 				fclose($this->_ftp_data_sock);
 			}
@@ -557,7 +583,8 @@
 			return true;
 		}
 		
-		private function _data_prepare($mode = 0) {
+		private function _data_prepare($mode = 0)
+		{
 			if (!$this->_settype($mode)) {
 				return false;
 			}
@@ -584,7 +611,8 @@
 			return true;
 		}
 		
-		private function _data_read($mode = 0, $fp = null) {
+		private function _data_read($mode = 0, $fp = null)
+		{
 			if (is_resource($fp)) {
 				$out = 0;
 			} else {
@@ -608,7 +636,8 @@
 			return $out;
 		}
 		
-		private function _data_write($mode = 0, $fp = null) {
+		private function _data_write($mode = 0, $fp = null)
+		{
 			if (is_resource($fp)) {
 				while (!feof($fp)) {
 					$block = fread($fp, $this->_ftp_buff_size);
@@ -623,7 +652,8 @@
 			return true;
 		}
 		
-		private function _data_write_block($mode, $block) {
+		private function _data_write_block($mode, $block)
+		{
 			if ($mode != 1) {
 				$block = preg_replace("/\r\n|\r|\n/", $this->_eol_code[$this->OS_remote], $block);
 			}
@@ -639,7 +669,8 @@
 			return true;
 		}
 		
-		private function _exec($cmd) {
+		private function _exec($cmd)
+		{
 			if (!$this->_ready) {
 				return false;
 			}
@@ -659,7 +690,8 @@
 			return true;
 		}
 		
-		private function _list($arg = "", $cmd = "LIST") {
+		private function _list($arg = "", $cmd = "LIST")
+		{
 			if (!$this->_data_prepare()) {
 				return false;
 			}
@@ -689,7 +721,8 @@
 			return $out;
 		}
 		
-		private function _readmsg() {
+		private function _readmsg()
+		{
 			if (!$this->_connected) {
 				return false;
 			}
@@ -716,7 +749,8 @@
 			return $result;
 		}
 		
-		private function _settype($mode = 0) {
+		private function _settype($mode = 0)
+		{
 			if ($this->_ready) {
 				if ($mode == 1) {
 					if ($this->_curtype != 1) {
@@ -739,4 +773,5 @@
 			
 			return true;
 		}
+		
 	}

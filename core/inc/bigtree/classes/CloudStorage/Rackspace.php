@@ -34,7 +34,7 @@
 		public $Region;
 		public $Username;
 		
-		function __construct()
+		public function __construct()
 		{
 			parent::__construct();
 			
@@ -71,7 +71,7 @@
 				curl_options - Additional cURL options.
 		*/
 		
-		function callRackspace(string $endpoint = "", ?array $data = null, string $method = "GET",
+		public function callRackspace(string $endpoint = "", ?array $data = null, string $method = "GET",
 							   array $curl_options = []): ?stdClass
 		{
 			// Add authentication headers and ask for JSON in return
@@ -93,7 +93,7 @@
 		}
 		
 		// Implements Provider::copyFile
-		function copyFile(string $source_container, string $source_pointer, string $destination_container,
+		public function copyFile(string $source_container, string $source_pointer, string $destination_container,
 						  string $destination_pointer, bool $public = false): ?string
 		{
 			cURL::request($this->Endpoint."/$source_container/$source_pointer", false, [
@@ -112,7 +112,7 @@
 		}
 		
 		// Implements Provider::createContainer
-		function createContainer(string $name, bool $public = false): ?bool
+		public function createContainer(string $name, bool $public = false): ?bool
 		{
 			$this->callRackspace($name, null, "PUT", [CURLOPT_PUT => true]);
 			
@@ -135,7 +135,7 @@
 		}
 		
 		// Implements Provider::createFile
-		function createFile(string $contents, string $container, string $pointer, bool $public = false,
+		public function createFile(string $contents, string $container, string $pointer, bool $public = false,
 							string $type = "text/plain"): ?string
 		{
 			cURL::request($this->Endpoint."/$container/$pointer", $contents, [
@@ -154,7 +154,7 @@
 		}
 		
 		// Implements Provider::deleteContainer
-		function deleteContainer(string $container): ?bool
+		public function deleteContainer(string $container): ?bool
 		{
 			$this->callRackspace($container, null, "DELETE", [CURLOPT_CUSTOMREQUEST => "DELETE"]);
 			
@@ -170,7 +170,7 @@
 		}
 		
 		// Implements Provider::deleteFile
-		function deleteFile(string $container, string $pointer): ?bool
+		public function deleteFile(string $container, string $pointer): ?bool
 		{
 			$this->callRackspace("$container/$pointer", null, "DELETE", [CURLOPT_CUSTOMREQUEST => "DELETE"]);
 			
@@ -182,7 +182,7 @@
 		}
 		
 		// Implements Provider::getAuthenticatedFileURL
-		function getAuthenticatedFileURL(string $container, string $pointer, int $expires): ?string
+		public function getAuthenticatedFileURL(string $container, string $pointer, int $expires): ?string
 		{
 			$expires += time();
 			
@@ -224,7 +224,7 @@
 		}
 		
 		// Implements Provider::getContainer
-		function getContainer(string $container, bool $simple = false): ?array
+		public function getContainer(string $container, bool $simple = false): ?array
 		{
 			$flat = [];
 			$response = $this->callRackspace($container);
@@ -257,7 +257,7 @@
 		}
 		
 		// Implements Provider::getFile
-		function getFile(string $container, string $pointer): ?string
+		public function getFile(string $container, string $pointer): ?string
 		{
 			return cURL::request($this->Endpoint."/$container/$pointer", false, [
 				CURLOPT_HTTPHEADER => ["X-Auth-Token: ".$this->Token]
@@ -265,7 +265,7 @@
 		}
 		
 		// Internal method for refreshing a Rackspace token
-		function getToken()
+		public function getToken()
 		{
 			$data = [
 				"auth" => [
@@ -308,7 +308,7 @@
 		}
 		
 		// Internal method for getting the live URL of an asset
-		function getURL(string $container, string $pointer): string
+		public function getURL(string $container, string $pointer): string
 		{
 			if ($this->CDNContainerURLs[$container]) {
 				return $this->CDNContainerURLs[$container]."/$pointer";
@@ -339,7 +339,7 @@
 		}
 		
 		// Implements Provider::listContainers
-		function listContainers(): ?array
+		public function listContainers(): ?array
 		{
 			$containers = [];
 			$response = $this->call();
@@ -356,7 +356,7 @@
 		}
 		
 		// Implements Provider::uploadFile
-		function uploadFile(string $file, string $container, ?string $pointer = null, bool $public = false): ?string
+		public function uploadFile(string $file, string $container, ?string $pointer = null, bool $public = false): ?string
 		{
 			// No target destination, just use root folder w/ file name
 			if (!$pointer) {

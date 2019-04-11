@@ -29,7 +29,7 @@
 		public $VideoEndAt;
 		public $VideoStartAt;
 		
-		function __construct(stdClass $item, API &$api)
+		public function __construct(stdClass $item, API &$api)
 		{
 			$this->API = $api;
 			isset($item->snippet->channelId) ? $this->ChannelID = $item->snippet->channelId : false;
@@ -63,7 +63,7 @@
 				Authenticated user must be the owner of the playlist.
 		*/
 		
-		function delete(): void
+		public function delete(): void
 		{
 			$this->API->deletePlaylistItem($this->ID);
 		}
@@ -74,7 +74,7 @@
 				Authenticated user must be the owner of the playlist.
 		*/
 		
-		function save(): ?PlaylistItem
+		public function save(): ?PlaylistItem
 		{
 			return $this->API->updatePlaylistItem($this->ID, $this->PlaylistID, $this->VideoID, $this->Position, $this->Note, $this->API->timeJoin($this->VideoStartAt), $this->API->timeJoin($this->VideoEndAt));
 		}
@@ -87,7 +87,7 @@
 				A BigTree\YouTube\Video object.
 		*/
 		
-		function video(): ?Video
+		public function video(): ?Video
 		{
 			return $this->API->getVideo($this->VideoID);
 		}

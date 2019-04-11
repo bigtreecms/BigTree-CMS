@@ -10,6 +10,7 @@
 	use Exception;
 	
 	use mysqli;
+	use mysqli_result;
 	
 	/**
 	 * @method static array fetch() fetch(string $query = "", ...) query the database and return a row
@@ -19,22 +20,24 @@
 	 * @method static int rows() rows(string $query = "", ...) query the database and return the number of results
 	 */
 
-	class SQL {
+	class SQL
+	{
 		
-		/** @var \mysqli */
+		/** @var mysqli */
 		public static $Connection = "disconnected";
-		/** @var \mysqli */
+		/** @var mysqli */
 		public static $WriteConnection = "disconnected";
 		
 		public static $ErrorLog = [];
 		public static $MySQLTime = "";
 		public static $QueryLog = [];
 		
-		/** @var \mysqli_result */
+		/** @var mysqli_result */
 		public $ActiveQuery = false;
 		
 		// Constructor for chain queries
-		function __construct($chain_query = false) {
+		public function __construct($chain_query = false)
+		{
 			// Chained instances should use the primary connection
 			if ($chain_query) {
 				$this->ActiveQuery = $chain_query;
@@ -42,7 +45,8 @@
 		}
 		
 		// A little hack to allow fetch to be called both statically and chained
-		function __call($method, $arguments) {
+		public function __call($method, $arguments)
+		{
 			if ($method == "fetch") {
 				return call_user_func_array([$this, "_local_fetch"], $arguments);
 			} elseif ($method == "fetchAll") {
@@ -60,7 +64,8 @@
 			return null;
 		}
 		
-		static function __callStatic($method, $arguments) {
+		public static function __callStatic($method, $arguments)
+		{
 			if ($method == "fetch") {
 				return call_user_func_array("static::_static_fetch", $arguments);
 			} elseif ($method == "fetchAll") {
@@ -89,7 +94,8 @@
 				true if successful.
 		*/
 		
-		static function backup(string $file, ?array $tables = []): bool {
+		public static function backup(string $file, ?array $tables = []): bool
+		{
 			if (!FileSystem::getDirectoryWritability($file)) {
 				return false;
 			}
@@ -140,7 +146,8 @@
 				An array of SQL calls to perform to turn Table A into Table B.
 		*/
 		
-		static function compareTables(string $table_a, string $table_b): array {
+		public static function compareTables(string $table_a, string $table_b): array
+		{
 			// Get table A's description
 			$table_a_description = static::describeTable($table_a);
 			$table_a_columns = $table_a_description["columns"];
@@ -329,7 +336,8 @@
 				Sets up the internal connections to the MySQL server(s).
 		*/
 		
-		static function connect(string $property, string $type) {
+		public static function connect(string $property, string $type)
+		{
 			global $bigtree;
 			
 			// Initializing optional params, if they don't exist yet due to older install
@@ -380,7 +388,8 @@
 				true if successful (even if no rows match)
 		*/
 		
-		static function delete(string $table, $id): bool {
+		public static function delete(string $table, $id): bool
+		{
 			$values = $where = [];
 			
 			// If the ID is an associative array we match based on the given columns
@@ -415,7 +424,8 @@
 				An array of table information or null if the table doesn't exist.
 		*/
 		
-		static function describeTable(string $table): ?array {
+		public static function describeTable(string $table): ?array
+		{
 			$result = [
 				"columns" => [],
 				"indexes" => [],
@@ -708,7 +718,9 @@
 				sorting - Whether to duplicate columns into "ASC" and "DESC" versions.
 		*/
 		
-		static function drawColumnSelectOptions(string $table, ?string $default = null, bool $sorting = false): void {
+		public static function drawColumnSelectOptions(string $table, ?string $default = null,
+													   bool $sorting = false): void
+		{
 			$table_description = static::describeTable($table);
 			
 			if (!$table_description) {
@@ -750,7 +762,8 @@
 				default - The currently selected value.
 		*/
 		
-		static function drawTableSelectOptions(?string $default = null): void {
+		public static function drawTableSelectOptions(?string $default = null): void
+		{
 			global $bigtree;
 			
 			$tables = static::fetchAllSingle("SHOW TABLES");
@@ -778,7 +791,8 @@
 				An array.
 		*/
 		
-		static function dumpTable(string $table): array {
+		public static function dumpTable(string $table): array
+		{
 			$inserts = [];
 			
 			// Figure out which columns are binary and need to be pulled as hex
@@ -787,7 +801,13 @@
 			$binary_columns = [];
 			
 			foreach ($description["columns"] as $key => $column) {
-				if ($column["type"] == "tinyblob" || $column["type"] == "blob" || $column["type"] == "mediumblob" || $column["type"] == "longblob" || $column["type"] == "binary" || $column["type"] == "varbinary") {
+				if ($column["type"] == "tinyblob" ||
+					$column["type"] == "blob" ||
+					$column["type"] == "mediumblob" ||
+					$column["type"] == "longblob" ||
+					$column["type"] == "binary" ||
+					$column["type"] == "varbinary"
+				) {
 					$column_query[] = "HEX(`$key`) AS `$key`";
 					$binary_columns[] = $key;
 				} else {
@@ -833,7 +853,8 @@
 				Escaped string
 		*/
 		
-		static function escape($string): string {
+		public static function escape($string): string
+		{
 			if (is_object($string) || is_array($string)) {
 				$string = JSON::encode($string);
 			}
@@ -856,7 +877,8 @@
 				true if a row already exists that matches the passed in key/value pairs.
 		*/
 		
-		static function exists(string $table, $values, $ignored_id = null): bool {
+		public static function exists(string $table, $values, $ignored_id = null): bool
+		{
 			// Passing an array of key/value pairs
 			if (is_array($values)) {
 				$where = [];
@@ -895,7 +917,8 @@
 				A row from the active query (or false if no more rows exist)
 		*/
 		
-		function _local_fetch() {
+		public function _local_fetch()
+		{
 			// Allow this to be called without calling query first
 			$args = func_get_args();
 			
@@ -922,7 +945,8 @@
 			}
 		}
 		
-		static function _static_fetch() {
+		public static function _static_fetch()
+		{
 			// Allow this to be called without calling query first
 			$query = call_user_func_array("static::query", func_get_args());
 			
@@ -942,7 +966,8 @@
 				An array of rows from the active query.
 		*/
 		
-		function _local_fetchAll() {
+		public function _local_fetchAll()
+		{
 			// Allow this to be called without calling query first
 			$args = func_get_args();
 			
@@ -975,7 +1000,8 @@
 			}
 		}
 		
-		static function _static_fetchAll() {
+		public static function _static_fetchAll()
+		{
 			$query = call_user_func_array("static::query", func_get_args());
 			
 			return $query->fetchAll();
@@ -996,7 +1022,8 @@
 				<fetchAll>
 		*/
 		
-		function _local_fetchAllSingle() {
+		public function _local_fetchAllSingle()
+		{
 			// Allow this to be called without calling query first
 			$args = func_get_args();
 			
@@ -1029,7 +1056,8 @@
 			}
 		}
 		
-		static function _static_fetchAllSingle() {
+		public static function _static_fetchAllSingle()
+		{
 			$query = call_user_func_array("static::query", func_get_args());
 			
 			return $query->fetchAllSingle();
@@ -1050,7 +1078,8 @@
 				<fetch>
 		*/
 		
-		function _local_fetchSingle() {
+		public function _local_fetchSingle()
+		{
 			// Allow this to be called without calling query first
 			$args = func_get_args();
 			
@@ -1079,7 +1108,8 @@
 			}
 		}
 		
-		static function _static_fetchSingle() {
+		public static function _static_fetchSingle()
+		{
 			$query = call_user_func_array("static::query", func_get_args());
 			
 			return $query->fetchSingle();
@@ -1097,7 +1127,8 @@
 				Primary key of the inserted row or null if failed
 		*/
 		
-		static function insert(string $table, array $values): ?int {
+		public static function insert(string $table, array $values): ?int
+		{
 			if (!count($values)) {
 				trigger_error("SQL::inserts expects a non-empty array as its second parameter", E_USER_ERROR);
 				
@@ -1133,7 +1164,8 @@
 				The primary key for the most recently inserted row.
 		*/
 		
-		static function insertID(): ?int {
+		public static function insertID(): ?int
+		{
 			if (static::$WriteConnection && static::$WriteConnection !== "disconnected") {
 				return static::$WriteConnection->insert_id;
 			} else {
@@ -1152,7 +1184,8 @@
 				A string.
 		*/
 		
-		static function nextColumnDefinition(string $string): string {
+		public static function nextColumnDefinition(string $string): string
+		{
 			$key_name = "";
 			$i = 0;
 			$found_key = false;
@@ -1191,7 +1224,8 @@
 				Array of data safe for MySQL.
 		*/
 		
-		static function prepareData(string $table, array $data, ?array $existing_description = null): array {
+		public static function prepareData(string $table, array $data, ?array $existing_description = null): array
+		{
 			// Setup column info
 			$table_description = $existing_description ?: static::describeTable($table);
 			$columns = $table_description["columns"];
@@ -1205,7 +1239,12 @@
 					$type = $columns[$key]["type"];
 					
 					// Sanitize Integers
-					if ($type == "tinyint" || $type == "smallint" || $type == "mediumint" || $type == "int" || $type == "bigint") {
+					if ($type == "tinyint" ||
+						$type == "smallint" ||
+						$type == "mediumint" ||
+						$type == "int" ||
+						$type == "bigint"
+					) {
 						if ($allow_null == "YES" && ($val === null || $val === false || $val === "" || $val === "NULL")) {
 							$data[$key] = null;
 						} else {
@@ -1267,7 +1306,8 @@
 		}
 
 		// Prepares SQL statements using the ? replacement syntax
-		static protected function prepareStatementIndexed($query, $values) {
+		static protected function prepareStatementIndexed($query, $values)
+		{
 			$x = 0;
 			$offset = 0;
 			$where_position = stripos($query, " where ");
@@ -1314,7 +1354,8 @@
 		}
 
 		// Prepares SQL statements using the :name replacement syntax
-		static protected function prepareStatementNamed($query, $values) {
+		static protected function prepareStatementNamed($query, $values)
+		{
 			$where_position = stripos($query, " where ");
 			
 			foreach ($values as $key => $value) {
@@ -1367,7 +1408,8 @@
 				Another instance of BigTree\SQL for chaining fetch, fetchAll, insertID, or rows methods.
 		*/
 		
-		static function query(string $query): SQL {
+		public static function query(string $query): SQL
+		{
 			global $bigtree;
 			
 			// Setup our read connection if it disconnected for some reason
@@ -1378,7 +1420,26 @@
 				$commands = explode(" ", $query);
 				$fc = strtolower($commands[0]);
 				
-				if ($fc == "create" || $fc == "drop" || $fc == "insert" || $fc == "update" || $fc == "set" || $fc == "grant" || $fc == "flush" || $fc == "delete" || $fc == "alter" || $fc == "load" || $fc == "optimize" || $fc == "repair" || $fc == "replace" || $fc == "lock" || $fc == "restore" || $fc == "rollback" || $fc == "revoke" || $fc == "truncate" || $fc == "unlock") {
+				if ($fc == "create" ||
+					$fc == "drop" ||
+					$fc == "insert" ||
+					$fc == "update" ||
+					$fc == "set" ||
+					$fc == "grant" ||
+					$fc == "flush" ||
+					$fc == "delete" ||
+					$fc == "alter" ||
+					$fc == "load" ||
+					$fc == "optimize" ||
+					$fc == "repair" ||
+					$fc == "replace" ||
+					$fc == "lock" ||
+					$fc == "restore" ||
+					$fc == "rollback" ||
+					$fc == "revoke" ||
+					$fc == "truncate" ||
+					$fc == "unlock"
+				) {
 					$connection = (static::$WriteConnection && static::$WriteConnection !== "disconnected") ? static::$WriteConnection : static::connect("WriteConnection", "db_write");
 				}
 			}
@@ -1431,11 +1492,13 @@
 				Number of rows for the active query.
 		*/
 		
-		function _local_rows() {
+		public function _local_rows()
+		{
 			return $this->ActiveQuery->num_rows;
 		}
 		
-		static function _static_rows($query) {
+		public static function _static_rows($query)
+		{
 			return $query->ActiveQuery->num_rows;
 		}
 		
@@ -1450,7 +1513,8 @@
 				true if table exists, otherwise false.
 		*/
 		
-		static function tableExists(string $table): bool {
+		public static function tableExists(string $table): bool
+		{
 			$rows = static::query("SHOW TABLES LIKE ?", $table)->rows();
 			
 			if ($rows) {
@@ -1477,7 +1541,9 @@
 				Unique version of value.
 		*/
 		
-		static function unique(string $table, string $field, string $value, $id = null, bool $inverse = false): string {
+		public static function unique(string $table, string $field, string $value, $id = null,
+									  bool $inverse = false): string
+		{
 			$original_value = $value;
 			$count = 1;
 			
@@ -1530,7 +1596,8 @@
 				true if successful (even if no rows match)
 		*/
 		
-		static function update(string $table, $id, array $values): bool {
+		public static function update(string $table, $id, array $values): bool
+		{
 			if (!is_array($values) || !count($values)) {
 				trigger_error("SQL::update expects a non-empty array as its third parameter", E_USER_ERROR);
 				

@@ -6,9 +6,8 @@
 	
 	namespace BigTree;
 	
-	class Setting extends BaseObject {
-		
-		public static $Table = "bigtree_settings";
+	class Setting extends BaseObject
+	{
 		
 		protected $OriginalEncrypted;
 		protected $OriginalID;
@@ -25,6 +24,8 @@
 		public $Type;
 		public $Value;
 		
+		public static $Table = "bigtree_settings";
+		
 		/*
 			Constructor:
 				Builds a Setting object referencing an existing database entry.
@@ -34,7 +35,8 @@
 				decode - Whether to decode the setting's value (defaults true, set to false for faster processing of large data value)
 		*/
 		
-		function __construct($setting = null, bool $decode = true) {
+		public function __construct($setting = null, bool $decode = true)
+		{
 			if ($setting !== null) {
 				global $bigtree;
 				
@@ -83,7 +85,8 @@
 		}
 		
 		// Magic Method to allow usage of a Setting object as a string
-		function __toString(): string {
+		public function __toString(): string
+		{
 			if (is_object($this->Value) || is_array($this->Value)) {
 				return json_encode($this->Value);
 			} else {
@@ -103,7 +106,8 @@
 				An array of entries from bigtree_settings.
 		*/
 		
-		static function allSystem(string $sort = "name ASC", bool $return_arrays = false): array {
+		public static function allSystem(string $sort = "name ASC", bool $return_arrays = false): array
+		{
 			$settings = SQL::fetchAll("SELECT * FROM bigtree_settings 
 									   WHERE id NOT LIKE 'bigtree-internal-%' AND system != '' ORDER BY $sort");
 			
@@ -128,7 +132,8 @@
 				An extension setting ID if one is found.
 		*/
 		
-		static function context(string $id): string {
+		public static function context(string $id): string
+		{
 			global $bigtree;
 			
 			// See if we're in an extension
@@ -169,9 +174,10 @@
 				A Setting object if successful, otherwise null.
 		*/
 		
-		static function create(string $id, string $name = "", string $description = "", string $type = "",
-							   array $settings = [], string $extension = "", bool $system = false,
-							   bool $encrypted = false, bool $locked = false): ?Setting {
+		public static function create(string $id, string $name = "", string $description = "", string $type = "",
+									  array $settings = [], string $extension = "", bool $system = false,
+									  bool $encrypted = false, bool $locked = false): ?Setting
+		{
 			// If an extension is creating a setting, make it a reference back to the extension
 			if (defined("EXTENSION_ROOT") && !$extension) {
 				$extension = rtrim(str_replace(SERVER_ROOT."extensions/", "", EXTENSION_ROOT), "/");
@@ -216,7 +222,8 @@
 				1 if the setting exists, otherwise 0.
 		*/
 		
-		static function exists(string $id): bool {
+		public static function exists(string $id): bool
+		{
 			return SQL::exists("bigtree_settings", static::context($id));
 		}
 		
@@ -225,7 +232,8 @@
 				Saves the current object properties back to the database.
 		*/
 		
-		function save(): ?bool {
+		public function save(): ?bool
+		{
 			// Settings specify their own ID so we check for existance to determine save behavior
 			if (!SQL::exists("bigtree_settings", $this->ID)) {
 				$new = static::create(
@@ -318,8 +326,10 @@
 				true if successful, false if a setting exists for the new id already.
 		*/
 		
-		function update(string $id, string $type = "", array $settings = [], string $name = "", string $description = "",
-						bool $locked = false, bool $encrypted = false, bool $system = false): bool {
+		public function update(string $id, string $type = "", array $settings = [], string $name = "",
+							   string $description = "", bool $locked = false, bool $encrypted = false,
+							   bool $system = false): bool
+		{
 			// See if we have an id collision with the new id.
 			if ($this->ID != $id && static::exists($id)) {
 				return false;
@@ -351,13 +361,15 @@
 				Either an array of setting values or a single setting's value.
 		*/
 		
-		static function value(string $id) {
+		public static function value(string $id)
+		{
 			$values = static::values([$id]);
 			
 			return is_array($values) ? array_pop($values) : null;
 		}
 		
-		static function values(array $ids): ?array {
+		public static function values(array $ids): ?array
+		{
 			global $bigtree;
 			
 			// Allow for a single ID
@@ -374,7 +386,8 @@
 				if ($setting) {
 					// If the setting is encrypted, we need to re-pull just the value.
 					if ($setting["encrypted"]) {
-						$setting["value"] = SQL::fetchSingle("SELECT AES_DECRYPT(`value`, ?) FROM bigtree_settings WHERE id = ?",
+						$setting["value"] = SQL::fetchSingle("SELECT AES_DECRYPT(`value`, ?) FROM bigtree_settings
+															  WHERE id = ?",
 															 $bigtree["config"]["settings_key"], $contextual_id);
 					}
 					

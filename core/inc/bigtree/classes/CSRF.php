@@ -11,7 +11,8 @@
 		public static $Field;
 		public static $Token;
 
-		private static function checkSetup(): void {
+		private static function checkSetup(): void
+		{
 			if (empty(static::$Field) || empty(static::$Token)) {
 				trigger_error(Text::translate("You must call CSRF::generate or CSRF::setup before any other CSRF method."), E_USER_ERROR);
 			}
@@ -22,7 +23,8 @@
 				Draws an input field for the CSRF token.
 		*/
 		
-		static function drawPOSTToken(): void {
+		public static function drawPOSTToken(): void
+		{
 			static::checkSetup();
 
 			echo '<input type="hidden" value="'.htmlspecialchars(static::$Token).'" name="'.static::$Field.'" />';
@@ -33,7 +35,8 @@
 				Draws a GET variable in a URL for the CSRF token.
 		*/
 		
-		static function drawGETToken(): void {
+		public static function drawGETToken(): void
+		{
 			static::checkSetup();
 
 			echo '&'.static::$Field.'='.urlencode(static::$Token);
@@ -44,7 +47,8 @@
 				Generates a random field and token value and sets them.
 		*/
 
-		static function generate(): void {
+		public static function generate(): void
+		{
 			static::$Token = base64_encode(openssl_random_pseudo_bytes(32));
 			static::$Field = "__csrf_token_".Text::getRandomString(32)."__";
 		}
@@ -58,7 +62,8 @@
 				token - The expected token to be passed
 		*/
 
-		static function setup(string $field, string $token): void {
+		public static function setup(string $field, string $token): void
+		{
 			static::$Field = $field;
 			static::$Token = $token;
 		}
@@ -68,7 +73,8 @@
 				Verifies the referring host and session token and stops processing if they fail.
 		*/
 		
-		static function verify(): void {
+		public static function verify(): void
+		{
 			static::checkSetup();
 
 			$clean_referer = str_replace(array("http://","https://"),"//",$_SERVER["HTTP_REFERER"]);

@@ -25,7 +25,7 @@
 		public $VideoCount;
 		public $ViewCount;
 		
-		function __construct(stdClass $channel, API &$api)
+		public function __construct(stdClass $channel, API &$api)
 		{
 			$this->API = $api;
 			isset($channel->statistics->commentCount) ? $this->CommentCount = $channel->statistics->commentCount : false;
@@ -60,7 +60,7 @@
 				A BigTree\GoogleResultSet of BigTree\YouTube\Video objects.
 		*/
 		
-		function getVideos(int $count = 10, string $order = "date"): ?GoogleResultSet
+		public function getVideos(int $count = 10, string $order = "date"): ?GoogleResultSet
 		{
 			return $this->API->getChannelVideos($this->ID, $order, $count);
 		}
@@ -70,7 +70,7 @@
 				Subscribes the authenticated user to the channel.
 		*/
 		
-		function subscribe(): void
+		public function subscribe(): void
 		{
 			$this->API->subscribe($this->ID);
 		}
@@ -80,7 +80,7 @@
 				Unsubscribes the authenticated user from the channel.
 		*/
 		
-		function unsubscribe(): bool
+		public function unsubscribe(): bool
 		{
 			return $this->API->unsubscribe($this->ID);
 		}

@@ -13,7 +13,23 @@
 	 * @property-read ModuleForm $RelatedModuleForm
 	 */
 	
-	class ModuleView extends BaseObject {
+	class ModuleView extends BaseObject
+	{
+		
+		protected $ID;
+		protected $Interface;
+		
+		public $Actions;
+		public $Description;
+		public $EditURL;
+		public $Fields;
+		public $Module;
+		public $PreviewURL;
+		public $RelatedForm;
+		public $Root;
+		public $Settings;
+		public $Title;
+		public $Type;
 		
 		public static $CoreActions = [
 			"approve" => [
@@ -53,21 +69,6 @@
 		public static $Plugins = [];
 		public static $Table = "bigtree_module_interfaces";
 		
-		protected $ID;
-		protected $Interface;
-		
-		public $Actions;
-		public $Description;
-		public $EditURL;
-		public $Fields;
-		public $Module;
-		public $PreviewURL;
-		public $RelatedForm;
-		public $Root;
-		public $Settings;
-		public $Title;
-		public $Type;
-		
 		/*
 			Constructor:
 				Builds a ModuleView object referencing an existing database entry.
@@ -76,7 +77,8 @@
 				interface - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($interface = null) {
+		public function __construct($interface = null)
+		{
 			if ($interface !== null) {
 				// Passing in just an ID
 				if (!is_array($interface)) {
@@ -118,8 +120,9 @@
 						
 						if ($this->RelatedForm) {
 							// Try for actions beginning with edit first
-							$action_route = SQL::fetchSingle("SELECT route FROM bigtree_module_actions WHERE interface = ? 
-														  ORDER BY route DESC LIMIT 1", $this->RelatedForm);
+							$action_route = SQL::fetchSingle("SELECT route FROM bigtree_module_actions
+															  WHERE interface = ?
+															  ORDER BY route DESC LIMIT 1", $this->RelatedForm);
 							
 							$this->EditURL = $module_root.$action_route."/";
 						} else {
@@ -141,7 +144,8 @@
 				An array of ModuleView objects.
 		*/
 		
-		static function allDependant(string $table): array {
+		public static function allDependant(string $table): array
+		{
 			$table = SQL::escape($table);
 			$views = SQL::fetchAll("SELECT * FROM bigtree_module_interfaces 
 									WHERE `type` = 'view' AND `settings` LIKE '%$table%'");
@@ -160,7 +164,8 @@
 		*/
 		
 		private function cache(array $item, array $parsers, array $poplists, array $original_item,
-							   array $group_based_permissions): void {
+							   array $group_based_permissions): void
+		{
 			// If we have a filter function, ask it first if we should cache it
 			if (!empty($this->Settings["filter"])) {
 				if (!call_user_func($this->Settings["filter"], $item)) {
@@ -276,7 +281,8 @@
 				Grabs all the data from the view and does parsing on it based on automatic assumptions and manual parsers.
 		*/
 		
-		function cacheAllData(): bool {
+		public function cacheAllData(): bool
+		{
 			// See if we already have cached data.
 			if (SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_module_view_cache WHERE view = ?", $this->ID)) {
 				return false;
@@ -359,7 +365,8 @@
 				pending - Whether this is actually a pending entry (defaults to false)
 		*/
 		
-		static function cacheForAll(string $id, string $table, bool $pending = false): void {
+		public static function cacheForAll(string $id, string $table, bool $pending = false): void
+		{
 			if (!$pending) {
 				$item = SQL::fetch("SELECT `$table`.*, bigtree_pending_changes.changes AS bigtree_changes 
 									FROM `$table` LEFT JOIN bigtree_pending_changes 
@@ -431,7 +438,8 @@
 				table_width - Table width (in pixels) to calculate column widths from (defaults to 888)
 		*/
 		
-		function calculateFieldWidths(int $table_width = 888): void {
+		public function calculateFieldWidths(int $table_width = 888): void
+		{
 			if (array_filter((array) $this->Fields)) {
 				$first = current($this->Fields);
 				
@@ -454,7 +462,8 @@
 				Clears the cache of the view.
 		*/
 		
-		function clearCache(): void {
+		public function clearCache(): void
+		{
 			SQL::delete("bigtree_module_view_cache", ["view" => $this->ID]);
 		}
 		
@@ -466,7 +475,8 @@
 				table - A table to reset caches for.
 		*/
 		
-		static function clearCacheForTable(string $table): void {
+		public static function clearCacheForTable(string $table): void
+		{
 			$interface_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_module_interfaces
 												  WHERE `type` = 'view' AND `table` = ?", $table);
 			foreach ($interface_ids as $id) {
@@ -494,9 +504,10 @@
 				A ModuleView object.
 		*/
 		
-		static function create(int $module, string $title, string $description, string $table, string $type,
-							   ?array $settings, ?array $fields, ?array $actions, ?int $related_form = null,
-							   string $preview_url = ""): ModuleView {
+		public static function create(int $module, string $title, string $description, string $table, string $type,
+									  ?array $settings, ?array $fields, ?array $actions, ?int $related_form = null,
+									  string $preview_url = ""): ModuleView
+		{
 			$interface = ModuleInterface::create("view", $module, $title, $table, [
 				"description" => Text::htmlEncode($description),
 				"type" => $type,
@@ -528,7 +539,8 @@
 				If the item isn't already featured, it would simply return "icon_featured" for the "feature" action.
 		*/
 		
-		static function generateActionClass(string $action, array $item): string {
+		public static function generateActionClass(string $action, array $item): string
+		{
 			$class = "";
 			
 			if (isset($item["bigtree_pending"]) && $action != "edit" && $action != "delete") {
@@ -585,7 +597,8 @@
 				A ModuleView object or null.
 		*/
 		
-		static function getByTable(string $table): ?ModuleView {
+		public static function getByTable(string $table): ?ModuleView
+		{
 			$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE type = 'view' AND `table` = ?", $table);
 			
 			if (empty($interface)) {
@@ -608,7 +621,8 @@
 				An array of rows from bigtree_module_view_cache.
 		*/
 		
-		function getData(string $sort = "id DESC", string $type = "both", ?string $group = null): array {
+		public function getData(string $sort = "id DESC", string $type = "both", ?string $group = null): array
+		{
 			// Check to see if we've cached this table before.
 			$this->cacheAllData();
 			
@@ -646,7 +660,8 @@
 				An array of groups.
 		*/
 		
-		function getGroups(): array {
+		public function getGroups(): array
+		{
 			$groups = [];
 			$query = "SELECT DISTINCT(group_field) FROM bigtree_module_view_cache WHERE view = ?";
 			
@@ -731,7 +746,8 @@
 				A set of MySQL statements that filter out information the user cannot access.
 		*/
 		
-		function getFilterQuery(): string {
+		public function getFilterQuery(): string
+		{
 			$module = new Module($this->Module);
 			
 			if (!empty($module->GroupBasedPermissions["enabled"]) && $module->GroupBasedPermissions["table"] == $this->Table) {
@@ -765,7 +781,8 @@
 				A ModuleForm or null.
 		*/
 		
-		function getRelatedModuleForm(): ?ModuleForm {
+		public function getRelatedModuleForm(): ?ModuleForm
+		{
 			if ($this->RelatedForm) {
 				return new ModuleForm($this->RelatedForm);
 			}
@@ -786,7 +803,8 @@
 				An array of parsed rows for display in a View.
 		*/
 		
-		function parseData(array $items): array {
+		public function parseData(array $items): array
+		{
 			$form = $this->RelatedModuleForm->Array;
 			$parsed = [];
 			
@@ -823,7 +841,8 @@
 				Updates the view's columns to designate whether they are numeric or not based on parsers, column type, and related forms.
 		*/
 		
-		function refreshNumericColumns(): void {
+		public function refreshNumericColumns(): void
+		{
 			if (array_filter((array) $this->Fields)) {
 				$numeric_column_types = [
 					"int",
@@ -867,7 +886,8 @@
 				Saves the current object properties back to the database.
 		*/
 		
-		function save(): ?bool {
+		public function save(): ?bool
+		{
 			if (empty($this->Interface->ID)) {
 				$new = static::create($this->Module, $this->Title, $this->Description, $this->Table, $this->Type, $this->Settings, $this->Fields, $this->Actions, $this->RelatedForm, $this->PreviewURL);
 				$this->inherit($new);
@@ -904,7 +924,9 @@
 				An array containing "pages" with the number of result pages and "results" with the results for the given page.
 		*/
 		
-		function searchData(int $page = 1, string $query = "", string $sort = "id DESC", ?string $group = null): array {
+		public function searchData(int $page = 1, string $query = "", string $sort = "id DESC",
+								   ?string $group = null): array
+		{
 			// Check to see if we've cached this table before.
 			$this->cacheAllData();
 			
@@ -999,7 +1021,8 @@
 				table - The table the entry is in.
 		*/
 		
-		static function uncacheForAll(string $id, string $table): void {
+		public static function uncacheForAll(string $id, string $table): void
+		{
 			$view_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_module_interfaces 
 											 WHERE `type` = 'view' AND `table` = ?", $table);
 			foreach ($view_ids as $view_id) {
@@ -1023,8 +1046,10 @@
 				preview_url - Optional preview URL.
 		*/
 		
-		function update(string $title, string $description, string $table, string $type, ?array $options, ?array $fields,
-						?array $actions, ?int $related_form = null, string $preview_url = "") {
+		public function update(string $title, string $description, string $table, string $type, ?array $options,
+							   ?array $fields, ?array $actions, ?int $related_form = null,
+							   string $preview_url = ""): void
+		{
 			$this->Actions = $actions ?: [];
 			$this->Description = $description;
 			$this->Fields = $fields ?: [];

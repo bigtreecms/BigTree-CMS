@@ -28,7 +28,7 @@
 				api - Reference to BigTree\Twitter\API class instance
 		*/
 		
-		function __construct($message, API &$api)
+		public function __construct($message, API &$api)
 		{
 			$this->API = $api;
 			isset($message->text) ? $this->Content = $message->text : false;
@@ -44,7 +44,7 @@
 				Returns the Message's content when this object is treated as a string.
 		*/
 		
-		function __toString(): string
+		public function __toString(): string
 		{
 			return $this->Content;
 		}
@@ -54,7 +54,7 @@
 				Alias for BigTree\Twitter\Tweet::deleteDirectMessage
 		*/
 		
-		function delete(): bool
+		public function delete(): bool
 		{
 			return $this->API->deleteDirectMessage($this->ID);
 		}
@@ -64,7 +64,7 @@
 				Alias for BigTree\Twitter\Tweet::sendDirectMessage
 		*/
 		
-		function reply(string $content): ?DirectMessage
+		public function reply(string $content): ?DirectMessage
 		{
 			return $this->API->sendDirectMessage(false, $content, $this->Sender->ID);
 		}

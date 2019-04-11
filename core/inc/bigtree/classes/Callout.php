@@ -6,9 +6,8 @@
 	
 	namespace BigTree;
 	
-	class Callout extends BaseObject {
-		
-		public static $Table = "bigtree_callouts";
+	class Callout extends BaseObject
+	{
 		
 		public $Description;
 		public $DisplayDefault;
@@ -20,6 +19,8 @@
 		public $Name;
 		public $Position;
 		
+		public static $Table = "bigtree_callouts";
+		
 		/*
 			Constructor:
 				Builds a Callout object referencing an existing database entry.
@@ -28,7 +29,8 @@
 				callout - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($callout = null) {
+		public function __construct($callout = null)
+		{
 			if ($callout !== null) {
 				// Passing in just an ID
 				if (!is_array($callout)) {
@@ -66,7 +68,8 @@
 				An array of callout entries from bigtree_callouts.
 		*/
 		
-		static function allAllowed(string $sort = "position DESC, id ASC", bool $return_arrays = false): ?array {
+		public static function allAllowed(string $sort = "position DESC, id ASC", bool $return_arrays = false): ?array
+		{
 			$user = Auth::user()->ID;
 			
 			// Make sure a user is logged in
@@ -101,7 +104,8 @@
 				An alphabetized array of entries from the bigtree_callouts table.
 		*/
 		
-		static function allInGroups(array $groups, bool $auth = true, bool $return_arrays = false): ?array {
+		public static function allInGroups(array $groups, bool $auth = true, bool $return_arrays = false): ?array
+		{
 			$ids = $callouts = $names = [];
 			$user = Auth::user()->ID;
 			
@@ -163,8 +167,9 @@
 				A Callout object if successful, null if an invalid ID was passed or the ID is already in use
 		*/
 		
-		static function create(string $id, string $name, string $description, int $level, array $fields,
-							   string $display_field, string $display_default): ?Callout {
+		public static function create(string $id, string $name, string $description, int $level, array $fields,
+							   string $display_field, string $display_default): ?Callout
+		{
 			// Check to see if it's a valid ID
 			if (!ctype_alnum(str_replace(["-", "_"], "", $id)) || strlen($id) > 127) {
 				return null;
@@ -245,7 +250,8 @@
 				Deletes the callout and removes its file.
 		*/
 		
-		function delete(): ?bool {
+		public function delete(): ?bool
+		{
 			$id = $this->ID;
 			
 			// Delete template file
@@ -276,7 +282,8 @@
 				Saves the current object properties back to the database.
 		*/
 		
-		function save(): ?bool {
+		public function save(): ?bool
+		{
 			// Callouts set their own ID, so we need to check the database to see if the ID already exists before updating/creating
 			if (SQL::exists("bigtree_callouts", $this->ID)) {
 				// Clean up fields
@@ -336,8 +343,9 @@
 				display_default - The text string to use in the event the display_field is blank or non-existent
 		*/
 		
-		function update(string $name, string $description, int $level, array $fields, string $display_field,
-						string $display_default): ?bool {
+		public function update(string $name, string $description, int $level, array $fields, string $display_field,
+						string $display_default): ?bool
+		{
 			$this->Name = $name;
 			$this->Description = $description;
 			$this->Level = $level;

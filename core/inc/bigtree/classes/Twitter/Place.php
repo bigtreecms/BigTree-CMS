@@ -30,7 +30,7 @@
 				api - Reference to the BigTree\Twitter\API class instance
 		*/
 
-		function __construct($place, API &$api)
+		public function __construct($place, API &$api)
 		{
 			$this->API = $api;
 			isset($place->bounding_box->coordinates) ? $this->BoundingBox = $place->bounding_box->coordinates : false;
@@ -48,7 +48,7 @@
 				Returns the Places's name when this object is treated as a string.
 		*/
 
-		function __toString(): string
+		public function __toString(): string
 		{
 			return $this->Name;
 		}

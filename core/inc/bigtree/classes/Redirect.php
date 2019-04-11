@@ -6,7 +6,8 @@
 	
 	namespace BigTree;
 	
-	class Redirect extends BaseObject {
+	class Redirect extends BaseObject
+	{
 		
 		protected $ID;
 		protected $Requests;
@@ -23,7 +24,8 @@
 				redirect - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($redirect = null) {
+		public function __construct($redirect = null)
+		{
 			if ($redirect !== null) {
 				// Passing in just an ID
 				if (!is_array($redirect)) {
@@ -49,7 +51,8 @@
 				Manually catch and display the 404 page from a routed template; logs missing page with handle404
 		*/
 		
-		static function catch404(): void {
+		public static function catch404(): void
+		{
 			global $admin, $bigtree, $cms, $db;
 			
 			Router::checkPathHistory($bigtree["path"]);
@@ -76,7 +79,8 @@
 				Removes all 404s that don't have 301 redirects.
 		*/
 		
-		static function clearEmpty(): void {
+		public static function clearEmpty(): void
+		{
 			SQL::delete("bigtree_404s", ["redirect_url" => ""]);
 			AuditTrail::track("bigtree_404s", "all", "cleared-empty");
 		}
@@ -95,7 +99,9 @@
 				A Redirect object.
 		*/
 		
-		static function create(string $from, ?string $to = "", ?string $site_key = null, bool $ignored = false): Redirect {
+		public static function create(string $from, ?string $to = "", ?string $site_key = null,
+									  bool $ignored = false): Redirect
+		{
 			global $bigtree;
 			
 			$to = trim($to);
@@ -148,16 +154,21 @@
 			// See if the from already exists
 			if ($get_vars) {
 				if (!is_null($site_key)) {
-					$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND site_key = ? AND get_vars = ?",
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s
+											WHERE `broken_url` = ? AND site_key = ? AND get_vars = ?",
 										   $from, $site_key, $get_vars);
 				} else {
-					$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND get_vars = ?", $from, $get_vars);
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s
+											WHERE `broken_url` = ? AND get_vars = ?", $from, $get_vars);
 				}
 			} else {
 				if (!is_null($site_key)) {
-					$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND get_vars = '' AND site_key = ?", $from, $site_key);
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s
+											WHERE `broken_url` = ? AND get_vars = '' AND site_key = ?",
+										   $from, $site_key);
 				} else {
-					$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND get_vars = ''", $from);
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s
+											WHERE `broken_url` = ? AND get_vars = ''", $from);
 				}
 			}
 			
@@ -186,7 +197,8 @@
 				Deletes the redirect.
 		*/
 		
-		function delete(): ?bool {
+		public function delete(): ?bool
+		{
 			SQL::delete("bigtree_404s", $this->ID);
 			AuditTrail::track("bigtree_404s", $this->ID, "deleted");
 			
@@ -201,7 +213,8 @@
 				url - The URL you hit that's a 404.
 		*/
 		
-		static function handle404(string $url): bool {
+		public static function handle404(string $url): bool
+		{
 			$url = sqlescape(htmlspecialchars(strip_tags(rtrim($url, "/"))));
 			$existing = null;
 			
@@ -223,10 +236,12 @@
 				$get = Text::htmlEncode(implode("&", $query_pieces));
 				
 				if (defined("BIGTREE_SITE_KEY")) {
-					$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE broken_url = ? AND get_vars = ? AND site_key = ?",
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s
+											WHERE broken_url = ? AND get_vars = ? AND site_key = ?",
 											$url, $get, BIGTREE_SITE_KEY);
 				} else {
-					$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE broken_url = ? AND get_vars = ?", $url, $get);
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s
+											WHERE broken_url = ? AND get_vars = ?", $url, $get);
 				}
 				
 				// Look for a 404 that has a redirect but no get vars
@@ -306,7 +321,8 @@
 				Saves the current object properties back to the database.
 		*/
 		
-		function save(): ?bool {
+		public function save(): ?bool
+		{
 			// The create method already checks for existance and updates existing redirects
 			$new = static::create($this->BrokenURL, $this->RedirectURL, $this->Ignored);
 			$this->inherit($new);
@@ -329,8 +345,9 @@
 				An array containing the number of pages of search results and one page of search results
 		*/
 		
-		static function search(string $type, string $query = "", int $page = 1, ?string $site_key = null,
-							   bool $return_arrays = false): array {
+		public static function search(string $type, string $query = "", int $page = 1, ?string $site_key = null,
+									  bool $return_arrays = false): array
+		{
 			if (!is_null($site_key)) {
 				$site_key_query = "AND site_key = '".SQL::escape($site_key)."'";
 			} else {

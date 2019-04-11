@@ -6,7 +6,8 @@
 	
 	namespace BigTree;
 	
-	class Storage {
+	class Storage
+	{
 		
 		public $AutoJPEG = false;
 		public $Cloud;
@@ -21,7 +22,8 @@
 				Retrieves the current desired service and image processing availability.
 		*/
 		
-		function __construct($force_local = false) {
+		public function __construct($force_local = false)
+		{
 			// Get an auto-saving setting
 			$this->Setting = new Setting("bigtree-internal-storage");
 			$this->Settings = &$this->Setting->Value;
@@ -48,7 +50,8 @@
 				true if successful
 		*/
 		
-		function delete(string $file_location): bool {
+		public function delete(string $file_location): bool
+		{
 			// Make sure we're using IPLs so we don't get it confused with cloud
 			$file_location = str_replace([STATIC_ROOT, WWW_ROOT], ["{staticroot}", "{wwwroot}"], $file_location);
 			
@@ -140,7 +143,8 @@
 				A string with the number of bytes in kilobytes, megabytes, or gigabytes.
 		*/
 		
-		static function formatBytes(int $size): string {
+		public static function formatBytes(int $size): string
+		{
 			$units = [' B', ' KB', ' MB', ' GB', ' TB'];
 			
 			for ($i = 0; $size >= 1024 && $i < 4; $i++) {
@@ -155,7 +159,8 @@
 				Returns in bytes the maximum size of a POST.
 		*/
 		
-		static function getPOSTMaxSize(): int {
+		public static function getPOSTMaxSize(): int
+		{
 			$post_max_size = ini_get("post_max_size");
 			
 			if (!is_integer($post_max_size)) {
@@ -173,7 +178,8 @@
 				The integer value for setting a form's MAX_FILE_SIZE.
 		*/
 		
-		static function getUploadMaxFileSize(): int {
+		public static function getUploadMaxFileSize(): int
+		{
 			$upload_max_filesize = ini_get("upload_max_filesize");
 			
 			if (!is_integer($upload_max_filesize)) {
@@ -204,8 +210,9 @@
 				The URL of the stored file if successful.
 		*/
 		
-		function replace(string $local_file, string $file_name, string $relative_path,
-						 bool $remove_original = true, bool $force_local = false): ?string {
+		public function replace(string $local_file, string $file_name, string $relative_path,
+								bool $remove_original = true, bool $force_local = false): ?string
+		{
 			global $bigtree;
 			
 			// Make sure there are no path exploits
@@ -286,8 +293,9 @@
 				The URL of the stored file if successful.
 		*/
 		
-		function store(string $local_file, string $file_name, string $relative_path, bool $remove_original = true,
-					   array $prefixes = []): ?string {
+		public function store(string $local_file, string $file_name, string $relative_path,
+							  bool $remove_original = true, array $prefixes = []): ?string
+		{
 			global $bigtree;
 			
 			// Make sure there are no path exploits
@@ -347,7 +355,8 @@
 				}
 				
 				// Upload it
-				$success = $this->Cloud->uploadFile($local_file, $this->Settings["Container"], $relative_path.$file_name, true);
+				$success = $this->Cloud->uploadFile($local_file, $this->Settings["Container"],
+													$relative_path.$file_name, true);
 				
 				if ($success) {
 					SQL::insert("bigtree_caches", [
@@ -404,7 +413,8 @@
 				The number of bytes.
 		*/
 		
-		static function unformatBytes(string $size): int {
+		public static function unformatBytes(string $size): int
+		{
 			$type = substr($size, -1, 1);
 			$num = substr($size, 0, -1);
 			

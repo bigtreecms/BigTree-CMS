@@ -10,15 +10,16 @@
 	 * @property-read int $ID
 	 */
 	
-	class ModuleGroup extends BaseObject {
-		
-		public static $Table = "bigtree_module_groups";
+	class ModuleGroup extends BaseObject
+	{
 		
 		protected $ID;
 		
 		public $Name;
 		public $Position;
 		public $Route;
+		
+		public static $Table = "bigtree_module_groups";
 		
 		/*
 			Constructor:
@@ -28,7 +29,8 @@
 				group - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($group = null) {
+		public function __construct($group = null)
+		{
 			if ($group !== null) {
 				// Passing in just an ID
 				if (!is_array($group)) {
@@ -59,7 +61,8 @@
 				A ModuleGroup object.
 		*/
 		
-		static function create(string $name): ModuleGroup {
+		public static function create(string $name): ModuleGroup
+		{
 			$id = SQL::insert("bigtree_module_groups", [
 				"name" => Text::htmlEncode($name),
 				"route" => SQL::unique("bigtree_module_groups", "route", Link::urlify($name))
@@ -75,7 +78,8 @@
 				Saves the current object properties back to the database.
 		*/
 		
-		function save(): ?bool {
+		public function save(): ?bool
+		{
 			if (empty($this->ID)) {
 				$new = static::create($this->Name);
 				$this->inherit($new);
@@ -99,7 +103,8 @@
 				name - The name of the module group.
 		*/
 		
-		function update(string $name): ?bool {
+		public function update(string $name): ?bool
+		{
 			$this->Name = $name;
 			$this->Route = Link::urlify($name);
 			

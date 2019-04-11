@@ -10,7 +10,8 @@
 	set_include_path(get_include_path().PATH_SEPARATOR.SERVER_ROOT.'core/inc/lib/phpseclib/phpseclib');
 	require_once("Net/SFTP.php");
 	
-	class SFTP {
+	class SFTP
+	{
 		
 		/** @var \Net_SFTP */
 		public $Connection;
@@ -23,7 +24,8 @@
 				true if successful
 		*/
 		
-		function changeToParentDirectory(): bool {
+		public function changeToParentDirectory(): bool
+		{
 			return $this->Connection->chdir("..");
 		}
 		
@@ -37,7 +39,8 @@
 				true if successful
 		*/
 		
-		function changeDirectory(string $path): bool {
+		public function changeDirectory(string $path): bool
+		{
 			return $this->Connection->chdir($path);
 		}
 		
@@ -53,7 +56,8 @@
 				true if successful
 		*/
 		
-		function connect(string $host, int $port = 22): bool {
+		public function connect(string $host, int $port = 22): bool
+		{
 			// Test connection
 			$connection = @fsockopen($host, $port);
 			
@@ -78,7 +82,8 @@
 				true if successful.
 		*/
 		
-		function createDirectory(string $path): bool {
+		public function createDirectory(string $path): bool
+		{
 			return $this->Connection->mkdir($path);
 		}
 		
@@ -93,7 +98,8 @@
 				true if successful
 		*/
 		
-		function deleteDirectory(string $path): bool {
+		public function deleteDirectory(string $path): bool
+		{
 			return $this->Connection->rmdir($path);
 		}
 		
@@ -108,7 +114,8 @@
 				true if successful
 		*/
 		
-		function deleteFile(string $path): bool {
+		public function deleteFile(string $path): bool
+		{
 			return $this->Connection->delete($path);
 		}
 		
@@ -117,7 +124,8 @@
 				Closes the FTP connection.
 		*/
 		
-		function disconnect(): bool {
+		public function disconnect(): bool
+		{
 			return $this->Connection->_disconnect("");
 		}
 		
@@ -133,7 +141,8 @@
 				true if successful.
 		*/
 		
-		function downloadFile(string $remote, string $local): bool {
+		public function downloadFile(string $remote, string $local): bool
+		{
 			return $this->Connection->get($remote, $local);
 		}
 		
@@ -145,7 +154,8 @@
 				The current working directory or false if the call failed.
 		*/
 		
-		function getCurrentDirectory(): string {
+		public function getCurrentDirectory(): string
+		{
 			return $this->Connection->pwd();
 		}
 		
@@ -160,7 +170,8 @@
 				An array of parsed information.
 		*/
 		
-		function getDirectoryContents(string $path = ""): array {
+		public function getDirectoryContents(string $path = ""): array
+		{
 			$types = ["1" => "f", "2" => "d", "3" => "l"];
 			$list = $this->Connection->rawlist($path);
 			$formatted_list = [];
@@ -199,7 +210,8 @@
 				An array of information from the FTP LIST command.
 		*/
 		
-		function getRawDirectoryContents(string $path = ""): array {
+		public function getRawDirectoryContents(string $path = ""): array
+		{
 			return $this->Connection->rawlist($path);
 		}
 		
@@ -208,7 +220,8 @@
 				This is here for method compatibility with BigTree\FTP but doesn't do anything.
 		*/
 		
-		function getSystemType(): array {
+		public function getSystemType(): array
+		{
 			return [];
 		}
 		
@@ -224,7 +237,8 @@
 				true if successful
 		*/
 		
-		function login(?string $user = null, ?string $pass = null): bool {
+		public function login(?string $user = null, ?string $pass = null): bool
+		{
 			if (!$this->Connection) {
 				return false;
 			}
@@ -248,7 +262,8 @@
 				true if successful
 		*/
 		
-		function rename(string $from, string $to): bool {
+		public function rename(string $from, string $to): bool
+		{
 			return $this->Connection->rename($from, $to);
 		}
 		
@@ -257,7 +272,8 @@
 				This is here for compatibility with BigTree\FTP but doesn't do anything.
 		*/
 		
-		function setTransferType(string $mode): bool {
+		public function setTransferType(string $mode): bool
+		{
 			return true;
 		}
 		
@@ -273,7 +289,8 @@
 				true if successful
 		*/
 		
-		function uploadFile(string $local, string $remote): bool {
+		public function uploadFile(string $local, string $remote): bool
+		{
 			if (!@file_exists($local)) {
 				return false;
 			}

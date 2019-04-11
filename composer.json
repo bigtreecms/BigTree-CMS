@@ -14,6 +14,8 @@
         "ext-json": "*",
         "ext-openssl": "*",
         "ext-curl": "*",
-        "ext-ctype": "*"
+        "ext-ctype": "*",
+        "ext-dom": "*",
+        "ext-mysqli": "*"
     }
 }

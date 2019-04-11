@@ -13,7 +13,7 @@
 	{
 		
 		// Implements Provider::send
-		function send(Email $email): ?bool
+		public function send(Email $email): ?bool
 		{
 			$mailer = new PHPMailer;
 			

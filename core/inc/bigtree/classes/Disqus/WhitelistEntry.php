@@ -20,7 +20,7 @@
 		public $Type;
 		public $Value;
 		
-		function __construct(stdClass $item, API &$api)
+		public function __construct(stdClass $item, API &$api)
 		{
 			$this->API = $api;
 			$this->ForumID = $item->forum;
@@ -36,7 +36,7 @@
 				Removes this whitelist entry.
 		*/
 		
-		function remove(): bool
+		public function remove(): bool
 		{
 			$response = $this->API->call("whitelists/remove.json", ["forum" => $this->ForumID, $this->Type => $this->Value], "POST");
 			

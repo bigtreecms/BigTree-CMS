@@ -22,7 +22,7 @@
 		public $Settings;
 		public $URL;
 		
-		function __construct(stdClass $forum, API &$api)
+		public function __construct(stdClass $forum, API &$api)
 		{
 			$this->API = $api;
 			isset($forum->founder) ? $this->FounderID = $forum->founder : false;
@@ -46,7 +46,7 @@
 				A BigTree\Disqus\Category object.
 		*/
 		
-		function addCategory(string $title): ?Category
+		public function addCategory(string $title): ?Category
 		{
 			$response = $this->API->call("categories/create.json", ["forum" => $this->ID, "title" => $title], "POST");
 			
@@ -68,7 +68,7 @@
 				user - The ID of the user or the person's username
 		*/
 		
-		function addModerator(string $user): ?bool
+		public function addModerator(string $user): ?bool
 		{
 			$params = ["forum" => $this->ID];
 			
@@ -100,7 +100,7 @@
 				notes - Notes (optional)
 		*/
 		
-		function addToBlacklist(string $type, string $value, bool $retroactive = false, string $notes = ""): bool
+		public function addToBlacklist(string $type, string $value, bool $retroactive = false, string $notes = ""): bool
 		{
 			$response = $this->API->call("blacklists/add.json",
 										 ["forum" => $this->ID, $type => $value, "retroactive" => $retroactive, "notes" => $notes],
@@ -125,7 +125,7 @@
 				notes - Notes (optional)
 		*/
 		
-		function addToWhitelist(string $type, string $value, string $notes = ""): bool
+		public function addToWhitelist(string $type, string $value, string $notes = ""): bool
 		{
 			$params = ["forum" => $this->ID, "notes" => $notes];
 			
@@ -162,7 +162,7 @@
 				A BigTree\Disqus\ResultSet of BigTree\Disqus\BlacklistEntry objects
 		*/
 		
-		function getBlacklist(int $limit = 25, string $order = "asc", array $params = []): ?ResultSet
+		public function getBlacklist(int $limit = 25, string $order = "asc", array $params = []): ?ResultSet
 		{
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
@@ -197,7 +197,7 @@
 				A BigTree\Disqus\ResultSet of BigTree\Disqus\Category objects.
 		*/
 		
-		function getCategories(int $limit = 25, string $order = "asc", array $params = []): ?ResultSet
+		public function getCategories(int $limit = 25, string $order = "asc", array $params = []): ?ResultSet
 		{
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
@@ -227,7 +227,7 @@
 				A BigTree\Disqus\User object.
 		*/
 		
-		function getFounder(): ?User
+		public function getFounder(): ?User
 		{
 			return $this->API->getUser($this->FounderID);
 		}
@@ -240,7 +240,7 @@
 				An array of BigTree\Disqus\User objects.
 		*/
 		
-		function getModerators(): ?array
+		public function getModerators(): ?array
 		{
 			$response = $this->API->call("forums/listModerators.json", ["forum" => $this->ID]);
 			
@@ -271,7 +271,7 @@
 				A BigTree\Disqus\ResultSet of BigTree\Disqus\User objects.
 		*/
 		
-		function getMostActiveUsers(int $limit = 25, array $params = []): ?ResultSet
+		public function getMostActiveUsers(int $limit = 25, array $params = []): ?ResultSet
 		{
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
@@ -303,7 +303,7 @@
 				A BigTree\Disqus\ResultSet of BigTree\Disqus\User objects.
 		*/
 		
-		function getMostLikedUsers(int $limit = 25, array $params = []): ?ResultSet
+		public function getMostLikedUsers(int $limit = 25, array $params = []): ?ResultSet
 		{
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
@@ -338,7 +338,7 @@
 				A BigTree\Disqus\ResultSet of BigTree\Disqus\Post objects.
 		*/
 		
-		function getPosts(int $limit = 25, string $order = "desc", array $include = ["approved"], bool $since = false,
+		public function getPosts(int $limit = 25, string $order = "desc", array $include = ["approved"], bool $since = false,
 						  array $params = []): ?ResultSet
 		{
 			$params["forum"] = $this->ID;
@@ -380,7 +380,7 @@
 				A BigTree\Disqus\ResultSet of BigTree\Disqus\Thread objects.
 		*/
 		
-		function getThreads(int $limit = 25, string $order = "desc", ?string $since = null,
+		public function getThreads(int $limit = 25, string $order = "desc", ?string $since = null,
 							array $params = []): ?ResultSet
 		{
 			$params["forum"] = $this->ID;
@@ -418,7 +418,7 @@
 				An array of BigTree\Disqus\Post objects.
 		*/
 		
-		function getTrendingThreads(int $limit = 10): ?array
+		public function getTrendingThreads(int $limit = 10): ?array
 		{
 			$response = $this->API->call("trends/listThreads.json", ["forum" => $this->ID, "limit" => $limit]);
 			
@@ -448,7 +448,7 @@
 				A BigTree\Disqus\ResultSet of BigTree\Disqus\User objects.
 		*/
 		
-		function getUsers(int $limit = 25, array $params = []): ?ResultSet
+		public function getUsers(int $limit = 25, array $params = []): ?ResultSet
 		{
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
@@ -483,7 +483,7 @@
 				A BigTree\Disqus\ResultSet of BigTree\Disqus\WhitelistEntry objects
 		*/
 		
-		function getWhitelist(int $limit = 25, string $order = "asc", array $params = []): ?ResultSet
+		public function getWhitelist(int $limit = 25, string $order = "asc", array $params = []): ?ResultSet
 		{
 			$params["forum"] = $this->ID;
 			$params["limit"] = $limit;
@@ -514,7 +514,7 @@
 				user - The ID of the user or the person's username
 		*/
 		
-		function removeModerator(string $user): bool
+		public function removeModerator(string $user): bool
 		{
 			$params = ["forum" => $this->ID];
 		

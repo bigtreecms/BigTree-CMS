@@ -14,8 +14,6 @@
 	class PendingChange extends BaseObject
 	{
 		
-		public static $Table = "bigtree_pending_changes";
-		
 		protected $Date;
 		protected $ID;
 		
@@ -30,6 +28,8 @@
 		public $Title;
 		public $User;
 		
+		public static $Table = "bigtree_pending_changes";
+		
 		/*
 			Constructor:
 				Builds a PendingChange object referencing an existing database entry.
@@ -38,7 +38,7 @@
 				change - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($change = null)
+		public function __construct($change = null)
 		{
 			if ($change !== null) {
 				// Passing in just an ID
@@ -79,7 +79,7 @@
 				An array of PendingChange objects sorted by most recent.
 		*/
 		
-		static function allPublishableByUser(User $user): array
+		public static function allPublishableByUser(User $user): array
 		{
 			$publishable_changes = [];
 			$module_cache = [];
@@ -107,7 +107,8 @@
 				}
 			}
 			
-			$changes = SQL::fetchAll("SELECT * FROM bigtree_pending_changes WHERE ".implode(" OR ", $search)." ORDER BY date DESC");
+			$changes = SQL::fetchAll("SELECT * FROM bigtree_pending_changes
+									  WHERE ".implode(" OR ", $search)." ORDER BY date DESC");
 			
 			foreach ($changes as $change) {
 				$ok = false;
@@ -192,9 +193,9 @@
 				A PendingChange object.
 		*/
 		
-		static function create(string $table, string $item_id, array $changes, array $mtm_changes = [],
-							   array $tags_changes = [], array $open_graph_changes = [], $module = "",
-							   ?string $publish_hook = null): PendingChange
+		public static function create(string $table, string $item_id, array $changes, array $mtm_changes = [],
+									  array $tags_changes = [], array $open_graph_changes = [], $module = "",
+									  ?string $publish_hook = null): PendingChange
 		{
 			// Clean up data for JSON storage
 			foreach ($changes as $key => $val) {
@@ -262,11 +263,11 @@
 				A PendingChange object.
 		*/
 		
-		static function createPage(?bool $trunk, ?int $parent, ?bool $in_nav, ?string $nav_title, ?string $title,
-								   ?string $route, ?string $meta_description, ?bool $seo_invisible, ?string $template,
-								   ?string $external, ?bool $new_window, ?array $fields, ?string $publish_at,
-								   ?string $expire_at, ?int $max_age, ?array $tags = [],
-								   ?array $open_graph = null): PendingChange
+		public static function createPage(?bool $trunk, ?int $parent, ?bool $in_nav, ?string $nav_title, ?string $title,
+										  ?string $route, ?string $meta_description, ?bool $seo_invisible,
+										  ?string $template, ?string $external, ?bool $new_window, ?array $fields,
+										  ?string $publish_at, ?string $expire_at, ?int $max_age, ?array $tags = [],
+										  ?array $open_graph = null): PendingChange
 		{
 			// Get the user creating the change
 			$user = Auth::user()->ID;
@@ -325,7 +326,7 @@
 				true or false
 		*/
 		
-		static function existsForEntry(string $table, string $id): bool
+		public static function existsForEntry(string $table, string $id): bool
 		{
 			$change_count = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_pending_changes 
 											  WHERE `table` = ? AND item_id = ?", $table, $id);
@@ -341,7 +342,7 @@
 				A string containing a link to the admin.
 		*/
 		
-		function getEditLink(): string
+		public function getEditLink(): string
 		{
 			global $bigtree;
 			
@@ -382,7 +383,7 @@
 				Saves the object properties back to the database.
 		*/
 		
-		function save(): ?bool
+		public function save(): ?bool
 		{
 			if (empty($this->ID)) {
 				$new = static::create($this->Table, $this->ItemID, $this->Changes, $this->ManyToManyChanges,
@@ -433,7 +434,7 @@
 				open_graph - Open Graph changes.
 		*/
 		
-		function update(array $changes, array $many_to_many = [], array $tags = [], array $open_graph = []): void
+		public function update(array $changes, array $many_to_many = [], array $tags = [], array $open_graph = []): void
 		{
 			$this->Changes = $changes;
 			$this->ManyToManyChanges = $many_to_many;

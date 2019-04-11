@@ -15,18 +15,8 @@
 	 * @property-read bool $UserCanAccess
 	 */
 	
-	class Module extends BaseObject {
-		
-		public static $CachesBuilt = false;
-		public static $ClassCache = [];
-		public static $IconClasses = ["add", "delete", "list", "edit", "refresh", "gear", "truck", "token", "export", "redirect", "help", "error", "ignored", "world", "server", "clock", "network", "car", "key", "folder", "calendar", "search", "setup", "page", "computer", "picture", "news", "events", "blog", "form", "category", "map", "done", "warning", "user", "question", "sports", "credit_card", "cart", "cash_register", "lock_key", "bar_graph", "comments", "email", "weather", "pin", "planet", "mug", "atom", "shovel", "cone", "lifesaver", "target", "ribbon", "dice", "ticket", "pallet", "lightning", "camera", "video", "twitter", "facebook", "trail", "crop", "cloud", "phone", "music", "house", "featured", "heart", "link", "flag", "bug", "games", "coffee", "airplane", "bank", "gift", "badge", "award", "radio"];
-		public static $ReservedColumns = [
-			"id",
-			"position",
-			"archived",
-			"approved"
-		];
-		public static $Table = "bigtree_modules";
+	class Module extends BaseObject
+	{
 		
 		protected $ID;
 		
@@ -40,6 +30,17 @@
 		public $Position;
 		public $Route;
 		
+		public static $CachesBuilt = false;
+		public static $ClassCache = [];
+		public static $IconClasses = ["add", "delete", "list", "edit", "refresh", "gear", "truck", "token", "export", "redirect", "help", "error", "ignored", "world", "server", "clock", "network", "car", "key", "folder", "calendar", "search", "setup", "page", "computer", "picture", "news", "events", "blog", "form", "category", "map", "done", "warning", "user", "question", "sports", "credit_card", "cart", "cash_register", "lock_key", "bar_graph", "comments", "email", "weather", "pin", "planet", "mug", "atom", "shovel", "cone", "lifesaver", "target", "ribbon", "dice", "ticket", "pallet", "lightning", "camera", "video", "twitter", "facebook", "trail", "crop", "cloud", "phone", "music", "house", "featured", "heart", "link", "flag", "bug", "games", "coffee", "airplane", "bank", "gift", "badge", "award", "radio"];
+		public static $ReservedColumns = [
+			"id",
+			"position",
+			"archived",
+			"approved"
+		];
+		public static $Table = "bigtree_modules";
+		
 		/*
 			Constructor:
 				Builds a Module object referencing an existing database entry.
@@ -48,7 +49,8 @@
 				module - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($module = null) {
+		public function __construct($module = null)
+		{
 			if ($module !== null) {
 				// Passing in just an ID
 				if (!is_array($module)) {
@@ -90,8 +92,9 @@
 				An array of entries from the bigtree_modules table.
 		*/
 		
-		static function allByGroup(string $group, string $sort = "position DESC, id ASC", bool $return_arrays = false,
-								   bool $auth = true): array {
+		public static function allByGroup(string $group, string $sort = "position DESC, id ASC",
+										  bool $return_arrays = false, bool $auth = true): array
+		{
 			$modules = [];
 			
 			if ($group) {
@@ -130,8 +133,9 @@
 				A Module object or null if an invalid route was passed.
 		*/
 		
-		static function create(string $name, string $group, string $class, string $table, ?array $permissions,
-							   string $icon, ?string $route = null, bool $developer_only = false): ?Module {
+		public static function create(string $name, string $group, string $class, string $table, ?array $permissions,
+									  string $icon, ?string $route = null, bool $developer_only = false): ?Module
+		{
 			// Find an available module route.
 			$route = !is_null($route) ? $route : Link::urlify($name);
 			
@@ -215,7 +219,8 @@
 				Deletes the module, all related module actions, interfaces, directories, and class files.
 		*/
 		
-		function delete(): ?bool {
+		public function delete(): ?bool
+		{
 			// Delete class file and custom directory
 			FileSystem::deleteFile(SERVER_ROOT."custom/inc/modules/".$this->Route.".php");
 			FileSystem::deleteDirectory(SERVER_ROOT."custom/admin/modules/".$this->Route."/");
@@ -245,7 +250,8 @@
 				A ModuleAction object or null if none exists.
 		*/
 		
-		function getEditAction(string $form): ?ModuleAction {
+		public function getEditAction(string $form): ?ModuleAction
+		{
 			$action = SQL::fetch("SELECT * FROM bigtree_module_actions 
 								  WHERE interface = ? AND module = ? AND route LIKE 'edit%'", $form, $this->ID);
 			
@@ -264,7 +270,8 @@
 				The permission level if the user can access this group, otherwise false.
 		*/
 		
-		function getGroupAccessLevel(string $group): string {
+		public function getGroupAccessLevel(string $group): string
+		{
 			return Auth::user()->getGroupAccessLevel($this, $group);
 		}
 		
@@ -276,7 +283,8 @@
 				An array of ModuleAction objects.
 		*/
 		
-		function getNavigation(): array {
+		public function getNavigation(): array
+		{
 			$actions = SQL::fetchAll("SELECT * FROM bigtree_module_actions WHERE module = ? AND in_nav = 'on' 
 									  ORDER BY position DESC, id ASC", $this->ID);
 			
@@ -295,7 +303,8 @@
 				An array of groups if a user has limited access to a module or "true" if the user has access to all groups.
 		*/
 		
-		function getUserAccessibleGroups(): array {
+		public function getUserAccessibleGroups(): array
+		{
 			return Auth::user()->getAccessibleModuleGroups($this);
 		}
 		
@@ -307,7 +316,8 @@
 				A permission level ("p" for publisher, "e" for editor, "n" for none)
 		*/
 		
-		function getUserAccessLevel(): string {
+		public function getUserAccessLevel(): string
+		{
 			return Auth::user()->getAccessLevel($this);
 		}
 		
@@ -326,7 +336,8 @@
 
 		*/
 		
-		function getUserAccessLevelForEntry(array $entry, string $table = "", ?User $user = null): string {
+		public function getUserAccessLevelForEntry(array $entry, string $table = "", ?User $user = null): string
+		{
 			return Auth::user($user)->getAccessLevel($this, $entry, $table);
 		}
 		
@@ -338,7 +349,8 @@
 				true if the user can access the module, otherwise false.
 		*/
 		
-		function getUserCanAccess(): bool {
+		public function getUserCanAccess(): bool
+		{
 			return Auth::user()->canAccess($this);
 		}
 		
@@ -356,7 +368,8 @@
 				Modified $value
 		*/
 		
-		static function runParser(array $item, $value, string $code) {
+		public static function runParser(array $item, $value, string $code)
+		{
 			eval($code);
 			
 			return $value;
@@ -367,7 +380,8 @@
 				Saves the current object properties back to the database.
 		*/
 		
-		function save(): ?bool {
+		public function save(): ?bool
+		{
 			if (empty($this->ID)) {
 				$new = static::create(
 					$this->Name,
@@ -426,8 +440,9 @@
 				developer_only - Sets a module to be accessible/visible to only developers.
 		*/
 		
-		function update(string $name, string $group, string $class, array $permissions, string $icon,
-						bool $developer_only = false): ?bool {
+		public function update(string $name, string $group, string $class, array $permissions, string $icon,
+							   bool $developer_only = false): ?bool
+		{
 			$this->Name = $name;
 			$this->Group = $group ?: null;
 			$this->Class = $class;

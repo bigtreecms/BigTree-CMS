@@ -21,7 +21,7 @@
 		public $Name;
 		public $UpdatedAt;
 		
-		function __construct(stdClass $account, API &$api)
+		public function __construct(stdClass $account, API &$api)
 		{
 			$this->API = $api;
 			$this->CreatedAt = date("Y-m-d H:i:s", strtotime($account->created));
@@ -30,7 +30,7 @@
 			$this->UpdatedAt = date("Y-m-d H:i:s", strtotime($account->updated));
 		}
 		
-		function getProperties(array $params): ?GoogleResultSet
+		public function getProperties(array $params): ?GoogleResultSet
 		{
 			return $this->API->getProperties($this->ID, $params);
 		}

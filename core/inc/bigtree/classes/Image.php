@@ -800,7 +800,8 @@
 				$temp = $this->getTempFileName();
 				$this->centerCrop($temp, intval($crop["width"]), intval($crop["height"]),
 								  !empty($this->Settings["retina"]), !empty($crop["grayscale"]));
-				$this->Storage->replace($temp, $crop["prefix"].$this->StoredName, $this->Settings["directory"], true, $this->ForcingLocalReplace);
+				$this->Storage->replace($temp, $crop["prefix"].$this->StoredName, $this->Settings["directory"], true,
+										$this->ForcingLocalReplace);
 			}
 		}
 		
@@ -881,7 +882,8 @@
 							$temp = $this->getTempFileName();
 							$this->thumbnail($temp, intval($thumb["width"]), intval($thumb["height"]),
 											 !empty($this->Settings["retina"]), !empty($thumb["grayscale"]));
-							$this->Storage->replace($temp, $thumb["prefix"].$this->StoredName, $this->Settings["directory"], true, $this->ForcingLocalReplace);
+							$this->Storage->replace($temp, $thumb["prefix"].$this->StoredName,
+													$this->Settings["directory"], true, $this->ForcingLocalReplace);
 						}
 					}
 					
@@ -890,12 +892,14 @@
 						$temp = $this->getTempFileName();
 						$this->centerCrop($temp, intval($center_crop["width"]), intval($center_crop["height"]),
 										  !empty($this->Settings["retina"]), !empty($center_crop["grayscale"]));
-						$this->Storage->replace($temp, $center_crop["prefix"].$this->StoredName, $this->Settings["directory"], true, $this->ForcingLocalReplace);
+						$this->Storage->replace($temp, $center_crop["prefix"].$this->StoredName,
+												$this->Settings["directory"], true, $this->ForcingLocalReplace);
 					}
 					
 					
 					if ($crop["prefix"]) {
-						$this->Storage->replace($this->File, $crop["prefix"].$this->StoredName, $this->Settings["directory"], false, $this->ForcingLocalReplace);
+						$this->Storage->replace($this->File, $crop["prefix"].$this->StoredName,
+												$this->Settings["directory"], false, $this->ForcingLocalReplace);
 					}
 				} else {
 					$crop_registry[] = [
@@ -917,7 +921,8 @@
 				$temp = $this->getTempFileName();
 				$this->centerCrop($temp, intval($crop["width"]), intval($crop["height"]),
 								  !empty($this->Settings["retina"]), !empty($crop["grayscale"]) ? true : false);
-				$this->Storage->replace($temp, $crop["prefix"].$this->StoredName, $this->Settings["directory"], true, $this->ForcingLocalReplace);
+				$this->Storage->replace($temp, $crop["prefix"].$this->StoredName, $this->Settings["directory"],
+										true, $this->ForcingLocalReplace);
 			}
 			
 			return $crop_registry;
@@ -935,7 +940,8 @@
 				$temp = $this->getTempFileName();
 				$this->thumbnail($temp, intval($thumb["width"]), intval($thumb["height"]),
 								 !empty($this->Settings["retina"]), !empty($thumb["grayscale"]));
-				$this->Storage->replace($temp, $thumb["prefix"].$this->StoredName, $this->Settings["directory"], true, $this->ForcingLocalReplace);
+				$this->Storage->replace($temp, $thumb["prefix"].$this->StoredName, $this->Settings["directory"], true,
+										$this->ForcingLocalReplace);
 			}
 		}
 		
@@ -1068,7 +1074,8 @@
 			imagealphablending($original_image, true);
 			imagealphablending($thumbnailed_image, false);
 			imagesavealpha($thumbnailed_image, true);
-			imagecopyresampled($thumbnailed_image, $original_image, 0, 0, 0, 0, $size["width"], $size["height"], $this->Width, $this->Height);
+			imagecopyresampled($thumbnailed_image, $original_image, 0, 0, 0, 0, $size["width"], $size["height"],
+							   $this->Width, $this->Height);
 			
 			if ($grayscale) {
 				imagefilter($thumbnailed_image, IMG_FILTER_GRAYSCALE);
@@ -1104,7 +1111,7 @@
 				Restores the saved memory limit after image processing is complete.
 		*/
 		
-		static function restoreMemoryLimit(): void
+		public static function restoreMemoryLimit(): void
 		{
 			ini_set("memory_limit", static::$SavedMemoryLimit);
 		}
@@ -1114,7 +1121,7 @@
 				Increases the memory limit of PHP for image processing and saves the current limit.
 		*/
 		
-		static function setMemoryLimit(): void
+		public static function setMemoryLimit(): void
 		{
 			global $bigtree;
 			

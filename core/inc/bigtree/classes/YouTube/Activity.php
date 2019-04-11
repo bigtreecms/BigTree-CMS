@@ -32,7 +32,7 @@
 		public $Type;
 		public $Upload;
 		
-		function __construct(stdClass $activity, API &$api)
+		public function __construct(stdClass $activity, API &$api)
 		{
 			$type = $activity->snippet->type;
 			

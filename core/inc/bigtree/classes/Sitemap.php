@@ -6,14 +6,16 @@
 	
 	namespace BigTree;
 	
-	class Sitemap extends BaseObject {
+	class Sitemap extends BaseObject
+	{
 		
 		/*
 			Function: getXML
 				Returns an XML sitemap.
 		*/
 		
-		static function getXML(): string {
+		public static function getXML(): string
+		{
 			$response = '<?xml version="1.0" encoding="UTF-8" ?>';
 			$response .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">';
 			
@@ -58,7 +60,8 @@
 				Sends the latest sitemap.xml out to search engine ping services if enabled in settings.
 		*/
 		
-		static function pingSearchEngines(): void {
+		public static function pingSearchEngines(): void
+		{
 			$setting = Setting::value("ping-search-engines");
 			
 			if ($setting == "on") {
@@ -68,4 +71,5 @@
 				cURL::request("http://www.bing.com/webmaster/ping.aspx?siteMap=".urlencode(WWW_ROOT."sitemap.xml"));
 			}
 		}
+		
 	}

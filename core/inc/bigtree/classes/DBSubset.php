@@ -6,26 +6,30 @@
 	
 	namespace BigTree;
 	
-	class DBSubset {
+	class DBSubset
+	{
 		
 		public $Cache;
 		
 		private $ID;
 		private $Type;
 		
-		function __construct($type, $id, $data) {
+		public function __construct($type, $id, $data)
+		{
 			$this->Cache = $data;
 			$this->ID = $id;
 			$this->Type = $type;
 		}
 		
-		public function check($type) {
+		public function check($type)
+		{
 			if (!is_array($this->Cache[$type])) {
 				$this->Cache[$type] = [];
 			}
 		}
 		
-		function delete($type, $id, $alternate_id_column = false) {
+		public function delete($type, $id, $alternate_id_column = false)
+		{
 			$this->check($type);
 			
 			foreach ($this->Cache[$type] as $index => $item) {
@@ -39,7 +43,8 @@
 			$this->save();
 		}
 		
-		function exists($type, $id, $alternate_id_column = false) {
+		public function exists($type, $id, $alternate_id_column = false)
+		{
 			$this->check($type);
 			
 			foreach ($this->Cache[$type] as $item) {
@@ -53,7 +58,8 @@
 			return false;
 		}
 		
-		function get($type, $id, $alternate_id_column = false) {
+		public function get($type, $id, $alternate_id_column = false)
+		{
 			$this->check($type);
 			
 			foreach ($this->Cache[$type] as $item) {
@@ -67,7 +73,8 @@
 			return null;
 		}
 		
-		function getAll($type, $sort_column = false, $sort_direction = "ASC") {
+		public function getAll($type, $sort_column = false, $sort_direction = "ASC")
+		{
 			$this->check($type);
 			$items = $this->Cache[$type];
 			
@@ -108,7 +115,8 @@
 			return Link::detokenize($items);
 		}
 		
-		function incrementPosition($type) {
+		public function incrementPosition($type)
+		{
 			$this->check($type);
 			
 			foreach ($this->Cache[$type] as $index => $item) {
@@ -118,7 +126,8 @@
 			$this->save();
 		}
 		
-		function insert($type, $entry) {
+		public function insert($type, $entry)
+		{
 			$this->check($type);
 			
 			if (empty($entry["id"])) {
@@ -144,11 +153,13 @@
 			return $entry["id"];
 		}
 		
-		function save() {
+		public function save()
+		{
 			DB::saveSubsetData($this->Type, $this->ID, $this->Cache);
 		}
 		
-		function search($type, $fields, $query) {
+		public function search($type, $fields, $query)
+		{
 			$this->check($type);
 			$results = [];
 			
@@ -169,7 +180,8 @@
 			return $results;
 		}
 		
-		function update($type, $id, $data) {
+		public function update($type, $id, $data)
+		{
 			$this->check($type);
 			$data = Link::tokenize($data);
 			

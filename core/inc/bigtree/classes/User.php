@@ -20,8 +20,6 @@
 		 * @property-read string $OriginalPassword
 		 */
 		
-		public static $Table = "bigtree_users";
-		
 		protected $ID;
 		protected $NewHash;
 		protected $OriginalPassword;
@@ -37,6 +35,8 @@
 		public $Permissions;
 		public $Timezone;
 		
+		public static $Table = "bigtree_users";
+		
 		/*
 			Constructor:
 				Builds a User object referencing an existing database entry.
@@ -45,7 +45,7 @@
 				user - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($user = null)
+		public function __construct($user = null)
 		{
 			if ($user !== null) {
 				// Passing in just an ID
@@ -119,9 +119,9 @@
 				A User object of the newly created user or null if a user already exists with the provided email
 		*/
 		
-		static function create(string $email, ?string $password = null, ?string $name = null, ?string $company = null,
-							   int $level = 0, array $permissions = [], array $alerts = [], bool $daily_digest = false,
-							   ?string $timezone = ""): ?User
+		public static function create(string $email, ?string $password = null, ?string $name = null,
+									  ?string $company = null, int $level = 0, array $permissions = [],
+									  array $alerts = [], bool $daily_digest = false, ?string $timezone = ""): ?User
 		{
 			global $bigtree;
 			
@@ -180,7 +180,7 @@
 				Deletes the user
 		*/
 		
-		function delete(): ?bool
+		public function delete(): ?bool
 		{
 			SQL::delete(static::$Table, $this->ID);
 			AuditTrail::track(static::$Table, $this->ID, "deleted");
@@ -208,7 +208,7 @@
 				A User object or null if the user was not found
 		*/
 		
-		static function getByEmail(string $email): ?User
+		public static function getByEmail(string $email): ?User
 		{
 			$user = SQL::fetch("SELECT * FROM ".static::$Table." WHERE LOWER(email) = ?", trim(strtolower($email)));
 			
@@ -230,7 +230,7 @@
 				A User object or null if the user was not found
 		*/
 		
-		static function getByHash(string $hash): ?User
+		public static function getByHash(string $hash): ?User
 		{
 			$user = SQL::fetch("SELECT * FROM ".static::$Table." WHERE change_password_hash = ?", $hash);
 			
@@ -246,7 +246,8 @@
 				Returns a user gravatar.
 		*/
 		
-		public static function gravatar(string $email, int $size = 56, ?string $default = null, string $rating = "g"): string
+		public static function gravatar(string $email, int $size = 56, ?string $default = null,
+										string $rating = "g"): string
 		{
 			if (!$default) {
 				global $bigtree;
@@ -288,7 +289,7 @@
 				Creates a new password change hash and sends an email to the user.
 		*/
 		
-		function initPasswordReset(): void
+		public function initPasswordReset(): void
 		{
 			global $bigtree;
 			
@@ -323,7 +324,7 @@
 				Removes all login bans for the user
 		*/
 		
-		function removeBans(): void
+		public function removeBans(): void
 		{
 			SQL::delete("bigtree_login_bans", ["user" => $this->ID]);
 		}
@@ -333,7 +334,7 @@
 				Saves the current object properties back to the database.
 		*/
 		
-		function save(): ?bool
+		public function save(): ?bool
 		{
 			if (empty($this->ID)) {
 				$new = static::create(
@@ -391,7 +392,7 @@
 				A change password hash.
 		*/
 		
-		function setPasswordHash(): string
+		public function setPasswordHash(): string
 		{
 			$hash = md5(microtime().$this->Password);
 			SQL::update("bigtree_users", $this->ID, ["change_password_hash" => $hash]);
@@ -417,8 +418,9 @@
 				true if successful. false if there was an email collision.
 		*/
 		
-		function update(string $email, ?string $password = null, ?string $name = null, ?string $company = null,
-						int $level = 0, array $permissions = [], array $alerts = [], bool $daily_digest = false): bool
+		public function update(string $email, ?string $password = null, ?string $name = null, ?string $company = null,
+							   int $level = 0, array $permissions = [], array $alerts = [],
+							   bool $daily_digest = false): bool
 		{
 			// See if there's an email collission
 			if (SQL::fetchSingle("SELECT COUNT(*) FROM ".static::$Table." WHERE `email` = ? AND `id` != ?", $email, $this->ID)) {
@@ -453,8 +455,8 @@
 				password - Password (leave empty or false to not update)
 		*/
 		
-		static function updateProfile(string $name, ?string $company = null, bool $daily_digest = false,
-									  string $timezone = "", ?string $password = null): bool
+		public static function updateProfile(string $name, ?string $company = null, bool $daily_digest = false,
+											 string $timezone = "", ?string $password = null): bool
 		{
 			global $bigtree;
 			
@@ -495,7 +497,7 @@
 				true if it passes all password criteria.
 		*/
 		
-		static function validatePassword(string $password): bool
+		public static function validatePassword(string $password): bool
 		{
 			global $bigtree;
 			

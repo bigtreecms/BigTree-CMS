@@ -7,11 +7,13 @@
 	
 	namespace BigTree;
 	
-	class DB {
+	class DB
+	{
 		
 		public static $Cache = [];
 		
-		private static function cache($type) {
+		private static function cache($type)
+		{
 			if (!isset(self::$Cache[$type])) {
 				if (file_exists(SERVER_ROOT."custom/json-db/$type.json")) {
 					self::$Cache[$type] = json_decode(file_get_contents(SERVER_ROOT."custom/json-db/$type.json"), true);
@@ -21,7 +23,8 @@
 			}
 		}
 		
-		private static function cleanArray(&$array) {
+		private static function cleanArray(&$array)
+		{
 			$is_numeric = true;
 			
 			foreach ($array as $key => &$value) {
@@ -40,7 +43,8 @@
 			}
 		}
 		
-		static function delete($type, $id, $alternate_id_column = false) {
+		public static function delete($type, $id, $alternate_id_column = false)
+		{
 			static::cache($type);
 			
 			foreach (static::$Cache[$type] as $index => $item) {
@@ -54,7 +58,8 @@
 			static::save($type);
 		}
 		
-		static function exists($type, $id, $alternate_id_column = false) {
+		public static function exists($type, $id, $alternate_id_column = false)
+		{
 			static::cache($type);
 			
 			foreach (static::$Cache[$type] as $item) {
@@ -68,7 +73,8 @@
 			return false;
 		}
 		
-		static function get($type, $id, $alternate_id_column = false) {
+		public static function get($type, $id, $alternate_id_column = false)
+		{
 			static::cache($type);
 			
 			foreach (static::$Cache[$type] as $item) {
@@ -82,7 +88,8 @@
 			return null;
 		}
 		
-		static function getSubset($type, $id) {
+		public static function getSubset($type, $id)
+		{
 			static::cache($type);
 			
 			foreach (static::$Cache[$type] as $item) {
@@ -94,7 +101,8 @@
 			return null;
 		}
 		
-		static function getAll($type, $sort_column = false, $sort_direction = "ASC") {
+		public static function getAll($type, $sort_column = false, $sort_direction = "ASC")
+		{
 			static::cache($type);
 			
 			$items = static::$Cache[$type];
@@ -136,7 +144,8 @@
 			return Link::detokenize($items);
 		}
 		
-		static function incrementPosition($type) {
+		public static function incrementPosition($type)
+		{
 			static::cache($type);
 			
 			foreach (static::$Cache[$type] as $index => $item) {
@@ -146,7 +155,8 @@
 			static::save($type);
 		}
 		
-		static function insert($type, $entry) {
+		public static function insert($type, $entry)
+		{
 			static::cache($type);
 			
 			if (empty($entry["id"])) {
@@ -172,7 +182,8 @@
 			return $entry["id"];
 		}
 		
-		static function save($type) {
+		public static function save($type)
+		{
 			// Make sure we don't blow away the whole result set if someone saves before doing anything
 			self::cache($type);
 			
@@ -183,7 +194,8 @@
 			FileSystem::setPermissions(SERVER_ROOT."custom/json-db/$type.json");
 		}
 		
-		static function saveSubsetData($type, $id, $data) {
+		public static function saveSubsetData($type, $id, $data)
+		{
 			foreach (self::$Cache[$type] as $index => $item) {
 				if (isset($item["id"]) && $id == $item["id"]) {
 					self::$Cache[$type][$index] = $data;
@@ -193,7 +205,8 @@
 			self::save($type);
 		}
 		
-		static function search($type, $fields, $query) {
+		public static function search($type, $fields, $query)
+		{
 			static::cache($type);
 			$results = [];
 			
@@ -214,7 +227,8 @@
 			return $results;
 		}
 		
-		static function update($type, $id, $data) {
+		public static function update($type, $id, $data)
+		{
 			static::cache($type);
 			$data = Link::tokenize($data);
 			

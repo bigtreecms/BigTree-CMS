@@ -13,9 +13,8 @@
 	 * @property-read ModuleView $RelatedModuleView
 	 */
 	
-	class ModuleReport extends BaseObject {
-		
-		public static $Table = "bigtree_module_interfaces";
+	class ModuleReport extends BaseObject
+	{
 		
 		protected $ID;
 		protected $Interface;
@@ -29,6 +28,8 @@
 		public $Type;
 		public $View;
 		
+		public static $Table = "bigtree_module_interfaces";
+		
 		/*
 			Constructor:
 				Builds a ModuleReport object referencing an existing database entry.
@@ -37,7 +38,8 @@
 				interface - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($interface = null) {
+		public function __construct($interface = null)
+		{
 			if ($interface !== null) {
 				// Passing in just an ID
 				if (!is_array($interface)) {
@@ -81,8 +83,9 @@
 				A ModuleReport object.
 		*/
 		
-		static function create(int $module, string $title, string $table, string $type, array $filters,
-							   array $fields = [], string $parser = "", ?int $view = null): ModuleReport {
+		public static function create(int $module, string $title, string $table, string $type, array $filters,
+									  array $fields = [], string $parser = "", ?int $view = null): ModuleReport
+		{
 			$interface = ModuleInterface::create("report", $module, $title, $table, [
 				"type" => $type,
 				"filters" => $filters,
@@ -102,7 +105,8 @@
 				A ModuleForm object or null.
 		*/
 		
-		function getRelatedModuleForm(): ?ModuleForm {
+		public function getRelatedModuleForm(): ?ModuleForm
+		{
 			$form = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'form' AND `table` = ?", $this->Table);
 			
 			return $form ? new ModuleForm($form) : null;
@@ -116,7 +120,8 @@
 				A ModuleView object or null.
 		*/
 		
-		function getRelatedModuleView(): ?ModuleView {
+		public function getRelatedModuleView(): ?ModuleView
+		{
 			if ($this->View) {
 				$view = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE i = ?", $this->View);
 			} else {
@@ -139,7 +144,9 @@
 				An array of rows from the report's table.
 		*/
 		
-		function getResults(array $filter_data, string $sort_field = "id", string $sort_direction = "DESC"): array {
+		public function getResults(array $filter_data, string $sort_field = "id",
+								   string $sort_direction = "DESC"): array
+		{
 			$where = $items = $parsers = $poplists = [];
 			$view = $this->RelatedModuleView;
 			$form = $this->RelatedModuleForm;
@@ -250,7 +257,8 @@
 				Saves the object's properties back to the database and updates InterfaceSettings.
 		*/
 		
-		function save(): ?bool {
+		public function save(): ?bool
+		{
 			if (empty($this->Interface->ID)) {
 				$new = static::create($this->Module, $this->Title, $this->Table, $this->Type, $this->Filters, $this->Fields, $this->Parser, $this->View);
 				$this->inherit($new);
@@ -285,8 +293,9 @@
 				view - A module view ID to use (if type = view).
 		*/
 		
-		function update(string $title, string $table, string $type, array $filters, ?array $fields = null,
-						string $parser = "", ?int $view = null) {
+		public function update(string $title, string $table, string $type, array $filters, ?array $fields = null,
+							   string $parser = "", ?int $view = null)
+		{
 			$this->Fields = $fields;
 			$this->Filters = $filters;
 			$this->Parser = $parser;
@@ -297,4 +306,5 @@
 			
 			$this->save();
 		}
+		
 	}

@@ -8,7 +8,8 @@
 	
 	use BigTreeCMS;
 	
-	class Navigation {
+	class Navigation
+	{
 		
 		public static $Trunk = false;
 		
@@ -28,7 +29,8 @@
 				<getBreadcrumb>
 		*/
 		
-		static function getBreadcrumb($page, bool $ignore_trunk = false): array {
+		public static function getBreadcrumb($page, bool $ignore_trunk = false): array
+		{
 			global $bigtree;
 			
 			if (is_object($page)) {
@@ -133,8 +135,9 @@
 				A navigation array containing "id", "parent", "title", "route", "link", "new_window", and "children" (containing children if depth > 1)
 		*/
 		
-		static function getLevel($parent = 0, int $depth = 1, bool $follow_module = true, bool $only_hidden = false,
-								 bool $explicit_zero = false): array {
+		public static function getLevel($parent = 0, int $depth = 1, bool $follow_module = true,
+										bool $only_hidden = false, bool $explicit_zero = false): array
+		{
 			static $module_nav_count = 0;
 			
 			$nav = [];
@@ -310,7 +313,8 @@
 				A navigation array containing "id", "parent", "title", "route", "link", and "new_window"
 		*/
 		
-		function getHidden(int $parent): array {
+		public function getHidden(int $parent): array
+		{
 			return $this->getLevel($parent, 1, false, true);
 		}
 		

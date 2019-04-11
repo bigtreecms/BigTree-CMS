@@ -13,9 +13,8 @@
 	 * @property-read string $UpdatedAt
 	 */
 	
-	class PageRevision extends BaseObject {
-		
-		public static $Table = "bigtree_page_revisions";
+	class PageRevision extends BaseObject
+	{
 		
 		protected $Author;
 		protected $ID;
@@ -31,6 +30,8 @@
 		public $Template;
 		public $Title;
 		
+		public static $Table = "bigtree_page_revisions";
+		
 		/*
 			Constructor:
 				Builds a PageRevision object referencing an existing database entry.
@@ -39,7 +40,8 @@
 				revision - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($revision) {
+		public function __construct($revision)
+		{
 			// Passing in just an ID
 			if (!is_array($revision)) {
 				$revision = SQL::fetch("SELECT * FROM bigtree_page_revisions WHERE id = ?", $revision);
@@ -83,7 +85,8 @@
 				A PageRevision object.
 		*/
 		
-		static function create(Page $page, ?string $description = ""): PageRevision {
+		public static function create(Page $page, ?string $description = ""): PageRevision
+		{
 			$id = SQL::insert("bigtree_page_revisions", [
 				"page" => $page->ID,
 				"title" => $page->Title,
@@ -115,7 +118,8 @@
 				An array of "saved" revisions and "unsaved" revisions.
 		*/
 		
-		static function listForPage(string $page, string $sort = "updated_at DESC"): array {
+		public static function listForPage(string $page, string $sort = "updated_at DESC"): array
+		{
 			$saved = $unsaved = [];
 			$revisions = SQL::fetchAll("SELECT bigtree_users.name, 
 											   bigtree_users.email, 
@@ -144,7 +148,8 @@
 				Saves object properties back to the database.
 		*/
 		
-		function save(): ?bool {
+		public function save(): ?bool
+		{
 			SQL::update("bigtree_page_revisions", $this->ID, [
 				"external" => $this->External,
 				"new_window" => $this->NewWindow ? "on" : "",
@@ -168,7 +173,8 @@
 				description - Saved description.
 		*/
 		
-		function update($description): void {
+		public function update($description): void
+		{
 			$this->Saved = true;
 			$this->SavedDescription = $description;
 			$this->save();

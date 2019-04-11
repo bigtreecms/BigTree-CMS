@@ -17,7 +17,7 @@
 		public $ID;
 		public $Name;
 		
-		function __construct(stdClass $location, API &$api)
+		public function __construct(stdClass $location, API &$api)
 		{
 			$this->API = $api;
 			

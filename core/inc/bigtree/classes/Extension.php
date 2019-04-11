@@ -6,12 +6,8 @@
 	
 	namespace BigTree;
 	
-	class Extension extends BaseObject {
-		
-		public static $CacheInitialized = false;
-		public static $RequiredFiles = [];
-		public static $Table = "bigtree_extensions";
-		
+	class Extension extends BaseObject
+	{
 		protected $LastUpdated;
 		
 		public $ID;
@@ -19,6 +15,10 @@
 		public $Name;
 		public $Type;
 		public $Version;
+		
+		public static $CacheInitialized = false;
+		public static $RequiredFiles = [];
+		public static $Table = "bigtree_extensions";
 		
 		/*
 			Constructor:
@@ -28,7 +28,8 @@
 				extension - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($extension = null) {
+		public function __construct($extension = null)
+		{
 			if ($extension !== null) {
 				// Passing in just an ID
 				if (!is_array($extension)) {
@@ -55,7 +56,8 @@
 				Uninstalls the extension or package from BigTree and removes its related components and files.
 		*/
 		
-		function delete(): ?bool {
+		public function delete(): ?bool
+		{
 			// Prevent the whole directory from being deleted if this doesn't have an ID
 			if (empty($this->ID)) {
 				return false;
@@ -144,7 +146,8 @@
 				Initializes any extension plugins and caches them to the proper objects.
 		*/
 		
-		static function initializeCache(): void {
+		public static function initializeCache(): void
+		{
 			global $bigtree;
 			
 			// Already done!
@@ -207,7 +210,8 @@
 				An Extension object.
 		*/
 		
-		static function installFromManifest(array $manifest, ?array $upgrade = null): ?Extension {
+		public static function installFromManifest(array $manifest, ?array $upgrade = null): ?Extension
+		{
 			global $bigtree;
 			
 			// Initialize a bunch of empty arrays

@@ -6,7 +6,8 @@
 	
 	namespace BigTree;
 	
-	class DailyDigest extends BaseObject {
+	class DailyDigest extends BaseObject
+	{
 		
 		public static $CoreOptions = [
 			"pending-changes" => [
@@ -35,7 +36,8 @@
 				HTML markup for daily digest email
 		*/
 		
-		static function getAlerts(array $user): string {
+		public static function getAlerts(array $user): string
+		{
 			$alerts = Page::getAlertsForUser($user);
 			$alerts_markup = "";
 			$wrapper = '<div style="margin: 20px 0 30px;">
@@ -85,7 +87,8 @@
 				HTML markup for daily digest email
 		*/
 		
-		static function getChanges(array $user): string {
+		public static function getChanges(array $user): string
+		{
 			$user = new User($user);
 			$changes = PendingChange::allPublishableByUser($user);
 			
@@ -145,7 +148,8 @@
 				HTML markup for daily digest email
 		*/
 		
-		static function getMessages(array $user): string {
+		public static function getMessages(array $user): string
+		{
 			$messages = Message::allByUser($user["id"], true);
 			$messages_markup = "";
 			$wrapper = '<div style="margin: 20px 0 30px;">
@@ -184,7 +188,8 @@
 				Sends out a daily digest email to all who have subscribed.
 		*/
 		
-		static function send(): void {
+		public static function send(): void
+		{
 			global $bigtree;
 			
 			// We're going to show the site's title in the email

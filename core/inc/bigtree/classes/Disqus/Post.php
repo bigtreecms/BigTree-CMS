@@ -34,7 +34,7 @@
 		public $Timestamp;
 		public $UserScore;
 		
-		function __construct(stdClass $post, API &$api)
+		public function __construct(stdClass $post, API &$api)
 		{
 			$this->API = $api;
 			isset($post->isApproved) ? $this->Approved = $post->isApproved : false;
@@ -73,7 +73,7 @@
 				true if successful.
 		*/
 		
-		function approve(): bool
+		public function approve(): bool
 		{
 			$response = $this->API->call("posts/approve.json", ["post" => $this->ID], "POST");
 			
@@ -95,7 +95,7 @@
 				true if successful.
 		*/
 		
-		function highlight(): bool
+		public function highlight(): bool
 		{
 			$response = $this->API->call("posts/highlight.json", ["post" => $this->ID], "POST");
 			
@@ -117,7 +117,7 @@
 				true if successful.
 		*/
 		
-		function remove(): bool
+		public function remove(): bool
 		{
 			$response = $this->API->call("posts/remove.json", ["post" => $this->ID], "POST");
 			
@@ -138,7 +138,7 @@
 				true if successful.
 		*/
 		
-		function report(): bool
+		public function report(): bool
 		{
 			$response = $this->API->call("posts/report.json", ["post" => $this->ID], "POST");
 			
@@ -160,7 +160,7 @@
 				true if successful.
 		*/
 		
-		function restore(): bool
+		public function restore(): bool
 		{
 			$response = $this->API->call("posts/restore.json", ["post" => $this->ID], "POST");
 			
@@ -182,7 +182,7 @@
 				true if successful.
 		*/
 		
-		function spam(): bool
+		public function spam(): bool
 		{
 			$response = $this->API->call("posts/spam.json", ["post" => $this->ID], "POST");
 			
@@ -204,7 +204,7 @@
 				true if successful.
 		*/
 		
-		function unhighlight(): bool
+		public function unhighlight(): bool
 		{
 			$response = $this->API->call("posts/unhighlight.json", ["post" => $this->ID], "POST");
 			
@@ -228,7 +228,7 @@
 				true if successful.
 		*/
 		
-		function vote(int $vote = 0): bool
+		public function vote(int $vote = 0): bool
 		{
 			$response = $this->API->call("posts/vote.json", ["post" => $this->ID, "vote" => $vote], "POST");
 			

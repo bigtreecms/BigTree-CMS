@@ -6,7 +6,8 @@
 	
 	namespace BigTree;
 	
-	class LoremIpsum {
+	class LoremIpsum
+	{
 		
 		public static $Words = [
 			'lorem', 'ipsum', 'dolor', 'sit',
@@ -57,7 +58,8 @@
 			'vivamus', 'viverra', 'volutpat', 'vulputate',
 		];
 		
-		static function getWords(int $count = 1, ?array $tags = null, bool $array = false) {
+		public static function getWords(int $count = 1, ?array $tags = null, bool $array = false)
+		{
 			$words = [];
 			$word_count = 0;
 			
@@ -80,7 +82,8 @@
 			return static::output($words, $tags, $array);
 		}
 		
-		static function getSentences(int $count = 1, ?array $tags = null, bool $array = false) {
+		public static function getSentences(int $count = 1, ?array $tags = null, bool $array = false)
+		{
 			$sentences = [];
 			
 			for ($i = 0; $i < $count; $i++) {
@@ -92,7 +95,8 @@
 			return static::output($sentences, $tags, $array);
 		}
 		
-		static function getParagraphs(int $count = 1, ?array $tags = null, bool $array = false) {
+		public static function getParagraphs(int $count = 1, ?array $tags = null, bool $array = false)
+		{
 			$paragraphs = [];
 			
 			for ($i = 0; $i < $count; $i++) {
@@ -102,7 +106,8 @@
 			return static::output($paragraphs, $tags, $array, "\n\n");
 		}
 		
-		private static function gauss($mean, $std_dev) {
+		private static function gauss($mean, $std_dev)
+		{
 			$x = mt_rand() / mt_getrandmax();
 			$y = mt_rand() / mt_getrandmax();
 			$z = sqrt(-2 * log($x)) * cos(2 * pi() * $y);
@@ -110,7 +115,8 @@
 			return $z * $std_dev + $mean;
 		}
 		
-		private static function punctuate(array &$sentences) {
+		private static function punctuate(array &$sentences)
+		{
 			foreach ($sentences as $key => $sentence) {
 				$words = count($sentence);
 				
@@ -132,7 +138,9 @@
 			}
 		}
 		
-		private static function output(array $strings, ?array $tags = null, bool $array = false, string $delimiter = ' ') {
+		private static function output(array $strings, ?array $tags = null, bool $array = false,
+									   string $delimiter = ' ')
+		{
 			if (!is_null($tags)) {
 				if (!is_array($tags)) {
 					$tags = [$tags];
@@ -159,4 +167,5 @@
 			
 			return $strings;
 		}
+		
 	}

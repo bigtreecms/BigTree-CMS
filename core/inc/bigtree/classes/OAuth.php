@@ -9,7 +9,8 @@
 	
 	use stdClass;
 	
-	class OAuth {
+	class OAuth
+	{
 		
 		public $Active;
 		public $AuthorizeURL = "";
@@ -40,7 +41,8 @@
 				cache - Whether to use cached information (15 minute cache, defaults to true)
 		*/
 		
-		function __construct(string $setting_id, string $setting_name, string $cache_id, bool $cache = true) {
+		public function __construct(string $setting_id, string $setting_name, string $cache_id, bool $cache = true)
+		{
 			$this->Cache = $cache;
 			$this->CacheIdentifier = $cache_id;
 			$this->SettingID = $setting_id;
@@ -88,7 +90,8 @@
 				Busts the cache for everything relating to an object.
 		*/
 		
-		function cacheBust(string $id): void {
+		public function cacheBust(string $id): void
+		{
 			if (is_array($this->OAuthSettings["hash_table"][$id])) {
 				foreach ($this->OAuthSettings["hash_table"][$id] as $i) {
 					SQL::delete("bigtree_caches", [
@@ -104,7 +107,8 @@
 				Pushes a hash onto the cache hash table.
 		*/
 		
-		function cachePush(string $id): void {
+		public function cachePush(string $id): void
+		{
 			if (!isset($this->OAuthSettings["hash_table"][$id])) {
 				$this->OAuthSettings["hash_table"][$id] = [];
 			}
@@ -129,7 +133,9 @@
 				Information directly from the API or the cache.
 		*/
 		
-		function call(string $endpoint = "", $params = [], string $method = "GET", array $headers = []): ?stdClass {
+		public function call(string $endpoint = "", $params = [], string $method = "GET",
+							 array $headers = []): ?stdClass
+		{
 			if ($this->Cache) {
 				$this->LastCacheKey = md5($endpoint.json_encode($params));
 				$record = Cache::get($this->CacheIdentifier, $this->LastCacheKey, 900);
@@ -167,7 +173,8 @@
 		*/
 		
 		protected function callAPI(string $url, string $method = "GET", array $data = [], array $headers = [],
-								   array $excluded = []): string {
+								   array $excluded = []): string
+		{
 			// Add OAuth related parameters.
 			$oauth = [];
 			$get = [];
@@ -291,7 +298,9 @@
 				Information directly from the API.
 		*/
 		
-		function callUncached(string $endpoint = "", $params = [], string $method = "GET", array $headers = []): ?stdClass {
+		public function callUncached(string $endpoint = "", $params = [], string $method = "GET",
+									 array $headers = []): ?stdClass
+		{
 			if (!$this->Connected) {
 				trigger_error("This API is not connected.", E_USER_ERROR);
 			}
@@ -323,7 +332,8 @@
 				Removes saved API information.
 		*/
 		
-		function disconnect(): void {
+		public function disconnect(): void
+		{
 			SQL::delete("bigtree_caches", ["identifier" => $this->CacheIdentifier]);
 			SQL::delete("bigtree_settings", $this->SettingID);
 		}
@@ -333,7 +343,8 @@
 				Redirects to the OAuth API to authenticate.
 		*/
 		
-		function oAuthRedirect(): void {
+		public function oAuthRedirect(): void
+		{
 			header("Location: ".$this->AuthorizeURL.
 				   "?client_id=".urlencode($this->OAuthSettings["key"]).
 				   "&redirect_uri=".urlencode($this->ReturnURL).
@@ -349,7 +360,8 @@
 				Refreshes an existing token setup.
 		*/
 		
-		function oAuthRefreshToken(): void {
+		public function oAuthRefreshToken(): void
+		{
 			$response = json_decode(cURL::request($this->TokenURL, [
 				"client_id" => $this->OAuthSettings["key"],
 				"client_secret" => $this->OAuthSettings["secret"],
@@ -371,7 +383,8 @@
 				A stdClass object of information if successful.
 		*/
 		
-		function oAuthSetToken(string $code): ?stdClass {
+		public function oAuthSetToken(string $code): ?stdClass
+		{
 			$response = json_decode(cURL::request($this->TokenURL, [
 				"code" => $code,
 				"client_id" => $this->OAuthSettings["key"],
@@ -398,5 +411,6 @@
 			
 			return $response;
 		}
+		
 	}
 	

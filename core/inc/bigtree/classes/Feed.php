@@ -6,15 +6,8 @@
 	
 	namespace BigTree;
 	
-	class Feed extends BaseObject {
-		
-		public static $AvailableTypes = [
-			"custom" => "XML",
-			"json" => "JSON",
-			"rss" => "RSS 0.91",
-			"rss2" => "RSS 2.0"
-		];
-		public static $Table = "bigtree_feeds";
+	class Feed extends BaseObject
+	{
 		
 		protected $ID;
 		
@@ -25,6 +18,14 @@
 		public $Settings;
 		public $Type;
 		
+		public static $AvailableTypes = [
+			"custom" => "XML",
+			"json" => "JSON",
+			"rss" => "RSS 0.91",
+			"rss2" => "RSS 2.0"
+		];
+		public static $Table = "bigtree_feeds";
+		
 		/*
 			Constructor:
 				Builds a Feed object referencing an existing database entry.
@@ -33,7 +34,8 @@
 				feed - Either an ID (to pull a record) or an array (to use the array as the record)
 		*/
 		
-		function __construct($feed = null) {
+		public function __construct($feed = null)
+		{
 			if ($feed !== null) {
 				// Passing in just an ID
 				if (!is_array($feed)) {
@@ -73,7 +75,9 @@
 				A Feed object.
 		*/
 		
-		static function create(string $name, string $description, string $table, string $type, array $settings, array $fields): Feed {
+		public static function create(string $name, string $description, string $table, string $type,
+									  array $settings, array $fields): Feed
+		{
 			// Settings were probably passed as a JSON string, but either way make a nice translated array
 			$settings = Link::encode($settings);
 			
@@ -101,7 +105,8 @@
 				Saves the object properties back to the database.
 		*/
 		
-		function save(): ?bool {
+		public function save(): ?bool
+		{
 			if (empty($this->ID)) {
 				$new = static::create($this->Name, $this->Description, $this->Table, $this->Type, $this->Settings, $this->Fields);
 				$this->inherit($new);
@@ -133,7 +138,9 @@
 				fields - The fields.
 		*/
 		
-		function update(string $name, string $description, string $table, string $type, array $settings, array $fields): ?bool {
+		public function update(string $name, string $description, string $table, string $type, array $settings,
+							   array $fields): ?bool
+		{
 			$settings = is_array($settings) ? $settings : json_decode($settings, true);
 			
 			$this->Name = $name;
@@ -145,4 +152,5 @@
 			
 			return $this->save();
 		}
+		
 	}

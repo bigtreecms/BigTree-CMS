@@ -41,7 +41,7 @@
 				api - Reference to BigTree\Salesforce\API class instance
 		*/
 		
-		function __construct(stdClass $object, API &$api)
+		public function __construct(stdClass $object, API &$api)
 		{
 			$this->Activateable = $object->activateable;
 			$this->API = $api;
@@ -114,7 +114,7 @@
 				A BigTree\Salesforce\Record object if successful.
 		*/
 		
-		function add(array $keys, ?array $vals = null): ?Record
+		public function add(array $keys, ?array $vals = null): ?Record
 		{
 			if (is_null($vals)) {
 				$data = $keys;
@@ -155,7 +155,7 @@
 				true if successful.
 		*/
 		
-		function delete(string $id): bool
+		public function delete(string $id): bool
 		{
 			$response = $this->API->callUncached("sobjects/".$this->Name."/$id", false, "DELETE");
 			
@@ -180,7 +180,7 @@
 				A BigTree\Salesforce\Record object
 		*/
 		
-		function get(string $id): ?Record
+		public function get(string $id): ?Record
 		{
 			$response = $this->API->call("sobjects/".$this->Name."/$id");
 			
@@ -202,7 +202,7 @@
 				An array of BigTree\Salesforce\Record objects.
 		*/
 		
-		function getAll(string $order = "Id ASC"): ?array
+		public function getAll(string $order = "Id ASC"): ?array
 		{
 			return $this->query("SELECT ".$this->QueryFieldNames." FROM ".$this->Name." ORDER BY $order");
 		}
@@ -221,7 +221,7 @@
 				An array of BigTree\Salesforce\Record objects.
 		*/
 		
-		function getMatching($fields, $values, string $order = "Id ASC", ?int $limit = null): ?array
+		public function getMatching($fields, $values, string $order = "Id ASC", ?int $limit = null): ?array
 		{
 			if (!is_array($fields)) {
 				$where = "$fields = '".addslashes($values)."'";
@@ -264,7 +264,7 @@
 				An array of BigTree\Salesforce\Record objects.
 		*/
 		
-		function getPage(int $page = 1, string $order = "Id ASC", int $perpage = 15, ?string $where = null): ?array
+		public function getPage(int $page = 1, string $order = "Id ASC", int $perpage = 15, ?string $where = null): ?array
 		{
 			// Don't try for page 0
 			if ($page < 1) {
@@ -295,7 +295,7 @@
 				An array of BigTree\Salesforce\Record objects.
 		*/
 		
-		function query(string $query, bool $full_response = false)
+		public function query(string $query, bool $full_response = false)
 		{
 			if (strpos($query, "query/") > -1) {
 				$response = $this->API->call($query);
@@ -331,7 +331,7 @@
 				An array of BigTree\Salesforce\Record objects.
 		*/
 		
-		function search(string $query, string $order = "Id ASC", ?int $limit = null): ?array
+		public function search(string $query, string $order = "Id ASC", ?int $limit = null): ?array
 		{
 			$where = [];
 			$searchable_types = ["string", "picklist", "textarea", "phone", "url"];
@@ -365,7 +365,7 @@
 				values - Either a signle column value or an array of column values (if you pass an array you must pass an array for fields as well)
 		*/
 		
-		function update(string $id, $fields, $values): bool
+		public function update(string $id, $fields, $values): bool
 		{
 			if (is_array($fields)) {
 				$record = array_combine($fields, $values);

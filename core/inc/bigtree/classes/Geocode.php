@@ -8,7 +8,8 @@
 	
 	use Exception;
 	
-	class Geocode {
+	class Geocode
+	{
 		
 		public static $API = false;
 		public static $Service = false;
@@ -28,7 +29,8 @@
 				ignore_cache - Whether to ignore the cache and reprocess an address (defaults to false)
 		 */
 		
-		function __construct(string $address, bool $ignore_cache = false) {
+		public function __construct(string $address, bool $ignore_cache = false)
+		{
 			// If we're not sure what service to use yet, check our settings
 			if (static::$Service === false) {
 				$geo_service = Setting::value("bigtree-internal-geocoding-service");
@@ -36,7 +38,8 @@
 				// If for some reason the setting doesn't exist, make one.
 				if (!is_array($geo_service) || !$geo_service["service"]) {
 					static::$Service = "google";
-					$setting = Setting::create("bigtree-internal-geocoding-service", "Geocoding Service", "", "", [], "", true, true, true);
+					$setting = Setting::create("bigtree-internal-geocoding-service", "Geocoding Service", "", "", [],
+											   "", true, true, true);
 					$setting->Value = ["service" => "google"];
 					$setting->save();
 				} else {
@@ -87,7 +90,8 @@
 		}
 		
 		// Magic methods to allow string and array conversion
-		function __toString(): string {
+		public function __toString(): string
+		{
 			if ($this->Latitude) {
 				return $this->Latitude.",".$this->Longitude;
 			} else {
@@ -95,7 +99,8 @@
 			}
 		}
 		
-		function __get($property) {
+		public function __get($property)
+		{
 			if ($property == "Array") {
 				return ["latitude" => $this->Latitude, "longitude" => $this->Longitude];
 			}
@@ -110,7 +115,8 @@
 				Private function for using Bing as the geocoder.
 		*/
 		
-		private function geocodeBing(string $address): ?array {
+		private function geocodeBing(string $address): ?array
+		{
 			$address = str_replace("?", "", str_replace(" ", "%20", $address));
 			$response = cURL::request("http://dev.virtualearth.net/REST/v1/Locations/$address?key=".static::$Settings["bing_key"]);
 			
@@ -144,7 +150,8 @@
 				Private function for using Google as the geocoder.
 		*/
 		
-		private function geocodeGoogle(string $address): ?array {
+		private function geocodeGoogle(string $address): ?array
+		{
 			$response = cURL::request("https://maps.googleapis.com/maps/api/geocode/json?address=".urlencode($address).
 									  "&sensor=false&key=".static::$Settings["google_key"]);
 			
@@ -178,7 +185,8 @@
 				Private function for using MapQuest as the geocoder.
 		*/
 		
-		private function geocodeMapQuest(string $address): ?array {
+		private function geocodeMapQuest(string $address): ?array
+		{
 			global $bigtree;
 			
 			$raw_response = cURL::request("http://www.mapquestapi.com/geocoding/v1/address?key=".

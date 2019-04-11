@@ -25,7 +25,7 @@
 				Prepares an environment for Authorize.Net payments.
 		*/
 		
-		function __construct()
+		public function __construct()
 		{
 			parent::__construct();
 			
@@ -49,7 +49,7 @@
 		}
 		
 		// Implements Provider::authorize
-		function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
+		public function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
 						   int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
 						   ?string $customer = ""): ?string
 		{
@@ -62,7 +62,7 @@
 				Sends an API call to PayPal Payments Pro.
 		*/
 		
-		function call(array $params): ?array
+		public function call(array $params): ?array
 		{
 			$count = 0;
 			$this->Unresponsive = false;
@@ -101,7 +101,7 @@
 		}
 		
 		// Implements Provider::capture
-		function capture(string $transaction, ?float $amount = null): ?string
+		public function capture(string $transaction, ?float $amount = null): ?string
 		{
 			$params = [
 				"METHOD" => "DoCapture",
@@ -124,7 +124,7 @@
 		}
 		
 		// Implements Provider::charge
-		function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
+		public function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
 						int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
 						?string $customer = "", ?string $action = null): ?string
 		{
@@ -192,7 +192,7 @@
 		}
 		
 		// Implements Provider::createRecurringPayment
-		function createRecurringPayment(string $description, float $amount, ?string $start_date, string $period,
+		public function createRecurringPayment(string $description, float $amount, ?string $start_date, string $period,
 										int $frequency, string $card_name, string $card_number, int $card_expiration,
 										int $cvv, array $address, string $email, ?float $trial_amount = null,
 										?string $trial_period = null, ?int $trial_frequency = null,
@@ -251,7 +251,7 @@
 		}
 		
 		// Implements Provider::paypalExpressCheckoutDetails
-		function paypalExpressCheckoutDetails(string $token): ?array
+		public function paypalExpressCheckoutDetails(string $token): ?array
 		{
 			$params = [
 				"METHOD" => "GetExpressCheckoutDetails",
@@ -269,7 +269,7 @@
 		}
 		
 		// Implements Provider::paypalExpressCheckoutProcess
-		function paypalExpressCheckoutProcess(string $token, string $payer_id, ?float $amount = null): ?array
+		public function paypalExpressCheckoutProcess(string $token, string $payer_id, ?float $amount = null): ?array
 		{
 			// Clean up the amount.
 			$amount = $this->formatCurrency($amount);
@@ -296,7 +296,7 @@
 		}
 		
 		// Implements Provider::paypalExpressCheckoutRedirect
-		function paypalExpressCheckoutRedirect(float $amount, string $success_url, string $cancel_url): void
+		public function paypalExpressCheckoutRedirect(float $amount, string $success_url, string $cancel_url): void
 		{
 			// Clean up the amount.
 			$amount = $this->formatCurrency($amount);
@@ -321,7 +321,7 @@
 		}
 		
 		// Implements Provider::refund
-		function refund(string $transaction, ?string $card_number = null, ?float $amount = null): ?string
+		public function refund(string $transaction, ?string $card_number = null, ?float $amount = null): ?string
 		{
 			$params = [
 				"METHOD" => "RefundTransaction",
@@ -349,7 +349,7 @@
 		}
 		
 		// Implements Provider::void
-		function void(string $authorization): ?string
+		public function void(string $authorization): ?string
 		{
 			$params = [
 				"METHOD" => "DoVoid",

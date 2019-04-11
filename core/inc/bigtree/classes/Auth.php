@@ -12,7 +12,8 @@
 	use BigTree\Auth\AuthenticatedUser;
 	use Hautelook\Phpass\PasswordHash;
 	
-	class Auth {
+	class Auth
+	{
 		
 		public static $BanExpiration;
 		public static $Email;
@@ -38,7 +39,9 @@
 				enforce_policies - Whether to enforce password/login policies
 		*/
 		
-		function __construct(string $user_class = 'BigTree\User', string $namespace = "bigtree_admin", bool $enforce_policies = true) {
+		public function __construct(string $user_class = 'BigTree\User', string $namespace = "bigtree_admin",
+							 bool $enforce_policies = true)
+		{
 			/** @var User $user_class */
 			static::$Namespace = $namespace;
 			static::$Policies = $enforce_policies;
@@ -162,11 +165,13 @@
 				secret - A Google Authenticator secret
 		*/
 		
-		static function assign2FASecret(string $secret): void {
-			$user = sqlfetch(sqlquery("SELECT 2fa_login_token FROM bigtree_users WHERE id = '".$_SESSION["bigtree_admin"]["2fa_id"]."'"));
+		public static function assign2FASecret(string $secret): void
+		{
+			$token = SQL::fetchSingle("SELECT 2fa_login_token FROM bigtree_users
+									   WHERE id = ?", $_SESSION["bigtree_admin"]["2fa_id"]);
 			
-			if ($user["2fa_login_token"] == $_SESSION["bigtree_admin"]["2fa_login_token"]) {
-				sqlquery("UPDATE bigtree_users SET 2fa_secret = '".sqlescape($secret)."' WHERE id = '".$_SESSION["bigtree_admin"]["2fa_id"]."'");
+			if ($token == $_SESSION["bigtree_admin"]["2fa_login_token"]) {
+				SQL::update("bigtree_users", $_SESSION["bigtree_admin"]["2fa_id"], ["2fa_secret" => $secret]);
 			}
 			
 			static::login2FA(null, true);
@@ -180,7 +185,8 @@
 				true if the IP is banned
 		*/
 		
-		static function getIsIPBanned($ip) {
+		public static function getIsIPBanned($ip)
+		{
 			global $bigtree;
 			
 			if (!empty(static::$Policies)) {
@@ -203,7 +209,8 @@
 				Sets up security environment variables and runs white/blacklists for IP checks.
 		*/
 		
-		static function initSecurity(): void {
+		public static function initSecurity(): void
+		{
 			global $bigtree;
 			
 			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
@@ -258,7 +265,7 @@
 				false if login failed, otherwise redirects back to the page the person requested.
 		*/
 		
-		static function login(string $email, string $password, bool $stay_logged_in = false, ?string $domain = null,
+		public static function login(string $email, string $password, bool $stay_logged_in = false, ?string $domain = null,
 							  string $two_factor_token = null): bool
 		{
 			global $bigtree;
@@ -475,7 +482,8 @@
 				session_key - The session key created by the login method
 		*/
 		
-		static function loginChainSession(string $session_key): void {
+		public static function loginChainSession(string $session_key): void
+		{
 			$cache_data = Cache::get("org.bigtreecms.login-session", $session_key);
 			
 			if (empty($cache_data)) {
@@ -535,7 +543,8 @@
 				Destroys the user's session and unsets the login cookies.
 		*/
 		
-		static function logout(): void {
+		public static function logout(): void
+		{
 			global $bigtree;
 			
 			// If the user asked to be remembered, drop their chain from the legit sessions and remove cookies
@@ -571,7 +580,8 @@
 				Requires the "db" state for sessions.
 		*/
 		
-		public function logoutAllUsers(): void {
+		public function logoutAllUsers(): void
+		{
 			SQL::query("DELETE FROM bigtree_sessions");
 			SQL::query("DELETE FROM bigtree_user_sessions");
 		}
@@ -586,7 +596,9 @@
 				layout_directory - The base directory for the layout to load (defaults to "admin/layouts/")
 		*/
 		
-		static function stop(?string $message = null, ?string $file = null, string $layout_directory = "admin/layouts/"): void {
+		public static function stop(?string $message = null, ?string $file = null,
+							 string $layout_directory = "admin/layouts/"): void
+		{
 			global $admin, $bigtree, $cms, $db;
 			
 			if ($file) {
@@ -613,7 +625,8 @@
 				A BigTree\Auth\AuthenticatedUser object.
 		*/
 		
-		static function user($user = null): AuthenticatedUser {
+		public static function user($user = null): AuthenticatedUser
+		{
 			/** @var User $user */
 			
 			if (is_null($user)) {
@@ -648,7 +661,8 @@
 				user - A user ID
 		*/
 		
-		static function remove2FASecret(int $user): void {
+		public static function remove2FASecret(int $user): void
+		{
 			SQL::update("bigtree_users", $user, ["2fa_secret" => ""]);
 		}
 		
@@ -664,7 +678,8 @@
 				The two factor auth secret for the user or null if login failed.
 		*/
 		
-		static function verifyLogin2FA(string $email, string $password): ?string {
+		public static function verifyLogin2FA(string $email, string $password): ?string
+		{
 			global $bigtree;
 			
 			$ip = ip2long($_SERVER["REMOTE_ADDR"]);

@@ -25,7 +25,7 @@
 				Prepares an environment for Authorize.Net payments.
 		*/
 		
-		function __construct()
+		public function __construct()
 		{
 			parent::__construct();
 			
@@ -48,7 +48,7 @@
 		}
 		
 		// Implements Provider::authorize
-		function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
+		public function authorize(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
 						   int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
 						   ?string $customer = ""): ?string
 		{
@@ -57,7 +57,7 @@
 		}
 		
 		// Implements Provider::authorizeByProfile
-		function authorizeByProfile(string $id, string $user_id, float $amount, ?float $tax = 0.0,
+		public function authorizeByProfile(string $id, string $user_id, float $amount, ?float $tax = 0.0,
 									?string $description = "", ?string $email = ""): ?string
 		{
 			return $this->chargeByProfile($id, $user_id, $amount, $tax, $description, $email, "authorize");
@@ -68,7 +68,7 @@
 				Sends an API call to PayPal Payments Pro.
 		*/
 		
-		function call(string $endpoint, $data = "", ?string $method = null): ?stdClass
+		public function call(string $endpoint, $data = "", ?string $method = null): ?stdClass
 		{
 			$options = [CURLOPT_HTTPHEADER => $this->Headers];
 			
@@ -80,7 +80,7 @@
 		}
 		
 		// Implements Provider::capture
-		function capture(string $transaction, ?float $amount = null): ?string
+		public function capture(string $transaction, ?float $amount = null): ?string
 		{
 			$data = [
 				"amount" => [
@@ -101,7 +101,7 @@
 		}
 		
 		// Implements Provider::charge
-		function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
+		public function charge(float $amount, float $tax, string $card_name, string $card_number, int $card_expiration,
 						int $cvv, array $address, ?string $description = "", ?string $email = "", ?string $phone = "",
 						?string $customer = "", ?string $action = null): ?string
 		{
@@ -203,7 +203,7 @@
 		}
 		
 		// Implements Provider::chargeByProfile
-		function chargeByProfile(string $id, string $user_id, float $amount, ?float $tax = 0.0,
+		public function chargeByProfile(string $id, string $user_id, float $amount, ?float $tax = 0.0,
 								 ?string $description = "", ?string $email = "", ?string $action = "sale"): ?string
 		{
 			$amount = $this->formatCurrency($amount);
@@ -269,7 +269,7 @@
 		}
 		
 		// Implements Provider::createProfile
-		function createProfile(string $name, string $number, int $expiration_date, int $cvv, array $address,
+		public function createProfile(string $name, string $number, int $expiration_date, int $cvv, array $address,
 							   string $user_id): ?string
 		{
 			// Split the card name into first name and last name.
@@ -323,7 +323,7 @@
 		}
 		
 		// Implements Provider::createRecurringPayment
-		function createRecurringPayment(string $description, float $amount, ?string $start_date, string $period,
+		public function createRecurringPayment(string $description, float $amount, ?string $start_date, string $period,
 										int $frequency, string $card_name, string $card_number, int $card_expiration,
 										int $cvv, array $address, string $email, ?float $trial_amount = null,
 										?string $trial_period = null, ?int $trial_frequency = null,
@@ -381,13 +381,13 @@
 		}
 		
 		// Implements Provider::deleteProfile
-		function deleteProfile(string $id): void
+		public function deleteProfile(string $id): void
 		{
 			$this->call("vault/credit-card/$id", "", "DELETE");
 		}
 		
 		// Implements Provider::getProfile
-		function getProfile(string $id): ?stdClass
+		public function getProfile(string $id): ?stdClass
 		{
 			$response = $this->call("vault/credit-card/$id");
 			
@@ -421,7 +421,7 @@
 				Fetches a new authorization token from PayPal's OAuth servers.
 		*/
 		
-		function getToken(): bool
+		public function getToken(): bool
 		{
 			if ($this->Settings["paypal-rest-environment"] == "test") {
 				$url = "api.sandbox.paypal.com";
@@ -451,7 +451,7 @@
 		}
 		
 		// Implements Provider::paypalExpressCheckoutDetails
-		function paypalExpressCheckoutDetails(string $token): ?array
+		public function paypalExpressCheckoutDetails(string $token): ?array
 		{
 			$token = $token ?: $_SESSION["bigtree"]["paypal-rest-payment-id"];
 			$response = $this->call("payments/payment/$token");
@@ -464,7 +464,7 @@
 		}
 		
 		// Implements Provider::paypalExpressCheckoutProcess
-		function paypalExpressCheckoutProcess(string $token, string $payer_id, ?float $amount = null): ?array
+		public function paypalExpressCheckoutProcess(string $token, string $payer_id, ?float $amount = null): ?array
 		{
 			$token = $token ?: $_SESSION["bigtree"]["paypal-rest-payment-id"];
 			$data = ["payer_id" => $payer_id];
@@ -488,7 +488,7 @@
 		}
 		
 		// Implements Provider::paypalExpressCheckoutRedirect
-		function paypalExpressCheckoutRedirect(float $amount, string $success_url, string $cancel_url): void
+		public function paypalExpressCheckoutRedirect(float $amount, string $success_url, string $cancel_url): void
 		{
 			$data = [
 				"intent" => "sale",
@@ -523,7 +523,7 @@
 		}
 		
 		// Implements Provider::refund
-		function refund(string $transaction, ?string $card_number = null, ?float $amount = null): ?string
+		public function refund(string $transaction, ?string $card_number = null, ?float $amount = null): ?string
 		{
 			if ($amount) {
 				$data = [
@@ -556,7 +556,7 @@
 		}
 		
 		// Implements Provider::void
-		function void(string $authorization): ?string
+		public function void(string $authorization): ?string
 		{
 			$response = $this->call("payments/authorization/$authorization/void", "{}");
 			

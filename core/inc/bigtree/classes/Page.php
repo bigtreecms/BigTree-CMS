@@ -19,9 +19,8 @@
 	 * @property-read string $UserAccessLevel
 	 */
 	
-	class Page extends BaseObject {
-		
-		public static $Table = "bigtree_pages";
+	class Page extends BaseObject
+	{
 		
 		protected $ChangesApplied = false;
 		protected $CreatedAt;
@@ -52,6 +51,8 @@
 		public $Title;
 		public $Trunk;
 		
+		public static $Table = "bigtree_pages";
+		
 		/*
 			Constructor:
 				Builds a Page object referencing an existing database entry.
@@ -61,7 +62,8 @@
 				decode - Whether to decode resource data (true is default, false is faster if resource data isn't needed)
 		*/
 		
-		function __construct($page = null, bool $decode = true) {
+		public function __construct($page = null, bool $decode = true)
+		{
 			// Allow for loading the root (i.e. -1)
 			if ($page === -1 || is_null($page)) {
 				$this->ID = -1;
@@ -113,7 +115,8 @@
 		}
 		
 		// Array conversion
-		function getArray(): array {
+		public function getArray(): array
+		{
 			$raw_properties = get_object_vars($this);
 			$changed_properties = [];
 			
@@ -138,7 +141,8 @@
 				An array of related pages sorted by relevance (how many tags get matched).
 		*/
 		
-		static function allByTags(array $tags, string $type = "object"): array {
+		public static function allByTags(array $tags, string $type = "object"): array
+		{
 			$results = [];
 			$relevance = [];
 			
@@ -198,7 +202,8 @@
 				An array of page ids.
 		*/
 		
-		static function allIDs(): array {
+		public static function allIDs(): array
+		{
 			return SQL::fetchAllSingle("SELECT id FROM bigtree_pages WHERE archived != 'on' ORDER BY id ASC");
 		}
 		
@@ -210,7 +215,8 @@
 				<archiveChildren>
 		*/
 		
-		function archive(): void {
+		public function archive(): void
+		{
 			// Archive the page and the page children
 			SQL::update("bigtree_pages", $this->ID, ["archived" => "on"]);
 			$this->archiveChildren();
@@ -227,7 +233,8 @@
 				<archivePage>
 		*/
 		
-		function archiveChildren($recursion = false): void {
+		public function archiveChildren($recursion = false): void
+		{
 			$page_id = $recursion ?: $this->ID;
 			
 			// Track and recursively archive
@@ -254,7 +261,8 @@
 				An array of pages that link to the admin.
 		*/
 		
-		static function auditAdminLinks(bool $return_arrays = false): array {
+		public static function auditAdminLinks(bool $return_arrays = false): array
+		{
 			global $bigtree;
 			
 			$admin_root = SQL::escape($bigtree["config"]["admin_root"]);
@@ -285,7 +293,8 @@
 				PendingChange object
 		*/
 		
-		public function copyToPending(string $title_change = ""): PendingChange {
+		public function copyToPending(string $title_change = ""): PendingChange
+		{
 			return PendingChange::createPage($this->Trunk, $this->Parent, $this->InNav, $this->NavigationTitle.$title_change,
 											 $this->Title.$title_change, null, $this->MetaDescription, $this->SEOInvisible,
 											 $this->Template, $this->External, $this->NewWindow, $this->Resources,
@@ -320,10 +329,12 @@
 				A Page object.
 		*/
 		
-		static function create(bool $trunk, ?int $parent, bool $in_nav, string $nav_title, string $title, ?string $route,
-							   ?string $meta_description, bool $seo_invisible, string $template, ?string $external,
-							   bool $new_window, ?array $resources, ?string $publish_at, ?string $expire_at, ?int $max_age,
-							   ?array $tags = [], ?int $change_being_published = null): Page {
+		public static function create(bool $trunk, ?int $parent, bool $in_nav, string $nav_title, string $title,
+									  ?string $route, ?string $meta_description, bool $seo_invisible, string $template,
+									  ?string $external, bool $new_window, ?array $resources, ?string $publish_at,
+									  ?string $expire_at, ?int $max_age, ?array $tags = [],
+									  ?int $change_being_published = null): Page
+		{
 			// Clean up either their desired route or the nav title
 			$route = Link::urlify($route ?: $nav_title);
 			
@@ -462,7 +473,8 @@
 				open_graph - An array of open graph changes
 		*/
 		
-		static function createChangeRequest(string $page, array $changes, array $tags, array $open_graph): int {
+		public static function createChangeRequest(string $page, array $changes, array $tags, array $open_graph): int
+		{
 			// Get the user creating the change
 			$user = Auth::user()->ID;
 			
@@ -571,7 +583,8 @@
 				An array of resources.
 		*/
 		
-		static function decodeResources(array $data): array {
+		public static function decodeResources(array $data): array
+		{
 			if (!is_array($data)) {
 				$data = json_decode($data, true);
 			}
@@ -606,7 +619,8 @@
 				Deletes the page and all children.
 		*/
 		
-		function delete(): ?bool {
+		public function delete(): ?bool
+		{
 			// Delete the children as well.
 			$this->deleteChildren($this->ID);
 			
@@ -624,7 +638,8 @@
 				recursive_id - The parent ID to delete children for (used for recursing down)
 		*/
 		
-		function deleteChildren(?int $recursive_id = null): void {
+		public function deleteChildren(?int $recursive_id = null): void
+		{
 			$id = $recursive_id ?: $this->ID;
 			$children = SQL::fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ?", $id);
 			
@@ -643,7 +658,8 @@
 				Deletes the pending draft of the page.
 		*/
 		
-		function deleteDraft(): void {
+		public function deleteDraft(): void
+		{
 			// Get the draft copy's ID
 			$draft_id = SQL::fetchSingle("SELECT id FROM bigtree_pending_changes 
 										  WHERE `table` = 'bigtree_pages' AND `item_id` = ?", $this->ID);
@@ -664,7 +680,8 @@
 				id - The page reversion id.
 		*/
 		
-		function deleteRevision(int $id): void {
+		public function deleteRevision(int $id): void
+		{
 			// Delete the revision
 			SQL::delete("bigtree_page_revisions", $id);
 			
@@ -684,7 +701,8 @@
 				An array of Page entries.
 		*/
 		
-		function getArchivedChildren(bool $return_arrays = false): array {
+		public function getArchivedChildren(bool $return_arrays = false): array
+		{
 			$children = SQL::fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND archived = 'on' 
 									   ORDER BY nav_title ASC", $this->ID);
 			
@@ -708,7 +726,8 @@
 				An array of arrays containing a page title, path, and id.
 		*/
 		
-		static function getAlertsForUser($user): array {
+		public static function getAlertsForUser($user): array
+		{
 			$user = new User($user);
 			
 			// Alerts is empty, nothing to check
@@ -720,7 +739,8 @@
 			
 			// If we care about the whole tree, skip the madness.
 			if ($user->Alerts[0] == "on") {
-				return SQL::fetchAll("SELECT nav_title, id, path, updated_at, DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age
+				return SQL::fetchAll("SELECT nav_title, id, path, updated_at,
+											 DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age
 								      FROM bigtree_pages 
 								      WHERE max_age > 0 AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age 
 								      ORDER BY current_age DESC");
@@ -744,7 +764,8 @@
 				// Only run if the pages requested still exist
 				if (count($path_query)) {
 					// Find all the pages that are old that contain our paths
-					return SQL::fetchAll("SELECT nav_title, id, path, updated_at, DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age 
+					return SQL::fetchAll("SELECT nav_title, id, path, updated_at,
+												 DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age
 										  FROM bigtree_pages 
 										  WHERE max_age > 0 AND (".implode(" OR ", $path_query).") AND 
 										        DATEDIFF('".date("Y-m-d")."',updated_at) > max_age 
@@ -769,7 +790,8 @@
 				<getBreadcrumbByPage>
 		*/
 		
-		function getBreadcrumb(bool $ignore_trunk = false): array {
+		public function getBreadcrumb(bool $ignore_trunk = false): array
+		{
 			return Navigation::getBreadcrumb($this, $ignore_trunk);
 		}
 		
@@ -781,7 +803,8 @@
 				true or false
 		*/
 		
-		function getChangeExists(): bool {
+		public function getChangeExists(): bool
+		{
 			return SQL::exists("bigtree_pending_changes", ["table" => "bigtree_pages", "item_id" => $this->ID]);
 		}
 		
@@ -797,8 +820,10 @@
 				An array of Page entries.
 		*/
 		
-		function getChildren(string $sort = "nav_title ASC", bool $return_arrays = false): array {
-			$children = SQL::fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND archived != 'on' ORDER BY $sort", $this->ID);
+		public function getChildren(string $sort = "nav_title ASC", bool $return_arrays = false): array
+		{
+			$children = SQL::fetchAll("SELECT * FROM bigtree_pages
+									   WHERE parent = ? AND archived != 'on' ORDER BY $sort", $this->ID);
 			
 			if (!$return_arrays) {
 				foreach ($children as &$child) {
@@ -820,7 +845,8 @@
 				An array of Page entries.
 		*/
 		
-		function getHiddenChildren(bool $return_arrays = false): array {
+		public function getHiddenChildren(bool $return_arrays = false): array
+		{
 			$children = SQL::fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND in_nav = '' AND archived != 'on' 
 									   ORDER BY nav_title ASC", $this->ID);
 			
@@ -844,7 +870,8 @@
 				Array of IDs
 		*/
 		
-		static function getLineage(int $page): array {
+		public static function getLineage(int $page): array
+		{
 			$parents = [];
 			
 			while ($page = SQL::fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page)) {
@@ -862,7 +889,8 @@
 				Page object or null.
 		*/
 		
-		public function getParentPage(): ?Page {
+		public function getParentPage(): ?Page
+		{
 			if (empty($this->Parent) || $this->Parent === -1) {
 				return null;
 			}
@@ -878,8 +906,10 @@
 				A PendingChange object.
 		*/
 		
-		function getPendingChange(): ?PendingChange {
-			$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE `table` = 'bigtree_pages' AND `item_id` = ?", $this->ID);
+		public function getPendingChange(): ?PendingChange
+		{
+			$change = SQL::fetch("SELECT * FROM bigtree_pending_changes
+								  WHERE `table` = 'bigtree_pages' AND `item_id` = ?", $this->ID);
 			
 			if (empty($change)) {
 				return null;
@@ -899,7 +929,8 @@
 				An array of pending page titles/ids.
 		*/
 		
-		function getPendingChildren(bool $in_nav = true): array {
+		public function getPendingChildren(bool $in_nav = true): array
+		{
 			$nav = $titles = [];
 			$changes = SQL::fetchAll("SELECT * FROM bigtree_pending_changes 
 									  WHERE pending_page_parent = ? AND `table` = 'bigtree_pages' AND item_id IS NULL 
@@ -936,7 +967,8 @@
 				A Page object or false if no page was found.
 		*/
 		
-		static function getPageDraft($id): ?Page {
+		public static function getPageDraft($id): ?Page
+		{
 			if (is_numeric($id)) {
 				// Numeric id means the page is live.
 				$page = new Page($id);
@@ -1018,7 +1050,8 @@
 				A duplicate Page object with changes applied.
 		*/
 		
-		static function getRevision(int $id): Page {
+		public static function getRevision(int $id): Page
+		{
 			$revision = SQL::fetch("SELECT * FROM bigtree_page_revisions WHERE id = ?", $id);
 			
 			// Get original page
@@ -1066,7 +1099,8 @@
 				- Fresh content - up to 10 points
 		*/
 		
-		function getSEORating(): array {
+		public function getSEORating(): array
+		{
 			if (empty($this->Template) || $this->Template == "!") {
 				return ["score" => 100, "recommendations" => [], "color" => "#00CC00"];
 			}
@@ -1262,7 +1296,8 @@
 				An array of Tag objects.
 		*/
 		
-		function getTags(bool $return_arrays = false): array {
+		public function getTags(bool $return_arrays = false): array
+		{
 			$tags = SQL::fetchAll("SELECT bigtree_tags.*
 								   FROM bigtree_tags JOIN bigtree_tags_rel 
 								   ON bigtree_tags.id = bigtree_tags_rel.tag 
@@ -1293,7 +1328,8 @@
 			
 		*/
 		
-		function getTopLevelPageID(bool $trunk_as_top_level = false): int {
+		public function getTopLevelPageID(bool $trunk_as_top_level = false): int
+		{
 			$paths = [];
 			$path = "";
 			$parts = explode("/", $this->Path);
@@ -1334,7 +1370,8 @@
 				A permission level ("p" for publisher, "e" for editor, null for none)
 		*/
 		
-		function getUserAccessLevel(?User $user = null): ?string {
+		public function getUserAccessLevel(?User $user = null): ?string
+		{
 			return Auth::user($user)->getAccessLevel($this);
 		}
 		
@@ -1347,7 +1384,8 @@
 				true if the user can modify all the page children, otherwise false.
 		*/
 		
-		function getUserCanModifyChildren(): bool {
+		public function getUserCanModifyChildren(): bool
+		{
 			// Make sure a user is logged in
 			if (is_null(Auth::user()->ID)) {
 				trigger_error("Property UserCanModifyChildren not available outside logged-in user context.");
@@ -1385,7 +1423,8 @@
 				An array of Page objects.
 		*/
 		
-		function getVisibleChildren(bool $return_arrays = false): array {
+		public function getVisibleChildren(bool $return_arrays = false): array
+		{
 			$children = SQL::fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND in_nav = 'on' AND archived != 'on' 
 									   ORDER BY position DESC, id ASC", $this->ID);
 			
@@ -1406,7 +1445,8 @@
 				The navigation path (normally found in the "path" column in bigtree_pages).
 		*/
 		
-		function regeneratePath(?int $id = null, array $path = []): string {
+		public function regeneratePath(?int $id = null, array $path = []): string
+		{
 			if (is_null($id)) {
 				$id = $this->ID;
 			}
@@ -1439,8 +1479,9 @@
 				An array of Page objects.
 		*/
 		
-		static function search(string $query, array $fields = ["nav_title"], int $max = 10,
-							   bool $return_arrays = false): array {
+		public static function search(string $query, array $fields = ["nav_title"], int $max = 10,
+							   bool $return_arrays = false): array
+		{
 			// Since we're in JSON we have to do stupid things to the /s for URL searches.
 			$query = str_replace('/', '\\\/', $query);
 			
@@ -1475,7 +1516,8 @@
 				Unarchives the page and all its children that inherited archived status.
 		*/
 		
-		function unarchive() {
+		public function unarchive(): void
+		{
 			SQL::update("bigtree_pages", $this->ID, ["archived" => ""]);
 			$this->unarchiveChildren();
 			
@@ -1487,7 +1529,8 @@
 				Unarchives the page's children that have the archived_inherited status.
 		*/
 		
-		function unarchiveChildren(?int $id = null) {
+		public function unarchiveChildren(?int $id = null): void
+		{
 			// Allow for recursion
 			if (is_null($id)) {
 				$id = $this->ID;
@@ -1510,7 +1553,8 @@
 				Removes any static cache copies of this page.
 		*/
 		
-		function uncache() {
+		public function uncache(): void
+		{
 			FileSystem::deleteFile(md5(json_encode(["bigtree_htaccess_url" => $this->Path])).".page");
 			FileSystem::deleteFile(md5(json_encode(["bigtree_htaccess_url" => $this->Path."/"])).".page");
 		}
@@ -1520,7 +1564,8 @@
 				Saves and validates object properties back to the database.
 		*/
 		
-		function save(): ?bool {
+		public function save(): ?bool
+		{
 			// Explicitly set to -1 in the constructor for null pages
 			if ($this->ID === -1) {
 				$new = static::create(
@@ -1683,7 +1728,8 @@
 				tags - An array of tag IDs
 		*/
 		
-		function setTags(?array $tags) {
+		public function setTags(?array $tags)
+		{
 			$this->Tags = [];
 			
 			if (is_array($tags)) {
@@ -1717,10 +1763,11 @@
 				tags - An array of tag IDs to apply to the page (optional)
 		*/
 		
-		function update(?bool $trunk, ?int $parent, ?bool $in_nav, string $nav_title, string $title, string $route,
-						string $meta_description, ?bool $seo_invisible, string $template, ?string $external,
-						?bool $new_window, ?array $resources, ?string $publish_at, ?string $expire_at, ?int $max_age,
-						?array $tags = []) {
+		public function update(?bool $trunk, ?int $parent, ?bool $in_nav, string $nav_title, string $title,
+							   string $route, string $meta_description, ?bool $seo_invisible, string $template,
+							   ?string $external, ?bool $new_window, ?array $resources, ?string $publish_at,
+							   ?string $expire_at, ?int $max_age, ?array $tags = []): void
+		{
 			// Save a page revision
 			PageRevision::create($this);
 			
@@ -1738,7 +1785,11 @@
 			$this->uncache();
 			
 			// We have no idea how this affects the nav, just wipe it all.
-			if ($this->NavigationTitle != $nav_title || $this->Route != $route || $this->InNav != $in_nav || $this->Parent != $parent) {
+			if ($this->NavigationTitle != $nav_title ||
+				$this->Route != $route ||
+				$this->InNav != $in_nav ||
+				$this->Parent != $parent
+			) {
 				Router::clearCache();
 			}
 			
@@ -1770,7 +1821,8 @@
 				Also sets route history if the page has changed paths.
 		*/
 		
-		function updateChildrenPaths(?int $page = null) {
+		public function updateChildrenPaths(?int $page = null): void
+		{
 			// Allow for recursion
 			if ($page !== null) {
 				$parent_path = SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $page);
@@ -1812,7 +1864,8 @@
 				parent - The new parent page ID.
 		*/
 		
-		function updateParent(int $parent) {
+		public function updateParent(int $parent): void
+		{
 			$this->Parent = $parent;
 			$this->save();
 			
@@ -1828,7 +1881,8 @@
 				position - The position to set.
 		*/
 		
-		function updatePosition(int $position) {
+		public function updatePosition(int $position): void
+		{
 			$this->Position = $position;
 			SQL::update("bigtree_pages", $this->ID, ["position" => $position]);
 		}

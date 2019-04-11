@@ -6,7 +6,8 @@
 	
 	namespace BigTree;
 	
-	class AuditTrail {
+	class AuditTrail
+	{
 		
 		/*
 			Function: track
@@ -19,7 +20,8 @@
 				user_id - A user ID to override the logged in user's ID
 		*/
 		
-		static function track(string $table, string $entry, string $type, ?int $user_id = null): void {
+		public static function track(string $table, string $entry, string $type, ?int $user_id = null): void
+		{
 			$user = !is_null($user_id) ? $user_id : Auth::user()->ID;
 			
 			// If this is running fron cron or something, nobody is logged in so don't track.
@@ -48,8 +50,9 @@
 				An array of adds/edits/deletions from the audit trail.
 		*/
 		
-		static function search(?string $user = null, ?string $table = null, ?string $entry = null,
-							   ?string $start = null, ?string $end = null): array {
+		public static function search(?string $user = null, ?string $table = null, ?string $entry = null,
+							   ?string $start = null, ?string $end = null): array
+		{
 			$users = $where = $parameters = [];
 			$deleted_users = Setting::value("bigtree-internal-deleted-users");
 			$query = "SELECT * FROM bigtree_audit_trail";

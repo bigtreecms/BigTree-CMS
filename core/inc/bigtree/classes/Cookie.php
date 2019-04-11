@@ -6,7 +6,8 @@
 	
 	namespace BigTree;
 	
-	class Cookie {
+	class Cookie
+	{
 		
 		/*
 			Function: create
@@ -19,7 +20,8 @@
 				expiration - Cookie expiration time (in seconds since UNIX epoch) or a string value compatible with strtotime (defaults to session expiration)
 		*/
 		
-		static function create(string $id, $value, $expiration = 0): void {
+		public static function create(string $id, $value, $expiration = 0): void
+		{
 			$expiration = is_int($expiration) ? $expiration : strtotime($expiration);
 			$value = json_encode($value);
 			
@@ -34,7 +36,8 @@
 				id - The cookie identifier
 		*/
 		
-		static function delete(string $id): void {
+		public static function delete(string $id): void
+		{
 			setcookie($id, "", strtotime("-1 week"), str_replace(DOMAIN, "", WWW_ROOT));
 		}
 		
@@ -49,7 +52,8 @@
 				The decoded cookie or false if the cookie was not found.
 		*/
 		
-		static function get(string $id) {
+		public static function get(string $id)
+		{
 			// Allow for sub-cookies
 			if (strpos($id, "[") !== false) {
 				$pieces = explode("[", $id);
