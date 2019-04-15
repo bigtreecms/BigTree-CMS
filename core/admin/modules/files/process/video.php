@@ -8,18 +8,21 @@
 	if (strpos($url,"youtu.be") !== false || strpos($url,"youtube.com") !== false) {
 		// Fix issues with URLs that contain timestamps.
 		$parsed = parse_url($url);
-		$get = explode("&", $parsed["query"]);
 
-		foreach ($get as $index => $get_item) {
-			if (strpos($get_item, "t=") === 0) {
-				unset($get[$index]);
+		if ($parsed["query"]) {
+			$get = explode("&", $parsed["query"]);
+
+			foreach ($get as $index => $get_item) {
+				if (strpos($get_item, "t=") === 0) {
+					unset($get[$index]);
+				}
 			}
-		}
 
-		$url = $parsed["scheme"]."://".$parsed["host"].$parsed["path"];
+			$url = $parsed["scheme"]."://".$parsed["host"].$parsed["path"];
 
-		if (count($get)) {
-			$url .= "?".implode("&", $get);
+			if (count($get)) {
+				$url .= "?".implode("&", $get);
+			}
 		}
 			
 		// Try to grab the ID from the YouTube URL (courtesy of various Stack Overflow authors)
