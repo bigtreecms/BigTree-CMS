@@ -31,11 +31,16 @@
 		// Update an existing draft with our changes and new author
 		$existing->Changes = $changes;
 		$existing->save();
+		$change_id = $existing->ID;
+
 		Resource::deallocate("bigtree_pages", "p".$existing->ID);
 	} else {
 		// If we don't have an existing copy, make a new draft.
-		PendingChange::create("bigtree_pages", $revision->Page, $changes);
+		$change = PendingChange::create("bigtree_pages", $revision->Page, $changes);
+		$change_id = $change->ID;
 	}
-	
+
+
+	Resource::allocate("bigtree_pages", $change_id);
 	Utils::growl("Pages","Loaded Saved Revision");
 	Router::redirect(ADMIN_ROOT."pages/edit/".$revision->Page."/");
