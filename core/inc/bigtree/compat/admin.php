@@ -97,12 +97,12 @@
 				Assigns resources from $this->IRLsCreated
 
 			Parameters:
-				module - Module ID to assign to
+				table - Table in which the entry resides
 				entry - Entry ID to assign to
 		*/
 
-		static function allocateResources($module, $entry) {
-			BigTree\Resource::allocate($module, $entry);
+		static function allocateResources($table, $entry) {
+			BigTree\Resource::allocate($table, $entry);
 		}
 
 		/*
@@ -804,6 +804,19 @@
 			$user = BigTree\User::create($email, $password, $name, $company, $level, $permissions, $alerts, $daily_digest ? true : false, $timezone);
 
 			return $user ? $user->ID : false;
+		}
+
+		/*
+			Function: deallocateResources
+				Removes resource allocation from a deleted entry.
+
+			Parameters:
+				table - The table of the entry
+				entry - The ID of the entry
+		*/
+
+		public static function deallocateResources($table, $entry) {
+			BigTree\Resource::deallocate($table, $entry);
 		}
 
 		/*
@@ -4112,12 +4125,28 @@
 
 		function updateResource($id, $attributes) {
 			$resource = new BigTree\Resource($id);
+			
 			foreach ($attributes as $key => $val) {
 				// Camel case attributes
 				$key = str_replace(" ", "", ucwords(str_replace("_", " ", $key)));
 				$resource->$key = $val;
 			}
+
 			$resource->save();
+		}
+
+		/*
+			Function: updateResourceAllocation
+				Updates resource allocation to move pending changes to the live entry.
+
+			Parameters:
+				table - Table the entry is in
+				entry - Entry ID
+				pending_id - The pending entry ID
+		*/
+
+		public function updateResourceAllocation($table, $entry, $pending_id) {
+			BigTree\Resource::updatePendingAllocation($pending_id, $table, $entry);
 		}
 
 		/*

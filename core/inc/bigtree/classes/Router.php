@@ -191,7 +191,7 @@
 		public static function forceHTTPS(): void
 		{
 			if (!static::getIsSSL()) {
-				static::redirect("https://".$_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"], "301");
+				static::redirect("https://".$_SERVER["HTTP_HOST"].$_SERVER["REQUEST_URI"], "301");
 			}
 			
 			static::$Secure = true;

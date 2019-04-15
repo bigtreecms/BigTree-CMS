@@ -45,15 +45,17 @@
 			$page->save();
 		} else {
 			$form->updateEntry($change->ItemID, $change->Changes, $change->ManyToManyChanges, $change->TagsChanges);
-
+			
 			if ($change["publish_hook"]) {
 				call_user_func($change->PublishHook, $change->Table, $change->ItemID, $change->Changes, $change->ManyToManyChanges, $change->TagsChanges);
 			}
 		}
+		
+		Resource::updatePendingAllocation($change->ID, $change->Table, $change->ItemID);
 	// It's a new entry, let's publish it.
 	} else {
 		if ($change->Table == "bigtree_pages") {
-			Page::create(
+			$page = Page::create(
 				$change->Changes["trunk"],
 				$change->Changes["parent"],
 				$change->Changes["in_nav"],
@@ -71,12 +73,16 @@
 				$change->Changes["max_age"],
 				$change->TagsChanges
 			);
+			
+			Resource::updatePendingAllocation($change->ID, "bigtree_pages", $page->ID);
 		} else {
 			$id = $form->createEntry($change->Changes, $change->ManyToManyChanges, $change->TagsChanges, $change->ID);
 
 			if ($change->PublishHook) {
 				call_user_func($change->PublishHook, $change->Table, $id, $change->Changes, $change->ManyToManyChanges, $change->TagsChanges);
 			}
+			
+			Resource::updatePendingAllocation($change->ID, $change->Table, $id);
 		}
 	}
 

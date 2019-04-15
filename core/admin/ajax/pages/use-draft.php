@@ -31,6 +31,7 @@
 		// Update an existing draft with our changes and new author
 		$existing->Changes = $changes;
 		$existing->save();
+		Resource::deallocate("bigtree_pages", "p".$existing->ID);
 	} else {
 		// If we don't have an existing copy, make a new draft.
 		PendingChange::create("bigtree_pages", $revision->Page, $changes);

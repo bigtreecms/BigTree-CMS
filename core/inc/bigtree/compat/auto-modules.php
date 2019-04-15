@@ -22,7 +22,7 @@
 		*/
 		
 		static function cacheNewItem($id, $table, $pending = false) {
-			BigTree\ModuleView::cacheForAll($id, $table, $pending);
+			BigTree\ModuleView::cacheForAll($table, $id, $pending);
 		}
 		
 		static function cacheRecord() {
@@ -673,7 +673,7 @@
 		*/
 		
 		static function recacheItem($id, $table, $pending = false) {
-			return BigTree\ModuleView::cacheForAll($id, $table, $pending);
+			return BigTree\ModuleView::cacheForAll($table, $id, $pending);
 		}
 
 		/*
@@ -746,7 +746,7 @@
 		*/
 		
 		static function uncacheItem($id, $table) {
-			BigTree\ModuleView::uncacheForAll($id, $table);
+			BigTree\ModuleView::uncacheForAll($table, $id);
 		}
 
 		/*

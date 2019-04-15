@@ -97,6 +97,7 @@
 	// Make some easier to write out vars for below.
 	$tags = $_POST["_tags"] ?: [];
 	$edit_id = $_POST["id"] ? $_POST["id"] : false;
+	$change_allocation_id = false;
 	$table = $form->Table;
 	$item = $bigtree["entry"];
 	$many_to_many = $bigtree["many-to-many"];
@@ -121,12 +122,14 @@
 		
 		// We have an existing module entry we're saving a change to.
 		if ($edit_id) {
-			$form->createChangeRequest($edit_id, $item, $many_to_many, $tags, $og_changes);
+			$change_allocation_id = $form->createChangeRequest($edit_id, $item, $many_to_many, $tags, $og_changes);
 			Utils::growl($module->Name, "Saved ".$form->Title." Draft");
+			Resource::allocate($form->Table, "p".$change_allocation_id);
 		// It's a new entry, so we create a pending item.
 		} else {
 			$edit_id = "p".$form->createPendingEntry($item, $many_to_many, $tags, $og_changes);
 			Utils::growl($module->Name, "Created ".$form->Title." Draft");
+			Resource::allocate($form->Table, $edit_id);
 		}
 	// We're a publisher and we want to publish
 	} elseif ($bigtree["access_level"] == "p" && $data_action == "publish") {
@@ -134,16 +137,27 @@
 		if ($edit_id) {
 			// If the edit id starts with a "p" it's a pending entry we're publishing.
 			if (substr($edit_id, 0, 1) == "p") {
-				$form->deletePendingEntry(substr($edit_id, 1));
+				$pending_id = substr($edit_id, 1);
+				$form->deletePendingEntry($pending_id);
 				$edit_id = $form->createEntry($item, $many_to_many, $tags);
 				$did_publish = true;
 				
+				Resource::updatePendingAllocation($pending_id, $form->Table, $edit_id);
 				Utils::growl($module->Name, "Updated & Published ".$form->Title);
 			// Otherwise we're updating something that is already published
 			} else {
+				$pending_change_id = SQL::fetchSingle("SELECT id FROM bigtree_pending_changes
+													   WHERE `table` = ? AND `item_id` = ?",
+													  $form->Table, $edit_id);
+				
+				if ($pending_change_id) {
+					Resource::deallocate($form->Table, "p".$pending_change_id);
+				}
+				
 				$form->updateEntry($edit_id, $item, $many_to_many, $tags);
 				$did_publish = true;
 				
+				Resource::allocate($form->Table, $edit_id);
 				Utils::growl($module->Name, "Updated ".$form->Title);
 			}
 		// We're creating a new published entry.
@@ -151,13 +165,13 @@
 			$edit_id = $form->createEntry($item, $many_to_many, $tags);
 			$did_publish = true;
 			
+			Resource::allocate($form->Table, $edit_id);
 			Utils::growl($module->Name, "Created ".$form->Title);
 		}
 	}
 	
 	if ($did_publish && $form->OpenGraphEnabled) {
-		OpenGraph::handleData($form->Table, $edit_id, $_POST["_open_graph_"],
-							  $_FILES["_open_graph_"]["image"]);
+		OpenGraph::handleData($form->Table, $edit_id, $_POST["_open_graph_"], $_FILES["_open_graph_"]["image"]);
 	}
 	
 	// Catch errors
@@ -229,7 +243,7 @@
 	}
 	
 	// Track resource allocation
-	Resource::allocate($module->ID, $edit_id);
+	Resource::allocate($form->Table, $edit_id);
 	
 	// Put together saved form information for the error or crop page in case we need it.
 	$edit_action = $module->getEditAction($form->ID);

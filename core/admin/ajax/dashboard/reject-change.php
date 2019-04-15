@@ -34,11 +34,13 @@
 	if ($access_level != "p") {
 		die();
 	}
-
+	
+	Resource::deallocate($change->Table, "p".$change->ID);
 	$change->delete();
 
 	if (!is_numeric($item_id)) {
-		ModuleView::uncacheForAll($item_id, $change->Table);
+		ModuleView::uncacheForAll($change->Table, $item_id);
 	} else {
-		ModuleView::cacheForAll($item_id, $change->Table);
+		ModuleView::cacheForAll($change->Table, $item_id);
 	}
+	

@@ -21,11 +21,11 @@
 			// Live Entry
 			if (is_numeric($id)) {
 				SQL::update($view->Table, $id, array("position" => ($count - $position)));
-				ModuleView::cacheForAll($id, $table);
+				ModuleView::cacheForAll($table, $id);
 			// Pending Entry
 			} else {
 				$form->updatePendingEntryField(substr($id, 1), "position", ($count - $position));
-				ModuleView::cacheForAll(substr($id, 1), $view->Table, true);
+				ModuleView::cacheForAll($view->Table, substr($id, 1), true);
 			}
 		}
 	}

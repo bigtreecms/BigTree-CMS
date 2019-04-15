@@ -84,24 +84,22 @@
 				Assigns resources from creation log and wipes creation log.
 
 			Parameters:
-				module - Module ID or content type (e.g. "settings") to assign to
+				table - Table in which the entry resides
 				entry - Entry ID to assign to
 		*/
 		
-		public static function allocate(string $module, string $entry): void
+		public static function allocate(string $table, string $entry): void
 		{
 			// Wipe existing allocations
-			SQL::delete("bigtree_resource_allocation", [
-				"module" => $module,
-				"entry" => $entry
-			]);
+			SQL::delete("bigtree_resource_allocation", ["table" => $table, "entry" => $entry]);
 			
 			// Add new allocations
 			foreach (static::$CreationLog as $resource) {
 				SQL::insert("bigtree_resource_allocation", [
-					"module" => $module,
+					"table" => $table,
 					"entry" => $entry,
-					"resource" => $resource
+					"resource" => $resource,
+					"updated_at" => "NOW()"
 				]);
 			}
 			
@@ -189,6 +187,19 @@
 			AuditTrail::track("bigtree_resources", $id, "created");
 			
 			return new Resource($id);
+		}
+		
+		/*
+			Function: deallocate
+				Removes resource allocation from a deleted entry.
+
+			Parameters:
+				table - The table of the entry
+				entry - The ID of the entry
+		*/
+		
+		public static function deallocate(string $table, $entry): void {
+			SQL::delete("bigtree_resource_allocation", ["table" => $table, "entry" => $entry]);
 		}
 		
 		/*
@@ -402,6 +413,23 @@
 			}
 			
 			return true;
+		}
+		
+		/*
+			Function: updatePendingAllocation
+				Moves resource allocation from a pending ID to a published ID.
+		
+			Parameters:
+				pending_id - The ID of the pending change
+				table - The table containing the published entry
+				entry - The ID of the published entry
+		
+		*/
+		
+		public static function updatePendingAllocation(int $pending_id, string $table, int $entry): void
+		{
+			SQL::delete("bigtree_resource_allocation", ["table" => $table, "entry" => $entry]);
+			SQL::update("bigtree_resource_allocation", ["table" => $table, "entry" => "p".$pending_id], ["entry" => $entry]);
 		}
 		
 	}

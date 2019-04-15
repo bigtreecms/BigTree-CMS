@@ -64,15 +64,17 @@
 				$_POST["parent"] = $bigtree["current_page_data"]["parent"];
 			}
 			
-			$page_id = Page::create($trunk, $_POST["parent"], $_POST["in_nav"], $_POST["nav_title"], $_POST["title"],
-									$_POST["route"], $_POST["meta_description"], $_POST["seo_invisible"], $_POST["template"],
-									$_POST["external"], $_POST["new_window"], $_POST["resources"], $_POST["publish_at"],
-									$_POST["expire_at"], $_POST["max_age"], $_POST["_tags"], substr($id, 1));
+			$page = Page::create($trunk, $_POST["parent"], $_POST["in_nav"], $_POST["nav_title"], $_POST["title"],
+								 $_POST["route"], $_POST["meta_description"], $_POST["seo_invisible"], $_POST["template"],
+								 $_POST["external"], $_POST["new_window"], $_POST["resources"], $_POST["publish_at"],
+								 $_POST["expire_at"], $_POST["max_age"], $_POST["_tags"], substr($id, 1));
 			
 			$change = new PendingChange(substr($id, 1));
 			$change->delete();
 			$did_publish = true;
+			$page_id = $page->ID;
 			
+			Resource::updatePendingAllocation($change->ID, "bigtree_pages", $page->ID);
 			Utils::growl("Pages", "Created & Published Page");
 		} else {
 			// It's an existing page.
@@ -84,6 +86,7 @@
 			$did_publish = true;
 			$page_id = $page->ID;
 			
+			Resource::allocate("bigtree_pages", $page_id);
 			Utils::growl("Pages", "Updated Page");
 		}
 		
@@ -95,8 +98,9 @@
 		
 		$did_publish = false;
 		$og_pending_data = OpenGraph::handleData(null, null, $_POST["_open_graph_"], $og_files["image"]);
-		
-		Page::createChangeRequest($id, $_POST, array_filter((array) $_POST["_tags"]), $og_pending_data);
+		$change_id = Page::createChangeRequest($id, $_POST, array_filter((array) $_POST["_tags"]), $og_pending_data);
+
+		Resource::allocate("bigtree_pending_changes", $change_id);
 		Utils::growl("Pages", "Saved Page Draft");
 	}
 	
@@ -127,7 +131,7 @@
 	}
 	
 	// Track resource allocation
-	Resource::allocate("pages", $id);
+	Resource::allocate("bigtree_pages", $id);
 	
 	$_SESSION["bigtree_admin"]["form_data"] = array(
 		"page" => $id,

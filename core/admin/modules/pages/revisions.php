@@ -68,6 +68,7 @@
 	<header>
 		<span class="pages_last_edited"><?=Text::translate("Published")?></span>
 		<span class="pages_draft_author"><?=Text::translate("Author")?></span>
+		<span class="pages_draft_deleted"></span>
 		<span class="pages_delete"><?=Text::translate("Save")?></span>
 		<span class="pages_publish"><?=Text::translate("New Draft")?></span>
 		<span class="pages_edit"><?=Text::translate("Delete")?></span>
@@ -76,6 +77,7 @@
 		<li class="active">
 			<section class="pages_last_edited"><?=Auth::user()->convertTimestampTo($page->UpdatedAt, "F j, Y @ g:ia")?></section>
 			<section class="pages_draft_author"><span class="gravatar"><img src="<?=User::gravatar($current_author->Email, 36)?>" alt="" /></span><?=$current_author->Name?><span class="active_draft"><?=Text::translate("Active")?></span></section>
+			<section class="pages_draft_deleted"></section>
 			<section class="pages_delete"><a href="#" class="icon_save"></a></section>
 			<section class="pages_publish"></section>
 			<section class="pages_edit"></section>
@@ -84,6 +86,15 @@
 		<li>
 			<section class="pages_last_edited"><?=Auth::user()->convertTimestampTo($revision["updated_at"], "F j, Y @ g:ia")?></section>
 			<section class="pages_draft_author"><span class="gravatar"><img src="<?=User::gravatar($revision["email"], 36)?>" alt="" /></span><?=$revision["name"]?></section>
+			<section class="pages_draft_deleted">
+				<?php
+					if ($revision["has_deleted_resources"]) {
+				?>
+				<div class="pages_draft_description_deleted_text"><?=Text::translate("Contains Deleted Files")?></div>
+				<?php
+					}
+				?>
+			</section>
 			<section class="pages_delete"><a href="#<?=$revision["id"]?>" class="icon_save"></a></section>
 			<section class="pages_publish"><a href="#<?=$revision["id"]?>" class="icon_draft"></a></section>
 			<section class="pages_edit"><a href="#<?=$revision["id"]?>" class="icon_delete"></a></section>
@@ -103,7 +114,17 @@
 		<?php foreach ($revisions["saved"] as $revision) { ?>
 		<li>
 			<section class="pages_last_edited"><?=Auth::user()->convertTimestampTo($revision["updated_at"], "F j, Y @ g:ia")?></section>
-			<section class="pages_draft_description"><?=$revision["saved_description"]?></section>
+			<section class="pages_draft_description">
+				<?php
+					echo $revision["saved_description"];
+					
+					if ($revision["has_deleted_resources"]) {
+				?>
+				<div class="pages_draft_description_deleted_text"><?=Text::translate("Contains Deleted Files")?></div>
+				<?php
+					}
+				?>
+			</section>
 			<section class="pages_publish"><a href="#<?=$revision["id"]?>" class="icon_draft"></a></section>
 			<section class="pages_edit"><a href="#<?=$revision["id"]?>" class="icon_delete"></a></section>
 		</li>

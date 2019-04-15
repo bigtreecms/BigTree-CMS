@@ -7,7 +7,7 @@
 	 */
 
 	if (is_numeric($id)) {
-		ModuleView::cacheForAll($id, $table);
+		ModuleView::cacheForAll($table, $id);
 	} else {
-		ModuleView::cacheForAll(substr($id, 1), $table, true);
+		ModuleView::cacheForAll($table, substr($id, 1), true);
 	}

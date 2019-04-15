@@ -230,7 +230,7 @@
 				"publish_hook" => $publish_hook ?: null
 			]);
 			
-			ModuleView::cacheForAll($id, $table, true);
+			ModuleView::cacheForAll($table, $id, true);
 			AuditTrail::track($table, "p".$id, "created-pending");
 			
 			return new PendingChange($id);

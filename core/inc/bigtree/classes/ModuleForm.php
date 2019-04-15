@@ -179,7 +179,7 @@
 			}
 
 			// Update view cache
-			ModuleView::cacheForAll($id, $this->Table);
+			ModuleView::cacheForAll($this->Table, $id);
 			
 			// Attribute this to the original pending change author if the data hasn't changed
 			if ($change_being_published) {
@@ -196,7 +196,7 @@
 					}
 					
 					SQL::delete("bigtree_pending_changes", $change_being_published);
-					ModuleView::uncacheForAll("p".$change_being_published, $this->Table);
+					ModuleView::uncacheForAll($this->Table, "p".$change_being_published);
 					
 					if ($exact) {
 						AuditTrail::track($this->Table, $id, "created via publisher", $change["user"]);
@@ -285,10 +285,17 @@
 		
 		public function deleteEntry(int $id): void
 		{
-			SQL::delete($this->Table, $id);
-			SQL::delete("bigtree_pending_changes", ["table" => $this->Table, "item_id" => $id]);
+			$pending_change = SQL::fetchSingle("SELECT * FROM bigtree_pending_changes
+												WHERE `table` = ? AND `item_id` = ?", $table, $id);
 			
-			ModuleView::uncacheForAll($id, $this->Table);
+			if ($pending_change) {
+				Resource::deallocate($this->Table, "p".$pending_change);
+				SQL::delete("bigtree_pending_changes", $pending_change);
+			}
+			
+			SQL::delete($this->Table, $id);
+			Resource::deallocate($this->Table, $id);
+			ModuleView::uncacheForAll($this->Table, $id);
 			AuditTrail::track($this->Table, $id, "deleted");
 		}
 		
@@ -303,8 +310,8 @@
 		public function deletePendingEntry(int $id): void
 		{
 			SQL::delete("bigtree_pending_changes", $id);
-			
-			ModuleView::uncacheForAll("p$id", $this->Table);
+			Resource::deallocate($this->Table, "p".$id);
+			ModuleView::uncacheForAll($this->Table, "p$id");
 			AuditTrail::track($this->Table, "p$id", "deleted-pending");
 		}
 		
@@ -743,7 +750,7 @@
 			}
 			
 			if ($this->Table != "bigtree_pages") {
-				ModuleView::cacheForAll($id, $this->Table);
+				ModuleView::cacheForAll($this->Table, $id);
 			}
 		}
 		

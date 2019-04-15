@@ -24,5 +24,7 @@
 			$form->deleteEntry($id);
 		}
 	}
+	
+	Resource::deallocate($pending_entry["table"], $id);
 ?>
 BigTree.growl("<?=$module->Name?>","<?=Text::translate($message, true)?>");

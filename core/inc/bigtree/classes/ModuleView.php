@@ -360,12 +360,12 @@
 				Caches a new database row for all Module Views that use the same table.
 
 			Parameters:
-				id - The id of the row.
 				table - The table the row is in.
+				id - The id of the row.
 				pending - Whether this is actually a pending entry (defaults to false)
 		*/
 		
-		public static function cacheForAll(string $id, string $table, bool $pending = false): void
+		public static function cacheForAll(string $table, string $id, bool $pending = false): void
 		{
 			if (!$pending) {
 				$item = SQL::fetch("SELECT `$table`.*, bigtree_pending_changes.changes AS bigtree_changes 
@@ -1017,14 +1017,15 @@
 				Removes a database row from all Module View caches with the given table.
 
 			Parameters:
-				id - The id of the entry.
 				table - The table the entry is in.
+				id - The id of the entry.
 		*/
 		
-		public static function uncacheForAll(string $id, string $table): void
+		public static function uncacheForAll(string $table, string $id): void
 		{
 			$view_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_module_interfaces 
 											 WHERE `type` = 'view' AND `table` = ?", $table);
+			
 			foreach ($view_ids as $view_id) {
 				SQL::delete("bigtree_module_view_cache", ["view" => $view_id, "id" => $id]);
 			}

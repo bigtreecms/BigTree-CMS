@@ -116,7 +116,7 @@
 			$id = SQL::insert($this->Table, $insert_array);
 
 			if (!$ignore_cache) {
-				ModuleView::cacheForAll($id, $this->Table);
+				ModuleView::cacheForAll($this->Table, $id);
 			}
 
 			return $id;
@@ -139,7 +139,7 @@
 			}
 
 			$this->update($item, "approved", "on");
-			ModuleView::cacheForAll($item, $this->Table);
+			ModuleView::cacheForAll($this->Table, $item);
 		}
 		
 		/*
@@ -159,7 +159,7 @@
 			}
 
 			$this->update($item, "archived", "on");
-			ModuleView::cacheForAll($item, $this->Table);
+			ModuleView::cacheForAll($this->Table, $item);
 		}
 		
 		/*
@@ -182,7 +182,7 @@
 			
 			SQL::delete($this->Table, $item);
 			SQL::delete("bigtree_pending_changes", array("table" => $this->Table, "item_id" => $item));
-			ModuleView::uncacheForAll($item, $this->Table);
+			ModuleView::uncacheForAll($this->Table, $item);
 		}
 		
 		/*
@@ -202,7 +202,7 @@
 			}
 
 			$this->update($item, "featured", "on");
-			ModuleView::cacheForAll($item, $this->Table);
+			ModuleView::cacheForAll($this->Table, $item);
 		}
 		
 		/*
@@ -974,7 +974,7 @@
 			}
 
 			$this->update($item, "position", $position);
-			ModuleView::cacheForAll($item, $this->Table);
+			ModuleView::cacheForAll($this->Table, $item);
 		}
 		
 		/*
@@ -994,7 +994,7 @@
 			}
 
 			$this->update($item, "approved", "");
-			ModuleView::cacheForAll($item, $this->Table);
+			ModuleView::cacheForAll($this->Table, $item);
 		}
 		
 		/*
@@ -1014,7 +1014,7 @@
 			}
 
 			$this->update($item, "archived", "");
-			ModuleView::cacheForAll($item, $this->Table);
+			ModuleView::cacheForAll($this->Table, $item);
 		}
 		
 		/*
@@ -1034,7 +1034,7 @@
 			}
 
 			$this->update($item, "featured", "");
-			ModuleView::cacheForAll($item, $this->Table);
+			ModuleView::cacheForAll($this->Table, $item);
 		}
 		
 		/*
@@ -1076,7 +1076,7 @@
 			SQL::update($this->Table, $id, $update_fields);
 
 			if (!$ignore_cache) {
-				ModuleView::cacheForAll($id, $this->Table);
+				ModuleView::cacheForAll($this->Table, $id);
 			}
 		}
 	}
