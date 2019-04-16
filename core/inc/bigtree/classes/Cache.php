@@ -41,7 +41,7 @@
 				Data from the table (json decoded, objects convert to keyed arrays) if it exists.
 		*/
 		
-		public static function get(string $identifier, string $key, ?string $max_age = null, bool $decode = true): array
+		public static function get(string $identifier, string $key, ?string $max_age = null, bool $decode = true)
 		{
 			if (!is_null($max_age)) {
 				// We need to get MySQL's idea of what time it is so that if PHP's differs we don't screw up caches.

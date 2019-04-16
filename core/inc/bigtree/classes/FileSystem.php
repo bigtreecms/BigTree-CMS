@@ -65,7 +65,7 @@
 				to - The location of the new copy.
 
 			Returns:
-				true if the copy was successful, false if the directories were not writable.
+				true if the copy was successful, false if the directories were not writable or the source was not readable.
 		*/
 		
 		public static function copyFile(string $from, string $to): bool
@@ -88,7 +88,7 @@
 			$directory = $pathinfo["dirname"];
 			static::createDirectory($directory);
 			
-			$success = copy($from, $to);
+			$success = @copy($from, $to);
 			static::setPermissions($to);
 			
 			return $success;

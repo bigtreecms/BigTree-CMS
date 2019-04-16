@@ -168,16 +168,16 @@
 		
 		/*
 			Function: clearCache
-				Removes all files in the cache directory removing cached pages and module routes.
+				Removes all page cache files in the cache directory.
 		*/
 		
 		public static function clearCache(): void
 		{
-			$d = opendir(SERVER_ROOT."cache/");
+			$directory = opendir(SERVER_ROOT."cache/");
 			
-			while ($f = readdir($d)) {
-				if ($f != "." && $f != ".." && !is_dir(SERVER_ROOT."cache/".$f)) {
-					unlink(SERVER_ROOT."cache/".$f);
+			while ($file = readdir($directory)) {
+				if (substr($file, -5, 5) == ".page") {
+					unlink(SERVER_ROOT."cache/".$file);
 				}
 			}
 		}

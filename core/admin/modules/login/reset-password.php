@@ -30,6 +30,7 @@
 	}
 
 	$policy = array_filter((array)$bigtree["security-policy"]["password"]) ? $bigtree["security-policy"]["password"] : false;
+	$policy_text = null;
 	
 	if (!empty($policy["length"]) ||
 		!empty($policy["mixedcase"]) ||
@@ -82,8 +83,8 @@
 		?>
 		<fieldset>
 			<label for="password_field_password"><?=Text::translate("New Password")?></label>
-			<input id="password_field_password" class="text<?php if ($policy) { ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><?php } ?>" type="password" name="password" />
-			<?php if ($policy) { ?>
+			<input id="password_field_password" class="text<?php if ($policy_text) { ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><?php } ?>" type="password" name="password" />
+			<?php if ($policy_text) { ?>
 			<p class="password_policy"><?=Text::translate("Password Policy In Effect")?></p>
 			<?php } ?>
 		</fieldset>

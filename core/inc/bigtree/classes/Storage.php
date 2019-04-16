@@ -288,13 +288,15 @@
 				relative_path - The path (relative to SITE_ROOT or the bucket / container root) in which to store the file.
 				remove_original - Whether to delete the local_file or not.
 				prefixes - A list of file prefixes that also need to be accounted for when checking file name availability.
+				sanitize_file_name - Whether to sanitize a file name (defaults to true)
 
 			Returns:
 				The URL of the stored file if successful.
 		*/
 		
 		public function store(string $local_file, string $file_name, string $relative_path,
-							  bool $remove_original = true, array $prefixes = []): ?string
+							  bool $remove_original = true, array $prefixes = [],
+							  bool $sanitize_file_name = true): ?string
 		{
 			global $bigtree;
 			
@@ -321,10 +323,15 @@
 			if ($this->Cloud) {
 				// Clean up the file name
 				$parts = pathinfo($file_name);
-				$clean_name = Link::urlify($parts["filename"]);
 				
-				if (strlen($clean_name) > 50) {
-					$clean_name = substr($clean_name, 0, 50);
+				if ($sanitize_file_name) {
+					$clean_name = Link::urlify($parts["filename"]);
+					
+					if (strlen($clean_name) > 50) {
+						$clean_name = substr($clean_name, 0, 50);
+					}
+				} else {
+					$clean_name = $parts["filename"];
 				}
 				
 				// Best case name

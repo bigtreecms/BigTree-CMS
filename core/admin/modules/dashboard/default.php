@@ -3,8 +3,9 @@
 	
 	// Check whether our database is running the latest revision of BigTree or not.
 	$current_revision = Setting::value("bigtree-internal-revision");
+	
 	if ($current_revision < BIGTREE_REVISION && Auth::user()->Level > 1) {
-		Router::redirect(ADMIN_ROOT."developer/upgrade/database/");
+		Router::redirect(ADMIN_ROOT."developer/upgrade/scripts/");
 	}
 
 	// Get pane settings
@@ -20,6 +21,7 @@
 		);
 		$positions[] = isset($settings[$id]["position"]) ? $settings[$id]["position"] : 0;
 	}
+	
 	foreach (Dashboard::$Plugins as $extension => $set) {
 		foreach ($set as $id => $name) {
 			$id = $extension."*".$id;
@@ -31,12 +33,14 @@
 			$positions[] = isset($settings[$id]["position"]) ? $settings[$id]["position"] : 0;
 		}
 	}
+	
 	array_multisort($positions,SORT_DESC,$panes);
 
 	// Draw the panes
 	foreach ($panes as $pane) {
 		if (!$pane["disabled"]) {
 			echo '<div class="dashboard_pane">';
+			
 			// Core pane
 			if (strpos($pane["id"],"*") === false) {
 				include Router::getIncludePath("admin/modules/dashboard/panes/".$pane["id"].".php");
@@ -45,6 +49,7 @@
 				list($extension,$id) = explode("*",$pane["id"]);
 				include SERVER_ROOT."extensions/$extension/plugins/dashboard/$id.php";
 			}
+			
 			echo '</div>';
 		}
 	}
