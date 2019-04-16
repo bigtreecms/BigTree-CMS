@@ -7254,6 +7254,8 @@
 		*/
 
 		public static function parse404SourceURL($source, $site_key = null) {
+			global $bigtree;
+			
 			$source = trim($source);
 
 			// If this is a multi-site environment and a full URL was pasted in we're going to auto-select the key no matter what they passed in
