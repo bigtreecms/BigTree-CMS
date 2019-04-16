@@ -1640,6 +1640,7 @@
 			}
 
 			$view["options"] = &$view["settings"]; // Backwards compatibility
+			$module_root = ADMIN_ROOT.$module_for_view["route"]."/";
 
 			// Get the edit link
 			if (isset($view["actions"]["edit"])) {

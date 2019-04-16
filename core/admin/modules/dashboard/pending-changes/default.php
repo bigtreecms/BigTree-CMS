@@ -87,6 +87,7 @@
 	
 	foreach ($modules as $mod) {
 		$view = BigTreeAutoModule::getViewForTable($mod["table"]);
+
 		if ($view) {
 			$view_data = BigTreeAutoModule::getViewData($view);
 		} else {
