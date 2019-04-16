@@ -401,10 +401,10 @@
 					}
 					
 					if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
-						Router::redirect($site_data["domain"].$bigtree["page"]["path"], ["301"]);
+						Router::redirect($site_data["domain"].$bigtree["page"]["path"], "301");
 					}
 					
-					Router::redirect($site_data["domain"].$bigtree["page"]["path"]."/", ["301"]);
+					Router::redirect($site_data["domain"].$bigtree["page"]["path"]."/", "301");
 				}
 			}
 		}

@@ -102,94 +102,36 @@
 		public static function create(string $from, ?string $to = "", ?string $site_key = null,
 									  bool $ignored = false): Redirect
 		{
-			global $bigtree;
+			$sanitized_input = static::parseSourceURL($from, $site_key);
+			$from = $sanitized_input["url"];
+			$get_vars = $sanitized_input["get_vars"];
+			$site_key = $sanitized_input["site_key"];
+			$to = htmlspecialchars(Link::encode(trim($to)));
+			$existing = static::getExisting($from, $get_vars, $site_key);
 			
-			$to = trim($to);
-			$from = trim($from);
+			SQL::delete("bigtree_route_history", ["old_route" => $from]);
 			
-			// If this is a multi-site environment and a full URL was pasted in we're going to auto-select the key no matter what they passed in
-			if (!is_null($site_key)) {
-				$from_domain = parse_url($from, PHP_URL_HOST);
+			if ($existing) {
+				$id = $existing["id"];
 				
-				foreach ($bigtree["config"]["sites"] as $index => $site) {
-					$domain = parse_url($site["domain"], PHP_URL_HOST);
-					
-					if ($domain == $from_domain) {
-						$site_key = $index;
-						$from = str_replace($site["www_root"], "", $from);
-					}
-				}
-			}
-			
-			// Allow for from URLs with GET vars
-			$from_parts = parse_url($from);
-			$get_vars = "";
-			
-			if (!empty($from_parts["query"])) {
-				$from = str_replace("?".$from_parts["query"], "", $from);
-				$get_vars = sqlescape(htmlspecialchars($from_parts["query"]));
-			}
-			
-			$from = htmlspecialchars(strip_tags(rtrim(str_replace(WWW_ROOT, "", $from), "/")));
-			$ignored = $ignored ? "on" : "";
-			
-			// Try to convert the short URL into a full one
-			if ($to !== "") {
-				$redirect_url = $to;
-				
-				if (strpos($redirect_url, "//") === false) {
-					$redirect_url = WWW_ROOT.ltrim($redirect_url, "/");
-				}
-				
-				$redirect_url = htmlspecialchars(Link::encode($redirect_url));
-				
-				// Don't use static roots if they're the same as www just in case they are different when moving environments
-				if (WWW_ROOT === STATIC_ROOT) {
-					$redirect_url = str_replace("{staticroot}", "{wwwroot}", $redirect_url);
-				}
-			} else {
-				$redirect_url = "";
-			}
-			
-			// See if the from already exists
-			if ($get_vars) {
-				if (!is_null($site_key)) {
-					$existing = SQL::fetch("SELECT * FROM bigtree_404s
-											WHERE `broken_url` = ? AND site_key = ? AND get_vars = ?",
-										   $from, $site_key, $get_vars);
-				} else {
-					$existing = SQL::fetch("SELECT * FROM bigtree_404s
-											WHERE `broken_url` = ? AND get_vars = ?", $from, $get_vars);
-				}
-			} else {
-				if (!is_null($site_key)) {
-					$existing = SQL::fetch("SELECT * FROM bigtree_404s
-											WHERE `broken_url` = ? AND get_vars = '' AND site_key = ?",
-										   $from, $site_key);
-				} else {
-					$existing = SQL::fetch("SELECT * FROM bigtree_404s
-											WHERE `broken_url` = ? AND get_vars = ''", $from);
-				}
-			}
-			
-			if (!empty($existing)) {
-				SQL::update("bigtree_404s", $existing["id"], ["redirect_url" => $redirect_url, "ignored" => $ignored]);
+				SQL::update("bigtree_404s", $existing["id"], [
+					"redirect_url" => $to,
+					"ignored" => $ignored ? "on" : ""
+				]);
 				AuditTrail::track("bigtree_404s", $existing["id"], "updated");
-				
-				return new Redirect($existing["id"]);
 			} else {
 				$id = SQL::insert("bigtree_404s", [
 					"broken_url" => $from,
 					"get_vars" => $get_vars,
-					"redirect_url" => $redirect_url,
-					"ignored" => $ignored,
+					"redirect_url" => $to,
+					"ignored" => $ignored ? "on" : "",
 					"site_key" => $site_key
 				]);
 				
 				AuditTrail::track("bigtree_404s", $id, "created");
-				
-				return new Redirect($id);
 			}
+				
+			return new Redirect($id);
 		}
 		
 		/*
@@ -203,6 +145,40 @@
 			AuditTrail::track("bigtree_404s", $this->ID, "deleted");
 			
 			return true;
+		}
+		
+		/*
+			Function: getExisting
+				Checks for the existance of a 404 at a given source URL.
+
+			Parameters:
+				url - Source URL
+				get_vars - Source URL get vars
+				site_key - Optional site key for a multi-site environment.
+
+			Returns:
+				An existing 404 or null if one is not found.
+		*/
+		
+		static public function getExisting(string $url, string $get_vars, ?string $site_key = null)
+		{
+			if (!empty($get_vars)) {
+				if (!is_null($site_key)) {
+					return SQL::fetch("SELECT * FROM bigtree_404s
+									   WHERE `broken_url` = ? AND get_vars = ? AND `site_key` = ?",
+									  $url, $get_vars, $site_key);
+				} else {
+					return SQL::fetch("SELECT * FROM bigtree_404s
+									   WHERE `broken_url` = ? AND get_vars = ?", $url, $get_vars);
+				}
+			} else {
+				if (!is_null($site_key)) {
+					return SQL::fetch("SELECT * FROM bigtree_404s
+									   WHERE `broken_url` = ? AND get_vars = '' AND `site_key` = ?", $url, $site_key);
+				} else {
+					return SQL::fetch("SELECT * FROM bigtree_404s WHERE `broken_url` = ? AND get_vars = ''", $url);
+				}
+			}
 		}
 		
 		/*
@@ -314,6 +290,55 @@
 				
 				return true;
 			}
+		}
+		
+		/*
+			Function: parseSourceURL
+				Parses a 404 source URL based on site key.
+
+			Parameters:
+				source - Source URL or URL fragment
+				site_key - Optional site key
+
+			Returns:
+				An array containing the sanitized source URL for input into bigtree_404s, inferred site key, and GET variables from the URL.
+		*/
+		
+		public static function parseSourceURL(string $source, ?string $site_key = null): array {
+			global $bigtree;
+			
+			$source = trim($source);
+			
+			// If this is a multi-site environment and a full URL was pasted in we're going to auto-select the key no matter what they passed in
+			if (!is_null($site_key)) {
+				$from_domain = parse_url($source, PHP_URL_HOST);
+				
+				foreach ($bigtree["config"]["sites"] as $index => $site) {
+					$domain = parse_url($site["domain"], PHP_URL_HOST);
+					
+					if ($domain == $from_domain) {
+						$site_key = $index;
+						$source = str_replace($site["www_root"], "", $source);
+						
+						break;
+					}
+				}
+			}
+			
+			// Allow for from URLs with GET vars
+			$source_parts = parse_url($source);
+			$get_vars = "";
+			
+			if (!empty($source_parts["query"])) {
+				$source = str_replace("?".$source_parts["query"], "", $source);
+				$get_vars = sqlescape(htmlspecialchars($source_parts["query"]));
+			}
+			
+			return [
+				"url" => htmlspecialchars(strip_tags(trim(str_replace(WWW_ROOT, "", $source), "/"))),
+				"get_vars" => $get_vars,
+				"site_key" => $site_key
+			];
 		}
 		
 		/*
