@@ -183,6 +183,37 @@
 		}
 		
 		/*
+			Function: getRemoteIP
+				Returns the remote user's IP address (works with load balancers).
+
+			Returns:
+				An IP address
+		*/
+		
+		public static function getRemoteIP(): ?string
+		{
+			if (!empty($_SERVER["HTTP_CLIENT_IP"])) {
+				return $_SERVER["HTTP_CLIENT_IP"];
+			} elseif (!empty($_SERVER["HTTP_X_FORWARDED_FOR"])) {
+				return $_SERVER["HTTP_X_FORWARDED_FOR"];
+			} elseif (!empty($_SERVER["HTTP_X_FORWARDED"])) {
+				return $_SERVER["HTTP_X_FORWARDED"];
+			} elseif (!empty($_SERVER["HTTP_FORWARDED_FOR"])) {
+				return $_SERVER["HTTP_FORWARDED_FOR"];
+			} elseif (!empty($_SERVER["HTTP_FORWARDED"])) {
+				return $_SERVER["HTTP_FORWARDED"];
+			} elseif (!empty($_SERVER["HTTP_X_CLUSTER_CLIENT_IP"])) {
+				return $_SERVER["HTTP_X_CLUSTER_CLIENT_IP"];
+			} elseif (!empty($_SERVER["HTTP_CF_CONNECTING_IP"])) {
+				return $_SERVER["HTTP_CF_CONNECTING_IP"];
+			} elseif (!empty($_SERVER["REMOTE_ADDR"])) {
+				return $_SERVER["REMOTE_ADDR"];
+			}
+			
+			return null;
+		}
+		
+		/*
 			Function: forceHTTPS
 				Forces the site into Secure mode to be served over HTTPS.
 				When Secure mode is enabled, BigTree will enforce the user being at HTTPS and will rewrite all insecure resources (like CSS, JavaScript, and images) to use HTTPS.

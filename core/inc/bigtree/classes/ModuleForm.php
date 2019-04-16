@@ -108,7 +108,7 @@
 					"type" => Text::htmlEncode($data["type"]),
 					"title" => Text::htmlEncode($data["title"]),
 					"subtitle" => Text::htmlEncode($data["subtitle"]),
-					"settings" => Link::encode((array) $settings)
+					"settings" => Link::encode(Utils::arrayFilterRecursive((array) $settings))
 				];
 				
 				// Backwards compatibility with BigTree 4.1 package imports
@@ -623,7 +623,7 @@
 				foreach ($this->Fields as $key => $field) {
 					$settings = is_array($field["settings"]) ? $field["settings"] : json_decode($field["settings"], true);
 					
-					$field["settings"] = Link::encode((array) $settings);
+					$field["settings"] = Link::encode(Utils::arrayFilterRecursive((array) $settings));
 					$field["column"] = $key;
 					$field["title"] = Text::htmlEncode($field["title"]);
 					$field["subtitle"] = Text::htmlEncode($field["subtitle"]);

@@ -31,7 +31,11 @@
 
 	$policy = array_filter((array)$bigtree["security-policy"]["password"]) ? $bigtree["security-policy"]["password"] : false;
 	
-	if ($policy) {
+	if (!empty($policy["length"]) ||
+		!empty($policy["mixedcase"]) ||
+		!empty($policy["numbers"]) ||
+		!empty($policy["nonalphanumeric"])
+	)  {
 		$policy_text = "<p>".Text::translate("Requirements")."</p><ul>";
 		
 		if ($policy["length"]) {
@@ -88,7 +92,7 @@
 			<input id="password_field_confirm" class="text" type="password" name="confirm_password" />
 		</fieldset>
 		<fieldset class="lower">
-			<input type="submit" class="button blue" value="<?=Text::translate("Reset", true)?>" />
+			<input type="submit" class="button blue" value="<?=Text::translate(isset($_GET["welcome"]) ? "Set Password" : "Reset Password", true)?>" />
 		</fieldset>
 		<?php
 			}

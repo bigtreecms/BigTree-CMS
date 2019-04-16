@@ -213,7 +213,7 @@
 		{
 			global $bigtree;
 			
-			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
+			$ip = ip2long(Router::getRemoteIP());
 			$bigtree["security-policy"] = $policy = Setting::value("bigtree-internal-security-policy");
 			
 			// Check banned IPs list for the user's IP
@@ -272,7 +272,7 @@
 			
 			/** @var $user_class User */
 			$user_class = static::$UserClass;
-			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
+			$ip = ip2long(Router::getRemoteIP());
 			
 			if ($two_factor_token) {
 				$user = $user_class::process2FAToken($two_factor_token);
@@ -682,7 +682,7 @@
 		{
 			global $bigtree;
 			
-			$ip = ip2long($_SERVER["REMOTE_ADDR"]);
+			$ip = ip2long(Router::getRemoteIP());
 			
 			if (static::getIsIPBanned($ip)) {
 				return null;

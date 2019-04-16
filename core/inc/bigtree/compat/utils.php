@@ -834,7 +834,7 @@
 		*/
 		
 		public static function remoteIP() {
-			return BigTree\Utils::getRemoteIP();
+			return BigTree\Router::getRemoteIP();
 		}
 		
 		/*

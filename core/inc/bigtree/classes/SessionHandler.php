@@ -58,7 +58,7 @@
 					"id" => $id,
 					"last_accessed" => time(),
 					"data" => $data,
-					"ip_address" => Utils::getRemoteIP(),
+					"ip_address" => Router::getRemoteIP(),
 					"user_agent" => $_SERVER["HTTP_USER_AGENT"]
 				]);
 			} else {

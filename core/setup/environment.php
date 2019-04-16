@@ -1,7 +1,7 @@
 <?php
 	// Time Zone
 	date_default_timezone_set("America/New_York");
-	
+
 	// Website Environment
 	$bigtree["config"]["debug"] = true; // Set to false to stop all PHP errors/warnings from showing, or "full" to show all errors include notices and strict standards
 	$bigtree["config"]["domain"] = "[domain]";	// "domain" should be http://www.website.com
@@ -20,7 +20,7 @@
 	$bigtree["config"]["image_memory_limit"] = "256M"; // Change to a higher value to allow BigTree to use more RAM when processing images.
 	$bigtree["config"]["session_handler"] = "[session_handler]"; // Change to "db" to use BigTree's session handler or "default" for PHP's default
 	$bigtree["config"]["ssl_only_session_cookie"] = false;
-	
+
 	// Database Environment
 	$bigtree["config"]["db"]["host"] = "[host]";
 	$bigtree["config"]["db"]["name"] = "[db]";
@@ -44,9 +44,9 @@
 		The array key for each site will be defined as BIGTREE_SITE_KEY when you've been routed to that site.
 		It should be alphanumeric as it is also used in tokenization of URLs.
 	*/
-	
+
 	$bigtree["config"]["sites"] = array();
-	
+
 	/*
 		Example
 		=======

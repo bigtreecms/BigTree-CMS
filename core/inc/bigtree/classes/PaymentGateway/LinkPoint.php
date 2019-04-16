@@ -5,6 +5,8 @@
 	*/
 	
 	namespace BigTree\PaymentGateway;
+
+	use BigTree\Router;
 	
 	class LinkPoint extends Provider
 	{
@@ -113,7 +115,7 @@
 					"ordertype" => "POSTAUTH"
 				],
 				"transactiondetails" => [
-					"ip" => $_SERVER["REMOTE_ADDR"],
+					"ip" => Router::getRemoteIP(),
 					"oid" => $transaction
 				]
 			];
@@ -163,7 +165,7 @@
 					"cvmindicator" => "provided"
 				],
 				"transactiondetails" => [
-					"ip" => $_SERVER["REMOTE_ADDR"]
+					"ip" => Router::getRemoteIP()
 				],
 				"billing" => [
 					"name" => $card_name,
@@ -230,7 +232,7 @@
 					"cardnumber" => $card_number
 				],
 				"transactiondetails" => [
-					"ip" => $_SERVER["REMOTE_ADDR"],
+					"ip" => Router::getRemoteIP(),
 					"oid" => $transaction
 				]
 			];
@@ -260,7 +262,7 @@
 					"ordertype" => "VOID"
 				],
 				"transactiondetails" => [
-					"ip" => $_SERVER["REMOTE_ADDR"],
+					"ip" => Router::getRemoteIP(),
 					"oid" => $authorization
 				]
 			];

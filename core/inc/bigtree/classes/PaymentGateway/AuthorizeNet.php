@@ -7,6 +7,7 @@
 	namespace BigTree\PaymentGateway;
 	
 	use BigTree\cURL;
+	use BigTree\Router;
 	
 	class AuthorizeNet extends Provider
 	{
@@ -164,7 +165,7 @@
 				"x_phone" => $phone,
 				"x_email" => $email,
 				"x_cust_id" => $customer,
-				"x_customer_ip" => $_SERVER["REMOTE_ADDR"],
+				"x_customer_ip" => Router::getRemoteIP(),
 				"x_card_num" => $card_number,
 				"x_exp_date" => $card_expiration,
 				"x_card_code" => $cvv,

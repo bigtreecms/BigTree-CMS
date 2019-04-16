@@ -7,6 +7,7 @@
 	namespace BigTree\PaymentGateway;
 	
 	use BigTree\cURL;
+	use BigTree\Router;
 	
 	class PayPalPaymentsPro extends Provider
 	{
@@ -144,7 +145,7 @@
 				"ACCT" => $card_number,
 				"EXPDATE" => $card_expiration,
 				"CVV2" => $cvv,
-				"IPADDRESS" => $_SERVER["REMOTE_ADDR"],
+				"IPADDRESS" => Router::getRemoteIP(),
 				"FIRSTNAME" => $first_name,
 				"LASTNAME" => $last_name,
 				"STREET" => trim($address["street"]." ".$address["street2"]),

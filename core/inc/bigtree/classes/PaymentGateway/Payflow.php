@@ -7,6 +7,7 @@
 	namespace BigTree\PaymentGateway;
 	
 	use BigTree\cURL;
+	use BigTree\Router;
 	
 	class Payflow extends Provider
 	{
@@ -156,7 +157,7 @@
 				"ACCT" => $card_number,
 				"EXPDATE" => substr($card_expiration, 0, 4),
 				"CVV2" => $cvv,
-				"IPADDRESS" => $_SERVER["REMOTE_ADDR"],
+				"IPADDRESS" => Router::getRemoteIP(),
 				"FIRSTNAME" => $first_name,
 				"LASTNAME" => $last_name,
 				"STREET" => trim($address["street"]." ".$address["street2"]),

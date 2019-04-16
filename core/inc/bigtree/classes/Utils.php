@@ -12,6 +12,29 @@
 		static $Hooks = null;
 		
 		/*
+			Function: arrayFilterRecursive
+				Recursively filters an array.
+		
+			Parameters:
+				array - A multi-dimensional array
+		
+			Returns:
+				A filtered array
+		*/
+		
+		public static function arrayFilterRecursive(array $array): array
+		{
+			foreach ($array as $key => $value) {
+				if (is_array($value)) {
+					$array[$key] = static::arrayFilterRecursive($value);
+				}
+			}
+			
+			return array_filter($array);
+		}
+		
+		
+		/*
 			Function: arrayToXML
 				Turns a PHP array into an XML string.
 			
@@ -133,37 +156,6 @@
 			$new_color = "#".str_pad(dechex($fc_r + $r_diff), 2, "0", STR_PAD_LEFT).str_pad(dechex($fc_g + $g_diff), 2, "0", STR_PAD_LEFT).str_pad(dechex($fc_b + $b_diff), 2, "0", STR_PAD_LEFT);
 			
 			return strtoupper($new_color);
-		}
-		
-		/*
-			Function: getRemoteIP
-				Returns the remote user's IP address (works with load balancers).
-	
-			Returns:
-				An IP address
-		*/
-		
-		public static function getRemoteIP()
-		{
-			if (!empty($_SERVER["HTTP_CLIENT_IP"])) {
-				return $_SERVER["HTTP_CLIENT_IP"];
-			} elseif (!empty($_SERVER["HTTP_X_FORWARDED_FOR"])) {
-				return $_SERVER["HTTP_X_FORWARDED_FOR"];
-			} elseif (!empty($_SERVER["HTTP_X_FORWARDED"])) {
-				return $_SERVER["HTTP_X_FORWARDED"];
-			} elseif (!empty($_SERVER["HTTP_FORWARDED_FOR"])) {
-				return $_SERVER["HTTP_FORWARDED_FOR"];
-			} elseif (!empty($_SERVER["HTTP_FORWARDED"])) {
-				return $_SERVER["HTTP_FORWARDED"];
-			} elseif (!empty($_SERVER["HTTP_X_CLUSTER_CLIENT_IP"])) {
-				return $_SERVER["HTTP_X_CLUSTER_CLIENT_IP"];
-			} elseif (!empty($_SERVER["HTTP_CF_CONNECTING_IP"])) {
-				return $_SERVER["HTTP_CF_CONNECTING_IP"];
-			} elseif (!empty($_SERVER["REMOTE_ADDR"])) {
-				return $_SERVER["REMOTE_ADDR"];
-			}
-			
-			return null;
 		}
 		
 		/*

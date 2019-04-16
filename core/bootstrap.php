@@ -38,11 +38,6 @@
 	define("SITE_ROOT", $site_root);
 	define("ADMIN_ROOT", $admin_root);
 	
-	// Adjust server parameters in case we're running on CloudFlare
-	if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
-		$_SERVER["REMOTE_ADDR"] = $_SERVER["HTTP_CF_CONNECTING_IP"];
-	}
-	
 	// Set version
 	include SERVER_ROOT."core/version.php";
 	
@@ -100,17 +95,22 @@
 	spl_autoload_register(function ($class) {
 		global $bigtree;
 		
+		$path = null;
+		
 		// Auto loadable via the class name
 		if (substr($class, 0, 8) == "BigTree\\") {
 			$path = "inc/bigtree/classes/".str_replace("\\", "/", substr($class, 8)).".php";
 		// Known class in the cache file
 		} else {
-			$path = $bigtree["class_list"][$class];
+			$path = isset($bigtree["class_list"][$class]) ? $bigtree["class_list"][$class] : null;
 		}
 		
 		if (!$path) {
 			// Clear the module class list just in case we're missing something.
 			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
+			
+			trigger_error("Class $class could not be auto-loaded but the cache may be stale. Please try re-loading.",
+						  E_USER_ERROR);
 			
 			return;
 		}

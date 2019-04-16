@@ -140,14 +140,14 @@
 				if (!$field["id"]) {
 					unset($fields[$key]);
 				} else {
-					$options = is_array($field["options"]) ? $field["options"] : json_decode($field["options"], true);
+					$settings = is_array($field["settings"]) ? $field["settings"] : json_decode($field["settings"], true);
 					
 					$field_data = [
 						"id" => Text::htmlEncode($field["id"]),
 						"type" => Text::htmlEncode($field["type"]),
 						"title" => Text::htmlEncode($field["title"]),
 						"subtitle" => Text::htmlEncode($field["subtitle"]),
-						"options" => Link::encode((array) $options)
+						"settings" => Link::encode(Utils::arrayFilterRecursive((array) $settings))
 					];
 					
 					// Backwards compatibility with BigTree 4.1 package imports
@@ -235,14 +235,14 @@
 				
 				foreach ($this->Fields as $field) {
 					if ($field["id"]) {
-						$options = is_array($field["options"]) ? $field["options"] : json_decode($field["options"], true);
+						$settings = is_array($field["settings"]) ? $field["settings"] : json_decode($field["settings"], true);
 						
 						$fields[] = [
 							"id" => Text::htmlEncode($field["id"]),
 							"title" => Text::htmlEncode($field["title"]),
 							"subtitle" => Text::htmlEncode($field["subtitle"]),
 							"type" => Text::htmlEncode($field["type"]),
-							"options" => Link::encode((array) $options)
+							"options" => Link::encode(Utils::arrayFilterRecursive((array) $settings))
 						];
 					}
 				}
