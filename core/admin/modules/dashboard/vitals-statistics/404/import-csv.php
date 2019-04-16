@@ -28,7 +28,7 @@
 				} else {
 					fputcsv($temp_file, $row, ",", '"');
 
-					$existing = BigTreeAdmin::getExisting404($parsed["url"], $parsed["get_vars"], $_POST["site_key"] ?: null);
+					$existing = BigTreeAdmin::getExisting404($parsed["url"], $parsed["get_vars"], $parsed["site_key"]);
 					$to_import[] = $parsed["url"]."?".$parsed["get_vars"];
 
 					if ($existing && $existing["redirect_url"]) {

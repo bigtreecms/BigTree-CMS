@@ -831,6 +831,7 @@
 			$sanitized_input = $this->parse404SourceURL($from, $site_key);
 			$from = $sanitized_input["url"];
 			$get_vars = $sanitized_input["get_vars"];
+			$site_key = $sanitized_input["site_key"];
 			$to = sqlescape(htmlspecialchars($this->autoIPL(trim($to))));
 			$existing = $this->getExisting404($from, $get_vars, $site_key);
 			
@@ -7255,7 +7256,7 @@
 
 		public static function parse404SourceURL($source, $site_key = null) {
 			global $bigtree;
-			
+
 			$source = trim($source);
 
 			// If this is a multi-site environment and a full URL was pasted in we're going to auto-select the key no matter what they passed in
@@ -7283,7 +7284,8 @@
 
 			return [
 				"url" => htmlspecialchars(strip_tags(trim(str_replace(WWW_ROOT, "", $source), "/"))),
-				"get_vars" => $get_vars
+				"get_vars" => $get_vars,
+				"site_key" => $site_key
 			];
 		}
 

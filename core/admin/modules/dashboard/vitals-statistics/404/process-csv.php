@@ -9,7 +9,7 @@
 	$x = 0;
 
 	while ($row = fgetcsv($temp_file, 0, ",", '"')) {
-		$parsed = BigTreeAdmin::parse404SourceURL($row[0], $_POST["site_key"] ?: null);
+		$parsed = BigTreeAdmin::parse404SourceURL($row[0], $site_key);
 
 		if (!in_array($parsed["url"]."?".$parsed["get_vars"], $imported)) {
 			$x++;
