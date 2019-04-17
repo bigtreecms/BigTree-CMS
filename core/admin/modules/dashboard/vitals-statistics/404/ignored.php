@@ -1,7 +1,6 @@
 <?php
 	namespace BigTree;
 	
-	Auth::user()->requireLevel(1);
 	$type = "ignored";
 	$delete_action = "unignore";
 ?>

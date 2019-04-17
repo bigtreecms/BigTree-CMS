@@ -2753,26 +2753,33 @@ var BigTreeCallouts = function(settings) {
 			}
 
 			BigTree.TabIndexDepth++;
-
 			CurrentItem = $(this).parents("article");
 
-			BigTreeDialog({
-				title: "Edit " + Noun,
-				url: "admin_root/ajax/callouts/edit/",
-				post: { count: Count, data: CurrentItem.find(".callout_data").val(), groups: Groups, key: Key, tab_depth: BigTree.TabIndexDepth },
-				icon: "callout",
-				preSubmissionCallback: true,
-				callback: function(e) {
-					e.preventDefault();
-					
-					var item;
-					if (item = getCallout()) {
-						CurrentItem.replaceWith(item);
-						removeDialog();
-						Count++;
+			$.ajax("admin_root/ajax/callouts/edit/", { type: "POST", data: {
+				count: Count,
+				data: CurrentItem.find(".callout_data").val(),
+				groups: Groups,
+				key: Key,
+				tab_depth: BigTree.TabIndexDepth,
+				original_type: $(this).data("type")
+			}, complete: function(response) {
+				BigTreeDialog({
+					title: "Edit " + Noun,
+					content: response.responseText,
+					icon: "callout",
+					preSubmissionCallback: true,
+					callback: function(e) {
+						e.preventDefault();
+						var item = getCallout();
+
+						if (item) {
+							CurrentItem.replaceWith(item);
+							removeDialog();
+							Count++;
+						}
 					}
-				}
-			});
+				});
+			}});
 		}
 
 		function getCallout() {

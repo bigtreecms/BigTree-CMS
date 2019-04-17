@@ -215,7 +215,7 @@
 				Data modified by hook script
 		*/
 
-		public static function runHooks($type, $context = "", $data = "", $data_context = []): void
+		public static function runHooks($type, $context = "", $data = "", $data_context = [])
 		{
 			if (!file_exists(SERVER_ROOT."cache/bigtree-hooks.json")) {
 				static::cacheHooks();

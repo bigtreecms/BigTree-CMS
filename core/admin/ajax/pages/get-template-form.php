@@ -34,7 +34,7 @@
 	if (isset($_POST["page"]) && $template_id != $bigtree["current_page"]["template"]) {
 		if (Template::exists($bigtree["current_page"]["template"])) {
 			$original_template = new Template($bigtree["current_page"]["template"]);
-			$forced_recrops = Field::rectifyTypeChange($bigtree["resources"], $bigtree["template"]["resources"], $original_template->Fields);
+			$forced_recrops = Field::rectifyTypeChange($bigtree["resources"], $template->Fields, $original_template->Fields);
 		} else {
 			$bigtree["resources"] = [];
 		}

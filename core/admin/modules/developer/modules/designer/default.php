@@ -44,7 +44,7 @@
 				<select id="module_field_group_existing" name="group_existing">
 					<option value="0"></option>
 					<?php foreach ($groups as $group) { ?>
-					<option value="<?=$group->ID?>"<?php if ($group_existing == $group["id"]) { ?> selected="selected"<?php } ?>><?=$group["name"]?></option>
+					<option value="<?=$group->ID?>"<?php if ($group_existing == $group->ID) { ?> selected="selected"<?php } ?>><?=$group->Name?></option>
 					<?php } ?>
 				</select>
 			</fieldset>

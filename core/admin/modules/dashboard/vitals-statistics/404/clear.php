@@ -1,7 +1,5 @@
 <?php
 	namespace BigTree;
-
-	Auth::user()->requireLevel(1);
 	
 	if (isset($_POST["clear"])) {
 		CSRF::verify();

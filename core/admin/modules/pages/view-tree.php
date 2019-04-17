@@ -90,7 +90,7 @@
 			</section>
 			<section class="pages_delete">
 				<?php if ($access_level == "p" && $page_data->UserCanModifyChildren) { ?>
-				<a href="<?=ADMIN_ROOT?>pages/delete/?id=<?=$item["id"]?><?php CSRF::drawGETToken(); ?>" title="<?=Text::translate("Delete Page")?>" class="icon_delete"></a>
+				<a href="<?=ADMIN_ROOT?>pages/delete/?id=<?=$item["id"]?><?php CSRF::drawGETToken(); ?>" title="<?=Text::translate("Delete Page")?>" class="icon_delete js-delete-hook"></a>
 				<?php } else { ?>
 				<span class="icon_delete disabled_icon"></span>
 				<?php } ?>
@@ -182,3 +182,19 @@
 <?php
 	}
 ?>
+
+<script>
+	$(".table .js-delete-hook").on("click", function(ev) {
+		ev.preventDefault();
+		var Current = $(this);
+		BigTreeDialog({
+			title: "Delete Page",
+			content: '<p class="confirm">Are you sure you want to delete this page? It will be permanently deleted and unrecoverable.</p>',
+			icon: "delete",
+			alternateSaveText: "OK",
+			callback: function() {
+				document.location.href = Current.attr("href");
+			}
+		});
+	});
+</script>

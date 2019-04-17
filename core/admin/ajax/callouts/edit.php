@@ -40,6 +40,7 @@
 				key: "<?=$bigtree["callout_key"]?>",
 				resources: "<?=htmlspecialchars($_POST["data"])?>",
 				type: data.value,
+				original_type: "<?=Text::htmlEncode($_POST["original_type"])?>",
 				tab_depth: <?=intval($_POST["tab_depth"])?>
 			}, BigTreeCustomControls).scrollTop(0);
 		});

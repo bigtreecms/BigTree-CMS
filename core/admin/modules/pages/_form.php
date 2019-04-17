@@ -132,7 +132,7 @@
 	BigTree.ReadyHooks.push(function() {
 		BigTreePages.init({
 			template: "<?=$bigtree["current_page"]["template"]?>",
-			page: <?php if ($bigtree["form_action"] == "create") { echo "false"; } else { echo $bigtree["current_page"]["id"]; } ?>,
+			page: <?php if ($bigtree["form_action"] == "create") { echo "false"; } else { echo '"'.$bigtree["current_page"]["id"].'"'; } ?>,
 		});
 	});
 </script>

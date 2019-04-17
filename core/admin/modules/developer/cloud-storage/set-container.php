@@ -59,6 +59,20 @@
 		}
 	}
 	
+	// For Amazon S3 we're going to redirect to do a paginated cache bust
+	if ($_POST["service"] == "amazon") {
+		$check = $cloud->getContainerPage($storage->Settings->Container);
+		
+		if ($check === false) {
+			Utils::growl("Developer", "Failed to read bucket.", "error");
+			Router::redirect(DEVELOPER_ROOT."cloud-storage/");
+		} else {
+			Utils::growl("Developer", "Changed Default Storage");
+			Router::redirect(DEVELOPER_ROOT."cloud-storage/amazon/recache/");
+		}
+	}
+	
+	
 	// Get a list of files
 	$container = $cloud->getContainer($storage->Settings["Container"], true);
 	

@@ -161,6 +161,59 @@
 			return "//$container.s3.amazonaws.com/".$pointer."?AWSAccessKeyId=".$this->Key."&Expires=$expires&Signature=".urlencode($this->hash($this->Secret, "GET\n\n\n$expires\n/$container/$pointer"));
 		}
 		
+		/*
+			Function: getCloudFrontDistributions
+				Returns an array of distributions.
+
+			Returns:
+				An array or null if the API call failed.
+		*/
+		
+		public function getCloudFrontDistributions(): ?array
+		{
+			$distributions = [];
+			
+			try {
+				$continue = true;
+				$marker = "";
+				
+				while ($continue) {
+					$response = $this->CloudFrontClient->listDistributions(["Marker" => $marker]);
+					
+					if (isset($response["DistributionList"]["Items"])) {
+						foreach ($response["DistributionList"]["Items"] as $item) {
+							$dist = [
+								"id" => $item["Id"],
+								"domain" => $item["DomainName"],
+								"aliases" => []
+							];
+							
+							if (isset($item["Aliases"]["Items"])) {
+								foreach ($item["Aliases"]["Items"] as $alias) {
+									$dist["aliases"][] = $alias;
+								}
+							}
+							
+							$distributions[] = $dist;
+						}
+					}
+					
+					if ($response["IsTruncated"]) {
+						$continue = true;
+						$marker = $response["NextMarker"];
+					} else {
+						$continue = false;
+					}
+				}
+				
+				return $distributions;
+			} catch (Exception $e) {
+				$this->Errors[] = $e->getMessage();
+				
+				return null;
+			}
+		}
+		
 		// Implements Provider::getContainer
 		public function getContainer(string $container, bool $simple = false): ?array
 		{
@@ -218,6 +271,43 @@
 			}
 			
 			return $contents;
+		}
+		
+		// Implements Provider::getContainerPage
+		public function getContainerPage(string $container, ?string $marker = null): ?array
+		{
+			$page = [];
+			
+			try {
+				$response = $this->S3Client->listObjects(["Bucket" => $bucket, "Marker" => $marker]);
+				$x = 0;
+				
+				if (is_array($response["Contents"])) {
+					foreach ($response["Contents"] as $item) {
+						$x++;
+						
+						if ($x == 1 && $marker) {
+							continue;
+						}
+						
+						$page[] = [
+							"name" => $item["Key"],
+							"path" => $item["Key"],
+							"size" => $item["Size"]
+						];
+					}
+				}
+				
+				if (!empty($response["IsTruncated"]) && !empty($item["Key"])) {
+					$this->NextPage = $item["Key"];
+				}
+				
+				return $page;
+			} catch (Exception $e) {
+				$this->Errors[] = $e->getMessage();
+				
+				return null;
+			}
 		}
 		
 		// Implements Provider::getFile
@@ -309,7 +399,8 @@
 		// Sets up the environment
 		public function setup()
 		{
-			$ca_cert = file_exists(SERVER_ROOT."cache/bigtree-ca-cert.pem") ? SERVER_ROOT."cache/bigtree-ca-cert.pem" : SERVER_ROOT."core/cacert.pem";
+			$ca_cert = file_exists(SERVER_ROOT."cache/bigtree-ca-cert.pem") ? SERVER_ROOT."cache/bigtree-ca-cert.pem" :
+				SERVER_ROOT."core/cacert.pem";
 			
 			$this->S3Client = new S3Client([
 				"version" => "latest",

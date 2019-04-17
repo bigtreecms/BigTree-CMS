@@ -14,6 +14,7 @@
 		
 		public $Active = false;
 		public $Errors = [];
+		public $NextPage;
 		public $Settings = [];
 		
 		protected $MimeExtensions = [
@@ -202,6 +203,26 @@
 		*/
 		
 		public function getContainer(string $container, bool $simple = false): ?array
+		{
+			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
+			
+			return null;
+		}
+		
+		/*
+			Function: getContainerPage
+				Returns a page of contents of a cloud storage container.
+
+			Parameters:
+				container - The name of the container.
+				marker - A page marker token (or null to start from the beginning)
+
+			Returns:
+				An array a page of the contents of the container (name, path, and size only).
+				$this->NextPage is set to the next page marker token
+		*/
+		
+		public function getContainerPage(string $bucket, ?string $marker = null): ?array
 		{
 			trigger_error(get_class($this)." does not implement ".__METHOD__, E_USER_ERROR);
 			

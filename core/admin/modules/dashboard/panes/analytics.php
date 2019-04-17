@@ -22,7 +22,13 @@
 ?>
 <div class="container">
 	<div class="container_summary">
+		<?php
+			if (Auth::user()->Level > 0) {
+		?>
 		<a href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/analytics/" class="button"><?=Text::translate("View Analytics")?></a>
+		<?php
+			}
+		?>
 		<h2>
 			<span class="icon_medium_analytics"></span>
 			<?=Text::translate('Recent Traffic <small>Visits In The Past Two Weeks</small>')?>

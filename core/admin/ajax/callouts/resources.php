@@ -24,11 +24,11 @@
 
 	$callout = new Callout($bigtree["resources"]["type"]);
 	$bigtree["callout"] = $callout->Array; // Backwards compatibility with fields that might read the callout array
-
+	
 	if ($_POST["type"] != $_POST["original_type"]) {
 		if (Callout::exists($_POST["original_type"])) {
 			$original_callout = new Callout($_POST["original_type"]);
-			$forced_recrops = Field::rectifyTypeChange($bigtree["resources"], $bigtree["callout"]["resources"], $original_callout->Fields);
+			$forced_recrops = Field::rectifyTypeChange($bigtree["resources"], $callout->Fields, $original_callout->Fields);
 		} else {
 			$bigtree["resources"] = [];
 		}

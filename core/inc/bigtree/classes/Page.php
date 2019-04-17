@@ -8,6 +8,7 @@
 	
 	/**
 	 * @property-read bool $ChangesApplied
+	 * @property-read int $ChangeID
 	 * @property-read string $CreatedAt
 	 * @property-read int $ID
 	 * @property-read int $LastEditedBy
@@ -23,6 +24,7 @@
 	{
 		
 		protected $ChangesApplied = false;
+		protected $ChangeID;
 		protected $CreatedAt;
 		protected $ID;
 		protected $LastEditedBy;
@@ -1015,6 +1017,11 @@
 			$draft_data->ChangeID = $pending["id"];
 			$draft_data->UpdatedAt = $pending["date"];
 			$draft_data->LastEditedBy = $pending["user"] ?: $page->LastEditedBy;
+			
+			if (empty($page->ID)) {
+				$draft_data->ID = "p".$pending["id"];
+			}
+			
 			$page->inherit($draft_data);
 			
 			// Public vars -- things here only exist if there's been a change so we do the weird isset syntax

@@ -9,6 +9,7 @@
 	class cURL
 	{
 		
+		public static $CertificateBundleLocation = "https://curl.haxx.se/ca/cacert.pem";
 		public static $Error;
 		public static $ResponseCode;
 		
@@ -28,23 +29,16 @@
 		*/
 		
 		public static function request(string $url, $post = null, array $options = [], bool $strict_security = true,
-									   ?string $output_file = null, bool $updating_bundle = false): ?string
+									   ?string $output_file = null): ?string
 		{
-			global $bigtree;
-			
 			$cert_bundle = SERVER_ROOT."cache/bigtree-ca-cert.pem";
 			
-			// Use the core bundle which may be out of date to grab the latest bundle
-			if (!file_exists($cert_bundle) || empty(file_get_contents($cert_bundle))) {
-				FileSystem::copyFile(SERVER_ROOT."core/cacert.pem", $cert_bundle);
-			}
-			
-			// Check CA cert bundle has been updated in the past month
-			if (!$updating_bundle && filemtime($cert_bundle) < time()) {
-				$cert_bundle_new = SERVER_ROOT."cache/bigtree-ca-cert-new.pem";
-				static::request("https://curl.haxx.se/ca/cacert.pem", false, [], true, $cert_bundle_new, true);
-				@unlink($cert_bundle);
-				@rename($cert_bundle_new, $cert_bundle);
+			// If we don't have the certificate bundle or it's old, grab the latest
+			if (!file_exists($cert_bundle) ||
+				empty(file_get_contents($cert_bundle)) ||
+				filemtime($cert_bundle) < strtotime("-1 month")
+			) {
+				static::updateCertificateBundle();
 			}
 			
 			// Startup cURL and set the URL
@@ -111,13 +105,53 @@
 			curl_close($handle);
 			
 			// If we're outputting to a file, close the handle and return nothing
-			if ($file_pointer) {
+			if (!empty($file_pointer)) {
 				fclose($file_pointer);
 				
 				return $output;
 			}
 			
 			return $output;
+		}
+		
+		/*
+			Function: updateCertificateBundle
+				Updates the certificate authority bundle used by cURL requests.
+		*/
+		
+		public static function updateCertificateBundle(): void
+		{
+			$cert_bundle = SERVER_ROOT."cache/bigtree-ca-cert.pem";
+			$cert_bundle_new = SERVER_ROOT."cache/bigtree-ca-cert-new.pem";
+			
+			// Use the core bundle which may be out of date to grab the latest bundle
+			if (!file_exists($cert_bundle) || empty(file_get_contents($cert_bundle))) {
+				FileSystem::copyFile(SERVER_ROOT."core/cacert.pem", $cert_bundle);
+			}
+			
+			// Startup cURL and set the URL
+			$handle = curl_init();
+			$file_pointer = fopen($cert_bundle_new, "w");
+			
+			curl_setopt($handle, CURLOPT_URL, static::$CertificateBundleLocation);
+			curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, 2);
+			curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, true);
+			curl_setopt($handle, CURLOPT_CAINFO, $cert_bundle);
+			curl_setopt($handle, CURLOPT_CAPATH, $cert_bundle);
+			curl_setopt($handle, CURLOPT_FILE, $file_pointer);
+			curl_exec($handle);
+			fclose($file_pointer);
+			
+			$response = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+			
+			if ($response == 200) {
+				@unlink($cert_bundle);
+				@rename($cert_bundle_new, $cert_bundle);
+			} else {
+				@unlink($cert_bundle_new);
+			}
+			
+			curl_close($handle);
 		}
 		
 	}
