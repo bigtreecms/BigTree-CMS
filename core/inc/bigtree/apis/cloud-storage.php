@@ -571,20 +571,7 @@
 				An array or null if the API call failed.
 		*/
 		
-		public function getCloudFrontDistributions() {
-			$ca_cert = file_exists(SERVER_ROOT."cache/bigtree-ca-cert.pem") ? SERVER_ROOT."cache/bigtree-ca-cert.pem" : SERVER_ROOT."core/cacert.pem";
-			$cloudfront = new Aws\CloudFront\CloudFrontClient([
-				"version" => "latest",
-				"region" => $this->Settings["amazon"]["region"],
-				"credentials" => [
-					"key" => $this->Settings["amazon"]["key"],
-					"secret" => $this->Settings["amazon"]["secret"]
-				],
-				"http" => [
-					"verify" => $ca_cert
-				]
-			]);
-			
+		public function getCloudFrontDistributions() {			
 			$distributions = [];
 			
 			try {
