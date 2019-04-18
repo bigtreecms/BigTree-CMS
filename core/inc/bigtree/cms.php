@@ -412,7 +412,7 @@
 		*/
 		
 		public static function drawXMLSitemap() {
-			include SERVER_ROOT."core/inc/bigtree/sitemap.php";
+			include BigTree::path("inc/bigtree/sitemap.php");
 			
 			header("Content-type: text/xml");
 
