@@ -19,9 +19,11 @@
 		$settings["settings"]["sendgrid_api_user"] = $_POST["sendgrid_api_user"];
 		$settings["settings"]["sendgrid_api_key"] = $_POST["sendgrid_api_key"];
 	}
+
 	$settings["service"] = $_POST["service"];
 	$settings["settings"]["bigtree_from"] = $_POST["bigtree_from"];
 
-	$admin->updateInternalSettingValue("bigtree-internal-email-service", $settings);
+	$admin->updateInternalSettingValue("bigtree-internal-email-service", $settings, true);
 	$admin->growl("Developer","Updated Email Service");
+
 	BigTree::redirect(DEVELOPER_ROOT);

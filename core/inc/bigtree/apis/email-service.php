@@ -22,8 +22,8 @@
 				BigTreeAdmin::updateInternalSettingValue("bigtree-internal-email-service", $s, true);
 			}
 
-			$this->Service = !empty($s["value"]["service"]) ? $s["value"]["service"] : "local";
-			$this->Settings = !empty($s["value"]["settings"]) ? $s["value"]["settings"] : array();
+			$this->Service = !empty($s["service"]) ? $s["service"] : "local";
+			$this->Settings = !empty($s["settings"]) ? $s["settings"] : array();
 		}
 
 		/*

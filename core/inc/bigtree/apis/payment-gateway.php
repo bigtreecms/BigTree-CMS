@@ -57,8 +57,8 @@
 			}
 
 			// If for some reason the setting doesn't exist, make one.
-			$this->Service = isset($s["value"]["service"]) ? $s["value"]["service"] : "";
-			$this->Settings = isset($s["value"]["settings"]) ? $s["value"]["settings"] : array();
+			$this->Service = isset($s["service"]) ? $s["service"] : "";
+			$this->Settings = isset($s["settings"]) ? $s["settings"] : array();
 
 			// If you specifically request a certain service, use it instead of the default
 			if ($gateway_override) {
