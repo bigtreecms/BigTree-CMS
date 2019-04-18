@@ -36,11 +36,6 @@
 			<p>Instagram</p>
 		</a>
 		
-		<a class="box_select<?php if ($google->Connected) { ?> connected<?php } ?>" href="googleplus/">
-			<span class="googleplus"></span>
-			<p>Google+</p>
-		</a>
-		
 		<a class="box_select<?php if ($youtube->Connected) { ?> connected<?php } ?>" href="youtube/">
 			<span class="youtube"></span>
 			<p>YouTube</p>

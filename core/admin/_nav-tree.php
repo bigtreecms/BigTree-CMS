@@ -139,7 +139,6 @@
 			["title" => "Service APIs", "link" => "developer/services", "icon" => "api", "hidden" => true, "children" => [
 				["title" => "Twitter API", "link" => "developer/services/twitter", "icon" => "twitter", "hidden" => true],
 				["title" => "Instagram API", "link" => "developer/services/instagram", "icon" => "instagram", "hidden" => true],
-				["title" => "Google+ API", "link" => "developer/services/googleplus", "icon" => "googleplus", "hidden" => true],
 				["title" => "YouTube API", "link" => "developer/services/youtube", "icon" => "youtube", "hidden" => true],
 				["title" => "Flickr API", "link" => "developer/services/flickr", "icon" => "flickr", "hidden" => true],
 				["title" => "Salesforce API", "link" => "developer/services/salesforce", "icon" => "cloud", "hidden" => true],

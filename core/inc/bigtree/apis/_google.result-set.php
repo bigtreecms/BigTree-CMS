@@ -1,7 +1,7 @@
 <?php
 	/*
 		Class: BigTreeGoogleResultSet
-			Common result set class for Google+, YouTube, and Google Analytics.
+			Common result set class for YouTube and Google Analytics.
 	*/
 
 	class BigTreeGoogleResultSet {
