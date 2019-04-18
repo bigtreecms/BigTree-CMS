@@ -834,8 +834,20 @@
 			$site_key = $sanitized_input["site_key"];
 			$to = sqlescape(htmlspecialchars($this->autoIPL(trim($to))));
 			$existing = $this->getExisting404($from, $get_vars, $site_key);
-			
-			SQL::delete("bigtree_route_history", ["old_route" => $from]);
+			$history_cleaned = false;
+
+			if ($site_key) {
+				foreach (BigTreeCMS::$SiteRoots as $site_path => $data) {
+					if ($data["key"] == $site_key) {
+						$history_cleaned = true;
+						SQL::delete("bigtree_route_history", ["old_route" => ltrim($site_path."/".$from, "/")]);
+					}
+				}
+			}
+
+			if (!$history_cleaned) {
+				SQL::delete("bigtree_route_history", ["old_route" => $from]);
+			}
 
 			if ($existing) {
 				sqlquery("UPDATE bigtree_404s SET `redirect_url` = '$to' WHERE id = '".$existing["id"]."'");
