@@ -20,6 +20,24 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.4.4
+- FIXED: Logging into a multi-site admin area when the homepage of one of the multi-site instances was a redirect
+- FIXED: A SQL injection data leak for admin area users
+- FIXED: Warning being thrown when searching settings and returning results for array-based values
+- FIXED: Link path generation for empty paths in a multi-site environment
+- FIXED: Overriding of core field types failing
+- FIXED: Cross-site scripting vector in tag names
+- FIXED: YouTube videos that have no GET parameters failing with an invalid URL error
+- FIXED: Photo Gallery to Media Gallery conversion leading to data loss on saving old data
+- FIXED: Edit links for module content on the Pending Changes page
+- FIXED: Parsing of 404 source URLs in a multi-site environment
+- FIXED: Multi-site key inferrence when adding 301s
+- FIXED: Several issues with saving configuration in the Developer area (Payment Gateway, Cloud Storage, Email Service) not sticking
+- FIXED: Sitemap generation file not being overridable in /custom/
+- FIXED: Route history not working properly in multi-site environments
+- FIXED: Route history not being properly removed when creating a 301 in a multi-site environment
+- REMOVED: Google+ references from the admin (the class still remains to prevent any fatal errors for sites that reference it but the service has closed)
+
 ### 4.4.3
 - ADDED: An alert is now thrown when attempting to navigate away from images that have been uploaded to the Files manager that are not yet processed
 - ADDED: Embed preview for the Video field type
