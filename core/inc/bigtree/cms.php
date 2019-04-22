@@ -420,11 +420,6 @@
 					$image_height = $og["image_height"];
 				} elseif (!empty($context["image"])) {
 					$image = $context["image"];
-
-					// Only get image dimensions if the image is local
-					if (strpos($image, WWW_ROOT) === 0) {
-						list($image_width, $image_height) = getimagesize(str_replace(WWW_ROOT, SITE_ROOT, $context["image"]));
-					}
 				} else {
 					$image = $bigtree["page"]["open_graph"]["image"];
 					$image_width = $bigtree["page"]["open_graph"]["image_width"];
@@ -452,6 +447,11 @@
 
 			if ($image) {
 				echo '		<meta property="og:image" content="'.$image.'" />'."\n";
+
+				// Only get image dimensions if the image is local
+				if (!$image_width && strpos($image, WWW_ROOT) === 0) {
+					list($image_width, $image_height) = getimagesize(str_replace(WWW_ROOT, SITE_ROOT, $image));
+				}
 
 				if ($image_width && $image_height) {
 					echo '		<meta property="og:image:width" content="'.intval($image_width).'" />'."\n";
