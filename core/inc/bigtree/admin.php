@@ -6165,8 +6165,13 @@
 			}
 
 			SQL::delete("bigtree_open_graph", ["table" => $table, "entry" => $id]);
+
+			$og_image_width = null;
+			$og_image_height = null;
 			
 			if (!empty($_FILES["_open_graph_"]["tmp_name"]["image"])) {
+				list($og_image_width, $og_image_height) = getimagesize($_FILES["_open_graph_"]["tmp_name"]["image"]);
+
 				$og_image = static::processImageUpload([
 					"file_input" => [
 						"name" => $_FILES["_open_graph_"]["name"]["image"],
@@ -6183,7 +6188,9 @@
 			}
 
 			if (!$og_image) {
-				$og_image = $data_source["image"];
+				$og_image = BigTreeCMS::replaceHardRoots($data_source["image"]);
+				$og_image_width = $data_source["image_width"];
+				$og_image_height = $data_source["image_height"];
 			}
 
 			if (strpos($og_image, "resource://") === 0) {
@@ -6191,6 +6198,8 @@
 
 				if ($resource) {
 					$og_image = "irl://".$resource["id"];
+					$og_image_width = $resource["width"];
+					$og_image_height = $resource["height"];
 				} else {
 					$og_image = "";
 				}
@@ -6202,7 +6211,9 @@
 				"title" => BigTree::safeEncode($data_source["title"]),
 				"description" => BigTree::safeEncode($data_source["description"]),
 				"type" => BigTree::safeEncode($data_source["type"]),
-				"image" => BigTree::safeEncode($og_image)
+				"image" => BigTree::safeEncode($og_image),
+				"image_width" => intval($og_image_width),
+				"image_height" => intval($og_image_height)
 			];
 
 			if ($pending) {

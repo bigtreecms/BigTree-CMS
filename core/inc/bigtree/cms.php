@@ -370,6 +370,8 @@
 			global $bigtree;
 
 			$context = static::$HeadContext;
+			$image_width = 0;
+			$image_height = 0;
 
 			if (empty($context)) {
 				$og = $bigtree["page"]["open_graph"];
@@ -378,6 +380,8 @@
 				$description = !empty($bigtree["page"]["meta_description"]) ? $bigtree["page"]["meta_description"] : $og["description"];
 				$og_description = !empty($og["description"]) ? $og["description"] : $bigtree["page"]["meta_description"];
 				$image = $og["image"];
+				$image_width = $og["image_width"];
+				$image_height = $og["image_height"];
 				$type = $og["type"] ?: "website";
 			} else {
 				$og = static::getOpenGraph($context["table"], $context["entry"]) ?: $bigtree["page"]["open_graph"];
@@ -412,10 +416,19 @@
 
 				if (!empty($og["image"])) {
 					$image = $og["image"];
+					$image_width = $og["image_width"];
+					$image_height = $og["image_height"];
 				} elseif (!empty($context["image"])) {
 					$image = $context["image"];
+
+					// Only get image dimensions if the image is local
+					if (strpos($image, WWW_ROOT) === 0) {
+						list($image_width, $image_height) = getimagesize(str_replace(WWW_ROOT, SITE_ROOT, $context["image"]));
+					}
 				} else {
 					$image = $bigtree["page"]["open_graph"]["image"];
+					$image_width = $bigtree["page"]["open_graph"]["image_width"];
+					$image_height = $bigtree["page"]["open_graph"]["image_height"];
 				}
 			}
 
@@ -439,6 +452,11 @@
 
 			if ($image) {
 				echo '		<meta property="og:image" content="'.$image.'" />'."\n";
+
+				if ($image_width && $image_height) {
+					echo '		<meta property="og:image:width" content="'.intval($image_width).'" />'."\n";
+					echo '		<meta property="og:image:height" content="'.intval($image_height).'" />'."\n";
+				}
 			}
 		}
 
