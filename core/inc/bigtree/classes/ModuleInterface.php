@@ -100,7 +100,7 @@
 			}
 
 			// Sort by the chosen column
-			usort($interfaces, function($item, $item2) use $orderby {
+			usort($interfaces, function($item, $item2) use ($orderby) {
 				return strcmp($item[$orderby], $item2[$orderby]);
 			});
 
