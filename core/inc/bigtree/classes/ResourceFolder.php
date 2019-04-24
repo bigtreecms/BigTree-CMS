@@ -14,7 +14,7 @@
 	 * @property-read string $UserAccessLevel
 	 */
 	
-	class ResourceFolder extends BaseObject
+	class ResourceFolder extends SQLObject
 	{
 		
 		protected $ID;

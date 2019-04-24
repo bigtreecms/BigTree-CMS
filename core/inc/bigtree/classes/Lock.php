@@ -6,7 +6,7 @@
 	
 	namespace BigTree;
 	
-	class Lock extends BaseObject
+	class Lock extends SQLObject
 	{
 		
 		public static $Table = "bigtree_locks";

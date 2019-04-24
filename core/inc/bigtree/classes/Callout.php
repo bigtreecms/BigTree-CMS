@@ -6,7 +6,7 @@
 	
 	namespace BigTree;
 	
-	class Callout extends BaseObject
+	class Callout extends JSONObject
 	{
 		
 		public $Description;
@@ -19,7 +19,7 @@
 		public $Name;
 		public $Position;
 		
-		public static $Table = "bigtree_callouts";
+		public static $Store = "callouts";
 		
 		/*
 			Constructor:
@@ -34,21 +34,19 @@
 			if ($callout !== null) {
 				// Passing in just an ID
 				if (!is_array($callout)) {
-					$callout = SQL::fetch("SELECT * FROM bigtree_callouts WHERE id = ?", $callout);
+					$callout = DB::get("callouts", $callout);
 				}
 				
 				// Bad data set
 				if (!is_array($callout)) {
 					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 				} else {
-					$resources = is_string($callout["resources"]) ? json_decode($callout["resources"], true) : $callout["resources"];
-					
 					$this->ID = $callout["id"];
 					$this->Description = $callout["description"];
 					$this->DisplayDefault = $callout["display_default"];
 					$this->DisplayField = $callout["display_field"];
 					$this->Extension = $callout["extension"];
-					$this->Fields = Link::decode($resources);
+					$this->Fields = Link::decode($callout["fields"]);
 					$this->Level = $callout["level"];
 					$this->Name = $callout["name"];
 					$this->Position = $callout["position"];
@@ -65,10 +63,10 @@
 				return_arrays - Set to true to return arrays of data rather than objects.
 
 			Returns:
-				An array of callout entries from bigtree_callouts.
+				An array of callout entries from the JSON store.
 		*/
 		
-		public static function allAllowed(string $sort = "position DESC, id ASC", bool $return_arrays = false): ?array
+		public static function allAllowed(string $sort = "position", bool $return_arrays = false): ?array
 		{
 			$user = Auth::user()->ID;
 			
@@ -79,7 +77,13 @@
 				return null;
 			}
 			
-			$callouts = SQL::fetchAll("SELECT * FROM bigtree_callouts WHERE level <= ? ORDER BY $sort", Auth::user()->Level);
+			$callouts = DB::getAll("callouts", $sort);
+			
+			foreach ($callouts as $index => $callout) {
+				if ($callout["level"] > Auth::user()->Level) {
+					unset($callouts[$index]);
+				}
+			}
 			
 			// Return objects
 			if (!$return_arrays) {
@@ -101,7 +105,7 @@
 				return_arrays - Set to true to return arrays of data rather than objects.
 
 			Returns:
-				An alphabetized array of entries from the bigtree_callouts table.
+				An alphabetized array of callouts from the JSON store.
 		*/
 		
 		public static function allInGroups(array $groups, bool $auth = true, bool $return_arrays = false): ?array
@@ -126,7 +130,7 @@
 				foreach ($group->Callouts as $callout_id) {
 					// Only grab each callout once
 					if (!in_array($callout_id, $ids)) {
-						$callout = SQL::fetch("SELECT * FROM bigtree_callouts WHERE id = ?", $callout_id);
+						$callout = DB::get("callouts", $callout_id);
 						$ids[] = $callout_id;
 						
 						// If we're looking at only the ones the user is allowed to access, check levels
@@ -176,7 +180,7 @@
 			}
 			
 			// See if a callout ID already exists
-			if (SQL::exists("bigtree_callouts", $id)) {
+			if (DB::exists("callouts", $id)) {
 				return null;
 			}
 			
@@ -226,21 +230,21 @@
 			}
 			
 			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
-			SQL::query("UPDATE bigtree_callouts SET position = position + 1");
+			DB::incrementPosition("callouts");
 			
 			// Insert the callout
-			SQL::insert("bigtree_callouts", [
+			DB::insert("callouts", [
 				"id" => Text::htmlEncode($id),
 				"name" => Text::htmlEncode($name),
 				"description" => Text::htmlEncode($description),
-				"resources" => $fields,
+				"fields" => $fields,
 				"level" => $level,
 				"display_field" => $display_field,
 				"display_default" => $display_default
 			
 			]);
 			
-			AuditTrail::track("bigtree_callouts", $id, "created");
+			AuditTrail::track("config:callouts", $id, "created");
 			
 			return new Callout($id);
 		}
@@ -248,31 +252,38 @@
 		/*
 			Function: delete
 				Deletes the callout and removes its file.
+			
+			Returns:
+				True on success
 		*/
 		
 		public function delete(): ?bool
 		{
 			$id = $this->ID;
 			
+			if (!DB::exists("callouts", $id)) {
+				return false;
+			}
+			
 			// Delete template file
 			unlink(SERVER_ROOT."templates/callouts/$id.php");
 			
 			// Delete callout
-			SQL::delete("bigtree_callouts", $id);
+			DB::delete("callouts", $id);
 			
 			// Remove the callout from any groups it lives in
-			$groups = SQL::fetchAll("SELECT id, callouts FROM bigtree_callout_groups 
-												 WHERE callouts LIKE '%\"".SQL::escape($id)."\"%'");
+			$groups = DB::getAll("callout-groups");
+			
 			foreach ($groups as $group) {
-				$callouts = array_filter((array) json_decode($group["callouts"], true));
-				// Remove this callout
-				$callouts = array_diff($callouts, [$id]);
-				// Update DB
-				SQL::update("bigtree_callout_groups", $group["id"], ["callouts" => $callouts]);
+				foreach ($group["callouts"] as $index => $callout_id) {
+					if ($callout_id == $id) {
+						unset($group["callouts"][$index]);
+						DB::update("callout-groups", $group["id"], ["callouts" => $$group["callouts"]]);
+					}
+				}
 			}
 			
-			// Track deletion
-			AuditTrail::track("bigtree_callouts", $id, "deleted");
+			AuditTrail::track("config:callouts", $id, "deleted");
 			
 			return true;
 		}
@@ -285,7 +296,7 @@
 		public function save(): ?bool
 		{
 			// Callouts set their own ID, so we need to check the database to see if the ID already exists before updating/creating
-			if (SQL::exists("bigtree_callouts", $this->ID)) {
+			if (DB::exists("callouts", $this->ID)) {
 				// Clean up fields
 				$fields = [];
 				
@@ -304,24 +315,26 @@
 					}
 				}
 				
-				SQL::update("bigtree_callouts", $this->ID, [
+				DB::update("callouts", $this->ID, [
 					"name" => Text::htmlEncode($this->Name),
 					"description" => Text::htmlEncode($this->Description),
 					"display_default" => $this->DisplayDefault,
 					"display_field" => $this->DisplayField,
-					"resources" => $fields,
+					"fields" => $fields,
 					"level" => $this->Level,
 					"position" => $this->Position,
 					"extension" => $this->Extension
 				]);
-				AuditTrail::track("bigtree_callouts", $this->ID, "updated");
+				
+				AuditTrail::track("config:callouts", $this->ID, "updated");
 			} else {
-				$new = static::create($this->ID, $this->Name, $this->Description, $this->Level, $this->Fields, $this->DisplayField, $this->DisplayDefault);
+				$new = static::create($this->ID, $this->Name, $this->Description, $this->Level, $this->Fields,
+									  $this->DisplayField, $this->DisplayDefault);
 				
 				if ($new !== false) {
 					$this->inherit($new);
 				} else {
-					trigger_error("Failed to create new callout object due to invalid or used ID.", E_USER_WARNING);
+					trigger_error("Failed to create new callout object due to invalid or in-use ID.", E_USER_WARNING);
 					
 					return null;
 				}

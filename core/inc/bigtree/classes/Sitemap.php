@@ -6,7 +6,7 @@
 	
 	namespace BigTree;
 	
-	class Sitemap extends BaseObject
+	class Sitemap extends SQLObject
 	{
 		
 		/*
@@ -31,20 +31,25 @@
 					}
 					
 					$response .= "<url><loc>".$link."</loc></url>\n";
-					
+
 					// Added routed template support
-					$module_class = SQL::fetchSingle("SELECT bigtree_modules.class
-													  FROM bigtree_templates JOIN bigtree_modules 
-													  ON bigtree_modules.id = bigtree_templates.module
-													  WHERE bigtree_templates.id = ?", $page["template"]);
-					
-					if ($module_class) {
-						$module = new $module_class;
-						if (method_exists($module, "getSitemap")) {
-							$subnav = $module->getSitemap($page);
-							foreach ($subnav as $entry) {
-								$response .= "<url><loc>".$entry["link"]."</loc></url>\n";
+					$template = DB::get("templates", $page["template"]);
+	
+					if ($template["module"]) {
+						$module = DB::get("modules", $template["module"]);
+	
+						if ($module && $module["class"]) {
+							$mod = new $module["class"];
+	
+							if (method_exists($mod, "getSitemap")) {
+								$subnav = $mod->getSitemap($page);
+	
+								foreach ($subnav as $s) {
+									$links[] = $s["link"];
+								}
 							}
+	
+							$mod = $subnav = null;
 						}
 					}
 				}

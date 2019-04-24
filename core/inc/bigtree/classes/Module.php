@@ -7,18 +7,28 @@
 	namespace BigTree;
 	
 	/**
+	 * @property-read ModuleAction[] $Actions
+	 * @property-read ModuleForm[] $Forms
 	 * @property-read int $ID
+	 * @property-read ModuleInterface[] $Interfaces
 	 * @property-read array $Navigation
+	 * @property-read ModuleReport[] $Reports
 	 * @property-read string $Table
 	 * @property-read array $UserAccessibleGroups
 	 * @property-read string $UserAccessLevel
 	 * @property-read bool $UserCanAccess
+	 * @property-read ModuleView[] $Views
 	 */
 	
-	class Module extends BaseObject
+	class Module extends JSONObject
 	{
 		
+		protected $Actions = [];
+		protected $Forms = [];
 		protected $ID;
+		protected $Interfaces = [];
+		protected $Reports = [];
+		protected $Views = [];
 		
 		public $Class;
 		public $DeveloperOnly;
@@ -39,7 +49,7 @@
 			"archived",
 			"approved"
 		];
-		public static $Table = "bigtree_modules";
+		public static $Store = "modules";
 		
 		/*
 			Constructor:
@@ -54,28 +64,63 @@
 			if ($module !== null) {
 				// Passing in just an ID
 				if (!is_array($module)) {
-					$module = SQL::fetch("SELECT * FROM bigtree_modules WHERE id = ?", $module);
+					$module = DB::get("modules", $module);
 				}
 				
 				// Bad data set
 				if (!is_array($module)) {
 					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 				} else {
-					$this->ID = $module["id"];
-					
 					$this->Class = $module["class"];
 					$this->DeveloperOnly = $module["developer_only"];
 					$this->Extension = $module["extension"];
 					$this->Group = $module["group"] ?: false;
+					$this->GroupBasedPermissions = $module["gbp"];
 					$this->Icon = $module["icon"];
+					$this->ID = $module["id"];
 					$this->Name = $module["name"];
 					$this->Position = $module["position"];
 					$this->Route = $module["route"];
 					
-					$gbp = is_string($module["gbp"]) ? @json_decode($module["gbp"], true) : $module["gbp"];
-					$this->GroupBasedPermissions = is_array($gbp) ? $gbp : [];
+					foreach ($module["actions"] as $action) {
+						$this->Actions[$action["id"]] = new ModuleAction($action, $this);
+					}
+					
+					foreach ($module["interfaces"] as $interface) {
+						if ($interface["type"] == "view") {
+							$this->Views[$interface["id"]] = new ModuleView($interface);
+						} elseif ($interface["type"] == "form") {
+							$this->Forms[$interface["id"]] = new ModuleForm($interface);
+						} elseif ($interface["type"] == "report") {
+							$this->Reports[$interface["id"]] = new ModuleReport($interface);
+						} else {
+							$this->Interfaces[$interface["id"]] = new ModuleInterface($interface);
+						}
+					}
 				}
 			}
+		}
+		
+		/*
+			Function: actionExistsForRoute
+				Checks to see if an action exists for a given route and module.
+
+			Parameters:
+				route - The route of the action to check.
+
+			Returns:
+				true if an action exists, otherwise false.
+		*/
+		
+		public function actionExistsForRoute(string $route): bool
+		{
+			foreach ($this->Actions as $action) {
+				if ($action["route"] == $route) {
+					return true;
+				}
+			}
+			
+			return false;
 		}
 		
 		/*
@@ -89,26 +134,24 @@
 				auth - If set to true, only returns modules the logged in user has access to. Defaults to true.
 
 			Returns:
-				An array of entries from the bigtree_modules table.
+				An array of Module objects or null if the group does not exist.
 		*/
 		
-		public static function allByGroup(string $group, string $sort = "position DESC, id ASC",
-										  bool $return_arrays = false, bool $auth = true): array
+		public static function allByGroup(?string $group = null, string $sort = "position DESC, id ASC",
+										  bool $return_arrays = false, bool $auth = true): ?array
 		{
-			$modules = [];
-			
-			if ($group) {
-				$results = SQL::fetchAll("SELECT * FROM bigtree_modules WHERE `group` = ? ORDER BY $sort", $group);
-			} else {
-				$results = SQL::fetchAll("SELECT * FROM bigtree_modules WHERE `group` = 0 OR `group` IS NULL ORDER BY $sort");
+			if (!empty($group) && !DB::exists("module-groups", $group)) {
+				return null;
 			}
 			
-			foreach ($results as $module_array) {
-				$module = new Module($module_array);
-				
-				// Check auth
-				if (!$auth || $module->UserCanAccess) {
-					$modules[$module_array["id"]] = $return_arrays ? $module_array : $module;
+			$modules = [];
+			$all = static::all("position");
+			
+			foreach ($all as $module) {
+				if ($module["group"] == $group || (empty($group) && empty($module["group"]))) {
+					if (!$auth || $module->UserCanAccess) {
+						$modules[$module->ID] = $return_arrays ? $module->Array : $module;
+					}
 				}
 			}
 			
@@ -173,7 +216,11 @@
 			}
 			
 			// Go through already created modules
-			array_merge($existing, SQL::fetchAllSingle("SELECT route FROM bigtree_modules"));
+			$existing_modules = DB::getAll("modules");
+
+			foreach ($existing_modules as $existing_module) {
+				$existing[] = $existing_module["route"];
+			}
 			
 			// Get a unique route
 			$x = 2;
@@ -189,9 +236,11 @@
 				// Class file
 				FileSystem::createFile(SERVER_ROOT."custom/inc/modules/$route.php", '<?php
 	class '.$class.' extends BigTreeModule {
-		public static $RouteRegistry = array();
+	
+		public static $RouteRegistry = [];
 		
 		public $Table = "'.$table.'";
+		
 	}
 ');
 				// Remove cached class list.
@@ -199,17 +248,19 @@
 			}
 			
 			// Create it
-			$id = SQL::insert("bigtree_modules", [
+			$id = DB::insert("modules", [
 				"name" => Text::htmlEncode($name),
 				"route" => $route,
 				"class" => $class,
 				"icon" => $icon,
 				"group" => $group ?: null,
-				"gbp" => $permissions ?: "",
-				"developer_only" => ($developer_only ? "on" : "")
+				"gbp" => $permissions ?: [],
+				"developer_only" => ($developer_only ? "on" : ""),
+				"interfaces" => [],
+				"actions" => []
 			]);
 			
-			AuditTrail::track("bigtree_modules", $id, "created");
+			AuditTrail::track("config:modules", $id, "created");
 			
 			return new Module($id);
 		}
@@ -221,22 +272,87 @@
 		
 		public function delete(): ?bool
 		{
+			if (!DB::exists("modules", $this->ID)) {
+				return false;
+			}
+			
 			// Delete class file and custom directory
 			FileSystem::deleteFile(SERVER_ROOT."custom/inc/modules/".$this->Route.".php");
 			FileSystem::deleteDirectory(SERVER_ROOT."custom/admin/modules/".$this->Route."/");
 			
-			// Delete all the related auto module actions
-			SQL::delete("bigtree_module_interfaces", ["module" => $this->ID]);
-			
-			// Delete actions
-			SQL::delete("bigtree_module_actions", ["module" => $this->ID]);
-			
-			// Delete the module
-			SQL::delete("bigtree_modules", $this->ID);
-			
-			AuditTrail::track("bigtree_modules", $this->ID, "deleted");
+			DB::delete("modules", $this->ID);
+			AuditTrail::track("config:modules", $this->ID, "deleted");
 			
 			return true;
+		}
+		
+		/*
+			Function: getActionByInterface
+				Returns the module action for a given module interface.
+				Prioritizes edit action over add.
+		
+			Parameters:
+				interface - The ID of an interface, interface array or interface object.
+
+			Returns:
+				A module action entry or false if none exists for the provided interface.
+		*/
+		
+		public function getActionByInterface($interface): ?ModuleAction
+		{
+			if (is_object($interface)) {
+				$id = $interface->ID;
+			} elseif (is_array($interface)) {
+				$id = $interface["id"];
+			} else {
+				$id = $interface;
+			}
+			
+			foreach ($this->Actions as $action) {
+				if ($action->Interface == $id) {
+					return $action;
+				}
+			}
+			
+			return null;
+		}
+		
+		/*
+			Function: getActionForPath
+				Returns a ModuleAction for the given module and path.
+
+			Parameters:
+				path - The path of the action and additional commands.
+
+			Returns:
+				An array containing the action and additional commands or false if lookup failed.
+		*/
+		
+		public function getActionForPath(array $path): ?array
+		{
+			// For landing routes.
+			if (!count($path)) {
+				$path = [""];
+			}
+			
+			$commands = [];
+			
+			while (count($path)) {
+				$route_string = implode("/", $path);
+				
+				foreach ($this->Actions as $action) {
+					if ($action["route"] == $route_string) {
+						return [
+							"action" => $action,
+							"commands" => array_reverse($commands)
+						];
+					}
+				}
+				
+				$commands[] = array_pop($path);
+			}
+			
+			return null;
 		}
 		
 		/*
@@ -252,10 +368,13 @@
 		
 		public function getEditAction(string $form): ?ModuleAction
 		{
-			$action = SQL::fetch("SELECT * FROM bigtree_module_actions 
-								  WHERE interface = ? AND module = ? AND route LIKE 'edit%'", $form, $this->ID);
+			foreach ($this->Actions as $action) {
+				if (substr($action->Route, 0, 4) == "edit" && $action->Interface->ID == $form) {
+					return $action;
+				}
+			}
 			
-			return $action ? new ModuleAction($action) : null;
+			return null;
 		}
 		
 		/*
@@ -285,14 +404,15 @@
 		
 		public function getNavigation(): array
 		{
-			$actions = SQL::fetchAll("SELECT * FROM bigtree_module_actions WHERE module = ? AND in_nav = 'on' 
-									  ORDER BY position DESC, id ASC", $this->ID);
+			$nav = [];
 			
-			foreach ($actions as &$action) {
-				$action = new ModuleAction($action);
+			foreach ($this->Actions as $action) {
+				if ($action->InNav) {
+					$nav[] = $action;
+				}
 			}
 			
-			return $actions;
+			return $nav;
 		}
 		
 		/*
@@ -403,17 +523,17 @@
 					return null;
 				}
 			} else {
-				SQL::update("bigtree_modules", $this->ID, [
+				DB::update("modules", $this->ID, [
 					"group" => $this->Group,
 					"name" => Text::htmlEncode($this->Name),
-					"route" => SQL::unique("bigtree_modules", "route", Link::urlify($this->Route), $this->ID),
+					"route" => DB::unique("modules", "route", Link::urlify($this->Route), $this->ID),
 					"class" => $this->Class,
 					"icon" => $this->Icon,
 					"position" => $this->Position,
 					"gbp" => array_filter((array) $this->GroupBasedPermissions),
 					"developer_only" => $this->DeveloperOnly ? "on" : ""
 				]);
-				AuditTrail::track("bigtree_modules", $this->ID, "updated");
+				AuditTrail::track("config:modules", $this->ID, "updated");
 				
 				// Clear cache file in case class or route changed
 				@unlink(SERVER_ROOT."cache/bigtree-module-cache.json");

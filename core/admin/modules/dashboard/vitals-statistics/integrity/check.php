@@ -3,7 +3,7 @@
 
 	$external = ($_GET["external"] == "true") ? true : false;
 	$pages = Page::allIDs();
-	$forms = ModuleInterface::allByModuleAndType(false, "form", "title ASC", true);
+	$forms = ModuleInterface::allByModuleAndType(null, "form", "title ASC", true);
 
 	// Get the ids of items that are in each module.
 	foreach ($forms as &$form) {

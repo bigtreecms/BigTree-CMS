@@ -11,7 +11,7 @@
 	 * @property-read int $ID
 	 */
 	
-	class PendingChange extends BaseObject
+	class PendingChange extends SQLObject
 	{
 		
 		protected $Date;
@@ -342,7 +342,7 @@
 				A string containing a link to the admin.
 		*/
 		
-		public function getEditLink(): string
+		public function getEditLink(): ?string
 		{
 			global $bigtree;
 			
@@ -354,28 +354,29 @@
 					return $bigtree["config"]["admin_root"]."pages/edit/p".$this->ID."/";
 				}
 			}
-			
-			// Find a form that uses this table (it's our best guess here)
-			$form_id = SQL::fetchSingle("SELECT id FROM bigtree_module_interfaces 
-										 WHERE `type` = 'form' AND `table` = ?", $this->Table);
+
+			$module = new Module($this->Module);
+			$form_id = null;
+
+			foreach ($module->Forms as $form) {
+				if ($form->Table == $this->Table) {
+					$form_id = $form->ID;
+				}
+			}
+
+			// No form related to the table
 			if (!$form_id) {
-				return false;
+				return null;
 			}
-			
-			// Get the module route
-			$module_route = SQL::fetchSingle("SELECT route FROM bigtree_modules WHERE `id` = ?", $this->Module);
-			
-			// We set in_nav to empty because edit links aren't in nav (and add links are) so we can predict where the edit action will be this way
-			$action_route = SQL::fetchSingle("SELECT route FROM bigtree_module_actions 
-											  WHERE `interface` = ? AND `in_nav` = ''", $form_id);
-			
-			// Got an action
-			if ($action_route) {
-				return $bigtree["config"]["admin_root"].$module_route."/".$action_route."/".($this->ItemID ?: "p".$this->ID)."/";
+
+			foreach ($module->Actions as $action) {
+				if ($action->Interface == $form_id) {
+					return $bigtree["config"]["admin_root"].$module->Route."/".$action->Route."/".($this->ItemID ?: "p".$this->ID)."/";
+				}
 			}
-			
-			// Couldn't find a link
-			return false;
+
+			// No action for the form
+			return null;
 		}
 		
 		/*

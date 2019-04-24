@@ -1,4 +1,5 @@
 <?php
+	use BigTree\DB;
 	use BigTree\SQL;
 
 	/*
@@ -172,14 +173,13 @@
 				table - Table name
 
 			Returns:
-				An array of view rows from bigtree_module_interfaces
+				An array of view interfaces
 		*/
 
 		static function getDependentViews($table) {
-			$table = SQL::escape($table);
+			$views = BigTree\ModuleView::allDependant($table);
 
-			return SQL::fetchAll("SELECT * FROM bigtree_module_interfaces 
-											  WHERE `type` = 'view' AND `settings` LIKE '%$table%'");
+			return array_map($views, function($view) { return $view->Array; });
 		}
 
 		/*
@@ -191,7 +191,7 @@
 				form - Form ID
 
 			Returns:
-				A bigtree_module_actions entry.
+				A module actions entry.
 		*/
 
 		static function getEditAction($module, $form) {
@@ -312,29 +312,6 @@
 		
 		static function getModuleForForm($form) {
 			return self::getModuleForInterface($form);
-		}
-
-		/*
-			Function: getModuleForInterface
-				Returns the associated module id for the given interface.
-			
-			Parameters:
-				interface - Either a interface array or interface id.
-			
-			Returns:
-				The id of the module the interface is a member of.
-		*/
-		
-		static function getModuleForInterface($interface) {
-			// May already have the info we need
-			if (is_array($interface)) {
-				if ($interface["module"]) {
-					return $interface["module"];
-				}
-				$interface = $interface["id"];
-			}
-
-			return SQL::fetchSingle("SELECT module FROM bigtree_module_actions WHERE interface = ?", $interface);
 		}
 		
 		/*
@@ -611,15 +588,31 @@
 		*/
 		
 		static function getViewForTable($table) {
-			$view = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = ?", $table);
+			global $cms;
+			
+			$modules = DB::getAll("modules");
+			$view = null;
+
+			foreach ($modules as $module) {
+				if (is_array($module["interfaces"])) {
+					foreach ($module["interfaces"] as $interface) {
+						if ($interface["type"] == "view" && $interface["table"] == $table) {
+							$view = $interface;
+							$view["module"] = $module["id"];
+
+							break 2;
+						}
+					}
+				}
+			}
 
 			if (!$view) {
-				return false;
+				return null;
 			}
 
 			$view = new BigTree\ModuleView($view);
 
-			return $view->getArray($view->PreviewURL ? 578 : 633);
+			return $view->Array;
 		}
 		
 		/*

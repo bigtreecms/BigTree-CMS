@@ -6,7 +6,7 @@
 	
 	namespace BigTree;
 	
-	class Template extends BaseObject
+	class Template extends JSONObject
 	{
 		
 		protected $ID;
@@ -26,7 +26,7 @@
 		public $Name;
 		public $Position;
 		
-		public static $Table = "bigtree_templates";
+		public static $Store = "templates";
 		
 		/*
 			Constructor:
@@ -41,7 +41,7 @@
 			if ($template !== null) {
 				// Passing in just an ID
 				if (!is_array($template)) {
-					$template = SQL::fetch("SELECT * FROM bigtree_templates WHERE id = ?", $template);
+					$template = DB::get("templates", $template);
 				}
 				
 				// Bad data set
@@ -51,13 +51,12 @@
 					$this->ID = $template["id"];
 					
 					$this->Extension = $template["extension"];
-					$this->Fields = Link::decode(array_filter((array) @json_decode($template["resources"], true)));
-					$this->Hooks = static::cleanHooks(@json_decode($template["hooks"], true));
+					$this->Fields = Link::decode($template["fields"]);
+					$this->Hooks = static::cleanHooks($template["hooks"]);
 					$this->Level = $template["level"];
 					$this->Module = $template["module"];
 					$this->Name = $template["name"];
 					$this->Position = $template["position"];
-					$this->Resources = &$this->Fields; // Backwards compat
 					$this->Routed = $template["route"] ? true : false;
 				}
 			}
@@ -123,12 +122,12 @@
 			}
 			
 			// Check to see if the id already exists
-			if (SQL::exists("bigtree_templates", $id)) {
+			if (DB::exists("templates", $id)) {
 				return null;
 			}
 			
 			// If we're creating a new file, let's populate it with some convenience things to show what resources are available.
-			$file_contents = "<?\n	/*\n		Fields Available:\n";
+			$file_contents = "<?php\n	/*\n		Fields Available:\n";
 			
 			// Grabbing field types so we can put their name in the template file
 			$types = FieldType::reference(false, "templates");
@@ -149,13 +148,6 @@
 						"subtitle" => Text::htmlEncode($field["subtitle"]),
 						"settings" => Link::encode(Utils::arrayFilterRecursive((array) $settings))
 					];
-					
-					// Backwards compatibility with BigTree 4.1 package imports
-					foreach ($field as $sub_key => $value) {
-						if (!in_array($sub_key, ["id", "title", "subtitle", "type", "options"])) {
-							$field_data["options"][$sub_key] = $value;
-						}
-					}
 					
 					$fields[$key] = $field_data;
 					
@@ -178,20 +170,20 @@
 			}
 			
 			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
-			SQL::query("UPDATE bigtree_templates SET position = position + 1");
+			DB::incrementPosition("templates");
 			
 			// Insert template
-			SQL::insert("bigtree_templates", [
+			DB::insert("templates", [
 				"id" => $id,
 				"name" => Text::htmlEncode($name),
 				"module" => $module,
-				"resources" => $fields,
+				"fields" => $fields,
 				"level" => $level,
 				"routed" => $routed ? "on" : "",
 				"hooks" => static::cleanHooks($hooks)
 			]);
 			
-			AuditTrail::track("bigtree_templates", $id, "created");
+			AuditTrail::track("config:templates", $id, "created");
 			
 			return new Template($id);
 		}
@@ -203,6 +195,10 @@
 		
 		public function delete(): ?bool
 		{
+			if (!DB::exists("templates", $this->ID)) {
+				return false;
+			}
+			
 			// Delete related files
 			if ($this->Routed) {
 				FileSystem::deleteDirectory(SERVER_ROOT."templates/routed/".$this->ID."/");
@@ -210,9 +206,8 @@
 				FileSystem::deleteFile(SERVER_ROOT."templates/basic/".$this->ID.".php");
 			}
 			
-			SQL::delete("bigtree_templates", $this->ID);
-			
-			AuditTrail::track("bigtree_templates", $this->ID, "deleted");
+			DB::delete("templates", $this->ID);
+			AuditTrail::track("config:templates", $this->ID, "deleted");
 			
 			return true;
 		}
@@ -225,7 +220,7 @@
 		public function save(): ?bool
 		{
 			// Templates specify their own ID so we check for DB existance to determine save behavior
-			if (!SQL::exists("bigtree_templates", $this->ID)) {
+			if (!DB::exists("templates", $this->ID)) {
 				$new = static::create($this->ID, $this->Name, $this->Routed, $this->Level, $this->Module, $this->Fields,
 									  $this->Hooks);
 				$this->inherit($new);
@@ -242,15 +237,15 @@
 							"title" => Text::htmlEncode($field["title"]),
 							"subtitle" => Text::htmlEncode($field["subtitle"]),
 							"type" => Text::htmlEncode($field["type"]),
-							"options" => Link::encode(Utils::arrayFilterRecursive((array) $settings))
+							"settings" => Link::encode(Utils::arrayFilterRecursive((array) $settings))
 						];
 					}
 				}
 				
 				// Update DB
-				SQL::update("bigtree_templates", $this->ID, [
+				DB::update("templates", $this->ID, [
 					"name" => Text::htmlEncode($this->Name),
-					"resources" => array_filter($fields),
+					"fields" => array_filter($fields),
 					"module" => $this->Module,
 					"level" => $this->Level,
 					"position" => $this->Position,
@@ -258,7 +253,7 @@
 				]);
 				
 				// Track
-				AuditTrail::track("bigtree_templates", $this->ID, "updated");
+				AuditTrail::track("config:templates", $this->ID, "updated");
 			}
 			
 			return true;

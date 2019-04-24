@@ -6,7 +6,7 @@
 	
 	namespace BigTree;
 	
-	class DailyDigest extends BaseObject
+	class DailyDigest extends SQLObject
 	{
 		
 		public static $CoreOptions = [

@@ -422,7 +422,7 @@
 		}
 		
 		// Find out what module action we're trying to hit
-		$route_response = ModuleAction::lookup($module->ID, array_slice($bigtree["path"], 2));
+		$route_response = $module->getActionForPath(array_slice($bigtree["path"], 2));
 		
 		if ($route_response) {
 			$bigtree["module_action"] = $route_response["action"]->Array;

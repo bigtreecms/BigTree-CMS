@@ -11,7 +11,7 @@
 	 * @property-read int $AllocationCount
 	 * @property-read string $UserAccessLevel
 	 */
-	class Resource extends BaseObject
+	class Resource extends SQLObject
 	{
 		
 		protected $ID;

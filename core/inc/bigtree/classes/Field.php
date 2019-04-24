@@ -11,7 +11,7 @@
 	 * @property-read array $ParsedFilesArray
 	 */
 	
-	class Field extends BaseObject
+	class Field extends SQLObject
 	{
 		
 		public static $Count = 0;

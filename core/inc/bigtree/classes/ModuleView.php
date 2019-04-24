@@ -10,6 +10,7 @@
 	 * @property-read string $FilterQuery
 	 * @property-read int $ID
 	 * @property-read ModuleInterface $Interface
+	 * @property-read Module $Module
 	 * @property-read ModuleForm $RelatedModuleForm
 	 */
 	
@@ -18,16 +19,17 @@
 		
 		protected $ID;
 		protected $Interface;
+		protected $Module;
 		
 		public $Actions;
 		public $Description;
 		public $EditURL;
 		public $Fields;
-		public $Module;
 		public $PreviewURL;
 		public $RelatedForm;
 		public $Root;
 		public $Settings;
+		public $Table;
 		public $Title;
 		public $Type;
 		
@@ -67,74 +69,60 @@
 			"images-grouped" => "Grouped Image List"
 		];
 		public static $Plugins = [];
-		public static $Table = "bigtree_module_interfaces";
 		
 		/*
 			Constructor:
 				Builds a ModuleView object referencing an existing database entry.
 
 			Parameters:
-				interface - Either an ID (to pull a record) or an array (to use the array as the record)
+				interface - An array of interface data
+				module - The module for this report (passed by reference or passed as a module ID in the interface array)
 		*/
 		
-		public function __construct($interface = null)
-		{
-			if ($interface !== null) {
-				// Passing in just an ID
-				if (!is_array($interface)) {
-					$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
+		public function __construct(array $interface, ?Module &$module = null) {
+			if (is_null($module) && !Module::exists($interface["module"])) {
+				trigger_error("The module for this interface does not exist.", E_USER_ERROR);
+			}
+			
+			$this->ID = $interface["id"];
+			$this->Interface = new ModuleInterface($interface);
+			$this->Module = !is_null($module) ? $module : new Module($interface["module"]);
+			
+			$this->Actions = $this->Interface->Settings["actions"];
+			$this->Description = $this->Interface->Settings["description"];
+			$this->Fields = array_filter((array) $this->Interface->Settings["fields"]);
+			$this->PreviewURL = $this->Interface->Settings["preview_url"];
+			$this->RelatedForm = $this->Interface->Settings["related_form"];
+			$this->Settings = $this->Interface->Settings["options"];
+			$this->Table = $interface["table"];
+			$this->Title = $interface["title"];
+			$this->Type = $this->Interface->Settings["type"];
+			
+			// Apply Preview action if a Preview URL is set
+			if ($this->PreviewURL) {
+				$this->Actions["preview"] = "on";
+			}
+			
+			// Get the edit link
+			if (!empty($this->Actions["edit"])) {
+				$module_root = defined("MODULE_ROOT") ? MODULE_ROOT : ADMIN_ROOT.$this->Module->Route."/";
+				
+				if (!empty($this->RelatedForm)) {
+					foreach ($this->Module->Actions as $action) {
+						if ($action->Interface == $this->RelatedForm && substr($action->Route, 0, 4) == "edit") {
+							$this->EditURL = $module_root.$action->Route."/";
+						}
+					}
 				}
 				
-				// Bad data set
-				if (!is_array($interface)) {
-					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-				} else {
-					$this->ID = $interface["id"];
-					$this->Interface = new ModuleInterface($interface);
-					
-					$this->Actions = $this->Interface->Settings["actions"];
-					$this->Description = $this->Interface->Settings["description"];
-					$this->Fields = array_filter((array) $this->Interface->Settings["fields"]);
-					$this->Module = $interface["module"];
-					$this->PreviewURL = $this->Interface->Settings["preview_url"];
-					$this->RelatedForm = $this->Interface->Settings["related_form"];
-					$this->Settings = $this->Interface->Settings["options"];
-					$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the BaseObject class
-					$this->Title = $interface["title"];
-					$this->Type = $this->Interface->Settings["type"];
-					
-					// Apply Preview action if a Preview URL is set
-					if ($this->PreviewURL) {
-						$this->Actions["preview"] = "on";
-					}
-					
-					// Get the edit link
-					if (!empty($this->Actions["edit"])) {
-						// We may be in AJAX, so we need to define MODULE_ROOT if it's not available
-						if (!defined("MODULE_ROOT")) {
-							$route = SQL::fetchSingle("SELECT route FROM bigtree_modules WHERE id = ?", $this->Module);
-							$module_root = ADMIN_ROOT.$route."/";
-						} else {
-							$module_root = MODULE_ROOT;
-						}
-						
-						if ($this->RelatedForm) {
-							// Try for actions beginning with edit first
-							$action_route = SQL::fetchSingle("SELECT route FROM bigtree_module_actions
-															  WHERE interface = ?
-															  ORDER BY route DESC LIMIT 1", $this->RelatedForm);
-							
-							$this->EditURL = $module_root.$action_route."/";
-						} else {
-							$this->EditURL = $module_root."edit/";
-						}
-					}
+				if (empty($this->EditURL)) {
+					$this->EditURL = $module_root."edit/";
 				}
 			}
 		}
 		
 		/*
-			Function: allDependant
+			Function: allDependent
 				Returns all module views that have a dependence on a given table.
 
 			Parameters:
@@ -144,17 +132,25 @@
 				An array of ModuleView objects.
 		*/
 		
-		public static function allDependant(string $table): array
+		public static function allDependent(string $table): array
 		{
-			$table = SQL::escape($table);
-			$views = SQL::fetchAll("SELECT * FROM bigtree_module_interfaces 
-									WHERE `type` = 'view' AND `settings` LIKE '%$table%'");
+			$modules = DB::getAll("modules");
+			$dependent_views = [];
 			
-			foreach ($views as $key => $view) {
-				$views[$key] = new ModuleView($view);
+			foreach ($modules as $module) {
+				if (is_array($module["interfaces"])) {
+					foreach ($module["interfaces"] as $interface) {
+						if ($interface["type"] == "view" &&
+							($interface["settings"]["type"] == "grouped" || $view["type"] == "images-grouped") &&
+							$interface["settings"]["other_table"] == $table)
+						{
+							$dependent_views[] = new ModuleView($interface);
+						}
+					}
+				}
 			}
 			
-			return $views;
+			return $dependent_views;
 		}
 		
 		/*
@@ -163,8 +159,7 @@
 				Private method used by cacheAllData and cacheForAll
 		*/
 		
-		private function cache(array $item, array $parsers, array $poplists, array $original_item,
-							   array $group_based_permissions): void
+		private function cache(array $item, array $parsers, array $poplists, array $original_item): void
 		{
 			// If we have a filter function, ask it first if we should cache it
 			if (!empty($this->Settings["filter"])) {
@@ -237,9 +232,11 @@
 			}
 			
 			// Group based permissions data
-			if (!empty($group_based_permissions["enabled"]) && $group_based_permissions["table"] == $this->Table) {
-				$insert_values["gbp_field"] = $item[$group_based_permissions["group_field"]];
-				$insert_values["published_gbp_field"] = $original_item[$group_based_permissions["group_field"]];
+			if (!empty($this->Module->GroupBasedPermissions["enabled"]) &&
+				$this->Module->GroupBasedPermissions["table"] == $this->Table
+			) {
+				$insert_values["gbp_field"] = $item[$this->Module->GroupBasedPermissions["group_field"]];
+				$insert_values["published_gbp_field"] = $original_item[$this->Module->GroupBasedPermissions["group_field"]];
 			}
 			
 			// Run parsers
@@ -287,10 +284,6 @@
 			if (SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_module_view_cache WHERE view = ?", $this->ID)) {
 				return false;
 			}
-			
-			// Find out what module we're using so we can get the gbp_field
-			$gbp = SQL::fetchSingle("SELECT gbp FROM bigtree_modules WHERE id = ?", $this->Module);
-			$group_based_permissions = json_decode($gbp, true);
 			
 			// Setup information on our parsers and populated lists.
 			$form = $this->RelatedModuleForm;
@@ -340,7 +333,7 @@
 					}
 				}
 				
-				$this->cache($item, $parsers, $poplists, $original_item, $group_based_permissions);
+				$this->cache($item, $parsers, $poplists, $original_item);
 			}
 			
 			foreach ($pending as $pending_change) {
@@ -349,7 +342,7 @@
 				$item["bigtree_pending_owner"] = $pending_change["user"];
 				$item["id"] = "p".$pending_change["id"];
 				
-				$this->cache($item, $parsers, $poplists, $item, $group_based_permissions);
+				$this->cache($item, $parsers, $poplists, $item);
 			}
 			
 			return true;
@@ -379,6 +372,7 @@
 				// Apply changes overtop existing values
 				if ($item["bigtree_changes"]) {
 					$changes = json_decode($item["bigtree_changes"], true);
+					
 					foreach ($changes as $key => $change) {
 						$item[$key] = $change;
 					}
@@ -393,39 +387,42 @@
 				
 				$original_item = $item;
 			}
-			
-			$interface_ids = SQL::fetchAllSingle("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = ?", $table);
-			
-			foreach ($interface_ids as $interface) {
-				$view = new ModuleView($interface);
-				
-				// Delete any existing cache data on this row
-				SQL::delete("bigtree_module_view_cache", ["view" => $view->ID, "id" => $item["id"]]);
-				
-				// In case this view has never been cached, run the whole view, otherwise just this one.
-				if (!$view->cacheAllData()) {
-					
-					// Find out what module we're using so we can get the gbp_field
-					$group_based_permissions = SQL::fetchSingle("SELECT gbp FROM bigtree_modules WHERE id = ?", $view->Module);
-					$group_based_permissions = array_filter((array) json_decode($group_based_permissions, true));
-					
-					$form = $view->RelatedModuleForm;
-					$parsers = $poplists = [];
-					
-					foreach ($view->Fields as $key => $field) {
-						$form_field = !empty($form->Fields[$key]) ? $form->Fields[$key] : false;
+
+			$modules = DB::getAll("modules");
+
+			foreach ($modules as $module) {
+				if (!is_array($module["interfaces"])) {
+					continue;
+				}
+
+				foreach ($module["interfaces"] as $interface) {
+					if ($interface["type"] == "view" && $interface["table"] == $table) {
+						$view = new ModuleView($interface);
+
+						// Delete any existing cache data on this row
+						SQL::delete("bigtree_module_view_cache", ["view" => $view->ID, "id" => $item["id"]]);
 						
-						if ($field["parser"]) {
-							$parsers[$key] = $field["parser"];
-						} elseif ($form_field && $form_field["type"] == "list" && $form_field["options"]["list_type"] == "db") {
-							$poplists[$key] = [
-								"description" => $form_field["options"]["pop-description"],
-								"table" => $form_field["options"]["pop-table"]
-							];
+						// In case this view has never been cached, run the whole view, otherwise just this one.
+						if (!$view->cacheAllData()) {
+							$form = $view->RelatedModuleForm;
+							$parsers = $poplists = [];
+							
+							foreach ($view->Fields as $key => $field) {
+								$form_field = !empty($form->Fields[$key]) ? $form->Fields[$key] : false;
+								
+								if ($field["parser"]) {
+									$parsers[$key] = $field["parser"];
+								} elseif ($form_field && $form_field["type"] == "list" && $form_field["options"]["list_type"] == "db") {
+									$poplists[$key] = [
+										"description" => $form_field["options"]["pop-description"],
+										"table" => $form_field["options"]["pop-table"]
+									];
+								}
+							}
+							
+							$view->cache($item, $parsers, $poplists, $original_item);
 						}
 					}
-					
-					$view->cache($item, $parsers, $poplists, $original_item, $group_based_permissions);
 				}
 			}
 		}
@@ -477,10 +474,16 @@
 		
 		public static function clearCacheForTable(string $table): void
 		{
-			$interface_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_module_interfaces
-												  WHERE `type` = 'view' AND `table` = ?", $table);
-			foreach ($interface_ids as $id) {
-				SQL::delete("bigtree_module_view_cache", ["view" => $id]);
+			$modules = DB::getAll("modules");
+			
+			foreach ($modules as $module) {
+				if (is_array($module["interfaces"])) {
+					foreach ($module["interfaces"] as $interface) {
+						if ($interface["type"] == "view" && $interface["table"] == $table) {
+							SQL::delete("bigtree_module_view_cache", ["view" => $interface["id"]]);
+						}
+					}
+				}
 			}
 		}
 		
@@ -599,13 +602,28 @@
 		
 		public static function getByTable(string $table): ?ModuleView
 		{
-			$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE type = 'view' AND `table` = ?", $table);
+			$modules = DB::getAll("modules");
+			$view = null;
+			$module_for_view = null;
 			
-			if (empty($interface)) {
-				return new ModuleView($interface);
+			foreach ($modules as $module) {
+				if (is_array($module["interfaces"])) {
+					foreach ($module["interfaces"] as $interface) {
+						if ($interface["type"] == "view" && $interface["table"] == $table) {
+							$view = $interface;
+							$view["module"] = $module["id"];
+							
+							break 2;
+						}
+					}
+				}
 			}
 			
-			return null;
+			if (!$view) {
+				return null;
+			}
+			
+			return new ModuleView($view);
 		}
 		
 		/*
@@ -639,7 +657,8 @@
 				$where .= " AND group_field = '".SQL::escape($group)."'";
 			}
 			
-			$results = SQL::fetchAll("SELECT * FROM bigtree_module_view_cache WHERE $where view = ?".$this->FilterQuery." 
+			$results = SQL::fetchAll("SELECT * FROM bigtree_module_view_cache
+									  WHERE $where view = ?".$this->FilterQuery."
 									  ORDER BY $sort", $this->ID);
 			
 			// Assign them back to keys with the item id
@@ -748,10 +767,10 @@
 		
 		public function getFilterQuery(): string
 		{
-			$module = new Module($this->Module);
-			
-			if (!empty($module->GroupBasedPermissions["enabled"]) && $module->GroupBasedPermissions["table"] == $this->Table) {
-				$groups = $module->UserAccessibleGroups;
+			if (!empty($this->Module->GroupBasedPermissions["enabled"]) &&
+				$this->Module->GroupBasedPermissions["table"] == $this->Table
+			) {
+				$groups = $this->Module->UserAccessibleGroups;
 				
 				if (is_array($groups)) {
 					$group_where = [];
@@ -759,7 +778,9 @@
 					foreach ($groups as $group) {
 						$group = SQL::escape($group);
 						
-						if ($this->Type == "nested" && $module->GroupBasedPermissions["group_field"] == $this->Settings["nesting_column"]) {
+						if ($this->Type == "nested" &&
+							$this->Module->GroupBasedPermissions["group_field"] == $this->Settings["nesting_column"]
+						) {
 							$group_where[] = "`id` = '$group' OR `gbp_field` = '$group'";
 						} else {
 							$group_where[] = "`gbp_field` = '$group'";
@@ -783,13 +804,17 @@
 		
 		public function getRelatedModuleForm(): ?ModuleForm
 		{
-			if ($this->RelatedForm) {
-				return new ModuleForm($this->RelatedForm);
+			if ($this->RelatedForm && isset($this->Module->Forms[$this->RelatedForm])) {
+				return $this->Module->Forms[$this->RelatedForm];
 			}
 			
-			$form = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'form' AND `table` = ?", $this->Table);
+			foreach ($this->Module->Forms as $form) {
+				if ($form->Table == $this->Table) {
+					return $form;
+				}
+			}
 			
-			return $form ? new ModuleForm($form) : null;
+			return null;
 		}
 		
 		/*
@@ -888,24 +913,18 @@
 		
 		public function save(): ?bool
 		{
-			if (empty($this->Interface->ID)) {
-				$new = static::create($this->Module, $this->Title, $this->Description, $this->Table, $this->Type, $this->Settings, $this->Fields, $this->Actions, $this->RelatedForm, $this->PreviewURL);
-				$this->inherit($new);
-			} else {
-				$this->Interface->Settings = [
-					"description" => Text::htmlEncode($this->Description),
-					"type" => $this->Type,
-					"fields" => array_filter((array) $this->Fields),
-					"options" => (array) $this->Settings,
-					"actions" => array_filter((array) $this->Actions),
-					"preview_url" => $this->PreviewURL ? Link::encode($this->PreviewURL) : "",
-					"related_form" => $this->RelatedForm ? intval($this->RelatedForm) : null
-				];
-				$this->Interface->Table = $this->Table;
-				$this->Interface->Title = $this->Title;
-				
-				$this->Interface->save();
-			}
+			$this->Interface->Settings = [
+				"description" => Text::htmlEncode($this->Description),
+				"type" => $this->Type,
+				"fields" => array_filter((array) $this->Fields),
+				"options" => (array) $this->Settings,
+				"actions" => array_filter((array) $this->Actions),
+				"preview_url" => $this->PreviewURL ? Link::encode($this->PreviewURL) : "",
+				"related_form" => $this->RelatedForm ? intval($this->RelatedForm) : null
+			];
+			$this->Interface->Table = $this->Table;
+			$this->Interface->Title = $this->Title;
+			$this->Interface->save();
 			
 			return true;
 		}
@@ -1006,7 +1025,8 @@
 			if ($page === "all") {
 				$results = SQL::fetchAll($query." ORDER BY $sort_field $sort_direction", $this->ID);
 			} else {
-				$results = SQL::fetchAll($query." ORDER BY $sort_field $sort_direction LIMIT ".(($page - 1) * $per_page).",$per_page", $this->ID);
+				$results = SQL::fetchAll($query." ORDER BY $sort_field $sort_direction
+												  LIMIT ".(($page - 1) * $per_page).",$per_page", $this->ID);
 			}
 			
 			return ["pages" => $pages, "results" => $results];
@@ -1023,11 +1043,17 @@
 		
 		public static function uncacheForAll(string $table, string $id): void
 		{
-			$view_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_module_interfaces 
-											 WHERE `type` = 'view' AND `table` = ?", $table);
+			$modules = DB::getAll("modules");
 			
-			foreach ($view_ids as $view_id) {
-				SQL::delete("bigtree_module_view_cache", ["view" => $view_id, "id" => $id]);
+			foreach ($modules as $module) {
+				if (is_array($module["interfaces"])) {
+					foreach ($module["interfaces"] as $interface) {
+						if ($interface["type"] == "view" && $interface["table"] == $table) {
+							SQL::query("DELETE FROM bigtree_module_view_cache
+										WHERE `view` = ? AND `id` = ?", $interface["id"], $id);
+						}
+					}
+				}
 			}
 		}
 		
@@ -1065,9 +1091,12 @@
 			$this->refreshNumericColumns();
 			
 			// Update related action titles
-			$action = ModuleAction::getByInterface($this->ID);
-			$action->Name = "View ".Text::htmlEncode($title);
-			$action->save();
+			foreach ($this->Module->Actions as $action) {
+				if ($action->Interface == $this->ID) {
+					$action->Name = Text::translate("View :view_title:", true, [":view_title:" => $title]);
+					$action->save();
+				}
+			}
 		}
 		
 	}

@@ -12,7 +12,7 @@
 		
 		public static $Cache = [];
 		
-		private static function cache($type)
+		private static function cache(string $type): void
 		{
 			if (!isset(self::$Cache[$type])) {
 				if (file_exists(SERVER_ROOT."custom/json-db/$type.json")) {
@@ -23,7 +23,7 @@
 			}
 		}
 		
-		private static function cleanArray(&$array)
+		private static function cleanArray(array &$array): void
 		{
 			$is_numeric = true;
 			
@@ -43,27 +43,39 @@
 			}
 		}
 		
-		public static function delete($type, $id, $alternate_id_column = false)
+		public static function delete(string $type, string $id, ?string $alternate_id_column = null): bool
 		{
 			static::cache($type);
 			
+			$removed = false;
+			
 			foreach (static::$Cache[$type] as $index => $item) {
-				if ($alternate_id_column !== false && isset($item[$alternate_id_column]) && $item[$alternate_id_column] == $id) {
+				if (!is_null($alternate_id_column) &&
+					isset($item[$alternate_id_column]) &&
+					$item[$alternate_id_column] == $id)
+				{
 					unset(static::$Cache[$type][$index]);
+					$removed = true;
 				} elseif (isset($item["id"]) && $item["id"] == $id) {
 					unset(static::$Cache[$type][$index]);
+					$removed = true;
 				}
 			}
 			
 			static::save($type);
+			
+			return $removed;
 		}
 		
-		public static function exists($type, $id, $alternate_id_column = false)
+		public static function exists(string $type, string $id, ?string $alternate_id_column = null): bool
 		{
 			static::cache($type);
 			
 			foreach (static::$Cache[$type] as $item) {
-				if ($alternate_id_column !== false && isset($item[$alternate_id_column]) && $item[$alternate_id_column] == $id) {
+				if (!is_null($alternate_id_column) &&
+					isset($item[$alternate_id_column]) &&
+					$item[$alternate_id_column] == $id
+				) {
 					return true;
 				} elseif (isset($item["id"]) && $id == $item["id"]) {
 					return true;
@@ -73,12 +85,15 @@
 			return false;
 		}
 		
-		public static function get($type, $id, $alternate_id_column = false)
+		public static function get(string $type, string $id, ?string $alternate_id_column = null)
 		{
 			static::cache($type);
 			
 			foreach (static::$Cache[$type] as $item) {
-				if ($alternate_id_column !== false && isset($item[$alternate_id_column]) && $item[$alternate_id_column] == $id) {
+				if (!is_null($alternate_id_column) &&
+					isset($item[$alternate_id_column]) &&
+					$item[$alternate_id_column] == $id
+				) {
 					return Link::detokenize($item);
 				} elseif (isset($item["id"]) && $id == $item["id"]) {
 					return Link::detokenize($item);
@@ -88,7 +103,7 @@
 			return null;
 		}
 		
-		public static function getSubset($type, $id)
+		public static function getSubset(string $type, string $id): ?DBSubset
 		{
 			static::cache($type);
 			
@@ -101,13 +116,13 @@
 			return null;
 		}
 		
-		public static function getAll($type, $sort_column = false, $sort_direction = "ASC")
+		public static function getAll(string $type, ?string $sort_column = null, string $sort_direction = "ASC"): array
 		{
 			static::cache($type);
 			
 			$items = static::$Cache[$type];
 			
-			if (!$sort_column) {
+			if (is_null($sort_column)) {
 				return Link::detokenize($items);
 			}
 			
@@ -144,7 +159,7 @@
 			return Link::detokenize($items);
 		}
 		
-		public static function incrementPosition($type)
+		public static function incrementPosition(string $type): void
 		{
 			static::cache($type);
 			
@@ -155,12 +170,13 @@
 			static::save($type);
 		}
 		
-		public static function insert($type, $entry)
+		public static function insert(string $type, array $entry): string
 		{
 			static::cache($type);
 			
 			if (empty($entry["id"])) {
 				$found = true;
+				$unique_id = null;
 				
 				while ($found) {
 					$unique_id = $type."-".uniqid(true);
@@ -182,7 +198,7 @@
 			return $entry["id"];
 		}
 		
-		public static function save($type)
+		public static function save(string $type): void
 		{
 			// Make sure we don't blow away the whole result set if someone saves before doing anything
 			self::cache($type);
@@ -194,7 +210,7 @@
 			FileSystem::setPermissions(SERVER_ROOT."custom/json-db/$type.json");
 		}
 		
-		public static function saveSubsetData($type, $id, $data)
+		public static function saveSubsetData(string $type, string $id, $data): void
 		{
 			foreach (self::$Cache[$type] as $index => $item) {
 				if (isset($item["id"]) && $id == $item["id"]) {
@@ -205,7 +221,7 @@
 			self::save($type);
 		}
 		
-		public static function search($type, $fields, $query)
+		public static function search(string $type, array $fields, string $query): array
 		{
 			static::cache($type);
 			$results = [];
@@ -227,7 +243,31 @@
 			return $results;
 		}
 		
-		public static function update($type, $id, $data)
+		public static function unique(string $type, string $field, string $value, ?string $ignored = null): string
+		{
+			static::cache($type);
+			
+			$unique = true;
+			$x = 2;
+			$original = $value;
+			
+			do {
+				foreach (static::$Cache[$type] as $entry) {
+					if ($entry[$field] == $value && (is_null($ignored) || $entry["id"] != $ignored)) {
+						$unique = false;
+					}
+				}
+				
+				if (!$unique) {
+					$value = $original."-".$x;
+					$x++;
+				}
+			} while (!$unique);
+			
+			return $value;
+		}
+		
+		public static function update(string $type, string $id, array $data): void
 		{
 			static::cache($type);
 			$data = Link::tokenize($data);

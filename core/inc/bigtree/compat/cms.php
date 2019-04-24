@@ -35,9 +35,9 @@
 				"BigTreeAdminBase" => "inc/bigtree/compat/admin.php",
 				"BigTreeAutoModule" => "inc/bigtree/compat/auto-modules.php",
 				"BigTreeModule" => "inc/bigtree/modules.php",
-				"BigTreeFTP" => "inc/bigtree/compat/ftp.php",
+				"BigTreeFTP" => "inc/bigtree/compat/FTP.php",
 				"BigTreeSFTP" => "inc/bigtree/compat/sftp.php",
-				"BigTreeUpdater" => "inc/bigtree/compat/updater.php",
+				"BigTreeUpdater" => "inc/bigtree/compat/Updater.php",
 				"BigTreeGoogleAnalyticsAPI" => "inc/bigtree/compat/google-analytics.php",
 				"BigTreePaymentGateway" => "inc/bigtree/compat/payment-gateway.php",
 				"BigTreeUploadService" => "inc/bigtree/compat/storage.php", // Backwards compat
@@ -287,7 +287,10 @@
 		*/
 		
 		static function getFeedByRoute($route) {
-			return static::getFeed(SQL::fetch("SELECT * FROM bigtree_feeds WHERE route = ?", $route));
+			$feed = BigTree\DB::get("feeds", $route, "route");
+			$feed["options"] = &$feed["settings"]; // Backwards compatibility
+			
+			return $feed;
 		}
 		
 		/*

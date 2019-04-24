@@ -8,15 +8,16 @@
 	
 	/**
 	 * @property-read int $ID
+	 * @property-read Module $Module
 	 */
 	
-	class ModuleInterface extends BaseObject
-	{
+	class ModuleInterface extends BaseObject {
 		
 		protected $ID;
+		protected $Module;
 		
-		public $Module;
 		public $Settings;
+		public $Table;
 		public $Title;
 		public $Type;
 		
@@ -38,37 +39,29 @@
 			]
 		];
 		public static $Plugins = [];
-		public static $Table = "bigtree_module_interfaces";
 		
 		/*
 			Constructor:
 				Builds a ModuleInterface object referencing an existing database entry.
 
 			Parameters:
-				interface - Either an ID (to pull a record) or an array (to use the array as the record)
+				interface - An array of interface data
+				module - The module for this interface (passed by reference or passed as a module ID in the interface array)
 		*/
 		
-		public function __construct($interface = null)
+		public function __construct(array $interface, ?Module &$module = null) 
 		{
-			if ($interface !== null) {
-				// Passing in just an ID
-				if (!is_array($interface)) {
-					$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
-				}
-				
-				// Bad data set
-				if (!is_array($interface)) {
-					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-				} else {
-					$this->ID = $interface["id"];
-					
-					$this->Module = $interface["module"];
-					$this->Settings = is_array($interface["settings"]) ? $interface["settings"] : (array) @json_decode($interface["settings"], true);
-					$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the parent class
-					$this->Title = $interface["title"];
-					$this->Type = $interface["type"];
-				}
+			if (is_null($module) && !Module::exists($interface["module"])) {
+				trigger_error("The module for this interface does not exist.", E_USER_ERROR);
 			}
+			
+			$this->ID = $interface["id"];
+			$this->Module = !is_null($module) ? $module : new Module($interface["module"]);
+			
+			$this->Settings = Link::decode($interface["settings"]);
+			$this->Table = $interface["table"];
+			$this->Title = $interface["title"];
+			$this->Type = $interface["type"];
 		}
 		
 		/*
@@ -76,9 +69,9 @@
 				Returns an array of interfaces related to the given module.
 
 			Parameters:
-				module - The module or module ID to pull interfaces for (if false, returns all interfaces)
-				type - The type of interface to return (defaults to false for all types)
-				order - Sort order (defaults to title ASC)
+				module - The module or module ID to pull interfaces for (if null, returns all interfaces)
+				type - The type of interface to return (defaults to null for all types)
+				orderby - Field to order by (defaults to title)
 				return_arrays - Set to true to return arrays rather than objects.
 
 			Returns:
@@ -86,39 +79,38 @@
 		*/
 		
 		public static function allByModuleAndType(?int $module = null, ?string $type = null,
-												  string $order = "`title` ASC",  bool $return_arrays = false): array
+												  string $orderby = "title", bool $return_arrays = false): array 
 		{
-			$where = $parameters = [];
-			
-			// Add module restriction
+			$interfaces = [];
+
 			if (!is_null($module)) {
-				$where[] = "`module` = ?";
-				$parameters[] = is_array($module) ? $module["id"] : $module;
+				$modules = [DB::get("modules", $module)];
+			} else {
+				$modules = DB::getAll("modules");
 			}
-			
-			// Add type restriciton
-			if ($type !== false) {
-				$where[] = "`type` = ?";
-				$parameters[] = $type;
-			}
-			
-			// Add the query
-			$where = count($where) ? " WHERE ".implode(" AND ", $where) : "";
-			
-			// Push query onto parameters
-			array_unshift($parameters, "SELECT * FROM bigtree_module_interfaces $where ORDER BY $order");
-			
-			// Get the arrays
-			$interfaces = call_user_func_array(["BigTree\\SQL", "fetchAll"], $parameters);
-			
-			// Turn into objects
-			if (!$return_arrays) {
-				foreach ($interfaces as &$interface) {
-					$interface = new ModuleInterface($interface);
+
+			foreach ($modules as $module) {
+				if (is_array($module["interfaces"])) {
+					foreach ($module["interfaces"] as $interface) {
+						if (is_null($type) || $interface["type"] == $type) {
+							$interfaces[] = $interface;
+						}
+					}
 				}
 			}
+
+			// Sort by the chosen column
+			usort($interfaces, function($item, $item2) use $orderby {
+				return strcmp($item[$orderby], $item2[$orderby]);
+			});
+
+			if ($return_arrays) {
+				return $interfaces;
+			}
 			
-			return $interfaces;
+			return array_map($interfaces, function($interface) { 
+				return new ModuleInterface($interface); 
+			});
 		}
 		
 		/*
@@ -136,20 +128,27 @@
 				A ModuleInterface object.
 		*/
 		
-		public static function create(string $type, int $module, string $title, string $table,
-									  array $settings = []): ModuleInterface
+		public static function create(string $type, string $module, string $title, string $table,
+									  array $settings = []): ModuleInterface 
 		{
-			$id = SQL::insert("bigtree_module_interfaces", [
+			if (!DB::exists("modules", $module)) {
+				trigger_error("Invalid module specified.", E_USER_ERROR);
+			}
+			
+			$subset = DB::getSubset("modules", $module);
+			$interface = [
+				"module" => $module,
 				"type" => $type,
-				"module" => intval($module),
 				"title" => Text::htmlEncode($title),
 				"table" => $table,
-				"settings" => $settings
-			]);
+				"settings" => Link::encode($settings)
+			];
+			$id = $subset->insert("interfaces", $interface);
+			$interface["id"] = $id;
 			
-			AuditTrail::track("bigtree_module_interfaces", $id, "created");
+			AuditTrail::track("config:modules", $module, "created-interface");
 			
-			return new ModuleInterface($id);
+			return new ModuleInterface($interface);
 		}
 		
 		/*
@@ -157,12 +156,13 @@
 				Deletes the module interface and the actions that use it.
 		*/
 		
-		public function delete(): ?bool
+		public function delete(): ?bool 
 		{
-			SQL::delete("bigtree_module_actions", ["interface" => $this->ID]);
-			SQL::delete("bigtree_module_interfaces", $this->ID);
+			$subset = DB::getSubset("modules", $this->Module->ID);
+			$subset->delete("interfaces", $this->ID);
+			$subset->delete("actions", $this->ID, "interface");
 			
-			AuditTrail::track("bigtree_module_interfaces", $this->ID, "deleted");
+			AuditTrail::track("config:modules", $this->Module->ID, "deleted-interface");
 			
 			return true;
 		}
@@ -174,24 +174,21 @@
 		
 		public function save(): ?bool
 		{
-			if (empty($this->ID)) {
-				$new = static::create($this->Type, $this->Module, $this->Title, $this->Table, $this->Settings);
-				$this->inherit($new);
-			} else {
-				// Some sub-classes use $this->Settings so we check for InterfaceSettings first when grabbing data.
-				SQL::update("bigtree_module_interfaces", $this->ID, [
-					"type" => $this->Type,
-					"module" => $this->Module,
-					"title" => Text::htmlEncode($this->Title),
-					"table" => $this->Table,
-					"settings" => (array) (isset($this->InterfaceSettings) ? $this->InterfaceSettings : $this->Settings)
-				]);
-				
-				AuditTrail::track("bigtree_module_interfaces", $this->ID, "updated");
-			}
+			$subset = DB::getSubset("modules", $this->Module->ID);
 			
+			// Some sub-classes use $this->Settings so we check for InterfaceSettings first when grabbing data.
+			$subset->update("interfaces", $this->ID, [
+				"type" => $this->Type,
+				"module" => $this->Module,
+				"title" => Text::htmlEncode($this->Title),
+				"table" => $this->Table,
+				"settings" => (array) (isset($this->InterfaceSettings) ? $this->InterfaceSettings : $this->Settings)
+			]);
+			
+			AuditTrail::track("config:modules", $this->Module->ID, "updated-interface");
+	
 			return true;
 		}
-		
+
 	}
 	

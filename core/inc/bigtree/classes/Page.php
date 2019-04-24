@@ -20,7 +20,7 @@
 	 * @property-read string $UserAccessLevel
 	 */
 	
-	class Page extends BaseObject
+	class Page extends SQLObject
 	{
 		
 		protected $ChangesApplied = false;

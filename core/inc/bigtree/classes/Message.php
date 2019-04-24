@@ -10,7 +10,7 @@
 	 * @property-read array $Chain
 	 */
 	
-	class Message extends BaseObject
+	class Message extends SQLObject
 	{
 		
 		protected $ID;

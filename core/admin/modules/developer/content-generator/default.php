@@ -1,7 +1,7 @@
 <?php
     namespace BigTree;
     
-    $forms = ModuleInterface::allByModuleAndType(false, "form", "title ASC");
+    $forms = ModuleInterface::allByModuleAndType(null, "form", "title ASC");
 ?>
 <section class="inset_block">
     <p><?=Text::translate("<strong>Content Generator</strong> allows you to create dummy content for your module data, aiding in testing your designs, search, and pagination.")?></p>

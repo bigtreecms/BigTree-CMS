@@ -53,7 +53,8 @@
 <?php
 	} else {
 		// Clean up actions
-		$clean_actions = array();
+		$clean_actions = [];
+		
 		foreach (array_filter((array) $actions) as $key => $val) {
 			if ($val) {
 				$clean_actions[$key] = $val;
@@ -74,26 +75,28 @@
 			$_POST["preview_url"]
 		);
 
+		$translated_action_title = Text::translate("View :title:", false, [":title:" => htmlspecialchars($title)]);
+
 		// Check to see if there's a default view for the module. If not our route is going to be blank.
 		$route = "";
 		$landing_exists = ModuleAction::existsForRoute($module_id, "");
 		
 		if ($landing_exists) {
-			$route = SQL::unique("bigtree_module_actions", "route", Link::urlify("View $title"), array("module" => $module_id), true);
+			$route = Link::urlify($translated_action_title);
 		}
 
 		// Create an action for the view
-		ModuleAction::create($module_id, "View $title", $route, "on", "list", $view->ID);
+		ModuleAction::create($module_id, $translated_action_title, $route, "on", "list", $view->ID);
 
 		// If we're not working on a new module, just redirect back to the edit module page
 		if (!$_POST["new_module"]) {
-			Utils::growl("Developer","Created Module View");
+			Utils::growl("Developer", "Created Module View");
 			Router::redirect(DEVELOPER_ROOT."modules/edit/$module_id/");
 		}
 ?>
 <div class="container">
 	<section>
-		<h3><?=Text::translate("View :title:", false, array(":title:" => htmlspecialchars($title)))?></h3>
+		<h3><?=$translated_action_title?></h3>
 		<p><?=Text::translate("Your view has been created. You may continue to create a form for this view or return to the module overview instead.")?></p>
 	</section>
 	<footer>

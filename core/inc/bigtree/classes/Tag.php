@@ -11,7 +11,7 @@
 	 * @property-read string $Metaphone
 	 * @property-read string $Route
 	 */
-	class Tag extends BaseObject
+	class Tag extends SQLObject
 	{
 		
 		protected $ID;

@@ -11,6 +11,7 @@
 	 * @property-read int $ID
 	 * @property-read ModuleInterface $Interface
 	 * @property-read ModuleView $RelatedModuleView
+	 * @property-read Module $Module
 	 */
 	
 	class ModuleForm extends BaseObject
@@ -18,15 +19,16 @@
 		
 		protected $ID;
 		protected $Interface;
+		protected $Module;
 		
 		public $DefaultPosition;
 		public $Fields;
 		public $Hooks = ["edit" => "", "pre" => "", "post" => "", "publish" => ""];
-		public $Module;
 		public $OpenGraphEnabled;
 		public $ReturnURL;
 		public $ReturnView;
 		public $Root;
+		public $Table;
 		public $Tagging;
 		public $Title;
 		
@@ -36,43 +38,34 @@
 			"archived",
 			"approved"
 		];
-		public static $Table = "bigtree_module_interfaces";
 		
 		/*
 			Constructor:
 				Builds a ModuleForm object referencing an existing database entry.
 
 			Parameters:
-				interface - Either an ID (to pull a record) or an array (to use the array as the record)
+				interface - An array of interface data
+				module - The module for this form (passed by reference or passed as a module ID in the interface array)
 		*/
 		
-		public function __construct($interface = null)
-		{
-			if ($interface !== null) {
-				// Passing in just an ID
-				if (!is_array($interface)) {
-					$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
-				}
-				
-				// Bad data set
-				if (!is_array($interface)) {
-					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-				} else {
-					$this->ID = $interface["id"];
-					$this->Interface = new ModuleInterface($interface);
-					
-					$this->DefaultPosition = $this->Interface->Settings["default_position"];
-					$this->Fields = Link::decode($this->Interface->Settings["fields"]);
-					$this->Hooks = array_filter((array) $this->Interface->Settings["hooks"]);
-					$this->Module = $interface["module"];
-					$this->OpenGraphEnabled = !empty($this->Interface->Settings["open_graph"]);
-					$this->ReturnURL = $this->Interface->Settings["return_url"];
-					$this->ReturnView = $this->Interface->Settings["return_view"];
-					$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the BaseObject class
-					$this->Tagging = $this->Interface->Settings["tagging"] ? true : false;
-					$this->Title = $interface["title"];
-				}
+		public function __construct(array $interface, ?Module &$module = null) {
+			if (is_null($module) && !Module::exists($interface["module"])) {
+				trigger_error("The module for this interface does not exist.", E_USER_ERROR);
 			}
+			
+			$this->ID = $interface["id"];
+			$this->Interface = new ModuleInterface($interface);
+			$this->Module = !is_null($module) ? $module : new Module($interface["module"]);
+			
+			$this->DefaultPosition = $this->Interface->Settings["default_position"];
+			$this->Fields = Link::decode($this->Interface->Settings["fields"]);
+			$this->Hooks = array_filter((array) $this->Interface->Settings["hooks"]);
+			$this->OpenGraphEnabled = !empty($this->Interface->Settings["open_graph"]);
+			$this->ReturnURL = $this->Interface->Settings["return_url"];
+			$this->ReturnView = $this->Interface->Settings["return_view"];
+			$this->Table = $interface["table"];
+			$this->Tagging = $this->Interface->Settings["tagging"] ? true : false;
+			$this->Title = $interface["title"];
 		}
 		
 		/*
@@ -95,7 +88,7 @@
 				A ModuleForm object.
 		*/
 		
-		public static function create(int $module, string $title, string $table, array $fields, array $hooks = [],
+		public static function create(string $module, string $title, string $table, array $fields, array $hooks = [],
 									  string $default_position = "", ?int $return_view = null, string $return_url = "",
 									  bool $tagging = false, bool $open_graph = false): ModuleForm
 		{
@@ -132,13 +125,18 @@
 				"hooks" => is_string($hooks) ? json_decode($hooks, true) : $hooks
 			]);
 			
-			// Get related views for this table and update numeric status
-			$view_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = ?", $table);
+			$modules = DB::getAll("modules");
 			
-			foreach ($view_ids as $view_id) {
-				$view = new ModuleView($view_id);
-				$view->refreshNumericColumns();
+			foreach ($modules as $module_entry) {
+				foreach ($module_entry["interfaces"] as $module_interface) {
+					if ($module_interface["type"] == "view" && $module_interface["table"] == $table) {
+						$view = new ModuleView($module_interface);
+						$view->refreshNumericColumns();
+					}
+				}
 			}
+			
+			AuditTrail::track("config:modules", $module, "created-form");
 			
 			return new ModuleForm($interface->Array);
 		}
@@ -236,7 +234,8 @@
 			if (substr($id, 0, 1) == "p") {
 				$existing = SQL::fetchSingle("SELECT id FROM bigtree_pending_changes WHERE id = ?", substr($id, 0, 1));
 			} else {
-				$existing = SQL::fetchSingle("SELECT id FROM bigtree_pending_changes WHERE `table` = ? AND item_id = ?", $this->Table, $id);
+				$existing = SQL::fetchSingle("SELECT id FROM bigtree_pending_changes
+											  WHERE `table` = ? AND item_id = ?", $this->Table, $id);
 			}
 			
 			if ($existing) {
@@ -286,7 +285,7 @@
 		public function deleteEntry(int $id): void
 		{
 			$pending_change = SQL::fetchSingle("SELECT * FROM bigtree_pending_changes
-												WHERE `table` = ? AND `item_id` = ?", $table, $id);
+												WHERE `table` = ? AND `item_id` = ?", $this->Table, $id);
 			
 			if ($pending_change) {
 				Resource::deallocate($this->Table, "p".$pending_change);
@@ -521,23 +520,26 @@
 		{
 			// Explicitly set related view
 			if ($this->ReturnView) {
-				if (ModuleView::exists($this->ReturnView)) {
-					return new ModuleView($this->ReturnView);
+				if (isset($this->Module->Views[$this->ReturnView])) {
+					return $this->Module->Views[$this->ReturnView];
 				}
 			}
 			
 			// Try to find a view that's relating back to this form first
-			$form = SQL::escape($this->ID);
-			$view = SQL::fetch("SELECT * FROM bigtree_module_interfaces
-							    WHERE `settings` LIKE '%\"related_form\":\"$form\"%'
-								   OR `settings` LIKE '%\"related_form\": \"$form\"%'");
-			
-			// Fall back to any view that uses the same table
-			if (empty($view)) {
-				$view = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = ?", $this->Table);
+			foreach ($this->Module->Views as $view) {
+				if ($view->RelatedForm == $this->ID) {
+					return $view;
+				}
 			}
 			
-			return $view ? new ModuleView($view) : null;
+			// Fall back to any view that uses the same table
+			foreach ($this->Module->Views as $view) {
+				if ($view->Table == $this->Table) {
+					return $view;
+				}
+			}
+			
+			return null;
 		}
 		
 		/*
@@ -552,29 +554,31 @@
 		
 		public function handleManyToMany(int $id, ?array $many_to_many): void
 		{
-			if (is_array($many_to_many)) {
-				foreach ($many_to_many as $mtm) {
-					// Delete existing
-					SQL::delete($mtm["table"], [$mtm["my-id"] => $id]);
+			if (is_null($many_to_many)) {
+				return;
+			}
+			
+			foreach ($many_to_many as $mtm) {
+				// Delete existing
+				SQL::delete($mtm["table"], [$mtm["my-id"] => $id]);
 					
-					if (is_array($mtm["data"])) {
-						// Describe table to see if it's positioned
-						$table_description = SQL::describeTable($mtm["table"]);
-						$position = count($mtm["data"]);
-						
-						foreach ($mtm["data"] as $item) {
-							$mtm_insert_data = [
-								$mtm["my-id"] => $id,
-								$mtm["other-id"] => $item
-							];
+				if (is_array($mtm["data"])) {
+					// Describe table to see if it's positioned
+					$table_description = SQL::describeTable($mtm["table"]);
+					$position = count($mtm["data"]);
+					
+					foreach ($mtm["data"] as $item) {
+						$mtm_insert_data = [
+							$mtm["my-id"] => $id,
+							$mtm["other-id"] => $item
+						];
 							
-							// If we're using a positioned table, add it while decreasing the position value
-							if (isset($table_description["columns"]["position"])) {
-								$mtm_insert_data["position"] = $position--;
-							}
-							
-							SQL::insert($mtm["table"], $mtm_insert_data);
+						// If we're using a positioned table, add it while decreasing the position value
+						if (isset($table_description["columns"]["position"])) {
+							$mtm_insert_data["position"] = $position--;
 						}
+							
+						SQL::insert($mtm["table"], $mtm_insert_data);
 					}
 				}
 			}
@@ -593,16 +597,18 @@
 		{
 			SQL::delete("bigtree_tags_rel", ["table" => $this->Table, "entry" => $id]);
 			
-			if (is_array($tags)) {
-				$tags = array_unique($tags);
+			if (is_null($tags)) {
+				return;
+			}
+			
+			$tags = array_unique($tags);
 
-				foreach ($tags as $tag) {
-					SQL::insert("bigtree_tags_rel", [
-						"table" => $this->Table,
-						"entry" => $id,
-						"tag" => $tag
-					]);
-				}
+			foreach ($tags as $tag) {
+				SQL::insert("bigtree_tags_rel", [
+					"table" => $this->Table,
+					"entry" => $id,
+					"tag" => $tag
+				]);
 			}
 		}
 		
@@ -613,38 +619,30 @@
 		
 		public function save(): ?bool
 		{
-			if (empty($this->Interface->ID)) {
-				$new = static::create($this->Module, $this->Title, $this->Table, $this->Fields, $this->Hooks,
-									  $this->DefaultPosition, $this->ReturnView, $this->ReturnURL, $this->Tagging,
-									  $this->OpenGraphEnabled);
-				$this->inherit($new);
-			} else {
-				// Clean up fields in case old format was used
-				foreach ($this->Fields as $key => $field) {
-					$settings = is_array($field["settings"]) ? $field["settings"] : json_decode($field["settings"], true);
-					
-					$field["settings"] = Link::encode(Utils::arrayFilterRecursive((array) $settings));
-					$field["column"] = $key;
-					$field["title"] = Text::htmlEncode($field["title"]);
-					$field["subtitle"] = Text::htmlEncode($field["subtitle"]);
-					
-					$this->Fields[$key] = $field;
-				}
+			// Clean up fields in case old format was used
+			foreach ($this->Fields as $key => $field) {
+				$settings = is_array($field["settings"]) ? $field["settings"] : json_decode($field["settings"], true);
 				
-				$this->Interface->Settings = [
-					"fields" => array_filter((array) $this->Fields),
-					"default_position" => $this->DefaultPosition,
-					"return_view" => intval($this->ReturnView) ?: null,
-					"return_url" => $this->ReturnURL,
-					"tagging" => $this->Tagging ? "on" : "",
-					"open_graph" => $this->OpenGraphEnabled ? "on": "",
-					"hooks" => array_filter((array) $this->Hooks)
-				];
-				$this->Interface->Table = $this->Table;
-				$this->Interface->Title = $this->Title;
+				$field["settings"] = Link::encode(Utils::arrayFilterRecursive((array) $settings));
+				$field["column"] = $key;
+				$field["title"] = Text::htmlEncode($field["title"]);
+				$field["subtitle"] = Text::htmlEncode($field["subtitle"]);
 				
-				$this->Interface->save();
+				$this->Fields[$key] = $field;
 			}
+			
+			$this->Interface->Settings = [
+				"fields" => array_filter((array) $this->Fields),
+				"default_position" => $this->DefaultPosition,
+				"return_view" => intval($this->ReturnView) ?: null,
+				"return_url" => $this->ReturnURL,
+				"tagging" => $this->Tagging ? "on" : "",
+				"open_graph" => $this->OpenGraphEnabled ? "on" : "",
+				"hooks" => array_filter((array) $this->Hooks)
+			];
+			$this->Interface->Table = $this->Table;
+			$this->Interface->Title = $this->Title;
+			$this->Interface->save();
 			
 			return true;
 		}
@@ -679,22 +677,26 @@
 			$this->Table = $table;
 			$this->Tagging = $tagging;
 			$this->Title = $title;
-			
 			$this->save();
 			
 			// Update action titles
-			$title = SQL::escape(Text::htmlEncode($title));
-			SQL::query("UPDATE bigtree_module_actions SET name = 'Add $title' 
-						WHERE interface = ? AND route LIKE 'add%'", $this->ID);
-			SQL::query("UPDATE bigtree_module_actions SET name = 'Edit $title' 
-						WHERE interface = ? AND route LIKE 'edit%'", $this->ID);
+			foreach ($this->Module->Actions as $action) {
+				if ($action->Interface == $this->ID) {
+					if (substr($action->Route, 0, 3) == "add") {
+						$action->Title = Text::translate("Add :entry_title:", true, [":entry_title:" => $title]);
+						$action->save();
+					} elseif (substr($action->Route, 0, 4) == "edit") {
+						$action->Title = Text::translate("Edit :entry_title:", true, [":entry_title:" => $title]);
+						$action->save();
+					}
+				}
+			}
 			
 			// Get related views for this table and update numeric status
-			$view_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = ?", $table);
-			
-			foreach ($view_ids as $view_id) {
-				$view = new ModuleView($view_id);
-				$view->refreshNumericColumns();
+			foreach ($this->Module->Views as $view) {
+				if ($view->Table == $this->Table) {
+					$view->refreshNumericColumns();
+				}
 			}
 		}
 		

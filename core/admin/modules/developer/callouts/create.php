@@ -11,7 +11,7 @@
 	Globalize::POST();
 
 	// Let's see if the ID has already been used.
-	if (SQL::exists("bigtree_callouts",$id)) {
+	if (DB::exists("callouts", $id)) {
 		$_SESSION["bigtree_admin"]["saved"] = $_POST;
 		$_SESSION["bigtree_admin"]["error"] = "ID Used";
 		

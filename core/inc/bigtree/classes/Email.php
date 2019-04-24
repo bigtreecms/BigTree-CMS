@@ -11,7 +11,7 @@
 	 * @property-read string $Service
 	 * @property-read array $Settings
 	 */
-	class Email extends BaseObject
+	class Email extends SQLObject
 	{
 		
 		protected $Service;

@@ -6,7 +6,7 @@
 	
 	namespace BigTree;
 	
-	class Feed extends BaseObject
+	class Feed extends JSONObject
 	{
 		
 		protected $ID;
@@ -24,7 +24,7 @@
 			"rss" => "RSS 0.91",
 			"rss2" => "RSS 2.0"
 		];
-		public static $Table = "bigtree_feeds";
+		public static $Store = "feeds";
 		
 		/*
 			Constructor:
@@ -39,7 +39,7 @@
 			if ($feed !== null) {
 				// Passing in just an ID
 				if (!is_array($feed)) {
-					$feed = SQL::fetch("SELECT * FROM bigtree_feeds WHERE id = ?", $feed);
+					$feed = DB::get("feeds", $feed);
 				}
 				
 				// Bad data set
@@ -49,10 +49,10 @@
 					$this->ID = $feed["id"];
 					
 					$this->Description = $feed["description"];
-					$this->Fields = json_decode($feed["fields"], true);
+					$this->Fields = $feed["fields"];
 					$this->Name = $feed["name"];
 					$this->Route = $feed["route"];
-					$this->Settings = json_decode($feed["options"], true);
+					$this->Settings = $feed["settings"];
 					$this->Table = $feed["table"];
 					$this->Type = $feed["type"];
 				}
@@ -78,24 +78,19 @@
 		public static function create(string $name, string $description, string $table, string $type,
 									  array $settings, array $fields): Feed
 		{
-			// Settings were probably passed as a JSON string, but either way make a nice translated array
 			$settings = Link::encode($settings);
-			
-			// Get a unique route!
-			$route = SQL::unique("bigtree_feeds", "route", Link::urlify($name));
-			
-			// Insert and track
-			$id = SQL::insert("bigtree_feeds", [
+			$route = DB::unique("feeds", "route", Link::urlify($name));
+			$id = DB::insert("feeds", [
 				"route" => $route,
 				"name" => Text::htmlEncode($name),
 				"description" => Text::htmlEncode($description),
 				"type" => $type,
 				"table" => $table,
 				"fields" => $fields,
-				"options" => $settings
+				"settings" => $settings
 			]);
 			
-			AuditTrail::track("bigtree_feeds", $id, "created");
+			AuditTrail::track("config:feeds", $id, "created");
 			
 			return new Feed($id);
 		}
@@ -108,18 +103,19 @@
 		public function save(): ?bool
 		{
 			if (empty($this->ID)) {
-				$new = static::create($this->Name, $this->Description, $this->Table, $this->Type, $this->Settings, $this->Fields);
+				$new = static::create($this->Name, $this->Description, $this->Table, $this->Type, $this->Settings,
+									  $this->Fields);
 				$this->inherit($new);
 			} else {
-				SQL::update("bigtree_feeds", $this->ID, [
+				DB::update("feeds", $this->ID, [
 					"name" => Text::htmlEncode($this->Name),
 					"description" => Text::htmlEncode($this->Description),
 					"table" => $this->Table,
 					"type" => $this->Type,
 					"fields" => $this->Fields,
-					"options" => Link::encode($this->Settings)
+					"settings" => Link::encode($this->Settings)
 				]);
-				AuditTrail::track("bigtree_feeds", $this->ID, "updated");
+				AuditTrail::track("config:feeds", $this->ID, "updated");
 			}
 			
 			return true;
@@ -141,8 +137,6 @@
 		public function update(string $name, string $description, string $table, string $type, array $settings,
 							   array $fields): ?bool
 		{
-			$settings = is_array($settings) ? $settings : json_decode($settings, true);
-			
 			$this->Name = $name;
 			$this->Description = $description;
 			$this->Table = $table;

@@ -6,7 +6,7 @@
 	
 	namespace BigTree;
 	
-	class Setting extends BaseObject
+	class Setting extends SQLObject
 	{
 		
 		protected $OriginalEncrypted;

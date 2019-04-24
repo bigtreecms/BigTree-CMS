@@ -6,7 +6,7 @@
 	
 	namespace BigTree;
 	
-	class Extension extends BaseObject
+	class Extension extends JSONObject
 	{
 		protected $LastUpdated;
 		
@@ -17,8 +17,9 @@
 		public $Version;
 		
 		public static $CacheInitialized = false;
+		public static $Hooks = [];
 		public static $RequiredFiles = [];
-		public static $Table = "bigtree_extensions";
+		public static $Table = "extensions";
 		
 		/*
 			Constructor:
@@ -33,7 +34,7 @@
 			if ($extension !== null) {
 				// Passing in just an ID
 				if (!is_array($extension)) {
-					$extension = SQL::fetch("SELECT * FROM bigtree_extensions WHERE id = ?", $extension);
+					$extension = DB::get("extensions", $extension);
 				}
 				
 				// Bad data set
@@ -41,12 +42,11 @@
 					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 				} else {
 					$this->ID = $extension["id"];
+					$this->LastUpdated = $extension["last_updated"];
 					$this->Manifest = array_filter((array) @json_decode($extension["manifest"], true));
 					$this->Name = $extension["name"];
 					$this->Type = $extension["type"];
 					$this->Version = $extension["version"];
-					
-					$this->LastUpdated = $extension["last_updated"];
 				}
 			}
 		}
@@ -59,84 +59,33 @@
 		public function delete(): ?bool
 		{
 			// Prevent the whole directory from being deleted if this doesn't have an ID
-			if (empty($this->ID)) {
+			if (empty($this->ID) || !DB::exists("extensions", $this->ID)) {
 				return false;
 			}
 			
-			// Regular extension
-			if ($this->Type == "extesion") {
-				// Delete site files
-				FileSystem::deleteDirectory(SITE_ROOT."extensions/".$this->ID."/");
-				// Delete extensions directory
-				FileSystem::deleteDirectory(SERVER_ROOT."extensions/".$this->ID."/");
-				
-				// Delete components
-				foreach ($this->Manifest["components"] as $type => $list) {
-					if ($type == "tables") {
-						// Turn off foreign key checks since we're going to be dropping tables.
-						SQL::query("SET SESSION foreign_key_checks = 0");
-						
-						// Drop all the tables the extension created
-						foreach ($list as $table => $create_statement) {
-							SQL::query("DROP TABLE IF EXISTS `$table`");
-						}
-						
-						// Re-enable foreign key checks
-						SQL::query("SET SESSION foreign_key_checks = 1");
-					} else {
-						// Remove other database entries
-						foreach ($list as $item) {
-							SQL::delete("bigtree_".$type, $item["id"]);
-						}
+			FileSystem::deleteDirectory(SITE_ROOT."extensions/".$this->ID."/");
+			FileSystem::deleteDirectory(SERVER_ROOT."extensions/".$this->ID."/");
+			
+			foreach ($this->Manifest["components"] as $type => $list) {
+				if ($type == "tables") {
+					// Drop all the tables the extension created
+					SQL::query("SET SESSION foreign_key_checks = 0");
+					
+					foreach ($list as $table => $create_statement) {
+						SQL::query("DROP TABLE IF EXISTS `$table`");
 					}
-				}
-			// Simple package
-			} else {
-				// Delete related files
-				foreach ($this->Manifest["files"] as $file) {
-					FileSystem::deleteFile(SERVER_ROOT.$file);
-				}
-				
-				// Delete components
-				foreach ($this->Manifest["components"] as $type => $list) {
-					if ($type == "tables") {
-						// Turn off foreign key checks since we're going to be dropping tables.
-						SQL::query("SET SESSION foreign_key_checks = 0");
-						
-						// Remove all the tables the package added
-						foreach ($list as $table) {
-							SQL::query("DROP TABLE IF EXISTS `$table`");
-						}
-						
-						// Re-enable key checks
-						SQL::query("SET SESSION foreign_key_checks = 1");
-					} else {
-						// Remove all the bigtree components the package made
-						foreach ($list as $item) {
-							SQL::delete("bigtree_$type", $item["id"]);
-						}
-						
-						// Modules might have their own directories
-						if ($type == "modules") {
-							foreach ($list as $item) {
-								FileSystem::deleteDirectory(SERVER_ROOT."custom/admin/modules/".$item["route"]."/");
-								FileSystem::deleteDirectory(SERVER_ROOT."custom/admin/ajax/".$item["route"]."/");
-								FileSystem::deleteDirectory(SERVER_ROOT."custom/admin/images/".$item["route"]."/");
-							}
-						} elseif ($type == "templates") {
-							foreach ($list as $item) {
-								FileSystem::deleteDirectory(SERVER_ROOT."templates/routed/".$item["id"]."/");
-							}
-						}
+					
+					SQL::query("SET SESSION foreign_key_checks = 1");
+				} else {
+					// Remove other JSON config entries
+					foreach ($list as $item) {
+						DB::delete($type, $item["id"]);
 					}
 				}
 			}
 			
-			// Delete extension entry
-			SQL::delete("bigtree_extensions", $this->ID);
-			
-			// Track
-			AuditTrail::track("bigtree_extensions", $this->ID, "deleted");
+			DB::delete("extensions", $this->ID);
+			AuditTrail::track("config:extensions", $this->ID, "deleted");
 			
 			return true;
 		}
@@ -164,18 +113,36 @@
 					"daily-digest" => [],
 					"dashboard" => [],
 					"interfaces" => [],
-					"view-types" => []
+					"view-types" => [],
+					"hooks" => []
 				];
 				
-				$extension_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_extensions WHERE type = 'extension'");
+				$extensions = DB::getAll("extensions");
 				
-				foreach ($extension_ids as $extension_id) {
+				foreach ($extensions as $extension) {
 					// Load up the manifest
-					$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$extension_id/manifest.json"), true);
+					$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/".$extension["id"]."/manifest.json"), true);
+					
 					if (!empty($manifest["plugins"]) && is_array($manifest["plugins"])) {
 						foreach ($manifest["plugins"] as $type => $list) {
 							foreach ($list as $id => $plugin) {
-								$plugins[$type][$extension_id][$id] = $plugin;
+								$plugins[$type][$manifest["id"]][$id] = $plugin;
+							}
+						}
+					}
+					
+					$hook_base_dir = SERVER_ROOT."extensions/".$extension["id"]."/hooks/";
+					
+					if (file_exists($hook_base_dir)) {
+						$hook_files = FileSystem::getDirectoryContents($hook_base_dir, true, "php");
+						
+						foreach ($hook_files as $file) {
+							$parts = explode("/", str_replace($hook_base_dir, "", substr($file, 0, -4)));
+							
+							if (count($parts) == 2) {
+								$plugins["hooks"][$parts[0]][$parts[1]][] = str_replace(SERVER_ROOT, "", $file);
+							} elseif (count($parts) == 1) {
+								$plugins["hooks"][$parts[0]][] = str_replace(SERVER_ROOT, "", $file);
 							}
 						}
 					}
@@ -195,6 +162,7 @@
 			ModuleInterface::$Plugins = $plugins["interfaces"];
 			ModuleView::$Plugins = $plugins["view-types"];
 			
+			static::$Hooks = $plugins["hooks"];
 			static::$CacheInitialized = true;
 		}
 		
@@ -212,10 +180,7 @@
 		
 		public static function installFromManifest(array $manifest, ?array $upgrade = null): ?Extension
 		{
-			global $bigtree;
-			
-			// Initialize a bunch of empty arrays
-			$bigtree["group_match"] = $bigtree["module_match"] = $bigtree["route_match"] = $bigtree["class_name_match"] = $bigtree["form_id_match"] = $bigtree["view_id_match"] = $bigtree["report_id_match"] = [];
+			$group_match = $module_match = $class_name_match = $form_id_match = $view_id_match = $report_id_match = [];
 			$extension = $manifest["id"];
 			
 			// Turn off foreign key checks so we can reference the extension before creating it
@@ -223,13 +188,53 @@
 			
 			// Upgrades drop existing modules, templates, etc -- we don't drop settings because they have user data
 			if (is_array($upgrade)) {
-				SQL::delete("bigtree_module_groups", ["extension" => $extension]);
-				SQL::delete("bigtree_modules", ["extension" => $extension]);
-				SQL::delete("bigtree_templates", ["extension" => $extension]);
-				SQL::delete("bigtree_callouts", ["extension" => $extension]);
-				SQL::delete("bigtree_field_types", ["extension" => $extension]);
-				SQL::delete("bigtree_feeds", ["extension" => $extension]);
+				$modules = DB::getAll("modules");
 				
+				foreach ($modules as $item) {
+					if ($item["extension"] == $extension) {
+						DB::delete("modules", $item["id"]);
+					}
+				}
+				
+				$module_groups = DB::getAll("module-groups");
+				
+				foreach ($module_groups as $group) {
+					if ($group["extension"] == $extension) {
+						DB::delete("module-groups", $group["id"]);
+					}
+				}
+				
+				$templates = DB::getAll("templates");
+				
+				foreach ($templates as $item) {
+					if ($item["extension"] == $extension) {
+						DB::delete("templates", $item["id"]);
+					}
+				}
+				
+				$callouts = DB::getAll("callouts");
+				
+				foreach ($callouts as $item) {
+					if ($item["extension"] == $extension) {
+						DB::delete("callouts", $item["id"]);
+					}
+				}
+				
+				$field_types = DB::getAll("field-types");
+				
+				foreach ($field_types as $item) {
+					if ($item["extension"] == $extension) {
+						DB::delete("field-types", $item["id"]);
+					}
+				}
+				
+				$feeds = DB::getAll("feeds");
+				
+				foreach ($feeds as $item) {
+					if ($item["extension"] == $extension) {
+						DB::delete("feeds", $item["id"]);
+					}
+				}
 			// Import tables for new installs
 			} else {
 				foreach ($manifest["components"]["tables"] as $table_name => $sql_statement) {
@@ -240,26 +245,22 @@
 			
 			// Import module groups
 			foreach ($manifest["components"]["module_groups"] as &$group) {
-				if (array_filter((array) $group)) {
-					$bigtree["group_match"][$group["id"]] = ModuleGroup::create($group["name"]);
+				if ($group) {
+					$group_match[$group["id"]] = ModuleGroup::create($group["name"]);
+					
 					// Update the group ID since we're going to save this manifest locally for uninstalling
-					$group["id"] = $bigtree["group_match"][$group["id"]];
-					SQL::update("bigtree_module_groups", $group["id"], ["extension" => $extension]);
+					$group["id"] = $group_match[$group["id"]];
+					DB::update("module-groups", $group["id"], ["extension" => $extension]);
 				}
 			}
 			
 			// Import modules
 			foreach ($manifest["components"]["modules"] as &$module) {
-				if (array_filter((array) $module)) {
-					$group = ($module["group"] && isset($bigtree["group_match"][$module["group"]])) ? $bigtree["group_match"][$module["group"]] : null;
-					
-					// Find a unique route
-					$route = SQL::unique("bigtree_modules", "route", $module["route"]);
-					
-					// Create the module
-					$module_id = SQL::insert("bigtree_modules", [
+				if ($module) {
+					$group = isset($group_match[$module["group"]]) ? $group_match[$module["group"]] : null;
+					$module_id = DB::insert("modules", [
 						"name" => $module["name"],
-						"route" => $route,
+						"route" => $module["route"],
 						"class" => $module["class"],
 						"icon" => $module["icon"],
 						"group" => $group,
@@ -267,54 +268,66 @@
 						"extension" => $extension
 					]);
 					
-					// Setup matches
-					$bigtree["module_match"][$module["id"]] = $module_id;
-					$bigtree["route_match"][$module["route"]] = $route;
+					$module_match[$module["id"]] = $module_id;
 					
 					// Update the module ID since we're going to save this manifest locally for uninstalling
 					$module["id"] = $module_id;
 					
 					// Create views
 					foreach ($module["views"] as $view) {
-						$view_object = ModuleView::create($module_id, $view["title"], $view["description"], $view["table"], $view["type"], Utils::arrayValue($view["options"]), Utils::arrayValue($view["fields"]), Utils::arrayValue($view["actions"]), $view["suffix"], $view["preview_url"]);
-						$bigtree["view_id_match"][$view["id"]] = $view_object->ID;
+						$view = ModuleView::create($module_id, $view["title"], $view["description"], $view["table"],
+												   $view["type"], $view["settings"], $view["fields"], $view["actions"],
+												   $view["suffix"], $view["preview_url"]);
+						$view_id_match[$view["id"]] = $view->ID;
 					}
 					
 					// Create regular forms
 					foreach ($module["forms"] as $form) {
-						$form_object = ModuleForm::create($module_id, $form["title"], $form["table"], Utils::arrayValue($form["fields"]), $form["hooks"], $form["default_position"], ($form["return_view"] ? $bigtree["view_id_match"][$form["return_view"]] : false), $form["return_url"], $form["tagging"]);
-						$bigtree["form_id_match"][$form["id"]] = $form_object->ID;
+						$return_view = isset($view_id_match[$form["return_view"]]) ? $view_id_match[$form["return_view"]] : null;
+						$form = ModuleForm::create($module_id, $form["title"], $form["table"], $form["fields"],
+												   $form["hooks"], $form["default_position"], $return_view,
+												   $form["return_url"], !empty($form["tagging"]));
+						$form_id_match[$form["id"]] = $form->ID;
 					}
 					
 					// Create reports
 					foreach ($module["reports"] as $report) {
-						$report_object = ModuleReport::create($module_id, $report["title"], $report["table"], $report["type"], Utils::arrayValue($report["filters"]), Utils::arrayValue($report["fields"]), $report["parser"], ($report["view"] ? $bigtree["view_id_match"][$report["view"]] : false));
-						$bigtree["report_id_match"][$report["id"]] = $report_object->ID;
+						$view = isset($view_id_match[$report["view"]]) ? $view_id_match[$report["view"]] : null;
+						$report = ModuleReport::create($module_id, $report["title"], $report["table"], $report["type"],
+													   $report["filters"], $report["fields"], $report["parser"], $view);
+						$report_id_match[$report["id"]] = $report->ID;
 					}
 					
 					// Create actions
 					foreach ($module["actions"] as $action) {
-						// 4.1 and 4.2 compatibility
-						if ($action["report"]) {
-							$action["interface"] = $bigtree["report_id_match"][$action["report"]];
-						} elseif ($action["form"]) {
-							$action["interface"] = $bigtree["form_id_match"][$action["form"]];
-						} elseif ($action["view"]) {
-							$action["interface"] = $bigtree["view_id_match"][$action["view"]];
-						}
+						$form = isset($form_id_match[$action["form"]]) ? $form_id_match[$action["form"]] : null;
+						$view = isset($view_id_match[$action["view"]]) ? $view_id_match[$action["view"]] : null;
+						$report = isset($report_id_match[$action["report"]]) ? $report_id_match[$action["report"]] : null;
 						
-						ModuleAction::create($module_id, $action["name"], $action["route"], $action["in_nav"], $action["class"], $action["interface"], $action["level"], $action["position"]);
+						ModuleAction::create($module_id, $action["name"], $action["route"], $action["in_nav"],
+											 $action["class"], $form, $view, $report, $action["level"],
+											 $action["position"]);
+					}
+					
+					// Update related form state for views
+					foreach ($module["views"] as $view) {
+						if ($view["related_form"]) {
+							$context = DB::getSubset("modules", $module_id);
+							$context->update("views", $view_id_match[$view["id"]], [
+								"related_form" => $form_id_match[$view["related_form"]]
+							]);
+						}
 					}
 				}
 			}
 			
 			// Import templates
 			foreach ($manifest["components"]["templates"] as $template) {
-				if (array_filter((array) $template)) {
-					SQL::insert("bigtree_templates", [
+				if ($template) {
+					DB::insert("templates", [
 						"id" => $template["id"],
 						"name" => $template["name"],
-						"module" => $bigtree["module_match"][$template["module"]],
+						"module" => $module_match[$template["module"]],
 						"resources" => $template["resources"],
 						"level" => $template["level"],
 						"routed" => $template["routed"],
@@ -325,8 +338,8 @@
 			
 			// Import callouts
 			foreach ($manifest["components"]["callouts"] as $callout) {
-				if (array_filter((array) $callout)) {
-					SQL::insert("bigtree_callouts", [
+				if ($callout) {
+					DB::insert("callouts", [
 						"id" => $callout["id"],
 						"name" => $callout["name"],
 						"description" => $callout["description"],
@@ -342,23 +355,25 @@
 			
 			// Import Settings
 			foreach ($manifest["components"]["settings"] as $setting) {
-				if (array_filter((array) $setting)) {
-					Setting::create($setting["id"], $setting["name"], $setting["description"], $setting["type"], $setting["options"], $setting["extension"], $setting["system"], $setting["encrypted"], $setting["locked"]);
-					SQL::update("bigtree_settings", $setting["id"], ["extension" => $extension]);
+				if ($setting) {
+					Setting::create($setting["id"], $setting["name"], $setting["description"], $setting["type"],
+									$setting["settings"], $extension, $setting["system"], $setting["encrypted"],
+									$setting["locked"]);
 				}
 			}
 			
 			// Import Feeds
-			foreach ($manifest["components"]["feeds"] as $feed) {
-				if (array_filter((array) $feed)) {
-					SQL::insert("bigtree_feeds", [
+			foreach ($manifest["components"]["feeds"] as &$feed) {
+				if ($feed) {
+					$settings = $feed["settings"] ?: $feed["options"];
+					$feed["id"] = DB::insert("feeds", [
 						"route" => $feed["route"],
 						"name" => $feed["name"],
 						"description" => $feed["description"],
 						"type" => $feed["type"],
 						"table" => $feed["table"],
 						"fields" => $feed["fields"],
-						"options" => $feed["options"],
+						"settings" => $settings,
 						"extension" => $extension
 					]);
 				}
@@ -366,12 +381,12 @@
 			
 			// Import Field Types
 			foreach ($manifest["components"]["field_types"] as $type) {
-				if (array_filter((array) $type)) {
-					SQL::insert("bigtree_field_types", [
+				if ($type) {
+					DB::insert("field-types", [
 						"id" => $type["id"],
 						"name" => $type["name"],
 						"use_cases" => $type["use_cases"],
-						"self_draw" => $type["self_draw"] ? "'on'" : null,
+						"self_draw" => $type["self_draw"],
 						"extension" => $extension
 					]);
 				}
@@ -394,9 +409,10 @@
 				}
 				
 				// Update the extension
-				SQL::update("bigtree_extensions", $extension, [
+				DB::update("extensions", $manifest["id"], [
 					"name" => $manifest["title"],
 					"version" => $manifest["version"],
+					"last_updated" => date("Y-m-d H:i:s"),
 					"manifest" => $manifest
 				]);
 				
@@ -407,15 +423,15 @@
 				FileSystem::deleteDirectory($destination_path);
 				
 				// Move the package to the extension directory
-				rename(SERVER_ROOT."cache/package/", $destination_path);
+				rename(SERVER_ROOT."cache/package/",$destination_path);
 				FileSystem::setDirectoryPermissions($destination_path);
 				
 				// Create the extension
-				SQL::insert("bigtree_extensions", [
-					"id" => $extension,
-					"type" => "extension",
+				DB::insert("extensions", [
+					"id" => $manifest["id"],
 					"name" => $manifest["title"],
 					"version" => $manifest["version"],
+					"last_updated" => date("Y-m-d H:i:s"),
 					"manifest" => $manifest
 				]);
 			}
@@ -428,18 +444,66 @@
 			
 			// Move public files into the site directory
 			$public_dir = SERVER_ROOT."extensions/".$manifest["id"]."/public/";
-			$site_contents = file_exists($public_dir) ? FileSystem::getDirectoryContents($public_dir) : [];
+			$site_contents = file_exists($public_dir) ? BigTree::directoryContents($public_dir) : array();
 			
 			foreach ($site_contents as $file_path) {
-				$destination_path = str_replace($public_dir, SITE_ROOT."extensions/".$manifest["id"]."/", $file_path);
-				FileSystem::copyFile($file_path, $destination_path);
+				$destination_path = str_replace($public_dir,SITE_ROOT."extensions/".$manifest["id"]."/",$file_path);
+				FileSystem::copyFile($file_path,$destination_path);
 			}
 			
 			// Clear module class cache and field type cache.
-			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
-			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
+			@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
+			@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 			
-			return new Extension($manifest["id"]);
+			static::initializeCache();
+			
+			return new Extension($extension);
+		}
+		
+		/*
+			Function: runHooks
+				Runs extension hooks of a given type for a given context.
+
+			Parameters:
+				type - Hook type
+				context - Hook context
+				data - Data to modify (will be returned modified)
+				data_context - Additional data context (will be global variables in the context of the hook, not returned)
+
+			Returns:
+				Data modified by hook script
+		*/
+		
+		public static function runHooks($type, $context = "", $data = "", $data_context = []) {
+			if (!static::$CacheInitialized) {
+				static::initializeCache();
+			}
+			
+			// Anonymous function so that hooks can't pollute context
+			$run_hook = function($hook, $data, $data_context = []) {
+				foreach ($data_context as $key => $value) {
+					$$key = $value;
+				}
+				
+				include SERVER_ROOT.$hook;
+				return $data;
+			};
+			
+			if ($context) {
+				if (!empty(static::$Hooks[$type][$context]) && is_array(static::$Hooks[$type][$context])) {
+					foreach (static::$Hooks[$type][$context] as $hook) {
+						$data = $run_hook($hook, $data, $data_context);
+					}
+				}
+			} else {
+				if (!empty(static::$Hooks[$type]) && is_array(static::$Hooks[$type])) {
+					foreach (static::$Hooks[$type] as $hook) {
+						$data = $run_hook($hook, $data, $data_context);
+					}
+				}
+			}
+			
+			return $data;
 		}
 		
 	}

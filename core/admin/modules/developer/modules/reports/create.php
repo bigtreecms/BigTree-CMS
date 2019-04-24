@@ -20,9 +20,7 @@
 		$_POST["view"]
 	);
 
-	$action_route = SQL::unique("bigtree_module_actions", "route", "report", array("module" => $module_id), true);
-	ModuleAction::create($module_id, $_POST["title"], $action_route, "on", "export", $report->ID);
-
+	ModuleAction::create($module_id, $_POST["title"], "report", "on", "export", $report->ID);
 	Utils::growl("Developer", "Created Module Report");
 	Router::redirect(DEVELOPER_ROOT."modules/edit/$module_id/");
 	

@@ -26,16 +26,18 @@
 	// See if add/edit actions already exist
 	$add_route = "add";
 	$edit_route = "edit";
+	$translated_add_title = Text::translate("Add :title:", false, [":title:" => $title]);
+	$translated_edit_title = Text::translate("Edit :title:", false, [":title:" => $title]);
 
 	// If we already have add/edit routes, get unique new ones for this form
 	if (ModuleAction::existsForRoute($module, "add") || ModuleAction::existsForRoute($module, "edit")) {
-		$add_route = SQL::unique("bigtree_module_actions", "route", Link::urlify("add $title"), array("module" => $module), true);
-		$edit_route = SQL::unique("bigtree_module_actions", "route", Link::urlify("edit $title"), array("module" => $module), true);
+		$add_route = Link::urlify($translated_add_title);
+		$edit_route = Link::urlify($translated_edit_title);
 	}
 
 	// Create actions for the form
-	ModuleAction::create($module, "Add $title", $add_route, "on", "add", $form->ID);
-	ModuleAction::create($module, "Edit $title", $edit_route, "", "edit", $form->ID);
+	ModuleAction::create($module, $translated_add_title, $add_route, "on", "add", $form->ID);
+	ModuleAction::create($module, $translated_edit_title, $edit_route, "", "edit", $form->ID);
 
 	Utils::growl("Developer", "Created Module Form");
 	Router::redirect(DEVELOPER_ROOT."modules/edit/$module/");

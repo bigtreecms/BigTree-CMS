@@ -9,6 +9,7 @@
 	/**
 	 * @property-read int $ID
 	 * @property-read ModuleInterface $Interface
+	 * @property-read Module $Module
 	 * @property-read ModuleForm $RelatedModuleForm
 	 * @property-read ModuleView $RelatedModuleView
 	 */
@@ -18,51 +19,42 @@
 		
 		protected $ID;
 		protected $Interface;
+		protected $Module;
 		
 		public $Fields;
 		public $Filters;
-		public $Module;
 		public $Parser;
 		public $Root;
+		public $Table;
 		public $Title;
 		public $Type;
 		public $View;
-		
-		public static $Table = "bigtree_module_interfaces";
 		
 		/*
 			Constructor:
 				Builds a ModuleReport object referencing an existing database entry.
 
 			Parameters:
-				interface - Either an ID (to pull a record) or an array (to use the array as the record)
+				interface - An array of interface data
+				module - The module for this report (passed by reference or passed as a module ID in the interface array)
 		*/
 		
-		public function __construct($interface = null)
-		{
-			if ($interface !== null) {
-				// Passing in just an ID
-				if (!is_array($interface)) {
-					$interface = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE id = ?", $interface);
-				}
-				
-				// Bad data set
-				if (!is_array($interface)) {
-					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
-				} else {
-					$this->ID = $interface["id"];
-					$this->Interface = new ModuleInterface($interface);
-					
-					$this->Fields = $this->Interface->Settings["fields"];
-					$this->Filters = $this->Interface->Settings["filters"];
-					$this->Module = $interface["module"];
-					$this->Parser = $this->Interface->Settings["parser"];
-					$this->Table = $interface["table"]; // We can't declare this publicly because it's static for the BaseObject class
-					$this->Title = $interface["title"];
-					$this->Type = $this->Interface->Settings["type"];
-					$this->View = $this->Interface->Settings["view"];
-				}
+		public function __construct(array $interface, ?Module &$module = null) {
+			if (is_null($module) && !Module::exists($interface["module"])) {
+				trigger_error("The module for this interface does not exist.", E_USER_ERROR);
 			}
+			
+			$this->ID = $interface["id"];
+			$this->Interface = new ModuleInterface($interface);
+			$this->Module = !is_null($module) ? $module : new Module($interface["module"]);
+			
+			$this->Fields = $this->Interface->Settings["fields"];
+			$this->Filters = $this->Interface->Settings["filters"];
+			$this->Parser = $this->Interface->Settings["parser"];
+			$this->Table = $interface["table"];
+			$this->Title = $interface["title"];
+			$this->Type = $this->Interface->Settings["type"];
+			$this->View = $this->Interface->Settings["view"];
 		}
 		
 		/*
@@ -83,7 +75,7 @@
 				A ModuleReport object.
 		*/
 		
-		public static function create(int $module, string $title, string $table, string $type, array $filters,
+		public static function create(string $module, string $title, string $table, string $type, array $filters,
 									  array $fields = [], string $parser = "", ?int $view = null): ModuleReport
 		{
 			$interface = ModuleInterface::create("report", $module, $title, $table, [
@@ -107,9 +99,13 @@
 		
 		public function getRelatedModuleForm(): ?ModuleForm
 		{
-			$form = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'form' AND `table` = ?", $this->Table);
+			foreach ($this->Module->Forms as $form) {
+				if ($form->Table == $this->Table) {
+					return $form;
+				}
+			}
 			
-			return $form ? new ModuleForm($form) : null;
+			return null;
 		}
 		
 		/*
@@ -122,13 +118,17 @@
 		
 		public function getRelatedModuleView(): ?ModuleView
 		{
-			if ($this->View) {
-				$view = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE i = ?", $this->View);
-			} else {
-				$view = SQL::fetch("SELECT * FROM bigtree_module_interfaces WHERE `type` = 'view' AND `table` = ?", $this->Table);
+			if (!empty($this->View) && isset($this->Module->Views[$this->View])) {
+				return $this->Module->Views[$this->View];
 			}
 			
-			return $view ? new ModuleView($view) : null;
+			foreach ($this->Module->Views as $view) {
+				if ($view->Table == $this->Table) {
+					return $view;
+				}
+			}
+			
+			return null;
 		}
 		
 		/*
@@ -259,22 +259,16 @@
 		
 		public function save(): ?bool
 		{
-			if (empty($this->Interface->ID)) {
-				$new = static::create($this->Module, $this->Title, $this->Table, $this->Type, $this->Filters, $this->Fields, $this->Parser, $this->View);
-				$this->inherit($new);
-			} else {
-				$this->Interface->Settings = [
-					"type" => $this->Type,
-					"filters" => $this->Filters,
-					"fields" => $this->Fields,
-					"parser" => $this->Parser,
-					"view" => $this->View ?: null
-				];
-				$this->Interface->Table = $this->Table;
-				$this->Interface->Title = $this->Title;
-				
-				$this->Interface->save();
-			}
+			$this->Interface->Settings = [
+				"type" => $this->Type,
+				"filters" => $this->Filters,
+				"fields" => $this->Fields,
+				"parser" => $this->Parser,
+				"view" => $this->View ?: null
+			];
+			$this->Interface->Table = $this->Table;
+			$this->Interface->Title = $this->Title;
+			$this->Interface->save();
 			
 			return true;
 		}
@@ -303,7 +297,6 @@
 			$this->Title = $title;
 			$this->Type = $type;
 			$this->View = $view;
-			
 			$this->save();
 		}
 		

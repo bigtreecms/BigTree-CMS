@@ -46,7 +46,7 @@
 				];
 				
 				// Get all modules from the db
-				$modules = SQL::fetchAll("SELECT route, class FROM bigtree_modules");
+				$modules = DB::getAll("modules");
 				
 				foreach ($modules as $module) {
 					$class = $module["class"];
@@ -78,9 +78,11 @@
 				}
 				
 				// Get all extension required files and add them to a required list
-				$extensions = SQL::fetchAllSingle("SELECT id FROM bigtree_extensions");
+				$extensions = DB::getAll("extensions");
 				
-				foreach ($extensions as $id) {
+				foreach ($extensions as $extension) {
+					$id = $extension["id"];
+					
 					if (file_exists(SERVER_ROOT."extensions/$id/required/")) {
 						$required_contents = FileSystem::getDirectoryContents(SERVER_ROOT."extensions/$id/required/");
 						

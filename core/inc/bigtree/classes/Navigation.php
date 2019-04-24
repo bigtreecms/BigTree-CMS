@@ -102,18 +102,21 @@
 			}
 			
 			$bc = array_reverse($bc);
-			
+
 			// Check for module breadcrumbs
-			$module_class = SQL::fetchSingle("SELECT bigtree_modules.class
-											  FROM bigtree_modules JOIN bigtree_templates
-											  ON bigtree_modules.id = bigtree_templates.module
-											  WHERE bigtree_templates.id = ?", $page["template"]);
-			
-			if ($module_class && class_exists($module_class)) {
-				$module = new $module_class;
+			$template = DB::get("templates", $page["template"]);
+
+			if ($template["module"]) {
+				$module = DB::get("modules", $template["module"]);
+
+				if ($module["class"]) {
+					if (class_exists($module["class"])) {
+						$moduleClass = new $module["class"];
 				
-				if (method_exists($module, "getBreadcrumb")) {
-					$bc = array_merge($bc, $module->getBreadcrumb($page, array_filter((array) $bigtree["routed_path"])));
+						if (method_exists($moduleClass, "getBreadcrumb")) {
+							$bc = array_merge($bc, $moduleClass->getBreadcrumb($page));
+						}
+					}
 				}
 			}
 			
@@ -234,65 +237,55 @@
 						$where_parent[] = "bigtree_pages.id = '".SQL::escape($p)."'";
 					}
 					
-					$module_pages = SQL::fetchAll("SELECT bigtree_modules.class,
-														  bigtree_templates.routed,
-														  bigtree_templates.module,
-														  bigtree_pages.id,
-														  bigtree_pages.path,
-														  bigtree_pages.template
-												   FROM bigtree_modules JOIN bigtree_templates JOIN bigtree_pages 
-												   ON bigtree_templates.id = bigtree_pages.template 
-												   WHERE bigtree_modules.id = bigtree_templates.module 
-													 AND (".implode(" OR ", $where_parent).")");
+					$query = SQL::query("SELECT id, path, template FROM bigtree_pages WHERE (".implode(" OR ",$where_parent).")");
 					
-					foreach ($module_pages as $module_page) {
-						// If the class exists, instantiate it and call it
-						if ($module_page["class"] && class_exists($module_page["class"])) {
-							$module = new $module_page["class"];
-							
-							if (method_exists($module, "getNav")) {
-								$modNav = $module->getNav($module_page);
-								
-								// Give the parent back to each of the items it returned so they can be reassigned to the proper parent.
-								$module_nav = [];
-								
-								foreach ($modNav as $item) {
-									$item["parent"] = $module_page["id"];
-									$item["id"] = "module_nav_".$module_nav_count;
-									$module_nav[] = $item;
-									$module_nav_count++;
-								}
-								
-								if ($module->NavPosition == "top") {
-									$nav = array_merge($module_nav, $nav);
-								} else {
-									$nav = array_merge($nav, $module_nav);
+					while ($page = $query->fetch()) {
+						$template = DB::get("templates", $page["template"]);
+
+						if ($template["module"]) {
+							$module = DB::get("modules", $template["module"]);
+
+							if ($module["class"] && class_exists($module["class"])) {
+								$instance = new $module["class"];
+
+								if (method_exists($instance, "getNav")) {
+									$modNav = $instance->getNav($page);
+									$module_nav = [];
+
+									// Give the parent back to each of the items it returned so they can be reassigned to the proper parent.									
+									foreach ($modNav as $item) {
+										$item["parent"] = $f["id"];
+										$item["id"] = "module_nav_".$module_nav_count;
+										$module_nav[] = $item;
+										$module_nav_count++;
+									}
+									
+									if ($instance->NavPosition == "top") {
+										$nav = array_merge($module_nav, $nav);
+									} else {
+										$nav = array_merge($nav, $module_nav);
+									}
 								}
 							}
 						}
 					}
 				} else {
 					// This is the first iteration.
-					$module_page = SQL::fetch("SELECT bigtree_modules.class,
-													  bigtree_templates.routed,
-													  bigtree_templates.module,
-													  bigtree_pages.id,
-													  bigtree_pages.path,
-													  bigtree_pages.template 
-											   FROM bigtree_modules JOIN bigtree_templates JOIN bigtree_pages 
-											   ON bigtree_templates.id = bigtree_pages.template 
-											   WHERE bigtree_modules.id = bigtree_templates.module 
-											   	 AND bigtree_pages.id = ?", $parent);
-					
-					// If the class exists, instantiate it and call it.
-					if ($module_page["class"] && class_exists($module_page["class"])) {
-						$module = new $module_page["class"];
-						
-						if (method_exists($module, "getNav")) {
-							if ($module->NavPosition == "top") {
-								$nav = array_merge($module->getNav($module_page), $nav);
-							} else {
-								$nav = array_merge($nav, $module->getNav($module_page));
+					$page = SQL::fetch("SELECT id, path, template FROM bigtree_pages WHERE id = ?", $parent);
+					$template = DB::get("templates", $page["template"]);
+
+					if ($template["module"]) {
+						$module = DB::get("modules", $template["module"]);
+
+						if ($module["class"] && class_exists($module["class"])) {
+							$instance = new $module["class"];
+
+							if (method_exists($instance, "getNav")) {
+								if ($module->NavPosition == "top") {
+									$nav = array_merge($instance->getNav($page), $nav);
+								} else {
+									$nav = array_merge($nav, $instance->getNav($page));
+								}
 							}
 						}
 					}

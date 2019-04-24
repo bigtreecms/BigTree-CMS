@@ -6,7 +6,7 @@
 	
 	namespace BigTree;
 	
-	class Redirect extends BaseObject
+	class Redirect extends SQLObject
 	{
 		
 		protected $ID;

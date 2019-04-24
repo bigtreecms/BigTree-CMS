@@ -9,7 +9,7 @@
 	
 	use Hautelook\Phpass\PasswordHash;
 	
-	class User extends BaseObject
+	class User extends SQLObject
 	{
 		
 		/**

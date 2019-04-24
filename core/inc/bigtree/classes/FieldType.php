@@ -6,7 +6,7 @@
 	
 	namespace BigTree;
 	
-	class FieldType extends BaseObject
+	class FieldType extends JSONObject
 	{
 		
 		public $ID;
@@ -14,7 +14,7 @@
 		public $SelfDraw;
 		public $UseCases;
 		
-		public static $Table = "bigtree_field_types";
+		public static $Store = "field-types";
 		
 		/*
 			Constructor:
@@ -28,7 +28,7 @@
 		{
 			// Passing in just an ID
 			if (!is_array($field_type)) {
-				$field_type = SQL::fetch("SELECT * FROM bigtree_field_types WHERE id = ?", $field_type);
+				$field_type = DB::get("field-types", $field_type);
 			}
 			
 			// Bad data set
@@ -37,8 +37,8 @@
 			} else {
 				$this->ID = $field_type["id"];
 				$this->Name = $field_type["name"];
-				$this->SelfDraw = $field_type["self_draw"] ? true : false;
-				$this->UseCases = array_filter((array) json_decode($field_type["use_cases"], true));
+				$this->SelfDraw = !empty($field_type["self_draw"]) ? true : false;
+				$this->UseCases = $field_type["use_cases"];
 			}
 		}
 		
@@ -64,11 +64,11 @@
 			}
 			
 			// See if a callout ID already exists
-			if (SQL::exists("bigtree_field_types", $id)) {
+			if (DB::exists("field-types", $id)) {
 				return null;
 			}
 			
-			SQL::insert("bigtree_field_types", [
+			DB::insert("field-types", [
 				"id" => $id,
 				"name" => Text::htmlEncode($name),
 				"use_cases" => $use_cases,
@@ -116,11 +116,8 @@
 				FileSystem::touchFile(SERVER_ROOT."custom/admin/field-types/$id/settings.php");
 			}
 			
-			// Clear field type cache
 			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
-			
-			// Track
-			AuditTrail::track("jsondb -> fieldtypes", $id, "created");
+			AuditTrail::track("config:field-types", $id, "created");
 			
 			return new FieldType($id);
 		}
@@ -134,6 +131,10 @@
 		{
 			$id = $this->ID;
 			
+			if (!DB::exists("field-types", $id)) {
+				return false;
+			}
+			
 			// Remove related files
 			FileSystem::deleteFile(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
 			FileSystem::deleteFile(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
@@ -143,8 +144,8 @@
 			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
 			
 			// Delete and track
-			SQL::delete("bigtree_field_types", $id);
-			AuditTrail::track("bigtree_field_types", $id, "deleted");
+			DB::delete("field-types", $id);
+			AuditTrail::track("config:field-types", $id, "deleted");
 			
 			return true;
 		}
@@ -194,14 +195,15 @@
 				];
 				
 				$types["modules"]["default"]["route"] = ["name" => "Generated Route", "self_draw" => true];
+				$field_types = DB::getAll("field-types", "name");
 				
-				$field_types = SQL::fetchAll("SELECT * FROM bigtree_field_types ORDER BY name");
 				foreach ($field_types as $field_type) {
-					$use_cases = json_decode($field_type["use_cases"], true);
-					
-					foreach ((array) $use_cases as $case => $val) {
+					foreach ($field_type["use_cases"] as $case => $val) {
 						if ($val) {
-							$types[$case]["custom"][$field_type["id"]] = ["name" => $field_type["name"], "self_draw" => $field_type["self_draw"]];
+							$types[$case]["custom"][$field_type["id"]] = [
+								"name" => $field_type["name"],
+								"self_draw" => $field_type["self_draw"]
+							];
 						}
 					}
 				}
@@ -232,16 +234,16 @@
 		public function save(): ?bool
 		{
 			// IDs are user defined so the database entry may not exist but an ID still exists
-			if (SQL::exists("bigtree_field_types", $this->ID)) {
-				SQL::update("bigtree_field_types", $this->ID, [
+			if (DB::exists("field-types", $this->ID)) {
+				DB::update("field-types", $this->ID, [
 					"name" => Text::htmlEncode($this->Name),
 					"use_cases" => array_filter((array) $this->UseCases),
 					"self_draw" => $this->SelfDraw ? "on" : ""
 				]);
-				AuditTrail::track("bigtree_field_types", $this->ID, "updated");
+				AuditTrail::track("config:field-types", $this->ID, "updated");
 				
 				// Clear cache
-				unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
+				@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 			} else {
 				$new = static::create($this->ID, $this->Name, $this->UseCases, $this->SelfDraw);
 				

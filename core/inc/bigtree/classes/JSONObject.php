@@ -1,7 +1,7 @@
 <?php
 	/*
-		Class: BigTree\SQLObject
-			An interface for working with the MySQL DB store.
+		Class: BigTree\JSONObject
+			An interface for working with the JSON DB store.
 			Implements protected properties as read-only properties and getXYZ method calls that accept no parameters as read-only properties.
 	*/
 	
@@ -11,18 +11,19 @@
 	
 	/**
 	 * @property-read array $Array
+	 * @property-read string $ID
 	 */
 	
-	class SQLObject extends BaseObject
+	class JSONObject extends BaseObject
 	{
 		
-		public static $Table = "";
+		public static $Store = "";
 		
 		// Magic method to allow for getBy and allBy methods where you pass in a column name
 		public static function __callStatic($method, $arguments)
 		{
 			// Magic methods only work for sub classes with table set
-			if (static::$Table) {
+			if (static::$Store) {
 				
 				// Allow full objects to be passed in as the matching value
 				if (is_object($arguments[0])) {
@@ -38,8 +39,13 @@
 				
 				// Magically create "allBy" methods
 				if (substr($method, 0, 5) == "allBy") {
-					$sort = !empty($arguments[1]) ? " ORDER BY ".$arguments[1] : "";
-					$records = SQL::fetchAll("SELECT * FROM `".static::$Table."` WHERE `$column` = ? $sort", $value);
+					$records = DB::getAll(static::$Store, !empty($arguments[1]) ? $arguments[1] : null);
+					
+					foreach ($records as $index => $entry) {
+						if ($entry[$column] != $value) {
+							unset($records[$index]);
+						}
+					}
 					
 					// Third parameter will be whether to return as an array
 					if (empty($arguments[2])) {
@@ -55,10 +61,16 @@
 				
 				// Magically create "getBy" methods
 				if (substr($method, 0, 5) == "getBy") {
+					$records = DB::getAll(static::$Store);
+					$record = null;
 					
-					$record = SQL::fetch("SELECT * FROM `".static::$Table."` WHERE `$column` = ?", $value);
+					foreach ($records as $entry) {
+						if ($entry[$column] == $value) {
+							$record = $entry;
+						}
+					}
 					
-					if (empty($record)) {
+					if (is_null($record)) {
 						return null;
 					}
 					
@@ -80,24 +92,25 @@
 				Returns an array of records.
 
 			Parameters:
-				sort - Sort column/direction (optional)
+				sort_column - Column to sort entries by (optional)
+				sort_direction - Sort direction (ASC or DESC, defaults to ASC)
 				return_arrays - Set to true to return arrays rather than objects.
 
 			Returns:
 				An array of the calling object types (or arrays).
 		*/
 		
-		public static function all(?string $sort = null, bool $return_arrays = false): array
+		public static function all(?string $sort_column = null, string $sort_direction = "ASC",
+								   bool $return_arrays = false): array
 		{
 			// Must have a static Table var.
-			if (empty(static::$Table)) {
-				trigger_error('Method "all" must be called from a subclass where the static variable $Table has been set.', E_USER_ERROR);
+			if (empty(static::$Store)) {
+				trigger_error('Method "all" must be called from a subclass where the static variable $Store has been set.', E_USER_ERROR);
 				
 				return [];
 			}
 			
-			$sort = $sort ? " ORDER BY ".$sort : "";
-			$records = SQL::fetchAll("SELECT * FROM `".static::$Table."` $sort");
+			$records = DB::getAll(static::$Store, $sort_column ?: null, $sort_direction);
 			
 			// Third parameter will be whether to return as an array
 			if (!$return_arrays) {
@@ -119,14 +132,14 @@
 		public function delete(): ?bool
 		{
 			// Must have a static Table var.
-			if (empty(static::$Table)) {
-				trigger_error('Method "delete" must be called from a subclass where the static variable $Table has been set.', E_USER_ERROR);
+			if (empty(static::$Store)) {
+				trigger_error('Method "delete" must be called from a subclass where the static variable $Store has been set.', E_USER_ERROR);
 				
 				return null;
 			}
 			
-			SQL::delete(static::$Table, $this->ID);
-			AuditTrail::track(static::$Table, $this->ID, "deleted");
+			DB::delete(static::$Store, $this->ID);
+			AuditTrail::track("config:".static::$Store, $this->ID, "deleted");
 			
 			return true;
 		}
@@ -145,13 +158,13 @@
 		public static function exists(string $id): ?bool
 		{
 			// Must have a static Table var.
-			if (empty(static::$Table)) {
-				trigger_error('Method "exists" must be called from a subclass where the static variable $Table has been set.', E_USER_ERROR);
+			if (empty(static::$Store)) {
+				trigger_error('Method "exists" must be called from a subclass where the static variable $Store has been set.', E_USER_ERROR);
 				
 				return null;
 			}
 			
-			return SQL::exists(static::$Table, $id);
+			return DB::exists(static::$Store, $id);
 		}
 		
 		/*
@@ -163,30 +176,29 @@
 		public function save(): ?bool
 		{
 			// Must have a static Table var.
-			if (empty(static::$Table)) {
-				trigger_error('Method "save" must be called from a subclass where the static variable $Table has been set.', E_USER_ERROR);
+			if (empty(static::$Store)) {
+				trigger_error('Method "save" must be called from a subclass where the static variable $Store has been set.', E_USER_ERROR);
 				
 				return null;
 			}
 			
 			// Get the table description and an array equivalent of all object properties
-			$table_description = SQL::describeTable(static::$Table);
 			$array_data = $this->Array;
-			$sql_data = [];
+			$insert_data = [];
 			
 			foreach ($array_data as $key => $value) {
 				// We're not going to update IDs or columns not found in the table
-				if ($key != "id" && isset($table_description["columns"][$key])) {
-					$sql_data[$key] = $value;
+				if ($key != "id") {
+					$insert_data[$key] = $value;
 				}
 			}
 			
-			if (empty($this->ID)) {
-				$this->ID = SQL::insert(static::$Table, $sql_data);
-				AuditTrail::track(static::$Table, $this->ID, "created");
+			if (empty($this->ID) || !DB::exists(static::$Store, $this->ID)) {
+				$this->ID = DB::insert(static::$Store, $insert_data);
+				AuditTrail::track("config:".static::$Store, $this->ID, "created");
 			} else {
-				SQL::update(static::$Table, $this->ID, $sql_data);
-				AuditTrail::track(static::$Table, $this->ID, "updated");
+				DB::update(static::$Store, $this->ID, $insert_data);
+				AuditTrail::track("config:".static::$Store, $this->ID, "updated");
 			}
 			
 			return true;

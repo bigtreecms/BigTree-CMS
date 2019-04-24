@@ -255,7 +255,7 @@
 				Determines whether the logged in user has access to a module or not.
 
 			Parameters:
-				module - A module from the bigtree_modules table.
+				module - A module entry.
 				action - Optionally, a module action array to also check levels against.
 
 			Returns:
@@ -1223,7 +1223,9 @@
 		*/
 
 		static function doesModuleActionExist($module, $route) {
-			return BigTree\ModuleAction::existsForRoute($module, $route);
+			$module = new BigTree\Module($module);
+			
+			return $module->actionExistsForRoute($route);
 		}
 
 		/*
@@ -1482,7 +1484,7 @@
 				id - The id of the callout.
 
 			Returns:
-				A callout entry from bigtree_callouts with resources decoded.
+				A callout entry with resources decoded.
 		*/
 
 		static function getCallout($id) {
@@ -1495,7 +1497,7 @@
 
 		/*
 			Function: getCalloutGroup
-				Returns a callout group entry from the bigtree_callout_groups table.
+				Returns a callout group entry.
 
 			Parameters:
 				id - The id of the callout group.
@@ -1515,7 +1517,7 @@
 				Returns a list of callout groups sorted by name.
 
 			Returns:
-				An array of callout group entries from bigtree_callout_groups.
+				An array of callout group entries.
 		*/
 
 		static function getCalloutGroups() {
@@ -1530,7 +1532,7 @@
 				sort - The order to return the callouts. Defaults to positioned.
 
 			Returns:
-				An array of callout entries from bigtree_callouts.
+				An array of callout entries.
 		*/
 
 		static function getCallouts($sort = "position DESC, id ASC") {
@@ -1545,7 +1547,7 @@
 				sort - The order to return the callouts. Defaults to positioned.
 
 			Returns:
-				An array of callout entries from bigtree_callouts.
+				An array of callout entries.
 		*/
 
 		function getCalloutsAllowed($sort = "position DESC, id ASC") {
@@ -1561,7 +1563,7 @@
 				auth - If set to true, only returns callouts the logged in user has access to. Defaults to true.
 
 			Returns:
-				An alphabetized array of entries from the bigtree_callouts table.
+				An alphabetized array of callouts.
 		*/
 
 		function getCalloutsInGroups($groups, $auth = true) {
@@ -1640,7 +1642,7 @@
 				sort - The sort direction, defaults to name.
 
 			Returns:
-				An array of feed elements from bigtree_feeds sorted by name.
+				An array of feed elements sorted by name.
 		*/
 
 		static function getFeeds($sort = "name ASC") {
@@ -1672,7 +1674,7 @@
 				sort - The sort directon, defaults to name ASC.
 
 			Returns:
-				An array of entries from bigtree_field_types.
+				An array of field types.
 		*/
 
 		static function getFieldTypes($sort = "name ASC") {
@@ -1781,7 +1783,7 @@
 
 		/*
 			Function: getModule
-				Returns an entry from the bigtree_modules table.
+				Returns a module entry.
 
 			Parameters:
 				id - The id of the module.
@@ -1800,7 +1802,7 @@
 
 		/*
 			Function: getModuleAction
-				Returns an entry from the bigtree_module_actions table.
+				Returns a module action entry.
 
 			Parameters:
 				id - The id of the action.
@@ -1817,7 +1819,7 @@
 
 		/*
 			Function: getModuleActionByRoute
-				Returns an entry from the bigtree_module_actions table for the given module and route.
+				Returns a module action entry for the given module and route.
 
 			Parameters:
 				module - The module to lookup an action for.
@@ -1828,7 +1830,8 @@
 		*/
 
 		static function getModuleActionByRoute($module, $route) {
-			$response = BigTree\ModuleAction::lookup($module, $route);
+			$module = new BigTree\Module($module);
+			$response = $module->getActionForPath($route);
 
 			return $response ? array("action" => $response["action"]->Array, "commands" => $response["commands"]) : false;
 		}
@@ -1850,23 +1853,6 @@
 
 		static function getModuleActionForForm($form) {
 			return static::getModuleActionForInterface($form);
-		}
-
-		/*
-			Function: getModuleActionForInterface
-				Returns the related module action for a given module interface. Prioritizes edit action over add.
-
-			Parameters:
-				interface - The id of an interface or interface array.
-
-			Returns:
-				A module action entry.
-		*/
-
-		static function getModuleActionForInterface($interface) {
-			$action = BigTree\ModuleAction::getByInterface($interface);
-
-			return $action->Array;
 		}
 
 		/*
@@ -1975,14 +1961,14 @@
 
 		/*
 			Function: getModuleForms
-				Gets forms from bigtree_module_interfaces with fields decoded.
+				Gets forms with fields decoded.
 
 			Parameters:
 				sort - The field to sort by (defaults to title ASC)
 				module - Specific module to pull forms for (defaults to all modules).
 
 			Returns:
-				An array of entries from bigtree_module_interfaces with "fields" decoded.
+				An array of form entries with "fields" decoded.
 		*/
 
 		static function getModuleForms($sort = "title ASC", $module = false) {
@@ -2011,7 +1997,7 @@
 
 		/*
 			Function: getModuleGroup
-				Returns a module group entry from the bigtree_module_groups table.
+				Returns a module group entry.
 
 			Parameters:
 				id - The id of the module group.
@@ -2032,7 +2018,7 @@
 
 		/*
 			Function: getModuleGroupByName
-				Returns a module group entry from the bigtree_module_groups table.
+				Returns a module group entry.
 
 			Parameters:
 				name - The name of the module group.
@@ -2054,7 +2040,7 @@
 
 		/*
 			Function: getModuleGroupByRoute
-				Returns a module group entry from the bigtree_module_groups table.
+				Returns a module group entry.
 
 			Parameters:
 				route - The route of the module group.
@@ -2081,7 +2067,7 @@
 				sort - Sort by (defaults to positioned)
 
 			Returns:
-				An array of module group entries from bigtree_module_groups.
+				An array of module group entries.
 		*/
 
 		static function getModuleGroups($sort = "position DESC, id ASC") {
@@ -2103,7 +2089,7 @@
 				module - A module id or a module entry.
 
 			Returns:
-				An array of module actions from bigtree_module_actions.
+				An array of module actions.
 		*/
 
 		static function getModuleNavigation($module) {
@@ -2119,14 +2105,14 @@
 
 		/*
 			Function: getModuleReports
-				Gets reports interfaces from the bigtree_module_interfaces table.
+				Gets reports interfaces.
 
 			Parameters:
 				sort - The field to sort by (defaults to title ASC)
 				module - Specific module to pull reports for (defaults to all modules).
 
 			Returns:
-				An array of report interfaces from bigtree_module_interfaces.
+				An array of report interfaces.
 		*/
 
 		static function getModuleReports($sort = "title ASC", $module = false) {
@@ -2161,7 +2147,7 @@
 				auth - If set to true, only returns modules the logged in user has access to. Defaults to true.
 
 			Returns:
-				An array of entries from the bigtree_modules table.
+				An array of module entries.
 		*/
 
 		function getModules($sort = "id ASC", $auth = true) {
@@ -2190,7 +2176,7 @@
 				auth - If set to true, only returns modules the logged in user has access to. Defaults to true.
 
 			Returns:
-				An array of entries from the bigtree_modules table.
+				An array of module entries.
 		*/
 
 		function getModulesByGroup($group, $sort = "position DESC, id ASC", $auth = true) {
@@ -2201,14 +2187,14 @@
 
 		/*
 			Function: getModuleViews
-				Returns a list of all view entries in the bigtree_module_interfaces table.
+				Returns a list of all view interfaces.
 
 			Parameters:
 				sort - The column to sort by (defaults to title ASC)
 				module - Specific module to pull views for (defaults to all modules).
 
 			Returns:
-				An array of view entries with "fields" decoded.
+				An array of view interfaces with "fields" decoded.
 		*/
 
 		static function getModuleViews($sort = "title ASC", $module = false) {

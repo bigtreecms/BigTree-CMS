@@ -10,7 +10,7 @@
 	 * @property-read int $ID
 	 */
 	
-	class ModuleGroup extends BaseObject
+	class ModuleGroup extends JSONObject
 	{
 		
 		protected $ID;
@@ -19,7 +19,7 @@
 		public $Position;
 		public $Route;
 		
-		public static $Table = "bigtree_module_groups";
+		public static $Store = "module-groups";
 		
 		/*
 			Constructor:
@@ -34,7 +34,7 @@
 			if ($group !== null) {
 				// Passing in just an ID
 				if (!is_array($group)) {
-					$group = SQL::fetch("SELECT * FROM bigtree_module_groups WHERE id = ?", $group);
+					$group = DB::get("module-groups", $group);
 				}
 				
 				// Bad data set
@@ -63,12 +63,12 @@
 		
 		public static function create(string $name): ModuleGroup
 		{
-			$id = SQL::insert("bigtree_module_groups", [
+			$id = DB::insert("module-groups", [
 				"name" => Text::htmlEncode($name),
-				"route" => SQL::unique("bigtree_module_groups", "route", Link::urlify($name))
+				"route" => DB::unique("module-groups", "route", Link::urlify($name))
 			]);
 			
-			AuditTrail::track("bigtree_module_groups", $id, "created");
+			AuditTrail::track("config:module-groups", $id, "created");
 			
 			return new ModuleGroup($id);
 		}
@@ -84,12 +84,12 @@
 				$new = static::create($this->Name);
 				$this->inherit($new);
 			} else {
-				SQL::update("bigtree_module_groups", $this->ID, [
+				DB::update("module-groups", $this->ID, [
 					"name" => Text::htmlEncode($this->Name),
-					"route" => SQL::unique("bigtree_module_groups", "route", Link::urlify($this->Route), $this->ID)
+					"route" => DB::unique("module-groups", "route", Link::urlify($this->Route), $this->ID)
 				]);
 				
-				AuditTrail::track("bigtree_module_groups", $this->ID, "updated");
+				AuditTrail::track("config:module-groups", $this->ID, "updated");
 			}
 			
 			return true;

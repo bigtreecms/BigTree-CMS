@@ -13,7 +13,7 @@
 	 * @property-read string $UpdatedAt
 	 */
 	
-	class PageRevision extends BaseObject
+	class PageRevision extends SQLObject
 	{
 		
 		protected $Author;
