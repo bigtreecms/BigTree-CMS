@@ -7691,7 +7691,7 @@
 					if ($old["type"] != $new["type"]) {
 						// Not even the same resource type, wipe data
 						unset($data[$id]);
-					} elseif (($new["type"] == "callouts" || $new["type"] == "matrix" || $new["type"] == "list" || $new["type"] == "one-to-many" || $new["type"] == "photo-gallery") && $new["settings"] != $old["settings"]) {
+					} elseif (($new["type"] == "callouts" || $new["type"] == "matrix" || $new["type"] == "list" || $new["type"] == "one-to-many" || $new["type"] == "media-gallery") && $new["settings"] != $old["settings"]) {
 						// These fields need to match exactly to allow data to move over
 						unset($data[$id]);
 					} elseif ($new["type"] == "image-reference") {
