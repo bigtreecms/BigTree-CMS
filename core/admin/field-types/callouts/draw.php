@@ -24,7 +24,7 @@
 			$x = 0;
 
 			foreach ($this->Value as $callout) {
-				$type = new Callout($callout["type"]);
+				$callout_object = new Callout($callout["type"]);
 		?>
 		<article>
 			<input type="hidden" class="callout_data" value="<?=base64_encode(json_encode($callout))?>" />
@@ -33,10 +33,10 @@
 				<?=Text::htmlEncode($callout["display_title"])?>
 				<input type="hidden" name="<?=$this->Key?>[<?=$x?>][display_title]" value="<?=Text::htmlEncode($callout["display_title"])?>" />
 			</h4>
-			<p><?=$type["name"]?></p>
+			<p><?=$callout_object->Name?></p>
 			<div class="bottom">
 				<span class="icon_drag"></span>
-				<?php if ($type["level"] > Auth::user()->Level) { ?>
+				<?php if ($callout_object->Level > Auth::user()->Level) { ?>
 				<span class="icon_disabled has_tooltip" data-tooltip="<p><?=Text::translate("This callout requires a higher user level to edit.", true)?></p>"></span>
 				<?php } else { ?>
 				<a href="#" class="icon_edit" data-type="<?=Text::htmlEncode($callout["type"])?>"></a>

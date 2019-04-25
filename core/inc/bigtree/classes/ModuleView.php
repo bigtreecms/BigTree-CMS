@@ -397,6 +397,7 @@
 
 				foreach ($module["interfaces"] as $interface) {
 					if ($interface["type"] == "view" && $interface["table"] == $table) {
+						$interface["module"] = $module["id"];
 						$view = new ModuleView($interface);
 
 						// Delete any existing cache data on this row

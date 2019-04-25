@@ -474,6 +474,7 @@
 		{
 			$forced_recrops = [];
 			$old_resources_keyed = [];
+			$exact_types = ["callouts", "matrix", "list", "one-to-many", "media-gallery"];
 			
 			if (is_array($old_resources)) {
 				foreach ($old_resources as $resource) {
@@ -494,7 +495,7 @@
 					if ($old["type"] != $new["type"]) {
 						// Not even the same resource type, wipe data
 						unset($data[$id]);
-					} elseif (($new["type"] == "callouts" || $new["type"] == "matrix" || $new["type"] == "list" || $new["type"] == "one-to-many" || $new["type"] == "photo-gallery") && $new["settings"] != $old["settings"]) {
+					} elseif (in_array($new["type"], $exact_types) && $new["settings"] != $old["settings"]) {
 						// These fields need to match exactly to allow data to move over
 						unset($data[$id]);
 					} elseif ($new["type"] == "image-reference") {
@@ -512,9 +513,13 @@
 						if ($resource->Width < $new_min_width || $resource->Height < $new_min_height) {
 							unset($data[$id]);
 						}
-					} elseif ($new["type"] == "text" && $new["settings"]["sub_type"] != $old["settings"]["sub_type"]) {
+					} elseif ($new["type"] == "text") {
 						// Sub-types changed, the data won't fit anymore
-						unset($data[$id]);
+						if ((!empty($new["settings"]["sub_type"]) || !empty($old["settings"]["sub_type"])) &&
+							$new["settings"]["sub_type"] != $old["settings"]["sub_type"])
+						{
+							unset($data[$id]);
+						}
 					} elseif ($new["type"] == "html" && !empty($new["settings"]["simple"]) && empty($old["settings"]["simple"])) {
 						// New HTML is simple
 						unset($data[$id]);

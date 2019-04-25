@@ -128,7 +128,7 @@
 				true if the folder exists, otherwise false.
 		*/
 		
-		public static function exists(string $id): bool
+		public static function exists(?string $id): bool
 		{
 			if (intval($id) === 0) {
 				return true;

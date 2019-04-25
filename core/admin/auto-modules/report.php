@@ -6,7 +6,7 @@
 	 * @global ModuleInterface $interface
 	 */
 	
-	$report = new ModuleReport($interface->Array);	
+	$report = $interface->Module->Reports[$interface->ID];
 	$action = $bigtree["commands"][0];
 
 	if ($action == "csv") {
@@ -16,3 +16,4 @@
 	} else {
 		include Router::getIncludePath("admin/auto-modules/reports/filter.php");
 	}
+	

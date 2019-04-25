@@ -18,7 +18,7 @@
 		Auth::stop();
 	}
 	
-	$form = new ModuleForm($interface->Array);
+	$form = $interface->Module->Forms[$interface->ID];
 	$form->Root = ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/";
 	
 	// In case someone is relying on $bigtree["form"] for backwards compatibility

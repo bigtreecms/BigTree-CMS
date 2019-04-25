@@ -691,13 +691,13 @@
 				An array with "width" and "height" keys.
 		*/
 		
-		public function getThumbnailSize(int $max_width, int $max_height, ?int $width_override = null,
+		public function getThumbnailSize(?int $max_width, ?int $max_height, ?int $width_override = null,
 										 ?int $height_override = null): array
 		{
 			$width = !is_null($width_override) ? $width_override : $this->Width;
 			$height = !is_null($height_override) ? $height_override : $this->Height;
 			
-			if ($width > $max_width && $max_width) {
+			if ($max_width && $width > $max_width) {
 				$perc = $max_width / $width;
 				$size["width"] = $max_width;
 				$size["height"] = round($height * $perc, 0);
@@ -707,7 +707,7 @@
 					$size["height"] = $max_height;
 					$size["width"] = round($size["width"] * $perc, 0);
 				}
-			} elseif ($height > $max_height && $max_height) {
+			} elseif ($max_height && $height > $max_height) {
 				$perc = $max_height / $height;
 				$size["height"] = $max_height;
 				$size["width"] = round($width * $perc, 0);

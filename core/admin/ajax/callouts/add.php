@@ -7,8 +7,8 @@
 		$callout_list = Callout::allAllowed("name ASC");
 	}
 
-	$type = $callout_list[0]["id"];
-	$bigtree["resources"] = array("type" => $type);
+	$type = $callout_list[0]->ID;
+	$bigtree["resources"] = ["type" => $type];
 	$bigtree["callout_count"] = intval($_POST["count"]);
 	$bigtree["callout_key"] = htmlspecialchars($_POST["key"]);
 ?>
