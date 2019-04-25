@@ -11,8 +11,7 @@
 		
 		public static $CoreOptions = [
 			"analytics" => "Google Analytics",
-			"pending-changes" => "Pending Changes",
-			"messages" => "Messages"
+			"pending-changes" => "Pending Changes"
 		];
 		public static $Plugins = [];
 		

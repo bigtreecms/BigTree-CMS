@@ -1,8 +1,6 @@
 <?php
 	namespace BigTree;
 
-	$unread_messages = Message::getUserUnreadCount();
-	$unread_message_string = Text::translate(":count: Unread Message".(($unread_messages == 1) ? "" : "s"), false, array(":count:" => $unread_messages));
 	$site = new Page(0, false);
 
 	// Show an alert for being on the development site of a live site, in maintenance mode, or in developer mode
@@ -126,8 +124,6 @@
 		<header class="main">
 			<section>
 				<a href="<?php if ($bigtree["config"]["force_secure_login"]) { echo str_replace("http://","https://",ADMIN_ROOT); } else { echo ADMIN_ROOT; } ?>login/logout/?true<?php CSRF::drawGETToken(); ?>" class="logout"><span></span><?=Text::translate("Logout")?></a>
-				<div></div>
-				<p class="messages"><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_message_string?></a></p>
 				<div></div>
 				<p class="welcome"><span class="gravatar"><img src="<?=User::gravatar(Auth::$Email, 28)?>" alt="" /></span><?=Text::translate("Welcome Back")?> <a href="<?=ADMIN_ROOT?>users/profile/"><?=Auth::$Name?></a></p>
 				<strong><?=$site->NavigationTitle?></strong>
