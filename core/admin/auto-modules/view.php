@@ -6,7 +6,7 @@
 	 * @global ModuleInterface $interface
 	 */
 
-	$view = new ModuleView($interface->Array);
+	$view = $interface->Module->Views[$interface->ID];
 	$view->calculateFieldWidths();
 	$bigtree["view"] = $view->Array;
 

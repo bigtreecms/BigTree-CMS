@@ -474,7 +474,7 @@
 		// Handle interface actions
 		if ($bigtree["module_action"]["interface"]) {
 			define("INTERFACE_ROOT", ADMIN_ROOT.$module->Route."/".$bigtree["module_action"]["route"]."/");
-			$interface = new ModuleInterface($bigtree["module_action"]["interface"]);
+			$interface = $module->Interfaces[$bigtree["module_action"]["interface"]];
 			
 			if (strpos($interface->Type, "*") === false) {
 				include Router::getIncludePath("admin/auto-modules/".$interface->Type.".php");

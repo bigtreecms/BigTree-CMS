@@ -96,9 +96,9 @@
 								$this->Forms[$interface["id"]] = new ModuleForm($interface, $this);
 							} elseif ($interface["type"] == "report") {
 								$this->Reports[$interface["id"]] = new ModuleReport($interface, $this);
-							} else {
-								$this->Interfaces[$interface["id"]] = new ModuleInterface($interface, $this);
 							}
+							
+							$this->Interfaces[$interface["id"]] = new ModuleInterface($interface, $this);
 						}
 					}
 				}

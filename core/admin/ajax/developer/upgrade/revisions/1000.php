@@ -89,6 +89,7 @@
 		if (is_array($module["forms"])) {
 			foreach ($module["forms"] as $form) {
 				$interfaces[] = [
+					"id" => $form["id"],
 					"type" => "form",
 					"title" => $form["title"],
 					"table" => $form["table"],
@@ -108,6 +109,7 @@
 		if (is_array($module["views"])) {
 			foreach ($module["views"] as $view) {
 				$interfaces[] = [
+					"id" => $view["id"],
 					"type" => "view",
 					"title" => $view["title"],
 					"table" => $view["table"],
@@ -127,6 +129,7 @@
 		if (is_array($module["reports"])) {
 			foreach ($module["reports"] as $report) {
 				$interfaces[] = [
+					"id" => $report["id"],
 					"type" => "report",
 					"title" => $report["title"],
 					"table" => $report["table"],
