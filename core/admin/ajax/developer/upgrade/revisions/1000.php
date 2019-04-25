@@ -141,7 +141,29 @@
 			}
 		}
 		
-		DB::update("modules", $module["id"], ["interfaces" => $interfaces]);
+		$actions = [];
+		
+		if (is_array($module["actions"])) {
+			foreach ($module["actions"] as $action) {
+				if (!empty($action["view"])) {
+					$action["interface"] = $action["view"];
+				} elseif (!empty($action["form"])) {
+					$action["interface"] = $action["form"];
+				} elseif (!empty($action["report"])) {
+					$action["interface"] = $action["report"];
+				} else {
+					$action["interface"] = "";
+				}
+
+				unset($action["form"]);
+				unset($action["report"]);
+				unset($action["view"]);
+
+				$actions[] = $action;
+			}
+		}
+		
+		DB::update("modules", $module["id"], ["interfaces" => $interfaces, "actions" => $actions]);
 	}
 	
 	// Convert template/callout resources to fields
