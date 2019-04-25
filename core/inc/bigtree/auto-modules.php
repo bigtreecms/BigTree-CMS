@@ -579,7 +579,7 @@
 				}
 			}
 
-			return $views;
+			return $dependent_views;
 		}
 
 		/*
