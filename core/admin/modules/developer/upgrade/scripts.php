@@ -6,17 +6,21 @@
 	
 	if ($current_revision < 404) {
 ?>
-<div class="error_message">Please upgrade to BigTree 4.4.x before attempting a BigTree 5 upgrade.</div>
+<div class="container">
+	<section>
+		<div class="error_message">Please upgrade to BigTree 4.4.x before attempting a BigTree 5 upgrade.</div>
+	</section>
+</div>
 <?php
-	}
-	
-	while ($current_revision < BIGTREE_REVISION) {
-		$current_revision++;
+	} else {
 		
-		if (file_exists(SERVER_ROOT."core/admin/ajax/developer/upgrade/revisions/$current_revision.php")) {
-			$update_queue[] = "revisions/$current_revision/";
+		while ($current_revision < BIGTREE_REVISION) {
+			$current_revision++;
+			
+			if (file_exists(SERVER_ROOT."core/admin/ajax/developer/upgrade/revisions/$current_revision.php")) {
+				$update_queue[] = "revisions/$current_revision/";
+			}
 		}
-	}
 ?>
 <div class="container">
 	<summary>
@@ -34,7 +38,7 @@
 	</section>
 </div>
 <?php
-	if (count($update_queue)) {
+		if (count($update_queue)) {
 ?>
 <script>
 	(function() {
@@ -84,5 +88,6 @@
 	})();
 </script>
 <?php
+		}
 	}
 ?>

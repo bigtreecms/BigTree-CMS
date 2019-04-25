@@ -63,7 +63,7 @@
 		{
 			if ($module !== null) {
 				// Passing in just an ID
-				if (!is_array($module)) {
+				if (is_string($module)) {
 					$module = DB::get("modules", $module);
 				}
 				
@@ -82,19 +82,23 @@
 					$this->Position = $module["position"];
 					$this->Route = $module["route"];
 					
-					foreach ($module["actions"] as $action) {
-						$this->Actions[$action["id"]] = new ModuleAction($action, $this);
+					if (is_array($module["actions"])) {
+						foreach ($module["actions"] as $action) {
+							$this->Actions[$action["id"]] = new ModuleAction($action, $this);
+						}
 					}
 					
-					foreach ($module["interfaces"] as $interface) {
-						if ($interface["type"] == "view") {
-							$this->Views[$interface["id"]] = new ModuleView($interface);
-						} elseif ($interface["type"] == "form") {
-							$this->Forms[$interface["id"]] = new ModuleForm($interface);
-						} elseif ($interface["type"] == "report") {
-							$this->Reports[$interface["id"]] = new ModuleReport($interface);
-						} else {
-							$this->Interfaces[$interface["id"]] = new ModuleInterface($interface);
+					if (is_array($module["interfaces"])) {
+						foreach ($module["interfaces"] as $interface) {
+							if ($interface["type"] == "view") {
+								$this->Views[$interface["id"]] = new ModuleView($interface);
+							} elseif ($interface["type"] == "form") {
+								$this->Forms[$interface["id"]] = new ModuleForm($interface);
+							} elseif ($interface["type"] == "report") {
+								$this->Reports[$interface["id"]] = new ModuleReport($interface);
+							} else {
+								$this->Interfaces[$interface["id"]] = new ModuleInterface($interface);
+							}
 						}
 					}
 				}
@@ -148,7 +152,7 @@
 			$all = static::all("position");
 			
 			foreach ($all as $module) {
-				if ($module["group"] == $group || (empty($group) && empty($module["group"]))) {
+				if ($module->Group == $group || (empty($group) && empty($module->Group))) {
 					if (!$auth || $module->UserCanAccess) {
 						$modules[$module->ID] = $return_arrays ? $module->Array : $module;
 					}
@@ -341,7 +345,7 @@
 				$route_string = implode("/", $path);
 				
 				foreach ($this->Actions as $action) {
-					if ($action["route"] == $route_string) {
+					if ($action->Route == $route_string) {
 						return [
 							"action" => $action,
 							"commands" => array_reverse($commands)

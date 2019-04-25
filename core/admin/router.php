@@ -434,9 +434,6 @@
 			Auth::stop(file_get_contents(Router::getIncludePath("admin/pages/_denied.php")));
 		}
 		
-		// Append module navigation.
-		$actions = ModuleAction::allByModule($module->ID, "position DESC, id ASC");
-		
 		// Append module info to the admin nav to draw the headers and breadcrumb and such.
 		$bigtree["nav_tree"]["auto-module"] = [
 			"title" => $module->Name,
@@ -446,7 +443,7 @@
 			"hidden" => true
 		];
 		
-		foreach ($actions as $action) {
+		foreach ($module->Actions as $action) {
 			$bigtree["nav_tree"]["auto-module"]["children"][] = [
 				"title" => $action->Name,
 				"link" => $action->Route ? $module->Route."/".$action->Route : $module->Route,

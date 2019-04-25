@@ -141,7 +141,7 @@
 				if (is_array($module["interfaces"])) {
 					foreach ($module["interfaces"] as $interface) {
 						if ($interface["type"] == "view" &&
-							($interface["settings"]["type"] == "grouped" || $view["type"] == "images-grouped") &&
+							($interface["settings"]["type"] == "grouped" || $interface["settings"]["type"] == "images-grouped") &&
 							$interface["settings"]["other_table"] == $table)
 						{
 							$dependent_views[] = new ModuleView($interface);

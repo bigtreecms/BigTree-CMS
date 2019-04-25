@@ -58,7 +58,7 @@
 					return false;
 				}
 				
-				$module = new Module($object->Module);
+				$module = new Module($object->Module->ID);
 				
 				return $this->canAccess($module);
 			} else {

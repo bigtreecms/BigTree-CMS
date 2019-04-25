@@ -80,4 +80,86 @@
 	// No more messages
 	SQL::query("DROP TABLE bigtree_messages");
 	
+	// Convert views/forms/reports into interfaces, drop embeds
+	$modules = DB::getAll("modules");
 	
+	foreach ($modules as $module) {
+		$interfaces = [];
+		
+		if (is_array($module["forms"])) {
+			foreach ($module["forms"] as $form) {
+				$interfaces[] = [
+					"type" => "form",
+					"title" => $form["title"],
+					"table" => $form["table"],
+					"settings" => [
+						"fields" => $form["fields"],
+						"default_position" => $form["default_position"],
+						"return_view" => $form["return_view"],
+						"return_url" => $form["return_url"],
+						"open_graph" => $form["open_graph"],
+						"tagging" => $form["tagging"],
+						"hooks" => $form["hooks"]
+					]
+				];
+			}
+		}
+		
+		if (is_array($module["views"])) {
+			foreach ($module["views"] as $view) {
+				$interfaces[] = [
+					"type" => "view",
+					"title" => $view["title"],
+					"table" => $view["table"],
+					"settings" => [
+						"type" => $view["type"],
+						"description" => $view["description"],
+						"fields" => $view["fields"],
+						"settings" => $view["settings"],
+						"actions" => $view["actions"],
+						"preview_url" => $view["preview_url"],
+						"related_form" => $view["related_form"]
+					]
+				];
+			}
+		}
+		
+		if (is_array($module["reports"])) {
+			foreach ($module["reports"] as $report) {
+				$interfaces[] = [
+					"type" => "report",
+					"title" => $report["title"],
+					"table" => $report["table"],
+					"settings" => [
+						"type" => $report["type"],
+						"filters" => $report["filters"],
+						"fields" => $report["fields"],
+						"parser" => $report["parser"],
+						"view" => $report["view"]
+					]
+				];
+			}
+		}
+		
+		DB::update("modules", $module["id"], ["interfaces" => $interfaces]);
+	}
+	
+	// Convert template/callout resources to fields
+	$templates = DB::getAll("templates");
+	
+	foreach ($templates as $template) {
+		DB::update("templates", $template["id"], ["fields" => $template["resources"], "resources" => null]);
+	}
+	
+	$callouts = DB::getAll("callouts");
+	
+	foreach ($callouts as $callout) {
+		DB::update("callouts", $callout["id"], ["fields" => $callout["resources"], "resources" => null]);
+	}
+	
+	echo JSON::encode([
+		"complete" => true,
+		"response" => "Upgrading to BigTree 5.0"
+	]);
+	
+	Setting::updateInternalValue("bigtree-internal-revision", 1000);
