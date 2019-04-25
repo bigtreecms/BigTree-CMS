@@ -155,13 +155,17 @@
 				true if the setting exists, otherwise false.
 		*/
 		
-		public static function exists(string $id): ?bool
+		public static function exists(?string $id): ?bool
 		{
 			// Must have a static Table var.
 			if (empty(static::$Store)) {
 				trigger_error('Method "exists" must be called from a subclass where the static variable $Store has been set.', E_USER_ERROR);
 				
 				return null;
+			}
+			
+			if (is_null($id)) {
+				return false;
 			}
 			
 			return DB::exists(static::$Store, $id);

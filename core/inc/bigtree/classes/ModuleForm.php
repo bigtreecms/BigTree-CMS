@@ -54,8 +54,8 @@
 			}
 			
 			$this->ID = $interface["id"];
-			$this->Interface = new ModuleInterface($interface);
 			$this->Module = !is_null($module) ? $module : new Module($interface["module"]);
+			$this->Interface = new ModuleInterface($interface, $this->Module);
 			
 			$this->DefaultPosition = $this->Interface->Settings["default_position"];
 			$this->Fields = Link::decode($this->Interface->Settings["fields"]);

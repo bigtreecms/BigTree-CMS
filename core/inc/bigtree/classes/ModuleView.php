@@ -85,8 +85,8 @@
 			}
 			
 			$this->ID = $interface["id"];
-			$this->Interface = new ModuleInterface($interface);
 			$this->Module = !is_null($module) ? $module : new Module($interface["module"]);
+			$this->Interface = new ModuleInterface($interface, $this->Module);
 			
 			$this->Actions = $this->Interface->Settings["actions"];
 			$this->Description = $this->Interface->Settings["description"];

@@ -91,13 +91,13 @@
 					if (is_array($module["interfaces"])) {
 						foreach ($module["interfaces"] as $interface) {
 							if ($interface["type"] == "view") {
-								$this->Views[$interface["id"]] = new ModuleView($interface);
+								$this->Views[$interface["id"]] = new ModuleView($interface, $this);
 							} elseif ($interface["type"] == "form") {
-								$this->Forms[$interface["id"]] = new ModuleForm($interface);
+								$this->Forms[$interface["id"]] = new ModuleForm($interface, $this);
 							} elseif ($interface["type"] == "report") {
-								$this->Reports[$interface["id"]] = new ModuleReport($interface);
+								$this->Reports[$interface["id"]] = new ModuleReport($interface, $this);
 							} else {
-								$this->Interfaces[$interface["id"]] = new ModuleInterface($interface);
+								$this->Interfaces[$interface["id"]] = new ModuleInterface($interface, $this);
 							}
 						}
 					}

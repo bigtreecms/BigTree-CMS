@@ -45,8 +45,8 @@
 			}
 			
 			$this->ID = $interface["id"];
-			$this->Interface = new ModuleInterface($interface);
 			$this->Module = !is_null($module) ? $module : new Module($interface["module"]);
+			$this->Interface = new ModuleInterface($interface, $this->Module);
 			
 			$this->Fields = $this->Interface->Settings["fields"];
 			$this->Filters = $this->Interface->Settings["filters"];

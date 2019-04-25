@@ -222,7 +222,7 @@
 				1 if the setting exists, otherwise 0.
 		*/
 		
-		public static function exists(string $id): bool
+		public static function exists(?string $id): bool
 		{
 			return SQL::exists("bigtree_settings", static::context($id));
 		}
