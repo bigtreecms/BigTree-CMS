@@ -6,10 +6,6 @@
 		"dashboard" => ["title" => "Dashboard", "link" => "dashboard", "icon" => "dashboard", "related" => true, "children" => [
 			"overview" => ["title" => "Overview", "link" => "", "hidden" => true],
 			"pending-changes" => ["title" => "Pending Changes", "link" => "dashboard/pending-changes", "icon" => "pending", "hidden" => true],
-			"messages" => ["title" => "Message Center", "link" => "dashboard/messages", "icon" => "messages", "hidden" => true, "children" => [
-				["title" => "View Messages", "link" => "dashboard/messages", "icon" => "messages", "nav_icon" => "list"],
-				["title" => "New Message", "link" => "dashboard/messages/new", "icon" => "add_message", "nav_icon" => "add"]
-			]],
 			"analytics" => ["title" => "Analytics", "link" => "dashboard/vitals-statistics/analytics", "hidden" => true, "icon" => "analytics", "children" => [
 				["title" => "Statistics", "link" => "dashboard/vitals-statistics/analytics", "nav_icon" => "bar_graph"],
 				["title" => "Service Providers", "link" => "dashboard/vitals-statistics/analytics/service-providers", "nav_icon" => "network"],

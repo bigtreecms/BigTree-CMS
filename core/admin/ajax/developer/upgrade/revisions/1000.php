@@ -77,21 +77,7 @@
 		$cloud_storage->save();
 	}
 	
-	// Turn message recipients and read by into JSON
-	$messages = SQL::fetchAll("SELECT * FROM bigtree_messages");
+	// No more messages
+	SQL::query("DROP TABLE bigtree_messages");
 	
-	foreach ($messages as $message) {
-		$message["read_by"] = array_filter(explode("|", $message["read_by"]));
-		$message["recipients"] = array_filter(explode("|", $message["recipients"]));
-		
-		foreach ($message["read_by"] as $index => $reader) {
-			$message["read_by"][$index] = strval(intval($reader));
-		}
-		
-		foreach ($message["recipients"] as $index => $recipient) {
-			$message["recipients"][$index] = strval(intval($recipient));
-		}
-		
-		SQL::update("bigtree_messages", $message["id"], $message);
-	}
 	
