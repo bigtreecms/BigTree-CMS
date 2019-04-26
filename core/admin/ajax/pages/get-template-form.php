@@ -87,7 +87,7 @@
 					"has_value" => isset($bigtree["resources"][$resource["id"]]),
 					"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
 					"tabindex" => $bigtree["tabindex"],
-					"options" => $resource["options"],
+					"settings" => $resource["settings"],
 					"forced_recrop" => isset($forced_recrops[$resource["id"]]) ? true : false
 				));
 	

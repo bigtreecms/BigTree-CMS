@@ -166,10 +166,10 @@
 			
 			if (is_array($form->Fields)) {
 				foreach ($form->Fields as $key => $field) {
-					if ($field["type"] == "list" && $field["options"]["list_type"] == "db") {
+					if ($field["type"] == "list" && $field["settings"]["list_type"] == "db") {
 						$poplists[$key] = [
-							"description" => $form->Fields[$key]["options"]["pop-description"],
-							"table" => $form->Fields[$key]["options"]["pop-table"]
+							"description" => $form->Fields[$key]["settings"]["pop-description"],
+							"table" => $form->Fields[$key]["settings"]["pop-table"]
 						];
 					}
 				}

@@ -149,7 +149,7 @@
 						"subtitle" => $meta["subtitle"],
 						"key" => "metadata[".$meta["id"]."]",
 						"tabindex" => $tabindex,
-						"settings" => $meta["settings"] ?: $meta["options"],
+						"settings" => $meta["settings"],
 						"has_value" => isset($file->Metadata[$meta["id"]]),
 						"value" => isset($file->Metadata[$meta["id"]]) ? $file->Metadata[$meta["id"]] : ""
 					]);

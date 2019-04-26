@@ -27,7 +27,7 @@
 				Field::$Namespace = uniqid("matrix_field_");
 				
 				foreach ($bigtree["matrix_columns"] as $resource) {
-					$settings = $resource["settings"] ? @json_decode($resource["settings"], true) : @json_decode($resource["options"],true);
+					$settings = is_array($resource["settings"]) ? $resource["settings"] : @json_decode($resource["settings"], true);
 					
 					$field = new Field([
 						"type" => $resource["type"],

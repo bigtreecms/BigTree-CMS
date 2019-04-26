@@ -93,7 +93,7 @@
 			$this->Fields = array_filter((array) $this->Interface->Settings["fields"]);
 			$this->PreviewURL = $this->Interface->Settings["preview_url"];
 			$this->RelatedForm = $this->Interface->Settings["related_form"];
-			$this->Settings = $this->Interface->Settings["options"];
+			$this->Settings = $this->Interface->Settings["settings"];
 			$this->Table = $interface["table"];
 			$this->Title = $interface["title"];
 			$this->Type = $this->Interface->Settings["type"];
@@ -296,10 +296,10 @@
 				
 				if ($field["parser"]) {
 					$parsers[$key] = $field["parser"];
-				} elseif ($form_field && $form_field["type"] == "list" && $form_field["options"]["list_type"] == "db") {
+				} elseif ($form_field && $form_field["type"] == "list" && $form_field["settings"]["list_type"] == "db") {
 					$poplists[$key] = [
-						"description" => $form_field["options"]["pop-description"],
-						"table" => $form_field["options"]["pop-table"]
+						"description" => $form_field["settings"]["pop-description"],
+						"table" => $form_field["settings"]["pop-table"]
 					];
 				}
 			}
@@ -413,10 +413,10 @@
 								
 								if ($field["parser"]) {
 									$parsers[$key] = $field["parser"];
-								} elseif ($form_field && $form_field["type"] == "list" && $form_field["options"]["list_type"] == "db") {
+								} elseif ($form_field && $form_field["type"] == "list" && $form_field["settings"]["list_type"] == "db") {
 									$poplists[$key] = [
-										"description" => $form_field["options"]["pop-description"],
-										"table" => $form_field["options"]["pop-table"]
+										"description" => $form_field["settings"]["pop-description"],
+										"table" => $form_field["settings"]["pop-table"]
 									];
 								}
 							}
@@ -516,7 +516,7 @@
 				"description" => Text::htmlEncode($description),
 				"type" => $type,
 				"fields" => $fields ?: [],
-				"options" => $settings ?: [],
+				"settings" => $settings ?: [],
 				"actions" => $actions ?: [],
 				"preview_url" => $preview_url ? Link::encode($preview_url) : "",
 				"related_form" => $related_form
@@ -845,10 +845,10 @@
 						$form_field = $form["fields"][$key];
 						
 						// If we know this field is a populated list, get the title they entered in the form.
-						if ($form_field["type"] == "list" && $form_field["options"]["list_type"] == "db") {
+						if ($form_field["type"] == "list" && $form_field["settings"]["list_type"] == "db") {
 							
-							$value = SQL::fetchSingle("SELECT `".$form_field["options"]["pop-description"]."` 
-													   FROM `".$form_field["options"]["pop-table"]."` 
+							$value = SQL::fetchSingle("SELECT `".$form_field["settings"]["pop-description"]."` 
+													   FROM `".$form_field["settings"]["pop-table"]."` 
 													   WHERE `id` = ?", $value);
 						}
 						
@@ -918,7 +918,7 @@
 				"description" => Text::htmlEncode($this->Description),
 				"type" => $this->Type,
 				"fields" => array_filter((array) $this->Fields),
-				"options" => (array) $this->Settings,
+				"settings" => (array) $this->Settings,
 				"actions" => array_filter((array) $this->Actions),
 				"preview_url" => $this->PreviewURL ? Link::encode($this->PreviewURL) : "",
 				"related_form" => $this->RelatedForm ? intval($this->RelatedForm) : null

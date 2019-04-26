@@ -115,8 +115,10 @@
 			// Make sure everything extracted is 777 -- if we're writing as Apache we want bust permissions for the user.
 			$contents = FileSystem::getDirectoryContents(SERVER_ROOT."cache/update/");
 			
-			foreach ($contents as $file) {
-				chmod($file, 0777);
+			if (is_array($contents)) {
+				foreach ($contents as $file) {
+					chmod($file, 0777);
+				}
 			}
 			
 			return true;
@@ -388,13 +390,15 @@
 			$root_count = 0;
 			$root = null;
 			
-			foreach ($contents as $content) {
-				$file = rtrim($content["filename"], "/");
-				$pieces = explode("/", $file);
-				
-				if (count($pieces) == 1) {
-					$root_count++;
-					$root = $file;
+			if (is_array($contents)) {
+				foreach ($contents as $content) {
+					$file = rtrim($content["filename"], "/");
+					$pieces = explode("/", $file);
+					
+					if (count($pieces) == 1) {
+						$root_count++;
+						$root = $file;
+					}
 				}
 			}
 			

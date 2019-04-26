@@ -4,7 +4,7 @@
 	CSRF::verify();
 	
 	$setting = Setting::create($_POST["id"], $_POST["name"], $_POST["description"], $_POST["type"],
-							   json_decode($_POST["options"], true), $_POST["extension"], false,
+							   json_decode($_POST["settings"], true), $_POST["extension"], false,
 							   $_POST["encrypted"], $_POST["locked"]);
 
 	if ($setting) {

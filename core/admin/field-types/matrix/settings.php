@@ -65,7 +65,7 @@
 				<span class="icon_drag"></span>
 				<a href="#" class="icon_delete"></a>
 				<a href="#" class="icon_edit" name="<?=$x?>"></a>
-				<input type="hidden" name="columns[][settings]" value="<?=Text::htmlEncode($column["settings"] ?: $column["options"])?>" />
+				<input type="hidden" name="columns[][settings]" value="<?=Text::htmlEncode($column["settings"])?>" />
 			</footer>
 		</article>
 		<?php

@@ -92,7 +92,7 @@
 									  string $default_position = "", ?int $return_view = null, string $return_url = "",
 									  bool $tagging = false, bool $open_graph = false): ModuleForm
 		{
-			// Clean up fields for backwards compatibility
+			// Clean up fields
 			foreach ($fields as $key => $data) {
 				$settings = is_array($data["settings"]) ? $data["settings"] : json_decode($data["settings"], true);
 				
@@ -103,13 +103,6 @@
 					"subtitle" => Text::htmlEncode($data["subtitle"]),
 					"settings" => Link::encode(Utils::arrayFilterRecursive((array) $settings))
 				];
-				
-				// Backwards compatibility with BigTree 4.1 package imports
-				foreach ($data as $sub_key => $value) {
-					if (!in_array($sub_key, ["title", "subtitle", "type", "options"])) {
-						$field["options"][$sub_key] = $value;
-					}
-				}
 				
 				$fields[$key] = $field;
 			}

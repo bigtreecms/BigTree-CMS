@@ -31,7 +31,7 @@
 						"type" => $resource["type"],
 						"title" => $resource["title"],
 						"key" => $resource["id"],
-						"settings" => $resource["settings"] ?: $resource["options"],
+						"settings" => $resource["settings"],
 						"ignore" => false,
 						"input" => $bigtree["post_data"][$resource["id"]],
 						"file_input" => $bigtree["file_data"][$resource["id"]]

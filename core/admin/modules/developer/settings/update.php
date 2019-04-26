@@ -13,7 +13,7 @@
 		Utils::growl("Developer","System Settings Are Not Editable","error");
 		Router::redirect(DEVELOPER_ROOT."settings/");
 	} else {
-		$success = $setting->update($_POST["id"], $_POST["type"], json_decode($_POST["options"], true), $_POST["name"],
+		$success = $setting->update($_POST["id"], $_POST["type"], json_decode($_POST["settings"], true), $_POST["name"],
 									$_POST["description"], $_POST["locked"], $_POST["encrypted"], false);
 		
 		if ($success) {

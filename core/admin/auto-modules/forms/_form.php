@@ -95,7 +95,7 @@
 								"has_value" => isset($bigtree["entry"][$resource["column"]]),
 								"value" => isset($bigtree["entry"][$resource["column"]]) ? $bigtree["entry"][$resource["column"]] : "",
 								"tabindex" => $bigtree["tabindex"],
-								"options" => $resource["settings"] ?: $resource["options"]
+								"settings" => $resource["settings"]
 							);
 	
 							// Give many to many its information

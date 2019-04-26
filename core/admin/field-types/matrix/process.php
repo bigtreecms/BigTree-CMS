@@ -20,25 +20,14 @@
 				$bigtree["post_data"] = $data;
 				$bigtree["file_data"] = $matrix["field"]["file_input"][$number];
 				
-				if (empty($matrix["field"]["settings"])) {
-					$matrix["field"]["settings"] = $matrix["field"]["options"];
-				}
-				
 				foreach ($matrix["field"]["settings"]["columns"] as $resource) {
-					$settings = @json_decode($resource["settings"], true);
-					$options = @json_decode($resource["options"], true); // Backwards compat
-					
-					if (!is_array($settings)) {
-						$settings = $options;
-					}
-					
-					$settings = is_array($settings) ? $settings : [];
+					$settings = is_array($resource["settings"]) ? $resource["settings"] : @json_decode($resource["settings"], true);
 					
 					$field = [
 						"type" => $resource["type"],
 						"title" => $resource["title"],
 						"key" => $resource["id"],
-						"settings" => $settings,
+						"settings" => is_array($settings) ? $settings : [],
 						"ignore" => false,
 						"input" => $bigtree["post_data"][$resource["id"]],
 						"file_input" => $bigtree["file_data"][$resource["id"]]

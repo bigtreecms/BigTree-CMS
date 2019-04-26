@@ -365,7 +365,6 @@
 			// Import Feeds
 			foreach ($manifest["components"]["feeds"] as &$feed) {
 				if ($feed) {
-					$settings = $feed["settings"] ?: $feed["options"];
 					$feed["id"] = DB::insert("feeds", [
 						"route" => $feed["route"],
 						"name" => $feed["name"],
@@ -373,7 +372,7 @@
 						"type" => $feed["type"],
 						"table" => $feed["table"],
 						"fields" => $feed["fields"],
-						"settings" => $settings,
+						"settings" => $feed["settings"],
 						"extension" => $extension
 					]);
 				}

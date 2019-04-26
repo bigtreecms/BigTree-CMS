@@ -63,12 +63,12 @@
 					"has_value" => isset($bigtree["resources"][$field["id"]]),
 					"value" => isset($bigtree["resources"][$field["id"]]) ? $bigtree["resources"][$field["id"]] : "",
 					"tabindex" => $bigtree["tabindex"],
-					"settings" => $field["settings"] ?: $field["options"],
+					"settings" => $field["settings"],
 					"forced_recrop" => isset($forced_recrops[$resource["id"]]) ? true : false
 				);
 
-				if (empty($field["options"]["directory"])) {
-					$field["options"]["directory"] = "files/callouts/";
+				if (empty($field["settings"]["directory"])) {
+					$field["settings"]["directory"] = "files/callouts/";
 				}
 		
 				$field = new Field($field);

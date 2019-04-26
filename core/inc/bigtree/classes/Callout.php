@@ -208,13 +208,6 @@
 						"settings" => Link::encode(Utils::arrayFilterRecursive((array) $settings))
 					];
 					
-					// Backwards compatibility with BigTree 4.1 package imports
-					foreach ($field as $k => $v) {
-						if (!in_array($k, ["id", "title", "subtitle", "type", "options"])) {
-							$field["options"][$k] = $v;
-						}
-					}
-					
 					$fields[$key] = $field;
 					
 					$file_contents .= '		"'.$field["id"].'" = '.$field["title"].' - '.$types[$field["type"]]["name"]."\n";

@@ -181,8 +181,6 @@
 				$array[$this->_camelCaseToUnderscore($key)] = $value;
 			}
 			
-			$array["options"] = $array["settings"];
-			
 			return $array;
 		}
 		

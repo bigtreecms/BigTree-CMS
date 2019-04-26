@@ -62,8 +62,6 @@
 				foreach ($data as $matrix_data) {
 					if (isset($resource["settings"]) && is_string($resource["settings"])) {
 						$resource["settings"] = json_decode($resource["settings"], true);
-					} elseif (isset($resource["options"]) && is_string($resource["options"])) {
-						$resource["options"] = json_decode($resource["options"], true);
 					}
 					
 					// We're going to modify the field titles so that it makes more sense when someone is diagnosing the issue

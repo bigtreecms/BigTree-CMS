@@ -61,7 +61,7 @@
 
 	$generate_data = function($field) use ($generate_image) {
 		$type = $field["type"];
-		$options = $field["options"];
+		$options = $field["settings"];
 
 		if ($type == "text") {
 			return ucwords(LoremIpsum::getWords(rand(6, 10)));

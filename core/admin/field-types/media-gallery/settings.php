@@ -84,15 +84,15 @@
 					</optgroup>
 					<?php } ?>
 				</select>		
-				<input type="text" name="columns[][id]" value="<?=Text::htmlEncode(($column["id"])?>" placeholder="<?=$text_id?>" />
-				<input type="text" name="columns[][title]" value="<?=Text::htmlEncode(($column["title"])?>" placeholder="<?=$text_title?>" />
-				<input type="text" name="columns[][subtitle]" value="<?=Text::htmlEncode(($column["subtitle"])?>" placeholder="<?=$text_subtitle?>" />
+				<input type="text" name="columns[][id]" value="<?=Text::htmlEncode($column["id"])?>" placeholder="<?=$text_id?>" />
+				<input type="text" name="columns[][title]" value="<?=Text::htmlEncode($column["title"])?>" placeholder="<?=$text_title?>" />
+				<input type="text" name="columns[][subtitle]" value="<?=Text::htmlEncode($column["subtitle"])?>" placeholder="<?=$text_subtitle?>" />
 			</div>
 			<footer>
 				<span class="icon_drag"></span>
 				<a href="#" class="icon_delete"></a>
 				<a href="#" class="icon_edit" name="<?=$x?>"></a>
-				<input type="hidden" name="columns[][options]" value="<?=Text::htmlEncode(($column["options"])?>" />
+				<input type="hidden" name="columns[][settings]" value="<?=Text::htmlEncode($column["settings"])?>" />
 			</footer>
 		</article>
 		<?php
@@ -120,7 +120,7 @@
 			var type = CurrentColumn.find("select").val();
 			var options = CurrentColumn.find("input[type=hidden]").val();
 
-			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-<?=(BIGTREE_REVISION < 300 ? "options" : "settings")?>/", { type: "POST", data: { template: "true", type: type, data: options }, complete: function(response) {
+			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-settings/", { type: "POST", data: { template: "true", type: type, data: options }, complete: function(response) {
 				BigTreeDialog({
 					title: "Column Options",
 					content: response.responseText,
