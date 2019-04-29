@@ -2,11 +2,12 @@
 	namespace BigTree;
 	
 	CSRF::verify();
-
+	
 	// Get existing presets
-	$media_settings = new Setting("bigtree-internal-media-settings");
-
+	$settings = DB::get("config", "media-settings");
+	
 	// Delete one of them
-	unset($media_settings->Value["presets"][$_POST["id"]]);
-	$media_settings->save();
+	unset($settings["presets"][$_POST["id"]]);
+	DB::update("config", "media-settings", $settings);
+	AuditTrail::track("config:media-settings", "presets", "deleted");
 	

@@ -187,4 +187,4 @@
 		"response" => "Upgrading to BigTree 5.0"
 	]);
 	
-	Setting::updateInternalValue("bigtree-internal-revision", 1000);
+	Setting::updateValue("bigtree-internal-revision", 1000);

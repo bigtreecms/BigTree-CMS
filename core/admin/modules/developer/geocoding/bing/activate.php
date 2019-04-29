@@ -2,12 +2,12 @@
 	namespace BigTree;
 	
 	CSRF::verify();
-	
-	$setting = new Setting("bigtree-internal-geocoding-service");
-	$setting->Value["service"] = "bing";
-	$setting->Value["bing_key"] = $_POST["bing_key"];
-	$setting->save();
 
+	$current = Setting::value("bigtree-internal-geocoding-service");
+	$current["service"] = "bing";
+	$current["bing_key"] = $_POST["bing_key"];
+	
+	Setting::updateValue("bigtree-internal-geocoding-service", $current);
 	Utils::growl("Developer","Geocoding Service set to Bing");
 	Router::redirect(DEVELOPER_ROOT);
 	

@@ -35,17 +35,15 @@
 			if (static::$Service === false) {
 				$geo_service = Setting::value("bigtree-internal-geocoding-service");
 				
-				// If for some reason the setting doesn't exist, make one.
-				if (!is_array($geo_service) || !$geo_service["service"]) {
-					static::$Service = "google";
-					$setting = Setting::create("bigtree-internal-geocoding-service", "Geocoding Service", "", "", [],
-											   "", true, true, true);
-					$setting->Value = ["service" => "google"];
-					$setting->save();
-				} else {
-					static::$Service = $geo_service["service"];
-					static::$Settings = $geo_service;
-				}
+				static::$Service = $geo_service["service"];
+				static::$Settings = $geo_service;
+			}
+			
+			// No service
+			if (empty(static::$Service)) {
+				$this->Error = "Geocoding Service has not beeon configured.";
+				
+				return;
 			}
 			
 			// No address

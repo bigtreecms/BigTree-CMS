@@ -26,17 +26,10 @@
 		
 		public function __construct()
 		{
-			$this->Setting = new Setting("bigtree-internal-payment-gateway");
+			$settings = Setting::value("bigtree-internal-payment-gateway");
 			
-			// Setting doesn't exist? Create it.
-			if (empty($this->Setting->ID)) {
-				$this->Setting = Setting::create("bigtree-internal-payment-gateway", "Payment Gateway", "", "", [], "", true, true, true);
-				$this->Setting->Value = ["service" => "", "settings" => []];
-				$this->Setting->save();
-			}
-			
-			$this->Service = &$this->Setting["service"];
-			$this->Settings = &$this->Setting["settings"];
+			$this->Service = $settings["service"];
+			$this->Settings = $settings["settings"];
 		}
 		
 		/*

@@ -22,17 +22,11 @@
 			global $bigtree;
 			
 			// Track when we last sent a daily digest
-			if (!Setting::exists("bigtree-internal-cron-daily-digest-last-sent")) {
-				Setting::create("bigtree-internal-cron-daily-digest-last-sent", "", "", "", [], "", true);
-			}
-			
-			$dailyDigestLastRun = new Setting("bigtree-internal-cron-daily-digest-last-sent");
-			$last_sent_daily_digest = $dailyDigestLastRun->Value;
+			$last_sent_daily_digest = intval(Setting::value("bigtree-internal-cron-daily-digest-last-sent"));
 			
 			// If we last sent the daily digest > ~24 hours ago, send it again. Also refresh analytics.
 			if ($last_sent_daily_digest < strtotime("-23 hours 59 minutes")) {
-				$dailyDigestLastRun->Value = time();
-				$dailyDigestLastRun->save();
+				Setting::updateValue("bigtree-internal-cron-daily-digest-last-sent", time());
 				
 				// Send daily digest
 				DailyDigest::send();
@@ -63,20 +57,14 @@
 			foreach (static::$Plugins as $extension => $plugins) {
 				foreach ($plugins as $id => $details) {
 					$id = $extension."*".$id;
+					
 					if (empty($cron_settings[$id]["disabled"])) {
 						call_user_func($details["function"]);
 					}
 				}
 			}
 			
-			// Let the CMS know we're running cron properly
-			if (!Setting::exists("bigtree-internal-cron-last-run")) {
-				Setting::create("bigtree-internal-cron-last-run", "", "", "", [], "", true);
-			}
-			
-			$cronLastRun = new Setting("bigtree-internal-cron-last-run");
-			$cronLastRun->Value = time();
-			$cronLastRun->save();
+			Setting::updateValue("bigtree-internal-cron-last-run", time());
 		}
 		
 	}

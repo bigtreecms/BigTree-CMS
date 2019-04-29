@@ -350,7 +350,7 @@
 		}
 		
 		/*
-			Function: updateInternalValue
+			Function: updateValue
 				Updates the value of an internal BigTree setting.
 
 			Parameters:
@@ -359,7 +359,7 @@
 				encrypted - Whether the value should be encrypted (defaults to false).
 		*/
 		
-		public static function updateInternalValue(string $id, $value, bool $encrypted = false): void
+		public static function updateValue(string $id, $value, bool $encrypted = false): void
 		{
 			global $bigtree;
 			
@@ -373,10 +373,10 @@
 			}
 			
 			if ($encrypted) {
-				SQL::query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?, ?)
+				SQL::query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?, ?), `encrypted` = 'on'
 							WHERE id = ?", $value, $bigtree["config"]["settings_key"], $id);
 			} else {
-				SQL::update("bigtree_settings", $id, ["value" => $value]);
+				SQL::update("bigtree_settings", $id, ["value" => $value, "encrypted" => ""]);
 			}
 		}
 		

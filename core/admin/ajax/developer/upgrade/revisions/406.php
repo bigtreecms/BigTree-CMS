@@ -12,4 +12,4 @@
 		"response" => "Upgrading to BigTree 4.4.3"
 	]);
 
-	Setting::updateInternalValue("bigtree-internal-revision", 406);
+	Setting::updateValue("bigtree-internal-revision", 406);

@@ -3,8 +3,7 @@
 	
 	CSRF::verify();
 	
-	$setting = new Setting("bigtree-internal-security-policy");
-	$setting->Value = [
+	Setting::updateValue("bigtree-internal-security-policy", [
 		"user_fails" => [
 			"count" => $_POST["user_fails"]["count"] ? intval($_POST["user_fails"]["count"]) : "",
 			"time" => $_POST["user_fails"]["time"] ? intval($_POST["user_fails"]["time"]) : "",
@@ -29,8 +28,7 @@
 		"remember_disabled" => $_POST["remember_disabled"] ? "on" : "",
 		"two_factor" => $_POST["two_factor"],
 		"logout_all" => !empty($_POST["logout_all"]) ? "on" : ""
-	];
-	$setting->save();
+	]);
 	
 	Utils::growl("Security", "Updated Policy");
 	Router::redirect(DEVELOPER_ROOT);
