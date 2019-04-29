@@ -45,8 +45,13 @@
 <p class="error_message" style="display: none;"><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 <div class="form_fields">
 	<?php
+		// Run hooks for modifying the field array
+		$callout->Fields = Extension::runHooks("fields", "callout", $callout->Fields, [
+			"callout" => $callout,
+			"step" => "draw"
+		]);
+		
 		if (count($callout->Fields)) {
-
 			Field::$Namespace = uniqid("callout_field_");
 
 			$bigtree["field_types"] = FieldType::reference(false,"callouts");	

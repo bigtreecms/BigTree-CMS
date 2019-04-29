@@ -84,8 +84,6 @@
 	// Remove all existing cloud file caches and import new data
 	$cloud->resetCache($container);
 	
-	// Save storage settings
-	$storage->Setting->save();
-	
+	Setting::updateValue("bigtree-internal-storage", $storage->Settings, true);
 	Utils::growl("Developer", "Changed Default Storage");
 	Router::redirect(DEVELOPER_ROOT."cloud-storage/");

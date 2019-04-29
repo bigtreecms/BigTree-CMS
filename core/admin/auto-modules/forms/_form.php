@@ -54,7 +54,8 @@
 		?>
 		<input type="hidden" name="id" value="<?=htmlspecialchars($bigtree["edit_id"])?>" />
 		<?php
-			}	
+			}
+			
 			if (isset($_GET["view_data"])) {
 		?>
 		<input type="hidden" name="_bigtree_return_view_data" value="<?=htmlspecialchars($_GET["view_data"])?>" />
@@ -84,7 +85,12 @@
 					$bigtree["field_types"] = FieldType::reference(false,"modules");
 
 					Field::$Namespace = uniqid("form_field_");
-	
+					
+					$form->Fields = Extension::runHooks("fields", "form", $form->Fields, [
+						"form" => $form,
+						"step" => "draw"
+					]);
+					
 					foreach ($form->Fields as $resource) {
 						if (is_array($resource)) {
 							$field = array(

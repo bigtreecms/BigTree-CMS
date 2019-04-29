@@ -18,8 +18,8 @@
 	}
 
 	$rackspace->Active = true;
-	$rackspace->Setting->save();
 
+	Setting::updateValue($rackspace->SettingID, $rackspace->Settings, true);
 	Utils::growl("Developer","Enabled Rackspace Cloud Files");
 	Router::redirect(DEVELOPER_ROOT."cloud-storage/");
 	

@@ -3,10 +3,16 @@
 
 	$users = User::all("name ASC", true);
 	$user_data = [];
+	$levels = [
+		0 => Text::translate("Normal"),
+		1 => Text::translate("Administrator"),
+		2 => Text::translate("Developer")
+	];
 	
 	foreach ($users as $user) {
 		if ($user["level"] <= Auth::user()->Level) {
-			$user["gravatar"] = User::gravatar($user["email"],36);
+			$user["gravatar"] = User::gravatar($user["email"], 36);
+			$user["level"] = $levels[$user["level"]];
 			$user_data[] = $user;
 		}
 	}
@@ -16,9 +22,10 @@
 	BigTreeTable({
 		container: "#user_table",
 		columns: {
-			name: { title: "<?=Text::translate("Name", true)?>", source: '<span class="gravatar"><img src="{gravatar}" alt="" /></span>{name}', size: 0.4, sort: "asc" },
-			email: { title: "<?=Text::translate("Email", true)?>", size: 0.3 },
-			company: { title: "<?=Text::translate("Company", true)?>", size: 0.3 }
+			name: { title: "<?=Text::translate("Name", true)?>", source: '<span class="gravatar"><img src="{gravatar}" alt="" /></span>{name}', size: 0.35, sort: "asc" },
+			email: { title: "<?=Text::translate("Email", true)?>", size: 0.25 },
+			company: { title: "<?=Text::translate("Company", true)?>", size: 0.25 },
+			level: { title: "<?=Text::translate("User Level", true)?>", size: 0.15 }
 		},
 		actions: {
 			"edit": "<?=ADMIN_ROOT?>users/edit/{id}/",
@@ -34,7 +41,7 @@
 				});
 			}
 		},
-		data: <?=JSON::encodeColumns($user_data, ["id", "gravatar", "name", "email", "company"])?>,
+		data: <?=JSON::encodeColumns($user_data, ["id", "gravatar", "name", "email", "company", "level"])?>,
 		searchable: true,
 		sortable: true,
 		perPage: 10

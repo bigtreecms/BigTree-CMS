@@ -6,7 +6,7 @@
 	
 	namespace BigTree;
 	
-	class Setting extends SQLObject
+	class Setting extends JSONObject
 	{
 		
 		protected $OriginalEncrypted;
@@ -24,7 +24,7 @@
 		public $Type;
 		public $Value;
 		
-		public static $Table = "bigtree_settings";
+		public static $Store = "settings";
 		
 		/*
 			Constructor:
@@ -43,7 +43,7 @@
 				// Passing in just an ID
 				if (!is_array($setting)) {
 					$id = static::context($setting);
-					$setting = SQL::fetch("SELECT * FROM bigtree_settings WHERE id = ?", $id);
+					$setting = DB::get("settings", $id);
 				}
 				
 				// Bad data set
@@ -88,36 +88,10 @@
 		public function __toString(): string
 		{
 			if (is_object($this->Value) || is_array($this->Value)) {
-				return json_encode($this->Value);
+				return JSON::encode($this->Value);
 			} else {
 				return strval($this->Value);
 			}
-		}
-		
-		/*
-			Function: allSystem
-				Returns an array of user defined (no bigtree-internal- prefix) system settings.
-
-			Parameters:
-				sort - Order to return the settings. Defaults to name ASC.
-				return_arrays - Set to true to return arrays rather than objects.
-
-			Returns:
-				An array of entries from bigtree_settings.
-		*/
-		
-		public static function allSystem(string $sort = "name ASC", bool $return_arrays = false): array
-		{
-			$settings = SQL::fetchAll("SELECT * FROM bigtree_settings 
-									   WHERE id NOT LIKE 'bigtree-internal-%' AND system != '' ORDER BY $sort");
-			
-			if (!$return_arrays) {
-				foreach ($settings as &$setting) {
-					$setting = new Setting($setting);
-				}
-			}
-			
-			return $settings;
 		}
 		
 		/*
@@ -146,7 +120,10 @@
 				}
 				
 				// See if namespaced version exists
-				if (SQL::exists("bigtree_settings", ["id" => "$extension*$id"])) {
+				$exists = DB::exists("settings", $extension."*".$id) ||
+						  SQL::exists("bigtree_settings", $extension."*".$id);
+				
+				if ($exists) {
 					return "$extension*$id";
 				}
 			}
@@ -188,13 +165,17 @@
 				}
 			}
 			
+			if (strpos($id, "bigtree-internal-") === 0) {
+				return null;
+			}
+			
 			// Check for ID collision
-			if (SQL::exists("bigtree_settings", $id)) {
+			if (DB::exists("settings", $id) || SQL::exists("bigtree_settings", $id)) {
 				return null;
 			}
 			
 			// Create the setting
-			SQL::insert("bigtree_settings", [
+			DB::insert("settings", [
 				"id" => $id,
 				"name" => Text::htmlEncode($name),
 				"description" => $description,
@@ -205,8 +186,10 @@
 				"system" => $system ? "on" : "",
 				"extension" => $extension ? $extension : null
 			]);
+			SQL::insert("bigtree_settings", ["id" => $id, "encrypted" => $encrypted ? "on" : "", "value" => ""]);
 			
-			AuditTrail::track("bigtree_settings", $id, "created");
+			
+			AuditTrail::track("config:settings", $id, "created");
 			
 			return new Setting($id);
 		}
@@ -224,7 +207,7 @@
 		
 		public static function exists(?string $id): bool
 		{
-			return SQL::exists("bigtree_settings", static::context($id));
+			return DB::exists("settings", static::context($id));
 		}
 		
 		/*
@@ -235,7 +218,7 @@
 		public function save(): ?bool
 		{
 			// Settings specify their own ID so we check for existance to determine save behavior
-			if (!SQL::exists("bigtree_settings", $this->ID)) {
+			if (!DB::exists("settings", $this->ID)) {
 				$new = static::create(
 					$this->ID,
 					$this->Name,
@@ -252,7 +235,7 @@
 			} else {
 				global $bigtree;
 				
-				SQL::update("bigtree_settings", $this->OriginalID, [
+				DB::update("settings", $this->OriginalID, [
 					"id" => $this->ID,
 					"type" => $this->Type,
 					"settings" => Link::encode(Utils::arrayFilterRecursive((array) $this->Settings)),
@@ -295,9 +278,10 @@
 				
 				// If we changed IDs, leave a notice in the audit trail
 				if ($this->OriginalID != $this->ID) {
-					AuditTrail::track("bigtree_settings", $this->OriginalID, "changed-id");
+					AuditTrail::track("config:settings", $this->OriginalID, "changed-id");
 				}
-				AuditTrail::track("bigtree_settings", $this->ID, "updated");
+				
+				AuditTrail::track("config:settings", $this->ID, "updated");
 				
 				// Update "original" value tracking
 				$this->OriginalEncrypted = $this->Encrypted;

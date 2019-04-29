@@ -2829,7 +2829,9 @@
 		*/
 
 		static function getSystemSettings($sort = "name ASC") {
-			return BigTree\Setting::allSystem($sort, true);
+			trigger_error("This function is not supported in BigTree 5.0+", E_USER_WARNING);
+
+			return [];
 		}
 
 		/*

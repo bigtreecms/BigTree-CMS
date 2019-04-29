@@ -12,5 +12,5 @@
 	$api->Settings["test_environment"] = $_POST["test_environment"];
 	$api->Settings["scope"] = $_POST["scope"];
 
-	$api->Setting->save();
+	Setting::updateValue($api->SettingID, $api->Settings, true);
 	$api->oAuthRedirect();

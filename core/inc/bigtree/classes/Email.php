@@ -34,11 +34,7 @@
 			$setup = Setting::value("bigtree-internal-email-service");
 			
 			// Setting doesn't exist? Create it.
-			if ($setup === false) {
-				$setting = Setting::create("bigtree-internal-email-service", "Email Service", "", "", [], "", true, true, true);
-				$setting->Value = ["service" => "Local", "settings" => []];
-				$setting->save();
-			} else {
+			if (!is_null($setup)) {
 				$this->Service = $setup["service"];
 				$this->Settings = $setup["settings"];
 			}

@@ -12,6 +12,7 @@
 	include Router::getIncludePath("admin/modules/developer/upgrade/_update-list.php");
 
 	if (empty($showing_updates)) {
+		Extension::runHooks("markup", "developer-top");
 ?>
 <div class="container">
 	<div class="container_summary"><h2><?=Text::translate("Create")?></h2></div>
@@ -49,6 +50,9 @@
 			<span class="package"></span>
 			<p><?=Text::translate("Extensions &amp; Packages")?></p>
 		</a>
+		<?php
+			Extension::runHooks("markup", "developer-buttons-create");
+		?>
 	</section>
 </div>
 
@@ -99,6 +103,9 @@
 			<span class="pending"></span>
 			<p><?=Text::translate("Daily Digest<br />&amp; Cron")?></p>
 		</a>
+		<?php
+			Extension::runHooks("markup", "developer-buttons-configure");
+		?>
 	</section>
 </div>
 
@@ -121,7 +128,11 @@
 			<span class="edit_page"></span>
 			<p><?=Text::translate("Content Generator")?></p>
 		</a>
+		<?php
+			Extension::runHooks("markup", "developer-buttons-debug");
+		?>
 	</section>
 </div>
 <?php
+		Extension::runHooks("markup", "developer-bottom");
 	}

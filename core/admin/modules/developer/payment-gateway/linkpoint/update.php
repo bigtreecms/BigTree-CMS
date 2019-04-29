@@ -18,8 +18,6 @@
 		$data["settings"]["linkpoint-certificate"] = $filename;
 	}
 	
-	$gateway->Setting->save();
-	
 	Setting::updateValue("bigtree-internal-payment-gateway", $data, true);
 	Utils::growl("Developer", "Updated Payment Gateway");
 	Router::redirect(DEVELOPER_ROOT);

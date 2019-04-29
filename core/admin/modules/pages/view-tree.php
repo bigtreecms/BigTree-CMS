@@ -66,17 +66,36 @@
 					$status = Text::translate("Published");
 					$status_class = "published";
 				}
+
+				$has_children = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_pages WHERE parent = ?", $item["id"]);
 		?>
 		<li id="row_<?=$item["id"]?>" class="<?=$status_class?>">
 			<section class="pages_title<?php if ($class == "archived") { ?>_widest<?php } elseif (!$ga_on) { ?>_wider<?php } ?>">
-				<?php if ($bigtree["access_level"] == "p" && !isset($item["bigtree_pending"]) && $draggable) { ?>
+				<?php
+					if ($bigtree["access_level"] == "p" && !isset($item["bigtree_pending"]) && $draggable) {
+				?>
 				<span class="icon_sort"></span>
-				<?php } ?>
-				<?php if ($class != "archived" && is_numeric($item["id"])) { ?>
-				<a href="<?=ADMIN_ROOT?>pages/view-tree/<?=$item["id"]?>/"><?=$item["title"]?></a>
-				<?php } else { ?>
-				<?=$item["title"]?>				
-				<?php } ?>
+				<?php
+					}
+
+					if ($class != "archived" && is_numeric($item["id"])) {
+				?>
+				<a href="<?=ADMIN_ROOT?>pages/view-tree/<?=$item["id"]?>/">
+					<?php
+						echo $item["title"];
+
+						if ($has_children) {
+					?>
+					<span class="icon_small icon_small_down_arrow" title="Page has Children"></span>
+					<?php
+						}
+					?>
+				</a>
+				<?php
+					} else {
+						echo $item["title"];
+					}
+				?>
 			</section>
 			<?php
 				if ($class == "archived") {

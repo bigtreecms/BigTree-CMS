@@ -25,13 +25,9 @@
 			$setup = Setting::value("bigtree-internal-payment-gateway");
 
 			// Setting doesn't exist? Create it.
-			if ($setup === false) {
-				$setting = Setting::create("bigtree-internal-payment-gateway","Payment Gateway","","",array(),"",true,true,true);
-				$setting->Value = array("service" => "", "settings" => array());
-				$setting->save();
-
+			if (is_null($setup)) {
 				$this->Service = "";
-				$this->Settings = array();
+				$this->Settings = [];
 			} else {
 				$this->Service = $setup["service"];
 				$this->Settings = $setup["settings"];

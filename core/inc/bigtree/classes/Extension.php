@@ -52,6 +52,59 @@
 		}
 		
 		/*
+			Function: cacheHooks
+				Deletes an existing extension hooks cache and re-caches based on the latest data.
+		*/
+		
+		public static function cacheHooks(): void
+		{
+			$plugins = [
+				"cron" => [],
+				"daily-digest" => [],
+				"dashboard" => [],
+				"interfaces" => [],
+				"view-types" => [],
+				"hooks" => []
+			];
+			
+			$extensions = DB::getAll("extensions");
+			
+			foreach ($extensions as $extension) {
+				// Load up the manifest
+				$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/".$extension["id"]."/manifest.json"), true);
+				
+				if (!empty($manifest["plugins"]) && is_array($manifest["plugins"])) {
+					foreach ($manifest["plugins"] as $type => $list) {
+						foreach ($list as $id => $plugin) {
+							$plugins[$type][$manifest["id"]][$id] = $plugin;
+						}
+					}
+				}
+				
+				$hook_base_dir = SERVER_ROOT."extensions/".$extension["id"]."/hooks/";
+				
+				if (file_exists($hook_base_dir)) {
+					$hook_files = FileSystem::getDirectoryContents($hook_base_dir, true, "php");
+					
+					foreach ($hook_files as $file) {
+						$parts = explode("/", str_replace($hook_base_dir, "", substr($file, 0, -4)));
+						
+						if (count($parts) == 2) {
+							$plugins["hooks"][$parts[0]][$parts[1]][] = str_replace(SERVER_ROOT, "", $file);
+						} elseif (count($parts) == 1) {
+							$plugins["hooks"][$parts[0]][] = str_replace(SERVER_ROOT, "", $file);
+						}
+					}
+				}
+			}
+			
+			// If no longer in debug mode, cache it
+			if (!$bigtree["config"]["debug"]) {
+				file_put_contents($extension_cache_file, JSON::encode($plugins));
+			}
+		}
+		
+		/*
 			Function: delete
 				Uninstalls the extension or package from BigTree and removes its related components and files.
 		*/
@@ -108,53 +161,10 @@
 			
 			// Handle extension cache
 			if ($bigtree["config"]["debug"] || !file_exists($extension_cache_file)) {
-				$plugins = [
-					"cron" => [],
-					"daily-digest" => [],
-					"dashboard" => [],
-					"interfaces" => [],
-					"view-types" => [],
-					"hooks" => []
-				];
-				
-				$extensions = DB::getAll("extensions");
-				
-				foreach ($extensions as $extension) {
-					// Load up the manifest
-					$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/".$extension["id"]."/manifest.json"), true);
-					
-					if (!empty($manifest["plugins"]) && is_array($manifest["plugins"])) {
-						foreach ($manifest["plugins"] as $type => $list) {
-							foreach ($list as $id => $plugin) {
-								$plugins[$type][$manifest["id"]][$id] = $plugin;
-							}
-						}
-					}
-					
-					$hook_base_dir = SERVER_ROOT."extensions/".$extension["id"]."/hooks/";
-					
-					if (file_exists($hook_base_dir)) {
-						$hook_files = FileSystem::getDirectoryContents($hook_base_dir, true, "php");
-						
-						foreach ($hook_files as $file) {
-							$parts = explode("/", str_replace($hook_base_dir, "", substr($file, 0, -4)));
-							
-							if (count($parts) == 2) {
-								$plugins["hooks"][$parts[0]][$parts[1]][] = str_replace(SERVER_ROOT, "", $file);
-							} elseif (count($parts) == 1) {
-								$plugins["hooks"][$parts[0]][] = str_replace(SERVER_ROOT, "", $file);
-							}
-						}
-					}
-				}
-				
-				// If no longer in debug mode, cache it
-				if (!$bigtree["config"]["debug"]) {
-					file_put_contents($extension_cache_file, JSON::encode($plugins));
-				}
-			} else {
-				$plugins = json_decode(file_get_contents($extension_cache_file), true);
+				static::cacheHooks();
 			}
+			
+			$plugins = json_decode(file_get_contents($extension_cache_file), true);
 			
 			Cron::$Plugins = $plugins["cron"];
 			DailyDigest::$Plugins = $plugins["daily-digest"];
@@ -454,7 +464,7 @@
 			@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 			@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");
 			
-			static::initializeCache();
+			static::cacheHooks();
 			
 			return new Extension($extension);
 		}

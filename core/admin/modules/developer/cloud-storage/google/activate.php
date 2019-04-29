@@ -18,7 +18,6 @@
 		$google->PrivateKey = SERVER_ROOT."custom/google-cloud-private-key.p12";
 	}
 
-	$google->Setting->save();
-	
+	Setting::updateValue($google->SettingID, $google->Settings, true);
 	$google->oAuthRedirect();
 	

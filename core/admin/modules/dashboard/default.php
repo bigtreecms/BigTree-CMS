@@ -36,6 +36,8 @@
 	
 	array_multisort($positions,SORT_DESC,$panes);
 
+	Extension::runHooks("markup", "dashboard-top");
+	
 	// Draw the panes
 	foreach ($panes as $pane) {
 		if (!$pane["disabled"]) {
@@ -53,4 +55,6 @@
 			echo '</div>';
 		}
 	}
+	
+	Extension::runHooks("markup", "dashboard-bottom");
 	

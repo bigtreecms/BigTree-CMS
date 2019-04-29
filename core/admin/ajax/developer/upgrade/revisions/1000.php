@@ -3,13 +3,6 @@
 	namespace BigTree;
 	
 	// BigTree 5.0 update -- REVISION 1000
-	
-	// Extension settings
-	SQL::insert("bigtree_settings", [
-		"id" => "bigtree-internal-extension-settings",
-		"system" => "on",
-		"value" => "{}"
-	]);
 		
 	// Clear view caches
 	SQL::query("DELETE FROM bigtree_module_view_cache");

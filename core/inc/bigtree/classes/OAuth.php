@@ -46,21 +46,7 @@
 			$this->Cache = $cache;
 			$this->CacheIdentifier = $cache_id;
 			$this->SettingID = $setting_id;
-			
-			// If we don't have the setting for the API, create it.
-			if (!Setting::exists($setting_id)) {
-				Setting::create($setting_id, $setting_name, "", "", [], "", "on", "on");
-			}
-			
-			$this->Setting = new Setting($setting_id);
-			
-			// Emulate old functionality of $this->Settings by making it a reference to the setting value
-			$this->Settings = &$this->Setting->Value;
-			
-			// Prevent fatal error on bad setting data
-			if (!is_array($this->Settings)) {
-				$this->Settings = [];
-			}
+			$this->Settings = Setting::value($setting_id);
 			
 			// Make sure Settings is an array
 			$this->Settings = array_filter((array) $this->Settings);
@@ -405,9 +391,9 @@
 			$this->OAuthSettings["expires"] = $response->expires_in ? strtotime("+".$response->expires_in." seconds") : false;
 			
 			$this->Active = true;
-			$this->Setting->save();
-			
 			$this->Connected = true;
+
+			Setting::updateValue($this->SettingID, $this->Settings, true);
 			
 			return $response;
 		}

@@ -2,15 +2,15 @@
 	namespace BigTree;
 
 	// Grab the settings list
-	$extension_settings = new Setting("bigtree-internal-extension-settings");
+	$data = Setting::value("bigtree-internal-extension-settings");
 	$type = $_POST["type"];
 	
 	foreach ($_POST["positions"] as $id => $position) {
-		if (isset($extension_settings->Value[$type][$id])) {
-			$extension_settings->Value[$type][$id]["position"] = $position;
+		if (isset($data[$type][$id])) {
+			$data[$type][$id]["position"] = $position;
 		} else {
-			$extension_settings->Value[$type][$id] = array("position" => $position, "disabled" => "");
+			$data[$type][$id] = ["position" => $position, "disabled" => ""];
 		}
 	}
 
-	$extension_settings->save();
+	Setting::updateValue("bigtree-internal-extension-settings", $data);

@@ -103,8 +103,8 @@
 		}
 	} else {
 		$storage->Settings["Service"] = "local";
-		$storage->Setting->save();
 		
+		Setting::updateValue("bigtree-internal-storage", $storage->Settings, true);
 		Utils::growl("Developer","Changed Default Storage");
 		Router::redirect(DEVELOPER_ROOT);
 	}

@@ -2,19 +2,20 @@
 	namespace BigTree;
 
 	// Grab the settings list
-	$extension_settings = new Setting("bigtree-internal-extension-settings");
+	$extension_settings = Setting::value("bigtree-internal-extension-settings");
 	$type = $_POST["type"];
 	
 	// Toggle it
 	$id = $_POST["id"];
-	if (isset($extension_settings->Value[$type][$id])) {
+	
+	if (isset($extension_settings-[$type][$id])) {
 		if ($_POST["state"] == "true") {
-			$extension_settings->Value[$type][$id]["disabled"] = "";
+			$extension_settings[$type][$id]["disabled"] = "";
 		} else {
-			$extension_settings->Value[$type][$id]["disabled"] = "on";
+			$extension_settings[$type][$id]["disabled"] = "on";
 		}
 	} else {
-		$extension_settings->Value[$type][$id] = array("position" => 0, "disabled" => "on");
+		$extension_settings[$type][$id] = ["position" => 0, "disabled" => "on"];
 	}
 
-	$extension_settings->save();
+	Setting::updateValue("bigtree-internal-extension-settings", $extension_settings);

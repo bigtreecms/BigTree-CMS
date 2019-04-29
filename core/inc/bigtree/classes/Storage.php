@@ -24,11 +24,9 @@
 		
 		public function __construct($force_local = false)
 		{
-			// Get an auto-saving setting
-			$this->Setting = new Setting("bigtree-internal-storage");
-			$this->Settings = &$this->Setting->Value;
+			$this->Settings = Setting::value("bigtree-internal-storage");
 			
-			if (!$force_local && !empty($this->Settings->Service)) {
+			if (!$force_local && !empty($this->Settings["service"])) {
 				if ($this->Settings["service"] == "s3" || $this->Settings["service"] == "amazon") {
 					$this->Cloud = new CloudStorage\Amazon;
 				} elseif ($this->Settings["service"] == "rackspace") {

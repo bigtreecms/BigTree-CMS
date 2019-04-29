@@ -23,7 +23,14 @@
 	}
 	
 	$bigtree["post_data"] = $_POST["resources"];
-
+	
+	$template->Fields = Extension::runHooks("fields", "template", $template->Fields, [
+		"template" => $template,
+		"step" => "process",
+		"post_data" => $bigtree["post_data"],
+		"file_data" => $bigtree["file_data"]
+	]);
+	
 	foreach ($template->Fields as $resource) {
 		$field = [
 			"type" => $resource["type"],

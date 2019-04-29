@@ -92,6 +92,11 @@
 			$id = $subset->insert("actions", $action);
 			$action["id"] = $id;
 			
+			if ($position === 0) {
+				$subset->incrementPosition("actions");
+			}
+			
+			
 			AuditTrail::track("config:modules", $module, "created-action");
 			
 			return new ModuleAction($action);

@@ -64,6 +64,13 @@
 	$bigtree["post_data"] = $_POST;
 	$bigtree["file_data"] = Field::getParsedFilesArray();
 	
+	$form->Fields = Extension::runHooks("fields", "form", $form->Fields, [
+		"form" => $form,
+		"step" => "process",
+		"post_data" => $bigtree["post_data"],
+		"file_data" => $bigtree["file_data"]
+	]);
+	
 	foreach ($form->Fields as $resource) {
 		$field = new Field([
 			"type" => $resource["type"],

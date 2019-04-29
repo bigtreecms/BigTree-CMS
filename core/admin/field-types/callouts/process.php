@@ -25,6 +25,12 @@
 				$bigtree["file_data"] = $this->FileInput[$number];
 				
 				$callout = new Callout($data["type"]);
+				$callout->Fields = Extension::runHooks("fields", "callout", $callout->Fields, [
+					"callout" => $callout,
+					"step" => "process",
+					"post_data" => $bigtree["post_data"],
+					"file_data" => $bigtree["file_data"]
+				]);
 				
 				foreach ($callout->Fields as $resource) {
 					$sub_field = array(

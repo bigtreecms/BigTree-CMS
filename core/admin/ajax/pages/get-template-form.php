@@ -76,25 +76,37 @@
 
 		// We alias $bigtree["entry"] to $bigtree["resources"] so that information is in the same place for field types.
 		$bigtree["entry"] = &$bigtree["resources"];
+		$drawn = false;
 	
-		if (!is_null($template) && count($template->Fields)) {
-			foreach ($template->Fields as $resource) {
-				$field = new Field(array(
-					"type" => $resource["type"],
-					"title" => $resource["title"],
-					"subtitle" => $resource["subtitle"],
-					"key" => "resources[".$resource["id"]."]",
-					"has_value" => isset($bigtree["resources"][$resource["id"]]),
-					"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
-					"tabindex" => $bigtree["tabindex"],
-					"settings" => $resource["settings"],
-					"forced_recrop" => isset($forced_recrops[$resource["id"]]) ? true : false
-				));
-	
-				$field->draw();
+		if (!is_null($template)) {
+			$template->Fields = Extension::runHooks("fields", "template", $template->Fields, [
+				"template" => $template,
+				"step" => "draw",
+				"page" => $bigtree["current_page"]
+			]);
+		
+			if (count($template->Fields)) {
+				foreach ($template->Fields as $resource) {
+					$field = new Field(array(
+						"type" => $resource["type"],
+						"title" => $resource["title"],
+						"subtitle" => $resource["subtitle"],
+						"key" => "resources[".$resource["id"]."]",
+						"has_value" => isset($bigtree["resources"][$resource["id"]]),
+						"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
+						"tabindex" => $bigtree["tabindex"],
+						"settings" => $resource["settings"],
+						"forced_recrop" => isset($forced_recrops[$resource["id"]]) ? true : false
+					));
+
+					$field->draw();
+					$drawn = true
+				}
 			}
-		} else {
-			echo '<p>'.Text::translate("There are no resources for the selected template.").'</p>';
+		}
+
+		if (!$drawn) {
+			echo '<p>'.Text::translate("There are no fields for the selected template.").'</p>';
 		}
 	?>
 </div>

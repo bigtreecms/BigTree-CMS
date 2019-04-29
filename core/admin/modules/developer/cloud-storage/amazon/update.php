@@ -21,8 +21,8 @@
 	}
 
 	$amazon->Active = true;
-	$amazon->Setting->save();
 
+	Setting::updateValue($amazon->SettingID, $amazon->Settings, true);
 	Utils::growl("Developer","Enabled Amazon S3");
 	Router::redirect(DEVELOPER_ROOT."cloud-storage/");
 	
