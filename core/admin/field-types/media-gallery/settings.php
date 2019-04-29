@@ -114,7 +114,7 @@
 			var type = CurrentColumn.find("select").val();
 			var settings = CurrentColumn.find("input[type=hidden]").val();
 
-			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-<?=(BIGTREE_REVISION < 300 ? "options" : "settings")?>/", { type: "POST", data: { template: "true", type: type, data: settings }, complete: function(response) {
+			$.ajax("<?=ADMIN_ROOT?>ajax/developer/load-field-settings/", { type: "POST", data: { template: "true", type: type, data: settings }, complete: function(response) {
 				BigTreeDialog({
 					title: "Column Settings",
 					content: response.responseText,
