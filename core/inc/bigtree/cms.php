@@ -514,7 +514,7 @@
 				}
 
 				// See if namespaced version exists
-				$exists = BigTreeJSONDB::exists("bigtree_settings", $extension."*".$id) || SQL::exists("bigtree_settings", $extension."*".$id);
+				$exists = BigTreeJSONDB::exists("settings", $extension."*".$id) || SQL::exists("bigtree_settings", $extension."*".$id);
 
 				if ($exists) {
 					return "$extension*$id";
