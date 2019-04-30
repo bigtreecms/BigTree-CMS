@@ -15,7 +15,7 @@
 				$text = $page["nav_title"];
 			}
 ?>
-<a class="link_field_result" href="<?=WWW_ROOT.$page["path"]?>/" data-placeholder="Page: <?=$text?>"><?=$text?></a>
+<a class="link_field_result" href="<?=$cms->getLink($page["id"])?>" data-placeholder="Page: <?=$text?>"><?=$text?></a>
 <?php
 		}
 	}
