@@ -1,7 +1,7 @@
 <?php
 	/*
 		Class: BigTree\EmailService\Mailgun
-			Implements a BigTree email service for Mailgun (http://www.mailgun.com/)
+			Implements a BigTree email service for Mailgun (https://www.mailgun.com/)
 	*/
 	
 	namespace BigTree\EmailService;

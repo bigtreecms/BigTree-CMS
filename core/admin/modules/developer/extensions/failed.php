@@ -7,7 +7,7 @@
 		' and upgrade via replacing the /extensions/:extension_id:/ folder with the one from the new zip.',
 		false,
 		[
-			":repository_link:" => "http://www.bigtreecms.org/extensions/",
+			":repository_link:" => "https://www.bigtreecms.org/extensions/",
 			":extension_id:" => htmlspecialchars($_GET["id"])
 		]
 	);

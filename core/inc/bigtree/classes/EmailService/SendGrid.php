@@ -1,7 +1,7 @@
 <?php
 	/*
 		Class: BigTree\EmailService\SendGrid
-			Implements a BigTree email service for SendGrid (http://www.sendgrid.com/)
+			Implements a BigTree email service for SendGrid (https://sendgrid.com)
 	*/
 	
 	namespace BigTree\EmailService;

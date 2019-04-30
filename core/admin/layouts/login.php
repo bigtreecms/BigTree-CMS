@@ -27,7 +27,7 @@
 			<h1><?=$site->NavigationTitle?></h1>
 			<?=$bigtree["content"]?>
 			
-			<a href="http://www.bigtreecms.com" class="login_logo" target="_blank"></a>
+			<a href="https://www.bigtreecms.org" class="login_logo" target="_blank"></a>
 		</div>
 	</body>
 </html>

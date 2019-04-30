@@ -10,7 +10,7 @@
 		Router::redirect(DEVELOPER_ROOT."upgrade/failed/");
 	}
 	
-	$updates = @json_decode(cURL::request("http://www.bigtreecms.org/ajax/version-check/?current_version=".BIGTREE_VERSION), true);
+	$updates = @json_decode(cURL::request("https://www.bigtreecms.org/ajax/version-check/?current_version=".BIGTREE_VERSION), true);
 	$update = $updates[$_GET["type"]];
 	
 	if (!$update) {

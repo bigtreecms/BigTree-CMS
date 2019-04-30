@@ -186,7 +186,7 @@
 			<p class="error_message"<?php if (!$error) { ?> style="display: none;"<?php } ?>><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 			<div class="left">
 				<fieldset<?php if ($error == "email") { ?> class="form_error"<?php } ?> style="position: relative;">
-					<label for="user_field_email" class="required"><?=Text::translate("Email")?> <small>(<?=Text::translate("Profile images from")?> <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <?php if ($error == "email") { ?><span class="form_error_reason"><?=Text::translate("Already In Use By Another User")?></span><?php } ?></label>
+					<label for="user_field_email" class="required"><?=Text::translate("Email")?> <small>(<?=Text::translate("Profile images from")?> <a href="https://www.gravatar.com/" target="_blank">Gravatar</a>)</small> <?php if ($error == "email") { ?><span class="form_error_reason"><?=Text::translate("Already In Use By Another User")?></span><?php } ?></label>
 					<input id="user_field_email" type="text" class="required email" name="email" autocomplete="off" value="<?=$user->Email?>" tabindex="1" />
 					<span class="gravatar"<?php if ($user->Email) { ?> style="display: block;"<?php } ?>><img src="<?=User::gravatar($user->Email, 36)?>" alt="" /></span>
 				</fieldset>
@@ -571,7 +571,7 @@
 	
 	$(document).ready(function() {
 		$("input.email").blur(function() {
-			$(this).parent("fieldset").find(".gravatar").show().find("img").attr("src", 'http://www.gravatar.com/avatar/' + md5($(this).val().trim()) + '?s=36&d=' + encodeURIComponent("<?=ADMIN_ROOT?>images/icon_default_gravatar.jpg") + '&rating=pg');
+			$(this).parent("fieldset").find(".gravatar").show().find("img").attr("src", 'https://www.gravatar.com/avatar/' + md5($(this).val().trim()) + '?s=36&d=' + encodeURIComponent("<?=ADMIN_ROOT?>images/icon_default_gravatar.jpg") + '&rating=pg');
 		});
 		_localObservers("#permission_section");
 	});

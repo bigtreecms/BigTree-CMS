@@ -6,15 +6,15 @@
 		<footer class="main">
 			<section>
 				<article class="bigtree">
-					<a href="http://www.bigtreecms.com/" target="_blank" class="logo"></a>				
+					<a href="https://www.bigtreecms.com/" target="_blank" class="logo"></a>				
 				</article>
 				<article class="fastspot">
 					<p>
 						<?=Text::translate("Version")?> <?=BIGTREE_VERSION?>&nbsp;&nbsp;&middot;&nbsp;&nbsp;&copy; <?=date("Y")?> Fastspot
 					</p>
 					<a href="<?=ADMIN_ROOT?>credits/"><?=Text::translate("Credits &amp; Licenses")?></a>&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-					<a href="http://www.bigtreecms.org/" target="_blank"><?=Text::translate("Support")?></a>&nbsp;&nbsp;&middot;&nbsp;&nbsp;
-					<a href="http://www.fastspot.com/agency/contact/" target="_blank"><?=Text::translate("Contact Us")?></a>
+					<a href="https://www.bigtreecms.org/" target="_blank"><?=Text::translate("Support")?></a>&nbsp;&nbsp;&middot;&nbsp;&nbsp;
+					<a href="https://www.fastspot.com/agency/contact/" target="_blank"><?=Text::translate("Contact Us")?></a>
 				</article>
 			</section>
 		</footer>

@@ -2,7 +2,7 @@
 	/*
 		Class: BigTree\FTP
 			An FTP class heavily based on PemFTP by Alexey Dotsenko.
-			http://www.phpclasses.org/browse/package/1743.html
+			https://www.phpclasses.org/package/1743-PHP-FTP-client-in-pure-PHP.html
 	*/
 	
 	namespace BigTree;

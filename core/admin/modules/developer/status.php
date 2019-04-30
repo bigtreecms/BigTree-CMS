@@ -118,7 +118,7 @@
 		],
 		[
 			"name" => "MySQL Support",
-			"description" => Text::translate('MySQL or <a href=":mysqli_link:" target="_blank">MySQLi extension</a> is required', false, [":mysqli_link" => "http://www.php.net/manual/en/mysqli.installation.php"]),
+			"description" => Text::translate('MySQL or <a href=":mysqli_link:" target="_blank">MySQLi extension</a> is required', false, [":mysqli_link" => "https://www.php.net/manual/en/mysqli.installation.php"]),
 			"status" => (extension_loaded('mysql') || extension_loaded("mysqli")) ? "good" : "bad",
 			"value" => ""
 		],
@@ -142,13 +142,13 @@
 		],
 		[
 			"name" => "Image Processing",
-			"description" => Text::translate('<a href=":gd_link:" target="_blank">GD extension</a> is required', false, [":gd_link:" => "http://www.php.net/manual/en/image.installation.php"]),
+			"description" => Text::translate('<a href=":gd_link:" target="_blank">GD extension</a> is required', false, [":gd_link:" => "https://www.php.net/manual/en/image.installation.php"]),
 			"status" => extension_loaded('gd') ? "good" : "bad",
 			"value" => ""
 		],
 		[
 			"name" => "cURL Support",
-			"description" => Text::translate('<a href=":curl_link:" target="_blank">cURL extension</a> is required', false, [":curl_link:" => "http://www.php.net/manual/en/curl.installation.php"]),
+			"description" => Text::translate('<a href=":curl_link:" target="_blank">cURL extension</a> is required', false, [":curl_link:" => "https://www.php.net/manual/en/curl.installation.php"]),
 			"status" => extension_loaded('curl') ? "good" : "bad",
 			"value" => ""
 		]

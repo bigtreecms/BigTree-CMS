@@ -2397,8 +2397,7 @@
 
 		/*
 			Function: getPageIDForPath
-				Provides the page ID for a given path array.
-				This is equivalent to BigTreeCMS::getNavId.
+				Provides the page ID, commands array, routed status, GET variables, and URL hash for a given path array.
 
 			Parameters:
 				path - An array of path elements from a URL

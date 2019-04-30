@@ -88,7 +88,7 @@
 	</section>
 
 	<section id="Mandrill_tab"<?php if ($email_service->Service != "Mandrill") { ?> style="display: none;"<?php } ?>>
-		<p><?=Text::translate('<a href="http://www.mandrill.com/" target="_blank">Mandrill</a> is a transactional email API by the makers of <a href="http://www.mailchimp.com/" target="_blank">MailChimp</a>.<br>Your API Key can be found on the Settings page of the Mandrill control panel.')?></p>
+		<p><?=Text::translate('<a href="https://www.mandrill.com/" target="_blank">Mandrill</a> is a transactional email API by the makers of <a href="https://www.mailchimp.com/" target="_blank">MailChimp</a>.<br>Your API Key can be found on the Settings page of the Mandrill control panel.')?></p>
 		<p><?=Text::translate('It is advised that you verify your "sending domain" (the domain that you plan to use in the "From" address of your emails) via DKIM and SPF to reduce the risk of your email being marked as spam.')?></p>
 		<hr>
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
@@ -113,7 +113,7 @@
 	</section>
 
 	<section id="Mailgun_tab"<?php if ($email_service->Service != "Mailgun") { ?> style="display: none;"<?php } ?>>
-		<p><?=Text::translate('<a href="http://www.mailgun.com/" target="_blank">Mailgun</a> is a transactional email API by <a href="http://www.rackspace.com/" target="_blank">Rackspace</a>.<br>You must enter both your API Key (found on the landing page after logging in) and the domain you added to Mailgun that you plan to send emails from (you may use your Mailgun sandbox subdomain to send test emails).')?></p>
+		<p><?=Text::translate('<a href="https://www.mailgun.com/" target="_blank">Mailgun</a> is a transactional email API by <a href="https://www.rackspace.com/" target="_blank">Rackspace</a>.<br>You must enter both your API Key (found on the landing page after logging in) and the domain you added to Mailgun that you plan to send emails from (you may use your Mailgun sandbox subdomain to send test emails).')?></p>
 		<p><?=Text::translate('It is <strong>required</strong> that you verify your "sending domain" (the domain that you plan to use in the "From" address of your emails) via DKIM and SPF to send more than 300 emails per day. It is also recommended even if you fall below that threshold as it will reduce the risk of your email being marked as spam.')?></p>
 		<hr>
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">
@@ -143,7 +143,7 @@
 	</section>
 
 	<section id="Postmark_tab"<?php if ($email_service->Service != "Postmark") { ?> style="display: none;"<?php } ?>>
-		<p><?=Text::translate('<a href="http://www.postmarkapp.com/" target="_blank">Postmark</a> is a transactional email API by the makers of <a href="http://www.beanstalkapp.com/" target="_blank">Beanstalk</a>.<br>You can find your API Key on the Credentials page of the Postmark server you wish to use.')?></p>
+		<p><?=Text::translate('<a href="https://www.postmarkapp.com/" target="_blank">Postmark</a> is a transactional email API by the makers of <a href="https://www.beanstalkapp.com/" target="_blank">Beanstalk</a>.<br>You can find your API Key on the Credentials page of the Postmark server you wish to use.')?></p>
 		<p><?=Text::translate('It is advised that you verify your "sending domain" (the domain that you plan to use in the "From" address of your emails) via DKIM and SPF to reduce the risk of your email being marked as spam.')?></p>
 		<hr>
 		<form method="post" action="<?=DEVELOPER_ROOT?>email/update/">

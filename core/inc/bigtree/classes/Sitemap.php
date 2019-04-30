@@ -17,7 +17,7 @@
 		public static function getXML(): string
 		{
 			$response = '<?xml version="1.0" encoding="UTF-8" ?>';
-			$response .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">';
+			$response .= '<urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9/" xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">';
 			
 			$pages = SQL::fetchAll("SELECT id, template, external, path FROM bigtree_pages 
 									WHERE archived = '' AND (publish_at >= NOW() OR publish_at IS NULL) ORDER BY id ASC");
@@ -71,9 +71,9 @@
 			
 			if ($setting == "on") {
 				// Google
-				cURL::request("http://www.google.com/webmasters/tools/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
+				cURL::request("https://www.google.com/webmasters/tools/ping?sitemap=".urlencode(WWW_ROOT."sitemap.xml"));
 				// Bing
-				cURL::request("http://www.bing.com/webmaster/ping.aspx?siteMap=".urlencode(WWW_ROOT."sitemap.xml"));
+				cURL::request("https://www.bing.com/webmaster/ping.aspx?siteMap=".urlencode(WWW_ROOT."sitemap.xml"));
 			}
 		}
 		

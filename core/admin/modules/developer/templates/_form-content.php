@@ -164,7 +164,7 @@
 		BigTreeDialog({
 			title: "<?=Text::translate("Manage Hooks")?>",
 			content: html,
-			helpLink: "http://www.bigtreecms.org/docs/dev-guide/modules/advanced-techniques/form-hooks/",
+			helpLink: "https://www.bigtreecms.org/docs/dev-guide/modules/advanced-techniques/form-hooks/",
 			icon: "edit",
 			callback: function(data) {
 				$("#form_hooks").val(JSON.stringify(data));

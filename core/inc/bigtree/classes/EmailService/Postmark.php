@@ -1,7 +1,7 @@
 <?php
 	/*
 		Class: BigTree\EmailService\Postmark
-			Implements a BigTree email service for Mailgun (http://www.mailgun.com/)
+			Implements a BigTree email service for Postmark (https://postmarkapp.com)
 	*/
 	
 	namespace BigTree\EmailService;

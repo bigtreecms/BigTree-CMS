@@ -10,7 +10,7 @@
 		$query[] = "extensions[]=".urlencode($extension->ID);
 	}
 	
-	$version_info = array_filter((array)@json_decode(cURL::request("http://www.bigtreecms.org/ajax/extensions/version/?".implode("&", $query), false, [CURLOPT_CONNECTTIMEOUT => 1, CURLOPT_TIMEOUT => 5]), true));
+	$version_info = array_filter((array)@json_decode(cURL::request("https://www.bigtreecms.org/ajax/extensions/version/?".implode("&", $query), false, [CURLOPT_CONNECTTIMEOUT => 1, CURLOPT_TIMEOUT => 5]), true));
 
 	foreach ($extensions as &$extension) {
 		$extension->IgnoreLink = $extension->UpgradeLink = "";

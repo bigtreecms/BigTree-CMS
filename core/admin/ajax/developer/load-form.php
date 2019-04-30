@@ -298,7 +298,7 @@
 <?php
 	} elseif (array_filter((array)$table_description["columns"])) {
 ?>
-<p><?=Text::translate('The chosen table does not have any <a href=":doc_link:" target="_blank">non-reserved columns</a>.', false, [":doc_link:" => "http://www.bigtreecms.org/docs/dev-guide/sql-queries/table-structure/#ReservedColumns"])?></p>
+<p><?=Text::translate('The chosen table does not have any <a href=":doc_link:" target="_blank">non-reserved columns</a>.', false, [":doc_link:" => "https://www.bigtreecms.org/docs/dev-guide/sql-queries/table-structure/#ReservedColumns"])?></p>
 <?php
 	} else {
 ?>

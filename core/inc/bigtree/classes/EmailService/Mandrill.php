@@ -1,7 +1,7 @@
 <?php
 	/*
 		Class: BigTree\EmailService\Mandrill
-			Implements a BigTree email service for MailChimp/Mandrill (http://www.mailchimp.com/)
+			Implements a BigTree email service for MailChimp/Mandrill (https://www.mailchimp.com/)
 	*/
 	
 	namespace BigTree\EmailService;

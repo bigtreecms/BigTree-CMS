@@ -9,7 +9,7 @@
 ?>
 <div style="width: 450px;">
 	<fieldset>
-		<label for="settings_field_filter_function"><?=Text::translate('Filter Function <small>(function name only, <a href=":doc_link:" target="_blank">learn more</a>)</small>', false, [":doc_link:" => "http://www.bigtreecms.org/docs/dev-guide/modules/advanced-techniques/view-filters/"])?></label>
+		<label for="settings_field_filter_function"><?=Text::translate('Filter Function <small>(function name only, <a href=":doc_link:" target="_blank">learn more</a>)</small>', false, [":doc_link:" => "https://www.bigtreecms.org/docs/dev-guide/modules/advanced-techniques/view-filters/"])?></label>
 		<input id="settings_field_filter_function" type="text" name="filter" value="<?=htmlspecialchars($filter)?>" />
 	</fieldset>
 	<?php

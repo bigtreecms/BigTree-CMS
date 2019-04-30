@@ -238,7 +238,7 @@
 				A key/value array of id => category name.
 
 			See Also:
-				http://www.iso.org/iso/country_codes/iso_3166_code_lists/country_names_and_code_elements.htm
+				https://www.iso.org/iso-3166-country-codes.html
 
 		*/
 		

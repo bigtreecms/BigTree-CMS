@@ -14,7 +14,7 @@
 		<link><?php if ($feed->Settings["feed_link"]) { echo $feed->Settings["feed_link"]; } else { ?><?=WWW_ROOT?>feeds/<?=$feed->Route?>/<?php } ?></link>
 		<description><?=$feed->Description?></description>
 		<language>en-us</language>
-		<generator>BigTree CMS (http://www.bigtreecms.org)</generator>
+		<generator>BigTree CMS (https://www.bigtreecms.org)</generator>
 		<?php
 			while ($item = $query->fetch()) {
 				foreach ($item as $key => $val) {

@@ -2015,7 +2015,7 @@ var BigTreeListMaker = function(settings) {
 			html += '<a class="delete icon_small icon_small_delete" href="#"></a></li>';
 			count++;
 		}
-		
+
 		html += '</ul>';
 		Count = count;
 		Container.html(html);

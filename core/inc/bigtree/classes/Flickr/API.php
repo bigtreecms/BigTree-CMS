@@ -663,7 +663,7 @@
 		public function oAuthRedirect(): void
 		{
 			$this->Settings["token_secret"] = "";
-			$response = $this->callAPI("http://www.flickr.com/services/oauth/request_token", "GET", ["oauth_callback" => $this->ReturnURL]);
+			$response = $this->callAPI("https://www.flickr.com/services/oauth/request_token", "GET", ["oauth_callback" => $this->ReturnURL]);
 			
 			// Set empty vars that we're expecting from parse_str
 			$oauth_callback_confirmed = "";
@@ -677,7 +677,7 @@
 				$this->Settings["token"] = $oauth_token;
 				$this->Settings["token_secret"] = $oauth_token_secret;
 				
-				header("Location: http://www.flickr.com/services/oauth/authorize?perms=delete&oauth_token=".$oauth_token);
+				header("Location: https://www.flickr.com/services/oauth/authorize?perms=delete&oauth_token=".$oauth_token);
 				die();
 			} else {
 				Utils::growl($oauth_problem, "Flickr API", "error");
@@ -715,7 +715,7 @@
 		
 		public function oAuthSetToken(string $code): ?stdClass
 		{
-			$response = $this->callAPI("http://www.flickr.com/services/oauth/access_token", "GET",
+			$response = $this->callAPI("https://www.flickr.com/services/oauth/access_token", "GET",
 									   ["oauth_verifier" => $_GET["oauth_verifier"], "oauth_token" => $_GET["oauth_token"]]);
 			
 			// Setup vars we're expecting a response from in parse_str
@@ -891,7 +891,7 @@
 									bool $public = true, bool $family = true, bool $friends = true, int $safety = 1,
 									int $type = 1, bool $hidden = false): ?string
 		{
-			$xml = $this->callAPI("http://up.flickr.com/services/upload/", "POST", [
+			$xml = $this->callAPI("https://up.flickr.com/services/upload/", "POST", [
 				"photo" => "@".$photo,
 				"title" => $title,
 				"description" => $description,

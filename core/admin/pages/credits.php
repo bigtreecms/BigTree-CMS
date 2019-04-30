@@ -11,23 +11,23 @@
 	<section>
 		<h3>TinyMCE</h3>
 		<p class="clear">
-			Moxiecode Systems AB (LGPL)
+			Tiny Technologies Inc. (LGPL)
 			<br />
-			<a href="http://www.tinymce.com/" target="_blank">http://www.tinymce.com/</a>
+			<a href="https://www.tiny.cloud" target="_blank">https://www.tiny.cloud</a>
 		</p>
 		<br />
 		<h3>jQuery / jQuery UI</h3>
 		<p class="clear">
 			jQuery Foundation (MIT)
 			<br />
-			<a href="http://www.jquery.com" target="_blank">http://www.jquery.com</a>
+			<a href="https://www.jquery.com" target="_blank">https://www.jquery.com</a>
 		</p>
 		<br />
 		<h3>jQuery Time Picker</h3>
 		<p class="clear">
 			Trent Richardson (GPL)
 			<br />
-			<a href="http://trentrichardson.com" target="_blank">http://trentrichardson.com</a>
+			<a href="https://trentrichardson.com" target="_blank">https://trentrichardson.com</a>
 		</p>
 		<br />
 		<h3>SerializeJSON jQuery plugin</h3>
@@ -46,7 +46,7 @@
 		<br />
 		<h3>PHP.js</h3>
 		<p class="clear">
-			<a href="http://phpjs.org/">http://phpjs.org/</a> (MIT)
+			<a href="https://github.com/hirak/phpjs">https://github.com/hirak/phpjs</a> (MIT)
 		</p>
 		<br />
 		<h3>jCrop</h3>
@@ -88,7 +88,7 @@
 		<p class="clear">
 			Solar Designer (Public Domain)
 			<br />
-			<a href="http://www.openwall.com/phpass/" target="_blank">http://www.openwall.com/phpass/</a>
+			<a href="https://www.openwall.com/phpass/" target="_blank">https://www.openwall.com/phpass/</a>
 		</p>
 		<br />
 		<h3>PclZip</h3>
