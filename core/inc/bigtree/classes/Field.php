@@ -364,7 +364,7 @@
 			
 			// See if we're using image presets
 			if ($this->Settings["preset"]) {
-				$media_settings = Setting::value("bigtree-internal-media-settings");
+				$media_settings = DB::get("config", "media-settings");
 				$preset = $media_settings["presets"][$this->Settings["preset"]];
 				
 				// If the preset still exists, copy its properties over to our options

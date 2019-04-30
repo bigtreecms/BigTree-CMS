@@ -5,8 +5,6 @@
 	 * @global GoogleAnalytics\API $analytics
 	 */
 	
-	Auth::user()->requireLevel(1);
-	
 	$analytics->oAuthSetToken($_GET["code"]);
 	
 	if ($analytics->OAuthError) {

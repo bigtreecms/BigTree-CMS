@@ -68,6 +68,7 @@
 				
 				if (strpos($title,"URL") !== false) {
 					$subtitle = Text::translate("(include http://)");
+					$type = "link";
 				}
 
 				if ($column["name"] == "route") {

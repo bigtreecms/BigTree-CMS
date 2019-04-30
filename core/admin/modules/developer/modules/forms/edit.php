@@ -21,7 +21,6 @@
 	</section>
 	<footer>
 		<a href="javascript:history.go(-1);" class="button">Back</a>
-		<a href="<?=DEVELOPER_ROOT?>modules/interfaces/delete/<?=$form->ID?>/?module=<?=$module->ID?>" class="button red"><?=Text::translate("Delete Form")?></a>
 	</footer>
 </div>
 <?php

@@ -4,16 +4,6 @@
 	/**
 	 * @global GoogleAnalytics\API $analytics
 	 */
-
-	if (Auth::user()->Level < 1) {
-?>
-<div class="container">
-	<section>
-		<p><?=Text::translate("You are not authorized to view this section.")?></p>
-	</section>
-</div>
-<?php
-	} else {
 ?>
 <div class="container">
 	<?php
@@ -93,6 +83,3 @@
 		return false;
 	});
 </script>
-<?php
-	}
-?>

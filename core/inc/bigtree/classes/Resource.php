@@ -264,10 +264,39 @@
 			// Populate a list of resource prefixes if we don't already have it cached
 			if (static::$Prefixes === false) {
 				static::$Prefixes = [];
-				$thumbnail_sizes = Setting::value("bigtree-file-manager-thumbnail-sizes");
+				$settings = DB::get("config", "media-settings");
 				
-				foreach ($thumbnail_sizes["value"] as $ts) {
-					static::$Prefixes[] = $ts["prefix"];
+				if (is_array($settings["presets"]["default"]["crops"])) {
+					foreach ($settings["presets"]["default"]["crops"] as $crop) {
+						if (!empty($crop["prefix"])) {
+							static::$Prefixes[] = $crop["prefix"];
+						}
+						
+						if (!empty($crop["thumbs"]) && is_array($crop["thumbs"])) {
+							foreach ($crop["thumbs"] as $thumb) {
+								if (!empty($thumb["prefix"])) {
+									static::$Prefixes[] = $thumb["prefix"];
+								}
+							}
+						}
+					}
+				}
+				
+				if (is_array($settings["presets"]["default"]["thumbs"])) {
+					foreach ($settings["presets"]["default"]["thumbs"] as $thumb) {
+						if (!empty($thumb["prefix"])) {
+							static::$Prefixes[] = $thumb["prefix"];
+						}
+					}
+				}
+				
+				
+				if (is_array($settings["presets"]["default"]["center_crops"])) {
+					foreach ($settings["presets"]["default"]["center_crops"] as $crop) {
+						if (!empty($crop["prefix"])) {
+							static::$Prefixes[] = $crop["prefix"];
+						}
+					}
 				}
 			}
 			

@@ -38,8 +38,10 @@
 		// Figure out what to make the MySQL field.
 		$column_definition = "ADD COLUMN `$field_name` ";
 		
-		if ($field_type == "textarea" || $field_type == "html" || $field_type == "photo-gallery" || $field_type == "array" || $field_type == "matrix" || $field_type == "callouts") {
+		if ($field_type == "textarea" || $field_type == "html" || $field_type == "video") {
 			$column_definition .= "TEXT";
+		} elseif ($field_type == "media-gallery" || $field_type == "matrix" || $field_type == "callouts") {
+			$column_definition .= "LONGTEXT";
 		} elseif ($field_type == "date") {
 			$column_definition .= "DATE";
 		} elseif ($field_type == "time") {

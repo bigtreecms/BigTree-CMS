@@ -1968,35 +1968,54 @@ var BigTreeListMaker = function(settings) {
 
 		var html = '<h4>' + settings.title + ' <a href="#" class="add_option icon_small icon_small_add"></a></h4>';
 		html += '<fieldset class="list_options_widget list_options_widget_' + Keys.length + '">';
+
 		// Add column headers
 		html += '<header>';
+
 		for (var i = 0; i < settings.columns.length; i++) {
 			html += '<span>' + settings.columns[i] + '</span>';
 		}
+
 		html += '</header>';
+
 		// Add options
 		html += '<ul>';
 		var count = 0;
+		var value;
+
 		for (var i in settings.existing) {
 			html += '<li><span class="icon_sort"></span>';
+
 			for (var x = 0; x < Keys.length; x++) {
+				if (typeof settings.existing[i][Keys[x].key] !== "undefined") {
+					value = settings.existing[i][Keys[x].key];
+				} else {
+					value = "";
+				}
+
 				if (Keys[x].type == "select") {
 					html += '<span><select class="custom_control" name="' + Name + '[' + count + '][' + Keys[x].key + ']">';
+
 					for (var v in Keys[x].list) {
 						html += '<option value="' + htmlspecialchars(v) + '"';
-						if (v == settings.existing[i][Keys[x].key]) {
+
+						if (v == value) {
 							html += ' selected="selected"';
 						}
+
 						html += '>' + htmlspecialchars(Keys[x].list[v]) + '</option>';
 					}
+
 					html += '</select></span>';
 				} else {
-					html += '<span><input type="text" name="' + Name + '[' + count + '][' + Keys[x].key + ']" value="' + htmlspecialchars(settings.existing[i][Keys[x].key]) + '" /></span>';
+					html += '<span><input type="text" name="' + Name + '[' + count + '][' + Keys[x].key + ']" value="' + htmlspecialchars(value) + '" /></span>';
 				}
 			}
+
 			html += '<a class="delete icon_small icon_small_delete" href="#"></a></li>';
 			count++;
 		}
+		
 		html += '</ul>';
 		Count = count;
 		Container.html(html);
