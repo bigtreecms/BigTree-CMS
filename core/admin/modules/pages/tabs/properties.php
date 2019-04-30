@@ -45,7 +45,6 @@
 			"resources" => array(),
 			"tags" => false,
 			"route" => "",
-			"meta_keywords" => "",
 			"meta_description" => ""
 		);
 	}

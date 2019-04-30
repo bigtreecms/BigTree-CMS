@@ -513,7 +513,6 @@
 			$changes["title"] = Text::htmlEncode($changes["title"]);
 			$changes["nav_title"] = Text::htmlEncode($changes["nav_title"]);
 			$changes["meta_description"] = Text::htmlEncode($changes["meta_description"]);
-			$changes["meta_keywords"] = Text::htmlEncode($changes["meta_keywords"]);
 			$changes["seo_invisible"] = $changes["seo_invisible"]["seo_invisible"] ? "on" : "";
 			$changes["external"] = Text::htmlEncode($changes["external"]);
 			
