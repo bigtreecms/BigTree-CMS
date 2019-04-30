@@ -66,4 +66,4 @@
 	<footer>
 		<input type="submit" class="button blue" value="Import">
 	</footer>
-</div>
+</form>

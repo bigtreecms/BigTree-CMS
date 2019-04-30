@@ -16,8 +16,8 @@
 			if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]) > 1) {
 		?>
 		<fieldset>
-			<label>Site <small>(if you enter a full URL into Source URL column this will be automatically infered based on the URL)</small></label>
-			<select name="site_key">
+			<label for="field_site_key">Site <small>(if you enter a full URL into Source URL column this will be automatically infered based on the URL)</small></label>
+			<select id="field_site_key" name="site_key">
 				<?php
 					foreach ($bigtree["config"]["sites"] as $site_key => $site) {
 						$domain = parse_url($site["domain"],  PHP_URL_HOST);
