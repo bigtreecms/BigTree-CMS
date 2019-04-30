@@ -117,7 +117,7 @@
 		}
 		
 		// Array conversion
-		public function get[]: array
+		public function getArray(): array
 		{
 			$raw_properties = get_object_vars($this);
 			$changed_properties = [];
