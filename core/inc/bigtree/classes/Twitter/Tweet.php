@@ -115,11 +115,11 @@
 			if (isset($tweet->entities->url)) {
 				if (is_array($tweet->entities->url)) {
 					foreach ($tweet->entities->urls as $url) {
-						$this->URLs[] = (object) array(
+						$this->URLs[] = (object) [
 							"URL" => $url->url,
 							"ExpandedURL" => $url->expanded_url,
 							"DisplayURL" => $url->display_url
-						);
+						];
 					}
 				}
 			}
@@ -218,7 +218,7 @@
 		public function retweeters(): ?array
 		{
 			$id = $this->IsRetweet ? $this->OriginalTweet->ID : $id = $this->ID;
-			$response = $this->API->call("statuses/retweeters/ids.json",array("id" => $id));
+			$response = $this->API->call("statuses/retweeters/ids.json", ["id" => $id]);
 
 			if ($response->ids) {
 				return $response->ids;

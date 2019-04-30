@@ -10,7 +10,7 @@
 		$max = count($data["row"]);
 
 		foreach ($data["row"] as $pos => $id) {
-			SQL::update("bigtree_pages", $id, array("position" => $max - $pos));
+			SQL::update("bigtree_pages", $id, ["position" => $max - $pos]);
 		}
 	}
 	

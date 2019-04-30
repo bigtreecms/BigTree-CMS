@@ -6,7 +6,7 @@
 	$updates = [];
 	
 	if (!$_COOKIE["bigtree_admin"]["deferred_update"]) {
-		$updates = array_filter((array)@json_decode(cURL::request("http://www.bigtreecms.org/ajax/version-check/?current_version=".BIGTREE_VERSION,false,array(CURLOPT_CONNECTTIMEOUT => 1,CURLOPT_TIMEOUT => 5)),true));
+		$updates = array_filter((array)@json_decode(cURL::request("http://www.bigtreecms.org/ajax/version-check/?current_version=".BIGTREE_VERSION, false, [CURLOPT_CONNECTTIMEOUT => 1, CURLOPT_TIMEOUT => 5]), true));
 		// See if we've ignored these updates
 		$ignorable = [];
 		
@@ -34,7 +34,7 @@
 <div class="container">
 	<div class="container_summary"><h2><?=Text::translate("Update Available")?></h2></div>
 	<section>
-		<p><?=Text::translate("You are currently running BigTree :version:. The following update(s) are available:", false, array(":version:" => BIGTREE_VERSION))?></p>
+		<p><?=Text::translate("You are currently running BigTree :version:. The following update(s) are available:", false, [":version:" => BIGTREE_VERSION])?></p>
 		<ul>
 			<?php
 				foreach ($updates as $type => $update) {
@@ -63,7 +63,7 @@
 			foreach ($updates as $type => $update) {
 				if ($type != "major" && !$_COOKIE["bigtree_admin"]["ignored_update"][$update["version"]]) {
 		?>
-		<a class="button<?php if ($type == "revision") { ?> blue<?php } ?>" href="<?=DEVELOPER_ROOT?>upgrade/init/?type=<?=$type?>"><?=Text::translate("Upgrade To :version:", false, array(":version:" => $update["version"]))?></a>
+		<a class="button<?php if ($type == "revision") { ?> blue<?php } ?>" href="<?=DEVELOPER_ROOT?>upgrade/init/?type=<?=$type?>"><?=Text::translate("Upgrade To :version:", false, [":version:" => $update["version"]])?></a>
 		<?php
 				}
 			}

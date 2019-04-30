@@ -22,7 +22,7 @@
 		actions: {
 			settings: "<?=DEVELOPER_ROOT?>user-emulator/emulate/?id={id}<?php CSRF::drawGETToken(); ?>"
 		},
-		data: <?=JSON::encodeColumns($users, array("id", "gravatar", "name", "email", "company"))?>,
+		data: <?=JSON::encodeColumns($users, ["id", "gravatar", "name", "email", "company"])?>,
 		searchable: true,
 		sortable: true,
 		perPage: 10

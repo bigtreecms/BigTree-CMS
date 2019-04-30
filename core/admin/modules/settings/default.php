@@ -33,7 +33,7 @@
 		actions: {
 			edit: "<?=ADMIN_ROOT?>settings/edit/{id}/"
 		},
-		data: <?=JSON::encodeColumns($settings,array("id","name","value"))?>,
+		data: <?=JSON::encodeColumns($settings, ["id", "name", "value"])?>,
 		searchable: true,
 		sortable: true,
 		perPage: 10

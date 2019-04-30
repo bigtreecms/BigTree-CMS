@@ -60,7 +60,7 @@
 			$bigtree["simple_html_fields"] = [];			
 
 			foreach ($callout->Fields as $field) {
-				$field = array(
+				$field = [
 					"type" => $field["type"],
 					"title" => $field["title"],
 					"subtitle" => $field["subtitle"],
@@ -70,7 +70,7 @@
 					"tabindex" => $bigtree["tabindex"],
 					"settings" => $field["settings"],
 					"forced_recrop" => isset($forced_recrops[$resource["id"]]) ? true : false
-				);
+				];
 
 				if (empty($field["settings"]["directory"])) {
 					$field["settings"]["directory"] = "files/callouts/";

@@ -51,18 +51,18 @@
 		Example
 		=======
 	
-		$bigtree["config"]["sites"] = array(
-			"primary" => array(
+		$bigtree["config"]["sites"] = [
+			"primary" => [
 				"trunk" => 0,
 				"domain" => "http://primary.bigtree.dev",
 				"www_root" => "http://primary.bigtree.dev/",
 				"static_root" => "http://primary.bigtree.dev/"
-			),
-			"alt" => array(
+			],
+			"alt" => [
 				"trunk" => 7,
 				"domain" => "http://alt.bigtree.dev",
 				"www_root" => "http://alt.bigtree.dev/",
 				"static_root" => "http://alt.bigtree.dev/"
-			)
-		);
+			]
+		];
 	*/

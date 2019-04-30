@@ -26,9 +26,15 @@
 
 			if (!$this->Output) {
 				if ($storage->DisabledFileError) {
-					$bigtree["errors"][] = array("field" => $this->Title, "error" => "Could not upload file. The file extension is not allowed.");
+					$bigtree["errors"][] = [
+						"field" => $this->Title, 
+						"error" => Text::translate("Could not upload file. The file extension is not allowed.")
+					];
 				} else {
-					$bigtree["errors"][] = array("field" => $this->Title, "error" => "Could not upload file. The destination is not writable.");
+					$bigtree["errors"][] = [
+						"field" => $this->Title, 
+						"error" => Text::translate("Could not upload file. The destination is not writable.")
+					];
 				}
 			}
 		} else {

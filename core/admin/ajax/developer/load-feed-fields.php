@@ -18,7 +18,7 @@
 	if ($table) {
 		$table_description = SQL::describeTable($table);
 	} else {
-		$table_description = array("columns" => []);
+		$table_description = ["columns" => []];
 	}
 	
 	foreach ($table_description["columns"] as $column => $details) {
@@ -33,19 +33,19 @@
 		// Figure out the fields we're not using so we can offer them back.
 		foreach ($tblfields as $field) {
 			if (!in_array($field,$used)) {
-				$unused[] = array(
+				$unused[] = [
 					"title" => ucwords(str_replace("_"," ",$field)),
 					"field" => $field
-				);
+				];
 			}
 		}		
 	} else {
 		$fields = [];
 		
 		foreach ($tblfields as $f) {
-			$title = ucwords(str_replace(array("-","_")," ",$f));
-			$title = str_replace(array("Url","Pdf","Sql","Id"),array("URL","PDF","SQL","ID"),$title);
-			$fields[$f] = array("title" => ucwords(str_replace(array("-","_")," ",$title)));
+			$title = ucwords(str_replace(["-", "_"]," ",$f));
+			$title = str_replace(["Url", "Pdf", "Sql", "Id"], ["URL", "PDF", "SQL", "ID"], $title);
+			$fields[$f] = ["title" => ucwords(str_replace(["-", "_"], " ", $title))];
 		}
 	}
 

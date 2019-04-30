@@ -30,7 +30,7 @@
 			}
 			
 			// Lazy loading of modules
-			$bigtree["class_list"] = array_merge(BigTree\Module::$ClassCache, array(
+			$bigtree["class_list"] = array_merge(BigTree\Module::$ClassCache, [
 				"BigTree" => "inc/bigtree/compat/utils.php",
 				"BigTreeAdminBase" => "inc/bigtree/compat/admin.php",
 				"BigTreeAutoModule" => "inc/bigtree/compat/auto-modules.php",
@@ -62,7 +62,7 @@
 				"PasswordHash" => "inc/lib/PasswordHash.php",
 				"TextStatistics" => "inc/lib/text-statistics.php",
 				"lessc" => "inc/lib/less-compiler.php"
-			));
+			]);
 			
 			// Load everything in the custom extras folder.
 			$directory_handle = opendir(SERVER_ROOT."custom/inc/required/");

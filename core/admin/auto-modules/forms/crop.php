@@ -15,7 +15,7 @@
 	Globalize::arrayObject($_SESSION["bigtree_admin"]["form_data"]);
 
 	// Override the default H1
-	$bigtree["page_override"] = array("title" => "Crop Images","icon" => "crop");
+	$bigtree["page_override"] = ["title" => "Crop Images", "icon" => "crop"];
 
 	// Get crop information
 	$crops = Cache::get("org.bigtreecms.crops",$crop_key);

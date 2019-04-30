@@ -93,7 +93,7 @@
 					
 					foreach ($form->Fields as $resource) {
 						if (is_array($resource)) {
-							$field = array(
+							$field = [
 								"type" => $resource["type"],
 								"title" => $resource["title"],
 								"subtitle" => $resource["subtitle"],
@@ -102,7 +102,7 @@
 								"value" => isset($bigtree["entry"][$resource["column"]]) ? $bigtree["entry"][$resource["column"]] : "",
 								"tabindex" => $bigtree["tabindex"],
 								"settings" => $resource["settings"]
-							);
+							];
 	
 							// Give many to many its information
 							if ($resource["type"] == "many-to-many") {

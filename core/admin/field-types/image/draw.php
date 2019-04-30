@@ -65,12 +65,12 @@
 	}
 
 	// Generate the file manager restrictions
-	$button_options = htmlspecialchars(json_encode(array(
+	$button_options = htmlspecialchars(json_encode([
 		"minWidth" => $min_width,
 		"minHeight" => $min_height,
 		"currentlyKey" => $this->Key,
 		"type" => "image"
-	)));
+	]));
 ?>
 <div class="image_field" id="<?=$this->ID?>">
 	<div class="contain">

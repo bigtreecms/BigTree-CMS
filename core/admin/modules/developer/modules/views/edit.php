@@ -16,7 +16,7 @@
 			<span></span>
 			<h3><?=Text::translate("Error")?></h3>
 		</div>
-		<p><?=Text::translate("The table for this view (:table:) no longer exists.", false, array(":table:" => $view->Table))?></p>
+		<p><?=Text::translate("The table for this view (:table:) no longer exists.", false, [":table:" => $view->Table])?></p>
 	</section>
 	<footer>
 		<a href="javascript:history.go(-1);" class="button"><?=Text::translate("Back")?></a>

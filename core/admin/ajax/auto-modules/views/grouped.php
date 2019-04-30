@@ -55,7 +55,7 @@
 	}
 	
 	// We're going to append information to the end of an edit string so that we can return to the same page / set of search results after submitting a form.
-	$edit_append = "?view_data=".base64_encode(json_encode(array("view" => $view->ID, "search" => $query)));
+	$edit_append = "?view_data=".base64_encode(json_encode(["view" => $view->ID, "search" => $query]));
 	
 	// Cache the data in case it's not there then grab groups from the cached data
 	$view->cacheAllData();

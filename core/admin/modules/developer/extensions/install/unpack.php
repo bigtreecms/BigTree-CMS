@@ -60,7 +60,7 @@
 	$json = json_decode(file_get_contents($cache_root."manifest.json"),true);
 	
 	// Make sure it's legit -- we check the alphanumeric status of the ID because if it's invalid someone may be trying to put files in a bad directory
-	if ($json["type"] != "extension" || !isset($json["id"]) || !isset($json["title"]) || !ctype_alnum(str_replace(array(".","_","-"),"",$json["id"]))) {
+	if ($json["type"] != "extension" || !isset($json["id"]) || !isset($json["title"]) || !ctype_alnum(str_replace([".", "_", "-"], "", $json["id"]))) {
 		FileSystem::deleteDirectory($cache_root);
 		$_SESSION["upload_error"] = "The zip file uploaded does not appear to be a BigTree extension.";
 		Router::redirect(DEVELOPER_ROOT."extensions/install/");

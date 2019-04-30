@@ -23,7 +23,7 @@
 
 		// Magic method to intercept calls and route them to the API
 		function __call($method, $arguments) {
-			return call_user_func_array(array($this->API,$method), $arguments);
+			return call_user_func_array([$this->API, $method], $arguments);
 		}
 
 	}

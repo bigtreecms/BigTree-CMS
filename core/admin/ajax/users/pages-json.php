@@ -13,7 +13,7 @@
 		
 		foreach ($page->Children as $child) {
 			// We're going to use single letter properties to make this as light a JSON load as possible.
-			$kid = array("t" => $child->NavigationTitle, "i" => $child->ID);
+			$kid = ["t" => $child->NavigationTitle, "i" => $child->ID];
 			$grandkids = $recurse_nav($child->ID);
 			
 			if (count($grandkids)) {

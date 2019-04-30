@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	$results = Page::search($_POST["query"], array("nav_title"), 10, true);
+	$results = Page::search($_POST["query"], ["nav_title"], 10, true);
 ?>
 <span>Drag Items Into Any Content Area</span>
 <?php foreach ($results as $page) { ?>

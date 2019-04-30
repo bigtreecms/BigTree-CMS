@@ -16,10 +16,10 @@
 		$title = "";
 	}
 
-	$form = new ModuleForm(array(
+	$form = new ModuleForm([
 		"table" => isset($_GET["table"]) ? $_GET["table"] : "",
 		"title" => $title
-	));
+	]);
 	$module = new Module($_GET["module"]);
 
 ?>

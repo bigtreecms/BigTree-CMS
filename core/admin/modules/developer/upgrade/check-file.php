@@ -34,22 +34,22 @@
 			<?php if ($updater->Method == "Local") { ?>
 			<p><?=Text::translate("The upgrade file finished downloading and your file permissions allow for local install.")?></p>
 			<ul>
-				<li><?=Text::translate("Your existing /core/ folder will be backed up in /backups/core-:version:/", false, array(":version:" => BIGTREE_VERSION))?></li>
-				<li><?=Text::translate("Your existing database will be backed up as /backups/core-:version:/backup.sql", false, array(":version:" => BIGTREE_VERSION))?></li>
+				<li><?=Text::translate("Your existing /core/ folder will be backed up in /backups/core-:version:/", false, [":version:" => BIGTREE_VERSION])?></li>
+				<li><?=Text::translate("Your existing database will be backed up as /backups/core-:version:/backup.sql", false, [":version:" => BIGTREE_VERSION])?></li>
 			</ul>
 			<?php } else { ?>
-			<p><?=Text::translate("The upgrade file has finished downloading but the web server can not write directly to the root or /core/ folder. You'll need to enter your <strong>:update_method:</strong> credentials below so that BigTree can upgrade.", false, array(":update_method" => $updater->Method))?></p>
+			<p><?=Text::translate("The upgrade file has finished downloading but the web server can not write directly to the root or /core/ folder. You'll need to enter your <strong>:update_method:</strong> credentials below so that BigTree can upgrade.", false, [":update_method" => $updater->Method])?></p>
 			<ul>
-				<li><?=Text::translate("Your existing /core/ folder will be backed up in /backups/core-:version:/", false, array(":version:" => BIGTREE_VERSION))?></li>
-				<li><?=Text::translate("Your existing database will be backed up as /backups/core-:version:/backup.sql", false, array(":version:" => BIGTREE_VERSION))?></li>
+				<li><?=Text::translate("Your existing /core/ folder will be backed up in /backups/core-:version:/", false, [":version:" => BIGTREE_VERSION])?></li>
+				<li><?=Text::translate("Your existing database will be backed up as /backups/core-:version:/backup.sql", false, [":version:" => BIGTREE_VERSION])?></li>
 			</ul>
 			<hr />
 			<fieldset>
-				<label for="ftp_field_username"><?=Text::translate(":update_method: Username", false, array(":update_method:" => $updater->Method))?></label>
+				<label for="ftp_field_username"><?=Text::translate(":update_method: Username", false, [":update_method:" => $updater->Method])?></label>
 				<input id="ftp_field_username" type="text" name="username" autocomplete="off" />
 			</fieldset>
 			<fieldset>
-				<label for="ftp_field_password"><?=Text::translate(":update_method: Password", false, array(":update_method:" => $updater->Method))?></label>
+				<label for="ftp_field_password"><?=Text::translate(":update_method: Password", false, [":update_method:" => $updater->Method])?></label>
 				<input id="ftp_field_password" type="password" name="password" autocomplete="off" />
 			</fieldset>
 			<?php } ?>

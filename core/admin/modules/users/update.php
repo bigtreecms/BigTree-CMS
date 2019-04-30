@@ -31,12 +31,12 @@
 
 	if ($error === false) {
 		$permission_data = json_decode($_POST["permissions"], true);
-		$permissions = array(
+		$permissions = [
 			"page" => $permission_data["Page"],
 			"module" => $permission_data["Module"],
 			"resources" => $permission_data["Resource"],
 			"module_gbp" => $permission_data["ModuleGBP"]
-		);
+		];
 
 		$alerts = json_decode($_POST["alerts"], true);
 		

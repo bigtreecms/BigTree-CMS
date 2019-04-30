@@ -13,7 +13,7 @@
 		$hide_template_section = false;
 	}
 	
-	$ages = array(
+	$ages = [
 		"0" => "No Limit",
 		"15" => "15 Days",
 		"30" => "30 Days",
@@ -21,7 +21,7 @@
 		"90" => "90 Days",
 		"180" => "180 Days",
 		"365" => "1 Year"
-	);
+	];
 
 	$basic_templates = Template::allByRouted("", "position DESC, id ASC");
 	$routed_templates = Template::allByRouted("on", "position DESC, id ASC");
@@ -31,7 +31,7 @@
 	} else {
 		$parent_to_check = $bigtree["current_page"]["id"];
 		
-		$bigtree["current_page"] = array(
+		$bigtree["current_page"] = [
 			"nav_title" => "",
 			"title" => "",
 			"publish_at" => "",
@@ -46,7 +46,7 @@
 			"tags" => false,
 			"route" => "",
 			"meta_description" => ""
-		);
+		];
 	}
 
 	if ($bigtree["form_action"] == "create" && $_SESSION["bigtree_admin"]["post_max_hit"]) {

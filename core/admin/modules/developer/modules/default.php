@@ -52,7 +52,7 @@
 	BigTreeTable($.extend(table_config, {
 		title: "<?=Text::translate("Ungrouped Modules", true)?>",
 		container: "#ungrouped_modules",
-		data: <?=JSON::encodeColumns($ungrouped_modules,array("id","name"))?>
+		data: <?=JSON::encodeColumns($ungrouped_modules, ["id", "name"])?>
 	}));
 	<?php
 		}
@@ -61,7 +61,7 @@
 	BigTreeTable($.extend(table_config, {
 		title: "<?=$group["name"]?>",
 		container: "#module_group_<?=$group["id"]?>",
-		data: <?=JSON::encodeColumns($group["modules"],array("name","id"))?>
+		data: <?=JSON::encodeColumns($group["modules"], ["name", "id"])?>
 	}));
 	<?php
 		}

@@ -58,7 +58,7 @@
 			<option></option>
 			<?php
 				$groups = ModuleGroup::all("name ASC");
-				$groups[] = new ModuleGroup(array("id" => 0, "name" => "- Ungrouped -"));
+				$groups[] = new ModuleGroup(["id" => 0, "name" => "- Ungrouped -"]);
 				
 				foreach ($groups as $group) {
 					$modules = Module::allByGroup($group->ID, "name ASC");

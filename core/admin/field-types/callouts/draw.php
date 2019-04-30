@@ -14,7 +14,7 @@
 
 	// Work with older group info from 4.1 and lower
 	if (!is_array($this->Settings["groups"]) && $this->Settings["group"]) {
-		$this->Settings["groups"] = array($this->Settings["group"]);
+		$this->Settings["groups"] = [$this->Settings["group"]];
 	}
 ?>
 <fieldset class="callouts<?php if (Field::$LastFieldType == "callouts") { ?> callouts_no_margin<?php } ?>" id="<?=$this->ID?>">

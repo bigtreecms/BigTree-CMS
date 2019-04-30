@@ -7,7 +7,7 @@
 	
 	$cached_types = FieldType::reference(true);
 	$types = $cached_types["callouts"];
-	$columns = is_array($settings["columns"]) ? $settings["columns"] : array(array("id" => "","title" => "","subtitle" => "","type" => "text"));
+	$columns = is_array($settings["columns"]) ? $settings["columns"] : [["id" => "", "title" => "", "subtitle" => "", "type" => "text"]];
 	$settings["max"] = $settings["max"] ? intval($settings["max"]) : "";
 	
 	// Translate text ahead of time

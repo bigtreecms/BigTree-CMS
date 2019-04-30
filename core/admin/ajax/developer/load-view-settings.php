@@ -4,12 +4,12 @@
 	// Prevent path manipulation shenanigans
 	$type = FileSystem::getSafePath($_POST["type"]);
 	$table = $_POST["table"];
-	$settings = json_decode(str_replace(array("\r", "\n"), array('\r', '\n'), $_POST["data"]), true);
+	$settings = json_decode(str_replace(["\r", "\n"], ['\r', '\n'], $_POST["data"]), true);
 	$filter = isset($settings["filter"]) ? $settings["filter"] : "";
 ?>
 <div style="width: 450px;">
 	<fieldset>
-		<label for="settings_field_filter_function"><?=Text::translate('Filter Function <small>(function name only, <a href=":doc_link:" target="_blank">learn more</a>)</small>', false, array(":doc_link:" => "http://www.bigtreecms.org/docs/dev-guide/modules/advanced-techniques/view-filters/"))?></label>
+		<label for="settings_field_filter_function"><?=Text::translate('Filter Function <small>(function name only, <a href=":doc_link:" target="_blank">learn more</a>)</small>', false, [":doc_link:" => "http://www.bigtreecms.org/docs/dev-guide/modules/advanced-techniques/view-filters/"])?></label>
 		<input id="settings_field_filter_function" type="text" name="filter" value="<?=htmlspecialchars($filter)?>" />
 	</fieldset>
 	<?php

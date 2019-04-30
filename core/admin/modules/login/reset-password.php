@@ -40,7 +40,7 @@
 		$policy_text = "<p>".Text::translate("Requirements")."</p><ul>";
 		
 		if ($policy["length"]) {
-			$policy_text .= "<li>".Text::translate("Minimum length &mdash; :length: characters", false, array(":length:" => $policy["length"]))."</li>";
+			$policy_text .= "<li>".Text::translate("Minimum length &mdash; :length: characters", false, [":length:" => $policy["length"]])."</li>";
 		}
 		
 		if ($policy["mixedcase"]) {

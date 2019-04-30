@@ -49,7 +49,7 @@
 			Parameters:
 				id - The id of the field type.
 				name - The name.
-				use_cases - Associate array of sections in which the field type can be used (i.e. array("pages" => "on", "modules" => "","callouts" => "","settings" => ""))
+				use_cases - Associate array of sections in which the field type can be used (i.e. ["pages" => "on", "modules" => "", "callouts" => "", "settings" => ""])
 				self_draw - Whether this field type will draw its <fieldset> and <label> ("on" or a falsey value)
 
 			Returns:
@@ -265,7 +265,7 @@
 
 			Parameters:
 				name - The name.
-				use_cases - Associate array of sections in which the field type can be used (i.e. array("pages" => "on", "modules" => "","callouts" => "","settings" => ""))
+				use_cases - Associate array of sections in which the field type can be used (i.e. ["pages" => "on", "modules" => "", "callouts" => "", "settings" => ""])
 				self_draw - Whether this field type will draw its <fieldset> and <label> ("on" or a falsey value)
 		*/
 		

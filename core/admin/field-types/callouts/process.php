@@ -33,7 +33,7 @@
 				]);
 				
 				foreach ($callout->Fields as $resource) {
-					$sub_field = array(
+					$sub_field = [
 						"type" => $resource["type"],
 						"title" => $resource["title"],
 						"key" => $resource["id"],
@@ -41,7 +41,7 @@
 						"ignore" => false,
 						"input" => $bigtree["post_data"][$resource["id"]],
 						"file_input" => $bigtree["file_data"][$resource["id"]]
-					);
+					];
 					
 					if (!is_array($sub_field["settings"])) {
 						$sub_field["settings"] = [];

@@ -25,7 +25,13 @@
 		$sort = $_GET["sort"]." ".$_GET["sort_direction"];
 		
 		// Append information to the end of an edit string so that we can return to the same set of search results after submitting a form.
-		$edit_append = "?view_data=".base64_encode(json_encode(array("view" => $view->ID, "sort" => $_GET["sort"], "sort_direction" => $_GET["sort_direction"], "search" => $query, "page" => $page)));
+		$edit_append = "?view_data=".base64_encode(json_encode([
+			"view" => $view->ID, 
+			"sort" => $_GET["sort"],
+			"sort_direction" => $_GET["sort_direction"],
+			"search" => $query,
+			"page" => $page
+		]));
 	} else {
 		if (isset($view->Settings["sort_column"])) {
 			$sort = $view->Settings["sort_column"]." ".$view->Settings["sort_direction"];
@@ -36,7 +42,11 @@
 		}
 		
 		// Same thing we were going to do above but omit the sort stuff.
-		$edit_append = "?view_data=".base64_encode(json_encode(array("view" => $view->ID, "search" => $query, "page" => $page)));
+		$edit_append = "?view_data=".base64_encode(json_encode([
+			"view" => $view->ID, 
+			"search" => $query, 
+			"page" => $page
+		]));
 	}
 
 	// Handle how many pages we have and get our results.

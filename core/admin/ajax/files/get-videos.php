@@ -4,7 +4,7 @@
 	if ($_POST["query"]) {
 		$items = Resource::search($_POST["query"], "date DESC");
 		$access_level = "e";
-		$breadcrumb = array(array("name" => Text::translate("Clear Results"), "id" => ""));
+		$breadcrumb = [["name" => Text::translate("Clear Results"), "id" => ""]];
 	} else {
 		$folder = new ResourceFolder($_POST["folder"]);
 		$access_level = $folder->UserAccessLevel;

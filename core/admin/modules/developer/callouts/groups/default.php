@@ -6,7 +6,7 @@
 	BigTreeTable({
 		container: "#callout_groups_table",
 		title: "<?=Text::translate("Callout Groups", true)?>",
-		data: <?=JSON::encodeColumns(CalloutGroup::all("name", true),array("name","id"))?>,
+		data: <?=JSON::encodeColumns(CalloutGroup::all("name", true), ["name", "id"])?>,
 		actions: {
 			"edit": "<?=DEVELOPER_ROOT?>callouts/groups/edit/{id}/",
 			"delete": function(id,state) {

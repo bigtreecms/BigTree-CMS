@@ -15,11 +15,11 @@
 	
 	// Set the drag disabled flag for non-visible actions
 	foreach ($actions as $action) {
-		$action_data[] = array(
+		$action_data[] = [
 			"id" => $action->ID,
 			"name" => $action->Name,
 			"!disable_drag" => !$action->InNav
-		);
+		];
 	}
 	
 	// Get a list of interfaces, this is separated out because actions form uses the same logic
@@ -28,13 +28,13 @@
 	// Put together our interface list
 	foreach ($interface_list as $key => $type) {
 		foreach ($type["items"] as $item) {
-			$interface_data[] = array(
+			$interface_data[] = [
 				"id" => $item["id"],
 				"type" => ucwords($item["type"]),
 				"title" => $item["title"],
 				"style_link" => $item["show_style"] ? '<a href="'.DEVELOPER_ROOT.'modules/views/style/'.$item["id"].'/" class="icon_preview"></a>' : "",
 				"edit_link" => '<a href="'.DEVELOPER_ROOT.'modules/'.$item["edit_url"].'" class="icon_edit"></a>'
-			);
+			];
 		}
 	}
 ?>

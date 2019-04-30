@@ -146,9 +146,9 @@
 
 		public function save(): bool
 		{
-			$object = json_encode(array(
+			$object = json_encode([
 				"id" => $this->ID,
-				"snippet" => array(
+				"snippet" => [
 					"title" => $this->Title,
 					"description" => $this->Description,
 					"tags" => array_unique($this->Tags),
@@ -156,8 +156,8 @@
 					"privacyStatus" => $this->Privacy,
 					"embeddable" => $this->Embeddable,
 					"license" => $this->License
-				)
-			));
+				]
+			]);
 			$response = $this->API->call("videos?part=snippet",$object,"PUT");
 			
 			if (isset($response->id)) {

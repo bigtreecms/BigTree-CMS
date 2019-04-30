@@ -6,7 +6,7 @@
 	if ($_POST["query"]) {
 		$items = Resource::search($_POST["query"], "date DESC");
 		$access_level = "e";
-		$breadcrumb = array(array("name" => Text::translate("Clear Results"), "id" => ""));
+		$breadcrumb = [["name" => Text::translate("Clear Results"), "id" => ""]];
 	} else {
 		$folder = new ResourceFolder($_POST["folder"]);
 		$access_level = $folder->UserAccessLevel;
@@ -57,11 +57,11 @@
 					}
 				}
 
-				$data = htmlspecialchars(json_encode(array(
+				$data = htmlspecialchars(json_encode([
 					"file" => $resource["file"],
 					"thumbs" => $thumbs,
 					"crops" => json_decode($resource["crops"])
-				)));
+				]));
 	?>
 	<button data-id="<?=$resource["id"]?>" data-image="<?=$data?>" data-name="<?=$resource["name"]?>" class="js-image<?=$disabled?> image">
 		<img src="<?=FileSystem::getPrefixedFile($resource["file"], "list-preview/")?>" alt="" />
@@ -74,7 +74,7 @@
 		$cut_breadcrumb = array_slice($breadcrumb,-5,5);
 
 		if (count($cut_breadcrumb) < count($breadcrumb)) {
-			$cut_breadcrumb = array_merge(array(array("id" => 0,"name" => "&hellip;")),$cut_breadcrumb);
+			$cut_breadcrumb = array_merge([["id" => 0, "name" => "&hellip;"]], $cut_breadcrumb);
 		}
 
 		$crumb_contents = "";

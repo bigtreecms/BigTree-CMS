@@ -34,17 +34,17 @@
 		<section>
 			<?php if ($updater->Method == "Local") { ?>
 			<p><?=Text::translate("The upgrade file finished downloading and your file permissions allow for local install.")?></p>
-			<p><?=Text::translate("Your existing extension folder will be backed up in /backups/extensions/:extension_id:/", false, array(":extension_id:" => htmlspecialchars($_GET["id"])))?></p>
+			<p><?=Text::translate("Your existing extension folder will be backed up in /backups/extensions/:extension_id:/", false, [":extension_id:" => htmlspecialchars($_GET["id"])])?></p>
 			<?php } else { ?>
-			<p><?=Text::translate("The upgrade file has finished downloading but the web server can not write directly to the root or /core/ folder. You'll need to enter your <strong>:file_access_method:</strong> credentials below so that BigTree can upgrade.", false, array(":file_access_method:" => $updater->Method))?></p>
-			<p><?=Text::translate("Your existing extension folder will be backed up in /backups/extensions/:extension_id:/", false, array(":extension_id:" => htmlspecialchars($_GET["id"])))?></p>
+			<p><?=Text::translate("The upgrade file has finished downloading but the web server can not write directly to the root or /core/ folder. You'll need to enter your <strong>:file_access_method:</strong> credentials below so that BigTree can upgrade.", false, [":file_access_method:" => $updater->Method])?></p>
+			<p><?=Text::translate("Your existing extension folder will be backed up in /backups/extensions/:extension_id:/", false, [":extension_id:" => htmlspecialchars($_GET["id"])])?></p>
 			<hr />
 			<fieldset>
-				<label for="ftp_field_username"><?=Text::translate(":file_access_method: Username", false, array(":file_access_method:" => $updater->Method))?></label>
+				<label for="ftp_field_username"><?=Text::translate(":file_access_method: Username", false, [":file_access_method:" => $updater->Method])?></label>
 				<input id="ftp_field_username" type="text" name="username" autocomplete="off" />
 			</fieldset>
 			<fieldset>
-				<label for="ftp_field_password"><?=Text::translate(":file_access_method: Password", false, array(":file_access_method:" => $updater->Method))?></label>
+				<label for="ftp_field_password"><?=Text::translate(":file_access_method: Password", false, [":file_access_method:" => $updater->Method])?></label>
 				<input id="ftp_field_password" type="password" name="password" autocomplete="off" />
 			</fieldset>
 			<?php } ?>

@@ -833,7 +833,7 @@
 			curl_setopt($handle, CURLOPT_FAILONERROR, true);
 			
 			// Request as Firefox so that servers don't reject us for not having headers.
-			curl_setopt($handle, CURLOPT_HTTPHEADER, array("User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"));
+			curl_setopt($handle, CURLOPT_HTTPHEADER, ["User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"]);
 			
 			// Execute the request and close the handle
 			$success = curl_exec($handle) ? true : false;

@@ -73,10 +73,10 @@
 		<ul id="image_list_<?=$y?>">
 			<?php
 				foreach ($items as $item) {
-					$item["column1"] = strtr($item["column1"], array(
+					$item["column1"] = strtr($item["column1"], [
 						"{wwwroot}" => WWW_ROOT,
 						"{staticroot}" => STATIC_ROOT
-					));
+					]);
 
 					if ($view->Settings["prefix"]) {
 						$preview_image = FileSystem::getPrefixedFile($item["column1"], $view->Settings["prefix"]);
@@ -150,10 +150,10 @@
 		<ul>
 			<?php
 				foreach ($pending_items as $item) {
-					$item["column1"] = strtr($item["column1"], array(
+					$item["column1"] = strtr($item["column1"], [
 						"{wwwroot}" => WWW_ROOT,
 						"{staticroot}" => STATIC_ROOT
-					));
+					]);
 
 					if ($view->Settings["prefix"]) {
 						$preview_image = FileSystem::getPrefixedFile($item["column1"], $view->Settings["prefix"]);

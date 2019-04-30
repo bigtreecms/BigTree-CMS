@@ -7,17 +7,17 @@
 	$key_name = "Key";
 	$secret_name = "Secret";
 	$show_test_environment = false;
-	$instructions = array(
-		Text::translate('<a href=":flickr_link:" target="_blank">Create a Flickr app</a> in The App Garden.', false, array(":flickr_link:" => "http://www.flickr.com/services/apps/create/apply/")),
+	$instructions = [
+		Text::translate('<a href=":flickr_link:" target="_blank">Create a Flickr app</a> in The App Garden.', false, [":flickr_link:" => "http://www.flickr.com/services/apps/create/apply/"]),
 		Text::translate('Enter your Key and Secret that you receive below.'),
 		Text::translate('Follow the OAuth process of allowing BigTree/your application access to your Flickr account.')
-	);
+	];
 
 	$bigtree["api_return_function"] = function(Flickr\API &$api) {
 		// Get user ID
 		$user = $api->callUncached("flickr.test.login");
 		// Get user info
-		$user = $api->callUncached("flickr.people.getInfo",array("user_id" => $user->user->id));
+		$user = $api->callUncached("flickr.people.getInfo", ["user_id" => $user->user->id]);
 		
 		// If they don't have a user image we get a busted link, so give them the default BigTree gravatar instead
 		if (!$user->person->iconfarm) {

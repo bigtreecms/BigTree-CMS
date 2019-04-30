@@ -8,7 +8,7 @@
 	BigTreeTable({
 		container: "#feeds_table",
 		title: "<?=Text::translate("Field Types")?>",
-		data: <?=JSON::encodeColumns($feeds, array("id", "name", "route", "type"))?>,
+		data: <?=JSON::encodeColumns($feeds, ["id", "name", "route", "type"])?>,
 		actions: {
 			"edit": "<?=DEVELOPER_ROOT?>feeds/edit/{id}/",
 			"delete": function(id,state) {

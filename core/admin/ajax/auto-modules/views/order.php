@@ -11,7 +11,7 @@
 	// Grab View Data
 	$view = new ModuleView($_POST["view"]);
 	$module = new Module($view->Module);
-	$form = new ModuleForm(array("table" => $view->Table));
+	$form = new ModuleForm(["table" => $view->Table]);
 	
 	if ($module->UserAccessLevel == "p") {
 		parse_str($_POST["sort"],$data);
@@ -20,7 +20,7 @@
 		foreach ($data["row"] as $position => $id) {
 			// Live Entry
 			if (is_numeric($id)) {
-				SQL::update($view->Table, $id, array("position" => ($count - $position)));
+				SQL::update($view->Table, $id, ["position" => ($count - $position)]);
 				ModuleView::cacheForAll($table, $id);
 			// Pending Entry
 			} else {

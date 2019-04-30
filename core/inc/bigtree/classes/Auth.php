@@ -499,14 +499,14 @@
 			// Allow setting cookies and sessions
 			header("Access-Control-Allow-Origin: ".$admin_parts["scheme"]."://".$admin_parts["host"]);
 			header("Access-Control-Allow-Credentials: true");
-			session_start(array("gc_maxlifetime" => 24 * 60 * 60));
+			session_start(["gc_maxlifetime" => 24 * 60 * 60]);
 			
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE id = ?", $cache_data["user_id"]);
 			
 			foreach ($cache_data["remaining_sites"] as $site_key => $www_root) {
 				if ($site_key == BIGTREE_SITE_KEY) {
 					$cookie_domain = str_replace(DOMAIN, "", WWW_ROOT);
-					$cookie_value = json_encode(array($cache_data["session"], $cache_data["chain"]));
+					$cookie_value = json_encode([$cache_data["session"], $cache_data["chain"]]);
 					
 					// We still set the email for BigTree bar usage even if they're not being "remembered"
 					setcookie('bigtree_admin[email]', $user["email"], strtotime("+1 month"), $cookie_domain, "", false, true);

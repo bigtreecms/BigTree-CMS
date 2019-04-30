@@ -28,7 +28,7 @@
 		draggable: function(positioning) {
 			$.secureAjax("<?=ADMIN_ROOT?>ajax/developer/order-module-groups/", { type: "POST", data: positioning });
 		},
-		data: <?=JSON::encodeColumns($groups, array("id", "name"))?>,
+		data: <?=JSON::encodeColumns($groups, ["id", "name"])?>,
 		searchable: true
 	});
 </script>

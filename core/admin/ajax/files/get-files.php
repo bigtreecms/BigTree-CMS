@@ -45,7 +45,7 @@
 	$cut_breadcrumb = array_slice($breadcrumb, -5, 5);
 
 	if (count($cut_breadcrumb) < count($breadcrumb)) {
-		$cut_breadcrumb = array_merge(array(array("id" => 0,"name" => "&hellip;")),$cut_breadcrumb);
+		$cut_breadcrumb = array_merge([["id" => 0, "name" => "&hellip;"]], $cut_breadcrumb);
 	}
 
 	$crumb_contents = "";

@@ -2,11 +2,12 @@
 	namespace BigTree;
 	
 	// Check writability of directories
-	$directories_to_check = array(
+	$directories_to_check = [
 		"cache/",
 		"extensions/",
 		"site/extensions/"
-	);
+	];
+	
 	foreach ($directories_to_check as $directory) {
 		if (!is_writable(SERVER_ROOT.$directory)) {
 			Auth::stop("Your <code>/$directory</code> directory must be writable to install extensions.",

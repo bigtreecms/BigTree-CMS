@@ -25,10 +25,10 @@
 		
 		foreach ($table_description["columns"] as $column => $details) {
 			if (!in_array($column,$reserved) && !in_array($column,$used)) {
-				$unused[] = array(
+				$unused[] = [
 					"field" => $column,
-					"title" => str_replace(array("Url", "Pdf", "Sql"), array("URL", "PDF", "SQL"), ucwords(str_replace(array("-", "_"), " ", $details["name"])))
-				);
+					"title" => str_replace(["Url", "Pdf", "Sql"], ["URL", "PDF", "SQL"], ucwords(str_replace(["-", "_"], " ", $details["name"])))
+				];
 			}
 			
 			if ($column == "position") {
@@ -44,7 +44,7 @@
 		if ($table) {
 			$table_description = SQL::describeTable($table);
 		} else {
-			$table_description = array("foreign_keys" => [], "columns" => []);
+			$table_description = ["foreign_keys" => [], "columns" => []];
 		}
 
 		// Let's relate the foreign keys based on the local column so we can check easier.
@@ -63,7 +63,7 @@
 				// Do a ton of guessing here to try to save time.
 				$subtitle = "";
 				$type = "text";
-				$title = str_replace(array("Url","Pdf","Sql"),array("URL","PDF","SQL"),ucwords(str_replace(array("-","_")," ",$column["name"])));
+				$title = str_replace(["Url", "Pdf", "Sql"], ["URL", "PDF", "SQL"], ucwords(str_replace(["-", "_"], " ", $column["name"])));
 				$settings = [];
 				
 				if (strpos($title,"URL") !== false) {
@@ -108,7 +108,7 @@
 					$list = [];
 					
 					foreach ($column["settings"] as $option) {
-						$list[] = array("value" => $option, "description" => $option);
+						$list[] = ["value" => $option, "description" => $option];
 					}
 					
 					$settings = [
@@ -297,7 +297,7 @@
 <?php
 	} elseif (array_filter((array)$table_description["columns"])) {
 ?>
-<p><?=Text::translate('The chosen table does not have any <a href=":doc_link:" target="_blank">non-reserved columns</a>.', false, array(":doc_link:" => "http://www.bigtreecms.org/docs/dev-guide/sql-queries/table-structure/#ReservedColumns"))?></p>
+<p><?=Text::translate('The chosen table does not have any <a href=":doc_link:" target="_blank">non-reserved columns</a>.', false, [":doc_link:" => "http://www.bigtreecms.org/docs/dev-guide/sql-queries/table-structure/#ReservedColumns"])?></p>
 <?php
 	} else {
 ?>

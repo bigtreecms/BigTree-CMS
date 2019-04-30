@@ -10,13 +10,13 @@
 	Globalize::arrayObject($_SESSION["bigtree_admin"]["form_data"]);
 
 	// Override the default H1
-	$bigtree["page_override"] = array("title" => Text::translate("Errors Occurred"),"icon" => "page_404");
+	$bigtree["page_override"] = ["title" => Text::translate("Errors Occurred"), "icon" => "page_404"];
 ?>
 <div class="container">
 	<section>
 		<div class="alert">
 			<span></span>
-			<p><?=Text::translate("Your submission had :count: error(s).", false, array(":count:" => count($errors)))?></p>
+			<p><?=Text::translate("Your submission had :count: error(s).", false, [":count:" => count($errors)])?></p>
 		</div>
 		<div class="table error_table">
 			<header>

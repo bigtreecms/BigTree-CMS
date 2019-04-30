@@ -65,7 +65,7 @@
 					$bigtree["html_fields"] = [];
 					$bigtree["simple_html_fields"] = [];
 					
-					$field = new Field(array(
+					$field = new Field([
 						"type" => $setting->Type,
 						"title" => "",
 						"subtitle" => "",
@@ -74,7 +74,7 @@
 						"settings" => $setting->Settings,
 						"has_value" => !is_null($value),
 						"value" => $value
-					));
+					]);
 
 					$field->draw();
 				?>

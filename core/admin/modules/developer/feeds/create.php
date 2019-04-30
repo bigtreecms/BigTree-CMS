@@ -11,6 +11,6 @@
 ?>
 <div class="container">
 	<section>
-		<p><?=Text::translate('Your feed is accessible at: <a href=":feed_link:">:feed_link:</a>', false, array(":feed_link:" => WWW_ROOT."feeds/".$feed->Route."/"))?></p>
+		<p><?=Text::translate('Your feed is accessible at: <a href=":feed_link:">:feed_link:</a>', false, [":feed_link:" => WWW_ROOT."feeds/".$feed->Route."/"])?></p>
 	</section>
 </div>

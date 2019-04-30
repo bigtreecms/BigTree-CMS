@@ -10,14 +10,14 @@
 		<section>
 			<div class="alert">
 				<span></span>
-				<p><?=Text::translate("<strong>Login Failed:</strong> Please enter the correct :update_method: username and password below.", false, array(":update_method:" => $method))?></p>
+				<p><?=Text::translate("<strong>Login Failed:</strong> Please enter the correct :update_method: username and password below.", false, [":update_method:" => $method])?></p>
 			</div>
 			<fieldset>
-				<label for="login_field_username"><?=Text::translate(":update_method: Username", false, array(":update_method:" => $method))?></label>
+				<label for="login_field_username"><?=Text::translate(":update_method: Username", false, [":update_method:" => $method])?></label>
 				<input id="login_field_username" type="text" name="username" autocomplete="off" />
 			</fieldset>
 			<fieldset>
-				<label for="login_field_password"><?=Text::translate(":update_method: Password", false, array(":update_method:" => $method))?></label>
+				<label for="login_field_password"><?=Text::translate(":update_method: Password", false, [":update_method:" => $method])?></label>
 				<input id="login_field_password" type="password" name="password" autocomplete="off" />
 			</fieldset>
 		</section>

@@ -8,11 +8,11 @@
 	Extension::initializeCache();
 	$interfaces = ModuleInterface::allByModule($id, "title ASC", true);
 	
-	$interface_list = array(
-		"form" => array("name" => "Forms", "items" => []),
-		"view" => array("name" => "Views", "items" => []),
-		"report" => array("name" => "Reports", "items" => [])
-	);
+	$interface_list = [
+		"form" => ["name" => "Forms", "items" => []],
+		"view" => ["name" => "Views", "items" => []],
+		"report" => ["name" => "Reports", "items" => []]
+	];
 	
 	// Sort interfaces into relevant sections
 	foreach ($interfaces as $interface) {
@@ -40,10 +40,10 @@
 			if (isset($interface_list[$interface["type"]])) {
 				$interface_list[$interface["type"]]["items"][] = $interface;
 			} else {
-				$interface_list[$interface["type"]] = array(
+				$interface_list[$interface["type"]] = [
 					"name" => ModuleInterface::$Plugins[$extension][$type]["name"],
-					"items" => array($interface)
-				);
+					"items" => [$interface]
+				];
 			}
 		}
 	}

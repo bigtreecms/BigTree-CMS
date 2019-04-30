@@ -14,7 +14,7 @@
 	BigTreeTable({
 		container: "#settings_table",
 		title: "Settings",
-		data: <?=JSON::encodeColumns($settings, array("id", "name", "type"))?>,
+		data: <?=JSON::encodeColumns($settings, ["id", "name", "type"])?>,
 		actions: {
 			"edit": "<?=DEVELOPER_ROOT?>settings/edit/{id}/",
 			"delete": function(id) {

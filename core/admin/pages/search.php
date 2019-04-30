@@ -13,7 +13,7 @@
 	$w = "'%".SQL::escape($search_term)."%'";
 	
 	// Get the "Pages" results.
-	$page_results = Page::search($search_term, array("title", "resources", "meta_description", "nav_title"), "50");
+	$page_results = Page::search($search_term, ["title", "resources", "meta_description", "nav_title"], "50");
 	$pages = [];
 
 	foreach ($page_results as $page) {
@@ -27,13 +27,13 @@
 				$breadcrumb_parts[] = '<a href="'.ADMIN_ROOT.'pages/view-tree/'.$part["id"].'/">'.$part["title"].'</a>';
 			}
 
-			$pages[] = array(
+			$pages[] = [
 				"id" => $page->ID,
 				"title" => $page->NavigationTitle,
 				"description" => Text::trimLength(strip_tags($page->Resources["page_content"]), 450),
 				"link" => ADMIN_ROOT."pages/edit/".$page->ID."/",
 				"breadcrumb" => implode(" &rsaquo; ", $breadcrumb_parts)
-			);
+			];
 		}
 	}
 
@@ -61,11 +61,11 @@
 
 			if ($count = count($module_results)) {
 				$total_results += $count;
-				$results[$module->Name][] = array(
+				$results[$module->Name][] = [
 					"view" => $view,
 					"results" => Link::decode($module_results),
 					"module" => $module
-				);
+				];
 			}
 		}
 	}

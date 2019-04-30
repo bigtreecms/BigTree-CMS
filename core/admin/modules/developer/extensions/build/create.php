@@ -45,9 +45,9 @@
 			$license_array[$license] = $available_licenses["Open Source"][$license];
 		}
 	} elseif ($license_name) {
-		$license_array = array($license_name => $license_url);
+		$license_array = [$license_name => $license_url];
 	} elseif ($license) {
-		$license_array = array($license => $available_licenses["Closed Source"][$license]);
+		$license_array = [$license => $available_licenses["Closed Source"][$license]];
 	}
 	
 	// Create extension directory if it doesn't exist
@@ -57,7 +57,7 @@
 	}
 	
 	// Setup JSON manifest
-	$package = array(
+	$package = [
 		"type" => "extension",
 		"id" => $id,
 		"version" => $version,
@@ -68,7 +68,7 @@
 		"keywords" => $keywords,
 		"author" => $author,
 		"licenses" => $license_array,
-		"components" => array(
+		"components" => [
 			"module_groups" => [],
 			"modules" => [],
 			"templates" => [],
@@ -77,8 +77,8 @@
 			"feeds" => [],
 			"field_types" => [],
 			"tables" => []
-		)
-	);
+		]
+	];
 	
 	// We're going to be associating things to the extension before creating it
 	SQL::query("SET foreign_key_checks = 0");
@@ -147,9 +147,9 @@
 			
 			if ($field == "settings") {
 				$settings["fields"] = $array;
-				SQL::update($table, $f["id"], array("settings" => $settings));
+				SQL::update($table, $f["id"], ["settings" => $settings]);
 			} else {
-				SQL::update($table, $f["id"], array($field => $array));
+				SQL::update($table, $f["id"], [$field => $array]);
 			}
 		}
 	};
@@ -219,7 +219,7 @@
 						$settings["preview_url"] = str_replace("{adminroot}".$module["route"]."/", "{adminroot}$new_route/", $settings["preview_url"]);
 					}
 					
-					SQL::update("bigtree_module_interfaces", $interface["id"], array("settings" => $settings));
+					SQL::update("bigtree_module_interfaces", $interface["id"], ["settings" => $settings]);
 				}
 			}
 		}
@@ -234,7 +234,7 @@
 	foreach (array_filter((array) $tables) as $table) {
 		// Set the table to the create statement
 		$f = SQL::fetch("SHOW CREATE TABLE `$table`");
-		$create_statement = str_replace(array("\r", "\n"), " ", end($f));
+		$create_statement = str_replace(["\r", "\n"], " ", end($f));
 		
 		// Drop auto increments and constraint names
 		$create_statement = preg_replace('/(AUTO_INCREMENT\=\d*\s)/', "", $create_statement);
@@ -332,20 +332,20 @@
 		// Grab existing manifest and get its plugin list since this is handled manually
 		$existing_manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/$id/manifest.json"), true);
 		$package["plugins"] = $existing_manifest["plugins"];
-		SQL::update("bigtree_extensions", $id, array(
+		SQL::update("bigtree_extensions", $id, [
 			"type" => "extension",
 			"name" => $title,
 			"version" => $version,
 			"manifest" => $package
-		));
+		]);
 	} else {
-		SQL::insert("bigtree_extensions", array(
+		SQL::insert("bigtree_extensions", [
 			"id" => $id,
 			"type" => "extension",
 			"name" => $title,
 			"version" => $version,
 			"manifest" => $package
-		));
+		]);
 	}
 	
 	// Turn foreign key checks back on

@@ -77,8 +77,8 @@
 		{
 			static::checkSetup();
 
-			$clean_referer = str_replace(array("http://","https://"),"//",$_SERVER["HTTP_REFERER"]);
-			$clean_domain = str_replace(array("http://","https://"),"//",DOMAIN);
+			$clean_referer = str_replace(["http://", "https://"], "//", $_SERVER["HTTP_REFERER"]);
+			$clean_domain = str_replace(["http://", "https://"], "//", DOMAIN);
 			$token = isset($_POST[static::$Field]) ? $_POST[static::$Field] : $_GET[static::$Field];
 			
 			if (strpos($clean_referer, $clean_domain) !== 0 || $token != static::$Token) {

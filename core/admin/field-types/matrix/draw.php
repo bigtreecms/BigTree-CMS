@@ -27,7 +27,7 @@
 		?>
 		<article>
 			<input type="hidden" class="bigtree_matrix_data" value="<?=base64_encode(json_encode($item))?>" />
-			<?php $this->drawArrayLevel(array($x), $item) ?>
+			<?php $this->drawArrayLevel([$x], $item) ?>
 			<h4>
 				<?=Text::htmlEncode($item["__internal-title"])?>
 				<input type="hidden" name="<?=$this->Key?>[<?=$x?>][__internal-title]" value="<?=Text::htmlEncode($item["__internal-title"])?>" />
@@ -86,7 +86,7 @@
 			?>
 			<li>
 				<input type="hidden" class="bigtree_matrix_data" value="<?=base64_encode(json_encode($item))?>" />
-				<?php $this->drawArrayLevel(array($x), $item) ?>
+				<?php $this->drawArrayLevel([$x], $item) ?>
 				<input type="hidden" name="<?=$this->Key?>[<?=$x?>][__internal-title]" value="<?=Text::htmlEncode($item["__internal-title"])?>" />
 				<input type="hidden" name="<?=$this->Key?>[<?=$x?>][__internal-subtitle]" value="<?=Text::htmlEncode($item["__internal-subtitle"])?>" />
 				<span class="icon_sort"></span>

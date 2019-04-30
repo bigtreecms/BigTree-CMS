@@ -15,11 +15,11 @@
 	
 	foreach ($writable_directories as $directory) {
 		if (!FileSystem::getDirectoryWritability(SERVER_ROOT.$directory)) {
-		    $warnings[] = array(
+		    $warnings[] = [
 		    	"name" => Text::translate("Directory Permissions Error"),
-		    	"description" => Text::translate("Make :directory: writable.", false, array(":directory:" => SERVER_ROOT.$directory)),
+		    	"description" => Text::translate("Make :directory: writable.", false, [":directory:" => SERVER_ROOT.$directory]),
 		    	"status" => "bad"
-		    );
+		    ];
 		}
 	}
 	
@@ -38,11 +38,11 @@
 				if ($settings["directory"]) {
 					if (!FileSystem::getDirectoryWritability(SITE_ROOT.$settings["directory"]) && !in_array($settings["directory"], $directory_warnings)) {
 						$directory_warnings[] = $settings["directory"];
-						$warnings[] = array(
+						$warnings[] = [
 							"name" => Text::translate("Directory Permissions Error"),
 							"description" => Text::translate("Make :directory: writable.", false, [":directory:" => SITE_ROOT.$settings["directory"]]),
 							"status" => "bad"
-						);
+						];
 					}
 				}
 			}
@@ -70,7 +70,7 @@
 	$bad_links = Page::auditAdminLinks(true);
 	
 	foreach ($bad_links as $link) {
-		$warnings[] = array(
+		$warnings[] = [
 			"name" => Text::translate("Bad Admin Links"),
 			"description" => Text::translate('Remove links to Admin on <a href=":link:">:link_title:</a>', false,
 											 [
@@ -78,15 +78,15 @@
 												":link_title:" => $link["nav_title"]
 											 ]),
 			"status" => "ok"
-		);
+		];
 	}
 	
 	if (!file_exists(SITE_ROOT."favicon.ico")) {
-		$warnings[] = array(
+		$warnings[] = [
 			"name" => Text::translate("Missing Favicon"),
 			"description" => Text::translate("Create a favicon and place it in the /site/ root."),
 			"status" => "ok"
-		);
+		];
 	}
 
 	// See what the max file size upload is

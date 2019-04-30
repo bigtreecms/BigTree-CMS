@@ -34,13 +34,16 @@
 		// Figure out the fields we're not using so we can offer them back.
 		foreach ($table_fields as $field) {
 			if (!in_array($field, Module::$ReservedColumns) && !in_array($field, $used)) {
-				$unused[] = array("field" => $field, "title" => ucwords(str_replace("_", " ", $field)));
+				$unused[] = [
+					"field" => $field, 
+					"title" => ucwords(str_replace("_", " ", $field))
+				];
 			}
 		}		
 	}
 
 	// Add the ability for someone to create a custom view field
-	$unused[] = array("field" => "— Custom —", "title" => "");
+	$unused[] = ["field" => "— Custom —", "title" => ""];
 
 	if (count($table_fields)) {
 		$parser_placeholder = Text::translate('PHP code to transform $value (which contains the column value.)', true);

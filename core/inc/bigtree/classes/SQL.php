@@ -1550,7 +1550,7 @@
 			// If we're checking against an ID
 			if (!is_null($id)) {
 				
-				// Allow for passing array("column" => "value")
+				// Allow for passing ["column" => "value"]
 				if (is_array($id)) {
 					list($id_column) = array_keys($id);
 					$id_value = current($id);

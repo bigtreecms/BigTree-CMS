@@ -9,22 +9,22 @@
 
 	// We're going to get the position setups and the multi-sort the list to get it in order
 	foreach (Dashboard::$CoreOptions as $id => $name) {
-		$panes[] = array(
+		$panes[] = [
 			"id" => $id,
 			"name" => $name,
 			"approved" => empty($settings[$id]["disabled"]) ? "on" : ""
-		);
+		];
 		$positions[] = isset($settings[$id]["position"]) ? $settings[$id]["position"] : 0;
 	}
 
 	foreach (Dashboard::$Plugins as $extension => $set) {
 		foreach ($set as $id => $name) {
 			$id = $extension."*".$id;
-			$panes[] = array(
+			$panes[] = [
 				"id" => $id,
 				"name" => $name,
 				"approved" => empty($settings[$id]["disabled"]) ? "on" : ""
-			);
+			];
 			$positions[] = isset($settings[$id]["position"]) ? $settings[$id]["position"] : 0;
 		}
 	}

@@ -20,7 +20,7 @@
 	<form method="post" action="<?=DEVELOPER_ROOT?>services/<?=$route?>/activate/" class="module">
 		<?php CSRF::drawPOSTToken(); ?>
 		<section>
-			<p><?=Text::translate("To activate the :api_name: API class you must follow these steps:", false, array(":api_name:" => $name))?></p>
+			<p><?=Text::translate("To activate the :api_name: API class you must follow these steps:", false, [":api_name:" => $name])?></p>
 			<hr />
 			<?php if ($name == "YouTube" || $name == "Google+") { ?>
 			<p class="notice_message"><?=Text::translate("Google's Developer Console changes frequently, these steps may not be up to date.")?></p>

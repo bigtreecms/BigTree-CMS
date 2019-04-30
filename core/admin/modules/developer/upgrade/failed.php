@@ -8,7 +8,7 @@
 		<hr />
 		<ol>
 			<li><?=Text::translate("Backup your existing database.")?></li>
-			<li><?=Text::translate('Download the version of BigTree you wish to upgrade to from the <a href=":website:" target="_blank">official BigTree website</a>.', false, array(":website:" => "http://www.bigtreecms.org/"))?></li>
+			<li><?=Text::translate('Download the version of BigTree you wish to upgrade to from the <a href=":website:" target="_blank">official BigTree website</a>.', false, [":website:" => "http://www.bigtreecms.org/"])?></li>
 			<li><?=Text::translate('Extract the zip file locally and rename the "core" directory to "core-new".')?></li>
 			<li><?=Text::translate('Upload the "core-new" directory to the root of your website via SFTP or any other method.')?></li>
 			<li><?=Text::translate('Rename your existing "core" directory to "core-old".')?></li>

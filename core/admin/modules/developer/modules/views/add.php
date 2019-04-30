@@ -17,7 +17,7 @@
 	}
 
 	if (isset($_SESSION["bigtree_admin"]["developer"]["saved_view"])) {
-		Globalize::arrayObject($_SESSION["bigtree_admin"]["developer"]["saved_view"], array("htmlspecialchars"));
+		Globalize::arrayObject($_SESSION["bigtree_admin"]["developer"]["saved_view"], ["htmlspecialchars"]);
 		unset($_SESSION["bigtree_admin"]["developer"]["saved_view"]);
 	} else {
 		// Stop notices

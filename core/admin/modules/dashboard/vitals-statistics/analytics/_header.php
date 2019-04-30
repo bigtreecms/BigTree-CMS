@@ -7,7 +7,7 @@
 	
 	$analytics = new GoogleAnalytics\API;
 	$relative_path = "admin/modules/dashboard/vitals-statistics/analytics/";
-	$restricted = array("analytics", "keywords", "service-providers", "traffic-sources");
+	$restricted = ["analytics", "keywords", "service-providers", "traffic-sources"];
 	
 	define("MODULE_ROOT", ADMIN_ROOT."dashboard/vitals-statistics/analytics/");
 	

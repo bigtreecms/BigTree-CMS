@@ -6,11 +6,11 @@
 	 */
 	
 	$find_path = function($nav,$path,$last_link = "") use (&$find_path) {
-		static $page = array("navigation" => [], "related" => []);
+		static $page = ["navigation" => [], "related" => []];
 
 		foreach ($nav as $item) {
 			if ((strpos($path,$item["link"]."/") === 0 && $item["link"] != $last_link) || $path == $item["link"]) {				
-				$page["breadcrumb"][] = array("title" => $item["title"],"link" => $item["link"]);
+				$page["breadcrumb"][] = ["title" => $item["title"],"link" => $item["link"]];
 				$page["title"] = $item["title"] ? $item["title"] : $page["title"];
 				$page["title"] = $item["title_override"] ? $item["title_override"] : $page["title"];
 				$page["icon"] = $item["icon"] ? $item["icon"] : $page["icon"];
@@ -45,7 +45,7 @@
 	// If we're in a module, add "Modules" to the beginning of the breadcrumb
 	if (defined("MODULE_ROOT")) {
 		$bigtree["page"]["breadcrumb"] = array_merge(
-			array(array("title" => "Modules","link" => "modules")),
+			[["title" => "Modules", "link" => "modules"]],
 			$bigtree["page"]["breadcrumb"]
 		);
 	}
@@ -164,8 +164,10 @@
 			foreach ($bigtree["page"]["navigation"] as $item) {
 				if (!$item["hidden"] && (!$item["level"] || $item["level"] <= Auth::user()->Level)) {
 					$get_string = "";
+
 					if (is_array($item["get_vars"]) && count($item["get_vars"])) {
 						$get_string = "?";
+					
 						foreach ($item["get_vars"] as $key => $val) {
 							$get_string .= "$key=".urlencode($val)."&";
 						}
@@ -238,14 +240,14 @@
 			}
 		}
 		
-		echo json_encode(array(
+		echo json_encode([
 			"breadcrumb" => $bigtree["breadcrumb"],
 			"title" => $title,
 			"page" => ob_get_clean(),
 			"active_nav" => $bigtree["active_nav_item"],
 			"scripts" => $bigtree["js"],
 			"css" => $bigtree["css"]
-		));
+		]);
 	// Otherwise include the footer
 	} else {
 		include Router::getIncludePath("admin/layouts/_footer.php");

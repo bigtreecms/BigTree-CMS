@@ -40,7 +40,7 @@
 	<section class="integrity_errors">
 		<a href="<?=ADMIN_ROOT.$module->Route."/".$action->Route."/".htmlspecialchars($_GET["id"])?>/" target="_blank"><?=Text::translate("Edit")?></a>
 		<span class="icon_small icon_small_warning"></span>
-		<p><?=Text::translate($message, false, array(":url:" => $url, ":field:" => $form->Fields[$field]["title"]))?></p>
+		<p><?=Text::translate($message, false, [":url:" => $url, ":field:" => $form->Fields[$field]["title"]])?></p>
 	</section>
 </li>
 <?php

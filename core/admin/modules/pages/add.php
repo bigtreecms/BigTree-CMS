@@ -6,7 +6,7 @@
 	 */
 	
 	$bigtree["form_action"] = "create";
-	$bigtree["current_page"] = array("id" => $bigtree["current_page"]["id"]);
+	$bigtree["current_page"] = ["id" => $bigtree["current_page"]["id"]];
 
 	$page = new Page;
 	

@@ -16,6 +16,7 @@
 
 	foreach ($source_fields as $source_field) {
 		$data = isset($bigtree["post_data"][trim($source_field)]) ? $bigtree["post_data"][trim($source_field)] : false;
+		
 		if (is_array($data)) {
 			$location = array_merge($location,$data);
 		} elseif ($data) {

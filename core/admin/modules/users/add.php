@@ -11,7 +11,7 @@
 	$level = 0;
 	
 	if (isset($_SESSION["bigtree_admin"]["create_user"])) {
-		Globalize::arrayObject($_SESSION["bigtree_admin"]["create_user"], array("htmlspecialchars"));
+		Globalize::arrayObject($_SESSION["bigtree_admin"]["create_user"], ["htmlspecialchars"]);
 		$daily_digest = isset($daily_digest) ? $daily_digest : false;
 		unset($_SESSION["bigtree_admin"]["create_user"]);
 	}

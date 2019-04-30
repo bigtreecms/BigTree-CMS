@@ -14,22 +14,22 @@
 
 	// Sort the panes
 	foreach (Dashboard::$CoreOptions as $id => $name) {
-		$panes[] = array(
+		$panes[] = [
 			"id" => $id,
 			"name" => $name,
 			"disabled" => isset($settings[$id]["disabled"]) ? $settings[$id]["disabled"] : ""
-		);
+		];
 		$positions[] = isset($settings[$id]["position"]) ? $settings[$id]["position"] : 0;
 	}
 	
 	foreach (Dashboard::$Plugins as $extension => $set) {
 		foreach ($set as $id => $name) {
 			$id = $extension."*".$id;
-			$panes[] = array(
+			$panes[] = [
 				"id" => $id,
 				"name" => $name,
 				"disabled" => isset($settings[$id]["disabled"]) ? $settings[$id]["disabled"] : ""
-			);
+			];
 			$positions[] = isset($settings[$id]["position"]) ? $settings[$id]["position"] : 0;
 		}
 	}

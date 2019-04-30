@@ -17,7 +17,7 @@
 			<span></span>
 			<h3><?=Text::translate("Error")?></h3>
 		</div>
-		<p><?=Text::translate("The table for this form (:table:) no longer exists.", false, array(":table:" => $form->Table))?></p>
+		<p><?=Text::translate("The table for this form (:table:) no longer exists.", false, [":table:" => $form->Table])?></p>
 	</section>
 	<footer>
 		<a href="javascript:history.go(-1);" class="button">Back</a>

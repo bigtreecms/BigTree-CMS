@@ -46,12 +46,12 @@
 	$bigtree["config"]["retina_image_quality"] = 25; // 0-100, size increases dramatically after 90
 	$bigtree["config"]["image_force_jpeg"] = false; // Set to true to make images uploaded as PNG save as JPG
 	// Placeholder image defaults - add your own key to the "placeholder" array to create more placeholder image templates.	
-	$bigtree["config"]["placeholder"]["default"] = array( 
+	$bigtree["config"]["placeholder"]["default"] = [ 
 		"background_color" => "CCCCCC",
 		"text_color" => "666666",
 		"image" => false,
 		"text" => false
-	);
+	];
 	
 	// Custom Output Filter Function
 	$bigtree["config"]["output_filter"] = false;

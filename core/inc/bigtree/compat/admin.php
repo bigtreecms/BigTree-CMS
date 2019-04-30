@@ -10,43 +10,43 @@
 	class BigTreeAdminBase {
 
 		// Static variables
-		public static $ActionClasses = array("add", "delete", "list", "edit", "refresh", "gear", "truck", "token", "export", "redirect", "help", "error", "ignored", "world", "server", "clock", "network", "car", "key", "folder", "calendar", "search", "setup", "page", "computer", "picture", "news", "events", "blog", "form", "category", "map", "done", "warning", "user", "question", "sports", "credit_card", "cart", "cash_register", "lock_key", "bar_graph", "comments", "email", "weather", "pin", "planet", "mug", "atom", "shovel", "cone", "lifesaver", "target", "ribbon", "dice", "ticket", "pallet", "lightning", "camera", "video", "twitter", "facebook", "trail", "crop", "cloud", "phone", "music", "house", "featured", "heart", "link", "flag", "bug", "games", "coffee", "airplane", "bank", "gift", "badge", "award", "radio");
+		public static $ActionClasses = ["add", "delete", "list", "edit", "refresh", "gear", "truck", "token", "export", "redirect", "help", "error", "ignored", "world", "server", "clock", "network", "car", "key", "folder", "calendar", "search", "setup", "page", "computer", "picture", "news", "events", "blog", "form", "category", "map", "done", "warning", "user", "question", "sports", "credit_card", "cart", "cash_register", "lock_key", "bar_graph", "comments", "email", "weather", "pin", "planet", "mug", "atom", "shovel", "cone", "lifesaver", "target", "ribbon", "dice", "ticket", "pallet", "lightning", "camera", "video", "twitter", "facebook", "trail", "crop", "cloud", "phone", "music", "house", "featured", "heart", "link", "flag", "bug", "games", "coffee", "airplane", "bank", "gift", "badge", "award", "radio"];
 		public static $DB;
-		public static $IconClasses = array("gear", "truck", "token", "export", "redirect", "help", "error", "ignored", "world", "server", "clock", "network", "car", "key", "folder", "calendar", "search", "setup", "page", "computer", "picture", "news", "events", "blog", "form", "category", "map", "user", "question", "sports", "credit_card", "cart", "cash_register", "lock_key", "bar_graph", "comments", "email", "weather", "pin", "planet", "mug", "atom", "shovel", "cone", "lifesaver", "target", "ribbon", "dice", "ticket", "pallet", "camera", "video", "twitter", "facebook");
+		public static $IconClasses = ["gear", "truck", "token", "export", "redirect", "help", "error", "ignored", "world", "server", "clock", "network", "car", "key", "folder", "calendar", "search", "setup", "page", "computer", "picture", "news", "events", "blog", "form", "category", "map", "user", "question", "sports", "credit_card", "cart", "cash_register", "lock_key", "bar_graph", "comments", "email", "weather", "pin", "planet", "mug", "atom", "shovel", "cone", "lifesaver", "target", "ribbon", "dice", "ticket", "pallet", "camera", "video", "twitter", "facebook"];
 		public static $PerPage = 15;
-		public static $ReservedColumns = array(
+		public static $ReservedColumns = [
 			"id",
 			"position",
 			"archived",
 			"approved"
-		);
-		public static $ViewActions = array(
-			"approve" => array(
+		];
+		public static $ViewActions = [
+			"approve" => [
 				"key" => "approved",
 				"name" => "Approve",
 				"class" => "icon_approve icon_approve_on"
-			),
-			"archive" => array(
+			],
+			"archive" => [
 				"key" => "archived",
 				"name" => "Archive",
 				"class" => "icon_archive"
-			),
-			"feature" => array(
+			],
+			"feature" => [
 				"key" => "featured",
 				"name" => "Feature",
 				"class" => "icon_feature icon_feature_on"
-			),
-			"edit" => array(
+			],
+			"edit" => [
 				"key" => "id",
 				"name" => "Edit",
 				"class" => "icon_edit"
-			),
-			"delete" => array(
+			],
+			"delete" => [
 				"key" => "id",
 				"name" => "Delete",
 				"class" => "icon_delete"
-			)
-		);
+			]
+		];
 
 		public $Auth;
 		public $ID;
@@ -395,7 +395,7 @@
 			Parameters:
 				id - The id of the field type.
 				name - The name.
-				use_cases - Associate array of sections in which the field type can be used (i.e. array("pages" => "on", "modules" => "","callouts" => "","settings" => ""))
+				use_cases - Associate array of sections in which the field type can be used (i.e. ["pages" => "on", "modules" => "","callouts" => "","settings" => ""])
 				self_draw - Whether this field type will draw its <fieldset> and <label> ("on" or a falsey value)
 
 			Returns:
@@ -541,13 +541,13 @@
 		*/
 
 		function createModuleReport($module, $title, $table, $type, $filters, $fields = "", $parser = "", $view = "") {
-			$interface = BigTree\ModuleInterface::create("report", $module, $title, $table, array(
+			$interface = BigTree\ModuleInterface::create("report", $module, $title, $table, [
 				"type" => $type,
 				"filters" => $filters,
 				"fields" => $fields,
 				"parser" => $parser,
 				"view" => $view ?: null
-			));
+			]);
 
 			return $interface->ID;
 		}
@@ -1835,7 +1835,7 @@
 			$module = new BigTree\Module($module);
 			$response = $module->getActionForPath($route);
 
-			return $response ? array("action" => $response["action"]->Array, "commands" => $response["commands"]) : false;
+			return $response ? ["action" => $response["action"]->Array, "commands" => $response["commands"]] : false;
 		}
 
 		/*
@@ -1980,7 +1980,7 @@
 			$forms = [];
 			foreach ($interfaces as $interface) {
 				$settings = json_decode($interface["settings"], true);
-				$forms[] = array(
+				$forms[] = [
 					"id" => $interface["id"],
 					"module" => $interface["module"],
 					"title" => $interface["title"],
@@ -1991,7 +1991,7 @@
 					"return_url" => $settings["return_url"],
 					"tagging" => $settings["tagging"],
 					"hooks" => $settings["hooks"]
-				);
+				];
 			}
 
 			return $forms;
@@ -2124,7 +2124,7 @@
 			$reports = [];
 			foreach ($interfaces as $interface) {
 				$settings = json_decode($interface["settings"], true);
-				$reports[] = array(
+				$reports[] = [
 					"id" => $interface["id"],
 					"module" => $interface["module"],
 					"title" => $interface["title"],
@@ -2134,7 +2134,7 @@
 					"fields" => $settings["fields"],
 					"parser" => $settings["parser"],
 					"view" => $settings["view"]
-				);
+				];
 			}
 
 			return $reports;
@@ -2206,7 +2206,7 @@
 			$views = [];
 			foreach ($interfaces as $interface) {
 				$settings = json_decode($interface["settings"], true);
-				$views[] = array(
+				$views[] = [
 					"id" => $interface["id"],
 					"module" => $interface["module"],
 					"title" => $interface["title"],
@@ -2217,7 +2217,7 @@
 					"actions" => $settings["actions"],
 					"preview_url" => $settings["preview_url"],
 					"related_form" => $settings["related_form"]
-				);
+				];
 			}
 
 			return $views;
@@ -3379,7 +3379,7 @@
 				An array of pages.
 		*/
 
-		static function searchPages($query, $fields = array("nav_title"), $max = 10) {
+		static function searchPages($query, $fields = ["nav_title"], $max = 10) {
 			return BigTree\Page::search($query, $fields, $max, true);
 		}
 
@@ -3797,7 +3797,7 @@
 			Parameters:
 				id - The id of the field type.
 				name - The name.
-				use_cases - Associate array of sections in which the field type can be used (i.e. array("pages" => "on", "modules" => "","callouts" => "","settings" => ""))
+				use_cases - Associate array of sections in which the field type can be used (i.e. ["pages" => "on", "modules" => "","callouts" => "","settings" => ""])
 				self_draw - Whether this field type will draw its <fieldset> and <label> ("on" or a falsey value)
 		*/
 
@@ -4045,7 +4045,7 @@
 
 			// Reset back to not in nav if a non-developer is moving to top level
 			if ($this->Level < 2 && $parent == 0) {
-				SQL::update("bigtree_pages", $page->ID, array("in_nav" => ""));
+				SQL::update("bigtree_pages", $page->ID, ["in_nav" => ""]);
 			}
 
 			$page->updateParent($parent);

@@ -11,7 +11,7 @@
 	// It's a module. Check permissions on this.
 	if ($change->Module) {
 		$module = new Module($change->Module);
-		$form = new ModuleForm(array("table" => $change->Table));
+		$form = new ModuleForm(["table" => $change->Table]);
 
 		$data = $form->getPendingEntry($item_id);
 		$access_level = Auth::user()->getAccessLevel($module, $data["item"], $change->Table);
@@ -23,7 +23,7 @@
 			$access_level = $page->UserAccessLevel;
 		// Pending page we'll check parent's permissions
 		} else {
-			$form = new ModuleForm(array("table" => "bigtree_pages"));
+			$form = new ModuleForm(["table" => "bigtree_pages"]);
 			$data = $form->getPendingEntry($change->ID);
 
 			$page = new Page($data["changes"]["parent"]);

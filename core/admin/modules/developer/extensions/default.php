@@ -10,7 +10,7 @@
 		$query[] = "extensions[]=".urlencode($extension->ID);
 	}
 	
-	$version_info = array_filter((array)@json_decode(cURL::request("http://www.bigtreecms.org/ajax/extensions/version/?".implode("&",$query),false,array(CURLOPT_CONNECTTIMEOUT => 1,CURLOPT_TIMEOUT => 5)),true));
+	$version_info = array_filter((array)@json_decode(cURL::request("http://www.bigtreecms.org/ajax/extensions/version/?".implode("&", $query), false, [CURLOPT_CONNECTTIMEOUT => 1, CURLOPT_TIMEOUT => 5]), true));
 
 	foreach ($extensions as &$extension) {
 		$extension->IgnoreLink = $extension->UpgradeLink = "";
@@ -32,7 +32,7 @@
 	BigTreeTable({
 		container: "#extensions_table",
 		title: "<?=Text::translate("Extensions", true)?>",
-		data: <?=JSON::encodeColumns($extensions, array("name", "id", "version", "ignore_link", "upgrade_link"))?>,
+		data: <?=JSON::encodeColumns($extensions, ["name", "id", "version", "ignore_link", "upgrade_link"])?>,
 		actions: {
 			"edit": "<?=DEVELOPER_ROOT?>extensions/edit/{id}/",
 			"delete": function(id) {

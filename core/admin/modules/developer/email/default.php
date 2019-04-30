@@ -3,14 +3,14 @@
 
 	$email_service = new Email;
 
-	$services = array(
+	$services = [
 		"Local" => Text::translate("Local Server"),
 		"SMTP" => Text::translate("SMTP"),
 		"Mandrill" => Text::translate("Mandrill"),
 		"Mailgun" => Text::translate("Mailgun"),
 		"Postmark" => Text::translate("Postmark"),
 		"SendGrid" => Text::translate("SendGrid")
-	);
+	];
 ?>
 <div class="container">
 	<header>

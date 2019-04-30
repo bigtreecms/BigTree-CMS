@@ -333,7 +333,15 @@
 	
 	// See if we're requesting something in /ajax/
 	if ($bigtree["path"][1] == "ajax") {
-		$core_ajax_directories = array("two-factor-check","auto-modules","callouts","dashboard","file-browser","pages","tags");
+		$core_ajax_directories = [
+			"two-factor-check",
+			"auto-modules",
+			"callouts",
+			"dashboard",
+			"file-browser",
+			"pages",
+			"tags"
+		];
 		
 		if ($bigtree["path"] && !in_array($bigtree["path"][2], $core_ajax_directories)) {
 			// If the current user isn't allowed in the module for the ajax, stop them.

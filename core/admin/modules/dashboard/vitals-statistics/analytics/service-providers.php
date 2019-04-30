@@ -15,7 +15,7 @@
 			visits: { title: "<?=Text::translate("Visits")?>", size: 115, center: true },
 			views: { title: "<?=Text::translate("Views")?>", size: 115, center: true }
 		},
-		data: <?=JSON::encodeColumns($cache["service_providers"],array("name","visits","views"))?>,
+		data: <?=JSON::encodeColumns($cache["service_providers"], ["name","visits","views"])?>,
 		searchable: true,
 		sortable: true
 	});

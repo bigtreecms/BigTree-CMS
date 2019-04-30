@@ -13,11 +13,11 @@
 	foreach (Cron::$Plugins as $extension => $plugins) {
 		foreach ($plugins as $id => $details) {
 			$id = $extension."*".$id;
-			$cron_table_data[] = array(
+			$cron_table_data[] = [
 				"id" => $id,
 				"name" => $details["name"],
 				"approved" => empty($cron_settings[$id]["disabled"]) ? "on" : ""
-			);
+			];
 			$cron_titles[] = $details["name"];
 		}
 	}
@@ -31,22 +31,22 @@
 
 	// We're going to get the position setups and the multi-sort the list to get it in order
 	foreach (DailyDigest::$CoreOptions as $id => $details) {
-		$panes[] = array(
+		$panes[] = [
 			"id" => $id,
 			"name" => $details["name"],
 			"approved" => empty($digest_settings[$id]["disabled"]) ? "on" : ""
-		);
+		];
 		$positions[] = isset($digest_settings[$id]["position"]) ? $digest_settings[$id]["position"] : 0;
 	}
 
 	foreach (DailyDigest::$Plugins as $extension => $set) {
 		foreach ($set as $id => $details) {
 			$id = $extension."*".$id;
-			$panes[] = array(
+			$panes[] = [
 				"id" => $id,
 				"name" => $details["name"],
 				"approved" => empty($digest_settings[$id]["disabled"]) ? "on" : ""
-			);
+			];
 			$positions[] = isset($digest_settings[$id]["position"]) ? $digest_settings[$id]["position"] : 0;
 		}
 	}

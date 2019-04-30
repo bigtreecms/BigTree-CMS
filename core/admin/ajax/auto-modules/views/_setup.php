@@ -16,7 +16,7 @@
 	$module = new Module($view->Module);
 
 	// Get the pending item to check permissions
-	$form = new ModuleForm(array("table" => $table));
+	$form = new ModuleForm(["table" => $table]);
 	$pending_entry = $form->getPendingEntry($id);
 	$item = $pending_entry["item"];
 

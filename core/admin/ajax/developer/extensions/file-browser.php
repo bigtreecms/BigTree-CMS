@@ -11,19 +11,19 @@
 		$google = new CloudStorage\Google;
 
 		if ($amazon->Active) {
-			$cloud_options[] = array("class" => "amazon", "title" => "Amazon S3");
+			$cloud_options[] = ["class" => "amazon", "title" => "Amazon S3"];
 		}
 
 		if ($google->Active) {
-			$cloud_options[] = array("class" => "google", "title" => "Google Cloud Storage");
+			$cloud_options[] = ["class" => "google", "title" => "Google Cloud Storage"];
 		}
 
 		if ($rackspace->Active) {
-			$cloud_options[] = array("class" => "rackspace", "title" => "Rackspace Cloud Files");
+			$cloud_options[] = ["class" => "rackspace", "title" => "Rackspace Cloud Files"];
 		}
 
 		if (count($cloud_options)) {
-			array_unshift($cloud_options, array("class" => "server", "title" => Text::translate("Local Server")));
+			array_unshift($cloud_options, ["class" => "server", "title" => Text::translate("Local Server")]);
 		}
 	}
 

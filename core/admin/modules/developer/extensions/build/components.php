@@ -40,7 +40,7 @@
 						<select id="extension_field_modules" class="custom_control" data-key="modules">
 							<?php
 								$groups = ModuleGroup::all("name ASC");
-								$groups[] = array("id" => "0", "name" => "Ungrouped");
+								$groups[] = ["id" => "0", "name" => "Ungrouped"];
 								
 								foreach ($groups as $group_id) {
 									$modules = Module::allByGroup($group_id["id"], "name ASC");

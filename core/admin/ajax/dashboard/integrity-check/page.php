@@ -29,7 +29,7 @@
 	<section class="integrity_errors">
 		<a href="<?=ADMIN_ROOT?>pages/edit/<?=$page->ID?>/" target="_blank"><?=Text::translate("Edit")?></a>
 		<span class="icon_small icon_small_warning"></span>
-		<p><?=Text::translate($message, false, array(":url:" => $error, ":page:" => $page->NavigationTitle, ":field:" => $title))?></p>
+		<p><?=Text::translate($message, false, [":url:" => $error, ":page:" => $page->NavigationTitle, ":field:" => $title])?></p>
 	</section>
 </li>
 <?php

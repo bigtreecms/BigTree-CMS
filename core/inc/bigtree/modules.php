@@ -181,7 +181,7 @@
 			}
 			
 			SQL::delete($this->Table, $item);
-			SQL::delete("bigtree_pending_changes", array("table" => $this->Table, "item_id" => $item));
+			SQL::delete("bigtree_pending_changes", ["table" => $this->Table, "item_id" => $item]);
 			ModuleView::uncacheForAll($this->Table, $item);
 		}
 		
@@ -475,7 +475,7 @@
 		
 		function getMatching($fields, $values, $sortby = false, $limit = false, $exact = false, $columns = false) {
 			if (!is_array($fields)) {
-				$search = array($fields => $values);
+				$search = [$fields => $values];
 			} else {
 				$search = array_combine($fields, $values);
 			}

@@ -138,7 +138,7 @@ BigTreeBar.body = document.getElementsByTagName("body")[0];
 BigTreeBar.css = document.createElement('link');
 BigTreeBar.css.setAttribute("rel","stylesheet");
 BigTreeBar.css.setAttribute("type","text/css");
-BigTreeBar.css.setAttribute("href","<?=str_replace(array("http://","https://"),"//",ADMIN_ROOT)?>css/bar.css");
+BigTreeBar.css.setAttribute("href","<?=str_replace(["http://", "https://"], "//", ADMIN_ROOT)?>css/bar.css");
 BigTreeBar.head.appendChild(BigTreeBar.css);
 
 // Add the bar tab

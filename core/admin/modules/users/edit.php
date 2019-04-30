@@ -141,19 +141,19 @@
 		$user->Level = intval($saved["level"]);
 		
 		$permission_data = json_decode($saved["permissions"], true);
-		$user->Permissions = array(
+		$user->Permissions = [
 			"page" => $permission_data["Page"],
 			"module" => $permission_data["Module"],
 			"resources" => $permission_data["Resource"],
 			"module_gbp" => $permission_data["ModuleGBP"]
-		);
+		];
 		
 		$error = $saved["error"];
 	}
 
 	
 	$groups = ModuleGroup::all("name ASC", true);
-	$groups[] = array("id" => 0, "name" => Text::translate("- Ungrouped -"));
+	$groups[] = ["id" => 0, "name" => Text::translate("- Ungrouped -")];
 ?>
 <div class="container">
 	<?php

@@ -57,7 +57,7 @@
 		<ul id="image_list">
 			<?php
 				foreach ($items as $item) {
-					$item["column1"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["column1"]);
+					$item["column1"] = str_replace(["{wwwroot}", "{staticroot}"], [WWW_ROOT, STATIC_ROOT], $item["column1"]);
 					
 					if ($prefix) {
 						$preview_image = FileSystem::getPrefixedFile($item["column1"],$prefix);
@@ -129,7 +129,7 @@
 		<ul>
 			<?php
 				foreach ($pending_items as $item) {
-					$item["column1"] = str_replace(array("{wwwroot}","{staticroot}"),array(WWW_ROOT,STATIC_ROOT),$item["column1"]);
+					$item["column1"] = str_replace(["{wwwroot}", "{staticroot}"], [WWW_ROOT, STATIC_ROOT], $item["column1"]);
 					
 					if ($prefix) {
 						$preview_image = FileSystem::getPrefixedFile($item["column1"],$prefix);

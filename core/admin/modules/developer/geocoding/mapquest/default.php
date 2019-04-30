@@ -7,7 +7,7 @@
 	<form method="post" action="<?=DEVELOPER_ROOT?>geocoding/mapquest/activate/">
 	  <?php CSRF::drawPOSTToken(); ?>
 		<section>
-			<p><?=Text::translate('To use the MapQuest Geocoder API you will need a MapQuest AppKey. To acquire a key, please reference <a href=":mq_link:" target="_blank">MapQuest Geocoding API Web Service</a>.', false, array(":mq_link:" => "https://business.mapquest.com/products/geocoding-api/"))?></p>
+			<p><?=Text::translate('To use the MapQuest Geocoder API you will need a MapQuest AppKey. To acquire a key, please reference <a href=":mq_link:" target="_blank">MapQuest Geocoding API Web Service</a>.', false, [":mq_link:" => "https://business.mapquest.com/products/geocoding-api/"])?></p>
 			<hr />
 			<fieldset>
 				<label for="mapquest_field_key"><?=Text::translate("MapQuest AppKey / Consumer Key")?></label>

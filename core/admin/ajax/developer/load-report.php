@@ -7,12 +7,12 @@
 	 * @global string $type
 	 */
 
-	$filter_types = array(
+	$filter_types = [
 		"search" => Text::translate("Simple Search"),
 		"dropdown" => Text::translate("Dropdown Select"),
 		"boolean" => Text::translate("Yes/No/Both Select"),
 		"date-range" => Text::translate("Date Range")
-	);
+	];
 	$report_type = isset($_POST["report_type"]) ? $_POST["report_type"] : $type;
 	
 	$used_fields = [];
@@ -34,10 +34,10 @@
 		$table_description = SQL::describeTable($table);
 		foreach ($table_description["columns"] as $column => $details) {
 			if (!in_array($column,$used_fields)) {
-				$unused_fields[] = array("field" => $column, "title" => str_replace(array("Url","Pdf","Sql"),array("URL","PDF","SQL"),ucwords(str_replace(array("-","_")," ",$details["name"]))));
+				$unused_fields[] = ["field" => $column, "title" => str_replace(["Url", "Pdf", "Sql"], ["URL", "PDF", "SQL"], ucwords(str_replace(["-", "_"], " ", $details["name"])))];
 			}
 			if (!in_array($column,$used_filters)) {
-				$unused_filters[] = array("field" => $column, "title" => str_replace(array("Url","Pdf","Sql"),array("URL","PDF","SQL"),ucwords(str_replace(array("-","_")," ",$details["name"]))));
+				$unused_filters[] = ["field" => $column, "title" => str_replace(["Url", "Pdf", "Sql"], ["URL", "PDF", "SQL"], ucwords(str_replace(["-", "_"], " ", $details["name"])))];
 			}
 			$table_columns[] = $column;
 		}
@@ -49,12 +49,12 @@
 		if ($table) {
 			$table_info = SQL::describeTable($table);
 		} else {
-			$table_info = array("foreign_keys" => [], "columns" => []);
+			$table_info = ["foreign_keys" => [], "columns" => []];
 		}
 
 		foreach ($table_info["columns"] as $column) {
 			$table_columns[] = $column["name"];
-			$title = str_replace(array("Url","Pdf","Sql"),array("URL","PDF","SQL"),ucwords(str_replace(array("-","_")," ",$column["name"])));
+			$title = str_replace(["Url", "Pdf", "Sql"], ["URL", "PDF", "SQL"], ucwords(str_replace(["-", "_"], " ", $column["name"])));
 			$fields[$column["name"]] = $title;
 
 			$type = "search";
@@ -65,7 +65,7 @@
 				$type = "boolean";
 			}
 
-			$filters[$column["name"]] = array("title" => $title,"type" => $type);
+			$filters[$column["name"]] = ["title" => $title, "type" => $type];
 		}
 	}
 

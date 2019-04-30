@@ -2,17 +2,19 @@
 	namespace BigTree;
 
 	$random_image = function($width, $height, $file) {
-		$services = array(
+		$services = [
 			"http://lorempixel.com/width/height",
 			"https://placeimg.com/width/height/any",
 			"http://www.fillmurray.com/width/height",
 			"https://placekitten.com/width/height"
-		);
+		];
 		$data = false;
+		
 		while (!$data) {
-			$url = str_replace(array("width", "height"), array($width, $height), $services[array_rand($services)]);
+			$url = str_replace(["width", "height"], [$width, $height], $services[array_rand($services)]);
 			$data = cURL::request($url);
 		}
+		
 		file_put_contents($file, $data);
 		chmod($file, 0777);
 	};
@@ -108,7 +110,10 @@
 			$count = rand(3, 9);
 			$data = [];
 			while ($count) {
-				$data[] = array("caption" => LoremIpsum::getWords(rand(6, 10)), "image" => str_replace(SITE_ROOT, "{wwwroot}", $generate_image($options)));
+				$data[] = [
+					"caption" => LoremIpsum::getWords(rand(6, 10)), 
+					"image" => str_replace(SITE_ROOT, "{wwwroot}", $generate_image($options))
+				];
 				$count--;
 			}
 
@@ -130,12 +135,12 @@
 				$random_id = SQL::fetchSingle("SELECT id FROM `".$options["mtm-other-table"]."` ORDER BY RAND() LIMIT 1");
 
 				if (!in_array($random_id, $used)) {
-					$many_to_many[] = array(
+					$many_to_many[] = [
 						"table" => $options["mtm-connecting-table"],
 						"my_field" => $options["mtm-my-id"],
 						"other_field" => $options["mtm-other-id"],
 						"value" => $random_id
-					);
+					];
 					$used[] = $random_id;
 				}
 

@@ -88,6 +88,6 @@
 	BigTreeFormValidator("form.module");
 </script>
 <?php
-	$bigtree["html_fields"] = array("setting_description");
+	$bigtree["html_fields"] = ["setting_description"];
 	include Router::getIncludePath("admin/layouts/_html-field-loader.php");
 ?>

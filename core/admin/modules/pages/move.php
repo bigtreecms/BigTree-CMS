@@ -34,7 +34,7 @@
 			foreach ($children as $child) {
 				if ($child["id"] != $page->ID) {
 					$grandchildren = SQL::fetchAll("SELECT * FROM bigtree_pages WHERE parent = ? AND archived != 'on' ORDER BY nav_title", $child["id"]);
-					$classes = array("title");
+					$classes = ["title"];
 					
 					if (!count($grandchildren)) {
 						$classes[] = "disabled";

@@ -133,12 +133,12 @@
 	// Track resource allocation
 	Resource::allocate("bigtree_pages", $id);
 	
-	$_SESSION["bigtree_admin"]["form_data"] = array(
+	$_SESSION["bigtree_admin"]["form_data"] = [
 		"page" => $id,
 		"return_link" => $redirect_url,
 		"edit_link" => ADMIN_ROOT."pages/edit/$id/",
 		"errors" => $bigtree["errors"]
-	);
+	];
 	
 	if (count($bigtree["crops"])) {
 		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = Cache::putUnique("org.bigtreecms.crops", $bigtree["crops"]);

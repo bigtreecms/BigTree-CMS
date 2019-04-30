@@ -8,7 +8,7 @@
 	$extension = new Extension($bigtree["commands"][0]);
 	$manifest = $extension->Manifest;
 	
-	$_SESSION["bigtree_admin"]["developer"]["package"] = array(
+	$_SESSION["bigtree_admin"]["developer"]["package"] = [
 		"id" => $manifest["id"],
 		"version" => $manifest["version"],
 		"compatibility" => $manifest["compatibility"],
@@ -24,7 +24,7 @@
 		"feeds" => [],
 		"field_types" => [],
 		"tables" => []
-	);
+	];
 	
 	foreach ($manifest["components"] as $key => $data) {
 		if ($key == "tables") {

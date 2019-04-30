@@ -42,14 +42,14 @@
 	// Basic table
 	BigTreeTable($.extend(table_config,{
 		container: "#basic_templates",
-		data: <?=JSON::encodeColumns($basic_data,array("id","name"))?>,
+		data: <?=JSON::encodeColumns($basic_data, ["id", "name"])?>,
 		title: "<?=Text::translate("Basic Templates", true)?>"
 	}));
 
 	// Routed table
 	BigTreeTable($.extend(table_config,{
 		container: "#routed_templates",
-		data: <?=JSON::encodeColumns($routed_data,array("id","name"))?>,
+		data: <?=JSON::encodeColumns($routed_data, ["id", "name"])?>,
 		title: "<?=Text::translate("Routed Templates", true)?>"
 	}));
 </script>

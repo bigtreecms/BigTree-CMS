@@ -15,10 +15,10 @@
 		if (!array_key_exists($change->Module, $change_modules)) {
 			// Pages
 			if ($change->Module == 0) {
-				$change_modules[0] = array("title" => Text::translate("Pages"), "count" => 1);
+				$change_modules[0] = ["title" => Text::translate("Pages"), "count" => 1];
 			} else {
 				$module = new Module($change->Module);
-				$change_modules[$change->Module] = array("title" => $module->Name, "icon" => $module->Icon, "count" => 1);
+				$change_modules[$change->Module] = ["title" => $module->Name, "icon" => $module->Icon, "count" => 1];
 			}
 		} else {
 			$change_modules[$change->Module]["count"]++;
@@ -30,10 +30,10 @@
 		if (!array_key_exists($change->Module, $my_change_modules)) {
 			// Pages
 			if ($change->Module == 0) {
-				$my_change_modules[0] = array("title" => Text::translate("Pages"), "count" => 1);
+				$my_change_modules[0] = ["title" => Text::translate("Pages"), "count" => 1];
 			} else {
 				$module = new Module($change->Module);
-				$my_change_modules[$change->Module] = array("title" => $module->Name, "icon" => $module->Icon, "count" => 1);
+				$my_change_modules[$change->Module] = ["title" => $module->Name, "icon" => $module->Icon, "count" => 1];
 			}
 		} else {
 			$my_change_modules[$change->Module]["count"]++;

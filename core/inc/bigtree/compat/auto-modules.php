@@ -96,7 +96,7 @@
 
 		static function createItem($table, $data, $many_to_many = [], $tags = [], $publishing_change = null, $open_graph = []) {
 			// Create a generic module form
-			$form = new BigTree\ModuleForm(array("table" => $table));
+			$form = new BigTree\ModuleForm(["table" => $table]);
 
 			return $form->createEntry($data, $many_to_many, $tags, $publishing_change, $open_graph);
 		}
@@ -123,11 +123,11 @@
 			if ($embedded_form) {
 				trigger_error("BigTree 5.0 does not support embeddable forms.", E_USER_ERROR);
 			} else {
-				$form = new BigTree\ModuleForm(array(
+				$form = new BigTree\ModuleForm([
 					"module" => $module,
 					"table" => $table,
-					"settings" => json_encode(array("hooks" => array("publish" => $publish_hook)))
-				));
+					"settings" => json_encode(["hooks" => ["publish" => $publish_hook]])
+				]);
 			}
 			
 			return $form->createPendingEntry($data, $many_to_many, $tags);
@@ -144,7 +144,7 @@
 
 		static function deleteItem($table, $id) {
 			// Create fake module form
-			$form = new BigTree\ModuleForm(array("table" => $table));
+			$form = new BigTree\ModuleForm(["table" => $table]);
 
 			$form->deleteEntry($id);
 		}
@@ -160,7 +160,7 @@
 		
 		static function deletePendingItem($table, $id) {
 			// Create fake module form
-			$form = new BigTree\ModuleForm(array("table" => $table));
+			$form = new BigTree\ModuleForm(["table" => $table]);
 
 			$form->deletePendingEntry($id);
 		}
@@ -290,7 +290,7 @@
 
 		static function getItem($table, $id) {
 			// Create fake form
-			$form = new BigTree\ModuleForm(array("table" => $table));
+			$form = new BigTree\ModuleForm(["table" => $table]);
 
 			return $form->getEntry($id);
 		}
@@ -353,7 +353,7 @@
 
 		static function getPendingItem($table, $id) {
 			// Create fake form
-			$form = new BigTree\ModuleForm(array("table" => $table));
+			$form = new BigTree\ModuleForm(["table" => $table]);
 
 			return $form->getPendingEntry($id);
 		}
@@ -706,11 +706,11 @@
 		
 		static function submitChange($module, $table, $id, $data, $many_to_many = [], $tags = [], $publish_hook = null) {
 			// Create fake module form
-			$form = new BigTree\ModuleForm(array(
+			$form = new BigTree\ModuleForm([
 				"module" => $module,
 				"table" => $table,
-				"settings" => json_encode(array("hooks" => array("publish" => $publish_hook)))
-			));
+				"settings" => json_encode(["hooks" => ["publish" => $publish_hook]])
+			]);
 
 			return $form->createChangeRequest($id, $data, $many_to_many, $tags);
 		}
@@ -756,7 +756,7 @@
 		
 		static function updateItem($table, $id, $data, $many_to_many = [], $tags = []) {
 			// Create a generic module form
-			$form = new BigTree\ModuleForm(array("table" => $table));
+			$form = new BigTree\ModuleForm(["table" => $table]);
 
 			$form->updateEntry($id, $data, $many_to_many, $tags);
 		}

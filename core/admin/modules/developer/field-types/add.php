@@ -9,7 +9,12 @@
 		unset($_SESSION["bigtree_admin"]["saved"]);
 	} else {
 		$field_type = new FieldType;
-		$field_type->UseCases = array("templates" => "on", "modules" => "on","callouts" => "on","settings" => "on");
+		$field_type->UseCases = [
+			"templates" => "on", 
+			"modules" => "on",
+			"callouts" => "on",
+			"settings" => "on"
+		];
 		$show_error = false;
 	}
 ?>

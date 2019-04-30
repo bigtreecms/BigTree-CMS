@@ -19,7 +19,7 @@
 				$modules[$module_id]->Changes[] = $change;
 			} else {
 				$modules[$module_id] = $change->Module;
-				$modules[$module_id]->Changes = array($change);
+				$modules[$module_id]->Changes = [$change];
 			}
 		}
 	}
@@ -117,10 +117,10 @@
 							$item = $view_data["p".$change->ID];
 						}
 					} else {
-						$item = array("id" => $change->ItemID ? $change->ItemID : "p".$change->ID);
+						$item = ["id" => $change->ItemID ? $change->ItemID : "p".$change->ID];
 					}
 
-					$image = str_replace(array("{staticroot}","{wwwroot}"),array(STATIC_ROOT,WWW_ROOT),$item["column1"]);
+					$image = str_replace(["{staticroot}", "{wwwroot}"], [STATIC_ROOT, WWW_ROOT], $item["column1"]);
 
 					if ($view->Settings["prefix"]) {
 						$image = FileSystem::getPrefixedFile($image, $view->Settings["prefix"]);

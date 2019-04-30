@@ -87,7 +87,7 @@
 		
 			if (count($template->Fields)) {
 				foreach ($template->Fields as $resource) {
-					$field = new Field(array(
+					$field = new Field([
 						"type" => $resource["type"],
 						"title" => $resource["title"],
 						"subtitle" => $resource["subtitle"],
@@ -97,7 +97,7 @@
 						"tabindex" => $bigtree["tabindex"],
 						"settings" => $resource["settings"],
 						"forced_recrop" => isset($forced_recrops[$resource["id"]]) ? true : false
-					));
+					]);
 
 					$field->draw();
 					$drawn = true

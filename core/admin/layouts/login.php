@@ -6,7 +6,7 @@
 	 * @global Page $site
 	 */
 	
-	$root = str_replace(array("http://", "https://"), "//", ADMIN_ROOT);
+	$root = str_replace(["http://", "https://"], "//", ADMIN_ROOT);
 ?>
 <!doctype html> 
 <!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
