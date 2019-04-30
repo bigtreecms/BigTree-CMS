@@ -313,38 +313,36 @@
 				$column_count++;
 				SQL::query("ALTER TABLE bigtree_module_view_cache ADD COLUMN column$column_count TEXT NOT NULL AFTER column".($column_count - 1));
 			}
+
+			// Paginate out for high record counts to avoid out of memory errors
+			$record_count = SQL::fetchSingle("SELECT COUNT(*) FROM `".$this->Table."`");
+			$total_pages = ceil($record_count / 1000);
 			
-			// Cache all records
-			$published = SQL::fetchAll("SELECT `".$this->Table."`.*, bigtree_pending_changes.changes AS bigtree_changes 
-										FROM `".$this->Table."` LEFT JOIN bigtree_pending_changes 
-										ON (bigtree_pending_changes.item_id = `".$this->Table."`.id AND 
-											bigtree_pending_changes.table = '".$this->Table."')");
-			$pending = SQL::fetchAll("SELECT * FROM bigtree_pending_changes 
-									  WHERE `table` = '".$this->Table."' AND item_id IS NULL");
-			
-			foreach ($published as $item) {
-				$original_item = $item;
+			for ($page = 1; $page <= $total_pages; $page++) {
+				$limit = ($page - 1) * 1000;
 				
-				// Apply pending changes to the published entry before caching
-				if ($item["bigtree_changes"]) {
-					$changes = json_decode($item["bigtree_changes"], true);
-					foreach ($changes as $key => $change) {
-						$item[$key] = $change;
-					}
+				// Get a page of records (and include their pending changes)
+				$query = SQL::query("SELECT `".$this->Table."`.*, bigtree_pending_changes.changes AS bigtree_changes 
+									 FROM `".$this->Table."` LEFT JOIN bigtree_pending_changes 
+									 ON (bigtree_pending_changes.item_id = `".$this->Table."`.id 
+									 AND bigtree_pending_changes.table = '".$this->Table."') 
+									 ORDER BY `".$this->Table."`.id ASC LIMIT $limit, 1000");
+			
+				while ($item = $query->fetch()) {
+					$original_item = $item;
+					
+					if ($item["bigtree_changes"]) {
+						$changes = json_decode($item["bigtree_changes"],true);
+						
+						foreach ($changes as $key => $change) {
+							$item[$key] = $change;
+						}
+					}	
+					
+					$this->cache($item, $parsers, $poplists, $original_item);
 				}
-				
-				$this->cache($item, $parsers, $poplists, $original_item);
 			}
-			
-			foreach ($pending as $pending_change) {
-				$item = json_decode($pending_change["changes"], true);
-				$item["bigtree_pending"] = true;
-				$item["bigtree_pending_owner"] = $pending_change["user"];
-				$item["id"] = "p".$pending_change["id"];
-				
-				$this->cache($item, $parsers, $poplists, $item);
-			}
-			
+
 			return true;
 		}
 		
