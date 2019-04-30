@@ -9,7 +9,7 @@
 		global $recurse_nav;
 		
 		$page = new Page($parent);
-		$response = array();
+		$response = [];
 		
 		foreach ($page->Children as $child) {
 			// We're going to use single letter properties to make this as light a JSON load as possible.

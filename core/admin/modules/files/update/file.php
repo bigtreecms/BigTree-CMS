@@ -43,7 +43,7 @@
 	
 	if (is_array($meta_fields) && count($meta_fields)) {
 		$bigtree["post_data"] = $_POST;
-		$bigtree["file_data"] = Field::getParsedFilesArray();
+		$bigtree["file_data"] = Field::getParsedFiles[];
 		
 		foreach ($meta_fields as $meta) {
 			$field = new Field([

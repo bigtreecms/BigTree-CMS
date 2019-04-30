@@ -6,8 +6,8 @@
 	$changes = PendingChange::allPublishableByUser($user);
 
 	// Go through and get all the modules and pages, separate them out.
-	$modules = array();
-	$pages = array();
+	$modules = [];
+	$pages = [];
 	
 	foreach ($changes as $change) {
 		if ($change->Table == "bigtree_pages") {

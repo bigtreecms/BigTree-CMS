@@ -22,7 +22,7 @@
 		$bigtree["crops"] = [];
 		$bigtree["errors"] = [];
 		$bigtree["post_data"] = $_POST;
-		$bigtree["file_data"] = Field::getParsedFilesArray();
+		$bigtree["file_data"] = Field::getParsedFiles[];
 		
 		$field = new Field([
 			"type" => $setting->Type,

@@ -9,9 +9,9 @@
 	$interfaces = ModuleInterface::allByModule($id, "title ASC", true);
 	
 	$interface_list = array(
-		"form" => array("name" => "Forms", "items" => array()),
-		"view" => array("name" => "Views", "items" => array()),
-		"report" => array("name" => "Reports", "items" => array())
+		"form" => array("name" => "Forms", "items" => []),
+		"view" => array("name" => "Views", "items" => []),
+		"report" => array("name" => "Reports", "items" => [])
 	);
 	
 	// Sort interfaces into relevant sections

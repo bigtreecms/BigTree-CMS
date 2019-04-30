@@ -45,7 +45,7 @@
 		It should be alphanumeric as it is also used in tokenization of URLs.
 	*/
 
-	$bigtree["config"]["sites"] = array();
+	$bigtree["config"]["sites"] = [];
 
 	/*
 		Example

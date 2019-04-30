@@ -18,7 +18,7 @@
 	// Check for errors
 	$table_description = SQL::describeTable($table);
 	$columns = $table_description["columns"];
-	$errors = array();
+	$errors = [];
 
 	if (($type == "draggable" || $type == "draggable-group" || $settings["draggable"]) && !$columns["position"]) {
 		$errors[] = Text::translate("Sorry, but you can't create a draggable view without a 'position' column in your table.  Please create a position column (integer) in your table and try again.");
@@ -55,7 +55,7 @@
 <?php
 	} else {
 		// Clean up actions
-		$clean_actions = array();
+		$clean_actions = [];
 		
 		foreach ($actions as $key => $val) {
 			if ($val) {

@@ -4,7 +4,7 @@
 	$extensions = Extension::allByType("extension", "last_updated DESC", true);
 
 	// Get version info on our installed extensions
-	$query = array();
+	$query = [];
 	
 	foreach ($extensions as $extension) {
 		$query[] = "extensions[]=".urlencode($extension->ID);

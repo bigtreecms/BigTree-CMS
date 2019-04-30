@@ -62,7 +62,7 @@
 	$bigtree["errors"] = [];
 	$bigtree["entry"] = [];
 	$bigtree["post_data"] = $_POST;
-	$bigtree["file_data"] = Field::getParsedFilesArray();
+	$bigtree["file_data"] = Field::getParsedFiles[];
 	
 	$form->Fields = Extension::runHooks("fields", "form", $form->Fields, [
 		"form" => $form,

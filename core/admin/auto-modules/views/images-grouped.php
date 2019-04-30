@@ -22,7 +22,7 @@
 	}
 
 	// Setup custom overrides for group titles when we're grouping by a special BigTree column
-	$group_title_overrides = array();
+	$group_title_overrides = [];
 	
 	if ($view->Settings["group_field"] == "featured") {
 		$group_title_overrides["on"] = "Featured";

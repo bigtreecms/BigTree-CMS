@@ -15,13 +15,13 @@
 	);
 	$report_type = isset($_POST["report_type"]) ? $_POST["report_type"] : $type;
 	
-	$used_fields = array();
-	$used_filters = array();
-	$unused_fields = array();
-	$unused_filters = array();
+	$used_fields = [];
+	$used_filters = [];
+	$unused_fields = [];
+	$unused_filters = [];
 	
 	$table = isset($_POST["table"]) ? $_POST["table"] : $table;
-	$table_columns = array();
+	$table_columns = [];
 
 	if (isset($fields)) {
 		foreach ($fields as $key => $field) {
@@ -42,14 +42,14 @@
 			$table_columns[] = $column;
 		}
 	} else {
-		$fields = array();
-		$filters = array();
+		$fields = [];
+		$filters = [];
 
 		// To tolerate someone selecting the blank spot in the table dropdown again when creating a form.
 		if ($table) {
 			$table_info = SQL::describeTable($table);
 		} else {
-			$table_info = array("foreign_keys" => array(), "columns" => array());
+			$table_info = array("foreign_keys" => [], "columns" => []);
 		}
 
 		foreach ($table_info["columns"] as $column) {

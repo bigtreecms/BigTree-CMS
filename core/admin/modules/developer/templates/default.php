@@ -2,7 +2,7 @@
 	namespace BigTree;
 
 	$templates = Template::all("position DESC, id ASC", true);
-	$basic_data = $routed_data = array();
+	$basic_data = $routed_data = [];
 	
 	foreach ($templates as $template) {
 		if ($template["routed"]) {

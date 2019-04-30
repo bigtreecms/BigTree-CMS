@@ -3,7 +3,7 @@
 	
 	CSRF::verify();
 	
-	$errors = array();
+	$errors = [];
 	
 	// Check if the table exists
 	if (SQL::tableExists($_POST["table"])) {

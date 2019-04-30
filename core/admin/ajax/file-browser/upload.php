@@ -33,7 +33,7 @@
 	
 	$folder = new ResourceFolder(isset($_POST["folder"]) ? $_POST["folder"] : 0);
 	$permission_level = $folder->UserAccessLevel;
-	$errors = array();
+	$errors = [];
 	
 	// This is an iFrame, so we're going to call the parent from it.
 	echo '<html><body><script>';
@@ -123,7 +123,7 @@
 						
 						if (!$error) {
 							// Now let's make the thumbnails we need for the image manager
-							$thumbs = array();
+							$thumbs = [];
 							$pinfo = pathinfo($file_name);
 							
 							// Create a bunch of thumbnails

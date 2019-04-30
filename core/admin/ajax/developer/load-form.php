@@ -44,7 +44,7 @@
 		if ($table) {
 			$table_description = SQL::describeTable($table);
 		} else {
-			$table_description = array("foreign_keys" => array(), "columns" => array());
+			$table_description = array("foreign_keys" => [], "columns" => []);
 		}
 
 		// Let's relate the foreign keys based on the local column so we can check easier.

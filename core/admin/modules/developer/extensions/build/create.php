@@ -37,10 +37,10 @@
 	$keywords = array_map("trim", $keywords);
 	
 	// Fix licenses into an array
-	$license_array = array();
+	$license_array = [];
 	
 	if (array_filter((array) $licenses)) {
-		$license_array = array();
+		$license_array = [];
 		foreach ($licenses as $license) {
 			$license_array[$license] = $available_licenses["Open Source"][$license];
 		}
@@ -69,14 +69,14 @@
 		"author" => $author,
 		"licenses" => $license_array,
 		"components" => array(
-			"module_groups" => array(),
-			"modules" => array(),
-			"templates" => array(),
-			"callouts" => array(),
-			"settings" => array(),
-			"feeds" => array(),
-			"field_types" => array(),
-			"tables" => array()
+			"module_groups" => [],
+			"modules" => [],
+			"templates" => [],
+			"callouts" => [],
+			"settings" => [],
+			"feeds" => [],
+			"field_types" => [],
+			"tables" => []
 		)
 	);
 	
@@ -290,7 +290,7 @@
 		// Increment revision numbers
 		$revision = $package["revision"] = intval($existing_json["revision"]) + 1;
 		$package["sql_revisions"] = (array) $existing_json["sql_revisions"];
-		$package["sql_revisions"][$revision] = array();
+		$package["sql_revisions"][$revision] = [];
 		
 		// Diff the old tables
 		foreach ($existing_json["components"]["tables"] as $table => $create_statement) {

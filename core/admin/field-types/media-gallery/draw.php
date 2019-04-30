@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	$items = is_array($this->Value) ? $this->Value : array();
+	$items = is_array($this->Value) ? $this->Value : [];
 	$max = !empty($this->Settings["max"]) ? $this->Settings["max"] : 0;
 	$current = 0;
 

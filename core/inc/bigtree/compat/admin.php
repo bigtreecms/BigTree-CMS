@@ -476,7 +476,7 @@
 				This function is disabled in BigTree 5.0+
 		*/
 
-		function createModuleEmbedForm($module, $title, $table, $fields, $hooks = array(), $default_position = "", $default_pending = "", $css = "", $redirect_url = "", $thank_you_message = "") {
+		function createModuleEmbedForm($module, $title, $table, $fields, $hooks = [], $default_position = "", $default_pending = "", $css = "", $redirect_url = "", $thank_you_message = "") {
 			trigger_error("BigTree 5.0 does not support embeddable forms.", E_USER_ERROR);
 		}
 
@@ -499,7 +499,7 @@
 				The new form id.
 		*/
 
-		function createModuleForm($module, $title, $table, $fields, $hooks = array(), $default_position = "", $return_view = false, $return_url = "", $tagging = "") {
+		function createModuleForm($module, $title, $table, $fields, $hooks = [], $default_position = "", $return_view = false, $return_url = "", $tagging = "") {
 			$form = BigTree\ModuleForm::create($module, $title, $table, $fields, $hooks, $default_position, $return_view ?: null, $return_url, $tagging ? true : false);
 
 			return $form->ID;
@@ -596,7 +596,7 @@
 			$parent = 0;
 			$title = $nav_title = $meta_description = $external = $template = $in_nav = $route = "";
 			$seo_invisible = $publish_at = $expire_at = $trunk = $new_window = $max_age = false;
-			$resources = array();
+			$resources = [];
 
 			// Loop through the posted data, make sure no session hijacking is done.
 			foreach ($data as $key => $val) {
@@ -631,7 +631,7 @@
 				The change id.
 		*/
 
-		function createPendingChange($table, $item_id, $changes, $mtm_changes = array(), $tags_changes = array(), $module = "") {
+		function createPendingChange($table, $item_id, $changes, $mtm_changes = [], $tags_changes = [], $module = "") {
 			$change = BigTree\PendingChange::create($table, $item_id, $changes, $mtm_changes, $tags_changes, $module);
 
 			return $change->ID;
@@ -792,7 +792,7 @@
 		function createUser($data) {
 			// Set defaults
 			$email = $password = $name = $company = $level = $daily_digest = $timezone = "";
-			$permissions = $alerts = array();
+			$permissions = $alerts = [];
 
 			// Loop through and create our expected parameters.
 			foreach ($data as $key => $val) {
@@ -1368,7 +1368,7 @@
 				<getCachedAccessLevel>
 		*/
 
-		function getAccessLevel($module, $item = array(), $table = "", $user = false) {
+		function getAccessLevel($module, $item = [], $table = "", $user = false) {
 			$module = new BigTree\Module($module);
 			
 			return BigTree\Auth::user($user)->getAccessLevel($module, $item, $table);
@@ -1455,7 +1455,7 @@
 		*/
 
 		// Since cached items don't use their normal columns...
-		function getCachedAccessLevel($module, $item = array(), $table = "") {
+		function getCachedAccessLevel($module, $item = [], $table = "") {
 			$module = new BigTree\Module($module);
 
 			return BigTree\Auth::user()->getCachedAccessLevel($module, $item, $table);
@@ -1977,7 +1977,7 @@
 			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module ?: null, "form", $sort, true);
 
 			// Return previous table format
-			$forms = array();
+			$forms = [];
 			foreach ($interfaces as $interface) {
 				$settings = json_decode($interface["settings"], true);
 				$forms[] = array(
@@ -2074,7 +2074,7 @@
 
 		static function getModuleGroups($sort = "position DESC, id ASC") {
 			$raw_groups = BigTree\ModuleGroup::all($sort, true);
-			$groups = array();
+			$groups = [];
 
 			foreach ($raw_groups as $group) {
 				$groups[$group["id"]] = $group;
@@ -2121,7 +2121,7 @@
 			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module ?: null, "report", $sort, true);
 
 			// Support the old table format
-			$reports = array();
+			$reports = [];
 			foreach ($interfaces as $interface) {
 				$settings = json_decode($interface["settings"], true);
 				$reports[] = array(
@@ -2157,7 +2157,7 @@
 				return BigTree\Module::all($sort, true);
 			}
 
-			$results = array();
+			$results = [];
 			$modules = BigTree\Module::all($sort);
 			foreach ($modules as $module) {
 				if ($module->UserCanAccess) {
@@ -2203,7 +2203,7 @@
 			$interfaces = BigTree\ModuleInterface::allByModuleAndType($module ?: null, "view", $sort, true);
 
 			// Support the old table format
-			$views = array();
+			$views = [];
 			foreach ($interfaces as $interface) {
 				$settings = json_decode($interface["settings"], true);
 				$views[] = array(
@@ -2807,7 +2807,7 @@
 			$settings = BigTree\Setting::all($sort, true);
 
 			// Only draw settings the admin can use
-			$filtered_settings = array();
+			$filtered_settings = [];
 			foreach ($settings as $setting) {
 				if (!$setting["system"] && ($this->Level > 1 || !$setting["locked"])) {
 					$filtered_settings[] = $setting;
@@ -3850,7 +3850,7 @@
 				This function is disabled in BigTree 5.0+
 		*/
 
-		function updateModuleEmbedForm($id, $title, $table, $fields, $hooks = array(), $default_position = "", $default_pending = "", $css = "", $redirect_url = "", $thank_you_message = "") {
+		function updateModuleEmbedForm($id, $title, $table, $fields, $hooks = [], $default_position = "", $default_pending = "", $css = "", $redirect_url = "", $thank_you_message = "") {
 			trigger_error("BigTree 5.0 does not support embeddable forms.", E_USER_ERROR);
 		}
 
@@ -3870,7 +3870,7 @@
 				tagging - Whether or not to enable tagging.
 		*/
 
-		function updateModuleForm($id, $title, $table, $fields, $hooks = array(), $default_position = "", $return_view = false, $return_url = "", $tagging = "") {
+		function updateModuleForm($id, $title, $table, $fields, $hooks = [], $default_position = "", $return_view = false, $return_url = "", $tagging = "") {
 			$form = new BigTree\ModuleForm($id);
 			$form->update($title, $table, $fields, $hooks, $default_position, $return_view, $return_url, $tagging);
 		}
@@ -3900,7 +3900,7 @@
 				settings - An array of settings
 		*/
 
-		function updateModuleInterface($id, $title, $table, $settings = array()) {
+		function updateModuleInterface($id, $title, $table, $settings = []) {
 			$interface = new BigTree\ModuleInterface($id);
 			$interface->Title = $title;
 			$interface->Table = $table;
@@ -3994,7 +3994,7 @@
 			// Set local variables in a clean fashion that prevents _SESSION exploitation.  Also, don't let them somehow overwrite $page and $current.
 			$trunk = $in_nav = $external = $route = $publish_at = $expire_at = $nav_title = $title = $template = $new_window = $meta_description = $seo_invisible = "";
 			$parent = $max_age = 0;
-			$resources = array();
+			$resources = [];
 
 			foreach ($data as $key => $val) {
 				if (substr($key, 0, 1) != "_" && $key != "current" && $key != "page") {
@@ -4084,7 +4084,7 @@
 				tags_changes - Tags changes.
 		*/
 
-		function updatePendingChange($id, $changes, $mtm_changes = array(), $tags_changes = array()) {
+		function updatePendingChange($id, $changes, $mtm_changes = [], $tags_changes = []) {
 			$change = new BigTree\PendingChange($id);
 			$change->update($changes, $mtm_changes, $tags_changes);
 		}
@@ -4153,7 +4153,7 @@
 
 		function updateSetting($old_id, $data) {
 			$id = $type = $name = $description = $locked = $encrypted = $system = "";
-			$settings = array();
+			$settings = [];
 
 			foreach ($data as $key => $val) {
 				if (substr($key, 0, 1) != "_") {
@@ -4218,7 +4218,7 @@
 				True if successful.  False if the logged in user doesn't have permission to change the user or there was an email collision.
 		*/
 
-		function updateUser($id, $email, $password = "", $name = "", $company = "", $level = 0, $permissions = array(), $alerts = array(), $daily_digest = "", $timezone = "") {
+		function updateUser($id, $email, $password = "", $name = "", $company = "", $level = 0, $permissions = [], $alerts = [], $daily_digest = "", $timezone = "") {
 			// Allow for pre-4.3 syntax
 			if (is_array($email)) {
 				$data = $email;

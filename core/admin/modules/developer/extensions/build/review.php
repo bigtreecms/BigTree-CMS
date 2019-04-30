@@ -20,7 +20,7 @@
 	 */
 
 	// Need to get the names for everything we're including
-	$module_string = $template_string = $callout_string = $setting_string = $feed_string = $field_string = $table_string = $file_string = array();
+	$module_string = $template_string = $callout_string = $setting_string = $feed_string = $field_string = $table_string = $file_string = [];
 	
 	foreach (array_filter((array) $modules) as $module_id) {
 		$module = new Module($module_id);

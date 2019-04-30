@@ -17,7 +17,7 @@
 	if ($existing) {
 		$changes = $existing->Changes;
 	} else {
-		$changes = array();
+		$changes = [];
 	}
 
 	$changes["title"] = $revision->Title;

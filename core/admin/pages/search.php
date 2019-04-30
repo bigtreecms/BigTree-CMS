@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	$total_results = 0;
-	$results = array();
+	$results = [];
 	
 	$search_term = $_GET["query"];
 	// If this is a link, see if it's internal.
@@ -14,14 +14,14 @@
 	
 	// Get the "Pages" results.
 	$page_results = Page::search($search_term, array("title", "resources", "meta_description", "nav_title"), "50");
-	$pages = array();
+	$pages = [];
 
 	foreach ($page_results as $page) {
 		$access_level = $page->UserAccessLevel;
 
 		if ($access_level) {
 			$breadcrumb = $page->Breadcrumb;
-			$breadcrumb_parts = array();
+			$breadcrumb_parts = [];
 
 			foreach ($breadcrumb as $part) {
 				$breadcrumb_parts[] = '<a href="'.ADMIN_ROOT.'pages/view-tree/'.$part["id"].'/">'.$part["title"].'</a>';
@@ -50,7 +50,7 @@
 
 		foreach ($views as $view) {
 			$table_description = SQL::describeTable($view->Table);
-			$query_parts = array();
+			$query_parts = [];
 
 			foreach ($table_description["columns"] as $column => $data) {
 				$query_parts[] = "`$column` LIKE $w";

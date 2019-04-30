@@ -8,8 +8,8 @@
 	$digest_settings = $extension_settings["digest"];
 
 	// Generate data for the cron tab table
-	$cron_titles = array();
-	$cron_table_data = array();
+	$cron_titles = [];
+	$cron_table_data = [];
 	foreach (Cron::$Plugins as $extension => $plugins) {
 		foreach ($plugins as $id => $details) {
 			$id = $extension."*".$id;
@@ -26,8 +26,8 @@
 	array_multisort($cron_titles,$cron_table_data);
 
 	// Generate daily digest table
-	$panes = array();
-	$positions = array();
+	$panes = [];
+	$positions = [];
 
 	// We're going to get the position setups and the multi-sort the list to get it in order
 	foreach (DailyDigest::$CoreOptions as $id => $details) {

@@ -15,7 +15,7 @@
 	header("Expires: 0");
 	
 	// Draw the column titles
-	$cols = array();
+	$cols = [];
 
 	foreach ($report->Fields as $id => $title) {
 		$cols[] = '"'.str_replace('"','""',$title).'"';
@@ -27,7 +27,7 @@
 	$results = $report->getResults($_POST, $_POST["*sort"]["field"], $_POST["*sort"]["order"]);
 
 	foreach ($results as $result) {
-		$row = array();
+		$row = [];
 
 		foreach ($report->Fields as $id => $title) {
 			$row[] = '"'.str_replace('"','""',$result[$id]).'"';

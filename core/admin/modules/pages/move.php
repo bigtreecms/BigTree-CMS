@@ -14,7 +14,7 @@
 	Auth::user()->requireLevel(1);
 	
 	// Get all the ancestors
-	$ancestors = array();
+	$ancestors = [];
 	
 	foreach ($page->Breadcrumb as $item) {
 		$ancestors[] = $item["id"];

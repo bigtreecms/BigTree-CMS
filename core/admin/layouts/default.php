@@ -6,7 +6,7 @@
 	 */
 	
 	$find_path = function($nav,$path,$last_link = "") use (&$find_path) {
-		static $page = array("navigation" => array(), "related" => array());
+		static $page = array("navigation" => [], "related" => []);
 
 		foreach ($nav as $item) {
 			if ((strpos($path,$item["link"]."/") === 0 && $item["link"] != $last_link) || $path == $item["link"]) {				

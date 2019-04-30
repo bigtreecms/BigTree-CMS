@@ -12,7 +12,7 @@
 		$source_fields = explode(",", $this->Settings["fields"]);
 	}
 
-	$location = array();
+	$location = [];
 
 	foreach ($source_fields as $source_field) {
 		$data = isset($bigtree["post_data"][trim($source_field)]) ? $bigtree["post_data"][trim($source_field)] : false;

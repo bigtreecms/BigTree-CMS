@@ -16,14 +16,14 @@
 		"description" => $manifest["description"],
 		"keywords" => implode(", ", $manifest["keywords"]),
 		"author" => $manifest["author"],
-		"files" => array(),
-		"modules" => array(),
-		"templates" => array(),
-		"callouts" => array(),
-		"settings" => array(),
-		"feeds" => array(),
-		"field_types" => array(),
-		"tables" => array()
+		"files" => [],
+		"modules" => [],
+		"templates" => [],
+		"callouts" => [],
+		"settings" => [],
+		"feeds" => [],
+		"field_types" => [],
+		"tables" => []
 	);
 	
 	foreach ($manifest["components"] as $key => $data) {

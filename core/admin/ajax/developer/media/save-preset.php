@@ -24,7 +24,7 @@
 	$settings["presets"][$id] = $_POST;
 
 	// Alphabetize the presets
-	$names = array();
+	$names = [];
 
 	foreach ($settings["presets"] as $index => $preset) {
 		// Clean up empty entries

@@ -79,8 +79,8 @@
 			?>
 			<div class="form_fields">
 				<?php
-					$bigtree["html_fields"] = array();
-					$bigtree["simple_html_fields"] = array();
+					$bigtree["html_fields"] = [];
+					$bigtree["simple_html_fields"] = [];
 					$bigtree["tabindex"] = 1;
 					$bigtree["field_types"] = FieldType::reference(false,"modules");
 

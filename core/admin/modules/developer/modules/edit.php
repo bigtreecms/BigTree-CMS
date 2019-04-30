@@ -10,8 +10,8 @@
 	$module = new Module($id);
 	$actions = ModuleAction::allByModule($id, "position DESC, id ASC");
 	$groups = ModuleGroup::all("name ASC");
-	$action_data = array();
-	$interface_data = array();
+	$action_data = [];
+	$interface_data = [];
 	
 	// Set the drag disabled flag for non-visible actions
 	foreach ($actions as $action) {

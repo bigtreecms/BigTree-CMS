@@ -391,7 +391,7 @@
 				An available, web safe file name.
 		*/
 		
-		public static function getAvailableFileName($directory, $file, $prefixes = array()) {
+		public static function getAvailableFileName($directory, $file, $prefixes = []) {
 			return BigTree\FileSystem::getAvailableFileName($directory, $file, $prefixes);
 		}
 		
@@ -620,7 +620,7 @@
 				A JSON string.
 		*/
 		
-		public static function jsonExtract($data, $columns = array(), $preserve_keys = false) {
+		public static function jsonExtract($data, $columns = [], $preserve_keys = false) {
 			return BigTree\JSON::encodeColumns($data, $columns, $preserve_keys);
 		}
 		
@@ -952,7 +952,7 @@
 				true if email is sent, otherwise false.
 		*/
 		
-		public static function sendEmail($to, $subject, $html, $text = "", $from = false, $return = false, $cc = false, $bcc = false, $headers = array(), $smtp = []) {
+		public static function sendEmail($to, $subject, $html, $text = "", $from = false, $return = false, $cc = false, $bcc = false, $headers = [], $smtp = []) {
 			$email = new BigTree\Email;
 			
 			$email->To = $to;

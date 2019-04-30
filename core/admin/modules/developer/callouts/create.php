@@ -6,7 +6,7 @@
 	// Defaults
 	$id = $name = $description = $display_field = $display_default = "";
 	$level = 0;
-	$fields = array();
+	$fields = [];
 
 	Globalize::POST();
 

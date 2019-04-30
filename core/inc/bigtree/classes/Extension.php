@@ -453,7 +453,7 @@
 			
 			// Move public files into the site directory
 			$public_dir = SERVER_ROOT."extensions/".$manifest["id"]."/public/";
-			$site_contents = file_exists($public_dir) ? BigTree::directoryContents($public_dir) : array();
+			$site_contents = file_exists($public_dir) ? BigTree::directoryContents($public_dir) : [];
 			
 			foreach ($site_contents as $file_path) {
 				$destination_path = str_replace($public_dir,SITE_ROOT."extensions/".$manifest["id"]."/",$file_path);

@@ -9,7 +9,7 @@
 	} else {
 		foreach ($results as $page) {
 			if ($page->UserAccessLevel) {
-				$crumbs = array();
+				$crumbs = [];
 				
 				foreach ($page->Breadcrumb as $crumb) {
 					$crumbs[] = $crumb["title"];

@@ -32,8 +32,8 @@
 		$_POST["new_window"] = "";
 	}
 	
-	$bigtree["crops"] = array();
-	$bigtree["errors"] = array();
+	$bigtree["crops"] = [];
+	$bigtree["errors"] = [];
 	
 	// Parse resources
 	if (empty($_POST["external"]) && $_POST["template"] != "!") {

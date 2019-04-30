@@ -14,9 +14,9 @@
 		$type = $_GET["type"];
 	}
 
-	$used = array();
-	$unused = array();
-	$table_fields = array();
+	$used = [];
+	$unused = [];
+	$table_fields = [];
 
 	if ($table) {
 		$table_description = SQL::describeTable($table);
@@ -93,7 +93,7 @@
 	<div class="developer_action_list">
 		<ul>
 			<?php
-				$used_actions = array();
+				$used_actions = [];
 
 				if (!empty($actions)) {
 					foreach ($actions as $key => $action) {

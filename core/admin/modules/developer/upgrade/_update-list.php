@@ -8,7 +8,7 @@
 	if (!$_COOKIE["bigtree_admin"]["deferred_update"]) {
 		$updates = array_filter((array)@json_decode(cURL::request("http://www.bigtreecms.org/ajax/version-check/?current_version=".BIGTREE_VERSION,false,array(CURLOPT_CONNECTTIMEOUT => 1,CURLOPT_TIMEOUT => 5)),true));
 		// See if we've ignored these updates
-		$ignorable = array();
+		$ignorable = [];
 		
 		foreach ($updates as $update) {
 			if (!$_COOKIE["bigtree_admin"]["ignored_update"][$update["version"]]) {

@@ -2,7 +2,7 @@
 	namespace BigTree;
 
 	$ungrouped_modules = Module::allByGroup(0, "position DESC, id ASC", true);
-	$groups_with_modules = array();
+	$groups_with_modules = [];
 	$groups = ModuleGroup::all("position DESC, id ASC", true);
 	
 	foreach ($groups as $group) {

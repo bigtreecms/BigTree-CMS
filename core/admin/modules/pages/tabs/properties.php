@@ -42,7 +42,7 @@
 			"external" => "",
 			"new_window" => "",
 			"template" => isset($basic_templates[0]) ? $basic_templates[0]->ID : $routed_templates[0]->ID,
-			"resources" => array(),
+			"resources" => [],
 			"tags" => false,
 			"route" => "",
 			"meta_description" => ""

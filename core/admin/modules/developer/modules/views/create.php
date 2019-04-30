@@ -17,7 +17,7 @@
 
 	$table_description = SQL::describeTable($table);
 	$columns = $table_description["columns"];
-	$errors = array();
+	$errors = [];
 	
 	// Check for errors
 	if (($type == "draggable" || $type == "draggable-group" || $settings["draggable"]) && !$columns["position"]) {

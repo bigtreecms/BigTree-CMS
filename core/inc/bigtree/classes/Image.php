@@ -606,7 +606,7 @@
 				A modified array of file prefixes.
 		*/
 		
-		public function getPrefixArray(): array
+		public function getPrefix[]: array
 		{
 			if (!empty($this->Prefixes)) {
 				return $this->Prefixes;
@@ -992,7 +992,7 @@
 		
 		public function store(string $name): ?string
 		{
-			$path = $this->Storage->store($this->File, $name, $this->Settings["directory"], false, $this->getPrefixArray());
+			$path = $this->Storage->store($this->File, $name, $this->Settings["directory"], false, $this->getPrefix[]);
 			
 			if (!$path) {
 				if ($this->Storage->DisabledFileError) {

@@ -172,7 +172,7 @@
 				Returns an Array version of this Object.
 		*/
 		
-		public function getArray(): array
+		public function get[]: array
 		{
 			$raw_properties = get_object_vars($this);
 			$array = [];

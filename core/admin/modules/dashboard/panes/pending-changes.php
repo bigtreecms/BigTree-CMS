@@ -7,8 +7,8 @@
 	$my_changes = PendingChange::allByUser($user_id, "date DESC");
 
 	// Figure out what module each of the changes is for.
-	$change_modules = array();
-	$my_change_modules = array();
+	$change_modules = [];
+	$my_change_modules = [];
 	
 	foreach ($changes as $change) {
 		// If we didn't get the info for this module already, get it.

@@ -62,8 +62,8 @@
 			?>
 			<div class="form_fields">
 				<?php
-					$bigtree["html_fields"] = array();
-					$bigtree["simple_html_fields"] = array();
+					$bigtree["html_fields"] = [];
+					$bigtree["simple_html_fields"] = [];
 					
 					$field = new Field(array(
 						"type" => $setting->Type,

@@ -7,16 +7,16 @@
 	
 	$sort = $feed->Settings["sort"] ? $feed->Settings["sort"] : "id DESC";
 	$limit = $feed->Settings["limit"] ? $feed->Settings["limit"] : "15";
-	$query = SQL::query("SELECT * FROM `".$feed->Table."` ORDER BY $sort LIMIT $limit");
-	
-	$json_data = array();
+	$query = SQL::query("SELECT * FROM `".$feed->Table."` ORDER BY $sort LIMIT $limit");	
+	$json_data = [];
+
 	while ($item = $query->fetch()) {
 		foreach ($item as $key => $val) {
 			$array_val = @json_decode($val, true);
 			$item[$key] = Link::decode(is_array($array_val) ? $array_val : $val);
 		}
 		
-		$entry = array();
+		$entry = [];
 	
 		foreach ($feed["fields"] as $key => $options) {
 			$value = $item[$key];

@@ -31,7 +31,7 @@
 				<strong><?=Text::translate("Tables")?></strong>
 				<ul>
 					<?php
-						$used_tables = array();
+						$used_tables = [];
 						foreach ((array)$_SESSION["bigtree_admin"]["developer"]["package"]["tables"] as $table) {
 							list($table) = explode("#",$table);
 							$used_tables[] = $table;

@@ -34,7 +34,7 @@
 			}
 
 			$this->Service = isset($setup["service"]) ? $setup["service"] : "";
-			$this->Settings = isset($setup["settings"]) ? $setup["settings"] : array();
+			$this->Settings = isset($setup["settings"]) ? $setup["settings"] : [];
 
 			// If you specifically request a certain service, use it instead of the default
 			if ($gateway_override) {

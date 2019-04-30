@@ -106,7 +106,7 @@
 			}
 		} elseif ($type == "photo-gallery") {
 			$count = rand(3, 9);
-			$data = array();
+			$data = [];
 			while ($count) {
 				$data[] = array("caption" => LoremIpsum::getWords(rand(6, 10)), "image" => str_replace(SITE_ROOT, "{wwwroot}", $generate_image($options)));
 				$count--;
@@ -124,7 +124,7 @@
 
 			$total = SQL::fetchSingle("SELECT COUNT(*) FROM `".$options["mtm-other-table"]."`");
 			$number_to_make = rand(1, $total);
-			$used = array();
+			$used = [];
 
 			while ($number_to_make) {
 				$random_id = SQL::fetchSingle("SELECT id FROM `".$options["mtm-other-table"]."` ORDER BY RAND() LIMIT 1");
@@ -156,8 +156,8 @@
 
 	// Loop until we're done generating
 	while ($count) {
-		$many_to_many = array();
-		$data = array();
+		$many_to_many = [];
+		$data = [];
 
 		foreach ($form->Fields as $field) {
 			$value = $generate_data($field);

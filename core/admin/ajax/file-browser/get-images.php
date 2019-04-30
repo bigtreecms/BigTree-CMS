@@ -47,7 +47,7 @@
 				$disabled = (($minWidth && $minWidth !== "false" && $resource["width"] < $minWidth) || ($minHeight && $minHeight !== "false" && $resource["height"] < $minHeight)) ? " disabled" : "";
 				
 				// Find the available thumbnails for this image if we're dropping it in a WYSIWYG area.
-				$available_thumbs = array();
+				$available_thumbs = [];
 				
 				if (count($thumbs) > 0) {
 					foreach ($thumbs as $tk => $tu) {

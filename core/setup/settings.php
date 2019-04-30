@@ -17,27 +17,27 @@
 	
 	// Array containing all CSS files to minify; key = name of compiled file
 	// example: $bigtree["config"]["css"]["site"] compiles all CSS files into "site.css"
-	$bigtree["config"]["css"]["files"]["site"] = array();
+	$bigtree["config"]["css"]["files"]["site"] = [];
 	
 	// Array containing variables to be replaced in compiled CSS files
 	// example: "variable_name" => "Variable Value" will replace all instances of $variable_name with 'Variable Value'
-	$bigtree["config"]["css"]["vars"] = array();
+	$bigtree["config"]["css"]["vars"] = [];
 
 	// Flag for JS minification 
 	$bigtree["config"]["js"]["minify"] = false; 
 
 	// Array containing all JS files to minify; key = name of compiled file
 	// example: $bigtree["config"]["js"]["site"] compiles all JS files into "site.js"
-	$bigtree["config"]["js"]["files"]["site"] = array();
+	$bigtree["config"]["js"]["files"]["site"] = [];
 	
 	// Array containing variables to be replaced in compiled JS files
 	// example: "variable_name" => "Variable Value" will replace all instances of $variable_name with 'Variable Value'
-	$bigtree["config"]["js"]["vars"] = array();
+	$bigtree["config"]["js"]["vars"] = [];
 		
 	// Admin Settings
 	$bigtree["config"]["password_depth"] = 8; // The amount of work for the password hashing.  Higher is more secure but more costly on your CPU.
-	$bigtree["config"]["admin_css"] = array(); // Additional CSS Files For the Admin to load, relative to /custom/admin/css/
-	$bigtree["config"]["admin_js"] = array(); // Additional JavaScript Files For the Admin to load, relative to /custom/admin/js/
+	$bigtree["config"]["admin_css"] = []; // Additional CSS Files For the Admin to load, relative to /custom/admin/css/
+	$bigtree["config"]["admin_js"] = []; // Additional JavaScript Files For the Admin to load, relative to /custom/admin/js/
 	$bigtree["config"]["ignore_admin_updates"] = false; // Set to true to disable pinging bigtreecms.org for version updates
 	$bigtree["config"]["default_gravatar"] = "https://www.bigtreecms.org/images/bigtree-gravatar.png"; // Default gravatar to load for users without an account
 

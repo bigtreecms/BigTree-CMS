@@ -94,7 +94,7 @@
 				The id of the new entry in the database.
 		*/
 
-		static function createItem($table, $data, $many_to_many = array(), $tags = array(), $publishing_change = null, $open_graph = array()) {
+		static function createItem($table, $data, $many_to_many = [], $tags = [], $publishing_change = null, $open_graph = []) {
 			// Create a generic module form
 			$form = new BigTree\ModuleForm(array("table" => $table));
 
@@ -118,7 +118,7 @@
 				The id of the new entry in the bigtree_pending_changes table.
 		*/
 
-		static function createPendingItem($module, $table, $data, $many_to_many = array(), $tags = array(), $publish_hook = null, $embedded_form = false) {
+		static function createPendingItem($module, $table, $data, $many_to_many = [], $tags = [], $publish_hook = null, $embedded_form = false) {
 			// Create fake module form
 			if ($embedded_form) {
 				trigger_error("BigTree 5.0 does not support embeddable forms.", E_USER_ERROR);
@@ -648,7 +648,7 @@
 				The id of the new entry.
 		*/
 		
-		static function publishPendingItem($table, $id, $data, $many_to_many = array(), $tags = array()) {
+		static function publishPendingItem($table, $id, $data, $many_to_many = [], $tags = []) {
 			return self::createItem($table, $data, $many_to_many, $tags, $id);
 		}
 		
@@ -704,7 +704,7 @@
 				The id of the pending change.
 		*/
 		
-		static function submitChange($module, $table, $id, $data, $many_to_many = array(), $tags = array(), $publish_hook = null) {
+		static function submitChange($module, $table, $id, $data, $many_to_many = [], $tags = [], $publish_hook = null) {
 			// Create fake module form
 			$form = new BigTree\ModuleForm(array(
 				"module" => $module,
@@ -754,7 +754,7 @@
 				tags - Tag information.
 		*/
 		
-		static function updateItem($table, $id, $data, $many_to_many = array(), $tags = array()) {
+		static function updateItem($table, $id, $data, $many_to_many = [], $tags = []) {
 			// Create a generic module form
 			$form = new BigTree\ModuleForm(array("table" => $table));
 

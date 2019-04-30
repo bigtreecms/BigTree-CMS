@@ -66,7 +66,7 @@
 			
 			// Load everything in the custom extras folder.
 			$directory_handle = opendir(SERVER_ROOT."custom/inc/required/");
-			$custom_required_includes = array();
+			$custom_required_includes = [];
 			while ($file = readdir($directory_handle)) {
 				if (substr($file, 0, 1) != "." && !is_dir(SERVER_ROOT."custom/inc/required/$file")) {
 					$custom_required_includes[] = SERVER_ROOT."custom/inc/required/$file";
@@ -419,7 +419,7 @@
 				} elseif (isset($page["resources"]["callouts"])) {
 					$page["callouts"] = $page["resources"]["callouts"];
 				} else {
-					$page["callouts"] = array();
+					$page["callouts"] = [];
 				}
 				
 				$page["open_graph"] = BigTree\OpenGraph::getData("bigtree_pages", $id);
@@ -493,7 +493,7 @@
 				An array of related pages sorted by relevance (how many tags get matched).
 		*/
 		
-		static function getRelatedPagesByTags($tags = array(), $only_id = false) {
+		static function getRelatedPagesByTags($tags = [], $only_id = false) {
 			return BigTree\Page::allByTags($tags, $only_id ? "id" : "array");
 		}
 		

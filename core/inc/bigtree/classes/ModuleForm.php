@@ -315,7 +315,7 @@
 				Array
 		*/
 		
-		public function getArray(): array
+		public function get[]: array
 		{
 			// For backwards compatibility with older data
 			$fields = [];

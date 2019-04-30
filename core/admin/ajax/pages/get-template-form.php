@@ -14,9 +14,9 @@
 		$bigtree["resources"] = $page->Resources;
 	} elseif (isset($_POST["template"])) {
 		$template_id = $_POST["template"];
-		$bigtree["resources"] = array();
+		$bigtree["resources"] = [];
 	} elseif (!isset($bigtree["resources"]) && !isset($bigtree["callouts"])) {
-		$bigtree["resources"] = array();
+		$bigtree["resources"] = [];
 	}
 	
 	if (!empty($template_id) && $template_id != "!") {
@@ -67,8 +67,8 @@
 <p class="error_message" style="display: none;"><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 <div class="form_fields">
 	<?php
-		$bigtree["html_fields"] = array();
-		$bigtree["simple_html_fields"] = array();
+		$bigtree["html_fields"] = [];
+		$bigtree["simple_html_fields"] = [];
 		$bigtree["tabindex"] = 11;
 		$bigtree["field_types"] = FieldType::reference(false,"templates");
 

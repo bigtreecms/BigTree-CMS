@@ -4,8 +4,8 @@
 	$extension_settings = Setting::value("bigtree-internal-extension-settings");
 	$settings = $extension_settings["dashboard"];
 
-	$panes = array();
-	$positions = array();
+	$panes = [];
+	$positions = [];
 
 	// We're going to get the position setups and the multi-sort the list to get it in order
 	foreach (Dashboard::$CoreOptions as $id => $name) {

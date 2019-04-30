@@ -36,7 +36,7 @@
 					A function to run (instead of including a file).
 		*/
 		
-		static $RouteRegistry = array();
+		static $RouteRegistry = [];
 
 
 		/*
@@ -72,16 +72,16 @@
 				<update>
 		*/
 		
-		function add($fields, $values = array(), $enforce_unique = false, $ignore_cache = false) {
-			$insert_array = array();
+		function add($fields, $values = [], $enforce_unique = false, $ignore_cache = false) {
+			$insert_array = [];
 
 			// Single column/value add
 			if (is_string($fields)) {
 				$insert_array[$fields] = $values;
 				// Multiple columns / values
 			} else {
-				// If we didn't pass in values (=== array()) then we're using a key => value array
-				if ($values === array()) {
+				// If we didn't pass in values (=== []) then we're using a key => value array
+				if ($values === []) {
 					$insert_array = $fields;
 					// Separate arrays for keys and values
 				} else {
@@ -97,7 +97,7 @@
 
 			// Prevent Duplicates
 			if ($enforce_unique) {
-				$existing_parts = array();
+				$existing_parts = [];
 
 				foreach ($insert_array as $key => $val) {
 					$val = is_array($val) ? JSON::encode($val, true) : SQL::escape($val);
@@ -214,7 +214,7 @@
 			$query_columns = "*";
 			if ($columns !== false) {
 				if (is_array($columns)) {
-					$query_columns = array();
+					$query_columns = [];
 					foreach ($columns as $column) {
 						$query_columns[] = "`".str_replace("`", "", $column)."`";
 					}
@@ -237,7 +237,7 @@
 				$query .= " LIMIT $limit";
 			}
 			
-			$items = array();
+			$items = [];
 			$query = SQL::query($query);
 
 			while ($item = $query->fetch()) {
@@ -365,8 +365,8 @@
 				An array of arrays with "title" and "link" key/value pairs.
 		*/
 		
-		function getBreadcrumb($page, $routed_path = array(), $commands = array()) {
-			return array();
+		function getBreadcrumb($page, $routed_path = [], $commands = []) {
+			return [];
 		}
 		
 		/*
@@ -427,7 +427,7 @@
 		*/
 
 		function getInfo($entry) {
-			$info = array();
+			$info = [];
 
 			if (is_array($entry)) {
 				$entry = $entry["id"];
@@ -480,7 +480,7 @@
 				$search = array_combine($fields, $values);
 			}
 
-			$where = array();
+			$where = [];
 
 			foreach ($search as $key => $value) {
 				if (!$exact && ($value === "NULL" || !$value)) {
@@ -506,7 +506,7 @@
 		*/
 		
 		function getNav($page) {
-			return array();
+			return [];
 		}
 		
 		/*
@@ -709,8 +709,8 @@
 				An array of entries from the table sorted by most relevant to least.
 		*/
 		
-		function getRelatedByTags($tags = array(), $count = false) {
-			$results = $relevance = array();
+		function getRelatedByTags($tags = [], $count = false) {
+			$results = $relevance = [];
 
 			foreach ($tags as $tag) {
 				if (is_array($tag)) {
@@ -745,7 +745,7 @@
 			}
 
 			// Parse result IDs into items 
-			$items = array();
+			$items = [];
 
 			foreach ($results as $result) {
 				$items[] = $this->get($result);
@@ -767,7 +767,7 @@
 		*/
 		
 		function getSitemap($page) {
-			return array();
+			return [];
 		}
 		
 		/*
@@ -923,7 +923,7 @@
 		
 		function search($query, $order = false, $limit = false, $split_search = false, $case_sensitive = false, $columns = false) {
 			$table_description = SQL::describeTable($this->Table);
-			$where = array();
+			$where = [];
 
 			if ($split_search) {
 				$pieces = explode(" ", $query);
@@ -931,7 +931,7 @@
 				foreach ($pieces as $piece) {
 					if ($piece) {
 						$piece = SQL::escape($piece);
-						$where_piece = array();
+						$where_piece = [];
 
 						foreach ($table_description["columns"] as $field => $parameters) {
 							if ($case_sensitive) {
@@ -1053,11 +1053,11 @@
 				<save>
 		*/
 		
-		function update($id, $fields, $values = array(), $ignore_cache = false) {
-			$update_fields = array();
+		function update($id, $fields, $values = [], $ignore_cache = false) {
+			$update_fields = [];
 
 			// Turn a key => value array into pairs
-			if ($values === array() && is_array($fields)) {
+			if ($values === [] && is_array($fields)) {
 				$update_fields = $fields;
 
 			// Multiple columns to update

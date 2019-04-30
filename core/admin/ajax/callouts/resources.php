@@ -56,8 +56,8 @@
 
 			$bigtree["field_types"] = FieldType::reference(false,"callouts");	
 			$bigtree["tabindex"] = 1000 * intval($_POST["tab_depth"]);	
-			$bigtree["html_fields"] = array();
-			$bigtree["simple_html_fields"] = array();			
+			$bigtree["html_fields"] = [];
+			$bigtree["simple_html_fields"] = [];			
 
 			foreach ($callout->Fields as $field) {
 				$field = array(

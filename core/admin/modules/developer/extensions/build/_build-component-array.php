@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	$package = &$_SESSION["bigtree_admin"]["developer"]["package"];
-	$package["module_groups"] = array();
+	$package["module_groups"] = [];
 	$package["modules"] = array_filter((array) $_POST["modules"]);
 	$package["templates"] = array_filter((array) $_POST["templates"]);
 	$package["callouts"] = array_filter((array) $_POST["callouts"]);

@@ -9,16 +9,16 @@
 		$table = $_GET["table"];
 	}
 
-	$used = array();
-	$unused = array();
+	$used = [];
+	$unused = [];
 	
-	$tblfields = array();
+	$tblfields = [];
 
 	// To tolerate someone selecting the blank spot again when creating a feed.
 	if ($table) {
 		$table_description = SQL::describeTable($table);
 	} else {
-		$table_description = array("columns" => array());
+		$table_description = array("columns" => []);
 	}
 	
 	foreach ($table_description["columns"] as $column => $details) {
@@ -40,7 +40,7 @@
 			}
 		}		
 	} else {
-		$fields = array();
+		$fields = [];
 		
 		foreach ($tblfields as $f) {
 			$title = ucwords(str_replace(array("-","_")," ",$f));

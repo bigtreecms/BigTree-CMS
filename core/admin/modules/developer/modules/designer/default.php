@@ -15,7 +15,7 @@
 	} else {
 		$module = new Module;
 		$module->Icon = "gear";
-		$errors = array();
+		$errors = [];
 		$group_new = "";
 		$group_existing = false;
 		$table = "";
