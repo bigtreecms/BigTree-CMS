@@ -3,7 +3,7 @@
 		<footer class="main">
 			<section>
 				<article class="bigtree">
-					<a href="https://www.bigtreecms.com/" target="_blank" class="logo"></a>				
+					<a href="https://www.bigtreecms.org/" target="_blank" class="logo"></a>				
 				</article>
 				<article class="fastspot">
 					<p>

@@ -853,7 +853,7 @@ RewriteRule (.*) site/$1 [L]');
 		        });
 		    </script>
 			<?php } ?>
-			<a href="https://www.bigtreecms.com" class="install_logo" target="_blank">BigTree</a>
+			<a href="https://www.bigtreecms.org" class="install_logo" target="_blank">BigTree</a>
 			<a href="https://www.fastspot.com" class="install_copyright" target="_blank">&copy; <?=date("Y")?> Fastspot</a>
 		</div>
 	</body>
