@@ -22,7 +22,7 @@
 	
 	// Attempting to use a new video URL
 	if (!empty($field["input"]["new"])) {
-		$url = $field["input"]["new"];
+		$url = trim($field["input"]["new"]);
 		
 		// YouTube
 		if (strpos($url, "youtu.be") !== false || strpos($url, "youtube.com") !== false) {
@@ -33,7 +33,7 @@
 				$get = explode("&", $parsed["query"]);
 	
 				foreach ($get as $index => $get_item) {
-					if (strpos($get_item, "t=") === 0) {
+					if (strpos($get_item, "v=") !== 0) {
 						unset($get[$index]);
 					}
 				}
@@ -44,7 +44,7 @@
 					$url .= "?".implode("&", $get);
 				}
 			}
-
+			
 			// Try to grab the ID from the YouTube URL (courtesy of various Stack Overflow authors)
 			$pattern =
 				'%^# Match any youtube URL
