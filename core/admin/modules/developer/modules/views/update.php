@@ -14,6 +14,7 @@
 	$actions = $_POST["actions"];
 	$fields = $_POST["fields"];
 	$preview_url = $_POST["preview_url"];
+	$exclude_from_search = !empty($_POST["exclude_from_search"]);
 
 	// Check for errors
 	$table_description = SQL::describeTable($table);

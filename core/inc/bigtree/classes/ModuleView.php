@@ -24,6 +24,7 @@
 		public $Actions;
 		public $Description;
 		public $EditURL;
+		public $ExcludeFromSearch;
 		public $Fields;
 		public $PreviewURL;
 		public $RelatedForm;
@@ -90,6 +91,7 @@
 			
 			$this->Actions = $this->Interface->Settings["actions"];
 			$this->Description = $this->Interface->Settings["description"];
+			$this->ExcludeFromSearch = !empty($this->Interface->Settings["exclude_from_search"]);
 			$this->Fields = array_filter((array) $this->Interface->Settings["fields"]);
 			$this->PreviewURL = $this->Interface->Settings["preview_url"];
 			$this->RelatedForm = $this->Interface->Settings["related_form"];
@@ -508,7 +510,7 @@
 		
 		public static function create(int $module, string $title, string $description, string $table, string $type,
 									  ?array $settings, ?array $fields, ?array $actions, ?int $related_form = null,
-									  string $preview_url = ""): ModuleView
+									  string $preview_url = "", bool $exclude_from_search = false): ModuleView
 		{
 			$interface = ModuleInterface::create("view", $module, $title, $table, [
 				"description" => Text::htmlEncode($description),
@@ -517,7 +519,8 @@
 				"settings" => $settings ?: [],
 				"actions" => $actions ?: [],
 				"preview_url" => $preview_url ? Link::encode($preview_url) : "",
-				"related_form" => $related_form
+				"related_form" => $related_form,
+				"exclude_from_search" => $exclude_from_search
 			]);
 			
 			$view = new ModuleView($interface->Array);
@@ -919,7 +922,8 @@
 				"settings" => (array) $this->Settings,
 				"actions" => array_filter((array) $this->Actions),
 				"preview_url" => $this->PreviewURL ? Link::encode($this->PreviewURL) : "",
-				"related_form" => $this->RelatedForm ? intval($this->RelatedForm) : null
+				"related_form" => $this->RelatedForm ? intval($this->RelatedForm) : null,
+				"exclude_from_search" => !empty($this->ExcludeFromSearch)
 			];
 			$this->Interface->Table = $this->Table;
 			$this->Interface->Title = $this->Title;
@@ -1070,14 +1074,16 @@
 				actions - Actions array.
 				related_form - Form ID to handle edits.
 				preview_url - Optional preview URL.
+				exclude_from_search - Whether to exclude this view data from admin-side search
 		*/
 		
 		public function update(string $title, string $description, string $table, string $type, ?array $options,
 							   ?array $fields, ?array $actions, ?int $related_form = null,
-							   string $preview_url = ""): void
+							   string $preview_url = "", bool $exclude_from_search = false): void
 		{
 			$this->Actions = $actions ?: [];
 			$this->Description = $description;
+			$this->ExcludeFromSearch = $exclude_from_search;
 			$this->Fields = $fields ?: [];
 			$this->PreviewURL = $preview_url;
 			$this->RelatedForm = $related_form;

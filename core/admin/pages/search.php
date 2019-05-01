@@ -4,79 +4,93 @@
 	$total_results = 0;
 	$results = [];
 	
-	$search_term = $_GET["query"];
-	// If this is a link, see if it's internal.
-	if (substr($search_term, 0, 7) == "http://" || substr($search_term, 0, 8) == "https://") {
-		$search_term = Link::encode($search_term);
-	}
-	
-	$w = "'%".SQL::escape($search_term)."%'";
-	
-	// Get the "Pages" results.
-	$page_results = Page::search($search_term, ["title", "resources", "meta_description", "nav_title"], "50");
-	$pages = [];
+	if (!empty($_GET["query"])) {
+		$search_term = $_GET["query"];
 
-	foreach ($page_results as $page) {
-		$access_level = $page->UserAccessLevel;
-
-		if ($access_level) {
-			$breadcrumb = $page->Breadcrumb;
-			$breadcrumb_parts = [];
-
-			foreach ($breadcrumb as $part) {
-				$breadcrumb_parts[] = '<a href="'.ADMIN_ROOT.'pages/view-tree/'.$part["id"].'/">'.$part["title"].'</a>';
-			}
-
-			$pages[] = [
-				"id" => $page->ID,
-				"title" => $page->NavigationTitle,
-				"description" => Text::trimLength(strip_tags($page->Resources["page_content"]), 450),
-				"link" => ADMIN_ROOT."pages/edit/".$page->ID."/",
-				"breadcrumb" => implode(" &rsaquo; ", $breadcrumb_parts)
-			];
+		// If this is a link, see if it's internal.
+		if (substr($search_term, 0, 7) == "http://" || substr($search_term, 0, 8) == "https://") {
+			$search_term = Link::encode($search_term);
 		}
-	}
-
-	if ($count = count($pages)) {
-		$results["Pages"] = $pages;
-		$total_results += $count;
-	}
+		
+		$w = "'%".SQL::escape($search_term)."%'";
+		
+		// Get the "Pages" results.
+		$page_results = Page::search($search_term, ["title", "resources", "meta_description", "nav_title"], "50");
+		$pages = [];
 	
-	// Get every module's results based on auto module views.
-	$modules = Module::all("name ASC");
-
-	foreach ($modules as $module) {
-		$views = ModuleView::allByModule($module->ID);
-
-		foreach ($views as $view) {
-			$table_description = SQL::describeTable($view->Table);
-			$query_parts = [];
-
-			foreach ($table_description["columns"] as $column => $data) {
-				$query_parts[] = "`$column` LIKE $w";
-			}
-
-			// Get matching results
-			$module_results = SQL::fetchAll("SELECT * FROM `".$view["table"]."` WHERE ".implode(" OR ", $query_parts));
-
-			if ($count = count($module_results)) {
-				$total_results += $count;
-				$results[$module->Name][] = [
-					"view" => $view,
-					"results" => Link::decode($module_results),
-					"module" => $module
+		foreach ($page_results as $page) {
+			$access_level = $page->UserAccessLevel;
+	
+			if ($access_level) {
+				$breadcrumb = $page->Breadcrumb;
+				$breadcrumb_parts = [];
+	
+				foreach ($breadcrumb as $part) {
+					$breadcrumb_parts[] = '<a href="'.ADMIN_ROOT.'pages/view-tree/'.$part["id"].'/">'.$part["title"].'</a>';
+				}
+	
+				$pages[] = [
+					"id" => $page->ID,
+					"title" => $page->NavigationTitle,
+					"description" => Text::trimLength(strip_tags($page->Resources["page_content"]), 450),
+					"link" => ADMIN_ROOT."pages/edit/".$page->ID."/",
+					"breadcrumb" => implode(" &rsaquo; ", $breadcrumb_parts)
 				];
+			}
+		}
+	
+		if ($count = count($pages)) {
+			$results["Pages"] = $pages;
+			$total_results += $count;
+		}
+		
+		// Get every module's results based on auto module views.
+		$modules = Module::all("name ASC");
+	
+		foreach ($modules as $module) {
+			foreach ($module->Views as $view) {
+				if ($view->ExcludeFromSearch) {
+					continue;
+				}
+				
+				$table_description = SQL::describeTable($view->Table);
+				$query_parts = [];
+	
+				foreach ($table_description["columns"] as $column => $data) {
+					$query_parts[] = "`$column` LIKE $w";
+				}
+	
+				// Get matching results
+				$module_results = SQL::fetchAll("SELECT * FROM `".$view["table"]."` WHERE ".implode(" OR ", $query_parts));
+	
+				if ($count = count($module_results)) {
+					$total_results += $count;
+					$results[$module->Name][] = [
+						"view" => $view,
+						"results" => Link::decode($module_results),
+						"module" => $module
+					];
+				}
 			}
 		}
 	}
 ?>
 <form class="adv_search" method="get" action="<?=ADMIN_ROOT?>search/">
+	<?php
+		if (!empty($_GET["query"])) {
+	?>
 	<h3><?=number_format($total_results)?> <?=Text::translate("Search results for")?> &ldquo;<?=Text::htmlEncode($_GET["query"])?>&rdquo;</h3>
+	<?php
+		}
+	?>
 	<label for="search_field_query" class="visually_hidden">Query</label>
 	<input id="search_field_query" type="search" name="query" autocomplete="off" value="<?=Text::htmlEncode($_GET["query"])?>"/>
 	<input type="submit"/>
 </form>
 
+<?php
+	if (!empty($_GET["query"])) {
+?>
 <div class="container">
 	<?php if (count($results)) { ?>
 	<header>
@@ -149,11 +163,16 @@
 	</section>
 	<?php } ?>
 </div>
+<?php
+	}
+?>
 <script>
 	// Override default controls
 	$(".container nav a").click(function () {
-		$(".content_container .content").hide();
 		var href = "content_" + $(this).attr("href").substr(1);
+
+		$(".content_container .content").hide();
+		
 		if ($(href)) {
 			$(".container nav a").removeClass("active");
 			$(this).addClass("active");

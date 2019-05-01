@@ -34,7 +34,8 @@
 		<label for="view_field_description"><?=Text::translate("Description <small>(instructions for the user)</small>")?></label>
 		<textarea id="view_field_description" name="description"><?=$description?></textarea>
 	</fieldset>			
-	<div class="triplets last">
+
+	<div class="triplets">
 		<fieldset>
 			<label for="view_table" class="required"><?=Text::translate("Data Table")?></label>
 			<select name="table" id="view_table" class="required" >
@@ -76,6 +77,11 @@
 			<input type="hidden" name="settings" id="view_settings" value="<?=htmlspecialchars(json_encode($settings))?>" />
 		</fieldset>
 	</div>
+
+	<fieldset class="last">
+		<input id="field_exclude_from_search" type="checkbox" name="exclude_from_search"<?php if (!empty($exclude_from_search)) { ?> checked<?php } ?>>
+		<label for="field_exclude_from_search" class="for_checkbox">Exclude from Admin Search <small>(if this view contains a lot of data, this will speed up search greatly)</small></label>
+	</fieldset>
 </section>
 <section class="sub" id="field_area">
 	<?php

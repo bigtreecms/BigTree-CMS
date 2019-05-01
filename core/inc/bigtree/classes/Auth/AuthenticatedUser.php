@@ -248,9 +248,11 @@
 				if ($this->Level > 0) {
 					return "p";
 				}
+
+				$id = empty($object->ID) ? 0 : $object->ID;
 				
-				if (!empty($this->Permissions["resources"][$object->ID])) {
-					$permission = $this->Permissions["resources"][$object->ID];
+				if (!empty($this->Permissions["resources"][$id])) {
+					$permission = $this->Permissions["resources"][$id];
 				} else {
 					$permission = null;
 				}

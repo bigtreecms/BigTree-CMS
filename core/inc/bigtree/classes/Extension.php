@@ -56,8 +56,10 @@
 				Deletes an existing extension hooks cache and re-caches based on the latest data.
 		*/
 		
-		public static function cacheHooks(): void
+		public static function cacheHooks(): array
 		{
+			global $bigtree;
+			
 			$plugins = [
 				"cron" => [],
 				"daily-digest" => [],
@@ -100,8 +102,10 @@
 			
 			// If no longer in debug mode, cache it
 			if (!$bigtree["config"]["debug"]) {
-				file_put_contents($extension_cache_file, JSON::encode($plugins));
+				file_put_contents(SERVER_ROOT."cache/bigtree-extension-cache.json", JSON::encode($plugins));
 			}
+			
+			return $plugins;
 		}
 		
 		/*
@@ -161,10 +165,10 @@
 			
 			// Handle extension cache
 			if ($bigtree["config"]["debug"] || !file_exists($extension_cache_file)) {
-				static::cacheHooks();
+				$plugins = static::cacheHooks();
+			} else {
+				$plugins = json_decode(file_get_contents($extension_cache_file), true);
 			}
-			
-			$plugins = json_decode(file_get_contents($extension_cache_file), true);
 			
 			Cron::$Plugins = $plugins["cron"];
 			DailyDigest::$Plugins = $plugins["daily-digest"];

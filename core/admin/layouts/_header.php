@@ -24,7 +24,7 @@
 		<meta charset="utf-8" />
 		<meta name="robots" content="noindex,nofollow" />
 		<title><?php if (isset($bigtree["admin_title"])) { ?><?=Text::htmlEncode($bigtree["admin_title"])?> | <?php } ?><?=$site->NavigationTitle?> <?=Text::translate("Admin")?></title>
-		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.less" type="text/css" media="screen" />
+		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.less?<?=BIGTREE_VERSION?>" type="text/css" media="screen" />
 		<?php
 			// Configuration based CSS
 			if (isset($bigtree["config"]["admin_css"]) && is_array($bigtree["config"]["admin_css"])) {
@@ -65,20 +65,11 @@
 			var CSRFTokenField = "<?=CSRF::$Field?>";
 			var CSRFToken = "<?=CSRF::$Token?>";
 		</script>
-		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
-		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
+		<script src="<?=ADMIN_ROOT?>js/lib.js?<?=BIGTREE_VERSION?>"></script>
+		<script src="<?=ADMIN_ROOT?>js/main.js?<?=BIGTREE_VERSION?>"></script>
+		<script src="<?=ADMIN_ROOT?>js/tinymce/tinymce.min.js?<?=BIGTREE_VERSION?>"></script>
 		<script>BigTree.dateFormat = "<?=Date::convertTojQuery($bigtree["config"]["date_format"])?>";</script>
 		<?php
-			if (!empty($bigtree["config"]["html_editor"]) && $bigtree["config"]["html_editor"]["src"] != "tinymce4/tinymce.js") {
-		?>
-		<script src="<?=ADMIN_ROOT?>js/<?=$bigtree["config"]["html_editor"]["src"]?>"></script>
-		<?php
-			} else {
-		?>
-		<script src="<?=ADMIN_ROOT?>js/tinymce/tinymce.min.js"></script>
-		<?php
-			}
-
 			// Configuration based JS
 			if (isset($bigtree["config"]["admin_js"]) && is_array($bigtree["config"]["admin_js"])) {
 				foreach ($bigtree["config"]["admin_js"] as $script) {

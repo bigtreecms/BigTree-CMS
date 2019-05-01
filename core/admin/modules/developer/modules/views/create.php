@@ -14,6 +14,7 @@
 	$module_id = end($bigtree["commands"]);
 	$title = $_POST["title"];
 	$table = $_POST["table"];
+	$exclude_from_search = !empty($_POST["exclude_from_search"]);
 
 	$table_description = SQL::describeTable($table);
 	$columns = $table_description["columns"];
@@ -72,7 +73,8 @@
 			$_POST["fields"],
 			$clean_actions,
 			$_POST["related_form"] ? intval($_POST["related_form"]) : null,
-			$_POST["preview_url"]
+			$_POST["preview_url"],
+			$exclude_from_search
 		);
 
 		$translated_action_title = Text::translate("View :title:", false, [":title:" => htmlspecialchars($title)]);
