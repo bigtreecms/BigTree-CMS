@@ -312,7 +312,7 @@
 						$redirect_url = rtrim($redirect_url, "/")."/".$additional_commands;
 
 						if ($bigtree["config"]["trailing_slash_behavior"] != "remove") {
-							return $redirect_url .= "/";
+							$redirect_url .= "/";
 						}
 					}
 
