@@ -53,6 +53,8 @@
 			$current_page = Router::$CurrentPage;
 			$context = static::$Context;
 			$og = static::getData("bigtree_pages", $current_page->ID);
+			$image_width = null;
+			$image_height = null;
 			
 			if (empty($context)) {
 				$title = $current_page->Title;
@@ -60,6 +62,8 @@
 				$description = !empty($current_page->MetaDescription) ? $current_page->MetaDescription : $og["description"];
 				$og_description = !empty($og["description"]) ? $og["description"] : $current_page->MetaDescription;
 				$image = $og["image"] ?: $fallback_image;
+				$image_width = $og["image_width"];
+				$image_height = $og["image_height"];
 				$type = $og["type"] ?: "website";
 			} else {
 				$context_og = static::getData($context["table"], $context["entry"]) ?: $og;
@@ -94,10 +98,14 @@
 				
 				if (!empty($context_og["image"])) {
 					$image = $context_og["image"];
+					$image_width = $context_og["image_width"];
+					$image_height = $context_og["image_height"];
 				} elseif (!empty($context["image"])) {
 					$image = $context["image"];
 				} else {
 					$image = $og["image"] ?: $fallback_image;
+					$image_width = $og["image_width"];
+					$image_height = $og["image_height"];
 				}
 			}
 			
@@ -121,6 +129,16 @@
 			
 			if ($image) {
 				echo '		<meta property="og:image" content="'.$image.'" />'."\n";
+				
+				// Only get image dimensions if the image is local
+				if (!$image_width && strpos($image, WWW_ROOT) === 0) {
+					list($image_width, $image_height) = getimagesize(str_replace(WWW_ROOT, SITE_ROOT, $image));
+				}
+				
+				if ($image_width && $image_height) {
+					echo '		<meta property="og:image:width" content="'.intval($image_width).'" />'."\n";
+					echo '		<meta property="og:image:height" content="'.intval($image_height).'" />'."\n";
+				}
 			}
 		}
 		
@@ -178,7 +196,13 @@
 				SQL::delete("bigtree_open_graph", ["table" => $table, "entry" => $id]);
 			}
 			
+			$og_image = null;
+			$og_image_width = null;
+			$og_image_height = null;
+			
 			if (!empty($image["tmp_name"])) {
+				list($og_image_width, $og_image_height) = getimagesize($image["tmp_name"]);
+
 				$image_obj = new Image($image["tmp_name"], [
 					"directory" => "files/open-graph/",
 					"min_width" => 1200,
@@ -186,7 +210,7 @@
 				]);
 				
 				if (empty($image_obj->Error)) {
-					$data["image"] = $image_obj->store($image["name"]);
+					$og_image = $image_obj->store($image["name"]);
 				} else {
 					ErrorHandler::logError(Text::translate("Open Graph Image"), $image_obj->Error);
 				}
@@ -196,10 +220,15 @@
 				$resource = Resource::getByFile(substr($data["image"], 11));
 				
 				if (!is_null($resource)) {
-					$data["image"] = "irl://".$resource->ID;
+					$og_image = "irl://".$resource->ID;
+					$og_image_width = $resource->Width;
+					$og_image_height = $resource->Height;
+					
 				} else {
 					ErrorHandler::logError(Text::translate("Open Graph Image"), Text::translate("Invalid image selected."));
-					$data["image"] = "";
+					$og_image = null;
+					$og_image_width = null;
+					$og_image_height = null;
 				}
 			}
 			
@@ -209,7 +238,9 @@
 				"title" => Text::htmlEncode($data["title"]),
 				"description" => Text::htmlEncode($data["description"]),
 				"type" => Text::htmlEncode($data["type"]),
-				"image" => Text::htmlEncode($data["image"])
+				"image" => Text::htmlEncode($og_image ?: $data["image"]),
+				"image_width" => $og_image ? $og_image_width : $data["image_width"],
+				"image_height" => $og_image ? $og_image_height : $data["image_height"]
 			];
 			
 			if ($pending) {

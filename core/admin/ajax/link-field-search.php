@@ -15,7 +15,7 @@
 				$text = $page->NavTitle;
 			}
 ?>
-<a class="link_field_result" href="<?=Link::byPath($page->Path)?>" data-placeholder="<?=Text::translate("Page:", true)?> <?=$text?>"><?=$text?></a>
+<a class="link_field_result" href="<?=Link::get($page->ID)?>" data-placeholder="<?=Text::translate("Page:", true)?> <?=$text?>"><?=$text?></a>
 <?php
 		}
 	}
