@@ -2,162 +2,152 @@
 	namespace BigTree;
 	
 	/**
-	 * @global array $bigtree
+	 * @global $this Field
 	 */
 	
-	$matrix = [
-		"data" => [],
-		"saved_entry" => $bigtree["entry"],
-		"saved_post_data" => $bigtree["post_data"],
-		"saved_file_data" => $bigtree["file_data"]
-	];
-	
-	// Find things that are strictly file based inputs and make a phantom entry in the POST so we don't miss it
-	foreach ($matrix["field"]["file_input"] as $number => $data) {
-		if (!isset($matrix["field"]["input"][$number])) {
-			$matrix["field"]["input"][$number] = [];
-		}
+	if (!is_array($this->Input)) {
+		$this->Input = [];
 	}
 	
-	if (count($matrix["field"]["input"])) {
-		foreach ($matrix["field"]["input"] as $number => $data) {
-			// Make sure something has been entered
-			if (array_filter((array) $data) || array_filter((array) $matrix["field"]["file_input"][$number])) {
-				$bigtree["entry"] = [];
-				$bigtree["post_data"] = $data["info"];
-				$bigtree["file_data"] = $matrix["field"]["file_input"][$number]["info"];
-				
-				// Process a manual video upload
-				if ($data["info"]["*localvideo"] || $bigtree["file_data"]["*localvideo"]["tmp_name"]) {
-					$bigtree["entry"]["type"] = "video";
-					
-					$field = new Field([
-						"title" => "Photo",
-						"key" => "*photo",
-						"type" => "image",
-						"input" => $bigtree["post_data"]["*photo"],
-						"file_input" => $bigtree["file_data"]["*photo"],
-						"settings" => $matrix["field"]["settings"],
-						"ignore" => false
-					]);
-					$output = $field->process();
-					
-					if ($output) {
-						$bigtree["entry"]["image"] = $output;
-					}
-					
-					$field = new Field([
-						"title" => "Video",
-						"key" => "*localvideo",
-						"type" => "upload",
-						"input" => $bigtree["post_data"]["*localvideo"],
-						"file_input" => $bigtree["file_data"]["*localvideo"],
-						"settings" => $matrix["field"]["settings"],
-						"ignore" => false
-					]);
-					$output = $field->process();
-					
-					if ($output) {
-						$bigtree["entry"]["video"] = [
-							"service" => "local",
-							"url" => $output
-						];
-					}
-					
-				// Process a photo upload
-				} elseif ($data["info"]["*photo"] || $bigtree["file_data"]["*photo"]["tmp_name"]) {
-					$field = new Field([
-						"title" => "Photo",
-						"key" => "*photo",
-						"type" => "image",
-						"input" => $bigtree["post_data"]["*photo"],
-						"file_input" => $bigtree["file_data"]["*photo"],
-						"settings" => $matrix["field"]["settings"],
-						"ignore" => false
-					]);
-					$output = $field->process();
-					
-					if ($output) {
-						$bigtree["entry"]["type"] = "photo";
-						$bigtree["entry"]["image"] = $output;
-					}
-					
-				// Process a video
-				} elseif ($data["info"]["*video"]) {
-					$field = new Field([
-						"title" => "Video URL",
-						"key" => "*video",
-						"type" => "video",
-						"input" => $bigtree["post_data"]["*video"],
-						"file_input" => $bigtree["file_data"]["*video"],
-						"settings" => $matrix["field"]["settings"],
-						"ignore" => false
-					]);
-					$output = $field->process();
-					
-					if ($output) {
-						$bigtree["entry"]["type"] = "video";
-						$bigtree["entry"]["image"] = $output["image"];
-						unset($output["image"]);
-						$bigtree["entry"]["video"] = $output;
-					}
-					
-				// Existing unchanged field
-				} elseif ($data["type"]) {
-					$bigtree["entry"] = $data;
-				}
-				
-				// Only run the rest if we successfully processed a video or photo
-				if (array_filter((array) $bigtree["entry"])) {
-					
-					// Handle all the additional columns
-					foreach (array_filter((array) $matrix["field"]["settings"]["columns"]) as $resource) {
-						$settings = @json_decode($resource["settings"], true);
-						$settings = is_array($settings) ? $settings : [];
-						
-						$field = [
-							"type" => $resource["type"],
-							"title" => $resource["title"],
-							"key" => $resource["id"],
-							"settings" => $settings,
-							"ignore" => false,
-							"input" => $bigtree["post_data"][$resource["id"]],
-							"file_input" => $bigtree["file_data"][$resource["id"]]
-						];
-						
-						if (empty($field["settings"]["directory"])) {
-							$field["settings"]["directory"] = "files/pages/";
-						}
-						
-						// If we JSON encoded this data and it hasn't changed we need to decode it or the parser will fail.
-						if (is_string($field["input"]) && is_array(json_decode($field["input"], true))) {
-							$field["input"] = json_decode($field["input"], true);
-						}
-						
-						// Process the input
-						$field = new Field($field);
-						$output = $field->process();
-						
-						if (!is_null($output)) {
-							$bigtree["entry"]["info"][$this->Key] = $output;
-						}
-					}
-					
-					$matrix["data"][] = $bigtree["entry"];
-				}
+	$this->Output = [];
+	
+	// Make sure file-only entries are represented
+	if (is_array($this->FileInput)) {
+		foreach ($this->FileInput as $index => $data) {
+			if (!isset($this->Input[$index])) {
+				$this->Input[$index] = [];
 			}
 		}
 	}
 	
-	foreach ($matrix["data"] as &$item) {
-		if (!empty($item["info"]["caption"])) {
-			$item["caption"] = $item["info"]["caption"];
+	foreach ($this->Input as $index => $data) {
+		// Make sure something has been entered
+		if (!array_filter((array) $data) && !array_filter((array) $this->FileInput[$index])) {
+			continue;
 		}
+		
+		$entry = [];
+		
+		// Process a manual video upload
+		if ($data["info"]["*localvideo"] || $this->FileInput[$index]["info"]["*localvideo"]["tmp_name"]) {
+			// Process the uploaded video
+			$sub_field = new Field([
+				"title" => "Video",
+				"key" => "*localvideo",
+				"type" => "upload",
+				"input" => $data["info"]["*localvideo"],
+				"file_input" => $this->FileInput[$index]["info"]["*localvideo"],
+				"settings" => $this->Settings
+			]);
+			$output = $sub_field->process();
+			
+			// If this field fails, we shouldn't upload the image
+			if ($output) {
+				$entry["type"] = "video";
+				$entry["video"] = [
+					"service" => "local",
+					"url" => $output
+				];
+				
+				// Process the cover image
+				$image_field = new Field([
+					"title" => "Photo",
+					"key" => "*photo",
+					"type" => "image",
+					"input" => $data["info"]["*photo"],
+					"file_input" => $this->FileInput[$index]["info"]["*photo"],
+					"settings" => $this->Settings
+				]);
+				$output = $image_field->process();
+				
+				if ($output) {
+					$entry["image"] = $output;
+				}
+			}
+			
+		// Process a photo upload
+		} elseif ($data["info"]["*photo"] || $this->FileInput[$index]["info"]["*photo"]["tmp_name"]) {
+			$sub_field = new Field([
+				"title" => "Photo",
+				"key" => "*photo",
+				"type" => "image",
+				"input" => $data["info"]["*photo"],
+				"file_input" => $this->FileInput[$index]["info"]["*photo"],
+				"settings" => $this->Settings
+			]);
+			$output = $sub_field->process();
+			
+			if ($output) {
+				$entry["type"] = "photo";
+				$entry["image"] = $output;
+			}
+			
+		// Process a video
+		} elseif ($data["info"]["*video"]) {
+			$sub_field = new Field([
+				"title" => "Video URL",
+				"key" => "*video",
+				"type" => "video",
+				"input" => $data["info"]["*video"],
+				"file_input" => $this->FileInput[$index]["info"]["*video"],
+				"settings" => $this->Settings
+			]);
+			$output = $sub_field->process();
+			
+			if ($output) {
+				$entry["type"] = "video";
+				$entry["image"] = $output["image"];
+				unset($output["image"]);
+				$entry["video"] = $output;
+			}
+			
+		// Existing unchanged field
+		} elseif ($data["type"]) {
+			$entry = $data;
+		}
+		
+		// Only run the rest if we successfully processed a video or photo
+		if (!array_filter((array) $entry)) {
+			continue;
+		}
+		
+		// Handle all the additional columns
+		foreach (array_filter((array) $this->Settings["columns"]) as $resource) {
+			// Sanitize field settings
+			$settings = @json_decode($resource["settings"], true);			
+			$settings = is_array($settings) ? $settings : [];
+			
+			if (empty($settings["directory"])) {
+				$settings["directory"] = "files/pages/";
+			}
+			
+			// Sanitize user input
+			$input = $data["info"][$resource["id"]];
+			
+			if (is_string($input) && is_array(json_decode($input, true))) {
+				$input = json_decode($input, true);
+			}
+			
+			$sub_field = new Field([
+				"type" => $resource["type"],
+				"title" => $resource["title"],
+				"key" => $resource["id"],
+				"settings" => $settings,
+				"input" => $input,
+				"file_input" => $this->FileInput[$index]["info"][$resource["id"]]
+			]);
+			$output = $sub_field->process();
+			
+			if (!is_null($output)) {
+				$entry["info"][$resource["id"]] = $output;
+			}
+		}
+		
+		$this->Output[] = $entry;
 	}
 	
-	$bigtree["entry"] = $matrix["saved_entry"];
-	$bigtree["post_data"] = $matrix["saved_post_data"];
-	$bigtree["file_data"] = $matrix["saved_file_data"];
-	
-	$this->Output = $matrix["data"];
-	
+	foreach ($this->Output as $index => $entry) {
+		if (!empty($entry["info"]["caption"])) {
+			$this->Output[$index]["caption"] = Text::htmlEncode(strip_tags($entry["info"]["caption"]));
+		}
+	}

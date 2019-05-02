@@ -2,62 +2,67 @@
 	namespace BigTree;
 	
 	/**
-	 * @global array $bigtree
+	 * @global $this Field
 	 */
 	
-	$matrix = [
-		"data" => [],
-		"saved_entry" => $bigtree["entry"],
-		"saved_post_data" => $bigtree["post_data"],
-		"saved_file_data" => $bigtree["file_data"]
-	];
+	if (!is_array($this->Input)) {
+		$this->Input = [];
+	}
 	
-	if (is_array($matrix["field"]["input"]) && count($matrix["field"]["input"])) {
-		foreach ($matrix["field"]["input"] as $number => $data) {
-			// Make sure something has been entered
-			if (array_filter((array) $data) || array_filter((array) $matrix["field"]["file_input"][$number])) {
-				$bigtree["entry"] = ["__internal-title" => $data["__internal-title"], "__internal-subtitle" => $data["__internal-subtitle"]];
-				$bigtree["post_data"] = $data;
-				$bigtree["file_data"] = $matrix["field"]["file_input"][$number];
-				
-				foreach ($matrix["field"]["settings"]["columns"] as $resource) {
-					$settings = is_array($resource["settings"]) ? $resource["settings"] : @json_decode($resource["settings"], true);
-					
-					$field = [
-						"type" => $resource["type"],
-						"title" => $resource["title"],
-						"key" => $resource["id"],
-						"settings" => is_array($settings) ? $settings : [],
-						"ignore" => false,
-						"input" => $bigtree["post_data"][$resource["id"]],
-						"file_input" => $bigtree["file_data"][$resource["id"]]
-					];
-					
-					if (empty($field["settings"]["directory"])) {
-						$field["settings"]["directory"] = "files/pages/";
-					}
-					
-					// If we JSON encoded this data and it hasn't changed we need to decode it or the parser will fail.
-					if (is_string($field["input"]) && is_array(json_decode($field["input"], true))) {
-						$field["input"] = json_decode($field["input"], true);
-					}
-					
-					// Process the input
-					$field = new Field($field);
-					$output = $field->process();
-					
-					if (!is_null($output)) {
-						$bigtree["entry"][$this->Key] = $output;
-					}
-				}
-				
-				$matrix["data"][] = $bigtree["entry"];
+	$this->Output = [];
+	
+	// Make sure file-only entries are represented
+	if (is_array($this->FileInput)) {
+		foreach ($this->FileInput as $index => $data) {
+			if (!isset($this->Input[$index])) {
+				$this->Input[$index] = [];
 			}
 		}
 	}
 	
-	$bigtree["entry"] = $matrix["saved_entry"];
-	$bigtree["post_data"] = $matrix["saved_post_data"];
-	$bigtree["file_data"] = $matrix["saved_file_data"];
-	
-	$this->Output = $matrix["data"];
+	foreach ($this->Input as $index => $data) {
+		// Make sure something has been entered
+		if (!array_filter((array) $data) && !array_filter((array) $this->FileInput[$index])) {
+			continue;
+		}
+		
+		$entry = [
+			"__internal-title" => $data["__internal-title"],
+			"__internal-subtitle" => $data["__internal-subtitle"]
+		];
+		
+		foreach ($this->Settings["columns"] as $column) {
+			// Sanitize field settings
+			$settings = @json_decode($column["settings"], true);
+			$settings = is_array($settings) ? $settings : [];
+			
+			if (empty($settings["directory"])) {
+				$settings["directory"] = "files/pages/";
+			}
+			
+			// Sanitize user input
+			$input = $data[$column["id"]];
+			
+			if (is_string($input) && is_array(json_decode($input, true))) {
+				$input = json_decode($input, true);
+			}
+			
+			// Process the sub-field
+			$sub_field = new Field([
+				"type" => $column["type"],
+				"title" => $column["title"],
+				"key" => $column["id"],
+				"settings" => $settings,
+				"input" => $input,
+				"file_input" => $this->FileInput[$index][$column["id"]]
+			]);
+			
+			$output = $sub_field->process();
+			
+			if (!is_null($output)) {
+				$entry[$column["id"]] = $output;
+			}
+		}
+		
+		$this->Output[] = $entry;
+	}

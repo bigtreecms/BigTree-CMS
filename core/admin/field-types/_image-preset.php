@@ -16,30 +16,30 @@
 	$text_subcrop = Text::translate("Sub-Crop");
 ?>
 <fieldset>
-	<label for="settings_field_min_width"><?=Text::translate("Minimum Width <small>(numeric value in pixels)</small>")?></label>
-	<input id="settings_field_min_width" type="text" name="min_width" value="<?=htmlspecialchars($preset_data["min_width"])?>" disabled="disabled" />
+	<label for="<?=$image_options_prefix?>settings_field_min_width"><?=Text::translate("Minimum Width <small>(numeric value in pixels)</small>")?></label>
+	<input id="<?=$image_options_prefix?>settings_field_min_width" type="text" name="min_width" value="<?=htmlspecialchars($preset_data["min_width"])?>" disabled="disabled" />
 </fieldset>
 
 <fieldset>
-	<label for="settings_field_min_height"><?=Text::translate("Minimum Height <small>(numeric value in pixels)</small>")?></label>
-	<input id="settings_field_min_height" type="text" name="min_height" value="<?=htmlspecialchars($preset_data["min_height"])?>" disabled="disabled" />
+	<label for="<?=$image_options_prefix?>settings_field_min_height"><?=Text::translate("Minimum Height <small>(numeric value in pixels)</small>")?></label>
+	<input id="<?=$image_options_prefix?>settings_field_min_height" type="text" name="min_height" value="<?=htmlspecialchars($preset_data["min_height"])?>" disabled="disabled" />
 </fieldset>
 
 <fieldset>
-	<label for="settings_field_preview_prefix"><?=Text::translate("Preview Prefix <small>(for forms)</small>")?></label>
-	<input id="settings_field_preview_prefix" type="text" name="preview_prefix" value="<?=htmlspecialchars($preset_data["preview_prefix"])?>" disabled="disabled" />
+	<label for="<?=$image_options_prefix?>settings_field_preview_prefix"><?=Text::translate("Preview Prefix <small>(for forms)</small>")?></label>
+	<input id="<?=$image_options_prefix?>settings_field_preview_prefix" type="text" name="preview_prefix" value="<?=htmlspecialchars($preset_data["preview_prefix"])?>" disabled="disabled" />
 </fieldset>
 
 <fieldset>
 	<label><?=Text::translate('Create Hi-Resolution Retina Images <small><a href=":doc_link:" target="_blank">(learn more)</a></small>', false, [":doc_link:" => "https://www.bigtreecms.org/docs/dev-guide/field-types/retina-images/"])?></label>
-	<input id="settings_field_retina" type="checkbox" name="retina" <?php if ($preset_data["retina"]) { ?>checked="checked" <?php } ?> disabled="disabled" />
-	<label for="settings_field_retina" class="for_checkbox"> <?=Text::translate("When Available")?></label>
+	<input id="<?=$image_options_prefix?>settings_field_retina" type="checkbox" name="retina" <?php if ($preset_data["retina"]) { ?>checked="checked" <?php } ?> disabled="disabled" />
+	<label for="<?=$image_options_prefix?>settings_field_retina" class="for_checkbox"> <?=Text::translate("When Available")?></label>
 </fieldset>
 
 <h4><?=Text::translate("Crops")?> <a href="#" class="add_crop icon_small icon_small_add" style="display: none;"></a></h4>
 
 <fieldset>
-	<div class="image_attr" id="pop_crop_list">
+	<div class="image_attr" id="<?=$image_options_prefix?>pop_crop_list">
 		<ul>
 			<li><?=Text::translate("Prefix:")?></li><li><?=Text::translate("Width:")?></li><li><?=Text::translate("Height:")?></li>
 		</ul>
@@ -138,9 +138,9 @@
 </fieldset>
 
 <h4><?=Text::translate("Thumbnails")?> <a href="#" class="add_thumb icon_small icon_small_add" style="display: none;"></a></h4>
-<p class="error_message" style="display: none;" id="thumbnail_dialog_error"><?=Text::translate("You must enter a height or width for each thumbnail.")?></p>
+<p class="error_message" style="display: none;" id="<?=$image_options_prefix?>thumbnail_dialog_error"><?=Text::translate("You must enter a height or width for each thumbnail.")?></p>
 <fieldset>
-	<div class="image_attr" id="pop_thumb_list">
+	<div class="image_attr" id="<?=$image_options_prefix?>pop_thumb_list">
 		<ul>
 			<li><?=Text::translate("Prefix:")?></li><li><?=Text::translate("Width:")?></li><li><?=Text::translate("Height:")?></li>
 		</ul>
@@ -179,7 +179,7 @@
 
 <h4><?=Text::translate("Center Crops <small>(automatically crops from the center of image)</small>")?> <a href="#" class="add_center_crop icon_small icon_small_add" style="display: none;"></a></h4>
 <fieldset>
-	<div class="image_attr" id="pop_center_crop_list">
+	<div class="image_attr" id="<?=$image_options_prefix?>pop_center_crop_list">
 		<ul>
 			<li><?=Text::translate("Prefix:")?></li><li><?=Text::translate("Width:")?></li><li><?=Text::translate("Height:")?></li>
 		</ul>
@@ -217,6 +217,6 @@
 </fieldset>
 <script>
 	try {
-		ImageOptions.updateCounts(<?=$crop_count?>,<?=$crop_thumb_count?>,<?=$thumb_count?>,<?=$center_crop_count?>,<?=$crop_sub_count?>);
+		<?=$image_options_prefix?>ImageOptions.updateCounts(<?=$crop_count?>,<?=$crop_thumb_count?>,<?=$thumb_count?>,<?=$center_crop_count?>,<?=$crop_sub_count?>);
 	} catch (err) {}
 </script>

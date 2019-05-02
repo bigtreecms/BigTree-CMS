@@ -20,9 +20,9 @@
 		<div class="currently_wrapper">
 			<?php
 				if ($this->Value) {
-					if ($resource->Locaation == "YouTube") {
+					if (strtolower($resource->Locaation) == "youtube") {
 						echo '<iframe src="https://youtube.com/embed/'.$resource->VideoData["id"].'?autoplay=false&showinfo=false&showrel=false&showcontrols=false"></iframe>';
-					} elseif ($resource->Location == "Vimeo") {
+					} elseif (strtolower($resource->Location) == "vimeo") {
 						echo '<iframe src="https://player.vimeo.com/video/'.$resource->VideoData["id"].'?autoplay=false&showinfo=false&showrel=false&showcontrols=false"></iframe>';
 					}
 				}

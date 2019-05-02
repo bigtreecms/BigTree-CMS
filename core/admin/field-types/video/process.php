@@ -28,7 +28,7 @@
 	
 	// Attempting to use a new video URL
 	if (!empty($this->Input["new"])) {
-		$url = $this->Input["new"];
+		$url = trim($this->Input["new"]);
 		$source_image = null;
 		$video_id = null;
 		
@@ -41,7 +41,7 @@
 				$get = explode("&", $parsed["query"]);
 				
 				foreach ($get as $index => $get_item) {
-					if (strpos($get_item, "t=") === 0) {
+					if (strpos($get_item, "v=") !== 0) {
 						unset($get[$index]);
 					}
 				}
@@ -107,12 +107,15 @@
 					// We can grab a little more info from the API
 					if ($youtube->Connected) {
 						$video = $youtube->getVideo($video_id);
-						// Try for max resolution first, then high, then default
-						$source_image = $video->Images->Maxres ? $video->Images->Maxres : $video->Images->High;
-						$source_image = $source_image ? $source_image : $video->Images->Default;
 						
-						$this->Output["duration"] = ($video->Duration->Hours * 3600 + $video->Duration->Minutes * 60 + $video->Duration->Seconds);
-						$this->Output["embed"] = $video->Embed;
+						if ($video) {
+							// Try for max resolution first, then high, then default
+							$source_image = $video->Images->Maxres ? $video->Images->Maxres : $video->Images->High;
+							$source_image = $source_image ? $source_image : $video->Images->Default;
+							
+							$this->Output["duration"] = ($video->Duration->Hours * 3600 + $video->Duration->Minutes * 60 + $video->Duration->Seconds);
+							$this->Output["embed"] = $video->Embed;
+						}
 					}
 				}
 			}

@@ -19,9 +19,9 @@
 		<div class="currently_wrapper">
 			<?php
 				if ($this->Value) {
-					if ($this->Value["service"] == "YouTube") {
+					if (strtolower($this->Value["service"]) == "youtube") {
 						echo '<iframe src="https://youtube.com/embed/'.$this->Value["id"].'?autoplay=false&showinfo=false&showrel=false&showcontrols=false"></iframe>';
-					} elseif ($this->Value["service"] == "Vimeo") {
+					} elseif (strtolower($this->Value["service"]) == "vimeo") {
 						echo '<iframe src="https://player.vimeo.com/video/'.$this->Value["id"].'?autoplay=false&showinfo=false&showrel=false&showcontrols=false"></iframe>';
 					}
 				}

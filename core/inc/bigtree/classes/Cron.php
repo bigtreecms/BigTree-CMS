@@ -46,6 +46,9 @@
 					cURL::request("https://www.bigtreecms.org/ajax/ping/?www_root=".urlencode(WWW_ROOT)."&version=".urlencode(BIGTREE_VERSION));
 				}
 			}
+
+			// Re-cache Sitemap
+			Sitemap::cache();
 			
 			// Make sure we have up to date plugins
 			Extension::initializeCache();

@@ -2806,28 +2806,36 @@ var BigTreeCallouts = function(settings) {
 			BigTree.TabIndexDepth--;
 
 			var type_select = LastDialog.find(".callout_type select").get(0);
-	
-			// Validate required fields.
 			var validator = BigTreeFormValidator(LastDialog);
+
 			if (!validator.validateForm(false,true)) {
 				return false;
 			}
-			
+
 			var article = $('<article>');
 			article.html('<h4></h4><p>' + type_select.options[type_select.selectedIndex].text + '</p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
-			
+
 			// Try our best to find some way to describe the callout
 			Description = "";
 			DescriptionField = LastDialog.find("[name='" + LastDialog.find(".display_field").val() + "']");
+
 			if (DescriptionField.is('select')) {
 				Description = DescriptionField.find("option:selected").text();
+			} else if (DescriptionField.is("textarea") && DescriptionField.css("display") == "none") {
+				var mce = tinyMCE.get(DescriptionField.attr("id"));
+				
+				if (mce) {
+					mce.save();
+					Description = DescriptionField.val();
+				}
 			} else {
 				Description = DescriptionField.val();
 			}
+
 			if ($.trim(Description) == "") {
 				Description = LastDialog.find(".display_default").val();
 			}
-			
+
 			// Append all the relevant fields into the callout field so that it gets saved on submit with the rest of the form.
 			LastDialog.find("input, textarea, select").each(function() {
 				if ($(this).attr("type") != "submit") {
@@ -2843,8 +2851,8 @@ var BigTreeCallouts = function(settings) {
 				}
 			});
 
-			article.find("h4").html(strip_tags(Description) + '<input type="hidden" name="' + Key + '[' + Count + '][display_title]" value="' + htmlspecialchars(Description) + '" />');
-	
+			article.find("h4").html(strip_tags(Description) + '<input type="hidden" name="' + Key + '[' + Count + '][display_title]" value="' + htmlspecialchars(strip_tags(Description)) + '" />');
+
 			return article;
 		}
 
@@ -3055,27 +3063,28 @@ var BigTreeMatrix = function(settings) {
 		function getItem() {
 			LastDialog = $(".bigtree_dialog_form").last();
 			BigTree.TabIndexDepth--;
-	
+
 			// Validate required fields.
 			var validator = BigTreeFormValidator(LastDialog);
 			if (!validator.validateForm(false,true)) {
 				return false;
 			}
-			
+
 			if (Style == "list") {
 				var entry = $('<li>').html('<span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a>');
 			} else {
 				var entry = $('<article>').html('<h4></h4><p></p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
 			}
-	
+
 			// Try our best to find some way to describe the item
 			Title = Subtitle = "";
 			LastDialog.find(".matrix_title_field").each(function(index,el) {
 				if (!Title || !Subtitle) {
-					var item = $(el).find("input[type=checkbox],input[type=text],input[type=email],input[type=url],textarea,select").not("[type=file]");
+					var item = $(el).find("input[type=checkbox],input[type=text],input[type=email],input[type=url],input[type=hidden],textarea,select").not("[type=file]");
 					if (item.length) {
 						// Going to check for multi-part inputs like names, address, phone
 						var parent = item.parent();
+						
 						if (parent.hasClass("input_name") || parent.hasClass("input_phone_3") || parent.hasClass("input_address_street")) {
 							var value = "";
 							item.parent().siblings('section').each(function() {
@@ -3089,24 +3098,33 @@ var BigTreeMatrix = function(settings) {
 							value = $.trim(value.substr(1));
 						} else if (item.is("select")) {
 							var value = $.trim(item.find("option:selected").text());
+						} else if (item.is("textarea") && item.css("display") == "none") {
+							var mce = tinyMCE.get(item.attr("id"));
+							
+							if (mce) {
+								mce.save();
+								var value = $.trim(item.val());
+							}
 						} else {
 							var value = $.trim(item.val());
 						}
+
 						// Reset value if item is an unchecked checkbox
 						if (item.attr('type') == 'checkbox' && !item.is(":checked")){
 							value = false;
 						}
+						
 						if (value) {
 							if (!Title) {
 								Title = strip_tags(value);
 							} else {
 								Subtitle = strip_tags(value);
 							}
-						} 
+						}
 					}
 				}
 			});
-			
+
 			// Append all the relevant fields into the matrix field so that it gets saved on submit with the rest of the form.
 			LastDialog.find("input, textarea, select").each(function() {
 				if ($(this).attr("type") != "submit") {
@@ -3965,9 +3983,9 @@ var BigTreeMediaGallery = function(settings) {
 			} else if (img.length) {
 				entry.find("figure").append(img).addClass("media_gallery_type_" + Type);
 			} else {
-				if (Type == "vimeo") {
+				if (Type == "Vimeo" || Type == "vimeo") {
 					var klass = "media_gallery_vimeo_block";
-				} else if (Type == "youtube") {
+				} else if (Type == "YouTube" || Type == "youtube") {
 					var klass = "media_gallery_youtube_block";
 				} else {
 					var klass = "";

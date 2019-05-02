@@ -159,6 +159,8 @@
 				$field["subtitle"] = $subtitle;
 				$field = new Field($field);
 				$field->draw();
+			} else {
+				echo $file->VideoData["embed"];
 			}
 
 			if (is_array($meta_fields) && count($meta_fields)) {

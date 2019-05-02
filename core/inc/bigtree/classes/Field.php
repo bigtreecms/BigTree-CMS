@@ -428,7 +428,7 @@
 			if (empty($this->FileOutput)) {
 				$bigtree["errors"][] = [
 					"field" => $this->Title,
-					Text::translate($image->Error)
+					"error" => Text::translate($image->Error)
 				];
 				$image->destroy();
 				

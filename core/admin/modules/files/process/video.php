@@ -6,7 +6,7 @@
 	 */
 	
 	$video = null;
-	$url = $_POST["video"];
+	$url = trim($_POST["video"]);
 	$settings = DB::get("config", "media-settings");
 	$preset = $settings["presets"]["default"];
 	$folder_id = intval($_POST["folder"]);
@@ -23,6 +23,25 @@
 
 	// YouTube
 	if (strpos($url,"youtu.be") !== false || strpos($url,"youtube.com") !== false) {
+		// Fix issues with URLs that contain timestamps.
+		$parsed = parse_url($url);
+		
+		if ($parsed["query"]) {
+			$get = explode("&", $parsed["query"]);
+			
+			foreach ($get as $index => $get_item) {
+				if (strpos($get_item, "v=") !== 0) {
+					unset($get[$index]);
+				}
+			}
+			
+			$url = $parsed["scheme"]."://".$parsed["host"].$parsed["path"];
+			
+			if (count($get)) {
+				$url .= "?".implode("&", $get);
+			}
+		}
+		
 		// Try to grab the ID from the YouTube URL (courtesy of various Stack Overflow authors)
 		$pattern =
 			'%^# Match any youtube URL

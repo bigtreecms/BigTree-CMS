@@ -13,6 +13,7 @@
 </fieldset>
 <?php
 	$settings = $_POST;
+	$image_options_prefix = null;
 	define("BIGTREE_CREATING_PRESET",true);
 	include Router::getIncludePath("admin/field-types/_image-options.php");
 ?>

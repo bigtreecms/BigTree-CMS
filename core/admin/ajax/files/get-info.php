@@ -28,9 +28,9 @@
 	} elseif ($file->IsVideo) {
 		$embed = "";
 		
-		if ($file->Location == "YouTube") {
+		if (strtolower($file->Location) == "youtube") {
 			$embed = '<iframe src="https://youtube.com/embed/'.$file->VideoData["id"].'?autoplay=false&showinfo=false&showrel=false&showcontrols=false"></iframe>';
-		} elseif ($file->Location == "Vimeo") {
+		} elseif (strtolower($file->Location) == "vimeo") {
 			$embed = '<iframe src="https://player.vimeo.com/video/'.$file->VideoData["id"].'?autoplay=false&showinfo=false&showrel=false&showcontrols=false"></iframe>';
 		}
 ?>

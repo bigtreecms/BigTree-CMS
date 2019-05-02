@@ -19,5 +19,6 @@
 	<input id="settings_field_directory" type="text" name="directory" value="<?=Text::htmlEncode($settings["directory"])?>" class="required" />
 </fieldset>
 <?php
+	$image_options_prefix = null;
 	include Router::getIncludePath("admin/field-types/_image-options.php");
 ?>
