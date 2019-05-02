@@ -169,16 +169,25 @@
 		
 		public static function checkPathHistory(array $path): void
 		{
-			$found = $new = $old = false;
+			global $bigtree;
+			
+			// Add multi-site path
+			if (defined("BIGTREE_SITE_PATH")) {
+				$path = array_filter(array_merge(explode("/", BIGTREE_SITE_PATH), $path));
+			}
+			
+			$route = false;
+			$additional_commands = "";
 			$x = count($path);
 			
 			while ($x) {
-				$result = SQL::fetch("SELECT * FROM bigtree_route_history WHERE old_route = ?", implode("/", array_slice($path, 0, $x)));
+				$route = SQL::fetchSingle("SELECT new_route FROM bigtree_route_history
+										   WHERE old_route = ?", implode("/", array_slice($path, 0, $x)));
 				
-				if ($result) {
-					$old = $result["old_route"];
-					$new = $result["new_route"];
-					$found = true;
+				if ($route) {
+					if ($x < count($path)) {
+						$additional_commands = implode("/", array_slice($path, $x));
+					}
 					
 					break;
 				}
@@ -187,9 +196,31 @@
 			}
 			
 			// If it's in the old routing table, send them to the new page.
-			if ($found) {
-				$new_url = $new.substr($_GET["bigtree_htaccess_url"], strlen($old));
-				static::redirect(WWW_ROOT.$new_url, "301");
+			if ($route) {
+				$page_id = SQL::fetchSingle("SELECT id FROM bigtree_pages WHERE path = ?", $route);
+				
+				// If this page was moved multiple times, it could have more than one entry in the route history
+				while ($route && !$page_id) {
+					$route = SQL::fetchSingle("SELECT new_route FROM bigtree_route_history WHERE old_route = ?", $route);
+					
+					if ($route) {
+						$page_id = SQL::fetchSingle("SELECT id FROM bigtree_pages WHERE path = ?", $route);
+					}
+				}
+				
+				if ($page_id) {
+					$redirect_url = Link::get($page_id);
+					
+					if ($additional_commands) {
+						$redirect_url = rtrim($redirect_url, "/")."/".$additional_commands;
+						
+						if ($bigtree["config"]["trailing_slash_behavior"] != "remove") {
+							$redirect_url .= "/";
+						}
+					}
+					
+					BigTree::redirect($redirect_url);
+				}
 			}
 		}
 		

@@ -13,6 +13,10 @@
 	<ul>
 		<?php
 			foreach ($items as $item) {
+				if (empty($item["type"])) {
+					$item["type"] = "image";
+				}
+
 				if ($item["type"] == "video") {
 					$type = $item["video"]["service"];
 				} else {

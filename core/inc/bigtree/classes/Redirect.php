@@ -108,8 +108,20 @@
 			$site_key = $sanitized_input["site_key"];
 			$to = htmlspecialchars(Link::encode(trim($to)));
 			$existing = static::getExisting($from, $get_vars, $site_key);
+			$history_cleaned = false;
 			
-			SQL::delete("bigtree_route_history", ["old_route" => $from]);
+			if ($site_key) {
+				foreach (Router::$SiteRoots as $site_path => $data) {
+					if ($data["key"] == $site_key) {
+						$history_cleaned = true;
+						SQL::delete("bigtree_route_history", ["old_route" => ltrim($site_path."/".$from, "/")]);
+					}
+				}
+			}
+			
+			if (!$history_cleaned) {
+				SQL::delete("bigtree_route_history", ["old_route" => $from]);
+			}
 			
 			if ($existing) {
 				$id = $existing["id"];

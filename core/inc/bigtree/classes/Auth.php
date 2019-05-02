@@ -536,6 +536,8 @@
 					$_SESSION[static::$Namespace]["csrf_token_field"] = $cache_data["csrf_token_field"];
 				}
 			}
+
+			die();
 		}
 		
 		/*
