@@ -2,7 +2,7 @@
 	namespace BigTree;
 
 	Auth::user()->requireLevel(1);
-	$settings = Setting::all("name ASC", true);
+	$settings = Setting::all("name", "ASC", true);
 
 	foreach ($settings as $key => $item) {
 		if ($item["system"] || ($item["locked"] && Auth::user()->Level < 2)) {

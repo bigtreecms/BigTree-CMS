@@ -170,7 +170,7 @@
 		{
 			if (!empty($_SESSION["bigtree_admin"]["post_error"])) {
 				$error_code = $_SESSION["bigtree_admin"]["post_error"];
-				$message = "An unknown error occurred."
+				$message = "An unknown error occurred.";
 				
 				if ($dont_unset == false) {
 					unset($_SESSION["bigtree_admin"]["post_error"]);
@@ -182,7 +182,7 @@
 					$message = "The submission exceeded the web server's maximum submission size.<br>If you uploaded multiple files, try uploading one at a time or ask your system administrator to increase the post_max_size and upload_max_filesize settings in php.ini";
 				}
 				
-				echo '<p class="warning_message">'.$message.'</p>';
+				echo '<p class="warning_message">'.Text::translate($message).'</p>';
 				echo '<hr>';
 				
 				return true;
