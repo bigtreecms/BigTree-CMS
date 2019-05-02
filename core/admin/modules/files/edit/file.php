@@ -41,9 +41,36 @@
 	} else {
 		$meta_fields = $metadata["file"];
 	}
+	$meta_date_format = $bigtree["config"]["date_format"] ? $bigtree["config"]["date_format"]." @ g:ia" : "F j, Y @ g:ia";
 	
 	Field::$Namespace = "file_field_";
 ?>
+<section class="inset_block property_block file_property_block">
+	<article>
+		<label>Created</label>
+		<p><?=date($meta_date_format, strtotime($file->CreatedAt))?></p>
+	</article>
+	<?php
+		if ($file->LastUpdated) {
+	?>
+	<article>
+		<label>Last Updated</label>
+		<p><?=date($meta_date_format, strtotime($file->LastUpdated))?></p>
+	</article>
+	<?php
+		}
+		
+		if ($file->FileLastUpdated) {
+	?>
+	<article>
+		<label>File Changed</label>
+		<p><?=date($meta_date_format, strtotime($file->FileLastUpdated))?></p>
+	</article>
+	<?php
+		}
+	?>
+</section>
+
 <form class="container" method="post" action="<?=ADMIN_ROOT?>files/update/file/" enctype="multipart/form-data">
 	<?php
 		if (Auth::user()->Level > 1) {

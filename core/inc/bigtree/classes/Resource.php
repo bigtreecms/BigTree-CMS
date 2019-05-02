@@ -7,18 +7,23 @@
 	namespace BigTree;
 	
 	/**
-	 * @property-read int $ID
 	 * @property-read int $AllocationCount
+	 * @property-read string $CreatedAt
+	 * @property-read int $ID
+	 * @property-read string $LastUpdated
 	 * @property-read string $UserAccessLevel
 	 */
 	class Resource extends SQLObject
 	{
 		
+		protected $CreatedAt;
 		protected $ID;
+		protected $LastUpdated;
+		protected $OriginalFile;
 		
 		public $Crops;
-		public $Date;
 		public $File;
+		public $FileLastUpdated;
 		public $FileSize;
 		public $Folder;
 		public $Height;
@@ -60,13 +65,15 @@
 					$this->ID = $resource["id"];
 					
 					$this->Crops = Link::detokenize(array_filter((array) @json_decode($resource["crops"], true)));
-					$this->Date = $resource["date"];
+					$this->CreatedAt = $resource["date"];
 					$this->File = Link::detokenize($resource["file"]);
+					$this->FileLastUpdated = $resource["file_last_updated"];
 					$this->FileSize = $resource["size"];
 					$this->Folder = $resource["folder"];
 					$this->Height = $resource["height"];
 					$this->IsImage = $resource["is_image"] ? true : false;
 					$this->IsVideo = $resource["is_video"] ? true : false;
+					$this->LastUpdated = $resource["last_updated"];
 					$this->Location = $resource["location"];
 					$this->Metadata = Link::detokenize(array_filter((array) @json_decode($resource["metadata"], true)));
 					$this->MimeType = $resource["mimetype"];
@@ -175,12 +182,13 @@
 				"size" => $file_size,
 				"width" => $width,
 				"height" => $height,
-				"date" => date("Y-m-d H:i:s"),
 				"crops" => Link::tokenize($crops),
 				"thumbs" => Link::tokenize($thumbs),
 				"location" => $location,
 				"video_data" => $video_data,
-				"metadata" => Link::tokenize($metadata)
+				"metadata" => Link::tokenize($metadata),
+				"file_last_updated" => "NOW()",
+				"last_updated" => "NOW()"
 			];
 			
 			$id = SQL::insert("bigtree_resources", $data);
@@ -420,10 +428,9 @@
 									  $this->VideoData, $this->Metadata);
 				$this->inherit($new);
 			} else {
-				SQL::update("bigtree_resources", $this->ID, [
+				$data = [
 					"folder" => intval($this->Folder) ?: null,
 					"file" => Link::tokenize($this->File),
-					"date" => date("Y-m-d H:i:s", strtotime($this->Date)),
 					"name" => Text::htmlEncode($this->Name),
 					"type" => $this->Type,
 					"mimetype" => $this->MimeType,
@@ -435,8 +442,15 @@
 					"size" => intval($this->FileSize),
 					"crops" => Link::tokenize($this->Crops),
 					"thumbs" => Link::tokenize($this->Thumbs),
-					"video_data" => Link::tokenize($this->VideoData)
-				]);
+					"video_data" => Link::tokenize($this->VideoData),
+					"last_updated" => "NOW()"
+				];
+				
+				if ($this->File != $this->OriginalFile) {
+					$data["file_last_updated"] = "NOW()";
+				}
+				
+				SQL::update("bigtree_resources", $this->ID, $data);
 				
 				AuditTrail::track("bigtree_resources", $this->ID, "updated");
 			}

@@ -260,7 +260,7 @@
 	// Sitemap setup
 	if ($bigtree["path"][0] == "sitemap.xml") {
 		header("Content-type: text/xml");
-		echo Sitemap::getXML();
+		Sitemap::drawXML();
 		die();
 	}
 	

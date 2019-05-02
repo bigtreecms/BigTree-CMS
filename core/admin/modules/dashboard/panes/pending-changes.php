@@ -5,35 +5,58 @@
 	$user_id = Auth::user()->ID;
 	$changes = PendingChange::allPublishableByUser(new User($user_id));
 	$my_changes = PendingChange::allByUser($user_id, "date DESC");
-
+	$modules = DB::getAll("modules");
+	
 	// Figure out what module each of the changes is for.
 	$change_modules = [];
 	$my_change_modules = [];
 	
 	foreach ($changes as $change) {
 		// If we didn't get the info for this module already, get it.
+		if (!$change->Module) {
+			$change->Module = "pages";
+		}
+		
 		if (!array_key_exists($change->Module, $change_modules)) {
-			// Pages
-			if ($change->Module == 0) {
-				$change_modules[0] = ["title" => Text::translate("Pages"), "count" => 1];
+			if ($change->Table == "bigtree_pages") {
+				$change_modules["pages"] = ["title" => "Pages", "count" => 1];
 			} else {
-				$module = new Module($change->Module);
-				$change_modules[$change->Module] = ["title" => $module->Name, "icon" => $module->Icon, "count" => 1];
+				foreach ($modules as $module) {
+					if ($module["id"] == $change->Module) {
+						$change_modules[$module["id"]] = [
+							"title" => $module["name"],
+							"icon" => $module["icon"],
+							"count" => 1
+						];
+					}
+				}
 			}
 		} else {
 			$change_modules[$change->Module]["count"]++;
 		}
 	}
 	
-	// Figure out what module each of the changes is for.
+	$my_change_modules = [];
+	
 	foreach ($my_changes as $change) {
+		// If we didn't get the info for this module already, get it.
+		if (!$change->Module) {
+			$change->Module = "pages";
+		}
+		
 		if (!array_key_exists($change->Module, $my_change_modules)) {
-			// Pages
-			if ($change->Module == 0) {
-				$my_change_modules[0] = ["title" => Text::translate("Pages"), "count" => 1];
+			if ($change->Table == "bigtree_pages") {
+				$my_change_modules["pages"] = ["title" => "Pages", "count" => 1];
 			} else {
-				$module = new Module($change->Module);
-				$my_change_modules[$change->Module] = ["title" => $module->Name, "icon" => $module->Icon, "count" => 1];
+				foreach ($modules as $module) {
+					if ($module["id"] == $change->Module) {
+						$my_change_modules[$module["id"]] = [
+							"title" => $module["name"],
+							"icon" => $module["icon"],
+							"count" => 1
+						];
+					}
+				}
 			}
 		} else {
 			$my_change_modules[$change->Module]["count"]++;

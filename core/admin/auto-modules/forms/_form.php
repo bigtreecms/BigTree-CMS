@@ -64,19 +64,11 @@
 		?>
 		<section id="content_tab">
 			<p class="error_message" style="display: none;"><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
+			
 			<?php
-				if ($_SESSION["bigtree_admin"]["post_max_hit"]) {
-					unset($_SESSION["bigtree_admin"]["post_max_hit"]);
+				Utils::drawPOSTErrorMessage();
 			?>
-			<p class="warning_message"><?=Text::translate("The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.")?></p>
-			<?php
-				} elseif ($_SESSION["bigtree_admin"]["post_hash_failed"]) {
-					unset($_SESSION["bigtree_admin"]["post_hash_failed"]);
-			?>
-			<p class="warning_message"><?=Text::translate("The form submission failed to pass our automated submission test. If you have JavaScript turned off, please turn it on.")?></p>
-			<?php
-				}
-			?>
+
 			<div class="form_fields">
 				<?php
 					$bigtree["html_fields"] = [];

@@ -53,6 +53,10 @@
 				}
 			}
 			
+			if (empty($path)) {
+				return WWW_ROOT;
+			}
+			
 			if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
 				return WWW_ROOT.$path;
 			}

@@ -11,6 +11,7 @@
 	use BigTree\GoogleResultSet;
 	use BigTree\JSON;
 	use BigTree\OAuth;
+	use BigTree\Setting;
 	use BigTree\SQL;
 	use stdClass;
 	
@@ -58,6 +59,7 @@
 			SQL::query("UPDATE bigtree_pages SET ga_page_views = NULL");
 			
 			// Clear settings
+			Setting::updateValue("bigtree-internal-google-analytics-api", []);
 			$this->Settings = [];
 		}
 		

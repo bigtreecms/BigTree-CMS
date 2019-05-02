@@ -88,6 +88,7 @@
 				]
 			]);
 			
+			$file->FileLastUpdated = "NOW()";
 			$file->Width= $image->Width;
 			$file->Height = $image->Height;
 			$file->Crops = $crop_prefixes;
@@ -104,6 +105,7 @@
 			}
 		} elseif (!$file->IsVideo) {
 			$file->Size = filesize($_FILES["file"]["tmp_name"]);
+			$file->FileLastUpdated = "NOW()";
 			$storage->replace($_FILES["file"]["tmp_name"], $file_name, "files/resources/");
 		}
 	} elseif (!empty($_POST["__file_recrop__"])) {

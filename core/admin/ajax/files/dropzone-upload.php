@@ -1,5 +1,12 @@
 <?php
 	namespace BigTree;
+
+	if (!empty(Router::$POSTError)) {
+		http_response_code(406);
+		header("Content-type: text/plain");
+		echo Text::translate("The uploaded file exceeded the server's maximum upload size.");
+		die();
+	}
 	
 	CSRF::verify();
 	

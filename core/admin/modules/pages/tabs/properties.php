@@ -49,12 +49,7 @@
 		];
 	}
 
-	if ($bigtree["form_action"] == "create" && $_SESSION["bigtree_admin"]["post_max_hit"]) {
-		unset($_SESSION["bigtree_admin"]["post_max_hit"]);
-?>
-<p class="warning_message"><?=Text::translate("The file(s) uploaded exceeded the web server's maximum upload size. If you uploaded multiple files, try uploading one at a time.")?></p>
-<?php
-	}
+	Utils::drawPOSTErrorMessage(true);
 ?>
 <p class="error_message" style="display: none;"><?=Text::translate("Errors found! Please fix the highlighted fields before submitting.")?></p>
 

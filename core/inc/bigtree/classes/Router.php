@@ -16,6 +16,7 @@
 		
 		/** @property BigTree\Page $CurrentPage */
 		public static $CurrentPage = null;
+		public static $POSTError = null;
 		public static $Registry = false;
 		public static $RouteParamNames = [];
 		public static $RouteParamNamesPath = [];
@@ -29,8 +30,31 @@
 		
 		public static function boot($config): void
 		{
+			global $bigtree;
+			
 			if (static::$Booted) {
 				return;
+			}
+
+			// Check for POST errors
+			if (!is_null($bigtree["php_boot_error"])) {
+				$error = false;
+				$message = $bigtree["php_boot_error"]["message"];
+
+				if (strpos($message, "POST Content-Length") !== false) {
+					$error = "post_max_size";
+				}
+
+				if (strpos($message, "max_input_vars") !== false) {
+					$error = "max_input_vars";
+				}
+
+				if ($error && $bigtree["path"][1] != "ajax") {
+					$_SESSION["bigtree_admin"]["post_error"] = $error;
+					static::redirect($_SERVER["HTTP_REFERER"]);
+				} else {
+					static::$POSTError = $error;
+				}
 			}
 			
 			$cache_file = SERVER_ROOT."cache/bigtree-module-cache.json";

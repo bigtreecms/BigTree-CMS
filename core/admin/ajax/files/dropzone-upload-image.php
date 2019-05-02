@@ -5,6 +5,14 @@
 	 * @global array $crop_prefixes
 	 * @global array $thumb_prefixes
 	 */
+
+	if (!empty(Router::$POSTError)) {
+		http_response_code(406);
+		header("Content-type: text/plain");
+		echo Text::translate("The uploaded image exceeded the server's maximum upload size. Please try a smaller image.");
+		die();
+	}
+
 	
 	CSRF::verify();
 	$folder = intval($_POST["folder"]);

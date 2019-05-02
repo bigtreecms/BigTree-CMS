@@ -16,6 +16,7 @@
         "ext-curl": "*",
         "ext-ctype": "*",
         "ext-dom": "*",
-        "ext-mysqli": "*"
+        "ext-mysqli": "*",
+        "ext-xmlwriter": "*"
     }
 }

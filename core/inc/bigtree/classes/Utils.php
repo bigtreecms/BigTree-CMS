@@ -159,6 +159,39 @@
 		}
 		
 		/*
+			Function: drawPOSTErrorMessage
+				If a POST error occurred, draws a message for the form.
+
+			Returns:
+				true if a message was displayed
+		*/
+		
+		public static function drawPOSTErrorMessage($dont_unset = false)
+		{
+			if (!empty($_SESSION["bigtree_admin"]["post_error"])) {
+				$error_code = $_SESSION["bigtree_admin"]["post_error"];
+				$message = "An unknown error occurred."
+				
+				if ($dont_unset == false) {
+					unset($_SESSION["bigtree_admin"]["post_error"]);
+				}
+				
+				if ($error_code == "max_input_vars") {
+					$message = "The maximum number of input variables was exceeded and the submission failed.<br>Please ask your system administrator to increase the max_input_vars limit in php.ini";
+				} elseif ($error_code == "post_max_size") {
+					$message = "The submission exceeded the web server's maximum submission size.<br>If you uploaded multiple files, try uploading one at a time or ask your system administrator to increase the post_max_size and upload_max_filesize settings in php.ini";
+				}
+				
+				echo '<p class="warning_message">'.$message.'</p>';
+				echo '<hr>';
+				
+				return true;
+			} else {
+				return false;
+			}
+		}
+		
+		/*
 			Function: growl
 				Adds a growl message for the next admin page reload.
 
