@@ -2,7 +2,6 @@
 	namespace BigTree;
 	
 	/**
-	 * @global array $bigtree
 	 * @global string $login_root
 	 */
 	
@@ -23,8 +22,12 @@
 				
 				$user->save();
 				$user->removeBans();
-
-				Router::redirect(($bigtree["config"]["force_secure_login"] ? str_replace("http://","https://",ADMIN_ROOT) : ADMIN_ROOT)."login/reset-success/");
+				
+				if (!empty(Router::$Config["force_secure_login"])) {
+					Router::redirect(str_replace("http://", "https://", ADMIN_ROOT)."login/reset-success/");
+				} else {
+					Router::redirect(ADMIN_ROOT."login/reset-success/");
+				}
 			}
 		}
 	}

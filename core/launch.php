@@ -1,9 +1,13 @@
 <?php
 	// Setup the BigTree variable "namespace"
 	$bigtree = [];
-	$bigtree["php_boot_error"] = error_get_last();
 	$bigtree["config"] = [];
 	$bigtree["config"]["debug"] = false;
+	$boot_error = error_get_last();
+	
+	if ($boot_error) {
+		define("BIGTREE_PHP_BOOT_ERROR", $boot_error["message"]);
+	}
 	
 	// Newer installs should use a strict $server_root variable to launch properly from shared cores
 	if (empty($server_root)) {

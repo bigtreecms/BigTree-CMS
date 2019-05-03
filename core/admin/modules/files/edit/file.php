@@ -41,7 +41,7 @@
 	} else {
 		$meta_fields = $metadata["file"];
 	}
-	$meta_date_format = $bigtree["config"]["date_format"] ? $bigtree["config"]["date_format"]." @ g:ia" : "F j, Y @ g:ia";
+	$meta_date_format = Router::$Config["date_format"] ? Router::$Config["date_format"]." @ g:ia" : "F j, Y @ g:ia";
 	
 	Field::$Namespace = "file_field_";
 ?>

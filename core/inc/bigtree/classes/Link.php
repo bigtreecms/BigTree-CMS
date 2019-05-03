@@ -34,11 +34,9 @@
 		
 		public static function byPath(string $path): string
 		{
-			global $bigtree;
-			
 			// Remove the site root from the path for multi-site
 			if (defined("BIGTREE_SITE_KEY") ||
-				(is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])))
+				(is_array(Router::$Config["sites"]) && count(Router::$Config["sites"])))
 			{
 				foreach (Router::$SiteRoots as $site_path => $site_data) {
 					if ($path === "" && $site_path === "") {
@@ -50,7 +48,7 @@
 							$path = substr($path, strlen($site_path) + 1);
 						}
 						
-						if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
+						if (Router::$Config["trailing_slash_behavior"] == "remove") {
 							return rtrim($site_data["www_root"].$path, "/");
 						}
 						
@@ -63,7 +61,7 @@
 				return WWW_ROOT;
 			}
 			
-			if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
+			if (Router::$Config["trailing_slash_behavior"] == "remove") {
 				return WWW_ROOT.$path;
 			}
 			
@@ -77,8 +75,6 @@
 		
 		public static function cacheTokens(): void
 		{
-			global $bigtree;
-			
 			$valid_root = function ($root) {
 				return (substr($root, 0, 7) == "http://" || substr($root, 0, 8) == "https://" || substr($root, 0, 2) == "//");
 			};
@@ -90,8 +86,8 @@
 					static::$TokenValues[] = "{adminroot}";
 				}
 				
-				if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
-					foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
+				if (is_array(Router::$Config["sites"]) && count(Router::$Config["sites"])) {
+					foreach (Router::$Config["sites"] as $site_key => $site_configuration) {
 						if ($valid_root($site_configuration["static_root"])) {
 							static::$TokenKeys[] = $site_configuration["static_root"];
 							static::$TokenValues[] = "{staticroot:$site_key}";
@@ -269,16 +265,14 @@
 		
 		public static function get(string $id): string
 		{
-			global $bigtree;
-			
 			// Homepage, just return the web root.
 			if ($id === BIGTREE_SITE_TRUNK) {
 				return WWW_ROOT;
 			}
 			
 			// If someone is requesting the link of the page they're already on we don't need to request it from the database.
-			if ($bigtree["page"]["id"] == $id) {
-				return static::byPath($bigtree["page"]["path"]);
+			if (Router::$CurrentPage && Router::$CurrentPage->ID == $id) {
+				return static::byPath(Router::$CurrentPage->Path);
 			}
 			
 			// Otherwise we'll grab the page data from the db.
@@ -312,8 +306,6 @@
 		
 		public static function getPreview(string $id): string
 		{
-			global $bigtree;
-			
 			if (substr($id, 0, 1) == "p") {
 				return WWW_ROOT."_preview-pending/".htmlspecialchars($id)."/";
 			} elseif ($id == 0) {
@@ -321,7 +313,7 @@
 			} else {
 				$link = static::get($id);
 				
-				if (defined("BIGTREE_SITE_KEY") || (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]))) {
+				if (defined("BIGTREE_SITE_KEY") || (is_array(Router::$Config["sites"]) && count(Router::$Config["sites"]))) {
 					foreach (Router::$SiteRoots as $site_path => $site_data) {
 						if (strpos($link, $site_data["www_root"]) === 0) {
 							return str_replace($site_data["www_root"], $site_data["www_root"]."_preview/", $link);
@@ -486,8 +478,6 @@
 		
 		public static function iplDecode(string $ipl): string
 		{
-			global $bigtree;
-			
 			// Regular links
 			if (substr($ipl, 0, 6) != "ipl://" && substr($ipl, 0, 6) != "irl://") {
 				return static::detokenize($ipl);
@@ -530,7 +520,7 @@
 				$commands = implode("/", $command_parts);
 				
 				// If the URL's last piece has a GET (?), hash (#), or appears to be a file (.) don't add a trailing slash
-				if ($bigtree["config"]["trailing_slash_behavior"] != "remove" && strpos($last, "#") === false &&
+				if (Router::$Config["trailing_slash_behavior"] != "remove" && strpos($last, "#") === false &&
 					strpos($last, "?") === false && strpos($last, ".") === false)
 				{
 					$commands .= "/";
@@ -548,7 +538,7 @@
 				static::$IPLCache[$navid] = rtrim(static::byPath($path), "/");
 			}
 			
-			if ((!empty($bigtree["config"]["trailing_slash_behavior"]) && $bigtree["config"]["trailing_slash_behavior"] != "remove")
+			if ((!empty(Router::$Config["trailing_slash_behavior"]) && Router::$Config["trailing_slash_behavior"] != "remove")
 				|| $commands != "")
 			{
 				$url = static::$IPLCache[$navid]."/".$commands;
@@ -580,8 +570,6 @@
 		
 		public static function iplEncode(string $url): string
 		{
-			global $bigtree;
-			
 			$path_components = explode("/", rtrim(str_replace(WWW_ROOT, "", $url), "/"));
 			
 			// See if this is a file
@@ -595,8 +583,8 @@
 			}
 			
 			// If we have multiple sites, try each domain
-			if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]) > 1) {
-				foreach ($bigtree["config"]["sites"] as $site_key => $configuration) {
+			if (is_array(Router::$Config["sites"]) && count(Router::$Config["sites"]) > 1) {
+				foreach (Router::$Config["sites"] as $site_key => $configuration) {
 					// This is the site we're pointing to
 					if (strpos($url, $configuration["www_root"]) !== false) {
 						$path_components = explode("/", rtrim(str_replace($configuration["www_root"], "", $url), "/"));
@@ -761,13 +749,11 @@
 		
 		public static function stripMultipleRootTokens(string $string): string
 		{
-			global $bigtree;
-			
-			if (empty($bigtree["config"]["sites"]) || !array_filter((array) $bigtree["config"]["sites"])) {
+			if (empty(Router::$Config["sites"]) || !array_filter((array) Router::$Config["sites"])) {
 				return $string;
 			}
 			
-			foreach ($bigtree["config"]["sites"] as $key => $data) {
+			foreach (Router::$Config["sites"] as $key => $data) {
 				$string = str_replace(
 					["{wwwroot:$key}", "{staticroot:$key}"],
 					["{wwwroot}", "{staticroot}"],
@@ -865,8 +851,6 @@
 		
 		public static function urlify(string $title): string
 		{
-			global $bigtree;
-			
 			$replacements = [
 				'Â' => 'A',
 				'Ã' => 'A',
@@ -932,7 +916,7 @@
 			
 			if (class_exists("Locale") && version_compare(PHP_VERSION, "7.1.0") >= 0) {
 				$options = new SlugOptions;
-				$options->setLocale($bigtree["config"]["locale"] ?: "en_US");
+				$options->setLocale(Router::$Config["locale"] ?: "en_US");
 				
 				$generator = new SlugGenerator($options);
 				

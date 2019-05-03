@@ -6,12 +6,12 @@
 	// Show an alert for being on the development site of a live site, in maintenance mode, or in developer mode
 	$environment_alert = false;
 
-	if (!empty($bigtree["config"]["maintenance_url"])) {
+	if (!empty(Router::$Config["maintenance_url"])) {
 		$environment_alert = '<span><strong>'.Text::translate("Maintenance Mode").'</strong> &middot; '.Text::translate("Entire Site Restricted To Developers").'</span>';
-	} elseif (!empty($bigtree["config"]["developer_mode"])) {
+	} elseif (!empty(Router::$Config["developer_mode"])) {
 		$environment_alert = '<span><strong>'.Text::translate("Developer Mode").'</strong> &middot; '.Text::translate("Admin Area Restricted To Developers").'</span>';
-	} elseif ($bigtree["config"]["environment"] == "dev" && $bigtree["config"]["environment_live_url"]) {
-		$environment_alert = '<span><strong>'.Text::translate("Development Site").'</strong> &middot; '.Text::translate("Changes Will Not Affect Live Site!").'</span><a href="'.$bigtree["config"]["environment_live_url"].'">'.Text::translate("Go Live").'</a>';
+	} elseif (Router::$Config["environment"] == "dev" && Router::$Config["environment_live_url"]) {
+		$environment_alert = '<span><strong>'.Text::translate("Development Site").'</strong> &middot; '.Text::translate("Changes Will Not Affect Live Site!").'</span><a href="'.Router::$Config["environment_live_url"].'">'.Text::translate("Go Live").'</a>';
 	}
 ?>
 <!doctype html> 
@@ -27,8 +27,8 @@
 		<link rel="stylesheet" href="<?=ADMIN_ROOT?>css/main.less?<?=BIGTREE_VERSION?>" type="text/css" media="screen" />
 		<?php
 			// Configuration based CSS
-			if (isset($bigtree["config"]["admin_css"]) && is_array($bigtree["config"]["admin_css"])) {
-				foreach ($bigtree["config"]["admin_css"] as $style) {
+			if (isset(Router::$Config["admin_css"]) && is_array(Router::$Config["admin_css"])) {
+				foreach (Router::$Config["admin_css"] as $style) {
 					if (strpos($style, "https://") === false && strpos($style, "http://") === false) {
 						$style = ADMIN_ROOT."css/".$style;
 					}
@@ -68,11 +68,11 @@
 		<script src="<?=ADMIN_ROOT?>js/lib.js?<?=BIGTREE_VERSION?>"></script>
 		<script src="<?=ADMIN_ROOT?>js/main.js?<?=BIGTREE_VERSION?>"></script>
 		<script src="<?=ADMIN_ROOT?>js/tinymce/tinymce.min.js?<?=BIGTREE_VERSION?>"></script>
-		<script>BigTree.dateFormat = "<?=Date::convertTojQuery($bigtree["config"]["date_format"])?>";</script>
+		<script>BigTree.dateFormat = "<?=Date::convertTojQuery(Router::$Config["date_format"])?>";</script>
 		<?php
 			// Configuration based JS
-			if (isset($bigtree["config"]["admin_js"]) && is_array($bigtree["config"]["admin_js"])) {
-				foreach ($bigtree["config"]["admin_js"] as $script) {
+			if (isset(Router::$Config["admin_js"]) && is_array(Router::$Config["admin_js"])) {
+				foreach (Router::$Config["admin_js"] as $script) {
 		?>
 		<script src="<?=ADMIN_ROOT?>js/<?=$script?>"></script>
 		<?php
@@ -114,7 +114,7 @@
 		</script>
 		<header class="main">
 			<section>
-				<a href="<?php if ($bigtree["config"]["force_secure_login"]) { echo str_replace("http://","https://",ADMIN_ROOT); } else { echo ADMIN_ROOT; } ?>login/logout/?true<?php CSRF::drawGETToken(); ?>" class="logout"><span></span><?=Text::translate("Logout")?></a>
+				<a href="<?php if (Router::$Config["force_secure_login"]) { echo str_replace("http://","https://",ADMIN_ROOT); } else { echo ADMIN_ROOT; } ?>login/logout/?true<?php CSRF::drawGETToken(); ?>" class="logout"><span></span><?=Text::translate("Logout")?></a>
 				<div></div>
 				<p class="welcome"><span class="gravatar"><img src="<?=User::gravatar(Auth::$Email, 28)?>" alt="" /></span><?=Text::translate("Welcome Back")?> <a href="<?=ADMIN_ROOT?>users/profile/"><?=Auth::$Name?></a></p>
 				<strong><?=$site->NavigationTitle?></strong>

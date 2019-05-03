@@ -4,6 +4,7 @@
 			The primary interface to BigTree that is used by the front end of the site for pulling settings, navigation, and page content.
 	*/
 	
+	use BigTree\Router;
 	use BigTree\SQL;
 	
 	class BigTreeCMSBase {
@@ -16,13 +17,11 @@
 		*/
 		
 		function __construct() {
-			global $bigtree;
-			
 			// Turn on debugging if we're in debug mode.
-			if ($bigtree["config"]["debug"] === "full") {
+			if (Router::$Config["debug"] === "full") {
 				error_reporting(E_ALL);
 				ini_set("display_errors", "on");
-			} elseif ($bigtree["config"]["debug"]) {
+			} elseif (Router::$Config["debug"]) {
 				error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT);
 				ini_set("display_errors", "on");
 			} else {

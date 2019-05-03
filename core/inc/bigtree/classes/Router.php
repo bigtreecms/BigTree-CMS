@@ -15,7 +15,13 @@
 		protected static $ReservedRoutes = [];
 		
 		/** @property BigTree\Page $CurrentPage */
-		public static $CurrentPage = null;
+		public static $BootError = null;
+		public static $CurrentPage;
+		public static $Config = [];
+		public static $Content = "";
+		public static $Debug = false;
+		public static $Layout = "default";
+		public static $Path = [];
 		public static $POSTError = null;
 		public static $Registry = false;
 		public static $RouteParamNames = [];
@@ -28,28 +34,38 @@
 				Builds caches from the database and configuration files.
 		*/
 		
-		public static function boot($config): void
+		public static function boot($config, $path): void
 		{
-			global $bigtree;
-			
 			if (static::$Booted) {
 				return;
 			}
+			
+			static::$Config = $config;
+			static::$Debug = !empty($config["debug"]);
+			static::$Path = $path;
+			
+			// Cleanup some config
+			if (empty(static::$Config["trailing_slash_behavior"])) {
+				static::$Config["trailing_slash_behavior"] = "";
+			}
+			
+			if (empty(static::$Config["sites"]) || !is_array(static::$Config["sites"])) {
+				static::$Config["sites"] = [];
+			}
 
 			// Check for POST errors
-			if (!is_null($bigtree["php_boot_error"])) {
+			if (defined("BIGTREE_PHP_BOOT_ERROR")) {
 				$error = false;
-				$message = $bigtree["php_boot_error"]["message"];
 
-				if (strpos($message, "POST Content-Length") !== false) {
+				if (strpos(BIGTREE_PHP_BOOT_ERROR, "POST Content-Length") !== false) {
 					$error = "post_max_size";
 				}
 
-				if (strpos($message, "max_input_vars") !== false) {
+				if (strpos(BIGTREE_PHP_BOOT_ERROR, "max_input_vars") !== false) {
 					$error = "max_input_vars";
 				}
 
-				if ($error && $bigtree["path"][1] != "ajax") {
+				if ($error && $path[1] != "ajax") {
 					$_SESSION["bigtree_admin"]["post_error"] = $error;
 					static::redirect($_SERVER["HTTP_REFERER"]);
 				} else {
@@ -169,8 +185,6 @@
 		
 		public static function checkPathHistory(array $path): void
 		{
-			global $bigtree;
-			
 			// Add multi-site path
 			if (defined("BIGTREE_SITE_PATH")) {
 				$path = array_filter(array_merge(explode("/", BIGTREE_SITE_PATH), $path));
@@ -214,7 +228,7 @@
 					if ($additional_commands) {
 						$redirect_url = rtrim($redirect_url, "/")."/".$additional_commands;
 						
-						if ($bigtree["config"]["trailing_slash_behavior"] != "remove") {
+						if (static::$Config["trailing_slash_behavior"] != "remove") {
 							$redirect_url .= "/";
 						}
 					}
@@ -582,16 +596,14 @@
 		
 		public static function redirect(string $url, string $code = "302"): void
 		{
-			global $bigtree;
-			
 			// If we're presently in the admin we don't want to allow the possibility of a redirect outside our site via malicious URLs
 			if (defined("BIGTREE_ADMIN_ROUTED")) {
 				// Multiple redirect domains allowed
-				if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+				if (count(static::$Config["sites"])) {
 					$ok = false;
 					$pieces = explode("/", $url);
 					
-					foreach ($bigtree["config"]["sites"] as $site_data) {
+					foreach (static::$Config["sites"] as $site_data) {
 						$bt_domain_pieces = explode("/", $site_data["domain"]);
 						
 						if (strtolower($pieces[2]) == strtolower($bt_domain_pieces[2])) {
@@ -648,8 +660,6 @@
 		
 		public static function redirectLower(Page $page): void
 		{
-			global $bigtree;
-			
 			$path = SQL::fetchSingle("SELECT path FROM bigtree_pages 
 						  			  WHERE in_nav = 'on' AND parent = ? 
 						              ORDER BY position DESC, id ASC LIMIT 1", $page->ID);
@@ -662,7 +672,7 @@
 			}
 			
 			if ($path) {
-				if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
+				if (static::$Config["trailing_slash_behavior"] == "remove") {
 					$url = WWW_ROOT.$path;
 				} else {
 					$url = WWW_ROOT.$path."/";

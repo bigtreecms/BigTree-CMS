@@ -82,19 +82,17 @@
 		
 		public static function start()
 		{
-			global $bigtree;
-			
 			if (static::$Started) {
 				return;
 			}
 			
 			static::$Started = true;
 			
-			if (!empty($bigtree["config"]["session_lifetime"])) {
-				static::$Timeout = intval($bigtree["config"]["session_lifetime"]);
+			if (!empty(Router::$Config["session_lifetime"])) {
+				static::$Timeout = intval(Router::$Config["session_lifetime"]);
 			}
 			
-			if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+			if (!empty(Router::$Config["session_handler"]) && Router::$Config["session_handler"] == "db") {
 				session_set_save_handler(
 					"BigTree\SessionHandler::open",
 					"BigTree\SessionHandler::close",
@@ -105,7 +103,7 @@
 				);
 			}
 			
-			session_set_cookie_params(0, str_replace(DOMAIN, "", WWW_ROOT), "", !empty($bigtree["config"]["ssl_only_session_cookie"]), true);
+			session_set_cookie_params(0, str_replace(DOMAIN, "", WWW_ROOT), "", !empty(Router::$Config["ssl_only_session_cookie"]), true);
 			session_start(["gc_maxlifetime" => static::$Timeout]);
 		}
 		

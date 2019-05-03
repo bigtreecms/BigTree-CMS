@@ -2,12 +2,8 @@
 	namespace BigTree;
 	use DateTime;
 	
-	/**
-	 * @global array $bigtree
-	 */
-	
 	if ($this->Input) {
-		$date = DateTime::createFromFormat($bigtree["config"]["date_format"]." h:i a",
+		$date = DateTime::createFromFormat(Router::$Config["date_format"]." h:i a",
 										   Auth::user()->convertTimestampFrom($this->Input));
 		
 		// Fallback to SQL standards for existing values

@@ -1,22 +1,18 @@
 <?php
 	namespace BigTree;
-		
-	/**
-	 * @global array $bigtree
-	 */
 	
 	// Handle Javascript Minifying and Caching
-	if ($bigtree["path"][0] == "js") {
+	if (Router::$Path[0] == "js") {
 		clearstatcache();
 		
 		// Get the latest mod time on any included js files.
 		$mtime = 0;
-		$js_file = str_replace(".js", "", $bigtree["path"][1]);
+		$js_file = str_replace(".js", "", Router::$Path[1]);
 		$cache_file = BIGTREE_CACHE_DIRECTORY.$js_file.".js";
 		$last_modified = file_exists($cache_file) ? filemtime($cache_file) : 0;
 		
-		if (is_array($bigtree["config"]["js"]["files"][$js_file])) {
-			foreach ($bigtree["config"]["js"]["files"][$js_file] as $script) {
+		if (is_array(Router::$Config["js"]["files"][$js_file])) {
+			foreach (Router::$Config["js"]["files"][$js_file] as $script) {
 				$m = file_exists(SITE_ROOT."js/$script") ? filemtime(SITE_ROOT."js/$script") : 0;
 				
 				if ($m > $mtime) {
@@ -28,8 +24,8 @@
 			if (!file_exists($cache_file) || $mtime > $last_modified) {
 				$data = "";
 				
-				if (is_array($bigtree["config"]["js"]["files"][$js_file])) {
-					foreach ($bigtree["config"]["js"]["files"][$js_file] as $script) {
+				if (is_array(Router::$Config["js"]["files"][$js_file])) {
+					foreach (Router::$Config["js"]["files"][$js_file] as $script) {
 						$data .= file_get_contents(SITE_ROOT."js/$script")."\n";
 					}
 				}
@@ -45,13 +41,13 @@
 					}
 				}
 				
-				if (is_array($bigtree["config"]["js"]["vars"])) {
-					foreach ($bigtree["config"]["js"]["vars"] as $key => $val) {
+				if (is_array(Router::$Config["js"]["vars"])) {
+					foreach (Router::$Config["js"]["vars"] as $key => $val) {
 						$data = str_replace('$'.$key, $val, $data);
 					}
 				}
 				
-				if ($bigtree["config"]["js"]["minify"]) {
+				if (Router::$Config["js"]["minify"]) {
 					include_once SERVER_ROOT."core/inc/lib/JShrink/src/JShrink/Minifier.php";
 					$data = \JShrink\Minifier::minify($data);
 				}
@@ -86,18 +82,18 @@
 	}
 	
 	// Handle CSS Shortcuts and Minifying
-	if ($bigtree["path"][0] == "css") {
+	if (Router::$Path[0] == "css") {
 		clearstatcache();
 		
 		// Get the latest mod time on any included css files.
 		$mtime = 0;
-		$css_file = str_replace(".css", "", $bigtree["path"][1]);
+		$css_file = str_replace(".css", "", Router::$Path[1]);
 		$cache_file = BIGTREE_CACHE_DIRECTORY.$css_file.".css";
 		$last_modified = file_exists($cache_file) ? filemtime($cache_file) : 0;
 		
-		if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
+		if (is_array(Router::$Config["css"]["files"][$css_file])) {
 			// Check modification times on each included CSS file
-			foreach ($bigtree["config"]["css"]["files"][$css_file] as $style) {
+			foreach (Router::$Config["css"]["files"][$css_file] as $style) {
 				$m = (file_exists(SITE_ROOT."css/$style")) ? filemtime(SITE_ROOT."css/$style") : 0;
 				if ($m > $mtime) {
 					$mtime = $m;
@@ -108,14 +104,14 @@
 			if (!file_exists($cache_file) || $mtime > $last_modified) {
 				$data = "";
 				
-				if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
+				if (is_array(Router::$Config["css"]["files"][$css_file])) {
 					// if we need LESS
-					if (strpos(implode(" ", $bigtree["config"]["css"]["files"][$css_file]), "less") > -1) {
+					if (strpos(implode(" ", Router::$Config["css"]["files"][$css_file]), "less") > -1) {
                         require_once SERVER_ROOT."core/inc/lib/less.php/lib/Less/Autoloader.php";
                         \Less_Autoloader::register();
 					}
 					
-					foreach ($bigtree["config"]["css"]["files"][$css_file] as $style_file) {
+					foreach (Router::$Config["css"]["files"][$css_file] as $style_file) {
 						if (strpos($style_file, "less") > -1) {
                             // LESS
                             $less_compiler = new Less_Parser;
@@ -130,8 +126,8 @@
 				}
 				
 				// Should only loop once, not with every file
-				if (is_array($bigtree["config"]["css"]["vars"])) {
-					foreach ($bigtree["config"]["css"]["vars"] as $key => $val) {
+				if (is_array(Router::$Config["css"]["vars"])) {
+					foreach (Router::$Config["css"]["vars"] as $key => $val) {
 						$data = str_replace('$'.$key, $val, $data);
 					}
 				}
@@ -140,7 +136,7 @@
 				$data = str_replace(array('$www_root', 'www_root/', '$static_root', 'static_root/', '$admin_root/', 'admin_root/'), array(WWW_ROOT, WWW_ROOT, STATIC_ROOT, STATIC_ROOT, ADMIN_ROOT, ADMIN_ROOT), $data);
 				
 				// Minify a little bit if requested
-				if ($bigtree["config"]["css"]["minify"]) {
+				if (Router::$Config["css"]["minify"]) {
 					// Courtesy of http://www.lateralcode.com/css-minifier/
 					$data = preg_replace('#\s+#', ' ', $data);
 					$data = preg_replace('#/\*.*?\*/#s', '', $data);
@@ -186,13 +182,13 @@
 	}
 	
 	// Serve Placeholder Image
-	if ($bigtree["path"][0] == "images" && $bigtree["path"][1] == "placeholder") {
-		if (is_array($bigtree["config"]["placeholder"][$bigtree["path"][2]])) {
-			$style = $bigtree["config"]["placeholder"][$bigtree["path"][2]];
-			$size = explode("x", strtolower($bigtree["path"][3]));
+	if (Router::$Path[0] == "images" && Router::$Path[1] == "placeholder") {
+		if (is_array(Router::$Config["placeholder"][Router::$Path[2]])) {
+			$style = Router::$Config["placeholder"][Router::$Path[2]];
+			$size = explode("x", strtolower(Router::$Path[3]));
 		} else {
-			$style = $bigtree["config"]["placeholder"]["default"];
-			$size = explode("x", strtolower($bigtree["path"][2]));
+			$style = Router::$Config["placeholder"]["default"];
+			$size = explode("x", strtolower(Router::$Path[2]));
 		}
 		
 		if (count($size) == 2) {
@@ -205,11 +201,11 @@
 	SessionHandler::start();
 	
 	// Check to see if we're in maintenance mode
-	if ($bigtree["config"]["maintenance_url"] && (empty($_SESSION["bigtree_admin"]["level"]) || $_SESSION["bigtree_admin"]["level"] < 2)) {
+	if (Router::$Config["maintenance_url"] && (empty($_SESSION["bigtree_admin"]["level"]) || $_SESSION["bigtree_admin"]["level"] < 2)) {
 		// See if we're at the URL
-		if (implode("/", $bigtree["path"]) != trim(str_replace(WWW_ROOT, "", $bigtree["config"]["maintenance_url"]), "/")) {
+		if (implode("/", Router::$Path) != trim(str_replace(WWW_ROOT, "", Router::$Config["maintenance_url"]), "/")) {
 			$_SESSION["bigtree_referring_url"] = DOMAIN.$_SERVER["REQUEST_URI"];
-			Router::redirect($bigtree["config"]["maintenance_url"], "307");
+			Router::redirect(Router::$Config["maintenance_url"], "307");
 		} else {
 			header("X-Robots-Tag: noindex");
 			include SERVER_ROOT."templates/basic/_maintenance.php";
@@ -220,16 +216,16 @@
 	}
 	
 	// Handle AJAX calls.
-	if ($bigtree["path"][0] == "ajax" || ($bigtree["path"][0] == "*" && $bigtree["path"][2] == "ajax")) {
-		if ($bigtree["path"][0] == "*") {
-			$bigtree["extension_context"] = $bigtree["path"][1];
-			define("EXTENSION_ROOT", SERVER_ROOT."extensions/".$bigtree["path"][1]."/");
+	if (Router::$Path[0] == "ajax" || (Router::$Path[0] == "*" && Router::$Path[2] == "ajax")) {
+		if (Router::$Path[0] == "*") {
+			$bigtree["extension_context"] = Router::$Path[1];
+			define("EXTENSION_ROOT", SERVER_ROOT."extensions/".Router::$Path[1]."/");
 			
 			$base_path = EXTENSION_ROOT;
-			list($inc, $commands) = Router::getRoutedFileAndCommands($base_path."templates/ajax/", array_slice($bigtree["path"], 3));
+			list($inc, $commands) = Router::getRoutedFileAndCommands($base_path."templates/ajax/", array_slice(Router::$Path, 3));
 		} else {
 			$base_path = SERVER_ROOT;
-			list($inc, $commands) = Router::getRoutedFileAndCommands($base_path."templates/ajax/", array_slice($bigtree["path"], 1));
+			list($inc, $commands) = Router::getRoutedFileAndCommands($base_path."templates/ajax/", array_slice(Router::$Path, 1));
 		}
 		
 		if (!file_exists($inc)) {
@@ -258,7 +254,7 @@
 	}
 	
 	// Sitemap setup
-	if ($bigtree["path"][0] == "sitemap.xml") {
+	if (Router::$Path[0] == "sitemap.xml") {
 		header("Content-type: text/xml");
 		Sitemap::drawXML();
 		die();
@@ -271,28 +267,28 @@
 	$bigtree["preview"] = false;
 	$navid = false;
 	
-	if ($bigtree["path"][0] == "_preview" && $_SESSION["bigtree_admin"]["id"]) {
+	if (Router::$Path[0] == "_preview" && $_SESSION["bigtree_admin"]["id"]) {
 		$npath = array();
 		
-		foreach ($bigtree["path"] as $item) {
+		foreach (Router::$Path as $item) {
 			if ($item != "_preview") {
 				$npath[] = $item;
 			}
 		}
 		
-		$bigtree["path"] = $npath;
+		Router::$Path = $npath;
 		$bigtree["preview"] = true;
-		$bigtree["config"]["cache"] = false;
+		Router::$Config["cache"] = false;
 		header("X-Robots-Tag: noindex");
 		
 		// Clean up
 		unset($npath);
 	}
 	
-	if ($bigtree["path"][0] == "_preview-pending" && $_SESSION["bigtree_admin"]["id"]) {
+	if (Router::$Path[0] == "_preview-pending" && $_SESSION["bigtree_admin"]["id"]) {
 		$bigtree["preview"] = true;
 		$bigtree["commands"] = array();
-		$navid = $bigtree["path"][1];
+		$navid = Router::$Path[1];
 		
 		define("BIGTREE_PREVIEWING_PENDING", true);
 		header("X-Robots-Tag: noindex");
@@ -301,8 +297,8 @@
 	// So we don't lose this.
 	define("BIGTREE_PREVIEWING", $bigtree["preview"]);
 	
-	if ($bigtree["path"][0] == "feeds") {
-		$route = $bigtree["path"][1];
+	if (Router::$Path[0] == "feeds") {
+		$route = Router::$Path[1];
 		$feed = Feed::getByRoute($route);
 		
 		if ($feed) {
@@ -322,7 +318,7 @@
 	if (!$navid) {
 		foreach (Router::$Registry["public"] as $registration) {
 			if (!$registry_found) {
-				$registry_commands = Router::getRegistryCommands("/".implode("/", $bigtree["path"]), $registration["pattern"]);
+				$registry_commands = Router::getRegistryCommands("/".implode("/", Router::$Path), $registration["pattern"]);
 				
 				if ($registry_commands !== false) {
 					$registry_found = true;
@@ -334,7 +330,7 @@
 	
 	// Not in route registry, check BigTree pages
 	if (!$registry_found) {
-		list($navid, $bigtree["commands"], $routed) = Router::routeToPage($bigtree["path"], $bigtree["preview"]);
+		list($navid, $bigtree["commands"], $routed) = Router::routeToPage(Router::$Path, $bigtree["preview"]);
 	}
 	
 	// Pre-init a bunch of vars to keep away notices.
@@ -400,7 +396,7 @@
 						$bigtree["page"]["path"] = substr($bigtree["page"]["path"], strlen($site_path));
 					}
 					
-					if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
+					if (Router::$Config["trailing_slash_behavior"] == "remove") {
 						Router::redirect($site_data["domain"].$bigtree["page"]["path"], "301");
 					}
 					
@@ -476,7 +472,7 @@
 			} else {
 				// Allow the homepage to be routed
                 if (!$bigtree["page"]["path"]) {
-                    $bigtree["commands"] = $bigtree["path"];
+                    $bigtree["commands"] = Router::$Path;
                 }
 
                 if ($extension) {
@@ -522,12 +518,12 @@
 			Router::redirect($bigtree["page"]["external"]);
 		}
 	// Check for standard sitemap
-	} else if ($bigtree["path"][0] == "sitemap" && !$bigtree["path"][1]) {
+	} else if (Router::$Path[0] == "sitemap" && !Router::$Path[1]) {
 		include SERVER_ROOT."templates/basic/_sitemap.php";
 	// We've got a 404, check for old routes or throw one.
 	} else {
 		// Let's check if it's in the old routing table.
-		Router::checkPathHistory($bigtree["path"]);
+		Router::checkPathHistory(Router::$Path);
 		
 		// It's not, it's a 404.
 		if (Redirect::handle404($_GET["bigtree_htaccess_url"])) {
@@ -536,20 +532,20 @@
 	}
 	
 	// If we have a specific URL trailing slash behavior specified, ensure it's applied to the current request
-	if (array_filter($bigtree["path"])) {
+	if (array_filter(Router::$Path)) {
 		// Prevent notices before output buffering
-		if (empty($bigtree["config"]["trailing_slash_behavior"])) {
-			$bigtree["config"]["trailing_slash_behavior"] = "";
+		if (empty(Router::$Config["trailing_slash_behavior"])) {
+			Router::$Config["trailing_slash_behavior"] = "";
 		}
 		
-		$last_path_element = $bigtree["path"][count($bigtree["path"]) - 1];
+		$last_path_element = Router::$Path[count(Router::$Path) - 1];
 		
 		// If this is a "file", ignore the fact that there is or isn't a trailing slash
 		if (strpos($last_path_element, ".") === false) {
-			if (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
-				Router::redirect(WWW_ROOT.implode($bigtree["path"], "/")."/", "301");
-			} elseif (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
-				Router::redirect(WWW_ROOT.implode($bigtree["path"], "/"), "301");
+			if (strtolower(Router::$Config["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
+				Router::redirect(WWW_ROOT.implode(Router::$Path, "/")."/", "301");
+			} elseif (strtolower(Router::$Config["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
+				Router::redirect(WWW_ROOT.implode(Router::$Path, "/"), "301");
 			}
 		}
 	}
@@ -570,8 +566,8 @@
 	// Allow for special output filter functions.
 	$filter = null;
 	
-	if ($bigtree["config"]["output_filter"]) {
-		$filter = $bigtree["config"]["output_filter"];
+	if (Router::$Config["output_filter"]) {
+		$filter = Router::$Config["output_filter"];
 	}
 	
 	ob_start($filter);
@@ -616,7 +612,7 @@
 	*/
 	if ($_SESSION["bigtree_admin"]["id"] &&
 		$_COOKIE["bigtree_admin"]["email"] &&
-		(empty($bigtree["config"]["developer_mode"]) || $_SESSION["bigtree_admin"]["level"] > 1)
+		(empty(Router::$Config["developer_mode"]) || $_SESSION["bigtree_admin"]["level"] > 1)
 	) {
 		$show_bar_default = $_COOKIE["hide_bigtree_bar"] ? false : true;
 		$show_preview_bar = false;
@@ -660,19 +656,19 @@
 		}
 		
 		if (defined("BIGTREE_URL_IS_404")) {
-			$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(array("http://","https://"),"//",$bigtree["config"]["admin_root"]).'ajax/bar.js/?show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;is_404=true"></script></body>',$bigtree["content"]);
+			$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(array("http://","https://"),"//",Router::$Config["admin_root"]).'ajax/bar.js/?show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;is_404=true"></script></body>',$bigtree["content"]);
 		} else {
-			$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(array("http://","https://"),"//",$bigtree["config"]["admin_root"]).'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&amp;current_page_id='.$bigtree["page"]["id"].'&amp;show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;show_preview='.$show_preview_bar.'&amp;return_link='.$return_link.'&amp;custom_edit_link='.$bar_edit_link.'"></script></body>',$bigtree["content"]);
+			$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(array("http://","https://"),"//",Router::$Config["admin_root"]).'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&amp;current_page_id='.$bigtree["page"]["id"].'&amp;show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;show_preview='.$show_preview_bar.'&amp;return_link='.$return_link.'&amp;custom_edit_link='.$bar_edit_link.'"></script></body>',$bigtree["content"]);
 		}
 		
 		// Don't cache the page with the BigTree bar
-		$bigtree["config"]["cache"] = false;
+		Router::$Config["cache"] = false;
 	}
 	
 	echo $bigtree["content"];
 	
 	// Write to the cache
-	if ($bigtree["config"]["cache"] && !defined("BIGTREE_DO_NOT_CACHE") && !count($_POST)) {
+	if (Router::$Config["cache"] && !defined("BIGTREE_DO_NOT_CACHE") && !count($_POST)) {
 		$cache = ob_get_flush();
 		
 		if (!$bigtree["page"]["path"]) {

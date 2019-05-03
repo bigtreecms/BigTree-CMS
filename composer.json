@@ -17,6 +17,7 @@
         "ext-ctype": "*",
         "ext-dom": "*",
         "ext-mysqli": "*",
-        "ext-xmlwriter": "*"
+        "ext-xmlwriter": "*",
+        "ext-exif": "*"
     }
 }

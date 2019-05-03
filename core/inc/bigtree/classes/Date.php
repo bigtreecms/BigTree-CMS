@@ -77,9 +77,7 @@
 		
 		public static function format($date, string $format = "Y-m-d H:i:s"): string
 		{
-			global $bigtree;
-			
-			$date_object = DateTime::createFromFormat($bigtree["config"]["date_format"], $date);
+			$date_object = DateTime::createFromFormat(Router::$Config["date_format"], $date);
 			
 			// Fallback to SQL standards for handling pre 4.2 values
 			if (!$date_object) {

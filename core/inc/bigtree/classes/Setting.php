@@ -38,8 +38,6 @@
 		public function __construct($setting = null, bool $decode = true)
 		{
 			if ($setting !== null) {
-				global $bigtree;
-				
 				// Passing in just an ID
 				if (!is_array($setting)) {
 					$id = static::context($setting);
@@ -63,7 +61,7 @@
 					// Value may be encrypted
 					if ($this->Encrypted) {
 						$value = SQL::fetchSingle("SELECT AES_DECRYPT(`value`,?) AS `value` FROM bigtree_settings 
-												   WHERE id = ?", $bigtree["config"]["settings_key"], $this->ID);
+												   WHERE id = ?", Router::$Config["settings_key"], $this->ID);
 					} else {
 						$value = $setting["value"];
 					}
@@ -233,8 +231,6 @@
 				
 				$this->inherit($new);
 			} else {
-				global $bigtree;
-				
 				DB::update("settings", $this->OriginalID, [
 					"id" => $this->ID,
 					"type" => $this->Type,
@@ -260,7 +256,7 @@
 					
 					if ($this->Encrypted) {
 						SQL::query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?,?) WHERE id = ?",
-								   $value, $bigtree["config"]["settings_key"], $this->ID);
+								   $value, Router::$Config["settings_key"], $this->ID);
 					} else {
 						SQL::update("bigtree_settings", $this->ID, ["value" => $value]);
 					}
@@ -269,10 +265,10 @@
 				} else {
 					if ($this->OriginalEncrypted && !$this->Encrypted) {
 						SQL::query("UPDATE bigtree_settings SET value = AES_DECRYPT(value, ?) WHERE id = ?",
-								   $bigtree["config"]["settings_key"], $this->ID);
+								   Router::$Config["settings_key"], $this->ID);
 					} elseif (!$this->OriginalEncrypted && $this->Encrypted) {
 						SQL::query("UPDATE bigtree_settings SET value = AES_ENCRYPT(value, ?) WHERE id = ?",
-								   $bigtree["config"]["settings_key"], $this->ID);
+								   Router::$Config["settings_key"], $this->ID);
 					}
 				}
 				
@@ -345,8 +341,6 @@
 		
 		public static function updateValue(string $id, $value, bool $encrypted = false): void
 		{
-			global $bigtree;
-			
 			$value = JSON::encode(Link::encode($value));
 			
 			if (!SQL::exists("bigtree_settings", $id)) {
@@ -358,7 +352,7 @@
 			
 			if ($encrypted) {
 				SQL::query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?, ?), `encrypted` = 'on'
-							WHERE id = ?", $value, $bigtree["config"]["settings_key"], $id);
+							WHERE id = ?", $value, Router::$Config["settings_key"], $id);
 			} else {
 				SQL::update("bigtree_settings", $id, ["value" => $value, "encrypted" => ""]);
 			}
@@ -385,8 +379,6 @@
 		
 		public static function values(array $ids): ?array
 		{
-			global $bigtree;
-			
 			// Allow for a single ID
 			if (!is_array($ids)) {
 				$ids = [$ids];
@@ -403,7 +395,7 @@
 					if ($setting["encrypted"]) {
 						$setting["value"] = SQL::fetchSingle("SELECT AES_DECRYPT(`value`, ?) FROM bigtree_settings
 															  WHERE id = ?",
-															 $bigtree["config"]["settings_key"], $contextual_id);
+															 Router::$Config["settings_key"], $contextual_id);
 					}
 					
 					$value = json_decode($setting["value"], true);

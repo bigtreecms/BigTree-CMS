@@ -58,8 +58,6 @@
 		
 		public static function cacheHooks(): array
 		{
-			global $bigtree;
-			
 			$plugins = [
 				"cron" => [],
 				"daily-digest" => [],
@@ -101,7 +99,7 @@
 			}
 			
 			// If no longer in debug mode, cache it
-			if (!$bigtree["config"]["debug"]) {
+			if (!Router::$Debug) {
 				file_put_contents(SERVER_ROOT."cache/bigtree-extension-cache.json", JSON::encode($plugins));
 			}
 			
@@ -154,8 +152,6 @@
 		
 		public static function initializeCache(): void
 		{
-			global $bigtree;
-			
 			// Already done!
 			if (static::$CacheInitialized) {
 				return;
@@ -164,7 +160,7 @@
 			$extension_cache_file = SERVER_ROOT."cache/bigtree-extension-cache.json";
 			
 			// Handle extension cache
-			if ($bigtree["config"]["debug"] || !file_exists($extension_cache_file)) {
+			if (Router::$Debug || !file_exists($extension_cache_file)) {
 				$plugins = static::cacheHooks();
 			} else {
 				$plugins = json_decode(file_get_contents($extension_cache_file), true);

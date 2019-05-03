@@ -1,13 +1,9 @@
 <?php
 	namespace BigTree;
-	
-	/**
-	 * @global array $bigtree
-	 */
 
 	$security_policy = Setting::value("bigtree-internal-security-policy");
 	
-	if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+	if (!empty(Router::$Config["session_handler"]) && Router::$Config["session_handler"] == "db") {
 		$session_handler = "db";
 	} else {
 		$session_handler = "default";

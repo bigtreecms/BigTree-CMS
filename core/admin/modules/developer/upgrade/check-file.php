@@ -2,7 +2,6 @@
 	namespace BigTree;
 	
 	/**
-	 * @global array $bigtree
 	 * @global Updater $updater
 	 */
 	
@@ -22,7 +21,7 @@
 <?php
 	} else {
 		// If we're not using local install and the config settings only allow for HTTPS logins, redirect
-		if ($updater->Method != "Local" && $bigtree["config"]["force_secure_login"] && !Router::getIsSSL()) {
+		if ($updater->Method != "Local" && Router::$Config["force_secure_login"] && !Router::getIsSSL()) {
 			Router::redirect(str_replace("http://","https://",DEVELOPER_ROOT)."upgrade/check-file/");
 		}		
 ?>

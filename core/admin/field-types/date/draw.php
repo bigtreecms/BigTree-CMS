@@ -1,14 +1,10 @@
 <?php
 	namespace BigTree;
 	
-	/**
-	 * @global array $bigtree
-	 */
-	
-	if (!$this->Value && isset($field->Settings["default_today"]) && $field->Settings["default_today"]) {
-		$this->Value = date($bigtree["config"]["date_format"]);
+	if (!$this->Value && isset($this->Settings["default_today"]) && $this->Settings["default_today"]) {
+		$this->Value = date(Router::$Config["date_format"]);
 	} elseif ($this->Value && $this->Value != "0000-00-00" && $this->Value != "0000-00-00 00:00:00") {
-		$this->Value = date($bigtree["config"]["date_format"], strtotime($this->Value));
+		$this->Value = date(Router::$Config["date_format"], strtotime($this->Value));
 	} else {
 		$this->Value = "";
 	}
@@ -16,8 +12,8 @@
 	// We draw the picker inline for callouts
 	if (defined("BIGTREE_CALLOUT_RESOURCES")) {
 		// Required and in-line is hard to validate, so default to today's date regardless
-		if (!empty($field["required"]) && empty($this->Value)) {
-			$this->Value = date($bigtree["config"]["date_format"]);
+		if ($this->Required && empty($this->Value)) {
+			$this->Value = date(Router::$Config["date_format"]);
 		}
 ?>
 <input type="hidden" name="<?=$this->Key?>" value="<?=$this->Value?>">

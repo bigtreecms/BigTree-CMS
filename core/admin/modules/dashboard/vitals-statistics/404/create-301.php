@@ -1,13 +1,9 @@
 <?php
 	namespace BigTree;
 	
-	/**
-	 * @global array $bigtree
-	 */
-	
 	CSRF::verify();
 	
-	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]) > 1) {
+	if (is_array(Router::$Config["sites"]) && count(Router::$Config["sites"]) > 1) {
 		Redirect::create($_POST["from"], $_POST["to"], $_POST["site_key"]);
 	} else {
 		Redirect::create($_POST["from"], $_POST["to"]);

@@ -338,20 +338,18 @@
 		
 		public static function connect(string $property, string $type)
 		{
-			global $bigtree;
-			
 			// Initializing optional params, if they don't exist yet due to older install
-			!empty($bigtree["config"][$type]["host"]) || $bigtree["config"][$type]["host"] = null;
-			!empty($bigtree["config"][$type]["port"]) || $bigtree["config"][$type]["port"] = 3306;
-			!empty($bigtree["config"][$type]["socket"]) || $bigtree["config"][$type]["socket"] = null;
+			!empty(Router::$Config[$type]["host"]) || Router::$Config[$type]["host"] = null;
+			!empty(Router::$Config[$type]["port"]) || Router::$Config[$type]["port"] = 3306;
+			!empty(Router::$Config[$type]["socket"]) || Router::$Config[$type]["socket"] = null;
 			
 			static::${$property} = new mysqli(
-				$bigtree["config"][$type]["host"],
-				$bigtree["config"][$type]["user"],
-				$bigtree["config"][$type]["password"],
-				$bigtree["config"][$type]["name"],
-				$bigtree["config"][$type]["port"],
-				$bigtree["config"][$type]["socket"]
+				Router::$Config[$type]["host"],
+				Router::$Config[$type]["user"],
+				Router::$Config[$type]["password"],
+				Router::$Config[$type]["name"],
+				Router::$Config[$type]["port"],
+				Router::$Config[$type]["socket"]
 			);
 			
 			// Make sure everything is run in UTF8, turn off strict mode if set
@@ -370,8 +368,8 @@
 			static::${$property}->query("SET time_zone = '$offset'");
 			
 			// Remove BigTree connection parameters once it is setup.
-			unset($bigtree["config"][$type]["user"]);
-			unset($bigtree["config"][$type]["password"]);
+			unset(Router::$Config[$type]["user"]);
+			unset(Router::$Config[$type]["password"]);
 			
 			return static::${$property};
 		}
@@ -764,12 +762,10 @@
 		
 		public static function drawTableSelectOptions(?string $default = null): void
 		{
-			global $bigtree;
-			
 			$tables = static::fetchAllSingle("SHOW TABLES");
 			
 			foreach ($tables as $table_name) {
-				if (isset($bigtree["config"]["show_all_tables_in_dropdowns"]) || ((substr($table_name, 0, 8) !== "bigtree_")) || $table_name == $default) {
+				if (isset(Router::$Config["show_all_tables_in_dropdowns"]) || ((substr($table_name, 0, 8) !== "bigtree_")) || $table_name == $default) {
 					if ($default == $table_name) {
 						echo '<option selected="selected">'.$table_name.'</option>';
 					} else {
@@ -1410,13 +1406,11 @@
 		
 		public static function query(string $query): SQL
 		{
-			global $bigtree;
-			
 			// Setup our read connection if it disconnected for some reason
 			$connection = (static::$Connection && static::$Connection !== "disconnected") ? static::$Connection : static::connect("Connection", "db");
 			
 			// If we have a separate write host, let's find out if we're writing and use it if so
-			if (isset($bigtree["config"]["db_write"]) && $bigtree["config"]["db_write"]["host"]) {
+			if (isset(Router::$Config["db_write"]) && Router::$Config["db_write"]["host"]) {
 				$commands = explode(" ", $query);
 				$fc = strtolower($commands[0]);
 				
@@ -1474,7 +1468,7 @@
 			}
 			
 			// Debug should log queries
-			if ($bigtree["config"]["debug"] && !defined("BIGTREE_NO_QUERY_LOG")) {
+			if (Router::$Debug && !defined("BIGTREE_NO_QUERY_LOG")) {
 				static::$QueryLog[] = $query;
 			}
 			

@@ -1,10 +1,6 @@
 <?php
 	namespace BigTree;
 	
-	/**
-	 * @global $bigtree
-	 */
-	
 	if (!empty($_POST["file"])) {
 		$file = Resource::getByFile($_POST["file"]);
 	} else {
@@ -69,7 +65,7 @@
 	<?php
 		}
 	?>
-	<p><span><?=Text::translate("Uploaded")?></span><strong><?=str_replace(" @ ", "<br>", Auth::user()->convertTimestampTo($file["date"], $bigtree["config"]["date_format"]." @ g:i a"))?></strong></p>
+	<p><span><?=Text::translate("Uploaded")?></span><strong><?=str_replace(" @ ", "<br>", Auth::user()->convertTimestampTo($file["date"], Router::$Config["date_format"]." @ g:i a"))?></strong></p>
 	<?php
 		if ($folder) {
 	?>

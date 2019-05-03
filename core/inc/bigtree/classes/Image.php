@@ -32,8 +32,6 @@
 		
 		public function __construct(string $file, array $settings = [], bool $ignore_minimums = false)
 		{
-			global $bigtree;
-			
 			if (strpos($file, "//") === 0) {
 				$file = "http:".$file;
 			}
@@ -43,7 +41,7 @@
 			$this->cleanSettings();
 			
 			$this->Storage = new Storage;
-			$this->Storage->AutoJPEG = $bigtree["config"]["image_force_jpeg"];
+			$this->Storage->AutoJPEG = !empty(Router::$Config["image_force_jpeg"]);
 			
 			$info = getimagesize($file);
 			$this->Type = $info[2];
@@ -159,9 +157,7 @@
 		
 		public function checkMemory(int $width, int $height): bool
 		{
-			global $bigtree;
-			
-			$image_memory_limit = !empty($bigtree["config"]["image_memory_limit"]) ? $bigtree["config"]["image_memory_limit"] : "256M";
+			$image_memory_limit = !empty(Router::$Config["image_memory_limit"]) ? Router::$Config["image_memory_limit"] : "256M";
 			$available_memory = intval($image_memory_limit) * 1024 * 1024;
 			
 			$bytes = ceil($this->BitsPerPixel / 8);
@@ -281,6 +277,41 @@
 		}
 		
 		/*
+			Function: convertPNGtoJPEG
+				Convert a PNG image to JPEG. The PNG must not contain alpha channels.
+			
+			Parameters:
+				file - The source PNG file
+			
+			Returns:
+				true if successfully converted to JPG
+		*/
+		
+		public static function convertPNGtoJPEG(string $file): bool
+		{
+			// Make sure this is a PNG
+			list(, , $type) = @getimagesize($file);
+			
+			if ($type != IMAGETYPE_PNG) {
+				return false;
+			}
+			
+			// See if this PNG has any alpha channels, if it does we're not doing a JPG conversion.
+			$alpha = ord(@file_get_contents($file, null, null, 25, 1));
+
+			if ($alpha == 4 || $alpha == 6) {
+				return false;
+			}
+			
+			// Convert the PNG to JPG
+			$image = imagecreatefrompng($file);
+			imagejpeg($image, $file, intval(Router::$Config["image_quality"]) ?: 85);
+			imagedestroy($image);
+			
+			return true;
+		}
+		
+		/*
 			Function: copy
 				Copies the image to a new location.
 			
@@ -328,8 +359,6 @@
 		public function crop(string $location, int $x, int $y, int $target_width, int $target_height, int $width,
 							 int $height, bool $retina = false, bool $grayscale = false): ?string
 		{
-			global $bigtree;
-			
 			static::setMemoryLimit();
 			
 			// If we don't have the memory available, fail gracefully.
@@ -339,11 +368,11 @@
 				return null;
 			}
 			
-			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
+			$jpeg_quality = isset(Router::$Config["image_quality"]) ? Router::$Config["image_quality"] : 90;
 			
 			// If we're doing a retina image we're going to check to see if the cropping area is at least twice the desired size
 			if ($retina && ($x + $width) >= $target_width * 2 && ($y + $height) >= $target_height * 2) {
-				$jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
+				$jpeg_quality = isset(Router::$Config["retina_image_quality"]) ? Router::$Config["retina_image_quality"] : 25;
 				$target_width *= 2;
 				$target_height *= 2;
 			}
@@ -606,7 +635,7 @@
 				A modified array of file prefixes.
 		*/
 		
-		public function getPrefix[]: array
+		public function getPrefixArray(): array
 		{
 			if (!empty($this->Prefixes)) {
 				return $this->Prefixes;
@@ -992,7 +1021,7 @@
 		
 		public function store(string $name): ?string
 		{
-			$path = $this->Storage->store($this->File, $name, $this->Settings["directory"], false, $this->getPrefix[]);
+			$path = $this->Storage->store($this->File, $name, $this->Settings["directory"], false, $this->getPrefixArray());
 			
 			if (!$path) {
 				if ($this->Storage->DisabledFileError) {
@@ -1031,9 +1060,7 @@
 		public function thumbnail(string $location, int $width, int $height, bool $retina = false,
 								  bool $grayscale = false, bool $upscale = false): ?string
 		{
-			global $bigtree;
-			
-			$jpeg_quality = isset($bigtree["config"]["image_quality"]) ? $bigtree["config"]["image_quality"] : 90;
+			$jpeg_quality = isset(Router::$Config["image_quality"]) ? Router::$Config["image_quality"] : 90;
 			
 			static::setMemoryLimit();
 			
@@ -1045,7 +1072,7 @@
 			
 			// If we're doing retina, see if 2x the height/width is less than the original height/width and change the quality.
 			if ($retina && !$upscale && $size["width"] * 2 <= $this->Width && $size["height"] * 2 <= $this->Height) {
-				$jpeg_quality = isset($bigtree["config"]["retina_image_quality"]) ? $bigtree["config"]["retina_image_quality"] : 25;
+				$jpeg_quality = isset(Router::$Config["retina_image_quality"]) ? Router::$Config["retina_image_quality"] : 25;
 				$size["width"] *= 2;
 				$size["height"] *= 2;
 			}
@@ -1123,13 +1150,11 @@
 		
 		public static function setMemoryLimit(): void
 		{
-			global $bigtree;
-			
 			if (is_null(static::$SavedMemoryLimit)) {
 				static::$SavedMemoryLimit = ini_get("memory_limit");
 			}
 			
-			$image_memory_limit = !empty($bigtree["config"]["image_memory_limit"]) ? $bigtree["config"]["image_memory_limit"] : "256M";
+			$image_memory_limit = !empty(Router::$Config["image_memory_limit"]) ? Router::$Config["image_memory_limit"] : "256M";
 			ini_set("memory_limit", $image_memory_limit);
 		}
 		

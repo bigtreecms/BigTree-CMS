@@ -3,7 +3,6 @@
 
 	/**
 	 * @global string $type
-	 * @global array $bigtree
 	 */
 	
 	$type = isset($_POST["type"]) ? $_POST["type"] : $type;
@@ -17,11 +16,11 @@
 	}
 	
 	// Multi-site can only load one site's keys at once
-	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]) > 1) {
+	if (is_array(Router::$Config["sites"]) && count(Router::$Config["sites"]) > 1) {
 		$active_site = $_POST["site_key"] ?: Cookie::get("bigtree_admin[active_site]");
 		
 		if (!$active_site) {
-			$keys = array_keys($bigtree["config"]["sites"]);
+			$keys = array_keys(Router::$Config["sites"]);
 			$active_site = $keys[0];
 		}
 		
@@ -34,7 +33,7 @@
 		$tabindex++;
 		
 		if ($active_site) {
-			$domain_to_replace = $bigtree["config"]["sites"][$active_site]["www_root"];
+			$domain_to_replace = Router::$Config["sites"][$active_site]["www_root"];
 		} else {
 			$domain_to_replace = WWW_ROOT;
 		}

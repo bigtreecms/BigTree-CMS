@@ -152,7 +152,7 @@
 				}
 				
 				$site_title = SQL::fetchSingle("SELECT `nav_title` FROM `bigtree_pages` WHERE id = 0");
-				$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://", "https://", ADMIN_ROOT) : ADMIN_ROOT)."login/";
+				$login_root = (Router::$Config["force_secure_login"] ? str_replace("http://", "https://", ADMIN_ROOT) : ADMIN_ROOT)."login/";
 				
 				$html = file_get_contents(Router::getIncludePath("admin/email/welcome.html"));
 				$html = str_ireplace("{www_root}", WWW_ROOT, $html);
@@ -253,8 +253,8 @@
 			if (!$default) {
 				global $bigtree;
 				
-				if (!empty($bigtree["config"]["default_gravatar"])) {
-					$default = $bigtree["config"]["default_gravatar"];
+				if (!empty(Router::$Config["default_gravatar"])) {
+					$default = Router::$Config["default_gravatar"];
 				} else {
 					$default = "https://www.bigtreecms.org/images/bigtree-gravatar.png";
 				}
@@ -300,7 +300,7 @@
 			// Get site title for email
 			$site_title = SQL::fetchSingle("SELECT `nav_title` FROM `bigtree_pages` WHERE id = '0'");
 			
-			$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://", "https://", ADMIN_ROOT) : ADMIN_ROOT)."login/";
+			$login_root = (Router::$Config["force_secure_login"] ? str_replace("http://", "https://", ADMIN_ROOT) : ADMIN_ROOT)."login/";
 			
 			$html = file_get_contents(Router::getIncludePath("admin/email/reset-password.html"));
 			$html = str_ireplace("{www_root}", WWW_ROOT, $html);
@@ -478,7 +478,7 @@
 			];
 			
 			if (!is_null($password) && $password !== "" && $password !== false) {
-				$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
+				$phpass = new PasswordHash(Router::$Config["password_depth"], true);
 				$update_values["password"] = $phpass->HashPassword($password);
 			}
 			

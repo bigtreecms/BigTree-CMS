@@ -20,7 +20,7 @@
 	}
 	
 	// If we're ignoring updates through config, still ignore them
-	if (!empty($bigtree["config"]["ignore_admin_updates"])) {
+	if (!empty(Router::$Config["ignore_admin_updates"])) {
 		$ignored_all = true;
 	}
 

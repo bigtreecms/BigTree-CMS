@@ -211,8 +211,6 @@
 		public function replace(string $local_file, string $file_name, string $relative_path,
 								bool $remove_original = true, bool $force_local = false): ?string
 		{
-			global $bigtree;
-			
 			// Make sure there are no path exploits
 			$file_name = FileSystem::getSafePath($file_name);
 			
@@ -225,8 +223,10 @@
 			}
 			
 			// If we're auto converting images to JPG from PNG
-			if ($this->AutoJPEG || $bigtree["config"]["image_force_jpeg"]) {
-				$file_name = Image::convertPNGToJPEG($local_file, $file_name) ?: $file_name;
+			if ($this->AutoJPEG || Router::$Config["image_force_jpeg"]) {
+				if (Image::convertPNGToJPEG($local_file)) {
+					$file_name = pathinfo($file_name, PATHINFO_FILENAME).".jpg";
+				}
 			}
 			
 			// Enforce trailing slashe on relative_path
@@ -296,8 +296,6 @@
 							  bool $remove_original = true, array $prefixes = [],
 							  bool $sanitize_file_name = true): ?string
 		{
-			global $bigtree;
-			
 			// Make sure there are no path exploits
 			$file_name = FileSystem::getSafePath($file_name);
 			
@@ -310,8 +308,8 @@
 			}
 			
 			// If we're auto converting images to JPG from PNG
-			if ($this->AutoJPEG || $bigtree["config"]["image_force_jpeg"]) {
-				$file_name = Image::convertPNGToJPEG($local_file, $file_name);
+			if ($this->AutoJPEG || Router::$Config["image_force_jpeg"]) {
+				$file_name = Image::convertPNGToJPEG($local_file);
 			}
 			
 			// Enforce trailing slashe on relative_path

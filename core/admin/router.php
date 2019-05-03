@@ -10,8 +10,8 @@
 	define("BIGTREE_ADMIN_ROUTED", true);
 	
 	// Set static root for those without it
-	if (!isset($bigtree["config"]["static_root"])) {
-		$bigtree["config"]["static_root"] = $bigtree["config"]["www_root"];
+	if (!isset(Router::$Config["static_root"])) {
+		Router::$Config["static_root"] = Router::$Config["www_root"];
 	}
 	
 	// Make sure no notice gets thrown for $bigtree["path"] being too small.
@@ -184,7 +184,7 @@
 		
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
 		$find = ['$max_file_size', "www_root/", "admin_root/", "static_root/"];
-		$replace = [$max_file_size, $bigtree["config"]["www_root"], $bigtree["config"]["admin_root"], $bigtree["config"]["static_root"]];
+		$replace = [$max_file_size, Router::$Config["www_root"], Router::$Config["admin_root"], Router::$Config["static_root"]];
 		
 		// Allow GET variables to serve as replacements in JS using $var and file.js?var=whatever
 		foreach ($_GET as $key => $val) {
@@ -200,14 +200,14 @@
 	// We're loading a page in the admin, so add and remove some content / security headers
 	$csp_domains = [];
 	
-	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
-		foreach ($bigtree["config"]["sites"] as $site) {
+	if (is_array(Router::$Config["sites"]) && count(Router::$Config["sites"])) {
+		foreach (Router::$Config["sites"] as $site) {
 			$clean_csp_domain = str_replace(["https://", "http://"], "", $site["domain"]);
 			$csp_domains[] = "http://".$clean_csp_domain;
 			$csp_domains[] = "https://".$clean_csp_domain;
 		}
 	} else {
-		$clean_csp_domain = str_replace(["https://", "http://"], "", $bigtree["config"]["domain"]);
+		$clean_csp_domain = str_replace(["https://", "http://"], "", Router::$Config["domain"]);
 		$csp_domains[] = "http://".$clean_csp_domain;
 		$csp_domains[] = "https://".$clean_csp_domain;
 	}
@@ -215,10 +215,10 @@
 	header("Content-Type: text/html; charset=utf-8");
 	header("Content-Security-Policy: frame-ancestors ".implode(" ", $csp_domains));
 	
-	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+	if (is_array(Router::$Config["sites"]) && count(Router::$Config["sites"])) {
 		$csp_domains = [];
 		
-		foreach ($bigtree["config"]["sites"] as $site) {
+		foreach (Router::$Config["sites"] as $site) {
 			$csp_domains[] = str_replace(["https://", "http://"], "", $site["domain"]);
 		}
 		
@@ -243,8 +243,8 @@
 	SessionHandler::start();
 	
 	// Set date format if it wasn't defined in config
-	if (empty($bigtree["config"]["date_format"])) {
-		$bigtree["config"]["date_format"] = "m/d/Y";
+	if (empty(Router::$Config["date_format"])) {
+		Router::$Config["date_format"] = "m/d/Y";
 	}
 	
 	// Make it easier to extend the nav tree without overwriting important things.
@@ -274,7 +274,7 @@
 	}
 	
 	// Developer Mode On?
-	if (!Auth::user()->ID && !empty($bigtree["config"]["developer_mode"]) && Auth::user()->Level < 2) {
+	if (!Auth::user()->ID && !empty(Router::$Config["developer_mode"]) && Auth::user()->Level < 2) {
 		include Router::getIncludePath("admin/pages/developer-mode.php");
 		Auth::stop();
 	}

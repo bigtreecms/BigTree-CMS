@@ -1,10 +1,6 @@
 <?php
 	namespace BigTree;
 	
-	/**
-	 * @global array $bigtree
-	 */
-	
 	$db_error = false;
 	$is_group_based_perm = false;
 	$module_access_level = null;
@@ -18,7 +14,7 @@
 		$list_sort = $this->Settings["pop-sort"];
 		
 		// If debug is on we're going to check if the tables exists...
-		if ($bigtree["config"]["debug"] && !SQL::tableExists($list_table)) {
+		if (Router::$Config["debug"] && !SQL::tableExists($list_table)) {
 			$db_error = true;
 		} else {
 			try {

@@ -1279,16 +1279,15 @@
 		*/
 
 		static function forgotPassword($email) {
-			global $bigtree;
-
 			$user = BigTree\User::getByEmail($email);
+
 			if (!$user) {
 				return false;
 			}
 
 			$user->initPasswordReset();
 
-			$login_root = ($bigtree["config"]["force_secure_login"] ? str_replace("http://", "https://", ADMIN_ROOT) : ADMIN_ROOT)."login/";
+			$login_root = (BigTree\Router::$Config["force_secure_login"] ? str_replace("http://", "https://", ADMIN_ROOT) : ADMIN_ROOT)."login/";
 			BigTree\Router::redirect($login_root."forgot-success/");
 
 			return true;

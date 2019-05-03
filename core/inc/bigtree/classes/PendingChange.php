@@ -344,14 +344,12 @@
 		
 		public function getEditLink(): ?string
 		{
-			global $bigtree;
-			
 			// Pages are easy
 			if ($this->Table == "bigtree_pages") {
 				if ($this->ItemID) {
-					return $bigtree["config"]["admin_root"]."pages/edit/".$this->ItemID."/";
+					return Router::$Config["admin_root"]."pages/edit/".$this->ItemID."/";
 				} else {
-					return $bigtree["config"]["admin_root"]."pages/edit/p".$this->ID."/";
+					return Router::$Config["admin_root"]."pages/edit/p".$this->ID."/";
 				}
 			}
 
@@ -371,7 +369,7 @@
 
 			foreach ($module->Actions as $action) {
 				if ($action->Interface == $form_id) {
-					return $bigtree["config"]["admin_root"].$module->Route."/".$action->Route."/".($this->ItemID ?: "p".$this->ID)."/";
+					return Router::$Config["admin_root"].$module->Route."/".$action->Route."/".($this->ItemID ?: "p".$this->ID)."/";
 				}
 			}
 
