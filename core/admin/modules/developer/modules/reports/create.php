@@ -7,7 +7,7 @@
 	
 	CSRF::verify();
 
-	$module_id = end($bigtree["path"]);
+	$module_id = end(Router::$Path);
 
 	$report = ModuleReport::create(
 		$module_id,

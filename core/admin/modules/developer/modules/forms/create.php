@@ -7,7 +7,7 @@
 	
 	CSRF::verify();
 
-	$module = end($bigtree["path"]);
+	$module = end(Router::$Path);
 	$title = $_POST["title"];
 
 	$form = ModuleForm::create(

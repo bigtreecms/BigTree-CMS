@@ -17,7 +17,7 @@
 		$cache = false;
 	}
 	
-	if (in_array(end($bigtree["path"]), $restricted)) {
+	if (in_array(end(Router::$Path), $restricted)) {
 		if (!$analytics->Settings["token"] || !$analytics->Settings["profile"]) {
 			Router::redirect(MODULE_ROOT."configure/");
 		} elseif (!$cache) {

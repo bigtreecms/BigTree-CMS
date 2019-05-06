@@ -53,23 +53,21 @@
 		
 		public static function catch404(): void
 		{
-			global $admin, $bigtree, $cms, $db;
-			
-			Router::checkPathHistory($bigtree["path"]);
+			Router::checkPathHistory(Router::$Path);
 			
 			// Wipe any content that's already been drawn
 			ob_clean();
 			
 			if (static::handle404(str_ireplace(WWW_ROOT, "", Link::currentURL()))) {
-				$bigtree["layout"] = "default";
+				Router::$Layout = "default";
 				include SERVER_ROOT."templates/basic/_404.php";
 				
 				// Get content and start the buffer again
-				$bigtree["content"] = ob_get_clean();
+				Router::$Content = ob_get_clean();
 				ob_start();
 				
 				// Draw content in the provided layout
-				include "../templates/layouts/".$bigtree["layout"].".php";
+				include "../templates/layouts/".Router::$Layout.".php";
 				die();
 			}
 		}

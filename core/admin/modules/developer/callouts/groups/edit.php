@@ -6,7 +6,7 @@
 	 */
 	
 	$callouts = Callout::all("name ASC",true);
-	$group = new CalloutGroup(end($bigtree["path"]));
+	$group = new CalloutGroup(end(Router::$Path));
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>callouts/groups/update/<?=$group->ID?>/" class="module">

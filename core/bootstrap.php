@@ -8,6 +8,7 @@
 	
 	/**
 	 * @global array $bigtree
+	 * @global array $path
      * @global string $domain
      * @global string $static_root
      * @global string $www_root
@@ -141,7 +142,7 @@
 	// Load Up BigTree!
 	error_reporting(E_ALL);
 	ini_set("display_errors", "on");
-	Router::boot($bigtree["config"], $bigtree["path"]);
+	Router::boot($bigtree["config"], $path);
 	include Router::getIncludePath("inc/bigtree/compat/cms.php");
 	
 	// If we're in the process of logging into multi-domain sites, login this session and move along

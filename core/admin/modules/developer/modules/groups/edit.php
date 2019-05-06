@@ -5,7 +5,7 @@
 	 * @global array $bigtree
 	 */
 	
-	$group = new ModuleGroup(end($bigtree["path"]));
+	$group = new ModuleGroup(end(Router::$Path));
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/groups/update/<?=$group->ID?>/" class="module">

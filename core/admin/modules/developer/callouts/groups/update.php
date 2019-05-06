@@ -7,7 +7,7 @@
 	
 	CSRF::verify();
 
-	$group = new CalloutGroup(end($bigtree["path"]));
+	$group = new CalloutGroup(end(Router::$Path));
 	$group->update($_POST["name"],$_POST["callouts"]);
 
 	Utils::growl("Developer","Updated Callout Group");

@@ -6,7 +6,7 @@
 	 * @global array $interface_list
 	 */
 	
-	$id = end($bigtree["path"]);	
+	$id = end(Router::$Path);	
 	$module = new Module($id);
 	$actions = ModuleAction::allByModule($id, "position DESC, id ASC");
 	$groups = ModuleGroup::all("name ASC");

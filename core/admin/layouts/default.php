@@ -31,7 +31,7 @@
 		return $page;
 	};
 
-	$current_path = implode("/",array_slice($bigtree["path"],1));
+	$current_path = implode("/", array_slice(Router::$Path, 1));
 
 	if (!defined("BIGTREE_ACCESS_DENIED")) {
 		$bigtree["page"] = $find_path($bigtree["nav_tree"],$current_path);

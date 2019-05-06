@@ -5,7 +5,7 @@
 	 * @global array $bigtree
 	 */
 
-	if (end($bigtree["path"]) != "password" && $bigtree["path"][2] != "profile") {
+	if (end(Router::$Path) != "password" && Router::$Path[2] != "profile") {
 		Auth::user()->requireLevel(1);
 	}
 

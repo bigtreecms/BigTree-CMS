@@ -3,6 +3,7 @@
 	
 	/**
 	 * @global array $bigtree
+	 * @global array $path
 	 * @global string $server_root
 	 */
 	
@@ -10,25 +11,25 @@
 	define("BIGTREE_ADMIN_ROUTED", true);
 	
 	// Set static root for those without it
-	if (!isset(Router::$Config["static_root"])) {
-		Router::$Config["static_root"] = Router::$Config["www_root"];
+	if (!isset($bigtree["config"]["static_root"])) {
+		$bigtree["config"]["static_root"] = $bigtree["config"]["www_root"];
 	}
 	
-	// Make sure no notice gets thrown for $bigtree["path"] being too small.
-	$bigtree["path"] = array_pad($bigtree["path"], 2, "");
+	// Make sure no notice gets thrown for $path being too small.
+	$path = array_pad($path, 2, "");
 	
 	// If we're routing through * it means we're accessing an extension's assets
-	if ($bigtree["path"][1] == "*") {
-		$bigtree["extension_context"] = $bigtree["path"][2];
-		define("EXTENSION_ROOT", $server_root."extensions/".$bigtree["path"][2]."/");
+	if ($path[1] == "*") {
+		$bigtree["extension_context"] = $path[2];
+		define("EXTENSION_ROOT", $server_root."extensions/".$path[2]."/");
 		
-		$bigtree["path"] = array_merge([$bigtree["path"][0]], array_slice($bigtree["path"], 3));
+		$path = array_merge([$path[0]], array_slice($path, 3));
 	}
 	
 	// Images.
-	if ($bigtree["path"][1] == "images") {
+	if ($path[1] == "images") {
 		// Get additional image folder path
-		$image_path = implode("/", array_slice($bigtree["path"], 2));
+		$image_path = implode("/", array_slice($path, 2));
 		
 		if (defined("EXTENSION_ROOT")) {
 			$image_file = EXTENSION_ROOT."images/$image_path";
@@ -67,8 +68,8 @@
 	}
 	
 	// CSS
-	if ($bigtree["path"][1] == "css") {
-		$css_path = implode("/", array_slice($bigtree["path"], 2));
+	if ($path[1] == "css") {
+		$css_path = implode("/", array_slice($path, 2));
 		
 		if (defined("EXTENSION_ROOT")) {
 			$css_file = EXTENSION_ROOT."css/$css_path";
@@ -127,13 +128,13 @@
 	}
 	
 	// JavaScript
-	if ($bigtree["path"][1] == "js") {
+	if ($path[1] == "js") {
 		// Calcuate the maximum post size so we can pass it along to scripts
 		$pms = ini_get('post_max_size');
 		$mul = substr($pms, -1);
 		$mul = ($mul == 'M' ? 1048576 : ($mul == 'K' ? 1024 : ($mul == 'G' ? 1073741824 : 1)));
 		$max_file_size = $mul * (int) $pms;
-		$js_path = implode("/", array_slice($bigtree["path"], 2));
+		$js_path = implode("/", array_slice($path, 2));
 		
 		if (defined("EXTENSION_ROOT")) {
 			$js_file = EXTENSION_ROOT."js/$js_path";
@@ -184,7 +185,7 @@
 		
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
 		$find = ['$max_file_size', "www_root/", "admin_root/", "static_root/"];
-		$replace = [$max_file_size, Router::$Config["www_root"], Router::$Config["admin_root"], Router::$Config["static_root"]];
+		$replace = [$max_file_size, $bigtree["config"]["www_root"], $bigtree["config"]["admin_root"], $bigtree["config"]["static_root"]];
 		
 		// Allow GET variables to serve as replacements in JS using $var and file.js?var=whatever
 		foreach ($_GET as $key => $val) {
@@ -196,18 +197,21 @@
 		
 		die(str_replace($find, $replace, file_get_contents($js_file)));
 	}
+
+	error_reporting(E_ALL);
+	ini_set("display_errors", "on");
 	
 	// We're loading a page in the admin, so add and remove some content / security headers
 	$csp_domains = [];
 	
-	if (is_array(Router::$Config["sites"]) && count(Router::$Config["sites"])) {
-		foreach (Router::$Config["sites"] as $site) {
+	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+		foreach ($bigtree["config"]["sites"] as $site) {
 			$clean_csp_domain = str_replace(["https://", "http://"], "", $site["domain"]);
 			$csp_domains[] = "http://".$clean_csp_domain;
 			$csp_domains[] = "https://".$clean_csp_domain;
 		}
 	} else {
-		$clean_csp_domain = str_replace(["https://", "http://"], "", Router::$Config["domain"]);
+		$clean_csp_domain = str_replace(["https://", "http://"], "", $bigtree["config"]["domain"]);
 		$csp_domains[] = "http://".$clean_csp_domain;
 		$csp_domains[] = "https://".$clean_csp_domain;
 	}
@@ -215,16 +219,16 @@
 	header("Content-Type: text/html; charset=utf-8");
 	header("Content-Security-Policy: frame-ancestors ".implode(" ", $csp_domains));
 	
-	if (is_array(Router::$Config["sites"]) && count(Router::$Config["sites"])) {
+	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
 		$csp_domains = [];
 		
-		foreach (Router::$Config["sites"] as $site) {
+		foreach ($bigtree["config"]["sites"] as $site) {
 			$csp_domains[] = str_replace(["https://", "http://"], "", $site["domain"]);
 		}
 		
 		header("Content-Security-Policy: frame-ancestors ".implode(" ", $csp_domains));
 	} else {
-		header("Content-Security-Policy: frame-ancestors ".str_replace(["https://", "http://"], "", DOMAIN));
+		header("Content-Security-Policy: frame-ancestors ".str_replace(["https://", "http://"], "", $bigtree["config"]["domain"]));
 	}
 	
 	if (function_exists("header_remove")) {
@@ -258,15 +262,15 @@
 	$admin = new \BigTreeAdmin;
 	
 	// Load the default layout.
-	$bigtree["layout"] = "default";
+	Router::$Layout = "default";
 	$bigtree["subnav_extras"] = [];
 	
 	// Setup security policy
 	Auth::initSecurity();
 	
 	// If we're not logged in and we're not trying to login, redirect to the login page.
-	if (is_null(Auth::user()->ID) && $bigtree["path"][1] != "login") {
-		if (implode(array_slice($bigtree["path"], 1, 2), "/") != "ajax/two-factor-check") {
+	if (is_null(Auth::user()->ID) && $path[1] != "login") {
+		if (implode(array_slice($path, 1, 2), "/") != "ajax/two-factor-check") {
 			$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
 			
 			Router::redirect(ADMIN_ROOT."login/");
@@ -280,7 +284,7 @@
 	}
 	
 	// Redirect to dashboard by default if we're not requesting anything.
-	if (!$bigtree["path"][1]) {
+	if (!$path[1]) {
 		Router::redirect(ADMIN_ROOT."dashboard/");
 	}
 	
@@ -291,7 +295,7 @@
 	
 	foreach (Router::$Registry["admin"] as $registration) {
 		if (!$registry_found) {
-			$registry_commands = Router::getRegistryCommands("/".implode("/", array_slice($bigtree["path"], 1)), $registration["pattern"]);
+			$registry_commands = Router::getRegistryCommands("/".implode("/", array_slice($path, 1)), $registration["pattern"]);
 			
 			if (!is_null($registry_commands)) {
 				$registry_found = true;
@@ -327,12 +331,12 @@
 		
 		$bigtree["content"] = ob_get_clean();
 		
-		include Router::getIncludePath("admin/layouts/".$bigtree["layout"].".php");
+		include Router::getIncludePath("admin/layouts/".Router::$Layout.".php");
 		die();
 	}
 	
 	// See if we're requesting something in /ajax/
-	if ($bigtree["path"][1] == "ajax") {
+	if ($path[1] == "ajax") {
 		$core_ajax_directories = [
 			"two-factor-check",
 			"auto-modules",
@@ -343,9 +347,9 @@
 			"tags"
 		];
 		
-		if ($bigtree["path"] && !in_array($bigtree["path"][2], $core_ajax_directories)) {
+		if ($path && !in_array($path[2], $core_ajax_directories)) {
 			// If the current user isn't allowed in the module for the ajax, stop them.
-			$module = Module::getByRoute($bigtree["path"][2]);
+			$module = Module::getByRoute($path[2]);
 			
 			if ($module && !$module->UserCanAccess) {
 				die("Permission denied to module: ".$module->Name);
@@ -359,7 +363,7 @@
 			}
 		}
 		
-		$ajax_path = array_slice($bigtree["path"], 2);
+		$ajax_path = array_slice($path, 2);
 		
 		// Extensions must use this directory
 		if (defined("EXTENSION_ROOT")) {
@@ -413,8 +417,8 @@
 		Cron::run();
 	}
 	
-	$primary_route = $bigtree["path"][1];
-	$module_path = array_slice($bigtree["path"], 1);
+	$primary_route = $path[1];
+	$module_path = array_slice($path, 1);
 	$module = Module::getByRoute($primary_route);
 	$complete = false;
 	
@@ -430,7 +434,7 @@
 		}
 		
 		// Find out what module action we're trying to hit
-		$route_response = $module->getActionForPath(array_slice($bigtree["path"], 2));
+		$route_response = $module->getActionForPath(array_slice($path, 2));
 		
 		if ($route_response) {
 			$bigtree["module_action"] = $route_response["action"]->Array;
@@ -572,5 +576,5 @@
 	
 	$bigtree["content"] = ob_get_clean();
 	
-	include Router::getIncludePath("admin/layouts/".$bigtree["layout"].".php");
+	include Router::getIncludePath("admin/layouts/".Router::$Layout.".php");
 	

@@ -5,7 +5,7 @@
 	 * @global array $bigtree
 	 */
 	
-	$callout = new Callout(end($bigtree["path"]));
+	$callout = new Callout(end(Router::$Path));
 	$show_error = "";
 ?>
 <div class="container">

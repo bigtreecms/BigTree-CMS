@@ -11,7 +11,7 @@
 		
 		unset($_SESSION["bigtree_admin"]["developer"]["setting_data"]);
 	} else {
-		$setting = new Setting(end($bigtree["path"]));
+		$setting = new Setting(end(Router::$Path));
 	}
 ?>
 <div class="container">

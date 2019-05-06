@@ -7,7 +7,7 @@
 	
 	CSRF::verify();
 
-	$view = new ModuleView(end($bigtree["path"]));
+	$view = new ModuleView(end(Router::$Path));
 
 	foreach ($view->Fields as $key => $field) {
 		$view->Fields[$key]["width"] = $_POST[$key];

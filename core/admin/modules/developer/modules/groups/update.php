@@ -7,7 +7,7 @@
 	
 	CSRF::verify();
 	
-	$group = new ModuleGroup(end($bigtree["path"]));
+	$group = new ModuleGroup(end(Router::$Path));
 	$group->update($_POST["name"]);
 
 	Utils::growl("Developer","Updated Module Group");

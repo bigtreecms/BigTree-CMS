@@ -5,7 +5,7 @@
 	 * @global array $bigtree
 	 */
 	
-	$template = new Template(end($bigtree["path"]));
+	$template = new Template(end(Router::$Path));
 	$form_action = "edit";
 ?>
 <div class="container">

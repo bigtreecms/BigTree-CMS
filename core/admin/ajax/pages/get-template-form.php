@@ -98,7 +98,7 @@
 					]);
 
 					$field->draw();
-					$drawn = true
+					$drawn = true;
 				}
 			}
 		}

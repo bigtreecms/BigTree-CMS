@@ -5,7 +5,7 @@
 	 * @global array $bigtree
 	 */
 
-	$id = htmlspecialchars(end($bigtree["path"]));
+	$id = htmlspecialchars(end(Router::$Path));
 ?>
 <div class="container">
 	<section>

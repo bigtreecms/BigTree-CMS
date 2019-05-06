@@ -7,10 +7,10 @@
 	
 	Auth::user()->requireLevel(1);
 	
-	$setting = new Setting(end($bigtree["path"]));
+	$setting = new Setting(end(Router::$Path));
 	$value = $setting->Encrypted ? "" : $setting->Value;
 
-	if (!Setting::exists(end($bigtree["path"])) || $setting->System || ($setting->Locked && Auth::user()->Level < 2)) {
+	if (!Setting::exists(end(Router::$Path)) || $setting->System || ($setting->Locked && Auth::user()->Level < 2)) {
 		Auth::stop("The setting you are trying to edit no longer exists or you do not have permission to edit it.",
 					Router::getIncludePath("admin/layouts/_error.php"));
 	}
@@ -39,7 +39,7 @@
 		<?php CSRF::drawPOSTToken(); ?>
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=Storage::getUploadMaxFileSize()?>" />
 		<input type="hidden" name="_bigtree_post_check" value="success" />
-		<input type="hidden" name="id" value="<?=htmlspecialchars(end($bigtree["path"]))?>" />
+		<input type="hidden" name="id" value="<?=htmlspecialchars(end(Router::$Path))?>" />
 		<section>
 			<?php
 				if ($setting->Encrypted) {

@@ -5,7 +5,7 @@
 	 * @global array $bigtree
 	 */
 
-	$view = new ModuleView(end($bigtree["path"]));
+	$view = new ModuleView(end(Router::$Path));
 	$entries = $view->searchData(1);
 	$entries = array_slice($entries["results"],0,5);
 

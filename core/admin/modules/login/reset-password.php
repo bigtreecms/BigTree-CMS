@@ -5,7 +5,7 @@
 	 * @global string $login_root
 	 */
 	
-	$user = User::getByHash(end($bigtree["path"]));
+	$user = User::getByHash(end(Router::$Path));
 	$failure = false;
 	
 	if ($_POST["password"]) {
@@ -14,7 +14,7 @@
 		} elseif ($_POST["password"] != $_POST["confirm_password"]) {
 			$failure = "match";
 		} else {
-			$user = User::getByHash(end($bigtree["path"]));
+			$user = User::getByHash(end(Router::$Path));
 			
 			if ($user) {
 				$user->ChangePasswordHash = "";

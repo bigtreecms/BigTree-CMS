@@ -140,7 +140,7 @@
 								$x++;
 								// Need to check custom nav states better
 								$link_pieces = explode("/",$item["link"]);
-								$path_pieces = array_slice($bigtree["path"],1,count($link_pieces));
+								$path_pieces = array_slice(Router::$Path, 1, count($link_pieces));
 
 								if (strpos($item["link"], "https://") === 0 || strpos($item["link"], "http://") === 0) {
 									$link = $item["link"];

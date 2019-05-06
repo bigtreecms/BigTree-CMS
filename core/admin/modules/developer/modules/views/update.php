@@ -66,7 +66,7 @@
 		
 		// If we've switched from searchable -> anything else or vice versa, wipe the width columns.
 		// Also wipe them if we have added or removed a column.
-		$view = new ModuleView(end($bigtree["path"]));
+		$view = new ModuleView(end(Router::$Path));
 		$keys_match = true;
 
 		foreach ($view->Fields as $key => $field) {

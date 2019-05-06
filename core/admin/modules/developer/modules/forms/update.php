@@ -7,7 +7,7 @@
 	
 	CSRF::verify();
 
-	$form = new ModuleForm(end($bigtree["path"]));
+	$form = new ModuleForm(end(Router::$Path));
 	$form->update(
 		$_POST["title"],
 		$_POST["table"],

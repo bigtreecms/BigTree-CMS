@@ -1,8 +1,6 @@
 <?php
 	// Setup the BigTree variable "namespace"
-	$bigtree = [];
-	$bigtree["config"] = [];
-	$bigtree["config"]["debug"] = false;
+	$bigtree = ["config" => ["debug" => false]];
 	$boot_error = error_get_last();
 	
 	if ($boot_error) {
@@ -20,20 +18,20 @@
 	// Basic routing
 	if (isset($bigtree["config"]["routing"]) && $bigtree["config"]["routing"] == "basic") {
 		if (!isset($_SERVER["PATH_INFO"])) {
-			$bigtree["path"] = [];
+			$path = [];
 			$bigtree["trailing_slash_present"] = false;
 		} else {
-			$bigtree["path"] = explode("/", trim(trim($_SERVER["PATH_INFO"]), "/"));
+			$path = explode("/", trim(trim($_SERVER["PATH_INFO"]), "/"));
 			$bigtree["trailing_slash_present"] = (substr($_SERVER["PATH_INFO"], -1, 1) === "/");
 		}
 		
-		// "Advanced" or "Simple Rewrite" routing
+	// "Advanced" or "Simple Rewrite" routing
 	} else {
 		if (!isset($_GET["bigtree_htaccess_url"])) {
 			$_GET["bigtree_htaccess_url"] = "";
 		}
 		
-		$bigtree["path"] = explode("/", rtrim(trim($_GET["bigtree_htaccess_url"]), "/"));
+		$path = explode("/", rtrim(trim($_GET["bigtree_htaccess_url"]), "/"));
 		$bigtree["trailing_slash_present"] = (substr($_GET["bigtree_htaccess_url"], -1, 1) === "/");
 	}
 	
@@ -42,15 +40,13 @@
 		die();
 	}
 	
-	$bigtree["path"] = array_filter($bigtree["path"], function ($val) {
+	$path = array_filter($path, function ($val) {
 		if ($val == "..") {
 			die();
 		}
 		
 		return true;
 	});
-	
-	$path = $bigtree["path"]; // Backwards compatibility
 	
 	// Figure out if we're requesting a page in the admin
 	$generic_www_root = str_replace(["http://", "https://"], "", $bigtree["config"]["www_root"]);
@@ -60,22 +56,23 @@
 	$x = 0;
 	
 	// Go through each route, make sure the path matches the admin's route paths.
-	if (count($bigtree["path"]) < count($parts_of_admin)) {
+	if (count($path) < count($parts_of_admin)) {
 		$in_admin = false;
 	} else {
 		foreach ($parts_of_admin as $part) {
-			if ($part != $bigtree["path"][$x]) {
+			if ($part != $path[$x]) {
 				$in_admin = false;
 			}
+
 			$x++;
 		}
 	}
-	
+
 	// If we are in the admin, let it bootstrap itself.
 	if ($in_admin) {
 		// Cut off additional routes from the path, some parts of the admin assume path[0] is "admin" and path[1] begins the routing.
 		if ($x > 1) {
-			$bigtree["path"] = array_slice($bigtree["path"], $x - 1);
+			$path = array_slice($path, $x - 1);
 		}
 		
 		if (file_exists("../custom/admin/router.php")) {
@@ -118,8 +115,8 @@
 	
 	// We're not in the admin, see if caching is enabled and serve up a cached page if it exists
 	if ($bigtree["config"]["cache"] &&
-		$bigtree["path"][0] != "_preview" &&
-		$bigtree["path"][0] != "_preview-pending"
+		$path[0] != "_preview" &&
+		$path[0] != "_preview-pending"
 	) {
 		$cache_location = md5(json_encode($_GET));
 		$file = BIGTREE_CACHE_DIRECTORY.$cache_location.".page";
@@ -135,7 +132,7 @@
 	}
 	
 	// Clean up the variables we set.
-	unset($config, $debug, $in_admin, $parts_of_admin, $x);
+	unset($generic_admin_root, $generic_www_root, $domain_match, $in_admin, $cache_location, $file, $ttl, $parts_of_admin, $x);
 	
 	// Bootstrap BigTree
 	if (file_exists("../custom/bootstrap.php")) {
