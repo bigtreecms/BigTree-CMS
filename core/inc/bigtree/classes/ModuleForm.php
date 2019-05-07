@@ -308,7 +308,7 @@
 		}
 		
 		/*
-		    Function: getArray
+			Function: getArray
 				Returns an array of form information.
 
 			Returns:
@@ -536,7 +536,7 @@
 		}
 		
 		/*
-		    Function: handleManyToMany
+			Function: handleManyToMany
 				Assigns Many to Many field relationships for an entry.
 
 			Parameters:
@@ -578,7 +578,7 @@
 		}
 		
 		/*
-		    Function: handleTags
+			Function: handleTags
 				Assigns tags to an entry.
 
 			Parameters:

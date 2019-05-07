@@ -80,16 +80,16 @@
 				
 				<br class="clear" />
 				<fieldset>
-			        <label class="required"><?=Text::translate("Icon")?></label>
-			        <input type="hidden" name="icon" id="selected_icon" value="<?=$module->Icon?>" />
-			        <ul class="developer_icon_list">
-			        	<?php foreach (Module::$IconClasses as $class) { ?>
-			        	<li>
-			        		<a href="#<?=$class?>"<?php if ($class == $module->Icon) { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
-			        	</li>
-			        	<?php } ?>
-			        </ul>
-			    </fieldset>
+					<label class="required"><?=Text::translate("Icon")?></label>
+					<input type="hidden" name="icon" id="selected_icon" value="<?=$module->Icon?>" />
+					<ul class="developer_icon_list">
+						<?php foreach (Module::$IconClasses as $class) { ?>
+						<li>
+							<a href="#<?=$class?>"<?php if ($class == $module->Icon) { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
+						</li>
+						<?php } ?>
+					</ul>
+				</fieldset>
 				
 				<fieldset class="left last">
 					<input type="checkbox" name="gbp[enabled]" id="gbp_on" <?php if (!empty($module->Group["enabled"]))  { ?>checked="checked" <?php } ?> <?php if ($module->DeveloperOnly) { ?>disabled="disabled"<?php } ?> />

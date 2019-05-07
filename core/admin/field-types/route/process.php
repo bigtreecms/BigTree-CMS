@@ -31,7 +31,7 @@
 			while ($x < 1000 &&
 				   SQL::rows("SELECT id FROM `".$bigtree["form"]["table"]."`
 				   			  WHERE `".$this->Key."` = ?
-				   			    AND id != ?", $this->Output, $bigtree["edit_id"])
+				   				AND id != ?", $this->Output, $bigtree["edit_id"])
 			) {
 				$this->Output = $original_route."-".$x;
 				$x++;

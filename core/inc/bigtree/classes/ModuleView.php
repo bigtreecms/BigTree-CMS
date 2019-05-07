@@ -592,7 +592,7 @@
 		}
 		
 		/*
-		    Function: getByTable
+			Function: getByTable
 				Returns a ModuleView for a given table (if one exists).
 
 			Parameters:

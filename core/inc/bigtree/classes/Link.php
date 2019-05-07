@@ -69,7 +69,7 @@
 		}
 		
 		/*
-		    Function: cacheTokens
+			Function: cacheTokens
 				Caches a list of tokens and the values that are related to them.
 		*/
 		

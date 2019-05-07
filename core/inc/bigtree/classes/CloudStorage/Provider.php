@@ -1,6 +1,6 @@
 <?php
 	/*
-	    Class: BigTree\CloudStorage\Provider
+		Class: BigTree\CloudStorage\Provider
 			Provides a base implementation of other cloud storage systems.
 	*/
 	
@@ -230,7 +230,7 @@
 		}
 		
 		/*
-		    Function: getContainerTree
+			Function: getContainerTree
 				Provides a tree structure of the contents of a container.
 
 			Parameters:
@@ -277,7 +277,7 @@
 		}
 		
 		/*
-		    Function: getContentType
+			Function: getContentType
 				Gets the MIME content type of a file.
 
 			Parameters:

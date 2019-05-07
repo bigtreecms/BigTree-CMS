@@ -1,6 +1,6 @@
 <?php
 	/*
-	    Class: Utils
+		Class: Utils
 			A class of helper functions that just don't fit anywhere else.
 	*/
 	

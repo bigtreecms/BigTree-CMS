@@ -53,12 +53,12 @@
 				
 				$entry = SQL::fetchSingle("SELECT value FROM bigtree_caches
 										   WHERE `identifier` = ?
-										     AND `key` = ?
-										     AND timestamp >= ?", $identifier, $key, $max_age);
+											 AND `key` = ?
+											 AND timestamp >= ?", $identifier, $key, $max_age);
 			} else {
 				$entry = SQL::fetchSingle("SELECT value FROM bigtree_caches
 										   WHERE `identifier` = ?
-										     AND `key` = ?", $identifier, $key);
+											 AND `key` = ?", $identifier, $key);
 			}
 			
 			return $decode ? json_decode($entry, true) : $entry;

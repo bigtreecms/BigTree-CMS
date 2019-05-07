@@ -107,19 +107,19 @@
 				if (is_array(Router::$Config["css"]["files"][$css_file])) {
 					// if we need LESS
 					if (strpos(implode(" ", Router::$Config["css"]["files"][$css_file]), "less") > -1) {
-                        require_once SERVER_ROOT."core/inc/lib/less.php/lib/Less/Autoloader.php";
-                        \Less_Autoloader::register();
+						require_once SERVER_ROOT."core/inc/lib/less.php/lib/Less/Autoloader.php";
+						\Less_Autoloader::register();
 					}
 					
 					foreach (Router::$Config["css"]["files"][$css_file] as $style_file) {
 						if (strpos($style_file, "less") > -1) {
-                            // LESS
-                            $less_compiler = new Less_Parser;
-                            $less_compiler->parseFile(SITE_ROOT."css/".$style_file);
-                            $style = $less_compiler->getCss();
+							// LESS
+							$less_compiler = new Less_Parser;
+							$less_compiler->parseFile(SITE_ROOT."css/".$style_file);
+							$style = $less_compiler->getCss();
 						} else {
-                            $style = file_get_contents(SITE_ROOT."css/$style_file");
-                        }
+							$style = file_get_contents(SITE_ROOT."css/$style_file");
+						}
 						
 						$data .= $style."\n";
 					}
@@ -471,27 +471,27 @@
 			// Use BigTree's routing to find the page
 			} else {
 				// Allow the homepage to be routed
-                if (!$bigtree["page"]["path"]) {
-                    $bigtree["commands"] = Router::$Path;
-                }
+				if (!$bigtree["page"]["path"]) {
+					$bigtree["commands"] = Router::$Path;
+				}
 
-                if ($extension) {
-                    list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."extensions/$extension/templates/routed/$extension_template/", array_filter($bigtree["commands"]));
-                } else {
-                    list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/", array_filter($bigtree["commands"]));
-                }
+				if ($extension) {
+					list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."extensions/$extension/templates/routed/$extension_template/", array_filter($bigtree["commands"]));
+				} else {
+					list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/", array_filter($bigtree["commands"]));
+				}
 
-                $command_count = count($commands);
+				$command_count = count($commands);
 
-                if ($command_count) {
-                    $bigtree["routed_path"] = array_slice($bigtree["commands"], 0, $command_count * -1);
-                } else {
-                    $bigtree["routed_path"] = $bigtree["commands"];
-                }
+				if ($command_count) {
+					$bigtree["routed_path"] = array_slice($bigtree["commands"], 0, $command_count * -1);
+				} else {
+					$bigtree["routed_path"] = $bigtree["commands"];
+				}
 
-                $bigtree["routed_inc"] = $inc;
-                $bigtree["commands"] = $commands;
-                $bigtree["module_path"] = $bigtree["routed_path"]; // Backwards compat
+				$bigtree["routed_inc"] = $inc;
+				$bigtree["commands"] = $commands;
+				$bigtree["module_path"] = $bigtree["routed_path"]; // Backwards compat
 			}
 			
 			list($bigtree["routed_headers"], $bigtree["routed_footers"]) = Router::getRoutedLayoutPartials($inc);

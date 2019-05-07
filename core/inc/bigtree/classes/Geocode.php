@@ -21,7 +21,7 @@
 		public $Longitude;
 		
 		/*
-		    Constructor:
+			Constructor:
 				Creates a Geocode object for the passed in address.
 
 			Parameters:

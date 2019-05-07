@@ -662,13 +662,13 @@
 		{
 			$path = SQL::fetchSingle("SELECT path FROM bigtree_pages 
 						  			  WHERE in_nav = 'on' AND parent = ? 
-						              ORDER BY position DESC, id ASC LIMIT 1", $page->ID);
+									  ORDER BY position DESC, id ASC LIMIT 1", $page->ID);
 			
 			// Try for one that's not in nav
 			if (!$path) {
 				$path = SQL::fetchSingle("SELECT path FROM bigtree_pages 
 						  		  		  WHERE in_nav != 'on' AND parent = ? 
-						                  ORDER BY position DESC, id ASC LIMIT 1", $page->ID);
+										  ORDER BY position DESC, id ASC LIMIT 1", $page->ID);
 			}
 			
 			if ($path) {

@@ -617,7 +617,7 @@
 		}
 		
 		/*
-		    Function: user
+			Function: user
 				Returns a BigTree\Auth\AuthenticatedUser object.
 
 			Parameters:

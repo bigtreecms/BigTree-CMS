@@ -15,11 +15,11 @@
 	
 	foreach ($writable_directories as $directory) {
 		if (!FileSystem::getDirectoryWritability(SERVER_ROOT.$directory)) {
-		    $warnings[] = [
-		    	"name" => Text::translate("Directory Permissions Error"),
-		    	"description" => Text::translate("Make :directory: writable.", false, [":directory:" => SERVER_ROOT.$directory]),
-		    	"status" => "bad"
-		    ];
+			$warnings[] = [
+				"name" => Text::translate("Directory Permissions Error"),
+				"description" => Text::translate("Make :directory: writable.", false, [":directory:" => SERVER_ROOT.$directory]),
+				"status" => "bad"
+			];
 		}
 	}
 	

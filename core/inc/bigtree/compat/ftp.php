@@ -1,3 +1,3 @@
 <?php
-    // Backwards compatibility class.
-    class BigTreeFTP extends BigTree\FTP {}
+	// Backwards compatibility class.
+	class BigTreeFTP extends BigTree\FTP {}

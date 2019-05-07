@@ -16,7 +16,7 @@
 			$form->ModuleName = Text::translate("Modules")."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module->Name."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$form->Title;
 		}
 
-	    $form->Items = SQL::fetchAllSingle("SELECT id FROM `".$form->Table."`");
+		$form->Items = SQL::fetchAllSingle("SELECT id FROM `".$form->Table."`");
 	}
 ?>
 <div class="table">

@@ -123,7 +123,7 @@
 		
 		$q = SQL::query("SELECT * FROM `$table` 
 						 WHERE `$field` LIKE '%\"type\":\"".SQL::escape($type)."\"%' 
-						    OR `$field` LIKE '%\"type\": \"".SQL::escape($type)."\"%'");
+							OR `$field` LIKE '%\"type\": \"".SQL::escape($type)."\"%'");
 		
 		while ($f = $q->fetch()) {
 			if ($field == "settings") {

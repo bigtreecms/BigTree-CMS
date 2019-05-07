@@ -60,16 +60,16 @@
 			</div>
 			<br class="clear" />
 			<fieldset>
-		        <label class="required"><?=Text::translate("Icon")?></label>
-		        <input type="hidden" name="icon" id="selected_icon" value="gear" />
-		        <ul class="developer_icon_list">
-		        	<?php foreach (Module::$IconClasses as $class) { ?>
-		        	<li>
-		        		<a href="#<?=$class?>"<?php if ($class == $module->Icon) { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
-		        	</li>
-		        	<?php } ?>
-		        </ul>
-		    </fieldset>
+				<label class="required"><?=Text::translate("Icon")?></label>
+				<input type="hidden" name="icon" id="selected_icon" value="gear" />
+				<ul class="developer_icon_list">
+					<?php foreach (Module::$IconClasses as $class) { ?>
+					<li>
+						<a href="#<?=$class?>"<?php if ($class == $module->Icon) { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=$class?>"></span></a>
+					</li>
+					<?php } ?>
+				</ul>
+			</fieldset>
 		</section>
 		<footer>
 			<input type="submit" class="button blue" value="<?=Text::translate("Continue", true)?>" />

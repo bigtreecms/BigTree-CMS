@@ -9,14 +9,14 @@
 	/**
 	 * @global array $bigtree
 	 * @global array $path
-     * @global string $domain
-     * @global string $static_root
-     * @global string $www_root
+	 * @global string $domain
+	 * @global string $static_root
+	 * @global string $www_root
 	 */
 	
 	ini_set("log_errors", "false");
 
-    // These vars are defined in launch.php for multi-domain setups
+	// These vars are defined in launch.php for multi-domain setups
 	if (!defined("BIGTREE_SITE_KEY")) {
 		define("BIGTREE_SITE_TRUNK", 0);
 		

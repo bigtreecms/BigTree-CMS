@@ -158,7 +158,7 @@
 			
 			while ($z < $length && $x <= strlen($string)) {
 				$char = substr($string, $x, 1);
-				$ns .= $char;        // Add the character to the new string.
+				$ns .= $char;		// Add the character to the new string.
 				
 				if ($char == "<") {
 					// Get the full tag -- but compensate for bad html to prevent endless loops.

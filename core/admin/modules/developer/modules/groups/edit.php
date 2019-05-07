@@ -12,8 +12,8 @@
 		<?php CSRF::drawPOSTToken(); ?>
 		<section>
 			<fieldset>
-			    <label for="group_field_name" class="required"><?=Text::translate("Name")?></label>
-			    <input id="group_field_name" type="text" name="name" value="<?=$group->Name?>" class="required" />
+				<label for="group_field_name" class="required"><?=Text::translate("Name")?></label>
+				<input id="group_field_name" type="text" name="name" value="<?=$group->Name?>" class="required" />
 			</fieldset>
 		</section>
 		<footer>

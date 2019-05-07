@@ -742,9 +742,9 @@
 			if ($user->Alerts[0] == "on") {
 				return SQL::fetchAll("SELECT nav_title, id, path, updated_at,
 											 DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age
-								      FROM bigtree_pages 
-								      WHERE max_age > 0 AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age 
-								      ORDER BY current_age DESC");
+									  FROM bigtree_pages 
+									  WHERE max_age > 0 AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age 
+									  ORDER BY current_age DESC");
 			} else {
 				$where = [];
 				
@@ -769,7 +769,7 @@
 												 DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age
 										  FROM bigtree_pages 
 										  WHERE max_age > 0 AND (".implode(" OR ", $path_query).") AND 
-										        DATEDIFF('".date("Y-m-d")."',updated_at) > max_age 
+												DATEDIFF('".date("Y-m-d")."',updated_at) > max_age 
 										  ORDER BY current_age DESC");
 				}
 			}
@@ -1731,7 +1731,7 @@
 		}
 		
 		/*
-		    Function: setTags
+			Function: setTags
 				Sets the page object's tags property with a new set of tag IDs.
 
 			Parameters:
