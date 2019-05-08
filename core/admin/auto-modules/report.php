@@ -1,13 +1,8 @@
 <?php
 	namespace BigTree;
 	
-	/**
-	 * @global array $bigtree
-	 * @global ModuleInterface $interface
-	 */
-	
-	$report = $interface->Module->Reports[$interface->ID];
-	$action = $bigtree["commands"][0];
+	$report = Router::$ModuleInterface->Module->Reports[Router::$ModuleInterface->ID];
+	$action = Router::$Commands[0];
 
 	if ($action == "csv") {
 		include Router::getIncludePath("admin/auto-modules/reports/csv.php");

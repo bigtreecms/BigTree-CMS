@@ -9,8 +9,8 @@
 		$id = $_POST["page"];
 	} elseif (isset($_POST["parent"])) {
 		$id = $_POST["parent"];
-	} elseif (isset($bigtree["commands"][0])) {
-		$id = $bigtree["commands"][0];
+	} elseif (isset(Router::$Commands[0])) {
+		$id = Router::$Commands[0];
 	} elseif (isset($_GET["id"])) {
 		$id = $_GET["id"];
 	} else {
@@ -63,7 +63,7 @@
 	}
 	
 	// Fix the navigation.
-	$pages_nav = &$bigtree["nav_tree"]["pages"];
+	$pages_nav = &Router::$AdminNavTree["pages"];
 	
 	// Replace all the {id}s in the links.
 	foreach ($pages_nav["children"] as &$child) {

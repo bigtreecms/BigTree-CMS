@@ -6,7 +6,7 @@
 		["link" => "files", "title" => "Files"]
 	];
 	
-	$folder = new ResourceFolder($bigtree["commands"][0]);
+	$folder = new ResourceFolder(Router::$Commands[0]);
 	$breadcrumb = $folder->Breadcrumb;
 	$access_level = $folder->UserAccessLevel;
 

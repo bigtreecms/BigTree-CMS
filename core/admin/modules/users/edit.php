@@ -9,7 +9,7 @@
 	
 	// We set this header so that when the user reloads the page form element changes don't stick (since we're only tracking explicit changes back to the JSON objects for Alerts and Permissions)
 	header("Cache-Control: no-store");
-	$user = new User(end($bigtree["commands"]));
+	$user = new User(end(Router::$Commands));
 
 	// Stop if this is a 404 or the user is editing someone higher than them.
 	if (!$user || $user->Level > Auth::user()->Level) {

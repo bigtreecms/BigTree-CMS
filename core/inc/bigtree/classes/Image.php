@@ -8,6 +8,7 @@
 	
 	class Image
 	{
+		public static $Crops = [];
 		
 		public $BitsPerPixel;
 		public $ColorChannels = 3;

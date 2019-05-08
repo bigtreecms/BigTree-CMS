@@ -5,7 +5,7 @@
 	 * @global array $bigtree
 	 */
 	
-	$extension = new Extension($bigtree["commands"][0]);
+	$extension = new Extension(Router::$Commands[0]);
 	$manifest = $extension->Manifest;
 	
 	$_SESSION["bigtree_admin"]["developer"]["package"] = [

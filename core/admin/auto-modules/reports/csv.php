@@ -2,15 +2,15 @@
 	namespace BigTree;
 	
 	/**
-	 * @global Module $module
 	 * @global ModuleReport $report
+	 * @global string $filter_field_id
 	 */
 
 	$date = Auth::user()->convertTimestampTo("now", "Y-m-d");
-	$module = Link::urlify($module->Name);
+	$route = Link::urlify(Router::$Module->Name);
 	
 	header("Content-type: text/csv");
-	header("Content-Disposition: attachment; filename=$module-$date.csv");
+	header("Content-Disposition: attachment; filename=$route-$date.csv");
 	header("Pragma: no-cache");
 	header("Expires: 0");
 	

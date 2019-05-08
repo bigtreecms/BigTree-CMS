@@ -2,13 +2,11 @@
 	namespace BigTree;
 
 	/**
-	 * @global array $bigtree
-	 * @global Module $module
 	 * @global ModuleReport $report
 	 */
 ?>
 <div class="container">
-	<form method="post" action="<?=ADMIN_ROOT.$module->Route."/".$bigtree["module_action"]["route"]."/".$report->Type?>/">
+	<form method="post" action="<?=ADMIN_ROOT.Router::$Module->Route."/".Router::$ModuleAction->Route."/".$report->Type?>/">
 		<?php
 			if (Auth::user()->Level > 1) {
 		?>
@@ -23,10 +21,14 @@
 		?>
 		<section>
 			<?php
+				$x = 1;
+				
 				foreach ($report->Filters as $id => $filter) {
+					$filter_field_id = "report_filter_field_$x";
+					$x++;
 			?>
 			<fieldset>
-				<label><?=$filter["title"]?></label>
+				<label for="<?=$filter_field_id?>"><?=$filter["title"]?></label>
 				<?php include Router::getIncludePath("admin/auto-modules/reports/filters/".$filter["type"].".php") ?>	
 			</fieldset>
 			<?php

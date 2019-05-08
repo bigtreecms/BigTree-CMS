@@ -1,24 +1,26 @@
 <?php
 	namespace BigTree;
 	
-	/**
-	 * @global array $bigtree
-	 */
+	if (defined("BIGTREE_CALLOUT_RESOURCES")) {
+		$width = 440;
+		$height = 220;
+	} else {
+		$width = 898;
+		$height = 365;
+	}
 	
-	$width = isset($bigtree["html_editor_width"]) ? $bigtree["html_editor_width"] : false;
-	$height = isset($bigtree["html_editor_height"]) ? $bigtree["html_editor_height"] : false;
 	$content_css = Setting::value("tinymce-content-css");
 ?>
 <script>
 	$(document).ready(function() {
 		<?php
-			if (is_array($bigtree["html_fields"]) && count($bigtree["html_fields"])) {
+			if (count(Field::$HTMLFields)) {
 		?>
 		tinyMCE.init({
   			<?php if ($content_css) { ?>content_css: "<?=$content_css?>",<?php } ?>
   			theme: "modern",
 			mode: "exact",
-			elements: "<?=implode(",",$bigtree["html_fields"])?>",
+			elements: "<?=implode(",", Field::$HTMLFields)?>",
 			file_browser_callback: BigTreeFileManager.tinyMCEOpen,
 			menubar: false,
 			plugins: "code,anchor,image,link,table,visualblocks,lists,hr",
@@ -37,13 +39,13 @@
 		<?php
 			}
 		
-			if (is_array($bigtree["simple_html_fields"]) && count($bigtree["simple_html_fields"])) {
+			if (count(Field::$SimpleHTMLFields)) {
 		?>
 		tinyMCE.init({
   			<?php if ($content_css) { ?>content_css: "<?=$content_css?>",<?php } ?>
   			theme: "modern",
 			mode: "exact",
-			elements: "<?=implode(",",$bigtree["simple_html_fields"])?>",
+			elements: "<?=implode(",", Field::$SimpleHTMLFields)?>",
 			file_browser_callback: BigTreeFileManager.tinyMCEOpen,
 			menubar: false,
 			plugins: "link,code,visualblocks,lists",

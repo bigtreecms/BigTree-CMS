@@ -6,7 +6,7 @@
 		["link" => "files", "title" => "Files"]
 	];
 	
-	$folder_id = intval($bigtree["commands"][0]);
+	$folder_id = intval(Router::$Commands[0]);
 	$folder = new ResourceFolder($folder_id);
 	$permission = $folder->UserAccessLevel;
 	$contents = $folder->Contents;

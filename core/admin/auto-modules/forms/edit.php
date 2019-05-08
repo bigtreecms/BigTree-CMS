@@ -2,7 +2,7 @@
 	namespace BigTree;
 
 	/**
-	 * @global array $bigtree
+	 * @global string $edit_id
 	 * @global ModuleForm $form
 	 * @global Module $module
 	 */
@@ -15,10 +15,10 @@
 		$force = false;
 	}
 	
-	Lock::enforce($form->Table, $bigtree["edit_id"], "admin/auto-modules/forms/_locked.php", $force);
+	Lock::enforce($form->Table, $edit_id, "admin/auto-modules/forms/_locked.php", $force);
 
-	$pending_entry = $form->getPendingEntry($bigtree["edit_id"]);
-	$original_item = $form->getEntry($bigtree["edit_id"]);
+	$pending_entry = $form->getPendingEntry($edit_id);
+	$original_item = $form->getEntry($edit_id);
 
 	if (!$pending_entry) {
 ?>
@@ -30,29 +30,29 @@
 </div>
 <?php
 	} else {
-		$bigtree["entry"] = $item = $pending_entry["item"];
+		$content = $pending_entry["item"];
 		
 		// See if we have an editing hook
 		if (!empty($form->Hooks["edit"])) {
-			$bigtree["entry"] = call_user_func($form->Hooks["edit"], $bigtree["entry"], $form->Array, false);
+			$content = call_user_func($form->Hooks["edit"], $content, $form->Array, false);
 		}
 		
 		// Check access levels
-		$bigtree["access_level"] = Auth::user()->getAccessLevel($module, $item, $form->Table);
+		$access_level = Auth::user()->getAccessLevel($module, $item, $form->Table);
 
-		if ($bigtree["access_level"] != "n") {
+		if ($access_level != "n") {
 			$original_permission_level = Auth::user()->getAccessLevel($module, $original_item["item"], $form->Table);
 
 			if ($original_permission_level != "p") {
-				$bigtree["access_level"] = $original_permission_level;
+				$access_level = $original_permission_level;
 			}
 		}
 		
-		if (!$bigtree["access_level"] || $bigtree["access_level"] == "n") {
+		if (!$access_level || $access_level == "n") {
 			include Router::getIncludePath("admin/auto-modules/forms/_denied.php");
 		} else {
-			$bigtree["many-to-many"] = $many_to_many = $pending_entry["mtm"];
-			$bigtree["tags"] = $pending_entry["tags"];
+			$many_to_many = $pending_entry["mtm"];
+			$tags = $pending_entry["tags"];
 
 			include Router::getIncludePath("admin/auto-modules/forms/_form.php");
 		}
@@ -62,7 +62,7 @@
 	BigTree.localLockTimer = setInterval(function() {
 		$.secureAjax("<?=ADMIN_ROOT?>ajax/refresh-lock/", {
 			type: 'POST',
-			data: { table: '<?=$bigtree["form"]["table"]?>', id: '<?=$bigtree["edit_id"]?>'
+			data: { table: '<?=$form->Table?>', id: '<?=$edit_id?>'
 		}});
 	}, 60000);
 </script>

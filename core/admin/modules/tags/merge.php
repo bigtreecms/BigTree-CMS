@@ -5,7 +5,7 @@
 	 * @global array $bigtree
 	 */
 	
-	$tag = new Tag($bigtree["commands"][0]);
+	$tag = new Tag(Router::$Commands[0]);
 
 	$field = new Field([
 		"title" => Text::translate("Tag to Merge Into"),

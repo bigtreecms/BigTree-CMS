@@ -234,7 +234,7 @@
 		}
 		
 		$bigtree["ajax_inc"] = $inc;
-		$bigtree["commands"] = $commands;
+		Router::$Commands = $commands;
 		list($bigtree["ajax_headers"], $bigtree["ajax_footers"]) = Router::getRoutedLayoutPartials($inc);
 		
 		// Draw the headers.
@@ -287,7 +287,7 @@
 	
 	if (Router::$Path[0] == "_preview-pending" && $_SESSION["bigtree_admin"]["id"]) {
 		$bigtree["preview"] = true;
-		$bigtree["commands"] = array();
+		Router::$Commands = [];
 		$navid = Router::$Path[1];
 		
 		define("BIGTREE_PREVIEWING_PENDING", true);
@@ -330,7 +330,7 @@
 	
 	// Not in route registry, check BigTree pages
 	if (!$registry_found) {
-		list($navid, $bigtree["commands"], $routed) = Router::routeToPage(Router::$Path, $bigtree["preview"]);
+		list($navid, Router::$Commands, $routed) = Router::routeToPage(Router::$Path, $bigtree["preview"]);
 	}
 	
 	// Pre-init a bunch of vars to keep away notices.
@@ -341,11 +341,11 @@
 		if ($registry_rule["file"]) {
 			
 			// Emulate commands at indexes as well as with requested variable keys
-			$bigtree["commands"] = array();
+			Router::$Commands = []];
 			$x = 0;
 			
 			foreach ($registry_commands as $key => $value) {
-				$bigtree["commands"][$x] = $bigtree["commands"][$key] = $value;
+				Router::$Commands[$x] = Router::$Commands[$key] = $value;
 				$x++;
 			}
 			
@@ -445,7 +445,7 @@
 			
 			foreach (Router::$Registry["template"] as $registration) {
 				if ($registration["template"] == $bigtree["page"]["template"]) {
-					$registry_commands = Router::getRegistryCommands(implode("/", $bigtree["commands"]), $registration["pattern"]);
+					$registry_commands = Router::getRegistryCommands(implode("/", Router::$Commands), $registration["pattern"]);
 					
 					if ($registry_commands !== false) {
 						$registry_found = true;
@@ -457,11 +457,11 @@
 			// Module successfully grabbed the routing
 			if ($registry_found) {
 				// Emulate commands at indexes as well as with requested variable keys
-				$bigtree["commands"] = array();
+				Router::$Commands = [];
 				$x = 0;
 				
 				foreach ($registry_commands as $key => $value) {
-					$bigtree["commands"][$x] = $bigtree["commands"][$key] = $value;
+					Router::$Commands[$x] = Router::$Commands[$key] = $value;
 					$x++;
 				}
 				
@@ -472,25 +472,25 @@
 			} else {
 				// Allow the homepage to be routed
 				if (!$bigtree["page"]["path"]) {
-					$bigtree["commands"] = Router::$Path;
+					Router::$Commands = Router::$Path;
 				}
 
 				if ($extension) {
-					list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."extensions/$extension/templates/routed/$extension_template/", array_filter($bigtree["commands"]));
+					list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."extensions/$extension/templates/routed/$extension_template/", array_filter(Router::$Commands));
 				} else {
-					list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/", array_filter($bigtree["commands"]));
+					list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/", array_filter(Router::$Commands));
 				}
 
 				$command_count = count($commands);
 
 				if ($command_count) {
-					$bigtree["routed_path"] = array_slice($bigtree["commands"], 0, $command_count * -1);
+					$bigtree["routed_path"] = array_slice(Router::$Commands, 0, $command_count * -1);
 				} else {
-					$bigtree["routed_path"] = $bigtree["commands"];
+					$bigtree["routed_path"] = Router::$Commands;
 				}
 
 				$bigtree["routed_inc"] = $inc;
-				$bigtree["commands"] = $commands;
+				Router::$Commands = $bigtree["commands"] = $commands;
 				$bigtree["module_path"] = $bigtree["routed_path"]; // Backwards compat
 			}
 			

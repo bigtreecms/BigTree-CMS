@@ -5,7 +5,7 @@
 	 * @global array $bigtree
 	 */
 
-	$view = new ModuleView(end($bigtree["commands"]));
+	$view = new ModuleView(end(Router::$Commands));
 	Globalize::arrayObject($view->Array);
 
 	if (!SQL::tableExists($view->Table)) {

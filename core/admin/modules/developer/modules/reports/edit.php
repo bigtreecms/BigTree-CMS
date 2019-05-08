@@ -5,7 +5,7 @@
 	 * @global array $bigtree
 	 */
 
-	$report = new ModuleReport(end($bigtree["commands"]));
+	$report = new ModuleReport(end(Router::$Commands));
 	$action = ModuleAction::getByInterface($report->ID);
 	$available_views = ModuleView::allByModule($action["module"], "title");
 ?>

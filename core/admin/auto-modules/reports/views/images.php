@@ -3,7 +3,6 @@
 
 	/**
 	 * @global array $items
-	 * @global Module $module
 	 * @global ModuleReport $report
 	 * @global ModuleView $view
 	 */
@@ -22,7 +21,7 @@
 						$preview_image = $item[$view->Settings["image"]];
 					}
 
-					$entry_permission = Auth::user()->getAccessLevel($module, $item, $view->Table);
+					$entry_permission = Auth::user()->getAccessLevel(Router::$Module, $item, $view->Table);
 
 					if ($entry_permission && $entry_permission != "n") {
 			?>

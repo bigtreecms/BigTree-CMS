@@ -127,7 +127,7 @@
 					<?php
 						$x = -1;
 
-						foreach ($bigtree["nav_tree"] as $item) {
+						foreach (Router::$AdminNavTree as $item) {
 							if ($item["hidden"]) {
 								continue;
 							}

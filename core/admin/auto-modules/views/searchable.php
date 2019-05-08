@@ -2,7 +2,6 @@
 	namespace BigTree;
 
 	/**
-	 * @global Module $module
 	 * @global string $module_permission (set in ajax file)
 	 * @global ModuleView $view
 	 */
@@ -76,7 +75,7 @@
 	BigTree.localSearchQuery = "<?=$query?>";
 	BigTree.localSearch = function() {
 		BigTree.localSearchQuery = encodeURIComponent($("#search").val());
-		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + encodeURIComponent(BigTree.localSortColumn) + "&sort_direction=" + encodeURIComponent(BigTree.localSortDirection) + "&page=1&view=<?=$view->ID?>&module=<?=$module->Route?>&search=" + BigTree.localSearchQuery);
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + encodeURIComponent(BigTree.localSortColumn) + "&sort_direction=" + encodeURIComponent(BigTree.localSortDirection) + "&page=1&view=<?=$view->ID?>&module=<?=Router::$Module->Route?>&search=" + BigTree.localSearchQuery);
 	};
 	
 	$(".table").on("click",".js-sort-column",function() {
@@ -105,13 +104,13 @@
 			$(this).parents("header").find(".sort_column").removeClass("asc").removeClass("desc").find("em").html("");
 			$(this).addClass(BigTree.localSortDirection.toLowerCase()).find("em").html(direction_char);
 		}
-		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + encodeURIComponent(BigTree.localSortColumn) + "&sort_direction=" + encodeURIComponent(BigTree.localSortDirection) + "&view=<?=$view->ID?>&module=<?=$module->Route?>&search=" + BigTree.localSearchQuery + "&page=1");
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + encodeURIComponent(BigTree.localSortColumn) + "&sort_direction=" + encodeURIComponent(BigTree.localSortDirection) + "&view=<?=$view->ID?>&module=<?=Router::$Module->Route?>&search=" + BigTree.localSearchQuery + "&page=1");
 		return false;
 	}).on("click","#view_paging a",function() {
 		if ($(this).hasClass("active") || $(this).hasClass("disabled")) {
 			return false;
 		}
-		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + encodeURIComponent(BigTree.localSortColumn) + "&sort_direction=" + encodeURIComponent(BigTree.localSortDirection) + "&view=<?=$view->ID?>&module=<?=$module->Route?>&search=" + BigTree.localSearchQuery + "&page=" + BigTree.cleanHref($(this).attr("href")));
+		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + encodeURIComponent(BigTree.localSortColumn) + "&sort_direction=" + encodeURIComponent(BigTree.localSortDirection) + "&view=<?=$view->ID?>&module=<?=Router::$Module->Route?>&search=" + BigTree.localSearchQuery + "&page=" + BigTree.cleanHref($(this).attr("href")));
 
 		return false;
 	});

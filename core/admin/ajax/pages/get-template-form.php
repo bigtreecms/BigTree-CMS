@@ -2,41 +2,37 @@
 	namespace BigTree;
 
 	/**
-	 * @global array $bigtree
+	 * @global array $template_id
 	 */
 	
-	$template_id = $bigtree["current_page"]["template"];
+	$page = null;
 
 	if (isset($_POST["page"])) {
 		$template_id = $_POST["template"];
 		$page = Page::getPageDraft($_POST["page"]);
-		$bigtree["current_page"] = $page->Array; // Backwards compat
-		$bigtree["resources"] = $page->Resources;
+		$content = $page->Content;
 	} elseif (isset($_POST["template"])) {
 		$template_id = $_POST["template"];
-		$bigtree["resources"] = [];
-	} elseif (!isset($bigtree["resources"]) && !isset($bigtree["callouts"])) {
-		$bigtree["resources"] = [];
+		$content = [];
 	}
 	
 	if (!empty($template_id) && $template_id != "!") {
 		$template = new Template($template_id);
-		$bigtree["template"] = $template->Array; // Backwards compat
 	} else {
 		$template = null;
 	}
 	
 	// See if we have an editing hook
 	if (!empty($template->Hooks["edit"])) {
-		$bigtree["resources"] = call_user_func($template->Hooks["edit"], $bigtree["resources"], $template->Array, true);
+		$content = call_user_func($template->Hooks["edit"], $content, $template->Array, true);
 	}
 	
-	if (isset($_POST["page"]) && $template_id != $bigtree["current_page"]["template"]) {
-		if (Template::exists($bigtree["current_page"]["template"])) {
-			$original_template = new Template($bigtree["current_page"]["template"]);
-			$forced_recrops = Field::rectifyTypeChange($bigtree["resources"], $template->Fields, $original_template->Fields);
+	if (isset($_POST["page"]) && $template_id != $page->Template) {
+		if (Template::exists($page->Template)) {
+			$original_template = new Template($page->Template);
+			$forced_recrops = Field::rectifyTypeChange($content, $template->Fields, $original_template->Fields);
 		} else {
-			$bigtree["resources"] = [];
+			$content = [];
 		}
 	} else {
 		$forced_recrops = [];
@@ -65,22 +61,16 @@
 
 <div class="form_fields">
 	<?php
-		$bigtree["html_fields"] = [];
-		$bigtree["simple_html_fields"] = [];
-		$bigtree["tabindex"] = 11;
-		$bigtree["field_types"] = FieldType::reference(false,"templates");
-
+		Field::$GlobalTabIndex = 11;
 		Field::$Namespace = uniqid("template_field_");
 
-		// We alias $bigtree["entry"] to $bigtree["resources"] so that information is in the same place for field types.
-		$bigtree["entry"] = &$bigtree["resources"];
 		$drawn = false;
 	
 		if (!is_null($template)) {
 			$template->Fields = Extension::runHooks("fields", "template", $template->Fields, [
 				"template" => $template,
 				"step" => "draw",
-				"page" => $bigtree["current_page"]
+				"page" => $page
 			]);
 		
 			if (count($template->Fields)) {
@@ -90,9 +80,8 @@
 						"title" => $resource["title"],
 						"subtitle" => $resource["subtitle"],
 						"key" => "resources[".$resource["id"]."]",
-						"has_value" => isset($bigtree["resources"][$resource["id"]]),
-						"value" => isset($bigtree["resources"][$resource["id"]]) ? $bigtree["resources"][$resource["id"]] : "",
-						"tabindex" => $bigtree["tabindex"],
+						"has_value" => isset($content[$resource["id"]]),
+						"value" => isset($content[$resource["id"]]) ? $content[$resource["id"]] : "",
 						"settings" => $resource["settings"],
 						"forced_recrop" => isset($forced_recrops[$resource["id"]]) ? true : false
 					]);
@@ -109,11 +98,8 @@
 	?>
 </div>
 <?php
-	$bigtree["html_editor_width"] = 898;
-	$bigtree["html_editor_height"] = 365;
 	include Router::getIncludePath("admin/layouts/_html-field-loader.php");
-	$bigtree["tinymce_fields"] = array_merge($bigtree["html_fields"],$bigtree["simple_html_fields"]);
 ?>
 <script>
-	BigTree.TinyMCEFields = <?=json_encode($bigtree["tinymce_fields"])?>;
+	BigTree.TinyMCEFields = <?=json_encode(array_merge(Field::$HTMLFields, Field::$SimpleHTMLFields)?>;
 </script>

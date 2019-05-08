@@ -15,6 +15,9 @@
 	SQL::query("ALTER TABLE `bigtree_locks` CHANGE `last_accessed` `last_accessed` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
 	SQL::query("ALTER TABLE `bigtree_audit_trail` CHANGE `date` `date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
 	
+	// Change page resources to content
+	SQL::query("ALTER TABLE `bigtree_pages` CHANGE `resources` `content` LONGTEXT");
+	
 	// Fix new window status
 	SQL::update("bigtree_pages", ["new_window" => "Yes"], ["new_window" => "on"]);
 	SQL::query("UPDATE `bigtree_pages` SET new_window = '' WHERE new_window != 'on'");

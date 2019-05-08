@@ -5,7 +5,7 @@
 	 * @global array $bigtree
 	 */
 	
-	$action = new ModuleAction(end($bigtree["commands"]));
+	$action = new ModuleAction(end(Router::$Commands));
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>modules/actions/update/<?=$action->ID?>/" class="module">

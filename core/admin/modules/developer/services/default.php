@@ -6,11 +6,11 @@
 	 */
 	
 	// Route to common if we hit something in a sub directory that doesn't exist.
-	if (count($bigtree["commands"])) {
-		include Router::getIncludePath("admin/modules/developer/services/_".$bigtree["commands"][0].".php");
+	if (count(Router::$Commands)) {
+		include Router::getIncludePath("admin/modules/developer/services/_".Router::$Commands[0].".php");
 		
-		if ($bigtree["commands"][1]) {
-			include Router::getIncludePath("admin/modules/developer/services/common/".$bigtree["commands"][1].".php");
+		if (Router::$Commands[1]) {
+			include Router::getIncludePath("admin/modules/developer/services/common/".Router::$Commands[1].".php");
 		} else {
 			include Router::getIncludePath("admin/modules/developer/services/common/default.php");
 		}

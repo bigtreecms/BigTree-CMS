@@ -6,7 +6,7 @@
 	 */
 	
 	Auth::user()->requireLevel(1);
-	$folder_id = intval($bigtree["commands"][0]);
+	$folder_id = intval(Router::$Commands[0]);
 	
 	if (!ResourceFolder::exists($folder_id)) {
 		Auth::stop("This folder does not exist.");

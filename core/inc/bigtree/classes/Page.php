@@ -34,6 +34,7 @@
 		public $AnalyticsPageViews;
 		public $Archived;
 		public $ArchivedInherited;
+		public $Content;
 		public $ExpireAt;
 		public $External;
 		public $InNav;
@@ -45,7 +46,6 @@
 		public $Path;
 		public $Position;
 		public $PublishAt;
-		public $Resources;
 		public $Revision;
 		public $Route;
 		public $SEOInvisible;
@@ -61,7 +61,7 @@
 
 			Parameters:
 				page - Either an ID (to pull a record) or an array (to use the array as the record)
-				decode - Whether to decode resource data (true is default, false is faster if resource data isn't needed)
+				decode - Whether to decode content (true is default, false is faster if content isn't needed)
 		*/
 		
 		public function __construct($page = null, bool $decode = true)
@@ -96,6 +96,7 @@
 					$this->AnalyticsPageViews = $page["ga_page_views"];
 					$this->Archived = $page["archived"] ? true : false;
 					$this->ArchivedInherited = $page["archived_inherited"] ? true : false;
+					$this->Content = $decode ? Link::decode(array_filter((array) @json_decode($page["content"], true))) : $page["content"];
 					$this->ExpireAt = $page["expire_at"] ?: false;
 					$this->External = $page["external"] ? Link::decode($page["external"]) : "";
 					$this->InNav = $page["in_nav"] ? true : false;
@@ -106,7 +107,6 @@
 					$this->Path = $page["path"];
 					$this->Position = $page["position"];
 					$this->PublishAt = $page["publish_at"] ?: false;
-					$this->Resources = $decode ? Link::decode(array_filter((array) @json_decode($page["resources"], true))) : $page["resources"];
 					$this->Route = $page["route"];
 					$this->SEOInvisible = $page["seo_invisible"] ? true : false;
 					$this->Template = $page["template"];

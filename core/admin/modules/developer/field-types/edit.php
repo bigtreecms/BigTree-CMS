@@ -5,7 +5,7 @@
 	 * @global array $bigtree
 	 */
 
-	$field_type = new FieldType(end($bigtree["commands"]));
+	$field_type = new FieldType(end(Router::$Commands));
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>field-types/update/" enctype="multipart/form-data" class="module">

@@ -164,6 +164,29 @@
 		}
 		
 		/*
+			Function: getByInterface
+				Returns a module action for a given module and interface ID.
+			
+			Parameters:
+				module - a Module object
+				interface_id - an interface ID
+		
+			Returns:
+				A ModuleAction object or null.
+		*/
+		
+		public static function getByInterface(Module $module, string $interface_id): ?ModuleAction
+		{
+			foreach ($module->Actions as $action) {
+				if ($action->Interface == $interface_id) {
+					return $action;
+				}
+			}
+			
+			return null;
+		}
+		
+		/*
 			Function: getUserCanAccess
 				Determines whether the logged in user has access to the action or not.
 

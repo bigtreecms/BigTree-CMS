@@ -1,14 +1,9 @@
 <?php
 	namespace BigTree;
-
-	/**
-	 * @global array $bigtree
-	 * @global ModuleInterface $interface
-	 */
-
-	$view = $interface->Module->Views[$interface->ID];
+	
+	/** @var ModuleView $view */
+	$view = Router::$ModuleInterface->Module->Views[Router::$ModuleInterface->ID];
 	$view->calculateFieldWidths();
-	$bigtree["view"] = $view->Array;
 
 	if ($view->Description) {
 ?>

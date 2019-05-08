@@ -306,11 +306,11 @@
 	
 	if ($registry_found) {
 		// Emulate commands at indexes as well as with requested variable keys
-		$bigtree["commands"] = [];
+		Router::$Commands = [];
 		$x = 0;
 		
 		foreach ($registry_commands as $key => $value) {
-			$bigtree["commands"][$x] = $bigtree["commands"][$key] = $value;
+			Router::$Commands[$x] = Router::$Commands[$key] = $value;
 			$x++;
 		}
 		
@@ -389,7 +389,7 @@
 			die("File not found.");
 		}
 		
-		$bigtree["commands"] = $commands;
+		Router::$Commands = $commands;
 		$bigtree["ajax_inc"] = $inc;
 		
 		list($bigtree["ajax_headers"], $bigtree["ajax_footers"]) = Router::getRoutedLayoutPartials($inc);
@@ -425,7 +425,7 @@
 	// We're routing through a module, so get module information and check permissions
 	if ($module) {
 		// Setup environment vars
-		$bigtree["current_module"] = $bigtree["module"] = $module->Array;
+		Router::$Module = $module;
 		define("MODULE_ROOT", ADMIN_ROOT.$module->Route."/");
 		
 		if ($module->Extension) {
@@ -437,8 +437,8 @@
 		$route_response = $module->getActionForPath(array_slice($path, 2));
 		
 		if ($route_response) {
-			$bigtree["module_action"] = $route_response["action"]->Array;
-			$bigtree["commands"] = $route_response["commands"];
+			Router::$ModuleAction = $route_response["action"];
+			Router::$Commands = $route_response["commands"];
 		}
 		
 		// Make sure the user has access to the module
@@ -447,7 +447,7 @@
 		}
 		
 		// Append module info to the admin nav to draw the headers and breadcrumb and such.
-		$bigtree["nav_tree"]["auto-module"] = [
+		Router::$AdminNavTree["auto-module"] = [
 			"title" => $module->Name,
 			"link" => $module->Route,
 			"icon" => "modules",
@@ -456,7 +456,7 @@
 		];
 		
 		foreach ($module->Actions as $action) {
-			$bigtree["nav_tree"]["auto-module"]["children"][] = [
+			Router::$AdminNavTree["auto-module"]["children"][] = [
 				"title" => $action->Name,
 				"link" => $action->Route ? $module->Route."/".$action->Route : $module->Route,
 				"nav_icon" => $action->Icon,
@@ -487,6 +487,7 @@
 		if ($bigtree["module_action"]["interface"]) {
 			define("INTERFACE_ROOT", ADMIN_ROOT.$module->Route."/".$bigtree["module_action"]["route"]."/");
 			$interface = $module->Interfaces[$bigtree["module_action"]["interface"]];
+			Router::$ModuleInterface = $interface;
 			
 			if (strpos($interface->Type, "*") === false) {
 				include Router::getIncludePath("admin/auto-modules/".$interface->Type.".php");
@@ -495,7 +496,7 @@
 			} else {
 				list($extension, $interface_type) = explode("*", $interface->Type);
 				$base_directory = SERVER_ROOT."extensions/$extension/plugins/interfaces/$interface_type/parser/";
-				list($include_file, $bigtree["commands"]) = Router::getRoutedFileAndCommands($base_directory, $bigtree["commands"]);
+				list($include_file, Router::$Commands) = Router::getRoutedFileAndCommands($base_directory, Router::$Commands);
 				
 				include $include_file;
 				
@@ -554,7 +555,7 @@
 		// It's a manually created module page, include it
 		} elseif (!$complete) {
 			// Setup the commands array.
-			$bigtree["commands"] = $commands;
+			Router::$Commands = $commands;
 			$bigtree["routed_inc"] = $inc;
 			
 			list($bigtree["routed_headers"], $bigtree["routed_footers"]) = Router::getRoutedLayoutPartials($inc);

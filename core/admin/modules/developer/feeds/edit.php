@@ -5,7 +5,7 @@
 	 * @global array $bigtree
 	 */
 	
-	$feed = new Feed(end($bigtree["commands"]));
+	$feed = new Feed(end(Router::$Commands));
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>feeds/update/<?=$feed->ID?>/" class="module">

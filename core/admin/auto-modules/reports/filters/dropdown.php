@@ -4,6 +4,7 @@
 	/**
 	 * @global string $id
 	 * @global ModuleReport $report
+	 * @global string $filter_field_id
 	 */
 	
 	$list = [];
@@ -27,7 +28,7 @@
 		}
 	}
 ?>
-<select name="<?=$id?>">
+<select id="<?=$filter_field_id?>" name="<?=$id?>">
 	<option></option>
 	<?php foreach ($list as $item) { ?>
 	<option value="<?=Text::htmlEncode($item["value"])?>"><?=Text::htmlEncode($item["description"])?></option>

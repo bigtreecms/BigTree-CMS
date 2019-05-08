@@ -197,13 +197,13 @@
 	Utils::growl("Files", "Created Video");
 
 	$_SESSION["bigtree_admin"]["form_data"] = [
-		"edit_link" => ADMIN_ROOT."files/folder/".intval($bigtree["commands"][0])."/",
+		"edit_link" => ADMIN_ROOT."files/folder/".intval(Router::$Commands[0])."/",
 		"return_link" => ADMIN_ROOT."files/edit/file/".$resource->ID."/",
 		"crop_key" => Cache::putUnique("org.bigtreecms.crops", $bigtree["crops"])
 	];
 	
 	if (is_array($bigtree["crops"]) && count($bigtree["crops"])) {
-		Router::redirect(ADMIN_ROOT."files/crop/".intval($bigtree["commands"][0])."/");
+		Router::redirect(ADMIN_ROOT."files/crop/".intval(Router::$Commands[0])."/");
 	} else {
 		Router::redirect(ADMIN_ROOT."files/edit/file/".$resource->ID."/");
 	}

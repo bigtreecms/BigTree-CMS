@@ -2,11 +2,10 @@
 	namespace BigTree;
 
 	/**
-	 * @global Module $module
 	 * @global ModuleView $view
 	 */
 	
-	$module_permission = $module->UserAccessLevel;
+	$module_permission = Router::$Module->UserAccessLevel;
 	
 	// Setup defaults
 	$draggable = (isset($view->Settings["draggable"]) && $view->Settings["draggable"]) ? true : false;
@@ -68,8 +67,8 @@
 			<li id="row_<?=$item["id"]?>"<?php if ($module_permission != "p" || !$draggable) { ?> class="non_draggable"<?php } ?>>
 				<a class="image<?php if (!isset($view->Actions["edit"])) { ?> image_disabled<?php } ?>" href="<?=$view->EditURL.$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?php
-					if ($module_permission == "p" || ($module->GroupBasedPermissions["enabled"] && in_array("p",Auth::user()->Permissions["module_gbp"][$module->ID])) || $item["pending_owner"] == Auth::user()->ID) {
-						$iperm = ($module_permission == "p") ? "p" : Auth::user()->getCachedAccessLevel($module, $item, $view->Table);
+					if ($module_permission == "p" || (Router::$Module->GroupBasedPermissions["enabled"] && in_array("p",Auth::user()->Permissions["module_gbp"][Router::$Module->ID])) || $item["pending_owner"] == Auth::user()->ID) {
+						$iperm = ($module_permission == "p") ? "p" : Auth::user()->getCachedAccessLevel(Router::$Module, $item, $view->Table);
 						
 						foreach ($view->Actions as $action => $data) {
 							if ($action != "edit") {
@@ -140,8 +139,8 @@
 			<li id="row_<?=$item["id"]?>" class="non_draggable">
 				<a class="image<?php if (!isset($view->Actions["edit"])) { ?> image_disabled<?php } ?>" href="<?=$view->EditURL.$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?php
-					if ($module_permission == "p" || ($module->GroupBasedPermissions["enabled"] && in_array("p",Auth::user()->Permissions["module_gbp"][$module->ID])) || $item["pending_owner"] == Auth::user()->ID) {
-						$iperm = ($module_permission == "p") ? "p" : Auth::user()->getCachedAccessLevel($module, $item, $view->Table);
+					if ($module_permission == "p" || (Router::$Module->GroupBasedPermissions["enabled"] && in_array("p",Auth::user()->Permissions["module_gbp"][Router::$Module->ID])) || $item["pending_owner"] == Auth::user()->ID) {
+						$iperm = ($module_permission == "p") ? "p" : Auth::user()->getCachedAccessLevel(Router::$Module, $item, $view->Table);
 						
 						foreach ($view->Actions as $action => $data) {
 							if ($action != "edit") {
@@ -207,7 +206,7 @@
 	<?php } ?>
 	
 	// Stop disabled edit action from working.
-	$(".image_list a.image_disabled").click(function() {
+	$(".image_list a.image_disabled").on("click", function() {
 		return false;
 	});
 </script>

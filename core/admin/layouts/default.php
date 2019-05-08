@@ -34,7 +34,7 @@
 	$current_path = implode("/", array_slice(Router::$Path, 1));
 
 	if (!defined("BIGTREE_ACCESS_DENIED")) {
-		$bigtree["page"] = $find_path($bigtree["nav_tree"],$current_path);
+		$bigtree["page"] = $find_path(Router::$AdminNavTree, $current_path);
 	}
 
 	// Set the page title if it hasn't been set

@@ -5,11 +5,11 @@
 	 * @global array $bigtree
 	 */
 	
-	if (!Resource::exists($bigtree["commands"][0])) {
+	if (!Resource::exists(Router::$Commands[0])) {
 		Auth::stop("Invalid resource.");
 	}
 	
-	$file = new Resource($bigtree["commands"][0]);
+	$file = new Resource(Router::$Commands[0]);
 	
 	if ($file->UserAccessLevel != "p") {
 		Auth::stop("Access denied.");

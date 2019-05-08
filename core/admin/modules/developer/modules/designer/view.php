@@ -63,7 +63,7 @@
 		</section>
 		<section id="field_area" class="sub">
 			<?php
-				$bigtree["module_designer_view"] = true;
+				define("BIGTREE_MODULE_DESIGNER_VIEW", true);
 				include Router::getIncludePath("admin/ajax/developer/load-view-fields.php");
 			?>
 		</section>

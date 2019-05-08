@@ -125,10 +125,10 @@
 				}
 
 				foreach (ModuleView::$CoreActions as $key => $action) {
-					if (!in_array($key, $used_actions) && (in_array($action["key"], $table_fields) || isset($bigtree["module_designer_view"]))) {
+					if (!in_array($key, $used_actions) && (in_array($action["key"], $table_fields) || defined("BIGTREE_MODULE_DESIGNER_VIEW"))) {
 						$checked = false;
 
-						if (isset($actions[$key]) || (!isset($actions) && !isset($bigtree["module_designer_view"])) || (isset($bigtree["module_designer_view"]) && ($key == "edit" || $key == "delete"))) {
+						if (isset($actions[$key]) || (!isset($actions) && !defined("BIGTREE_MODULE_DESIGNER_VIEW")) || (defined("BIGTREE_MODULE_DESIGNER_VIEW") && ($key == "edit" || $key == "delete"))) {
 							$checked = true;
 						}
 			?>

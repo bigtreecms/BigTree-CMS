@@ -6,7 +6,10 @@
 	 */
 ?>
 <div id="template_type">
-	<?php include Router::getIncludePath("admin/ajax/pages/get-template-form.php") ?>
+	<?php
+		$template_id = !empty($page->Template) ? $page->Template : null;
+		include Router::getIncludePath("admin/ajax/pages/get-template-form.php");
+	?>
 </div>
 
 <?php if (!Setting::value("bigtree-internal-disable-page-tagging")) { ?>

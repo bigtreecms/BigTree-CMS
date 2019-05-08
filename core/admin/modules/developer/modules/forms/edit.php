@@ -5,7 +5,7 @@
 	 * @global array $bigtree
 	 */
 
-	$form = new ModuleForm(end($bigtree["commands"]));
+	$form = new ModuleForm(end(Router::$Commands));
 	$module = new Module($form->Module);
 	$table = $form->Table;
 

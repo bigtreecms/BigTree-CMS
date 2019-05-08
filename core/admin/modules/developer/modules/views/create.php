@@ -11,7 +11,7 @@
 	$type = $_POST["type"];
 	$settings = json_decode($_POST["settings"], true);
 	$actions = $_POST["actions"];
-	$module_id = end($bigtree["commands"]);
+	$module_id = end(Router::$Commands);
 	$title = $_POST["title"];
 	$table = $_POST["table"];
 	$exclude_from_search = !empty($_POST["exclude_from_search"]);

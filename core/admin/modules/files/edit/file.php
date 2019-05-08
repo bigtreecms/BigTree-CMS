@@ -6,7 +6,7 @@
 	 * @global callable $recurse_folders
 	 */
 	
-	$file_id = intval($bigtree["commands"][0]);
+	$file_id = intval(Router::$Commands[0]);
 	
 	if (!Resource::exists($file_id)) {
 		Auth::stop("Invalid file.");

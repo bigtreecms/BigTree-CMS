@@ -7,7 +7,7 @@
 	
 	CSRF::verify();
 
-	$report = new ModuleReport(end($bigtree["commands"]));
+	$report = new ModuleReport(end(Router::$Commands));
 	$report->update(
 		$_POST["title"],
 		$_POST["table"],

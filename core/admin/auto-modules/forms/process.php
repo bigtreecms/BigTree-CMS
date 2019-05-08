@@ -3,7 +3,6 @@
 	namespace BigTree;
 	
 	/**
-	 * @global array $bigtree
 	 * @global ModuleForm $form
 	 * @global Module $module
 	 */
@@ -17,14 +16,14 @@
 	CSRF::verify();
 	
 	// If there's a preprocess function for this module, run it.
-	$bigtree["preprocessed"] = [];
+	$preprocessed_data = [];
 	
 	if ($form->Hooks["pre"]) {
-		$bigtree["preprocessed"] = call_user_func($form->Hooks["pre"], $_POST);
+		$preprocessed_data = call_user_func($form->Hooks["pre"], $_POST);
 		
 		// Update the $_POST
-		if (is_array($bigtree["preprocessed"])) {
-			foreach ($bigtree["preprocessed"] as $key => $val) {
+		if (is_array($preprocessed_data)) {
+			foreach ($preprocessed_data as $key => $val) {
 				$_POST[$key] = $val;
 			}
 		}
@@ -32,9 +31,9 @@
 	
 	// Find out what kind of permissions we're allowed on this item.
 	// We need to check the EXISTING copy of the data AND what it's turning into and find the lowest of the two permissions.
-	$bigtree["access_level"] = Auth::user()->getAccessLevel($module, $_POST, $form->Table);
+	$access_level = Auth::user()->getAccessLevel($module, $_POST, $form->Table);
 	
-	if ($_POST["id"] && $bigtree["access_level"] && $bigtree["access_level"] != "n") {
+	if ($_POST["id"] && $access_level && $access_level != "n") {
 		$original_item = $form->getEntry($_POST["id"]);
 		$existing_item = $form->getPendingEntry($_POST["id"]);
 		
@@ -43,71 +42,66 @@
 		
 		// If the current permission is e or p, drop it down to e if the old one was e.
 		if ($previous_permission != "p") {
-			$bigtree["access_level"] = $previous_permission;
+			$access_level = $previous_permission;
 		}
 		
 		// Check the original. If we're not already at "you're not allowed" then apply the original permission.
-		if ($bigtree["access_level"] != "n" && $original_permission != "p") {
-			$bigtree["access_level"] = $original_permission;
+		if ($access_level != "n" && $original_permission != "p") {
+			$access_level = $original_permission;
 		}
 	}
 	
 	// If permission check fails, stop and throw the denied page.
-	if (!$bigtree["access_level"] || $bigtree["access_level"] == "n") {
+	if (!$access_level || $access_level == "n") {
 		Auth::stop(file_get_contents(Router::getIncludePath("admin/auto-modules/forms/_denied.php")));
 	}
 	
-	$bigtree["crops"] = [];
-	$bigtree["many-to-many"] = [];
-	$bigtree["errors"] = [];
-	$bigtree["entry"] = [];
-	$bigtree["post_data"] = $_POST;
-	$bigtree["file_data"] = Field::getParsedFiles[];
+	$content = [];
+	$file_data = Field::getParsedFilesArray();
 	
 	$form->Fields = Extension::runHooks("fields", "form", $form->Fields, [
 		"form" => $form,
 		"step" => "process",
-		"post_data" => $bigtree["post_data"],
-		"file_data" => $bigtree["file_data"]
+		"post_data" => $_POST,
+		"file_data" => $file_data
 	]);
 	
-	foreach ($form->Fields as $resource) {
+	foreach ($form->Fields as $field) {
 		$field = new Field([
-			"type" => $resource["type"],
-			"title" => $resource["title"],
-			"key" => $resource["column"],
-			"settings" => $resource["settings"],
+			"type" => $field["type"],
+			"title" => $field["title"],
+			"key" => $field["column"],
+			"settings" => $field["settings"],
 			"ignore" => false,
-			"input" => $bigtree["post_data"][$resource["column"]],
-			"file_input" => $bigtree["file_data"][$resource["column"]]
+			"input" => $_POST[$field["column"]],
+			"file_input" => $file_data[$field["column"]]
 		]);
 		
 		$output = $field->process();
 		
 		if (!is_null($output)) {
-			$bigtree["entry"][$field->Key] = $output;
+			$content[$field->Key] = $output;
 		}
 	}
 	
 	// See if we added anything in pre-processing that wasn't a field in the form.
-	if (is_array($bigtree["preprocessed"])) {
-		foreach ($bigtree["preprocessed"] as $key => $val) {
-			if (!isset($bigtree["entry"][$key])) {
-				$bigtree["entry"][$key] = $val;
+	if (is_array($preprocessed_data)) {
+		foreach ($preprocessed_data as $key => $val) {
+			if (!isset($content[$key])) {
+				$content[$key] = $val;
 			}
 		}
 	}
 	
 	// Sanitize the form data so it fits properly in the database (convert dates to MySQL-friendly format and such)
-	$bigtree["entry"] = SQL::prepareData($form->Table, $bigtree["entry"]);
+	$content = SQL::prepareData($form->Table, $content);
 	
 	// Make some easier to write out vars for below.
 	$tags = $_POST["_tags"] ?: [];
 	$edit_id = $_POST["id"] ? $_POST["id"] : false;
-	$change_allocation_id = false;
+	$change_allocation_id = null;
 	$table = $form->Table;
-	$item = $bigtree["entry"];
-	$many_to_many = $bigtree["many-to-many"];
+	$many_to_many = Field::$ManyToMany;
 	
 	// Check to see if this is a positioned element
 	// If it is and the form is setup to create new items at the top and this is a new record, update the position column.
@@ -116,7 +110,7 @@
 	if (isset($table_description["columns"]["position"]) && $form->DefaultPosition == "Top" && !$_POST["id"]) {
 		$max = (int) SQL::fetchSingle("SELECT COUNT(*) FROM `$table`") +
 			   (int) SQL::fetchSingle("SELECT COUNT(*) FROM `bigtree_pending_changes` WHERE `table` = ?", $table);
-		$item["position"] = $max;
+		$content["position"] = $max;
 	}
 	
 	// Let's stick it in the database or whatever!
@@ -124,29 +118,29 @@
 	$did_publish = false;
 	
 	// We're an editor or "Save" was chosen
-	if ($bigtree["access_level"] == "e" || $data_action == "save") {
+	if ($access_level == "e" || $data_action == "save") {
 		$og_changes = OpenGraph::handleData(null, null, $_POST["_open_graph_"], $_FILES["_open_graph_"]["image"]);
 		
 		// We have an existing module entry we're saving a change to.
 		if ($edit_id) {
-			$change_allocation_id = $form->createChangeRequest($edit_id, $item, $many_to_many, $tags, $og_changes);
+			$change_allocation_id = $form->createChangeRequest($edit_id, $content, $many_to_many, $tags, $og_changes);
 			Utils::growl($module->Name, "Saved ".$form->Title." Draft");
 			Resource::allocate($form->Table, "p".$change_allocation_id);
 		// It's a new entry, so we create a pending item.
 		} else {
-			$edit_id = "p".$form->createPendingEntry($item, $many_to_many, $tags, $og_changes);
+			$edit_id = "p".$form->createPendingEntry($content, $many_to_many, $tags, $og_changes);
 			Utils::growl($module->Name, "Created ".$form->Title." Draft");
 			Resource::allocate($form->Table, $edit_id);
 		}
 	// We're a publisher and we want to publish
-	} elseif ($bigtree["access_level"] == "p" && $data_action == "publish") {
+	} elseif ($access_level == "p" && $data_action == "publish") {
 		// If we have an edit_id we're modifying something that exists.
 		if ($edit_id) {
 			// If the edit id starts with a "p" it's a pending entry we're publishing.
 			if (substr($edit_id, 0, 1) == "p") {
 				$pending_id = substr($edit_id, 1);
 				$form->deletePendingEntry($pending_id);
-				$edit_id = $form->createEntry($item, $many_to_many, $tags);
+				$edit_id = $form->createEntry($content, $many_to_many, $tags);
 				$did_publish = true;
 				
 				Resource::updatePendingAllocation($pending_id, $form->Table, $edit_id);
@@ -161,7 +155,7 @@
 					Resource::deallocate($form->Table, "p".$pending_change_id);
 				}
 				
-				$form->updateEntry($edit_id, $item, $many_to_many, $tags);
+				$form->updateEntry($edit_id, $content, $many_to_many, $tags);
 				$did_publish = true;
 				
 				Resource::allocate($form->Table, $edit_id);
@@ -169,7 +163,7 @@
 			}
 		// We're creating a new published entry.
 		} else {
-			$edit_id = $form->createEntry($item, $many_to_many, $tags);
+			$edit_id = $form->createEntry($content, $many_to_many, $tags);
 			$did_publish = true;
 			
 			Resource::allocate($form->Table, $edit_id);
@@ -183,10 +177,7 @@
 	
 	// Catch errors
 	if ($edit_id === false && $did_publish) {
-		$bigtree["errors"][] = [
-			"field" => "SQL Query",
-			"error" => SQL::$ErrorLog[count(SQL::$ErrorLog) - 1]
-		];
+		Router::logUserError(SQL::$ErrorLog[count(SQL::$ErrorLog) - 1], "SQL Error");
 	}
 	
 	// Kill off any applicable locks to the entry
@@ -223,7 +214,7 @@
 	} else {
 		// If we specify a specific return view, get that information
 		if ($form->ReturnView) {
-			$action = ModuleAction::getByInterface($form->ReturnView);
+			$action = ModuleAction::getByInterface($form->Module, $form->ReturnView);
 			
 			if ($action->Route) {
 				$redirect_url = ADMIN_ROOT.$module->Route."/".$action->Route."/".$redirect_append;
@@ -241,12 +232,12 @@
 	
 	// If there's a callback function for this module, let's get'r'done.
 	if ($form->Hooks["post"]) {
-		call_user_func($form->Hooks["post"], $edit_id, $item, $did_publish);
+		call_user_func($form->Hooks["post"], $edit_id, $content, $did_publish);
 	}
 	
 	// Custom callback for only publishes
 	if ($did_publish && $form->Hooks["publish"]) {
-		call_user_func($form->Hooks["publish"], $table, $edit_id, $item, $many_to_many, $tags);
+		call_user_func($form->Hooks["publish"], $table, $edit_id, $content, $many_to_many, $tags);
 	}
 	
 	// Track resource allocation
@@ -259,13 +250,13 @@
 		"id" => $edit_id,
 		"return_link" => $redirect_url,
 		"edit_link" => ADMIN_ROOT.$module->Route."/".$edit_action->Route."/$edit_id/",
-		"errors" => $bigtree["errors"]
+		"errors" => Router::$UserErrors
 	];
 	
-	if (count($bigtree["crops"])) {
-		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = Cache::putUnique("org.bigtreecms.crops", $bigtree["crops"]);
+	if (count(Image::$Crops)) {
+		$_SESSION["bigtree_admin"]["form_data"]["crop_key"] = Cache::putUnique("org.bigtreecms.crops", Image::$Crops);
 		Router::redirect($form->Root."crop/");
-	} elseif (count($bigtree["errors"])) {
+	} elseif (count(Router::$UserErrors)) {
 		Router::redirect($form->Root."error/");
 	} else {
 		Router::redirect($redirect_url);

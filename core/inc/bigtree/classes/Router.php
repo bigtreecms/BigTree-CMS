@@ -10,17 +10,22 @@
 	
 	class Router
 	{
-		
 		protected static $Booted = false;
+		protected static $Errors = [];
 		protected static $ReservedRoutes = [];
 		
 		/** @property BigTree\Page $CurrentPage */
+		public static $AdminNavTree = [];
 		public static $BootError = null;
 		public static $CurrentPage;
+		public static $Commands = [];
 		public static $Config = [];
 		public static $Content = "";
 		public static $Debug = false;
 		public static $Layout = "default";
+		public static $Module;
+		public static $ModuleAction;
+		public static $ModuleInterface;
 		public static $Path = [];
 		public static $POSTError = null;
 		public static $Registry = false;
@@ -28,6 +33,7 @@
 		public static $RouteParamNamesPath = [];
 		public static $Secure = false;
 		public static $SiteRoots = [];
+		public static $UserErrors = [];
 		
 		/*
 			Function: boot
@@ -583,6 +589,37 @@
 			}
 			
 			return [$headers, array_reverse($footers)];
+		}
+		
+		/*
+			Function: logError
+				Logs a system error to the router's error log.
+				The error string will be automatically translated.
+		
+			Parameters:
+				error - Error message
+				variables - Replacement variables (for translated strings)
+	 	*/
+		
+		public static function logError(string $error, array $variables = []): void
+		{
+			static::$Errors[] = Text::translate($error, false, $variables);
+		}
+		
+		/*
+			Function: logUserError
+				Logs a user error to the router's transaction log.
+				The error string will be automatically translated.
+		
+			Parameters:
+				error - Error message
+				context - The context in which the error occurred (e.g. the field related to the error)
+				variables - Replacement variables (for translated strings)
+	 	*/
+		
+		public static function logUserError(string $error, ?string $context = "", array $variables = []): void
+		{
+			static::$UserErrors[] = ["error" => Text::translate($error, false, $variables), "context" => $context];
 		}
 		
 		/*

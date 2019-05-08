@@ -7,16 +7,16 @@
 		$callout_list = Callout::allAllowed("name ASC");
 	}
 
-	$bigtree["callout_count"] = intval($_POST["count"]);
-	$bigtree["callout_key"] = htmlspecialchars($_POST["key"]);
-	$bigtree["resources"] = json_decode(base64_decode($_POST["data"]),true);
+	$callout_count = intval($_POST["count"]);
+	$callout_key = htmlspecialchars($_POST["key"]);
+	$content = json_decode(base64_decode($_POST["data"]),true);
 ?>
 <div class="callout_type">
 	<fieldset>
 		<label for="callout_type"><?=Text::translate("Callout Type")?></label>
-		<select id="callout_type" name="<?=$bigtree["callout_key"]?>[<?=$bigtree["callout_count"]?>][type]">
+		<select id="callout_type" name="<?=$callout_key?>[<?=$callout_count?>][type]">
 			<?php foreach ($callout_list as $item) { ?>
-			<option value="<?=$item->ID?>"<?php if ($item->ID == $bigtree["resources"]["type"]) { ?> selected="selected"<?php } ?>><?=$item->Name?></option>
+			<option value="<?=$item->ID?>"<?php if ($item->ID == $content["type"]) { ?> selected="selected"<?php } ?>><?=$item->Name?></option>
 			<?php } ?>
 		</select>
 	</fieldset>
@@ -36,8 +36,8 @@
 			$(".mce-tooltip, .mce-menu").remove();
 
 			Fields.load("<?=ADMIN_ROOT?>ajax/callouts/resources/", {
-				count: <?=$bigtree["callout_count"]?>,
-				key: "<?=$bigtree["callout_key"]?>",
+				count: <?=$callout_count?>,
+				key: "<?=$callout_key?>",
 				resources: "<?=htmlspecialchars($_POST["data"])?>",
 				type: data.value,
 				original_type: "<?=Text::htmlEncode($_POST["original_type"])?>",

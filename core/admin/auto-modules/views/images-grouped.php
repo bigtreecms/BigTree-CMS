@@ -2,12 +2,11 @@
 	namespace BigTree;
 
 	/**
-	 * @global Module $module
 	 * @global ModuleView $view
 	 */
 
 	$view->cacheAllData();
-	$module_permission = $module->UserAccessLevel;
+	$module_permission = Router::$Module->UserAccessLevel;
 	$draggable = (isset($view->Settings["draggable"]) && $view->Settings["draggable"]) ? true : false;
 	$groups = $view->Groups;
 
@@ -84,12 +83,12 @@
 						$preview_image = $item["column1"];
 					}
 
-					$entry_permission = ($module_permission == "p") ? "p" : Auth::user()->getCachedAccessLevel($module, $item, $view->Table);
+					$entry_permission = ($module_permission == "p") ? "p" : Auth::user()->getCachedAccessLevel(Router::$Module, $item, $view->Table);
 			?>
 			<li id="row_<?=$item["id"]?>"<?php if ($module_permission != "p" || !$draggable) { ?> class="non_draggable"<?php } ?>>
 				<a class="image<?php if (empty($view->Actions["edit"])) { ?> image_disabled<?php } ?>" href="<?=$view->EditURL.$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?php
-					if ($module_permission == "p" || ($module->Group["enabled"] && in_array("p",Auth::user()->Permissions["module_gbp"][$module->ID])) || $item["pending_owner"] == Auth::user()->ID) {
+					if ($module_permission == "p" || (Router::$Module->GroupBasedPermissions["enabled"] && in_array("p",Auth::user()->Permissions["module_gbp"][Router::$Module->ID])) || $item["pending_owner"] == Auth::user()->ID) {
 						foreach ($view->Actions as $action => $data) {
 							if ($action != "edit") {
 								if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $entry_permission != "p") {
@@ -161,12 +160,12 @@
 						$preview_image = $item["column1"];
 					}
 
-					$entry_permission = ($module_permission == "p") ? "p" : Auth::user()->getCachedAccessLevel($module, $item, $view->Table);
+					$entry_permission = ($module_permission == "p") ? "p" : Auth::user()->getCachedAccessLevel(Router::$Module, $item, $view->Table);
 			?>
 			<li id="row_<?=$item["id"]?>" class="non_draggable">
 				<a class="image<?php if (empty($view->Actions["edit"])) { ?> image_disabled<?php } ?>" href="<?=$view->EditURL.$item["id"]?>/"><img src="<?=$preview_image?>" alt="" /></a>
 				<?php
-					if ($module_permission == "p" || ($module->GroupBasedPermissions["enabled"] && in_array("p",Auth::user()->Permissions["module_gbp"][$module->ID])) || $item["pending_owner"] == Auth::user()->ID) {
+					if ($module_permission == "p" || (Router::$Module->GroupBasedPermissions["enabled"] && in_array("p",Auth::user()->Permissions["module_gbp"][Router::$Module->ID])) || $item["pending_owner"] == Auth::user()->ID) {
 						foreach ($view->Actions as $action => $data) {
 							if ($action != "edit") {
 								if (($action == "delete" || $action == "approve" || $action == "feature" || $action == "archive") && $entry_permission != "p") {
