@@ -32,6 +32,8 @@
 		if ($bigtree["access_level"] != "n" && $original_permission != "p") {
 			$bigtree["access_level"] = $original_permission;
 		}
+
+		$bigtree["existing_data"] = $original_item;
 	}
 
 	// If permission check fails, stop and throw the denied page.
