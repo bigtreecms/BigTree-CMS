@@ -1,10 +1,6 @@
 <?php
 	namespace BigTree;
 	
-	/**
-	 * @global array $bigtree
-	 */
-	
 	$text_character = Text::translate("character");
 	$text_characters = Text::translate("characters");
 	$text_remaining = Text::translate("remaining");
@@ -59,7 +55,7 @@
 	</section>
 	<?php
 			// Increase form tab index since we used extras
-			$bigtree["tabindex"]++;
+			Field::$GlobalTabIndex++;
 		} elseif ($sub_type == "address") {
 			// Prevent warnings.
 			if (!is_array($this->Value)) {
@@ -92,7 +88,7 @@
 	</section>
 	<?php
 			// Increase form tab index since we used extras
-			$bigtree["tabindex"] += 4;
+			Field::$GlobalTabIndex += 4;
 		} elseif ($sub_type == "email") {
 	?>
 	<input class="<?=$this->Settings["validation"]?>" type="email" tabindex="<?=$this->TabIndex?>" name="<?=$this->Key?>" value="<?=$this->Value?>" id="<?=$this->ID?>" />
@@ -117,7 +113,7 @@
 	</section>
 	<?php
 			// Increase form tab index since we used extras
-			$bigtree["tabindex"] += 2;
+			Field::$GlobalTabIndex += 2;
 		}
 	?>
 </div>

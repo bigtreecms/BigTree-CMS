@@ -1,10 +1,6 @@
 <?php
 	namespace BigTree;
 	
-	/**
-	 * @global array $bigtree
-	 */
-	
 	if (!is_array($this->Value)) {
 		$this->Value = [];
 	}
@@ -15,7 +11,7 @@
 	if ($this->Settings["style"] == "callout") {
 		$this->Type = "callouts"; // Pretend to be callouts to work back-to-back
 ?>
-<fieldset class="callouts<?php if ($bigtree["last_resource_type"] == "callouts") { ?> callouts_no_margin<?php } ?>" id="<?=$this->ID?>">
+<fieldset class="callouts<?php if (Field::$LastFieldType == "callouts") { ?> callouts_no_margin<?php } ?>" id="<?=$this->ID?>">
 	<label<?php if ($this->LabelClass) { ?> class="<?=trim($this->LabelClass)?>"<?php } ?>>
 		<?=$this->Title?>
 		<?php if ($this->Subtitle) { ?> <small><?=$this->Subtitle?></small><?php } ?>

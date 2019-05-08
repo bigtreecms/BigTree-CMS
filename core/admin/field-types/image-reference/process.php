@@ -9,10 +9,7 @@
 				Link::$IRLsCreated[] = $resource->ID;
 				$this->Output = $resource->ID;
 			} else {
-				$bigtree["errors"][] = [
-					"field" => $this->Title,
-					"error" => Text::translate("Could not find selected image.")
-				];
+				Router::logUserError("Could not find selected image.", $this->Title);
 				$this->Output = null;
 			}
 		} else {

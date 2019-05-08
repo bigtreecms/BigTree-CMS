@@ -2,22 +2,19 @@
 	namespace BigTree;
 	
 	/**
-	 * @global array $bigtree
+	 * @global $post_data
 	 */
 	
 	// If a file upload error occurred, return the old data and set errors
 	if ($this->FileInput["error"] == 1 || $this->FileInput["error"] == 2) {
-		$bigtree["errors"][] = [
-			"field" => $this->Title,
-			"error" => Text::translate("The image you uploaded (:image:) was too large &mdash; <strong>Max file size: :max:</strong>",
-									   false, [":image:" => $this->FileInput["name"], ":max:" => ini_get("upload_max_filesize")])
-		];
+		Router::logUserError(
+			"The image you uploaded (:image:) was too large &mdash; <strong>Max file size: :max:</strong>",
+			$this->Title,
+			[":image:" => $this->FileInput["name"], ":max:" => ini_get("upload_max_filesize")]
+		);
 		$this->Output = $this->Input;
 	} elseif ($this->FileInput["error"] == 3) {
-		$bigtree["errors"][] = [
-			"field" => $this->Title,
-			"error" => Text::translate("The image upload failed (:image:).", false, [":image:" => $this->FileInput["name"]])
-		];
+		Router::logUserError("The image upload failed (:image:).", $this->Title, [":image:" => $this->FileInput["name"]]);
 		$this->Output = $this->Input;
 	} else {
 		// We uploaded a new image.
@@ -51,7 +48,7 @@
 				
 				$file = $this->processImageUpload();
 				$this->Output = $file ? $file : $this->Input;
-			} elseif (!empty($bigtree["post_data"]["__".$this->Key."_recrop__"])) {
+			} elseif (!empty($this->POSTData["__".$this->Key."_recrop__"])) {
 				// User has asked for a re-crop
 				$image = new Image(str_replace(STATIC_ROOT, SITE_ROOT, $this->Input), $this->Settings, true);
 				$image_copy = $image->copy();
@@ -63,7 +60,7 @@
 					$image_copy->destroy();
 				}
 				
-				$bigtree["crops"] = array_merge($bigtree["crops"], $crops);
+				Field::$Crops = array_merge(Field::$Crops, $crops);
 			}
 		}
 	}

@@ -26,7 +26,12 @@
 		public static $SimpleHTMLFields = [];
 		public static $StateList = ['AL' => "Alabama", 'AK' => "Alaska", 'AZ' => "Arizona", 'AR' => "Arkansas", 'CA' => "California", 'CO' => "Colorado", 'CT' => "Connecticut", 'DE' => "Delaware", 'DC' => "District Of Columbia", 'FL' => "Florida", 'GA' => "Georgia", 'HI' => "Hawaii", 'ID' => "Idaho", 'IL' => "Illinois", 'IN' => "Indiana", 'IA' => "Iowa", 'KS' => "Kansas", 'KY' => "Kentucky", 'LA' => "Louisiana", 'ME' => "Maine", 'MD' => "Maryland", 'MA' => "Massachusetts", 'MI' => "Michigan", 'MN' => "Minnesota", 'MS' => "Mississippi", 'MO' => "Missouri", 'MT' => "Montana", 'NE' => "Nebraska", 'NV' => "Nevada", 'NH' => "New Hampshire", 'NJ' => "New Jersey", 'NM' => "New Mexico", 'NY' => "New York", 'NC' => "North Carolina", 'ND' => "North Dakota", 'OH' => "Ohio", 'OK' => "Oklahoma", 'OR' => "Oregon", 'PA' => "Pennsylvania", 'RI' => "Rhode Island", 'SC' => "South Carolina", 'SD' => "South Dakota", 'TN' => "Tennessee", 'TX' => "Texas", 'UT' => "Utah", 'VT' => "Vermont", 'VA' => "Virginia", 'WA' => "Washington", 'WV' => "West Virginia", 'WI' => "Wisconsin", 'WY' => "Wyoming"];
 		
+		public $AlteredColumns = [];
+		public $Crops = [];
+		public $EntryID;
+		public $EntryTable;
 		public $Error;
+		public $ExistingValue;
 		public $FieldsetClass = "";
 		public $FileInput;
 		public $FileOutput;
@@ -37,6 +42,7 @@
 		public $Key;
 		public $LabelClass = "";
 		public $Output;
+		public $POSTData;
 		public $Required = false;
 		public $Settings;
 		public $Subtitle;
@@ -55,12 +61,16 @@
 		
 		public function __construct(array $field)
 		{
+			$this->EntryID = isset($field["entry_id"]) ? $field["entry_id"] : null;
+			$this->EntryTable = isset($field["entry_table"]) ? $field["entry_table"] : null;
+			$this->ExistingValue = isset($field["existing_value"]) ? $field["existing_value"] : null;
 			$this->FileInput = $field["file_input"] ?: null;
 			$this->ForcedRecrop = !empty($field["forced_recrop"]) ? true : false;
 			$this->HasValue = !empty($field["value"]) ? true : !empty($field["has_value"]);
 			$this->Input = $field["input"] ?: null;
 			$this->Key = $field["key"] ?: null;
 			$this->Output = false;
+			$this->POSTData = $field["post_data"];
 			$this->Settings = Link::decode(array_filter((array) ($field["settings"] ?: [])));
 			$this->Subtitle = $field["subtitle"] ?: null;
 			$this->TabIndex = $field["tabindex"] ?: static::$GlobalTabIndex++;
@@ -75,6 +85,20 @@
 			// Give this field a unique ID within the field namespace
 			static::$Count++;
 			$this->ID = static::$Namespace.static::$Count;
+		}
+		
+		/*
+			Function: alterColumn
+				Alters another column of data from the entry (external to this field)
+		
+			Parameters:
+				column - The column ID to alter
+				value - The value to set
+		*/
+		
+		public function alterColumn(string $column, $value): void
+		{
+			$this->AlteredColumns[$column] = $value;
 		}
 		
 		/*

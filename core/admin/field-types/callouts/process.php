@@ -1,17 +1,6 @@
 <?php
 	namespace BigTree;
 	
-	/**
-	 * @global array $bigtree
-	 */
-	
-	// We're going to change these $bigtree entries, so save them to revert back.
-	$this->SavedData = [
-		"entry" => $bigtree["entry"],
-		"post_data" => $bigtree["post_data"],
-		"file_data" => $bigtree["file_data"]
-	];
-	
 	$callouts = [];
 	
 	if (is_array($this->Input) && count($this->Input)) {
@@ -20,16 +9,16 @@
 			if ($data["type"]) {
 				
 				// Setup the new callout to emulate a normal field processing environment
-				$bigtree["entry"] = ["type" => $data["type"], "display_title" => $data["display_title"]];
-				$bigtree["post_data"] = $data;
-				$bigtree["file_data"] = $this->FileInput[$number];
+				$entry = ["type" => $data["type"], "display_title" => $data["display_title"]];
+				$post_data = $data;
+				$file_data = $this->FileInput[$number];
 				
 				$callout = new Callout($data["type"]);
 				$callout->Fields = Extension::runHooks("fields", "callout", $callout->Fields, [
 					"callout" => $callout,
 					"step" => "process",
-					"post_data" => $bigtree["post_data"],
-					"file_data" => $bigtree["file_data"]
+					"post_data" => $post_data,
+					"file_data" => $file_data
 				]);
 				
 				foreach ($callout->Fields as $resource) {
@@ -39,8 +28,9 @@
 						"key" => $resource["id"],
 						"settings" => $resource["settings"],
 						"ignore" => false,
-						"input" => $bigtree["post_data"][$resource["id"]],
-						"file_input" => $bigtree["file_data"][$resource["id"]]
+						"input" => $post_data[$resource["id"]],
+						"file_input" => $file_data[$resource["id"]],
+						"post_data" => $post_data
 					];
 					
 					if (!is_array($sub_field["settings"])) {
@@ -59,21 +49,20 @@
 					
 					$sub_field = new Field($sub_field);
 					$output = $sub_field->process();
+
+					foreach ($sub_field->AlteredColumns as $column => $data) {
+						$entry[$column] = $data;
+					}
 					
 					if (!is_null($output)) {
-						$bigtree["entry"][$sub_field->Key] = $output;
+						$entry[$sub_field->Key] = $output;
 					}
 				}
 				
-				$callouts[] = $bigtree["entry"];
+				$callouts[] = $entry;
 				
 			}
 		}
-	}
-	
-	// Revert to saved values	
-	foreach ($this->SavedData as $key => $val) {
-		$bigtree[$key] = $val;
 	}
 	
 	$this->Output = $callouts;

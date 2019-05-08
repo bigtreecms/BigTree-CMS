@@ -32,6 +32,7 @@
 	// Find out what kind of permissions we're allowed on this item.
 	// We need to check the EXISTING copy of the data AND what it's turning into and find the lowest of the two permissions.
 	$access_level = Auth::user()->getAccessLevel($module, $_POST, $form->Table);
+	$original_item = [];
 	
 	if ($_POST["id"] && $access_level && $access_level != "n") {
 		$original_item = $form->getEntry($_POST["id"]);
@@ -68,16 +69,24 @@
 	
 	foreach ($form->Fields as $field) {
 		$field = new Field([
+			"entry_id" => $_POST["id"],
+			"entry_table" => $form->Table,
+			"existing_value" => isset($original_item[$field["column"]]) ? $original_item[$field["column"]] : null,
 			"type" => $field["type"],
 			"title" => $field["title"],
 			"key" => $field["column"],
 			"settings" => $field["settings"],
 			"ignore" => false,
 			"input" => $_POST[$field["column"]],
-			"file_input" => $file_data[$field["column"]]
+			"file_input" => $file_data[$field["column"]],
+			"post_data" => $_POST
 		]);
 		
 		$output = $field->process();
+
+		foreach ($field->AlteredColumns as $column => $data) {
+			$content[$column] = $data;
+		}
 		
 		if (!is_null($output)) {
 			$content[$field->Key] = $output;

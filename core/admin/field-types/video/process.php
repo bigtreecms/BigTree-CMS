@@ -1,17 +1,10 @@
 <?php
 	namespace BigTree;
 	
-	/**
-	 * @global array $bigtree
-	 */
-	
 	// Grab any min width/heights from prefixes
 	if (!empty($this->Settings["preset"])) {
-		if (!isset($bigtree["media_settings"])) {
-			$bigtree["media_settings"] = DB::get("config", "media-settings");
-		}
-
-		$preset = $bigtree["media_settings"]["presets"][$this->Settings["preset"]];
+		$media_settings = DB::get("config", "media-settings");
+		$preset = $media_settings["presets"][$this->Settings["preset"]];
 		
 		if (!empty($preset["min_width"])) {
 			$this->Settings["min_width"] = $preset["min_width"];
@@ -74,10 +67,7 @@
 			
 			// No ID match? Bad URL.
 			if ($result === false) {
-				$bigtree["errors"][] = [
-					"field" => $this->Title,
-					"error" => Text::translate("The URL you entered is not a valid YouTube URL.")
-				];
+				Router::logUserError("The URL you entered is not a valid YouTube URL.", $this->Title);
 				$this->Ignore = true;
 				
 			// Got our YouTube ID
@@ -87,10 +77,7 @@
 				$oembed_data = json_decode(cURL::request("https://www.youtube.com/oembed?url=".urlencode("https://youtube.com/watch?v=".$video_id)), true);
 				
 				if (empty($oembed_data["html"])) {
-					$bigtree["errors"][] = [
-						"field" => $this->Title,
-						"error" => Text::translate("The YouTube URL provided is invalid.")
-					];
+					Router::logUserError("The YouTube URL provided is invalid.", $this->Title);
 					$this->Ignore = true;
 				} else {
 					$this->Output = [
@@ -144,18 +131,12 @@
 				
 			// No video :(
 			} else {
-				$bigtree["errors"][] = [
-					"field" => $this->Title,
-					"error" => Text::translate("The Vimeo URL provided is invalid.")
-				];
+				Router::logUserError("The Vimeo URL provided is invalid.", $this->Title);
 				$this->Ignore = true;
 			}
 		// Invalid URL
 		} else {
-			$bigtree["errors"][] = [
-				"field" => $this->Title,
-				"error" => Text::translate("The URL you entered is not a valid YouTube or Vimeo URL.")
-			];
+			Router::logUserError("The URL you entered is not a valid YouTube or Vimeo URL.", $this->Title);
 			$this->Ignore = true;
 		}
 		
@@ -194,10 +175,7 @@
 			$resource = new Resource($this->Input["managed"]);
 			
 			if ($resource["type"] != "video") {
-				$bigtree["errors"][] = [
-					"field" => $this->Title,
-					"error" => Text::translate("The chosen resource was not a video.")
-				];
+				Router::logUserError("The chosen resource was not a video.", $this->Title);
 				$this->Output = null;
 			} else {
 				$source_image = $resource["video_data"]["image"];
@@ -222,10 +200,7 @@
 				$this->Output["image"] = $field_copy->processImageUpload();
 			}
 		} else {
-			$bigtree["errors"][] = [
-				"field" => $this->Title,
-				"error" => "The chosen video could not be found."
-			];
+			Router::logUserError("The chosen video could not be found.", $this->Title);
 			$this->Output = null;
 		}
 	// Either this field has never been used or was explicitly deleted

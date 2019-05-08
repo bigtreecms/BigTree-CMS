@@ -1,10 +1,6 @@
 <?php
 	namespace BigTree;
 	
-	/**
-	 * @global array $bigtree
-	 */
-	
 	// Find out whether this is a draggable Many to Many.
 	$table_description = SQL::describeTable($this->Settings["mtm-connecting-table"]);
 	$cols = $table_description["columns"];
@@ -30,14 +26,14 @@
 			}			
 		}
 	// No pending data, let's query the connecting table directly for the entries, but only if this isn't a new entry
-	} elseif ($bigtree["edit_id"]) {
+	} elseif ($this->EntryID) {
 		if ($sortable) {
 			$query = SQL::query("SELECT * FROM `".$this->Settings["mtm-connecting-table"]."`
 								 WHERE `".$this->Settings["mtm-my-id"]."` = ?
-								 ORDER BY `position` DESC", $bigtree["edit_id"]);
+								 ORDER BY `position` DESC", $this->EntryID);
 		} else {
 			$query = SQL::query("SELECT * FROM `".$this->Settings["mtm-connecting-table"]."`
-								 WHERE `".$this->Settings["mtm-my-id"]."` = ?", $bigtree["edit_id"]);
+								 WHERE `".$this->Settings["mtm-my-id"]."` = ?", $this->EntryID);
 		}
 		
 		while ($record = $query->fetch()) {

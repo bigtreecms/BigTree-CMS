@@ -1,5 +1,9 @@
 <?php
 	namespace BigTree;
+
+	/**
+	 * @global string $entry_id
+	 */
 	
 	$template = new Template($_POST["template"]);
 	
@@ -33,6 +37,9 @@
 	
 	foreach ($template->Fields as $resource) {
 		$field = [
+			"entry_table" => "bigtree_pages",
+			"entry_id" => $entry_id,
+			"existing_value" => isset($existing_data[$resource["id"]]) ? $existing_data[$resource["id"]] : null,
 			"type" => $resource["type"],
 			"title" => $resource["title"],
 			"subtitle" => $resource["subtitle"],
@@ -40,7 +47,8 @@
 			"settings" => $resource["settings"],
 			"ignore" => false,
 			"input" => $bigtree["post_data"][$resource["id"]],
-			"file_input" => $bigtree["file_data"][$resource["id"]]
+			"file_input" => $bigtree["file_data"][$resource["id"]],
+			"post_data" => $_POST["resources"]
 		];
 		
 		if (empty($field["settings"]["directory"])) {
@@ -49,6 +57,10 @@
 		
 		$field = new Field($field);
 		$output = $field->process();
+
+		foreach ($field->AlteredColumns as $column => $data) {
+			$bigtree["entry"][$column] = $data;
+		}
 		
 		if (!is_null($output)) {
 			$bigtree["entry"][$field->Key] = $output;

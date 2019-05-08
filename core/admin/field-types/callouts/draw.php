@@ -1,10 +1,6 @@
 <?php
 	namespace BigTree;
 	
-	/**
-	 * @global array $bigtree
-	 */
-	
 	if (!is_array($this->Value)) {
 		$this->Value = [];
 	}

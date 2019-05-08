@@ -1,9 +1,7 @@
 <?php
-	/**
-	 * @global array $bigtree
-	 */
+	namespace BigTree;
 	
-	$bigtree["many-to-many"][$this->Key] = [
+	Field::$ManyToMany[$this->Key] = [
 		"table" => $this->Settings["mtm-connecting-table"],
 		"my-id" => $this->Settings["mtm-my-id"],
 		"other-id" => $this->Settings["mtm-other-id"],

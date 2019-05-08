@@ -1,5 +1,10 @@
 <?php
 	namespace BigTree;
+	use Exception;
+	
+	/**
+	 * @global ModuleForm $form
+	 */
 	
 	$db_error = false;
 	$is_group_based_perm = false;
@@ -21,16 +26,19 @@
 				$query = SQL::query("SELECT `id`,`$list_title` FROM `$list_table` ORDER BY $list_sort");
 				
 				// Check if we're doing module based permissions on this table.
-				if ($bigtree["module"] && $bigtree["module"]["gbp"]["enabled"] && $bigtree["form"]["table"] == $bigtree["module"]["gbp"]["table"] && $this->Key == $bigtree["module"]["gbp"]["group_field"]) {
+				if (Router::$Module && !empty(Router::$Module->GroupBasedPermissions["enabled"]) &&
+					!empty($form) && $form->Table == Router::$Module->GroupBasedPermissions["table"] &&
+					$this->Key == Router::$Module->GroupBasedPermissions["group_field"]
+				) {
 					$is_group_based_perm = true;
 					
 					if ($this->Settings["allow-empty"] != "No") {
-						$module_access_level = Auth::user()->getAccessLevel($bigtree["module"]);
+						$module_access_level = Auth::user()->getAccessLevel(Router::$Module);
 					}
 					
 					while ($record = $query->fetch()) {
 						// Find out whether the logged in user can access a given group, and if so, specify the access level.
-						$access_level = Auth::user()->getGroupAccessLevel($bigtree["module"], $record["id"]);
+						$access_level = Auth::user()->getGroupAccessLevel(Router::$Module, $record["id"]);
 						
 						if ($access_level) {
 							$list[] = [
@@ -49,7 +57,7 @@
 						];
 					}
 				}
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				$db_error = $e->getMessage();
 			}
 		}

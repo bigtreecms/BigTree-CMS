@@ -13,7 +13,6 @@
 <div class="time_picker_inline" data-hour="<?=date("H",$time)?>" data-minute="<?=date("i",$time)?>"></div>
 <?php
 	} else {
-		$bigtree["timepickers"][] = $this->ID;
 ?>
 <input type="text" tabindex="<?=$this->TabIndex?>" name="<?=$this->Key?>" value="<?php if ($this->Value) { echo date("h:i a",strtotime($this->Value)); } ?>" autocomplete="off" id="<?=$this->ID?>" class="time_picker<?php if ($this->Required) { ?> required<?php } ?>" />
 <span class="icon_small icon_small_clock time_picker_icon"></span>

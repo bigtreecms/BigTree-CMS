@@ -1,10 +1,6 @@
 <?php
 	namespace BigTree;
 	
-	/**
-	 * @global array $bigtree
-	 */
-	
 	// Generate the file manager restrictions
 	$button_options = htmlspecialchars(json_encode(["currentlyKey" => $this->Key."[managed]", "type" => "video"]));
 ?>

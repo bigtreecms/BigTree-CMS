@@ -25,6 +25,9 @@
 		$bigtree["file_data"] = Field::getParsedFiles[];
 		
 		$field = new Field([
+			"entry_table" => "bigtree_settings",
+			"entry_id" => $setting->ID,
+			"existing_value" => $setting->Value,
 			"type" => $setting->Type,
 			"title" => $setting->Name,
 			"key" => "value",

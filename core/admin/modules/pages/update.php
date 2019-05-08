@@ -48,6 +48,15 @@
 	
 	// Parse resources
 	if (empty($_POST["external"]) && $_POST["template"] != "!") {
+		$entry_id = $_POST["page"];
+
+		if (is_numeric($entry_id)) {
+			$published_page = new Page($entry_id);
+			$existing_data = $published_page->Content;
+		} else {
+			$existing_data = [];
+		}
+
 		include Router::getIncludePath("admin/modules/pages/_resource-parse.php");
 	}
 	

@@ -37,6 +37,8 @@
 	
 	// Parse resources
 	if (empty($_POST["external"]) && $_POST["template"] != "!") {
+		$entry_id = "";
+		$existing_data = [];
 		include Router::getIncludePath("admin/modules/pages/_resource-parse.php");
 	}
 	

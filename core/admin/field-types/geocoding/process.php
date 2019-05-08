@@ -1,10 +1,6 @@
 <?php
 	namespace BigTree;
 	
-	/**
-	 * @global $bigtree
-	 */
-	
 	// Loop through all the fields to build the address
 	if (is_array($this->Settings["fields"])) {
 		$source_fields = $this->Settings["fields"];
@@ -15,7 +11,7 @@
 	$location = [];
 
 	foreach ($source_fields as $source_field) {
-		$data = isset($bigtree["post_data"][trim($source_field)]) ? $bigtree["post_data"][trim($source_field)] : false;
+		$data = isset($this->POSTData[trim($source_field)]) ? $this->POSTData[trim($source_field)] : false;
 		
 		if (is_array($data)) {
 			$location = array_merge($location,$data);
@@ -29,12 +25,13 @@
 		
 		// If it's false, we didn't get anything.
 		if (!strval($result)) {
-			$bigtree["entry"]["latitude"] = false;
-			$bigtree["entry"]["longitude"] = false;
-			$bigtree["errors"][] = ["field" => "Geocoding", "error" => Text::translate($result->Error)];
+			$this->alterColumn("latitude", null);
+			$this->alterColumn("longitude", null);
+			
+			Router::logUserError($result->Error, "Geocoding");
 		} else {
-			$bigtree["entry"]["latitude"] = $result->Latitude;
-			$bigtree["entry"]["longitude"] = $result->Longitude;
+			$this->alterColumn("latitude", $result->Latitude);
+			$this->alterColumn("longitude", $result->Longitude);
 		}
 	}
 		

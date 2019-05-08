@@ -1,10 +1,6 @@
 <?php
 	namespace BigTree;
 	
-	/**
-	 * @global array $bigtree
-	 */
-	
 	// Pre-translate strings
 	$text_or = Text::translate("OR");
 	$text_browse = Text::translate("Browse");
@@ -18,11 +14,8 @@
 	
 	// If we're using a preset, the prefix may be there
 	if (!empty($this->Settings["preset"])) {
-		if (!isset($bigtree["media_settings"])) {
-			$bigtree["media_settings"] = DB::get("config", "media-settings");
-		}
-
-		$preset = $bigtree["media_settings"]["presets"][$this->Settings["preset"]];
+		$media_settings = DB::get("config", "media-settings");
+		$preset = $media_settings["presets"][$this->Settings["preset"]];
 		
 		if (!empty($preset["preview_prefix"])) {
 			$this->Settings["preview_prefix"] = $preset["preview_prefix"];
