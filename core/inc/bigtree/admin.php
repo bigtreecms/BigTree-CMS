@@ -8835,9 +8835,9 @@
 			}
 
 			if ($encrypted) {
-				SQL::query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?, ?) WHERE id = ?", $value, $bigtree["config"]["settings_key"], $id);
+				SQL::query("UPDATE bigtree_settings SET `value` = AES_ENCRYPT(?, ?), `encrypted` = 'on' WHERE id = ?", $value, $bigtree["config"]["settings_key"], $id);
 			} else {
-				SQL::update("bigtree_settings", $id, ["value" => $value]);
+				SQL::update("bigtree_settings", $id, ["value" => $value, "encrypted" => ""]);
 			}
 		}
 
