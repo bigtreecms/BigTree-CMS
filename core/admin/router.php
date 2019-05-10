@@ -258,15 +258,13 @@
 	$bigtree["js"] = [];
 	$bigtree["css"] = [];
 	
-	// Instantiate the $admin var (user system)
-	$admin = new \BigTreeAdmin;
-	
 	// Load the default layout.
 	Router::$Layout = "default";
 	$bigtree["subnav_extras"] = [];
 	
 	// Setup security policy
 	Auth::initSecurity();
+	Auth::authenticate();
 	
 	// If we're not logged in and we're not trying to login, redirect to the login page.
 	if (is_null(Auth::user()->ID) && $path[1] != "login") {

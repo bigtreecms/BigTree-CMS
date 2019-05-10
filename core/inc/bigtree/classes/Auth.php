@@ -29,7 +29,27 @@
 		private static $UserClass = "";
 		
 		/*
-			Constructor:
+			Function: assign2FASecret
+				Assigns a two factor auth token to a user and then logs them in.
+
+			Parameters:
+				secret - A Google Authenticator secret
+		*/
+		
+		public static function assign2FASecret(string $secret): void
+		{
+			$token = SQL::fetchSingle("SELECT 2fa_login_token FROM bigtree_users
+									   WHERE id = ?", $_SESSION["bigtree_admin"]["2fa_id"]);
+			
+			if ($token == $_SESSION["bigtree_admin"]["2fa_login_token"]) {
+				SQL::update("bigtree_users", $_SESSION["bigtree_admin"]["2fa_id"], ["2fa_secret" => $secret]);
+			}
+			
+			static::login2FA(null, true);
+		}
+		
+		/*
+			Function: authenticate
 				Sets up the user class and cookie/session namespace.
 				Initiates a user environment.
 
@@ -39,8 +59,8 @@
 				enforce_policies - Whether to enforce password/login policies
 		*/
 		
-		public function __construct(string $user_class = 'BigTree\User', string $namespace = "bigtree_admin",
-									bool $enforce_policies = true)
+		public static function authenticate(string $user_class = 'BigTree\User', string $namespace = "bigtree_admin",
+											bool $enforce_policies = true)
 		{
 			/** @var User $user_class */
 			static::$Namespace = $namespace;
@@ -58,11 +78,11 @@
 					static::$Name = $user->Name;
 					static::$Permissions = $user->Permissions;
 					static::$Timezone = $user->Timezone;
-
+					
 					CSRF::setup($_SESSION[static::$Namespace]["csrf_token_field"], $_SESSION[static::$Namespace]["csrf_token"]);
 				}
 				
-			// Handle saved cookies
+				// Handle saved cookies
 			} elseif (isset($_COOKIE[static::$Namespace]["email"])) {
 				// Get chain and session broken out
 				list($session, $chain) = json_decode($_COOKIE[static::$Namespace]["login"]);
@@ -126,7 +146,7 @@
 							Cookie::create(static::$Namespace."[login]", json_encode([$session, $chain]), "+1 month");
 						}
 						
-					// Chain is legit and session isn't -- someone has taken your cookies
+						// Chain is legit and session isn't -- someone has taken your cookies
 					} else {
 						// Delete existing cookies
 						Cookie::create(static::$Namespace."[login]", "", time() - 3600);
@@ -155,26 +175,6 @@
 				// Clean up
 				unset($user, $f, $session, $chain, $chain_entry);
 			}
-		}
-		
-		/*
-			Function: assign2FASecret
-				Assigns a two factor auth token to a user and then logs them in.
-
-			Parameters:
-				secret - A Google Authenticator secret
-		*/
-		
-		public static function assign2FASecret(string $secret): void
-		{
-			$token = SQL::fetchSingle("SELECT 2fa_login_token FROM bigtree_users
-									   WHERE id = ?", $_SESSION["bigtree_admin"]["2fa_id"]);
-			
-			if ($token == $_SESSION["bigtree_admin"]["2fa_login_token"]) {
-				SQL::update("bigtree_users", $_SESSION["bigtree_admin"]["2fa_id"], ["2fa_secret" => $secret]);
-			}
-			
-			static::login2FA(null, true);
 		}
 		
 		/*

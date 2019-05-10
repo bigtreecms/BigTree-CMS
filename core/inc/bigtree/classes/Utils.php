@@ -192,6 +192,32 @@
 		}
 		
 		/*
+			Function: getHeaders
+				Returns all HTTP headers (works with non-Apache setups).
+		
+			Returns:
+				An array of headers
+		*/
+		
+		public static function getHeaders(): array
+		{
+			if (function_exists("getallheaders")) {
+				return getallheaders();
+			}
+			
+			$headers = [];
+			
+			foreach ($_SERVER as $name => $value) {
+				if (substr($name, 0, 5) == 'HTTP_') {
+					$name = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))));
+					$headers[$name] = $value;
+				}
+			}
+			
+			return $headers;
+		}
+		
+		/*
 			Function: growl
 				Adds a growl message for the next admin page reload.
 
