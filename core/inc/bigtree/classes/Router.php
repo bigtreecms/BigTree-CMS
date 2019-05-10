@@ -22,12 +22,15 @@
 		public static $Config = [];
 		public static $Content = "";
 		public static $Debug = false;
+		public static $FooterFiles = [];
+		public static $HeaderFiles = [];
 		public static $Layout = "default";
 		public static $Module;
 		public static $ModuleAction;
 		public static $ModuleInterface;
 		public static $Path = [];
 		public static $POSTError = null;
+		public static $PrimaryFile;
 		public static $Registry = false;
 		public static $RouteParamNames = [];
 		public static $RouteParamNamesPath = [];
@@ -444,154 +447,6 @@
 		}
 		
 		/*
-			Function: getRoutedFileAndCommands
-				Returns the proper file to include based on existence of subdirectories or .php files with given route names.
-				Used by the CMS for routing ajax and modules.
-
-			Parameters:
-				directory - Root directory to begin looking in.
-				path - An array of routes.
-
-			Returns:
-				An array with the first element being the file to include and the second element being an array containing extraneous routes from the end of the path.
-		*/
-		
-		public static function getRoutedFileAndCommands(string $directory, array $path): array
-		{
-			$commands = [];
-			$inc_file = $directory;
-			$inc_dir = $directory;
-			$ended = false;
-			$found_file = false;
-			
-			foreach ($path as $piece) {
-				// Prevent path exploitation
-				if ($piece == "..") {
-					die();
-				}
-				
-				// We're done, everything is a command now.
-				if ($ended) {
-					$commands[] = $piece;
-				// Keep looking for directories.
-				} elseif (is_dir($inc_dir.$piece)) {
-					$inc_file .= $piece."/";
-					$inc_dir .= $piece."/";
-				// File exists, we're ending now.
-				} elseif ($piece != "_header" && $piece != "_footer" && file_exists($inc_file.$piece.".php")) {
-					$inc_file .= $piece.".php";
-					$ended = true;
-					$found_file = true;
-				// Couldn't find a file or directory.
-				} else {
-					$commands[] = $piece;
-					$ended = true;
-				}
-			}
-			
-			if (!$found_file) {
-				// If we have default in the routed directory, use it.
-				if (file_exists($inc_dir."default.php")) {
-					$inc_file = $inc_dir."default.php";
-				// See if we can change the directory name into .php file in case the directory is empty but we have .php
-				} elseif (file_exists(rtrim($inc_dir, "/").".php")) {
-					$inc_file = rtrim($inc_dir, "/").".php";
-				// We couldn't route anywhere apparently.
-				} else {
-					return [false, []];
-				}
-			}
-			
-			return [$inc_file, $commands];
-		}
-		
-		/*
-			Function: getRoutedLayoutPartials
-				Retrieves a list of route layout files (_header.php and _footer.php) for a given file path.
-
-			Parameters:
-				path - A file path
-
-			Returns:
-				An array containing an array of headers at the first index and footers at the second index.
-		*/
-		
-		public static function getRoutedLayoutPartials(string $path): array
-		{
-			$file_location = ltrim(Text::replaceServerRoot($path), "/");
-			$include_root = false;
-			$pathed_includes = false;
-			$headers = $footers = $pieces = [];
-			
-			// Get our path pieces and include roots setup properly
-			if (strpos($file_location, "custom/admin/modules/") === 0) {
-				$include_root = "admin/modules/";
-				$pathed_includes = true;
-				$pieces = explode("/", substr($file_location, 21));
-			} elseif (strpos($file_location, "core/admin/modules/") === 0) {
-				$include_root = "admin/modules/";
-				$pathed_includes = true;
-				$pieces = explode("/", substr($file_location, 19));
-			} elseif (strpos($file_location, "custom/admin/ajax/")) {
-				$include_root = "admin/ajax/";
-				$pathed_includes = true;
-				$pieces = explode("/", substr($file_location, 18));
-			} elseif (strpos($file_location, "core/admin/ajax/") === 0) {
-				$include_root = "admin/ajax/";
-				$pathed_includes = true;
-				$pieces = explode("/", substr($file_location, 16));
-			} elseif (strpos($file_location, "templates/routed/") === 0) {
-				$include_root = "templates/routed/";
-				$pieces = explode("/", substr($file_location, 17));
-			} elseif (strpos($file_location, "templates/ajax/") === 0) {
-				$include_root = "templates/ajax/";
-				$pieces = explode("/", substr($file_location, 15));
-			} elseif (strpos($file_location, "extensions/") === 0) {
-				$pieces = explode("/", $file_location);
-				
-				if ($pieces[2] == "templates" && ($pieces[3] == "routed" || $pieces[3] == "ajax")) {
-					$include_root = "extensions/".$pieces[1]."/templates/".$pieces[3]."/";
-					$pieces = array_slice($pieces, 4);
-				} elseif ($pieces[2] == "modules") {
-					$include_root = "extensions/".$pieces[1]."/modules/";
-					$pieces = array_slice($pieces, 3);
-				} elseif ($pieces[2] == "ajax") {
-					$include_root = "extensions/".$pieces[1]."/ajax/";
-					$pieces = array_slice($pieces, 3);
-				}
-			}
-			
-			// Only certain places include headers and footers
-			if ($include_root) {
-				$inc_path = "";
-				
-				foreach ($pieces as $piece) {
-					if (substr($piece, -4, 4) != ".php") {
-						$inc_path .= $piece."/";
-						
-						if ($pathed_includes) {
-							$header = static::getIncludePath($include_root.$inc_path."_header.php");
-							$footer = static::getIncludePath($include_root.$inc_path."_footer.php");
-						} else {
-							$header = SERVER_ROOT.$include_root.$inc_path."_header.php";
-							$footer = SERVER_ROOT.$include_root.$inc_path."_footer.php";
-						}
-						
-						if (file_exists($header)) {
-							$headers[] = $header;
-						}
-						
-						if (file_exists($footer)) {
-							$footers[] = $footer;
-						}
-					}
-				}
-			}
-			
-			return [$headers, array_reverse($footers)];
-		}
-		
-		/*
 			Function: logError
 				Logs a system error to the router's error log.
 				The error string will be automatically translated.
@@ -780,6 +635,191 @@
 			}
 			
 			return [false, false, false, [], false];
+		}
+		
+		/*
+			Function: run
+				Runs routed files for a given base path.
+		
+			Parameters:
+				base_path - Base path (e.g. /templates/ajax/, or /core/api/)
+				routed_path - The routed path
+		*/
+		
+		public static function run(string $base_path, array $routed_path): void
+		{
+			static::setRoutedFileAndCommands(SERVER_ROOT.$base_path, $routed_path);
+			
+			if (!file_exists(static::$PrimaryFile)) {
+				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
+				die(Text::translate("File not found."));
+			}
+			
+			static::setRoutedLayoutPartials();
+			
+			foreach (static::$HeaderFiles as $header) {
+				include $header;
+			}
+			
+			include static::$PrimaryFile;
+			
+			foreach (static::$FooterFiles as $footer) {
+				include $footer;
+			}
+		}
+		
+		/*
+			Function: setRoutedFileAndCommands
+				Returns the proper file to include based on existence of subdirectories or .php files with given route names.
+				Used by the CMS for routing ajax and modules.
+
+			Parameters:
+				directory - Root directory to begin looking in.
+				path - An array of routes.
+		*/
+		
+		public static function setRoutedFileAndCommands(string $directory, array $path): void
+		{
+			$commands = [];
+			$inc_file = $directory;
+			$inc_dir = $directory;
+			$ended = false;
+			$found_file = false;
+			
+			foreach ($path as $piece) {
+				// Prevent path exploitation
+				if ($piece == "..") {
+					die();
+				}
+				
+				// We're done, everything is a command now.
+				if ($ended) {
+					$commands[] = $piece;
+					// Keep looking for directories.
+				} elseif (is_dir($inc_dir.$piece)) {
+					$inc_file .= $piece."/";
+					$inc_dir .= $piece."/";
+					// File exists, we're ending now.
+				} elseif ($piece != "_header" && $piece != "_footer" && file_exists($inc_file.$piece.".php")) {
+					$inc_file .= $piece.".php";
+					$ended = true;
+					$found_file = true;
+					// Couldn't find a file or directory.
+				} else {
+					$commands[] = $piece;
+					$ended = true;
+				}
+			}
+			
+			if (!$found_file) {
+				// If we have default in the routed directory, use it.
+				if (file_exists($inc_dir."default.php")) {
+					$inc_file = $inc_dir."default.php";
+					// See if we can change the directory name into .php file in case the directory is empty but we have .php
+				} elseif (file_exists(rtrim($inc_dir, "/").".php")) {
+					$inc_file = rtrim($inc_dir, "/").".php";
+					// We couldn't route anywhere apparently.
+				} else {
+					return;
+				}
+			}
+			
+			static::$PrimaryFile = $inc_file;
+			static::$Commands = $commands;
+		}
+		
+		/*
+			Function: setRoutedLayoutPartials
+				Retrieves a list of route layout files (_header.php and _footer.php) for the set PrimaryFile.
+		*/
+		
+		public static function setRoutedLayoutPartials(): void
+		{
+			$file_location = ltrim(Text::replaceServerRoot(static::$PrimaryFile), "/");
+			$include_root = false;
+			$pathed_includes = false;
+			$headers = $footers = $pieces = [];
+			
+			// Get our path pieces and include roots setup properly
+			if (strpos($file_location, "custom/admin/modules/") === 0) {
+				$include_root = "admin/modules/";
+				$pathed_includes = true;
+				$pieces = explode("/", substr($file_location, 21));
+			} elseif (strpos($file_location, "core/admin/modules/") === 0) {
+				$include_root = "admin/modules/";
+				$pathed_includes = true;
+				$pieces = explode("/", substr($file_location, 19));
+			} elseif (strpos($file_location, "custom/admin/ajax/")) {
+				$include_root = "admin/ajax/";
+				$pathed_includes = true;
+				$pieces = explode("/", substr($file_location, 18));
+			} elseif (strpos($file_location, "core/admin/ajax/") === 0) {
+				$include_root = "admin/ajax/";
+				$pathed_includes = true;
+				$pieces = explode("/", substr($file_location, 16));
+			} elseif (strpos($file_location, "core/api/") === 0) {
+				$include_root = "api/";
+				$pathed_includes = true;
+				$pieces = explode("/", substr($file_location, 9));
+			} elseif (strpos($file_location, "custom/api/") === 0) {
+				$include_root = "api/";
+				$pathed_includes = true;
+				$pieces = explode("/", substr($file_location, 11));
+			} elseif (strpos($file_location, "templates/routed/") === 0) {
+				$include_root = "templates/routed/";
+				$pieces = explode("/", substr($file_location, 17));
+			} elseif (strpos($file_location, "templates/ajax/") === 0) {
+				$include_root = "templates/ajax/";
+				$pieces = explode("/", substr($file_location, 15));
+			} elseif (strpos($file_location, "extensions/") === 0) {
+				$pieces = explode("/", $file_location);
+				
+				if ($pieces[2] == "templates" && ($pieces[3] == "routed" || $pieces[3] == "ajax")) {
+					$include_root = "extensions/".$pieces[1]."/templates/".$pieces[3]."/";
+					$pieces = array_slice($pieces, 4);
+				} elseif ($pieces[2] == "modules") {
+					$include_root = "extensions/".$pieces[1]."/modules/";
+					$pieces = array_slice($pieces, 3);
+				} elseif ($pieces[2] == "ajax") {
+					$include_root = "extensions/".$pieces[1]."/ajax/";
+					$pieces = array_slice($pieces, 3);
+				}
+			}
+			
+			// Manually add the API header
+			if ($include_root == "api/") {
+				$headers[] = static::getIncludePath("api/_header.php");
+			}
+			
+			// Only certain places include headers and footers
+			if ($include_root) {
+				$inc_path = "";
+				
+				foreach ($pieces as $piece) {
+					if (substr($piece, -4, 4) != ".php") {
+						$inc_path .= $piece."/";
+						
+						if ($pathed_includes) {
+							$header = static::getIncludePath($include_root.$inc_path."_header.php");
+							$footer = static::getIncludePath($include_root.$inc_path."_footer.php");
+						} else {
+							$header = SERVER_ROOT.$include_root.$inc_path."_header.php";
+							$footer = SERVER_ROOT.$include_root.$inc_path."_footer.php";
+						}
+						
+						if (file_exists($header)) {
+							$headers[] = $header;
+						}
+						
+						if (file_exists($footer)) {
+							$footers[] = $footer;
+						}
+					}
+				}
+			}
+			
+			static::$HeaderFiles = $headers;
+			static::$FooterFiles = array_reverse($footers);
 		}
 		
 	}

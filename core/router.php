@@ -181,21 +181,6 @@
 		}
 	}
 	
-	// Serve Placeholder Image
-	if (Router::$Path[0] == "images" && Router::$Path[1] == "placeholder") {
-		if (is_array(Router::$Config["placeholder"][Router::$Path[2]])) {
-			$style = Router::$Config["placeholder"][Router::$Path[2]];
-			$size = explode("x", strtolower(Router::$Path[3]));
-		} else {
-			$style = Router::$Config["placeholder"]["default"];
-			$size = explode("x", strtolower(Router::$Path[2]));
-		}
-		
-		if (count($size) == 2) {
-			Image::placeholder($size[0], $size[1], $style["background_color"], $style["text_color"], $style["image"], $style["text"]);
-		}
-	}
-	
 	// Start output buffering and sessions
 	ob_start();
 	SessionHandler::start();
@@ -220,36 +205,17 @@
 		if (Router::$Path[0] == "*") {
 			$bigtree["extension_context"] = Router::$Path[1];
 			define("EXTENSION_ROOT", SERVER_ROOT."extensions/".Router::$Path[1]."/");
-			
-			$base_path = EXTENSION_ROOT;
-			list($inc, $commands) = Router::getRoutedFileAndCommands($base_path."templates/ajax/", array_slice(Router::$Path, 3));
+			Router::run("extensions/".Router::$Path[1]."/templates/ajax/", array_slice(Router::$Path, 3));
 		} else {
-			$base_path = SERVER_ROOT;
-			list($inc, $commands) = Router::getRoutedFileAndCommands($base_path."templates/ajax/", array_slice(Router::$Path, 1));
+			Router::run("templates/ajax/", array_slice(Router::$Path, 1));
 		}
 		
-		if (!file_exists($inc)) {
-			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
-			die("File not found.");
-		}
-		
-		$bigtree["ajax_inc"] = $inc;
-		Router::$Commands = $commands;
-		list($bigtree["ajax_headers"], $bigtree["ajax_footers"]) = Router::getRoutedLayoutPartials($inc);
-		
-		// Draw the headers.
-		foreach ($bigtree["ajax_headers"] as $header) {
-			include $header;
-		}
-		
-		// Draw the main page.
-		include $bigtree["ajax_inc"];
-		
-		// Draw the footers.
-		foreach ($bigtree["ajax_footers"] as $footer) {
-			include $footer;
-		}
-		
+		die();
+	}
+	
+	// API
+	if (Router::$Path[0] == "api") {
+		Router::run("core/api/", array_slice(Router::$Path, 1));
 		die();
 	}
 	
@@ -341,7 +307,7 @@
 		if ($registry_rule["file"]) {
 			
 			// Emulate commands at indexes as well as with requested variable keys
-			Router::$Commands = []];
+			Router::$Commands = [];
 			$x = 0;
 			
 			foreach ($registry_commands as $key => $value) {
@@ -349,18 +315,19 @@
 				$x++;
 			}
 			
-			list($bigtree["routed_headers"], $bigtree["routed_footers"]) = Router::getRoutedLayoutPartials($registry_rule["file"]);
+			Router::$PrimaryFile = $registry_rule["file"];
+			Router::setRoutedLayoutPartials();
 			
 			// Draw the headers.
-			foreach ($bigtree["routed_headers"] as $header) {
+			foreach (Router::$HeaderFiles as $header) {
 				include $header;
 			}
 			
 			// Draw the main page.
-			include SERVER_ROOT.$registry_rule["file"];
+			include Router::$PrimaryFile;
 			
 			// Draw the footers.
-			foreach ($bigtree["routed_footers"] as $footer) {
+			foreach (Router::$FooterFiles as $footer) {
 				include $footer;
 			}
 			
@@ -476,36 +443,29 @@
 				}
 
 				if ($extension) {
-					list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."extensions/$extension/templates/routed/$extension_template/", array_filter(Router::$Commands));
+					Router::setRoutedFileAndCommands(SERVER_ROOT."extensions/$extension/templates/routed/$extension_template/", array_filter(Router::$Commands));
 				} else {
-					list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/", array_filter(Router::$Commands));
+					Router::setRoutedFileAndCommands(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/", array_filter(Router::$Commands));
 				}
 
-				$command_count = count($commands);
+				$command_count = count(Router::$Commands);
 
 				if ($command_count) {
 					$bigtree["routed_path"] = array_slice(Router::$Commands, 0, $command_count * -1);
 				} else {
 					$bigtree["routed_path"] = Router::$Commands;
 				}
-
-				$bigtree["routed_inc"] = $inc;
-				Router::$Commands = $bigtree["commands"] = $commands;
-				$bigtree["module_path"] = $bigtree["routed_path"]; // Backwards compat
 			}
 			
-			list($bigtree["routed_headers"], $bigtree["routed_footers"]) = Router::getRoutedLayoutPartials($inc);
+			Router::setRoutedLayoutPartials();
 			
-			// Draw the headers.
-			foreach ($bigtree["routed_headers"] as $header) {
+			foreach (Router::$HeaderFiles as $header) {
 				include $header;
 			}
 			
-			// Draw the main page.
-			include $bigtree["routed_inc"];
+			include Router::$PrimaryFile;
 			
-			// Draw the footers.
-			foreach ($bigtree["routed_footers"] as $footer) {
+			foreach (Router::$FooterFiles as $footer) {
 				include $footer;
 			}
 		} elseif ($bigtree["page"]["template"]) {

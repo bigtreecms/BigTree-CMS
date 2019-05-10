@@ -367,43 +367,47 @@
 		
 		// Extensions must use this directory
 		if (defined("EXTENSION_ROOT")) {
-			list($inc, $commands) = Router::getRoutedFileAndCommands(EXTENSION_ROOT."ajax/", $ajax_path);
+			Router::setRoutedFileAndCommands(EXTENSION_ROOT."ajax/", $ajax_path);
 			// Check custom/core
 		} else {
-			list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."custom/admin/ajax/", $ajax_path);
+			Router::setRoutedFileAndCommands(SERVER_ROOT."custom/admin/ajax/", $ajax_path);
 			
-			// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
-			if (!$inc || count($commands)) {
-				list($core_inc, $core_commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."core/admin/ajax/", $ajax_path);
+			// Core is the only place for the file now if custom failed
+			if (!Router::$PrimaryFile) {
+				Router::setRoutedFileAndCommands(SERVER_ROOT."core/admin/ajax/", $ajax_path);
+			} elseif (count(Router::$Commands)) {
+				// Check if we have a deeper core file than custom
+				$custom_file = Router::$PrimaryFile;
+				$custom_commands = Router::$Commands;
+
+				Router::$PrimaryFile = "";
+				Router::$Commands = [];
+				Router::setRoutedFileAndCommands(SERVER_ROOT."core/admin/ajax/", $ajax_path);
 				
-				// If we either never found the custom file or if there are more routes found in the core file use the core.
-				if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
-					$inc = $core_inc;
-					$commands = $core_commands;
+				// If we either never found the core file or if there are more routes found in the core file use the custom.
+				if (!Router::$PrimaryFile || count(Router::$Commands) > count($custom_commands)) {
+					Router::$PrimaryFile = $custom_file;
+					Router::$Commands = $custom_commands;
 				}
+				
+				unset($custom_file, $custom_commands);
 			}
 		}
 		
-		if (!file_exists($inc)) {
+		if (!file_exists(Router::$PrimaryFile)) {
 			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 			die("File not found.");
 		}
 		
-		Router::$Commands = $commands;
-		$bigtree["ajax_inc"] = $inc;
+		Router::setRoutedLayoutPartials();
 		
-		list($bigtree["ajax_headers"], $bigtree["ajax_footers"]) = Router::getRoutedLayoutPartials($inc);
-		
-		// Draw the headers.
-		foreach ($bigtree["ajax_headers"] as $header) {
+		foreach (Router::$HeaderFiles as $header) {
 			include $header;
 		}
 		
-		// Draw the main page.
-		include $bigtree["ajax_inc"];
+		include Router::$PrimaryFile;
 		
-		// Draw the footers.
-		foreach ($bigtree["ajax_footers"] as $footer) {
+		foreach (Router::$FooterFiles as $footer) {
 			include $footer;
 		}
 		
@@ -510,66 +514,67 @@
 		// Check custom if it's not an extension, otherwise use the extension directory
 		if ($module && $module->Extension) {
 			$module_path[0] = str_replace($module->Extension."*", "", $module_path[0]);
-			list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."extensions/".$module->Extension."/modules/", $module_path);
+			Router::setRoutedFileAndCommands(SERVER_ROOT."extensions/".$module->Extension."/modules/", $module_path);
 			
 			$bigtree["extension_context"] = $module->Extension;
 			define("EXTENSION_ROOT", SERVER_ROOT."extensions/".$module->Extension."/");
 		} else {
-			list($inc, $commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."custom/admin/modules/", $module_path);
+			Router::setRoutedFileAndCommands(SERVER_ROOT."custom/admin/modules/", $module_path);
 			
-			// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
-			if (!$inc || count($commands)) {
-				list($core_inc, $core_commands) = Router::getRoutedFileAndCommands(SERVER_ROOT."core/admin/modules/", $module_path);
+			// Not in custom, get core
+			if (!Router::$PrimaryFile) {
+				Router::setRoutedFileAndCommands(SERVER_ROOT."core/admin/modules/", $module_path);
+			} elseif (count(Router::$Commands)) {
+				// Could be deeper in core than custom
+				$custom_inc = Router::$PrimaryFile;
+				$custom_commands = Router::$Commands;
 				
-				// If we either never found the custom file or if there are more routes found in the core file use the core.
-				if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
-					$inc = $core_inc;
-					$commands = $core_commands;
+				Router::$PrimaryFile = "";
+				Router::$Commands = [];
+				Router::setRoutedFileAndCommands(SERVER_ROOT."core/admin/modules/", $module_path);
+				
+				// If we either never found the core file or if there are more routes found in the core file use the custom.
+				if (!Router::$PrimaryFile || count(Router::$Commands) > count($custom_commands)) {
+					Router::$PrimaryFile = $custom_file;
+					Router::$Commands = $custom_commands;
 				}
+				
+				unset($custom_file, $custom_commands);
 			}
 		}
 		
-		if (count($commands)) {
-			$bigtree["module_path"] = array_slice($module_path, 1, -1 * count($commands));
+		if (count(Router::$Commands)) {
+			$bigtree["module_path"] = array_slice($module_path, 1, -1 * count(Router::$Commands));
 		} else {
 			$bigtree["module_path"] = array_slice($module_path, 1);
 		}
 		
 		// Check pages
-		if (!$inc) {
+		if (!Router::$PrimaryFile) {
 			$inc = Router::getIncludePath("admin/pages/$primary_route.php");
 			
 			if (file_exists($inc)) {
 				include $inc;
 				$complete = true;
-			} else {
-				$inc = false;
 			}
 		}
 		
 		// If we didn't find anything, it's a 404
-		if (!$inc) {
+		if (!$complete && !Router::$PrimaryFile) {
 			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 			define("BIGTREE_404", true);
 			include Router::getIncludePath("admin/pages/_404.php");
 		// It's a manually created module page, include it
 		} elseif (!$complete) {
-			// Setup the commands array.
-			Router::$Commands = $commands;
-			$bigtree["routed_inc"] = $inc;
+			Router::setRoutedLayoutPartials();
 			
-			list($bigtree["routed_headers"], $bigtree["routed_footers"]) = Router::getRoutedLayoutPartials($inc);
-			
-			// Draw the headers.
-			foreach ($bigtree["routed_headers"] as $header) {
+			foreach (Router::$HeaderFiles as $header) {
 				include $header;
 			}
 			
-			// Draw the main page.
-			include $bigtree["routed_inc"];
+			include Router::$PrimaryFile;
 			
-			// Draw the footers.
-			foreach ($bigtree["routed_footers"] as $footer) {
+			foreach (Router::$FooterFiles as $footer) {
 				include $footer;
 			}
 		}
