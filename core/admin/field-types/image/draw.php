@@ -58,7 +58,7 @@
 	<div class="contain">
 		<input<?php if ($field["required"]) { ?> class="required"<?php } ?> type="file" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" data-min-width="<?=$min_width?>" data-min-height="<?=$min_height?>" accept="image/*" />
 		<?php
-			if (!defined("BIGTREE_FRONT_END_EDITOR") && empty($bigtree["form"]["embedded"])) {
+			if (!defined("BIGTREE_FRONT_END_EDITOR") && empty($field["settings"]["disable_browse"]) && empty($bigtree["form"]["embedded"])) {
 		?>
 		<span class="or">OR</span>
 		<a href="#<?=$field["id"]?>_currently" data-options="<?=$button_options?>" class="button resource_browser_button"><span class="icon_images"></span>Browse</a>

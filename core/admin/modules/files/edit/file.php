@@ -113,6 +113,7 @@
 					"value" => $file["file"],
 					"settings" => [
 						"disable_remove" => true,
+						"disable_browse" => true,
 						"directory" => "files/resources/"
 					]
 				];
@@ -124,6 +125,7 @@
 					$field["settings"] = $media_settings["presets"]["default"];
 					$field["settings"]["directory"] = "files/resources/";
 					$field["settings"]["disable_remove"] = true;
+					$field["settings"]["disable_browse"] = true;
 					$field["settings"]["preview_prefix"] = "list-preview/";
 					$field["settings"]["preview_files_square"] = true;
 
