@@ -37,7 +37,7 @@
 			$preview_image .= $field["settings"]["preview_cache_suffix"];
 		}
 
-		$image = new BigTreeImage($field["value"], $field["settings"]);
+		$image = new BigTreeImage(str_replace(STATIC_ROOT, SITE_ROOT, $field["value"]), $field["settings"]);
 		$image->filterGeneratableCrops();
 		$filtered_crops = $image->Settings["crops"];
 
