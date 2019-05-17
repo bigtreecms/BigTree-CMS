@@ -43,8 +43,12 @@
 		} else {
 			$preview_image = $this->Value;
 		}
+		
+		if (!empty($this->Settings["preview_cache_suffix"])) {
+			$preview_image .= $this->Settings["preview_cache_suffix"];
+		}
 
-		$image = new Image($this->Value, $this->Settings);
+		$image = new Image(str_replace(STATIC_ROOT, SITE_ROOT, $this->Value), $this->Settings);
 		$image->filterGeneratableCrops();
 		$filtered_crops = $image->Settings["crops"];
 
@@ -68,8 +72,14 @@
 <div class="image_field" id="<?=$this->ID?>">
 	<div class="contain">
 		<input<?php if ($this->Required) { ?> class="required"<?php } ?> type="file" tabindex="<?=$this->TabIndex?>" name="<?=$this->Key?>" data-min-width="<?=$min_width?>" data-min-height="<?=$min_height?>" accept="image/*" />
+		<?php
+			if (empty($this->Settings["disable_browse"])) {
+		?>
 		<span class="or"><?=$text_or?></span>
 		<a href="#<?=$this->ID?>_currently" data-options="<?=$button_options?>" class="button resource_browser_button"><span class="icon_images"></span><?=$text_browse?></a>
+		<?php
+			}
+		?>
 	</div>
 	
 	<div class="contain">

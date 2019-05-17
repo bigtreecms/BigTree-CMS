@@ -72,7 +72,7 @@
 					<?php
 						if ($resource["is_image"]) {
 					?>
-					<img src="<?=FileSystem::getPrefixedFile(Link::detokenize($resource["file"]), "list-preview/")?>" alt="">
+					<img src="<?=FileSystem::getPrefixedFile(Link::detokenize($resource["file"]), "list-preview/")."?".strtotime($resource["file_last_updated"])?>" alt="">
 					<?php
 						} elseif ($resource["is_video"]) {
 					?>
