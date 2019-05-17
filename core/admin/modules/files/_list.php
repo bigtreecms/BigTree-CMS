@@ -62,7 +62,7 @@
 					<?php
 						if ($resource["is_image"]) {
 					?>
-					<img src="<?=BigTree::prefixFile(BigTreeCMS::replaceRelativeRoots($resource["file"]), "list-preview/")?>" alt="">
+					<img src="<?=BigTree::prefixFile(BigTreeCMS::replaceRelativeRoots($resource["file"]), "list-preview/")."?".strtotime($resource["file_last_updated"])?>" alt="">
 					<?php
 						} elseif ($resource["is_video"]) {
 					?>

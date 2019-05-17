@@ -33,6 +33,10 @@
 			$preview_image = $field["value"];
 		}
 
+		if (!empty($field["settings"]["preview_cache_suffix"])) {
+			$preview_image .= $field["settings"]["preview_cache_suffix"];
+		}
+
 		$image = new BigTreeImage($field["value"], $field["settings"]);
 		$image->filterGeneratableCrops();
 		$filtered_crops = $image->Settings["crops"];

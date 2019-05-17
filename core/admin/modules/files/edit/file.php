@@ -127,6 +127,7 @@
 					$field["settings"]["disable_remove"] = true;
 					$field["settings"]["disable_browse"] = true;
 					$field["settings"]["preview_prefix"] = "list-preview/";
+					$field["settings"]["preview_cache_suffix"] = "?".strtotime($file["file_last_updated"]);
 					$field["settings"]["preview_files_square"] = true;
 
 					// Figure out what the minimum size should be based on the current one
