@@ -65,7 +65,7 @@
 	<?php
 		}
 	?>
-	<p><span><?=Text::translate("Uploaded")?></span><strong><?=str_replace(" @ ", "<br>", Auth::user()->convertTimestampTo($file["date"], Router::$Config["date_format"]." @ g:i a"))?></strong></p>
+	<p><span><?=Text::translate("Uploaded")?></span><strong><?=str_replace(" @ ", "<br>", Auth::user()->convertTimestampTo($file["file_last_updated"] ?: $file["date"], Router::$Config["date_format"]." @ g:i a"))?></strong></p>
 	<?php
 		if ($folder) {
 	?>
