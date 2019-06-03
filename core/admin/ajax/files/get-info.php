@@ -60,7 +60,7 @@
 	<?php
 		}
 	?>
-	<p><span>Uploaded</span><strong><?=str_replace(" @ ", "<br>", $admin->convertTimestampToUser($file["date"], $bigtree["config"]["date_format"]." @ g:i a"))?></strong></p>
+	<p><span>Uploaded</span><strong><?=str_replace(" @ ", "<br>", $admin->convertTimestampToUser($file["file_last_updated"] ?: $file["date"], $bigtree["config"]["date_format"]." @ g:i a"))?></strong></p>
 	<?php
 		if ($file["folder"]) {
 	?>
