@@ -1109,7 +1109,14 @@
 		public function createMessage($subject,$message,$recipients,$in_response_to = 0) {
 			// Clear tags out of the subject, sanitize the message body of XSS attacks.
 			$subject = sqlescape(htmlspecialchars(strip_tags($subject)));
-			$message = sqlescape(strip_tags($message,"<p><b><strong><em><i><a>"));
+			$message = strip_tags($message,"<p><b><strong><em><i><a>");
+
+			// Remove onclick and JS hrefs, don't really care of the markup gets bungled in the process
+			$message = preg_replace('/href="javascript:[^"]+"/', '', $message);
+			$message = str_replace('href=javascript:', '', $message);
+			$message = str_replace('onclick=', '', $message);
+			$message = sqlescape($message);
+
 			$in_response_to = sqlescape($in_response_to);
 
 			// We build the send_to field this way so that we don't have to create a second table of recipients.
