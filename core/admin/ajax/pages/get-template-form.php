@@ -101,5 +101,5 @@
 	include Router::getIncludePath("admin/layouts/_html-field-loader.php");
 ?>
 <script>
-	BigTree.TinyMCEFields = <?=json_encode(array_merge(Field::$HTMLFields, Field::$SimpleHTMLFields)?>;
+	BigTree.TinyMCEFields = <?=json_encode(array_merge(Field::$HTMLFields, Field::$SimpleHTMLFields))?>;
 </script>

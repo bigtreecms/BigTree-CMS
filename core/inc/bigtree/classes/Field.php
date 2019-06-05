@@ -234,6 +234,10 @@
 			}
 			
 			if (!is_null($part)) {
+				if (!is_array($clean[$part])) {
+					return [];
+				}
+				
 				return $clean[$part];
 			}
 			
