@@ -4,7 +4,12 @@
 	$tag_string = trim($_POST["tag"]);
 
 	if (empty($tag_string)) {
-		Utils::growl("Tags", "Tag Name Was Empty");
+		Utils::growl("Tags", "Tag Name Was Empty", "error");
+		Router::redirect(ADMIN_ROOT."tags/add/");
+	}
+	
+	if (SQL::exists("bigtree_tags", ["tag" => strtolower(html_entity_decode($tag_string))])) {
+		Utils::growl("Tags", "Tag Already Exists", "error");
 		Router::redirect(ADMIN_ROOT."tags/add/");
 	}
 
