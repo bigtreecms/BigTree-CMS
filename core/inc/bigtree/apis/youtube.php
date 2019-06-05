@@ -234,7 +234,7 @@
 		*/
 
 		public function getChannel($username = false,$id = false) {
-			$params = array("part" => "id,snippet,statistics");
+            $params = array("part" => "id,snippet,statistics,contentDetails");
 			if ($id) {
 				$params["id"] = $id;
 			} elseif ($username) {
@@ -264,22 +264,13 @@
 		*/
 
 		public function getChannelVideos($channel,$count = 10,$order = "date",$params = array()) {
-			$response = $this->call("search",array_merge(array(
-				"part" => "snippet",
-				"type" => "video",
-				"channelId" => $channel,
-				"order" => $order,
-				"maxResults" => $count
-			),$params));
+		    $channel = $this->getChannel(false, $channel);
 
-			if (!isset($response->items)) {
-				return false;
-			}
-			$results = array();
-			foreach ($response->items as $video) {
-				$results[] = new BigTreeYouTubeVideo($video,$this);
-			}
-			return new BigTreeGoogleResultSet($this,"getChannelVideos",array($channel,$count,$order,$params),$response,$results);
+		    if (!isset($channel->Playlists->uploads)) {
+		        return false;
+            }
+            
+		    return $this->getPlaylistItems($channel->Playlists->uploads, $count, $params);
 		}	
 
 		/*
@@ -774,6 +765,7 @@
 			isset($channel->snippet->title) ? $this->Title = $channel->snippet->title : false;
 			isset($channel->statistics->videoCount) ? $this->VideoCount = $channel->statistics->videoCount : false;
 			isset($channel->statistics->viewCount) ? $this->ViewCount = $channel->statistics->viewCount : false;
+            isset($channel->contentDetails->relatedPlaylists) ? $this->Playlists = $channel->contentDetails->relatedPlaylists : false;
 		}
 
 		/*
