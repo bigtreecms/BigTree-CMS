@@ -19,6 +19,7 @@
 		public $Description;
 		public $ID;
 		public $Images;
+		public $Playlists = [];
 		public $SubscriberCount;
 		public $Timestamp;
 		public $Title;
@@ -46,6 +47,7 @@
 			isset($channel->snippet->title) ? $this->Title = $channel->snippet->title : false;
 			isset($channel->statistics->videoCount) ? $this->VideoCount = $channel->statistics->videoCount : false;
 			isset($channel->statistics->viewCount) ? $this->ViewCount = $channel->statistics->viewCount : false;
+			isset($channel->contentDetails->relatedPlaylists) ? $this->Playlists = $channel->contentDetails->relatedPlaylists : false;
 		}
 		
 		/*

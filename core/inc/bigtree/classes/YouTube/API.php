@@ -269,7 +269,7 @@
 		
 		public function getChannel(?string $username = null, ?string $id = null): ?Channel
 		{
-			$params = ["part" => "id,snippet,statistics"];
+			$params = ["part" => "id,snippet,statistics,contentDetails"];
 			
 			if ($id) {
 				$params["id"] = $id;
@@ -305,25 +305,13 @@
 		public function getChannelVideos(string $channel, int $count = 10, string $order = "date",
 										 array $params = []): ?GoogleResultSet
 		{
-			$response = $this->call("search", array_merge([
-				"part" => "snippet",
-				"type" => "video",
-				"channelId" => $channel,
-				"order" => $order,
-				"maxResults" => $count
-			], $params));
+			$channel = $this->getChannel(false, $channel);
 			
-			if (!isset($response->items)) {
+			if (!isset($channel->Playlists->uploads)) {
 				return null;
 			}
 			
-			$results = [];
-			
-			foreach ($response->items as $video) {
-				$results[] = new Video($video, $this);
-			}
-			
-			return new GoogleResultSet($this, "getChannelVideos", [$channel, $count, $order, $params], $response, $results);
+			return $this->getPlaylistItems($channel->Playlists->uploads, $count, $params);
 		}
 		
 		/*
