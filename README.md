@@ -20,6 +20,26 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.4.5
+- ADDED: og:width and og:height are now drawn by BigTreeCMS::drawHeadTags (this will happen automatically if existing data is local but will require a re-save if cloud storage is used)
+- FIXED: Clearing caches of dependent views when data changes
+- FIXED: Resource rectification when switching between templates / callouts using media gallery fields
+- FIXED: Extension settings check when an extension setting had an empty value
+- FIXED: Link field not returning correct URLs in a multi-site environment
+- FIXED: http://www.bigtreecms.org URLs to target https://
+- FIXED: Incorrect closing tag on importing 404 CSVs page.
+- FIXED: YouTube URL parsing when whitespace existed or other unsupported GET variables were in the URL
+- FIXED: Path history checking not properly redirecting
+- FIXED: Route field type not seeing existing data properly
+- FIXED: Internal settings sometimes losing their encrypted state or not being read properly
+- FIXED: Browse should no longer show when replacing a file or image in the file manager
+- FIXED: After replacing images in the file manager, images should now be cache busted to show the updated image
+- FIXED: Image data being checked with URL instead of a local file path when stored locally
+- FIXED: File/image picker should now show the last time the file/image was replaced rather than always showing the created date
+- FIXED: When adding a tag, if the tag already exists an error is thrown rather than just silently failing
+- FIXED: Messages being able to store Javascript onclick and href events
+- FIXED: Getting the uploaded videos of a YouTube Channel failing sometimes
+
 ### 4.4.4
 - FIXED: Logging into a multi-site admin area when the homepage of one of the multi-site instances was a redirect
 - FIXED: A SQL injection data leak for admin area users
