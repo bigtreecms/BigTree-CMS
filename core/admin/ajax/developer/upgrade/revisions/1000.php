@@ -14,6 +14,7 @@
 	SQL::query("ALTER TABLE `bigtree_resources` CHANGE `date` `date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
 	SQL::query("ALTER TABLE `bigtree_locks` CHANGE `last_accessed` `last_accessed` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
 	SQL::query("ALTER TABLE `bigtree_audit_trail` CHANGE `date` `date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
+	SQL::query("ALTER TABLE `bigtree_audit_trail` ADD COLUMN `action` VARCHAR(255) AFTER `type`");
 	
 	// Change page resources to content
 	SQL::query("ALTER TABLE `bigtree_pages` CHANGE `resources` `content` LONGTEXT");
@@ -32,6 +33,19 @@
 	
 	// Get rid of unneeded columns
 	SQL::query("ALTER TABLE `bigtree_locks` DROP COLUMN `title`");
+	
+	// Alter Audit Trail to have a consistent add/update/delete type and move actions into action
+	SQL::query("UPDATE `bigtree_audit_trail` SET `action` = `type`");
+	SQL::query("UPDATE `bigtree_audit_trail` SET `type` = 'add'
+				WHERE `type` IN ('created-pending', 'created', 'created via publisher', 'published')");
+	SQL::query("UPDATE `bigtree_audit_trail` SET `type` = 'update'
+				WHERE `type` IN ('archived', 'archived-inherited', 'ignored', 'moved', 'saved-draft', 'unarchived',
+				                 'unarchived-inherited', 'unignored', 'featured', 'unfeatured', 'approved',
+				                 'unapproved', 'updated', 'updated via publisher', 'updated-draft')");
+	SQL::query("UPDATE `bigtree_audit_trail` SET `type` = 'delete'
+				WHERE `type` IN ('deleted', 'deleted-inherited', 'deleted-pending')");
+	SQL::query("DELETE FROM `bigtree_audit_trail` WHERE `type` = 'Cleared Empty'");
+	SQL::query("UPDATE `bigtree_audit_trail` SET `table` = REPLACE(`table`, 'jsondb -&gt; ', 'config:')");
 	
 	// Switch provider names for email service to enable us to load provider classes easier
 	if (Setting::exists("bigtree-internal-email-service")) {
