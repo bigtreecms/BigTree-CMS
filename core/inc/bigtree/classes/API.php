@@ -6,8 +6,12 @@
 	
 	namespace BigTree;
 	
+	use BigTree\Auth\AuthenticatedUser;
+	
 	class API {
-		
+
+		/** @var AuthenticatedUser $AuthenticatedUser */
+		public static $AuthenticatedUser;
 		/** @var User $User */
 		public static $User;
 	
@@ -31,6 +35,7 @@
 						static::triggerError("The provided API token has expired.", "token:expired", "authentication");
 					} else {
 						static::$User = new User($user);
+						static::$AuthenticatedUser = Auth::user(static::$User);
 					}
 				} else {
 					static::triggerError("The provided API token is invalid.", "token:invalid", "authentication");
@@ -42,21 +47,36 @@
 				if (is_null(Auth::user()->ID)) {
 					static::triggerError("No API token was provided.", "token:missing", "authentication");
 				} else {
+					static::$AuthenticatedUser = Auth::user();
 					static::$User = new User(Auth::user()->ID);
 				}
 			}
 		}
 		
 		/*
-			Function: sendResponse
-				Sends a success response through the API.
-				If no parameters are passed, a simple success response is returned.
-		
+			Function: requireMethod
+				Requires the passed in HTTP method and triggers an error if an invalid method is called.
+			
 			Parameters:
-				data - An optional array of response data
-				message - An optional message
-				code - An optional response code
+				method - Required HTTP Method
 		*/
+		
+		public static function requireMethod(string $method) {
+			if (strtolower($_SERVER["REQUEST_METHOD"]) !== strtolower($method)) {
+				static::triggerError("This API endpoint must be called via $method.", "invalid:method", "method");
+			}
+		}
+			
+			/*
+				Function: sendResponse
+					Sends a success response through the API.
+					If no parameters are passed, a simple success response is returned.
+			
+				Parameters:
+					data - An optional array of response data
+					message - An optional message
+					code - An optional response code
+			*/
 		
 		public static function sendResponse(?array $data = null, ?string $message = null, ?string $code = null): void
 		{
