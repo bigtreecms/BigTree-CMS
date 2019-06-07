@@ -66,7 +66,7 @@
 			"columns" => [
 				"id",
 				"folder",
-				"title",
+				"name",
 				"type",
 				"size",
 				"image"
