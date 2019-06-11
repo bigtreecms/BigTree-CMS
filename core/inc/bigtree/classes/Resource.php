@@ -192,7 +192,7 @@
 			];
 			
 			$id = SQL::insert("bigtree_resources", $data);
-			AuditTrail::track("bigtree_resources", $id, "created");
+			AuditTrail::track("bigtree_resources", $id, "add", "created");
 			
 			return new Resource($id);
 		}
@@ -220,7 +220,7 @@
 		{
 			// Delete resource record
 			SQL::delete("bigtree_resources", $this->ID);
-			AuditTrail::track("bigtree_resources", $this->ID, "deleted");
+			AuditTrail::track("bigtree_resources", $this->ID, "delete", "deleted");
 			
 			// If this file isn't located in any other folders, delete it from the file system
 			if (!SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_resources WHERE file = ?", Link::tokenize($this->File))) {
@@ -452,7 +452,7 @@
 				
 				SQL::update("bigtree_resources", $this->ID, $data);
 				
-				AuditTrail::track("bigtree_resources", $this->ID, "updated");
+				AuditTrail::track("bigtree_resources", $this->ID, "update", "updated");
 			}
 			
 			return true;

@@ -101,7 +101,7 @@
 				"saved_description" => Text::htmlEncode($description)
 			]);
 			
-			AuditTrail::track("bigtree_page_revisions", $id, "created");
+			AuditTrail::track("bigtree_page_revisions", $id, "add", "created");
 			
 			return new PageRevision($id);
 		}
@@ -160,7 +160,7 @@
 				"title" => $this->Title
 			]);
 			
-			AuditTrail::track("bigtree_page_revisions", $this->ID, "updated");
+			AuditTrail::track("bigtree_page_revisions", $this->ID, "update", "updated");
 			
 			return true;
 		}

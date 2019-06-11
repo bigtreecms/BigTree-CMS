@@ -183,7 +183,7 @@
 				"hooks" => static::cleanHooks($hooks)
 			]);
 			
-			AuditTrail::track("config:templates", $id, "created");
+			AuditTrail::track("config:templates", $id, "add", "created");
 			
 			return new Template($id);
 		}
@@ -207,7 +207,7 @@
 			}
 			
 			DB::delete("templates", $this->ID);
-			AuditTrail::track("config:templates", $this->ID, "deleted");
+			AuditTrail::track("config:templates", $this->ID, "delete", "deleted");
 			
 			return true;
 		}
@@ -253,7 +253,7 @@
 				]);
 				
 				// Track
-				AuditTrail::track("config:templates", $this->ID, "updated");
+				AuditTrail::track("config:templates", $this->ID, "update", "updated");
 			}
 			
 			return true;

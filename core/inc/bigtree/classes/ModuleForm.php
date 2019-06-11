@@ -129,7 +129,7 @@
 				}
 			}
 			
-			AuditTrail::track("config:modules", $module, "created-form");
+			AuditTrail::track("config:modules", $module, "update", "created form");
 			
 			return new ModuleForm($interface->Array);
 		}
@@ -190,15 +190,15 @@
 					ModuleView::uncacheForAll($this->Table, "p".$change_being_published);
 					
 					if ($exact) {
-						AuditTrail::track($this->Table, $id, "created via publisher", $change["user"]);
-						AuditTrail::track($this->Table, $id, "published");
+						AuditTrail::track($this->Table, $id, "add", "created via publisher", $change["user"]);
+						AuditTrail::track($this->Table, $id, "update", "published");
 						
 						return $id;
 					}
 				}
 			}
 			
-			AuditTrail::track($this->Table, $id, "created");
+			AuditTrail::track($this->Table, $id, "add", "created");
 			
 			return $id;
 		}
@@ -288,7 +288,7 @@
 			SQL::delete($this->Table, $id);
 			Resource::deallocate($this->Table, $id);
 			ModuleView::uncacheForAll($this->Table, $id);
-			AuditTrail::track($this->Table, $id, "deleted");
+			AuditTrail::track($this->Table, $id, "delete", "deleted");
 		}
 		
 		/*
@@ -304,7 +304,7 @@
 			SQL::delete("bigtree_pending_changes", $id);
 			Resource::deallocate($this->Table, "p".$id);
 			ModuleView::uncacheForAll($this->Table, "p$id");
-			AuditTrail::track($this->Table, "p$id", "deleted-pending");
+			AuditTrail::track($this->Table, "p$id", "delete", "deleted-pending");
 		}
 		
 		/*
@@ -735,13 +735,13 @@
 				SQL::delete("bigtree_pending_changes", $change["id"]);
 				
 				if ($exact) {
-					AuditTrail::track($this->Table, $id, "updated via publisher", $change["user"]);
-					AuditTrail::track($this->Table, $id, "published");
+					AuditTrail::track($this->Table, $id, "update", "updated via publisher", $change["user"]);
+					AuditTrail::track($this->Table, $id, "update", "published");
 				} else {
-					AuditTrail::track($this->Table, $id, "updated");
+					AuditTrail::track($this->Table, $id, "update", "updated");
 				}
 			} else {
-				AuditTrail::track($this->Table, $id, "updated");
+				AuditTrail::track($this->Table, $id, "update", "updated");
 			}
 			
 			if ($this->Table != "bigtree_pages") {

@@ -90,7 +90,7 @@
 				"settings" => $settings
 			]);
 			
-			AuditTrail::track("config:feeds", $id, "created");
+			AuditTrail::track("config:feeds", $id, "add", "created");
 			
 			return new Feed($id);
 		}
@@ -115,7 +115,7 @@
 					"fields" => $this->Fields,
 					"settings" => Link::encode($this->Settings)
 				]);
-				AuditTrail::track("config:feeds", $this->ID, "updated");
+				AuditTrail::track("config:feeds", $this->ID, "update", "updated");
 			}
 			
 			return true;

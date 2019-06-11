@@ -97,7 +97,7 @@
 			}
 			
 			
-			AuditTrail::track("config:modules", $module, "created-action");
+			AuditTrail::track("config:modules", $module, "update", "created action");
 			
 			return new ModuleAction($action);
 		}
@@ -125,11 +125,11 @@
 					$subset->delete("interfaces", $this->Interface);
 				}
 				
-				AuditTrail::track("config:modules", $this->Module->ID, "deleted-interface");
+				AuditTrail::track("config:modules", $this->Module->ID, "update", "deleted interface");
 			}
 			
 			$subset->delete("actions", $this->ID);
-			AuditTrail::track("config:modules", $this->Module->ID, "deleted-action");
+			AuditTrail::track("config:modules", $this->Module->ID, "update", "deleted action");
 			
 			return true;
 		}
@@ -226,7 +226,7 @@
 				"interface" => $this->Interface ?: null
 			]);
 			
-			AuditTrail::track("config:modules", $this->Module->ID, "updated-action");
+			AuditTrail::track("config:modules", $this->Module->ID, "update", "updated action");
 			
 			return true;
 		}

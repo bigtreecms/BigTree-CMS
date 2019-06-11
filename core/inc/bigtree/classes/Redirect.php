@@ -127,7 +127,7 @@
 					"redirect_url" => $to,
 					"ignored" => $ignored ? "on" : ""
 				]);
-				AuditTrail::track("bigtree_404s", $existing["id"], "updated");
+				AuditTrail::track("bigtree_404s", $existing["id"], "update", "updated");
 			} else {
 				$id = SQL::insert("bigtree_404s", [
 					"broken_url" => $from,
@@ -137,7 +137,7 @@
 					"site_key" => $site_key
 				]);
 				
-				AuditTrail::track("bigtree_404s", $id, "created");
+				AuditTrail::track("bigtree_404s", $id, "add", "created");
 			}
 				
 			return new Redirect($id);
@@ -151,7 +151,7 @@
 		public function delete(): ?bool
 		{
 			SQL::delete("bigtree_404s", $this->ID);
-			AuditTrail::track("bigtree_404s", $this->ID, "deleted");
+			AuditTrail::track("bigtree_404s", $this->ID, "delete", "deleted");
 			
 			return true;
 		}

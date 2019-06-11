@@ -140,7 +140,7 @@
 			}
 			
 			DB::delete("extensions", $this->ID);
-			AuditTrail::track("config:extensions", $this->ID, "deleted");
+			AuditTrail::track("config:extensions", $this->ID, "delete", "deleted");
 			
 			return true;
 		}

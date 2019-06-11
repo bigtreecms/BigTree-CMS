@@ -16,13 +16,19 @@
 			Parameters:
 				table - The table affected by the user.
 				entry - The primary key of the entry affected by the user.
-				type - The action taken by the user (delete, edit, create, etc.)
+				type - The action taken by the user (add, update, or delete) used for change management.
+				action - A descriptive message of the action taken for the audit trail log view.
 				user_id - A user ID to override the logged in user's ID
 		*/
 		
-		public static function track(string $table, string $entry, string $type, ?int $user_id = null): void
+		public static function track(string $table, string $entry, string $type, string $action,
+									 ?int $user_id = null): void
 		{
 			$user = !is_null($user_id) ? $user_id : Auth::user()->ID;
+			
+			if (!in_array($type, ["add", "update", "delete"])) {
+				trigger_error(Text::translate("Invalid type parameter. Allowed values: add, update, delete."), E_USER_ERROR);
+			}
 			
 			// If this is running fron cron or something, nobody is logged in so don't track.
 			if (!is_null($user)) {
@@ -30,7 +36,8 @@
 					"table" => Text::htmlEncode($table),
 					"user" => $user,
 					"entry" => Text::htmlEncode($entry),
-					"type" => Text::htmlEncode($type)
+					"type" => Text::htmlEncode($type),
+					"action" => Text::htmlEncode($action)
 				]);
 			}
 		}

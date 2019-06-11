@@ -158,7 +158,7 @@
 				"route" => SQL::unique("bigtree_tags", "route", Link::urlify($name))
 			]);
 			
-			AuditTrail::track("bigtree_tags", $id, "created");
+			AuditTrail::track("bigtree_tags", $id, "add", "created");
 			
 			return new Tag($id);
 		}
@@ -176,7 +176,7 @@
 			SQL::update("bigtree_tags_rel", ["tag" => $id], ["tag" => $this->ID]);
 			SQL::delete("bigtree_tags", $id);
 			
-			AuditTrail::track("bigtree_tags", $id, "merged");
+			AuditTrail::track("bigtree_tags", $id, "delete", "merged into $this->ID");
 		
 			// Clean up duplicate references
 			SQL::query("DELETE tags_a FROM bigtree_tags_rel AS tags_a, bigtree_tags_rel AS tags_b

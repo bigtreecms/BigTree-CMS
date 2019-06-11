@@ -68,7 +68,7 @@
 				"route" => DB::unique("module-groups", "route", Link::urlify($name))
 			]);
 			
-			AuditTrail::track("config:module-groups", $id, "created");
+			AuditTrail::track("config:module-groups", $id, "add", "created");
 			
 			return new ModuleGroup($id);
 		}
@@ -89,7 +89,7 @@
 					"route" => DB::unique("module-groups", "route", Link::urlify($this->Route), $this->ID)
 				]);
 				
-				AuditTrail::track("config:module-groups", $this->ID, "updated");
+				AuditTrail::track("config:module-groups", $this->ID, "update", "updated");
 			}
 			
 			return true;

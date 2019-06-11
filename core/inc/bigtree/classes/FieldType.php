@@ -117,7 +117,7 @@
 			}
 			
 			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
-			AuditTrail::track("config:field-types", $id, "created");
+			AuditTrail::track("config:field-types", $id, "add", "created");
 			
 			return new FieldType($id);
 		}
@@ -145,7 +145,7 @@
 			
 			// Delete and track
 			DB::delete("field-types", $id);
-			AuditTrail::track("config:field-types", $id, "deleted");
+			AuditTrail::track("config:field-types", $id, "delete", "deleted");
 			
 			return true;
 		}
@@ -240,7 +240,7 @@
 					"use_cases" => array_filter((array) $this->UseCases),
 					"self_draw" => $this->SelfDraw ? "on" : ""
 				]);
-				AuditTrail::track("config:field-types", $this->ID, "updated");
+				AuditTrail::track("config:field-types", $this->ID, "update", "updated");
 				
 				// Clear cache
 				@unlink(SERVER_ROOT."cache/bigtree-form-field-types.json");

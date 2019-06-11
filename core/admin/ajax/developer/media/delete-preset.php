@@ -9,5 +9,5 @@
 	// Delete one of them
 	unset($settings["presets"][$_POST["id"]]);
 	DB::update("config", "media-settings", $settings);
-	AuditTrail::track("config:media-settings", "presets", "deleted");
+	AuditTrail::track("config:media-settings", "presets", "update", "deleted preset");
 	

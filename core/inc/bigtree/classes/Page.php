@@ -224,7 +224,7 @@
 			$this->archiveChildren();
 			
 			// Track
-			AuditTrail::track("bigtree_pages", $this->ID, "archived");
+			AuditTrail::track("bigtree_pages", $this->ID, "update", "archived");
 		}
 		
 		/*
@@ -243,7 +243,7 @@
 			$children = SQL::fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ? AND archived != 'on'", $page_id);
 			
 			foreach ($children as $child_id) {
-				AuditTrail::track("bigtree_pages", $child_id, "archived-inherited");
+				AuditTrail::track("bigtree_pages", $child_id, "update", "inherited archive state from parent");
 				$this->archiveChildren($child_id);
 			}
 			
@@ -454,10 +454,10 @@
 			
 			// Audit trail
 			if ($pending_change && $pending_change["user"] != Auth::user()->ID && !empty($exact)) {
-				AuditTrail::track("bigtree_pages", $id, "created via publisher", $pending_change["user"]);
-				AuditTrail::track("bigtree_pages", $id, "published");
+				AuditTrail::track("bigtree_pages", $id, "add", "created via publisher", $pending_change["user"]);
+				AuditTrail::track("bigtree_pages", $id, "update", "published");
 			} else {
-				AuditTrail::track("bigtree_pages", $id, "created");
+				AuditTrail::track("bigtree_pages", $id, "add", "created");
 			}
 			
 			return new Page($id);
@@ -543,7 +543,7 @@
 					"user" => $user
 				]);
 				
-				AuditTrail::track("bigtree_pages", $page, "updated-draft");
+				AuditTrail::track("bigtree_pages", $page, "update", "updated draft");
 				
 				return $existing_pending_change;
 				
@@ -558,7 +558,7 @@
 				}
 				
 				// Create draft and track
-				AuditTrail::track("bigtree_pages", $page, "saved-draft");
+				AuditTrail::track("bigtree_pages", $page, "update", "saved draft");
 				
 				return SQL::insert("bigtree_pending_changes", [
 					"user" => $user,
@@ -626,7 +626,7 @@
 			$this->deleteChildren($this->ID);
 			
 			SQL::delete("bigtree_pages", $this->ID);
-			AuditTrail::track("bigtree_pages", $this->ID, "deleted");
+			AuditTrail::track("bigtree_pages", $this->ID, "delete", "deleted");
 			
 			return true;
 		}
@@ -650,7 +650,7 @@
 				
 				// Delete and track
 				SQL::delete("bigtree_pages", $child);
-				AuditTrail::track("bigtree_pages", $child, "deleted-inherited");
+				AuditTrail::track("bigtree_pages", $child, "delete", "inherited deletion from parent");
 			}
 		}
 		
@@ -669,8 +669,8 @@
 			SQL::delete("bigtree_pending_changes", $draft_id);
 			
 			// Double track to add specificity to what happend to the page
-			AuditTrail::track("bigtree_pages", $this->ID, "deleted-draft");
-			AuditTrail::track("bigtree_pending_changes", $draft_id, "deleted");
+			AuditTrail::track("bigtree_pages", $this->ID, "update", "deleted draft");
+			AuditTrail::track("bigtree_pending_changes", $draft_id, "delete", "deleted");
 		}
 		
 		/*
@@ -687,8 +687,8 @@
 			SQL::delete("bigtree_page_revisions", $id);
 			
 			// Double track to add specificity to what happend to the page
-			AuditTrail::track("bigtree_pages", $this->ID, "deleted-revision");
-			AuditTrail::track("bigtree_page_revisions", $id, "deleted");
+			AuditTrail::track("bigtree_pages", $this->ID, "update", "deleted revision");
+			AuditTrail::track("bigtree_page_revisions", $id, "delete", "deleted");
 		}
 		
 		/*
@@ -1527,7 +1527,7 @@
 			SQL::update("bigtree_pages", $this->ID, ["archived" => ""]);
 			$this->unarchiveChildren();
 			
-			AuditTrail::track("bigtree_pages", $this->ID, "unarchived");
+			AuditTrail::track("bigtree_pages", $this->ID, "update", "unarchived");
 		}
 		
 		/*
@@ -1545,7 +1545,7 @@
 			$child_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_pages WHERE parent = ? AND archived_inherited = 'on'", $id);
 			
 			foreach ($child_ids as $child_id) {
-				AuditTrail::track("bigtree_pages", $child_id, "unarchived-inherited");
+				AuditTrail::track("bigtree_pages", $child_id, "update", "inherited unarchived state from parent");
 				$this->unarchiveChildren($child_id);
 			}
 			
@@ -1683,13 +1683,13 @@
 				
 				if ($exact) {
 					$update["last_edited_by"] = $pending["user"];
-					AuditTrail::track("bigtree_pages", $this->ID, "updated via publisher", $pending["user"]);
-					AuditTrail::track("bigtree_pages", $this->ID, "published");
+					AuditTrail::track("bigtree_pages", $this->ID, "update", "updated via publisher", $pending["user"]);
+					AuditTrail::track("bigtree_pages", $this->ID, "update", "published");
 				} else {
-					AuditTrail::track("bigtree_pages", $this->ID, "updated");
+					AuditTrail::track("bigtree_pages", $this->ID, "update", "updated");
 				}
 			} else {
-				AuditTrail::track("bigtree_pages", $this->ID, "updated");
+				AuditTrail::track("bigtree_pages", $this->ID, "update", "updated");
 			}
 			
 			SQL::update("bigtree_pages", $this->ID, $update);
@@ -1880,7 +1880,7 @@
 			$this->save();
 			
 			// Track a movement
-			AuditTrail::track("bigtree_pages", $this->ID, "moved");
+			AuditTrail::track("bigtree_pages", $this->ID, "update", "moved to another parent");
 		}
 		
 		/*

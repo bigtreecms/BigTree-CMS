@@ -3604,7 +3604,7 @@
 			Parameters:
 				table - The table affected by the user.
 				entry - The primary key of the entry affected by the user.
-				type - The action taken by the user (delete, edit, create, etc.)
+				type - The action taken by the user (add, update, delete)
 		*/
 
 		static function track($table, $entry, $type) {

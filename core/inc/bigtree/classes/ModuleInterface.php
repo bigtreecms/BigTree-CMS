@@ -146,7 +146,7 @@
 			$id = $subset->insert("interfaces", $interface);
 			$interface["id"] = $id;
 			
-			AuditTrail::track("config:modules", $module, "created-interface");
+			AuditTrail::track("config:modules", $module, "update", "created interface");
 			
 			return new ModuleInterface($interface);
 		}
@@ -162,7 +162,7 @@
 			$subset->delete("interfaces", $this->ID);
 			$subset->delete("actions", $this->ID, "interface");
 			
-			AuditTrail::track("config:modules", $this->Module->ID, "deleted-interface");
+			AuditTrail::track("config:modules", $this->Module->ID, "update", "deleted interface");
 			
 			return true;
 		}
@@ -185,7 +185,7 @@
 				"settings" => (array) (isset($this->InterfaceSettings) ? $this->InterfaceSettings : $this->Settings)
 			]);
 			
-			AuditTrail::track("config:modules", $this->Module->ID, "updated-interface");
+			AuditTrail::track("config:modules", $this->Module->ID, "update", "updated interface");
 	
 			return true;
 		}

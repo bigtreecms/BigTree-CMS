@@ -82,7 +82,7 @@
 				"parent" => $parent
 			]);
 			
-			AuditTrail::track("bigtree_resource_folders", $id, "created");
+			AuditTrail::track("bigtree_resource_folders", $id, "add", "created");
 			
 			return new ResourceFolder($id);
 		}
@@ -111,7 +111,7 @@
 			
 			// Delete the folder
 			SQL::delete("bigtree_resource_folders", $this->ID);
-			AuditTrail::track("bigtree_resource_folders", $this->ID, "deleted");
+			AuditTrail::track("bigtree_resource_folders", $this->ID, "delete", "deleted");
 			
 			return true;
 		}
@@ -275,7 +275,7 @@
 					"parent" => intval($this->Parent)
 				]);
 				
-				AuditTrail::track("bigtree_resource_folders", $this->ID, "updated");
+				AuditTrail::track("bigtree_resource_folders", $this->ID, "update", "updated");
 				
 				return true;
 			}

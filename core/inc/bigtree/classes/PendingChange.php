@@ -231,7 +231,7 @@
 			]);
 			
 			ModuleView::cacheForAll($table, $id, true);
-			AuditTrail::track($table, "p".$id, "created-pending");
+			AuditTrail::track($table, "p".$id, "add", "created pending");
 			
 			return new PendingChange($id);
 		}
@@ -309,7 +309,7 @@
 				"publish_hook" => $publish_hook
 			]);
 			
-			AuditTrail::track("bigtree_pages", "p".$id, "created-pending");
+			AuditTrail::track("bigtree_pages", "p".$id, "add", "created pending");
 			
 			return new PendingChange($id);
 		}
@@ -416,7 +416,7 @@
 					"user" => $user ?: $this->User
 				]);
 				
-				AuditTrail::track("bigtree_pending_changes", $this->ID, "updated");
+				AuditTrail::track("bigtree_pending_changes", $this->ID, "update", "updated pending");
 			}
 			
 			return true;

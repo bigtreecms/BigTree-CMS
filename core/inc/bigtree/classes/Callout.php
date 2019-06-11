@@ -237,7 +237,7 @@
 			
 			]);
 			
-			AuditTrail::track("config:callouts", $id, "created");
+			AuditTrail::track("config:callouts", $id, "add", "created");
 			
 			return new Callout($id);
 		}
@@ -276,7 +276,7 @@
 				}
 			}
 			
-			AuditTrail::track("config:callouts", $id, "deleted");
+			AuditTrail::track("config:callouts", $id, "delete", "deleted");
 			
 			return true;
 		}
@@ -319,7 +319,7 @@
 					"extension" => $this->Extension
 				]);
 				
-				AuditTrail::track("config:callouts", $this->ID, "updated");
+				AuditTrail::track("config:callouts", $this->ID, "update", "updated");
 			} else {
 				$new = static::create($this->ID, $this->Name, $this->Description, $this->Level, $this->Fields,
 									  $this->DisplayField, $this->DisplayDefault);

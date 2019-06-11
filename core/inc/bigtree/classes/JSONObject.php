@@ -139,7 +139,7 @@
 			}
 			
 			DB::delete(static::$Store, $this->ID);
-			AuditTrail::track("config:".static::$Store, $this->ID, "deleted");
+			AuditTrail::track("config:".static::$Store, $this->ID, "delete", "deleted");
 			
 			return true;
 		}
@@ -199,10 +199,10 @@
 			
 			if (empty($this->ID) || !DB::exists(static::$Store, $this->ID)) {
 				$this->ID = DB::insert(static::$Store, $insert_data);
-				AuditTrail::track("config:".static::$Store, $this->ID, "created");
+				AuditTrail::track("config:".static::$Store, $this->ID, "add", "created");
 			} else {
 				DB::update(static::$Store, $this->ID, $insert_data);
-				AuditTrail::track("config:".static::$Store, $this->ID, "updated");
+				AuditTrail::track("config:".static::$Store, $this->ID, "update", "updated");
 			}
 			
 			return true;

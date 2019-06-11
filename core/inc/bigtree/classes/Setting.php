@@ -187,7 +187,7 @@
 			SQL::insert("bigtree_settings", ["id" => $id, "encrypted" => $encrypted ? "on" : "", "value" => ""]);
 			
 			
-			AuditTrail::track("config:settings", $id, "created");
+			AuditTrail::track("config:settings", $id, "add", "created");
 			
 			return new Setting($id);
 		}
@@ -241,6 +241,23 @@
 					"system" => $this->System ? "on" : "",
 					"encrypted" => $this->Encrypted ? "on" : ""
 				]);
+
+				// If we changed IDs, leave a notice in the audit trail
+				if ($this->OriginalID != $this->ID) {
+					AuditTrail::track("config:settings", $this->OriginalID, "delete", "changed id to $this->ID");
+					AuditTrail::track("config:settings", $this->ID, "add", "switched from id $this->OriginalID");
+
+					if (SQL::exists("bigtree_settings", $this->OriginalID)) {
+						SQL::update("bigtree_settings", $this->OriginalID, ["id" => $this->ID]);
+					}
+				} else {
+					AuditTrail::track("config:settings", $this->ID, "updated");
+				}
+
+				// If there's no setting value, create it in the DB
+				if (!SQL::exists("bigtree_settings", $this->ID)) {
+					SQL::insert("bigtree_settings", ["id" => $this->ID]);
+				}
 				
 				// If value has changed, set it now
 				if ($this->Value != $this->OriginalValue) {
@@ -271,13 +288,6 @@
 								   Router::$Config["settings_key"], $this->ID);
 					}
 				}
-				
-				// If we changed IDs, leave a notice in the audit trail
-				if ($this->OriginalID != $this->ID) {
-					AuditTrail::track("config:settings", $this->OriginalID, "changed-id");
-				}
-				
-				AuditTrail::track("config:settings", $this->ID, "updated");
 				
 				// Update "original" value tracking
 				$this->OriginalEncrypted = $this->Encrypted;

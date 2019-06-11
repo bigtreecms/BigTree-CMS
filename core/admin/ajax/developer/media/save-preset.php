@@ -83,7 +83,7 @@
 
 	// Update Settings
 	DB::update("config", "media-settings", $settings);
-	AuditTrail::track("config:media-settings", "presets", "updated");
+	AuditTrail::track("config:media-settings", "presets", "update", "updated preset");
 
 	// Return ID for adding presets
 	echo $id;

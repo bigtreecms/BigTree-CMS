@@ -264,7 +264,7 @@
 				"actions" => []
 			]);
 			
-			AuditTrail::track("config:modules", $id, "created");
+			AuditTrail::track("config:modules", $id, "add", "created");
 			
 			return new Module($id);
 		}
@@ -285,7 +285,7 @@
 			FileSystem::deleteDirectory(SERVER_ROOT."custom/admin/modules/".$this->Route."/");
 			
 			DB::delete("modules", $this->ID);
-			AuditTrail::track("config:modules", $this->ID, "deleted");
+			AuditTrail::track("config:modules", $this->ID, "delete", "deleted");
 			
 			return true;
 		}
@@ -537,7 +537,7 @@
 					"gbp" => array_filter((array) $this->GroupBasedPermissions),
 					"developer_only" => $this->DeveloperOnly ? "on" : ""
 				]);
-				AuditTrail::track("config:modules", $this->ID, "updated");
+				AuditTrail::track("config:modules", $this->ID, "update", "updated");
 				
 				// Clear cache file in case class or route changed
 				@unlink(SERVER_ROOT."cache/bigtree-module-cache.json");

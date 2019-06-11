@@ -722,7 +722,7 @@
 			Parameters:
 				table - The table that is being changed
 				id - The id of the record being changed
-				action - The action being taken
+				action - The action being taken (add, update, delete)
 		*/
 
 		static function track($table, $id, $action) {

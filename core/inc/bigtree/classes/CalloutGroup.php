@@ -68,7 +68,7 @@
 				"callouts" => $callouts
 			]);
 			
-			AuditTrail::track("config:callout-groups", $id, "created");
+			AuditTrail::track("config:callout-groups", $id, "add", "created");
 			
 			return new CalloutGroup($id);
 		}
@@ -83,7 +83,7 @@
 		
 		public function delete(): ?bool {
 			if (DB::delete("callout-groups", $this->ID)) {
-				AuditTrail::track("config:callout-groups", $this->ID, "deleted");
+				AuditTrail::track("config:callout-groups", $this->ID, "delete", "deleted");
 				
 				return true;
 			}
@@ -107,10 +107,10 @@
 			
 			if (empty($this->ID)) {
 				$this->ID = DB::insert("callout-groups", $insert_data);
-				AuditTrail::track("config:callout-groups", $this->ID, "created");
+				AuditTrail::track("config:callout-groups", $this->ID, "add", "created");
 			} else {
 				DB::update("callout-groups", $this->ID, $insert_data);
-				AuditTrail::track("config:callout-groups", $this->ID, "updated");
+				AuditTrail::track("config:callout-groups", $this->ID, "update", "updated");
 			}
 			
 			return true;

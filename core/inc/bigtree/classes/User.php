@@ -170,7 +170,7 @@
 			}
 			
 			$id = SQL::insert(static::$Table, $insert);
-			AuditTrail::track(static::$Table, $id, "created");
+			AuditTrail::track(static::$Table, $id, "add", "created");
 			
 			return new User($id);
 		}
@@ -183,7 +183,7 @@
 		public function delete(): ?bool
 		{
 			SQL::delete(static::$Table, $this->ID);
-			AuditTrail::track(static::$Table, $this->ID, "deleted");
+			AuditTrail::track(static::$Table, $this->ID, "delete", "deleted");
 			
 			// Add the user to the deleted users cache
 			$deleted_users = Setting::value("bigtree-internal-security-policy");
@@ -379,7 +379,7 @@
 				}
 				
 				SQL::update(static::$Table, $this->ID, $update_values);
-				AuditTrail::track("bigtree_users", $this->ID, "updated");
+				AuditTrail::track("bigtree_users", $this->ID, "update", "updated");
 				
 				return true;
 			}

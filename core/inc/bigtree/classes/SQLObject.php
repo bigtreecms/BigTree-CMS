@@ -126,7 +126,7 @@
 			}
 			
 			SQL::delete(static::$Table, $this->ID);
-			AuditTrail::track(static::$Table, $this->ID, "deleted");
+			AuditTrail::track(static::$Table, $this->ID, "delete", "deleted");
 			
 			return true;
 		}
@@ -187,10 +187,10 @@
 			
 			if (empty($this->ID)) {
 				$this->ID = SQL::insert(static::$Table, $sql_data);
-				AuditTrail::track(static::$Table, $this->ID, "created");
+				AuditTrail::track(static::$Table, $this->ID, "add", "created");
 			} else {
 				SQL::update(static::$Table, $this->ID, $sql_data);
-				AuditTrail::track(static::$Table, $this->ID, "updated");
+				AuditTrail::track(static::$Table, $this->ID, "update", "updated");
 			}
 			
 			return true;
