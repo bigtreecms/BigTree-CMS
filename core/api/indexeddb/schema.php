@@ -11,10 +11,24 @@
 			Returns the schema layout needed for an IndexedDB instance for cached view data.
 		
 		Method: GET
+	
+		Parameters:
+	 		since - An optional timestamp to return updated data since.
 	 	
 		Returns:
-			An array of schemas
+			A status indicator of whether the schema has changed.
+			If changed (or not passing since) the schema is also returned.
 	*/
+	
+	if ($_GET["since"]) {
+		$since = date("Y-m-d H:i:s", strtotime($_GET["since"]));
+		$updated = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_audit_trail
+									 WHERE `table` = 'config:schema' AND `date` >= ? AND `type` = 'update'", $since);
+		
+		if (!$updated) {
+			API::sendResponse(["status" => "unchanged"]);
+		}
+	}
 	
 	$schema = [
 		"pages" => [
@@ -94,7 +108,8 @@
 			"columns" => [
 				"id",
 				"title",
-				"position"
+				"position",
+				"route"
 			],
 			"indexes" => [
 				"position"
@@ -105,9 +120,10 @@
 			"columns" => [
 				"id",
 				"group",
-				"title",
+				"name",
 				"position",
-				"actions"
+				"actions",
+				"route"
 			],
 			"indexes" => [
 				"group",
@@ -154,5 +170,5 @@
 		}
 	}
 	
-	API::sendResponse($schema);
+	API::sendResponse(["status" => !empty($_GET["since"]) ? "changed" : "new", "schema" => $schema]);
 	

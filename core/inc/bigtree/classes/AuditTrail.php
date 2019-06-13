@@ -21,7 +21,7 @@
 				user_id - A user ID to override the logged in user's ID
 		*/
 		
-		public static function track(string $table, string $entry, string $type, string $action,
+		public static function track(string $table, ?string $entry, string $type, string $action,
 									 ?int $user_id = null): void
 		{
 			$user = !is_null($user_id) ? $user_id : Auth::user()->ID;

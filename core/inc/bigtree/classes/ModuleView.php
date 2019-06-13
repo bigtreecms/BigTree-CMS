@@ -311,6 +311,10 @@
 			$table_description = SQL::describeTable("bigtree_module_view_cache");
 			$column_count = count($table_description["columns"]) - 13;
 			
+			if ($field_count > $column_count) {
+				AuditTrail::track("config:schema", null, "update", "added column(s) to view cache");
+			}
+
 			while ($field_count > $column_count) {
 				$column_count++;
 				SQL::query("ALTER TABLE bigtree_module_view_cache ADD COLUMN column$column_count TEXT NOT NULL AFTER column".($column_count - 1));
