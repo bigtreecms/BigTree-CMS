@@ -130,45 +130,38 @@
 				"position"
 			],
 			"key" => "id"
+		],
+		"module-view-cache" => [
+			"columns" => [
+				"key",
+				"view",
+				"id",
+				"gbp_field",
+				"published_gbp_field",
+				"group_field",
+				"sort_field",
+				"group_sort_field",
+				"position",
+				"archived",
+				"featured",
+				"status",
+				"pending_owner"
+			],
+			"indexes" => [
+				"view",
+				"id",
+				"group_field",
+				"sort_field",
+				"group_sort_field",
+				"position"
+			],
+			"key" => "key"
 		]
 	];
 	
-	$modules = DB::getAll("modules");
-	
-	foreach ($modules as $module) {
-		foreach ($module["interfaces"] as $interface) {
-			if ($interface["type"] == "view") {
-				$view_schema = [
-					"columns" => [
-						"id",
-						"gbp_field",
-						"published_gbp_field",
-						"group_field",
-						"sort_field",
-						"group_sort_field",
-						"position",
-						"archived",
-						"featured",
-						"status",
-						"pending_owner"
-					],
-					"indexes" => [
-						"group_field",
-						"sort_field",
-						"group_sort_field",
-						"position"
-					],
-					"key" => "id"
-				];
-				
-				for ($x = 1; $x <= count($interface["settings"]["fields"]); $x++) {
-					$view_schema["columns"][] = "column".$x;
-				}
-				
-				$schema[$module["id"]."-".$interface["id"]] = $view_schema;
-			}
-		}
-	}
-	
-	API::sendResponse(["status" => !empty($_GET["since"]) ? "changed" : "new", "schema" => $schema]);
+	API::sendResponse([
+		"status" => !empty($_GET["since"]) ? "changed" : "new",
+		"revision" => BIGTREE_INDEXEDDB_SCHEMA_REVISION,
+		"schema" => $schema
+	]);
 	

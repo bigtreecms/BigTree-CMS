@@ -20,6 +20,7 @@
 		<title><?=$site->NavigationTitle?> Login</title>
 		<link rel="stylesheet" href="<?=$root?>css/main.less" type="text/css" media="screen" charset="utf-8" />
 		<script src="<?=$root?>js/lib.js"></script>
+		<script src="<?=$root?>js/login.js"></script>
 		<script src="<?=$root?>js/main.js"></script>
 	</head>
 	<body class="login<?php if (defined("ADMIN_BODY_CLASS")) { echo " ".ADMIN_BODY_CLASS; } ?>">

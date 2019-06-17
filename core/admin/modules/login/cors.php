@@ -31,7 +31,7 @@
 				Completed++;
 
 				if (Completed == Total) {
-					document.location.href = "<?=ADMIN_ROOT?>login/cors-complete/?key=" + escape("<?=$_GET["key"]?>");
+					document.location.href = "<?=ADMIN_ROOT?>login/indexed-db/?key=" + escape("<?=$_GET["key"]?>");
 				}
 			});
 		}
