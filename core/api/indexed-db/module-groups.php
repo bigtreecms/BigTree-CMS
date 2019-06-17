@@ -17,7 +17,7 @@
 	if (empty($_GET["since"])) {
 		$groups = DB::getAll("module-groups");
 		
-		API::sendResponse(["insert" => ["module-groups" => $groups]]);
+		API::sendResponse(["insert" => $groups]);
 	}
 	
 	$actions = [];
@@ -31,7 +31,7 @@
 	
 	// Run deletes first, don't want to pass creates/updates for something deleted
 	foreach ($audit_trail_deletes as $item) {
-		$actions["delete"]["module-groups"][] = $item["entry"];
+		$actions["delete"][] = $item["entry"];
 		$deleted_records[] = $item["entry"];
 	}
 	
@@ -48,7 +48,7 @@
 		$group = DB::get("module-groups", $item["entry"]);
 		
 		if ($group) {
-			$actions["insert"]["module-groups"][] = $group;
+			$actions["insert"][] = $group;
 			$created_records[] = $item["entry"];
 		}
 	}
@@ -66,7 +66,7 @@
 		$group = DB::get("module-groups", $item["entry"]);
 		
 		if ($group) {
-			$actions["update"]["module-groups"][$item["entry"]] = $group;
+			$actions["update"][$item["entry"]] = $group;
 		}
 	}
 	

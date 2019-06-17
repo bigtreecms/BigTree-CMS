@@ -17,7 +17,7 @@
 	if (empty($_GET["since"])) {
 		$users = SQL::fetchAll("SELECT id, name, email, company, level FROM bigtree_users");
 		
-		API::sendResponse(["insert" => ["users" => $users]]);
+		API::sendResponse(["insert" => $users]);
 	}
 	
 	$actions = [];
@@ -31,7 +31,7 @@
 	
 	// Run deletes first, don't want to pass creates/updates for something deleted
 	foreach ($audit_trail_deletes as $item) {
-		$actions["delete"]["users"][] = $item["entry"];
+		$actions["delete"][] = $item["entry"];
 		$deleted_records[] = $item["entry"];
 	}
 	
@@ -48,7 +48,7 @@
 		$user = SQL::fetch("SELECT id, name, email, company, level FROM bigtree_users WHERE id = ?", $item["entry"]);
 		
 		if ($user) {
-			$actions["insert"]["users"][] = $user;
+			$actions["insert"][] = $user;
 			$created_records[] = $item["entry"];
 		}
 	}
@@ -66,7 +66,7 @@
 		$user = SQL::fetch("SELECT id, name, email, company, level FROM bigtree_users WHERE id = ?", $item["entry"]);
 		
 		if ($user) {
-			$actions["update"]["users"][$item["entry"]] = $user;
+			$actions["update"][$item["entry"]] = $user;
 		}
 	}
 	

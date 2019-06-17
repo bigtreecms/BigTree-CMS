@@ -63,7 +63,7 @@
 			];
 		}
 			
-		API::sendResponse(["insert" => ["pages" => $pages]]);
+		API::sendResponse(["insert" => $pages]);
 	}
 	
 	$actions = [];
@@ -77,7 +77,7 @@
 	
 	// Run deletes first, don't want to pass creates/updates for something deleted
 	foreach ($audit_trail_deletes as $item) {
-		$actions["delete"]["pages"][] = $item["entry"];
+		$actions["delete"][] = $item["entry"];
 		$deleted_records[] = $item["entry"];
 	}
 	
@@ -149,13 +149,13 @@
 			$record = $get_latest_record($item["entry"]);
 			
 			if ($record) {
-				$actions["insert"]["pages"][] = $record;
+				$actions["insert"][] = $record;
 			}
 		} else {
 			$record = $get_latest_pending_record($item["entry"]);
 			
 			if ($record) {
-				$actions["insert"]["pages"][] = $record;
+				$actions["insert"][] = $record;
 			}
 		}
 		
@@ -176,13 +176,13 @@
 			$record = $get_latest_record($item["entry"]);
 			
 			if ($record) {
-				$actions["update"]["pages"][$item["entry"]] = $record;
+				$actions["update"][$item["entry"]] = $record;
 			}
 		} else {
 			$record = $get_latest_pending_record($item["entry"]);
 			
 			if ($record) {
-				$actions["update"]["pages"][$item["entry"]] = $record;
+				$actions["update"][$item["entry"]] = $record;
 			}
 		}
 	}

@@ -45,7 +45,7 @@
 			];
 		}
 		
-		API::sendResponse(["insert" => ["settings" => $settings]]);
+		API::sendResponse(["insert" => $settings]);
 	}
 	
 	$actions = [];
@@ -59,7 +59,7 @@
 	
 	// Run deletes first, don't want to pass creates/updates for something deleted
 	foreach ($audit_trail_deletes as $item) {
-		$actions["delete"]["settings"][] = $item["entry"];
+		$actions["delete"][] = $item["entry"];
 		$deleted_records[] = $item["entry"];
 	}
 	
@@ -76,7 +76,7 @@
 		$setting = DB::get("settings", $item["entry"]);
 		
 		if ($setting) {
-			$actions["insert"]["settings"][] = [
+			$actions["insert"][] = [
 				"id" => $setting["id"],
 				"title" => $setting["name"],
 				"value" => $get_setting_value($setting["id"])
@@ -102,7 +102,7 @@
 		}
 		
 		$setting = DB::get("settings", $item["entry"]);
-		$actions["update"]["settings"][$item["entry"]] = [
+		$actions["update"][$item["entry"]] = [
 			"id" => $item["entry"],
 			"title" => $setting["name"],
 			"value" => $get_setting_value($item["entry"])

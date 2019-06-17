@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	/*
-	 	Function: indexeddb/module-views
+	 	Function: indexeddb/view-cache
 			Returns an array of IndexedDB commands for either caching a new set of module view data or updating an existing data set.
 		
 		Method: GET
@@ -16,12 +16,9 @@
 	
 	$record_for_view = function($view, $item) {
 		unset($item["view"]);
+		$item["key"] = $view["schema-id"]."-".$item["id"];
 		
-		if (!is_array($view["settings"]["fields"])) {
-			return array_slice($item, 0, 12);
-		} else {
-			return array_slice($item, 0, 12 + count($view["settings"]["fields"]));
-		}
+		return $item;
 	};
 	
 	$modules = DB::getAll("modules");
@@ -42,7 +39,7 @@
 			$rows = SQL::fetchAll("SELECT * FROM bigtree_module_view_cache WHERE view = ?", $view["id"]);
 			
 			foreach ($rows as $row) {
-				$actions["insert"][$view["schema-id"]][] = $record_for_view($view, $row);
+				$actions["insert"][] = $record_for_view($view, $row);
 			}
 		}
 		
@@ -60,7 +57,7 @@
 		
 		// Run deletes first, don't want to pass creates/updates for something deleted
 		foreach ($audit_trail_deletes as $item) {
-			$actions["delete"][$view["schema-id"]][] = $item["entry"];
+			$actions["delete"][] = $view["schema-id"]."-".$item["entry"];
 			$deleted_records[] = $item["entry"];
 		}
 		
@@ -78,7 +75,7 @@
 								 $view["id"], $item["entry"]);
 			
 			if ($record) {
-				$actions["insert"][$view["schema-id"]][] = $record_for_view($view, $record);
+				$actions["insert"][] = $record_for_view($view, $record);
 				$created_records[] = $item["entry"];
 			}
 		}
@@ -97,7 +94,7 @@
 								 $view["id"], $item["entry"]);
 			
 			if ($record) {
-				$actions["update"][$view["schema-id"]][$item["entry"]] = $record_for_view($view, $record);
+				$actions["update"][$view["schema-id"].$item["entry"]] = $record_for_view($view, $record);
 			}
 		}
 	}

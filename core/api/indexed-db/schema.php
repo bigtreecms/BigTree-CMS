@@ -161,7 +161,6 @@
 	
 	API::sendResponse([
 		"status" => !empty($_GET["since"]) ? "changed" : "new",
-		"revision" => BIGTREE_INDEXEDDB_SCHEMA_REVISION,
 		"schema" => $schema
 	]);
 	

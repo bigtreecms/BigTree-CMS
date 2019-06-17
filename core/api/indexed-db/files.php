@@ -32,7 +32,7 @@
 			$files[$index] = $get_imaged_file($file);
 		}
 		
-		API::sendResponse(["insert" => ["files" => $files]]);
+		API::sendResponse(["insert" => $files]);
 	}
 	
 	$actions = [];
@@ -46,7 +46,7 @@
 	
 	// Run deletes first, don't want to pass creates/updates for something deleted
 	foreach ($audit_trail_deletes as $item) {
-		$actions["delete"]["files"][] = $item["entry"];
+		$actions["delete"][] = $item["entry"];
 		$deleted_records[] = $item["entry"];
 	}
 	
@@ -83,7 +83,7 @@
 							WHERE id = ?", $item["entry"]);
 		
 		if ($file) {
-			$actions["update"]["files"][$item["entry"]] = $get_imaged_file($file);
+			$actions["update"][$item["entry"]] = $get_imaged_file($file);
 		}
 	}
 	
