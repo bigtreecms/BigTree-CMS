@@ -9,7 +9,7 @@
 	if ($_POST["password"] && !User::validatePassword($_POST["password"])) {
 		$_SESSION["bigtree_admin"]["update_user"] = $_POST;
 		$_SESSION["bigtree_admin"]["update_user"]["error"] = "password";
-		Utils::growl("Users","Invalid Password","error");
+		Admin::growl("Users","Invalid Password","error");
 		Router::redirect(ADMIN_ROOT."users/edit/$id/");
 	}
 
@@ -49,12 +49,12 @@
 	if ($error !== false) {
 		$_SESSION["bigtree_admin"]["update_user"] = $_POST;
 		$_SESSION["bigtree_admin"]["update_user"]["error"] = $error;
-		Utils::growl("Users","Update Failed","error");
+		Admin::growl("Users","Update Failed","error");
 
 		Router::redirect(ADMIN_ROOT."users/edit/$id/");
 	}
 	
-	Utils::growl("Users","Updated User");
+	Admin::growl("Users","Updated User");
 	
 	Router::redirect(ADMIN_ROOT."users/");
 	

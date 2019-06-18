@@ -17,7 +17,7 @@
 	$setting = new Setting($_POST["id"]);
 	
 	if ($setting->System || ($setting->Locked && Auth::user()->Level < 2)) {
-		Utils::growl("Settings", "Access Denied", "error");
+		Admin::growl("Settings", "Access Denied", "error");
 	} else {
 		$bigtree["crops"] = [];
 		$bigtree["errors"] = [];
@@ -45,7 +45,7 @@
 			$setting->save();
 		}
 		
-		Utils::growl("Settings", "Updated Setting");
+		Admin::growl("Settings", "Updated Setting");
 	}
 	
 	$_SESSION["bigtree_admin"]["form_data"] = [

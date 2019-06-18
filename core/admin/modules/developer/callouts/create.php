@@ -27,6 +27,6 @@
 		Router::redirect(DEVELOPER_ROOT."callouts/add/");
 	}
 		
-	Utils::growl("Developer","Created Callout");
+	Admin::growl("Developer","Created Callout");
 	
 	Router::redirect(DEVELOPER_ROOT."callouts/");

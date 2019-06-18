@@ -680,7 +680,7 @@
 				header("Location: https://www.flickr.com/services/oauth/authorize?perms=delete&oauth_token=".$oauth_token);
 				die();
 			} else {
-				Utils::growl($oauth_problem, "Flickr API", "error");
+				Admin::growl($oauth_problem, "Flickr API", "error");
 				Router::redirect(ADMIN_ROOT."developer/services/flickr/");
 			}
 		}

@@ -20,7 +20,7 @@
 		!empty($_POST["open_graph"])
 	);
 
-	Utils::growl("Developer","Updated Module Form");
+	Admin::growl("Developer","Updated Module Form");
 
 	if ($_POST["return_page"]) {
 		Router::redirect($_POST["return_page"]);

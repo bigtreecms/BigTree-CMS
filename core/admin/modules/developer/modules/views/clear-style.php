@@ -16,6 +16,6 @@
 	// Save and update column status
 	$view->refreshNumericColumns();
 
-	Utils::growl("Developer","Reset View Styles");
+	Admin::growl("Developer","Reset View Styles");
 	Router::redirect(DEVELOPER_ROOT."modules/edit/".$view->Module."/");
 	

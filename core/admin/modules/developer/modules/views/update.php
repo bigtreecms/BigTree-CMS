@@ -111,7 +111,7 @@
 		);
 		$view->clearCache();
 
-		Utils::growl("Developer","Updated View");
+		Admin::growl("Developer","Updated View");
 
 		if ($_POST["return_page"]) {
 			Router::redirect($_POST["return_page"]);

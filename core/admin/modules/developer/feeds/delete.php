@@ -10,6 +10,6 @@
 	$feed = new Feed($_GET["id"]);
 	$feed->delete();
 
-	Utils::growl("Developer","Deleted Feed");
+	Admin::growl("Developer","Deleted Feed");
 	Router::redirect(DEVELOPER_ROOT."feeds/");
 	

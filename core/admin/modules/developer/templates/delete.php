@@ -10,6 +10,6 @@
 	$template = new Template($_GET["id"]);
 	$template->delete();
 	
-	Utils::growl("Developer","Deleted Template");
+	Admin::growl("Developer","Deleted Template");
 	Router::redirect(DEVELOPER_ROOT."templates/");
 	

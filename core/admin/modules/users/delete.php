@@ -11,16 +11,16 @@
 	$id = intval($_GET["id"]);
 	
 	if ($id == Auth::user()->ID) {
-		Utils::growl("Users", "You cannot delete your own user.", "error");
+		Admin::growl("Users", "You cannot delete your own user.", "error");
 	} else {
 		$user = new User($id);
 		
 		// If this person has higher access levels than the person trying to update them, fail.
 		if ($user->Level > Auth::user()->Level) {
-			Utils::growl("Users", "Deleting User Failed", "error");
+			Admin::growl("Users", "Deleting User Failed", "error");
 		} else {
 			$user->delete();
-			Utils::growl("Users", "Deleted User");
+			Admin::growl("Users", "Deleted User");
 		}
 	}
 	

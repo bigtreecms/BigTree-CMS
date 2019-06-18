@@ -14,7 +14,7 @@
 	$update = $updates[$_GET["type"]];
 	
 	if (!$update) {
-		Utils::growl("Developer","Couldn't Get Download Information","error");
+		Admin::growl("Developer","Couldn't Get Download Information","error");
 		Router::redirect(DEVELOPER_ROOT);
 	}
 

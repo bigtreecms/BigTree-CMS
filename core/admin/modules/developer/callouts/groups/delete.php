@@ -10,6 +10,6 @@
 	$group = new CalloutGroup($_GET["id"]);
 	$group->delete();
 
-	Utils::growl("Developer","Deleted Callout Group");
+	Admin::growl("Developer","Deleted Callout Group");
 	Router::redirect(DEVELOPER_ROOT."callouts/groups/");
 	

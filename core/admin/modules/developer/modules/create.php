@@ -21,13 +21,13 @@
 		
 		// Save user entry and redirect back
 		$_SESSION["bigtree_admin"]["saved"] = $_POST;
-		Utils::growl("Developer","Invalid Route");
+		Admin::growl("Developer","Invalid Route");
 		Router::redirect(DEVELOPER_ROOT."modules/add/?error=route");
 	}
 	
 	// If this thing doesn't have a table it's probably being manually created - can't create a view/form for it
 	if (!$_POST["table"]) {
-		Utils::growl("Developer","Created Module");
+		Admin::growl("Developer","Created Module");
 		Router::redirect(DEVELOPER_ROOT."modules/");
 	}
 ?>

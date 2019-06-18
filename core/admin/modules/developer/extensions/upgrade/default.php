@@ -17,7 +17,7 @@
 	$extension_info = $info[$_GET["id"]];
 	
 	if (!$extension_info) {
-		Utils::growl("Extensions","Failed to get download information");
+		Admin::growl("Extensions","Failed to get download information");
 		Router::redirect(DEVELOPER_ROOT."extensions/");
 	}
 	

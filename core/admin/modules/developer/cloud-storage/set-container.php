@@ -54,7 +54,7 @@
 		if ($success) {
 			$storage->Settings["Container"] = $container;
 		} else {
-			Utils::growl("Developer", "Failed to create container.", "error");
+			Admin::growl("Developer", "Failed to create container.", "error");
 			Router::redirect(DEVELOPER_ROOT."cloud-storage/");
 		}
 	}
@@ -64,10 +64,10 @@
 		$check = $cloud->getContainerPage($storage->Settings->Container);
 		
 		if ($check === false) {
-			Utils::growl("Developer", "Failed to read bucket.", "error");
+			Admin::growl("Developer", "Failed to read bucket.", "error");
 			Router::redirect(DEVELOPER_ROOT."cloud-storage/");
 		} else {
-			Utils::growl("Developer", "Changed Default Storage");
+			Admin::growl("Developer", "Changed Default Storage");
 			Router::redirect(DEVELOPER_ROOT."cloud-storage/amazon/recache/");
 		}
 	}
@@ -77,7 +77,7 @@
 	$container = $cloud->getContainer($storage->Settings["Container"], true);
 	
 	if ($container === false) {
-		Utils::growl("Developer", "Failed to read container.", "error");
+		Admin::growl("Developer", "Failed to read container.", "error");
 		Router::redirect(DEVELOPER_ROOT."cloud-storage/");
 	}
 	
@@ -85,5 +85,5 @@
 	$cloud->resetCache($container);
 	
 	Setting::updateValue("bigtree-internal-storage", $storage->Settings, true);
-	Utils::growl("Developer", "Changed Default Storage");
+	Admin::growl("Developer", "Changed Default Storage");
 	Router::redirect(DEVELOPER_ROOT."cloud-storage/");

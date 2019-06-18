@@ -19,7 +19,7 @@
 		$containers = $cloud->listContainers();
 		
 		if ($containers === false) {
-			Utils::growl("Developer","Invalid Cloud Storage Setup: ".ucwords($_POST["service"]),"error");
+			Admin::growl("Developer","Invalid Cloud Storage Setup: ".ucwords($_POST["service"]),"error");
 			Router::redirect(DEVELOPER_ROOT."cloud-storage/");
 		} else {
 			$service_names = [
@@ -105,7 +105,7 @@
 		$storage->Settings["Service"] = "local";
 		
 		Setting::updateValue("bigtree-internal-storage", $storage->Settings, true);
-		Utils::growl("Developer","Changed Default Storage");
+		Admin::growl("Developer","Changed Default Storage");
 		Router::redirect(DEVELOPER_ROOT);
 	}
 ?>

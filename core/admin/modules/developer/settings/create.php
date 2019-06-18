@@ -8,7 +8,7 @@
 							   $_POST["encrypted"], $_POST["locked"]);
 
 	if ($setting) {
-		Utils::growl("Developer","Created Setting");
+		Admin::growl("Developer","Created Setting");
 		Router::redirect(DEVELOPER_ROOT."settings/");
 	} else {
 		$_SESSION["bigtree_admin"]["developer"]["setting_data"] = $_POST;

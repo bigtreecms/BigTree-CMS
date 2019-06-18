@@ -20,6 +20,6 @@
 		Router::redirect(DEVELOPER_ROOT."field-types/add/");
 	}
 	
-	Utils::growl("Developer", "Created Field Type");
+	Admin::growl("Developer", "Created Field Type");
 	Router::redirect(DEVELOPER_ROOT."field-types/new/$id/");
 	

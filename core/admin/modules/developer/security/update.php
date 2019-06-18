@@ -30,6 +30,6 @@
 		"logout_all" => !empty($_POST["logout_all"]) ? "on" : ""
 	]);
 	
-	Utils::growl("Security", "Updated Policy");
+	Admin::growl("Security", "Updated Policy");
 	Router::redirect(DEVELOPER_ROOT);
 	

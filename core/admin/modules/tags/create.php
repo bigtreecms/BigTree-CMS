@@ -4,12 +4,12 @@
 	$tag_string = trim($_POST["tag"]);
 
 	if (empty($tag_string)) {
-		Utils::growl("Tags", "Tag Name Was Empty", "error");
+		Admin::growl("Tags", "Tag Name Was Empty", "error");
 		Router::redirect(ADMIN_ROOT."tags/add/");
 	}
 	
 	if (SQL::exists("bigtree_tags", ["tag" => strtolower(html_entity_decode($tag_string))])) {
-		Utils::growl("Tags", "Tag Already Exists", "error");
+		Admin::growl("Tags", "Tag Already Exists", "error");
 		Router::redirect(ADMIN_ROOT."tags/add/");
 	}
 
@@ -22,6 +22,6 @@
 		}
 	}
 
-	Utils::growl("Tags", "Created Tag");
+	Admin::growl("Tags", "Created Tag");
 	Router::redirect(ADMIN_ROOT."tags/");
 	

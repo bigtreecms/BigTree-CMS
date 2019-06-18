@@ -63,7 +63,7 @@
 
 		// No ID match? Bad URL.
 		if ($result === false) {
-			Utils::growl("Files", "Invalid URL", "error");
+			Admin::growl("Files", "Invalid URL", "error");
 			Router::redirect($_SERVER["HTTP_REFERER"]."?error=The URL you entered is not a valid YouTube URL.");
 		// Got our YouTube ID
 		} else {
@@ -72,7 +72,7 @@
 			$oembed_data = json_decode(cURL::request("https://www.youtube.com/oembed?url=".urlencode("https://youtube.com/watch?v=".$video_id)), true);
 
 			if (empty($oembed_data["html"])) {
-				Utils::growl("Files", "Invalid URL", "error");
+				Admin::growl("Files", "Invalid URL", "error");
 				Router::redirect($_SERVER["HTTP_REFERER"]."?error=The URL you entered is not a valid YouTube video URL.");
 			}
 
@@ -155,12 +155,12 @@
 			];
 		// No video :(
 		} else {
-			Utils::growl("Files", "Invalid URL", "error");
+			Admin::growl("Files", "Invalid URL", "error");
 			Router::redirect($_SERVER["HTTP_REFERER"]."?error=The URL you entered is not a valid Vimeo video URL.");
 		}
 	// Invalid URL
 	} else {
-		Utils::growl("Files", "Invalid URL", "error");
+		Admin::growl("Files", "Invalid URL", "error");
 		Router::redirect($_SERVER["HTTP_REFERER"]."?error=The URL you entered is not a valid video service URL.");
 	}
 
@@ -194,7 +194,7 @@
 
 	$video["image"] = $field->processImageUpload();
 	$resource = Resource::create($_POST["folder"], null, null, $type = "video", [], [], $video);
-	Utils::growl("Files", "Created Video");
+	Admin::growl("Files", "Created Video");
 
 	$_SESSION["bigtree_admin"]["form_data"] = [
 		"edit_link" => ADMIN_ROOT."files/folder/".intval(Router::$Commands[0])."/",

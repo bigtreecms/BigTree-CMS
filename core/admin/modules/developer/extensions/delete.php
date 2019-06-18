@@ -10,6 +10,6 @@
 	$extension = new Extension($_GET["id"]);
 	$extension->delete();
 	
-	Utils::growl("Developer", "Uninstalled Extension");
+	Admin::growl("Developer", "Uninstalled Extension");
 	Router::redirect(DEVELOPER_ROOT."extensions/");
 	

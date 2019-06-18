@@ -16,6 +16,6 @@
 	$data["settings"]["payflow-environment"] = $_POST["payflow-environment"];
 	
 	Setting::updateValue("bigtree-internal-payment-gateway", $data, true);
-	Utils::growl("Developer", "Updated Payment Gateway");
+	Admin::growl("Developer", "Updated Payment Gateway");
 	Router::redirect(DEVELOPER_ROOT);
 	

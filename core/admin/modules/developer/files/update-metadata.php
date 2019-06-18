@@ -27,5 +27,5 @@
 		"video" => $metadata["video"]
 	]);
 	
-	Utils::growl("File Metadata", "Updated Fields");
+	Admin::growl("File Metadata", "Updated Fields");
 	Router::redirect(DEVELOPER_ROOT."files/");

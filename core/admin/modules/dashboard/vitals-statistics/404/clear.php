@@ -4,7 +4,7 @@
 	if (isset($_POST["clear"])) {
 		CSRF::verify();
 		Redirect::clearEmpty();
-		Utils::growl("404 Report","Cleared 404s");
+		Admin::growl("404 Report","Cleared 404s");
 		
 		Router::redirect(ADMIN_ROOT."dashboard/vitals-statistics/404/");
 	} else {

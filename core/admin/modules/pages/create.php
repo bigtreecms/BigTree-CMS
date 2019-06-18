@@ -56,7 +56,7 @@
 		$did_publish = true;
 
 		OpenGraph::handleData("bigtree_pages", $page_id, $_POST["_open_graph_"], $og_files["image"]);
-		Utils::growl("Pages", "Created & Published Page");
+		Admin::growl("Pages", "Created & Published Page");
 	} else {
 		$og_change_data = OpenGraph::handleData(null, null, $_POST["_open_graph_"], $og_files["image"], true);
 		$change = PendingChange::createPage($_POST["trunk"] ? true : false, $_POST["parent"], $_POST["in_nav"] ? true : false, 
@@ -68,7 +68,7 @@
 		$page_id = "p".$change->ID;
 		$did_publish = false;
 		
-		Utils::growl("Pages", "Created Page Draft");
+		Admin::growl("Pages", "Created Page Draft");
 	}
 	
 	// Run any post-processing hook

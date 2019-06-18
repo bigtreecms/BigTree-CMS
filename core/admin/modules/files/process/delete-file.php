@@ -15,6 +15,6 @@
 
 	$file->delete();
 	
-	Utils::growl("File Manager", "Deleted File");
+	Admin::growl("File Manager", "Deleted File");
 	Router::redirect(ADMIN_ROOT."files/folder/".$file->Folder."/");
 	

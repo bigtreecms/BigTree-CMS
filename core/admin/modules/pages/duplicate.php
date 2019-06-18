@@ -14,6 +14,6 @@
 	
 	$pending = $page->copyToPending(Text::translate(" (Copy)"));
 
-	Utils::growl("Pages", "Duplicated Page");
+	Admin::growl("Pages", "Duplicated Page");
 	Router::redirect(ADMIN_ROOT."pages/edit/p".$pending->ID."/");
 	

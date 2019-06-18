@@ -84,7 +84,7 @@
 			$page_id = $page->ID;
 			
 			Resource::updatePendingAllocation($change->ID, "bigtree_pages", $page->ID);
-			Utils::growl("Pages", "Created & Published Page");
+			Admin::growl("Pages", "Created & Published Page");
 		} else {
 			// It's an existing page.
 			$page->update($trunk, $_POST["parent"], $_POST["in_nav"], $_POST["nav_title"], $_POST["title"],
@@ -96,7 +96,7 @@
 			$page_id = $page->ID;
 			
 			Resource::allocate("bigtree_pages", $page_id);
-			Utils::growl("Pages", "Updated Page");
+			Admin::growl("Pages", "Updated Page");
 		}
 		
 		OpenGraph::handleData("bigtree_pages", $page_id, $_POST["_open_graph_"], $og_files["image"]);
@@ -110,7 +110,7 @@
 		$change_id = Page::createChangeRequest($id, $_POST, array_filter((array) $_POST["_tags"]), $og_pending_data);
 
 		Resource::allocate("bigtree_pending_changes", $change_id);
-		Utils::growl("Pages", "Saved Page Draft");
+		Admin::growl("Pages", "Saved Page Draft");
 	}
 	
 	// Run any post-processing hook

@@ -16,13 +16,13 @@
 	$amazon->listContainers();
 	
 	if (count($amazon->Errors)) {
-		Utils::growl("Developer","Amazon S3 secret/key are invalid.","error");
+		Admin::growl("Developer","Amazon S3 secret/key are invalid.","error");
 		Router::redirect(DEVELOPER_ROOT."cloud-storage/amazon/");
 	}
 
 	$amazon->Active = true;
 
 	Setting::updateValue($amazon->SettingID, $amazon->Settings, true);
-	Utils::growl("Developer","Enabled Amazon S3");
+	Admin::growl("Developer","Enabled Amazon S3");
 	Router::redirect(DEVELOPER_ROOT."cloud-storage/");
 	

@@ -12,7 +12,7 @@
 		$_SESSION["bigtree_admin"]["create_user"] = $_POST;
 		$_SESSION["bigtree_admin"]["create_user"]["error"] = "password";
 		
-		Utils::growl("Users", "Invalid Password", "error");
+		Admin::growl("Users", "Invalid Password", "error");
 		Router::redirect(ADMIN_ROOT."users/add/");
 	}
 	
@@ -28,10 +28,10 @@
 		$_SESSION["bigtree_admin"]["create_user"] = $_POST;
 		$_SESSION["bigtree_admin"]["create_user"]["error"] = "email";
 		
-		Utils::growl("Users", "Creation Failed", "error");
+		Admin::growl("Users", "Creation Failed", "error");
 		Router::redirect(ADMIN_ROOT."users/add/");
 	}
 	
-	Utils::growl("Users", "Added User");
+	Admin::growl("Users", "Added User");
 	Router::redirect(ADMIN_ROOT."users/edit/".$user->ID."/");
 	

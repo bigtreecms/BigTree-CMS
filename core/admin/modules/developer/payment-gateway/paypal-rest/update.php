@@ -15,10 +15,10 @@
 	$gateway = new PaymentGateway\PayPalREST;
 	
 	if (!$gateway->getToken()) {
-		Utils::growl("PayPal REST API", $gateway->Errors[0], "error");
+		Admin::growl("PayPal REST API", $gateway->Errors[0], "error");
 		Router::redirect(DEVELOPER_ROOT."payment-gateway/paypal-rest/");
 	}
 	
-	Utils::growl("Developer", "Updated Payment Gateway");
+	Admin::growl("Developer", "Updated Payment Gateway");
 	Router::redirect(DEVELOPER_ROOT);
 	

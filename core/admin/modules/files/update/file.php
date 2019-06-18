@@ -119,7 +119,7 @@
 	}
 	
 	$file->save();
-	Utils::growl("File Manager", "Updated File");
+	Admin::growl("File Manager", "Updated File");
 	
 	$_SESSION["bigtree_admin"]["form_data"] = [
 		"edit_link" => ADMIN_ROOT."files/edit/file/".$_POST["id"]."/",

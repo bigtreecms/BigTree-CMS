@@ -58,7 +58,7 @@
 		}
 	}
 
-	Utils::growl("File Manager", "Uploaded Files");
+	Admin::growl("File Manager", "Uploaded Files");
 	
 	if (count($bigtree["errors"])) {
 ?>

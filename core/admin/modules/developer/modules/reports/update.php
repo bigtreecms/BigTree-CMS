@@ -18,7 +18,7 @@
 		$_POST["view"]
 	);
 
-	Utils::growl("Developer","Updated Module Report");
+	Admin::growl("Developer","Updated Module Report");
 
 	if ($_POST["return_page"]) {
 		Router::redirect($_POST["return_page"]);

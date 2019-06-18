@@ -133,12 +133,12 @@
 		// We have an existing module entry we're saving a change to.
 		if ($edit_id) {
 			$change_allocation_id = $form->createChangeRequest($edit_id, $content, $many_to_many, $tags, $og_changes);
-			Utils::growl($module->Name, "Saved ".$form->Title." Draft");
+			Admin::growl($module->Name, "Saved ".$form->Title." Draft");
 			Resource::allocate($form->Table, "p".$change_allocation_id);
 		// It's a new entry, so we create a pending item.
 		} else {
 			$edit_id = "p".$form->createPendingEntry($content, $many_to_many, $tags, $og_changes);
-			Utils::growl($module->Name, "Created ".$form->Title." Draft");
+			Admin::growl($module->Name, "Created ".$form->Title." Draft");
 			Resource::allocate($form->Table, $edit_id);
 		}
 	// We're a publisher and we want to publish
@@ -153,7 +153,7 @@
 				$did_publish = true;
 				
 				Resource::updatePendingAllocation($pending_id, $form->Table, $edit_id);
-				Utils::growl($module->Name, "Updated & Published ".$form->Title);
+				Admin::growl($module->Name, "Updated & Published ".$form->Title);
 			// Otherwise we're updating something that is already published
 			} else {
 				$pending_change_id = SQL::fetchSingle("SELECT id FROM bigtree_pending_changes
@@ -168,7 +168,7 @@
 				$did_publish = true;
 				
 				Resource::allocate($form->Table, $edit_id);
-				Utils::growl($module->Name, "Updated ".$form->Title);
+				Admin::growl($module->Name, "Updated ".$form->Title);
 			}
 		// We're creating a new published entry.
 		} else {
@@ -176,7 +176,7 @@
 			$did_publish = true;
 			
 			Resource::allocate($form->Table, $edit_id);
-			Utils::growl($module->Name, "Created ".$form->Title);
+			Admin::growl($module->Name, "Created ".$form->Title);
 		}
 	}
 	

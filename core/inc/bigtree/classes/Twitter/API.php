@@ -622,7 +622,7 @@
 			parse_str($response);
 			
 			if ($oauth_callback_confirmed != "true") {
-				Utils::growl("Twitter API", "Consumer Key or Secret invalid.", "error");
+				Admin::growl("Twitter API", "Consumer Key or Secret invalid.", "error");
 				Router::redirect(ADMIN_ROOT."developer/services/twitter/");
 			}
 			

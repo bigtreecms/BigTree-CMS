@@ -12,7 +12,7 @@
 	$rackspace->Region = trim($_POST["region"]);
 
 	if (!$rackspace->getToken()) {
-		Utils::growl("Developer","Rackspace Cloud Files Login Failed","error");
+		Admin::growl("Developer","Rackspace Cloud Files Login Failed","error");
 		
 		Router::redirect(DEVELOPER_ROOT."cloud-storage/rackspace/");
 	}
@@ -20,6 +20,6 @@
 	$rackspace->Active = true;
 
 	Setting::updateValue($rackspace->SettingID, $rackspace->Settings, true);
-	Utils::growl("Developer","Enabled Rackspace Cloud Files");
+	Admin::growl("Developer","Enabled Rackspace Cloud Files");
 	Router::redirect(DEVELOPER_ROOT."cloud-storage/");
 	

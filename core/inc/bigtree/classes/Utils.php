@@ -218,21 +218,6 @@
 		}
 		
 		/*
-			Function: growl
-				Adds a growl message for the next admin page reload.
-
-			Parameters:
-				title - The section message for the growl.
-				message - The description of what happened.
-				type - The icon to draw.
-		*/
-		
-		public static function growl(string $title, string $message, string $type = "success"): void
-		{
-			$_SESSION["bigtree_admin"]["growl"] = ["message" => Text::translate($message), "title" => Text::translate($title), "type" => $type];
-		}
-		
-		/*
 		 	Function: keyById
 				Keys an array by the IDs of the child arrays or objects
 			

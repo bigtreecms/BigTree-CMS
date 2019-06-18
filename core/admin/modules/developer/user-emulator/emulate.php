@@ -25,6 +25,6 @@
 		$_SESSION["bigtree_admin"]["name"] = $user->Name;
 		$_SESSION["bigtree_admin"]["permissions"] = $user->Permissions;
 
-		Utils::growl("Developer","Emulating ".$user->Name);
+		Admin::growl("Developer","Emulating ".$user->Name);
 		Router::redirect(ADMIN_ROOT);
 	}

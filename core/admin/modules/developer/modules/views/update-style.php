@@ -15,6 +15,6 @@
 
 	$view->save();
 
-	Utils::growl("Developer","Updated View Styles");
+	Admin::growl("Developer","Updated View Styles");
 	Router::redirect(DEVELOPER_ROOT."modules/edit/".$view->Module."/");
 	

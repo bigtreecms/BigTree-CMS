@@ -19,6 +19,6 @@
 		Router::redirect(DEVELOPER_ROOT."templates/add/");
 	}
 	
-	Utils::growl("Developer", "Created Template");
+	Admin::growl("Developer", "Created Template");
 	Router::redirect(DEVELOPER_ROOT."templates/");
 	

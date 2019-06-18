@@ -13,6 +13,6 @@
 	$folder = new ResourceFolder($_POST["id"]);
 	$folder->delete();
 
-	Utils::growl("File Manager", "Deleted Folder");
+	Admin::growl("File Manager", "Deleted Folder");
 	Router::redirect(ADMIN_ROOT."files/folder/".$folder->Parent."/");
 	

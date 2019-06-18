@@ -16,5 +16,5 @@
 	}
 	
 	ResourceFolder::create($parent_folder_id, $_POST["name"]);
-	Utils::growl("Files", "Created Folder");
+	Admin::growl("Files", "Created Folder");
 	Router::redirect(ADMIN_ROOT."files/folder/".$parent_folder_id."/");

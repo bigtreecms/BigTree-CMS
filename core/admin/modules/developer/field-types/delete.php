@@ -10,6 +10,6 @@
 	$field_type = new FieldType($_GET["id"]);
 	$field_type->delete();
 	
-	Utils::growl("Developer","Deleted Field Type");
+	Admin::growl("Developer","Deleted Field Type");
 	Router::redirect(DEVELOPER_ROOT."field-types/");
 	

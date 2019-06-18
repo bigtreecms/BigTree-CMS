@@ -11,6 +11,6 @@
 		Cookie::create("bigtree_admin[ignored_update][$version]", true, "+1 year");
 	}
 	
-	Utils::growl("Developer", "Ignored Updates");
+	Admin::growl("Developer", "Ignored Updates");
 	Router::redirect(DEVELOPER_ROOT);
 	

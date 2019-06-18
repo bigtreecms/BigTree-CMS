@@ -24,6 +24,6 @@
 		PageRevision::create($page, $_POST["description"]);
 	}
 	
-	Utils::growl("Pages", "Saved Revision");
+	Admin::growl("Pages", "Saved Revision");
 ?>
 window.location.reload();

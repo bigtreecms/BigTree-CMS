@@ -42,5 +42,5 @@
 
 
 	Resource::allocate("bigtree_pages", $change_id);
-	Utils::growl("Pages","Loaded Saved Revision");
+	Admin::growl("Pages","Loaded Saved Revision");
 	Router::redirect(ADMIN_ROOT."pages/edit/".$revision->Page."/");

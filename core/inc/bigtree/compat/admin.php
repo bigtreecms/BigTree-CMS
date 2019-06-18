@@ -2962,7 +2962,7 @@
 		*/
 
 		static function growl($title, $message, $type = "success") {
-			BigTree\Utils::growl($title, $message, $type);
+			BigTree\Admin::growl($title, $message, $type);
 		}
 
 		/*

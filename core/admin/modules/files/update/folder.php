@@ -23,5 +23,5 @@
 	
 	$folder->save();
 	
-	Utils::growl("Files", "Updated Folder");
+	Admin::growl("Files", "Updated Folder");
 	Router::redirect(ADMIN_ROOT."files/folder/".$folder->Parent."/");

@@ -7,6 +7,6 @@
 
 	$analytics->disconnect();
 	
-	Utils::growl("Analytics","Disconnected");
+	Admin::growl("Analytics","Disconnected");
 	Router::redirect(MODULE_ROOT);
 	

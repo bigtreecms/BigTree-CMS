@@ -13,6 +13,6 @@
 		$page->unarchive();
 	}
 	
-	Utils::growl("Pages","Restored Page");
+	Admin::growl("Pages","Restored Page");
 	Router::redirect(ADMIN_ROOT."pages/view-tree/".$page->Parent."/");
 	

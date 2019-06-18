@@ -17,5 +17,5 @@
 	$module = new Module(end(Router::$Path));
 	$module->update($_POST["name"], $group_id, $_POST["class"], $_POST["gbp"], $_POST["icon"], $_POST["developer_only"]);
 
-	Utils::growl("Developer","Updated Module");
+	Admin::growl("Developer","Updated Module");
 	Router::redirect(DEVELOPER_ROOT."modules/");

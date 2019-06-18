@@ -39,6 +39,6 @@
 	ModuleAction::create($module, $translated_add_title, $add_route, "on", "add", $form->ID);
 	ModuleAction::create($module, $translated_edit_title, $edit_route, "", "edit", $form->ID);
 
-	Utils::growl("Developer", "Created Module Form");
+	Admin::growl("Developer", "Created Module Form");
 	Router::redirect(DEVELOPER_ROOT."modules/edit/$module/");
 	

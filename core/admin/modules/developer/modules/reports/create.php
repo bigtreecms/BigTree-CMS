@@ -21,6 +21,6 @@
 	);
 
 	ModuleAction::create($module_id, $_POST["title"], "report", "on", "export", $report->ID);
-	Utils::growl("Developer", "Created Module Report");
+	Admin::growl("Developer", "Created Module Report");
 	Router::redirect(DEVELOPER_ROOT."modules/edit/$module_id/");
 	

@@ -2,6 +2,6 @@
 	namespace BigTree;
 	
 	Auth::remove2FASecret($_GET["user"]);
-	Utils::growl("Users", "Removed Two Factor Authentication");
+	Admin::growl("Users", "Removed Two Factor Authentication");
 	Router::redirect(ADMIN_ROOT."users/edit/".htmlspecialchars($_GET["user"])."/");
 	
