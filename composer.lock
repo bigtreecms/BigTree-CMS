@@ -1,11 +1,10 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "hash": "91adf1fd371efbcc1e57260c20e595be",
-    "content-hash": "a189ca68ddcf92ba0482b99b8a947c38",
+    "content-hash": "e149cf5040ae61df8c3713016ba42089",
     "packages": [
         {
             "name": "ausi/slug-generator",
@@ -60,7 +59,7 @@
                 "transliteration",
                 "unicode"
             ],
-            "time": "2018-12-11 20:59:21"
+            "time": "2018-12-11T20:59:21+00:00"
         },
         {
             "name": "aws/aws-sdk-php",
@@ -142,7 +141,7 @@
                 "s3",
                 "sdk"
             ],
-            "time": "2019-02-26 19:08:43"
+            "time": "2019-02-26T19:08:43+00:00"
         },
         {
             "name": "davechild/textstatistics",
@@ -193,7 +192,7 @@
             ],
             "description": "PHP package to measure the readability of text according to various algorithms.",
             "homepage": "https://github.com/DaveChild/Text-Statistics",
-            "time": "2018-08-21 08:17:10"
+            "time": "2018-08-21T08:17:10+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
@@ -258,7 +257,7 @@
                 "rest",
                 "web service"
             ],
-            "time": "2018-04-22 15:46:56"
+            "time": "2018-04-22T15:46:56+00:00"
         },
         {
             "name": "guzzlehttp/promises",
@@ -309,7 +308,7 @@
             "keywords": [
                 "promise"
             ],
-            "time": "2016-12-20 10:07:11"
+            "time": "2016-12-20T10:07:11+00:00"
         },
         {
             "name": "guzzlehttp/psr7",
@@ -376,7 +375,7 @@
                 "uri",
                 "url"
             ],
-            "time": "2018-12-04 20:46:45"
+            "time": "2018-12-04T20:46:45+00:00"
         },
         {
             "name": "hautelook/phpass",
@@ -420,7 +419,7 @@
                 "password",
                 "security"
             ],
-            "time": "2012-08-31 00:00:00"
+            "time": "2012-08-31T00:00:00+00:00"
         },
         {
             "name": "kint-php/kint",
@@ -490,7 +489,7 @@
                 "kint",
                 "php"
             ],
-            "time": "2018-11-30 09:54:22"
+            "time": "2018-11-30T09:54:22+00:00"
         },
         {
             "name": "mtdowling/jmespath.php",
@@ -545,7 +544,7 @@
                 "json",
                 "jsonpath"
             ],
-            "time": "2016-12-03 22:08:25"
+            "time": "2016-12-03T22:08:25+00:00"
         },
         {
             "name": "oyejorge/less.php",
@@ -607,7 +606,7 @@
                 "php",
                 "stylesheet"
             ],
-            "time": "2017-03-28 22:19:25"
+            "time": "2017-03-28T22:19:25+00:00"
         },
         {
             "name": "pclzip/pclzip",
@@ -644,7 +643,7 @@
                 "php",
                 "zip"
             ],
-            "time": "2014-06-05 11:42:24"
+            "time": "2014-06-05T11:42:24+00:00"
         },
         {
             "name": "phpmailer/phpmailer",
@@ -710,7 +709,7 @@
                 }
             ],
             "description": "PHPMailer is a full-featured email creation and transfer class for PHP",
-            "time": "2018-11-16 00:41:32"
+            "time": "2018-11-16T00:41:32+00:00"
         },
         {
             "name": "phpseclib/phpseclib",
@@ -809,7 +808,7 @@
                 "x.509",
                 "x509"
             ],
-            "time": "2018-12-16 17:44:58"
+            "time": "2018-12-16T17:44:58+00:00"
         },
         {
             "name": "psr/http-message",
@@ -859,7 +858,7 @@
                 "request",
                 "response"
             ],
-            "time": "2016-08-06 14:39:51"
+            "time": "2016-08-06T14:39:51+00:00"
         },
         {
             "name": "ralouphie/getallheaders",
@@ -899,7 +898,66 @@
                 }
             ],
             "description": "A polyfill for getallheaders.",
-            "time": "2016-02-11 07:05:27"
+            "time": "2016-02-11T07:05:27+00:00"
+        },
+        {
+            "name": "scssphp/scssphp",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/scssphp/scssphp.git",
+                "reference": "6c8734b6edcf6c2fa785ad874b998fa854a7d030"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/scssphp/scssphp/zipball/6c8734b6edcf6c2fa785ad874b998fa854a7d030",
+                "reference": "6c8734b6edcf6c2fa785ad874b998fa854a7d030",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^5.6.0 || ^7"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~4.6",
+                "squizlabs/php_codesniffer": "~2.5",
+                "twbs/bootstrap": "~4.3",
+                "zurb/foundation": "~6.5"
+            },
+            "bin": [
+                "bin/pscss"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ScssPhp\\ScssPhp\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Anthon Pang",
+                    "email": "apang@softwaredevelopment.ca",
+                    "homepage": "https://github.com/robocoder"
+                },
+                {
+                    "name": "Cédric Morin",
+                    "email": "cedric@yterium.com",
+                    "homepage": "https://github.com/Cerdic"
+                }
+            ],
+            "description": "scssphp is a compiler for SCSS written in PHP.",
+            "homepage": "http://scssphp.github.io/scssphp/",
+            "keywords": [
+                "css",
+                "less",
+                "sass",
+                "scss",
+                "stylesheet"
+            ],
+            "time": "2019-06-05T01:22:01+00:00"
         },
         {
             "name": "tedivm/jshrink",
@@ -945,7 +1003,7 @@
                 "javascript",
                 "minifier"
             ],
-            "time": "2018-09-16 00:02:51"
+            "time": "2018-09-16T00:02:51+00:00"
         }
     ],
     "packages-dev": [],
@@ -958,7 +1016,12 @@
         "ext-gd": "*",
         "ext-json": "*",
         "ext-openssl": "*",
-        "ext-curl": "*"
+        "ext-curl": "*",
+        "ext-ctype": "*",
+        "ext-dom": "*",
+        "ext-mysqli": "*",
+        "ext-xmlwriter": "*",
+        "ext-exif": "*"
     },
     "platform-dev": []
 }

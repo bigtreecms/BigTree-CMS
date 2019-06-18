@@ -18,6 +18,7 @@
         "ext-dom": "*",
         "ext-mysqli": "*",
         "ext-xmlwriter": "*",
-        "ext-exif": "*"
+        "ext-exif": "*",
+        "scssphp/scssphp": "^1.0"
     }
 }

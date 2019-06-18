@@ -77,6 +77,8 @@
 			$css_file = file_exists("../custom/admin/css/$css_path") ? "../custom/admin/css/$css_path" : "../core/admin/css/$css_path";
 		}
 		
+		$extension = strtolower(pathinfo($css_file, PATHINFO_EXTENSION));
+		
 		if (function_exists("apache_request_headers")) {
 			$headers = apache_request_headers();
 			$ims = isset($headers["If-Modified-Since"]) ? $headers["If-Modified-Since"] : "";
@@ -94,8 +96,8 @@
 		header("Content-type: text/css");
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
 		
-		// Handle LESS
-		if (strtolower(substr($css_file, -5, 5)) == ".less") {
+		// Handle LESS and SCSS
+		if ($extension == "less" || $extension == "scss") {
 			$server_root = isset($server_root) ? $server_root : str_replace("core/admin/router.php", "", strtr(__FILE__, "\\", "/"));
 			$cache_file = $server_root."cache/admin-compiled-css-".md5($css_file).".css";
 			
@@ -105,21 +107,39 @@
 				die();
 			}
 			
-			
-			// Load LESS compiler
-			require_once $server_root."vendor/oyejorge/less.php/lib/Less/Autoloader.php";
-			\Less_Autoloader::register();
-			$parser = new \Less_Parser(["compress" => true]);
-			
-			try {
-				$parser->parseFile($css_file);
-				$css = $parser->getCss();
+			if ($extension == "less") {
+				// Load LESS compiler
+				require_once $server_root."vendor/oyejorge/less.php/lib/Less/Autoloader.php";
+				\Less_Autoloader::register();
+				$parser = new \Less_Parser(["compress" => true]);
 				
-				// Cache and return
-				file_put_contents($cache_file, $css);
-				die($css);
-			} catch (\Exception $e) {
-				die("Failed to parse LESS.");
+				try {
+					$parser->parseFile($css_file);
+					$css = $parser->getCss();
+					
+					// Cache and return
+					file_put_contents($cache_file, $css);
+					die($css);
+				} catch (\Exception $e) {
+					die("Failed to parse LESS.");
+				}
+			} else {
+				require_once $server_root."vendor/scssphp/scssphp/scss.inc.php";
+				$compiler = new \ScssPhp\ScssPhp\Compiler;
+				$compiler->setImportPaths($server_root."custom/admin/css/");
+				$compiler->setImportPaths($server_root."core/admin/css/");
+				$compiler->setFormatter("\ScssPhp\ScssPhp\Formatter\Crunched");
+				$css_file = str_replace(['../custom/admin/css/', '../core/admin/css/'], '', $css_file);
+				
+				try {
+					$css = $compiler->compile('@import "'.$css_file.'";');
+					
+					// Cache and return
+					file_put_contents($cache_file, $css);
+					die($css);
+				} catch (\Exception $e) {
+					die("Failed to parse SCSS.");
+				}
 			}
 		}
 		
