@@ -39,6 +39,8 @@ Changelog
 - FIXED: When adding a tag, if the tag already exists an error is thrown rather than just silently failing
 - FIXED: Messages being able to store Javascript onclick and href events
 - FIXED: Getting the uploaded videos of a YouTube Channel failing sometimes
+- FIXED: Protocol agnostic image sources failing to draw as https for open graph tags
+- FIXED: Overlay admin editor (front-end) not properly loading config based admin_js
 
 ### 4.4.4
 - FIXED: Logging into a multi-site admin area when the homepage of one of the multi-site instances was a redirect
