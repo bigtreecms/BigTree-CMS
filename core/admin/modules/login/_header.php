@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 	
-	Router::$Layout = "login";
+	Router::setLayout("login");
 
 	$site = new Page(0, false);
 	$last_path = Router::$Path[count(Router::$Path) - 1];

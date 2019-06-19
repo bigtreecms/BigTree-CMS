@@ -26,7 +26,8 @@
 	<body class="login<?php if (defined("ADMIN_BODY_CLASS")) { echo " ".ADMIN_BODY_CLASS; } ?>">
 		<div class="login_wrapper">
 			<h1><?=$site->NavigationTitle?></h1>
-			<?=$bigtree["content"]?>
+
+			<?php Router::renderContent(); ?>
 			
 			<a href="https://www.bigtreecms.org" class="login_logo" target="_blank"></a>
 		</div>

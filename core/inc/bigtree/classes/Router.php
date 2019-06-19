@@ -575,6 +575,138 @@
 		}
 		
 		/*
+			Function: renderContent
+				Renders the router's content
+		*/
+		
+		public static function renderContent(): void
+		{
+			echo static::$Content;
+		}
+		
+		/*
+			Function: renderPage
+				Renders a page from the output buffer into the current layout.
+			
+			Parameters:
+				is_admin - If in the admin, pass true
+				content_override - If overriding the ouput buffer content (for example for an access denied page)
+		*/
+		
+		public static function renderPage(bool $is_admin = false, string $content_override = null): void
+		{
+			if (!is_null($content_override)) {
+				ob_clean();
+				static::$Content = $content_override;
+			} else {
+				static::$Content = ob_get_clean();
+			}
+			
+			// Forced security, rewrite content to https
+			if (static::$Secure) {
+				// Replace CSS includes
+				$secure_replace_callback = function ($matches) {
+					return str_replace('href="http://', 'href="https://', $matches[0]);
+				};
+				static::$Content = preg_replace_callback('/<link [^>]*href="([^"]*)"/', $secure_replace_callback, static::$Content);
+			
+				// Replace script and image tags.
+				static::$Content = str_replace('src="http://', 'src="https://', static::$Content);
+			
+				// Replace inline background images
+				static::$Content = preg_replace(
+					["/url\('http:\/\//", '/url\("http:\/\//', '/url\(http:\/\//'],
+					["url('https://", 'url("https://', "url(https://"],
+					static::$Content
+				);
+			}
+			
+			if ($is_admin) {
+				include static::getIncludePath("admin/layouts/".static::$Layout.".php");
+			} else {
+				// Authenticate if the user is logged in to the admin via cookies but not yet via session.
+				if (static::$CurrentPage &&
+					!empty($_COOKIE["bigtree_admin"]["email"]) &&
+					empty($_SESSION["bigtree_admin"]["id"])
+				) {
+					Auth::authenticate();
+				}
+				
+				/* To load the BigTree Bar, meet the following qualifications:
+				   - User is logged BigTree admin
+				   - User is logged into the BigTree admin FOR THIS PAGE
+				   - Developer mode is either disabled OR the logged in user is a Developer
+				*/
+				if (!empty($_SESSION["bigtree_admin"]["id"]) &&
+					!empty($_COOKIE["bigtree_admin"]["email"]) &&
+					(empty(static::$Config["developer_mode"]) || $_SESSION["bigtree_admin"]["level"] > 1)
+				) {
+					$show_bar_default = empty($_COOKIE["hide_bigtree_bar"]);
+					$show_preview_bar = false;
+					$return_link = "";
+					$bar_edit_link = "";
+					
+					if (!empty($_GET["bigtree_preview_return"])) {
+						$show_bar_default = false;
+						$show_preview_bar = true;
+						$return_link = Text::htmlEncode(urlencode($_GET["bigtree_preview_return"]));
+					}
+					
+					if (!empty($bigtree["bar_edit_link"])) {
+						$bar_edit_link_query = parse_url($bigtree["bar_edit_link"], PHP_URL_QUERY);
+						
+						if (!empty($bar_edit_link_query)) {
+							$bar_edit_link_query_parts = explode("&", $bar_edit_link_query);
+							$has_return_link = false;
+							
+							foreach ($bar_edit_link_query_parts as $bar_edit_link_query_part) {
+								list($bar_edit_link_query_param, $bar_edit_link_query_value) = explode("=", $bar_edit_link_query_part);
+								
+								if (strtolower($bar_edit_link_query_param) == "return_link") {
+									$has_return_link = true;
+								}
+							}
+							
+							if (!$has_return_link) {
+								$bigtree["bar_edit_link"] .= "&return_link=".Text::htmlEncode(urlencode(Link::currentURL()));
+							}
+						} else {
+							$bigtree["bar_edit_link"] .= "?return_link=".Text::htmlEncode(urlencode(Link::currentURL()));
+						}
+						
+						$bar_edit_link = Text::htmlEncode(urlencode($bigtree["bar_edit_link"]));
+					}
+					
+					// Pending Pages don't have their ID set.
+					if (!isset(static::$CurrentPage["id"])) {
+						static::$CurrentPage["id"] = static::$CurrentPage["page"];
+					}
+					
+					if (defined("BIGTREE_URL_IS_404")) {
+						static::$Content = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(["http://", "https://"], "//", static::$Config["admin_root"]).'ajax/bar.js/?show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;is_404=true"></script></body>', static::$Content);
+					} else {
+						static::$Content = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(["http://", "https://"], "//", static::$Config["admin_root"]).'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&amp;current_page_id='.$bigtree["page"]["id"].'&amp;show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;show_preview='.$show_preview_bar.'&amp;return_link='.$return_link.'&amp;custom_edit_link='.$bar_edit_link.'"></script></body>', static::$Content);
+					}
+					
+					static::$Config["cache"] = false;
+				}
+				
+				// Backwards compatibilitiy with 4.x
+				global $bigtree;
+				$bigtree["content"] = static::$Content;
+				$bigtree["page"] = static::$CurrentPage;
+				
+				ob_start();
+				include SERVER_ROOT."templates/layouts/".static::$Layout.".php";
+				
+				// Write to the cache
+				if (static::$Config["cache"] && !defined("BIGTREE_DO_NOT_CACHE") && !count($_POST)) {
+					FileSystem::createFile(BIGTREE_CACHE_DIRECTORY.md5(json_encode($_GET)).".page", ob_get_flush());
+				}
+			}
+		}
+		
+		/*
 			Function: routeToPage
 				Provides the page ID for a given path array.
 				This is a method used by the router and the admin and can generally be ignored.
@@ -666,6 +798,38 @@
 			foreach (static::$FooterFiles as $footer) {
 				include $footer;
 			}
+		}
+		
+		/*
+			Function: setLayout
+				Sets the layout file in which to render your content.
+				This is equivalent to the .php file's name without .php in either /custom/admin/layouts/ or /templates/layouts/
+			
+			Parameters:
+				layout - Layout file (without .php)
+				extension - An extension ID to pull the layout from (defaults to null)
+		*/
+		
+		public static function setLayout(string $layout, ?string $extension = null): void
+		{
+			if (substr($layout, -4, 4) == ".php") {
+				$layout = substr($layout, 0, -4);
+			}
+			
+			if (!is_null($extension)) {
+				$path = SERVER_ROOT."extensions/$extension/templates/layouts/$layout.php";
+			} elseif (defined("BIGTREE_ADMIN_ROUTED")) {
+				$path = static::getIncludePath("admin/layouts/$layout.php");
+			} else {
+				$path = SERVER_ROOT."templates/layouts/$layout.php";
+			}
+			
+			if (!file_exists($path)) {
+				$error_message = Text::translate("Invalid layout file. :file: does not exist.", false, [":file:" => $path]);
+				trigger_error($error_message, E_USER_ERROR);
+			}
+			
+			static::$Layout = $layout;
 		}
 		
 		/*

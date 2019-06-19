@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$bigtree["layout"] = "login";
+	Router::setLayout("login");
 	$site = new Page(0, false);
 ?>
 <form method="post" action="" class="maintenance">

@@ -222,7 +222,7 @@
 				
 				foreach ($banned as $address) {
 					if (ip2long(trim($address)) == $ip) {
-						$bigtree["layout"] = "login";
+						Router::setLayout("login");
 						static::stop(file_get_contents(Router::getIncludePath("admin/pages/ip-restriction.php")));
 					}
 				}
@@ -244,7 +244,7 @@
 				}
 				
 				if (!$allowed) {
-					$bigtree["layout"] = "login";
+					Router::setLayout("login");
 					static::stop(file_get_contents(Router::getIncludePath("admin/pages/ip-restriction.php")));
 				}
 			}
@@ -598,8 +598,7 @@
 				layout_directory - The base directory for the layout to load (defaults to "admin/layouts/")
 		*/
 		
-		public static function stop(?string $message = null, ?string $file = null,
-									string $layout_directory = "admin/layouts/"): void
+		public static function stop(?string $message = null, ?string $file = null): void
 		{
 			global $admin, $bigtree, $cms, $db;
 			
@@ -609,10 +608,8 @@
 				echo Text::translate($message);
 			}
 			
-			$bigtree["content"] = ob_get_clean();
-			
-			include Router::getIncludePath($layout_directory.$bigtree["layout"].".php");
-			
+			Router::renderPage(true);
+
 			die();
 		}
 		

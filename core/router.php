@@ -194,8 +194,13 @@
 		} else {
 			header("X-Robots-Tag: noindex");
 			include SERVER_ROOT."templates/basic/_maintenance.php";
-			$bigtree["content"] = ob_get_clean();
-			include SERVER_ROOT."templates/layouts/".($bigtree["layout"] ? $bigtree["layout"] : "default").".php";
+
+			// Backwards compatibility
+			if (!empty($bigtree["layout"])) {
+				Router::setLayout($bigtree["layout"]);
+			}
+
+			Router::renderPage();
 			die();
 		}
 	}
@@ -298,9 +303,6 @@
 	if (!$registry_found) {
 		list($navid, Router::$Commands, $routed) = Router::routeToPage(Router::$Path, $bigtree["preview"]);
 	}
-	
-	// Pre-init a bunch of vars to keep away notices.
-	$bigtree["layout"] = "default";
 	
 	// Loading a route registry entry
 	if ($registry_found) {
@@ -510,130 +512,4 @@
 		}
 	}
 	
-	$bigtree["content"] = ob_get_clean();
-	
-	// Load the content again into the layout.
-	ob_start();
-	
-	if ($bigtree["extension_layout"]) {
-		include SERVER_ROOT."extensions/".$bigtree["extension_layout"]."/templates/layouts/".$bigtree["layout"].".php";
-	} else {
-		include SERVER_ROOT."templates/layouts/".$bigtree["layout"].".php";
-	}
-	
-	$bigtree["content"] = ob_get_clean();
-	
-	// Allow for special output filter functions.
-	$filter = null;
-	
-	if (Router::$Config["output_filter"]) {
-		$filter = Router::$Config["output_filter"];
-	}
-	
-	ob_start($filter);
-	
-	// If we're in HTTPS, make sure all Javascript, images, and CSS are pulling from HTTPS
-	if (Router::$Secure) {
-		// Replace CSS includes
-		$secure_replace_callback = function ($matches) {
-			return str_replace('href="http://', 'href="https://', $matches[0]);
-		};
-		$bigtree["content"] = preg_replace_callback('/<link [^>]*href="([^"]*)"/', $secure_replace_callback, $bigtree["content"]);
-		
-		// Replace script and image tags.
-		$bigtree["content"] = str_replace('src="http://', 'src="https://', $bigtree["content"]);
-		
-		// Replace inline background images
-		$bigtree["content"] = preg_replace(
-			array("/url\('http:\/\//", '/url\("http:\/\//', '/url\(http:\/\//'),
-			array("url('https://", 'url("https://', "url(https://"),
-			$bigtree["content"]
-		);
-	}
-	
-	// Load the BigTree toolbar if you're logged in to the admin via cookies but not yet via session.
-	if (isset($bigtree["page"]) && isset($_COOKIE["bigtree_admin"]["email"]) && !$_SESSION["bigtree_admin"]["id"]) {
-		include_once Router::getIncludePath("inc/bigtree/admin.php");
-		
-		if (BIGTREE_CUSTOM_ADMIN_CLASS) {
-			// Can't instantiate class from a constant name, so we use a variable then unset it.
-			$c = BIGTREE_CUSTOM_ADMIN_CLASS;
-			$admin = new $c;
-			unset($c);
-		} else {
-			$admin = new BigTreeAdmin;
-		}
-	}
-	
-	/* To load the BigTree Bar, meet the following qualifications:
-	   - User is logged BigTree admin
-	   - User is logged into the BigTree admin FOR THIS PAGE
-	   - Developer mode is either disabled OR the logged in user is a Developer
-	*/
-	if ($_SESSION["bigtree_admin"]["id"] &&
-		$_COOKIE["bigtree_admin"]["email"] &&
-		(empty(Router::$Config["developer_mode"]) || $_SESSION["bigtree_admin"]["level"] > 1)
-	) {
-		$show_bar_default = $_COOKIE["hide_bigtree_bar"] ? false : true;
-		$show_preview_bar = false;
-		$return_link = "";
-		$bar_edit_link = "";
-		
-		if (!empty($_GET["bigtree_preview_return"])) {
-			$show_bar_default = false;
-			$show_preview_bar = true;
-			$return_link = Text::htmlEncode(urlencode($_GET["bigtree_preview_return"]));
-		}
-		
-		if (!empty($bigtree["bar_edit_link"])) {
-			$bar_edit_link_query = parse_url($bigtree["bar_edit_link"], PHP_URL_QUERY);
-			
-			if (!empty($bar_edit_link_query)) {
-				$bar_edit_link_query_parts = explode("&", $bar_edit_link_query);
-				$has_return_link = false;
-				
-				foreach ($bar_edit_link_query_parts as $bar_edit_link_query_part) {
-					list($bar_edit_link_query_param, $bar_edit_link_query_value) = explode("=", $bar_edit_link_query_part);
-					
-					if (strtolower($bar_edit_link_query_param) == "return_link") {
-						$has_return_link = true;
-					}
-				}
-				
-				if (!$has_return_link) {
-					$bigtree["bar_edit_link"] .= "&return_link=".Text::htmlEncode(urlencode(Link::currentURL()));
-				}
-			} else {
-				$bigtree["bar_edit_link"] .= "?return_link=".Text::htmlEncode(urlencode(Link::currentURL()));
-			}
-			
-			$bar_edit_link = Text::htmlEncode(urlencode($bigtree["bar_edit_link"]));
-		}
-		
-		// Pending Pages don't have their ID set.
-		if (!isset($bigtree["page"]["id"])) {
-			$bigtree["page"]["id"] = $bigtree["page"]["page"];
-		}
-		
-		if (defined("BIGTREE_URL_IS_404")) {
-			$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(array("http://","https://"),"//",Router::$Config["admin_root"]).'ajax/bar.js/?show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;is_404=true"></script></body>',$bigtree["content"]);
-		} else {
-			$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(array("http://","https://"),"//",Router::$Config["admin_root"]).'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&amp;current_page_id='.$bigtree["page"]["id"].'&amp;show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;show_preview='.$show_preview_bar.'&amp;return_link='.$return_link.'&amp;custom_edit_link='.$bar_edit_link.'"></script></body>',$bigtree["content"]);
-		}
-		
-		// Don't cache the page with the BigTree bar
-		Router::$Config["cache"] = false;
-	}
-	
-	echo $bigtree["content"];
-	
-	// Write to the cache
-	if (Router::$Config["cache"] && !defined("BIGTREE_DO_NOT_CACHE") && !count($_POST)) {
-		$cache = ob_get_flush();
-		
-		if (!$bigtree["page"]["path"]) {
-			$bigtree["page"]["path"] = "!";
-		}
-		
-		FileSystem::createFile(BIGTREE_CACHE_DIRECTORY.md5(json_encode($_GET)).".page", $cache);
-	}
+	Router::renderPage();

@@ -218,7 +218,7 @@
 	<?php
 		}
 
-		echo $bigtree["content"];
+		Router::renderContent();
 	?>
 </div>
 <?php

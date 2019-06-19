@@ -49,9 +49,13 @@
 		/*
 			Function: catch404
 				Manually catch and display the 404 page from a routed template; logs missing page with handle404
+
+			Parameters:
+				layout - The layout to draw the 404 page in (defaults to "default")
+				template - A template file to render for the 404 page (defaults to /templates/basic/_404.php)
 		*/
 		
-		public static function catch404(): void
+		public static function catch404(string $layout = "default", ?string $template = null): void
 		{
 			Router::checkPathHistory(Router::$Path);
 			
@@ -59,16 +63,10 @@
 			ob_clean();
 			
 			if (static::handle404(str_ireplace(WWW_ROOT, "", Link::currentURL()))) {
-				Router::$Layout = "default";
-				include SERVER_ROOT."templates/basic/_404.php";
+				include (is_null($template) ? SERVER_ROOT."templates/basic/_404.php" : $template);
 				
-				// Get content and start the buffer again
-				Router::$Content = ob_get_clean();
-				ob_start();
-				
-				// Draw content in the provided layout
-				include "../templates/layouts/".Router::$Layout.".php";
-				die();
+				Router::setLayout($layout);
+				Router::renderPage();
 			}
 		}
 		

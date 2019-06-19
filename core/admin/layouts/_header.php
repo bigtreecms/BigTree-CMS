@@ -149,7 +149,7 @@
 								}
 					?>
 					<li>
-						<a href="<?=$link?>"<?php if ($link_pieces == $path_pieces || ($item["link"] == "modules" && isset($bigtree["module"]))) { $bigtree["active_nav_item"] = $x; ?> class="active"<?php } ?>><span class="<?=$cms->urlify($item["title"])?>"></span><?=$item["title"]?></a>
+						<a href="<?=$link?>"<?php if ($link_pieces == $path_pieces || ($item["link"] == "modules" && isset($bigtree["module"]))) { $bigtree["active_nav_item"] = $x; ?> class="active"<?php } ?>><span class="<?=Link::urlify($item["title"])?>"></span><?=$item["title"]?></a>
 						<?php
 								if (empty($item["no_top_level_children"]) && isset($item["children"]) && count($item["children"])) {
 						?>

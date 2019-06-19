@@ -276,10 +276,7 @@
 	
 	// Initialize BigTree's additional CSS and JS arrays for inclusion in the admin's header
 	$bigtree["js"] = [];
-	$bigtree["css"] = [];
-	
-	// Load the default layout.
-	Router::$Layout = "default";
+	$bigtree["css"] = [];	
 	$bigtree["subnav_extras"] = [];
 	
 	// Setup security policy
@@ -347,9 +344,8 @@
 			include $footer;
 		}
 		
-		$bigtree["content"] = ob_get_clean();
-		
-		include Router::getIncludePath("admin/layouts/".Router::$Layout.".php");
+		Router::renderPage(true);
+
 		die();
 	}
 	
@@ -377,7 +373,7 @@
 			
 			// Backwards compatibility with array formats < 4.3
 			if ($module) {
-				$bigtree["current_module"] = $bigtree["module"] = $module->Array;
+				Admin::$CurrentModule = $bigtree["current_module"] = $bigtree["module"] = $module->Array;
 			}
 		}
 		
@@ -598,7 +594,5 @@
 		}
 	}
 	
-	$bigtree["content"] = ob_get_clean();
-	
-	include Router::getIncludePath("admin/layouts/".Router::$Layout.".php");
+	Router::renderPage(true);
 	
