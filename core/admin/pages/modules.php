@@ -1,5 +1,7 @@
 <?php
 	namespace BigTree;
+	
+	Router::setLayout("new");
 
 	$module_count = 0;
 	$groups = ModuleGroup::all("position DESC, id ASC");

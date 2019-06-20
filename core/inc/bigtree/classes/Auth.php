@@ -630,13 +630,15 @@
 			
 			if (is_null($user)) {
 				if (static::$ID) {
-					return new AuthenticatedUser(static::$ID, static::$Level, static::$Permissions, static::$Timezone);
+					return new AuthenticatedUser(static::$ID, static::$Name, static::$Level, static::$Permissions,
+												 static::$Timezone);
 				} else {
-					return new AuthenticatedUser(null, -1, [], null);
+					return new AuthenticatedUser(null, "", -1, [], null);
 				}
 			} else {
 				if (is_object($user)) {
-					return new AuthenticatedUser($user->ID, $user->Level, $user->Permissions, $user->Timezone);
+					return new AuthenticatedUser($user->ID, $user->Name, $user->Level, $user->Permissions,
+												 $user->Timezone);
 				}
 				
 				$user = SQL::fetch("SELECT id, level, permissions FROM bigtree_users WHERE id = ?", $user);
@@ -648,7 +650,7 @@
 				
 				$permissions = (array) @json_decode($user["permissions"], true);
 					
-				return new AuthenticatedUser($user["id"], $user["level"], $permissions, $user["timezone"]);
+				return new AuthenticatedUser($user["id"], $user["name"], $user["level"], $permissions, $user["timezone"]);
 			}
 		}
 		

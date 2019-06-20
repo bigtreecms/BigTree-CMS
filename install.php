@@ -382,7 +382,7 @@
 		bt_touch_writable("templates/layouts/_header.php");
 		bt_touch_writable("templates/layouts/default.php",'<?php
 	include "_header.php";
-	echo $bigtree["content"];
+	Router::renderContent();
 	include "_footer.php";
 ?>');
 		bt_touch_writable("templates/layouts/_footer.php");

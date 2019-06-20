@@ -1,0 +1,17 @@
+.page {
+	color: #363636;
+	margin: 0;
+
+	@media #{$min_lg} {
+		display: flex;
+	}
+}
+
+.main {
+	background: $fade;
+
+	@media #{$min_lg} {
+		border-bottom: 1px solid $mist;
+		flex: auto;
+	}
+}

@@ -47,7 +47,6 @@ var BigTreeLogin = (function() {
 	}
 
 	function onOpenError(event) {
-		console.log(event);
 		alert("Failed to open database: " + event.errorCode);
 	}
 

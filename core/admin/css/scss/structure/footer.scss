@@ -1,0 +1,9 @@
+.footer {
+	background: $fade;
+	border-top: 1px solid $mist;
+	padding: 30px 20px (30px + 55px);
+
+	@media #{$min_lg} {
+		display: none;
+	}
+}

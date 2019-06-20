@@ -3,7 +3,7 @@
 	
 	// BigTree Admin Nav Tree
 	Router::$AdminNavTree = [
-		"dashboard" => ["title" => "Dashboard", "link" => "dashboard", "icon" => "dashboard", "related" => true, "children" => [
+		"dashboard" => ["title" => "Dashboard", "link" => "dashboard", "icon" => "home", "related" => true, "children" => [
 			"overview" => ["title" => "Overview", "link" => "", "hidden" => true],
 			"pending-changes" => ["title" => "Pending Changes", "link" => "dashboard/pending-changes", "icon" => "pending", "hidden" => true],
 			"analytics" => ["title" => "Analytics", "link" => "dashboard/vitals-statistics/analytics", "hidden" => true, "icon" => "analytics", "children" => [
@@ -26,7 +26,7 @@
 			]],
 			"integrity" => ["title" => "Site Integrity", "link" => "dashboard/vitals-statistics/integrity", "icon" => "integrity", "hidden" => true, "level" => 1]
 		]],
-		"pages" => ["title" => "Pages", "link" => "pages", "icon" => "page", "nav_icon" => "pages", "no_top_level_children" => true, "children" => [
+		"pages" => ["title" => "Pages", "link" => "pages", "icon" => "insert_drive_file", "nav_icon" => "insert_drive_file", "no_top_level_children" => true, "children" => [
 			"view-tree" => ["title" => "View Subpages", "link" => "pages/view-tree/{id}", "nav_icon" => "list"],
 			"add" => ["title" => "Add Subpage", "link" => "pages/add/{id}", "icon" => "add_page", "nav_icon" => "add"],
 			"edit" => ["title" => "Edit Page", "link" => "pages/edit/{id}", "icon" => "edit_page", "nav_icon" => "edit"],
@@ -34,9 +34,14 @@
 			"move" => ["title" => "Move Page", "link" => "pages/move/{id}", "icon" => "move_page", "nav_icon" => "truck", "level" => 1],
 			"duplicate" => ["title" => "Duplicate Page", "link" => "pages/duplicate/{id}", "icon" => "duplicate", "nav_icon" => "duplicate"]
 		]],
-		"modules" => ["title" => "Modules", "link" => "modules", "icon" => "modules", "no_top_level_children" => true, "children" => []],
-		"files" => ["title" => "Files", "link" => "files", "icon" => "files", "nav_icon" => "files", "children" => []],
-		"users" => ["title" => "Users", "link" => "users", "icon" => "users", "level" => 1, "no_top_level_children" => true, "children" => [
+		"modules" => ["title" => "Modules", "link" => "modules", "icon" => "apps", "no_top_level_children" => true, "children" => []],
+		"files" => ["title" => "Files", "link" => "files", "icon" => "collections", "nav_icon" => "files", "children" => []],
+		"tags" => ["title" => "Tags", "link" => "tags", "icon" => "label", "no_top_level_children" => true, "children" => [
+			["title" => "View Tags", "link" => "tags", "nav_icon" => "list"],
+			["title" => "Add Tag", "link" => "tags/add", "nav_icon" => "add"],
+			["title" => "Merge Tag", "link" => "tags/merge", "hidden" => true]
+		]],
+		"users" => ["title" => "Users", "link" => "users", "icon" => "people", "level" => 1, "no_top_level_children" => true, "children" => [
 			["title" => "View Users", "link" => "users", "nav_icon" => "list"],
 			["title" => "Add User", "link" => "users/add", "nav_icon" => "add"],
 			["title" => "Edit User", "link" => "users/edit", "icon" => "gravatar", "hidden" => true],
@@ -45,12 +50,7 @@
 		"settings" => ["title" => "Settings", "link" => "settings", "icon" => "settings", "no_top_level_children" => true, "children" => [
 			["title" => "Edit Setting", "link" => "settings/edit", "hidden" => true]
 		]],
-		"tags" => ["title" => "Tags", "link" => "tags", "icon" => "tags", "no_top_level_children" => true, "children" => [
-			["title" => "View Tags", "link" => "tags", "nav_icon" => "list"],
-			["title" => "Add Tag", "link" => "tags/add", "nav_icon" => "add"],
-			["title" => "Merge Tag", "link" => "tags/merge", "hidden" => true]
-		]],
-		"developer" => ["title" => "Developer", "link" => "developer", "icon" => "developer", "nav_icon" => "developer", "level" => 2, "related" => true, "children" => [
+		"developer" => ["title" => "Developer", "link" => "developer", "icon" => "extension", "nav_icon" => "developer", "level" => 2, "related" => true, "children" => [
 			["title" => "Create", "group" => true],
 			["title" => "Templates", "link" => "developer/templates", "icon" => "templates", "hidden" => true, "children" => [
 				["title" => "View Templates", "link" => "developer/templates", "nav_icon" => "list"],

@@ -1,0 +1,30 @@
+.breadcrumb {
+	font-size: 0;
+}
+
+.breadcrumb_item {
+	color: $gray;
+	display: inline-block;
+	font-size: 12px;
+	margin-bottom: 7px;
+
+	&:after {
+		content: ">";
+		display: inline-block;
+		margin: 0 5px;
+	}
+
+	&:last-child:after {
+		content: "\231D";
+	}
+}
+
+.breadcrumb_link {
+	color: inherit;
+	transition: color .15s;
+
+	&:hover,
+	&:focus {
+		color: $green;
+	}
+}

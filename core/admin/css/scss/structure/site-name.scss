@@ -1,0 +1,21 @@
+.site {
+	align-items: center;
+	display: flex;
+}
+
+.site_name {
+	font-size: 16px;
+	margin: 0;
+}
+
+.site_icon {
+	transform: 
+		rotateX(180deg)
+		scale(.85);
+
+	@media #{$min_md} {
+		transform: 
+			rotateX(0deg)
+			scale(.85);
+	}
+}

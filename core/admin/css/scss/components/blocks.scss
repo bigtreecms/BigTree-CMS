@@ -1,0 +1,110 @@
+.blocks_wrapper {
+	background-color: #fff;
+	background-size: 8px 8px;
+	background-image: 
+		linear-gradient(
+			to right, 
+				#f6f6f6 1px, 
+				transparent 1px
+		), 
+		linear-gradient(
+			to bottom, 
+				#f6f6f6 1px, 
+				transparent 1px
+		);
+	border-top: 1px solid $mist;
+	padding: 20px;
+
+	@media #{$min_lg} {
+		padding: 20px 40px 122px;
+	}
+}
+
+.blocks {}
+
+.block {
+	position: relative;
+
+	background: $fade;
+	border: 1px solid $mist;
+	margin-bottom: 10px;
+	padding: 10px;
+}
+
+.block_info {
+	margin-bottom: 20px;
+	
+	@media #{$min_sm} {
+		display: flex;
+		justify-content: space-between;
+	}
+}
+
+.block_title {
+	font-size: 20px;
+	margin: 0;
+}
+
+.block_remove_tool {
+	appearance: none;
+	-webkit-appearance: none;
+	background: none;
+	border: 0;
+	color: $red;
+	font-size: 12px;
+	padding: 0;
+	text-decoration: underline;
+}
+
+.block_move_nav {
+	position: absolute;
+	top: 10px;
+	right: 100%;
+
+	background: $fade;
+	border: 1px solid $mist;
+	border-right: 0;
+	border-radius: 3px 0 0 3px;
+}
+
+.block_move_tool {
+	height: 25px;
+	width: 20px;
+
+	position: relative;
+
+	background: none;
+	border: 0;
+	cursor: pointer;
+	display: block;
+
+	@media #{$min_lg} {
+		width: 25px;
+	}
+
+	&:first-child {
+		border-bottom: 1px solid $mist;
+	}
+}
+
+.block_move_tool_disabled {
+	color: $mist;
+}
+
+.block_move_tool_icon {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+
+	transform:
+		translate(-50%, -50%)
+		scale(.75);
+}
+
+.block_move_tool_label {
+	@include visually_hide;
+}
+
+.block_info {}
+
+.block_title {}

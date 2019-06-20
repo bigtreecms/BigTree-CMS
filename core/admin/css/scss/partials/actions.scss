@@ -1,0 +1,109 @@
+.actions {
+	position: relative;
+
+	display: inline-block;
+	vertical-align: top;
+}
+
+.action {
+	align-items: center;
+	background: #fff;
+	border: 1px solid $mist;
+	border-radius: 3px;
+	display: flex;
+	padding: 0;
+	text-align: left;
+}
+
+.action_label {
+	color: inherit;
+	font-size: 13px;
+	padding: 11px 20px 12px 10px;
+	text-decoration: underline;
+	text-decoration-color: transparent;
+	transition: 
+		color .15s,
+		text-decoration-color .15s;
+
+	&:hover,
+	&:focus {
+		color: $green;
+		text-decoration-color: $green;
+	}
+}
+
+.action_trigger {
+	width: 40px;
+
+	align-items: center;
+	background: $fade;
+	border: 0;
+	border-left: 1px solid $mist;
+	border-radius: 0 3px 3px 0;
+	box-shadow: 0 0 0 1px transparent;
+	color: $gray;
+	cursor: pointer;
+	display: flex;
+	justify-content: center;
+	padding: 7px 0;
+	transition: 
+		background .15s,
+		color .15s;
+
+	&:hover,
+	&:focus {
+		background: #fff;
+		color: $green;
+	}
+}
+
+.action_icon {
+	pointer-events: none;
+}
+
+.action_dropdown {
+	width: calc(100% + 22px);
+
+	position: absolute;
+	top: -6px;
+	left: -11px;
+	z-index: 2;
+
+	background: $green;
+	border: 2px solid $lime;
+	border-radius: 3px;
+	display: none;
+	list-style: none;
+	margin: 0;
+	padding: 10px;
+
+	&.action_dropdown_active {
+		display: block;
+	}
+
+	&.action_dropdown_flipped {
+		top: auto;
+		bottom: -4px;
+	}
+}
+
+.action_item {}
+
+.action_link {
+	border-radius: 2px;
+	color: #fff;
+	display: block;
+	font-size: 13px;
+	padding: 6px 10px 5px;
+	text-decoration: underline;
+	text-decoration-color: transparent;
+	transition: 
+		background .15s,
+		text-decoration-color .15s;
+
+	&:hover,
+	&:focus {
+		background: $lime;
+		text-decoration-color: #fff;
+	}
+}

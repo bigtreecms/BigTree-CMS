@@ -1,0 +1,15 @@
+.util_nav {}
+
+.util_link {
+	color: inherit;
+	display: block;
+	font-size: 12px;
+	padding: 5px 0;
+	text-decoration: underline;
+	transition: color .15s;
+
+	&:hover,
+	&:focus {
+		color: $green;
+	}
+}

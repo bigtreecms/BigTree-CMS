@@ -1,0 +1,37 @@
+$min_xs: "screen and (min-width:" + (320 * 1px) + ")";
+$min_sm: "screen and (min-width:" + (500 * 1px) + ")";
+$min_md: "screen and (min-width:" + (740 * 1px) + ")";
+$min_lg: "screen and (min-width:" + (980 * 1px) + ")";
+$min_xl: "screen and (min-width:" + (1220 * 1px) + ")";
+$min_xxl: "screen and (min-width:" + (1340 * 1px) + ")";
+
+$max_xs: "screen and (max-width:" + (319 * 1px) + ")";
+$max_sm: "screen and (max-width:" + (499 * 1px) + ")";
+$max_md: "screen and (max-width:" + (739 * 1px) + ")";
+$max_lg: "screen and (max-width:" + (979 * 1px) + ")";
+$max_xl: "screen and (max-width:" + (1219 * 1px) + ")";
+$max_xxl: "screen and (max-width:" + (1339 * 1px) + ")";
+
+$fade: #F8F8FA;
+$mist: #E3E2E3;
+$gray: #999999;
+$dark: #363636;
+
+$green: #00825A;
+$lime: #00A370;
+$orange: #FD9725;
+$mandarin: #CB791D;
+$red: #D32F2F;
+
+@mixin visually_hide() {
+	width: 1px;
+	height: 1px;
+
+	position: absolute;
+
+	border: 0;
+	clip: rect(0 0 0 0);
+	margin: -1px;
+	overflow: hidden;
+	padding: 0;
+}

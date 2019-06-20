@@ -1,0 +1,15 @@
+.user {
+	align-items: center;
+	display: flex;
+}
+
+.user_icon {
+	color: $green;
+	margin-right: -5px;
+	transform: scale(.65);
+	transform-origin: left center;
+}
+
+.user_label {
+	font-size: 12px;
+}

@@ -18,6 +18,7 @@
 		
 		public $ID;
 		public $Level;
+		public $Name;
 		public $Permissions;
 		public $Timezone;
 		
@@ -32,10 +33,11 @@
 				timezone - The user's timezone
 		*/
 		
-		public function __construct(?int $id, ?int $level, ?array $permissions, ?string $timezone)
+		public function __construct(?int $id, ?string $name, ?int $level, ?array $permissions, ?string $timezone)
 		{
 			$this->ID = $id;
 			$this->Level = $level;
+			$this->Name = $name;
 			$this->Permissions = $permissions;
 			$this->Timezone = $timezone;
 		}

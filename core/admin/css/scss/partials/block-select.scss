@@ -1,0 +1,28 @@
+.block_select {
+	align-items: center;
+	display: flex;
+}
+
+.block_select_add {
+	align-items: center;
+	appearance: none;
+	-webkit-appearance: none;
+	background: none;
+	border: 0;
+	color: $green;
+	cursor: pointer;
+	display: flex;
+	margin-left: 4px;
+	padding: 8px;
+}
+
+.block_select_icon {
+	margin-right: -4px;
+	transform: scale(.675);
+	transform-origin: left center;
+}
+
+.block_select_label {
+	font-size: 14px;
+	font-weight: 700;
+}

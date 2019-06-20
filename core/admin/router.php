@@ -67,6 +67,46 @@
 		die();
 	}
 	
+	// Fonts.
+	if ($path[1] == "fonts") {
+		$font_path = implode("/", array_slice($path, 2));
+		$font_file = file_exists("../custom/admin/fonts/$font_path") ? "../custom/admin/fonts/$font_path" : "../core/admin/fonts/$font_path";
+		
+		if (function_exists("apache_request_headers")) {
+			$headers = apache_request_headers();
+			$ims = isset($headers["If-Modified-Since"]) ? $headers["If-Modified-Since"] : "";
+		} else {
+			$ims = isset($_SERVER["HTTP_IF_MODIFIED_SINCE"]) ? $_SERVER["HTTP_IF_MODIFIED_SINCE"] : "";
+		}
+		
+		$last_modified = filemtime($font_file);
+		
+		if ($ims && strtotime($ims) == $last_modified) {
+			header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
+			die();
+		}
+		
+		$type = pathinfo($font_file, PATHINFO_EXTENSION);
+		
+		if ($type == "woff") {
+			header("Content-type: application/font-woff");
+		} elseif ($type == "woff2") {
+			header("Content-type: font/woff2");
+		} elseif ($type == "svg") {
+			header("Content-type: image/svg+xml");
+		} elseif ($type == "ttf") {
+			header("Content-type: application/font-sfnt");
+		} elseif ($type == "otf") {
+			header("Content-type: application/font-sfnt");
+		} elseif ($type == "eot") {
+			header("Content-type: application/vnd.ms-fontobject");
+		}
+		
+		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
+		readfile($font_file);
+		die();
+	}
+	
 	// CSS
 	if ($path[1] == "css") {
 		$css_path = implode("/", array_slice($path, 2));

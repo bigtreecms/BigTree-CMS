@@ -48,7 +48,7 @@
 					substr($file, 0, 8) != "https://")
 				{
 					// Local file include
-					$include_path = Router::getIncludePath(ADMIN_ROOT."$directory/$file");
+					$include_path = ADMIN_ROOT."$directory/$file";
 				} else {
 					// Remote file include
 					$include_path = $file;

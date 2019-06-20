@@ -1,0 +1,28 @@
+*,
+*:before,
+*:after {
+	box-sizing: border-box;
+}
+
+html {
+	height: 100%;
+
+	font-family: "Roboto", sans-serif;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+}
+
+a {
+	text-decoration: none;
+}
+
+svg {
+	fill: currentColor;
+	display: block;
+	transition:
+		fill .15s,
+		stroke .15s;
+}

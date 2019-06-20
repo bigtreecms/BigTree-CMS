@@ -1,0 +1,95 @@
+.field {
+	margin-bottom: 24px;
+
+	&:last-child {
+		margin-bottom: 0;
+	}
+}
+
+.field_info {
+	padding: 6px 0 12px;
+}
+
+.field_label {
+	display: block;
+	font-size: 14px;
+	font-weight: 700;
+	margin-bottom: 10px;
+}
+
+.field_label_text {}
+
+.field_label_hint {
+	color: $dark;
+	font-size: 12px;
+	font-weight: 400;
+}
+
+.field_input {
+	width: 100%;
+
+	border: 1px solid $mist;
+	font-size: 14px;
+	line-height: 26px;
+	padding: 6px 10px;
+}
+
+.field_input_text {}
+
+.field_input_textarea {
+	min-height: 160px;
+
+	resize: vertical;
+}
+
+.field_image_wrapper {
+
+	@media #{$min_sm} {
+		display: flex;
+	}
+}
+
+.field_figure {
+	background-image: 
+		linear-gradient(
+			45deg, 
+				$mist 25%, 
+				transparent 25%, 
+				transparent 75%, 
+				$mist 75%, 
+				$mist 100%
+		),
+		linear-gradient(
+			45deg, 
+				$mist 25%, 
+				#fff 25%, 
+				#fff 75%, 
+				$mist 75%, 
+				$mist 100%
+		);
+	background-position: 0px 0px, 8px 8px;
+	background-size: 16px 16px;
+	border: 1px solid $gray;
+	margin: 0 0 10px;
+	
+	@media #{$min_sm} {
+		margin-right: 6px;
+		padding: 40px 0;	
+	}
+}
+
+.field_image {
+	max-width: 100%;
+
+	display: block;
+	margin: 0 auto;
+}
+
+.field_image_tools {}
+
+.field_image_tool {
+	@include button_text_fill;
+
+	display: block;
+	margin-bottom: 4px;
+}

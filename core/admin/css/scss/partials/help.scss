@@ -1,0 +1,36 @@
+.help {}
+
+.help_hint {
+	align-items: center;
+	border: 1px solid $mist;
+	border-bottom: 0;
+	border-radius: 3px 3px 0 0;
+	display: flex;
+}
+
+.help_hint_icon {
+	background: $orange;
+	border-radius: 3px 0 0 0;
+	color: #fff;
+	margin: -1px 10px -1px -1px;
+	padding: 8px;
+}
+
+.help_hint_label {
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.help_text {
+	background: #fff;
+	border: 1px solid $mist;
+	border-radius: 6px;
+	font-size: 14px;
+	line-height: 22px;
+	margin-bottom: 30px;
+	padding: 15px;
+
+	.help_hint + & {
+		border-radius: 0;
+	}
+}

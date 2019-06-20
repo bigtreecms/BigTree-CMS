@@ -1,0 +1,104 @@
+.main_nav {}
+
+.main_items {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	white-space: nowrap;
+}
+
+.main_item {
+	position: relative;
+
+	display: inline-block;
+	margin-right: 16px;
+}
+
+.main_link {
+	position: relative;
+
+	color: inherit;
+	display: inline-block;
+	padding: 10px 0 7px;
+	transition: color .15s;
+
+	&:hover,
+	&:focus {
+		color: $green;
+	}
+
+	&.active {
+		box-shadow: inset 0 -3px 0 0 $green;
+		color: $green;
+	}
+
+	&.pending {
+
+		&:before {
+			height: 5px;
+			width: 5px;
+
+			position: absolute;
+			top: 35%;
+			left: 100%;
+
+			background: $orange;
+			border-radius: 50%;
+			content: "";
+		}
+	}
+}
+
+.main_hint {
+	width: 150px;
+
+	position: absolute;
+	bottom: 100%;
+	left: 50%;
+
+	background: #000;
+	border-top: 5px solid $orange;
+	border-radius: 3px;
+	color: #fff;
+	font-size: 12px;
+	line-height: 18px;
+	opacity: 0;
+	visibility: hidden;
+	padding: 10px 20px 11px;
+	text-align: center;
+	transform: translate(-50%, 4px);
+	transition:
+		opacity .15s,
+		visibility .15s,
+		transform .15s;
+
+	&:after {
+		position: absolute;
+		top: 100%;
+		left: 50%;
+
+		border: 8px solid transparent;
+		border-top-color: #000;
+		content: "";
+		transform: translate(-50%, 0);
+	}
+
+	.main_item:hover &,
+	.main_item:focus & {
+		opacity: 1;
+		visibility: visible;
+		transform: translate(-50%, 0);
+		transition:
+			opacity .15s .35s,
+			visibility .15s .35s,
+			transform .15s .35s;
+	}
+}
+
+.main_hint_label {
+	display: block;
+}
+
+.main_hint_time {
+	display: block;
+}

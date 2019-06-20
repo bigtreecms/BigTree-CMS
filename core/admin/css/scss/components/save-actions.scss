@@ -1,0 +1,23 @@
+.save_actions {
+	background: $green;
+	margin-bottom: -1px;
+	padding: 15px 20px;
+
+	@media #{$min_lg} {
+		width: calc(100% - 200px);
+
+		position: fixed;
+		bottom: 0;
+		right: 0;
+
+		padding-right: 40px;
+		padding-left: 40px;
+	}
+}
+
+.save_action {
+	@include button_text_outline;
+
+	margin-top: 5px;
+	margin-bottom: 5px;
+}

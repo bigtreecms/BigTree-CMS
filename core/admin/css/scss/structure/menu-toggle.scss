@@ -1,0 +1,24 @@
+.menu_toggle {
+	align-items: center;
+	appearance: none;
+	-webkit-appearance: none;
+	background: #fff;
+	border: 1px solid $mist;
+	border-radius: 3px;
+	cursor: pointer;
+	display: flex;
+	padding: 7px 10px;
+
+	@media #{$min_lg} {
+		display: none;
+	}
+}
+
+.menu_toggle_icon {
+	color: $green;
+	margin-right: 5px;
+}
+
+.menu_toggle_label {
+	font-size: 13px;
+}

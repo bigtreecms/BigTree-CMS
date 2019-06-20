@@ -1,0 +1,127 @@
+.admin_nav {
+
+	@media #{$min_lg} {
+		margin: 0 -20px;
+	}
+}
+
+.admin_items {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+
+	@media #{$min_lg} {
+		display: block;
+	}
+}
+
+.admin_item {}
+
+.admin_link {
+	align-items: center;
+	color: inherit;
+	display: flex;
+	margin-right: -1px;
+	padding: 6px 20px;
+	transition: background .15s;
+
+	@media #{$min_lg} {
+		padding-top: 8px;
+		padding-bottom: 8px;
+	}
+
+	&:hover,
+	&:focus {
+		background: rgba($green, .15);
+	}
+
+	&.active {
+		background: $green;
+	}
+}
+
+.admin_icon {
+	min-width: 25px;
+
+	color: $gray;
+	transform: scale(.8);
+	transform-origin: left center;
+	transition: color .15s;
+
+	@media #{$min_lg} {
+		display: block;
+	}
+
+	.admin_link:not(.active):hover &,
+	.admin_link:not(.active):focus & {
+		color: $green;
+	}
+
+	.active & {
+		color: rgba(#fff, .5);
+	}
+}
+
+.admin_label {
+	color: inherit;
+	font-size: 14px;
+	transition: color .15s;
+
+	.admin_link:not(.active):hover &,
+	.admin_link:not(.active):focus & {
+		color: $green;
+	}
+
+	.active & {
+		color: #fff;
+	}
+}
+
+.admin_children {
+	background: #fff;
+	margin-bottom: 6px;
+	padding: 7px 0;
+
+	@media #{$min_lg} {
+		margin-bottom: 8px;
+		padding-bottom: 12px;
+	}
+}
+
+.admin_child {
+	position: relative;
+
+	color: inherit;
+	display: block;
+	font-size: 14px;
+	padding: 7px 20px 7px 45px;
+	transition: color .15s;
+
+	@media #{$min_lg} {
+		padding-top: 12px;
+		padding-bottom: 12px;
+	}
+
+	&:hover,
+	&:focus {
+		color: $green;
+	}
+
+	&.active {
+		color: $green;
+
+		&:before {
+			height: 4px;
+			width: 4px;
+	
+			position: absolute;
+			top: 50%;
+			left: 28px;
+			
+			background: $lime;
+			border-radius: 50%;
+			content: "";
+			transform: translate(0, -50%);
+		}
+	}
+}
