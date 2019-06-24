@@ -15,7 +15,11 @@
 	
 	function icon($class, $name) {
 ?>
-<span class="<?=$class?>_icon"><?php include SERVER_ROOT."core/admin/images/icons/".$name.".svg"; ?></span>
+<span class="<?=$class?>_icon">
+	<svg class="icon icon_<?=$name?>">
+		<use xlink:href="<?=ADMIN_ROOT?>images/icons.svg#<?=$name?>"></use>
+	</svg>
+</span>
 <?php
 	}
 	

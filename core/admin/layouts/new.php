@@ -141,7 +141,7 @@
 						</nav>
 					</div>
 					<div class="header_details">
-						<p class="credit">Version <?=BIGTREE_VERSION?>  • <a href="https://github.com/bigtreecms/BigTree-CMS/blob/master/license.txt" target="_blank">License</a</p>
+						<p class="credit">Version <?=BIGTREE_VERSION?>  • <a href="https://github.com/bigtreecms/BigTree-CMS/blob/master/license.txt" target="_blank">License</a></p>
 						<nav class="util_nav">
 							<a class="util_link" href="<?=ADMIN_ROOT?>">Credits &amp; Licenses</a>
 							<a class="util_link" href="https://www.bigtreecms.org/about/help/" target="_blank">Developer &amp; User Support</a>
@@ -151,32 +151,17 @@
 			</header>
 	
 			<main class="main">
-				<div class="page_header">
-					<breadcrumb :links='[{ "title": "Test", "url": "#test" }, { "title": "Another", "url": "" }]'></breadcrumb>
+				<div class="page_header" v-bind:class='{ "layout_empty_breadcrumb": !breadcrumb, "layout_empty_sub_nav": !sub_nav }'>
+					<breadcrumb v-if="breadcrumb" v-bind:links="breadcrumb"></breadcrumb>
 					
 					<div class="page_header_body">
-						<page-title title="Testing"></page-title>
-						
-						<?php
-							if (!empty($tools)) {
-								?>
-								<div class="page_tools">
-									<div class="page_tools_body">
-										<a class="page_tool" href="#">
-											<?=icon("page_tool", "view_quilt")?>
-											<span class="page_tool_label">Edit Template</span>
-										</a>
-										<a class="page_tool" href="#">
-											<?=icon("page_tool", "timeline")?>
-											<span class="page_tool_label">View Audit Trail</span>
-										</a>
-									</div>
-								</div>
-								<?php
-							}
-						?>
+						<page-title v-bind:title="page_title" v-bind:url="page_public_url"></page-title>
+						<page-tools v-if="tools" v-bind:links="tools"></page-tools>
 					</div>
+					
+					<sub-navigation v-if="sub_nav" v-bind:links="sub_nav"></sub-navigation>
 				</div>
+				
 				<?php Router::renderContent(); ?>
 			</main>
 			
@@ -190,7 +175,10 @@
 		</div>
 		<script src="<?=ADMIN_ROOT?>js/vue.js"></script>
 		<?php
+			Admin::registerRuntimeJavascript("views/icon.js");
 			Admin::registerRuntimeJavascript("views/navigation/breadcrumb.js");
+			Admin::registerRuntimeJavascript("views/navigation/page-tools.js");
+			Admin::registerRuntimeJavascript("views/navigation/sub-navigation.js");
 			Admin::registerRuntimeJavascript("views/structure/page-title.js");
 			foreach (Admin::$Javascript as $script) {
 		?>
@@ -198,6 +186,23 @@
 		<?php
 			}
 		?>
-		<script>new Vue({ el: "#js-vue" });</script>
+		<script>
+			new Vue({
+				el: "#js-vue",
+				data: {
+					breadcrumb: [{ "title": "Test", "url": "#test" }, { "title": "Another", "url": "" }],
+					page_title: "Testing",
+					page_public_url: "http://www.google.com",
+					tools: [
+						{ "title": "Edit Template", "url": "http://www.google.com", "icon": "view_quilt" },
+						{ "title": "View Audit Trail", "url": "#", "icon": "timeline" }
+					],
+					sub_nav: [
+						{ "title": "Link One", "url": "http://www.google.com", "active": true },
+						{ "title": "Link Two", "url": "http://www.yahoo.com", "tooltip": { "title": "Test", "content": "Content" }}
+					]
+				}
+			});
+		</script>
 	</body>
 </html>

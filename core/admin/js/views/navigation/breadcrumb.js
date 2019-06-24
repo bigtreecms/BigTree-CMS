@@ -1,5 +1,3 @@
-/* global Vue */
-
 Vue.component("breadcrumb", {
 	props: ["links"],
 	template:

@@ -1,10 +1,15 @@
 Vue.component("page-title", {
-	props: ["title", "href"],
+	props: ["title", "url"],
 	template:
 		'<h2 class="page_title">' +
-			'<a class="page_link" v-bind:href="url">' +
+			'<template v-if="url">' +
+				'<a class="page_link" v-bind:href="url" target="_blank">' +
+					'<span class="page_label">{{ title }}</span>' +
+					'<icon wrapper="page" icon="link"></icon>' +
+				'</a>' +
+			'</template>' +
+			'<template v-else>' +
 				'<span class="page_label">{{ title }}</span>' +
-				'<icon type="link"></icon>' +
-			'</a>' +
+			'</template>' +
 		'</h2>'
 });

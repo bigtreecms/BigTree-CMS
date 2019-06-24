@@ -1,20 +1,20 @@
-.main_nav {}
+.sub_nav {}
 
-.main_items {
+.sub_nav_items {
 	list-style: none;
 	margin: 0;
 	padding: 0;
 	white-space: nowrap;
 }
 
-.main_item {
+.sub_nav_item {
 	position: relative;
 
 	display: inline-block;
 	margin-right: 16px;
 }
 
-.main_link {
+.sub_nav_link {
 	position: relative;
 
 	color: inherit;
@@ -32,7 +32,7 @@
 		color: $green;
 	}
 
-	&.pending {
+	&.has_tooltip {
 
 		&:before {
 			height: 5px;
@@ -49,7 +49,7 @@
 	}
 }
 
-.main_hint {
+.sub_nav_hint {
 	width: 150px;
 
 	position: absolute;
@@ -83,8 +83,8 @@
 		transform: translate(-50%, 0);
 	}
 
-	.main_item:hover &,
-	.main_item:focus & {
+	.sub_nav_item:hover &,
+	.sub_nav_item:focus & {
 		opacity: 1;
 		visibility: visible;
 		transform: translate(-50%, 0);
@@ -95,10 +95,10 @@
 	}
 }
 
-.main_hint_label {
+.sub_nav_hint_label {
 	display: block;
 }
 
-.main_hint_time {
+.sub_nav_hint_content {
 	display: block;
 }

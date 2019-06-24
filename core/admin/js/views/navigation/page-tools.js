@@ -1,0 +1,12 @@
+Vue.component("page-tools", {
+	"props": ["links"],
+	"template":
+		'<div class="page_tools">' +
+			'<div class="page_tools_body">' +
+				'<a v-for="link in links" class="page_tool" v-bind:href="link.url">' +
+					'<icon wrapper="page_tool" v-bind:icon="link.icon"></icon>' +
+					'<span class="page_tool_label">{{ link.title }}</span>' +
+				'</a>' +
+			'</div>' +
+		'</div>'
+});
