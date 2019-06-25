@@ -151,15 +151,16 @@
 			</header>
 	
 			<main class="main">
-				<div class="page_header" v-bind:class='{ "layout_empty_breadcrumb": !breadcrumb, "layout_empty_sub_nav": !sub_nav }'>
-					<breadcrumb v-if="breadcrumb" v-bind:links="breadcrumb"></breadcrumb>
+				<meta-bar :items="meta_bar"></meta-bar>
+				<div class="page_header" :class='{ "layout_empty_breadcrumb": !breadcrumb, "layout_empty_sub_nav": !sub_nav }'>
+					<breadcrumb v-if="breadcrumb" :links="breadcrumb"></breadcrumb>
 					
 					<div class="page_header_body">
-						<page-title v-bind:title="page_title" v-bind:url="page_public_url"></page-title>
-						<page-tools v-if="tools" v-bind:links="tools"></page-tools>
+						<page-title :title="page_title" :url="page_public_url"></page-title>
+						<page-tools v-if="tools" :links="tools"></page-tools>
 					</div>
 					
-					<sub-navigation v-if="sub_nav" v-bind:links="sub_nav"></sub-navigation>
+					<sub-navigation v-if="sub_nav" :links="sub_nav"></sub-navigation>
 				</div>
 				
 				<?php Router::renderContent(); ?>
@@ -180,6 +181,7 @@
 			Admin::registerRuntimeJavascript("views/navigation/page-tools.js");
 			Admin::registerRuntimeJavascript("views/navigation/sub-navigation.js");
 			Admin::registerRuntimeJavascript("views/structure/page-title.js");
+			Admin::registerRuntimeJavascript("views/structure/meta-bar.js");
 			foreach (Admin::$Javascript as $script) {
 		?>
 		<script src="<?=$script?>"></script>
@@ -200,6 +202,11 @@
 					sub_nav: [
 						{ "title": "Link One", "url": "http://www.google.com", "active": true },
 						{ "title": "Link Two", "url": "http://www.yahoo.com", "tooltip": { "title": "Test", "content": "Content" }}
+					],
+					meta_bar: [
+						{ "title": "Expires", "value": "5 days", "type": "text" },
+						{ "title": "SEO Score", "value": 50, "type": "visual" },
+						{ "title": "Last Updated", "value": "June 15, 2019", "type": "text" }
 					]
 				}
 			});

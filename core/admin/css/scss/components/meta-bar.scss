@@ -1,4 +1,4 @@
-.seo {
+.meta_bar {
 	background: #fff;
 	border-top: 1px solid $mist;
 	border-bottom: 1px solid $mist;
@@ -15,7 +15,7 @@
 	}
 }
 
-.seo_detail {
+.meta_bar_detail {
 	align-items: center;
 	display: flex;
 	justify-content: flex-end;
@@ -34,11 +34,11 @@
 	}
 }
 
-.seo_label {
+.meta_bar_label {
 	margin-right: 6px;
 }
 
-.seo_value {
+.meta_bar_value {
 
 	&_text {
 		font-weight: 700;
@@ -62,7 +62,7 @@
 	}
 }
 
-.seo_visual {
+.meta_bar_visual {
 	height: 100%;
 
 	position: absolute;
