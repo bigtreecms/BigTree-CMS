@@ -28,7 +28,7 @@
 		padding-bottom: 20px;
 		
 		@media #{$min_lg} {
-			padding-bottom: 36px;	
+			padding-bottom: 40px;	
 		}
 	}
 }
@@ -80,20 +80,25 @@
 		border .15s,
 		color .15s;
 
-	&:hover,
-	&:focus {
-		background: $green;
-		border-color: $green;
-		color: #fff;
-	}
-
 	&:first-child {
-		border-right: 0;
+		border-right-color: transparent;
 		border-radius: 3px 0 0 3px;
 	}
 
 	&:last-child {
 		border-radius: 0 3px 3px 0;
+	}
+
+	&:only-child {
+		border-right-color: $mist;
+		border-radius: 3px;
+	}
+
+	&:hover,
+	&:focus {
+		background: $green;
+		border-color: $green;
+		color: #fff;
 	}
 }
 

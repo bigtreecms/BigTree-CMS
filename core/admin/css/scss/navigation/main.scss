@@ -1,11 +1,11 @@
-.admin_nav {
+.main_nav {
 
 	@media #{$min_lg} {
 		margin: 0 -20px;
 	}
 }
 
-.admin_items {
+.main_nav_items {
 	list-style: none;
 	margin: 0;
 	padding: 0;
@@ -15,9 +15,9 @@
 	}
 }
 
-.admin_item {}
+.main_nav_item {}
 
-.admin_link {
+.main_nav_link {
 	align-items: center;
 	color: inherit;
 	display: flex;
@@ -40,7 +40,7 @@
 	}
 }
 
-.admin_icon {
+.main_nav_icon {
 	min-width: 25px;
 
 	color: $gray;
@@ -52,8 +52,8 @@
 		display: block;
 	}
 
-	.admin_link:not(.active):hover &,
-	.admin_link:not(.active):focus & {
+	.main_nav_link:not(.active):hover &,
+	.main_nav_link:not(.active):focus & {
 		color: $green;
 	}
 
@@ -62,13 +62,13 @@
 	}
 }
 
-.admin_label {
+.main_nav_label {
 	color: inherit;
 	font-size: 14px;
 	transition: color .15s;
 
-	.admin_link:not(.active):hover &,
-	.admin_link:not(.active):focus & {
+	.main_nav_link:not(.active):hover &,
+	.main_nav_link:not(.active):focus & {
 		color: $green;
 	}
 
@@ -77,7 +77,7 @@
 	}
 }
 
-.admin_children {
+.main_nav_children {
 	background: #fff;
 	margin-bottom: 6px;
 	padding: 7px 0;
@@ -88,7 +88,7 @@
 	}
 }
 
-.admin_child {
+.main_nav_child {
 	position: relative;
 
 	color: inherit;

@@ -2,13 +2,13 @@
 
 	@media #{$max_lg} {
 		position: absolute;
-		bottom: 100%;
+		top: 100%;
 		right: 0;
 
 		background: $fade;
 		border: 1px solid $mist;
 		border-right: 0;
-		border-bottom: 0;
+		border-top: 0;
 		opacity: 0;
 		padding: 10px 0;
 		pointer-events: none;

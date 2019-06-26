@@ -1,11 +1,11 @@
-.actions {
+.action_menu {
 	position: relative;
 
 	display: inline-block;
 	vertical-align: top;
 }
 
-.action {
+.action_menu_default {
 	align-items: center;
 	background: #fff;
 	border: 1px solid $mist;
@@ -15,10 +15,10 @@
 	text-align: left;
 }
 
-.action_label {
+.action_menu_label {
 	color: inherit;
 	font-size: 13px;
-	padding: 11px 20px 11px 10px;
+	padding: 10px 20px 10px 10px;
 	text-decoration: underline;
 	text-decoration-color: transparent;
 	transition: 
@@ -32,7 +32,7 @@
 	}
 }
 
-.action_trigger {
+.action_menu_trigger {
 	width: 40px;
 
 	align-items: center;
@@ -57,11 +57,11 @@
 	}
 }
 
-.action_icon {
+.action_menu_icon {
 	pointer-events: none;
 }
 
-.action_dropdown {
+.action_menu_dropdown {
 	width: calc(100% + 22px);
 
 	position: absolute;
@@ -77,19 +77,23 @@
 	margin: 0;
 	padding: 10px;
 
-	&.action_dropdown_active {
+	&.action_menu_dropdown_active {
 		display: block;
 	}
 
-	&.action_dropdown_flipped {
+	&.action_menu_dropdown_flipped {
 		top: auto;
 		bottom: -4px;
 	}
 }
 
-.action_item {}
+.action_menu_item {}
 
-.action_link {
+.action_menu_link {
+	appearance: none;
+	-webkit-appearance: none;
+	background: none;
+	border: 0;
 	border-radius: 2px;
 	color: #fff;
 	display: block;

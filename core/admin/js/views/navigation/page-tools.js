@@ -1,6 +1,6 @@
 Vue.component("page-tools", {
-	"props": ["links"],
-	"template":
+	props: ["links"],
+	template:
 		`<div class="page_tools">
 			<div class="page_tools_body">
 				<a v-for="link in links" class="page_tool" :href="link.url">

@@ -9,9 +9,11 @@
 
 .main {
 	background: $fade;
+	padding-top: 60px;
 
 	@media #{$min_lg} {
 		border-bottom: 1px solid $mist;
 		flex: auto;
+		padding-top: 0;
 	}
 }

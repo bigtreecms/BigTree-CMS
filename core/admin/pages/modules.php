@@ -2,6 +2,9 @@
 	namespace BigTree;
 	
 	Router::setLayout("new");
+	Admin::registerRuntimeJavascript("views/structure/toggle-section.js");
+	Admin::registerRuntimeJavascript("views/structure/action-menu.js");
+	Admin::registerRuntimeJavascript("views/components/table-component.js");
 
 	$module_count = 0;
 	$groups = ModuleGroup::all("position DESC, id ASC");
@@ -11,6 +14,19 @@
 		
 		$module_count += count($modules);
 ?>
+<action-menu :actions='[
+	{ "title": "Template One", "value": "t1" },
+	{ "title": "Template Two", "value": "t2" }
+]' buttons="true"></action-menu>
+<toggle-section title="<?=$group_name?>">
+	<table-component :columns="[{ 'title': 'Module Name', 'key': 'name' }]" :actions="[
+		{ 'title': 'View Whatever', 'url': '#' },
+		{ 'title': 'Edit Stuff', 'url': 'edit' }
+	]" :data="[
+		{ 'name': 'Test Module' },
+		{ 'name': 'Another Module' }
+	]"></table-component>
+</toggle-section>
 <div class="container">
 	<div class="container_summary"><h2><?=$group_name?></h2></div>
 	<section class="modules">

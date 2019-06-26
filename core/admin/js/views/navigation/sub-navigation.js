@@ -1,6 +1,6 @@
 Vue.component("sub-navigation", {
-	"props": ["links"],
-	"template":
+	props: ["links"],
+	template:
 		`<nav class="sub_nav">
 			<ul class="sub_nav_items">
 				<li v-for="link in links" class="sub_nav_item">

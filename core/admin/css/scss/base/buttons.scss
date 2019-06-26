@@ -1,5 +1,6 @@
 button {
 	font-family: inherit;
+	cursor: pointer;
 }
 
 @mixin button_base($defaults: true) {
@@ -59,7 +60,7 @@ button {
 	@include button_base;
 
 	font-size: 13px;
-	padding: 12px 15px 11px;
+	padding: 12px 20px;
 }
 
 @mixin button_text_fill() {

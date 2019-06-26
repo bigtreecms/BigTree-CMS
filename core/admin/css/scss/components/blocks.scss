@@ -16,7 +16,7 @@
 	padding: 20px;
 
 	@media #{$min_lg} {
-		padding: 20px 40px 122px;
+		padding: 40px 40px 122px;
 	}
 }
 
@@ -27,8 +27,12 @@
 
 	background: $fade;
 	border: 1px solid $mist;
-	margin-bottom: 10px;
+	margin-bottom: 20px;
 	padding: 10px;
+
+	&:last-child {
+		margin-bottom: 0;
+	}
 }
 
 .block_info {

@@ -8,8 +8,6 @@
 }
 
 .site_trigger {
-	width: 100%;
-
 	align-items: center;
 	background: none;
 	border: 0;
@@ -25,25 +23,13 @@
 
 .site_trigger_icon {
 	transform: 
-		rotateX(180deg)
+		rotateX(0deg)
 		scale(.85);
-
-	@media #{$min_md} {
-		transform: 
-			rotateX(0deg)
-			scale(.85);
-	}
 
 	.site_links_active & {
 		transform: 
-			rotateX(0)
+			rotateX(180deg)
 			scale(.85);
-
-		@media #{$min_md} {
-			transform: 
-				rotateX(180deg)
-				scale(.85);
-		}
 	}
 }
 
@@ -51,7 +37,7 @@
 	width: 100%;
 
 	position: absolute;
-	bottom: 100%;
+	top: 100%;
 	z-index: 2;
 
 	background: $green;
@@ -61,11 +47,6 @@
 	list-style: none;
 	margin: 0;
 	padding: 10px;
-
-	@media #{$min_md} {
-		top: 100%;
-		bottom: auto;
-	}
 
 	.site_links_active & {
 		display: block;

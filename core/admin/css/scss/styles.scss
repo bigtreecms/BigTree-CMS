@@ -12,12 +12,12 @@
 @import "structure/menu.scss";
 @import "structure/credit.scss";
 
-@import "navigation/admin.scss";
+@import "navigation/main.scss";
 @import "navigation/util.scss";
 @import "navigation/breadcrumb.scss";
 @import "navigation/sub.scss";
 
-@import "partials/actions.scss";
+@import "partials/action-menu.scss";
 @import "partials/search.scss";
 @import "partials/pagination.scss";
 @import "partials/help.scss";
@@ -28,7 +28,6 @@
 @import "components/page-header.scss";
 @import "components/links.scss";
 @import "components/table.scss";
-@import "components/check-form.scss";
 @import "components/meta-bar.scss";
 @import "components/template-select.scss";
 @import "components/blocks.scss";

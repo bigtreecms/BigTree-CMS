@@ -1,6 +1,6 @@
 Vue.component("meta-bar", {
-	"props": ["items"],
-	"template":
+	props: ["items"],
+	template:
 		`<div class="meta_bar">
 			<div v-for="item in items" class="meta_bar_detail">
 				<span class="meta_bar_label">{{ item.title }}</span>

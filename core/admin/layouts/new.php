@@ -62,88 +62,29 @@
 				<div class="header_inner">
 					<div class="header_group">
 						<div class="site">
-							<h1 class="site_name"><?=$site->NavigationTitle?></h1>
-							<?=icon("site", "keyboard_arrow_down")?>
+							<h1 class="site_name">
+								<button class="site_trigger">
+									<span class="site_trigger_label"><?=$site->NavigationTitle?></span>
+									<?=icon("site_trigger", "keyboard_arrow_down")?>
+								</button>
+							</h1>
+							<nav class="site_links">
+								<a class="site_link" href="<?=ADMIN_ROOT?>users/profile/">Edit Profile</a>
+								<a class="site_link" href="<?=ADMIN_ROOT?>login/logout/">Logout</a>
+							</nav>
 						</div>
 						<div class="user">
 							<?=icon("user", "account_circle")?>
 							<span class="user_label"><?=Auth::user()->Name?></span>
 						</div>
 					</div>
-					<button class="js-menu-toggle menu_toggle">
-						<?=icon("menu_toggle", "menu")?>
-						<span class="menu_toggle_label">Menu</span>
-					</button>
-					<div class="js-menu menu">
-						<nav class="admin_nav">
-							<ul class="admin_items">
-								<?php
-									foreach (Router::$AdminNavTree as $item) {
-										if ($item["hidden"]) {
-											continue;
-										}
-									
-										if (empty($item["level"])) {
-											$item["level"] = 0;
-										}
-									
-										if (Auth::user()->Level >= $item["level"] && (!Auth::$PagesTabHidden || $item["link"] != "pages")) {
-											// Need to check custom nav states better
-											$link_pieces = explode("/",$item["link"]);
-											$path_pieces = array_slice(Router::$Path, 1, count($link_pieces));
-										
-											if (strpos($item["link"], "https://") === 0 || strpos($item["link"], "http://") === 0) {
-												$link = $item["link"];
-											} else {
-												$link = $item["link"] ? ADMIN_ROOT.$item["link"]."/" : ADMIN_ROOT;
-											}
-											
-											$active = ($link_pieces == $path_pieces || ($item["link"] == "modules" && isset($bigtree["module"])));
-								?>
-								<li class="admin_item">
-									<a class="admin_link<?php if ($active) { ?> active<?php } ?>" href="<?=$link?>">
-										<?=icon("admin", $item["icon"])?>
-										<span class="admin_label"><?=$item["title"]?></span>
-									</a>
-									<?php
-										if ($active && empty($item["no_top_level_children"]) && isset($item["children"]) && count($item["children"])) {
-									?>
-									<div class="admin_children">
-										<?php
-											foreach ($item["children"] as $child) {
-												if (!empty($child["top_level_hidden"])) {
-													continue;
-												}
-											
-												if (strpos($child["link"], "https://") === 0 || strpos($child["link"], "http://") === 0) {
-													$child_link = $child["link"];
-												} else {
-													$child_link = $child["link"] ? ADMIN_ROOT.rtrim($child["link"], "/")."/" : ADMIN_ROOT;
-												}
-											
-												if (Auth::user()->Level >= $child["access"]) {
-										?>
-										<a class="admin_child" href="<?=$child_link?>"><?=$child["title"]?></a>
-										<?php
-												}
-											}
-										?>
-									</div>
-									<?php
-										}
-									?>
-								</li>
-								<?php
-										}
-									}
-								?>
-							</ul>
-						</nav>
-					</div>
+					
+					<main-navigation title="<?=Text::translate("Menu", true)?>" :links="main_nav"></main-navigation>
+					
 					<div class="header_details">
-						<p class="credit">Version <?=BIGTREE_VERSION?>  • <a href="https://github.com/bigtreecms/BigTree-CMS/blob/master/license.txt" target="_blank">License</a></p>
+						<p class="credit">Version <?=BIGTREE_VERSION?></p>
 						<nav class="util_nav">
-							<a class="util_link" href="<?=ADMIN_ROOT?>">Credits &amp; Licenses</a>
+							<a class="util_link" href="<?=ADMIN_ROOT?>credits/">Credits &amp; Licenses</a>
 							<a class="util_link" href="https://www.bigtreecms.org/about/help/" target="_blank">Developer &amp; User Support</a>
 						</nav>
 					</div>
@@ -152,24 +93,24 @@
 	
 			<main class="main">
 				<meta-bar :items="meta_bar"></meta-bar>
-				<div class="page_header" :class='{ "layout_empty_breadcrumb": !breadcrumb, "layout_empty_sub_nav": !sub_nav }'>
-					<breadcrumb v-if="breadcrumb" :links="breadcrumb"></breadcrumb>
+				<div class="page_header" :class='{ "layout_empty_breadcrumb": !breadcrumb.length, "layout_empty_sub_nav": !sub_nav.length }'>
+					<breadcrumb v-if="breadcrumb.length" :links="breadcrumb"></breadcrumb>
 					
 					<div class="page_header_body">
 						<page-title :title="page_title" :url="page_public_url"></page-title>
-						<page-tools v-if="tools" :links="tools"></page-tools>
+						<page-tools v-if="tools.length" :links="tools"></page-tools>
 					</div>
 					
-					<sub-navigation v-if="sub_nav" :links="sub_nav"></sub-navigation>
+					<sub-navigation v-if="sub_nav.length" :links="sub_nav"></sub-navigation>
 				</div>
 				
 				<?php Router::renderContent(); ?>
 			</main>
 			
 			<footer class="footer">
-				<p class="credit">Version <?=BIGTREE_VERSION?> • <a href="https://github.com/bigtreecms/BigTree-CMS/blob/master/license.txt" target="_blank">License</a></p>
+				<p class="credit">Version <?=BIGTREE_VERSION?></p>
 				<nav class="util_nav">
-					<a class="util_link" href="<?=ADMIN_ROOT?>">Credits &amp; Licenses</a>
+					<a class="util_link" href="<?=ADMIN_ROOT?>credits/">Credits &amp; Licenses</a>
 					<a class="util_link" href="https://www.bigtreecms.org/about/help/" target="_blank">Developer &amp; User Support</a>
 				</nav>
 			</footer>
@@ -180,6 +121,7 @@
 			Admin::registerRuntimeJavascript("views/navigation/breadcrumb.js");
 			Admin::registerRuntimeJavascript("views/navigation/page-tools.js");
 			Admin::registerRuntimeJavascript("views/navigation/sub-navigation.js");
+			Admin::registerRuntimeJavascript("views/navigation/main-navigation.js");
 			Admin::registerRuntimeJavascript("views/structure/page-title.js");
 			Admin::registerRuntimeJavascript("views/structure/meta-bar.js");
 			foreach (Admin::$Javascript as $script) {
@@ -207,7 +149,15 @@
 						{ "title": "Expires", "value": "5 days", "type": "text" },
 						{ "title": "SEO Score", "value": 50, "type": "visual" },
 						{ "title": "Last Updated", "value": "June 15, 2019", "type": "text" }
-					]
+					],
+					main_nav: <?=get_navigation_menu_state()?>
+				},
+				mounted: function() {
+					console.log("mounted");
+					
+					this.$on("action_menu_change", function(data) {
+						console.log(data);
+					});
 				}
 			});
 		</script>
