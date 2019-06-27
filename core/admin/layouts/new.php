@@ -1,7 +1,5 @@
 <?php
 	namespace BigTree;
-	
-	include SERVER_ROOT."core/admin/includes/helpers.php";
 
 	$site = new Page(0, false);
 
@@ -92,7 +90,7 @@
 			</header>
 	
 			<main class="main">
-				<meta-bar :items="meta_bar"></meta-bar>
+				<meta-bar v-if="meta_bar.length" :items="meta_bar"></meta-bar>
 				<div class="page_header" :class='{ "layout_empty_breadcrumb": !breadcrumb.length, "layout_empty_sub_nav": !sub_nav.length }'>
 					<breadcrumb v-if="breadcrumb.length" :links="breadcrumb"></breadcrumb>
 					
@@ -115,51 +113,20 @@
 				</nav>
 			</footer>
 		</div>
-		<script src="<?=ADMIN_ROOT?>js/vue.js"></script>
 		<?php
-			Admin::registerRuntimeJavascript("views/icon.js");
-			Admin::registerRuntimeJavascript("views/navigation/breadcrumb.js");
-			Admin::registerRuntimeJavascript("views/navigation/page-tools.js");
-			Admin::registerRuntimeJavascript("views/navigation/sub-navigation.js");
-			Admin::registerRuntimeJavascript("views/navigation/main-navigation.js");
-			Admin::registerRuntimeJavascript("views/structure/page-title.js");
-			Admin::registerRuntimeJavascript("views/structure/meta-bar.js");
+			Admin::drawState();
+			Vue::buildCache(); // Remove in production
+		?>
+		<link type="text/css" rel="stylesheet" src="<?=ADMIN_ROOT?>css/cache/vue.css" />
+		<script src="<?=ADMIN_ROOT?>js/vue.js"></script>
+		<script src="<?=ADMIN_ROOT?>js/cache/vue.js"></script>
+		<script src="<?=ADMIN_ROOT?>js/app.js"></script>
+		<?php
 			foreach (Admin::$Javascript as $script) {
 		?>
 		<script src="<?=$script?>"></script>
 		<?php
 			}
 		?>
-		<script>
-			new Vue({
-				el: "#js-vue",
-				data: {
-					breadcrumb: [{ "title": "Test", "url": "#test" }, { "title": "Another", "url": "" }],
-					page_title: "Testing",
-					page_public_url: "http://www.google.com",
-					tools: [
-						{ "title": "Edit Template", "url": "http://www.google.com", "icon": "view_quilt" },
-						{ "title": "View Audit Trail", "url": "#", "icon": "timeline" }
-					],
-					sub_nav: [
-						{ "title": "Link One", "url": "http://www.google.com", "active": true },
-						{ "title": "Link Two", "url": "http://www.yahoo.com", "tooltip": { "title": "Test", "content": "Content" }}
-					],
-					meta_bar: [
-						{ "title": "Expires", "value": "5 days", "type": "text" },
-						{ "title": "SEO Score", "value": 50, "type": "visual" },
-						{ "title": "Last Updated", "value": "June 15, 2019", "type": "text" }
-					],
-					main_nav: <?=get_navigation_menu_state()?>
-				},
-				mounted: function() {
-					console.log("mounted");
-					
-					this.$on("action_menu_change", function(data) {
-						console.log(data);
-					});
-				}
-			});
-		</script>
 	</body>
 </html>

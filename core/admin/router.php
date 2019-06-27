@@ -109,12 +109,16 @@
 	
 	// CSS
 	if ($path[1] == "css") {
-		$css_path = implode("/", array_slice($path, 2));
-		
-		if (defined("EXTENSION_ROOT")) {
-			$css_file = EXTENSION_ROOT."css/$css_path";
+		if ($path[2] == "cache") {
+			$css_file = "../cache/admin/".implode("/", array_slice($path, 3));
 		} else {
-			$css_file = file_exists("../custom/admin/css/$css_path") ? "../custom/admin/css/$css_path" : "../core/admin/css/$css_path";
+			$css_path = implode("/", array_slice($path, 2));
+			
+			if (defined("EXTENSION_ROOT")) {
+				$css_file = EXTENSION_ROOT."css/$css_path";
+			} else {
+				$css_file = file_exists("../custom/admin/css/$css_path") ? "../custom/admin/css/$css_path" : "../core/admin/css/$css_path";
+			}
 		}
 		
 		$extension = strtolower(pathinfo($css_file, PATHINFO_EXTENSION));
@@ -196,10 +200,14 @@
 		$max_file_size = $mul * (int) $pms;
 		$js_path = implode("/", array_slice($path, 2));
 		
-		if (defined("EXTENSION_ROOT")) {
-			$js_file = EXTENSION_ROOT."js/$js_path";
+		if ($path[2] == "cache") {
+			$js_file = "../cache/admin/".implode("/", array_slice($path, 3));
 		} else {
-			$js_file = file_exists("../custom/admin/js/$js_path") ? "../custom/admin/js/$js_path" : "../core/admin/js/$js_path";
+			if (defined("EXTENSION_ROOT")) {
+				$js_file = EXTENSION_ROOT."js/$js_path";
+			} else {
+				$js_file = file_exists("../custom/admin/js/$js_path") ? "../custom/admin/js/$js_path" : "../core/admin/js/$js_path";
+			}
 		}
 		
 		// If we're serving php, just include it instead of trying to parse it as JS
@@ -302,6 +310,8 @@
 	} else {
 		include "../core/bootstrap.php";
 	}
+	
+	include Router::getIncludePath("admin/includes/helpers.php");
 	
 	ob_start();
 	SessionHandler::start();

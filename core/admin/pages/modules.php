@@ -5,6 +5,9 @@
 	Admin::registerRuntimeJavascript("views/structure/toggle-section.js");
 	Admin::registerRuntimeJavascript("views/structure/action-menu.js");
 	Admin::registerRuntimeJavascript("views/components/table-component.js");
+	Admin::setState([
+		"page_title" => "Modules"
+	]);
 
 	$module_count = 0;
 	$groups = ModuleGroup::all("position DESC, id ASC");
@@ -14,10 +17,6 @@
 		
 		$module_count += count($modules);
 ?>
-<action-menu :actions='[
-	{ "title": "Template One", "value": "t1" },
-	{ "title": "Template Two", "value": "t2" }
-]' buttons="true"></action-menu>
 <toggle-section title="<?=$group_name?>">
 	<table-component :columns="[{ 'title': 'Module Name', 'key': 'name' }]" :actions="[
 		{ 'title': 'View Whatever', 'url': '#' },
@@ -27,24 +26,6 @@
 		{ 'name': 'Another Module' }
 	]"></table-component>
 </toggle-section>
-<div class="container">
-	<div class="container_summary"><h2><?=$group_name?></h2></div>
-	<section class="modules">
-		<?php foreach ($modules as $module) { ?>
-		<p class="module">
-			<?php if (ModuleAction::existsForRoute($module->ID, "add")) { ?>
-				<a href="<?=ADMIN_ROOT?><?=$module->Route?>/add/" class="add"><span class="icon_small icon_small_add"></span></a>
-			<?php } ?>
-			<a class="module_name" href="<?=ADMIN_ROOT?><?=$module->Route?>/">
-				<?php if ($module->Icon) { ?>
-					<span class="icon_small icon_small_<?=$module->Icon?>"></span>
-				<?php } ?>
-				<?=$module->Name?>
-			</a>
-		</p>
-		<?php } ?>
-	</section>
-</div>
 <?php
 	};
 	
@@ -72,3 +53,4 @@
 </div>
 <?php
 	}
+?>
