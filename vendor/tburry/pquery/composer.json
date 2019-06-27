@@ -1,0 +1,28 @@
+{
+   "name": "tburry/pquery",
+   "type": "library",
+   "description": "A jQuery like html dom parser written in php.",
+   "keywords": ["php", "dom", "ganon"],
+   "license": "LGPL-2.1",
+   "authors": [
+       { "name": "Todd Burry", "email": "todd@vanillaforums.com", "role": "Developer" }
+   ],
+   "autoload": {
+      "classmap": [
+          "IQuery.php", 
+          "gan_formatter.php", 
+          "gan_node_html.php",
+          "gan_parser_html.php",
+          "gan_selector_html.php",
+          "gan_tokenizer.php",
+          "gan_xml2array.php",
+          "pQuery.php"
+      ]
+   },
+   "require": {
+       "php": ">=5.3.0"
+   },
+   "require-dev": {
+       "htmlawed/htmlawed": "dev-master"
+   }
+}

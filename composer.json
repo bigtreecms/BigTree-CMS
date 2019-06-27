@@ -19,6 +19,7 @@
         "ext-mysqli": "*",
         "ext-xmlwriter": "*",
         "ext-exif": "*",
-        "scssphp/scssphp": "^1.0"
+        "scssphp/scssphp": "^1.0",
+        "tburry/pquery": "^1.1"
     }
 }

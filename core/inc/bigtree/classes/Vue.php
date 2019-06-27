@@ -61,18 +61,18 @@
 		
 		public static function parseFile(string $file): array
 		{
-			$dom = new \DOMDocument;
-			$dom->loadXML("<root>".file_get_contents($file)."</root>");
-			$dom->preserveWhiteSpace = false;
-			$dom->formatOutput = true;
 			
-			$script = $dom->getElementsByTagName("script");
-			$template = $dom->getElementsByTagName("template");
-			$style = $dom->getElementsByTagName("style");
+			error_reporting(E_ALL);
+			ini_set("display_errors", "on");
 			
-			$script_content = $script->count() ? trim(static::getDOMNodeContent($script->item(0))) : "";
-			$template_content = $template->count() ? trim(static::getDOMNodeContent($template->item(0))) : "";
-			$style_content = $style->count() ? static::getDOMNodeContent($style->item(0)) : "";
+			$dom = \pQuery::parseFile($file);
+			$script = $dom->query("script");
+			$template = $dom->query("template");
+			$style = $dom->query("style");
+			
+			$script_content = $script->count() ? trim($script->html()) : "";
+			$template_content = $template->count() ? trim($template->html()) : "";
+			$style_content = $style->count() ? $style->html() : "";
 			
 			if (!$script_content) {
 				trigger_error("Vue file most contain a Vue.component declaration.", E_USER_ERROR);
@@ -85,16 +85,14 @@
 			$scoped_id = null;
 			
 			if ($style_content) {
-				$type_attr = $style->item(0)->attributes->getNamedItem("type");
-				$scoped_attr = $style->item(0)->attributes->getNamedItem("scoped");
+				$type = $style->attr("type");
+				$scoped = $style->attr("scoped");
 				
-				if ($type_attr) {
-					$type = strtolower($type_attr->nodeValue);
-				} else {
+				if (!$type) {
 					$type = "text/css";
 				}
 				
-				if (!is_null($scoped_attr) && strtolower($scoped_attr->nodeValue) != "false") {
+				if (!is_null($scoped) && strtolower($scoped) != "false") {
 					if (!$template_content) {
 						trigger_error("You must use a separate &lt;template&gt; definition with scoped styles.", E_USER_ERROR);
 					}
@@ -153,14 +151,14 @@
 			if ($template_content) {
 				// Class the root element
 				if ($scoped_id) {
-					$first_element = $template->item(0)->getElementsByTagName("*")->item(0);
+					$first_element = $dom->query("template > *:first-child");
 					
-					if ($first_element->getAttribute("class")) {
+					if ($first_element->attr("class")) {
 						trigger_error("Your root element for a scoped component must not have a class name.", E_USER_ERROR);
 					}
 					
-					$first_element->setAttribute("class", $scoped_id);
-					$template_content = trim(static::getDOMNodeContent($template->item(0)));
+					$first_element->attr("class", $scoped_id);
+					$template_content = $template->count() ? trim($template->html()) : "";
 				}
 				
 				// Escape the template
@@ -188,18 +186,6 @@
 			}
 			
 			return ["js" => $script_content, "css" => $style_content];
-		}
-		
-		private static function getDOMNodeContent($element): string
-		{
-			$string = "";
-			$children = $element->childNodes;
-			
-			foreach ($children as $child) {
-				$string .= $element->ownerDocument->saveHTML($child);
-			}
-			
-			return $string;
 		}
 		
 	}
