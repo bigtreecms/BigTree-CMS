@@ -25,7 +25,7 @@
 				</td>
 				<td v-if="actions.length" class="table_column">
 					<div class="table_column_content">
-						<action-menu :base_path="actions_base_path" :actions="actions" :id="row[id]"></action-menu>
+						<action-menu :base_path="actions_base_path" :actions="actions" :id="row['id']"></action-menu>
 					</div>
 				</td>
 			</tr>

@@ -5,6 +5,7 @@
 	*/
 	
 	namespace BigTree;
+	use pQuery;
 	
 	class Vue
 	{
@@ -61,11 +62,7 @@
 		
 		public static function parseFile(string $file): array
 		{
-			
-			error_reporting(E_ALL);
-			ini_set("display_errors", "on");
-			
-			$dom = \pQuery::parseFile($file);
+			$dom = pQuery::parseFile($file);
 			$script = $dom->query("script");
 			$template = $dom->query("template");
 			$style = $dom->query("style");

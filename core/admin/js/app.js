@@ -10,6 +10,5 @@ new Vue({
 		sub_nav: typeof state.sub_nav != "undefined" ? state.sub_nav : [],
 		meta_bar: typeof state.meta_bar != "undefined" ? state.meta_bar : [],
 		main_nav: state.main_nav
-	},
-	computed: state.computed
+	}
 });

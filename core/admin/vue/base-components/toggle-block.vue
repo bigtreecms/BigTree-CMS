@@ -1,5 +1,5 @@
 <script>
-	Vue.component("toggle-section", {
+	Vue.component("toggle-block", {
 		props: ["title", "collapsed"],
 		data: function() {
 			return {
