@@ -123,7 +123,7 @@ var BigTreeAPI = (function() {
 		});
 	}
 
-	async function getStoredData(table) {
+	async function getStoredData(table, index, reversed) {
 		if (!initialized) {
 			await init();
 		}
@@ -132,15 +132,40 @@ var BigTreeAPI = (function() {
 			function(resolve, reject) {
 				let transaction = db.transaction(table, "readonly");
 				let store = transaction.objectStore(table);
-				let request = store.getAll();
 
+				if (typeof index !== "undefined") {
+					let store_index = store.index(index);
+					let cursor = store_index.openCursor();
+					let results = [];
 
-				request.onsuccess = function() {
-					resolve(request.result);
-				};
+					cursor.onsuccess = function(event) {
+						let cursor = event.target.result;
 
-				request.onerror = function() {
-					reject("error");
+						if (cursor) {
+							results.push(cursor.value);
+							cursor.continue();
+						} else {
+							if (reversed) {
+								results.reverse();
+							}
+
+							resolve(results);
+						}
+					};
+
+					cursor.onerror = function() {
+						reject("error");
+					};
+				} else {
+					let request = store.getAll();
+
+					request.onsuccess = function() {
+						resolve(request.result);
+					};
+
+					request.onerror = function() {
+						reject("error");
+					}
 				}
 			}
 		);

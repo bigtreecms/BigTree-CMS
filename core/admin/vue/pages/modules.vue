@@ -2,11 +2,10 @@
 	Vue.component("page-module-listing", {
 		asyncComputed: {
 			async tables () {
-				let modules = await BigTreeAPI.getStoredData("modules");
-				let groups = await BigTreeAPI.getStoredData("module-groups");
-				let grouped_modules = {
-					"ungrouped": {"name": "Ungrouped", "modules": []}
-				};
+				let modules = await BigTreeAPI.getStoredData("modules", "position", true);
+				let groups = await BigTreeAPI.getStoredData("module-groups", "position", true);
+				let ungrouped_modules = [];
+				let grouped_modules = {};
 
 				for (let x = 0; x < groups.length; x++) {
 					grouped_modules[groups[x].id] = {
@@ -21,9 +20,11 @@
 					if (module.group && typeof grouped_modules[module.group] !== "undefined") {
 						grouped_modules[module.group].modules.push(module);
 					} else {
-						grouped_modules["ungrouped"].modules.push(module);
+						ungrouped_modules.push(module);
 					}
 				}
+				
+				grouped_modules.ungrouped = { name: "Ungrouped", modules: ungrouped_modules };
 
 				let tables = [];
 
