@@ -111,18 +111,6 @@
 						}
 						
 						$data["classes"][$class] = $path;
-						
-						// Get the registered routes, load the class
-						include_once SERVER_ROOT.$path;
-						
-						if (isset($class::$RouteRegistry) && is_array($class::$RouteRegistry)) {
-							foreach ($class::$RouteRegistry as $registration) {
-								$type = $registration["type"];
-								unset($registration["type"]);
-								
-								$data["routes"][$type][] = $registration;
-							}
-						}
 					}
 				}
 				
@@ -140,17 +128,36 @@
 						}
 					}
 				}
-				
-				if (!$config["debug"]) {
-					// Cache it so we don't hit the database.
-					FileSystem::createFile($cache_file, JSON::encode($data));
-				}
 			} else {
 				$data = json_decode(file_get_contents($cache_file), true);
 			}
 			
 			Module::$ClassCache = $data["classes"];
 			Extension::$RequiredFiles = $data["extension_required_files"];
+			
+			// Get the registered routes for module classes
+			if ($config["debug"] || !file_exists($cache_file)) {
+				foreach (Module::$ClassCache as $class => $path) {
+					if (!class_exists($class)) {
+						include_once SERVER_ROOT.$path;
+					}
+					
+					if (class_exists($class) && isset($class::$RouteRegistry) && is_array($class::$RouteRegistry)) {
+						foreach ($class::$RouteRegistry as $registration) {
+							$type = $registration["type"];
+							unset($registration["type"]);
+							
+							$data["routes"][$type][] = $registration;
+						}
+					}
+				}
+				
+				// Cache it so we don't hit the database next time.
+				if (!$config["debug"]) {
+					FileSystem::createFile($cache_file, JSON::encode($data));
+				}
+			}
+			
 			static::$Registry = $data["routes"];
 			
 			// Find root paths for all sites to include in URLs if we're in a multi-site environment

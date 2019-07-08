@@ -265,14 +265,11 @@
 		
 		die(str_replace($find, $replace, file_get_contents($js_file)));
 	}
-
-	error_reporting(E_ALL);
-	ini_set("display_errors", "on");
 	
 	// We're loading a page in the admin, so add and remove some content / security headers
 	$csp_domains = [];
 	
-	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+	if (!empty($bigtree["config"]["sites"]) && is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
 		foreach ($bigtree["config"]["sites"] as $site) {
 			$clean_csp_domain = str_replace(["https://", "http://"], "", $site["domain"]);
 			$csp_domains[] = "http://".$clean_csp_domain;
@@ -287,7 +284,7 @@
 	header("Content-Type: text/html; charset=utf-8");
 	header("Content-Security-Policy: frame-ancestors ".implode(" ", $csp_domains));
 	
-	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
+	if (!empty($bigtree["config"]["sites"]) && is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
 		$csp_domains = [];
 		
 		foreach ($bigtree["config"]["sites"] as $site) {

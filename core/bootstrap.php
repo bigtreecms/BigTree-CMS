@@ -2,6 +2,7 @@
 	use BigTree\Auth;
 	use BigTree\FileSystem;
 	use BigTree\JSON;
+	use BigTree\Module;
 	use BigTree\Router;
 	use BigTree\SQL;
 	use BigTree\Text;
@@ -94,8 +95,6 @@
 	
 	// Class auto loader
 	spl_autoload_register(function ($class) {
-		global $bigtree;
-		
 		$path = null;
 		
 		// Auto loadable via the class name
@@ -103,7 +102,7 @@
 			$path = "inc/bigtree/classes/".str_replace("\\", "/", substr($class, 8)).".php";
 		// Known class in the cache file
 		} else {
-			$path = isset($bigtree["class_list"][$class]) ? $bigtree["class_list"][$class] : null;
+			$path = isset(Module::$ClassCache[$class]) ? Module::$ClassCache[$class] : null;
 		}
 		
 		if (!$path) {
