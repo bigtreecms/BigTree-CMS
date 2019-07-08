@@ -108,7 +108,6 @@
 		if (!$path) {
 			// Clear the module class list just in case we're missing something.
 			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-module-cache.json");
-			
 			trigger_error("Class $class could not be auto-loaded but the cache may be stale. Please try re-loading.",
 						  E_USER_ERROR);
 			

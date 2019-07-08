@@ -1,23 +1,24 @@
 <?php
-	namespace BigTree;
-	
 	// Backwards compatibility
 	function sqlquery($query) {
-		return SQL::query($query);
+		return BigTree\SQL::query($query);
 	}
 
-	function sqlfetch(SQL $query) {
+	function sqlfetch(BigTree\SQL $query) {
 		return $query->fetch();
 	}
 
-	function sqlrows(SQL $result) {
+	function sqlrows(BigTree\SQL $result) {
 		return $result->rows();
 	}
 
 	function sqlid() {
-		return SQL::insertID();
+		return BigTree\SQL::insertID();
 	}
 
 	function sqlescape($string) {
-		return SQL::escape($string);
+		return BigTree\SQL::escape($string);
 	}
+	
+	class SQL extends BigTree\SQL {}
+	

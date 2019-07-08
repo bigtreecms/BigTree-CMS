@@ -73,7 +73,7 @@
 							$module_class = new $module["class"];
 	
 							if (method_exists($module_class, "getSitemap")) {
-								$subnav = $mod->getSitemap($page);
+								$subnav = $module_class->getSitemap($page);
 	
 								foreach ($subnav as $subnav_item) {
 									$writer->startElement('url');

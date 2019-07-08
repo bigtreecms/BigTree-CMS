@@ -8,7 +8,6 @@
 	namespace BigTree;
 	
 	use Exception;
-	
 	use mysqli;
 	use mysqli_result;
 	
