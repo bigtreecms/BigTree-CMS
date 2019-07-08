@@ -191,40 +191,35 @@ var BigTreeAPI = (function() {
 							}
 
 							// Get the latest data set
-							table.transaction.oncomplete = function() {
+							table.transaction.oncomplete = async function() {
 								for (let store in BigTreeAPI.schema) {
 									if (BigTreeAPI.schema.hasOwnProperty(store)) {
-										this.call({
-											endpoint: "indexed-db/" + store,
-											callback: function (response, context) {
-												let transaction = db.transaction(db.objectStoreNames, "readwrite");
-												let store = transaction.objectStore(context);
+										let data = await BigTreeAPI.call({ endpoint: "indexed-db/" + store });
+										let transaction = db.transaction(db.objectStoreNames, "readwrite");
+										let transaction_store = transaction.objectStore(store);
 
-												if (typeof response.insert !== "undefined") {
-													for (let x = 0; x < response.insert.length; x++) {
-														store.add(response.insert[x]);
-													}
+										if (typeof data.insert !== "undefined") {
+											for (let x = 0; x < data.insert.length; x++) {
+												transaction_store.add(data.insert[x]);
+											}
+										}
+
+										if (typeof data.update !== "undefined") {
+											for (let index in data.update) {
+												if (data.update.hasOwnProperty(index)) {
+													transaction_store.put(data.update[index], index);
 												}
+											}
+										}
 
-												if (typeof response.update !== "undefined") {
-													for (let index in response.update) {
-														if (response.update.hasOwnProperty(index)) {
-															store.put(response.update[index], index);
-														}
-													}
-												}
+										if (typeof data.delete !== "undefined") {
+											for (let x = 0; x < data.delete.length; x++) {
+												transaction_store.delete(data.delete[x]);
+											}
+										}
 
-												if (typeof response.delete !== "undefined") {
-													for (let x = 0; x < response.delete.length; x++) {
-														store.delete(response.delete[x]);
-													}
-												}
-
-												initialized = true;
-												resolve();
-											},
-											context: store
-										});
+										initialized = true;
+										resolve();
 									}
 								}
 							};

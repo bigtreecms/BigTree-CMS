@@ -1,6 +1,13 @@
 <script>
 	Vue.component("data-table", {
-		props: ["columns", "actions", "actions_base_path", "data", "draggable"],
+		props: [
+			"actions",
+			"actions_base_path",
+			"columns",
+			"data",
+			"draggable",
+			"escaped_data"
+		]
 	});
 </script>
 
@@ -20,6 +27,7 @@
 						<icon v-if="draggable && index == 0" wrapper="table_column_drag" icon="drag_handle"></icon>
 						<img v-if="column.type == 'image'" class="table_column_image" :src="row[column.key]" alt="" />
 						<span v-else-if="column.type == 'status'" class="table_column_status" :class="'table_column_status_' + row[column.key].toLowerCase()"></span>
+						<span v-else-if="escaped_data" class="table_column_text" v-html="row[column.key]"></span>
 						<span v-else class="table_column_text">{{ row[column.key] }}</span>
 					</span>
 				</td>

@@ -1,6 +1,13 @@
 <script>
 	Vue.component("grouped-tables", {
-		props: ["searchable", "search_label", "search_placeholder", "collapsible", "tables"],
+		props: [
+			"collapsible",
+			"escaped_data",
+			"searchable",
+			"search_label",
+			"search_placeholder",
+			"tables"
+		],
 		data: function() {
 			return {
 				query: ""
@@ -74,8 +81,9 @@
 		<toggle-block v-if="collapsible" v-for="table in filtered_tables" :title="table.title" :key="table.id">
 			<data-table :columns="table.columns" :actions="table.actions" :data="table.data"></data-table>
 		</toggle-block>
+
 		<block v-else v-for="table in filtered_tables" class="component" :title="table.title" :key="table.id">
-			<data-table :columns="table.columns" :actions="table.actions" :data="table.data"></data-table>
+			<data-table :columns="table.columns" :actions="table.actions" :data="table.data" :escaped_data="true"></data-table>
 		</block>
 	</div>
 </template>
