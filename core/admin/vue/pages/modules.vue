@@ -9,6 +9,7 @@
 
 				for (let x = 0; x < groups.length; x++) {
 					grouped_modules[groups[x].id] = {
+						"id": groups[x].id,
 						"name": groups[x].name,
 						"modules": []
 					};
@@ -24,7 +25,7 @@
 					}
 				}
 				
-				grouped_modules.ungrouped = { name: "Ungrouped", modules: ungrouped_modules };
+				grouped_modules.ungrouped = { id: "ungrouped", name: "Ungrouped", modules: ungrouped_modules };
 
 				let tables = [];
 
@@ -34,6 +35,7 @@
 
 						if (group.modules.length) {
 							tables.push({
+								"id": "module-group-" + group.id,
 								"title": group.name,
 								"columns": [
 									{ title: "Module Name", key: "name" }
