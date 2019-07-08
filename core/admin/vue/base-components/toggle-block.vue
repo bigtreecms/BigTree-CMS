@@ -1,6 +1,6 @@
 <script>
 	Vue.component("toggle-block", {
-		props: ["title", "collapsed"],
+		props: ["id", "escaped_title", "title", "collapsed"],
 		data: function() {
 			return {
 				expanded: !this.collapsed
@@ -27,7 +27,8 @@
 				<icon wrapper="component_expander" icon="expand_more"></icon>
 				<icon wrapper="component_expander" icon="expand_less"></icon>
 			</button>
-			<span class="component_title_label">{{ title }}</span>
+			<span v-if="escaped_title" v-html="title" class="component_title_label"></span>
+			<span v-else class="component_title_label">{{ title }}</span>
 		</h2>
 		
 		<div class="component_body">

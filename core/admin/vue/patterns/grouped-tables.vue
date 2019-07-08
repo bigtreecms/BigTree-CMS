@@ -78,12 +78,12 @@
 	<div>
 		<search v-if="searchable" :label="search_label" :placeholder="search_placeholder"></search>
 		
-		<toggle-block v-if="collapsible" v-for="table in filtered_tables" :title="table.title" :key="table.id">
-			<data-table :columns="table.columns" :actions="table.actions" :data="table.data"></data-table>
+		<toggle-block v-if="collapsible" v-for="table in filtered_tables" :title="table.title" :key="table.id" :escaped_title="escaped_data">
+			<data-table :columns="table.columns" :actions="table.actions" :data="table.data" :escaped_data="escaped_data"></data-table>
 		</toggle-block>
 
 		<block v-else v-for="table in filtered_tables" class="component" :title="table.title" :key="table.id">
-			<data-table :columns="table.columns" :actions="table.actions" :data="table.data" :escaped_data="true"></data-table>
+			<data-table :columns="table.columns" :actions="table.actions" :data="table.data" :escaped_data="escaped_data"></data-table>
 		</block>
 	</div>
 </template>
