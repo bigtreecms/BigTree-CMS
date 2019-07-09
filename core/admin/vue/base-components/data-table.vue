@@ -5,6 +5,7 @@
 			"actions_base_path",
 			"columns",
 			"data",
+			"data_contains_actions",
 			"draggable",
 			"escaped_data"
 		]
@@ -26,14 +27,19 @@
 					<span class="table_column_content">
 						<icon v-if="draggable && index == 0" wrapper="table_column_drag" icon="drag_handle"></icon>
 						<img v-if="column.type == 'image'" class="table_column_image" :src="row[column.key]" alt="" />
-						<span v-else-if="column.type == 'status'" class="table_column_status" :class="'table_column_status_' + row[column.key].toLowerCase()"></span>
+						<span v-else-if="column.type == 'status'" class="table_column_status"
+							  :class="'table_column_status_' + row[column.key].toLowerCase()"></span>
 						<span v-else-if="escaped_data" class="table_column_text" v-html="row[column.key]"></span>
 						<span v-else class="table_column_text">{{ row[column.key] }}</span>
 					</span>
 				</td>
-				<td v-if="actions.length" class="table_column">
+				<td v-if="actions.length || data_contains_actions" class="table_column">
 					<div class="table_column_content">
-						<action-menu :base_path="actions_base_path" :actions="actions" :id="row['id']"></action-menu>
+						<action-menu v-if="data_contains_actions && row['actions'].length" :base_path="row['actions_base_path']"
+									 :actions="row['actions']" :id="row['id']"></action-menu>
+						<action-menu v-else-if="actions.length" :base_path="actions_base_path" :actions="actions"
+									 :id="row['id']"></action-menu>
+						<span v-else>&nbsp;</span>
 					</div>
 				</td>
 			</tr>

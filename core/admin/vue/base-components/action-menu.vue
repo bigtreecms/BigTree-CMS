@@ -25,10 +25,13 @@
 					return action.url;
 				}
 
-				return this.base_path + action.route + "/" + this.id + "/";
+				return ADMIN_ROOT + this.base_path + action.route + "/" + this.id + "/";
 			},
 
-			open: function() {
+			open: function(event) {
+				event.preventDefault();
+				event.stopPropagation();
+
 				// Close any existing menus that are open
 				$(window).off("click");
 				$(".actiom_menu_dropdown").removeClass("action_menu_dropdown_active");
@@ -46,7 +49,7 @@
 		<div class="action_menu_default">
 			<a v-if="!buttons" class="action_menu_label" :href="compute_action_url(actions[0])">{{ current_title }}</a>
 			<span v-else class="action_menu_label">{{ current_title }}</span>
-			<button v-on:click.stop="open" class="action_menu_trigger" type="button"><icon wrapper="action_menu" icon="arrow_drop_down"></icon></button>
+			<button class="action_menu_trigger" v-on:click="open" type="button"><icon wrapper="action_menu" icon="arrow_drop_down"></icon></button>
 		</div>
 		<ul class="action_menu_dropdown">
 			<li v-for="action in actions" class="action_menu_item">

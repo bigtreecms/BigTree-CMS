@@ -118,6 +118,10 @@
 			Vue::buildCache(); // Remove in production
 		?>
 		<link type="text/css" rel="stylesheet" src="<?=ADMIN_ROOT?>css/cache/vue.css" />
+		<script>
+			const ADMIN_ROOT = "<?=ADMIN_ROOT?>";
+			const WWW_ROOT = "<?=WWW_ROOT?>";
+		</script>
 		<script src="<?=ADMIN_ROOT?>js/api.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/vue.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/vue-async-computed.js"></script>

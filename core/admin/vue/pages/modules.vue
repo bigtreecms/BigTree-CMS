@@ -18,6 +18,22 @@
 				for (let x = 0; x < modules.length; x++) {
 					let module = modules[x];
 
+					for (let action_index = 0; action_index < module.actions.length; action_index++) {
+						let action = module.actions[action_index];
+
+						if (action.in_nav) {
+							if (action.route) {
+								module.actions[action_index].url = ADMIN_ROOT + module.route + "/" + action.route + "/";
+							} else {
+								module.actions[action_index].url = ADMIN_ROOT + module.route + "/";
+							}
+
+							module.actions[action_index].title = action.name;
+						} else {
+							module.actions.splice(action_index, 1);
+						}
+					}
+
 					if (module.group && typeof grouped_modules[module.group] !== "undefined") {
 						grouped_modules[module.group].modules.push(module);
 					} else {
@@ -41,7 +57,8 @@
 									{ title: "Module Name", key: "name" }
 								],
 								"actions": [],
-								"data": group.modules
+								"data": group.modules,
+								"data_contains_actions": true
 							});
 						}
 					}
