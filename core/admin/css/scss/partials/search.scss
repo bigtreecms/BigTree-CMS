@@ -2,6 +2,132 @@
 	max-width: 245px;
 
 	position: relative;
+
+	&:before {
+		height: 4px;
+		width: 4px;
+
+		position: absolute;
+		bottom: 100%;
+		left: 16px;
+
+		background: #925813;
+		border-radius: 8px;
+		box-shadow:
+			0 0 0 1px #925813,
+
+			0 0 0 0 $green,
+			0 0 0 0 $green,
+			0 0 0 0 $green,
+			0 0 0 0 $green,
+
+			0 0 0 0 lighten($green, 5%),
+			0 0 0 0 lighten($green, 5%),
+			0 0 0 0 lighten($green, 5%),
+			
+			0 0 0 0 lighten($green, 7%),
+			0 0 0 0 lighten($green, 7%),
+			
+			0 0 0 0 lighten($green, 10%);
+		content: "";
+		opacity: 0;
+	}
+
+	&.loading {
+
+		&:before {
+			animation: grow 2s infinite;
+		}
+	}
+}
+
+@keyframes grow {
+
+	20% {
+		box-shadow:
+			0 0 0 1px #925813,
+
+			-12px -8px 0 1.5px $green,
+			-4px -8px 0 1.5px $green,
+			4px -8px 0 1.5px $green,
+			12px -8px 0 1.5px $green,
+
+			-4px -8px 0 0 lighten($green, 5%),
+			4px -8px 0 0 lighten($green, 5%),
+			4px -8px 0 0 lighten($green, 5%),
+			
+			-4px -8px 0 0 lighten($green, 7%),
+			4px -8px 0 0 lighten($green, 7%),
+			
+			-4px -8px 0 0 lighten($green, 10%);
+		opacity: 1;
+	}
+
+	40% {
+		box-shadow:
+			0 0 0 1px #925813,
+
+			-12px -8px 0 1.5px $green,
+			-4px -8px 0 1.5px $green,
+			4px -8px 0 1.5px $green,
+			12px -8px 0 1.5px $green,
+
+			-8px -16px 0 1px lighten($green, 5%),
+			0 -16px 0 1px lighten($green, 5%),
+			8px -16px 0 1px lighten($green, 5%),
+			
+			-8px -16px 0 0 lighten($green, 7%),
+			8px -16px 0 0 lighten($green, 7%),
+			
+			-8px -16px 0 0 lighten($green, 10%);
+	}
+
+	60% {
+		box-shadow:
+			0 0 0 1px #925813,
+
+			-12px -8px 0 1.5px $green,
+			-4px -8px 0 1.5px $green,
+			4px -8px 0 1.5px $green,
+			12px -8px 0 1.5px $green,
+
+			-8px -16px 0 1px lighten($green, 5%),
+			0 -16px 0 1px lighten($green, 5%),
+			8px -16px 0 1px lighten($green, 5%),
+			
+			-4px -24px 0 0 lighten($green, 7%),
+			4px -24px 0 0 lighten($green, 7%),
+			
+			-4px -24px 0 -.5px lighten($green, 10%);
+	}
+
+	80% {
+		opacity: 1;
+	}
+	
+	80%,
+	100% {
+		box-shadow:
+			0 0 0 1px #925813,
+
+			-12px -8px 0 1.5px $green,
+			-4px -8px 0 1.5px $green,
+			4px -8px 0 1.5px $green,
+			12px -8px 0 1.5px $green,
+
+			-8px -16px 0 1px lighten($green, 5%),
+			0 -16px 0 1px lighten($green, 5%),
+			8px -16px 0 1px lighten($green, 5%),
+			
+			-4px -24px 0 0 lighten($green, 7%),
+			4px -24px 0 0 lighten($green, 7%),
+			
+			0 -32px 0 -.5px lighten($green, 10%);
+	}
+
+	100% {
+		opacity: 0;
+	}
 }
 
 .search_icon {

@@ -1,6 +1,5 @@
 .blocks_wrapper {
 	background-color: #fff;
-	background-size: 8px 8px;
 	background-image: 
 		linear-gradient(
 			to right, 
@@ -12,6 +11,7 @@
 				#f6f6f6 1px, 
 				transparent 1px
 		);
+	background-size: 8px 8px;
 	border-top: 1px solid $mist;
 	padding: 20px;
 

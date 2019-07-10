@@ -18,8 +18,8 @@
 .meta_bar_detail {
 	align-items: center;
 	display: flex;
-	justify-content: flex-end;
 	font-size: 12px;
+	justify-content: flex-end;
 	margin: 5px 0;
 
 	@media #{$min_sm} {
