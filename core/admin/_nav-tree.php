@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	// BigTree Admin Nav Tree
-	Router::$AdminNavTree = [
+	Admin::$NavTree = [
 		"dashboard" => ["title" => "Dashboard", "link" => "dashboard", "icon" => "home", "related" => true, "children" => [
 			"overview" => ["title" => "Overview", "link" => "", "hidden" => true],
 			"pending-changes" => ["title" => "Pending Changes", "link" => "dashboard/pending-changes", "icon" => "pending", "hidden" => true],
@@ -155,5 +155,5 @@
 		"credits" => ["title" => "Credits & Licenses", "link" => "credits", "icon" => "credits", "hidden" => true]
 	];
 	
-	Router::$AdminNavTree = Utils::runHooks("menu", null, Router::$AdminNavTree);
+	Admin::$NavTree = Utils::runHooks("menu", null, Admin::$NavTree);
 	

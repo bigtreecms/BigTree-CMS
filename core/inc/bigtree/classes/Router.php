@@ -15,7 +15,6 @@
 		protected static $ReservedRoutes = [];
 		
 		/** @property BigTree\Page $CurrentPage */
-		public static $AdminNavTree = [];
 		public static $BootError = null;
 		public static $CurrentPage;
 		public static $Commands = [];

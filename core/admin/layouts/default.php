@@ -34,7 +34,7 @@
 	$current_path = implode("/", array_slice(Router::$Path, 1));
 
 	if (!defined("BIGTREE_ACCESS_DENIED")) {
-		$bigtree["page"] = $find_path(Router::$AdminNavTree, $current_path);
+		$bigtree["page"] = $find_path(Admin::$NavTree, $current_path);
 	}
 
 	// Set the page title if it hasn't been set
@@ -178,7 +178,7 @@
 				}
 			}
 		?>
-		<menu<?php if (!count($bigtree["subnav_extras"])) { ?> style="display: none;"<?php } ?>>
+		<menu<?php if (empty($bigtree["subnav_extras"]) || !count($bigtree["subnav_extras"])) { ?> style="display: none;"<?php } ?>>
 			<span class="icon"></span>
 			<div>
 				<?php

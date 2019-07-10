@@ -10,8 +10,89 @@
 		
 		public static $CSS = [];
 		public static $CurrentModule = null;
+		public static $NavTree = [];
 		public static $Javascript = [];
 		public static $State = [];
+		
+		/*
+			Function: calculateState
+				Calculates and sets state variables based on the navigation tree and current URL.
+		*/
+		
+		public static function calculateState(?array $nav = null, ?string $path = null, ?string $last_link = null): void
+		{
+			$current_path = implode("/", array_slice(Router::$Path, 1));
+			
+			if (is_null($nav)) {
+				$nav = static::$NavTree;
+				$path = $current_path;
+				
+				static::$State["breadcrumb"] = [];
+				static::$State["sub_nav"] = [];
+				static::$State["related_nav"] = [];
+			}
+			
+			foreach ($nav as $item) {
+				if ((strpos($path,$item["link"]."/") === 0 && $item["link"] != $last_link) || $path == $item["link"]) {
+					static::$State["breadcrumb"][] = ["title" => $item["title"], "url" => $item["link"]];
+					static::$State["page_title"] = $item["title"] ?: static::$State["page_title"];
+					static::$State["page_title"] = $item["title_override"] ?: static::$State["page_title"];
+					static::$State["sub_nav"] = $item["children"] ?: static::$State["sub_nav"];
+					
+					// Get the related dropdown menu
+					if ($item["related"]) {
+						static::$State["related_title"] = static::$State["page_title"];
+						static::$State["related_nav"] = static::$State["sub_nav"];
+					}
+					
+					if ($item["children"]) {
+						static::calculateState($item["children"], $path, $item["link"]);
+
+						return;
+					}
+				}
+			}
+			
+			// Cut the last piece off the breadcrumb
+			static::$State["breadcrumb"] = array_slice(static::$State["breadcrumb"], 0, -1);
+			
+			// Calculate URLs for sub-nav and find the active state
+			$active_item = false;
+			
+			foreach (static::$State["sub_nav"] as $item) {
+				if (strpos($current_path, $item["link"]) !== false) {
+					// If we already have an active item, see if the new one is deeper in the paths.
+					if (!$active_item) {
+						$active_item = $item;
+					} else {
+						if (strlen($item["link"]) > strlen($active_item["link"])) {
+							$active_item = $item;
+						}
+					}
+				}
+			}
+			
+			foreach (static::$State["sub_nav"] as $index => $item) {
+				if (!$item["hidden"] && (!$item["level"] || $item["level"] <= Auth::user()->Level)) {
+					$get_string = "";
+					
+					if (is_array($item["get_vars"]) && count($item["get_vars"])) {
+						$get_string = "?";
+						
+						foreach ($item["get_vars"] as $key => $val) {
+							$get_string .= "$key=".urlencode($val)."&";
+						}
+					}
+					
+					$item["active"] = ($item == $active_item);
+					$item["url"] = ADMIN_ROOT.$item["link"]."/".htmlspecialchars(rtrim($get_string, "&"));
+					
+					static::$State["sub_nav"][$index] = $item;
+				} else {
+					unset(static::$State["sub_nav"][$index]);
+				}
+			}
+		}
 		
 		/*
 			Function: drawState
@@ -23,13 +104,15 @@
 		
 		public static function drawState(bool $as_json = false): void
 		{
-			static::$State["main_nav"] = static::getMenuState();
+			$state_override = static::$State;
 			
-			if (empty(static::$State["computed"])) {
-				static::$State["computed"] = [];
-			} else {
-				$computed = static::$State["computed"];
-				static::$State["computed"] = [];
+			static::calculateState();
+			static::$State["main_nav"] = static::getMainMenuState();
+			
+			foreach ($state_override as $key => $value) {
+				if (!empty($value)) {
+					static::$State[$key] = $value;
+				}
 			}
 			
 			if ($as_json) {
@@ -42,10 +125,10 @@
 			}
 		}
 		
-		public static function getMenuState(): array {
+		public static function getMainMenuState(): array {
 			$menu = [];
 			
-			foreach (Router::$AdminNavTree as $item) {
+			foreach (static::$NavTree as $item) {
 				if ($item["hidden"]) {
 					continue;
 				}

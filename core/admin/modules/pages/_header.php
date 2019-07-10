@@ -63,7 +63,7 @@
 	}
 	
 	// Fix the navigation.
-	$pages_nav = &Router::$AdminNavTree["pages"];
+	$pages_nav = &Admin::$NavTree["pages"];
 	
 	// Replace all the {id}s in the links.
 	foreach ($pages_nav["children"] as &$child) {

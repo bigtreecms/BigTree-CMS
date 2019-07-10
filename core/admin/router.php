@@ -512,7 +512,7 @@
 		}
 		
 		// Append module info to the admin nav to draw the headers and breadcrumb and such.
-		Router::$AdminNavTree["auto-module"] = [
+		Admin::$NavTree["auto-module"] = [
 			"title" => $module->Name,
 			"link" => $module->Route,
 			"icon" => "modules",
@@ -521,7 +521,7 @@
 		];
 		
 		foreach ($module->Actions as $action) {
-			Router::$AdminNavTree["auto-module"]["children"][] = [
+			Admin::$NavTree["auto-module"]["children"][] = [
 				"title" => $action->Name,
 				"link" => $action->Route ? $module->Route."/".$action->Route : $module->Route,
 				"nav_icon" => $action->Icon,

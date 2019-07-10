@@ -113,11 +113,11 @@
 				</nav>
 			</footer>
 		</div>
+		<link type="text/css" rel="stylesheet" src="<?=ADMIN_ROOT?>css/cache/vue.css" />
 		<?php
 			Admin::drawState();
 			Vue::buildCache(); // Remove in production
 		?>
-		<link type="text/css" rel="stylesheet" src="<?=ADMIN_ROOT?>css/cache/vue.css" />
 		<script>
 			const ADMIN_ROOT = "<?=ADMIN_ROOT?>";
 			const WWW_ROOT = "<?=WWW_ROOT?>";
