@@ -2,7 +2,17 @@
 	Vue.component("page-users-listing", {
 		asyncComputed: {
 			async data () {
+				const user_levels = [
+					this.translate("Normal"),
+					this.translate("Administrator"),
+					this.translate("Developer")
+				];
+
 				let users = await BigTreeAPI.getStoredData("users", "name");
+
+				for (let x = 0; x < users.length; x++) {
+					users[x].level = user_levels[users[x].level];
+				}
 
 				return users;
 			}
