@@ -25,7 +25,7 @@
 					return action.url;
 				}
 
-				return ADMIN_ROOT + this.base_path + action.route + "/" + this.id + "/";
+				return ADMIN_ROOT + this.base_path + "/" + action.route + "/" + this.id + "/";
 			},
 
 			open: function(event) {

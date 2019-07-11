@@ -25,10 +25,12 @@
 		if ($value_data["encrypted"]) {
 			return Text::translate("-- Encrypted --");
 		} else {
-			if (is_array(@json_decode($value_data["value"], true))) {
+			$value = json_decode($value_data["value"], true);
+			
+			if (is_array($value)) {
 				return Text::translate("-- Array --");
 			} else {
-				return Link::decode($value_data["value"]);
+				return Text::trimLength(Text::htmlEncode(strip_tags(Link::decode($value))), 100);
 			}
 		}
 	};
