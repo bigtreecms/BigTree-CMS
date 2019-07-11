@@ -7,11 +7,19 @@
 	}
 }
 
+.single_table_filter {
+	overflow: hidden;
+}
+
 .table_filter {
 	margin: 20px 0;
 
 	@media #{$min_sm} {
 		margin: 0;
+	}
+
+	.single_table_filter & {
+		float: right;
 	}
 }
 

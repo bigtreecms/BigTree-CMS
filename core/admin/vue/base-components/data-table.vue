@@ -11,7 +11,8 @@
 			"per_page",
 			"searchable",
 			"search_label",
-			"search_placeholder"
+			"search_placeholder",
+			"translatable"
 		],
 		data: function() {
 			return {
@@ -123,9 +124,9 @@
 			<div class="table_filter" v-if="searchable">
 				<div class="search">
 					<icon wrapper="search" icon="search"></icon>
-					<label class="search_label" :for="id + '_query_input'">{{ search_label ? search_label : 'Search' }}</label>
+					<label class="search_label" :for="id + '_query_input'">{{ translate(search_label ? search_label : 'Search') }}</label>
 					<input class="search_input" :id="id + '_query_input'" type="search" autocomplete="off"
-						   :placeholder="search_placeholder ? search_placeholder : 'Search'"
+						   :placeholder="translate(search_placeholder ? search_placeholder : 'Search')"
 						   v-on:keyup="query_key_up" v-model="query_field_value" />
 					<input class="search_submit" type="submit" value="submit" />
 				</div>
@@ -183,5 +184,27 @@
 				</tr>
 			</tbody>
 		</table>
+		
+		<div class="single_table_filter" v-if="per_page && pages > 1">
+			<div class="table_filter">
+				<div class="pagination">
+					<button v-on:click="previous_page" :class="{'pagination_traversal_disabled': current_page == 1 }"
+							class="pagination_traversal">
+						<icon wrapper="pagination_traversal" icon="keyboard_arrow_left"></icon>
+					</button>
+					<div class="pagination_field">
+						<label class="search_label" :for="id + '_pagination_select'">Switch Page</label>
+						<select v-on:change="select_page" class="pagination_select" :id="id + '_pagination_select'">
+							<option v-for="i in pages" :value="i" :selected="current_page == i">Page {{ i }}</option>
+						</select>
+						<icon wrapper="pagination_field" icon="arrow_drop_down"></icon>
+					</div>
+					<button v-on:click="next_page" :class="{'pagination_traversal_disabled': current_page == pages }"
+							class="pagination_traversal">
+						<icon wrapper="pagination_traversal" icon="keyboard_arrow_right"></icon>
+					</button>
+				</div>
+			</div>
+		</div>
 	</form>
 </template>
