@@ -50,8 +50,8 @@
 				<icon wrapper="component_expander" icon="expand_more"></icon>
 				<icon wrapper="component_expander" icon="expand_less"></icon>
 			</button>
-			<span v-if="escaped_title" v-html="title" class="component_title_label"></span>
-			<span v-else class="component_title_label">{{ title }}</span>
+			<span v-if="escaped_title" v-html="translate(title)" class="component_title_label"></span>
+			<span v-else class="component_title_label">{{ translate(title) }}</span>
 		</h2>
 		
 		<div class="component_body">

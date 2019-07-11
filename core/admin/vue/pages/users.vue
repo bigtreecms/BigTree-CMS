@@ -8,14 +8,6 @@
 			}
 		}
 	});
-	
-	Vue.mixin({
-		methods: {
-			translate: function(string) {
-				return "poop";
-			}
-		}
-	});
 </script>
 
 <template>

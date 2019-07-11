@@ -41,7 +41,7 @@
 					}
 				}
 				
-				grouped_modules.ungrouped = { id: "ungrouped", name: "Ungrouped", modules: ungrouped_modules };
+				grouped_modules.ungrouped = { id: "ungrouped", name: this.translate("Ungrouped"), modules: ungrouped_modules };
 
 				let tables = [];
 

@@ -138,7 +138,7 @@
 						<icon wrapper="pagination_traversal" icon="keyboard_arrow_left"></icon>
 					</button>
 					<div class="pagination_field">
-						<label class="search_label" :for="id + '_pagination_select'">Switch Page</label>
+						<label class="search_label" :for="id + '_pagination_select'">{{ translate('Switch Page') }}</label>
 						<select v-on:change="select_page" class="pagination_select" :id="id + '_pagination_select'">
 							<option v-for="i in pages" :value="i" :selected="current_page == i">Page {{ i }}</option>
 						</select>
@@ -155,14 +155,14 @@
 		<table class="table">
 			<thead class="table_headings">
 				<tr class="table_headings_row">
-					<th v-for="column in columns" class="table_heading">{{ column.title }}</th>
-					<th v-if="actions.length" class="table_heading">Actions</th>
+					<th v-for="column in columns" class="table_heading">{{ translate(column.title) }}</th>
+					<th v-if="actions.length" class="table_heading">{{ translate('Actions') }}</th>
 				</tr>
 			</thead>
 			<tbody class="table_body">
 				<tr v-for="row in paged_data" class="table_body_row" :draggable="draggable ? true : false">
 					<td v-for="(column, index) in columns" class="table_column">
-						<span v-if="column.type != 'image'" class="table_column_label">{{ column.title }}</span>
+						<span v-if="column.type != 'image'" class="table_column_label">{{ translate(column.title) }}</span>
 						<span class="table_column_content">
 							<icon v-if="draggable && index == 0" wrapper="table_column_drag" icon="drag_handle"></icon>
 							<img v-if="column.type == 'image'" class="table_column_image" :src="row[column.key]" alt="" />
@@ -193,7 +193,7 @@
 						<icon wrapper="pagination_traversal" icon="keyboard_arrow_left"></icon>
 					</button>
 					<div class="pagination_field">
-						<label class="search_label" :for="id + '_pagination_select'">Switch Page</label>
+						<label class="search_label" :for="id + '_pagination_select'">{{ translate('Switch Page') }}</label>
 						<select v-on:change="select_page" class="pagination_select" :id="id + '_pagination_select'">
 							<option v-for="i in pages" :value="i" :selected="current_page == i">Page {{ i }}</option>
 						</select>

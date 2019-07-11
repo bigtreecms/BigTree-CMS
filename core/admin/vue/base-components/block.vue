@@ -7,7 +7,7 @@
 <template>
 	<div class="component layout_expanded">
 		<h2 class="component_title">
-			<span class="component_title_label">{{ title }}</span>
+			<span class="component_title_label">{{ translate(title) }}</span>
 		</h2>
 		
 		<div class="component_body">

@@ -1,4 +1,4 @@
-/* global state, Vue */
+/* global state, Vue, VueLanguagePack */
 
 new Vue({
 	el: "#js-vue",

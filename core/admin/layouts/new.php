@@ -121,10 +121,12 @@
 		<script>
 			const ADMIN_ROOT = "<?=ADMIN_ROOT?>";
 			const WWW_ROOT = "<?=WWW_ROOT?>";
+			const VueLanguagePack = {};
 		</script>
 		<script src="<?=ADMIN_ROOT?>js/api.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/vue.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/vue-async-computed.js"></script>
+		<script src="<?=ADMIN_ROOT?>js/vue-helpers.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/cache/vue.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/app.js"></script>
 		<?php

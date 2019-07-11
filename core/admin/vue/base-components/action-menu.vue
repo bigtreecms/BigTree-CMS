@@ -47,14 +47,14 @@
 <template>
 	<div class="action_menu">
 		<div class="action_menu_default">
-			<a v-if="!buttons" class="action_menu_label" :href="compute_action_url(actions[0])">{{ current_title }}</a>
-			<span v-else class="action_menu_label">{{ current_title }}</span>
+			<a v-if="!buttons" class="action_menu_label" :href="compute_action_url(actions[0])">{{ translate(current_title) }}</a>
+			<span v-else class="action_menu_label">{{ translate(current_title) }}</span>
 			<button class="action_menu_trigger" v-on:click="open" type="button"><icon wrapper="action_menu" icon="arrow_drop_down"></icon></button>
 		</div>
 		<ul class="action_menu_dropdown">
 			<li v-for="action in actions" class="action_menu_item">
-				<a v-if="!buttons" class="action_menu_link" :href="compute_action_url(action)">{{ action.title }}</a>
-				<button v-else v-on:click="change" class="action_menu_link" :data-value="action.value">{{ action.title }}</button>
+				<a v-if="!buttons" class="action_menu_link" :href="compute_action_url(action)">{{ translate(action.title) }}</a>
+				<button v-else v-on:click="change" class="action_menu_link" :data-value="action.value">{{ translate(action.title) }}</button>
 			</li>
 		</ul>
 	</div>

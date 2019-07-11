@@ -9,7 +9,7 @@
 		<div class="page_tools_body">
 			<a v-for="link in links" class="page_tool" :href="link.url">
 				<icon wrapper="page_tool" :icon="link.icon"></icon>
-				<span class="page_tool_label">{{ link.title }}</span>
+				<span class="page_tool_label">{{ translate(link.title) }}</span>
 			</a>
 		</div>
 	</div>
