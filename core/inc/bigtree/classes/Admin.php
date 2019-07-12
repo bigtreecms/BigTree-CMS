@@ -121,7 +121,7 @@
 				
 				echo JSON::encode(static::$State);
 			} else {
-				echo '<script>const state = '.JSON::encode(static::$State).';</script>';
+				echo '<script>let state = '.JSON::encode(static::$State).';</script>';
 			}
 		}
 		

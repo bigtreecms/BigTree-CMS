@@ -46,6 +46,11 @@
 	padding: 0 10px 5px;
 	text-align: left;
 	text-transform: uppercase;
+
+	&.status {
+		text-align: center;
+		width: 80px;
+	}
 }
 
 .table_body {}
@@ -98,6 +103,11 @@
 	@media #{$min_md} {
 		border-bottom: 1px solid $mist;
 		padding: 12px 10px 11px;
+	}
+
+	&.status {
+		text-align: center;
+		width: 80px;
 	}
 
 	&:first-child {
@@ -173,8 +183,15 @@
 		border-color: $green;
 	}
 
-	&_pending {
+	&_pending,
+	&_changed,
+	&_scheduled {
 		background: $orange;
 		border-color: $mandarin;
+	}
+
+	&_expired {
+		background: $red;
+		border-color: $deep_red;
 	}
 }

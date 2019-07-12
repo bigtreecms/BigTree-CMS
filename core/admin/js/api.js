@@ -4,6 +4,7 @@ var BigTreeAPI = (function() {
 	const schema = {
 		"pages": {
 			"indexes": [
+				"id",
 				"parent",
 				"in_nav",
 				"position",

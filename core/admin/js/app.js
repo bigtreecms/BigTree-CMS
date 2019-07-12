@@ -1,6 +1,6 @@
 /* global state, Vue, VueLanguagePack */
 
-new Vue({
+let app = new Vue({
 	el: "#js-vue",
 	data: {
 		breadcrumb: typeof state.breadcrumb != "undefined" ? state.breadcrumb : [],

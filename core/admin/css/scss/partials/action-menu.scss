@@ -24,6 +24,7 @@
 	transition: 
 		color .15s,
 		text-decoration-color .15s;
+	white-space: nowrap;
 
 	&:hover,
 	&:focus {
@@ -104,6 +105,7 @@
 	transition: 
 		background .15s,
 		text-decoration-color .15s;
+	white-space: nowrap;
 
 	&:hover,
 	&:focus {

@@ -7,6 +7,21 @@
 		},
 		props: ["current_page"],
 		asyncComputed: {
+			async current_page_data () {
+				let data = await BigTreeAPI.getStoredDataMatching("pages", "id", this.page);
+
+				if (data.length) {
+					let page = data[0];
+
+					if (page.path) {
+						app.page_public_url = WWW_ROOT + page.path + "/";
+					} else {
+						app.page_public_url = WWW_ROOT;
+					}
+
+					app.page_title = page.nav_title;
+				}
+			},
 			async data () {
 				let pages = await BigTreeAPI.getStoredDataMatching("pages", "parent", this.page);
 
@@ -106,19 +121,22 @@
 	<div>
 		<toggle-block title="Visible in Navigation" :id="'pages-visible-' + page">
 			<data-table :data="visible_pages" :columns="[
-				{ 'title': 'Title', 'key': 'nav_title' }
+				{ 'title': 'Title', 'key': 'nav_title' },
+				{ 'title': 'Status', 'key': 'status', 'type': 'status' }
 			]" :actions="[]" escaped_data="true"></data-table>
 		</toggle-block>
 	
 		<toggle-block title="Hidden from Navigation" :id="'pages-hidden-' + page">
 			<data-table :data="hidden_pages" :columns="[
-				{ 'title': 'Title', 'key': 'nav_title' }
+				{ 'title': 'Title', 'key': 'nav_title' },
+				{ 'title': 'Status', 'key': 'status', 'type': 'status' }
 			]" :actions="[]" escaped_data="true"></data-table>
 		</toggle-block>
 	
 		<toggle-block title="Archived" :id="'pages-archived-' + page">
 			<data-table :data="archived_pages" :columns="[
-				{ 'title': 'Title', 'key': 'nav_title' }
+				{ 'title': 'Title', 'key': 'nav_title' },
+				{ 'title': 'Status', 'key': 'status', 'type': 'status' }
 			]" :actions="[]" escaped_data="true"></data-table>
 		</toggle-block>
 	</div>

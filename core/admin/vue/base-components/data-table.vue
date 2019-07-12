@@ -155,13 +155,13 @@
 		<table class="table">
 			<thead class="table_headings">
 				<tr class="table_headings_row">
-					<th v-for="column in columns" class="table_heading">{{ translate(column.title) }}</th>
+					<th v-for="column in columns" :class="{ 'status': column.type == 'status' }" class="table_heading">{{ translate(column.title) }}</th>
 					<th v-if="actions.length" class="table_heading">{{ translate('Actions') }}</th>
 				</tr>
 			</thead>
 			<tbody class="table_body">
 				<tr v-for="row in paged_data" class="table_body_row" :draggable="draggable ? true : false">
-					<td v-for="(column, index) in columns" class="table_column">
+					<td v-for="(column, index) in columns" class="table_column" :class="{ 'status': column.type == 'status' }">
 						<span v-if="column.type != 'image'" class="table_column_label">{{ translate(column.title) }}</span>
 						<span class="table_column_content">
 							<icon v-if="draggable && index == 0" wrapper="table_column_drag" icon="drag_handle"></icon>

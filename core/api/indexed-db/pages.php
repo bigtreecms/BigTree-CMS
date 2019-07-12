@@ -15,7 +15,7 @@
 	*/
 	
 	if (empty($_GET["since"])) {
-		$pages = SQL::fetchAll("SELECT id, parent, nav_title, archived, in_nav, position, publish_at, expire_at
+		$pages = SQL::fetchAll("SELECT id, parent, nav_title, path, archived, in_nav, position, publish_at, expire_at
 								FROM bigtree_pages
 								ORDER BY id");
 		
@@ -56,6 +56,7 @@
 				"id" => "p".$item["id"],
 				"parent" => $item["pending_page_parent"],
 				"nav_title" => $changes["nav_title"],
+				"path" => "_preview/p".$item["id"],
 				"archived" => false,
 				"in_nav" => $changes["in_nav"],
 				"position" => false,
@@ -83,7 +84,7 @@
 	
 	// Functions for grabbing the latest records, will be used by both the created and updated methods to get the latest
 	$get_latest_record = function($id) {
-		$record = SQL::fetch("SELECT id, parent, nav_title, archived, in_nav, position, publish_at, expire_at
+		$record = SQL::fetch("SELECT id, parent, nav_title, path, archived, in_nav, position, publish_at, expire_at
 							  FROM bigtree_pages WHERE id = ?", $id);
 		
 		if ($record) {
@@ -128,6 +129,7 @@
 			"id" => "p".$item["id"],
 			"parent" => $item["pending_page_parent"],
 			"nav_title" => $changes["nav_title"],
+			"path" => "_preview/p".$item["id"],
 			"archived" => false,
 			"in_nav" => $changes["in_nav"],
 			"position" => false,

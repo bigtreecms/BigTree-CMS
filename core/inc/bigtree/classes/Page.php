@@ -1858,6 +1858,7 @@
 					
 					// Update the primary path
 					SQL::update("bigtree_pages", $child["id"], ["path" => $new_path]);
+					AuditTrail::track("bigtree_pages", $child["id"], "update", "inherited path change");
 					
 					// Update all this page's children as well
 					$this->updateChildrenPaths($child["id"]);
