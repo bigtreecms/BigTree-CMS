@@ -171,6 +171,42 @@ var BigTreeAPI = (function() {
 		);
 	}
 
+	async function getStoredDataMatching(table, index, value, reversed) {
+		if (!initialized) {
+			await init();
+		}
+
+		return new Promise(
+			function(resolve, reject) {
+				let transaction = db.transaction(table, "readonly");
+				let store = transaction.objectStore(table);
+				let store_index = store.index(index);
+				let key_range = IDBKeyRange.only(String(value));
+				let cursor = store_index.openCursor(key_range);
+				let results = [];
+
+				cursor.onsuccess = function(event) {
+					let cursor = event.target.result;
+
+					if (cursor) {
+						results.push(cursor.value);
+						cursor.continue();
+					} else {
+						if (reversed) {
+							results.reverse();
+						}
+
+						resolve(results);
+					}
+				};
+
+				cursor.onerror = function() {
+					reject("error");
+				}
+			}
+		);
+	}
+
 	async function init() {
 		return new Promise(
 			function(resolve, reject) {
@@ -255,6 +291,12 @@ var BigTreeAPI = (function() {
 		);
 	}
 
-	return { call: call, getStoredData: getStoredData, schema: schema, schema_version: schema_version };
+	return {
+		call: call,
+		getStoredData: getStoredData,
+		getStoredDataMatching: getStoredDataMatching,
+		schema: schema,
+		schema_version: schema_version
+	};
 
 })();

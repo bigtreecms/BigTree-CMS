@@ -420,7 +420,9 @@
 		*/
 
 		function createMessage($subject, $message, $recipients, $in_response_to = 0) {
-			BigTree\Message::create($this->ID, $subject, $message, $recipients, $in_response_to);
+			trigger_error("Messages has been removed in BigTree 5.0", E_USER_WARNING);
+			
+			return null;
 		}
 
 		/*
@@ -1735,13 +1737,9 @@
 		*/
 
 		function getMessage($id) {
-			$message = new BigTree\Message($id);
-
-			if ($message->Sender != $this->ID && !in_array($this->ID, $message->Recipients)) {
-				return false;
-			}
-
-			return $message;
+			trigger_error("Messages has been removed in BigTree 5.0", E_USER_WARNING);
+			
+			return null;
 		}
 
 		/*
@@ -1756,15 +1754,9 @@
 		*/
 
 		function getMessageChain($id) {
-			$message = new BigTree\Message($id);
-			$chain = $message->Chain;
-
-			// Convert to arrays
-			foreach ($chain as &$item) {
-				$item = $item->Array;
-			}
-
-			return $chain;
+			trigger_error("Messages has been removed in BigTree 5.0", E_USER_WARNING);
+			
+			return null;
 		}
 
 		/*
@@ -1779,7 +1771,9 @@
 		*/
 
 		static function getMessages($user) {
-			return BigTree\Message::allByUser($user, true);
+			trigger_error("Messages has been removed in BigTree 5.0", E_USER_WARNING);
+			
+			return null;
 		}
 
 		/*
@@ -2873,7 +2867,9 @@
 		*/
 
 		function getUnreadMessageCount() {
-			return BigTree\Message::getUserUnreadCount();
+			trigger_error("Messages has been removed in BigTree 5.0", E_USER_WARNING);
+			
+			return null;
 		}
 
 		/*
@@ -3111,8 +3107,9 @@
 		*/
 
 		function markMessageRead($id) {
-			$message = new BigTree\Message($id);
-			$message->markRead();
+			trigger_error("Messages has been removed in BigTree 5.0", E_USER_WARNING);
+			
+			return null;
 		}
 
 		/*

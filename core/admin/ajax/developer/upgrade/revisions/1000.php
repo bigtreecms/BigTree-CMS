@@ -1,4 +1,5 @@
 <?php
+	
 	namespace BigTree;
 	
 	// BigTree 5.0 update -- REVISION 1000
@@ -72,18 +73,18 @@
 	}
 	
 	// Move Google's Cloud Storage settings into a proper namespace
-	$cloud_storage = Setting::value("bigtree-internal-cloud-storage");
+	$cloud_storage = new Setting("bigtree-internal-cloud-storage");
 	
-	if (!empty($cloud_storage["key"])) {
-		$cloud_storage["google"] = [
-			"key" => $cloud_storage["key"],
-			"secret" => $cloud_storage["secret"],
-			"project" => $cloud_storage["project"],
-			"certificate_email" => $cloud_storage["certificate_email"],
-			"private_key" => $cloud_storage["private_key"],
+	if ($cloud_storage->Value["key"]) {
+		$cloud_storage->Value["google"] = [
+			"key" => $cloud_storage->Value["key"],
+			"secret" => $cloud_storage->Value["secret"],
+			"project" => $cloud_storage->Value["project"],
+			"certificate_email" => $cloud_storage->Value["certificate_email"],
+			"private_key" => $cloud_storage->Value["private_key"],
 		];
 		
-		Setting::updateValue("bigtree-internal-cloud-storage", $cloud_storage, true);
+		$cloud_storage->save();
 	}
 	
 	// No more messages

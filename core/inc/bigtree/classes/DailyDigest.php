@@ -14,10 +14,6 @@
 				"name" => "Pending Changes",
 				"function" => "BigTree\\DailyDigest::getChanges"
 			],
-			"messages" => [
-				"name" => "Unread Messages",
-				"function" => "BigTree\\DailyDigest::getMessages"
-			],
 			"alerts" => [
 				"name" => "Content Age Alerts",
 				"function" => "BigTree\\DailyDigest::getAlerts"
@@ -132,52 +128,6 @@
 				}
 				
 				return str_replace("{pending_changes}", $changes_markup, $wrapper);
-			} else {
-				return "";
-			}
-		}
-		
-		/*
-			Function: getMessages
-				Generates markup for daily digest messages for a given user.
-
-			Parameters:
-				user - A user array
-
-			Returns:
-				HTML markup for daily digest email
-		*/
-		
-		public static function getMessages(array $user): string
-		{
-			$messages = Message::allByUser($user["id"], true);
-			$messages_markup = "";
-			$wrapper = '<div style="margin: 20px 0 30px;">
-							<h3 style="color: #333; font-size: 18px; font-weight: normal; margin: 0 0 10px; padding: 0;">Unread Messages</h3>
-							<table cellspacing="0" cellpadding="0" style="border: 1px solid #eee; border-width: 1px 1px 0; width: 100%;">
-								<thead style="background: #ccc; color: #fff; font-size: 10px; text-align: left; text-transform: uppercase;">
-									<tr>
-										<th style="font-weight: normal; padding: 4px 0 3px 15px; width: 150px;" align="left">Sender</th>
-										<th style="font-weight: normal; padding: 4px 0 3px 15px; width: 180px;" align="left">Subject</th>
-										<th style="font-weight: normal; padding: 4px 0 3px 15px;" align="left">Date</th>
-									</tr>
-								</thead>
-								<tbody style="color: #333; font-size: 13px;">
-									{unread_messages}
-								</tbody>
-							</table>
-						</div>';
-			
-			if (is_array($messages["unread"]) && count($messages["unread"])) {
-				foreach ($messages["unread"] as $message) {
-					$messages_markup .= '<tr>
-											<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$message["sender_name"].'</td>
-											<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$message["subject"].'</td>
-											<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.date("n/j/y g:ia", strtotime($message["date"])).'</td>
-										</tr>';
-				}
-				
-				return str_replace("{unread_messages}", $messages_markup, $wrapper);
 			} else {
 				return "";
 			}
