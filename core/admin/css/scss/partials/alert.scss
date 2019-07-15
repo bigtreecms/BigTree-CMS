@@ -1,0 +1,86 @@
+.alert {
+	position: relative;
+}
+
+.alert_header {
+	align-items: center;
+	border: 1px solid $mist;
+	border-bottom: 0;
+	border-radius: 3px 3px 0 0;
+	display: flex;
+}
+
+.alert_icon {
+	background: $orange;
+	border-radius: 3px 0 0 0;
+	color: #fff;
+	margin: -1px 10px -1px -1px;
+	padding: 8px;
+}
+
+.alert_title {
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.alert_description {
+	background: #fff;
+	border: 1px solid $mist;
+	border-radius: 6px;
+	font-size: 14px;
+	line-height: 22px;
+	margin-bottom: 30px;
+	padding: 15px;
+
+	.alert_hint + & {
+		border-radius: 0;
+	}
+}
+
+.alert_close {
+	position: absolute;
+	top: 0;
+	right: 0;
+
+	appearance: none;
+	-webkit-appearance: none;
+	background: none;
+	border: 0;
+	padding: 8px;
+	transition: color .25s;
+
+	&:hover,
+	&:focus {
+		color: $green;
+	}
+}
+
+.alert_close_icon {}
+
+.alert_close_text {
+	@include visually_hide;
+}
+
+.alert_open {
+	appearance: none;
+	-webkit-appearance: none;
+	background: none;
+	border: 0;
+	display: block;
+	padding: 10px 0 6px;
+	transition: color .25s;
+
+	&:hover,
+	&:focus {
+		color: $green;
+	}
+}
+
+.alert_open_icon {
+	display: block;
+	transform: scale(.85);
+}
+
+.alert_open_text {
+	@include visually_hide;
+}

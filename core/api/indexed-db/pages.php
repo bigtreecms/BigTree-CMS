@@ -14,6 +14,61 @@
 			An array of IndexedDB commands
 	*/
 	
+	// Functions for grabbing the latest records, will be used by both the created and updated methods to get the latest
+	$get_latest_record = function($id) {
+		$record = SQL::fetch("SELECT id, parent, nav_title, path, archived, in_nav, position, publish_at, expire_at
+							  FROM bigtree_pages WHERE id = ?", $id);
+		
+		if ($record) {
+			$pending = SQL::fetch("SELECT * FROM bigtree_pending_changes
+								   WHERE `table` = 'bigtree_pages' AND `item_id` = ?", $id);
+			
+			if ($pending) {
+				$changes = json_decode($pending["changes"], true);
+				
+				foreach ($changes as $key => $value) {
+					if (isset($record[$key])) {
+						$record[$key] = $value;
+					}
+				}
+				
+				$record["status"] = "changed";
+			} elseif (strtotime($record["publish_at"]) > time()) {
+				$record["status"] = "scheduled";
+			} elseif ($record["expire_at"] != "" && strtotime($record["expire_at"]) < time()) {
+				$record["status"] = "expired";
+			} else {
+				$record["status"] = "published";
+			}
+			
+			return $record;
+		}
+		
+		return null;
+	};
+	
+	$get_latest_pending_record = function($id) {
+		$id = substr($id, 1);
+		$item = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $id);
+		
+		if (!$item) {
+			return null;
+		}
+		
+		$changes = json_decode($item["changes"], true);
+		
+		return [
+			"id" => "p".$item["id"],
+			"parent" => $item["pending_page_parent"],
+			"nav_title" => $changes["nav_title"],
+			"path" => "_preview/p".$item["id"],
+			"archived" => false,
+			"in_nav" => $changes["in_nav"],
+			"position" => false,
+			"status" => "pending"
+		];
+	};
+	
 	if (empty($_GET["since"])) {
 		$pages = SQL::fetchAll("SELECT id, parent, nav_title, path, archived, in_nav, position, publish_at, expire_at
 								FROM bigtree_pages
@@ -81,61 +136,6 @@
 		$actions["delete"][] = $item["entry"];
 		$deleted_records[] = $item["entry"];
 	}
-	
-	// Functions for grabbing the latest records, will be used by both the created and updated methods to get the latest
-	$get_latest_record = function($id) {
-		$record = SQL::fetch("SELECT id, parent, nav_title, path, archived, in_nav, position, publish_at, expire_at
-							  FROM bigtree_pages WHERE id = ?", $id);
-		
-		if ($record) {
-			$pending = SQL::fetch("SELECT * FROM bigtree_pending_changes
-								   WHERE `table` = 'bigtree_pages' AND `item_id` = ?", $id);
-			
-			if ($pending) {
-				$changes = json_decode($pending["changes"], true);
-				
-				foreach ($changes as $key => $value) {
-					if (isset($record[$key])) {
-						$record[$key] = $value;
-					}
-				}
-				
-				$record["status"] = "changed";
-			} elseif (strtotime($record["publish_at"]) > time()) {
-				$record["status"] = "scheduled";
-			} elseif ($record["expire_at"] != "" && strtotime($record["expire_at"]) < time()) {
-				$record["status"] = "expired";
-			} else {
-				$record["status"] = "published";
-			}
-			
-			return $record;
-		}
-		
-		return null;
-	};
-	
-	$get_latest_pending_record = function($id) {
-		$id = substr($id, 1);
-		$item = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $id);
-		
-		if (!$item) {
-			return null;
-		}
-		
-		$changes = json_decode($item["changes"], true);
-		
-		return [
-			"id" => "p".$item["id"],
-			"parent" => $item["pending_page_parent"],
-			"nav_title" => $changes["nav_title"],
-			"path" => "_preview/p".$item["id"],
-			"archived" => false,
-			"in_nav" => $changes["in_nav"],
-			"position" => false,
-			"status" => "pending"
-		];
-	};
 	
 	// Creates next, if we have the latest data we don't need to run updates on it
 	$audit_trail_creates = SQL::fetchAll("SELECT entry, type, action FROM bigtree_audit_trail

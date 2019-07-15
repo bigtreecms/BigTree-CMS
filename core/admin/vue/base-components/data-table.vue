@@ -3,6 +3,7 @@
 		props: [
 			"actions",
 			"actions_base_path",
+			"clickable_rows",
 			"columns",
 			"data",
 			"data_contains_actions",
@@ -108,6 +109,12 @@
 			query_parse: function() {
 				this.query = this.query_field_value;
 			},
+			row_click: function(event, data) {
+				event.preventDefault();
+
+				const index = $(event.target).data("index");
+				this.$emit("row-click", this.paged_data[index]);
+			},
 			select_page: function(event) {
 				this.current_page = parseInt($(event.target).val());
 			}
@@ -160,7 +167,7 @@
 				</tr>
 			</thead>
 			<tbody class="table_body">
-				<tr v-for="row in paged_data" class="table_body_row" :draggable="draggable ? true : false">
+				<tr v-for="(row, row_index) in paged_data" class="table_body_row" :draggable="draggable ? true : false">
 					<td v-for="(column, index) in columns" class="table_column" :class="{ 'status': column.type == 'status' }">
 						<span v-if="column.type != 'image'" class="table_column_label">{{ translate(column.title) }}</span>
 						<span class="table_column_content">
@@ -168,6 +175,8 @@
 							<img v-if="column.type == 'image'" class="table_column_image" :src="row[column.key]" alt="" />
 							<span v-else-if="column.type == 'status'" class="table_column_status"
 								  :class="'table_column_status_' + row[column.key].toLowerCase()"></span>
+							<button v-else-if="clickable_rows && escaped_data" v-on:click="row_click" :data-index="row_index" class="table_column_button" v-html="row[column.key]"></button>
+							<button v-else-if="clickable_rows" v-on:click="row_click" :data-index="row_index" class="table_column_button">{{ row[column.key] }}</button>
 							<span v-else-if="escaped_data" class="table_column_text" v-html="row[column.key]"></span>
 							<span v-else class="table_column_text">{{ row[column.key] }}</span>
 						</span>

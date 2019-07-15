@@ -118,13 +118,14 @@
 			Admin::drawState();
 			Vue::buildCache(); // Remove in production
 		?>
+		<script src="<?=ADMIN_ROOT?>js/vue.js"></script>
 		<script>
 			const ADMIN_ROOT = "<?=ADMIN_ROOT?>";
 			const WWW_ROOT = "<?=WWW_ROOT?>";
 			const VueLanguagePack = {};
+			const VueEventBus = new Vue();
 		</script>
 		<script src="<?=ADMIN_ROOT?>js/api.js"></script>
-		<script src="<?=ADMIN_ROOT?>js/vue.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/vue-async-computed.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/vue-helpers.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/cache/vue.js"></script>

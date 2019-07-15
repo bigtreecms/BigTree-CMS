@@ -1,11 +1,19 @@
 <script>
 	Vue.component("breadcrumb", {
-		props: ["links"]
+		props: ["links"],
+		methods: {
+			click: function(event) {
+				VueEventBus.$emit("breadcrumb-click", $(event.target).data("id"));
+			}
+		}
 	});
 </script>
 
 <template>
 	<nav class="breadcrumb">
-		<span v-for="link in links" class="breadcrumb_item"><a class="breadcrumb_link" :href="link.url">{{ translate(link.title) }}</a></span>
+		<span v-for="link in links" class="breadcrumb_item">
+			<a v-if="link.id" v-on:click="click" :data-id="link.id" :href="link.url" class="breadcrumb_link">{{ translate(link.title) }}</a>
+			<a v-else class="breadcrumb_link" :href="link.url">{{ translate(link.title) }}</a>
+		</span>
 	</nav>
 </template>
