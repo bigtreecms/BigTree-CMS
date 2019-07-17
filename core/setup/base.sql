@@ -53,7 +53,7 @@ DROP TABLE IF EXISTS `bigtree_sessions`;
 CREATE TABLE `bigtree_sessions` (`id` varchar(32) NOT NULL,`last_accessed` int(10) unsigned DEFAULT NULL,`ip_address` varchar(255) NOT NULL,`user_agent` text NOT NULL,`data` longtext,`is_login` char(2) NOT NULL DEFAULT '',`logged_in_user` int(11) unsigned DEFAULT NULL,PRIMARY KEY (`id`),KEY `fk_logged_in_user` (`logged_in_user`),CONSTRAINT `fk_logged_in_user` FOREIGN KEY (`logged_in_user`) REFERENCES `bigtree_users` (`id`) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `bigtree_settings`;
-CREATE TABLE `bigtree_settings` (`id` varchar(255) NOT NULL DEFAULT '', `value` longblob NOT NULL, `encrypted` char(2) NOT NULL, `extension` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`), KEY `extension` (`extension`), CONSTRAINT `bigtree_settings_ibfk_1` FOREIGN KEY (`extension`) REFERENCES `bigtree_extensions` (`id`) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE TABLE `bigtree_settings` (`id` varchar(255) NOT NULL DEFAULT '', `value` longblob NOT NULL, `encrypted` char(2) NOT NULL, `extension` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`), KEY `extension` (`extension`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `bigtree_tags`;
 CREATE TABLE `bigtree_tags` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`tag` varchar(255) NOT NULL,`metaphone` varchar(255) NOT NULL,`route` varchar(255) DEFAULT NULL,`usage_count` int(11) unsigned NOT NULL,PRIMARY KEY (`id`),KEY `route` (`route`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;
