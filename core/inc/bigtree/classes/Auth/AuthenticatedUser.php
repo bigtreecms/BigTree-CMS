@@ -119,10 +119,8 @@
 		
 		public function convertTimestampTo(string $time, ?string $format = null, ?string $timezone = null): ?string
 		{
-			global $bigtree;
-			
 			if (is_null($format)) {
-				$format = !empty($bigtree["config"]["date_format"]) ? $bigtree["config"]["date_format"]." g:i a" : "Y-m-d H:i:s";
+				$format = !empty(Router::$Config["date_format"]) ? Router::$Config["date_format"]." g:i a" : "Y-m-d H:i:s";
 			}
 			
 			if (is_null($timezone)) {
