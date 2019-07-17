@@ -299,7 +299,7 @@
 		{
 			return PendingChange::createPage($this->Trunk, $this->Parent, $this->InNav, $this->NavigationTitle.$title_change,
 											 $this->Title.$title_change, null, $this->MetaDescription, $this->SEOInvisible,
-											 $this->Template, $this->External, $this->NewWindow, $this->Resources,
+											 $this->Template, $this->External, $this->NewWindow, $this->Content,
 											 $this->PublishAt, $this->ExpireAt, $this->MaxAge, $this->Tags, $this->OpenGraph);
 			
 		}
@@ -333,7 +333,7 @@
 		
 		public static function create(bool $trunk, ?int $parent, bool $in_nav, string $nav_title, string $title,
 									  ?string $route, ?string $meta_description, bool $seo_invisible, string $template,
-									  ?string $external, bool $new_window, ?array $resources, ?string $publish_at,
+									  ?string $external, bool $new_window, ?array $content, ?string $publish_at,
 									  ?string $expire_at, ?int $max_age, ?array $tags = [],
 									  ?int $change_being_published = null): Page
 		{
@@ -386,7 +386,7 @@
 				"template" => $template,
 				"external" => Text::htmlEncode(($external ? Link::encode($external) : "")),
 				"new_window" => ($new_window ? "on" : ""),
-				"resources" => $resources,
+				"resources" => $content,
 				"meta_description" => Text::htmlEncode($meta_description),
 				"seo_invisible" => ($seo_invisible ? "on" : ""),
 				"last_edited_by" => Auth::user()->ID,
@@ -1035,7 +1035,7 @@
 			isset($changes["open_graph"]) ? ($page->OpenGraph = $changes["open_graph"]) : false;
 			isset($changes["path"]) ? ($page->Path = $changes["path"]) : false;
 			isset($changes["publish_at"]) ? ($page->PublishAt = $changes["publish_at"] ?: false) : false;
-			isset($changes["resources"]) ? ($page->Resources = $changes["resources"]) : false;
+			isset($changes["resources"]) ? ($page->Content = $changes["resources"]) : false;
 			isset($changes["route"]) ? ($page->Route = $changes["route"]) : false;
 			isset($changes["seo_invisible"]) ? ($page->SEOInvisible = $changes["seo_invisible"] ? true : false) : false;
 			isset($changes["template"]) ? ($page->Template = $changes["template"]) : false;
@@ -1066,7 +1066,7 @@
 			$page->External = Link::decode($revision["external"]);
 			$page->MetaDescription = $revision["meta_description"];
 			$page->NewWindow = $revision["new_window"] ? true : false;
-			$page->Resources = array_filter((array) @json_decode($revision["resources"], true));
+			$page->Content = array_filter((array) @json_decode($revision["resources"], true));
 			$page->Revision = new \stdClass;
 			$page->Template = $revision["template"];
 			$page->Title = $revision["title"];
@@ -1187,7 +1187,7 @@
 			}
 			
 			// Check for an H1
-			if (!$h1_field || !empty($this->Resources[$h1_field])) {
+			if (!$h1_field || !empty($this->Content[$h1_field])) {
 				$score += 10;
 			} else {
 				$recommendations[] = "You should enter a page header.";
@@ -1202,9 +1202,9 @@
 				$stripped_text = "";
 				
 				foreach ($body_fields as $field) {
-					if (!is_array($this->Resources[$field])) {
-						$regular_text .= $this->Resources[$field]." ";
-						$stripped_text .= strip_tags($this->Resources[$field])." ";
+					if (!is_array($this->Content[$field])) {
+						$regular_text .= $this->Content[$field]." ";
+						$stripped_text .= strip_tags($this->Content[$field])." ";
 					}
 				}
 
@@ -1283,9 +1283,9 @@
 			$color = "#008000";
 			
 			if ($score <= 50) {
-				$color = Utils::colorMesh("#CCAC00", "#FF0000", 100 - (100 * $score / 50));
+				$color = Utils::colorMesh("#FD9725", "#D32F2F", 100 - (100 * $score / 50));
 			} elseif ($score <= 80) {
-				$color = Utils::colorMesh("#008000", "#CCAC00", 100 - (100 * ($score - 50) / 30));
+				$color = Utils::colorMesh("#00A370", "#FD9725", 100 - (100 * ($score - 50) / 30));
 			}
 			
 			return ["score" => $score, "recommendations" => $recommendations, "color" => $color];
@@ -1586,7 +1586,7 @@
 					$this->Template,
 					$this->External,
 					$this->NewWindow,
-					$this->Resources,
+					$this->Content,
 					$this->PublishAt,
 					$this->ExpireAt,
 					$this->MaxAge,
@@ -1661,7 +1661,7 @@
 				"template" => $this->Template,
 				"external" => $this->External ? Link::encode($this->External) : "",
 				"new_window" => $this->NewWindow ? "on" : "",
-				"resources" => (array) $this->Resources,
+				"resources" => (array) $this->Content,
 				"publish_at" => $this->PublishAt ?: null,
 				"expire_at" => $this->ExpireAt ?: null,
 				"max_age" => $this->MaxAge ?: 0,
@@ -1766,7 +1766,7 @@
 				template - Page template ID
 				external - External link (or empty)
 				new_window - Open in new window from nav (true or false)
-				resources - Array of page data
+				content - Array of page data
 				publish_at - Publish time (or false for immediate publishing)
 				expire_at - Expiration time (or false for no expiration)
 				max_age - Content age (in days) allowed before alerts are sent (0 for no max)
@@ -1775,7 +1775,7 @@
 		
 		public function update(?bool $trunk, ?int $parent, ?bool $in_nav, string $nav_title, string $title,
 							   string $route, string $meta_description, ?bool $seo_invisible, string $template,
-							   ?string $external, ?bool $new_window, ?array $resources, ?string $publish_at,
+							   ?string $external, ?bool $new_window, ?array $content, ?string $publish_at,
 							   ?string $expire_at, ?int $max_age, ?array $tags = []): void
 		{
 			// Save a page revision
@@ -1803,6 +1803,7 @@
 				Router::clearCache();
 			}
 			
+			$this->Content = $content;
 			$this->ExpireAt = ($expire_at && $expire_at != "NULL") ? date("Y-m-d", strtotime($expire_at)) : null;
 			$this->External = $external;
 			$this->InNav = $in_nav;
@@ -1812,7 +1813,6 @@
 			$this->NewWindow = $new_window;
 			$this->Parent = $parent;
 			$this->PublishAt = ($publish_at && $publish_at != "NULL") ? date("Y-m-d", strtotime($publish_at)) : null;
-			$this->Resources = $resources;
 			$this->Route = $route ?: Link::urlify($nav_title);
 			$this->SEOInvisible = $seo_invisible;
 			$this->Template = $template;
