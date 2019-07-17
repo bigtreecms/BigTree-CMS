@@ -6,7 +6,7 @@
 				current_title: this.actions[0].title
 			};
 		},
-		props: ["actions", "buttons", "base_path", "id"],
+		props: ["actions", "buttons", "base_path", "id", "escaped_actions"],
 		methods: {
 			change: function(ev) {
 				let $target = $(ev.target);
@@ -47,13 +47,17 @@
 <template>
 	<div class="action_menu">
 		<div class="action_menu_default">
-			<a v-if="!buttons" class="action_menu_label" :href="compute_action_url(actions[0])">{{ translate(current_title) }}</a>
+			<a v-if="escaped_actions && !buttons" class="action_menu_label" :href="compute_action_url(actions[0])" v-html="translate(current_title)"></a>
+			<a v-else-if="!buttons" class="action_menu_label" :href="compute_action_url(actions[0])">{{ translate(current_title) }}</a>
+			<span v-else-if="escaped_actions" class="action_menu_label" v-html="translate(current_title)"></span>
 			<span v-else class="action_menu_label">{{ translate(current_title) }}</span>
 			<button class="action_menu_trigger" v-on:click="open" type="button"><icon wrapper="action_menu" icon="arrow_drop_down"></icon></button>
 		</div>
 		<ul class="action_menu_dropdown">
 			<li v-for="action in actions" class="action_menu_item">
-				<a v-if="!buttons" class="action_menu_link" :href="compute_action_url(action)">{{ translate(action.title) }}</a>
+				<a v-if="escaped_actions && !buttons" class="action_menu_link" :href="compute_action_url(action)" v-html="translate(action.title)"></a>
+				<a v-else-if="!buttons" class="action_menu_link" :href="compute_action_url(action)">{{ translate(action.title) }}</a>
+				<button v-else-if="escaped_actions" v-on:click="change" class="action_menu_link" :data-value="action.value" v-html="translate(action.title)"></button>
 				<button v-else v-on:click="change" class="action_menu_link" :data-value="action.value">{{ translate(action.title) }}</button>
 			</li>
 		</ul>

@@ -162,8 +162,8 @@
 		<table class="table">
 			<thead class="table_headings">
 				<tr class="table_headings_row">
-					<th v-for="column in columns" :class="{ 'status': column.type == 'status' }" class="table_heading">{{ translate(column.title) }}</th>
-					<th v-if="actions.length" class="table_heading">{{ translate('Actions') }}</th>
+					<th v-for="column in columns" :class="{ 'table_heading_status': column.type == 'status' }" class="table_heading">{{ translate(column.title) }}</th>
+					<th v-if="actions.length || data_contains_actions" class="table_heading table_heading_actions">{{ translate('Actions') }}</th>
 				</tr>
 			</thead>
 			<tbody class="table_body">
@@ -173,8 +173,8 @@
 						<span class="table_column_content">
 							<icon v-if="draggable && index == 0" wrapper="table_column_drag" icon="drag_handle"></icon>
 							<img v-if="column.type == 'image'" class="table_column_image" :src="row[column.key]" alt="" />
-							<span v-else-if="column.type == 'status'" class="table_column_status"
-								  :class="'table_column_status_' + row[column.key].toLowerCase()"></span>
+							<span v-else-if="column.type == 'status'" class="table_content_status"
+								  :class="'table_content_status_' + row[column.key].toLowerCase()"></span>
 							<button v-else-if="clickable_rows && escaped_data" v-on:click="row_click" :data-index="row_index" class="table_column_button" v-html="row[column.key]"></button>
 							<button v-else-if="clickable_rows" v-on:click="row_click" :data-index="row_index" class="table_column_button">{{ row[column.key] }}</button>
 							<span v-else-if="escaped_data" class="table_column_text" v-html="row[column.key]"></span>
@@ -184,9 +184,9 @@
 					<td v-if="actions.length || data_contains_actions" class="table_column">
 						<div class="table_column_content">
 							<action-menu v-if="data_contains_actions && row['actions'].length" :base_path="row['actions_base_path']"
-										 :actions="row['actions']" :id="row['id']"></action-menu>
+										 :actions="row['actions']" :id="row['id']" :escaped_actions="escaped_data"></action-menu>
 							<action-menu v-else-if="actions.length" :base_path="actions_base_path" :actions="actions"
-										 :id="row['id']"></action-menu>
+										 :id="row['id']" :escaped_actions="escaped_data"></action-menu>
 							<span v-else>&nbsp;</span>
 						</div>
 					</td>

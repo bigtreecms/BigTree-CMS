@@ -47,9 +47,20 @@
 	text-align: left;
 	text-transform: uppercase;
 
-	&.status {
-		text-align: center;
-		width: 80px;
+	&_actions {
+		
+		@media #{$min_md} {
+			width: 2px;
+		}
+	}
+
+	&_status {
+
+		@media #{$min_md} {
+			width: 2px;
+			
+			text-align: center;
+		}
 	}
 }
 
@@ -150,7 +161,7 @@
 	display: flex;
 }
 
-.table_column_drag_icon {
+.table_content_drag_icon {
 	color: $gray;
 	cursor: move;
 	display: none;
@@ -161,7 +172,7 @@
 	}
 }
 
-.table_column_image {
+.table_content_image {
 	display: block;
 
 	@media #{$min_md} {
@@ -169,13 +180,14 @@
 	}
 }
 
-.table_column_status {
+.table_content_status {
 	height: 14px;
 	width: 14px;
 
 	border: 2px solid;
 	border-radius: 2px;
 	display: inline-block;
+	margin: 0 auto;
 	vertical-align: top;
 
 	&_published {
