@@ -323,7 +323,7 @@
 						}
 					}
 
-					BigTree::redirect($redirect_url);
+					BigTree::redirect($redirect_url, "301");
 				}
 			}
 		}
