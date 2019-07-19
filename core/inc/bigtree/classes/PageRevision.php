@@ -21,10 +21,10 @@
 		protected $Page;
 		protected $UpdatedAt;
 		
+		public $Content;
 		public $External;
 		public $MetaDescription;
 		public $NewWindow;
-		public $Resources;
 		public $Saved;
 		public $SavedDescription;
 		public $Template;
@@ -62,10 +62,10 @@
 					$this->Author = ["id" => $revision["author"], "name" => $revision["name"], "email" => $revision["email"]];
 				}
 				
+				$this->Content = array_filter((array) @json_decode($revision["content"], true));
 				$this->External = $revision["external"] ? Link::decode($revision["external"]) : "";
 				$this->MetaDescription = $revision["meta_description"];
 				$this->NewWindow = $revision["new_window"] ? true : false;
-				$this->Resources = array_filter((array) @json_decode($revision["resources"], true));
 				$this->Saved = $revision["saved"] ? true : false;
 				$this->SavedDescription = $revision["saved_description"];
 				$this->Template = $revision["template"];
@@ -94,7 +94,7 @@
 				"template" => $page->Template,
 				"external" => $page->External ? Link::encode($page->External) : "",
 				"new_window" => $page->NewWindow ? "on" : "",
-				"resources" => $page->Resources,
+				"content" => $page->Content,
 				"author" => $page->LastEditedBy,
 				"updated_at" => $page->UpdatedAt,
 				"saved" => $description ? "on" : "",
@@ -153,7 +153,7 @@
 			SQL::update("bigtree_page_revisions", $this->ID, [
 				"external" => $this->External,
 				"new_window" => $this->NewWindow ? "on" : "",
-				"resources" => $this->Resources,
+				"content" => $this->Content,
 				"saved" => $this->Saved ? "on" : "",
 				"saved_description" => Text::htmlEncode($this->SavedDescription),
 				"template" => $this->Template,

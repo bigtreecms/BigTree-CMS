@@ -16,10 +16,29 @@
 	
 	// Functions for grabbing the latest records, will be used by both the created and updated methods to get the latest
 	$get_latest_record = function($id) {
-		$record = SQL::fetch("SELECT id, parent, nav_title, path, archived, in_nav, position, publish_at, expire_at
-							  FROM bigtree_pages WHERE id = ?", $id);
+		$data = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
 		
-		if ($record) {
+		if ($data) {
+			$record = [
+				"id" => $data["id"],
+				"parent" => $data["parent"],
+				"nav_title" => $data["nav_title"],
+				"path" => $data["path"],
+				"archived" => $data["archived"],
+				"in_nav" => $data["in_nav"],
+				"position" => $data["position"],
+				"max_age" => $data["max_age"] ?: 100,
+				"age" => floor((time() - strtotime($data["updated_at"])) / 24 / 60 / 60),
+				"expires" => null,
+				"seo_score" => $data["seo_score"],
+				"seo_recommendations" => $data["seo_recommendations"],
+				"seo_color" => $data["seo_color"]
+			];
+			
+			if ($data["expire_at"]) {
+				$record["expires"] = date(Router::$Config["date_format"] ?: "m/d/Y", strtotime($data["expire_at"]));
+			}
+			
 			$pending = SQL::fetch("SELECT * FROM bigtree_pending_changes
 								   WHERE `table` = 'bigtree_pages' AND `item_id` = ?", $id);
 			
@@ -33,9 +52,9 @@
 				}
 				
 				$record["status"] = "changed";
-			} elseif (strtotime($record["publish_at"]) > time()) {
+			} elseif (strtotime($data["publish_at"]) > time()) {
 				$record["status"] = "scheduled";
-			} elseif ($record["expire_at"] != "" && strtotime($record["expire_at"]) < time()) {
+			} elseif ($data["expire_at"] != "" && strtotime($data["expire_at"]) < time()) {
 				$record["status"] = "expired";
 			} else {
 				$record["status"] = "published";
@@ -65,60 +84,28 @@
 			"archived" => false,
 			"in_nav" => $changes["in_nav"],
 			"position" => false,
-			"status" => "pending"
+			"status" => "pending",
+			"age" => floor((time() - strtotime($item["date"])) / 24 / 60 / 60),
+			"max_age" => intval($changes["max_age"]),
+			"expires" => null
 		];
 	};
 	
 	if (empty($_GET["since"])) {
-		$pages = SQL::fetchAll("SELECT id, parent, nav_title, path, archived, in_nav, position, publish_at, expire_at
-								FROM bigtree_pages
-								ORDER BY id");
+		$pages = [];
+		$page_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_pages");
 		
-		foreach ($pages as $index => $page) {
-			$pending = SQL::fetch("SELECT * FROM bigtree_pending_changes
-								   WHERE `table` = 'bigtree_pages' AND `item_id` = ?", $page["id"]);
-			
-			if ($pending) {
-				$changes = json_decode($pending["changes"], true);
-				
-				foreach ($changes as $key => $value) {
-					if (isset($pages[$index][$key])) {
-						$pages[$index][$key] = $value;
-					}
-				}
-
-				$status = "changed";
-			} elseif (strtotime($page["publish_at"]) > time()) {
-				$status = "scheduled";
-			} elseif ($page["expire_at"] != "" && strtotime($page["expire_at"]) < time()) {
-				$status = "expired";
-			} else {
-				$status = "published";
-			}
-			
-			$pages[$index]["status"] = $status;
-			unset($pages[$index]["expire_at"]);
-			unset($pages[$index]["publish_at"]);
+		foreach ($page_ids as $id) {
+			$pages[] = $get_latest_record($id);
 		}
 		
+		$pending_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_pending_changes
+											WHERE `table` = 'bigtree_pages' AND `item_id` IS NULL");
 		
-		$pending = SQL::fetchAll("SELECT * FROM bigtree_pending_changes
-								  WHERE `table` = 'bigtree_pages' AND `item_id` IS NULL");
-		
-		foreach ($pending as $item) {
-			$changes = json_decode($item["changes"], true);
-			$pages[] = [
-				"id" => "p".$item["id"],
-				"parent" => $item["pending_page_parent"],
-				"nav_title" => $changes["nav_title"],
-				"path" => "_preview/p".$item["id"],
-				"archived" => false,
-				"in_nav" => $changes["in_nav"],
-				"position" => false,
-				"status" => "pending"
-			];
+		foreach ($pending_ids as $id) {
+			$pages[] = $get_latest_pending_record("p".$id);
 		}
-			
+		
 		API::sendResponse(["insert" => $pages]);
 	}
 	

@@ -53,6 +53,21 @@
 		public $Title;
 		public $Trunk;
 		
+		public static $SEORules = [
+			"Your page title should be unique. :count: other page(s) have the same title.",
+			"Your page title should be no more than 72 characters and should contain at least 4 words.",
+			"You should enter a page title.",
+			"Your meta description should be no more than 165 characters. It is currently :count: characters.",
+			"You should enter a meta description.",
+			"You should enter a page header.",
+			"You should enter at least 300 words of page content. You currently have :count: word(s).",
+			"You should have at least one link for every 120 words of page content. You currently have :count: link(s). You should have at least :count2:.",
+			"Having an external link helps build Page Rank.",
+			"You should have at least one link in your content.",
+			"Your readability score is :count:%.  Using shorter sentences and words with fewer syllables will make your site easier to read by search engines and users.",
+			"You should enter page content.",
+			"Your content is around :count: months old.  Updating your page more frequently will make it rank higher.",
+		];
 		public static $Table = "bigtree_pages";
 		
 		/*
@@ -271,8 +286,8 @@
 			$partial_root = SQL::escape(str_replace($bigtree["config"]["www_root"], "{wwwroot}", $bigtree["config"]["admin_root"]));
 			
 			$pages = SQL::fetchAll("SELECT * FROM bigtree_pages 
-									WHERE resources LIKE '%$admin_root%' 
-									   OR resources LIKE '%$partial_root%'
+									WHERE content LIKE '%$admin_root%'
+									   OR content LIKE '%$partial_root%'
 									ORDER BY nav_title ASC");
 			
 			if (!$return_arrays) {
@@ -320,7 +335,7 @@
 				template - Page template ID
 				external - External link (or empty)
 				new_window - Open in new window from nav (true or false)
-				resources - Array of page data
+				content - Array of page data
 				publish_at - Publish time (or false for immediate publishing)
 				expire_at - Expiration time (or false for no expiration)
 				max_age - Content age (in days) allowed before alerts are sent (0 for no max)
@@ -375,6 +390,9 @@
 			// Set the trunk flag back to no if the user isn't a developer
 			$trunk = ($trunk ? "on" : "");
 			
+			// Get seo ratings
+			$seo = static::getSEORating(null, $template, $title, $meta_description, $content, date("Y-m-d H:i:s"));
+			
 			$insert = [
 				"trunk" => $trunk,
 				"parent" => $parent,
@@ -386,9 +404,12 @@
 				"template" => $template,
 				"external" => Text::htmlEncode(($external ? Link::encode($external) : "")),
 				"new_window" => ($new_window ? "on" : ""),
-				"resources" => $content,
+				"content" => $content,
 				"meta_description" => Text::htmlEncode($meta_description),
 				"seo_invisible" => ($seo_invisible ? "on" : ""),
+				"seo_score" => $seo["score"],
+				"seo_recommendations" => $seo["recommendations"],
+				"seo_color" => $seo["color"],
 				"last_edited_by" => Auth::user()->ID,
 				"created_at" => "NOW()",
 				"publish_at" => ($publish_at ? date("Y-m-d", strtotime($publish_at)) : null),
@@ -573,18 +594,18 @@
 		}
 		
 		/*
-			Function: decodeResources
-				Turns the JSON resources data into a PHP array of resources with links being translated into front-end readable links.
+			Function: decodeContent
+				Turns the JSON content data into a PHP array of content with links being translated into front-end readable links.
 				This function is called by BigTree's router and is generally not a function needed to end users.
 			
 			Parameters:
 				data - JSON encoded callout data.
 			
 			Returns:
-				An array of resources.
+				An array of content.
 		*/
 		
-		public static function decodeResources(array $data): array
+		public static function decodeContent(array $data): array
 		{
 			if (!is_array($data)) {
 				$data = json_decode($data, true);
@@ -1035,7 +1056,7 @@
 			isset($changes["open_graph"]) ? ($page->OpenGraph = $changes["open_graph"]) : false;
 			isset($changes["path"]) ? ($page->Path = $changes["path"]) : false;
 			isset($changes["publish_at"]) ? ($page->PublishAt = $changes["publish_at"] ?: false) : false;
-			isset($changes["resources"]) ? ($page->Content = $changes["resources"]) : false;
+			isset($changes["content"]) ? ($page->Content = $changes["content"]) : false;
 			isset($changes["route"]) ? ($page->Route = $changes["route"]) : false;
 			isset($changes["seo_invisible"]) ? ($page->SEOInvisible = $changes["seo_invisible"] ? true : false) : false;
 			isset($changes["template"]) ? ($page->Template = $changes["template"]) : false;
@@ -1066,7 +1087,7 @@
 			$page->External = Link::decode($revision["external"]);
 			$page->MetaDescription = $revision["meta_description"];
 			$page->NewWindow = $revision["new_window"] ? true : false;
-			$page->Content = array_filter((array) @json_decode($revision["resources"], true));
+			$page->Content = array_filter((array) @json_decode($revision["content"], true));
 			$page->Revision = new \stdClass;
 			$page->Template = $revision["template"];
 			$page->Title = $revision["title"];
@@ -1082,6 +1103,14 @@
 		/*
 			Function: getSEORating
 				Returns the SEO rating for the page.
+		
+			Parameters:
+				id - A page ID or null for a non-existant page
+				template - A template ID, !, or empty
+				title - The page title
+				meta_description - The page meta description
+				content - The page content array
+				last_updated - A timestamp the page was last updated
 
 			Returns:
 				An array of SEO data.
@@ -1105,13 +1134,14 @@
 				- Fresh content - up to 10 points
 		*/
 		
-		public function getSEORating(): array
+		public static function getSEORating(?int $id, ?string $template, ?string $title, ?string $meta_description,
+											?array $content, ?string $last_updated  ): array
 		{
-			if (empty($this->Template) || $this->Template == "!") {
+			if (empty($template) || $template == "!") {
 				return ["score" => 100, "recommendations" => [], "color" => "#00CC00"];
 			}
 
-			$template = new Template($this->Template);
+			$template = new Template($template);
 			$template_fields = [];
 			$h1_field = "";
 			$body_fields = [];
@@ -1144,53 +1174,57 @@
 			$score = 0;
 			
 			// Check if they have a page title.
-			if ($this->Title) {
+			if ($title) {
 				$score += 5;
 				
 				// They have a title, let's see if it's unique
 				$count = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_pages 
-										   WHERE title = ? AND id != ?", $this->Title, $this->ID);
+										   WHERE title = ? AND id != ?", $title, $id);
 				if (!$count) {
 					// They have a unique title
 					$score += 5;
 				} else {
-					$recommendations[] = "Your page title should be unique. ".($count - 1)." other page(s) have the same title.";
+					$recommendations[0] = $count - 1;
 				}
 				
 				// Check title length / word count
-				$words = $textStats->wordCount($this->Title);
-				$length = mb_strlen($this->Title);
+				$words = $textStats->wordCount($title);
+				$length = mb_strlen($title);
 				
 				// Minimum of 4 words, less than 72 characters
 				if ($words >= 4 && $length <= 72) {
 					$score += 5;
 				} else {
-					$recommendations[] = "Your page title should be no more than 72 characters and should contain at least 4 words.";
+					$recommendations[1] = true;
 				}
 			} else {
-				$recommendations[] = "You should enter a page title.";
+				$recommendations[2] = true;
 			}
 			
 			// Check for meta description
-			if ($this->MetaDescription) {
+			if ($meta_description) {
 				$score += 5;
 				
 				// They have a meta description, let's see if it's no more than 165 characters.
-				$meta_length = mb_strlen($this->MetaDescription);
+				$meta_length = mb_strlen($meta_description);
 				if ($meta_length <= 165) {
 					$score += 5;
 				} else {
-					$recommendations[] = "Your meta description should be no more than 165 characters.  It is currently $meta_length characters.";
+					$recommendations[3] = $meta_length;
 				}
 			} else {
-				$recommendations[] = "You should enter a meta description.";
+				$recommendations[4] = true;
+			}
+			
+			if (!is_array($content)) {
+				$content = [];
 			}
 			
 			// Check for an H1
-			if (!$h1_field || !empty($this->Content[$h1_field])) {
+			if (!$h1_field || !empty($content[$h1_field])) {
 				$score += 10;
 			} else {
-				$recommendations[] = "You should enter a page header.";
+				$recommendations[5] = true;
 			}
 			
 			// Check the content!
@@ -1202,9 +1236,9 @@
 				$stripped_text = "";
 				
 				foreach ($body_fields as $field) {
-					if (!is_array($this->Content[$field])) {
-						$regular_text .= $this->Content[$field]." ";
-						$stripped_text .= strip_tags($this->Content[$field])." ";
+					if (!is_array($content[$field])) {
+						$regular_text .= $content[$field]." ";
+						$stripped_text .= strip_tags($content[$field])." ";
 					}
 				}
 
@@ -1225,7 +1259,7 @@
 					if ($words >= 300) {
 						$score += 15;
 					} else {
-						$recommendations[] = "You should enter at least 300 words of page content.  You currently have ".$words." word(s).";
+						$recommendations[6] = $words;
 					}
 					
 					// See if we have any links
@@ -1236,17 +1270,17 @@
 						if (floor($words / 120) <= $number_of_links) {
 							$score += 5;
 						} else {
-							$recommendations[] = "You should have at least one link for every 120 words of page content.  You currently have $number_of_links link(s).  You should have at least ".floor($words / 120).".";
+							$recommendations[7] = [$number_of_links, floor($words / 120)];
 						}
 
 						// See if we have any external links.
 						if ($number_of_external_links) {
 							$score += 5;
 						} else {
-							$recommendations[] = "Having an external link helps build Page Rank.";
+							$recommendations[8] = true;
 						}
 					} else {
-						$recommendations[] = "You should have at least one link in your content.";
+						$recommendations[9] = true;
 					}
 					
 					// Check on our readability score.
@@ -1254,15 +1288,15 @@
 						$score += 20;
 					} else {
 						$read_score = round(($readability / 90), 2);
-						$recommendations[] = "Your readability score is ".($read_score * 100)."%.  Using shorter sentences and words with fewer syllables will make your site easier to read by search engines and users.";
+						$recommendations[10] = $read_score * 100;
 						$score += ceil($read_score * 20);
 					}
 				} else {
-					$recommendations[] = "You should enter page content.";
+					$recommendations[11] = true;
 				}
 				
 				// Check page freshness
-				$updated = strtotime($this->UpdatedAt);
+				$updated = strtotime($last_updated);
 				$age = time() - $updated - (60 * 24 * 60 * 60);
 				
 				// See how much older it is than 2 months.
@@ -1274,7 +1308,7 @@
 					}
 
 					$score += $age_score;
-					$recommendations[] = "Your content is around ".ceil(2 + ($age / (30 * 24 * 60 * 60)))." months old.  Updating your page more frequently will make it rank higher.";
+					$recommendations[12] = ceil(2 + ($age / (30 * 24 * 60 * 60)));
 				} else {
 					$score += 10;
 				}
@@ -1648,6 +1682,9 @@
 				]);
 			}
 			
+			$seo = static::getSEORating($this->ID, $this->Template, $this->Title, $this->MetaDescription,
+										$this->Content, date("Y-m-d H:i:s"));
+			
 			$update = [
 				"trunk" => $this->Trunk ? "on" : "",
 				"parent" => $this->Parent,
@@ -1661,10 +1698,13 @@
 				"template" => $this->Template,
 				"external" => $this->External ? Link::encode($this->External) : "",
 				"new_window" => $this->NewWindow ? "on" : "",
-				"resources" => (array) $this->Content,
+				"content" => (array) $this->Content,
 				"publish_at" => $this->PublishAt ?: null,
 				"expire_at" => $this->ExpireAt ?: null,
 				"max_age" => $this->MaxAge ?: 0,
+				"seo_score" => $seo["score"],
+				"seo_recommendations" => $seo["recommendations"],
+				"seo_color" => $seo["color"],
 				"last_edited_by" => Auth::user()->ID ?: $this->LastEditedBy
 			];
 			

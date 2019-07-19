@@ -252,7 +252,7 @@
 				template - Page template ID
 				external - External link (or empty)
 				new_window - Open in new window from nav (true or false)
-				resources - Array of page data
+				content - Array of page data
 				publish_at - Publish time (or null for immediate publishing)
 				expire_at - Expiration time (or null for no expiration)
 				max_age - Content age (in days) allowed before alerts are sent (null for no max)
@@ -265,7 +265,7 @@
 		
 		public static function createPage(?bool $trunk, ?int $parent, ?bool $in_nav, ?string $nav_title, ?string $title,
 										  ?string $route, ?string $meta_description, ?bool $seo_invisible,
-										  ?string $template, ?string $external, ?bool $new_window, ?array $fields,
+										  ?string $template, ?string $external, ?bool $new_window, ?array $content,
 										  ?string $publish_at, ?string $expire_at, ?int $max_age, ?array $tags = [],
 										  ?array $open_graph = null): PendingChange
 		{
@@ -292,7 +292,7 @@
 				"template" => $template,
 				"external" => $external ? Link::encode($external) : "",
 				"new_window" => $new_window ? "on" : "",
-				"resources" => $fields,
+				"content" => $content,
 				"publish_at" => $publish_at ? date("Y-m-d H:i:s", strtotime($publish_at)) : null,
 				"expire_at" => $expire_at ? date("Y-m-d H:i:s", strtotime($expire_at)) : null,
 				"max_age" => $max_age ? intval($max_age) : ""
