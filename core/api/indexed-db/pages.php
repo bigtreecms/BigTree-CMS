@@ -27,12 +27,11 @@
 				"archived" => $data["archived"],
 				"in_nav" => $data["in_nav"],
 				"position" => $data["position"],
-				"max_age" => $data["max_age"] ?: 100,
-				"age" => floor((time() - strtotime($data["updated_at"])) / 24 / 60 / 60),
+				"max_age" => $data["max_age"] ?: 365,
+				"age" => ceil((time() - strtotime($data["updated_at"])) / 24 / 60 / 60),
 				"expires" => null,
 				"seo_score" => $data["seo_score"],
-				"seo_recommendations" => $data["seo_recommendations"],
-				"seo_color" => $data["seo_color"]
+				"seo_recommendations" => $data["seo_recommendations"]
 			];
 			
 			if ($data["expire_at"]) {

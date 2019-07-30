@@ -409,7 +409,6 @@
 				"seo_invisible" => ($seo_invisible ? "on" : ""),
 				"seo_score" => $seo["score"],
 				"seo_recommendations" => $seo["recommendations"],
-				"seo_color" => $seo["color"],
 				"last_edited_by" => Auth::user()->ID,
 				"created_at" => "NOW()",
 				"publish_at" => ($publish_at ? date("Y-m-d", strtotime($publish_at)) : null),
@@ -1704,7 +1703,6 @@
 				"max_age" => $this->MaxAge ?: 0,
 				"seo_score" => $seo["score"],
 				"seo_recommendations" => $seo["recommendations"],
-				"seo_color" => $seo["color"],
 				"last_edited_by" => Auth::user()->ID ?: $this->LastEditedBy
 			];
 			

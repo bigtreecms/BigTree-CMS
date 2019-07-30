@@ -10,34 +10,65 @@
 			async current_page_data () {
 				let data = await BigTreeAPI.getStoredDataMatching("pages", "id", this.page);
 
-				if (data.length) {
-					let page = data[0];
-
-					if (page.path) {
-						app.page_public_url = WWW_ROOT + page.path + "/";
-					} else {
-						app.page_public_url = WWW_ROOT;
-					}
-
-					app.page_title = page.nav_title;
-
-					let breadcrumb = [];
-					let parent = page.parent;
-
-					while (parent > -1) {
-						let parent_data = await BigTreeAPI.getStoredDataMatching("pages", "id", parent);
-
-						if (parseInt(parent_data[0].id) === 0) {
-							breadcrumb.push({ title: "Home", url: '#', id: 0 });
-						} else {
-							breadcrumb.push({ title: parent_data[0].nav_title, url: '#', id: parent_data[0].id });
-						}
-
-						parent = parent_data[0].parent;
-					}
-
-					app.breadcrumb = breadcrumb.reverse();
+				if (!data.length) {
+					return;
 				}
+				
+				let page = data[0];
+
+				if (page.path) {
+					app.page_public_url = WWW_ROOT + page.path + "/";
+				} else {
+					app.page_public_url = WWW_ROOT;
+				}
+
+				app.page_title = page.nav_title;
+
+				let breadcrumb = [];
+				let parent = page.parent;
+
+				while (parent > -1) {
+					let parent_data = await BigTreeAPI.getStoredDataMatching("pages", "id", parent);
+
+					if (parseInt(parent_data[0].id) === 0) {
+						breadcrumb.push({ title: "Home", url: '#', id: 0 });
+					} else {
+						breadcrumb.push({ title: parent_data[0].nav_title, url: '#', id: parent_data[0].id });
+					}
+
+					parent = parent_data[0].parent;
+				}
+
+				app.breadcrumb = breadcrumb.reverse();
+				
+				meta_bar = [];
+
+				if (page.expires) {
+					meta_bar.push({
+						title: "Expires",
+						value: page.expires
+					})
+				}
+				
+				if (page.seo_score) {
+					meta_bar.push({
+						title: "SEO Score",
+						type: "visual",
+						value: parseInt(page.seo_score)
+					});
+				}
+				
+				console.log(page.max_age, page.age);
+				
+				meta_bar.push({
+					title: "Content Age",
+					type: "visual",
+					value: 100 - Math.floor(page.max_age / page.age)
+				});
+				
+				console.log(meta_bar);
+				
+				app.meta_bar = meta_bar;
 			},
 			async data () {
 				let pages = await BigTreeAPI.getStoredDataMatching("pages", "parent", this.page);

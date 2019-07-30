@@ -79,6 +79,22 @@
 			}
 		},
 		methods: {
+			equalize_actions: function() {
+				// Make all the action menus be equal width
+				const $labels = $(this.$el).find(".action_menu_label");
+				let widest = 0;
+
+				$labels.each(function() {
+					const label_width = $(this).outerWidth();
+
+					if (label_width > widest) {
+						widest = label_width;
+					}
+				});
+
+				$labels.css({ minWidth: widest + "px" });
+			},
+			
 			next_page: function(event) {
 				event.preventDefault();
 				
@@ -88,6 +104,7 @@
 				
 				this.current_page++;
 			},
+			
 			previous_page: function(event) {
 				event.preventDefault();
 
@@ -97,6 +114,7 @@
 				
 				this.current_page--;
 			},
+			
 			query_key_up: function() {
 				$(this.$el).find(".search").addClass("loading");
 				
@@ -106,21 +124,29 @@
 				
 				this.query_timer = setTimeout(this.query_parse, 500);
 			},
+			
 			query_parse: function() {
 				this.query = this.query_field_value;
 			},
+			
 			row_click: function(event, data) {
 				event.preventDefault();
 
 				const index = $(event.target).data("index");
 				this.$emit("row-click", this.paged_data[index]);
 			},
+			
 			select_page: function(event) {
 				this.current_page = parseInt($(event.target).val());
 			}
 		},
 		mounted: function() {
+			// Give this table the auto-generated Vue unique ID
 			this.id = this._uid;
+			this.equalize_actions();
+		},
+		updated: function() {
+			this.equalize_actions();
 		}
 	});
 </script>
@@ -194,25 +220,23 @@
 			</tbody>
 		</table>
 		
-		<div class="single_table_filter" v-if="per_page && pages > 1">
-			<div class="table_filter">
-				<div class="pagination">
-					<button v-on:click="previous_page" :class="{'pagination_traversal_disabled': current_page == 1 }"
-							class="pagination_traversal">
-						<icon wrapper="pagination_traversal" icon="keyboard_arrow_left"></icon>
-					</button>
-					<div class="pagination_field">
-						<label class="search_label" :for="id + '_pagination_select'">{{ translate('Switch Page') }}</label>
-						<select v-on:change="select_page" class="pagination_select" :id="id + '_pagination_select'">
-							<option v-for="i in pages" :value="i" :selected="current_page == i">Page {{ i }}</option>
-						</select>
-						<icon wrapper="pagination_field" icon="arrow_drop_down"></icon>
-					</div>
-					<button v-on:click="next_page" :class="{'pagination_traversal_disabled': current_page == pages }"
-							class="pagination_traversal">
-						<icon wrapper="pagination_traversal" icon="keyboard_arrow_right"></icon>
-					</button>
+		<div class="table_filter table_filter_standalone" v-if="per_page && pages > 1">
+			<div class="pagination table_filter_standalone">
+				<button v-on:click="previous_page" :class="{'pagination_traversal_disabled': current_page == 1 }"
+						class="pagination_traversal">
+					<icon wrapper="pagination_traversal" icon="keyboard_arrow_left"></icon>
+				</button>
+				<div class="pagination_field">
+					<label class="search_label" :for="id + '_pagination_select'">{{ translate('Switch Page') }}</label>
+					<select v-on:change="select_page" class="pagination_select" :id="id + '_pagination_select'">
+						<option v-for="i in pages" :value="i" :selected="current_page == i">Page {{ i }}</option>
+					</select>
+					<icon wrapper="pagination_field" icon="arrow_drop_down"></icon>
 				</div>
+				<button v-on:click="next_page" :class="{'pagination_traversal_disabled': current_page == pages }"
+						class="pagination_traversal">
+					<icon wrapper="pagination_traversal" icon="keyboard_arrow_right"></icon>
+				</button>
 			</div>
 		</div>
 	</form>

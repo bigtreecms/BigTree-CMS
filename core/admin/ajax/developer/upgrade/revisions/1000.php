@@ -30,7 +30,6 @@
 	// Add SEO data to be cached to the table instead of dynamic
 	SQL::query("ALTER TABLE `bigtree_pages` ADD COLUMN `seo_score` INT(11) NOT NULL DEFAULT 0 AFTER `max_age`");
 	SQL::query("ALTER TABLE `bigtree_pages` ADD COLUMN `seo_recommendations` TEXT AFTER `seo_score`");
-	SQL::query("ALTER TABLE `bigtree_pages` ADD COLUMN `seo_color` CHAR(7) NOT NULL DEFAULT '' AFTER `seo_recommendations`");
 	
 	// Add user table references
 	SQL::query("ALTER TABLE `bigtree_user_sessions` ADD COLUMN `table` VARCHAR(255) NOT NULL AFTER `id`");

@@ -13,16 +13,35 @@
 .field_title {
 	display: block;
 	font-size: 14px;
-	font-weight: 700;
 	margin-bottom: 10px;
+
+	@media #{$min_md} {
+		display: flex;
+		justify-content: space-between;
+	}
 }
 
-.field_title_text {}
+.field_title_group {}
+
+.field_title_text {
+	font-weight: 700;
+}
 
 .field_title_hint {
 	color: $dark;
 	font-size: 12px;
 	font-weight: 400;
+}
+
+.field_limit {
+	
+	&_bad {
+		color: $red;
+	}
+
+	&_good {
+		color: $green;
+	}
 }
 
 .field_group {
@@ -93,7 +112,7 @@
 	-webkit-appearance: none;
 	background-color: #fff;
 	border: 1px solid $mist;
-	border-radius: 0;
+	border-radius: 3px;
 	cursor: pointer;
 	display: block;
 	font-size: 14px;

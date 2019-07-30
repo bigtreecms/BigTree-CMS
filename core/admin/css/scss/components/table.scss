@@ -7,10 +7,6 @@
 	}
 }
 
-.single_table_filter {
-	overflow: hidden;
-}
-
 .table_filter {
 	margin: 20px 0;
 
@@ -18,8 +14,9 @@
 		margin: 0;
 	}
 
-	.single_table_filter & {
-		float: right;
+	&_standalone {
+		display: flex;
+		justify-content: flex-end;
 	}
 }
 
@@ -60,6 +57,47 @@
 			width: 2px;
 			
 			text-align: center;
+		}
+	}
+}
+
+.table_sort {
+	position: relative;
+
+	appearance: none;
+	-webkit-appearance: none;
+	background: none;
+	border: 0;
+	font: inherit;
+	letter-spacing: inherit;
+	padding: 0;
+	text-transform: inherit;
+}
+
+.table_sort_label {}
+
+.table_sort_icon {
+	position: absolute;
+	top: 50%;
+
+	color: $green;
+	transform: 
+		translate(0, -50%)
+		scale(.65);
+
+	&_direction {
+		left: 100%;
+		transform-origin: right center;
+		transform: 
+			translate(0, -50%)
+			scale(.65)
+			rotateX(0);
+
+		.flipped & {
+			transform: 
+				translate(0, -50%)
+				scale(.65)
+				rotateX(180deg);
 		}
 	}
 }
