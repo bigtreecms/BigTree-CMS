@@ -13,8 +13,10 @@
 			"searchable",
 			"search_label",
 			"search_placeholder",
+			"sortable",
 			"translatable"
 		],
+		
 		data: function() {
 			return {
 				current_page: 1,
@@ -22,9 +24,12 @@
 				pages: 1,
 				query: "",
 				query_field_value: "",
-				query_timer: null
+				query_timer: null,
+				sort_column: null,
+				sort_direction: null
 			};
 		},
+		
 		computed: {
 			filtered_data: function() {
 				let data = this.data;
@@ -60,8 +65,44 @@
 					$(this.$el).find(".search").removeClass("loading");
 				}
 				
+				if (this.sortable) {
+					if (!this.sort_column) {
+						// See if it was specified in the column configuration
+						for (let index = 0; index < this.columns.length; index++) {
+							let column = this.columns[index];
+							
+							if (column.sort_default) {
+								this.sort_column = column.key;
+								this.sort_direction = (column.sort_default.toLowerCase() === "asc") ? "ASC" : "DESC";
+							}
+						}
+						
+						// Wasn't specified, default to the first column
+						if (!this.sort_column) {
+							this.sort_column = this.columns[0].key;
+							this.sort_direction = "ASC";
+						}
+					}
+					
+					data.sort((a, b) => {
+						const a_val = a[this.sort_column].toLowerCase();
+						const b_val = b[this.sort_column].toLowerCase();
+						
+						if (a_val === b_val) {
+							return 0;
+						}
+
+						return (a_val < b_val) ? -1 : 1;
+					});
+					
+					if (this.sort_direction === "DESC") {
+						data.reverse();
+					}
+				}
+				
 				return data;
 			},
+			
 			paged_data: function() {
 				const data = this.filtered_data;
 				const start = (this.current_page - 1) * parseInt(this.per_page);
@@ -78,6 +119,7 @@
 				return data.slice(start, start + parseInt(this.per_page));
 			}
 		},
+		
 		methods: {
 			equalize_actions: function() {
 				// Make all the action menus be equal width
@@ -138,13 +180,30 @@
 			
 			select_page: function(event) {
 				this.current_page = parseInt($(event.target).val());
+			},
+
+			sort: function(column, event) {
+				event.preventDefault();
+
+				if (this.sort_column === column) {
+					if (this.sort_direction === "ASC") {
+						this.sort_direction = "DESC";
+					} else {
+						this.sort_direction = "ASC";
+					}
+				} else {
+					this.sort_direction = "ASC";
+					this.sort_column = column;
+				}
 			}
 		},
+		
 		mounted: function() {
 			// Give this table the auto-generated Vue unique ID
 			this.id = this._uid;
 			this.equalize_actions();
 		},
+		
 		updated: function() {
 			this.equalize_actions();
 		}
@@ -166,18 +225,18 @@
 			</div>
 			<div class="table_filter" v-if="per_page && pages > 1">
 				<div class="pagination">
-					<button v-on:click="previous_page" :class="{'pagination_traversal_disabled': current_page == 1 }"
+					<button v-on:click="previous_page" :class="{'pagination_traversal_disabled': current_page === 1 }"
 							class="pagination_traversal">
 						<icon wrapper="pagination_traversal" icon="keyboard_arrow_left"></icon>
 					</button>
 					<div class="pagination_field">
 						<label class="search_label" :for="id + '_pagination_select'">{{ translate('Switch Page') }}</label>
 						<select v-on:change="select_page" class="pagination_select" :id="id + '_pagination_select'">
-							<option v-for="i in pages" :value="i" :selected="current_page == i">Page {{ i }}</option>
+							<option v-for="i in pages" :value="i" :selected="current_page === i">Page {{ i }}</option>
 						</select>
 						<icon wrapper="pagination_field" icon="arrow_drop_down"></icon>
 					</div>
-					<button v-on:click="next_page" :class="{'pagination_traversal_disabled': current_page == pages }"
+					<button v-on:click="next_page" :class="{'pagination_traversal_disabled': current_page === pages }"
 							class="pagination_traversal">
 						<icon wrapper="pagination_traversal" icon="keyboard_arrow_right"></icon>
 					</button>
@@ -188,7 +247,18 @@
 		<table class="table">
 			<thead class="table_headings">
 				<tr class="table_headings_row">
-					<th v-for="column in columns" :class="{ 'table_heading_status': column.type == 'status' }" class="table_heading">{{ translate(column.title) }}</th>
+					<th v-for="column in columns" :class="{ 'table_heading_status': column.type === 'status' }"
+						class="table_heading" :style="{ 'width': column.width ? column.width : null }">
+						<button v-if="column.sort" class="table_sort" v-on:click="sort(column.key, $event)">
+							<span class="table_sort_label">{{ translate(column.title) }}</span>
+							<icon v-if="(!sort_column && column.sort_default) || sort_column === column.key" icon="sort"
+								  :wrapper="((!sort_direction || sort_direction === 'ASC') ? 'flipped ' : '') + 'table_sort_icon_direction table_sort'">
+							</icon>
+						</button>
+						<span v-else>
+							{{ translate(column.title) }}
+						</span>
+					</th>
 					<th v-if="actions.length || data_contains_actions" class="table_heading table_heading_actions">{{ translate('Actions') }}</th>
 				</tr>
 			</thead>

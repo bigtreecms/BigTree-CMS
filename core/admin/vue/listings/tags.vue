@@ -12,8 +12,8 @@
 
 <template>
 	<div class="component layout_expanded">
-		<data-table actions_base_path="tags" searchable="true" per_page="10" :columns="[
-			{ 'title': 'Tag Name', 'key': 'tag' }
+		<data-table actions_base_path="tags" searchable="true" sortable="true" per_page="10" :columns="[
+			{ 'title': 'Tag Name', 'key': 'tag', 'sort': true }
 		]" :actions="[
 			{ 'title': 'Merge Tags', 'route': 'merge' },
 			{ 'title': 'Delete Tag', 'route': 'delete' }

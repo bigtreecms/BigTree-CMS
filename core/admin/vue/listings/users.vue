@@ -8,7 +8,7 @@
 					this.translate("Developer")
 				];
 
-				let users = await BigTreeAPI.getStoredData("users", "name");
+				let users = await BigTreeAPI.getStoredData("users");
 
 				for (let x = 0; x < users.length; x++) {
 					users[x].level = user_levels[users[x].level];
@@ -23,13 +23,13 @@
 <template>
 	<div class="component layout_expanded">
 		<data-table actions_base_path="users" searchable="true" per_page="10" translatable="true" :columns="[
-			{ 'title': 'Name', 'key': 'name' },
-			{ 'title': 'Email', 'key': 'email' },
-			{ 'title': 'Company', 'key': 'company' },
-			{ 'title': 'User Level', 'key': 'level' }
+			{ 'title': 'Name', 'key': 'name', 'sort': true, 'sort_default': 'ASC', 'width': '35%' },
+			{ 'title': 'Email', 'key': 'email', 'sort': true, 'width': '25%' },
+			{ 'title': 'Company', 'key': 'company', 'sort': true, 'width': '25%' },
+			{ 'title': 'User Level', 'key': 'level', 'sort': true, 'width': '15%' }
 		]" :actions="[
 			{ 'title': 'Edit User', 'route': 'edit' },
 			{ 'title': 'Delete User', 'route': 'delete' }
-		]" :data="data" escaped_data="true"></data-table>
+		]" :data="data" sortable="true" escaped_data="true"></data-table>
 	</div>
 </template>

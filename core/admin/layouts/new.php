@@ -50,9 +50,7 @@
 			var CSRFToken = "<?=CSRF::$Token?>";
 		</script>
 		<script src="<?=ADMIN_ROOT?>js/lib.js?<?=BIGTREE_VERSION?>"></script>
-		<script src="<?=ADMIN_ROOT?>js/main.js?<?=BIGTREE_VERSION?>"></script>
 		<script src="<?=ADMIN_ROOT?>js/tinymce/tinymce.min.js?<?=BIGTREE_VERSION?>"></script>
-		<script>BigTree.dateFormat = "<?=Date::convertTojQuery(Router::$Config["date_format"])?>";</script>
 	</head>
 	<body>
 		<div id="js-vue" class="page">

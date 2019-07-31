@@ -93,7 +93,7 @@
 			scale(.65)
 			rotateX(0);
 
-		.flipped & {
+		&.flipped {
 			transform: 
 				translate(0, -50%)
 				scale(.65)
