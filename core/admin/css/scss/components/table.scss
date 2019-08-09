@@ -210,6 +210,37 @@
 	}
 }
 
+.table_content_link {
+	color: inherit;
+	display: block;
+	transition: color .15s;
+
+	&:hover,
+	&:focus {
+		color: $green;
+	}
+}
+
+.table_content_button {
+	width: 100%;
+
+	appearance: none;
+	-webkit-appearance: none;
+	background: none;
+	border: 0;
+	color: inherit;
+	display: block;
+	font: inherit;
+	padding: 0;
+	text-align: left;
+	transition: color .15s;
+
+	&:hover,
+	&:focus {
+		color: $green;
+	}
+}
+
 .table_content_image {
 	display: block;
 

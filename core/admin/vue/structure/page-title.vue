@@ -7,7 +7,7 @@
 <template>
 	<h2 class="page_title">
 		<template v-if="url">
-			<a class="page_link" :href="url" target="_blank">
+			<a class="page_link" :href="url" target="_blank" :title="translate('View Page on Front End')">
 				<span class="page_label">{{ title }}</span>
 				<icon wrapper="page" icon="link"></icon>
 			</a>

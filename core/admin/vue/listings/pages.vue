@@ -41,7 +41,7 @@
 
 				app.breadcrumb = breadcrumb.reverse();
 				
-				meta_bar = [];
+				let meta_bar = [];
 
 				if (page.expires) {
 					meta_bar.push({

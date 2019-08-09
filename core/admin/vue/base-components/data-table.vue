@@ -271,8 +271,8 @@
 							<img v-if="column.type == 'image'" class="table_column_image" :src="row[column.key]" alt="" />
 							<span v-else-if="column.type == 'status'" class="table_content_status"
 								  :class="'table_content_status_' + row[column.key].toLowerCase()"></span>
-							<button v-else-if="clickable_rows && escaped_data" v-on:click="row_click" :data-index="row_index" class="table_column_button" v-html="row[column.key]"></button>
-							<button v-else-if="clickable_rows" v-on:click="row_click" :data-index="row_index" class="table_column_button">{{ row[column.key] }}</button>
+							<button v-else-if="clickable_rows && escaped_data" v-on:click="row_click" :data-index="row_index" class="table_content_button" v-html="row[column.key]"></button>
+							<button v-else-if="clickable_rows" v-on:click="row_click" :data-index="row_index" class="table_content_button">{{ row[column.key] }}</button>
 							<span v-else-if="escaped_data" class="table_column_text" v-html="row[column.key]"></span>
 							<span v-else class="table_column_text">{{ row[column.key] }}</span>
 						</span>
