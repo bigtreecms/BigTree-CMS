@@ -45,28 +45,29 @@
 
 				if (page.expires) {
 					meta_bar.push({
-						title: "Expires",
+						title: this.translate("Expires"),
 						value: page.expires
 					})
 				}
 				
 				if (page.seo_score) {
 					meta_bar.push({
-						title: "SEO Score",
+						title: this.translate("SEO Score"),
 						type: "visual",
 						value: parseInt(page.seo_score)
 					});
 				}
 				
-				console.log(page.max_age, page.age);
-				
 				meta_bar.push({
-					title: "Content Age",
+					title: this.translate("Content Age"),
 					type: "visual",
-					value: 100 - Math.floor(page.max_age / page.age)
+					value: 100 - Math.floor(page.max_age / page.age),
+					tooltip: {
+						title: this.translate("Last Updated"),
+						content: page.age === 1 ? this.translate("1 Day Ago") :
+							this.translate(":count: Days Ago ", { ":count:": page.age })
+					}
 				});
-				
-				console.log(meta_bar);
 				
 				app.meta_bar = meta_bar;
 			},

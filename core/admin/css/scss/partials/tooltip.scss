@@ -34,7 +34,7 @@
 
 	&.flipped {
 		bottom: auto;
-		top: 100%;
+		top: calc(100% + 8px);
 
 		border-top: 0;
 		border-bottom: 5px solid $orange;
@@ -48,9 +48,13 @@
 			border-bottom-color: #000;
 		}
 	}
+}
 
-	.js-tooltip:hover &,
-	.js-tooltip:focus & {
+.has_tooltip {
+	position: relative;
+
+	&:hover .tooltip,
+	&:focus .tooltip {
 		opacity: 1;
 		visibility: visible;
 		transform: translate(-50%, 0);
@@ -61,10 +65,10 @@
 	}
 }
 
-.tooltip_label {
+.tooltip_title {
 	display: block;
 }
 
-.tooltip_value {
+.tooltip_content {
 	display: block;
 }
