@@ -58,14 +58,22 @@
 					});
 				}
 				
+				let visual_age = 100 * page.age / page.max_age;
+				
+				if (visual_age > 100) {
+					visual_age = 100;
+				}
+				
+				console.log(page.max_age, page.age, visual_age);
+				
 				meta_bar.push({
 					title: this.translate("Content Age"),
 					type: "visual",
-					value: 100 - Math.floor(page.max_age / page.age),
+					value: 100 - visual_age,
 					tooltip: {
 						title: this.translate("Last Updated"),
 						content: page.age === 1 ? this.translate("1 Day Ago") :
-							this.translate(":count: Days Ago ", { ":count:": page.age })
+							this.translate(":count: Days Ago", { ":count:": page.age })
 					}
 				});
 				

@@ -17,24 +17,32 @@ Vue.mixin({
 			}
 
 			return translated_string;
+		},
+		hook_tooltips: function(el) {
+			$(el).find(".js-tooltip").each(function() {
+				if ($(this).hasClass("has_tooltip")) {
+					return;
+				}
+
+				const content = $(this).attr("data-tooltip-content");
+				const title = $(this).attr("data-tooltip-title");
+				const tooltip = $('<div class="tooltip">');
+
+				tooltip.append($('<div class="tooltip_title">').html(title));
+				tooltip.append($('<div class="tooltip_content">').html(content));
+
+				$(this).addClass("has_tooltip").append(tooltip);
+
+				if (tooltip.offset().top - tooltip.outerHeight() < 10) {
+					tooltip.addClass("flipped");
+				}
+			});
 		}
 	},
 	mounted: function() {
-		// Tooltips
-		$(this.$el).find(".js-tooltip").each(function() {
-			console.log(this);
-			const content = $(this).data("tooltip-content");
-			const title = $(this).data("tooltip-title");
-			const tooltip = $('<div class="tooltip">');
-
-			tooltip.append($('<div class="tooltip_title">').html(title));
-			tooltip.append($('<div class="tooltip_content">').html(content));
-
-			$(this).addClass("has_tooltip").append(tooltip);
-
-			if (tooltip.offset().top - tooltip.outerHeight() < 10) {
-				tooltip.addClass("flipped");
-			}
-		});
+		this.hook_tooltips(this.$el);
+	},
+	updated: function() {
+		this.hook_tooltips(this.$el);
 	}
 });

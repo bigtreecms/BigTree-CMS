@@ -7,7 +7,7 @@
 <template>
 	<div class="meta_bar">
 		<div v-for="item in items" class="meta_bar_detail" :class='{ "js-tooltip": item.tooltip }'
-			 :data-tooltip-title="item.tooltip.title" :data-tooltip-content="item.tooltip.content">
+			 :data-tooltip-title="item.tooltip ? item.tooltip.title : ''" :data-tooltip-content="item.tooltip ? item.tooltip.content : ''">
 			<span class="meta_bar_label">{{ item.title }}</span>
 			<template v-if="item.type == 'visual'">
 				<span class="meta_bar_value meta_bar_value_graph">
