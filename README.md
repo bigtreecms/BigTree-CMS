@@ -20,6 +20,16 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.4.6
+- FIXED: Locale scope not being properly triggered when generating routes for other languages
+- FIXED: Settings table not being correctly created on new sites
+- FIXED: An odd edge case where a user could request the bar.js.php while not logged in and end up redirected to a Javascript file
+- FIXED: Route history redirection not properly throwing a 404 when hitting a non-routed URL
+- FIXED: Route history redirects being a 302 instead of a 301
+- FIXED: Database upgrade being run on a fresh install
+- FIXED: CSV report data having html encoded characters in it
+- FIXED: Reports not allowing for a report with no filters
+
 ### 4.4.5
 - ADDED: og:width and og:height are now drawn by BigTreeCMS::drawHeadTags (this will happen automatically if existing data is local but will require a re-save if cloud storage is used)
 - FIXED: Clearing caches of dependent views when data changes
