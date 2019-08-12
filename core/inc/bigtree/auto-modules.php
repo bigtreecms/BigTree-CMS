@@ -1239,28 +1239,31 @@
 			}
 
 			$query = "SELECT * FROM `".$report["table"]."`";
-			foreach ($report["filters"] as $id => $filter) {
-				if ($filters[$id]) {
-					// Search field
-					if ($filter["type"] == "search") {
-						$where[] = "`$id` LIKE '%".sqlescape($filters[$id])."%'";
-					// Dropdown
-					} elseif ($filter["type"] == "dropdown") {
-						$where[] = "`$id` = '".sqlescape($filters[$id])."'";
-					// Yes / No / Both
-					} elseif ($filter["type"] == "boolean") {
-						if ($filters[$id] == "Yes") {
-							$where[] = "(`$id` = 'on' OR `$id` = '1' OR `$id` != '')";
-						} elseif ($filters[$id] == "No") {
-							$where[] = "(`$id` = '' OR `$id` = '0' OR `$id` IS NULL)";
-						}
-					// Date Range
-					} elseif ($filter["type"] == "date-range") {
-						if ($filters[$id]["start"]) {
-							$where[] = "`$id` >= '".sqlescape($filters[$id]["start"])."'";
-						}
-						if ($filters[$id]["end"]) {
-							$where[] = "`$id` <= '".sqlescape($filters[$id]["end"])."'";
+
+			if (!empty($report["filters"]) && is_array($report["filters"])) {
+				foreach ($report["filters"] as $id => $filter) {
+					if ($filters[$id]) {
+						// Search field
+						if ($filter["type"] == "search") {
+							$where[] = "`$id` LIKE '%".sqlescape($filters[$id])."%'";
+						// Dropdown
+						} elseif ($filter["type"] == "dropdown") {
+							$where[] = "`$id` = '".sqlescape($filters[$id])."'";
+						// Yes / No / Both
+						} elseif ($filter["type"] == "boolean") {
+							if ($filters[$id] == "Yes") {
+								$where[] = "(`$id` = 'on' OR `$id` = '1' OR `$id` != '')";
+							} elseif ($filters[$id] == "No") {
+								$where[] = "(`$id` = '' OR `$id` = '0' OR `$id` IS NULL)";
+							}
+						// Date Range
+						} elseif ($filter["type"] == "date-range") {
+							if ($filters[$id]["start"]) {
+								$where[] = "`$id` >= '".sqlescape($filters[$id]["start"])."'";
+							}
+							if ($filters[$id]["end"]) {
+								$where[] = "`$id` <= '".sqlescape($filters[$id]["end"])."'";
+							}
 						}
 					}
 				}
