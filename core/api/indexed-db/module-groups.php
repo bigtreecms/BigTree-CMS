@@ -23,7 +23,7 @@
 	$actions = [];
 	$deleted_records = [];
 	$created_records = [];
-	$since = date("Y-m-d H:i:s", strtotime($_GET["since"]));
+	$since = date("Y-m-d H:i:s", is_numeric($_GET["since"]) ? $_GET["since"] : strtotime($_GET["since"]));
 	
 	$audit_trail_deletes = SQL::fetchAll("SELECT entry FROM bigtree_audit_trail
 										  WHERE `table` = 'config:module-groups' AND `date` >= ? AND `type` = 'delete'

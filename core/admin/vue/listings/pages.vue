@@ -17,12 +17,12 @@
 				let page = data[0];
 
 				if (page.path) {
-					app.page_public_url = WWW_ROOT + page.path + "/";
+					BigTree.page_public_url = WWW_ROOT + page.path + "/";
 				} else {
-					app.page_public_url = WWW_ROOT;
+					BigTree.page_public_url = WWW_ROOT;
 				}
 
-				app.page_title = page.nav_title;
+				BigTree.page_title = page.nav_title;
 
 				let breadcrumb = [];
 				let parent = page.parent;
@@ -39,7 +39,7 @@
 					parent = parent_data[0].parent;
 				}
 
-				app.breadcrumb = breadcrumb.reverse();
+				BigTree.breadcrumb = breadcrumb.reverse();
 				
 				let meta_bar = [];
 
@@ -64,8 +64,6 @@
 					visual_age = 100;
 				}
 				
-				console.log(page.max_age, page.age, visual_age);
-				
 				meta_bar.push({
 					title: this.translate("Content Age"),
 					type: "visual",
@@ -77,11 +75,11 @@
 					}
 				});
 				
-				app.meta_bar = meta_bar;
+				BigTree.meta_bar = meta_bar;
 			},
 			async data () {
 				let pages = await BigTreeAPI.getStoredDataMatching("pages", "parent", this.page);
-
+				
 				return pages;
 			}
 		},
@@ -177,8 +175,15 @@
 			}
 		},
 		mounted: function() {
-			VueEventBus.$on("breadcrumb-click", (id) => {
+			BigTreeEventBus.$on("breadcrumb-click", (id) => {
 				this.navigate({ id: id });
+			});
+
+			BigTreeEventBus.$on("api-data-changed", (store) => {
+				if (store === "pages") {
+					this.$asyncComputed.data.update();
+					this.$asyncComputed.current_page_data.update();
+				}
 			});
 		}
 	});

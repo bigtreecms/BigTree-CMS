@@ -1,6 +1,7 @@
 /* global state, Vue, VueLanguagePack */
+let BigTreeEventBus = new Vue();
 
-let app = new Vue({
+let BigTree = new Vue({
 	el: "#js-vue",
 	data: {
 		breadcrumb: typeof state.breadcrumb != "undefined" ? state.breadcrumb : [],

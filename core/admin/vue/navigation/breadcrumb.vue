@@ -3,7 +3,7 @@
 		props: ["links"],
 		methods: {
 			click: function(event) {
-				VueEventBus.$emit("breadcrumb-click", $(event.target).data("id"));
+				BigTreeEventBus.$emit("breadcrumb-click", $(event.target).data("id"));
 			}
 		}
 	});
