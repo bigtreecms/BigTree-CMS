@@ -9393,7 +9393,7 @@
 			}
 
 			$update = [
-				"trunk" => $data["trunk"],
+				"trunk" => $trunk,
 				"parent" => $data["parent"],
 				"nav_title" => BigTree::safeEncode($data["nav_title"]),
 				"title" => BigTree::safeEncode($data["title"]),
