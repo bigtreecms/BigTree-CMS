@@ -23,6 +23,8 @@
 		{
 			$current_path = implode("/", array_slice(Router::$Path, 1));
 			
+			static::$State["user_level"] = Auth::user()->Level;
+			
 			if (is_null($nav)) {
 				$nav = static::$NavTree;
 				$path = $current_path;

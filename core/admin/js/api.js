@@ -121,6 +121,15 @@ var BigTreeAPI = (function() {
 	}
 
 	async function cache_put(store, entry) {
+		// Make sure numeric values are stored as strings so that we can query them back consistently
+		for (let index in entry) {
+			if (entry.hasOwnProperty(index)) {
+				if (typeof entry[index] === "number") {
+					entry[index] = String(entry[index]);
+				}
+			}
+		}
+
 		let request = store.put(entry);
 
 		return new Promise((resolve, reject) => {

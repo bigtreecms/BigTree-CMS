@@ -2,7 +2,9 @@
 	Vue.component("page-pages-listing", {
 		data: function() {
 			return {
-				page: this.current_page ? parseInt(this.current_page) : 0
+				page: this.current_page ? parseInt(this.current_page) : 0,
+				can_publish_current_page: false,
+				can_publish_visible_pages: false
 			}
 		},
 		props: ["current_page"],
@@ -15,6 +17,10 @@
 				}
 				
 				let page = data[0];
+				
+				if (page.access_level === "p") {
+					this.can_publish_current_page = true;
+				}
 
 				if (page.path) {
 					BigTree.page_public_url = WWW_ROOT + page.path + "/";
@@ -84,20 +90,30 @@
 			}
 		},
 		computed: {
+			draggable: function() {
+				return this.can_publish_current_page && this.can_publish_visible_pages;
+			},
 			visible_pages: function() {
 				if (!this.data) {
 					return [];
 				}
 				
 				let pages = [];
+				let can_publish = true;
 				
 				for (let x = 0; x < this.data.length; x++) {
 					let page = this.data[x];
 					
 					if (!page.archived && page.in_nav) {
+						if (page.access_level !== "p") {
+							can_publish = false;
+						}
+						
 						pages.push(page);
 					}
 				}
+				
+				this.can_publish_visible_pages = can_publish;
 
 				pages.sort(function(a, b) {
 					const a_position = parseInt(a.position);
@@ -198,7 +214,7 @@
 
 		<div v-else>
 			<toggle-block title="Visible in Navigation" :id="'pages-visible-' + page">
-				<data-table :data="visible_pages" v-on:row-click="navigate" :columns="[
+				<data-table :data="visible_pages" v-on:row-click="navigate" :draggable="draggable" :columns="[
 					{ 'title': 'Title', 'key': 'nav_title' },
 					{ 'title': 'Status', 'key': 'status', 'type': 'status' }
 				]" :actions="[]" escaped_data="true" clickable_rows="true"></data-table>
