@@ -7,7 +7,7 @@
 	namespace BigTree;
 	
 	/*
-	 	Function: indexeddb/schema
+	 	Function: indexed-db/schema
 			Returns the schema layout needed for an IndexedDB instance for cached view data.
 		
 		Method: GET

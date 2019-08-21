@@ -2,6 +2,7 @@ var BigTreeAPI = (function() {
 	let background_update_timer;
 	let db;
 	let initialized = false;
+	let next_page = null;
 	let upgrading = false;
 	let watched_stores = [];
 
@@ -93,10 +94,7 @@ var BigTreeAPI = (function() {
 			});
 
 			if (Object.keys(data).length) {
-				let transaction = db.transaction(db.objectStoreNames, "readwrite");
-				let transaction_store = transaction.objectStore(store);
-
-				await update_cache(transaction_store, data);
+				await update_cache(store, data);
 				BigTreeEventBus.$emit("api-data-changed", store);
 			}
 
@@ -104,15 +102,6 @@ var BigTreeAPI = (function() {
 		}
 
 		$.cookie("bigtree-indexeddb-last-updated", last_updated);
-	}
-
-	async function cache_add(store, entry) {
-		let request = store.add(entry);
-
-		return new Promise((resolve, reject) => {
-			request.onsuccess = resolve;
-			request.onerror = reject;
-		});
 	}
 
 	async function cache_delete(store, key) {
@@ -124,7 +113,7 @@ var BigTreeAPI = (function() {
 		});
 	}
 
-	async function cache_update(store, entry) {
+	async function cache_put(store, entry) {
 		let request = store.put(entry);
 
 		return new Promise((resolve, reject) => {
@@ -164,7 +153,7 @@ var BigTreeAPI = (function() {
 			}
 
 			if (typeof options.parameters !== "object") {
-				parameters = [];
+				parameters = {};
 			} else {
 				parameters = options.parameters;
 			}
@@ -177,6 +166,38 @@ var BigTreeAPI = (function() {
 				data: parameters,
 				method: method
 			}).done(function(response) {
+				if (response.next_page) {
+					BigTreeAPI.next_page = response.next_page;
+				} else {
+					BigTreeAPI.next_page = null;
+				}
+
+				if (response.success) {
+					resolve(response.response);
+				} else {
+					reject("API call failed:" + response.error);
+				}
+			}).fail(function(xhr) {
+				reject("Unknown error.");
+			});
+		});
+	}
+
+	async function getNextPage() {
+		if (!BigTreeAPI.next_page) {
+			console.log("API response does not have another page.");
+
+			return;
+		}
+
+		return new Promise((resolve, reject) => {
+			$.ajax(BigTreeAPI.next_page).done(function(response) {
+				if (response.next_page) {
+					BigTreeAPI.next_page = response.next_page;
+				} else {
+					BigTreeAPI.next_page = null;
+				}
+
 				if (response.success) {
 					resolve(response.response);
 				} else {
@@ -346,11 +367,8 @@ var BigTreeAPI = (function() {
 						table.transaction.oncomplete = async function() {
 							for (let store in BigTreeAPI.schema) {
 								if (BigTreeAPI.schema.hasOwnProperty(store)) {
-									let data = await BigTreeAPI.call({ endpoint: "indexed-db/" + store });
-									let transaction = db.transaction(db.objectStoreNames, "readwrite");
-									let transaction_store = transaction.objectStore(store);
-
-									await update_cache(transaction_store, data);
+									let response = await BigTreeAPI.call({ endpoint: "indexed-db/" + store });
+									await update_cache(store, response);
 									last_updated[store] = Math.floor(Date.now() / 1000);
 								}
 							}
@@ -368,17 +386,14 @@ var BigTreeAPI = (function() {
 		});
 	}
 
-	async function update_cache(transaction_store, data) {
-		if (typeof data.insert !== "undefined") {
-			for (let x = 0; x < data.insert.length; x++) {
-				await cache_add(transaction_store, data.insert[x]);
-			}
-		}
+	async function update_cache(store, data) {
+		let transaction = db.transaction(db.objectStoreNames, "readwrite");
+		let transaction_store = transaction.objectStore(store);
 
-		if (typeof data.update !== "undefined") {
-			for (let index in data.update) {
-				if (data.update.hasOwnProperty(index)) {
-					await cache_update(transaction_store, data.update[index]);
+		if (typeof data.put !== "undefined") {
+			for (let index in data.put) {
+				if (data.put.hasOwnProperty(index)) {
+					await cache_put(transaction_store, data.put[index]);
 				}
 			}
 		}
@@ -388,12 +403,18 @@ var BigTreeAPI = (function() {
 				await cache_delete(transaction_store, data.delete[x]);
 			}
 		}
+
+		if (BigTreeAPI.next_page) {
+			let response = await BigTreeAPI.getNextPage();
+			await update_cache(store, response);
+		}
 	}
 
 	return {
 		call: call,
 		getStoredData: getStoredData,
 		getStoredDataMatching: getStoredDataMatching,
+		getNextPage: getNextPage,
 		schema: schema,
 		schema_version: schema_version
 	};

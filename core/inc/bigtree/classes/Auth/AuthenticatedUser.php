@@ -184,10 +184,10 @@
 				}
 				
 				// Not set or empty, no access
-				if (empty($this->Permissions[$object->ID]) || $this->Permissions[$object->ID] == "n") {
+				if (empty($this->Permissions["module"][$object->ID]) || $this->Permissions["module"][$object->ID] == "n") {
 					$permission = null;
 				} else {
-					$permission = $this->Permissions[$object->ID];
+					$permission = $this->Permissions["module"][$object->ID];
 				}
 				
 				if (empty($entry)) {
@@ -231,8 +231,8 @@
 				$parent_permission = $this->Permissions["page"][$page_parent];
 				
 				while ((!$parent_permission || $parent_permission == "i") && $page_parent > 0) {
-					$parent_id = SQL::fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page_parent);
-					$parent_permission = $this->Permissions["page"][$parent_id];
+					$page_parent = SQL::fetchSingle("SELECT parent FROM bigtree_pages WHERE id = ?", $page_parent);
+					$parent_permission = $this->Permissions["page"][$page_parent];
 				}
 				
 				// If no permissions are set on the page (we hit page 0 and still nothing) or permission is "n", return not allowed.

@@ -49,6 +49,8 @@
 		public $Revision;
 		public $Route;
 		public $SEOInvisible;
+		public $SEORecommendations;
+		public $SEOScore;
 		public $Template;
 		public $Title;
 		public $Trunk;
@@ -124,6 +126,8 @@
 					$this->PublishAt = $page["publish_at"] ?: false;
 					$this->Route = $page["route"];
 					$this->SEOInvisible = $page["seo_invisible"] ? true : false;
+					$this->SEORecommendations = $page["seo_recommendations"] ? json_decode($page["seo_recommendations"], true) : [];
+					$this->SEOScore = $page["seo_score"];
 					$this->Template = $page["template"];
 					$this->Title = $page["title"];
 					$this->Trunk = $page["trunk"];
@@ -992,12 +996,11 @@
 		{
 			if (is_numeric($id)) {
 				// Numeric id means the page is live.
-				$page = new Page($id);
-				
-				if (!$page) {
+				if (!Page::exists($id)) {
 					return null;
 				}
 				
+				$page = new Page($id);
 				$page->OpenGraph = OpenGraph::getData("bigtree_pages", $id);
 				
 				// Get pending changes for this page.

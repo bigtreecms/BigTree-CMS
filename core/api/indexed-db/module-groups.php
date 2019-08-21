@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	/*
-	 	Function: indexeddb/module-groups
+	 	Function: indexed-db/module-groups
 			Returns an array of IndexedDB commands for either caching a new set of module groups data or updating an existing data set.
 		
 		Method: GET
@@ -14,20 +14,18 @@
 			An array of IndexedDB commands
 	*/
 	
-	if (empty($_GET["since"])) {
+	if (!defined("API_SINCE")) {
 		$groups = DB::getAll("module-groups");
 		
-		API::sendResponse(["insert" => $groups]);
+		API::sendResponse(["put" => $groups]);
 	}
 	
 	$actions = [];
 	$deleted_records = [];
-	$created_records = [];
-	$since = date("Y-m-d H:i:s", is_numeric($_GET["since"]) ? $_GET["since"] : strtotime($_GET["since"]));
 	
 	$audit_trail_deletes = SQL::fetchAll("SELECT entry FROM bigtree_audit_trail
 										  WHERE `table` = 'config:module-groups' AND `date` >= ? AND `type` = 'delete'
-										  ORDER BY id DESC", $since);
+										  ORDER BY id DESC", API_SINCE);
 	
 	// Run deletes first, don't want to pass creates/updates for something deleted
 	foreach ($audit_trail_deletes as $item) {
@@ -35,12 +33,13 @@
 		$deleted_records[] = $item["entry"];
 	}
 	
-	// Creates next, if we have the latest data we don't need to run updates on it
-	$audit_trail_creates = SQL::fetchAll("SELECT entry, type FROM bigtree_audit_trail
-										  WHERE `table` = 'config:module-groups' AND `date` >= ? AND `type` = 'add'
-										  ORDER BY id DESC", $since);
+	// Creates and updates but only the latest, so a distinct ID
+	$audit_trail_updates = SQL::fetchAll("SELECT DISTINCT(entry) FROM bigtree_audit_trail
+										  WHERE `table` = 'config:module-groups' AND `date` >= ?
+										    AND (`type` = 'update' OR `type` = 'add')
+										  ORDER BY id DESC", API_SINCE);
 	
-	foreach ($audit_trail_creates as $item) {
+	foreach ($audit_trail_updates as $item) {
 		if (in_array($item["entry"], $deleted_records)) {
 			continue;
 		}
@@ -48,25 +47,7 @@
 		$group = DB::get("module-groups", $item["entry"]);
 		
 		if ($group) {
-			$actions["insert"][] = $group;
-			$created_records[] = $item["entry"];
-		}
-	}
-	
-	// Finally, updates, but only the latest, so a distinct ID
-	$audit_trail_updates = SQL::fetchAll("SELECT DISTINCT(entry) FROM bigtree_audit_trail
-										  WHERE `table` = 'config:module-groups' AND `date` >= ? AND `type` = 'update'
-										  ORDER BY id DESC", $since);
-	
-	foreach ($audit_trail_updates as $item) {
-		if (in_array($item["entry"], $deleted_records) || in_array($item["entry"], $created_records)) {
-			continue;
-		}
-		
-		$group = DB::get("module-groups", $item["entry"]);
-		
-		if ($group) {
-			$actions["update"][$item["entry"]] = $group;
+			$actions["put"][$item["entry"]] = $group;
 		}
 	}
 	

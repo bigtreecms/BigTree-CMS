@@ -36,6 +36,11 @@
 					} else {
 						static::$User = new User($user);
 						static::$AuthenticatedUser = Auth::user(static::$User);
+						
+						// Set Auth state to be this user
+						Auth::$ID = static::$AuthenticatedUser->ID;
+						Auth::$Level = static::$AuthenticatedUser->Level;
+						Auth::$Permissions = static::$AuthenticatedUser->Permissions;
 					}
 				} else {
 					static::triggerError("The provided API token is invalid.", "token:invalid", "authentication");
@@ -78,7 +83,8 @@
 					code - An optional response code
 			*/
 		
-		public static function sendResponse(?array $data = null, ?string $message = null, ?string $code = null): void
+		public static function sendResponse(?array $data = null, ?string $message = null, ?string $code = null,
+											?string $next_page = null): void
 		{
 			$response = [
 				"error" => false,
@@ -95,6 +101,10 @@
 			
 			if (!is_null($code)) {
 				$response["code"] = $code;
+			}
+			
+			if (!is_null($next_page)) {
+				$response["next_page"] = $next_page;
 			}
 			
 			echo JSON::encode($response);

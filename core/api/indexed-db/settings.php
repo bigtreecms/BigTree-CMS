@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	/*
-	 	Function: indexeddb/settings
+	 	Function: indexed-db/settings
 			Returns an array of IndexedDB commands for either caching a new set of settings data or updating an existing data set.
 		
 		Method: GET
@@ -14,50 +14,68 @@
 			An array of IndexedDB commands
 	*/
 	
-	// Function for getting setting value for cache
-	$get_setting_value = function($id) {
-		$value_data = SQL::fetch("SELECT encrypted, value FROM bigtree_settings WHERE id = ?", $id);
-		
-		if (!$value_data) {
-			return null;
+	$actions = [];
+	$general_access_level = Auth::user()->Level ? "p" : null;
+	$get_record = function($item) use ($general_access_level) {
+		if ($item["locked"]) {
+			if (Auth::user()->Level > 1) {
+				$access_level = "p";
+			} else {
+				$access_level = null;
+			}
+		} else {
+			$access_level = $general_access_level;
 		}
 		
-		if ($value_data["encrypted"]) {
-			return Text::translate("-- Encrypted --");
-		} else {
-			$value = json_decode($value_data["value"], true);
+		$record = [
+			"id" => $item["id"],
+			"title" => $item["name"],
+			"locked" => $item["locked"],
+			"value" => null,
+			"access_level" => $access_level
+		];
+		
+		if ($access_level) {
+			$value_data = SQL::fetch("SELECT encrypted, value FROM bigtree_settings WHERE id = ?", $item["id"]);
 			
-			if (is_array($value)) {
-				return Text::translate("-- Array --");
-			} else {
-				return Text::trimLength(Text::htmlEncode(strip_tags(Link::decode($value))), 100);
+			if ($value_data) {
+				if ($value_data["encrypted"]) {
+					$record["value"] = Text::translate("-- Encrypted --");
+				} else {
+					$value = json_decode($value_data["value"], true);
+					
+					if (is_array($value)) {
+						$record["value"] = Text::translate("-- Array --");
+					} else {
+						$record["value"] = Text::trimLength(Text::htmlEncode(strip_tags(Link::decode($value))), 100);
+					}
+				}
 			}
 		}
+		
+		return $record;
 	};
 	
-	if (empty($_GET["since"])) {
+	if (!defined("API_SINCE") || defined("API_PERMISSIONS_CHANGED")) {
 		$all = DB::getAll("settings");
 		$settings = [];
 		
 		foreach ($all as $item) {
-			$settings[] = [
-				"id" => $item["id"],
-				"title" => $item["name"],
-				"value" => $get_setting_value($item["id"])
-			];
+			$settings[] = $get_record($item);
 		}
 		
-		API::sendResponse(["insert" => $settings]);
+		$actions["put"] = $settings;
 	}
 	
-	$actions = [];
-	$deleted_records = [];
-	$created_records = [];
-	$since = date("Y-m-d H:i:s", is_numeric($_GET["since"]) ? $_GET["since"] : strtotime($_GET["since"]));
+	// No deletes in this request
+	if (!defined("API_PERMISSIONS_CHANGED")) {
+		API::sendResponse($actions);
+	}
 	
+	$deleted_records = [];
 	$audit_trail_deletes = SQL::fetchAll("SELECT entry FROM bigtree_audit_trail
 										  WHERE `table` = 'config:settings' AND `date` >= ? AND `type` = 'delete'
-										  ORDER BY id DESC", $since);
+										  ORDER BY id DESC", API_SINCE);
 	
 	// Run deletes first, don't want to pass creates/updates for something deleted
 	foreach ($audit_trail_deletes as $item) {
@@ -65,50 +83,28 @@
 		$deleted_records[] = $item["entry"];
 	}
 	
-	// Creates next, if we have the latest data we don't need to run updates on it
-	$audit_trail_creates = SQL::fetchAll("SELECT entry, type FROM bigtree_audit_trail
-										  WHERE `table` = 'config:settings' AND `date` >= ? AND `type` = 'add'
-										  ORDER BY id DESC", $since);
-	
-	foreach ($audit_trail_creates as $item) {
-		if (in_array($item["entry"], $deleted_records)) {
-			continue;
-		}
+	// If permissions changed we've already done all put statements
+	if (!defined("API_PERMISSIONS_CHANGED")) {
+		// Creates and updates
+		$audit_trail_updates = SQL::fetchAll("SELECT DISTINCT(entry) FROM bigtree_audit_trail
+											  WHERE (`table` = 'config:settings' OR `table` = 'bigtree_settings`)
+												AND (`type` = 'update' OR `type` = 'add')
+												AND `date` >= ?
+											  ORDER BY id DESC", API_SINCE);
 		
-		$setting = DB::get("settings", $item["entry"]);
-		
-		if ($setting) {
-			$actions["insert"][] = [
-				"id" => $setting["id"],
-				"title" => $setting["name"],
-				"value" => $get_setting_value($setting["id"])
-			];
-			$created_records[] = $item["entry"];
+		foreach ($audit_trail_updates as $item) {
+			if (in_array($item["entry"], $deleted_records)) {
+				continue;
+			}
+			
+			// Internal setting
+			if (!DB::exists("settings", $item["entry"])) {
+				continue;
+			}
+			
+			$setting = DB::get("settings", $item["entry"]);
+			$actions["put"][$item["entry"]] = $get_record($setting);
 		}
-	}
-	
-	// Finally, updates, but only the latest, so a distinct ID
-	$audit_trail_updates = SQL::fetchAll("SELECT DISTINCT(entry) FROM bigtree_audit_trail
-										  WHERE (`table` = 'config:settings' OR `table` = 'bigtree_settings`)
-										    AND `date` >= ? AND `type` = 'update'
-										  ORDER BY id DESC", $since);
-	
-	foreach ($audit_trail_updates as $item) {
-		if (in_array($item["entry"], $deleted_records) || in_array($item["entry"], $created_records)) {
-			continue;
-		}
-		
-		// Internal setting
-		if (!DB::exists("settings", $item["entry"])) {
-			continue;
-		}
-		
-		$setting = DB::get("settings", $item["entry"]);
-		$actions["update"][$item["entry"]] = [
-			"id" => $item["entry"],
-			"title" => $setting["name"],
-			"value" => $get_setting_value($item["entry"])
-		];
 	}
 	
 	API::sendResponse($actions);

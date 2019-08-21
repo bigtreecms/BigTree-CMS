@@ -2,7 +2,7 @@
 	namespace BigTree;
 	
 	/*
-	 	Function: indexeddb/modules
+	 	Function: indexed-db/modules
 			Returns an array of IndexedDB commands for either caching a new set of module data or updating an existing data set.
 		
 		Method: GET
@@ -14,32 +14,41 @@
 			An array of IndexedDB commands
 	*/
 	
-	if (empty($_GET["since"])) {
+	$actions = [];
+	$get_record = function($item) {
+		$module = new Module($item);
+		
+		return [
+			"id" => $item["id"],
+			"group" => $item["group"],
+			"name" => $item["name"],
+			"position" => $item["position"] ?: 0,
+			"actions" => $item["actions"],
+			"route" => $item["route"],
+			"access_level" => $module->UserAccessLevel
+		];
+	};
+	
+	if (!defined("API_SINCE") || defined("API_PERMISSIONS_CHANGED")) {
 		$all = DB::getAll("modules");
 		$modules = [];
 		
-		foreach ($all as $item) {
-			$modules[] = [
-				"id" => $item["id"],
-				"group" => $item["group"],
-				"name" => $item["name"],
-				"position" => $item["position"] ?: 0,
-				"actions" => $item["actions"],
-				"route" => $item["route"]
-			];
+		foreach ($all as $module) {
+			$modules[] = $get_record($module);
 		}
 		
-		API::sendResponse(["insert" => $modules]);
+		$actions["put"] = $modules;
 	}
 	
-	$actions = [];
-	$deleted_records = [];
-	$created_records = [];
-	$since = date("Y-m-d H:i:s", is_numeric($_GET["since"]) ? $_GET["since"] : strtotime($_GET["since"]));
+	// No deletes in this request
+	if (!defined("API_SINCE")) {
+		API::sendResponse($actions);
+	}
 	
+	$deleted_records = [];
 	$audit_trail_deletes = SQL::fetchAll("SELECT entry FROM bigtree_audit_trail
 										  WHERE `table` = 'config:modules' AND `date` >= ? AND `type` = 'delete'
-										  ORDER BY id DESC", $since);
+										  ORDER BY id DESC", API_SINCE);
 	
 	// Run deletes first, don't want to pass creates/updates for something deleted
 	foreach ($audit_trail_deletes as $item) {
@@ -47,52 +56,24 @@
 		$deleted_records[] = $item["entry"];
 	}
 	
-	// Creates next, if we have the latest data we don't need to run updates on it
-	$audit_trail_creates = SQL::fetchAll("SELECT entry, type FROM bigtree_audit_trail
-										  WHERE `table` = 'config:modules' AND `date` >= ? AND `type` = 'add'
-										  ORDER BY id DESC", $since);
-	
-	foreach ($audit_trail_creates as $item) {
-		if (in_array($item["entry"], $deleted_records)) {
-			continue;
-		}
+	// If permissions changed we've already done all put statements
+	if (!defined("API_PERMISSIONS_CHANGED")) {
+		// Finally, updates, but only the latest, so a distinct ID
+		$audit_trail_updates = SQL::fetchAll("SELECT DISTINCT(entry) FROM bigtree_audit_trail
+											  WHERE `table` = 'config:module-groups' AND `date` >= ?
+												AND (`type` = 'update' OR `type` = 'add')
+											  ORDER BY id DESC", API_SINCE);
 		
-		$module = DB::get("modules", $item["entry"]);
-		
-		if ($module) {
-			$actions["insert"][] = [
-				"id" => $module["id"],
-				"group" => $module["group"],
-				"name" => $module["name"],
-				"position" => $module["position"] ?: 0,
-				"actions" => $module["actions"],
-				"route" => $module["route"]
-			];
-			$created_records[] = $item["entry"];
-		}
-	}
-	
-	// Finally, updates, but only the latest, so a distinct ID
-	$audit_trail_updates = SQL::fetchAll("SELECT DISTINCT(entry) FROM bigtree_audit_trail
-										  WHERE `table` = 'config:module-groups' AND `date` >= ? AND `type` = 'update'
-										  ORDER BY id DESC", $since);
-	
-	foreach ($audit_trail_updates as $item) {
-		if (in_array($item["entry"], $deleted_records) || in_array($item["entry"], $created_records)) {
-			continue;
-		}
-		
-		$module = DB::get("modules", $item["entry"]);
-		
-		if ($module) {
-			$actions["update"][$item["entry"]] = [
-				"id" => $module["id"],
-				"group" => $module["group"],
-				"name" => $module["name"],
-				"position" => $module["position"] ?: 0,
-				"actions" => $module["actions"],
-				"route" => $module["route"]
-			];
+		foreach ($audit_trail_updates as $item) {
+			if (in_array($item["entry"], $deleted_records)) {
+				continue;
+			}
+			
+			$module = DB::get("modules", $item["entry"]);
+			
+			if ($module) {
+				$actions["put"][$item["entry"]] = $get_record($module);
+			}
 		}
 	}
 	

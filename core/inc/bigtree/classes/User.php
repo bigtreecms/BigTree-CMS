@@ -22,7 +22,9 @@
 		
 		protected $ID;
 		protected $NewHash;
+		protected $OriginalLevel;
 		protected $OriginalPassword;
+		protected $OriginalPermissions;
 		
 		public $Alerts;
 		public $ChangePasswordHash;
@@ -58,17 +60,16 @@
 					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
 				} else {
 					$this->ID = $user["id"];
-					$this->OriginalPassword = $user["password"];
 					
 					$this->Alerts = $user["alerts"] ? json_decode($user["alerts"], true) : null;
 					$this->Company = $user["company"] ?: null;
 					$this->ChangePasswordHash = $user["change_password_hash"] ?: null;
 					$this->DailyDigest = $user["daily_digest"] ? true : false;
 					$this->Email = $user["email"];
-					$this->Level = $user["level"] ?: 0;
+					$this->Level = $this->OriginalLevel = $user["level"] ?: 0;
 					$this->Name = $user["name"] ?: null;
 					$this->NewHash = !empty($user["new_hash"]);
-					$this->Password = $user["password"];
+					$this->Password = $this->OriginalPassword = $user["password"];
 					$this->Permissions = $user["permissions"] ? json_decode($user["permissions"], true) : null;
 					$this->Timezone = $user["timezone"];
 					
@@ -92,6 +93,8 @@
 					if (!is_array($this->Permissions["module_gbp"])) {
 						$this->Permissions["module_gbp"] = [];
 					}
+					
+					$this->OriginalPermissions = $this->Permissions;
 					
 					// Verify alerts is an array as well
 					if (!is_array($this->Alerts)) {
@@ -376,6 +379,10 @@
 					// Clean existing sessions
 					SQL::delete("bigtree_sessions", ["logged_in_user" => $this->ID]);
 					SQL::delete("bigtree_user_sessions", ["email" => $this->Email]);
+				}
+				
+				if ($this->Permissions != $this->OriginalPermissions || $this->Level != $this->OriginalLevel) {
+					AuditTrail::track("bigtree_users", $this->ID, "update", "permissions changed");
 				}
 				
 				SQL::update(static::$Table, $this->ID, $update_values);
