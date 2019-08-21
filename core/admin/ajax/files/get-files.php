@@ -34,7 +34,7 @@
 	foreach ($items["resources"] as $resource) {
 		if ($resource["type"] != "video") {
 ?>
-<button class="file_list_button js-file<?php if ($access_level == "n") { ?> disabled<?php } ?>" data-file="<?=$resource["file"]?>" data-id="<?=$resource["id"]?>" data-name="<?=$resource["name"]?>" data-href="<?=BigTreeCMS::replaceRelativeRoots($resource["file"])?>">
+<button class="file_list_button js-file<?php if (!$access_level || $access_level == "n") { ?> disabled<?php } ?>" data-file="<?=$resource["file"]?>" data-id="<?=$resource["id"]?>" data-name="<?=$resource["name"]?>" data-href="<?=BigTreeCMS::replaceRelativeRoots($resource["file"])?>">
 	<span class="icon_small icon_small_file_default icon_small_file_<?= $resource["type"] ?>"></span> <?=$resource["name"]?>
 </button>
 <?php

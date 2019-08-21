@@ -36,7 +36,7 @@
 				$embed = '<iframe src="https://player.vimeo.com/video/'.$data["id"].'?autoplay=false&showinfo=false&showrel=false&showcontrols=false"></iframe>';
 			}
 ?>
-<button data-id="<?=$resource["id"]?>" class="file_list_button js-video<?php if ($access_level == "n") { ?> disabled<?php } ?>" data-video="<?=$resource["id"]?>" data-name="<?=$resource["name"]?>" data-embed="<?=htmlspecialchars($embed)?>">
+<button data-id="<?=$resource["id"]?>" class="file_list_button js-video<?php if (!$access_level || $access_level == "n") { ?> disabled<?php } ?>" data-video="<?=$resource["id"]?>" data-name="<?=$resource["name"]?>" data-embed="<?=htmlspecialchars($embed)?>">
 	<span class="icon_small icon_small_video"></span> <?=$resource["name"]?>
 </button>
 <?php

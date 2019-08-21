@@ -437,10 +437,10 @@
 				Returns the permission level for the logged in user to the module
 
 			Returns:
-				A permission level ("p" for publisher, "e" for editor, "n" for none)
+				A permission level ("p" for publisher, "e" for editor, null for none)
 		*/
 		
-		public function getUserAccessLevel(): string
+		public function getUserAccessLevel(): ?string
 		{
 			return Auth::user()->getAccessLevel($this);
 		}

@@ -23,7 +23,7 @@
 	// Check permission
 	$access_level = Auth::user()->getAccessLevel($module, $item, $table);
 
-	if ($access_level != "n") {
+	if ($access_level && $access_level != "n") {
 		// Get the original item to check permissions on it as well
 		$original_item = $form->getEntry($id);
 		$original_access_level = Auth::user()->getAccessLevel($module, $original_item["item"], $table);

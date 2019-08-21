@@ -30,11 +30,11 @@
 	}
 
 	foreach ($results["resources"] as $resource) {
-		if ($resource["permission"] == "n") {
+		if ($resource["permission"] == "n" || !$resource["permission"]) {
 			continue;
 		}
 ?>
-<li<?php if ($resource["permission"] == "n") { ?> class="disabled"<?php } ?>>
+<li<?php if ($resource["permission"] == "n" || !$resource["permission"]) { ?> class="disabled"<?php } ?>>
 	<section class="view_column file_manager_column_icon">
 		<?php
 			if ($resource["is_image"]) {

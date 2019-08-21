@@ -233,7 +233,7 @@
 				Returns the permission level of the current user for the folder.
 
 			Returns:
-				"p" if a user can create folders and upload files, "e" if the user can see/use files, "n" if a user can't access this folder.
+				"p" if a user can create folders and upload files, "e" if the user can see/use files, null if a user can't access this folder.
 		*/
 		
 		public function getUserAccessLevel(): ?string

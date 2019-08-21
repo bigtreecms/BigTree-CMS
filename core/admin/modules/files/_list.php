@@ -67,7 +67,7 @@
 
 				foreach ($contents["resources"] as $resource) {
 			?>
-			<li<?php if ($permission == "n") { ?> class="disabled"<?php } ?>>
+			<li<?php if (!$permission || $permission == "n") { ?> class="disabled"<?php } ?>>
 				<section class="view_column file_manager_column_icon">
 					<?php
 						if ($resource["is_image"]) {
@@ -87,7 +87,7 @@
 				</section>
 				<section class="view_column file_manager_column_name">
 					<?php
-						if ($permission == "n") {
+						if (!$permission || $permission == "n") {
 							echo $resource["name"];
 						} else {
 					?>

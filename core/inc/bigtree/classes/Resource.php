@@ -356,7 +356,7 @@
 				Returns the permission level of the current user for this file.
 
 			Returns:
-				"p" if a user can modify this file, "e" if the user can use this file, "n" if a user can't access this file.
+				"p" if a user can modify this file, "e" if the user can use this file, null if a user can't access this file.
 		*/
 		
 		public function getUserAccessLevel(): ?string

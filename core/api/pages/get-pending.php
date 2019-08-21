@@ -30,7 +30,7 @@
 	
 	$page = Page::getPageDraft($id);
 	
-	if ($page->getUserAccessLevel(API::$User) == "n") {
+	if (empty($page->getUserAccessLevel(API::$User))) {
 		API::triggerError("You are not allowed to access the requested page.", "page:notallowed", "permissions");
 	} else {
 		API::sendResponse($page->Array);

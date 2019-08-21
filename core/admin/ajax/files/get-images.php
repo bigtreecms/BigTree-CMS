@@ -38,6 +38,7 @@
 				
 				if (($minWidth && $minWidth !== "false" && $resource["width"] < $minWidth) ||
 					($minHeight && $minHeight !== "false" && $resource["height"] < $minHeight) ||
+					!$access_level || 
 					$access_level == "n"
 				) {
 					$disabled = " disabled";
