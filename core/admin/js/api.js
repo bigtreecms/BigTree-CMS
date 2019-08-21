@@ -13,13 +13,15 @@ var BigTreeAPI = (function() {
 				"parent",
 				"in_nav",
 				"position",
-				"archived"
+				"archived",
+				"access_level"
 			],
 			"key": "id"
 		},
 		"settings": {
 			"indexes": [
-				"title"
+				"title",
+				"access_level"
 			],
 			"key": "id"
 		},
@@ -28,7 +30,8 @@ var BigTreeAPI = (function() {
 				"name",
 				"email",
 				"company",
-				"level"
+				"level",
+				"access_level"
 			],
 			"key": "id"
 		},
@@ -36,14 +39,16 @@ var BigTreeAPI = (function() {
 			"indexes": [
 				"folder",
 				"title",
-				"type"
+				"type",
+				"access_level"
 			],
 			"key": "id"
 		},
 		"tags": {
 			"indexes": [
 				"tag",
-				"usage_count"
+				"usage_count",
+				"access_level"
 			],
 			"key": "id"
 		},
@@ -56,20 +61,22 @@ var BigTreeAPI = (function() {
 		"modules": {
 			"indexes": [
 				"group",
-				"position"
+				"position",
+				"access_level"
 			],
 			"key": "id"
 		},
 		"view-cache": {
 			"indexes": [
 				"view",
-				"id",
+				"entry",
 				"group_field",
 				"sort_field",
 				"group_sort_field",
-				"position"
+				"position",
+				"access_level"
 			],
-			"key": "key"
+			"key": "id"
 		}
 	};
 	const schema_version = 1;
