@@ -12,6 +12,7 @@
 
 		/** @var AuthenticatedUser $AuthenticatedUser */
 		public static $AuthenticatedUser;
+		public static $Method;
 		/** @var User $User */
 		public static $User;
 	
@@ -66,22 +67,83 @@
 				method - Required HTTP Method
 		*/
 		
-		public static function requireMethod(string $method) {
+		public static function requireMethod(string $method)
+		{
 			if (strtolower($_SERVER["REQUEST_METHOD"]) !== strtolower($method)) {
 				static::triggerError("This API endpoint must be called via $method.", "invalid:method", "method");
 			}
+			
+			static::$Method = strtoupper($method);
+		}
+		
+		/*
+			Function: requireParameters
+				Requires the passed in parameter names and types and triggers errors for invalid parameters.
+				API::requireMethod must be called first
+			
+			Parameters:
+				parameters - An associative array of key => type
+		*/
+		
+		public static function requireParameters(array $parameters): void
+		{
+			if (empty(static::$Method)) {
+				trigger_error(Text::translate("requireMethod must be called prior to requireParameters"), E_USER_ERROR);
+			}
+			
+			if (static::$Method === "POST") {
+				$data_source = $_POST;
+			} else {
+				$data_source = $_GET;
+			}
+			
+			// Allow for the first routed command to be the parameter for single parameter requests
+			if (count($parameters) === 1 && static::$Method !== "POST") {
+				list($key) = array_keys($parameters);
+				
+				if (!isset($data_source[$key]) && isset(Router::$Commands[0])) {
+					$_GET[$key] = Router::$Commands[0];
+				}
+			}
+			
+			foreach ($parameters as $key => $type) {
+				$type = strtolower($type);
+				
+				if (!isset($data_source[$key])) {
+					API::triggerError("Missing parameter: '$key'", "parameters:missing", "parameters");
+				} else {
+					$val = $data_source[$key];
+					$error = false;
+					
+					if (($type === "number" || $type === "int") && !is_numeric($val)) {
+						$error = true;
+					} elseif ($type === "int" && intval($val) != $val) {
+						$error = true;
+					} elseif ($type === "string" && !is_string($val)) {
+						$error = true;
+					} elseif ($type == "array" && !is_array($val)) {
+						$error = true;
+					} elseif ($type == "string_int" && !is_string($val) && !is_int($val)) {
+						$error = true;
+					}
+					
+					if ($error) {
+						API::triggerError("Parameter '$key' must be of type '$type'.", "parameters:invalid", "parameters");
+					}
+				}
+			}
 		}
 			
-			/*
-				Function: sendResponse
-					Sends a success response through the API.
-					If no parameters are passed, a simple success response is returned.
-			
-				Parameters:
-					data - An optional array of response data
-					message - An optional message
-					code - An optional response code
-			*/
+		/*
+			Function: sendResponse
+				Sends a success response through the API.
+				If no parameters are passed, a simple success response is returned.
+		
+			Parameters:
+				data - An optional array of response data
+				message - An optional message
+				code - An optional response code
+		*/
 		
 		public static function sendResponse(?array $data = null, ?string $message = null, ?string $code = null,
 											?string $next_page = null): void
