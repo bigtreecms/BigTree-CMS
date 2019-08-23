@@ -713,6 +713,10 @@
 		*/
 		
 		public function getTempFileName() {
+			if (!file_exists(SITE_ROOT."files/")) {
+				BigTree::makeDirectory(SITE_ROOT."files/");
+			}
+
 			$temp_file = SITE_ROOT."files/".uniqid("temp-").$this->Extensions[$this->Type];
 			
 			while (file_exists($temp_file)) {
