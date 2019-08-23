@@ -230,7 +230,7 @@
 					endpoint: "pages/order",
 					method: "POST",
 					parameters: {
-						"parent": this.current_page,
+						"parent": this.page,
 						"positioned_children": children
 					}
 				});
