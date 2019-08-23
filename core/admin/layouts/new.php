@@ -125,6 +125,8 @@
 		<script src="<?=ADMIN_ROOT?>js/api.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/vue-async-computed.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/vue-helpers.js"></script>
+		<script src="//cdn.jsdelivr.net/npm/sortablejs@1.8.4/Sortable.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.20.0/vuedraggable.umd.min.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/cache/vue.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/app.js"></script>
 		<?php

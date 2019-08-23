@@ -956,9 +956,10 @@
 				}
 			}
 			
-			// Manually add the API header
+			// Manually add the API header/footer
 			if ($include_root == "api/") {
 				$headers[] = static::getIncludePath("api/_header.php");
+				$footers[] = static::getIncludePath("api/_footer.php");
 			}
 			
 			// Only certain places include headers and footers

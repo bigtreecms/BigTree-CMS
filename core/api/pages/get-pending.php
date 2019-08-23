@@ -15,11 +15,12 @@
 	*/
 	
 	API::requireMethod("GET");
+	API::requireParameters(["id" => "string_int"]);
 	
-	$id = isset($_GET["id"]) ? $_GET["id"] : Router::$Commands[0];
+	$id = $_GET["id"];
 	
 	if (is_int($id)) {
-		if (!SQL::exists("bigtree_pages", $id)) {
+		if (!Page::exists($id)) {
 			API::triggerError("The requested page was not found.", "page:missing", "missing");
 		}
 	} else {
@@ -30,7 +31,7 @@
 	
 	$page = Page::getPageDraft($id);
 	
-	if (empty($page->getUserAccessLevel(API::$User))) {
+	if (empty($page->UserAccessLevel)) {
 		API::triggerError("You are not allowed to access the requested page.", "page:notallowed", "permissions");
 	} else {
 		API::sendResponse($page->Array);

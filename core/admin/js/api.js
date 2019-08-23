@@ -1,4 +1,5 @@
 var BigTreeAPI = (function() {
+	let background_update_paused = false;
 	let background_update_timer;
 	let db;
 	let initialized = false;
@@ -81,7 +82,11 @@ var BigTreeAPI = (function() {
 	};
 	const schema_version = 1;
 
-	async function background_update() {
+	async function backgroundUpdate() {
+		if (BigTreeAPI.background_update_paused) {
+			return;
+		}
+
 		// Auto parse JSON
 		$.cookie.json = true;
 
@@ -101,7 +106,7 @@ var BigTreeAPI = (function() {
 			});
 
 			if (Object.keys(data).length) {
-				await update_cache(store, data);
+				await updateCache(store, data);
 				BigTreeEventBus.$emit("api-data-changed", store);
 			}
 
@@ -111,7 +116,7 @@ var BigTreeAPI = (function() {
 		$.cookie("bigtree-indexeddb-last-updated", last_updated);
 	}
 
-	async function cache_delete(store, key) {
+	async function cacheDelete(store, key) {
 		let request = store.delete(key);
 
 		return new Promise((resolve, reject) => {
@@ -120,7 +125,7 @@ var BigTreeAPI = (function() {
 		});
 	}
 
-	async function cache_put(store, entry) {
+	async function cachePut(store, entry) {
 		// Make sure numeric values are stored as strings so that we can query them back consistently
 		for (let index in entry) {
 			if (entry.hasOwnProperty(index)) {
@@ -139,6 +144,8 @@ var BigTreeAPI = (function() {
 	}
 
 	async function call(options) {
+		BigTreeAPI.background_update_paused = true;
+
 		return new Promise((resolve, reject) => {
 			let endpoint, context, parameters, method;
 
@@ -188,12 +195,15 @@ var BigTreeAPI = (function() {
 					BigTreeAPI.next_page = null;
 				}
 
+				BigTreeAPI.background_update_paused = false;
+
 				if (response.success) {
 					resolve(response.response);
 				} else {
 					reject("API call failed:" + response.error);
 				}
 			}).fail(function(xhr) {
+				BigTreeAPI.background_update_paused = false;
 				reject("Unknown error.");
 			});
 		});
@@ -333,7 +343,7 @@ var BigTreeAPI = (function() {
 						clearInterval(background_update_timer);
 					}
 
-					background_update_timer = setInterval(background_update, 30000);
+					background_update_timer = setInterval(backgroundUpdate, 30000);
 					initialized = true;
 					resolve();
 				} else {
@@ -343,7 +353,7 @@ var BigTreeAPI = (function() {
 								clearInterval(background_update_timer);
 							}
 
-							background_update_timer = setInterval(background_update, 30000);
+							background_update_timer = setInterval(backgroundUpdate, 30000);
 							initialized = true;
 							resolve();
 							clearInterval(resolution_timer);
@@ -384,7 +394,7 @@ var BigTreeAPI = (function() {
 							for (let store in BigTreeAPI.schema) {
 								if (BigTreeAPI.schema.hasOwnProperty(store)) {
 									let response = await BigTreeAPI.call({ endpoint: "indexed-db/" + store });
-									await update_cache(store, response);
+									await updateCache(store, response);
 									last_updated[store] = Math.floor(Date.now() / 1000);
 								}
 							}
@@ -402,37 +412,72 @@ var BigTreeAPI = (function() {
 		});
 	}
 
-	async function update_cache(store, data) {
-		let transaction = db.transaction(db.objectStoreNames, "readwrite");
-		let transaction_store = transaction.objectStore(store);
+	async function updateCache(store, data) {
+		return new Promise(async (resolve, reject) => {
+			let transaction = db.transaction(db.objectStoreNames, "readwrite");
+			let transaction_store = transaction.objectStore(store);
 
-		if (typeof data.put !== "undefined") {
-			for (let index in data.put) {
-				if (data.put.hasOwnProperty(index)) {
-					await cache_put(transaction_store, data.put[index]);
+			if (typeof data.put !== "undefined") {
+				for (let index in data.put) {
+					if (data.put.hasOwnProperty(index)) {
+						await cachePut(transaction_store, data.put[index]);
+					}
 				}
 			}
-		}
 
-		if (typeof data.delete !== "undefined") {
-			for (let x = 0; x < data.delete.length; x++) {
-				await cache_delete(transaction_store, data.delete[x]);
+			if (typeof data.delete !== "undefined") {
+				for (let x = 0; x < data.delete.length; x++) {
+					await cacheDelete(transaction_store, data.delete[x]);
+				}
 			}
-		}
 
-		if (BigTreeAPI.next_page) {
-			let response = await BigTreeAPI.getNextPage();
-			await update_cache(store, response);
-		}
+			if (BigTreeAPI.next_page) {
+				let response = await BigTreeAPI.getNextPage();
+				await updateCache(store, response);
+			}
+
+			resolve();
+		});
+	}
+
+	// Updates locally cached data while awaiting an update from the API
+	// Changes must be an object with the key as the unique ID and key => value stores for updated data
+	async function updateLocalCacheByID(store, changes) {
+		return new Promise(async (resolve, reject) => {
+			let updates = [];
+
+			for (let key in changes) {
+				if (changes.hasOwnProperty(key)) {
+					let data = await getStoredDataMatching(store, "id", key);
+
+					if (data.length) {
+						let item = data[0];
+
+						for (let change_key in changes[key]) {
+							if (changes[key].hasOwnProperty(change_key)) {
+								item[change_key] = changes[key][change_key];
+							}
+						}
+
+						updates.push(item);
+					}
+				}
+			}
+
+			await updateCache(store, { put: updates });
+			resolve();
+		});
 	}
 
 	return {
+		background_update_paused: background_update_paused,
 		call: call,
 		getStoredData: getStoredData,
 		getStoredDataMatching: getStoredDataMatching,
 		getNextPage: getNextPage,
 		schema: schema,
-		schema_version: schema_version
+		schema_version: schema_version,
+		updateLocalCacheByID: updateLocalCacheByID
 	};
 
 })();

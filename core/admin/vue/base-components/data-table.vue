@@ -21,6 +21,7 @@
 			return {
 				current_page: 1,
 				id: null,
+				mutable_data: null,
 				pages: 1,
 				query: "",
 				query_field_value: "",
@@ -30,9 +31,15 @@
 			};
 		},
 		
+		watch: {
+			data: function(new_val, old_val) {
+				this.mutable_data = new_val;
+			}
+		},
+		
 		computed: {
 			filtered_data: function() {
-				let data = this.data;
+				let data = this.mutable_data ? this.mutable_data : this.data;
 				
 				if (!data || !data.length) {
 					return [];
@@ -42,8 +49,8 @@
 					data = [];
 					let query = this.query.toLowerCase();
 
-					for (let x = 0; x < this.data.length; x++) {
-						let entry = this.data[x];
+					for (let x = 0; x < this.mutable_data.length; x++) {
+						let entry = this.mutable_data[x];
 
 						for (let index = 0; index < this.columns.length; index++) {
 							let column = entry[this.columns[index].key].toLowerCase();
@@ -103,20 +110,25 @@
 				return data;
 			},
 			
-			paged_data: function() {
-				const data = this.filtered_data;
-				const start = (this.current_page - 1) * parseInt(this.per_page);
-				
-				// Async tables may not yet have data
-				if (!data || !data.length) {
-					return [];
+			paged_data: {
+				get() {
+					const data = this.filtered_data;
+					const start = (this.current_page - 1) * parseInt(this.per_page);
+
+					// Async tables may not yet have data
+					if (!data || !data.length) {
+						return [];
+					}
+
+					if (!this.per_page) {
+						return data;
+					}
+
+					return data.slice(start, start + parseInt(this.per_page));
+				},
+				set(value) {
+					this.mutable_data = value;
 				}
-				
-				if (!this.per_page) {
-					return data;
-				}
-				
-				return data.slice(start, start + parseInt(this.per_page));
 			}
 		},
 		
@@ -171,6 +183,10 @@
 				this.query = this.query_field_value;
 			},
 			
+			resorted: function() {
+				BigTreeEventBus.$emit("data-table-resorted", this);
+			},
+			
 			row_click: function(event, data) {
 				event.preventDefault();
 
@@ -202,6 +218,7 @@
 			// Give this table the auto-generated Vue unique ID
 			this.id = this._uid;
 			this.equalize_actions();
+			this.mutable_data = this.data;
 		},
 		
 		updated: function() {
@@ -262,14 +279,15 @@
 					<th v-if="actions.length || data_contains_actions" class="table_heading table_heading_actions">{{ translate('Actions') }}</th>
 				</tr>
 			</thead>
-			<tbody class="table_body">
-				<tr v-for="(row, row_index) in paged_data" class="table_body_row" :draggable="draggable ? true : false">
+			<draggable v-model="paged_data" draggable=".table_body_row" handle=".table_column_drag_icon"
+					   v-on:change="resorted" tag="tbody" class="table_body">
+				<tr v-for="(row, row_index) in paged_data" class="table_body_row" :draggable="draggable ? true : false" :key="row.id">
 					<td v-for="(column, index) in columns" class="table_column" :class="{ 'status': column.type == 'status' }">
 						<span v-if="column.type != 'image'" class="table_column_label">{{ translate(column.title) }}</span>
 						<span class="table_column_content">
-							<icon v-if="draggable && index == 0" wrapper="table_column_drag" icon="drag_handle"></icon>
-							<img v-if="column.type == 'image'" class="table_column_image" :src="row[column.key]" alt="" />
-							<span v-else-if="column.type == 'status'" class="table_content_status"
+							<icon v-if="draggable && !query && index === 0" wrapper="table_column_drag" icon="drag_handle"></icon>
+							<img v-if="column.type === 'image'" class="table_column_image" :src="row[column.key]" alt="" />
+							<span v-else-if="column.type === 'status'" class="table_content_status"
 								  :class="'table_content_status_' + row[column.key].toLowerCase()"></span>
 							<button v-else-if="clickable_rows && escaped_data" v-on:click="row_click" :data-index="row_index" class="table_content_button" v-html="row[column.key]"></button>
 							<button v-else-if="clickable_rows" v-on:click="row_click" :data-index="row_index" class="table_content_button">{{ row[column.key] }}</button>
@@ -287,7 +305,7 @@
 						</div>
 					</td>
 				</tr>
-			</tbody>
+			</draggable>
 		</table>
 		
 		<div class="table_filter table_filter_standalone" v-if="per_page && pages > 1">

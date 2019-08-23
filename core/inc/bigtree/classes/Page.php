@@ -1937,6 +1937,7 @@
 		{
 			$this->Position = $position;
 			SQL::update("bigtree_pages", $this->ID, ["position" => $position]);
+			AuditTrail::track("bigtree_pages", $this->ID, "update", "changed positioned");
 		}
 		
 	}
