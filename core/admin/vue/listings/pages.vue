@@ -28,8 +28,10 @@
 					BigTree.page_public_url = WWW_ROOT;
 				}
 
+				// Page Title
 				BigTree.page_title = page.nav_title;
 
+				// Breadcrumb
 				let breadcrumb = [];
 				let parent = page.parent;
 
@@ -46,7 +48,8 @@
 				}
 
 				BigTree.breadcrumb = breadcrumb.reverse();
-				
+
+				// Meta Bar
 				let meta_bar = [];
 
 				if (page.expires) {
@@ -82,6 +85,85 @@
 				});
 				
 				BigTree.meta_bar = meta_bar;
+
+				// Sub-nav
+				let sub_nav = [{
+					title: "Subpages",
+					url: ADMIN_ROOT + "pages/view-tree/" + page.id + "/",
+					active: true
+				}];
+
+				if (page.access_level) {
+					if (page.template && page.template != "!") {
+						sub_nav.push({
+							title: "Content",
+							url: ADMIN_ROOT + "pages/content/" + page.id + "/"
+						});
+					}
+
+					sub_nav.push({
+						title: "Page Properties",
+						url: ADMIN_ROOT + "pages/properties/" + page.id + "/"
+					});
+				}
+
+				if (page.access_level === "p") {
+					sub_nav.push({
+						title: "Revisions",
+						url: ADMIN_ROOT + "pages/revisions/" + page.id + "/"
+					});
+				}
+
+				if (BigTree.user_level > 0) {
+					sub_nav.push({
+						title: "User Access",
+						url: ADMIN_ROOT + "pages/user-access/" + page.id + "/"
+					});
+				}
+
+				BigTree.sub_nav = sub_nav;
+
+				// Sub-nav actions
+				let sub_nav_actions = [];
+
+				if (page.access_level) {
+					sub_nav_actions.push({
+						"title": "Add Subpage",
+						"icon": "note_add",
+						"url": ADMIN_ROOT + "pages/add/" + page.id + "/"
+					});
+				}
+
+				if (page.access_level === "p") {
+					sub_nav_actions.push({
+						"title": "Move Current Page",
+						"icon": "local_shipping",
+						"url": ADMIN_ROOT + "pages/move/" + page.id + "/"
+					});
+				}
+
+				BigTree.sub_nav_actions = sub_nav_actions;
+
+				// Tools
+				let tools = [];
+
+				if (BigTree.user_level > 1) {
+					if (page.template && page.template != "!") {
+						tools.push({
+							title: "Edit Current Template in Developer",
+							url: ADMIN_ROOT + "developer/templates/edit/" + page.template + "/",
+							icon: "view_quilt"
+						});
+					}
+
+					tools.push({
+						title: "View Audit Trail for Page",
+						url: ADMIN_ROOT + "developer/audit-trail/search/?table=bigtree_pages&entry=" + page.id,
+						icon: "timeline"
+					});
+				}
+
+				BigTree.tools = tools;
 			},
 			async data () {
 				let pages = await BigTreeAPI.getStoredDataMatching("pages", "parent", this.page);
@@ -204,7 +286,7 @@
 					}
 				}
 				
-				if (page.access_level === "n" || !page.access_level) {
+				if (!page.access_level) {
 					return [];
 				}
 				
@@ -289,7 +371,7 @@
 </script>
 
 <template>
-		<alert v-if="!visible_pages.length && !hidden_pages.length && !archived_pages.length" type="notice" title="No Subpages Yet">
+		<alert v-if="data && !visible_pages.length && !hidden_pages.length && !archived_pages.length" type="notice" title="No Subpages Yet">
 			There are currently no subpages.<br>
 			• Create a subpage by clicking the &ldquo;Add Subpage&rdquo; button.<br>
 			• Edit this page by clicking the &ldquo;Content&rdquo; tab.

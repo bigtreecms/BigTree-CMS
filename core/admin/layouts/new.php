@@ -100,6 +100,8 @@
 					<sub-navigation v-if="sub_nav.length" :links="sub_nav"></sub-navigation>
 				</div>
 				
+				<button-bar v-if="sub_nav_actions.length" :links="sub_nav_actions"></button-bar>
+				
 				<?php Router::renderContent(); ?>
 			</main>
 			

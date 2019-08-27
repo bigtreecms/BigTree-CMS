@@ -28,6 +28,7 @@
 			"parent" => $draft->Parent,
 			"nav_title" => $draft->NavigationTitle,
 			"path" => $draft->Path,
+			"template" => $draft->Template,
 			"archived" => $draft->Archived,
 			"in_nav" => $draft->InNav,
 			"position" => $draft->Position,
