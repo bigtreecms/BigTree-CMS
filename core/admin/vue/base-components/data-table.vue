@@ -276,7 +276,7 @@
 							{{ translate(column.title) }}
 						</span>
 					</th>
-					<th v-if="actions.length || data_contains_actions" class="table_heading table_heading_actions">{{ translate('Actions') }}</th>
+					<th v-if="data_contains_actions || (typeof actions === 'object' && actions.length)" class="table_heading table_heading_actions">{{ translate('Actions') }}</th>
 				</tr>
 			</thead>
 			<draggable v-model="paged_data" draggable=".table_body_row" handle=".table_column_drag_icon"
@@ -295,13 +295,13 @@
 							<span v-else class="table_column_text">{{ row[column.key] }}</span>
 						</span>
 					</td>
-					<td v-if="actions.length || data_contains_actions" class="table_column">
+					<td v-if="data_contains_actions || (typeof actions === 'object' && actions.length)" class="table_column">
 						<div class="table_column_content">
-							<action-menu v-if="data_contains_actions && row['actions'].length" :base_path="row['actions_base_path']"
+							<action-menu v-if="data_contains_actions && typeof row['actions'] === 'object' && row['actions'].length" :base_path="typeof row['actions_base_path'] !== 'undefined' ? row['actions_base_path'] : actions_base_path"
 										 :actions="row['actions']" :id="row['id']" :escaped_actions="escaped_data"></action-menu>
-							<action-menu v-else-if="actions.length" :base_path="actions_base_path" :actions="actions"
+							<action-menu v-else-if="typeof actions === 'object' && actions.length" :base_path="actions_base_path" :actions="actions"
 										 :id="row['id']" :escaped_actions="escaped_data"></action-menu>
-							<span v-else>&nbsp;</span>
+							<span v-else>{{ typeof row['actions'] }}&nbsp;</span>
 						</div>
 					</td>
 				</tr>
