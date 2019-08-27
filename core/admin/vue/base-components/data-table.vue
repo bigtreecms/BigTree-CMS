@@ -135,18 +135,35 @@
 		methods: {
 			equalize_actions: function() {
 				// Make all the action menus be equal width
+				const $items = $(this.$el).find(".action_menu_item");
 				const $labels = $(this.$el).find(".action_menu_label");
+				const padding_left = parseInt($labels.css("padding-left"));
+				const padding_right = parseInt($labels.css("padding-right"));
+				
 				let widest = 0;
+				let unique_action_titles = [];
+				
+				$items.each(function() {
+					let text = $(this).text();
 
-				$labels.each(function() {
-					const label_width = $(this).outerWidth();
+					if (unique_action_titles.indexOf(text) === -1) {
+						unique_action_titles.push(text);
+					}
+				});
+				
+				$.each(unique_action_titles, function(key, value) {
+					const $tester = $('<div class="action_menu_label" style="position: absolute; left: -1000px;">').text(value);
+					$("body").append($tester);
+
+					const label_width = parseInt($tester.width());
+					$tester.remove();
 
 					if (label_width > widest) {
 						widest = label_width;
 					}
 				});
 
-				$labels.css({ minWidth: widest + "px" });
+				$labels.css({ minWidth: (widest + padding_left + padding_right) + "px" });
 			},
 			
 			next_page: function(event) {
