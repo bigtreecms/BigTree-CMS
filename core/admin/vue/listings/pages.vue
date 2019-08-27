@@ -109,6 +109,7 @@
 							can_publish = false;
 						}
 						
+						page.actions = this.get_actions(page);
 						pages.push(page);
 					}
 				}
@@ -139,6 +140,7 @@
 					let page = this.data[x];
 
 					if (!page.archived && !page.in_nav) {
+						page.actions = this.get_actions(page);
 						pages.push(page);
 					}
 				}
@@ -167,6 +169,7 @@
 					let page = this.data[x];
 
 					if (page.archived) {
+						page.actions = this.get_actions(page);
 						pages.push(page);
 					}
 				}
@@ -186,6 +189,42 @@
 			}
 		},
 		methods: {
+			get_actions: function(page) {
+				if (page.archived) {
+					if (page.access_level === "p") {
+						return [
+							{ title: "Restore", route: "unarchive" },
+							{ title: "Delete Permanently", route: "delete" }
+						];
+					} else {
+						return [];
+					}
+				}
+				
+				if (page.access_level === "n" || !page.access_level) {
+					return [];
+				}
+				
+				if (page.access_level === "e") {
+					return [
+						{ title: "Edit", route: "edit" },
+						{ title: "Duplicate", route: "duplicate" },
+						{ title: "Add Subpage", route: "add" },
+						{ title: "View Page", url: WWW_ROOT + page.path + "/" }
+					];
+				}
+				
+				return [
+					{ title: "Edit", route: "edit" },
+					{ title: "Archive", route: "archive" },
+					{ title: "Duplicate", route: "duplicate" },
+					{ title: "Revisions", route: "revisions" },
+					{ title: "Move", route: "move" },
+					{ title: "Add Subpage", route: "add" },
+					{ title: "View Page", url: WWW_ROOT + page.path + "/" }
+				];
+			},
+			
 			navigate: function(data) {
 				this.page = data.id;
 			}
@@ -248,24 +287,30 @@
 
 		<div v-else>
 			<toggle-block title="Visible in Navigation" :id="'pages-visible-' + page">
-				<data-table :data="visible_pages" v-on:row-click="navigate" :draggable="draggable" :columns="[
+				<data-table :data="visible_pages" :draggable="draggable" v-on:row-click="navigate" clickable_rows="true"
+							escaped_data="true" data_contains_actions="true" actions_base_path="pages"
+							:columns="[
 					{ 'title': 'Title', 'key': 'nav_title' },
 					{ 'title': 'Status', 'key': 'status', 'type': 'status' }
-				]" :actions="[]" escaped_data="true" clickable_rows="true"></data-table>
+				]"></data-table>
 			</toggle-block>
 	
 			<toggle-block title="Hidden from Navigation" :id="'pages-hidden-' + page">
-				<data-table :data="hidden_pages" v-on:row-click="navigate" :columns="[
+				<data-table :data="hidden_pages" v-on:row-click="navigate" clickable_rows="true"
+							escaped_data="true" data_contains_actions="true" actions_base_path="pages"
+							:columns="[
 					{ 'title': 'Title', 'key': 'nav_title' },
 					{ 'title': 'Status', 'key': 'status', 'type': 'status' }
-				]" :actions="[]" escaped_data="true" clickable_rows="true"></data-table>
+				]"></data-table>
 			</toggle-block>
 	
 			<toggle-block title="Archived" :id="'pages-archived-' + page">
-				<data-table :data="archived_pages" :columns="[
+				<data-table :data="archived_pages" escaped_data="true"
+							data_contains_actions="true" actions_base_path="pages"
+							:columns="[
 					{ 'title': 'Title', 'key': 'nav_title' },
 					{ 'title': 'Status', 'key': 'status', 'type': 'status' }
-				]" :actions="[]" escaped_data="true"></data-table>
+				]" ></data-table>
 			</toggle-block>
 		</div>
 </template>
