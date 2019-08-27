@@ -110,6 +110,7 @@
 						}
 						
 						page.actions = this.get_actions(page);
+						page.status_tooltip = this.get_status_tooltip(page);
 						pages.push(page);
 					}
 				}
@@ -141,6 +142,7 @@
 
 					if (!page.archived && !page.in_nav) {
 						page.actions = this.get_actions(page);
+						page.status_tooltip = this.get_status_tooltip(page);
 						pages.push(page);
 					}
 				}
@@ -170,6 +172,7 @@
 
 					if (page.archived) {
 						page.actions = this.get_actions(page);
+						page.status_tooltip = this.get_status_tooltip(page);
 						pages.push(page);
 					}
 				}
@@ -225,10 +228,17 @@
 				];
 			},
 			
+			get_status_tooltip: function(page) {
+				return page.status.replace(/(^([a-zA-Z\p{M}]))|([ -][a-zA-Z\p{M}])/g, function(s) {
+					return s.toUpperCase();
+				});
+			},
+			
 			navigate: function(data) {
 				this.page = data.id;
 			}
 		},
+		
 		mounted: function() {
 			BigTreeEventBus.$on("breadcrumb-click", (id) => {
 				this.navigate({ id: id });
@@ -291,7 +301,7 @@
 							escaped_data="true" data_contains_actions="true" actions_base_path="pages"
 							:columns="[
 					{ 'title': 'Title', 'key': 'nav_title' },
-					{ 'title': 'Status', 'key': 'status', 'type': 'status' }
+					{ 'title': 'Status', 'key': 'status', 'type': 'status', tooltip_key: 'status_tooltip' }
 				]"></data-table>
 			</toggle-block>
 	
@@ -300,7 +310,7 @@
 							escaped_data="true" data_contains_actions="true" actions_base_path="pages"
 							:columns="[
 					{ 'title': 'Title', 'key': 'nav_title' },
-					{ 'title': 'Status', 'key': 'status', 'type': 'status' }
+					{ 'title': 'Status', 'key': 'status', 'type': 'status', tooltip_key: 'status_tooltip' }
 				]"></data-table>
 			</toggle-block>
 	
@@ -309,7 +319,7 @@
 							data_contains_actions="true" actions_base_path="pages"
 							:columns="[
 					{ 'title': 'Title', 'key': 'nav_title' },
-					{ 'title': 'Status', 'key': 'status', 'type': 'status' }
+					{ 'title': 'Status', 'key': 'status', 'type': 'status', tooltip_key: 'status_tooltip' }
 				]" ></data-table>
 			</toggle-block>
 		</div>
