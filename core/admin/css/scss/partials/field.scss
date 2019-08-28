@@ -33,10 +33,15 @@
 	font-weight: 400;
 }
 
-.field_limit {
+.field_status {
+	transition: color 0.5s;
 	
 	&_bad {
 		color: $red;
+	}
+
+	&_warn {
+		color: $orange;
 	}
 
 	&_good {
