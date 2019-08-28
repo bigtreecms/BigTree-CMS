@@ -5,7 +5,7 @@
 			"subtitle",
 			"name",
 			"value",
-			"id"
+			"required"
 		]
 	});
 </script>
@@ -17,13 +17,13 @@
 				<div class="field_wrapper">
 					<label class="field_label" :for="'field_first_name_' + this._uid">{{ translate("First Name") }}</label>
 					<input class="field_input" :id="'field_first_name_' + this._uid" :name="name + '[first]'"
-						   :value="value.first" :placeholder="translate('First Name')" type="text">
+						   :value="value.first" :placeholder="translate('First Name')" type="text" :required="required">
 				</div>
 				
 				<div class="field_wrapper">
 					<label class="field_label" :for="'field_last_name_' + this._uid">{{ translate("Last Name") }}</label>
 					<input class="field_input" :id="'field_last_name_' + this._uid" :name="name + '[last]'"
-						   :value="value.last" :placeholder="translate('Last Name')" type="text">
+						   :value="value.last" :placeholder="translate('Last Name')" type="text" :required="required">
 				</div>
 			</div>
 		</div>

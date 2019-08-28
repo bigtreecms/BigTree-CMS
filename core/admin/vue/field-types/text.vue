@@ -1,7 +1,6 @@
 <script>
 	Vue.component("field-text", {
 		props: [
-			"id",
 			"title",
 			"subtitle",
 			"name",
