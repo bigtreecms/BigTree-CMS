@@ -107,7 +107,7 @@
 
 <template>
 	<field :title="title" :subtitle="subtitle" set="true">
-		<div class="field_name">
+		<div class="field_address">
 			<div class="field_group">
 				<div class="field_wrapper">
 					<label class="field_label" :for="'field_street_' + this._uid">{{ translate("Street Address") }}</label>

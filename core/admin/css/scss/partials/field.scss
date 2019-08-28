@@ -120,6 +120,13 @@
 	padding-left: 35px;
 }
 
+.field_address {
+	@media #{$min_sm} {
+		.field_wrapper {
+			width: 50%;
+		}
+	}
+}
 
 // Select
 // ++++++++++++++++
