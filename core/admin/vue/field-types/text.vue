@@ -58,12 +58,12 @@
 </script>
 
 <template>
-	<field :title="title" :subtitle="subtitle" :label_for="id"
+	<field :title="title" :subtitle="subtitle" :label_for="'field_' + this._uid"
 		   :help_text="help_text" :help_text_style="help_text_style">
 		<textarea v-if="type === 'textarea'" class="field_input field_input_textarea" :type="type ? type : 'text'"
-				  :name="name" v-model="current_value" :id="id" :placeholder="placeholder"
+				  :name="name" v-model="current_value" :id="'field_' + this._uid" :placeholder="placeholder"
 				  :required="required" :maxlength="maxlength"></textarea>
-		<input v-else class="field_input" :type="type ? type : 'text'" :name="name" v-model="current_value" :id="id"
-			   :placeholder="placeholder" :required="required" :maxlength="maxlength">
+		<input v-else class="field_input" :type="type ? type : 'text'" :name="name" v-model="current_value"
+			   :id="'field_' + this._uid" :placeholder="placeholder" :required="required" :maxlength="maxlength">
 	</field>
 </template>
