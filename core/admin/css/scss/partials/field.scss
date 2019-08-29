@@ -104,6 +104,8 @@
 .field_input {
 	width: 100%;
 
+	-webkit-appearance: none;
+	appearance: none;
 	border: 1px solid $mist;
 	font-size: 14px;
 	line-height: 26px;
@@ -138,13 +140,14 @@
 }
 
 .field_select {
+	max-height: 40px;
 	width: 100%;
 
 	appearance: none;
 	-webkit-appearance: none;
 	background-color: #fff;
 	border: 1px solid $mist;
-	border-radius: 3px;
+	border-radius: 0;
 	cursor: pointer;
 	display: block;
 	font-size: 14px;

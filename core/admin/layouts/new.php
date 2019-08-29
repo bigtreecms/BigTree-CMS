@@ -118,17 +118,19 @@
 			Admin::drawState();
 			Vue::buildCache(); // Remove in production
 		?>
-		<script src="<?=ADMIN_ROOT?>js/vue.js"></script>
 		<script>
 			const ADMIN_ROOT = "<?=ADMIN_ROOT?>";
 			const WWW_ROOT = "<?=WWW_ROOT?>";
 			const VueLanguagePack = {};
+			const TinyMCEConfig = <?=file_get_contents(Router::getIncludePath("tinymce.config.json"))?>;
 		</script>
+		<script src="<?=ADMIN_ROOT?>js/tinymce/tinymce.min.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/api.js"></script>
-		<script src="<?=ADMIN_ROOT?>js/vue-async-computed.js"></script>
-		<script src="<?=ADMIN_ROOT?>js/vue-helpers.js"></script>
-		<script src="//cdn.jsdelivr.net/npm/sortablejs@1.8.4/Sortable.min.js"></script>
-		<script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.20.0/vuedraggable.umd.min.js"></script>
+		<script src="<?=ADMIN_ROOT?>js/vue/vue.js"></script>
+		<script src="<?=ADMIN_ROOT?>js/vue/async-computed.js"></script>
+		<script src="<?=ADMIN_ROOT?>js/vue/tinymce.js"></script>
+		<script src="<?=ADMIN_ROOT?>js/vue/sortable.js"></script>
+		<script src="<?=ADMIN_ROOT?>js/vue/helpers.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/cache/vue.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/app.js"></script>
 		<?php

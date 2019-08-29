@@ -1,0 +1,29 @@
+{
+  "full": {
+    "menubar": false,
+    "plugins": "code,anchor,image,link,table,visualblocks,lists,hr",
+    "toolbar": "undo redo | styleselect | bold italic underline removeformat | bullist numlist outdent indent | hr anchor link unlink image table | visualblocks code",
+    "paste_remove_spans": true,
+    "paste_remove_styles": true,
+    "paste_strip_class_attributes": true,
+    "paste_auto_cleanup_on_paste": true,
+    "relative_urls": false,
+    "remove_script_host": false,
+    "browser_spellcheck": true,
+    "extended_valid_elements" : "*[*]",
+    "height": 500
+  },
+  "simple": {
+    "menubar": false,
+    "plugins": "link,visualblocks",
+    "toolbar": "link unlink bold italic underline removeformat",
+    "paste_remove_spans": true,
+    "paste_remove_styles": true,
+    "paste_strip_class_attributes": true,
+    "paste_auto_cleanup_on_paste": true,
+    "browser_spellcheck": true,
+    "relative_urls": false,
+    "valid_elements" : "a[*],p[*],strong[*],em[*],u[*]",
+    "height": 200
+  }
+}

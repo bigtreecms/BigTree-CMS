@@ -9,7 +9,17 @@
 			"help_text_style",
 			"label_for",
 			"set"
-		]
+		],
+
+		methods: {
+			focus: function() {
+				const for_id = $(this.$el).find("label").attr("for");
+
+				if (for_id) {
+					$("#" + for_id).focus();
+				}
+			}
+		}
 	});
 </script>
 
@@ -17,7 +27,7 @@
 	<div class="block">
 		<fieldset v-if="set" class="field">
 			<div class="field_header">
-				<legend class="field_header_group">
+				<legend class="field_header_group" v-on:click="focus">
 					<span class="field_title">{{ title }}</span>
 					<span class="field_hint">{{ subtitle }}</span>
 				</legend>
