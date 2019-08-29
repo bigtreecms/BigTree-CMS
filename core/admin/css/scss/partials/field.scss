@@ -293,6 +293,10 @@
 		padding: 0 20px;
 		pointer-events: none;
 	}
+
+	&.focused {
+		border-color: $green;		
+	}
 }
 
 .field_upload_info {

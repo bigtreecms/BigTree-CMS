@@ -15,8 +15,9 @@
 	*/
 	
 	API::requireMethod("GET");
+	API::requireParameters(["id" => "int"]);
 	
-	$id = intval(isset($_GET["id"]) ? $_GET["id"] : Router::$Commands[0]);
+	$id = intval($_GET["id"]);
 	
 	if (!Page::exists($id)) {
 		API::triggerError("The requested page was not found.", "page:missing", "missing");

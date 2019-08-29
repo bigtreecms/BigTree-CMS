@@ -41,8 +41,8 @@
 
 <template>
 	<field :title="title" :subtitle="subtitle" :label_for="'field_' + this._uid">
-		<textarea :id="'field_' + this._uid"  style="position: absolute; left: -1000px; width: 1px; height: 1px;" :name="name" v-model="current_value"
-				  v-on:focus="focus"></textarea>
+		<textarea :id="'field_' + this._uid" style="position: absolute; left: -10000px; width: 1px; height: 1px;"
+				  :name="name" :required="required" v-model="current_value" v-on:focus="focus"></textarea>
 		<tinymce-editor :init="init" :id="'field_tinymce_' + this._uid" v-model="current_value"></tinymce-editor>
 	</field>
 </template>
