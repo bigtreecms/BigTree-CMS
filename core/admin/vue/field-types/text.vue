@@ -8,8 +8,6 @@
 			"placeholder",
 			"required",
 			"maxlength",
-			"title",
-			"subtitle",
 			"type"
 		],
 		
