@@ -6,7 +6,13 @@
 			"name",
 			"value",
 			"required"
-		]
+		],
+
+		data: function() {
+			return {
+				uid: this._uid
+			}
+		}
 	});
 </script>
 
@@ -15,14 +21,14 @@
 		<div class="field_name">
 			<div class="field_group">
 				<div class="field_wrapper">
-					<label class="field_label" :for="'field_first_name_' + this._uid">{{ translate("First Name") }}</label>
-					<input class="field_input" :id="'field_first_name_' + this._uid" :name="name + '[first]'"
+					<label class="field_label" :for="'field_first_name_' + uid">{{ translate("First Name") }}</label>
+					<input class="field_input" :id="'field_first_name_' + uid" :name="name + '[first]'"
 						   :value="value.first" :placeholder="translate('First Name')" type="text" :required="required">
 				</div>
 				
 				<div class="field_wrapper">
-					<label class="field_label" :for="'field_last_name_' + this._uid">{{ translate("Last Name") }}</label>
-					<input class="field_input" :id="'field_last_name_' + this._uid" :name="name + '[last]'"
+					<label class="field_label" :for="'field_last_name_' + uid">{{ translate("Last Name") }}</label>
+					<input class="field_input" :id="'field_last_name_' + uid" :name="name + '[last]'"
 						   :value="value.last" :placeholder="translate('Last Name')" type="text" :required="required">
 				</div>
 			</div>

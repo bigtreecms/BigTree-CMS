@@ -11,7 +11,8 @@
 
 		data: function() {
 			return {
-				current_value: this.value
+				current_value: this.value,
+				uid: this._uid
 			}
 		},
 		
@@ -53,12 +54,12 @@
 </script>
 
 <template>
-	<field :title="title" :subtitle="subtitle" :label_for="'field_' + this._uid">
+	<field :title="title" :subtitle="subtitle" :label_for="'field_' + uid">
 		<div class="field_upload">
 			<input type="hidden" :name="name" :value="value">
-			<input class="field_input field_input_upload" :id="'field_' + this._uid" :name="name" type="file"
+			<input class="field_input field_input_upload" :id="'field_' + uid" :name="name" type="file"
 				   v-on:change="file_chosen" v-on:focus="focus" v-on:blur="blur">
-			<label class="field_upload_label" :for="'field_' + this._uid">{{ translate('Select a File') }}</label>
+			<label class="field_upload_label" :for="'field_' + uid">{{ translate('Select a File') }}</label>
 			<div class="field_upload_info" v-if="current_value">
 				<span class="field_upload_hint">{{ translate('Currently:') }}</span>
 				<a class="field_upload_file" :href="this.value">{{ current_file_name }}</a>

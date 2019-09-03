@@ -99,7 +99,8 @@
 					"WV": "West Virginia",
 					"WI": "Wisconsin",
 					"WY": "Wyoming"
-				}
+				},
+				uid: this._uid
 			}
 		}
 	});
@@ -110,22 +111,22 @@
 		<div class="field_address">
 			<div class="field_group">
 				<div class="field_wrapper">
-					<label class="field_label" :for="'field_street_' + this._uid">{{ translate("Street Address") }}</label>
-					<input class="field_input" :id="'field_street_' + this._uid" :name="name + '[street]'"
+					<label class="field_label" :for="'field_street_' + uid">{{ translate("Street Address") }}</label>
+					<input class="field_input" :id="'field_street_' + uid" :name="name + '[street]'"
 						   :value="value.street" :placeholder="translate('Street')" type="text" :required="required">
 				</div>
 			</div>
 			
 			<div class="field_group">
 				<div class="field_wrapper">
-					<label class="field_label" :for="'field_city_' + this._uid">{{ translate("City") }}</label>
-					<input class="field_input" :id="'field_city_' + this._uid" :name="name + '[city]'"
+					<label class="field_label" :for="'field_city_' + uid">{{ translate("City") }}</label>
+					<input class="field_input" :id="'field_city_' + uid" :name="name + '[city]'"
 						   :value="value.city" :placeholder="translate('City')" type="text" :required="required">
 				</div>
 				
 				<div v-if="current_country === 'United States'" class="field_wrapper">
-					<label class="field_label" :for="'field_state_' + this._uid">{{ translate("State") }}</label>
-					<select class="field_select" :id="'field_state_' + this._uid" :name="name + '[state]'"
+					<label class="field_label" :for="'field_state_' + uid">{{ translate("State") }}</label>
+					<select class="field_select" :id="'field_state_' + uid" :name="name + '[state]'"
 							:required="required">
 						<option value="">{{ translate('Select a State') }}</option>
 						<option v-for="abbreviation, state in this.states" :selected="value.state === abbreviation">{{ state }}</option>
@@ -134,22 +135,22 @@
 				</div>
 				
 				<div v-else class="field_wrapper">
-					<label class="field_label" :for="'field_state_' + this._uid">{{ translate("State or Province") }}</label>
-					<input class="field_input" :id="'field_state_' + this._uid" :name="name + '[state]'"
+					<label class="field_label" :for="'field_state_' + uid">{{ translate("State or Province") }}</label>
+					<input class="field_input" :id="'field_state_' + uid" :name="name + '[state]'"
 						   :value="value.state" :placeholder="translate('Street / Province')" type="text" :required="required">
 				</div>
 			</div>
 			
 			<div class="field_group">
 				<div class="field_wrapper">
-					<label class="field_label" :for="'field_zip_' + this._uid">{{ translate(current_country === "United States" ? "Zip Code" : "Zip or Postal Code") }}</label>
-					<input class="field_input" :id="'field_zip_' + this._uid" :name="name + '[zip]'"
+					<label class="field_label" :for="'field_zip_' + uid">{{ translate(current_country === "United States" ? "Zip Code" : "Zip or Postal Code") }}</label>
+					<input class="field_input" :id="'field_zip_' + uid" :name="name + '[zip]'"
 						   :value="value.zip" :placeholder="translate(current_country === 'United States' ? 'Zip Code' : 'Zip / Postal Code')" type="text" :required="required">
 				</div>
 				
 				<div class="field_wrapper">
-					<label class="field_label" :for="'field_country_' + this._uid">{{ translate("Country") }}</label>
-					<select class="field_select" :id="'field_country_' + this._uid" :name="name + '[country]'"
+					<label class="field_label" :for="'field_country_' + uid">{{ translate("Country") }}</label>
+					<select class="field_select" :id="'field_country_' + uid" :name="name + '[country]'"
 							:required="required" v-model="current_country">
 						<option value="">{{ translate('Select a Country') }}</option>
 						<option v-for="country in this.countries" :selected="value.country === country">{{ country }}</option>

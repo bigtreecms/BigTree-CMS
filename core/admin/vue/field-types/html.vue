@@ -11,7 +11,8 @@
 
 		data: function() {
 			return {
-				current_value: this.value
+				current_value: this.value,
+				uid: this._uid
 			}
 		},
 
@@ -33,16 +34,16 @@
 
 		methods: {
 			focus: function() {
-				tinymce.get('field_tinymce_' + this._uid).focus();
+				tinymce.get('field_tinymce_' + uid).focus();
 			}
 		}
 	});
 </script>
 
 <template>
-	<field :title="title" :subtitle="subtitle" :label_for="'field_' + this._uid">
-		<textarea :id="'field_' + this._uid" style="position: absolute; left: -10000px; width: 1px; height: 1px;"
+	<field :title="title" :subtitle="subtitle" :label_for="'field_' + uid">
+		<textarea :id="'field_' + uid" style="position: absolute; left: -10000px; width: 1px; height: 1px;"
 				  :name="name" :required="required" v-model="current_value" v-on:focus="focus"></textarea>
-		<tinymce-editor :init="init" :id="'field_tinymce_' + this._uid" v-model="current_value"></tinymce-editor>
+		<tinymce-editor :init="init" :id="'field_tinymce_' + uid" v-model="current_value"></tinymce-editor>
 	</field>
 </template>
