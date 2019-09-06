@@ -155,17 +155,56 @@
 		}
 	}
 
-	// Serve Placeholder Image
-	if ($bigtree["path"][0] == "images" && $bigtree["path"][1] == "placeholder") {
-		if (is_array($bigtree["config"]["placeholder"][$bigtree["path"][2]])) {
-			$style = $bigtree["config"]["placeholder"][$bigtree["path"][2]];
-			$size = explode("x", strtolower($bigtree["path"][3]));
+	// Serve Images
+	if ($bigtree["path"][0] == "images") {
+		if ($bigtree["path"][1] == "placeholder") {
+			if (is_array($bigtree["config"]["placeholder"][$bigtree["path"][2]])) {
+				$style = $bigtree["config"]["placeholder"][$bigtree["path"][2]];
+				$size = explode("x", strtolower($bigtree["path"][3]));
+			} else {
+				$style = $bigtree["config"]["placeholder"]["default"];
+				$size = explode("x", strtolower($bigtree["path"][2]));
+			}
+			if (count($size) == 2) {
+				BigTree::placeholderImage($size[0], $size[1], $style["background_color"], $style["text_color"], $style["image"], $style["text"]);
+			}
 		} else {
-			$style = $bigtree["config"]["placeholder"]["default"];
-			$size = explode("x", strtolower($bigtree["path"][2]));
-		}
-		if (count($size) == 2) {
-			BigTree::placeholderImage($size[0], $size[1], $style["background_color"], $style["text_color"], $style["image"], $style["text"]);
+			$image_path = SITE_ROOT.implode("/", $bigtree["path"]);
+			$last_modified = filemtime($image_path);
+			
+			if (function_exists("apache_request_headers")) {
+				$headers = apache_request_headers();
+				$ims = $headers["If-Modified-Since"];
+			} else {
+				$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
+			}
+			
+			if (!$ims || strtotime($ims) != $last_modified) {
+				header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
+			
+				if (function_exists("mime_content_type")) {
+					$type = mime_content_type($image_path);
+				} else {
+					$extension = pathinfo($image_path, PATHINFO_EXTENSION);
+					
+					if ($extension == "jpg" || $extension == "jpeg") {
+						$type = "image/jpeg";
+					} elseif ($extension == "gif") {
+						$type = "image/gif";
+					} elseif ($extension == "png") {
+						$type = "image/png";
+					} elseif ($extension == "svg") {
+						$type = "image/svg+xml";
+					}
+				}
+				
+				header("Content-type: $type");
+				readfile($image_path);
+				die();
+			} else {
+				header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
+				die();
+			}
 		}
 	}
 

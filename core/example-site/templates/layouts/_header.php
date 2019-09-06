@@ -28,7 +28,7 @@
 		<?php $cms->drawHeadTags($site_title, "&middot;"); ?>
 
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,700,400italic,600italic">
-		<link rel="stylesheet" href="<?=STATIC_ROOT?>css/site.css?<?=filemtime(SITE_ROOT."css/main.less")?>">
+		<link rel="stylesheet" href="<?=WWW_ROOT?>css/site.css?<?=filemtime(SITE_ROOT."css/main.less")?>">
 
 		<script src="<?=STATIC_ROOT?>js/modernizr.js"></script>
 	</head>
