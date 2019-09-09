@@ -28,7 +28,7 @@
 <template>
 	<field :title="title" :subtitle="subtitle" :label_for="'field_' + uid" :required="required" :error="error">
 		<textarea :id="'field_' + uid" style="position: absolute; left: -10000px; width: 1px; height: 1px;"
-				  :name="name" :required="required" v-model="current_value" v-on:focus="focus"></textarea>
+				  :name="name" v-model="current_value" v-on:focus="focus"></textarea>
 		<tinymce-editor :init="init" :id="'field_tinymce_' + uid" v-model="current_value"></tinymce-editor>
 	</field>
 </template>

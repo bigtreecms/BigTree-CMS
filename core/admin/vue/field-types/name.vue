@@ -1,6 +1,20 @@
 <script>
 	Vue.component("FieldTypeName", {
-		extends: FieldType
+		extends: FieldType,
+		data: function() {
+			return {
+				first: (typeof this.value === "object") ? this.value.first : "",
+				last: (typeof this.value === "object") ? this.value.last : ""
+			}
+		},
+		calculated: {
+			current_value: function() {
+				return {
+					first: this.first,
+					last: this.last
+				}
+			}
+		}
 	});
 </script>
 
@@ -11,13 +25,13 @@
 				<div class="field_wrapper">
 					<label class="field_label" :for="'field_first_name_' + uid">{{ translate("First Name") }}</label>
 					<input class="field_input" :id="'field_first_name_' + uid" :name="name + '[first]'"
-						   :value="value.first" :placeholder="translate('First Name')" type="text" :required="required">
+						   v-model="first" :placeholder="translate('First Name')" type="text" :required="required">
 				</div>
 				
 				<div class="field_wrapper">
 					<label class="field_label" :for="'field_last_name_' + uid">{{ translate("Last Name") }}</label>
 					<input class="field_input" :id="'field_last_name_' + uid" :name="name + '[last]'"
-						   :value="value.last" :placeholder="translate('Last Name')" type="text" :required="required">
+						   v-model="last" :placeholder="translate('Last Name')" type="text" :required="required">
 				</div>
 			</div>
 		</div>
