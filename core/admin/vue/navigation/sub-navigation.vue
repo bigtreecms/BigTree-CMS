@@ -1,5 +1,5 @@
 <script>
-	Vue.component("sub-navigation", {
+	Vue.component("NavigationSub", {
 		props: ["links"]
 	});
 </script>

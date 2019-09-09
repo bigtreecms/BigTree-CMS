@@ -1,10 +1,8 @@
 <script>
-	Vue.component("page-tags-listing", {
+	Vue.component("TagsList", {
 		asyncComputed: {
 			async data () {
-				let tags = await BigTreeAPI.getStoredData("tags", "tag");
-				
-				return tags;
+				return await BigTreeAPI.getStoredData("tags", "tag");
 			}
 		}
 	});
@@ -12,11 +10,11 @@
 
 <template>
 	<div class="component layout_expanded">
-		<data-table actions_base_path="tags" searchable="true" sortable="true" per_page="10" :columns="[
+		<DataTable actions_base_path="tags" searchable="true" sortable="true" per_page="10" :columns="[
 			{ 'title': 'Tag Name', 'key': 'tag', 'sort': true }
 		]" :actions="[
 			{ 'title': 'Merge Tags', 'route': 'merge' },
 			{ 'title': 'Delete Tag', 'route': 'delete' }
-		]" :data="data" escaped_data="true"></data-table>
+		]" :data="data" escaped_data="true"></DataTable>
 	</div>
 </template>

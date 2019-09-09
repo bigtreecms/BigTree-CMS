@@ -1,5 +1,5 @@
 <script>
-	Vue.component("page-title", {
+	Vue.component("PageTitle", {
 		props: ["title", "url"]
 	});
 </script>

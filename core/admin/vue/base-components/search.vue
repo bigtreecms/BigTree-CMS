@@ -1,3 +1,17 @@
+<script>
+	Vue.component("Search", {
+		props: ["label", "placeholder"],
+		data: function() {
+			return { query: "" };
+		},
+		methods: {
+			save: function() {
+				this.$parent.$emit("search.change", this.query);
+			}
+		}
+	});
+</script>
+
 <template>
 	<div class="component">
 		<div class="component_body">
@@ -11,17 +25,3 @@
 		</div>
 	</div>
 </template>
-
-<script>
-	Vue.component("search", {
-		props: ["label", "placeholder"],
-		data: function() {
-			return { query: "" };
-		},
-		methods: {
-			save: function() {
-				this.$parent.$emit("search.change", this.query);
-			}
-		}
-	});
-</script>

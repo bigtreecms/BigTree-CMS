@@ -1,21 +1,7 @@
 <script>
-	Vue.component("field-html", {
-		props: [
-			"title",
-			"subtitle",
-			"name",
-			"value",
-			"required",
-			"type"
-		],
-
-		data: function() {
-			return {
-				current_value: this.value,
-				uid: this._uid
-			}
-		},
-
+	Vue.component("FieldTypeHtml", {
+		extends: FieldType,
+		props: ["type"],
 		computed: {
 			init: function() {
 				let type = "full";
@@ -31,17 +17,16 @@
 				}
 			}
 		},
-
 		methods: {
 			focus: function() {
-				tinymce.get('field_tinymce_' + uid).focus();
+				tinymce.get('field_tinymce_' + this.uid).focus();
 			}
 		}
 	});
 </script>
 
 <template>
-	<field :title="title" :subtitle="subtitle" :label_for="'field_' + uid">
+	<field :title="title" :subtitle="subtitle" :label_for="'field_' + uid" :required="required" :error="error">
 		<textarea :id="'field_' + uid" style="position: absolute; left: -10000px; width: 1px; height: 1px;"
 				  :name="name" :required="required" v-model="current_value" v-on:focus="focus"></textarea>
 		<tinymce-editor :init="init" :id="'field_tinymce_' + uid" v-model="current_value"></tinymce-editor>

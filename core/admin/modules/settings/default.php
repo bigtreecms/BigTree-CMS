@@ -3,4 +3,4 @@
 	
 	Router::setLayout("new");
 ?>
-<page-settings-listing></page-settings-listing>
+<settings-list></settings-list>

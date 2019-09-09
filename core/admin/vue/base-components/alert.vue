@@ -1,5 +1,5 @@
 <script>
-	Vue.component("alert", {
+	Vue.component("Alert", {
 		props: ["title", "type", "hideable"],
 		computed: {
 			icon: function() {

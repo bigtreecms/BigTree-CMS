@@ -1,5 +1,5 @@
 <script>
-	Vue.component("action-menu", {
+	Vue.component("ActionMenu", {
 		data: function() {
 			return {
 				current_value: typeof this.actions[0].value !== "undefined" ? this.actions[0].value : this.actions[0].title,

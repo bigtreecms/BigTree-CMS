@@ -1,5 +1,5 @@
 <script>
-	Vue.component("block", {
+	Vue.component("Block", {
 		props: ["title"],
 	});
 </script>

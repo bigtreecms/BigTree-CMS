@@ -1,23 +1,11 @@
 <script>
-	Vue.component("field-name", {
-		props: [
-			"title",
-			"subtitle",
-			"name",
-			"value",
-			"required"
-		],
-
-		data: function() {
-			return {
-				uid: this._uid
-			}
-		}
+	Vue.component("FieldTypeName", {
+		extends: FieldType
 	});
 </script>
 
 <template>
-	<field :title="title" :subtitle="subtitle" set="true">
+	<field :title="title" :subtitle="subtitle" set="true" :required="required" :error="error">
 		<div class="field_name">
 			<div class="field_group">
 				<div class="field_wrapper">

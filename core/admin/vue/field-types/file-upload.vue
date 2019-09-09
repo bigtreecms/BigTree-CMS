@@ -1,21 +1,7 @@
 <script>
-	Vue.component("field-file-upload", {
-		props: [
-			"title",
-			"subtitle",
-			"name",
-			"value",
-			"placeholder",
-			"required"
-		],
-
-		data: function() {
-			return {
-				current_value: this.value,
-				uid: this._uid
-			}
-		},
-		
+	Vue.component("FieldTypeFileUpload", {
+		extends: FieldType,
+		props: ["placeholder"],
 		computed: {
 			current_file_name: function() {
 				if (this.current_value) {
@@ -31,7 +17,6 @@
 				return "";
 			}
 		},
-		
 		methods: {
 			blur: function() {
 				$(this.$el).find(".field_upload_label").removeClass("focused");
@@ -54,7 +39,7 @@
 </script>
 
 <template>
-	<field :title="title" :subtitle="subtitle" :label_for="'field_' + uid">
+	<field :title="title" :subtitle="subtitle" :label_for="'field_' + uid" :error="error" :required="required">
 		<div class="field_upload">
 			<input type="hidden" :name="name" :value="value">
 			<input class="field_input field_input_upload" :id="'field_' + uid" :name="name" type="file"

@@ -3,4 +3,4 @@
 	
 	Router::setLayout("new");
 ?>
-<page-tags-listing></page-tags-listing>
+<tags-list></tags-list>

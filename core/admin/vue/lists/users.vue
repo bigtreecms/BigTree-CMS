@@ -1,5 +1,5 @@
 <script>
-	Vue.component("page-users-listing", {
+	Vue.component("UsersList", {
 		asyncComputed: {
 			async data () {
 				const user_levels = [
@@ -22,7 +22,7 @@
 
 <template>
 	<div class="component layout_expanded">
-		<data-table actions_base_path="users" searchable="true" per_page="10" translatable="true" :columns="[
+		<DataTable actions_base_path="users" searchable="true" per_page="10" translatable="true" :columns="[
 			{ 'title': 'Name', 'key': 'name', 'sort': true, 'sort_default': 'ASC', 'width': '35%' },
 			{ 'title': 'Email', 'key': 'email', 'sort': true, 'width': '25%' },
 			{ 'title': 'Company', 'key': 'company', 'sort': true, 'width': '25%' },
@@ -30,6 +30,6 @@
 		]" :actions="[
 			{ 'title': 'Edit User', 'route': 'edit' },
 			{ 'title': 'Delete User', 'route': 'delete' }
-		]" :data="data" sortable="true" escaped_data="true"></data-table>
+		]" :data="data" sortable="true" escaped_data="true"></DataTable>
 	</div>
 </template>

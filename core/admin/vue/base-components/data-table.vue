@@ -1,5 +1,5 @@
 <script>
-	Vue.component("data-table", {
+	Vue.component("DataTable", {
 		props: [
 			"actions",
 			"actions_base_path",
@@ -314,10 +314,10 @@
 					</td>
 					<td v-if="data_contains_actions || (typeof actions === 'object' && actions.length)" class="table_column">
 						<div class="table_column_content">
-							<action-menu v-if="data_contains_actions && typeof row['actions'] === 'object' && row['actions'].length" :base_path="typeof row['actions_base_path'] !== 'undefined' ? row['actions_base_path'] : actions_base_path"
-										 :actions="row['actions']" :id="row['id']" :escaped_actions="escaped_data"></action-menu>
-							<action-menu v-else-if="typeof actions === 'object' && actions.length" :base_path="actions_base_path" :actions="actions"
-										 :id="row['id']" :escaped_actions="escaped_data"></action-menu>
+							<ActionMenu v-if="data_contains_actions && typeof row['actions'] === 'object' && row['actions'].length" :base_path="typeof row['actions_base_path'] !== 'undefined' ? row['actions_base_path'] : actions_base_path"
+										 :actions="row['actions']" :id="row['id']" :escaped_actions="escaped_data"></ActionMenu>
+							<ActionMenu v-else-if="typeof actions === 'object' && actions.length" :base_path="actions_base_path" :actions="actions"
+										 :id="row['id']" :escaped_actions="escaped_data"></ActionMenu>
 							<span v-else>{{ typeof row['actions'] }}&nbsp;</span>
 						</div>
 					</td>

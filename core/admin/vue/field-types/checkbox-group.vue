@@ -1,21 +1,12 @@
 <script>
-	Vue.component("field-checkbox-group", {
-		props: [
-			"title",
-			"subtitle",
-			"name",
-			"options",
-			"value",
-			"required"
-		],
-
+	Vue.component("FieldTypeCheckboxGroup", {
+		extends: FieldType,
+		props: ["options"],
 		data: function() {
 			return {
-				current_value: this.value ? this.value : [],
-				uid: this._uid
+				current_value: this.value ? this.value : []
 			}
 		},
-
 		methods: {
 			recalculate: function() {
 				let value = [];
@@ -27,13 +18,24 @@
 				});
 
 				this.current_value = value;
+			},
+			
+			validate: function() {
+				if (this.required && !$(this.$el).find("input:checked").length) {
+					this.error = this.translate("Required");
+
+					return;
+				}
+
+				this.error = null;
+				this.$parent.$emit("validated");
 			}
-		}
+		},
 	});
 </script>
 
 <template>
-	<field :title="title" :subtitle="subtitle" set="true">
+	<field :title="title" :subtitle="subtitle" set="true" :required="required" :error="error">
 		<div class="field_choices">
 			<div class="field_choice" v-for="(option, index) in options">
 				<input class="field_choice_input" :name="name + '[]'" v-on:change="recalculate"

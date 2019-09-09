@@ -1,5 +1,5 @@
 <script>
-	Vue.component("page-tools", {
+	Vue.component("PageTools", {
 		props: ["links"]
 	});
 </script>

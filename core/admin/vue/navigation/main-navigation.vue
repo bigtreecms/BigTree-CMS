@@ -1,5 +1,5 @@
 <script>
-	Vue.component("main-navigation", {
+	Vue.component("NavigationMain", {
 		props: ["links", "title"]
 	});
 </script>

@@ -75,7 +75,7 @@
 						</div>
 					</div>
 					
-					<main-navigation title="<?=Text::translate("Menu", true)?>" :links="main_nav"></main-navigation>
+					<navigation-main title="<?=Text::translate("Menu", true)?>" :links="main_nav"></navigation-main>
 					
 					<div class="header_details">
 						<p class="credit">Version <?=BIGTREE_VERSION?></p>
@@ -97,7 +97,7 @@
 						<page-tools v-if="tools.length" :links="tools"></page-tools>
 					</div>
 					
-					<sub-navigation v-if="sub_nav.length" :links="sub_nav"></sub-navigation>
+					<navigation-sub v-if="sub_nav.length" :links="sub_nav"></navigation-sub>
 				</div>
 				
 				<button-bar v-if="sub_nav_actions.length" :links="sub_nav_actions"></button-bar>

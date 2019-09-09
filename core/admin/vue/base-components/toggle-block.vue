@@ -1,5 +1,5 @@
 <script>
-	Vue.component("toggle-block", {
+	Vue.component("ToggleBlock", {
 		props: ["id", "escaped_title", "title", "collapsed"],
 		data: function() {
 			return {

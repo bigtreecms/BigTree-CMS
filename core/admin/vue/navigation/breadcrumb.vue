@@ -1,5 +1,5 @@
 <script>
-	Vue.component("breadcrumb", {
+	Vue.component("Breadcrumb", {
 		props: ["links"],
 		methods: {
 			click: function(event) {

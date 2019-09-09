@@ -1,5 +1,5 @@
 <script>
-	Vue.component("button-bar", {
+	Vue.component("ButtonBar", {
 		props: ["links"]
 	});
 </script>

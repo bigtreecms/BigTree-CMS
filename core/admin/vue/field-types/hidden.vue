@@ -1,6 +1,6 @@
 <script>
-	Vue.component("field-hidden-value", {
-		props: ["name", "value"]
+	Vue.component("FieldTypeHiddenValue", {
+		extends: FieldType
 	});
 </script>
 

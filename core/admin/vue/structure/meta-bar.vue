@@ -1,5 +1,5 @@
 <script>
-	Vue.component("meta-bar", {
+	Vue.component("MetaBar", {
 		props: ["items"]
 	});
 </script>

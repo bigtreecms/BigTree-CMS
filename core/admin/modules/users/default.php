@@ -3,4 +3,4 @@
 	
 	Router::setLayout("new");
 ?>
-<page-users-listing></page-users-listing>
+<users-list></users-list>

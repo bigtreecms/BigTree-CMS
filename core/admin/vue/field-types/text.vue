@@ -1,21 +1,15 @@
 <script>
-	Vue.component("field-text", {
+	Vue.component("FieldTypeText", {
+		extends: FieldType,
 		props: [
-			"title",
-			"subtitle",
-			"name",
-			"value",
 			"placeholder",
-			"required",
 			"maxlength",
 			"type"
 		],
 		
 		data: function() {
 			return {
-				current_value: this.value,
-				max_length_int: parseInt(this.maxlength),
-				uid: this._uid
+				max_length_int: parseInt(this.maxlength)
 			}
 		},
 		
@@ -56,8 +50,8 @@
 </script>
 
 <template>
-	<field :title="title" :subtitle="subtitle" :label_for="'field_' + uid"
-		   :help_text="help_text" :help_text_style="help_text_style">
+	<field :title="title" :subtitle="subtitle" :label_for="'field_' + uid" :help_text="help_text"
+		   :help_text_style="help_text_style" :required="required" :error="error">
 		<textarea v-if="type === 'textarea'" class="field_input field_input_textarea" :type="type ? type : 'text'"
 				  :name="name" v-model="current_value" :id="'field_' + uid" :placeholder="placeholder"
 				  :required="required" :maxlength="maxlength"></textarea>
