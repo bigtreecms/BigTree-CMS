@@ -102,7 +102,9 @@
 				
 				<button-bar v-if="sub_nav_actions.length" :links="sub_nav_actions"></button-bar>
 				
-				<?php Router::renderContent(); ?>
+				<div id="content">
+					<?php Admin::renderContent(); ?>
+				</div>
 			</main>
 			
 			<footer class="footer">

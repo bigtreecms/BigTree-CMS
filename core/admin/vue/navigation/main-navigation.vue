@@ -1,6 +1,14 @@
 <script>
 	Vue.component("NavigationMain", {
-		props: ["links", "title"]
+		props: ["links", "title"],
+		methods: {
+			navigate: function(ev) {
+				let target = $(ev.target);
+				ev.preventDefault();
+				
+				this.load_partial(target.attr("href"));
+			}
+		}
 	});
 </script>
 
@@ -14,7 +22,7 @@
 			<nav class="main_nav">
 				<ul class="main_nav_items">
 					<li v-for="link in links" class="main_nav_item">
-						<a class="main_nav_link" :class="{ 'active': link.active }" :href="link.url">
+						<a class="main_nav_link" :class="{ 'active': link.active }" :href="link.url" v-on:click="navigate">
 							<icon wrapper="main_nav" :icon="link.icon"></icon>
 							<span class="main_nav_label">{{ translate(link.title) }}</span>
 						</a>

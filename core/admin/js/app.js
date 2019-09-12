@@ -13,5 +13,28 @@ let BigTree = new Vue({
 		meta_bar: typeof state.meta_bar != "undefined" ? state.meta_bar : [],
 		main_nav: state.main_nav,
 		user_level: state.user_level
+	},
+	mounted: function() {
+		$(window).on("popstate", function(event) {
+			let pop = event.originalEvent.state;
+
+			if (!pop || !pop.state) {
+				window.location.reload();
+
+				return;
+			}
+
+			for (let key in pop.state) {
+				if (pop.state.hasOwnProperty(key)) {
+					BigTree[key] = pop.state[key];
+				}
+			}
+
+			let res = Vue.compile('<div id="content">' + pop.content + '</div>');
+			new Vue({
+				render: res.render,
+				staticRenderFns: res.staticRenderFns
+			}).$mount('#content')
+		});
 	}
 });

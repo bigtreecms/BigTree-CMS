@@ -121,9 +121,9 @@
 				header("Content-type: text/json");
 				ob_clean();
 				
-				echo JSON::encode(static::$State);
+				echo json_encode(["content" => Router::$Content, "state" => static::$State], JSON_UNESCAPED_SLASHES);
 			} else {
-				echo '<script>let state = '.JSON::encode(static::$State).';</script>';
+				echo '<script>let state = '.json_encode(static::$State).';</script>';
 			}
 		}
 		
@@ -265,6 +265,27 @@
 			
 			if (!in_array($include_path, static::$Javascript)) {
 				static::$Javascript[] = $include_path;
+			}
+		}
+		
+		/*
+			Function: renderContent
+				Renders admin content into a layout or sends it as a parseable Vue state JSON array if requested.
+		*/
+		
+		public static function renderContent() {
+			if (function_exists("apache_request_headers")) {
+				$headers = apache_request_headers();
+				$vue_response = isset($headers["BigTree-Partial"]) ? $headers["BigTree-Partial"] : "";
+			} else {
+				$vue_response = isset($_SERVER["HTTP_BIGTREE_PARTIAL"]) ? $_SERVER["HTTP_BIGTREE_PARTIAL"] : "";
+			}
+			
+			if ($vue_response) {
+				static::drawState(true);
+				die();
+			} else {
+				echo Router::$Content;
 			}
 		}
 		

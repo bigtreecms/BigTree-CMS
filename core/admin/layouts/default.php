@@ -222,33 +222,5 @@
 	?>
 </div>
 <?php
-	// Send JSON if we're doing a partial.
-	if ($_SERVER["HTTP_BIGTREE_PARTIAL"]) {
-		header("Content-type: text/json");
-		$site = new Page(0, false);
-		$title = $bigtree["admin_title"] ? $bigtree["admin_title"]." | ".$site->NavigationTitle." Admin" : $site->NavigationTitle." Admin";
-		
-		if (is_array($bigtree["js"])) {
-			foreach ($bigtree["js"] as &$script) {
-				$script = ADMIN_ROOT."js/$script";
-			}
-		}
-		
-		if (is_array($bigtree["css"])) {
-			foreach ($bigtree["css"] as &$style) {
-				$style = ADMIN_ROOT."css/$style";
-			}
-		}
-		
-		echo json_encode([
-			"breadcrumb" => $bigtree["breadcrumb"],
-			"title" => $title,
-			"page" => ob_get_clean(),
-			"active_nav" => $bigtree["active_nav_item"],
-			"scripts" => $bigtree["js"],
-			"css" => $bigtree["css"]
-		]);
-	// Otherwise include the footer
-	} else {
-		include Router::getIncludePath("admin/layouts/_footer.php");
-	}
+	include Router::getIncludePath("admin/layouts/_footer.php");
+?>
