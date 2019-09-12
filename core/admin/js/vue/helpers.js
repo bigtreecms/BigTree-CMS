@@ -1,4 +1,3 @@
-// Translate, Tooltip
 Vue.mixin({
 	methods: {
 		translate: function(string, tokens) {
@@ -80,41 +79,6 @@ Vue.mixin({
 
 				if (tooltip.offset().top - tooltip.outerHeight() < 10) {
 					tooltip.addClass("flipped");
-				}
-			});
-		},
-
-		load_partial: function(url) {
-			$.ajax(url, {
-				headers: {
-					"BigTree-Partial": true
-				},
-				complete: function(response) {
-					console.log(response);
-					if (!response.responseJSON) {
-						window.location.href = url;
-
-						return;
-					}
-
-					let state = response.responseJSON.state;
-
-					for (let key in state) {
-						if (state.hasOwnProperty(key)) {
-							BigTree[key] = state[key];
-						}
-					}
-
-					window.history.pushState({
-						"state": state,
-						"content": response.responseJSON.content
-					}, "", url);
-
-					let res = Vue.compile('<div id="content">' + response.responseJSON.content + '</div>');
-					new Vue({
-						render: res.render,
-						staticRenderFns: res.staticRenderFns
-					}).$mount('#content')
 				}
 			});
 		}

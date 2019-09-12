@@ -62,20 +62,7 @@
 		}
 	}
 
-	// If this is a "Partial" page request then we're going to deliver JSON and let JavaScript construct it.
-	if ($_SERVER["HTTP_BIGTREE_PARTIAL"]) {
-		ob_start();
-		foreach ($bigtree["breadcrumb"] as &$item) {
-			$item["title"] = Text::htmlEncode($item["title"]);
-		}
-		unset($item);
-		// We're going to fake include the header to get the active nav state.
-		include Router::getIncludePath("admin/layouts/_header.php");
-		ob_clean();
-	// Otherwise, full page render, so include the header and draw the breadcrumb.
-	} else {
-		include Router::getIncludePath("admin/layouts/_header.php");
-	}
+	include Router::getIncludePath("admin/layouts/_header.php");
 ?>
 <div id="page">
 	<?php

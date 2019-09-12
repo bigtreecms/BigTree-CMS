@@ -6,7 +6,7 @@
 				let target = $(ev.target);
 				ev.preventDefault();
 				
-				this.load_partial(target.attr("href"));
+				BigTree.request_partial(target.attr("href"));
 			}
 		}
 	});
