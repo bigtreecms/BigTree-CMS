@@ -317,13 +317,29 @@
 			},
 			
 			navigate: function(data) {
+				window.history.pushState({
+					content: window.history.state.content,
+					state: window.history.state.state,
+					page: data.id
+				}, "", window.location.href.replace("/" + this.page + "/", "/" + data.id + "/"));
+				
 				this.page = data.id;
+			}
+		},
+		
+		created: function() {
+			if (this.$parent && typeof this.$parent.page !== "undefined") {
+				this.page = this.$parent.page;
 			}
 		},
 		
 		mounted: function() {
 			BigTreeEventBus.$on("breadcrumb-click", (id) => {
 				this.navigate({ id: id });
+			});
+			
+			BigTreeEventBus.$on("state-pop", (state) => {
+				this.page = state.page;
 			});
 
 			BigTreeEventBus.$on("api-data-changed", (store) => {

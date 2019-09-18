@@ -62,11 +62,20 @@ let BigTree = new Vue({
 			});
 		}
 	},
+
+	beforeCreate: function() {
+		window.history.replaceState({
+			"state": state,
+			"content": $("#content").html()
+		}, "", window.location.href);
+	},
+
 	mounted: function() {
 		$(window).on("popstate", function(event) {
 			let pop = event.originalEvent.state;
+			let component_state = {};
 
-			if (!pop || !pop.state) {
+			if (!pop) {
 				window.location.reload();
 
 				return;
@@ -74,15 +83,24 @@ let BigTree = new Vue({
 
 			for (let key in pop.state) {
 				if (pop.state.hasOwnProperty(key)) {
-					BigTree[key] = pop.state[key];
+					if (BigTree.hasOwnProperty(key)) {
+						BigTree[key] = pop.state[key];
+					}
+				}
+			}
+
+			for (let key in pop) {
+				if (pop.hasOwnProperty(key) && key !== "state" && key !== "content") {
+					component_state[key] = pop[key];
 				}
 			}
 
 			let res = Vue.compile('<div id="content">' + pop.content + '</div>');
 			new Vue({
 				render: res.render,
-				staticRenderFns: res.staticRenderFns
-			}).$mount('#content')
+				staticRenderFns: res.staticRenderFns,
+				data: component_state
+			}).$mount('#content');
 		});
 	}
 });

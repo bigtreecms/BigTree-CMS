@@ -3,6 +3,8 @@
 		props: ["links"],
 		methods: {
 			click: function(event) {
+				event.preventDefault();
+				
 				BigTreeEventBus.$emit("breadcrumb-click", $(event.target).data("id"));
 			}
 		}
