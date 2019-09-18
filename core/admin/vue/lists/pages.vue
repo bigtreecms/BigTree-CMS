@@ -89,7 +89,7 @@
 				// Sub-nav
 				let sub_nav = [{
 					title: "Subpages",
-					url: ADMIN_ROOT + "pages/view-tree/" + page.id + "/",
+					url: ADMIN_ROOT + "pages/" + page.id + "/",
 					active: true
 				}];
 
@@ -317,11 +317,25 @@
 			},
 			
 			navigate: function(data) {
+				let location = window.location.href;
+				let slug = "/" + data.id + "/";
+				let length = slug.length;
+				
+				if (location.substr(-1, 1) !== "/") {
+					location = location + "/";
+				}
+				
+				let new_location = location.replace("/" + this.page + "/", slug);
+				
+				if (new_location.substr(-1 * length, length) !== slug) {
+					new_location = location + data.id + "/";
+				}
+				
 				window.history.pushState({
 					content: window.history.state.content,
 					state: window.history.state.state,
 					page: data.id
-				}, "", window.location.href.replace("/" + this.page + "/", "/" + data.id + "/"));
+				}, "", new_location);
 				
 				this.page = data.id;
 			}

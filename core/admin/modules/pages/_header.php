@@ -14,7 +14,7 @@
 	} elseif (isset($_GET["id"])) {
 		$id = $_GET["id"];
 	} else {
-		Router::redirect(ADMIN_ROOT."pages/view-tree/0/");
+		$id = 0;
 	}
 	
 	$id = preg_replace("/[^a-z0-9.]+/i", "", $id);
