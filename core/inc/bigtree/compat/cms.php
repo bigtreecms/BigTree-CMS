@@ -181,7 +181,7 @@
 		*/
 		
 		static function decodeResources($data) {
-			return BigTree\Page::decodeResources($data);
+			trigger_error("This method no longer exists", E_USER_ERROR);
 		}
 		
 		/*
@@ -405,7 +405,7 @@
 		*/
 		
 		static function getPage($id, $decode = true) {
-			$page = new BigTree\Page($id, $decode);
+			$page = new BigTree\Page($id, null, $decode);
 			$page = $page->Array;
 			
 			// Backwards compatibility stuff
@@ -573,7 +573,7 @@
 		*/
 		
 		static function getTagsForPage($page, $full = true) {
-			$page = new BigTree\Page($page, false);
+			$page = new BigTree\Page($page, null, false);
 			$tags = $page->getTags(true);
 			
 			if ($full) {

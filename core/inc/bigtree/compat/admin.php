@@ -121,7 +121,7 @@
 		*/
 
 		function archivePage($page) {
-			$page = new BigTree\Page($page, false);
+			$page = new BigTree\Page($page, null, false);
 
 			// Only users with publisher access that can also modify this page's children can archive it
 			if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
@@ -146,7 +146,7 @@
 		*/
 
 		function archivePageChildren($page) {
-			$page = new BigTree\Page($page, false);
+			$page = new BigTree\Page($page, null, false);
 			$page->archiveChildren();
 		}
 
@@ -212,7 +212,7 @@
 		*/
 
 		function canModifyChildren($page) {
-			$page = new BigTree\Page($page, false);
+			$page = new BigTree\Page($page, null, false);
 
 			return $page->UserCanModifyChildren;
 		}
@@ -733,6 +733,10 @@
 					$$key = $val;
 				}
 			}
+			
+			if (!is_array($settings)) {
+				$settings = array_filter((array) json_decode($settings, true));
+			}
 
 			$setting = BigTree\Setting::create($id, $name, $description, $type, $settings, $extension, $system ? true : false, $encrypted ? true : false, $locked ? true : false);
 
@@ -1029,7 +1033,7 @@
 		function deletePage($page) {
 			// Published page
 			if (is_numeric($page)) {
-				$page = new BigTree\Page($page, false);
+				$page = new BigTree\Page($page, null, false);
 				if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
 					$page->delete();
 
@@ -1037,7 +1041,7 @@
 				}
 			} else {
 				$pending_change = new BigTree\PendingChange(substr($page, 1));
-				$page = new BigTree\Page($page, false);
+				$page = new BigTree\Page($page, null, false);
 				if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
 					$pending_change->delete();
 
@@ -1060,7 +1064,7 @@
 		*/
 
 		function deletePageChildren($id) {
-			$page = new BigTree\Page($id, false);
+			$page = new BigTree\Page($id, null, false);
 			$page->deleteChildren();
 		}
 
@@ -1074,7 +1078,7 @@
 		*/
 
 		function deletePageDraft($id) {
-			$page = new BigTree\Page($id, false);
+			$page = new BigTree\Page($id, null, false);
 
 			// Get the version, check if the user has access to the page the version refers to.
 			if ($page->UserAccessLevel != "p") {
@@ -1406,7 +1410,7 @@
 		*/
 
 		static function getArchivedNavigationByParent($parent) {
-			$page = new BigTree\Page($parent, false);
+			$page = new BigTree\Page($parent, null, false);
 			$children = $page->getArchivedChildren(true);
 
 			// We expect "title" to be the navigation title
@@ -1696,7 +1700,7 @@
 		*/
 
 		static function getFullNavigationPath($id) {
-			$page = new BigTree\Page($id, false);
+			$page = new BigTree\Page($id, null, false);
 
 			return $page->regeneratePath();
 		}
@@ -1713,7 +1717,7 @@
 		*/
 
 		static function getHiddenNavigationByParent($parent) {
-			$page = new BigTree\Page($parent, false);
+			$page = new BigTree\Page($parent, null, false);
 			$children = $page->getHiddenChildren(true);
 
 			// We expect "title" to be the navigation title
@@ -2229,7 +2233,7 @@
 		*/
 
 		static function getNaturalNavigationByParent($parent) {
-			$page = new BigTree\Page($parent, false);
+			$page = new BigTree\Page($parent, null, false);
 			$children = $page->getVisibleChildren(true);
 
 			// We expect "title" to be the navigation title
@@ -2308,7 +2312,7 @@
 		*/
 
 		static function getPageAccessLevelByUser($page, $user) {
-			$page = new BigTree\Page($page, false);
+			$page = new BigTree\Page($page, null, false);
 
 			return BigTree\Auth::user($user)->getAccessLevel($page);
 		}
@@ -2337,7 +2341,7 @@
 		*/
 
 		static function getPageChanges($page) {
-			$page = new BigTree\Page($page, false);
+			$page = new BigTree\Page($page, null, false);
 			$change = $page->PendingChange;
 
 			return $change->Array;
@@ -2356,7 +2360,7 @@
 		*/
 
 		static function getPageChildren($page, $sort = "nav_title ASC") {
-			$page = new BigTree\Page($page, false);
+			$page = new BigTree\Page($page, null, false);
 
 			return $page->getChildren($sort, true);
 		}
@@ -2578,7 +2582,7 @@
 		*/
 
 		static function getPendingNavigationByParent($parent, $in_nav = true) {
-			$page = new BigTree\Page($parent, false);
+			$page = new BigTree\Page($parent, null, false);
 
 			return $page->getPendingChildren($in_nav);
 		}
@@ -2777,7 +2781,7 @@
 		*/
 
 		static function getSetting($id, $decode = true) {
-			$setting = new BigTree\Setting($id, $decode);
+			$setting = new BigTree\Setting($id, null, $decode);
 
 			return $setting->Array;
 		}
@@ -3167,7 +3171,7 @@
 		*/
 
 		static function pageChangeExists($page) {
-			$page = new BigTree\Page($page, false);
+			$page = new BigTree\Page($page, null, false);
 
 			return $page->ChangeExists;
 		}
@@ -3510,7 +3514,7 @@
 		*/
 
 		static function setPagePosition($id, $position) {
-			$page = new BigTree\Page($id, false);
+			$page = new BigTree\Page($id, null, false);
 			$page->updatePosition($position);
 		}
 
@@ -3622,7 +3626,7 @@
 
 		function unarchivePage($page) {
 			$page = is_array($page) ? $page["id"] : $page;
-			$page = new BigTree\Page($page, false);
+			$page = new BigTree\Page($page, null, false);
 
 			if ($page->UserAccessLevel == "p" && $page->UserCanModifyChildren) {
 				$page->unarchive();
@@ -3643,7 +3647,7 @@
 		*/
 
 		function unarchivePageChildren($id) {
-			$page = new BigTree\Page($id, false);
+			$page = new BigTree\Page($id, null, false);
 			$page->unarchiveChildren();
 		}
 
@@ -3680,7 +3684,7 @@
 		*/
 
 		static function unCache($page) {
-			$page = new BigTree\Page($page, false);
+			$page = new BigTree\Page($page, null, false);
 			$page->uncache();
 		}
 
@@ -3758,7 +3762,7 @@
 		*/
 
 		static function updateChildPagePaths($page) {
-			$page = new BigTree\Page($page, false);
+			$page = new BigTree\Page($page, null, false);
 			$page->updateChildrenPaths();
 		}
 
@@ -4036,7 +4040,7 @@
 				$this->stop("You are not allowed to move pages.");
 			}
 
-			$page = new BigTree\Page($page, false);
+			$page = new BigTree\Page($page, null, false);
 
 			// Reset back to not in nav if a non-developer is moving to top level
 			if ($this->Level < 2 && $parent == 0) {
@@ -4156,7 +4160,7 @@
 				}
 			}
 
-			$setting = new BigTree\Setting($old_id, false);
+			$setting = new BigTree\Setting($old_id, null, false);
 
 			return $setting->update($id, $type, $settings, $name, $description, $locked ? true : false, $encrypted ? true : false, $system ? true : false);
 		}

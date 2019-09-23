@@ -32,10 +32,11 @@
 
 			Parameters:
 				setting - Either an ID (to pull a record) or an array (to use the array as the record)
+				on_fail - An optional callable to call on non-exist or bad data (rather than triggering an error).
 				decode - Whether to decode the setting's value (defaults true, set to false for faster processing of large data value)
 		*/
 		
-		public function __construct($setting = null, bool $decode = true)
+		public function __construct($setting = null, ?callable $on_fail = null, bool $decode = true)
 		{
 			if ($setting !== null) {
 				// Passing in just an ID
@@ -46,7 +47,11 @@
 				
 				// Bad data set
 				if (!is_array($setting)) {
-					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+					if ($on_fail) {
+						return $on_fail();
+					} else {
+						trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+					}
 				} else {
 					$this->Description = $setting["description"];
 					$this->Encrypted = $this->OriginalEncrypted = $setting["encrypted"] ? true : false;

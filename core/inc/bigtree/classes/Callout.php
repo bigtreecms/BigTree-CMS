@@ -27,9 +27,10 @@
 
 			Parameters:
 				callout - Either an ID (to pull a record) or an array (to use the array as the record)
+				on_fail - An optional callable to call on non-exist or bad data (rather than triggering an error).
 		*/
 		
-		public function __construct($callout = null)
+		public function __construct($callout = null, ?callable $on_fail = null)
 		{
 			if ($callout !== null) {
 				// Passing in just an ID
@@ -39,7 +40,11 @@
 				
 				// Bad data set
 				if (!is_array($callout)) {
-					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+					if ($on_fail) {
+						return $on_fail();
+					} else {
+						trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+					}
 				} else {
 					$this->ID = $callout["id"];
 					$this->Description = $callout["description"];

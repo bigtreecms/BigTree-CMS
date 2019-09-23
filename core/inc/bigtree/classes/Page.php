@@ -78,10 +78,11 @@
 
 			Parameters:
 				page - Either an ID (to pull a record) or an array (to use the array as the record)
+				on_fail - An optional callable to call on non-exist or bad data (rather than triggering an error).
 				decode - Whether to decode content (true is default, false is faster if content isn't needed)
 		*/
 		
-		public function __construct($page = null, bool $decode = true)
+		public function __construct($page = null, ?callable $on_fail = null, bool $decode = true)
 		{
 			// Allow for loading the root (i.e. -1)
 			if ($page === -1 || is_null($page)) {
@@ -94,7 +95,11 @@
 				
 				// Bad data set
 				if (!is_array($page)) {
-					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+					if ($on_fail) {
+						return $on_fail();
+					} else {
+						trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+					}
 				} else {
 					// Allow for empty page creation (for creating a page from a pending entry)
 					if (count($page) == 1) {
