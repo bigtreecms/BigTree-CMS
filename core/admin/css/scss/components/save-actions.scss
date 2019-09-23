@@ -18,6 +18,20 @@
 .save_action {
 	@include button_text_outline;
 
+	margin-right: 10px;
 	margin-top: 5px;
 	margin-bottom: 5px;
+
+	&_primary {
+		background: #fff;
+		border-color: transparent;
+		color: $green;
+
+		&:hover,
+		&:focus {
+			background: $dark;
+			border-color: transparent;
+			color: #fff;
+		}
+	}
 }

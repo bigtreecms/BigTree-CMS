@@ -524,6 +524,27 @@
 .field_matrix_form {
 	background: #fff;
 	display: none;
+	padding: 20px 15px;
+}
+
+.field_matrix_commit {
+	@include button_just_text;
+
+	border: 0;
+	color: #fff;
+
+	&:hover,
+	&:focus {
+		background: #000;
+	}
+
+	&_save {
+		background: $green;
+	}
+
+	&_cancel {
+		background: #777;
+	}
 }
 
 .field_matrix_tools {}

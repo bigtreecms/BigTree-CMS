@@ -1,4 +1,10 @@
 Vue.mixin({
+	data: function() {
+		return {
+			WWW_ROOT: WWW_ROOT,
+			ADMIN_ROOT: ADMIN_ROOT
+		}
+	},
 	methods: {
 		translate: function(string, tokens) {
 			let translated_string = string;
