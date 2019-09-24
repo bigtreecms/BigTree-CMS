@@ -140,31 +140,7 @@
 			
 			// Only draw fields for which we have a file
 			if (file_exists($field_type_path)) {
-				
-				// Don't draw the fieldset for field types that are declared as self drawing.
-				if ($bigtree["field_types"][$this->Type]["self_draw"]) {
-					include $field_type_path;
-				} else {
-					echo "<fieldset".($this->FieldsetClass ? ' class="'.trim($this->FieldsetClass).'"' : '').">\n";
-					
-					if ($this->Title) {
-						echo "  <label".($this->LabelClass ? ' class="'.trim($this->LabelClass).'"' : '').">";
-						echo $this->Title;
-						
-						if ($this->Subtitle) {
-							echo "<small>".$this->Subtitle."</small>";
-						}
-						
-						echo "</label>\n";
-					}
-					
-					include $field_type_path;
-					
-					echo "\n</fieldset>";
-					
-					$bigtree["tabindex"]++;
-				}
-				
+				include $field_type_path;
 				static::$LastFieldType = $this->Type;
 			}
 			

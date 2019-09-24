@@ -1,10 +1,14 @@
 <?php
 	namespace BigTree;
 	
-	if (!empty($this->Settings["simple"]) || (isset($this->Settings["simple_by_permission"]) && $this->Settings["simple_by_permission"] > Auth::user()->Level)) {
-		Field::$SimpleHTMLFields[] = $this->ID;
-	} else {
-		Field::$HTMLFields[] = $this->ID;
+	$type = "full";
+	
+	if (!empty($this->Settings["simple"]) ||
+		(isset($this->Settings["simple_by_permission"]) && $this->Settings["simple_by_permission"] > Auth::user()->Level)
+	) {
+		$type = "simple";
 	}
 ?>
-<textarea class="<?=$this->Settings["validation"]?>" name="<?=$this->Key?>" tabindex="<?=$this->TabIndex?>" id="<?=$this->ID?>"><?=htmlspecialchars($this->Value)?></textarea>
+<field-type-html title="<?=$this->Title?>" subtitle="<?=$this->Subtitle?>"
+				 name="<?=$this->Key?>" type="<?=$type?>" required="<?=$this->Required?>"
+				 value="<?=Text::htmlEncode($this->Value)?>"></field-type-html>

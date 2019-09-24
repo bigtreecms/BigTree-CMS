@@ -97,6 +97,16 @@
 		}
 		
 		/*
+			Function: catch404
+				Renders a 404 page in the admin and stops execution of the current script.
+		*/
+		
+		public static function catch404()
+		{
+			die("this should render a 404 page");
+		}
+		
+		/*
 			Function: drawState
 				Draws the state array for reading by Vue into the app.
 		

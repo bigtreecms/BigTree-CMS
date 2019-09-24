@@ -38,9 +38,9 @@
 				let color = "#00825a";
 				
 				if (percentage < 0.5) {
-					color = this.color_mesh("#d32f2f", "#fd9725", percentage / 0.5);
+					color = BigTree.color_mesh("#d32f2f", "#fd9725", percentage / 0.5);
 				} else {
-					color = this.color_mesh("#fd9725", "#00825a", (percentage - 0.5) / 0.5);
+					color = BigTree.color_mesh("#fd9725", "#00825a", (percentage - 0.5) / 0.5);
 				}
 				
 				return "color: " + color + ";";

@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$site = new Page(0, false);
+	$site = new Page(0, null, false);
 
 	// Show an alert for being on the development site of a live site, in maintenance mode, or in developer mode
 	$environment_alert = false;

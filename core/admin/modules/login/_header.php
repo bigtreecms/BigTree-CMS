@@ -3,7 +3,7 @@
 	
 	Router::setLayout("login");
 
-	$site = new Page(0, false);
+	$site = new Page(0, null, false);
 	$last_path = Router::$Path[count(Router::$Path) - 1];
 	
 	if (Router::$Config["force_secure_login"]) {

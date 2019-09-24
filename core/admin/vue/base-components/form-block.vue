@@ -34,6 +34,8 @@
 			submit: function() {
 				let form = $(this.$el);
 				
+				BigTree.toggle_busy("Working");
+				
 				if (this.redirect) {
 					form.off("submit").submit();
 				} else {
@@ -46,7 +48,13 @@
 						processData: false,
 						contentType: false,
 						complete:  (response) => {
-							this.$emit("response", response);
+							BigTree.toggle_busy();
+							
+							if (typeof response.responseJSON === "object") {
+								this.$emit("response", response.responseJSON);
+							} else {
+								this.$emit("response", response.responseText);
+							}
 						}
 					});
 				}

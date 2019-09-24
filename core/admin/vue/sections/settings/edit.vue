@@ -1,6 +1,6 @@
 <script>
 	Vue.component("SettingsValue", {
-		props: ["id", "value"],
+		props: ["id"],
 		data: function() {
 			return {
 				buttons: [
@@ -10,7 +10,7 @@
 		},
 		methods: {
 			submit: function(response) {
-				console.log(response);
+			
 			}
 		}
 	});
@@ -19,6 +19,8 @@
 <template>
 	<form-block v-on:response="submit" :action="WWW_ROOT + 'api/settings/update-value/'" :buttons="buttons">
 		<field-type-hidden-value name="id" :value="id"></field-type-hidden-value>
-		<slot></slot>
+		<div class="fields_wrapper">
+			<slot></slot>
+		</div>
 	</form-block>
 </template>

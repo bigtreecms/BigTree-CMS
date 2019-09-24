@@ -68,7 +68,7 @@
 						$value = SQL::fetchSingle("SELECT AES_DECRYPT(`value`,?) AS `value` FROM bigtree_settings 
 												   WHERE id = ?", Router::$Config["settings_key"], $this->ID);
 					} else {
-						$value = $setting["value"];
+						$value = SQL::fetchSingle("SELECT `value` FROM bigtree_settings WHERE id = ?", $this->ID);
 					}
 					
 					// Decode value

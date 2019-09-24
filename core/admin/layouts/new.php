@@ -1,7 +1,7 @@
 <?php
 	namespace BigTree;
 
-	$site = new Page(0, false);
+	$site = new Page(0, null, false);
 
 	// Show an alert for being on the development site of a live site, in maintenance mode, or in developer mode
 	$environment_alert = false;
@@ -54,6 +54,11 @@
 	</head>
 	<body>
 		<div id="js-vue" class="page">
+			<div class="busy" id="js-busy" style="display: none;">
+				<span class="busy_title" id="js-busy-message"></span>
+				<span class="busy_indicator"></span>
+			</div>
+			
 			<header class="header">
 				<div class="header_inner">
 					<div class="header_group">
