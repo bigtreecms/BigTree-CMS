@@ -481,6 +481,27 @@
 // Matrix
 // ++++++++++++++++
 
+.field_button {
+	background: $green;
+	border: 0;
+	border-radius: 3px;
+	color: #fff;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 700;
+	padding: 12px 30px 13px;
+	transition: background .25s;
+
+	&:hover,
+	&:focus {
+		background: #000;
+	}
+}
+
+
+// Matrix
+// ++++++++++++++++
+
 .field_matrix_list {}
 
 .field_matrix {}

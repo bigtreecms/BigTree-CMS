@@ -1,0 +1,63 @@
+.login_form_block {
+	align-items: center;
+	background: $green;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	padding: 40px 20px 50px;
+
+	@media screen and (min-height: 660px) {
+		height: 100%;
+		width: 100%;
+	
+		position: absolute;
+		top: 0;
+		left: 0;	
+
+		padding: 20px;
+	}
+}
+
+.login_form {
+	max-width: 536px;
+	width: 100%;
+
+	display: block;
+	margin: 0 auto 50px;
+}
+
+.login_form_legend {
+	color: #fff;
+	font-size: 30px;
+	font-weight: 700;
+	margin-bottom: 50px;
+	text-align: center;
+}
+
+.login_form_fieldset {
+	background: #F8F8FA;
+	border: 1px solid #E3E2E3;
+	padding: 30px;
+}
+
+.login_form_footer {
+	text-align: center;
+}
+
+.login_form_logo_icon {
+	color: #00A370;
+	display: flex;
+	justify-content: center;
+	margin-bottom: 10px;
+
+	.icon_logo {
+		height: 36px;
+		width: 30px;
+	}
+}
+
+.login_form_link {
+	color: #fff;
+	font-size: 12px;
+	text-decoration: underline;
+}
