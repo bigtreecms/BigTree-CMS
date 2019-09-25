@@ -286,9 +286,21 @@
 		public static function renderContent() {
 			if (function_exists("apache_request_headers")) {
 				$headers = apache_request_headers();
-				$vue_response = isset($headers["BigTree-Partial"]) ? $headers["BigTree-Partial"] : "";
+				
+				// Some headers get case sensitivity bungled
+				foreach ($headers as $key => $value) {
+					if (strtolower($key) == "bigtree-partial") {
+						$vue_response = $value;
+					}
+				}
 			} else {
-				$vue_response = isset($_SERVER["HTTP_BIGTREE_PARTIAL"]) ? $_SERVER["HTTP_BIGTREE_PARTIAL"] : "";
+				if (isset($_SERVER["HTTP_BIGTREE_PARTIAL"])) {
+					$vue_response = $_SERVER["HTTP_BIGTREE_PARTIAL"];
+				} elseif (isset($_SERVER["REDIRECT_HTTP_BIGTREE_PARTIAL"])) {
+					$vue_response = $_SERVER["REDIRECT_HTTP_BIGTREE_PARTIAL"];
+				} else {
+					$vue_response = false;
+				}
 			}
 			
 			if ($vue_response) {
