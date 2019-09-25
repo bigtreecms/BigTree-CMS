@@ -37,7 +37,7 @@
 	}
 	
 	// No deletes in this request
-	if (!defined("API_PERMISSIONS_CHANGED")) {
+	if (!defined("API_SINCE")) {
 		API::sendResponse($actions);
 	}
 	

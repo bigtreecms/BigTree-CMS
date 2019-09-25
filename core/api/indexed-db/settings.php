@@ -68,7 +68,7 @@
 	}
 	
 	// No deletes in this request
-	if (!defined("API_PERMISSIONS_CHANGED")) {
+	if (!defined("API_SINCE")) {
 		API::sendResponse($actions);
 	}
 	
@@ -87,7 +87,7 @@
 	if (!defined("API_PERMISSIONS_CHANGED")) {
 		// Creates and updates
 		$audit_trail_updates = SQL::fetchAll("SELECT DISTINCT(entry) FROM bigtree_audit_trail
-											  WHERE (`table` = 'config:settings' OR `table` = 'bigtree_settings`)
+											  WHERE (`table` = 'config:settings' OR `table` = 'bigtree_settings')
 												AND (`type` = 'update' OR `type` = 'add')
 												AND `date` >= ?
 											  ORDER BY id DESC", API_SINCE);

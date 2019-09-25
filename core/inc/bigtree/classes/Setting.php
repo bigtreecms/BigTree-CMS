@@ -371,6 +371,8 @@
 			} else {
 				SQL::update("bigtree_settings", $id, ["value" => $value, "encrypted" => ""]);
 			}
+			
+			AuditTrail::track("bigtree_settings", $id, "update", "updated value");
 		}
 		
 		/*
