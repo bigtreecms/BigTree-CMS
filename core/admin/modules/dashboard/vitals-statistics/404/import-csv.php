@@ -1,4 +1,6 @@
 <?php
+	ini_set("auto_detect_line_endings", true);
+	
 	if (empty($_FILES["csv"]["tmp_name"])) {
 		$error = "The CSV file failed to upload. Please try again.";
 	} else {

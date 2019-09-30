@@ -3,6 +3,8 @@
 		BigTree::redirect(ADMIN_ROOT."dashboard/vitals-statistics/404/upload-csv/");
 	}
 
+	ini_set("auto_detect_line_endings", true);
+
 	$site_key = !empty($_POST["site_key"]) ? $_POST["site_key"] : null;
 	$temp_file = fopen(SERVER_ROOT."cache/404-import.csv", "r");
 	$imported = [];
