@@ -1,4 +1,11 @@
 <?php
+	// We're going to change these $bigtree entries, so save them to revert back.
+	$saved = array(
+		"entry" => $bigtree["entry"],
+		"post_data" => $bigtree["post_data"],
+		"file_data" => $bigtree["file_data"]
+	);
+
 	if (!is_array($field["input"])) {
 		$field["input"] = [];
 	}
@@ -20,7 +27,10 @@
 			continue;
 		}
 
-		$entry = [
+		// Setup the new callout to emulate a normal field processing environment
+		$bigtree["post_data"] = $data;
+		$bigtree["file_data"] = $field["file_input"][$index];
+		$bigtree["entry"] = $entry = [
 			"__internal-title" => $data["__internal-title"],
 			"__internal-subtitle" => $data["__internal-subtitle"]
 		];
@@ -63,4 +73,9 @@
 		}
 		
 		$field["output"][] = $entry;
+	}
+
+	// Revert to saved values	
+	foreach ($saved as $key => $val) {
+		$bigtree[$key] = $val;
 	}
