@@ -33,4 +33,4 @@
 	}
 	
 	Setting::updateValue($id, $_POST["value"], ($encrypted || $setting["encrypted"]));
-	
+	API::sendResponse(["cache" => API::getSettingsCacheObject($id)], "Updated Setting Value");

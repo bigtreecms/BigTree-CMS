@@ -60,6 +60,62 @@
 		}
 		
 		/*
+			Function: getSettingsCacheObject
+				Returns a cache object (in array form) for a given setting array or ID
+		
+			Parameters:
+				setting - Either a setting array or ID
+		
+			Returns:
+				An array of data for storage in the IndexedDB cache
+		*/
+		
+		public static function getSettingsCacheObject($setting): array
+		{
+			if (!is_array($setting)) {
+				$setting = DB::get("settings", $setting);
+			}
+			
+			if ($setting["locked"]) {
+				if (Auth::user()->Level > 1) {
+					$access_level = "p";
+				} else {
+					$access_level = null;
+				}
+			} else {
+				$access_level = Auth::user()->Level ? "p" : null;
+			}
+			
+			$record = [
+				"id" => $setting["id"],
+				"title" => $setting["name"],
+				"locked" => $setting["locked"],
+				"value" => null,
+				"access_level" => $access_level
+			];
+			
+			if ($access_level) {
+				$value_data = SQL::fetch("SELECT encrypted, value FROM bigtree_settings WHERE id = ?", $setting["id"]);
+				
+				if ($value_data) {
+					if ($value_data["encrypted"]) {
+						$record["value"] = Text::translate("-- Encrypted --");
+					} else {
+						$value = json_decode($value_data["value"], true);
+						
+						if (is_array($value)) {
+							$record["value"] = Text::translate("-- Array --");
+						} else {
+							$record["value"] = Text::trimLength(Text::htmlEncode(strip_tags(Link::decode($value))), 100);
+						}
+					}
+				}
+			}
+			
+			return $record;
+		}
+		
+		/*
 			Function: requireMethod
 				Requires the passed in HTTP method and triggers an error if an invalid method is called.
 			

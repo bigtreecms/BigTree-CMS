@@ -4,7 +4,7 @@
 	$setting = new Setting(Router::$Commands[0], ['BigTree\Admin', 'catch404']);
 	$value = $setting->Encrypted ? "" : $setting->Value;
 ?>
-<settings-value id="<?=Text::htmlEncode($setting->ID)?>">
+<settings-value name="<?=$setting->Name?>" id="<?=Text::htmlEncode($setting->ID)?>">
 	<?php
 		$field = new Field([
 			"type" => $setting->Type,
