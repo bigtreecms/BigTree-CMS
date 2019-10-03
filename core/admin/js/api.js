@@ -21,6 +21,7 @@ var BigTreeAPI = (function() {
 		},
 		"settings": {
 			"indexes": [
+				"id",
 				"title",
 				"access_level"
 			],
@@ -28,6 +29,7 @@ var BigTreeAPI = (function() {
 		},
 		"users": {
 			"indexes": [
+				"id",
 				"name",
 				"email",
 				"company",
@@ -38,6 +40,7 @@ var BigTreeAPI = (function() {
 		},
 		"files": {
 			"indexes": [
+				"id",
 				"folder",
 				"title",
 				"type",
@@ -47,6 +50,7 @@ var BigTreeAPI = (function() {
 		},
 		"tags": {
 			"indexes": [
+				"id",
 				"tag",
 				"usage_count",
 				"access_level"
@@ -55,12 +59,14 @@ var BigTreeAPI = (function() {
 		},
 		"module-groups": {
 			"indexes": [
+				"id",
 				"position"
 			],
 			"key": "id"
 		},
 		"modules": {
 			"indexes": [
+				"id",
 				"group",
 				"position",
 				"access_level"
@@ -69,6 +75,7 @@ var BigTreeAPI = (function() {
 		},
 		"view-cache": {
 			"indexes": [
+				"id",
 				"view",
 				"entry",
 				"group_field",
