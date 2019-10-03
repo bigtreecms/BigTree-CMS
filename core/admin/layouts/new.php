@@ -54,7 +54,7 @@
 	</head>
 	<body>
 		<div id="js-vue" class="page">
-			<div class="busy" id="js-busy" style="display: none;">
+			<div class="busy" id="js-busy" style="display: none;" aria-live="assertive">
 				<span class="busy_title" id="js-busy-message"></span>
 				<span class="busy_indicator"></span>
 			</div>
@@ -92,8 +92,12 @@
 				</div>
 			</header>
 	
-			<main class="main">
+			<main class="main" id="main_content" tabindex="0">
+				<announcement :context="announcement.context" :message="announcement.message"
+							  :visible="announcement.visible"></announcement>
+
 				<meta-bar v-if="meta_bar.length" :items="meta_bar"></meta-bar>
+
 				<div class="page_header" :class='{ "layout_empty_breadcrumb": !breadcrumb.length, "layout_empty_sub_nav": !sub_nav.length }'>
 					<breadcrumb v-if="breadcrumb.length" :links="breadcrumb"></breadcrumb>
 					

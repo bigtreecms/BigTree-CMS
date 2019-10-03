@@ -34,8 +34,6 @@
 			submit: function() {
 				let form = $(this.$el);
 				
-				BigTree.toggle_busy("Working");
-				
 				if (this.redirect) {
 					form.off("submit").submit();
 				} else {
@@ -62,6 +60,8 @@
 			
 			validate: function(ev, event_value) {
 				ev.preventDefault();
+
+				BigTree.toggle_busy("Working");
 
 				if (event_value) {
 					$("#form_action_" + this.uid).val(event_value);

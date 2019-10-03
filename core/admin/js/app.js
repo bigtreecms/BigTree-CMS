@@ -4,6 +4,7 @@ let BigTreeEventBus = new Vue();
 let BigTree = new Vue({
 	el: "#js-vue",
 	data: {
+		announcement: state.announcement ? state.announcement : { "visible": false, "context": "", "message": "" },
 		breadcrumb: typeof state.breadcrumb != "undefined" ? state.breadcrumb : [],
 		meta_bar: typeof state.meta_bar != "undefined" ? state.meta_bar : [],
 		main_nav: state.main_nav,
@@ -77,6 +78,9 @@ let BigTree = new Vue({
 				render: res.render,
 				staticRenderFns: res.staticRenderFns
 			}).$mount('#content');
+
+			$("#main_content").focus();
+			$('html, body').animate({ scrollTop: 0 }, 500);
 
 			this.toggle_busy();
 		},
