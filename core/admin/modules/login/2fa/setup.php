@@ -14,7 +14,7 @@
 	<div class="two_factor_instructions">
 		<h3>Instructions</h3>
 		<ul>
-			<li>Download the Google Authenticator App (<a href="https://itunes.apple.com/us/app/google-authenticator/id388497605" target="_blank">iOS</a>, <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank">Android</a>)</li>
+			<li>Download the Google Authenticator App (<a href="https://apps.apple.com/us/app/google-authenticator/id388497605" target="_blank">iOS</a>, <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank">Android</a>)</li>
 			<li>Scan the QR code to the right.</li>
 			<li>Enter the code shown in the app in the field below.</li>
 		</ul>
