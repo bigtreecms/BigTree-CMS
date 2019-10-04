@@ -10082,7 +10082,7 @@
 				}
 
 				if ($validated) {
-					$token = $phpass->HashPassword(BigTree::randomString(64).trim($password).BigTree::randomString(64));
+					$token = password_hash(BigTree::randomString(64).trim($password).BigTree::randomString(64), PASSWORD_DEFAULT);
 					$_SESSION["bigtree_admin"]["2fa_id"] = intval($user["id"]);
 					$_SESSION["bigtree_admin"]["2fa_login_token"] = $token;
 
