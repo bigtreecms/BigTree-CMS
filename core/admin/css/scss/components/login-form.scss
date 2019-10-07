@@ -1,23 +1,15 @@
+.login_body {
+	background: $green;
+}
+
 .login_form_block {
 	width: 100%;
 	
 	align-items: center;
-	background: $green;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
 	padding: 40px 20px 50px;
-
-	@media screen and (min-height: 660px) {
-		height: 100%;
-		width: 100%;
-	
-		position: absolute;
-		top: 0;
-		left: 0;	
-
-		padding: 20px;
-	}
 }
 
 .login_form {
@@ -75,6 +67,15 @@
 		&:hover {
 			color: $dark;
 		}
+	}
+
+	ul {
+		margin: 0 0 20px 0;
+		padding: 0 0 0 20px;
+	}
+
+	li {
+		margin: 0 0 3px 0;
 	}
 }
 

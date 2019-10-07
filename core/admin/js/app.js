@@ -61,6 +61,12 @@ let BigTree = new Vue({
 			return "#" + new_red + new_green + new_blue;
 		},
 
+		growl: function(message) {
+			message = this.translate(message);
+
+			alert(message);
+		},
+
 		load_partial: function(url, state, content) {
 			for (let key in state) {
 				if (state.hasOwnProperty(key)) {

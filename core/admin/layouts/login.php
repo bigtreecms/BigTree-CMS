@@ -36,16 +36,14 @@
 
 		<script src="<?=ADMIN_ROOT?>js/lib.js?<?=BIGTREE_VERSION?>"></script>
 	</head>
-	<body>
+	<body class="login_body">
 		<div id="js-vue" class="page">
 			<div class="busy" id="js-busy" style="display: none;" aria-live="assertive">
 				<span class="busy_title" id="js-busy-message"></span>
 				<span class="busy_indicator"></span>
 			</div>
 	
-			<main class="main" id="main_content" tabindex="0">
-				<?php Admin::renderContent(); ?>
-			</main>
+			<?php Admin::renderContent(); ?>
 		</div>
 
 		<link type="text/css" rel="stylesheet" src="<?=ADMIN_ROOT?>css/cache/vue.css" />

@@ -2,9 +2,8 @@
 	namespace BigTree;
 	
 	$site = new Page(0, null, false);
-	
 	$security_policy = Setting::value("bigtree-internal-security-policy");
-	$policy = array_filter((array)$bigtree["security-policy"]["password"]) ? $bigtree["security-policy"]["password"] : false;
+	$policy = array_filter((array) $security_policy["password"]) ? $security_policy["password"] : false;
 	$policy_text = null;
 	
 	if (!empty($policy["length"]) ||
@@ -12,7 +11,7 @@
 		!empty($policy["numbers"]) ||
 		!empty($policy["nonalphanumeric"])
 	)  {
-		$policy_text = "<p>".Text::translate("Requirements")."</p><ul>";
+		$policy_text = "<ul>";
 		
 		if ($policy["length"]) {
 			$policy_text .= "<li>".Text::translate("Minimum length &mdash; :length: characters", false, [":length:" => $policy["length"]])."</li>";
@@ -35,6 +34,8 @@
 		$policy_text = "";
 	}
 ?>
-<login-form site_title="<?=$site->NavigationTitle?>" default_state="reset_password"
-			reset_token="<?=Text::htmlEncode(Router::$Commands[0])?>"
-			remember_disabled="<?=(!empty($security_policy["remember_disabled"]))?>"></login-form>
+<login-form site_title="<?=$site->NavigationTitle?>"
+			default_state="reset_password"
+			reset_hash="<?=Text::htmlEncode(Router::$Commands[0])?>"
+			remember_disabled="<?=(!empty($security_policy["remember_disabled"]))?>"
+			password_policy="<?=Text::htmlEncode($policy_text)?>"></login-form>

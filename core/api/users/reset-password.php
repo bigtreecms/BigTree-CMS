@@ -30,14 +30,20 @@
 	if (!User::validatePassword($_POST["password"])) {
 		API::sendResponse([
 			"password_updated" => false,
-			"reason" => Text::translate("Your chosen password does not conform to the password requirements.")
-		], null, "failure:credentials");
+			"reason" => Text::translate("The entered password does not conform to the password requirements.")
+		], null, "failure:validation");
 	}
 	
-	$user->ChangePasswordHash = "";
 	$user->Password = $_POST["password"];
 	$user->save();
 	$user->removeBans();
-
-	API::sendResponse(["password_updated" => true]);
+	
+	$multi_domain_key = Auth::login($user);
+	
+	API::sendResponse([
+		"password_updated" => true,
+		"logged_in" => true,
+		"redirect" => $_SESSION["bigtree_login_redirect"],
+		"multi_domain_key" => $multi_domain_key
+	]);
 	

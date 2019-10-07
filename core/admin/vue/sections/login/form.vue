@@ -2,7 +2,8 @@
 	Vue.component("LoginForm", {
 		props: [
 			"default_state",
-			"reset_token",
+			"password_policy",
+			"reset_hash",
 			"remember_disabled",
 			"site_title"
 		],
@@ -14,6 +15,7 @@
 				email: "",
 				error: "",
 				password: "",
+				password_confirm: "",
 				state: this.default_state ? this.default_state : "login",
 				state_live_area: "Login",
 				stay_logged_in: false,
@@ -40,6 +42,14 @@
 				
 				this.alert = this.translate("If you entered a correct email address, a link to change your password has been emailed to you.");
 			},
+
+			logged_in: function(data) {
+				if (data.multi_domain_key) {
+
+				} else {
+					window.location.href = data.redirect ? data.redirect : ADMIN_ROOT;
+				}
+			},
 			
 			login: async function() {
 				BigTree.toggle_busy("Logging in");
@@ -58,7 +68,7 @@
 				BigTree.toggle_busy();
 				
 				if (response.logged_in) {
-					window.location.href = response.redirect ? response.redirect : ADMIN_ROOT;
+					this.logged_in(response);
 				} else if (response.two_factor_auth) {
 					this.state = "two_factor_auth";
 					this.state_live_area = "Two Factor Authentication";
@@ -71,6 +81,30 @@
 					this.two_factor_token = response.token;
 					this.two_factor_user = response.user;
 					this.two_factor_qr = response.qr_code;
+				} else {
+					this.error = response.reason;
+				}
+			},
+
+			reset_password: async function() {
+				if (this.password != this.password_confirm) {
+					this.error = this.translate("The entered passwords do not match.");
+
+					return;
+				}
+
+				let response = await BigTreeAPI.call({
+					endpoint: "users/reset-password",
+					method: "POST",
+					parameters: {
+						hash: this.reset_hash,
+						password: this.password
+					}
+				});
+
+				if (response.password_updated) {
+					BigTree.growl("Updated Password");
+					this.logged_in(response);
 				} else {
 					this.error = response.reason;
 				}
@@ -98,12 +132,14 @@
 				
 				if (this.state === "login") {
 					this.login();
-				} else if (this.state == "two_factor_setup") {
+				} else if (this.state === "two_factor_setup") {
 					this.two_factor_setup();
-				} else if (this.state == "two_factor_auth") {
+				} else if (this.state === "two_factor_auth") {
 					this.two_factor_auth();
-				} else if (this.state == "forgot") {
+				} else if (this.state === "forgot") {
 					this.forgot_password();
+				} else if (this.state === "reset_password") {
+					this.reset_password();
 				}
 			},
 			
@@ -124,7 +160,7 @@
 				BigTree.toggle_busy();
 
 				if (response.logged_in) {
-					window.location.href = response.redirect ? response.redirect : ADMIN_ROOT;
+					this.logged_in(response);
 				} else {
 					this.error = response.reason;
 				}
@@ -186,6 +222,12 @@
 					<h2 class="login_form_state">{{ translate('Two-Factor Authentication') }}</h2>
 					<p class="login_instruction_details">{{ translate('Enter the code shown in your Google Authenticator app in the field below.') }}</p>
 				</div>
+
+				<div v-if="state === 'reset_password'">
+					<h2 class="login_form_state">{{ translate('Set a New Password') }}</h2>
+					<h3 v-if="password_policy" class="login_instruction_step_title">{{ translate('Requirements') }}</h3>
+					<div class="login_instruction_details" v-html="password_policy"></div>
+				</div>
 				
 				<div v-if="error" class="error_message">
 					<div class="error_message_header">
@@ -225,7 +267,7 @@
 					</div>
 				</div>
 				
-				<div v-if="state === 'login'" class="field">
+				<div v-if="state === 'login' || state === 'reset_password'" class="field">
 					<div class="field_header">
 						<div class="field_header_group">
 							<label for="password" class="field_title">Password</label>
@@ -233,6 +275,18 @@
 					</div>
 					<div class="field_text">
 						<input class="field_input" id="password" name="password" type="password" v-model="password">
+					</div>
+				</div>
+
+				<div v-if="state === 'reset_password'" class="field">
+					<div class="field_header">
+						<div class="field_header_group">
+							<label for="password_confirm" class="field_title">Confirm Password</label>
+						</div>
+					</div>
+					<div class="field_text">
+						<input class="field_input" id="password_confirm" name="password_confirm" type="password"
+							   v-model="password_confirm">
 					</div>
 				</div>
 				

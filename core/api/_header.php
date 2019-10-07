@@ -7,6 +7,7 @@
 	$unauthenticated_routes = [
 		"users/login",
 		"users/forgot-password",
+		"users/reset-password",
 		"users/two-factor-setup",
 		"users/two-factor-auth"
 	];

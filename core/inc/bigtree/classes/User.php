@@ -384,6 +384,7 @@
 				if ($this->Password != $this->OriginalPassword) {
 					$update_values["password"] = password_hash(trim($this->Password), PASSWORD_DEFAULT);
 					$update_values["new_hash"] = "on";
+					$update_values["change_password_hash"] = "";
 					
 					// Clean existing sessions
 					SQL::delete("bigtree_sessions", ["logged_in_user" => $this->ID]);
@@ -411,10 +412,10 @@
 		
 		public function setPasswordHash(): string
 		{
-			$hash = md5(microtime().$this->Password);
-			SQL::update("bigtree_users", $this->ID, ["change_password_hash" => $hash]);
+			$this->ChangePasswordHash = md5(microtime().$this->Password);
+			SQL::update("bigtree_users", $this->ID, ["change_password_hash" => $this->ChangePasswordHash]);
 			
-			return $hash;
+			return $this->ChangePasswordHash;
 		}
 		
 		/*
@@ -536,8 +537,13 @@
 		{
 			global $bigtree;
 			
-			$policy = $bigtree["security-policy"]["password"];
+			$security_policy = Setting::value("bigtree-internal-security-policy");
+			$policy = $security_policy["password"];
 			$failed = false;
+			
+			if (!is_array($policy)) {
+				return true;
+			}
 			
 			// Check length policy
 			if ($policy["length"] && strlen($password) < $policy["length"]) {
