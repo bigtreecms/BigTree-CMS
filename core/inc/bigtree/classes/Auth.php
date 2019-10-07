@@ -291,20 +291,13 @@
 					"chain" => $chain,
 					"stay_logged_in" => $stay_logged_in,
 					"login_redirect" => !empty($_SESSION["bigtree_login_redirect"]) ? $_SESSION["bigtree_login_redirect"] : false,
-					"remaining_sites" => [],
+					"domains" => [],
 					"csrf_token" => CSRF::$Token,
 					"csrf_token_field" => CSRF::$Field
 				];
 				
-				// If we have less than 4 other sites, browsers aren't going to freak out with the redirects
-				$all_ssl = true;
-				
 				foreach (Router::$Config["sites"] as $site_key => $site_configuration) {
-					$cache_data["remaining_sites"][$site_key] = $site_configuration["www_root"];
-					
-					if (strpos($site_configuration["www_root"], "https://") !== 0) {
-						$all_ssl = false;
-					}
+					$cache_data["domains"][] = $site_configuration["www_root"];
 				}
 				
 				$cache_session_key = Cache::putUnique("org.bigtreecms.login-session", $cache_data);
@@ -371,7 +364,7 @@
 			
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE id = ?", $cache_data["user_id"]);
 			
-			foreach ($cache_data["remaining_sites"] as $site_key => $www_root) {
+			foreach ($cache_data["domains"] as $site_key => $www_root) {
 				if ($site_key == BIGTREE_SITE_KEY) {
 					$cookie_domain = str_replace(DOMAIN, "", WWW_ROOT);
 					$cookie_value = json_encode([$cache_data["session"], $cache_data["chain"]]);

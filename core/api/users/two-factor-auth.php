@@ -54,9 +54,15 @@
 	}
 	
 	$multi_domain_key = Auth::login($user, $stay_logged_in);
+	$login_session = null;
+	
+	if ($multi_domain_key) {
+		$login_session = Cache::get("org.bigtreecms.login-session", $multi_domain_key);
+	}
 	
 	API::sendResponse([
 		"logged_in" => true,
 		"redirect" => $_SESSION["bigtree_login_redirect"],
-		"multi_domain_key" => $multi_domain_key
+		"multi_domain_key" => $multi_domain_key,
+		"domains" => $login_session ? $login_session["domains"] : []
 	]);

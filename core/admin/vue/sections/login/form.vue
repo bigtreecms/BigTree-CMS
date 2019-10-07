@@ -43,12 +43,29 @@
 				this.alert = this.translate("If you entered a correct email address, a link to change your password has been emailed to you.");
 			},
 
-			logged_in: function(data) {
+			logged_in: async function(data) {
 				if (data.multi_domain_key) {
+					let no_ssl = (location.protocol !== "https:") ? "no_ssl&" : "";
 
-				} else {
-					window.location.href = data.redirect ? data.redirect : ADMIN_ROOT;
+					for (let key in data.domains) {
+						let domain = data.domains[key];
+
+						await $.ajax({
+							url: domain + "?" + no_ssl + "bigtree_login_redirect_session_key=" + escape(data.multi_domain_key),
+							xhrFields: { withCredentials: true }
+						});
+					}
+
+					await BigTreeAPI.call({
+						"endpoint": "users/remove-login-session",
+						"method": "POST",
+						"parameters": {
+							"session": data.multi_domain_key
+						}
+					});
 				}
+				
+				window.location.href = data.redirect ? data.redirect : ADMIN_ROOT;
 			},
 			
 			login: async function() {
