@@ -36,6 +36,8 @@
 		public $Password;
 		public $Permissions;
 		public $Timezone;
+		public $TwoFactorSecret;
+		public $TwoFactorLoginToken;
 		
 		public static $Table = "bigtree_users";
 		
@@ -77,6 +79,8 @@
 					$this->Password = $this->OriginalPassword = $user["password"];
 					$this->Permissions = $user["permissions"] ? json_decode($user["permissions"], true) : null;
 					$this->Timezone = $user["timezone"];
+					$this->TwoFactorSecret = $user["2fa_secret"];
+					$this->TwoFactorLoginToken = $user["2fa_login_token"];
 					
 					// Verify a correct permissions array
 					if (!is_array($this->Permissions)) {
@@ -229,7 +233,7 @@
 		}
 		
 		/*
-			Function: getByHash
+			Function: getByChangePasswordHash
 				Gets a user entry for a change password hash
 
 			Parameters:
@@ -239,7 +243,7 @@
 				A User object or null if the user was not found
 		*/
 		
-		public static function getByHash(string $hash): ?User
+		public static function getByChangePasswordHash(string $hash): ?User
 		{
 			$user = SQL::fetch("SELECT * FROM ".static::$Table." WHERE change_password_hash = ?", $hash);
 			
@@ -411,6 +415,24 @@
 			SQL::update("bigtree_users", $this->ID, ["change_password_hash" => $hash]);
 			
 			return $hash;
+		}
+		
+		/*
+			Function: setTwoFactorToken
+				Sets a temporary token for this user to continue throught a two factor authentication flow.
+			
+			Returns:
+				Two factor token
+	 	*/
+		
+		public function setTwoFactorToken(): string
+		{
+			$token = password_hash(Text::getRandomString(64).$this->Password.Text::getRandomString(64),
+								   PASSWORD_DEFAULT);
+			
+			SQL::update("bigtree_users", $this->ID, ["2fa_login_token" => $token]);
+			
+			return $token;
 		}
 		
 		/*

@@ -1,37 +1,9 @@
 <?php
 	namespace BigTree;
 	
-	/**
-	 * @global string $login_root
-	 */
+	$site = new Page(0, null, false);
 	
-	$user = User::getByHash(end(Router::$Path));
-	$failure = false;
-	
-	if ($_POST["password"]) {
-		if (!User::validatePassword($_POST["password"])) {
-			$failure = "validation";
-		} elseif ($_POST["password"] != $_POST["confirm_password"]) {
-			$failure = "match";
-		} else {
-			$user = User::getByHash(end(Router::$Path));
-			
-			if ($user) {
-				$user->ChangePasswordHash = "";
-				$user->Password = $_POST["password"];
-				
-				$user->save();
-				$user->removeBans();
-				
-				if (!empty(Router::$Config["force_secure_login"])) {
-					Router::redirect(str_replace("http://", "https://", ADMIN_ROOT)."login/reset-success/");
-				} else {
-					Router::redirect(ADMIN_ROOT."login/reset-success/");
-				}
-			}
-		}
-	}
-
+	$security_policy = Setting::value("bigtree-internal-security-policy");
 	$policy = array_filter((array)$bigtree["security-policy"]["password"]) ? $bigtree["security-policy"]["password"] : false;
 	$policy_text = null;
 	
@@ -63,48 +35,6 @@
 		$policy_text = "";
 	}
 ?>
-<div id="login">
-	<form method="post" action="" class="module">
-		<h2><?=Text::translate(isset($_GET["welcome"]) ? "Set Your Password" : "Reset Your Password")?></h2>
-		<?php
-			if ($failure) {
-		?>
-		<p class="error_message clear">
-			<?=Text::translate(($failure == "match") ? "Passwords did not match. Please try again." : "Password did not meet requirements.")?>
-		</p>
-		<?php
-			}
-			
-			if (!$user) {
-		?>
-		<fieldset class="clear">
-			<p><?=Text::translate("This reset request has expired.")?>" <a href="<?=$login_root?>forgot-password/"><?=Text::translate("Click Here")?></a> <?=Text::translate("to request a new link.")?></p>
-		</fieldset>
-		<br />
-		<?php
-			} else {
-		?>
-		<fieldset>
-			<label for="password_field_password"><?=Text::translate("New Password")?></label>
-			<input id="password_field_password" class="text<?php if ($policy_text) { ?> has_tooltip" data-tooltip="<?=htmlspecialchars($policy_text)?><?php } ?>" type="password" name="password" />
-			<?php if ($policy_text) { ?>
-			<p class="password_policy"><?=Text::translate("Password Policy In Effect")?></p>
-			<?php } ?>
-		</fieldset>
-		<fieldset>
-			<label for="password_field_confirm"><?=Text::translate("Confirm New Password")?></label>
-			<input id="password_field_confirm" class="text" type="password" name="confirm_password" />
-		</fieldset>
-		<fieldset class="lower">
-			<input type="submit" class="button blue" value="<?=Text::translate(isset($_GET["welcome"]) ? "Set Password" : "Reset Password", true)?>" />
-		</fieldset>
-		<?php
-			}
-		?>
-	</form>
-</div>
-<script>
-	$("input[type=password]").each(function() {
-		BigTreePasswordInput(this);
-	});
-</script>
+<login-form site_title="<?=$site->NavigationTitle?>" default_state="reset_password"
+			reset_token="<?=Text::htmlEncode(Router::$Commands[0])?>"
+			remember_disabled="<?=(!empty($security_policy["remember_disabled"]))?>"></login-form>

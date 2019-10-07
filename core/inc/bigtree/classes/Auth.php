@@ -16,6 +16,7 @@
 	{
 		
 		public static $BanExpiration;
+		public static $BannedIP = false;
 		public static $Email;
 		public static $ID;
 		public static $Level = 0;
@@ -102,7 +103,7 @@
 							$old_session_id = session_id();
 							session_regenerate_id();
 							
-							if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+							if (!empty(Router::$Config["session_handler"]) && Router::$Config["session_handler"] == "db") {
 								SQL::update("bigtree_sessions", $old_session_id, [
 									"id" => session_id(),
 									"is_login" => "on",
@@ -194,8 +195,8 @@
 				$ban = SQL::fetch("SELECT * FROM bigtree_login_bans WHERE expires > NOW() AND ip = ?", $ip);
 				
 				if ($ban) {
-					$bigtree["ban_expiration"] = date("F j, Y @ g:ia", strtotime($ban["expires"]));
-					$bigtree["ban_is_user"] = false;
+					static::$BanExpiration = date("F j, Y @ g:ia", strtotime($ban["expires"]));
+					static::$BannedIP = true;
 					
 					return true;
 				}
@@ -252,226 +253,93 @@
 		
 		/*
 			Function: login
-				Attempts to log a user into to the CMS.
+				Logs a user into BigTree
 
 			Parameters:
-				email - The email address of the user.
-				password - The password of the user.
-				stay_logged_in - Whether to set a cookie to keep the user logged in.
-				domain - A secondary domain to set login cookies for (used for multi-site).
-				two_factor_token - A token for a login that is already in progress with 2FA.
-
-			Returns:
-				false if login failed, otherwise redirects back to the page the person requested.
+				user - A BigTree\User object
+				stay_logged_in - Whether to stay logged in when closing the browser
 		*/
 		
-		public static function login(string $email, string $password, bool $stay_logged_in = false,
-									 ?string $domain = null, string $two_factor_token = null): bool
+		public static function login(User $user, bool $stay_logged_in = false,
+									 string $namespace = "bigtree_admin"): ?string
 		{
-			global $bigtree;
+			static::$Namespace = $namespace;
 			
-			/** @var $user_class User */
-			$user_class = static::$UserClass;
-			$ip = ip2long(Router::getRemoteIP());
+			// Generate random session and chain ids
+			$chain = SQL::unique("bigtree_user_sessions", "chain", uniqid("chain-", true));
+			$session = SQL::unique("bigtree_user_sessions", "id", uniqid("session-", true));
 			
-			if ($two_factor_token) {
-				$user = $user_class::process2FAToken($two_factor_token);
-				
-				if ($user) {
-					$login_validated = true;
-				} else {
-					$login_validated = false;
-				}
-			} else {
-				if (static::getIsIPBanned($ip)) {
-					return false;
-				}
-				
-				// Get user, we'll be checking against the password later
-				$email = trim(strtolower($email));
-				$user = $user_class::getByEmail($email);
-				
-				// If the user doesn't exist, fail immediately
-				if (!$user) {
-					return false;
-				}
-				
-				if ($user->IsBanned) {
-					return false;
-				}
-				
-				// BigTree 4.3+ switch to password_hash
-				if ($user->NewHash) {
-					$login_validated = password_verify($password, $user->Password);
-					
-					// New algorithm
-					if ($login_validated && password_needs_rehash($user->Password, PASSWORD_DEFAULT)) {
-						SQL::update("bigtree_users", $user->ID, ["password" => password_hash($password, PASSWORD_DEFAULT)]);
-					}
-				} else {
-					$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
-					$login_validated = $phpass->CheckPassword($password, $user->Password);
-					
-					// Switch to password_hash
-					if ($login_validated) {
-						SQL::update("bigtree_users", $user->ID, [
-							"password" => password_hash($password, PASSWORD_DEFAULT),
-							"new_hash" => "on"
-						]);
-					}
-				}
-			}
+			// Setup CSRF token
+			CSRF::generate();
 			
-			if ($login_validated) {
-				// Generate random session and chain ids
-				$chain = SQL::unique("bigtree_user_sessions", "chain", uniqid("chain-", true));
-				$session = SQL::unique("bigtree_user_sessions", "id", uniqid("session-", true));
-
-				// Setup CSRF token
-				CSRF::generate();
-				
-				// Create the new session chain
-				SQL::insert("bigtree_user_sessions", [
-					"id" => $session,
-					"table" => $user_class::$Table,
+			// Create the new session chain
+			SQL::insert("bigtree_user_sessions", [
+				"id" => $session,
+				"table" => User::$Table,
+				"chain" => $chain,
+				"email" => $user->Email,
+				"csrf_token" => CSRF::$Token,
+				"csrf_token_field" => CSRF::$Field
+			]);
+			
+			// Multi-domain setup needs a chain redirect
+			if (is_array(Router::$Config["sites"]) && count(Router::$Config["sites"])) {
+				// Create another unique cache session for logins across domains
+				$cache_data = [
+					"user_id" => $user->ID,
+					"session" => $session,
 					"chain" => $chain,
-					"email" => $user->Email,
+					"stay_logged_in" => $stay_logged_in,
+					"login_redirect" => !empty($_SESSION["bigtree_login_redirect"]) ? $_SESSION["bigtree_login_redirect"] : false,
+					"remaining_sites" => [],
 					"csrf_token" => CSRF::$Token,
 					"csrf_token_field" => CSRF::$Field
-				]);
+				];
 				
-				if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"])) {
-					// Create another unique cache session for logins across domains
-					$cache_data = [
-						"user_id" => $user->ID,
-						"session" => $session,
-						"chain" => $chain,
-						"stay_logged_in" => $stay_logged_in,
-						"login_redirect" => isset($_SESSION["bigtree_login_redirect"]) ? $_SESSION["bigtree_login_redirect"] : false,
-						"remaining_sites" => [],
-						"csrf_token" => CSRF::$Token,
-						"csrf_token_field" => CSRF::$Field
-					];
+				// If we have less than 4 other sites, browsers aren't going to freak out with the redirects
+				$all_ssl = true;
+				
+				foreach (Router::$Config["sites"] as $site_key => $site_configuration) {
+					$cache_data["remaining_sites"][$site_key] = $site_configuration["www_root"];
 					
-					// If we have less than 4 other sites, browsers aren't going to freak out with the redirects
-					$all_ssl = true;
-					
-					foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
-						$cache_data["remaining_sites"][$site_key] = $site_configuration["www_root"];
-						
-						if (strpos($site_configuration["www_root"], "https://") !== 0) {
-							$all_ssl = false;
-						}
-					}
-					
-					$cache_session_key = Cache::putUnique("org.bigtreecms.login-session", $cache_data);
-					
-					// Start the login chain
-					if (strpos(ADMIN_ROOT, "https://") === 0 && !$all_ssl) {
-						Router::redirect(str_replace("https://", "http://", ADMIN_ROOT)."login/cors/?key=".$cache_session_key);
-					} else {
-						Router::redirect(ADMIN_ROOT."login/cors/?key=".$cache_session_key);
-					}
-				} else {
-					// We still set the email for BigTree bar usage even if they're not being "remembered"
-					Cookie::create(static::$Namespace."[email]", $user->Email, "+1 month");
-					
-					if ($stay_logged_in) {
-						Cookie::create(static::$Namespace."[login]", json_encode([$session, $chain]), "+1 month");
-					}
-					
-					// Regenerate session ID on user state change
-					$old_session_id = session_id();
-					session_regenerate_id();
-					
-					if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
-						SQL::update("bigtree_sessions", $old_session_id, [
-							"id" => session_id(),
-							"is_login" => "on",
-							"logged_in_user" => $user->ID
-						]);
-					}
-					
-					$_SESSION[static::$Namespace]["id"] = $user->ID;
-					$_SESSION[static::$Namespace]["email"] = $user->Email;
-					$_SESSION[static::$Namespace]["level"] = $user->Level;
-					$_SESSION[static::$Namespace]["name"] = $user->Name;
-					$_SESSION[static::$Namespace]["permissions"] = $user->Permissions;
-					$_SESSION[static::$Namespace]["csrf_token"] = CSRF::$Token;
-					$_SESSION[static::$Namespace]["csrf_token_field"] = CSRF::$Field;
-					
-					if (isset($_SESSION["bigtree_login_redirect"])) {
-						Router::redirect($_SESSION["bigtree_login_redirect"]);
-					} else {
-						Router::redirect(ADMIN_ROOT);
+					if (strpos($site_configuration["www_root"], "https://") !== 0) {
+						$all_ssl = false;
 					}
 				}
 				
-				return true;
+				$cache_session_key = Cache::putUnique("org.bigtreecms.login-session", $cache_data);
 				
-			// Failed login attempt, log it.
-			} elseif (!empty(static::$Policies)) {
-				
-				// Log it as a failed attempt for a user if the email address matched
-				SQL::insert("bigtree_login_attempts", [
-					"ip" => $ip,
-					"table" => $user_class::$Table,
-					"user" => $user ? "'".$user->ID."'" : null
-				]);
-				
-				// See if this attempt earns the user a ban - first verify the policy is completely filled out (3 parts)
-				if ($user->ID && count(array_filter((array) $bigtree["security-policy"]["user_fails"])) == 3) {
-					$policy = $bigtree["security-policy"]["user_fails"];
-					$attempts = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_login_attempts 
-												  WHERE `user` = ? AND 
-														`timestamp` >= DATE_SUB(NOW(),INTERVAL ".$policy["time"]." MINUTE)", $user);
-					// Earned a ban
-					if ($attempts >= $policy["count"]) {
-						// See if they have an existing ban that hasn't expired, if so, extend it
-						$existing_ban = SQL::fetch("SELECT * FROM bigtree_login_bans WHERE `user` = ? AND `expires` >= NOW()", $user);
-						
-						if (!empty($existing_ban)) {
-							SQL::query("UPDATE bigtree_login_bans 
-										SET `expires` = DATE_ADD(NOW(),INTERVAL ".$policy["ban"]." MINUTE) 
-										WHERE `id` = ?", $existing_ban["id"]);
-						} else {
-							SQL::query("INSERT INTO bigtree_login_bans (`ip`,`user`,`expires`) 
-										VALUES (?, ?, DATE_ADD(NOW(),INTERVAL ".$policy["ban"]." MINUTE))", $ip, $user);
-						}
-						
-						$bigtree["ban_expiration"] = date("F j, Y @ g:ia", strtotime("+".$policy["ban"]." minutes"));
-						$bigtree["ban_is_user"] = true;
-					}
-				}
-				
-				// See if this attempt earns the IP as a whole a ban - first verify the policy is completely filled out (3 parts)
-				if (count(array_filter((array) $bigtree["security-policy"]["ip_fails"])) == 3) {
-					$policy = $bigtree["security-policy"]["ip_fails"];
-					$attempts = SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_login_attempts 
-												  WHERE `ip` = ? AND 
-														`timestamp` >= DATE_SUB(NOW(),INTERVAL ".$policy["time"]." MINUTE)", $ip);
-					// Earned a ban
-					if ($attempts >= $policy["count"]) {
-						$existing_ban = SQL::fetch("SELECT * FROM bigtree_login_bans WHERE `ip` = ? AND `expires` >= NOW()", $ip);
-						
-						if (!empty($existing_ban)) {
-							SQL::query("UPDATE bigtree_login_bans 
-										SET `expires` = DATE_ADD(NOW(),INTERVAL ".$policy["ban"]." HOUR) 
-										WHERE `id` = ?", $existing_ban["id"]);
-						} else {
-							SQL::query("INSERT INTO bigtree_login_bans (`ip`,`expires`) 
-										VALUES (?, DATE_ADD(NOW(),INTERVAL ".$policy["ban"]." HOUR))", $ip);
-						}
-						
-						$bigtree["ban_expiration"] = date("F j, Y @ g:ia", strtotime("+".$policy["ban"]." hours"));
-						$bigtree["ban_is_user"] = false;
-					}
-				}
-				
-				return false;
+				return $cache_session_key;
 			}
 			
-			return false;
+			// We still set the email for BigTree bar usage even if they're not being "remembered"
+			Cookie::create(static::$Namespace."[email]", $user->Email, "+1 month");
+				
+			if ($stay_logged_in) {
+				Cookie::create(static::$Namespace."[login]", json_encode([$session, $chain]), "+1 month");
+			}
+				
+			// Regenerate session ID on user state change
+			$old_session_id = session_id();
+			session_regenerate_id();
+				
+			if (!empty(Router::$Config["session_handler"]) && Router::$Config["session_handler"] == "db") {
+				SQL::update("bigtree_sessions", $old_session_id, [
+					"id" => session_id(),
+					"is_login" => "on",
+					"logged_in_user" => $user->ID
+				]);
+			}
+				
+			$_SESSION[static::$Namespace]["id"] = $user->ID;
+			$_SESSION[static::$Namespace]["email"] = $user->Email;
+			$_SESSION[static::$Namespace]["level"] = $user->Level;
+			$_SESSION[static::$Namespace]["name"] = $user->Name;
+			$_SESSION[static::$Namespace]["permissions"] = $user->Permissions;
+			$_SESSION[static::$Namespace]["csrf_token"] = CSRF::$Token;
+			$_SESSION[static::$Namespace]["csrf_token_field"] = CSRF::$Field;
+				
+			return null;
 		}
 		
 		/*
@@ -519,7 +387,7 @@
 					$old_session_id = session_id();
 					session_regenerate_id();
 					
-					if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+					if (!empty(Router::$Config["session_handler"]) && Router::$Config["session_handler"] == "db") {
 						SQL::update("bigtree_sessions", $old_session_id, [
 							"id" => session_id(),
 							"is_login" => "on",
@@ -563,7 +431,7 @@
 			}
 			
 			// Determine whether we should log out all instances of this user
-			if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+			if (!empty(Router::$Config["session_handler"]) && Router::$Config["session_handler"] == "db") {
 				$security_policy = Setting::value("bigtree-internal-security-policy");
 				
 				if (!empty($security_policy["logout_all"])) {
@@ -703,7 +571,7 @@
 				return null;
 			}
 			
-			$phpass = new PasswordHash($bigtree["config"]["password_depth"], true);
+			$phpass = new PasswordHash(Router::$Config["password_depth"], true);
 			
 			if ($phpass->CheckPassword($password, $user["password"])) {
 				$token = $phpass->HashPassword(Text::getRandomString(64).trim($password).Text::getRandomString(64));

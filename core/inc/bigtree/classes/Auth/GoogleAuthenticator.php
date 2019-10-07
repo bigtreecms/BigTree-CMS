@@ -75,8 +75,12 @@
 			return 'https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl='.$chl;
 		}
 		
-		public static function verifyCode(string $secret, int $code, int $discrepancy = 1): bool
+		public static function verifyCode(string $secret, $code, int $discrepancy = 1): bool
 		{
+			if (is_int($code)) {
+				$code = (string) $code;
+			}
+			
 			$currentTimeSlice = floor(time() / 30);
 			
 			if (strlen($code) != 6) {

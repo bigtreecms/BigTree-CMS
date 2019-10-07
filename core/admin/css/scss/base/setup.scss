@@ -37,3 +37,7 @@ $deep_red: #A92525;
 	overflow: hidden;
 	padding: 0;
 }
+
+.visually_hide {
+	@include visually_hide;
+}

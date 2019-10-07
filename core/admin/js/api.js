@@ -377,6 +377,8 @@ var BigTreeAPI = (function() {
 				upgrading = true;
 				db = event.target.result;
 
+				BigTree.toggle_busy("Updating data (this may take a while)");
+
 				// Remove all existing data stores
 				for (let store in db.objectStoreNames) {
 					if (db.objectStoreNames.hasOwnProperty(store)) {
@@ -411,6 +413,8 @@ var BigTreeAPI = (function() {
 
 							initialized = true;
 							upgrading = false;
+
+							BigTree.toggle_busy();
 							resolve();
 						};
 					}

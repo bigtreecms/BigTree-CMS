@@ -2,7 +2,18 @@
 	namespace BigTree;
 	
 	header("Content-type: text/json");
-	API::authenticate();
+	
+	// Some API calls don't need to be authenticated first
+	$unauthenticated_routes = [
+		"users/login",
+		"users/forgot-password",
+		"users/two-factor-setup",
+		"users/two-factor-auth"
+	];
+	
+	if (!in_array(implode("/", Router::$RoutedPath), $unauthenticated_routes)) {
+		API::authenticate();
+	}
 	
 	if (!empty($_GET["since"])) {
 		$since = date("Y-m-d H:i:s", is_numeric($_GET["since"]) ? $_GET["since"] : strtotime($_GET["since"]));

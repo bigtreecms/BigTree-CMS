@@ -31,6 +31,7 @@
 		public static $POSTError = null;
 		public static $PrimaryFile;
 		public static $Registry = false;
+		public static $RoutedPath = [];
 		public static $RouteParamNames = [];
 		public static $RouteParamNamesPath = [];
 		public static $Secure = false;
@@ -896,6 +897,12 @@
 			
 			static::$PrimaryFile = $inc_file;
 			static::$Commands = $commands;
+			
+			if (count($commands)) {
+				static::$RoutedPath = array_slice($path, 0, -1 * count($commands));
+			} else {
+				static::$RoutedPath = $path;
+			}
 		}
 		
 		/*
