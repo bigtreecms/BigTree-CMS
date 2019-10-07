@@ -52,7 +52,7 @@
 	}
 ?>
 <form class="container" method="post" action="<?=ADMIN_ROOT?>dashboard/vitals-statistics/404/process-csv/">
-	<input type="hidden" name="site_key" value="<?=BigTree::safeEncode($_POST["site_key"])?>">
+	<input type="hidden" name="site_key" value="<?=Text::htmlEncode($_POST["site_key"])?>">
 	<section>
 		<p>
 			<?php

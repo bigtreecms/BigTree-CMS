@@ -155,7 +155,8 @@
 			
 			// Normally we'd fail, but it's not like you can create a higher resolution video clip here.
 			if ($width < $min_width || $height < $min_height) {
-				BigTree::createUpscaledImage($local_image_copy, $local_image_copy, $min_width, $min_height);
+				$upscaler = new Image($local_image_copy);
+				$upscaler->upscale($local_image_copy, $min_width, $min_height);
 			}
 			
 			// Pretend to be a normal image field and process it

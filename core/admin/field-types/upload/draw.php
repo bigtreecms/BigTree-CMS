@@ -3,7 +3,7 @@
 ?>
 <div class="upload_field" id="<?=$this->ID?>">
 	<div class="contain">
-		<input<?php if ($this->Required) { ?> class="required"<?php } ?> type="file" tabindex="<?=$this->TabIndex?>" name="<?=$this->Key?>"<?php if (!empty($this->Settings["valid_extensions"])) { ?> accept="<?=BigTree::safeEncode($this->Settings["valid_extensions"])?>"<?php } ?> />
+		<input<?php if ($this->Required) { ?> class="required"<?php } ?> type="file" tabindex="<?=$this->TabIndex?>" name="<?=$this->Key?>"<?php if (!empty($this->Settings["valid_extensions"])) { ?> accept="<?=Text::htmlEncode($this->Settings["valid_extensions"])?>"<?php } ?> />
 		<?php
 			if ($this->Value) {
 				$pathinfo = pathinfo($this->Value);

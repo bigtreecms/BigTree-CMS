@@ -40,7 +40,7 @@
 				
 				return "";
 			// Invalidate sessions with incorrect user agents of IP addresses
-			} elseif ($session["ip_address"] != BigTree::remoteIP() || $session["user_agent"] != $_SERVER["HTTP_USER_AGENT"]) {
+			} elseif ($session["ip_address"] != Router::getRemoteIP() || $session["user_agent"] != $_SERVER["HTTP_USER_AGENT"]) {
 				SQL::update("bigtree_sessions", $id, ["data" => "", "last_accessed" => time()]);
 				
 				return "";

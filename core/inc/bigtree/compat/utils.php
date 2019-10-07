@@ -49,28 +49,6 @@
 		}
 		
 		/*
-			Function: centerCrop
-				Crop from the center of an image to create a new one.
-			
-			Parameters:
-				file - The location of the image to crop.
-				newfile - The location to save the new cropped image.
-				cw - The crop width.
-				ch - The crop height.
-				retina - Whether to try to create a retina crop (2x, defaults false)
-				grayscale - Whether to convert to grayscale (defaults false)
-
-			Returns:
-				The new file name if successful, false if there was not enough memory available.
-		*/
-		
-		public static function centerCrop($file, $newfile, $cw, $ch, $retina = false, $grayscale = false) {
-			$image = new BigTree\Image($file);
-			
-			return $image->centerCrop($newfile, $cw, $ch, $retina, $grayscale);
-		}
-		
-		/*
 			Function: cleanFile
 				Makes sure that a file path doesn't contain abusive characters (i.e. ../)
 
@@ -132,75 +110,6 @@
 		
 		public static function copyFile($from, $to) {
 			return BigTree\FileSystem::copyFile($from, $to);
-		}
-		
-		/*
-			Function: createCrop
-				Creates a cropped image from a source image.
-			
-			Parameters:
-				file - The location of the image to crop.
-				new_file - The location to save the new cropped image.
-				x - The starting x value of the crop.
-				y - The starting y value of the crop.
-				target_width - The desired width of the new image.
-				target_height - The desired height of the new image.
-				width - The width to crop from the original image.
-				height - The height to crop from the original image.
-				retina - Whether to create a retina-style image (2x, lower quality) if able, defaults to false
-				grayscale - Whether to make the crop be in grayscale or not, defaults to false
-
-			Returns:
-				The new file name if successful, false if there was not enough memory available or an invalid source image was provided.
-		*/
-		
-		public static function createCrop($file, $new_file, $x, $y, $target_width, $target_height, $width, $height, $retina = false, $grayscale = false) {
-			return BigTree\Image::createCrop($file, $new_file, $x, $y, $target_width, $target_height, $width, $height, $retina, $grayscale);
-		}
-		
-		/*
-			Function: createThumbnail
-				Creates a thumbnailed image from a source image.
-			
-			Parameters:
-				file - The location of the image to crop.
-				new_file - The location to save the new cropped image.
-				maxwidth - The maximum width of the new image (0 for no max).
-				maxheight - The maximum height of the new image (0 for no max).
-				retina - Whether to create a retina-style image (2x, lower quality) if able (defaults to false).
-				grayscale - Whether to make the crop be in grayscale or not (defaults to false).
-				upscale - If set to true, upscales to the maxwidth / maxheight instead of downscaling (defaults to false, disables retina).
-
-			Returns:
-				The new file name if successful, false if there was not enough memory available or an invalid source image was provided.
-			
-			See Also:
-				createUpscaledImage
-		*/
-		
-		public static function createThumbnail($file, $new_file, $max_width, $max_height, $retina = false, $grayscale = false, $upscale = false) {
-			return BigTree\Image::createThumbnail($file, $new_file, $max_width, $max_height, $retina, $grayscale, $upscale);
-		}
-		
-		/*
-			Function: createUpscaledImage
-				Creates a upscaled image from a source image.
-			
-			Parameters:
-				file - The location of the image to crop.
-				new_file - The location to save the new cropped image.
-				min_width - The minimum width of the new image (0 for no min).
-				min_height - The minimum height of the new image (0 for no min).
-			
-			Returns:
-				The new file name if successful, false if there was not enough memory available or an invalid source image was provided.
-
-			See Also:
-				createThumbnail
-		*/
-		
-		public static function createUpscaledImage($file, $new_file, $min_width, $min_height) {
-			return static::createThumbnail($file, $new_file, $min_width, $min_height, false, false, true);
 		}
 		
 		/*
@@ -436,39 +345,6 @@
 			BigTree\SQL::drawTableSelectOptions($default);
 		}
 		
-		/*
-			Function: getThumbnailSizes
-				Returns a list of sizes of an image and the result sizes.
-			
-			Parameters:
-				file - The location of the image to crop.
-				maxwidth - The maximum width of the new image (0 for no max).
-				maxheight - The maximum height of the new image (0 for no max).
-			
-			Returns:
-				An array with (type,width,height,result width,result height)
-		*/
-		
-		public static function getThumbnailSizes($file, $maxwidth, $maxheight) {
-			return BigTree\Image::getThumbnailSizes($file, $maxwidth, $maxheight);
-		}
-		
-		/*
-			Function: getUpscaleSizes
-				Returns a list of sizes of an image and the result sizes.
-			
-			Parameters:
-				file - The location of the image to crop.
-				min_width - The minimum width of the new image (0 for no min).
-				min_height - The maximum height of the new image (0 for no min).
-			
-			Returns:
-				An array with (type,width,height,result width,result height)
-		*/
-		
-		public static function getUpscaleSizes($file, $min_width, $min_height) {
-			return BigTree\Image::getUpscaleSizes($file, $min_width, $min_height);
-		}
 		
 		/*
 			Function: globalizeArray
@@ -542,23 +418,6 @@
 		
 		public static function gravatar($email, $size = 56, $default = false, $rating = "g") {
 			return BigTree\User::gravatar($email, $size, $default, $rating);
-		}
-		
-		/*
-			Function: imageManipulationMemoryAvailable
-				Checks whether there is enough memory available to perform an image manipulation.
-
-			Parameters:
-				source - The source image file
-				width - The width of the new image to be created
-				height - The height of the new image to be created
-
-			Returns:
-				true if the image can be created, otherwise false.
-		*/
-		
-		public static function imageManipulationMemoryAvailable($source, $width, $height) {
-			return BigTree\Image::getMemoryAvailability($source, $width, $height);
 		}
 		
 		/*
@@ -1198,6 +1057,60 @@
 		
 		public static function urlExists($url) {
 			return BigTree\Link::urlExists($url);
+		}
+
+		// These functions remain in BigTree for backwards compatibility
+		
+		public static function centerCrop($file, $newfile, $cw, $ch, $retina = false, $grayscale = false) {
+			$image = new BigTree\Image($file);
+			
+			return $image->centerCrop($newfile, $cw, $ch, $retina, $grayscale);
+		}
+		
+		public static function createCrop($file, $new_file, $x, $y, $target_width, $target_height, $width, $height, $retina = false, $grayscale = false) {
+			$image = new BigTree\Image($file);
+			
+			return $image->crop($new_file, $x, $y, $target_width, $target_height, $width, $height, $retina, $grayscale);
+		}
+		
+		public static function createThumbnail($file, $new_file, $maxwidth, $maxheight, $retina = false, $grayscale = false, $upscale = false) {
+			$image = new BigTree\Image($file);
+			
+			$image->thumbnail($new_file, $maxwidth, $maxheight, $retina, $grayscale, $upscale);
+		}
+		
+		public static function createUpscaledImage($file, $new_file, $min_width, $min_height) {
+			$image = new BigTree\Image($file);
+			
+			$image->upscale($new_file, $min_width, $min_height);
+		}
+		
+		public static function getThumbnailSizes($file, $min_width, $min_height) {
+			$image = new BigTree\Image($file);
+			$sizes = $image->getThumbnailSize($min_width, $min_height);
+			
+			return [$image->Type, $image->Width, $image->Height, $sizes["width"], $sizes["height"]];
+		}
+		
+		public static function getUpscaleSizes($file, $min_width, $min_height) {
+			$image = new BigTree\Image($file);
+			$sizes = $image->getUpscaleSize($min_width, $min_height);
+			
+			return [$image->Type, $image->Width, $image->Height, $sizes["width"], $sizes["height"]];
+		}
+		
+		public static function imageManipulationMemoryAvailable($source, $width, $height) {
+			$image = new BigTree\Image($source);
+			
+			return $image->checkMemory($width, $height);
+		}
+		
+		public static function restoreMemoryLimit() {
+			BigTree\Image::restoreMemoryLimit();
+		}
+		
+		public static function setImageMemoryLimit() {
+			BigTree\Image::setMemoryLimit();
 		}
 		
 	}

@@ -84,7 +84,7 @@
 			foreach ($entries as $id => $description) {
 		?>
 		<li>
-			<input type="hidden" name="<?=$this->Key?>[<?=$x?>]" value="<?=BigTree::safeEncode($id)?>" />
+			<input type="hidden" name="<?=$this->Key?>[<?=$x?>]" value="<?=Text::htmlEncode($id)?>" />
 			<?php if ($sortable) { ?>
 			<span class="icon_sort"></span>
 			<?php } ?>

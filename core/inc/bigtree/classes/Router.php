@@ -176,7 +176,7 @@
 					ksort(static::$SiteRoots);
 					static::$SiteRoots = array_reverse(static::$SiteRoots);
 					
-					file_put_contents($cache_location, BigTree::json(static::$SiteRoots));
+					file_put_contents($cache_location, JSON::encode(static::$SiteRoots));
 				} else {
 					static::$SiteRoots = json_decode(file_get_contents($cache_location), true);
 				}
@@ -249,7 +249,7 @@
 						}
 					}
 					
-					BigTree::redirect($redirect_url);
+					static::redirect($redirect_url);
 				}
 			}
 		}
