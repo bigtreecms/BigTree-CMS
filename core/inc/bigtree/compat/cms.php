@@ -153,7 +153,7 @@
 		*/
 		
 		static function catch404() {
-			BigTree\Redirect::catch404();
+			BigTree\Router::catch404();
 		}
 		
 		/*
@@ -170,19 +170,27 @@
 		
 		/*
 			Function: decodeResources
-				Turns the JSON resources data into a PHP array of resources with links being translated into front-end readable links.
-				This function is called by BigTree's router and is generally not a function needed to end users.
-			
-			Parameters:
-				data - JSON encoded callout data.
-			
-			Returns:
-				An array of resources.
+				Function removed in BigTree 5.0
 		*/
 		
 		static function decodeResources($data) {
 			trigger_error("This method no longer exists", E_USER_ERROR);
 		}
+
+		/*
+			Function: drawHeadTags
+				Draws the <title>, meta description, and open graph tags for the given context.
+				The context defaults to the current page and can be changed via BigTreeCMS::setHeadContext
+
+			Parameters:
+				site_title - A site title that draws after the page title if entered, also used for og:site_name
+				divider - The divider between the page title and site title, defaults to |
+		*/
+		
+		public static function drawHeadTags($site_title = "", $divider = "|") {
+			BigTree\OpenGraph::drawHeadTags($site_title, $divider);
+		}
+
 		
 		/*
 			Function: drawXMLSitemap
@@ -208,6 +216,16 @@
 		
 		static function extensionSettingCheck($id) {
 			return BigTree\Setting::context($id);
+		}
+
+
+		/*
+			Function: generateReplaceableRoots
+				Function removed in BigTree 5.0
+		*/
+		
+		public static function generateReplaceableRoots() {
+			trigger_error("This method no longer exists", E_USER_ERROR);			
 		}
 		
 		/*
@@ -495,6 +513,27 @@
 		static function getRelatedPagesByTags($tags = [], $only_id = false) {
 			return BigTree\Page::allByTags($tags, $only_id ? "id" : "array");
 		}
+
+		/*
+			Function: getResource
+				Returns a resource.
+
+			Parameters:
+				id - The id of the resource.
+
+			Returns:
+				A resource entry.
+		*/
+
+		public static function getResource($id) {
+			if (!BigTree\Resource::exists($id)) {
+				return false;
+			}
+			
+			$resource = new BigTree\Resource($id);
+
+			return $resource->Array;
+		}
 		
 		/*
 			Function: getSetting
@@ -659,7 +698,22 @@
 		*/
 		
 		static function handle404($url) {
-			return BigTree\Redirect::handle404($url);
+			return BigTree\Router::handle404($url);
+		}
+
+		/*
+			Function: linkForPath
+				Returns a correct link for a page's path for the current site in a multi-domain setup.
+			
+			Parameters:
+				path - A page path
+		
+			Returns:
+				A fully qualified URL
+		*/
+		
+		public static function linkForPath($path) {
+			return BigTree\Link::byPath($path);
 		}
 		
 		/*
@@ -715,6 +769,23 @@
 		
 		static function replaceRelativeRoots($string) {
 			return BigTree\Link::detokenize($string);
+		}
+
+		/*
+			Function: setHeadContext
+				Sets the context for the drawHeadTags method.
+
+			Parameters:
+				table - A data table to pull open graph information from
+				entry - The ID of the entry to pull open graph information for
+				title - A page title to use (optional, will use Open Graph information if not entered)
+				description - A meta description to use (optional, will use Open Graph information if not entered)
+				image - An image to use for Open Graph (if OG data is empty)
+				type - An Open Graph type to default to (if left empty and OG data is empty, will use "website")
+		*/
+
+		public static function setHeadContext($table, $entry, $title = null, $description = null, $image = null, $type = null) {
+			BigTree\OpenGraph::setContext($table, $entry, $title, $description, $image, $type);
 		}
 		
 		/*

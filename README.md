@@ -60,6 +60,13 @@ Changelog
 - REMOVED: TinyMCE 3 is no longer included with BigTree (if you want to use TinyMCE 3 you can add it to /custom/admin/js/tinymce3/)
 - REMOVED: Keywords from the SEO tab of Pages (as they are not used by any search engines)
 
+### 5.0 Backwards Compatibility Changes
+- Functions defined within template files are now defined within another function's scope limiting their ability to access variables defined within the same scope.
+- Removed the following BigTreeCMS methods:
+    - decodeResources
+    - generateReplaceableRoots
+    
+
 ### 4.2.9 Release
 - ADDED: Clear Label button to callout editor in case you don't want to use any resource for the label
 - ADDED: $_SESSION["bigtree_referring_url"] is now set when your site is in maintenance mode (for use by your maintenance template for logging)

@@ -12,6 +12,8 @@
 	{
 		protected static $Booted = false;
 		protected static $Errors = [];
+		protected static $GlobalsKey;
+		protected static $GlobalsVal;
 		protected static $ReservedRoutes = [];
 		
 		/** @property BigTree\Page $CurrentPage */
@@ -189,6 +191,30 @@
 			}
 			
 			static::$Booted = true;
+		}
+
+		/*
+			Function: catch404
+				Manually catch and display the 404 page from a routed template; logs missing page with handle404
+
+			Parameters:
+				layout - The layout to draw the 404 page in (defaults to "default")
+				template - A template file to render for the 404 page (defaults to /templates/basic/_404.php)
+		*/
+		
+		public static function catch404(string $layout = "default", ?string $template = null): void
+		{
+			Router::checkPathHistory(Router::$Path);
+			
+			// Wipe any content that's already been drawn
+			ob_clean();
+			
+			if (static::handle404(str_ireplace(WWW_ROOT, "", Link::currentURL()))) {
+				include (is_null($template) ? SERVER_ROOT."templates/basic/_404.php" : $template);
+				
+				Router::setLayout($layout);
+				Router::renderPage();
+			}
 		}
 		
 		/*
@@ -452,6 +478,117 @@
 			
 			return static::$ReservedRoutes;
 		}
+
+		/*
+			Function: handle404
+				Handles a 404.
+			
+			Parameters:
+				url - The URL you hit that's a 404.
+		*/
+		
+		public static function handle404(string $url): bool
+		{
+			$url = sqlescape(htmlspecialchars(strip_tags(rtrim($url, "/"))));
+			$existing = null;
+			
+			if (!$url) {
+				return true;
+			}
+			
+			// See if there's any GET requests
+			$get = $_GET;
+			unset($get["bigtree_htaccess_url"]);
+			
+			if (count($get)) {
+				$query_pieces = [];
+				
+				foreach ($get as $key => $value) {
+					$query_pieces[] = $key."=".$value;
+				}
+				
+				$get = Text::htmlEncode(implode("&", $query_pieces));
+				
+				if (defined("BIGTREE_SITE_KEY")) {
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s
+											WHERE broken_url = ? AND get_vars = ? AND site_key = ?",
+											$url, $get, BIGTREE_SITE_KEY);
+				} else {
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s
+											WHERE broken_url = ? AND get_vars = ?", $url, $get);
+				}
+				
+				// Look for a 404 that has a redirect but no get vars
+				if (empty($existing["redirect_url"])) {
+					if (defined("BIGTREE_SITE_KEY")) {
+						$non_get_existing = SQL::fetch("SELECT * FROM bigtree_404s
+														WHERE broken_url = ? AND redirect_url != ''
+														  AND get_vars = ? AND site_key = ?",
+													   $url, $get, BIGTREE_SITE_KEY);
+					} else {
+						$non_get_existing = SQL::fetch("SELECT * FROM bigtree_404s
+														WHERE broken_url = ? AND redirect_url != '' AND get_vars = ?",
+													   $url, $get);
+					}
+					
+					if ($non_get_existing) {
+						$existing = $non_get_existing;
+					}
+				}
+			} else {
+				$get = "";
+				
+				if (defined("BIGTREE_SITE_KEY")) {
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s
+											WHERE broken_url = ? AND get_vars = '' AND site_key = ?",
+											$url, BIGTREE_SITE_KEY);
+				} else {
+					$existing = SQL::fetch("SELECT * FROM bigtree_404s WHERE broken_url = ? AND get_vars = ''", $url);
+				}
+			}
+			
+			if ($existing["redirect_url"]) {
+				$existing["redirect_url"] = Link::decode($existing["redirect_url"]);
+				
+				if ($existing["redirect_url"] == "/") {
+					$existing["redirect_url"] = "";
+				}
+				
+				if (substr($existing["redirect_url"],0,7) == "http://" || substr($existing["redirect_url"],0,8) == "https://") {
+					$redirect = $existing["redirect_url"];
+				} else {
+					$redirect = WWW_ROOT.str_replace(WWW_ROOT, "", $existing["redirect_url"]);
+				}
+				
+				SQL::query("bigtree_404s SET requests = (requests + 1) WHERE id = ?", $existing["id"]);
+				Router::redirect(htmlspecialchars_decode($redirect), "301");
+				
+				return false;
+			} else {
+				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
+				define("BIGTREE_DO_NOT_CACHE", true);
+				define("BIGTREE_URL_IS_404", true);
+				
+				if ($existing && $existing["get_vars"] == $get) {
+					SQL::query("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = ?", $existing["id"]);
+				} elseif (defined("BIGTREE_SITE_KEY")) {
+					SQL::insert("bigtree_404s", [
+						"broken_url" => $url,
+						"get_vars" => $get,
+						"requests" => 1,
+						"site_key" => BIGTREE_SITE_KEY
+					]);
+				} else {
+					SQL::insert("bigtree_404s", [
+						"broken_url" => $url,
+						"get_vars" => $get,
+						"requests" => 1
+					]);
+				}
+				
+				return true;
+			}
+		}
 		
 		/*
 			Function: logError
@@ -628,6 +765,11 @@
 				);
 			}
 			
+			// Bring globals into scope
+			foreach ($GLOBALS as static::$GlobalsKey => static::$GlobalsVal) {
+				global ${static::$GlobalsKey};
+			}
+			
 			if ($is_admin) {
 				include static::getIncludePath("admin/layouts/".static::$Layout.".php");
 			} else {
@@ -685,8 +827,8 @@
 					}
 					
 					// Pending Pages don't have their ID set.
-					if (!isset(static::$CurrentPage["id"])) {
-						static::$CurrentPage["id"] = static::$CurrentPage["page"];
+					if (!isset(static::$CurrentPage->ID)) {
+						static::$CurrentPage->ID = static::$CurrentPage->Page;
 					}
 					
 					if (defined("BIGTREE_URL_IS_404")) {
@@ -701,7 +843,7 @@
 				// Backwards compatibilitiy with 4.x
 				global $bigtree;
 				$bigtree["content"] = static::$Content;
-				$bigtree["page"] = static::$CurrentPage;
+				$bigtree["page"] = static::$CurrentPage->Array;
 				
 				ob_start();
 				include SERVER_ROOT."templates/layouts/".static::$Layout.".php";
@@ -795,6 +937,11 @@
 			}
 			
 			static::setRoutedLayoutPartials();
+			
+			// Bring globals into scope
+			foreach ($GLOBALS as static::$GlobalsKey => static::$GlobalsVal) {
+				global ${static::$GlobalsKey};
+			}
 			
 			foreach (static::$HeaderFiles as $header) {
 				include $header;

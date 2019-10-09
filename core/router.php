@@ -488,7 +488,7 @@
 		Router::checkPathHistory(Router::$Path);
 		
 		// It's not, it's a 404.
-		if (Redirect::handle404($_GET["bigtree_htaccess_url"])) {
+		if (Router::handle404($_GET["bigtree_htaccess_url"])) {
 			include SERVER_ROOT."templates/basic/_404.php";
 		}
 	}
