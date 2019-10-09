@@ -341,10 +341,14 @@
 		// If we're previewing, get pending data as well.
 		if ($bigtree["preview"]) {
 			$page = Page::getPageDraft($navid);
+			
+			// Backwards compatibility with 4.x
 			$bigtree["page"] = $page->Array;
+			$bigtree["page"]["link"] = WWW_ROOT.$page->Path."/";
+			$bigtree["resources"] = $page->Content;
 			
 			// If we're previewing pending changes, the template's routed-ness may have changed.
-			$template = new Template($bigtree["page"]["template"]);
+			$template = new Template($page->Template);
 			$routed = $template->Routed;
 		} else {
 			$page = new Page($navid);
@@ -356,50 +360,45 @@
 		// If we're in multi-site and the path contains a different site, 301 away
 		if (defined("BIGTREE_SITE_KEY")) {
 			foreach (Router::$SiteRoots as $site_path => $site_data) {
-				if ($site_path == BIGTREE_SITE_PATH && (!$site_path || strpos($bigtree["page"]["path"], $site_path) === 0)) {
+				if ($site_path == BIGTREE_SITE_PATH && (!$site_path || strpos($page->Path, $site_path) === 0)) {
 					break;
 				}
 				
-				if ($site_path == "" || strpos($bigtree["page"]["path"], $site_path) === 0) {
+				if ($site_path == "" || strpos($page->Path, $site_path) === 0) {
 					if ($site_path) {
-						$bigtree["page"]["path"] = substr($bigtree["page"]["path"], strlen($site_path));
+						$page->Path = substr($page->Path, strlen($site_path));
 					}
 					
 					if (Router::$Config["trailing_slash_behavior"] == "remove") {
-						Router::redirect($site_data["domain"].$bigtree["page"]["path"], "301");
+						Router::redirect($site_data["domain"].$page->Path, "301");
 					}
 					
-					Router::redirect($site_data["domain"].$bigtree["page"]["path"]."/", "301");
+					Router::redirect($site_data["domain"].$page->Path."/", "301");
 				}
 			}
 		}
 		
-		$bigtree["page"]["link"] = WWW_ROOT.$bigtree["page"]["path"]."/";
-		$bigtree["resources"] = $bigtree["page"]["resources"];
-		$bigtree["callouts"] = $bigtree["page"]["callouts"];
-		
 		// If this page should not be indexed, pass headers
-		if ($bigtree["page"]["seo_invisible"]) {
+		if ($page->SEOInvisible) {
 			header("X-Robots-Tag: noindex");
 		}
 		
 		// Quick access to resources
-		if (is_array($bigtree["resources"])) {
-			foreach ($bigtree["resources"] as $key => $val) {
-				if (substr($key, 0, 1) != "_" && $key != "bigtree") { // Don't allow for SESSION or COOKIE injection and don't overwrite $bigtree
-					$$key = $bigtree["resources"][$key];
-				}
+		foreach ($page->Content as $key => $val) {
+			// Don't allow for SESSION or COOKIE injection and don't overwrite $bigtree
+			if (substr($key, 0, 1) != "_" && $key != "bigtree") {
+				$$key = $page->Content[$key];
 			}
 		}
 		
 		// Redirect lower if the template is !
-		if ($bigtree["page"]["template"] == "!") {
+		if ($page->Template === "!") {
 			Router::redirectLower($page);
 		}
 		
 		// Setup extension handler for templates
-		if (strpos($bigtree["page"]["template"], "*") !== false) {
-			list($extension, $extension_template) = explode("*", $bigtree["page"]["template"]);
+		if (strpos($page->Template, "*") !== false) {
+			list($extension, $extension_template) = explode("*", $page->Template);
 			
 			$bigtree["extension_context"] = $extension;
 			define("EXTENSION_ROOT", SERVER_ROOT."extensions/$extension/");
@@ -413,7 +412,7 @@
 			$registry_found = false;
 			
 			foreach (Router::$Registry["template"] as $registration) {
-				if ($registration["template"] == $bigtree["page"]["template"]) {
+				if ($registration["template"] === $page->Template) {
 					$registry_commands = Router::getRegistryCommands(implode("/", Router::$Commands), $registration["pattern"]);
 					
 					if ($registry_commands !== false) {
@@ -435,19 +434,19 @@
 				}
 				
 				// Set the include file
-				$bigtree["routed_inc"] = $inc = SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/".ltrim($registry_rule["file"], "/");
+				$bigtree["routed_inc"] = $inc = SERVER_ROOT."templates/routed/".$page->Template."/".ltrim($registry_rule["file"], "/");
 				
 			// Use BigTree's routing to find the page
 			} else {
 				// Allow the homepage to be routed
-				if (!$bigtree["page"]["path"]) {
+				if (!$page->Path) {
 					Router::$Commands = Router::$Path;
 				}
 
 				if ($extension) {
 					Router::setRoutedFileAndCommands(SERVER_ROOT."extensions/$extension/templates/routed/$extension_template/", array_filter(Router::$Commands));
 				} else {
-					Router::setRoutedFileAndCommands(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/", array_filter(Router::$Commands));
+					Router::setRoutedFileAndCommands(SERVER_ROOT."templates/routed/".$page->Template."/", array_filter(Router::$Commands));
 				}
 
 				$command_count = count(Router::$Commands);
@@ -470,14 +469,14 @@
 			foreach (Router::$FooterFiles as $footer) {
 				include $footer;
 			}
-		} elseif ($bigtree["page"]["template"]) {
+		} elseif ($page->Template) {
 			if ($extension) {
 				include SERVER_ROOT."extensions/$extension/templates/basic/$extension_template.php";
 			} else {
-				include SERVER_ROOT."templates/basic/".$bigtree["page"]["template"].".php";
+				include SERVER_ROOT."templates/basic/".$page->Template.".php";
 			}
 		} else {
-			Router::redirect($bigtree["page"]["external"]);
+			Router::redirect($page->External);
 		}
 	// Check for standard sitemap
 	} else if (Router::$Path[0] == "sitemap" && !Router::$Path[1]) {

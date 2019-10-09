@@ -29,7 +29,7 @@
 			}
 			
 			// Lazy loading of modules
-			$bigtree["class_list"] = array_merge(BigTree\Module::$ClassCache, [
+			BigTree\Module::$ClassCache = array_merge(BigTree\Module::$ClassCache, [
 				"BigTree" => "inc/bigtree/compat/utils.php",
 				"BigTreeAdminBase" => "inc/bigtree/compat/admin.php",
 				"BigTreeAutoModule" => "inc/bigtree/compat/auto-modules.php",
@@ -52,6 +52,7 @@
 				"BigTreeSalesforceAPI" => "inc/bigtree/compat/salesforce.php",
 				"BigTreeDisqusAPI" => "inc/bigtree/compat/disqus.php",
 				"BigTreeFacebookAPI" => "inc/bigtree/compat/facebook.php",
+				"BigTreeJSONDB" => "inc/bigtree/compat/json-db.php",
 				"S3" => "inc/lib/amazon-s3.php",
 				"CF_Authentication" => "inc/lib/rackspace/cloud.php",
 				"CSSMin" => "inc/lib/CSSMin.php",

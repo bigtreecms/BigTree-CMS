@@ -136,6 +136,11 @@
 					$this->Template = $page["template"];
 					$this->Title = $page["title"];
 					$this->Trunk = $page["trunk"];
+					
+					// Make sure content is an array
+					if (!is_array($this->Content)) {
+						$this->Content = [];
+					}
 				}
 			}
 		}
@@ -151,6 +156,7 @@
 			}
 			
 			$changed_properties["nav_title"] = $changed_properties["navigation_title"];
+			$changed_properties["resources"] = $changed_properties["content"];
 			
 			return $changed_properties;
 		}
