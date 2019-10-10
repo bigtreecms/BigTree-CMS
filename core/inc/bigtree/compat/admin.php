@@ -2794,7 +2794,7 @@
 				sort - Order to return the settings. Defaults to name ASC.
 
 			Returns:
-				An array of entries from bigtree_settings.
+				An array of entries from the settings database.
 				If the setting is encrypted the value will be "[Encrypted Text]", otherwise it will be decoded.
 				If the calling user is a developer, returns locked settings, otherwise they are left out.
 		*/
@@ -4005,8 +4005,9 @@
 
 			// Figure out if we currently have a template that the user isn't allowed to use. If they do, we're not letting them change it.
 			if ($page->Template) {
-				$template_level = SQL::fetchSingle("SELECT level FROM bigtree_templates WHERE id = ?", $page->Template);
-				if ($template_level > $this->Level) {
+				$template = BigTree\DB::get("templates", $page->Template);
+
+				if (intval($template["level"]) > $this->Level) {
 					$template = $page->Template;
 				}
 			}

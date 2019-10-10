@@ -885,12 +885,13 @@
 			$path = explode("/", rtrim($url_parse["path"], "/"));
 			
 			// See if we have a straight up perfect match to the path.
-			$page = SQL::fetch("SELECT bigtree_pages.id,bigtree_templates.routed
-								FROM bigtree_pages LEFT JOIN bigtree_templates
-								ON bigtree_pages.template = bigtree_templates.id
+			$page = SQL::fetch("SELECT id, template FROM bigtree_pages 
 								WHERE path = ? AND archived = '' $publish_at", implode("/", $path));
+
 			if ($page) {
-				return [$page["id"], [], $page["routed"], $query_vars, $hash];
+				$template = DB::get("templates", $page["template"]);
+
+				return [$page["id"], [], $template["routed"], $query_vars, $hash];
 			}
 			
 			// Resetting $path to ensure it's numerically indexed, chop off the end until we find a page
@@ -903,15 +904,15 @@
 				$path_string = implode("/", array_slice($path, 0, -1 * $x));
 				
 				// We have additional commands, so we're now making sure the template is also routed, otherwise it's a 404.
-				$page_id = SQL::fetchSingle("SELECT bigtree_pages.id
-											 FROM bigtree_pages JOIN bigtree_templates 
-											 ON bigtree_pages.template = bigtree_templates.id 
-											 WHERE bigtree_pages.path = ? AND 
-												   bigtree_pages.archived = '' AND
-												   bigtree_templates.routed = 'on' $publish_at", $path_string);
-				
-				if ($page_id) {
-					return [$page_id, array_reverse($commands), "on", $query_vars, $hash];
+				$page = SQL::fetch("SELECT id, template FROM bigtree_pages 
+									WHERE path = ? AND archived = '' $publish_at", $path_string);
+
+				if ($page) {
+					$template = DB::get("templates", $page["template"]);
+
+					if ($template["routed"]) {
+						return [$page["id"], array_reverse($commands), "on", $query_vars, $hash];
+					}
 				}
 			}
 			

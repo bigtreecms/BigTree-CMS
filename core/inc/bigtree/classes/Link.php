@@ -673,14 +673,17 @@
 			if (substr($commands[0], 0, 1) == "#") {
 				return true;
 			}
-			
+
 			// Get template for the navigation id to see if it's a routed template
-			$routed = SQL::fetchSingle("SELECT bigtree_templates.routed FROM bigtree_templates JOIN bigtree_pages 
-													ON bigtree_templates.id = bigtree_pages.template 
-													WHERE bigtree_pages.id = ?", $nav_id);
+			$template_id = SQL::fetchSingle("SELECT template FROM bigtree_pages WHERE id = ?", $nav_id);
+			
 			// If we're a routed template, we're good.
-			if ($routed) {
-				return true;
+			if ($template_id) {
+				$template = DB::get("templates", $template_id);
+
+				if (!empty($template["routed"])) {
+					return true;
+				}
 			}
 			
 			// We may have been on a page, but there's extra routes that don't go anywhere or do anything so it's a 404.
