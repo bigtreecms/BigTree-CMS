@@ -773,6 +773,14 @@
 			if ($is_admin) {
 				include static::getIncludePath("admin/layouts/".static::$Layout.".php");
 			} else {
+				// Backwards compatibilitiy with 4.x
+				global $bigtree;
+				$bigtree["content"] = static::$Content;
+				$bigtree["page"] = static::$CurrentPage->Array;
+				
+				ob_start();
+				include SERVER_ROOT."templates/layouts/".static::$Layout.".php";
+				
 				// Authenticate if the user is logged in to the admin via cookies but not yet via session.
 				if (static::$CurrentPage &&
 					!empty($_COOKIE["bigtree_admin"]["email"]) &&
@@ -832,24 +840,12 @@
 					}
 					
 					if (defined("BIGTREE_URL_IS_404")) {
-						static::$Content = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(["http://", "https://"], "//", static::$Config["admin_root"]).'ajax/bar.js/?show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;is_404=true"></script></body>', static::$Content);
+						echo str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(["http://", "https://"], "//", static::$Config["admin_root"]).'ajax/bar.js/?show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;is_404=true"></script></body>', ob_get_clean());
 					} else {
-						static::$Content = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(["http://", "https://"], "//", static::$Config["admin_root"]).'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&amp;current_page_id='.$bigtree["page"]["id"].'&amp;show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;show_preview='.$show_preview_bar.'&amp;return_link='.$return_link.'&amp;custom_edit_link='.$bar_edit_link.'"></script></body>', static::$Content);
+						echo str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(["http://", "https://"], "//", static::$Config["admin_root"]).'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&amp;current_page_id='.$bigtree["page"]["id"].'&amp;show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;show_preview='.$show_preview_bar.'&amp;return_link='.$return_link.'&amp;custom_edit_link='.$bar_edit_link.'"></script></body>', ob_get_clean());
 					}
-					
-					static::$Config["cache"] = false;
-				}
-				
-				// Backwards compatibilitiy with 4.x
-				global $bigtree;
-				$bigtree["content"] = static::$Content;
-				$bigtree["page"] = static::$CurrentPage->Array;
-				
-				ob_start();
-				include SERVER_ROOT."templates/layouts/".static::$Layout.".php";
-				
-				// Write to the cache
-				if (static::$Config["cache"] && !defined("BIGTREE_DO_NOT_CACHE") && !count($_POST)) {
+				} elseif (static::$Config["cache"] && !defined("BIGTREE_DO_NOT_CACHE") && !count($_POST)) {
+					// Write to cache
 					FileSystem::createFile(BIGTREE_CACHE_DIRECTORY.md5(json_encode($_GET)).".page", ob_get_flush());
 				}
 			}
