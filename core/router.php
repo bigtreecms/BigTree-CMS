@@ -300,6 +300,8 @@
 	}
 	
 	// Not in route registry, check BigTree pages
+	$routed = false;
+	
 	if (!$registry_found) {
 		list($navid, Router::$Commands, $routed) = Router::routeToPage(Router::$Path, $bigtree["preview"]);
 	}
@@ -342,18 +344,17 @@
 		if ($bigtree["preview"]) {
 			$page = Page::getPageDraft($navid);
 			
-			// Backwards compatibility with 4.x
-			$bigtree["page"] = $page->Array;
-			$bigtree["page"]["link"] = WWW_ROOT.$page->Path."/";
-			$bigtree["resources"] = $page->Content;
-			
 			// If we're previewing pending changes, the template's routed-ness may have changed.
 			$template = new Template($page->Template);
 			$routed = $template->Routed;
 		} else {
 			$page = new Page($navid);
-			$bigtree["page"] = $page->Array;
 		}
+		
+		// Backwards compatibility with 4.x
+		$bigtree["page"] = $page->Array;
+		$bigtree["page"]["resources"] = $page->Content;
+		$bigtree["page"]["link"] = WWW_ROOT.$page->Path."/";
 		
 		Router::$CurrentPage = $page;
 
@@ -383,17 +384,17 @@
 			header("X-Robots-Tag: noindex");
 		}
 		
+		// Redirect lower if the template is !
+		if ($page->Template === "!") {
+			Router::redirectLower($page);
+		}
+		
 		// Quick access to resources
 		foreach ($page->Content as $key => $val) {
 			// Don't allow for SESSION or COOKIE injection and don't overwrite $bigtree
 			if (substr($key, 0, 1) != "_" && $key != "bigtree") {
 				$$key = $page->Content[$key];
 			}
-		}
-		
-		// Redirect lower if the template is !
-		if ($page->Template === "!") {
-			Router::redirectLower($page);
 		}
 		
 		// Setup extension handler for templates
@@ -457,6 +458,10 @@
 					$bigtree["routed_path"] = Router::$Commands;
 				}
 			}
+			
+			// Backwards compatibility with BigTree 4.x
+			$bigtree["commands"] = Router::$Commands;
+			$bigtree["routed_path"] = Router::$RoutedPath;
 			
 			Router::setRoutedLayoutPartials();
 			
