@@ -1381,8 +1381,16 @@
 			
 		*/
 		
-		public function getTopLevelPageID(bool $trunk_as_top_level = false): int
+		public function getTopLevelPageID(bool $trunk_as_top_level = false): ?int
 		{
+			if ($this->Parent === BIGTREE_SITE_TRUNK) {
+				return $this->ID;
+			}
+			
+			if (BIGTREE_SITE_TRUNK === $this->ID) {
+				return null;
+			}
+			
 			$paths = [];
 			$path = "";
 			$parts = explode("/", $this->Path);
@@ -1399,7 +1407,7 @@
 								ORDER BY LENGTH(path) DESC LIMIT 1");
 			
 			// If we don't want the trunk, look higher
-			if ($page["trunk"] && $page["parent"] && !$trunk_as_top_level) {
+			if (!$trunk_as_top_level && $page["trunk"] && $page["parent"] && $page["parent"] !== BIGTREE_SITE_TRUNK) {
 				// Get the next item in the path.
 				$id = SQL::fetchSingle("SELECT id FROM bigtree_pages 
 										WHERE (".implode(" OR ", $paths).") AND LENGTH(path) < ".strlen($page["path"])." 
