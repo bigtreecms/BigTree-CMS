@@ -21,7 +21,7 @@
 	padding: 10px 20px 10px 10px;
 	text-decoration: underline;
 	text-decoration-color: transparent;
-	transition: 
+	transition:
 		color .15s,
 		text-decoration-color .15s;
 	white-space: nowrap;
@@ -47,7 +47,7 @@
 	display: flex;
 	justify-content: center;
 	padding: 7px 0;
-	transition: 
+	transition:
 		background .15s,
 		color .15s;
 
@@ -66,7 +66,7 @@
 	width: calc(100% + 22px);
 
 	position: absolute;
-	top: -6px;
+	top: -7px;
 	left: -11px;
 	z-index: 2;
 
@@ -84,7 +84,7 @@
 
 	&.action_menu_dropdown_flipped {
 		top: auto;
-		bottom: -4px;
+		bottom: -6px;
 	}
 }
 
@@ -102,7 +102,7 @@
 	padding: 6px 10px 5px;
 	text-decoration: underline;
 	text-decoration-color: transparent;
-	transition: 
+	transition:
 		background .15s,
 		text-decoration-color .15s;
 	white-space: nowrap;

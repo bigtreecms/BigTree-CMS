@@ -4,7 +4,7 @@
 
 .login_form_block {
 	width: 100%;
-	
+
 	align-items: center;
 	display: flex;
 	flex-direction: column;
@@ -28,38 +28,55 @@
 	text-align: center;
 }
 
-.login_instructions {
-	border-bottom: 1px solid $mist;
-	margin: 0 0 30px 0;
-	padding: 0 0 30px 0;
-
-	@media screen and (min-width: 580px) {
-		display: flex;
-		flex-direction: row;
-	}
-}
-
-.login_instruction_step {
-	flex: 1;
-}
-
 .login_form_state {
 	font-size: 20px;
-	line-height: 24px;
+	line-height: (24 / 20);
 	margin: 0 0 20px 0;
 }
 
-.login_instruction_step_title {
+.login_form_fieldset {
+	background: #F8F8FA;
+	border: 1px solid #E3E2E3;
+	padding: 30px;
+}
+
+.login_instructions {}
+
+.login_instruction {
+
+	@media #{$min_sm} {
+		display: flex;
+	}
+
+	&:not(:last-child) {
+		border-bottom: 1px solid $mist;
+		margin-bottom: 30px;
+		padding-bottom: 30px;
+	}
+}
+
+.login_instruction_body {
+	flex: auto;
+
+	.login_instruction:first-child & {
+
+		@media #{$min_sm} {
+			padding-top: 20px;
+		}
+	}
+}
+
+.login_instruction_title {
 	font-size: 12px;
 	font-weight: 300;
-	margin: 0 0 10px 0;
+	margin: 0 0 8px 0;
 	text-transform: uppercase;
 }
 
 .login_instruction_details {
 	font-size: 14px;
-	line-height: 22px;
-	margin: 0 0 15px 0;
+	line-height: (22 / 14);
+	margin: 0 0 8px 0;
 
 	a {
 		color: $green;
@@ -79,22 +96,14 @@
 	}
 }
 
-.login_auth_image {
-	@media screen and (min-width: 580px) {
-		height: 135px;
-		margin: 0 0 0 70px;
+.login_instruction_image {
+
+	@media #{$min_sm} {
 		width: 135px;
-	}
 
-	@media screen and (max-width: 579px) {
 		display: block;
+		margin-left: 70px;
 	}
-}
-
-.login_form_fieldset {
-	background: #F8F8FA;
-	border: 1px solid #E3E2E3;
-	padding: 30px;
 }
 
 .login_form_footer {
@@ -121,10 +130,10 @@
 
 .login_forgot_password {
 	color: $green;
-	font-size: 12px;
-	line-height: 42px;
-	text-decoration: underline;
 	float: right;
+	font-size: 12px;
+	line-height: (42 / 12);
+	text-decoration: underline;
 
 	&:hover {
 		color: $dark;

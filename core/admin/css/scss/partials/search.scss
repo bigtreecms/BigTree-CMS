@@ -24,10 +24,10 @@
 			0 0 0 0 lighten($green, 5%),
 			0 0 0 0 lighten($green, 5%),
 			0 0 0 0 lighten($green, 5%),
-			
+
 			0 0 0 0 lighten($green, 7%),
 			0 0 0 0 lighten($green, 7%),
-			
+
 			0 0 0 0 lighten($green, 10%);
 		content: "";
 		opacity: 0;
@@ -55,10 +55,10 @@
 			-4px -8px 0 0 lighten($green, 5%),
 			4px -8px 0 0 lighten($green, 5%),
 			4px -8px 0 0 lighten($green, 5%),
-			
+
 			-4px -8px 0 0 lighten($green, 7%),
 			4px -8px 0 0 lighten($green, 7%),
-			
+
 			-4px -8px 0 0 lighten($green, 10%);
 		opacity: 1;
 	}
@@ -75,10 +75,10 @@
 			-8px -16px 0 1px lighten($green, 5%),
 			0 -16px 0 1px lighten($green, 5%),
 			8px -16px 0 1px lighten($green, 5%),
-			
+
 			-8px -16px 0 0 lighten($green, 7%),
 			8px -16px 0 0 lighten($green, 7%),
-			
+
 			-8px -16px 0 0 lighten($green, 10%);
 	}
 
@@ -94,17 +94,17 @@
 			-8px -16px 0 1px lighten($green, 5%),
 			0 -16px 0 1px lighten($green, 5%),
 			8px -16px 0 1px lighten($green, 5%),
-			
+
 			-4px -24px 0 0 lighten($green, 7%),
 			4px -24px 0 0 lighten($green, 7%),
-			
+
 			-4px -24px 0 -.5px lighten($green, 10%);
 	}
 
 	80% {
 		opacity: 1;
 	}
-	
+
 	80%,
 	100% {
 		box-shadow:
@@ -118,10 +118,10 @@
 			-8px -16px 0 1px lighten($green, 5%),
 			0 -16px 0 1px lighten($green, 5%),
 			8px -16px 0 1px lighten($green, 5%),
-			
+
 			-4px -24px 0 0 lighten($green, 7%),
 			4px -24px 0 0 lighten($green, 7%),
-			
+
 			0 -32px 0 -.5px lighten($green, 10%);
 	}
 
@@ -137,7 +137,7 @@
 
 	color: $green;
 	pointer-events: none;
-	transform: 
+	transform:
 		translate(0, -50%)
 		scale(.75);
 }
@@ -160,7 +160,7 @@
 .search_submit {
 	height: 100%;
 	width: 35px;
-	
+
 	position: absolute;
 	top: 0;
 	left: 0;

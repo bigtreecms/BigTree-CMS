@@ -18,17 +18,17 @@
 	}
 
 	.layout_empty_breadcrumb & {
-		
+
 		@media #{$min_lg} {
-			padding-top: 23px;	
+			padding-top: 23px;
 		}
 	}
 
 	.layout_empty_sub_nav & {
 		padding-bottom: 20px;
-		
+
 		@media #{$min_lg} {
-			padding-bottom: 40px;	
+			padding-bottom: 40px;
 		}
 	}
 }
@@ -44,26 +44,21 @@
 	display: flex;
 }
 
-.page_label {
-	margin-right: 10px;
-}
+.page_label {}
 
 .page_icon {
 	color: $green;
+	margin-left: 10px;
 }
 
 .page_tools {
-	display: inline-block;
+	display: inline-flex;
 	margin-top: 10px;
 	vertical-align: top;
 
 	@media #{$min_md} {
 		margin-top: 0;
 	}
-}
-
-.page_tools_body {
-	display: flex;
 }
 
 .page_tool {
@@ -106,8 +101,8 @@
 	position: absolute;
 	top: 50%;
 	left: 50%;
-	
-	transform: 
+
+	transform:
 		translate(-50%, -50%)
 		scale(.85);
 }

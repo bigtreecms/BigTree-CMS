@@ -1,0 +1,93 @@
+.toast {
+	position: absolute;
+	top: 0;
+	right: 0;
+
+	background: #000;
+	border-radius: 3px;
+	border-top: 5px solid $lime;
+	color: #fff;
+	padding: 17px 45px 17px 15px;
+	transition:
+		opacity .25s,
+		visibility .25s;
+
+	&.closed {
+		opacity: 0;
+		visibility: hidden;
+	}
+}
+
+.toast_inner {
+	align-items: center;
+	display: flex;
+}
+
+.toast_flag {
+	height: 25px;
+	width: 25px;
+
+	align-items: center;
+	background: $green;
+	border-radius: 25px;
+	display: flex;
+	justify-content: center;
+	margin-right: 10px;
+}
+
+.toast_flag_icon {
+	color: #00AD77;
+	transform: scale(.75);
+}
+
+.toast_body {}
+
+.toast_hint {
+	display: block;
+	font-size: 8px;
+	letter-spacing: 1px;
+	margin-bottom: 4px;
+	text-transform: uppercase;
+}
+
+.toast_label {
+	display: block;
+	font-size: 12px;
+}
+
+.toast_close {
+	position: absolute;
+	top: 0;
+	right: 0;
+
+	appearance: none;
+	-webkit-appearance: none;
+	background: none;
+	border: 0;
+	color: $gray;
+	padding: 6px;
+
+	&:before {
+		height: 12px;
+		width: 12px;
+
+		position: absolute;
+		top: 50%;
+		left: 50%;
+
+		border: 1px solid currentColor;
+		border-radius: 12px;
+		content: "";
+		pointer-events: none;
+		transform: translate(-50%, -50%);
+	}
+}
+
+.toast_close_icon {
+	display: block;
+	transform: scale(.35);
+}
+
+.toast_close_label {
+	@include visually_hide;
+}

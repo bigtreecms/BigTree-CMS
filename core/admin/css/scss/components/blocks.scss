@@ -1,27 +1,10 @@
 .fields_wrapper {
-	background: #FFF;
 	border-top: 1px solid $mist;
 	padding: 20px;
 
 	@media #{$min_lg} {
 		padding: 40px 40px 122px;
-	}	
-}
-
-.grid_bg {
-	background-color: #fff;
-	background-image: 
-		linear-gradient(
-			to right, 
-				#f6f6f6 1px, 
-				transparent 1px
-		), 
-		linear-gradient(
-			to bottom, 
-				#f6f6f6 1px, 
-				transparent 1px
-		);
-	background-size: 8px 8px;
+	}
 }
 
 .blocks {}
@@ -41,7 +24,7 @@
 
 .block_info {
 	margin-bottom: 20px;
-	
+
 	@media #{$min_sm} {
 		display: flex;
 		justify-content: space-between;

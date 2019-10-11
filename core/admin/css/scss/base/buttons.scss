@@ -8,7 +8,7 @@ button {
 	color: inherit;
 	display: inline-block;
 	margin-right: 6px;
-	transition: 
+	transition:
 		background .15s,
 		border .15s,
 		color .15s;
@@ -16,7 +16,7 @@ button {
 	@if $defaults {
 		background: #fff;
 		border: 1px solid $mist;
-		
+
 		&:hover,
 		&:focus {
 			background: $green;

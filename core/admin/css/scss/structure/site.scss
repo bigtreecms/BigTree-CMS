@@ -17,17 +17,18 @@
 	font-weight: inherit;
 	margin: 0;
 	padding: 0;
+	text-align: left;
 }
 
 .site_trigger_label {}
 
 .site_trigger_icon {
-	transform: 
+	transform:
 		rotateX(0deg)
 		scale(.85);
 
 	.site_links_active & {
-		transform: 
+		transform:
 			rotateX(180deg)
 			scale(.85);
 	}
@@ -61,7 +62,7 @@
 	padding: 6px 10px 5px;
 	text-decoration: underline;
 	text-decoration-color: transparent;
-	transition: 
+	transition:
 		background .15s,
 		text-decoration-color .15s;
 

@@ -41,14 +41,8 @@
 	border: 1px solid $mist;
 	border-radius: 50%;
 	cursor: pointer;
-	display: inline-block;
 	margin-right: 10px;
 	margin-left: -5px;
-	vertical-align: middle;
-	transition:
-		background .15s,
-		border .15s,
-		color .15s;
 
 	.collapsed & {
 		background: $green;
@@ -63,14 +57,13 @@
 	left: 50%;
 
 	pointer-events: none;
-	transition: transform .15s;
-	transform: 
+	transform:
 		translate(-50%, -50%)
 		scale(.75)
 		rotateX(0);
 
 	.collapsed & {
-		transform: 
+		transform:
 			translate(-50%, -50%)
 			scale(.75)
 			rotateX(180deg);

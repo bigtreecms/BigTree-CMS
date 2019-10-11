@@ -44,8 +44,15 @@
 	text-align: left;
 	text-transform: uppercase;
 
+	&_image {
+
+		@media #{$min_md} {
+			width: 2px;
+		}
+	}
+
 	&_actions {
-		
+
 		@media #{$min_md} {
 			width: 2px;
 		}
@@ -55,7 +62,7 @@
 
 		@media #{$min_md} {
 			width: 2px;
-			
+
 			text-align: center;
 		}
 	}
@@ -81,20 +88,21 @@
 	top: 50%;
 
 	color: $green;
-	transform: 
+	transform:
 		translate(0, -50%)
 		scale(.65);
 
 	&_direction {
 		left: 100%;
+
 		transform-origin: right center;
-		transform: 
+		transform:
 			translate(0, -50%)
 			scale(.65)
 			rotateX(0);
 
 		&.flipped {
-			transform: 
+			transform:
 				translate(0, -50%)
 				scale(.65)
 				rotateX(180deg);
@@ -104,8 +112,8 @@
 
 .table_body {}
 
-.table_body_row {
-	transition: 
+.table_row {
+	transition:
 		box-shadow .15s,
 		opacity .15s;
 
@@ -131,7 +139,7 @@
 	}
 
 	&.dragover:not(.dragstart) {
-		box-shadow: 
+		box-shadow:
 			inset 0 3px 0 0 $green,
 			inset 3px 0 0 0 $green,
 			inset 0 -2px 0 0 $green,
@@ -154,9 +162,20 @@
 		padding: 12px 10px 11px;
 	}
 
+	@for $i from 2 through 5 {
+
+		[data-level="#{$i}"] & {
+
+			@media #{$max_md} {
+				border-left: 4px * ($i - 1) double $mist;
+			}
+		}
+	}
+
 	&.status {
-		text-align: center;
 		width: 80px;
+
+		text-align: center;
 	}
 
 	&:first-child {
@@ -168,18 +187,46 @@
 		@media #{$min_md} {
 			border-left: 1px solid $mist;
 		}
+
+		@for $i from 2 through 5 {
+
+			[data-level="#{$i}"] & {
+
+				@media #{$min_md} {
+					box-shadow: inset 15px * ($i - 1) 0 0 0 $mist;
+					padding-left: 15px * ($i - 1) + 15px;
+				}
+
+				@media #{$min_xl} {
+					box-shadow: inset 25px * ($i - 1) 0 0 0 $mist;
+					padding-left: 25px * ($i - 1) + 15px;
+				}
+			}
+		}
 	}
 
 	&:last-child {
 
-		@media #{$min_md} {
-			border-right: 1px solid $mist;
-		}
-
 		@media #{$max_md} {
 			padding-bottom: 18px;
 		}
+
+		@media #{$min_md} {
+			border-right: 1px solid $mist;
+		}
 	}
+}
+
+.table_colspan {
+	position: relative;
+
+	background: $green;
+	box-shadow: 0 -1px 0 0 $green;
+	color: #fff;
+	font-size: 13px;
+	padding: 7px 14px 8px;
+	text-align: left;
+	text-transform: uppercase;
 }
 
 .table_column_label {
@@ -200,13 +247,13 @@
 }
 
 .table_content_drag_icon {
-	color: $gray;
-	cursor: move;
 	display: none;
-	margin-right: 5px;
 
 	@media #{$min_xl} {
+		color: $gray;
+		cursor: move;
 		display: block;
+		margin-right: 10px;
 	}
 }
 

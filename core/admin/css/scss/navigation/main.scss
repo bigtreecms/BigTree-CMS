@@ -1,4 +1,5 @@
 .main_nav {
+	margin-left: -1px;
 
 	@media #{$min_lg} {
 		margin: 0 -20px;
@@ -6,13 +7,10 @@
 }
 
 .main_nav_items {
+	display: block;
 	list-style: none;
 	margin: 0;
 	padding: 0;
-
-	@media #{$min_lg} {
-		display: block;
-	}
 }
 
 .main_nav_item {}
@@ -21,12 +19,15 @@
 	align-items: center;
 	color: inherit;
 	display: flex;
-	margin-right: -1px;
 	padding: 10px 20px;
 	transition: background .15s;
 
-	&:hover,
-	&:focus {
+	@media #{$min_lg} {
+		margin-right: -1px;
+	}
+
+	&:not(.active):hover,
+	&:not(.active):focus {
 		background: rgba($green, .15);
 	}
 
@@ -108,11 +109,11 @@
 		&:before {
 			height: 4px;
 			width: 4px;
-	
+
 			position: absolute;
 			top: 50%;
 			left: 28px;
-			
+
 			background: $lime;
 			border-radius: 50%;
 			content: "";

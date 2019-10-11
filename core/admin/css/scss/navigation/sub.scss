@@ -19,7 +19,7 @@
 	position: relative;
 
 	color: inherit;
-	display: inline-block;
+	display: block;
 	padding: 10px 0 8px;
 	transition: color .15s;
 
@@ -33,14 +33,14 @@
 		color: $green;
 	}
 
-	.js_tooltip & {
+	.js-tooltip & {
 
 		&:before {
 			height: 5px;
 			width: 5px;
 
 			position: absolute;
-			top: 35%;
+			top: 30%;
 			left: 100%;
 
 			background: $orange;

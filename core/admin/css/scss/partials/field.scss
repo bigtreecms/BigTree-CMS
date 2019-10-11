@@ -170,7 +170,7 @@
 .field_image_wrapper {}
 
 .field_image_actions {
-	
+
 	@media #{$min_sm} {
 		align-items: center;
 		display: flex;
@@ -200,7 +200,7 @@
 		display: block;
 		font-size: 12px;
 		margin: 0 8px 0 4px;
-		text-transform: uppercase;	
+		text-transform: uppercase;
 	}
 }
 
@@ -212,31 +212,31 @@
 }
 
 .field_image_figure {
-	background-image: 
+	background-image:
 		linear-gradient(
-			45deg, 
-				$mist 25%, 
-				transparent 25%, 
-				transparent 75%, 
-				$mist 75%, 
+			45deg,
+				$mist 25%,
+				transparent 25%,
+				transparent 75%,
+				$mist 75%,
 				$mist 100%
 		),
 		linear-gradient(
-			45deg, 
-				$mist 25%, 
-				#fff 25%, 
-				#fff 75%, 
-				$mist 75%, 
+			45deg,
+				$mist 25%,
+				#fff 25%,
+				#fff 75%,
+				$mist 75%,
 				$mist 100%
 		);
 	background-position: 0px 0px, 8px 8px;
 	background-size: 16px 16px;
 	border: 1px solid $gray;
 	margin: 0 0 10px;
-	
+
 	@media #{$min_sm} {
 		margin-right: 6px;
-		padding: 40px 0;	
+		padding: 40px 0;
 	}
 }
 
@@ -295,7 +295,7 @@
 	}
 
 	&.focused {
-		border-color: $green;		
+		border-color: $green;
 	}
 }
 
@@ -369,14 +369,14 @@
 		left: 50%;
 
 		content: "";
-		transform: 
+		transform:
 			translate(-50%, -50%)
 			rotate(45deg)
 			scale(0);
 		transition: transform .05s;
 
 		.field_choice_input:checked + & {
-			transform: 
+			transform:
 				translate(-50%, -50%)
 				rotate(45deg)
 				scale(1);
@@ -436,7 +436,7 @@
 
 	color: $green;
 	pointer-events: none;
-	transform: 
+	transform:
 		translate(0, -50%)
 		scale(.75);
 }
@@ -511,14 +511,29 @@
 	border: 1px solid $mist;
 	border-bottom: 0;
 	border-radius: 6px 6px 0 0;
+	display: flex;
+	padding: 12px 15px;
 }
 
 .field_matrix_heading {
 	display: inline-block;
 	font-size: 8px;
-	padding: 12px 10px;
 	text-transform: uppercase;
 	vertical-align: top;
+
+	&:nth-child(1) {
+
+		.layout_items & {
+			flex: auto;
+		}
+	}
+
+	&:nth-child(2) {
+
+		.layout_items & {
+			flex-basis: 148px;
+		}
+	}
 }
 
 .field_matrix_body {
@@ -538,7 +553,49 @@
 	}
 }
 
-.field_matrix_data {}
+.field_matrix_row {
+	padding: 10px 15px;
+
+	@media #{$min_md} {
+		align-items: center;
+		display: flex;
+		justify-content: space-between;
+		padding-top: 6px;
+		padding-bottom: 6px;
+	}
+}
+
+.field_matrix_column {
+	align-items: center;
+	display: flex;
+
+	&:first-child {
+		margin-bottom: 8px;
+
+		@media #{$min_md} {
+			margin-bottom: 0;
+		}
+	}
+}
+
+.field_matrix_action {
+	@include button_just_text;
+
+	&:last-child {
+		margin-right: 0;
+	}
+}
+
+.field_matrix_icon {
+	display: none;
+
+	@media #{$min_xl} {
+		color: $gray;
+		cursor: move;
+		display: block;
+		margin-right: 10px;
+	}
+}
 
 .field_matrix_detail {}
 
@@ -568,7 +625,9 @@
 	}
 }
 
-.field_matrix_tools {}
+.field_matrix_tools {
+	margin-top: 10px;
+}
 
 .field_matrix_tool {
 	@include button_with_icon;

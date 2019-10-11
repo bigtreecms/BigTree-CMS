@@ -54,11 +54,12 @@ Changelog
 - UPDATED: Developers now have a quick link to edit a setting from within the Settings tab (when changing a setting's value).
 - UDPATED: BigTreeModule's getBreadcrumb method now has two additional (optional) parameters: $routed_path and $commands (equivalent to $bigtree["routed_path"] and $bigtree["commands"])
 - REMOVED: ReCAPTCHA library is no longer included with BigTree
-- REMOVED: CSS prefixer ($bigtree["config"]["css"]["prefix"]). LESS has replaced the functionality in the admin (you can now include a /admin/css/test.less file and it will parse as LESS)
+- REMOVED: CSS prefixer ($bigtree["config"]["css"]["prefix"]).
 - REMOVED: BigTreeAutoModule::autoSaveSetting method
 - REMOVED: BigTreeAdmin::htmlClean method
-- REMOVED: TinyMCE 3 is no longer included with BigTree (if you want to use TinyMCE 3 you can add it to /custom/admin/js/tinymce3/)
+- REMOVED: TinyMCE 3 and 4 are no longer included with BigTree, only the latest version is supported
 - REMOVED: Keywords from the SEO tab of Pages (as they are not used by any search engines)
+- REMOVED: The force_secure_login configuration parameter no longer does anything. Please migrate your sites to entirely HTTPS.
 
 ### 5.0 Backwards Compatibility Changes
 - Functions defined within template files are now defined within another function's scope limiting their ability to access variables defined within the same scope.

@@ -1,0 +1,15 @@
+.theme_grid {
+	background-color: #fff;
+	background-image:
+		linear-gradient(
+			to right,
+				#f6f6f6 1px,
+				transparent 1px
+		),
+		linear-gradient(
+			to bottom,
+				#f6f6f6 1px,
+				transparent 1px
+		);
+	background-size: 8px 8px;
+}
