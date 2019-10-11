@@ -207,7 +207,6 @@
 			"[staticroot]",
 			"[email]",
 			"[settings_key]",
-			"[force_secure_login]",
 			"[routing]",
 			"[slash_behavior]",
 			"[session_handler]"
@@ -231,7 +230,6 @@
 			$static_root,
 			$cms_user,
 			uniqid("",true),
-			(isset($force_secure_login)) ? "true" : "false",
 			($routing == "basic") ? "basic" : "htaccess",
 			$slash_behavior,
 			$session_handler
@@ -740,11 +738,6 @@ RewriteRule (.*) site/$1 [L]');
 				<fieldset class="right<?php if (count($_POST) && !$cms_pass) { ?> form_error<?php } ?>">
 					<label>Password</label>
 					<input class="text" type="password" required id="cms_pass" name="cms_pass" value="<?=htmlspecialchars($cms_pass)?>" tabindex="15" autocomplete="off" />
-				</fieldset>
-				<fieldset class="clear">
-					<br /><br />
-					<input type="checkbox" class="checkbox" name="force_secure_login" id="force_secure_login"<?php if ($force_secure_login) { ?> checked="checked"<?php } ?> tabindex="16" />
-					<label class="for_checkbox">Force HTTPS Logins</label>
 				</fieldset>
 				
 				<hr />

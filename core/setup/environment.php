@@ -8,7 +8,6 @@
 	$bigtree["config"]["www_root"] = "[wwwroot]"; // "www_root" should be http://www.website.com/location/of/the/site/
 	$bigtree["config"]["static_root"] = "[staticroot]"; // "static_root" can either be the same as "www_root" or another domain that points to the same place -i t is used to server static files to increase page load time due to max connections per domain in most browsers.
 	$bigtree["config"]["admin_root"] = "[wwwroot]admin/"; // "admin_root" should be the location you want to access BigTree's admin from, i.e. http://www.website.com/admin/
-	$bigtree["config"]["force_secure_login"] = [force_secure_login]; // If you have HTTPS enabled, set to true to force admin logins through HTTPS
 	$bigtree["config"]["environment"] = ""; // "dev" or "live"; empty to hide
 	$bigtree["config"]["environment_live_url"] = ""; // Live admin URL
 	$bigtree["config"]["developer_mode"] = false; // Set to true to lock out all users except developers.

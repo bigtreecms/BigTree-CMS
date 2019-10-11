@@ -86,15 +86,17 @@
 				// Handle saved cookies
 			} elseif (isset($_COOKIE[static::$Namespace]["email"])) {
 				// Get chain and session broken out
-				list($session, $chain) = json_decode($_COOKIE[static::$Namespace]["login"]);
+				list($session, $chain) = Cookie::get(static::$Namespace.'["login"]');
+				$email = Cookie::get(static::$Namespace.'["email"]');
 				
 				// See if this is the current chain and session
 				$chain_entry = SQL::fetch("SELECT * FROM bigtree_user_sessions WHERE email = ? AND chain = ?",
-										  $_COOKIE[static::$Namespace]["email"], $chain);
+										  $email, $chain);
+				
 				if (!empty($chain_entry)) {
 					// If both chain and session are legit, log them in
 					if ($chain_entry["id"] == $session) {
-						$user = $user_class::getByEmail($_COOKIE[static::$Namespace]["email"]);
+						$user = $user_class::getByEmail($email);
 						
 						if ($user) {
 							CSRF::generate();
@@ -154,7 +156,7 @@
 						Cookie::create(static::$Namespace."[email]", "", time() - 3600);
 						
 						// Delete all sessions for this user
-						SQL::delete("bigtree_user_sessions", ["email" => $_COOKIE[static::$Namespace]["email"]]);
+						SQL::delete("bigtree_user_sessions", ["email" => $email]);
 					}
 				}
 				
@@ -306,10 +308,10 @@
 			}
 			
 			// We still set the email for BigTree bar usage even if they're not being "remembered"
-			Cookie::create(static::$Namespace."[email]", $user->Email, "+1 month");
+			Cookie::create(static::$Namespace."[email]", $user->Email, "+1 month", true);
 				
 			if ($stay_logged_in) {
-				Cookie::create(static::$Namespace."[login]", json_encode([$session, $chain]), "+1 month");
+				Cookie::create(static::$Namespace."[login]", [$session, $chain], "+1 month", true);
 			}
 				
 			// Regenerate session ID on user state change
@@ -343,8 +345,11 @@
 				session_key - The session key created by the login method
 		*/
 		
-		public static function loginChainSession(string $session_key): void
+		public static function loginChainSession(string $session_key, string $namespace = "bigtree_admin"): void
 		{
+			static::$Namespace = $namespace;
+			SessionHandler::start();
+
 			$cache_data = Cache::get("org.bigtreecms.login-session", $session_key);
 			
 			if (empty($cache_data)) {
@@ -360,20 +365,20 @@
 			// Allow setting cookies and sessions
 			header("Access-Control-Allow-Origin: ".$admin_parts["scheme"]."://".$admin_parts["host"]);
 			header("Access-Control-Allow-Credentials: true");
-			session_start(["gc_maxlifetime" => 24 * 60 * 60]);
 			
-			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE id = ?", $cache_data["user_id"]);
+			$user = new User($cache_data["user_id"]);
 			
 			foreach ($cache_data["domains"] as $site_key => $www_root) {
 				if ($site_key == BIGTREE_SITE_KEY) {
-					$cookie_domain = str_replace(DOMAIN, "", WWW_ROOT);
-					$cookie_value = json_encode([$cache_data["session"], $cache_data["chain"]]);
+					// Don't pass cookies when linking directly to the admin
+					$same_site = (strpos(ADMIN_ROOT, DOMAIN) === 0);
 					
 					// We still set the email for BigTree bar usage even if they're not being "remembered"
-					setcookie('bigtree_admin[email]', $user["email"], strtotime("+1 month"), $cookie_domain, "", false, true);
-					
-					if ($cache_data["stay_logged_in"]) {
-						setcookie('bigtree_admin[login]', $cookie_value, strtotime("+1 month"), $cookie_domain, "", false, true);
+					Cookie::create(static::$Namespace."[email]", $user->Email, "+1 month", $same_site);
+				
+					if (!empty($cache_data["stay_logged_in"])) {
+						Cookie::create(static::$Namespace."[login]", [$cache_data["session"], $cache_data["chain"]],
+									   "+1 month", $same_site);
 					}
 					
 					// Regenerate session ID on user state change
@@ -384,15 +389,15 @@
 						SQL::update("bigtree_sessions", $old_session_id, [
 							"id" => session_id(),
 							"is_login" => "on",
-							"logged_in_user" => $user["id"]
+							"logged_in_user" => $user->ID
 						]);
 					}
 					
-					$_SESSION[static::$Namespace]["id"] = $user["id"];
-					$_SESSION[static::$Namespace]["email"] = $user["email"];
-					$_SESSION[static::$Namespace]["level"] = $user["level"];
-					$_SESSION[static::$Namespace]["name"] = $user["name"];
-					$_SESSION[static::$Namespace]["permissions"] = json_decode($user["permissions"], true);
+					$_SESSION[static::$Namespace]["id"] = $user->ID;
+					$_SESSION[static::$Namespace]["email"] = $user->Email;
+					$_SESSION[static::$Namespace]["level"] = $user->Level;
+					$_SESSION[static::$Namespace]["name"] = $user->Name;
+					$_SESSION[static::$Namespace]["permissions"] = $user->Permissions;
 					$_SESSION[static::$Namespace]["csrf_token"] = $cache_data["csrf_token"];
 					$_SESSION[static::$Namespace]["csrf_token_field"] = $cache_data["csrf_token_field"];
 				}

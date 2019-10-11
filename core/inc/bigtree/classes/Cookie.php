@@ -18,14 +18,21 @@
 				id - The cookie identifier
 				value - The value to set for the cookie
 				expiration - Cookie expiration time (in seconds since UNIX epoch) or a string value compatible with strtotime (defaults to session expiration)
+				same_site - Whether to set SameSite to strict
 		*/
 		
-		public static function create(string $id, $value, $expiration = 0): void
+		public static function create(string $id, $value, $expiration = 0, $same_site = false): void
 		{
 			$expiration = is_int($expiration) ? $expiration : strtotime($expiration);
 			$value = json_encode($value);
 			
-			setcookie($id, $value, $expiration, str_replace(DOMAIN, "", WWW_ROOT));
+			setcookie($id, $value, [
+				"path" => str_replace(DOMAIN, "", WWW_ROOT),
+				"expires" => $expiration,
+				"secure" => false,
+				"httponly" => true,
+				"samesite" => $same_site ? "Strict" : null
+			]);
 		}
 		
 		/*
