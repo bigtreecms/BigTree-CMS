@@ -152,9 +152,9 @@
 				A Setting object if successful, otherwise null.
 		*/
 		
-		public static function create(string $id, string $name = "", string $description = "", string $type = "",
-									  array $settings = [], string $extension = "", bool $encrypted = false,
-									  bool $locked = false): ?Setting
+		public static function create(string $id, ?string $name = "", ?string $description = "", ?string $type = "",
+									  ?array $settings = [], ?string $extension = "", ?bool $encrypted = false,
+									  ?bool $locked = false): ?Setting
 		{
 			// If an extension is creating a setting, make it a reference back to the extension
 			if (defined("EXTENSION_ROOT") && !$extension) {
@@ -236,7 +236,7 @@
 		public function save(): ?bool
 		{
 			// Settings specify their own ID so we check for existance to determine save behavior
-			if (!DB::exists("settings", $this->ID)) {
+			if (!$this->OriginalID && !DB::exists("settings", $this->ID)) {
 				$new = static::create(
 					$this->ID,
 					$this->Name,
@@ -269,7 +269,7 @@
 						SQL::update("bigtree_settings", $this->OriginalID, ["id" => $this->ID]);
 					}
 				} else {
-					AuditTrail::track("config:settings", $this->ID, "updated");
+					AuditTrail::track("config:settings", $this->ID, "update", "updated");
 				}
 
 				// If there's no setting value, create it in the DB
