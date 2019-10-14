@@ -20,7 +20,6 @@
 		public $Locked;
 		public $Name;
 		public $Settings;
-		public $System;
 		public $Type;
 		public $Value;
 		
@@ -61,7 +60,6 @@
 					$this->Locked = $setting["locked"] ? true : false;
 					$this->Name = $setting["name"];
 					$this->Settings = Link::decode(array_filter((array) $setting["settings"]));
-					$this->System = $setting["system"] ? true : false;
 					$this->Type = $setting["type"];
 					
 					// Value may be encrypted
@@ -147,7 +145,6 @@
 				type - Field Type
 				settings - An array of settings for the field type
 				extension - Related extension ID (defaults to none unless an extension is calling createSetting)
-				system - Whether to hide this from the Settings tab (defaults to false)
 				encrypted - Whether to encrypt this setting in the database (defaults to false)
 				locked - Whether to lock this setting to only developers (defaults to false)
 
@@ -156,8 +153,8 @@
 		*/
 		
 		public static function create(string $id, string $name = "", string $description = "", string $type = "",
-									  array $settings = [], string $extension = "", bool $system = false,
-									  bool $encrypted = false, bool $locked = false): ?Setting
+									  array $settings = [], string $extension = "", bool $encrypted = false,
+									  bool $locked = false): ?Setting
 		{
 			// If an extension is creating a setting, make it a reference back to the extension
 			if (defined("EXTENSION_ROOT") && !$extension) {
@@ -183,18 +180,16 @@
 			}
 			
 			// Create the setting
-			if (!$system) {
-				DB::insert("settings", [
-					"id" => $id,
-					"name" => Text::htmlEncode($name),
-					"description" => $description,
-					"type" => Text::htmlEncode($type),
-					"settings" => Link::encode(Utils::arrayFilterRecursive((array) $settings)),
-					"locked" => $locked ? "on" : "",
-					"encrypted" => $encrypted ? "on" : "",
-					"extension" => $extension ? $extension : null
-				]);
-			}
+			DB::insert("settings", [
+				"id" => $id,
+				"name" => Text::htmlEncode($name),
+				"description" => $description,
+				"type" => Text::htmlEncode($type),
+				"settings" => Link::encode(Utils::arrayFilterRecursive((array) $settings)),
+				"locked" => $locked ? "on" : "",
+				"encrypted" => $encrypted ? "on" : "",
+				"extension" => $extension ? $extension : null
+			]);
 			
 			SQL::insert("bigtree_settings", ["id" => $id, "encrypted" => $encrypted ? "on" : "", "value" => ""]);
 			AuditTrail::track("config:settings", $id, "add", "created");
@@ -249,7 +244,6 @@
 					$this->Type,
 					$this->Settings,
 					$this->Extension,
-					$this->System,
 					$this->Encrypted,
 					$this->Locked
 				);
@@ -263,7 +257,6 @@
 					"name" => Text::htmlEncode($this->Name),
 					"description" => $this->Description,
 					"locked" => $this->Locked ? "on" : "",
-					"system" => $this->System ? "on" : "",
 					"encrypted" => $this->Encrypted ? "on" : ""
 				]);
 
@@ -335,15 +328,13 @@
 				description - Description (HTML)
 				locked - Whether the setting is locked to developers (truthy) or not (falsey)
 				encrypted - Whether the setting's value should be encrypted in the database (truthy) or not (falsey)
-				system - Whether the setting should be hidden from the Settings panel (truthy) or not (falsey)
 
 			Returns:
 				true if successful, false if a setting exists for the new id already.
 		*/
 		
 		public function update(string $id, string $type = "", array $settings = [], string $name = "",
-							   string $description = "", bool $locked = false, bool $encrypted = false,
-							   bool $system = false): bool
+							   string $description = "", bool $locked = false, bool $encrypted = false): bool
 		{
 			// See if we have an id collision with the new id.
 			if ($this->ID != $id && static::exists($id)) {
@@ -357,7 +348,6 @@
 			$this->Description = $description;
 			$this->Locked = $locked ? true : false;
 			$this->Encrypted = $encrypted ? true : false;
-			$this->System = $system ? true : false;
 			
 			$this->save();
 			

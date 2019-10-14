@@ -23,16 +23,28 @@
 	}
 }
 
-.field_header_group {}
+.field_header_group {
+	align-items: center;
+	display: flex;
+}
 
 .field_title {
 	font-weight: 700;
+
+	&_error {
+		color: $red;
+
+		&:after {
+			content: "*";
+		}
+	}
 }
 
 .field_hint {
 	color: $dark;
 	font-size: 12px;
 	font-weight: 400;
+	margin-left: 6px;
 }
 
 .field_status {
@@ -48,6 +60,27 @@
 
 	&_good {
 		color: $green;
+	}
+}
+
+.field_error_label {
+	color: $red;
+
+	&:not(:only-child) {
+
+		&:before {
+			height: 16px;
+			width: 1px;
+
+			position: relative;
+			top: -1px;
+
+			background: $mist;
+			content: "";
+			display: inline-block;
+			margin: 0 14px;
+			vertical-align: middle;
+		}
 	}
 }
 
@@ -110,6 +143,11 @@
 	font-size: 14px;
 	line-height: 26px;
 	padding: 6px 10px;
+
+	&:invalid {
+		border-color: $red;
+		box-shadow: none;
+	}
 }
 
 .field_input_textarea {
@@ -123,7 +161,9 @@
 }
 
 .field_address {
+
 	@media #{$min_sm} {
+
 		.field_wrapper {
 			width: 50%;
 		}
@@ -152,6 +192,11 @@
 	display: block;
 	font-size: 14px;
 	padding: 10px 35px 11px 10px;
+
+	&:invalid {
+		border-color: $red;
+		box-shadow: none;
+	}
 }
 
 .field_select_icon {
@@ -292,10 +337,22 @@
 		justify-content: center;
 		padding: 0 20px;
 		pointer-events: none;
+
+		.field_input_upload:focus + & {
+			border-left-color: $green;
+		}
+
+		.field_input_upload:invalid + & {
+			border-left-color: $red;
+		}
 	}
 
-	&.focused {
+	.field_input_upload:focus + & {
 		border-color: $green;
+	}
+
+	.field_input_upload:invalid + & {
+		border-color: $red;
 	}
 }
 
@@ -381,6 +438,14 @@
 				rotate(45deg)
 				scale(1);
 		}
+	}
+
+	.field_choice_input:focus + & {
+		border-color: $green;
+	}
+
+	.field_choice_input:invalid + & {
+		border-color: $red;
 	}
 }
 

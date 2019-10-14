@@ -179,7 +179,7 @@
 				list($key) = array_keys($parameters);
 				
 				if (!isset($data_source[$key]) && isset(Router::$Commands[0])) {
-					$_GET[$key] = Router::$Commands[0];
+					$_GET[$key] = $data_source[$key] = Router::$Commands[0];
 				}
 			}
 			

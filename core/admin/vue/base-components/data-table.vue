@@ -296,9 +296,9 @@
 					<th v-if="data_contains_actions || (typeof actions === 'object' && actions.length)" class="table_heading table_heading_actions">{{ translate('Actions') }}</th>
 				</tr>
 			</thead>
-			<draggable v-model="paged_data" draggable=".table_body_row" handle=".table_column_drag_icon"
+			<draggable v-model="paged_data" draggable=".table_row" handle=".table_column_drag_icon"
 					   v-on:change="resorted" tag="tbody" class="table_body">
-				<tr v-for="(row, row_index) in paged_data" class="table_body_row" :draggable="draggable ? true : false" :key="row.id">
+				<tr v-for="(row, row_index) in paged_data" class="table_row" :draggable="draggable ? true : false" :key="row.id">
 					<td v-for="(column, index) in columns" class="table_column" :class="{ 'status': column.type == 'status' }">
 						<span v-if="column.type != 'image'" class="table_column_label">{{ translate(column.title) }}</span>
 						<span class="table_column_content">

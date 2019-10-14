@@ -29,13 +29,12 @@
 		"type" => "string",
 		"settings" => "array",
 		"extension" => "string",
-		"system" => "bool",
 		"encrypted" => "bool",
 		"locked" => "bool"
 	]);
 	
 	$setting = Setting::create($_POST["id"], $_POST["name"], $_POST["description"], $_POST["type"], $_POST["settings"],
-							   $_POST["extension"], $_POST["system"], $_POST["encrypted"], $_POST["locked"]);
+							   $_POST["extension"], $_POST["encrypted"], $_POST["locked"]);
 	
 	if (!$setting) {
 		API::sendResponse([
