@@ -377,7 +377,7 @@
 					position--;
 				}
 				
-				await BigTreeAPI.updateLocalCacheByID("pages", update_data);
+				await BigTreeAPI.updateCacheByID("pages", update_data);
 				BigTreeAPI.background_update_paused = false;
 				
 				// Update the database

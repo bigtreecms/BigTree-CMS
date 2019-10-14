@@ -116,6 +116,27 @@
 		}
 		
 		/*
+			Function: requireLevel
+				Requires the authenticated user be a given user level or higher.
+			
+			Parameters:
+				level - User level
+		*/
+		
+		public static function requireLevel(int $level): void
+		{
+			$level_strings = [
+				1 => "Administrator",
+				2 => "Developer"
+			];
+			
+			if (Auth::user()->Level < $level) {
+				static::triggerError("The minimum user level to call this endpoint is: ".$level_strings[$level],
+									 "invalid:level", "permissions");
+			}
+		}
+		
+		/*
 			Function: requireMethod
 				Requires the passed in HTTP method and triggers an error if an invalid method is called.
 			
@@ -123,7 +144,7 @@
 				method - Required HTTP Method
 		*/
 		
-		public static function requireMethod(string $method)
+		public static function requireMethod(string $method): void
 		{
 			if (strtolower($_SERVER["REQUEST_METHOD"]) !== strtolower($method)) {
 				static::triggerError("This API endpoint must be called via $method.", "invalid:method", "method");
@@ -163,31 +184,12 @@
 			}
 			
 			foreach ($parameters as $key => $type) {
-				$type = strtolower($type);
-				
 				if (!isset($data_source[$key])) {
 					API::triggerError("Missing parameter: '$key'", "parameters:missing", "parameters");
-				} else {
-					$val = $data_source[$key];
-					$error = false;
-					
-					if (($type === "number" || $type === "int") && !is_numeric($val)) {
-						$error = true;
-					} elseif ($type === "int" && intval($val) != $val) {
-						$error = true;
-					} elseif ($type === "string" && !is_string($val)) {
-						$error = true;
-					} elseif ($type == "array" && !is_array($val)) {
-						$error = true;
-					} elseif ($type == "string_int" && !is_string($val) && !is_int($val)) {
-						$error = true;
-					}
-					
-					if ($error) {
-						API::triggerError("Parameter '$key' must be of type '$type'.", "parameters:invalid", "parameters");
-					}
 				}
 			}
+			
+			static::validateParameters($parameters);
 		}
 			
 		/*
@@ -253,4 +255,77 @@
 			
 			die();
 		}
+		
+		/*
+			Function: validateParameters
+				Validates parameters are either empty or of the specified types.
+				API::requireMethod must be called first
+			
+			Parameters:
+				parameters - An associative array of key => type
+		*/
+		
+		public static function validateParameters(array $parameters): void
+		{
+			if (empty(static::$Method)) {
+				trigger_error(Text::translate("requireMethod must be called prior to validateParameters"), E_USER_ERROR);
+			}
+			
+			if (static::$Method === "POST") {
+				$data_source = &$_POST;
+			} else {
+				$data_source = &$_GET;
+			}
+			
+			foreach ($parameters as $key => $type) {
+				$type = strtolower($type);
+				$val = $data_source[$key];
+				$error = false;
+				
+				// Make sure strict types for empty data
+				if (empty($val)) {
+					if ($type === "number" || $type === "int") {
+						$data_source[$key] = 0;
+					} elseif ($type === "string") {
+						$data_source[$key] = "";
+					} elseif ($type === "array") {
+						$data_source[$key] = [];
+					} elseif ($type === "string_int") {
+						$data_source[$key] = "";
+					} elseif ($type === "bool") {
+						$data_source[$key] = false;
+					}
+					
+					continue;
+				}
+				
+				// For non-empty data, enforce user input types, cast floats and ints
+				if ($type === "number") {
+					if (!is_numeric($val)) {
+						$error = true;
+					} else {
+						$data_source[$key] = (float) $val;
+					}
+				} elseif ($type === "int") {
+					if (intval($val) != $val) {
+						$error = true;
+					} else {
+						$data_source[$key] = intval($val);
+					}
+				} elseif ($type === "string" && !is_string($val)) {
+					$error = true;
+				} elseif ($type == "array" && !is_array($val)) {
+					$error = true;
+				} elseif ($type == "string_int" && !is_string($val) && !is_int($val)) {
+					$error = true;
+				} elseif ($type == "bool") {
+					$data_source[$key] = !empty($data_source[$key]);
+				}
+				
+				if ($error) {
+					API::triggerError("Parameter '$key' must be of type '$type'.", "parameters:invalid", "parameters");
+				}
+			}
+		}
+		
 	}

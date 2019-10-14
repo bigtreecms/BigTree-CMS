@@ -195,7 +195,7 @@ var BigTreeAPI = (function() {
 			$.ajax("www_root/api/" + endpoint, {
 				data: parameters,
 				method: method
-			}).done(function(response) {
+			}).done(async function(response) {
 				if (response.next_page) {
 					BigTreeAPI.next_page = response.next_page;
 				} else {
@@ -205,6 +205,10 @@ var BigTreeAPI = (function() {
 				BigTreeAPI.background_update_paused = false;
 
 				if (response.success) {
+					if (typeof response.response.cache !== "undefined") {
+						await BigTreeAPI.updateCache(response.response.cache);
+					}
+
 					resolve(response.response);
 				} else {
 					reject("API call failed:" + response.error);
@@ -424,6 +428,10 @@ var BigTreeAPI = (function() {
 	}
 
 	async function updateCache(store, data) {
+		if (!initialized) {
+			await init();
+		}
+
 		return new Promise(async (resolve, reject) => {
 			let transaction = db.transaction(db.objectStoreNames, "readwrite");
 			let transaction_store = transaction.objectStore(store);
@@ -453,7 +461,7 @@ var BigTreeAPI = (function() {
 
 	// Updates locally cached data while awaiting an update from the API
 	// Changes must be an object with the key as the unique ID and key => value stores for updated data
-	async function updateLocalCacheByID(store, changes) {
+	async function updateCacheByID(store, changes) {
 		return new Promise(async (resolve, reject) => {
 			let updates = [];
 
@@ -488,7 +496,8 @@ var BigTreeAPI = (function() {
 		getNextPage: getNextPage,
 		schema: schema,
 		schema_version: schema_version,
-		updateLocalCacheByID: updateLocalCacheByID
+		updateCache: updateCache,
+		updateCacheByID: updateCacheByID
 	};
 
 })();

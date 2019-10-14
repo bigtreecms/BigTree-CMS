@@ -24,6 +24,7 @@
 		public $Type;
 		public $Value;
 		
+		public static $Error = null;
 		public static $Store = "settings";
 		
 		/*
@@ -169,32 +170,51 @@
 			}
 			
 			if (strpos($id, "bigtree-internal-") === 0) {
+				static::$Error = "The bigtree-internal- ID prefix is reserved for internal usage.";
+				
 				return null;
 			}
 			
 			// Check for ID collision
 			if (DB::exists("settings", $id) || SQL::exists("bigtree_settings", $id)) {
+				static::$Error = "A setting (or setting value data) with this ID already exists.";
+				
 				return null;
 			}
 			
 			// Create the setting
-			DB::insert("settings", [
-				"id" => $id,
-				"name" => Text::htmlEncode($name),
-				"description" => $description,
-				"type" => Text::htmlEncode($type),
-				"settings" => Link::encode(Utils::arrayFilterRecursive((array) $settings)),
-				"locked" => $locked ? "on" : "",
-				"encrypted" => $encrypted ? "on" : "",
-				"system" => $system ? "on" : "",
-				"extension" => $extension ? $extension : null
-			]);
+			if (!$system) {
+				DB::insert("settings", [
+					"id" => $id,
+					"name" => Text::htmlEncode($name),
+					"description" => $description,
+					"type" => Text::htmlEncode($type),
+					"settings" => Link::encode(Utils::arrayFilterRecursive((array) $settings)),
+					"locked" => $locked ? "on" : "",
+					"encrypted" => $encrypted ? "on" : "",
+					"extension" => $extension ? $extension : null
+				]);
+			}
+			
 			SQL::insert("bigtree_settings", ["id" => $id, "encrypted" => $encrypted ? "on" : "", "value" => ""]);
-			
-			
 			AuditTrail::track("config:settings", $id, "add", "created");
 			
 			return new Setting($id);
+		}
+		
+		/*
+			Function: delete
+				Deletes the setting and its value.
+		*/
+		
+		public function delete(): ?bool
+		{
+			DB::delete("settings", $this->ID);
+			SQL::delete("bigtree_settings", $this->ID);
+			AuditTrail::track("config:settings", $this->ID, "delete", "deleted");
+			AuditTrail::track("bigtree_settings", $this->ID, "delete", "deleted");
+			
+			return true;
 		}
 		
 		/*

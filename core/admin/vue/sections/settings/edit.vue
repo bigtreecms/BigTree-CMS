@@ -18,6 +18,8 @@
 						visible: true
 					};
 				} else {
+					await BigTreeAPI.updateCache("settings", api.response.cache.settings);
+
 					BigTree.announcement = {
 						type: "success",
 						context: this.translate("Settings"),
@@ -25,10 +27,6 @@
 						visible: true
 					};
 
-					let cache = {};
-					cache[this.id] = api.response.cache;
-
-					await BigTreeAPI.updateLocalCacheByID("settings", cache);
 					BigTree.request_partial(ADMIN_ROOT + "settings/");
 				}
 			}
