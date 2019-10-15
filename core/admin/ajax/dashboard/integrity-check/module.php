@@ -1,6 +1,6 @@
 <?php
 	// Get the form so we can walk through its fields
-	$form = BigTreeAutoModule::getForm($_GET["form"]);
+	$form = BigTreeAutoModule::getForm((string) $_GET["form"]);
 
 	// Create a generic module class to get the decoded item data
 	$m = new BigTreeModule;

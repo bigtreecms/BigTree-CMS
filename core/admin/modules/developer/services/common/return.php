@@ -1,4 +1,8 @@
 <?php
+	if (strpos($_GET["code"], "@phar://") !== false) {
+		die();
+	}
+
 	$token = $api->oAuthSetToken($_GET["code"]);
 
 	if ($api->OAuthError) {
