@@ -62,6 +62,6 @@
 			</nav>
 		</div>
 
-		<script src="<?=STATIC_ROOT?>js/site.js?<?=filemtime(SITE_ROOT."js/main.js")?>"></script>
+		<script src="<?=$static_base_url?>js/site.js?<?=filemtime(SITE_ROOT."js/main.js")?>"></script>
 	</body>
 </html>

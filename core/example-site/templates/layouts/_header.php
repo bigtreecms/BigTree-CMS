@@ -17,6 +17,13 @@
 			"1220px" => $page_image
 		]
 	];
+
+	// In a non-basic routing environment it's ideal to use a static resource domain even for dynamic CSS/JS
+	if ($bigtree["config"]["routing"] = "htaccess") {
+		$static_base_url = STATIC_ROOT;
+	} else {
+		$static_base_url = WWW_ROOT;
+	}
 ?><!DOCTYPE html>
 <html lang="en" class="no-js">
 	<head>
@@ -28,9 +35,7 @@
 		<?php $cms->drawHeadTags($site_title, "&middot;"); ?>
 
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,700,400italic,600italic">
-		<link rel="stylesheet" href="<?=WWW_ROOT?>css/site.css?<?=filemtime(SITE_ROOT."css/main.less")?>">
-
-		<script src="<?=STATIC_ROOT?>js/modernizr.js"></script>
+		<link rel="stylesheet" href="<?=$static_base_url?>css/site.css?<?=filemtime(SITE_ROOT."css/main.less")?>">
 	</head>
 	<body class="fs-grid">
 		<a href="#page" id="skip_to_content" class="offscreen">Skip to Main Content</a>
