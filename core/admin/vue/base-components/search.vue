@@ -14,6 +14,16 @@
 				
 				this.$parent.$emit("search.submit", this.query);
 			}
+		},
+		mounted: function() {
+			$(window).on("keydown", function(ev) {
+				if (ev.originalEvent.keyCode === 70) {
+					if (ev.originalEvent.metaKey || ev.originalEvent.ctrlKey) {
+						ev.preventDefault();
+						$("#search_input").focus();
+					}
+				}
+			});
 		}
 	});
 </script>
