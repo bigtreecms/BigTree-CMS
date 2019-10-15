@@ -20,6 +20,17 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.4.7
+- FIXED: Trunk being overwritten when a non-developer updates a page that has trunk set
+- FIXED: Permissions checks on re-ordering pages
+- FIXED: Images failing to upload when /site/files/ did not exist (for cloud storage setups)
+- FIXED: Dynamically compiled LESS failing to load properly on sites with basic routing
+- FIXED: Importing 301 redirects CSV failing when line endings were carriage return
+- FIXED: Matrix fields not properly setting post data (leading to issues such as re-cropping images from within a matrix failing)
+- FIXED: Two factor authentication crashing during setup
+- SECURITY FIX: Resolved authenticated SQL injection allowing an adminstrator level user to retrieve database information
+- SECURITY FIX: Resolved Phar deserialization vulnerability that could be exploited through CSRF when the website allowed for public uploads of Phar files
+
 ### 4.4.6
 - FIXED: Locale scope not being properly triggered when generating routes for other languages
 - FIXED: Settings table not being correctly created on new sites
