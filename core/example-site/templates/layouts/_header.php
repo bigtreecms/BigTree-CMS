@@ -19,7 +19,7 @@
 	];
 
 	// In a non-basic routing environment it's ideal to use a static resource domain even for dynamic CSS/JS
-	if ($bigtree["config"]["routing"] = "htaccess") {
+	if ($bigtree["config"]["routing"] == "htaccess") {
 		$static_base_url = STATIC_ROOT;
 	} else {
 		$static_base_url = WWW_ROOT;
