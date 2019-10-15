@@ -7,6 +7,12 @@
 		methods: {
 			save: function() {
 				this.$parent.$emit("search.change", this.query);
+			},
+			
+			submit: function(ev) {
+				ev.preventDefault();
+				
+				this.$parent.$emit("search.submit", this.query);
 			}
 		}
 	});
@@ -15,7 +21,7 @@
 <template>
 	<div class="component">
 		<div class="component_body">
-			<form class="search">
+			<form class="search" v-on:submit="submit">
 				<icon wrapper="search" icon="search"></icon>
 				<label class="search_label" for="search_input">{{ translate(label) }}</label>
 				<input class="search_input" id="search_input" type="search"

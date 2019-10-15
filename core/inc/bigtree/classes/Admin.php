@@ -62,6 +62,10 @@
 			$active_item = false;
 			
 			foreach (static::$State["sub_nav"] as $item) {
+				if (!$item["link"]) {
+					continue;
+				}
+				
 				if (strpos($current_path, $item["link"]) !== false) {
 					// If we already have an active item, see if the new one is deeper in the paths.
 					if (!$active_item) {
@@ -75,7 +79,7 @@
 			}
 			
 			foreach (static::$State["sub_nav"] as $index => $item) {
-				if (!$item["hidden"] && (!$item["level"] || $item["level"] <= Auth::user()->Level)) {
+				if (!$item["hidden"] && $item["link"] && (!$item["level"] || $item["level"] <= Auth::user()->Level)) {
 					$get_string = "";
 					
 					if (is_array($item["get_vars"]) && count($item["get_vars"])) {
@@ -172,7 +176,7 @@
 					
 					if ($active && empty($item["no_top_level_children"]) && isset($item["children"]) && count($item["children"])) {
 						foreach ($item["children"] as $child) {
-							if (!empty($child["top_level_hidden"])) {
+							if (!empty($child["top_level_hidden"]) || empty($child["link"])) {
 								continue;
 							}
 							

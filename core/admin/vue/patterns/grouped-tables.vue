@@ -35,6 +35,8 @@
 							title: this.tables[i].title,
 							columns: this.tables[i].columns,
 							actions: this.tables[i].actions,
+							data_contains_actions: this.tables[i].data_contains_actions,
+							draggable: false,
 							data: []
 						};
 
@@ -69,6 +71,14 @@
 		mounted: function() {
 			this.$on("search.change", function(query) {
 				this.query = query;
+			});
+			
+			this.$on("search.submit", (query) => {
+				let first_action_link = $(this.$el).find(".action_menu_label").first().attr("href");
+				
+				if (first_action_link) {
+					BigTree.request_partial(first_action_link);
+				}
 			});
 		}
 	});

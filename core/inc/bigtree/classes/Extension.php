@@ -76,6 +76,10 @@
 			
 			foreach ($extensions as $extension) {
 				// Load up the manifest
+				if (!file_exists(SERVER_ROOT."extensions/".$extension["id"]."/manifest.json")) {
+					continue;
+				}
+				
 				$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/".$extension["id"]."/manifest.json"), true);
 				
 				if (!empty($manifest["plugins"]) && is_array($manifest["plugins"])) {
