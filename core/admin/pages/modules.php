@@ -3,4 +3,4 @@
 	
 	Router::setLayout("new");
 ?>
-<modules-list></modules-list>
+<modules-landing></modules-landing>

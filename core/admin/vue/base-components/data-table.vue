@@ -14,6 +14,7 @@
 			"search_label",
 			"search_placeholder",
 			"sortable",
+			"table_key",
 			"translatable"
 		],
 		

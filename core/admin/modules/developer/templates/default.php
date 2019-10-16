@@ -3,14 +3,14 @@
 	
 	Router::setLayout("new");
 
-	$raw_templates = Template::all("position DESC, id ASC", true);
+	$raw_templates = Template::all("position", "DESC", true);
 	$templates = [];
 	
 	foreach ($raw_templates as $item) {
 		$templates[] = [
-			"name" => $item->Name,
-			"id" => $item->ID,
-			"routed" => $item->Routed
+			"name" => $item["name"],
+			"id" => $item["id"],
+			"routed" => $item["routed"]
 		];
 	}
 ?>

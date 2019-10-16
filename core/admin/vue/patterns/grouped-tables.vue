@@ -92,12 +92,12 @@
 		<ToggleBlock v-if="collapsible" v-for="table in filtered_tables" :title="table.title" :key="table.id"
 					  :id="table.id" :escaped_title="escaped_data">
 			<DataTable :columns="table.columns" :actions="table.actions" :actions_base_path="table.actions_base_path"
-					   :data="table.data" :draggable="table.draggable"
+					   :table_key="table.id" :data="table.data" :draggable="table.draggable"
 					   :data_contains_actions="table.data_contains_actions" :escaped_data="escaped_data"></DataTable>
 		</ToggleBlock>
 
 		<Block v-else v-for="table in filtered_tables" class="component" :title="table.title" :key="table.id">
-			<DataTable :columns="table.columns" :actions="table.actions" :data="table.data" :draggable="table.draggable"
+			<DataTable :table_key="table.id" :columns="table.columns" :actions="table.actions" :data="table.data" :draggable="table.draggable"
 					   :actions_base_path="table.actions_base_path" :data_contains_actions="table.data_contains_actions"
 					   :escaped_data="escaped_data"></DataTable>
 		</Block>

@@ -62,6 +62,27 @@
 			return {
 				tables: tables
 			}
+		},
+		mounted: function() {
+			BigTreeEventBus.$on("data-table-resorted", async (table) => {
+				let data = table.mutable_data;
+
+				let positions = {};
+				let position = data.length;
+
+				for (let x = 0; x < data.length; x++) {
+					positions[data[x].id] = position;
+					position--;
+				}
+
+				await BigTreeAPI.call({
+					endpoint: "templates/order",
+					method: "POST",
+					parameters: {
+						"positions": positions
+					}
+				});
+			});
 		}
 	});
 </script>

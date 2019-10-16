@@ -1,5 +1,5 @@
 <script>
-	Vue.component("ModulesList", {
+	Vue.component("ModulesLanding", {
 		asyncComputed: {
 			async tables () {
 				let modules = await BigTreeAPI.getStoredData("modules", "position", true);
