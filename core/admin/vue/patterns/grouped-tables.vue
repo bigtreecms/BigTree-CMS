@@ -35,6 +35,7 @@
 							title: this.tables[i].title,
 							columns: this.tables[i].columns,
 							actions: this.tables[i].actions,
+							actions_base_path: this.tables[i].actions_base_path,
 							data_contains_actions: this.tables[i].data_contains_actions,
 							draggable: false,
 							data: []
@@ -90,13 +91,15 @@
 		
 		<ToggleBlock v-if="collapsible" v-for="table in filtered_tables" :title="table.title" :key="table.id"
 					  :id="table.id" :escaped_title="escaped_data">
-			<DataTable :columns="table.columns" :actions="table.actions" :data="table.data" :draggable="table.draggable"
-						:data_contains_actions="table.data_contains_actions" :escaped_data="escaped_data"></DataTable>
+			<DataTable :columns="table.columns" :actions="table.actions" :actions_base_path="table.actions_base_path"
+					   :data="table.data" :draggable="table.draggable"
+					   :data_contains_actions="table.data_contains_actions" :escaped_data="escaped_data"></DataTable>
 		</ToggleBlock>
 
 		<Block v-else v-for="table in filtered_tables" class="component" :title="table.title" :key="table.id">
 			<DataTable :columns="table.columns" :actions="table.actions" :data="table.data" :draggable="table.draggable"
-						:data_contains_actions="table.data_contains_actions" :escaped_data="escaped_data"></DataTable>
+					   :actions_base_path="table.actions_base_path" :data_contains_actions="table.data_contains_actions"
+					   :escaped_data="escaped_data"></DataTable>
 		</Block>
 	</div>
 </template>

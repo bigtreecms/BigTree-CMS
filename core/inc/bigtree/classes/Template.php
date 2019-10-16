@@ -57,7 +57,7 @@
 					$this->Module = $template["module"];
 					$this->Name = $template["name"];
 					$this->Position = $template["position"];
-					$this->Routed = $template["route"] ? true : false;
+					$this->Routed = $template["routed"] ? true : false;
 				}
 			}
 		}
