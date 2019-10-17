@@ -4,6 +4,14 @@
 			async data () {
 				return await BigTreeAPI.getStoredData("settings", "title");
 			}
+		},
+
+		mounted: function() {
+			BigTreeEventBus.$on("api-data-changed", (store) => {
+				if (store === "settings") {
+					this.$asyncComputed.data.update();
+				}
+			});
 		}
 	});
 </script>

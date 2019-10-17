@@ -4,6 +4,14 @@
 			async data () {
 				return await BigTreeAPI.getStoredData("tags", "tag");
 			}
+		},
+		
+		mounted: function() {
+			BigTreeEventBus.$on("api-data-changed", (store) => {
+				if (store === "tags") {
+					this.$asyncComputed.data.update();
+				}
+			});
 		}
 	});
 </script>

@@ -4,7 +4,7 @@
 		data: function() {
 			return {
 				buttons: [
-					{ title: "Update", primary: true }
+					{ title: this.translate("Update"), primary: true }
 				]
 			}
 		},

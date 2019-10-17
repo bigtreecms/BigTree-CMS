@@ -16,6 +16,14 @@
 
 				return users;
 			}
+		},
+
+		mounted: function() {
+			BigTreeEventBus.$on("api-data-changed", (store) => {
+				if (store === "users") {
+					this.$asyncComputed.data.update();
+				}
+			});
 		}
 	});
 </script>

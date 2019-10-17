@@ -33,6 +33,12 @@
 			}
 		},
 		mounted: function() {
+			BigTreeEventBus.$on("api-data-changed", (store) => {
+				if (store === "module-groups") {
+					this.$asyncComputed.tables.update();
+				}
+			});
+			
 			BigTreeEventBus.$on("data-table-resorted", async (table) => {
 				let data = table.mutable_data;
 

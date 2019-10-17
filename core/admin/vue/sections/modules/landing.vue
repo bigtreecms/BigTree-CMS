@@ -70,6 +70,14 @@
 
 				return tables;
 			}
+		},
+		
+		mounted: function() {
+			BigTreeEventBus.$on("api-data-changed", (store) => {
+				if (store === "module-groups" || store === "modules") {
+					this.$asyncComputed.tables.update();
+				}
+			});
 		}
 	});
 </script>
