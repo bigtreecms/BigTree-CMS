@@ -23,8 +23,11 @@
 				let query = this.query.toLowerCase();
 
 				for (let i = 0; i < this.tables.length; i++) {
-					let match = false;
-					let table_title = this.tables[i].title.toLowerCase();
+					let table_title = "";
+
+					if (typeof this.tables[i].title !== "undefined") {
+						table_title = this.tables[i].title.toLowerCase();
+					}
 
 					// If the group title matches, keep all the modules within it shown
 					if (table_title.indexOf(query) > -1) {

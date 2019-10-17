@@ -6,7 +6,7 @@
 
 <template>
 	<div class="component layout_expanded">
-		<h2 class="component_title">
+		<h2 class="component_title" v-if="title">
 			<span class="component_title_label">{{ translate(title) }}</span>
 		</h2>
 		
