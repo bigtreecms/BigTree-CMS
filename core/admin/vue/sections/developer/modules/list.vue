@@ -1,7 +1,18 @@
 <script>
-	Vue.component("ModulesLanding", {
+	Vue.component("ModuleList", {
 		asyncComputed: {
-			async tables () {
+			async tables() {
+				let actions = [
+					{
+						title: this.translate("Edit"),
+						route: "edit"
+					},
+					{
+						title: this.translate("Delete"),
+						route: "delete",
+						confirm: this.translate("Are you sure you want to delete this module?\nDeleting a module will also delete its class file and related directory in /custom/admin/modules/.")
+					}
+				];
 				let modules = await BigTreeAPI.getStoredData("modules", "position", true);
 				let groups = await BigTreeAPI.getStoredData("module-groups", "position", true);
 				let ungrouped_modules = [];
@@ -18,29 +29,13 @@
 				for (let x = 0; x < modules.length; x++) {
 					let module = modules[x];
 
-					for (let action_index = 0; action_index < module.actions.length; action_index++) {
-						let action = module.actions[action_index];
-
-						if (action.in_nav) {
-							if (action.route) {
-								module.actions[action_index].url = ADMIN_ROOT + module.route + "/" + action.route + "/";
-							} else {
-								module.actions[action_index].url = ADMIN_ROOT + module.route + "/";
-							}
-
-							module.actions[action_index].title = action.name;
-						} else {
-							module.actions.splice(action_index, 1);
-						}
-					}
-
 					if (module.group && typeof grouped_modules[module.group] !== "undefined") {
 						grouped_modules[module.group].modules.push(module);
 					} else {
 						ungrouped_modules.push(module);
 					}
 				}
-				
+
 				grouped_modules.ungrouped = {
 					id: "ungrouped",
 					name: this.translate("Ungrouped"),
@@ -58,11 +53,12 @@
 								id: "module-group-" + group.id,
 								title: group.name,
 								columns: [
-									{ title: "Module Name", key: "name" }
+									{ title: this.translate("Module Name"), key: "name" }
 								],
-								actions: [],
+								actions: actions,
+								actions_base_path: "developer/modules",
 								data: group.modules,
-								data_contains_actions: true
+								draggable: true
 							});
 						}
 					}
@@ -70,11 +66,32 @@
 
 				return tables;
 			}
+		},
+		mounted: function() {
+			BigTreeEventBus.$on("data-table-resorted", async (table) => {
+				let data = table.mutable_data;
+
+				let positions = {};
+				let position = data.length;
+
+				for (let x = 0; x < data.length; x++) {
+					positions[data[x].id] = position;
+					position--;
+				}
+
+				await BigTreeAPI.call({
+					endpoint: "modules/order",
+					method: "POST",
+					parameters: {
+						"positions": positions
+					}
+				});
+			});
 		}
 	});
 </script>
 
 <template>
 	<GroupedTables collapsible="true" searchable="true" escaped_data="true" search_placeholder="Search Modules"
-					search_label="Search Modules" :tables="tables"></GroupedTables>
+				   search_label="Search Modules" :tables="tables"></GroupedTables>
 </template>

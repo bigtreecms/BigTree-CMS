@@ -98,6 +98,9 @@
 					unset(static::$State["sub_nav"][$index]);
 				}
 			}
+			
+			// Make sure this is passed as an array
+			static::$State["sub_nav"] = array_values(static::$State["sub_nav"]);
 		}
 		
 		/*

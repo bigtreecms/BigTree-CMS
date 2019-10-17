@@ -84,7 +84,7 @@
 					$this->Icon = $module["icon"];
 					$this->ID = $module["id"];
 					$this->Name = $module["name"];
-					$this->Position = $module["position"];
+					$this->Position = intval($module["position"]);
 					$this->Route = $module["route"];
 					
 					if (is_array($module["actions"])) {

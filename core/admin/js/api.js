@@ -206,7 +206,11 @@ var BigTreeAPI = (function() {
 
 				if (response.success) {
 					if (typeof response.response.cache !== "undefined") {
-						await BigTreeAPI.updateCache(response.response.cache);
+						for (let store in response.response.cache) {
+							if (response.response.cache.hasOwnProperty(store)) {
+								await BigTreeAPI.updateCache(store, response.response.cache[store]);
+							}
+						}
 					}
 
 					resolve(response.response);

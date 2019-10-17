@@ -4,11 +4,11 @@
 		data: function() {
 			let actions = [
 				{
-					title: "Edit",
+					title: this.translate("Edit"),
 					route: "edit"
 				},
 				{
-					title: "Delete",
+					title: this.translate("Delete"),
 					route: "delete",
 					confirm: this.translate("Are you sure you want to delete this template?")
 				}
@@ -29,30 +29,28 @@
 			let tables = [
 				{
 					id: "basic",
-					title: "Basic Templates",
+					title: this.translate("Basic Templates"),
 					actions_base_path: "developer/templates",
 					actions: actions,
 					data: basic_templates,
 					draggable: true,
-					escaped_data: true,
 					columns: [
 						{
-							title: "Name",
+							title: this.translate("Template Name"),
 							key: "name"
 						}
 					]
 				},
 				{
 					id: "routed",
-					title: "Routed Templates",
+					title: this.translate("Routed Templates"),
 					actions_base_path: "developer/templates",
 					actions: actions,
 					draggable: true,
-					escaped_data: true,
 					data: routed_templates,
 					columns: [
 						{
-							title: "Name",
+							title: this.translate("Template Name"),
 							key: "name"
 						}
 					]

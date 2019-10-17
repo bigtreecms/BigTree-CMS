@@ -60,6 +60,32 @@
 		}
 		
 		/*
+			Function: getModulesCacheObject
+				Returns a cache object (in array form) for a given module array or ID
+			
+			Parameters:
+				module - Either a module array or ID
+		
+			Returns:
+				An array of data for storage in the IndexedDB cache
+		*/
+		
+		public static function getModulesCacheObject($module): array
+		{
+			$module = new Module($module);
+			
+			return [
+				"id" => $module->ID,
+				"group" => $module->Group,
+				"name" => $module->Name,
+				"position" => $module->Position,
+				"actions" => $module->Actions,
+				"route" => $module->Route,
+				"access_level" => $module->UserAccessLevel
+			];
+		}
+		
+		/*
 			Function: getSettingsCacheObject
 				Returns a cache object (in array form) for a given setting array or ID
 		

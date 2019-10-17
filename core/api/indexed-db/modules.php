@@ -15,26 +15,13 @@
 	*/
 	
 	$actions = [];
-	$get_record = function($item) {
-		$module = new Module($item);
-		
-		return [
-			"id" => $item["id"],
-			"group" => $item["group"],
-			"name" => $item["name"],
-			"position" => $item["position"] ?: 0,
-			"actions" => $item["actions"],
-			"route" => $item["route"],
-			"access_level" => $module->UserAccessLevel
-		];
-	};
 	
 	if (!defined("API_SINCE") || defined("API_PERMISSIONS_CHANGED")) {
 		$all = DB::getAll("modules");
 		$modules = [];
 		
 		foreach ($all as $module) {
-			$modules[] = $get_record($module);
+			$modules[] = API::getModulesCacheObject($module);
 		}
 		
 		$actions["put"] = $modules;
@@ -60,7 +47,7 @@
 	if (!defined("API_PERMISSIONS_CHANGED")) {
 		// Finally, updates, but only the latest, so a distinct ID
 		$audit_trail_updates = SQL::fetchAll("SELECT DISTINCT(entry) FROM bigtree_audit_trail
-											  WHERE `table` = 'config:module-groups' AND `date` >= ?
+											  WHERE `table` = 'config:modules' AND `date` >= ?
 												AND (`type` = 'update' OR `type` = 'add')
 											  ORDER BY id DESC", API_SINCE);
 		
@@ -72,7 +59,7 @@
 			$module = DB::get("modules", $item["entry"]);
 			
 			if ($module) {
-				$actions["put"][$item["entry"]] = $get_record($module);
+				$actions["put"][$item["entry"]] = API::getModulesCacheObject($module);
 			}
 		}
 	}
