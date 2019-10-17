@@ -24,6 +24,15 @@ let BigTree = new Vue({
 		},
 
 		load_partial: function(url, state, content) {
+			// Reset state
+			BigTree.breadcrumb = [];
+			BigTree.meta_bar = [];
+			BigTree.page_title = "";
+			BigTree.page_public_url = "";
+			BigTree.sub_nav = [];
+			BigTree.sub_nav_actions = [];
+			BigTree.tools = [];
+
 			for (let key in state) {
 				if (state.hasOwnProperty(key)) {
 					BigTree[key] = state[key];
