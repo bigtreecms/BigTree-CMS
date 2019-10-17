@@ -26,7 +26,8 @@
 								key: "name",
 								type: "text"
 							}
-						]
+						],
+						draggable: true
 					}
 				];
 			}
