@@ -937,7 +937,6 @@
 				BigTree::putFile(SERVER_ROOT."templates/callouts/".$id.".php",$file_contents);
 			}
 
-			BigTreeJSONDB::incrementPosition("callouts");
 			BigTreeJSONDB::insert("callouts", $callout);
 
 			$this->track("jsondb -> callouts", $id, "created");
@@ -8216,7 +8215,7 @@
 
 		/*
 			Function: setCalloutPosition
-				Sets the position of a callout.
+				This method is deprecated and no longer does anything.
 
 			Parameters:
 				id - The id of the callout.
@@ -8224,7 +8223,7 @@
 		*/
 
 		public static function setCalloutPosition($id, $position) {
-			BigTreeJSONDB::update("callouts", $id, ["position" => $position]);
+			return;
 		}
 
 		/*
