@@ -109,9 +109,9 @@
 			$actions["put"] = $pages;
 			
 			if ($current_page != $total_pages) {
-				API::sendResponse($actions, null, null, WWW_ROOT."api/indexed-db/pages/?page=".($current_page + 1));
+				API::sendResponse(["cache" => ["pages" => $actions]], null, null, WWW_ROOT."api/indexed-db/pages/?page=".($current_page + 1));
 			} else {
-				API::sendResponse($actions);
+				API::sendResponse(["cache" => ["pages" => $actions]]);
 			}
 		} else {
 			// All in one response
@@ -131,7 +131,7 @@
 			
 			$actions["put"] = $pages;
 			
-			API::sendResponse($actions);
+			API::sendResponse(["cache" => ["pages" => $actions]]);
 		}
 	}
 	
@@ -156,5 +156,5 @@
 		}
 	}
 	
-	API::sendResponse($actions);
+	API::sendResponse(["cache" => ["pages" => $actions]]);
 	

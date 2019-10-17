@@ -195,33 +195,37 @@ var BigTreeAPI = (function() {
 			$.ajax("www_root/api/" + endpoint, {
 				data: parameters,
 				method: method
-			}).done(async function(response) {
-				if (response.next_page) {
-					BigTreeAPI.next_page = response.next_page;
-				} else {
-					BigTreeAPI.next_page = null;
-				}
-
-				BigTreeAPI.background_update_paused = false;
-
-				if (response.success) {
-					if (typeof response.response.cache !== "undefined") {
-						for (let store in response.response.cache) {
-							if (response.response.cache.hasOwnProperty(store)) {
-								await BigTreeAPI.updateCache(store, response.response.cache[store]);
-							}
-						}
-					}
-
-					resolve(response.response);
-				} else {
-					reject("API call failed:" + response.error);
-				}
+			}).done((response) => {
+				callHandler(response, resolve, reject);
 			}).fail(function(xhr) {
 				BigTreeAPI.background_update_paused = false;
 				reject("Unknown error.");
 			});
 		});
+	}
+
+	async function callHandler(response, resolve, reject) {
+		BigTreeAPI.background_update_paused = false;
+
+		if (response.success) {
+			if (response.next_page) {
+				BigTreeAPI.next_page = response.next_page;
+			} else {
+				BigTreeAPI.next_page = null;
+			}
+
+			if (typeof response.response.cache !== "undefined") {
+				for (let store in response.response.cache) {
+					if (response.response.cache.hasOwnProperty(store)) {
+						await BigTreeAPI.updateCache(store, response.response.cache[store]);
+					}
+				}
+			}
+
+			resolve(response.response);
+		} else {
+			reject("API call failed:" + response.error);
+		}
 	}
 
 	async function getNextPage() {
@@ -232,18 +236,8 @@ var BigTreeAPI = (function() {
 		}
 
 		return new Promise((resolve, reject) => {
-			$.ajax(BigTreeAPI.next_page).done(function(response) {
-				if (response.next_page) {
-					BigTreeAPI.next_page = response.next_page;
-				} else {
-					BigTreeAPI.next_page = null;
-				}
-
-				if (response.success) {
-					resolve(response.response);
-				} else {
-					reject("API call failed:" + response.error);
-				}
+			$.ajax(BigTreeAPI.next_page).done((response) => {
+				callHandler(response, resolve, reject);
 			}).fail(function(xhr) {
 				reject("Unknown error.");
 			});
@@ -410,8 +404,12 @@ var BigTreeAPI = (function() {
 						table.transaction.oncomplete = async function() {
 							for (let store in BigTreeAPI.schema) {
 								if (BigTreeAPI.schema.hasOwnProperty(store)) {
-									let response = await BigTreeAPI.call({ endpoint: "indexed-db/" + store });
-									await updateCache(store, response);
+									await BigTreeAPI.call({ endpoint: "indexed-db/" + store });
+
+									while (BigTreeAPI.next_page) {
+										await BigTreeAPI.getNextPage();
+									}
+
 									last_updated[store] = Math.floor(Date.now() / 1000);
 								}
 							}
@@ -432,7 +430,7 @@ var BigTreeAPI = (function() {
 	}
 
 	async function updateCache(store, data) {
-		if (!initialized) {
+		if (!initialized && !upgrading) {
 			await init();
 		}
 
@@ -452,11 +450,6 @@ var BigTreeAPI = (function() {
 				for (let x = 0; x < data.delete.length; x++) {
 					await cacheDelete(transaction_store, data.delete[x]);
 				}
-			}
-
-			if (BigTreeAPI.next_page) {
-				let response = await BigTreeAPI.getNextPage();
-				await updateCache(store, response);
 			}
 
 			resolve();

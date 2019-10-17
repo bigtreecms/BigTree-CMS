@@ -17,7 +17,7 @@
 	if (!defined("API_SINCE")) {
 		$groups = DB::getAll("module-groups");
 		
-		API::sendResponse(["put" => $groups]);
+		API::sendResponse(["cache" => ["module-groups" => ["put" => $groups]]]);
 	}
 	
 	$actions = [];
@@ -47,9 +47,9 @@
 		$group = DB::get("module-groups", $item["entry"]);
 		
 		if ($group) {
-			$actions["put"][$item["entry"]] = $group;
+			$actions["put"][] = $group;
 		}
 	}
 	
-	API::sendResponse($actions);
+	API::sendResponse(["cache" => ["module-groups" => $actions]]);
 	

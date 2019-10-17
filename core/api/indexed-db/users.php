@@ -40,7 +40,7 @@
 	
 	// No deletes in this request
 	if (!defined("API_SINCE")) {
-		API::sendResponse($actions);
+		API::sendResponse(["cache" => ["users" => $actions]]);
 	}
 	
 	$deleted_records = [];
@@ -75,5 +75,5 @@
 		}
 	}
 	
-	API::sendResponse($actions);
+	API::sendResponse(["cache" => ["users" => $actions]]);
 	

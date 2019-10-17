@@ -75,9 +75,10 @@
 			}
 			
 			if ($current_page != $total_pages) {
-				API::sendResponse($actions, null, null, WWW_ROOT."api/indexed-db/view-cache/?page=".($current_page + 1));
+				API::sendResponse(["cache" => ["view-cache" => $actions]], null, null,
+								  WWW_ROOT."api/indexed-db/view-cache/?page=".($current_page + 1));
 			} else {
-				API::sendResponse($actions);
+				API::sendResponse(["cache" => ["view-cache" => $actions]]);
 			}
 		} else {
 			// All in one response
@@ -87,10 +88,10 @@
 				$actions["put"][] = $get_record($record);
 			}
 			
-			API::sendResponse($actions);
+			API::sendResponse(["cache" => ["view-cache" => $actions]]);
 		}
 		
-		API::sendResponse($actions);
+		API::sendResponse(["cache" => ["view-cache" => $actions]]);
 	}
 	
 	// If permissions changed we've already done all put statements
@@ -119,5 +120,5 @@
 		}
 	}
 	
-	API::sendResponse($actions);
+	API::sendResponse(["cache" => ["view-cache" => $actions]]);
 	
