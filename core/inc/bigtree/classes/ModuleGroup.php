@@ -27,9 +27,10 @@
 
 			Parameters:
 				group - Either an ID (to pull a record) or an array (to use the array as the record)
+				on_fail - An optional callable to call on non-exist or bad data (rather than triggering an error).
 		*/
 		
-		public function __construct($group = null)
+		public function __construct($group = null, ?callable $on_fail = null)
 		{
 			if ($group !== null) {
 				// Passing in just an ID
@@ -39,7 +40,11 @@
 				
 				// Bad data set
 				if (!is_array($group)) {
-					trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+					if ($on_fail) {
+						return $on_fail();
+					} else {
+						trigger_error("Invalid ID or data set passed to constructor.", E_USER_ERROR);
+					}
 				} else {
 					$this->ID = $group["id"];
 					
@@ -65,10 +70,19 @@
 		{
 			$id = DB::insert("module-groups", [
 				"name" => Text::htmlEncode($name),
-				"route" => DB::unique("module-groups", "route", Link::urlify($name))
+				"route" => DB::unique("module-groups", "route", Link::urlify($name)),
+				"extension" => null
 			]);
 			
 			AuditTrail::track("config:module-groups", $id, "add", "created");
+			
+			// Fix positioning
+			DB::incrementPosition("module-groups");
+			$all = DB::getAll("module-groups");
+			
+			foreach ($all as $item) {
+				AuditTrail::track("config:module-groups", $item["id"], "update", "incremented position");
+			}
 			
 			return new ModuleGroup($id);
 		}
