@@ -22,6 +22,11 @@
 						ev.preventDefault();
 					}
 				}
+				
+				if (this.actions[index].method !== "undefined") {
+					ev.preventDefault();
+					this.actions[index].method(this.id);
+				}
 			},
 
 			close: function() {
@@ -65,13 +70,20 @@
 		</div>
 		<ul class="action_menu_dropdown">
 			<li v-for="(action, index) in actions" class="action_menu_item">
-				<a v-if="escaped_actions && !buttons" class="action_menu_link" :href="compute_action_url(action)"
+				<button v-if="action.method !== 'undefined' && escaped_actions" class="action_menu_link"
+						v-on:click="click($event, index)" v-html="translate(action.title)"></button>
+				<button v-else-if="action.method !== 'undefined'" class="action_menu_link" v-on:click="click($event, index)">
+					{{ translate(action.title) }}
+				</button>
+				<a v-else-if="escaped_actions && !buttons" class="action_menu_link" :href="compute_action_url(action)"
 				   v-on:click="click($event, index)" v-html="translate(action.title)"></a>
 				<a v-else-if="!buttons" class="action_menu_link" :href="compute_action_url(action)"
 				   v-on:click="click($event, index)">{{ translate(action.title) }}</a>
 				<button v-else-if="escaped_actions" v-on:click="change" class="action_menu_link"
 						:data-value="action.value" v-html="translate(action.title)"></button>
-				<button v-else v-on:click="change" class="action_menu_link" :data-value="action.value">{{ translate(action.title) }}</button>
+				<button v-else v-on:click="change" class="action_menu_link" :data-value="action.value">
+					{{ translate(action.title) }}
+				</button>
 			</li>
 		</ul>
 	</div>

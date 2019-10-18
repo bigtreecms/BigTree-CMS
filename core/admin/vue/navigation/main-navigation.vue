@@ -19,7 +19,7 @@
 							<span class="main_nav_label">{{ translate(link.title) }}</span>
 						</a>
 						<div v-if="link.active && link.children.length" class="main_nav_children">
-							<a v-for="child in link.children" class="main_nav_child" :href="child.url">{{ translate(child.title) }}</a>
+							<a v-for="child in link.children" class="main_nav_child" :href="child.url" v-on:click="navigate">{{ translate(child.title) }}</a>
 						</div>
 					</li>
 				</ul>
