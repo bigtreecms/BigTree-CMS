@@ -429,6 +429,10 @@ var BigTreeAPI = (function() {
 		});
 	}
 
+	function resetWatchedStores() {
+		watched_stores = [];
+	}
+
 	async function updateCache(store, data) {
 		if (!initialized && !upgrading) {
 			await init();
@@ -491,6 +495,7 @@ var BigTreeAPI = (function() {
 		getStoredData: getStoredData,
 		getStoredDataMatching: getStoredDataMatching,
 		getNextPage: getNextPage,
+		resetWatchedStores: resetWatchedStores,
 		schema: schema,
 		schema_version: schema_version,
 		updateCache: updateCache,

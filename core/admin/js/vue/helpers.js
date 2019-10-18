@@ -52,9 +52,10 @@ Vue.mixin({
 
 		navigate: function(ev) {
 			ev.preventDefault();
-			let target = $(ev.target);
+			let link = $(ev.target).closest("a");
 
-			BigTree.request_partial(target.attr("href"));
+			BigTreeAPI.resetWatchedStores();
+			BigTree.request_partial(link.attr("href"));
 		},
 
 		translate: function(string, tokens) {
