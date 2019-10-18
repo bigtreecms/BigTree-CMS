@@ -50,6 +50,13 @@ Vue.mixin({
 			return "#" + new_red + new_green + new_blue;
 		},
 
+		navigate: function(ev) {
+			ev.preventDefault();
+			let target = $(ev.target);
+
+			BigTree.request_partial(target.attr("href"));
+		},
+
 		translate: function(string, tokens) {
 			let translated_string = string;
 

@@ -2,10 +2,12 @@
 	Vue.component("Breadcrumb", {
 		props: ["links"],
 		methods: {
-			click: function(event) {
-				event.preventDefault();
+			emit: function(ev) {
+				ev.preventDefault();
 				
-				BigTreeEventBus.$emit("breadcrumb-click", $(event.target).data("id"));
+				let target = $(ev.target);
+				
+				BigTreeEventBus.$emit("breadcrumb-click", target.data("id"));
 			}
 		}
 	});
@@ -14,8 +16,8 @@
 <template>
 	<nav class="breadcrumb">
 		<span v-for="link in links" class="breadcrumb_item">
-			<a v-if="typeof link.id !== 'undefined'" v-on:click="click" :data-id="link.id" :href="link.url" class="breadcrumb_link">{{ translate(link.title) }}</a>
-			<a v-else class="breadcrumb_link" :href="link.url">{{ translate(link.title) }}</a>
+			<a v-if="typeof link.id !== 'undefined'" v-on:click="emit" :data-id="link.id" :href="link.url" class="breadcrumb_link">{{ translate(link.title) }}</a>
+			<a v-else class="breadcrumb_link" v-on:click="navigate" :href="link.url">{{ translate(link.title) }}</a>
 		</span>
 	</nav>
 </template>

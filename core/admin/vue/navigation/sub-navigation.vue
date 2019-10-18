@@ -8,7 +8,7 @@
 	<nav class="sub_nav">
 		<ul class="sub_nav_items">
 			<li v-for="link in links" class="sub_nav_item">
-				<a class="sub_nav_link" :href="link.url" :data-tooltip-title="link.tooltip"
+				<a class="sub_nav_link" :href="link.url" :data-tooltip-title="link.tooltip" v-on:click="navigate"
 				   :class="{ 'active': link.active, 'js-tooltip': link.tooltip, 'has_tooltip': link.tooltip }">
 					{{ translate(link.title) }}
 				</a>

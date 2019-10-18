@@ -36,7 +36,10 @@
 			
 			foreach ($nav as $item) {
 				if ((strpos($path,$item["link"]."/") === 0 && $item["link"] != $last_link) || $path == $item["link"]) {
-					static::$State["breadcrumb"][] = ["title" => $item["title"], "url" => $item["link"]];
+					static::$State["breadcrumb"][] = [
+						"title" => $item["title"],
+						"url" => ADMIN_ROOT.$item["link"]."/"
+					];
 					static::$State["page_title"] = $item["title"] ?: static::$State["page_title"];
 					static::$State["page_title"] = $item["title_override"] ?: static::$State["page_title"];
 					static::$State["sub_nav"] = $item["children"] ?: static::$State["sub_nav"];

@@ -1,14 +1,6 @@
 <script>
 	Vue.component("NavigationMain", {
-		props: ["links", "title"],
-		methods: {
-			navigate: function(ev) {
-				let target = $(ev.target);
-				ev.preventDefault();
-				
-				BigTree.request_partial(target.attr("href"));
-			}
-		}
+		props: ["links", "title"]
 	});
 </script>
 
