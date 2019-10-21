@@ -17,15 +17,18 @@
 			},
 
 			click: function(ev, index) {
+				ev.preventDefault();
+				
 				if (typeof this.actions[index].confirm !== "undefined") {
 					if (!confirm(this.actions[index].confirm)) {
-						ev.preventDefault();
+						return;
 					}
 				}
 				
-				if (this.actions[index].method !== "undefined") {
-					ev.preventDefault();
+				if (typeof this.actions[index].method !== "undefined") {
 					this.actions[index].method(this.id);
+				} else {
+					BigTree.request_partial(this.compute_action_url(this.actions[index]));
 				}
 			},
 
