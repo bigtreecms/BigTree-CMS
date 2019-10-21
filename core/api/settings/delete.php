@@ -33,7 +33,7 @@
 		"deleted" => true,
 		"cache" => [
 			"settings" => [
-				"delete" => $id
+				"delete" => [$id]
 			]
 		]
 	], "Deleted Setting");

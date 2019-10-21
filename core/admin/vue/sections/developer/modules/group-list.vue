@@ -15,7 +15,7 @@
 							},
 							{
 								title: this.translate("Delete"),
-								route: "delete",
+								method: this.delete,
 								confirm: this.translate("Are you sure you want to delete this module module group?\nModules inside this group will become ungrouped.")
 							}
 						],
@@ -32,6 +32,21 @@
 				];
 			}
 		},
+		
+		methods: {
+			delete: async function(id) {
+				await BigTreeAPI.call({
+					endpoint: "module-groups/delete",
+					method: "POST",
+					parameters: {
+						id: id
+					}
+				});
+
+				this.$asyncComputed.tables.update();
+			}
+		},
+		
 		mounted: function() {
 			BigTreeEventBus.$on("api-data-changed", (store) => {
 				if (store === "module-groups") {
