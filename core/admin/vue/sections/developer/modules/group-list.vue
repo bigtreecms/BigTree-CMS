@@ -56,20 +56,17 @@
 			
 			BigTreeEventBus.$on("data-table-resorted", async (table) => {
 				let data = table.mutable_data;
-
-				let positions = {};
-				let position = data.length;
+				let groups = [];
 
 				for (let x = 0; x < data.length; x++) {
-					positions[data[x].id] = position;
-					position--;
+					groups.push(data[x].id);
 				}
 
 				await BigTreeAPI.call({
 					endpoint: "module-groups/order",
 					method: "POST",
 					parameters: {
-						"positions": positions
+						"groups": groups
 					}
 				});
 			});
