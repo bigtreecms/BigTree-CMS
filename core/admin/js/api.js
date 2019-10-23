@@ -73,6 +73,22 @@ var BigTreeAPI = (function() {
 			],
 			"key": "id"
 		},
+		"templates": {
+			"indexes": [
+				"id",
+				"routed",
+				"position",
+				"name"
+			],
+			"key": "id"
+		},
+		"callouts": {
+			"indexes": [
+				"id",
+				"name"
+			],
+			"key": "id"
+		},
 		"view-cache": {
 			"indexes": [
 				"id",
@@ -133,15 +149,6 @@ var BigTreeAPI = (function() {
 	}
 
 	async function cachePut(store, entry) {
-		// Make sure numeric values are stored as strings so that we can query them back consistently
-		for (let index in entry) {
-			if (entry.hasOwnProperty(index)) {
-				if (typeof entry[index] === "number") {
-					entry[index] = String(entry[index]);
-				}
-			}
-		}
-
 		let request = store.put(entry);
 
 		return new Promise((resolve, reject) => {

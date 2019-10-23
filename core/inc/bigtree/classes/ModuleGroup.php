@@ -49,7 +49,7 @@
 					$this->ID = $group["id"];
 					
 					$this->Name = $group["name"];
-					$this->Position = $group["position"];
+					$this->Position = intval($group["position"]);
 					$this->Route = $group["route"];
 				}
 			}

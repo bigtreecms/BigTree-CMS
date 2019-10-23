@@ -60,6 +60,31 @@
 		}
 		
 		/*
+			Function: getCalloutsCacheObject
+				Returns a cache object (in array form) for a given callout array or ID
+			
+			Parameters:
+				callout - Either a callout array or ID
+		
+			Returns:
+				An array of data for storage in the IndexedDB cache
+		*/
+		
+		public static function getCalloutsCacheObject($callout): array
+		{
+			if (!is_array($callout)) {
+				$callout = DB::get("callouts", $callout);
+			}
+			
+			return [
+				"id" => $callout["id"],
+				"name" => $callout["name"],
+				"fields" => $callout["fields"],
+				"level" => $callout["level"]
+			];
+		}
+		
+		/*
 			Function: getModulesCacheObject
 				Returns a cache object (in array form) for a given module array or ID
 			
@@ -78,11 +103,86 @@
 				"id" => $module->ID,
 				"group" => $module->Group,
 				"name" => $module->Name,
-				"position" => $module->Position,
+				"position" => intval($module->Position),
 				"actions" => $module->Actions,
 				"route" => $module->Route,
 				"access_level" => $module->UserAccessLevel
 			];
+		}
+		
+		/*
+			Function: getModuleGroupsCacheObject
+				Returns a cache object (in array form) for a given module group array or ID
+			
+			Parameters:
+				module - Either a module group array or ID
+		
+			Returns:
+				An array of data for storage in the IndexedDB cache
+		*/
+		
+		public static function getModuleGroupsCacheObject($group): array
+		{
+			$group = new ModuleGroup($group);
+			
+			return [
+				"id" => $group->ID,
+				"name" => $group->Name,
+				"position" => intval($module->Position)
+			];
+		}
+		
+		/*
+			Function: getPagesCacheObject
+				Returns a cache object (in array form) for a given page ID (or pending ID)
+			
+			Parameters:
+				page - A page ID
+		
+			Returns:
+				An array of data for storage in the IndexedDB cache
+		*/
+		
+		public static function getPagesCacheObject($page): array
+		{
+			$draft = Page::getPageDraft($page);
+			
+			if (!$draft) {
+				return null;
+			}
+			
+			$record = [
+				"id" => $draft->ID,
+				"parent" => $draft->Parent,
+				"nav_title" => $draft->NavigationTitle,
+				"path" => $draft->Path,
+				"template" => $draft->Template,
+				"archived" => $draft->Archived,
+				"in_nav" => $draft->InNav,
+				"position" => intval($draft->Position),
+				"max_age" => $draft->MaxAge ?: 365,
+				"age" => ceil((time() - strtotime($draft->UpdatedAt)) / 24 / 60 / 60),
+				"expires" => null,
+				"seo_score" => $draft->SEOScore,
+				"seo_recommendations" => $draft->SEORecommendations,
+				"access_level" => $draft->UserAccessLevel
+			];
+			
+			if ($draft->ExpireAt) {
+				$record["expires"] = date(Router::$Config["date_format"] ?: "m/d/Y", strtotime($draft->ExpireAt));
+			}
+			
+			if ($draft->ChangesApplied) {
+				$record["status"] = "changed";
+			} elseif (strtotime($draft->PublishAt) > time()) {
+				$record["status"] = "scheduled";
+			} elseif ($draft->ExpireAt != "" && strtotime($draft->ExpireAt) < time()) {
+				$record["status"] = "expired";
+			} else {
+				$record["status"] = "published";
+			}
+			
+			return $record;
 		}
 		
 		/*
@@ -139,6 +239,67 @@
 			}
 			
 			return $record;
+		}
+		
+		/*
+			Function: getTemplatesCacheObject
+				Returns a cache object (in array form) for a given template array or ID
+			
+			Parameters:
+				template - Either a template array or ID
+		
+			Returns:
+				An array of data for storage in the IndexedDB cache
+		*/
+		
+		public static function getTemplatesCacheObject($template): array
+		{
+			if (!is_array($template)) {
+				$template = DB::get("templates", $template);
+			}
+			
+			return [
+				"id" => $template["id"],
+				"name" => $template["name"],
+				"routed" => $template["routed"],
+				"fields" => $template["fields"],
+				"position" => intval($template["position"]),
+				"level" => $template["level"]
+			];
+		}
+		
+		/*
+			Function: getUsersCacheObject
+				Returns a cache object (in array form) for a given user array or ID
+			
+			Parameters:
+				user - Either a user array or ID
+		
+			Returns:
+				An array of data for storage in the IndexedDB cache
+		*/
+		
+		public static function getUsersCacheObject($user): array
+		{
+			static $user_level = null;
+			
+			if (is_null($user_level)) {
+				$user_level = Auth::user()->Level;
+			}
+			
+			if (!is_array($user)) {
+				$user = SQL::fetch("SELECT id, name, email, company, level FROM bigtree_users WHERE id = ?", $user);
+			}
+			
+			if (!$user_level) {
+				$user["access_level"] = null;
+			} elseif ($user_level < $user["level"]) {
+				$user["access_level"] = null;
+			} else {
+				$user["access_level" ] = "p";
+			}
+			
+			return $user;
 		}
 		
 		/*

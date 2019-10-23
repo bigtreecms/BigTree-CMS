@@ -16,47 +16,7 @@
 	
 	$actions = [];
 	$deleted_records = [];
-	$get_record = function($id) {
-		$draft = Page::getPageDraft($id);
-		
-		if (!$draft) {
-			return null;
-		}
-		
-		$record = [
-			"id" => $draft->ID,
-			"parent" => $draft->Parent,
-			"nav_title" => $draft->NavigationTitle,
-			"path" => $draft->Path,
-			"template" => $draft->Template,
-			"archived" => $draft->Archived,
-			"in_nav" => $draft->InNav,
-			"position" => $draft->Position,
-			"max_age" => $draft->MaxAge ?: 365,
-			"age" => ceil((time() - strtotime($draft->UpdatedAt)) / 24 / 60 / 60),
-			"expires" => null,
-			"seo_score" => $draft->SEOScore,
-			"seo_recommendations" => $draft->SEORecommendations,
-			"access_level" => $draft->UserAccessLevel
-		];
-			
-		if ($draft->ExpireAt) {
-			$record["expires"] = date(Router::$Config["date_format"] ?: "m/d/Y", strtotime($draft->ExpireAt));
-		}
-		
-		if ($draft->ChangesApplied) {
-			$record["status"] = "changed";
-		} elseif (strtotime($draft->PublishAt) > time()) {
-			$record["status"] = "scheduled";
-		} elseif ($draft->ExpireAt != "" && strtotime($draft->ExpireAt) < time()) {
-			$record["status"] = "expired";
-		} else {
-			$record["status"] = "published";
-		}
-			
-		return $record;
-	};
-	
+
 	// We're doing deletes first since puts might be paginated
 	if (defined("API_SINCE") && empty($_GET["page"])) {
 		$audit_trail_deletes = SQL::fetchAll("SELECT entry FROM bigtree_audit_trail
@@ -90,7 +50,7 @@
 											 LIMIT $limit, 1000");
 			
 			foreach ($page_ids as $id) {
-				$pages[] = $get_record($id);
+				$pages[] = API::getPagesCacheObject($id);
 			}
 			
 			$page_id_count = count($page_ids);
@@ -102,7 +62,7 @@
 													ORDER BY id LIMIT $limit, 1000");
 				
 				foreach ($pending_ids as $id) {
-					$pages[] = $get_record("p".$id);
+					$pages[] = API::getPagesCacheObject("p".$id);
 				}
 			}
 			
@@ -119,14 +79,14 @@
 			$page_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_pages");
 			
 			foreach ($page_ids as $id) {
-				$pages[] = $get_record($id);
+				$pages[] = API::getPagesCacheObject($id);
 			}
 			
 			$pending_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_pending_changes
 												WHERE `table` = 'bigtree_pages' AND `item_id` IS NULL");
 			
 			foreach ($pending_ids as $id) {
-				$pages[] = $get_record("p".$id);
+				$pages[] = API::getPagesCacheObject("p".$id);
 			}
 			
 			$actions["put"] = $pages;
@@ -148,7 +108,7 @@
 				continue;
 			}
 			
-			$record = $get_record($item["entry"]);
+			$record = API::getPagesCacheObject($item["entry"]);
 			
 			if ($record) {
 				$actions["put"][$item["entry"]] = $record;

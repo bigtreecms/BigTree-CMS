@@ -56,7 +56,7 @@
 					$this->Level = $template["level"];
 					$this->Module = $template["module"];
 					$this->Name = $template["name"];
-					$this->Position = $template["position"];
+					$this->Position = intval($template["position"]);
 					$this->Routed = $template["routed"] ? true : false;
 				}
 			}

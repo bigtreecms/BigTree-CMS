@@ -365,22 +365,6 @@
 			
 			BigTreeEventBus.$on("data-table-resorted", async (table) => {
 				let data = table.mutable_data;
-				
-				// Update local cache
-				let update_data = {};
-				let position = data.length;
-				
-				BigTreeAPI.background_update_paused = true;
-				
-				for (let x = 0; x < data.length; x++) {
-					update_data[data[x].id] = { position: position };
-					position--;
-				}
-				
-				await BigTreeAPI.updateCacheByID("pages", update_data);
-				BigTreeAPI.background_update_paused = false;
-				
-				// Update the database
 				let children = [];
 				
 				for (let x = 0; x < data.length; x++) {

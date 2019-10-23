@@ -8,14 +8,22 @@
 		Method: POST
 	 
 		Parameters:
-	 		positions - A key => value array of template IDs as keys and positions as values
+	 		templates - An array of template IDs in their new order
 	*/
 	
 	API::requireLevel(2);
 	API::requireMethod("POST");
-	API::requireParameters(["positions" => "array"]);
+	API::requireParameters(["templates" => "array"]);
 	
-	foreach ($_POST["positions"] as $template_id => $position) {
-		DB::update("templates", $template_id, ["position" => intval($position)]);
+	$cache = [];
+	$position = count($_POST["templates"]);
+	
+	foreach ($_POST["templates"] as $template_id) {
+		DB::update("templates", $template_id, ["position" => $position]);
 		AuditTrail::track("config:templates", $template_id, "update", "changed position");
+		
+		$cache[] = API::getTemplatesCacheObject($template_id);
+		$position--;
 	}
+	
+	API::sendResponse(["updated" => true, "cache" => ["templates" => ["put" => $cache]]]);

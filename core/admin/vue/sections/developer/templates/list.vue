@@ -1,83 +1,92 @@
 <script>
 	Vue.component("TemplateList", {
-		props: ["templates"],
-		data: function() {
-			let actions = [
-				{
-					title: this.translate("Edit"),
-					route: "edit"
-				},
-				{
-					title: this.translate("Delete"),
-					route: "delete",
-					confirm: this.translate("Are you sure you want to delete this template?")
-				}
-			];
-			let basic_templates = [];
-			let routed_templates = [];
-			
-			for (let x = 0; x < this.templates.length; x++) {
-				let template = this.templates[x];
+		asyncComputed: {
+			async tables() {
+				let actions = [
+					{
+						title: this.translate("Edit"),
+						route: "edit"
+					},
+					{
+						title: this.translate("Delete"),
+						route: "delete",
+						method: this.delete,
+						confirm: this.translate("Are you sure you want to delete this template?")
+					}
+				];
+				let basic_templates = [];
+				let routed_templates = [];
+				let data = await BigTreeAPI.getStoredData("templates", "position", true);
 				
-				if (template.routed) {
-					routed_templates.push(template);
-				} else {
-					basic_templates.push(template);
+				for (let x = 0; x < data.length; x++) {
+					let template = data[x];
+
+					if (template.routed) {
+						routed_templates.push(template);
+					} else {
+						basic_templates.push(template);
+					}
 				}
+
+				return [
+					{
+						id: "basic",
+						title: this.translate("Basic Templates"),
+						actions_base_path: "developer/templates",
+						actions: actions,
+						data: basic_templates,
+						draggable: true,
+						columns: [
+							{
+								title: this.translate("Template Name"),
+								key: "name"
+							}
+						]
+					},
+					{
+						id: "routed",
+						title: this.translate("Routed Templates"),
+						actions_base_path: "developer/templates",
+						actions: actions,
+						draggable: true,
+						data: routed_templates,
+						columns: [
+							{
+								title: this.translate("Template Name"),
+								key: "name"
+							}
+						]
+					}
+				];
 			}
-			
-			let tables = [
-				{
-					id: "basic",
-					title: this.translate("Basic Templates"),
-					actions_base_path: "developer/templates",
-					actions: actions,
-					data: basic_templates,
-					draggable: true,
-					columns: [
-						{
-							title: this.translate("Template Name"),
-							key: "name"
-						}
-					]
-				},
-				{
-					id: "routed",
-					title: this.translate("Routed Templates"),
-					actions_base_path: "developer/templates",
-					actions: actions,
-					draggable: true,
-					data: routed_templates,
-					columns: [
-						{
-							title: this.translate("Template Name"),
-							key: "name"
-						}
-					]
-				}
-			];
-			
-			return {
-				tables: tables
+		},
+		methods: {
+			delete: async function(id) {
+				await BigTreeAPI.call({
+					endpoint: "templates/delete",
+					method: "POST",
+					parameters: {
+						id: id
+					}
+				});
+
+				this.$asyncComputed.tables.update();
 			}
 		},
 		mounted: function() {
 			BigTreeEventBus.$on("data-table-resorted", async (table) => {
 				let data = table.mutable_data;
-
-				let positions = {};
-				let position = data.length;
+				let templates = [];
 
 				for (let x = 0; x < data.length; x++) {
-					positions[data[x].id] = position;
-					position--;
+					templates.push(data[x].id);
 				}
 
 				await BigTreeAPI.call({
 					endpoint: "templates/order",
 					method: "POST",
 					parameters: {
-						"positions": positions
+						"templates": templates
 					}
 				});
 			});

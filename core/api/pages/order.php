@@ -23,6 +23,7 @@
 	}
 	
 	$page = new Page($_POST["parent"]);
+	$cache = ["put" => []];
 	
 	if ($page->UserAccessLevel != "p" || !$page->UserCanModifyChildren) {
 		API::triggerError("You are not allowed to order the requested page's children.", "page:notallowed", "permissions");
@@ -43,5 +44,7 @@
 		}
 		
 		$position--;
+		$cache["put"][] = API::getPagesCacheObject($child);
 	}
 	
+	API::sendResponse(["updated" => true, "cache" => ["pages" => $cache]], "Updated Page Order");

@@ -2,8 +2,8 @@
 	namespace BigTree;
 	
 	/*
-	 	Function: indexed-db/users
-			Returns an array of IndexedDB commands for either caching a new set of users data or updating an existing data set.
+	 	Function: indexed-db/templates
+			Returns an array of IndexedDB commands for either caching a new set of template data or updating an existing data set.
 		
 		Method: GET
 	 
@@ -15,30 +15,27 @@
 	*/
 	
 	$actions = [];
-	
-	// If you're not an administrator, you don't need to know what users are in the system
-	if (!Auth::user()->Level) {
-		API::sendResponse();
-	}
+	$user_level = Auth::user()->Level;
 	
 	if (!defined("API_SINCE") || defined("API_PERMISSIONS_CHANGED")) {
-		$users = SQL::fetchAll("SELECT id, name, email, company, level FROM bigtree_users");
+		$raw = DB::getAll("templates");
+		$templates = [];
 		
-		foreach ($users as $index => $user) {
-			$users[$index] = API::getUsersCacheObject($user);
+		foreach ($raw as $index => $template) {
+			$templates[] = API::getTemplatesCacheObject($template);
 		}
 		
-		$actions["put"] = $users;
+		$actions["put"] = $templates;
 	}
 	
 	// No deletes in this request
 	if (!defined("API_SINCE")) {
-		API::sendResponse(["cache" => ["users" => $actions]]);
+		API::sendResponse(["cache" => ["templates" => $actions]]);
 	}
 	
 	$deleted_records = [];
 	$audit_trail_deletes = SQL::fetchAll("SELECT entry FROM bigtree_audit_trail
-										  WHERE `table` = 'bigtree_users' AND `date` >= ? AND `type` = 'delete'
+										  WHERE `table` = 'config:templates' AND `date` >= ? AND `type` = 'delete'
 										  ORDER BY id DESC", API_SINCE);
 	
 	// Run deletes first, don't want to pass creates/updates for something deleted
@@ -51,7 +48,7 @@
 	if (!defined("API_PERMISSIONS_CHANGED")) {
 		// Creates / updates
 		$audit_trail_updates = SQL::fetchAll("SELECT DISTINCT(entry) FROM bigtree_audit_trail
-											  WHERE `table` = 'bigtree_users' AND `date` >= ?
+											  WHERE `table` = 'config:templates' AND `date` >= ?
 												AND (`type` = 'update' OR `type` = 'add')
 											  ORDER BY id DESC", API_SINCE);
 		
@@ -60,13 +57,13 @@
 				continue;
 			}
 			
-			$user = SQL::fetch("SELECT id, name, email, company, level FROM bigtree_users WHERE id = ?", $item["entry"]);
+			$template = DB::get("templates", $item["entry"]);
 			
-			if ($user) {
-				$actions["put"][$item["entry"]] = API::getUsersCacheObject($user);
+			if ($template) {
+				$actions["put"][$item["entry"]] = API::getTemplatesCacheObject($template);
 			}
 		}
 	}
 	
-	API::sendResponse(["cache" => ["users" => $actions]]);
+	API::sendResponse(["cache" => ["templates" => $actions]]);
 	

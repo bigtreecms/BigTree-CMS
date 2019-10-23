@@ -127,7 +127,7 @@
 					$this->NewWindow = $page["new_window"] ? true : false;
 					$this->Parent = intval($page["parent"]);
 					$this->Path = $page["path"];
-					$this->Position = $page["position"];
+					$this->Position = intval($page["position"]);
 					$this->PublishAt = $page["publish_at"] ?: false;
 					$this->Route = $page["route"];
 					$this->SEOInvisible = $page["seo_invisible"] ? true : false;
