@@ -34,7 +34,7 @@
 			if ($group !== null) {
 				// Passing in just an ID
 				if (!is_array($group)) {
-					$group = DB::get("callouts-groups", $group);
+					$group = DB::get("callout-groups", $group);
 				}
 				
 				// Bad data set
