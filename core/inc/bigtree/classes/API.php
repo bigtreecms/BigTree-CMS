@@ -29,7 +29,7 @@
 			if (!empty($headers["Authorization"])) {
 				[, $base64_data] = explode(" ", $headers["Authorization"]);
 				[$user, $key] = explode(":", base64_decode($base64_data));
-				$key_entry = SQL::fetchSingle("bigtree_users_api_keys", ["user" => $user, "key" => $key]);
+				$key_entry = SQL::fetch("SELECT * FROM bigtree_users_api_keys WHERE user = ? AND key = ?", $user, $key);
 				
 				if ($key_entry) {
 					if ($key_entry["expires"] < time()) {
@@ -85,6 +85,76 @@
 		}
 		
 		/*
+			Function: getExtensionsCacheObject
+				Returns a cache object (in array form) for a given extension array or ID
+			
+			Parameters:
+				extension - Either a extension array or ID
+		
+			Returns:
+				An array of data for storage in the IndexedDB cache
+		*/
+		
+		public static function getExtensionsCacheObject($extension): array
+		{
+			if (!is_array($extension)) {
+				$extension = DB::get("extensions", $extension);
+			}
+			
+			return [
+				"id" => $extension["id"],
+				"name" => $extension["name"]
+			];
+		}
+		
+		/*
+			Function: getFeedsCacheObject
+				Returns a cache object (in array form) for a given feed array or ID
+			
+			Parameters:
+				feed - Either a feed array or ID
+		
+			Returns:
+				An array of data for storage in the IndexedDB cache
+		*/
+		
+		public static function getFeedsCacheObject($feed): array
+		{
+			if (!is_array($feed)) {
+				$feed = DB::get("feeds", $feed);
+			}
+			
+			return [
+				"id" => $feed["id"],
+				"name" => $feed["name"],
+				"url" => WWW_ROOT."feeds/".$feed["route"]."/"
+			];
+		}
+		
+		/*
+			Function: getFieldTypesCacheObject
+				Returns a cache object (in array form) for a given field type array or ID
+			
+			Parameters:
+				field_type - Either a field type array or ID
+		
+			Returns:
+				An array of data for storage in the IndexedDB cache
+		*/
+		
+		public static function getFieldTypesCacheObject($field_type): array
+		{
+			if (!is_array($field_type)) {
+				$field_type = DB::get("field-types", $field_type);
+			}
+			
+			return [
+				"id" => $field_type["id"],
+				"name" => $field_type["name"]
+			];
+		}
+		
+		/*
 			Function: getModulesCacheObject
 				Returns a cache object (in array form) for a given module array or ID
 			
@@ -128,7 +198,7 @@
 			return [
 				"id" => $group->ID,
 				"name" => $group->Name,
-				"position" => intval($module->Position)
+				"position" => intval($group->Position)
 			];
 		}
 		
@@ -300,6 +370,44 @@
 			}
 			
 			return $user;
+		}
+		
+		/*
+			Function: getViewCacheObject
+				Returns a cache object (in array form) for a given view record array
+			
+			Parameters:
+				record - A module view cache record array
+		
+			Returns:
+				An array of data for storage in the IndexedDB cache
+		*/
+		
+		public static function getViewCacheObject($record): ?array
+		{
+			static $views = null;
+			
+			if (is_null($views)) {
+				$modules = DB::getAll("modules");
+
+				foreach ($modules as $module) {
+					foreach ($module["interfaces"] as $interface) {
+						if ($interface["type"] == "view") {
+							$interface["module"] = new Module($module["id"]);
+							$views[$interface["id"]] = $interface;
+						}
+					}
+				}
+			}
+			
+			if ($view = $views[$record["view"]]) {
+				$record["access_level"] = Auth::user()->getCachedAccessLevel($view["module"], $record);
+				$record["id"] = $record["view"]."-".$record["entry"];
+				
+				return $record;
+			} else {
+				return null;
+			}
 		}
 		
 		/*

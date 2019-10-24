@@ -28,17 +28,6 @@
 		}
 	}
 	
-	$get_record = function($item) use ($views) {
-		if ($view = $views[$item["view"]]) {
-			$item["access_level"] = Auth::user()->getCachedAccessLevel($view["module"], $item);
-			$item["id"] = $item["view"]."-".$item["entry"];
-			
-			return $item;
-		} else {
-			return null;
-		}
-	};
-	
 	if (defined("API_SINCE") && empty($_GET["page"])) {
 		foreach ($views as $view) {
 			$audit_trail_deletes = SQL::fetchAll("SELECT entry FROM bigtree_audit_trail
@@ -71,7 +60,11 @@
 									  LIMIT $limit, 1000");
 			
 			foreach ($records as $record) {
-				$actions["put"][] = $get_record($record);
+				$record = API::getViewCacheObject($record);
+				
+				if ($record) {
+					$actions["put"][] = $record;
+				}
 			}
 			
 			if ($current_page != $total_pages) {
@@ -85,7 +78,11 @@
 			$records = SQL::fetchAll("SELECT * FROM bigtree_module_view_cache");
 			
 			foreach ($records as $record) {
-				$actions["put"][] = $get_record($record);
+				$record = API::getViewCacheObject($record);
+				
+				if ($record) {
+					$actions["put"][] = $record;
+				}
 			}
 			
 			API::sendResponse(["cache" => ["view-cache" => $actions]]);
@@ -114,7 +111,11 @@
 									 $view["id"], $item["entry"]);
 				
 				if ($record) {
-					$actions["put"][] = $get_record($record);
+					$record = API::getViewCacheObject($record);
+					
+					if ($record) {
+						$actions["put"][] = $record;
+					}
 				}
 			}
 		}

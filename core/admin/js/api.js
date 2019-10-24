@@ -96,6 +96,27 @@ var BigTreeAPI = (function() {
 			],
 			"key": "id"
 		},
+		"feeds": {
+			"indexes": [
+				"id",
+				"name"
+			],
+			"key": "id"
+		},
+		"field-types": {
+			"indexes": [
+				"id",
+				"name"
+			],
+			"key": "id"
+		},
+		"extensions": {
+			"indexes": [
+				"id",
+				"name"
+			],
+			"key": "id"
+		},
 		"view-cache": {
 			"indexes": [
 				"id",
