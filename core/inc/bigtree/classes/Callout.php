@@ -273,10 +273,12 @@
 			$groups = DB::getAll("callout-groups");
 			
 			foreach ($groups as $group) {
-				foreach ($group["callouts"] as $index => $callout_id) {
-					if ($callout_id == $id) {
-						unset($group["callouts"][$index]);
-						DB::update("callout-groups", $group["id"], ["callouts" => $$group["callouts"]]);
+				if (is_array($group["callouts"])) {
+					foreach ($group["callouts"] as $index => $callout_id) {
+						if ($callout_id == $id) {
+							unset($group["callouts"][$index]);
+							DB::update("callout-groups", $group["id"], ["callouts" => $$group["callouts"]]);
+						}
 					}
 				}
 			}

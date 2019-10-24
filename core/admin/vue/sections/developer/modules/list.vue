@@ -10,6 +10,7 @@
 					{
 						title: this.translate("Delete"),
 						route: "delete",
+						method: this.delete,
 						confirm: this.translate("Are you sure you want to delete this module?\nDeleting a module will also delete its class file and related directory in /custom/admin/modules/.")
 					}
 				];
@@ -65,6 +66,19 @@
 				}
 
 				return tables;
+			}
+		},
+		methods: {
+			delete: async function(id) {
+				await BigTreeAPI.call({
+					endpoint: "modules/delete",
+					method: "POST",
+					parameters: {
+						id: id
+					}
+				});
+
+				this.$asyncComputed.tables.update();
 			}
 		},
 		mounted: function() {

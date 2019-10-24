@@ -88,6 +88,35 @@
 		}
 		
 		/*
+			Function: delete
+				Deletes the module group and makes modules inside of it ungrouped.
+		
+			Returns:
+				true if deleted, false if this module group has already been deleted
+		*/
+		
+		public function delete(): ?bool
+		{
+			if (!DB::exists("module-groups", $this->ID)) {
+				return false;
+			}
+			
+			DB::delete("module-groups", $this->ID);
+			AuditTrail::track("config:module-groups", $this->ID, "delete", "deleted");
+			
+			$modules = DB::getAll("modules");
+			
+			foreach ($modules as $module) {
+				if ($module["group"] == $this->ID) {
+					DB::update("modules", $module["id"], ["group" => null]);
+					AuditTrail::track("config:modules", $module["id"], "update", "removed from deleted group");
+				}
+			}
+			
+			return true;
+		}
+		
+		/*
 			Function: save
 				Saves the current object properties back to the database.
 		*/

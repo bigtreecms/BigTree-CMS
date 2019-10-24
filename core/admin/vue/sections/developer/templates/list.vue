@@ -90,6 +90,12 @@
 					}
 				});
 			});
+
+			BigTreeEventBus.$on("api-data-changed", (store) => {
+				if (store === "templates") {
+					this.$asyncComputed.tables.update();
+				}
+			});
 		}
 	});
 </script>

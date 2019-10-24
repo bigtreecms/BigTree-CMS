@@ -191,6 +191,9 @@
 		/*
 			Function: delete
 				Deletes the template and its related files.
+		
+			Returns:
+				true if deleted, false if the template was already deleted
 		*/
 		
 		public function delete(): ?bool

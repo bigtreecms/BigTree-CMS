@@ -89,6 +89,13 @@ var BigTreeAPI = (function() {
 			],
 			"key": "id"
 		},
+		"callout-groups": {
+			"indexes": [
+				"id",
+				"name"
+			],
+			"key": "id"
+		},
 		"view-cache": {
 			"indexes": [
 				"id",

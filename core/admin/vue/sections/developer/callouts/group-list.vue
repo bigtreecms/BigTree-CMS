@@ -1,13 +1,13 @@
 <script>
-	Vue.component("CalloutList", {
+	Vue.component("CalloutGroupList", {
 		asyncComputed: {
 			async tables() {
-				let callouts = await BigTreeAPI.getStoredData("callouts", "name");
+				let callouts = await BigTreeAPI.getStoredData("callout-groups", "name");
 
 				return [
 					{
-						id: "callouts",
-						actions_base_path: "developer/callouts",
+						id: "callout-groups",
+						actions_base_path: "developer/callouts/groups",
 						actions: [
 							{
 								title: this.translate("Edit"),
@@ -17,13 +17,13 @@
 								title: this.translate("Delete"),
 								route: "delete",
 								method: this.delete,
-								confirm: this.translate("Are you sure you want to delete this callout?")
+								confirm: this.translate("Are you sure you want to delete this callout group?")
 							}
 						],
 						data: callouts,
 						columns: [
 							{
-								title: this.translate("Callout Name"),
+								title: this.translate("Group Name"),
 								key: "name"
 							}
 						]
@@ -34,7 +34,7 @@
 		methods: {
 			delete: async function(id) {
 				await BigTreeAPI.call({
-					endpoint: "callouts/delete",
+					endpoint: "callout-groups/delete",
 					method: "POST",
 					parameters: {
 						id: id
@@ -55,6 +55,6 @@
 </script>
 
 <template>
-	<GroupedTables searchable="true" escaped_data="true" search_placeholder="Search Callouts"
-				   search_label="Search Callouts" :tables="tables"></GroupedTables>
+	<GroupedTables searchable="true" escaped_data="true" search_placeholder="Search Callout Groups"
+				   search_label="Search Callout Groups" :tables="tables"></GroupedTables>
 </template>
