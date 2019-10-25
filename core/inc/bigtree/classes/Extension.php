@@ -14,6 +14,7 @@
 		public $Manifest;
 		public $Name;
 		public $Type;
+		public $UpdatesIgnored;
 		public $Version;
 		
 		public static $CacheInitialized = false;
@@ -48,9 +49,10 @@
 				} else {
 					$this->ID = $extension["id"];
 					$this->LastUpdated = $extension["last_updated"];
-					$this->Manifest = array_filter((array) @json_decode($extension["manifest"], true));
+					$this->Manifest = $extension["manifest"];
 					$this->Name = $extension["name"];
 					$this->Type = $extension["type"];
+					$this->UpdatesIgnored = !empty($extension["updates_ignored"]);
 					$this->Version = $extension["version"];
 				}
 			}
@@ -143,7 +145,10 @@
 				} else {
 					// Remove other JSON config entries
 					foreach ($list as $item) {
+						$type = str_replace("_", "-", $type);
+						
 						DB::delete($type, $item["id"]);
+						AuditTrail::track("config:$type", $item["id"], "delete", "uninstalled source extension");
 					}
 				}
 			}

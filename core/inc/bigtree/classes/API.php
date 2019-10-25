@@ -303,7 +303,7 @@
 			
 			$record = [
 				"id" => $setting["id"],
-				"title" => $setting["name"],
+				"name" => $setting["name"],
 				"locked" => $setting["locked"],
 				"value" => null,
 				"type" => $type ? $type["name"] : $setting["type"],

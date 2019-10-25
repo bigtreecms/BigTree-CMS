@@ -1,38 +1,31 @@
 <script>
-	Vue.component("DeveloperSettingList", {
+	Vue.component("DeveloperExtensionList", {
 		asyncComputed: {
 			async tables() {
-				let data = await BigTreeAPI.getStoredData("settings", "title");
+				let data = await BigTreeAPI.getStoredData("extensions", "name");
 
 				return [
 					{
 						id: "settings",
-						actions_base_path: "developer/settings",
+						actions_base_path: "developer/extensions",
 						actions: [
 							{
 								title: this.translate("Edit"),
 								route: "edit"
 							},
 							{
-								title: this.translate("Delete"),
+								title: this.translate("Uninstall"),
 								route: "delete",
 								method: this.delete,
-								confirm: this.translate("Are you sure you want to delete this setting?")
+								confirm: this.translate("Are you sure you want to uninstall this extension?\n\n" +
+									"Related components, including those that were added to this package will also completely deleted (including related files).")
 							}
 						],
 						data: data,
 						columns: [
 							{
-								title: this.translate("Setting Name"),
+								title: this.translate("Extension Name"),
 								key: "name"
-							},
-							{
-								title: this.translate("ID"),
-								key: "id"
-							},
-							{
-								title: this.translate("Type"),
-								key: "type"
 							}
 						]
 					}
@@ -42,7 +35,7 @@
 		methods: {
 			delete: async function(id) {
 				await BigTreeAPI.call({
-					endpoint: "settings/delete",
+					endpoint: "extensions/delete",
 					method: "POST",
 					parameters: {
 						id: id
@@ -54,7 +47,7 @@
 		},
 		mounted: function() {
 			BigTreeEventBus.$on("api-data-changed", (store) => {
-				if (store === "settings") {
+				if (store === "extensions") {
 					this.$asyncComputed.tables.update();
 				}
 			});
@@ -63,6 +56,6 @@
 </script>
 
 <template>
-	<GroupedTables searchable="true" escaped_data="true" search_placeholder="Search Settings"
-				   search_label="Search Settings" :tables="tables"></GroupedTables>
+	<GroupedTables searchable="true" escaped_data="true" search_placeholder="Search Extensions"
+				   search_label="Search Extensions" :tables="tables"></GroupedTables>
 </template>

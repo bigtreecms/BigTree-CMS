@@ -58,7 +58,7 @@
 								id: "module-group-" + group.id,
 								title: group.name,
 								columns: [
-									{ title: "Module Name", key: "name" }
+									{ title: this.translate("Module Name"), key: "name" }
 								],
 								actions: [],
 								data: group.modules,

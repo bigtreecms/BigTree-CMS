@@ -108,6 +108,7 @@
 				["title" => "View Extensions", "link" => "developer/extensions", "nav_icon" => "list"],
 				["title" => "Build Extension", "link" => "developer/extensions/build", "nav_icon" => "shovel"],
 				["title" => "Install Extension", "link" => "developer/extensions/install", "nav_icon" => "add"],
+				["title" => "Check for Updates", "link" => "developer/extensions/updates"],
 				["title" => "Refresh Hooks Cache", "link" => "developer/extensions/recache-hooks", "nav_icon" => "lightning"]
 			]],
 			["title" => "Configure", "group" => true],
