@@ -140,10 +140,16 @@
 				return false;
 			}
 			
-			// Remove related files
+			// Remove related files (legacy)
 			FileSystem::deleteFile(SERVER_ROOT."custom/admin/form-field-types/draw/$id.php");
 			FileSystem::deleteFile(SERVER_ROOT."custom/admin/form-field-types/process/$id.php");
 			FileSystem::deleteFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$id.php");
+			
+			// Remove related files (current)
+			FileSystem::deleteFile(SERVER_ROOT."custom/admin/field-types/$id/draw.php");
+			FileSystem::deleteFile(SERVER_ROOT."custom/admin/field-types/$id/process.php");
+			FileSystem::deleteFile(SERVER_ROOT."custom/admin/field-types/$id/settings.php");
+			FileSystem::deleteFile(SERVER_ROOT."custom/admin/field-types/$id/");
 			
 			// Clear cache
 			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
