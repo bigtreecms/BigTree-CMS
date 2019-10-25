@@ -555,7 +555,7 @@
 	font-size: 14px;
 	font-weight: 700;
 	padding: 12px 30px 13px;
-	transition: background .25s;
+	transition: background .15s;
 
 	&:hover,
 	&:focus {
@@ -576,8 +576,12 @@
 	border: 1px solid $mist;
 	border-bottom: 0;
 	border-radius: 6px 6px 0 0;
-	display: flex;
+	display: none;
 	padding: 12px 15px;
+
+	@media #{$min_md} {
+		display: flex;
+	}
 }
 
 .field_matrix_heading {
@@ -662,7 +666,9 @@
 	}
 }
 
-.field_matrix_detail {}
+.field_matrix_detail {
+	font-size: 14px;
+}
 
 .field_matrix_form {
 	background: #fff;

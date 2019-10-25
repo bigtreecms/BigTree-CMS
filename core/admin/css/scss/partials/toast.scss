@@ -9,8 +9,8 @@
 	color: #fff;
 	padding: 17px 45px 17px 15px;
 	transition:
-		opacity .25s,
-		visibility .25s;
+		opacity .15s,
+		visibility .15s;
 
 	&.closed {
 		opacity: 0;
@@ -94,7 +94,7 @@
 	border: 0;
 	color: $gray;
 	padding: 6px;
-	transition: color .25s;
+	transition: color .15s;
 
 	&:before {
 		height: 16px;

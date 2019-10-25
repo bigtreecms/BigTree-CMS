@@ -1,0 +1,130 @@
+.upload_browser {
+	background: #fff;
+	border: 2px dashed $mist;
+	padding: 10px;
+
+	@media #{$min_md} {
+		padding: 15px;
+	}
+}
+
+.upload_browser_inner {
+	background: $fade;
+	padding: 10px;
+
+	@media #{$min_md} {
+		padding: 22px 20px 30px;
+	}
+}
+
+.upload_browser_title {
+	font-size: 14px;
+	line-height: (16 / 14);
+	margin: 0 0 15px;
+
+	@media #{$min_md} {
+		margin-bottom: 30px;
+	}
+}
+
+.upload_browser_items {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.upload_browser_item {
+	position: relative;
+
+	background: #fff;
+	border: 1px solid $mist;
+	padding: 10px 34px 10px 10px;
+
+	@media #{$min_md} {
+		padding-right: 80px;
+	}
+
+	&:not(:last-child) {
+		margin-bottom: 10px;
+	}
+}
+
+.upload_browser_group {
+
+	@media #{$min_sm} {
+		align-items: center;
+		display: flex;
+	}
+}
+
+.upload_browser_image {
+
+	@media #{$min_sm} {
+		margin-right: 15px;
+	}
+}
+
+.upload_browser_details {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.upload_browser_icon {
+	color: $gray;
+	margin-right: 2px;
+	transform-origin: left center;
+	transform: scale(.75);
+}
+
+.upload_browser_name {
+	font-size: 13px;
+	line-height: (16 / 13);
+	word-break: break-all;
+}
+
+.upload_browser_error {
+	width: 100%;
+
+	color: $red;
+	font-size: 11px;
+	line-height: (13 / 11);
+	margin-top: 2px;
+}
+
+.upload_browser_status {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+
+	transform: scale(.75);
+
+	@media #{$min_md} {
+		height: 100%;
+		width: 60px;
+
+		top: 0;
+		right: 0;
+
+		align-items: center;
+		display: flex;
+		justify-content: center;
+		transform: none;
+	}
+
+	&_great {
+		color: $green;
+	}
+
+	&_error {
+		color: $red;
+
+		@media #{$min_md} {
+			background: $red;
+			box-shadow: 0 0 0 1px $red;
+			color: #fff;
+		}
+	}
+}
+
+.upload_browser_status_icon {}

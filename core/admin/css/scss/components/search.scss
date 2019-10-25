@@ -1,0 +1,16 @@
+.search_block {
+
+	@media #{$min_md} {
+		display: flex;
+		justify-content: space-between;
+	}
+}
+
+.search_tools {
+	margin-top: 10px;
+
+	@media #{$min_md} {
+		margin-top: 0;
+		margin-right: -6px;
+	}
+}
