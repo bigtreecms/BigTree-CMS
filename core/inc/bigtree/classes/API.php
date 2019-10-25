@@ -124,10 +124,27 @@
 				$feed = DB::get("feeds", $feed);
 			}
 			
+			$type = "";
+			
+			if ($feed["type"] == "custom") {
+				$type = Text::translate("Custom");
+			} elseif ($feed["type"] == "json") {
+				$type = "JSON";
+			} elseif ($feed["type"] == "rss") {
+				$type = "RSS 0.91";
+			} elseif ($feed["type"] == "rss2") {
+				$type = "RSS 2.0";
+			} elseif ($feed["type"] == "atom") {
+				$type = "ATOM";
+			}
+			
+			$url = WWW_ROOT."feeds/".$feed["route"]."/";
+			
 			return [
 				"id" => $feed["id"],
 				"name" => $feed["name"],
-				"url" => WWW_ROOT."feeds/".$feed["route"]."/"
+				"url" => '<a href="'.$url.'" target="_blank">'.$url.'</a>',
+				"type" => $type
 			];
 		}
 		
