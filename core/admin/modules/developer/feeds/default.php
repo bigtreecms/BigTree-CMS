@@ -3,4 +3,4 @@
 	
 	Router::setLayout("new");
 ?>
-<feed-list></feed-list>
+<developer-feed-list></developer-feed-list>

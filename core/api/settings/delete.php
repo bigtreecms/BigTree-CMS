@@ -31,9 +31,5 @@
 	
 	API::sendResponse([
 		"deleted" => true,
-		"cache" => [
-			"settings" => [
-				"delete" => [$id]
-			]
-		]
+		"cache" => ["settings" => ["delete" => [$id]]]
 	], "Deleted Setting");

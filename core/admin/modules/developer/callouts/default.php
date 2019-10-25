@@ -3,4 +3,4 @@
 	
 	Router::setLayout("new");
 ?>
-<callout-list></callout-list>
+<developer-callout-list></developer-callout-list>

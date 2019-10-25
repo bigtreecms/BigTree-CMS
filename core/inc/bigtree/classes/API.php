@@ -299,11 +299,14 @@
 				$access_level = Auth::user()->Level ? "p" : null;
 			}
 			
+			$type = FieldType::referenceByID($setting["type"]);
+			
 			$record = [
 				"id" => $setting["id"],
 				"title" => $setting["name"],
 				"locked" => $setting["locked"],
 				"value" => null,
+				"type" => $type ? $type["name"] : $setting["type"],
 				"access_level" => $access_level
 			];
 			

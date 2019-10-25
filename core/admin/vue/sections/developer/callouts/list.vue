@@ -1,8 +1,8 @@
 <script>
-	Vue.component("CalloutList", {
+	Vue.component("DeveloperCalloutList", {
 		asyncComputed: {
 			async tables() {
-				let callouts = await BigTreeAPI.getStoredData("callouts", "name");
+				let data = await BigTreeAPI.getStoredData("callouts", "name");
 
 				return [
 					{
@@ -20,7 +20,7 @@
 								confirm: this.translate("Are you sure you want to delete this callout?")
 							}
 						],
-						data: callouts,
+						data: data,
 						columns: [
 							{
 								title: this.translate("Callout Name"),

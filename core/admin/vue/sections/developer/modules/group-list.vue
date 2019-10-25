@@ -1,8 +1,8 @@
 <script>
-	Vue.component("ModuleGroupList", {
+	Vue.component("DeveloperModuleGroupList", {
 		asyncComputed: {
 			async tables() {
-				let groups = await BigTreeAPI.getStoredData("module-groups", "position", true);
+				let data = await BigTreeAPI.getStoredData("module-groups", "position", true);
 
 				return [
 					{
@@ -19,7 +19,7 @@
 								confirm: this.translate("Are you sure you want to delete this module module group?\nModules inside this group will become ungrouped.")
 							}
 						],
-						data: groups,
+						data: data,
 						columns: [
 							{
 								title: "Group Name",

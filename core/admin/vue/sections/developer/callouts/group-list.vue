@@ -1,8 +1,8 @@
 <script>
-	Vue.component("CalloutGroupList", {
+	Vue.component("DeveloperCalloutGroupList", {
 		asyncComputed: {
 			async tables() {
-				let callouts = await BigTreeAPI.getStoredData("callout-groups", "name");
+				let data = await BigTreeAPI.getStoredData("callout-groups", "name");
 
 				return [
 					{
@@ -20,7 +20,7 @@
 								confirm: this.translate("Are you sure you want to delete this callout group?")
 							}
 						],
-						data: callouts,
+						data: data,
 						columns: [
 							{
 								title: this.translate("Group Name"),

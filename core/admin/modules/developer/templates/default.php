@@ -3,4 +3,4 @@
 	
 	Router::setLayout("new");
 ?>
-<template-list></template-list>
+<developer-template-list></developer-template-list>

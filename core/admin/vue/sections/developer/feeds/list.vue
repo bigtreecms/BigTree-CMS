@@ -1,5 +1,5 @@
 <script>
-	Vue.component("FeedList", {
+	Vue.component("DeveloperFeedList", {
 		asyncComputed: {
 			async tables() {
 				let callouts = await BigTreeAPI.getStoredData("feeds", "name");

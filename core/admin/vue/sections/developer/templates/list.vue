@@ -1,5 +1,5 @@
 <script>
-	Vue.component("TemplateList", {
+	Vue.component("DeveloperTemplateList", {
 		asyncComputed: {
 			async tables() {
 				let actions = [

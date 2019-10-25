@@ -173,7 +173,7 @@
 				Array of three arrays of field types (template, module, and callout).
 		*/
 		
-		public static function reference(bool $split = false, ?string $use_case_type = null)
+		public static function reference(bool $split = false, ?string $use_case_type = null): array
 		{
 			// Used cached values if available, otherwise query the DB
 			if (file_exists(SERVER_ROOT."cache/bigtree-form-field-types.json")) {
@@ -238,6 +238,32 @@
 			}
 			
 			return $types;
+		}
+		
+		/*
+			Function: referenceByID
+				Checks the field type reference for a given field type and returns cache information on it.
+
+			Parameters:
+				type - Field Type ID
+
+			Returns:
+				Array information or null.
+		*/
+		
+		public static function referenceByID(string $type): ?array
+		{
+			$reference = static::reference();
+			
+			foreach ($reference as $use_case => $options) {
+				foreach ($options as $id => $data) {
+					if ($id == $type) {
+						return $data;
+					}
+				}
+			}
+			
+			return null;
 		}
 		
 		/*

@@ -1,5 +1,5 @@
 <script>
-	Vue.component("ModuleList", {
+	Vue.component("DeveloperModuleList", {
 		asyncComputed: {
 			async tables() {
 				let actions = [

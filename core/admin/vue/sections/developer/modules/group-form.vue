@@ -1,5 +1,5 @@
 <script>
-	Vue.component("ModuleGroupForm", {
+	Vue.component("DeveloperModuleGroupForm", {
 		props: ["id", "name", "action"],
 		data: function() {
 			return {
