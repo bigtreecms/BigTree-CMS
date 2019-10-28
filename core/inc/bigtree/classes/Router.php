@@ -253,21 +253,28 @@
 			
 			// If it's in the old routing table, send them to the new page.
 			if ($route) {
-				$page_id = SQL::fetchSingle("SELECT id FROM bigtree_pages WHERE path = ?", $route);
+				$page_data = SQL::fetch("SELECT id, template FROM bigtree_pages WHERE path = ?", $route);
 				
 				// If this page was moved multiple times, it could have more than one entry in the route history
-				while ($route && !$page_id) {
+				while ($route && !$page_data) {
 					$route = SQL::fetchSingle("SELECT new_route FROM bigtree_route_history WHERE old_route = ?", $route);
 					
 					if ($route) {
-						$page_id = SQL::fetchSingle("SELECT id FROM bigtree_pages WHERE path = ?", $route);
+						$page_data = SQL::fetch("SELECT id, template FROM bigtree_pages WHERE path = ?", $route);
 					}
 				}
 				
-				if ($page_id) {
-					$redirect_url = Link::get($page_id);
+				if ($page_data) {
+					$redirect_url = Link::get($page_data["id"]);
 					
 					if ($additional_commands) {
+						$template = DB::get("templates", $page_data["template"]);
+
+						// Additional commands to a non-routed template is a 404, we shouldn't try to append them
+						if (!$template["routed"]) {
+							return;
+						}
+
 						$redirect_url = rtrim($redirect_url, "/")."/".$additional_commands;
 						
 						if (static::$Config["trailing_slash_behavior"] != "remove") {
@@ -275,7 +282,7 @@
 						}
 					}
 					
-					static::redirect($redirect_url);
+					static::redirect($redirect_url, "301");
 				}
 			}
 		}

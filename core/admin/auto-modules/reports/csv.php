@@ -30,7 +30,7 @@
 		$row = [];
 
 		foreach ($report->Fields as $id => $title) {
-			$row[] = '"'.str_replace('"','""',$result[$id]).'"';
+			$row[] = '"'.str_replace('"', '""', htmlspecialchars_decode($result[$id])).'"';
 		}
 
 		echo implode(",",$row)."\n";

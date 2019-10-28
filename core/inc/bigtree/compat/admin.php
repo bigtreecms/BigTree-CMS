@@ -3806,6 +3806,20 @@
 		}
 
 		/*
+			Function: updateInternalSettingValue
+				Updates the value of an internal BigTree setting.
+
+			Parameters:
+				id - The id of the setting to update.
+				value - A value to set (can be a string or array).
+				encrypted - Whether the value should be encrypted (defaults to false).
+		*/
+
+		public static function updateInternalSettingValue($id, $value, $encrypted = false) {
+			BigTree\Setting::updateValue($id, $value, !empty($encrypted));
+		}
+
+		/*
 			Function: updateModule
 				Updates a module.
 

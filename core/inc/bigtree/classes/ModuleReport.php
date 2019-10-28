@@ -48,8 +48,8 @@
 			$this->Module = !is_null($module) ? $module : new Module($interface["module"]);
 			$this->Interface = new ModuleInterface($interface, $this->Module);
 			
-			$this->Fields = $this->Interface->Settings["fields"];
-			$this->Filters = $this->Interface->Settings["filters"];
+			$this->Fields = is_array($this->Interface->Settings["fields"]) ? $this->Interface->Settings["fields"] : [];
+			$this->Filters = is_array($this->Interface->Settings["filters"]) ? $this->Interface->Settings["filters"] : [];
 			$this->Parser = $this->Interface->Settings["parser"];
 			$this->Table = $interface["table"];
 			$this->Title = $interface["title"];
@@ -261,8 +261,8 @@
 		{
 			$this->Interface->Settings = [
 				"type" => $this->Type,
-				"filters" => $this->Filters,
-				"fields" => $this->Fields,
+				"filters" => array_filter((array) $this->Filters),
+				"fields" => array_filter((array) $this->Fields),
 				"parser" => $this->Parser,
 				"view" => $this->View ?: null
 			];

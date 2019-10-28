@@ -231,7 +231,7 @@
 		
 		/*
 			Function: getBreadcrumb
-				Returns an array of titles, links, and ids for pages above the current page.
+				Returns an array of titles, links, and ids for pages above and including the current page.
 			
 			Parameters:
 				ignore_trunk - Ignores trunk settings when returning the breadcrumb

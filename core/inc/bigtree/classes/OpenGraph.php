@@ -128,6 +128,10 @@
 			}
 			
 			if ($image) {
+				if (substr($image, 0, 2) == "//") {
+					$image = "https:".$image;
+				}
+
 				echo '		<meta property="og:image" content="'.$image.'" />'."\n";
 				
 				// Only get image dimensions if the image is local

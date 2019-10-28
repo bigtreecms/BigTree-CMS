@@ -27,9 +27,13 @@
 		foreach ($fields as $key => $field) {
 			$used_fields[] = $key;
 		}
-		foreach ($filters as $key => $field) {
-			$used_filters[] = $key;
+
+		if (is_array($filters)) {
+			foreach ($filters as $key => $field) {
+				$used_filters[] = $key;
+			}
 		}
+
 		// Figure out the fields we're not using so we can offer them back.
 		$table_description = SQL::describeTable($table);
 		foreach ($table_description["columns"] as $column => $details) {
@@ -83,10 +87,11 @@
 		</div>
 		<ul>
 			<?php
-				foreach ($filters as $key => $filter) {
-					// If this column is no longer in the table, we're going to remove it.
-					if (in_array($key,$table_columns)) {
-						$used[] = $key;
+				if (is_array($filters)) {
+					foreach ($filters as $key => $filter) {
+						// If this column is no longer in the table, we're going to remove it.
+						if (in_array($key,$table_columns)) {
+							$used[] = $key;
 			?>
 			<li>
 				<section class="developer_report_filter_title">
@@ -105,6 +110,7 @@
 				</section>
 			</li>
 			<?php
+						}
 					}
 				}
 			?>
