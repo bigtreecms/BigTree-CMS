@@ -7,6 +7,10 @@
 	 * @global string $name
 	 * @global string $route
 	 */
+
+	if (strpos($_GET["code"], "@phar://") !== false) {
+		die();
+	}
 	
 	$api->oAuthSetToken($_GET["code"]);
 

@@ -402,7 +402,6 @@
 				$path = $route;
 			}
 			
-			// Set the trunk flag back to no if the user isn't a developer
 			$trunk = ($trunk ? "on" : "");
 			
 			// Get seo ratings

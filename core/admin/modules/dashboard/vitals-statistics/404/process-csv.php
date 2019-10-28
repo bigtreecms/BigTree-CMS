@@ -1,5 +1,7 @@
 <?php
 	namespace BigTree;
+
+	ini_set("auto_detect_line_endings", true);
 	
 	if (!file_exists(SERVER_ROOT."cache/404-import.csv")) {
 		Router::redirect(ADMIN_ROOT."dashboard/vitals-statistics/404/upload-csv/");

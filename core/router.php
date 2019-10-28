@@ -1,5 +1,45 @@
 <?php
 	namespace BigTree;
+
+	// Serve Images
+	if (Router::$Path[0] == "images") {
+		$image_path = SITE_ROOT.implode("/", Router::$Path);
+		$last_modified = filemtime($image_path);
+		
+		if (function_exists("apache_request_headers")) {
+			$headers = apache_request_headers();
+			$ims = $headers["If-Modified-Since"];
+		} else {
+			$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
+		}
+		
+		if (!$ims || strtotime($ims) != $last_modified) {
+			header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
+		
+			if (function_exists("mime_content_type")) {
+				$type = mime_content_type($image_path);
+			} else {
+				$extension = pathinfo($image_path, PATHINFO_EXTENSION);
+				
+				if ($extension == "jpg" || $extension == "jpeg") {
+					$type = "image/jpeg";
+				} elseif ($extension == "gif") {
+					$type = "image/gif";
+				} elseif ($extension == "png") {
+					$type = "image/png";
+				} elseif ($extension == "svg") {
+					$type = "image/svg+xml";
+				}
+			}
+			
+			header("Content-type: $type");
+			readfile($image_path);
+			die();
+		} else {
+			header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
+			die();
+		}
+	}
 	
 	// Handle Javascript Minifying and Caching
 	if (Router::$Path[0] == "js") {

@@ -226,10 +226,7 @@
 			if (!file_exists(SERVER_ROOT."templates/callouts/$id.php")) {
 				FileSystem::createFile(SERVER_ROOT."templates/callouts/$id.php", $file_contents);
 			}
-			
-			// Increase the count of the positions on all templates by 1 so that this new template is for sure in last position.
-			DB::incrementPosition("callouts");
-			
+						
 			// Insert the callout
 			DB::insert("callouts", [
 				"id" => Text::htmlEncode($id),

@@ -1,5 +1,7 @@
 <?php
 	namespace BigTree;
+
+	ini_set("auto_detect_line_endings", true);
 	
 	$error = null;
 	$total = $overwrite = $dupes = 0;

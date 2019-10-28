@@ -64,6 +64,7 @@
 			$this->EntryID = isset($field["entry_id"]) ? $field["entry_id"] : null;
 			$this->EntryTable = isset($field["entry_table"]) ? $field["entry_table"] : null;
 			$this->ExistingValue = isset($field["existing_value"]) ? $field["existing_value"] : null;
+			$this->FieldData = $field["file_data"] ?: [];
 			$this->FileInput = $field["file_input"] ?: null;
 			$this->ForcedRecrop = !empty($field["forced_recrop"]) ? true : false;
 			$this->HasValue = !empty($field["value"]) ? true : !empty($field["has_value"]);

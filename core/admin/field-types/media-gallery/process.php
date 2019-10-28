@@ -135,6 +135,8 @@
 				"settings" => $settings,
 				"input" => $input,
 				"file_input" => $this->FileInput[$index]["info"][$resource["id"]]
+				"file_data" => $this->FileInput[$index]["info"],
+				"post_data" => $data["info"],
 			]);
 			$output = $sub_field->process();
 			

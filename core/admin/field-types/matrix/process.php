@@ -54,7 +54,9 @@
 				"key" => $column["id"],
 				"settings" => $settings,
 				"input" => $input,
-				"file_input" => $this->FileInput[$index][$column["id"]]
+				"file_input" => $this->FileInput[$index][$column["id"]],
+				"file_data" => $this->FileInput[$index],
+				"post_data" => $data
 			]);
 			
 			$output = $sub_field->process();

@@ -77,8 +77,13 @@
 
 <script>
 	$("#results_table_<?=$view->ID?> .icon_edit").click(function() {
-		document.location.href = "<?=$view->EditURL?>" + $(this).attr("href").substr(1) + "/";
-		return false;
+		var href =  $(this).attr("href");
+		
+		if (href.substr(0, 1) == "#") {
+			document.location.href = "<?=$view->EditURL?>" + href.substr(1) + "/";
+
+			return false;
+		}
 	});
 			
 	$("#results_table_<?=$view->ID?> .icon_delete").click(function() {
