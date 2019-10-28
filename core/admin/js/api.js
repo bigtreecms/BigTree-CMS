@@ -223,6 +223,10 @@ var BigTreeAPI = (function() {
 				parameters = options.parameters;
 			}
 
+			if (method === "POST") {
+				parameters[CSRFTokenField] = CSRFToken;
+			}
+
 			if (typeof options.context !== "undefined") {
 				context = options.context;
 			}

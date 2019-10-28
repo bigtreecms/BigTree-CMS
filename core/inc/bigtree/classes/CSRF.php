@@ -71,9 +71,12 @@
 		/*
 			Function: verify
 				Verifies the referring host and session token and stops processing if they fail.
+		
+			Parameters:
+				api_call - If set to true, will return a failed API call response on failure
 		*/
 		
-		public static function verify(): void
+		public static function verify(bool $api_call = false): void
 		{
 			static::checkSetup();
 
@@ -82,7 +85,12 @@
 			$token = isset($_POST[static::$Field]) ? $_POST[static::$Field] : $_GET[static::$Field];
 			
 			if (strpos($clean_referer, $clean_domain) !== 0 || $token != static::$Token) {
-				Auth::stop(Text::translate("An error has occurred. Please try your submission again."));
+				
+				if ($api_call) {
+					API::triggerError("Cross site request forgery detected.", "csrf:error");
+				} else {
+					Auth::stop(Text::translate("An error has occurred. Please try your submission again."));
+				}
 			}
 		}
 

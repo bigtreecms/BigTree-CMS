@@ -46,8 +46,8 @@
 		?>
 
 		<script>
-			var CSRFTokenField = "<?=CSRF::$Field?>";
-			var CSRFToken = "<?=CSRF::$Token?>";
+			const CSRFTokenField = "<?=CSRF::$Field?>";
+			const CSRFToken = "<?=CSRF::$Token?>";
 		</script>
 		<script src="<?=ADMIN_ROOT?>js/lib.js?<?=BIGTREE_VERSION?>"></script>
 		<script src="<?=ADMIN_ROOT?>js/tinymce/tinymce.min.js?<?=BIGTREE_VERSION?>"></script>

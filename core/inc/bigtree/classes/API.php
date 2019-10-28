@@ -15,6 +15,8 @@
 		public static $Method;
 		/** @var User $User */
 		public static $User;
+		
+		private static $UsingKey = false;
 	
 		/*
 			Function: authenticate
@@ -37,6 +39,7 @@
 					} else {
 						static::$User = new User($user);
 						static::$AuthenticatedUser = Auth::user(static::$User);
+						static::$UsingKey = true;
 						
 						// Set Auth state to be this user
 						Auth::$ID = static::$AuthenticatedUser->ID;
@@ -463,6 +466,10 @@
 		{
 			if (strtolower($_SERVER["REQUEST_METHOD"]) !== strtolower($method)) {
 				static::triggerError("This API endpoint must be called via $method.", "invalid:method", "method");
+			}
+			
+			if (strtolower($method) === "post" && !static::$UsingKey) {
+				CSRF::verify(true);
 			}
 			
 			static::$Method = strtoupper($method);
