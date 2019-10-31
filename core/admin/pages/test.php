@@ -17,7 +17,36 @@
 	event: 'publish',
 	primary: true
 }]">
-	<div class="blocks_wrapper">
+	<div class="fields_wrapper theme_grid">
+		<field-type-matrix title="Test Matrix Field" subtitle="A subtitle" limit="3" :value='[
+			{"alt": "Test alt text", "description": "<p>This is a description.</p>", "__internal-title": "Test alt text", "__internal-subtitle": "This is a description." },
+			{"alt": "Second entry alt text", "description": "<p>This is a second description.</p>", "__internal-title": "Second entry alt text", "__internal-subtitle": "This is a second description." },
+		]' :columns='[
+			{
+                            "type": "text",
+                            "id": "alt",
+                            "title": "Alt description",
+                            "subtitle": "",
+                            "settings": ""
+                        },
+                        {
+                            "type": "html",
+                            "id": "description",
+                            "title": "Description",
+                            "subtitle": "",
+                            "display_title": "on",
+                            "settings": "{\"simple\":\"on\",\"simple_by_permission\":\"0\"}"
+                        }
+		]'>
+			<template v-slot:'test'>
+				<field-type-text>
+			</template>
+			
+			in theory the form could loop through drawing <template v-slot> for all the existing entries and then a <template v-slot-empty> for
+			the empty one to be copied, but would Javascript hooks be preserved? Probably not. Maybe we have an AJAX request for adding another option?
+			We need to test this with custom fields that aren't vue based.
+			
+		</field-type-matrix>
 	<!--
 	<field-type-address title="Address" name="address" value="{}" required="true"></field-type-address>
 	<field-type-file-upload title="File Upload" name="file" required="true"></field-type-file-upload>
