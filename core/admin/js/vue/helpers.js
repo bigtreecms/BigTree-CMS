@@ -58,6 +58,18 @@ Vue.mixin({
 			BigTree.request_partial(link.attr("href"));
 		},
 
+		object_length: function(obj) {
+			let x = 0;
+
+			for (let key in obj) {
+				if (obj.hasOwnProperty(key)) {
+					x++;
+				}
+			}
+
+			return x;
+		},
+
 		translate: function(string, tokens) {
 			let translated_string = string;
 

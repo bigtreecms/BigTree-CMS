@@ -188,13 +188,25 @@
 		public static function getModulesCacheObject($module): array
 		{
 			$module = new Module($module);
+			$actions = [];
+			
+			foreach ($module->Actions as $action) {
+				$actions[] = [
+					"id" => $action->ID,
+					"in_nav" => $action->InNav,
+					"name" => $action->Name,
+					"interface" => $action->Interface,
+					"position" => intval($action->Position),
+					"route" => $action->Route
+				];
+			}
 			
 			return [
 				"id" => $module->ID,
 				"group" => $module->Group,
 				"name" => $module->Name,
 				"position" => intval($module->Position),
-				"actions" => $module->Actions,
+				"actions" => $actions,
 				"route" => $module->Route,
 				"access_level" => $module->UserAccessLevel
 			];

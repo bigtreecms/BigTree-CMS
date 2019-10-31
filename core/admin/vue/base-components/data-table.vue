@@ -321,7 +321,6 @@
 							<action-menu v-else-if="typeof actions === 'object' && actions.length"
 										 :base_path="actions_base_path" :actions="actions"
 										 :id="row['id']" :escaped_actions="escaped_data"></action-menu>
-							<span v-else>{{ typeof row['actions'] }}&nbsp;</span>
 						</div>
 					</td>
 				</tr>

@@ -1,7 +1,4 @@
-<?php /** @noinspection Annotator */
-	/** @noinspection ALL */
-	/** @noinspection Annotator */
-	
+<?php
 	/*
 		Class: BigTree\Auth
 			Provides an interface for user authentication.
