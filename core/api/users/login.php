@@ -14,7 +14,7 @@
 			stay_logged_in - Stay Logged In (optional)
 	*/
 	
-	API::requireMethod("POST");
+	API::requireMethod("POST", false);
 	API::requireParameters([
 		"email" => "string",
 		"password" => "string"

@@ -11,7 +11,7 @@
 	 		session - Session cache ID
 	*/
 	
-	API::requireMethod("POST");
+	API::requireMethod("POST", false);
 	API::requireParameters(["session" => "string"]);
 	
 	$login_session = Cache::get("org.bigtreecms.login-session", $_POST["session"]);

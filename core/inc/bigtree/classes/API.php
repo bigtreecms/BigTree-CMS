@@ -460,15 +460,16 @@
 			
 			Parameters:
 				method - Required HTTP Method
+				csrf_verified - Whether to verify CSRF token on POST calls (defaults to true)
 		*/
 		
-		public static function requireMethod(string $method): void
+		public static function requireMethod(string $method, bool $csrf_verified = true): void
 		{
 			if (strtolower($_SERVER["REQUEST_METHOD"]) !== strtolower($method)) {
 				static::triggerError("This API endpoint must be called via $method.", "invalid:method", "method");
 			}
 			
-			if (strtolower($method) === "post" && !static::$UsingKey) {
+			if ($csrf_verified && strtolower($method) === "post" && !static::$UsingKey) {
 				CSRF::verify(true);
 			}
 			

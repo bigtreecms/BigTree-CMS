@@ -11,7 +11,7 @@
 	 		email - Email Address
 	*/
 	
-	API::requireMethod("POST");
+	API::requireMethod("POST", false);
 	API::requireParameters(["email" => "string"]);
 	
 	$user = User::getByEmail($_POST["email"]);

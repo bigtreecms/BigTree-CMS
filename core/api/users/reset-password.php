@@ -12,7 +12,7 @@
 			password - New Password
 	*/
 	
-	API::requireMethod("POST");
+	API::requireMethod("POST", false);
 	API::requireParameters([
 		"hash" => "string",
 		"password" => "string"
