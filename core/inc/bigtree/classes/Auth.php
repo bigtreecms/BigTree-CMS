@@ -81,10 +81,10 @@
 				}
 				
 				// Handle saved cookies
-			} elseif (isset($_COOKIE[static::$Namespace]["email"])) {
+			} elseif (isset($_COOKIE[static::$Namespace]["login"])) {
 				// Get chain and session broken out
-				list($session, $chain) = Cookie::get(static::$Namespace.'["login"]');
-				$email = Cookie::get(static::$Namespace.'["email"]');
+				list($session, $chain) = Cookie::get(static::$Namespace.'[login]');
+				$email = Cookie::get(static::$Namespace.'[email]');
 				
 				// See if this is the current chain and session
 				$chain_entry = SQL::fetch("SELECT * FROM bigtree_user_sessions WHERE email = ? AND chain = ?",
