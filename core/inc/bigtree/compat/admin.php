@@ -3594,8 +3594,12 @@
 			if ($this->Level < 2) {
 				unset($changes["trunk"]);
 			}
+			
+			$tags = array_unique($changes["_tags"]) ?: [];
+			$open_graph = BigTree\OpenGraph::handleData("bigtree_pages", null, $changes["_open_graph_"],
+														$_FILES["_open_graph_"], true);
 
-			BigTree\Page::createChangeRequest($page, $changes);
+			BigTree\Page::createChangeRequest($page, $changes, $tags, $open_graph);
 		}
 
 		/*

@@ -95,9 +95,7 @@
 			}
 			
 			// If this was a user uploaded file, move it to a temporary directory for manipulation and out of /tmp
-			if ((sys_get_temp_dir() && strpos($file, sys_get_temp_dir()) === 0) ||
-				(ini_get("upload_tmp_dir") && strpos($file, ini_get("upload_tmp_dir")) === 0))
-			{
+			if (is_uploaded_file($file)) {
 				$temp = $this->getTempFileName();
 				move_uploaded_file($file, $temp);
 				$this->File = $temp;
