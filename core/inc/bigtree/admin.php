@@ -8427,7 +8427,7 @@
 			}
 
 			// Handle open graph
-			$open_graph = BigTree::json($this->handleOpenGraph("bigtree_pages", null, $changes["_open_graph_"], true));
+			$open_graph = BigTree::json($this->handleOpenGraph("bigtree_pages", null, $changes["_open_graph_"], true), true);
 			unset($changes["_open_graph_"]);
 
 			// Convert to an IPL
