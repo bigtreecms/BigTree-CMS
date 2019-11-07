@@ -103,7 +103,7 @@
 					
 					<div class="page_header_body">
 						<page-title :title="page_title" :url="page_public_url"></page-title>
-						<page-tools v-if="tools.length" :links="tools"></page-tools>
+						<page-tools :tools="tools"></page-tools>
 					</div>
 					
 					<navigation-sub v-if="sub_nav.length" :links="sub_nav"></navigation-sub>
