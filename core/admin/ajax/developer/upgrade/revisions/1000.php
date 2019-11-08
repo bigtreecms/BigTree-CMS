@@ -181,7 +181,14 @@
 			}
 		}
 		
-		DB::update("modules", $module["id"], ["interfaces" => $interfaces, "actions" => $actions]);
+		DB::update("modules", $module["id"], [
+			"interfaces" => $interfaces,
+			"actions" => $actions,
+			"views" => null,
+			"forms" => null,
+			"reports" => null,
+			"embeddable-forms" => null
+		]);
 	}
 	
 	// Convert template/callout resources to fields
