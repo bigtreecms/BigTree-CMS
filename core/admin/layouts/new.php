@@ -92,7 +92,7 @@
 				</div>
 			</header>
 	
-			<main class="main" id="main_content" tabindex="0">
+			<main class="main" id="main_content">
 				<announcement :context="announcement.context" :message="announcement.message"
 							  :visible="announcement.visible"></announcement>
 

@@ -22,7 +22,7 @@ var BigTreeAPI = (function() {
 		"settings": {
 			"indexes": [
 				"id",
-				"title",
+				"name",
 				"access_level"
 			],
 			"key": "id"
