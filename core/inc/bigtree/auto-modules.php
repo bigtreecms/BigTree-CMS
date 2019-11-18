@@ -231,7 +231,7 @@
 			}
 			
 			// Find out what module we're using so we can get the gbp_field
-			BigTreeJSONDB::get("modules", self::getModuleForView($view));
+			$module = BigTreeJSONDB::get("modules", self::getModuleForView($view));
 			$view["gbp"] = $module["gbp"];
 			
 			// Setup information on our parsers and populated lists.
