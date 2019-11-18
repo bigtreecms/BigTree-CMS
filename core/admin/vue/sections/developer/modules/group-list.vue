@@ -75,6 +75,6 @@
 </script>
 
 <template>
-	<GroupedTables searchable="true" escaped_data="true" search_placeholder="Search Module Groups"
-				   search_label="Search Module Groups" :tables="tables"></GroupedTables>
+	<grouped-tables searchable="true" escaped_data="true" search_placeholder="Search Module Groups"
+				   search_label="Search Module Groups" :tables="tables"></grouped-tables>
 </template>

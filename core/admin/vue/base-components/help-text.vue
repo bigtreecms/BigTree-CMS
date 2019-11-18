@@ -86,15 +86,14 @@
 </script>
 
 <template>
-	<div class="component layout_expanded" v-if="!hidden">
-		<div class="component_body">
-			<div class="alert js-focusable" tabindex="0">
-				<div class="alert_description">{{ text }}</div>
-				<button class="alert_close" v-on:click="hide">
-					<icon wrapper="alert_close" icon="clear"></icon>
-					<span class="alert_close_text">{{ translate('Hide Help Text') }}</span>
-				</button>
-			</div>
+	<div class="component_body" v-if="!hidden">
+		<div class="alert js-focusable" tabindex="0">
+			<div class="alert_description">{{ text }}</div>
+
+			<button class="alert_close" v-on:click="hide">
+				<icon wrapper="alert_close" icon="clear"></icon>
+				<span class="alert_close_text">{{ translate('Hide Help Text') }}</span>
+			</button>
 		</div>
 	</div>
 </template>

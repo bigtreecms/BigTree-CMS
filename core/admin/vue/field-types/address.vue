@@ -1,6 +1,6 @@
 <script>
 	Vue.component("FieldTypeAddress", {
-		extends: FieldType,
+		extends: BigTreeFieldType,
 		data: function() {
 			return {
 				city: (typeof this.value == "object") ? this.value.city : "",

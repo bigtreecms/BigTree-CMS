@@ -1,6 +1,6 @@
 <script>
 	Vue.component("FieldTypeList", {
-		extends: FieldType,
+		extends: BigTreeFieldType,
 		props: ["options"]
 	});
 </script>

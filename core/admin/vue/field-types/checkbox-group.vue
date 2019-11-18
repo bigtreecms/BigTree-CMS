@@ -1,6 +1,6 @@
 <script>
 	Vue.component("FieldTypeCheckboxGroup", {
-		extends: FieldType,
+		extends: BigTreeFieldType,
 		props: ["options"],
 		data: function() {
 			return {

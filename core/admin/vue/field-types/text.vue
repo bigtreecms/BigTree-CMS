@@ -1,6 +1,6 @@
 <script>
 	Vue.component("FieldTypeText", {
-		extends: FieldType,
+		extends: BigTreeFieldType,
 		props: [
 			"placeholder",
 			"maxlength",

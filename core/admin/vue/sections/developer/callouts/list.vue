@@ -55,6 +55,6 @@
 </script>
 
 <template>
-	<GroupedTables searchable="true" escaped_data="true" search_placeholder="Search Callouts"
-				   search_label="Search Callouts" :tables="tables"></GroupedTables>
+	<grouped-tables searchable="true" escaped_data="true" search_placeholder="Search Callouts"
+				   search_label="Search Callouts" :tables="tables"></grouped-tables>
 </template>

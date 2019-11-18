@@ -1,18 +1,10 @@
 <?php
 	namespace BigTree;
 	
+	Router::setLayout("new");
+	
 	/** @var ModuleView $view */
 	$view = Router::$ModuleInterface->Module->Views[Router::$ModuleInterface->ID];
-	$view->calculateFieldWidths();
-
-	if ($view->Description) {
-?>
-<section class="inset_block js-view-description"<?php if ($_COOKIE["bigtree_admin"]["ignore_view_description"][$view->ID]) { ?> style="display: none;"<?php } ?> data-id="<?=$view->ID?>">
-	<span class="hide js-view-description-hide">x</span>
-	<p><?=$view->Description?></p>
-</section>
-<?php
-	}
 	
 	// Extension view
 	if (strpos($view->Type,"*") !== false) {
@@ -21,4 +13,3 @@
 	} else {
 		include Router::getIncludePath("admin/auto-modules/views/".$view->Type.".php");
 	}
-?>

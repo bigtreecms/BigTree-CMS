@@ -1,6 +1,6 @@
 <script>
 	Vue.component("FieldTypeFileUpload", {
-		extends: FieldType,
+		extends: BigTreeFieldType,
 		props: ["placeholder"],
 		computed: {
 			current_file_name: function() {

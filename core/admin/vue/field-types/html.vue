@@ -1,6 +1,6 @@
 <script>
 	Vue.component("FieldTypeHtml", {
-		extends: FieldType,
+		extends: BigTreeFieldType,
 		props: ["type"],
 		computed: {
 			init: function() {

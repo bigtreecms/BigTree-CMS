@@ -1,6 +1,6 @@
 <script>
 	Vue.component("FieldTypeHiddenValue", {
-		extends: FieldType
+		extends: BigTreeFieldType
 	});
 </script>
 

@@ -1,6 +1,6 @@
 <script>
 	Vue.component("FieldTypePhoneNumber", {
-		extends: FieldType,
+		extends: BigTreeFieldType,
 		data: function() {
 			return {
 				area_code: (typeof this.value === "object") ? this.value.phone_1 : "",

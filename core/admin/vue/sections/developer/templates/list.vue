@@ -101,6 +101,6 @@
 </script>
 
 <template>
-	<GroupedTables collapsible="true" searchable="true" escaped_data="true" search_placeholder="Search Templates"
-				   search_label="Search Templates" :tables="tables"></GroupedTables>
+	<grouped-tables collapsible="true" searchable="true" escaped_data="true" search_placeholder="Search Templates"
+				   search_label="Search Templates" :tables="tables"></grouped-tables>
 </template>

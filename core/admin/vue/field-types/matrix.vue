@@ -1,6 +1,6 @@
 <script>
 	Vue.component("FieldTypeMatrix", {
-		extends: FieldType,
+		extends: BigTreeFieldType,
 		props: ["limit", "columns"],
 		data: function() {
 			return {

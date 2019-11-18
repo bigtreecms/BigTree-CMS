@@ -1,6 +1,7 @@
 <script>
 	Vue.component("DataTable", {
 		props: [
+			"action_calculator",
 			"actions",
 			"actions_base_path",
 			"clickable_rows",
@@ -15,7 +16,8 @@
 			"search_placeholder",
 			"sortable",
 			"table_key",
-			"translatable"
+			"translatable",
+			"view_cache_sort"
 		],
 		
 		data: function() {
@@ -46,9 +48,9 @@
 					return [];
 				}
 
-				if (this.searchable && this.query) {
-					data = [];
+				if (this.searchable && this.query !== "") {
 					let query = this.query.toLowerCase();
+					data = [];
 
 					for (let x = 0; x < this.mutable_data.length; x++) {
 						let entry = this.mutable_data[x];
@@ -85,7 +87,7 @@
 							}
 						}
 						
-						// Wasn't specified, default to the first column
+						// Wasn't specified, default to the first column OR sort_column if it exists
 						if (!this.sort_column) {
 							this.sort_column = this.columns[0].key;
 							this.sort_direction = "ASC";
@@ -115,17 +117,27 @@
 				get() {
 					const data = this.filtered_data;
 					const start = (this.current_page - 1) * parseInt(this.per_page);
+					let paged_data;
 
 					// Async tables may not yet have data
 					if (!data || !data.length) {
 						return [];
 					}
 
-					if (!this.per_page) {
-						return data;
+					if (this.per_page) {
+						paged_data = data.slice(start, start + parseInt(this.per_page));
+					} else {
+						paged_data = data;
 					}
 
-					return data.slice(start, start + parseInt(this.per_page));
+					// Allow sub-views to determine what actions each row should get
+					if (this.action_calculator) {
+						for (let i = 0; i < paged_data.length; i++) {
+							paged_data[i].actions = this.action_calculator(paged_data[i]);
+						}
+					}
+					
+					return paged_data;
 				},
 				set(value) {
 					this.mutable_data = value;
@@ -235,6 +247,28 @@
 		mounted: function() {
 			// Give this table the auto-generated Vue unique ID
 			this.id = this._uid;
+			
+			// Figure out which column is the default sort
+			for (let i = 0; i < this.columns.length; i++) {
+				let column = this.columns[i];
+				
+				if (column.sort_default) {
+					if (typeof column.sort_default_direction !== "undefined") {
+						this.sort_direction = column.sort_default_direction;
+					} else {
+						this.sort_direction = "ASC";
+					}
+					
+					this.sort_column = column.key;
+				}
+			}
+			
+			// View cache tables might be using a hidden field for sorting
+			if (!this.sort_column && this.view_cache_sort) {
+				this.sort_column = "sort_field";
+				this.sort_direction = this.view_cache_sort;
+			}
+			
 			this.equalize_actions();
 			this.mutable_data = this.data;
 		},

@@ -76,6 +76,6 @@
 </script>
 
 <template>
-	<GroupedTables collapsible="true" searchable="true" escaped_data="true" search_placeholder="Search Developer Tools"
-				   search_label="Search Developer Tools" :tables="tables"></GroupedTables>
+	<grouped-tables collapsible="true" searchable="true" escaped_data="true" search_placeholder="Search Developer Tools"
+				   search_label="Search Developer Tools" :tables="tables"></grouped-tables>
 </template>

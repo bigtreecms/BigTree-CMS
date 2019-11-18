@@ -30,6 +30,8 @@
 		public $RelatedForm;
 		public $Root;
 		public $Settings;
+		public $SortColumn = null;
+		public $SortDirection = null;
 		public $Table;
 		public $Title;
 		public $Type;
@@ -96,6 +98,13 @@
 			$this->PreviewURL = $this->Interface->Settings["preview_url"];
 			$this->RelatedForm = $this->Interface->Settings["related_form"];
 			$this->Settings = $this->Interface->Settings["settings"];
+			
+			if (!empty($this->Settings["sort"])) {
+				list($sort_column, $sort_direction) = explode(" ", str_replace("`", "", $this->Settings["sort"]));
+				$this->SortColumn = $sort_column;
+				$this->SortDirection = $sort_direction;
+			}
+			
 			$this->Table = $interface["table"];
 			$this->Title = $interface["title"];
 			$this->Type = $this->Interface->Settings["type"];

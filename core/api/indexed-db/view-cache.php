@@ -24,6 +24,10 @@
 			if ($interface["type"] == "view") {
 				$interface["module"] = new Module($module["id"]);
 				$views[$interface["id"]] = $interface;
+				
+				// Recache if needed
+				$view_obj = new ModuleView($interface, $interface["module"]);
+				$view_obj->cacheAllData();
 			}
 		}
 	}

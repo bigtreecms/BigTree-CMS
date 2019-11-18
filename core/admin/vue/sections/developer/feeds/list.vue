@@ -63,6 +63,6 @@
 </script>
 
 <template>
-	<GroupedTables searchable="true" escaped_data="true" search_placeholder="Search Feeds"
-				   search_label="Search Feeds" :tables="tables"></GroupedTables>
+	<grouped-tables searchable="true" escaped_data="true" search_placeholder="Search Feeds"
+				   search_label="Search Feeds" :tables="tables"></grouped-tables>
 </template>

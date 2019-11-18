@@ -83,6 +83,6 @@
 </script>
 
 <template>
-	<GroupedTables collapsible="true" searchable="true" escaped_data="true" search_placeholder="Search Modules"
-					search_label="Search Modules" :tables="tables"></GroupedTables>
+	<grouped-tables collapsible="true" searchable="true" escaped_data="true" search_placeholder="Search Modules"
+					search_label="Search Modules" :tables="tables"></grouped-tables>
 </template>

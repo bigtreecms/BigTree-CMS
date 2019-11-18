@@ -55,6 +55,6 @@
 </script>
 
 <template>
-	<GroupedTables searchable="true" escaped_data="true" search_placeholder="Search Field Types"
-				   search_label="Search Field Types" :tables="tables"></GroupedTables>
+	<grouped-tables searchable="true" escaped_data="true" search_placeholder="Search Field Types"
+				   search_label="Search Field Types" :tables="tables"></grouped-tables>
 </template>

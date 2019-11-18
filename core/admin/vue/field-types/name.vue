@@ -1,6 +1,6 @@
 <script>
 	Vue.component("FieldTypeName", {
-		extends: FieldType,
+		extends: BigTreeFieldType,
 		data: function() {
 			return {
 				first: (typeof this.value === "object") ? this.value.first : "",

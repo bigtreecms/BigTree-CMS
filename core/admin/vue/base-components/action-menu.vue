@@ -26,7 +26,7 @@
 				}
 				
 				if (typeof this.actions[index].method !== "undefined") {
-					this.actions[index].method(this.id);
+					this.actions[index].method(this.id, index);
 				} else {
 					BigTree.request_partial(this.compute_action_url(this.actions[index]));
 				}
