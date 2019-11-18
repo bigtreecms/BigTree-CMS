@@ -437,7 +437,17 @@
 			
 			if ($view = $views[$record["view"]]) {
 				$record["access_level"] = Auth::user()->getCachedAccessLevel($view["module"], $record);
-				$record["id"] = $record["view"]."-".$record["entry"];
+				$record["uuid"] = $record["view"]."-".$record["id"];
+				
+				if ($record["status"] == "c") {
+					$record["status"] = "changed";
+				} elseif ($record["status"] == "p") {
+					$record["status"] = "pending";
+				} elseif ($record["status"] == "i") {
+					$record["status"] = "inactive";
+				} else {
+					$record["status"] = "published";
+				}
 				
 				return $record;
 			} else {

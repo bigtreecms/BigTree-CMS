@@ -119,6 +119,7 @@ var BigTreeAPI = (function() {
 		},
 		"view-cache": {
 			"indexes": [
+				"uuid",
 				"id",
 				"view",
 				"entry",
@@ -128,7 +129,7 @@ var BigTreeAPI = (function() {
 				"position",
 				"access_level"
 			],
-			"key": "id"
+			"key": "uuid"
 		}
 	};
 	const schema_version = 1;
