@@ -49,7 +49,10 @@
 			
 			// Get all pages
 			$pages = SQL::fetchAll("SELECT id, template, external, path FROM bigtree_pages 
-									WHERE archived = '' AND (publish_at >= NOW() OR publish_at IS NULL) ORDER BY id ASC");
+									WHERE archived = ''
+									  AND seo_invisible = ''
+									  AND (publish_at >= NOW() OR publish_at IS NULL)
+									ORDER BY id ASC");
 			
 			foreach ($pages as $page) {
 				if ($page["template"] || strpos($page["external"], DOMAIN)) {
