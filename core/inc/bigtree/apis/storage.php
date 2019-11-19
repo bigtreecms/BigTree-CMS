@@ -8,7 +8,11 @@
 
 		public $AutoJPEG = false;
 		public $DisabledFileError = false;
-		public $DisabledExtensionRegEx = '/\\.(exe|com|bat|php|rb|py|cgi|pl|sh|asp|aspx|phtml|pht|htaccess)/i';
+		public $DisabledFileExtensions = [
+			"exe", "com", "bat", "rb", "py", "cgi", "pl",
+			"sh", "asp", "aspx", "htaccess", "phar",
+			"php", "php3", "php4", "php5", "phtml"
+		];
 		public $Service = "";
 		public $Cloud = false;
 		public $Settings;
@@ -171,9 +175,10 @@
 		public function replace($local_file, $file_name, $relative_path, $remove_original = true, $force_local = false) {
 			// Make sure there are no path exploits
 			$file_name = BigTree::cleanFile($file_name);
+			$extension = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
 
 			// If the file name ends in a disabled extension, fail.
-			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
+			if (in_array($extension, $this->DisabledFileExtensions)) {
 				$this->DisabledFileError = true;
 				unlink($local_file);
 
@@ -249,9 +254,10 @@
 		public function store($local_file, $file_name, $relative_path, $remove_original = true, $prefixes = [], $sanitize_file_name = true) {
 			// Make sure there are no path exploits
 			$file_name = BigTree::cleanFile($file_name);
-			
+			$extension = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+
 			// If the file name ends in a disabled extension, fail.
-			if (preg_match($this->DisabledExtensionRegEx, $file_name)) {
+			if (in_array($extension, $this->DisabledFileExtensions)) {
 				$this->DisabledFileError = true;
 				unlink($local_file);
 
