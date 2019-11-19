@@ -30,7 +30,11 @@
 
 		Dropzone.options.fileManagerDropzone = {
 			accept: function(file, done) {
-				if (file.name.match(<?=$storage->DisabledExtensionRegEx?>)) {
+				var parts = file.name.split(".");
+				var extension = parts[parts.length - 1].toLowerCase();
+				var disallowed = <?=json_encode($storage->DisabledFileExtensions)?>;
+
+				if (disallowed.indexOf(extension) > -1) {
 					done("<?=Text::translate("This file type is disabled for security reasons.", true)?>");
 				} else if (file.type.indexOf("image") !== -1) {
 					done("<?=Text::translate("This form does not accept images.", true)?>");
