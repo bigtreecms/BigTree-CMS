@@ -205,8 +205,16 @@
 				if (this.query_timer) {
 					clearTimeout(this.query_timer);
 				}
+
+				let timeout = Math.ceil(this.mutable_data.length / 3);
+
+				if (timeout > 500) {
+					timeout = 500;
+				} else if (timeout < 50) {
+					timeout = 50;
+				}
 				
-				this.query_timer = setTimeout(this.query_parse, 500);
+				this.query_timer = setTimeout(this.query_parse, timeout);
 			},
 			
 			query_parse: function() {

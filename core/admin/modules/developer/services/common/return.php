@@ -8,7 +8,7 @@
 	 * @global string $route
 	 */
 
-	if (strpos($_GET["code"], "@phar://") !== false) {
+	if (stripos($_GET["code"], "@phar://") !== false) {
 		die();
 	}
 	
