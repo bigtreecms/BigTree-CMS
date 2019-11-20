@@ -221,7 +221,23 @@ const BigTreeModuleView = Vue.extend({
 
 	asyncComputed: {
 		async data() {
-			return await BigTreeAPI.getStoredDataMatching("view-cache", "view", this.id);
+			let data = await BigTreeAPI.getStoredDataMatching("view-cache", "view", this.id);
+			console.log(data);
+
+			if (this.draggable) {
+				data.sort((a, b) => {
+					const a_val = parseInt(a.position);
+					const b_val = parseInt(b.position);
+
+					if (a_val === b_val) {
+						return 0;
+					}
+
+					return (a_val > b_val) ? -1 : 1;
+				});
+			}
+
+			return data;
 		}
 	},
 
@@ -241,7 +257,7 @@ const BigTreeModuleView = Vue.extend({
 			}
 
 			let response = await BigTreeAPI.call({
-				endpoint: "modules/get-action-url",
+				endpoint: "modules/views/get-action-url",
 				method: "GET",
 				parameters: {
 					module: this.module,

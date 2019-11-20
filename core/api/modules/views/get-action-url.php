@@ -14,29 +14,19 @@
 			action - The index of the action being taken (required)
 	*/
 	
+	/**
+	 * @global Module $module
+	 * @global ModuleView $view
+	 */
+	
 	API::requireMethod("GET");
+	
+	include "_common.php";
+	
 	API::requireParameters([
-		"module" => "string",
-		"view" => "string",
 		"entry" => "string_int",
 		"action" => "string_int"
 	]);
-	
-	$module = new Module($_GET["module"], function() {
-		API::triggerError("Module was not found.", "module:missing", "missing");
-	});
-	
-	$view = null;
-	
-	foreach ($module->Views as $item) {
-		if ($item->ID == $_GET["view"]) {
-			$view = $item;
-		}
-	}
-	
-	if (is_null($view)) {
-		API::triggerError("View was not found.", "module-view:missing", "missing");
-	}
 	
 	if (!isset($view->Actions[$_GET["action"]])) {
 		API::triggerError("Action was not found.", "module-view-action:missing", "missing");
