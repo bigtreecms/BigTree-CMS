@@ -22,6 +22,8 @@
 					this.can_publish_current_page = true;
 				}
 
+				console.log(page.access_level);
+
 				if (page.path) {
 					BigTree.page_public_url = WWW_ROOT + page.path + "/";
 				} else {
@@ -393,30 +395,36 @@
 
 		<div v-else>
 			<toggle-block title="Visible in Navigation" :id="'pages-visible-' + page">
-				<data-table :data="visible_pages" :draggable="draggable" v-on:row-click="navigate" clickable_rows="true"
-							escaped_data="true" data_contains_actions="true" actions_base_path="pages"
-							:columns="[
+				<table-draggable v-if="draggable " v-on:row-click="navigate" clickable_rows="true" no_search="true"
+								 :data="visible_pages" escaped_data="true" data_contains_actions="true"
+								 actions_base_path="pages" :columns="[
 					{ 'title': 'Title', 'key': 'nav_title' },
 					{ 'title': 'Status', 'key': 'status', 'type': 'status', tooltip_key: 'status_tooltip' }
-				]"></data-table>
+				]"></table-draggable>
+				<table-simple v-else v-on:row-click="navigate" clickable_rows="true"
+							  :data="visible_pages" escaped_data="true" data_contains_actions="true"
+							  actions_base_path="pages" :columns="[
+					{ 'title': 'Title', 'key': 'nav_title' },
+					{ 'title': 'Status', 'key': 'status', 'type': 'status', tooltip_key: 'status_tooltip' }
+				]"></table-simple>
 			</toggle-block>
 	
 			<toggle-block title="Hidden from Navigation" :id="'pages-hidden-' + page">
-				<data-table :data="hidden_pages" v-on:row-click="navigate" clickable_rows="true"
-							escaped_data="true" data_contains_actions="true" actions_base_path="pages"
-							:columns="[
+				<table-simple :data="hidden_pages" v-on:row-click="navigate" clickable_rows="true"
+							  escaped_data="true" data_contains_actions="true" actions_base_path="pages"
+							  :columns="[
 					{ 'title': 'Title', 'key': 'nav_title' },
 					{ 'title': 'Status', 'key': 'status', 'type': 'status', tooltip_key: 'status_tooltip' }
-				]"></data-table>
+				]"></table-simple>
 			</toggle-block>
 	
 			<toggle-block title="Archived" :id="'pages-archived-' + page">
-				<data-table :data="archived_pages" escaped_data="true"
-							data_contains_actions="true" actions_base_path="pages"
-							:columns="[
+				<table-simple :data="archived_pages" escaped_data="true"
+							  data_contains_actions="true" actions_base_path="pages"
+							  :columns="[
 					{ 'title': 'Title', 'key': 'nav_title' },
 					{ 'title': 'Status', 'key': 'status', 'type': 'status', tooltip_key: 'status_tooltip' }
-				]"></data-table>
+				]"></table-simple>
 			</toggle-block>
 		</div>
 </template>

@@ -1,31 +1,11 @@
 <script>
-	Vue.component("TableDraggable", {
-		extends: BigTreeTable,
-		props: ["no_search"],
-
-		methods: {
-			resorted: function(group_index, prop) {
-				BigTreeEventBus.$emit("data-table-resorted", this);
-			}
-		}
+	Vue.component("TableSimple", {
+		extends: BigTreeTable
 	});
 </script>
 
 <template>
 	<form class="component_body">
-		<div class="table_filters" v-if="!no_search">
-			<div class="table_filter">
-				<div class="search">
-					<icon wrapper="search" icon="search"></icon>
-					<label class="search_label" :for="id + '_query_input'">{{ translate(search_label ? search_label : 'Search') }}</label>
-					<input class="search_input" :id="id + '_query_input'" type="search" autocomplete="off"
-						   :placeholder="translate(search_placeholder ? search_placeholder : 'Search')"
-						   v-on:keyup="query_key_up" v-model="query_field_value" />
-					<input class="search_submit" type="submit" value="submit" />
-				</div>
-			</div>
-		</div>
-
 		<table class="table">
 			<thead class="table_headings">
 				<tr class="table_headings_row">
@@ -37,13 +17,11 @@
 				</tr>
 			</thead>
 
-			<draggable v-model="filtered_data" draggable=".table_row" handle=".table_column_drag_icon"
-					   v-on:change="resorted" tag="tbody" class="table_body">
+			<tbody class="table_body">
 				<tr v-for="(row, row_index) in filtered_data" class="table_row" draggable="true" :key="row.id">
 					<td v-for="(column, index) in columns" class="table_column" :class="{ 'status': column.type == 'status' }">
 						<span v-if="column.type != 'image'" class="table_column_label">{{ translate(column.title) }}</span>
 						<span class="table_column_content">
-							<icon v-if="!query && index === 0" wrapper="table_column_drag" icon="drag_handle"></icon>
 							<img v-if="column.type === 'image'" class="table_column_image" :src="row[column.key]" alt="" />
 							<span v-else-if="column.type === 'status'" class="table_content_status"
 								  :class="['table_content_status_' + row[column.key].toLowerCase(), column.tooltip_key ? 'js-tooltip' : '']" :data-tooltip-title="row[column.tooltip_key]"></span>
@@ -65,7 +43,7 @@
 						</div>
 					</td>
 				</tr>
-			</draggable>
+			</tbody>
 		</table>
 	</form>
 </template>

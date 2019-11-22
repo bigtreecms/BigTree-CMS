@@ -8,7 +8,7 @@
 <template>
 	<div class="component">
 		<help-text v-if="help_text" :text="help_text"></help-text>
-		<table-sortable :id="id" searchable="true" escaped_data="true" per_page="15" sortable="true"
+		<table-sortable :id="id" escaped_data="true" per_page="15"
 						:data="data" :data_contains_actions="true" :columns="columns"
 						:view_cache_sort="sort_direction"
 						:action_calculator="action_calculator"

@@ -254,7 +254,7 @@
 			}
 			
 			$record = [
-				"id" => $draft->ID,
+				"id" => (string) $draft->ID,
 				"parent" => $draft->Parent,
 				"nav_title" => $draft->NavigationTitle,
 				"path" => $draft->Path,
