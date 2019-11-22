@@ -1,7 +1,7 @@
 <script>
 	Vue.component("ModuleViewGrouped", {
 		extends: BigTreeModuleView,
-		props: ["draggable", "groups"],
+		props: ["draggable", "groups", "sort_column", "sort_direction"],
 		mounted: function() {
 			BigTreeEventBus.$on("data-table-resorted", async (event) => {
 				let data = event.context.grouped_data[event.group_index].data;
@@ -29,6 +29,7 @@
 	<div class="component">
 		<help-text v-if="help_text" :text="help_text"></help-text>
 		<table-grouped :id="id" :draggable="draggable"
+					   :default_sort_column="sort_column" :default_sort_direction="sort_direction"
 					   :groups="groups" group_by="group_field"
 					   :data="data" escaped_data="true" :data_contains_actions="true" :columns="columns"
 					   :action_calculator="action_calculator" :actions_base_path="actions_base_path">

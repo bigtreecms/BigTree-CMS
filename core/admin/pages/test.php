@@ -9,6 +9,9 @@
 		die();
 	}
 ?>
+
+<?php /*
+<help-text text="Donec id elit non mi porta gravida at eget metus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus."></help-text>
 <form-block action="<?=ADMIN_ROOT?>test/" method="POST" :buttons="[{
 	title: 'Save',
 	event: 'save'
@@ -62,4 +65,4 @@
 	<field-type-text required="true" type="textarea" title="This is a text area" name="textarea" value="This is the current content" maxlength="200"></field-type-text>
 	<field-type-hidden-value name="hidden" value="testing"></field-type-hidden-value>-->
 	</div>
-</form-block>
+</form-block> */ ?>

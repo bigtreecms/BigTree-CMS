@@ -2,72 +2,24 @@
 	Vue.component("TableSortable", {
 		extends: BigTreeTable,
 		props: [
-			"per_page",
-			"view_cache_sort"
+			"per_page"
 		],
 
 		data: function() {
 			return {
-				current_page: 1,
-				pages: 1,
-				sort_column: null,
-				sort_direction: null
+				current_page: 1
 			};
 		},
 
 		computed: {
-			sorted_data: function() {
-				let data = this.filtered_data;
+			pages: function() {
+				let count = Math.ceil(this.filtered_data.length / parseInt(this.per_page));
 
-				if (!data || !data.length) {
-					return [];
-				}
-
-				this.pages = Math.ceil(data.length / parseInt(this.per_page));
-
-				if (!this.pages) {
-					this.pages = 1;
-				}
-
-				if (!this.sort_column) {
-					// See if it was specified in the column configuration
-					for (let index = 0; index < this.columns.length; index++) {
-						let column = this.columns[index];
-
-						if (column.sort_default) {
-							this.sort_column = column.key;
-							this.sort_direction = (column.sort_default.toLowerCase() === "asc") ? "ASC" : "DESC";
-						}
-					}
-
-					// Wasn't specified, default to the first column OR sort_column if it exists
-					if (!this.sort_column) {
-						this.sort_column = this.columns[0].key;
-						this.sort_direction = "ASC";
-					}
-				}
-
-				data.sort((a, b) => {
-					const a_val = a[this.sort_column].toLowerCase();
-					const b_val = b[this.sort_column].toLowerCase();
-
-					if (a_val === b_val) {
-						return 0;
-					}
-
-					return (a_val < b_val) ? -1 : 1;
-				});
-
-				if (this.sort_direction === "DESC") {
-					data.reverse();
-				}
-
-
-				return data;
+				return count ? count : 1;
 			},
 
 			paged_data: function() {
-				const data = this.sorted_data;
+				const data = this.filtered_data;
 				const start = (this.current_page - 1) * parseInt(this.per_page);
 				let paged_data;
 
@@ -131,29 +83,6 @@
 					this.sort_direction = "ASC";
 					this.sort_column = column;
 				}
-			}
-		},
-
-		mounted: function() {
-			// Figure out which column is the default sort
-			for (let i = 0; i < this.columns.length; i++) {
-				let column = this.columns[i];
-
-				if (column.sort_default) {
-					if (typeof column.sort_default_direction !== "undefined") {
-						this.sort_direction = column.sort_default_direction;
-					} else {
-						this.sort_direction = "ASC";
-					}
-
-					this.sort_column = column.key;
-				}
-			}
-
-			// View cache tables might be using a hidden field for sorting
-			if (!this.sort_column && this.view_cache_sort) {
-				this.sort_column = "sort_field";
-				this.sort_direction = this.view_cache_sort;
 			}
 		}
 	});

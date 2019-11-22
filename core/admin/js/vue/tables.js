@@ -7,10 +7,13 @@ const BigTreeTable = Vue.extend({
 		"columns",
 		"data",
 		"data_contains_actions",
+		"default_sort_column",
+		"default_sort_direction",
 		"escaped_data",
 		"searchable",
 		"search_label",
-		"search_placeholder"
+		"search_placeholder",
+		"view_cache_sort"
 	],
 
 	data: function() {
@@ -19,7 +22,9 @@ const BigTreeTable = Vue.extend({
 			mutable_data: null,
 			query: "",
 			query_field_value: "",
-			query_timer: null
+			query_timer: null,
+			sort_column: this.default_sort_column,
+			sort_direction: this.default_sort_direction
 		}
 	},
 
@@ -58,6 +63,23 @@ const BigTreeTable = Vue.extend({
 						}
 					}
 				}
+			}
+
+			if (this.sort_column) {
+				data.sort((a, b) => {
+					const a_val = a[this.sort_column].toLowerCase();
+					const b_val = b[this.sort_column].toLowerCase();
+
+					if (a_val === b_val) {
+						return 0;
+					}
+
+					return (a_val < b_val) ? -1 : 1;
+				});
+			}
+
+			if (this.sort_direction === "DESC") {
+				data.reverse();
 			}
 
 			return data;
@@ -130,6 +152,27 @@ const BigTreeTable = Vue.extend({
 		this.id = this._uid;
 		this.equalize_actions();
 		this.mutable_data = this.data;
+
+		// Figure out which column is the default sort
+		for (let i = 0; i < this.columns.length; i++) {
+			let column = this.columns[i];
+
+			if (column.sort_default) {
+				if (typeof column.sort_default_direction !== "undefined") {
+					this.sort_direction = column.sort_default_direction;
+				} else {
+					this.sort_direction = "ASC";
+				}
+
+				this.sort_column = column.key;
+			}
+		}
+
+		// View cache tables might be using a hidden field for sorting
+		if (!this.sort_column && this.view_cache_sort) {
+			this.sort_column = "sort_field";
+			this.sort_direction = this.view_cache_sort;
+		}
 	},
 
 	updated: function() {

@@ -20,10 +20,6 @@
 			}
 		},
 
-		computed: {
-
-		},
-
 		methods: {
 			recalculate_grouped_data: function() {
 				const data = this.filtered_data;
