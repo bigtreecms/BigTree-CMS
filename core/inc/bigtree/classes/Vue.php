@@ -64,7 +64,7 @@
 		{
 			$dom = pQuery::parseFile($file);
 			$script = $dom->query("script");
-			$template = $dom->query("template");
+			$template = $dom->query("template:first-of-type");
 			$style = $dom->query("style");
 			
 			$script_content = $script->count() ? trim($script->html()) : "";

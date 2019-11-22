@@ -203,11 +203,15 @@
 			$insert_values = [
 				"view" => $this->ID,
 				"id" => $item["id"],
-				"status" => $status,
+				"gbp_field" => "",
+				"published_gbp_field" => "",
+				"sort_field" => "",
+				"group_sort_field" => "",
 				"position" => isset($item["position"]) ? $item["position"] : 0,
 				"approved" => isset($item["approved"]) ? $item["approved"] : "",
 				"archived" => isset($item["archived"]) ? $item["archived"] : "",
 				"featured" => isset($item["featured"]) ? $item["featured"] : "",
+				"status" => $status,
 				"pending_owner" => $pending_owner
 			];
 			
@@ -233,7 +237,7 @@
 				// If there's a sort field for the group, add it
 				if (is_numeric($value) && $this->Settings["other_table"] && $this->Settings["ot_sort_field"]) {
 					$sort_field_value = SQL::fetchSingle("SELECT `".$this->Settings["ot_sort_field"]."` FROM `".$this->Settings["other_table"]."` WHERE id = ?", $value);
-					$insert_values["group_sort_field"] = $sort_field_value;
+					$insert_values["group_sort_field"] = strval($sort_field_value);
 				}
 			}
 			

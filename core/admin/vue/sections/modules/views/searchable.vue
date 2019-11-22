@@ -1,5 +1,5 @@
 <script>
-	Vue.component("AutoModulesViewSearchable", {
+	Vue.component("ModuleViewSearchable", {
 		extends: BigTreeModuleView,
 		props: ["sort_column", "sort_direction"]
 	});
