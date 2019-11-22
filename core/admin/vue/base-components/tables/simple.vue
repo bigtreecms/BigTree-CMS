@@ -1,6 +1,20 @@
 <script>
 	Vue.component("TableSimple", {
-		extends: BigTreeTable
+		extends: BigTreeTable,
+		computed: {
+			data_with_actions: function() {
+				const data = this.filtered_data;
+
+				// Allow sub-views to determine what actions each row should get
+				if (this.action_calculator) {
+					for (let i = 0; i < data.length; i++) {
+						data[i].actions = this.action_calculator(data[i]);
+					}
+				}
+
+				return data;
+			}
+		}
 	});
 </script>
 
@@ -18,7 +32,7 @@
 			</thead>
 
 			<tbody class="table_body">
-				<tr v-for="(row, row_index) in filtered_data" class="table_row" draggable="true" :key="row.id">
+				<tr v-for="(row, row_index) in data_with_actions" class="table_row" draggable="true" :key="row.id">
 					<td v-for="(column, index) in columns" class="table_column" :class="{ 'status': column.type == 'status' }">
 						<span v-if="column.type != 'image'" class="table_column_label">{{ translate(column.title) }}</span>
 						<span class="table_column_content">

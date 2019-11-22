@@ -39,6 +39,11 @@
 				}
 
 				for (let i = 0; i < data.length; i++) {
+					// Allow sub-views to determine what actions each row should get
+					if (this.action_calculator) {
+						data[i].actions = this.action_calculator(data[i]);
+					}
+
 					let group = data[i][this.group_by];
 
 					if (typeof groups[group] === "undefined") {

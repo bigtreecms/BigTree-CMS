@@ -1,12 +1,12 @@
 const BigTreeModuleView = Vue.extend({
 	props: [
-		"id",
-		"module",
-		"title",
-		"fields",
 		"actions",
 		"actions_base_path",
-		"help_text"
+		"fields",
+		"help_text",
+		"id",
+		"module",
+		"title"
 	],
 	data: function() {
 		let columns = [];

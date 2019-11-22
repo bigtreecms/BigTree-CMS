@@ -2,7 +2,20 @@
 	Vue.component("TableDraggable", {
 		extends: BigTreeTable,
 		props: ["no_search"],
+		computed: {
+			data_with_actions: function() {
+				const data = this.filtered_data;
 
+				// Allow sub-views to determine what actions each row should get
+				if (this.action_calculator) {
+					for (let i = 0; i < data.length; i++) {
+						data[i].actions = this.action_calculator(data[i]);
+					}
+				}
+
+				return data;
+			}
+		},
 		methods: {
 			resorted: function(group_index, prop) {
 				BigTreeEventBus.$emit("data-table-resorted", this);
@@ -37,9 +50,9 @@
 				</tr>
 			</thead>
 
-			<draggable v-model="filtered_data" draggable=".table_row" handle=".table_column_drag_icon"
+			<draggable v-model="data_with_actions" draggable=".table_row" handle=".table_column_drag_icon"
 					   v-on:change="resorted" tag="tbody" class="table_body">
-				<tr v-for="(row, row_index) in filtered_data" class="table_row" draggable="true" :key="row.id">
+				<tr v-for="(row, row_index) in data_with_actions" class="table_row" draggable="true" :key="row.id">
 					<td v-for="(column, index) in columns" class="table_column" :class="{ 'status': column.type == 'status' }">
 						<span v-if="column.type != 'image'" class="table_column_label">{{ translate(column.title) }}</span>
 						<span class="table_column_content">
