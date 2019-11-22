@@ -18,11 +18,11 @@
 
 <template>
 	<div class="component layout_expanded">
-		<DataTable actions_base_path="tags" searchable="true" sortable="true" per_page="10" :columns="[
+		<data-table actions_base_path="tags" searchable="true" sortable="true" per_page="10" :columns="[
 			{ 'title': this.translate('Tag Name'), 'key': 'tag', 'sort': true }
 		]" :actions="[
 			{ 'title': this.translate('Merge Tags'), 'route': 'merge' },
 			{ 'title': this.translate('Delete Tag'), 'route': 'delete' }
-		]" :data="data" escaped_data="true"></DataTable>
+		]" :data="data" escaped_data="true"></data-table>
 	</div>
 </template>

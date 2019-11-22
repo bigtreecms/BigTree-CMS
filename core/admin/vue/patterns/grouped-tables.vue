@@ -90,19 +90,19 @@
 
 <template>
 	<div>
-		<Search v-if="searchable" :label="search_label" :placeholder="search_placeholder"></Search>
+		<search v-if="searchable" :label="search_label" :placeholder="search_placeholder"></search>
 		
-		<ToggleBlock v-if="collapsible" v-for="table in filtered_tables" :title="table.title" :key="table.id"
+		<toggle-block v-if="collapsible" v-for="table in filtered_tables" :title="table.title" :key="table.id"
 					  :id="table.id" :escaped_title="escaped_data">
-			<DataTable :columns="table.columns" :actions="table.actions" :actions_base_path="table.actions_base_path"
-					   :table_key="table.id" :data="table.data" :draggable="table.draggable" :per_page="table.per_page"
-					   :data_contains_actions="table.data_contains_actions" :escaped_data="escaped_data"></DataTable>
-		</ToggleBlock>
+			<data-table :columns="table.columns" :actions="table.actions" :actions_base_path="table.actions_base_path"
+					   :data="table.data" :draggable="table.draggable" :per_page="table.per_page"
+					   :data_contains_actions="table.data_contains_actions" :escaped_data="escaped_data"></data-table>
+		</toggle-block>
 
-		<Block v-else v-for="table in filtered_tables" class="component" :title="table.title" :key="table.id">
-			<DataTable :table_key="table.id" :columns="table.columns" :actions="table.actions" :data="table.data" :draggable="table.draggable"
+		<block v-else v-for="table in filtered_tables" class="component" :title="table.title" :key="table.id">
+			<data-table :columns="table.columns" :actions="table.actions" :data="table.data" :draggable="table.draggable"
 					   :actions_base_path="table.actions_base_path" :data_contains_actions="table.data_contains_actions"
-					   :per_page="table.per_page" :escaped_data="escaped_data"></DataTable>
-		</Block>
+					   :per_page="table.per_page" :escaped_data="escaped_data"></data-table>
+		</block>
 	</div>
 </template>

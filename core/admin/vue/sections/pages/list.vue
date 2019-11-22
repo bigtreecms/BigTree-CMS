@@ -385,38 +385,38 @@
 </script>
 
 <template>
-		<Alert v-if="data && !visible_pages.length && !hidden_pages.length && !archived_pages.length" type="notice" title="No Subpages Yet">
+		<alert v-if="data && !visible_pages.length && !hidden_pages.length && !archived_pages.length" type="notice" title="No Subpages Yet">
 			There are currently no subpages.<br>
 			• Create a subpage by clicking the &ldquo;Add Subpage&rdquo; button.<br>
 			• Edit this page by clicking the &ldquo;Content&rdquo; tab.
-		</Alert>
+		</alert>
 
 		<div v-else>
-			<ToggleBlock title="Visible in Navigation" :id="'pages-visible-' + page">
-				<DataTable :data="visible_pages" :draggable="draggable" v-on:row-click="navigate" clickable_rows="true"
+			<toggle-block title="Visible in Navigation" :id="'pages-visible-' + page">
+				<data-table :data="visible_pages" :draggable="draggable" v-on:row-click="navigate" clickable_rows="true"
 							escaped_data="true" data_contains_actions="true" actions_base_path="pages"
 							:columns="[
 					{ 'title': 'Title', 'key': 'nav_title' },
 					{ 'title': 'Status', 'key': 'status', 'type': 'status', tooltip_key: 'status_tooltip' }
-				]"></DataTable>
-			</ToggleBlock>
+				]"></data-table>
+			</toggle-block>
 	
-			<ToggleBlock title="Hidden from Navigation" :id="'pages-hidden-' + page">
-				<DataTable :data="hidden_pages" v-on:row-click="navigate" clickable_rows="true"
+			<toggle-block title="Hidden from Navigation" :id="'pages-hidden-' + page">
+				<data-table :data="hidden_pages" v-on:row-click="navigate" clickable_rows="true"
 							escaped_data="true" data_contains_actions="true" actions_base_path="pages"
 							:columns="[
 					{ 'title': 'Title', 'key': 'nav_title' },
 					{ 'title': 'Status', 'key': 'status', 'type': 'status', tooltip_key: 'status_tooltip' }
-				]"></DataTable>
-			</ToggleBlock>
+				]"></data-table>
+			</toggle-block>
 	
-			<ToggleBlock title="Archived" :id="'pages-archived-' + page">
-				<DataTable :data="archived_pages" escaped_data="true"
+			<toggle-block title="Archived" :id="'pages-archived-' + page">
+				<data-table :data="archived_pages" escaped_data="true"
 							data_contains_actions="true" actions_base_path="pages"
 							:columns="[
 					{ 'title': 'Title', 'key': 'nav_title' },
 					{ 'title': 'Status', 'key': 'status', 'type': 'status', tooltip_key: 'status_tooltip' }
-				]" ></DataTable>
-			</ToggleBlock>
+				]"></data-table>
+			</toggle-block>
 		</div>
 </template>

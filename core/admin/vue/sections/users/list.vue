@@ -30,7 +30,7 @@
 
 <template>
 	<div class="component layout_expanded">
-		<DataTable actions_base_path="users" searchable="true" per_page="10" translatable="true" :columns="[
+		<data-table actions_base_path="users" searchable="true" per_page="10" :columns="[
 			{ 'title': this.translate('Name'), 'key': 'name', 'sort': true, 'sort_default': 'ASC', 'width': '35%' },
 			{ 'title': this.translate('Email'), 'key': 'email', 'sort': true, 'width': '25%' },
 			{ 'title': this.translate('Company'), 'key': 'company', 'sort': true, 'width': '25%' },
@@ -38,6 +38,6 @@
 		]" :actions="[
 			{ 'title': this.translate('Edit User'), 'route': 'edit' },
 			{ 'title': this.translate('Delete User'), 'route': 'delete' }
-		]" :data="data" sortable="true" escaped_data="true"></DataTable>
+		]" :data="data" sortable="true" escaped_data="true"></data-table>
 	</div>
 </template>

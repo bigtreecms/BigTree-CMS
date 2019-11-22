@@ -1,7 +1,6 @@
 <script>
 	Vue.component("ModuleViewDraggable", {
 		extends: BigTreeModuleView,
-		props: ["draggable"],
 		mounted: function() {
 			BigTreeEventBus.$on("data-table-resorted", async (table) => {
 				let data = table.mutable_data;
@@ -28,9 +27,8 @@
 <template>
 	<div class="component">
 		<help-text v-if="help_text" :text="help_text"></help-text>
-		<data-table :id="id" :draggable="draggable" escaped_data="true" group_by="group_field"
-					:data="data" :data_contains_actions="true" :columns="columns"
-					:action_calculator="action_calculator"
-					:actions_base_path="actions_base_path"></data-table>
+		<table-draggable :id="id" escaped_data="true" :data="data" :data_contains_actions="true" :columns="columns"
+						 :action_calculator="action_calculator" :actions_base_path="actions_base_path">
+		</table-draggable>
 	</div>
 </template>
