@@ -20,6 +20,10 @@
 			resorted: function(group_index, prop) {
 				BigTreeEventBus.$emit("data-table-resorted", this);
 			}
+		},
+		mounted: function() {
+			this.sort_column = "position";
+			this.sort_direction = "DESC";
 		}
 	});
 </script>
@@ -50,7 +54,7 @@
 				</tr>
 			</thead>
 
-			<draggable v-model="data_with_actions" draggable=".table_row" handle=".table_column_drag_icon"
+			<draggable v-model="mutable_data" draggable=".table_row" handle=".table_column_drag_icon"
 					   v-on:change="resorted" tag="tbody" class="table_body">
 				<tr v-for="(row, row_index) in data_with_actions" class="table_row" draggable="true" :key="row.id">
 					<td v-for="(column, index) in columns" class="table_column" :class="{ 'status': column.type == 'status' }">

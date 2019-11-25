@@ -22,8 +22,6 @@
 					this.can_publish_current_page = true;
 				}
 
-				console.log(page.access_level);
-
 				if (page.path) {
 					BigTree.page_public_url = WWW_ROOT + page.path + "/";
 				} else {

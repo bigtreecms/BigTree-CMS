@@ -31,6 +31,7 @@ const BigTreeTable = Vue.extend({
 	watch: {
 		data: function(new_val, old_val) {
 			this.mutable_data = new_val;
+			this.sort_data();
 		},
 		query_field_value: function() {
 			$(this.$el).find(".search").addClass("loading");
@@ -41,48 +42,30 @@ const BigTreeTable = Vue.extend({
 	},
 
 	computed: {
-		filtered_data: function() {
+		filtered_data: function () {
 			let data = this.mutable_data ? this.mutable_data : this.data;
 
-			if (!data || !data.length) {
+			if (!data) {
 				return [];
 			}
 
-			if (this.query !== "") {
-				let query = this.query.toLowerCase();
-				data = [];
+			if (this.query === "") {
+				return data;
+			}
 
-				for (let x = 0; x < this.mutable_data.length; x++) {
-					let entry = this.mutable_data[x];
+			let query = this.query.toLowerCase();
 
-					for (let index = 0; index < this.columns.length; index++) {
-						let column = entry[this.columns[index].key].toLowerCase();
+			return data.filter((entry) => {
+				for (let index = 0; index < this.columns.length; index++) {
+					let column = entry[this.columns[index].key].toLowerCase();
 
-						if (column.indexOf(query) > -1) {
-							data.push(entry);
-						}
+					if (column.indexOf(query) > -1) {
+						return true;
 					}
 				}
-			}
 
-			if (this.sort_column) {
-				data.sort((a, b) => {
-					const a_val = a[this.sort_column].toLowerCase();
-					const b_val = b[this.sort_column].toLowerCase();
-
-					if (a_val === b_val) {
-						return 0;
-					}
-
-					return (a_val < b_val) ? -1 : 1;
-				});
-			}
-
-			if (this.sort_direction === "DESC") {
-				data.reverse();
-			}
-
-			return data;
+				return false;
+			});
 		}
 	},
 
@@ -145,6 +128,30 @@ const BigTreeTable = Vue.extend({
 
 			const index = $(event.target).data("index");
 			this.$emit("row-click", this.paged_data[index]);
+		},
+
+		sort_data: function() {
+			if (this.sort_column) {
+				// Modifying this.mutable_data directly causes an infinite loop
+				let copy = this.mutable_data.slice(0);
+
+				copy.sort((a, b) => {
+					const a_val = a[this.sort_column].toLowerCase();
+					const b_val = b[this.sort_column].toLowerCase();
+
+					if (a_val === b_val) {
+						return 0;
+					}
+
+					return (a_val < b_val) ? -1 : 1;
+				});
+
+				if (this.sort_direction === "DESC") {
+					copy.reverse();
+				}
+
+				this.mutable_data = copy;
+			}
 		}
 	},
 

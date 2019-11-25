@@ -83,6 +83,8 @@
 					this.sort_direction = "ASC";
 					this.sort_column = column;
 				}
+
+				this.sort_data();
 			}
 		}
 	});
