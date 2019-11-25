@@ -15,7 +15,7 @@
 		},
 
 		watch: {
-			data: function() {
+			filtered_data: function() {
 				this.recalculate_grouped_data();
 			}
 		},
