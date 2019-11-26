@@ -30,6 +30,8 @@ const BigTreeModuleView = Vue.extend({
 					key: "column" + x++,
 					title: field.title,
 					width: field.width,
+					type: field.type ? field.type : "text",
+					prefix: field.prefix ? field.prefix : "",
 					sort: true,
 					sort_default: sort_default,
 					sort_default_direction: sort_default_direction

@@ -33,10 +33,10 @@
 
 			<tbody class="table_body">
 				<tr v-for="(row, row_index) in data_with_actions" class="table_row" draggable="true" :key="row.id">
-					<td v-for="(column, index) in columns" class="table_column" :class="{ 'status': column.type == 'status' }">
+					<td v-for="(column, index) in columns" class="table_column" :class="{ 'status': column.type === 'status', 'image': column.type === 'image' }">
 						<span v-if="column.type != 'image'" class="table_column_label">{{ translate(column.title) }}</span>
 						<span class="table_column_content">
-							<img v-if="column.type === 'image'" class="table_column_image" :src="row[column.key]" alt="" />
+							<img v-if="column.type === 'image'" class="table_content_image" :src="prefix_file(row[column.key], column.prefix)" alt="" />
 							<span v-else-if="column.type === 'status'" class="table_content_status"
 								  :class="['table_content_status_' + row[column.key].toLowerCase(), column.tooltip_key ? 'js-tooltip' : '']" :data-tooltip-title="row[column.tooltip_key]"></span>
 							<button v-else-if="clickable_rows && escaped_data" v-on:click="row_click" :data-index="row_index" class="table_content_button" v-html="row[column.key]"></button>

@@ -172,6 +172,10 @@
 		}
 	}
 
+	&.image {
+		width: 1px;
+	}
+
 	&.status {
 		width: 80px;
 
@@ -290,6 +294,8 @@
 
 .table_content_image {
 	display: block;
+	height: auto;
+	max-width: 105px;
 
 	@media #{$min_md} {
 		margin: -6px -5px -5px;

@@ -267,18 +267,20 @@
 					$item[$key] = $pop_description;
 				}
 			}
+
+			$x = 1;
 			
 			// Insert into the view cache
 			if ($this->Type == "images" || $this->Type == "images-grouped") {
 				$insert_values["column1"] = $item[$this->Settings["image"]];
-			} else {
-				$x = 1;
-				
-				foreach ($this->Fields as $field => $options) {
-					$item[$field] = Link::decode($item[$field]);
-					$insert_values["column$x"] = Text::htmlEncode(strip_tags($item[$field]));
-					$x++;
-				}
+				$x++;
+			}
+			
+			
+			foreach ($this->Fields as $field => $options) {
+				$item[$field] = Link::decode($item[$field]);
+				$insert_values["column$x"] = Text::htmlEncode(strip_tags($item[$field]));
+				$x++;
 			}
 			
 			if (!empty($sort_field) && !empty($item[$sort_field])) {
