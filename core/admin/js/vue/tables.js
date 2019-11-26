@@ -103,18 +103,6 @@ const BigTreeTable = Vue.extend({
 			$labels.css({ minWidth: (widest + padding_left + padding_right) + "px" });
 		},
 
-		prefix_file: function(file, prefix) {
-			if (typeof prefix === "undefined") {
-				return file;
-			}
-
-			let parts = file.split("/");
-
-			parts[parts.length - 1] = prefix + parts[parts.length - 1];
-
-			return parts.join("/");
-		},
-
 		query_key_up: function() {
 			if (this.query_timer) {
 				clearTimeout(this.query_timer);
