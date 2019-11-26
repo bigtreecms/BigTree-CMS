@@ -7,8 +7,7 @@
 	
 	Router::setLayout("new");
 	
-	$module_permission = Router::$Module->UserAccessLevel;
-	$draggable = (!empty($view->Settings["draggable"]) && $module_permission === "p") ? true : false;
+	$draggable = (!empty($view->Settings["draggable"]) && Router::$Module->UserAccessLevel === "p") ? true : false;
 	$prefix = !empty($view->Settings["prefix"]) ? $view->Settings["prefix"] : "";
 	$fields = htmlspecialchars(json_encode(array_merge([[
 		"type" => "image",
