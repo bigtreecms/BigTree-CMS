@@ -65,7 +65,13 @@
 				}
 			}
 			
+			// If we're using database-based sessions, do a garbage cleanup (as some server setups will have random gc turned off)
+			if (!empty(Router::$Config["session_handler"]) && Router::$Config["session_handler"] == "db") {
+				SessionHandler::clean(ini_get("session.gc_maxlifetime"));
+			}
+			
 			Setting::updateValue("bigtree-internal-cron-last-run", time());
+			
 		}
 		
 	}
