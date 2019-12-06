@@ -34,3 +34,8 @@
 	$sitemap = new BigTreeSitemapGenerator;
 	$xml = $sitemap->generateSitemap();
 	$sitemap->saveFile($xml);
+
+	// If we're using database-based sessions, do a garbage cleanup (as some server setups will have random gc turned off)
+	if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+		BigTreeSessionHandler::clean(ini_get("session.gc_maxlifetime"));
+	}
