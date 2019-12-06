@@ -372,6 +372,11 @@
 		if (!$bigtree["config"]["disable_ping"]) {
 			BigTree::cURL("https://www.bigtreecms.org/ajax/ping/?www_root=".urlencode(WWW_ROOT)."&version=".urlencode(BIGTREE_VERSION));
 		}
+
+		// If we're using database-based sessions, do a garbage cleanup (as some server setups will have random gc turned off)
+		if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+			BigTreeSessionHandler::clean(ini_get("session.gc_maxlifetime"));
+		}
 	}
 
 	$ispage = false;
