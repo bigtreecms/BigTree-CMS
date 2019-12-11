@@ -56,13 +56,15 @@
 			const WWW_ROOT = "<?=WWW_ROOT?>";
 			const VueLanguagePack = {};
 		</script>
-		<script src="<?=ADMIN_ROOT?>js/tinymce/tinymce.min.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/api.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/vue/vue.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/vue/async-computed.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/vue/tinymce.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/vue/sortable.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/vue/helpers.js"></script>
+		<script src="<?=ADMIN_ROOT?>js/vue/tables.js"></script>
+		<script src="<?=ADMIN_ROOT?>js/vue/views.js"></script>
+		<script src="<?=ADMIN_ROOT?>js/vue/field-types.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/cache/vue.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/app.js"></script>
 		<?php
