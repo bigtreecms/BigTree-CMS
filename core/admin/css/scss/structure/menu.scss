@@ -14,8 +14,8 @@
 		pointer-events: none;
 		transform: translate(20px, 0);
 		transition:
-			opacity .15s,
-			transform .15s;
+			opacity $base_transition_speed,
+			transform $base_transition_speed;
 	}
 
 	@media #{$min_lg} {

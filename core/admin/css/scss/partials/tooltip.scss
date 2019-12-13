@@ -18,9 +18,9 @@
 	text-align: center;
 	transform: translate(-50%, 4px);
 	transition:
-		opacity .15s,
-		visibility .15s,
-		transform .15s;
+		opacity $base_transition_speed,
+		visibility $base_transition_speed,
+		transform $base_transition_speed;
 
 	&:after {
 		position: absolute;
@@ -60,9 +60,9 @@
 		visibility: visible;
 		transform: translate(-50%, 0);
 		transition:
-			opacity .15s .35s,
-			visibility .15s .35s,
-			transform .15s .35s;
+			opacity $base_transition_speed .35s,
+			visibility $base_transition_speed .35s,
+			transform $base_transition_speed .35s;
 	}
 }
 

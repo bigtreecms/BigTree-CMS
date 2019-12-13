@@ -93,8 +93,7 @@
 			</header>
 	
 			<main class="main" id="main_content">
-				<announcement :context="announcement.context" :message="announcement.message"
-							  :visible="announcement.visible"></announcement>
+				<notification :context="notification.context" :message="notification.message" :type="notification.type"></notification>
 
 				<meta-bar v-if="meta_bar.length" :items="meta_bar"></meta-bar>
 

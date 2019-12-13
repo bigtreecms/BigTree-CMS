@@ -25,6 +25,8 @@ $mandarin: #CB791D;
 $red: #D32F2F;
 $deep_red: #A92525;
 
+$base_transition_speed: 0.25s;
+
 @mixin visually_hide() {
 	width: 1px;
 	height: 1px;

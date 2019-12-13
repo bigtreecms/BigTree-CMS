@@ -83,8 +83,8 @@
 	text-decoration: underline;
 	text-decoration-color: transparent;
 	transition:
-		background .15s,
-		text-decoration-color .15s;
+		background $base_transition_speed,
+		text-decoration-color $base_transition_speed;
 
 	&:hover,
 	&:focus {
@@ -98,7 +98,7 @@
 	margin-right: 6px;
 	transform: scale(.85);
 	transform-origin: left center;
-	transition: color .15s;
+	transition: color $base_transition_speed;
 
 	.browser_breadcrumb_drop:hover &,
 	.browser_breadcrumb_drop:focus & {
@@ -112,7 +112,7 @@
 	color: $dark;
 	font-size: 14px;
 	font-weight: 700;
-	transition: color .15s;
+	transition: color $base_transition_speed;
 
 	&:hover,
 	&:focus {
@@ -219,7 +219,7 @@
 
 .browser_item_link {
 	color: inherit;
-	transition: color .15s;
+	transition: color $base_transition_speed;
 
 	&:hover,
 	&:focus {

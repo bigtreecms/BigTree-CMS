@@ -21,7 +21,7 @@
 
 .breadcrumb_link {
 	color: inherit;
-	transition: color .15s;
+	transition: color $base_transition_speed;
 
 	&:hover,
 	&:focus {

@@ -6,8 +6,10 @@
 			"clickable_rows",
 			"columns",
 			"data_contains_actions",
+			"depth",
 			"draggable",
 			"escaped_data",
+			"expand_collapse",
 			"index",
 			"query",
 			"row",
@@ -25,18 +27,29 @@
 				parts[parts.length - 1] = prefix + parts[parts.length - 1];
 
 				return parts.join("/");
+			},
+
+			expand: function($event, row, index) {
+				$event.preventDefault();
+
+				BigTreeEventBus.$emit("table-expand-collapse", row, index);
 			}
 		}
 	});
 </script>
 
 <template>
-	<tr class="table_row" :draggable="draggable" :key="row.id">
-		<td v-for="(column, index) in columns" class="table_column" :class="{ 'status': column.type === 'status', 'image': column.type === 'image' }">
+	<tr class="table_row" :draggable="draggable" :key="row.id" :data-level="depth">
+		<td v-for="(column, column_index) in columns" class="table_column" :class="{ 'status': column.type === 'status', 'image': column.type === 'image' }">
 			<span v-if="column.type !== 'image'" class="table_column_label">{{ translate(column.title) }}</span>
 
 			<span class="table_column_content">
-				<icon v-if="draggable && !query && index === 0" wrapper="table_content_drag" icon="drag_handle"></icon>
+				<icon v-if="draggable && !query && column_index === 0" wrapper="table_content_drag" icon="drag_handle"></icon>
+
+				<button v-if="row.depth && column_index === 0" v-on:click="expand($event, row, index)" class="component_expander" :class="{'disabled': !row.has_children}">
+					<icon wrapper="component_expander" icon="expand_more"></icon>
+					<icon wrapper="component_expander" icon="expand_less"></icon>
+				</button>
 
 				<img v-if="column.type === 'image'" class="table_content_image" :src="prefix_file(row[column.key], column.prefix)" alt="" />
 

@@ -114,8 +114,8 @@
 
 .table_row {
 	transition:
-		box-shadow .15s,
-		opacity .15s;
+		box-shadow $base_transition_speed,
+		opacity $base_transition_speed;
 
 	@media #{$max_md} {
 		border: 1px solid $mist;
@@ -132,6 +132,10 @@
 
 	&:nth-of-type(even) {
 		background: $fade;
+	}
+
+	&.collapsed {
+		display: none;
 	}
 
 	&.dragstart {
@@ -162,12 +166,12 @@
 		padding: 12px 10px 11px;
 	}
 
-	@for $i from 2 through 5 {
+	@for $i from 2 through 10 {
 
 		[data-level="#{$i}"] & {
 
 			@media #{$max_md} {
-				border-left: 4px * ($i - 1) double $mist;
+				border-left: 10px * ($i - 1) solid $mist;
 			}
 		}
 	}
@@ -192,7 +196,7 @@
 			border-left: 1px solid $mist;
 		}
 
-		@for $i from 2 through 5 {
+		@for $i from 2 through 10 {
 
 			[data-level="#{$i}"] & {
 
@@ -264,7 +268,7 @@
 .table_content_link {
 	color: inherit;
 	display: block;
-	transition: color .15s;
+	transition: color $base_transition_speed;
 
 	&:hover,
 	&:focus {
@@ -284,7 +288,7 @@
 	font: inherit;
 	padding: 0;
 	text-align: left;
-	transition: color .15s;
+	transition: color $base_transition_speed;
 
 	&:hover,
 	&:focus {

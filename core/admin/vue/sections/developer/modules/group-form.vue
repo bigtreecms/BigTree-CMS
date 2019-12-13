@@ -14,7 +14,7 @@
 		methods: {
 			submit: async function(api) {
 				if (api.error) {
-					BigTree.announcement = {
+					BigTree.notification = {
 						type: "error",
 						context: this.translate("Submission Failed"),
 						message: this.translate(api.message),
@@ -23,7 +23,7 @@
 				} else {
 					await BigTreeAPI.updateCache("module-groups", api.response.cache["module-groups"]);
 
-					BigTree.announcement = {
+					BigTree.notification = {
 						type: "success",
 						context: this.translate("Module Groups"),
 						message: this.translate((this.action === "create" ? "Created" : "Updated") + " Group"),

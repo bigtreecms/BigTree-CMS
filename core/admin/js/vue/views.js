@@ -2,6 +2,7 @@ const BigTreeModuleView = Vue.extend({
 	props: [
 		"actions",
 		"actions_base_path",
+		"draggable",
 		"fields",
 		"help_text",
 		"id",

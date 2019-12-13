@@ -522,7 +522,7 @@
 	margin-right: 6px;
 	vertical-align: top;
 	padding: 7px 10px;
-	transition: border .15s;
+	transition: border $base_transition_speed;
 
 	&:hover,
 	&:focus {
@@ -555,7 +555,7 @@
 	font-size: 14px;
 	font-weight: 700;
 	padding: 12px 30px 13px;
-	transition: background .15s;
+	transition: background $base_transition_speed;
 
 	&:hover,
 	&:focus {

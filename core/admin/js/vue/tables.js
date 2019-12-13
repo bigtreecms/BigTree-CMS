@@ -127,7 +127,7 @@ const BigTreeTable = Vue.extend({
 			event.preventDefault();
 
 			const index = $(event.target).data("index");
-			this.$emit("row-click", this.paged_data[index]);
+			this.$emit("row-click", this.filtered_data[index]);
 		},
 
 		sort_data: function() {

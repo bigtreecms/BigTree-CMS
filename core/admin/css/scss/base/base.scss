@@ -21,15 +21,15 @@ body {
 
 a {
 	text-decoration: none;
-	transition: color 0.15s, border 0.15s, background 0.15s;
+	transition: color 0$base_transition_speed, border 0$base_transition_speed, background 0$base_transition_speed;
 }
 
 svg {
 	display: block;
 	fill: currentColor;
 	transition:
-		fill .15s,
-		stroke .15s;
+		fill $base_transition_speed,
+		stroke $base_transition_speed;
 }
 
 fieldset {

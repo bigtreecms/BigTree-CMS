@@ -6,7 +6,7 @@
 	font-size: 12px;
 	padding: 5px 0;
 	text-decoration: underline;
-	transition: color .15s;
+	transition: color $base_transition_speed;
 
 	&:hover,
 	&:focus {

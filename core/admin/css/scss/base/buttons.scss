@@ -9,9 +9,9 @@ button {
 	display: inline-block;
 	margin-right: 6px;
 	transition:
-		background .15s,
-		border .15s,
-		color .15s;
+		background $base_transition_speed,
+		border $base_transition_speed,
+		color $base_transition_speed;
 
 	@if $defaults {
 		background: #fff;
@@ -47,7 +47,7 @@ button {
 	[class$="icon"] {
 		color: $green;
 		margin-right: 5px;
-		transition: color .15s;
+		transition: color $base_transition_speed;
 	}
 
 	[class$="label"] {

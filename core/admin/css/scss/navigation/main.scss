@@ -20,7 +20,7 @@
 	color: inherit;
 	display: flex;
 	padding: 10px 20px;
-	transition: background .15s;
+	transition: background $base_transition_speed;
 
 	@media #{$min_lg} {
 		margin-right: -1px;
@@ -42,7 +42,7 @@
 	color: $gray;
 	transform: scale(.8);
 	transform-origin: left center;
-	transition: color .15s;
+	transition: color $base_transition_speed;
 
 	@media #{$min_lg} {
 		display: block;
@@ -61,7 +61,7 @@
 .main_nav_label {
 	color: inherit;
 	font-size: 14px;
-	transition: color .15s;
+	transition: color $base_transition_speed;
 
 	.main_nav_link:not(.active):hover &,
 	.main_nav_link:not(.active):focus & {
@@ -91,7 +91,7 @@
 	display: block;
 	font-size: 14px;
 	padding: 7px 20px 7px 45px;
-	transition: color .15s;
+	transition: color $base_transition_speed;
 
 	@media #{$min_lg} {
 		padding-top: 12px;

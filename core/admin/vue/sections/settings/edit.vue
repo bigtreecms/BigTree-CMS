@@ -11,16 +11,14 @@
 		methods: {
 			submit: async function(api) {
 				if (api.error) {
-					BigTree.announcement = {
+					BigTree.notification = {
 						type: "error",
 						context: this.translate("Submission Failed"),
 						message: this.translate(api.message),
 						visible: true
 					};
 				} else {
-					await BigTreeAPI.updateCache("settings", api.response.cache.settings);
-
-					BigTree.announcement = {
+					BigTree.notification = {
 						type: "success",
 						context: this.translate("Settings"),
 						message: this.translate("Updated :name:", { ":name:": this.name }),

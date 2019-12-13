@@ -63,8 +63,8 @@
 	text-decoration: underline;
 	text-decoration-color: transparent;
 	transition:
-		background .15s,
-		text-decoration-color .15s;
+		background $base_transition_speed,
+		text-decoration-color $base_transition_speed;
 
 	&:hover,
 	&:focus {

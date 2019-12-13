@@ -4,10 +4,10 @@ let BigTreeEventBus = new Vue();
 let BigTree = new Vue({
 	el: "#js-vue",
 	data: {
-		announcement: state.announcement ? state.announcement : { "visible": false, "context": "", "message": "" },
 		breadcrumb: typeof state.breadcrumb != "undefined" ? state.breadcrumb : [],
 		meta_bar: typeof state.meta_bar != "undefined" ? state.meta_bar : [],
 		main_nav: state.main_nav,
+		notification: state.notification ? state.notification : { context: "", message: "", type: "" },
 		page_public_url: typeof state.page_public_url != "undefined" ? state.page_public_url : "",
 		page_title: typeof state.page_title != "undefined" ? state.page_title : "",
 		sub_nav: typeof state.sub_nav != "undefined" ? state.sub_nav : [],

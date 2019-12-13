@@ -44,10 +44,16 @@
 	margin-right: 10px;
 	margin-left: -5px;
 
-	.collapsed & {
+	.collapsed &,
+	&.collapsed {
 		background: $green;
 		border-color: transparent;
 		color: #fff;
+	}
+
+	&.disabled {
+		opacity: 0.25;
+		pointer-events: none;
 	}
 }
 

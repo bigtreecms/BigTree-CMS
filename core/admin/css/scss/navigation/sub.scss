@@ -21,7 +21,7 @@
 	color: inherit;
 	display: block;
 	padding: 10px 0 8px;
-	transition: color .15s;
+	transition: color $base_transition_speed;
 
 	&:hover,
 	&:focus {

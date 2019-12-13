@@ -11,9 +11,9 @@
 
 	border: 1px solid $mist;
 	transition:
-		background .15s,
-		border .15s,
-		color .15s;
+		background $base_transition_speed,
+		border $base_transition_speed,
+		color $base_transition_speed;
 
 	&:first-child {
 		border-radius: 3px 0 0 3px;

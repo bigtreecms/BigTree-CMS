@@ -22,8 +22,8 @@
 	text-decoration: underline;
 	text-decoration-color: transparent;
 	transition:
-		color .15s,
-		text-decoration-color .15s;
+		color $base_transition_speed,
+		text-decoration-color $base_transition_speed;
 	white-space: nowrap;
 
 	&:hover,
@@ -48,8 +48,8 @@
 	justify-content: center;
 	padding: 7px 0;
 	transition:
-		background .15s,
-		color .15s;
+		background $base_transition_speed,
+		color $base_transition_speed;
 
 	&:hover,
 	&:focus {
@@ -103,8 +103,8 @@
 	text-decoration: underline;
 	text-decoration-color: transparent;
 	transition:
-		background .15s,
-		text-decoration-color .15s;
+		background $base_transition_speed,
+		text-decoration-color $base_transition_speed;
 	white-space: nowrap;
 
 	&:hover,

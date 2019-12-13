@@ -15,8 +15,8 @@
 	flex-direction: column;
 	justify-content: center;
 	transition:
-		opacity .15s,
-		visibility .15s;
+		opacity .5s,
+		visibility .5s;
 
 	&_working {
 		opacity: 1;
