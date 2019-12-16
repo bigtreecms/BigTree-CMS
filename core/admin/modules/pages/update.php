@@ -8,16 +8,25 @@
 	
 	// Check access levels on the page we're trying to modify
 	$page = $_POST["page"];
+
 	// Pending page
 	if ($page[0] == "p") {
+		$pending_id = substr($page, 1);
+
+		if (!is_numeric($pending_id)) {
+			$admin->stop("You are attempting to update an invalid page.");
+		}
+
 		$pending_change = $admin->getPendingChange(substr($page,1));
 		$bigtree["current_page_data"] = $pending_change["changes"];
 		$bigtree["access_level"] = $admin->getPageAccessLevel($bigtree["current_page_data"]["parent"]);
 	// Live page
-	} else {
+	} elseif (is_numeric($page)) {
 		$bigtree["access_level"] = $admin->getPageAccessLevel($page);
 		// Get pending page data with resources decoded and tags.
 		$bigtree["current_page_data"] = $cms->getPendingPage($page,true,true);
+	} else {
+		$admin->stop("You are attempting to update an invalid page.");
 	}
 	
 	// Work out the permissions	

@@ -3,6 +3,10 @@
 	$id = preg_replace("/[^a-z0-9.]+/i","",isset($_POST["page"]) ? $_POST["page"] : end($bigtree["commands"]));
 	$action = $bigtree["module_path"][0];
 
+	if (!empty($id) && !is_numeric($id) && !is_numeric(substr($id, 1))) {
+		$admin->stop("Invalid page.");
+	}
+
 	// Get the end command as the current working page, only decode resources and get tags if we're editing
 	$bigtree["current_page"] = $page = $cms->getPendingPage($id, ($action == "edit"), ($action == "edit"));
 
