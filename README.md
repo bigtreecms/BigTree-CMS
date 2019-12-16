@@ -20,6 +20,20 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.4.8
+- UPDATED: The default htaccess file now has a newer default set of cache headers
+- FIXED: Cropping on servers where the temporary upload directory is incorrectly reported
+- FIXED: Pending open graph data for pages not being properly escaped (thanks joeshu)
+- FIXED: pages.js is now cache busted
+- FIXED: Advanced Search edit buttons in views where the edit action is a custom URL
+- FIXED: View data for modules with group based permissions not caching properly
+- FIXED: The sitemap.xml file no longer includes pages marked SEO Invisible
+- FIXED: Phar injection through third party APIs not being case insensitive
+- FIXED: Filenames that contain a disabled extension not being able to be uploaded (when the actual extension was valid)
+- FIXED: Environments that have PHP random session garbage collection disabled never cleaning up (now runs during cron)
+- FIXED: Random letters being thrown on the end of a pages edit URL causing the homepage to be updated
+- REMOVED: Callout positioning from stored JSON as it is no longer used and causes merge conflicts
+
 ### 4.4.7
 - FIXED: Trunk being overwritten when a non-developer updates a page that has trunk set
 - FIXED: Permissions checks on re-ordering pages
