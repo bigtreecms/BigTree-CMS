@@ -11,6 +11,7 @@
 		public static $CSS = [];
 		public static $CurrentModule = null;
 		public static $NavTree = [];
+		public static $NoCache = false;
 		public static $Javascript = [];
 		public static $State = [];
 		
@@ -115,6 +116,16 @@
 		{
 			die("this should render a 404 page");
 		}
+
+		/*
+			Function: doNotCache
+				Tells Vue to not cache the response to this request (e.g. contains data not read from IndexedDB)
+		*/
+
+		public static function doNotCache(): void
+		{
+			static::$NoCache = true;
+		}
 		
 		/*
 			Function: drawState
@@ -136,12 +147,21 @@
 					static::$State[$key] = $value;
 				}
 			}
+
+			$response = [
+				"content" => Router::$Content, 
+				"state" => static::$State
+			];
+
+			if (!empty(static::$NoCache)) {
+				$response["no_cache"] = true;
+			}
 			
 			if ($as_json) {
 				header("Content-type: text/json");
 				ob_clean();
 				
-				echo json_encode(["content" => Router::$Content, "state" => static::$State], JSON_UNESCAPED_SLASHES);
+				echo json_encode($response, JSON_UNESCAPED_SLASHES);
 			} else {
 				echo '<script>let state = '.json_encode(static::$State).';</script>';
 			}

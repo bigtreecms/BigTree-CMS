@@ -70,16 +70,19 @@ let BigTree = new Vue({
 					"BigTree-Partial": true
 				},
 				complete: (response) => {
-					if (!response || typeof response.responseJSON == "undefined") {
+					if (!response || typeof response.responseJSON === "undefined") {
 						window.location.href = url;
 
 						return;
 					}
 
-					this.url_cache[url] = {
-						state: response.responseJSON.state,
-						content: response.responseJSON.content
-					};
+					if (typeof response.responseJSON.no_cache === "undefined") {
+						this.url_cache[url] = {
+							state: response.responseJSON.state,
+							content: response.responseJSON.content
+						};
+					}
+
 					this.load_partial(url, response.responseJSON.state, response.responseJSON.content);
 				}
 			});

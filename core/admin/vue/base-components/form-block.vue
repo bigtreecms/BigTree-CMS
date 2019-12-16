@@ -11,6 +11,8 @@
 			return {
 				calculated_buttons: this.buttons ? this.buttons : [{ "title": this.translate("Submit"), "primary": true }],
 				calculated_method: this.method ? this.method : "POST",
+				csrf_token: window.CSRFToken,
+				csrf_token_field: window.CSRFTokenField,
 				submit_event_value: null,
 				uid: this._uid,
 				validation_count: 0,
@@ -45,10 +47,18 @@
 						type: this.calculated_method,
 						processData: false,
 						contentType: false,
-						complete:  (response) => {
+						complete:  async (response) => {
 							BigTree.toggle_busy();
 							
 							if (typeof response.responseJSON === "object") {
+								if (typeof response.responseJSON.response.cache !== "undefined") {
+									for (let store in response.responseJSON.response.cache) {
+										if (response.responseJSON.response.cache.hasOwnProperty(store)) {
+											await BigTreeAPI.updateCache(store, response.responseJSON.response.cache[store]);
+										}
+									}
+								}
+
 								this.$emit("response", response.responseJSON);
 							} else {
 								this.$emit("response", response.responseText);
@@ -87,6 +97,7 @@
 <template>
 	<form :method="calculated_method" :action="action" v-on:submit="validate" enctype="multipart/form-data">
 		<input type="hidden" name="_bigtree_form_action_" :id="'form_action_' + uid">
+		<input type="hidden" :name="csrf_token_field" :value="csrf_token">
 		
 		<slot></slot>
 		

@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree;
 	
+	Admin::doNotCache();
 	$setting = new Setting(Router::$Commands[0], ['BigTree\Admin', 'catch404']);
 	$value = $setting->Encrypted ? "" : $setting->Value;
 ?>
