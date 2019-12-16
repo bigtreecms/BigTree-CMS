@@ -42,6 +42,7 @@
 		public $MetaDescription;
 		public $NavigationTitle;
 		public $NewWindow;
+		public $OriginalParent;
 		public $Parent;
 		public $Path;
 		public $Position;
@@ -125,7 +126,7 @@
 					$this->MetaDescription = $page["meta_description"];
 					$this->NavigationTitle = $page["nav_title"];
 					$this->NewWindow = $page["new_window"] ? true : false;
-					$this->Parent = intval($page["parent"]);
+					$this->OriginalParent = $this->Parent = intval($page["parent"]);
 					$this->Path = $page["path"];
 					$this->Position = intval($page["position"]);
 					$this->PublishAt = $page["publish_at"] ?: false;

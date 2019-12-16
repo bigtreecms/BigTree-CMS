@@ -136,8 +136,13 @@ const BigTreeTable = Vue.extend({
 				let copy = this.mutable_data.slice(0);
 
 				copy.sort((a, b) => {
-					const a_val = a[this.sort_column].toLowerCase();
-					const b_val = b[this.sort_column].toLowerCase();
+					let a_val = a[this.sort_column];
+					let b_val = b[this.sort_column];
+
+					if (typeof a_val === "string" && typeof b_val === "string") {
+						a_val = a_val.toLowerCase();
+						b_val = b_val.toLowerCase();
+					}
 
 					if (a_val === b_val) {
 						return 0;

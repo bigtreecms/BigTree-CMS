@@ -94,7 +94,7 @@
 				}];
 
 				if (page.access_level) {
-					if (page.template && page.template != "!") {
+					if (page.template && page.template !== "!") {
 						sub_nav.push({
 							title: "Content",
 							url: ADMIN_ROOT + "pages/content/" + page.id + "/"
@@ -148,7 +148,7 @@
 				let tools = [];
 
 				if (BigTree.user_level > 1) {
-					if (page.template && page.template != "!") {
+					if (page.template && page.template !== "!") {
 						tools.push({
 							title: "Edit Current Template in Developer",
 							url: ADMIN_ROOT + "developer/templates/edit/" + page.template + "/",
@@ -166,52 +166,48 @@
 				BigTree.tools = tools;
 			},
 			async data () {
-				let pages = await BigTreeAPI.getStoredDataMatching("pages", "parent", this.page);
-				
-				return pages;
+				let d = await BigTreeAPI.getStoredDataMatching("pages", "parent", this.page);
+				console.log(d);
+
+				return d;
 			}
 		},
 		computed: {
-			draggable: function() {
-				return this.can_publish_current_page && this.can_publish_visible_pages;
-			},
-			visible_pages: function() {
+			archived_pages: function() {
 				if (!this.data) {
 					return [];
 				}
-				
+
 				let pages = [];
-				let can_publish = true;
-				
+
 				for (let x = 0; x < this.data.length; x++) {
 					let page = this.data[x];
-					
-					if (!page.archived && page.in_nav) {
-						if (page.access_level !== "p") {
-							can_publish = false;
-						}
-						
+
+					if (page.archived) {
 						page.actions = this.get_actions(page);
 						page.status_tooltip = this.get_status_tooltip(page);
 						pages.push(page);
 					}
 				}
-				
-				this.can_publish_visible_pages = can_publish;
 
 				pages.sort(function(a, b) {
-					const a_position = parseInt(a.position);
-					const b_position = parseInt(b.position);
-					
-					if (a_position === b_position) {
+					const a_title = a.nav_title.toLowerCase();
+					const b_title = b.nav_title.toLowerCase();
+
+					if (a_title === b_title) {
 						return 0;
 					}
 
-					return (a_position > b_position) ? -1 : 1;
+					return (a_title < b_title) ? -1 : 1;
 				});
-				
+
 				return pages;
 			},
+
+			draggable: function() {
+				return this.can_publish_current_page && this.can_publish_visible_pages;
+			},
+
 			hidden_pages: function() {
 				if (!this.data) {
 					return [];
@@ -242,34 +238,42 @@
 
 				return pages;
 			},
-			archived_pages: function() {
+
+			visible_pages: function() {
 				if (!this.data) {
 					return [];
 				}
-
+				
 				let pages = [];
-
+				let can_publish = true;
+				
 				for (let x = 0; x < this.data.length; x++) {
 					let page = this.data[x];
-
-					if (page.archived) {
+					
+					if (!page.archived && page.in_nav) {
+						if (page.access_level !== "p") {
+							can_publish = false;
+						}
+						
 						page.actions = this.get_actions(page);
 						page.status_tooltip = this.get_status_tooltip(page);
 						pages.push(page);
 					}
 				}
 				
+				this.can_publish_visible_pages = can_publish;
+
 				pages.sort(function(a, b) {
-					const a_title = a.nav_title.toLowerCase();
-					const b_title = b.nav_title.toLowerCase();
-					
-					if (a_title === b_title) {
+					const a_position = parseInt(a.position);
+					const b_position = parseInt(b.position);
+
+					if (a_position === b_position) {
 						return 0;
 					}
-					
-					return (a_title < b_title) ? -1 : 1;
-				});
 
+					return (a_position > b_position) ? -1 : 1;
+				});
+				
 				return pages;
 			}
 		},
