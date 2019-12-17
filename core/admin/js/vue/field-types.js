@@ -19,6 +19,7 @@ const BigTreeFieldType = Vue.extend({
 		validate: function() {
 			if (this.required && !this.current_value) {
 				this.error = this.translate("Required");
+				this.$parent.$emit("field-error");
 
 				return;
 			}

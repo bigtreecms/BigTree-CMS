@@ -9,12 +9,17 @@
 		},
 		methods: {
 			validate: function() {
+				let choices = $(this.$el).find(".field_choices");
+
 				if (this.required && !$(this.$el).find("input:checked").length) {
 					this.error = this.translate("Required");
+					this.$parent.$emit("field-error");
+					choices.addClass("invalid");
 						
 					return;
 				}
-				
+
+				choices.removeClass("invalid");
 				this.error = null;
 				this.$parent.$emit("validated");
 			}

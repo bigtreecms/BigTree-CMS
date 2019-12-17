@@ -34,10 +34,11 @@
 					<span class="field_title">{{ title }}</span>
 					<span class="field_hint">{{ subtitle }}</span>
 				</legend>
-				
-				<div class="field_header_group" v-if="help_text || error">
-					<span class="field_error" v-if="error">{{ error }}</span>
-					<span class="field_status" :class="help_text_class" :style="help_text_style">{{ help_text }}</span>
+
+				<div class="field_header_group" v-if="help_text || error || required">
+					<span class="field_message field_error" v-if="error && error != translate('Required')">{{ error }}</span>
+					<span class="field_message field_status" v-if="help_text" :class="help_text_class" :style="help_text_style">{{ help_text }}</span>
+					<span class="field_message field_required" v-if="required" :class="error ? 'field_error' : ''">{{ translate('Required') }}</span>
 				</div>
 				
 				<div class="field_header_group" v-if="link">
@@ -46,8 +47,6 @@
 						<span class="field_link_label">{{ link.title }}</span>
 					</a>
 				</div>
-				
-				<span class="field_header_required" v-if="required">*</span>
 			</div>
 			
 			<slot></slot>
@@ -60,9 +59,10 @@
 					<span class="field_hint">{{ subtitle }}</span>
 				</label>
 				
-				<div class="field_header_group" v-if="help_text || error">
-					<span class="field_error" v-if="error">{{ error }}</span>
-					<span class="field_status" :class="help_text_class" :style="help_text_style">{{ help_text }}</span>
+				<div class="field_header_group" v-if="help_text || error || required">
+					<span class="field_message field_error" v-if="error && error != translate('Required')">{{ error }}</span>
+					<span class="field_message field_status" v-if="help_text" :class="help_text_class" :style="help_text_style">{{ help_text }}</span>
+					<span class="field_message field_required" v-if="required" :class="error ? 'field_error' : ''">{{ translate('Required') }}</span>
 				</div>
 				
 				<div class="field_header_group" v-if="link">
@@ -71,8 +71,6 @@
 						<span class="field_link_label">{{ link.title }}</span>
 					</a>
 				</div>
-				
-				<span class="field_header_required" v-if="required">*</span>
 			</div>
 			
 			<slot></slot>

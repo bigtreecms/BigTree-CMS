@@ -11,6 +11,7 @@
 			return {
 				calculated_buttons: this.buttons ? this.buttons : [{ "title": this.translate("Submit"), "primary": true }],
 				calculated_method: this.method ? this.method : "POST",
+				checked_count: 0,
 				csrf_token: window.CSRFToken,
 				csrf_token_field: window.CSRFTokenField,
 				submit_event_value: null,
@@ -26,6 +27,10 @@
 				if (this.validation_count === this.validation_total) {
 					clearInterval(this.validation_timer);
 					this.submit();
+				} else if (this.checked_count === this.validation_total) {
+					$(this.$el).addClass("form_submitted");
+					clearInterval(this.validation_timer);
+					BigTree.toggle_busy();
 				}
 			},
 			
@@ -35,7 +40,7 @@
 			
 			submit: function() {
 				let form = $(this.$el);
-				
+
 				if (this.redirect) {
 					form.off("submit").submit();
 				} else {
@@ -72,6 +77,8 @@
 				ev.preventDefault();
 
 				BigTree.toggle_busy("Working");
+				this.checked_count = 0;
+				this.validation_count = 0;
 
 				if (event_value) {
 					$("#form_action_" + this.uid).val(event_value);
@@ -88,7 +95,12 @@
 		
 		mounted: function() {
 			this.$on("validated", function() {
+				this.checked_count++;
 				this.validation_count++;
+			});
+
+			this.$on("field-error", function() {
+				this.checked_count++;
 			});
 		}
 	});
