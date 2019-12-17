@@ -56,7 +56,9 @@
 							BigTree.toggle_busy();
 							
 							if (typeof response.responseJSON === "object") {
-								if (typeof response.responseJSON.response.cache !== "undefined") {
+								if (typeof response.responseJSON.response === "object" &&
+									typeof response.responseJSON.response.cache !== "undefined")
+								{
 									for (let store in response.responseJSON.response.cache) {
 										if (response.responseJSON.response.cache.hasOwnProperty(store)) {
 											await BigTreeAPI.updateCache(store, response.responseJSON.response.cache[store]);

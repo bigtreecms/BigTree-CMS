@@ -939,6 +939,7 @@
 				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 
 				if ($base_path === "core/api/") {
+					header("Content-type: text/json");
 					API::triggerError("Invalid endpoint", "endpoint:notfound");
 				} else {
 					die(Text::translate("File not found."));
