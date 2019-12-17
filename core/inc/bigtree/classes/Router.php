@@ -106,7 +106,7 @@
 					if ($class) {
 						// Get the class file path
 						if (strpos($route, "*") !== false) {
-							list($extension, $file_route) = explode("*", $route);
+							[$extension, $file_route] = explode("*", $route);
 							$path = "extensions/$extension/classes/$file_route.php";
 						} else {
 							$path = "custom/inc/modules/$route.php";
@@ -480,7 +480,7 @@
 			];
 			
 			// Update the reserved top level routes with the admin's route
-			list($admin_route) = explode("/", str_replace(WWW_ROOT, "", rtrim(ADMIN_ROOT, "/")));
+			[$admin_route] = explode("/", str_replace(WWW_ROOT, "", rtrim(ADMIN_ROOT, "/")));
 			static::$ReservedRoutes[] = $admin_route;
 			
 			return static::$ReservedRoutes;
@@ -824,7 +824,7 @@
 							$has_return_link = false;
 							
 							foreach ($bar_edit_link_query_parts as $bar_edit_link_query_part) {
-								list($bar_edit_link_query_param, $bar_edit_link_query_value) = explode("=", $bar_edit_link_query_part);
+								[$bar_edit_link_query_param, $bar_edit_link_query_value] = explode("=", $bar_edit_link_query_part);
 								
 								if (strtolower($bar_edit_link_query_param) == "return_link") {
 									$has_return_link = true;
@@ -937,7 +937,12 @@
 			
 			if (!file_exists(static::$PrimaryFile)) {
 				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
-				die(Text::translate("File not found."));
+
+				if ($base_path === "core/api/") {
+					API::triggerError("Invalid endpoint", "endpoint:notfound");
+				} else {
+					die(Text::translate("File not found."));
+				}
 			}
 			
 			static::setRoutedLayoutPartials();
