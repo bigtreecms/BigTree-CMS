@@ -166,10 +166,7 @@
 				BigTree.tools = tools;
 			},
 			async data () {
-				let d = await BigTreeAPI.getStoredDataMatching("pages", "parent", this.page);
-				console.log(d);
-
-				return d;
+				return await BigTreeAPI.getStoredDataMatching("pages", "parent", this.page);
 			}
 		},
 		computed: {

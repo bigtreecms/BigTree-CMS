@@ -35,7 +35,7 @@
 <template>
 	<form-block v-on:response="submit" :action="WWW_ROOT + 'api/settings/update-value/'" :buttons="buttons">
 		<field-type-hidden-value name="id" :value="id"></field-type-hidden-value>
-		<div class="fields_wrapper">
+		<div class="fields_wrapper theme_grid">
 			<slot></slot>
 		</div>
 	</form-block>
