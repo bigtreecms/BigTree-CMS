@@ -334,9 +334,7 @@
 		bt_mkdir_writable("custom/admin/images/");
 		bt_mkdir_writable("custom/admin/modules/");
 		bt_mkdir_writable("custom/admin/pages/");
-		bt_mkdir_writable("custom/admin/form-field-types/");
-		bt_mkdir_writable("custom/admin/form-field-types/draw/");
-		bt_mkdir_writable("custom/admin/form-field-types/process/");
+		bt_mkdir_writable("custom/admin/field-types/");
 		bt_mkdir_writable("custom/inc/");
 		bt_mkdir_writable("custom/inc/modules/");
 		bt_mkdir_writable("custom/inc/required/");

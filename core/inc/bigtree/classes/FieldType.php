@@ -68,8 +68,8 @@
 				return null;
 			}
 			
-			// See if a callout ID already exists
-			if (DB::exists("field-types", $id)) {
+			// See if this field type ID already exists
+			if (DB::exists("field-types", $id) || file_exists(SERVER_ROOT."core/admin/field-types/$id/")) {
 				return null;
 			}
 			
@@ -101,7 +101,7 @@
 			}
 			
 			if (!file_exists(SERVER_ROOT."custom/admin/field-types/$id/process.php")) {
-				FileSystem::createFile(SERVER_ROOT."custom/admin/form-field-types/$id/process.php", '<?php
+				FileSystem::createFile(SERVER_ROOT."custom/admin/field-types/$id/process.php", '<?php
 	/*
 		When processing a field type you are within the scope of a Field object ($this) with the following properties:
 			Key — The key of the field (this could be the database column for a module or the ID of the template or callout resource)
@@ -146,10 +146,7 @@
 			FileSystem::deleteFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$id.php");
 			
 			// Remove related files (current)
-			FileSystem::deleteFile(SERVER_ROOT."custom/admin/field-types/$id/draw.php");
-			FileSystem::deleteFile(SERVER_ROOT."custom/admin/field-types/$id/process.php");
-			FileSystem::deleteFile(SERVER_ROOT."custom/admin/field-types/$id/settings.php");
-			FileSystem::deleteFile(SERVER_ROOT."custom/admin/field-types/$id/");
+			FileSystem::deleteDirectory(SERVER_ROOT."custom/admin/field-types/$id/");
 			
 			// Clear cache
 			FileSystem::deleteFile(SERVER_ROOT."cache/bigtree-form-field-types.json");
