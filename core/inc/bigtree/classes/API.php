@@ -29,9 +29,9 @@
 			$headers = Utils::getHeaders();
 			
 			if (!empty($headers["Authorization"])) {
-				[, $base64_data] = explode(" ", $headers["Authorization"]);
-				[$user, $key] = explode(":", base64_decode($base64_data));
-				$key_entry = SQL::fetch("SELECT * FROM bigtree_users_api_keys WHERE user = ? AND key = ?", $user, $key);
+				[$user, $key] = explode(":", base64_decode($headers["Authorization"]));
+				$key_entry = SQL::fetch("SELECT * FROM bigtree_users_api_keys WHERE `user` = ? AND `key` = ?",
+										$user, $key);
 				
 				if ($key_entry) {
 					if ($key_entry["expires"] < time()) {

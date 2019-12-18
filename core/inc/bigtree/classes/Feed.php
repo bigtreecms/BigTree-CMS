@@ -16,6 +16,7 @@
 		public $Name;
 		public $Route;
 		public $Settings;
+		public $Table;
 		public $Type;
 		
 		public static $AvailableTypes = [
