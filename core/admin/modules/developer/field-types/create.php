@@ -2,7 +2,7 @@
 	$admin->verifyCSRFToken();
 	$id = $_POST["id"];
 	
-	if ($admin->getFieldType($id) || file_exists("../core/admin/form-field-types/draw/$id.php") || file_exists("../core/admin/form-field-types/process/$id.php")) {
+	if ($admin->getFieldType($id) || file_exists(SERVER_ROOT."core/admin/field-types/$id/")) {
 		$_SESSION["bigtree_admin"]["error"] = "ID Used";
 		$_SESSION["bigtree_admin"]["saved"] = $_POST;
 		BigTree::redirect(DEVELOPER_ROOT."field-types/add/");
