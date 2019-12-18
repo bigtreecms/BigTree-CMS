@@ -27,19 +27,19 @@
 				<div class="field_wrapper">
 					<label class="field_label" :for="'field_phone_1_' + uid">{{ translate("First 3 Digits") }}</label>
 					<input class="field_input" :id="'field_phone_1_' + uid" :name="name + '[phone_1]'"
-						   v-model="area_code" :required="required" placeholder="***" type="tel">
+						   v-model="area_code" :required="required" placeholder="***" type="tel" :disabled="disabled">
 				</div>
 				
 				<div class="field_wrapper">
 					<label class="field_label" :for="'field_phone_2_' + uid">{{ translate("Second 3 Digits") }}</label>
 					<input class="field_input" :id="'field_phone_2_' + uid" :name="name + '[phone_2]'"
-						   v-model="prefix" :required="required" placeholder="***" type="tel">
+						   v-model="prefix" :required="required" placeholder="***" type="tel" :disabled="disabled">
 				</div>
 				
 				<div class="field_wrapper">
 					<label class="field_label" :for="'field_phone_3_' + uid">{{ translate("Last 4 Digits") }}</label>
 					<input class="field_input" :id="'field_phone_3_' + uid" :name="name + '[phone_3]'"
-						   v-model="line_number" :required="required" placeholder="****" type="tel">
+						   v-model="line_number" :required="required" placeholder="****" type="tel" :disabled="disabled">
 				</div>
 			</div>
 		</div>

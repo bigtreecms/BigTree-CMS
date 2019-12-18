@@ -54,8 +54,9 @@
 		   :help_text_style="help_text_style" :required="required" :error="error">
 		<textarea v-if="type === 'textarea'" class="field_input field_input_textarea" :type="type ? type : 'text'"
 				  :name="name" v-model="current_value" :id="'field_' + uid" :placeholder="placeholder"
-				  :required="required" :maxlength="maxlength"></textarea>
+				  :disabled="disabled" :required="required" :maxlength="maxlength"></textarea>
 		<input v-else class="field_input" :type="type ? type : 'text'" :name="name" v-model="current_value"
-			   :id="'field_' + uid" :placeholder="placeholder" :required="required" :maxlength="maxlength">
+			   :disabled="disabled" :id="'field_' + uid" :placeholder="placeholder" :required="required"
+			   :maxlength="maxlength">
 	</field>
 </template>

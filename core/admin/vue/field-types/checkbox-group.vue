@@ -44,7 +44,7 @@
 		<div class="field_choices">
 			<div class="field_choice" v-for="(option, index) in options">
 				<input class="field_choice_input" :name="name + '[]'" v-on:change="recalculate"
-					   :checked="current_value.indexOf(option.value) > -1"
+					   :disabled="disabled" :checked="current_value.indexOf(option.value) > -1"
 					   :value="option.value" type="checkbox" :id="'field_' + uid + '_' + index">
 				<span class="field_choice_indicator field_choice_indicator_checkbox"></span>
 				<label class="field_choice_label" :for="'field_' + uid + '_' + index">{{ option.title }}</label>

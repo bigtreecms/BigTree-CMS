@@ -32,7 +32,7 @@
 		<div class="field_choices">
 			<div class="field_choice" v-for="(option, index) in options">
 				<input class="field_choice_input" :name="name" :value="option.value" type="radio"
-					   :id="'field_' + this._uid + '_' + index" v-model="current_value">
+					   :disabled="disabled" :id="'field_' + this._uid + '_' + index" v-model="current_value">
 				<span class="field_choice_indicator field_choice_indicator_radio"></span>
 				<label class="field_choice_label" :for="'field_' + this._uid + '_' + index">{{ option.title }}</label>
 			</div>

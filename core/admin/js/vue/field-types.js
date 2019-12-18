@@ -4,7 +4,8 @@ const BigTreeFieldType = Vue.extend({
 		"subtitle",
 		"name",
 		"value",
-		"required"
+		"required",
+		"disabled"
 	],
 
 	data: function() {

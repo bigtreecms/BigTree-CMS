@@ -25,13 +25,15 @@
 				<div class="field_wrapper">
 					<label class="field_label" :for="'field_first_name_' + uid">{{ translate("First Name") }}</label>
 					<input class="field_input" :id="'field_first_name_' + uid" :name="name + '[first]'"
-						   v-model="first" :placeholder="translate('First Name')" type="text" :required="required">
+						   v-model="first" :placeholder="translate('First Name')" type="text"
+						   :disabled="disabled" :required="required">
 				</div>
 				
 				<div class="field_wrapper">
 					<label class="field_label" :for="'field_last_name_' + uid">{{ translate("Last Name") }}</label>
 					<input class="field_input" :id="'field_last_name_' + uid" :name="name + '[last]'"
-						   v-model="last" :placeholder="translate('Last Name')" type="text" :required="required">
+						   v-model="last" :placeholder="translate('Last Name')" type="text"
+						   :disabled="disabled" :required="required">
 				</div>
 			</div>
 		</div>

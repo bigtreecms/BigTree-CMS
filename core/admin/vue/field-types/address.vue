@@ -121,7 +121,7 @@
 				<div class="field_wrapper">
 					<label class="field_label" :for="'field_street_' + uid">{{ translate("Street Address") }}</label>
 					<input class="field_input" :id="'field_street_' + uid" :name="name + '[street]'"
-						   v-model="street" :placeholder="translate('Street')" type="text" :required="required">
+						   :disabled="disabled" :required="required" v-model="street" :placeholder="translate('Street')">
 				</div>
 			</div>
 			
@@ -129,13 +129,13 @@
 				<div class="field_wrapper">
 					<label class="field_label" :for="'field_city_' + uid">{{ translate("City") }}</label>
 					<input class="field_input" :id="'field_city_' + uid" :name="name + '[city]'" :required="required"
-						   :placeholder="translate('City')" type="text" v-model="city">
+						   :disabled="disabled" :placeholder="translate('City')" type="text" v-model="city">
 				</div>
 				
 				<div v-if="country === 'United States'" class="field_wrapper">
 					<label class="field_label" :for="'field_state_' + uid">{{ translate("State") }}</label>
 					<select class="field_select" :id="'field_state_' + uid" :name="name + '[state]'"
-							:required="required" v-model="state">
+							:disabled="disabled" :required="required" v-model="state">
 						<option value="">{{ translate('Select a State') }}</option>
 						<option v-for="(item, abbreviation) in this.states" :value="abbreviation">{{ item }}</option>
 					</select>
@@ -145,7 +145,8 @@
 				<div v-else class="field_wrapper">
 					<label class="field_label" :for="'field_state_' + uid">{{ translate("State or Province") }}</label>
 					<input class="field_input" :id="'field_state_' + uid" :name="name + '[state]'" v-model="province"
-						   :placeholder="translate('State / Province')" type="text" :required="required" >
+						   :placeholder="translate('State / Province')" type="text" :disabled="disabled"
+						   :required="required">
 				</div>
 			</div>
 			
@@ -155,14 +156,14 @@
 						{{ translate(country === "United States" ? "Zip Code" : "Zip or Postal Code") }}
 					</label>
 					<input class="field_input" :id="'field_zip_' + uid" :name="name + '[zip]'" v-model="zip"
-						   type="text" :required="required"
+						   type="text" :required="required" :disabled="disabled"
 						   :placeholder="translate(country === 'United States' ? 'Zip Code' : 'Zip / Postal Code')">
 				</div>
 				
 				<div class="field_wrapper">
 					<label class="field_label" :for="'field_country_' + uid">{{ translate("Country") }}</label>
 					<select class="field_select" :id="'field_country_' + uid" :name="name + '[country]'"
-							:required="required" v-model="country">
+							:disabled="disabled" :required="required" v-model="country">
 						<option value="">{{ translate('Select a Country') }}</option>
 						<option v-for="item in this.countries">{{ item }}</option>
 					</select>
