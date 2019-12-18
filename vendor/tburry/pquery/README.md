@@ -1,10 +1,9 @@
 # pQuery
 
-[![Build Status](https://img.shields.io/travis/tburry/pquery.svg?style=flat)](https://travis-ci.org/tburry/pquery)
-[![Coverage](https://img.shields.io/scrutinizer/coverage/g/tburry/pquery.svg?style=flat)](https://scrutinizer-ci.com/g/tburry/pquery/)
-[![Latest Stable Version](http://img.shields.io/packagist/v/tburry/pquery.svg?style=flat)](https://packagist.org/packages/tburry/pquery)
+This fork of pQuery is intended for use in the BigTree CMS project. 
+The only change at present is removing short attributes (name="name" shortened to name) as they break Vue template parsing.
 
-pQuery is a jQuery like html dom parser written php. It is a fork of the [ganon dom parser](https://code.google.com/p/ganon/).
+pQuery is a jQuery like html dom parser written in php. It is a fork of the [ganon dom parser](https://code.google.com/p/ganon/).
 
 ## Basic usage
 

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<!-- This is a simple test file that has a variety of html elements. -->
+<!-- CHANGING THIS FILE MAY BREAK EXISTING TESTS! -->
+<html>
+    <head>
+        <title>Hello World</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        
+        <style>
+            body {
+                font-family: Helvetica Neue;
+                width: 650px;
+                margin: 100px auto;
+                font-size: 24px;
+                line-height: 1.5;
+            }
+            
+            input, select, textarea {
+                font-size: 24px;
+            }
+            
+            input[type="text"],
+            select,
+            textarea {
+                display: block;
+                width: 100%;
+                padding: 8px;
+                height: 40px;
+                border: none;
+                background: #efefef;
+                box-sizing: border-box;
+                margin: 8px 0;
+            }
+            
+            textarea {
+                min-height: 4.5em;
+            }
+        </style>
+    </head>
+    <body id="body" class="body body-hellow">
+        <h1>Hello World!</h1>
+        
+        <p class="first">I'm very pleased to meet <b>you</b>.</p>
+        
+        <p class="second">Don't hesitate to ask me for <i>something grand</i>!</p>
+        
+        <!-- Form elements have a lot of special cases. -->
+        <form method="post" action="/">
+            <p class="form-row row-name">
+                <label for="animal">What is your favorite animal?</label>
+                <input type="text" id="animal" name="animal" />
+            </p>
+            
+            <p class="form-row row-opt">
+                <label><input type="checkbox" name="tell" value="1" checked /> Let me tell you what I want.</label>
+            </p>
+            
+            <p class="form-row row-opt">
+                <label lang="en-CA"><input type="radio" name="door" value="1" /> I like door number one.</label>
+                <br />
+                <label lang="en-US"><input type="radio" name="door" value="2" checked /> I like door number two.</label>
+            </p>
+            
+            <p class="form-row row-dropdown">
+                <label for="house">What house do you want to live in?</label>
+                <select id="house" name="house">
+                    <option value="shack">Shack</option>
+                    <option value="mansion">Mansion</option>
+                    <option value="moon-base" selected>Moon Base</option>
+                </select>
+            </p>
+            
+            <p class="form-row row-body">
+                <label for="about">Tell me about yourself</label>
+                <textarea id="about" name="about" placeholder="Type Something...">...</textarea>
+            </p>
+        </form>
+    </body>
+</html>

@@ -1,4 +1,10 @@
 {
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/bigtreecms/pquery"
+        }
+    ],
     "require": {
         "aws/aws-sdk-php": "^3.87",
         "ausi/slug-generator": "^1.0",
@@ -20,6 +26,6 @@
         "ext-xmlwriter": "*",
         "ext-exif": "*",
         "scssphp/scssphp": "^1.0",
-        "tburry/pquery": "^1.1"
+        "tburry/pquery": "dev-master"
     }
 }

@@ -441,6 +441,9 @@ class Math_BigInteger
                 // (?<=^|-)0*: find any 0's that are preceded by the start of the string or by a - (ie. octals)
                 // [^-0-9].*: find any non-numeric characters and then any characters that follow that
                 $x = preg_replace('#(?<!^)(?:-).*|(?<=^|-)0*|[^-0-9].*#', '', $x);
+                if (!strlen($x) || $x == '-') {
+                    $x = '0';
+                }
 
                 switch (MATH_BIGINTEGER_MODE) {
                     case MATH_BIGINTEGER_MODE_GMP:
@@ -553,7 +556,7 @@ class Math_BigInteger
                 $bytes = chr(0);
             }
 
-            if (ord($bytes[0]) & 0x80) {
+            if ($this->precision <= 0 && (ord($bytes[0]) & 0x80)) {
                 $bytes = chr(0) . $bytes;
             }
 
@@ -721,6 +724,7 @@ class Math_BigInteger
         }
 
         $temp = $this->copy();
+        $temp->bitmask = false;
         $temp->is_negative = false;
 
         $divisor = new Math_BigInteger();
@@ -857,7 +861,7 @@ class Math_BigInteger
             $opts[] = 'OpenSSL';
         }
         if (!empty($opts)) {
-            $engine.= ' (' . implode($opts, ', ') . ')';
+            $engine.= ' (' . implode('.', $opts) . ')';
         }
         return array(
             'value' => '0x' . $this->toHex(true),
@@ -1583,7 +1587,9 @@ class Math_BigInteger
             $temp_value = array($quotient_value[$q_index]);
             $temp = $temp->multiply($y);
             $temp_value = &$temp->value;
-            $temp_value = array_merge($adjust, $temp_value);
+            if (count($temp_value)) {
+                $temp_value = array_merge($adjust, $temp_value);
+            }
 
             $x = $x->subtract($temp);
 
@@ -2724,7 +2730,14 @@ class Math_BigInteger
     {
         switch (MATH_BIGINTEGER_MODE) {
             case MATH_BIGINTEGER_MODE_GMP:
-                return gmp_cmp($this->value, $y->value);
+                $r = gmp_cmp($this->value, $y->value);
+                if ($r < -1) {
+                    $r = -1;
+                }
+                if ($r > 1) {
+                    $r = 1;
+                }
+                return $r;
             case MATH_BIGINTEGER_MODE_BCMATH:
                 return bccomp($this->value, $y->value, 0);
         }
@@ -3603,7 +3616,14 @@ class Math_BigInteger
         switch (MATH_BIGINTEGER_MODE) {
             case MATH_BIGINTEGER_MODE_GMP:
                 if ($this->bitmask !== false) {
+                    $flip = gmp_cmp($result->value, gmp_init(0)) < 0;
+                    if ($flip) {
+                        $result->value = gmp_neg($result->value);
+                    }
                     $result->value = gmp_and($result->value, $result->bitmask->value);
+                    if ($flip) {
+                        $result->value = gmp_neg($result->value);
+                    }
                 }
 
                 return $result;
@@ -3618,6 +3638,7 @@ class Math_BigInteger
         $value = &$result->value;
 
         if (!count($value)) {
+            $result->is_negative = false;
             return $result;
         }
 

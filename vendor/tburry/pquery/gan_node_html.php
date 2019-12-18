@@ -191,7 +191,7 @@ class DomNode implements IQuery {
 	 * the value, e.g. selected="selected" will be selected.
 	 * @var bool
 	 */
-	var $attribute_shorttag = true;
+	var $attribute_shorttag = false;
 
 	/**
 	 * Function map used for the selector filter

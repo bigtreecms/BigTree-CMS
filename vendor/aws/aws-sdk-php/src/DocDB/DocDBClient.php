@@ -33,6 +33,8 @@ use Aws\AwsClient;
  * @method \GuzzleHttp\Promise\Promise deleteDBInstanceAsync(array $args = [])
  * @method \Aws\Result deleteDBSubnetGroup(array $args = [])
  * @method \GuzzleHttp\Promise\Promise deleteDBSubnetGroupAsync(array $args = [])
+ * @method \Aws\Result describeCertificates(array $args = [])
+ * @method \GuzzleHttp\Promise\Promise describeCertificatesAsync(array $args = [])
  * @method \Aws\Result describeDBClusterParameterGroups(array $args = [])
  * @method \GuzzleHttp\Promise\Promise describeDBClusterParameterGroupsAsync(array $args = [])
  * @method \Aws\Result describeDBClusterParameters(array $args = [])
@@ -83,5 +85,9 @@ use Aws\AwsClient;
  * @method \GuzzleHttp\Promise\Promise restoreDBClusterFromSnapshotAsync(array $args = [])
  * @method \Aws\Result restoreDBClusterToPointInTime(array $args = [])
  * @method \GuzzleHttp\Promise\Promise restoreDBClusterToPointInTimeAsync(array $args = [])
+ * @method \Aws\Result startDBCluster(array $args = [])
+ * @method \GuzzleHttp\Promise\Promise startDBClusterAsync(array $args = [])
+ * @method \Aws\Result stopDBCluster(array $args = [])
+ * @method \GuzzleHttp\Promise\Promise stopDBClusterAsync(array $args = [])
  */
 class DocDBClient extends AwsClient {}

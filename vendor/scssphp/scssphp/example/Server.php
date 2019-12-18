@@ -62,13 +62,16 @@ class Server
      */
     protected function inputName()
     {
-        switch (true) {
-            case isset($_GET['p']):
-                return $_GET['p'];
-            case isset($_SERVER['PATH_INFO']):
-                return $_SERVER['PATH_INFO'];
-            case isset($_SERVER['DOCUMENT_URI']):
-                return substr($_SERVER['DOCUMENT_URI'], strlen($_SERVER['SCRIPT_NAME']));
+        if (isset($_GET['p'])) {
+            return $_GET['p'];
+        }
+
+        if (isset($_SERVER['PATH_INFO'])) {
+            return $_SERVER['PATH_INFO'];
+        }
+
+        if (isset($_SERVER['DOCUMENT_URI'])) {
+            return substr($_SERVER['DOCUMENT_URI'], strlen($_SERVER['SCRIPT_NAME']));
         }
     }
 
@@ -96,6 +99,8 @@ class Server
     /**
      * Get path to cached .css file
      *
+     * @param string $fname
+     *
      * @return string
      */
     protected function cacheName($fname)
@@ -105,6 +110,8 @@ class Server
 
     /**
      * Get path to meta data
+     *
+     * @param string $out
      *
      * @return string
      */
@@ -284,11 +291,11 @@ class Server
 
         $compiled = $this->scss->compile(file_get_contents($in), $in);
 
-        if ($out !== null) {
-            return file_put_contents($out, $compiled);
+        if (is_null($out)) {
+            return $compiled;
         }
 
-        return $compiled;
+        return file_put_contents($out, $compiled);
     }
 
     /**
@@ -466,19 +473,20 @@ class Server
             return null;
         }
 
-        if ($root !== null) {
-            // If we have a root value which means we should rebuild.
-            $out = [];
-            $out['root'] = $root;
-            $out['compiled'] = $this->compileFile($root);
-            $out['files'] = $this->scss->getParsedFiles();
-            $out['updated'] = time();
-            return $out;
-        } else {
+        if (is_null($root)) {
             // No changes, pass back the structure
             // we were given initially.
             return $in;
         }
+
+        // If we have a root value which means we should rebuild.
+        $out = [];
+        $out['root'] = $root;
+        $out['compiled'] = $this->compileFile($root);
+        $out['files'] = $this->scss->getParsedFiles();
+        $out['updated'] = time();
+
+        return $out;
     }
 
     /**
