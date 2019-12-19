@@ -10,8 +10,6 @@
 	{
 		
 		public $Description;
-		public $DisplayDefault;
-		public $DisplayField;
 		public $Extension;
 		public $Fields;
 		public $ID;
@@ -48,8 +46,6 @@
 				} else {
 					$this->ID = $callout["id"];
 					$this->Description = $callout["description"];
-					$this->DisplayDefault = $callout["display_default"];
-					$this->DisplayField = $callout["display_field"];
 					$this->Extension = $callout["extension"];
 					$this->Fields = Link::decode($callout["fields"]);
 					$this->Level = $callout["level"];
@@ -169,15 +165,13 @@
 				description - The description.
 				level - Access level (0 for everyone, 1 for administrators, 2 for developers).
 				fields - An array of fields.
-				display_field - The field to use as the display field describing a user's callout
-				display_default - The text string to use in the event the display_field is blank or non-existent
 
 			Returns:
 				A Callout object if successful, null if an invalid ID was passed or the ID is already in use
 		*/
 		
-		public static function create(string $id, string $name, string $description, int $level, array $fields,
-									  string $display_field, string $display_default): ?Callout
+		public static function create(string $id, string $name, string $description, int $level,
+									  array $fields): ?Callout
 		{
 			// Check to see if it's a valid ID
 			if (!ctype_alnum(str_replace(["-", "_"], "", $id)) || strlen($id) > 127) {
@@ -233,10 +227,7 @@
 				"name" => Text::htmlEncode($name),
 				"description" => Text::htmlEncode($description),
 				"fields" => $fields,
-				"level" => $level,
-				"display_field" => $display_field,
-				"display_default" => $display_default
-			
+				"level" => $level
 			]);
 			
 			AuditTrail::track("config:callouts", $id, "add", "created");
@@ -315,8 +306,6 @@
 				DB::update("callouts", $this->ID, [
 					"name" => Text::htmlEncode($this->Name),
 					"description" => Text::htmlEncode($this->Description),
-					"display_default" => $this->DisplayDefault,
-					"display_field" => $this->DisplayField,
 					"fields" => $fields,
 					"level" => $this->Level,
 					"position" => $this->Position,
@@ -325,8 +314,7 @@
 				
 				AuditTrail::track("config:callouts", $this->ID, "update", "updated");
 			} else {
-				$new = static::create($this->ID, $this->Name, $this->Description, $this->Level, $this->Fields,
-									  $this->DisplayField, $this->DisplayDefault);
+				$new = static::create($this->ID, $this->Name, $this->Description, $this->Level, $this->Fields);
 				
 				if ($new !== false) {
 					$this->inherit($new);
@@ -353,15 +341,12 @@
 				display_default - The text string to use in the event the display_field is blank or non-existent
 		*/
 		
-		public function update(string $name, string $description, int $level, array $fields, string $display_field,
-							   string $display_default): ?bool
+		public function update(string $name, string $description, int $level, array $fields): ?bool
 		{
 			$this->Name = $name;
 			$this->Description = $description;
 			$this->Level = $level;
 			$this->Fields = $fields;
-			$this->DisplayField = $display_field;
-			$this->DisplayDefault = $display_default;
 			
 			return $this->save();
 		}
