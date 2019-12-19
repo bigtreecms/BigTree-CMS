@@ -38,7 +38,7 @@
 	$filtered_use_cases = [];
 	
 	foreach ($_POST["use_cases"] as $use_case) {
-		$use_case = strtolower($use_case);
+		$use_case = trim(strtolower($use_case));
 		
 		if (in_array($use_case, $valid_use_cases)) {
 			$filtered_use_cases[] = $use_case;
