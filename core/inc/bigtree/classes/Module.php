@@ -35,14 +35,12 @@
 		public $Extension;
 		public $Group;
 		public $GroupBasedPermissions = [];
-		public $Icon;
 		public $Name;
 		public $Position;
 		public $Route;
 		
 		public static $CachesBuilt = false;
 		public static $ClassCache = [];
-		public static $IconClasses = ["add", "delete", "list", "edit", "refresh", "gear", "truck", "token", "export", "redirect", "help", "error", "ignored", "world", "server", "clock", "network", "car", "key", "folder", "calendar", "search", "setup", "page", "computer", "picture", "news", "events", "blog", "form", "category", "map", "done", "warning", "user", "question", "sports", "credit_card", "cart", "cash_register", "lock_key", "bar_graph", "comments", "email", "weather", "pin", "planet", "mug", "atom", "shovel", "cone", "lifesaver", "target", "ribbon", "dice", "ticket", "pallet", "lightning", "camera", "video", "twitter", "facebook", "trail", "crop", "cloud", "phone", "music", "house", "featured", "heart", "link", "flag", "bug", "games", "coffee", "airplane", "bank", "gift", "badge", "award", "radio"];
 		public static $ReservedColumns = [
 			"id",
 			"position",
@@ -81,7 +79,6 @@
 					$this->Extension = $module["extension"];
 					$this->Group = $module["group"] ?: false;
 					$this->GroupBasedPermissions = $module["gbp"];
-					$this->Icon = $module["icon"];
 					$this->ID = $module["id"];
 					$this->Name = $module["name"];
 					$this->Position = intval($module["position"]);
@@ -177,16 +174,15 @@
 				class - The module class to create.
 				table - The table this module relates to.
 				permissions - The group-based permissions.
-				icon - The icon to use.
-				route - Desired route to use (defaults to auto generating if this is left false).
-				developer_only - Sets a module to be only accessible/visible to developers (defaults to false).
+				route - Desired route to use (defaults to auto generating if this is left empty).
+				developer_only - Sets the module to be only accessible/visible to developers (defaults to false).
 
 			Returns:
 				A Module object or null if an invalid route was passed.
 		*/
 		
 		public static function create(string $name, string $group, string $class, string $table, ?array $permissions,
-									  string $icon, ?string $route = null, bool $developer_only = false): ?Module
+									  ?string $route = null, bool $developer_only = false): ?Module
 		{
 			// Find an available module route.
 			$route = !is_null($route) ? $route : Link::urlify($name);
@@ -261,7 +257,6 @@
 				"name" => Text::htmlEncode($name),
 				"route" => $route,
 				"class" => $class,
-				"icon" => $icon,
 				"group" => $group ?: null,
 				"gbp" => $permissions ?: [],
 				"developer_only" => ($developer_only ? "on" : ""),
@@ -537,7 +532,6 @@
 					"name" => Text::htmlEncode($this->Name),
 					"route" => DB::unique("modules", "route", Link::urlify($this->Route), $this->ID),
 					"class" => $this->Class,
-					"icon" => $this->Icon,
 					"position" => $this->Position,
 					"gbp" => array_filter((array) $this->GroupBasedPermissions),
 					"developer_only" => $this->DeveloperOnly ? "on" : ""
@@ -565,18 +559,16 @@
 				group - The group for the module.
 				class - The module class name.
 				permissions - The group-based permissions.
-				icon - The icon to use.
 				developer_only - Sets a module to be accessible/visible to only developers.
 		*/
 		
-		public function update(string $name, string $group, string $class, array $permissions, string $icon,
+		public function update(string $name, string $group, string $class, array $permissions,
 							   bool $developer_only = false): ?bool
 		{
 			$this->Name = $name;
 			$this->Group = $group ?: null;
 			$this->Class = $class;
 			$this->GroupBasedPermissions = $permissions;
-			$this->Icon = $icon;
 			$this->DeveloperOnly = $developer_only;
 			
 			return $this->save();
