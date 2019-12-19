@@ -103,7 +103,7 @@
 			Parameters:
 				id - Id for the template.
 				name - Name
-				routed - Basic ("") or Routed ("on")
+				routed - false for Basic, true for Routed
 				level - Access level (0 for everyone, 1 for administrators, 2 for developers)
 				module - Related module id
 				fields - An array of fields
@@ -113,7 +113,7 @@
 				Template object if successful, null if there's an ID collision or a bad ID is passed
 		*/
 		
-		public static function create(string $id, string $name, bool $routed, int $level, ?int $module, array $fields,
+		public static function create(string $id, string $name, bool $routed, int $level, ?string $module, array $fields,
 									  ?array $hooks = null): ?Template
 		{
 			// Check to see if it's a valid ID
@@ -274,7 +274,7 @@
 				hooks - An array of hooks (pre, post, edit, and publish keys) or null
 		*/
 		
-		public function update(string $name, int $level, ?int $module, array $fields, ?array $hooks): void
+		public function update(string $name, int $level, ?string $module, array $fields, ?array $hooks): void
 		{
 			$this->Fields = $fields;
 			$this->Hooks = $hooks;

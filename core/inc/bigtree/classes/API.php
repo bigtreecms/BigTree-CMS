@@ -664,7 +664,7 @@
 				} elseif ($type == "string_int" && !is_string($val) && !is_int($val)) {
 					$error = true;
 				} elseif ($type == "bool") {
-					$data_source[$key] = !empty($data_source[$key]);
+					$data_source[$key] = true;
 				}
 				
 				if ($error) {
