@@ -64,5 +64,8 @@
 		$cache = ["put" => [API::getSettingsCacheObject($setting->ID)]];
 	}
 	
-	API::sendResponse(["updated" => true, "cache" => ["settings" => $cache]], "Updated Setting");
+	API::sendResponse([
+		"updated" => true,
+		"cache" => ["settings" => $cache]
+	], "Updated Setting");
 	

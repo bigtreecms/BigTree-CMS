@@ -18,4 +18,7 @@
 	$group = ModuleGroup::create($_POST["name"]);
 	$cache = DB::get("module-groups", $group->ID);
 
-	API::sendResponse(["created" => true, "cache" => ["module-groups" => ["put" => [$cache]]]]);
+	API::sendResponse([
+		"created" => true,
+		"cache" => ["module-groups" => ["put" => [$cache]]]
+	], "Created Module Group");

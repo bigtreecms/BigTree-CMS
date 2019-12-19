@@ -26,4 +26,7 @@
 		$position--;
 	}
 	
-	API::sendResponse(["updated" => true, "cache" => ["modules" => ["put" => $cache]]]);
+	API::sendResponse([
+		"updated" => true,
+		"cache" => ["modules" => ["put" => $cache]]
+	], "Ordered Modules");

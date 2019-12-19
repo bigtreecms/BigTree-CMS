@@ -20,3 +20,4 @@
 		$user->initPasswordReset();
 	}
 	
+	API::sendResponse([], "Initiated Password Reset");

@@ -26,4 +26,7 @@
 		$position--;
 	}
 	
-	API::sendResponse(["updated" => true, "cache" => ["templates" => ["put" => $cache]]]);
+	API::sendResponse([
+		"updated" => true,
+		"cache" => ["templates" => ["put" => $cache]]
+	], "Ordered Templates");

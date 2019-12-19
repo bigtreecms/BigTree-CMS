@@ -24,4 +24,7 @@
 	$group->save();
 	$cache = DB::get("module-groups", $group->ID);
 	
-	API::sendResponse(["updated" => true, "cache" => ["module-groups" => ["put" => [$cache]]]]);
+	API::sendResponse([
+		"updated" => true,
+		"cache" => ["module-groups" => ["put" => [$cache]]]
+	], "Updated Module Group");

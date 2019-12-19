@@ -45,10 +45,6 @@
 	
 	API::sendResponse([
 		"created" => true,
-		"cache" => [
-			"settings" => [
-				"put" => [API::getSettingsCacheObject($setting->ID)]
-			]
-		]
+		"cache" => ["settings" => ["put" => [API::getSettingsCacheObject($setting->ID)]]]
 	], "Created Setting");
 	
