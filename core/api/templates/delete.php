@@ -17,7 +17,6 @@
 	API::requireParameters(["id" => "string"]);
 	
 	$id = $_POST["id"];
-	$cache_actions = [];
 	
 	if (!DB::exists("templates", $id)) {
 		API::triggerError("Template was not found.", "template:missing", "missing");
@@ -25,9 +24,8 @@
 	
 	$template = new Template($id);
 	$template->delete();
-	$cache_actions["templates"] = ["delete" => [$id]];
 	
 	API::sendResponse([
 		"deleted" => true,
-		"cache" => $cache_actions
+		"cache" => ["templates" => ["delete" => [$id]]]
 	], "Deleted Template");

@@ -17,7 +17,6 @@
 	API::requireParameters(["id" => "string"]);
 	
 	$id = $_POST["id"];
-	$cache_actions = [];
 	
 	if (!DB::exists("modules", $id)) {
 		API::triggerError("Module was not found.", "module:missing", "missing");
@@ -25,9 +24,8 @@
 	
 	$module = new Module($id);
 	$module->delete();
-	$cache_actions["modules"] = ["delete" => [$id]];
 	
 	API::sendResponse([
 		"deleted" => true,
-		"cache" => $cache_actions
+		"cache" => ["modules" => ["delete" => [$id]]]
 	], "Deleted Module");

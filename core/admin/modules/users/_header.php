@@ -9,7 +9,7 @@
 		Auth::user()->requireLevel(1);
 	}
 
-	$policy = array_filter((array)$bigtree["security-policy"]["password"]) ? $bigtree["security-policy"]["password"] : false;
+	$policy = array_filter((array) Admin::$SecurityPolicy["password"]);
 	$policy_text = "";
 	
 	if (!empty($policy["length"]) || !empty($policy["mixedcase"]) || !empty($policy["numbers"]) || !empty($policy["nonalphanumeric"]))  {

@@ -1,5 +1,9 @@
 <?php
 	namespace BigTree;
+
+	if (!empty(Router::$Path[0]) && Router::$Path[0] === "api") {
+		API::triggerError("Your IP address is either banned or not in the allowed IP ranges.", "auth:error", "auth");
+	}
 ?>
 <h1><?=Text::translate("Access Denied")?></h1>
 <form method="post" action="" class="module">

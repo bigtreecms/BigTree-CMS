@@ -214,7 +214,7 @@
 			global $bigtree;
 			
 			$ip = ip2long(Router::getRemoteIP());
-			$bigtree["security-policy"] = $policy = Setting::value("bigtree-internal-security-policy");
+			Admin::$SecurityPolicy = $policy = Setting::value("bigtree-internal-security-policy");
 			
 			// Check banned IPs list for the user's IP
 			if (!empty($policy["banned_ips"])) {

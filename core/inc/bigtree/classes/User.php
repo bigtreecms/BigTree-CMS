@@ -123,7 +123,7 @@
 				name - Name
 				company - Company
 				level - User Level (0 for regular, 1 for admin, 2 for developer)
-				permission - Array of permissions data
+				permissions - Array of permissions data
 				alerts - Array of alerts data
 				daily_digest - Whether the user wishes to receive the daily digest email
 
@@ -153,7 +153,7 @@
 				"timezone" => $timezone
 			];
 			
-			if (empty($bigtree["security-policy"]["password"]["invitations"])) {
+			if (empty(Admin::$SecurityPolicy["password"]["invitations"])) {
 				$insert["password"] = password_hash(trim($password), PASSWORD_DEFAULT);
 				$insert["new_hash"] = "on";
 			} else {
@@ -175,7 +175,7 @@
 				
 				$email_obj = new Email;
 				$email_obj->To = $email;
-				$email_obj->Title = "$site_title - Set Your Password";
+				$email_obj->Subject = "$site_title - Set Your Password";
 				$email_obj->HTML = $html;
 				$email_obj->ReplyTo = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.", "", $_SERVER["HTTP_HOST"]) : str_replace(["http://www.", "https://www.", "http://", "https://"], "", DOMAIN));
 				$email_obj->send();
@@ -535,33 +535,31 @@
 		
 		public static function validatePassword(string $password): bool
 		{
-			global $bigtree;
-			
 			$security_policy = Setting::value("bigtree-internal-security-policy");
 			$policy = $security_policy["password"];
 			$failed = false;
 			
-			if (!is_array($policy)) {
+			if (!is_array($policy) || empty(array_filter($policy))) {
 				return true;
 			}
 			
 			// Check length policy
-			if ($policy["length"] && strlen($password) < $policy["length"]) {
+			if (!empty($policy["length"]) && strlen($password) < $policy["length"]) {
 				$failed = true;
 			}
 			
 			// Check case policy
-			if ($policy["multicase"] && strtolower($password) === $password) {
+			if (!empty($policy["multicase"]) && strtolower($password) === $password) {
 				$failed = true;
 			}
 			
 			// Check numeric policy
-			if ($policy["numbers"] && !preg_match("/[0-9]/", $password)) {
+			if (!empty($policy["numbers"]) && !preg_match("/[0-9]/", $password)) {
 				$failed = true;
 			}
 			
 			// Check non-alphanumeric policy
-			if (function_exists("ctype_alnum") && $policy["nonalphanumeric"] && ctype_alnum($password)) {
+			if (function_exists("ctype_alnum") && !empty($policy["nonalphanumeric"]) && ctype_alnum($password)) {
 				$failed = true;
 			}
 			

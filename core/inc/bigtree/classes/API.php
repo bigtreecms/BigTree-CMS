@@ -26,8 +26,9 @@
 		
 		public static function authenticate(): void
 		{
-			$headers = Utils::getHeaders();
-			
+			Auth::initSecurity();
+			$headers = Utils::getHeaders();			
+
 			if (!empty($headers["Authorization"])) {
 				[$user, $key] = explode(":", base64_decode($headers["Authorization"]));
 				$key_entry = SQL::fetch("SELECT * FROM bigtree_users_api_keys WHERE `user` = ? AND `key` = ?",
@@ -44,13 +45,13 @@
 						// Set Auth state to be this user
 						Auth::$ID = static::$AuthenticatedUser->ID;
 						Auth::$Level = static::$AuthenticatedUser->Level;
+						Auth::$Name = static::$AuthenticatedUser->Name;
 						Auth::$Permissions = static::$AuthenticatedUser->Permissions;
 					}
 				} else {
 					static::triggerError("The provided API token is invalid.", "token:invalid", "authentication");
 				}
 			} else {
-				Auth::initSecurity();
 				Auth::authenticate();
 				
 				if (is_null(Auth::user()->ID)) {

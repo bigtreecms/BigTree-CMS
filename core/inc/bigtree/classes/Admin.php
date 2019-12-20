@@ -10,9 +10,10 @@
 		
 		public static $CSS = [];
 		public static $CurrentModule = null;
+		public static $Javascript = [];
 		public static $NavTree = [];
 		public static $NoCache = false;
-		public static $Javascript = [];
+		public static $SecurityPolicy = [];
 		public static $State = [];
 		
 		/*
