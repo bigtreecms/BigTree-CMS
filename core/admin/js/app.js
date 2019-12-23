@@ -17,6 +17,12 @@ let BigTree = new Vue({
 		user_level: state.user_level
 	},
 	methods: {
+		confirm: async function(message) {
+			let response = confirm(message);
+
+			return response;
+		},
+
 		growl: function(message) {
 			message = this.translate(message);
 

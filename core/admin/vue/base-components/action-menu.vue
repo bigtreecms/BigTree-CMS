@@ -16,11 +16,11 @@
 				this.$parent.$emit("action_menu_change", { id: this.id, value: this.current_value });
 			},
 
-			click: function(ev, index) {
+			click: async function(ev, index) {
 				ev.preventDefault();
 				
 				if (typeof this.actions[index].confirm !== "undefined") {
-					if (!confirm(this.actions[index].confirm)) {
+					if (!await BigTree.confirm(this.actions[index].confirm)) {
 						return;
 					}
 				}

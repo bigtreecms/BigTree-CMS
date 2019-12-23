@@ -720,6 +720,17 @@
 	@include button_with_icon;
 }
 
+.field_relationship_add {
+	margin: 0;
+	width: 90px;
+}
+
+.field_relationship_select {
+	float: left;
+	margin: 0 5px 0 0;
+	width: calc(100% - 95px);
+}
+
 .field_matrix_tool_inner {}
 
 .field_matrix_tool_label {}

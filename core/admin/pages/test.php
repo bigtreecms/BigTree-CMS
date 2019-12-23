@@ -10,6 +10,12 @@
 	}
 ?>
 
+<field-type-relationship title="One to Many Field" subtitle="A subtitle" :value="[1, 3]" :options="[
+ { 'value': '1', 'title': 'First One'},
+ { 'value': '2', 'title': 'Second'},
+ { 'value': '3', 'title': 'Third' }
+]" name="one_to_many" draggable="true"></field-type-relationship>
+
 <?php /*
 <help-text text="Donec id elit non mi porta gravida at eget metus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus."></help-text>
 <form-block action="<?=ADMIN_ROOT?>test/" method="POST" :buttons="[{
