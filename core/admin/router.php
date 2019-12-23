@@ -523,12 +523,25 @@
 		];
 		
 		foreach ($module->Actions as $action) {
+			$is_action = false;
+			
+			if (!empty($action->Button) ||
+				($action->InNav && $action->Interface && !empty($action->Module->Interfaces[$action->Interface]))
+			) {
+				$interface_type = $action->Module->Interfaces[$action->Interface]->Type;
+				
+				if ($interface_type == "report" || $interface_type == "form") {
+					$is_action = true;
+				}
+			}
+			
 			Admin::$NavTree["auto-module"]["children"][] = [
 				"title" => $action->Name,
 				"link" => $action->Route ? $module->Route."/".$action->Route : $module->Route,
 				"nav_icon" => $action->Icon,
 				"hidden" => $action->InNav ? false : true,
-				"level" => $action->Level
+				"level" => $action->Level,
+				"action" => $is_action
 			];
 		}
 		

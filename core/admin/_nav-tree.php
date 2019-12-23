@@ -28,22 +28,22 @@
 		]],
 		"pages" => ["title" => "Pages", "link" => "pages", "icon" => "insert_drive_file", "nav_icon" => "insert_drive_file", "no_top_level_children" => true, "children" => [
 			"view-tree" => ["title" => "View Subpages", "link" => "pages/view-tree/{id}", "nav_icon" => "list"],
-			"add" => ["title" => "Add Subpage", "link" => "pages/add/{id}", "icon" => "add_page", "nav_icon" => "add"],
+			"add" => ["title" => "Add Subpage", "link" => "pages/add/{id}", "icon" => "add_page", "nav_icon" => "add", "action" => true],
 			"edit" => ["title" => "Edit Page", "link" => "pages/edit/{id}", "icon" => "edit_page", "nav_icon" => "edit"],
 			"revisions" => ["title" => "Revisions", "link" => "pages/revisions/{id}", "icon" => "page_versions", "nav_icon" => "refresh"],
-			"move" => ["title" => "Move Page", "link" => "pages/move/{id}", "icon" => "move_page", "nav_icon" => "truck", "level" => 1],
+			"move" => ["title" => "Move Page", "link" => "pages/move/{id}", "icon" => "move_page", "nav_icon" => "truck", "level" => 1, "action" => true],
 			"duplicate" => ["title" => "Duplicate Page", "link" => "pages/duplicate/{id}", "icon" => "duplicate", "nav_icon" => "duplicate"]
 		]],
 		"modules" => ["title" => "Modules", "link" => "modules", "icon" => "apps", "no_top_level_children" => true, "children" => []],
 		"files" => ["title" => "Files", "link" => "files", "icon" => "collections", "nav_icon" => "files", "children" => []],
 		"tags" => ["title" => "Tags", "link" => "tags", "icon" => "label", "no_top_level_children" => true, "children" => [
 			["title" => "View Tags", "link" => "tags", "nav_icon" => "list"],
-			["title" => "Add Tag", "link" => "tags/add", "nav_icon" => "add"],
+			["title" => "Add Tag", "link" => "tags/add", "nav_icon" => "add", "action" => true],
 			["title" => "Merge Tag", "link" => "tags/merge", "hidden" => true]
 		]],
 		"users" => ["title" => "Users", "link" => "users", "icon" => "people", "level" => 1, "no_top_level_children" => true, "children" => [
 			["title" => "View Users", "link" => "users", "nav_icon" => "list"],
-			["title" => "Add User", "link" => "users/add", "nav_icon" => "add"],
+			["title" => "Add User", "link" => "users/add", "nav_icon" => "add", "action" => true],
 			["title" => "Edit User", "link" => "users/edit", "icon" => "gravatar", "hidden" => true],
 			["title" => "Profile", "link" => "users/profile", "icon" => "gravatar", "hidden" => true]
 		]],

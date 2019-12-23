@@ -66,7 +66,7 @@
 			// Calculate URLs for sub-nav and find the active state
 			$active_item = false;
 			
-			foreach (static::$State["sub_nav"] as $item) {
+			foreach (static::$State["sub_nav"] as $index => $item) {
 				if (!$item["link"]) {
 					continue;
 				}
@@ -80,6 +80,15 @@
 							$active_item = $item;
 						}
 					}
+				}
+				
+				// Move actions into the button bar
+				if (!empty($item["action"])) {
+					$item["url"] = ADMIN_ROOT.$item["link"]."/";
+					unset($item["link"]);
+					
+					static::$State["sub_nav_actions"][] = $item;
+					unset(static::$State["sub_nav"][$index]);
 				}
 			}
 			
@@ -115,6 +124,7 @@
 		
 		public static function catch404()
 		{
+			// to-do
 			die("this should render a 404 page");
 		}
 

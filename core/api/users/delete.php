@@ -11,8 +11,6 @@
 	 		id - The ID for the user (required)
 	*/
 	
-	use BigTree\Auth\AuthenticatedUser;
-	
 	API::requireLevel(1);
 	API::requireMethod("POST");
 	API::requireParameters(["id" => "int"]);
