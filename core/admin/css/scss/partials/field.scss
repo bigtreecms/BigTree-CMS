@@ -194,7 +194,8 @@
 	font-size: 14px;
 	padding: 10px 35px 11px 10px;
 
-	.form_submitted &:invalid {
+	.form_submitted &:invalid,
+	&.invalid {
 		border-color: $red;
 		box-shadow: none;
 	}
@@ -606,18 +607,13 @@
 	text-transform: uppercase;
 	vertical-align: top;
 
-	&:nth-child(1) {
-
-		.layout_items & {
-			flex: auto;
-		}
+	.layout_items & {
+		flex: auto;
 	}
-
-	&:nth-child(2) {
-
-		.layout_items & {
-			flex-basis: 148px;
-		}
+	
+	&.actions {
+		padding: 0 20px 0 0;
+		text-align: right;
 	}
 }
 
@@ -726,8 +722,8 @@
 }
 
 .field_relationship_select {
-	float: left;
-	margin: 0 5px 0 0;
+	float: right;
+	margin: 0 0 0 5px;
 	width: calc(100% - 95px);
 }
 

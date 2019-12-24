@@ -1,7 +1,11 @@
 <script>
 	Vue.component("FieldTypeRelationship", {
 		extends: BigTreeFieldType,
-		props: ["options", "draggable"],
+		props: [
+			"draggable",
+			"minimum",
+			"options"
+		],
 		data: function() {
 			let existing = [];
 			let unused_options = [];
@@ -43,8 +47,11 @@
 				ev.preventDefault();
 				
 				let option = this.select.find("option:selected");
-				this.existing.push({ value: this.select.val(), title: option.text() });
-				option.remove();
+				
+				if (option.length) {
+					this.existing.push({value: this.select.val(), title: option.text()});
+					option.remove();
+				}
 			},
 			
 			remove: async function(index, ev) {
@@ -57,6 +64,28 @@
 				let option = $('<option value="' + this.existing[index].value + '">').text(this.existing[index].title);
 				this.existing.splice(index, 1);
 				this.select.append(option);
+			},
+
+			validate: function() {
+				if (this.minimum && this.existing.length < this.minimum) {
+					this.error = this.translate("Enter at least :count:", { ":count:": this.minimum });
+					this.select.addClass("invalid");
+					this.$parent.$emit("field-error");
+					
+					return;
+				}
+				
+				if (!this.required || this.existing.length) {
+					this.error = null;
+					this.select.removeClass("invalid");
+					this.$parent.$emit("validated");
+					
+					return;
+				}
+
+				this.select.addClass("invalid");
+				this.error = this.translate("Required");
+				this.$parent.$emit("field-error");
 			}
 		},
 		mounted: function() {
@@ -71,6 +100,7 @@
 			<div class="field_matrix">
 				<div class="field_matrix_headings">
 					<span class="field_matrix_heading">Title</span>
+					<span class="field_matrix_heading actions">Actions</span>
 				</div>
 				
 				<div class="field_matrix_body">

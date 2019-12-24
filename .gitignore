@@ -9,3 +9,4 @@
 .DS_Store
 .htaccess
 cron-run.php
+static.sh
