@@ -1,44 +1,14 @@
 <?php
 	namespace BigTree;
 	
-	/**
-	 * @global array $bigtree
-	 */
+	Router::setLayout("new");
+	
+	if (!Tag::exists(Router::$Commands[0])) {
+		Admin::catch404();
+	}
 	
 	$tag = new Tag(Router::$Commands[0]);
-
-	$field = new Field([
-		"title" => Text::translate("Tag to Merge Into"),
-		"type" => "list",
-		"key" => "merge_to",
-		"settings" => [
-			"list_type" => "db",
-			"pop-table" => "bigtree_tags",
-			"pop-id" => "id",
-			"pop-description" => "tag",
-			"pop-sort" => "tag",
-			"validation" => "required"
-		]
-	]);
+	$other_tags = SQL::fetchAll("SELECT `id` AS `value`, `tag` AS `title` FROM bigtree_tags ORDER BY `tag`");
 ?>
-<div class="container">
-	<form method="post" action="<?=ADMIN_ROOT?>tags/merge-process/" id="tag_merge_form">
-		<input type="hidden" name="tag_id" value="<?=$tag->ID?>">
-		<section>
-			<fieldset>
-				<label for="tag_field_name"><?=Text::translate("Tag Name")?></label>
-				<input type="text" disabled value="<?=Text::htmlEncode($tag->Name)?>" name="tag" class="tag_field_name" id="tag_field_name">
-			</fieldset>
-
-			<?php
-				$field->draw();
-			?>
-		</section>
-		<footer>
-			<input type="submit" class="button blue" value="<?=Text::translate("Merge Tag")?>">
-		</footer>
-	</form>
-</div>
-<script>
-	BigTreeFormValidator("#tag_merge_form", false);
-</script>
+<tags-form action="merge" id="<?=$tag->ID?>" tag="<?=$tag->Name?>"
+		   :other_tags="<?=htmlspecialchars(json_encode($other_tags))?>"></tags-form>

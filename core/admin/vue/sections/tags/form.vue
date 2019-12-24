@@ -1,12 +1,17 @@
 <script>
 	Vue.component("TagsForm", {
-		props: ["other_tags"],
+		props: [
+			"action",
+			"id",
+			"other_tags",
+			"tag"
+		],
 		data: function() {
 			return {
 				buttons: [
-					{ title: this.translate("Create"), primary: true }
+					{ title: this.translate(this.action === "create" ? "Create" : "Merge"), primary: true }
 				],
-				form_action: WWW_ROOT + "api/tags/create/"
+				form_action: WWW_ROOT + "api/tags/" + this.action + "/"
 			}
 		},
 		methods: {
@@ -21,7 +26,7 @@
 					BigTree.notification = {
 						type: "success",
 						context: this.translate("Tags"),
-						message: this.translate("Created Tag")
+						message: this.translate(this.action === "create" ? "Created Tag" : "Merged Tags")
 					};
 
 					BigTree.request_partial(ADMIN_ROOT + "tags/");
@@ -34,8 +39,14 @@
 <template>
 	<form-block v-on:response="submit" :action="form_action" :buttons="buttons">
 		<div class="fields_wrapper theme_grid">
-			<field-type-text required="true" name="tag" :title="translate('Tag Name')"></field-type-text>
-			<field-type-relationship name="to_merge" :title="translate('Tags to Merge In')" :options="other_tags"></field-type-relationship>
+			<field-type-hidden-value v-if="id" name="id" :value="id"></field-type-hidden-value>
+			
+			<field-type-text :disabled="this.action === 'merge'" :value="tag" :required="this.action === 'create'"
+							 name="tag" :title="translate('Tag Name')"></field-type-text>
+			
+			<field-type-relationship name="to_merge" :title="translate('Tags to Merge In')"
+									 :options="other_tags" :minimum="this.action === 'merge' ? 1 : 0"
+									 :required="this.action === 'merge'"></field-type-relationship>
 		</div>
 	</form-block>
 </template>

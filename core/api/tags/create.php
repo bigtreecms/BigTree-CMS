@@ -40,13 +40,14 @@
 	}
 
 	$tag = Tag::create($_POST["tag"]);
-	$cache["put"] = [API::getTagsCacheObject($tag->ID)];
 	$cache["delete"] = [];
 	
 	foreach ($to_merge as $id) {
 		$tag->merge($id);
 		$cache["delete"][] = $id;
 	}
+	
+	$cache["put"] = [API::getTagsCacheObject($tag->ID)];
 	
 	API::sendResponse([
 		"created" => true,

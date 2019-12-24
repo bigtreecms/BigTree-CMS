@@ -5,4 +5,4 @@
 	
 	$other_tags = SQL::fetchAll("SELECT `id` AS `value`, `tag` AS `title` FROM bigtree_tags ORDER BY `tag`");
 ?>
-<tags-form :other_tags="<?=htmlspecialchars(json_encode($other_tags))?>"></tags-form>
+<tags-form action="create" :other_tags="<?=htmlspecialchars(json_encode($other_tags))?>"></tags-form>
