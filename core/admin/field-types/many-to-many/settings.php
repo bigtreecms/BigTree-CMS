@@ -75,6 +75,11 @@
 </fieldset>
 
 <fieldset>
+	<label for="settings_field_min"><?=Text::translate("Minimum Entries")?></label>
+	<input id="settings_field_min" type="text" name="min" value="<?=$settings["min"]?>" autocomplete="off" />
+</fieldset>
+
+<fieldset>
 	<label for="settings_field_max"><?=Text::translate("Maximum Entries <small>(defaults to unlimited)</small>")?></label>
 	<input id="settings_field_max" type="text" name="max" value="<?=$settings["max"]?>" autocomplete="off" />
 </fieldset>

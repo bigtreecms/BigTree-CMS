@@ -3,6 +3,7 @@
 		extends: BigTreeFieldType,
 		props: [
 			"draggable",
+			"maximum",
 			"minimum",
 			"options"
 		],
@@ -37,10 +38,17 @@
 			}
 				
 			return {
+				button: false,
 				existing: existing,
-				select: "",
+				max_message: false,
+				select: false,
 				unused_options: unused_options
 			};
+		},
+		computed: {
+			below_maximum: function() {
+				return (!this.maximum || this.existing.length < this.maximum);
+			}
 		},
 		methods: {
 			add: function(ev) {
@@ -89,7 +97,9 @@
 			}
 		},
 		mounted: function() {
-			this.select = $(this.$el).find("select");
+			let el = $(this.$el);
+			this.button = el.find(".field_relationship_add");
+			this.select = el.find("select");
 		}
 	});
 </script>
@@ -123,18 +133,24 @@
 					</draggable>
 					
 					<div class="field_matrix_tools">
-						<label for="'field_new_' + uid" class="visually_hide">New Relationship</label>
+						<template v-if="below_maximum">
+							<label for="'field_new_' + uid" class="visually_hide">New Relationship</label>
+							
+							<select :id="'field_new_' + uid" class="field_select field_relationship_select">
+								<option v-for="option in unused_options" :value="option.value">{{ option.title }}</option>
+							</select>
+							
+							<button class="field_matrix_tool field_relationship_add" v-on:click="add">
+								<span class="field_matrix_tool_inner">
+									<icon icon="add_circle_outline" wrapper="field_matrix_tool"></icon>
+									<span class="field_matrix_tool_label">Add</span>
+								</span>
+							</button>
+						</template>
 						
-						<select :id="'field_new_' + uid" class="field_select field_relationship_select">
-							<option v-for="option in unused_options" :value="option.value">{{ option.title }}</option>
-						</select>
-						
-						<button class="field_matrix_tool field_relationship_add" v-on:click="add">
-							<span class="field_matrix_tool_inner">
-								<icon icon="add_circle_outline" wrapper="field_matrix_tool"></icon>
-								<span class="field_matrix_tool_label">Add</span>
-							</span>
-						</button>
+						<p v-if="!below_maximum" class="field_relationship_max_message">
+							{{ translate("The maximum number of relationships has been reached.") }}
+						</p>
 					</div>
 				</div>
 			</div>

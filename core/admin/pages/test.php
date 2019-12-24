@@ -23,7 +23,7 @@
  { 'value': '1', 'title': 'First One'},
  { 'value': '2', 'title': 'Second'},
  { 'value': '3', 'title': 'Third' }
-]" name="one_to_many" draggable="true" required="true" minimum="2"></field-type-relationship>
+]" name="one_to_many" draggable="true" required="true" minimum="2" maximum="3"></field-type-relationship>
 		<?php /*
 		<field-type-matrix title="Test Matrix Field" subtitle="A subtitle" limit="3" :value='[
 		
