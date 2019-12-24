@@ -348,6 +348,34 @@
 		}
 		
 		/*
+			Function: getTagsCacheObject
+				Returns a cache object (in array form) for a given tag array or ID
+			
+			Parameters:
+				tag - Either a tag array or ID
+		
+			Returns:
+				An array of data for storage in the IndexedDB cache
+		*/
+		
+		public static function getTagsCacheObject($tag): ?array
+		{
+			if (!is_array($tag)) {
+				$tag = SQL::fetch("SELECT id, tag, usage_count FROM bigtree_tags WHERE id = ?", $tag);
+				
+				if (!$tag) {
+					return null;
+				}
+			}
+			
+			return [
+				"id" => $tag["id"],
+				"tag" => $tag["tag"],
+				"usage_count" => $tag["usage_count"]
+			];
+		}
+		
+		/*
 			Function: getTemplatesCacheObject
 				Returns a cache object (in array form) for a given template array or ID
 			

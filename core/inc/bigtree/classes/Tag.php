@@ -17,6 +17,7 @@
 		protected $ID;
 		protected $Metaphone;
 		protected $Route;
+		protected $UsageCount;
 		
 		public $Name;
 		

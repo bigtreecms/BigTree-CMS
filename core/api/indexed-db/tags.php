@@ -15,16 +15,9 @@
 	*/
 	
 	$actions = [];
-	$access_level = Auth::user()->Level ? "p" : null;
 	
 	if (!defined("API_SINCE") || defined("API_PERMISSIONS_CHANGED")) {
-		$tags = SQL::fetchAll("SELECT id, tag, usage_count FROM bigtree_tags");
-		
-		foreach ($tags as $index => $tag) {
-			$tags[$index]["access_level"] = $access_level;
-		}
-		
-		$actions["put"] = $tags;
+		$actions["put"] = SQL::fetchAll("SELECT id, tag, usage_count FROM bigtree_tags");
 	}
 	
 	// No deletes in this request
@@ -56,10 +49,9 @@
 				continue;
 			}
 			
-			$tag = SQL::fetch("SELECT id, tag, usage_count FROM bigtree_tags WHERE id = ?", $item["entry"]);
+			$tag = API::getTagsCacheObject($item["entry"]);
 			
 			if ($tag) {
-				$tag["access_level"] = $access_level;
 				$actions["put"][$item["entry"]] = $tag;
 			}
 		}

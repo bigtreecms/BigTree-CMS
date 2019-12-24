@@ -10,7 +10,7 @@
 		data: function() {
 			let existing = [];
 			let unused_options = [];
-			
+
 			// Provide titles to the existing values
 			if (typeof this.value === "object") {
 				for (let x = 0; x < this.value.length; x++) {
@@ -20,23 +20,25 @@
 						}
 					}
 				}
-			}
-			
-			// Calculate which options are not used
-			for (let x = 0; x < this.options.length; x++) {
-				let used = false;
-				
-				for (let y = 0; y < this.value.length; y++) {
-					if (String(this.value[y]) === String(this.options[x].value)) {
-						used = true;
+
+				// Calculate which options are not used
+				for (let x = 0; x < this.options.length; x++) {
+					let used = false;
+
+					for (let y = 0; y < this.value.length; y++) {
+						if (String(this.value[y]) === String(this.options[x].value)) {
+							used = true;
+						}
+					}
+
+					if (!used) {
+						unused_options.push(this.options[x]);
 					}
 				}
-				
-				if (!used) {
-					unused_options.push(this.options[x]);
-				}
+			} else {
+				unused_options = this.options;
 			}
-				
+
 			return {
 				button: false,
 				existing: existing,
@@ -53,22 +55,22 @@
 		methods: {
 			add: function(ev) {
 				ev.preventDefault();
-				
+
 				let option = this.select.find("option:selected");
-				
+
 				if (option.length) {
-					this.existing.push({value: this.select.val(), title: option.text()});
+					this.existing.push({ value: this.select.val(), title: option.text() });
 					option.remove();
 				}
 			},
-			
+
 			remove: async function(index, ev) {
 				ev.preventDefault();
-				
+
 				if (!await BigTree.confirm(this.translate("Are you sure you want to remove this relationship?"))) {
 					return;
 				}
-				
+
 				let option = $('<option value="' + this.existing[index].value + '">').text(this.existing[index].title);
 				this.existing.splice(index, 1);
 				this.select.append(option);
@@ -79,15 +81,15 @@
 					this.error = this.translate("Enter at least :count:", { ":count:": this.minimum });
 					this.select.addClass("invalid");
 					this.$parent.$emit("field-error");
-					
+
 					return;
 				}
-				
+
 				if (!this.required || this.existing.length) {
 					this.error = null;
 					this.select.removeClass("invalid");
 					this.$parent.$emit("validated");
-					
+
 					return;
 				}
 
