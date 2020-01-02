@@ -62,13 +62,27 @@
 		},
 		methods: {
 			delete: async function(id) {
-				await BigTreeAPI.call({
+				let response = await BigTreeAPI.call({
 					endpoint: "templates/delete",
 					method: "POST",
 					parameters: {
 						id: id
 					}
 				});
+
+				if (response.error) {
+					BigTree.notification = {
+						type: "error",
+						context: this.translate("Deletion Failed"),
+						message: this.translate(response.message)
+					};
+				} else {
+					BigTree.notification = {
+						type: "success",
+						context: this.translate("Templates"),
+						message: this.translate("Deleted Template")
+					};
+				}
 
 				this.$asyncComputed.tables.update();
 			}

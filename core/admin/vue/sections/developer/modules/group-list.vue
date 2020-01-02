@@ -35,13 +35,27 @@
 		
 		methods: {
 			delete: async function(id) {
-				await BigTreeAPI.call({
+				let response = await BigTreeAPI.call({
 					endpoint: "module-groups/delete",
 					method: "POST",
 					parameters: {
 						id: id
 					}
 				});
+
+				if (response.error) {
+					BigTree.notification = {
+						type: "error",
+						context: this.translate("Deletion Failed"),
+						message: this.translate(response.message)
+					};
+				} else {
+					BigTree.notification = {
+						type: "success",
+						context: this.translate("Module Groups"),
+						message: this.translate("Deleted Group")
+					};
+				}
 
 				this.$asyncComputed.tables.update();
 			}
