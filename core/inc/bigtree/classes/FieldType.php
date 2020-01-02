@@ -15,6 +15,12 @@
 		public $UseCases;
 		
 		public static $Store = "field-types";
+		public static $ValidUseCases = [
+			"callouts",
+			"modules",
+			"settings",
+			"templates"
+		];
 		
 		/*
 			Constructor:
@@ -76,7 +82,7 @@
 			DB::insert("field-types", [
 				"id" => $id,
 				"name" => Text::htmlEncode($name),
-				"use_cases" => $use_cases,
+				"use_cases" => static::sanitizeUseCases($use_cases),
 				"self_draw" => ($self_draw ? "on" : null)
 			]);
 			
@@ -176,6 +182,7 @@
 			if (file_exists(SERVER_ROOT."cache/bigtree-form-field-types.json")) {
 				$types = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-form-field-types.json"), true);
 			} else {
+				$valid_use_cases = ["templates", "callouts", "settings", "modules"];
 				$types = [];
 				$types["modules"] = $types["templates"] = $types["callouts"] = $types["settings"] = [
 					"default" => [
@@ -210,7 +217,7 @@
 				
 				foreach ($field_types as $field_type) {
 					foreach ($field_type["use_cases"] as $case => $val) {
-						if ($val) {
+						if (!empty($val) && in_array($case, $valid_use_cases, true)) {
 							$types[$case]["custom"][$field_type["id"]] = [
 								"name" => $field_type["name"],
 								"self_draw" => $field_type["self_draw"]
@@ -263,6 +270,17 @@
 			return null;
 		}
 		
+		protected static function sanitizeUseCases($use_cases) {
+			$sanitized_use_cases = [];
+			
+			foreach (static::$ValidUseCases as $use_case) {
+				$use_case = trim(strtolower($use_case));
+				$sanitized_use_cases[$use_case] = !empty($use_cases[$use_case]) ? "on" : "";
+			}
+			
+			return $sanitized_use_cases;
+		}
+		
 		/*
 			Function: save
 				Saves the current object properties back to the database.
@@ -274,7 +292,7 @@
 			if (DB::exists("field-types", $this->ID)) {
 				DB::update("field-types", $this->ID, [
 					"name" => Text::htmlEncode($this->Name),
-					"use_cases" => array_filter((array) $this->UseCases),
+					"use_cases" => static::sanitizeUseCases($this->UseCases),
 					"self_draw" => $this->SelfDraw ? "on" : ""
 				]);
 				AuditTrail::track("config:field-types", $this->ID, "update", "updated");

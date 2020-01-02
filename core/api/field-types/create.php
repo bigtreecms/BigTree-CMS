@@ -34,25 +34,22 @@
 						  "field-type:invalid", "invalid");
 	}
 	
-	$valid_use_cases = ["callouts", "templates", "modules", "settings"];
-	$filtered_use_cases = [];
+	$use_cases = [];
 	
 	foreach ($_POST["use_cases"] as $use_case) {
 		$use_case = trim(strtolower($use_case));
-		
-		if (in_array($use_case, $valid_use_cases)) {
-			$filtered_use_cases[] = $use_case;
+
+		if (in_array($use_case, FieldType::$ValidUseCases)) {
+			$use_cases[$use_case] = "on";
 		}
 	}
 	
-	$filtered_use_cases = array_unique($filtered_use_cases);
-	
-	if (!count($filtered_use_cases)) {
-		API::triggerError("You must provide at least one valid use case. Valid use cases are: ".implode(", ", $valid_use_cases),
+	if (!count($use_cases)) {
+		API::triggerError("You must provide at least one valid use case. Valid use cases are: ".implode(", ", FieldType::$ValidUseCases),
 						  "filed-type:invalid", "invalid");
 	}
 	
-	FieldType::create($id, $_POST["name"], $filtered_use_cases, !empty($_POST["self_draw"]));
+	FieldType::create($id, $_POST["name"], $use_cases, !empty($_POST["self_draw"]));
 	
 	API::sendResponse([
 		"created" => true,
