@@ -54,9 +54,9 @@
 						context: this.translate("Extensions"),
 						message: this.translate("Uninstalled Extension")
 					};
+					
+					this.$asyncComputed.tables.update();
 				}
-
-				this.$asyncComputed.tables.update();
 			}
 		},
 		mounted: function() {

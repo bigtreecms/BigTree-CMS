@@ -82,9 +82,9 @@
 						context: this.translate("Templates"),
 						message: this.translate("Deleted Template")
 					};
+					
+					this.$asyncComputed.tables.update();
 				}
-
-				this.$asyncComputed.tables.update();
 			}
 		},
 		mounted: function() {

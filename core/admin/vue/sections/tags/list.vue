@@ -15,7 +15,6 @@
 					},
 					{
 						title: this.translate("Delete"),
-						route: "delete",
 						method: this.delete,
 						confirm: this.translate("Are you sure you want to delete this tag?")
 					}
@@ -52,6 +51,8 @@
 						context: this.translate("Tags"),
 						message: this.translate("Deleted Tag")
 					};
+
+					this.$asyncComputed.data.update();
 				}
 			}
 		},

@@ -61,9 +61,9 @@
 						context: this.translate("Feeds"),
 						message: this.translate("Deleted Feed")
 					};
-				}
 
-				this.$asyncComputed.tables.update();
+					this.$asyncComputed.tables.update();
+				}
 			}
 		},
 		mounted: function() {

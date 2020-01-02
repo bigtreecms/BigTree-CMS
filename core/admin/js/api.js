@@ -169,7 +169,7 @@ var BigTreeAPI = (function() {
 	}
 
 	async function cacheDelete(store, key) {
-		let request = store.delete(key);
+		let request = store.delete(String(key));
 
 		return new Promise((resolve, reject) => {
 			request.onsuccess = resolve;

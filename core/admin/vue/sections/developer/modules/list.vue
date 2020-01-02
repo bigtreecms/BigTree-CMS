@@ -90,9 +90,9 @@
 						context: this.translate("Modules"),
 						message: this.translate("Deleted Module")
 					};
-				}
 
-				this.$asyncComputed.tables.update();
+					this.$asyncComputed.tables.update();
+				}
 			}
 		},
 		mounted: function() {

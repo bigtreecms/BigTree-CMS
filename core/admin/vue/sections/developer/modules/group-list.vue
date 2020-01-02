@@ -55,9 +55,9 @@
 						context: this.translate("Module Groups"),
 						message: this.translate("Deleted Group")
 					};
-				}
 
-				this.$asyncComputed.tables.update();
+					this.$asyncComputed.tables.update();
+				}
 			}
 		},
 		

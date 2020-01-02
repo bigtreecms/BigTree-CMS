@@ -61,9 +61,9 @@
 						context: this.translate("Settings"),
 						message: this.translate("Deleted Setting")
 					};
+					
+					this.$asyncComputed.tables.update();
 				}
-
-				this.$asyncComputed.tables.update();
 			}
 		},
 		mounted: function() {

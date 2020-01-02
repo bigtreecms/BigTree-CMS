@@ -53,9 +53,9 @@
 						context: this.translate("Callout Groups"),
 						message: this.translate("Deleted Group")
 					};
+					
+					this.$asyncComputed.tables.update();
 				}
-
-				this.$asyncComputed.tables.update();
 			}
 		},
 		mounted: function() {

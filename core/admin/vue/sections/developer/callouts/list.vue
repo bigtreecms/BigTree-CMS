@@ -53,9 +53,9 @@
 						context: this.translate("Callouts"),
 						message: this.translate("Deleted Callout")
 					};
+					
+					this.$asyncComputed.tables.update();
 				}
-
-				this.$asyncComputed.tables.update();
 			}
 		},
 		mounted: function() {

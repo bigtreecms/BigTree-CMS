@@ -53,9 +53,9 @@
 						context: this.translate("Field Types"),
 						message: this.translate("Deleted Field Type")
 					};
+					
+					this.$asyncComputed.tables.update();
 				}
-
-				this.$asyncComputed.tables.update();
 			}
 		},
 		mounted: function() {
