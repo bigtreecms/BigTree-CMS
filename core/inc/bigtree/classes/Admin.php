@@ -160,6 +160,7 @@
 			}
 
 			$response = [
+				"layout" => Router::$Layout,
 				"content" => Router::$Content, 
 				"state" => static::$State
 			];

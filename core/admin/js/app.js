@@ -5,6 +5,7 @@ let BigTree = new Vue({
 	el: "#js-vue",
 	data: {
 		breadcrumb: typeof state.breadcrumb != "undefined" ? state.breadcrumb : [],
+		layout: "",
 		meta_bar: typeof state.meta_bar != "undefined" ? state.meta_bar : [],
 		main_nav: state.main_nav,
 		notification: state.notification ? state.notification : { context: "", message: "", type: "" },
@@ -76,11 +77,15 @@ let BigTree = new Vue({
 					"BigTree-Partial": true
 				},
 				complete: (response) => {
-					if (!response || typeof response.responseJSON === "undefined") {
+					if (!response || typeof response.responseJSON === "undefined" ||
+						(this.layout !== "" && response.responseJSON.layout !== this.layout))
+					{
 						window.location.href = url;
 
 						return;
 					}
+					
+					this.layout = response.responseJSON.layout;
 
 					if (typeof response.responseJSON.no_cache === "undefined") {
 						this.url_cache[url] = {
