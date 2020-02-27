@@ -138,7 +138,7 @@
 							if (is_array($bigtree["tags"])) {
 								foreach ($bigtree["tags"] as $tag) {
 						?>
-						<li><input type="hidden" name="_tags[]" value="<?=$tag["id"]?>" /><a href="#"><?=$tag["tag"]?></a></li>
+						<li><input type="hidden" name="_tags[]" value="<?=$tag["id"]?>" /><a href="#"><?=BigTree::safeEncode($tag["tag"])?></a></li>
 						<?php
 								}
 							}

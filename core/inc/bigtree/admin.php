@@ -1986,7 +1986,8 @@
 		*/
 
 		public function createTag($tag) {
-			$tag = strtolower(html_entity_decode(trim($tag)));
+			$tag = strtolower(trim(preg_replace('/[^a-zA-Z0-9]/', '', $tag)));
+
 			// Check if the tag exists already.
 			$f = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".sqlescape($tag)."'"));
 

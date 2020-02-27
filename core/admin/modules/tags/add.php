@@ -2,7 +2,7 @@
 	<form method="post" action="<?=ADMIN_ROOT?>tags/create/">
 		<section>
 			<fieldset>
-				<label for="tag_field_name">Tag Name</label>
+				<label for="tag_field_name">Tag Name <small>(only letters, numbers, and spaces allowed)</small></label>
 				<input type="text" name="tag" class="tag_field_name" id="tag_field_name">
 			</fieldset>
 
