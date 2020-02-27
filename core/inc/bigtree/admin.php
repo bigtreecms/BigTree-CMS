@@ -7123,10 +7123,14 @@
 		public static function makeIPL($url) {
 			global $bigtree;
 
-			$path_components = explode("/", rtrim(str_replace(WWW_ROOT, "", $url), "/"));
+			if (strpos($url, WWW_ROOT) === 0) {
+				$path_components = explode("/", rtrim(substr($url, strlen(WWW_ROOT)), "/"));
+			} else {
+				$path_components = explode("/", rtrim($url, "/"));
+			}
 
 			// See if this is a file
-			$local_path = str_replace(WWW_ROOT,SITE_ROOT,$url);
+			$local_path = str_replace([WWW_ROOT, STATIC_ROOT], SITE_ROOT, $url);
 
 			if (($path_components[0] != "files" || $path_components[1] != "resources") &&
 				(substr($local_path,0,1) == "/" || substr($local_path,0,2) == "\\\\") &&
