@@ -66,8 +66,7 @@
 				}
 				
 				if (strpos($title,"Image") !== false) {
-					$type = "upload";
-					$settings["image"] = "on";
+					$type = "image";
 				}
 				
 				if (strpos($title,"Description") !== false) {
