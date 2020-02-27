@@ -140,7 +140,7 @@
 				If a duplicate tag exists, that tag is returned instead.
 
 			Parameters:
-				name - The name of the tag.
+				name - The name of the tag (only alphanumeric and spaces).
 
 			Returns:
 				A Tag object.
@@ -148,7 +148,7 @@
 		
 		public static function create(string $name): Tag
 		{
-			$name = strtolower(html_entity_decode(trim($name)));
+			$name = strtolower(trim(preg_replace('/[^a-zA-Z0-9]/', '', $name)));
 			
 			// If this tag already exists, just ignore it and return the ID
 			$existing = SQL::fetch("SELECT * FROM bigtree_tags WHERE tag = ?", $name);

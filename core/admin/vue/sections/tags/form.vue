@@ -42,7 +42,7 @@
 			<field-type-hidden-value v-if="id" name="id" :value="id"></field-type-hidden-value>
 			
 			<field-type-text :disabled="this.action === 'merge'" :value="tag" :required="this.action === 'create'"
-							 name="tag" :title="translate('Tag Name')"></field-type-text>
+							 name="tag" :title="translate('Tag Name')" :subtitle="translate('(only alphanumeric and spaces allowed)')"></field-type-text>
 			
 			<field-type-relationship name="to_merge" :title="translate('Tags to Merge In')"
 									 :options="other_tags" :minimum="this.action === 'merge' ? 1 : 0"
