@@ -20,6 +20,15 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.4.9
+- CHANGED: Tags can now only contain alphanumeric characters and spaces.
+- FIXED: Installer creating the incorrect custom fields directory
+- FIXED: Core field type collision ID detection when creating custom field types
+- FIXED: Internal page links not properly encoding GET variables that contained the WWW_ROOT in them.
+- FIXED: Database columns named "image" inferring the File Upload field type rather than Image
+- FIXED: Cross site scripting issue when creating tags (thanks to Edric Teo for the report).
+- FIXED: Simple mode HTML fields not allowing span tags to be in the saved output (breaking underline functionality)
+
 ### 4.4.8
 - UPDATED: The default htaccess file now has a newer default set of cache headers
 - FIXED: Cropping on servers where the temporary upload directory is incorrectly reported
