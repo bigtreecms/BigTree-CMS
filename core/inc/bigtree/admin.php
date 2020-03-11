@@ -1284,9 +1284,11 @@
 				$exists = false;
 
 				foreach ($modules as $module_loop) {
-					foreach ($module_loop["embeddable-forms"] as $form) {
-						if ($form["hash"] == $hash) {
-							$exists = true;
+					if (is_array($module_loop["embeddable-forms"])) {
+						foreach ($module_loop["embeddable-forms"] as $form) {
+							if ($form["hash"] == $hash) {
+								$exists = true;
+							}
 						}
 					}
 				}
@@ -1305,10 +1307,11 @@
 				"thank_you_message" => $thank_you_message,
 				"hash" => $hash
 			]);
+			$markup_id = str_replace("embeddable-forms-", "", $id);
 
 			$this->track("jsondb -> module-embeddable-forms", $id, "created");
 
-			return htmlspecialchars('<div id="bigtree_embeddable_form_container_'.$id.'">'.BigTree::safeEncode($title).'</div>'."\n".'<script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?id='.$id.'&hash='.$hash.'"></script>');
+			return htmlspecialchars('<div id="bigtree_embeddable_form_container_'.$markup_id.'">'.BigTree::safeEncode($title).'</div>'."\n".'<script type="text/javascript" src="'.ADMIN_ROOT.'js/embeddable-form.js?id='.$markup_id.'&hash='.$hash.'"></script>');
 		}
 
 		/*
