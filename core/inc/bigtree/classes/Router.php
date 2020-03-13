@@ -19,6 +19,7 @@
 		/** @property BigTree\Page $CurrentPage */
 		public static $BootError = null;
 		public static $CurrentPage;
+		public static $Command = null;
 		public static $Commands = [];
 		public static $Config = [];
 		public static $Content = "";
@@ -1054,6 +1055,7 @@
 			
 			static::$PrimaryFile = $inc_file;
 			static::$Commands = $commands;
+			static::$Command = $commands[0];
 			
 			if (count($commands)) {
 				static::$RoutedPath = array_slice($path, 0, -1 * count($commands));

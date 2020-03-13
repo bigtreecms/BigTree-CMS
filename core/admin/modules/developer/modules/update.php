@@ -14,7 +14,7 @@
 		$group_id = intval($_POST["group_existing"]);
 	}
 	
-	$module = new Module(end(Router::$Path));
+	$module = new Module(Router::$Command, ["BigTree\Admin", "catch404"]);
 	$module->update($_POST["name"], $group_id, $_POST["class"], $_POST["gbp"], $_POST["icon"], $_POST["developer_only"]);
 
 	Admin::growl("Developer","Updated Module");

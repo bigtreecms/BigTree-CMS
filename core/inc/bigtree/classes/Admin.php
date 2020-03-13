@@ -15,6 +15,7 @@
 		public static $NoCache = false;
 		public static $SecurityPolicy = [];
 		public static $State = [];
+		public static $Theme = "default";
 		
 		/*
 			Function: calculateState
@@ -152,6 +153,7 @@
 			
 			static::calculateState();
 			static::$State["main_nav"] = static::getMainMenuState();
+			static::$State["theme"] = static::$Theme;
 			
 			foreach ($state_override as $key => $value) {
 				if (!empty($value)) {
@@ -161,7 +163,7 @@
 
 			$response = [
 				"layout" => Router::$Layout,
-				"content" => Router::$Content, 
+				"content" => Router::$Content,
 				"state" => static::$State
 			];
 
@@ -374,6 +376,19 @@
 			foreach ($parameters as $key => $value) {
 				static::$State[$key] = $value;
 			}
+		}
+		
+		/*
+			Function: setTheme
+				Sets a theme state attribute which adds theme_{theme} to the <main> tag.
+			
+			Parameters:
+				theme - A theme class name (without theme_)
+		 */
+		
+		public static function setTheme(string $theme): void
+		{
+			static::$Theme = $theme;
 		}
 		
 	}

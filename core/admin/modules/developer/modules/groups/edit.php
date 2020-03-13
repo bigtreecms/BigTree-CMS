@@ -2,7 +2,9 @@
 	namespace BigTree;
 	
 	Router::setLayout("new");
+	Admin::doNotCache();
+	Admin::setTheme("grid");
 	
-	$group = new ModuleGroup(end(Router::$Path));
+	$group = new ModuleGroup(Router::$Command, ["BigTree\Admin", "catch404"]);
 ?>
-<module-group-form id="<?=$group->ID?>" name="<?=$group->Name?>" action="update"></module-group-form>
+<developer-module-group-form id="<?=$group->ID?>" name="<?=$group->Name?>" action="update"></developer-module-group-form>

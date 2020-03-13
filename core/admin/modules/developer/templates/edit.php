@@ -5,7 +5,7 @@
 	 * @global array $bigtree
 	 */
 	
-	$template = new Template(end(Router::$Path));
+	$template = new Template(Router::$Command, ["BigTree\Admin", "catch404"]);
 	$form_action = "edit";
 ?>
 <div class="container">

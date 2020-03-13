@@ -38,15 +38,19 @@
 
 <template>
 	<form-block v-on:response="submit" :action="form_action" :buttons="buttons">
-		<div class="fields_wrapper theme_grid">
+		<div class="fields_wrapper">
 			<field-type-hidden-value v-if="id" name="id" :value="id"></field-type-hidden-value>
 			
-			<field-type-text :disabled="this.action === 'merge'" :value="tag" :required="this.action === 'create'"
-							 name="tag" :title="translate('Tag Name')" :subtitle="translate('(only alphanumeric and spaces allowed)')"></field-type-text>
+			<div class="block">
+				<field-type-text :disabled="this.action === 'merge'" :value="tag" :required="this.action === 'create'"
+								 name="tag" :title="translate('Tag Name')" :subtitle="translate('(only alphanumeric and spaces allowed)')"></field-type-text>
+			</div>
 			
-			<field-type-relationship name="to_merge" :title="translate('Tags to Merge In')"
-									 :options="other_tags" :minimum="this.action === 'merge' ? 1 : 0"
-									 :required="this.action === 'merge'"></field-type-relationship>
+			<div class="block">
+				<field-type-relationship name="to_merge" :title="translate('Tags to Merge In')"
+										 :options="other_tags" :minimum="this.action === 'merge' ? 1 : 0"
+										 :required="this.action === 'merge'"></field-type-relationship>
+			</div>
 		</div>
 	</form-block>
 </template>

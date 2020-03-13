@@ -6,12 +6,12 @@
 	 */
 	
 	if (!empty($_SESSION["bigtree_admin"]["developer"]["setting_data"])) {
-		$setting = new Setting($_SESSION["bigtree_admin"]["developer"]["setting_data"]);
+		$setting = new Setting($_SESSION["bigtree_admin"]["developer"]["setting_data"], ["BigTree\Admin", "catch404"]);
 		$error = $_SESSION["bigtree_admin"]["developer"]["error"];
 		
 		unset($_SESSION["bigtree_admin"]["developer"]["setting_data"]);
 	} else {
-		$setting = new Setting(end(Router::$Path));
+		$setting = new Setting(Router::$Command, ["BigTree\Admin", "catch404"]);
 	}
 ?>
 <div class="container">

@@ -3,6 +3,7 @@
 	
 	Router::setLayout("new");
 	Admin::doNotCache();
+	Admin::setTheme("grid");
 
 	$field_type = new FieldType(end(Router::$Commands));
 ?>

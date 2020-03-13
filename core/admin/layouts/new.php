@@ -92,7 +92,7 @@
 				</div>
 			</header>
 	
-			<main class="main" id="main_content">
+			<main class="main" :class="'theme_' + theme" id="main_content" tabindex="-1">
 				<notification :context="notification.context" :message="notification.message" :type="notification.type"></notification>
 
 				<meta-bar v-if="meta_bar.length" :items="meta_bar"></meta-bar>

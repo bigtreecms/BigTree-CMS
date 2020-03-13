@@ -7,7 +7,7 @@
 	
 	CSRF::verify();
 
-	$group = new CalloutGroup(end(Router::$Path));
+	$group = new CalloutGroup(Router::$Command, ["BigTree\Admin", "catch404"]);
 	$group->update($_POST["name"],$_POST["callouts"]);
 
 	Admin::growl("Developer","Updated Callout Group");

@@ -11,7 +11,7 @@
 		$_POST["settings"] = array_filter((array) json_decode($_POST["settings"], true));
 	}
 	
-	$feed = new Feed(end(Router::$Path));
+	$feed = new Feed(Router::$Command, ["BigTree\Admin", "catch404"]);
 	$feed->update($_POST["name"], $_POST["description"], $_POST["table"], $_POST["type"], $_POST["settings"], $_POST["fields"]);
 	
 	Admin::growl("Developer", "Updated Feed");

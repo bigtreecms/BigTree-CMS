@@ -40,8 +40,11 @@
 <template>
 	<form-block v-on:response="submit" :action="WWW_ROOT + 'api/module-groups/' + this.action + '/'" :buttons="buttons">
 		<field-type-hidden-value v-if="id" name="id" :value="id"></field-type-hidden-value>
+		
 		<div class="fields_wrapper">
-			<field-type-text :name="'name'" :value="name" required="true" :title="this.translate('Name')"></field-type-text>
+			<div class="block">
+				<field-type-text :name="'name'" :value="name" required="true" :title="this.translate('Name')"></field-type-text>
+			</div>
 		</div>
 	</form-block>
 </template>

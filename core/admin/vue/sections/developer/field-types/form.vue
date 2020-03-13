@@ -41,23 +41,31 @@
 	<form-block v-on:response="submit" :action="form_action" :buttons="buttons">
 		<field-type-hidden-value name="id" :value="id"></field-type-hidden-value>
 
-		<div class="fields_wrapper theme_grid">
-			<field-type-text required="true" name="id" :value="id" :disabled="action === 'update'"
-							 title="ID" subtitle="(used for filename — alphanumeric, dash, and underscore only)">
-			</field-type-text>
-
-			<field-type-text required="true" name="name" :value="name" title="Name"></field-type-text>
+		<div class="fields_wrapper">
+			<div class="block">
+				<field-type-text required="true" name="id" :value="id" :disabled="action === 'update'"
+								 title="ID" subtitle="(used for filename — alphanumeric, dash, and underscore only)">
+				</field-type-text>
+			</div>
 			
-			<field-type-checkbox-group required="true" name="use_cases" :value="use_cases" title="Use Cases" :options="[
-				{ 'value': 'templates', 'title': translate('Templates') },
-				{ 'value': 'modules', 'title': translate('Modules') },
-				{ 'value': 'callouts', 'title': translate('Callouts') },
-				{ 'value': 'settings', 'title': translate('Settings') },
-			]"></field-type-checkbox-group>
-
-			<field-type-checkbox name="self_draw" :value="self_draw" title="Self Draw"
-								 subtitle="(if checked, you will need to draw your field wrapper, title, and subtitle manually)">
-			</field-type-checkbox>
+			<div class="block">
+				<field-type-text required="true" name="name" :value="name" title="Name"></field-type-text>
+			</div>
+			
+			<div class="block">
+				<field-type-checkbox-group required="true" name="use_cases" :value="use_cases" title="Use Cases" :options="[
+					{ 'value': 'templates', 'title': translate('Templates') },
+					{ 'value': 'modules', 'title': translate('Modules') },
+					{ 'value': 'callouts', 'title': translate('Callouts') },
+					{ 'value': 'settings', 'title': translate('Settings') },
+				]"></field-type-checkbox-group>
+			</div>
+			
+			<div class="block">
+				<field-type-checkbox name="self_draw" :value="self_draw" title="Self Draw"
+									 subtitle="(if checked, you will need to draw your field wrapper, title, and subtitle manually)">
+				</field-type-checkbox>
+			</div>
 		</div>
 	</form-block>
 </template>

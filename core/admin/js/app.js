@@ -13,6 +13,7 @@ let BigTree = new Vue({
 		page_title: typeof state.page_title != "undefined" ? state.page_title : "",
 		sub_nav: typeof state.sub_nav != "undefined" ? state.sub_nav : [],
 		sub_nav_actions: typeof state.sub_nav_actions != "undefined" ? state.sub_nav_actions : [],
+		theme: typeof state.theme !== "undefined" ? state.theme : "default",
 		tools: typeof state.tools != "undefined" ? state.tools : [],
 		url_cache: {},
 		user_level: state.user_level
@@ -38,6 +39,7 @@ let BigTree = new Vue({
 			BigTree.page_public_url = "";
 			BigTree.sub_nav = [];
 			BigTree.sub_nav_actions = [];
+			BigTree.theme = "default";
 			BigTree.tools = [];
 
 			for (let key in state) {

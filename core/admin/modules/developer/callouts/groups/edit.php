@@ -4,9 +4,12 @@
 	/**
 	 * @global array $bigtree
 	 */
+
+	Admin::setTheme("grid");
+	Admin::doNotCache();
 	
 	$callouts = Callout::all("name ASC",true);
-	$group = new CalloutGroup(end(Router::$Path));
+	$group = new CalloutGroup(Router::$Command, ["BigTree\Admin", "catch404"]);
 ?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>callouts/groups/update/<?=$group->ID?>/" class="module">

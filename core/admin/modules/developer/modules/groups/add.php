@@ -2,5 +2,6 @@
 	namespace BigTree;
 
 	Router::setLayout("new");
+	Admin::setTheme("grid");
 ?>
-<module-group-form action="create"></module-group-form>
+<developer-module-group-form action="create"></developer-module-group-form>

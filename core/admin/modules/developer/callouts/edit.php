@@ -5,7 +5,7 @@
 	 * @global array $bigtree
 	 */
 	
-	$callout = new Callout(end(Router::$Path));
+	$callout = new Callout(Router::$Command, ["BigTree\Admin", "catch404"]);
 	$show_error = "";
 ?>
 <div class="container">

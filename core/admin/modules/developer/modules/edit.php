@@ -6,8 +6,8 @@
 	 * @global array $interface_list
 	 */
 	
-	$id = end(Router::$Path);	
-	$module = new Module($id);
+	$id = Router::$Command;	
+	$module = new Module($id, ["BigTree\Admin", "catch404"]);
 	$actions = ModuleAction::allByModule($id, "position DESC, id ASC");
 	$groups = ModuleGroup::all("name ASC");
 	$action_data = [];

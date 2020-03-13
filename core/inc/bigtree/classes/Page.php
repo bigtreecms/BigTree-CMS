@@ -1543,9 +1543,6 @@
 		public static function search(string $query, array $fields = ["nav_title"], int $max = 10,
 							   bool $return_arrays = false): array
 		{
-			// Since we're in JSON we have to do stupid things to the /s for URL searches.
-			$query = str_replace('/', '\\\/', $query);
-			
 			$terms = explode(" ", $query);
 			$where_parts = ["archived != 'on'"];
 			
