@@ -682,10 +682,20 @@
 	font-size: 14px;
 }
 
+.field_matrix_detail_secondary {
+	display: inline-block;
+	font-size: 12px;
+	margin: 0 0 0 15px;
+}
+
 .field_matrix_form {
 	background: #fff;
 	display: none;
 	padding: 20px 15px;
+}
+
+.field_matrix_form_fields {
+	margin-bottom: 24px;
 }
 
 .field_matrix_commit {

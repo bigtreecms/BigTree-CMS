@@ -19,13 +19,7 @@
 	primary: true
 }]">
 	<div class="fields_wrapper theme_grid">
-		<field-type-relationship title="One to Many Field" subtitle="A subtitle" :value="[]" :options="[
- { 'value': '1', 'title': 'First One'},
- { 'value': '2', 'title': 'Second'},
- { 'value': '3', 'title': 'Third' }
-]" name="one_to_many" draggable="true" required="true" minimum="2" maximum="3"></field-type-relationship>
-		<?php /*
-		<field-type-matrix title="Test Matrix Field" subtitle="A subtitle" limit="3" :value='[
+		<field-type-matrix title="Test Matrix Field" subtitle="A subtitle" limit="3" name="matrix" :value='[
 		
 			{"alt": "Test alt text", "description": "<p>This is a description.</p>", "__internal-title": "Test alt text", "__internal-subtitle": "This is a description." },
 			{"alt": "Second entry alt text", "description": "<p>This is a second description.</p>", "__internal-title": "Second entry alt text", "__internal-subtitle": "This is a second description." },
@@ -45,17 +39,9 @@
                             "display_title": "on",
                             "settings": "{\"simple\":\"on\",\"simple_by_permission\":\"0\"}"
                         }
-		]'>
-			<template v-slot:'test'>
-				<field-type-text>
-			</template>
-			
-			in theory the form could loop through drawing <template v-slot> for all the existing entries and then a <template v-slot-empty> for
-			the empty one to be copied, but would Javascript hooks be preserved? Probably not. Maybe we have an AJAX request for adding another option?
-			We need to test this with custom fields that aren't vue based.
-			
-		</field-type-matrix>
-	<!--
+		]'></field-type-matrix>
+		<?php
+			/*
 	<field-type-address title="Address" name="address" value="{}" required="true"></field-type-address>
 	<field-type-file-upload title="File Upload" name="file" required="true"></field-type-file-upload>
 	<field-type-checkbox-group title="Checkbox Group Field" name="checkboxes" required="true" :options="[{'value':'two','title':'Option Two'},{'value':'one','title':'First One'}]"></field-type-checkbox-group>
