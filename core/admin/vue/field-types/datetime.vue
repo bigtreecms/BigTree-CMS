@@ -1,9 +1,13 @@
 <script>
-	Vue.component("FieldTypeDate", {
+	Vue.component("FieldTypeDatetime", {
 		extends: BigTreeFieldType,
 		mounted: function() {
-			$(this.$el).find("input").datepicker({
+			$(this.$el).find("input").datetimepicker({
 				dateFormat: DateFormat,
+				ampm: true,
+				hourGrid: 6,
+				minuteGrid: 10,
+				timeFormat: "hh:mm tt",
 				duration: 200,
 				showAnim: "fadeIn"
 			});

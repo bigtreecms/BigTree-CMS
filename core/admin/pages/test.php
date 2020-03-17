@@ -19,8 +19,7 @@
 	primary: true
 }]">
 	<div class="fields_wrapper theme_grid">
-		<field-type-date name="date"></field-type-date>
-		<field-type-time name="time"></field-type-time>
+		<field-type-datetime name="date"></field-type-datetime>
 		<?php
 			/*
 		<field-type-matrix title="Test Matrix Field" subtitle="A subtitle" limit="3" name="matrix" :value='[

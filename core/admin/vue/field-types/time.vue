@@ -19,7 +19,7 @@
 		<span class="field_time">
 			<icon wrapper="field_time" icon="timer"></icon>
 			<input class="field_input field_input_time" type="text" :name="name" v-model="current_value"
-				   :id="'field_' + uid" :disabled="disabled" :required="required">
+				   :id="'field_' + uid" :disabled="disabled" :required="required" autocomplete="off">
 		</span>
 	</field>
 </template>
