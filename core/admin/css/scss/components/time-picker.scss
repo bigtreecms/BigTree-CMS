@@ -1,0 +1,119 @@
+.ui-timepicker-div {
+	margin-top: -1px;
+
+	.ui-widget-header {
+		background: $primary_color;
+		color: #fff;
+		line-height: 20px;
+		padding: 0;
+	}
+
+	.ui-datepicker-header {
+		font-size: 12px;
+		line-height: 20px;
+		padding: 0;
+		position: relative;
+	}
+
+	.ui-datepicker-title {
+		line-height: 35px;
+	}
+
+	dl {
+		border: 1px solid #AAA;
+		border-top: none;
+		border-width: 1px 1px 0;
+		font-size: 12px;
+		overflow: hidden;
+		margin: 0;
+		padding: 10px 15px 0 10px;
+		text-align: left;
+
+		dt {
+			clear: both;
+			float: left;
+			height: 25px;
+			margin: 0 0 10px 0;
+			width: 29%;
+		}
+
+		dd {
+			float: left;
+			margin: 0;
+			width: 70%;
+		}
+	}
+
+	td {
+		font-size: 90%;
+	}
+
+	.ui_tpicker_time {
+		font-weight: bold;
+		text-transform: uppercase;
+	}
+
+	.ui-tpicker-grid-label {
+		background: none;
+		border: none;
+		margin: 5px 0 0 0;
+		padding: 0;
+	}
+
+	table {
+		border: none;
+		color: $dark;
+		margin: 4px 0 5px;
+		text-transform: uppercase;
+	}
+}
+
+.ui-slider {
+	position: relative;
+	text-align: left;
+
+	.ui-slider-handle {
+		cursor: default;
+		height: 1.2em;
+		position: absolute;
+		width: 1.2em;
+		z-index: 2;
+	}
+
+	.ui-slider-range {
+		background-position: 0 0;
+		border: 0;
+		display: block;
+		font-size: .7em;
+		position: absolute;
+		z-index: 1;
+	}
+}
+
+.ui-slider-horizontal {
+	background: #EEE;
+	border: 1px solid #DDD;
+	border-radius: 2px;
+	height: .7em;
+
+	.ui-slider-handle {
+		background: $primary_color;
+		border-radius: 2px;
+		cursor: ew-resize;
+		margin-left: -.6em;
+		top: -.3em;
+	}
+
+	.ui-slider-range {
+		height: 100%;
+		top: 0;
+	}
+
+	.ui-slider-range-min {
+		left: 0;
+	}
+
+	.ui-slider-range-max {
+		right: 0;
+	}
+}

@@ -175,12 +175,14 @@
 	}
 }
 
-.field_date {
+.field_date,
+.field_time {
 	display: inline-block;
 	position: relative;
 }
 
-.field_date_icon {
+.field_date_icon,
+.field_time_icon {
 	pointer-events: none;
 	position: absolute;
 	right: 7px;
