@@ -8,24 +8,5 @@
 	} else {
 		$this->Value = "";
 	}
-	
-	// We draw the picker inline for callouts
-	if (defined("BIGTREE_CALLOUT_RESOURCES")) {
-		// Required and in-line is hard to validate, so default to today's date regardless
-		if ($this->Required && empty($this->Value)) {
-			$this->Value = date(Router::$Config["date_format"]);
-		}
 ?>
-<input type="hidden" name="<?=$this->Key?>" value="<?=$this->Value?>">
-<div class="date_picker_inline" data-date="<?=$this->Value?>"></div>
-<?php
-		if (empty($this->Required)) {
-			echo '<div class="date_picker_clear">'.Text::translate("Clear Date").'</div>';
-		}
-	} else {
-?>
-<input type="text" tabindex="<?=$this->TabIndex?>" name="<?=$this->Key?>" value="<?=$this->Value?>" autocomplete="off" id="<?=$this->ID?>" class="date_picker<?php if ($this->Required) { ?> required<?php } ?>">
-<span class="icon_small icon_small_calendar date_picker_icon"></span>
-<?php
-	}
-?>
+<field-type-date name="<?=$this->Key?>" :required="<?=$this->Required?>" value="<?=$this->Value?>"></field-type-date>

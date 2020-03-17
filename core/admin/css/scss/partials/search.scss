@@ -16,19 +16,19 @@
 		box-shadow:
 			0 0 0 1px #925813,
 
-			0 0 0 0 $green,
-			0 0 0 0 $green,
-			0 0 0 0 $green,
-			0 0 0 0 $green,
+			0 0 0 0 $primary_color,
+			0 0 0 0 $primary_color,
+			0 0 0 0 $primary_color,
+			0 0 0 0 $primary_color,
 
-			0 0 0 0 lighten($green, 5%),
-			0 0 0 0 lighten($green, 5%),
-			0 0 0 0 lighten($green, 5%),
+			0 0 0 0 lighten($primary_color, 5%),
+			0 0 0 0 lighten($primary_color, 5%),
+			0 0 0 0 lighten($primary_color, 5%),
 
-			0 0 0 0 lighten($green, 7%),
-			0 0 0 0 lighten($green, 7%),
+			0 0 0 0 lighten($primary_color, 7%),
+			0 0 0 0 lighten($primary_color, 7%),
 
-			0 0 0 0 lighten($green, 10%);
+			0 0 0 0 lighten($primary_color, 10%);
 		content: "";
 		opacity: 0;
 	}
@@ -47,19 +47,19 @@
 		box-shadow:
 			0 0 0 1px #925813,
 
-			-12px -8px 0 1.5px $green,
-			-4px -8px 0 1.5px $green,
-			4px -8px 0 1.5px $green,
-			12px -8px 0 1.5px $green,
+			-12px -8px 0 1.5px $primary_color,
+			-4px -8px 0 1.5px $primary_color,
+			4px -8px 0 1.5px $primary_color,
+			12px -8px 0 1.5px $primary_color,
 
-			-4px -8px 0 0 lighten($green, 5%),
-			4px -8px 0 0 lighten($green, 5%),
-			4px -8px 0 0 lighten($green, 5%),
+			-4px -8px 0 0 lighten($primary_color, 5%),
+			4px -8px 0 0 lighten($primary_color, 5%),
+			4px -8px 0 0 lighten($primary_color, 5%),
 
-			-4px -8px 0 0 lighten($green, 7%),
-			4px -8px 0 0 lighten($green, 7%),
+			-4px -8px 0 0 lighten($primary_color, 7%),
+			4px -8px 0 0 lighten($primary_color, 7%),
 
-			-4px -8px 0 0 lighten($green, 10%);
+			-4px -8px 0 0 lighten($primary_color, 10%);
 		opacity: 1;
 	}
 
@@ -67,38 +67,38 @@
 		box-shadow:
 			0 0 0 1px #925813,
 
-			-12px -8px 0 1.5px $green,
-			-4px -8px 0 1.5px $green,
-			4px -8px 0 1.5px $green,
-			12px -8px 0 1.5px $green,
+			-12px -8px 0 1.5px $primary_color,
+			-4px -8px 0 1.5px $primary_color,
+			4px -8px 0 1.5px $primary_color,
+			12px -8px 0 1.5px $primary_color,
 
-			-8px -16px 0 1px lighten($green, 5%),
-			0 -16px 0 1px lighten($green, 5%),
-			8px -16px 0 1px lighten($green, 5%),
+			-8px -16px 0 1px lighten($primary_color, 5%),
+			0 -16px 0 1px lighten($primary_color, 5%),
+			8px -16px 0 1px lighten($primary_color, 5%),
 
-			-8px -16px 0 0 lighten($green, 7%),
-			8px -16px 0 0 lighten($green, 7%),
+			-8px -16px 0 0 lighten($primary_color, 7%),
+			8px -16px 0 0 lighten($primary_color, 7%),
 
-			-8px -16px 0 0 lighten($green, 10%);
+			-8px -16px 0 0 lighten($primary_color, 10%);
 	}
 
 	60% {
 		box-shadow:
 			0 0 0 1px #925813,
 
-			-12px -8px 0 1.5px $green,
-			-4px -8px 0 1.5px $green,
-			4px -8px 0 1.5px $green,
-			12px -8px 0 1.5px $green,
+			-12px -8px 0 1.5px $primary_color,
+			-4px -8px 0 1.5px $primary_color,
+			4px -8px 0 1.5px $primary_color,
+			12px -8px 0 1.5px $primary_color,
 
-			-8px -16px 0 1px lighten($green, 5%),
-			0 -16px 0 1px lighten($green, 5%),
-			8px -16px 0 1px lighten($green, 5%),
+			-8px -16px 0 1px lighten($primary_color, 5%),
+			0 -16px 0 1px lighten($primary_color, 5%),
+			8px -16px 0 1px lighten($primary_color, 5%),
 
-			-4px -24px 0 0 lighten($green, 7%),
-			4px -24px 0 0 lighten($green, 7%),
+			-4px -24px 0 0 lighten($primary_color, 7%),
+			4px -24px 0 0 lighten($primary_color, 7%),
 
-			-4px -24px 0 -.5px lighten($green, 10%);
+			-4px -24px 0 -.5px lighten($primary_color, 10%);
 	}
 
 	80% {
@@ -110,19 +110,19 @@
 		box-shadow:
 			0 0 0 1px #925813,
 
-			-12px -8px 0 1.5px $green,
-			-4px -8px 0 1.5px $green,
-			4px -8px 0 1.5px $green,
-			12px -8px 0 1.5px $green,
+			-12px -8px 0 1.5px $primary_color,
+			-4px -8px 0 1.5px $primary_color,
+			4px -8px 0 1.5px $primary_color,
+			12px -8px 0 1.5px $primary_color,
 
-			-8px -16px 0 1px lighten($green, 5%),
-			0 -16px 0 1px lighten($green, 5%),
-			8px -16px 0 1px lighten($green, 5%),
+			-8px -16px 0 1px lighten($primary_color, 5%),
+			0 -16px 0 1px lighten($primary_color, 5%),
+			8px -16px 0 1px lighten($primary_color, 5%),
 
-			-4px -24px 0 0 lighten($green, 7%),
-			4px -24px 0 0 lighten($green, 7%),
+			-4px -24px 0 0 lighten($primary_color, 7%),
+			4px -24px 0 0 lighten($primary_color, 7%),
 
-			0 -32px 0 -.5px lighten($green, 10%);
+			0 -32px 0 -.5px lighten($primary_color, 10%);
 	}
 
 	100% {
@@ -135,7 +135,7 @@
 	top: 50%;
 	left: 8px;
 
-	color: $green;
+	color: $primary_color;
 	pointer-events: none;
 	transform:
 		translate(0, -50%)

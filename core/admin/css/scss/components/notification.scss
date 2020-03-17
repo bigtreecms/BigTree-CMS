@@ -50,14 +50,14 @@
 	width: 36px;
 
 	align-items: center;
-	background: $green;
+	background: $primary_color;
 	border-radius: 36px;
 	display: flex;
 	justify-content: center;
 	margin-right: 10px;
 
 	.theme_success & {
-		background: $green;
+		background: $primary_color;
 	}
 
 	.theme_alert & {

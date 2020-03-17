@@ -87,7 +87,7 @@
 	position: absolute;
 	top: 50%;
 
-	color: $green;
+	color: $primary_color;
 	transform:
 		translate(0, -50%)
 		scale(.65);
@@ -144,10 +144,10 @@
 
 	&.dragover:not(.dragstart) {
 		box-shadow:
-			inset 0 3px 0 0 $green,
-			inset 3px 0 0 0 $green,
-			inset 0 -2px 0 0 $green,
-			inset -2px 0 0 0 $green;
+			inset 0 3px 0 0 $primary_color,
+			inset 3px 0 0 0 $primary_color,
+			inset 0 -2px 0 0 $primary_color,
+			inset -2px 0 0 0 $primary_color;
 	}
 }
 
@@ -228,8 +228,8 @@
 .table_colspan {
 	position: relative;
 
-	background: $green;
-	box-shadow: 0 -1px 0 0 $green;
+	background: $primary_color;
+	box-shadow: 0 -1px 0 0 $primary_color;
 	color: #fff;
 	font-size: 13px;
 	padding: 7px 14px 8px;
@@ -272,7 +272,7 @@
 
 	&:hover,
 	&:focus {
-		color: $green;
+		color: $primary_color;
 	}
 }
 
@@ -292,7 +292,7 @@
 
 	&:hover,
 	&:focus {
-		color: $green;
+		color: $primary_color;
 	}
 }
 
@@ -318,7 +318,7 @@
 
 	&_published {
 		background: $lime;
-		border-color: $green;
+		border-color: $primary_color;
 	}
 
 	&_pending,

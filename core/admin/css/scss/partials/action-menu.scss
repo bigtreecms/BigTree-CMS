@@ -28,8 +28,8 @@
 
 	&:hover,
 	&:focus {
-		color: $green;
-		text-decoration-color: $green;
+		color: $primary_color;
+		text-decoration-color: $primary_color;
 	}
 }
 
@@ -54,7 +54,7 @@
 	&:hover,
 	&:focus {
 		background: #fff;
-		color: $green;
+		color: $primary_color;
 	}
 }
 
@@ -70,7 +70,7 @@
 	left: -11px;
 	z-index: 2;
 
-	background: $green;
+	background: $primary_color;
 	border: 2px solid $lime;
 	border-radius: 3px;
 	display: none;

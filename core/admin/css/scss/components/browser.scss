@@ -44,7 +44,7 @@
 }
 
 .browser_breadcrumb_trigger_icon {
-	color: $green;
+	color: $primary_color;
 }
 
 .browser_breadcrumb_trigger_label {
@@ -60,7 +60,7 @@
 	left: -20px;
 	z-index: 2;
 
-	background: $green;
+	background: $primary_color;
 	border: 2px solid $lime;
 	border-radius: 3px;
 	display: none;
@@ -116,7 +116,7 @@
 
 	&:hover,
 	&:focus {
-		color: $green;
+		color: $primary_color;
 	}
 }
 
@@ -196,7 +196,7 @@
 }
 
 .browser_item_icon {
-	color: $green;
+	color: $primary_color;
 	margin-right: 6px;
 	transform: scale(.85);
 	transform-origin: left center;
@@ -223,7 +223,7 @@
 
 	&:hover,
 	&:focus {
-		color: $green;
+		color: $primary_color;
 	}
 
 	.browser_item_image + & {

@@ -2,6 +2,7 @@
 	Vue.component("FieldTypeMatrix", {
 		extends: BigTreeFieldType,
 		props: ["limit", "columns"],
+		
 		data: function() {
 			return {
 				mutable_data: this.value,
@@ -9,6 +10,7 @@
 				did_add: false
 			}
 		},
+		
 		methods: {
 			add: async function(event) {
 				event.preventDefault();
@@ -93,6 +95,7 @@
 				$item.find(".field_matrix_action").eq(0).show();
 			}
 		},
+		
 		updated: function() {
 			if (this.did_add) {
 				this.open($(this.$el).find('.field_matrix_item:last-child'), this.count - 1);

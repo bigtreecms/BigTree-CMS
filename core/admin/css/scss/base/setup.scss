@@ -12,13 +12,22 @@ $max_lg: "screen and (max-width:" + (979 * 1px) + ")";
 $max_xl: "screen and (max-width:" + (1219 * 1px) + ")";
 $max_xxl: "screen and (max-width:" + (1339 * 1px) + ")";
 
+$primary_color: #00825A;
+
+@mixin primary_color($opacity: 1) {
+	color: rgba(0, 130, 90, $opacity);
+}
+
+@mixin primary_color_background($opacity: 1) {
+	background-color: rgba(0, 130, 90, $opacity);
+}
+
 $fade: #F8F8FA;
 $mist: #E3E2E3;
 $gray: #999999;
 $dark: #363636;
 
 $blue: #068FB5;
-$green: #00825A;
 $lime: #00A370;
 $orange: #FD9725;
 $mandarin: #CB791D;

@@ -46,6 +46,7 @@
 		?>
 
 		<script>
+			window.DateFormat = "<?=Date::convertTojQuery(Router::$Config["date_format"])?>";
 			window.CSRFTokenField = "<?=CSRF::$Field?>";
 			window.CSRFToken = "<?=CSRF::$Token?>";
 		</script>

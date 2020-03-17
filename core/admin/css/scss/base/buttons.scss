@@ -19,8 +19,8 @@ button {
 
 		&:hover,
 		&:focus {
-			background: $green;
-			border-color: $green;
+			background: $primary_color;
+			border-color: $primary_color;
 			color: #fff;
 		}
 	}
@@ -45,7 +45,7 @@ button {
 	}
 
 	[class$="icon"] {
-		color: $green;
+		color: $primary_color;
 		margin-right: 5px;
 		transition: color $base_transition_speed;
 	}
@@ -85,6 +85,6 @@ button {
 	&:focus {
 		background: #fff;
 		border-color: #fff;
-		color: $green;
+		color: $primary_color;
 	}
 }

@@ -1,5 +1,5 @@
 .login_body {
-	background: $green;
+	background: $primary_color;
 }
 
 .login_form_block {
@@ -79,7 +79,7 @@
 	margin: 0 0 8px 0;
 
 	a {
-		color: $green;
+		color: $primary_color;
 
 		&:hover {
 			color: $dark;
@@ -129,7 +129,7 @@
 }
 
 .login_forgot_password {
-	color: $green;
+	color: $primary_color;
 	float: right;
 	font-size: 12px;
 	line-height: (42 / 12);

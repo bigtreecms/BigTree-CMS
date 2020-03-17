@@ -59,7 +59,7 @@
 	}
 
 	&_good {
-		color: $green;
+		color: $primary_color;
 	}
 }
 
@@ -87,7 +87,7 @@
 
 .field_link {
 	align-items: center;
-	color: $green;
+	color: $primary_color;
 	display: flex;
 }
 
@@ -157,6 +157,10 @@
 	resize: vertical;
 }
 
+.field_input_date {
+	max-width: 200px;
+}
+
 .field_input_search {
 	padding-left: 35px;
 }
@@ -169,6 +173,18 @@
 			width: 50%;
 		}
 	}
+}
+
+.field_date {
+	display: inline-block;
+	position: relative;
+}
+
+.field_date_icon {
+	pointer-events: none;
+	position: absolute;
+	right: 7px;
+	top: 7px;
 }
 
 // Select
@@ -350,11 +366,11 @@
 	}
 
 	.field_input_upload:focus + & {
-		border-color: $green;
+		border-color: $primary_color;
 	}
 
 	.field_input_upload:focus + &:after {
-		border-left-color: $green;
+		border-left-color: $primary_color;
 	}	
 }
 
@@ -367,7 +383,7 @@
 }
 
 .field_upload_file {
-	color: $green;
+	color: $primary_color;
 	font-size: 12px;
 	text-decoration: underline;
 }
@@ -447,7 +463,7 @@
 	}
 
 	.field_choice_input:focus + & {
-		border-color: $green;
+		border-color: $primary_color;
 	}
 
 	.form_submitted .field_choice_input:invalid + & {
@@ -461,8 +477,8 @@
 		height: 13px;
 		width: 7px;
 
-		border-right: 2px solid $green;
-		border-bottom: 2px solid $green;
+		border-right: 2px solid $primary_color;
+		border-bottom: 2px solid $primary_color;
 		margin-top: -2px;
 	}
 }
@@ -474,7 +490,7 @@
 		height: calc(100% - 4px);
 		width: calc(100% - 4px);
 
-		background: $green;
+		background: $primary_color;
 		border-radius: inherit;
 		box-shadow: inset 0 0 0 1px rgba(#000, .2);
 	}
@@ -516,7 +532,7 @@
 	top: 50%;
 	left: 8px;
 
-	color: $green;
+	color: $primary_color;
 	pointer-events: none;
 	transform:
 		translate(0, -50%)
@@ -543,7 +559,7 @@
 
 	&:hover,
 	&:focus {
-		border-color: $green;
+		border-color: $primary_color;
 	}
 }
 
@@ -564,7 +580,7 @@
 // ++++++++++++++++
 
 .field_button {
-	background: $green;
+	background: $primary_color;
 	border: 0;
 	border-radius: 3px;
 	color: #fff;
@@ -710,7 +726,7 @@
 	}
 
 	&_save {
-		background: $green;
+		background: $primary_color;
 	}
 
 	&_cancel {

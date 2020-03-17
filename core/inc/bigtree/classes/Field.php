@@ -32,6 +32,7 @@
 		public $EntryTable;
 		public $Error;
 		public $ExistingValue;
+		public $FeedsDisplayTitle = false;
 		public $FieldsetClass = "";
 		public $FileInput;
 		public $FileOutput;
@@ -64,6 +65,7 @@
 			$this->EntryID = isset($field["entry_id"]) ? $field["entry_id"] : null;
 			$this->EntryTable = isset($field["entry_table"]) ? $field["entry_table"] : null;
 			$this->ExistingValue = isset($field["existing_value"]) ? $field["existing_value"] : null;
+			$this->FeedsDisplayTitle = !empty($field["feeds_display_title"]);
 			$this->FieldData = $field["file_data"] ?: [];
 			$this->FileInput = $field["file_input"] ?: null;
 			$this->ForcedRecrop = !empty($field["forced_recrop"]) ? true : false;

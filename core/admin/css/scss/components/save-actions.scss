@@ -1,5 +1,5 @@
 .save_actions {
-	background: $green;
+	background: $primary_color;
 	margin-bottom: -1px;
 	padding: 15px 20px;
 
@@ -25,7 +25,7 @@
 	&_primary {
 		background: #fff;
 		border-color: transparent;
-		color: $green;
+		color: $primary_color;
 
 		&:hover,
 		&:focus {

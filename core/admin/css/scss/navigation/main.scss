@@ -28,11 +28,11 @@
 
 	&:not(.active):hover,
 	&:not(.active):focus {
-		background: rgba($green, .15);
+		background: rgba($primary_color, .15);
 	}
 
 	&.active {
-		background: $green;
+		background: $primary_color;
 	}
 }
 
@@ -50,7 +50,7 @@
 
 	.main_nav_link:not(.active):hover &,
 	.main_nav_link:not(.active):focus & {
-		color: $green;
+		color: $primary_color;
 	}
 
 	.active & {
@@ -65,7 +65,7 @@
 
 	.main_nav_link:not(.active):hover &,
 	.main_nav_link:not(.active):focus & {
-		color: $green;
+		color: $primary_color;
 	}
 
 	.active & {
@@ -100,11 +100,11 @@
 
 	&:hover,
 	&:focus {
-		color: $green;
+		color: $primary_color;
 	}
 
 	&.active {
-		color: $green;
+		color: $primary_color;
 
 		&:before {
 			height: 4px;

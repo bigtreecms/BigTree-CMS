@@ -8,25 +8,29 @@
 	if ($sub_type === "address") {
 ?>
 <field-type-address name="<?=$this->Key?>" :value="<?=htmlspecialchars(json_encode($this->Value))?>"
-					title="<?=$this->Title?>" subtitle="<?=$this->Subtitle?>" required="<?=$this->Required?>">
+					title="<?=$this->Title?>" subtitle="<?=$this->Subtitle?>" required="<?=$this->Required?>"
+					feeds_display_title="<?=$this->FeedsDisplayTitle?>">
 </field-type-address>
 <?php
 	} elseif ($sub_type === "phone") {
 ?>
 <field-type-phone name="<?=$this->Key?>" :value="<?=htmlspecialchars(json_encode($this->Value))?>"
-				  title="<?=$this->Title?>" subtitle="<?=$this->Subtitle?>" required="<?=$this->Required?>">
+				  title="<?=$this->Title?>" subtitle="<?=$this->Subtitle?>" required="<?=$this->Required?>"
+				  feeds_display_title="<?=$this->FeedsDisplayTitle?>">
 </field-type-phone>
 <?php
 	} elseif ($sub_type === "email") {
 ?>
 <field-type-text name="<?=$this->Key?>" value="<?=htmlspecialchars($this->Value)?>" type="email"
-				 title="<?=$this->Title?>" subtitle="<?=$this->Subtitle?>" required="<?=$this->Required?>">
+				 title="<?=$this->Title?>" subtitle="<?=$this->Subtitle?>" required="<?=$this->Required?>"
+				 feeds_display_title="<?=$this->FeedsDisplayTitle?>">
 </field-type-text>
 <?php
 	} else {
 ?>
 <field-type-text name="<?=$this->Key?>" value="<?=htmlspecialchars($this->Value)?>" maxlength="<?=$max_length?>"
-				 title="<?=$this->Title?>" subtitle="<?=$this->Subtitle?>" required="<?=$this->Required?>">
+				 title="<?=$this->Title?>" subtitle="<?=$this->Subtitle?>" required="<?=$this->Required?>"
+				 feeds_display_title="<?=$this->FeedsDisplayTitle?>">
 </field-type-text>
 <?php
 	}

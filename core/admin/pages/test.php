@@ -19,6 +19,9 @@
 	primary: true
 }]">
 	<div class="fields_wrapper theme_grid">
+		<field-type-date name="date"></field-type-date>
+		<?php
+			/*
 		<field-type-matrix title="Test Matrix Field" subtitle="A subtitle" limit="3" name="matrix" :value='[
 		
 			{"alt": "Test alt text", "description": "<p>This is a description.</p>", "__internal-title": "Test alt text", "__internal-subtitle": "This is a description." },

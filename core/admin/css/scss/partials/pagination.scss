@@ -29,8 +29,8 @@
 
 	&:not(.pagination_traversal_disabled):hover,
 	&:not(.pagination_traversal_disabled):focus {
-		background: $green;
-		border-color: $green;
+		background: $primary_color;
+		border-color: $primary_color;
 		color: #fff;
 	}
 }
