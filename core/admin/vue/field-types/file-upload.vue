@@ -1,7 +1,7 @@
 <script>
 	Vue.component("FieldTypeFileUpload", {
 		extends: BigTreeFieldType,
-		props: ["placeholder"],
+		props: ["placeholder", "valid_extensions"],
 		computed: {
 			current_file_name: function() {
 				if (this.current_value) {
@@ -43,7 +43,8 @@
 		<div class="field_upload">
 			<input type="hidden" :name="name" :value="value">
 			<input class="field_input field_input_upload" :id="'field_' + uid" :name="name" type="file"
-				   :disabled="disabled" v-on:change="file_chosen" v-on:focus="focus" v-on:blur="blur">
+				   :disabled="disabled" :accept="valid_extensions"
+				   v-on:change="file_chosen" v-on:focus="focus" v-on:blur="blur">
 			<label class="field_upload_label" :for="'field_' + uid">{{ translate('Select a File') }}</label>
 			<div class="field_upload_info" v-if="current_value">
 				<span class="field_upload_hint">{{ translate('Currently:') }}</span>

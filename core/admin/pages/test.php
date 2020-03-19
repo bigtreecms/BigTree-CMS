@@ -19,8 +19,7 @@
 	primary: true
 }]">
 	<div class="fields_wrapper theme_grid">
-		<field-type-link title="Link Field" required="true" name="link"></field-type-link>
-		<field-type-datetime name="date"></field-type-datetime>
+		<field-type-file-upload title="File Upload" name="file" valid_extensions=".png,.jpg"></field-type-file-upload>
 		<?php
 			/*
 		<field-type-matrix title="Test Matrix Field" subtitle="A subtitle" limit="3" name="matrix" :value='[
