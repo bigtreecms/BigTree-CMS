@@ -6,34 +6,34 @@
 
 	if (count($pages)) {
 ?>
-<div class="link_field_results_header"><?=Text::translate("Pages")?></div>
+<div class="field_link_results_header"><?=Text::translate("Pages")?></div>
 <?php
 		foreach ($pages as $page) {
 			if ($page->Parent > 0) {
-				$text = $page->ParentPage->NavTitle."&nbsp;&raquo;&nbsp;".$page->NavTitle;
+				$text = $page->ParentPage->NavigationTitle."&nbsp;&raquo;&nbsp;".$page->NavigationTitle;
 			} else {
-				$text = $page->NavTitle;
+				$text = $page->NavigationTitle;
 			}
 ?>
-<a class="link_field_result" href="<?=Link::get($page->ID)?>" data-placeholder="<?=Text::translate("Page:", true)?> <?=$text?>"><?=$text?></a>
+<a class="field_link_result" href="<?=Link::get($page->ID)?>" data-placeholder="<?=Text::translate("Page:", true)?> <?=$text?>"><?=$text?></a>
 <?php
 		}
 	}
 
 	if (count($resources["resources"])) {
 ?>
-<div class="link_field_results_header">Files</div>
+<div class="field_link_results_header">Files</div>
 <?php
 		foreach ($resources["resources"] as $resource) {
 ?>
-<a class="link_field_result" href="<?=str_ireplace("{staticroot}", STATIC_ROOT, $resource["file"])?>" data-placeholder="<?=Text::translate("File:", true)?> <?=$resource["name"]?>"><?=$resource["name"]?></a>
+<a class="field_link_result" href="<?=str_ireplace("{staticroot}", STATIC_ROOT, $resource["file"])?>" data-placeholder="<?=Text::translate("File:", true)?> <?=$resource["name"]?>"><?=$resource["name"]?></a>
 <?php
 		}
 	}
 
 	if (!count($pages) && !count($resources["resources"])) {
 ?>
-<p class="link_field_no_results"><?=Text::translate("No Search Results")?></p>
+<p class="field_link_no_results"><?=Text::translate("No Search Results")?></p>
 <?php
 	}
 ?>

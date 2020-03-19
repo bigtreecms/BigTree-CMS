@@ -31,12 +31,5 @@
 		$show_value = true;
 	}
 ?>
-<div class="text_input">
-	<input class="<?=$this->Settings["validation"]?>" type="hidden" name="<?=$this->Key?>" value="<?=$this->Value?>" />
-	<input type="text" tabindex="<?=$this->TabIndex?>" placeholder="<?=$placeholder?>"<?php if ($show_value) { ?> value="<?=$this->Value?>"<?php } ?> id="<?=$this->ID?>" />
-	<div class="link_field_results_container" style="display: none;"></div>
-</div>
-
-<script>
-	new BigTreeLinkField("#<?=$this->ID?>");
-</script>
+<field-type-link name="<?=$this->Key?>" required="<?=$this->Required?>" placeholder="<?=$placeholder?>"
+				 value="<?=$this->Value?>" show_value="<?=$show_value?>"></field-type-link>

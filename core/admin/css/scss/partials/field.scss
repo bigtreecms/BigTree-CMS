@@ -85,17 +85,17 @@
 	color: $red;
 }
 
-.field_link {
+.field_action {
 	align-items: center;
 	color: $primary_color;
 	display: flex;
 }
 
-.field_link_label {
+.field_action_label {
 	font-weight: 700;
 }
 
-.field_link_icon {
+.field_action_icon {
 	margin-right: 4px;
 	transform-origin: right center;
 	transform: scale(.65);
@@ -161,10 +161,6 @@
 	max-width: 200px;
 }
 
-.field_input_datetime {
-	max-width: 300px;
-}
-
 .field_input_search {
 	padding-left: 35px;
 }
@@ -185,12 +181,52 @@
 	position: relative;
 }
 
+.field_link {
+	position: relative;
+}
+
 .field_date_icon,
-.field_time_icon {
+.field_time_icon,
+.field_link_icon {
 	pointer-events: none;
 	position: absolute;
 	right: 7px;
 	top: 7px;
+}
+
+.field_link_results_wrapper {
+	background: #fff;
+	border: 1px solid $primary_color;
+	margin-top: -1px;
+}
+
+.field_link_results_header {
+	background: $primary_color;
+	border-bottom: 1px solid $mist;
+	color: #fff;
+	font-size: 14px;
+	padding: 3px 10px;
+}
+
+.field_link_result {
+	border-bottom: 1px solid $mist;
+	color: $dark;
+	display: block;
+	font-size: 12px;
+	padding: 3px 10px;
+
+	&:nth-child(odd) {
+		background: $fade;
+	}
+
+	&:last-child {
+		border-bottom: none;
+	}
+
+	&:hover,
+	&:focus {
+		background: $mist;
+	}
 }
 
 // Select
@@ -377,7 +413,7 @@
 
 	.field_input_upload:focus + &:after {
 		border-left-color: $primary_color;
-	}	
+	}
 }
 
 .field_upload_info {
@@ -632,7 +668,7 @@
 	.layout_items & {
 		flex: auto;
 	}
-	
+
 	&.actions {
 		padding: 0 20px 0 0;
 		text-align: right;

@@ -19,6 +19,7 @@
 	primary: true
 }]">
 	<div class="fields_wrapper theme_grid">
+		<field-type-link title="Link Field" required="true" name="link"></field-type-link>
 		<field-type-datetime name="date"></field-type-datetime>
 		<?php
 			/*

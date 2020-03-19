@@ -372,13 +372,55 @@
 		}
 		
 		/*
+			Function: save
+				Saves the current object properties back to the database.
+		*/
+		
+		public function save(): ?bool
+		{
+			if (empty($this->ID)) {
+				$new = static::create($this->Folder, $this->File, $this->Name, $this->Type, $this->Crops, $this->Thumbs,
+									  $this->VideoData, $this->Metadata);
+				$this->inherit($new);
+			} else {
+				$data = [
+					"folder" => intval($this->Folder) ?: null,
+					"file" => Link::tokenize($this->File),
+					"name" => Text::htmlEncode($this->Name),
+					"type" => $this->Type,
+					"mimetype" => $this->MimeType,
+					"metadata" => Link::encode($this->Metadata),
+					"is_image" => $this->IsImage ? "on" : "",
+					"is_video" => $this->IsVideo ? "on" : "",
+					"height" => intval($this->Height),
+					"width" => intval($this->Width),
+					"size" => intval($this->FileSize),
+					"crops" => Link::tokenize($this->Crops),
+					"thumbs" => Link::tokenize($this->Thumbs),
+					"video_data" => Link::tokenize($this->VideoData),
+					"last_updated" => "NOW()"
+				];
+				
+				if ($this->File != $this->OriginalFile) {
+					$data["file_last_updated"] = "NOW()";
+				}
+				
+				SQL::update("bigtree_resources", $this->ID, $data);
+				
+				AuditTrail::track("bigtree_resources", $this->ID, "update", "updated");
+			}
+			
+			return true;
+		}
+		
+		/*
 			Function: search
 				Returns a list of folders and files that match the given query string.
 
 			Parameters:
 				query - A string of text to search folders' and files' names to.
 				sort - The column to sort the files on (default: date DESC).
-
+	
 			Returns:
 				An array of two arrays - folders and files - with permission levels.
 		*/
@@ -419,48 +461,6 @@
 			}
 			
 			return ["folders" => $folders, "resources" => $matching_resources];
-		}
-		
-		/*
-			Function: save
-				Saves the current object properties back to the database.
-		*/
-		
-		public function save(): ?bool
-		{
-			if (empty($this->ID)) {
-				$new = static::create($this->Folder, $this->File, $this->Name, $this->Type, $this->Crops, $this->Thumbs,
-									  $this->VideoData, $this->Metadata);
-				$this->inherit($new);
-			} else {
-				$data = [
-					"folder" => intval($this->Folder) ?: null,
-					"file" => Link::tokenize($this->File),
-					"name" => Text::htmlEncode($this->Name),
-					"type" => $this->Type,
-					"mimetype" => $this->MimeType,
-					"metadata" => Link::encode($this->Metadata),
-					"is_image" => $this->IsImage ? "on" : "",
-					"is_video" => $this->IsVideo ? "on" : "",
-					"height" => intval($this->Height),
-					"width" => intval($this->Width),
-					"size" => intval($this->FileSize),
-					"crops" => Link::tokenize($this->Crops),
-					"thumbs" => Link::tokenize($this->Thumbs),
-					"video_data" => Link::tokenize($this->VideoData),
-					"last_updated" => "NOW()"
-				];
-				
-				if ($this->File != $this->OriginalFile) {
-					$data["file_last_updated"] = "NOW()";
-				}
-				
-				SQL::update("bigtree_resources", $this->ID, $data);
-				
-				AuditTrail::track("bigtree_resources", $this->ID, "update", "updated");
-			}
-			
-			return true;
 		}
 		
 		/*
