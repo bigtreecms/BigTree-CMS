@@ -755,7 +755,7 @@
 
 		function convertTimestampFromUser($time, $format = null) {
 			if (!$this->Timezone) {
-				return date("Y-m-d H:i:s", strtotime($time));
+				return date($format ?: "Y-m-d H:i:s", strtotime($time));
 			}
 
 			$time = strtotime($time);
