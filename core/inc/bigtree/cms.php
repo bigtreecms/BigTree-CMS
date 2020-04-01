@@ -483,7 +483,7 @@
 			// Send file content if sitemap.xml is already generated and saved.
 			$filename = SERVER_ROOT.BigTreeSitemapGenerator::FILE_PATH;
 			
-			if (file_exists($filename)) {
+			if (file_exists($filename) && filemtime($filename) > time() - 24 * 60 * 60) {
 				$fp = fopen($filename, 'rb');
 				fpassthru($fp);
 
