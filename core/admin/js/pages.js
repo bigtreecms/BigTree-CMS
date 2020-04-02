@@ -160,13 +160,22 @@ var BigTreePages = (function() {
 						page: CurrentPage,
 						template: CurrentPageTemplate
 					}, function() { 
-						BigTreeCustomControls("#template_type"); 
+						BigTreeCustomControls("#template_type");
+						
+						$("#template_type .date_picker").datepicker({ dateFormat: BigTree.dateFormat, duration: 200, showAnim: "slideDown" });
+						$("#template_type .time_picker").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10, timeFormat: "hh:mm tt" });
+						$("#template_type .date_time_picker").datetimepicker({ dateFormat: BigTree.dateFormat, timeFormat: "hh:mm tt", duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
+
 					});
 				} else {
 					$("#template_type").load("admin_root/ajax/pages/get-template-form/", { 
 						template: CurrentPageTemplate
 					}, function() {
-						BigTreeCustomControls("#template_type"); 
+						BigTreeCustomControls("#template_type");
+
+						$("#template_type .date_picker").datepicker({ dateFormat: BigTree.dateFormat, duration: 200, showAnim: "slideDown" });
+						$("#template_type .time_picker").timepicker({ duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10, timeFormat: "hh:mm tt" });
+						$("#template_type .date_time_picker").datetimepicker({ dateFormat: BigTree.dateFormat, timeFormat: "hh:mm tt", duration: 200, showAnim: "slideDown", ampm: true, hourGrid: 6, minuteGrid: 10 });
 					});
 				}
 			}
