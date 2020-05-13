@@ -36,6 +36,7 @@
 			foreach ($items as $item) {
 				if ($feed["settings"]["link_gen"]) {
 					$link = $feed["settings"]["link_gen"];
+					
 					foreach ($item as $key => $val) {
 						$link = str_replace("{".$key."}",$val,$link);
 					}
