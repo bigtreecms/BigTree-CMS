@@ -288,7 +288,7 @@
 								<li class="top">
 									<span class="depth"></span>
 									<a class="permission_label expanded<?php if ($user["level"] > 0) { ?> permission_label_admin<?php } ?>" href="#">All Pages</a>
-									<span class="permission_alerts"><input type="checkbox" name="alerts[0]"<?php if ($alerts[0] == "on") { ?> checked="checked"<?php } ?>/></span>
+									<span class="permission_alerts"><input type="checkbox" data-key="0" name="alerts[0]"<?php if ($alerts[0] == "on") { ?> checked="checked"<?php } ?>/></span>
 									<span class="permission_level"<?php if ($user["level"] > 0) { ?> style="display: none;"<?php } ?>>
 										<input type="radio" data-category="Page" data-key="0" name="permissions[page][0]" value="p" <?php if ($permissions["page"][0] == "p") { ?>checked="checked" <?php } ?>/>
 									</span>
