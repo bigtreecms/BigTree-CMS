@@ -2562,7 +2562,7 @@
 				if (!is_null($piece)) {
 					if (is_array($piece)) {
 						$piece = static::untranslateArray($piece);
-					} else {
+					} elseif (is_string($piece)) {
 						$piece = BigTreeCMS::replaceInternalPageLinks($piece);
 					}
 				}
