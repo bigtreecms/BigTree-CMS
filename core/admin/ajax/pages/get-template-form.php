@@ -14,11 +14,15 @@
 		$bigtree["resources"] = array();
 	}
 
-	$bigtree["template"] = $cms->getTemplate($template_id);
+	if ($template_id && $template_id != "!") {
+		$bigtree["template"] = $cms->getTemplate($template_id);
 
-	if (isset($_POST["page"]) && $template_id != $bigtree["current_page"]["template"]) {
-		$original_template = $cms->getTemplate($bigtree["current_page"]["template"]);
-		$forced_recrops = $admin->rectifyResourceTypeChange($bigtree["resources"], $bigtree["template"]["resources"], $original_template["resources"]);
+		if (isset($_POST["page"]) && $template_id != $bigtree["current_page"]["template"]) {
+			$original_template = $cms->getTemplate($bigtree["current_page"]["template"]);
+			$forced_recrops = $admin->rectifyResourceTypeChange($bigtree["resources"], $bigtree["template"]["resources"], $original_template["resources"]);
+		} else {
+			$forced_recrops = [];
+		}
 	} else {
 		$forced_recrops = [];
 	}
