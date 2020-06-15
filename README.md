@@ -20,6 +20,22 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.4.10
+- FIXED: Base SQL failing to create the open graph table
+- FIXED: Missing keys on the open graph table causing slow lookups on very large sites
+- FIXED: BigTree::untranslateArray throwing warnings on non-array/non-string values
+- FIXED: Link generator functions in RSS 0.91 not working properly
+- FIXED: Setting content alerts on the entire site failing to save
+- FIXED: Native form elements (like radio and checkbox) failing to render properly on newer browsers
+- FIXED: Editing settings of a matrix field inside a matrix field
+- FIXED: Date & Time fields not initializing properly when switching page templates
+- FIXED: Incorrect time formatting when a user's timezone is null
+- FIXED: Sitemap being stale when not using a background cron task
+- FIXED: Embeddable forms failing to embed properly
+- FIXED: Searching for internal page links in the admin interface
+- FIXED: Switching a page to an external link or redirect lower causing an error on the content tab
+- FIXED: System settings showing in list views
+
 ### 4.4.9
 - CHANGED: Tags can now only contain alphanumeric characters and spaces.
 - FIXED: Installer creating the incorrect custom fields directory
