@@ -4938,7 +4938,7 @@
 
 			// Get all the values
 			foreach ($settings as $index => $setting) {
-				if ($setting["locked"] && $this->Level < 2) {
+				if (!empty($setting["system"]) || ($setting["locked"] && $this->Level < 2)) {
 					unset($settings[$index]);
 				} else {
 					$settings[$index]["value"] = BigTreeCMS::getSetting($setting["id"]);

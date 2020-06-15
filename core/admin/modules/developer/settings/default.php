@@ -10,7 +10,10 @@
 		<span class="view_action" style="width: 80px;">Actions</span>
 	</header>
 	<ul>
-		<?php foreach ($settings as $setting) { ?>
+		<?php
+			foreach ($settings as $setting) {
+				if (empty($setting["system"])) {
+		?>
 		<li>
 			<section class="developer_settings_name">
 				<a href="<?=DEVELOPER_ROOT?>settings/edit/<?=$setting["id"]?>/"><?=$setting["name"]?></a>
@@ -24,7 +27,10 @@
 				<a href="<?=DEVELOPER_ROOT?>settings/delete/?id=<?=$setting["id"]?><?php $admin->drawCSRFTokenGET() ?>" class="icon_delete"></a>
 			</section>
 		</li>
-		<?php } ?>
+		<?php
+				}
+			}
+		?>
 	</ul>
 </div>
 
