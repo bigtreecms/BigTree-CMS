@@ -110,7 +110,7 @@
 					$service = "amazon";
 					$container = $this->Settings->Container;
 					$pointer_parts = array_slice($parts, 3);
-				} elseif (strpos($domain, "s3.amazonaws.com") !== false) {
+				} elseif (strpos($domain, "amazonaws.com") !== false) {
 					$service = "amazon";
 
 					if ($domain != "s3.amazonaws.com") {
