@@ -9214,7 +9214,7 @@
 									$numeric = true;
 								}
 
-								if ($field["parser"] || ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["list_type"] == "db")) {
+								if ($field["parser"] || ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["settings"]["list_type"] == "db")) {
 									$numeric = false;
 								}
 			
