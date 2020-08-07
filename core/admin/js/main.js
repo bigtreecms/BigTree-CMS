@@ -2770,7 +2770,7 @@ var BigTreeCallouts = function(settings) {
 
 			Count++;
 
-			if (Max && count >= Max) {
+			if (Max && Count >= Max) {
 				AddButton.hide();
 				AddSelect.hide();
 			}
@@ -2940,7 +2940,7 @@ var BigTreeMatrix = function(settings) {
 
 			Count++;
 
-			if (Max && count >= Max) {
+			if (Max && Count >= Max) {
 				AddButton.hide();
 			}
 		}
@@ -3289,7 +3289,7 @@ var BigTreeMediaGallery = function(settings) {
 								removeDialog();						
 								Count++;
 								var count = List.find("article, li").length;
-								if (Max && count >= Max) {
+								if (Max && Count >= Max) {
 									AddButtons.hide();
 									Container.addClass("max_items_hit");
 								}
