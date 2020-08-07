@@ -62,7 +62,6 @@
 	</div>
 </div>
 <?php
-	$bigtree["html_editor_width"] = 440;
 	$bigtree["html_editor_height"] = 200;	
 	include BigTree::path("admin/layouts/_html-field-loader.php");
 	include BigTree::path("admin/layouts/_ajax-ready-loader.php");

@@ -1,5 +1,4 @@
 <?php
-	$width = isset($bigtree["html_editor_width"]) ? $bigtree["html_editor_width"] : false;
 	$height = isset($bigtree["html_editor_height"]) ? $bigtree["html_editor_height"] : false;
 	$content_css = $cms->getSetting("tinymce-content-css");
 ?>
@@ -26,7 +25,6 @@
 			remove_script_host: false,
 			browser_spellcheck: true,
 			extended_valid_elements : "*[*]"
-			<?php if ($width) { ?>,width: "<?=$width?>"<?php } ?>
 			<?php if ($height) { ?>,height: "<?=$height?>"<?php } ?>
 		});
 		<?php
@@ -51,7 +49,6 @@
 			relative_urls: false,
 			remove_script_host: false,
 			extended_valid_elements : "*[*]"
-			<?php if ($width) { ?>,width: "<?=$width?>"<?php } ?>
 			<?php if ($height) { ?>,height: "<?=$height?>"<?php } ?>
 		});
 		<?php

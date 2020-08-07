@@ -2100,9 +2100,9 @@ var BigTreeManyToMany = function(settings) {
 				var text = Select.options[i].text;
 
 				if (Sortable) {
-					var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a></li>');
+					var li = $('<li><div class="inner"><input type="hidden" name="' + Key + '[' + Count + ']" /><span class="icon_sort"></span><p class="multi_widget_entry_title"></p><a href="#" class="icon_delete"></a></div></li>');
 				} else {
-					var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><p></p><a href="#" class="icon_delete"></a></li>');
+					var li = $('<li><div class="inner"><input type="hidden" name="' + Key + '[' + Count + ']" /><p class="multi_widget_entry_title"></p><a href="#" class="icon_delete"></a></div></li>');
 				}
 
 				li.find("p").html(text);
@@ -2136,9 +2136,9 @@ var BigTreeManyToMany = function(settings) {
 			var text = Select.options[Select.selectedIndex].text;
 
 			if (Sortable) {
-				var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a></li>');
+				var li = $('<li><div class="inner"><input type="hidden" name="' + Key + '[' + Count + ']" /><span class="icon_sort"></span><p class="multi_widget_entry_title"></p><a href="#" class="icon_delete"></a></div></li>');
 			} else {
-				var li = $('<li><input type="hidden" name="' + Key + '[' + Count + ']" /><p></p><a href="#" class="icon_delete"></a></li>');
+				var li = $('<li><div class="inner"><input type="hidden" name="' + Key + '[' + Count + ']" /><p class="multi_widget_entry_title"></p><a href="#" class="icon_delete"></a></div></li>');
 			}
 
 			li.find("p").html(text);
@@ -2172,7 +2172,7 @@ var BigTreeManyToMany = function(settings) {
 				Field.find("section").show();
 			}
 
-			var li = $(this).parents("li");
+			var li = $(this).parents("li").eq(0);
 			var val = li.find("input").val();
 			var text = li.find("p").html();
 
@@ -2363,10 +2363,12 @@ var BigTreeFormValidator = function(selector,callback) {
 			var errors = [];
 
 			Form.data("initial-state",Form.serialize());
-
 			Form.find(".form_error").removeClass("form_error");
 			Form.find(".form_error_reason").remove();
+
 			Form.find("input.required, select.required, textarea.required, .reference_required").each(function() {
+				var fieldset = $(this).parents("fieldset").eq(0);
+
 				// TinyMCE 3
 				if ($(this).nextAll(".mceEditor").length) {
 					var val = tinyMCE.get($(this).attr("id")).getContent();
@@ -2374,8 +2376,8 @@ var BigTreeFormValidator = function(selector,callback) {
 				} else if ($(this).prevAll(".mce-tinymce").length) {
 					var val = tinymce.get($(this).attr("id")).getContent();
 				// File/Image Uploads
-				} else if ($(this).parents("fieldset").find(".currently, .currently_file").length) {
-					var val = $(this).parents("fieldset").find(".currently, .currently_file").find("input").val();
+				} else if (fieldset.find(".currently, .currently_file").length) {
+					var val =fieldset.find(".currently, .currently_file").find("input").val();
 
 					if (!val) {
 						val = $(this).val();
@@ -2396,10 +2398,9 @@ var BigTreeFormValidator = function(selector,callback) {
 						});
 					}
 				}
+
 				if (!val) {
 					errors[errors.length] = $(this);
-
-					var fieldset = $(this).parents("fieldset");
 
 					if (fieldset.length) {
 						fieldset.eq(0).addClass("form_error");
@@ -2407,47 +2408,55 @@ var BigTreeFormValidator = function(selector,callback) {
 						$(this).parents("section").eq(0).addClass("form_error");
 					}
 
+					// If the field is in a collapsed repeater, open it up
+					$(this).parents("li.collapsed").removeClass("collapsed");
+				
 					var existing_error = $(this).prevAll("label").find(".form_error_reason");
 
 					if (!existing_error.length) {
 						$(this).prevAll("label").append($('<span class="form_error_reason">Required</span>'));
 					}
 
-					existing_error = $(this).parents("div").prevAll("label").find(".form_error_reason");
+					existing_error = $(this).parents("div").eq(0).prevAll("label").find(".form_error_reason");
 
 					if (!existing_error.length) {
-						$(this).parents("div").prevAll("label").append($('<span class="form_error_reason">Required</span>'));
+						$(this).parents("div").eq(0).prevAll("label").append($('<span class="form_error_reason">Required</span>'));
 					}
 				}
 			});
+
 			Form.find("input.numeric").each(function() {
 				if (isNaN($(this).val())) {
 					errors[errors.length] = $(this);
-					$(this).parents("fieldset").eq(0).addClass("form_error");
+					fieldset.addClass("form_error");
 					$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be Numeric</span>'));
 				}
 			});
+
 			Form.find("input.email").each(function() {
 				var reg = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 				var val = $(this).val();
+				
 				if (val && !reg.test(val)) {
 					errors[errors.length] = $(this);
-					$(this).parents("fieldset").eq(0).addClass("form_error");
+					fieldset.eq(0).addClass("form_error");
 					$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be An Email Address</span>'));
 				}
 			});
+
 			Form.find("input.link").each(function() {
 				var reg = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
 				var val = $(this).val();
 				if (val && !reg.test(val)) {
 					errors[errors.length] = $(this);
-					$(this).parents("fieldset").eq(0).addClass("form_error");
+					fieldset.addClass("form_error");
 					$(this).prevAll("label").append($('<span class="form_error_reason">This Field Must Be A Valid URL</span>'));
 				}
 			});
 
 			// If this is an embedded form, we want to generate a hash of everything
 			var complete_submission = "";
+			
 			if ($("#bigtree_hashcash_field").length) {
 				Form.find("input,select,textarea").not("#bigtree_hashcash_field").each(function() {
 					if ($(this).is("textarea") && $(this).css("display") == "none") {
@@ -2466,6 +2475,7 @@ var BigTreeFormValidator = function(selector,callback) {
 						}
 					}
 				});
+
 				$("#bigtree_hashcash_field").val(md5(complete_submission));
 			}
 
@@ -2721,187 +2731,99 @@ var BigTreeCallouts = function(settings) {
 	return (function($,settings) {
 		var Container = $(settings.selector);
 
-		var AddButton = Container.find(".add_callout");
+		var AddButton = Container.find("> footer .add_item").eq(0);
+		var AddInstructions = Container.find(".multi_widget_instructions").eq(0);
+		var AddSelect = Container.find("> footer .callout_type").eq(0);
 		var Count;
-		var CurrentItem;
-		var Description;
-		var DescriptionField;
 		var FrontEndEditor = settings.front_end_editor;
-		var Groups = settings.groups;
 		var Key = settings.key;
-		var LastDialog;
-		var List = Container.find(".contain");
+		var List = $(settings.list);
 		var Max = settings.max ? settings.max : 0;
 		var Noun = settings.noun;
+		var TabIndex = settings.tab_index;
 
 		function addCallout(e) {
 			e.preventDefault();
 
-			// Prevent double clicks
-			if (BigTree.Busy) {
-				return;
-			}
-
 			BigTree.TabIndexDepth++;
 
-			$.ajax("admin_root/ajax/callouts/add/", { type: "POST", data: { count: Count, groups: Groups, key: Key, tab_depth: BigTree.TabIndexDepth, front_end_editor: FrontEndEditor }, complete: function(response) {
-				BigTreeDialog({
-					title: "Add " + Noun,
-					content: response.responseText,
-					icon: "callout",
-					preSubmissionCallback: true,
-					callback: function(e) {
-						e.preventDefault();
+			var li = $("<li>");
 
-						var item;
-						if (item = getCallout()) {
-							// Add the callout and hide the dialog.
-							List.append(item);
-							removeDialog();
-							Count++;
-							var count = List.find("article").length;
-							if (Max && count >= Max) {
-								AddButton.hide();
-							}
-						}
-					}
-				});
-			}});
+			li.load("admin_root/ajax/callout/", {
+				count: Count,
+				key: Key,
+				tab_index: TabIndex,
+				front_end_editor: FrontEndEditor,
+				type: AddSelect.val()
+			}, function() {
+				List.append(li);
+				BigTree.formHooks(li);
+				BigTreeCustomControls(li);
+				AddInstructions.hide();
+
+				if ($(".sticky_controls.stuck").length) {
+					$("body, html").animate({ scrollTop: li.offset().top - 50 });
+				} else {
+					$("body, html").animate({ scrollTop: li.offset().top - 5 });
+				}
+			});
+
+			Count++;
+
+			if (Max && count >= Max) {
+				AddButton.hide();
+				AddSelect.hide();
+			}
 		}
 
 		function deleteCallout(e) {
 			e.preventDefault();
 
-			CurrentItem = $(this).parents("article");
+			CurrentItem = $(this).parents("li").eq(0);
 			BigTreeDialog({
 				title: "Delete " + Noun,
 				content: '<p class="confirm">Are you sure you want to delete this ' + Noun.toLowerCase() + '?</p>',
 				callback: function() {
 					CurrentItem.remove();
-					var count = List.find("article").length;
+					var count = List.find("> li").length;
+
 					if (count < Max) {
 						AddButton.show();
+						AddSelect.show();
+					}
+
+					if (!count) {
+						AddInstructions.show();
 					}
 				},
 				icon: "delete",
 				alternateSaveText: "OK"
 			});
+			
 			return false;
 		}
 
 		function editCallout(e) {
 			e.preventDefault();
 
-			// Prevent double clicks
-			if (BigTree.Busy) {
-				return;
-			}
-
-			BigTree.TabIndexDepth++;
-
-			CurrentItem = $(this).parents("article");
-			$.ajax("admin_root/ajax/callouts/edit/", { type: "POST", data: { 
-				count: Count, 
-				data: CurrentItem.find(".callout_data").val(), 
-				groups: Groups, 
-				key: Key, 
-				tab_depth: BigTree.TabIndexDepth, 
-				front_end_editor: FrontEndEditor,
-				original_type: $(this).data("type")
-			}, complete: function(response) {
-				BigTreeDialog({
-					title: "Edit " + Noun,
-					content: response.responseText,
-					icon: "callout",
-					preSubmissionCallback: true,
-					callback: function(e) {
-						e.preventDefault();
-
-						var item;
-						if (item = getCallout()) {
-							CurrentItem.replaceWith(item);
-							removeDialog();
-							Count++;
-						}
-					}
-				});
-			}});
-		}
-
-		function getCallout() {
-			LastDialog = $(".bigtree_dialog_form").last();
-			BigTree.TabIndexDepth--;
-
-			var type_select = LastDialog.find(".callout_type select").get(0);
-			var validator = BigTreeFormValidator(LastDialog);
-
-			if (!validator.validateForm(false,true)) {
-				return false;
-			}
-
-			var article = $('<article>');
-			article.html('<h4></h4><p>' + type_select.options[type_select.selectedIndex].text + '</p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
-
-			// Try our best to find some way to describe the callout
-			Description = "";
-			DescriptionField = LastDialog.find("[name='" + LastDialog.find(".display_field").val() + "']");
-
-			if (DescriptionField.is('select')) {
-				Description = DescriptionField.find("option:selected").text();
-			} else if (DescriptionField.is("textarea") && DescriptionField.css("display") == "none") {
-				var mce = tinyMCE.get(DescriptionField.attr("id"));
-				
-				if (mce) {
-					mce.save();
-					Description = DescriptionField.val();
-				}
-			} else {
-				Description = DescriptionField.val();
-			}
-
-			if ($.trim(Description) == "") {
-				Description = LastDialog.find(".display_default").val();
-			}
-
-			// Append all the relevant fields into the callout field so that it gets saved on submit with the rest of the form.
-			LastDialog.find("input, textarea, select").each(function() {
-				if ($(this).attr("type") != "submit") {
-					if ($(this).is("textarea") && $(this).css("display") == "none") {
-						var mce = tinyMCE.get($(this).attr("id"));
-						if (mce) {
-							mce.save();
-							mce.remove();
-						}
-					}
-					$(this).hide().get(0).className = "";
-					article.append($(this));
-				}
-			});
-
-			article.find("h4").html(strip_tags(Description) + '<input type="hidden" name="' + Key + '[' + Count + '][display_title]" value="' + htmlspecialchars(strip_tags(Description)) + '" />');
-
-			return article;
-		}
-
-		function removeDialog() {
-			LastDialog.parents("div").remove();
-			LastDialog.remove();
-			$(".bigtree_dialog_overlay").last().remove();
-			BigTree.zIndex -= 2;
+			$(this).parents("li").eq(0).toggleClass("collapsed");
 		}
 
 		// Init routine
-		Count = List.find("article").length;
+		Count = List.find("> li").length;
+
 		// Hide the add button if we're at or above the limit
 		if (Max && Count >= Max) {
 			AddButton.hide();
 		}
-		Container.on("click",".add_callout",addCallout)
-				 .on("click",".icon_edit",editCallout)
-				 .on("click",".icon_delete",deleteCallout);
-		List.sortable({ containment: "parent", handle: ".icon_drag", items: "article", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 
-		return { Container: Container, Count: Count, Key: Key, Groups: Groups, List: List, addCallout: addCallout };
+		AddButton.on("click", addCallout);
+
+		List.on("click", "> li > div > .icon_edit", editCallout)
+		List.on("click","> li > div > .icon_delete", deleteCallout);
+		List.sortable({ containment: "parent", handle: ".icon_drag", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
+
+		return { Container: Container, Count: Count, Key: Key, List: List, addCallout: addCallout };
 
 	})(jQuery,settings);
 };

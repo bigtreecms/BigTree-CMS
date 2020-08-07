@@ -172,7 +172,21 @@
 	}
 
 
-	input[type=text], input[type=password], input[type=email], input[type=url] { background: #FFF; border: 1px solid #CCC; border-radius: 2px; color: #333; display: block; font-family: "Helvetica", Arial; font-size: 13px; height: 30px; margin: 0; padding: 0 10px; transition: border-color 0.2s; width: 876px; }
+	input[type=text], input[type=password], input[type=email], input[type=url] {
+		background: #FFF;
+		border: 1px solid #CCC;
+		border-radius: 2px;
+		box-sizing: border-box;
+		color: #333;
+		display: block;
+		font-family: "Helvetica", Arial;
+		font-size: 13px;
+		height: 30px;
+		margin: 0;
+		padding: 0 10px;
+		transition: border-color 0.2s;
+		width: 100%;
+	}
 	input[type=text]:focus, input[type=password]:focus { border-color: #AAA; }
 	input[type=text].half { width: 417px; }
 	input[disabled] { background: #F6F6F6; opacity: 0.5; }
@@ -184,7 +198,7 @@
 	.form_error input[type=text], .form_error input[type=password], .form_error input[type=email], .form_error input[type=url] { border-color: #C0362F; }
 
 	fieldset .date_picker_icon, fieldset .time_picker_icon { margin: 8px 0 0 -25px; pointer-events: none; }
-	input.date_picker, input.time_picker, input.date_time_picker { float: left; width: 180px !important; }
+	input.date_picker, input.time_picker, input.date_time_picker { float: left; width: 202px !important; }
 	input.date_picker:focus, input.time_picker:focus, input.date_time_picker:focus { border-radius: 2px 2px 0 0; }
 
 	textarea { border: 1px solid #CCC; border-radius: 2px; color: #333; display: block; font-family: Helvetica,sans-serif; font-size: 12px; height: 150px; line-height: 16px; margin: 0; padding: 5px 10px; transition: border-color 0.2s; width: 875px; }
@@ -419,3 +433,4 @@
 			width: 283px;
 		}
 	}
+

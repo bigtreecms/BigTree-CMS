@@ -15,7 +15,7 @@
 			<fieldset>
 				<label>Callouts</label>
 				<div class="multi_widget many_to_many" id="group_callouts">
-					<section<?php if (is_array($group["callouts"]) && count($group["callouts"])) { ?> style="display: none;"<?php } ?>>
+					<section class="multi_widget_instructions"<?php if (is_array($group["callouts"]) && count($group["callouts"])) { ?> style="display: none;"<?php } ?>>
 						<p>Click "Add Item" to add an item to this list.</p>
 					</section>
 					<ul>
@@ -26,7 +26,7 @@
 						?>
 						<li>
 							<input type="hidden" name="callouts[<?=$x?>]" value="<?=BigTree::safeEncode($id)?>" />
-							<p><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($callout["name"]),100))?></p>
+							<p class="multi_widget_entry_title"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($callout["name"]),100))?></p>
 							<a href="#" class="icon_delete"></a>
 						</li>
 						<?php

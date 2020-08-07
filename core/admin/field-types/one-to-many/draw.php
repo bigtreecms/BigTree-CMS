@@ -48,7 +48,7 @@
 	if (count($list) || count($entries)) {
 ?>
 <div class="multi_widget many_to_many" id="<?=$field["id"]?>">
-	<section<?php if (count($entries)) { ?> style="display: none;"<?php } ?>>
+	<section class="multi_widget_instructions"<?php if (count($entries)) { ?> style="display: none;"<?php } ?>>
 		<p>Click "Add Item" to add an item to this list.</p>
 	</section>
 	<ul>
@@ -56,10 +56,12 @@
 			foreach ($entries as $id => $title) {
 		?>
 		<li>
-			<input type="hidden" name="<?=$field["key"]?>[<?=$x?>]" value="<?=BigTree::safeEncode($id)?>" />
-			<span class="icon_sort"></span>
-			<p><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($title),100))?></p>
-			<a href="#" class="icon_delete"></a>
+			<div class="inner">
+				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>]" value="<?=BigTree::safeEncode($id)?>" />
+				<span class="icon_sort"></span>
+				<p class="multi_widget_entry_title"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($title),100))?></p>
+				<a href="#" class="icon_delete"></a>
+			</div>
 		</li>
 		<?php
 				$x++;
@@ -67,14 +69,12 @@
 		?>
 	</ul>
 	<footer>
-		<div class="many_to_many_add_container">
-			<select>
-				<?php foreach ($list as $id => $title) { ?>
-				<option value="<?=BigTree::safeEncode($id)?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($title),100))?></option>
-				<?php } ?>
-			</select>
-			<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>
-		</div>
+		<select>
+			<?php foreach ($list as $id => $title) { ?>
+			<option value="<?=BigTree::safeEncode($id)?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($title),100))?></option>
+			<?php } ?>
+		</select>
+		<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>
 		<?php
 			if ($max) {
 		?>

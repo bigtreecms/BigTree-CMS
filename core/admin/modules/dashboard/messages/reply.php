@@ -51,7 +51,7 @@
 			<fieldset id="send_to"<?php if ($error && !count($send_to)) { ?> class="form_error"<?php } ?>>
 				<label class="required">Send To<?php if ($error && !count($send_to)) { ?><span class="form_error_reason">Required</span><?php } ?></label>
 				<div class="multi_widget many_to_many">
-					<section style="display: none;">
+					<section class="multi_widget_instructions" style="display: none;">
 						<p>No users selected. Click "Add User" to add a user to the list.</p>
 					</section>
 					<ul>
@@ -62,7 +62,7 @@
 						?>
 						<li>
 							<input type="hidden" name="send_to[<?=$x?>]" value="<?=htmlspecialchars($id)?>" />
-							<p><?=htmlspecialchars($users[$id]["name"])?></p>
+							<p class="multi_widget_entry_title"><?=htmlspecialchars($users[$id]["name"])?></p>
 							<a href="#" class="icon_delete"></a>
 						</li>
 						<?php

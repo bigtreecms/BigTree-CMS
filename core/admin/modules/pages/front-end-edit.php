@@ -62,7 +62,6 @@
 	</footer>
 </form>
 <?php
-	$bigtree["html_editor_width"] = 760;
 	$bigtree["html_editor_height"] = 365;			
 	include BigTree::path("admin/layouts/_html-field-loader.php");
 ?>

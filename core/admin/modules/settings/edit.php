@@ -85,7 +85,6 @@
 	</form>
 </div>
 <?php
-	$bigtree["html_editor_width"] = 898;
 	$bigtree["html_editor_height"] = 365;
 	include BigTree::path("admin/layouts/_html-field-loader.php");
 ?>

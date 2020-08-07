@@ -14,7 +14,7 @@
 <fieldset>
 	<label for="settings_field_groups">Groups <small>(if you don't choose at least one group, all callouts will be available)</small></label>
 	<div class="multi_widget many_to_many" id="callout_groups">
-		<section<?php if (count($settings["groups"])) { ?> style="display: none;"<?php } ?>>
+		<section class="multi_widget_instructions"<?php if (count($settings["groups"])) { ?> style="display: none;"<?php } ?>>
 			<p>Click "Add Item" to add an item to this list.</p>
 		</section>
 		<ul>
@@ -25,7 +25,7 @@
 			?>
 			<li>
 				<input type="hidden" name="groups[<?=$x?>]" value="<?=$group["id"]?>" />
-				<p><?=$group["name"]?></p>
+				<p class="multi_widget_entry_title"><?=$group["name"]?></p>
 				<a href="#" class="icon_delete"></a>
 			</li>
 			<?php

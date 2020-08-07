@@ -59,7 +59,7 @@
 <fieldset>
 	<label<?=$label_validation_class?>><?=$field["title"]?><?php if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><?php } ?></label>
 	<div class="multi_widget matrix_list" id="<?=$field["id"]?>">
-		<section<?php if (count($field["value"])) { ?> style="display: none;"<?php } ?>>
+		<section class="multi_widget_instructions"<?php if (count($field["value"])) { ?> style="display: none;"<?php } ?>>
 			<p>Click "Add Item" to add an item to this list.</p>
 		</section>
 		<ul>
@@ -73,7 +73,7 @@
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-title]" value="<?=BigTree::safeEncode($item["__internal-title"])?>" />
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-subtitle]" value="<?=BigTree::safeEncode($item["__internal-subtitle"])?>" />
 				<span class="icon_sort"></span>
-				<p>
+				<p class="multi_widget_entry_title">
 					<?=BigTree::trimLength(BigTree::safeEncode($item["__internal-title"]),100)?>
 					<small><?=BigTree::trimLength(BigTree::safeEncode($item["__internal-subtitle"]),100)?></small>
 				</p>

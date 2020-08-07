@@ -76,7 +76,6 @@
 	?>
 </div>
 <?php
-	$bigtree["html_editor_width"] = 898;
 	$bigtree["html_editor_height"] = 365;
 	include BigTree::path("admin/layouts/_html-field-loader.php");
 	$bigtree["tinymce_fields"] = array_merge($bigtree["html_fields"],$bigtree["simple_html_fields"]);

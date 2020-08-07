@@ -51,6 +51,10 @@
 					if (!is_null($output)) {
 						$bigtree["entry"][$sub_field["key"]] = $output;
 					}
+
+					if ($callout_info["display_field"] == $resource["id"]) {
+						$bigtree["entry"]["display_title"] = strip_tags(strval($output));
+					}
 				}
 				
 				$callouts[] = $bigtree["entry"];

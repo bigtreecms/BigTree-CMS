@@ -95,6 +95,14 @@
 	table tr:nth-child(even) td { background: #EEE; }
 	table th, table thead td { background: #eee; color: #999; font-size: 14px; padding: 10px 15px; text-align: left; }
 
+	.clearfix {
+		&::after {
+			display: block;
+			content: "";
+			clear: both;
+		}
+	}
+
 /* Form Styles */
 	@import "components/forms.less";
 	@import "components/checkbox.less";
@@ -476,7 +484,7 @@
 	#properties_tab .template .select .current_select_container { width: 325px !important; }
 	#properties_tab .template .select_options { width: 379px !important; }
 	#properties_tab .external { float: left; margin: 0 20px 0 0; }
-	#properties_tab .external input { width: 270px; }
+	#properties_tab .external input { width: 292px; }
 	#properties_tab .checkbox_bump { float: left; }
 
 /* Table Styles */
@@ -587,7 +595,7 @@
 	.table .requests_404 { text-align: center; width: 90px; }
 	.table .url_404 { overflow: hidden; text-align: left; text-overflow: ellipsis; white-space: nowrap; width: 370px; }
 	.table .redirect_404 { text-align: left; width: 368px; }
-	.table .redirect_404 input { height: 25px; margin: 4px 0 0 0; width: 345px; }
+	.table .redirect_404 input { height: 25px; margin: 4px 0 0 0; width: 367px; }
 	.table .ignore_404 { width: 65px; }
 
 	.table .site_status_message { padding: 0 0 0 15px; text-align: left; width: 300px; }
@@ -661,7 +669,7 @@
 	.container .tags, .container .sub_section { background: #fff; border-top: 1px solid #ccc; clear: both; margin: 0 -30px -15px -30px; padding: 30px; width: 898px; }
 	.sub_section fieldset:last-of-type { margin: 0; }
 	.container .sub_section.last { margin: 30px -30px -30px; }
-	.container .tags input { float: left; margin: 0; width: 215px; }
+	.container .tags input { float: left; margin: 0; width: 237px; }
 
 	#bigtree_tag_browser {
 		margin: 30px -30px -30px;
@@ -1136,17 +1144,17 @@
 	.developer .form_table li section select, .developer .form_table li section .select { margin: 5px 0; }
 
 	.developer .form_table .developer_resource_id { padding: 0 0 0 30px; text-align: left; width: 147px; }
-	.developer .form_table .developer_resource_id input { width: 110px; }
+	.developer .form_table .developer_resource_id input { width: 132px; }
 	.developer .form_table .developer_resource_id span { margin: 5px 7px 0 -21px; }
 	.developer .form_table .developer_resource_title { text-align: left; width: 202px; }
-	.developer .form_table .developer_resource_title input { width: 168px; }
+	.developer .form_table .developer_resource_title input { width: 190px; }
 	.developer .form_table .developer_resource_form_title { padding: 0 0 0 35px; text-align: left; width: 299px; }
-	.developer .form_table .developer_resource_form_title input { width: 267px; }
+	.developer .form_table .developer_resource_form_title input { width: 289px; }
 	.developer .form_table .developer_resource_form_title span { margin: 8px 5px 0 -30px; }
 	.developer .form_table .developer_resource_subtitle { text-align: left; width: 202px; }
-	.developer .form_table .developer_resource_subtitle input { width: 168px; }
+	.developer .form_table .developer_resource_subtitle input { width: 190px; }
 	.developer .form_table .developer_resource_form_subtitle { text-align: left; width: 267px; }
-	.developer .form_table .developer_resource_form_subtitle input { width: 235px; }
+	.developer .form_table .developer_resource_form_subtitle input { width: 257px; }
 	.developer .form_table .developer_resource_type { padding: 0; text-align: left; white-space: nowrap; width: 240px; }
 	.developer .form_table .developer_resource_type .select .current_select_container { width: 155px !important; }
 	.developer .form_table .developer_resource_type .select .select_options { width: 209px !important; }
@@ -1159,12 +1167,12 @@
 	.developer .form_table .developer_resource_action.right { float: right; }
 
 	.developer .form_table .developer_resource_callout_id { padding: 0 0 0 30px; text-align: left; width: 137px; }
-	.developer .form_table .developer_resource_callout_id input { width: 101px; }
+	.developer .form_table .developer_resource_callout_id input { width: 123px; }
 	.developer .form_table .developer_resource_callout_id span { margin: 8px 4px 0 -25px; }
 	.developer .form_table .developer_resource_callout_title { text-align: left; width: 207px; }
-	.developer .form_table .developer_resource_callout_title input { width: 173px; }
+	.developer .form_table .developer_resource_callout_title input { width: 195px; }
 	.developer .form_table .developer_resource_callout_subtitle { text-align: left; width: 187px; }
-	.developer .form_table .developer_resource_callout_subtitle input { width: 153px; }
+	.developer .form_table .developer_resource_callout_subtitle input { width: 175px; }
 
 	#resource_table .developer_resource_display_title { padding: 12px 0 0 12px; width: 28px; }
 
@@ -1175,16 +1183,16 @@
 	.developer .form_table .developer_rule_field select { margin: 10px 0; width: 178px; }
 
 	.developer .form_table .developer_view_title { padding: 0 0 0 10px; text-align: left; width: 336px; }
-	.developer .form_table .developer_view_title input { width: 290px; }
+	.developer .form_table .developer_view_title input { width: 312px; }
 	.developer .form_table .developer_view_title span { margin: 8px 5px 0 -5px; }
 	.developer .form_table .developer_view_parser { padding: 0 0 0 10px; text-align: left; width: 480px; }
-	.developer .form_table .developer_view_parser input { width: 458px; }
+	.developer .form_table .developer_view_parser input { width: 480px; }
 
 	.developer .form_table .developer_report_field_title { padding: 0 0 0 10px; text-align: left; width: 846px; }
 	.developer .form_table .developer_report_field_title span { margin-top: 9px; }
-	.developer .form_table .developer_report_field_title input { width: 807px; }
+	.developer .form_table .developer_report_field_title input { width: 829px; }
 	.developer .form_table .developer_report_filter_title { padding: 0 0 0 10px; text-align: left; width: 646px; }
-	.developer .form_table .developer_report_filter_title input { width: 607px; }
+	.developer .form_table .developer_report_filter_title input { width: 629px; }
 	.developer .form_table .developer_report_filter_title span { margin-top: 9px; }
 	.developer .form_table .developer_report_filter_type { padding: 0 0 0 10px; text-align: left; width: 190px; }
 	.developer .form_table .developer_report_filter_type .select .current_select_container { width: 134px !important; }
@@ -1193,7 +1201,7 @@
 
 	.developer form .right textarea, .developer form .left textarea { height: 135px; }
 
-	fieldset.developer_module_group input { float: left; width: 410px; }
+	fieldset.developer_module_group input { float: left; width: 432px; }
 	fieldset.developer_module_group > span { float: left; height: 32px; line-height: 32px; padding: 0 10px; }
 
 	#field_area select { float: right; height: 24px; margin: 5px 10px 0 0; }
@@ -1234,7 +1242,7 @@
 	.api_account_block strong { color: #666; display: block; font-size: 16px; font-weight: bold; padding: 8px 0 8px 0; }
 
 	#security_settings .rule { line-height: 22px; margin: 0 0 15px 0; }
-	#security_settings .rule input { display: inline-block; height: 20px; margin: 0 5px 5px 0; padding: 0 5px; text-align: center; width: 30px; }
+	#security_settings .rule input { display: inline-block; height: 20px; margin: 0 5px 5px 0; padding: 0 5px; text-align: center; width: 52px; }
 	#security_settings .icon_small_help { display: inline-block; float: none; vertical-align: middle; }
 
 	.bigtree_dialog_window .route_source_field .icon_small { margin: 8px 0 0 0; }
@@ -1305,18 +1313,18 @@
 	.bigtree_dialog_form input.error { background: #FCE8E8; border-color: #C0362F; }
 
 	.bigtree_dialog_form .text_input .input_name { float: left; margin: 0 20px 0 0; }
-	.bigtree_dialog_form .text_input .input_name input { width: 188px; }
+	.bigtree_dialog_form .text_input .input_name input { width: 210px; }
 	.bigtree_dialog_form .text_input .input_name label { font-size: 11px; line-height: 11px; margin: 0; }
 	.bigtree_dialog_form .text_input .input_name:last-child { margin: 0; }
 	.bigtree_dialog_form .text_input .input_address_zip { float: left; margin: 0 10px 0 0; width: 172px; }
-	.bigtree_dialog_form .text_input .input_address_zip input { width: 150px; }
+	.bigtree_dialog_form .text_input .input_address_zip input { width: 172px; }
 	.bigtree_dialog_form .text_input .text_input .input_phone_3 { margin: 0; }
-	.bigtree_dialog_form .text_input .input_phone_3 input { float: left; text-align: center; width: 30px; }
+	.bigtree_dialog_form .text_input .input_phone_3 input { float: left; text-align: center; width: 52px; }
 	.bigtree_dialog_form .text_input .input_phone_3 span { float: left; height: 32px; line-height: 32px; text-align: center; width: 20px; }
-	.bigtree_dialog_form .text_input .input_phone_4 input { text-align: center; width: 40px; }
+	.bigtree_dialog_form .text_input .input_phone_4 input { text-align: center; width: 62px; }
 	.bigtree_dialog_form .text_input .input_address_street { margin: 0 0 10px 0; }
 	.bigtree_dialog_form .text_input .input_address_city { float: left; margin: 0 10px 10px 0; width: 270px; }
-	.bigtree_dialog_form .text_input .input_address_city input { width: 248px; }
+	.bigtree_dialog_form .text_input .input_address_city input { width: 270px; }
 	.bigtree_dialog_form .text_input .input_address_state { float: left; margin: 0 0 10px 0; width: 160px; }
 	.bigtree_dialog_form .text_input .input_address_state .select .current_select_container { width: 104px !important; }
 	.bigtree_dialog_form .text_input .input_address_state .select .select_options { width: 158px !important; }
@@ -1340,7 +1348,7 @@
 	.bigtree_dialog_form .image_attr .disabled { cursor: default; opacity: 0.3; }
 	.bigtree_dialog_form .image_attr .thumbed { position: relative; }
 	.bigtree_dialog_form .image_attr .icon_small_up { float: left; margin: 3px 0 0 20px; }
-	.bigtree_dialog_form .image_attr input { display: block; font-size: 10px; height: 20px; margin: 0; padding: 0 5px; width: 102px; }
+	.bigtree_dialog_form .image_attr input { display: block; font-size: 10px; height: 20px; margin: 0; padding: 0 5px; width: 124px; }
 	.bigtree_dialog_form .image_attr input.image_attr_thumbs { padding-left: 23px; width: 85px; }
 	.bigtree_dialog_form .image_attr .icon_small_picture { margin: 3px 0 0 5px; position: absolute; }
 	.bigtree_dialog_form .image_attr .icon_small_crop { margin: 3px 0 0 5px; position: absolute; }
@@ -1361,9 +1369,9 @@
 	.bigtree_dialog_form .list_options_widget_1 span { width: 395px; }
 	.bigtree_dialog_form .list_options_widget_2 span { width: 190px; }
 	.bigtree_dialog_form .list_options_widget_3 span { width: 124px; }
-	.bigtree_dialog_form .list_options_widget_1 input { width: 385px; }
-	.bigtree_dialog_form .list_options_widget_2 input { width: 185px; }
-	.bigtree_dialog_form .list_options_widget_3 input { width: 118px; }
+	.bigtree_dialog_form .list_options_widget_1 input { width: 407px; }
+	.bigtree_dialog_form .list_options_widget_2 input { width: 207px; }
+	.bigtree_dialog_form .list_options_widget_3 input { width: 140px; }
 	.bigtree_dialog_form .list_options_widget_1 select { width: 409px; }
 	.bigtree_dialog_form .list_options_widget_2 select { width: 198px; }
 	.bigtree_dialog_form .list_options_widget_3 select { width: 129px; }
@@ -1388,7 +1396,7 @@
 	.matrix_table .ui-sortable-placeholder { height: 133px; background: #F3F3F3; }
 	.matrix_table .matrix_display_title { overflow: hidden; display: inline-block; padding: 3px 40px 0 0; }
 	.matrix_table footer .checkbox a { margin: 0; }
-	.bigtree_dialog_form .matrix_table article input { width: 182px; float: left; margin: 0 10px 10px 0; }
+	.bigtree_dialog_form .matrix_table article input { width: 204px; float: left; margin: 0 10px 10px 0; }
 	.bigtree_dialog_form .matrix_table article input:nth-child(odd) { margin-right: 0; }
 	.bigtree_dialog_form .matrix_add_column { cursor: pointer; margin: 0; }
 
@@ -1397,7 +1405,7 @@
 ---------------------------*/
 	#file_browser { background: #FFF; border-radius: 3px; height: 551px; overflow: hidden; position: fixed; width: 820px; }
 	#file_browser .header { background: #EEE; border-radius: 2px 2px 0 0; height: 37px; line-height: 37px; padding: 0 5px 0 10px; }
-	#file_browser .header input { float: right; margin: 5px 0 0 3px; width: 173px; }
+	#file_browser .header input { float: right; margin: 5px 0 0 3px; width: 195px; }
 	#file_browser .header h2 { float: left; font-size: 18px; line-height: 37px; margin: 0 0 0 5px; }
 	#file_browser .header span { float: left; margin: 7px 0 0 0; }
 	#file_browser .header em { font-style: normal; }
@@ -1444,7 +1452,7 @@
 	.file_browser_detail_video iframe { width:  190px; height: 107px; }
 	.file_browser_detail_title { border-bottom: 1px solid #E5E5E5; padding: 10px; }
 	.file_browser_detail_title label { color: #999; font-size: 11px; line-height: 11px; margin: 0 0 5px 0; }
-	.file_browser_detail_title input { margin: 0; width: 168px; }
+	.file_browser_detail_title input { margin: 0; width: 190px; }
 	.file_browser_detail_list { padding: 10px; }
 	.file_browser_detail_list p { margin: 0 0 6px 0; overflow: hidden; }
 	.file_browser_detail_list p span { color: #999; float: left; font-size: 11px; line-height: 15px; width: 70px; }
@@ -1754,28 +1762,86 @@
 
 
 /* Array of Items / Many to Many Widget */
-	.multi_widget { border: 1px solid #CCC; border-radius: 2px; padding: 0; width: 100%; }
-	.multi_widget footer { border-radius: 0 0 2px 2px; border-top: none; overflow: hidden; padding: 20px; }
-	.multi_widget footer .button { border-radius: 3px; float: left; height: 30px; line-height: 30px; margin-right: 15px; }
-	.multi_widget footer .button .icon_small { height: 16px; margin-top: 6px; }
-	.multi_widget ul { list-style: none; margin: 0; }
-	.multi_widget li { background: #FFF; border-bottom: 1px solid #DDD; overflow: hidden; padding: 0px 10px; }
-	.multi_widget li p { float: left; font-size: 14px; height: 35px; line-height: 35px; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 790px; }
-	.multi_widget li p small { font-size: 10px; margin: 0 0 0 10px; }
-	.right .multi_widget li p, .left .multi_widget li p { width: 330px; }
-	.multi_widget li a { float: right; margin: 5px 0 0 10px; }
-	.multi_widget li:nth-child(even) { background: #F8F8F8; }
-	.multi_widget .ui-sortable-placeholder { background: #E3E3E3; border-top: 1px solid #E3E3E3; color: #333; font-size: 12px; height: 35px; line-height: 35px; }
-	.bigtree_dialog_form .multi_widget li p { width: 330px; }
-	.many_to_many section, .matrix_list section { border-bottom: 1px solid #CCC; padding: 30px; }
+	.multi_widget {
+		border: 1px solid #CCC;
+		border-radius: 2px;
+		padding: 0;
+		width: 100%;
+
+		> footer {
+			.clearfix;
+			border-radius: 0 0 2px 2px;
+			border-top: none;
+			overflow: hidden;
+			padding: 20px;
+
+			> .button {
+				border-radius: 3px;
+				float: left;
+				height: 30px;
+				line-height: 30px;
+				margin-right: 15px;
+
+				.icon_small {
+					height: 16px;
+					margin-top: 6px;
+				}
+			}
+
+			> .select {
+				margin: 0 5px 0 0;
+			}
+		}
+	
+		> ul {
+			list-style: none;
+			margin: 0;
+
+			> li {
+				background: #FFF;
+				border-bottom: 1px solid #DDD;
+				overflow: hidden; 
+
+				> .inner {
+					overflow: hidden;
+					padding: 0 10px;
+
+					> a {
+						float: right;
+						margin: 5px 0 0 10px;
+					}
+				}
+			}
+		}
+
+		.ui-sortable-placeholder {
+			background: #E3E3E3;
+			border-top: 1px solid #E3E3E3;
+			color: #333;
+			font-size: 12px;
+			height: 35px;
+			line-height: 35px;
+		}
+	}
+
+	.matrix_entry_fields {
+		background: rgba(0, 0, 0, 0.02);
+		border-top: 1px solid rgba(0, 0, 0, 0.1);
+		padding: 15px 10px;
+
+		.collapsed & {
+			display: none;
+		}
+	}
+
+	.multi_widget_entry_title { float: left; font-size: 14px; height: 35px; line-height: 35px; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: ~"calc(100% - 85px)"; }
+	.multi_widget_entry_title small { font-size: 10px; margin: 0 0 0 10px; }
+	.multi_widget_instructions { border-bottom: 1px solid #CCC; padding: 30px; }
+
 	.many_to_many footer .button { float: left; margin: 0 0 0 10px; }
 	.many_to_many footer .select .current_select_container { max-width: 679px !important; }
 	.many_to_many footer .select .select_options { max-width: 733px !important; }
 	.many_to_many footer .max { float: left; line-height: 32px; margin: 0 0 0 10px; }
-	.callout_fields .multi_widget footer .select .current_select_container { width: 352px !important; }
-	.callout_fields .multi_widget footer .button { float: none; margin: 10px 0 0 0; }
-	.callout_fields .multi_widget footer .button:first-child { margin: 0; }
-	.callout_fields .multi_widget footer .select .select_options { width: 406px !important; }
 
 /* ToolTip */
 	.tooltip { position: absolute; }
