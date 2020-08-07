@@ -9,6 +9,7 @@
 	$bigtree["field_namespace"] = uniqid("callout_field_");
 	$bigtree["html_fields"] = [];
 	$bigtree["simple_html_fields"] = [];
+	$bigtree["matrix_columns"] = $_POST["columns"];
 
 	if (!empty($_POST["front_end_editor"]) && $_POST["front_end_editor"] != "false") {
 		define("BIGTREE_FRONT_END_EDITOR", true);
@@ -16,28 +17,33 @@
 ?>
 <div class="inner">
 	<span class="icon_sort"></span>
-	<p class="multi_widget_entry_title"><?=$callout["name"]?></p>
+	<p class="multi_widget_entry_title">New Entry</p>
 	<a href="#" class="icon_delete"></a>
 	<a href="#" class="icon_edit"></a>
 </div>
 	
 <div class="matrix_entry_fields">
-	<input type="hidden" name="<?=$key?>[<?=$count?>][type]" value="<?=$callout["id"]?>">
-
 	<?php
-		foreach ($callout["resources"] as $resource) {
+		foreach ($bigtree["matrix_columns"] as $resource) {
+			$settings = $resource["settings"] ? @json_decode($resource["settings"], true) : @json_decode($resource["options"], true);
+
+			if (!is_array($settings)) {
+				$settings = [];
+			}
+
+			if (empty($settings["directory"])) {
+				$settings["directory"] = "files/pages/";
+			}
+
 			$field = [
 				"type" => $resource["type"],
 				"title" => $resource["title"],
 				"subtitle" => $resource["subtitle"],
 				"key" => $key."[$count][".$resource["id"]."]",
 				"tabindex" => $tabindex,
-				"settings" => $resource["settings"] ?: $resource["options"]
+				"settings" => $settings,
+				"matrix_title_field" => !empty($resource["display_title"]) ? true : false
 			];
-
-			if (empty($field["settings"]["directory"])) {
-				$field["settings"]["directory"] = "files/callouts/";
-			}
 
 			BigTreeAdmin::drawField($field);
 		}

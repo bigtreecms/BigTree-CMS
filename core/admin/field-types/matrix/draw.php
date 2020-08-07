@@ -1,108 +1,86 @@
 <?php
 	if (!is_array($field["value"])) {
-		$field["value"] = array();
+		$field["value"] = [];
 	}
 	
 	$max = !empty($field["settings"]["max"]) ? $field["settings"]["max"] : 0;
-
-	// Callout style
-	if ($field["settings"]["style"] == "callout") {
-		$field["type"] = "callouts"; // Pretend to be callouts to work back-to-back
 ?>
-<fieldset class="callouts<?php if ($bigtree["last_resource_type"] == "callouts") { ?> callouts_no_margin<?php } ?>" id="<?=$field["id"]?>">
-	<label<?=$label_validation_class?>><?=$field["title"]?><?php if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><?php } ?></label>
-	<div class="contain">
+<div class="multi_widget matrix_list" id="<?=$field["id"]?>">
+	<section class="multi_widget_instructions"<?php if (count($field["value"])) { ?> style="display: none;"<?php } ?>>
+		<p>Click "Add Item" to add an item to this list.</p>
+	</section>
+
+	<ul id="<?=$field["id"]?>_list">
 		<?php
 			$x = 0;
+
 			foreach ($field["value"] as $item) {
 		?>
-		<article>
-			<input type="hidden" class="bigtree_matrix_data" value="<?=base64_encode(json_encode($item))?>" />
-			<?php BigTreeAdmin::drawArrayLevel(array($x),$item,$field) ?>
-			<h4>
-				<?=BigTree::safeEncode($item["__internal-title"])?>
-				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-title]" value="<?=BigTree::safeEncode($item["__internal-title"])?>" />
-			</h4>
-			<p>
-				<?=BigTree::safeEncode($item["__internal-subtitle"])?>
-				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-subtitle]" value="<?=BigTree::safeEncode($item["__internal-subtitle"])?>" />
-			</p>
-			<div class="bottom">
-				<span class="icon_drag"></span>
-				<a href="#" class="icon_edit"></a>
+		<li class="collapsed">
+			<div class="inner">
+				<span class="icon_sort"></span>
+				<p class="multi_widget_entry_title">
+					<?=BigTree::trimLength($item["__internal-title"], 100)?>
+					<small><?=BigTree::trimLength($item["__internal-subtitle"] ,100)?></small>						
+				</p>
 				<a href="#" class="icon_delete"></a>
+				<a href="#" class="icon_edit"></a>
 			</div>
-		</article>
+
+			<div class="matrix_entry_fields">
+				<?php
+					foreach ($field["settings"]["columns"] as $resource) {
+						$settings = $resource["settings"] ? @json_decode($resource["settings"], true) : @json_decode($resource["options"],true);
+
+						if (!is_array($settings)) {
+							$settings = [];
+						}
+
+						if (empty($settings["directory"])) {
+							$settings["directory"] = "files/pages/";
+						}
+						
+						$subfield = [
+							"type" => $resource["type"],
+							"title" => $resource["title"],
+							"subtitle" => $resource["subtitle"],
+							"key" => $field["key"]."[$x][".$resource["id"]."]",
+							"has_value" => isset($bigtree["resources"][$resource["id"]]),
+							"value" => isset($item[$resource["id"]]) ? $item[$resource["id"]] : "",
+							"tabindex" => $field["tabindex"],
+							"settings" => $settings,
+							"matrix_title_field" => !empty($resource["display_title"]) ? true : false
+						];
+			
+						BigTreeAdmin::drawField($subfield);
+					}
+				?>
+			
+				<button class="matrix_collapse button green">Done Editing</button>
+			</div>
+		</li>
 		<?php
 				$x++;
 			}
 		?>
-	</div>
-	<a href="#" class="add_item add_item_button button"><span class="icon_small icon_small_add"></span>Add Item</a>
-	<?php if ($max) { ?>
-	<small class="max">LIMIT <?=$max?></small>
-	<?php } ?>
-	<script>
-		BigTreeMatrix({
-			selector: "#<?=$field["id"]?>",
-			key: "<?=$field["key"]?>",
-			columns: <?=json_encode($field["settings"]["columns"])?>,
-			max: <?=$max?>,
-			style: "callout",
-			front_end_editor: <?=(defined("BIGTREE_FRONT_END_EDITOR") ? "true" : "false")?>
-		});
-	</script>
-</fieldset>
-<?php
-	} else {
-?>
-<fieldset>
-	<label<?=$label_validation_class?>><?=$field["title"]?><?php if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><?php } ?></label>
-	<div class="multi_widget matrix_list" id="<?=$field["id"]?>">
-		<section class="multi_widget_instructions"<?php if (count($field["value"])) { ?> style="display: none;"<?php } ?>>
-			<p>Click "Add Item" to add an item to this list.</p>
-		</section>
-		<ul>
-			<?php
-				$x = 0;
-				foreach ($field["value"] as $item) {
-			?>
-			<li>
-				<input type="hidden" class="bigtree_matrix_data" value="<?=base64_encode(json_encode($item))?>" />
-				<?php BigTreeAdmin::drawArrayLevel(array($x),$item,$field) ?>
-				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-title]" value="<?=BigTree::safeEncode($item["__internal-title"])?>" />
-				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-subtitle]" value="<?=BigTree::safeEncode($item["__internal-subtitle"])?>" />
-				<span class="icon_sort"></span>
-				<p class="multi_widget_entry_title">
-					<?=BigTree::trimLength(BigTree::safeEncode($item["__internal-title"]),100)?>
-					<small><?=BigTree::trimLength(BigTree::safeEncode($item["__internal-subtitle"]),100)?></small>
-				</p>
-				<a href="#" class="icon_delete"></a>
-				<a href="#" class="icon_edit"></a>
-			</li>
-			<?php
-					$x++;
-				}
-			?>
-		</ul>
-		<footer>
-			<a href="#" class="add_item add_item_button button"><span class="icon_small icon_small_add"></span>Add Item</a>
-			<?php if ($max) { ?>
-			<small class="max">LIMIT <?=$max?></small>
-			<?php } ?>
-		</footer>
-		<script>
-			BigTreeMatrix({
-				selector: "#<?=$field["id"]?>",
-				key: "<?=$field["key"]?>",
-				columns: <?=json_encode($field["settings"]["columns"])?>,
-				max: <?=$max?>,
-				style: "list",
-				front_end_editor: <?=(defined("BIGTREE_FRONT_END_EDITOR") ? "true" : "false")?>
-			});
-		</script>
-	</div>
-</fieldset>
-<?php
-	}
-?>
+	</ul>
+
+	<footer>
+		<a href="#" class="add_item add_item_button button"><span class="icon_small icon_small_add"></span>Add Item</a>
+		<?php if ($max) { ?>
+		<small class="max">LIMIT <?=$max?></small>
+		<?php } ?>
+	</footer>
+</div>
+
+<script>
+	BigTreeMatrix({
+		selector: "#<?=$field["id"]?>",
+		list: "#<?=$field["id"]?>_list",
+		key: "<?=$field["key"]?>",
+		columns: <?=json_encode($field["settings"]["columns"])?>,
+		max: <?=$max?>,
+		style: "list",
+		front_end_editor: <?=(defined("BIGTREE_FRONT_END_EDITOR") ? "true" : "false")?>
+	});
+</script>

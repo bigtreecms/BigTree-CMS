@@ -66,6 +66,8 @@
 						BigTreeAdmin::drawField($subfield);
 					}
 				?>
+			
+				<button class="matrix_collapse button green">Done Editing</button>
 			</div>
 		</li>
 		<?php

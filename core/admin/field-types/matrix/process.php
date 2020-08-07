@@ -31,8 +31,8 @@
 		$bigtree["post_data"] = $data;
 		$bigtree["file_data"] = $field["file_input"][$index];
 		$bigtree["entry"] = $entry = [
-			"__internal-title" => $data["__internal-title"],
-			"__internal-subtitle" => $data["__internal-subtitle"]
+			"__internal-title" => "",
+			"__internal-subtitle" => ""
 		];
 		
 		foreach ($field["settings"]["columns"] as $resource) {
@@ -66,6 +66,14 @@
 				"input" => $input,
 				"file_input" => $field["file_input"][$index][$resource["id"]]
 			]);
+
+			if (!empty($resource["display_title"])) {
+				if (empty($entry["__internal-title"])) {
+					$entry["__internal-title"] = $output;
+				} elseif (empty($entry["__internal-subtitle"])) {
+					$entry["__internal-subtitle"] = $output;
+				}
+			}
 
 			if (!is_null($output)) {
 				$entry[$resource["id"]] = $output;

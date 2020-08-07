@@ -1798,11 +1798,11 @@
 			margin: 0;
 
 			> li {
-				background: #FFF;
 				border-bottom: 1px solid #DDD;
 				overflow: hidden; 
 
 				> .inner {
+					background: #FFF;
 					overflow: hidden;
 					padding: 0 10px;
 
@@ -1810,6 +1810,10 @@
 						float: right;
 						margin: 5px 0 0 10px;
 					}
+				}
+
+				&:first-child > .inner {
+					border-radius: 2px 2px 0 0;
 				}
 			}
 		}
@@ -1836,7 +1840,7 @@
 
 	.multi_widget_entry_title { float: left; font-size: 14px; height: 35px; line-height: 35px; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: ~"calc(100% - 85px)"; }
 	.multi_widget_entry_title small { font-size: 10px; margin: 0 0 0 10px; }
-	.multi_widget_instructions { border-bottom: 1px solid #CCC; padding: 30px; }
+	.multi_widget_instructions { background: #FFF; border-bottom: 1px solid #CCC; padding: 30px; }
 
 	.many_to_many footer .button { float: left; margin: 0 0 0 10px; }
 	.many_to_many footer .select .current_select_container { max-width: 679px !important; }

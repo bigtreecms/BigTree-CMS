@@ -2820,7 +2820,11 @@ var BigTreeCallouts = function(settings) {
 		AddButton.on("click", addCallout);
 
 		List.on("click", "> li > div > .icon_edit", editCallout)
-		List.on("click","> li > div > .icon_delete", deleteCallout);
+		List.on("click", "> li > div > .icon_delete", deleteCallout);
+		List.on("click", "> li > .matrix_entry_fields > .matrix_collapse", function(ev) {
+			ev.preventDefault();
+			$(this).parents("li").eq(0).addClass("collapsed");
+		});
 		List.sortable({ containment: "parent", handle: ".icon_drag", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 
 		return { Container: Container, Count: Count, Key: Key, List: List, addCallout: addCallout };
@@ -2895,255 +2899,101 @@ var BigTreeLinkField = function(selector) {
 var BigTreeMatrix = function(settings) {
 	return (function($,settings) {
 
-		var AddButton;
-		var Columns;
-		var Container;
+		var Container = $(settings.selector);
+
+		var AddButton = Container.find("> footer .add_item").eq(0);
+		var AddInstructions = Container.find(".multi_widget_instructions").eq(0);
+		var Columns = settings.columns;
 		var Count;
-		var CurrentItem;
-		var FrontEndEditor;
-		var Key;
-		var LastDialog;
-		var List;
-		var Max;
-		var NoItemsMessage;
-		var Style;
-		var Subtitle;
-		var Title;
+		var FrontEndEditor = settings.front_end_editor;
+		var Key = settings.key;
+		var List = $(settings.list);
+		var Max = settings.max ? settings.max : 0;
+		var Noun = settings.noun;
+		var TabIndex = settings.tab_index;
 
 		function addItem(e) {
 			e.preventDefault();
 
-			// Prevent double clicks
-			if (BigTree.Busy) {
-				return;
-			}
-
 			BigTree.TabIndexDepth++;
 
-			$.ajax("admin_root/ajax/matrix-field/", {
-				type: "POST",
-				data: { columns: Columns, count: Count, key: Key, tab_depth: BigTree.TabIndexDepth, front_end_editor: FrontEndEditor },
-				complete: function(response) {
-					BigTreeDialog({
-						title: "Add Item",
-						content: response.responseText,
-						icon: "add",
-						preSubmissionCallback: true,
-						callback: function(e) {
-							e.preventDefault();
+			var li = $("<li>");
 
-							var item;
-							if (item = getItem()) {
-								// Add the item, remove the dialog, increase the count.
-								List.append(item);
-								NoItemsMessage.hide();
-								removeDialog();
-								Count++;
-								var count = List.find("article, li").length;
-								if (Max && count >= Max) {
-									AddButton.hide();
-								}
-							}
-						}
-					});
+			li.load("admin_root/ajax/matrix/", {
+				count: Count,
+				key: Key,
+				tab_index: TabIndex,
+				front_end_editor: FrontEndEditor,
+				columns: Columns
+			}, function() {
+				List.append(li);
+				BigTree.formHooks(li);
+				BigTreeCustomControls(li);
+				AddInstructions.hide();
+
+				if ($(".sticky_controls.stuck").length) {
+					$("body, html").animate({ scrollTop: li.offset().top - 50 });
+				} else {
+					$("body, html").animate({ scrollTop: li.offset().top - 5 });
 				}
 			});
+
+			Count++;
+
+			if (Max && count >= Max) {
+				AddButton.hide();
+			}
 		}
 
 		function deleteItem(e) {
 			e.preventDefault();
 
-			if (Style === "list") {
-				CurrentItem = $(this).parents("li");
-			} else {
-				CurrentItem = $(this).parents("article");
-			}
-
+			CurrentItem = $(this).parents("li").eq(0);
 			BigTreeDialog({
 				title: "Delete Item",
 				content: '<p class="confirm">Are you sure you want to delete this item?</p>',
 				callback: function() {
 					CurrentItem.remove();
-					var count = List.find("article, li").length;
+					var count = List.find("> li").length;
+
 					if (count < Max) {
 						AddButton.show();
-						if (!count) {
-							NoItemsMessage.show();
-						}
+					}
+
+					if (!count) {
+						AddInstructions.show();
 					}
 				},
 				icon: "delete",
 				alternateSaveText: "OK"
 			});
+			
+			return false;
 		}
 
 		function editItem(e) {
 			e.preventDefault();
 
-			// Prevent double clicks
-			if (BigTree.Busy) {
-				return;
-			}
-
-			BigTree.TabIndexDepth++;
-
-			// Set the current element that we're going to replace
-			if (Style === "list") {
-				CurrentItem = $(this).parents("li");
-			} else {
-				CurrentItem = $(this).parents("article");
-			}
-
-			$.ajax("admin_root/ajax/matrix-field/", {
-				type: "POST",
-				data: { columns: Columns, count: Count, data: CurrentItem.find(".bigtree_matrix_data").val(), key: Key, tab_depth: BigTree.TabIndexDepth, front_end_editor: FrontEndEditor },
-				complete: function(response) {
-					BigTreeDialog({
-						title: "Edit Item",
-						content: response.responseText,
-						icon: "edit",
-						preSubmissionCallback: true,
-						callback: function(e) {
-							e.preventDefault();
-
-							var item;
-							if (item = getItem()) {
-								// Replace the item, remove the dialog, increase the count
-								CurrentItem.replaceWith(item);
-								removeDialog();
-								Count++;
-							}
-						}
-					});
-				}
-			});
-		}
-
-		function getItem() {
-			LastDialog = $(".bigtree_dialog_form").last();
-			BigTree.TabIndexDepth--;
-
-			// Validate required fields.
-			var validator = BigTreeFormValidator(LastDialog);
-			if (!validator.validateForm(false,true)) {
-				return false;
-			}
-
-			if (Style == "list") {
-				var entry = $('<li>').html('<span class="icon_sort"></span><p></p><a href="#" class="icon_delete"></a>');
-			} else {
-				var entry = $('<article>').html('<h4></h4><p></p><div class="bottom"><span class="icon_drag"></span><a href="#" class="icon_delete"></a></div>');
-			}
-
-			// Try our best to find some way to describe the item
-			Title = Subtitle = "";
-			LastDialog.find(".matrix_title_field").each(function(index,el) {
-				if (!Title || !Subtitle) {
-					var item = $(el).find("input[type=checkbox],input[type=text],input[type=email],input[type=url],input[type=hidden],textarea,select").not("[type=file]");
-					if (item.length) {
-						// Going to check for multi-part inputs like names, address, phone
-						var parent = item.parent();
-						
-						if (parent.hasClass("input_name") || parent.hasClass("input_phone_3") || parent.hasClass("input_address_street")) {
-							var value = "";
-							item.parent().siblings('section').each(function() {
-								if (parent.hasClass("input_phone_3")) {
-									value += "-" + $(this).children("input").val();
-								} else {
-									value += " " + $(this).children("input, select").val();
-								}
-							});
-							// Remove the leading -
-							value = $.trim(value.substr(1));
-						} else if (item.is("select")) {
-							var value = $.trim(item.find("option:selected").text());
-						} else if (item.is("textarea") && item.css("display") == "none") {
-							var mce = tinyMCE.get(item.attr("id"));
-							
-							if (mce) {
-								mce.save();
-								var value = $.trim(item.val());
-							}
-						} else {
-							var value = $.trim(item.val());
-						}
-
-						// Reset value if item is an unchecked checkbox
-						if (item.attr('type') == 'checkbox' && !item.is(":checked")){
-							value = false;
-						}
-						
-						if (value) {
-							if (!Title) {
-								Title = strip_tags(value);
-							} else {
-								Subtitle = strip_tags(value);
-							}
-						}
-					}
-				}
-			});
-
-			// Append all the relevant fields into the matrix field so that it gets saved on submit with the rest of the form.
-			LastDialog.find("input, textarea, select").each(function() {
-				if ($(this).attr("type") != "submit") {
-					if ($(this).is("textarea") && $(this).css("display") == "none") {
-						var mce = tinyMCE.get($(this).attr("id"));
-						if (mce) {
-							mce.save();
-							mce.remove();
-						}
-					}
-					$(this).hide().get(0).className = "";
-					entry.append($(this));
-				}
-			});
-
-			if (Style == "list") {
-				entry.find("p").html(Title + '<small>' + Subtitle + '</small>');
-				entry.append('<input type="hidden" name="' + Key + '[' + Count + '][__internal-title]" value="' + htmlspecialchars(Title) + '" />');
-				entry.append('<input type="hidden" name="' + Key + '[' + Count + '][__internal-subtitle]" value="' + htmlspecialchars(Subtitle) + '" />');
-			} else {
-				entry.find("h4").html(Title + '<input type="hidden" name="' + Key + '[' + Count + '][__internal-title]" value="' + htmlspecialchars(Title) + '" />');
-				entry.find("p").html(Subtitle + '<input type="hidden" name="' + Key + '[' + Count + '][__internal-subtitle]" value="' + htmlspecialchars(Subtitle) + '" />');
-			}
-
-			return entry;
-		}
-
-		function removeDialog() {
-			LastDialog.parents("div").remove();
-			LastDialog.remove();
-			$(".bigtree_dialog_overlay").last().remove();
-			BigTree.zIndex -= 2;
+			$(this).parents("li").eq(0).toggleClass("collapsed");
 		}
 
 		// Init routine
-		Key = settings.key;
-		Columns = settings.columns;
-		Container = $(settings.selector);
-		AddButton = Container.find(".add_item");
-		List = Container.find(".contain, ul");
-		Count = List.find("article, li").length;
-		Max = settings.max ? settings.max : 0;
-		Style = settings.style ? settings.style : "list";
-		NoItemsMessage = Container.find("section");
-		FrontEndEditor = settings.front_end_editor;
+		Count = List.find("> li").length;
 
-		// If they've exceed or are at the max, hide the add button
+		// Hide the add button if we're at or above the limit
 		if (Max && Count >= Max) {
 			AddButton.hide();
 		}
 
-		Container.on("click",".add_item",addItem)
-				 .on("click",".icon_edit",editItem)
-				 .on("click",".icon_delete",deleteItem);
+		AddButton.on("click", addItem);
 
-		if (Style == "list") {
-			List.sortable({ containment: "parent", handle: ".icon_sort", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
-		} else {
-			List.sortable({ containment: "parent", handle: ".icon_drag", items: "article", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
-		}
+		List.on("click", "> li > div > .icon_edit", editItem)
+		List.on("click", "> li > div > .icon_delete", deleteItem);
+		List.on("click", "> li > .matrix_entry_fields > .matrix_collapse", function(ev) {
+			ev.preventDefault();
+			$(this).parents("li").eq(0).addClass("collapsed");
+		});
+		List.sortable({ containment: "parent", handle: ".icon_drag", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 
 		return { Container: Container, Count: Count, Key: Key, List: List, addItem: addItem };
 

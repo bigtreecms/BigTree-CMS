@@ -3520,7 +3520,7 @@
 					"datetime" => ["name" => "Date &amp; Time Picker", "self_draw" => false],
 					"media-gallery" => ["name" => "Media Gallery", "self_draw" => false],
 					"callouts" => ["name" => "Callouts", "self_draw" => false],
-					"matrix" => ["name" => "Matrix", "self_draw" => true],
+					"matrix" => ["name" => "Matrix", "self_draw" => false],
 					"one-to-many" => ["name" => "One to Many", "self_draw" => false]
 				],
 				"custom" => []
