@@ -3,13 +3,16 @@
 	$key = $_POST["key"];
 	$count = $_POST["count"];
 	$tabindex = $_POST["tab_index"];
+	$cached_types = $admin->getCachedFieldTypes();
+
+	$bigtree["field_types"] = $cached_types["callouts"];
+	$bigtree["field_namespace"] = uniqid("callout_field_");
+	$bigtree["html_fields"] = [];
+	$bigtree["simple_html_fields"] = [];
 
 	if (!empty($_POST["front_end_editor"]) && $_POST["front_end_editor"] != "false") {
 		define("BIGTREE_FRONT_END_EDITOR", true);
 	}
-
-	$bigtree["html_fields"] = [];
-	$bigtree["simple_html_fields"] = [];
 ?>
 <div class="inner">
 	<span class="icon_sort"></span>
