@@ -2930,6 +2930,7 @@ var BigTreeMatrix = function(settings) {
 				BigTree.formHooks(li);
 				BigTreeCustomControls(li);
 				AddInstructions.hide();
+				hookItem(li);
 
 				if ($(".sticky_controls.stuck").length) {
 					$("body, html").animate({ scrollTop: li.offset().top - 50 });
@@ -2977,6 +2978,31 @@ var BigTreeMatrix = function(settings) {
 			$(this).parents("li").eq(0).toggleClass("collapsed");
 		}
 
+		function hookItem(li) {
+			li.on("keyup", ".matrix_title_field input, .matrix_title_field textarea", function(ev) {
+				var $target = $(ev.target);
+				var li = $target.parents("li").eq(0);
+				var title_fields = li.find(".matrix_title_field input, .matrix_title_field textarea");
+				var title = strip_tags(title_fields.eq(0).val());
+
+				if (title.length > 100) {
+					title = title.substr(0, 100);
+				}
+
+				if (title_fields.length > 1) {
+					var subtitle = strip_tags(title_fields.eq(1).val());
+
+					if (subtitle.length > 100) {
+						subtitle = subtitle.substr(0, 100);
+					}
+
+					title += '<small>' + subtitle + '</small>';
+				}
+
+				li.find("> .inner > .multi_widget_entry_title").html(title);
+			});
+		}
+
 		// Init routine
 		Count = List.find("> li").length;
 
@@ -2987,6 +3013,7 @@ var BigTreeMatrix = function(settings) {
 
 		AddButton.on("click", addItem);
 
+		List.find("> li").each(function() { hookItem($(this)); });
 		List.on("click", "> li > div > .icon_edit", editItem)
 		List.on("click", "> li > div > .icon_delete", deleteItem);
 		List.on("click", "> li > .matrix_entry_fields > .matrix_collapse", function(ev) {
