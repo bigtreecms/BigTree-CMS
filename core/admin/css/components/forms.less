@@ -182,7 +182,7 @@
 		display: block;
 		font-family: "Helvetica", Arial;
 		font-size: 13px;
-		height: 30px;
+		height: 32px;
 		margin: 0;
 		padding: 0 10px;
 		transition: border-color 0.2s;
@@ -214,8 +214,6 @@
 	form .float_contain { overflow: hidden; padding: 0 0 30px 0; }
 	form .left { float: left; margin: 0 25px 15px 0; width: 435px; }
 	form .right { float: right; margin: 0 0 15px 0; width: 435px; }
-	form .left input[type=text], form .right input[type=text], form .left input[type=password], form .right input[type=password], form .left input[type=email], form .right input[type=email], form .left input[type=url], form .right input[type=url] { width: 413px; }
-	form .left textarea, form .right textarea { width: 413px; }
 	form .triplets { float: left; margin: 15px 0; }
 	form .triplets:after { clear: both; content: ""; display: table; }
 	form .triplets fieldset { float: left; margin: 0 29px 0 0; width: 280px; }
@@ -298,9 +296,9 @@
 	.container .text_input section { float: left; margin: 0 20px 0 0; padding: 0; }
 	.container .input_name input { width: 200px; }
 	.container .input_name label { font-size: 11px; line-height: 11px; margin: 0; }
-	.container .text_input .input_address_street { margin: 0 0 15px 0; }
-	.container .input_address_city input { width: 284px; }
-	.container .input_address_zip input { width: 150px; }
+	.container .text_input .input_address_street { float: none; margin: 0 0 15px 0; }
+	.container .input_address_city input { width: 308px; }
+	.container .input_address_zip input { width: 170px; }
 	.container .input_address_state { width: 160px; }
 	.container .input_address_state .select .current_select_container { width: 104px !important; }
 	.container .input_address_state .select .select_options { width: 158px !important; }
@@ -308,9 +306,9 @@
 	.container .input_address_country .select .current_select_container { width: 188px !important; }
 	.container .input_address_country .select .select_options { width: 198px !important; }
 	.container .text_input .input_phone_3 { margin: 0; }
-	.container .input_phone_3 input { float: left; text-align: center; width: 30px; }
+	.container .input_phone_3 input { float: left; text-align: center; width: 40px; }
 	.container .input_phone_3 span { float: left; height: 32px; line-height: 32px; text-align: center; width: 20px; }
-	.container .input_phone_4 input { text-align: center; width: 40px; }
+	.container .input_phone_4 input { text-align: center; width: 50px; }
 
 	// Link Field
 	.link_field_results_container {
