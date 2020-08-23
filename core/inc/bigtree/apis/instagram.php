@@ -1,17 +1,18 @@
 <?php
 	/*
 		Class: BigTreeInstagramAPI
-			Instagram API class that implements most API calls (media posting excluded).
+			Instagram Basic Display API class that implements reading the authenticated user's basic information and recent media posts.
 	*/
 
 	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
+	
 	class BigTreeInstagramAPI extends BigTreeOAuthAPIBase {
 
 		public $AuthorizeURL = "https://api.instagram.com/oauth/authorize/";
-		public $EndpointURL = "https://api.instagram.com/v1/";
+		public $EndpointURL = "https://graph.instagram.com/";
 		public $OAuthVersion = "1.0";
 		public $RequestType = "custom";
-		public $Scope = "basic comments relationships likes";
+		public $Scope = "user_profile,user_media";
 		public $TokenURL = "https://api.instagram.com/oauth/access_token";
 
 		/*
@@ -40,303 +41,46 @@
 
 		public function callUncached($endpoint = "", $params = array(), $method = "GET", $headers = array()) {
 			$response = parent::callUncached($endpoint,$params,$method,$headers);
+			
 			if (isset($response->meta->error_message)) {
 				$this->Errors[] = $response->meta->error_message;
+			
 				return false;
 			}
+			
 			return $response;
 		}
-
-		/*
-			Function: comment
-				Leaves a comment on a media post by the authenticated user.
-				This method requires special access permissions for your Instagram application.
-				Please email apidevelopers@instagram.com for access.
-
-			Parameters:
-				id - The media ID to comment on.
-				comment - The text to leave as a comment.
-
-			Returns:
-				true if successful
-		*/
-
-		public function comment($id,$comment) {
-			$response = $this->call("media/$id/comments",array("text" => $comment),"POST");
-			if ($response->meta->code == 200) {
-				return true;
-			}
-			return false;
-		}
-
-		/*
-			Function: deleteComment
-				Leaves a comment on a media post by the authenticated user.
-
-			Parameters:
-				id - The media ID the comment was left on.
-				comment - The comment ID.
-
-			Returns:
-				true if successful
-		*/
-
-		public function deleteComment($id,$comment) {
-			$response = $this->call("media/$id/comments/$comment",array(),"DELETE");
-			if ($response->meta->code == 200) {
-				return true;
-			}
-			return false;
-		}
-
-		/*
-			Function: getComments
-				Returns a list of comments for a given media ID.
-
-			Parameters:
-				id - The media ID to retrieve comments for.
-
-			Returns:
-				An array of BigTreeInstagramComment objects.
-		*/
-
-		public function getComments($id) {
-			$response = $this->call("media/$id/comments");
-			if (!isset($response->data)) {
-				return false;
-			}
-			$comments = array();
-			foreach ($response->data as $comment) {
-				$comments[] = new BigTreeInstagramComment($comment,$id,$this);
-			}
-			return $comments;
-		}
-
+		
 		/*
 			Function: getFeed
-				Returns the authenticated user's feed.
-
-			Parameters:
-				count - The number of media results to return (defaults to 10)
-				params - Additional parameters to pass to the users/self/feed API call
+				Returns the authenticated user's last 25 posts.
 
 			Returns:
 				A BigTreeInstagramResultSet of BigTreeInstagramMedia objects.
-
-			See Also:
-				http://instagram.com/developer/endpoints/users/
 		*/
 
-		public function getFeed($count = 10,$params = array()) {
-			$response = $this->call("users/self/feed",array_merge($params,array("count" => $count)));
+		public function getFeed($after = null) {
+			$params = [
+				"fields" => "id, caption, media_type, media_url, permalink, thumbnail_url, timestamp, username"
+			];
+			
+			if ($after) {
+				$params["after"] = $after;
+			}
+			
+			$response = $this->call("me/media", $params);
+			
 			if (!isset($response->data)) {
 				return false;
 			}
-			$results = array();
+			
+			$results = [];
+
 			foreach ($response->data as $media) {
-				$results[] = new BigTreeInstagramMedia($media,$this);
+				$results[] = new BigTreeInstagramMedia($media, $this);
 			}
-			return new BigTreeInstagramResultSet($this,"getFeed",array($count,array_merge($params,array("max_id" => end($results)->ID))),$results);
-		}
 
-		/*
-			Function: getFriends
-				Returns a list of people the given user ID follows
-
-			Parameters:
-				id - The user ID to retrieve the friends of
-
-			Returns:
-				An array of BigTreeInstagramUser objects
-		*/
-
-		public function getFriends($id) {
-			$response = $this->call("users/$id/follows");
-			if (!isset($response->data)) {
-				return false;
-			}
-			$results = array();
-			foreach ($response->data as $user) {
-				$results[] = new BigTreeInstagramUser($user,$this);
-			}
-			return $results;
-		}
-
-		/*
-			Function: getFollowers
-				Returns a list of people the given user ID is followed by
-
-			Parameters:
-				id - The user ID to retrieve the followers of
-
-			Returns:
-				An array of BigTreeInstagramUser objects
-		*/
-
-		public function getFollowers($id) {
-			$response = $this->call("users/$id/followed-by");
-			if (!isset($response->data)) {
-				return false;
-			}
-			$results = array();
-			foreach ($response->data as $user) {
-				$results[] = new BigTreeInstagramUser($user,$this);
-			}
-			return $results;
-		}
-
-		/*
-			Function: getFollowRequests
-				Returns a list of people that are awaiting permission to follow the authenticated user
-
-			Returns:
-				An array of BigTreeInstagramUser objects
-		*/
-
-		public function getFollowRequests() {
-			$response = $this->call("users/self/requested-by");
-			if (!isset($response->data)) {
-				return false;
-			}
-			$results = array();
-			foreach ($response->data as $user) {
-				$results[] = new BigTreeInstagramUser($user,$this);
-			}
-			return $results;
-		}
-
-		/*
-			Function: getLikedMedia
-				Returns a list of media the authenticated user has liked
-
-			Parameters:
-				count - The number of media results to return (defaults to 10)
-				params - Additional parameters to pass to the users/self/media/liked API call
-
-			Returns:
-				A BigTreeInstagramResultSet of BigTreeInstagramMedia objects.
-
-			See Also:
-				http://instagram.com/developer/endpoints/users/
-		*/
-
-		public function getLikedMedia($count = 10,$params = array()) {
-			$response = $this->call("users/self/media/liked",array_merge($params,array("count" => $count)));
-			if (!isset($response->data)) {
-				return false;
-			}
-			$results = array();
-			foreach ($response->data as $media) {
-				$results[] = new BigTreeInstagramMedia($media,$this);
-			}
-			return new BigTreeInstagramResultSet($this,"getLikedMedia",array($count,array_merge($params,array("max_like_id" => end($results)->ID))),$results);
-		}
-
-		/*
-			Function: getLikes
-				Returns a list of users that like a given media ID.
-
-			Parameters:
-				id - The media ID to get likes for
-
-			Returns:
-				An array of BigTreeInstagramUser objects.
-		*/
-
-		public function getLikes($id) {
-			$response = $this->call("media/$id/likes");
-			if (!isset($response->data)) {
-				return false;
-			}
-			$users = array();
-			foreach ($response->data as $user) {
-				$users[] = new BigTreeInstagramUser($user,$this);
-			}
-			return $users;
-		}
-
-		/*
-			Function: getLocation
-				Returns location information for a given ID.
-
-			Parameters:
-				id - The location ID
-
-			Returns:
-				A BigTreeInstagramLocation object.
-		*/
-
-		public function getLocation($id) {
-			$response = $this->call("locations/$id");
-			if (!isset($response->data)) {
-				return false;
-			}
-			return new BigTreeInstagramLocation($response->data,$this);
-		}
-
-		/*
-			Function: getLocationByFoursquareID
-				Returns location information for a given Foursquare API v2 ID.
-
-			Parameters:
-				id - The Foursquare API ID.
-
-			Returns:
-				A BigTreeInstagramLocation object.
-		*/
-
-		public function getLocationByFoursquareID($id) {
-			$response = $this->searchLocations(false,false,false,$id);
-			if (!$response) {
-				return false;
-			}
-			return $response[0];
-		}
-
-		/*
-			Function: getLocationByLegacyFoursquareID
-				Returns location information for a given Foursquare API v1 ID.
-
-			Parameters:
-				id - The Foursquare API ID.
-
-			Returns:
-				A BigTreeInstagramLocation object.
-		*/
-
-		public function getLocationByLegacyFoursquareID($id) {
-			$response = $this->searchLocations(false,false,false,false,$id);
-			if (!$response) {
-				return false;
-			}
-			return $response[0];
-		}
-
-		/*
-			Function: getLocationMedia
-				Returns recent media from a given location
-
-			Parameters:
-				id - The location ID to pull media for
-				params - Additional parameters to pass to the locations/{id}/media/recent API call
-
-			Returns:
-				A BigTreeInstagramResultSet of BigTreeInstagramMedia objects.
-
-			See Also:
-				http://instagram.com/developer/endpoints/locations/
-		*/
-
-		public function getLocationMedia($id,$params = array()) {
-			$response = $this->call("locations/$id/media/recent",$params);
-			if (!isset($response->data)) {
-				return false;
-			}
-			$results = array();
-			foreach ($response->data as $media) {
-				$results[] = new BigTreeInstagramMedia($media,$this);
-			}
-			return new BigTreeInstagramResultSet($this,"getLocationMedia",array($id,array("max_id" => end($results)->ID)),$results);
+			return new BigTreeInstagramResultSet($this, "getFeed", [$response->paging->cursors->after], $results);
 		}
 
 		/*
@@ -345,74 +89,17 @@
 
 			Parameters:
 				id - The media ID
-				shortcode - The media shortcode (from instagram.com shortlink URL, optional & replaces ID)
 
 			Returns:
 				A BigTreeInstagramMedia object.
 		*/
 
-		public function getMedia($id, $shortcode = false) {
-			if ($shortcode) {
-				$response = $this->call("media/shortcode/$id");
-			} else {
-				$response = $this->call("media/$id");
-			}
-			if (!isset($response->data)) {
-				return false;
-			}
-			return new BigTreeInstagramMedia($response->data,$this);
+		public function getMedia($id) {
+			$response = $this->call($id, ["fields" => "id, caption, media_type, media_url, permalink, thumbnail_url, timestamp, username"]);
+			
+			return $response ? new BigTreeInstagramMedia($response, $this) : false;
 		}
-
-		/*
-			Function: getRelationship
-				Returns the relationship of the given user to the authenticated user
-
-			Parameters:
-				id - The user ID to check the relationship of
-
-			Returns:
-				An object containg an "Incoming" key (whether they follow you, have requested to follow you, or nothing) and "Outgoing" key (whether you follow them, block them, etc)
-		*/
-
-		public function getRelationship($id) {
-			$response = $this->call("users/$id/relationship");
-			if (!isset($response->data)) {
-				return false;
-			}
-			$obj = new stdClass;
-			$obj->Incoming = $response->data->incoming_status;
-			$obj->Outgoing = $response->data->outgoing_status;
-			return $obj;
-		}
-
-		/*
-			Function: getTaggedMedia
-				Returns recent photos that contain a given tag.
-
-			Parameters:
-				tag - The tag to search for
-				params - Additional parameters to pass to the tags/{tag}/media/recent API call
-
-			Returns:
-				A BigTreeInstagramResultSet of BigTreeInstagramMedia objects.
-
-			See Also:
-				http://instagram.com/developer/endpoints/tags/
-		*/
-
-		public function getTaggedMedia($tag,$params = array()) {
-			$tag = (substr($tag,0,1) == "#") ? substr($tag,1) : $tag;
-			$response = $this->call("tags/$tag/media/recent",$params);
-			if (!isset($response->data)) {
-				return false;
-			}
-			$results = array();
-			foreach ($response->data as $media) {
-				$results[] = new BigTreeInstagramMedia($media,$this);
-			}
-			return new BigTreeInstagramResultSet($this,"getTaggedMedia",array($tag,array("min_id" => end($results)->ID)),$results);
-		}
-
+		
 		/*
 			Function: getUser
 				Returns information about a given user ID.
@@ -425,306 +112,130 @@
 		*/
 
 		public function getUser($id) {
-			$response = $this->call("users/$id");
-			if (!isset($response->data)) {
-				return false;
-			}
-			return new BigTreeInstagramUser($response->data,$this);
+			$response = $this->call($id, ["fields" => "id, username, media_count, account_type"]);
+			
+			return $response ? new BigTreeInstagramUser($response, $this) : false;
 		}
 
 		/*
 			Function: getUserMedia
-				Returns recent media from a given user ID.
+				Returns the most recent 25 posts from a given user ID.
 
 			Parameters:
 				id - The user ID to return media for.
-				count - The number of media results to return (defaults to 10).
-				params - Additional parameters to pass to the users/{id}/media/recent API call.
 
 			Returns:
 				A BigTreeInstagramResultSet of BigTreeInstagramMedia objects.
-
-			See Also:
-				http://instagram.com/developer/endpoints/users/
 		*/
 
-		public function getUserMedia($id,$count = 10,$params = array()) {
-			$response = $this->call("users/$id/media/recent",array_merge($params,array("count" => $count)));
+		public function getUserMedia($id, $after = null) {
+			$params = [
+				"fields" => "id, caption, media_type, media_url, permalink, thumbnail_url, timestamp, username"
+			];
+			
+			if ($after) {
+				$params["after"] = $after;
+			}
+			
+			$response = $this->call("$id/media", $params);
+			
 			if (!isset($response->data)) {
 				return false;
 			}
-			$results = array();
+			
+			$results = [];
+			
 			foreach ($response->data as $media) {
-				$results[] = new BigTreeInstagramMedia($media,$this);
+				$results[] = new BigTreeInstagramMedia($media, $this);
 			}
-			return new BigTreeInstagramResultSet($this,"getUserMedia",array($id,$count,array_merge($params,array("max_id" => end($results)->ID))),$results);
+			
+			return new BigTreeInstagramResultSet($this, "getUserMedia", [$id, $response->paging->cursors->after], $results);
 		}
-
+		
 		/*
-			Function: like
-				Sets a like on the given media by the authenticated user.
-
-			Parameters:
-				id - The media ID to like
+			Function: oAuthRefreshToken
+				Refreshes an existing token setup.
+		*/
+		
+		public function oAuthRefreshToken() {
+			$response = $this->callUncached("refresh_access_token", ["grant_type" => "ig_refresh_token"]);
+			
+			if ($response->access_token) {
+				$this->Settings["token"] = $response->access_token;
+				$this->Settings["expires"] = strtotime("+".$response->expires_in." seconds");
+				$this->saveSettings();
+			}
+		}
+		
+		/*
+			Function: oAuthSetToken
+				Sets token information (or an error) when provided a response code.
 
 			Returns:
-				true if successful
+				A stdClass object of information if successful.
 		*/
-
-		public function like($id) {
-			$response = $this->call("media/$id/likes",array(),"POST");
-			if ($response->meta->code == 200) {
-				return true;
-			}
+		
+		public function oAuthSetToken($code) {
+			parent::oAuthSetToken($code);
+			
+			$response = $this->callUncached("access_token", [
+				"grant_type" => "ig_exchange_token",
+				"client_secret" => $this->Settings["secret"],
+				"access_token" => $this->Settings["token"]
+			]);
+			
+			$this->Settings["token"] = $response->access_token;
+			$this->Settings["expires"] = $response->expires_in ? strtotime("+".$response->expires_in." seconds") : false;
+		}
+		
+		protected function _deprecated() {
+			trigger_error("Method is not supported on the Instagram Basic Display API.", E_USER_NOTICE);
+			
 			return false;
 		}
-
-		/*
-			Function: popularMedia
-				Returns a list of popular media.
-
-			Returns:
-				An array of BigTreeInstagramMedia objects.
-		*/
-
-		public function popularMedia() {
-			$response = $this->call("media/popular");
-			if (!isset($response->data)) {
-				return false;
-			}
-			$results = array();
-			foreach ($response->data as $media) {
-				$results[] = new BigTreeInstagramMedia($media,$this);
-			}
-			return $results;
-		}
-
-		/*
-			Function: searchLocations
-				Returns locations that match the search location or Foursquare ID
-
-			Parameters:
-				latitude - Latitude (required if not searching by Foursquare ID)
-				longitude - Longitude (required if not searching by Foursquare ID)
-				distance - Numeric value in meters to search from the lat/lon location (defaults to 1000)
-				foursquare_id - Foursquare API v2 ID to search by (ignores lat/lon)
-				legacy_foursquare_id - Legacy Foursquare API v1 ID to search by (ignores lat/lon and API v2 ID)
-
-			Returns:
-				An array of BigTreeInstagramLocation objects
-		*/
-
-		public function searchLocations($latitude = false,$longitude = false,$distance = 1000,$foursquare_id = false,$legacy_foursquare_id = false) {
-			if ($legacy_foursquare_id) {
-				$response = $this->call("locations/search",array("foursquare_id" => $legacy_foursquare_id));
-			} elseif ($foursquare_id) {
-				$response = $this->call("locations/search",array("foursquare_v2_id" => $foursquare_id));
-			} else {
-				$response = $this->call("locations/search",array("lat" => $latitude,"lng" => $longitude,"distance" => intval($distance)));
-			}
-			if (!isset($response->data)) {
-				return false;
-			}
-			$locations = array();
-			foreach ($response->data as $location) {
-				$locations[] = new BigTreeInstagramLocation($location,$this);
-			}
-			return $locations;
-		}
-
-		/*
-			Function: searchMedia
-				Search for media taken in a given area.
-
-			Parameters:
-				latitude - Latitude
-				longitude - Longitude
-				distance - Distance (in meters) to search (default is 1000, max is 5000)
-				params - Additional parameters to pass to the media/search API call
-
-			Returns:
-				A BigTreeInstagramResultSet of BigTreeInstagramMedia objects.
-
-			See Also:
-				http://instagram.com/developer/endpoints/media/
-		*/
-
-		public function searchMedia($latitude,$longitude,$distance = 1000,$params = array()) {
-			$response = $this->call("media/search",array_merge($params,array("lat" => $latitude,"lng" => $longitude,"distance" => intval($distance))));
-			if (!isset($response->data)) {
-				return false;
-			}
-			$results = array();
-			foreach ($response->data as $media) {
-				$results[] = new BigTreeInstagramMedia($media,$this);
-			}
-			return new BigTreeInstagramResultSet($this,"searchMedia",array($latitude,$longitude,$distance,array_merge($params,array("max_timestamp" => strtotime(end($results)->Timestamp)))),$results);
-		}
-
-		/*
-			Function: searchTags
-				Returns tags that match the search query.
-				Exact match is the first result followed by most popular.
-				If the exact match is popular enough, it is the only result.
-
-			Parameters:
-				tag - Tag to search for
-
-			Returns:
-				An array of BigTreeInstagramTag objects.
-		*/
-
-		public function searchTags($tag) {
-			$response = $this->call("tags/search",array("q" => (substr($tag,0,1) == "#") ? substr($tag,1) : $tag));
-			if (!isset($response->data)) {
-				return false;
-			}
-			$tags = array();
-			foreach ($response->data as $tag) {
-				$tags[] = new BigTreeInstagramTag($tag,$this);
-			}
-			return $tags;
-		}
-
-		/*
-			Function: searchUsers
-				Returns users that match the search query.
-
-			Parameters:
-				query - String to search for.
-				count - Number of results to return (defaults to 10)
-
-			Returns:
-				An array of BigTreeInstagramUser objects.
-		*/
-
-		public function searchUsers($query,$count = 10) {
-			$response = $this->call("users/search",array("q" => $query,"count" => $count));
-			if (!isset($response->data)) {
-				return false;
-			}
-			$users = array();
-			foreach ($response->data as $user) {
-				$users[] = new BigTreeInstagramUser($user,$this);
-			}
-			return $users;
-		}
-
-		/*
-			Function: setRelationship
-				Modifies the authenticated user's relationship with the given user.
-
-			Parameters:
-				id - The user ID to set relationship status with
-				action - "follow", "unfollow", "block", "unblock", "approve", or "deny"
-
-			Returns:
-				true if successful.
-		*/
-
-		public function setRelationship($id,$action) {
-			$response = $this->call("users/$id/relationship",array("action" => $action),"POST");
-			if (!isset($response->data)) {
-				return false;
-			}
-			return true;
-		}
-
-		/*
-			Function: unlike
-				Removes a like on the given media set by the authenticated user.
-
-			Parameters:
-				id - The media ID to like
-
-			Returns:
-				true if successful
-		*/
-
-		public function unlike($id) {
-			$response = $this->call("media/$id/likes",array(),"DELETE");
-			if ($response->meta->code == 200) {
-				return true;
-			}
-			return false;
-		}
-
+		
+		public function comment() { return $this->_deprecated(); }
+		public function deleteComment() { return $this->_deprecated(); }
+		public function getComments() { return $this->_deprecated(); }
+		public function getFriends() { return $this->_deprecated(); }
+		public function getFollowers() { return $this->_deprecated(); }
+		public function getFollowRequests() { return $this->_deprecated(); }
+		public function getLikedMedia() { return $this->_deprecated(); }
+		public function getLikes() { return $this->_deprecated(); }
+		public function getLocation() { return $this->_deprecated(); }
+		public function getLocationByFoursquareID() { return $this->_deprecated(); }
+		public function getLocationByLegacyFoursquareID() { return $this->_deprecated(); }
+		public function getLocationMedia() { return $this->_deprecated(); }
+		public function getRelationship() { return $this->_deprecated(); }
+		public function getTaggedMedia() { return $this->_deprecated(); }
+		public function like() { return $this->_deprecated(); }
+		public function popularMedia() { return $this->_deprecated(); }
+		public function searchLocations() { return $this->_deprecated(); }
+		public function searchMedia() { return $this->_deprecated(); }
+		public function searchTags() { return $this->_deprecated(); }
+		public function searchUsers() { return $this->_deprecated(); }
+		public function setRelationship() { return $this->_deprecated(); }
+		public function unlike() { return $this->_deprecated(); }
 	}
-
-	/*
-		Class: BigTreeInstagramComment
-			An Instagram object that contains information about and methods you can perform on a comment.
-	*/
 
 	class BigTreeInstagramComment {
-		protected $API;
-
-		/*
-			Constructor:
-				Creates a comment object from Instagram data.
-
-			Parameters:
-				comment - Instagram data
-				media_id - ID for the media the comment was attached to
-				api - Reference to the BigTreeInstagramAPI class instance
-		*/
-
-		public function __construct($comment,$media_id,&$api) {
-			$this->API = $api;
-			isset($comment->text) ? $this->Content = $comment->text : false;
-			isset($comment->id) ? $this->ID = $comment->id : false;
-			$this->MediaID = $media_id;
-			isset($comment->created_time) ? $this->Timestamp = date("Y-m-d H:i:s",$comment->created_time) : false;
-			isset($comment->from) ? $this->User = new BigTreeInstagramUser($comment->from,$api) : false;
+		
+		public function __construct() {
+			trigger_error("BigTreeInstagramComment is not supported on the Instagram Basic Display API.", E_USER_NOTICE);
 		}
 
-		/*
-			Function: delete
-				Deletes the comment (must belong to the authenticated user)
-
-			Returns:
-				true if successful
-		*/
-
-		public function delete() {
-			return $this->API->deleteComment($this->MediaID,$this->ID);
-		}
+		public function delete() {}
+		
 	}
 
-	/*
-		Class: BigTreeInstagramLocation
-			An Instagram object that contains information about and methods you can perform on a location.
-	*/
-
 	class BigTreeInstagramLocation {
-		protected $API;
-
-		/*
-			Constructor:
-				Creates a location object from Instagram data.
-
-			Parameters:
-				location - Instagram data
-				api - Reference to the BigTreeInstagramAPI class instance
-		*/
-
-		public function __construct($location,$api) {
-			$this->API = $api;
-			isset($location->id) ? $this->ID = $location->id : false;
-			isset($location->latitude) ? $this->Latitude = $location->latitude : false;
-			isset($location->longitude) ? $this->Longitude = $location->longitude : false;
-			isset($location->name) ? $this->Name = $location->name : false;
+		
+		public function __construct() {
+			trigger_error("BigTreeInstagramLocation is not supported on the Instagram Basic Display API.", E_USER_NOTICE);
 		}
 
-		/*
-			Function: getMedia
-				Alias for BigTreeInstagramAPI::getLocationMedia
-		*/
-
-		public function getMedia() {
-			return $this->API->getLocationMedia($this->ID);
-		}
-
+		public function getMedia() {}
+		
 	}
 
 	/*
@@ -734,6 +245,16 @@
 
 	class BigTreeInstagramMedia {
 		protected $API;
+		
+		public $Caption;
+		public $ID;
+		public $Parent;
+		public $Permalink;
+		public $ThumbnailURL;
+		public $Timestamp;
+		public $Type;
+		public $URL;
+		public $Username;
 
 		/*
 			Constructor:
@@ -741,120 +262,73 @@
 
 			Parameters:
 				media - Instagram data
-				api - Reference to the BigTreeInstagramAPI class instance
 		*/
 
-		public function __construct($media,&$api) {
-			$this->API = $api;
-			isset($media->caption) ? $this->Caption = $media->caption->text : false;
-			isset($media->filter) ? $this->Filter = $media->filter : false;
-			isset($media->id) ? $this->ID = $media->id : false;
-			isset($media->images->standard_resolution->url) ? $this->Image = $media->images->standard_resolution->url : false;
-			isset($media->user_has_liked) ? $this->Liked = $media->user_has_liked : false;
-			if (isset($media->likes)) {
-				$this->LikesCount = $media->likes->count;
-
-				if (!empty($media->likes->data)) {
-					$this->Likes = array();
-					
-					foreach ($media->likes->data as $user) {
-						$this->Likes[] = new BigTreeInstagramUser($user,$api);
-					}
-				}
+		public function __construct($media, $api) {
+			$this->Caption = $media->caption;
+			$this->ID = $media->id;
+			$this->Permalink = $media->permalink;
+			$this->ThumbnailURL = $media->thumbnail_url;
+			$this->Timestamp = $media->timestamp;
+			$this->Type = $media->media_type;
+			$this->URL = $media->media_url;
+			$this->Username = $media->username;
+			
+			if (!empty($media->parent)) {
+				$this->Parent = $media->parent;
 			}
-			if (isset($media->location)) {
-				$this->Location = new BigTreeInstagramLocation($media->location,$api);
-			}
-			isset($media->images->low_resolution->url) ? $this->SmallImage = $media->images->low_resolution->url : false;
-			if (isset($media->tags)) {
-				$this->Tags = array();
-				foreach ($media->tags as $tag_name) {
-					$tag = new BigTreeInstagramTag(false,$api);
-					$tag->Name = $tag_name;
-					$this->Tags[] = $tag;
-				}
-			}
-			isset($media->images->thumbnail->url) ? $this->ThumbnailImage = $media->images->thumbnail->url : false;
-			isset($media->created_time) ? $this->Timestamp = date("Y-m-d H:i:s",$media->created_time) : false;
-			isset($media->type) ? $this->Type = $media->type : false;
-			isset($media->link) ? $this->URL = $media->link : false;
-			isset($media->user) ? $this->User = new BigTreeInstagramUser($media->user,$api) : false;
-			isset($media->users_in_photo) ? $this->UsersInPhoto = $media->users_in_photo : false;
-			if (isset($media->videos)) {
-				$this->Videos = new stdClass;
-				$this->Videos->Standard = new stdClass;
-				$this->Videos->Standard->URL = $media->videos->standard_resolution->url;
-				$this->Videos->Standard->Height = $media->videos->standard_resolution->height;
-				$this->Videos->Standard->Width = $media->videos->standard_resolution->width;
-				$this->Videos->LowRes = new stdClass;
-				$this->Videos->LowRes->URL = $media->videos->low_resolution->url;
-				$this->Videos->LowRes->Height = $media->videos->low_resolution->height;
-				$this->Videos->LowRes->Width = $media->videos->low_resolution->width;
+			
+			if ($this->Type == "CAROUSEL_ALBUM") {
+				$this->API = $api;
 			}
 		}
-
+		
 		/*
-			Function: comment
-				Alias for BigTreeInstagramAPI::comment
-		*/
+			Function: getAlbumContents
+				Returns the other media objects inside an album media type.
 
-		public function comment($comment) {
-			return $this->API->comment($this->ID,$comment);
+			Returns:
+				An array of BigTreeInstagramMedia objects.
+		*/
+		
+		public function getAlbumContents() {
+			if ($this->Type != "CAROUSEL_ALBUM") {
+				return [];
+			}
+			
+			$response = $this->API->call($this->ID."/children", [
+				"fields" => "id, media_type, media_url, permalink, thumbnail_url, timestamp, username"
+			]);
+			
+			if (!isset($response->data)) {
+				return false;
+			}
+			
+			$results = [];
+			
+			foreach ($response->data as $media) {
+				$media->caption = $this->Caption;
+				$media->parent = $this->ID;
+				
+				$results[] = new BigTreeInstagramMedia($media, $this);
+			}
+			
+			return $results;
+		}
+		
+		protected function _deprecated() {
+			trigger_error("Method is not supported on the Instagram Basic Display API.", E_USER_NOTICE);
+			
+			return false;
 		}
 
-		/*
-			Function: getComments
-				Alias for BigTreeInstagramAPI::getComments
-		*/
-
-		public function getComments() {
-			return $this->API->getComments($this->ID);
-		}
-
-		/*
-			Function: getLikes
-				Alias for BigTreeInstagramAPI::getLikes
-		*/
-
-		public function getLikes() {
-			return $this->API->getLikes($this->ID);
-		}
-
-		/*
-			Function: getLocation
-				Alias for BigTreeInstagramAPI::getLocation
-		*/
-
-		public function getLocation() {
-			return $this->API->getLikes($this->Location->ID);
-		}
-
-		/*
-			Function: getUser
-				Alias for BigTreeInstagramAPI::getUser
-		*/
-
-		public function getUser() {
-			return $this->API->getUser($this->User->ID);
-		}
-
-		/*
-			Function: like
-				Alias for BigTreeInstagramAPI::like
-		*/
-
-		public function like() {
-			return $this->API->like($this->ID);
-		}
-
-		/*
-			Function: unlike
-				Alias for BigTreeInstagramAPI::unlike
-		*/
-
-		public function unlike() {
-			return $this->API->unlike($this->ID);
-		}
+		public function comment() { return $this->_deprecated(); }
+		public function getComments() { return $this->_deprecated(); }
+		public function getLikes() { return $this->_deprecated(); }
+		public function getLocation() { return $this->_deprecated(); }
+		public function getUser() { return $this->_deprecated(); }
+		public function like() { return $this->_deprecated(); }
+		public function unlike() { return $this->_deprecated(); }
 	}
 
 	/*
@@ -875,7 +349,7 @@
 				results - Results to store
 		*/
 
-		public function __construct(&$api,$last_call,$params,$results) {
+		public function __construct(&$api, $last_call, $params, $results) {
 			$this->API = $api;
 			$this->LastCall = $last_call;
 			$this->LastParameters = $params;
@@ -891,41 +365,18 @@
 		*/
 
 		public function nextPage() {
-			return call_user_func_array(array($this->API,$this->LastCall),$this->LastParameters);
+			return call_user_func_array([$this->API, $this->LastCall], $this->LastParameters);
 		}
 	}
 
-	/*
-		Class: BigTreeInstagramTag
-			An Instagram object that contains information about and methods you can perform on a tag.
-	*/
-
 	class BigTreeInstagramTag {
-		protected $API;
-
-		/*
-			Constructor:
-				Creates a tag object from Instagram data.
-
-			Parameters:
-				tag - Instagram data
-				api - Reference to the BigTreeInstagramAPI class instance
-		*/
-
-		public function __construct($tag,&$api) {
-			$this->API = $api;
-			isset($tag->media_count) ? $this->MediaCount = $tag->media_count : false;
-			isset($tag->name) ? $this->Name = $tag->name : false;
+		
+		public function __construct() {
+			trigger_error("BigTreeInstagramTag is not supported on the Instagram Basic Display API.", E_USER_NOTICE);
 		}
 
-		/*
-			Function: getMedia
-				Alias for BigTreeInstagramAPI::getTaggedMedia
-		*/
-
-		public function getMedia() {
-			return $this->API->getTaggedMedia($this->Name);
-		}
+		public function getMedia() {}
+		
 	}
 
 	/*
@@ -935,6 +386,11 @@
 
 	class BigTreeInstagramUser {
 		protected $API;
+		
+		public $AccountType;
+		public $ID;
+		public $MediaCount;
+		public $Username;
 
 		/*
 			Constructor:
@@ -945,17 +401,12 @@
 				api - Reference to the BigTreeInstagramAPI class instance
 		*/
 
-		public function __construct($user,&$api) {
+		public function __construct($user, &$api) {
 			$this->API = $api;
-			isset($user->bio) ? $this->Description = $user->bio : false;
-			isset($user->counts->followed_by) ? $this->FollowersCount = $user->counts->followed_by : false;
-			isset($user->counts->follows) ? $this->FriendsCount = $user->counts->follows : false;
-			isset($user->id) ? $this->ID = $user->id : false;
-			isset($user->profile_picture) ? $this->Image = $user->profile_picture : false;
-			isset($user->counts->media) ? $this->MediaCount = $user->counts->media : false;
-			isset($user->full_name) ? $this->Name = $user->full_name : false;
-			isset($user->website) ? $this->URL = $user->website : false;
-			isset($user->username) ? $this->Username = $user->username : false;
+			$this->AccountType = $user->account_type;
+			$this->ID = $user->id;
+			$this->MediaCount = $user->media_count;
+			$this->Username = $user->username;
 		}
 
 		/*
@@ -966,40 +417,16 @@
 		public function getMedia() {
 			return $this->API->getUserMedia($this->ID);
 		}
-
-		/*
-			Function: getFriends
-				Alias for BigTreeInstagramAPI::getFriends
-		*/
-
-		public function getFriends() {
-			return $this->API->getFriends($this->ID);
+		
+		protected function _deprecated() {
+			trigger_error("Method is not supported on the Instagram Basic Display API.", E_USER_NOTICE);
+			
+			return false;
 		}
 
-		/*
-			Function: getFollowers
-				Alias for BigTreeInstagramAPI::getFollowers
-		*/
-
-		public function getFollowers() {
-			return $this->API->getFollowers($this->ID);
-		}
-
-		/*
-			Function: getRelationship
-				Alias for BigTreeInstagramAPI::getRelationship
-		*/
-
-		public function getRelationship() {
-			return $this->API->getRelationship($this->ID);
-		}
-
-		/*
-			Function: setRelationship
-				Alias for BigTreeInstagramAPI::setRelationship
-		*/
-
-		public function setRelationship($action) {
-			return $this->API->setRelationship($this->ID,$action);
-		}
+		public function getFriends() { return $this->_deprecated(); }
+		public function getFollowers() { return $this->_deprecated(); }
+		public function getRelationship() { return $this->_deprecated(); }
+		public function setRelationship() { return $this->_deprecated(); }
+		
 	}

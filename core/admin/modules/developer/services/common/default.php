@@ -48,10 +48,16 @@
 		} else {
 	?>
 	<section>
-		<?php if ($api->Settings["user_image"]) { ?>
+		<?php if ($api->Settings["user_name"]) { ?>
 		<p>Currently connected as:</p>
 		<div class="api_account_block">
+			<?php
+				if (!empty($api->Settings["user_image"])) {
+			?>
 			<img src="<?=$api->Settings["user_image"]?>" class="gravatar" />
+			<?php
+				}
+			?>
 			<strong><?=$api->Settings["user_name"]?></strong>
 			#<?=$api->Settings["user_id"]?>
 		</div>

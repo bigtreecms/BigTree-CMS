@@ -33,7 +33,7 @@
 		
 		<a class="box_select<?php if ($instagram->Connected) { ?> connected<?php } ?>" href="instagram/">
 			<span class="instagram"></span>
-			<p>Instagram</p>
+			<p>Instagram Basic Display API</p>
 		</a>
 		
 		<a class="box_select<?php if ($youtube->Connected) { ?> connected<?php } ?>" href="youtube/">
