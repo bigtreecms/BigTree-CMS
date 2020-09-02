@@ -16,7 +16,7 @@
 </form>
 <script>
 	$("footer .cancel").click(function() {
-		parent.bigtree_bar_cancel();
+		parent.window.postMessage("bigtree-bar-cancel", "*");
 		
 		return false;
 	});
