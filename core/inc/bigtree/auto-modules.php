@@ -374,11 +374,19 @@
 					if ($val === "NULL" || $val == "NOW()") {
 						$query_vals[] = $val;
 					} else {
-						if (is_array($val)) {
-							$val = json_encode(BigTree::translateArray($val));
-						}
+						if (is_null($val) || $val === "") {
+							if (!empty($table_description["columns"][$key]["allow_null"])) {
+								$query_vals[] = "NULL";
+							} else {
+								$query_vals[] = "''";
+							}
+						} else {
+							if (is_array($val)) {
+								$val = json_encode(BigTree::translateArray($val));
+							}
 						
-						$query_vals[] = "'".sqlescape($val)."'";
+							$query_vals[] = "'".sqlescape($val)."'";
+						}
 					}
 				}
 			}
