@@ -31,8 +31,11 @@ var BigTreePages = (function() {
 		PageTitle = $("#page_title");
 		SaveAndPreviewButton = $(".save_and_preview");
 		TemplateSelect = $("#template_select");
-		TemplateSelectControl = TemplateSelect.get(0).customControl;
 		TrunkField = $("#trunk_field");
+
+		if (TemplateSelect.length) {
+			TemplateSelectControl = TemplateSelect.get(0).customControl;
+		}
 
 		// Homepage editing won't have these controls
 		if ($("#new_window").length) {
@@ -42,11 +45,17 @@ var BigTreePages = (function() {
 
 			RedirectLowerField.click(function() {
 				if ($(this).prop("checked")) {
-					TemplateSelectControl.disable();
+					if (TemplateSelectControl) {
+						TemplateSelectControl.disable();
+					}
+
 					ExternalLinkField.prop("disabled", true);
 					NewWindowControl.disable();
 				} else {
-					TemplateSelectControl.enable();
+					if (TemplateSelectControl) {
+						TemplateSelectControl.enable();
+					}
+
 					ExternalLinkField.prop("disabled", false);
 					NewWindowControl.enable();
 				}
@@ -111,7 +120,10 @@ var BigTreePages = (function() {
 
 	function checkExternal() {
 		if (ExternalLinkField.val()) {
-			TemplateSelectControl.disable();
+			if (TemplateSelectControl) {
+				TemplateSelectControl.disable();
+			}
+
 			RedirectLowerFieldControl.disable();
 
 			if (TrunkField.length) {
@@ -124,7 +136,7 @@ var BigTreePages = (function() {
 				TrunkField.get(0).customControl.enable();
 			}
 
-			if (!RedirectLowerField.prop("checked")) {
+			if (!RedirectLowerField.prop("checked") && TemplateSelectControl) {
 				TemplateSelectControl.enable();
 			}
 		}
