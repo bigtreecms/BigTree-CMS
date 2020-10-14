@@ -45,6 +45,27 @@
 
 	$image->store($_FILES["file"]["name"]);
 	$image->filterGeneratableCrops();
+
+	// If we no longer have our list-preview because this image is tiny...
+	$has_list_preview = false;
+
+	foreach ($image->Settings["center_crops"] as $crop_index => $crop) {
+		if ($crop["prefix"] == "list-preview/") {
+			$has_list_preview = true;
+		}
+	}
+
+	if (!$has_list_preview) {
+		// Choose the smallest side
+		$size = ($image->Width < $image->Height) ? $image->Width : $image->Height;
+
+		$image->Settings["center_crops"][] = [
+			"prefix" => "list-preview/",
+			"width" => $size,
+			"height" => $size
+		];
+	}
+
 	$image->processThumbnails();
 	$image->processCenterCrops();
 	$crops = $image->processCrops();
