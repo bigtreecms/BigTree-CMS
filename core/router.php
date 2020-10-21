@@ -226,6 +226,12 @@
 			die();
 		}
 	}
+
+	// Handle GraphQL calls.
+	if ($bigtree["path"][0] == "api") {
+		include BigTree::path("api.php");
+		die();
+	}
 	
 	// Handle AJAX calls.
 	if ($bigtree["path"][0] == "ajax" || ($bigtree["path"][0] == "*" && $bigtree["path"][2] == "ajax")) {

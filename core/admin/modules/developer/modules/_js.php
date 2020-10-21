@@ -6,6 +6,18 @@
 			$("#gbp").toggle();
 		});
 		
+		$("#graphql").on("click", function() {
+			$("#graphql_type_wrapper").toggle();
+		});
+		
+		$("#class_name").on("keyup", function() {
+			if ($(this).val()) {
+				$("#graphql_wrapper").show();
+			} else {
+				$("#graphql_wrapper").hide();
+			}
+		});
+		
 		$(".container").on("change",".table_select",function(event,data) {
 			var target = $(this).data("pop-target");
 			var name = $(this).data("pop-name");

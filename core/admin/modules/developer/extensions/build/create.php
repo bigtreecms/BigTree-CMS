@@ -236,7 +236,7 @@
 			foreach ($module["actions"] as $a) {
 				// Adjust return view URLs for forms
 				if ($a["form"]) {
-					$form = BigTreeAutoModules::getForm($a["form"]);
+					$form = BigTreeAutoModule::getForm($a["form"]);
 
 					if ($form && $form["return_url"]) {
 						$context = BigTreeJSONDB::getSubset("modules", $module["id"]);
@@ -244,7 +244,7 @@
 					}
 				// Adjust preview URLs for views
 				} elseif ($a["view"]) {
-					$view = BigTreeAutoModules::getView($a["view"]);
+					$view = BigTreeAutoModule::getView($a["view"]);
 
 					if ($view && $view["preview_url"]) {
 						$context = BigTreeJSONDB::getSubset("modules", $module["id"]);

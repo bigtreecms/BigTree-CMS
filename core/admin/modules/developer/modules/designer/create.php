@@ -27,7 +27,7 @@
 		$group = $group_existing;
 	}
 	
-	$id = $admin->createModule($name,$group,$class,$table,$gbp,$icon);
+	$id = $admin->createModule($name,$group,$class,$table,$gbp,$icon,null,!empty($graphql),$graphql_type);
 	
 	// Create the table.
 	sqlquery("CREATE TABLE `$table` (`id` int(11) UNSIGNED NOT NULL auto_increment, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci");

@@ -72,6 +72,17 @@
 				<input type="checkbox" name="gbp[enabled]" id="gbp_on" <?php if (isset($gbp["enabled"]) && $gbp["enabled"]) { ?>checked="checked" <?php } ?>/>
 				<label class="for_checkbox">Enable Advanced Permissions</label>
 			</fieldset>
+			
+			<?php
+				if (!empty($module["class"])) {
+			?>
+			<fieldset>
+				<input type="checkbox" name="graphql" id="graphql" <?php if (!empty($module["graphql"])) { ?>checked="checked" <?php } ?>/>
+				<label>Enable GraphQL API</label>
+			</fieldset>
+			<?php
+				}
+			?>
 		</section>
 		<?php include BigTree::path("admin/modules/developer/modules/_gbp.php"); ?>
 		<footer>

@@ -9,7 +9,8 @@
 		$group = $group_existing;
 	}
 	
-	$id = $admin->createModule($name,$group,$class,$table,$gbp,$icon,$route);
+	$id = $admin->createModule($name,$group,$class,$table,$gbp,$icon,$route,!empty($graphql),$graphql_type);
+
 	// Route was incorrect if we failed
 	if (!$id) {
 		$_POST["group_existing"] = $group;

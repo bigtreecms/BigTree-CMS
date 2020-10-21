@@ -4,30 +4,52 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit779ff0dad29ecaed897744671a5a205c
+class ComposerStaticInit725358e876db88c4bcd5747f13c3800e
 {
     public static $files = array (
-        'a0edc8309cc5e1d60e3047b5df6b7052' => __DIR__ . '/..' . '/guzzlehttp/psr7/src/functions_include.php',
+        '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
         'c964ee0ededf28c96ebd9db5099ef910' => __DIR__ . '/..' . '/guzzlehttp/promises/src/functions_include.php',
-        'b067bc7112e384b61c701452d53a14a8' => __DIR__ . '/..' . '/mtdowling/jmespath.php/src/JmesPath.php',
+        'a0edc8309cc5e1d60e3047b5df6b7052' => __DIR__ . '/..' . '/guzzlehttp/psr7/src/functions_include.php',
+        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
+        'b067bc7112e384b61c701452d53a14a8' => __DIR__ . '/..' . '/mtdowling/jmespath.php/src/JmesPath.php',
         '8a9dc1de0ca7e01f3e08231539562f61' => __DIR__ . '/..' . '/aws/aws-sdk-php/src/functions.php',
     );
 
     public static $prefixLengthsPsr4 = array (
+        'S' => 
+        array (
+            'Symfony\\Polyfill\\Mbstring\\' => 26,
+        ),
         'P' => 
         array (
+            'Psr\\SimpleCache\\' => 16,
             'Psr\\Http\\Message\\' => 17,
+            'Psr\\Http\\Client\\' => 16,
+            'Psr\\Container\\' => 14,
+        ),
+        'M' => 
+        array (
+            'Mouf\\Picotainer\\' => 16,
         ),
         'J' => 
         array (
             'JmesPath\\' => 9,
+        ),
+        'I' => 
+        array (
+            'Interop\\Container\\' => 18,
         ),
         'G' => 
         array (
             'GuzzleHttp\\Psr7\\' => 16,
             'GuzzleHttp\\Promise\\' => 19,
             'GuzzleHttp\\' => 11,
+            'GraphQL\\' => 8,
+        ),
+        'B' => 
+        array (
+            'BigTree\\GraphQL\\' => 16,
         ),
         'A' => 
         array (
@@ -36,13 +58,37 @@ class ComposerStaticInit779ff0dad29ecaed897744671a5a205c
     );
 
     public static $prefixDirsPsr4 = array (
+        'Symfony\\Polyfill\\Mbstring\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
+        ),
+        'Psr\\SimpleCache\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/simple-cache/src',
+        ),
         'Psr\\Http\\Message\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
+        'Psr\\Http\\Client\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/http-client/src',
+        ),
+        'Psr\\Container\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/container/src',
+        ),
+        'Mouf\\Picotainer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/mouf/picotainer/src',
+        ),
         'JmesPath\\' => 
         array (
             0 => __DIR__ . '/..' . '/mtdowling/jmespath.php/src',
+        ),
+        'Interop\\Container\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/container-interop/container-interop/src/Interop/Container',
         ),
         'GuzzleHttp\\Psr7\\' => 
         array (
@@ -55,6 +101,14 @@ class ComposerStaticInit779ff0dad29ecaed897744671a5a205c
         'GuzzleHttp\\' => 
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/guzzle/src',
+        ),
+        'GraphQL\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/webonyx/graphql-php/src',
+        ),
+        'BigTree\\GraphQL\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/custom/inc/graphql',
         ),
         'Aws\\' => 
         array (
@@ -79,10 +133,10 @@ class ComposerStaticInit779ff0dad29ecaed897744671a5a205c
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit779ff0dad29ecaed897744671a5a205c::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit779ff0dad29ecaed897744671a5a205c::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit779ff0dad29ecaed897744671a5a205c::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit779ff0dad29ecaed897744671a5a205c::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit725358e876db88c4bcd5747f13c3800e::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit725358e876db88c4bcd5747f13c3800e::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit725358e876db88c4bcd5747f13c3800e::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit725358e876db88c4bcd5747f13c3800e::$classMap;
 
         }, null, ClassLoader::class);
     }
