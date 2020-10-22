@@ -1178,7 +1178,8 @@
 				// Create class module.
 				$f = fopen(SERVER_ROOT."custom/inc/modules/$route.php","w");
 				fwrite($f,"<?php\n");
-				fwrite($f,"	class $class extends BigTreeModule {\n\n");
+				fwrite($f,"	use BigTree\Model;\n\n");
+				fwrite($f,"	class $class extends Model {\n\n");
 				fwrite($f,'		public static $GraphQLType = '.($graphql_type ? '"'.$graphql_type.'"' : 'null').';'."\n");
 				fwrite($f,'		public static $NavPosition = "bottom";'."\n");
 				fwrite($f,'		public static $Table = "'.$table.'";'."\n\n");

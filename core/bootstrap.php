@@ -130,6 +130,7 @@
 		"BigTreeJSONDB" => "inc/bigtree/json-db.php",
 		"BigTreeJSONDBSubset" => "inc/bigtree/json-db-subset.php",
 		"BigTree\\Cache" => "inc/bigtree/cache.php",
+		"BigTree\\Model" => "inc/bigtree/model.php",
 		"BigTree\\GraphQL\\TypeService" => "inc/bigtree/GraphQL/TypeService.php",
 		"BigTree\\GraphQL\\QueryService" => "inc/bigtree/GraphQL/QueryService.php",
 		"S3" => "inc/lib/amazon-s3.php",

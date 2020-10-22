@@ -1,32 +1,23 @@
 <?php
 	/*
-		Class: BigTreeModule
-			Base class from which all BigTree module classes inherit from.
+		Class: BigTree\Model
+			Provides an interface for working with module-based data.
 	*/
-
-	use BigTree\GraphQL\QueryService;
+	
+	namespace BigTree;
+	
+	use BigTree, BigTreeAdmin, BigTreeAutoModule, SQL;
 	use BigTree\GraphQL\TypeService;
+	use BigTree\GraphQL\QueryService;
 	use GraphQL\Type\Definition\ObjectType;
 	use GraphQL\Type\Definition\Type;
 	
-	class BigTreeModule {
-	
-		public $NavPosition = "bottom";
-		public $Table = "";
-
-		/*
-			Constructor:
-				If you pass in a table name it will be used for all module functions.
-
-			Parameters:
-				table - The SQL table you want to perform queries on.
-		*/
-
-		public function __construct($table = false) {
-			if ($table !== false) {
-				$this->Table = $table;
-			}
-		}
+	class Model {
+		
+		public static $GraphQLEnabled = false;
+		public static $GraphQLType = null;
+		public static $NavPosition = "bottom";
+		public static $Table = "";
 		
 		/*
 			Function: add
@@ -47,54 +38,46 @@
 				<update>
 		*/
 		
-		public function add($fields,$values = false,$enforce_unique = false,$ignore_cache = false) {	
-			$existing_parts = $key_parts = $value_parts = array();
-
+		public static function add($fields, $values = false, $enforce_unique = false, $ignore_cache = false) {
+			$insert = [];
+			
 			// Single column/value add
 			if (is_string($fields)) {
-				$value = is_array($values) ? sqlescape(json_encode(BigTree::translateArray($values))) : sqlescape(BigTreeAdmin::autoIPL($values));
-				$existing_parts[] = "`$fields` = '$value'";
-				$key_parts[] = "`$fields`";
-				$value_parts[] = "$value";
+				$insert[$fields] = is_array($values) ? BigTree::translateArray($values) : BigTreeAdmin::autoIPL($values);
 			// Multiple columns / values
 			} else {
 				// If we didn't pass in values (=== false) then we're using a key => value array
 				if ($values === false) {
-					foreach ($fields as $key => $value) {
-						$value = is_array($value) ? sqlescape(json_encode(BigTree::translateArray($value))) : sqlescape(BigTreeAdmin::autoIPL($value));
-						$existing_parts[] = "`$key` = '$value'";
-						$key_parts[] = "`$key`";
-						$value_parts[] = "'$value'";
-					}
+					$insert = BigTree::translateArray($fields);
 				// Separate arrays for keys and values
 				} else {
-					foreach ($fields as $key) {
-						$val = current($values);
-						$val = is_array($val) ? sqlescape(json_encode(BigTree::translateArray($val))) : sqlescape(BigTreeAdmin::autoIPL($val));
-						$existing_parts[] = "`$key` = '$val'";
-						$key_parts[] = "`$key`";
-						$value_parts[] = "'$val'";
-						next($values);
-					}
+					$insert = array_combine($fields, BigTree::translateArray($values));
 				}
 			}
-
+			
 			// Prevent Duplicates
 			if ($enforce_unique) {
-				$row = sqlfetch(sqlquery("SELECT id FROM `".$this->Table."` WHERE ".implode(" AND ",$existing_parts)." LIMIT 1"));
+				$where = [];
+				
+				foreach ($insert as $key => $value) {
+					$where[] = "`$key` = '".SQL::escape($value)."'";
+				}
+				
+				$id = SQL::fetchSingle("SELECT id FROM `".static::$Table."` WHERE ".implode(" AND ", $where));
+
 				// If it's the same as an existing entry, return that entry's id
-				if ($row) {
-					return $row["id"];
+				if ($id) {
+					return $id;
 				}
 			}
 			
 			// Add the entry and cache it.
-			sqlquery("INSERT INTO `".$this->Table."` (".implode(",",$key_parts).") VALUES (".implode(",",$value_parts).")");
-			$id = sqlid();
-			if (!$ignore_cache) {
-				BigTreeAutoModule::cacheNewItem($id,$this->Table);
-			}
+			$id = SQL::insert(static::$Table, $insert);
 
+			if (!$ignore_cache) {
+				BigTreeAutoModule::cacheNewItem($id, static::$Table);
+			}
+			
 			return $id;
 		}
 		
@@ -109,12 +92,8 @@
 				<unapprove>
 		*/
 		
-		public function approve($item) {
-			if (is_array($item)) {
-				$item = $item["id"];
-			}
-			$this->update($item,"approved","on");
-			BigTreeAutoModule::recacheItem($item,$this->Table);
+		public static function approve($item) {
+			static::update(is_array($item) ? $item["id"] : $item, "approved", "on");
 		}
 		
 		/*
@@ -128,12 +107,8 @@
 				<unarchive>
 		*/
 		
-		public function archive($item) {
-			if (is_array($item)) {
-				$item = $item["id"];
-			}
-			$this->update($item,"archived","on");
-			BigTreeAutoModule::recacheItem($item,$this->Table);
+		public static function archive($item) {
+			static::update(is_array($item) ? $item["id"] : $item, "archived", "on");
 		}
 		
 		/*
@@ -149,14 +124,12 @@
 				<update>
 		*/
 		
-		public function delete($item) {
-			if (is_array($item)) {
-				$item = $item["id"];
-			}
-			$item = sqlescape($item);
-			sqlquery("DELETE FROM `".$this->Table."` WHERE id = '$item'");
-			sqlquery("DELETE FROM bigtree_pending_changes WHERE `table` = '".$this->Table."' AND item_id = '$item'");
-			BigTreeAutoModule::uncacheItem($item,$this->Table);
+		public static function delete($item) {
+			$id = is_array($item) ? $item["id"] : $item;
+			
+			SQL::delete(static::$Table, $id);
+			SQL::delete("bigtree_pending_changes", ["table" => static::$Table, "item_id" => $id]);
+			BigTreeAutoModule::uncacheItem($id, static::$Table);
 		}
 		
 		/*
@@ -170,53 +143,8 @@
 				<unfeature>
 		*/
 		
-		public function feature($item) {
-			if (is_array($item)) {
-				$item = $item["id"];
-			}
-			$this->update($item,"featured","on");
-			BigTreeAutoModule::recacheItem($item,$this->Table);
-		}
-		
-		/*
-			Function: fetch
-				Protected function used by other table querying functions.
-		*/
-		
-		protected function fetch($sortby = false,$limit = false,$where = false,$columns = false) {
-			$query_columns = "*";
-			if ($columns !== false) {
-				if (is_array($columns)) {
-					$query_columns = array();
-					foreach ($columns as $column) {
-						$query_columns[] = "`".str_replace("`","",$column)."`";
-					}
-					$query_columns = implode(",",$query_columns);
-				} else {
-					$query_columns = "`".str_replace("`","",$columns)."`";
-				}
-			}
-			$query = "SELECT $query_columns FROM `".$this->Table."`";
-
-			if ($where) {
-				$query .= " WHERE $where";
-			}
-			
-			if ($sortby) {
-				$query .= " ORDER BY $sortby";
-			}
-			
-			if ($limit) {
-				$query .= " LIMIT $limit";
-			}
-			
-			$items = array();
-			$q = sqlquery($query);
-			while ($f = sqlfetch($q)) {
-				$items[] = $this->get($f);
-			}
-			
-			return $items;
+		public static function feature($item) {
+			static::update(is_array($item) ? $item["id"] : $item, "featured", "on");
 		}
 		
 		/*
@@ -231,26 +159,16 @@
 				A translated item from the table.
 		*/
 		
-		public function get($item) {
+		public static function get($item) {
 			if (!is_array($item)) {
-				$item = sqlfetch(sqlquery("SELECT * FROM `".$this->Table."` WHERE id = '".sqlescape($item)."'"));
+				$item = SQL::fetch("SELECT * FROM `".static::$Table."` WHERE id = ?", $item);
 			}
 			
 			if (!$item) {
-				return false;
+				return null;
 			}
 			
-			foreach ($item as $key => $val) {
-				if (is_array($val)) {
-					$item[$key] = BigTree::untranslateArray($val);
-				} elseif (is_array(json_decode($val,true))) {
-					$item[$key] = BigTree::untranslateArray(json_decode($val,true));
-				} else {
-					$item[$key] = BigTreeCMS::replaceInternalPageLinks($val);
-				}
-			}
-			
-			return $item;
+			return BigTree::untranslateArray($item);
 		}
 		
 		/*
@@ -264,9 +182,12 @@
 			Returns:
 				An array of items from the table.
 		*/
-
-		public function getAll($order = false,$columns = false) {
-			return $this->fetch($order,false,false,$columns);
+		
+		public static function getAll($order = false, $columns = false) {
+			$columns = static::_getFetchableColumns($columns);
+			$items = SQL::fetchAll("SELECT $columns FROM `".static::$Table."`".($order ? "ORDER BY $order" : ""));
+			
+			return array_map([static::class, "get"], $items);
 		}
 		
 		/*
@@ -280,8 +201,8 @@
 				An array of entries from the table.
 		*/
 		
-		public function getAllPositioned($columns = false) {
-			return $this->getAll("position DESC, id ASC",$columns);
+		public static function getAllPositioned($columns = false) {
+			return static::getAll("position DESC, id ASC", $columns);
 		}
 		
 		/*
@@ -300,10 +221,10 @@
 				<getMatching>
 		*/
 		
-		public function getApproved($order = false,$limit = false,$columns = false) {
-			return $this->getMatching("approved","on",$order,$limit,false,$columns);
+		public static function getApproved($order = false, $limit = false, $columns = false) {
+			return static::getMatching("approved", "on", $order, $limit, false, $columns);
 		}
-
+		
 		/*
 			Function: getArchived
 				Returns archived entries from the table.
@@ -320,8 +241,8 @@
 				<getMatching>
 		*/
 		
-		public function getArchived($order = false,$limit = false,$columns = false) {
-			return $this->getMatching("archived","on",$order,$limit,false,$columns);
+		public static function getArchived($order = false, $limit = false, $columns = false) {
+			return static::getMatching("archived", "on", $order, $limit, false, $columns);
 		}
 		
 		/*
@@ -336,8 +257,8 @@
 				An array of arrays with "title" and "link" key/value pairs.
 		*/
 		
-		public function getBreadcrumb($page) {
-			return array();
+		public static function getBreadcrumb($page) {
+			return [];
 		}
 		
 		/*
@@ -351,14 +272,10 @@
 				An entry from the table if one is found.
 		*/
 		
-		public function getByRoute($route) {
-			$item = sqlfetch(sqlquery("SELECT * FROM `".$this->Table."` WHERE route = '".sqlescape($route)."'"));
-
-			if (!$item) {
-				return false;
-			} else {
-				return $this->get($item);
-			}
+		public static function getByRoute($route) {
+			$item = SQL::fetch("SELECT * FROM `".static::$Table."` WHERE `route` = ?", $route);
+			
+			return $item ? static::get($item) : null;
 		}
 		
 		/*
@@ -377,8 +294,8 @@
 				<getMatching>
 		*/
 		
-		public function getFeatured($order = false,$limit = false,$columns = false) {
-			return $this->getMatching("featured","on",$order,$limit,false,$columns);
+		public static function getFeatured($order = false, $limit = false, $columns = false) {
+			return static::getMatching("featured", "on", $order, $limit, false, $columns);
 		}
 		
 		/*
@@ -387,7 +304,7 @@
 
 			Parameters:
 				entry - An entry from this module or an id
-
+ 
 			Returns:
 				An array of keyed information:
 					"created_at" - A datestamp of the created date/time
@@ -396,35 +313,32 @@
 					"last_updated_by" - The last user to update this entry (the user's ID)
 					"status" - Whether this entry has pending changes "changed" or not "published"
 		*/
+		
+		public static function getInfo($entry) {
+			$info = [];
+			$id = is_array($entry) ? $entry["id"] : $entry;
+			$base = "SELECT * FROM bigtree_audit_trail WHERE `table` = '".static::$Table."' AND entry = ?";
 
-		public function getInfo($entry) {
-			$info = array();
-			if (is_array($entry)) {
-				$entry = sqlescape($entry["id"]);
-			} else {
-				$entry = sqlescape($entry);
-			}
-			$base = "SELECT * FROM bigtree_audit_trail WHERE `table` = '".$this->Table."' AND entry = '$entry'";
-
-			$created = sqlfetch(sqlquery($base." AND type = 'created'"));
+			$created = SQL::fetch($base." AND type = 'created'", $id);
+			$updated = SQL::fetch($base." AND type = 'updated' ORDER BY date DESC LIMIT 1", $id);
+			$changed = SQL::fetch($base." AND type = 'saved-draft' ORDER BY date DESC LIMIT 1", $id);
+			
 			if ($created) {
 				$info["created_at"] = $created["date"];
 				$info["creator"] = $created["user"];
 			}
-
-			$updated = sqlfetch(sqlquery($base." AND type = 'updated' ORDER BY date DESC LIMIT 1"));
+			
 			if ($updated) {
 				$info["updated_at"] = $updated["date"];
 				$info["last_updated_by"] = $updated["user"];
 			}
 			
-			$changed = sqlfetch(sqlquery($base." AND type = 'saved-draft' ORDER BY date DESC LIMIT 1"));
 			if ($changed && strtotime($changed) > strtotime($info["updated_at"])) {
 				$info["status"] = "changed";
 			} else {
 				$info["status"] = "published";
 			}
-
+			
 			return $info;
 		}
 		
@@ -444,13 +358,18 @@
 				An array of entries from the table.
 		*/
 		
-		public function getMatching($fields,$values,$sortby = false,$limit = false,$exact = false,$columns = false) {
+		public static function getMatching($fields, $values, $order = false, $limit = false, $exact = false, $columns = false) {
 			if (!is_array($fields)) {
-				$search = array($fields => $values);
+				$search = [$fields => $values];
 			} else {
-				$search = array_combine($fields,$values);
+				$search = array_combine($fields, $values);
 			}
-			$where = array();
+			
+			$where = [];
+			$order = $order ? "ORDER BY $order" : "";
+			$limit = $limit ? "LIMIT $limit" : " ";
+			$columns = static::_getFetchableColumns($columns);
+
 			foreach ($search as $key => $value) {
 				if (!$exact && ($value === "NULL" || !$value)) {
 					$where[] = "(`$key` IS NULL OR `$key` = '' OR `$key` = '0')";
@@ -459,7 +378,9 @@
 				}
 			}
 			
-			return $this->fetch($sortby,$limit,implode(" AND ",$where),$columns);
+			$items = SQL::fetchAll("SELECT $columns FROM `".static::$Table."` WHERE ".implode($where)." $order $limit");
+			
+			return array_map([static::class, "get"], $items);
 		}
 		
 		/*
@@ -474,8 +395,8 @@
 				An array of arrays with "title" and "link" key/value pairs. Also accepts "children" for sending grandchildren as well.
 		*/
 		
-		public function getNav($page) {
-			return array();
+		public static function getNav($page) {
+			return [];
 		}
 		
 		/*
@@ -494,8 +415,8 @@
 				<getMatching>
 		*/
 		
-		public function getNonarchived($order = false,$limit = false,$columns = false) {
-			return $this->getMatching("archived","",$order,$limit,false,$columns);
+		public static function getNonarchived($order = false, $limit = false, $columns = false) {
+			return static::getMatching("archived", "", $order, $limit, false, $columns);
 		}
 		
 		/*
@@ -505,7 +426,7 @@
 			Parameters:
 				page - The page to return
 				order - The sort order (in MySQL syntax, i.e. "id DESC")
-				perpage - The number of results per page (defaults to 15)
+				per_page - The number of results per page (defaults to 15)
 				where - Optional MySQL WHERE conditions
 				columns - The columns to retrieve (defaults to all)
 			
@@ -516,18 +437,16 @@
 				<getPageCount>
 		*/
 		
-		public function getPage($page = 1,$order = "id ASC",$perpage = 15,$where = false,$columns = false) {
-			// Backwards compatibility with old argument order
-			if (!is_numeric($perpage)) {
-				$saved = $perpage;
-				$perpage = $where;
-				$where = $saved;
-			}
-			// Don't try to hit page 0.
-			if ($page < 1) {
-				$page = 1;
-			}
-			return $this->fetch($order,(($page - 1) * $perpage).", $perpage",$where,$columns);
+		public static function getPage($page = 1, $order = "id ASC", $per_page = 15, $where = false, $columns = false) {
+			$columns = static::_getFetchableColumns($columns);
+			$page = ($page < 1) ? 1 : $page;
+			$order = $order ? "ORDER BY $order" : "";
+			$where = $where ? "WHERE $where" : "";
+			$limit = "LIMIT ".(($page - 1) * $per_page).", $per_page";
+			
+			$items = SQL::fetchAll("SELECT $columns FROM `".static::$Table."` $where $order $limit");
+			
+			return array_map([static::class, "get"], $items);
 		}
 		
 		/*
@@ -535,7 +454,7 @@
 				Returns the number of pages of entries in the table.
 			
 			Parameters:
-				perpage - The number of results per page (defaults to 15)
+				per_page - The number of results per page (defaults to 15)
 				where - Optional MySQL WHERE conditions
 		
 			Returns:
@@ -545,23 +464,11 @@
 				<getPage>
 		*/
 		
-		public function getPageCount($perpage = 15,$where = false) {
-			// Backwards compatibility with old argument order
-			if (!is_numeric($perpage)) {
-				$saved = $perpage;
-				$perpage = is_numeric($where) ? $where : 15;
-				$where = $saved;
-			}
-			if ($where) {
-				$query = "SELECT id FROM `".$this->Table."` WHERE $where";
-			} else {
-				$query = "SELECT id FROM `".$this->Table."`";
-			}			
-			$pages = ceil(sqlrows(sqlquery($query)) / $perpage);
-			if ($pages == 0) {
-				$pages = 1;
-			}
-			return $pages;
+		public static function getPageCount($per_page = 15, $where = false) {
+			$where = $where ? "WHERE $where" : "";
+			$count = SQL::fetchSingle("SELECT COUNT(*) FROM `".static::$Table."` $where");
+			
+			return ceil($count / $per_page) ?: 1;
 		}
 		
 		/*
@@ -575,27 +482,23 @@
 				The entry from the table with pending changes applied.
 		*/
 		
-		public function getPending($id) {
-			$id = sqlescape($id);
-			
-			if (substr($id,0,1) == "p") {
-				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".substr($id,1)."'"));
-				$item = json_decode($f["changes"],true);
+		public static function getPending($id) {
+			if (substr($id, 0, 1) == "p") {
+				$pending_data = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", substr($id, 1));
+				$item = json_decode($pending_data["changes"], true);
 				$item["id"] = $id;
 			} else {
-				$item = sqlfetch(sqlquery("SELECT * FROM `".$this->Table."` WHERE id = '$id'"));
-				$c = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE item_id = '$id' AND `table` = '".$this->Table."'"));
-				if ($c) {
-					$changes = json_decode($c["changes"],true);
-					foreach ($changes as $key => $val) {
-						$item[$key] = $val;
-					}
+				$item = SQL::fetch("SELECT * FROM `".static::$Table."` WHERE id = ?", $id);
+				$pending_data = SQL::fetch("SELECT * FROM bigtree_pending_changes
+											WHERE item_id = ? AND `table` = '".static::$Table."'", $id);
+				
+				if ($pending_data) {
+					$changes = json_decode($pending_data["changes"], true);
+					$item = array_merge($item, $changes);
 				}
-			
 			}
 			
-			// Translate it's roots and return it
-			return $this->get($item);
+			return static::get($item);
 		}
 		
 		/*
@@ -610,14 +513,18 @@
 				If "count" is passed, an array of entries from the table. Otherwise, a single entry from the table.
 		*/
 		
-		public function getRandom($count = false,$columns = false) {
+		public static function getRandom($count = false, $columns = false) {
+			$columns = static::_getFetchableColumns($columns);
+			
 			if ($count === false) {
-				$f = sqlfetch(sqlquery("SELECT * FROM `".$this->Table."` ORDER BY RAND() LIMIT 1"));
-				return $this->get($f);
+				return static::get(SQL::fetch("SELECT $columns FROM `".static::$Table."` ORDER BY RAND() LIMIT 1"));
 			}
-			return $this->fetch("RAND()",$count,false,$columns);
+			
+			$items = SQL::fetchAll("SELECT $columns FROM `".static::$Table."` ORDER BY RAND() LIMIT $count");
+			
+			return array_map([static::class, "get"], $items);
 		}
-
+		
 		/*
 			Function: getRecent
 				Returns an array of entries from the table that have passed.
@@ -634,10 +541,16 @@
 				<getRecentFeatured>
 		*/
 		
-		public function getRecent($count = 5, $field = "date",$columns = false) {
-			return $this->fetch("$field DESC",$count,"DATE(`$field`) <= '".date("Y-m-d")."'",$columns);
+		public static function getRecent($count = 5, $field = "date", $columns = false) {
+			$columns = static::_getFetchableColumns($columns);
+			$items = SQL::fetchAll("SELECT $columns FROM `".static::$Table."`
+									WHERE DATE(`$field`) <= DATE(NOW())
+									ORDER BY `$field` DESC
+									LIMIT $count");
+			
+			return array_map([static::class, "get"], $items);
 		}
-
+		
 		/*
 			Function: getRecentFeatured
 				Returns an array of entries from the table that have passed and are featured.
@@ -654,13 +567,20 @@
 				<getRecent>
 		*/
 		
-		public function getRecentFeatured($count = 5, $field = "date",$columns = false) {
-			return $this->fetch("$field DESC",$count,"featured = 'on' AND DATE(`$field`) <= '".date("Y-m-d")."'",$columns);
+		public static function getRecentFeatured($count = 5, $field = "date", $columns = false) {
+			$columns = static::_getFetchableColumns($columns);
+			$items = SQL::fetchAll("SELECT $columns FROM `".static::$Table."`
+									WHERE DATE(`$field`) <= DATE(NOW()) AND `featured` = 'on'
+									ORDER BY `$field` DESC
+									LIMIT $count");
+			
+			return array_map([static::class, "get"], $items);
 		}
 		
 		/*
 			Function: getRelatedByTags
 				Returns relevant entries from the table that match the given tags.
+				Entries are given a _relevance key based on the number of matches.
 			
 			Parameters:
 				tags - An array of tags to match against.
@@ -669,32 +589,28 @@
 				An array of entries from the table sorted by most relevant to least.
 		*/
 		
-		public function getRelatedByTags($tags = array()) {
-			$results = array();
-			$relevance = array();
-			foreach ($tags as $tag) {
-				if (is_array($tag)) {
-					$tag = $tag["tag"];
-				}
-				$tdat = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE tag = '".sqlescape($tag)."'"));
-				if ($tdat) {
-					$q = sqlquery("SELECT * FROM bigtree_tags_rel WHERE tag = '".$tdat["id"]."' AND `table` = '".sqlescape($this->Table)."'");
-					while ($f = sqlfetch($q)) {
-						$id = $f["entry"];
-						if (in_array($id,$results)) {
-							$relevance[$id]++;
-						} else {
-							$results[] = $id;
-							$relevance[$id] = 1;
-						}
-					}
-				}
+		public static function getRelatedByTags($tags = []) {
+			$items = [];
+			
+			// Get the IDs of any string based tags
+			$tags = array_filter(array_map(function($item) {
+				return is_array($item) ? $item["id"] :
+					SQL::fetchSingle("SELECT `id` FROM `bigtree_tags` WHERE tag = ?", $item);
+			}, $tags));
+			
+			// Bring the related items in sorted by most matches for tags first
+			$related = SQL::fetchAll("SELECT COUNT(*) AS `count`, `entry` FROM bigtree_tags_rel
+								 	  WHERE `tag` IN (".implode(",", $tags).")
+										AND `table` = '".static::$Table."'
+									  GROUP BY `entry`
+									  ORDER BY `count` DESC");
+			
+			foreach ($related as $result) {
+				$item = static::get($result["entry"]);
+				$item["_relevance"] = $result["count"];
+				$items[] = $item;
 			}
-			array_multisort($relevance,SORT_DESC,$results);
-			$items = array();
-			foreach ($results as $result) {
-				$items[] = $this->get($result);
-			}
+			
 			return $items;
 		}
 		
@@ -710,8 +626,8 @@
 				An array of arrays with "title" and "link" key/value pairs. Should not be a multi level array.
 		*/
 		
-		public function getSitemap($page) {
-			return array();
+		public static function getSitemap($page) {
+			return [];
 		}
 		
 		/*
@@ -726,7 +642,7 @@
 				An array of tags (strings).
 		*/
 		
-		public function getTagsForItem($item, $full = false) {
+		public static function getTagsForItem($item, $full = false) {
 			if (!is_numeric($item)) {
 				$item = $item["id"];
 			}
@@ -736,16 +652,16 @@
 									  ON bigtree_tags_rel.tag = bigtree_tags.id
 									  WHERE bigtree_tags_rel.`table` = ?
 										AND bigtree_tags_rel.`entry` = ?
-						  			  ORDER BY bigtree_tags.tag ASC", $this->Table, $item);
+						  			  ORDER BY bigtree_tags.tag ASC", static::$Table, $item);
 			}
 			
 			return SQL::fetchAllSingle("SELECT bigtree_tags.tag FROM bigtree_tags JOIN bigtree_tags_rel
 										ON bigtree_tags_rel.tag = bigtree_tags.id
 										WHERE bigtree_tags_rel.`table` = ?
 										  AND bigtree_tags_rel.`entry` = ?
-						  				ORDER BY bigtree_tags.tag ASC", $this->Table, $item);
+						  				ORDER BY bigtree_tags.tag ASC", static::$Table, $item);
 		}
-
+		
 		/*
 			Function: getUnarchived
 				Returns entries that are not archived from the table.
@@ -763,10 +679,10 @@
 				<getMatching> <getNonarchived>
 		*/
 		
-		public function getUnarchived($order = false,$limit = false,$columns = false) {
-			return $this->getMatching("archived","",$order,$limit,false,$columns);
+		public static function getUnarchived($order = false, $limit = false, $columns = false) {
+			return static::getMatching("archived", "", $order, $limit, false, $columns);
 		}
-
+		
 		/*
 			Function: getUnapproved
 				Returns unapproved entries from the table.
@@ -783,13 +699,13 @@
 				<getMatching>
 		*/
 		
-		public function getUnapproved($order = false,$limit = false,$columns = false) {
-			return $this->getMatching("approved","",$order,$limit,false,$columns);
+		public static function getUnapproved($order = false, $limit = false, $columns = false) {
+			return static::getMatching("approved", "", $order, $limit, false, $columns);
 		}
 		
 		/*
 			Function: getUpcoming
-				Returns an array of entries from the table that occur in the future.
+				Returns an array of entries from the table that occur in the future ordered by soonest first.
 			
 			Parameters:
 				count - Number of entries to return.
@@ -803,8 +719,14 @@
 				<getUpcomingFeatured>
 		*/
 		
-		public function getUpcoming($count = 5,$field = "date",$columns = false) {
-			return $this->fetch("$field ASC",$count,"DATE(`$field`) >= '".date("Y-m-d")."'",$columns);
+		public static function getUpcoming($count = 5, $field = "date", $columns = false) {
+			$columns = static::_getFetchableColumns($columns);
+			$items = SQL::fetchAll("SELECT $columns FROM `".static::$Table."`
+									WHERE DATE(`$field`) >= DATE(NOW())
+									ORDER BY `$field` ASC
+									LIMIT $count");
+			
+			return array_map([static::class, "get"], $items);
 		}
 		
 		/*
@@ -823,16 +745,22 @@
 				<getUpcoming>
 		*/
 		
-		public function getUpcomingFeatured($count = 5,$field = "date",$columns = false) {
-			return $this->fetch("$field ASC",$count,"featured = 'on' AND DATE(`$field`) >= '".date("Y-m-d")."'",$columns);
+		public static function getUpcomingFeatured($count = 5, $field = "date", $columns = false) {
+			$columns = static::_getFetchableColumns($columns);
+			$items = SQL::fetchAll("SELECT $columns FROM `".static::$Table."`
+									WHERE DATE(`$field`) >= DATE(NOW()) AND featured = 'on'
+									ORDER BY `$field` ASC
+									LIMIT $count");
+			
+			return array_map([static::class, "get"], $items);
 		}
-
+		
 		/*
 			Function: registerGraphQLMethods
 				Registers GraphQL methods for use with the GraphQL API.
 				Methods should be uniquely keyed across all modules and match graphql-php syntax.
 		*/
-
+		
 		public static function registerGraphQLMethods() {
 			$type = static::$GraphQLType ?: static::class;
 			
@@ -845,7 +773,7 @@
 						"per_page" => Type::int(),
 						"page" => Type::int()
 					],
-					"resolve" => function($root, $args) {
+					"resolve" => function ($root, $args) {
 						$order = "";
 						$limit = "";
 						
@@ -875,20 +803,20 @@
 				]
 			]);
 		}
-
+		
 		/*
 			Function: registerGraphQLTypes
 				Registers GraphQL object types for use with the GraphQL API.
 				Types should be uniquely keyed across all modules and match graphql-php syntax.
 		*/
-
+		
 		public static function registerGraphQLTypes() {
 			$fields = [];
 			$db_schema = SQL::describeTable(static::$Table);
-
+			
 			foreach ($db_schema["columns"] as $id => $column) {
 				$type = Type::string();
-
+				
 				if (!empty($column["auto_increment"])) {
 					$type = Type::id();
 				} elseif (in_array($column["type"], TypeService::$ScalarTypeRefs["int"])) {
@@ -898,10 +826,10 @@
 				} elseif (in_array($column["type"], TypeService::$ScalarTypeRefs["boolean"])) {
 					$type = Type::boolean();
 				}
-
+				
 				$fields[$id] = $type;
 			}
-
+			
 			TypeService::set(static::$GraphQLType ?: static::class, new ObjectType([
 				"name" => static::$GraphQLType ?: static::class,
 				"fields" => $fields
@@ -915,19 +843,18 @@
 			Parameters:
 				item - A modified entry from the table.
 				ignore_cache - If this is set to true, BigTree will not cache this entry in bigtree_module_view_cache - faster entry if you don't have an admin view (defaults to false)
-							
+				
 			See Also:
 				<add>
 				<delete>
 				<update>
 		*/
 		
-		public function save($item,$ignore_cache = false) {
+		public static function save($item, $ignore_cache = false) {
 			$id = $item["id"];
 			unset($item["id"]);
 			
-			$keys = array_keys($item);
-			$this->update($id,$keys,$item,$ignore_cache);
+			static::update($id, array_keys($item), $item, $ignore_cache);
 		}
 		
 		/*
@@ -946,36 +873,44 @@
 				An array of entries from the table.
 		*/
 		
-		public function search($query,$order = false,$limit = false,$split_search = false,$case_sensitive = false,$columns = false) {
-			$table_description = BigTree::describeTable($this->Table);
-			$where = array();
-
+		public static function search($query, $order = false, $limit = false, $split_search = false, $case_sensitive = false, $columns = false) {
+			$table_description = BigTree::describeTable(static::$Table);
+			$columns = static::_getFetchableColumns($columns);
+			$order = $order ? "ORDER BY $order" : "";
+			$limit = $limit ? "LIMIT $limit" : "";
+			$where = [];
+			
 			if ($split_search) {
-				$pieces = explode(" ",$query);
+				$pieces = explode(" ", $query);
 				foreach ($pieces as $piece) {
 					if ($piece) {
-						$where_piece = array();
+						$where_piece = [];
+						
 						foreach ($table_description["columns"] as $field => $parameters) {
 							if ($case_sensitive) {
-								$where_piece[] = "`$field` LIKE '%".sqlescape($piece)."%'";
+								$where_piece[] = "`$field` LIKE '%".SQL::escape($piece)."%'";
 							} else {
-								$where_piece[] = "LOWER(`$field`) LIKE '%".sqlescape(strtolower($piece))."%'";
+								$where_piece[] = "LOWER(`$field`) LIKE '%".SQL::escape(strtolower($piece))."%'";
 							}
 						}
-						$where[] = "(".implode(" OR ",$where_piece).")";
+						
+						$where[] = "(".implode(" OR ", $where_piece).")";
 					}
 				}
-				return $this->fetch($order,$limit,implode(" AND ",$where),$columns);
 			} else {
 				foreach ($table_description["columns"] as $field => $parameters) {
 					if ($case_sensitive) {
-						$where[] = "`$field` LIKE '%".sqlescape($query)."%'";
+						$where[] = "`$field` LIKE '%".SQL::escape($query)."%'";
 					} else {
-						$where[] = "LOWER(`$field`) LIKE '%".sqlescape(strtolower($query))."%'";
+						$where[] = "LOWER(`$field`) LIKE '%".SQL::escape(strtolower($query))."%'";
 					}
 				}
-				return $this->fetch($order,$limit,implode(" OR ",$where),$columns);
 			}
+			
+			$items = SQL::fetchAll("SELECT $columns FROM `".static::$Table."`
+									WHERE ".implode(" OR ", $where)." $order $limit");
+			
+			return array_map([static::class, "get"], $items);
 		}
 		
 		/*
@@ -987,12 +922,8 @@
 				position - The position to set. BigTree sorts by default as position DESC, id ASC.
 		*/
 		
-		public function setPosition($item,$position) {
-			if (is_array($item)) {
-				$item = $item["id"];
-			}
-			$this->update($item,"position",$position);
-			BigTreeAutoModule::recacheItem($item,$this->Table);
+		public static function setPosition($item, $position) {
+			static::update(is_array($item) ? $item["id"] : $item, "position", $position);
 		}
 		
 		/*
@@ -1006,13 +937,9 @@
 				<approve>
 		*/
 		
-		public function unapprove($item) {
-			if (is_array($item)) {
-				$item = $item["id"];
-			}
-			$this->update($item,"approved","");
-			BigTreeAutoModule::recacheItem($item,$this->Table);
-		}	
+		public static function unapprove($item) {
+			static::update(is_array($item) ? $item["id"] : $item, "approved", "");
+		}
 		
 		/*
 			Function: unarchive
@@ -1025,12 +952,8 @@
 				<archive>
 		*/
 		
-		public function unarchive($item) {
-			if (is_array($item)) {
-				$item = $item["id"];
-			}
-			$this->update($item,"archived","");
-			BigTreeAutoModule::recacheItem($item,$this->Table);
+		public static function unarchive($item) {
+			static::update(is_array($item) ? $item["id"] : $item, "archived", "");
 		}
 		
 		/*
@@ -1044,12 +967,8 @@
 				<feature>
 		*/
 		
-		public function unfeature($item) {
-			if (is_array($item)) {
-				$item = $item["id"];
-			}
-			$this->update($item,"featured","");
-			BigTreeAutoModule::recacheItem($item,$this->Table);
+		public static function unfeature($item) {
+			static::update(is_array($item) ? $item["id"] : $item, "featured", "");
 		}
 		
 		/*
@@ -1060,7 +979,7 @@
 				id - The "id" of the entry in the table.
 				fields - Either a single column key or an array of column keys (if you pass an array you must pass an array for values as well) — Optionally this can be a key/value array and the values field kept false
 				values - Either a signle column value or an array of column values (if you pass an array you must pass an array for fields as well)
-				ignore_cache - If this is set to true, BigTree will not cache this entry in bigtree_module_view_cache - faster entry if you don't have an admin view (defaults to false)	
+				ignore_cache - If this is set to true, BigTree will not cache this entry in bigtree_module_view_cache - faster entry if you don't have an admin view (defaults to false)
 			
 			See Also:
 				<add>
@@ -1068,40 +987,37 @@
 				<save>
 		*/
 		
-		public function update($id,$fields,$values = false,$ignore_cache = false) {
-			$id = sqlescape($id);
-			// Turn a key => value array into pairs
-			if ($values === false && is_array($fields)) {
-				$values = $fields;
-				$fields = array_keys($fields);
-			}
-			// Multiple columns to update			
+		public static function update($id, $fields, $values = false, $ignore_cache = false) {
 			if (is_array($fields)) {
-				$query_parts = array();
-				foreach ($fields as $key) {
-					$val = current($values);
-					if (is_array($val)) {
-						$val = BigTree::json(BigTree::translateArray($val));
-					} else {
-						$val = BigTreeAdmin::autoIPL($val);
-					}
-					$query_parts[] = "`$key` = '".sqlescape($val)."'";
-					next($values);
-				}
-			
-				sqlquery("UPDATE `".$this->Table."` SET ".implode(", ",$query_parts)." WHERE id = '$id'");
-			// Single column to update
+				$data = ($values === false) ? $fields : array_combine($fields, $values);
 			} else {
-				if (is_array($values)) {
-					$val = json_encode(BigTree::translateArray($values));
-				} else {
-					$val = BigTreeAdmin::autoIPL($values);
-				}
-				sqlquery("UPDATE `".$this->Table."` SET `$fields` = '".sqlescape($val)."' WHERE id = '$id'");
+				$data = [];
+				$data[$fields] = $values;
 			}
+			
+			$data = BigTree::translateArray($data);
+			
+			SQL::update(static::$Table, $id, $data);
+
 			if (!$ignore_cache) {
-				BigTreeAutoModule::recacheItem($id,$this->Table);
+				BigTreeAutoModule::recacheItem($id, static::$Table);
 			}
+		}
+		
+		protected static function _getFetchableColumns($columns) {
+			$fetchable_columns = "*";
+			
+			if (!empty($columns) && is_array($columns)) {
+				$fetchable_columns = [];
+				
+				foreach ($columns as $column) {
+					$fetchable_columns[] = "`".$column."`";
+				}
+				
+				$fetchable_columns = implode(", ", $fetchable_columns);
+			}
+			
+			return $fetchable_columns;
 		}
 		
 	}
