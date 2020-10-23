@@ -23,22 +23,12 @@ class ComposerStaticInit725358e876db88c4bcd5747f13c3800e
         ),
         'P' => 
         array (
-            'Psr\\SimpleCache\\' => 16,
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
-            'Psr\\Container\\' => 14,
-        ),
-        'M' => 
-        array (
-            'Mouf\\Picotainer\\' => 16,
         ),
         'J' => 
         array (
             'JmesPath\\' => 9,
-        ),
-        'I' => 
-        array (
-            'Interop\\Container\\' => 18,
         ),
         'G' => 
         array (
@@ -46,10 +36,6 @@ class ComposerStaticInit725358e876db88c4bcd5747f13c3800e
             'GuzzleHttp\\Promise\\' => 19,
             'GuzzleHttp\\' => 11,
             'GraphQL\\' => 8,
-        ),
-        'B' => 
-        array (
-            'BigTree\\GraphQL\\' => 16,
         ),
         'A' => 
         array (
@@ -62,10 +48,6 @@ class ComposerStaticInit725358e876db88c4bcd5747f13c3800e
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
         ),
-        'Psr\\SimpleCache\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/psr/simple-cache/src',
-        ),
         'Psr\\Http\\Message\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/http-message/src',
@@ -74,21 +56,9 @@ class ComposerStaticInit725358e876db88c4bcd5747f13c3800e
         array (
             0 => __DIR__ . '/..' . '/psr/http-client/src',
         ),
-        'Psr\\Container\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/psr/container/src',
-        ),
-        'Mouf\\Picotainer\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/mouf/picotainer/src',
-        ),
         'JmesPath\\' => 
         array (
             0 => __DIR__ . '/..' . '/mtdowling/jmespath.php/src',
-        ),
-        'Interop\\Container\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/container-interop/container-interop/src/Interop/Container',
         ),
         'GuzzleHttp\\Psr7\\' => 
         array (
@@ -105,10 +75,6 @@ class ComposerStaticInit725358e876db88c4bcd5747f13c3800e
         'GraphQL\\' => 
         array (
             0 => __DIR__ . '/..' . '/webonyx/graphql-php/src',
-        ),
-        'BigTree\\GraphQL\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/custom/inc/graphql',
         ),
         'Aws\\' => 
         array (
