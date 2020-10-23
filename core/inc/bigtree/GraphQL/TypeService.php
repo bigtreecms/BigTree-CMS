@@ -34,8 +34,12 @@
 
 		public static $Types = [];
 
-		public static function get(string $name): ?ObjectType
+		public static function get(string $name)
 		{
+			if ($name == "JSON" && empty(static::$Types["JSON"])) {
+				static::$Types["JSON"] = new JSON;
+			}
+			
 			if (isset(static::$Types[$name])) {
 				return static::$Types[$name];
 			}

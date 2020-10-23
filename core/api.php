@@ -2,6 +2,7 @@
 	use BigTree\Cache;
 	use BigTree\GraphQL\TypeService;
 	use BigTree\GraphQL\QueryService;
+	use BigTree\GraphQL\CMS;
 	use GraphQL\GraphQL;
 	use GraphQL\Type\Schema;
 	use GraphQL\Type\Definition\ObjectType;
@@ -20,7 +21,10 @@
 			}
 		}
 	}
-
+	
+	CMS::registerTypes();
+	CMS::registerQueries();
+	
 	$queryType = new ObjectType([
 		'name' => 'Query',
 		'fields' => QueryService::$Queries["query"],

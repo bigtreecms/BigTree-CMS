@@ -102,7 +102,7 @@
 		ini_set("display_errors","off");
 	}
 
-	// Core classes for auto-loading
+	// CMS classes for auto-loading
 	$bigtree["other_classes"] = array(
 		"BigTreeAdminBase" => "inc/bigtree/admin.php",
 		"BigTreeAutoModule" => "inc/bigtree/auto-modules.php",
@@ -131,8 +131,10 @@
 		"BigTreeJSONDBSubset" => "inc/bigtree/json-db-subset.php",
 		"BigTree\\Cache" => "inc/bigtree/cache.php",
 		"BigTree\\Model" => "inc/bigtree/model.php",
-		"BigTree\\GraphQL\\TypeService" => "inc/bigtree/GraphQL/TypeService.php",
+		"BigTree\\GraphQL\\CMS" => "inc/bigtree/GraphQL/CMS.php",
+		"BigTree\\GraphQL\\JSON" => "inc/bigtree/GraphQL/JSON.php",
 		"BigTree\\GraphQL\\QueryService" => "inc/bigtree/GraphQL/QueryService.php",
+		"BigTree\\GraphQL\\TypeService" => "inc/bigtree/GraphQL/TypeService.php",
 		"S3" => "inc/lib/amazon-s3.php",
 		"CF_Authentication" => "inc/lib/rackspace/cloud.php",
 		"CSSMin" => "inc/lib/CSSMin.php",
