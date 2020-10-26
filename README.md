@@ -20,6 +20,19 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.4.11
+- UPDATED: SVGs are now able to be uploaded to the Files tab (via upload file, not image)
+- FIXED: Auto rotation of EXIF rotated JPEGs failing to save
+- FIXED: Creating an extension failing to get related form properly
+- FIXED: Image list previews in the Files tab not being generated if the source image was less than 100x100
+- FIXED: Pages Javascript breaking when the current user is not allowed to change the page template
+- FIXED: BigTreeAutoModule's updateItem and createItem methods not properly supporting auto detection of null columns
+- FIXED: Cancel button on the front end editor's "locked" status screen not working
+- FIXED: Amazon S3 buckets from non US-East regions not deleting files properly
+- FIXED: Database populated list columns in module views sorting incorrectly
+- FIXED: PHP warnings showing when submitting a page change involving crops
+- FIXED: Caching Amazon S3 data not taking you back to the proper page when complete
+
 ### 4.4.10
 - FIXED: Base SQL failing to create the open graph table
 - FIXED: Missing keys on the open graph table causing slow lookups on very large sites
