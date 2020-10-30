@@ -1336,7 +1336,7 @@
 			// Check to see if we've cached this table before.
 			self::cacheViewData($view);
 			
-			$search_parts = explode(" ",strtolower($query));
+			$search_parts = explode(" ", strtolower($query));
 			$view_columns = count($view["fields"]);
 			
 			if ($group !== false) {
@@ -1348,13 +1348,17 @@
 			foreach ($search_parts as $part) {
 				$x = 0;
 				$qp = array();
-				$part = sqlescape(strtolower($part));
-				while ($x < $view_columns) {
-					$x++;
-					$qp[] = "column$x LIKE '%$part%'";
-				}
-				if (count($qp)) {
-					$query .= " AND (".implode(" OR ",$qp).")";
+				$part = sqlescape(trim(strtolower($part)));
+
+				if ($part !== "") {				
+					while ($x < $view_columns) {
+						$x++;
+						$qp[] = "column$x LIKE '%$part%'";
+					}
+
+					if (count($qp)) {
+						$query .= " AND (".implode(" OR ",$qp).")";
+					}
 				}
 			}
 			
