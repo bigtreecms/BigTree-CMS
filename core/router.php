@@ -496,10 +496,14 @@
 		
 		// If this is a "file", ignore the fact that there is or isn't a trailing slash
 		if (strpos($last_path_element, ".") === false) {
+			unset($_GET["bigtree_htaccess_url"]);
+
+			$query_string = !empty($_GET) ? "?".http_build_query($_GET) : "";
+
 			if (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
-				BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/")."/","301");
+				BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/")."/".$query_string, "301");
 			} elseif (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
-				BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/"),"301");		
+				BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/").$query_string, "301");		
 			}
 		}
 	}
