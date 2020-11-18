@@ -1,5 +1,6 @@
 <?php
 	use BigTree\Cache;
+	use BigTree\RedisCache;
 	use BigTree\GraphQL\TypeService;
 	use BigTree\GraphQL\QueryService;
 	use BigTree\GraphQL\CMS;
@@ -8,6 +9,8 @@
 	use GraphQL\Type\Definition\ObjectType;
 	use GraphQL\Type\Definition\Type;
 
+	header("Content-Type: application/json");
+	
 	$modules = BigTreeJSONDB::getAll("modules");
 	
 	foreach ($modules as $module) {
@@ -30,27 +33,38 @@
 		'fields' => QueryService::$Queries["query"],
 	]);
 
-	$schema = new Schema([
-	    'query' => $queryType
-	]);
-
+	$output = null;
+	$schema = new Schema(['query' => $queryType]);
 	$rawInput = file_get_contents('php://input');
 	$input = json_decode($rawInput, true);
 	$query = $input['query'];
 	$variableValues = isset($input['variables']) ? $input['variables'] : null;
 
-	try {
-	    $rootValue = ['prefix' => 'You said: '];
-	    $result = GraphQL::executeQuery($schema, $query, $rootValue, null, $variableValues);
-	    $output = $result->toArray();
-	} catch (\Exception $e) {
-	    $output = [
-	        'errors' => [
-	            [
-	                'message' => $e->getMessage()
-	            ]
-	        ]
-	    ];
+	if (!empty($bigtree["config"]["debug"])) {
+		$hash = sha1($rawInput);
+
+		if (!empty($bigtree["config"]["redis"])) {
+			$cache = new RedisCache($bigtree["config"]["redis"], "graphql");
+		} else {
+			$cache = new Cache("graphql");
+		}
+
+		if ($cache->has($hash)) {
+			header("BigTree-Cache-Hit: hit");
+			die(json_encode($cache->get($hash)));
+		}
 	}
-	header('Content-Type: application/json');
+
+	try {
+		header("BigTree-Cache-Hit: miss");
+		$result = GraphQL::executeQuery($schema, $query, null, null, $variableValues);
+		$output = $result->toArray();
+		
+		if (!empty($bigtree["config"]["debug"])) {
+			$cache->set($hash, $output);
+		}
+	} catch (Exception $e) {
+		$output = ['errors' => [['message' => $e->getMessage()]]];
+	}
+
 	echo json_encode($output);

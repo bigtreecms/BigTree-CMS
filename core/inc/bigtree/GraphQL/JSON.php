@@ -10,18 +10,18 @@
 	use GraphQL\Language\AST\StringValueNode;
 	use GraphQL\Type\Definition\ScalarType;
 	
+	// Courtesy of NoMan2000 https://github.com/webonyx/graphql-php/issues/129
 	class JSON extends ScalarType
 	{
 		public $name = 'JSON';
-		public $description =
-			'The `JSON` scalar type represents JSON values as specified by
-        [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).';
+		public $description = 'Used for dynamic response data not specifically specifed in query payload.';
 		
 		public function __construct(?string $name = null)
 		{
 			if ($name) {
 				$this->name = $name;
 			}
+			
 			parent::__construct();
 		}
 		
@@ -46,9 +46,11 @@
 					return floatval($valueNode->value);
 				case ($valueNode instanceof ObjectValueNode): {
 					$value = [];
+					
 					foreach ($valueNode->fields as $field) {
 						$value[$field->name->value] = $this->parseLiteral($field->value);
 					}
+					
 					return $value;
 				}
 				case ($valueNode instanceof ListValueNode):

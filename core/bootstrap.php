@@ -131,6 +131,7 @@
 		"BigTreeJSONDBSubset" => "inc/bigtree/json-db-subset.php",
 		"BigTree\\Cache" => "inc/bigtree/cache.php",
 		"BigTree\\Model" => "inc/bigtree/model.php",
+		"BigTree\\RedisCache" => "inc/bigtree/cache-redis.php",
 		"BigTree\\GraphQL\\CMS" => "inc/bigtree/GraphQL/CMS.php",
 		"BigTree\\GraphQL\\JSON" => "inc/bigtree/GraphQL/JSON.php",
 		"BigTree\\GraphQL\\QueryService" => "inc/bigtree/GraphQL/QueryService.php",

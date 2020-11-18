@@ -773,7 +773,7 @@
 						"per_page" => Type::int(),
 						"page" => Type::int()
 					],
-					"resolve" => function ($root, $args) {
+					"resolve" => function ($root, $args, $context) {
 						$order = "";
 						$limit = "";
 						

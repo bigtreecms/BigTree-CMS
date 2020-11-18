@@ -151,6 +151,10 @@
 			$value = BigTree::json($value);
 			$exists = $this->has($key);
 
+			if (is_null($ttl) && !empty($this->DefaultTTL)) {
+				$ttl = $this->DefaultTTL;
+			}
+
 			if (is_null($ttl)) {
 				$data = [
 					"identifier" => $this->Store, 

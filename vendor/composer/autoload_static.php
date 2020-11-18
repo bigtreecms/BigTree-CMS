@@ -23,8 +23,10 @@ class ComposerStaticInit725358e876db88c4bcd5747f13c3800e
         ),
         'P' => 
         array (
+            'Psr\\SimpleCache\\' => 16,
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
+            'Predis\\' => 7,
         ),
         'J' => 
         array (
@@ -48,6 +50,10 @@ class ComposerStaticInit725358e876db88c4bcd5747f13c3800e
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
         ),
+        'Psr\\SimpleCache\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/simple-cache/src',
+        ),
         'Psr\\Http\\Message\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/http-message/src',
@@ -55,6 +61,10 @@ class ComposerStaticInit725358e876db88c4bcd5747f13c3800e
         'Psr\\Http\\Client\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/http-client/src',
+        ),
+        'Predis\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/predis/predis/src',
         ),
         'JmesPath\\' => 
         array (
