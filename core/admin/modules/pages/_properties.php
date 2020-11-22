@@ -22,8 +22,9 @@
 		$status = "Unpublished";
 	}
 	
-	$open = (isset($_COOKIE["bigtree_admin"]["page_properties_open"]) && $_COOKIE["bigtree_admin"]["page_properties_open"]) ? true : false;
-	
+	$open = (!empty($_COOKIE["bigtree_admin"]["page_properties_open"]) ||
+			 !empty($_COOKIE["bigtree_admin%5Bpage_properties_open%5D"]));
+
 	$seo_recs = "<ul>";
 	foreach ($seo["recommendations"] as $rec) {
 		$seo_recs .= "<li>$rec</li>";
