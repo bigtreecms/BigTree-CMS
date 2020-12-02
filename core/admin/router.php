@@ -170,13 +170,18 @@
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
 		$find = array('$max_file_size',"www_root/","admin_root/","static_root/");
 		$replace = array($max_file_size,$bigtree["config"]["www_root"],$bigtree["config"]["admin_root"],$bigtree["config"]["static_root"]);
+		
 		// Allow GET variables to serve as replacements in JS using $var and file.js?var=whatever
 		foreach ($_GET as $key => $val) {
+			// Remove anything non-alphanumeric from the dynamic value
+			$val = preg_replace("/[^A-Za-z0-9 ]/", '', $val);
+
 			$find[] = '$'.$key;
 			$find[] = "{".$key."}";
 			$replace[] = $val;
 			$replace[] = $val;
 		}
+		
 		die(str_replace($find,$replace,file_get_contents($js_file)));
 	}
 	
