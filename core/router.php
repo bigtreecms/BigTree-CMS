@@ -29,7 +29,7 @@
 				if (is_array($_GET)) {
 					foreach ($_GET as $key => $val) {
 						if ($key != "bigtree_htaccess_url") {
-							$data = str_replace('$'.$key,$val,$data);
+							$data = str_replace('$'.$key, preg_replace("/[^A-Za-z0-9 ]/", '', $val), $data);
 						}
 					}
 				}
