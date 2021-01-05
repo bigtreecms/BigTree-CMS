@@ -20,6 +20,15 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.4.12
+- FIXED: Searching via LIKE in grouped module views when no query is passed
+- FIXED: BigTree::currentURL when being served behind a proxy not returning proper HTTPS URLs.
+- FIXED: Losing GET vars when enforcing trailing slashes on URLs
+- FIXED: The properties menu in Pages not saving it's collapsed state in Safari and Chrome
+- FIXED: Cron sending daily digests every run rather than once every 24 hours (when manually set to run more frequently)
+- FIXED: XSS issue in Javascript routing in Internet Explorer (thanks to Mustafa Yalçın at Netsparker for the report)
+- FIXED: Uploading SVGs to the files tab failing
+
 ### 4.4.11
 - UPDATED: SVGs are now able to be uploaded to the Files tab (via upload file, not image)
 - FIXED: Auto rotation of EXIF rotated JPEGs failing to save
