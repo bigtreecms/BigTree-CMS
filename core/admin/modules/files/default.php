@@ -9,4 +9,4 @@
 	$contents = $admin->getContentsOfResourceFolder(0);
 	$folder = ["id" => 0];
 
-	include "_list.php";
+	include BigTree::path("admin/modules/files/_list.php");

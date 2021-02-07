@@ -14,4 +14,4 @@
 		$bigtree["breadcrumb"][] = ["link" => "files/folder/".$piece["id"], "title" => $piece["name"]];
 	}
 
-	include "_list.php";
+	include BigTree::path("admin/modules/files/_list.php");
