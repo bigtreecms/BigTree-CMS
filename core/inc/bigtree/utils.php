@@ -280,6 +280,7 @@
 			// Startup cURL and set the URL
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_URL, $url);
+			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 			
 			// Determine whether we're forcing valid SSL on the peer and host
 			if ($strict_security) {
