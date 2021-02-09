@@ -20,6 +20,10 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.4.13
+- FIXED: Certificate Bundle failing to download for cURL requests causing cURL and Cloud Storage to fail.
+- FIXED: Include path for files in admin not allowing a custom override
+
 ### 4.4.12
 - FIXED: Searching via LIKE in grouped module views when no query is passed
 - FIXED: BigTree::currentURL when being served behind a proxy not returning proper HTTPS URLs.
