@@ -48,6 +48,7 @@
 		}
 	}
 
+	$cloud->saveSettings();
 	$storage->saveSettings();
 
 	// For Amazon S3 we're going to redirect to do a paginated cache bust
