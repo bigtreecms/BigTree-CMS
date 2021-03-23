@@ -383,13 +383,17 @@
 		text-indent: -1000px;
 		transform: scale(2);
 		width: 32px;
-	}	
-	
-	.media_gallery_type_youtube img,
-	.media_gallery_type_vimeo img {
-		opacity: 0.65;
-		position: relative;
 	}
+
+	.media_gallery_type_youtube,
+	.media_gallery_type_vimeo {
+		position: relative;
+
+		img {
+			opacity: 0.65;
+		}
+	}
+	
 		
 	.media_gallery_type_youtube:after {
 		background: url(../../images/icon-sprite.svg) no-repeat -224px -250px;
