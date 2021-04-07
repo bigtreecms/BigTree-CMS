@@ -20,6 +20,11 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.4.14
+- FIXED: Cloud storage settings not saving properly after choosing a bucket (e.g. CloudFront distribution)
+- FIXED: Media Gallery not drawing video icons properly when nested inside callouts
+- FIXED: Previously uploaded cloud files that lack size information should have it recalculated on upgrade
+
 ### 4.4.13
 - FIXED: Certificate Bundle failing to download for cURL requests causing cURL and Cloud Storage to fail.
 - FIXED: Include path for files in admin not allowing a custom override
