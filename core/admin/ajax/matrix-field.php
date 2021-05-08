@@ -39,7 +39,11 @@
 				$bigtree["field_types"] = $cached_types["callouts"];
 
 				foreach ($bigtree["matrix_columns"] as $resource) {
-					$settings = $resource["settings"] ? @json_decode($resource["settings"], true) : @json_decode($resource["options"],true);
+					if (is_array($resource["settings"])) {
+						$settings = $resource["settings"];
+					} else {
+						$settings = @json_decode($resource["settings"] ?: $resource["options"], true);
+					}
 					
 					$field = array(
 						"type" => $resource["type"],

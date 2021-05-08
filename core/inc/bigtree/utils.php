@@ -1263,6 +1263,41 @@
 			
 			return $json;
 		}
+
+		/*
+			Function: jsonMaybeDecode
+				Recurses through an array and tries to decode all properties as JSON arrays.
+				If they parse correctly it returns the decoded value.
+
+			Properties:
+				data - An array of data
+
+			Returns:
+				An array
+		*/
+
+		public static function jsonMaybeDecode($data) {
+			foreach ($data as $key => $value) {
+				if (is_string($value)) {
+					$value = htmlspecialchars_decode($value);
+					$first_char = substr($value, 0, 1);
+
+					if ($first_char == "{" || $first_char == "[") {
+						$value = json_decode($value, true);
+ 						
+ 						if (json_last_error() == JSON_ERROR_NONE) {
+ 							$data[$key] = $value;
+ 						}
+					}
+				}
+
+				if (is_array($value)) {
+					$data[$key] = static::jsonMaybeDecode($value);
+				}
+			}
+
+			return $data;
+		}
 		
 		/*
 			Function: makeDirectory

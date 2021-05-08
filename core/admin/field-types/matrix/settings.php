@@ -21,8 +21,15 @@
 	<section class="matrix_table">
 		<?php
 			$x = 0;
+
 			foreach ($columns as $column) {
 				$x++;
+
+				if (is_array($column["settings"])) {
+					$settings = htmlspecialchars(json_encode($column["settings"]));
+				} else {
+					$settings = BigTree::safeEncode($column["settings"] ?: $column["options"]);
+				}
 		?>
 		<article>
 			<div>
@@ -52,7 +59,7 @@
 				<span class="icon_drag"></span>
 				<a href="#" class="icon_delete"></a>
 				<a href="#" class="icon_edit" name="<?=$x?>"></a>
-				<input type="hidden" name="columns[][settings]" value="<?=BigTree::safeEncode($column["settings"] ?: $column["options"])?>" />
+				<input type="hidden" name="columns[][settings]" value="<?=$settings?>" />
 			</footer>
 		</article>
 		<?php
