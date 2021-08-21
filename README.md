@@ -20,6 +20,11 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.4.15
+- SECURITY FIX: Fixed a cross site scripting issue with searchable fields that can lead to privelege escalation (thanks to guiseppesec for the report)
+- FIXED: Matrix field settings being lost when updating a Setting in developer
+- FIXED: File reference field losing title hints when being used in a Matrix field
+
 ### 4.4.14
 - FIXED: Cloud storage settings not saving properly after choosing a bucket (e.g. CloudFront distribution)
 - FIXED: Media Gallery not drawing video icons properly when nested inside callouts
