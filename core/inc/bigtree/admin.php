@@ -9762,12 +9762,8 @@
 				$settings = json_decode($data["settings"] ?: $data["options"], true);
 			}
 
-			foreach ($settings as $key => $value) {
-				if (($key == "options" || $key == "settings") && is_string($value)) {
-					$settings[$key] = json_decode($value, true);
-				}
-			}
 
+			$settings = BigTree::jsonMaybeDecode($settings);
 			$settings = BigTree::arrayFilterRecursive($settings);
 
 			BigTreeJSONDB::update("settings", $old_id, [
