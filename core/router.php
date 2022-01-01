@@ -564,7 +564,10 @@
 	   - User is logged into the BigTree admin FOR THIS PAGE
 	   - Developer mode is either disabled OR the logged in user is a Developer
 	*/
-	if ($_SESSION["bigtree_admin"]["id"] && $_COOKIE["bigtree_admin"]["email"] && (empty($bigtree["config"]["developer_mode"]) || $_SESSION["bigtree_admin"]["level"] > 1)) {
+	if (!empty($_SESSION["bigtree_admin"]["id"]) &&
+		!empty($_COOKIE["bigtree_admin"]["email"]) &&
+		(empty($bigtree["config"]["developer_mode"]) || $_SESSION["bigtree_admin"]["level"] > 1)
+	) {
 		$show_bar_default = $_COOKIE["hide_bigtree_bar"] ? false : true;
 		$show_preview_bar = false;
 		$return_link = "";

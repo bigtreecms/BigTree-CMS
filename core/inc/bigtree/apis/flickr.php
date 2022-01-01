@@ -1302,7 +1302,7 @@
 			if ($this->CurrentPage < $this->TotalPages) {
 				$params = $this->LastParameters;
 				$params["page"] = $this->CurrentPage + 1;
-				return call_user_func_array(array($this->API,$this->LastCall),$params);
+				return call_user_func_array(array($this->API,$this->LastCall), array_values($params));
 			}
 			return false;
 		}
@@ -1319,7 +1319,7 @@
 			if ($this->CurrentPage > 1) {
 				$params = $this->LastParameters;
 				$params["page"] = $this->CurrentPage - 1;
-				return call_user_func_array(array($this->API,$this->LastCall),$params);
+				return call_user_func_array(array($this->API,$this->LastCall), array_values($params));
 			}
 			return false;
 		}

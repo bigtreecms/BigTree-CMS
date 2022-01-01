@@ -40,7 +40,7 @@
 				"type" => $meta["type"],
 				"title" => $meta["title"],
 				"key" => "metadata[".$meta["id"]."]",
-				"settings" => $meta["settings"] ?: $meta["options"],
+				"settings" => $meta["settings"] ?? $meta["options"] ?? [],
 				"ignore" => false,
 				"input" => $_POST["metadata"][$meta["id"]],
 				"file_input" => $bigtree["file_data"]["metadata"][$meta["id"]]

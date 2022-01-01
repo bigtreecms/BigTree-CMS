@@ -1,6 +1,8 @@
 <div class="container">
 	<?php
-		if ($bigtree["form"]["open_graph"] && !$bigtree["form"]["embedded"]) {
+		if (!empty($bigtree["form"]["open_graph"]) &&
+			empty($bigtree["form"]["embedded"])
+		) {
 	?>
 	<header>
 		<div class="sticky_controls">
@@ -17,7 +19,7 @@
 	?>
 	<form method="post" action="<?=$bigtree["form_root"]?>process/<?php if ($bigtree["form"]["embedded"]) { ?>?hash=<?=$bigtree["form"]["hash"]?><?php } ?>" enctype="multipart/form-data" class="module" id="auto_module_form">
 		<?php
-			if ($bigtree["form"]["embedded"]) {
+			if (!empty($bigtree["form"]["embedded"])) {
 		?>
 		<fieldset>
 			<label>This is a field that shouldn't be filled out.</label>
@@ -70,7 +72,7 @@
 		<section id="content_tab">
 			<p class="error_message" style="display: none;">Errors found! Please fix the highlighted fields before submitting.</p>
 			<?php
-				if (!$admin->drawPOSTErrorMessage() && $_SESSION["bigtree_admin"]["post_hash_failed"]) {
+				if (!$admin->drawPOSTErrorMessage() && !empty($_SESSION["bigtree_admin"]["post_hash_failed"])) {
 					unset($_SESSION["bigtree_admin"]["post_hash_failed"]);
 			?>
 			<p class="warning_message">The form submission failed to pass our automated submission test. If you have JavaScript turned off, please turn it on.</p>
@@ -103,7 +105,7 @@
 								"has_value" => isset($bigtree["entry"][$resource["column"]]),
 								"value" => isset($bigtree["entry"][$resource["column"]]) ? $bigtree["entry"][$resource["column"]] : "",
 								"tabindex" => $bigtree["tabindex"],
-								"settings" => $resource["settings"] ?: $resource["options"] // Pre-4.3
+								"settings" => $resource["settings"] ?? $resource["options"] ?? [],
 							);
 	
 							// Give many to many its information
@@ -117,7 +119,7 @@
 				?>
 			</div>
 			<?php
-				if ($bigtree["form"]["tagging"]) {
+				if (!empty($bigtree["form"]["tagging"])) {
 			?>
 			<div class="tags" id="bigtree_tag_browser">
 				<?php
@@ -154,7 +156,7 @@
 			?>
 		</section>
 		<?php
-			if ($bigtree["form"]["open_graph"]) {
+			if (!empty($bigtree["form"]["open_graph"])) {
 		?>
 		<section id="sharing_tab" style="display: none;">
 			<?php

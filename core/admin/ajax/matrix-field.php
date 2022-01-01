@@ -42,7 +42,7 @@
 					if (is_array($resource["settings"])) {
 						$settings = $resource["settings"];
 					} else {
-						$settings = @json_decode($resource["settings"] ?: $resource["options"], true);
+						$settings = @json_decode($resource["settings"] ?? $resource["options"] ?? '[]', true);
 					}
 					
 					$field = array(

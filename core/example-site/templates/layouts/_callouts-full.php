@@ -1,5 +1,5 @@
 <?php
-	if (is_array($callouts_full) && count($callouts_full)) {
+	if (!empty($callouts_full) && is_array($callouts_full)) {
 ?>
 <div class="callouts_full">
 	<?php

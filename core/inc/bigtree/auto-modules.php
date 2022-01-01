@@ -663,7 +663,7 @@
 			$modules = BigTreeJSONDB::getAll("modules");
 
 			foreach ($modules as $module) {
-				if (is_array($module["embeddable-forms"])) {
+				if (!empty($module["embeddable-forms"]) && is_array($module["embeddable-forms"])) {
 					foreach ($module["embeddable-forms"] as $form) {
 						if ($form["hash"] == $hash) {
 							return $form;

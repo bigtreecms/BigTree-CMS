@@ -86,7 +86,7 @@
 						<?php } ?>
 					</select>
 					<a href="#" class="icon_settings" name="<?=$x?>"></a>
-					<input type="hidden" name="resources[<?=$x?>][settings]" value="<?=htmlspecialchars(json_encode($resource["settings"] ?: $resource["options"]))?>" id="settings_<?=$x?>" />
+					<input type="hidden" name="resources[<?=$x?>][settings]" value="<?=htmlspecialchars(json_encode($resource["settings"] ?? $resource["options"] ?? []))?>" id="settings_<?=$x?>" />
 				</section>
 				<section class="developer_resource_display_title">
 					<input type="radio" name="display_field" value="<?=$resource["id"]?>" id="display_title_<?=$x?>"<?php if ($display_field == $resource["id"]) echo ' checked="checked"'; ?> />

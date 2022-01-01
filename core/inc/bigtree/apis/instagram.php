@@ -891,7 +891,7 @@
 		*/
 
 		public function nextPage() {
-			return call_user_func_array(array($this->API,$this->LastCall),$this->LastParameters);
+			return call_user_func_array(array($this->API,$this->LastCall), array_values($this->LastParameters));
 		}
 	}
 

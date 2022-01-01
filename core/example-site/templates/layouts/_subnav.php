@@ -31,11 +31,11 @@
 		</div>
 		<?php
 			foreach ($sub_nav as $item) {
-				$has_children = is_array($item["children"]) && count($item["children"]);
+				$has_children = !empty($item["children"]) && is_array($item["children"]);
 				$is_active = (strpos($current_url, $item["link"]) !== false);
 		?>
 		<div class="sub_nav_item<?php if ($is_active) { ?> sub_nav_item_active<?php } ?><?php if ($is_active && $has_children) { ?> sub_nav_has_children<?php } ?>">
-			<a href="<?=$item["link"]?>" class="sub_nav_link<?php if ($is_active) { ?> sub_nav_active<?php } ?>"<?php if ($item["new_window"]) { ?> target="_blank"<?php } ?>><?=$item["title"]?></a>
+			<a href="<?=$item["link"]?>" class="sub_nav_link<?php if ($is_active) { ?> sub_nav_active<?php } ?>"<?php if (!empty($item["new_window"])) { ?> target="_blank"<?php } ?>><?=$item["title"]?></a>
 			<?php
 				if ($is_active && $has_children) {
 			?>
@@ -45,7 +45,7 @@
 						$is_active = (strpos($current_url, $child["link"]) !== false);
 				?>
 				<div class="sub_nav_item">
-					<a href="<?=$child["link"]?>" class="sub_nav_link<?php if ($is_active) { ?> sub_nav_active<?php } ?>"<?php if ($child["new_window"]) { ?> target="_blank"<?php } ?>><?=$child["title"]?></a>
+					<a href="<?=$child["link"]?>" class="sub_nav_link<?php if ($is_active) { ?> sub_nav_active<?php } ?>"<?php if (!empty($child["new_window"])) { ?> target="_blank"<?php } ?>><?=$child["title"]?></a>
 				</div>
 				<?php
 					}

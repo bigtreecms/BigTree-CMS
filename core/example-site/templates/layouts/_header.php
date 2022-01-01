@@ -80,11 +80,11 @@
 					</div>
 					<div class="fs-row">
 						<?php
-							if ($is_home) {
+							if ($bigtree["page"]["template"] == "home") {
 						?>
 						<div class="fs-cell fs-md-5 fs-lg-10 fs-xl-8">
 							<div class="home_header">
-								<h1><?=str_ireplace(array("{","}"), array("<span>","</span>"), $page_header);?></h1>
+								<h1><?=str_ireplace(array("{","}"), array("<span>","</span>"), $page_header)?></h1>
 							</div>
 						</div>
 						<?php

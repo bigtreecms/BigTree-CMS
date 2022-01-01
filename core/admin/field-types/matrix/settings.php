@@ -28,7 +28,7 @@
 				if (is_array($column["settings"])) {
 					$settings = htmlspecialchars(json_encode($column["settings"]));
 				} else {
-					$settings = BigTree::safeEncode($column["settings"] ?: $column["options"]);
+					$settings = BigTree::safeEncode($column["settings"] ?? $column["options"] ?? '');
 				}
 		?>
 		<article>

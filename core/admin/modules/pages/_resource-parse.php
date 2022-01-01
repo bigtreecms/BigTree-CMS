@@ -28,7 +28,7 @@
 	]);
 
 	foreach ($bigtree["template"]["resources"] as $resource) {
-		$settings = $resource["settings"] ?: $resource["options"];
+		$settings = $resource["settings"] ?? $resource["options"] ?? [];
 
 		if (empty($settings["directory"])) {
 			$settings["directory"] = "files/pages/";

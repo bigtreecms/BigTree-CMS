@@ -1,5 +1,5 @@
 <?php
-	if (is_array($callouts_sidebar) && count($callouts_sidebar)) {
+	if (!empty($callouts_sidebar) && is_array($callouts_sidebar)) {
 ?>
 <div class="page_sidebar callouts_sidebar">
 	<?php

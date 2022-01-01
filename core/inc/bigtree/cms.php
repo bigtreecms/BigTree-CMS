@@ -617,7 +617,7 @@
 			
 			$bc = [];
 
-			if ($page["changes_applied"]) {
+			if (!empty($page["changes_applied"])) {
 				$parent = $page["parent"];
 				
 				while ($parent > 0) {
@@ -1032,7 +1032,7 @@
 							$instance = new $module["class"];
 
 							if (method_exists($instance, "getNav")) {
-								if ($module->NavPosition == "top") {
+								if ($instance->NavPosition == "top") {
 									$nav = array_merge($instance->getNav($f), $nav);
 								} else {
 									$nav = array_merge($nav, $instance->getNav($f));

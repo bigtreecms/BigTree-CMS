@@ -133,7 +133,7 @@
 						<?php } ?>
 					</select>
 					<a href="#" class="icon_settings" name="<?=$x?>"></a>
-					<input type="hidden" name="resources[<?=$x?>][settings]" value="<?=htmlspecialchars(json_encode($resource["settings"] ?: $resource["options"]))?>" id="settings_<?=$x?>" />
+					<input type="hidden" name="resources[<?=$x?>][settings]" value="<?=htmlspecialchars(json_encode($resource["settings"] ?? $resource["options"] ?? []))?>" id="settings_<?=$x?>" />
 				</section>
 				<section class="developer_resource_action right">
 					<a href="#" class="icon_delete"></a>

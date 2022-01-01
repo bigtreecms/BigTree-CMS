@@ -12,7 +12,11 @@
 			global $bigtree;
 
 			$breadcrumb = [];
-
+			
+			if (empty($bigtree["routed_path"][0])) {
+				return [];
+			}
+			
 			if ($bigtree["routed_path"][0] === "story") {
 				$story = $this->getByRoute($bigtree["commands"][0]);
 

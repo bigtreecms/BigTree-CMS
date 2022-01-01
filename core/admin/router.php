@@ -247,8 +247,8 @@
 
 	// If we're not logged in and we're not trying to login or access an embedded form, redirect to the login page.
 	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
-		if (implode(array_slice($bigtree["path"],1,3),"/") != "ajax/auto-modules/embeddable-form" &&
-			implode(array_slice($bigtree["path"],1,2),"/") != "ajax/two-factor-check") {
+		if (implode("/", array_slice($bigtree["path"],1,3)) != "ajax/auto-modules/embeddable-form" &&
+			implode("/", array_slice($bigtree["path"],1,2)) != "ajax/two-factor-check") {
 
 			if (strpos($_SERVER["REQUEST_URI"], "bar.js.php") === false) {
 				$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
