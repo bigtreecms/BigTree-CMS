@@ -18,10 +18,25 @@
 			$x = 0;
 			foreach ($field["value"] as $callout) {
 				$type = $admin->getCallout($callout["type"]);
+
+				// Convert timestamps for existing data to the user's frame of reference so when it saves w/o changes the time is correct
+				$existing_data = $callout;
+
+				foreach ($type["resources"] as $resource) {
+					$current_value = $existing_data[$resource["id"]];
+
+					if (!empty($current_value) && empty($resource["settings"]["ignore_timezones"])) {
+						if ($resource["type"] == "time") {
+							$existing_data[$resource["id"]] = $admin->convertTimestampToUser($current_value, "H:i:s");
+						} else if ($resource["type"] == "datetime") {
+							$existing_data[$resource["id"]] = $admin->convertTimestampToUser($current_value, "Y-m-d H:i:s");
+						}
+					}
+				}
 		?>
 		<article>
 			<input type="hidden" class="callout_data" value="<?=base64_encode(json_encode($callout))?>" />
-			<?php BigTreeAdmin::drawArrayLevel(array($x),$callout,$field) ?>
+			<?php BigTreeAdmin::drawArrayLevel(array($x),$existing_data,$field) ?>
 			<h4>
 				<?=BigTree::safeEncode($callout["display_title"])?>
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][display_title]" value="<?=BigTree::safeEncode($callout["display_title"])?>" />
