@@ -334,7 +334,7 @@ class Less_SourceMap_Generator extends Less_Configurable {
 			$groupedMapEncoded[] = implode(',', $lineMapEncoded) . ';';
 		}
 
-		return rtrim(implode($groupedMapEncoded), ';');
+		return rtrim(implode(';', $groupedMapEncoded));
 	}
 
 	/**
