@@ -501,9 +501,9 @@
 			$query_string = !empty($_GET) ? "?".http_build_query($_GET) : "";
 
 			if (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
-				BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/")."/".$query_string, "301");
+				BigTree::redirect(WWW_ROOT.implode("/",$bigtree["path"])."/".$query_string, "301");
 			} elseif (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
-				BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/").$query_string, "301");		
+				BigTree::redirect(WWW_ROOT.implode("/",$bigtree["path"]).$query_string, "301");		
 			}
 		}
 	}
