@@ -109,6 +109,7 @@
 	// We're not in the admin, see if caching is enabled and serve up a cached page if it exists
 	if ($bigtree["config"]["cache"] && $bigtree["path"][0] != "_preview" && $bigtree["path"][0] != "_preview-pending") {
 		$cache_location = md5(json_encode($_GET));
+		define("BIGTREE_CACHE_FILE", $cache_location);
 		$file = BIGTREE_CACHE_DIRECTORY.$cache_location.".page";
 
 		// If the file is at least 5 minutes fresh, serve it up.
@@ -116,8 +117,11 @@
 		$ttl = !empty($bigtree["config"]["cache_ttl"]) ? $bigtree["config"]["cache_ttl"] : 300;
 
 		if (file_exists($file) && filemtime($file) > (time() - $ttl)) {
+			header("X-Cache: HIT");
 			readfile($file);
 			die();
+		} else {
+			header("X-Cache: MISS");
 		}
 	}
 
