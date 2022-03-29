@@ -8,6 +8,6 @@
 	<textarea name="meta_description"><?=$bigtree["current_page"]["meta_description"]?></textarea>
 </fieldset>
 <fieldset class="last">
-	<input type="checkbox" name="seo_invisible"<?php if ($bigtree["current_page"]["seo_invisible"]) { ?> checked="checked"<?php } ?> />
+	<input type="checkbox" name="seo_invisible"<?php if (!empty($bigtree["current_page"]["seo_invisible"])) { ?> checked="checked"<?php } ?> />
 	<label class="for_checkbox">Hide From Search Engines</label>
 </fieldset>

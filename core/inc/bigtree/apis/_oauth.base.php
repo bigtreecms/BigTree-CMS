@@ -319,7 +319,7 @@
 				"grant_type" => "refresh_token"
 			)));
 
-			if ($response->access_token) {
+			if ($response && $response->access_token) {
 				$this->Settings["token"] = $response->access_token;
 				$this->Settings["expires"] = strtotime("+".$response->expires_in." seconds");
 				$this->saveSettings();

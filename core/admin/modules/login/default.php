@@ -9,11 +9,11 @@
 ?>
 <form method="post" action="<?=ADMIN_ROOT?>login/process/" class="module">
 	<?php
-		if ($bigtree["ban_expiration"]) {
+		if (!empty($bigtree["ban_expiration"])) {
 	?>
 	<p class="error_message clear">You are temporarily banned due to failed login attempts.<br />You may try logging in again after <?=$bigtree["ban_expiration"]?>.</p>
 	<?php
-			if ($bigtree["ban_is_user"]) {
+			if (!empty($bigtree["ban_is_user"])) {
 	?>
 	<fieldset>
 		<p>You may <a href="<?=$login_root?>forgot-password/">reset your password</a> to remove your ban.</p>
@@ -42,7 +42,7 @@
 		<label>Password</label>
 		<input type="password" id="password" name="password" class="text" />
 		<?php
-			if ($bigtree["security-policy"]["remember_disabled"] != "on") {
+			if (empty($bigtree["security-policy"]["remember_disabled"]) || $bigtree["security-policy"]["remember_disabled"] != "on") {
 		?>
 		<p><input type="checkbox" name="stay_logged_in" checked="checked" /> Remember Me</p>
 		<?php

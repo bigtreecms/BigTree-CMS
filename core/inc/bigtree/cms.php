@@ -871,7 +871,7 @@
 			}
 
 			// If someone is requesting the link of the page they're already on we don't need to request it from the database.
-			if ($bigtree["page"]["id"] == $id) {
+			if (!empty($bigtree["page"]["id"]) && $bigtree["page"]["id"] == $id) {
 				return static::linkForPath($bigtree["page"]["path"]);
 			} else {
 				// Otherwise we'll grab the page path from the db.
@@ -1825,7 +1825,7 @@
 				require_once(SERVER_ROOT."core/inc/lib/slug-generator/src/SlugGenerator.php");
 
 				$options = new Ausi\SlugGenerator\SlugOptions;
-				$options->setLocale($bigtree["config"]["locale"] ?: "en_US");
+				$options->setLocale($bigtree["config"]["locale"] ?? "en_US");
 
 				$generator = new Ausi\SlugGenerator\SlugGenerator($options);
 

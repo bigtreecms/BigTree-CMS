@@ -70,7 +70,7 @@
 	}
 
 	// Only show this thing if they have Google Analytics setup already
-	if ($ga_cache && count($ga_cache["two_week"])) {
+	if ($ga_cache && !empty($ga_cache["two_week"])) {
 		$visits = $ga_cache["two_week"];
 		$min = min((is_array($visits)) ? $visits : array($visits));
 		$max = max((is_array($visits)) ? $visits : array($visits)) - $min;
@@ -160,10 +160,8 @@
 				foreach ($change_modules as $m => $cm) {
 					if ($m == 0) {
 						$icon = "page";
-					} elseif ($cm["icon"]) {
-						$icon = $cm["icon"];
 					} else {
-						$icon = "gear";
+						$icon = $cm["icon"] ?? "gear";
 					}
 			?>
 			<div>
@@ -193,10 +191,8 @@
 				foreach ($my_change_modules as $m => $cm) {
 					if ($m == 0) {
 						$icon = "page";
-					} elseif ($cm["icon"]) {
-						$icon = $cm["icon"];
 					} else {
-						$icon = "gear";
+						$icon = $cm["icon"] ?? "gear";
 					}
 			?>
 			<div>

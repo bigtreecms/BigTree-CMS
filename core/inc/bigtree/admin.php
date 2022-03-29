@@ -1558,11 +1558,11 @@
 			}
 
 			// Make sure it doesn't have the same route as any of its siblings.
-			$exists = SQL::exists("bigtree_pages", ["route" => $route, "parent" => $parent], $page);
+			$exists = SQL::exists("bigtree_pages", ["route" => $route, "parent" => $parent]);
 
 			while ($exists) {
 				$route = $original_route."-".$x;
-				$exists = SQL::exists("bigtree_pages", ["route" => $route, "parent" => $parent], $page);
+				$exists = SQL::exists("bigtree_pages", ["route" => $route, "parent" => $parent]);
 				$x++;
 			}
 
@@ -2913,6 +2913,10 @@
 			global $admin,$bigtree,$cms;
 
 			// Give the field a unique id
+			if (!isset($bigtree["field_counter"])) {
+				$bigtree["field_counter"] = 0;
+			}
+			
 			$bigtree["field_counter"]++;
 			$field["id"] = $bigtree["field_namespace"].$bigtree["field_counter"];
 
@@ -4062,24 +4066,28 @@
 
 		public static function getModule($id) {
 			$module = BigTreeJSONDB::get("modules", $id);
+			
+			if (empty($module)) {
+				return null;
+			}
 
-			if (!is_array($module["actions"])) {
+			if (empty($module["actions"]) || !is_array($module["actions"])) {
 				$module["actions"] = [];
 			}
 
-			if (!is_array($module["views"])) {
+			if (empty($module["views"]) || !is_array($module["views"])) {
 				$module["views"] = [];
 			}
 
-			if (!is_array($module["forms"])) {
+			if (empty($module["forms"]) || !is_array($module["forms"])) {
 				$module["forms"] = [];
 			}
 
-			if (!is_array($module["embeddable-forms"])) {
+			if (empty($module["embeddable-forms"]) || !is_array($module["embeddable-forms"])) {
 				$module["embeddable-forms"] = [];
 			}
 
-			if (!is_array($module["reports"])) {
+			if (empty($module["reports"]) || !is_array($module["reports"])) {
 				$module["reports"] = [];
 			}
 
@@ -4880,8 +4888,8 @@
 
 			// Get any GET variables and hashes and remove them
 			$url_parse = parse_url(implode("/", array_values($path)));
-			$query_vars = $url_parse["query"];
-			$hash = $url_parse["fragment"];
+			$query_vars = $url_parse["query"] ?? "";
+			$hash = $url_parse["fragment"] ?? "";
 			$path = explode("/", rtrim($url_parse["path"], "/"));
 
 			if (!$previewing) {
@@ -5153,7 +5161,8 @@
 			if (!$h1_field && $tsources["page_header"]) {
 				$h1_field = "page_header";
 			}
-			if (!count($body_fields) && $tsources["page_content"]) {
+			
+			if (!count($body_fields) && !empty($tsources["page_content"])) {
 				$body_fields[] = "page_content";
 			}
 
@@ -5692,7 +5701,7 @@
 				$crumb[] = array("id" => $folder["id"], "name" => $folder["name"]);
 			}
 
-			if ($folder["parent"]) {
+			if (!empty($folder["parent"])) {
 				return static::getResourceFolderBreadcrumb($folder["parent"],$crumb);
 			} else {
 				$crumb[] = array("id" => 0, "name" => "Home");
@@ -8140,7 +8149,7 @@
 
 				if (!in_array($check, $existing)) {
 					// If we've already got the permission cached, use it. Otherwise, fetch it and cache it.
-					if ($permission_cache[$resource["folder"]]) {
+					if (isset($permission_cache[$resource["folder"]])) {
 						$resource["permission"] = $permission_cache[$resource["folder"]];
 					} else {
 						$resource["permission"] = $permission_cache[$resource["folder"]] = $this->getResourceFolderPermission($resource["folder"]);

@@ -31,7 +31,7 @@
 	$bigtree["callout_count"] = intval($_POST["count"]);
 	$bigtree["callout"] = $admin->getCallout($bigtree["resources"]["type"]);
 
-	if ($_POST["type"] != $_POST["original_type"]) {
+	if (!empty($_POST["original_type"]) && $_POST["type"] != $_POST["original_type"]) {
 		$original_callout = $admin->getCallout($_POST["original_type"]);
 		$forced_recrops = $admin->rectifyResourceTypeChange($bigtree["resources"], $bigtree["callout"]["resources"], $original_callout["resources"]);
 	} else {

@@ -508,10 +508,12 @@
 			// Include all headers in the module directory in the order they occur.
 			$inc_path = "";
 			$headers = $footers = array();
+			
 			foreach ($pieces as $piece) {
 				if (substr($piece,-4,4) != ".php") {
 					$inc_path .= $piece."/";
-					if ($module["extension"]) {
+					
+					if (!empty($module["extension"])) {
 						$header = SERVER_ROOT."extensions/".$module["extension"]."/modules/".$inc_path."_header.php";
 						$footer = SERVER_ROOT."extensions/".$module["extension"]."/modules/".$inc_path."_footer.php";
 					} else {

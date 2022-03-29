@@ -3,7 +3,7 @@
 		$field["value"] = array();
 	}
 
-	$noun = $field["settings"]["noun"] ? htmlspecialchars($field["settings"]["noun"]) : "Callout";
+	$noun = !empty($field["settings"]["noun"]) ? htmlspecialchars($field["settings"]["noun"]) : "Callout";
 	$max = !empty($field["settings"]["max"]) ? $field["settings"]["max"] : 0;
 
 	// Work with older group info from 4.1 and lower
