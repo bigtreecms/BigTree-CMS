@@ -20,6 +20,12 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.4.16
+- ADDED: Time and Datetime fields now allow you to not convert from the timeframe reference of BigTree users with non-default timezones
+- FIXED: Callouts and Matrix field types no longer break time and datetime fields when a user from a non-default timezone edits content without updating the callout/matrix entry.
+- FIXED: Re-cropping images not working in media galleries
+- FIXED: Matrix field settings breaking when encoded properly (not double escaped)
+
 ### 4.4.15
 - SECURITY FIX: Fixed a cross site scripting issue with searchable fields that can lead to privelege escalation (thanks to guiseppesec for the report)
 - FIXED: Matrix field settings being lost when updating a Setting in developer

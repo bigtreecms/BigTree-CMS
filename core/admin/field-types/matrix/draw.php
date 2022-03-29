@@ -15,10 +15,24 @@
 		<?php
 			$x = 0;
 			foreach ($field["value"] as $item) {
+				// Convert timestamps for existing data to the user's frame of reference so when it saves w/o changes the time is correct
+				$existing_data = $item;
+
+				foreach ($field["settings"]["columns"] as $resource) {					
+					$current_value = $existing_data[$resource["id"]];
+
+					if (!empty($current_value) && empty($resource["settings"]["ignore_timezones"])) {
+						if ($resource["type"] == "time") {
+							$existing_data[$resource["id"]] = $admin->convertTimestampToUser($current_value, "H:i:s");
+						} else if ($resource["type"] == "datetime") {
+							$existing_data[$resource["id"]] = $admin->convertTimestampToUser($current_value, "Y-m-d H:i:s");
+						}
+					}
+				}
 		?>
 		<article>
 			<input type="hidden" class="bigtree_matrix_data" value="<?=base64_encode(json_encode($item))?>" />
-			<?php BigTreeAdmin::drawArrayLevel(array($x),$item,$field) ?>
+			<?php BigTreeAdmin::drawArrayLevel(array($x),$existing_data,$field) ?>
 			<h4>
 				<?=BigTree::safeEncode($item["__internal-title"])?>
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-title]" value="<?=BigTree::safeEncode($item["__internal-title"])?>" />
@@ -66,10 +80,24 @@
 			<?php
 				$x = 0;
 				foreach ($field["value"] as $item) {
+					// Convert timestamps for existing data to the user's frame of reference so when it saves w/o changes the time is correct
+					$existing_data = $item;
+
+					foreach ($field["settings"]["columns"] as $resource) {
+						$current_value = $existing_data[$resource["id"]];
+
+						if (!empty($current_value) && empty($resource["settings"]["ignore_timezones"])) {
+							if ($resource["type"] == "time") {
+								$existing_data[$resource["id"]] = $admin->convertTimestampToUser($current_value, "H:i:s");
+							} else if ($resource["type"] == "datetime") {
+								$existing_data[$resource["id"]] = $admin->convertTimestampToUser($current_value, "Y-m-d H:i:s");
+							}
+						}
+					}
 			?>
 			<li>
 				<input type="hidden" class="bigtree_matrix_data" value="<?=base64_encode(json_encode($item))?>" />
-				<?php BigTreeAdmin::drawArrayLevel(array($x),$item,$field) ?>
+				<?php BigTreeAdmin::drawArrayLevel(array($x),$existing_data,$field) ?>
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-title]" value="<?=BigTree::safeEncode($item["__internal-title"])?>" />
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__internal-subtitle]" value="<?=BigTree::safeEncode($item["__internal-subtitle"])?>" />
 				<span class="icon_sort"></span>
