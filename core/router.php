@@ -627,5 +627,6 @@
 		if (!$bigtree["page"]["path"]) {
 			$bigtree["page"]["path"] = "!";
 		}
-		BigTree::putFile(BIGTREE_CACHE_DIRECTORY.md5(json_encode($_GET)).".page",$cache);
+		$cache_file = (defined("BIGTREE_CACHE_FILE")) ? BIGTREE_CACHE_FILE : md5(json_encode($_GET));
+		BigTree::putFile(BIGTREE_CACHE_DIRECTORY.$cache_file.".page",$cache);
 	}
