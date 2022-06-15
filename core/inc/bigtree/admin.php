@@ -7803,15 +7803,18 @@
 		*/
 
 		public function requireAccess($module) {
-			global $admin,$bigtree,$cms;
+			global $admin, $bigtree, $cms;
+			
 			if ($this->Level > 0) {
 				return "p";
 			}
-			if (!isset($this->Permissions[$module]) || $this->Permissions[$module] == "") {
+			
+			if (empty($this->Permissions["module"][$module])) {
 				define("BIGTREE_ACCESS_DENIED",true);
 				$this->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
 			}
-			return $this->Permissions[$module];
+			
+			return $this->Permissions["module"][$module];
 		}
 
 		/*
