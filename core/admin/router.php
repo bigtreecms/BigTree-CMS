@@ -1,4 +1,10 @@
 <?php
+	/**
+	 * @global array $bigtree
+	 * @global BigTreeCMS $cms
+	 * @global string $server_root
+	 */
+	
 	// Set a definition to check for being in the admin
 	define("BIGTREE_ADMIN_ROUTED",true);
 	
@@ -146,9 +152,9 @@
 			header("Content-type: image/gif");
 		} elseif ($type == "jpg") {
 			header("Content-type: image/jpeg");
-		} elseif (substr($bigtree["path"][$x],-3,3) == "ttf") {
+		} elseif ($type == "ttf") {
 			header("Content-type: font/ttf");
-		} elseif (substr($bigtree["path"][$x],-4,4) == "woff") {
+		} elseif (substr($js_file, -4, 4) == "woff") {
 			header("Content-type: font/x-woff");
 		} else {
 			header("Content-type: text/javascript");
@@ -242,8 +248,8 @@
 
 	// If we're not logged in and we're not trying to login or access an embedded form, redirect to the login page.
 	if (!isset($admin->ID) && $bigtree["path"][1] != "login") {
-		if (implode(array_slice($bigtree["path"],1,3),"/") != "ajax/auto-modules/embeddable-form" &&
-			implode(array_slice($bigtree["path"],1,2),"/") != "ajax/two-factor-check") {
+		if (implode("/", array_slice($bigtree["path"],1,3)) != "ajax/auto-modules/embeddable-form" &&
+			implode("/", array_slice($bigtree["path"],1,2)) != "ajax/two-factor-check") {
 
 			if (strpos($_SERVER["REQUEST_URI"], "bar.js.php") === false) {
 				$_SESSION["bigtree_login_redirect"] = DOMAIN.$_SERVER["REQUEST_URI"];
@@ -287,13 +293,13 @@
 		$ajax_path = array_slice($bigtree["path"],2);
 		// Extensions must use this directory
 		if (defined("EXTENSION_ROOT")) {
-			list($inc,$commands) = BigTree::route(EXTENSION_ROOT."ajax/",$ajax_path);
+			[$inc,$commands] = BigTree::route(EXTENSION_ROOT."ajax/",$ajax_path);
 		// Check custom/core
 		} else {
-			list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/ajax/",$ajax_path);
+			[$inc,$commands] = BigTree::route(SERVER_ROOT."custom/admin/ajax/",$ajax_path);
 			// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
 			if (!$inc || count($commands)) {
-				list($core_inc,$core_commands) = BigTree::route(SERVER_ROOT."core/admin/ajax/",$ajax_path);
+				[$core_inc,$core_commands] = BigTree::route(SERVER_ROOT."core/admin/ajax/",$ajax_path);
 				// If we either never found the custom file or if there are more routes found in the core file use the core.
 				if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
 					$inc = $core_inc;
@@ -459,13 +465,13 @@
 		// Check custom if it's not an extension, otherwise use the extension directory
 		if ($module && $module["extension"]) {
 			$module_path[0] = str_replace($module["extension"]."*","",$module_path[0]);
-			list($inc,$commands) = BigTree::route(SERVER_ROOT."extensions/".$module["extension"]."/modules/",$module_path);
+			[$inc,$commands] = BigTree::route(SERVER_ROOT."extensions/".$module["extension"]."/modules/",$module_path);
 			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$module["extension"]."/");
 		} else {
-			list($inc,$commands) = BigTree::route(SERVER_ROOT."custom/admin/modules/",$module_path);
+			[$inc,$commands] = BigTree::route(SERVER_ROOT."custom/admin/modules/",$module_path);
 			// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)
 			if (!$inc || count($commands)) {
-				list($core_inc,$core_commands) = BigTree::route(SERVER_ROOT."core/admin/modules/",$module_path);
+				[$core_inc,$core_commands] = BigTree::route(SERVER_ROOT."core/admin/modules/",$module_path);
 				// If we either never found the custom file or if there are more routes found in the core file use the core.
 				if (!$inc || ($inc && $core_inc && count($core_commands) < count($commands))) {
 					$inc = $core_inc;
@@ -506,7 +512,8 @@
 			foreach ($pieces as $piece) {
 				if (substr($piece,-4,4) != ".php") {
 					$inc_path .= $piece."/";
-					if ($module["extension"]) {
+					
+					if (!empty($module["extension"])) {
 						$header = SERVER_ROOT."extensions/".$module["extension"]."/modules/".$inc_path."_header.php";
 						$footer = SERVER_ROOT."extensions/".$module["extension"]."/modules/".$inc_path."_footer.php";
 					} else {

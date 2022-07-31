@@ -1,7 +1,13 @@
 <?php
-	if (!$_SESSION["bigtree_admin"]["form_data"]) {
+	/**
+	 * @global BigTreeCMS $cms
+	 * @global string $crop_key
+	 */
+	
+	if (empty($_SESSION["bigtree_admin"]["form_data"])) {
 		BigTree::redirect($_SESSION["bigtree_admin"]["cropper_previous_page"]);
 	}
+	
 	BigTree::globalizeArray($_SESSION["bigtree_admin"]["form_data"]);
 
 	// Override the default H1
@@ -23,7 +29,7 @@
 				$x = 0;
 				foreach ($crops as $crop) {
 					$x++;
-					list($width,$height,$type,$attr) = getimagesize($crop["image"]);
+					[$width,$height,$type,$attr] = getimagesize($crop["image"]);
 					$image = str_replace(SITE_ROOT,WWW_ROOT,$crop["image"]);
 					$cwidth = $crop["width"];
 					$cheight = $crop["height"];

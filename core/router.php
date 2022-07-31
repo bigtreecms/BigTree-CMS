@@ -503,9 +503,9 @@
 		// If this is a "file", ignore the fact that there is or isn't a trailing slash
 		if (strpos($last_path_element, ".") === false) {
 			if (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
-				BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/")."/","301");
+				BigTree::redirect(WWW_ROOT.implode("/", $bigtree["path"])."/","301");
 			} elseif (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
-				BigTree::redirect(WWW_ROOT.implode($bigtree["path"],"/"),"301");		
+				BigTree::redirect(WWW_ROOT.implode("/", $bigtree["path"]),"301");
 			}
 		}
 	}

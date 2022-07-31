@@ -1,4 +1,9 @@
 <?php
+	/**
+	 * @global array $bigtree
+	 * @global string $login_root
+	 */
+	
 	if (isset($_GET["error"])) {
 		$failure = true;
 		$user = htmlspecialchars($_SESSION["bigtree_admin"]["failed_login_email"]);
@@ -9,11 +14,11 @@
 ?>
 <form method="post" action="<?=ADMIN_ROOT?>login/process/" class="module">
 	<?php
-		if ($bigtree["ban_expiration"]) {
+		if (!empty($bigtree["ban_expiration"])) {
 	?>
 	<p class="error_message clear">You are temporarily banned due to failed login attempts.<br />You may try logging in again after <?=$bigtree["ban_expiration"]?>.</p>
 	<?php
-			if ($bigtree["ban_is_user"]) {
+			if (!empty($bigtree["ban_is_user"])) {
 	?>
 	<fieldset>
 		<p>You may <a href="<?=$login_root?>forgot-password/">reset your password</a> to remove your ban.</p>

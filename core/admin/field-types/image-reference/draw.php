@@ -1,4 +1,12 @@
 <?php
+	/**
+	 * @global BigTreeAdmin $admin
+	 * @global array $field
+	 */
+	
+	$preview_image = null;
+	$resource = null;
+	
 	if ($field["value"]) {
 		$resource = $admin->getResource($field["value"]);
 		
@@ -18,7 +26,7 @@
 <div class="image_field<?php if ($field["settings"]["validation"] == "required") { ?> reference_required<?php } ?>">
 	<a href="#<?=$field["id"]?>" data-options="<?=$button_options?>" class="button resource_browser_button"><span class="icon_images"></span>Browse</a>
 	<br class="clear" />
-	<div class="currently currently_image_reference" id="<?=$field["id"]?>"<?php if (!$field["value"] || !$resource) { ?> style="display: none;"<?php } ?>>
+	<div class="currently currently_image_reference" id="<?=$field["id"]?>"<?php if (empty($field["value"]) || !$resource) { ?> style="display: none;"<?php } ?>>
 		<a href="#" class="remove_resource"></a>
 		<div class="currently_wrapper">
 			<?php if ($preview_image) { ?>

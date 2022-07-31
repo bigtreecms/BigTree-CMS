@@ -1,11 +1,15 @@
 <?php
+	/**
+	 * @global BigTreeAdmin $admin
+	 */
+	
 	$admin->verifyCSRFToken();
 	
 	// Get existing presets
 	$settings = BigTreeJSONDB::get("config", "media-settings");
 
 	// New preset? Create a unique ID
-	if (!$_POST["id"]) {
+	if (empty($_POST["id"])) {
 		$id = uniqid();
 
 		while (isset($settings["presets"][$id])) {

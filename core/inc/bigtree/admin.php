@@ -195,9 +195,10 @@
 			}
 
 			// Check the permissions to see if we should show the pages tab.
-			if (!$this->Level) {
+			if (empty($this->Level)) {
 				$this->HidePages = true;
-				if (is_array($this->Permissions["page"])) {
+				
+				if (!empty($this->Permissions["page"]) && is_array($this->Permissions["page"])) {
 					foreach ($this->Permissions["page"] as $k => $v) {
 						if ($v != "n" && $v != "i") {
 							$this->HidePages = false;
@@ -1564,11 +1565,11 @@
 			}
 
 			// Make sure it doesn't have the same route as any of its siblings.
-			$exists = SQL::exists("bigtree_pages", ["route" => $route, "parent" => $parent], $page);
+			$exists = SQL::exists("bigtree_pages", ["route" => $route, "parent" => $parent]);
 
 			while ($exists) {
 				$route = $original_route."-".$x;
-				$exists = SQL::exists("bigtree_pages", ["route" => $route, "parent" => $parent], $page);
+				$exists = SQL::exists("bigtree_pages", ["route" => $route, "parent" => $parent]);
 				$x++;
 			}
 
@@ -4067,23 +4068,23 @@
 		public static function getModule($id) {
 			$module = BigTreeJSONDB::get("modules", $id);
 
-			if (!is_array($module["actions"])) {
+			if (empty($module["actions"])) {
 				$module["actions"] = [];
 			}
 
-			if (!is_array($module["views"])) {
+			if (empty($module["views"])) {
 				$module["views"] = [];
 			}
 
-			if (!is_array($module["forms"])) {
+			if (empty($module["forms"])) {
 				$module["forms"] = [];
 			}
 
-			if (!is_array($module["embeddable-forms"])) {
+			if (empty($module["embeddable-forms"])) {
 				$module["embeddable-forms"] = [];
 			}
 
-			if (!is_array($module["reports"])) {
+			if (empty($module["reports"])) {
 				$module["reports"] = [];
 			}
 

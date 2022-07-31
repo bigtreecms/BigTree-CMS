@@ -30,7 +30,7 @@
 	}
 	
 	// Work out the permissions	
-	if (!$bigtree["access_level"]) {
+	if (empty($bigtree["access_level"])) {
 ?>
 <div class="container">
 	<section>

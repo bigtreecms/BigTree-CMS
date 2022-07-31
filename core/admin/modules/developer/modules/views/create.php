@@ -69,7 +69,7 @@
 		$admin->createModuleAction($module,"View $title",$route,"on","list",0,$view_id);
 
 		// If we're not working on a new module, just redirect back to the edit module page
-		if (!$_POST["new_module"]) {
+		if (empty($_POST["new_module"])) {
 			$admin->growl("Developer","Created Module View");
 			BigTree::redirect(DEVELOPER_ROOT."modules/edit/$module/");
 		}

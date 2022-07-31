@@ -1,5 +1,9 @@
 <?php
-	if (!$_SESSION["bigtree_admin"]["form_data"]) {
+	/**
+	 * @global BigTreeCMS $cms
+	 */
+	
+	if (empty($_SESSION["bigtree_admin"]["form_data"])) {
 		BigTree::redirect($_SESSION["bigtree_admin"]["cropper_previous_page"]);
 	}
 	

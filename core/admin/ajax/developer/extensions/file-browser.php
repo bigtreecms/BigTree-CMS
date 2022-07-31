@@ -2,7 +2,7 @@
 	// See if we have cloud support
 	$cloud_options = array();
 
-	if (!$_POST["cloud_disabled"] || $_POST["cloud_disabled"] == "false") {
+	if (empty($_POST["cloud_disabled"]) || $_POST["cloud_disabled"] == "false") {
 		$cloud = new BigTreeCloudStorage;
 		
 		if (!empty($cloud->Settings["amazon"]["active"])) {

@@ -1563,6 +1563,9 @@
 				array_push($values, $id);
 			}
 			
+			// PHP 8 treats string keys in an array as named parameters so we need to reset to just numeric keys
+			$values = array_values($values);
+			
 			// Add the query and the id parameter into the function parameters
 			array_unshift($values, "UPDATE `$table` SET ".implode(", ", $set)." WHERE ".implode(" AND ", $where));
 			

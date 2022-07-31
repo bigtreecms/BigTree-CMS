@@ -31,6 +31,7 @@
 
 		// Check access levels
 		$bigtree["access_level"] = $admin->getAccessLevel($bigtree["module"],$item,$bigtree["form"]["table"]);
+		
 		if ($bigtree["access_level"] != "n") {
 			$original_permission_level = $admin->getAccessLevel($bigtree["module"],$original_item["item"],$bigtree["form"]["table"]);
 			if ($original_permission_level != "p") {
@@ -38,7 +39,7 @@
 			}
 		}
 		
-		if (!$bigtree["access_level"] || $bigtree["access_level"] == "n") {
+		if (empty($bigtree["access_level"]) || $bigtree["access_level"] == "n") {
 			include BigTree::path("admin/auto-modules/forms/_denied.php");
 		} else {
 			$bigtree["many-to-many"] = $many_to_many = $pending_entry["mtm"];

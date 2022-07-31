@@ -1,13 +1,19 @@
 <?php
+	/**
+	 * @global BigTreeAdmin $admin
+	 * @global array $bigtree
+	 * @global BigTreeCMS $cms
+	 */
+	
 	function _local_findPath($nav,$path,$last_link = "") {
 		global $bigtree,$breadcrumb;
 		foreach ($nav as $item) {
 			if ((strpos($path,$item["link"]."/") === 0 && $item["link"] != $last_link) || $path == $item["link"]) {				
 				$breadcrumb[] = array("title" => $item["title"],"link" => $item["link"]);
-				$bigtree["page"]["title"] = $item["title"] ? $item["title"] : $bigtree["page"]["title"];
-				$bigtree["page"]["title"] = $item["title_override"] ? $item["title_override"] : $bigtree["page"]["title"];
-				$bigtree["page"]["icon"] = $item["icon"] ? $item["icon"] : $bigtree["page"]["icon"];
-				$bigtree["page"]["navigation"] = $item["children"] ? $item["children"] : $bigtree["page"]["navigation"];
+				$bigtree["page"]["title"] = $item["title"] ?? $bigtree["page"]["title"];
+				$bigtree["page"]["title"] = $item["title_override"] ?? $bigtree["page"]["title"];
+				$bigtree["page"]["icon"] = $item["icon"] ??  $bigtree["page"]["icon"];
+				$bigtree["page"]["navigation"] = $item["children"] ?? $bigtree["page"]["navigation"];
 				// Get the related dropdown menu
 				if ($item["related"]) {
 					$bigtree["page"]["related"]["title"] = $bigtree["page"]["title"];
@@ -28,7 +34,7 @@
 	}
 
 	// Set the page title if it hasn't been set
-	if (!$bigtree["admin_title"]) {
+	if (empty($bigtree["admin_title"])) {
 		$bigtree["admin_title"] = $bigtree["page"]["title"];
 	}
 
@@ -38,7 +44,7 @@
 	}
 
 	// Replace breadcrumb with a custom one if it exists
-	if (is_array($bigtree["breadcrumb"]) && count($bigtree["breadcrumb"])) {
+	if (!empty($bigtree["breadcrumb"]) && is_array($bigtree["breadcrumb"])) {
 		$breadcrumb = $bigtree["breadcrumb"];
 	}
 
@@ -50,7 +56,7 @@
 	}
 
 	// If this is a "Partial" page request then we're going to deliver JSON and let JavaScript construct it.
-	if ($_SERVER["HTTP_BIGTREE_PARTIAL"]) {
+	if (!empty($_SERVER["HTTP_BIGTREE_PARTIAL"])) {
 		ob_start();
 		foreach ($breadcrumb as &$item) {
 			$item["title"] = BigTree::safeEncode($item["title"]);
@@ -99,6 +105,10 @@
 				<strong><?=$bigtree["page"]["related"]["title"]?></strong>
 				<?php
 					foreach ($bigtree["page"]["related"]["nav"] as $item) {
+						if (empty($item["level"])) {
+							$item["level"] = 0;
+						}
+						
 						if ($item["level"] <= $admin->Level && empty($item["group"]) && empty($item["top_level_hidden"])) {
 				?>
 				<a href="<?=ADMIN_ROOT.$item["link"]?>/"><?=$item["title"]?></a>
@@ -123,7 +133,7 @@
 			$show_nav = false;
 	
 			foreach ($bigtree["page"]["navigation"] as $item) {
-				if (!$item["hidden"] && empty($item["group"])) {
+				if (empty($item["hidden"]) && empty($item["group"])) {
 					$show_nav = true;
 				}
 			}
@@ -149,7 +159,7 @@
 			}
 			// Draw the nav.
 			foreach ($bigtree["page"]["navigation"] as $item) {
-				if (!$item["hidden"] && (!$item["level"] || $item["level"] <= $admin->Level)) {
+				if (empty($item["hidden"]) && (!$item["level"] || $item["level"] <= $admin->Level)) {
 					$get_string = "";
 					if (is_array($item["get_vars"]) && count($item["get_vars"])) {
 						$get_string = "?";
@@ -204,7 +214,7 @@
 </div>
 <?php
 	// Send JSON if we're doing a partial.
-	if ($_SERVER["HTTP_BIGTREE_PARTIAL"]) {
+	if (!empty($_SERVER["HTTP_BIGTREE_PARTIAL"])) {
 		header("Content-type: text/json");
 		$site = $cms->getPage(0,false);
 		$title = $bigtree["admin_title"] ? $bigtree["admin_title"]." | ".$site["nav_title"]." Admin" : $site["nav_title"]." Admin";

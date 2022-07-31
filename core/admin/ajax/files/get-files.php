@@ -1,5 +1,9 @@
 <?php
-	if ($_POST["query"]) {
+	/**
+	 * @global BigTreeAdmin $admin
+	 */
+	
+	if (!empty($_POST["query"])) {
 		$items = $admin->searchResources($_POST["query"]);
 		$perm = "e";
 		$bc = array(array("name" => "Clear Results","id" => ""));
@@ -9,7 +13,7 @@
 		$bc = $admin->getResourceFolderBreadcrumb($_POST["folder"]);
 	}
 
-	if (!$_POST["query"] && $_POST["folder"] > 0) {
+	if (empty($_POST["query"]) && !empty($_POST["folder"]) && $_POST["folder"] > 0) {
 		$folder = $admin->getResourceFolder($_POST["folder"]);
 ?>
 <button data-folder="<?=$folder["parent"]?>" class="file_list_button js-folder"><span class="icon_small icon_small_back"></span>Back</button>

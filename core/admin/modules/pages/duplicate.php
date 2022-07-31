@@ -1,5 +1,11 @@
 <?php
-	if (!$bigtree["current_page"]["parent"] ||
+	/**
+	 * @global BigTreeAdmin $admin
+	 * @global array $bigtree
+	 * @global BigTreeCMS $cms
+	 */
+	
+	if (empty($bigtree["current_page"]["parent"]) ||
 		 $bigtree["current_page"]["parent"] == -1 ||
 		 $bigtree["access_level"] != "p" ||
 		 $admin->getPageAccessLevel($bigtree["current_page"]["parent"]) != "p") {

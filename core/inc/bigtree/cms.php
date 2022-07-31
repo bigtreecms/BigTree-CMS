@@ -1825,7 +1825,7 @@
 				require_once(SERVER_ROOT."core/inc/lib/slug-generator/src/SlugGenerator.php");
 
 				$options = new Ausi\SlugGenerator\SlugOptions;
-				$options->setLocale($bigtree["config"]["locale"] ?: "en_US");
+				$options->setLocale(!empty($bigtree["config"]["locale"]) ? $bigtree["config"]["locale"] : "en_US");
 
 				$generator = new Ausi\SlugGenerator\SlugGenerator($options);
 

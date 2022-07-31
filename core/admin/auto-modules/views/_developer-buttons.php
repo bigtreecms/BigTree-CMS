@@ -1,11 +1,16 @@
 <?php
+	/**
+	 * @global BigTreeAdmin $admin
+	 * @global array $bigtree
+	 */
+	
 	if ($admin->Level > 1 || $bigtree["view"]["description"]) {
 ?>
 <div class="developer_buttons">
 	<?php
 		if ($bigtree["view"]["description"]) {
 	?>
-	<a href="#" class="js-view-description-show" <?php if (!$_COOKIE["bigtree_admin"]["ignore_view_description"][$bigtree["view"]["id"]]) { ?> style="display: none;"<?php } ?> title="Show Help Text">
+	<a href="#" class="js-view-description-show" <?php if (empty($_COOKIE["bigtree_admin"]["ignore_view_description"][$bigtree["view"]["id"]])) { ?> style="display: none;"<?php } ?> title="Show Help Text">
 		Show Help Text
 		<span class="icon_small icon_small_help"></span>
 	</a>

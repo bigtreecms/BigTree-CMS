@@ -55,8 +55,9 @@
 		// Also wipe them if we have added or removed a column.
 		$old_view = BigTreeAutoModule::getView(end($bigtree["path"]));
 		$keys_match = true;
+		
 		foreach ($old_view["fields"] as $key => $field) {
-			if (!$fields[$key]) {
+			if (empty($fields[$key])) {
 				$keys_match = false;
 			}
 		}

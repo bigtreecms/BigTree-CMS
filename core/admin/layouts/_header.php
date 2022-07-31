@@ -1,4 +1,10 @@
 <?php
+	/**
+	 * @global BigTreeAdmin $admin
+	 * @global array $bigtree
+	 * @global BigTreeCMS $cms
+	 */
+	
 	$unread_messages = $admin->getUnreadMessageCount();	
 	$site = $cms->getPage(0,false);
 
@@ -128,7 +134,7 @@
 					<?php
 						$x = -1;
 						foreach ($bigtree["nav_tree"] as $item) {
-							if ($item["hidden"]) {
+							if (!empty($item["hidden"])) {
 								continue;
 							}
 							
@@ -156,6 +162,14 @@
 								foreach ($item["children"] as $child) {
 									if (!empty($child["top_level_hidden"])) {
 										continue;
+									}
+									
+									if (empty($child["link"])) {
+										$child["link"] = "";
+									}
+									
+									if (empty($child["access"])) {
+										$child["access"] = 0;
 									}
 
 									if (strpos($child["link"], "https://") === 0 || strpos($child["link"], "http://") === 0) {

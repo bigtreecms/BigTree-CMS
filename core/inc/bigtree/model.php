@@ -378,7 +378,7 @@
 				}
 			}
 			
-			$items = SQL::fetchAll("SELECT $columns FROM `".static::$Table."` WHERE ".implode($where)." $order $limit");
+			$items = SQL::fetchAll("SELECT $columns FROM `".static::$Table."` WHERE ".implode(" AND ", $where)." $order $limit");
 			
 			return array_map([static::class, "get"], $items);
 		}

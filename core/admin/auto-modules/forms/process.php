@@ -37,7 +37,7 @@
 	}
 
 	// If permission check fails, stop and throw the denied page.
-	if (!$bigtree["access_level"] || $bigtree["access_level"] == "n") {
+	if (empty($bigtree["access_level"]) || $bigtree["access_level"] == "n") {
 		$admin->stop(file_get_contents(BigTree::path("admin/auto-modules/forms/_denied.php")));
 	}
 
@@ -172,7 +172,7 @@
 	if (isset($_POST["_bigtree_return_view_data"])) {
 		$return_view_data = json_decode(base64_decode($_POST["_bigtree_return_view_data"]),true);
 		
-		if (!$bigtree["form"]["return_view"] || $bigtree["form"]["return_view"] == $return_view_data["view"]) {
+		if (empty($bigtree["form"]["return_view"]) || $bigtree["form"]["return_view"] == $return_view_data["view"]) {
 			$redirect_append = array();
 			unset($return_view_data["view"]); // We don't need the view passed back.
 			
