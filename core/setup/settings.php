@@ -7,6 +7,9 @@
 
 	// Locale settings (for URL route generation)
 	$bigtree["config"]["locale"] = "en_US";
+	
+	// GraphQL API
+	$bigtree["config"]["graphql"] = false;
 
 	// URL construction behavior
 	$bigtree["config"]["trailing_slash_behavior"] = "[slash_behavior]"; // Options are none, append, remove

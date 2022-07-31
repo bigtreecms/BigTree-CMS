@@ -1059,14 +1059,14 @@
 				An array containing the page ID and any additional commands.
 		*/
 		
-		public static function getNavId($path,$previewing = false) {
+		public static function getNavId($path, $previewing = false) {
 			$commands = array();
 			
 			// Add multi-site path
 			if (defined("BIGTREE_SITE_PATH")) {
 				$path = array_filter(array_merge(explode("/", BIGTREE_SITE_PATH), $path));
 			}
-
+			
 			// Reset indexes
 			$path = array_values($path);
 			

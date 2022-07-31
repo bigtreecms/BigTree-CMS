@@ -11,6 +11,11 @@
 
 	header("Content-Type: application/json");
 	
+	// Register core GraphQL queries
+	CMS::registerTypes();
+	CMS::registerQueries();
+	
+	// Allow modules to register their own queries
 	$modules = BigTreeJSONDB::getAll("modules");
 	
 	foreach ($modules as $module) {
@@ -25,8 +30,12 @@
 		}
 	}
 	
-	CMS::registerTypes();
-	CMS::registerQueries();
+	// Include required API files that can define their own queries
+	$custom_api = BigTree::directoryContents(SERVER_ROOT."custom/inc/api/", true, "php");
+	
+	foreach ($custom_api as $file) {
+		include $file;
+	}
 	
 	$queryType = new ObjectType([
 		'name' => 'Query',
@@ -57,6 +66,7 @@
 
 	try {
 		header("BigTree-Cache-Hit: miss");
+
 		$result = GraphQL::executeQuery($schema, $query, null, null, $variableValues);
 		$output = $result->toArray();
 		
@@ -66,5 +76,5 @@
 	} catch (Exception $e) {
 		$output = ['errors' => [['message' => $e->getMessage()]]];
 	}
-
+	
 	echo json_encode($output);

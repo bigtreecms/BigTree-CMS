@@ -116,4 +116,4 @@
 	
 	$_POST["columns"] = $clean_columns;
 	
-	include SERVER_ROOT."core/admin/ajax/matrix-field.php";
+	include SERVER_ROOT."core/admin/ajax/matrix.php";

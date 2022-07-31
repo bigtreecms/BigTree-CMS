@@ -8,6 +8,9 @@
 	// CSS settings
 	$bigtree["config"]["css"]["prefix"] = false; // Flag for BigTree CSS3 parsing - automatic vendor prefixing for standard CSS3
 	$bigtree["config"]["css"]["minify"] = false; // Flag for CSS minification
+	
+	// Turn on GraphQL API
+	$bigtree["config"]["graphql"] = true;
 
 	// Array containing all CSS files to minify; key = name of compiled file
 	// example: $bigtree["config"]["css"]["site"] compiles all CSS files into "site.css"

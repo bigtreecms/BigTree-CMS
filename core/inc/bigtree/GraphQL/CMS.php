@@ -31,7 +31,7 @@
 				"name" => "Setting",
 				"fields" => [
 					"id" => Type::string(),
-					"value" => Type::string(),
+					"value" => TypeService::get("JSON"),
 					"encrypted" => Type::boolean()
 				]
 			]));
@@ -58,6 +58,7 @@
 					"position" => Type::int(),
 					"resources" => TypeService::get("JSON"),
 					"breadcrumb" => TypeService::get("JSON"),
+					"subnav" => TypeService::get("JSON"),
 					"commands" => Type::listOf(Type::string()),
 				]
 			]));
@@ -103,7 +104,7 @@
 					"resolve" => function($root, $args, $context) {
 						$levels = empty($args["levels"]) ? 1 : intval($args["levels"]);
 
-						return BigTreeCMS::getNavByParent($arg["parent"], $levels);
+						return BigTreeCMS::getNavByParent($args["parent"], $levels);
 					}
 				],
 				"getPage" => [
@@ -112,15 +113,17 @@
 						"path" => Type::string(),
 						"id" => Type::int()
 					],
-					"resolve" => function($root, $args, $context) {
+					"resolve" => function($root, $args, $context, $info) {
+						$requested = $info->getFieldSelection();
 						$commands = [];
 						$id = false;
+						$path = explode("/", trim($args["path"], "/"));
 						
 						if (isset($args["path"])) {
 							if ($args["path"] === "") {
 								$id = 0;
 							} else {
-								[$id, $commands] = BigTreeCMS::getNavId($args["path"]);
+								[$id, $commands] = BigTreeCMS::getNavId($path);
 								
 								if ($id === false) {
 									throw new UserError("Page not found.");
@@ -135,36 +138,35 @@
 						if (empty($page)) {
 							throw new UserError("Page not found.");
 						}
+						
+						if (!empty($requested["breadcrumb"])) {
+							$page["breadcrumb"] = BigTreeCMS::getBreadcrumbByPage($page);
+						}
+						
+						if (!empty($requested["subnav"])) {
+							$depth = !empty($args["subnav_depth"]) ? $args["subnav_depth"] : 1;
+							$page["subnav"] = array_values(BigTreeCMS::getNavByParent($page["id"], $depth));
+						}
 
-						$page["breadcrumb"] = BigTreeCMS::getBreadcrumbByPage($page);
 						$page["commands"] = $commands;
 						
 						return $page;
 					}
 				],
 				"getSettings" => [
-					"type" => Type::listOf(TypeService::get("Setting")),
+					"type" => TypeService::get("JSON"),
 					"args" => [
 						"ids" => Type::listOf(Type::string())
 					],
 					"resolve" => function($root, $args, $context) {
-						$response = [];
-						
-						foreach ($args["ids"] as $id) {
-							$setting = BigTreeAdmin::getSetting($id);
-							
-							if (!$setting) {
-								throw new UserError("Setting not found: $id");
-							}
-							
-							$response[$id] = [
-								"id" => $id,
-								"value" => $setting["value"],
-								"encrypt" => !empty($setting["encrypted"])
-							];
-						}
-						
-						return $response;
+						return BigTreeCMS::getSettings($args["ids"]);
+					}
+				],
+				"getWWWRoot" => [
+					"type" => Type::string(),
+					"args" => [],
+					"resolve" => function() {
+						return WWW_ROOT;
 					}
 				]
 			]);

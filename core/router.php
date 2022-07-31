@@ -228,7 +228,7 @@
 	}
 
 	// Handle GraphQL calls.
-	if ($bigtree["path"][0] == "api") {
+	if ($bigtree["path"][0] == "api" && !empty($bigtree["config"]["graphql"])) {
 		include BigTree::path("api.php");
 		die();
 	}
