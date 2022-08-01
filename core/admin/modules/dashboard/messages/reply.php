@@ -1,4 +1,9 @@
 <?php
+	/**
+	 * @global BigTreeAdmin $admin
+	 * @global array $bigtree
+	 */
+	
 	// Make sure the user has the right to see this message
 	$parent = $admin->getMessage(end($bigtree["path"]));
 
@@ -61,9 +66,11 @@
 								foreach ($send_to as $id) {
 						?>
 						<li>
-							<input type="hidden" name="send_to[<?=$x?>]" value="<?=htmlspecialchars($id)?>" />
-							<p class="multi_widget_entry_title"><?=htmlspecialchars($users[$id]["name"])?></p>
-							<a href="#" class="icon_delete"></a>
+							<div class="inner">
+								<input type="hidden" name="send_to[<?=$x?>]" value="<?=htmlspecialchars($id)?>" />
+								<p class="multi_widget_entry_title"><?=htmlspecialchars($users[$id]["name"])?></p>
+								<a href="#" class="icon_delete"></a>
+							</div>
 						</li>
 						<?php
 									$x++;
@@ -75,7 +82,7 @@
 						<select>
 							<?php
 								foreach ($users as $id => $user) {
-									if ($id != $admin->ID) {
+									if ($id != $admin->ID && (!is_array($send_to) || !in_array($id, $send_to))) {
 							?>
 							<option value="<?=$id?>"><?=htmlspecialchars($user["name"])?></option>
 							<?php

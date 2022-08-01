@@ -1,6 +1,11 @@
+<?php
+	/**
+	 * @global $analytics BigTreeGoogleAnalyticsAPI
+	 */
+?>
 <div class="container">
 	<?php
-		if ($analytics->Settings["token"]) {
+		if (!empty($analytics->Settings["token"])) {
 			$profiles = $analytics->getProfiles();
 	?>
 	<form method="post" action="<?=MODULE_ROOT?>set-profile/" class="module">

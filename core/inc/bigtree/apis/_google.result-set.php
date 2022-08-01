@@ -21,8 +21,8 @@
 			$this->API = $api;
 			$this->LastCall = $last_call;
 			$this->LastParameters = $params;
-			$this->NextPageToken = $data->nextPageToken;
-			$this->PreviousPageToken = $data->prevPageToken;
+			$this->NextPageToken = $data->nextPageToken ?? null;
+			$this->PreviousPageToken = $data->prevPageToken ?? null;
 			$this->Results = $results;
 		}
 

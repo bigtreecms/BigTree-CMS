@@ -1,7 +1,7 @@
 <?php
-	$two_week_visits = $cache["two_week"];
-	$graph_min = min($two_week_visits);
-	$graph_max = max($two_week_visits) - $graph_min;
+	$two_week_visits = $cache["two_week"] ?? null;
+	$graph_min = min($two_week_visits ?: [0]);
+	$graph_max = max($two_week_visits ?: [0]) - $graph_min;
 	$graph_bar_height = 70;
 	
 	// Get the beginning month of the current quarter
@@ -42,15 +42,21 @@
 		}
 		$c_time = trim($c_min." ".$c_seconds);
 		
-		$p_ = "";
+		$p_min = "";
 		$p_seconds = floor($past["average_time_seconds"])." second(s)";
 		$p_time = $past["average_time_seconds"];
+		
 		if ($p_time > 60) {
 			$p_minutes = floor($p_time / 60);
 			$p_seconds = floor($p_time - ($p_minutes * 60))." second(s)";
 			$p_min = $p_minutes." minute(s)";
 		}
+		
 		$p_time = trim($p_min." ".$p_seconds);
+		$view_class = "";
+		$visit_class = "";
+		$time_class = "";
+		$bounce_class = "";
 		
 		if ($view_growth > 5) {
 			$view_class = 'growth';

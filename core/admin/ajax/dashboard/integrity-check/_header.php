@@ -1,6 +1,6 @@
 <?php
 	$integrity_errors = array();
-	$external = $_GET["external"] ? true : false;
+	$external = !empty($_GET["external"]);
 
 	// Recursive method for checking an array of data against an array of resources
 	$check_data = function($local_path,$external,$resources,$data_set) {
@@ -8,7 +8,7 @@
 
 		foreach ($resources as $resource_id => $resource) {
 			$field = $resource["title"];
-			$data = $data_set[$resource["id"] ? $resource["id"] : $resource_id];
+			$data = $data_set[!empty($resource["id"]) ? $resource["id"] : $resource_id] ?? null;
 
 			// Text types could be URLs
 			if ($resource["type"] == "text" && is_string($data)) {

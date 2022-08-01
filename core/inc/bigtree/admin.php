@@ -123,7 +123,7 @@
 				$user = sqlescape($_COOKIE["bigtree_admin"]["email"]);
 
 				// Get chain and session broken out
-				list($session,$chain) = json_decode($_COOKIE["bigtree_admin"]["login"], true);
+				[$session,$chain] = json_decode($_COOKIE["bigtree_admin"]["login"], true);
 
 				// See if this is the current chain and session
 				$chain_entry = sqlfetch(sqlquery("SELECT * FROM bigtree_user_sessions WHERE email = '$user' AND chain = '".sqlescape($chain)."'"));
@@ -1842,7 +1842,7 @@
 				$mimetype = function_exists("mime_content_type") ? mime_content_type($file_path) : "";
 
 				if ($type == "image") {
-					list($width, $height) = getimagesize($file_path);
+					[$width, $height] = getimagesize($file_path);
 				}
 
 				if ($location != "local") {
@@ -2974,7 +2974,7 @@
 
 			// Get path and set context
 			if (strpos($field["type"],"*") !== false) {
-				list($extension,$field_type) = explode("*",$field["type"]);
+				[$extension,$field_type] = explode("*",$field["type"]);
 
 				$bigtree["extension_context"] = $extension;
 				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/draw.php";
@@ -3453,7 +3453,7 @@
 		*/
 
 		public function getBasicTemplates($sort = "position DESC, id ASC") {
-			list($sort_column, $sort_direction) = explode(" ", $sort);
+			[$sort_column, $sort_direction] = explode(" ", $sort);
 			$templates = BigTreeJSONDB::getAll("templates", $sort_column, $sort_direction ?: "ASC");
 			$basic = [];
 
@@ -3629,7 +3629,7 @@
 		*/
 
 		public static function getCallouts($sort = "position") {
-			list($sort_column, $sort_direction) = explode(" ", $sort);
+			[$sort_column, $sort_direction] = explode(" ", $sort);
 
 			return BigTreeJSONDB::getAll("callouts", $sort_column, $sort_direction ?: "ASC");
 		}
@@ -3646,7 +3646,7 @@
 		*/
 
 		public function getCalloutsAllowed($sort = "position") {
-			list($sort_column, $sort_direction) = explode(" ", $sort);
+			[$sort_column, $sort_direction] = explode(" ", $sort);
 			$callouts = BigTreeJSONDB::getAll("callouts", $sort_column, $sort_direction ?: "ASC");
 
 			foreach ($callouts as $index => $callout) {
@@ -3880,7 +3880,7 @@
 		*/
 
 		public static function getExtensions($sort = "name ASC") {
-			list($sort_column, $sort_direction) = explode(" ", $sort);
+			[$sort_column, $sort_direction] = explode(" ", $sort);
 
 			return BigTreeJSONDB::getAll("extensions", $sort_column, $sort_direction ?: "ASC");
 		}
@@ -3897,7 +3897,7 @@
 		*/
 
 		public static function getFeeds($sort = "name ASC") {
-			list($sort_column, $sort_direction) = explode(" ", $sort);
+			[$sort_column, $sort_direction] = explode(" ", $sort);
 
 			return BigTreeJSONDB::getAll("feeds", $sort_column, $sort_direction ?: "ASC");
 		}
@@ -3929,7 +3929,7 @@
 		*/
 
 		public static function getFieldTypes($sort = "name ASC") {
-			list($sort_column, $sort_direction) = explode(" ", $sort);
+			[$sort_column, $sort_direction] = explode(" ", $sort);
 
 			return BigTreeJSONDB::getAll("field-types", $sort_column, $sort_direction ?: "ASC");
 		}
@@ -4336,7 +4336,7 @@
 		*/
 
 		public static function getModuleEmbedForms($sort = "title", $module = false) {
-			list($sort_column, $sort_direction) = explode(" ", $sort);
+			[$sort_column, $sort_direction] = explode(" ", $sort);
 
 			if ($module) {
 				$context = BigTreeJSONDB::getSubset("modules", $module);
@@ -4378,7 +4378,9 @@
 		*/
 
 		public static function getModuleForms($sort = "title",$module = false) {
-			list($sort_column, $sort_direction) = explode(" ", $sort);
+			$sort_parts = explode(" ", $sort);
+			$sort_column = $sort_parts[0] ?? "";
+			$sort_direction = $sort_parts[1] ?? "";
 
 			if ($module) {
 				$context = BigTreeJSONDB::getSubset("modules", $module);
@@ -4390,9 +4392,11 @@
 				$modules = BigTreeJSONDB::getAll("modules");
 
 				foreach ($modules as $module) {
-					$forms = array_merge($forms, array_filter((array) $module["forms"]));
+					if (!empty($module["forms"])) {
+						$forms = array_merge($forms, array_filter((array) $module["forms"]));
+					}
 				}
-
+				
 				foreach ($forms as $form) {
 					$sort_field[] = $form[$sort_column];
 				}
@@ -4485,7 +4489,7 @@
 		*/
 
 		public static function getModuleGroups($sort = "position DESC") {
-			list($sort_column, $sort_direction) = explode(" ", $sort);
+			[$sort_column, $sort_direction] = explode(" ", $sort);
 
 			return BigTreeJSONDB::getAll("module-groups", $sort_column, $sort_direction ?: "ASC");
 		}
@@ -4532,7 +4536,7 @@
 		*/
 
 		public static function getModuleReports($sort = "title",$module = false) {
-			list($sort_column, $sort_direction) = explode(" ", $sort);
+			[$sort_column, $sort_direction] = explode(" ", $sort);
 
 			if ($module) {
 				$context = BigTreeJSONDB::getSubset("modules", $module);
@@ -4574,7 +4578,7 @@
 		*/
 
 		public function getModules($sort = "id ASC", $auth = true) {
-			list($sort_column, $sort_direction) = explode(" ", $sort);
+			[$sort_column, $sort_direction] = explode(" ", $sort);
 
 			$modules = BigTreeJSONDB::getAll("modules", $sort_column, $sort_direction ?: "ASC");
 
@@ -4617,7 +4621,7 @@
 				$group = $group["id"];
 			}
 
-			list($sort_column, $sort_direction) = explode(" ", $sort);
+			[$sort_column, $sort_direction] = explode(" ", $sort);
 
 			$modules = BigTreeJSONDB::getAll("modules", $sort_column, $sort_direction ?: "ASC");
 
@@ -4647,7 +4651,7 @@
 		*/
 
 		public static function getModuleViews($sort = "title", $module = false) {
-			list($sort_column, $sort_direction) = explode(" ", $sort);
+			[$sort_column, $sort_direction] = explode(" ", $sort);
 
 			if ($module) {
 				$context = BigTreeJSONDB::getSubset("modules", $module);
@@ -5820,7 +5824,7 @@
 		*/
 
 		public function getRoutedTemplates($sort = "position DESC, id ASC") {
-			list($sort_column, $sort_direction) = explode(" ", $sort);
+			[$sort_column, $sort_direction] = explode(" ", $sort);
 			$templates = BigTreeJSONDB::getAll("templates", $sort_column, $sort_direction ?: "ASC");
 			$basic = [];
 
@@ -5890,7 +5894,7 @@
 		*/
 
 		public function getSettings($sort = "name ASC") {
-			list($sort_column, $sort_direction) = explode(" ", $sort);
+			[$sort_column, $sort_direction] = explode(" ", $sort);
 			$settings = BigTreeJSONDB::getAll("settings", $sort_column, $sort_direction);
 
 			foreach ($settings as $index => $setting) {
@@ -5973,7 +5977,7 @@
 		*/
 
 		public static function getTemplates($sort = "position") {
-			list($sort_column, $sort_direction) = explode(" ", $sort);
+			[$sort_column, $sort_direction] = explode(" ", $sort);
 
 			return BigTreeJSONDB::getAll("templates", $sort_column, $sort_direction ?: "ASC");
 		}
@@ -6216,7 +6220,7 @@
 			$og_image_height = null;
 			
 			if (!empty($_FILES["_open_graph_"]["tmp_name"]["image"])) {
-				list($og_image_width, $og_image_height) = getimagesize($_FILES["_open_graph_"]["tmp_name"]["image"]);
+				[$og_image_width, $og_image_height] = getimagesize($_FILES["_open_graph_"]["tmp_name"]["image"]);
 
 				$og_image = static::processImageUpload([
 					"file_input" => [
@@ -6330,7 +6334,7 @@
 				$list = explode("\n",$p["allowed_ips"]);
 
 				foreach ($list as $item) {
-					list($begin,$end) = explode(",",$item);
+					[$begin,$end] = explode(",",$item);
 					$begin = ip2long(trim($begin));
 					$end = ip2long(trim($end));
 
@@ -7106,7 +7110,7 @@
 
 			// If the user asked to be remembered, drop their chain from the legit sessions and remove cookies
 			if (!empty($_COOKIE["bigtree_admin"]["login"])) {
-				list($session,$chain) = json_decode($_COOKIE["bigtree_admin"]["login"], true);
+				[$session,$chain] = json_decode($_COOKIE["bigtree_admin"]["login"], true);
 
 				// Make sure this session/chain is legit before removing everything with the given chain
 				$chain = sqlescape($chain);
@@ -7202,7 +7206,7 @@
 						$path_components = array_filter(array_merge(explode("/", $f["path"]), $path_components));
 
 						// Check for page link
-						list($navid, $commands, $routed_state, $get_vars, $hash) = static::getPageIDForPath($path_components);
+						[$navid, $commands, $routed_state, $get_vars, $hash] = static::getPageIDForPath($path_components);
 
 						if ($navid) {
 							return "ipl://".$navid."//".base64_encode(json_encode($commands))."//".base64_encode($get_vars)."//".base64_encode($hash);
@@ -7225,7 +7229,7 @@
 				}
 
 				// Check for page link
-				list($navid, $commands, $routed_state, $get_vars, $hash) = static::getPageIDForPath($path_components);
+				[$navid, $commands, $routed_state, $get_vars, $hash] = static::getPageIDForPath($path_components);
 			}
 
 			if (!$navid) {
@@ -7522,7 +7526,7 @@
 
 			// Check if the field type is stored in an extension
 			if (strpos($field["type"],"*") !== false) {
-				list($extension,$field_type) = explode("*",$field["type"]);
+				[$extension,$field_type] = explode("*",$field["type"]);
 
 				$bigtree["extension_context"] = $extension;
 				$field_type_path = SERVER_ROOT."extensions/$extension/field-types/$field_type/process.php";
@@ -7771,7 +7775,7 @@
 
 						$new_min_width = empty($new["settings"]["min_width"]) ? 0 : intval($new["settings"]["min_width"]);
 						$new_min_height = empty($new["settings"]["min_height"]) ? 0 : intval($new["settings"]["min_height"]);
-						list($w, $h) = @getimagesize($data[$id]);
+						[$w, $h] = @getimagesize($data[$id]);
 
 						// Existing base image won't work
 						if (empty($w) || empty($h) || $w < $new_min_width || $h < $new_min_height) {

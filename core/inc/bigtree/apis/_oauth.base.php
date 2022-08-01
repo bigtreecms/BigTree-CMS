@@ -49,7 +49,7 @@
 			$this->Settings["hash_table"] = @is_array($this->Settings["hash_table"]) ? $this->Settings["hash_table"] : array();
 			
 			// Check if we're conected
-			if ($this->Settings["key"] && $this->Settings["secret"] && $this->Settings["token"]) {
+			if (!empty($this->Settings["key"]) && !empty($this->Settings["secret"]) && !empty($this->Settings["token"])) {
 				$this->Connected = true;
 
 				// If our token is going to expire in the next 30 minutes, refresh it.
@@ -335,19 +335,24 @@
 		*/
 
 		public function oAuthSetToken($code) {
-			$response = json_decode(BigTree::cURL($this->TokenURL,array(
+			$response = json_decode(BigTree::cURL($this->TokenURL, [
 				"code" => $code,
 				"client_id" => $this->Settings["key"],
 				"client_secret" => $this->Settings["secret"],
 				"redirect_uri" => $this->ReturnURL,
 				"grant_type" => "authorization_code"
-			)));
-
-			if ($response->error) {
-				$this->OAuthError = $response->error;
+			]));
+			
+			if (empty($response)) {
 				return false;
 			}
 
+			if (!empty($response->error)) {
+				$this->OAuthError = $response->error;
+
+				return false;
+			}
+			
 			// Update Token information and save it back.
 			$this->Settings["token"] = $response->access_token;
 			$this->Settings["refresh_token"] = $response->refresh_token;
