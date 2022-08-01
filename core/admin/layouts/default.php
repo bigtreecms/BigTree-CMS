@@ -8,6 +8,10 @@
 	function _local_findPath($nav,$path,$last_link = "") {
 		global $bigtree,$breadcrumb;
 		foreach ($nav as $item) {
+			if (empty($item["link"])) {
+				$item["link"] = "";
+			}
+			
 			if ((strpos($path,$item["link"]."/") === 0 && $item["link"] != $last_link) || $path == $item["link"]) {				
 				$breadcrumb[] = array("title" => $item["title"],"link" => $item["link"]);
 				$bigtree["page"]["title"] = $item["title"] ?? $bigtree["page"]["title"];

@@ -403,7 +403,7 @@
 		$bigtree["current_module"] = $bigtree["module"] = $module;
 		define("MODULE_ROOT",ADMIN_ROOT.$module["route"]."/");
 		
-		if ($module["extension"]) {
+		if (!empty($module["extension"])) {
 			$bigtree["extension_context"] = $module["extension"];
 			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$module["extension"]."/");
 		}

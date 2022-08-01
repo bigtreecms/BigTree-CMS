@@ -4,7 +4,7 @@
 		$bigtree["edit_id"] = $edit_id = end($bigtree["commands"]);
 	// Otherwise we're adding something or we're processing something we were editing.
 	} else {
-		$bigtree["edit_id"] = $edit_id = $_POST["id"] ? $_POST["id"] : false;
+		$bigtree["edit_id"] = $edit_id = !empty($_POST["id"]) ? $_POST["id"] : false;
 	}
 
 	if (!empty($bigtree["edit_id"]) && !is_numeric($bigtree["edit_id"]) && !is_numeric(substr($bigtree["edit_id"], 1))) {
@@ -15,7 +15,7 @@
 	$bigtree["form_root"] = ADMIN_ROOT.$bigtree["module"]["route"]."/".$bigtree["module_action"]["route"]."/";
 	$bigtree["related_view"] = BigTreeAutoModule::getRelatedViewForForm($bigtree["form"]);
 	
-	$action = $bigtree["commands"][0];
+	$action = !empty($bigtree["commands"][0]) ? $bigtree["commands"][0] : "";
 
 	if (!$action || is_numeric($action) || is_numeric(substr($action,1))) {
 		if ($bigtree["edit_id"]) {

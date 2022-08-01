@@ -1,6 +1,12 @@
 <?php
+	/**
+	 * @global BigTreeAdmin $admin
+	 * @global BigTreeCMS $cms
+	 */
+	
 	$admin->verifyCSRFToken();
-	$results = $admin->searchAuditTrail($_GET["user"],$_GET["table"],$_GET["entry"],$_GET["start"],$_GET["end"]);
+	$results = $admin->searchAuditTrail($_GET["user"] ?? "", $_GET["table"] ?? "", $_GET["entry"] ?? "",
+										$_GET["start"] ?? "", $_GET["end"] ?? "");
 	$deleted_users = $cms->getSetting("bigtree-internal-deleted-users");
 	
 	// Setup caches so for big trails we don't retrieve stuff multiple times
@@ -82,7 +88,7 @@
 						}
 					}
 					
-					$form_link = $form_cache[$r["table"]];
+					$form_link = $form_cache[$r["table"]] ?? null;
 					
 					if ($form_link) {
 						$link = '<a target="_blank" href="'.$form_link.$r["entry"].'/">View Entry (id: '.$r["entry"].')</a>';

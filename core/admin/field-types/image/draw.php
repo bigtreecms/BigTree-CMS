@@ -60,7 +60,7 @@
 ?>
 <div class="image_field" id="<?=$field["id"]?>">
 	<div class="contain">
-		<input<?php if ($field["required"]) { ?> class="required"<?php } ?> type="file" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" data-min-width="<?=$min_width?>" data-min-height="<?=$min_height?>" accept="image/*" />
+		<input<?php if (!empty($field["required"])) { ?> class="required"<?php } ?> type="file" tabindex="<?=$field["tabindex"] ?? 1?>" name="<?=$field["key"]?>" data-min-width="<?=$min_width?>" data-min-height="<?=$min_height?>" accept="image/*" />
 		<?php
 			if (!defined("BIGTREE_FRONT_END_EDITOR") && empty($field["settings"]["disable_browse"]) && empty($bigtree["form"]["embedded"])) {
 		?>

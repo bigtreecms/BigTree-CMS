@@ -1,5 +1,9 @@
 <?php
-	if (!$field["value"]) {
+	/**
+	 * @global array $field
+	 */
+	
+	if (empty($field["value"])) {
 		$field["value"] = array();
 	} elseif (!is_array($field["value"])) {
 		$field["value"] = json_decode($field["value"],true);
@@ -80,13 +84,13 @@
 		?>
 		<small class="max">LIMIT <?=$max?></small>
 		<?php
-			} elseif ($field["settings"]["show_add_all"]) {
+			} elseif (!empty($field["settings"]["show_add_all"])) {
 		?>
 		<a href="#" class="add_all button">Add All</a>
 		<?php
 			}
 
-			if ($field["settings"]["show_reset"]) {
+			if (!empty($field["settings"]["show_reset"])) {
 		?>
 		<a href="#" class="reset button red">Reset</a>
 		<?php

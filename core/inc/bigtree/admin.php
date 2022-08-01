@@ -2924,7 +2924,16 @@
 				$bigtree["field_counter"] = 0;
 			}
 			
+			if (!isset($bigtree["tabindex"])) {
+				$bigtree["tabindex"] = 1;
+			}
+			
+			if (!isset($bigtree["field_namespace"])) {
+				$bigtree["field_namespace"] = "";
+			}
+			
 			$bigtree["field_counter"]++;
+			
 			$field["id"] = $bigtree["field_namespace"].$bigtree["field_counter"];
 
 			// Make sure options is an array to prevent warnings, load from options as a fallback for < 4.3
@@ -2975,13 +2984,13 @@
 			
 			if (file_exists($field_type_path)) {
 				// Don't draw the fieldset for field types that are declared as self drawing.
-				if ($bigtree["field_types"][$field["type"]]["self_draw"]) {
+				if (!empty($bigtree["field_types"][$field["type"]]["self_draw"])) {
 					include $field_type_path;
 				} else {
 ?>
 <fieldset<?php if (!empty($field["matrix_title_field"])) { ?> class="matrix_title_field"<?php } ?>>
 	<?php if ($field["title"] && $field["type"] != "checkbox") { ?>
-	<label<?=$label_validation_class?>><?=$field["title"]?><?php if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><?php } ?></label>
+	<label<?=$label_validation_class?>><?=$field["title"]?><?php if (!empty($field["subtitle"])) { ?> <small><?=$field["subtitle"]?></small><?php } ?></label>
 	<?php } ?>
 	<?php include $field_type_path; ?>
 </fieldset>
@@ -8078,7 +8087,7 @@
 					$user["id"] = $f["user"];
 					$f["user"] = $user;
 				} else {
-					if (!$users[$f["user"]]) {
+					if (empty($users[$f["user"]])) {
 						$u = static::getUser($f["user"]);
 						$users[$f["user"]] = array("id" => $u["id"],"name" => $u["name"],"email" => $u["email"],"level" => $u["level"]);
 					}

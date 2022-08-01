@@ -1,11 +1,15 @@
 <?php
+	/**
+	 * @global BigTreeCMS $cms
+	 */
+	
 	$height = isset($bigtree["html_editor_height"]) ? $bigtree["html_editor_height"] : false;
 	$content_css = $cms->getSetting("tinymce-content-css");
 ?>
 <script>
 	$(document).ready(function() {
 		<?php
-			if (is_array($bigtree["html_fields"]) && count($bigtree["html_fields"])) {
+			if (!empty($bigtree["html_fields"])) {
 		?>
 		tinyMCE.init({
 			<?php if ($content_css) { ?>content_css: "<?=$content_css?>",<?php } ?>
@@ -30,7 +34,7 @@
 		<?php
 			}
 
-			if (is_array($bigtree["simple_html_fields"]) && count($bigtree["simple_html_fields"])) {
+			if (!empty($bigtree["simple_html_fields"])) {
 		?>
 		tinyMCE.init({
 			<?php if ($content_css) { ?>content_css: "<?=$content_css?>",<?php } ?>

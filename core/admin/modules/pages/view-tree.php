@@ -1,7 +1,13 @@
 <?php
+	/**
+	 * @global BigTreeAdmin $admin
+	 * @global BigTreeCMS $cms
+	 * @global array $page
+	 */
+	
 	// Check to see if we're using Google Analytics.
 	$ga = $cms->getSetting("bigtree-internal-google-analytics-api");
-	$ga_on = isset($ga["profile"]) ? $ga["profile"] : false;
+	$ga_on = $ga["profile"] ?? false;
 	
 	// Handy function to show the trees without repeating so much code.
 	function local_drawPageTree($nav,$title,$subtitle,$class,$draggable = false) {
@@ -112,7 +118,7 @@
 					if ($ga_on) {
 			?>
 			<section class="pages_views">
-				<?php if ($item["template"] && $item["template"] != "!") { ?>
+				<?php if ($item["template"] && $item["template"] != "!" && isset($item["ga_page_views"])) { ?>
 				<?=number_format($item["ga_page_views"])?>
 				<?php } else { ?>
 				&mdash;

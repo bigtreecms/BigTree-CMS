@@ -3,6 +3,10 @@
 		global $folder, $recurse_folders;
 
 		$folders = SQL::fetchAll("SELECT id, name FROM bigtree_resource_folders WHERE parent = ? ORDER BY name ASC", $parent);
+		
+		if (empty($folder)) {
+			$folder = ["id" => null];
+		}
 
 		foreach ($folders as $child) {
 			if ($child["id"] != $folder["id"]) {

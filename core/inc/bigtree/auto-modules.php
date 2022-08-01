@@ -727,7 +727,7 @@
 				$form = null;
 	
 				foreach ($modules as $module) {
-					if (is_array($module["forms"])) {
+					if (!empty($module["forms"]) && is_array($module["forms"])) {
 						foreach ($module["forms"] as $module_form) {
 							if ($module_form["id"] == $id) {
 								$form = $module_form;
@@ -900,7 +900,7 @@
 			$modules = BigTreeJSONDB::getAll("modules");
 
 			foreach ($modules as $module) {
-				if (is_array($module["forms"])) {
+				if (!empty($module["forms"]) && is_array($module["forms"])) {
 					foreach ($module["forms"] as $form) {
 						if ($form["id"] == $form_id) {
 							return $module["id"];
@@ -1088,11 +1088,15 @@
 		*/
 
 		public static function getRelatedFormForView($view) {
+			if (empty($view)) {
+				return null;
+			}
+			
 			$modules = BigTreeJSONDB::getAll("modules");
 		
-			if ($view["related_form"]) {
+			if (!empty($view["related_form"])) {
 				foreach ($modules as $module) {
-					if (is_array($module["forms"])) {
+					if (!empty($module["forms"]) && is_array($module["forms"])) {
 						foreach ($module["forms"] as $form) {
 							if ($form["id"] == $view["table"]) {
 								return static::getForm($form);
@@ -1103,7 +1107,7 @@
 			}
 
 			foreach ($modules as $module) {
-				if (is_array($module["forms"])) {
+				if (!empty($module["forms"]) && is_array($module["forms"])) {
 					foreach ($module["forms"] as $form) {
 						if ($form["table"] == $view["table"]) {
 							return static::getForm($form);
@@ -1362,7 +1366,7 @@
 				}
 			}
 			
-			$per_page = $view["settings"]["per_page"] ? $view["settings"]["per_page"] : BigTreeAdmin::$PerPage;
+			$per_page = !empty($view["settings"]["per_page"]) ? $view["settings"]["per_page"] : BigTreeAdmin::$PerPage;
 			$pages = ceil(sqlrows(sqlquery($query)) / $per_page);
 			$pages = ($pages > 0) ? $pages : 1;
 			$results = array();
@@ -1664,11 +1668,11 @@
 					$regular_action = null;
 
 					foreach ($module_for_view["actions"] as $action) {
-						if ($form["id"] == $view["related_form"] && substr($action["route"], 0, 4) == "edit") {
+						if ($action["form"] == $view["related_form"] && substr($action["route"], 0, 4) == "edit") {
 							$edit_action = $action;
 
 							break;
-						} elseif ($form["id"] == $view["related_form"]) {
+						} elseif ($action["form"] == $view["related_form"]) {
 							$regular_action = $action;
 						}
 					}

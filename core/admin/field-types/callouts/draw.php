@@ -64,6 +64,14 @@
 
 				<?php
 					foreach ($type["resources"] as $resource) {
+						if (!empty($resource["settings"])) {
+							$settings = $resource["settings"];
+						} elseif (!empty($resource["options"])) {
+							$settings = $resource["options"];
+						} else {
+							$settings = [];
+						}
+						
 						$subfield = [
 							"type" => $resource["type"],
 							"title" => $resource["title"],
@@ -72,7 +80,7 @@
 							"has_value" => isset($existing_data[$resource["id"]]),
 							"value" => $existing_data[$resource["id"]] ?? "",
 							"tabindex" => $field["tabindex"],
-							"settings" => $resource["settings"] ?: $resource["options"],
+							"settings" => $settings,
 						];
 		
 						if (empty($subfield["settings"]["directory"])) {

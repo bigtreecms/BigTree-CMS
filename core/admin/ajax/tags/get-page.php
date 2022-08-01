@@ -1,10 +1,14 @@
 <?php
+	/**
+	 * @global BigTreeAdmin $admin
+	 */
+	
 	$admin->requireLevel(1);
 	
-	$query = isset($_GET["query"]) ? $_GET["query"] : "";
+	$query = $_GET["query"] ?? "";
 	$page = isset($_GET["page"]) ? intval($_GET["page"]) : 1;
-	$sort_column = $_GET["sort"];
-	$sort_direction = $_GET["sort_dir"];
+	$sort_column = !empty($_GET["sort"]) ? $_GET["sort"] : "";
+	$sort_direction = !empty($_GET["sort_dir"]) ? $_GET["sort_dir"] : "";
 
 	if ($sort_column != "tag" && $sort_column != "usage_count") {
 		$sort_column = "tag";

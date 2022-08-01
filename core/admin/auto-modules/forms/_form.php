@@ -17,7 +17,7 @@
 	<?php
 		}
 	?>
-	<form method="post" action="<?=$bigtree["form_root"]?>process/<?php if ($bigtree["form"]["embedded"]) { ?>?hash=<?=$bigtree["form"]["hash"]?><?php } ?>" enctype="multipart/form-data" class="module" id="auto_module_form">
+	<form method="post" action="<?=$bigtree["form_root"]?>process/<?php if (!empty($bigtree["form"]["embedded"])) { ?>?hash=<?=$bigtree["form"]["hash"]?><?php } ?>" enctype="multipart/form-data" class="module" id="auto_module_form">
 		<?php
 			if (!empty($bigtree["form"]["embedded"])) {
 		?>
@@ -169,7 +169,7 @@
 		?>
 		<footer class="js-auto-modules-footer">
 			<?php
-				if ($bigtree["form"]["embedded"]) {
+				if (!empty($bigtree["form"]["embedded"])) {
 			?>
 			<input type="submit" class="button" tabindex="<?=$bigtree["tabindex"]?>" value="Submit" />
 			<?php
@@ -194,7 +194,7 @@
 <?php include BigTree::path("admin/layouts/_html-field-loader.php"); ?>
 <script>
 	(function() {
-		BigTreeFormValidator("#auto_module_form",false<?php if ($bigtree["form"]["embedded"]) { ?>,true<?php } ?>);
+		BigTreeFormValidator("#auto_module_form",false<?php if (!empty($bigtree["form"]["embedded"])) { ?>,true<?php } ?>);
 		BigTreeFormNavBar.init();
 		
 		$(".save_and_preview").click(function() {

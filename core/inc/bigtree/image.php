@@ -237,7 +237,7 @@
 			$crop["grayscale"] = !empty($crop["grayscale"]) ? true : false;
 			
 			if (!$recursion) {
-				if (empty(is_array($crop["thumbs"])) || !is_array($crop["thumbs"])) {
+				if (empty($crop["thumbs"]) || !is_array($crop["thumbs"])) {
 					$crop["thumbs"] = [];
 				}
 				
@@ -413,7 +413,9 @@
 			
 			$exif = @exif_read_data($this->File);
 			
-			if ($exif['Orientation'] == 3 || $exif['Orientation'] == 6 || $exif['Orientation'] == 8) {
+			if (!empty($exif["Orientation"]) &&
+				($exif['Orientation'] == 3 || $exif['Orientation'] == 6 || $exif['Orientation'] == 8)
+			) {
 				$source = imagecreatefromjpeg($this->File);
 				
 				if ($exif['Orientation'] == 3) {
