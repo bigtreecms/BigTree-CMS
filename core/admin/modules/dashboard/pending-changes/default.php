@@ -1,4 +1,8 @@
 <?php
+	/**
+	 * @global BigTreeAdmin $admin
+	 */
+	
 	// Get pending changes awaiting this user's approval.
 	$changes = $admin->getPublishableChanges();
 	
@@ -6,21 +10,24 @@
 	$modules = array();
 	$pages = array();
 	
-	foreach ($changes as $change) {
-		$mid = $change["mod"]["id"];
-		if ($change["table"] == "bigtree_pages") {
-			$pages[] = $change;
-		} else {
-			if (isset($modules[$mid])) {
-				$modules[$mid]["changes"][] = $change;
+	if (!empty($changes) && is_array($changes)) {
+		foreach ($changes as $change) {
+			$mid = !empty($change["mod"]["id"]) ? $change["mod"]["id"] : null;
+			
+			if ($change["table"] == "bigtree_pages") {
+				$pages[] = $change;
 			} else {
-				$modules[$mid] = $change["mod"];
-				$modules[$mid]["table"] = $change["table"];
-				$modules[$mid]["changes"] = array($change);		
+				if (isset($modules[$mid])) {
+					$modules[$mid]["changes"][] = $change;
+				} else {
+					$modules[$mid] = $change["mod"];
+					$modules[$mid]["table"] = $change["table"];
+					$modules[$mid]["changes"] = [$change];
+				}
 			}
 		}
 	}
-
+	
 	if (!count($changes)) {
 ?>
 <div class="container">

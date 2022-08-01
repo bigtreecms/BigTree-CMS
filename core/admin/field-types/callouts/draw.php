@@ -34,7 +34,7 @@
 				$existing_data = $callout;
 				
 				foreach ($type["resources"] as $resource) {
-					$current_value = $existing_data[$resource["id"]];
+					$current_value = $existing_data[$resource["id"]] ?? null;
 					
 					if (!empty($current_value) && empty($resource["settings"]["ignore_timezones"])) {
 						if ($resource["type"] == "time") {

@@ -2963,6 +2963,11 @@
 
 			// Prevent path abuse
 			$field["type"] = BigTree::cleanFile($field["type"]);
+			
+			// Bring in global tabindex
+			if (empty($field["tabindex"])) {
+				$field["tabindex"] = $bigtree["tabindex"];
+			}
 
 			// Save current context
 			$bigtree["saved_extension_context"] = $bigtree["extension_context"] ?? null;
@@ -4856,12 +4861,15 @@
 			$parents = array();
 			$f = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".sqlescape($page)."'"));
 			$parents[] = $f["parent"];
-			while ($f["parent"]) {
+
+			while (!empty($f["parent"])) {
 				$f = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".sqlescape($f["parent"])."'"));
-				if ($f["parent"]) {
+
+				if (!empty($f["parent"])) {
 					$parents[] = $f["parent"];
 				}
 			}
+
 			return $parents;
 		}
 
@@ -4906,7 +4914,7 @@
 			$url_parse = parse_url(implode("/", array_values($path)));
 			$query_vars = $url_parse["query"] ?? "";
 			$hash = $url_parse["fragment"] ?? "";
-			$path = explode("/", rtrim($url_parse["path"], "/"));
+			$path = !empty($url_parse["path"]) ? explode("/", rtrim($url_parse["path"], "/")) : [];
 
 			if (!$previewing) {
 				$publish_at = "AND (publish_at <= NOW() OR publish_at IS NULL) AND (expire_at >= NOW() OR expire_at IS NULL)";

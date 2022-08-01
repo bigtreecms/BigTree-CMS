@@ -1,4 +1,10 @@
 <?php
+	/**
+	 * @global BigTreeAdmin $admin
+	 * @global array $bigtree
+	 * @global BigTreeCMS $cms
+	 */
+	
 	// We set this header so that when the user reloads the page form element changes don't stick (since we're only tracking explicit changes back to the JSON objects for Alerts and Permissions)
 	header("Cache-Control: no-store");
 	$user = $admin->getUser(end($bigtree["commands"]));
@@ -19,29 +25,31 @@
 	$bigtree["gravatar"] = $user["email"];
 	BigTree::globalizeArray($user);
 
-	if (!$permissions) {
-		$permissions = array(
-			"page" => array(),
-			"module" => array(),
-			"resources" => array(),
-			"module_gbp" => array()
-		);
+	if (empty($permissions)) {
+		$permissions = [
+			"page" => [],
+			"module" => [],
+			"resources" => [],
+			"module_gbp" => []
+		];
 	} else {
-		if (!is_array($permissions["module_gbp"])) {
-			$permissions["module_gbp"] = array();
+		if (empty($permissions["module_gbp"]) || !is_array($permissions["module_gbp"])) {
+			$permissions["module_gbp"] = [];
 		}
 	}
 
 	// We need to gather all the page levels that should be expanded (anything that isn't "inherit" should have its parents pre-opened)
-	$page_ids = array();
-	if (is_array($permissions["page"])) {
+	$page_ids = [];
+	
+	if (!empty($permissions["page"]) && is_array($permissions["page"])) {
 		foreach ($permissions["page"] as $id => $permission) {
 			if ($permission != "i") {
 				$page_ids[] = $id;
 			}
 		}
 	}
-	if (is_array($alerts)) {
+	
+	if (!empty($alerts) && is_array($alerts)) {
 		foreach ($alerts as $id => $on) {
 			$page_ids[] = $id;
 		}
@@ -49,14 +57,15 @@
 	
 	$page_ids = array_unique($page_ids);
 
-	$pre_opened_parents = array();
+	$pre_opened_parents = [];
 	foreach ($page_ids as $id) {
 		$pre_opened_parents = array_merge($pre_opened_parents,$admin->getPageLineage($id));
 	}
 
 	// Gather up the parents for resource folders that should be open by default.
-	$pre_opened_folders = array();
-	if (is_array($permissions["resources"])) {
+	$pre_opened_folders = [];
+	
+	if (!empty($permissions["resources"]) && is_array($permissions["resources"])) {
 		foreach ($permissions["resources"] as $id => $permission) {
 			if ($permission != "i") {
 				$folder = $admin->getResourceFolder($id);
@@ -77,6 +86,10 @@
 			foreach ($children as $f) {
 				$grandchildren = $admin->getPageChildren($f["id"]);
 				$alert_below = ($alert_above || (isset($alerts[$f["id"]]) && $alerts[$f["id"]])) ? true : false;
+				
+				if (empty($permissions["page"][$f["id"]])) {
+					$permissions["page"][$f["id"]]  = "";
+				}
 	?>
 	<li>
 		<span class="depth"></span>
@@ -119,6 +132,10 @@
 	<?php
 			foreach ($children as $f) {
 				$grandchildren = $admin->getResourceFolderChildren($f["id"]);
+				
+				if (empty($permissions["resources"][$f["id"]])) {
+					$permissions["resources"][$f["id"]] = "";
+				}
 	?>
 	<li>
 		<span class="depth"></span>
@@ -146,7 +163,7 @@
 	
 	// Prevent a notice on alerts
 	if (!is_array($alerts)) {
-		$alerts = array(array());
+		$alerts = array([]);
 	}
 	
 	$groups = $admin->getModuleGroups("name ASC");
@@ -232,7 +249,10 @@
 							$timezone_list = DateTimeZone::listIdentifiers();
 
 							foreach ($timezone_list as $tz) {
-								list($continent, $city, $locality) = explode("/", $tz);
+								$timezone_parts = explode("/", $tz);
+								$continent = $tz[0] ?? "";
+								$city = $tz[1] ?? "";
+								$locality = $tz[2] ?? "";
 
 								if ($continent != $last_continent) {
 									if ($last_continent) {
@@ -290,13 +310,13 @@
 									<a class="permission_label expanded<?php if ($user["level"] > 0) { ?> permission_label_admin<?php } ?>" href="#">All Pages</a>
 									<span class="permission_alerts"><input type="checkbox" data-key="0" name="alerts[0]"<?php if ($alerts[0] == "on") { ?> checked="checked"<?php } ?>/></span>
 									<span class="permission_level"<?php if ($user["level"] > 0) { ?> style="display: none;"<?php } ?>>
-										<input type="radio" data-category="Page" data-key="0" name="permissions[page][0]" value="p" <?php if ($permissions["page"][0] == "p") { ?>checked="checked" <?php } ?>/>
+										<input type="radio" data-category="Page" data-key="0" name="permissions[page][0]" value="p" <?php if (!empty($permissions["page"][0]) && $permissions["page"][0] == "p") { ?>checked="checked" <?php } ?>/>
 									</span>
 									<span class="permission_level"<?php if ($user["level"] > 0) { ?> style="display: none;"<?php } ?>>
-										<input type="radio" data-category="Page" data-key="0" name="permissions[page][0]" value="e" <?php if ($permissions["page"][0] == "e") { ?>checked="checked" <?php } ?>/>
+										<input type="radio" data-category="Page" data-key="0" name="permissions[page][0]" value="e" <?php if (!empty($permissions["page"][0]) && $permissions["page"][0] == "e") { ?>checked="checked" <?php } ?>/>
 									</span>
 									<span class="permission_level"<?php if ($user["level"] > 0) { ?> style="display: none;"<?php } ?>>
-										<input type="radio" data-category="Page" data-key="0" name="permissions[page][0]" value="n" <?php if ($permissions["page"][0] == "n" || !$permissions["page"][0]) { ?>checked="checked" <?php } ?>/>
+										<input type="radio" data-category="Page" data-key="0" name="permissions[page][0]" value="n" <?php if (empty($permissions["page"][0]) || $permissions["page"][0] == "n") { ?>checked="checked" <?php } ?>/>
 									</span>
 									<span class="permission_level"<?php if ($user["level"] > 0) { ?> style="display: none;"<?php } ?>>&nbsp;</span>
 									<?php _local_userDrawNavLevel(0,2,$alerts[0]) ?>
@@ -328,7 +348,7 @@
 												// Determine whether we have access to anything in this section (default to open) or not (default to closed)
 												$closed = true;
 												
-												if (is_array($permissions["module_gbp"][$m["id"]])) {
+												if (!empty($permissions["module_gbp"][$m["id"]]) && is_array($permissions["module_gbp"][$m["id"]])) {
 													foreach ($permissions["module_gbp"][$m["id"]] as $id => $permission) {
 														if ($permission != "n") {
 															$closed = false;
@@ -336,11 +356,11 @@
 													}
 												}
 
-												$gbp_categories = array();
+												$gbp_categories = [];
 
 												if (!empty($m["gbp"]["enabled"])) {
 													if (BigTree::tableExists($m["gbp"]["other_table"])) {
-														$categories = array();
+														$categories = [];
 														$ot = sqlescape($m["gbp"]["other_table"]);
 														$tf = sqlescape($m["gbp"]["title_field"]);
 														if ($tf && $ot) {
@@ -398,9 +418,9 @@
 								<li class="top">
 									<span class="depth"></span>
 									<a class="permission_label folder_label expanded" href="#">Home Folder</a>
-									<span class="permission_level"><input type="radio" data-category="Resource" data-key="0" name="permissions[resources][0]" value="p" <?php if ($permissions["resources"][0] == "p") { ?>checked="checked" <?php } ?>/></span>
-									<span class="permission_level"><input type="radio" data-category="Resource" data-key="0" name="permissions[resources][0]" value="e" <?php if ($permissions["resources"][0] == "e" || !$permissions["resources"][0]) { ?>checked="checked" <?php } ?>/></span>
-									<span class="permission_level"><input type="radio" data-category="Resource" data-key="0" name="permissions[resources][0]" value="n" <?php if ($permissions["resources"][0] == "n") { ?>checked="checked" <?php } ?>/></span>
+									<span class="permission_level"><input type="radio" data-category="Resource" data-key="0" name="permissions[resources][0]" value="p" <?php if (!empty($permissions["resources"][0]) && $permissions["resources"][0] == "p") { ?>checked="checked" <?php } ?>/></span>
+									<span class="permission_level"><input type="radio" data-category="Resource" data-key="0" name="permissions[resources][0]" value="e" <?php if (empty($permissions["resources"][0]) || $permissions["resources"][0] == "e") { ?>checked="checked" <?php } ?>/></span>
+									<span class="permission_level"><input type="radio" data-category="Resource" data-key="0" name="permissions[resources][0]" value="n" <?php if (!empty($permissions["resources"][0]) && $permissions["resources"][0] == "n") { ?>checked="checked" <?php } ?>/></span>
 									<span class="permission_level">&nbsp;</span>
 									<?php _local_userDrawFolderLevel(0,2) ?>
 								</li>

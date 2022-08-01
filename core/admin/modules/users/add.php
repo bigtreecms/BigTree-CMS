@@ -79,7 +79,10 @@
 							$last_continent = "";
 
 							foreach ($timezone_list as $tz) {
-								list($continent, $city, $locality) = explode("/", $tz);
+								$timezone_parts = explode("/", $tz);
+								$continent = $timezone_parts[0] ?? "";
+								$city = $timezone_parts[1] ?? "";
+								$locality = $timezone_parts[2] ?? "";
 
 								if ($continent != $last_continent) {
 									if ($last_continent) {

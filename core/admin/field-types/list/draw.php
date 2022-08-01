@@ -1,7 +1,18 @@
 <?php
+	/**
+	 * @global BigTreeAdmin $admin
+	 * @global array $bigtree
+	 * @global BigTreeCMS $cms
+	 * @global array $field
+	 */
+	
 	$db_error = false;
 	$is_group_based_perm = false;
 	$list = array();
+	
+	if (!isset($field["value"])) {
+		$field["value"] = null;
+	}
 
 	// Database populated list.
 	if ($field["settings"]["list_type"] == "db") {
@@ -17,7 +28,7 @@
 			$q = sqlquery("SELECT `id`,`$list_title` FROM `$list_table` ORDER BY $list_sort");
 			
 			// Check if we're doing module based permissions on this table.
-			if ($bigtree["module"] && $bigtree["module"]["gbp"]["enabled"] && $bigtree["form"]["table"] == $bigtree["module"]["gbp"]["table"] && $field["key"] == $bigtree["module"]["gbp"]["group_field"]) {
+			if (!empty($bigtree["module"]) && $bigtree["module"]["gbp"]["enabled"] && $bigtree["form"]["table"] == $bigtree["module"]["gbp"]["table"] && $field["key"] == $bigtree["module"]["gbp"]["group_field"]) {
 				$is_group_based_perm = true;
 
 				if ($field["settings"]["allow-empty"] != "No") {
@@ -81,11 +92,11 @@
 		}
 ?>
 <select<?php if (count($class)) { ?> class="<?=implode(" ",$class)?>"<?php } ?> name="<?=$field["key"]?>" tabindex="<?=$field["tabindex"]?>" id="<?=$field["id"]?>">
-	<?php if ($field["settings"]["allow-empty"] != "No") { ?>
+	<?php if (empty($field["settings"]["allow-empty"]) || $field["settings"]["allow-empty"] != "No") { ?>
 	<option<?php if ($is_group_based_perm) { ?> data-access-level="<?=$module_access_level?>"<?php } ?>></option>
 	<?php } ?>
 	<?php foreach ($list as $option) { ?>
-	<option value="<?=BigTree::safeEncode($option["value"])?>"<?php if ($field["value"] == $option["value"]) { ?> selected="selected"<?php } ?><?php if ($option["access_level"]) { ?> data-access-level="<?=$option["access_level"]?>"<?php } ?>><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($option["description"]), 100))?></option>
+	<option value="<?=BigTree::safeEncode($option["value"])?>"<?php if ($field["value"] == $option["value"]) { ?> selected="selected"<?php } ?><?php if (!empty($option["access_level"])) { ?> data-access-level="<?=$option["access_level"]?>"<?php } ?>><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($option["description"]), 100))?></option>
 	<?php } ?>
 </select>
 <?php

@@ -1,5 +1,10 @@
 <?php
-	if (end($bigtree["path"]) != "password" && $bigtree["path"][2] != "profile") {
+	/**
+	 * @global BigTreeAdmin $admin
+	 * @global array $bigtree
+	 */
+	
+	if (end($bigtree["path"]) != "password" && !empty($bigtree["path"][2]) && $bigtree["path"][2] != "profile") {
 		$admin->requireLevel(1);
 	}
 

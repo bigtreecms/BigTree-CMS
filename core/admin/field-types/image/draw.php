@@ -27,7 +27,7 @@
 
 	// Get preview data and existing crops
 	if ($field["value"]) {
-		if ($field["settings"]["preview_prefix"]) {
+		if (!empty($field["settings"]["preview_prefix"])) {
 			$preview_image = BigTree::prefixFile($field["value"],$field["settings"]["preview_prefix"]);
 		} else {
 			$preview_image = $field["value"];

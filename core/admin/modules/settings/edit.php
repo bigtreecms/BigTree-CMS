@@ -1,13 +1,19 @@
 <?php
+	/**
+	 * @global BigTreeAdmin $admin
+	 * @global array $bigtree
+	 * @global BigTreeCMS $cms
+	 */
+	
 	$admin->requireLevel(1);
 	$item = $admin->getSetting(end($bigtree["path"]));
 	$value = $cms->getSetting(end($bigtree["path"]));
 	
-	if ($item["encrypted"]) {
+	if (!empty($item["encrypted"])) {
 		$value = "";
 	}
 
-	if (!$item || $item["system"] || ($item["locked"] && $admin->Level < 2)) {
+	if (empty($item) || !empty($item["system"]) || (!empty($item["locked"]) && $admin->Level < 2)) {
 ?>
 <div class="container">
 	<section>
