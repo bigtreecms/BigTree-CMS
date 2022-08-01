@@ -1,4 +1,10 @@
 <?php
+	/**
+	 * @global BigTreeAdmin $admin
+	 * @global array $bigtree
+	 * @global callable $recurse_folders
+	 */
+	
 	$file = $admin->getResource($bigtree["commands"][0]);
 
 	if (!$file) {
@@ -72,7 +78,7 @@
 			Edit Metadata Settings
 			<span class="icon_small icon_small_edit_yellow"></span>
 		</a>
-		<a href="<?=ADMIN_ROOT?>developer/audit/?table=bigtree_resources&entry=<?=$file["id"]?><?php $admin->drawCSRFTokenGET(); ?>" title="View File Audit Trail">
+		<a href="<?=ADMIN_ROOT?>developer/audit/search/?table=bigtree_resources&entry=<?=$file["id"]?><?php $admin->drawCSRFTokenGET(); ?>" title="View File Audit Trail">
 			View File Audit Trail
 			<span class="icon_small icon_small_trail"></span>
 		</a>
