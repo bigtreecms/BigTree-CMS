@@ -1,4 +1,10 @@
 <?php
+	/**
+	 * @global BigTreeAdmin $admin
+	 * @global array $bigtree
+	 * @global BigTreeCMS $cms
+	 */
+	
 	$folder = intval($bigtree["commands"][0]);
 	$permission = $admin->getResourceFolderPermission($folder);
 
@@ -10,7 +16,7 @@
 
 	foreach ($_POST["files"] as $file) {
 		$file = json_decode($file, true);
-		$crops = array_merge($crops, $file["crops"]);
+		$crops = array_merge($crops, $file["crops"] ?? []);
 		$last_resource_id = $file["resource"];
 	}
 

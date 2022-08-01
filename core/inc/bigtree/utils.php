@@ -81,7 +81,7 @@
 				$route = $bigtree["module_list"][$class];
 
 				if (strpos($route, "*") !== false) {
-					list($extension, $class) = explode("*", $route);
+					[$extension, $class] = explode("*", $route);
 					$path = SERVER_ROOT."extensions/$extension/classes/$class.php";
 					if (file_exists($path)) {
 						include_once $path;
@@ -709,7 +709,10 @@
 			$last_line = substr(end($lines), 2);
 			$parts = explode(" ", $last_line);
 			foreach ($parts as $part) {
-				list($key, $value) = explode("=", $part);
+				$part_parts = explode("=", $part);
+				$key = $part_parts[0] ?? "";
+				$value = $part_parts[1] ?? "";
+
 				if ($key && $value) {
 					$result[strtolower($key)] = $value;
 				}
@@ -797,7 +800,7 @@
 			// Background Gradients - background-gradient: #top #bottom
 			$css = preg_replace_callback('/background-gradient:([^\"]*);/iU', function ($data) {
 				$d = trim($data[1]);
-				list($stop, $start) = explode(" ", $d);
+				[$stop, $start] = explode(" ", $d);
 				$start_rgb = (substr($start, 0, 1) == "#") ? "rgb(".hexdec(substr($start, 1, 2)).",".hexdec(substr($start, 3, 2)).",".hexdec(substr($start, 5, 2)).")" : $start;
 				$stop_rgb = (substr($stop, 0, 1) == "#") ? "rgb(".hexdec(substr($stop, 1, 2)).",".hexdec(substr($stop, 3, 2)).",".hexdec(substr($stop, 5, 2)).")" : $stop;
 				$response = "background-image: -webkit-gradient(linear,left top,left bottom, color-stop(0, $start_rgb), color-stop(1, $stop_rgb)); background-image: -moz-linear-gradient(center top, $start_rgb 0%, $stop_rgb 100%); background-image: -ms-linear-gradient(top, $start_rgb 0%, $stop_rgb 100%);";
@@ -898,21 +901,30 @@
 			
 			// Clean up the file name
 			$clean_name = BigTreeCMS::urlify($parts["filename"]);
+			
 			if (strlen($clean_name) > 50) {
 				$clean_name = substr($clean_name, 0, 50);
 			}
-			$file = $clean_name.".".strtolower($parts["extension"]);
+			
+			if (!empty($parts["extension"])) {
+				$file = $clean_name.".".strtolower($parts["extension"]);
+			} else {
+				$file = $clean_name;
+			}
 			
 			// Just find a good filename that isn't used now.
 			$x = 2;
+			
 			while (!$file || file_exists($directory.$file)) {
 				$file = $clean_name."-$x.".strtolower($parts["extension"]);
+				
 				// Check prefixes
 				foreach ($prefixes as $prefix) {
 					if (file_exists($directory.$prefix.$file)) {
 						$file = false;
 					}
 				}
+				
 				$x++;
 			}
 			
@@ -1708,7 +1720,7 @@
 			}
 			
 			// Seed generator
-			list($usec, $sec) = explode(' ', microtime());
+			[$usec, $sec] = explode(' ', microtime());
 			$seed = (float) $sec + ((float) $usec * 100000);
 			mt_srand($seed);
 			
@@ -2746,7 +2758,7 @@
 			}
 
 			// Strip out any hash
-			list($url) = explode("#", $url);
+			[$url] = explode("#", $url);
 
 			$handle = curl_init($url);
 			

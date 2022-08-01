@@ -3,7 +3,7 @@
 	$bigtree["form"] = BigTreeAutoModule::getRelatedFormForReport($bigtree["report"]);
 	$bigtree["view"] = $bigtree["report"]["view"] ? BigTreeAutoModule::getView($bigtree["report"]["view"]) : BigTreeAutoModule::getRelatedViewForReport($bigtree["report"]);
 	
-	$action = $bigtree["commands"][0];
+	$action = $bigtree["commands"][0] ?? "";
 
 	if ($action == "csv") {
 		include BigTree::path("admin/auto-modules/reports/csv.php");

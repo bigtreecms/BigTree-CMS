@@ -1,4 +1,8 @@
 <?php
+	/**
+	 * @global BigTreeAdmin $admin
+	 */
+	
 	if (!empty($admin->POSTError)) {
 		http_response_code(406);
 		header("Content-type: text/plain");
@@ -22,7 +26,7 @@
 	$preset["directory"] = "files/resources/";
 
 	// Add preview crop
-	if (!is_array($preset["center_crops"])) {
+	if (empty($preset["center_crops"]) || !is_array($preset["center_crops"])) {
 		$preset["center_crops"] = [];
 	}
 

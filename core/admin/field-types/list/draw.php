@@ -16,10 +16,10 @@
 
 	// Database populated list.
 	if ($field["settings"]["list_type"] == "db") {
-		$list_table = $field["settings"]["pop-table"];
-		$list_id = $field["settings"]["pop-id"];
-		$list_title = $field["settings"]["pop-description"];
-		$list_sort = $field["settings"]["pop-sort"];
+		$list_table = $field["settings"]["pop-table"] ?? "";
+		$list_id = $field["settings"]["pop-id"] ?? "";
+		$list_title = $field["settings"]["pop-description"] ?? "";
+		$list_sort = $field["settings"]["pop-sort"] ?? "";
 		
 		// If debug is on we're going to check if the tables exists...
 		if ($bigtree["config"]["debug"] && !BigTree::tableExists($list_table)) {
@@ -28,7 +28,7 @@
 			$q = sqlquery("SELECT `id`,`$list_title` FROM `$list_table` ORDER BY $list_sort");
 			
 			// Check if we're doing module based permissions on this table.
-			if (!empty($bigtree["module"]) && $bigtree["module"]["gbp"]["enabled"] && $bigtree["form"]["table"] == $bigtree["module"]["gbp"]["table"] && $field["key"] == $bigtree["module"]["gbp"]["group_field"]) {
+			if (!empty($bigtree["module"]) && !empty($bigtree["module"]["gbp"]["enabled"]) && $bigtree["form"]["table"] == $bigtree["module"]["gbp"]["table"] && $field["key"] == $bigtree["module"]["gbp"]["group_field"]) {
 				$is_group_based_perm = true;
 
 				if ($field["settings"]["allow-empty"] != "No") {

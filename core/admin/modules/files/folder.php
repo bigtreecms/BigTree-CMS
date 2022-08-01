@@ -4,7 +4,7 @@
 		["link" => "files", "title" => "Files"]
 	];
 
-	$folder_id = intval($bigtree["commands"][0]);
+	$folder_id = intval($bigtree["commands"][0] ?? 0);
 	$permission = $admin->getResourceFolderPermission($folder_id);
 	$contents = $admin->getContentsOfResourceFolder($folder_id);
 	$folder = $admin->getResourceFolder($folder_id);

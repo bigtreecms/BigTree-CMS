@@ -160,7 +160,8 @@
 		?>
 		<section id="sharing_tab" style="display: none;">
 			<?php
-				$og_data = $pending_entry["open_graph"];
+				$og_data = $pending_entry["open_graph"] ?? [];
+				
 				include BigTree::path("admin/auto-modules/forms/_open-graph.php");
 			?>
 		</section>

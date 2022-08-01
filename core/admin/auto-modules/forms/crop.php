@@ -22,7 +22,7 @@
 		<h2 class="cropper"><span>Cropping Image</span> <span class="count current">1</span> <span>of</span> <span class="count total"><?=count($crops)?></span></h2>
 	</header>
 	<?php } ?>
-	<form method="post" action="<?=$bigtree["form_root"]?>process-crops/<?php if (is_array($bigtree["current_page"])) { echo $bigtree["current_page"]["id"]; } elseif (is_numeric($bigtree["current_page"])) { echo $bigtree["current_page"]; } ?>/" id="crop_form" class="module">
+	<form method="post" action="<?=$bigtree["form_root"]?>process-crops/<?php if (!empty($bigtree["current_page"]) && is_array($bigtree["current_page"])) { echo $bigtree["current_page"]["id"]; } elseif (!empty($bigtree["current_page"]) && is_numeric($bigtree["current_page"])) { echo $bigtree["current_page"]; } ?>/" id="crop_form" class="module">
 		<input type="hidden" name="crop_key" value="<?=htmlspecialchars($crop_key)?>" />
 		<section id="cropper">
 			<?php

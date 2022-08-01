@@ -1289,11 +1289,12 @@
 			while ($f = sqlfetch($q)) {
 				$item = BigTree::untranslateArray($f);
 				foreach ($item as $key => $value) {
-					if ($poplists[$key]) {
+					if (isset($poplists[$key])) {
 						$p = sqlfetch(sqlquery("SELECT `".$poplists[$key]["description"]."` FROM `".$poplists[$key]["table"]."` WHERE id = '".sqlescape($value)."'"));
 						$item[$key] = $p[$poplists[$key]["description"]];
 					}
-					if ($parsers[$key]) {
+					
+					if (isset($parsers[$key])) {
 						$item[$key] = BigTree::runParser($item,$value,$parsers[$key]);
 					}
 				}

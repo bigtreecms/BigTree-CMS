@@ -7,14 +7,14 @@
 		BigTree::redirect($_SESSION["bigtree_admin"]["cropper_previous_page"]);
 	}
 	
-	if ($_POST["front_end_editor"]) {
+	if (!empty($_POST["front_end_editor"])) {
 		$bigtree["layout"] = "front-end";
 	}
 	
 	$crops = $cms->cacheGet("org.bigtreecms.crops", $_POST["crop_key"]);
 	$count = count($crops);
 	
-	$return_link = $_POST["return_page"] ?: $bigtree["form_root"]."finish-crops/";
+	$return_link = !empty($_POST["return_page"]) ? $_POST["return_page"] : $bigtree["form_root"]."finish-crops/";
 ?>
 <div class="container">
 	<header>
