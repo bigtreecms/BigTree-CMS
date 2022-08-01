@@ -280,6 +280,7 @@
 			// Startup cURL and set the URL
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_URL, $url);
+			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 			
 			// Determine whether we're forcing valid SSL on the peer and host
 			if ($strict_security) {
@@ -357,7 +358,8 @@
 		*/
 		
 		public static function currentURL($port = false) {
-			$protocol = (@$_SERVER["HTTPS"] == "on") ? "https://" : "http://";
+			$protocol = static::getIsSSL() ? "https://" : "http://";
+			
 			if ($_SERVER["SERVER_PORT"] != "80" && $port) {
 				return $protocol.$_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
 			} else {
@@ -1260,6 +1262,41 @@
 			}
 			
 			return $json;
+		}
+
+		/*
+			Function: jsonMaybeDecode
+				Recurses through an array and tries to decode all properties as JSON arrays.
+				If they parse correctly it returns the decoded value.
+
+			Properties:
+				data - An array of data
+
+			Returns:
+				An array
+		*/
+
+		public static function jsonMaybeDecode($data) {
+			foreach ($data as $key => $value) {
+				if (is_string($value)) {
+					$value = htmlspecialchars_decode($value);
+					$first_char = substr($value, 0, 1);
+
+					if ($first_char == "{" || $first_char == "[") {
+						$value = json_decode($value, true);
+ 						
+ 						if (json_last_error() == JSON_ERROR_NONE) {
+ 							$data[$key] = $value;
+ 						}
+					}
+				}
+
+				if (is_array($value)) {
+					$data[$key] = static::jsonMaybeDecode($value);
+				}
+			}
+
+			return $data;
 		}
 		
 		/*

@@ -28,7 +28,7 @@
 				}
 		?>
 		<li>
-			<figure<?php if ($item["type"] == "video") { ?> class="media_gallery_type_<?=$item["video"]["service"]?>"<?php } ?>>
+			<figure<?php if ($item["type"] == "video") { ?> class="media_gallery_type_<?=strtolower($item["video"]["service"])?>"<?php } ?>>
 				<img src="<?=$preview_image?>" alt="" />
 			</figure>
 			<input type="hidden" class="bigtree_matrix_data" value="<?=base64_encode(json_encode($item))?>" />

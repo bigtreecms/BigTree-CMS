@@ -1,4 +1,10 @@
 <?php
+	/**
+	 * @global BigTreeAdmin $admin
+	 * @global array $bigtree
+	 * @global BigTreeCMS $cms
+	 */
+	
 	// Handle Javascript Minifying and Caching
 	if ($bigtree["path"][0] == "js") {
 		clearstatcache();
@@ -29,7 +35,7 @@
 				if (is_array($_GET)) {
 					foreach ($_GET as $key => $val) {
 						if ($key != "bigtree_htaccess_url") {
-							$data = str_replace('$'.$key,$val,$data);
+							$data = str_replace('$'.$key, preg_replace("/[^A-Za-z0-9 ]/", '', $val), $data);
 						}
 					}
 				}
@@ -215,7 +221,7 @@
 	// Check to see if we're in maintenance mode
 	if ($bigtree["config"]["maintenance_url"] && (empty($_SESSION["bigtree_admin"]["level"]) || $_SESSION["bigtree_admin"]["level"] < 2)) {
 		// See if we're at the URL
-		if (implode("/",$path) != trim(str_replace(WWW_ROOT,"",$bigtree["config"]["maintenance_url"]),"/")) {
+		if (implode("/", $bigtree["path"]) != trim(str_replace(WWW_ROOT,"",$bigtree["config"]["maintenance_url"]),"/")) {
 			$_SESSION["bigtree_referring_url"] = DOMAIN.$_SERVER["REQUEST_URI"];
 			BigTree::redirect($bigtree["config"]["maintenance_url"],"307");
 		} else {
@@ -502,10 +508,14 @@
 		
 		// If this is a "file", ignore the fact that there is or isn't a trailing slash
 		if (strpos($last_path_element, ".") === false) {
+			unset($_GET["bigtree_htaccess_url"]);
+
+			$query_string = !empty($_GET) ? "?".http_build_query($_GET) : "";
+
 			if (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
-				BigTree::redirect(WWW_ROOT.implode("/", $bigtree["path"])."/","301");
+				BigTree::redirect(WWW_ROOT.implode("/",$bigtree["path"])."/".$query_string, "301");
 			} elseif (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
-				BigTree::redirect(WWW_ROOT.implode("/", $bigtree["path"]),"301");
+				BigTree::redirect(WWW_ROOT.implode("/",$bigtree["path"]).$query_string, "301");		
 			}
 		}
 	}
@@ -566,7 +576,10 @@
 	   - User is logged into the BigTree admin FOR THIS PAGE
 	   - Developer mode is either disabled OR the logged in user is a Developer
 	*/
-	if ($_SESSION["bigtree_admin"]["id"] && $_COOKIE["bigtree_admin"]["email"] && (empty($bigtree["config"]["developer_mode"]) || $_SESSION["bigtree_admin"]["level"] > 1)) {
+	if (!empty($_SESSION["bigtree_admin"]["id"]) &&
+		!empty($_COOKIE["bigtree_admin"]["email"]) &&
+		(empty($bigtree["config"]["developer_mode"]) || $_SESSION["bigtree_admin"]["level"] > 1)
+	) {
 		$show_bar_default = $_COOKIE["hide_bigtree_bar"] ? false : true;
 		$show_preview_bar = false;
 		$return_link = "";
@@ -626,5 +639,6 @@
 		if (!$bigtree["page"]["path"]) {
 			$bigtree["page"]["path"] = "!";
 		}
-		BigTree::putFile(BIGTREE_CACHE_DIRECTORY.md5(json_encode($_GET)).".page",$cache);
+		$cache_file = (defined("BIGTREE_CACHE_FILE")) ? BIGTREE_CACHE_FILE : md5(json_encode($_GET));
+		BigTree::putFile(BIGTREE_CACHE_DIRECTORY.$cache_file.".page",$cache);
 	}

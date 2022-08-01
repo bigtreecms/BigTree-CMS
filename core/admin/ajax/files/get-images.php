@@ -1,15 +1,15 @@
 <?php
-	if ($_POST["query"]) {
+	if (!empty($_POST["query"])) {
 		$items = $admin->searchResources($_POST["query"]);
-		$perm = "e";
+		$access_level = "e";
 		$bc = array(array("name" => "Clear Results","id" => ""));
 	} else {
-		$perm = $admin->getResourceFolderPermission($_POST["folder"]);
+		$access_level = $admin->getResourceFolderPermission($_POST["folder"]);
 		$items = $admin->getContentsOfResourceFolder($_POST["folder"]);
 		$bc = $admin->getResourceFolderBreadcrumb($_POST["folder"]);
 	}
 	
-	if (!$_POST["query"] && $_POST["folder"] > 0) {
+	if (empty($_POST["query"]) && !empty($_POST["folder"])) {
 		$folder = $admin->getResourceFolder($_POST["folder"]);
 ?>
 <button data-folder="<?=$folder["parent"]?>" class="file_list_button js-folder"><span class="icon_small icon_small_back"></span>Back</button>

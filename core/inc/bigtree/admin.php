@@ -897,7 +897,7 @@
 			foreach ($resources as $resource) {
 				// "type" is still a reserved keyword due to the way we save callout data when editing.
 				if ($resource["id"] && $resource["id"] != "type") {
-					$settings = json_decode($resource["settings"] ?: $resource["options"], true);
+					$settings = json_decode($resource["settings"] ?? $resource["options"] ?? [], true);
 					$field = array(
 						"id" => BigTree::safeEncode($resource["id"]),
 						"type" => BigTree::safeEncode($resource["type"]),
@@ -1350,9 +1350,9 @@
 			}
 
 			foreach ($fields as $key => $data) {
-				$settings = $data["settings"] ?: $data["options"];
+				$settings = $data["settings"] ?? $data["options"] ?? [];
 				$field = [
-					"column" => $data["column"] ? $data["column"] : $key,
+					"column" => $data["column"] ?? $key,
 					"type" => BigTree::safeEncode($data["type"]),
 					"title" => BigTree::safeEncode($data["title"]),
 					"subtitle" => BigTree::safeEncode($data["subtitle"]),
@@ -1950,7 +1950,7 @@
 				return false;
 			}
 
-			$settings = $data["settings"] ?: $data["options"];
+			$settings = $data["settings"] ?? $data["options"] ?? [];
 
 			if (!empty($settings)) {
 				if (is_string($settings)) {
@@ -2052,7 +2052,7 @@
 
 			foreach ($resources as $resource) {
 				if ($resource["id"]) {
-					$settings = json_decode($resource["settings"] ?: $resource["options"], true);
+					$settings = json_decode($resource["settings"] ?? $resource["options"] ?? [], true);
 					$field = array(
 						"id" => BigTree::safeEncode($resource["id"]),
 						"type" => BigTree::safeEncode($resource["type"]),
@@ -2920,6 +2920,10 @@
 			global $admin,$bigtree,$cms;
 
 			// Give the field a unique id
+			if (!isset($bigtree["field_counter"])) {
+				$bigtree["field_counter"] = 0;
+			}
+			
 			$bigtree["field_counter"]++;
 			$field["id"] = $bigtree["field_namespace"].$bigtree["field_counter"];
 
@@ -2941,6 +2945,8 @@
 					$label_validation_class = ' class="required"';
 					$field["required"] = true;
 				}
+			} else {
+				$field["settings"]["validation"] = "";
 			}
 
 			// Backwards compatibility
@@ -2950,7 +2956,7 @@
 			$field["type"] = BigTree::cleanFile($field["type"]);
 
 			// Save current context
-			$bigtree["saved_extension_context"] = $bigtree["extension_context"];
+			$bigtree["saved_extension_context"] = $bigtree["extension_context"] ?? null;
 
 			// Get path and set context
 			if (strpos($field["type"],"*") !== false) {
@@ -2973,7 +2979,7 @@
 					include $field_type_path;
 				} else {
 ?>
-<fieldset<?php if ($field["matrix_title_field"]) { ?> class="matrix_title_field"<?php } ?>>
+<fieldset<?php if (!empty($field["matrix_title_field"])) { ?> class="matrix_title_field"<?php } ?>>
 	<?php if ($field["title"] && $field["type"] != "checkbox") { ?>
 	<label<?=$label_validation_class?>><?=$field["title"]?><?php if ($field["subtitle"]) { ?> <small><?=$field["subtitle"]?></small><?php } ?></label>
 	<?php } ?>
@@ -4067,24 +4073,28 @@
 
 		public static function getModule($id) {
 			$module = BigTreeJSONDB::get("modules", $id);
-
-			if (empty($module["actions"])) {
+			
+			if (empty($module)) {
+				return null;
+			}
+			
+			if (empty($module["actions"]) || !is_array($module["actions"])) {
 				$module["actions"] = [];
 			}
 
-			if (empty($module["views"])) {
+			if (empty($module["views"]) || !is_array($module["views"])) {
 				$module["views"] = [];
 			}
 
-			if (empty($module["forms"])) {
+			if (empty($module["forms"]) || !is_array($module["forms"])) {
 				$module["forms"] = [];
 			}
 
-			if (empty($module["embeddable-forms"])) {
+			if (empty($module["embeddable-forms"]) || !is_array($module["embeddable-forms"])) {
 				$module["embeddable-forms"] = [];
 			}
 
-			if (empty($module["reports"])) {
+			if (empty($module["reports"]) || !is_array($module["reports"])) {
 				$module["reports"] = [];
 			}
 
@@ -4885,8 +4895,8 @@
 
 			// Get any GET variables and hashes and remove them
 			$url_parse = parse_url(implode("/", array_values($path)));
-			$query_vars = $url_parse["query"];
-			$hash = $url_parse["fragment"];
+			$query_vars = $url_parse["query"] ?? "";
+			$hash = $url_parse["fragment"] ?? "";
 			$path = explode("/", rtrim($url_parse["path"], "/"));
 
 			if (!$previewing) {
@@ -5158,7 +5168,8 @@
 			if (!$h1_field && $tsources["page_header"]) {
 				$h1_field = "page_header";
 			}
-			if (!count($body_fields) && $tsources["page_content"]) {
+			
+			if (!count($body_fields) && !empty($tsources["page_content"])) {
 				$body_fields[] = "page_content";
 			}
 
@@ -5697,7 +5708,7 @@
 				$crumb[] = array("id" => $folder["id"], "name" => $folder["name"]);
 			}
 
-			if ($folder["parent"]) {
+			if (!empty($folder["parent"])) {
 				return static::getResourceFolderBreadcrumb($folder["parent"],$crumb);
 			} else {
 				$crumb[] = array("id" => 0, "name" => "Home");
@@ -6430,7 +6441,7 @@
 
 					// Create views
 					foreach ($module["views"] as $view) {
-						$settings = $view["settings"] ?: $view["options"];
+						$settings = $view["settings"] ?? $view["options"] ?? [];
 						$bigtree["view_id_match"][$view["id"]] = $this->createModuleView($module_id,$view["title"],$view["description"],$view["table"],$view["type"],(is_array($settings) ? $settings : json_decode($settings,true)),(is_array($view["fields"]) ? $view["fields"] : json_decode($view["fields"],true)),(is_array($view["actions"]) ? $view["actions"] : json_decode($view["actions"],true)),$view["suffix"],$view["preview_url"]);
 					}
 
@@ -6504,7 +6515,7 @@
 			// Import Feeds
 			foreach ($manifest["components"]["feeds"] as &$feed) {
 				if ($feed) {
-					$settings = $feed["settings"] ?: $feed["options"];
+					$settings = $feed["settings"] ?? $feed["options"] ?? [];
 					$feed["id"] = BigTreeJSONDB::insert("feeds", [
 						"route" => $feed["route"],
 						"name" => $feed["name"],
@@ -7799,15 +7810,18 @@
 		*/
 
 		public function requireAccess($module) {
-			global $admin,$bigtree,$cms;
+			global $admin, $bigtree, $cms;
+			
 			if ($this->Level > 0) {
 				return "p";
 			}
-			if (!isset($this->Permissions[$module]) || $this->Permissions[$module] == "") {
+			
+			if (empty($this->Permissions["module"][$module])) {
 				define("BIGTREE_ACCESS_DENIED",true);
 				$this->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
 			}
-			return $this->Permissions[$module];
+			
+			return $this->Permissions["module"][$module];
 		}
 
 		/*
@@ -8145,7 +8159,7 @@
 
 				if (!in_array($check, $existing)) {
 					// If we've already got the permission cached, use it. Otherwise, fetch it and cache it.
-					if ($permission_cache[$resource["folder"]]) {
+					if (isset($permission_cache[$resource["folder"]])) {
 						$resource["permission"] = $permission_cache[$resource["folder"]];
 					} else {
 						$resource["permission"] = $permission_cache[$resource["folder"]] = $this->getResourceFolderPermission($resource["folder"]);
@@ -8708,7 +8722,7 @@
 			foreach ($resources as $resource) {
 				// "type" is still a reserved keyword due to the way we save callout data when editing.
 				if ($resource["id"] && $resource["id"] != "type") {
-					$settings = json_decode($resource["settings"] ?: $resource["options"], true);
+					$settings = json_decode($resource["settings"] ?? $resource["options"] ?? [], true);
 					$settings = BigTree::arrayFilterRecursive($settings);
 					
 					$clean_resources[] = array(
@@ -9769,15 +9783,11 @@
 			if (is_array($data["settings"])) {
 				$settings = $data["settings"];
 			} else {
-				$settings = json_decode($data["settings"] ?: $data["options"], true);
+				$settings = json_decode($data["settings"] ?? $data["options"] ?? '[]', true);
 			}
 
-			foreach ($settings as $key => $value) {
-				if (($key == "options" || $key == "settings") && is_string($value)) {
-					$settings[$key] = json_decode($value, true);
-				}
-			}
 
+			$settings = BigTree::jsonMaybeDecode($settings);
 			$settings = BigTree::arrayFilterRecursive($settings);
 
 			BigTreeJSONDB::update("settings", $old_id, [
@@ -9875,7 +9885,7 @@
 
 			foreach ($resources as $resource) {
 				if ($resource["id"]) {
-					$settings = json_decode($resource["settings"] ?: $resource["options"], true);
+					$settings = json_decode($resource["settings"] ?? $resource["options"] ?? '[]', true);
 					$settings = BigTree::arrayFilterRecursive($settings);
 
 					$clean_resources[] = array(

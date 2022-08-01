@@ -178,12 +178,17 @@
 										$child_link = $child["link"] ? ADMIN_ROOT.rtrim($child["link"], "/")."/" : ADMIN_ROOT;
 									}
 									
-									if ($admin->Level >= $child["access"]) {
+									if ($admin->Level >= ($child["access"] ?? 0)) {
 										if (!empty($child["group"])) {
 							?>
 							<li class="grouper"><?=$child["title"]?></li>
 							<?php
 										} else {
+											if (strpos($child["link"], "https://") === 0 || strpos($child["link"], "http://") === 0) {
+												$child_link = $child["link"];
+											} else {
+												$child_link = $child["link"] ? ADMIN_ROOT.rtrim($child["link"], "/")."/" : ADMIN_ROOT;
+											}
 							?>
 							<li><a href="<?=$child_link?>"><?=$child["title"]?></a></li>
 							<?php

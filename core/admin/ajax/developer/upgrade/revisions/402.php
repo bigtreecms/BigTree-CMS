@@ -5,7 +5,7 @@
 		global $resource_converter;
 
 		foreach ($resources as $key => $item) {
-			$settings = $item["settings"] ?: $item["options"];
+			$settings = $item["settings"] ?? $item["options"] ?? [];
 			$was_string = false;
 
 			if (is_string($settings)) {

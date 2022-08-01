@@ -5,7 +5,7 @@
 	// See if the user isn't allowed to use the currently in use template. If they can't, we hide the section altogether.
 	$hide_template_section = false;
 
-	if (is_array($template_data) && $template_data["level"] > $admin->Level) {
+	if (!empty($template_data) && is_array($template_data) && $template_data["level"] > $admin->Level) {
 		$hide_template_section = true;
 	}
 ?>
@@ -86,7 +86,7 @@
 		</section>
 		<section id="sharing_tab" style="display: none;">
 			<?php
-				$og_data = $bigtree["current_page"]["open_graph"];
+				$og_data = $bigtree["current_page"]["open_graph"] ?? [];
 				include BigTree::path("admin/auto-modules/forms/_open-graph.php");
 			?>
 		</section>

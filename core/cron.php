@@ -11,7 +11,12 @@
 	$admin = new BigTreeAdmin;
 	
 	// Send out Daily Digests and Content Alerts
-	$admin->emailDailyDigest();
+	$last_sent = intval($cms->getSetting("bigtree-internal-daily-digest-last-sent"));
+
+	if ((time() - $last_sent) > (24 * 60 * 60)) {
+		$admin->emailDailyDigest();
+		$admin->updateInternalSettingValue("bigtree-internal-daily-digest-last-sent", time());
+	}
 	
 	// Update tag reference counts
 	$admin->updateTagReferenceCounts();

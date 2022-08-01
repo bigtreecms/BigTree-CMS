@@ -36,15 +36,19 @@
 		];
 		
 		foreach ($field["settings"]["columns"] as $resource) {
-			// Sanitize field settings
-			$settings = @json_decode($resource["settings"], true);
-			$options = @json_decode($resource["options"], true); // Backwards compat
-
-			if (empty($settings) || !is_array($settings)) {
-				$settings = $options;
+			if (is_array($resource["settings"])) {
+				$settings = $resource["settings"];
+			} else {
+				// Sanitize field settings
+				$settings = @json_decode($resource["settings"], true);
+				$options = @json_decode($resource["options"], true); // Backwards compat
+				
+				if (empty($settings) || !is_array($settings)) {
+					$settings = $options;
+				}
+				
+				$settings = is_array($settings) ? $settings : [];
 			}
-			
-			$settings = is_array($settings) ? $settings : [];
 
 			if (empty($settings["directory"])) {
 				$settings["directory"] = "files/pages/";

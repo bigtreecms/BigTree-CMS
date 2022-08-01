@@ -38,7 +38,7 @@
 			if ($this->NextPageToken) {
 				$params = $this->LastParameters;
 				$params[count($params) - 1]["pageToken"] = $this->NextPageToken;
-				return call_user_func_array(array($this->API,$this->LastCall),$params);
+				return call_user_func_array(array($this->API,$this->LastCall), array_values($params));
 			}
 			return false;
 		}
@@ -55,7 +55,7 @@
 			if ($this->PreviousPageToken) {
 				$params = $this->LastParameters;
 				$params[count($params) - 1]["pageToken"] = $this->PreviousPageToken;
-				return call_user_func_array(array($this->API,$this->LastCall),$this->LastParameters);
+				return call_user_func_array(array($this->API,$this->LastCall), array_values($this->LastParameters));
 			}
 			return false;
 		}

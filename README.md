@@ -20,6 +20,48 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.4.16
+- ADDED: Time and Datetime fields now allow you to not convert from the timeframe reference of BigTree users with non-default timezones
+- FIXED: Callouts and Matrix field types no longer break time and datetime fields when a user from a non-default timezone edits content without updating the callout/matrix entry.
+- FIXED: Re-cropping images not working in media galleries
+- FIXED: Matrix field settings breaking when encoded properly (not double escaped)
+
+### 4.4.15
+- SECURITY FIX: Fixed a cross site scripting issue with searchable fields that can lead to privelege escalation (thanks to guiseppesec for the report)
+- FIXED: Matrix field settings being lost when updating a Setting in developer
+- FIXED: File reference field losing title hints when being used in a Matrix field
+
+### 4.4.14
+- FIXED: Cloud storage settings not saving properly after choosing a bucket (e.g. CloudFront distribution)
+- FIXED: Media Gallery not drawing video icons properly when nested inside callouts
+- FIXED: Previously uploaded cloud files that lack size information should have it recalculated on upgrade
+
+### 4.4.13
+- FIXED: Certificate Bundle failing to download for cURL requests causing cURL and Cloud Storage to fail.
+- FIXED: Include path for files in admin not allowing a custom override
+
+### 4.4.12
+- FIXED: Searching via LIKE in grouped module views when no query is passed
+- FIXED: BigTree::currentURL when being served behind a proxy not returning proper HTTPS URLs.
+- FIXED: Losing GET vars when enforcing trailing slashes on URLs
+- FIXED: The properties menu in Pages not saving it's collapsed state in Safari and Chrome
+- FIXED: Cron sending daily digests every run rather than once every 24 hours (when manually set to run more frequently)
+- FIXED: XSS issue in Javascript routing in Internet Explorer (thanks to Mustafa Yalçın at Netsparker for the report)
+- FIXED: Uploading SVGs to the files tab failing
+
+### 4.4.11
+- UPDATED: SVGs are now able to be uploaded to the Files tab (via upload file, not image)
+- FIXED: Auto rotation of EXIF rotated JPEGs failing to save
+- FIXED: Creating an extension failing to get related form properly
+- FIXED: Image list previews in the Files tab not being generated if the source image was less than 100x100
+- FIXED: Pages Javascript breaking when the current user is not allowed to change the page template
+- FIXED: BigTreeAutoModule's updateItem and createItem methods not properly supporting auto detection of null columns
+- FIXED: Cancel button on the front end editor's "locked" status screen not working
+- FIXED: Amazon S3 buckets from non US-East regions not deleting files properly
+- FIXED: Database populated list columns in module views sorting incorrectly
+- FIXED: PHP warnings showing when submitting a page change involving crops
+- FIXED: Caching Amazon S3 data not taking you back to the proper page when complete
+
 ### 4.4.10
 - FIXED: Base SQL failing to create the open graph table
 - FIXED: Missing keys on the open graph table causing slow lookups on very large sites

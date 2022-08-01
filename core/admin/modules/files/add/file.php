@@ -39,7 +39,7 @@
 
 				if (disallowed.indexOf(extension) > -1) {
 					done("This file type is disabled for security reasons.");
-				} else if (file.type.indexOf("image") !== -1 && this.type.indexOf("svg") === -1) {
+				} else if (file.type.indexOf("image") !== -1 && file.type.indexOf("svg") === -1) {
 					done("This form does not accept images.");
 				} else {
 					done();

@@ -33,7 +33,7 @@
 
 				$file = $admin->processImageUpload($field);
 				$field["output"] = $file ? $file : $field["input"];
-			} elseif (!empty($bigtree["post_data"]["__".$field["key"]."_recrop__"])) {
+			} elseif (!empty($bigtree["post_data"]["__".$field["key"]."_recrop__"]) || !empty($field["recrop"])) {
 				// User has asked for a re-crop
 				$image = new BigTreeImage(str_replace(STATIC_ROOT, SITE_ROOT, $field["input"]), $field["settings"], true);
 				$image_copy = $image->copy();

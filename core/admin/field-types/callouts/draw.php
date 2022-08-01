@@ -3,7 +3,7 @@
 		$field["value"] = array();
 	}
 
-	$noun = $field["settings"]["noun"] ? htmlspecialchars($field["settings"]["noun"]) : "Callout";
+	$noun = !empty($field["settings"]["noun"]) ? htmlspecialchars($field["settings"]["noun"]) : "Callout";
 	$max = !empty($field["settings"]["max"]) ? $field["settings"]["max"] : 0;
 
 	// Work with older group info from 4.1 and lower
@@ -29,6 +29,21 @@
 			foreach ($field["value"] as $callout) {
 				$type = $admin->getCallout($callout["type"]);
 				$disabled = ($type["level"] > $admin->Level);
+				
+				// Convert timestamps for existing data to the user's frame of reference so when it saves w/o changes the time is correct
+				$existing_data = $callout;
+				
+				foreach ($type["resources"] as $resource) {
+					$current_value = $existing_data[$resource["id"]];
+					
+					if (!empty($current_value) && empty($resource["settings"]["ignore_timezones"])) {
+						if ($resource["type"] == "time") {
+							$existing_data[$resource["id"]] = $admin->convertTimestampToUser($current_value, "H:i:s");
+						} else if ($resource["type"] == "datetime") {
+							$existing_data[$resource["id"]] = $admin->convertTimestampToUser($current_value, "Y-m-d H:i:s");
+						}
+					}
+				}
 
 				if (!empty($type)) {
 		?>
@@ -39,6 +54,7 @@
 					<?=BigTree::trimLength($callout["display_title"], 100)?>
 					<small><?=BigTree::trimLength($type["name"] ,100)?></small>						
 				</p>
+
 				<a href="#" class="icon_delete"></a>
 				<a href="#" class="icon_edit"></a>
 			</div>
@@ -53,10 +69,10 @@
 							"title" => $resource["title"],
 							"subtitle" => $resource["subtitle"],
 							"key" => $field["key"]."[$x][".$resource["id"]."]",
-							"has_value" => isset($bigtree["resources"][$resource["id"]]),
-							"value" => isset($callout[$resource["id"]]) ? $callout[$resource["id"]] : "",
+							"has_value" => isset($existing_data[$resource["id"]]),
+							"value" => $existing_data[$resource["id"]] ?? "",
 							"tabindex" => $field["tabindex"],
-							"settings" => $resource["settings"] ?: $resource["options"]
+							"settings" => $resource["settings"] ?: $resource["options"],
 						];
 		
 						if (empty($subfield["settings"]["directory"])) {

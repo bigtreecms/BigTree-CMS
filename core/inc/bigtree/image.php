@@ -54,7 +54,6 @@
 			$this->Width = $info[0];
 			$this->MinHeight = (!empty($settings["min_height"]) && is_numeric($settings["min_height"])) ? intval($settings["min_height"]) : 0;
 			$this->MinWidth = (!empty($settings["min_width"]) && is_numeric($settings["min_width"])) ? intval($settings["min_width"]) : 0;
-			$this->fixRotation();
 
 			if (!$ignore_minimums && ($this->Height < $this->MinHeight || $this->Width < $this->MinWidth)) {
 				$error = "The image did not meet the minimum size of ";
@@ -99,6 +98,9 @@
 			} else {
 				$this->File = $file;
 			}
+
+			// Fix EXIF rotation
+			$this->fixRotation();
 		}
 		
 		/*

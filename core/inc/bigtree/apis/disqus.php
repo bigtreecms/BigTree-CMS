@@ -929,7 +929,7 @@
 			}
 			$params = $this->LastParameters;
 			$params[count($params) - 1]["cursor"] = $this->Cursor->Next;
-			return call_user_func_array(array($this->Object,$this->LastCall),$params);
+			return call_user_func_array(array($this->Object,$this->LastCall), array_values($params));
 		}
 
 		/*
@@ -946,7 +946,7 @@
 			}
 			$params = $this->LastParameters;
 			$params[count($params) - 1]["cursor"] = $this->Cursor->Previous;
-			return call_user_func_array(array($this->Object,$this->LastCall),$params);
+			return call_user_func_array(array($this->Object,$this->LastCall), array_values($params));
 		}
 	}
 

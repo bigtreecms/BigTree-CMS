@@ -617,7 +617,7 @@
 			
 			$bc = [];
 
-			if ($page["changes_applied"]) {
+			if (!empty($page["changes_applied"])) {
 				$parent = $page["parent"];
 				
 				while ($parent > 0) {
@@ -871,7 +871,7 @@
 			}
 
 			// If someone is requesting the link of the page they're already on we don't need to request it from the database.
-			if ($bigtree["page"]["id"] == $id) {
+			if (!empty($bigtree["page"]["id"]) && $bigtree["page"]["id"] == $id) {
 				return static::linkForPath($bigtree["page"]["path"]);
 			} else {
 				// Otherwise we'll grab the page path from the db.
@@ -1032,7 +1032,7 @@
 							$instance = new $module["class"];
 
 							if (method_exists($instance, "getNav")) {
-								if ($module->NavPosition == "top") {
+								if ($instance->NavPosition == "top") {
 									$nav = array_merge($instance->getNav($f), $nav);
 								} else {
 									$nav = array_merge($nav, $instance->getNav($f));
@@ -1825,7 +1825,7 @@
 				require_once(SERVER_ROOT."core/inc/lib/slug-generator/src/SlugGenerator.php");
 
 				$options = new Ausi\SlugGenerator\SlugOptions;
-				$options->setLocale(!empty($bigtree["config"]["locale"]) ? $bigtree["config"]["locale"] : "en_US");
+				$options->setLocale($bigtree["config"]["locale"] ?? "en_US");
 
 				$generator = new Ausi\SlugGenerator\SlugGenerator($options);
 

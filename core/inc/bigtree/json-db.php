@@ -102,6 +102,9 @@
 
 			if ($sort_column == "position") {
 				usort($items, function($first, $second) {
+					$first["position"] = $first["position"] ?? 0;
+					$second["position"] = $second["position"] ?? 0;
+					
 					if ($first["position"] > $second["position"]) {
 						return -1;
 					} elseif ($first["position"] < $second["position"]) {

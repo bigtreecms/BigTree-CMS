@@ -65,7 +65,8 @@
 				"type" => "image",
 				"input" => $data["info"]["*photo"],
 				"file_input" => $field["file_input"][$index]["info"]["*photo"],
-				"settings" => $field["settings"]
+				"settings" => $field["settings"],
+				"recrop" => !empty($data["info"]["__*photo_recrop__"]),
 			]);
 			
 			if ($output) {

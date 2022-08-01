@@ -44,10 +44,10 @@
 			["title" => "Edit User", "link" => "users/edit", "icon" => "gravatar", "hidden" => true],
 			["title" => "Profile", "link" => "users/profile", "icon" => "gravatar", "hidden" => true]
 		]],
-		"settings" => ["title" => "Settings", "link" => "settings", "icon" => "settings", "no_top_level_children" => true, "children" => [
+		"settings" => ["title" => "Settings", "link" => "settings", "icon" => "settings", "level" => 1, "no_top_level_children" => true, "children" => [
 			["title" => "Edit Setting", "link" => "settings/edit", "hidden" => true]
 		]],
-		"tags" => ["title" => "Tags", "link" => "tags", "icon" => "tags", "no_top_level_children" => true, "children" => [
+		"tags" => ["title" => "Tags", "link" => "tags", "icon" => "tags", "level" => 1, "no_top_level_children" => true, "children" => [
 			["title" => "View Tags", "link" => "tags", "nav_icon" => "list"],
 			["title" => "Add Tag", "link" => "tags/add", "nav_icon" => "add"],
 			["title" => "Merge Tag", "link" => "tags/merge", "hidden" => true]

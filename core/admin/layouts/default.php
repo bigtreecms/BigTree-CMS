@@ -12,14 +12,16 @@
 				$breadcrumb[] = array("title" => $item["title"],"link" => $item["link"]);
 				$bigtree["page"]["title"] = $item["title"] ?? $bigtree["page"]["title"];
 				$bigtree["page"]["title"] = $item["title_override"] ?? $bigtree["page"]["title"];
-				$bigtree["page"]["icon"] = $item["icon"] ??  $bigtree["page"]["icon"];
+				$bigtree["page"]["icon"] = $item["icon"] ?? $bigtree["page"]["icon"];
 				$bigtree["page"]["navigation"] = $item["children"] ?? $bigtree["page"]["navigation"];
+				
 				// Get the related dropdown menu
-				if ($item["related"]) {
+				if (!empty($item["related"])) {
 					$bigtree["page"]["related"]["title"] = $bigtree["page"]["title"];
 					$bigtree["page"]["related"]["nav"] = $bigtree["page"]["navigation"];
 				}
-				if ($item["children"]) {
+				
+				if (!empty($item["children"])) {
 					_local_findPath($item["children"],$path,$item["link"]);
 				}
 			}
@@ -157,18 +159,21 @@
 					}
 				}
 			}
+			
 			// Draw the nav.
 			foreach ($bigtree["page"]["navigation"] as $item) {
-				if (empty($item["hidden"]) && (!$item["level"] || $item["level"] <= $admin->Level)) {
+				if (empty($item["hidden"]) && (empty($item["level"]) || $item["level"] <= $admin->Level)) {
 					$get_string = "";
-					if (is_array($item["get_vars"]) && count($item["get_vars"])) {
+					
+					if (!empty($item["get_vars"]) && is_array($item["get_vars"])) {
 						$get_string = "?";
+						
 						foreach ($item["get_vars"] as $key => $val) {
 							$get_string .= "$key=".urlencode($val)."&";
 						}
 					}
 		?>
-		<a href="<?=ADMIN_ROOT.$item["link"]?>/<?=htmlspecialchars(rtrim($get_string,"&"))?>"<?php if ($active_item == $item) { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=($item["nav_icon"] ? $item["nav_icon"] : $item["icon"])?>"></span><?=$item["title"]?></a>
+		<a href="<?=ADMIN_ROOT.$item["link"]?>/<?=htmlspecialchars(rtrim($get_string,"&"))?>"<?php if ($active_item == $item) { ?> class="active"<?php } ?>><span class="icon_small icon_small_<?=($item["nav_icon"] ?? $item["icon"])?>"></span><?=$item["title"]?></a>
 		<?php
 				}
 			}

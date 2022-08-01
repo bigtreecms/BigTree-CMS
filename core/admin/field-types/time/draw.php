@@ -1,5 +1,5 @@
 <?php
-	if ($field["value"]) {
+	if (empty($field["settings"]["ignore_timezones"]) && $field["value"]) {
 		$field["value"] = $admin->convertTimestampToUser($field["value"] ?: "now", "h:i a");
 	}
 

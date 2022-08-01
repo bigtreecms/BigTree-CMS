@@ -65,7 +65,7 @@
 <script>
 	BigTree.localSortColumn = "<?=htmlspecialchars($sort_column)?>";
 	BigTree.localSortDirection = "<?=htmlspecialchars($sort_direction)?>";
-	BigTree.localSearchQuery = "<?=$search?>";
+	BigTree.localSearchQuery = "<?=(isset($_GET["search"]) ? htmlspecialchars($_GET["search"]) : "")?>";
 	BigTree.localSearch = function() {
 		BigTree.localSearchQuery = escape($("#search").val());
 		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&page=1&view=<?=$bigtree["view"]["id"]?>&module=<?=$bigtree["module"]["route"]?>&search=" + BigTree.localSearchQuery);

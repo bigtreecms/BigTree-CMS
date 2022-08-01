@@ -233,7 +233,7 @@
 					}
 				?>
 				<a href="#" class="icon_settings" name="<?=$key?>"></a>
-				<input type="hidden" name="fields[<?=$key?>][settings]" value="<?=htmlspecialchars(json_encode($field["settings"] ?: $field["options"]))?>" id="settings_<?=$key?>" />
+				<input type="hidden" name="fields[<?=$key?>][settings]" value="<?=htmlspecialchars(json_encode($field["settings"] ?? $field["options"] ?? []))?>" id="settings_<?=$key?>" />
 			</section>
 			<section class="developer_resource_action">
 				<a href="#" class="icon_delete" name="<?=$key?>"></a>

@@ -9,7 +9,7 @@
 			<footer class="footer">
 				<div class="fs-row">
 					<div class="fs-cell fs-md-half fs-lg-half">
-						<a href="<?=WWW_ROOT?>" class="footer_logo"><?=$home_page["title"]?></a>
+						<a href="<?=WWW_ROOT?>" class="footer_logo"><?=$site_title?></a>
 						<p class="footer_content">
 							<strong>Disclaimer:</strong> We are not actual lumberjacks. <br>
 							&copy; <?=date("Y")?> Timber Lumberjack Co

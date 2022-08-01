@@ -1,10 +1,12 @@
 <?php
-	if (!$field["value"] && isset($field["settings"]["default_now"]) && $field["settings"]["default_now"]) {
-		$field["value"] = $admin->convertTimestampToUser("now", $bigtree["config"]["date_format"]." h:i a");
-	} elseif ($field["value"] && $field["value"] != "0000-00-00 00:00:00") {
-		$field["value"] = $admin->convertTimestampToUser($field["value"], $bigtree["config"]["date_format"]." h:i a");
-	} else {
-		$field["value"] = "";
+	if (empty($field["settings"]["ignore_timezones"])) {
+		if (!$field["value"] && isset($field["settings"]["default_now"]) && $field["settings"]["default_now"]) {
+			$field["value"] = $admin->convertTimestampToUser("now", $bigtree["config"]["date_format"]." h:i a");
+		} elseif ($field["value"] && $field["value"] != "0000-00-00 00:00:00") {
+			$field["value"] = $admin->convertTimestampToUser($field["value"], $bigtree["config"]["date_format"]." h:i a");
+		} else {
+			$field["value"] = "";
+		}
 	}
 	
 	// We draw the picker inline for callouts

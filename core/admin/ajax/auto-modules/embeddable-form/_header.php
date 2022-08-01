@@ -40,7 +40,8 @@
 		<?php
 				}
 			}
-			if ($form["css"]) {
+			
+			if (!empty($form["css"])) {
 		?>
 		<link rel="stylesheet" href="<?=$form["css"]?>" type="text/css" media="screen" />
 		<?php

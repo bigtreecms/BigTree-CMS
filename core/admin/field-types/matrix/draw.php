@@ -1,4 +1,9 @@
 <?php
+	/**
+	 * @global BigTreeAdmin $admin
+	 * @global array $field
+	 */
+	
 	if (!is_array($field["value"])) {
 		$field["value"] = [];
 	}
@@ -15,13 +20,27 @@
 			$x = 0;
 
 			foreach ($field["value"] as $item) {
+				// Convert timestamps for existing data to the user's frame of reference so when it saves w/o changes the time is correct
+				$existing_data = $item;
+
+				foreach ($field["settings"]["columns"] as $resource) {					
+					$current_value = $existing_data[$resource["id"]];
+
+					if (!empty($current_value) && empty($resource["settings"]["ignore_timezones"])) {
+						if ($resource["type"] == "time") {
+							$existing_data[$resource["id"]] = $admin->convertTimestampToUser($current_value, "H:i:s");
+						} else if ($resource["type"] == "datetime") {
+							$existing_data[$resource["id"]] = $admin->convertTimestampToUser($current_value, "Y-m-d H:i:s");
+						}
+					}
+				}
 		?>
 		<li class="collapsed">
 			<div class="inner">
 				<span class="icon_sort"></span>
 				<p class="multi_widget_entry_title">
-					<?=BigTree::trimLength($item["__internal-title"], 100)?>
-					<small><?=BigTree::trimLength($item["__internal-subtitle"] ,100)?></small>						
+					<?=BigTree::trimLength($existing_data["__internal-title"], 100)?>
+					<small><?=BigTree::trimLength($existing_data["__internal-subtitle"] ,100)?></small>
 				</p>
 				<a href="#" class="icon_delete"></a>
 				<a href="#" class="icon_edit"></a>
@@ -45,11 +64,11 @@
 							"title" => $resource["title"],
 							"subtitle" => $resource["subtitle"],
 							"key" => $field["key"]."[$x][".$resource["id"]."]",
-							"has_value" => isset($bigtree["resources"][$resource["id"]]),
-							"value" => isset($item[$resource["id"]]) ? $item[$resource["id"]] : "",
+							"has_value" => isset($existing_data[$resource["id"]]),
+							"value" => $existing_data[$resource["id"]] ?? "",
 							"tabindex" => $field["tabindex"],
 							"settings" => $settings,
-							"matrix_title_field" => !empty($resource["display_title"]) ? true : false
+							"matrix_title_field" => !empty($resource["display_title"]),
 						];
 			
 						BigTreeAdmin::drawField($subfield);

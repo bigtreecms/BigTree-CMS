@@ -15,6 +15,7 @@
 	}
 
 	$news = $newsModule->getPage($news_page, $news_order, $news_perpage, $news_where);
+	$top_story = null;
 
 	if ($news_page == 1) {
 		$top_story = array_shift($news);

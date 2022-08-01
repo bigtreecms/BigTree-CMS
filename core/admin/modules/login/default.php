@@ -47,7 +47,7 @@
 		<label>Password</label>
 		<input type="password" id="password" name="password" class="text" />
 		<?php
-			if ($bigtree["security-policy"]["remember_disabled"] != "on") {
+			if (empty($bigtree["security-policy"]["remember_disabled"]) || $bigtree["security-policy"]["remember_disabled"] != "on") {
 		?>
 		<p><input type="checkbox" name="stay_logged_in" checked="checked" /> Remember Me</p>
 		<?php
