@@ -2035,6 +2035,8 @@
 			$mailer->Subject = $subject;
 			if ($html) {
 				$mailer->isHTML(true);
+				$mailer->CharSet = "UTF-8";
+				$mailer->Encoding = "base64";
 				$mailer->Body = $html;
 				$mailer->AltBody = $text;
 			} else {
