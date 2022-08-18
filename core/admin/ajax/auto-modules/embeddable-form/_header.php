@@ -49,7 +49,17 @@
 		?>
 		<script src="<?=ADMIN_ROOT?>js/lib.js"></script>
 		<script src="<?=ADMIN_ROOT?>js/main.js"></script>
-		<script src="<?=ADMIN_ROOT?>js/tinymce/tinymce.min.js"></script>
+		<?php
+			if (!empty($bigtree["config"]["wysiwyg_editor"])) {
+		?>
+		<script src="<?=ADMIN_ROOT?>js/<?=$bigtree["config"]["wysiwyg_editor"]?>"></script>
+		<?php
+			} else {
+		?>
+		<script src="<?=ADMIN_ROOT?>js/tinymce/tinymce.min.js?<?=BIGTREE_VERSION?>"></script>
+		<?php
+			}
+		?>
 		<script>BigTree.dateFormat = "<?=BigTree::phpDateTojQuery($bigtree["config"]["date_format"])?>";</script>
 		<?php
 			// Configuration based JS
