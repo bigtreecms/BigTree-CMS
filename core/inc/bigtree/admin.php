@@ -3453,7 +3453,10 @@
 		*/
 
 		public function getBasicTemplates($sort = "position DESC, id ASC") {
-			[$sort_column, $sort_direction] = explode(" ", $sort);
+			$sort_pieces = explode(" ", $sort);
+			$sort_column = $sort_pieces[0] ?? "";
+			$sort_direction = $sort_pieces[1] ?? "";
+			
 			$templates = BigTreeJSONDB::getAll("templates", $sort_column, $sort_direction ?: "ASC");
 			$basic = [];
 
@@ -3629,7 +3632,9 @@
 		*/
 
 		public static function getCallouts($sort = "position") {
-			[$sort_column, $sort_direction] = explode(" ", $sort);
+			$sort_pieces = explode(" ", $sort);
+			$sort_column = $sort_pieces[0] ?? "";
+			$sort_direction = $sort_pieces[1] ?? "";
 
 			return BigTreeJSONDB::getAll("callouts", $sort_column, $sort_direction ?: "ASC");
 		}
@@ -3646,7 +3651,9 @@
 		*/
 
 		public function getCalloutsAllowed($sort = "position") {
-			[$sort_column, $sort_direction] = explode(" ", $sort);
+			$sort_pieces = explode(" ", $sort);
+			$sort_column = $sort_pieces[0] ?? "";
+			$sort_direction = $sort_pieces[1] ?? "";
 			$callouts = BigTreeJSONDB::getAll("callouts", $sort_column, $sort_direction ?: "ASC");
 
 			foreach ($callouts as $index => $callout) {
@@ -3880,7 +3887,9 @@
 		*/
 
 		public static function getExtensions($sort = "name ASC") {
-			[$sort_column, $sort_direction] = explode(" ", $sort);
+			$sort_pieces = explode(" ", $sort);
+			$sort_column = $sort_pieces[0] ?? "";
+			$sort_direction = $sort_pieces[1] ?? "";
 
 			return BigTreeJSONDB::getAll("extensions", $sort_column, $sort_direction ?: "ASC");
 		}
@@ -3897,7 +3906,9 @@
 		*/
 
 		public static function getFeeds($sort = "name ASC") {
-			[$sort_column, $sort_direction] = explode(" ", $sort);
+			$sort_pieces = explode(" ", $sort);
+			$sort_column = $sort_pieces[0] ?? "";
+			$sort_direction = $sort_pieces[1] ?? "";
 
 			return BigTreeJSONDB::getAll("feeds", $sort_column, $sort_direction ?: "ASC");
 		}
@@ -3929,7 +3940,9 @@
 		*/
 
 		public static function getFieldTypes($sort = "name ASC") {
-			[$sort_column, $sort_direction] = explode(" ", $sort);
+			$sort_pieces = explode(" ", $sort);
+			$sort_column = $sort_pieces[0] ?? "";
+			$sort_direction = $sort_pieces[1] ?? "";
 
 			return BigTreeJSONDB::getAll("field-types", $sort_column, $sort_direction ?: "ASC");
 		}
@@ -4336,7 +4349,9 @@
 		*/
 
 		public static function getModuleEmbedForms($sort = "title", $module = false) {
-			[$sort_column, $sort_direction] = explode(" ", $sort);
+			$sort_parts = explode(" ", $sort);
+			$sort_column = $sort_parts[0] ?? "";
+			$sort_direction = $sort_parts[1] ?? "";
 
 			if ($module) {
 				$context = BigTreeJSONDB::getSubset("modules", $module);
@@ -4489,7 +4504,9 @@
 		*/
 
 		public static function getModuleGroups($sort = "position DESC") {
-			[$sort_column, $sort_direction] = explode(" ", $sort);
+			$sort_pieces = explode(" ", $sort);
+			$sort_column = $sort_pieces[0] ?? "";
+			$sort_direction = $sort_pieces[1] ?? "";
 
 			return BigTreeJSONDB::getAll("module-groups", $sort_column, $sort_direction ?: "ASC");
 		}
@@ -4536,7 +4553,9 @@
 		*/
 
 		public static function getModuleReports($sort = "title",$module = false) {
-			[$sort_column, $sort_direction] = explode(" ", $sort);
+			$sort_pieces = explode(" ", $sort);
+			$sort_column = $sort_pieces[0] ?? "";
+			$sort_direction = $sort_pieces[1] ?? "";
 
 			if ($module) {
 				$context = BigTreeJSONDB::getSubset("modules", $module);
@@ -4578,7 +4597,9 @@
 		*/
 
 		public function getModules($sort = "id ASC", $auth = true) {
-			[$sort_column, $sort_direction] = explode(" ", $sort);
+			$sort_pieces = explode(" ", $sort);
+			$sort_column = $sort_pieces[0] ?? "";
+			$sort_direction = $sort_pieces[1] ?? "";
 
 			$modules = BigTreeJSONDB::getAll("modules", $sort_column, $sort_direction ?: "ASC");
 
@@ -4620,8 +4641,10 @@
 			if (is_array($group)) {
 				$group = $group["id"];
 			}
-
-			[$sort_column, $sort_direction] = explode(" ", $sort);
+			
+			$sort_pieces = explode(" ", $sort);
+			$sort_column = $sort_pieces[0] ?? "";
+			$sort_direction = $sort_pieces[1] ?? "";
 
 			$modules = BigTreeJSONDB::getAll("modules", $sort_column, $sort_direction ?: "ASC");
 
@@ -4651,7 +4674,9 @@
 		*/
 
 		public static function getModuleViews($sort = "title", $module = false) {
-			[$sort_column, $sort_direction] = explode(" ", $sort);
+			$sort_pieces = explode(" ", $sort);
+			$sort_column = $sort_pieces[0] ?? "";
+			$sort_direction = $sort_pieces[1] ?? "";
 
 			if ($module) {
 				$context = BigTreeJSONDB::getSubset("modules", $module);
@@ -5824,7 +5849,9 @@
 		*/
 
 		public function getRoutedTemplates($sort = "position DESC, id ASC") {
-			[$sort_column, $sort_direction] = explode(" ", $sort);
+			$sort_pieces = explode(" ", $sort);
+			$sort_column = $sort_pieces[0] ?? "";
+			$sort_direction = $sort_pieces[1] ?? "";
 			$templates = BigTreeJSONDB::getAll("templates", $sort_column, $sort_direction ?: "ASC");
 			$basic = [];
 
@@ -5894,7 +5921,9 @@
 		*/
 
 		public function getSettings($sort = "name ASC") {
-			[$sort_column, $sort_direction] = explode(" ", $sort);
+			$sort_pieces = explode(" ", $sort);
+			$sort_column = $sort_pieces[0] ?? "";
+			$sort_direction = $sort_pieces[1] ?? "";
 			$settings = BigTreeJSONDB::getAll("settings", $sort_column, $sort_direction);
 
 			foreach ($settings as $index => $setting) {

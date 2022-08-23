@@ -9,6 +9,12 @@
 	}
 	
 	$max = !empty($field["settings"]["max"]) ? $field["settings"]["max"] : 0;
+	
+	if (empty($field["settings"]["columns"])) {
+		trigger_error("You must add at least one column to a matrix field.", E_USER_WARNING);
+		
+		return;
+	}
 ?>
 <div class="multi_widget matrix_list" id="<?=$field["id"]?>">
 	<section class="multi_widget_instructions"<?php if (count($field["value"])) { ?> style="display: none;"<?php } ?>>

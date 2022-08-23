@@ -10,7 +10,7 @@
 </div>
 <?php
 	// Check security policy
-	if ($_POST["password"] && !$admin->validatePassword($_POST["password"])) {
+	if (!empty($_POST["password"]) && !$admin->validatePassword($_POST["password"])) {
 		$_SESSION["bigtree_admin"]["update_user"] = $_POST;
 		$_SESSION["bigtree_admin"]["update_user"]["error"] = "password";
 		$admin->growl("Users","Invalid Password","error");

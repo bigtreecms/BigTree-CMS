@@ -17,7 +17,7 @@
 	// Find out what kind of permissions we're allowed on this item.  We need to check the EXISTING copy of the data AND what it's turning into and find the lowest of the two permissions.
 	$bigtree["access_level"] = $admin->getAccessLevel($bigtree["module"],$_POST,$bigtree["form"]["table"]);
 
-	if ($_POST["id"] && $bigtree["access_level"] && $bigtree["access_level"] != "n") {
+	if (!empty($_POST["id"]) && $bigtree["access_level"] && $bigtree["access_level"] != "n") {
 		$original_item = BigTreeAutoModule::getItem($bigtree["form"]["table"],$_POST["id"]);
 		$existing_item = BigTreeAutoModule::getPendingItem($bigtree["form"]["table"],$_POST["id"]);
 		$previous_permission = $admin->getAccessLevel($bigtree["module"],$existing_item["item"],$bigtree["form"]["table"]);
@@ -211,7 +211,7 @@
 	}
 	
 	// If we've specified a preview URL in our module and the user clicked Save & Preview, return to preview page.
-	if ($_POST["_bigtree_preview"]) {
+	if (!empty($_POST["_bigtree_preview"])) {
 		$admin->ungrowl();
 		$redirect_url = rtrim($view["preview_url"],"/")."/".$edit_id."/?bigtree_preview_return=".urlencode($bigtree["form_root"].$edit_id."/");
 	}

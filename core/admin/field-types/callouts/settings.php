@@ -28,9 +28,11 @@
 					$group = $admin->getCalloutGroup($id);
 			?>
 			<li>
-				<input type="hidden" name="groups[<?=$x?>]" value="<?=$group["id"]?>" />
-				<p class="multi_widget_entry_title"><?=$group["name"]?></p>
-				<a href="#" class="icon_delete"></a>
+				<div class="inner">
+					<input type="hidden" name="groups[<?=$x?>]" value="<?=$group["id"]?>" />
+					<p class="multi_widget_entry_title"><?=$group["name"]?></p>
+					<a href="#" class="icon_delete"></a>
+				</div>
 			</li>
 			<?php
 					$x++;

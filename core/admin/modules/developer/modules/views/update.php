@@ -91,7 +91,7 @@
 		$action = $admin->getModuleActionForView(end($bigtree["path"]));
 		$admin->growl("Developer","Updated View");
 
-		if ($_POST["return_page"]) {
+		if (!empty($_POST["return_page"])) {
 			BigTree::redirect($_POST["return_page"]);
 		} else {
 			BigTree::redirect(DEVELOPER_ROOT."modules/edit/".$action["module"]."/");

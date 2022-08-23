@@ -1,4 +1,4 @@
-<?php if ($_POST["id"]) { ?>
+<?php if (!empty($_POST["id"])) { ?>
 <input type="hidden" name="id" value="<?=htmlspecialchars($_POST["id"])?>" />
 <?php } ?>
 <fieldset>

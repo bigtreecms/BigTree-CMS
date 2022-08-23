@@ -1378,7 +1378,9 @@
 				$sort_pieces = explode(" ",$sort);
 				$sort_direction = end($sort_pieces);
 			} else { // Old formatting
-				list($sort_field,$sort_direction) = explode(" ",$sort);
+				$sort_pieces = explode(" ", $sort);
+				$sort_field = $sort_pieces[0] ?? "";
+				$sort_direction = $sort_pieces[1] ?? "";
 			}
 
 			if ($sort_field != "id") {

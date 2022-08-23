@@ -83,19 +83,19 @@
 			?>
 			<ul>
 				<li>
-					<input type="text" name="crops[<?=$crop_count?>][prefix]" value="<?=htmlspecialchars($crop["prefix"])?>" />
+					<input type="text" name="crops[<?=$crop_count?>][prefix]" value="<?=htmlspecialchars($crop["prefix"] ?? "")?>" />
 				</li>
 				<li>
-					<input type="text" name="crops[<?=$crop_count?>][width]" value="<?=htmlspecialchars($crop["width"])?>" />
+					<input type="text" name="crops[<?=$crop_count?>][width]" value="<?=htmlspecialchars($crop["width"] ?? "")?>" />
 				</li>
 				<li>
-					<input type="text" name="crops[<?=$crop_count?>][height]" value="<?=htmlspecialchars($crop["height"])?>" />
+					<input type="text" name="crops[<?=$crop_count?>][height]" value="<?=htmlspecialchars($crop["height"] ?? "")?>" />
 				</li>
 				<li class="actions">
 					<a href="#<?=$crop_count?>" title="Create Centered Sub-Crop" class="subcrop"></a>
 					<a href="#<?=$crop_count?>" title="Create Thumbnail of Crop" class="thumbnail"></a>
-					<input type="hidden" name="crops[<?=$crop_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
+					<input type="hidden" name="crops[<?=$crop_count?>][grayscale]" value="<?=$crop["grayscale"] ?? ""?>" />
+					<a href="#" title="Switch Color Mode" class="color_mode<?php if (!empty($crop["grayscale"])) { ?> gray<?php } ?>"></a>
 					<a href="#<?=$crop_count?>" title="Remove" class="delete"></a>
 				</li>
 			</ul>
@@ -110,17 +110,17 @@
 				<ul class="image_attr_thumbs_<?=$crop_count?>">
 					<li class="thumbed">
 						<span class="icon_small icon_small_picture" title="Thumbnail"></span>
-						<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][prefix]" value="<?=htmlspecialchars($thumb["prefix"])?>" />
+						<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][prefix]" value="<?=htmlspecialchars($thumb["prefix"] ?? "")?>" />
 					</li>
 					<li>
-						<input type="text" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][width]" value="<?=htmlspecialchars($thumb["width"])?>" />
+						<input type="text" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][width]" value="<?=htmlspecialchars($thumb["width"] ?? "")?>" />
 					</li>
 					<li>
-						<input type="text" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][height]" value="<?=htmlspecialchars($thumb["height"])?>" />
+						<input type="text" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][height]" value="<?=htmlspecialchars($thumb["height"] ?? "")?>" />
 					</li>
 					<li class="actions">
 						<span class="icon_small icon_small_up"></span>
-						<input type="hidden" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][grayscale]" value="<?=$thumb["grayscale"]?>" />
+						<input type="hidden" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][grayscale]" value="<?=$thumb["grayscale"] ?? ""?>" />
 						<a href="#" title="Switch Color Mode" class="color_mode<?php if (!empty($thumb["grayscale"])) { ?> gray<?php } ?>"></a>
 						<a href="#" title="Remove" class="delete"></a>
 					</li>
@@ -142,17 +142,17 @@
 				<ul class="image_attr_thumbs_<?=$crop_count?>">
 					<li class="thumbed">
 						<span class="icon_small icon_small_crop" title="Sub-Crop"></span>
-						<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][prefix]" value="<?=htmlspecialchars($center_crop["prefix"])?>" />
+						<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][prefix]" value="<?=htmlspecialchars($center_crop["prefix"] ?? "")?>" />
 					</li>
 					<li>
-						<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][width]" value="<?=htmlspecialchars($center_crop["width"])?>" />
+						<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][width]" value="<?=htmlspecialchars($center_crop["width"] ?? "")?>" />
 					</li>
 					<li>
-						<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][height]" value="<?=htmlspecialchars($center_crop["height"])?>" />
+						<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][height]" value="<?=htmlspecialchars($center_crop["height"] ?? "")?>" />
 					</li>
 					<li class="actions">
 						<span class="icon_small icon_small_up"></span>
-						<input type="hidden" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][grayscale]" value="<?=$center_crop["grayscale"]?>" />
+						<input type="hidden" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][grayscale]" value="<?=$center_crop["grayscale"] ?? ""?>" />
 						<a href="#" title="Switch Color Mode" class="color_mode<?php if (!empty($center_crop["grayscale"])) { ?> gray<?php } ?>"></a>
 						<a href="#" title="Remove" class="delete"></a>
 					</li>
@@ -199,7 +199,7 @@
 					<input type="text" name="thumbs[<?=$thumb_count?>][height]" value="<?=htmlspecialchars($thumb["height"])?>" />
 				</li>
 				<li class="actions for_thumbnail">
-					<input type="hidden" name="thumbs[<?=$thumb_count?>][grayscale]" value="<?=$thumb["grayscale"]?>" />
+					<input type="hidden" name="thumbs[<?=$thumb_count?>][grayscale]" value="<?=$thumb["grayscale"] ?? ""?>" />
 					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($thumb["grayscale"]) { ?> gray<?php } ?>"></a>
 					<a href="#" title="Remove" class="delete"></a>
 				</li>

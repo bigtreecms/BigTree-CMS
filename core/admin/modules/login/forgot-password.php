@@ -1,7 +1,7 @@
 <?php
 	$failure = false;
 
-	if ($_POST["email"]) {
+	if (!empty($_POST["email"])) {
 		$admin->forgotPassword($_POST["email"]);
 		BigTree::redirect(ADMIN_ROOT."login/forgot-success/");
 	}

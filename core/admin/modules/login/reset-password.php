@@ -2,7 +2,7 @@
 	$user = $admin->getUserByHash(end($bigtree["path"]));
 	$failure = false;
 	
-	if ($_POST["password"]) {
+	if (!empty($_POST["password"])) {
 		if (!$admin->validatePassword($_POST["password"])) {
 			$failure = "validation";
 		} elseif ($_POST["password"] != $_POST["confirm_password"]) {

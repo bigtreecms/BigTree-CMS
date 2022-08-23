@@ -308,7 +308,7 @@
 								<li class="top">
 									<span class="depth"></span>
 									<a class="permission_label expanded<?php if ($user["level"] > 0) { ?> permission_label_admin<?php } ?>" href="#">All Pages</a>
-									<span class="permission_alerts"><input type="checkbox" data-key="0" name="alerts[0]"<?php if ($alerts[0] == "on") { ?> checked="checked"<?php } ?>/></span>
+									<span class="permission_alerts"><input type="checkbox" data-key="0" name="alerts[0]"<?php if (!empty($alerts[0])) { ?> checked="checked"<?php } ?>/></span>
 									<span class="permission_level"<?php if ($user["level"] > 0) { ?> style="display: none;"<?php } ?>>
 										<input type="radio" data-category="Page" data-key="0" name="permissions[page][0]" value="p" <?php if (!empty($permissions["page"][0]) && $permissions["page"][0] == "p") { ?>checked="checked" <?php } ?>/>
 									</span>
@@ -319,7 +319,7 @@
 										<input type="radio" data-category="Page" data-key="0" name="permissions[page][0]" value="n" <?php if (empty($permissions["page"][0]) || $permissions["page"][0] == "n") { ?>checked="checked" <?php } ?>/>
 									</span>
 									<span class="permission_level"<?php if ($user["level"] > 0) { ?> style="display: none;"<?php } ?>>&nbsp;</span>
-									<?php _local_userDrawNavLevel(0,2,$alerts[0]) ?>
+									<?php _local_userDrawNavLevel(0, 2, $alerts[0] ?? null) ?>
 								</li>
 							</ul>
 						</section>
@@ -379,18 +379,18 @@
 								<li>
 									<span class="depth"></span>
 									<a class="permission_label permission_label_wider<?php if (!count($gbp_categories)) { ?> disabled<?php } ?><?php if (!$closed) { ?>  expanded<?php } ?>" href="#"><?=$m["name"]?></a>
-									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="p" <?php if ($permissions["module"][$m["id"]] == "p") { ?>checked="checked" <?php } ?>/></span>
-									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="e" <?php if ($permissions["module"][$m["id"]] == "e") { ?>checked="checked" <?php } ?>/></span>
-									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="n" <?php if (!$permissions["module"][$m["id"]] || $permissions["module"][$m["id"]] == "n") { ?>checked="checked" <?php } ?>/></span>
+									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="p" <?php if (!empty($permissions["module"][$m["id"]]) && $permissions["module"][$m["id"]] == "p") { ?>checked="checked" <?php } ?>/></span>
+									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="e" <?php if (!empty($permissions["module"][$m["id"]]) && $permissions["module"][$m["id"]] == "e") { ?>checked="checked" <?php } ?>/></span>
+									<span class="permission_level"><input type="radio" data-category="Module" data-key="<?=$m["id"]?>" name="permissions[module][<?=$m["id"]?>]" value="n" <?php if (empty($permissions["module"][$m["id"]]) || $permissions["module"][$m["id"]] == "n") { ?>checked="checked" <?php } ?>/></span>
 									<?php if (count($gbp_categories)) { ?>
 									<ul class="depth_2"<?php if ($closed) { ?> style="display: none;"<?php } ?>>
 										<?php foreach ($gbp_categories as $c) { ?>
 										<li>
 											<span class="depth"></span>
 											<a class="permission_label permission_label_wider disabled" href="#"><?=$m["gbp"]["name"]?>: <?=$c[$tf]?></a>
-											<span class="permission_level"><input type="radio" data-category="ModuleGBP" data-key="<?=$m["id"]?>" data-sub-key="<?=$c["id"]?>" name="permissions[module_gbp][<?=$m["id"]?>][<?=$c["id"]?>]" value="p" <?php if ($permissions["module_gbp"][$m["id"]][$c["id"]] == "p") { ?>checked="checked" <?php } ?>/></span>
-											<span class="permission_level"><input type="radio" data-category="ModuleGBP" data-key="<?=$m["id"]?>" data-sub-key="<?=$c["id"]?>" name="permissions[module_gbp][<?=$m["id"]?>][<?=$c["id"]?>]" value="e" <?php if ($permissions["module_gbp"][$m["id"]][$c["id"]] == "e") { ?>checked="checked" <?php } ?>/></span>
-											<span class="permission_level"><input type="radio" data-category="ModuleGBP" data-key="<?=$m["id"]?>" data-sub-key="<?=$c["id"]?>" name="permissions[module_gbp][<?=$m["id"]?>][<?=$c["id"]?>]" value="n" <?php if (!$permissions["module_gbp"][$m["id"]][$c["id"]] || $permissions["module_gbp"][$m["id"]][$c["id"]] == "n") { ?>checked="checked" <?php } ?>/></span>
+											<span class="permission_level"><input type="radio" data-category="ModuleGBP" data-key="<?=$m["id"]?>" data-sub-key="<?=$c["id"]?>" name="permissions[module_gbp][<?=$m["id"]?>][<?=$c["id"]?>]" value="p" <?php if (!empty($permissions["module_gbp"][$m["id"]][$c["id"]]) && $permissions["module_gbp"][$m["id"]][$c["id"]] == "p") { ?>checked="checked" <?php } ?>/></span>
+											<span class="permission_level"><input type="radio" data-category="ModuleGBP" data-key="<?=$m["id"]?>" data-sub-key="<?=$c["id"]?>" name="permissions[module_gbp][<?=$m["id"]?>][<?=$c["id"]?>]" value="e" <?php if (!empty($permissions["module_gbp"][$m["id"]][$c["id"]]) && $permissions["module_gbp"][$m["id"]][$c["id"]] == "e") { ?>checked="checked" <?php } ?>/></span>
+											<span class="permission_level"><input type="radio" data-category="ModuleGBP" data-key="<?=$m["id"]?>" data-sub-key="<?=$c["id"]?>" name="permissions[module_gbp][<?=$m["id"]?>][<?=$c["id"]?>]" value="n" <?php if (empty($permissions["module_gbp"][$m["id"]][$c["id"]]) || $permissions["module_gbp"][$m["id"]][$c["id"]] == "n") { ?>checked="checked" <?php } ?>/></span>
 										</li>
 										<?php } ?>
 									</ul>

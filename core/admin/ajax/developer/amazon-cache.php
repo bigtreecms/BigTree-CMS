@@ -28,7 +28,7 @@
 	}
 
 	if ($cloud->NextPage) {
-		if ($_GET["marker"]) {
+		if (!empty($_GET["marker"])) {
 			$response = "Completed page beginning with file marker ".htmlspecialchars($_GET["marker"]);
 		} else {
 			$response = "Completed first page";

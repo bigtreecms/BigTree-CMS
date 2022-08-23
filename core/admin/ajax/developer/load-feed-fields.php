@@ -1,5 +1,5 @@
 <?php
-	if ($_GET["table"]) {
+	if (!empty($_GET["table"])) {
 		$table = $_GET["table"];
 	}
 

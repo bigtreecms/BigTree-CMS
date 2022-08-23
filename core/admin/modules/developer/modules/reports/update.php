@@ -6,7 +6,7 @@
 	$admin->growl("Developer","Updated Module Report");
 	$action = $admin->getModuleActionForReport(end($bigtree["commands"]));
 
-	if ($_POST["return_page"]) {
+	if (!empty($_POST["return_page"])) {
 		BigTree::redirect($_POST["return_page"]);
 	} else {
 		BigTree::redirect(DEVELOPER_ROOT."modules/edit/".$action["module"]."/");

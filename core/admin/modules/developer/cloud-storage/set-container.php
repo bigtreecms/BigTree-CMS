@@ -6,7 +6,7 @@
 	
 	$storage->Settings->Service = $_POST["service"];
 
-	if ($_POST["container"]) {
+	if (!empty($_POST["container"])) {
 		$storage->Settings->Container = $_POST["container"];
 
 		// If we're using Rackspace, we need to explicitly CDN enable this container.

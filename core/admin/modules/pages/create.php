@@ -15,11 +15,11 @@
 	}
 
 	// Adjust template
-	if ($_POST["redirect_lower"]) {
+	if (!empty($_POST["redirect_lower"])) {
 		$_POST["template"] = "!";
 		$_POST["external"] = "";
 		$_POST["new_window"] = "";
-	} elseif ($_POST["external"]) {
+	} elseif (!empty($_POST["external"])) {
 		$_POST["template"] = "";
 		$_POST["new_window"] = isset($_POST["new_window"]) ? $_POST["new_window"] : "";
 	} else {

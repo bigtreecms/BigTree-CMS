@@ -11,7 +11,7 @@
 		<?php
 			$admin->drawCSRFToken();
 			
-			if ($_GET["return"] == "front") {
+			if (!empty($_GET["return"]) && $_GET["return"] == "front") {
 		?>
 		<input type="hidden" name="return_page" value="<?=htmlspecialchars($_SERVER["HTTP_REFERER"])?>" />
 		<?php

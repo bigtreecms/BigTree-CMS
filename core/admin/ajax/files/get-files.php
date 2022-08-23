@@ -50,7 +50,7 @@
 	}
 ?>
 <script>
-	<?php if ($_POST["query"]) { ?>
+	<?php if (!empty($_POST["query"])) { ?>
 	BigTreeFileManager.setTitleSuffix(": Search Results");
 	<?php } else { ?>
 	BigTreeFileManager.setTitleSuffix("");
