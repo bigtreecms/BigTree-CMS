@@ -49,11 +49,15 @@
 			<div class="matrix_entry_fields">
 				<?php
 					foreach ($field["settings"]["columns"] as $resource) {
-						$settings = $resource["settings"] ? @json_decode($resource["settings"], true) : @json_decode($resource["options"],true);
-
-						if (!is_array($settings)) {
+						if (!empty($resource["settings"])) {
+							$settings = @json_decode($resource["settings"], true);
+						} else if (!empty($resource["options"])) {
+							$settings = @json_decode($resource["options"], true);
+						} else {
 							$settings = [];
 						}
+
+						$settings = is_array($settings) ? $settings : [];
 
 						if (empty($settings["directory"])) {
 							$settings["directory"] = "files/pages/";
@@ -61,8 +65,8 @@
 						
 						$subfield = [
 							"type" => $resource["type"],
-							"title" => $resource["title"],
-							"subtitle" => $resource["subtitle"],
+							"title" => $resource["title"] ?? "",
+							"subtitle" => $resource["subtitle"] ?? "",
 							"key" => $field["key"]."[$x][".$resource["id"]."]",
 							"has_value" => isset($existing_data[$resource["id"]]),
 							"value" => $existing_data[$resource["id"]] ?? "",

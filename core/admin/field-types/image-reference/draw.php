@@ -19,8 +19,8 @@
 	$button_options = htmlspecialchars(json_encode([
 		"currentlyKey" => $field["key"],
 		"type" => "image",
-		"minWidth" => intval($field["settings"]["min_width"]),
-		"minHeight" => intval($field["settings"]["min_height"])
+		"minWidth" => intval($field["settings"]["min_width"] ?? 0),
+		"minHeight" => intval($field["settings"]["min_height"] ?? 0)
 	]));
 ?>
 <div class="image_field<?php if ($field["settings"]["validation"] == "required") { ?> reference_required<?php } ?>">

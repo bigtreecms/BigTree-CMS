@@ -5186,7 +5186,7 @@
 				}
 			}
 
-			if (!$h1_field && $tsources["page_header"]) {
+			if (!$h1_field && !empty($tsources["page_header"])) {
 				$h1_field = "page_header";
 			}
 			
@@ -7764,9 +7764,14 @@
 						if ($resource["width"] < $new_min_width || $resource["height"] < $new_min_height) {
 							unset($data[$id]);
 						}
-					} elseif ($new["type"] == "text" && $new["settings"]["sub_type"] != $old["settings"]["sub_type"]) {
+					} elseif ($new["type"] == "text") {
+						$new["settings"]["sub_type"] = $new["settings"]["sub_type"] ?? "";
+						$old["settings"]["sub_type"] = $old["settings"]["sub_type"] ?? "";
+						
 						// Sub-types changed, the data won't fit anymore
-						unset($data[$id]);
+						if ($new["settings"]["sub_type"] != $old["settings"]["sub_type"]) {
+							unset($data[$id]);
+						}
 					} elseif ($new["type"] == "html" && !empty($new["settings"]["simple"]) && empty($old["settings"]["simple"])) {
 						// New HTML is simple
 						unset($data[$id]);

@@ -1,7 +1,12 @@
 <?php
-	$items = is_array($field["value"]) ? $field["value"] : array();
-	$max = !empty($field["settings"]["max"]) ? $field["settings"]["max"] : 0;
+	$max = !empty($field["settings"]["max"]) ? intval($field["settings"]["max"]) : 0;
 	$current = 0;
+	
+	if (empty($field["value"]) || !is_array($field["value"])) {
+		$items = [];
+	} else {
+		$items = $field["value"];
+	}
 
 	// Strip out columns as we'll pass options separately
 	$settings = $field["settings"];
@@ -43,25 +48,25 @@
 	</ul>
 	<footer class="media_gallery_footer">
 		<?php
-			if (!$field["settings"]["disable_photos"]) {
+			if (empty($field["settings"]["disable_photos"])) {
 		?>
 		<a href="#" class="add_item button" data-type="photo"><span class="icon_small icon_small_picture"></span>Add Photo</a>
 		<?php
 			}
 
-			if (!$field["settings"]["disable_youtube"]) {
+			if (empty($field["settings"]["disable_youtube"])) {
 		?>
 		<a href="#" class="add_item button" data-type="youtube"><span class="icon_small icon_small_youtube"></span>Add YouTube Video</a>
 		<?php
 			}
 
-			if (!$field["settings"]["disable_vimeo"]) {
+			if (empty($field["settings"]["disable_vimeo"])) {
 		?>
 		<a href="#" class="add_item button" data-type="vimeo"><span class="icon_small icon_small_vimeo"></span>Add Vimeo Video</a>
 		<?php
 			}
 
-			if ($field["settings"]["enable_manual"]) {
+			if (!empty($field["settings"]["enable_manual"])) {
 		?>
 		<a href="#" class="add_item button" data-type="local"><span class="icon_small icon_small_video"></span>Add Local Video</a>
 		<?php

@@ -1,18 +1,19 @@
 <?php
 	// Prevent Notices
-	$settings["list_type"] = isset($settings["list_type"]) ? $settings["list_type"] : "";
-	$settings["allow-empty"] = isset($settings["allow-empty"]) ? $settings["allow-empty"] : "";
-	$settings["pop-table"] = isset($settings["pop-table"]) ? $settings["pop-table"] : "";
-	$settings["pop-description"] = isset($settings["pop-description"]) ? $settings["pop-description"] : "";
-	$settings["pop-sort"] = isset($settings["pop-sort"]) ? $settings["pop-sort"] : "";
-	$settings["list"] = isset($settings["list"]) ? $settings["list"] : array();
+	$settings["list_type"] = $settings["list_type"] ?? "";
+	$settings["allow-empty"] = $settings["allow-empty"] ?? "";
+	$settings["pop-table"] = $settings["pop-table"] ?? "";
+	$settings["pop-description"] = $settings["pop-description"] ?? "";
+	$settings["pop-sort"] = $settings["pop-sort"] ?? "";
+	$settings["list"] = $settings["list"] ?? [];
+	$settings["parser"] = $settings["parser"] ?? "";
 	
-	$types = array(
+	$types = [
 		"static" => "Static",
 		"db" => "Database Populated",
 		"state" => "State List",
 		"country" => "Country List"
-	);
+	];
 ?>
 <fieldset>
 	<label for="field_list_types">List Type</label>

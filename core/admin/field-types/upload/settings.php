@@ -11,6 +11,8 @@
 			$settings["directory"] = "files/modules/";
 		}
 	}
+	
+	$settings["valid_extensions"] = $settings["valid_extensions"] ?? "";
 ?>
 <fieldset>
 	<label for="settings_field_directory">Upload Directory <small>(required, relative to SITE_ROOT)</small></label>

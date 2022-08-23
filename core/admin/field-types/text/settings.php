@@ -1,17 +1,17 @@
 <?php
 	// Stop notices
-	$settings["seo_h1"] = isset($settings["seo_h1"]) ? $settings["seo_h1"] : "";
-	$settings["sub_type"] = isset($settings["sub_type"]) ? $settings["sub_type"] : "";
-	$settings["max_length"] = isset($settings["max_length"]) ? $settings["max_length"] : "";
+	$settings["seo_h1"] = $settings["seo_h1"] ?? "";
+	$settings["sub_type"] = $settings["sub_type"] ?? "";
+	$settings["max_length"] = $settings["max_length"] ?? "";
 	
-	$sub_types = array(
+	$sub_types = [
 		"" => "",
 		"name" => "Name",
 		"address" => "Address",
 		"email" => "Email",
 		"website" => "Website",
-		"phone" => "Phone Number"
-	);
+		"phone" => "Phone Number",
+	];
 ?>
 <fieldset>
 	<label for="settings_field_sub_type">Sub Type</label>

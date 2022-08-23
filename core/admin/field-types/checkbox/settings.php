@@ -1,7 +1,7 @@
 <?php
 	// Stop notices
-	$settings["custom_value"] = isset($settings["custom_value"]) ? $settings["custom_value"] : "";
-	$settings["default_checked"] = isset($settings["default_checked"]) ? $settings["default_checked"] : "";
+	$settings["custom_value"] = $settings["custom_value"] ?? "";
+	$settings["default_checked"] = $settings["default_checked"] ?? "";
 ?>
 <fieldset>
 	<input id="settings_field_default_on" name="default_checked" type="checkbox"<?php if ($settings["default_checked"]) { ?> checked<?php } ?> />

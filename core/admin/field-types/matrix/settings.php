@@ -1,13 +1,21 @@
 <?php
 	$cached_types = $admin->getCachedFieldTypes(true);
 	$types = $cached_types["callouts"];
-	$columns = is_array($settings["columns"]) ? $settings["columns"] : array(array("id" => "","title" => "","subtitle" => "","type" => "text"));
-	$settings["max"] = $settings["max"] ? intval($settings["max"]) : "";
+	
+	$settings["max"] = !empty($settings["max"]) ? intval($settings["max"]) : "";
+	$settings["style"] = $settings["style"] ?? "list";
+	
+	if (empty($settings["columns"]) || !is_array($settings["columns"])) {
+		$settings["columns"] = [
+			["id" => "", "title" => "", "display_title" => "", "subtitle" => "", "type" => "text", "settings" => ""]
+		];
+	}
 ?>
 <fieldset>
 	<label for="settings_field_max">Maximum Entries <small>(defaults to unlimited)</small></label>
 	<input id="settings_field_max" type="text" name="max" value="<?=$settings["max"]?>" />
 </fieldset>
+
 <fieldset>
 	<label for="settings_field_style">Style</label>
 	<select id="settings_field_style" name="style">
@@ -15,6 +23,7 @@
 		<option value="callout"<?php if ($settings["style"] == "callout") { ?> selected="selected"<?php } ?>>Blocks (like Callouts)</option>
 	</select>
 </fieldset>
+
 <div class="matrix_wrapper">
 	<span class="icon_small icon_small_add matrix_add_column"></span>
 	<label>Columns</label>
@@ -22,7 +31,7 @@
 		<?php
 			$x = 0;
 
-			foreach ($columns as $column) {
+			foreach ($settings["columns"] as $column) {
 				$x++;
 
 				if (is_array($column["settings"])) {

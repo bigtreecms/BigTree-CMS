@@ -60,7 +60,7 @@
 	</fieldset>
 	<fieldset>
 		<label>Create Hi-Resolution Retina Images <small><a href="https://www.bigtreecms.org/docs/dev-guide/field-types/retina-images/" target="_blank">(learn more)</a></small></label>
-		<input id="<?=$image_options_prefix?>settings_field_retina" type="checkbox" name="retina" <?php if ($settings["retina"]) { ?>checked="checked" <?php } ?>/>
+		<input id="<?=$image_options_prefix?>settings_field_retina" type="checkbox" name="retina" <?php if (!empty($settings["retina"])) { ?>checked="checked" <?php } ?>/>
 		<label for="<?=$image_options_prefix?>settings_field_retina" class="for_checkbox"> When Available</label>
 	</fieldset>
 	
@@ -121,7 +121,7 @@
 					<li class="actions">
 						<span class="icon_small icon_small_up"></span>
 						<input type="hidden" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][grayscale]" value="<?=$thumb["grayscale"]?>" />
-						<a href="#" title="Switch Color Mode" class="color_mode<?php if ($thumb["grayscale"]) { ?> gray<?php } ?>"></a>
+						<a href="#" title="Switch Color Mode" class="color_mode<?php if (!empty($thumb["grayscale"])) { ?> gray<?php } ?>"></a>
 						<a href="#" title="Remove" class="delete"></a>
 					</li>
 				</ul>
@@ -133,27 +133,27 @@
 			</div>
 			<div class="image_attr_crop_center_crops">
 				<?php	
-							if (is_array($crop["center_crops"])) {
-								foreach ($crop["center_crops"] as $crop) {
+							if (!empty($crop["center_crops"]) && is_array($crop["center_crops"])) {
+								foreach ($crop["center_crops"] as $center_crop) {
 									// In case a sub crop was added and a prefix or width/height were missing - require prefix here because it'll replace the crop otherwise
-									if (is_array($crop) && $crop["prefix"] && $crop["width"] && $crop["height"]) {
+									if (is_array($center_crop) && $center_crop["prefix"] && $center_crop["width"] && $center_crop["height"]) {
 										$crop_sub_count++;
 				?>
 				<ul class="image_attr_thumbs_<?=$crop_count?>">
 					<li class="thumbed">
 						<span class="icon_small icon_small_crop" title="Sub-Crop"></span>
-						<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][prefix]" value="<?=htmlspecialchars($crop["prefix"])?>" />
+						<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][prefix]" value="<?=htmlspecialchars($center_crop["prefix"])?>" />
 					</li>
 					<li>
-						<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][width]" value="<?=htmlspecialchars($crop["width"])?>" />
+						<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][width]" value="<?=htmlspecialchars($center_crop["width"])?>" />
 					</li>
 					<li>
-						<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][height]" value="<?=htmlspecialchars($crop["height"])?>" />
+						<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][height]" value="<?=htmlspecialchars($center_crop["height"])?>" />
 					</li>
 					<li class="actions">
 						<span class="icon_small icon_small_up"></span>
-						<input type="hidden" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][grayscale]" value="<?=$crop["grayscale"]?>" />
-						<a href="#" title="Switch Color Mode" class="color_mode<?php if ($crop["grayscale"]) { ?> gray<?php } ?>"></a>
+						<input type="hidden" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][grayscale]" value="<?=$center_crop["grayscale"]?>" />
+						<a href="#" title="Switch Color Mode" class="color_mode<?php if (!empty($center_crop["grayscale"])) { ?> gray<?php } ?>"></a>
 						<a href="#" title="Remove" class="delete"></a>
 					</li>
 				</ul>
@@ -181,7 +181,8 @@
 			<?php
 				// Keep a count of thumbs
 				$thumb_count = 0;
-				if (is_array($settings["thumbs"])) {
+				
+				if (!empty($settings["thumbs"]) && is_array($settings["thumbs"])) {
 					foreach ($settings["thumbs"] as $thumb) {
 						// Make sure a width or height was entered or it's pointless
 						if (is_array($thumb) && ($thumb["width"] || $thumb["height"])) {
@@ -220,7 +221,8 @@
 			<?php
 				// Keep a count of center crops
 				$center_crop_count = 0;
-				if (is_array($settings["center_crops"])) {
+				
+				if (!empty($settings["center_crops"]) && is_array($settings["center_crops"])) {
 					foreach ($settings["center_crops"] as $center_crop) {
 						// Make sure a width and height was entered or it's pointless
 						if (is_array($center_crop) && ($center_crop["width"] && $center_crop["height"])) {

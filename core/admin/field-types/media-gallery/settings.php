@@ -1,9 +1,14 @@
 <?php
 	$cached_types = $admin->getCachedFieldTypes(true);
 	$types = $cached_types["callouts"];
-	$columns = is_array($settings["columns"]) ? $settings["columns"] : [["id" => "","title" => "","subtitle" => "","type" => "text"]];
-	$settings["max"] = $settings["max"] ? intval($settings["max"]) : "";
-
+	$settings["max"] = !empty($settings["max"]) ? intval($settings["max"]) : "";
+	
+	if (empty($settings["columns"]) || !is_array($settings["columns"])) {
+		$settings["columns"] = [
+			["id" => "", "title" => "", "subtitle" => "", "type" => "text", "settings" => ""]
+		];
+	}
+	
 	if (empty($settings["directory"])) {
 		if (isset($_POST["template"])) {
 			$settings["directory"] = "files/pages/";
@@ -22,19 +27,19 @@
 	<input id="field_settings_max" type="text" name="max" value="<?=$settings["max"]?>" />
 </fieldset>
 <fieldset>
-	<input id="field_settings_disable_photos" type="checkbox" name="disable_photos" <?php if ($settings["disable_photos"]) { ?>checked="checked" <?php } ?>/>
+	<input id="field_settings_disable_photos" type="checkbox" name="disable_photos" <?php if (!empty($settings["disable_photos"])) { ?>checked="checked" <?php } ?>/>
 	<label for="field_settings_disable_photos" class="for_checkbox">Disable Photos</label>
 </fieldset>
 <fieldset>
-	<input id="field_settings_disable_youtube" type="checkbox" name="disable_youtube" <?php if ($settings["disable_youtube"]) { ?>checked="checked" <?php } ?>/>
+	<input id="field_settings_disable_youtube" type="checkbox" name="disable_youtube" <?php if (!empty($settings["disable_youtube"])) { ?>checked="checked" <?php } ?>/>
 	<label for="field_settings_disable_youtube" class="for_checkbox">Disable YouTube Videos</label>
 </fieldset>
 <fieldset>
-	<input id="field_settings_disable_vimeo" type="checkbox" name="disable_vimeo" <?php if ($settings["disable_vimeo"]) { ?>checked="checked" <?php } ?>/>
+	<input id="field_settings_disable_vimeo" type="checkbox" name="disable_vimeo" <?php if (!empty($settings["disable_vimeo"])) { ?>checked="checked" <?php } ?>/>
 	<label for="field_settings_disable_vimeo" class="for_checkbox">Disable Vimeo Videos</label>
 </fieldset>
 <fieldset>
-	<input id="field_settings_enable_manual" type="checkbox" name="enable_manual" <?php if ($settings["enable_manual"]) { ?>checked="checked" <?php } ?>/>
+	<input id="field_settings_enable_manual" type="checkbox" name="enable_manual" <?php if (!empty($settings["enable_manual"])) { ?>checked="checked" <?php } ?>/>
 	<label for="field_settings_enable_manual" class="for_checkbox"><strong>Enable</strong> Manually Uploaded Videos</label>
 </fieldset>
 <hr />
@@ -55,7 +60,7 @@
 		<?php
 			$x = 0;
 
-			foreach ($columns as $column) {
+			foreach ($settings["columns"] as $column) {
 				$x++;
 
 				if (empty($column["settings"]) && !empty($column["options"])) {

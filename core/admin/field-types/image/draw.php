@@ -26,7 +26,7 @@
 	$filtered_crops = [];
 
 	// Get preview data and existing crops
-	if ($field["value"]) {
+	if (!empty($field["value"])) {
 		if (!empty($field["settings"]["preview_prefix"])) {
 			$preview_image = BigTree::prefixFile($field["value"],$field["settings"]["preview_prefix"]);
 		} else {
@@ -71,7 +71,7 @@
 		?>
 	</div>
 	<div class="contain">
-		<div class="currently<?php if (!empty($field["settings"]["preview_files_square"])) { ?> currently_files_square<?php } ?>" <?php if (!$field["value"]) { ?> style="display: none;"<?php } ?> id="<?=$field["id"]?>_currently">
+		<div class="currently<?php if (!empty($field["settings"]["preview_files_square"])) { ?> currently_files_square<?php } ?>" <?php if (empty($field["value"])) { ?> style="display: none;"<?php } ?> id="<?=$field["id"]?>_currently">
 			<?php
 				if (empty($field["settings"]["disable_remove"])) {
 			?>
@@ -80,7 +80,7 @@
 				}
 			?>
 			<div class="currently_wrapper">
-				<?php if ($preview_image) { ?>
+				<?php if (!empty($preview_image)) { ?>
 				<a href="<?=$field["value"]?>" target="_blank"><img src="<?=$preview_image?>" alt="" /></a>
 				<?php } ?>
 			</div>

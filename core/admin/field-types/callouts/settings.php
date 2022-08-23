@@ -1,14 +1,17 @@
 <?php
-	// Stop notices
-	$settings["groups"] = is_array($settings["groups"]) ? $settings["groups"] : array();
-	$settings["verb"] = isset($settings["verb"]) ? $settings["verb"] : "";
-	$settings["max"] = $settings["max"] ? intval($settings["max"]) : "";
-
 	$groups = $admin->getCalloutGroups();
+	
+	// Stop notices
+	$settings["noun"] = $settings["noun"] ?? "";
+	$settings["max"] = !empty($settings["max"]) ? intval($settings["max"]) : "";
+	
+	if (empty($settings["groups"]) || !is_array($settings["groups"])) {
+		$settings["groups"] = [];
+	}
 
 	// Work with older group info from 4.1 and lower
-	if (!array_filter($settings["groups"]) && $settings["group"]) {
-		$settings["groups"] = array($settings["group"]);
+	if (!array_filter($settings["groups"]) && !empty($settings["group"])) {
+		$settings["groups"] = [$settings["group"]];
 	}
 ?>
 <fieldset>
@@ -20,6 +23,7 @@
 		<ul>
 			<?php
 				$x = 0;
+				
 				foreach ($settings["groups"] as $id) {
 					$group = $admin->getCalloutGroup($id);
 			?>

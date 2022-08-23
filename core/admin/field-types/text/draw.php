@@ -1,7 +1,7 @@
 <div class="text_input">
 	<?php
-		$sub_type = isset($field["settings"]["sub_type"]) ? $field["settings"]["sub_type"] : false;
-		$max_length = isset($field["settings"]["max_length"]) ? intval($field["settings"]["max_length"]) : false;
+		$sub_type = $field["settings"]["sub_type"] ?? false;
+		$max_length = !empty($field["settings"]["max_length"]) ? intval($field["settings"]["max_length"]) : false;
 
 		if (!$sub_type) {
 	?>
@@ -29,12 +29,18 @@
 			}
 		} elseif ($sub_type == "name") {
 			// To prevent warnings we'll try to extract a first name / last name from a string.
-			if (!is_array($field["value"])) {
+			if (empty($field["value"]) || !is_array($field["value"])) {
 				if ($field["value"]) {
 					$temp = explode(" ",$field["value"]);
-					$field["value"] = array("first_name" => $temp[0],"last_name" => end($temp));
+					$field["value"] = [
+						"first_name" => $temp[0] ?? "",
+						"last_name" => $temp[1] ?? "",
+					];
 				} else {
-					$field["value"] = array("first_name" => "","last_name" => "");
+					$field["value"] = [
+						"first_name" => "",
+						"last_name" => "",
+					];
 				}
 			}
 	?>
@@ -49,8 +55,14 @@
 			$bigtree["tabindex"]++;
 		} elseif ($sub_type == "address") {
 			// Prevent warnings.
-			if (!is_array($field["value"])) {
-				$field["value"] = array("street" => "", "city" => "", "state" => "", "zip" => "", "country" => "");
+			if (empty($field["value"]) || !is_array($field["value"])) {
+				$field["value"] = [
+					"street" => "",
+					"city" => "",
+					"state" => "",
+					"zip" => "",
+					"country" => "",
+				];
 			}
 	?>
 	<section class="input_address_street">
@@ -89,7 +101,10 @@
 	<input class="<?=$field["settings"]["validation"]?>" type="url" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>" value="<?=$field["value"]?>" id="<?=$field["id"]?>" />
 	<?php
 		} elseif ($sub_type == "phone") {
-			list($area_code,$prefix,$line_number) = explode("-",$field["value"]);
+			$pieces = explode("-", $field["value"]);
+			$area_code = $pieces[0] ?? "";
+			$prefix = $pieces[1] ?? "";
+			$line_number = $pieces[2] ?? "";
 	?>
 	<section class="input_phone_3">
 		<input class="<?=$field["settings"]["validation"]?>" type="text" tabindex="<?=$field["tabindex"]?>" name="<?=$field["key"]?>[phone_1]" maxlength="3" value="<?=$area_code?>" id="<?=$field["id"]?>" placeholder="xxx" />

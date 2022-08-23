@@ -32,7 +32,8 @@
 				"subtitle" => $resource["subtitle"],
 				"key" => $key."[$count][".$resource["id"]."]",
 				"tabindex" => $tabindex,
-				"settings" => $resource["settings"] ?: $resource["options"]
+				"settings" => $resource["settings"] ?? $resource["options"] ?? [],
+				"value" => "",
 			];
 
 			if (empty($field["settings"]["directory"])) {

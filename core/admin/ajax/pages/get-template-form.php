@@ -1,14 +1,13 @@
 <?php
 	$cached_types = $admin->getCachedFieldTypes();
 	$bigtree["field_types"] = $cached_types["templates"];
-	$template_id = $bigtree["current_page"]["template"];
+	$template_id = $bigtree["current_page"]["template"] ?? $_POST["template"];
 
 	if (isset($_POST["page"])) {
 		$template_id = $_POST["template"];
 		$bigtree["current_page"] = $cms->getPendingPage($_POST["page"]);
 		$bigtree["resources"] = $bigtree["current_page"]["resources"];
 	} elseif (isset($_POST["template"])) {
-		$template_id = $_POST["template"];
 		$bigtree["resources"] = array();
 	} elseif (!isset($bigtree["resources"]) && !isset($bigtree["callouts"])) {
 		$bigtree["resources"] = array();

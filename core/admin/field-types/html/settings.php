@@ -1,8 +1,8 @@
 <?php
 	// Stop notices
-	$settings["seo_body"] = isset($settings["seo_body"]) ? $settings["seo_body"] : "";
-	$settings["simple"] = isset($settings["simple"]) ? $settings["simple"] : "";
-	$sbp = isset($settings["simple_by_permission"]) ? $settings["simple_by_permission"] : "";
+	$settings["seo_body"] = $settings["seo_body"] ?? "";
+	$settings["simple"] = $settings["simple"] ?? "";
+	$sbp = $settings["simple_by_permission"] ?? "";
 	
 	if (isset($_POST["template"])) {
 ?>

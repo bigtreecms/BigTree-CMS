@@ -7,7 +7,7 @@
 	$max = !empty($field["settings"]["max"]) ? $field["settings"]["max"] : 0;
 
 	// Work with older group info from 4.1 and lower
-	if (!is_array($field["settings"]["groups"]) && $field["settings"]["group"]) {
+	if (empty($field["settings"]["groups"]) && !empty($field["settings"]["group"])) {
 		$field["settings"]["groups"] = array($field["settings"]["group"]);
 	}
 

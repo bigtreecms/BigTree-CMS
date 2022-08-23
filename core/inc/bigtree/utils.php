@@ -56,6 +56,10 @@
 		*/
 
 		public static function arrayFilterRecursive($array) {
+			if (!is_array($array)) {
+				return [];
+			}
+			
 			foreach ($array as $key => $value) {
 				if (is_array($value)) {
 					$array[$key] = static::arrayFilterRecursive($value);

@@ -9,15 +9,17 @@
 		$field["value"] = json_decode($field["value"],true);
 	}
 
-	$max = !empty($field["settings"]["max"]) ? $field["settings"]["max"] : 0;
+	$max = !empty($field["settings"]["max"]) ? intval($field["settings"]["max"]) : 0;
 
 	// Throw an exception if they didn't setup the field type properly
-	if (!$field["settings"]["table"] || !$field["settings"]["title_column"]) {
-		throw new Exception("One-to-Many field type requires a table and a title field to be setup to function.");
+	if (empty($field["settings"]["table"]) || empty($field["settings"]["title_column"])) {
+		trigger_error("One-to-Many field type requires a table and a title field to be setup to function.", E_USER_WARNING);
+		
+		return;
 	}
 
 	$entries = array();
-	$sort = $field["settings"]["sort_by_column"] ? $field["settings"]["sort_by_column"] : $field["settings"]["title_column"]." ASC";
+	$sort = !empty($field["settings"]["sort_by_column"]) ? $field["settings"]["sort_by_column"] : $field["settings"]["title_column"]." ASC";
 
 	// Get existing entries' titles
 	foreach ($field["value"] as $entry) {

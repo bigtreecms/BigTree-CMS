@@ -1,7 +1,7 @@
 <?php
 	// Stop notices
-	$settings["default_now"] = isset($settings["default_now"]) ? $settings["default_now"] : "";
-	$settings["ignore_timezones"] = isset($settings["ignore_timezones"]) ? $settings["ignore_timezones"] : "";
+	$settings["default_now"] = $settings["default_now"] ?? "";
+	$settings["ignore_timezones"] = $settings["ignore_timezones"] ?? "";
 ?>
 <fieldset>
 	<input id="settings_field_default_now" type="checkbox" name="default_now"<?php if ($settings["default_now"]) { ?> checked="checked"<?php } ?>/>

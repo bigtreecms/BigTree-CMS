@@ -1,8 +1,7 @@
 <?php
-	$callout = $admin->getCallout($_POST["type"]);
 	$key = $_POST["key"];
 	$count = $_POST["count"];
-	$tabindex = $_POST["tab_index"];
+	$tabindex = $_POST["tab_index"] ?? 1;
 	$cached_types = $admin->getCachedFieldTypes();
 
 	$bigtree["field_types"] = $cached_types["callouts"];
@@ -25,8 +24,14 @@
 <div class="matrix_entry_fields">
 	<?php
 		foreach ($bigtree["matrix_columns"] as $resource) {
-			$settings = $resource["settings"] ? @json_decode($resource["settings"], true) : @json_decode($resource["options"], true);
-
+			if (!empty($resource["settings"])) {
+				$settings = @json_decode($resource["settings"], true);
+			} else if (!empty($resource["options"])) {
+				$settings = @json_decode($resource["options"], true);
+			} else {
+				$settings = [];
+			}
+			
 			if (!is_array($settings)) {
 				$settings = [];
 			}
@@ -37,12 +42,13 @@
 
 			$field = [
 				"type" => $resource["type"],
-				"title" => $resource["title"],
-				"subtitle" => $resource["subtitle"],
+				"title" => $resource["title"] ?? "",
+				"subtitle" => $resource["subtitle"] ?? "",
 				"key" => $key."[$count][".$resource["id"]."]",
 				"tabindex" => $tabindex,
 				"settings" => $settings,
-				"matrix_title_field" => !empty($resource["display_title"]) ? true : false
+				"matrix_title_field" => !empty($resource["display_title"]),
+				"value" => "",
 			];
 
 			BigTreeAdmin::drawField($field);
