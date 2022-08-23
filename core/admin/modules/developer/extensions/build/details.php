@@ -1,3 +1,15 @@
+<?php
+	if (empty($licenses)) {
+		$licenses = [];
+	}
+	
+	$license = $license ?? "";
+	$author = $author ?? [
+		"name" => "",
+		"email" => "",
+		"url" => "",
+	];
+?>
 <div class="container">
 	<form method="post" action="<?=DEVELOPER_ROOT?>extensions/build/save-details/" class="module">
 		<?php $admin->drawCSRFToken() ?>
@@ -7,32 +19,32 @@
 				<div class="left last">
 					<fieldset<?php if (!empty($_GET["invalid"])) { ?> class="form_error"<?php } ?>>
 						<label>ID <small>(i.e. com.fastspot.news &mdash; allowed characters: alphanumeric, ".", "-", and "_")</small></label>
-						<input type="text" name="id" value="<?=$id?>" tabindex="1" id="extension_id" />
+						<input type="text" name="id" value="<?=$id ?? ""?>" tabindex="1" id="extension_id" />
 					</fieldset>
 					<div id="extension_id_warning" class="warning_message" style="display: none;">
 						<p>This ID is already in use in the official BigTree extensions database.</p>
 					</div>
 					<fieldset>
 						<label>Title <small>(i.e. News)</small></label>
-						<input type="text" name="title" value="<?=$title?>" tabindex="3" />
+						<input type="text" name="title" value="<?=$title ?? ""?>" tabindex="3" />
 					</fieldset>
 					<fieldset class="last">
 						<label>Description</label>
-						<textarea name="description" tabindex="5"><?=$description?></textarea>
+						<textarea name="description" tabindex="5"><?=$description ?? ""?></textarea>
 					</fieldset>
 				</div>
 				<div class="right last">
 					<fieldset>
 						<label>BigTree Version Compatibility <small>(i.e. 4.2+)</small></label>
-						<input type="text" name="compatibility" value="<?=$compatibility?>" tabindex="2" />
+						<input type="text" name="compatibility" value="<?=$compatibility ?? ""?>" tabindex="2" />
 					</fieldset>
 					<fieldset>
 						<label>Version <small>(i.e. 1.5)</small></label>
-						<input type="text" name="version" value="<?=$version?>" tabindex="4" />
+						<input type="text" name="version" value="<?=$version ?? ""?>" tabindex="4" />
 					</fieldset>
 					<fieldset class="last">
 						<label>Keywords <small>(separate with commas)</small></label>
-						<textarea name="keywords" tabindex="6"><?=$keywords?></textarea>
+						<textarea name="keywords" tabindex="6"><?=$keywords ?? ""?></textarea>
 					</fieldset>
 				</div>
 			</div>
@@ -42,7 +54,7 @@
 					<h3>Open Source Licenses</h3>
 					<?php foreach ($available_licenses["Open Source"] as $name => $link) { ?>
 					<div class="checkbox_row">
-						<input type="checkbox" name="licenses[]" value="<?=$name?>" <?php if (in_array($name,(array)$licenses)) { ?> checked="checked"<?php } ?>/>
+						<input type="checkbox" name="licenses[]" value="<?=$name?>" <?php if (in_array($name, (array) $licenses)) { ?> checked="checked"<?php } ?>/>
 						<label class="for_checkbox"><?=$name?> &mdash; <a href="<?=$link?>" target="_blank">Read License</a></label>
 					</div>
 					<?php } ?>
@@ -59,11 +71,11 @@
 					<h3>Custom License</h3>
 					<fieldset>
 						<label>Name</label>
-						<input type="text" name="license_name" value="<?=$license_name?>" />
+						<input type="text" name="license_name" value="<?=$license_name ?? ""?>" />
 					</fieldset>
 					<fieldset>
 						<label>URL <small>(to full license text)</small></label>
-						<input type="text" name="license_url" value="<?=$license_url?>" />
+						<input type="text" name="license_url" value="<?=$license_url ?? ""?>" />
 					</fieldset>
 				</div>
 			</div>

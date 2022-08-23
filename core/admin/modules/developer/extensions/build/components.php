@@ -1,3 +1,12 @@
+<?php
+	$modules = $modules ?? [];
+	$groups = $groups ?? [];
+	$templates = $templates ?? [];
+	$callouts = $callouts ?? [];
+	$settings = $settings ?? [];
+	$feeds = $feeds ?? [];
+	$field_types = $field_types ?? [];
+?>
 <div class="container">
 	<header><p>Add modules, templates, callouts, field types, feeds, and settings to your extension.</p></header>
 	<form method="post" action="<?=DEVELOPER_ROOT?>extensions/build/save-components/" class="module">

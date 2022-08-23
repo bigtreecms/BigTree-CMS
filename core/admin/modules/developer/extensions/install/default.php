@@ -5,6 +5,7 @@
 		"extensions/",
 		"site/extensions/"
 	);
+	
 	foreach ($directories_to_check as $directory) {
 		if (!is_writable(SERVER_ROOT.$directory)) {
 ?>
@@ -25,7 +26,7 @@
 		<input type="hidden" name="MAX_FILE_SIZE" value="<?=BigTree::uploadMaxFileSize()?>" />
 		<section>
 			<?php
-				if ($_SESSION["upload_error"]) {
+				if (!empty($_SESSION["upload_error"])) {
 			?>
 			<p class="error_message"><?=$_SESSION["upload_error"]?></p>
 			<?php

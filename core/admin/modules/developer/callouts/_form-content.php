@@ -5,12 +5,12 @@
 	$admin->drawCSRFToken();
 ?>
 <section>
-	<p class="error_message"<?php if (!$show_error) { ?> style="display: none;"<?php } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
+	<p class="error_message"<?php if (empty($show_error)) { ?> style="display: none;"<?php } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 	
 	<div class="left">
 		<?php if (!isset($callout)) { ?>
-		<fieldset<?php if ($show_error) { ?> class="form_error"<?php } ?>>
-			<label class="required">ID <small>(used for file name, alphanumeric, "-" and "_" only)</small><?php if ($show_error) { ?> <span class="form_error_reason"><?=$show_error?></span><?php } ?></label>
+		<fieldset<?php if (!empty($show_error)) { ?> class="form_error"<?php } ?>>
+			<label class="required">ID <small>(used for file name, alphanumeric, "-" and "_" only)</small><?php if (!empty($show_error)) { ?> <span class="form_error_reason"><?=$show_error?></span><?php } ?></label>
 			<input type="text" class="required" name="id" value="<?=$id?>" />
 		</fieldset>
 		<?php } ?>

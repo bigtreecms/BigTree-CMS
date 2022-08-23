@@ -68,6 +68,10 @@
 		}
 	}
 	
+	if (empty($json["files"])) {
+		$json["files"] = [];
+	}
+	
 	// Check file permissions and collisions
 	foreach ((array)$json["files"] as $file) {
 		if (!BigTree::isDirectoryWritable(SERVER_ROOT.$file)) {

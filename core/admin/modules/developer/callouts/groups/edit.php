@@ -25,9 +25,11 @@
 								$callout = $admin->getCallout($id);
 						?>
 						<li>
-							<input type="hidden" name="callouts[<?=$x?>]" value="<?=BigTree::safeEncode($id)?>" />
-							<p class="multi_widget_entry_title"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($callout["name"]),100))?></p>
-							<a href="#" class="icon_delete"></a>
+							<div class="inner">
+								<input type="hidden" name="callouts[<?=$x?>]" value="<?=BigTree::safeEncode($id)?>" />
+								<p class="multi_widget_entry_title"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($callout["name"]),100))?></p>
+								<a href="#" class="icon_delete"></a>
+							</div>
 						</li>
 						<?php
 								$x++;

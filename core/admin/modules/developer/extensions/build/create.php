@@ -47,7 +47,7 @@
 		"description" => $description,
 		"keywords" => $keywords,
 		"author" => $author,
-		"licenses" => $license_array,
+		"licenses" => $license_array ?? [],
 		"components" => array(
 			"module_groups" => array(),
 			"modules" => array(),
@@ -85,9 +85,9 @@
 	}
 	
 	foreach (array_filter((array)$feeds) as $feed) {
-		$feed = BigTreeJSONDB::get("feed", $feed);
+		$feed = BigTreeJSONDB::get("feeds", $feed);
 
-		if (!$feed["extension"]) {
+		if (empty($feed["extension"])) {
 			BigTreeJSONDB::update("feeds", $feed["id"], ["route" => $extension."/".$feed["route"], "extension" => $extension]);
 		}
 
@@ -190,7 +190,7 @@
 				BigTree::moveFile(SERVER_ROOT."custom/admin/field-types/$type/draw.php", $extension_root."field-types/$type/draw.php");
 				BigTree::moveFile(SERVER_ROOT."custom/admin/field-types/$type/process.php", $extension_root."field-types/$type/process.php");
 				BigTree::moveFile(SERVER_ROOT."custom/admin/field-types/$type/settings.php", $extension_root."field-types/$type/settings.php");
-				unlink(SERVER_ROOT."custom/admin/field-types/$type/");
+				@unlink(SERVER_ROOT."custom/admin/field-types/$type/");
 			} else {
 				BigTree::moveFile(SERVER_ROOT."custom/admin/ajax/developer/field-options/$type.php",$extension_root."field-types/$type/settings.php");
 				BigTree::moveFile(SERVER_ROOT."custom/admin/form-field-types/draw/$type.php",$extension_root."field-types/$type/draw.php");
@@ -219,7 +219,7 @@
 		$module = $admin->getModule($module);
 		
 		// If the module isn't namespaced yet, namespace it
-		if (!$module["extension"]) {
+		if (empty($module["extension"])) {
 			$new_route = $extension."*".$module["route"];
 			BigTreeJSONDB::update("modules", $module["id"], [
 				"route" => $new_route,

@@ -56,19 +56,19 @@
 					</optgroup>
 					<?php } ?>
 				</select>		
-				<input type="text" name="columns[][id]" value="<?=BigTree::safeEncode($column["id"])?>" placeholder="ID" />
-				<input type="text" name="columns[][title]" value="<?=BigTree::safeEncode($column["title"])?>" placeholder="Title" />
-				<input type="text" name="columns[][subtitle]" value="<?=BigTree::safeEncode($column["subtitle"])?>" placeholder="Subtitle" />
+				<input type="text" name="columns[][id]" value="<?=BigTree::safeEncode($column["id"] ?? "")?>" placeholder="ID" />
+				<input type="text" name="columns[][title]" value="<?=BigTree::safeEncode($column["title"] ?? "")?>" placeholder="Title" />
+				<input type="text" name="columns[][subtitle]" value="<?=BigTree::safeEncode($column["subtitle"] ?? "")?>" placeholder="Subtitle" />
 			</div>
 			<footer>
 				<div class="matrix_display_title">
-					<input type="checkbox" name="columns[][display_title]"<?php if ($column["display_title"]) { ?> checked="checked"<?php } ?> />
+					<input type="checkbox" name="columns[][display_title]"<?php if (!empty($column["display_title"])) { ?> checked="checked"<?php } ?> />
 					<label class="for_checkbox">Use as Title</label>
 				</div>
 				<span class="icon_drag"></span>
 				<a href="#" class="icon_delete"></a>
 				<a href="#" class="icon_edit" name="<?=$x?>"></a>
-				<input type="hidden" name="columns[][settings]" value="<?=$settings?>" />
+				<input type="hidden" name="columns[][settings]" value="<?=$settings ?? ""?>" />
 			</footer>
 		</article>
 		<?php

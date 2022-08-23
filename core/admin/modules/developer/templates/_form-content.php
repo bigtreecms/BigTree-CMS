@@ -22,7 +22,7 @@
 		<?php if (!isset($template)) { ?>
 		<div class="left">
 			<fieldset<?php if (!empty($show_error)) { ?> class="form_error"<?php } ?>>
-				<label class="required">ID <small>(used for file/directory name, alphanumeric, "-" and "_" only)</small><?php if ($show_error) { ?> <span class="form_error_reason"><?=$show_error?></span><?php } ?></label>
+				<label class="required">ID <small>(used for file/directory name, alphanumeric, "-" and "_" only)</small><?php if (!empty($show_error)) { ?> <span class="form_error_reason"><?=$show_error?></span><?php } ?></label>
 				<input type="text" class="required" name="id" value="<?=($id ?? "")?>" />
 			</fieldset>
 		</div>

@@ -59,7 +59,7 @@
 					$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
 				}
 				
-				if (!$ims || strtotime($ims) != $last_modified) {
+				if (empty($ims) || strtotime($ims) != $last_modified) {
 					header("Content-type: text/javascript");
 					header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
 					readfile($cache_file);
@@ -145,7 +145,7 @@
 					$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
 				}
 				
-				if (!$ims || strtotime($ims) != $last_modified) {
+				if (empty($ims) || strtotime($ims) != $last_modified) {
 					header("Content-type: text/css");
 					header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
 					readfile($cache_file);
@@ -185,7 +185,7 @@
 				$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
 			}
 			
-			if (!$ims || strtotime($ims) != $last_modified) {
+			if (empty($ims) || strtotime($ims) != $last_modified) {
 				header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
 			
 				if (function_exists("mime_content_type")) {
@@ -402,10 +402,12 @@
 		if ($bigtree["page"]["template"] == "!") {
 			$nav = $cms->getNavByParent($bigtree["page"]["id"],1);
 			$first = current($nav);
-			if (!$first) {
+			
+			if (empty($first)) {
 				$nav = $cms->getHiddenNavByParent($bigtree["page"]["id"]);
 				$first = current($nav);
 			}
+			
 			BigTree::redirect($first["link"], 303);
 		}
 
@@ -421,7 +423,7 @@
 		// If the template is a module, do its routing for it, otherwise just include the template.
 		if ($routed) {
 			// Allow the homepage to be routed
-			if (!$bigtree["page"]["path"]) {
+			if (empty($bigtree["page"]["path"])) {
 				$bigtree["commands"] = $bigtree["path"];
 			}
 			
@@ -636,9 +638,11 @@
 	// Write to the cache
 	if ($bigtree["config"]["cache"] && !defined("BIGTREE_DO_NOT_CACHE") && !count($_POST)) {
 		$cache = ob_get_flush();
-		if (!$bigtree["page"]["path"]) {
+		
+		if (empty($bigtree["page"]["path"])) {
 			$bigtree["page"]["path"] = "!";
 		}
+		
 		$cache_file = (defined("BIGTREE_CACHE_FILE")) ? BIGTREE_CACHE_FILE : md5(json_encode($_GET));
 		BigTree::putFile(BIGTREE_CACHE_DIRECTORY.$cache_file.".page",$cache);
 	}

@@ -2,7 +2,8 @@
 	// Stop notices
 	$id = $name = $self_draw = "";
 	$use_cases = array("templates" => "on", "modules" => "on","callouts" => "on","settings" => "on");
-	if ($_SESSION["bigtree_admin"]["error"]) {
+	
+	if (!empty($_SESSION["bigtree_admin"]["error"])) {
 		BigTree::globalizeArray($_SESSION["bigtree_admin"]["saved"]);
 		$show_error = $_SESSION["bigtree_admin"]["error"];
 		unset($_SESSION["bigtree_admin"]["error"]);
@@ -15,8 +16,8 @@
 		<section>
 			<div class="contain">
 				<div class="left">
-					<fieldset<?php if ($show_error) { ?> class="form_error"<?php } ?>>
-						<label class="required">ID <small>(used for file name, alphanumeric, "-" and "_" only)</small><?php if ($show_error) { ?> <span class="form_error_reason"><?=$show_error?></span><?php } ?></label>
+					<fieldset<?php if (!empty($show_error)) { ?> class="form_error"<?php } ?>>
+						<label class="required">ID <small>(used for file name, alphanumeric, "-" and "_" only)</small><?php if (!empty($show_error)) { ?> <span class="form_error_reason"><?=$show_error?></span><?php } ?></label>
 						<input type="text" class="required" name="id" value="<?=$id?>" />
 					</fieldset>
 					<fieldset>

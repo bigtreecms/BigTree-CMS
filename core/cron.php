@@ -31,7 +31,7 @@
 	$admin->updateInternalSettingValue("bigtree-internal-cron-last-run", time());
 
 	// Ping bigtreecms.org with current version stats
-	if (!$bigtree["config"]["disable_ping"]) {
+	if (empty($bigtree["config"]["disable_ping"])) {
 		BigTree::cURL("https://www.bigtreecms.org/ajax/ping/?www_root=".urlencode(WWW_ROOT)."&version=".urlencode(BIGTREE_VERSION));
 	}
 

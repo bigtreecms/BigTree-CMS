@@ -222,7 +222,7 @@
 	}
 	
 	// Connect to MySQL and begin sessions and output buffering.
-	if (!$bigtree["mysql_read_connection"]) {
+	if (empty($bigtree["mysql_read_connection"])) {
 		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 	}
 	
@@ -271,7 +271,7 @@
 	}
 
 	// Redirect to dashboard by default if we're not requesting anything.
-	if (!$bigtree["path"][1]) {
+	if (empty($bigtree["path"][1])) {
 		BigTree::redirect(ADMIN_ROOT."dashboard/");
 	}
 

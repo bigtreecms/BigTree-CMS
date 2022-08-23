@@ -17,7 +17,7 @@
 	
 	$action = !empty($bigtree["commands"][0]) ? $bigtree["commands"][0] : "";
 
-	if (!$action || is_numeric($action) || is_numeric(substr($action,1))) {
+	if (empty($action) || is_numeric($action) || is_numeric(substr($action,1))) {
 		if ($bigtree["edit_id"]) {
 			if (isset($_GET["force"])) {
 				$admin->unlock($bigtree["form"]["table"],$bigtree["edit_id"]);

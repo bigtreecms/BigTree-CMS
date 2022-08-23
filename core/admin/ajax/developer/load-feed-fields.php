@@ -9,11 +9,12 @@
 	$tblfields = array();
 
 	// To tolerate someone selecting the blank spot again when creating a feed.
-	if ($table) {
+	if (!empty($table)) {
 		$table_description = BigTree::describeTable($table);
 	} else {
 		$table_description = array("columns" => array());
 	}
+	
 	foreach ($table_description["columns"] as $column => $details) {
 		$tblfields[] = $column;
 	}
@@ -55,13 +56,13 @@
 		<ul id="sort_table">
 			<?php foreach ($fields as $key => $field) { ?>
 			<li id="row_<?=$key?>">
-				<input type="hidden" name="fields[<?=$key?>][width]" value="<?=$field["width"]?>" />
+				<input type="hidden" name="fields[<?=$key?>][width]" value="<?=$field["width"] ?? ""?>" />
 				<section class="developer_view_title">
 					<span class="icon_sort"></span>
-					<input type="text" name="fields[<?=$key?>][title]" value="<?=$field["title"]?>" />
+					<input type="text" name="fields[<?=$key?>][title]" value="<?=$field["title"] ?? ""?>" />
 				</section>
 				<section class="developer_view_parser">
-					<input type="text" name="fields[<?=$key?>][parser]" value="<?=htmlspecialchars($field["parser"])?>"  placeholder="PHP code to transform $value (which contains the column value.)" />
+					<input type="text" name="fields[<?=$key?>][parser]" value="<?=htmlspecialchars($field["parser"] ?? "")?>"  placeholder="PHP code to transform $value (which contains the column value.)" />
 				</section>
 				<section class="developer_resource_action">
 					<a href="#" class="icon_delete"></a>

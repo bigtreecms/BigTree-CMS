@@ -312,7 +312,7 @@
 						$template = BigTreeJSONDB::get("templates", $page_data["template"]);
 
 						// Additional commands to a non-routed template is a 404, we shouldn't try to append them
-						if (!$template["routed"]) {
+						if (empty($template["routed"])) {
 							return;
 						}
 

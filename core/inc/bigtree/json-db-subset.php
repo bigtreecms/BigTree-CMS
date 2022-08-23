@@ -18,7 +18,7 @@
 		}
 
 		function check($type) {			
-			if (!is_array($this->Cache[$type])) {
+			if (empty($this->Cache[$type]) || !is_array($this->Cache[$type])) {
 				$this->Cache[$type] = [];
 			}
 		}

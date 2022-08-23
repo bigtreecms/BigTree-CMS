@@ -2339,7 +2339,7 @@
 			}
 			
 			// Switch auto increment if different
-			if (isset($table_b_description["auto_increment"]) && $table_a_description["auto_increment"] != $table_b_description["auto_increment"]) {
+			if (isset($table_b_description["auto_increment"]) && ($table_a_description["auto_increment"] ?? "") != $table_b_description["auto_increment"]) {
 				$queries[] = "ALTER TABLE `$table_a` AUTO_INCREMENT = ".$table_b_description["auto_increment"];
 			}
 			

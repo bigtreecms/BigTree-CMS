@@ -1,16 +1,16 @@
 <rss version="2.0">
 	<channel>
-		<title><?php if ($feed["settings"]["feed_title"]) { echo $feed["settings"]["feed_title"]; } else { echo $feed["name"]; } ?></title>
-		<link><?php if ($feed["settings"]["feed_link"]) { echo $feed["settings"]["feed_link"]; } else { ?><?=WWW_ROOT?>feeds/<?=$feed["route"]?>/<?php } ?></link>
+		<title><?php if (!empty($feed["settings"]["feed_title"])) { echo $feed["settings"]["feed_title"]; } else { echo $feed["name"]; } ?></title>
+		<link><?php if (!empty($feed["settings"]["feed_link"])) { echo $feed["settings"]["feed_link"]; } else { ?><?=WWW_ROOT?>feeds/<?=$feed["route"]?>/<?php } ?></link>
 		<description><?=$feed["description"]?></description>
 		<language>en-us</language>
 		<generator>BigTree CMS (https://www.bigtreecms.org)</generator>
 		<?php
-			$sort = $feed["settings"]["sort"] ?: "id DESC";
-			$limit = $feed["settings"]["limit"] ?: "15";
-			$items = array();
+			$sort = !empty($feed["settings"]["sort"]) ? $feed["settings"]["sort"] : "id DESC";
+			$limit = !empty($feed["settings"]["limit"]) ? intval($feed["settings"]["limit"]) : "15";
+			$items = [];
 			
-			if ($feed["settings"]["parser"]) {
+			if (!empty($feed["settings"]["parser"])) {
 				$q = sqlquery("SELECT * FROM ".$feed["table"]." ORDER BY $sort");
 			} else {
 				$q = sqlquery("SELECT * FROM ".$feed["table"]." ORDER BY $sort LIMIT $limit");
@@ -28,13 +28,13 @@
 				$items[] = $item;
 			}
 
-			if ($feed["settings"]["parser"]) {
+			if (!empty($feed["settings"]["parser"])) {
 				$items = call_user_func_array($feed["settings"]["parser"], array($items));
 				$items = array_slice($items, 0, $limit);
 			}
 
 			foreach ($items as $item) {
-				if ($feed["settings"]["link_gen"]) {
+				if (!empty($feed["settings"]["link_gen"])) {
 					$link = $feed["settings"]["link_gen"];
 					
 					foreach ($item as $key => $val) {
@@ -45,7 +45,7 @@
 				}
 				
 				$content = $item[$feed["settings"]["description"]];
-				$limit = $feed["settings"]["content_limit"] ? $feed["settings"]["content_limit"] : 500;
+				$limit = !empty($feed["settings"]["content_limit"]) ? $feed["settings"]["content_limit"] : 500;
 				$blurb = BigTree::trimLength($content,$limit);
 		?>
 		<item>
@@ -54,7 +54,7 @@
 			<description><![CDATA[<?=$blurb?><?php if ($blurb != $content) { ?><p><a href="<?=$link?>">Read More</a></p><?php } ?>]]></description>
 			<link><?=$link?></link>
 			<?php
-				if ($feed["settings"]["creator"]) {
+				if (!empty($feed["settings"]["creator"])) {
 			?>
 			<author><?=$item[$feed["settings"]["creator"]]?></author>
 			<?php

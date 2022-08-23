@@ -2,11 +2,13 @@
 	$extensions = $admin->getExtensions();
 
 	// Get version info on our installed extensions
-	$query = array();
+	$query = [];
+	
 	foreach ($extensions as $extension) {
 		$query[] = "extensions[]=".urlencode($extension["id"]);
 	}
-	$version_info = array_filter((array)@json_decode(BigTree::cURL("https://www.bigtreecms.org/ajax/extensions/version/?".implode("&",$query),false,array(CURLOPT_CONNECTTIMEOUT => 1,CURLOPT_TIMEOUT => 5)),true));
+	
+	$version_info = array_filter((array)@json_decode(BigTree::cURL("https://www.bigtreecms.org/ajax/extensions/version/?".implode("&", $query), false, [CURLOPT_CONNECTTIMEOUT => 1, CURLOPT_TIMEOUT => 5]), true));
 ?>
 <div class="table">
 	<summary><h2>Extensions</h2></summary>
@@ -22,7 +24,9 @@
 				if (!isset($_COOKIE["bigtree_admin"]["ignored_extension_updates"][$extension["id"]])) {
 					// Read manifest, see if a new version is available
 					$manifest = json_decode(file_get_contents(SERVER_ROOT."extensions/".$extension["id"]."/manifest.json"),true);
-					if (intval($manifest["revision"]) < intval($version_info[$extension["id"]]["revision"])) {
+					$current_revision = $version_info[$extension["id"]]["revision"] ?? 0;
+					
+					if (intval($manifest["revision"]) < intval($current_revision)) {
 						$new = true;
 						$info = $version_info[$extension["id"]];
 					}

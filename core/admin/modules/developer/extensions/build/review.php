@@ -1,57 +1,60 @@
 <?php
 	// Need to get the names for everything we're including
-	$module_string = array();
-	foreach ((array)$modules as $m) {
+	$module_string = [];
+	foreach ((array) $modules as $m) {
 		$module = $admin->getModule($m);
 		if ($module) {
 			$module_string[] = $module["name"];
 		}
 	}
-	$template_string = array();
-	foreach ((array)$templates as $t) {
+	$template_string = [];
+	foreach ((array) $templates as $t) {
 		$template = $cms->getTemplate($t);
 		if ($template) {
 			$template_string[] = $template["name"];
 		}
 	}
-	$callout_string = array();
-	foreach ((array)$callouts as $c) {
+	$callout_string = [];
+	foreach ((array) $callouts as $c) {
 		$callout = $admin->getCallout($c);
 		if ($callout) {
 			$callout_string[] = $callout["name"];
 		}
 	}
-	$setting_string = array();
-	foreach ((array)$settings as $s) {
+	$setting_string = [];
+	foreach ((array) $settings as $s) {
 		$setting = $admin->getSetting($s);
 		if ($setting) {
 			$setting_string[] = $setting["name"];
 		}
 	}
-	$feed_string = array();
-	foreach ((array)$feeds as $f) {
+	$feed_string = [];
+	foreach ((array) $feeds as $f) {
 		$feed = $cms->getFeed($f);
 		if ($feed) {
 			$feed_string[] = $feed["name"];
 		}
 	}
-	$field_string = array();
-	foreach ((array)$field_types as $f) {
+	$field_string = [];
+	foreach ((array) $field_types as $f) {
 		$field_type = $admin->getFieldType($f);
 		if ($field_type) {
 			$field_string[] = $field_type["name"];
 		}
 	}
-	$table_string = array();
-	foreach ((array)$tables as $t) {
-		list($table,$data) = explode("#",$t);
+	$table_string = [];
+	foreach ((array) $tables as $t) {
+		$table_pieces = explode("#", $t);
+		$table = $table_pieces[0] ?? "";
+		$data = $table_pieces[1] ?? "";
+		
 		if ($table) {
 			$table_string[] = $table;
 		}
 	}
-	$file_string = array();
-	foreach ((array)$files as $f) {
-		$file = str_replace(SERVER_ROOT,"",$f);
+	$file_string = [];
+	foreach ((array) $files as $f) {
+		$file = str_replace(SERVER_ROOT, "", $f);
 		if ($file) {
 			$file_string[] = $file;
 		}
@@ -111,7 +114,7 @@
 			?>
 			<label>
 				<small>modules</small>
-				<?=implode(", ",$module_string)?>
+				<?=implode(", ", $module_string)?>
 			</label>
 			<?php
 				}
@@ -119,7 +122,7 @@
 			?>
 			<label>
 				<small>templates</small>
-				<?=implode(", ",$template_string)?>
+				<?=implode(", ", $template_string)?>
 			</label>
 			<?php
 				}
@@ -127,7 +130,7 @@
 			?>
 			<label>
 				<small>callouts</small>
-				<?=implode(", ",$callout_string)?>
+				<?=implode(", ", $callout_string)?>
 			</label>
 			<?php
 				}
@@ -135,7 +138,7 @@
 			?>
 			<label>
 				<small>settings</small>
-				<?=implode(", ",$setting_string)?>
+				<?=implode(", ", $setting_string)?>
 			</label>
 			<?php
 				}
@@ -143,7 +146,7 @@
 			?>
 			<label>
 				<small>feeds</small>
-				<?=implode(", ",$feed_string)?>
+				<?=implode(", ", $feed_string)?>
 			</label>
 			<?php
 				}
@@ -151,7 +154,7 @@
 			?>
 			<label>
 				<small>field types</small>
-				<?=implode(", ",$field_string)?>
+				<?=implode(", ", $field_string)?>
 			</label>
 			<?php
 				}
@@ -159,7 +162,7 @@
 			?>
 			<label>
 				<small>tables</small>
-				<?=implode(", ",$table_string)?>
+				<?=implode(", ", $table_string)?>
 			</label>
 			<?php
 				}
@@ -170,7 +173,7 @@
 		?>
 		<h3>Files</h3>
 		<ul>
-			<li><?=implode("</li><li>",$file_string)?></li>
+			<li><?=implode("</li><li>", $file_string)?></li>
 		</ul>
 		<?php
 			}

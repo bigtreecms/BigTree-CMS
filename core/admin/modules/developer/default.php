@@ -21,7 +21,7 @@
 		$ignorable = array();
 		
 		foreach ($updates as $update) {
-			if (!$_COOKIE["bigtree_admin"]["ignored_update"][$update["version"]]) {
+			if (empty($_COOKIE["bigtree_admin"]["ignored_update"][$update["version"]])) {
 				$ignored_all = false;
 			}
 			
