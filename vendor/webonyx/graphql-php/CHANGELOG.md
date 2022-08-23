@@ -1,5 +1,124 @@
 # Changelog
 
+#### Unreleased
+
+#### 14.11.6
+
+Fixed:
+- Fix validation of modified sparse ASTs
+
+#### 14.11.5
+
+Fixed:
+- Fix `extend()` to preserve `repeatable` (#931)
+
+#### 14.11.4
+
+Fixed:
+- Fix repeatable directive validation for AST
+
+#### 14.11.3
+
+Fixed:
+- Fix compatibility of more methods with native return type in PHP 8.1
+
+#### 14.11.2
+
+Fixed:
+- Support non-JSON `ServerRequestInterface`
+
+#### 14.11.1
+
+Fixed:
+- Fix compatibility of methods with native return type in PHP 8.1
+
+#### 14.11.0
+
+Feat:
+- Allow field definitions to be defined as any `iterable`, not just `array`
+
+#### 14.10.0
+
+Feat:
+- Make `IntType` constants `MAX_INT` and `MIN_INT` public
+
+#### 14.9.0
+
+Feat:
+- Add support for type config decorator in `SchemaExtender`
+
+#### 14.8.0
+
+Feat:
+- Implement `GraphQL\Utils\AST::getOperationAST()`
+
+#### 14.7.0
+
+Feat:
+- Allow providing field definitions as a callable and resolve them lazily
+
+#### 14.6.4
+
+Fix:
+- Avoid crashing in `QueryPlan` when `__typename` is used in the query
+
+#### 14.6.3
+
+Refactoring:
+- Improve performance of subtype checks
+
+#### 14.6.2
+
+Fix:
+- Fix overly eager validation of repeatable directive usage
+
+#### 14.6.1
+
+Fix:
+- Add fallback for `directive.isRepeatable` in `BuildClientSchema`
+
+#### 14.6.0
+
+Feat:
+- Open ReferenceExecutor for extending
+
+#### 14.5.1
+
+Fix:
+- Fix Input Object field shortcut definition with callable (#773)
+
+#### 14.5.0
+
+Feat:
+- Implement support for interfaces implementing interfaces (#740), huge kudos to @Kingdutch
+
+Deprecates:
+- Constant `BreakingChangeFinder::BREAKING_CHANGE_INTERFACE_REMOVED_FROM_OBJECT`.
+  Use `BreakingChangeFinder::BREAKING_CHANGE_IMPLEMENTED_INTERFACE_REMOVED` instead.
+  Constant value also changed from `INTERFACE_REMOVED_FROM_OBJECT` to `IMPLEMENTED_INTERFACE_REMOVED`.
+
+- Constant `BreakingChangeFinder::DANGEROUS_CHANGE_INTERFACE_ADDED_TO_OBJECT`
+  Use `DANGEROUS_CHANGE_IMPLEMENTED_INTERFACE_ADDED` instead.
+  Constant value also changed from `INTERFACE_ADDED_TO_OBJECT` to `IMPLEMENTED_INTERFACE_ADDED`.
+
+Refactoring:
+- Reify AST node types and remove unneeded nullability (#751)
+
+#### 14.4.1
+
+Fix:
+- Allow pushing nodes to `NodeList` via `[]=` (#767)
+- Fix signature of `Error\FormattedError::prepareFormatter()` to address PHP8 deprecation (#742)
+- Do not add errors key to result when errors discarded by custom error handler (#766)
+
+#### 14.4.0
+
+Fix:
+- Fixed `SchemaPrinter` so that it uses late static bindings when extended
+- Parse `DirectiveDefinitionNode->locations` as `NodeList<NamedNode>` (fixes AST::fromArray conversion) (#723)
+- Parse `Parser::implementsInterfaces` as `NodeList<NamedTypeNode>` (fixes AST::fromArray conversion)
+- Fix signature of `Parser::unionMemberTypes` to match actual `NodeList<NamedTypeNode>`
+
 #### v14.3.0
 
 Feat:

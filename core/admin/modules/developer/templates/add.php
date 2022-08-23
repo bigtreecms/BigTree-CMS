@@ -4,7 +4,7 @@
 	$resources = array();
 	$show_error = false;
 	
-	if ($_SESSION["bigtree_admin"]["error"]) {
+	if (!empty($_SESSION["bigtree_admin"]["error"])) {
 		BigTree::globalizeArray($_SESSION["bigtree_admin"]["saved"]);
 		$show_error = $_SESSION["bigtree_admin"]["error"];
 		unset($_SESSION["bigtree_admin"]["error"]);

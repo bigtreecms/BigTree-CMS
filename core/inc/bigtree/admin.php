@@ -150,7 +150,7 @@
 							// Regenerate session ID on user state change
 							$old_session_id = session_id();
 							session_regenerate_id();
-							
+
 							if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
 								SQL::update("bigtree_sessions", $old_session_id, [
 									"id" => session_id(), 
@@ -5977,8 +5977,10 @@
 		*/
 
 		public static function getTemplates($sort = "position") {
-			[$sort_column, $sort_direction] = explode(" ", $sort);
-
+			$sort_parts = explode(" ", $sort);
+			$sort_column = $sort_parts[0] ?? "";
+			$sort_direction = $sort_parts[1] ?? "";
+			
 			return BigTreeJSONDB::getAll("templates", $sort_column, $sort_direction ?: "ASC");
 		}
 

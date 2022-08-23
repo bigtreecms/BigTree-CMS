@@ -25,6 +25,8 @@ use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\EnumType;
 use GraphQL\Type\Definition\FieldArgument;
 use GraphQL\Type\Definition\FieldDefinition;
+use GraphQL\Type\Definition\HasFieldsType;
+use GraphQL\Type\Definition\ImplementingType;
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\InputType;
 use GraphQL\Type\Definition\InterfaceType;
@@ -192,12 +194,13 @@ class TypeInfo
         if ($type instanceof UnionType) {
             $nestedTypes = $type->getTypes();
         }
-        if ($type instanceof ObjectType) {
+        if ($type instanceof ImplementingType) {
             $nestedTypes = array_merge($nestedTypes, $type->getInterfaces());
         }
-        if ($type instanceof ObjectType || $type instanceof InterfaceType) {
-            foreach ($type->getFields() as $fieldName => $field) {
-                if (count($field->args ?? []) > 0) {
+
+        if ($type instanceof HasFieldsType) {
+            foreach ($type->getFields() as $field) {
+                if (count($field->args) > 0) {
                     $fieldArgTypes = array_map(
                         static function (FieldArgument $arg) : Type {
                             return $arg->getType();
@@ -211,7 +214,7 @@ class TypeInfo
             }
         }
         if ($type instanceof InputObjectType) {
-            foreach ($type->getFields() as $fieldName => $field) {
+            foreach ($type->getFields() as $field) {
                 $nestedTypes[] = $field->getType();
             }
         }
@@ -413,11 +416,11 @@ class TypeInfo
         if ($name === $typeNameMeta->name && $parentType instanceof CompositeType) {
             return $typeNameMeta;
         }
-        if ($parentType instanceof ObjectType ||
-            $parentType instanceof InterfaceType) {
-            $fields = $parentType->getFields();
 
-            return $fields[$name] ?? null;
+        if ($parentType instanceof ObjectType ||
+            $parentType instanceof InterfaceType
+        ) {
+            return $parentType->findField($name);
         }
 
         return null;

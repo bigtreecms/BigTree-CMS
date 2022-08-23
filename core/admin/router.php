@@ -405,7 +405,10 @@
 		
 		if (!empty($module["extension"])) {
 			$bigtree["extension_context"] = $module["extension"];
-			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$module["extension"]."/");
+			
+			if (!defined("EXTENSION_ROOT")) {
+				define("EXTENSION_ROOT", SERVER_ROOT."extensions/".$module["extension"]."/");
+			}
 		}
 
 		// Find out what module action we're trying to hit
@@ -471,7 +474,10 @@
 		if ($module && $module["extension"]) {
 			$module_path[0] = str_replace($module["extension"]."*","",$module_path[0]);
 			[$inc,$commands] = BigTree::route(SERVER_ROOT."extensions/".$module["extension"]."/modules/",$module_path);
-			define("EXTENSION_ROOT",SERVER_ROOT."extensions/".$module["extension"]."/");
+			
+			if (!defined("EXTENSION_ROOT")) {
+				define("EXTENSION_ROOT", SERVER_ROOT."extensions/".$module["extension"]."/");
+			}
 		} else {
 			[$inc,$commands] = BigTree::route(SERVER_ROOT."custom/admin/modules/",$module_path);
 			// Check core if we didn't find the page or if we found the page but it had commands (because we may be overriding a page earlier in the chain but using the core further down)

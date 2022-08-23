@@ -115,7 +115,7 @@ class ExecutionResult implements JsonSerializable
     /**
      * @return mixed[]
      */
-    public function jsonSerialize()
+    public function jsonSerialize() : array
     {
         return $this->toArray();
     }
@@ -142,10 +142,15 @@ class ExecutionResult implements JsonSerializable
                 return array_map($formatter, $errors);
             };
 
-            $result['errors'] = $errorsHandler(
+            $handledErrors = $errorsHandler(
                 $this->errors,
                 FormattedError::prepareFormatter($this->errorFormatter, $debug)
             );
+
+            // While we know that there were errors initially, they might have been discarded
+            if ($handledErrors !== []) {
+                $result['errors'] = $handledErrors;
+            }
         }
 
         if ($this->data !== null) {

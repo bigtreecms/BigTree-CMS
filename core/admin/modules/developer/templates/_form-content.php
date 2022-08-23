@@ -1,32 +1,36 @@
 <?php
+	/**
+	 * @global BigTreeAdmin $admin
+	 */
+	
 	$admin->drawCSRFToken();
 	
 	$cached_types = $admin->getCachedFieldTypes(true);
 	$types = $cached_types["templates"];
-	$hooks = is_array($hooks) ? $hooks : [];
+	$hooks = !empty($hooks) ? $hooks : [];
 
-	if (isset($_GET["return"])) {
+	if (!empty($_GET["return"])) {
 ?>
 <input type="hidden" name="return_to_front" value="<?=htmlspecialchars($_GET["return"])?>" />
 <?php
 	}
 ?>
 <section class="developer_template_form">
-	<p class="error_message"<?php if (!$show_error) { ?> style="display: none;"<?php } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
+	<p class="error_message"<?php if (empty($show_error)) { ?> style="display: none;"<?php } ?>>Errors found! Please fix the highlighted fields before submitting.</p>
 	
 	<div class="contain">
 		<?php if (!isset($template)) { ?>
 		<div class="left">
-			<fieldset<?php if ($show_error) { ?> class="form_error"<?php } ?>>
+			<fieldset<?php if (!empty($show_error)) { ?> class="form_error"<?php } ?>>
 				<label class="required">ID <small>(used for file/directory name, alphanumeric, "-" and "_" only)</small><?php if ($show_error) { ?> <span class="form_error_reason"><?=$show_error?></span><?php } ?></label>
-				<input type="text" class="required" name="id" value="<?=$id?>" />
+				<input type="text" class="required" name="id" value="<?=($id ?? "")?>" />
 			</fieldset>
 		</div>
 		<?php } ?>
 		<div class="<?php if (isset($template)) { ?>left<?php } else { ?>right<?php } ?>">
 			<fieldset>
 				<label class="required">Name</label>
-				<input type="text" class="required" name="name" value="<?=$name?>" />
+				<input type="text" class="required" name="name" value="<?=($name ?? "")?>" />
 			</fieldset>
 		</div>
 	</div>
@@ -42,7 +46,8 @@
 	</fieldset>
 	<?php
 		}
-		if (!isset($template) || $routed) {
+		
+		if (!isset($template) || !empty($routed)) {
 	?>
 	<fieldset class="float_margin">
 		<label>Related Module</label>
@@ -51,8 +56,10 @@
 			<?php
 				$groups = $admin->getModuleGroups("name ASC");
 				$groups[] = array("id" => "0", "name" => "Ungrouped");
+				
 				foreach ($groups as $g) {
 					$modules = $admin->getModulesByGroup($g["id"],"name ASC");
+					
 					if (count($modules)) {
 			?>
 			<optgroup label="<?=$g["name"]?>">

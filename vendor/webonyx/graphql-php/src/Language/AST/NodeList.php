@@ -9,6 +9,7 @@ use Countable;
 use GraphQL\Utils\AST;
 use InvalidArgumentException;
 use IteratorAggregate;
+use ReturnTypeWillChange;
 use Traversable;
 use function array_merge;
 use function array_splice;
@@ -69,6 +70,7 @@ class NodeList implements ArrayAccess, IteratorAggregate, Countable
      *
      * @phpstan-return T
      */
+    #[ReturnTypeWillChange]
     public function offsetGet($offset)// : Node
     {
         $item = $this->nodes[$offset];
@@ -91,17 +93,15 @@ class NodeList implements ArrayAccess, IteratorAggregate, Countable
     public function offsetSet($offset, $value) : void
     {
         if (is_array($value)) {
-            if (isset($value['kind'])) {
-                /** @phpstan-var T $node */
-                $node                 = AST::fromArray($value);
-                $this->nodes[$offset] = $node;
+            /** @phpstan-var T $value */
+            $value = AST::fromArray($value);
+        }
 
-                return;
-            }
+        // Happens when a Node is pushed via []=
+        if ($offset === null) {
+            $this->nodes[] = $value;
 
-            throw new InvalidArgumentException(
-                'Expected array value to be valid node data structure, missing key "kind"'
-            );
+            return;
         }
 
         $this->nodes[$offset] = $value;

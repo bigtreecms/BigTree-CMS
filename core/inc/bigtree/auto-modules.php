@@ -242,11 +242,11 @@
 			
 			foreach ($view["fields"] as $key => $field) {
 				// Get the form field
-				$form_field = $form["fields"][$key];
+				$form_field = $form["fields"][$key] ?? null;
 				
 				if ($field["parser"]) {
 					$parsers[$key] = $field["parser"];
-				} elseif ($form_field["type"] == "list" && $form_field["settings"]["list_type"] == "db") {
+				} elseif ($form_field && $form_field["type"] == "list" && $form_field["settings"]["list_type"] == "db") {
 					$poplists[$key] = array("description" => $form_field["settings"]["pop-description"], "table" => $form_field["settings"]["pop-table"]);
 				}
 			}
@@ -973,11 +973,11 @@
 			// The entry is pending if there's a "p" prefix on the id
 			if (substr($id,0,1) == "p") {
 				$change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($id,1))."'"));
-				
+
 				if (!$change) {
 					return false;
 				}
-				
+
 				$item = json_decode($change["changes"], true);
 				$many_to_many = json_decode($change["mtm_changes"], true);
 				$temp_tags = json_decode($change["tags_changes"], true);
@@ -1011,16 +1011,16 @@
 				if ($change) {
 					$status = "updated";
 					$changes = json_decode($change["changes"],true);
-					
+
 					foreach ($changes as $key => $val) {
 						$item[$key] = $val;
 					}
-					
+
 					$many_to_many = json_decode($change["mtm_changes"], true);
 					$temp_tags = json_decode($change["tags_changes"], true);
 					$open_graph = json_decode($change["open_graph_changes"], true);
 					$tags = array();
-					
+
 					if (is_array($temp_tags)) {
 						foreach ($temp_tags as $tag_id) {
 							$tag = sqlfetch(sqlquery("SELECT * FROM bigtree_tags WHERE id = '".intval($tag_id)."'"));
