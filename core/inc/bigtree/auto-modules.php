@@ -112,7 +112,7 @@
 			$status = "l";
 			$pending_owner = 0;
 			
-			if ($item["bigtree_changes"]) {
+			if (!empty($item["bigtree_changes"])) {
 				$status = "c";
 			} elseif (isset($item["bigtree_pending"])) {
 				$status = "p";
@@ -132,7 +132,7 @@
 			$vals = array("'".$view["id"]."'","'".$item["id"]."'","'$status'","'$position'","'$approved'","'$archived'","'$featured'","'".$pending_owner."'");
 
 			// Figure out which column we're going to use to sort the view.
-			if ($view["settings"]["sort"]) {
+			if (!empty($view["settings"]["sort"])) {
 				$sort_field = BigTree::nextSQLColumnDefinition(ltrim($view["settings"]["sort"],"`"));
 			} else {
 				$sort_field = false;
@@ -210,7 +210,7 @@
 
 			if ($sort_field) {
 				$fields[] = "`sort_field`";
-				$vals[] = "'".sqlescape($item[$sort_field])."'";
+				$vals[] = "'".sqlescape($item[$sort_field] ?? $item["id"])."'";
 			}
 			
 			sqlquery("INSERT INTO bigtree_module_view_cache (".implode(",",$fields).") VALUES (".implode(",",$vals).")");

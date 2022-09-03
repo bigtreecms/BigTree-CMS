@@ -13,7 +13,7 @@
 
 	if ($bigtree["view"]["description"]) {
 ?>
-<section class="inset_block js-view-description"<?php if ($_COOKIE["bigtree_admin"]["ignore_view_description"][$bigtree["view"]["id"]]) { ?> style="display: none;"<?php } ?> data-id="<?=$bigtree["view"]["id"]?>">
+<section class="inset_block js-view-description"<?php if (!empty($_COOKIE["bigtree_admin"]["ignore_view_description"][$bigtree["view"]["id"]])) { ?> style="display: none;"<?php } ?> data-id="<?=$bigtree["view"]["id"]?>">
 	<span class="hide js-view-description-hide">x</span>
 	<p><?=$bigtree["view"]["description"]?></p>
 </section>
