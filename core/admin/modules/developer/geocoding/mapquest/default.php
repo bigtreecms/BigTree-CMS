@@ -9,7 +9,7 @@
 			<hr />
 			<fieldset>
 				<label>MapQuest AppKey</label>
-				<input type="text" name="mapquest_key" value="<?=htmlspecialchars($geocoding_service["mapquest_key"])?>" />
+				<input type="text" name="mapquest_key" value="<?=htmlspecialchars($geocoding_service["mapquest_key"] ?? "")?>" />
 			</fieldset>
 		</section>
 		<footer>

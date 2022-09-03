@@ -1,8 +1,9 @@
 <?php
 	// Route to common if we hit something in a sub directory that doesn't exist.
-	if (count($bigtree["commands"])) {
+	if (!empty($bigtree["commands"][0])) {
 		include BigTree::path("admin/modules/developer/services/_".$bigtree["commands"][0].".php");
-		if ($bigtree["commands"][1]) {
+		
+		if (!empty($bigtree["commands"][1])) {
 			include BigTree::path("admin/modules/developer/services/common/".$bigtree["commands"][1].".php");
 		} else {
 			include BigTree::path("admin/modules/developer/services/common/default.php");

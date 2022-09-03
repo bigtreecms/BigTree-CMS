@@ -28,6 +28,12 @@
 
 			foreach ($field["value"] as $callout) {
 				$type = $admin->getCallout($callout["type"]);
+				
+				// Callout type was deleted
+				if (!$type) {
+					continue;
+				}
+				
 				$disabled = ($type["level"] > $admin->Level);
 				
 				// Convert timestamps for existing data to the user's frame of reference so when it saves w/o changes the time is correct

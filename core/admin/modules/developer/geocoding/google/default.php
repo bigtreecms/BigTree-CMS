@@ -9,7 +9,7 @@
 			<hr />
 			<fieldset>
 				<label>Google Maps API Key</label>
-				<input type="text" name="google_key" value="<?=htmlspecialchars($geocoding_service["google_key"])?>" />
+				<input type="text" name="google_key" value="<?=htmlspecialchars($geocoding_service["google_key"] ?? "")?>" />
 			</fieldset>
 		</section>
 		<footer>

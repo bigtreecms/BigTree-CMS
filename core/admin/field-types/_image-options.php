@@ -101,7 +101,7 @@
 			</ul>
 			<div class="image_attr_crop_thumbs">
 				<?php
-								if (is_array($crop["thumbs"])) {
+								if (!empty($crop["thumbs"]) && is_array($crop["thumbs"])) {
 									foreach ($crop["thumbs"] as $thumb) {
 										// In case a thumb was added and a prefix or width/height were missing - require prefix here because it'll replace the crop otherwise
 										if (is_array($thumb) && $thumb["prefix"] && ($thumb["width"] || $thumb["height"])) {

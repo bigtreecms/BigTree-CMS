@@ -1,7 +1,7 @@
 <?php
 	$proot = ADMIN_ROOT."pages/";
 	$id = preg_replace("/[^a-z0-9.]+/i","",isset($_POST["page"]) ? $_POST["page"] : end($bigtree["commands"]));
-	$action = $bigtree["module_path"][0];
+	$action = !empty($bigtree["module_path"][0]) ? $bigtree["module_path"][0] : "";
 
 	if (!empty($id) && !is_numeric($id) && !is_numeric(substr($id, 1))) {
 		$admin->stop("Invalid page.");
@@ -16,7 +16,7 @@
 	// If it's a pending page we want the permission level of its parent page
 	} else {
 		$bigtree["current_page"]["id"] = $page["id"] = $id;
-		$bigtree["access_level"] = $admin->getPageAccessLevel($page["parent"]);
+		$bigtree["access_level"] = $admin->getPageAccessLevel($page["parent"] ?? 0);
 	}
 
 	// Stop the user if they don't have access to this page.

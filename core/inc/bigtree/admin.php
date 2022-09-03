@@ -3693,6 +3693,10 @@
 					if (!in_array($callout_id, $ids)) {
 						$callout = $this->getCallout($callout_id);
 						
+						if (!$callout) {
+							continue;
+						}
+						
 						if (!$auth || $this->Level >= $callout["level"]) {
 							$items[] = $callout;
 							$ids[] = $callout_id;
@@ -4363,7 +4367,9 @@
 				$modules = BigTreeJSONDB::getAll("modules");
 
 				foreach ($modules as $module) {
-					$forms = array_merge($forms, array_filter((array) $module["embeddable-forms"]));
+					if (!empty($module["embeddable-forms"])) {
+						$forms = array_merge($forms, array_filter((array) $module["embeddable-forms"]));
+					}
 				}
 
 				foreach ($forms as $form) {
@@ -4763,7 +4769,11 @@
 				<getPageAccessLevel>
 		*/
 
-		public function getPageAccessLevelByUser($page,$user) {
+		public function getPageAccessLevelByUser($page, $user) {
+			if (is_null($page)) {
+				$page = 0;
+			}
+			
 			// See if this is a pending change, if so, grab the change's parent page and check permission levels for that instead.
 			if (!is_numeric($page) && $page[0] == "p") {
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($page,1))."'"));
@@ -4789,6 +4799,7 @@
 
 			// See if this page has an explicit permission set and return it if so.
 			$explicit_permission = $permissions["page"][$page];
+			
 			if ($explicit_permission == "n") {
 				return false;
 			} elseif ($explicit_permission && $explicit_permission != "i") {

@@ -9,7 +9,7 @@
 			<hr />
 			<fieldset>
 				<label>Bing Maps Key</label>
-				<input type="text" name="bing_key" value="<?=htmlspecialchars($geocoding_service["bing_key"])?>" />
+				<input type="text" name="bing_key" value="<?=htmlspecialchars($geocoding_service["bing_key"] ?? "")?>" />
 			</fieldset>
 		</section>
 		<footer>

@@ -3,7 +3,7 @@
 <?php } ?>
 <fieldset>
 	<label>Name</label>
-	<input type="text" name="name" value="<?=BigTree::safeEncode($_POST["name"])?>" />
+	<input type="text" name="name" value="<?=BigTree::safeEncode($_POST["name"] ?? "")?>" required />
 </fieldset>
 <?php
 	$settings = $_POST;

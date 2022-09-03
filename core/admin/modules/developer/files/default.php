@@ -66,7 +66,7 @@
 				</div>
 				<ul id="file_metadata_table">
 					<?php
-						if (is_array($metadata["file"])) {
+						if (!empty($metadata["file"]) && is_array($metadata["file"])) {
 							foreach ($metadata["file"] as $field) {
 								$draw_field("file", $field);
 							}
@@ -91,7 +91,7 @@
 				</div>
 				<ul id="image_metadata_table">
 					<?php
-						if (is_array($metadata["image"])) {
+						if (!empty($metadata["image"]) && is_array($metadata["image"])) {
 							foreach ($metadata["image"] as $field) {
 								$draw_field("image", $field);
 							}
@@ -116,7 +116,7 @@
 				</div>
 				<ul id="video_metadata_table">
 					<?php
-						if (is_array($metadata["video"])) {
+						if (!empty($metadata["video"]) && is_array($metadata["video"])) {
 							foreach ($metadata["video"] as $field) {
 								$draw_field("video", $field);
 							}

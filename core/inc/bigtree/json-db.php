@@ -217,13 +217,22 @@
 		static function update($type, $id, $data) {
 			static::cache($type);
 			$data = BigTree::translateArray($data);
+			$updated = false;
 
 			foreach (static::$Cache[$type] as $index => $entry) {
 				if (isset($entry["id"]) && $entry["id"] == $id) {
 					foreach ($data as $key => $value) {
 						static::$Cache[$type][$index][$key] = $value;
 					}
+					
+					$updated = true;
 				}
+			}
+			
+			if (!$updated) {
+				$data["id"] = $id;
+				
+				static::$Cache[$type][] = $data;
 			}
 
 			static::save($type);

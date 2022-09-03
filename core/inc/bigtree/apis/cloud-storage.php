@@ -69,7 +69,7 @@
 		
 		public function __construct($service = false) {
 			parent::__construct("bigtree-internal-cloud-storage", "Cloud Storage", "org.bigtreecms.api.cloud-storage", false);
-			$this->Service = $service ? $service : $this->Settings["service"];
+			$this->Service = $service ?: ($this->Settings["service"] ?? "");
 			
 			// Set OAuth Return URL for Google Cloud Storage
 			$this->ReturnURL = ADMIN_ROOT."developer/cloud-storage/google/return/";

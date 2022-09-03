@@ -1,14 +1,14 @@
 <?php
 	$email_service = new BigTreeEmailService;
 
-	$services = array(
+	$services = [
 		"local" => "Local Server",
 		"smtp" => "SMTP",
 		"mandrill" => "Mandrill",
 		"mailgun" => "Mailgun",
 		"postmark" => "Postmark",
-		"sendgrid" => "SendGrid"
-	);
+		"sendgrid" => "SendGrid",
+	];
 ?>
 <div class="container">
 	<header>
@@ -26,7 +26,7 @@
 			<input type="hidden" name="service" value="local" />
 			<fieldset>
 				<label>BigTree "From" Address <small>(for sending Daily Digest and Forgot Password emails)</small></label>
-				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
+				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"] ?? "")?>" />
 			</fieldset>
 		</form>
 	</section>
@@ -38,31 +38,31 @@
 			<input type="hidden" name="service" value="smtp" />
 			<fieldset>
 				<label>Hostname</label>
-				<input type="text" name="smtp_host" value="<?=htmlspecialchars($email_service->Settings["smtp_host"])?>" />
+				<input type="text" name="smtp_host" value="<?=htmlspecialchars($email_service->Settings["smtp_host"] ?? "")?>" />
 			</fieldset>
 			<fieldset>
 				<label>Port <small>(default is 25)</small></label>
-				<input type="text" name="smtp_port" value="<?=htmlspecialchars($email_service->Settings["smtp_port"])?>" />
+				<input type="text" name="smtp_port" value="<?=htmlspecialchars($email_service->Settings["smtp_port"] ?? "")?>" />
 			</fieldset>
 			<fieldset>
 				<label>Username</label>
-				<input type="text" name="smtp_user" value="<?=htmlspecialchars($email_service->Settings["smtp_user"])?>" />
+				<input type="text" name="smtp_user" value="<?=htmlspecialchars($email_service->Settings["smtp_user"] ?? "")?>" />
 			</fieldset>
 			<fieldset>
 				<label>Password</label>
-				<input type="password" name="smtp_password" value="<?=htmlspecialchars($email_service->Settings["smtp_password"])?>" />
+				<input type="password" name="smtp_password" value="<?=htmlspecialchars($email_service->Settings["smtp_password"] ?? "")?>" />
 			</fieldset>
 			<fieldset>
 				<label>Security</label>
 				<select name="smtp_security">
 					<option value="">Plain Text</option>
-					<option value="ssl"<?php if ($email_service->Settings["smtp_security"] == "ssl") { ?> selected="selected"<?php } ?>>SSL</option>
-					<option value="tls"<?php if ($email_service->Settings["smtp_security"] == "tls") { ?> selected="selected"<?php } ?>>TLS</option>
+					<option value="ssl"<?php if (!empty($email_service->Settings["smtp_security"]) && $email_service->Settings["smtp_security"] == "ssl") { ?> selected="selected"<?php } ?>>SSL</option>
+					<option value="tls"<?php if (!empty($email_service->Settings["smtp_security"]) && $email_service->Settings["smtp_security"] == "tls") { ?> selected="selected"<?php } ?>>TLS</option>
 				</select>
 			</fieldset>
 			<fieldset>
 				<label>BigTree "From" Address <small>(for sending Daily Digest and Forgot Password emails)</small></label>
-				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
+				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"] ?? "")?>" />
 			</fieldset>
 		</form>
 	</section>
@@ -75,11 +75,11 @@
 			<input type="hidden" name="service" value="mandrill" />
 			<fieldset>
 				<label>API Key</label>
-				<input type="text" name="mandrill_key" value="<?=htmlspecialchars($email_service->Settings["mandrill_key"])?>" />
+				<input type="text" name="mandrill_key" value="<?=htmlspecialchars($email_service->Settings["mandrill_key"] ?? "")?>" />
 			</fieldset>
 			<fieldset>
 				<label>BigTree "From" Address <small>(required for sending Daily Digest and Forgot Password emails)</small></label>
-				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
+				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"] ?? "")?>" />
 			</fieldset>
 		</form>
 	</section>
@@ -92,15 +92,15 @@
 			<input type="hidden" name="service" value="mailgun" />
 			<fieldset>
 				<label>API Key</label>
-				<input type="text" name="mailgun_key" value="<?=htmlspecialchars($email_service->Settings["mailgun_key"])?>" />
+				<input type="text" name="mailgun_key" value="<?=htmlspecialchars($email_service->Settings["mailgun_key"] ?? "")?>" />
 			</fieldset>
 			<fieldset>
 				<label>Domain <small>(i.e. sandbox42162361dg235125512.mailgun.org</small></label>
-				<input type="text" name="mailgun_domain" value="<?=htmlspecialchars($email_service->Settings["mailgun_domain"])?>" />
+				<input type="text" name="mailgun_domain" value="<?=htmlspecialchars($email_service->Settings["mailgun_domain"] ?? "")?>" />
 			</fieldset>
 			<fieldset>
 				<label>BigTree "From" Address <small>(required for sending Daily Digest and Forgot Password emails)</small></label>
-				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
+				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"] ?? "")?>" />
 			</fieldset>
 		</form>
 	</section>
@@ -113,11 +113,11 @@
 			<input type="hidden" name="service" value="postmark" />
 			<fieldset>
 				<label>API Key</label>
-				<input type="text" name="postmark_key" value="<?=htmlspecialchars($email_service->Settings["postmark_key"])?>" />
+				<input type="text" name="postmark_key" value="<?=htmlspecialchars($email_service->Settings["postmark_key"] ?? "")?>" />
 			</fieldset>
 			<fieldset>
 				<label>BigTree "From" Address <small>(required for sending Daily Digest and Forgot Password emails)</small></label>
-				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
+				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"] ?? "")?>" />
 			</fieldset>
 		</form>
 	</section>
@@ -129,15 +129,15 @@
 			<input type="hidden" name="service" value="sendgrid" />
 			<fieldset>
 				<label>API User <small>(same as SMTP username)</small></label>
-				<input type="text" name="sendgrid_api_user" value="<?=htmlspecialchars($email_service->Settings["sendgrid_api_user"])?>" />
+				<input type="text" name="sendgrid_api_user" value="<?=htmlspecialchars($email_service->Settings["sendgrid_api_user"] ?? "")?>" />
 			</fieldset>
 			<fieldset>
 				<label>API Key <small>(same as SMTP password)</small></small></label>
-				<input type="text" name="sendgrid_api_key" value="<?=htmlspecialchars($email_service->Settings["sendgrid_api_key"])?>" />
+				<input type="text" name="sendgrid_api_key" value="<?=htmlspecialchars($email_service->Settings["sendgrid_api_key"] ?? "")?>" />
 			</fieldset>
 			<fieldset>
 				<label>BigTree "From" Address <small>(required for sending Daily Digest and Forgot Password emails)</small></label>
-				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"])?>" />
+				<input type="text" name="bigtree_from" value="<?=htmlspecialchars($email_service->Settings["bigtree_from"] ?? "")?>" />
 			</fieldset>
 		</form>
 	</section>

@@ -15,25 +15,26 @@
 			<hr />
 			<fieldset>
 				<label><?=$key_name?></label>
-				<input type="text" name="key" value="<?=htmlspecialchars($api->Settings["key"])?>" />
+				<input type="text" name="key" value="<?=htmlspecialchars($api->Settings["key"] ?? "")?>" />
 			</fieldset>
 			<fieldset>
 				<label><?=$secret_name?></label>
-				<input type="text" name="secret" value="<?=htmlspecialchars($api->Settings["secret"])?>" />
+				<input type="text" name="secret" value="<?=htmlspecialchars($api->Settings["secret"] ?? "")?>" />
 			</fieldset>
 			<?php
-				if ($scope_default) {
+				if (!empty($scope_default)) {
 			?>
 			<fieldset>
 				<label>Scope<?php if ($scope_help) { echo $scope_help; } ?></label>
-				<input type="text" name="scope" value="<?=htmlspecialchars($api->Settings["scope"] ? $api->Settings["scope"] : $scope_default)?>" />
+				<input type="text" name="scope" value="<?=htmlspecialchars(!empty($api->Settings["scope"]) ? $api->Settings["scope"] : $scope_default)?>" />
 			</fieldset>
 			<?php
 				}
-				if ($show_test_environment) {
+				
+				if (!empty($show_test_environment)) {
 			?>
 			<fieldset>
-				<input name="test_environment" type="checkbox"<?php if ($api->Settings["test_environment"]) { ?> checked="checked"<?php } ?> />
+				<input name="test_environment" type="checkbox"<?php if (!empty($api->Settings["test_environment"])) { ?> checked="checked"<?php } ?> />
 				<label class="for_checkbox">Use Test Environment</label>
 			</fieldset>
 			<?php

@@ -2,7 +2,7 @@
 	if (isset($cloud->Settings["amazon"])) {
 		BigTree::globalizeArray($cloud->Settings["amazon"],"htmlspecialchars");
 	} else {
-		$key = $secret = "";
+		$key = $secret = $region = "";
 	}
 ?>
 <div class="container">

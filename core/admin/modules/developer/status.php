@@ -29,8 +29,12 @@
 		global $directory_warnings,$recurse_fields,$warnings;
 		
 		foreach (array_filter((array)$fields) as $key => $data) {
-			if (empty($data["settings"])) {
+			if (empty($data["settings"]) && !empty($data["options"])) {
 				$data["settings"] = $data["options"];
+			}
+			
+			if (empty($data["settings"])) {
+				$data["settings"] = [];
 			}
 
 			$settings = is_string($data["settings"]) ? array_filter((array) json_decode($data["settings"], true)) : $data["settings"];
@@ -38,7 +42,7 @@
 			if ($data["type"] == "matrix") {
 				$recurse_fields($settings["columns"]);
 			} else {
-				if ($settings["directory"]) {
+				if (!empty($settings["directory"])) {
 					if (!BigTree::isDirectoryWritable(SITE_ROOT.$settings["directory"]) && !in_array($settings["directory"],$directory_warnings)) {
 						$directory_warnings[] = $settings["directory"];
 						$warnings[] = array(
@@ -87,8 +91,8 @@
 	
 	//!Server Parameters
 	$mysql = (extension_loaded('mysql') || extension_loaded("mysqli")) ? "good" : "bad";
-	$magic_quotes_gpc = !get_magic_quotes_gpc() ? "good" : "bad";
-	$magic_quotes_runtime = !get_magic_quotes_runtime() ? "good" : "bad";
+	$magic_quotes_gpc = !function_exists("get_magic_quotes_gpc") || !get_magic_quotes_gpc() ? "good" : "bad";
+	$magic_quotes_runtime = !function_exists("get_magic_quotes_runtime") || !get_magic_quotes_runtime() ? "good" : "bad";
 	$file_uploads = ini_get('file_uploads') ? "good" : "bad";
 	$short_tags = ini_get('short_open_tag') ? "good" : "bad";
 	$image_support = extension_loaded('gd') ? "good" : "bad";

@@ -30,9 +30,16 @@
 			</fieldset>
 			<?php
 				if ($_POST["service"] == "amazon") {
-					$cloudfront_distribution = $storage->Cloud->Settings["amazon"]["cloudfront_distribution"];
-					$cloudfront_ssl = $storage->Cloud->Settings["amazon"]["cloudfront_ssl"];
-					$cloudfront_domain = $storage->Cloud->Settings["amazon"]["cloudfront_domain"];
+					if (!empty($storage->Cloud)) {
+						$cloudfront_distribution = $storage->Cloud->Settings["amazon"]["cloudfront_distribution"] ?? "";
+						$cloudfront_ssl = $storage->Cloud->Settings["amazon"]["cloudfront_ssl"] ?? "";
+						$cloudfront_domain = $storage->Cloud->Settings["amazon"]["cloudfront_domain"] ?? "";
+					} else {
+						$cloudfront_distribution = "";
+						$cloudfront_ssl = "";
+						$cloudfront_domain = "";
+					}
+					
 					$distributions = $cloud->getCloudFrontDistributions();
 
 					if (is_array($distributions) && count($distributions)) {

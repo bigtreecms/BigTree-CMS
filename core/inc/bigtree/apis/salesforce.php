@@ -28,7 +28,7 @@
 			$this->ReturnURL = ADMIN_ROOT."developer/services/salesforce/return/";
 
 			// Change things if we're in the test environment.
-			if ($this->Settings["test_environment"]) {
+			if (!empty($this->Settings["test_environment"])) {
 				$this->AuthorizeURL = str_ireplace("login.","test.",$this->AuthorizeURL);
 				$this->TokenURL = str_replace("login.","test.",$this->TokenURL);
 			}
@@ -36,7 +36,7 @@
 			// Get a new access token for this session.
 			$this->Connected = false;
 			
-			if ($this->Settings["refresh_token"]) {
+			if (!empty($this->Settings["refresh_token"])) {
 				$response = json_decode(BigTree::cURL($this->TokenURL,array(
 					"grant_type" => "refresh_token",
 					"client_id" => $this->Settings["key"],
@@ -44,7 +44,7 @@
 					"refresh_token" => $this->Settings["refresh_token"]
 				)),true);
 
-				if ($response["access_token"]) {
+				if (!empty($response["access_token"])) {
 					$this->InstanceURL = $response["instance_url"];
 					$this->EndpointURL = $this->InstanceURL."/services/data/v28.0/";
 					$this->Settings["token"] = $response["access_token"];

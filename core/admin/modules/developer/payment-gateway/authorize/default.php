@@ -7,17 +7,17 @@
 			</div>
 			<fieldset>
 				<label>API Login</label>
-				<input type="text" name="authorize-api-login" value="<?=htmlspecialchars($gateway->Settings["authorize-api-login"])?>" />
+				<input type="text" name="authorize-api-login" value="<?=htmlspecialchars($gateway->Settings["authorize-api-login"] ?? "")?>" />
 			</fieldset>
 			<fieldset>
 				<label>Transaction Key</label>
-				<input type="text" name="authorize-transaction-key" value="<?=htmlspecialchars($gateway->Settings["authorize-transaction-key"])?>" />
+				<input type="text" name="authorize-transaction-key" value="<?=htmlspecialchars($gateway->Settings["authorize-transaction-key"] ?? "")?>" />
 			</fieldset>
 			<fieldset>
 				<label>Processing Environment</label>
 				<select name="authorize-environment">
 					<option value="live">Live</option>
-					<option value="test"<?php if ($gateway->Settings["authorize-environment"] == "test") { ?> selected="selected"<?php } ?>>Test</option>
+					<option value="test"<?php if (!empty($gateway->Settings["authorize-environment"]) && $gateway->Settings["authorize-environment"] == "test") { ?> selected="selected"<?php } ?>>Test</option>
 				</select>
 			</fieldset>
 		</section>
