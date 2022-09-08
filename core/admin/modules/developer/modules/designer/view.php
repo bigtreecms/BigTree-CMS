@@ -33,7 +33,7 @@
 				
 				<fieldset class="left">
 					<label>View Type</label>
-					<select name="type" id="view_type" class="left" tabindex="2">
+					<select name="type" id="view_type" tabindex="2">
 						<option value="searchable">Searchable List</option>
 						<option value="draggable">Draggable List</option>
 					</select>

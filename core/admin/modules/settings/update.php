@@ -19,8 +19,8 @@
 			"key" => "value",
 			"settings" => $item["settings"],
 			"ignore" => false,
-			"input" => $bigtree["post_data"]["value"],
-			"file_input" => $bigtree["file_data"]["value"]
+			"input" => $bigtree["post_data"]["value"] ?? null,
+			"file_input" => $bigtree["file_data"]["value"] ?? null,
 		);
 
 		// Process the input

@@ -1,8 +1,8 @@
 <script>
 	BigTreeFormValidator("form.module");
 
-	$("#feed_table").change(function(event,data) {
-		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-feed-fields/?table=" + data.value);
+	$("#feed_table").change(function(event) {
+		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-feed-fields/?table=" + $(this).val());
 	});
 	
 	$(".icon_settings").click(function(ev) {
@@ -25,8 +25,8 @@
 		}});
 	});
 	
-	$("#feed_type").change(function(event,data) {
-		if (data.value == "rss" || data.value == "rss2") {
+	$("#feed_type").change(function(event) {
+		if ($(this).val() == "rss" || $(this).val() == "rss2") {
 			$("#field_area").hide();
 		} else {
 			$("#field_area").show();

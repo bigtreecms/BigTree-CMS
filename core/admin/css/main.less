@@ -107,7 +107,6 @@
 	@import "components/forms.less";
 	@import "components/checkbox.less";
 	@import "components/radio-button.less";
-	@import "components/select.less";
 	@import "components/file-input.less";
 
 /* Login Styles */
@@ -357,13 +356,11 @@
 	}
 
 	.container .error_message,
-	.callout_fields .error_message,
 	.container .warning_message,
 	.bigtree_dialog_form .overflow .warning_message,
 	.bigtree_dialog_form .overflow .error_message { background: #C0362F; border-radius: 2px; color: #FFF; font-size: 12px; line-height: 18px; margin: 0 0 15px 0; padding: 5px 10px; }
 
 	.container .error_message a,
-	.callout_fields .error_message a,
 	.container .warning_message a,
 	.bigtree_dialog_form .overflow .warning_message a,
 	.bigtree_dialog_form .overflow .error_message a { color: #FFF; text-decoration: underline; }
@@ -481,8 +478,7 @@
 	#properties_tab .date_pickers fieldset.right { float: right; }
 	#properties_tab .float_margin { margin-top: 15px; }
 	#properties_tab .template { float: left; margin: 0 40px 0 0; }
-	#properties_tab .template .select .current_select_container { width: 325px !important; }
-	#properties_tab .template .select_options { width: 379px !important; }
+	#properties_tab .template .select_container select { width: 100% !important; }
 	#properties_tab .external { float: left; margin: 0 20px 0 0; }
 	#properties_tab .external input { width: 292px; }
 	#properties_tab .checkbox_bump { float: left; }
@@ -521,9 +517,9 @@
 	.table > summary h2 .embeds { background-position: -501px -53px; }
 	.table > summary h2 .reports { background-position: -525px -52px; }
 	.table > summary h2 .actions { background-position: -548px -53px; }
-	.table > summary .select { float: right; height: 24px; line-height: 24px; margin: 5px 0 0 10px; }
-	.table > summary .select .current_select_container { height: 24px !important; }
-	.table > summary .select .handle { background: #F2F2F2 url(../images/icon-sprite.svg) -343px -105px; border-left: 1px solid #CCC; height: 27px; top: -3px; width: 29px; }
+	.table > summary .select_container { float: right; line-height: 27px; margin: 5px 0 0 10px; }
+	.table > summary .select_container select { height: 27px !important; line-height: 27px !important; }
+	.table > summary .select_container:after { background: #F2F2F2 url(../images/icon-sprite.svg) -343px -105px; border-left: 1px solid #CCC; height: 27px; width: 29px; }
 
 	.table > header, .table .image_pending_divider { background: #eee; border-bottom: 1px solid #ccc; border-radius: 0; clear: left; color: #666; height: 20px; line-height: 20px; margin-top: -1px; text-transform: uppercase; user-select: none; }
 	.table > header span { float: left; font-size: 9px !important; height: 20px; line-height: 21px; text-align: center; }
@@ -812,7 +808,6 @@
 	fieldset.callouts .add_item_button { border-radius: 3px; float: left; height: 30px; line-height: 33px; margin: 0 15px 0 0; padding: 0 13px; }
 	fieldset.callouts .add_item_button span { height: 16px; margin: 7px 7px 0px -3px; }
 	fieldset.callouts .max, .matrix_list .max { float: left; line-height: 32px; text-transform: uppercase; }
-	.callout_fields fieldset.callouts .max, .callout_fields .matrix_list .max { display: inline-block; float: none; margin-left: 10px; }
 	fieldset.callouts .contain article { background: #FFF; border: 1px solid #ccc; border-radius: 2px; float: left; height: 92px; margin: 0 10px 10px 0; width: 210px; }
 	fieldset.callouts .contain article .ui-sortable-placeholder { background: #eee; border: 1px dashed #CCC; border-radius: 3px; float: left; height: 92px; margin: 0 10px 10px 0; width: 210px; }
 	fieldset.callouts .contain article h4 { color: #666; font-size: 15px; font-weight: normal; height: 20px; line-height: 18px; margin: 0; overflow: hidden; padding: 10px 10px 0px 10px; text-overflow: ellipsis; white-space: nowrap; }
@@ -820,20 +815,7 @@
 	fieldset.callouts .contain article .bottom * { margin: 0 10px 0 0; }
 	fieldset.callouts .contain article p { color: #999; font-size: 12px; height: 12px; margin: 0; overflow: hidden; padding: 5px 10px 10px 10px; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 
-	.callout_type { background: #F6F6F6; border-bottom: 1px solid #E5E5E5; margin: -20px -20px 20px -20px; padding: 20px; }
-	.callout_type fieldset { margin: 0; }
-
-	.callout_fields { height: 250px; margin: -20px; overflow: auto; padding: 20px; width: 450px; }
-	.callout_fields .select .current_select_container { max-width: 384px !important; }
-	.callout_fields .select .select_options { max-width: 438px !important; }
-	.callout_fields .error_message { width: 420px; }
-	.callout_fields .callout_description { border-bottom: 1px solid #EEE; margin: 0 -20px 20px -20px; padding: 0 20px 20px 20px; }
-	.callout_fields fieldset.callouts { margin: 15px 0 15px -20px; padding: 20px; width: 100%; }
-	.callout_fields fieldset.callouts:first-child { margin-top: 0; padding-top: 0; }
-	.callout_fields fieldset.callouts.callouts_no_margin { margin-top: -16px; }
-	.callout_fields fieldset.callouts:last-child { margin-bottom: 0; }
-	.callout_fields fieldset.callouts article:nth-child(even) { margin-right: 0; }
-	.callout_fields fieldset.callouts h4 { margin: 0; }
+	.callout_type { margin-right: 10px; }
 
 /* Box Select Styles */
 	.box_select { background: #fff; border: 1px solid #ccc; border-radius: 3px; color: #333; float: left; height: 75px; margin: 0 15px 15px 0; padding: 25px 10px 10px 10px; text-align: center; transition: background-color 0.2s, border-color 0.2s; user-select: none; width: 89px; }
@@ -1075,8 +1057,6 @@
 
 	.developer .table > section { padding: 30px; }
 
-	.developer form fieldset.view_type .select .current_select_container { width: 193px !important; }
-	.developer form fieldset.view_type .select .select_options { width: 247px !important; }
 	.developer form fieldset.view_description textarea { height: 100px; }
 
 	.developer #manage_hooks {
@@ -1141,7 +1121,7 @@
 	.developer .form_table .ui-sortable-placeholder { background: #E3E3E3; border-top: 1px solid #E5E5E5; height: 43px; overflow: hidden; }
 	.developer .form_table li section { float: left; text-align: center; }
 	.developer .form_table li section input { margin: 5px 0; }
-	.developer .form_table li section select, .developer .form_table li section .select { margin: 5px 0; }
+  .developer .form_table li section .select_container { margin: 5px 0; }
 
 	.developer .form_table .developer_resource_id { padding: 0 0 0 30px; text-align: left; width: 147px; }
 	.developer .form_table .developer_resource_id input { width: 132px; }
@@ -1156,8 +1136,8 @@
 	.developer .form_table .developer_resource_form_subtitle { text-align: left; width: 267px; }
 	.developer .form_table .developer_resource_form_subtitle input { width: 257px; }
 	.developer .form_table .developer_resource_type { padding: 0; text-align: left; white-space: nowrap; width: 240px; }
-	.developer .form_table .developer_resource_type .select .current_select_container { width: 155px !important; }
-	.developer .form_table .developer_resource_type .select .select_options { width: 209px !important; }
+	.developer .form_table .developer_resource_type .select_container { width: 209px; }
+	.developer .form_table .developer_resource_type .select_container select { width: 100%; }
 	.developer .form_table .developer_resource_type .icon_settings { margin: 9px 0 0 5px; }
 	.developer .form_table .developer_resource_type .resource_name { background: #F6F6F6; border: 1px solid #CCCCCC; border-radius: 2px; color: #333; display: block; float: left; font-family: "Helvetica", Arial; font-size: 11px; height: 30px; line-height: 30px; margin: 5px 0; opacity: 0.5; padding: 0 44px 0 10px; user-select: none; width: 155px; }
 	.developer .form_table .developer_resource_display_title { width: 40px; }
@@ -1195,8 +1175,6 @@
 	.developer .form_table .developer_report_filter_title input { width: 629px; }
 	.developer .form_table .developer_report_filter_title span { margin-top: 9px; }
 	.developer .form_table .developer_report_filter_type { padding: 0 0 0 10px; text-align: left; width: 190px; }
-	.developer .form_table .developer_report_filter_type .select .current_select_container { width: 134px !important; }
-	.developer .form_table .developer_report_filter_type .select .select_options { width: 188px !important; }
 	.developer .form_table .developer_report_action { padding: 9px 0 0 0; width: 40px; }
 
 	.developer form .right textarea, .developer form .left textarea { height: 147px; }
@@ -1204,7 +1182,6 @@
 	fieldset.developer_module_group input { float: left; width: 432px; }
 	fieldset.developer_module_group > span { float: left; height: 32px; line-height: 32px; padding: 0 10px; }
 
-	#field_area select { float: right; height: 24px; margin: 5px 10px 0 0; }
 	#field_area hr { margin-top: 30px; }
 	.developer_action_list ul { list-style: none; margin: 0; }
 	.developer_action_list li { background: #FCFCFC; border: 1px solid #ccc; border-radius: 3px; float: left; margin: 0 5px 0 0; }
@@ -1235,7 +1212,6 @@
 	input.field_type_version:first-of-type { margin-left: 0px; }
 
 	#gbp div { overflow: hidden; }
-	#gbp .select div { overflow: auto; }
 
 	.api_account_block { overflow: hidden; }
 	.api_account_block img { float: left; width: 50px; }
@@ -1248,9 +1224,8 @@
 	.bigtree_dialog_window .route_source_field .icon_small { margin: 8px 0 0 0; }
 	.route_source_field { margin: 0 0 5px 0; }
 	.route_source_field:last-child { margin: 0; }
-	.route_source_field .select { float: none; width: 415px; }
-	.route_source_field .select .current_select_container { width: 361px !important; }
-	.route_source_field .select .select_options { width: 415px !important; }
+	.route_source_field .select_container { float: none; width: 415px; }
+	.route_source_field .select_container select { width: 100%; }
 	.route_source_field .icon_small_add { display: none; }
 	.route_source_field:last-child .icon_small_add { display: block; }
 	.route_source_field:last-child .icon_small_delete { display: none; }
@@ -1271,14 +1246,6 @@
 	.bigtree.front_end_editor .front_end_editor_container input[type="url"] { width: 760px; }
 	.bigtree.front_end_editor .front_end_editor_container input[type=submit] { margin-right: 10px; }
 	.bigtree.front_end_editor .front_end_editor_container textarea { width: 760px; }
-
-	.bigtree.front_end_editor .callout_fields input[type="text"],
-	.bigtree.front_end_editor .callout_fields input[type="email"],
-	.bigtree.front_end_editor .callout_fields input[type="password"],
-	.bigtree.front_end_editor .callout_fields input[type="url"],
-	.bigtree.front_end_editor .callout_fields textarea { width: 418px; }
-
-	.bigtree.front_end_editor .callout_fields fieldset { width: 440px; }
 
 /*---------------------------
 		BigTree Dialog
@@ -1305,7 +1272,6 @@
 	.bigtree_dialog_form h4 a { display: block; float: right; margin-right: 2px; }
 	.bigtree_dialog_form fieldset { display: block; margin: 0 0 15px 0; width: 440px; }
 	.bigtree_dialog_form fieldset.last { margin: 0; }
-	.bigtree_dialog_form select { display: block; margin: 0 0 5px 0; }
 	.bigtree_dialog_form input[type=checkbox] { margin-left: 0px; }
 	.bigtree_dialog_form input.date_picker { width: 180px; }
 	.bigtree_dialog_form input.time_picker { width: 180px; }
@@ -1325,8 +1291,6 @@
 	.bigtree_dialog_form .text_input .input_address_city { float: left; margin: 0 10px 10px 0; width: 270px; }
 	.bigtree_dialog_form .text_input .input_address_city input { width: 270px; }
 	.bigtree_dialog_form .text_input .input_address_state { float: left; margin: 0 0 10px 0; width: 160px; }
-	.bigtree_dialog_form .text_input .input_address_state .select .current_select_container { width: 104px !important; }
-	.bigtree_dialog_form .text_input .input_address_state .select .select_options { width: 158px !important; }
 	.bigtree_dialog_form .text_input .input_address_country { float: left; margin: 0; width: 258px; }
 
 	.bigtree_dialog_form textarea { display: block; width: 418px; }
@@ -1382,10 +1346,9 @@
 	.matrix_table article { border-bottom: 1px solid #CCC; background: #FFF; }
 	.matrix_table article > div { padding: 10px 10px 0 10px; overflow: hidden; }
 	.matrix_table article:last-child { border: none; }
-	.matrix_table article input:nth-child(odd) { margin-right: 0; }
-	.matrix_table .select { margin: 0 10px 10px 0; }
-	.matrix_table .select .current_select_container { width: 148px !important; }
-	.matrix_table .select_options { width: 202px !important; }
+	.matrix_table article *:nth-child(even) { margin-right: 0 !important; }
+	.matrix_table .select_container { margin: 0 10px 10px 0; width: 202px; }
+	.matrix_table .select_container select { width: 100% !important; }
 	.matrix_table footer { color: #FCFCFC; border-top: 1px solid #CCC; overflow: hidden; padding: 5px 10px; }
 	.matrix_table footer span { float: left; margin: 0 10px 0 0; }
 	.matrix_table footer > a { float: right; margin: 0 0 0 10px; }
@@ -1393,7 +1356,6 @@
 	.matrix_table .matrix_display_title { overflow: hidden; display: inline-block; padding: 3px 40px 0 0; }
 	.matrix_table footer .checkbox a { margin: 0; }
 	.bigtree_dialog_form .matrix_table article input { width: 204px; float: left; margin: 0 10px 10px 0; }
-	.bigtree_dialog_form .matrix_table article input:nth-child(odd) { margin-right: 0; }
 	.bigtree_dialog_form .matrix_add_column { cursor: pointer; margin: 0; }
 
 /*---------------------------
@@ -1783,10 +1745,6 @@
 					margin-top: 6px;
 				}
 			}
-
-			> .select {
-				margin: 0 5px 0 0;
-			}
 		}
 	
 		> ul {
@@ -1839,8 +1797,7 @@
 	.multi_widget_instructions { background: #FFF; border-bottom: 1px solid #CCC; padding: 30px; }
 
 	.many_to_many footer .button { float: left; margin: 0 0 0 10px; }
-	.many_to_many footer .select .current_select_container { max-width: 679px !important; }
-	.many_to_many footer .select .select_options { max-width: 733px !important; }
+	.many_to_many footer .select_container { max-width: 679px !important; }
 	.many_to_many footer .max { float: left; line-height: 32px; margin: 0 0 0 10px; }
 
 /* ToolTip */
@@ -2227,7 +2184,6 @@
 	.bigtree .mce-checked i.mce-i-checkbox { color: #777; }
 	.bigtree .mce-fade, .bigtree .mce-window { transition: none; }
 	.bigtree #mce-modal-block.mce-in { background: #000; opacity: 0.6; }
-	.bigtree .callout_fields .mce-btn-group { border: none; }
 
 /*----------------------------
 	Custom Redactor Styles
@@ -2253,68 +2209,3 @@
 	.install_wrapper h2 span, .install_wrapper .checkbox a, .install_wrapper .select .handle { background-image: url(../images/install-sprite-2x.png); background-size: 150px 57px; }
 }
 
-/*-----------------------------
-	Internet Explorer Fixes
------------------------------*/
-
-	/* All IE */
-	.ie header.main .view_site { border: 1px solid #222; }
-	.ie nav.main { border-bottom: 1px solid #AAA; }
-	.ie nav.main li:hover a { -ms-filter: none; background: #243D4C; filter: none; }
-	.ie nav.main li li a:hover { background: #406980; }
-	.ie body.login { background: #333; }
-	.ie .body .wrapper { overflow: hidden; }
-	.ie .table > summary .more { border: 1px solid #CCC; }
-	.ie .table .changes_awaiting a { border: 1px solid #AFAFAF; }
-	.ie .table .redirect_404 input { height: 12px; }
-	.ie .property_block { border: 1px solid #e3e3e3; }
-	.ie #bigtree_tag_browser label { display: block; overflow: visible; width: 50px; }
-	.ie .form_search { background: #FFF; border: 1px solid #DCDCDC; border-radius: 13px; float: left; height: 24px; margin: 9px 10px 0 0; padding: 0 34px 0 13px; transition: border-color 0.2s; width: 173px; }
-	.ie .table summary .form_search { margin: 5px 25px 0 -10px; }
-	.ie .environment_alert a { background: #FFF; }
-
-	/* IE 7 */
-	.ie7 input[type=text], .ie7 input[type=password], .ie7 input[type=email], .ie7 input[type=url] { height: 18px; padding: 7px 10px; }
-	.ie7 .nav_shadow, .ie8 .nav_shadow { display: block; }
-	.ie7 nav.main form .qs_query { background: #FFF; border: 1px solid #DCDCDC; border-radius: 13px; height: 12px; margin: 5px 0; padding: 3px 34px 6px 13px; width: 175px; }
-	.ie7 nav.main form .qs_image { height: 16px; margin: 10px 0 0 195px; position: absolute; user-select: none; width: 16px; }
-	.ie7 nav.sub li { float: left; }
-	.ie7 .file_wrapper input { filter: alpha(opacity=0); }
-	.ie7 #message_form .select { width: 300px; }
-	.ie7 nav.main li a { width: 100%; }
-	.ie7 #growl article span { float: left; }
-	.ie7 #growl article .close { margin: -9px 0 0 180px; }
-	.ie7 .form_search { height: 12px !important; width: 200px; }
-	.ie7 .form_search_icon { margin: 10px 0 0 -50px; }
-	.ie7 a.button { display: block; float: left; }
-	.ie7 #link_finder { margin: 8px 8px 0 0; padding-right: 35px; }
-	.ie7 .link_finder_search_icon { margin: 15px 0 0 542px; }
-	.ie7 #link_finder_results { margin: 35px 0 0 357px; }
-	.ie7 #template_tab .select { width: 150px; }
-	.ie7 #template_tab .checkbox { margin: 15px 0 0 0; }
-	.ie7 #template_tab .for_checkbox { margin: 15px 0 0 15px; }
-	.ie7 .ui-datepicker .ui-datepicker-prev span, .ie7 .ui-datepicker .ui-datepicker-next span { display: block; }
-	.ie7 .environment_alert { width: 400px; }
-
-	/* IE 8 */
-	.ie8 input[type=text], .ie8 input[type=password], .ie8 input[type=email], .ie8 input[type=url] { height: 18px; padding: 7px 10px; }
-	.ie8 nav.main ul { margin-bottom: 2px; margin-top: -2px; }
-	.ie8 nav.main form .qs_query { height: 12px; margin-top: 3px; padding: 3px 34px 9px 13px; }
-	.ie8 nav.main form .qs_image { margin-top: 8px; }
-	.ie8 .table p.module { width: 447px; }
-	.ie8 .file_wrapper input { -ms-filter: "progid: DXImageTransform.Microsoft.Alpha(Opacity=0)"; }
-	.ie8 #file_browser .header input { height: 12px; }
-	.ie8 .ui-datepicker .ui-datepicker-prev span, .ie8 .ui-datepicker .ui-datepicker-next span { display: block; }
-	.ie8 #link_finder { height: 12px; padding-right: 35px; }
-	.ie8 #link_finder_results { margin-top: 36px; }
-	.ie8 .table summary .form_search { height: 12px; padding-right: 35px; }
-
-	/* IE 9 */
-	.ie9 nav.main li li a { filter: none; }
-	.ie9 .form_search { background: #FFF; border: 1px solid #DCDCDC; border-radius: 13px; float: left; height: 24px; margin: 9px 10px 0 0; padding: 0 34px 0 13px; transition: border-color 0.2s; width: 173px; }
-	.ie9 .table summary .form_search { margin: 5px 25px 0 -10px; }
-
-	/* Internet Explorer refuses to show this correctly, even 10+, so we have to draw it a different way */
-	.browser_msie .jump_group .icon { white-space: nowrap; }
-	.browser_msie .jump_group .icon:before { background: url(../images/icon-sprite.svg) -242px -107px; content: ''; display: block; float: right; height: 16px; margin: 0 0 0 10px; width: 14px; }
-	.browser_msie .jump_group .icon:after { display: none; }

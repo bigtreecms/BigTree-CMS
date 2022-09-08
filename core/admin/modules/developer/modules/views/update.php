@@ -10,7 +10,7 @@
 	
 	$errors = array();
 	// Check for errors
-	if (($type == "draggable" || $type == "draggable-group" || $settings["draggable"]) && !$columns["position"]) {
+	if (($type == "draggable" || $type == "draggable-group" || !empty($settings["draggable"])) && !$columns["position"]) {
 		$errors[] = "Sorry, but you can't create a draggable view without a 'position' column in your table.  Please create a position column (integer) in your table and try again.";
 	}
 	
@@ -85,7 +85,8 @@
 		}
 		
 		// Let's update the view and clear its cache
-		$admin->updateModuleView(end($bigtree["path"]), $title, $description, $table, $type, $settings, $fields, $actions, $related_form, $preview_url, $exclude_from_search);
+		$admin->updateModuleView(end($bigtree["path"]), $title, $description, $table, $type, $settings, $fields,
+								 $actions, $related_form, $preview_url, !empty($exclude_from_search));
 		BigTreeAutoModule::clearCache(end($bigtree["path"]));
 		
 		$action = $admin->getModuleActionForView(end($bigtree["path"]));

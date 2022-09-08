@@ -6,12 +6,12 @@
 		BigTreeCustomControls();
 	};
 
-	$("#report_table").change(function(event,data) {
-		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-report/", { table: data.value, report_type: $("#report_type").val() }, BigTree.localHooks);
+	$("#report_table").change(function(event) {
+		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-report/", { table: $(this).val(), report_type: $("#report_type").val() }, BigTree.localHooks);
 		$("#create").show();
 	});
 
-	$("#report_type").change(function(event,data) {
+	$("#report_type").change(function(event) {
 		var v = $(this).val();
 		if (v == "csv") {
 			$("#filtered_view").hide();

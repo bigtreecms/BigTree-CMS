@@ -218,8 +218,6 @@
 	form .triplets:after { clear: both; content: ""; display: table; }
 	form .triplets fieldset { float: left; margin: 0 29px 0 0; width: 280px; }
 	form .triplets fieldset:last-child { margin: 0; }
-	form .triplets .select .current_select_container { width: 224px !important; }
-	form .triplets .select .select_options { width: 278px !important; }
 	form .last { margin-bottom: 0; }
 
 	.image_field .file_wrapper { float: left; }
@@ -300,11 +298,9 @@
 	.container .input_address_city input { width: 308px; }
 	.container .input_address_zip input { width: 170px; }
 	.container .input_address_state { width: 160px; }
-	.container .input_address_state .select .current_select_container { width: 104px !important; }
-	.container .input_address_state .select .select_options { width: 158px !important; }
+	.container .input_address_state .select_container select { width: 100% !important; }
 	.container .text_input .input_address_country { margin: 0; width: 200px; }
-	.container .input_address_country .select .current_select_container { width: 188px !important; }
-	.container .input_address_country .select .select_options { width: 198px !important; }
+	.container .input_address_country .select_container select { width: 100% !important; }
 	.container .text_input .input_phone_3 { margin: 0; }
 	.container .input_phone_3 input { float: left; text-align: center; width: 40px; }
 	.container .input_phone_3 span { float: left; height: 32px; line-height: 32px; text-align: center; width: 20px; }
@@ -361,11 +357,6 @@
 			.icon_small {
 				margin-top: 6px;
 			}
-		}
-
-		.callout_fields & .button {
-			font-size: 12px;
-			padding: 0 10px;
 		}
 
 		.max {
@@ -431,9 +422,67 @@
 	.video_field input[type=url] {
 		float: left;
 		width: 400px;
+	}
 
-		.callout_fields & {
-			width: 283px;
+	.select_container {
+		background: #FFF;
+		border: 1px solid #CCCCCC;
+		border-radius: 2px;
+		float: left;
+		position: relative;
+	}
+
+	.select_container:after {
+		background: url(../../images/icon-sprite.svg) -340px -105px;
+		content: "";
+		float: right;
+		height: 30px;
+		position: absolute;
+		pointer-events: none;
+		right: 0;
+		top: 0;
+		width: 34px;
+		z-index: 2;
+	}
+
+	select {
+		appearance: none;
+		-webkit-appearance: none;
+		background: none;
+		border-style: none;
+		border-radius: 2px 0 0 2px;
+		color: #333;
+		cursor: pointer;
+		display: inline-block;
+		font-family: "Helvetica", Arial;
+		font-size: 11px;
+		height: 30px;
+		line-height: 30px;
+		margin: 0;
+		outline: 0;
+		padding: 0 44px 0 10px;
+		position: relative;
+	}
+
+	// Undo the Firefox inner focus ring
+	select:focus:-moz-focusring {
+		color: transparent;
+		text-shadow: 0 0 0 #000;
+	}
+
+	// Hide the arrow in IE10 and up
+	select::-ms-expand {
+		display: none;
+	}
+
+	@-moz-document url-prefix() {
+		select {
+			text-indent: 0.01px;
+			text-overflow: "";
+		}
+
+		select option {
+			background-color: #fff;
 		}
 	}
 

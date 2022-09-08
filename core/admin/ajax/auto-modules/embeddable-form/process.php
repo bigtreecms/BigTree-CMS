@@ -61,8 +61,8 @@
 			"key" => $resource["column"],
 			"settings" => $resource["settings"] ?? $resource["options"] ?? [],
 			"ignore" => false,
-			"input" => $bigtree["post_data"][$resource["column"]],
-			"file_input" => $bigtree["file_data"][$resource["column"]]
+			"input" => $bigtree["post_data"][$resource["column"]] ?? null,
+			"file_input" => $bigtree["file_data"][$resource["column"]] ?? null,
 		);
 
 		$output = BigTreeAdmin::processField($field);

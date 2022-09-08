@@ -42,8 +42,8 @@
 				"key" => "metadata[".$meta["id"]."]",
 				"settings" => $meta["settings"] ?? $meta["options"] ?? [],
 				"ignore" => false,
-				"input" => $_POST["metadata"][$meta["id"]],
-				"file_input" => $bigtree["file_data"]["metadata"][$meta["id"]]
+				"input" => $_POST["metadata"][$meta["id"]] ?? null,
+				"file_input" => $bigtree["file_data"]["metadata"][$meta["id"]] ?? null,
 			);
 
 			$output = BigTreeAdmin::processField($field);

@@ -55,7 +55,7 @@
 			}
 
 			// Sanitize user input
-			$input = $data[$resource["id"]];
+			$input = $data[$resource["id"]] ?? null;
 
 			if (is_string($input) && is_array(json_decode($input, true))) {
 				$input = json_decode($input, true);
@@ -68,7 +68,7 @@
 				"key" => $resource["id"],
 				"settings" => $settings,
 				"input" => $input,
-				"file_input" => $field["file_input"][$index][$resource["id"]]
+				"file_input" => $field["file_input"][$index][$resource["id"]] ?? null,
 			]);
 
 			if (!empty($resource["display_title"])) {

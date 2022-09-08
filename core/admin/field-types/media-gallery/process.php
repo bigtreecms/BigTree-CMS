@@ -29,8 +29,8 @@
 				"title" => "Video",
 				"key" => "*localvideo",
 				"type" => "upload",
-				"input" => $data["info"]["*localvideo"],
-				"file_input" => $field["file_input"][$index]["info"]["*localvideo"],
+				"input" => $data["info"]["*localvideo"] ?? null,
+				"file_input" => $field["file_input"][$index]["info"]["*localvideo"] ?? null,
 				"settings" => $field["settings"]
 			]);
 			
@@ -47,8 +47,8 @@
 					"title" => "Photo",
 					"key" => "*photo",
 					"type" => "image",
-					"input" => $data["info"]["*photo"],
-					"file_input" => $field["file_input"][$index]["info"]["*photo"],
+					"input" => $data["info"]["*photo"] ?? null,
+					"file_input" => $field["file_input"][$index]["info"]["*photo"] ?? null,
 					"settings" => $field["settings"]
 				]);
 				
@@ -63,8 +63,8 @@
 				"title" => "Photo",
 				"key" => "*photo",
 				"type" => "image",
-				"input" => $data["info"]["*photo"],
-				"file_input" => $field["file_input"][$index]["info"]["*photo"],
+				"input" => $data["info"]["*photo"] ?? null,
+				"file_input" => $field["file_input"][$index]["info"]["*photo"] ?? null,
 				"settings" => $field["settings"],
 				"recrop" => !empty($data["info"]["__*photo_recrop__"]),
 			]);
@@ -80,8 +80,8 @@
 				"title" => "Video URL",
 				"key" => "*video",
 				"type" => "video",
-				"input" => $data["info"]["*video"],
-				"file_input" => $field["file_input"][$index]["info"]["*video"],
+				"input" => $data["info"]["*video"] ?? null,
+				"file_input" => $field["file_input"][$index]["info"]["*video"] ?? null,
 				"settings" => $field["settings"]
 			]);
 			
@@ -119,7 +119,7 @@
 			}
 
 			// Sanitize user input
-			$input = $data["info"][$resource["id"]];
+			$input = $data["info"][$resource["id"]] ?? null;
 
 			if (is_string($input) && is_array(json_decode($input, true))) {
 				$input = json_decode($input, true);
@@ -131,7 +131,7 @@
 				"key" => $resource["id"],
 				"settings" => $settings,
 				"input" => $input,
-				"file_input" => $field["file_input"][$index]["info"][$resource["id"]]
+				"file_input" => $field["file_input"][$index]["info"][$resource["id"]] ?? null,
 			]);
 			
 			if (!is_null($output)) {

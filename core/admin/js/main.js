@@ -304,245 +304,37 @@ var BigTreeCheckbox = function(element) {
 var BigTreeSelect = function(element) {
 	return (function($,element) {
 
-		var Container = $("<div>").addClass("select");
-		var CurrentContainer;
+		var Container;
 		var Element = $(element);
-		var Open = false;
 		var Options = [];
-		var TabIndex = 0;
-		var WasRelative = false;
-		var ValueContainer;
 
 		function add(value,text) {
 			// Add to the actual select.
 			Element.get(0).options[Element.get(0).options.length] = new Option(text,value);
-			// Add to the styled select.
-			var a = $('<a href="#">' + text + '</a>').attr("data-value",value);
-			Container.find(".select_options").append(a);
-
-			// Test the size of this new element and see if we need to increase the width.
-			var tester = $("<div>").css({ position: "absolute", top: "-1000px", left: "-1000px", "font-size": "11px", "font-family": "Helvetica", "white-space": "nowrap" });
-			$("body").append(tester);
-			tester.html(text);
-
-			var width = tester.width();
-
-			// If we're in a section cell we may need to be smaller.
-			if (Element.parent().get(0).tagName.toLowerCase() == "section") {
-				var sectionwidth = Element.parent().width();
-				if (sectionwidth < (width + 56)) {
-					width = sectionwidth - 80;
-					CurrentContainer.css({ overflow: "hidden", padding: "0 0 0 10px" });
-				}
-			}
-
-			if (width > CurrentContainer.width()) {
-				CurrentContainer.css({ width: (width + 10) + "px" });
-				Container.find(".select_options").css({ width: (width + 64) + "px" });
-			}
-
-			tester.remove();
 		}
 
 		function blur() {
-			Container.removeClass("focused");
+			Element.blur();
 		}
 
 		function click() {
-			if (Container.hasClass("disabled")) {
-				return false;
-			}
-
-			if (!Open) {
-				// Tooltips and menus sometimes show over the dropdown when using TinyMCE 4
-				try {
-					tinyMCE.ui.FloatPanel.hideAll();
-				} catch (err) {}
-
-				$("select").not(Element).trigger("closeNow");
-				Element.focus();
-
-				// Check if we're in a sortable row and disable it's relative position if so.
-				var li = Element.parent("li");
-				if (li.length) {
-					if (li.css("position") == "relative") {
-						li.css("position","");
-						WasRelative = true;
-					}
-				}
-
-				var select_options = Container.find(".select_options").show();
-				Open = true;
-				Container.addClass("open");
-				$("body").click(close);
-
-				// Find out if we're in a dialog and have an overflow
-				var overflow = Container.parents(".overflow");
-				if (overflow.length) {
-					// Adjust by scroll offset - then someone scrolls the overflow, close the select or the dropdown will detach.
-					if (Container.parents(".callout_fields, #matrix_resources").length) {
-						select_options.css("marginTop",-1 * $(".callout_fields, #matrix_resources").last().scrollTop() + "px");						
-						setTimeout(function() { $(".callout_fields, #matrix_resources").last().scroll(close); },500);
-					} else {
-						select_options.css("marginTop",-1 * overflow.scrollTop() + "px");
-						setTimeout(function() { overflow.scroll(close); },500);
-					}
-
-					// If the options would hang off the window, shrink the options menu down
-					var offset = select_options.offset().top - window.scrollY + select_options.height();
-					var difference = offset - BigTree.windowHeight();
-					
-					if (difference > 0) {
-						select_options.css({ height: select_options.height() - difference - 5 + "px" });
-					}
-				} else {
-					// If the select drops below the visible area, scroll down a bit.
-					var toScroll = (select_options.offset().top + select_options.height()) - window.scrollY - $(window).height();
-					if (toScroll > 0) {
-						$('html, body').animate({ scrollTop: window.scrollY + toScroll + 5 }, 200);
-					}
-				}
-			} else {
-				close();
-			}
-
-			return false;
+			// No longer needed
 		}
 
 		function close() {
-			Open = false;
-			Container.removeClass("open").find(".select_options").hide();
-			// Remove events for closing the dropdown
-			$("body").unbind("click",close);
-			$(".callout_fields").unbind("scroll",close);
-			Container.parents(".overflow").unbind("scroll",close);
-
-			// Reset relative position if applicable
-			if (WasRelative) {
-				Element.parent("li").css("position", "relative");
-				WasRelative = false;
-			}
-
-			return false;
+			// No longer needed
 		}
 
 		function disable() {
 			Element.prop("disabled",true);
-			Container.addClass("disabled");
 		}
 
 		function enable() {
 			Element.prop("disabled",false);
-			Container.removeClass("disabled");
 		}
 
 		function focus() {
-			Container.addClass("focused");
-		}
-
-		function keydown(ev) {
-			// If a modifier has been pressed, ignore this.
-			if (ev.ctrlKey || ev.altKey || ev.metaKey) {
-				return true;
-			}
-
-			if (ev.keyCode == 13 && Open) {
-				close();
-				return false;
-			}
-
-			// The original select element that's hidden off screen.
-			var el = Element.get(0);
-
-			// Get the original index and save it so we know when it changes.
-			var index = el.selectedIndex;
-			var originalIndex = index;
-
-			// Up or left arrow pressed
-			if (ev.keyCode == 38 || ev.keyCode == 37) {
-				index--;
-				// Make sure we're not on a disabled option
-				while (index < 0 || el.options[index].disabled) {
-					index--;
-					if (index < 0) {
-						index = originalIndex;
-					}
-				}
-			// Down or right arrow pressed
-			} else if (ev.keyCode == 40 || ev.keyCode == 39) {
-				index++;
-				// Make sure we're not on a disabled option
-				while (index == el.options.length || el.options[index].disabled) {
-					index++;
-					if (index >= el.options.length) {
-						index = originalIndex;
-					}
-				}
-			// A letter key was pressed
-			} else if (ev.keyCode > 64 && ev.keyCode < 91) {
-				var spot = ev.keyCode - 65;
-				var letters = "abcdefghijklmnopqrstuvwxyz";
-				var letter = letters[spot];
-
-				// Go through all the options in the select to see if any of them start with the letter that was pressed.
-				for (var i = index + 1; i < el.options.length; i++) {
-					if (!el.options[i].disabled) {
-						var text = el.options[i].text;
-						if (text) {
-							var first_letter = text[0].toLowerCase();
-							if (first_letter == letter) {
-								index = i;
-								break;
-							}
-						}
-					}
-				}
-
-				// If we were already on that letter, find the next one with that same letter.
-				if (index == originalIndex) {
-					for (var i = 0; i < originalIndex; i++) {
-						if (!el.options[i].disabled) {
-							var text = el.options[i].text;
-							if (text) {
-								var first_letter = text[0].toLowerCase();
-								if (first_letter == letter) {
-									index = i;
-									break;
-								}
-							}
-						}
-					}
-				}
-			}
-
-			// We found a new element, fire an event saying the select changed and update the description in the styled dropdown.
-			if (index != originalIndex) {
-				// Update the new selected option
-				var select_options_container = Container.find(".select_options");
-				var ops = select_options_container.find("a");
-				ops.eq(originalIndex).removeClass("active");
-				ops.eq(index).addClass("active");
-
-				// Find out if we can see this option
-				var selected_y = (index + 1) * 25;
-				if (selected_y >= select_options_container.height() + select_options_container.scrollTop()) {
-					select_options_container.animate({ scrollTop: selected_y - select_options_container.height() + "px" }, 250);
-				} else if (selected_y <= select_options_container.scrollTop()) {
-					select_options_container.animate({ scrollTop: selected_y - 25 + "px" }, 250);
-				}
-			
-				Element.get(0).selectedIndex = index;
-				Element.trigger("change", { value: el.options[index].value, text: el.options[index].text });
-	
-				ValueContainer.html(el.options[index].text);
-
-				return false;
-			}
-
-			// Stop the event if it's not a tab.
-			if (ev.keyCode != 9) {
-				return false;
-			}
+			Element.focus();
 		}
 
 		function remove(value) {
@@ -553,61 +345,10 @@ var BigTreeSelect = function(element) {
 					ops.eq(i).remove();
 				}
 			}
-			// Remove it from the styled one.
-			var as = Container.find(".select_options a");
-			for (var i = 0; i < as.length; i++) {
-				if (as.eq(i).attr("data-value") == value) {
-					var text_was = as.eq(i).html();
-					as.eq(i).remove();
-				}
-			}
-			// If the current selected state is the value we're removing, switch to the first available.
-			var select_options = Container.find(".select_options a");
-			
-			if (select_options.length > 0) {
-				if (ValueContainer.html() == text_was) {
-					ValueContainer.html(select_options.eq(0).html());
-				}
-			} else {
-				ValueContainer.html("");
-			}
-		}
-
-		function select(ev) {
-			ev.preventDefault();
-			var option = $(this);
-
-			// Disabled options aren't clickable
-			if (option.hasClass("disabled")) {
-				ev.stopPropagation();
-				return;
-			}
-
-			// Set the <select> to the new value
-			Element.val(option.attr("data-value"));
-
-			// Update the selected state of the custom dropdown
-			ValueContainer.html(option.html());
-			Container.find("a").removeClass("active");
-			option.addClass("active");
-
-			// Close the dropdown
-			close();
-
-			// Tell the <select> it has changed.
-			Element.trigger("change", { value: option.attr("data-value"), text: option.innerHTML });
 		}
 
 		function update() {
-			var el = Element.get(0);
-			ValueContainer.html(el.options[el.selectedIndex].text);
-			Container.find("a").removeClass("active").eq(el.selectedIndex).addClass("active");
-
-			if (Element.prop("disabled")) {
-				disable();
-			} else {
-				enable();
-			}
+			// No longer needed
 		}
 
 		// Init routine
@@ -615,149 +356,11 @@ var BigTreeSelect = function(element) {
 			return false;
 		}
 
+		Container = $('<div class="select_container">').addClass(Element.attr("class"));
 		Element.addClass("custom_control");
+		Element.wrap(Container);
 
-		// WebKit likes to freak out when we focus a position: absolute <select> in an overflow: scroll area
-		if ($.browser.webkit) {
-			Element.css({ position: "relative", left: "-1000000px", float: "left", width: "1px", marginRight: "-1px" });
-		} else {
-			Element.css({ position: "absolute", left: "-1000000px" });
-		}
-
-		var tester = $("<div>").css({ position: "absolute", top: "-1000px", left: "-1000px", "font-size": "11px", "font-family": "Helvetica", "white-space": "nowrap" });
-		$("body").append(tester);
-		var maxwidth = 0;
-
-		var html = "";
-		var selected = "";
-		var selected_option = "";
-
-		// Need to find all children since we have to account for options in and out of optgroups
-		var first_level = Element.children();
-		var y = 0;
-		for (var i = 0; i < first_level.length; i++) {
-			var el = first_level.get(i);
-			if (el.nodeName.toLowerCase() == "optgroup") {
-				var l = $(el).attr("label");
-				Options.push($('<div class="group">' + l + '</div>'));
-				// Get the size of this text.
-				tester.html(l);
-				var width = tester.width();
-				if (width > maxwidth) {
-					maxwidth = width;
-				}
-
-				var options = $(el).find("option");
-				for (x = 0; x < options.length; x++) {
-					y++;
-					var option = options.eq(x);
-					var text = option.html();
-					var val = option.attr("value");
-					if (!val) {
-						val = text;
-					}
-
-					// Get the size of this text.
-					tester.html(text);
-					width = tester.width();
-					if (width + 20 > maxwidth) {
-						maxwidth = width + 20;
-					}
-
-					if (y == 1) {
-						selected_option = text;
-					}
-
-					if (option.prop("selected")) {
-						Options.push($('<a class="optgroup active" href="#" data-value="' + val + '">' + text + '</a>'));
-						selected_option = text;
-					} else if (option.prop("disabled")) {
-						Options.push($('<a class="optgroup disabled" href="#" data-value="' + val + '">' + text + '</a>'));
-					} else {
-						Options.push($('<a class="optgroup" href="#" data-value="' + val + '">' + text + '</a>'));
-					}
-				}
-			} else {
-				y++;
-				var option = $(el);
-				var text = option.html();
-				var val = option.attr("value");
-				if (!val) {
-					val = text;
-				}
-
-				// If we're making a tree-like dropdown
-				if (option.attr("data-depth")) {
-					var depth = parseInt(option.attr("data-depth")) * 10;
-				} else {
-					var depth = 0;
-				}
-
-				// Get the size of this text.
-				tester.html(text);
-				var width = tester.width() + depth;
-				if (width > maxwidth) {
-					maxwidth = width;
-				}
-
-				if (y == 1) {
-					selected_option = text;
-				}
-
-				if (option.prop("selected")) {
-					Options.push($('<a style="border-left: ' + depth + 'px solid #CCC;" class="active" href="#" data-value="' + val + '">' + text + '</a>'));
-					selected_option = text;
-				} else if (option.prop("disabled")) {
-					Options.push($('<a style="border-left: ' + depth + 'px solid #CCC;" class="disabled" href="#" data-value="' + val + '">' + text + '</a>'));
-				} else {
-					Options.push($('<a style="border-left: ' + depth + 'px solid #CCC;" href="#" data-value="' + val + '">' + text + '</a>'));
-				}
-			}
-		}
-		
-		// Add it to the DOM
-		if (Element.attr("tabindex")) {
-			TabIndex = parseInt(Element.attr("tabindex"));
-		} else {
-			TabIndex = 0;
-		}
-
-		Element.attr("tabindex", "-1").before(Container);
-
-		Container.html('<div class="current_select_container"><a class="handle" tabindex="' + TabIndex + '"></a><span class="current_select_value">' + selected_option + '</span></div><div class="select_options" style="display: none;"></div>');
-		Container.find(".select_options").append(Options).css({ width: (maxwidth + 64) + "px" });
-		Container.on("click", "a", select);
-		Container.find(".handle").attr("tabindex", TabIndex).click(click).focus(focus).blur(blur).keydown(keydown);
-
-		CurrentContainer = Container.find(".current_select_container");
-		ValueContainer = Container.find(".current_select_value");
-
-		// If we're in a section cell we may need to be smaller.
-		var spanwidth = maxwidth;
-		
-		if (Element.parent().get(0).tagName.toLowerCase() == "section") {
-			var sectionwidth = $(element).parent().width();
-			if (sectionwidth < (maxwidth + 56)) {
-				spanwidth = sectionwidth - 80;
-				maxwidth = spanwidth - 44;
-				CurrentContainer.css({ overflow: "hidden", padding: "0 0 0 10px" });
-			}
-		}
-
-		CurrentContainer.css({ width: (spanwidth + 10) + "px", height: "30px" }).click(click);
-
-		// See if this select is disabled
-		if (Element.prop("disabled")) {
-			disable();
-		}
-
-		// Custom event to force open lists closed when another select opens.
-		Element.on("closeNow", close);
-
-		// Cleanup
-		tester.remove();
-
-		return { Container: Container, Element: Element, Options: Options, add: add, blur: blur, click: click, close: close, disable: disable, enable: enable, focus: focus, remove: remove, update: update };
+		return { Element: Element, Options: Options, add: add, blur: blur, click: click, close: close, disable: disable, enable: enable, focus: focus, remove: remove, update: update };
 
 	})(jQuery,element);
 };

@@ -18,11 +18,11 @@
 			}
 		});
 		
-		$(".container").on("change",".table_select",function(event,data) {
+		$(".container").on("change",".table_select",function(event) {
 			var target = $(this).data("pop-target");
 			var name = $(this).data("pop-name");
 
-			$(target).load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?table=" + data.value + "&field=" + name);
+			$(target).load("<?=ADMIN_ROOT?>ajax/developer/load-table-columns/?table=" + $(this).val() + "&field=" + name);
 		});
 		
 		$(".developer_icon_list a").click(function() {

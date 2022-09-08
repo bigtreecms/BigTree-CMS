@@ -52,7 +52,7 @@
 		</section>
 		<section class="sub" id="field_area">
 			<?php
-				if ($table) {
+				if (!empty($table)) {
 					include BigTree::path("admin/ajax/developer/load-report.php");
 				} else {
 					echo "<p>Please choose a table to populate this area.</p>";

@@ -48,11 +48,8 @@
 		ev.preventDefault();
 		
 		var new_field = $(".route_source_field").last().clone().attr("id", "");
-		new_field.find("select").removeClass("custom_control").prop("selectedIndex", 0);
-		new_field.find(".select").remove();
+		new_field.find("select").prop("selectedIndex", 0);
 		$("#js-source-fieldset").append(new_field);
-
-		BigTreeCustomControls("#js-source-fieldset");
 	}).on("click", ".icon_small_delete", function(ev) {
 		ev.preventDefault();
 		

@@ -1,6 +1,6 @@
 <script>
-	$("#view_table").change(function(event,data) {
-		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-view-fields/?table=" + data.value + "&type=" + $("#view_type").val());
+	$("#view_table").change(function(event) {
+		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-view-fields/?table=" + $(this).val() + "&type=" + $("#view_type").val());
 	});
 	
 	$(".js-view-settings").click(function(ev) {
@@ -23,8 +23,8 @@
 		}});
 	});
 	
-	$("#view_type").change(function(event,data) {
-		if (data.value == "images" || data.value == "images-grouped") {
+	$("#view_type").change(function(event) {
+		if ($(this).val() == "images" || $(this).val() == "images-grouped") {
 			$("#fields").hide();
 		} else {
 			$("#fields").show();

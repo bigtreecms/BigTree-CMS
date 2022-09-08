@@ -11,7 +11,7 @@
 		
 		<fieldset>
 			<label class="required">Data Table</label>
-			<select name="table" id="feed_table" class="required left">
+			<select name="table" id="feed_table" class="required">
 				<option></option>
 				<?php BigTree::getTableSelectOptions($table ?? ""); ?>
 			</select>
@@ -19,7 +19,7 @@
 		
 		<fieldset>
 			<label>Type</label>
-			<select name="type" id="feed_type" class="left">
+			<select name="type" id="feed_type">
 				<?php foreach ($feed_types as $t => $v) { ?>
 				<option value="<?=$t?>"<?php if ($t == $type) { ?> selected="selected"<?php } ?>><?=$v?></option>
 				<?php } ?>

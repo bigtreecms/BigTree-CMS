@@ -38,7 +38,7 @@
 		</fieldset>
 		<fieldset class="view_type">
 			<label>View Type</label>
-			<select name="type" id="view_type" class="left" >
+			<select name="type" id="view_type">
 				<?php foreach (BigTreeAdmin::$ViewTypes as $key => $t) { ?>
 				<option value="<?=$key?>"<?php if ($key == $type) { ?> selected="selected"<?php } ?>><?=$t?></option>
 				<?php } ?>
@@ -48,6 +48,8 @@
 		</fieldset>
 	</div>
 
+	<br class="clear" />
+	
 	<fieldset class="last">
 		<input id="field_exclude_from_search" type="checkbox" name="exclude_from_search"<?php if (!empty($exclude_from_search)) { ?> checked<?php } ?>>
 		<label for="field_exclude_from_search" class="for_checkbox">Exclude from Admin Search <small>(if this view contains a lot of data, this will speed up search greatly)</small></label>

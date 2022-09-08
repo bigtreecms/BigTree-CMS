@@ -5,8 +5,8 @@
 		BigTreeCustomControls();
 	};
 
-	$("#form_table").change(function(event,data) {
-		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-form/", { table: data.value }, BigTree.localHooks);
+	$("#form_table").change(function(event) {
+		$("#field_area").load("<?=ADMIN_ROOT?>ajax/developer/load-form/", { table: $(this).val() }, BigTree.localHooks);
 		$("#create").show();
 	});
 
