@@ -7701,7 +7701,7 @@
 			}
 			
 			// See if we're using image presets
-			if ($field["settings"]["preset"]) {
+			if (!empty($field["settings"]["preset"])) {
 				$media_settings = BigTreeJSONDB::get("config", "media-settings");
 				$preset = $media_settings["presets"][$field["settings"]["preset"]];
 				
@@ -7714,7 +7714,7 @@
 			}
 			
 			// This is a file manager upload, add a 100x100 center crop
-			if ($field["settings"]["preset"] == "default") {
+			if (!empty($field["settings"]["preset"]) && $field["settings"]["preset"] == "default") {
 				if (!is_array($field["settings"]["center_crops"])) {
 					$field["settings"]["center_crops"] = [];
 				}
@@ -7743,8 +7743,8 @@
 			$largest_thumb = $image->getLargestThumbnail();
 			$largest_crop = $image->getLargestCrop();
 			
-			if (!$image->checkMemory($largest_thumb["width"], $largest_thumb["height"]) ||
-				!$image->checkMemory($largest_crop["width"], $largest_crop["height"])
+			if (($largest_thumb && !$image->checkMemory($largest_thumb["width"], $largest_thumb["height"])) ||
+				($largest_crop && !$image->checkMemory($largest_crop["width"], $largest_crop["height"]))
 			) {
 				$bigtree["errors"][] = ["field" => $field["title"], "error" => "The image uploaded is too large for the server to manipulate. Please upload a smaller version of this image"];
 				$image->destroy();

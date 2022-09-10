@@ -571,7 +571,7 @@
 			$largest = 0;
 			$largest_dims = [];
 			
-			if (is_array($this->Settings["thumbnails"])) {
+			if (!empty($this->Settings["thumbnails"]) && is_array($this->Settings["thumbnails"])) {
 				foreach ($this->Settings["thumbnails"] as $thumbnail) {
 					$dims = $this->getThumbnailSize($thumbnail["width"], $thumbnail["height"]);
 					

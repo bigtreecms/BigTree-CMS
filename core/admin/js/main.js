@@ -2546,6 +2546,7 @@ var BigTreeMatrix = function(settings) {
 
 			if (Max && Count >= Max) {
 				AddButton.hide();
+				Container.addClass("max_items_hit");
 			}
 		}
 
@@ -2558,13 +2559,14 @@ var BigTreeMatrix = function(settings) {
 				content: '<p class="confirm">Are you sure you want to delete this item?</p>',
 				callback: function() {
 					CurrentItem.remove();
-					var count = List.find("> li").length;
+					Count--;
 
-					if (count < Max) {
+					if (Count < Max) {
 						AddButton.show();
+						Container.remove("max_items_hit");
 					}
 
-					if (!count) {
+					if (!Count) {
 						AddInstructions.show();
 					}
 				},
@@ -2612,13 +2614,14 @@ var BigTreeMatrix = function(settings) {
 		// Hide the add button if we're at or above the limit
 		if (Max && Count >= Max) {
 			AddButton.hide();
+			Container.addClass("max_items_hit");
 		}
 
 		AddButton.on("click", addItem);
 
 		List.find("> li").each(function() { hookItem($(this)); });
-		List.on("click", "> li > div > .icon_edit", editItem)
-		List.on("click", "> li > div > .icon_delete", deleteItem);
+		List.on("click", "> li > .inner > .icon_edit", editItem)
+		List.on("click", "> li > .inner > .icon_delete", deleteItem);
 		List.on("click", "> li > .matrix_entry_fields > .matrix_collapse", function(ev) {
 			ev.preventDefault();
 			$(this).parents("li").eq(0).addClass("collapsed");
@@ -2873,185 +2876,128 @@ var BigTree = {
 }
 
 var BigTreeMediaGallery = function(settings) {
-	return (function($,settings) {
+	return (function ($, settings) {
 
 		var AddButtons;
+		var AddInstructions;
 		var Columns;
 		var Container;
 		var Count;
 		var CurrentItem;
 		var Key;
-		var LastDialog;
-		var List;
+		var List = $(settings.list);
 		var Max;
 		var Settings;
-		var Style;
-		var Subtitle;
-		var Title;
 		var Type;
 
 		function addItem(e) {
 			e.preventDefault();
 
-			Type = $(this).data("type");
-
 			// Prevent double clicks
 			if (BigTree.Busy) {
 				return;
 			}
 
-			$.ajax("admin_root/ajax/media-gallery-field/", {
-				type: "POST",
-				data: { columns: Columns, count: Count, key: Key, type: Type, settings: Settings },
-				complete: function(response) {
-					BigTreeDialog({
-						title: "Add Item",
-						content: response.responseText,
-						icon: "add",
-						preSubmissionCallback: true,
-						callback: function(e) {		
-							e.preventDefault();
-							
-							var item;
-							if (item = getItem()) {
-								// Add the item, remove the dialog, increase the count.
-								List.append(item);
-								removeDialog();						
-								Count++;
-								var count = List.find("article, li").length;
-								if (Max && Count >= Max) {
-									AddButtons.hide();
-									Container.addClass("max_items_hit");
-								}
-							}
-						}
-					});
+			BigTree.TabIndexDepth++;
+			Type = $(this).data("type");
+
+			var li = $("<li>");
+
+			li.load("admin_root/ajax/media-gallery/", {
+				columns: Columns,
+				count: Count,
+				key: Key,
+				type: Type,
+				settings: Settings,
+			}, function () {
+				List.append(li);
+				BigTree.formHooks(li);
+				BigTreeCustomControls(li);
+				AddInstructions.hide();
+				hookItem(li);
+
+				Count++;
+
+				if (Max && Count >= Max) {
+					AddButtons.hide();
+					Container.addClass("max_items_hit");
 				}
+
+				setTimeout(function() {
+					if ($(".sticky_controls.stuck").length) {
+						$("body, html").animate({scrollTop: li.offset().top - 50});
+					} else {
+						$("body, html").animate({scrollTop: li.offset().top - 5});
+					}
+				}, 250);
 			});
-		};
+		}
 
 		function deleteItem(e) {
 			e.preventDefault();
 
-			CurrentItem = $(this).parents("li");
-			
+			CurrentItem = $(this).parents("li").eq(0);
 			BigTreeDialog({
 				title: "Delete Item",
 				content: '<p class="confirm">Are you sure you want to delete this item?</p>',
-				callback: function() {
+				callback: function () {
 					CurrentItem.remove();
-					var count = List.find("article, li").length;
-					if (count < Max) {
+					Count--;
+
+					if (Count < Max) {
 						AddButtons.show();
 						Container.removeClass("max_items_hit");
+					}
+
+					if (!Count) {
+						AddInstructions.show();
 					}
 				},
 				icon: "delete",
 				alternateSaveText: "OK"
 			});
-		};
+
+			return false;
+		}
 
 		function editItem(e) {
 			e.preventDefault();
 
-			Type = $(this).data("type");
+			$(this).parents("li").eq(0).toggleClass("collapsed");
+		}
 
-			// Prevent double clicks
-			if (BigTree.Busy) {
-				return;
-			}
+		function hookItem(li) {
+			li.on("keyup", ".matrix_title_field input, .matrix_title_field textarea", function (ev) {
+				var $target = $(ev.target);
+				var li = $target.parents("li").eq(0);
+				var title_fields = li.find(".matrix_title_field input, .matrix_title_field textarea");
+				var title = strip_tags(title_fields.eq(0).val());
 
-			CurrentItem = $(this).parents("li");
-			
-			$.ajax("admin_root/ajax/media-gallery-field/", {
-				type: "POST",
-				data: { columns: Columns, count: Count, data: CurrentItem.find(".bigtree_matrix_data").val(), key: Key, settings: Settings },
-				complete: function(response) {
-					BigTreeDialog({
-						title: "Edit Item",
-						content: response.responseText,
-						icon: "edit",
-						preSubmissionCallback: true,
-						callback: function(e) {
-							e.preventDefault();
-							
-							var item;
-							if (item = getItem()) {
-								// Replace the item, remove the dialog, increase the count
-								CurrentItem.replaceWith(item);
-								removeDialog();
-								Count++;
-							}
-						}
-					});
-				}
-			});
-		};
-		
-		function getItem() {
-			LastDialog = $(".bigtree_dialog_form").last();
-	
-			// Validate required fields.
-			var validator = BigTreeFormValidator(LastDialog);
-			if (!validator.validateForm(false,true)) {
-				return false;
-			}
-			
-			var entry = $('<li>').html('<figure></figure><a href="#" class="icon_delete"></a>');
-			
-			// Try to get an image preview but fallback to the old upload message
-			var img = LastDialog.find("fieldset").first().find("img").eq(0);
-
-			if (Type == "image" && img.length) {
-				entry.find("figure").append(img);
-			} else if (img.length) {
-				entry.find("figure").append(img).addClass("media_gallery_type_" + Type);
-			} else {
-				if (Type == "Vimeo" || Type == "vimeo") {
-					var klass = "media_gallery_vimeo_block";
-				} else if (Type == "YouTube" || Type == "youtube") {
-					var klass = "media_gallery_youtube_block";
-				} else {
-					var klass = "";
+				if (title.length > 100) {
+					title = title.substr(0, 100);
 				}
 
-				entry.find("figure").append('<figcaption class="' + klass + '"></figcaption>');
-			}
-	
-			// Append all the relevant fields into the matrix field so that it gets saved on submit with the rest of the form.
-			LastDialog.find("input, textarea, select").each(function() {
-				if ($(this).attr("type") != "submit") {
-					if ($(this).is("textarea") && $(this).css("display") == "none") {
-						var mce = tinyMCE.get($(this).attr("id"));
-					
-						if (mce) {
-							mce.save();
-							tinyMCE.execCommand('mceRemoveControl',false,$(this).attr("id"));
-						}
+				if (title_fields.length > 1) {
+					var subtitle = strip_tags(title_fields.eq(1).val());
+
+					if (subtitle.length > 100) {
+						subtitle = subtitle.substr(0, 100);
 					}
 
-					$(this).hide().get(0).className = "";
-					entry.append($(this));
+					title += '<small>' + subtitle + '</small>';
 				}
+
+				li.find("> .inner > .multi_widget_entry_title").html(title);
 			});
-
-			return entry;
-		};
-
-		function removeDialog() {
-			LastDialog.parents("div").remove();
-			LastDialog.remove();
-			$(".bigtree_dialog_overlay").last().remove();
-			BigTree.zIndex -= 2;
-		};
+		}
 
 		// Init routine
 		Key = settings.key;
 		Columns = settings.columns;
 		Container = $(settings.selector);
-		AddButtons = Container.find(".add_item");
-		List = Container.find(".contain, ul");
-		Count = List.find("article, li").length;
+		AddButtons = Container.find("> footer > .add_item");
+		AddInstructions = Container.find("> .multi_widget_instructions");
+		Count = List.find("> li").length;
 		Max = settings.max ? settings.max : 0;
 		Settings = settings.settings;
 
@@ -3061,12 +3007,18 @@ var BigTreeMediaGallery = function(settings) {
 			Container.addClass("max_items_hit");
 		}
 
-		Container.on("click",".add_item",addItem)
-				 .on("click",".icon_edit",editItem)
-				 .on("click",".icon_delete",deleteItem)
-				 .find("ul").sortable({ items: "li", placeholder: "ui-sortable-placeholder" });
+		AddButtons.click(addItem);
 
-		return { Container: Container, Count: Count, Key: Key, List: List, addItem: addItem };
+		List.find("> li").each(function() { hookItem($(this)); });
+		List.on("click", "> li > .inner > .icon_edit", editItem)
+		List.on("click", "> li > .inner > .icon_delete", deleteItem);
+		List.on("click", "> li > .matrix_entry_fields > .matrix_collapse", function(ev) {
+			ev.preventDefault();
+			$(this).parents("li").eq(0).addClass("collapsed");
+		});
+		List.sortable({ containment: "parent", handle: ".icon_drag", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 
-	})(jQuery,settings);
-};
+		return {Container: Container, Count: Count, Key: Key, List: List, addItem: addItem};
+
+	})(jQuery, settings);
+}

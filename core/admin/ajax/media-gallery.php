@@ -40,14 +40,7 @@
 			}
 		}
 		
-		// Do weird things to get the values set properly
-		$weird_data = [];
-		
-		foreach ($data as $key => $val) {
-			$weird_data["info][".$key] = $val;
-		}
-		
-		$_POST["data"] = base64_encode(json_encode($weird_data));
+		$_POST["data"] = base64_encode(json_encode($data));
 	}
 	
 	// Ensure that the columns is an array
@@ -109,7 +102,7 @@
 	
 	foreach ($_POST["columns"] as $column) {
 		if ($column["id"]) {
-			$column["id"] = "info][".$column["id"];
+			$column["id"] = $column["id"];
 			$clean_columns[] = $column;
 		}
 	}

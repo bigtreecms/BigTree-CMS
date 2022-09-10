@@ -829,23 +829,14 @@
 
 	#template_tab fieldset { width: 917px; }
 
-/* Form Control Widget Styles */
-	.photo_gallery_widget { background: #FFF; border: 1px solid #CCC; border-radius: 3px; overflow: hidden; }
-	.photo_gallery_widget ul { list-style: none; margin: 0; overflow: hidden; padding: 16px 16px 6px 16px; }
-	.photo_gallery_widget li { background: #F7F7F7; border: 1px solid #CCC; border-radius: 3px; cursor: move; float: left; line-height: 100%; margin: 0 10px 10px 0; overflow: hidden; padding: 5px; text-align: center; }
-	.photo_gallery_widget li:nth-child(9n) { margin-right: 0; }
-	.photo_gallery_widget li a { margin: 5px 5px 0 0; }
-	.photo_gallery_widget li a:last-of-type { margin: 5px 0 0 0; }
-	.photo_gallery_widget figure { background: #CCC; display: block; height: 75px; margin: 0; overflow: hidden; width: 75px; }
-	.photo_gallery_widget figure figcaption { background: #FFF; color: #333; display: block; font-size: 10px; line-height: 15px; padding: 6px 0; text-align: center; }
-	.photo_gallery_widget img { max-height: 75px; max-width: 75px; position: relative; top: 50%; transform: translateY(-50%); }
-	.photo_gallery_widget footer { background: #F5F5F5; padding: 20px; }
-	.photo_gallery_widget .ui-sortable-placeholder { background: #eee; border: 1px dashed #ccc; border-radius: 3px; cursor: move; float: left; height: 107px; margin: 0 10px 10px 0; padding: 5px; text-align: center; width: 75px; }
-	.photo_gallery_widget .file_wrapper { margin: 0; }
-	.photo_gallery_widget .image_field_error { margin: 0; background: #F5F5F5; padding: 0 0 20px 20px; }
-	.bigtree_dialog_form .photo_gallery_widget footer { overflow: hidden; }
-	.bigtree_dialog_form .photo_gallery_widget .or, .bigtree_dialog_form .photo_gallery_widget .resource_browser_button { display: none; }
-	.bigtree_dialog_form .photo_gallery_widget li:nth-child(9n), .front_end_editor .photo_gallery_widget li:nth-child(9n) { margin-right: 10px; }
+/* Media Gallery Widget Styles */
+  .media_gallery .inner { align-items: center; display: flex; padding: 10px !important; }
+	.media_gallery .inner > figure { background: #CCC; display: block; height: 75px; margin: 0 10px 0 0; overflow: hidden; width: 75px; }
+	.media_gallery .inner > figure > img { max-height: 75px; max-width: 75px; position: relative; top: 50%; transform: translateY(-50%); }
+	.media_gallery .inner .multi_widget_entry_title { flex: 1; }
+	.media_gallery .inner .icon_edit { order: 3; }
+	.media_gallery .inner .icon_delete { order: 4; }
+
 	.resource_browser_button .icon_folder { float: left; margin: 5px 5px 0 -1px; }
 	.resource_browser_button .icon_video { float: left; margin: 2px 5px 0 -1px; }
 
@@ -1346,14 +1337,14 @@
 	.matrix_table article { border-bottom: 1px solid #CCC; background: #FFF; }
 	.matrix_table article > div { padding: 10px 10px 0 10px; overflow: hidden; }
 	.matrix_table article:last-child { border: none; }
-	.matrix_table article *:nth-child(even) { margin-right: 0 !important; }
+	.matrix_table article > div *:nth-child(even) { margin-right: 0 !important; }
 	.matrix_table .select_container { margin: 0 10px 10px 0; width: 202px; }
 	.matrix_table .select_container select { width: 100% !important; }
 	.matrix_table footer { color: #FCFCFC; border-top: 1px solid #CCC; overflow: hidden; padding: 5px 10px; }
 	.matrix_table footer span { float: left; margin: 0 10px 0 0; }
 	.matrix_table footer > a { float: right; margin: 0 0 0 10px; }
 	.matrix_table .ui-sortable-placeholder { height: 133px; background: #F3F3F3; }
-	.matrix_table .matrix_display_title { overflow: hidden; display: inline-block; padding: 3px 40px 0 0; }
+	.matrix_table .matrix_display_title { overflow: hidden; display: inline-block; margin: 0 0 0 10px; padding: 3px 40px 0 0; }
 	.matrix_table footer .checkbox a { margin: 0; }
 	.bigtree_dialog_form .matrix_table article input { width: 204px; float: left; margin: 0 10px 10px 0; }
 	.bigtree_dialog_form .matrix_add_column { cursor: pointer; margin: 0; }
