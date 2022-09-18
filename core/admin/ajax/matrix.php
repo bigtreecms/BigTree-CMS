@@ -62,4 +62,6 @@
 		$bigtree["html_editor_height"] = 365;
 		include BigTree::path("admin/layouts/_html-field-loader.php");
 	}
+	
+	include BigTree::path("admin/layouts/_ajax-ready-loader.php");
 ?>

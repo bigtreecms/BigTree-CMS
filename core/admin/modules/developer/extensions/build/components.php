@@ -33,7 +33,7 @@
 					</ul>
 					<div class="adder">
 						<a href="#"></a>
-						<select class="custom_control" data-key="modules">
+						<select data-key="modules">
 							<?php
 								$groups = $admin->getModuleGroups("name ASC");
 								$groups[] = array("id" => "0", "name" => "Ungrouped");
@@ -79,7 +79,7 @@
 					</ul>
 					<div class="adder">
 						<a href="#"></a>
-						<select class="custom_control" data-key="templates">
+						<select data-key="templates">
 							<optgroup label="Basic Templates">
 								<?php
 									$templates = $admin->getBasicTemplates("name ASC");
@@ -127,7 +127,7 @@
 					</ul>
 					<div class="adder">
 						<a href="#"></a>
-						<select class="custom_control" data-key="callouts">
+						<select data-key="callouts">
 							<?php
 								$callouts = $admin->getCallouts("name ASC");
 								foreach ($callouts as $callout) {
@@ -163,7 +163,7 @@
 					</ul>
 					<div class="add_setting adder">
 						<a href="#"></a>
-						<select class="custom_control" data-key="settings">
+						<select data-key="settings">
 							<?php
 								$settings = $admin->getSettings();
 								
@@ -198,7 +198,7 @@
 					</ul>
 					<div class="add_feed adder">
 						<a href="#"></a>
-						<select class="custom_control" data-key="feeds">
+						<select data-key="feeds">
 							<?php
 								$feeds = $admin->getFeeds();
 								foreach ($feeds as $feed) {
@@ -232,7 +232,7 @@
 					</ul>
 					<div class="add_field_type adder">
 						<a  href="#"></a>
-						<select class="custom_control" data-key="field_types">
+						<select data-key="field_types">
 							<?php
 								$field_types = $admin->getFieldTypes();
 								foreach ($field_types as $type) {

@@ -55,7 +55,14 @@
 				$my_change_modules["pages"] = array("title" => "Pages", "count" => 1);
 			} else {
 				$module = $admin->getModule($c["module"]);
-				$my_change_modules[$c["module"]] = array("title" => $module["name"], "icon" => $module["icon"], "count" => 1);
+				
+				if (!empty($module)) {
+					$my_change_modules[$c["module"]] = [
+						"title" => $module["name"],
+						"icon" => $module["icon"],
+						"count" => 1,
+					];
+				}
 			}
 		} else {
 			$my_change_modules[$c["module"]]["count"]++;

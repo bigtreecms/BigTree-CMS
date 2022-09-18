@@ -23,6 +23,8 @@
 							$x = 0;
 							foreach ($group["callouts"] as $id) {
 								$callout = $admin->getCallout($id);
+								
+								if (!empty($callout)) {
 						?>
 						<li>
 							<div class="inner">
@@ -32,7 +34,8 @@
 							</div>
 						</li>
 						<?php
-								$x++;
+									$x++;
+								}
 							}
 						?>
 					</ul>

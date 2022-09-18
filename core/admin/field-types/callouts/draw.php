@@ -16,6 +16,11 @@
 	} else {
 		$callouts_available = $admin->getCalloutsAllowed("name ASC");
 	}
+	
+	
+	$cached_types = $admin->getCachedFieldTypes();
+	$bigtree["previous_field_types"] = $bigtree["field_types"] ?? [];
+	$bigtree["field_types"] = $cached_types["callouts"];
 ?>
 <div class="multi_widget matrix_list" id="<?=$field["id"]?>">
 	<section class="multi_widget_instructions"<?php if (count($field["value"])) { ?> style="display: none;"<?php } ?>>
@@ -65,10 +70,18 @@
 				<a href="#" class="icon_edit"></a>
 			</div>
 
-			<div class="matrix_entry_fields">
+			<div class="matrix_entry_fields callout_fields">
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][type]" value="<?=$callout["type"]?>">
 
 				<?php
+					// Run hooks for modifying the field array
+					$type["resources"] = $admin->runHooks("fields", "callout", $type["resources"], [
+						"callout" => $type,
+						"step" => "draw"
+					]);
+					
+					$bigtree["callout"] = $type;
+					
 					foreach ($type["resources"] as $resource) {
 						if (!empty($resource["settings"])) {
 							$settings = $resource["settings"];
@@ -135,3 +148,6 @@
 		front_end_editor: <?=(defined("BIGTREE_FRONT_END_EDITOR") ? "true" : "false")?>
 	});
 </script>
+<?php
+	$bigtree["field_types"] = $bigtree["previous_field_types"];
+?>

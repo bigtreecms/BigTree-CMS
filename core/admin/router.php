@@ -420,7 +420,7 @@
 		}
 		
 		// Make sure the user has access to the module
-		if (!$admin->checkAccess($module["id"],$route_response["action"])) {
+		if (!$admin->checkAccess($module["id"], $route_response["action"] ?? "")) {
 			$admin->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
 		}
 
@@ -456,13 +456,13 @@
 		}
 
 		// Handle auto actions
-		if ($bigtree["module_action"]["form"]) {
+		if (!empty($bigtree["module_action"]["form"])) {
 			include BigTree::path("admin/auto-modules/form.php");
 			$complete = true;
-		} elseif ($bigtree["module_action"]["view"]) {
+		} elseif (!empty($bigtree["module_action"]["view"])) {
 			include BigTree::path("admin/auto-modules/view.php");
 			$complete = true;
-		} elseif ($bigtree["module_action"]["report"]) {
+		} elseif (!empty($bigtree["module_action"]["report"])) {
 			include BigTree::path("admin/auto-modules/report.php");
 			$complete = true;
 		}

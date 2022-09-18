@@ -13,6 +13,10 @@
 	if (!isset($field["value"])) {
 		$field["value"] = null;
 	}
+	
+	if (empty($field["settings"]["list_type"])) {
+		$field["settings"]["list_type"] = "static";
+	}
 
 	// Database populated list.
 	if ($field["settings"]["list_type"] == "db") {

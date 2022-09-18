@@ -44,7 +44,7 @@
 				</ul>
 				<div class="add_table adder">
 					<a class="icon_small icon_small_add" href="#"></a>
-					<select class="custom_control" id="add_table_select">
+					<select id="add_table_select">
 						<?php
 							$q = sqlquery("SHOW TABLES");
 							while ($f = sqlfetch($q)) {
