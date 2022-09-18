@@ -650,9 +650,9 @@
 	.nested_table ul li:after { clear: both; content: ""; display: table; }
 	.nested_table ul ul { float: left; padding: 1px 0 0 0; width: 100%; }
 	.nested_table ul li:nth-of-type(2n) { background: #FFF; }
-	.nested_table ul li section:first-of-type { background: url(../images/icon-sprite.svg) no-repeat -930px 0px; cursor: pointer; padding: 0 0 0 40px; user-select: none; }
+	.nested_table ul li section:first-of-type { background: url(../images/icon-sprite.svg) no-repeat -930px 2px; cursor: pointer; padding: 0 0 0 40px; user-select: none; }
 	.nested_table ul li.expanded > section:first-of-type { background-position: -930px -64px; }
-	.nested_table ul li section.disabled { background-position: -930px -32px; cursor: default; }
+	.nested_table ul li section.disabled { background-position: -930px -30px; cursor: default; }
 	.nested_table ul li section.disabled.expanded { background-position: -930px -96px; }
 
 /* Error Table Styles */
@@ -1786,6 +1786,7 @@
 	.multi_widget_entry_title { float: left; font-size: 14px; height: 35px; line-height: 35px; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: ~"calc(100% - 85px)"; }
 	.multi_widget_entry_title small { font-size: 10px; margin: 0 0 0 10px; }
 	.multi_widget_instructions { background: #FFF; border-bottom: 1px solid #CCC; padding: 30px; }
+	.multi_widget_instructions:last-child { border-bottom: none; border-radius: 0 0 2px 2px; }
 
 	.many_to_many footer .button { float: left; margin: 0 0 0 10px; }
 	.many_to_many footer .select_container { max-width: 679px !important; }
