@@ -3,6 +3,7 @@
 	 * @global BigTreeCMS $cms
 	 */
 	
+	$width = isset($bigtree["html_editor_width"]) ? $bigtree["html_editor_width"] : false;
 	$height = isset($bigtree["html_editor_height"]) ? $bigtree["html_editor_height"] : false;
 	$content_css = $cms->getSetting("tinymce-content-css");
 ?>
@@ -11,48 +12,37 @@
 		<?php
 			if (!empty($bigtree["html_fields"])) {
 		?>
-		tinyMCE.init({
+		tinymce.init({
 			<?php if ($content_css) { ?>content_css: "<?=$content_css?>",<?php } ?>
-			theme: "modern",
-			mode: "exact",
-			elements: "<?=implode(",",$bigtree["html_fields"])?>",
-			file_browser_callback: BigTreeFileManager.tinyMCEOpen,
+			selector: "#<?=implode(",#", $bigtree["html_fields"])?>",
+			file_picker_callback: BigTreeFileManager.tinyMCEOpen,
 			menubar: false,
-			plugins: "code,anchor,image,link,table,visualblocks,lists,hr",
-			toolbar: "undo redo | styleselect | bold italic underline removeformat | bullist numlist outdent indent | hr anchor link unlink image table | visualblocks code",
-			image_dimensions: false,
-			paste_remove_spans: true,
-			paste_remove_styles: true,
-			paste_strip_class_attributes: true,
-			paste_auto_cleanup_on_paste: true,
+			plugins: "code,anchor,image,link,table,visualblocks,lists,template,paste",
+			toolbar: "undo redo styles bold italic underline | bullist numlist outdent indent | hr anchor link unlink image table | template visualblocks code",
 			relative_urls: false,
 			remove_script_host: false,
 			browser_spellcheck: true,
 			extended_valid_elements : "*[*]"
+			<?php if ($width) { ?>,width: "<?=$width?>"<?php } ?>
 			<?php if ($height) { ?>,height: "<?=$height?>"<?php } ?>
 		});
 		<?php
 			}
-
+		
 			if (!empty($bigtree["simple_html_fields"])) {
 		?>
 		tinyMCE.init({
 			<?php if ($content_css) { ?>content_css: "<?=$content_css?>",<?php } ?>
-			theme: "modern",
-			mode: "exact",
-			elements: "<?=implode(",",$bigtree["simple_html_fields"])?>",
-			file_browser_callback: BigTreeFileManager.tinyMCEOpen,
+			selector: "#<?=implode(",#", $bigtree["simple_html_fields"])?>",
+			file_picker_callback: BigTreeFileManager.tinyMCEOpen,
 			menubar: false,
-			plugins: "link,code,visualblocks,lists",
-			toolbar: "link unlink bold italic underline removeformat",
-			paste_remove_spans: true,
-			paste_remove_styles: true,
-			paste_strip_class_attributes: true,
-			paste_auto_cleanup_on_paste: true,
+			plugins: "link,code,visualblocks,lists,paste",
+			toolbar: "link unlink bold italic underline code| bullist numlist outdent indent",
 			browser_spellcheck: true,
 			relative_urls: false,
 			remove_script_host: false,
 			extended_valid_elements : "*[*]"
+			<?php if ($width) { ?>,width: "<?=$width?>"<?php } ?>
 			<?php if ($height) { ?>,height: "<?=$height?>"<?php } ?>
 		});
 		<?php

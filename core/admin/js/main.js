@@ -1041,6 +1041,7 @@ var BigTreeFileManager = (function($) {
 	var MinHeight = false;
 	var MinWidth = false;
 	var StartSearchTimer = false;
+	var TinyMCECallback = null;
 	var TitleSaveTimer = false;
 	var Type = false;
 	var UploadDialog = false;
@@ -1082,7 +1083,12 @@ var BigTreeFileManager = (function($) {
 
 		// Hook the size buttons to change the selected URL
 		size_pane.find("button").click(function() {
-			FieldName.value = BigTree.prefixFile(ActiveImage, $(this).data("prefix"));
+			if (TinyMCECallback) {
+				TinyMCECallback(BigTree.prefixFile(ActiveImage, $(this).data("prefix")));
+			} else {
+				FieldName.value = BigTree.prefixFile(ActiveImage, $(this).data("prefix"));
+			}
+
 			close();
 
 			return false;
@@ -1093,6 +1099,8 @@ var BigTreeFileManager = (function($) {
 
 	function close() {
 		BigTree.ZIndex = BigTree.ZIndexBackup;
+		TinyMCECallback = null;
+
 		$(".bigtree_dialog_overlay").last().remove();
 		$("#file_browser").remove();
 		$("#mceModalBlocker, #mce-modal-block").show();
@@ -1289,7 +1297,17 @@ var BigTreeFileManager = (function($) {
 	}
 
 	function submitSelectedFile() {
-		if (FieldName) {
+		if (TinyMCECallback) {
+			if (Type == "image") {
+				chooseImageSize();
+
+				return false;
+			} else {
+				TinyMCECallback($("#file_browser_selected_file").val());
+
+				return close();
+			}
+		} else if (FieldName) {
 			if (Type == "image") {
 				chooseImageSize();
 
@@ -1339,14 +1357,11 @@ var BigTreeFileManager = (function($) {
 		}
 	}
 
-	function tinyMCEOpen(field_name,url,type,win) {
+	function tinyMCEOpen(callback, value, meta) {
 		CurrentlyName = false;
-		// TinyMCE 3
-		FieldName = win.document.forms[0].elements[field_name];
-		if (!FieldName) {
-			FieldName = $("#" + field_name).get(0);
-		}
-		open(type,false,false);
+		TinyMCECallback = callback;
+
+		open(meta.filetype, false, false);
 	}
 
 	function videoClick() {
@@ -1550,7 +1565,7 @@ var BigTreeListMaker = function(settings) {
 			var html = '<li><span class="icon_sort"></span>';
 			for (var x = 0; x < Keys.length; x++) {
 				if (Keys[x].type == "select") {
-					html += '<span><select class="custom_control" name="' + Name + '[' + Count + '][' + Keys[x].key + ']">';
+					html += '<span class="select_container"><select class="custom_control" name="' + Name + '[' + Count + '][' + Keys[x].key + ']">';
 					for (var v in Keys[x].list) {
 						html += '<option value="' + htmlspecialchars(v) + '">' + htmlspecialchars(Keys[x].list[v]) + '</option>';
 					}
@@ -1615,7 +1630,7 @@ var BigTreeListMaker = function(settings) {
 				}
 
 				if (Keys[x].type == "select") {
-					html += '<span><select class="custom_control" name="' + Name + '[' + count + '][' + Keys[x].key + ']">';
+					html += '<span class="select_container"><select class="custom_control" name="' + Name + '[' + count + '][' + Keys[x].key + ']">';
 		
 					for (var v in Keys[x].list) {
 						html += '<option value="' + htmlspecialchars(v) + '"';
