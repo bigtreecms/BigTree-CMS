@@ -2944,8 +2944,8 @@
 			$field["id"] = $bigtree["field_namespace"].$bigtree["field_counter"];
 			
 			// Make sure options is an array to prevent warnings, load from options as a fallback for < 4.3
-			if (!is_array($field["settings"])) {
-				if (is_array($field["options"]) && array_filter($field["options"])) {
+			if (empty($field["settings"]) || !is_array($field["settings"])) {
+				if (!empty($field["options"]) && is_array($field["options"])) {
 					$field["settings"] = $field["options"];
 				} else {
 					$field["settings"] = [];

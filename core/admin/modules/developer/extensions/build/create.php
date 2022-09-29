@@ -321,7 +321,7 @@
 		
 		// Increment revision numbers
 		$revision = $package["revision"] = intval($existing_json["revision"]) + 1;
-		$package["sql_revisions"] = (array) $existing_json["sql_revisions"];
+		$package["sql_revisions"] = (array) $existing_json["sql_revisions"] ?? [];
 		$package["sql_revisions"][$revision] = [];
 		
 		// Diff the old tables
