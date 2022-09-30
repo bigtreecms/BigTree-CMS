@@ -58,7 +58,7 @@
 				
 				<fieldset id="graphql_type_wrapper"<?php if (empty($graphql)) { ?> style="display: none;"<?php } ?>>
 					<label for="graphql_type">GraphQL Type ID <small>(if left empty, the class name will be used)</small></label>
-					<input type="text" id="graphql_type" name="graphql_type" value="<?=BigTree::safeEncode($graphql_type)?>">
+					<input type="text" id="graphql_type" name="graphql_type" value="<?=BigTree::safeEncode($graphql_type ?? "")?>">
 				</fieldset>
 			</div>
 		</section>

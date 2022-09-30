@@ -46,10 +46,10 @@
 	$schema = new Schema(['query' => $queryType]);
 	$rawInput = file_get_contents('php://input');
 	$input = json_decode($rawInput, true);
-	$query = $input['query'];
-	$variableValues = isset($input['variables']) ? $input['variables'] : null;
+	$query = $input['query'] ?? "";
+	$variableValues = $input['variables'] ?? null;
 
-	if (!empty($bigtree["config"]["debug"])) {
+	if (empty($bigtree["config"]["debug"])) {
 		$hash = sha1($rawInput);
 
 		if (!empty($bigtree["config"]["redis"])) {
@@ -70,7 +70,7 @@
 		$result = GraphQL::executeQuery($schema, $query, null, null, $variableValues);
 		$output = $result->toArray();
 		
-		if (!empty($bigtree["config"]["debug"])) {
+		if (empty($bigtree["config"]["debug"])) {
 			$cache->set($hash, $output);
 		}
 	} catch (Exception $e) {

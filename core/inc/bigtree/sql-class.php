@@ -3,17 +3,17 @@
 		Class: SQL
 			A database helper class that implements auto escaped queries and other useful functions.
 	*/
-
+	
 	class SQL {
 		
 		private static $Config = null;
-
+		
 		public static $Connection = "disconnected";
 		public static $WriteConnection = "disconnected";
 		public static $ErrorLog = [];
 		public static $MySQLTime = "";
 		public static $QueryLog = [];
-
+		
 		public $ActiveQuery = false;
 		
 		// Constructor for chain queries
@@ -230,7 +230,7 @@
 			// Drop old foreign keys -- we do this for all the existing foreign keys that don't directly match because we're going to regenrate key names
 			foreach ($table_a_description["foreign_keys"] as $key => $definition) {
 				$exists = false;
-			
+				
 				foreach ($table_b_description["foreign_keys"] as $d) {
 					if ($d == $definition) {
 						$exists = true;
@@ -314,16 +314,16 @@
 		
 		public static function connect($property, $type) {
 			global $bigtree;
-
+			
 			if (is_null(static::$Config)) {
 				static::$Config["db"] = $bigtree["config"]["db"];
 				static::$Config["db_write"] = $bigtree["config"]["db_write"];
-
+				
 				// Make sure we init the other connections as well
 				if ($bigtree["mysql_read_connection"] === "disconnected") {
 					$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection("read");
 				}
-
+				
 				if (!empty($bigtree["config"]["db_write"]["user"]) && $bigtree["mysql_write_connection"] === "disconnected") {
 					$bigtree["mysql_write_connection"] = bigtree_setup_sql_connection("write");
 				}
@@ -351,7 +351,7 @@
 			// Make sure everything is run in UTF8, turn off strict mode if set
 			static::${$property}->query("SET NAMES 'utf8'");
 			static::${$property}->query("SET SESSION sql_mode = ''");
-
+			
 			// Sync MySQL timezone
 			$now = new DateTime();
 			$minutes = $now->getOffset() / 60;
@@ -361,7 +361,7 @@
 			$minutes -= $hours * 60;
 			$offset = sprintf('%+d:%02d', $hours * $sign, $minutes);
 			
-			static::${$property}->query("SET time_zone = '$offset'");			
+			static::${$property}->query("SET time_zone = '$offset'");
 			
 			return static::${$property};
 		}
@@ -387,7 +387,7 @@
 					$where[] = "`$column` = ?";
 					array_push($values, $value);
 				}
-			// Otherwise default to id
+				// Otherwise default to id
 			} else {
 				$where[] = "`id` = ?";
 				array_push($values, $id);
@@ -686,10 +686,12 @@
 			$parts = explode(" ", $last_line);
 			
 			foreach ($parts as $part) {
-				list($key, $value) = explode("=", $part);
-				
-				if ($key && $value) {
-					$result[strtolower($key)] = $value;
+				if (strpos($part, "=") !== false) {
+					[$key, $value] = explode("=", $part);
+					
+					if ($key && $value) {
+						$result[strtolower($key)] = $value;
+					}
 				}
 			}
 			
@@ -862,7 +864,7 @@
 				foreach ($values as $key => $value) {
 					$where[] = "`$key` = ?";
 				}
-			// Allow for just passing an ID
+				// Allow for just passing an ID
 			} else {
 				$where = ["`id` = ?"];
 				$values = [$values];
@@ -1262,7 +1264,7 @@
 			
 			return $data;
 		}
-
+		
 		// Prepares SQL statements using the ? replacement syntax
 		static protected function prepareStatementIndexed($query, $values) {
 			$x = 0;
@@ -1306,14 +1308,14 @@
 				// Increment argument
 				$x++;
 			}
-
+			
 			return $query;
 		}
-
+		
 		// Prepares SQL statements using the :name replacement syntax
 		static protected function prepareStatementNamed($query, $values) {
 			$where_position = stripos($query, " where ");
-
+			
 			foreach ($values as $key => $value) {
 				// Allow for these reserved keywords to be let through unescaped
 				if (is_null($value)) {
@@ -1321,7 +1323,7 @@
 				} elseif ($value !== "NOW()") {
 					$value = "'".static::escape($value)."'";
 				}
-
+				
 				$position = strpos($query, $key);
 				
 				// We use "IS NULL" and "IS NOT NULL" in where, but just set things equal to null elsewhere
@@ -1344,7 +1346,7 @@
 					$query = str_replace($key, $value, $query);
 				}
 			}
-
+			
 			return $query;
 		}
 		
@@ -1372,13 +1374,13 @@
 			if (!empty($bigtree["config"]["db_write"]["host"])) {
 				$commands = explode(" ", trim($query));
 				$action = strtolower($commands[0]);
-				$write_actions = array(
+				$write_actions = [
 					"create", "drop", "insert", "update", "set", "grant",
 					"flush", "delete", "alter", "load", "optimize",
 					"repair", "replace", "lock", "restore", "rollback",
 					"revoke", "truncate", "unlock"
-				);
-
+				];
+				
 				if (in_array($action, $write_actions)) {
 					$connection = (static::$WriteConnection && static::$WriteConnection !== "disconnected") ? static::$WriteConnection : static::connect("WriteConnection", "db_write");
 				}
@@ -1392,7 +1394,7 @@
 			} else {
 				// Check argument and ? count to trigger warnings
 				$index_wildcard_count = substr_count($query, "?");
-
+				
 				// See if we're using named parameters instead
 				if ($index_wildcard_count == 0 && count($args) == 2 && is_array($args[1])) {
 					$query = static::prepareStatementNamed($query, $args[1]);
@@ -1400,7 +1402,7 @@
 					if ($index_wildcard_count != (count($args) - 1)) {
 						throw new Exception("SQL::query error - wildcard and argument count do not match ($index_wildcard_count '?' found, ".(count($args) - 1)." arguments provided)");
 					}
-				
+					
 					$query = static::prepareStatementIndexed($query, array_slice($args, 1));
 				}
 				
@@ -1487,9 +1489,9 @@
 				
 				// Allow for passing array("column" => "value")
 				if (is_array($id)) {
-					list($id_column) = array_keys($id);
+					[$id_column] = array_keys($id);
 					$id_value = current($id);
-				// Allow for passing "value"
+					// Allow for passing "value"
 				} else {
 					$id_column = "id";
 					$id_value = $id;
@@ -1507,7 +1509,7 @@
 					$value = $original_value."-$count";
 				}
 				
-			// Checking the whole table
+				// Checking the whole table
 			} else {
 				while (static::fetchSingle("SELECT COUNT(*) FROM `$table` WHERE `$field` = ?", $value)) {
 					$count++;
@@ -1549,7 +1551,7 @@
 				} else {
 					$set[] = "`$column` = ?";
 				}
-			}			
+			}
 			
 			// If the ID is an associative array we match based on the given columns
 			if (is_array($id)) {
@@ -1557,7 +1559,7 @@
 					$where[] = "`$column` = ?";
 					array_push($values, $value);
 				}
-			// Otherwise default to id
+				// Otherwise default to id
 			} else {
 				$where[] = "`id` = ?";
 				array_push($values, $id);

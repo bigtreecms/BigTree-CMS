@@ -90,7 +90,7 @@
 						"page" => Type::int()
 					],
 					"resolve" => function($root, $args, $context) {
-						$page = SQL::fetch("SELECT path FROM bigtree_pages WHERE id = ?", $args["page"]);
+						$page = SQL::fetch("SELECT path, template FROM bigtree_pages WHERE id = ?", $args["page"]);
 						
 						return $page ? BigTreeCMS::getBreadcrumbByPage($page) : null;
 					}

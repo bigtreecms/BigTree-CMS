@@ -613,7 +613,9 @@
 		*/
 		
 		public static function getBreadcrumbByPage($page,$ignore_trunk = false) {
-			global $bigtree;
+			if (empty($page)) {
+				return [];
+			}
 			
 			$bc = [];
 
