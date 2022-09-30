@@ -20,6 +20,18 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.5
+- NEW: Experimental GraphQL API Support
+- NEW: Instagram Basic Display API support (old API is no longer available for general usage)
+- UPDATED: PHP 8.0+ support
+- UPDATED: Media Gallery, Matrix, and Callouts fields are now editable inline for a better full width editing experience
+- UPDATED: TinyMCE 6.2 is now the default editor
+- FIXED: A multitude of a warnings and notices have been fixed. More still remain and will be diagnosed and resolved in subsequent releases
+- FIXED: Incorrect link to the audit trail when editing a file
+- FIXED: Tags and Settings showing for users who are not administrators
+- FIXED: BigTreeAdmin::requireAccess not working properly
+- FIXED: Sitemap improperly including future published pages instead of past published pages when using a publish date
+
 ### 4.4.16
 - ADDED: Time and Datetime fields now allow you to not convert from the timeframe reference of BigTree users with non-default timezones
 - FIXED: Callouts and Matrix field types no longer break time and datetime fields when a user from a non-default timezone edits content without updating the callout/matrix entry.
