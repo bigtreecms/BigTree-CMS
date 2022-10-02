@@ -101,6 +101,13 @@ class ComposerStaticInit725358e876db88c4bcd5747f13c3800e
                 0 => __DIR__ . '/..' . '/oyejorge/less.php/lib',
             ),
         ),
+        'J' => 
+        array (
+            'JSMin\\' => 
+            array (
+                0 => __DIR__ . '/..' . '/mrclay/jsmin-php/src',
+            ),
+        ),
     );
 
     public static $classMap = array (

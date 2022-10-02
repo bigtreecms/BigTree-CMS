@@ -74,11 +74,11 @@
 			<a href="https://github.com/PHPMailer/PHPMailer" target="_blank">https://github.com/PHPMailer/PHPMailer</a>
 		</p>
 		<br />
-		<h3>JShrink</h3>
+		<h3>JSMin</h3>
 		<p class="clear">
-			Robert Hafner (BSD)
+			Ryan Grove & Steve Clay (BSD)
 			<br />
-			<a href="https://github.com/tedivm/JShrink" target="_blank">https://github.com/tedivm/JShrink</a>
+			<a href="https://github.com/mrclay/jsmin-php" target="_blank">https://github.com/mrclay/jsmin-php</a>
 		</p>
 		<br />
 		<h3>lessphp</h3>

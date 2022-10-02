@@ -386,8 +386,8 @@
 				$description = !empty($bigtree["page"]["meta_description"]) ? $bigtree["page"]["meta_description"] : $og["description"];
 				$og_description = !empty($og["description"]) ? $og["description"] : $bigtree["page"]["meta_description"];
 				$image = $og["image"];
-				$image_width = $og["image_width"];
-				$image_height = $og["image_height"];
+				$image_width = $og["image_width"] ?? null;
+				$image_height = $og["image_height"] ?? null;
 				$type = $og["type"] ?: "website";
 			} else {
 				$og = static::getOpenGraph($context["table"], $context["entry"]) ?: $bigtree["page"]["open_graph"];

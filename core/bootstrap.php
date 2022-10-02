@@ -138,7 +138,6 @@
 		"CF_Authentication" => "inc/lib/rackspace/cloud.php",
 		"CSSMin" => "inc/lib/CSSMin.php",
 		"PHPMailer" => "inc/lib/phpmailer.php",
-		"JShrink" => "inc/lib/JShrink.php",
 		"PasswordHash" => "inc/lib/PasswordHash.php",
 		"TextStatistics" => "inc/lib/text-statistics.php",
 		"lessc" => "inc/lib/less-compiler.php"
