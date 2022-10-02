@@ -1991,7 +1991,10 @@ var BigTreeFormValidator = function(selector,callback) {
 				if ($(this).nextAll(".mceEditor").length) {
 					var val = tinyMCE.get($(this).attr("id")).getContent();
 				// Tiny MCE 4
-				} else if ($(this).prevAll(".mce-tinymce").length) {
+				} else if ($(this).prevAll(".mce-tinymce, .tox-tinymce").length) {
+					var val = tinymce.get($(this).attr("id")).getContent();
+				// Tiny MCE 6
+				} else if ($(this).next(".tox-tinymce").length) {
 					var val = tinymce.get($(this).attr("id")).getContent();
 				// File/Image Uploads
 				} else if (fieldset.find(".currently, .currently_file").length) {
