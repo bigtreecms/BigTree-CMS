@@ -143,9 +143,9 @@
 				// Added a line to .htaccess to hopefully give us IF_MODIFIED_SINCE when running as CGI
 				if (function_exists("apache_request_headers")) {
 					$headers = apache_request_headers();
-					$ims = $headers["If-Modified-Since"];
+					$ims = $headers["If-Modified-Since"] ?? "";
 				} else {
-					$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
+					$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"] ?? "";
 				}
 				
 				if (empty($ims) || strtotime($ims) != $last_modified) {

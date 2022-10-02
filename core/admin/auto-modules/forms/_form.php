@@ -209,7 +209,7 @@
 
 		$(".js-auto-modules-footer input").click(submit);
 
-		<?php if ($bigtree["access_level"] == "p" || !$bigtree["edit_id"]) { ?>
+		<?php if ($bigtree["access_level"] == "p" || empty($bigtree["edit_id"])) { ?>
 		$(".gbp_select").change(function() {
 			var access_level = $(this).find("option").eq($(this).get(0).selectedIndex).attr("data-access-level");
 			if (access_level == "p") {
