@@ -3156,7 +3156,7 @@
 					$body = str_ireplace("{unread_messages}", $body_messages, $body);
 					
 					// If we don't have a from email set, third parties most likely will fail so we're going to use local sending
-					if ($es->Settings["bigtree_from"]) {
+					if (!empty($es->Settings["bigtree_from"])) {
 						$reply_to = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.", "", $_SERVER["HTTP_HOST"]) : str_replace(["http://www.", "https://www.", "http://", "https://"], "", DOMAIN));
 						$es->sendEmail("$site_title Daily Digest", $body, $user["email"], $es->Settings["bigtree_from"], "BigTree CMS", $reply_to);
 					} else {
@@ -3820,7 +3820,7 @@
 			}
 			
 			// If we care about the whole tree, skip the madness.
-			if ($user["alerts"][0] == "on") {
+			if (!empty($user["alerts"][0]) && $user["alerts"][0] == "on") {
 				$q = sqlquery("SELECT nav_title,id,path,updated_at,DATEDIFF('".date("Y-m-d")."',updated_at) AS current_age FROM bigtree_pages WHERE max_age > 0 AND DATEDIFF('".date("Y-m-d")."',updated_at) > max_age ORDER BY current_age DESC");
 				while ($f = sqlfetch($q)) {
 					$alerts[] = $f;
@@ -4813,7 +4813,7 @@
 			}
 			
 			// See if this page has an explicit permission set and return it if so.
-			$explicit_permission = $permissions["page"][$page];
+			$explicit_permission = $permissions["page"][$page] ?? null;
 			
 			if ($explicit_permission == "n") {
 				return false;
@@ -4825,10 +4825,15 @@
 			$page_data = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".sqlescape($page)."'"));
 			
 			// Grab the parent's permission. Keep going until we find a permission that isn't inherit or until we hit a parent of 0.
-			$parent_permission = $permissions["page"][$page_data["parent"]];
-			while ((!$parent_permission || $parent_permission == "i") && $page_data["parent"]) {
+			if (!empty($page_data["parent"])) {
+				$parent_permission = $permissions["page"][$page_data["parent"]] ?? null;
+			} else {
+				$parent_permission = null;
+			}
+
+			while ((!$parent_permission || $parent_permission == "i") && !empty($page_data["parent"])) {
 				$page_data = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".$page_data["parent"]."'"));
-				$parent_permission = $permissions["page"][$page_data["parent"]];
+				$parent_permission = $permissions["page"][$page_data["parent"]] ?? null;
 			}
 			
 			// If no permissions are set on the page (we hit page 0 and still nothing) or permission is "n", return not allowed.

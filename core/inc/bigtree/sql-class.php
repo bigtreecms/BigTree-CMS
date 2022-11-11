@@ -317,7 +317,7 @@
 			
 			if (is_null(static::$Config)) {
 				static::$Config["db"] = $bigtree["config"]["db"];
-				static::$Config["db_write"] = $bigtree["config"]["db_write"];
+				static::$Config["db_write"] = $bigtree["config"]["db_write"] ?? null;
 				
 				// Make sure we init the other connections as well
 				if ($bigtree["mysql_read_connection"] === "disconnected") {

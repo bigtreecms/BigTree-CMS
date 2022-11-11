@@ -380,15 +380,15 @@
 			$image_height = 0;
 
 			if (empty($context)) {
-				$og = $bigtree["page"]["open_graph"];
+				$og = $bigtree["page"]["open_graph"] ?? [];
 				$title = $bigtree["page"]["title"];
-				$og_title = !empty($og["title"]) ? $og["title"] : $bigtree["page"]["title"];
-				$description = !empty($bigtree["page"]["meta_description"]) ? $bigtree["page"]["meta_description"] : $og["description"];
-				$og_description = !empty($og["description"]) ? $og["description"] : $bigtree["page"]["meta_description"];
-				$image = $og["image"];
+				$og_title = !empty($og["title"]) ? $og["title"] : $bigtree["page"]["title"] ?? "";
+				$description = !empty($bigtree["page"]["meta_description"]) ? $bigtree["page"]["meta_description"] : $og["description"] ?? "";
+				$og_description = !empty($og["description"]) ? $og["description"] : $bigtree["page"]["meta_description"] ?? "";
+				$image = $og["image"] ?? "";
 				$image_width = $og["image_width"] ?? null;
 				$image_height = $og["image_height"] ?? null;
-				$type = $og["type"] ?: "website";
+				$type = !empty($og["type"]) ? $og["type"] : "website";
 			} else {
 				$og = static::getOpenGraph($context["table"], $context["entry"]) ?: $bigtree["page"]["open_graph"];
 
@@ -831,7 +831,11 @@
 			if (!isset(static::$IPLCache[$navid])) {
 				// Get the page's path
 				$f = sqlfetch(sqlquery("SELECT path FROM bigtree_pages WHERE id = '".sqlescape($navid)."'"));
-
+				
+				if (is_null($f)) {
+					return null;
+				}
+				
 				// Set the cache
 				static::$IPLCache[$navid] = rtrim(static::linkForPath($f["path"]), "/");
 			}
@@ -1027,7 +1031,7 @@
 					$f = sqlfetch(sqlquery("SELECT id, path, template FROM bigtree_pages WHERE id = '$parent'"));
 					$template = BigTreeJSONDB::get("templates", $f["template"]);
 
-					if ($template["module"]) {
+					if (!empty($template["module"])) {
 						$module = BigTreeJSONDB::get("modules", $template["module"]);
 
 						if ($module["class"] && class_exists($module["class"])) {
@@ -1099,7 +1103,7 @@
 				if ($page) {
 					$template = BigTreeJSONDB::get("templates", $page["template"]);
 
-					if ($template["routed"]) {
+					if (!empty($template["routed"])) {
 						return array($page["id"], array_reverse($commands), "on");
 					}
 				}
@@ -1625,7 +1629,7 @@
 				}
 			}
 
-			if ($existing["redirect_url"]) {
+			if (!empty($existing["redirect_url"])) {
 				$existing["redirect_url"] = static::getInternalPageLink($existing["redirect_url"]);
 
 				if ($existing["redirect_url"] == "/") {
@@ -1749,7 +1753,7 @@
 		
 		public static function replaceInternalPageLinks($html) {
 			// Save time if there's no content
-			if (trim($html) === "") {
+			if (is_null($html) || trim($html) === "") {
 				return "";
 			}
 			

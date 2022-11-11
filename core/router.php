@@ -585,7 +585,7 @@
 		!empty($_COOKIE["bigtree_admin"]["email"]) &&
 		(empty($bigtree["config"]["developer_mode"]) || $_SESSION["bigtree_admin"]["level"] > 1)
 	) {
-		$show_bar_default = $_COOKIE["hide_bigtree_bar"] ? false : true;
+		$show_bar_default = !empty($_COOKIE["hide_bigtree_bar"]) ? false : true;
 		$show_preview_bar = false;
 		$return_link = "";
 		$bar_edit_link = "";
@@ -623,7 +623,7 @@
 
 		// Pending Pages don't have their ID set.
 		if (!isset($bigtree["page"]["id"])) {
-			$bigtree["page"]["id"] = $bigtree["page"]["page"];
+			$bigtree["page"]["id"] = $bigtree["page"]["page"] ?? null;
 		}
 
 		if (defined("BIGTREE_URL_IS_404")) {
