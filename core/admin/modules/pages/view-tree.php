@@ -55,10 +55,10 @@
 				} elseif ($admin->pageChangeExists($item["id"])) {
 					$status = '<a href="'.WWW_ROOT.'_preview/'.$item["path"].'/" target="_blank">Changed</a>';
 					$status_class = "pending";
-				} elseif (strtotime($item["publish_at"]) > time()) {
+				} elseif ($item["publish_at"] && strtotime($item["publish_at"]) > time()) {
 					$status = "Scheduled";
 					$status_class = "scheduled";
-				} elseif ($item["expire_at"] != "" && strtotime($item["expire_at"]) < time()) {
+				} elseif ($item["expire_at"] && strtotime($item["expire_at"]) < time()) {
 					$status = "Expired";
 					$status_class = "expired";
 				} else {
