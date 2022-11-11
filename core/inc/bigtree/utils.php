@@ -271,12 +271,12 @@
 
 			// Use the core bundle which may be out of date to grab the latest bundle
 			if (!file_exists($cert_bundle) || !file_get_contents($cert_bundle)) {
-				BigTree::copyFile(SERVER_ROOT."core/cacert.pem", $cert_bundle);
+				$cert_bundle = SERVER_ROOT."core/cacert.pem";
 			}
 
 			// Check CA cert bundle has been updated in the past month
 			if (!$updating_bundle && filemtime($cert_bundle) < strtotime("-1 month")) {
-				BigTree::cURL("https://curl.haxx.se/ca/cacert.pem", false, [], true, SERVER_ROOT."cache/bigtree-ca-cert-new.pem", true);
+				BigTree::cURL("https://curl.se/ca/cacert.pem", false, [], true, SERVER_ROOT."cache/bigtree-ca-cert-new.pem", true);
 				@unlink($cert_bundle);
 				@rename(SERVER_ROOT."cache/bigtree-ca-cert-new.pem", $cert_bundle);
 			}
