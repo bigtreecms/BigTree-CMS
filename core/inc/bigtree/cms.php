@@ -791,7 +791,7 @@
 			if ($ipl[0] == "irl:") {
 				// See if it's in the cache.
 				if (isset(static::$IRLCache[$navid])) {
-					if ($ipl[2]) {
+					if (!empty($ipl[2])) {
 						return BigTree::prefixFile(static::$IRLCache[$navid],$ipl[2]);
 					} else {
 						return static::$IRLCache[$navid];
@@ -801,7 +801,7 @@
 					$file = $r ? static::replaceRelativeRoots($r["file"]) : false;
 					static::$IRLCache[$navid] = $file;
 
-					if ($ipl[2]) {
+					if (!empty($ipl[2])) {
 						return BigTree::prefixFile($file,$ipl[2]);
 					} else {
 						return $file;
@@ -810,9 +810,9 @@
 			}
 			
 			// New IPLs are encoded in JSON
-			$command_parts = json_decode(base64_decode(isset($ipl[2]) ? $ipl[2] : ""));
-			$get_vars = base64_decode(isset($ipl[3]) ? $ipl[3] : "");
-			$hash = base64_decode(isset($ipl[4]) ? $ipl[4]: "");
+			$command_parts = json_decode(base64_decode($ipl[2] ?? ""));
+			$get_vars = base64_decode($ipl[3] ?? "");
+			$hash = base64_decode($ipl[4] ?? "");
 			
 			// If it can't be rectified, we still don't want a warning.
 			if (is_array($command_parts) && count($command_parts)) {

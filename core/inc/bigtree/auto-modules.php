@@ -861,21 +861,27 @@
 			if (substr($id,0,1) == "p") {
 				return self::getPendingItem($table,$id);
 			}
+			
 			// Otherwise it's a live entry
 			$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '".sqlescape($id)."'"));
+			
 			if (!$item) {
 				return false;
 			}
+			
 			$tags = self::getTagsForEntry($table,$id);
 
 			// Process the internal page links, turn json_encoded arrays into arrays.
 			foreach ($item as $key => $val) {
-				if (is_array(json_decode($val,true))) {
+				if (is_null($val)) {
+					$item[$key] = null;
+				} else if (is_array(json_decode($val,true))) {
 					$item[$key] = BigTree::untranslateArray(json_decode($val,true));
 				} else {
 					$item[$key] = $cms->replaceInternalPageLinks($val);
 				}
 			}
+			
 			return array("item" => $item, "tags" => $tags);
 		}
 		
@@ -1041,7 +1047,9 @@
 			
 			// Process the internal page links, turn json_encoded arrays into arrays.
 			foreach ($item as $key => $val) {
-				if (is_array($val)) {
+				if (is_null($val)) {
+					$item[$key] = null;
+				} else if (is_array($val)) {
 					$item[$key] = BigTree::untranslateArray($val);
 				} elseif (is_array(json_decode($val,true))) {
 					$item[$key] = BigTree::untranslateArray(json_decode($val,true));
