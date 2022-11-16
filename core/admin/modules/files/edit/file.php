@@ -33,11 +33,11 @@
 	$metadata = BigTreeJSONDB::get("config", "file-metadata");
 
 	if ($file["is_image"]) {
-		$meta_fields = $metadata["image"];
+		$meta_fields = $metadata["image"] ?? [];
 	} elseif ($file["is_video"]) {
-		$meta_fields = $metadata["video"];
+		$meta_fields = $metadata["video"] ?? [];
 	} else {
-		$meta_fields = $metadata["file"];
+		$meta_fields = $metadata["file"] ?? [];
 	}
 
 	$meta_date_format = $bigtree["config"]["date_format"] ? $bigtree["config"]["date_format"]." @ g:ia" : "F j, Y @ g:ia";
