@@ -41,7 +41,17 @@
 			$this->Storage = new BigTreeStorage;
 			$this->Storage->AutoJPEG = $bigtree["config"]["image_force_jpeg"];
 
-			$info = getimagesize($file);
+			if (strpos($file, "https://") === 0 || strpos($file, "http://") === 0) {
+				$info = BigTreeCMS::cacheGet("org.bigtreecms.imagesize", $file);
+				
+				if (!$info) {
+					$info = getimagesize($file);
+					BigTreeCMS::cachePut("org.bigtreecms.imagesize", $file, $info);
+				}
+			} else {
+				$info = getimagesize($file);
+			}
+			
 			$this->Type = $info[2];
 			
 			if ($this->Type != IMAGETYPE_JPEG && $this->Type != IMAGETYPE_GIF && $this->Type != IMAGETYPE_PNG) {
@@ -95,12 +105,12 @@
 				$temp = $this->getTempFileName();
 				move_uploaded_file($file, $temp);
 				$this->File = $temp;
+				
+				// Fix EXIF rotation
+				$this->fixRotation();
 			} else {
 				$this->File = $file;
 			}
-
-			// Fix EXIF rotation
-			$this->fixRotation();
 		}
 		
 		/*
@@ -432,7 +442,7 @@
 				imagedestroy($source);
 				
 				// Get new width/height/type
-				list($this->Width, $this->Height) = getimagesize($this->File);
+				[$this->Width, $this->Height] = getimagesize($this->File);
 			}
 		}
 		

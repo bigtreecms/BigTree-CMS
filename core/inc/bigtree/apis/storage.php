@@ -195,7 +195,12 @@
 				$success = $this->Cloud->uploadFile($local_file,$this->Settings->Container,$relative_path.$file_name,true);
 
 				if ($success) {
-					sqlquery("UPDATE bigtree_caches SET value = '".sqlescape(json_encode(array("name" => $file_name,"path" => $relative_path.$file_name,"size" => filesize($local_file))))."' WHERE `identifier` = 'org.bigtreecms.cloudfiles' AND `key` = '".sqlescape($relative_path.$file_name)."'");
+					BigTreeCMS::cachePut("org.bigtreecms.cloudfiles", $relative_path.$file_name, [
+						"name" => $file_name,
+						"path" => $relative_path.$file_name,
+						"size" => filesize($local_file),
+					]);
+					BigTreeCMS::cacheDelete("org.bigtreecms.imagesize", $success);
 				}
 
 				if ($remove_original) {
