@@ -154,12 +154,16 @@ namespace Aws;
  * @method \Aws\MultiRegionClient createMultiRegionConnect(array $args = [])
  * @method \Aws\ConnectCampaignService\ConnectCampaignServiceClient createConnectCampaignService(array $args = [])
  * @method \Aws\MultiRegionClient createMultiRegionConnectCampaignService(array $args = [])
+ * @method \Aws\ConnectCases\ConnectCasesClient createConnectCases(array $args = [])
+ * @method \Aws\MultiRegionClient createMultiRegionConnectCases(array $args = [])
  * @method \Aws\ConnectContactLens\ConnectContactLensClient createConnectContactLens(array $args = [])
  * @method \Aws\MultiRegionClient createMultiRegionConnectContactLens(array $args = [])
  * @method \Aws\ConnectParticipant\ConnectParticipantClient createConnectParticipant(array $args = [])
  * @method \Aws\MultiRegionClient createMultiRegionConnectParticipant(array $args = [])
  * @method \Aws\ConnectWisdomService\ConnectWisdomServiceClient createConnectWisdomService(array $args = [])
  * @method \Aws\MultiRegionClient createMultiRegionConnectWisdomService(array $args = [])
+ * @method \Aws\ControlTower\ControlTowerClient createControlTower(array $args = [])
+ * @method \Aws\MultiRegionClient createMultiRegionControlTower(array $args = [])
  * @method \Aws\CostExplorer\CostExplorerClient createCostExplorer(array $args = [])
  * @method \Aws\MultiRegionClient createMultiRegionCostExplorer(array $args = [])
  * @method \Aws\CostandUsageReportService\CostandUsageReportServiceClient createCostandUsageReportService(array $args = [])
@@ -300,6 +304,8 @@ namespace Aws;
  * @method \Aws\MultiRegionClient createMultiRegionIoTEventsData(array $args = [])
  * @method \Aws\IoTFleetHub\IoTFleetHubClient createIoTFleetHub(array $args = [])
  * @method \Aws\MultiRegionClient createMultiRegionIoTFleetHub(array $args = [])
+ * @method \Aws\IoTFleetWise\IoTFleetWiseClient createIoTFleetWise(array $args = [])
+ * @method \Aws\MultiRegionClient createMultiRegionIoTFleetWise(array $args = [])
  * @method \Aws\IoTJobsDataPlane\IoTJobsDataPlaneClient createIoTJobsDataPlane(array $args = [])
  * @method \Aws\MultiRegionClient createMultiRegionIoTJobsDataPlane(array $args = [])
  * @method \Aws\IoTSecureTunneling\IoTSecureTunnelingClient createIoTSecureTunneling(array $args = [])
@@ -412,6 +418,8 @@ namespace Aws;
  * @method \Aws\MultiRegionClient createMultiRegionMigrationHub(array $args = [])
  * @method \Aws\MigrationHubConfig\MigrationHubConfigClient createMigrationHubConfig(array $args = [])
  * @method \Aws\MultiRegionClient createMultiRegionMigrationHubConfig(array $args = [])
+ * @method \Aws\MigrationHubOrchestrator\MigrationHubOrchestratorClient createMigrationHubOrchestrator(array $args = [])
+ * @method \Aws\MultiRegionClient createMultiRegionMigrationHubOrchestrator(array $args = [])
  * @method \Aws\MigrationHubRefactorSpaces\MigrationHubRefactorSpacesClient createMigrationHubRefactorSpaces(array $args = [])
  * @method \Aws\MultiRegionClient createMultiRegionMigrationHubRefactorSpaces(array $args = [])
  * @method \Aws\MigrationHubStrategyRecommendations\MigrationHubStrategyRecommendationsClient createMigrationHubStrategyRecommendations(array $args = [])
@@ -488,6 +496,8 @@ namespace Aws;
  * @method \Aws\MultiRegionClient createMultiRegionRekognition(array $args = [])
  * @method \Aws\ResilienceHub\ResilienceHubClient createResilienceHub(array $args = [])
  * @method \Aws\MultiRegionClient createMultiRegionResilienceHub(array $args = [])
+ * @method \Aws\ResourceExplorer2\ResourceExplorer2Client createResourceExplorer2(array $args = [])
+ * @method \Aws\MultiRegionClient createMultiRegionResourceExplorer2(array $args = [])
  * @method \Aws\ResourceGroups\ResourceGroupsClient createResourceGroups(array $args = [])
  * @method \Aws\MultiRegionClient createMultiRegionResourceGroups(array $args = [])
  * @method \Aws\ResourceGroupsTaggingAPI\ResourceGroupsTaggingAPIClient createResourceGroupsTaggingAPI(array $args = [])
@@ -534,6 +544,8 @@ namespace Aws;
  * @method \Aws\MultiRegionClient createMultiRegionSagemakerEdgeManager(array $args = [])
  * @method \Aws\SavingsPlans\SavingsPlansClient createSavingsPlans(array $args = [])
  * @method \Aws\MultiRegionClient createMultiRegionSavingsPlans(array $args = [])
+ * @method \Aws\Scheduler\SchedulerClient createScheduler(array $args = [])
+ * @method \Aws\MultiRegionClient createMultiRegionScheduler(array $args = [])
  * @method \Aws\Schemas\SchemasClient createSchemas(array $args = [])
  * @method \Aws\MultiRegionClient createMultiRegionSchemas(array $args = [])
  * @method \Aws\SecretsManager\SecretsManagerClient createSecretsManager(array $args = [])
@@ -568,6 +580,8 @@ namespace Aws;
  * @method \Aws\MultiRegionClient createMultiRegionSqs(array $args = [])
  * @method \Aws\Ssm\SsmClient createSsm(array $args = [])
  * @method \Aws\MultiRegionClient createMultiRegionSsm(array $args = [])
+ * @method \Aws\SsmSap\SsmSapClient createSsmSap(array $args = [])
+ * @method \Aws\MultiRegionClient createMultiRegionSsmSap(array $args = [])
  * @method \Aws\StorageGateway\StorageGatewayClient createStorageGateway(array $args = [])
  * @method \Aws\MultiRegionClient createMultiRegionStorageGateway(array $args = [])
  * @method \Aws\Sts\StsClient createSts(array $args = [])
@@ -633,7 +647,7 @@ namespace Aws;
  */
 class Sdk
 {
-    const VERSION = '3.234.0';
+    const VERSION = '3.245.0';
 
     /** @var array Arguments for creating clients */
     private $args;

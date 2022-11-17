@@ -1,6 +1,6 @@
 {
     "require": {
-        "aws/aws-sdk-php": "^3.52",
+        "aws/aws-sdk-php": "^3",
         "oyejorge/less.php": "v1.7.0.14",
         "ext-gd": "*",
         "ext-json": "*",

@@ -73,6 +73,8 @@ use GuzzleHttp\Promise\PromiseInterface;
  * @method \GuzzleHttp\Promise\Promise getBucketPolicyAsync(array $args = [])
  * @method \Aws\Result getBucketTagging(array $args = [])
  * @method \GuzzleHttp\Promise\Promise getBucketTaggingAsync(array $args = [])
+ * @method \Aws\Result getBucketVersioning(array $args = [])
+ * @method \GuzzleHttp\Promise\Promise getBucketVersioningAsync(array $args = [])
  * @method \Aws\Result getJobTagging(array $args = [])
  * @method \GuzzleHttp\Promise\Promise getJobTaggingAsync(array $args = [])
  * @method \Aws\Result getMultiRegionAccessPoint(array $args = [])
@@ -111,6 +113,8 @@ use GuzzleHttp\Promise\PromiseInterface;
  * @method \GuzzleHttp\Promise\Promise putBucketPolicyAsync(array $args = [])
  * @method \Aws\Result putBucketTagging(array $args = [])
  * @method \GuzzleHttp\Promise\Promise putBucketTaggingAsync(array $args = [])
+ * @method \Aws\Result putBucketVersioning(array $args = [])
+ * @method \GuzzleHttp\Promise\Promise putBucketVersioningAsync(array $args = [])
  * @method \Aws\Result putJobTagging(array $args = [])
  * @method \GuzzleHttp\Promise\Promise putJobTaggingAsync(array $args = [])
  * @method \Aws\Result putMultiRegionAccessPointPolicy(array $args = [])
@@ -194,6 +198,10 @@ class S3ControlClient extends AwsClient
     public function __construct(array $args)
     {
         parent::__construct($args);
+
+        if ($this->isUseEndpointV2()) {
+            $this->processEndpointV2Model();
+        }
         $stack = $this->getHandlerList();
         $stack->appendBuild(
             EndpointArnMiddleware::wrap(
@@ -207,9 +215,55 @@ class S3ControlClient extends AwsClient
                         ? $args['endpoint']
                         : null,
                     'use_fips_endpoint' => $this->getConfig('use_fips_endpoint'),
-                ]
+                ],
+                $this->isUseEndpointV2()
             ),
             's3control.endpoint_arn_middleware'
         );
+    }
+
+    /**
+     * Modifies API definition to remove `AccountId`
+     * host prefix.  This is now handled by the endpoint ruleset.
+     *
+     * @return void
+     *
+     * @internal
+     */
+    private function processEndpointV2Model()
+    {
+        $definition = $this->getApi()->getDefinition();
+        $this->removeHostPrefix($definition);
+        $this->removeRequiredMember($definition);
+        $this->getApi()->setDefinition($definition);
+    }
+
+    private function removeHostPrefix(&$definition)
+    {
+        foreach($definition['operations'] as &$operation) {
+            if (isset($operation['endpoint']['hostPrefix'])
+                && $operation['endpoint']['hostPrefix'] === '{AccountId}.'
+            ) {
+                $operation['endpoint']['hostPrefix'] = str_replace(
+                    '{AccountId}.',
+                    '',
+                    $operation['endpoint']['hostPrefix']
+                );
+            }
+        }
+    }
+
+    private function removeRequiredMember(&$definition)
+    {
+        foreach($definition['shapes'] as &$shape) {
+            if (isset($shape['required'])
+            ) {
+                $found = array_search('AccountId', $shape['required']);
+
+                if ($found !== false) {
+                    unset($shape['required'][$found]);
+                }
+            }
+        }
     }
 }
