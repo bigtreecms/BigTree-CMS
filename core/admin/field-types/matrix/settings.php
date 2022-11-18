@@ -34,7 +34,7 @@
 			foreach ($settings["columns"] as $column) {
 				$x++;
 
-				if (is_array($column["settings"])) {
+				if (!empty($column["settings"]) && is_array($column["settings"])) {
 					$settings = htmlspecialchars(json_encode($column["settings"]));
 				} else {
 					$settings = BigTree::safeEncode($column["settings"] ?? $column["options"] ?? '');

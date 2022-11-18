@@ -422,14 +422,14 @@
 
 				if (!empty($og["image"])) {
 					$image = $og["image"];
-					$image_width = $og["image_width"];
-					$image_height = $og["image_height"];
+					$image_width = $og["image_width"] ?? "";
+					$image_height = $og["image_height"] ?? "";
 				} elseif (!empty($context["image"])) {
 					$image = $context["image"];
 				} else {
-					$image = $bigtree["page"]["open_graph"]["image"];
-					$image_width = $bigtree["page"]["open_graph"]["image_width"];
-					$image_height = $bigtree["page"]["open_graph"]["image_height"];
+					$image = $bigtree["page"]["open_graph"]["image"] ?? "";
+					$image_width = $bigtree["page"]["open_graph"]["image_width"] ?? "";
+					$image_height = $bigtree["page"]["open_graph"]["image_height"] ?? "";
 				}
 			}
 

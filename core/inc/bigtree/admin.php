@@ -3010,7 +3010,12 @@
 					$bigtree["tabindex"]++;
 				}
 				
-				$bigtree["last_resource_type"] = $field["type"];
+				// Callouts in 4.5 no longer have the same styling which will cause custom fields that depend on the behavior to misbehave
+				if ($field["type"] == "callouts") {
+					$bigtree["last_resource_type"] = "callouts-4.5";
+				} else {
+					$bigtree["last_resource_type"] = $field["type"];
+				}
 			}
 			
 			// Restore context
@@ -4992,7 +4997,7 @@
 			if ($page) {
 				$template = BigTreeJSONDB::get("templates", $page["template"]);
 				
-				return [$page["id"], [], $template["routed"], $query_vars, $hash];
+				return [$page["id"], [], $template["routed"] ?? false, $query_vars, $hash];
 			}
 			
 			// Guess we don't, let's chop off commands until we find a page.
@@ -5008,7 +5013,7 @@
 				if ($page) {
 					$template = BigTreeJSONDB::get("templates", $page["template"]);
 					
-					if ($template["routed"]) {
+					if (!empty($template["routed"])) {
 						return [$page["id"], array_reverse($commands), "on", $query_vars, $hash];
 					}
 				}
