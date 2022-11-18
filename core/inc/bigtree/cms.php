@@ -613,7 +613,7 @@
 		*/
 		
 		public static function getBreadcrumbByPage($page,$ignore_trunk = false) {
-			if (empty($page)) {
+			if (empty($page) || !isset($page["path"])) {
 				return [];
 			}
 			
