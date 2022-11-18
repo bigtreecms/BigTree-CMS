@@ -12,7 +12,9 @@
 		
 		while ($item = sqlfetch($q)) {
 			foreach ($item as $key => $val) {
-				if (is_array(json_decode($val,true))) {
+				if (is_null($val)) {
+					$item[$key] = null;
+				} elseif (is_array(json_decode($val,true))) {
 					$item[$key] = BigTree::untranslateArray(json_decode($val,true));
 				} else {
 					$item[$key] = $cms->replaceInternalPageLinks($val);
