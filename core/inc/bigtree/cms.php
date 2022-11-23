@@ -381,7 +381,7 @@
 
 			if (empty($context)) {
 				$og = $bigtree["page"]["open_graph"] ?? [];
-				$title = $bigtree["page"]["title"];
+				$title = $bigtree["page"]["title"] ?? "Page Not Found";
 				$og_title = !empty($og["title"]) ? $og["title"] : $bigtree["page"]["title"] ?? "";
 				$description = !empty($bigtree["page"]["meta_description"]) ? $bigtree["page"]["meta_description"] : $og["description"] ?? "";
 				$og_description = !empty($og["description"]) ? $og["description"] : $bigtree["page"]["meta_description"] ?? "";
