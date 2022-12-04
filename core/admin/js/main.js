@@ -2446,7 +2446,15 @@ var BigTreeCallouts = function(settings) {
 			ev.preventDefault();
 			$(this).parents("li").eq(0).addClass("collapsed");
 		});
-		List.sortable({ containment: "parent", handle: ".icon_drag", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
+
+		List.sortable({
+			axis: "y",
+			containment: "parent",
+			handle: ".icon_sort",
+			items: "li",
+			placeholder: "ui-sortable-placeholder",
+			tolerance: "pointer",
+		});
 
 		return { Container: Container, Count: Count, Key: Key, List: List, addCallout: addCallout };
 
@@ -2644,7 +2652,15 @@ var BigTreeMatrix = function(settings) {
 			ev.preventDefault();
 			$(this).parents("li").eq(0).addClass("collapsed");
 		});
-		List.sortable({ containment: "parent", handle: ".icon_drag", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
+
+		List.sortable({
+			axis: "y",
+			containment: "parent",
+			handle: ".icon_sort",
+			items: "li",
+			placeholder: "ui-sortable-placeholder",
+			tolerance: "pointer",
+		});
 
 		return { Container: Container, Count: Count, Key: Key, List: List, addItem: addItem };
 
@@ -3034,9 +3050,17 @@ var BigTreeMediaGallery = function(settings) {
 			ev.preventDefault();
 			$(this).parents("li").eq(0).addClass("collapsed");
 		});
-		List.sortable({ containment: "parent", handle: ".icon_drag", items: "li", placeholder: "ui-sortable-placeholder", tolerance: "pointer" });
 
-		return {Container: Container, Count: Count, Key: Key, List: List, addItem: addItem};
+		List.sortable({
+			axis: "y",
+			containment: "parent",
+			handle: ".icon_sort",
+			items: "li",
+			placeholder: "ui-sortable-placeholder",
+			tolerance: "pointer",
+		});
+
+		return { Container: Container, Count: Count, Key: Key, List: List, addItem: addItem };
 
 	})(jQuery, settings);
 }
