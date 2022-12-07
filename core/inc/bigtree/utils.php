@@ -1500,7 +1500,12 @@
 		*/
 		
 		public static function pathInfo($file) {
+			if (empty($file)) {
+				return null;
+			}
+			
 			$parts = pathinfo($file);
+
 			if (!defined('PATHINFO_FILENAME')) {
 				$parts["filename"] = substr($parts["basename"], 0, strrpos($parts["basename"], '.'));
 			}
@@ -2004,6 +2009,10 @@
 		*/
 		
 		public static function safeEncode($string) {
+			if (!is_string($string)) {
+				return $string;
+			}
+			
 			return htmlspecialchars(html_entity_decode($string, ENT_COMPAT, "UTF-8"));
 		}
 		

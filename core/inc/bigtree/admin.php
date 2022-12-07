@@ -6,7 +6,15 @@
 	
 	class BigTreeAdminBase {
 		
+		public $CSRFToken = "";
+		public $CSRFTokenField = "";
+		public $ID = null;
+		public $Level = 0;
+		public $Name = "";
+		public $Permissions = [];
 		public $POSTError;
+		public $Timezone = "";
+		public $User = "";
 		
 		public static $IRLPrefixes = [];
 		public static $IRLsCreated = [];
@@ -5444,8 +5452,9 @@
 			$changes = [];
 			// Setup the default search array to just be pages
 			$search = ["`module` = '' OR `module` IS NULL"];
+			
 			// Add each module the user has publisher permissions to
-			if (is_array($user["permissions"]["module"])) {
+			if (!empty($user["permissions"]["module"]) && is_array($user["permissions"]["module"])) {
 				foreach ($user["permissions"]["module"] as $module => $permission) {
 					if ($permission == "p") {
 						$search[] = "`module` = '$module'";
@@ -5454,7 +5463,7 @@
 			}
 			
 			// Add module group based permissions as well
-			if (isset($user["permissions"]["module_gbp"]) && is_array($user["permissions"]["module_gbp"])) {
+			if (!empty($user["permissions"]["module_gbp"]) && is_array($user["permissions"]["module_gbp"])) {
 				foreach ($user["permissions"]["module_gbp"] as $module => $groups) {
 					foreach ($groups as $group => $permission) {
 						if ($permission == "p") {
@@ -5487,12 +5496,13 @@
 					}
 				} else {
 					// Check our list of modules.
-					if ($user["permissions"]["module"][$f["module"]] == "p") {
+					if (!empty($user["permissions"]["module"][$f["module"]]) && $user["permissions"]["module"][$f["module"]] == "p") {
 						$ok = true;
 					} else {
 						// Check our group based permissions
 						$item = BigTreeAutoModule::getPendingItem($f["table"], $id);
 						$level = $this->getAccessLevel(static::getModule($f["module"]), $item["item"], $f["table"], $user);
+						
 						if ($level == "p") {
 							$ok = true;
 						}

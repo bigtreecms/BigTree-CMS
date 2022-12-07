@@ -999,10 +999,10 @@
 					while ($f = sqlfetch($q)) {
 						$template = BigTreeJSONDB::get("templates", $f["template"]);
 
-						if ($template["module"]) {
+						if (!empty($template["module"])) {
 							$module = BigTreeJSONDB::get("modules", $template["module"]);
 
-							if ($module["class"] && class_exists($module["class"])) {
+							if (!empty($module["class"]) && class_exists($module["class"])) {
 								$instance = new $module["class"];
 
 								if (method_exists($instance, "getNav")) {
@@ -1034,7 +1034,7 @@
 					if (!empty($template["module"])) {
 						$module = BigTreeJSONDB::get("modules", $template["module"]);
 
-						if ($module["class"] && class_exists($module["class"])) {
+						if (!empty($module["class"]) && class_exists($module["class"])) {
 							$instance = new $module["class"];
 
 							if (method_exists($instance, "getNav")) {
