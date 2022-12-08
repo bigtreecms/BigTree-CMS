@@ -1731,7 +1731,7 @@
 			// Seed generator
 			[$usec, $sec] = explode(' ', microtime());
 			$seed = (float) $sec + ((float) $usec * 100000);
-			mt_srand($seed);
+			mt_srand((int) $seed);
 			
 			// Generate
 			$str = '';

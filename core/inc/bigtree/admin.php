@@ -3125,11 +3125,11 @@
 				if (is_array($changes) && count($changes)) {
 					foreach ($changes as $change) {
 						$body_changes .= '<tr>';
-						$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$change["user"]["name"].'</td>';
+						$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.($change["user"]["name"] ?? "Unknown User").'</td>';
 						if ($change["title"]) {
 							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Pages</td>';
 						} else {
-							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.$change["mod"]["name"].'</td>';
+							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">'.($change["mod"]["name"] ?? "Unknown Module").'</td>';
 						}
 						if (is_null($change["item_id"])) {
 							$body_changes .= '<td style="border-bottom: 1px solid #eee; padding: 10px 0 10px 15px;">Addition</td>';
