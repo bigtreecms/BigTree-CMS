@@ -183,9 +183,13 @@
 		<?php
 			foreach ($mod["changes"] as $change) {
 				if ($change["item_id"]) {
-					$item = $view_data[$change["item_id"]];
+					$item = $view_data[$change["item_id"]] ?? null;
 				} else {
-					$item = $view_data["p".$change["id"]];
+					$item = $view_data["p".$change["id"]] ?? null;
+				}
+				
+				if (!$item) {
+					continue;
 				}
 		?>
 		<li>

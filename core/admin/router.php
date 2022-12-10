@@ -471,7 +471,7 @@
 	// Auto actions are going to be already done so we don't need to try manual routing.
 	if (!$complete) {
 		// Check custom if it's not an extension, otherwise use the extension directory
-		if ($module && $module["extension"]) {
+		if ($module && !empty($module["extension"])) {
 			$module_path[0] = str_replace($module["extension"]."*","",$module_path[0]);
 			[$inc,$commands] = BigTree::route(SERVER_ROOT."extensions/".$module["extension"]."/modules/",$module_path);
 			

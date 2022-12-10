@@ -96,12 +96,21 @@
 		}
 ?>
 <select<?php if (count($class)) { ?> class="<?=implode(" ",$class)?>"<?php } ?> name="<?=$field["key"]?>" tabindex="<?=$field["tabindex"]?>" id="<?=$field["id"]?>">
-	<?php if (empty($field["settings"]["allow-empty"]) || $field["settings"]["allow-empty"] != "No") { ?>
+	<?php
+		if (empty($field["settings"]["allow-empty"]) || $field["settings"]["allow-empty"] != "No") {
+	?>
 	<option<?php if ($is_group_based_perm) { ?> data-access-level="<?=$module_access_level?>"<?php } ?>></option>
-	<?php } ?>
-	<?php foreach ($list as $option) { ?>
+	<?php
+		}
+		
+		foreach ($list as $option) {
+			$option["value"] = $option["value"] ?? "";
+			$option["description"] = $option["description"]?? "";
+	?>
 	<option value="<?=BigTree::safeEncode($option["value"])?>"<?php if ($field["value"] == $option["value"]) { ?> selected="selected"<?php } ?><?php if (!empty($option["access_level"])) { ?> data-access-level="<?=$option["access_level"]?>"<?php } ?>><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($option["description"]), 100))?></option>
-	<?php } ?>
+	<?php
+		}
+	?>
 </select>
 <?php
 	}

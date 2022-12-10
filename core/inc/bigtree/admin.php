@@ -3763,6 +3763,8 @@
 		public static function getChangeEditLink($change) {
 			global $bigtree;
 			
+			$action = null;
+			
 			if (!is_array($change)) {
 				$change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '$change'"));
 			}
