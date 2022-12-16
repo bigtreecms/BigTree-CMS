@@ -5247,6 +5247,11 @@
 		
 		public static function getPageSEORating($page, $content) {
 			$template = BigTreeCMS::getTemplate($page["template"]);
+			
+			if (empty($template)) {
+				return null;
+			}
+			
 			$tsources = [];
 			$h1_field = "";
 			$body_fields = [];

@@ -47,13 +47,15 @@
 		// We alias $bigtree["entry"] to $bigtree["resources"] so that information is in the same place for field types.
 		$bigtree["entry"] = &$bigtree["resources"];
 
-		$bigtree["template"]["resources"] = $admin->runHooks("fields", "template", $bigtree["template"]["resources"], [
-			"template" => $bigtree["template"],
-			"step" => "draw",
-			"page" => $bigtree["current_page"]
-		]);
+	    if (!empty($bigtree["template"])) {
+		    $bigtree["template"]["resources"] = $admin->runHooks("fields", "template", $bigtree["template"]["resources"], [
+			    "template" => $bigtree["template"],
+			    "step" => "draw",
+			    "page" => $bigtree["current_page"]
+		    ]);
+	    }
 	
-		if (is_array($bigtree["template"]["resources"]) && count($bigtree["template"]["resources"])) {
+		if (!empty($bigtree["template"]["resources"]) && is_array($bigtree["template"]["resources"])) {
 			foreach ($bigtree["template"]["resources"] as $resource) {
 				$field = array(
 					"type" => $resource["type"],

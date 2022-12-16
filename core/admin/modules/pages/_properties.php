@@ -25,14 +25,19 @@
 	$open = (!empty($_COOKIE["bigtree_admin"]["page_properties_open"]) ||
 			 !empty($_COOKIE["bigtree_admin%5Bpage_properties_open%5D"]));
 
-	$seo_recs = "<ul>";
-	foreach ($seo["recommendations"] as $rec) {
-		$seo_recs .= "<li>$rec</li>";
+	if (!empty($seo)) {
+		$seo_recs = "<ul>";
+		
+		foreach ($seo["recommendations"] as $rec) {
+			$seo_recs .= "<li>$rec</li>";
+		}
+		
+		if (!count($seo["recommendations"])) {
+			$seo_recs .= "<li>Keep up the good work!</li>";
+		}
+		
+		$seo_recs .= "</ul>";
 	}
-	if (!count($seo["recommendations"])) {
-		$seo_recs .= "<li>Keep up the good work!</li>";
-	}
-	$seo_recs .= "</ul>";
 ?>
 <h3 class="properties"><span>Properties</span><span class="icon_small icon_small_caret_<?php if ($open) { ?>down<?php } else { ?>right<?php } ?>"></span></h3>
 <section class="inset_block property_block"<?php if (!$open) { ?> style="display: none;"<?php } ?>>
@@ -40,10 +45,16 @@
 		<label>Status</label>
 		<p class="<?=str_replace(" ","_",strtolower($status))?>"><?=$status?></p>
 	</article>
+	<?php
+		if (!is_null($seo)) {
+	?>
 	<article class="seo">
 		<label>SEO Rating</label>
 		<p style="color: <?=$seo["color"]?>"><span><?=$seo["score"]?>%</span><a href="#" class="icon_small icon_small_help"></a></p>
 	</article>
+	<?php
+		}
+	?>
 	<article>
 		<label>Content Age</label>
 		<p><?=$age?> Days</p>

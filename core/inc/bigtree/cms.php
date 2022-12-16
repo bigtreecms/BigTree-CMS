@@ -684,10 +684,10 @@
 			// Check for module breadcrumbs
 			$template = BigTreeJSONDB::get("templates", $page["template"]);
 
-			if ($template["module"]) {
+			if (!empty($template["module"])) {
 				$module = BigTreeJSONDB::get("modules", $template["module"]);
 
-				if ($module["class"]) {
+				if (!empty($module["class"])) {
 					if (class_exists($module["class"])) {
 						$moduleClass = new $module["class"];
 				
