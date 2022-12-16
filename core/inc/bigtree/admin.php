@@ -5699,10 +5699,10 @@
 			}
 			
 			$item["prefix"] = $last_prefix;
-			$item["crops"] = json_decode($item["crops"], true);
-			$item["thumbs"] = json_decode($item["thumbs"], true);
-			$item["metadata"] = json_decode($item["metadata"], true);
-			$item["video_data"] = json_decode($item["video_data"], true);
+			$item["crops"] = !empty($item["crops"]) ? json_decode($item["crops"], true) : null;
+			$item["thumbs"] = !empty($item["thumbs"]) ? json_decode($item["thumbs"], true) : null;
+			$item["metadata"] = !empty($item["metadata"]) ? json_decode($item["metadata"], true) : null;
+			$item["video_data"] = !empty($item["video_data"]) ? json_decode($item["video_data"], true) : null;
 			
 			return BigTree::untranslateArray($item);
 		}
@@ -5725,10 +5725,10 @@
 				return false;
 			}
 			
-			$resource["crops"] = json_decode($resource["crops"], true);
-			$resource["thumbs"] = json_decode($resource["thumbs"], true);
-			$resource["metadata"] = json_decode($resource["metadata"], true);
-			$resource["video_data"] = json_decode($resource["video_data"], true);
+			$resource["crops"] = !empty($resource["crops"]) ? json_decode($resource["crops"], true) : null;
+			$resource["thumbs"] = !empty($resource["thumbs"]) ? json_decode($resource["thumbs"], true) : null;
+			$resource["metadata"] = !empty($resource["metadata"]) ? json_decode($resource["metadata"], true) : null;
+			$resource["video_data"] = !empty($resource["video_data"]) ? json_decode($resource["video_data"], true) : null;
 			
 			return BigTree::untranslateArray($resource);
 		}
