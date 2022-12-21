@@ -1,6 +1,6 @@
 <?php
 	// If we always genereate a new route, don't have a route, or we're updating a pending entry.
-	if (!$field["settings"]["keep_original"] || !$bigtree["existing_data"][$field["key"]] || (isset($bigtree["edit_id"]) && !is_numeric($bigtree["edit_id"]))) {
+	if (empty($field["settings"]["keep_original"]) || empty($bigtree["existing_data"][$field["key"]]) || (isset($bigtree["edit_id"]) && !is_numeric($bigtree["edit_id"]))) {
 		if (is_array($field["settings"]["source"])) {
 			$source_data = "";
 			
@@ -13,7 +13,7 @@
 		
 		$source_data = trim($source_data);
 		
-		if ($field["settings"]["not_unique"]) {
+		if (!empty($field["settings"]["not_unique"])) {
 			$field["output"] = $cms->urlify($source_data);
 		} else {
 			$original_route = $cms->urlify($source_data);

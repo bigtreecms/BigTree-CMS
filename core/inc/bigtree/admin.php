@@ -337,6 +337,10 @@
 		*/
 		
 		public static function autoIPL($html) {
+			if (empty($html)) {
+				return $html;
+			}
+			
 			// If this string is actually just a URL, IPL it.
 			if ((substr($html, 0, 7) == "http://" || substr($html, 0, 8) == "https://") && strpos($html, "\n") === false && strpos($html, "\r") === false) {
 				$html = static::makeIPL($html);
