@@ -3782,12 +3782,18 @@
 			}
 			
 			$module = BigTreeJSONDB::get("modules", $change["module"]);
+
+			if (!$module) {
+				return null;
+			}
 			
-			foreach ($module["forms"] as $form) {
-				if ($form["table"] == $change["table"]) {
-					foreach ($module["actions"] as $module_action) {
-						if ($module_action["form"] == $form["id"]) {
-							$action = $module_action;
+			if (!empty($module["forms"]) && is_array($module["forms"])) {
+				foreach ($module["forms"] as $form) {
+					if ($form["table"] == $change["table"]) {
+						foreach ($module["actions"] as $module_action) {
+							if ($module_action["form"] == $form["id"]) {
+								$action = $module_action;
+							}
 						}
 					}
 				}

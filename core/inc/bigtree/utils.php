@@ -2213,23 +2213,24 @@
 				
 				if ($action) {
 					$mod = "ALTER TABLE `$table_a` $action COLUMN `$key` ".$column["type"];
-					if ($column["size"]) {
+					
+					if (!empty($column["size"])) {
 						$mod .= "(".$column["size"].")";
 					}
 					
-					if ($column["unsigned"]) {
+					if (!empty($column["unsigned"])) {
 						$mod .= " UNSIGNED";
 					}
 					
-					if ($column["charset"]) {
+					if (!empty($column["charset"])) {
 						$mod .= " CHARSET ".$column["charset"];
 					}
 					
-					if ($column["collate"]) {
+					if (!empty($column["collate"])) {
 						$mod .= " COLLATE ".$column["collate"];
 					}
 					
-					if (!$column["allow_null"]) {
+					if (empty($column["allow_null"])) {
 						$mod .= " NOT NULL";
 					} else {
 						$mod .= " NULL";
