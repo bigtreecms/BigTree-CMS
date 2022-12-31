@@ -20,6 +20,13 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.5.1
+- ADDED: Caching of image data from cloud hosted files to prevent downloading all images on each page edit
+- FIXED: Too many warnings to count
+- FIXED: Image rotation fixing being attempted on every check of an image rather than just uploads
+- FIXED: Drag and drop not working on matrix / callouts / media galleries
+- FIXED: Old certificate bundles failing to grab new bundles (fixes cURL HTTPS calls)
+
 ### 4.5
 - NEW: Experimental GraphQL API Support
 - NEW: Instagram Basic Display API support (old API is no longer available for general usage)
