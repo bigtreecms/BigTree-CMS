@@ -39,7 +39,7 @@
 			$this->cleanSettings();
 
 			$this->Storage = new BigTreeStorage;
-			$this->Storage->AutoJPEG = $bigtree["config"]["image_force_jpeg"];
+			$this->Storage->AutoJPEG = $bigtree["config"]["image_force_jpeg"] ?? false;
 
 			if (strpos($file, "https://") === 0 || strpos($file, "http://") === 0) {
 				$info = BigTreeCMS::cacheGet("org.bigtreecms.imagesize", $file);
