@@ -1088,7 +1088,7 @@
 									$bigtree["val"] = $bigtree["f"]($bigtree["val"]);
 								}
 							} else {
-								$bigtree["val"] = $bigtree["function"]($bigtree["val"]);
+								$bigtree["val"] = @$bigtree["function"]($bigtree["val"]);
 							}
 						}
 						$$__bigtree_internal_key = $bigtree["val"];
