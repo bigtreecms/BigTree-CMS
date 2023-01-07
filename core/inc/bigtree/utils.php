@@ -954,7 +954,7 @@
 				
 				return json_decode($cookie, true);
 			} else {
-				return json_decode($_COOKIE[$id], true);
+				return !empty($_COOKIE[$id]) ? json_decode($_COOKIE[$id], true) : null;
 			}
 		}
 		
