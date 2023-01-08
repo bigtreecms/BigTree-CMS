@@ -53,7 +53,7 @@
 				$this->Connected = true;
 
 				// If our token is going to expire in the next 30 minutes, refresh it.
-				if ($this->Settings["expires"] < time() + 1800 && $this->Settings["expires"]) {
+				if (!empty($this->Settings["expires"]) && $this->Settings["expires"] < time() + 1800) {
 					$this->oAuthRefreshToken();
 				}
 			}
