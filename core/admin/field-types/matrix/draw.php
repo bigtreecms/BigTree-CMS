@@ -56,9 +56,9 @@
 				<?php
 					foreach ($field["settings"]["columns"] as $resource) {
 						if (!empty($resource["settings"])) {
-							$settings = @json_decode($resource["settings"], true);
+							$settings = is_array($resource["settings"]) ? $resource["settings"] : @json_decode($resource["settings"], true);
 						} else if (!empty($resource["options"])) {
-							$settings = @json_decode($resource["options"], true);
+							$settings = is_array($resource["options"]) ? $resource["options"] : @json_decode($resource["options"], true);
 						} else {
 							$settings = [];
 						}
