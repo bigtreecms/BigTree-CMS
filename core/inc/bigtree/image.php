@@ -84,7 +84,7 @@
 			$this->BitsPerPixel = $info["bits"] ?: 8;
 			$this->MimeType = $info["mime"];
 			
-			if ($info["channels"]) {
+			if (!empty($info["channels"])) {
 				$this->ColorChannels = $info["channels"];
 			} elseif ($this->Type == IMAGETYPE_JPEG) {
 				$this->ColorChannels = 3;

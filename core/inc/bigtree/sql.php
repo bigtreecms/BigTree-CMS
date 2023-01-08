@@ -193,13 +193,16 @@
 
 		function sqlescape($string) {
 			global $bigtree;
+
 			if ($bigtree["mysql_read_connection"] === "disconnected") {
 				$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 			}
+
 			if (!is_string($string) && !is_numeric($string) && !is_bool($string) && $string) {
 				trigger_error("sqlescape expects a string");
 			}
-			return mysqli_real_escape_string($bigtree["mysql_read_connection"],$string);
+
+			return is_null($string) ? $string : mysqli_real_escape_string($bigtree["mysql_read_connection"],$string);
 		}
 
 	// These are the older MySQL extension versions

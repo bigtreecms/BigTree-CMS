@@ -840,7 +840,7 @@
 			
 			$connection = (static::$Connection && static::$Connection !== "disconnected") ? static::$Connection : static::connect("Connection", "db");
 			
-			return $connection->real_escape_string($string);
+			return is_null($string) ? $string : $connection->real_escape_string($string);
 		}
 		
 		/*
