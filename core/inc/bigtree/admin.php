@@ -1948,7 +1948,7 @@
 		*/
 		
 		public function createSetting($data) {
-			$extension = $data["extension"] ?: null;
+			$extension = !empty($data["extension"]) ? $data["extension"] : null;
 			$id = $data["id"];
 			
 			// If an extension is creating a setting, make it a reference back to the extension
@@ -7752,7 +7752,7 @@
 			
 			// This is a file manager upload, add a 100x100 center crop
 			if (!empty($field["settings"]["preset"]) && $field["settings"]["preset"] == "default") {
-				if (!is_array($field["settings"]["center_crops"])) {
+				if (empty($field["settings"]["center_crops"]) || !is_array($field["settings"]["center_crops"])) {
 					$field["settings"]["center_crops"] = [];
 				}
 				

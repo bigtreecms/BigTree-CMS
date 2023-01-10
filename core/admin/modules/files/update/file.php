@@ -19,17 +19,18 @@
 	$metadata = BigTreeJSONDB::get("config", "file-metadata");
 
 	if ($file["is_image"]) {
-		$meta_fields = $metadata["image"];
+		$meta_fields = $metadata["image"] ?? [];
 		$settings = BigTreeJSONDB::get("config", "media-settings");
 		$preset = $settings["presets"]["default"];
 		$preset["directory"] = "files/resources/";
 	} elseif ($file["is_video"]) {
-		$meta_fields = $metadata["video"];
+		$meta_fields = $metadata["video"] ?? [];
 	} else {
-		$meta_fields = $metadata["file"];
+		$meta_fields = $metadata["file"] ?? [];
 	}
 
 	$bigtree["crops"] = [];
+	$bigtree["errors"] = [];
 
 	if (is_array($meta_fields) && count($meta_fields)) {
 		$bigtree["post_data"] = $_POST;
