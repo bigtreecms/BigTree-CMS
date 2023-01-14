@@ -61,8 +61,9 @@
 				<section class="view_column file_manager_column_icon">
 					<?php
 						if ($resource["is_image"]) {
+							$cache_hash = !empty($resource["file_last_updated"]) ? "?".strtotime($resource["file_last_updated"]) : "";
 					?>
-					<img src="<?=BigTree::prefixFile(BigTreeCMS::replaceRelativeRoots($resource["file"]), "list-preview/")."?".strtotime($resource["file_last_updated"])?>" alt="">
+					<img src="<?=BigTree::prefixFile(BigTreeCMS::replaceRelativeRoots($resource["file"]), "list-preview/").$cache_hash?>" alt="">
 					<?php
 						} elseif ($resource["is_video"]) {
 					?>
