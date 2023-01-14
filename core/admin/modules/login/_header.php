@@ -6,6 +6,6 @@
 	$last_path = $bigtree["path"][count($bigtree["path"]) - 1];
 	
 	// Check if we're forcing HTTPS
-	if ($bigtree["config"]["force_secure_login"] && !BigTree::getIsSSL() && $last_path != "cors") {
+	if (!empty($bigtree["config"]["force_secure_login"]) && !BigTree::getIsSSL() && $last_path != "cors") {
 		BigTree::redirect(str_replace("http://","https://",ADMIN_ROOT)."login/");
 	}

@@ -27,31 +27,37 @@
 			// If we have a newer Javascript file to include or we haven't cached yet, do it now.
 			if (!file_exists($cache_file) || $mtime > $last_modified) {
 				$data = "";
-				if (is_array($bigtree["config"]["js"]["files"][$js_file])) {
+				
+				if (!empty($bigtree["config"]["js"]["files"][$js_file]) && is_array($bigtree["config"]["js"]["files"][$js_file])) {
 					foreach ($bigtree["config"]["js"]["files"][$js_file] as $script) {
 						$data .= file_get_contents(SITE_ROOT."js/$script")."\n";
 					}
 				}
+				
 				// Replace www_root/ and Minify
 				$data = str_replace(array('$www_root','www_root/','$static_root','static_root/','$admin_root','admin_root/'),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT,ADMIN_ROOT,ADMIN_ROOT),$data);
-				if (is_array($_GET)) {
+				
+				if (!empty($_GET) && is_array($_GET)) {
 					foreach ($_GET as $key => $val) {
 						if ($key != "bigtree_htaccess_url") {
 							$data = str_replace('$'.$key, preg_replace("/[^A-Za-z0-9 ]/", '', $val), $data);
 						}
 					}
 				}
-				if (is_array($bigtree["config"]["js"]["vars"])) {
+				
+				if (!empty($bigtree["config"]["js"]["vars"]) && is_array($bigtree["config"]["js"]["vars"])) {
 					foreach ($bigtree["config"]["js"]["vars"] as $key => $val) {
 						$data = str_replace('$'.$key,$val,$data);
 					}
 				}
-				if ($bigtree["config"]["js"]["minify"]) {
-					
+				
+				if (!empty($bigtree["config"]["js"]["minify"])) {
 					$data = JSMin::minify($data);
 				}
+				
 				BigTree::putFile($cache_file,$data);
 				header("Content-type: text/javascript");
+				
 				die($data);
 			} else {
 				// Added a line to .htaccess to hopefully give us IF_MODIFIED_SINCE when running as CGI
@@ -98,7 +104,8 @@
 			// If we have a newer CSS file to include or we haven't cached yet, do it now.
 			if (!file_exists($cache_file) || $mtime > $last_modified) {
 				$data = "";
-				if (is_array($bigtree["config"]["css"]["files"][$css_file])) {
+				
+				if (!empty($bigtree["config"]["css"]["files"][$css_file]) && is_array($bigtree["config"]["css"]["files"][$css_file])) {
 					// If we need LESS, load less.php
 					if (strpos(implode(" ", $bigtree["config"]["css"]["files"][$css_file]), "less") > -1) {
 						require_once SERVER_ROOT."vendor/oyejorge/less.php/lib/Less/Autoloader.php";
@@ -115,7 +122,7 @@
 							// Normal CSS
 							$style = file_get_contents(SITE_ROOT."css/$style_file");
 							
-							if ($bigtree["config"]["css"]["prefix"]) {
+							if (!empty($bigtree["config"]["css"]["prefix"])) {
 								// Replace CSS3 easymode
 								$style = BigTree::formatCSS3($style);
 							}
@@ -124,18 +131,22 @@
 						$data .= $style."\n";
 					}
 				}
+				
 				// Should only loop once, not with every file
-				if (is_array($bigtree["config"]["css"]["vars"])) {
+				if (!empty($bigtree["config"]["css"]["vars"]) && is_array($bigtree["config"]["css"]["vars"])) {
 					foreach ($bigtree["config"]["css"]["vars"] as $key => $val) {
 						$data = str_replace('$'.$key,$val,$data);
 					}
 				}
+				
 				// Replace roots
 				$data = str_replace(array('$www_root','www_root/','$static_root','static_root/','$admin_root/','admin_root/'),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT,ADMIN_ROOT,ADMIN_ROOT),$data);
-				if ($bigtree["config"]["css"]["minify"]) {
+				
+				if (!empty($bigtree["config"]["css"]["minify"])) {
 					$minifier = new CSSMin;
 					$data = $minifier->run($data);
-				}	
+				}
+				
 				BigTree::putFile($cache_file,$data);
 				header("Content-type: text/css");
 				die($data);
@@ -222,7 +233,7 @@
 	BigTreeSessionHandler::start();
 
 	// Check to see if we're in maintenance mode
-	if ($bigtree["config"]["maintenance_url"] && (empty($_SESSION["bigtree_admin"]["level"]) || $_SESSION["bigtree_admin"]["level"] < 2)) {
+	if (!empty($bigtree["config"]["maintenance_url"]) && (empty($_SESSION["bigtree_admin"]["level"]) || $_SESSION["bigtree_admin"]["level"] < 2)) {
 		// See if we're at the URL
 		if (implode("/", $bigtree["path"]) != trim(str_replace(WWW_ROOT,"",$bigtree["config"]["maintenance_url"]),"/")) {
 			$_SESSION["bigtree_referring_url"] = DOMAIN.$_SERVER["REQUEST_URI"];
@@ -540,7 +551,8 @@
 	
 	// Allow for special output filter functions.
 	$filter = null;
-	if ($bigtree["config"]["output_filter"]) {
+	
+	if (!empty($bigtree["config"]["output_filter"])) {
 		$filter = $bigtree["config"]["output_filter"];
 	}
 	

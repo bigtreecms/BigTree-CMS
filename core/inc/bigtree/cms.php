@@ -318,7 +318,7 @@
 
 						$redirect_url = rtrim($redirect_url, "/")."/".$additional_commands;
 
-						if ($bigtree["config"]["trailing_slash_behavior"] != "remove") {
+						if (empty($bigtree["config"]["trailing_slash_behavior"]) || $bigtree["config"]["trailing_slash_behavior"] != "remove") {
 							$redirect_url .= "/";
 						}
 					}
@@ -820,7 +820,9 @@
 				$commands = implode("/", $command_parts);
 
 				// If the URL's last piece has a GET (?), hash (#), or appears to be a file (.) don't add a trailing slash
-				if ($bigtree["config"]["trailing_slash_behavior"] != "remove" && strpos($last,"#") === false && strpos($last,"?") === false && strpos($last,".") === false) {
+				if ((empty($bigtree["config"]["trailing_slash_behavior"]) || $bigtree["config"]["trailing_slash_behavior"] != "remove") &&
+					strpos($last,"#") === false && strpos($last,"?") === false && strpos($last,".") === false
+				) {
 					$commands .= "/";
 				}
 			} else {
@@ -840,7 +842,10 @@
 				static::$IPLCache[$navid] = rtrim(static::linkForPath($f["path"]), "/");
 			}
 
-			if ($bigtree["config"]["trailing_slash_behavior"] != "remove" || $commands != "") {
+			if (empty($bigtree["config"]["trailing_slash_behavior"]) ||
+				$bigtree["config"]["trailing_slash_behavior"] != "remove" ||
+				$commands != ""
+			) {
 				$url = static::$IPLCache[$navid]."/".$commands;
 			} else {
 				$url = static::$IPLCache[$navid];
@@ -1689,7 +1694,9 @@
 							$path = substr($path, strlen($site_path) + 1);
 						}						
 						
-						if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
+						if (!empty($bigtree["config"]["trailing_slash_behavior"]) &&
+							$bigtree["config"]["trailing_slash_behavior"] == "remove"
+						) {
 							return rtrim($site_data["www_root"].$path, "/");
 						}
 						
@@ -1702,7 +1709,9 @@
 				return WWW_ROOT;
 			}
 			
-			if ($bigtree["config"]["trailing_slash_behavior"] == "remove") {
+			if (!empty($bigtree["config"]["trailing_slash_behavior"]) &&
+				$bigtree["config"]["trailing_slash_behavior"] == "remove"
+			) {
 				return WWW_ROOT.$path;
 			}
 			

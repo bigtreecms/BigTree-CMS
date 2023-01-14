@@ -14,7 +14,7 @@
 		$environment_alert = '<span><strong>Maintenance Mode</strong> &middot; Entire Site Restricted To Developers</span>';
 	} elseif (!empty($bigtree["config"]["developer_mode"])) {
 		$environment_alert = '<span><strong>Developer Mode</strong> &middot; Admin Area Restricted To Developers</span>';
-	} elseif ($bigtree["config"]["environment"] == "dev" && $bigtree["config"]["environment_live_url"]) {
+	} elseif (!empty($bigtree["config"]["environment"]) && $bigtree["config"]["environment"] == "dev" && !empty($bigtree["config"]["environment_live_url"])) {
 		$environment_alert = '<span><strong>Development Site</strong> &middot; Changes Will Not Affect Live Site!</span><a href="'.$bigtree["config"]["environment_live_url"].'">Go Live</a>';
 	}
 ?>
@@ -119,7 +119,7 @@
 		</script>
 		<header class="main">
 			<section>
-				<a href="<?php if ($bigtree["config"]["force_secure_login"]) { echo str_replace("http://","https://",ADMIN_ROOT); } else { echo ADMIN_ROOT; } ?>login/logout/?true<?php $admin->drawCSRFTokenGET() ?>" class="logout"><span></span>Logout</a>
+				<a href="<?php if (!empty($bigtree["config"]["force_secure_login"])) { echo str_replace("http://","https://",ADMIN_ROOT); } else { echo ADMIN_ROOT; } ?>login/logout/?true<?php $admin->drawCSRFTokenGET() ?>" class="logout"><span></span>Logout</a>
 				<div></div>
 				<p class="messages"><a href="<?=ADMIN_ROOT?>dashboard/messages/"><?=$unread_messages?> Unread Messages</a></p>
 				<div></div>
