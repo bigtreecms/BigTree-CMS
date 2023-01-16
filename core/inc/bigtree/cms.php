@@ -1401,7 +1401,13 @@
 				return false;
 			}
 			
-			$value = json_decode($setting["encrypted"] ? $setting["decrypted_value"] : $setting["value"], true);
+			$value_to_decode = $setting["encrypted"] ? $setting["decrypted_value"] : $setting["value"];
+			
+			if (is_null($value_to_decode)) {
+				return null;
+			}
+			
+			$value = json_decode($value_to_decode, true);
 			
 			if (is_null($value)) {
 				return $value;
