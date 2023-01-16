@@ -2492,6 +2492,10 @@
 		*/
 		
 		public static function trimLength($string, $length) {
+			if (!is_string($string)) {
+				return "";
+			}
+			
 			$ns = "";
 			$opentags = [];
 			$string = trim($string);
