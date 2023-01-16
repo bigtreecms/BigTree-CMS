@@ -1778,8 +1778,8 @@
 			$parent = sqlescape($data["parent"]);
 			
 			// Handle open graph and tags
-			$open_graph = $this->handleOpenGraph("bigtree_pages", null, $data["_open_graph_"], true);
-			$tags = array_unique($data["_tags"]) ?: "[]";
+			$open_graph = $this->handleOpenGraph("bigtree_pages", null, $data["_open_graph_"] ?? [], true);
+			$tags = array_unique($data["_tags"] ?? []);
 			
 			// Remove POST vars that shouldn't be stored
 			unset($data["MAX_FILE_SIZE"]);
