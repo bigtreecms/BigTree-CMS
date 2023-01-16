@@ -66,7 +66,10 @@
 								foreach ($view["fields"] as $key => $field) {
 									if ($field["parser"]) {
 										$parsers[$key] = $field["parser"];
-									} elseif ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["settings"]["list_type"] == "db") {
+									} elseif (
+										!empty($form["fields"][$key]["type"]) && $form["fields"][$key]["type"] == "list" &&
+										!empty($form["fields"][$key]["settings"]["list_type"]) && $form["fields"][$key]["settings"]["list_type"] == "db"
+									) {
 										$poplists[$key] = array("description" => $form["fields"][$key]["settings"]["pop-description"], "table" => $form["fields"][$key]["settings"]["pop-table"]);
 									}
 								}
