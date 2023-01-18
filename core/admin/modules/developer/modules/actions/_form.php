@@ -25,28 +25,28 @@
 	<div class="triplets">
 		<fieldset>
 			<label>Form</label>
-			<select name="form"<?php if ($item["view"] || $item["report"]) { ?> disabled="disabled"<?php } ?>>
+			<select name="form"<?php if (!empty($item["view"]) || !empty($item["report"])) { ?> disabled="disabled"<?php } ?>>
 				<option value="">&mdash;</option>
 				<?php foreach ($forms as $form) { ?>
-				<option value="<?=$form["id"]?>"<?php if ($form["id"] == $item["form"]) { ?> selected="selected"<?php } ?>><?=$form["title"]?> (<?=$form["table"]?>)</option>
+				<option value="<?=$form["id"]?>"<?php if (!empty($item["form"]) && $form["id"] == $item["form"]) { ?> selected="selected"<?php } ?>><?=$form["title"]?> (<?=$form["table"]?>)</option>
 				<?php } ?>
 			</select>
 		</fieldset>
 		<fieldset>
 			<label>View</label>
-			<select name="view"<?php if ($item["form"] || $item["report"]) { ?> disabled="disabled"<?php } ?>>
+			<select name="view"<?php if (!empty($item["form"]) || !empty($item["report"])) { ?> disabled="disabled"<?php } ?>>
 				<option value="">&mdash;</option>
 				<?php foreach ($views as $view) { ?>
-				<option value="<?=$view["id"]?>"<?php if ($view["id"] == $item["view"]) { ?> selected="selected"<?php } ?>><?=$view["title"]?> (<?=$view["table"]?>)</option>
+				<option value="<?=$view["id"]?>"<?php if (!empty($item["view"]) && $view["id"] == $item["view"]) { ?> selected="selected"<?php } ?>><?=$view["title"]?> (<?=$view["table"]?>)</option>
 				<?php } ?>
 			</select>
 		</fieldset>
 		<fieldset>
 			<label>Report</label>
-			<select name="report"<?php if ($item["view"] || $item["form"]) { ?> disabled="disabled"<?php } ?>>
+			<select name="report"<?php if (!empty($item["view"]) || !empty($item["form"])) { ?> disabled="disabled"<?php } ?>>
 				<option value="">&mdash;</option>
 				<?php foreach ($reports as $report) { ?>
-				<option value="<?=$report["id"]?>"<?php if ($report["id"] == $item["report"]) { ?> selected="selected"<?php } ?>><?=$report["title"]?> (<?=$report["table"]?>)</option>
+				<option value="<?=$report["id"]?>"<?php if (!empty($item["report"]) && $report["id"] == $item["report"]) { ?> selected="selected"<?php } ?>><?=$report["title"]?> (<?=$report["table"]?>)</option>
 				<?php } ?>
 			</select>
 		</fieldset>
