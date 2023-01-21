@@ -2013,7 +2013,7 @@
 				return $string;
 			}
 			
-			return htmlspecialchars(html_entity_decode($string, ENT_COMPAT, "UTF-8"));
+			return htmlspecialchars(htmlspecialchars_decode(html_entity_decode($string, ENT_COMPAT, "UTF-8")));
 		}
 		
 		/*
