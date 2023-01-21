@@ -1772,7 +1772,7 @@
 			if ($this->Level < 2) {
 				$data["trunk"] = "";
 			} else {
-				$data["trunk"] = sqlescape($data["trunk"]);
+				$data["trunk"] = sqlescape($data["trunk"] ?? "");
 			}
 			
 			$parent = sqlescape($data["parent"]);
