@@ -7634,6 +7634,7 @@
 			}
 			
 			$field["options"] = &$field["settings"];
+			$field["output"] = "";
 			
 			// Save current context
 			$bigtree["saved_extension_context"] = $bigtree["extension_context"] ?? "";
