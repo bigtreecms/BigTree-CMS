@@ -49,7 +49,7 @@
 			
 			foreach ($items as $item) {
 				if (empty($item["type"])) {
-					$item["type"] = "image";
+					$item["type"] = "photo";
 				}
 				
 				if ($item["type"] == "video") {
@@ -65,10 +65,10 @@
 				}
 				
 				// Convert timestamps for existing data to the user's frame of reference so when it saves w/o changes the time is correct
-				$existing_additional_data = $item["info"];
+				$existing_additional_data = $item["info"] ?? [];
 				
 				foreach ($field["settings"]["columns"] as $resource) {
-					$current_value = $existing_additional_data[$resource["id"]];
+					$current_value = $existing_additional_data[$resource["id"]] ?? "";
 					
 					if (!empty($current_value) && empty($resource["settings"]["ignore_timezones"])) {
 						if ($resource["type"] == "time") {
@@ -136,7 +136,7 @@
 							"title" => "Video URL",
 							"subtitle" => "(include http://)",
 							"settings" => ["required" => true],
-							"value" => array_merge(["image" => $item["image"]], $item["video"]),
+							"value" => array_merge(["image" => $item["image"]], $item["video"] ?? []),
 						]];
 					}
 					
