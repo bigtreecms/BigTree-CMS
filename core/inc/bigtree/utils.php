@@ -2038,6 +2038,11 @@
 		public static function sendEmail($to, $subject, $html, $text = "", $from = false, $return = false, $cc = false, $bcc = false, $headers = [], $smtp = []) {
 			$mailer = new PHPMailer;
 			
+			if (function_exists("mb_detect_encoding") && mb_detect_encoding($html, ["ASCII"], true) === false) {
+				$mailer->CharSet = "UTF-8";
+				$mailer->Encoding = "base64";
+			}
+			
 			if (is_array($smtp) && count($smtp)) {
 				$mailer->isSMTP();
 				$mailer->Host = $smtp["host"];
