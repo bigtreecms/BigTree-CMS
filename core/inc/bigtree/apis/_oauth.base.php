@@ -266,14 +266,16 @@
 			}
 
 			$response = json_decode($this->callAPI($this->EndpointURL.$endpoint,$method,$params,$headers));
+			
 			if (isset($response->error)) {
-				if (is_array($response->error->errors)) {
+				if (!empty($response->error->errors) && is_array($response->error->errors)) {
 					foreach ($response->error->errors as $error) {
 						$this->Errors[] = $error;
 					}
 				} else {
 					$this->Errors[] = $response->error;
 				}
+			
 				return false;
 			} else {
 				return $response;
