@@ -496,9 +496,15 @@
 				return true;
 			}
 			
-			$q = sqlquery("SELECT id FROM bigtree_pages WHERE path LIKE '".sqlescape($page["path"])."%'");
-			while ($f = sqlfetch($q)) {
-				$perm = $this->Permissions["page"][$f["id"]];
+			if (is_numeric($page)) {
+				$page = SQL::fetch("SELECT path FROM bigtree_pages WHERE id = ?", $page);
+			}
+			
+			$child_ids = SQL::fetchAllSingle("SELECT id FROM bigtree_pages WHERE path LIKE '".SQL::escape($page["path"])."%'");
+			
+			foreach ($child_ids as $child_id) {
+				$perm = $this->Permissions["page"][$child_id] ?? null;
+
 				if ($perm == "n" || $perm == "e") {
 					return false;
 				}
@@ -4858,7 +4864,12 @@
 
 			while ((!$parent_permission || $parent_permission == "i") && !empty($page_data["parent"])) {
 				$page_data = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".$page_data["parent"]."'"));
-				$parent_permission = $permissions["page"][$page_data["parent"]] ?? null;
+				
+				if ($page_data) {
+					$parent_permission = $permissions["page"][$page_data["parent"]] ?? null;
+				} else {
+					$parent_permission = null;
+				}
 			}
 			
 			// If no permissions are set on the page (we hit page 0 and still nothing) or permission is "n", return not allowed.
