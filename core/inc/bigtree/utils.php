@@ -2640,7 +2640,11 @@
 					if (is_array($piece)) {
 						$piece = static::untranslateArray($piece);
 					} elseif (is_string($piece)) {
-						$piece = BigTreeCMS::replaceInternalPageLinks($piece);
+						if (is_array(@json_decode($piece, true))) {
+							$piece = static::untranslateArray(json_decode($piece, true));
+                        } else {
+							$piece = BigTreeCMS::replaceInternalPageLinks($piece);
+						}
 					}
 				}
 			}

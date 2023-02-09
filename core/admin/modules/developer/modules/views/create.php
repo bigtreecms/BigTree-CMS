@@ -9,15 +9,18 @@
 	$columns = $table_description["columns"];
 	$errors = array();
 	// Check for errors
-	if (($type == "draggable" || $type == "draggable-group" || $settings["draggable"]) && !$columns["position"]) {
+	if (($type == "draggable" || $type == "draggable-group" || !empty($settings["draggable"])) && empty($columns["position"])) {
 		$errors[] = "Sorry, but you can't create a draggable view without a 'position' column in your table.  Please create a position column (integer) in your table and try again.";
 	}
+	
 	if (isset($actions["archive"]) && !(($columns["archived"]["type"] == "char" || $columns["archived"]["type"] == "varchar") && $columns["archived"]["size"] == "2")) {
 		$errors[] = "Sorry, but you must have a column named 'archived' that is char(2) in order to use the archive function.";
 	}
+	
 	if (isset($actions["approve"]) && !(($columns["approved"]["type"] == "char" || $columns["approved"]["type"] == "varchar") && $columns["approved"]["size"] == "2")) {
 		$errors[] = "Sorry, but you must have a column named 'approved' that is char(2) in order to use the approve function.";
 	}
+	
 	if (isset($actions["feature"]) && !(($columns["featured"]["type"] == "char" || $columns["featured"]["type"] == "varchar") && $columns["featured"]["size"] == "2")) {
 		$errors[] = "Sorry, but you must have a column named 'featured' that is char(2) in order to use the feature function.";
 	}
@@ -55,7 +58,7 @@
 		$module = end($bigtree["path"]);
 
 		// Create the view
-		$view_id = $admin->createModuleView($module, $title, $description, $table, $type, $settings, $fields, $actions, $related_form, $preview_url, $exclude_from_search);
+		$view_id = $admin->createModuleView($module, $title, $description, $table, $type, $settings, $fields, $actions, $related_form, $preview_url, !empty($exclude_from_search));
 
 		// Check to see if there's a default view for the module. If not our route is going to be blank.
 		$route = "";

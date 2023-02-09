@@ -40,16 +40,16 @@
 	</div>
 	<div class="triplets">
 		<fieldset>
-			<input type="checkbox" name="open_graph" <?php if ($form["open_graph"]) { ?>checked="checked" <?php } ?>/>
+			<input type="checkbox" name="open_graph" <?php if (!empty($form["open_graph"])) { ?>checked="checked" <?php } ?>/>
 			<label class="for_checkbox">Enable Open Graph</label>
 		</fieldset>
 		<fieldset>
-			<input type="checkbox" name="tagging" <?php if ($form["tagging"]) { ?>checked="checked" <?php } ?>/>
+			<input type="checkbox" name="tagging" <?php if (!empty($form["tagging"])) { ?>checked="checked" <?php } ?>/>
 			<label class="for_checkbox">Enable Tagging</label>
 		</fieldset>
 		<fieldset>
 			<a href="#" id="manage_hooks"><span class="icon_small icon_small_lightning"></span> Manage Hooks</a>
-			<input name="hooks" type="hidden" id="form_hooks" value="<?=htmlspecialchars(json_encode($form["hooks"]))?>" />
+			<input name="hooks" type="hidden" id="form_hooks" value="<?=htmlspecialchars(json_encode($form["hooks"] ?? []))?>" />
 		</fieldset>
 	</div>
 </section>

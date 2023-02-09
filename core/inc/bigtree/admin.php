@@ -9399,7 +9399,9 @@
 									$numeric = true;
 								}
 								
-								if ($field["parser"] || ($form["fields"][$key]["type"] == "list" && $form["fields"][$key]["settings"]["list_type"] == "db")) {
+								if (!empty($field["parser"]) ||
+									(!empty($form["fields"][$key]["type"]) && $form["fields"][$key]["type"] == "list" && $form["fields"][$key]["settings"]["list_type"] == "db")
+								) {
 									$numeric = false;
 								}
 								
