@@ -216,8 +216,6 @@
 				$items[] = $this->get($f);
 			}
 			
-			print_r($items);
-			
 			return $items;
 		}
 		
@@ -244,16 +242,12 @@
 			
 			foreach ($item as $key => $val) {
 				if (is_null($val)) {
-					echo "Val is null $key\n";
 					$item[$key] = null;
 				} else if (is_array($val)) {
-					echo "Val is array $key\n";
 					$item[$key] = BigTree::untranslateArray($val);
 				} elseif (is_array(json_decode($val,true))) {
-					echo "Val was json $key\n";
 					$item[$key] = BigTree::untranslateArray(json_decode($val,true));
 				} else {
-					echo "Val is unknown $key\n";
 					$item[$key] = BigTreeCMS::replaceInternalPageLinks($val);
 				}
 			}
