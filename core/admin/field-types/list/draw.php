@@ -21,7 +21,6 @@
 	// Database populated list.
 	if ($field["settings"]["list_type"] == "db") {
 		$list_table = $field["settings"]["pop-table"] ?? "";
-		$list_id = $field["settings"]["pop-id"] ?? "";
 		$list_title = $field["settings"]["pop-description"] ?? "";
 		$list_sort = $field["settings"]["pop-sort"] ?? "";
 		

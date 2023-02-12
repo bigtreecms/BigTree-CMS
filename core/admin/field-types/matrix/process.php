@@ -29,19 +29,19 @@
 
 		// Setup the new callout to emulate a normal field processing environment
 		$bigtree["post_data"] = $data;
-		$bigtree["file_data"] = $field["file_input"][$index];
+		$bigtree["file_data"] = $field["file_input"][$index] ?? [];
 		$bigtree["entry"] = $entry = [
 			"__internal-title" => "",
 			"__internal-subtitle" => ""
 		];
 		
 		foreach ($field["settings"]["columns"] as $resource) {
-			if (is_array($resource["settings"])) {
+			if (isset($resource["settings"]) && is_array($resource["settings"])) {
 				$settings = $resource["settings"];
 			} else {
 				// Sanitize field settings
-				$settings = @json_decode($resource["settings"], true);
-				$options = @json_decode($resource["options"], true); // Backwards compat
+				$settings = @json_decode($resource["settings"] ?? "", true);
+				$options = @json_decode($resource["options"] ?? "", true); // Backwards compat
 				
 				if (empty($settings) || !is_array($settings)) {
 					$settings = $options;
