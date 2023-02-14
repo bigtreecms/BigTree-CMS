@@ -2010,7 +2010,7 @@
 		
 		public static function safeEncode($string) {
 			if (!is_string($string)) {
-				return "";
+				return is_numeric($string) ? $string : "";
 			}
 			
 			return htmlspecialchars(htmlspecialchars_decode(html_entity_decode($string, ENT_COMPAT, "UTF-8")));
