@@ -93,9 +93,9 @@
 				if (!empty($actions)) {
 					foreach ($actions as $key => $action) {
 						if ($action != "on") {
-							$data = json_decode($action,true);
-							$key = $data["route"];
-							$class = $data["class"];
+							$data = is_string($action) ? json_decode($action,true) : $action;
+							$key = $data["route"] ?? "";
+							$class = $data["class"] ?? "";
 						} else {
 							$class = "icon_$key";
 							if ($key == "feature" || $key == "approve") {
@@ -105,7 +105,7 @@
 						$used_actions[] = $key;
 			?>
 			<li>
-				<input class="custom_control" type="checkbox" name="actions[<?=$key?>]" checked="checked" value="<?=htmlspecialchars($action)?>" />
+				<input class="custom_control" type="checkbox" name="actions[<?=$key?>]" checked="checked" value="<?=htmlspecialchars(is_string($action) ? $action : json_encode($action))?>" />
 				<a href="#" class="action active">
 					<span class="<?=$class?>"></span>
 				</a>
