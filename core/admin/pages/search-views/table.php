@@ -49,7 +49,7 @@
 		<section class="view_action action_<?=$action?>"><a href="#<?=$item["id"]?>" class="<?=$class?>"></a></section>
 		<?php
 				} else {
-					$data = json_decode($data,true);
+					$data = is_string($data) ? json_decode($data,true) : $data;
 					$link = $mpage.$data["route"]."/".$item["id"]."/";
 					if ($data["function"]) {
 						$link = call_user_func($data["function"],$item);

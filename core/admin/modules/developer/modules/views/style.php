@@ -50,7 +50,7 @@
 			<?php
 				foreach ($actions as $action => $data) {
 					if ($data != "on") {
-						$data = json_decode($data,true);
+						$data = is_string($data) ? json_decode($data,true) : $data;
 						$class = $data["class"];
 					} else {
 						$class = "icon_$action";

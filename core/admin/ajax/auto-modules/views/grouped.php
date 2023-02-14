@@ -152,7 +152,7 @@
 		<section class="view_action action_<?=$action?>"><a href="<?=$link?>" class="<?=$class?>" title="<?=$action_title?>"></a></section>
 		<?php
 				} else {
-					$data = json_decode($data,true);
+					$data = is_string($data) ? json_decode($data,true) : $data;
 					$link = $module_page.$data["route"]."/".$item["id"]."/";
 
 					if ($data["function"]) {

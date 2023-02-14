@@ -81,7 +81,7 @@
 								}
 								
 								if ($data != "on") {
-									$data = json_decode($data,true);
+									$data = is_string($data) ? json_decode($data,true) : $data;
 									$class = $data["class"];
 									$link = MODULE_ROOT.$data["route"]."/".$item["id"]."/";
 									
@@ -151,7 +151,7 @@
 								}
 								
 								if ($data != "on") {
-									$data = json_decode($data,true);
+									$data = is_string($data) ? json_decode($data,true) : $data;
 									$class = $data["class"];
 									$link = MODULE_ROOT.$data["route"]."/".$item["id"]."/";
 									
