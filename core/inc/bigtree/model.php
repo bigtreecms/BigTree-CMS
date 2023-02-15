@@ -6,7 +6,7 @@
 	
 	namespace BigTree;
 	
-	use BigTree, BigTreeAdmin, BigTreeAutoModule, SQL;
+	use BigTree, BigTreeAdmin, BigTreeCMS, BigTreeAutoModule, SQL;
 	use BigTree\GraphQL\TypeService;
 	use BigTree\GraphQL\QueryService;
 	use GraphQL\Type\Definition\ObjectType;
@@ -168,7 +168,19 @@
 				return null;
 			}
 			
-			return BigTree::untranslateArray($item);
+			foreach ($item as $key => $val) {
+				if (is_null($val)) {
+					$item[$key] = null;
+				} else if (is_array($val)) {
+					$item[$key] = BigTree::untranslateArray($val);
+				} elseif (is_array(json_decode($val,true))) {
+					$item[$key] = BigTree::untranslateArray(json_decode($val,true));
+				} else {
+					$item[$key] = BigTreeCMS::replaceInternalPageLinks($val);
+				}
+			}
+			
+			return $item;
 		}
 		
 		/*
