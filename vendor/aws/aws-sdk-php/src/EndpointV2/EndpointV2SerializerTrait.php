@@ -39,8 +39,10 @@ trait EndpointV2SerializerTrait
             $clientArgs
         );
         $endpoint = $endpointProvider->resolveEndpoint($providerArgs);
+        $resolvedUrl = $endpoint->getUrl();
 
-        $this->endpoint = $endpoint->getUrl();
+        $this->applyScheme($resolvedUrl);
+        $this->endpoint = $resolvedUrl;
         $this->applyAuthSchemeToCommand($endpoint, $command);
         $this->applyHeaders($endpoint, $headers);
     }
@@ -127,21 +129,25 @@ trait EndpointV2SerializerTrait
             '@use_path_style_endpoint' => 'ForcePathStyle'
         ];
 
+        $filteredArgs = [];
+
+        foreach($rulesetParams as $name => $value) {
+            if (isset($commandArgs[$name])) {
+                if (!empty($value->getBuiltIn())) {
+                    continue;
+                }
+                $filteredArgs[$name] = $commandArgs[$name];
+            }
+        }
+
         if ($this->api->getServiceName() === 's3') {
             foreach($endpointMiddlewareOpts as $optionName => $newValue) {
                 if (isset($commandArgs[$optionName])) {
-                    $commandArgs[$newValue] = $commandArgs[$optionName];
+                    $filteredArgs[$newValue] = $commandArgs[$optionName];
                 }
             }
         }
 
-        $filteredArgs = [];
-
-        foreach($rulesetParams as $name => $value) {
-            if (isset($rulesetParams[$name]) && isset($commandArgs[$name])) {
-                $filteredArgs[$name] = $commandArgs[$name];
-            }
-        }
         return $filteredArgs;
     }
 
@@ -167,19 +173,22 @@ trait EndpointV2SerializerTrait
 
     private function selectAuthScheme($authSchemes)
     {
-        $validAuthSchemes = ['sigv4', 'sigv4a' ];
+        $validAuthSchemes = ['sigv4', 'sigv4a', 'none', 'bearer'];
+        $invalidAuthSchemes = [];
 
         foreach($authSchemes as $authScheme) {
             if (in_array($authScheme['name'], $validAuthSchemes)) {
                 return $this->normalizeAuthScheme($authScheme);
             } else {
-                $unsupportedScheme = $authScheme['name'];
+                $invalidAuthSchemes[] = "`{$authScheme['name']}`";
             }
         }
 
+        $invalidAuthSchemesString = implode(', ', $invalidAuthSchemes);
+        $validAuthSchemesString = '`' . implode('`, `', $validAuthSchemes) . '`';
         throw new \InvalidArgumentException(
-            "This operation requests {$unsupportedScheme} 
-            . but the client only supports sigv4 and sigv4a"
+            "This operation requests {$invalidAuthSchemesString}"
+            . " auth schemes, but the client only supports {$validAuthSchemesString}."
         );
     }
 
@@ -194,18 +203,41 @@ trait EndpointV2SerializerTrait
 
         if (isset($authScheme['disableDoubleEncoding'])
             && $authScheme['disableDoubleEncoding'] === true
+            && $authScheme['name'] !== 'sigv4a'
         ) {
             $normalizedAuthScheme['version'] = 's3v4';
-        } else {
+        } elseif ($authScheme['name'] === 'none') {
+            $normalizedAuthScheme['version'] = 'anonymous';
+        }
+        else {
             $normalizedAuthScheme['version'] = str_replace(
                 'sig', '', $authScheme['name']
             );
         }
+
         $normalizedAuthScheme['name'] = isset($authScheme['signingName']) ?
             $authScheme['signingName'] : null;
         $normalizedAuthScheme['region'] = isset($authScheme['signingRegion']) ?
             $authScheme['signingRegion'] : null;
+        $normalizedAuthScheme['signingRegionSet'] = isset($authScheme['signingRegionSet']) ?
+            $authScheme['signingRegionSet'] : null;
 
         return $normalizedAuthScheme;
+    }
+
+    private function applyScheme(&$resolvedUrl)
+    {
+        $resolvedEndpointScheme = parse_url($resolvedUrl, PHP_URL_SCHEME);
+        $scheme = $this->endpoint instanceof Uri
+            ? $this->endpoint->getScheme()
+            : parse_url($this->endpoint, PHP_URL_SCHEME);
+
+        if (!empty($scheme) && $scheme !== $resolvedEndpointScheme) {
+            $resolvedUrl = str_replace(
+                $resolvedEndpointScheme,
+                $scheme,
+                $resolvedUrl
+            );
+        }
     }
 }

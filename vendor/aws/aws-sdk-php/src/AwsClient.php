@@ -4,9 +4,6 @@ namespace Aws;
 use Aws\Api\ApiProvider;
 use Aws\Api\DocModel;
 use Aws\Api\Service;
-use Aws\ClientSideMonitoring\ApiCallAttemptMonitoringMiddleware;
-use Aws\ClientSideMonitoring\ApiCallMonitoringMiddleware;
-use Aws\ClientSideMonitoring\ConfigurationProvider;
 use Aws\EndpointDiscovery\EndpointDiscoveryMiddleware;
 use Aws\EndpointV2\EndpointProviderV2;
 use Aws\Signature\SignatureProvider;
@@ -237,9 +234,7 @@ class AwsClient implements AwsClientInterface
         $this->addSignatureMiddleware();
         $this->addInvocationId();
         $this->addEndpointParameterMiddleware($args);
-        if (!$this->isUseEndpointV2()) {
-            $this->addEndpointDiscoveryMiddleware($config, $args);
-        }
+        $this->addEndpointDiscoveryMiddleware($config, $args);
         $this->loadAliases();
         $this->addStreamRequestPayload();
         $this->addRecursionDetection();
@@ -544,10 +539,8 @@ class AwsClient implements AwsClientInterface
 
         $builtIns['SDK::Endpoint'] = isset($args['endpoint']) ? $args['endpoint'] : null;
         $builtIns['AWS::Region'] = $this->getRegion();
-        if (!isset($builtIns['SDK::Endpoint'])) {
-            $builtIns['AWS::UseFIPS'] = $config['use_fips_endpoint']->isUseFipsEndpoint();
-            $builtIns['AWS::UseDualStack'] = $config['use_dual_stack_endpoint']->isUseDualstackEndpoint();
-        }
+        $builtIns['AWS::UseFIPS'] = $config['use_fips_endpoint']->isUseFipsEndpoint();
+        $builtIns['AWS::UseDualStack'] = $config['use_dual_stack_endpoint']->isUseDualstackEndpoint();
         if ($service === 's3' || $service === 's3control'){
             $builtIns['AWS::S3::UseArnRegion'] = $config['use_arn_region']->isUseArnRegion();
         }
