@@ -62,8 +62,14 @@
 			<div class="inner">
 				<span class="icon_sort"></span>
 				<p class="multi_widget_entry_title">
-					<?=BigTree::trimLength($callout["display_title"], 100)?>
-					<small><?=BigTree::trimLength($type["name"] ,100)?></small>						
+					<?php
+						if ($callout["display_title"] === "") {
+							echo BigTree::trimLength($type["name"] ,100);
+						} else {
+							echo BigTree::trimLength($callout["display_title"], 100);
+							echo '<small>'.BigTree::trimLength($type["name"] ,100).'</small>';
+						}
+					?>
 				</p>
 
 				<a href="#" class="icon_delete"></a>

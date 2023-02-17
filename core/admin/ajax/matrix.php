@@ -48,6 +48,7 @@
 				"tabindex" => $tabindex,
 				"settings" => $settings,
 				"matrix_title_field" => !empty($resource["display_title"]),
+				"has_value" => false,
 				"value" => "",
 			];
 
