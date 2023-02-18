@@ -56,27 +56,7 @@
 					}
 					
 					if ($callout_info["display_field"] == $resource["id"]) {
-						if ($sub_field["type"] === "list") {
-							// Let this field provide a string value to callout titles
-							if ($sub_field["settings"]["list_type"] == "db") {
-								$list_table = $sub_field["settings"]["pop-table"] ?? "";
-								$list_title = $sub_field["settings"]["pop-description"] ?? "";
-								
-								if ($list_table && $list_title) {
-									$bigtree["entry"]["display_title"] = strip_tags(strval(SQL::fetchSingle("SELECT `$list_title` FROM `$list_table` WHERE `id` = ?", $output)));
-								}
-							}
-						} else if ($sub_field["type"] === "one-to-many") {
-							$display_title = [];
-							
-							foreach ($output as $output_id) {
-								$display_title[] = SQL::fetchSingle("SELECT `".$sub_field["settings"]["title_column"]."` FROM `".$sub_field["settings"]["table"]."` WHERE id = ?", $output_id);
-							}
-							
-							$bigtree["entry"]["display_title"] = implode(", ", array_filter($display_title));
-						} else {
-							$bigtree["entry"]["display_title"] = strip_tags(strval($output));
-						}
+						$bigtree["entry"]["display_title"] = BigTreeAdmin::processFieldDescription($sub_field, $output);
 					}
 				}
 				

@@ -62,20 +62,22 @@
 			}
 
 			// Process the sub-field
-			$output = BigTreeAdmin::processField([
+			$sub_field = [
 				"type" => $resource["type"],
 				"title" => $resource["title"],
 				"key" => $resource["id"],
 				"settings" => $settings,
 				"input" => $input,
 				"file_input" => $field["file_input"][$index][$resource["id"]] ?? null,
-			]);
+			];
+			
+			$output = BigTreeAdmin::processField($sub_field);
 
 			if (!empty($resource["display_title"])) {
 				if (empty($entry["__internal-title"])) {
-					$entry["__internal-title"] = $output;
+					$entry["__internal-title"] = BigTreeAdmin::processFieldDescription($sub_field, $output);
 				} elseif (empty($entry["__internal-subtitle"])) {
-					$entry["__internal-subtitle"] = $output;
+					$entry["__internal-subtitle"] = BigTreeAdmin::processFieldDescription($sub_field, $output);
 				}
 			}
 

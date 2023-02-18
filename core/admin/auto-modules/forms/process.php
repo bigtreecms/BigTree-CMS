@@ -203,7 +203,7 @@
 	if (!empty($_POST["_bigtree_return_link"])) {
 		$redirect_url = $_POST["_bigtree_return_link"];
 		// If we specify a specific return view, get that information
-	} elseif ($bigtree["form"]["return_view"]) {
+	} elseif (!empty($bigtree["form"]["return_view"])) {
 		$view = BigTreeAutoModule::getView($bigtree["form"]["return_view"]);
 		$action = $admin->getModuleActionForView($bigtree["form"]["return_view"]);
 		
@@ -213,7 +213,7 @@
 			$redirect_url = ADMIN_ROOT.$bigtree["module"]["route"]."/".$redirect_append;
 		}
 		// If we specify a specific return URL...
-	} elseif ($bigtree["form"]["return_url"]) {
+	} elseif (!empty($bigtree["form"]["return_url"])) {
 		$redirect_url = $bigtree["form"]["return_url"].$redirect_append;
 		// Otherwise just go back to the main module landing.
 	} else {

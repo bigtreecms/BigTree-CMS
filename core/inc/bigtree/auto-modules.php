@@ -1150,7 +1150,7 @@
 			foreach ($modules as $module) {
 				if (is_array($module["views"])) {
 					foreach ($module["views"] as $view) {
-						if ($form["id"] == $view["related_form"]) {
+						if (!empty($form["id"]) && !empty($view["related_form"]) && $form["id"] == $view["related_form"]) {
 							return static::getView($view);
 						}
 					}
@@ -1160,7 +1160,7 @@
 			foreach ($modules as $module) {
 				if (is_array($module["views"])) {
 					foreach ($module["views"] as $view) {
-						if ($form["table"] == $view["table"]) {
+						if (!empty($form["table"]) && !empty($view["table"]) && $form["table"] == $view["table"]) {
 							return static::getView($view);
 						}
 					}

@@ -7707,6 +7707,31 @@
 			return $output;
 		}
 		
+		// 4.5-exclusive for returning relationship titles to callout / matrix
+		public static function processFieldDescription($field, $output) {
+			if ($field["type"] === "list") {
+				// Let this field provide a string value to callout titles
+				if ($field["settings"]["list_type"] == "db") {
+					$list_table = $field["settings"]["pop-table"] ?? "";
+					$list_title = $field["settings"]["pop-description"] ?? "";
+					
+					if ($list_table && $list_title) {
+						return strip_tags(strval(SQL::fetchSingle("SELECT `$list_title` FROM `$list_table` WHERE `id` = ?", $output)));
+					}
+				}
+			} else if ($field["type"] === "one-to-many") {
+				$display_title = [];
+				
+				foreach ($output as $output_id) {
+					$display_title[] = SQL::fetchSingle("SELECT `".$field["settings"]["title_column"]."` FROM `".$field["settings"]["table"]."` WHERE id = ?", $output_id);
+				}
+				
+				return implode(", ", array_filter($display_title));
+			} else {
+				return strip_tags(strval($output));
+			}
+		}
+		
 		/*
 			Function: processImageUpload
 				Processes image upload data for form fields.
