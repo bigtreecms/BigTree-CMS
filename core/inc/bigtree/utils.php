@@ -1765,7 +1765,9 @@
 					foreach ($bigtree["config"]["sites"] as $site_data) {
 						$bt_domain_pieces = explode("/", $site_data["domain"]);
 						
-						if (strtolower($pieces[2]) == strtolower($bt_domain_pieces[2])) {
+						if (!empty($pieces[2]) && !empty($bt_domain_pieces[2]) &&
+							strtolower($pieces[2]) == strtolower($bt_domain_pieces[2])
+						) {
 							$ok = true;
 						}
 					}

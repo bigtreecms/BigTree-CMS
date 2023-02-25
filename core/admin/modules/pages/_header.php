@@ -2,6 +2,10 @@
 	$proot = ADMIN_ROOT."pages/";
 	$id = preg_replace("/[^a-z0-9.]+/i","",isset($_POST["page"]) ? $_POST["page"] : end($bigtree["commands"]));
 	$action = !empty($bigtree["module_path"][0]) ? $bigtree["module_path"][0] : "";
+	
+	if ($id === "") {
+		$id = 0;
+	}
 
 	if (!empty($id) && !is_numeric($id) && !is_numeric(substr($id, 1))) {
 		$admin->stop("Invalid page.");
