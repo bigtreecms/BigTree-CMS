@@ -7714,19 +7714,34 @@
 				if ($field["settings"]["list_type"] == "db") {
 					$list_table = $field["settings"]["pop-table"] ?? "";
 					$list_title = $field["settings"]["pop-description"] ?? "";
+					$parser = $field["settings"]["parser"] ?? "";
 					
 					if ($list_table && $list_title) {
-						return strip_tags(strval(SQL::fetchSingle("SELECT `$list_title` FROM `$list_table` WHERE `id` = ?", $output)));
+						$description = strip_tags(strval(SQL::fetchSingle("SELECT `$list_title` FROM `$list_table` WHERE `id` = ?", $output)));
+						
+						if (!$parser) {
+							return $description;
+						}
+						
+						$list = call_user_func($parser, [["value" => $output, "description" => $description]]);
+						
+						return $list[0]["description"];
 					}
 				}
 			} else if ($field["type"] === "one-to-many") {
-				$display_title = [];
+				$parser = $field["settings"]["parser"] ?? "";
+				$list = [];
 				
 				foreach ($output as $output_id) {
-					$display_title[] = SQL::fetchSingle("SELECT `".$field["settings"]["title_column"]."` FROM `".$field["settings"]["table"]."` WHERE id = ?", $output_id);
+					$description = SQL::fetchSingle("SELECT `".$field["settings"]["title_column"]."` FROM `".$field["settings"]["table"]."` WHERE id = ?", $output_id);
+					$list[] = ["value" => $output_id, "description" => $description];
 				}
 				
-				return implode(", ", array_filter($display_title));
+				if ($parser) {
+					$list = call_user_func($parser, $list, true);
+				}
+				
+				return implode(", ", array_filter(array_map(function($item) { return $item["description"]; }, $list)));
 			} else {
 				return strip_tags(strval($output));
 			}
