@@ -1,2 +1,3 @@
 `line
-break`+`he  llo`;foo`hel( '');lo`;`he\nl\`lo`;(`he${one + two}`)
+break`+`he  llo`;foo`hel( '');lo`;`he\nl\`lo`;(`he${one + two}`)`hello`
+doSomething()

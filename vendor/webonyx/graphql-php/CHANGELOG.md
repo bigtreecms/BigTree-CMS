@@ -2,6 +2,21 @@
 
 #### Unreleased
 
+#### 14.11.9
+
+Fixed:
+- Accept AST where field arguments are not given
+
+#### 14.11.8
+
+Fixed:
+- Correct the broken 14.11.7 release - see https://github.com/webonyx/graphql-php/issues/1221
+
+#### 14.11.7
+
+Fixed:
+- Fix PHP 8.2 deprecation of "static" in callables
+
 #### 14.11.6
 
 Fixed:

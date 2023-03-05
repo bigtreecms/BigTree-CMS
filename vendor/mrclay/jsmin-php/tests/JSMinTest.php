@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\JSMin;
+namespace JSMin\Test;
 
 use JSMin\JSMin;
 
@@ -31,7 +31,7 @@ use JSMin\JSMin;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-class JSMinTest extends \PHPUnit_Framework_TestCase {
+class JSMinTest extends TestCase {
 
 	/**
 	 * @group minify
@@ -47,7 +47,7 @@ class JSMinTest extends \PHPUnit_Framework_TestCase {
 	}
 
 	public function testWhitespace() {
-		$this->assertEquals("hello;", JSMin::minify("\r\n\r\nhello;\r\n"));
+		$this->assertEquals("hello;", JSMin::minify("\r\n\r\n \t\v\fhello;\r\n"));
 	}
 
 	public function testBomRemoval() {
@@ -57,7 +57,6 @@ class JSMinTest extends \PHPUnit_Framework_TestCase {
     public function testFuncOverload() {
         if (!function_exists('mb_strlen') || !((int)ini_get('mbstring.func_overload') & 2)) {
             $this->markTestIncomplete('Cannot be tested unless mbstring.func_overload is used');
-            return;
         }
 
         $input = 'function(s) {  return /^[£$€?.]/.test(s); }';
@@ -138,7 +137,7 @@ class JSMinTest extends \PHPUnit_Framework_TestCase {
 	 */
 	public function getTestFiles($group)
 	{
-		$baseDir = __DIR__ . '/../../Resources/' . $group . '/';
+		$baseDir = __DIR__ . '/Resources/' . $group . '/';
 		$testDir = $baseDir . 'input/';
 		$expectDir = $baseDir . 'expected/';
 		$actualDir = $baseDir . 'actual/';
