@@ -4822,6 +4822,12 @@
 			// See if this is a pending change, if so, grab the change's parent page and check permission levels for that instead.
 			if (!is_numeric($page) && $page[0] == "p") {
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '".sqlescape(substr($page, 1))."'"));
+
+				// This change doesn't exist anymore - we can't check permissions.
+				if (is_null($f)) {
+					return $this->Level > 0 ? "p" : false;
+				}
+				
 				$changes = json_decode($f["changes"], true);
 				
 				return $this->getPageAccessLevelByUser($changes["parent"], $user);
