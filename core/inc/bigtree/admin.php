@@ -5591,9 +5591,11 @@
 			$nav = [];
 			$titles = [];
 			$q = sqlquery("SELECT * FROM bigtree_pending_changes WHERE pending_page_parent = '$parent' AND `table` = 'bigtree_pages' AND type = 'NEW' ORDER BY date DESC");
+			
 			while ($f = sqlfetch($q)) {
 				$page = json_decode($f["changes"], true);
-				if (($page["in_nav"] && $in_nav) || (!$page["in_nav"] && !$in_nav)) {
+				
+				if ((!empty($page["in_nav"]) && $in_nav) || (empty($page["in_nav"]) && !$in_nav)) {
 					$titles[] = $page["nav_title"];
 					$page["bigtree_pending"] = true;
 					$page["title"] = $page["nav_title"];
@@ -5601,6 +5603,7 @@
 					$nav[] = $page;
 				}
 			}
+			
 			array_multisort($titles, $nav);
 			
 			return $nav;
