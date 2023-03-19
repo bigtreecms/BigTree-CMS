@@ -1,4 +1,4 @@
-BigTree CMS 4.4
+BigTree CMS 4.5
 ===============
 <http://www.bigtreecms.org/>
 
