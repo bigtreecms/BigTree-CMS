@@ -20,6 +20,21 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.5.2
+- FIXED: Editor level users not being able to re-arrange pages
+- FIXED: Matrix fields not properly retrieving the title from one to many and list field relationships (this can be extended via BigTreeAdmin::processFieldDescription overrides)
+- FIXED: Matrix fields within a matrix not decoding fields properly
+- FIXED: Post-4.5 created modules which use the new Model class not properly decoding JSON when pulling from the database
+- FIXED: A variety of warnings from PHP 8+
+- FIXED: Some field alignment issues in the admin
+- FIXED: Bad stored data causing crashes on BigTree::trimLength and BigTree::safeEncode
+- FIXED: Duplicating pages that did not have Open Graph or Tags failing
+- FIXED: Old photo gallery data not working with the media gallery field type
+- FIXED: BigTree::sendEmail failing to work with UTF-8 entities
+- FIXED: Select fields getting too wide if their content was too long
+- FIXED: A variety of strange edge cases in old sites failing
+- UPDATED: To latest AWS SDK and Guzzle libraries to fix deprecation warnings
+
 ### 4.5.1
 - ADDED: Caching of image data from cloud hosted files to prevent downloading all images on each page edit
 - FIXED: Too many warnings to count
