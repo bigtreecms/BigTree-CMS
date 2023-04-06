@@ -224,7 +224,8 @@
 			
 			// Check for Per Page value
 			$pp = static::getSetting("bigtree-internal-per-page", false);
-			$v = intval($pp["value"]);
+			$v = intval($pp["value"] ?? 0);
+			
 			if ($v) {
 				static::$PerPage = $v;
 			}

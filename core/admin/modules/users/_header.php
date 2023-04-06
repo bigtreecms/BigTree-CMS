@@ -8,7 +8,7 @@
 		$admin->requireLevel(1);
 	}
 
-	$policy = array_filter((array)$bigtree["security-policy"]["password"]) ? $bigtree["security-policy"]["password"] : false;
+	$policy = !empty($bigtree["security-policy"]["password"]) ? $bigtree["security-policy"]["password"] : false;
 	$policy_text = "";
 	
 	if (!empty($policy["length"]) || !empty($policy["mixedcase"]) || !empty($policy["numbers"]) || !empty($policy["nonalphanumeric"]))  {
