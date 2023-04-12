@@ -51,7 +51,7 @@
 		    $bigtree["template"]["resources"] = $admin->runHooks("fields", "template", $bigtree["template"]["resources"], [
 			    "template" => $bigtree["template"],
 			    "step" => "draw",
-			    "page" => $bigtree["current_page"]
+			    "page" => $bigtree["current_page"] ?? null,
 		    ]);
 	    }
 	
