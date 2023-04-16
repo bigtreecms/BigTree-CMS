@@ -6,7 +6,7 @@
 	
 	if (isset($_GET["error"])) {
 		$failure = true;
-		$user = htmlspecialchars($_SESSION["bigtree_admin"]["failed_login_email"]);
+		$user = htmlspecialchars($_SESSION["bigtree_admin"]["failed_login_email"] ?? "");
 	} else {
 		$user = "";
 		$failure = false;
