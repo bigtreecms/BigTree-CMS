@@ -2325,7 +2325,7 @@ class Net_SSH2
                 case NET_SSH2_MSG_CHANNEL_FAILURE:
                 default:
                     user_error('Unable to request pseudo-terminal');
-                    return $this->_disconnect(NET_SSH2_DISCONNECT_BY_APPLICATION);
+                    return $this->_disconnect('NET_SSH2_DISCONNECT_BY_APPLICATION');
             }
             $this->in_request_pty_exec = true;
         }
@@ -2434,7 +2434,7 @@ class Net_SSH2
                 break;
             default:
                 user_error('Unable to request pseudo-terminal');
-                return $this->_disconnect(NET_SSH2_DISCONNECT_BY_APPLICATION);
+                return $this->_disconnect('NET_SSH2_DISCONNECT_BY_APPLICATION');
         }
 
         $packet = pack('CNNa*C',
@@ -2648,7 +2648,7 @@ class Net_SSH2
      */
     function disconnect()
     {
-        $this->_disconnect(NET_SSH2_DISCONNECT_BY_APPLICATION);
+        $this->_disconnect('NET_SSH2_DISCONNECT_BY_APPLICATION');
         if (isset($this->realtime_log_file) && is_resource($this->realtime_log_file)) {
             fclose($this->realtime_log_file);
         }
@@ -2827,7 +2827,7 @@ class Net_SSH2
                     $this->errors[] = 'SSH_MSG_GLOBAL_REQUEST: ' . utf8_decode($this->_string_shift($payload, $length));
 
                     if (!$this->_send_binary_packet(pack('C', NET_SSH2_MSG_REQUEST_FAILURE))) {
-                        return $this->_disconnect(NET_SSH2_DISCONNECT_BY_APPLICATION);
+                        return $this->_disconnect('NET_SSH2_DISCONNECT_BY_APPLICATION');
                     }
 
                     $payload = $this->_get_binary_packet();
@@ -2844,7 +2844,7 @@ class Net_SSH2
                         NET_SSH2_MSG_REQUEST_FAILURE, $server_channel, NET_SSH2_OPEN_ADMINISTRATIVELY_PROHIBITED, 0, '', 0, '');
 
                     if (!$this->_send_binary_packet($packet)) {
-                        return $this->_disconnect(NET_SSH2_DISCONNECT_BY_APPLICATION);
+                        return $this->_disconnect('NET_SSH2_DISCONNECT_BY_APPLICATION');
                     }
 
                     $payload = $this->_get_binary_packet();
@@ -3010,7 +3010,7 @@ class Net_SSH2
                         //case NET_SSH2_MSG_CHANNEL_OPEN_FAILURE:
                         default:
                             user_error('Unable to open channel');
-                            return $this->_disconnect(NET_SSH2_DISCONNECT_BY_APPLICATION);
+                            return $this->_disconnect('NET_SSH2_DISCONNECT_BY_APPLICATION');
                     }
                     break;
                 case NET_SSH2_MSG_CHANNEL_REQUEST:
@@ -3021,7 +3021,7 @@ class Net_SSH2
                             return false;
                         default:
                             user_error('Unable to fulfill channel request');
-                            return $this->_disconnect(NET_SSH2_DISCONNECT_BY_APPLICATION);
+                            return $this->_disconnect('NET_SSH2_DISCONNECT_BY_APPLICATION');
                     }
                 case NET_SSH2_MSG_CHANNEL_CLOSE:
                     return $type == NET_SSH2_MSG_CHANNEL_CLOSE ? true : $this->_get_channel_packet($client_channel, $skip_extended);
@@ -3121,7 +3121,7 @@ class Net_SSH2
                     break;
                 default:
                     user_error('Error reading channel data');
-                    return $this->_disconnect(NET_SSH2_DISCONNECT_BY_APPLICATION);
+                    return $this->_disconnect('NET_SSH2_DISCONNECT_BY_APPLICATION');
             }
         }
     }
