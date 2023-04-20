@@ -4831,7 +4831,7 @@
 				
 				$changes = json_decode($f["changes"], true);
 				
-				return $changes["parent"] ? $this->getPageAccessLevelByUser($changes["parent"], $user) : false;
+				return !empty($changes["parent"]) ? $this->getPageAccessLevelByUser($changes["parent"], $user) : false;
 			}
 			
 			// If we're checking the logged in user, just use the info we already have
