@@ -250,9 +250,10 @@
 
 							foreach ($timezone_list as $tz) {
 								$timezone_parts = explode("/", $tz);
-								$continent = $tz[0] ?? "";
-								$city = $tz[1] ?? "";
-								$locality = $tz[2] ?? "";
+								
+								$continent = $timezone_parts[0] ?? "";
+								$city = $timezone_parts[1] ?? "";
+								$locality = $timezone_parts[2] ?? "";
 
 								if ($continent != $last_continent) {
 									if ($last_continent) {
@@ -269,7 +270,9 @@
 
 								$city = str_replace("_", " ", $city);
 						?>
-						<option value="<?=$tz?>"<?php if ($timezone == $tz) { ?> selected<?php } ?>><?=$city?><?php if ($locality) { echo " - ".str_replace("_", " ", $locality); } ?></option>
+						<option value="<?=$tz?>"<?php if ($timezone == $tz) { ?> selected<?php } ?>>
+							<?=$city?><?php if ($locality) { echo " - ".str_replace("_", " ", $locality); } ?>
+						</option>
 						<?php
 							}
 
