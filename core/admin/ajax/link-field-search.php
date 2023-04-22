@@ -1,6 +1,12 @@
 <?php
-	$pages = $admin->searchPages($_POST["query"]);
-	$resources = $admin->searchResources($_POST["query"]);
+	// If we have a decent sized search query, bring in a wider set of results, otherwise don't search for a huge amount of things
+	if (strlen($_POST["query"]) > 2) {
+		$pages = $admin->searchPages($_POST["query"], ["nav_title"], 50);
+		$resources = $admin->searchResources($_POST["query"], "date DESC", 50);
+	} else {
+		$pages = $admin->searchPages($_POST["query"], ["nav_title"], 10);
+		$resources = $admin->searchResources($_POST["query"], "date DESC", 10);
+	}
 
 	if (count($pages)) {
 ?>

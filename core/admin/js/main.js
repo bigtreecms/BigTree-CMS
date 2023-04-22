@@ -2467,12 +2467,18 @@ var BigTreeLinkField = function(selector) {
 		var Container = Field.parent();
 		var ValueField = Field.siblings("input[type=hidden]");
 		var Results = Field.siblings(".link_field_results_container");
-		var ResultWidth = Field.outerWidth(true) - 2;
+		var Debounce = null;
 
 		Field.on("keyup", function() {
-			var query = Field.val().trim();
+			if (Debounce) {
+				clearTimeout(Debounce);
+			}
 
-			queryChange(query);
+			Debounce = setTimeout(function() {
+				var query = Field.val().trim();
+
+				queryChange(query);
+			}, 250);
 		});
 
 		Field.on("paste", function(e) {
@@ -2504,6 +2510,8 @@ var BigTreeLinkField = function(selector) {
 		});
 
 		function queryChange(query) {
+			var ResultWidth = Field.outerWidth(true) - 2;
+
 			Results.css({ width: ResultWidth }).scrollTop(0);
 			ValueField.val(query);
 			Field.attr("placeholder", "");

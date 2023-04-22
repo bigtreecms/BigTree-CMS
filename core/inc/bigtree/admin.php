@@ -8343,12 +8343,13 @@
 				An array of two arrays - folders and files - with permission levels.
 		*/
 		
-		public function searchResources($query, $sort = "date DESC") {
+		public function searchResources($query, $sort = "date DESC", $max = null) {
 			$query = SQL::escape($query);
 			$folders = [];
 			$resources = [];
 			$permission_cache = [];
 			$existing = [];
+			$max_limit = is_int($max) ? " LIMIT $max" : "";
 			
 			$q = SQL::query("SELECT * FROM bigtree_resource_folders WHERE name LIKE '%$query%' ORDER BY name");
 			
@@ -8357,7 +8358,7 @@
 				$folders[] = $folder;
 			}
 			
-			$q = SQL::query("SELECT * FROM bigtree_resources WHERE name LIKE '%$query%' OR metadata LIKE '%$query%' ORDER BY $sort");
+			$q = SQL::query("SELECT * FROM bigtree_resources WHERE name LIKE '%$query%' OR metadata LIKE '%$query%' ORDER BY $sort $max_limit");
 			
 			while ($resource = $q->fetch()) {
 				$check = [$resource["name"], $resource["md5"]];
