@@ -460,7 +460,7 @@
 
 				// Only get image dimensions if the image is local
 				if (!$image_width && strpos($image, WWW_ROOT) === 0) {
-					list($image_width, $image_height) = getimagesize(str_replace(WWW_ROOT, SITE_ROOT, $image));
+					[$image_width, $image_height] = getimagesize(str_replace(WWW_ROOT, SITE_ROOT, $image));
 				}
 
 				if ($image_width && $image_height) {
@@ -1034,23 +1034,26 @@
 				// This is the first iteration.
 				} else {
 					$f = sqlfetch(sqlquery("SELECT id, path, template FROM bigtree_pages WHERE id = '$parent'"));
-					$template = BigTreeJSONDB::get("templates", $f["template"]);
-
-					if (!empty($template["module"])) {
-						$module = BigTreeJSONDB::get("modules", $template["module"]);
-
-						if (!empty($module["class"]) && class_exists($module["class"])) {
-							$instance = new $module["class"];
-
-							if (method_exists($instance, "getNav")) {
-								if ($instance->NavPosition == "top") {
-									$nav = array_merge($instance->getNav($f), $nav);
-								} else {
-									$nav = array_merge($nav, $instance->getNav($f));
+					
+					if ($f) {
+						$template = BigTreeJSONDB::get("templates", $f["template"]);
+						
+						if (!empty($template["module"])) {
+							$module = BigTreeJSONDB::get("modules", $template["module"]);
+							
+							if (!empty($module["class"]) && class_exists($module["class"])) {
+								$instance = new $module["class"];
+								
+								if (method_exists($instance, "getNav")) {
+									if ($instance->NavPosition == "top") {
+										$nav = array_merge($instance->getNav($f), $nav);
+									} else {
+										$nav = array_merge($nav, $instance->getNav($f));
+									}
 								}
 							}
 						}
-					}	
+					}
 				}
 			}
 			

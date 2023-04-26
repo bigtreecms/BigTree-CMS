@@ -506,7 +506,14 @@
 			BigTree::redirect($bigtree["page"]["external"]);
 		}
 	// Check for standard sitemap
-	} else if ($bigtree["path"][0] == "sitemap" && !$bigtree["path"][1]) {
+	} else if ($bigtree["path"][0] == "sitemap" && empty($bigtree["path"][1])) {
+		$bigtree["page"] = [
+			"id" => -1,
+			"title" => "Sitemap",
+			"template" => "",
+			"path" => "sitemap",
+		];
+		
 		include SERVER_ROOT."templates/basic/_sitemap.php";
 	// We've got a 404, check for old routes or throw one.
 	} else {
