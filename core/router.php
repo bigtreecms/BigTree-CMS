@@ -319,7 +319,8 @@
 
 	// See if we're previewing changes.
 	$bigtree["preview"] = false;
-	if ($bigtree["path"][0] == "_preview" && $_SESSION["bigtree_admin"]["id"]) {
+	
+	if (!empty($bigtree["path"][0]) && $bigtree["path"][0] == "_preview" && !empty($_SESSION["bigtree_admin"]["id"])) {
 		$npath = array();
 		foreach ($bigtree["path"] as $item) {
 			if ($item != "_preview") {
@@ -334,7 +335,8 @@
 		// Clean up
 		unset($npath);
 	}
-	if ($bigtree["path"][0] == "_preview-pending" && $_SESSION["bigtree_admin"]["id"]) {
+	
+	if (!empty($bigtree["path"][0]) && $bigtree["path"][0] == "_preview-pending" && !empty($_SESSION["bigtree_admin"]["id"])) {
 		$bigtree["preview"] = true;
 		$bigtree["commands"] = array();
 		$commands = $bigtree["commands"]; // Backwards compatibility
@@ -347,7 +349,7 @@
 	// So we don't lose this.
 	define("BIGTREE_PREVIEWING",$bigtree["preview"]);
 	
-	if ($bigtree["path"][0] == "feeds") {
+	if (!empty($bigtree["path"][0]) && $bigtree["path"][0] == "feeds") {
 		$route = $bigtree["path"][1];
 		$feed = $cms->getFeedByRoute($route);
 		if ($feed) {
