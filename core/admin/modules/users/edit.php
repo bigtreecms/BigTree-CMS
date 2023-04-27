@@ -69,7 +69,10 @@
 		foreach ($permissions["resources"] as $id => $permission) {
 			if ($permission != "i") {
 				$folder = $admin->getResourceFolder($id);
-				$pre_opened_folders[] = $folder["parent"];
+				
+				if (!empty($folder)) {
+					$pre_opened_folders[] = $folder["parent"];
+				}
 			}
 		}
 	}
@@ -452,10 +455,10 @@
 	var BigTreeUserForm = {
 		Alerts: <?=json_encode($alerts,JSON_FORCE_OBJECT)?>,
 		Permissions: {
-			Page: <?=json_encode($permissions["page"],JSON_FORCE_OBJECT)?>,
-			Module: <?=json_encode($permissions["module"],JSON_FORCE_OBJECT)?>,
-			ModuleGBP: <?=json_encode($permissions["module_gbp"],JSON_FORCE_OBJECT)?>,
-			Resource: <?=json_encode($permissions["resources"],JSON_FORCE_OBJECT)?>
+			Page: <?=json_encode($permissions["page"] ?? [],JSON_FORCE_OBJECT)?>,
+			Module: <?=json_encode($permissions["module"] ?? [],JSON_FORCE_OBJECT)?>,
+			ModuleGBP: <?=json_encode($permissions["module_gbp"] ?? [],JSON_FORCE_OBJECT)?>,
+			Resource: <?=json_encode($permissions["resources"] ?? [],JSON_FORCE_OBJECT)?>
 		}
 	};
 	<?php

@@ -4964,9 +4964,13 @@
 		*/
 		
 		public function getPageLineage($page) {
-			$parents = [];
 			$f = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".sqlescape($page)."'"));
-			$parents[] = $f["parent"];
+			
+			if (!$f) {
+				return [];
+			}
+			
+			$parents = [$f["parent"]];
 			
 			while (!empty($f["parent"])) {
 				$f = sqlfetch(sqlquery("SELECT parent FROM bigtree_pages WHERE id = '".sqlescape($f["parent"])."'"));
