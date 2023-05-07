@@ -18,7 +18,11 @@
 		$row = array();
 	
 		foreach ($bigtree["report"]["fields"] as $id => $title) {
-			$row[] = '"'.str_replace('"', '""', htmlspecialchars_decode($r[$id])).'"';
+			if (is_string($r[$id])) {
+				$row[] = '"'.str_replace('"', '""', htmlspecialchars_decode($r[$id])).'"';
+			} else {
+				$row[] = '"'.$r[$id].'"';
+			}
 		}
 	
 		echo implode(",",$row)."\n";

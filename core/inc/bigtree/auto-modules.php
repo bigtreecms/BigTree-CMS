@@ -1328,8 +1328,10 @@
 			}
 
 			// If there is a data parser we need to run it
-			if (!empty($report["parser"]) && function_exists($report["parser"])) {
-				$items = call_user_func($report["parser"], $items);
+			if (!empty($report["parser"])) {
+				try {
+					$items = call_user_func($report["parser"], $items);
+				} catch (Exception $e) {}
 			}
 
 			return $items;

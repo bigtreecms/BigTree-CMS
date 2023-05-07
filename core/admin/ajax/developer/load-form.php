@@ -154,7 +154,7 @@
 ?>
 <p class="error_message">The chosen table does not have a column named "id" which BigTree requires as a unique identifier.<br />Please an an "id" column INT(11) with Primary Key and Auto Increment settings.</p>
 <?php
-	} elseif (!$table_description["columns"]["id"]["auto_increment"]) {
+	} elseif (empty($table_description["columns"]["id"]["auto_increment"])) {
 ?>
 <p class="error_message">The chosen table's "id" column is not set to auto increment. If you're adding to this table via BigTree, please set the column to auto increment.</p>
 <?php

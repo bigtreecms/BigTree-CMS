@@ -44,7 +44,7 @@
 		<ul>
 			<?php
 				foreach ($updates as $type => $update) {
-					if (!$_COOKIE["bigtree_admin"]["ignored_update"][$update["version"]]) {
+					if (empty($_COOKIE["bigtree_admin"]["ignored_update"][$update["version"]])) {
 			?>
 			<li>
 				<strong><?=$update["version"]?></strong> &mdash; Released <?=date("F j, Y",strtotime($update["release_date"]))?> &mdash; 
@@ -67,7 +67,7 @@
 	<footer>
 		<?php
 			foreach ($updates as $type => $update) {
-				if ($type != "major" && !$_COOKIE["bigtree_admin"]["ignored_update"][$update["version"]]) {
+				if ($type != "major" && empty($_COOKIE["bigtree_admin"]["ignored_update"][$update["version"]])) {
 		?>
 		<a class="button<?php if ($type == "revision") { ?> blue<?php } ?>" href="<?=DEVELOPER_ROOT?>upgrade/init/?type=<?=$type?>">Upgrade To <?=$update["version"]?></a>
 		<?php
