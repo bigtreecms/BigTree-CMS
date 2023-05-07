@@ -13,7 +13,7 @@
 			$field["output"] = $file ? $file : $field["input"];
 		// Using an existing image or one from the Image Browser
 		} else {
-			$field["output"] = $field["input"];
+			$field["output"] = $field["input"] ?: "";
 
 			// We're trying to use an image from the Image Browser.
 			if (substr($field["output"],0,11) == "resource://") {
