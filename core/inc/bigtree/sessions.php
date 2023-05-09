@@ -63,7 +63,7 @@
 		static function start() {
 			global $bigtree;
 
-			if (static::$Started) {
+			if (static::$Started || session_status() === PHP_SESSION_ACTIVE) {
 				return;
 			}
 			
