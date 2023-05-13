@@ -18,8 +18,8 @@
 		}
 	}
 	
-	$bigtree["post_data"] = $_POST["resources"];
-	$bigtree["template"]["resources"] = array_filter((array) $bigtree["template"]["resources"]);
+	$bigtree["post_data"] = $_POST["resources"] ?? [];
+	$bigtree["template"]["resources"] = !empty($bigtree["template"]["resources"]) ? array_filter((array) $bigtree["template"]["resources"]) : [];
 	$bigtree["template"]["resources"] = $admin->runHooks("fields", "template", $bigtree["template"]["resources"], [
 		"template" => $bigtree["template"],
 		"step" => "process",

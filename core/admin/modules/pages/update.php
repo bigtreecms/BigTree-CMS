@@ -110,18 +110,19 @@
 	
 	if (isset($_GET["preview"])) {
 		$redirect_url = $cms->getPreviewLink($id)."?bigtree_preview_return=".urlencode(ADMIN_ROOT."pages/edit/$id/");
-	} elseif ($_POST["return_to_front"]) {
+	} elseif (!empty($_POST["return_to_front"])) {
 		if ($_POST["ptype"] != "Save & Publish") {
 			$redirect_url = $cms->getPreviewLink($id);
 		} else {
 			$page = $cms->getPage($id);
-			if ($page["id"]) {
+			
+			if (!empty($page["id"])) {
 				$redirect_url = WWW_ROOT.$page["path"]."/";
 			} else {
 				$redirect_url = WWW_ROOT;
 			}
 		}
-	} elseif ($_POST["return_to_self"]) {
+	} elseif (!empty($_POST["return_to_self"])) {
 		$redirect_url = ADMIN_ROOT."pages/view-tree/".$bigtree["current_page_data"]["id"]."/";
 	} else {
 		$redirect_url = ADMIN_ROOT."pages/view-tree/".$bigtree["current_page_data"]["parent"]."/";

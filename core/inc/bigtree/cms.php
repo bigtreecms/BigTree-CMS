@@ -554,7 +554,9 @@
 				}
 				
 				foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
-					if ($valid_root($site_configuration["static_root"])) {
+					if ($site_configuration["static_root"] != $site_configuration["www_root"] &&
+						$valid_root($site_configuration["static_root"])
+					) {
 						static::$ReplaceableRootKeys[] = $site_configuration["static_root"];
 						static::$ReplaceableRootVals[] = "{staticroot:$site_key}";
 					}
@@ -565,12 +567,12 @@
 					}
 				}
 				
-				if ($valid_root(STATIC_ROOT)) {
+				if (!in_array(STATIC_ROOT, static::$ReplaceableRootKeys) && $valid_root(STATIC_ROOT)) {
 					static::$ReplaceableRootKeys[] = STATIC_ROOT;
 					static::$ReplaceableRootVals[] = "{staticroot}";
 				}
 				
-				if ($valid_root(WWW_ROOT)) {
+				if (!in_array(WWW_ROOT, static::$ReplaceableRootKeys) && $valid_root(WWW_ROOT)) {
 					static::$ReplaceableRootKeys[] = WWW_ROOT;
 					static::$ReplaceableRootVals[] = "{wwwroot}";
 				}

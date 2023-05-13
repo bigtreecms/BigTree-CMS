@@ -9552,14 +9552,14 @@
 			if ($this->Level < 2) {
 				$trunk = $current["trunk"];
 			} else {
-				$trunk = $data["trunk"] ? "on" : "";
+				$trunk = !empty($data["trunk"]) ? "on" : "";
 			}
 			
 			// If this is top level nav and the user isn't a developer, use what the current state is.
 			if (!$current["parent"] && $this->Level < 2) {
 				$in_nav = $current["in_nav"];
 			} else {
-				$in_nav = $data["in_nav"];
+				$in_nav = !empty($data["in_nav"]);
 			}
 			
 			// Make an ipl:// or {wwwroot}'d version of the URL
@@ -9652,10 +9652,10 @@
 				"in_nav" => $in_nav ? "on" : "",
 				"template" => $data["template"],
 				"external" => BigTree::safeEncode($data["external"]),
-				"new_window" => $data["new_window"] ? "Yes" : "",
+				"new_window" => !empty($data["new_window"]) ? "Yes" : "",
 				"resources" => $data["resources"],
 				"meta_description" => BigTree::safeEncode($data["meta_description"]),
-				"seo_invisible" => $data["seo_invisible"] ? "on" : "",
+				"seo_invisible" => !empty($data["seo_invisible"]) ? "on" : "",
 				"publish_at" => $publish_at,
 				"expire_at" => $expire_at,
 				"max_age" => $data["max_age"],
@@ -9712,7 +9712,7 @@
 			$existing_tags = SQL::fetchAllSingle("SELECT `tag` FROM bigtree_tags_rel WHERE `table` = 'bigtree_pages' AND `entry` = ?", $page);
 			SQL::delete("bigtree_tags_rel", ["table" => "bigtree_pages", "entry" => $page]);
 			
-			if (is_array($data["_tags"])) {
+			if (!empty($data["_tags"]) && is_array($data["_tags"])) {
 				$data["_tags"] = array_unique($data["_tags"]);
 				
 				foreach ($data["_tags"] as $tag) {

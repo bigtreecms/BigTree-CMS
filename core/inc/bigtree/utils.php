@@ -1420,6 +1420,7 @@
 		
 		public static function parsedFilesArray($part = false) {
 			$clean = [];
+			
 			foreach ($_FILES as $key => $first_level) {
 				// Hurray, we have a first level entry, just save it to the clean array.
 				if (!is_array($first_level["name"])) {
@@ -1428,8 +1429,9 @@
 					$clean[$key] = static::parsedFilesArrayLoop($first_level["name"], $first_level["tmp_name"], $first_level["type"], $first_level["error"], $first_level["size"]);
 				}
 			}
+			
 			if ($part) {
-				return $clean[$part];
+				return $clean[$part] ?? null;
 			}
 			
 			return $clean;
