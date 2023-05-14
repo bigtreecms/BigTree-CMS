@@ -20,6 +20,16 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.5.3
+- FIXED: A variety of warnings from PHP 8+
+- FIXED: Deleting a module group not properly un-associating the modules that were in the group
+- FIXED: Multi-site instances not properly using the most specific domain keys when encoding URLs
+- FIXED: Session handler throwing a warning if an external service already started a session
+- FIXED: Images not being able to be removed once added in forms
+- FIXED: Link field searches within callouts and matrices not showing properly
+- FIXED: Timezone dropdown options when editing users
+- UPDATED: Link field searches are now much faster on large websites
+
 ### 4.5.2
 - FIXED: Editor level users not being able to re-arrange pages
 - FIXED: Matrix fields not properly retrieving the title from one to many and list field relationships (this can be extended via BigTreeAdmin::processFieldDescription overrides)
