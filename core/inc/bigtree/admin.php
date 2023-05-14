@@ -2507,6 +2507,14 @@
 		public function deleteModuleGroup($id) {
 			BigTreeJSONDB::delete("module-groups", $id);
 			$this->track("jsondb -> module-groups", $id, "deleted");
+			
+			// Unassociate all modules from this group.
+			foreach (BigTreeJSONDB::getAll("modules") as $module) {
+				if ($module["group"] == $id) {
+					$module["group"] = null;
+					BigTreeJSONDB::update("modules", $id, $module);
+				}
+			}
 		}
 		
 		/*
