@@ -9,8 +9,8 @@
 	}
 
 	// Multi-site can only load one site's keys at once
-	if (is_array($bigtree["config"]["sites"]) && count($bigtree["config"]["sites"]) > 1) {
-		$active_site = $_POST["site_key"] ?: BigTree::getCookie("bigtree_admin[active_site]");
+	if (!empty($bigtree["config"]["sites"]) && is_array($bigtree["config"]["sites"])) {
+		$active_site = !empty($_POST["site_key"]) ? $_POST["site_key"] : BigTree::getCookie("bigtree_admin[active_site]");
 
 		if (!$active_site) {
 			$keys = array_keys($bigtree["config"]["sites"]);

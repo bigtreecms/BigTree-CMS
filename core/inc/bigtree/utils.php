@@ -947,9 +947,10 @@
 			if (strpos($id, "[") !== false) {
 				$pieces = explode("[", $id);
 				$cookie = $_COOKIE;
+				
 				foreach ($pieces as $piece) {
 					$piece = str_replace("]", "", $piece);
-					$cookie = $cookie[$piece];
+					$cookie = $cookie[$piece] ?? "null";
 				}
 				
 				return json_decode($cookie, true);
