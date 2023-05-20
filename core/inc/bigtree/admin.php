@@ -8182,12 +8182,13 @@
 				query - The search query.
 				page - The page to return.
 				site_key - The site key to return 404s for (leave null for all 404s).
+				all - Whether to return all results instead of paginated (used for export).
 
 			Returns:
 				An array of entries from bigtree_404s.
 		*/
 		
-		public static function search404s($type, $query = "", $page = 1, $site_key = null) {
+		public static function search404s($type, $query = "", $page = 1, $site_key = null, $all = false) {
 			$items = [];
 			
 			if ($site_key) {
@@ -8213,6 +8214,20 @@
 				} else {
 					$where = "ignored = '' AND redirect_url = ''";
 				}
+			}
+			
+			// Export uses everything at once
+			if ($all) {
+				$results = SQL::fetchAll("SELECT * FROM bigtree_404s WHERE $where $site_key_query ORDER BY requests DESC");
+
+				return [
+					1,
+					array_map(function ($result) {
+						$result["redirect_url"] = BigTreeCMS::replaceInternalPageLinks($result["redirect_url"]);
+					
+						return $result;
+					}, $results),
+				];
 			}
 			
 			// Get the page count
