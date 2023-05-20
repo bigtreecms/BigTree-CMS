@@ -7,14 +7,14 @@
 	class BigTreeCMSBase {
 	
 		// Deprecated
-		public $AutoSaveSettings = array();
+		public $AutoSaveSettings = [];
 
 		public static $BreadcrumbTrunk;
-		public static $IRLCache = array();
-		public static $IPLCache = array();
+		public static $IRLCache = [];
+		public static $IPLCache = [];
 		public static $MySQLTime = false;
-		public static $ReplaceableRootKeys = array();
-		public static $ReplaceableRootVals = array();
+		public static $ReplaceableRoots = [];
+		public static $ReplaceableRootTokens = [];
 		public static $Secure;
 		public static $SiteRoots = array();
 
@@ -547,34 +547,42 @@
 			};
 			
 			// Figure out what roots we can replace
-			if (!count(static::$ReplaceableRootKeys)) {
+			if (!count(static::$ReplaceableRootTokens)) {
 				if ($valid_root(ADMIN_ROOT)) {
-					static::$ReplaceableRootKeys[] = ADMIN_ROOT;
-					static::$ReplaceableRootVals[] = "{adminroot}";
+					static::$ReplaceableRootTokens["{adminroot}"] = ADMIN_ROOT;
+					static::$ReplaceableRoots[ADMIN_ROOT] = "{adminroot}";
 				}
 				
 				foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
-					if ($site_configuration["static_root"] != $site_configuration["www_root"] &&
-						$valid_root($site_configuration["static_root"])
-					) {
-						static::$ReplaceableRootKeys[] = $site_configuration["static_root"];
-						static::$ReplaceableRootVals[] = "{staticroot:$site_key}";
+					if ($valid_root($site_configuration["static_root"])) {
+						// For backwards compatibility we add this in as decodeable even if it matches www_root
+						static::$ReplaceableRootTokens["{staticroot:$site_key}"] = $site_configuration["static_root"];
+						
+						if ($site_configuration["static_root"] != $site_configuration["www_root"]) {
+							static::$ReplaceableRoots[$site_configuration["static_root"]] = "{staticroot:$site_key}";
+						}
 					}
 					
 					if ($valid_root($site_configuration["www_root"])) {
-						static::$ReplaceableRootKeys[] = $site_configuration["www_root"];
-						static::$ReplaceableRootVals[] = "{wwwroot:$site_key}";
+						static::$ReplaceableRootTokens["{wwwroot:$site_key}"] = $site_configuration["www_root"];
+						static::$ReplaceableRoots[$site_configuration["www_root"]] = "{wwwroot:$site_key}";
 					}
 				}
 				
-				if (!in_array(STATIC_ROOT, static::$ReplaceableRootKeys) && $valid_root(STATIC_ROOT)) {
-					static::$ReplaceableRootKeys[] = STATIC_ROOT;
-					static::$ReplaceableRootVals[] = "{staticroot}";
+				if ($valid_root(STATIC_ROOT)) {
+					static::$ReplaceableRootTokens["{staticroot}"] = STATIC_ROOT;
+					
+					if (!isset(static::$ReplaceableRoots[STATIC_ROOT])) {
+						static::$ReplaceableRoots[STATIC_ROOT] = "{staticroot}";
+					}
 				}
 				
-				if (!in_array(WWW_ROOT, static::$ReplaceableRootKeys) && $valid_root(WWW_ROOT)) {
-					static::$ReplaceableRootKeys[] = WWW_ROOT;
-					static::$ReplaceableRootVals[] = "{wwwroot}";
+				if ($valid_root(WWW_ROOT)) {
+					static::$ReplaceableRootTokens["{wwwroot}"] = WWW_ROOT;
+					
+					if (!isset(static::$ReplaceableRoots[WWW_ROOT])) {
+						static::$ReplaceableRoots[WWW_ROOT] = "{wwwroot}";
+					}
 				}
 			}
 		}
@@ -1757,7 +1765,7 @@
 		public static function replaceHardRoots($string) {
 			static::generateReplaceableRoots();
 			
-			return strtr($string, array_combine(static::$ReplaceableRootKeys, static::$ReplaceableRootVals));
+			return strtr($string, static::$ReplaceableRoots);
 		}
 
 		/*
@@ -1805,7 +1813,7 @@
 		public static function replaceRelativeRoots($string) {
 			static::generateReplaceableRoots();
 			
-			return strtr($string, array_combine(static::$ReplaceableRootVals, static::$ReplaceableRootKeys));
+			return strtr($string, static::$ReplaceableRootTokens);
 		}
 
 		/*
