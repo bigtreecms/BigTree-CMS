@@ -54,6 +54,8 @@
 		public $OAuthVersion = "1.0";
 		public $RequestType = "header";
 		public $Scope = "https://www.googleapis.com/auth/devstorage.full_control";
+		public $Service = "";
+		public $Settings = [];
 		public $TokenURL = "https://accounts.google.com/o/oauth2/token";
 		
 		private $CloudFrontClient;

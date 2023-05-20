@@ -7,6 +7,7 @@
 	class BigTreeEmailService {
 		public $Error = false;
 		public $Service = "";
+		public $Settings = [];
 
 		/*
 			Constructor:
