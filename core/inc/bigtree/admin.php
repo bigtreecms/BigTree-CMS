@@ -8,6 +8,8 @@
 		
 		public $CSRFToken = "";
 		public $CSRFTokenField = "";
+		public $HidePages = false;
+		public $Hooks = [];
 		public $ID = null;
 		public $Level = 0;
 		public $Name = "";

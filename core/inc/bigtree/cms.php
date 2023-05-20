@@ -5,9 +5,9 @@
 	*/
 
 	class BigTreeCMSBase {
-	
-		// Deprecated
-		public $AutoSaveSettings = [];
+
+		public $AutoSaveSettings = []; // Deprecated
+		public $ModuleClassList = [];
 
 		public static $BreadcrumbTrunk;
 		public static $IRLCache = [];
@@ -16,7 +16,7 @@
 		public static $ReplaceableRoots = [];
 		public static $ReplaceableRootTokens = [];
 		public static $Secure;
-		public static $SiteRoots = array();
+		public static $SiteRoots = [];
 
 		protected static $HeadContext;
 
@@ -934,8 +934,8 @@
 			global $bigtree;
 			static $module_nav_count = 0;
 			
-			$nav = array();
-			$find_children = array();
+			$nav = [];
+			$find_children = [];
 			
 			// If we're asking for root (0) and in multi-site, use that site's root instead of the top-level root
 			if (!$explicit_zero && $parent === 0 && BIGTREE_SITE_TRUNK !== 0) {
@@ -945,7 +945,7 @@
 			// If the parent is an array, this is actually a recursed call.
 			// We're finding all the children of all the parents at once -- then we'll assign them back to the proper parent instead of doing separate calls for each.
 			if (is_array($parent)) {
-				$where_parent = array();
+				$where_parent = [];
 				foreach ($parent as $p) {
 					$where_parent[] = "parent = '".sqlescape($p)."'";
 				}
@@ -982,7 +982,7 @@
 				}
 				
 				// Add it to the nav array
-				$nav[$f["id"]] = array("id" => $f["id"], "parent" => $f["parent"], "title" => $f["nav_title"], "route" => $f["route"], "link" => $link, "new_window" => $new_window, "children" => array());
+				$nav[$f["id"]] = array("id" => $f["id"], "parent" => $f["parent"], "title" => $f["nav_title"], "route" => $f["route"], "link" => $link, "new_window" => $new_window, "children" => []);
 				
 				// If we're going any deeper, mark down that we're looking for kids of this kid.
 				if ($levels > 1) {
@@ -1003,7 +1003,7 @@
 			if ($follow_module) {
 				// This is a recursed iteration.
 				if (is_array($parent)) {
-					$where_parent = array();
+					$where_parent = [];
 
 					foreach ($parent as $p) {
 						$where_parent[] = "id = '".sqlescape($p)."'";
@@ -1023,7 +1023,7 @@
 								if (method_exists($instance, "getNav")) {
 									$modNav = $instance->getNav($f);
 									// Give the parent back to each of the items it returned so they can be reassigned to the proper parent.
-									$module_nav = array();
+									$module_nav = [];
 									
 									foreach ($modNav as $item) {
 										$item["parent"] = $f["id"];
@@ -1084,7 +1084,7 @@
 		*/
 		
 		public static function getNavId($path, $previewing = false) {
-			$commands = array();
+			$commands = [];
 			
 			// Add multi-site path
 			if (defined("BIGTREE_SITE_PATH")) {
@@ -1194,7 +1194,7 @@
 				} elseif (isset($f["resources"]["callouts"])) {
 					$page["callouts"] = $page["resources"]["callouts"];
 				} else {
-					$page["callouts"] = array();
+					$page["callouts"] = [];
 				}
 			}
 			
@@ -1234,7 +1234,7 @@
 			// If it's prefixed with a "p" then it's a pending entry.
 			} else {
 				// Set the page to empty, we're going to loop through the change later and apply the fields.
-				$page = array();
+				$page = [];
 				
 				// Get the changes.
 				$f = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `id` = '".sqlescape(substr($id,1))."'"));
@@ -1262,7 +1262,7 @@
 				
 				if ($return_tags) {
 					// Decode the tag changes, apply them back.
-					$tags = array();
+					$tags = [];
 					$tags_changes = json_decode($f["tags_changes"],true);
 					
 					if (is_array($tags_changes)) {
@@ -1293,7 +1293,7 @@
 				} elseif (isset($page["resources"]["callouts"])) {
 					$page["callouts"] = $page["resources"]["callouts"];
 				} else {
-					$page["callouts"] = array();
+					$page["callouts"] = [];
 				}
 			}
 
@@ -1349,9 +1349,9 @@
 				An array of related pages sorted by relevance (how many tags get matched).
 		*/
 		
-		public static function getRelatedPagesByTags($tags = array()) {
-			$results = array();
-			$relevance = array();
+		public static function getRelatedPagesByTags($tags = []) {
+			$results = [];
+			$relevance = [];
 			foreach ($tags as $tag) {
 				if (is_array($tag)) {
 					$tag = $tag["tag"];
@@ -1371,7 +1371,7 @@
 				}
 			}
 			array_multisort($relevance,SORT_DESC,$results);
-			$items = array();
+			$items = [];
 			foreach ($results as $result) {
 				$items[] = static::getPage($result);
 			}
@@ -1572,7 +1572,7 @@
 		*/
 		
 		public static function getTopLevelNavigationIdForPage($page,$trunk_as_toplevel = false) {
-			$paths = array();
+			$paths = [];
 			$path = "";
 			$parts = explode("/",$page["path"]);
 			
@@ -1617,7 +1617,7 @@
 			unset($get["bigtree_htaccess_url"]);
 
 			if (count($get)) {
-				$query_pieces = array();
+				$query_pieces = [];
 
 				foreach ($get as $key => $value) {
 					$query_pieces[] = $key."=".$value;

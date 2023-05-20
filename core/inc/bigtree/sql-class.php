@@ -27,15 +27,15 @@
 		// A little hack to allow fetch to be called both statically and chained
 		public function __call($method, $arguments) {
 			if ($method == "fetch") {
-				return call_user_func_array([$this, "_local_fetch"], array_values($arguments));
+				return $this->_local_fetch(...$arguments);
 			} elseif ($method == "fetchAll") {
-				return call_user_func_array([$this, "_local_fetchAll"], array_values($arguments));
+				return $this->_local_fetchAll(...$arguments);
 			} elseif ($method == "fetchAllSingle") {
-				return call_user_func_array([$this, "_local_fetchAllSingle"], array_values($arguments));
+				return $this->_local_fetchAllSingle(...$arguments);
 			} elseif ($method == "fetchSingle") {
-				return call_user_func_array([$this, "_local_fetchSingle"], array_values($arguments));
+				return $this->_local_fetchSingle(...$arguments);
 			} elseif ($method == "rows") {
-				return call_user_func_array([$this, "_local_rows"], array_values($arguments));
+				return $this->_local_rows(...$arguments);
 			}
 			
 			trigger_error("Invalid method called on BigTree\\SQL: $method", E_USER_ERROR);
@@ -45,15 +45,15 @@
 		
 		public static function __callStatic($method, $arguments) {
 			if ($method == "fetch") {
-				return call_user_func_array("static::_static_fetch", array_values($arguments));
+				return static::_static_fetch(...$arguments);
 			} elseif ($method == "fetchAll") {
-				return call_user_func_array("static::_static_fetchAll", array_values($arguments));
+				return static::_static_fetchAll(...$arguments);
 			} elseif ($method == "fetchAllSingle") {
-				return call_user_func_array("static::_static_fetchAllSingle", array_values($arguments));
+				return static::_static_fetchAllSingle(...$arguments);
 			} elseif ($method == "fetchSingle") {
-				return call_user_func_array("static::_static_fetchSingle", array_values($arguments));
+				return static::_static_fetchSingle(...$arguments);
 			} elseif ($method == "rows") {
-				return call_user_func_array("static::_static_rows", array_values($arguments));
+				return static::_static_rows(...$arguments);
 			}
 			
 			trigger_error("Invalid static method called on BigTree\\SQL: $method", E_USER_ERROR);
@@ -397,7 +397,7 @@
 			array_unshift($values, "DELETE FROM `$table` WHERE ".implode(" AND ", $where));
 			
 			// Call SQL::query
-			$response = call_user_func_array("static::query", array_values($values));
+			$response = static::query(...$values);
 			
 			return $response->ActiveQuery ? true : false;
 		}
@@ -879,7 +879,7 @@
 			array_unshift($values, "SELECT 1 FROM `$table` WHERE ".implode(" AND ", $where));
 			
 			// Execute query, return a single result
-			return call_user_func_array("static::fetchSingle", array_values($values)) ? true : false;
+			return static::fetchSingle(...$values) ? true : false;
 		}
 		
 		/*
@@ -900,7 +900,7 @@
 			$args = func_get_args();
 			
 			if (count($args)) {
-				$query = call_user_func_array([$this, "query"], array_values($args));
+				$query = $this->query(...$args);
 				
 				return $query->fetch();
 			}
@@ -924,7 +924,7 @@
 		
 		public static function _static_fetch() {
 			// Allow this to be called without calling query first
-			$query = call_user_func_array("static::query", array_values(func_get_args()));
+			$query = static::query(...func_get_args());
 			
 			return $query->fetch();
 		}
@@ -946,7 +946,7 @@
 			// Allow this to be called without calling query first
 			$args = func_get_args();
 			if (count($args)) {
-				$query = call_user_func_array([$this, "query"], array_values($args));
+				$query = $this->query(...$args);
 				
 				return $query->fetchAll();
 			}
@@ -975,7 +975,7 @@
 		}
 		
 		public static function _static_fetchAll() {
-			$query = call_user_func_array("static::query", array_values(func_get_args()));
+			$query = static::query(...func_get_args());
 			
 			return $query->fetchAll();
 		}
@@ -1000,7 +1000,7 @@
 			$args = func_get_args();
 			
 			if (count($args)) {
-				$query = call_user_func_array([$this, "query"], array_values($args));
+				$query = $this->query(...$args);
 				
 				return $query->fetchAllSingle();
 			}
@@ -1029,7 +1029,7 @@
 		}
 		
 		public static function _static_fetchAllSingle() {
-			$query = call_user_func_array("static::query", array_values(func_get_args()));
+			$query = static::query(...func_get_args());
 			
 			return $query->fetchAllSingle();
 		}
@@ -1054,7 +1054,7 @@
 			$args = func_get_args();
 			
 			if (count($args)) {
-				$query = call_user_func_array([$this, "query"], array_values($args));
+				$query = $this->query(...$args);
 				
 				return $query->fetchSingle();
 			}
@@ -1079,7 +1079,7 @@
 		}
 		
 		public static function _static_fetchSingle() {
-			$query = call_user_func_array("static::query", array_values(func_get_args()));
+			$query = static::query(...func_get_args());
 			
 			return $query->fetchSingle();
 		}
@@ -1572,7 +1572,7 @@
 			array_unshift($values, "UPDATE `$table` SET ".implode(", ", $set)." WHERE ".implode(" AND ", $where));
 			
 			// Call BigTree\SQL::query
-			$response = call_user_func_array("static::query", array_values($values));
+			$response = static::query(...$values);
 			
 			return $response->ActiveQuery ? true : false;
 		}
