@@ -115,6 +115,9 @@
 				["title" => "Refresh Hooks Cache", "link" => "developer/extensions/recache-hooks", "nav_icon" => "lightning"]
 			]],
 			["title" => "Configure", "group" => true],
+			["title" => "Analytics", "link" => "developer/analytics", "icon" => "analytics", "hidden" => true, "children" => [
+				["title" => "Next Steps", "link" => "developer/analytics/next-steps", "hidden" => true],
+			]],
 			["title" => "Cloud Storage", "link" => "developer/cloud-storage", "icon" => "cloud", "hidden" => true, "children" => [
 				["title" => "Local Storage", "link" => "developer/cloud-storage/local", "icon" => "local_storage", "hidden" => true],
 				["title" => "Amazon S3", "link" => "developer/cloud-storage/amazon", "icon" => "amazon", "hidden" => true],

@@ -114,6 +114,7 @@
 		"BigTreeUpdater" => "inc/bigtree/updater.php",
 		"BigTreeSessionHandler" => "inc/bigtree/sessions.php",
 		"BigTreeGoogleAnalyticsAPI" => "inc/bigtree/apis/google-analytics.php",
+		"BigTreeGoogleAnalytics4" => "inc/bigtree/apis/google-analytics-4.php",
 		"BigTreePaymentGateway" => "inc/bigtree/apis/payment-gateway.php",
 		"BigTreeUploadService" => "inc/bigtree/apis/storage.php", // Backwards compat
 		"BigTreeStorage" => "inc/bigtree/apis/storage.php",
