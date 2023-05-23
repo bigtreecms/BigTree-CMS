@@ -27,15 +27,15 @@
 		// A little hack to allow fetch to be called both statically and chained
 		public function __call($method, $arguments) {
 			if ($method == "fetch") {
-				return $this->_local_fetch(...$arguments);
+				return $this->_local_fetch(...array_values($arguments));
 			} elseif ($method == "fetchAll") {
-				return $this->_local_fetchAll(...$arguments);
+				return $this->_local_fetchAll(...array_values($arguments));
 			} elseif ($method == "fetchAllSingle") {
-				return $this->_local_fetchAllSingle(...$arguments);
+				return $this->_local_fetchAllSingle(...array_values($arguments));
 			} elseif ($method == "fetchSingle") {
-				return $this->_local_fetchSingle(...$arguments);
+				return $this->_local_fetchSingle(...array_values($arguments));
 			} elseif ($method == "rows") {
-				return $this->_local_rows(...$arguments);
+				return $this->_local_rows(...array_values($arguments));
 			}
 			
 			trigger_error("Invalid method called on BigTree\\SQL: $method", E_USER_ERROR);
@@ -45,15 +45,15 @@
 		
 		public static function __callStatic($method, $arguments) {
 			if ($method == "fetch") {
-				return static::_static_fetch(...$arguments);
+				return static::_static_fetch(...array_values($arguments));
 			} elseif ($method == "fetchAll") {
-				return static::_static_fetchAll(...$arguments);
+				return static::_static_fetchAll(...array_values($arguments));
 			} elseif ($method == "fetchAllSingle") {
-				return static::_static_fetchAllSingle(...$arguments);
+				return static::_static_fetchAllSingle(...array_values($arguments));
 			} elseif ($method == "fetchSingle") {
-				return static::_static_fetchSingle(...$arguments);
+				return static::_static_fetchSingle(...array_values($arguments));
 			} elseif ($method == "rows") {
-				return static::_static_rows(...$arguments);
+				return static::_static_rows(...array_values($arguments));
 			}
 			
 			trigger_error("Invalid static method called on BigTree\\SQL: $method", E_USER_ERROR);
@@ -397,7 +397,7 @@
 			array_unshift($values, "DELETE FROM `$table` WHERE ".implode(" AND ", $where));
 			
 			// Call SQL::query
-			$response = static::query(...$values);
+			$response = static::query(...array_values($values));
 			
 			return $response->ActiveQuery ? true : false;
 		}
@@ -879,7 +879,7 @@
 			array_unshift($values, "SELECT 1 FROM `$table` WHERE ".implode(" AND ", $where));
 			
 			// Execute query, return a single result
-			return static::fetchSingle(...$values) ? true : false;
+			return static::fetchSingle(...array_values($values)) ? true : false;
 		}
 		
 		/*
@@ -1572,7 +1572,7 @@
 			array_unshift($values, "UPDATE `$table` SET ".implode(", ", $set)." WHERE ".implode(" AND ", $where));
 			
 			// Call BigTree\SQL::query
-			$response = static::query(...$values);
+			$response = static::query(...array_values($values));
 			
 			return $response->ActiveQuery ? true : false;
 		}
