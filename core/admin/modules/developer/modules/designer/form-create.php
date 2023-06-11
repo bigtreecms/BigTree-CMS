@@ -45,7 +45,7 @@
 		} elseif ($t == "datetime") {
 			$a .= "DATETIME";
 		} else {
-			$a .= "VARCHAR(255)";
+			$a .= "VARCHAR(1024)";
 		}
 
 		$adds[] = $a;

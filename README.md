@@ -20,6 +20,11 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.5.5
+- CHANGED: BigTree now requires MySQL 5 or later
+- CHANGED: BigTree now defaults varchar fields to 1024 characters instead of 255 - upgrading only changes the bigtree_404s table to support longer URLs
+
+
 ### 4.5.4
 - FIXED: {wwwroot} and {staticroot} tokens not being decoded properly in 4.5.3
 - ADDED: Export option for 404s and 301 redirects
