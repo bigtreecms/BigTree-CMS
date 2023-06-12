@@ -328,29 +328,32 @@
 	.developer_buttons {
 		position: absolute;
 		padding: 5px 0 0 0;
-		right: -26px;
+		right: -24px;
 		top: 0px;
 
-		a {
-			display: block;
+		a, button {
+			box-sizing: border-box;
+			display: flex;
+			align-items: center;
+			justify-content: center;
 			height: 24px;
 			width: 24px;
-			
-			border-radius: 0 3px 3px 0;
-			border-right: 1px solid #CCC;
-			border-top: 1px solid #CCC;
-			border-bottom: 1px solid #CCC;
 
+			background: #FFF;
+			border: 1px solid #CCC;
+			border-radius: 0 3px 3px 0;
 			font-size: 0;
+
 			margin: 5px 0;
+			padding: 0;
 			transition: background 0.25s;
+
+			.icon_small {
+				margin: 0;
+			}
 
 			&:hover {
 				background: #F3F3F3;
-			}
-	
-			span {
-				margin: 4px 0 0 4px;
 			}
 		}
 	}
@@ -518,7 +521,7 @@
 	.table > summary h2 .reports { background-position: -525px -52px; }
 	.table > summary h2 .actions { background-position: -548px -53px; }
 	.table > summary .select_container { float: right; line-height: 27px; margin: 5px 0 0 10px; }
-	.table > summary .select_container select { height: 27px !important; line-height: 27px !important; }
+	.table > summary .select_container select { height: 27px !important; max-width: 255px; line-height: 27px !important; }
 	.table > summary .select_container:after { background: #F2F2F2 url(../images/icon-sprite.svg) -343px -105px; border-left: 1px solid #CCC; height: 27px; width: 29px; }
 
 	.table > header, .table .image_pending_divider { background: #eee; border-bottom: 1px solid #ccc; border-radius: 0; clear: left; color: #666; height: 20px; line-height: 20px; margin-top: -1px; text-transform: uppercase; user-select: none; }
