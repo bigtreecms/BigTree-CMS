@@ -3,7 +3,7 @@
 	$type = "404";
 	$delete_action = "ignore";
 ?>
-<form method="POST" action="<?=MODULE_ROOT?>export/">
+<form method="POST" action="<?=MODULE_ROOT?>export/" id="redirects_table">
 	<div class="table">
 		<div class="developer_buttons">
 			<button type="submit" title="Export 404s">
@@ -33,3 +33,14 @@
 		</ul>
 	</div>
 </form>
+
+<script>
+	// Prevent enter from submitting form
+	$("#redirects_table input[type=search]").on("keydown", function(ev) {
+		if (ev.keyCode == 13) {
+			ev.preventDefault();
+
+			return false;
+		}
+	});
+</script>
