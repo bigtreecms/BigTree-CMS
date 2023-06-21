@@ -1,3 +1,4 @@
+
 <?php
 	// Prevent warnings
 	$settings = is_array($settings) ? $settings : array();
@@ -31,7 +32,7 @@
 		<?php
 			foreach ($presets as $preset) {
 		?>
-		<option value="<?=$preset["id"]?>"<?php if ($preset["id"] == $settings["preset"]) { ?> selected="selected"<?php } ?>><?=$preset["name"]?></option>
+		<option value="<?=$preset["id"]?>"<?php if (!empty($settings["preset"]) && $preset["id"] == $settings["preset"]) { ?> selected="selected"<?php } ?>><?=$preset["name"]?></option>
 		<?php
 			}
 		?>
@@ -48,15 +49,15 @@
 	?>
 	<fieldset>
 		<label for="<?=$image_options_prefix?>settings_field_min_width">Minimum Width <small>(numeric value in pixels)</small></label>
-		<input id="<?=$image_options_prefix?>settings_field_min_width" type="text" name="min_width" value="<?=htmlspecialchars($settings["min_width"])?>" />
+		<input id="<?=$image_options_prefix?>settings_field_min_width" type="text" name="min_width" value="<?=BigTree::safeEncode($settings["min_width"])?>" />
 	</fieldset>
 	<fieldset>
 		<label for="<?=$image_options_prefix?>settings_field_min_height">Minimum Height <small>(numeric value in pixels)</small></label>
-		<input id="<?=$image_options_prefix?>settings_field_min_height" type="text" name="min_height" value="<?=htmlspecialchars($settings["min_height"])?>" />
+		<input id="<?=$image_options_prefix?>settings_field_min_height" type="text" name="min_height" value="<?=BigTree::safeEncode($settings["min_height"])?>" />
 	</fieldset>
 	<fieldset>
 		<label for="<?=$image_options_prefix?>settings_field_preview_prefix">Preview Prefix <small>(for forms)</small></label>
-		<input id="<?=$image_options_prefix?>settings_field_preview_prefix" type="text" name="preview_prefix" value="<?=htmlspecialchars($settings["preview_prefix"])?>" />
+		<input id="<?=$image_options_prefix?>settings_field_preview_prefix" type="text" name="preview_prefix" value="<?=BigTree::safeEncode($settings["preview_prefix"])?>" />
 	</fieldset>
 	<fieldset>
 		<label>Create Hi-Resolution Retina Images <small><a href="https://www.bigtreecms.org/docs/dev-guide/field-types/retina-images/" target="_blank">(learn more)</a></small></label>
@@ -83,13 +84,13 @@
 			?>
 			<ul>
 				<li>
-					<input type="text" name="crops[<?=$crop_count?>][prefix]" value="<?=htmlspecialchars($crop["prefix"] ?? "")?>" />
+					<input type="text" name="crops[<?=$crop_count?>][prefix]" value="<?=BigTree::safeEncode($crop["prefix"] ?? "")?>" />
 				</li>
 				<li>
-					<input type="text" name="crops[<?=$crop_count?>][width]" value="<?=htmlspecialchars($crop["width"] ?? "")?>" />
+					<input type="text" name="crops[<?=$crop_count?>][width]" value="<?=BigTree::safeEncode($crop["width"] ?? "")?>" />
 				</li>
 				<li>
-					<input type="text" name="crops[<?=$crop_count?>][height]" value="<?=htmlspecialchars($crop["height"] ?? "")?>" />
+					<input type="text" name="crops[<?=$crop_count?>][height]" value="<?=BigTree::safeEncode($crop["height"] ?? "")?>" />
 				</li>
 				<li class="actions">
 					<a href="#<?=$crop_count?>" title="Create Centered Sub-Crop" class="subcrop"></a>
@@ -110,13 +111,13 @@
 				<ul class="image_attr_thumbs_<?=$crop_count?>">
 					<li class="thumbed">
 						<span class="icon_small icon_small_picture" title="Thumbnail"></span>
-						<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][prefix]" value="<?=htmlspecialchars($thumb["prefix"] ?? "")?>" />
+						<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][prefix]" value="<?=BigTree::safeEncode($thumb["prefix"] ?? "")?>" />
 					</li>
 					<li>
-						<input type="text" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][width]" value="<?=htmlspecialchars($thumb["width"] ?? "")?>" />
+						<input type="text" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][width]" value="<?=BigTree::safeEncode($thumb["width"] ?? "")?>" />
 					</li>
 					<li>
-						<input type="text" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][height]" value="<?=htmlspecialchars($thumb["height"] ?? "")?>" />
+						<input type="text" name="crops[<?=$crop_count?>][thumbs][<?=$crop_thumb_count?>][height]" value="<?=BigTree::safeEncode($thumb["height"] ?? "")?>" />
 					</li>
 					<li class="actions">
 						<span class="icon_small icon_small_up"></span>
@@ -142,13 +143,13 @@
 				<ul class="image_attr_thumbs_<?=$crop_count?>">
 					<li class="thumbed">
 						<span class="icon_small icon_small_crop" title="Sub-Crop"></span>
-						<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][prefix]" value="<?=htmlspecialchars($center_crop["prefix"] ?? "")?>" />
+						<input type="text" class="image_attr_thumbs" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][prefix]" value="<?=BigTree::safeEncode($center_crop["prefix"] ?? "")?>" />
 					</li>
 					<li>
-						<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][width]" value="<?=htmlspecialchars($center_crop["width"] ?? "")?>" />
+						<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][width]" value="<?=BigTree::safeEncode($center_crop["width"] ?? "")?>" />
 					</li>
 					<li>
-						<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][height]" value="<?=htmlspecialchars($center_crop["height"] ?? "")?>" />
+						<input type="text" name="crops[<?=$crop_count?>][center_crops][<?=$crop_sub_count?>][height]" value="<?=BigTree::safeEncode($center_crop["height"] ?? "")?>" />
 					</li>
 					<li class="actions">
 						<span class="icon_small icon_small_up"></span>
@@ -190,17 +191,17 @@
 			?>
 			<ul>
 				<li>
-					<input type="text" name="thumbs[<?=$thumb_count?>][prefix]" value="<?=htmlspecialchars($thumb["prefix"])?>" />
+					<input type="text" name="thumbs[<?=$thumb_count?>][prefix]" value="<?=BigTree::safeEncode($thumb["prefix"] ?? "")?>" />
 				</li>
 				<li>
-					<input type="text" name="thumbs[<?=$thumb_count?>][width]" value="<?=htmlspecialchars($thumb["width"])?>" />
+					<input type="text" name="thumbs[<?=$thumb_count?>][width]" value="<?=BigTree::safeEncode($thumb["width"] ?? "")?>" />
 				</li>
 				<li>
-					<input type="text" name="thumbs[<?=$thumb_count?>][height]" value="<?=htmlspecialchars($thumb["height"])?>" />
+					<input type="text" name="thumbs[<?=$thumb_count?>][height]" value="<?=BigTree::safeEncode($thumb["height"] ?? "")?>" />
 				</li>
 				<li class="actions for_thumbnail">
 					<input type="hidden" name="thumbs[<?=$thumb_count?>][grayscale]" value="<?=$thumb["grayscale"] ?? ""?>" />
-					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($thumb["grayscale"]) { ?> gray<?php } ?>"></a>
+					<a href="#" title="Switch Color Mode" class="color_mode<?php if (!empty($thumb["grayscale"])) { ?> gray<?php } ?>"></a>
 					<a href="#" title="Remove" class="delete"></a>
 				</li>
 			</ul>
@@ -230,17 +231,17 @@
 			?>
 			<ul>
 				<li>
-					<input type="text" name="center_crops[<?=$center_crop_count?>][prefix]" value="<?=htmlspecialchars($center_crop["prefix"])?>" />
+					<input type="text" name="center_crops[<?=$center_crop_count?>][prefix]" value="<?=BigTree::safeEncode($center_crop["prefix"] ?? "")?>" />
 				</li>
 				<li>
-					<input type="text" name="center_crops[<?=$center_crop_count?>][width]" value="<?=htmlspecialchars($center_crop["width"])?>" />
+					<input type="text" name="center_crops[<?=$center_crop_count?>][width]" value="<?=BigTree::safeEncode($center_crop["width"] ?? "")?>" />
 				</li>
 				<li>
-					<input type="text" name="center_crops[<?=$center_crop_count?>][height]" value="<?=htmlspecialchars($center_crop["height"])?>" />
+					<input type="text" name="center_crops[<?=$center_crop_count?>][height]" value="<?=BigTree::safeEncode($center_crop["height"] ?? "")?>" />
 				</li>
 				<li class="actions for_thumbnail">
 					<input type="hidden" name="center_crops[<?=$center_crop_count?>][grayscale]" value="<?=$center_crop["grayscale"]?>" />
-					<a href="#" title="Switch Color Mode" class="color_mode<?php if ($center_crop["grayscale"]) { ?> gray<?php } ?>"></a>
+					<a href="#" title="Switch Color Mode" class="color_mode<?php if (!empty($center_crop["grayscale"])) { ?> gray<?php } ?>"></a>
 					<a href="#<?=$center_crop_count?>" title="Remove" class="delete"></a>
 				</li>
 			</ul>
