@@ -22,8 +22,9 @@
 	$admin->updateTagReferenceCounts();
 	
 	// Cache Google Analytics Information
-	$analytics = new BigTreeGoogleAnalyticsAPI;
-	if ($analytics->API && $analytics->Profile) {
+	$analytics = new BigTreeGoogleAnalytics4;
+	
+	if (!empty($analytics->Settings["credentials"])) {
 		$analytics->cacheInformation();
 	}
 	

@@ -371,8 +371,9 @@
 		$admin->updateTagReferenceCounts();
 
 		// Cache google analytics
-		$ga = new BigTreeGoogleAnalyticsAPI;
-		if (!empty($ga->Settings["profile"])) {
+		$ga = new BigTreeGoogleAnalytics4;
+		
+		if (!empty($ga->Settings["credentials"])) {
 			// The Google Analytics wrappers can cause Exceptions and we don't want the page failing to load due to them.
 			try {
 				$ga->cacheInformation();

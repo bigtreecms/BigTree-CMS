@@ -1,7 +1,7 @@
 <?php
 	/**
 	 * @global $admin BigTreeAdmin
-	 * @global $analytics BigTreeGoogleAnalyticsAPI
+	 * @global $analytics BigTreeGoogleAnalytics4
 	 */
 	
 	$token = $analytics->oAuthSetToken($_GET["code"]);

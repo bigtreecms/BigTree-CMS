@@ -1,4 +1,6 @@
 <?php
+	$analytics = new BigTreeGoogleAnalytics4;
+	
 	// BigTree Admin Nav Tree
 	$bigtree["nav_tree"] = [
 		"dashboard" => ["title" => "Dashboard", "link" => "dashboard", "icon" => "dashboard", "related" => true, "children" => [
@@ -8,12 +10,10 @@
 				["title" => "View Messages", "link" => "dashboard/messages", "icon" => "messages", "nav_icon" => "list"],
 				["title" => "New Message", "link" => "dashboard/messages/new", "icon" => "add_message", "nav_icon" => "add"]
 			]],
-			"analytics" => ["title" => "Analytics", "link" => "dashboard/vitals-statistics/analytics", "hidden" => true, "icon" => "analytics", "children" => [
+			"analytics" => ["title" => "Analytics", "link" => "dashboard/vitals-statistics/analytics", "hidden" => true, "top_level_hidden" => !empty($analytics->Settings["credentials"]),  "icon" => "analytics", "children" => [
 				["title" => "Statistics", "link" => "dashboard/vitals-statistics/analytics", "nav_icon" => "bar_graph"],
-				["title" => "Service Providers", "link" => "dashboard/vitals-statistics/analytics/service-providers", "nav_icon" => "network"],
-				["title" => "Traffic Sources", "link" => "dashboard/vitals-statistics/analytics/traffic-sources", "nav_icon" => "car"],
-				["title" => "Keywords", "link" => "dashboard/vitals-statistics/analytics/keywords", "nav_icon" => "key"],
-				["title" => "Configure", "link" => "dashboard/vitals-statistics/analytics/configure", "nav_icon" => "setup", "level" => 1],
+				["title" => "Referrers", "link" => "dashboard/vitals-statistics/analytics/referrers", "nav_icon" => "network"],
+				["title" => "Browsers", "link" => "dashboard/vitals-statistics/analytics/browsers", "nav_icon" => "car"],
 				["title" => "Caching Data", "link" => "dashboard/vitals-statistics/analytics/cache", "hidden" => true]
 			]],
 			"404-report" => ["title" => "404 Report", "link" => "dashboard/vitals-statistics/404", "hidden" => true, "level" => 1, "icon" => "page_404", "children" => [
