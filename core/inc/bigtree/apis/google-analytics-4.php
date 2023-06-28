@@ -118,6 +118,13 @@
 			];
 		}
 		
+		public function clearCredentials() {
+			$this->Settings["verified"] = false;
+			$this->Settings["credentials"] = null;
+			$this->Settings["property_id"] = "";
+			$this->saveSettings();
+		}
+		
 		public function setCredentials($credentials) {
 			$this->Settings["verified"] = false;
 			$this->Settings["credentials"] = $credentials;
