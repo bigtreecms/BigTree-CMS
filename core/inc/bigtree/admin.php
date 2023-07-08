@@ -5094,7 +5094,7 @@
 			
 			// Get all the values
 			foreach ($settings as $index => $setting) {
-				if (!empty($setting["system"]) || ($setting["locked"] && $this->Level < 2)) {
+				if (!empty($setting["system"]) || (!empty($setting["locked"]) && $this->Level < 2)) {
 					unset($settings[$index]);
 				} else {
 					$settings[$index]["value"] = BigTreeCMS::getSetting($setting["id"]);
@@ -6003,7 +6003,7 @@
 			
 			// Decode the JSON value
 			if ($decode) {
-				$setting["value"] = json_decode($setting["value"], true);
+				$setting["value"] = json_decode($setting["value"] ?? "", true);
 				
 				if (is_array($setting["value"])) {
 					$setting["value"] = BigTree::untranslateArray($setting["value"]);
@@ -6035,7 +6035,7 @@
 			$settings = BigTreeJSONDB::getAll("settings", $sort_column, $sort_direction);
 			
 			foreach ($settings as $index => $setting) {
-				if ($setting["locked"] && $this->Level < 2) {
+				if (!empty($setting["locked"]) && $this->Level < 2) {
 					unset($settings[$index]);
 				} else {
 					$setting["value"] = $setting["encrypted"] ? "[Encrypted Text]" : BigTreeCMS::getSetting($setting["id"]);

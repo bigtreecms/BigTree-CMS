@@ -8,7 +8,9 @@
 	$results = $admin->getPageOfSettings($page,$query);
 	
 	foreach ($results as $item) {
-		if (is_array($item["value"]) || ($item["value"] && !strlen(trim(strip_tags($item["value"]))))) {
+		if ($item["encrypted"]) {
+			$value = "&mdash; Encrypted Value &mdash;";
+		} else if (is_array($item["value"]) || ($item["value"] && !strlen(trim(strip_tags($item["value"]))))) {
 			$value = "&mdash; Click Edit To View &mdash;";
 		} else {
 			$value = is_string($item["value"]) ? BigTree::trimLength(strip_tags($item["value"]), 100) : "";
