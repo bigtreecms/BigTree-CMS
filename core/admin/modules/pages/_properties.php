@@ -59,11 +59,16 @@
 		<label>Content Age</label>
 		<p><?=$age?> Days</p>
 	</article>
-	<article class="page_id">
-		<label>Page ID</label>
-		<p><?=$page["id"]?></p>
+	<?php
+		if (file_exists(SERVER_ROOT."cache/analytics.json")) {
+	?>
+	<article class="page_views">
+		<label>30 Day Views</label>
+		<p><?=number_format($page["ga_page_views"])?></p>
 	</article>
 	<?php
+		}
+		
 		if ($live_url) {
 	?>
 	<article class="link">
@@ -82,6 +87,10 @@
 	<?php
 		}
 	?>
+	<article class="page_id">
+		<label>Page ID</label>
+		<p><?=$page["id"]?></p>
+	</article>
 </section>
 <hr <?php if ($open) { ?>style="display: none;" <?php } ?>/>
 
