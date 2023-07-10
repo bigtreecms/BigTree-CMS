@@ -6,6 +6,31 @@
 
 	class BigTreeSessionHandler {
 
+		private static $BotAgents = [
+			'Googlebot',
+			'Bingbot',
+			'Slurp',
+			'DuckDuckBot',
+			'YandexBot',
+			'Baiduspider',
+			'Sogou',
+			'Exabot',
+			'Facebot',
+			'MJ12bot',
+			'AhrefsBot',
+			'SemrushBot',
+			'DotBot',
+			'BLEXBot',
+			'archive.org_bot',
+			'Gigabot',
+			'Blexbot',
+			'Cliqzbot',
+			'Embedly',
+			'W3C_Validator',
+			'Amazon-Route53-Health-Check-Service',
+			'ELB-HealthChecker',
+			'Chrome Privacy Preserving Prefetch Proxy',
+		];
 		private static $Exists = false;
 		private static $Started = false;
 		private static $Timeout = 3600;
@@ -74,6 +99,13 @@
 			}
 
 			if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+				// Ignore bot user agents from creating session spam
+				foreach (static::$BotAgents as $agent) {
+					if (stripos($_SERVER["HTTP_USER_AGENT"], $agent) !== false) {
+						return;
+					}
+				}
+				
 				session_set_save_handler(
 					"BigTreeSessionHandler::open",
 					"BigTreeSessionHandler::close",
