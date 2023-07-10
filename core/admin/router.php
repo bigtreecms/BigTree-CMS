@@ -373,7 +373,7 @@
 		// Cache google analytics
 		$ga = new BigTreeGoogleAnalytics4;
 		
-		if (!empty($ga->Settings["credentials"])) {
+		if (!empty($ga->Settings["verified"])) {
 			// The Google Analytics wrappers can cause Exceptions and we don't want the page failing to load due to them.
 			try {
 				$ga->cacheInformation();
