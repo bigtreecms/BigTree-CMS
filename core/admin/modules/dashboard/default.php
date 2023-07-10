@@ -122,6 +122,8 @@
 			</section>
 			<?php
 				}
+				
+				echo '<br class="clear" />';
 			   	
 			   	$x = 0;
 			   	foreach ($visits as $date => $count) {

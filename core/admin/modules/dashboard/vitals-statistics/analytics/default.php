@@ -160,6 +160,8 @@
 			<?php
 				}
 				
+				echo '<br class="clear" />';
+				
 				$x = 0;
 				foreach ($two_week_visits as $date => $count) {
 					$x++;
