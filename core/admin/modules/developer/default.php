@@ -135,7 +135,7 @@
 			<span class="payment"></span>
 			<p>Payment Gateway</p>
 		</a>
-		<a class="box_select" href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/analytics/configure/">
+		<a class="box_select" href="<?=DEVELOPER_ROOT?>analytics/">
 			<span class="analytics"></span>
 			<p>Analytics</p>
 		</a>
