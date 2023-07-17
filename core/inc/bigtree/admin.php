@@ -9,7 +9,7 @@
 		public $CSRFToken = "";
 		public $CSRFTokenField = "";
 		public $HidePages = false;
-		public $Hooks = [];
+		public $Hooks = null;
 		public $ID = null;
 		public $Level = 0;
 		public $Name = "";
@@ -8101,8 +8101,8 @@
 				$this->cacheHooks();
 			}
 			
-			if (!isset($this->Hooks)) {
-				$this->Hooks = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-hooks.json"), true);
+			if (is_null($this->Hooks)) {
+				$this->Hooks = json_decode(file_get_contents(SERVER_ROOT."cache/bigtree-hooks.json"), true) ?: [];
 			}
 			
 			// Anonymous function so that hooks can't pollute context
