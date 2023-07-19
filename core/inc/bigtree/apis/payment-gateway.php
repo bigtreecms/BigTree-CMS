@@ -18,6 +18,7 @@
 		public $Message = "";
 		public $PostURL = "";
 		public $Service = "";
+		public $Settings = array();
 		public $Transaction = false;
 
 		// Authorize.net Specific Properties
