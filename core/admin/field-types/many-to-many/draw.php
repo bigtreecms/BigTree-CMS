@@ -4,17 +4,44 @@
 	 * @global array $field
 	 */
 	
-	// Find out whether this is a draggable Many to Many.
-	$table_description = BigTree::describeTable($field["settings"]["mtm-connecting-table"]);
-	$cols = $table_description["columns"];
-	$sortable = false;
 	$max = !empty($field["settings"]["max"]) ? $field["settings"]["max"] : 0;
-
-	if (isset($cols["position"])) {
-		$sortable = true;
+	
+	// Cache the list entries for this field unique field settings to prevent querying the database repeatedly for the same options.
+	if (!empty(static::$FieldCache[$field["cache_id"]])) {
+		$list = static::$FieldCache[$field["cache_id"]]["list"];
+		$sortable = static::$FieldCache[$field["cache_id"]]["sortable"];
+	} else {
+		// Find out whether this is a draggable Many to Many.
+		$table_description = BigTree::describeTable($field["settings"]["mtm-connecting-table"]);
+		$cols = $table_description["columns"];
+		$sortable = false;
+		
+		if (isset($cols["position"])) {
+			$sortable = true;
+		}
+		
+		// Gather a list of the items that could possibly be tagged.
+		$list = [];
+		$q = sqlquery("SELECT * FROM `".$field["settings"]["mtm-other-table"]."` ORDER BY ".$field["settings"]["mtm-sort"]);
+		
+		while ($f = sqlfetch($q)) {
+			$list[$f["id"]] = $f[$field["settings"]["mtm-other-descriptor"]];
+		}
+		
+		// If we have a parser, send a list of the available items through it.
+		if (isset($field["settings"]["mtm-list-parser"]) && $field["settings"]["mtm-list-parser"]) {
+			$list = call_user_func($field["settings"]["mtm-list-parser"],$list,true);
+		}
+		
+		// Cache for future iterations of this field to not re-lookup DB list.
+		static::$FieldCache[$field["cache_id"]] = [
+			"list" => $list,
+			"sortable" => $sortable,
+		];
 	}
 	
-	$entries = array();
+	$entries = [];
+	
 	// If we have existing data then this item is either pending or has pending changes so we use that data.
 	if (is_array($field["value"])) {
 		foreach ($field["value"] as $oid) {
@@ -22,9 +49,9 @@
 			
 			if ($g) {
 				$entries[$g["id"]] = $g[$field["settings"]["mtm-other-descriptor"]];
-			}			
+			}
 		}
-	// No pending data, let's query the connecting table directly for the entries, but only if this isn't a new entry
+		// No pending data, let's query the connecting table directly for the entries, but only if this isn't a new entry
 	} elseif (!empty($bigtree["edit_id"])) {
 		if ($sortable) {
 			$q = sqlquery("SELECT * FROM `".$field["settings"]["mtm-connecting-table"]."` WHERE `".$field["settings"]["mtm-my-id"]."` = '".$bigtree["edit_id"]."' ORDER BY `position` DESC");
@@ -41,18 +68,8 @@
 			}
 		}
 	}
-
-	// Gather a list of the items that could possibly be tagged.
-	$list = array();
-	$q = sqlquery("SELECT * FROM `".$field["settings"]["mtm-other-table"]."` ORDER BY ".$field["settings"]["mtm-sort"]);
 	
-	while ($f = sqlfetch($q)) {
-		$list[$f["id"]] = $f[$field["settings"]["mtm-other-descriptor"]];
-	}
-	
-	// If we have a parser, send a list of the entries and available items through it.
 	if (isset($field["settings"]["mtm-list-parser"]) && $field["settings"]["mtm-list-parser"]) {
-		$list = call_user_func($field["settings"]["mtm-list-parser"],$list,true);
 		$entries = call_user_func($field["settings"]["mtm-list-parser"],$entries,false);
 	}
 

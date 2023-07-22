@@ -4,7 +4,7 @@
 	 */
 	
 	if (empty($field["value"])) {
-		$field["value"] = array();
+		$field["value"] = [];
 	} elseif (!is_array($field["value"])) {
 		$field["value"] = json_decode($field["value"],true);
 	}
@@ -18,7 +18,7 @@
 		return;
 	}
 
-	$entries = array();
+	$entries = [];
 	$sort = !empty($field["settings"]["sort_by_column"]) ? $field["settings"]["sort_by_column"] : $field["settings"]["title_column"]." ASC";
 
 	// Get existing entries' titles
@@ -26,20 +26,34 @@
 		$g = sqlfetch(sqlquery("SELECT `id`,`".$field["settings"]["title_column"]."` FROM `".$field["settings"]["table"]."` WHERE id = '".sqlescape($entry)."'"));
 		if ($g) {
 			$entries[$g["id"]] = $g[$field["settings"]["title_column"]];
-		}			
+		}
 	}
-
-	// Gather a list of the items that could possibly be used
-	$list = array();
-	$q = sqlquery("SELECT `id`,`".$field["settings"]["title_column"]."` FROM `".$field["settings"]["table"]."` ORDER BY $sort");
-	while ($f = sqlfetch($q)) {
-		$list[$f["id"]] = $f[$field["settings"]["title_column"]];
-	}
-
-	// If we have a parser, send a list of the entries and available items through it.
+	
+	// If we have a parser, send a list of the entries through it.
 	if (!empty($field["settings"]["parser"])) {
-		$list = call_user_func($field["settings"]["parser"],$list,true);
 		$entries = call_user_func($field["settings"]["parser"],$entries,false);
+	}
+
+	// Pull from the cache if we have it
+	if (!empty(static::$FieldCache[$field["cache_id"]])) {
+		$list = static::$FieldCache[$field["cache_id"]]["list"];
+	} else {
+		// Gather a list of the items that could possibly be used
+		$list = [];
+		$q = sqlquery("SELECT `id`,`".$field["settings"]["title_column"]."` FROM `".$field["settings"]["table"]."` ORDER BY $sort");
+		
+		while ($f = sqlfetch($q)) {
+			$list[$f["id"]] = $f[$field["settings"]["title_column"]];
+		}
+		
+		// If we have a parser, send a list of the available items through it.
+		if (!empty($field["settings"]["parser"])) {
+			$list = call_user_func($field["settings"]["parser"], $list, true);
+		}
+		
+		static::$FieldCache[$field["cache_id"]] = [
+			"list" => $list,
+		];
 	}
 
 	// Remove items from the list that have already been used

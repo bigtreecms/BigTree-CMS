@@ -109,6 +109,9 @@
 		public static $IconClasses = ["gear", "truck", "token", "export", "redirect", "help", "error", "ignored", "world", "server", "clock", "network", "car", "key", "folder", "calendar", "search", "setup", "page", "computer", "picture", "news", "events", "blog", "form", "category", "map", "user", "question", "sports", "credit_card", "cart", "cash_register", "lock_key", "bar_graph", "comments", "email", "weather", "pin", "planet", "mug", "atom", "shovel", "cone", "lifesaver", "target", "ribbon", "dice", "ticket", "pallet", "camera", "video", "twitter", "facebook"];
 		public static $ActionClasses = ["add", "delete", "list", "edit", "refresh", "gear", "truck", "token", "export", "redirect", "help", "error", "ignored", "world", "server", "clock", "network", "car", "key", "folder", "calendar", "search", "setup", "page", "computer", "picture", "news", "events", "blog", "form", "category", "map", "user", "question", "sports", "credit_card", "cart", "cash_register", "lock_key", "bar_graph", "comments", "email", "weather", "pin", "planet", "mug", "atom", "shovel", "cone", "lifesaver", "target", "ribbon", "dice", "ticket", "pallet", "lightning", "camera", "video", "twitter", "facebook"];
 		
+		// Field processing cache used for speeding up drawing or processing the same field types repeatedly
+		private static $FieldCache = [];
+		
 		/*
 			Constructor:
 				Initializes the user's permissions.
@@ -2993,6 +2996,9 @@
 			} else {
 				$field["settings"]["validation"] = "";
 			}
+			
+			// A probably unique hash ID to be used for field types that want to have a cache based on type and settings
+			$field["cache_id"] = sha1($field["type"]."-".json_encode($field["settings"]));
 			
 			// Backwards compatibility
 			$field["options"] = &$field["settings"];
