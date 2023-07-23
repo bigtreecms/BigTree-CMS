@@ -21,9 +21,19 @@ Changelog
 ---------
 
 ### 4.5.5
+- ADDED: PHP 8.2 is now supported
+- ADDED: Google Analytics 4 is now supported (Universal Analytics API has been turned off by Google)
+- ADDED: CC and BCC support to BigTreeEmailService (with the exception of Mandrill which does not support CC/BCC)
+- ADDED: Field type database lookup cache to speed up field type loading for fields that are repeated but make the same database calls
 - CHANGED: BigTree now requires MySQL 5 or later
 - CHANGED: BigTree now defaults varchar fields to 1024 characters instead of 255 - upgrading only changes the bigtree_404s table to support longer URLs
-
+- CHANGED: Callouts and Matrix fields no longer load all the fields inline automatically (you must click edit to load the fields which makes large data sets much faster)
+- CHANGED: Bot user agents no longer create sessions when using database session handler
+- FIXED: A bug where editors making pending changes to in-nav top level pages causing the pages to no longer be in nav when published from the dashboard
+- FIXED: Normal users not being able to edit top level pages if they had cascading permissions from the homepage
+- FIXED: Hitting enter on the 404 search causing a report to generate
+- FIXED: Pagination not drawing properly on 404 report when a large number of pages existed
+- FIXED: A variety of warnings from PHP 8+
 
 ### 4.5.4
 - FIXED: {wwwroot} and {staticroot} tokens not being decoded properly in 4.5.3
