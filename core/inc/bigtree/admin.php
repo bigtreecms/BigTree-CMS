@@ -8715,8 +8715,12 @@
 				$changes["trunk"] = !empty($changes["trunk"]) ? "on" : "";
 			}
 			
-			// Set the in_nav flag, since it's not in the post if the checkbox became unclicked
-			$changes["in_nav"] = !empty($changes["in_nav"]) ? "on" : "";
+			// If this is top level nav and the user isn't a developer, use what the current state is.
+			if (empty($existing_page["parent"]) && $this->Level < 2) {
+				$changes["in_nav"] = $existing_page["in_nav"] ?? "";
+			} else {
+				$changes["in_nav"] = !empty($data["in_nav"]) ? "on" : "";
+			}
 			
 			// If there's already a change in the queue, update it with this latest info.
 			if ($existing_pending_change) {
