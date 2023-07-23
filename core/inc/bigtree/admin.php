@@ -4882,7 +4882,7 @@
 			if (!empty($page_data["parent"])) {
 				$parent_permission = $permissions["page"][$page_data["parent"]] ?? null;
 			} else {
-				$parent_permission = null;
+				$parent_permission = $permissions["page"][0] ?? null;
 			}
 
 			while ((!$parent_permission || $parent_permission == "i") && !empty($page_data["parent"])) {
