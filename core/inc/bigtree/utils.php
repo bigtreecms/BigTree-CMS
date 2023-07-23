@@ -2035,6 +2035,7 @@
 				cc - String or array of carbon copy email address(es)
 				bcc - String or array of blind carbon copy email address(es)
 				headers - Key/value pair array of extra headers
+				smtp - SMTP server information
 
 			Returns:
 				true if email is sent, otherwise false.
