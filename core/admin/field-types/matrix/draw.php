@@ -52,40 +52,8 @@
 				<a href="#" class="icon_edit"></a>
 			</div>
 
-			<div class="matrix_entry_fields">
-				<?php
-					foreach ($field["settings"]["columns"] as $resource) {
-						if (!empty($resource["settings"])) {
-							$settings = is_array($resource["settings"]) ? $resource["settings"] : @json_decode($resource["settings"], true);
-						} else if (!empty($resource["options"])) {
-							$settings = is_array($resource["options"]) ? $resource["options"] : @json_decode($resource["options"], true);
-						} else {
-							$settings = [];
-						}
-
-						$settings = is_array($settings) ? $settings : [];
-
-						if (empty($settings["directory"])) {
-							$settings["directory"] = "files/pages/";
-						}
-						
-						$subfield = [
-							"type" => $resource["type"],
-							"title" => $resource["title"] ?? "",
-							"subtitle" => $resource["subtitle"] ?? "",
-							"key" => $field["key"]."[$x][".$resource["id"]."]",
-							"has_value" => isset($existing_data[$resource["id"]]),
-							"value" => $existing_data[$resource["id"]] ?? "",
-							"tabindex" => $field["tabindex"],
-							"settings" => $settings,
-							"matrix_title_field" => !empty($resource["display_title"]),
-						];
-			
-						BigTreeAdmin::drawField($subfield);
-					}
-				?>
-			
-				<button class="matrix_collapse button green">Done Editing</button>
+			<div class="matrix_entry_fields uninit" data-count="<?=$x?>">
+				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__unchanged]" value="<?=htmlspecialchars(json_encode($existing_data))?>">
 			</div>
 		</li>
 		<?php

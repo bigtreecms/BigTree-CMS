@@ -10,6 +10,11 @@
 	
 	if (is_array($field["input"]) && count($field["input"])) {
 		foreach ($field["input"] as $number => $data) {
+			// For callout entries that were not edited
+			if (isset($data["__unchanged"])) {
+				$data = json_decode($data["__unchanged"], true);
+			}
+			
 			// Make sure there's a callout here
 			if ($data["type"]) {
 				

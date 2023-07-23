@@ -2427,7 +2427,33 @@ var BigTreeCallouts = function(settings) {
 		function editCallout(e) {
 			e.preventDefault();
 
-			$(this).parents("li").eq(0).toggleClass("collapsed");
+			var parent = $(this).parents("li").eq(0);
+			var field_container = parent.find(".matrix_entry_fields");
+			var input = field_container.find("input");
+
+			if (field_container.hasClass("uninit")) {
+				field_container.load("admin_root/ajax/callout-edit/", {
+					data: input.val(),
+					count: input.data("count"),
+					key: Key,
+					tab_index: TabIndex,
+					front_end_editor: FrontEndEditor,
+					type: input.data("type"),
+				}, function() {
+					BigTree.formHooks(field_container);
+					BigTreeCustomControls(field_container);
+					hookItem(field_container);
+					field_container.removeClass("uninit")
+
+					if ($(".sticky_controls.stuck").length) {
+						$("body, html").animate({ scrollTop: field_container.offset().top - 50 });
+					} else {
+						$("body, html").animate({ scrollTop: field_container.offset().top - 5 });
+					}
+				});
+			}
+
+			parent.toggleClass("collapsed");
 		}
 
 		// Init routine
@@ -2612,9 +2638,34 @@ var BigTreeMatrix = function(settings) {
 		}
 
 		function editItem(e) {
-			e.preventDefault();
+			e.preventDefault()
 
-			$(this).parents("li").eq(0).toggleClass("collapsed");
+			var parent = $(this).parents("li").eq(0);
+			var field_container = parent.find(".matrix_entry_fields");
+
+			if (field_container.hasClass("uninit")) {
+				field_container.load("admin_root/ajax/matrix-edit/", {
+					data: field_container.find("input").val(),
+					count: field_container.data("count"),
+					key: Key,
+					tab_index: TabIndex,
+					front_end_editor: FrontEndEditor,
+					columns: Columns,
+				}, function() {
+					BigTree.formHooks(field_container);
+					BigTreeCustomControls(field_container);
+					hookItem(field_container);
+					field_container.removeClass("uninit")
+
+					if ($(".sticky_controls.stuck").length) {
+						$("body, html").animate({ scrollTop: field_container.offset().top - 50 });
+					} else {
+						$("body, html").animate({ scrollTop: field_container.offset().top - 5 });
+					}
+				});
+			}
+
+			parent.toggleClass("collapsed");
 		}
 
 		function hookItem(li) {

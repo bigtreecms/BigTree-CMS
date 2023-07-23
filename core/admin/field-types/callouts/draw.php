@@ -76,47 +76,11 @@
 				<a href="#" class="icon_edit"></a>
 			</div>
 
-			<div class="matrix_entry_fields callout_fields">
-				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][type]" value="<?=$callout["type"]?>">
-
-				<?php
-					// Run hooks for modifying the field array
-					$type["resources"] = $admin->runHooks("fields", "callout", $type["resources"], [
-						"callout" => $type,
-						"step" => "draw"
-					]);
-					
-					$bigtree["callout"] = $type;
-					
-					foreach ($type["resources"] as $resource) {
-						if (!empty($resource["settings"])) {
-							$settings = $resource["settings"];
-						} elseif (!empty($resource["options"])) {
-							$settings = $resource["options"];
-						} else {
-							$settings = [];
-						}
-						
-						$subfield = [
-							"type" => $resource["type"],
-							"title" => $resource["title"],
-							"subtitle" => $resource["subtitle"],
-							"key" => $field["key"]."[$x][".$resource["id"]."]",
-							"has_value" => isset($existing_data[$resource["id"]]),
-							"value" => $existing_data[$resource["id"]] ?? "",
-							"tabindex" => $field["tabindex"],
-							"settings" => $settings,
-						];
-		
-						if (empty($subfield["settings"]["directory"])) {
-							$subfield["settings"]["directory"] = "files/callouts/";
-						}
-			
-						BigTreeAdmin::drawField($subfield);
-					}
-				?>
-			
-				<button class="matrix_collapse button green">Done Editing</button>
+			<div class="matrix_entry_fields callout_fields uninit">
+				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>][__unchanged]"
+					   value="<?=htmlspecialchars(json_encode($existing_data))?>"
+					   data-count="<?=$x?>"
+					   data-type="<?=$callout["type"]?>">
 			</div>
 		</li>
 		<?php

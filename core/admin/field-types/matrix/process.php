@@ -22,6 +22,11 @@
 	}
 
 	foreach ($field["input"] as $index => $data) {
+		// For matrix entries that were not edited
+		if (isset($data["__unchanged"])) {
+			$data = json_decode($data["__unchanged"], true);
+		}
+		
 		// Make sure something has been entered
 		if (!array_filter((array) $data) && !array_filter((array) $field["file_input"][$index])) {
 			continue;
