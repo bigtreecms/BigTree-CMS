@@ -190,13 +190,13 @@
 	// Using existing value
 	} else {
 		// Directly in the form, unchanged
-		if ($field["input"]["existing"]) {
+		if (!empty($field["input"]["existing"])) {
 			$field["output"] = json_decode($field["input"]["existing"], true);			
 		// For when use in a callout or matrix and unchanged
-		} elseif ($field["input"]["service"] && $field["input"]["id"]) {
+		} elseif (!empty($field["input"]["service"]) && !empty($field["input"]["id"])) {
 			$field["output"] = $field["input"];
 		// Wiped
 		} else {
-			$field["output"] = null;
+			$field["output"] = [];
 		}
 	}
