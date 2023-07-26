@@ -7758,6 +7758,8 @@
 						return $list[0]["description"];
 					}
 				}
+				
+				return $output;
 			} else if ($field["type"] === "one-to-many") {
 				$parser = $field["settings"]["parser"] ?? "";
 				$list = [];

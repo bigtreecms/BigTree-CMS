@@ -1086,7 +1086,7 @@
 							// Backwards compatibility with old array passed syntax
 							if (is_array($bigtree["function"])) {
 								foreach ($bigtree["function"] as $bigtree["f"]) {
-									$bigtree["val"] = $bigtree["f"]($bigtree["val"]);
+									$bigtree["val"] = is_null($bigtree["val"]) ? null : $bigtree["f"]($bigtree["val"]);
 								}
 							} else {
 								$bigtree["val"] = @$bigtree["function"]($bigtree["val"]);
@@ -1114,7 +1114,7 @@
 						// Backwards compatibility with old array passed syntax
 						if (is_array($func)) {
 							foreach ($func as $f) {
-								$val = $f($val);
+								$val = is_null($val) ? null : $f($val);
 							}
 						} else {
 							$val = $func($val);
