@@ -198,6 +198,10 @@
 			} else {
 				$x = 1;
 				foreach ($view["fields"] as $field => $options) {
+					if (!isset($item[$field])) {
+						$item[$field] = "";
+					}
+					
 					$item[$field] = $cms->replaceInternalPageLinks($item[$field]);
 					$fields[] = "column$x";
 
