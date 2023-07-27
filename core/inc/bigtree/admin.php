@@ -3739,18 +3739,20 @@
 					continue;
 				}
 				
-				foreach ($group["callouts"] as $callout_id) {
-					if (!in_array($callout_id, $ids)) {
-						$callout = $this->getCallout($callout_id);
-						
-						if (!$callout) {
-							continue;
-						}
-						
-						if (!$auth || $this->Level >= $callout["level"]) {
-							$items[] = $callout;
-							$ids[] = $callout_id;
-							$names[] = $callout["name"];
+				if (!empty($group["callouts"])) {
+					foreach ($group["callouts"] as $callout_id) {
+						if (!in_array($callout_id, $ids)) {
+							$callout = $this->getCallout($callout_id);
+							
+							if (!$callout) {
+								continue;
+							}
+							
+							if (!$auth || $this->Level >= $callout["level"]) {
+								$items[] = $callout;
+								$ids[] = $callout_id;
+								$names[] = $callout["name"];
+							}
 						}
 					}
 				}
