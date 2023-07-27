@@ -29,7 +29,7 @@
 	</header>
 	<ul id="results_table_<?=$view["id"]?>">
 		<?php foreach ($items as $item) { ?>
-		<li id="row_<?=$item["id"]?>"<?php if ($item["bigtree_pending"]) { ?> class="pending"<?php } ?><?php if ($item["bigtree_changes"]) { ?> class="changes"<?php } ?>>
+		<li id="row_<?=$item["id"]?>"<?php if ($item["bigtree_pending"]) { ?> class="pending"<?php } ?><?php if (!empty($item["bigtree_changes"])) { ?> class="changes"<?php } ?>>
 		<?php
 			$x = 0;
 			foreach ($fields as $key => $field) {

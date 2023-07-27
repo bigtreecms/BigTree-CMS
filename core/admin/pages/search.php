@@ -56,7 +56,7 @@
 				if ($action["view"]) {
 					$view = BigTreeAutoModule::getView($action["view"]);
 
-					if ($view["exclude_from_search"]) {
+					if (!empty($view["exclude_from_search"])) {
 						continue;
 					}
 					

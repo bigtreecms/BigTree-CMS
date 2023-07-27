@@ -2442,7 +2442,6 @@ var BigTreeCallouts = function(settings) {
 				}, function() {
 					BigTree.formHooks(field_container);
 					BigTreeCustomControls(field_container);
-					hookItem(field_container);
 					field_container.removeClass("uninit")
 
 					if ($(".sticky_controls.stuck").length) {
