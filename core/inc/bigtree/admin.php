@@ -18,6 +18,9 @@
 		public $Timezone = "";
 		public $User = "";
 		
+		// Field processing cache used for speeding up drawing or processing the same field types repeatedly
+		public static $FieldCache = [];
+
 		public static $IRLPrefixes = [];
 		public static $IRLsCreated = [];
 		public static $PerPage = 15;
@@ -108,9 +111,6 @@
 		// !Icon Classes
 		public static $IconClasses = ["gear", "truck", "token", "export", "redirect", "help", "error", "ignored", "world", "server", "clock", "network", "car", "key", "folder", "calendar", "search", "setup", "page", "computer", "picture", "news", "events", "blog", "form", "category", "map", "user", "question", "sports", "credit_card", "cart", "cash_register", "lock_key", "bar_graph", "comments", "email", "weather", "pin", "planet", "mug", "atom", "shovel", "cone", "lifesaver", "target", "ribbon", "dice", "ticket", "pallet", "camera", "video", "twitter", "facebook"];
 		public static $ActionClasses = ["add", "delete", "list", "edit", "refresh", "gear", "truck", "token", "export", "redirect", "help", "error", "ignored", "world", "server", "clock", "network", "car", "key", "folder", "calendar", "search", "setup", "page", "computer", "picture", "news", "events", "blog", "form", "category", "map", "user", "question", "sports", "credit_card", "cart", "cash_register", "lock_key", "bar_graph", "comments", "email", "weather", "pin", "planet", "mug", "atom", "shovel", "cone", "lifesaver", "target", "ribbon", "dice", "ticket", "pallet", "lightning", "camera", "video", "twitter", "facebook"];
-		
-		// Field processing cache used for speeding up drawing or processing the same field types repeatedly
-		private static $FieldCache = [];
 		
 		/*
 			Constructor:
