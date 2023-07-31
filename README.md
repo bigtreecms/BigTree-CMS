@@ -20,6 +20,13 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.5.6
+- FIXED: Field cache not being readable from some contexts in which fields are drawn
+- FIXED: Errors appearing in advanced search results when warnings were on
+- FIXED: Callouts failing to edit properly (introduced in 4.5.5)
+- FIXED: Image and Video field data not being removeable
+- FIXED: A variety of other warnings for PHP 8+
+
 ### 4.5.5
 - ADDED: PHP 8.2 is now supported
 - ADDED: Google Analytics 4 is now supported (Universal Analytics API has been turned off by Google)
