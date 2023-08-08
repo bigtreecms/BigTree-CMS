@@ -66,7 +66,7 @@
 	$id = $_POST["page"];
 	$change_allocation_id = false;
 	
-	if ($bigtree["access_level"] == "p" && $_POST["ptype"] == "Save & Publish") {
+	if ($bigtree["access_level"] == "p" && !empty($_POST["ptype"]) && $_POST["ptype"] == "Save & Publish") {
 		$did_publish = true;
 
 		// It's a pending page, so create a published one
@@ -87,7 +87,7 @@
 	} else {
 		$did_publish = false;
 		
-		if (!$_POST["parent"]) {
+		if (empty($_POST["parent"])) {
 			$_POST["parent"] = $bigtree["current_page_data"]["parent"];
 		}
 		

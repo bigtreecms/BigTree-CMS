@@ -8679,7 +8679,7 @@
 			}
 			
 			// Save tags separately
-			if (!is_array($changes["_tags"])) {
+			if (empty($changes["_tags"]) || !is_array($changes["_tags"])) {
 				$changes["_tags"] = [];
 			}
 			
@@ -8723,7 +8723,7 @@
 			if (empty($existing_page["parent"]) && $this->Level < 2) {
 				$changes["in_nav"] = $existing_page["in_nav"] ?? "";
 			} else {
-				$changes["in_nav"] = !empty($data["in_nav"]) ? "on" : "";
+				$changes["in_nav"] = !empty($changes["in_nav"]) ? "on" : "";
 			}
 			
 			// If there's already a change in the queue, update it with this latest info.
