@@ -1106,7 +1106,7 @@
 			if ($page) {
 				$template = BigTreeJSONDB::get("templates", $page["template"]);
 
-				return array($page["id"], $commands, $template["routed"]);
+				return array($page["id"], $commands, $template["routed"] ?? false);
 			}
 			
 			// Guess we don't, let's chop off commands until we find a page.

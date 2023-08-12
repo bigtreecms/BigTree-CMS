@@ -3358,7 +3358,7 @@
 			
 			$id = is_array($module) ? $module["id"] : $module;
 			
-			$perm = $permissions["module"][$id];
+			$perm = $permissions["module"][$id] ?? "";
 			
 			// If group based permissions aren't on or we're a publisher of this module it's an easy solution… or if we're not even using the table.
 			if (!$item || !$module["gbp"]["enabled"] || $perm == "p" || $table != $module["gbp"]["table"]) {
