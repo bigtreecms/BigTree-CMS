@@ -20,9 +20,6 @@
 
 	if ($file["is_image"]) {
 		$meta_fields = $metadata["image"] ?? [];
-		$settings = BigTreeJSONDB::get("config", "media-settings");
-		$preset = $settings["presets"]["default"];
-		$preset["directory"] = "files/resources/";
 	} elseif ($file["is_video"]) {
 		$meta_fields = $metadata["video"] ?? [];
 	} else {
@@ -59,7 +56,16 @@
 		$storage = new BigTreeStorage;
 		$file_name = pathinfo($file["file"], PATHINFO_BASENAME);
 
-		if ($file["is_image"]) {			
+		if ($file["is_image"]) {
+			$settings = BigTreeJSONDB::get("config", "media-settings");
+			$preset = $settings["presets"]["default"];
+			$preset["directory"] = "files/resources/";
+			$preset["center_crops"][] = [
+				"prefix" => "list-preview/",
+				"width" => 100,
+				"height" => 100
+			];
+			
 			$image = new BigTreeImage($_FILES["file"]["tmp_name"], $preset);
 			$image->filterGeneratableCrops();
 			
