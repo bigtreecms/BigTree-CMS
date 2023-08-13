@@ -22,6 +22,8 @@ Changelog
 
 ### 4.5.7
 - FIXED: Submitting pending changes to pages that are in navigation causing them to lose the in nav flag
+- FIXED: Replacing images in the file manager with a new image now generates new thumbnails
+- FIXED: A few warnings
 
 ### 4.5.6
 - FIXED: Field cache not being readable from some contexts in which fields are drawn
