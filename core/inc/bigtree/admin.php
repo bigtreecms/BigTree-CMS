@@ -8690,7 +8690,7 @@
 			$changes["title"] = htmlspecialchars($changes["title"]);
 			$changes["nav_title"] = htmlspecialchars($changes["nav_title"]);
 			$changes["meta_description"] = htmlspecialchars($changes["meta_description"]);
-			$changes["seo_invisible"] = !empty($changes["seo_invisible"]["seo_invisible"]) ? "on" : "";
+			$changes["seo_invisible"] = !empty($changes["seo_invisible"]) ? "on" : "";
 			$changes["external"] = htmlspecialchars($changes["external"]);
 			
 			// Convert times from user's timezone
