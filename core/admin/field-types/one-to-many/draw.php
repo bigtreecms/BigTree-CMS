@@ -79,7 +79,7 @@
 			<div class="inner">
 				<input type="hidden" name="<?=$field["key"]?>[<?=$x?>]" value="<?=BigTree::safeEncode($id)?>" />
 				<span class="icon_sort"></span>
-				<p class="multi_widget_entry_title"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($title),100))?></p>
+				<p class="multi_widget_entry_title"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($title ?? ""),100))?></p>
 				<a href="#" class="icon_delete"></a>
 			</div>
 		</li>
@@ -91,7 +91,7 @@
 	<footer>
 		<select>
 			<?php foreach ($list as $id => $title) { ?>
-			<option value="<?=BigTree::safeEncode($id)?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($title),100))?></option>
+			<option value="<?=BigTree::safeEncode($id)?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($title ?? ""),100))?></option>
 			<?php } ?>
 		</select>
 		<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>

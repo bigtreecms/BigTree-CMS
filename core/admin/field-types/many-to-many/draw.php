@@ -98,7 +98,7 @@
 				<?php if ($sortable) { ?>
 				<span class="icon_sort"></span>
 				<?php } ?>
-				<p class="multi_widget_entry_title"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($description),100))?></p>
+				<p class="multi_widget_entry_title"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($description ?? ""),100))?></p>
 				<a href="#" class="icon_delete"></a>
 			</div>
 		</li>
@@ -110,7 +110,7 @@
 	<footer>
 		<select>
 			<?php foreach ($list as $k => $v) { ?>
-			<option value="<?=BigTree::safeEncode($k)?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($v),100))?></option>
+			<option value="<?=BigTree::safeEncode($k)?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($v ?? ""),100))?></option>
 			<?php } ?>
 		</select>
 		<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>

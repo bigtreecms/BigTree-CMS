@@ -130,7 +130,7 @@
 			$option["value"] = $option["value"] ?? "";
 			$option["description"] = $option["description"]?? "";
 	?>
-	<option value="<?=BigTree::safeEncode($option["value"])?>"<?php if ($field["value"] == $option["value"]) { ?> selected="selected"<?php } ?><?php if (!empty($option["access_level"])) { ?> data-access-level="<?=$option["access_level"]?>"<?php } ?>><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($option["description"]), 100))?></option>
+	<option value="<?=BigTree::safeEncode($option["value"])?>"<?php if ($field["value"] == $option["value"]) { ?> selected="selected"<?php } ?><?php if (!empty($option["access_level"])) { ?> data-access-level="<?=$option["access_level"]?>"<?php } ?>><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($option["description"] ?? ""), 100))?></option>
 	<?php
 		}
 	?>
