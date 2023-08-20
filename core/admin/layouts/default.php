@@ -188,7 +188,7 @@
 				<?php
 					if (is_array($bigtree["subnav_extras"])) {
 						foreach ($bigtree["subnav_extras"] as $link) {
-							if ($admin->Level >= $link["level"]) {
+							if (empty($link["level"]) || $admin->Level >= $link["level"]) {
 				?>
 				<a href="<?=$link["link"]?>"><span class="icon_small icon_small_<?=$link["icon"]?>"></span><?=$link["title"]?></a>
 				<?php
