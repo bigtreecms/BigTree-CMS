@@ -611,7 +611,7 @@ RewriteRule (.*) site/$1 [L]');
 					$base = $protocol.$_SERVER["SERVER_NAME"].str_replace("install.php", "", $_SERVER["REQUEST_URI"]);
 				}
 
-				require_once "vendor/oyejorge/less.php/lib/Less/Autoloader.php";
+				require_once "vendor/wikimedia/less.php/lib/Less/Autoloader.php";
 				Less_Autoloader::register();
 
 				// Load LESS compiler

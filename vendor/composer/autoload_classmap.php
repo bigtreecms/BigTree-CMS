@@ -36,5 +36,5 @@ return array(
     'Grpc\\Gcp\\ApiConfig' => $vendorDir . '/google/grpc-gcp/src/generated/Grpc/Gcp/ApiConfig.php',
     'Grpc\\Gcp\\ChannelPoolConfig' => $vendorDir . '/google/grpc-gcp/src/generated/Grpc/Gcp/ChannelPoolConfig.php',
     'Grpc\\Gcp\\MethodConfig' => $vendorDir . '/google/grpc-gcp/src/generated/Grpc/Gcp/MethodConfig.php',
-    'lessc' => $vendorDir . '/oyejorge/less.php/lessc.inc.php',
+    'lessc' => $vendorDir . '/wikimedia/less.php/lessc.inc.php',
 );

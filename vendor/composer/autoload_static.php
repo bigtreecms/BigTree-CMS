@@ -226,7 +226,7 @@ class ComposerStaticInit2a1c8026dd7928b6bf194237c0f8197e
         array (
             'Less' => 
             array (
-                0 => __DIR__ . '/..' . '/oyejorge/less.php/lib',
+                0 => __DIR__ . '/..' . '/wikimedia/less.php/lib',
             ),
         ),
         'J' => 
@@ -269,7 +269,7 @@ class ComposerStaticInit2a1c8026dd7928b6bf194237c0f8197e
         'Grpc\\Gcp\\ApiConfig' => __DIR__ . '/..' . '/google/grpc-gcp/src/generated/Grpc/Gcp/ApiConfig.php',
         'Grpc\\Gcp\\ChannelPoolConfig' => __DIR__ . '/..' . '/google/grpc-gcp/src/generated/Grpc/Gcp/ChannelPoolConfig.php',
         'Grpc\\Gcp\\MethodConfig' => __DIR__ . '/..' . '/google/grpc-gcp/src/generated/Grpc/Gcp/MethodConfig.php',
-        'lessc' => __DIR__ . '/..' . '/oyejorge/less.php/lessc.inc.php',
+        'lessc' => __DIR__ . '/..' . '/wikimedia/less.php/lessc.inc.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
