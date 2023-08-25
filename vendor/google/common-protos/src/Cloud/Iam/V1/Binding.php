@@ -23,7 +23,7 @@ class Binding extends \Google\Protobuf\Internal\Message
      */
     protected $role = '';
     /**
-     * Specifies the principals requesting access for a Cloud Platform resource.
+     * Specifies the principals requesting access for a Google Cloud resource.
      * `members` can have the following values:
      * * `allUsers`: A special identifier that represents anyone who is
      *    on the internet; with or without a Google account.
@@ -83,7 +83,7 @@ class Binding extends \Google\Protobuf\Internal\Message
      *           Role that is assigned to the list of `members`, or principals.
      *           For example, `roles/viewer`, `roles/editor`, or `roles/owner`.
      *     @type array<string>|\Google\Protobuf\Internal\RepeatedField $members
-     *           Specifies the principals requesting access for a Cloud Platform resource.
+     *           Specifies the principals requesting access for a Google Cloud resource.
      *           `members` can have the following values:
      *           * `allUsers`: A special identifier that represents anyone who is
      *              on the internet; with or without a Google account.
@@ -160,7 +160,7 @@ class Binding extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * Specifies the principals requesting access for a Cloud Platform resource.
+     * Specifies the principals requesting access for a Google Cloud resource.
      * `members` can have the following values:
      * * `allUsers`: A special identifier that represents anyone who is
      *    on the internet; with or without a Google account.
@@ -201,7 +201,7 @@ class Binding extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * Specifies the principals requesting access for a Cloud Platform resource.
+     * Specifies the principals requesting access for a Google Cloud resource.
      * `members` can have the following values:
      * * `allUsers`: A special identifier that represents anyone who is
      *    on the internet; with or without a Google account.

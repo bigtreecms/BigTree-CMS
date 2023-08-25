@@ -14,13 +14,15 @@ class Control
         if (static::$is_initialized == true) {
           return;
         }
+        \GPBMetadata\Google\Api\Policy::initOnce();
         $pool->internalAddGeneratedFile(
             '
-¾
+ñ
 google/api/control.proto
-google.api"
+google.api"Q
 Control
-environment (	Bn
+environment (	1
+method_policies (2.google.api.MethodPolicyBn
 com.google.apiBControlProtoPZEgoogle.golang.org/genproto/googleapis/api/serviceconfig;serviceconfig¢GAPIbproto3'
         , true);
 

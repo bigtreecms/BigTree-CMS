@@ -82,6 +82,21 @@ class FieldBehavior
      * Generated from protobuf enum <code>NON_EMPTY_DEFAULT = 7;</code>
      */
     const NON_EMPTY_DEFAULT = 7;
+    /**
+     * Denotes that the field in a resource (a message annotated with
+     * google.api.resource) is used in the resource name to uniquely identify the
+     * resource. For AIP-compliant APIs, this should only be applied to the
+     * `name` field on the resource.
+     * This behavior should not be applied to references to other resources within
+     * the message.
+     * The identifier field of resources often have different field behavior
+     * depending on the request it is embedded in (e.g. for Create methods name
+     * is optional and unused, while for Update methods it is required). Instead
+     * of method-specific annotations, only `IDENTIFIER` is required.
+     *
+     * Generated from protobuf enum <code>IDENTIFIER = 8;</code>
+     */
+    const IDENTIFIER = 8;
 
     private static $valueToName = [
         self::FIELD_BEHAVIOR_UNSPECIFIED => 'FIELD_BEHAVIOR_UNSPECIFIED',
@@ -92,6 +107,7 @@ class FieldBehavior
         self::IMMUTABLE => 'IMMUTABLE',
         self::UNORDERED_LIST => 'UNORDERED_LIST',
         self::NON_EMPTY_DEFAULT => 'NON_EMPTY_DEFAULT',
+        self::IDENTIFIER => 'IDENTIFIER',
     ];
 
     public static function name($value)

@@ -1,5 +1,19 @@
 # Changelog
 
+## [4.3.0](https://github.com/googleapis/common-protos-php/compare/v4.2.0...v4.3.0) (2023-08-22)
+
+
+### Features
+
+* Add new FieldBehavior value IDENTIFIER ([#67](https://github.com/googleapis/common-protos-php/issues/67)) ([6c6c21f](https://github.com/googleapis/common-protos-php/commit/6c6c21fc4a2f4711aeddad11082ed17acaf4733c))
+
+## [4.2.0](https://github.com/googleapis/common-protos-php/compare/v4.1.0...v4.2.0) (2023-07-25)
+
+
+### Features
+
+* Add a proto message to describe the `resource_type` and `resource_permission` for an API method ([#64](https://github.com/googleapis/common-protos-php/issues/64)) ([8a0ff5f](https://github.com/googleapis/common-protos-php/commit/8a0ff5f9ffcf3683fc4718e85e97f45a001a1925))
+
 ## [4.1.0](https://github.com/googleapis/common-protos-php/compare/v4.0.0...v4.1.0) (2023-05-06)
 
 

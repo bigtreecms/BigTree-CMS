@@ -32,7 +32,7 @@ class BindingDelta extends \Google\Protobuf\Internal\Message
      */
     protected $role = '';
     /**
-     * A single identity requesting access for a Cloud Platform resource.
+     * A single identity requesting access for a Google Cloud resource.
      * Follows the same format of Binding.members.
      * Required
      *
@@ -60,7 +60,7 @@ class BindingDelta extends \Google\Protobuf\Internal\Message
      *           For example, `roles/viewer`, `roles/editor`, or `roles/owner`.
      *           Required
      *     @type string $member
-     *           A single identity requesting access for a Cloud Platform resource.
+     *           A single identity requesting access for a Google Cloud resource.
      *           Follows the same format of Binding.members.
      *           Required
      *     @type \Google\Type\Expr $condition
@@ -131,7 +131,7 @@ class BindingDelta extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * A single identity requesting access for a Cloud Platform resource.
+     * A single identity requesting access for a Google Cloud resource.
      * Follows the same format of Binding.members.
      * Required
      *
@@ -144,7 +144,7 @@ class BindingDelta extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * A single identity requesting access for a Cloud Platform resource.
+     * A single identity requesting access for a Google Cloud resource.
      * Follows the same format of Binding.members.
      * Required
      *

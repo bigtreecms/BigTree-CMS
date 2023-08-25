@@ -54,8 +54,8 @@ use Google\Protobuf\Internal\GPBUtil;
  *       ]
  *     }
  * For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ
- * logging. It also exempts jose&#64;example.com from DATA_READ logging, and
- * aliya&#64;example.com from DATA_WRITE logging.
+ * logging. It also exempts `jose&#64;example.com` from DATA_READ logging, and
+ * `aliya&#64;example.com` from DATA_WRITE logging.
  *
  * Generated from protobuf message <code>google.iam.v1.AuditConfig</code>
  */
