@@ -11,6 +11,7 @@
 		<h2>Logging In...</h2>
 		<fieldset class="clear">
 			<p>You are being logged into all available domains and will be redirected when the process is complete.</p>
+			<p>Logging into <span id="login-domain"><?=$domains[0]?></span>...</p>
 		</fieldset>
 		<br />
 	</form>
@@ -22,6 +23,8 @@
 		var Total = <?=count($domains)?>;
 
 		function multiSiteLogin(index) {
+			$("#login-domain").html(Domains[index]);
+			
 			$.ajax({
 				url: Domains[index] + "?<?php if (!BigTree::getIsSSL()) { ?>no_ssl&<?php } ?>bigtree_login_redirect_session_key=" + encodeURIComponent("<?=$_GET["key"]?>"),
 				xhrFields: { withCredentials: true }
