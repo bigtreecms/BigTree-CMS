@@ -108,7 +108,12 @@
 				if (!empty($bigtree["config"]["css"]["files"][$css_file]) && is_array($bigtree["config"]["css"]["files"][$css_file])) {
 					// If we need LESS, load less.php
 					if (strpos(implode(" ", $bigtree["config"]["css"]["files"][$css_file]), "less") > -1) {
-						require_once SERVER_ROOT."vendor/wikimedia/less.php/lib/Less/Autoloader.php";
+						if (file_exists(SERVER_ROOT."vendor/wikimedia/less.php/lib/Less/Autoloader.php")) {
+							require_once SERVER_ROOT."vendor/wikimedia/less.php/lib/Less/Autoloader.php";
+						} else {
+							require_once SERVER_ROOT."vendor/oyejorge/less.php/lib/Less/Autoloader.php";
+						}
+						
 						Less_Autoloader::register();
 					}
 

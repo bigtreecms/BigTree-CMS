@@ -101,8 +101,13 @@
 				die();
 			}
 		
-			// Load LESS compiler
-			require_once $server_root."vendor/wikimedia/less.php/lib/Less/Autoloader.php";
+			// Load LESS compiler — prefer the newer version but support older fork
+			if (file_exists($server_root."vendor/wikimedia/less.php/lib/Less/Autoloader.php")) {
+				require_once $server_root."vendor/wikimedia/less.php/lib/Less/Autoloader.php";
+			} else {
+				require_once $server_root."vendor/oyejorge/less.php/lib/Less/Autoloader.php";
+			}
+			
 			Less_Autoloader::register();
 			$parser = new Less_Parser(["compress" => true]);
 			$parser->parseFile($css_file);
