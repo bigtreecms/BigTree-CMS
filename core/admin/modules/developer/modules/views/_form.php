@@ -32,7 +32,7 @@
 			<select name="related_form">
 				<option value="">&mdash;</option>
 				<?php foreach ($forms as $form) { ?>
-				<option value="<?=$form["id"]?>"<?php if ($form["id"] == $related_form) { ?> selected="selected"<?php } ?>><?=$form["title"]?> (<?=$form["table"]?>)</option>
+				<option value="<?=$form["id"]?>"<?php if (!empty($related_form) && $form["id"] == $related_form) { ?> selected="selected"<?php } ?>><?=$form["title"]?> (<?=$form["table"]?>)</option>
 				<?php } ?>
 			</select>
 		</fieldset>
