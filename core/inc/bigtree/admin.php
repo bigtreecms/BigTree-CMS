@@ -10058,7 +10058,7 @@
 			]);
 			
 			if ($old_id != $data["id"]) {
-				SQL::update("jsondb -> settings", $old_id, ["id" => $data["id"]]);
+				SQL::update("bigtree_settings", $old_id, ["id" => $data["id"]]);
 			}
 			
 			// If encryption status has changed, update the value
