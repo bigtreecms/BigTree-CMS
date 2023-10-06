@@ -20,6 +20,13 @@
 			continue;
 		}
 		
+		// Check to see if this is existing data that was not changed at all due to the component not loading the field
+		if (!isset($data["*photo"]) && !isset($data["*localvideo"]) && !isset($data["*video"])) {
+			$field["output"][] = $data;
+
+			continue;
+		}
+		
 		$entry = [];
 		
 		// Process a manual video upload
