@@ -24,7 +24,7 @@
 				<select id="cloud_field_container" name="container">
 					<option></option>
 					<?php foreach ($containers as $container) { ?>
-					<option value="<?=htmlspecialchars($container["name"])?>"<?php if ($storage->Settings->Container == $container["name"] && $storage->Settings->Service == $_POST["service"]) { ?> selected="selected"<?php } ?>><?=htmlspecialchars($container["name"])?></option>
+					<option value="<?=htmlspecialchars($container["name"])?>"<?php if (!empty($storage->Settings->Container) && $storage->Settings->Container == $container["name"] && !empty($storage->Settings->Service) && $storage->Settings->Service == $_POST["service"]) { ?> selected="selected"<?php } ?>><?=htmlspecialchars($container["name"])?></option>
 					<?php } ?>
 				</select>
 			</fieldset>
