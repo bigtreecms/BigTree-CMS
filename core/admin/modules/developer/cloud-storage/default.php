@@ -6,6 +6,16 @@
 	<form method="post" action="<?=DEVELOPER_ROOT?>cloud-storage/set-default/">
 		<?php $admin->drawCSRFToken() ?>
 		<section>
+			<?php
+				if (!empty($_SESSION["bigtree_admin_error"])) {
+			?>
+			<div class="error_message">
+				<p><?=nl2br($_SESSION["bigtree_admin_error"])?></p>
+			</div>
+			<?php
+					unset($_SESSION["bigtree_admin_error"]);
+				}
+			?>
 			<div class="contain">
 				<a class="box_select last_row<?php if (!empty($cloud->Settings["amazon"]["active"])) { ?> connected<?php } ?>" href="<?=DEVELOPER_ROOT?>cloud-storage/amazon/">
 					<span class="amazon"></span>

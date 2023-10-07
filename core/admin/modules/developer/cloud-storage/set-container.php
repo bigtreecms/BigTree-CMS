@@ -44,6 +44,7 @@
 			$storage->Settings->Container = $container;
 		} else {
 			$admin->growl("Developer","Failed to create container.","error");
+			$_SESSION["bigtree_admin_error"] = $cloud->Errors ? $cloud->Errors[count($cloud->Errors) - 1] : null;
 			BigTree::redirect(DEVELOPER_ROOT."cloud-storage/");
 		}
 	}
