@@ -20,6 +20,20 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.5.8
+- UPDATED: Now using Wikimedia LESS parser for better support (requires updating your composer.json or copying core's)
+- UPDATED: AWS dependencies (requires updating your composer.json or copying core's)
+- UPDATED: TinyMCE to 6.7.0
+- FIXED: SEO Invisible state disappearing when pending changes were applied to a page and it was then published directly
+- FIXED: BigTreeCMS::urlify no longer crash on a null value being passed
+- FIXED: Sites that use database sessions and have multiple domains to login to should now more consistently login to all the domains
+- FIXED: 303 Redirect not properly passing the HTTP code
+- FIXED: Changing the ID of a setting in Developer not transitioning the value properly to the new ID (and also crashing on update)
+- FIXED: Media Gallery losing some metadata when saving a page in which the media gallery was inside a closed component
+- FIXED: Setting a cloud storage container now gives you error responses rather than just saying it failed
+- FIXED: Creating an AWS bucket now works properly (no longer tries to create a public bucket)
+- FIXED: A bunch of PHP 8 warnings
+
 ### 4.5.7
 - FIXED: Submitting pending changes to pages that are in navigation causing them to lose the in nav flag
 - FIXED: Replacing images in the file manager with a new image now generates new thumbnails
