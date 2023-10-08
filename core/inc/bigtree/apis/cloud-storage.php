@@ -222,7 +222,7 @@
 
 			Parameters:
 				name - Container name (keep in mind this must be unique among all other containers)
-				public - true for public, defaults to false
+				public - true for public, defaults to false (does not work for AWS)
 			
 			Returns:
 				true if successful.
@@ -232,10 +232,7 @@
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				try {
-					$this->S3Client->createBucket([
-						"Bucket" => $name,
-						"ACL" => $public ? "public-read" : ""
-					]);
+					$this->S3Client->createBucket(["Bucket" => $name]);
 					
 					return true;
 				} catch (Exception $e) {
