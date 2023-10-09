@@ -2428,8 +2428,8 @@ var BigTreeCallouts = function(settings) {
 			e.preventDefault();
 
 			var parent = $(this).parents("li").eq(0);
-			var field_container = parent.find(".matrix_entry_fields");
-			var input = field_container.find("input");
+			var field_container = parent.find(".matrix_entry_fields").eq(0);
+			var input = field_container.find("input").eq(0);
 
 			if (field_container.hasClass("uninit")) {
 				field_container.load("admin_root/ajax/callout-edit/", {
@@ -2640,11 +2640,11 @@ var BigTreeMatrix = function(settings) {
 			e.preventDefault()
 
 			var parent = $(this).parents("li").eq(0);
-			var field_container = parent.find(".matrix_entry_fields");
+			var field_container = parent.find(".matrix_entry_fields").eq(0);
 
 			if (field_container.hasClass("uninit")) {
 				field_container.load("admin_root/ajax/matrix-edit/", {
-					data: field_container.find("input").val(),
+					data: field_container.find("input").eq(0).val(),
 					count: field_container.data("count"),
 					key: Key,
 					tab_index: TabIndex,
