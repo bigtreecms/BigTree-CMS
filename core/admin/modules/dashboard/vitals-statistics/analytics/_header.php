@@ -17,7 +17,7 @@
 	}
 	
 	if (empty($analytics->Settings["credentials"])) {
-		BigTree::redirect(DEVELOPER_ROOT."analytics/");
+		BigTree::redirect(ADMIN_ROOT."developer/analytics/");
 	} elseif (!$cache && end($bigtree["path"]) !== "cache") {
 		BigTree::redirect(MODULE_ROOT."cache/");
 	}
