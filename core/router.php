@@ -510,7 +510,7 @@
 				include SERVER_ROOT."templates/basic/".$bigtree["page"]["template"].".php";
 			}
 		} else {
-			BigTree::redirect($bigtree["page"]["external"]);
+			BigTree::redirect(htmlspecialchars_decode(html_entity_decode($bigtree["page"]["external"], ENT_COMPAT, "UTF-8")));
 		}
 	// Check for standard sitemap
 	} else if ($bigtree["path"][0] == "sitemap" && empty($bigtree["path"][1])) {
