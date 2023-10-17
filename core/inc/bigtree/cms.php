@@ -1031,8 +1031,16 @@
 										$module_nav[] = $item;
 										$module_nav_count++;
 									}
+
+									$nav_position = "bottom";
+
+									if (property_exists($module["class"], "NavPosition")) {
+										$nav_position = $module["class"]::NavPosition;
+									} else if (property_exists($instance, "NavPosition")) {
+										$nav_position = $instance->NavPosition;
+									}
 									
-									if ($instance->NavPosition == "top") {
+									if ($nav_position == "top") {
 										$nav = array_merge($module_nav, $nav);
 									} else {
 										$nav = array_merge($nav, $module_nav);
@@ -1055,7 +1063,15 @@
 								$instance = new $module["class"];
 								
 								if (method_exists($instance, "getNav")) {
-									if ($instance->NavPosition == "top") {
+									$nav_position = "bottom";
+
+									if (property_exists($module["class"], "NavPosition")) {
+										$nav_position = $module["class"]::$NavPosition;
+									} else if (property_exists($instance, "NavPosition")) {
+										$nav_position = $instance->NavPosition;
+									}
+									
+									if ($nav_position == "top") {
 										$nav = array_merge($instance->getNav($f), $nav);
 									} else {
 										$nav = array_merge($nav, $instance->getNav($f));
