@@ -1033,11 +1033,11 @@
 									}
 
 									$nav_position = "bottom";
-
-									if (property_exists($module["class"], "NavPosition")) {
-										$nav_position = $module["class"]::NavPosition;
-									} else if (property_exists($instance, "NavPosition")) {
+									
+									if (property_exists($instance, "NavPosition")) {
 										$nav_position = $instance->NavPosition;
+									} else if (property_exists($module["class"], "NavPosition")) {
+										$nav_position = $module["class"]::$NavPosition;
 									}
 									
 									if ($nav_position == "top") {
@@ -1064,11 +1064,11 @@
 								
 								if (method_exists($instance, "getNav")) {
 									$nav_position = "bottom";
-
-									if (property_exists($module["class"], "NavPosition")) {
-										$nav_position = $module["class"]::$NavPosition;
-									} else if (property_exists($instance, "NavPosition")) {
+									
+									if (property_exists($instance, "NavPosition")) {
 										$nav_position = $instance->NavPosition;
+									} else if (property_exists($module["class"], "NavPosition")) {
+										$nav_position = $module["class"]::$NavPosition;
 									}
 									
 									if ($nav_position == "top") {
