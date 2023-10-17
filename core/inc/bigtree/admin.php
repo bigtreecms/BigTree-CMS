@@ -642,9 +642,10 @@
 		*/
 		
 		public static function checkHTML($relative_path, $html, $external = false) {
-			if (!$html) {
+			if (!$html || !is_string($html)) {
 				return [];
 			}
+			
 			$errors = [];
 			$doc = new DOMDocument();
 			@$doc->loadHTML($html); // Silenced because the HTML could be invalid.
@@ -662,7 +663,7 @@
 				$local = false;
 				
 				if (substr($href, 0, 4) == "http") {
-					foreach (BigTreeCMS::$ReplaceableRootKeys as $local_key) {
+					foreach (BigTreeCMS::$ReplaceableRootTokens as $local_key) {
 						if (strpos($href, $local_key) === 0) {
 							$local = true;
 						}
@@ -709,7 +710,7 @@
 				$local = false;
 				
 				if (substr($href, 0, 4) == "http") {
-					foreach (BigTreeCMS::$ReplaceableRootKeys as $local_key) {
+					foreach (BigTreeCMS::$ReplaceableRootTokens as $local_key) {
 						if (strpos($href, $local_key) === 0) {
 							$local = true;
 						}

@@ -3,12 +3,14 @@
 	$admin->requireLevel(1);
 	$pages = $admin->getPageIds();
 	$modules = $admin->getModuleForms();
+	
 	// Get the ids of items that are in each module.
 	foreach ($modules as &$m) {
 		$action = $admin->getModuleActionForForm($m);
 		$module = $admin->getModule($action["module"]);
-		if ($module["group"]) {
-			$group = $admin->getModuleGroup($module["group"]);
+		$group = !empty($module["group"]) ? $admin->getModuleGroup($module["group"]) : null;
+		
+		if ($group) {
 			$m["module_name"] = "Modules&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$group["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$m["title"];
 		} else {
 			$m["module_name"] = "Modules&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$m["title"];
@@ -16,6 +18,7 @@
 
 		$m["items"] = array();
 		$q = sqlquery("SELECT id FROM `".$m["table"]."`");
+		
 		while ($f = sqlfetch($q)) {
 			$m["items"][] = $f["id"];
 		}

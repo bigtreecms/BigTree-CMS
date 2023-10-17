@@ -6,7 +6,7 @@
 	$resources = BigTree::translateArray($page["resources"]);
 
 	// Loop through template resources and see if we have related page data, only check html and text fields
-	if (is_array($template["resources"])) {
+	if (!empty($template["resources"]) && is_array($template["resources"])) {
 		$check_data($local_path,$external,$template["resources"],$resources);
 	}
 	
