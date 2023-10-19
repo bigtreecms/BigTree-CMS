@@ -183,13 +183,17 @@
 	// Serve Images
 	if ($bigtree["path"][0] == "images") {
 		if ($bigtree["path"][1] == "placeholder") {
-			if (is_array($bigtree["config"]["placeholder"][$bigtree["path"][2]])) {
+			if (
+				!empty($bigtree["config"]["placeholder"][$bigtree["path"][2]]) &&
+				is_array($bigtree["config"]["placeholder"][$bigtree["path"][2]])
+			) {
 				$style = $bigtree["config"]["placeholder"][$bigtree["path"][2]];
 				$size = explode("x", strtolower($bigtree["path"][3]));
 			} else {
 				$style = $bigtree["config"]["placeholder"]["default"];
 				$size = explode("x", strtolower($bigtree["path"][2]));
 			}
+			
 			if (count($size) == 2) {
 				BigTree::placeholderImage($size[0], $size[1], $style["background_color"], $style["text_color"], $style["image"], $style["text"]);
 			}
