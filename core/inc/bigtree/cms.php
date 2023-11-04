@@ -247,7 +247,7 @@
 
 			ob_clean();
 
-			if (static::handle404(str_ireplace(WWW_ROOT,"",BigTree::currentURL()))) {
+			if (static::handle404($_GET["bigtree_htaccess_url"])) {
 				$bigtree["layout"] = "default";
 				ob_start();
 				include SERVER_ROOT."templates/basic/_404.php";
