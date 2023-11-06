@@ -56,7 +56,7 @@
 			"settings" => $settings
 		];
 		
-		if ($settings["min_width"] && $settings["min_height"]) {
+		if (!empty($settings["min_width"]) && !empty($settings["min_height"])) {
 			$field["subtitle"] = "(min ".$settings["min_width"]."x".$settings["min_height"].")";
 		}
 	} elseif ($type == "local") {
