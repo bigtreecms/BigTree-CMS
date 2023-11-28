@@ -19,7 +19,7 @@
 				}
 			}
 		} else {
-			$field["output"] = $field["input"];
+			$field["output"] = $field["input"] ?: "";
 		}
 	}
 	
