@@ -1,5 +1,5 @@
 <?php
-	if (!$field["has_value"] && !empty($field["settings"]["default_checked"])) {
+	if (empty($field["has_value"]) && !empty($field["settings"]["default_checked"])) {
 		$field["value"] = "on";
 	}
 ?>
