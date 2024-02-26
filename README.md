@@ -20,6 +20,14 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.5.9
+- FIXED: Nested callouts / matrices not re-opening and closing properly
+- FIXED: Incorrect URL for configuring analytics from dashboard
+- FIXED: Several PHP 8.2 related warnings
+- FIXED: Redirecting to external URLs that contained UTF-8 characters
+- FIXED: BigTreeCMS::catch404 not properly handling GET variables on the current URL
+- FIXED: File field type not allowing removal of existing files
+
 ### 4.5.8
 - UPDATED: Now using Wikimedia LESS parser for better support (requires updating your composer.json or copying core's)
 - UPDATED: AWS dependencies (requires updating your composer.json or copying core's)
