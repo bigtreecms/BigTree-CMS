@@ -34,7 +34,7 @@
 	}
 
 	// Prevent path manipulations
-	if (strpos($_GET["bigtree_htaccess_url"], "..\\") !== false) {
+	if (isset($_GET["bigtree_htaccess_url"]) && strpos($_GET["bigtree_htaccess_url"], "..\\") !== false) {
 		die();
 	}
 	
