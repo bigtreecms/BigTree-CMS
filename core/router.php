@@ -203,9 +203,9 @@
 			
 			if (function_exists("apache_request_headers")) {
 				$headers = apache_request_headers();
-				$ims = $headers["If-Modified-Since"];
+				$ims = isset($headers["If-Modified-Since"]) ? $headers["If-Modified-Since"] : false;
 			} else {
-				$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
+				$ims = isset($_SERVER["HTTP_IF_MODIFIED_SINCE"]) ? $_SERVER["HTTP_IF_MODIFIED_SINCE"] : false;
 			}
 			
 			if (empty($ims) || strtotime($ims) != $last_modified) {
