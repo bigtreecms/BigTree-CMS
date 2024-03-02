@@ -861,9 +861,22 @@
 		
 		public function processThumbnails() {
 			foreach ($this->Settings["thumbs"] as $thumb) {
+				$thumb_width = $thumb["width"] ?? 0;
+				$thumb_height = $thumb["height"] ?? 0;
+				$thumb_prefix = $thumb["prefix"] ?? "";
+				
+				// If we're overwriting the default image file name with a thumbnail, don't lower the quality by creating a new thumb we don't need to
+				if (
+					$thumb_prefix === "" &&
+					(!$thumb_width || $this->Width < $thumb_width) &&
+					(!$thumb_height || $this->Height < $thumb_height)
+				) {
+					continue;
+				}
+				
 				$temp = $this->getTempFileName();
-				$this->thumbnail($temp, $thumb["width"] ?? 0, $thumb["height"] ?? 0, $this->Settings["retina"], !empty($thumb["grayscale"]));
-				$this->Storage->replace($temp, $thumb["prefix"].$this->StoredName, $this->Settings["directory"], true, $this->ForcingLocalReplace);
+				$this->thumbnail($temp, $thumb_width, $thumb_height, $this->Settings["retina"], !empty($thumb["grayscale"]));
+				$this->Storage->replace($temp, $thumb_prefix.$this->StoredName, $this->Settings["directory"], true, $this->ForcingLocalReplace);
 			}
 		}
 		
