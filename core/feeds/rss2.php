@@ -9,7 +9,7 @@
 			$sort = !empty($feed["settings"]["sort"]) ? $feed["settings"]["sort"] : "id DESC";
 			$limit = !empty($feed["settings"]["limit"]) ? intval($feed["settings"]["limit"]) : "15";
 			$items = [];
-			
+
 			if (!empty($feed["settings"]["parser"])) {
 				$q = sqlquery("SELECT * FROM ".$feed["table"]." ORDER BY $sort");
 			} else {
@@ -38,14 +38,16 @@
 			foreach ($items as $item) {
 				if (!empty($feed["settings"]["link_gen"])) {
 					$link = $feed["settings"]["link_gen"];
-					
+
 					foreach ($item as $key => $val) {
-						$link = str_replace("{".$key."}",$val,$link);
+						if (is_string($val)) {
+							$link = str_replace("{".$key."}", $val, $link);
+						}
 					}
 				} else {
 					$link = $item[$feed["settings"]["link"]];
 				}
-				
+
 				$content = $item[$feed["settings"]["description"]];
 				$limit = !empty($feed["settings"]["content_limit"]) ? $feed["settings"]["content_limit"] : 500;
 				$blurb = BigTree::trimLength($content,$limit);
@@ -61,7 +63,7 @@
 			<author><?=$item[$feed["settings"]["creator"]]?></author>
 			<?php
 				}
-				
+
 				if ($feed["settings"]["date"]) {
 			?>
 			<pubDate><?=date("D, d M Y H:i:s T",strtotime($item[$feed["settings"]["date"]]))?></pubDate>
