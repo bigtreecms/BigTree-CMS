@@ -184,7 +184,7 @@
 			
 			// Run pop lists
 			foreach ($poplists as $key => $pop) {
-				$f = sqlfetch(sqlquery("SELECT `".$pop["description"]."` FROM `".$pop["table"]."` WHERE id = '".$item[$key]."'"));
+				$f = SQL::fetch("SELECT `".$pop["description"]."` FROM `".$pop["table"]."` WHERE id = ?", $item[$key]);
 
 				if (is_array($f)) {
 					$item[$key] = current($f);
