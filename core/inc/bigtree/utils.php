@@ -267,18 +267,23 @@
 		public static function cURL($url, $post = false, $options = [], $strict_security = true, $output_file = false, $updating_bundle = false) {
 			global $bigtree;
 
-			$cert_bundle = SERVER_ROOT."cache/bigtree-ca-cert.pem";
+			$cache_cert_bundle = SERVER_ROOT."cache/bigtree-ca-cert.pem";
+			$core_cert_bundle = SERVER_ROOT."core/cacert.pem";
+			$cert_bundle = $cache_cert_bundle;
 
 			// Use the core bundle which may be out of date to grab the latest bundle
-			if (!file_exists($cert_bundle) || !file_get_contents($cert_bundle)) {
-				$cert_bundle = SERVER_ROOT."core/cacert.pem";
+			if (!file_exists($cache_cert_bundle) || !file_get_contents($cache_cert_bundle)) {
+				$cert_bundle = $core_cert_bundle;
 			}
 
-			// Check CA cert bundle has been updated in the past month
+			// If the cert bundle is old grab a new copy
 			if (!$updating_bundle && filemtime($cert_bundle) < strtotime("-1 month")) {
-				BigTree::cURL("https://curl.se/ca/cacert.pem", false, [], true, SERVER_ROOT."cache/bigtree-ca-cert-new.pem", true);
-				@unlink($cert_bundle);
-				@rename(SERVER_ROOT."cache/bigtree-ca-cert-new.pem", $cert_bundle);
+				BigTree::cURL("https://curl.se/ca/cacert.pem", false, [], true, $cache_cert_bundle, true);
+				
+				// If we successfully got a new bundle use it
+				if (file_exists($cache_cert_bundle) && file_get_contents($cache_cert_bundle)) {
+					$cert_bundle = $cache_cert_bundle;
+				}
 			}
 
 			// Startup cURL and set the URL
