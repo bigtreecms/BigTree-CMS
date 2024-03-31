@@ -188,10 +188,14 @@
 			// If we're auto converting images to JPG from PNG
 			$file_name = $this->convertJPEG($local_file,$file_name);
 
-			// Enforce trailing slashe on relative_path
+			// Enforce trailing slash on relative_path
 			$relative_path = $relative_path ? rtrim($relative_path,"/")."/" : "files/";
 
 			if ($this->Cloud && !$force_local) {
+				if ($relative_path === "/") {
+					$relative_path = "";
+				}
+				
 				$success = $this->Cloud->uploadFile($local_file,$this->Settings->Container,$relative_path.$file_name,true);
 
 				if ($success) {
