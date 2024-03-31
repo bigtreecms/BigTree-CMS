@@ -20,6 +20,13 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.5.10
+- FIXED: cURL Certificate bundles incorrectly updating the core bundle which could occasionally write a 0 byte bundle and cause issues calling third party services
+- FIXED: Inability to write files to root of S3 buckets
+- FIXED: View caching crashing if someone changed an ID column to a string column and inserted quotes into it
+- FIXED: Link generator throwing warnings in RSS feeds when non-string values were present
+- FIXED: Image thumbnails are now only generated for the default filename if the image being uploaded is larger than the thumbnail size (allows for animated gifs to pass unscathed)
+
 ### 4.5.9
 - FIXED: Nested callouts / matrices not re-opening and closing properly
 - FIXED: Incorrect URL for configuring analytics from dashboard
