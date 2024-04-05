@@ -5731,11 +5731,14 @@
 			$last_prefix = false;
 			$tokenized_file = BigTreeCMS::replaceHardRoots($file);
 			$single_domain_tokenized_file = static::stripMultipleRootTokens($tokenized_file);
-			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($file)."' OR file = '".sqlescape($tokenized_file)."' OR file = '".sqlescape($single_domain_tokenized_file)."'"));
+			$item = SQL::fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ? OR file = ?",
+							   $file, $tokenized_file, $single_domain_tokenized_file);
 
-			// Convert {wwwroot} to {staticroot} and see if that fixes it
+			// Try variations of either {staticroot} or {wwwroot} depending on which root got converted
 			if (!$item) {
-				$item = sqlfetch(sqlquery("SELECT * FROM bigtree_resources WHERE file = '".sqlescape($file)."' OR file = '".sqlescape(str_replace("{wwwroot}", "{staticroot}", $tokenized_file))."' OR file = '".sqlescape($single_domain_tokenized_file)."'"));
+				$item = SQL::fetch("SELECT * FROM bigtree_resources WHERE file = ? OR file = ?",
+								   str_replace("{wwwroot}", "{staticroot}", $single_domain_tokenized_file),
+								   str_replace("{staticroot}", "{wwwroot}", $single_domain_tokenized_file));
 			}
 
 			if (!$item) {
