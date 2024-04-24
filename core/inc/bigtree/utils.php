@@ -272,7 +272,10 @@
 			$cert_bundle = $cache_cert_bundle;
 
 			// Use the core bundle which may be out of date to grab the latest bundle
-			if (!file_exists($cache_cert_bundle) || !file_get_contents($cache_cert_bundle)) {
+			if (
+				!file_exists($cache_cert_bundle) ||
+				strpos(file_get_contents($cache_cert_bundle), "-----BEGIN CERTIFICATE-----") === false
+			) {
 				$cert_bundle = $core_cert_bundle;
 			}
 
@@ -281,7 +284,10 @@
 				BigTree::cURL("https://curl.se/ca/cacert.pem", false, [], true, $cache_cert_bundle, true);
 				
 				// If we successfully got a new bundle use it
-				if (file_exists($cache_cert_bundle) && file_get_contents($cache_cert_bundle)) {
+				if (
+					file_exists($cache_cert_bundle) &&
+					strpos(file_get_contents($cache_cert_bundle), "-----BEGIN CERTIFICATE-----") !== false
+				) {
 					$cert_bundle = $cache_cert_bundle;
 				}
 			}
