@@ -14,10 +14,10 @@
 			<fieldset>
 				<label class="required">Use Cases</label>
 				<ul class="developer_field_types_usage">
-					<li><input type="checkbox" name="use_cases[templates]"<?php if ($use_cases["templates"]) { ?> checked="checked"<?php } ?> /> <label class="for_checkbox">Templates</label></li>
-					<li><input type="checkbox" name="use_cases[modules]"<?php if ($use_cases["modules"]) { ?> checked="checked"<?php } ?> /> <label class="for_checkbox">Modules</label></li>
-					<li><input type="checkbox" name="use_cases[callouts]"<?php if ($use_cases["callouts"]) { ?> checked="checked"<?php } ?> /> <label class="for_checkbox">Callouts</label></li>
-					<li><input type="checkbox" name="use_cases[settings]"<?php if ($use_cases["settings"]) { ?> checked="checked"<?php } ?> /> <label class="for_checkbox">Settings</label></li>
+					<li><input type="checkbox" name="use_cases[templates]"<?php if (!empty($use_cases["templates"])) { ?> checked="checked"<?php } ?> /> <label class="for_checkbox">Templates</label></li>
+					<li><input type="checkbox" name="use_cases[modules]"<?php if (!empty($use_cases["modules"])) { ?> checked="checked"<?php } ?> /> <label class="for_checkbox">Modules</label></li>
+					<li><input type="checkbox" name="use_cases[callouts]"<?php if (!empty($use_cases["callouts"])) { ?> checked="checked"<?php } ?> /> <label class="for_checkbox">Callouts</label></li>
+					<li><input type="checkbox" name="use_cases[settings]"<?php if (!empty($use_cases["settings"])) { ?> checked="checked"<?php } ?> /> <label class="for_checkbox">Settings</label></li>
 				</ul>
 			</fieldset>
 			<hr />
