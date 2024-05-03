@@ -20,6 +20,14 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.5.11
+- FIXED: Two Factor authentication not allowing onboarding due to offlining of Google Charts API
+- FIXED: File manager search results not decoding relative paths
+- FIXED: Looking up resource by file name in a multi-site environment where there are static root tokens failing on main site token
+- FIXED: Various upgrade scripts that failed in newer versions of MySQL
+- FIXED: cURL certificate bundle fetching/caching now handles failures more robustly and should no longer cache empty bundles
+- FIXED: Empty callout group creation failing in PHP 8.2
+
 ### 4.5.10
 - FIXED: cURL Certificate bundles incorrectly updating the core bundle which could occasionally write a 0 byte bundle and cause issues calling third party services
 - FIXED: Inability to write files to root of S3 buckets
