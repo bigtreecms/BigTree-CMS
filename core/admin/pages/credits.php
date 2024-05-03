@@ -128,5 +128,11 @@
 			<br>
 			<a href="https://github.com/PHPGangsta/GoogleAuthenticator" target="_blank">https://github.com/PHPGangsta/GoogleAuthenticator</a>
 		</p>
+		<h3>chillerlan/php-qrcode</h3>
+		<p class="clear">
+			Smiley & Kazuhiko Arase (MIT License)
+			<br>
+			<a href="https://github.com/chillerlan/php-qrcode" target="_blank">https://github.com/chillerlan/php-qrcode</a>
+		</p>
 	</section>	
 </div>

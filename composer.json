@@ -9,6 +9,7 @@
         "mrclay/jsmin-php": "^2.4",
         "guzzlehttp/guzzle": "^7.4.5",
         "google/analytics-data": "^0.10.0",
-        "wikimedia/less.php": "^4.1"
+        "wikimedia/less.php": "^4.1",
+        "chillerlan/php-qrcode": "^4"
     }
 }

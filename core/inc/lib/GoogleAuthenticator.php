@@ -1,4 +1,7 @@
 <?php
+	use chillerlan\QRCode\QRCode;
+	use chillerlan\QRCode\QROptions;
+	
 	// Based on PHPGangsta/GoogleAuthenticator - Copyright (c) 2012, Michael Kliewe All rights reserved.
 
 	class GoogleAuthenticator {
@@ -61,7 +64,13 @@
 		}
 	
 		public static function getQRCode($name, $secret, $title = null) {
-			return 'https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl='.rawurlencode('otpauth://totp/'.str_replace(" ", "%20", $name).'?secret='.$secret.'&issuer=BigTree');
+			$options = new QROptions([
+				'eccLevel' => QRCode::ECC_L,
+				'outputType' => QRCode::OUTPUT_MARKUP_SVG,
+				'version' => QRCode::VERSION_AUTO,
+			]);
+			
+			return (new QRCode($options))->render('otpauth://totp/'.str_replace(" ", "%20", $name).'?secret='.$secret.'&issuer=BigTree');
 		}
 	
 		public static function verifyCode($secret, $code, $discrepancy = 1) {
