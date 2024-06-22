@@ -6,7 +6,7 @@
 	$using_preset = false;
 	$media_settings = BigTreeJSONDB::get("config", "media-settings");
 	$presets = $media_settings["presets"];
-	
+
 	// See if we're using a preset and ensure it still exists
 	if (!empty($settings["preset"])) {
 		if ($presets[$settings["preset"]]) {
@@ -64,7 +64,7 @@
 		<input id="<?=$image_options_prefix?>settings_field_retina" type="checkbox" name="retina" <?php if (!empty($settings["retina"])) { ?>checked="checked" <?php } ?>/>
 		<label for="<?=$image_options_prefix?>settings_field_retina" class="for_checkbox"> When Available</label>
 	</fieldset>
-	
+
 	<h4>Crops <a href="#" class="add_crop icon_small icon_small_add"></a></h4>
 	<fieldset>
 		<div class="image_attr" id="<?=$image_options_prefix?>pop_crop_list">
@@ -105,7 +105,7 @@
 								if (!empty($crop["thumbs"]) && is_array($crop["thumbs"])) {
 									foreach ($crop["thumbs"] as $thumb) {
 										// In case a thumb was added and a prefix or width/height were missing - require prefix here because it'll replace the crop otherwise
-										if (is_array($thumb) && $thumb["prefix"] && ($thumb["width"] || $thumb["height"])) {
+										if (is_array($thumb) && $thumb["prefix"] && (!empty($thumb["width"]) || !empty($thumb["height"]))) {
 											$crop_thumb_count++;
 				?>
 				<ul class="image_attr_thumbs_<?=$crop_count?>">
@@ -133,7 +133,7 @@
 				?>
 			</div>
 			<div class="image_attr_crop_center_crops">
-				<?php	
+				<?php
 							if (!empty($crop["center_crops"]) && is_array($crop["center_crops"])) {
 								foreach ($crop["center_crops"] as $center_crop) {
 									// In case a sub crop was added and a prefix or width/height were missing - require prefix here because it'll replace the crop otherwise
@@ -171,7 +171,7 @@
 			?>
 		</div>
 	</fieldset>
-	
+
 	<h4>Thumbnails <a href="#" class="add_thumb icon_small icon_small_add"></a></h4>
 	<p class="error_message" style="display: none;" id="<?=$image_options_prefix?>thumbnail_dialog_error">You must enter a height or width for each thumbnail.</p>
 	<fieldset>
@@ -182,7 +182,7 @@
 			<?php
 				// Keep a count of thumbs
 				$thumb_count = 0;
-				
+
 				if (!empty($settings["thumbs"]) && is_array($settings["thumbs"])) {
 					foreach ($settings["thumbs"] as $thumb) {
 						// Make sure a width or height was entered or it's pointless
@@ -212,7 +212,7 @@
 			?>
 		</div>
 	</fieldset>
-	
+
 	<h4>Center Crops <small>(automatically crops from the center of image)</small> <a href="#" class="add_center_crop icon_small icon_small_add"></a></h4>
 	<fieldset>
 		<div class="image_attr" id="<?=$image_options_prefix?>pop_center_crop_list">
@@ -222,7 +222,7 @@
 			<?php
 				// Keep a count of center crops
 				$center_crop_count = 0;
-				
+
 				if (!empty($settings["center_crops"]) && is_array($settings["center_crops"])) {
 					foreach ($settings["center_crops"] as $center_crop) {
 						// Make sure a width and height was entered or it's pointless
@@ -240,7 +240,7 @@
 					<input type="text" name="center_crops[<?=$center_crop_count?>][height]" value="<?=BigTree::safeEncode($center_crop["height"] ?? "")?>" />
 				</li>
 				<li class="actions for_thumbnail">
-					<input type="hidden" name="center_crops[<?=$center_crop_count?>][grayscale]" value="<?=$center_crop["grayscale"]?>" />
+					<input type="hidden" name="center_crops[<?=$center_crop_count?>][grayscale]" value="<?=$center_crop["grayscale"] ?? ""?>" />
 					<a href="#" title="Switch Color Mode" class="color_mode<?php if (!empty($center_crop["grayscale"])) { ?> gray<?php } ?>"></a>
 					<a href="#<?=$center_crop_count?>" title="Remove" class="delete"></a>
 				</li>
@@ -299,7 +299,7 @@
 					'<input type="hidden" name="crops[' + CropCount + '][grayscale]" value="" />' +
 					'<a href="#" title="Switch Color Mode" class="color_mode"></a>' +
 					'<a href="#' + CropCount + '" title="Remove" class="delete"></a>' +
-				'</li></ul>' + 
+				'</li></ul>' +
 				'<div class="image_attr_crop_thumbs"></div>' +
 				'<div class="image_attr_crop_center_crops"></div>');
 		}
@@ -342,13 +342,13 @@
 			}
 
 			$(this).parents("ul").remove();
-	
+
 		// Add thumbnail of crops
 		}).on("click",".image_attr .thumbnail",function(ev) {
 			ev.preventDefault();
 
 			var count = $(this).attr("href").substr(1);
-			CropThumbCount++;			
+			CropThumbCount++;
 			$(this).parents("ul").next(".image_attr_crop_thumbs").append('<ul class="require_width_or_height image_attr_thumbs_' + count + '">' +
 				'<li class="thumbed">' +
 					'<span class="icon_small icon_small_picture" title="Thumbnail"></span>' +
@@ -368,7 +368,7 @@
 			ev.preventDefault();
 
 			var count = $(this).attr("href").substr(1);
-			CropSubCount++;			
+			CropSubCount++;
 			$(this).parents("ul").nextAll(".image_attr_crop_center_crops:first").append('<ul class="require_width_or_height image_attr_thumbs_' + count + '">' +
 				'<li class="thumbed">' +
 					'<span class="icon_small icon_small_crop" title="Sub-Crop"></span>' +
@@ -382,7 +382,7 @@
 					'<a href="#" title="Switch Color Mode" class="color_mode"></a>' +
 					'<a href="#" title="Remove" class="delete"></a>' +
 				'</li></ul>');
-			
+
 		// Switch between color and grayscale
 		}).on("click",".image_attr .color_mode",function(ev) {
 			ev.preventDefault();
@@ -391,8 +391,8 @@
 			if ($(this).hasClass("gray")) {
 				$(this).prev("input").val("on");
 			} else {
-				$(this).prev("input").val("");			
-			}		
+				$(this).prev("input").val("");
+			}
 
 		// Allow you to hit enter in a crop/thumb box to create another automatically
 		}).on("keydown","#<?=$image_options_prefix?>pop_crop_list input",function(ev) {
