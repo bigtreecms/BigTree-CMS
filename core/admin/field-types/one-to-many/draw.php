@@ -2,7 +2,7 @@
 	/**
 	 * @global array $field
 	 */
-	
+
 	if (empty($field["value"])) {
 		$field["value"] = [];
 	} elseif (!is_array($field["value"])) {
@@ -14,7 +14,7 @@
 	// Throw an exception if they didn't setup the field type properly
 	if (empty($field["settings"]["table"]) || empty($field["settings"]["title_column"])) {
 		trigger_error("One-to-Many field type requires a table and a title field to be setup to function.", E_USER_WARNING);
-		
+
 		return;
 	}
 
@@ -28,7 +28,7 @@
 			$entries[$g["id"]] = $g[$field["settings"]["title_column"]];
 		}
 	}
-	
+
 	// If we have a parser, send a list of the entries through it.
 	if (!empty($field["settings"]["parser"])) {
 		$entries = call_user_func($field["settings"]["parser"],$entries,false);
@@ -41,16 +41,16 @@
 		// Gather a list of the items that could possibly be used
 		$list = [];
 		$q = sqlquery("SELECT `id`,`".$field["settings"]["title_column"]."` FROM `".$field["settings"]["table"]."` ORDER BY $sort");
-		
+
 		while ($f = sqlfetch($q)) {
 			$list[$f["id"]] = $f[$field["settings"]["title_column"]];
 		}
-		
+
 		// If we have a parser, send a list of the available items through it.
 		if (!empty($field["settings"]["parser"])) {
 			$list = call_user_func($field["settings"]["parser"], $list, true);
 		}
-		
+
 		static::$FieldCache[$field["cache_id"]] = [
 			"list" => $list,
 		];
@@ -60,10 +60,10 @@
 	foreach ($entries as $k => $v) {
 		unset($list[$k]);
 	}
-	
+
 	// A count of the number of entries
 	$x = 0;
-	
+
 	// Only show the field if there are items that could be used or removed
 	if (count($list) || count($entries)) {
 ?>
@@ -89,12 +89,14 @@
 		?>
 	</ul>
 	<footer>
-		<select>
-			<?php foreach ($list as $id => $title) { ?>
-			<option value="<?=BigTree::safeEncode($id)?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($title ?? ""),100))?></option>
-			<?php } ?>
-		</select>
-		<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>
+		<span class="many_to_many_add_container">
+			<select>
+				<?php foreach ($list as $id => $title) { ?>
+				<option value="<?=BigTree::safeEncode($id)?>"><?=BigTree::safeEncode(BigTree::trimLength(strip_tags($title ?? ""),100))?></option>
+				<?php } ?>
+			</select>
+			<a href="#" class="add button"><span class="icon_small icon_small_add"></span>Add Item</a>
+		</span>
 		<?php
 			if ($max) {
 		?>
