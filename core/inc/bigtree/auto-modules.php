@@ -5,21 +5,21 @@
 	*/
 
 	class BigTreeAutoModule {
-		
+
 		/*
 			Function: cacheNewItem
 				Caches a new database entry by investigating associated views.
-			
+
 			Parameters:
 				id - The id of the new item.
 				table - The table the new item is in.
 				pending - Whether this is actually a pending entry or not.
 				recache - Whether to delete previous cached entries with this id (for use by recacheItem)
-			
+
 			See Also:
 				<recacheItem>
 		*/
-		
+
 		public static function cacheNewItem($id,$table,$pending = false,$recache = false) {
 			$id = sqlescape($id);
 
@@ -50,19 +50,19 @@
 							if ($recache) {
 								sqlquery("DELETE FROM bigtree_module_view_cache WHERE `view` = '".$view["id"]."' AND id = '".$item["id"]."'");
 							}
-							
+
 							$view["options"] = &$view["settings"]; // Backwards compatibility
-							
+
 							// In case this view has never been cached, run the whole view, otherwise just this one.
 							if (!self::cacheViewData($view)) {
 								// Find out what module we're using so we can get the gbp_field
 								$view["gbp"] = $module["gbp"];
-								
+
 								$form = self::getRelatedFormForView($view);
-								
+
 								$parsers = array();
 								$poplists = array();
-								
+
 								foreach ($view["fields"] as $key => $field) {
 									if ($field["parser"]) {
 										$parsers[$key] = $field["parser"];
@@ -73,7 +73,7 @@
 										$poplists[$key] = array("description" => $form["fields"][$key]["settings"]["pop-description"], "table" => $form["fields"][$key]["settings"]["pop-table"]);
 									}
 								}
-								
+
 								self::cacheRecord($item,$view,$parsers,$poplists,$original_item);
 							}
 						}
@@ -81,11 +81,11 @@
 				}
 			}
 		}
-		
+
 		/*
 			Function: cacheRecord
 				Caches a single item in a view to the bigtree_module_view_cache table.
-			
+
 			Parameters:
 				item - The database record to cache.
 				view - The related view entry.
@@ -93,7 +93,7 @@
 				poplists - An array of populated lists that relate to the item.
 				original_item - The item without pending changes applied for GBP.
 		*/
-		
+
 		public static function cacheRecord($item,$view,$parsers,$poplists,$original_item) {
 			// If we have a filter function, ask it first if we should cache it
 			if (isset($view["settings"]["filter"]) && $view["settings"]["filter"]) {
@@ -110,11 +110,11 @@
 			}
 
 			global $cms;
-			
+
 			// Setup the fields and VALUES to INSERT INTO the cache table.
 			$status = "l";
 			$pending_owner = 0;
-			
+
 			if (!empty($item["bigtree_changes"])) {
 				$status = "c";
 			} elseif (isset($item["bigtree_pending"])) {
@@ -123,7 +123,7 @@
 			} elseif (!empty($item["archived"]) || (isset($item["approved"]) && $item["approved"] != "on")) {
 				$status = "i";
 			}
-			
+
 			$fields = array("view","id","status","position","approved","archived","featured","pending_owner");
 
 			// No more notices.
@@ -140,7 +140,7 @@
 			} else {
 				$sort_field = false;
 			}
-			
+
 			// Let's see if we have a grouping field.  If we do, let's get all that info and cache it as well.
 			if (isset($view["settings"]["group_field"]) && $view["settings"]["group_field"]) {
 				$value = $item[$view["settings"]["group_field"]];
@@ -152,10 +152,10 @@
 
 				$fields[] = "group_field";
 				$vals[] = "'".sqlescape($value)."'";
-				
+
 				if (is_numeric($value) && $view["settings"]["other_table"]) {
 					$f = sqlfetch(sqlquery("SELECT * FROM `".$view["settings"]["other_table"]."` WHERE id = '$value'"));
-					
+
 					if ($view["settings"]["ot_sort_field"]) {
 						$fields[] = "group_sort_field";
 						$vals[] = "'".sqlescape($f[$view["settings"]["ot_sort_field"]])."'";
@@ -168,7 +168,7 @@
 				$fields[] = "group_field";
 				$vals[] = "'".sqlescape($item[$view["settings"]["nesting_column"]])."'";
 			}
-			
+
 			// Group based permissions data
 			if (isset($view["gbp"]["enabled"]) && $view["gbp"]["table"] == $view["table"]) {
 				$fields[] = "gbp_field";
@@ -181,7 +181,7 @@
 			foreach ($parsers as $key => $parser) {
 				$item[$key] = BigTree::runParser($item,$item[$key],$parser);
 			}
-			
+
 			// Run pop lists
 			foreach ($poplists as $key => $pop) {
 				$f = SQL::fetch("SELECT `".$pop["description"]."` FROM `".$pop["table"]."` WHERE id = ?", $item[$key]);
@@ -191,7 +191,7 @@
 				}
 			}
 
-			// Insert into the view cache			
+			// Insert into the view cache
 			if ($view["type"] == "images" || $view["type"] == "images-grouped") {
 				$fields[] = "column1";
 				$vals[] = "'".$item[$view["settings"]["image"]]."'";
@@ -201,16 +201,16 @@
 					if (!isset($item[$field])) {
 						$item[$field] = "";
 					}
-					
+
 					$item[$field] = $cms->replaceInternalPageLinks($item[$field]);
 					$fields[] = "column$x";
 
 					if (isset($parsers[$field]) && $parsers[$field]) {
-						$vals[] = "'".sqlescape(BigTree::safeEncode($item[$field]))."'";					
+						$vals[] = "'".sqlescape(BigTree::safeEncode($item[$field]))."'";
 					} else {
 						$vals[] = "'".sqlescape(BigTree::safeEncode(strip_tags($item[$field])))."'";
 					}
-					
+
 					$x++;
 				}
 			}
@@ -219,45 +219,45 @@
 				$fields[] = "`sort_field`";
 				$vals[] = "'".sqlescape($item[$sort_field] ?? $item["id"])."'";
 			}
-			
+
 			sqlquery("INSERT INTO bigtree_module_view_cache (".implode(",",$fields).") VALUES (".implode(",",$vals).")");
 		}
-		
+
 		/*
 			Function: cacheViewData
 				Grabs all the data from a view and does parsing on it based on automatic assumptions and manual parsers.
-			
+
 			Parameters:
 				view - The view entry to cache data for.
 		*/
-		
+
 		public static function cacheViewData($view) {
 			// See if we already have cached data.
 			if (sqlrows(sqlquery("SELECT id FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'"))) {
 				return false;
 			}
-			
+
 			// Find out what module we're using so we can get the gbp_field
 			$module = BigTreeJSONDB::get("modules", self::getModuleForView($view));
 			$view["gbp"] = $module["gbp"];
-			
+
 			// Setup information on our parsers and populated lists.
 			$form = self::getRelatedFormForView($view);
 			$view["fields"] = is_array($view["fields"]) ? $view["fields"] : array();
 			$parsers = array();
 			$poplists = array();
-			
+
 			foreach ($view["fields"] as $key => $field) {
 				// Get the form field
 				$form_field = $form["fields"][$key] ?? null;
-				
+
 				if ($field["parser"]) {
 					$parsers[$key] = $field["parser"];
 				} elseif ($form_field && $form_field["type"] == "list" && $form_field["settings"]["list_type"] == "db") {
 					$poplists[$key] = array("description" => $form_field["settings"]["pop-description"], "table" => $form_field["settings"]["pop-table"]);
 				}
 			}
-			
+
 			// See if we need to modify the cache table to add more fields.
 			$field_count = count($view["fields"]);
 			$table_description = BigTree::describeTable("bigtree_module_view_cache");
@@ -266,28 +266,28 @@
 				$cc++;
 				sqlquery("ALTER TABLE bigtree_module_view_cache ADD COLUMN column$cc TEXT NOT NULL AFTER column".($cc-1));
 			}
-			
+
 			// Paginate out for high record counts to avoid out of memory errors
 			$record_count = SQL::fetchSingle("SELECT COUNT(*) FROM `".$view["table"]."`");
 			$total_pages = ceil($record_count / 1000);
-			
+
 			for ($page = 1; $page <= $total_pages; $page++) {
 				$limit = ($page - 1) * 1000;
-				
+
 				// Cache all records that are published (and include their pending changes)
 				$q = sqlquery("SELECT `".$view["table"]."`.*,bigtree_pending_changes.changes AS bigtree_changes FROM `".$view["table"]."` LEFT JOIN bigtree_pending_changes ON (bigtree_pending_changes.item_id = `".$view["table"]."`.id AND bigtree_pending_changes.table = '".$view["table"]."') ORDER BY `".$view["table"]."`.id ASC LIMIT $limit, 1000");
-			
+
 				while ($item = sqlfetch($q)) {
 					$original_item = $item;
-					
+
 					if ($item["bigtree_changes"]) {
 						$changes = json_decode($item["bigtree_changes"],true);
-						
+
 						foreach ($changes as $key => $change) {
 							$item[$key] = $change;
 						}
-					}	
-				
+					}
+
 					self::cacheRecord($item,$view,$parsers,$poplists,$original_item);
 				}
 			}
@@ -298,13 +298,13 @@
 				$item["bigtree_pending"] = true;
 				$item["bigtree_pending_owner"] = $f["user"];
 				$item["id"] = "p".$f["id"];
-				
+
 				self::cacheRecord($item,$view,$parsers,$poplists,$item);
 			}
-			
+
 			return true;
 		}
-		
+
 		/*
 			Function: changeExists
 				Checks to see if a change exists for a given item in the bigtree_pending_changes table.
@@ -328,14 +328,14 @@
 		/*
 			Function: clearCache
 				Clears the cache of a view or all views with a given table.
-			
+
 			Parameters:
 				entry - The view id or view entry to clear the cache for or a table to find all views for (and clear their caches).
 		*/
-		
+
 		public static function clearCache($entry) {
 			if (is_array($entry)) {
-				SQL::query("DELETE FROM bigtree_module_view_cache WHERE view = ?", $entry["id"]);		
+				SQL::query("DELETE FROM bigtree_module_view_cache WHERE view = ?", $entry["id"]);
 			} elseif (substr($entry, 0, 6) == "views-") {
 				SQL::query("DELETE FROM bigtree_module_view_cache WHERE view = ?", $entry);
 			} else {
@@ -352,11 +352,11 @@
 				}
 			}
 		}
-		
+
 		/*
 			Function: createItem
 				Creates an entry in the database for an auto module form.
-		
+
 			Parameters:
 				table - The table to put the data in.
 				data - An array of form data to enter into the table. This function determines what data in the array applies to a column in the database and discards the rest.
@@ -364,12 +364,12 @@
 				tags - Tags for the entry.
 				publishing_change - A change ID that is being published (defaults to null)
 				open_graph - Open Graph information.
-			
+
 			Returns:
 				The id of the new entry in the database.
 		*/
 
-		public static function createItem($table, $data, $many_to_many = array(), $tags = array(), $publishing_change = null, $open_graph = array()) {	
+		public static function createItem($table, $data, $many_to_many = array(), $tags = array(), $publishing_change = null, $open_graph = array()) {
 			$table_description = BigTree::describeTable($table);
 			$query_fields = array();
 			$query_vals = array();
@@ -377,7 +377,7 @@
 			foreach ($data as $key => $val) {
 				if (array_key_exists($key,$table_description["columns"])) {
 					$query_fields[] = "`".$key."`";
-					
+
 					if ($val === "NULL" || $val == "NOW()") {
 						$query_vals[] = $val;
 					} else {
@@ -391,16 +391,16 @@
 							if (is_array($val)) {
 								$val = json_encode(BigTree::translateArray($val));
 							}
-						
+
 							$query_vals[] = "'".sqlescape($val)."'";
 						}
 					}
 				}
 			}
-			
+
 			// Insert, if there's a failure return false instead of doing the rest
 			$success = sqlquery("INSERT INTO `$table` (".implode(",",$query_fields).") VALUES (".implode(",",$query_vals).")");
-			
+
 			if (!$success) {
 				return false;
 			}
@@ -410,17 +410,17 @@
 			// Handle many to many
 			foreach ($many_to_many as $mtm) {
 				$table_description = BigTree::describeTable($mtm["table"]);
-				
+
 				if (is_array($mtm["data"])) {
 					$x = count($mtm["data"]);
-				
+
 					foreach ($mtm["data"] as $position => $item) {
 						if (isset($table_description["columns"]["position"])) {
 							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$x')");
 						} else {
 							sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`) VALUES ('$id','$item')");
 						}
-				
+
 						$x--;
 					}
 				}
@@ -428,7 +428,7 @@
 
 			// Handle the tags
 			sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = '$id'");
-			
+
 			if (is_array($tags) && count($tags)) {
 				$tags = array_unique($tags);
 
@@ -441,7 +441,7 @@
 
 				BigTreeAdmin::updateTagReferenceCounts($tags);
 			}
-			
+
 			self::cacheNewItem($id,$table);
 
 			// Handle Open Graph
@@ -477,11 +477,11 @@
 
 			return $id;
 		}
-		
+
 		/*
 			Function: createPendingItem
 				Creates an entry in the bigtree_pending_changes table for an auto module form.
-		
+
 			Parameters:
 				module - The module for the entry.
 				table - The table to put the data in.
@@ -491,14 +491,14 @@
 				publish_hook - A function to call when this change is published from the Dashboard.
 				embedded_form - If this is being called from an embedded form, set the user to NULL (defaults to false)
 				open_graph - Open Graph information.
-			
+
 			Returns:
 				The id of the new entry in the bigtree_pending_changes table.
 		*/
 
 		public static function createPendingItem($module,$table,$data,$many_to_many = array(),$tags = array(),$publish_hook = null,$embedded_form = false,$open_graph = array()) {
 			global $admin;
-			
+
 			foreach ($data as $key => $val) {
 				if ($val === "NULL") {
 					$data[$key] = "";
@@ -515,19 +515,19 @@
 			$open_graph_data = BigTree::json($open_graph, true);
 			$publish_hook = is_null($publish_hook) ? "NULL" : "'".sqlescape($publish_hook)."'";
 			sqlquery("INSERT INTO bigtree_pending_changes (`user`,`date`,`table`,`changes`,`mtm_changes`,`tags_changes`,`open_graph_changes`,`module`,`type`,`publish_hook`) VALUES ($user,NOW(),'$table','$data','$many_data','$tags_data','$open_graph_data','$module','NEW',$publish_hook)");
-			
+
 			$id = sqlid();
 
 			self::cacheNewItem($id,$table,true);
 			self::track($table,"p$id","created-pending");
-			
+
 			return $id;
 		}
-		
+
 		/*
 			Function: deleteItem
 				Deletes an item from the given table and removes any pending changes, then uncaches it from its views.
-			
+
 			Parameters:
 				table - The table to delete an entry from.
 				id - The id of the entry.
@@ -547,16 +547,16 @@
 			self::uncacheItem($id, $table);
 			self::track($table, $id, "deleted");
 		}
-		
+
 		/*
 			Function: deletePendingItem
 				Deletes a pending item from bigtree_pending_changes and uncaches it.
-			
+
 			Parameters:
 				table - The table the entry would have been in (should it have ever been published).
 				id - The id of the pending entry.
 		*/
-		
+
 		public static function deletePendingItem($table, $id) {
 			$change = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $id);
 
@@ -625,10 +625,10 @@
 		/*
 			Function: getEmbedForm
 				Returns a module embeddable form.
-			
+
 			Parameters:
 				id - The id of the form.
-			
+
 			Returns:
 				An embeddable module form entry.
 		*/
@@ -658,10 +658,10 @@
 		/*
 			Function: getEmbedFormByHash
 				Returns a module embeddable form.
-			
+
 			Parameters:
 				hash - The hash of the form.
-			
+
 			Returns:
 				A module form entry with fields decoded.
 		*/
@@ -674,7 +674,7 @@
 					foreach ($module["embeddable-forms"] as $form) {
 						if ($form["hash"] == $hash) {
 							$form["module"] = $module["id"];
-							
+
 							return $form;
 						}
 					}
@@ -683,24 +683,24 @@
 
 			return null;
 		}
-		
+
 		/*
 			Function: getFilterQuery
 				Returns a query string that is used for searching views based on group permissions.
 				Can only be called when logged into the admin.
-			
+
 			Parameters:
 				view - The view to create a filter for.
-			
+
 			Returns:
 				A set of MySQL statements that filter out information the user cannot access.
 		*/
-		
+
 		public static function getFilterQuery($view) {
 			global $admin;
 
 			$module = BigTreeAdmin::getModule(self::getModuleForView($view));
-			
+
 			if (isset($module["gbp"]["enabled"]) && $module["gbp"]["enabled"] && $module["gbp"]["table"] == $view["table"]) {
 				$groups = $admin->getAccessGroups($module["id"]);
 				if (is_array($groups)) {
@@ -718,14 +718,14 @@
 
 			return "";
 		}
-		
+
 		/*
 			Function: getForm
 				Returns a module form.
-			
+
 			Parameters:
 				id - The id of the form or a form entry to generate backwards compatibility tweaks for.
-			
+
 			Returns:
 				A module form entry.
 		*/
@@ -734,7 +734,7 @@
 			if (!is_array($id)) {
 				$modules = BigTreeJSONDB::getAll("modules");
 				$form = null;
-	
+
 				foreach ($modules as $module) {
 					if (!empty($module["forms"]) && is_array($module["forms"])) {
 						foreach ($module["forms"] as $module_form) {
@@ -745,7 +745,7 @@
 						}
 					}
 				}
-	
+
 				if (!$form) {
 					return null;
 				}
@@ -756,37 +756,37 @@
 			// For backwards compatibility
 			if (is_array($form["fields"])) {
 				$related_fields = array();
-				
+
 				foreach ($form["fields"] as $field) {
 					$related_fields[$field["column"]] = $field;
 				}
-				
+
 				$form["fields"] = $related_fields;
 			}
 
 			return $form;
 		}
-		
+
 		/*
 			Function: getGroupsForView
 				Returns all groups in the view cache for a view.
-			
+
 			Parameters:
 				view - The view entry.
-			
+
 			Returns:
 				An array of groups.
 		*/
-		
+
 		public static function getGroupsForView($view) {
 			$groups = array();
 			$query = "SELECT DISTINCT(group_field) FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'";
-			
+
 			if (isset($view["settings"]["ot_sort_field"]) && $view["settings"]["ot_sort_field"]) {
 				// We're going to determine whether the group sort field is numeric or not first.
 				$is_numeric = true;
 				$q = sqlquery("SELECT DISTINCT(group_sort_field) FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'");
-				
+
 				while ($f = sqlfetch($q)) {
 					if (!is_numeric($f["group_sort_field"])) {
 						$is_numeric = false;
@@ -804,21 +804,21 @@
 			}
 
 			$q = sqlquery($query);
-			
+
 			// If there's another table, we're going to query it separately.
 			if ($view["settings"]["other_table"] && !$view["settings"]["group_parser"]) {
 				$otq = array();
-				
+
 				while ($f = sqlfetch($q)) {
 					$otq[] = "id = '".$f["group_field"]."'";
 					// We need to instatiate all of these as empty first in case the database relationship doesn't exist.
 					$groups[$f["group_field"]] = "";
 				}
-				
+
 				if (count($otq)) {
 					if ($view["settings"]["ot_sort_field"]) {
 						$otsf = $view["settings"]["ot_sort_field"];
-						
+
 						if ($view["settings"]["ot_sort_direction"]) {
 							$otsd = $view["settings"]["ot_sort_direction"];
 						} else {
@@ -830,17 +830,17 @@
 					}
 
 					$q = sqlquery("SELECT id,`".$view["settings"]["title_field"]."` AS `title` FROM `".$view["settings"]["other_table"]."` WHERE ".implode(" OR ",$otq)." ORDER BY `$otsf` $otsd");
-					
+
 					while ($f = sqlfetch($q)) {
 						$groups[$f["id"]] = $f["title"];
 					}
 				}
 			} else {
 				while ($f = sqlfetch($q)) {
-					$groups[$f["group_field"]] = $f["group_field"];			
+					$groups[$f["group_field"]] = $f["group_field"];
 				}
 			}
-			
+
 			return $groups;
 		}
 
@@ -857,7 +857,7 @@
 				An array with the following key/value pairs:
 				"item" - The entry from the table with pending changes already applied.
 				"tags" - A list of tags for the entry.
-				
+
 				Returns false if the entry could not be found.
 		*/
 
@@ -868,14 +868,14 @@
 			if (substr($id,0,1) == "p") {
 				return self::getPendingItem($table,$id);
 			}
-			
+
 			// Otherwise it's a live entry
 			$item = sqlfetch(sqlquery("SELECT * FROM `$table` WHERE id = '".sqlescape($id)."'"));
-			
+
 			if (!$item) {
 				return false;
 			}
-			
+
 			$tags = self::getTagsForEntry($table,$id);
 
 			// Process the internal page links, turn json_encoded arrays into arrays.
@@ -888,21 +888,21 @@
 					$item[$key] = $cms->replaceInternalPageLinks($val);
 				}
 			}
-			
+
 			return array("item" => $item, "tags" => $tags);
 		}
-		
+
 		/*
 			Function: getModuleForForm
 				Returns the associated module id for the given form.
-			
+
 			Parameters:
 				form_id - Either a form entry or form id.
-			
+
 			Returns:
 				The id of the module the form is a member of.
 		*/
-		
+
 		public static function getModuleForForm($form_id) {
 			if (is_array($form_id)) {
 				if (!empty($form_id["module"])) {
@@ -926,14 +926,14 @@
 
 			return null;
 		}
-		
+
 		/*
 			Function: getModuleForView
 				Returns the associated module id for the given view.
-			
+
 			Parameters:
 				view - Either a view entry or view id.
-			
+
 			Returns:
 				The id of the module the view is a member of.
 		*/
@@ -961,22 +961,22 @@
 
 			return null;
 		}
-		
+
 		/*
 			Function: getPendingItem
 				Gets an entry from a table with all its related information and pending changes applied.
-			
+
 			Parameters:
 				table - The table to pull the entry from.
 				id - The id of the entry.
-			
+
 			Returns:
 				An array with the following key/value pairs:
 				"item" - The entry from the table with pending changes already applied.
 				"mtm" - A list of many to many pending changes.
 				"tags" - A list of tags for the entry.
 				"status" - Whether the item is pending ("pending"), published ("published"), or has changes ("updated") awaiting publish.
-				
+
 				Returns false if the entry could not be found.
 		*/
 
@@ -1019,7 +1019,7 @@
 				if (!$item) {
 					return false;
 				}
-				
+
 				// Apply changes that are pending
 				$change = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE `table` = '$table' AND `item_id` = '$id'"));
 
@@ -1051,7 +1051,7 @@
 					$open_graph = BigTreeCMS::getOpenGraph($table, $id);
 				}
 			}
-			
+
 			// Process the internal page links, turn json_encoded arrays into arrays.
 			foreach ($item as $key => $val) {
 				if (is_null($val)) {
@@ -1071,10 +1071,10 @@
 		/*
 			Function: getRelatedFormForReport
 				Returns the form for the same table as the given report.
-			
+
 			Parameters:
 				report - A report entry.
-			
+
 			Returns:
 				A form entry with fields decoded.
 		*/
@@ -1092,14 +1092,14 @@
 				}
 			}
 		}
-		
+
 		/*
 			Function: getRelatedFormForView
 				Returns the form for the same table as the given view.
-			
+
 			Parameters:
 				view - A view entry.
-			
+
 			Returns:
 				A form entry with fields decoded.
 		*/
@@ -1108,9 +1108,9 @@
 			if (empty($view)) {
 				return null;
 			}
-			
+
 			$modules = BigTreeJSONDB::getAll("modules");
-		
+
 			if (!empty($view["related_form"])) {
 				foreach ($modules as $module) {
 					if (!empty($module["forms"]) && is_array($module["forms"])) {
@@ -1135,21 +1135,21 @@
 
 			return null;
 		}
-		
+
 		/*
 			Function: getRelatedViewForForm
 				Returns the view for the same table as the given form.
-			
+
 			Parameters:
 				form - A form entry.
-			
+
 			Returns:
 				A view entry.
 		*/
 
 		public static function getRelatedViewForForm($form) {
 			$modules = BigTreeJSONDB::getAll("modules");
-			
+
 			// Prioritize a view that has this form as the related form
 			foreach ($modules as $module) {
 				if (is_array($module["views"])) {
@@ -1177,17 +1177,17 @@
 		/*
 			Function: getRelatedViewForReport
 				Returns the view for the same table as the given report.
-			
+
 			Parameters:
 				report - A report entry.
-			
+
 			Returns:
 				A view entry.
 		*/
 
 		public static function getRelatedViewForReport($report) {
 			$modules = BigTreeJSONDB::getAll("modules");
-			
+
 			foreach ($modules as $module) {
 				if (is_array($module["views"])) {
 					foreach ($module["views"] as $view) {
@@ -1212,13 +1212,13 @@
 
 		public static function getReport($id) {
 			$modules = BigTreeJSONDB::getAll("modules");
-			
+
 			foreach ($modules as $module) {
 				if (is_array($module["reports"])) {
 					foreach ($module["reports"] as $report) {
 						if ($report["id"] == $id) {
 							$report["module"] = $module["id"];
-							
+
 							return $report;
 						}
 					}
@@ -1249,7 +1249,7 @@
 			$sort_field = "`".str_replace("`","",$sort_field)."`";
 			$sort_direction = ($sort_direction == "ASC") ? "ASC" : "DESC";
 			$where = $items = $parsers = $poplists = array();
-			
+
 			// Figure out if we have db populated lists and parsers
 			if ($report["type"] == "view") {
 				foreach ($view["fields"] as $key => $field) {
@@ -1258,7 +1258,7 @@
 					}
 				}
 			}
-			
+
 			if (is_array($form["fields"])) {
 				foreach ($form["fields"] as $key => $field) {
 					if ($field["type"] == "list" && $field["settings"]["list_type"] == "db") {
@@ -1310,7 +1310,7 @@
 						$p = sqlfetch(sqlquery("SELECT `".$poplists[$key]["description"]."` FROM `".$poplists[$key]["table"]."` WHERE id = '".sqlescape($value)."'"));
 						$item[$key] = $p[$poplists[$key]["description"]];
 					}
-					
+
 					if (isset($parsers[$key])) {
 						$item[$key] = BigTree::runParser($item,$value,$parsers[$key]);
 					}
@@ -1340,41 +1340,41 @@
 
 			return $items;
 		}
-		
+
 		/*
 			Function: getSearchResults
 				Returns results from the bigtree_module_view_cache table.
-		
+
 			Parameters:
 				view - The view to pull data for.
 				page - The page of data to retrieve.
 				query - The query string to search against.
 				sort - The column and direction to sort.
 				group - The group to pull information for.
-		
+
 			Returns:
 				An array containing "pages" with the number of result pages and "results" with the results for the given page.
 		*/
-		
+
 		public static function getSearchResults($view,$page = 1,$query = "",$sort = "id DESC",$group = false) {
 			// Check to see if we've cached this table before.
 			self::cacheViewData($view);
-			
+
 			$search_parts = explode(" ", strtolower($query));
 			$view_columns = count($view["fields"]);
-			
+
 			if ($group !== false) {
-				$query = "SELECT * FROM bigtree_module_view_cache WHERE view = '".$view["id"]."' AND group_field = '".sqlescape($group)."'".self::getFilterQuery($view);				
+				$query = "SELECT * FROM bigtree_module_view_cache WHERE view = '".$view["id"]."' AND group_field = '".sqlescape($group)."'".self::getFilterQuery($view);
 			} else {
 				$query = "SELECT * FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'".self::getFilterQuery($view);
 			}
-			
+
 			foreach ($search_parts as $part) {
 				$x = 0;
 				$qp = array();
 				$part = sqlescape(trim(strtolower($part)));
 
-				if ($part !== "") {				
+				if ($part !== "") {
 					while ($x < $view_columns) {
 						$x++;
 						$qp[] = "column$x LIKE '%$part%'";
@@ -1385,12 +1385,12 @@
 					}
 				}
 			}
-			
+
 			$per_page = !empty($view["settings"]["per_page"]) ? $view["settings"]["per_page"] : BigTreeAdmin::$PerPage;
 			$pages = ceil(sqlrows(sqlquery($query)) / $per_page);
 			$pages = ($pages > 0) ? $pages : 1;
 			$results = array();
-			
+
 			// Get the correct column name for sorting
 			if (strpos($sort,"`") !== false) { // New formatting
 				$sort_field = BigTree::nextSQLColumnDefinition(substr($sort,1));
@@ -1417,12 +1417,12 @@
 						$sort_field = "column$x";
 					}
 				}
-				
+
 				// If we didn't find a column, let's assume it's the default sort field.
 				if (substr($sort_field,0,6) != "column") {
 					$sort_field = "sort_field";
 				}
-				
+
 				if ($convert_numeric) {
 					$sort_field = "CONVERT(".$sort_field.",SIGNED)";
 				}
@@ -1436,13 +1436,13 @@
 			} else {
 				$sort_direction = (strtolower($sort_direction) == "asc") ? "ASC" : "DESC";
 			}
-			
+
 			if ($page === "all") {
 				$q = sqlquery($query." ORDER BY $sort_field $sort_direction");
 			} else {
 				$q = sqlquery($query." ORDER BY $sort_field $sort_direction LIMIT ".(($page - 1) * $per_page).",$per_page");
 			}
-			
+
 			while ($f = sqlfetch($q)) {
 				unset($f["hash"]);
 				$results[] = $f;
@@ -1450,20 +1450,20 @@
 
 			return array("pages" => $pages, "results" => $results);
 		}
-		
+
 		/*
 			Function: getTagsForEntry
 				Returns the tags for an entry.
-				
+
 			Parameters:
 				table - The table the entry is in.
 				id - The id of the entry.
 				full - Whether to return a full tag array or just the tag string (defaults to full tag array)
-			
+
 			Returns:
 				An array ot tags from bigtree_tags.
 		*/
-		
+
 		public static function getTagsForEntry($table, $id, $full = true) {
 			if ($full) {
 				return SQL::fetchAll("SELECT bigtree_tags.* FROM bigtree_tags JOIN bigtree_tags_rel
@@ -1472,22 +1472,22 @@
 									    AND bigtree_tags_rel.`entry` = ?
 						  			  ORDER BY bigtree_tags.tag ASC", $table, $id);
 			}
-			
+
 			return SQL::fetchAllSingle("SELECT bigtree_tags.tag FROM bigtree_tags JOIN bigtree_tags_rel
 									    ON bigtree_tags_rel.tag = bigtree_tags.id
 									    WHERE bigtree_tags_rel.`table` = ?
 									      AND bigtree_tags_rel.`entry` = ?
 						  			    ORDER BY bigtree_tags.tag ASC", $table, $id);
 		}
-		
+
 		/*
 			Function: getView
 				Returns a view.
-			
+
 			Parameters:
 				view_id - The id of the view or a view entry.
 				decode_ipl - Whether we want to decode internal page link on the preview url (defaults to true)
-				
+
 			Returns:
 				A view entry with actions, settings, and fields decoded.  fields also receive a width column for the view.
 		*/
@@ -1554,18 +1554,18 @@
 					$view["edit_url"] = $module_root."edit/";
 				}
 			}
-			
+
 			$actions = $view["preview_url"] ? ($view["actions"] + ["preview" => "on"]) : $view["actions"];
 			$fields = $view["fields"];
-			
+
 			if (is_array($fields) && count($fields)) {
 				$first = current($fields);
-				
+
 				if (!isset($first["width"]) || !$first["width"]) {
 					$awidth = count($actions) * 40;
 					$available = 888 - $awidth;
 					$percol = floor($available / count($fields));
-				
+
 					foreach ($fields as $key => $field) {
 						$fields[$key]["width"] = $percol - 20;
 					}
@@ -1577,58 +1577,58 @@
 
 			return $view;
 		}
-		
+
 		/*
 			Function: getViewData
 				Gets a list of data for a view.
-			
+
 			Parameters:
 				view - The view entry to pull data for.
 				sort - The sort direction, defaults to most recent.
 				type - Whether to get only active entries, pending entries, or both.
-			
+
 			Returns:
 				An array of items from bigtree_module_view_cache.
 		*/
-		
+
 		public static function getViewData($view,$sort = "id DESC",$type = "both") {
 			// Check to see if we've cached this table before.
 			self::cacheViewData($view);
-			
+
 			$items = array();
 			if ($type == "both") {
 				$q = sqlquery("SELECT * FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'".self::getFilterQuery($view)." ORDER BY $sort");
 			} elseif ($type == "active") {
-				$q = sqlquery("SELECT * FROM bigtree_module_view_cache WHERE status != 'p' AND view = '".$view["id"]."'".self::getFilterQuery($view)." ORDER BY $sort");	
+				$q = sqlquery("SELECT * FROM bigtree_module_view_cache WHERE status != 'p' AND view = '".$view["id"]."'".self::getFilterQuery($view)." ORDER BY $sort");
 			} elseif ($type == "pending") {
-				$q = sqlquery("SELECT * FROM bigtree_module_view_cache WHERE status = 'p' AND view = '".$view["id"]."'".self::getFilterQuery($view)." ORDER BY $sort");				
+				$q = sqlquery("SELECT * FROM bigtree_module_view_cache WHERE status = 'p' AND view = '".$view["id"]."'".self::getFilterQuery($view)." ORDER BY $sort");
 			}
-			
+
 			while ($f = sqlfetch($q)) {
 				$items[$f["id"]] = $f;
 			}
-			
+
 			return $items;
 		}
-		
+
 		/*
 			Function: getViewDataForGroup
 				Gets a list of data for a view in a given group.
-			
+
 			Parameters:
 				view - The view entry to pull data for.
 				group - The group to get data for.
 				sort - The sort direction, defaults to most recent.
 				type - Whether to get only active entries, pending entries, or both.
-			
+
 			Returns:
 				An array of items from bigtree_module_view_cache.
 		*/
-		
+
 		public static function getViewDataForGroup($view,$group,$sort,$type = "both") {
 			// Check to see if we've cached this table before.
 			self::cacheViewData($view);
-			
+
 			$items = array();
 			if ($type == "both") {
 				$q = sqlquery("SELECT * FROM bigtree_module_view_cache WHERE group_field = '".sqlescape($group)."' AND view = '".$view["id"]."'".self::getFilterQuery($view)." ORDER BY $sort");
@@ -1637,28 +1637,28 @@
 			} elseif ($type == "pending") {
 				$q = sqlquery("SELECT * FROM bigtree_module_view_cache WHERE group_field = '".sqlescape($group)."' AND status = 'p' AND view = '".$view["id"]."'".self::getFilterQuery($view)." ORDER BY $sort");
 			}
-			
+
 			while ($f = sqlfetch($q)) {
 				$items[] = $f;
 			}
-			
+
 			return $items;
 		}
-		
+
 		/*
 			Function: getViewForTable
 				Gets a view for a given table for showing change lists in Pending Changes.
-			
+
 			Parameters:
 				table - Table name.
-			
+
 			Returns:
 				A view entry with settings, and fields decoded and field widths set for Pending Changes.
 		*/
-		
+
 		public static function getViewForTable($table) {
 			global $cms;
-			
+
 			$modules = BigTreeJSONDB::getAll("modules");
 			$view = null;
 			$module_for_view = null;
@@ -1710,7 +1710,7 @@
 					$view["edit_url"] = $module_root."edit/";
 				}
 			}
-			
+
 			$fields = $view["fields"];
 
 			if (is_array($fields)) {
@@ -1722,25 +1722,25 @@
 				}
 
 				$percol = floor($available / count($fields));
-				
+
 				foreach ($fields as $key => $field) {
 					$fields[$key]["width"] = $percol - 20;
 				}
-				
+
 				$view["fields"] = $fields;
 			}
 
 			return $view;
 		}
-		
+
 		/*
 			Function: parseViewData
 				Parses data and returns the parsed columns (runs parsers and populated lists).
-			
+
 			Parameters:
 				view - The view to parse items for.
 				items - An array of entries to parse.
-			
+
 			Returns:
 				An array of parsed entries.
 		*/
@@ -1748,7 +1748,7 @@
 		public static function parseViewData($view,$items) {
 			$form = self::getRelatedFormForView($view);
 			$parsed = array();
-			
+
 			foreach ($items as $item) {
 				if (is_array($view["fields"])) {
 					foreach ($view["fields"] as $key => $field) {
@@ -1763,7 +1763,7 @@
 								$f = sqlfetch(sqlquery("SELECT `".$field_data["settings"]["pop-description"]."` FROM `".$field_data["settings"]["pop-table"]."` WHERE `id` = '".sqlescape($value)."'"));
 								$value = $f[$field_data["settings"]["pop-description"]];
 							}
-							
+
 							$item[$key] = strip_tags($value);
 						}
 					}
@@ -1777,7 +1777,7 @@
 		/*
 			Function: publishPendingItem
 				Publishes a pending item and caches it.
-				
+
 			Parameters:
 				table - The table to store the entry in.
 				id - The id of the pending entry.
@@ -1785,28 +1785,28 @@
 				many_to_many - Many to Many information
 				tags - Tag information
 				open_graph - Open Graph information
-			
+
 			Returns:
 				The id of the new entry.
 		*/
-		
+
 		public static function publishPendingItem($table, $id, $data, $many_to_many = array(), $tags = array(), $open_graph = array()) {
 			return self::createItem($table, $data, $many_to_many, $tags, $id, $open_graph);
 		}
-		
+
 		/*
 			Function: recacheItem
 				Re-caches a database entry.
-			
+
 			Parameters:
 				id - The id of the entry.
 				table - The table the entry is in.
 				pending - Whether the entry is pending or not.
-			
+
 			See Also:
 				<cacheNewItem>
 		*/
-		
+
 		public static function recacheItem($id,$table,$pending = false) {
 			self::cacheNewItem($id,$table,$pending,true);
 		}
@@ -1814,18 +1814,18 @@
 		/*
 			Function: sanitizeData
 				Processes form data into values understandable by the MySQL table.
-			
+
 			Parameters:
 				table - The table to sanitize data for
 				data - Array of key->value pairs
 				existing_description - If the table has already been described, pass it in instead of making sanitizeData do it twice. (defaults to false)
-			
+
 			Returns:
 				Array of data safe for MySQL.
-		*/	
-		
+		*/
+
 		public static function sanitizeData($table,$data,$existing_description = false) {
-			// Setup column info				
+			// Setup column info
 			$table_description = $existing_description ? $existing_description : BigTree::describeTable($table);
 			$columns = $table_description["columns"];
 
@@ -1836,7 +1836,7 @@
 				// Sanitize Integers
 				if ($type == "tinyint" || $type == "smallint" || $type == "mediumint" || $type == "int" || $type == "bigint") {
 					if ($allow_null == "YES" && ($val === null || $val === false || $val === "")) {
-						$data[$key] = "NULL";	
+						$data[$key] = "NULL";
 					} else {
 						$data[$key] = intval(str_replace(array(",","$"),"",$val));
 					}
@@ -1844,7 +1844,7 @@
 				// Sanitize Floats
 				if ($type == "float" || $type == "double" || $type == "decimal") {
 					if ($allow_null == "YES" && ($val === null || $val === false || $val === "")) {
-						$data[$key] = "NULL";	
+						$data[$key] = "NULL";
 					} else {
 						$data[$key] = floatval(str_replace(array(",","$"),"",$val));
 					}
@@ -1893,7 +1893,7 @@
 			Function: submitChange
 				Creates a change request for an item and caches it.
 				Can only be called when logged into the admin.
-			
+
 			Parameters:
 				module - The module for the entry.
 				table - The table the entry is stored in.
@@ -1903,11 +1903,11 @@
 				tags - The tag changes.
 				publish_hook - A function to call when this change is published from the Dashboard.
 				open_graph - Open Graph changes.
-			
+
 			Returns:
 				The id of the pending change.
 		*/
-		
+
 		public static function submitChange($module, $table, $id, $data, $many_to_many = array(), $tags = array(), $publish_hook = null, $open_graph = array()) {
 			global $admin;
 
@@ -1916,7 +1916,7 @@
 			}
 
 			$original = SQL::fetch("SELECT * FROM `$table` WHERE id = ?", $id);
-			
+
 			foreach ($data as $key => $val) {
 				if ($val === "NULL") {
 					$data[$key] = "";
@@ -1955,9 +1955,9 @@
 				if (substr($id,0,1) == "p") {
 					self::recacheItem(substr($id, 1), $table, true);
 				} else {
-					self::recacheItem($id, $table);					
+					self::recacheItem($id, $table);
 				}
-				
+
 				$admin->track($table, $id, "updated-draft");
 
 				return $existing["id"];
@@ -1978,7 +1978,7 @@
 
 				self::recacheItem($id, $table);
 				$admin->track($table,$id,"saved-draft");
-				
+
 				return $change_id;
 			}
 		}
@@ -2001,16 +2001,16 @@
 				$admin->track($table, $id, $action, $user);
 			}
 		}
-		
+
 		/*
 			Function: uncacheItem
 				Removes a database entry from the view cache.
-			
+
 			Parameters:
 				id - The id of the entry.
 				table - The table the entry is in.
 		*/
-		
+
 		public static function uncacheItem($id,$table) {
 			$modules = BigTreeJSONDB::getAll("modules");
 
@@ -2028,7 +2028,7 @@
 		/*
 			Function: updateItem
 				Update an entry and cache it.
-			
+
 			Parameters:
 				table - The table the entry is in.
 				id - The id of the entry.
@@ -2037,38 +2037,42 @@
 				tags - Tag information.
 				open_graph - Open Graph information.
 		*/
-		
+
 		public static function updateItem($table,$id,$data,$many_to_many = array(),$tags = array(),$open_graph = array()) {
 			$id = sqlescape($id);
-			$table_description = BigTree::describeTable($table);
-			$query = "UPDATE `$table` SET ";
 
-			foreach ($data as $key => $val) {
-				if (array_key_exists($key,$table_description["columns"])) {
-					if ($val === "NULL" || $val == "NOW()") {
-						$query .= "`$key` = $val,";
-					} else {
-						if (is_array($val)) {
-							$val = json_encode(BigTree::translateArray($val));
+			// Handle many fields
+			if (count($data)) {
+				$table_description = BigTree::describeTable($table);
+				$query = "UPDATE `$table` SET ";
+
+				foreach ($data as $key => $val) {
+					if (array_key_exists($key, $table_description["columns"])) {
+						if ($val === "NULL" || $val == "NOW()") {
+							$query .= "`$key` = $val,";
+						} else {
+							if (is_array($val)) {
+								$val = json_encode(BigTree::translateArray($val));
+							}
+
+							$query .= "`$key` = '".sqlescape($val)."',";
 						}
-
-						$query .= "`$key` = '".sqlescape($val)."',";
 					}
 				}
-			}
 
-			$query = rtrim($query,",")." WHERE id = '$id'";
-			sqlquery($query);
+				$query = rtrim($query, ",")." WHERE id = '$id'";
+				sqlquery($query);
+			}
 
 			// Handle many to many
 			if (!empty($many_to_many)) {
 				foreach ($many_to_many as $mtm) {
 					sqlquery("DELETE FROM `".$mtm["table"]."` WHERE `".$mtm["my-id"]."` = '$id'");
 					$table_description = BigTree::describeTable($mtm["table"]);
-					
+
 					if (is_array($mtm["data"])) {
 						$x = count($mtm["data"]);
-						
+
 						foreach ($mtm["data"] as $item) {
 							if (isset($table_description["columns"]["position"])) {
 								sqlquery("INSERT INTO `".$mtm["table"]."` (`".$mtm["my-id"]."`,`".$mtm["other-id"]."`,`position`) VALUES ('$id','$item','$x')");
@@ -2085,13 +2089,13 @@
 			// Handle the tags
 			$existing_tags = SQL::fetchAllSingle("SELECT `tag` FROM bigtree_tags_rel WHERE `table` = ? AND `entry` = ?", $table, $id);
 			sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = '$id'");
-			
+
 			if (!empty($tags) && is_array($tags)) {
 				$tags = array_unique($tags);
-				
+
 				foreach ($tags as $tag) {
 					$tag = intval($tag);
-					
+
 					sqlquery("DELETE FROM bigtree_tags_rel WHERE `table` = '".sqlescape($table)."' AND entry = $id AND tag = $tag");
 					sqlquery("INSERT INTO bigtree_tags_rel (`table`,`entry`,`tag`) VALUES ('".sqlescape($table)."',$id,$tag)");
 				}
@@ -2141,13 +2145,13 @@
 		/*
 			Function: updatePendingItemField
 				Update a pending item's field with a given value.
-			
+
 			Parameters:
 				id - The id of the entry.
 				field - The field to change.
 				value - The value to set.
 		*/
-		
+
 		public static function updatePendingItemField($id,$field,$value) {
 			$id = sqlescape($id);
 			$item = sqlfetch(sqlquery("SELECT * FROM bigtree_pending_changes WHERE id = '$id'"));
@@ -2163,18 +2167,18 @@
 		/*
 			Function: validate
 				Validates a form element based on its validation requirements.
-			
+
 			Parameters:
 				data - The form's posted data for a given field.
 				type - Validation requirements (required, numeric, email, link).
-		
+
 			Returns:
 				True if validation passed, otherwise false.
-			
+
 			See Also:
 				<errorMessage>
 		*/
-		
+
 		public static function validate($data,$type) {
 			$parts = explode(" ",$type);
 			// Not required and it's blank
@@ -2202,28 +2206,28 @@
 		/*
 			Function: validationErrorMessage
 				Returns an error message for a form element that failed validation.
-			
+
 			Parameters:
 				data - The form's posted data for a given field.
 				type - Validation requirements (required, numeric, email, link).
-		
+
 			Returns:
 				A string containing reasons the validation failed.
-				
+
 			See Also:
 				<validate>
 		*/
-		
+
 		public static function validationErrorMessage($data,$type) {
 			$parts = explode(" ",$type);
 			// Not required and it's blank
 			$message = "This field ";
 			$mparts = array();
-			
+
 			if (!$data && in_array("required",$parts)) {
 				$mparts[] = "is required";
 			}
-			
+
 			// Requires numeric and it isn't
 			if (in_array("numeric",$parts) && !is_numeric($data)) {
 				$mparts[] = "must be numeric";
@@ -2234,9 +2238,9 @@
 			} elseif (in_array("link",$parts) && !filter_var($data,FILTER_VALIDATE_URL)) {
 				$mparts[] = "must be a link";
 			}
-			
+
 			$message .= implode(" and ",$mparts).".";
-			
+
 			return $message;
 		}
 	}
