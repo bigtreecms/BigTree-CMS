@@ -16,8 +16,8 @@
 	} else {
 		$callouts_available = $admin->getCalloutsAllowed("name ASC");
 	}
-	
-	
+
+
 	$cached_types = $admin->getCachedFieldTypes();
 	$bigtree["previous_field_types"] = $bigtree["field_types"] ?? [];
 	$bigtree["field_types"] = $cached_types["callouts"];
@@ -33,20 +33,20 @@
 
 			foreach ($field["value"] as $callout) {
 				$type = $admin->getCallout($callout["type"]);
-				
+
 				// Callout type was deleted
 				if (!$type) {
 					continue;
 				}
-				
+
 				$disabled = ($type["level"] > $admin->Level);
-				
+
 				// Convert timestamps for existing data to the user's frame of reference so when it saves w/o changes the time is correct
 				$existing_data = $callout;
-				
+
 				foreach ($type["resources"] as $resource) {
 					$current_value = $existing_data[$resource["id"]] ?? null;
-					
+
 					if (!empty($current_value) && empty($resource["settings"]["ignore_timezones"])) {
 						if ($resource["type"] == "time") {
 							$existing_data[$resource["id"]] = $admin->convertTimestampToUser($current_value, "H:i:s");
@@ -66,7 +66,7 @@
 						if ($callout["display_title"] === "") {
 							echo BigTree::trimLength($type["name"] ,100);
 						} else {
-							echo BigTree::trimLength($callout["display_title"], 100);
+							echo BigTree::trimLength($callout["display_title"] ?? "", 100);
 							echo '<small>'.BigTree::trimLength($type["name"] ,100).'</small>';
 						}
 					?>
