@@ -63,7 +63,7 @@
 				<span class="icon_sort"></span>
 				<p class="multi_widget_entry_title">
 					<?php
-						if ($callout["display_title"] === "") {
+						if (!isset($callout["display_title"]) || $callout["display_title"] === "") {
 							echo BigTree::trimLength($type["name"] ,100);
 						} else {
 							echo BigTree::trimLength($callout["display_title"] ?? "", 100);
