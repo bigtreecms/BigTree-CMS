@@ -4,7 +4,7 @@
 	$bigtree["layout"] = "front-end";
 
 	$page = $_POST["page"];
-	
+
 	if ($page === "") {
 		$admin->stop("Invalid page update.");
 	}
@@ -55,7 +55,7 @@
 	// Un-htmlspecialchar everything since createPage / updatePage is going to re-do it.
 	foreach ($pdata as $key => $val) {
 		if (!is_array($val)) {
-			$pdata[$key] = htmlspecialchars_decode($val);
+			$pdata[$key] = htmlspecialchars_decode($val ?? "");
 		}
 	}
 

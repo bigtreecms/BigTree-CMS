@@ -7725,7 +7725,7 @@
 
 			// Check validation
 			if (!BigTreeAutoModule::validate($output, $field["settings"]["validation"] ?? "")) {
-				$error = $field["settings"]["error_message"] ?: BigTreeAutoModule::validationErrorMessage($output, $field["settings"]["validation"]);
+				$error = !empty($field["settings"]["error_message"]) ? $field["settings"]["error_message"] : BigTreeAutoModule::validationErrorMessage($output, $field["settings"]["validation"]);
 				$bigtree["errors"][] = [
 					"field" => $field["title"],
 					"error" => $error
@@ -9779,13 +9779,13 @@
 			}
 
 			// Handle Open Graph
-			$this->handleOpenGraph("bigtree_pages", $page, $data["_open_graph_"]);
+			$this->handleOpenGraph("bigtree_pages", $page, $data["_open_graph_"] ?? []);
 
 			// See if this template has a publish hook
 			$template = BigTreeCMS::getTemplate($data["template"]);
 
 			if (!empty($template["hooks"]["publish"])) {
-				call_user_func($template["hooks"]["publish"], "bigtree_pages", $page, $update, [], $data["_tags"], $data["_open_graph_"]);
+				call_user_func($template["hooks"]["publish"], "bigtree_pages", $page, $update, [], $data["_tags"] ?? [], $data["_open_graph_"] ?? []);
 			}
 
 			// If this page is a trunk in a multi-site setup, wipe the cache

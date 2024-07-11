@@ -1,14 +1,22 @@
 <?php
 	// If a file upload error occurred, return the old data and set errors
-	if ($field["file_input"]["error"] == 1 || $field["file_input"]["error"] == 2) {
-		$bigtree["errors"][] = array("field" => $field["title"], "error" => "The image you uploaded (".$field["file_input"]["name"].") was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>");
-		$field["output"] = $field["input"];
-	} elseif ($field["file_input"]["error"] == 3) {
-		$bigtree["errors"][] = array("field" => $field["title"], "error" => "The image upload failed (".$field["file_input"]["name"].").");
-		$field["output"] = $field["input"];
+	if (!empty($field["file_input"]["error"])) {
+		if ($field["file_input"]["error"] == 1 || $field["file_input"]["error"] == 2) {
+			$bigtree["errors"][] = [
+				"field" => $field["title"],
+				"error" => "The image you uploaded (".$field["file_input"]["name"].") was too large &mdash; <strong>Max file size: ".ini_get("upload_max_filesize")."</strong>",
+			];
+			$field["output"] = $field["input"];
+		} elseif ($field["file_input"]["error"] == 3) {
+			$bigtree["errors"][] = [
+				"field" => $field["title"],
+				"error" => "The image upload failed (".$field["file_input"]["name"].").",
+			];
+			$field["output"] = $field["input"];
+		}
 	} else {
 		// We uploaded a new image.
-		if (is_uploaded_file($field["file_input"]["tmp_name"])) {
+		if (!empty($field["file_input"]["tmp_name"]) && is_uploaded_file($field["file_input"]["tmp_name"])) {
 			$file = $admin->processImageUpload($field);
 			$field["output"] = $file ? $file : $field["input"];
 		// Using an existing image or one from the Image Browser
@@ -23,7 +31,7 @@
 
 				// See if the file was actually stored in the cloud
 				if (!file_exists($resource_location)) {
-					$resource_location = $resource["file"];	
+					$resource_location = $resource["file"];
 				}
 				$pinfo = BigTree::pathInfo($resource_location);
 
