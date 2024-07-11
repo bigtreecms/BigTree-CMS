@@ -7337,9 +7337,11 @@
 			// See if this is a file
 			$local_path = str_replace([WWW_ROOT, STATIC_ROOT], SITE_ROOT, $url);
 
-			if (($path_components[0] != "files" || $path_components[1] != "resources") &&
+			if (substr($local_path, 0, 2) !== "//" && (
+				($path_components[0] !== "files" || $path_components[1] !== "resources") &&
 				(substr($local_path, 0, 1) == "/" || substr($local_path, 0, 2) == "\\\\") &&
-				@file_exists($local_path)) {
+				file_exists($local_path)
+			)) {
 
 				return BigTreeCMS::replaceHardRoots($url);
 			}
