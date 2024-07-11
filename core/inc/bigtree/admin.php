@@ -7339,7 +7339,7 @@
 
 			if (($path_components[0] != "files" || $path_components[1] != "resources") &&
 				(substr($local_path, 0, 1) == "/" || substr($local_path, 0, 2) == "\\\\") &&
-				file_exists($local_path)) {
+				@file_exists($local_path)) {
 
 				return BigTreeCMS::replaceHardRoots($url);
 			}
