@@ -4178,12 +4178,22 @@
 			$modules = BigTreeJSONDB::getAll("modules");
 
 			foreach ($modules as $module) {
-				foreach ($module["actions"] as $action) {
-					if ($action["form"] == $form) {
+				$matching_actions = array_filter($module["actions"], function($action) use ($form) {
+					return $action["form"] == $form;
+				});
+				
+				foreach ($matching_actions as $action) {
+					if ($action["route"] == "edit") {
 						$action["module"] = $module["id"];
-
+						
 						return $action;
 					}
+				}
+				
+				if (count($matching_actions)) {
+					$matching_actions[0]["module"] = $module["id"];
+					
+					return $matching_actions[0];
 				}
 			}
 		}

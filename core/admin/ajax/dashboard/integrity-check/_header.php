@@ -1,6 +1,5 @@
 <?php
 	$integrity_errors = array();
-	$external = $_GET["external"] ? true : false;
 
 	// Recursive method for checking an array of data against an array of resources
 	$check_data = function($local_path,$external,$resources,$data_set) {
