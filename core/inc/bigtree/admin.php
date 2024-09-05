@@ -1221,7 +1221,7 @@
 				BigTree::setPermissions(SERVER_ROOT."custom/inc/modules/$route.php");
 
 				// Remove cached class list.
-				unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
+				@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 			}
 
 			$this->track("jsondb -> modules", $id, "created");
@@ -9170,7 +9170,7 @@
 			$this->track("jsondb -> modules", $id, "updated");
 
 			// Remove cached class list.
-			unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
+			@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 		}
 
 		/*
