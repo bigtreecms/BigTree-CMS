@@ -22,22 +22,46 @@
 		$current_item = 0;
 		
 		// Get the ids of items that are in each module.
-		foreach ($modules as &$m) {
-			$action = $admin->getModuleActionForForm($m);
+		foreach ($modules as &$module_form) {
+			$action = $admin->getModuleActionForForm($module_form);
 			$module = $admin->getModule($action["module"]);
+			
+			// If there's a single view that has a table that matches the form's table and it has a filter we need to apply it
+			$view_match_count = 0;
+			$filter = null;
+			
+			if (!empty($module["views"])) {
+				foreach ($module["views"] as $view) {
+					if ($view["table"] == $module_form["table"]) {
+						$view_match_count++;
+						
+						if (!empty($view["settings"]["filter"])) {
+							$filter = $view["settings"]["filter"];
+						}
+					}
+				}
+			}
 			
 			if ($module["group"]) {
 				$group = $admin->getModuleGroup($module["group"]);
-				$m["module_name"] = "Modules&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$group["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$m["title"];
+				$module_form["module_name"] = "Modules&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$group["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module_form["title"];
 			} else {
-				$m["module_name"] = "Modules&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$m["title"];
+				$module_form["module_name"] = "Modules&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module_form["title"];
 			}
 			
-			$m["module_route"] = $module["route"];
-			$m["items"] = array();
-			$q = sqlquery("SELECT id FROM `".$m["table"]."`");
-			while ($f = sqlfetch($q)) {
-				$m["items"][] = $f["id"];
+			$module_form["module_route"] = $module["route"];
+			$module_form["items"] = array();
+			
+			if ($view_match_count === 1 && $filter) {
+				$query = SQL::query("SELECT * FROM `".$module_form["table"]."`");
+				
+				while ($item = $query->fetch()) {
+					if (call_user_func($filter,$item)) {
+						$module_form["items"][] = $item["id"];
+					}
+				}
+			} else {
+				$module_form["items"] = SQL::fetchAllSingle("SELECT id FROM `".$module_form["table"]."`");
 			}
 		}
 		
