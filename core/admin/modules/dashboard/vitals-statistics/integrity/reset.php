@@ -6,5 +6,5 @@
 	
 	$admin->growl("Site Integrity Check","Session Reset","success");
 	
-	BigTree::redirect(MODULE_ROOT."vitals-statistics/integrity/");
+	BigTree::redirect(ADMIN_ROOT."dashboard/vitals-statistics/integrity/");
 	
