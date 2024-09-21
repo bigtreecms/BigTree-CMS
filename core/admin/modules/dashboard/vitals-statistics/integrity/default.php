@@ -16,7 +16,7 @@
 		</p>
 	</section>
 	<footer>
-		<a href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/integrity/check/reset/" class="button red">Reset</a>
+		<a href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/integrity/reset/" class="button red">Reset</a>
 		<a href="<?=ADMIN_ROOT?>dashboard/vitals-statistics/integrity/check/?external=<?=($existing_external_session ? "true" : "false")?>" class="button blue">Resume Session</a>
 	</footer>
 	<?php
