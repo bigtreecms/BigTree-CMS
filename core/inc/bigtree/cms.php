@@ -1687,8 +1687,14 @@
 				return false;
 			} else {
 				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
-				define("BIGTREE_DO_NOT_CACHE", true);
-				define("BIGTREE_URL_IS_404", true);
+				
+				if (!defined("BIGTREE_DO_NOT_CACHE")) {
+					define("BIGTREE_DO_NOT_CACHE", true);
+				}
+				
+				if (!defined("BIGTREE_URL_IS_404")) {
+					define("BIGTREE_URL_IS_404", true);
+				}
 
 				if ($existing && $existing["get_vars"] == $get) {
 					sqlquery("UPDATE bigtree_404s SET requests = (requests + 1) WHERE id = '".$existing["id"]."'");
