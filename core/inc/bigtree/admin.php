@@ -580,7 +580,7 @@
 				return true;
 			}
 
-			if ($this->Permissions["module"][$module] && $this->Permissions["module"][$module] != "n") {
+			if (!empty($this->Permissions["module"][$module]) && $this->Permissions["module"][$module] != "n") {
 				return true;
 			}
 
