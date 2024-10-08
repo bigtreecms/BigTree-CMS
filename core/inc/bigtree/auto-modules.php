@@ -1214,7 +1214,7 @@
 			$modules = BigTreeJSONDB::getAll("modules");
 
 			foreach ($modules as $module) {
-				if (is_array($module["reports"])) {
+				if (!empty($module["reports"]) && is_array($module["reports"])) {
 					foreach ($module["reports"] as $report) {
 						if ($report["id"] == $id) {
 							$report["module"] = $module["id"];
@@ -1387,7 +1387,9 @@
 			}
 
 			$per_page = !empty($view["settings"]["per_page"]) ? $view["settings"]["per_page"] : BigTreeAdmin::$PerPage;
-			$pages = ceil(sqlrows(sqlquery($query)) / $per_page);
+			$count_query = str_replace("SELECT * FROM", "SELECT COUNT(*) FROM", $query);
+			$total = SQL::fetchSingle($count_query);
+			$pages = ceil($total / $per_page);
 			$pages = ($pages > 0) ? $pages : 1;
 			$results = array();
 
@@ -1442,6 +1444,7 @@
 			} else {
 				$q = sqlquery($query." ORDER BY $sort_field $sort_direction LIMIT ".(($page - 1) * $per_page).",$per_page");
 			}
+			
 
 			while ($f = sqlfetch($q)) {
 				unset($f["hash"]);
