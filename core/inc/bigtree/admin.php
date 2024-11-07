@@ -469,12 +469,13 @@
 			$id = $module["id"];
 			$level = false;
 
-			if ($this->Permissions["module"][$id] && $this->Permissions["module"][$id] != "n") {
+			if (!empty($this->Permissions["module"][$id]) && $this->Permissions["module"][$id] != "n") {
 				$level = $this->Permissions["module"][$id];
 			}
 
-			if (is_array($this->Permissions["module_gbp"][$id])) {
+			if (!empty($this->Permissions["module_gbp"][$id]) && is_array($this->Permissions["module_gbp"][$id])) {
 				$gp = $this->Permissions["module_gbp"][$id][$group];
+
 				if ($gp != "n") {
 					if ($gp == "p" || !$level) {
 						$level = $gp;
