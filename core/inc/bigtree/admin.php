@@ -585,12 +585,13 @@
 				return true;
 			}
 
-			if (isset($this->Permissions["module_gbp"])) {
-				if (is_array($this->Permissions["module_gbp"][$module])) {
-					foreach ($this->Permissions["module_gbp"][$module] as $p) {
-						if ($p != "n") {
-							return true;
-						}
+			if (
+				!empty($this->Permissions["module_gbp"][$module]) &&
+				is_array($this->Permissions["module_gbp"][$module])
+			) {
+				foreach ($this->Permissions["module_gbp"][$module] as $p) {
+					if ($p != "n") {
+						return true;
 					}
 				}
 			}
@@ -4284,18 +4285,18 @@
 				$matching_actions = array_filter($module["actions"], function($action) use ($form) {
 					return $action["form"] == $form;
 				});
-				
+
 				foreach ($matching_actions as $action) {
 					if ($action["route"] == "edit") {
 						$action["module"] = $module["id"];
-						
+
 						return $action;
 					}
 				}
-				
+
 				if (count($matching_actions)) {
 					$matching_actions[0]["module"] = $module["id"];
-					
+
 					return $matching_actions[0];
 				}
 			}
