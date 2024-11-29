@@ -1,11 +1,11 @@
 <?php
 	$external = ($_GET["external"] == "true") ? true : false;
 	$admin->requireLevel(1);
-	
+
 	// See if an integrity check session currently exists
 	$session_key = "session.".($external ? "external" : "internal");
 	$existing_session = BigTreeCMS::cacheGet("org.bigtreecms.integritycheck", $session_key);
-	
+
 	if ($existing_session) {
 		$has_existing_session = true;
 		$pages = $existing_session["pages"];
@@ -20,41 +20,41 @@
 		$current_page = 0;
 		$current_module = 0;
 		$current_item = 0;
-		
+
 		// Get the ids of items that are in each module.
 		foreach ($modules as &$module_form) {
 			$action = $admin->getModuleActionForForm($module_form);
 			$module = $admin->getModule($action["module"]);
-			
+
 			// If there's a single view that has a table that matches the form's table and it has a filter we need to apply it
 			$view_match_count = 0;
 			$filter = null;
-			
+
 			if (!empty($module["views"])) {
 				foreach ($module["views"] as $view) {
 					if ($view["table"] == $module_form["table"]) {
 						$view_match_count++;
-						
+
 						if (!empty($view["settings"]["filter"])) {
 							$filter = $view["settings"]["filter"];
 						}
 					}
 				}
 			}
-			
+
 			if ($module["group"]) {
 				$group = $admin->getModuleGroup($module["group"]);
 				$module_form["module_name"] = "Modules&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$group["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module_form["title"];
 			} else {
 				$module_form["module_name"] = "Modules&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module["name"]."&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;".$module_form["title"];
 			}
-			
+
 			$module_form["module_route"] = $module["route"];
 			$module_form["items"] = array();
-			
+
 			if ($view_match_count === 1 && $filter) {
 				$query = SQL::query("SELECT * FROM `".$module_form["table"]."`");
-				
+
 				while ($item = $query->fetch()) {
 					if (call_user_func($filter,$item)) {
 						$module_form["items"][] = $item["id"];
@@ -64,7 +64,7 @@
 				$module_form["items"] = SQL::fetchAllSingle("SELECT id FROM `".$module_form["table"]."`");
 			}
 		}
-		
+
 		BigTreeCMS::cachePut("org.bigtreecms.integritycheck", $session_key, [
 			"pages" => $pages,
 			"modules" => $modules,
@@ -92,7 +92,7 @@
 				if (!empty($existing_session["errors"]["pages"])) {
 					foreach ($existing_session["errors"]["pages"] as $id => $page_errors) {
 						$page = SQL::fetch("SELECT nav_title FROM bigtree_pages WHERE id = ?", $id);
-						
+
 						foreach ($page_errors as $title => $error_types) {
 							foreach ($error_types as $type => $errors) {
 								foreach ($errors as $error) {
@@ -115,7 +115,7 @@
 	</ul>
 	<?php
 		$x = 0;
-		
+
 		foreach ($modules as $module) {
 	?>
 	<header class="group"><span class="integrity_progress" id="module_<?=$module["id"]?>_progress"><?=($current_module > $x ? 100 : 0)?>%</span><?=$module["module_name"]?></header>
@@ -123,7 +123,7 @@
 		<?php
 			if (!empty($existing_session["errors"][$module["id"]])) {
 				$action = $admin->getModuleActionForForm($module);
-				
+
 				foreach ($existing_session["errors"][$module["id"]] as $entry_id => $module_errors) {
 					foreach ($module_errors as $field  => $error_types) {
 						foreach ($error_types as $type => $errors) {
@@ -158,7 +158,7 @@
 	BigTree.localCurrentModule = <?=$current_module?>;
 	BigTree.localTotalModules = BigTree.localModuleList.length;
 	BigTree.localCurrentItem = <?=$current_item?>;
-	
+
 	BigTree.localDownloadPage = function() {
 		$.ajax({
 			complete: function(response) {
@@ -182,7 +182,7 @@
 				}
 			},
 			data: {
-				external: <?=$external?>,
+				external: <?=($external ? "true" : "false")?>,
 				id: BigTree.localPageList[BigTree.localCurrentPage],
 				index: BigTree.localCurrentPage
 			},
@@ -190,12 +190,12 @@
 			url: "<?=ADMIN_ROOT?>ajax/dashboard/integrity-check/page/",
 		});
 	};
-	
+
 	BigTree.localDownloadModule = function(number) {
 		BigTree.localCurrentModule = number;
 		BigTree.localTotalItems = BigTree.localModuleList[number].items.length;
 		BigTree.localCurrentItem = 0;
-		
+
 		if (BigTree.localTotalItems > 0) {
 			BigTree.localDownloadItem(0);
 		} else {
@@ -204,7 +204,7 @@
 			BigTree.localDownloadModule(BigTree.localCurrentModule + 1);
 		}
 	};
-	
+
 	BigTree.localDownloadItem = function(number) {
 		$.ajax({
 			complete: function(response) {
@@ -230,7 +230,7 @@
 				}
 			},
 			data: {
-				external: <?=$external?>,
+				external: <?=($external ? "true" : "false")?>,
 				form: BigTree.localModuleList[BigTree.localCurrentModule].id,
 				id: BigTree.localModuleList[BigTree.localCurrentModule].items[number],
 				index: number,
