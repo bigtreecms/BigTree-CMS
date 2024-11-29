@@ -3,11 +3,11 @@
 		Class: BigTreeCloudStorage
 			A cloud storage interface class that provides service agnostic calls on top of various cloud storage platforms.
 	*/
-	
+
 	require_once SERVER_ROOT."core/inc/bigtree/apis/_oauth.base.php";
-	
+
 	class BigTreeCloudStorage extends BigTreeOAuthAPIBase {
-		
+
 		// These are only applicable to Google Cloud Storage
 		public $AuthorizeURL = "https://accounts.google.com/o/oauth2/auth";
 		public $AWSRegions = [
@@ -57,10 +57,10 @@
 		public $Service = "";
 		public $Settings = [];
 		public $TokenURL = "https://accounts.google.com/o/oauth2/token";
-		
+
 		private $CloudFrontClient;
 		private $S3Client;
-		
+
 		/*
 			Constructor:
 				Retrieves the current desired service and settings.
@@ -68,30 +68,30 @@
 			Parameters:
 				service - The service to use (amazon, rackspace, google) — if this is left empty it will use $this->Settings["service"] which can be set and auto saves.
 		*/
-		
+
 		public function __construct($service = false) {
 			parent::__construct("bigtree-internal-cloud-storage", "Cloud Storage", "org.bigtreecms.api.cloud-storage", false);
 			$this->Service = $service ?: ($this->Settings["service"] ?? "");
-			
+
 			// Set OAuth Return URL for Google Cloud Storage
 			$this->ReturnURL = ADMIN_ROOT."developer/cloud-storage/google/return/";
-			
+
 			// Retrieve a fresh token for Rackspace Cloud Files
 			if ($this->Service == "rackspace") {
 				if (!isset($this->Settings["rackspace"]["token_expiration"]) || $this->Settings["rackspace"]["token_expiration"] < time()) {
 					$this->getRackspaceToken();
 				}
-				
+
 				$this->RackspaceAPIEndpoint = $this->Settings["rackspace"]["endpoints"][$this->Settings["rackspace"]["region"]];
 				$this->RackspaceCDNEndpoint = $this->Settings["rackspace"]["cdn_endpoints"][$this->Settings["rackspace"]["region"]];
 			}
-			
+
 			// Setup S3 Client for Amazon
 			if ($this->Service == "amazon") {
 				$this->setupAmazon();
 			}
 		}
-		
+
 		/*
 			Function: _getRackspaceURL
 				Checks to see if the bucket is CDN enabled, if it is we use the CDN URL, otherwise the private URL.
@@ -103,7 +103,7 @@
 			Returns:
 				A URL
 		*/
-		
+
 		public function _getRackspaceURL($container, $pointer) {
 			if ($this->Settings["rackspace"]["container_cdn_urls"][$container]) {
 				return $this->Settings["rackspace"]["container_cdn_urls"][$container]."/$pointer";
@@ -112,24 +112,24 @@
 				$cdn = false;
 				$response = BigTree::cURL($this->RackspaceCDNEndpoint."/$container", "", [CURLOPT_CUSTOMREQUEST => "HEAD", CURLOPT_HEADER => true, CURLOPT_HTTPHEADER => ["X-Auth-Token: ".$this->Settings["rackspace"]["token"]]]);
 				$lines = explode("\n", $response);
-				
+
 				foreach ($lines as $line) {
 					if (substr($line, 0, 10) == "X-Cdn-Uri:") {
 						$cdn = trim(substr($line, 10));
 					}
 				}
-				
+
 				if ($cdn) {
 					$this->Settings["rackspace"]["container_cdn_urls"][$container] = $cdn;
 					$this->saveSettings();
-					
+
 					return "$cdn/$pointer";
 				}
 			}
-			
+
 			return $this->RackspaceAPIEndpoint."/$container/$pointer";
 		}
-		
+
 		/*
 			Function: _hash
 				Used for HMAC hashing internally.
@@ -141,15 +141,15 @@
 			Returns:
 				Hashed string.
 		*/
-		
+
 		protected function _hash($secret, $string) {
 			if (extension_loaded("hash")) {
 				return base64_encode(hash_hmac('sha1', $string, $secret, true));
 			}
-			
+
 			return base64_encode(pack('H*', sha1((str_pad($secret, 64, chr(0x00)) ^ (str_repeat(chr(0x5c), 64))).pack('H*', sha1((str_pad($secret, 64, chr(0x00)) ^ (str_repeat(chr(0x36), 64))).$string)))));
 		}
-		
+
 		/*
 			Function: copyFile
 				Copies a file from one container/location to another container/location.
@@ -161,11 +161,11 @@
 				destination_container - The container to copy the source file to.
 				destination_pointer - The full file path to store the copied file
 				public - true to make publicly accessible, defaults to false (this setting is ignored in Rackspace Cloud Files and is ignored in Amazon S3 if the bucket's policy is set to public)
-				
+
 			Returns:
 				The URL of the file if successful.
 		*/
-		
+
 		public function copyFile($source_container, $source_pointer, $destination_container, $destination_pointer, $public = false) {
 			// Amazon S3
 			if ($this->Service == "amazon") {
@@ -176,34 +176,34 @@
 						"CopySource" => "/".$source_container."/".rawurlencode($source_pointer),
 						"Key" => $destination_pointer
 					]);
-					
+
 					return $response["ObjectURL"];
 				} catch (Exception $e) {
 					$this->Errors[] = $e->getMessage();
-					
+
 					return false;
 				}
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 				global $bigtree;
-				
+
 				BigTree::cURL($this->RackspaceAPIEndpoint."/$source_container/$source_pointer", false, [CURLOPT_CUSTOMREQUEST => "COPY", CURLOPT_HTTPHEADER => ["Destination: /$destination_container/$destination_pointer", "X-Auth-Token: ".$this->Settings["rackspace"]["token"]]]);
-				
+
 				if ($bigtree["last_curl_response_code"] == "201") {
 					return $this->_getRackspaceURL($destination_container, $destination_pointer);
 				}
-				
+
 				return false;
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$response = $this->call("b/$source_container/o/".rawurlencode($source_pointer)."/copyTo/b/$destination_container/o/".rawurlencode($destination_pointer), "{}", "POST");
-				
+
 				if (isset($response->id)) {
 					// Set the access control level if it's publicly accessible
 					if ($public) {
 						$this->call("b/$destination_container/o/".rawurlencode($destination_pointer)."/acl", json_encode(["entity" => "allUsers", "role" => "READER"]), "POST");
 					}
-					
+
 					return "//storage.googleapis.com/$destination_container/$destination_pointer";
 				} else {
 					return false;
@@ -212,7 +212,7 @@
 				return false;
 			}
 		}
-		
+
 		/*
 			Function: createContainer
 				Creates a new container/bucket.
@@ -223,35 +223,35 @@
 			Parameters:
 				name - Container name (keep in mind this must be unique among all other containers)
 				public - true for public, defaults to false (does not work for AWS)
-			
+
 			Returns:
 				true if successful.
 		*/
-		
+
 		public function createContainer($name, $public = false) {
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				try {
 					$this->S3Client->createBucket(["Bucket" => $name]);
-					
+
 					return true;
 				} catch (Exception $e) {
 					$this->Errors[] = $e->getMessage();
-					
+
 					return false;
 				}
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 				global $bigtree;
-				
+
 				$this->callRackspace($name, "", [CURLOPT_PUT => true]);
-				
+
 				if ($bigtree["last_curl_response_code"] == 201) {
 					// CDN Enable this container if it's public
 					if ($public) {
 						BigTree::cURL($this->RackspaceCDNEndpoint."/$name", "", [CURLOPT_PUT => true, CURLOPT_HTTPHEADER => ["X-Auth-Token: ".$this->Settings["rackspace"]["token"], "X-Cdn-Enabled: true"]]);
 					}
-					
+
 					return true;
 				} else {
 					return false;
@@ -259,16 +259,16 @@
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$request = ["name" => $name];
-				
+
 				if ($public) {
 					$request["defaultObjectAcl"] = [
 						["role" => "READER", "entity" => "allAuthenticatedUsers"],
 						["role" => "READER", "entity" => "allUsers"]
 					];
 				}
-				
+
 				$response = $this->call("b?project=".$this->Settings["project"], json_encode($request), "POST");
-				
+
 				if (isset($response->id)) {
 					return true;
 				} else {
@@ -278,7 +278,7 @@
 				return false;
 			}
 		}
-		
+
 		/*
 			Function: createFile
 				Creates a new file in the given container.
@@ -290,23 +290,23 @@
 				pointer - The full file path inside the container.
 				public - true to make publicly accessible, defaults to false (this setting is ignored in Rackspace Cloud Files and is ignored in Amazon S3 if the bucket's policy is set to public)
 				type - MIME type (defaults to using the file extension, falls back to text/plain)
-			
+
 			Returns:
 				The URL of the file if successful.
 		*/
-		
+
 		public function createFile($contents, $container, $pointer, $public = false, $type = "") {
 			$extension = strtolower(pathinfo($pointer, PATHINFO_EXTENSION));
-			
+
 			// Get destination mime type
 			if (!$type) {
 				$type = isset($this->MimeExtensions[$extension]) ? $this->MimeExtensions[$extension] : "text/plain";
 			}
-			
+
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				$contents = strlen($contents) ? $contents : " ";
-				
+
 				try {
 					$response = $this->S3Client->putObject([
 						"Bucket" => $container,
@@ -316,48 +316,48 @@
 						"Key" => $pointer,
 						"ACL" => ($public ? "public-read" : "private")
 					]);
-					
+
 					return $response["ObjectURL"];
 				} catch (Exception $e) {
 					$this->Errors[] = $e->getMessage();
-					
+
 					return false;
 				}
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 				global $bigtree;
-				
+
 				BigTree::cURL($this->RackspaceAPIEndpoint."/$container/$pointer", $contents, [CURLOPT_CUSTOMREQUEST => "PUT", CURLOPT_HTTPHEADER => ["Content-Length" => strlen($contents), "X-Auth-Token: ".$this->Settings["rackspace"]["token"]]]);
-				
+
 				if ($bigtree["last_curl_response_code"] == "201") {
 					return $this->_getRackspaceURL($container, $pointer);
 				}
-				
+
 				return false;
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$encoded_pointer = rawurlencode($pointer);
 				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$encoded_pointer&uploadType=media", $contents, [CURLOPT_POST => true, CURLOPT_HTTPHEADER => ["Content-Type: $type", "Content-Length: ".strlen($contents), "Authorization: Bearer ".$this->Settings["token"]]]));
-				
+
 				if (isset($response->id)) {
 					// Set the access control level if it's publicly accessible
 					if ($public) {
 						$this->call("b/$container/o/$encoded_pointer/acl", json_encode(["entity" => "allUsers", "role" => "READER"]), "POST");
 					}
-					
+
 					return "//storage.googleapis.com/$container/$pointer";
 				} else {
 					foreach ($response->error->errors as $error) {
 						$this->Errors[] = $error;
 					}
-					
+
 					return false;
 				}
 			} else {
 				return false;
 			}
 		}
-		
+
 		/*
 			Function: createFolder
 				Creates a new folder in the given container.
@@ -365,15 +365,15 @@
 			Parameters:
 				container - Container name.
 				pointer - The full folder path inside the container.
-			
+
 			Returns:
 				true if successful.
 		*/
-		
+
 		public function createFolder($container, $pointer) {
 			return $this->createFile("", $container, rtrim($pointer, "/")."/");
 		}
-		
+
 		/*
 			Function: deleteContainer
 				Deletes a container/bucket.
@@ -381,29 +381,29 @@
 
 			Parameters:
 				container - Container to delete.
-			
+
 			Returns:
 				true if successful.
 		*/
-		
+
 		public function deleteContainer($container) {
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				try {
 					$response = $this->S3Client->deleteBucket(["Bucket" => $container]);
-					
+
 					return true;
 				} catch (Exception $e) {
 					$this->Errors[] = $e->getMessage();
-					
+
 					return false;
 				}
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 				global $bigtree;
-				
+
 				$this->callRackspace($container, "", [CURLOPT_CUSTOMREQUEST => "DELETE"]);
-				
+
 				if ($bigtree["last_curl_response_code"] == 204) {
 					return true;
 				} elseif ($bigtree["last_curl_response_code"] == 404) {
@@ -415,19 +415,19 @@
 			} elseif ($this->Service == "google") {
 				$error_count = count($this->Errors);
 				$this->call("b/$container", false, "DELETE");
-				
+
 				if (count($this->Errors) > $error_count) {
 					return false;
 				}
-				
+
 				return true;
 			} else {
 				return false;
 			}
-			
+
 			return false;
 		}
-		
+
 		/*
 			Function: deleteFile
 				Deletes a file from the given container.
@@ -439,45 +439,45 @@
 			Returns:
 				true if successful
 		*/
-		
+
 		public function deleteFile($container, $pointer) {
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				try {
 					$response = $this->S3Client->deleteObject(["Bucket" => $container, "Key" => $pointer]);
-					
+
 					return true;
 				} catch (Exception $e) {
 					$this->Errors[] = $e->getMessage();
-					
+
 					return false;
 				}
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 				global $bigtree;
-				
+
 				$this->callRackspace("$container/$pointer", "", [CURLOPT_CUSTOMREQUEST => "DELETE"]);
-				
+
 				if ($bigtree["last_curl_response_code"] == 204) {
 					return true;
 				}
-				
+
 				return false;
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$error_count = count($this->Errors);
 				$this->call("b/$container/o/".rawurlencode($pointer), false, "DELETE");
-				
+
 				if (count($this->Errors) > $error_count) {
 					return false;
 				}
-				
+
 				return true;
 			} else {
 				return false;
 			}
 		}
-		
+
 		/*
 			Function: getAuthenticatedFileURL
 				Returns a URL that is valid for a limited amount of time to a private file.
@@ -490,14 +490,14 @@
 			Returns:
 				A URL.
 		*/
-		
+
 		public function getAuthenticatedFileURL($container, $pointer, $expires) {
 			$expires += time();
-			
+
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				$pointer = str_replace(['%2F', '%2B'], ['/', '+'], rawurlencode($pointer));
-				
+
 				return "//$container.s3.amazonaws.com/".$pointer."?AWSAccessKeyId=".$this->Settings["amazon"]["key"]."&Expires=$expires&Signature=".urlencode($this->_hash($this->Settings["amazon"]["secret"], "GET\n\n\n$expires\n/$container/$pointer"));
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
@@ -510,13 +510,13 @@
 						CURLOPT_HTTPHEADER => ["X-Auth-Token: ".$this->Settings["rackspace"]["token"]]
 					]);
 					$headers = explode("\n", $response);
-					
+
 					foreach ($headers as $header) {
 						if (substr($header, 0, 28) == "X-Account-Meta-Temp-Url-Key:") {
 							$this->Settings["rackspace"]["temp_url_key"] = trim(substr($header, 29));
 						}
 					}
-					
+
 					// If we don't have an existing one, make up our own
 					if (!$this->Settings["rackspace"]["temp_url_key"]) {
 						$this->Settings["rackspace"]["temp_url_key"] = uniqid();
@@ -528,40 +528,40 @@
 
 					$this->saveSettings();
 				}
-				
+
 				list($domain, $client_id) = explode("/v1/", $this->RackspaceAPIEndpoint);
 				$hash = urlencode(hash_hmac("sha1", "GET\n$expires\n/v1/$client_id/$container/$pointer", $this->Settings["rackspace"]["temp_url_key"]));
-				
+
 				return $this->RackspaceAPIEndpoint."/$container/$pointer?temp_url_sig=$hash&temp_url_expires=$expires";
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				if (!function_exists('openssl_x509_read')) {
 					throw new Exception("PHP's OpenSSL extension is required to use authenticated URLs with Google Cloud Storage.");
 				}
-				
+
 				if (!$this->Settings["private_key"] || !$this->Settings["certificate_email"]) {
 					throw new Exception("You must upload your Google Cloud Storage private key and set your Certificate Email Address to use authenticated URLs.");
 				}
-				
+
 				// Google's default password for these is "notasecret"
 				$certificates = [];
-				
+
 				if (!openssl_pkcs12_read(file_get_contents($this->Settings["private_key"]), $certificates, "notasecret")) {
 					throw new Exception("Unable to parse Google Cloud Storage private key file:".openssl_error_string());
 				}
-				
+
 				$private_key = openssl_pkey_get_private($certificates["pkey"]);
-				
+
 				// Sign the string
 				$encoded_pointer = str_replace(" ", "%20", $pointer);
 				openssl_sign("GET\n\n\n$expires\n/$container/$encoded_pointer", $signature, $private_key, "sha256");
-				
+
 				return "//storage.googleapis.com/$container/$pointer?GoogleAccessId=".$this->Settings["certificate_email"]."&Expires=$expires&Signature=".urlencode(base64_encode($signature));
 			} else {
 				return false;
 			}
 		}
-		
+
 		/*
 			Function: getCloudFrontDistributions
 				Returns an array of distributions.
@@ -569,17 +569,17 @@
 			Returns:
 				An array or null if the API call failed.
 		*/
-		
-		public function getCloudFrontDistributions() {			
+
+		public function getCloudFrontDistributions() {
 			$distributions = [];
-			
+
 			try {
 				$continue = true;
 				$marker = "";
-				
+
 				while ($continue) {
 					$response = $this->CloudFrontClient->listDistributions(["Marker" => $marker]);
-					
+
 					if (isset($response["DistributionList"]["Items"])) {
 						foreach ($response["DistributionList"]["Items"] as $item) {
 							$dist = [
@@ -587,17 +587,17 @@
 								"domain" => $item["DomainName"],
 								"aliases" => []
 							];
-							
+
 							if (isset($item["Aliases"]["Items"])) {
 								foreach ($item["Aliases"]["Items"] as $alias) {
 									$dist["aliases"][] = $alias;
 								}
 							}
-							
+
 							$distributions[] = $dist;
 						}
 					}
-					
+
 					if ($response["IsTruncated"]) {
 						$continue = true;
 						$marker = $response["NextMarker"];
@@ -605,15 +605,15 @@
 						$continue = false;
 					}
 				}
-				
+
 				return $distributions;
 			} catch (Exception $e) {
 				$this->Errors[] = $e->getMessage();
-				
+
 				return null;
 			}
 		}
-		
+
 		/*
 			Function: getContainer
 				Lists the contents of a container/bucket.
@@ -625,28 +625,28 @@
 			Returns:
 				An array of the contents of the container.
 		*/
-		
+
 		public function getContainer($container, $simple = false) {
 			$tree = ["folders" => [], "files" => []];
 			$flat = [];
-			
+
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				$continue = true;
 				$marker = "";
-				
+
 				while ($continue) {
 					try {
 						$response = $this->S3Client->listObjects(["Bucket" => $container, "Marker" => $marker]);
 						$x = 0;
-						
+
 						foreach ($response["Contents"] as $item) {
 							$x++;
-							
+
 							if ($x == 1 && $marker) {
 								continue;
 							}
-							
+
 							if ($simple) {
 								$flat[] = [
 									"name" => $item["Key"],
@@ -668,9 +668,9 @@
 								];
 							}
 						}
-						
+
 						$continue = false;
-						
+
 						// Multi-page
 						if ($response["IsTruncated"]) {
 							$continue = true;
@@ -678,14 +678,14 @@
 						}
 					} catch (Exception $e) {
 						$this->Errors[] = $e->getMessage();
-						
+
 						return false;
 					}
 				}
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 				$response = $this->callRackspace($container);
-				
+
 				if (is_array($response)) {
 					foreach ($response as $item) {
 						if ($simple) {
@@ -710,7 +710,7 @@
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$response = $this->call("b/$container/o");
-				
+
 				if (isset($response->kind) && $response->kind == "storage#objects") {
 					if (is_array($response->items)) {
 						foreach ($response->items as $item) {
@@ -741,18 +741,18 @@
 			} else {
 				return false;
 			}
-			
+
 			if ($simple) {
 				return $flat;
 			}
-			
+
 			foreach ($flat as $raw_item) {
 				$keys = explode("/", $raw_item["name"]);
-				
+
 				// We're going to use by reference vars to figure out which folder to place this in
 				if (count($keys) > 1) {
 					$folder = &$tree;
-					
+
 					for ($i = 0; $i < count($keys); $i++) {
 						// Last part of the key and also has a . so we know it's actually a file
 						if ($i == count($keys) - 1 && strpos($keys[$i], ".") !== false) {
@@ -763,7 +763,7 @@
 								if (!isset($folder["folders"][$keys[$i]])) {
 									$folder["folders"][$keys[$i]] = ["folders" => [], "files" => []];
 								}
-					
+
 								$folder = &$folder["folders"][$keys[$i]];
 							}
 						}
@@ -772,10 +772,10 @@
 					$tree["files"][] = $raw_item;
 				}
 			}
-			
+
 			return ["flat" => $flat, "tree" => $tree];
 		}
-		
+
 		/*
 			Function: getFile
 				Returns a file from the given container.
@@ -787,17 +787,17 @@
 			Returns:
 				A binary stream of data or false if the file is not found or not allowed.
 		*/
-		
+
 		public function getFile($container, $pointer) {
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				try {
 					$response = $this->S3Client->getObject(["Bucket" => $container, "Key" => $pointer]);
-					
+
 					return $response["Body"];
 				} catch (Exception $e) {
 					$this->Errors[] = $e->getMessage();
-					
+
 					return false;
 				}
 			// Rackspace Cloud Files
@@ -811,7 +811,7 @@
 				return false;
 			}
 		}
-		
+
 		/*
 			Function: getFolder
 				Returns the folder "contents" from a container.
@@ -823,27 +823,27 @@
 			Returns:
 				A keyed array of files and folders inside the folder or false if the folder was not found.
 		*/
-		
+
 		public function getFolder($container, $folder) {
 			if (!is_array($container)) {
 				$container = $this->getContainer($container);
 			}
-			
+
 			$folder_parts = explode("/", trim($folder, "/"));
 			$tree = $container["tree"];
-			
+
 			foreach ($folder_parts as $part) {
 				$tree = isset($tree["folders"][$part]) ? $tree["folders"][$part] : false;
 			}
-			
+
 			return $tree;
 		}
-		
+
 		/*
 			Function: getRackspaceToken
 				Gets a new access token for the Rackspace Cloud Files API.
 		*/
-		
+
 		public function getRackspaceToken() {
 			$j = json_decode(BigTree::cURL("https://identity.api.rackspacecloud.com/v2.0/tokens", json_encode([
 				"auth" => [
@@ -856,13 +856,13 @@
 				CURLOPT_POST => true,
 				CURLOPT_HTTPHEADER => ["Content-Type: application/json"]]
 			));
-			
+
 			if (isset($j->access->token)) {
 				$this->Settings["rackspace"]["token"] = $j->access->token->id;
 				$this->Settings["rackspace"]["token_expiration"] = strtotime($j->access->token->expires);
 				$this->Settings["rackspace"]["endpoints"] = [];
 				$this->Settings["rackspace"]["cdn_endpoints"] = [];
-				
+
 				// Get API endpoints
 				foreach ($j->access->serviceCatalog as $service) {
 					if ($service->name == "cloudFiles") {
@@ -877,13 +877,13 @@
 				}
 
 				$this->saveSettings();
-				
+
 				return true;
 			}
-			
+
 			return false;
 		}
-		
+
 		/*
 			Function: getS3BucketExists
 				Returns true if a bucket of the specified name already exists.
@@ -894,26 +894,26 @@
 			Returns:
 				true if bucket exists, else false
 		*/
-		
+
 		public function getS3BucketExists($bucket) {
 			try {
 				// In this case, the bucket exists AND we have access to it
 				$this->S3Client->headBucket(["Bucket" => $bucket]);
-				
+
 				return true;
 			} catch (Exception $e) {
 				$message = $e->getMessage();
-				
+
 				// Bucket exists, but this key/secret doesn't have access
 				if (strpos($message, "403") !== false) {
 					return true;
 				}
-				
+
 				return false;
 			}
 		}
-		
-		
+
+
 		/*
 			Function: getS3BucketPage
 				Returns a page of contents of an Amazon S3 bucket.
@@ -926,26 +926,26 @@
 				An array a page of the contents of the container (name, path, and size only).
 				$this->NextPage is set to the next page marker token
 		*/
-		
+
 		public function getS3BucketPage($bucket, $marker = null) {
 			$page = [];
-			
+
 			if ($this->Service != "amazon") {
 				throw new Exception("Method getS3BucketPage is only compatible with Amazon S3.");
 			}
-			
+
 			try {
 				$response = $this->S3Client->listObjects(["Bucket" => $bucket, "Marker" => $marker]);
 				$x = 0;
-				
+
 				if (is_array($response["Contents"])) {
 					foreach ($response["Contents"] as $item) {
 						$x++;
-						
+
 						if ($x == 1 && $marker) {
 							continue;
 						}
-						
+
 						$page[] = [
 							"name" => $item["Key"],
 							"path" => $item["Key"],
@@ -953,19 +953,19 @@
 						];
 					}
 				}
-				
+
 				if (!empty($response["IsTruncated"])) {
 					$this->NextPage = $item["Key"];
 				}
-				
+
 				return $page;
 			} catch (Exception $e) {
 				$this->Errors[] = $e->getMessage();
-				
+
 				return false;
 			}
 		}
-		
+
 		/*
 			Function: getS3BucketRegion
 				Returns the proper region for the specified bucket.
@@ -976,7 +976,7 @@
 			Returns:
 				A region name or false if the bucket does not exist or is not accessible.
 		*/
-		
+
 		public function getS3BucketRegion($bucket) {
 			$client = new Aws\S3\S3MultiRegionClient([
 				"version" => "latest",
@@ -985,10 +985,10 @@
 					"secret" => $this->Settings["amazon"]["secret"]
 				]
 			]);
-			
+
 			return $client->determineBucketRegion($bucket) ?: false;
 		}
-		
+
 		/*
 			Function: invalidateCache
 				Invalidates the CloudFront cache for a given pointer.
@@ -999,12 +999,12 @@
 			Returns:
 				true if successful
 		*/
-		
+
 		public function invalidateCache($pointer) {
 			if ($this->Service != "amazon") {
 				trigger_error("Cache invalidation is only supported for AWS storage.");
 			}
-			
+
 			try {
 				$this->CloudFrontClient->createInvalidation([
 					"DistributionId" => $this->Settings["amazon"]["cloudfront_distribution"],
@@ -1016,13 +1016,13 @@
 						]
 					]
 				]);
-				
+
 				return true;
 			} catch (Exception $e) {
 				return false;
 			}
 		}
-		
+
 		/*
 			Function: listContainers
 				Lists containers/buckets that are available in this cloud account.
@@ -1030,15 +1030,15 @@
 			Returns:
 				An array of container names.
 		*/
-		
+
 		public function listContainers() {
 			$containers = [];
-			
+
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				try {
 					$response = $this->S3Client->listBuckets();
-					
+
 					foreach ($response["Buckets"] as $bucket) {
 						$containers[] = [
 							"name" => $bucket["Name"],
@@ -1047,13 +1047,13 @@
 					}
 				} catch (Exception $e) {
 					$this->Errors[] = $e->getMessage();
-					
+
 					return false;
 				}
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 				$response = $this->callRackspace();
-				
+
 				if (is_array($response)) {
 					foreach ($response as $item) {
 						$containers[] = ["name" => (string) $item->name];
@@ -1064,7 +1064,7 @@
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$response = $this->call("b", ["project" => $this->Settings["project"]]);
-				
+
 				if (isset($response->kind) && $response->kind == "storage#buckets") {
 					if (is_array($response->items)) {
 						foreach ($response->items as $item) {
@@ -1082,10 +1082,10 @@
 			} else {
 				return false;
 			}
-			
+
 			return $containers;
 		}
-		
+
 		/*
 			Function: makeFilePublic
 				Makes a file readable to the public.
@@ -1098,7 +1098,7 @@
 			Returns:
 				The true successful, otherwise false
 		*/
-		
+
 		public function makeFilePublic($container, $pointer) {
 			// Amazon S3
 			if ($this->Service == "amazon") {
@@ -1108,17 +1108,17 @@
 						"Key" => $pointer,
 						"ACL" => "public-read"
 					]);
-					
+
 					return true;
 				} catch (Exception $e) {
 					$this->Errors[] = $e->getMessage();
-					
+
 					return false;
 				}
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
 				$response = $this->call("b/$container/o/".rawurlencode($pointer)."/acl", json_encode(["entity" => "allUsers", "role" => "READER"]), "POST");
-				
+
 				if ($response) {
 					return true;
 				}
@@ -1127,7 +1127,7 @@
 				throw new Exception("The current cloud service provider does not support this method.");
 			}
 		}
-		
+
 		/*
 			Function: resetCache
 				Clears the bigtree_caches table of container data and resets it with new data.
@@ -1135,10 +1135,10 @@
 			Parameters:
 				data - An array of file data from a container
 		*/
-		
+
 		public function resetCache($data) {
 			SQL::delete("bigtree_caches", ["identifier" => "org.bigtreecms.cloudfiles"]);
-			
+
 			foreach ($data as $item) {
 				SQL::insert("bigtree_caches", [
 					"identifier" => "org.bigtreecms.cloudfiles",
@@ -1151,14 +1151,14 @@
 				]);
 			}
 		}
-		
+
 		/*
 			Function: setupAmazon
 				Sets up the S3/CloudFront clients for Amazon calls.
 		*/
-		
+
 		public function setupAmazon() {
-			$ca_cert = file_exists(SERVER_ROOT."cache/bigtree-ca-cert.pem") ? SERVER_ROOT."cache/bigtree-ca-cert.pem" : SERVER_ROOT."core/cacert.pem";
+			$cert_bundle = BigTree::cURLCertificateBundle();
 
 			$this->S3Client = new Aws\S3\S3Client([
 				"version" => "latest",
@@ -1168,10 +1168,10 @@
 					"secret" => $this->Settings["amazon"]["secret"]
 				],
 				"http" => [
-					"verify" => $ca_cert
+					"verify" => $cert_bundle
 				]
 			]);
-			
+
 			$this->CloudFrontClient = new Aws\CloudFront\CloudFrontClient([
 				"version" => "latest",
 				"region" => $this->Settings["amazon"]["region"],
@@ -1180,11 +1180,11 @@
 					"secret" => $this->Settings["amazon"]["secret"]
 				],
 				"http" => [
-					"verify" => $ca_cert
+					"verify" => $cert_bundle
 				]
 			]);
 		}
-		
+
 		/*
 			Function: uploadFile
 				Creates a new file in the given container.
@@ -1196,11 +1196,11 @@
 				pointer - The full file path inside the container (if left empty the file's current name will be used and the root of the bucket)
 				public - true to make publicly accessible, defaults to false (this setting is ignored in Rackspace Cloud Files and is ignored in Amazon S3 if the bucket's policy is set to public)
 				type - MIME type (defaults to "text/plain")
-			
+
 			Returns:
 				The URL of the file if successful.
 		*/
-		
+
 		public function uploadFile($file, $container, $pointer = false, $public = false) {
 			// Default the pointer to the name of the file if not provided.
 			if (!$pointer) {
@@ -1209,10 +1209,10 @@
 			} else {
 				$path_info = BigTree::pathInfo($pointer);
 			}
-			
+
 			// Get destination mime type
 			$content_type = isset($this->MimeExtensions[strtolower($path_info["extension"])]) ? $this->MimeExtensions[strtolower($path_info["extension"])] : "application/octet-stream";
-			
+
 			// Amazon S3
 			if ($this->Service == "amazon") {
 				try {
@@ -1224,25 +1224,25 @@
 						"Key" => $pointer,
 						"ACL" => ($public ? "public-read" : "private")
 					]);
-					
+
 					return $response["ObjectURL"];
 				} catch (Exception $e) {
 					$this->Errors[] = $e->getMessage();
-					
+
 					return false;
 				}
 			// Rackspace Cloud Files
 			} elseif ($this->Service == "rackspace") {
 				global $bigtree;
-				
+
 				$file_pointer = fopen($file, "r");
 				BigTree::cURL($this->RackspaceAPIEndpoint."/$container/$pointer", false, [CURLOPT_PUT => true, CURLOPT_INFILE => $file_pointer, CURLOPT_HTTPHEADER => ["Content-Length" => filesize($file), "X-Auth-Token: ".$this->Settings["rackspace"]["token"]]]);
 				fclose($file_pointer);
-				
+
 				if ($bigtree["last_curl_response_code"] == "201") {
 					return $this->_getRackspaceURL($container, $pointer);
 				}
-				
+
 				return false;
 			// Google Cloud Storage
 			} elseif ($this->Service == "google") {
@@ -1250,26 +1250,26 @@
 				$file_pointer = fopen($file, "r");
 				$response = json_decode(BigTree::cURL("https://www.googleapis.com/upload/storage/v1/b/$container/o?name=$encoded_pointer&uploadType=media", false, [CURLOPT_INFILE => $file_pointer, CURLOPT_POST => true, CURLOPT_HTTPHEADER => ["Content-Type: $content_type", "Content-Length: ".filesize($file), "Authorization: Bearer ".$this->Settings["token"]]]));
 				fclose($file_pointer);
-				
+
 				if (isset($response->id)) {
 					// Set the access control level if it's publicly accessible
 					if ($public) {
 						$this->call("b/$container/o/$encoded_pointer/acl", json_encode(["entity" => "allUsers", "role" => "READER"]), "POST");
 					}
-					
+
 					return "//storage.googleapis.com/$container/$pointer";
 				} else {
 					foreach ($response->error->errors as $error) {
 						$this->Errors[] = $error;
 					}
-					
+
 					return false;
 				}
 			} else {
 				return false;
 			}
 		}
-		
+
 		/*
 			Function: callRackspace
 				cURL wrapper for Rackspace.
@@ -1279,11 +1279,11 @@
 				data - Request body data.
 				curl_options - Additional cURL options.
 		*/
-		
+
 		public function callRackspace($endpoint = "", $data = false, $curl_options = []) {
 			$curl_options = $curl_options + [CURLOPT_HTTPHEADER => ["Accept: application/json", "X-Auth-Token: ".$this->Settings["rackspace"]["token"]]];
-			
+
 			return json_decode(BigTree::cURL($this->RackspaceAPIEndpoint.($endpoint ? "/$endpoint" : ""), $data, $curl_options));
 		}
-		
+
 	}

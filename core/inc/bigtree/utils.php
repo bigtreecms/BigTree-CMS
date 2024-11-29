@@ -4,9 +4,9 @@
 			A utilities class with many useful functions.
 
 	*/
-	
+
 	class BigTree {
-		
+
 		public static $StateList = ['AL' => "Alabama", 'AK' => "Alaska", 'AZ' => "Arizona", 'AR' => "Arkansas", 'CA' => "California", 'CO' => "Colorado", 'CT' => "Connecticut", 'DE' => "Delaware", 'DC' => "District Of Columbia", 'FL' => "Florida", 'GA' => "Georgia", 'HI' => "Hawaii", 'ID' => "Idaho", 'IL' => "Illinois", 'IN' => "Indiana", 'IA' => "Iowa", 'KS' => "Kansas", 'KY' => "Kentucky", 'LA' => "Louisiana", 'ME' => "Maine", 'MD' => "Maryland", 'MA' => "Massachusetts", 'MI' => "Michigan", 'MN' => "Minnesota", 'MS' => "Mississippi", 'MO' => "Missouri", 'MT' => "Montana", 'NE' => "Nebraska", 'NV' => "Nevada", 'NH' => "New Hampshire", 'NJ' => "New Jersey", 'NM' => "New Mexico", 'NY' => "New York", 'NC' => "North Carolina", 'ND' => "North Dakota", 'OH' => "Ohio", 'OK' => "Oklahoma", 'OR' => "Oregon", 'PA' => "Pennsylvania", 'RI' => "Rhode Island", 'SC' => "South Carolina", 'SD' => "South Dakota", 'TN' => "Tennessee", 'TX' => "Texas", 'UT' => "Utah", 'VT' => "Vermont", 'VA' => "Virginia", 'WA' => "Washington", 'WV' => "West Virginia", 'WI' => "Wisconsin", 'WY' => "Wyoming"];
 		public static $CountryList = ["United States", "Afghanistan", "Åland Islands", "Albania", "Algeria", "American Samoa", "Andorra", "Angola", "Anguilla", "Antarctica", "Antigua and Barbuda", "Argentina", "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia, Plurinational State of", "Bonaire, Sint Eustatius and Saba", "Bosnia and Herzegovina", "Botswana", "Bouvet Island", "Brazil", "British Indian Ocean Territory", "Brunei Darussalam", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada", "Cape Verde", "Cayman Islands", "Central African Republic", "Chad", "Chile", "China", "Christmas Island", "Cocos (Keeling) Islands", "Colombia", "Comoros", "Congo", "Congo, The Democratic Republic of the", "Cook Islands", "Costa Rica", "Côte d'Ivoire", "Croatia", "Cuba", "Curaçao", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Ethiopia", "Falkland Islands (Malvinas)", "Faroe Islands", "Fiji", "Finland", "France", "French Guiana", "French Polynesia", "French Southern Territories", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Gibraltar", "Greece", "Greenland", "Grenada", "Guadeloupe", "Guam", "Guatemala", "Guernsey", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Heard Island and McDonald Islands", "Holy See (Vatican City State)", "Honduras", "Hong Kong", "Hungary", "Iceland", "India", "Indonesia", "Iran, Islamic Republic of", "Iraq", "Ireland", "Isle of Man", "Israel", "Italy", "Jamaica", "Japan", "Jersey", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Korea, Democratic People's Republic of", "Korea, Republic of", "Kosovo", "Kuwait", "Kyrgyzstan", "Lao People's Democratic Republic", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libyan Arab Jamahiriya", "Liechtenstein", "Lithuania", "Luxembourg", "Macao", "Macedonia, The Former Yugoslav Republic of", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Martinique", "Mauritania", "Mauritius", "Mayotte", "Mexico", "Micronesia, Federated States of", "Moldova, Republic of", "Monaco", "Mongolia", "Montenegro", "Montserrat", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Caledonia", "New Zealand", "Nicaragua", "Niger", "Nigeria", "Niue", "Norfolk Island", "Northern Mariana Islands", "Norway", "Occupied Palestinian Territory", "Oman", "Pakistan", "Palau", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Pitcairn", "Poland", "Portugal", "Puerto Rico", "Qatar", "Réunion", "Romania", "Russian Federation", "Rwanda", "Saint Barthélemy", "Saint Helena, Ascension and Tristan da Cunha", "Saint Kitts and Nevis", "Saint Lucia", "Saint Martin (French part)", "Saint Pierre and Miquelon", "Saint Vincent and The Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Sint Maarten (Dutch part)", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Georgia and the South Sandwich Islands", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Svalbard and Jan Mayen", "Swaziland", "Sweden", "Switzerland", "Syrian Arab Republic", "Taiwan, Province of China", "Tajikistan", "Tanzania, United Republic of", "Thailand", "Timor-Leste", "Togo", "Tokelau", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Turks and Caicos Islands", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States Minor Outlying Islands", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela, Bolivarian Republic of", "Viet Nam", "Virgin Islands, British", "Virgin Islands, U.S.", "Wallis and Futuna", "Western Sahara", "Yemen", "Zambia", "Zimbabwe"];
 		public static $CountryListWithAbbreviations = ["AF" => "Afghanistan (‫افغانستان‬‎)", "AX" => "Åland Islands (Åland)", "AL" => "Albania (Shqipëri)", "DZ" => "Algeria (‫الجزائر‬‎)", "AS" => "American Samoa", "AD" => "Andorra", "AO" => "Angola", "AI" => "Anguilla", "AQ" => "Antarctica", "AG" => "Antigua and Barbuda", "AR" => "Argentina", "AM" => "Armenia (Հայաստան)", "AW" => "Aruba", "AC" => "Ascension Island", "AU" => "Australia", "AT" => "Austria (Österreich)", "AZ" => "Azerbaijan (Azərbaycan)", "BS" => "Bahamas", "BH" => "Bahrain (‫البحرين‬‎)", "BD" => "Bangladesh (বাংলাদেশ)", "BB" => "Barbados", "BY" => "Belarus (Беларусь)", "BE" => "Belgium (België)", "BZ" => "Belize", "BJ" => "Benin (Bénin)", "BM" => "Bermuda", "BT" => "Bhutan (འབྲུག)", "BO" => "Bolivia", "BA" => "Bosnia and Herzegovina (Босна и Херцеговина)", "BW" => "Botswana", "BV" => "Bouvet Island", "BR" => "Brazil (Brasil)", "IO" => "British Indian Ocean Territory", "VG" => "British Virgin Islands", "BN" => "Brunei", "BG" => "Bulgaria (България)", "BF" => "Burkina Faso", "BI" => "Burundi (Uburundi)", "KH" => "Cambodia (កម្ពុជា)", "CM" => "Cameroon (Cameroun)", "CA" => "Canada", "IC" => "Canary Islands (islas Canarias)", "CV" => "Cape Verde (Kabu Verdi)", "BQ" => "Caribbean Netherlands", "KY" => "Cayman Islands", "CF" => "Central African Republic (République centrafricaine)", "EA" => "Ceuta and Melilla (Ceuta y Melilla)", "TD" => "Chad (Tchad)", "CL" => "Chile", "CN" => "China (中国)", "CX" => "Christmas Island", "CP" => "Clipperton Island", "CC" => "Cocos (Keeling) Islands (Kepulauan Cocos (Keeling))", "CO" => "Colombia", "KM" => "Comoros (‫جزر القمر‬‎)", "CD" => "Congo (DRC) (Jamhuri ya Kidemokrasia ya Kongo)", "CG" => "Congo (Republic) (Congo-Brazzaville)", "CK" => "Cook Islands", "CR" => "Costa Rica", "CI" => "Côte d’Ivoire", "HR" => "Croatia (Hrvatska)", "CU" => "Cuba", "CW" => "Curaçao", "CY" => "Cyprus (Κύπρος)", "CZ" => "Czech Republic (Česká republika)", "DK" => "Denmark (Danmark)", "DG" => "Diego Garcia", "DJ" => "Djibouti", "DM" => "Dominica", "DO" => "Dominican Republic (República Dominicana)", "EC" => "Ecuador", "EG" => "Egypt (‫مصر‬‎)", "SV" => "El Salvador", "GQ" => "Equatorial Guinea (Guinea Ecuatorial)", "ER" => "Eritrea", "EE" => "Estonia (Eesti)", "ET" => "Ethiopia", "FK" => "Falkland Islands (Islas Malvinas)", "FO" => "Faroe Islands (Føroyar)", "FJ" => "Fiji", "FI" => "Finland (Suomi)", "FR" => "France", "GF" => "French Guiana (Guyane française)", "PF" => "French Polynesia (Polynésie française)", "TF" => "French Southern Territories (Terres australes françaises)", "GA" => "Gabon", "GM" => "Gambia", "GE" => "Georgia (საქართველო)", "DE" => "Germany (Deutschland)", "GH" => "Ghana (Gaana)", "GI" => "Gibraltar", "GR" => "Greece (Ελλάδα)", "GL" => "Greenland (Kalaallit Nunaat)", "GD" => "Grenada", "GP" => "Guadeloupe", "GU" => "Guam", "GT" => "Guatemala", "GG" => "Guernsey", "GN" => "Guinea (Guinée)", "GW" => "Guinea-Bissau (Guiné Bissau)", "GY" => "Guyana", "HT" => "Haiti", "HM" => "Heard & McDonald Islands", "HN" => "Honduras", "HK" => "Hong Kong (香港)", "HU" => "Hungary (Magyarország)", "IS" => "Iceland (Ísland)", "IN" => "India (भारत)", "ID" => "Indonesia", "IR" => "Iran (‫ایران‬‎)", "IQ" => "Iraq (‫العراق‬‎)", "IE" => "Ireland", "IM" => "Isle of Man", "IL" => "Israel (‫ישראל‬‎)", "IT" => "Italy (Italia)", "JM" => "Jamaica", "JP" => "Japan (日本)", "JE" => "Jersey", "JO" => "Jordan (‫الأردن‬‎)", "KZ" => "Kazakhstan (Казахстан)", "KE" => "Kenya", "KI" => "Kiribati", "XK" => "Kosovo (Kosovë)", "KW" => "Kuwait (‫الكويت‬‎)", "KG" => "Kyrgyzstan (Кыргызстан)", "LA" => "Laos (ລາວ)", "LV" => "Latvia (Latvija)", "LB" => "Lebanon (‫لبنان‬‎)", "LS" => "Lesotho", "LR" => "Liberia", "LY" => "Libya (‫ليبيا‬‎)", "LI" => "Liechtenstein", "LT" => "Lithuania (Lietuva)", "LU" => "Luxembourg", "MO" => "Macau (澳門)", "MK" => "Macedonia (FYROM) (Македонија)", "MG" => "Madagascar (Madagasikara)", "MW" => "Malawi", "MY" => "Malaysia", "MV" => "Maldives", "ML" => "Mali", "MT" => "Malta", "MH" => "Marshall Islands", "MQ" => "Martinique", "MR" => "Mauritania (‫موريتانيا‬‎)", "MU" => "Mauritius (Moris)", "YT" => "Mayotte", "MX" => "Mexico (México)", "FM" => "Micronesia", "MD" => "Moldova (Republica Moldova)", "MC" => "Monaco", "MN" => "Mongolia (Монгол)", "ME" => "Montenegro (Crna Gora)", "MS" => "Montserrat", "MA" => "Morocco (‫المغرب‬‎)", "MZ" => "Mozambique (Moçambique)", "MM" => "Myanmar (Burma) (မြန်မာ)", "NA" => "Namibia (Namibië)", "NR" => "Nauru", "NP" => "Nepal (नेपाल)", "NL" => "Netherlands (Nederland)", "NC" => "New Caledonia (Nouvelle-Calédonie)", "NZ" => "New Zealand", "NI" => "Nicaragua", "NE" => "Niger (Nijar)", "NG" => "Nigeria", "NU" => "Niue", "NF" => "Norfolk Island", "MP" => "Northern Mariana Islands", "KP" => "North Korea (조선 민주주의 인민 공화국)", "NO" => "Norway (Norge)", "OM" => "Oman (‫عُمان‬‎)", "PK" => "Pakistan (‫پاکستان‬‎)", "PW" => "Palau", "PS" => "Palestine (‫فلسطين‬‎)", "PA" => "Panama (Panamá)", "PG" => "Papua New Guinea", "PY" => "Paraguay", "PE" => "Peru (Perú)", "PH" => "Philippines", "PN" => "Pitcairn Islands", "PL" => "Poland (Polska)", "PT" => "Portugal", "PR" => "Puerto Rico", "QA" => "Qatar (‫قطر‬‎)", "RE" => "Réunion (La Réunion)", "RO" => "Romania (România)", "RU" => "Russia (Россия)", "RW" => "Rwanda", "BL" => "Saint Barthélemy (Saint-Barthélemy)", "SH" => "Saint Helena", "KN" => "Saint Kitts and Nevis", "LC" => "Saint Lucia", "MF" => "Saint Martin (Saint-Martin (partie française))", "PM" => "Saint Pierre and Miquelon (Saint-Pierre-et-Miquelon)", "WS" => "Samoa", "SM" => "San Marino", "ST" => "São Tomé and Príncipe (São Tomé e Príncipe)", "SA" => "Saudi Arabia (‫المملكة العربية السعودية‬‎)", "SN" => "Senegal (Sénégal)", "RS" => "Serbia (Србија)", "SC" => "Seychelles", "SL" => "Sierra Leone", "SG" => "Singapore", "SX" => "Sint Maarten", "SK" => "Slovakia (Slovensko)", "SI" => "Slovenia (Slovenija)", "SB" => "Solomon Islands", "SO" => "Somalia (Soomaaliya)", "ZA" => "South Africa", "GS" => "South Georgia & South Sandwich Islands", "KR" => "South Korea (대한민국)", "SS" => "South Sudan (‫جنوب السودان‬‎)", "ES" => "Spain (España)", "LK" => "Sri Lanka (ශ්‍රී ලංකාව)", "VC" => "St. Vincent & Grenadines", "SD" => "Sudan (‫السودان‬‎)", "SR" => "Suriname", "SJ" => "Svalbard and Jan Mayen (Svalbard og Jan Mayen)", "SZ" => "Swaziland", "SE" => "Sweden (Sverige)", "CH" => "Switzerland (Schweiz)", "SY" => "Syria (‫سوريا‬‎)", "TW" => "Taiwan (台灣)", "TJ" => "Tajikistan", "TZ" => "Tanzania", "TH" => "Thailand (ไทย)", "TL" => "Timor-Leste", "TG" => "Togo", "TK" => "Tokelau", "TO" => "Tonga", "TT" => "Trinidad and Tobago", "TA" => "Tristan da Cunha", "TN" => "Tunisia (‫تونس‬‎)", "TR" => "Turkey (Türkiye)", "TM" => "Turkmenistan", "TC" => "Turks and Caicos Islands", "TV" => "Tuvalu", "UM" => "U.S. Outlying Islands", "VI" => "U.S. Virgin Islands", "UG" => "Uganda", "UA" => "Ukraine (Україна)", "AE" => "United Arab Emirates (‫الإمارات العربية المتحدة‬‎)", "GB" => "United Kingdom", "US" => "United States", "UY" => "Uruguay", "UZ" => "Uzbekistan (Oʻzbekiston)", "VU" => "Vanuatu", "VA" => "Vatican City (Città del Vaticano)", "VE" => "Venezuela", "VN" => "Vietnam (Việt Nam)", "WF" => "Wallis and Futuna", "EH" => "Western Sahara (‫الصحراء الغربية‬‎)", "YE" => "Yemen (‫اليمن‬‎)", "ZM" => "Zambia", "ZW" => "Zimbabwe"];
@@ -14,7 +14,7 @@
 		public static $JSONEncoding = false;
 		public static $SavedMemoryLimit = null;
 		public static $SUTestResult = null;
-		
+
 		/*
 			Function: arrayToXML
 				Turns a PHP array into an XML string.
@@ -26,7 +26,7 @@
 			Returns:
 				A string of XML.
 		*/
-		
+
 		public static function arrayToXML($array, $tab = "") {
 			$xml = "";
 			foreach ($array as $key => $val) {
@@ -40,7 +40,7 @@
 					}
 				}
 			}
-			
+
 			return $xml;
 		}
 
@@ -59,7 +59,7 @@
 			if (!is_array($array)) {
 				return [];
 			}
-			
+
 			foreach ($array as $key => $value) {
 				if (is_array($value)) {
 					$array[$key] = static::arrayFilterRecursive($value);
@@ -68,18 +68,18 @@
 
 			return array_filter($array);
 		}
-		
+
 		/*
 			Function: classAutoLoader
 				Internal function to automatically load module classes as needed.
 		*/
-		
+
 		public static function classAutoLoader($class) {
 			global $bigtree;
-			
+
 			if (isset($bigtree["other_classes"][$class])) {
 				include_once BigTree::path($bigtree["other_classes"][$class]);
-				
+
 				return;
 			} elseif (isset($bigtree["module_list"][$class])) {
 				$route = $bigtree["module_list"][$class];
@@ -89,23 +89,23 @@
 					$path = SERVER_ROOT."extensions/$extension/classes/$class.php";
 					if (file_exists($path)) {
 						include_once $path;
-						
+
 						return;
 					}
 				} else {
 					$path = static::path("inc/modules/$route.php");
 					if (file_exists($path)) {
 						include_once $path;
-						
+
 						return;
 					}
 				}
 			}
-			
+
 			// Clear the module class list just in case we're missing something.
 			@unlink(SERVER_ROOT."cache/bigtree-module-class-list.json");
 		}
-		
+
 		/*
 			Function: cleanFile
 				Makes sure that a file path doesn't contain abusive characters (i.e. ../)
@@ -116,25 +116,25 @@
 			Returns:
 				Cleaned up string.
 		*/
-		
+
 		public static function cleanFile($file) {
 			$pieces = array_filter(explode(DIRECTORY_SEPARATOR, $file), function ($val) {
 				// Let empties through
 				if (!trim($val)) {
 					return true;
 				}
-				
+
 				// Strip path manipulation
 				if (trim(str_replace(".", "", $val)) === "") {
 					return false;
 				}
-				
+
 				return true;
 			});
-			
+
 			return implode(DIRECTORY_SEPARATOR, $pieces);
 		}
-		
+
 		/*
 			Function: colorMesh
 				Returns a color a % of the way between two colors.
@@ -147,27 +147,27 @@
 			Returns:
 				A hex value color between the first and second colors.
 		*/
-		
+
 		public static function colorMesh($first_color, $second_color, $percentage) {
 			$percentage = intval(str_replace("%", "", $percentage));
 			$first_color = ltrim($first_color, "#");
 			$second_color = ltrim($second_color, "#");
-			
+
 			// Get the RGB values for the colors
 			$fc_r = hexdec(substr($first_color, 0, 2));
 			$fc_g = hexdec(substr($first_color, 2, 2));
 			$fc_b = hexdec(substr($first_color, 4, 2));
-			
+
 			$sc_r = hexdec(substr($second_color, 0, 2));
 			$sc_g = hexdec(substr($second_color, 2, 2));
 			$sc_b = hexdec(substr($second_color, 4, 2));
-			
+
 			$r_diff = ceil(($sc_r - $fc_r) * $percentage / 100);
 			$g_diff = ceil(($sc_g - $fc_g) * $percentage / 100);
 			$b_diff = ceil(($sc_b - $fc_b) * $percentage / 100);
-			
+
 			$new_color = "#".str_pad(dechex($fc_r + $r_diff), 2, "0", STR_PAD_LEFT).str_pad(dechex($fc_g + $g_diff), 2, "0", STR_PAD_LEFT).str_pad(dechex($fc_b + $b_diff), 2, "0", STR_PAD_LEFT);
-			
+
 			return strtoupper($new_color);
 		}
 
@@ -220,17 +220,17 @@
 			Returns:
 				true if the copy was successful, false if the directories were not writable or the source was not readable.
 		*/
-		
+
 		public static function copyFile($from, $to) {
 			if (!static::isDirectoryWritable($to)) {
 				return false;
 			}
-			
+
 			// If the origin is a protocol agnostic URL, add http:
 			if (substr($from, 0, 2) == "//") {
 				$from = "http:".$from;
 			}
-			
+
 			// is_readable doesn't work on URLs
 			if (substr($from, 0, 7) != "http://" && substr($from, 0, 8) != "https://" && !is_readable($from)) {
 				return false;
@@ -238,13 +238,13 @@
 			$pathinfo = static::pathInfo($to);
 			$directory = $pathinfo["dirname"];
 			BigTree::makeDirectory($directory);
-			
+
 			$success = @copy($from, $to);
 			static::setPermissions($to);
-			
+
 			return $success;
 		}
-		
+
 		/*
 			Function: cURL
 				Posts to a given URL and returns the response.
@@ -258,45 +258,21 @@
 				options - A key/value pair of extra cURL options (optional).
 				strict_security - SSL verification of the host and peer if true (defaults to true).
 				output_file - A file location to dump the output of the request to (optional, replaces return value).
-				updating_bundle - Internal use only.
 
 			Returns:
 				The string response from the URL.
 		*/
-		
-		public static function cURL($url, $post = false, $options = [], $strict_security = true, $output_file = false, $updating_bundle = false) {
+
+		public static function cURL($url, $post = false, $options = [], $strict_security = true, $output_file = false) {
 			global $bigtree;
 
-			$cache_cert_bundle = SERVER_ROOT."cache/bigtree-ca-cert.pem";
-			$core_cert_bundle = SERVER_ROOT."core/cacert.pem";
-			$cert_bundle = $cache_cert_bundle;
-
-			// Use the core bundle which may be out of date to grab the latest bundle
-			if (
-				!file_exists($cache_cert_bundle) ||
-				strpos(file_get_contents($cache_cert_bundle), "-----BEGIN CERTIFICATE-----") === false
-			) {
-				$cert_bundle = $core_cert_bundle;
-			}
-
-			// If the cert bundle is old grab a new copy
-			if (!$updating_bundle && filemtime($cert_bundle) < strtotime("-1 month")) {
-				BigTree::cURL("https://curl.se/ca/cacert.pem", false, [], true, $cache_cert_bundle, true);
-				
-				// If we successfully got a new bundle use it
-				if (
-					file_exists($cache_cert_bundle) &&
-					strpos(file_get_contents($cache_cert_bundle), "-----BEGIN CERTIFICATE-----") !== false
-				) {
-					$cert_bundle = $cache_cert_bundle;
-				}
-			}
+			$cert_bundle = static::cURLCertificateBundle();
 
 			// Startup cURL and set the URL
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_URL, $url);
 			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-			
+
 			// Determine whether we're forcing valid SSL on the peer and host
 			if ($strict_security) {
 				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
@@ -314,7 +290,7 @@
 			if ($max_execution_time !== 0) {
 				curl_setopt($ch, CURLOPT_TIMEOUT,  $max_execution_time - 5);
 			}
-			
+
 			// If we're returning to a file we setup a file pointer rather than waste RAM capturing to a variable
 			if ($output_file) {
 				$file_pointer = fopen($output_file, "w");
@@ -322,7 +298,7 @@
 			} else {
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 			}
-			
+
 			// Setup post data
 			if ($post !== false) {
 				// Use cURLFile for any file uploads
@@ -334,17 +310,17 @@
 					}
 					unset($post_field);
 				}
-				
+
 				curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
 			}
-			
+
 			// Any additional cURL options
 			if (is_array($options) && count($options)) {
 				foreach ($options as $key => $opt) {
 					curl_setopt($ch, $key, $opt);
 				}
 			}
-			
+
 			$output = curl_exec($ch);
 			$bigtree["last_curl_response_code"] = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
@@ -353,17 +329,90 @@
 			}
 
 			curl_close($ch);
-			
+
 			// If we're outputting to a file, close the handle and return nothing
 			if ($output_file) {
 				fclose($file_pointer);
-				
+
 				return;
 			}
-			
+
 			return $output;
 		}
-		
+
+		public static function cURLCertificateBundle() {
+			$cache_cert_bundle = SERVER_ROOT."cache/bigtree-ca-cert.pem";
+			$core_cert_bundle = SERVER_ROOT."core/cacert.pem";
+			$cert_bundle = $cache_cert_bundle;
+
+			// If we have a cached cert bundle, and it's recent, use it
+			if (
+				file_exists($cache_cert_bundle) &&
+				filemtime($cache_cert_bundle) >= strtotime("-1 month") &&
+				strpos(file_get_contents($cache_cert_bundle), "-----BEGIN CERTIFICATE-----") !== false
+			) {
+				return $cache_cert_bundle;
+			}
+
+			// If we don't have a cached cert bundle, use the core bundle which may be out of date to grab the latest remote bundle
+			if (
+				!file_exists($cache_cert_bundle) ||
+				strpos(file_get_contents($cache_cert_bundle), "-----BEGIN CERTIFICATE-----") === false
+			) {
+				$cert_bundle = $core_cert_bundle;
+			}
+
+			$fetch = function($bundle = "", $skip_ssl = false) {
+				$ch = curl_init();
+				curl_setopt($ch, CURLOPT_URL, "https://curl.se/ca/cacert.pem");
+				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+
+				if (!$skip_ssl) {
+					curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+					curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+
+					if ($bundle) {
+						curl_setopt($ch, CURLOPT_CAINFO, $bundle);
+						curl_setopt($ch, CURLOPT_CAPATH, $bundle);
+					}
+				} else {
+					curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+					curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+				}
+
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+				$output = curl_exec($ch);
+
+				if (strpos($output, "-----BEGIN CERTIFICATE-----") !== false) {
+					return $output;
+				}
+
+				return null;
+			};
+
+			// First try to get the certificate bundle with the existing bundle
+			$new_bundle = $fetch($cert_bundle);
+
+			if (!$new_bundle) {
+				// If that fails, try with the system bundle
+				$new_bundle = $fetch();
+
+				if (!$new_bundle) {
+					// If that fails, try without SSL verification altogether
+					$new_bundle = $fetch("", true);
+				}
+			}
+
+			// If we successfully got a new bundle, store it
+			if ($new_bundle) {
+				file_put_contents($cache_cert_bundle, $new_bundle);
+
+				return $cache_cert_bundle;
+			}
+
+			return $core_cert_bundle;
+		}
+
 		/*
 			Function: currentURL
 				Return the current active URL with correct protocall and port
@@ -371,17 +420,17 @@
 			Parameters:
 				port - Whether to return the port for connections not on port 80 (defaults to false)
 		*/
-		
+
 		public static function currentURL($port = false) {
 			$protocol = static::getIsSSL() ? "https://" : "http://";
-			
+
 			if ($_SERVER["SERVER_PORT"] != "80" && $port) {
 				return $protocol.$_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
 			} else {
 				return $protocol.$_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
 			}
 		}
-		
+
 		/*
 			Function: dateFormat
 				Formats a date that originates in the config defined date format into another.
@@ -393,29 +442,29 @@
 			Returns:
 				A date string or false if date parsing failed
 		*/
-		
+
 		public static function dateFormat($date, $format = "Y-m-d H:i:s") {
 			global $bigtree;
-			
+
 			$date_object = DateTime::createFromFormat($bigtree["config"]["date_format"], $date);
-			
+
 			// Fallback to SQL standards for handling pre 4.2 values
 			if (!$date_object) {
 				$date_object = DateTime::createFromFormat("Y-m-d", $date);
 			}
-			
+
 			// Fallback to full format
 			if (!$date_object) {
 				$date_object = DateTime::createFromFormat("Y-m-d H:i:s", $date);
 			}
-			
+
 			if ($date_object) {
 				return $date_object->format($format);
 			}
-			
+
 			return false;
 		}
-		
+
 		/*
 			Function: dateFromOffset
 				Returns a formatted date from a date and an offset.
@@ -434,15 +483,15 @@
 				http://php.net/manual/en/datetime.formats.relative.php (for relative time formats)
 				http://php.net/manual/en/function.date.php (for date formats)
 		*/
-		
+
 		public static function dateFromOffset($start_date, $offset, $format = "Y-m-d H:i:s") {
 			$time = is_numeric($start_date) ? $start_date : strtotime($start_date);
 			$date = DateTime::createFromFormat("Y-m-d H:i:s", date("Y-m-d H:i:s", $time));
 			$date->add(DateInterval::createFromDateString($offset));
-			
+
 			return $date->format($format);
 		}
-		
+
 		/*
 			Function: deleteDirectory
 				Deletes a directory including everything in it.
@@ -453,12 +502,12 @@
 			Returns:
 				true if successful
 		*/
-		
+
 		public static function deleteDirectory($dir) {
 			if (!file_exists($dir)) {
 				return false;
 			}
-			
+
 			// Make sure it has a trailing /
 			$dir = rtrim($dir, "/")."/";
 			$r = opendir($dir);
@@ -471,10 +520,10 @@
 					}
 				}
 			}
-			
+
 			return rmdir($dir);
 		}
-		
+
 		/*
 			Function: describeTable
 				Gives in depth information about a MySQL table's structure and keys.
@@ -485,18 +534,18 @@
 			Returns:
 				An array of table information.
 		*/
-		
+
 		public static function describeTable($table) {
 			$result["columns"] = [];
 			$result["indexes"] = [];
 			$result["foreign_keys"] = [];
 			$result["primary_key"] = false;
-			
+
 			$f = sqlfetch(sqlquery("SHOW CREATE TABLE `".str_replace("`", "", $table)."`"));
 			if (!$f) {
 				return false;
 			}
-			
+
 			$lines = explode("\n", $f["Create Table"]);
 			// Line 0 is the create line and the last line is the collation and such. Get rid of them.
 			$main_lines = array_slice($lines, 1, -1);
@@ -552,7 +601,7 @@
 					$line = substr($line, 12); // Remove CONSTRAINT `
 					$key_name = static::nextSQLColumnDefinition($line);
 					$line = substr($line, strlen($key_name) + substr_count($key_name, "`") + 16); // Remove ` FOREIGN KEY (`
-					
+
 					// Get local reference columns
 					$local_columns = [];
 					$part = true;
@@ -567,12 +616,12 @@
 						}
 						$local_columns[] = $part;
 					}
-					
+
 					// Get other table name
 					$line = substr($line, 14); // Skip ) REFERENCES `
 					$other_table = static::nextSQLColumnDefinition($line);
 					$line = substr($line, strlen($other_table) + substr_count($other_table, "`") + 4); // Remove ` (`
-					
+
 					// Get other table columns
 					$other_columns = [];
 					$part = true;
@@ -587,12 +636,12 @@
 						}
 						$other_columns[] = $part;
 					}
-					
+
 					$line = substr($line, 2); // Remove )
-					
+
 					// Setup our keys
 					$result["foreign_keys"][$key_name] = ["local_columns" => $local_columns, "other_table" => $other_table, "other_columns" => $other_columns];
-					
+
 					// Figure out all the on delete, on update stuff
 					$pieces = explode(" ", $line);
 					$on_hit = false;
@@ -620,7 +669,7 @@
 					$line = substr($line, 1); // Get rid of the first `
 					$key = static::nextSQLColumnDefinition($line); // Get the column name.
 					$line = substr($line, strlen($key) + substr_count($key, "`") + 2); // Take away the key from the line.
-					
+
 					$size = "";
 					// We need to figure out if the next part has a size definition
 					$parts = explode(" ", $line);
@@ -673,7 +722,7 @@
 						$type = $parts[0];
 						$line = substr($line, strlen($type) + 1);
 					}
-					
+
 					$column["name"] = $key;
 					$column["type"] = $type;
 					if ($size) {
@@ -716,11 +765,11 @@
 							$column["unsigned"] = true;
 						}
 					}
-					
+
 					$result["columns"][$key] = $column;
 				}
 			}
-			
+
 			$last_line = substr(end($lines), 2);
 			$parts = explode(" ", $last_line);
 			foreach ($parts as $part) {
@@ -732,10 +781,10 @@
 					$result[strtolower($key)] = $value;
 				}
 			}
-			
+
 			return $result;
 		}
-		
+
 		/*
 			Function: directoryContents
 				Returns a directory's files and subdirectories (with their files) in a flat array with file paths.
@@ -750,7 +799,7 @@
 				An array of files/folder paths.
 				Returns false if the directory cannot be read.
 		*/
-		
+
 		public static function directoryContents($directory, $recurse = true, $extension = false, $include_git = false) {
 			$contents = [];
 			$d = @opendir($directory);
@@ -763,7 +812,7 @@
 				if ($r != "." && $r != ".." && $r != ".DS_Store" && $r != "__MACOSX") {
 					if ($include_git || ($r != ".git" && $r != ".gitignore")) {
 						$path = rtrim($directory, "/")."/".$r;
-						
+
 						if ($extension === false || substr($path, -1 * strlen($extension)) == $extension) {
 							$contents[] = $path;
 						}
@@ -774,10 +823,10 @@
 					}
 				}
 			}
-			
+
 			return $contents;
 		}
-		
+
 		/*
 			Function: formatBytes
 				Formats bytes into larger units to make them more readable.
@@ -788,16 +837,16 @@
 			Returns:
 				A string with the number of bytes in kilobytes, megabytes, or gigabytes.
 		*/
-		
+
 		public static function formatBytes($size) {
 			$units = [' B', ' KB', ' MB', ' GB', ' TB'];
 			for ($i = 0; $size >= 1024 && $i < 4; $i++) {
 				$size /= 1024;
 			}
-			
+
 			return round($size, 2).$units[$i];
 		}
-		
+
 		/*
 			Function: formatCSS3
 				Replaces CSS3 delcarations with vendor appropriate ones to reduce CSS redundancy.
@@ -808,10 +857,10 @@
 			Returns:
 				A string of CSS with vendor prefixes.
 		*/
-		
+
 		public static function formatCSS3($css) {
 			global $bigtree;
-			
+
 			// Background Gradients - background-gradient: #top #bottom
 			$css = preg_replace_callback('/background-gradient:([^\"]*);/iU', function ($data) {
 				$d = trim($data[1]);
@@ -822,40 +871,40 @@
 				if (substr($start_rgb, 0, 4) != "rgba" && substr($stop_rgb, 0, 4) != "rgba") {
 					$response .= "filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=$start, endColorstr=$stop);-ms-filter: \"progid:DXImageTransform.Microsoft.gradient(startColorstr=$start, endColorstr=$stop)\"; zoom:1;";
 				}
-				
+
 				return $response;
 			}, $css);
-			
+
 			// Border Radius - border-radius: 0px 0px 0px 0px
 			$css = preg_replace_callback('/border-radius:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
-			
+
 			// Box Shadow - box-shadow: 0px 0px 5px #color
 			$css = preg_replace_callback('/box-shadow:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
-			
+
 			// Column Count - column-count: number
 			$css = preg_replace_callback('/column-count:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
-			
+
 			// Column Rule - column-rule: 1px solid color
 			$css = preg_replace_callback('/column-rule:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
-			
+
 			// Column Gap - column-gap: number
 			$css = preg_replace_callback('/column-gap:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
-			
+
 			// Transition - transition: definition
 			$css = preg_replace_callback('/transition:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
-			
+
 			// Transform - transform: definition
 			$css = preg_replace_callback('/transform:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
-			
+
 			// User Select - user-select: none | text | toggle | element | elements | all | inherit
 			$css = preg_replace_callback('/user-select:([^\"]*);/iU', 'BigTree::formatVendorPrefixes', $css);
-			
+
 			// Replace roots
 			$css = str_replace(["www_root/", "admin_root/", "static_root/"], [$bigtree["config"]["www_root"], $bigtree["config"]["admin_root"], $bigtree["config"]["static_root"]], $css);
-			
+
 			return $css;
 		}
-		
+
 		/*
 			Function: formatVendorPrefixes
 				A preg_replace function for transforming a standard CSS3 entry into a vendor prefixed string.
@@ -866,20 +915,20 @@
 			Returns:
 				Replaced string.
 		*/
-		
+
 		public static function formatVendorPrefixes($data) {
 			$p = explode(":", $data[0]);
 			$d = trim($data[1]);
-			
+
 			$return = $p[0].": $d; ";
 			$return .= "-webkit-".$p[0].": $d; ";
 			$return .= "-moz-".$p[0].": $d; ";
 			$return .= "-ms-".$p[0].": $d; ";
 			$return .= "-o-".$p[0].": $d; ";
-			
+
 			return $return;
 		}
-		
+
 		/*
 			Function: geocodeAddress
 				Returns a latitude and longitude for a given address.
@@ -891,13 +940,13 @@
 			Returns:
 				An associative array with "latitude" and "longitude" keys (or false if geocoding failed).
 		*/
-		
+
 		public static function geocodeAddress($address) {
 			$geocoder = new BigTreeGeocoding;
-			
+
 			return $geocoder->geocode($address);
 		}
-		
+
 		/*
 			Function: getAvailableFileName
 				Gets a web safe available file name in a given directory.
@@ -910,42 +959,42 @@
 			Returns:
 				An available, web safe file name.
 		*/
-		
+
 		public static function getAvailableFileName($directory, $file, $prefixes = []) {
 			$parts = static::pathInfo($directory.$file);
-			
+
 			// Clean up the file name
 			$clean_name = BigTreeCMS::urlify($parts["filename"]);
-			
+
 			if (strlen($clean_name) > 50) {
 				$clean_name = substr($clean_name, 0, 50);
 			}
-			
+
 			if (!empty($parts["extension"])) {
 				$file = $clean_name.".".strtolower($parts["extension"]);
 			} else {
 				$file = $clean_name;
 			}
-			
+
 			// Just find a good filename that isn't used now.
 			$x = 2;
-			
+
 			while (!$file || file_exists($directory.$file)) {
 				$file = $clean_name."-$x.".strtolower($parts["extension"]);
-				
+
 				// Check prefixes
 				foreach ($prefixes as $prefix) {
 					if (file_exists($directory.$prefix.$file)) {
 						$file = false;
 					}
 				}
-				
+
 				$x++;
 			}
-			
+
 			return $file;
 		}
-		
+
 		/*
 			Function: getCookie
 				Gets a cookie set by setCookie and decodes it.
@@ -953,23 +1002,23 @@
 			Parameters:
 				id - The id of the set cookie
 		*/
-		
+
 		public static function getCookie($id) {
 			if (strpos($id, "[") !== false) {
 				$pieces = explode("[", $id);
 				$cookie = $_COOKIE;
-				
+
 				foreach ($pieces as $piece) {
 					$piece = str_replace("]", "", $piece);
 					$cookie = $cookie[$piece] ?? "null";
 				}
-				
+
 				return json_decode($cookie, true);
 			} else {
 				return !empty($_COOKIE[$id]) ? json_decode($_COOKIE[$id], true) : null;
 			}
 		}
-		
+
 		/*
 			Function: getFieldSelectOptions
 				Get the <select> options of all the fields in a table.
@@ -979,12 +1028,12 @@
 				default - The currently selected value.
 				sorting - Whether to duplicate fields into "ASC" and "DESC" versions.
 		*/
-		
+
 		public static function getFieldSelectOptions($table, $default = "", $sorting = false) {
 			$table_description = static::describeTable($table);
 			if (!$table_description) {
 				echo '<option>ERROR: Table Missing</option>';
-				
+
 				return;
 			}
 			echo '<option></option>';
@@ -995,7 +1044,7 @@
 					} else {
 						echo '<option>`'.$col["name"].'` ASC</option>';
 					}
-					
+
 					if ($default == $col["name"]." DESC" || $default == "`".$col["name"]."` DESC") {
 						echo '<option selected="selected">`'.$col["name"].'` DESC</option>';
 					} else {
@@ -1010,7 +1059,7 @@
 				}
 			}
 		}
-		
+
 		/*
 			Function: getTableSelectOptions
 				Get the <select> options for all of tables in the database excluding bigtree_ prefixed tables.
@@ -1018,10 +1067,10 @@
 			Parameters:
 				default - The currently selected value.
 		*/
-		
+
 		public static function getTableSelectOptions($default = false) {
 			global $bigtree;
-			
+
 			$q = sqlquery("SHOW TABLES");
 			while ($f = sqlfetch($q)) {
 				$table_name = current($f);
@@ -1034,32 +1083,32 @@
 				}
 			}
 		}
-		
+
 		/*
 			Function: getIsSSL
 				Returns whether BigTree believes it's being served over SSL or not.
 		*/
-		
+
 		public static function getIsSSL() {
 			if (!empty($_SERVER["HTTPS"]) && $_SERVER['HTTPS'] !== "off") {
 				return true;
 			}
-			
+
 			if (!empty($_SERVER["SERVER_PORT"]) && $_SERVER["SERVER_PORT"] == 443) {
 				return true;
 			}
-			
+
 			if (!empty($_SERVER["HTTP_X_FORWARDED_PROTO"]) && $_SERVER["HTTP_X_FORWARDED_PROTO"] == "https") {
 				return true;
 			}
-			
+
 			if (!empty($_SERVER["HTTP_X_FORWARDED_PORT"]) && $_SERVER["HTTP_X_FORWARDED_PORT"] == 443) {
 				return true;
 			}
-			
+
 			return false;
 		}
-		
+
 		/*
 			Function: globalizeArray
 				Globalizes all the keys of an array into global variables without compromising super global ($_) variables.
@@ -1073,23 +1122,23 @@
 				<globalizeGETVars>
 				<globalizePOSTVars>
 		*/
-		
+
 		public static function globalizeArray($array) {
 			if (!is_array($array)) {
 				return false;
 			}
-			
+
 			// We don't want to lose track of our array while globalizing, so we're going to save things into $bigtree
 			// Since we're not in the global scope, it doesn't matter that we're junking up $bigtree
 			$bigtree = ["functions" => array_slice(func_get_args(), 1), "array" => $array];
-			
+
 			foreach ($bigtree["array"] as $bigtree["key"] => $bigtree["val"]) {
 				// Prevent messing with super globals
 				if (substr($bigtree["key"], 0, 1) != "_" && !in_array($bigtree["key"], ["admin", "bigtree", "cms"])) {
 					// Fix for PHP 7
 					$__bigtree_internal_key = $bigtree["key"];
 					global $$__bigtree_internal_key;
-					
+
 					if (is_array($bigtree["val"])) {
 						$$__bigtree_internal_key = static::globalizeArrayRecursion($bigtree["val"], $bigtree["functions"]);
 					} else {
@@ -1107,15 +1156,15 @@
 					}
 				}
 			}
-			
+
 			return true;
 		}
-		
+
 		/*
 			Function: globalizeArrayRecursion
 				Used by globalizeArray for recursion.
 		*/
-		
+
 		public static function globalizeArrayRecursion($data, $functions) {
 			foreach ($data as $key => $val) {
 				if (is_array($val)) {
@@ -1134,10 +1183,10 @@
 					$data[$key] = $val;
 				}
 			}
-			
+
 			return $data;
 		}
-		
+
 		/*
 			Function: globalizeGETVars
 				Globalizes all the $_GET variables without compromising $_ variables.
@@ -1151,13 +1200,13 @@
 				<globalizePOSTVars>
 
 		*/
-		
+
 		public static function globalizeGETVars() {
 			$args = func_get_args();
-			
+
 			return call_user_func_array("BigTree::globalizeArray", array_merge([$_GET], $args));
 		}
-		
+
 		/*
 			Function: globalizePOSTVars
 				Globalizes all the $_POST variables without compromising $_ variables.
@@ -1170,13 +1219,13 @@
 				<globalizeArray>
 				<globalizeGETVars>
 		*/
-		
+
 		public static function globalizePOSTVars() {
 			$args = func_get_args();
-			
+
 			return call_user_func_array("BigTree::globalizeArray", array_merge([$_POST], $args));
 		}
-		
+
 		/*
 			Function: gravatar
 				Returns a properly formatted gravatar url.
@@ -1187,16 +1236,16 @@
 				default - Default profile image; defaults to BigTree icon
 				rating - Defaults to "g" (options include "g", "pg", "r", "x")
 		*/
-		
+
 		public static function gravatar($email, $size = 56, $default = false, $rating = "g") {
 			if (!$default) {
 				global $bigtree;
 				$default = !empty($bigtree["config"]["default_gravatar"]) ? $bigtree["config"]["default_gravatar"] : "https://www.bigtreecms.org/images/bigtree-gravatar.png";
 			}
-			
+
 			return "https://secure.gravatar.com/avatar/".md5(strtolower($email))."?s=$size&d=".urlencode($default)."&rating=$rating";
 		}
-		
+
 		/*
 			Function: isDirectoryWritable
 				Extend's PHP's is_writable to support directories that don't exist yet.
@@ -1207,7 +1256,7 @@
 			Returns:
 				true if the directory exists and is writable or could be created, otherwise false.
 		*/
-		
+
 		public static function isDirectoryWritable($path) {
 			// Windows improperly returns writable status based on read-only flag instead of ACLs so we need our own version for Windows
 			if (isset($_SERVER["OS"]) && stripos($_SERVER["OS"], "windows") !== false) {
@@ -1217,10 +1266,10 @@
 					$success = @touch($file);
 					if ($success) {
 						unlink($file);
-						
+
 						return true;
 					}
-					
+
 					return false;
 					// Remove the last directory from the path and then run isDirectoryWritable again
 				} else {
@@ -1229,7 +1278,7 @@
 					if (count($parts)) {
 						return static::isDirectoryWritable(implode("/", $parts));
 					}
-					
+
 					return false;
 				}
 			} else {
@@ -1240,11 +1289,11 @@
 				// Remove the last directory from the path and try again
 				$parts = explode("/", $path);
 				array_pop($parts);
-				
+
 				return static::isDirectoryWritable(implode("/", $parts));
 			}
 		}
-		
+
 		/*
 			Function: isExternalLink
 				Check if URL is external, relative to site root
@@ -1255,11 +1304,11 @@
 			Returns:
 				true if link is external
 		*/
-		
+
 		public static function isExternalLink($url) {
 			return ((substr($url, 0, 7) == "http://" || substr($url, 0, 8) == "https://") && strpos($url, WWW_ROOT) === false);
 		}
-		
+
 		/*
 			Function: json
 				Encodes a variable as JSON. Uses pretty print if available. Optionally escapes for SQL.
@@ -1271,7 +1320,7 @@
 			Returns:
 				A JSON encoded string.
 		*/
-		
+
 		public static function json($var, $sql = false) {
 			// Only run version compare once in case we're encoding a lot of JSON
 			if (static::$JSONEncoding === false) {
@@ -1281,14 +1330,14 @@
 					static::$JSONEncoding = 0;
 				}
 			}
-			
+
 			// Use pretty print if we have PHP 5.4 or higher
 			$json = (static::$JSONEncoding) ? json_encode($var, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) : json_encode($var);
 			// SQL escape if requested
 			if ($sql) {
 				return sqlescape($json);
 			}
-			
+
 			return $json;
 		}
 
@@ -1312,7 +1361,7 @@
 
 					if ($first_char == "{" || $first_char == "[") {
 						$value = json_decode($value, true);
- 						
+
  						if (json_last_error() == JSON_ERROR_NONE) {
  							$data[$key] = $value;
  						}
@@ -1326,7 +1375,7 @@
 
 			return $data;
 		}
-		
+
 		/*
 			Function: makeDirectory
 				Makes a directory (and all applicable parent directories).
@@ -1335,33 +1384,33 @@
 			Parameters:
 				directory - The full path to the directory to be made.
 		*/
-		
+
 		public static function makeDirectory($directory) {
 			if (file_exists($directory)) {
 				return;
 			}
-			
+
 			// Windows systems aren't going to start with /
 			if (substr($directory, 0, 1) == "/") {
 				$dir_path = "/";
 			} else {
 				$dir_path = "";
 			}
-			
+
 			$dir_parts = explode("/", trim($directory, "/"));
 			foreach ($dir_parts as $part) {
 				$dir_path .= $part;
-				
+
 				// Silence situations with open_basedir restrictions.
 				if (!@file_exists($dir_path)) {
 					@mkdir($dir_path);
 					static::setPermissions($dir_path);
 				}
-				
+
 				$dir_path .= "/";
 			}
 		}
-		
+
 		/*
 			Function: moveFile
 				Moves a file into a directory, even if that directory doesn't exist yet.
@@ -1373,19 +1422,19 @@
 			Returns:
 				true if the move was successful, false if the directories were not writable.
 		*/
-		
+
 		public static function moveFile($from, $to) {
 			$success = static::copyFile($from, $to);
-			
+
 			if (!$success) {
 				return false;
 			}
-			
+
 			unlink($from);
-			
+
 			return true;
 		}
-		
+
 		/*
 			Function: nextSQLColumnDefinition
 				Return the next SQL name definition from a string.
@@ -1396,7 +1445,7 @@
 			Returns:
 				A string.
 		*/
-		
+
 		public static function nextSQLColumnDefinition($string) {
 			$key_name = "";
 			$i = 0;
@@ -1415,10 +1464,10 @@
 				}
 				$i++;
 			}
-			
+
 			return $key_name;
 		}
-		
+
 		/*
 			Function: parsedFilesArray
 				Parses the $_FILES array and returns an array more like a normal $_POST array.
@@ -1429,10 +1478,10 @@
 			Returns:
 				A more sensible array, or a piece of that sensible array if "part" is set.
 		*/
-		
+
 		public static function parsedFilesArray($part = false) {
 			$clean = [];
-			
+
 			foreach ($_FILES as $key => $first_level) {
 				// Hurray, we have a first level entry, just save it to the clean array.
 				if (!is_array($first_level["name"])) {
@@ -1441,19 +1490,19 @@
 					$clean[$key] = static::parsedFilesArrayLoop($first_level["name"], $first_level["tmp_name"], $first_level["type"], $first_level["error"], $first_level["size"]);
 				}
 			}
-			
+
 			if ($part) {
 				return $clean[$part] ?? null;
 			}
-			
+
 			return $clean;
 		}
-		
+
 		/*
 			Function: parseFilesArrayLoop
 				Private method used by parseFilesArray.
 		*/
-		
+
 		private static function parsedFilesArrayLoop($name, $tmp_name, $type, $error, $size) {
 			$array = [];
 			foreach ($name as $k => $v) {
@@ -1467,10 +1516,10 @@
 					$array[$k] = static::parsedFilesArrayLoop($name[$k], $tmp_name[$k], $type[$k], $error[$k], $size[$k]);
 				}
 			}
-			
+
 			return $array;
 		}
-		
+
 		/*
 			Function: path
 				Get the proper path for a file based on whether a custom override exists.
@@ -1481,7 +1530,7 @@
 			Returns:
 				Hard file path to a custom/ (preferred) or core/ file depending on what exists.
 		*/
-		
+
 		public static function path($file) {
 			if (file_exists(SERVER_ROOT."custom/".$file)) {
 				return SERVER_ROOT."custom/".$file;
@@ -1494,11 +1543,11 @@
 				} elseif (strpos($file, "admin/ajax/developer/field-options/") === 0) {
 					$file = "admin/field-types/".pathinfo($file, PATHINFO_FILENAME)."/settings.php";
 				}
-				
+
 				return SERVER_ROOT."core/".$file;
 			}
 		}
-		
+
 		/*
 			Function: pathInfo
 				Wrapper for PHP's pathinfo to make sure it supports returning "filename"
@@ -1512,21 +1561,21 @@
 			See Also:
 				<http://php.net/manual/en/function.pathinfo.php>
 		*/
-		
+
 		public static function pathInfo($file) {
 			if (empty($file)) {
 				return null;
 			}
-			
+
 			$parts = pathinfo($file);
 
 			if (!defined('PATHINFO_FILENAME')) {
 				$parts["filename"] = substr($parts["basename"], 0, strrpos($parts["basename"], '.'));
 			}
-			
+
 			return $parts;
 		}
-		
+
 		/*
 			Function: phpDateTojQuery
 				Converts a PHP date() format to jQuery date picker format.
@@ -1537,7 +1586,7 @@
 			Returns:
 				jQuery date picker formatting string.
 		*/
-		
+
 		public static function phpDateTojQuery($format) {
 			$new_format = "";
 			for ($i = 0; $i < strlen($format); $i++) {
@@ -1571,10 +1620,10 @@
 					$new_format .= $c;
 				}
 			}
-			
+
 			return $new_format;
 		}
-		
+
 		/*
 			Function: placeholderImage
 				Generates placeholder image data.
@@ -1590,16 +1639,16 @@
 			Returns:
 				Nothing; Renders a placeholder image
 		*/
-		
+
 		public static function placeholderImage($width, $height, $bg_color = false, $text_color = false, $icon_path = false, $text_string = false) {
 			// Check size
 			$width = ($width > 2000) ? 2000 : $width;
 			$height = ($height > 2000) ? 2000 : $height;
-			
+
 			// Check colors
 			$bg_color = (!$bg_color && $bg_color != "000" && $bg_color != "000000") ? "CCCCCC" : ltrim($bg_color, "#");
 			$text_color = (!$text_color && $text_color != "000" && $text_color != "000000") ? "666666" : ltrim($text_color, "#");
-			
+
 			// Set text
 			$text = $text_string;
 			if ($icon_path) {
@@ -1609,7 +1658,7 @@
 					$text = $width." X ".$height;
 				}
 			}
-			
+
 			// Create image
 			$image = imagecreatetruecolor($width, $height);
 			// Build rgba from hex
@@ -1617,7 +1666,7 @@
 			$text_color = imagecolorallocate($image, base_convert(substr($text_color, 0, 2), 16, 10), base_convert(substr($text_color, 2, 2), 16, 10), base_convert(substr($text_color, 4, 2), 16, 10));
 			// Fill image
 			imagefill($image, 0, 0, $bg_color);
-			
+
 			// Add icon if provided
 			if ($icon_path) {
 				$icon_size = getimagesize($icon_path);
@@ -1625,7 +1674,7 @@
 				$icon_height = $icon_size[1];
 				$icon_x = ($width - $icon_width) / 2;
 				$icon_y = ($height - $icon_height) / 2;
-				
+
 				$ext = strtolower(substr($icon_path, -3));
 				if ($ext == "jpg" || $ext == "peg") {
 					$icon = imagecreatefromjpeg($icon_path);
@@ -1644,28 +1693,28 @@
 				$textpos = imageTTFBbox($fontsize, 0, $font, $text);
 				imagettftext($image, $fontsize, 0, (($width - $textpos[2]) / 2), (($height - $textpos[5]) / 2), $text_color, $font, $text);
 			}
-			
+
 			// Serve image and die
 			header("Content-Type: image/png");
 			imagepng($image);
 			imagedestroy($image);
 			die();
 		}
-		
+
 		/*
 			Function: postMaxSize
 				Returns in bytes the maximum size of a POST.
 		*/
-		
+
 		public static function postMaxSize() {
 			$post_max_size = ini_get("post_max_size");
 			if (!is_integer($post_max_size)) {
 				$post_max_size = static::unformatBytes($post_max_size);
 			}
-			
+
 			return $post_max_size;
 		}
-		
+
 		/*
 			Function: prefixFile
 				Prefixes a file name with a given prefix.
@@ -1677,15 +1726,15 @@
 			Returns:
 				The full path or file name with a prefix appended to the file name.
 		*/
-		
+
 		public static function prefixFile($file, $prefix) {
 			$pinfo = static::pathInfo($file);
 			// Remove notices
 			$pinfo["dirname"] = isset($pinfo["dirname"]) ? $pinfo["dirname"] : "";
-			
+
 			return $pinfo["dirname"]."/".$prefix.$pinfo["basename"];
 		}
-		
+
 		/*
 			Function: putFile
 				Writes data to a file, even if that directory for the file doesn't exist yet.
@@ -1698,26 +1747,26 @@
 			Returns:
 				true if the move was successful, false if the directories were not writable.
 		*/
-		
+
 		public static function putFile($file, $contents) {
 			if (!static::isDirectoryWritable($file)) {
 				return false;
 			}
-			
+
 			$pathinfo = static::pathInfo($file);
 			$directory = $pathinfo["dirname"];
 			BigTree::makeDirectory($directory);
-			
+
 			if (!file_exists($file)) {
 				file_put_contents($file, $contents);
 				static::setPermissions($file);
 			} else {
 				file_put_contents($file, $contents);
 			}
-			
+
 			return true;
 		}
-		
+
 		/*
 			Function: randomString
 				Returns a random string.
@@ -1729,34 +1778,34 @@
 			Returns:
 				A random string.
 		*/
-		
+
 		public static function randomString($length = 8, $seeds = 'alphanum') {
 			// Possible seeds
 			$seedings['alpha'] = 'abcdefghijklmnopqrstuvwqyz';
 			$seedings['numeric'] = '0123456789';
 			$seedings['alphanum'] = 'ABCDEFGHJKLMNPQRTUVWXY0123456789';
 			$seedings['hexidec'] = '0123456789abcdef';
-			
+
 			// Choose seed
 			if (isset($seedings[$seeds])) {
 				$seeds = $seedings[$seeds];
 			}
-			
+
 			// Seed generator
 			[$usec, $sec] = explode(' ', microtime());
 			$seed = (float) $sec + ((float) $usec * 100000);
 			mt_srand((int) $seed);
-			
+
 			// Generate
 			$str = '';
 			$seeds_count = strlen($seeds);
 			for ($i = 0; $length > $i; $i++) {
 				$str .= $seeds[mt_rand(0, $seeds_count - 1)];
 			}
-			
+
 			return $str;
 		}
-		
+
 		/*
 			Function: redirect
 				Simple URL redirect via header with proper code #
@@ -1765,40 +1814,40 @@
 				url - The URL to redirect to.
 				code - The status code of redirect, defaults to normal 302 redirect.
 		*/
-		
+
 		public static function redirect($url = false, $codes = ["302"]) {
 			global $bigtree;
-			
+
 			// If we're presently in the admin we don't want to allow the possibility of a redirect outside our site via malicious URLs
 			if (defined("BIGTREE_ADMIN_ROUTED")) {
 				// Multiple redirect domains allowed
 				if (count($bigtree["config"]["sites"])) {
 					$ok = false;
 					$pieces = explode("/", $url);
-					
+
 					foreach ($bigtree["config"]["sites"] as $site_data) {
 						$bt_domain_pieces = explode("/", $site_data["domain"]);
-						
+
 						if (!empty($pieces[2]) && !empty($bt_domain_pieces[2]) &&
 							strtolower($pieces[2]) == strtolower($bt_domain_pieces[2])
 						) {
 							$ok = true;
 						}
 					}
-					
+
 					if (!$ok) {
 						return false;
 					}
 				} else {
 					$pieces = explode("/", $url);
 					$bt_domain_pieces = explode("/", DOMAIN);
-					
+
 					if (strtolower($pieces[2]) != strtolower($bt_domain_pieces[2])) {
 						return false;
 					}
 				}
 			}
-			
+
 			$status_codes = [
 				"200" => "OK",
 				"300" => "Multiple Choices",
@@ -1831,7 +1880,7 @@
 			header("Location: $url");
 			die();
 		}
-		
+
 		/*
 			Function: relativeTime
 				Turns a timestamp into "… hours ago" formatting.
@@ -1842,35 +1891,35 @@
 			Returns:
 				A string describing how long ago the passed time was.
 		*/
-		
+
 		public static function relativeTime($time) {
 			$minute = 60;
 			$hour = 3600;
 			$day = 86400;
 			$month = 2592000;
 			$delta = strtotime(date('r')) - strtotime($time);
-			
+
 			if ($delta < 2 * $minute) {
 				return "1 min ago";
 			} elseif ($delta < 45 * $minute) {
 				$minutes = floor($delta / $minute);
-				
+
 				return $minutes == 1 ? "1 minute ago" : "$minutes minutes ago";
 			} elseif ($delta < 24 * $hour) {
 				$hours = floor($delta / $hour);
-				
+
 				return $hours == 1 ? "1 hour ago" : "$hours hours ago";
 			} elseif ($delta < 30 * $day) {
 				$days = floor($delta / $day);
-				
+
 				return $days == 1 ? "yesterday" : "$days days ago";
 			} elseif ($delta < 12 * $month) {
 				$months = floor($delta / $day / 30);
-				
+
 				return $months == 1 ? "1 month ago" : "$months months ago";
 			} else {
 				$years = floor($delta / $day / 365);
-				
+
 				return $years == 1 ? "1 year ago" : "$years years ago";
 			}
 		}
@@ -1878,7 +1927,7 @@
 		/*
 			Function: remoteIP
 				Returns the remote user's IP address (works with load balancers).
-	
+
 			Returns:
 				An IP address
 		*/
@@ -1904,7 +1953,7 @@
 
 			return null;
 		}
-		
+
 		/*
 			Function: route
 				Returns the proper file to include based on existence of subdirectories or .php files with given route names.
@@ -1917,7 +1966,7 @@
 			Returns:
 				An array with the first element being the file to include and the second element being an array containing extraneous routes from the end of the path.
 		*/
-		
+
 		public static function route($directory, $path) {
 			$commands = [];
 			$inc_file = $directory;
@@ -1947,7 +1996,7 @@
 					$ended = true;
 				}
 			}
-			
+
 			if (!$found_file) {
 				// If we have default in the routed directory, use it.
 				if (file_exists($inc_dir."default.php")) {
@@ -1960,10 +2009,10 @@
 					return [false, []];
 				}
 			}
-			
+
 			return [$inc_file, $commands];
 		}
-		
+
 		/*
 			Function: runningAsSU
 				Checks if the current script is running as the owner of the script.
@@ -1972,7 +2021,7 @@
 			Returns:
 				true if PHP is running as the user that owns the file
 		*/
-		
+
 		public static function runningAsSU() {
 			// Already ran the test
 			if (!is_null(static::$SUTestResult)) {
@@ -1988,10 +2037,10 @@
 			} else {
 				static::$SUTestResult = false;
 			}
-			
+
 			return static::$SUTestResult;
 		}
-		
+
 		/*
 			Function: runParser
 				Evaluates code in a function scope with $item and $value
@@ -2005,13 +2054,13 @@
 			Returns:
 				Modified $value
 		*/
-		
+
 		public static function runParser($item, $value, $code) {
 			eval($code);
-			
+
 			return $value;
 		}
-		
+
 		/*
 			Function: safeEncode
 				Modifies a string so that it is safe for display on the web (tags and quotes modified for usage inside attributes) without double-encoding.
@@ -2024,15 +2073,15 @@
 			Returns:
 				Encoded string.
 		*/
-		
+
 		public static function safeEncode($string) {
 			if (!is_string($string)) {
 				return is_numeric($string) ? $string : "";
 			}
-			
+
 			return htmlspecialchars(htmlspecialchars_decode(html_entity_decode($string, ENT_COMPAT, "UTF-8")));
 		}
-		
+
 		/*
 			Function: sendEmail
 				Sends an email using PHPMailer
@@ -2052,21 +2101,21 @@
 			Returns:
 				true if email is sent, otherwise false.
 		*/
-		
+
 		public static function sendEmail($to, $subject, $html, $text = "", $from = false, $return = false, $cc = false, $bcc = false, $headers = [], $smtp = []) {
 			$mailer = new PHPMailer;
-			
+
 			if (function_exists("mb_detect_encoding") && mb_detect_encoding($html, ["ASCII"], true) === false) {
 				$mailer->CharSet = "UTF-8";
 				$mailer->Encoding = "base64";
 			}
-			
+
 			if (is_array($smtp) && count($smtp)) {
 				$mailer->isSMTP();
 				$mailer->Host = $smtp["host"];
 				$mailer->Port = $smtp["port"] ?: 25;
 				$mailer->SMTPSecure = $smtp["security"] ?: null;
-				
+
 				if ($smtp["user"]) {
 					$mailer->SMTPAuth = true;
 					$mailer->Username = $smtp["user"];
@@ -2075,11 +2124,11 @@
 					$mailer->SMTPAuth = false;
 				}
 			}
-			
+
 			foreach ($headers as $key => $val) {
 				$mailer->addCustomHeader($key, $val);
 			}
-			
+
 			$mailer->Subject = $subject;
 			if ($html) {
 				$mailer->isHTML(true);
@@ -2088,7 +2137,7 @@
 			} else {
 				$mailer->Body = $text;
 			}
-			
+
 			if (!$from) {
 				$from = "no-reply@".(isset($_SERVER["HTTP_HOST"]) ? str_replace("www.", "", $_SERVER["HTTP_HOST"]) : str_replace(["http://www.", "https://www.", "http://", "https://"], "", DOMAIN));
 				$from_name = "BigTree CMS";
@@ -2096,31 +2145,31 @@
 				// Parse out from and reply-to names
 				$from_name = false;
 				$from = trim($from);
-				
+
 				if (strpos($from, "<") !== false && substr($from, -1, 1) == ">") {
 					$from_pieces = explode("<", $from);
 					$from_name = trim($from_pieces[0]);
 					$from = substr($from_pieces[1], 0, -1);
 				}
 			}
-			
+
 			$mailer->From = $from;
 			$mailer->FromName = $from_name;
 			$mailer->Sender = $from;
-			
+
 			if ($return) {
 				$return_name = false;
 				$return = trim($return);
-				
+
 				if (strpos($return, "<") !== false && substr($return, -1, 1) == ">") {
 					$return_pieces = explode("<", $return);
 					$return_name = trim($return_pieces[0]);
 					$return = substr($return_pieces[1], 0, -1);
 				}
-				
+
 				$mailer->addReplyTo($return, $return_name);
 			}
-			
+
 			if ($cc) {
 				if (is_array($cc)) {
 					foreach ($cc as $item) {
@@ -2130,7 +2179,7 @@
 					$mailer->addCC($cc);
 				}
 			}
-			
+
 			if ($bcc) {
 				if (is_array($bcc)) {
 					foreach ($bcc as $item) {
@@ -2140,7 +2189,7 @@
 					$mailer->addBCC($bcc);
 				}
 			}
-			
+
 			if (is_array($to)) {
 				foreach ($to as $item) {
 					$mailer->addAddress($item);
@@ -2148,10 +2197,10 @@
 			} else {
 				$mailer->addAddress($to);
 			}
-			
+
 			return $mailer->send();
 		}
-		
+
 		/*
 			Function: setCookie
 				Sets a site-wide cookie with support for arrays.
@@ -2162,12 +2211,12 @@
 				value - The value to set for the cookie
 				expiration - Cookie expiration time (in seconds since UNIX epoch) or a string value compatible with strtotime (defaults to session expiration)
 		*/
-		
+
 		public static function setCookie($id, $value, $expiration = 0) {
 			$expiration = is_string($expiration) ? strtotime($expiration) : $expiration;
 			setcookie($id, json_encode($value), $expiration, str_replace(DOMAIN, "", WWW_ROOT));
 		}
-		
+
 		/*
 			Function: setDirectoryPermissions
 				Sets writable permissions for a whole directory.
@@ -2176,14 +2225,14 @@
 			Parameters:
 				location - The directory to set permissions on.
 		*/
-		
+
 		public static function setDirectoryPermissions($location) {
 			$contents = static::directoryContents($location);
 			foreach ($contents as $file) {
 				static::setPermissions($file);
 			}
 		}
-		
+
 		/*
 			Function: setPermissions
 				Checks to see if the current user the web server is running as is the owner of the current script.
@@ -2192,13 +2241,13 @@
 			Parameters:
 				location - The file or directory to set permissions on.
 		*/
-		
+
 		public static function setPermissions($location) {
 			if (!static::runningAsSU()) {
 				@chmod($location, 0777);
 			}
 		}
-		
+
 		/*
 			Function: tableCompare
 				Returns a list of SQL commands required to turn one table into another.
@@ -2210,7 +2259,7 @@
 			Returns:
 				An array of SQL calls to perform to turn Table A into Table B.
 		*/
-		
+
 		public static function tableCompare($table_a, $table_b) {
 			// Get table A's description
 			$table_a_description = BigTree::describeTable($table_a);
@@ -2218,10 +2267,10 @@
 			// Get table B's description
 			$table_b_description = BigTree::describeTable($table_b);
 			$table_b_columns = $table_b_description["columns"];
-			
+
 			// Setup up query array
 			$queries = [];
-			
+
 			// Transition columns
 			$last_key = "";
 			foreach ($table_b_columns as $key => $column) {
@@ -2233,32 +2282,32 @@
 				} elseif ($table_a_columns[$key] !== $column) {
 					$action = "MODIFY";
 				}
-				
+
 				if ($action) {
 					$mod = "ALTER TABLE `$table_a` $action COLUMN `$key` ".$column["type"];
-					
+
 					if (!empty($column["size"])) {
 						$mod .= "(".$column["size"].")";
 					}
-					
+
 					if (!empty($column["unsigned"])) {
 						$mod .= " UNSIGNED";
 					}
-					
+
 					if (!empty($column["charset"])) {
 						$mod .= " CHARSET ".$column["charset"];
 					}
-					
+
 					if (!empty($column["collate"])) {
 						$mod .= " COLLATE ".$column["collate"];
 					}
-					
+
 					if (empty($column["allow_null"])) {
 						$mod .= " NOT NULL";
 					} else {
 						$mod .= " NULL";
 					}
-					
+
 					if (isset($column["default"])) {
 						$d = $column["default"];
 						if ($d == "CURRENT_TIMESTAMP" || $d == "NULL") {
@@ -2267,19 +2316,19 @@
 							$mod .= " DEFAULT '".sqlescape($d)."'";
 						}
 					}
-					
+
 					if ($last_key) {
 						$mod .= " AFTER `$last_key`";
 					} else {
 						$mod .= " FIRST";
 					}
-					
+
 					$queries[] = $mod;
 				}
-				
+
 				$last_key = $key;
 			}
-			
+
 			// Drop columns
 			foreach ($table_a_columns as $key => $column) {
 				// If this key no longer exists in the new table, we should delete it.
@@ -2287,7 +2336,7 @@
 					$queries[] = "ALTER TABLE `$table_a` DROP COLUMN `$key`";
 				}
 			}
-			
+
 			// Add new indexes
 			foreach ($table_b_description["indexes"] as $key => $index) {
 				if (!isset($table_a_description["indexes"][$key]) || $table_a_description["indexes"][$key] != $index) {
@@ -2303,14 +2352,14 @@
 					$queries[] = "ALTER TABLE `$table_a` $verb ".($index["unique"] ? "UNIQUE " : "")."KEY `$key` (".implode(", ", $pieces).")";
 				}
 			}
-			
+
 			// Drop old indexes
 			foreach ($table_a_description["indexes"] as $key => $index) {
 				if (!isset($table_b_description["indexes"][$key])) {
 					$queries[] = "ALTER TABLE `$table_a` DROP KEY `$key`";
 				}
 			}
-			
+
 			// Drop old foreign keys -- we do this for all the existing foreign keys that don't directly match because we're going to regenrate key names
 			foreach ($table_a_description["foreign_keys"] as $key => $definition) {
 				$exists = false;
@@ -2323,7 +2372,7 @@
 					$queries[] = "ALTER TABLE `$table_a` DROP FOREIGN KEY `$key`";
 				}
 			}
-			
+
 			// Import foreign keys
 			foreach ($table_b_description["foreign_keys"] as $key => $definition) {
 				$exists = false;
@@ -2350,7 +2399,7 @@
 					$queries[] = $query;
 				}
 			}
-			
+
 			// Drop existing primary key if it's not the same
 			if ($table_a_description["primary_key"] != $table_b_description["primary_key"]) {
 				$pieces = [];
@@ -2360,25 +2409,25 @@
 				$queries[] = "ALTER TABLE `$table_a` DROP PRIMARY KEY";
 				$queries[] = "ALTER TABLE `$table_a` ADD PRIMARY KEY (".implode(",", $pieces).")";
 			}
-			
+
 			// Switch engine if different
 			if ($table_a_description["engine"] != $table_b_description["engine"]) {
 				$queries[] = "ALTER TABLE `$table_a` ENGINE = ".$table_b_description["engine"];
 			}
-			
+
 			// Switch character set if different
 			if ($table_a_description["charset"] != $table_b_description["charset"]) {
 				$queries[] = "ALTER TABLE `$table_a` CHARSET = ".$table_b_description["charset"];
 			}
-			
+
 			// Switch auto increment if different
 			if (isset($table_b_description["auto_increment"]) && ($table_a_description["auto_increment"] ?? "") != $table_b_description["auto_increment"]) {
 				$queries[] = "ALTER TABLE `$table_a` AUTO_INCREMENT = ".$table_b_description["auto_increment"];
 			}
-			
+
 			return $queries;
 		}
-		
+
 		/*
 			Function: tableContents
 				Returns an array of INSERT statements for the rows of a given table.
@@ -2390,10 +2439,10 @@
 			Returns:
 				An array.
 		*/
-		
+
 		public static function tableContents($table) {
 			$inserts = [];
-			
+
 			// Figure out which columns are binary and need to be pulled as hex
 			$description = BigTree::describeTable($table);
 			$column_query = [];
@@ -2406,7 +2455,7 @@
 					$column_query[] = "`$key`";
 				}
 			}
-			
+
 			// Get the rows out of the table
 			$qq = sqlquery("SELECT ".implode(", ", $column_query)." FROM `$table`");
 			while ($ff = sqlfetch($qq)) {
@@ -2426,10 +2475,10 @@
 				}
 				$inserts[] = "INSERT INTO `$table` (".implode(",", $keys).") VALUES (".implode(",", $vals).")";
 			}
-			
+
 			return $inserts;
 		}
-		
+
 		/*
 			Function: tableExists
 				Determines whether a SQL table exists.
@@ -2440,16 +2489,16 @@
 			Returns:
 				true if table exists, otherwise false.
 		*/
-		
+
 		public static function tableExists($table) {
 			$r = sqlrows(sqlquery("SHOW TABLES LIKE '".sqlescape($table)."'"));
 			if ($r) {
 				return true;
 			}
-			
+
 			return false;
 		}
-		
+
 		/*
 			Function: touchFile
 				touch()s a file even if the directory for it doesn't exist yet.
@@ -2457,21 +2506,21 @@
 			Parameters:
 				file - The file path to touch.
 		*/
-		
+
 		public static function touchFile($file) {
 			if (!static::isDirectoryWritable($file)) {
 				return false;
 			}
-			
+
 			$pathinfo = static::pathInfo($file);
 			static::makeDirectory($pathinfo["dirname"]);
-			
+
 			touch($file);
 			static::setPermissions($file);
-			
+
 			return true;
 		}
-		
+
 		/*
 			Function: translateArray
 				Steps through an array and creates internal page links for all parts of it.
@@ -2485,23 +2534,23 @@
 			See Also:
 				<untranslateArray>
 		*/
-		
+
 		public static function translateArray($array) {
 			foreach ($array as &$piece) {
 				if (is_null($piece)) {
 					continue;
 				}
-				
+
 				if (is_array($piece)) {
 					$piece = static::translateArray($piece);
 				} else {
 					$piece = BigTreeAdmin::autoIPL($piece);
 				}
 			}
-			
+
 			return $array;
 		}
-		
+
 		/*
 			Function: trimLength
 				A smarter version of trim that works with HTML.
@@ -2513,12 +2562,12 @@
 			Returns:
 				A string trimmed to the proper number of characters.
 		*/
-		
+
 		public static function trimLength($string, $length) {
 			if (!is_string($string)) {
 				return "";
 			}
-			
+
 			$ns = "";
 			$opentags = [];
 			$string = trim($string);
@@ -2542,15 +2591,15 @@
 						$tag .= $char;
 					}
 					$ns .= $tag;
-					
+
 					$tagexp = explode(" ", trim($tag));
 					$tagname = str_replace(">", "", $tagexp[0]);
-					
+
 					// Prevent warnings
 					if (empty($tagexp[1])) {
 						$tagexp[1] = "";
 					}
-					
+
 					// If it's a self contained <br /> tag or similar, don't add it to open tags.
 					if ($tagexp[1] != "/" && $tagexp[1] != "/>") {
 						// See if we're opening or closing a tag.
@@ -2605,10 +2654,10 @@
 			foreach ($opentags as $key => $val) {
 				$ns .= "</".$val.">";
 			}
-			
+
 			return $ns;
 		}
-		
+
 		/*
 			Function: unformatBytes
 				Formats a string of kilobytes / megabytes / gigabytes back into bytes.
@@ -2619,7 +2668,7 @@
 			Returns:
 				The number of bytes.
 		*/
-		
+
 		public static function unformatBytes($size) {
 			$type = substr($size, -1, 1);
 			$num = substr($size, 0, -1);
@@ -2630,10 +2679,10 @@
 			} elseif ($type == "G") {
 				return ($num * 1024 * 1024 * 1024);
 			}
-			
+
 			return 0;
 		}
-		
+
 		/*
 			Function: untranslateArray
 				Steps through an array and creates hard links for all internal page links.
@@ -2647,12 +2696,12 @@
 			See Also:
 				<translateArray>
 		*/
-		
+
 		public static function untranslateArray($array) {
 			if (!is_array($array)) {
 				return [];
 			}
-			
+
 			foreach ($array as &$piece) {
 				if (!is_null($piece)) {
 					if (is_array($piece)) {
@@ -2662,10 +2711,10 @@
 					}
 				}
 			}
-			
+
 			return $array;
 		}
-		
+
 		/*
 			Function: unzip
 				Unzips a file.
@@ -2674,44 +2723,44 @@
 				file - Location of the file to unzip
 				destination - The full path to unzip the file's contents to.
 		*/
-		
+
 		public static function unzip($file, $destination) {
 			// If we can't write the output directory, we're not getting anywhere.
 			if (!BigTree::isDirectoryWritable($destination)) {
 				return false;
 			}
-			
+
 			// Up the memory limit for the unzip.
 			ini_set("memory_limit", "512M");
-			
+
 			$destination = rtrim($destination)."/";
 			BigTree::makeDirectory($destination);
-			
+
 			// If we have the built in ZipArchive extension, use that.
 			if (class_exists("ZipArchive")) {
 				$z = new ZipArchive;
-				
+
 				if (!$z->open($file)) {
 					// Bad zip file.
 					return false;
 				}
-				
+
 				for ($i = 0; $i < $z->numFiles; $i++) {
 					if (!$info = $z->statIndex($i)) {
 						// Unzipping the file failed for some reason.
 						return false;
 					}
-					
+
 					// If it's a directory, ignore it. We'll create them in putFile.
 					if (substr($info["name"], -1) == "/") {
 						continue;
 					}
-					
+
 					// Ignore __MACOSX and all it's files.
 					if (substr($info["name"], 0, 9) == "__MACOSX/") {
 						continue;
 					}
-					
+
 					$content = $z->getFromIndex($i);
 					if ($content === false) {
 						// File extraction failed.
@@ -2719,11 +2768,11 @@
 					}
 					BigTree::putFile($destination.$file["name"], $content);
 				}
-				
+
 				$z->close();
-				
+
 				return true;
-				
+
 				// Fall back on PclZip if we don't have the "native" version.
 			} else {
 				// WordPress claims this could be an issue, so we'll make sure multibyte encoding isn't overloaded.
@@ -2731,39 +2780,39 @@
 					$previous_encoding = mb_internal_encoding();
 					mb_internal_encoding('ISO-8859-1');
 				}
-				
+
 				$z = new PclZip($file);
 				$archive = $z->extract(PCLZIP_OPT_EXTRACT_AS_STRING);
-				
+
 				// If we saved a previous encoding, reset it now.
 				if (isset($previous_encoding)) {
 					mb_internal_encoding($previous_encoding);
 					unset($previous_encoding);
 				}
-				
+
 				// If it's not an array, it's not a good zip. Also, if it's empty it's not a good zip.
 				if (!is_array($archive) || !count($archive)) {
 					return false;
 				}
-				
+
 				foreach ($archive as $item) {
 					// If it's a directory, ignore it. We'll create them in putFile.
 					if ($item["folder"]) {
 						continue;
 					}
-					
+
 					// Ignore __MACOSX and all it's files.
 					if (substr($item["filename"], 0, 9) == "__MACOSX/") {
 						continue;
 					}
-					
+
 					BigTree::putFile($destination.$item["filename"], $item["content"]);
 				}
-				
+
 				return true;
 			}
 		}
-		
+
 		/*
 			Function: uploadMaxFileSize
 				Returns Apache's max file size value for use in forms.
@@ -2771,21 +2820,21 @@
 			Returns:
 				The integer value for setting a form's MAX_FILE_SIZE.
 		*/
-		
+
 		public static function uploadMaxFileSize() {
 			$upload_max_filesize = ini_get("upload_max_filesize");
 			if (!is_integer($upload_max_filesize)) {
 				$upload_max_filesize = static::unformatBytes($upload_max_filesize);
 			}
-			
+
 			$post_max_size = static::postMaxSize();
 			if ($post_max_size < $upload_max_filesize) {
 				$upload_max_filesize = $post_max_size;
 			}
-			
+
 			return $upload_max_filesize;
 		}
-		
+
 		/*
 			Function: urlExists
 				Attempts to connect to a URL using cURL.
@@ -2796,7 +2845,7 @@
 			Returns:
 				true if it can connect, false if connection failed.
 		*/
-		
+
 		public static function urlExists($url) {
 			// Handle // urls as http://
 			if (substr($url,0,2) == "//") {
@@ -2807,7 +2856,7 @@
 			[$url] = explode("#", $url);
 
 			$handle = curl_init($url);
-			
+
 			if ($handle === false) {
 				return false;
 			}
@@ -2836,70 +2885,70 @@
 
 			return $success;
 		}
-		
+
 		// These functions remain in BigTree for backwards compatibility
-		
+
 		public static function centerCrop($file, $newfile, $cw, $ch, $retina = false, $grayscale = false) {
 			$image = new BigTreeImage($file);
-			
+
 			return $image->centerCrop($newfile, $cw, $ch, $retina, $grayscale);
 		}
-		
+
 		public static function createCrop($file, $new_file, $x, $y, $target_width, $target_height, $width, $height, $retina = false, $grayscale = false) {
 			$image = new BigTreeImage($file);
-			
+
 			return $image->crop($new_file, $x, $y, $target_width, $target_height, $width, $height, $retina, $grayscale);
 		}
-		
+
 		public static function createThumbnail($file, $new_file, $maxwidth, $maxheight, $retina = false, $grayscale = false, $upscale = false) {
 			$image = new BigTreeImage($file);
-			
+
 			$image->thumbnail($new_file, $maxwidth, $maxheight, $retina, $grayscale, $upscale);
 		}
-		
+
 		public static function createUpscaledImage($file, $new_file, $min_width, $min_height) {
 			$image = new BigTreeImage($file);
-			
+
 			$image->upscale($new_file, $min_width, $min_height);
 		}
-		
+
 		public static function getThumbnailSizes($file, $min_width, $min_height) {
 			$image = new BigTreeImage($file);
 			$sizes = $image->getThumbnailSize($min_width, $min_height);
-			
+
 			return [$image->Type, $image->Width, $image->Height, $sizes["width"], $sizes["height"]];
 		}
-		
+
 		public static function getUpscaleSizes($file, $min_width, $min_height) {
 			$image = new BigTreeImage($file);
 			$sizes = $image->getUpscaleSize($min_width, $min_height);
-			
+
 			return [$image->Type, $image->Width, $image->Height, $sizes["width"], $sizes["height"]];
 		}
-		
+
 		public static function imageManipulationMemoryAvailable($source, $width, $height) {
 			$image = new BigTreeImage($source);
-			
+
 			return $image->checkMemory($width, $height);
 		}
-		
+
 		public static function restoreMemoryLimit() {
 			BigTreeImage::restoreMemoryLimit();
 		}
-		
+
 		public static function setImageMemoryLimit() {
 			BigTreeImage::setMemoryLimit();
 		}
-		
+
 	}
-	
+
 	// For servers that don't have multibyte string extensions…
 	if (!function_exists("mb_strlen")) {
 		function mb_strlen($string) {
 			return strlen($string);
 		}
 	}
-	
+
 	if (!function_exists("mb_strtolower")) {
 		function mb_strtolower($string) {
 			return strtolower($string);
