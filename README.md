@@ -20,6 +20,17 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.5.12
+- NEW: Site Integrity Checker is now able to be resumed, accounts for view filters, and supports exporting results
+- IMPROVED: Page count is much faster now for searchable views
+- IMPROVED: YouTube videos now support parsing YouTube shorts URLs
+- FIXED: Even more robust support for ensuring the cURL certificate bundle is up to date and a bad one is not stored
+- FIXED: A variety of warnings and notices
+- FIXED: Limits on Many to Many / One to Many fields not working properly
+- FIXED: BigTreeAutoModule::updateItem crashing when not updating any columns
+- FIXED: Many warnings related to the frontend editor
+- FIXED: Choosing new crops failing in certain scenarios
+
 ### 4.5.11
 - FIXED: Two Factor authentication not allowing onboarding due to offlining of Google Charts API
 - FIXED: File manager search results not decoding relative paths
@@ -324,7 +335,7 @@ Changelog
 - FIXED: Some legacy calls in field types to options rather than settings
 - FIXED: Search no longer shows the entire database as results if you don't enter a query
 - FIXED: Resource permissions on a null parent now resolve properly
-- FIXED: Resources that a user does not have permission to edit now open in a new window rather than show just the name. 
+- FIXED: Resources that a user does not have permission to edit now open in a new window rather than show just the name.
 - FIXED: Admin CSS/JS is now cache busted by version number
 - FIXED: Base install SQL not adding the deleted users and file metadata settings
 - FIXED: Date fields no longer attempt to convert a date to/from a user's timezone since there's no way to know exactly what it should convert to without time.
