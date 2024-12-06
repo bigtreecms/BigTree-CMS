@@ -2,7 +2,7 @@
 	/**
 	 * @global BigTreeCMS $cms
 	 */
-	
+
 	$width = isset($bigtree["html_editor_width"]) ? $bigtree["html_editor_width"] : false;
 	$height = isset($bigtree["html_editor_height"]) ? $bigtree["html_editor_height"] : false;
 	$content_css = $cms->getSetting("tinymce-content-css");
@@ -28,7 +28,7 @@
 		});
 		<?php
 			}
-		
+
 			if (!empty($bigtree["simple_html_fields"])) {
 		?>
 		tinyMCE.init({
@@ -37,7 +37,7 @@
 			file_picker_callback: BigTreeFileManager.tinyMCEOpen,
 			menubar: false,
 			plugins: "link,code,visualblocks,lists",
-			toolbar: "link unlink bold italic underline code| bullist numlist outdent indent",
+			toolbar: "link unlink bold italic underline removeformat",
 			browser_spellcheck: true,
 			relative_urls: false,
 			remove_script_host: false,
