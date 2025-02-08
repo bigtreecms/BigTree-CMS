@@ -14,7 +14,7 @@
 </div>
 
 <script>
-	var marker = "<?=(!empty($_GET["marker"]) ? $_GET["marler"] : "")?>";
+	var marker = "<?=(!empty($_GET["marker"]) ? $_GET["marker"] : "")?>";
 
 	function cache_page(marker) {
 		$.ajax("<?=ADMIN_ROOT?>ajax/developer/amazon-cache/", { data: { marker: marker } }).done(function(json) {
@@ -30,7 +30,7 @@
 				cache_page(json.marker);
 			}
 		}).fail(function(xhr, status) {
-			$(".cache_message").html('<div class="error_message">An error occurred (most likely a timeout). Try refreshing this page to proceed with the caching process.</div>');	
+			$(".cache_message").html('<div class="error_message">An error occurred (most likely a timeout). Try refreshing this page to proceed with the caching process.</div>');
 		});
 	}
 
