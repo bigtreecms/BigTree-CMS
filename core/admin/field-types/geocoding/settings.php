@@ -1,13 +1,13 @@
 <fieldset id="js-source-fieldset" class="last">
 	<label>Source Fields <small>(the table columns to use for address generation)</small></label>
 	<?php
-		if (is_string($settings["fields"])) {
+		if (!empty($settings["fields"]) && is_string($settings["fields"])) {
 			$settings["fields"] = explode(",", $settings["fields"]);
-		} else {
+		} else if (!empty($settings["fields"])) {
 			$settings["fields"] = is_array($settings["fields"]) ? $settings["fields"] : [""];
 		}
-		
-		if (!is_array($settings["fields"]) || !count($settings["fields"])) {
+
+		if (empty($settings["fields"]) || !is_array($settings["fields"])) {
 			$settings["fields"] = array("");
 		}
 
@@ -29,13 +29,13 @@
 <script>
 	$("#js-source-fieldset").on("click", ".icon_small_add", function(ev) {
 		ev.preventDefault();
-		
+
 		var new_field = $(".route_source_field").last().clone().attr("id", "");
 		new_field.find("select").prop("selectedIndex", 0);
 		$("#js-source-fieldset").append(new_field);
 	}).on("click", ".icon_small_delete", function(ev) {
 		ev.preventDefault();
-		
+
 		$(this).parents(".contain").remove();
 	});
 </script>
