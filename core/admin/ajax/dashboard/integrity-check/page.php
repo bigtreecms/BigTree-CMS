@@ -4,9 +4,9 @@
 	 * @global callable $check_data
 	 * @global array $integrity_errors
 	 */
-	
+
 	$id = intval($_POST["id"]);
-	$external = !empty($_POST["external"]) ? true : false;
+	$external = !empty($_POST["external"]) && $_POST["external"] !== "false";
 	$page = $cms->getPage($id);
 	$template = $cms->getTemplate($page["template"]);
 	$local_path = $cms->getLink($id);
@@ -16,10 +16,10 @@
 	if (!empty($template["resources"]) && is_array($template["resources"])) {
 		$check_data($local_path,$external,$template["resources"],$resources);
 	}
-	
+
 	// Loop through the errors
 	$has_errors = false;
-	
+
 	foreach ($integrity_errors as $title => $error_types) {
 		foreach ($error_types as $type => $errors) {
 			foreach ($errors as $error) {
@@ -36,21 +36,21 @@
 			}
 		}
 	}
-	
+
 	$session = BigTreeCMS::cacheGet("org.bigtreecms.integritycheck", "session.".($external ? "external" : "internal"));
 	$session["current_page"] = $_POST["index"];
-	
+
 	if ($has_errors) {
 		if (empty($session["errors"])) {
 			$session["errors"] = [];
 		}
-		
+
 		if (empty($session["errors"]["pages"])) {
 			$session["errors"]["pages"] = [];
 		}
-		
+
 		$session["errors"]["pages"][$id] = $integrity_errors;
 	}
-	
+
 	BigTreeCMS::cachePut("org.bigtreecms.integritycheck", "session.".($external ? "external" : "internal"), $session);
 ?>
