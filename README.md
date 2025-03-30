@@ -20,6 +20,12 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.5.13
+- FIXED: Site Integrity Checker failing to resume properly / check internal-link-only mode
+- FIXED: Simple HTML fields showing buttons for which the backend stripped the markup for
+- FIXED: Not being able to resume AWS S3 caching when it times out by refreshing the browser
+- FIXED: Warning when initially adding Geocoding fields to a module
+
 ### 4.5.12
 - NEW: Site Integrity Checker is now able to be resumed, accounts for view filters, and supports exporting results
 - IMPROVED: Page count is much faster now for searchable views
