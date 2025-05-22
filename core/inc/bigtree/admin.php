@@ -6738,12 +6738,14 @@
 				$sql_revisions = $manifest["sql_revisions"];
 
 				// Go through all the SQL updates, we ksort first to ensure if the manifest somehow got out of order that we run the SQL update sequentially
-				ksort($sql_revisions);
+				if (!empty($sql_revisions)) {
+					ksort($sql_revisions);
 
-				foreach ($sql_revisions as $key => $statements) {
-					if ($key > $old_revision) {
-						foreach ($statements as $sql_statement) {
-							sqlquery($sql_statement);
+					foreach ($sql_revisions as $key => $statements) {
+						if ($key > $old_revision) {
+							foreach ($statements as $sql_statement) {
+								sqlquery($sql_statement);
+							}
 						}
 					}
 				}
