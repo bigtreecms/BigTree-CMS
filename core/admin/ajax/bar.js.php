@@ -60,7 +60,7 @@ var BigTreeBar = {
 		if (BigTreeBar.allowedMessagingDomains.indexOf(event.origin) > -1) {
 			if (typeof event.data == "string" && event.data.substr(0, 12) == "bigtree-bar-") {
 				var message = event.data.substr(12);
-				
+
 				if (message == "cancel") {
 					BigTreeBar.cancel();
 				} else {
@@ -80,14 +80,14 @@ var BigTreeBar = {
 		// Find out the current padding of the body
 		BigTreeBar.body_padding = parseInt(BigTreeBar.getStyle(BigTreeBar.body,"padding-top"));
 		BigTreeBar.body.style.paddingTop = (BigTreeBar.body_padding + 40) + "px";
-		
+
 		// Remove the closed class, add the open class
 		document.getElementsByTagName('body')[0].className = (document.getElementsByTagName('body')[0].className.replace("bigtree_bar_closed", "") + " bigtree_bar_open").trim();
-		
+
 		// Add the bar
 		bigtree_bar = document.createElement("div");
 		bigtree_bar.setAttribute("id","bigtree_bar");
-		
+
 		bigtree_bar_html = '<a href="<?=ADMIN_ROOT?>" id="bigtree_bar_logo"></a>';
 		<?php
 			if ($permission) {
@@ -111,9 +111,9 @@ var BigTreeBar = {
 		bigtree_bar_html += '<span id="bigtree_preview_notice">DEVELOPER MODE</span>';
 		<?php } ?>
 		bigtree_bar.innerHTML = bigtree_bar_html;
-		
+
 		BigTreeBar.body.appendChild(bigtree_bar);
-		
+
 		// Close Button
 		document.getElementById("bigtree_bar_close").onclick = function(e) {
 			if (document.getElementById("bigtree_bar_overlay")) {
@@ -124,41 +124,41 @@ var BigTreeBar = {
 			}
 			BigTreeBar.body.removeChild(document.getElementById("bigtree_bar"));
 			BigTreeBar.body.style.paddingTop = BigTreeBar.body_padding + "px";
-			
+
 			// Remove the open class, add the closed class
 			document.getElementsByTagName('body')[0].className = (document.getElementsByTagName('body')[0].className.replace("bigtree_bar_open", "") + " bigtree_bar_closed").trim();
-			
+
 			BigTreeBar.createCookie("hide_bigtree_bar","on",365);
-			
+
 			BigTreeBar.dispatch("closebigtreebar");
-			
+
 			return false;
 		};
-		
+
 		if (document.getElementById("bigtree_edit_content")) {
 			document.getElementById("bigtree_edit_content").onclick = function() {
 				if (!document.getElementById("bigtree_bar_overlay")) {
 					leftd = parseInt((BigTreeBar.windowWidth() - 820) / 2);
 					topd = parseInt((BigTreeBar.windowHeight() - 615) / 2);
-					
+
 					bigtree_bar_overlay = document.createElement("div");
 					bigtree_bar_overlay.setAttribute("id","bigtree_bar_overlay");
 					BigTreeBar.body.appendChild(bigtree_bar_overlay);
-					
+
 					bigtree_bar_frame = document.createElement("iframe");
 					bigtree_bar_frame.setAttribute("id","bigtree_bar_frame");
-					bigtree_bar_frame.setAttribute("src","<?=ADMIN_ROOT?>pages/front-end-edit/<?=htmlspecialchars(strip_tags($_GET["current_page_id"]))?>/");
+					bigtree_bar_frame.setAttribute("src","<?=ADMIN_ROOT?>pages/front-end-edit/<?=htmlspecialchars(strip_tags($_GET["current_page_id"] ?? ""))?>/");
 					bigtree_bar_frame.style.left = leftd + "px";
 					bigtree_bar_frame.style.top = topd + "px";
 					BigTreeBar.body.appendChild(bigtree_bar_frame);
 				}
-				
+
 				return false;
 			};
 		}
-		
+
 		BigTreeBar.dispatch("openbigtreebar");
-		
+
 		return false;
 	},
 
@@ -168,16 +168,16 @@ var BigTreeBar = {
 		// Find out the current padding of the body
 		BigTreeBar.body_padding = parseInt(BigTreeBar.getStyle(BigTreeBar.body,"padding-top"));
 		BigTreeBar.body.style.paddingTop = (BigTreeBar.body_padding + 40) + "px";
-		
+
 		// Add the bar
 		bigtree_bar = document.createElement("div");
 		bigtree_bar.setAttribute("id","bigtree_bar");
-		
+
 		bigtree_bar_html = '<a href="<?=ADMIN_ROOT?>" id="bigtree_bar_logo"></a><a class="bigtree_link" id="bigtree_edit_content" href="' + return_link + '">Continue Editing</a><a href="' + return_link + '" id="bigtree_bar_close"></a><a href="<?=ADMIN_ROOT?>login/logout/" id="bigtree_logout">Logout</a><span id="bigtree_name"><?=htmlspecialchars(strip_tags(str_replace("'","\'",$_GET["username"])))?></span><span id="bigtree_preview_notice">PAGE PREVIEW</span>';
 		bigtree_bar.innerHTML = bigtree_bar_html;
-		
+
 		BigTreeBar.body.appendChild(bigtree_bar);
-		
+
 		return false;
 	},
 
@@ -202,10 +202,10 @@ var BigTreeBar = {
 		}
 		return windowWidth;
 	},
-	
+
 	dispatch: function(evtName) {
 		var evt = document.createEvent("Event");
-		evt.initEvent(evtName, true, true); 
+		evt.initEvent(evtName, true, true);
 		document.dispatchEvent(evt);
 	}
 };
@@ -232,7 +232,7 @@ BigTreeBar.body.appendChild(BigTreeBar.tab);
 window.addEventListener("message", BigTreeBar.messageReceiver, false);
 
 // Add BigTree Bar class to the body, keep outside global namespace
-document.getElementsByTagName('body')[0].className = (document.getElementsByTagName('body')[0].className.replace("bigtree_bar_open", "") + " bigtree_bar_closed").trim();	
+document.getElementsByTagName('body')[0].className = (document.getElementsByTagName('body')[0].className.replace("bigtree_bar_open", "") + " bigtree_bar_closed").trim();
 <?php if (!empty($_GET["show_bar"])) { ?>
 BigTreeBar.show();
 <?php } ?>
