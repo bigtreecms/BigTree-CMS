@@ -4,10 +4,10 @@
 	 * @global BigTreeCMS $cms
 	 * @global string $server_root
 	 */
-	
+
 	// Set a definition to check for being in the admin
 	define("BIGTREE_ADMIN_ROUTED",true);
-	
+
 	// Set static root for those without it
 	if (!isset($bigtree["config"]["static_root"])) {
 		$bigtree["config"]["static_root"] = $bigtree["config"]["www_root"];
@@ -66,58 +66,58 @@
 	// CSS
 	if ($bigtree["path"][1] == "css") {
 		$css_path = implode("/", array_slice($bigtree["path"], 2));
-		
+
 		if (defined("EXTENSION_ROOT")) {
 			$css_file = EXTENSION_ROOT."css/$css_path";
 		} else {
 			$css_file = file_exists("../custom/admin/css/$css_path") ? "../custom/admin/css/$css_path" : "../core/admin/css/$css_path";
 		}
-		
+
 		if (function_exists("apache_request_headers")) {
 			$headers = apache_request_headers();
 			$ims = isset($headers["If-Modified-Since"]) ? $headers["If-Modified-Since"] : "";
 		} else {
 			$ims = isset($_SERVER["HTTP_IF_MODIFIED_SINCE"]) ? $_SERVER["HTTP_IF_MODIFIED_SINCE"] : "";
 		}
-		
+
 		$last_modified = filemtime($css_file);
-	
+
 		if ($ims && strtotime($ims) == $last_modified) {
 			header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 304);
 			die();
 		}
-		
+
 		header("Content-type: text/css");
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-		
+
 		// Handle LESS
-		if (strtolower(substr($css_file, -5, 5)) == ".less") {						
+		if (strtolower(substr($css_file, -5, 5)) == ".less") {
 			$server_root = isset($server_root) ? $server_root : str_replace("core/admin/router.php", "", strtr(__FILE__, "\\", "/"));
 			$cache_file = $server_root."cache/admin-compiled-css-".md5($css_file).".css";
-			
+
 			// Already compiled this, just return it
 			if (file_exists($cache_file) && filemtime($cache_file) >= $last_modified) {
 				readfile($cache_file);
 				die();
 			}
-		
+
 			// Load LESS compiler — prefer the newer version but support older fork
 			if (file_exists($server_root."vendor/wikimedia/less.php/lib/Less/Autoloader.php")) {
 				require_once $server_root."vendor/wikimedia/less.php/lib/Less/Autoloader.php";
 			} else {
 				require_once $server_root."vendor/oyejorge/less.php/lib/Less/Autoloader.php";
 			}
-			
+
 			Less_Autoloader::register();
 			$parser = new Less_Parser(["compress" => true]);
 			$parser->parseFile($css_file);
 			$css = $parser->getCss();
-			
+
 			// Cache and return
 			file_put_contents($cache_file, $css);
 			die($css);
 		}
-		
+
 		// Regular old CSS
 		readfile($css_file);
 		die();
@@ -181,7 +181,7 @@
 		header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
 		$find = array('$max_file_size',"www_root/","admin_root/","static_root/");
 		$replace = array($max_file_size,$bigtree["config"]["www_root"],$bigtree["config"]["admin_root"],$bigtree["config"]["static_root"]);
-		
+
 		// Allow GET variables to serve as replacements in JS using $var and file.js?var=whatever
 		foreach ($_GET as $key => $val) {
 			// Remove anything non-alphanumeric from the dynamic value
@@ -192,10 +192,10 @@
 			$replace[] = $val;
 			$replace[] = $val;
 		}
-		
+
 		die(str_replace($find,$replace,file_get_contents($js_file)));
 	}
-	
+
 	// We're loading a page in the admin, so add and remove some content / security headers
 	$csp_domains = [];
 
@@ -213,7 +213,7 @@
 
 	header("Content-Type: text/html; charset=utf-8");
 	header("Content-Security-Policy: frame-ancestors ".implode(" ",$csp_domains));
-	
+
 	if (function_exists("header_remove")) {
 		header_remove("Server");
 		header_remove("X-Powered-By");
@@ -225,12 +225,12 @@
 	} else {
 		include "../core/bootstrap.php";
 	}
-	
+
 	// Connect to MySQL and begin sessions and output buffering.
 	if (empty($bigtree["mysql_read_connection"])) {
 		$bigtree["mysql_read_connection"] = bigtree_setup_sql_connection();
 	}
-	
+
 	ob_start();
 	BigTreeSessionHandler::start();
 
@@ -242,7 +242,7 @@
 	// Initialize BigTree's additional CSS and JS arrays for inclusion in the admin's header
 	$bigtree["js"] = array();
 	$bigtree["css"] = array();
-	
+
 	// Instantiate the $admin var (user system)
 	$admin = new BigTreeAdmin;
 
@@ -267,7 +267,7 @@
 
 			BigTree::redirect(ADMIN_ROOT."login/");
 		}
-	}	
+	}
 
 	// Developer Mode On?
 	if (isset($admin->ID) && !empty($bigtree["config"]["developer_mode"]) && $admin->Level < 2) {
@@ -284,17 +284,17 @@
 	if ($bigtree["path"][1] == "ajax") {
 		$module = false;
 		$core_ajax_directories = array("two-factor-check","auto-modules","callouts","dashboard","file-browser","pages","tags");
-		
+
 		if (!in_array($bigtree["path"][2],$core_ajax_directories) && $bigtree["path"]) {
 			// If the current user isn't allowed in the module for the ajax, stop them.
 			$module = $admin->getModuleByRoute($bigtree["path"][2]);
-			
+
 			if ($module && !$admin->checkAccess($module["id"])) {
 				die("Permission denied to module: ".$module["name"]);
 			} elseif (!$admin->ID) {
 				die("Please login.");
 			}
-			
+
 			if ($module) {
 				$bigtree["current_module"] = $bigtree["module"] = $module;
 			}
@@ -377,7 +377,7 @@
 
 		// Cache google analytics
 		$ga = new BigTreeGoogleAnalytics4;
-		
+
 		if (!empty($ga->Settings["verified"])) {
 			// The Google Analytics wrappers can cause Exceptions and we don't want the page failing to load due to them.
 			try {
@@ -392,7 +392,8 @@
 
 		// If we're using database-based sessions, do a garbage cleanup (as some server setups will have random gc turned off)
 		if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
-			BigTreeSessionHandler::clean(ini_get("session.gc_maxlifetime"));
+			$session_handler = new BigTreeSessionHandler;
+			$session_handler->gc(ini_get("session.gc_maxlifetime"));
 		}
 	}
 
@@ -408,10 +409,10 @@
 		// Setup environment vars
 		$bigtree["current_module"] = $bigtree["module"] = $module;
 		define("MODULE_ROOT",ADMIN_ROOT.$module["route"]."/");
-		
+
 		if (!empty($module["extension"])) {
 			$bigtree["extension_context"] = $module["extension"];
-			
+
 			if (!defined("EXTENSION_ROOT")) {
 				define("EXTENSION_ROOT", SERVER_ROOT."extensions/".$module["extension"]."/");
 			}
@@ -424,7 +425,7 @@
 			$bigtree["module_action"] = $route_response["action"];
 			$bigtree["commands"] = $route_response["commands"];
 		}
-		
+
 		// Make sure the user has access to the module
 		if (!$admin->checkAccess($module["id"], $route_response["action"] ?? "")) {
 			$admin->stop(file_get_contents(BigTree::path("admin/pages/_denied.php")));
@@ -432,16 +433,16 @@
 
 		// Append module navigation.
 		$actions = $admin->getModuleActions($module);
-	
+
 		// Append module info to the admin nav to draw the headers and breadcrumb and such.
 		$bigtree["nav_tree"]["auto-module"] = [
 			"title" => $module["name"],
 			"link" => $module["route"],
 			"icon" => "modules",
-			"children" => [], 
+			"children" => [],
 			"hidden" => true
 		];
-		
+
 		foreach ($actions as $action) {
 			$hidden = $action["in_nav"] ? false : true;
 			$route = $action["route"] ? $module["route"]."/".$action["route"] : $module["route"];
@@ -480,7 +481,7 @@
 		if ($module && !empty($module["extension"])) {
 			$module_path[0] = str_replace($module["extension"]."*","",$module_path[0]);
 			[$inc,$commands] = BigTree::route(SERVER_ROOT."extensions/".$module["extension"]."/modules/",$module_path);
-			
+
 			if (!defined("EXTENSION_ROOT")) {
 				define("EXTENSION_ROOT", SERVER_ROOT."extensions/".$module["extension"]."/");
 			}
@@ -526,11 +527,11 @@
 			// Include all headers in the module directory in the order they occur.
 			$inc_path = "";
 			$headers = $footers = array();
-			
+
 			foreach ($pieces as $piece) {
 				if (substr($piece,-4,4) != ".php") {
 					$inc_path .= $piece."/";
-					
+
 					if (!empty($module["extension"])) {
 						$header = SERVER_ROOT."extensions/".$module["extension"]."/modules/".$inc_path."_header.php";
 						$footer = SERVER_ROOT."extensions/".$module["extension"]."/modules/".$inc_path."_footer.php";
