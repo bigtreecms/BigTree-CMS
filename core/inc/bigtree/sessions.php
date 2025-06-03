@@ -36,12 +36,12 @@
 		private $Exists = false;
 
 		// These aren't needed as the SQL class handles the connection
-		public function open(string $save_path, string $name): bool { 
-			return true; 
+		public function open(string $save_path, string $name): bool {
+			return true;
 		}
-		
-		public function close(): bool { 
-			return true; 
+
+		public function close(): bool {
+			return true;
 		}
 
 		public function read(string $id): string|false {
@@ -55,11 +55,6 @@
 
 			// Invalidate a session that is too old's data
 			if ($session["last_accessed"] < time() - self::$Timeout) {
-				SQL::update("bigtree_sessions", $id, ["data" => "", "last_accessed" => time()]);
-
-				return "";
-			// Invalidate sessions with incorrect user agents of IP addresses
-			} elseif ($session["ip_address"] != BigTree::remoteIP() || $session["user_agent"] != $_SERVER["HTTP_USER_AGENT"]) {
 				SQL::update("bigtree_sessions", $id, ["data" => "", "last_accessed" => time()]);
 
 				return "";
@@ -85,11 +80,9 @@
 		}
 
 		public function gc(int $max_age): int|false {
-			SQL::query("DELETE FROM bigtree_sessions WHERE last_accessed < ?", time() - $max_age);
-			
 			// Return the number of deleted sessions, or false on error
-			$affected = SQL::affectedRows();
-			
+			$affected = SQL::query("DELETE FROM bigtree_sessions WHERE last_accessed < ?", time() - $max_age)->rows();
+
 			return $affected !== null ? $affected : false;
 		}
 
@@ -99,7 +92,7 @@
 			if (static::$Started || session_status() === PHP_SESSION_ACTIVE) {
 				return;
 			}
-			
+
 			static::$Started = true;
 
 			if (!empty($bigtree["config"]["session_lifetime"])) {
@@ -113,12 +106,19 @@
 						return;
 					}
 				}
-				
+
 				$handler = new BigTreeSessionHandler();
 				session_set_save_handler($handler, true);
 			}
 
-			session_set_cookie_params(0, str_replace(DOMAIN, "", WWW_ROOT), "", !empty($bigtree["config"]["ssl_only_session_cookie"]), true);
+			session_set_cookie_params([
+				"lifetime" => 0,
+				"path" => str_replace(DOMAIN, "", WWW_ROOT),
+				"secure" => true,
+				"httponly" => true,
+				"samesite" => "None"
+			]);
+
 			session_start(array("gc_maxlifetime" => static::$Timeout));
 		}
 
