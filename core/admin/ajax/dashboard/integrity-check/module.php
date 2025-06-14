@@ -8,13 +8,14 @@
 
 	// Get the form so we can walk through its fields
 	$form_id = (string) $_POST["form"];
+    $id = $_POST["id"];
 	$form = BigTreeAutoModule::getForm($form_id);
 	$external = !empty($_POST["external"]) && $_POST["external"] !== "false";
 
 	// Create a generic module class to get the decoded item data
 	$m = new BigTreeModule;
 	$m->Table = $form["table"];
-	$item = BigTree::translateArray($m->get($_POST["id"]));
+	$item = BigTree::translateArray($m->get($id));
 
 	// Loop through form resources and see if we have related page data, only check html and text fields
 	if (is_array($form["fields"])) {
@@ -36,7 +37,7 @@
 ?>
 <li>
 	<section class="integrity_errors">
-		<a href="<?=ADMIN_ROOT.$module["route"]."/".$action["route"]."/".htmlspecialchars($_POST["id"])?>/" target="_blank">Edit</a>
+		<a href="<?=ADMIN_ROOT.$module["route"]."/".$action["route"]."/".htmlspecialchars($id)?>/" target="_blank">Edit</a>
 		<span class="icon_small icon_small_warning"></span>
 		<p>Broken <?=(($type == "img") ? "Image" : "Link")?>: <?=BigTree::safeEncode($error)?> in field &ldquo;<?=$field?>&rdquo;</p>
 	</section>
@@ -46,21 +47,9 @@
 		}
 	}
 
-	$session = BigTreeCMS::cacheGet("org.bigtreecms.integritycheck", "session.".($external ? "external" : "internal"));
-	$session["current_module"] = $_POST["module"];
-	$session["current_item"] = $_POST["index"];
-
 	if ($has_errors) {
-		if (empty($session["errors"])) {
-			$session["errors"] = [];
-		}
-
-		if (empty($session["errors"][$form_id])) {
-			$session["errors"][$form_id] = [];
-		}
-
-		$session["errors"][$form_id][$_POST["id"]] = $integrity_errors;
+		BigTreeCMS::cachePut("org.bigtreecms.integritycheck","errors.".($external ? "external" : "internal").".modules.$form_id.$id", $integrity_errors);
 	}
 
-	BigTreeCMS::cachePut("org.bigtreecms.integritycheck", "session.".($external ? "external" : "internal"), $session);
-?>
+	BigTreeCMS::cachePut("org.bigtreecms.integritycheck", "current_module.".($external ? "external" : "internal"), $_POST["module"]);
+	BigTreeCMS::cachePut("org.bigtreecms.integritycheck", "current_module_item.".($external ? "external" : "internal"), $_POST["index"]);

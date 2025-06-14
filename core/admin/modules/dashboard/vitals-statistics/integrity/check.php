@@ -3,17 +3,54 @@
 	$admin->requireLevel(1);
 
 	// See if an integrity check session currently exists
-	$session_key = "session.".($external ? "external" : "internal");
+	$external_key = ($external ? "external" : "internal");
+	$session_key = "session.".$external_key;
 	$existing_session = BigTreeCMS::cacheGet("org.bigtreecms.integritycheck", $session_key);
+	$existing_page_errors = [];
+	$existing_module_errors = [];
 
 	if ($existing_session) {
 		$has_existing_session = true;
 		$pages = $existing_session["pages"];
-		$modules = $existing_session["modules"];
-		$current_page = $existing_session["current_page"];
-		$current_module = $existing_session["current_module"];
-		$current_item = $existing_session["current_item"];
+		$modules = array_values($existing_session["modules"]);
+		$current_page = BigTreeCMS::cacheGet("org.bigtreecms.integritycheck", "current_page.".$external_key) ?: 0;
+		$current_module = BigTreeCMS::cacheGet("org.bigtreecms.integritycheck", "current_module.".$external_key) ?: 0;
+		$current_item = BigTreeCMS::cacheGet("org.bigtreecms.integritycheck", "current_module_item.".$external_key) ?: 0;
+
+		$page_query = SQL::query("SELECT * FROM bigtree_caches
+		                          WHERE `identifier` = 'org.bigtreecms.integritycheck'
+		                          AND `key` LIKE 'errors.$external_key.pages.%'");
+
+		while ($page_row = $page_query->fetch()) {
+			$value = json_decode($page_row["value"], true);
+			$id = str_replace("errors.$external_key.pages.", "", $page_row["key"]);
+
+			if (!empty($value)) {
+				$existing_page_errors[$id] = $value;
+			}
+		}
+
+		$module_query = SQL::query("SELECT * FROM bigtree_caches
+		                            WHERE `identifier` = 'org.bigtreecms.integritycheck'
+		                            AND `key` LIKE 'errors.$external_key.modules.%'");
+
+		while ($module_row = $module_query->fetch()) {
+			$value = json_decode($module_row["value"], true);
+			$key = str_replace("errors.$external_key.modules.", "", $module_row["key"]);
+			[$form_id, $item_id] = explode(".", $key);
+
+			if (!empty($value)) {
+			   if (!isset($existing_module_errors[$form_id])) {
+					$existing_module_errors[$form_id] = [];
+				}
+
+				$existing_module_errors[$form_id][$item_id] = $value;
+			}
+		}
 	} else {
+		// Wipe out any existing session data
+		BigTreeCMS::cacheDelete("org.bigtreecms.integritycheck");
+
 		$has_existing_session = false;
 		$pages = $admin->getPageIds();
 		$modules = $admin->getModuleForms();
@@ -22,8 +59,15 @@
 		$current_item = 0;
 
 		// Get the ids of items that are in each module.
-		foreach ($modules as &$module_form) {
+		foreach ($modules as $index => $module_form) {
 			$action = $admin->getModuleActionForForm($module_form);
+
+			if (!$action) {
+				unset ($modules[$index]);
+
+				continue;
+			}
+
 			$module = $admin->getModule($action["module"]);
 
 			// If there's a single view that has a table that matches the form's table and it has a filter we need to apply it
@@ -63,14 +107,13 @@
 			} else {
 				$module_form["items"] = SQL::fetchAllSingle("SELECT id FROM `".$module_form["table"]."`");
 			}
+
+			$modules[$index] = $module_form;
 		}
 
 		BigTreeCMS::cachePut("org.bigtreecms.integritycheck", $session_key, [
 			"pages" => $pages,
 			"modules" => $modules,
-			"current_page" => $current_page,
-			"current_module" => $current_module,
-			"current_item" => $current_item,
 		]);
 	}
 ?>
@@ -89,13 +132,12 @@
 	<ul id="pages_updates">
 		<?php
 			if ($has_existing_session) {
-				if (!empty($existing_session["errors"]["pages"])) {
-					foreach ($existing_session["errors"]["pages"] as $id => $page_errors) {
-						$page = SQL::fetch("SELECT nav_title FROM bigtree_pages WHERE id = ?", $id);
+				foreach ($existing_page_errors as $id => $page_errors) {
+					$page = SQL::fetch("SELECT nav_title FROM bigtree_pages WHERE id = ?", $id);
 
-						foreach ($page_errors as $title => $error_types) {
-							foreach ($error_types as $type => $errors) {
-								foreach ($errors as $error) {
+					foreach ($page_errors as $title => $error_types) {
+						foreach ($error_types as $type => $errors) {
+							foreach ($errors as $error) {
 		?>
 		<li>
 			<section class="integrity_errors">
@@ -105,7 +147,6 @@
 			</section>
 		</li>
 		<?php
-								}
 							}
 						}
 					}
@@ -121,10 +162,10 @@
 	<header class="group"><span class="integrity_progress" id="module_<?=$module["id"]?>_progress"><?=($current_module > $x ? 100 : 0)?>%</span><?=$module["module_name"]?></header>
 	<ul id="module_<?=$module["id"]?>_updates">
 		<?php
-			if (!empty($existing_session["errors"][$module["id"]])) {
+			if (!empty($existing_module_errors[$module["id"]])) {
 				$action = $admin->getModuleActionForForm($module);
 
-				foreach ($existing_session["errors"][$module["id"]] as $entry_id => $module_errors) {
+				foreach ($existing_module_errors[$module["id"]] as $entry_id => $module_errors) {
 					foreach ($module_errors as $field  => $error_types) {
 						foreach ($error_types as $type => $errors) {
 							foreach ($errors as $error) {

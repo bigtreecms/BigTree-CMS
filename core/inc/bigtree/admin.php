@@ -706,6 +706,11 @@
 			$images = $doc->getElementsByTagName("img");
 			foreach ($images as $image) {
 				$href = $image->getAttribute("src");
+
+                if (substr($href, 0, 5) == "data:") {
+                    continue;
+                }
+
 				$href = BigTreeCMS::replaceRelativeRoots($href);
 
 				// See if the link matches something local

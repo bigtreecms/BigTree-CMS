@@ -8,22 +8,24 @@
 	$id = intval($_POST["id"]);
 	$external = !empty($_POST["external"]) && $_POST["external"] !== "false";
 	$page = $cms->getPage($id);
-	$template = $cms->getTemplate($page["template"]);
-	$local_path = $cms->getLink($id);
-	$resources = BigTree::translateArray($page["resources"]);
-
-	// Loop through template resources and see if we have related page data, only check html and text fields
-	if (!empty($template["resources"]) && is_array($template["resources"])) {
-		$check_data($local_path,$external,$template["resources"],$resources);
-	}
-
-	// Loop through the errors
 	$has_errors = false;
 
-	foreach ($integrity_errors as $title => $error_types) {
-		foreach ($error_types as $type => $errors) {
-			foreach ($errors as $error) {
-				$has_errors = true;
+	if (!$page["external"]) {
+		$template = $cms->getTemplate($page["template"]);
+		$local_path = $cms->getLink($id);
+		$resources = BigTree::translateArray($page["resources"]);
+
+		// Loop through template resources and see if we have related page data, only check html and text fields
+		if (!empty($template["resources"]) && is_array($template["resources"])) {
+			$check_data($local_path,$external,$template["resources"],$resources);
+		}
+	
+		// Loop through the errors
+	
+		foreach ($integrity_errors as $title => $error_types) {
+			foreach ($error_types as $type => $errors) {
+				foreach ($errors as $error) {
+					$has_errors = true;
 ?>
 <li>
 	<section class="integrity_errors">
@@ -33,24 +35,13 @@
 	</section>
 </li>
 <?php
+				}
 			}
 		}
 	}
 
-	$session = BigTreeCMS::cacheGet("org.bigtreecms.integritycheck", "session.".($external ? "external" : "internal"));
-	$session["current_page"] = $_POST["index"];
-
 	if ($has_errors) {
-		if (empty($session["errors"])) {
-			$session["errors"] = [];
-		}
-
-		if (empty($session["errors"]["pages"])) {
-			$session["errors"]["pages"] = [];
-		}
-
-		$session["errors"]["pages"][$id] = $integrity_errors;
+		BigTreeCMS::cachePut("org.bigtreecms.integritycheck","errors.".($external ? "external" : "internal").".pages.".$id, $integrity_errors);
 	}
 
-	BigTreeCMS::cachePut("org.bigtreecms.integritycheck", "session.".($external ? "external" : "internal"), $session);
-?>
+	BigTreeCMS::cachePut("org.bigtreecms.integritycheck", "current_page.".($external ? "external" : "internal"), $_POST["index"]);
