@@ -193,44 +193,77 @@
 
 <script>
 	BigTree.localPageList = [<?php echo implode(",",$pages) ?>];
-	BigTree.localModuleList = <?=json_encode($modules)?>;
+	BigTree.localModuleList = <?=json_encode(array_values($modules))?>;
 	BigTree.localTotalPages = BigTree.localPageList.length;
 	BigTree.localCurrentPage = <?=$current_page?>;
 	BigTree.localCurrentModule = <?=$current_module?>;
 	BigTree.localTotalModules = BigTree.localModuleList.length;
 	BigTree.localCurrentItem = <?=$current_item?>;
 
-	BigTree.localDownloadPage = function() {
-		$.ajax({
-			complete: function(response) {
-				if (response.status == 200 && response.responseText) {
-					$("#pages_updates").append(response.responseText);
-				}
+    BigTree.localDownloadPage = function(retryCount = 0) {
+        const maxRetries = 3; // Maximum number of retries
+        const timeoutDuration = 30000; // Timeout in milliseconds (30 seconds)
 
-				BigTree.localCurrentPage++;
-				$("#pages_progress").html((Math.round(BigTree.localCurrentPage / BigTree.localTotalPages * 10000) / 100) + "%");
+        $.ajax({
+            timeout: timeoutDuration,
+            data: {
+                external: <?php echo ($external ? "true" : "false"); ?>,
+                id: BigTree.localPageList[BigTree.localCurrentPage],
+                index: BigTree.localCurrentPage
+            },
+            method: "POST",
+            url: "<?=ADMIN_ROOT?>ajax/dashboard/integrity-check/page/",
+            complete: function(response) {
+                // Handle successful response (status 200 and valid response text)
+                if (response.status == 200 && response.responseText) {
+                    $("#pages_updates").append(response.responseText);
+                }
 
-				if (BigTree.localCurrentPage < BigTree.localTotalPages) {
-					BigTree.localDownloadPage();
-				} else {
-					$("#pages_progress").addClass("complete");
+                // Move to the next page
+                BigTree.localCurrentPage++;
+                $("#pages_progress").html((Math.round(BigTree.localCurrentPage / BigTree.localTotalPages * 10000) / 100) + "%");
 
-					if (!$("#pages_updates").html()) {
-						$("#pages_updates").append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span>No errors found in Pages.</section></li>'));
-					}
+                if (BigTree.localCurrentPage < BigTree.localTotalPages) {
+                    BigTree.localDownloadPage();
+                } else {
+                    $("#pages_progress").addClass("complete");
 
-					BigTree.localDownloadModule(0);
-				}
-			},
-			data: {
-				external: <?=($external ? "true" : "false")?>,
-				id: BigTree.localPageList[BigTree.localCurrentPage],
-				index: BigTree.localCurrentPage
-			},
-			method: "POST",
-			url: "<?=ADMIN_ROOT?>ajax/dashboard/integrity-check/page/",
-		});
-	};
+                    if (!$("#pages_updates").html()) {
+                        $("#pages_updates").append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span>No errors found in Pages.</section></li>'));
+                    }
+
+                    BigTree.localDownloadModule(0);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                // Handle timeout or other errors
+                if (textStatus === "timeout" && retryCount < maxRetries) {
+                    // Retry the request if it's a timeout and retries are not exhausted
+                    console.warn(`Retrying page ${BigTree.localCurrentPage} (Attempt ${retryCount + 2}/${maxRetries + 1})`);
+                    BigTree.localDownloadPage(retryCount + 1);
+                } else {
+                    // Log the failure and move to the next page
+                    console.error(`Failed to download page ${BigTree.localCurrentPage} after ${retryCount + 1} attempts: ${textStatus} - ${errorThrown}`);
+
+                    // Move to the next page
+                    BigTree.localCurrentPage++;
+                    $("#pages_progress").html((Math.round(BigTree.localCurrentPage / BigTree.localTotalPages * 10000) / 100) + "%");
+
+                    if (BigTree.localCurrentPage < BigTree.localTotalPages) {
+                        BigTree.localDownloadPage();
+                    } else {
+                        $("#pages_progress").addClass("complete");
+
+                        if (!$("#pages_updates").html()) {
+                            $("#pages_updates").append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span>No errors found in Pages.</section></li>'));
+                        }
+
+                        BigTree.localDownloadModule(0);
+                    }
+                }
+            }
+        });
+    };
 
 	BigTree.localDownloadModule = function(number) {
 		BigTree.localCurrentModule = number;
@@ -246,41 +279,81 @@
 		}
 	};
 
-	BigTree.localDownloadItem = function(number) {
-		$.ajax({
-			complete: function(response) {
-				if (response.status == 200 && response.responseText) {
-					$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").append(response.responseText);
-				}
+    BigTree.localDownloadItem = function(number, retryCount = 0) {
+        const maxRetries = 3; // Maximum number of retries
+        const timeoutDuration = 30000; // Timeout in milliseconds (30 seconds)
 
-				BigTree.localCurrentItem++;
-				$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_progress").html((Math.round(BigTree.localCurrentItem / BigTree.localTotalItems * 10000) / 100) + "%");
+        $.ajax({
+            timeout: timeoutDuration,
+            data: {
+                external: <?php echo ($external ? "true" : "false"); ?>,
+                form: BigTree.localModuleList[BigTree.localCurrentModule].id,
+                id: BigTree.localModuleList[BigTree.localCurrentModule].items[number],
+                index: number,
+                module: BigTree.localCurrentModule,
+            },
+            method: "POST",
+            url: "<?=ADMIN_ROOT?>ajax/dashboard/integrity-check/module/",
+            complete: function(response) {
+                // Handle successful response (status 200 and valid response text)
+                if (response.status == 200 && response.responseText) {
+                    $("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates")
+                        .append(response.responseText);
+                }
 
-				if (BigTree.localCurrentItem < BigTree.localTotalItems) {
-					BigTree.localDownloadItem(BigTree.localCurrentItem);
-				} else {
-					$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_progress").addClass("complete");
+                // Move to the next item
+                BigTree.localCurrentItem++;
+                $("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_progress")
+                    .html((Math.round(BigTree.localCurrentItem / BigTree.localTotalItems * 10000) / 100) + "%");
 
-					if (!$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").html()) {
-						$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span> No errors found in ' + BigTree.localModuleList[BigTree.localCurrentModule].module_name + '.</section></li>'));
-					}
+                if (BigTree.localCurrentItem < BigTree.localTotalItems) {
+                    BigTree.localDownloadItem(BigTree.localCurrentItem);
+                } else {
+                    $("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_progress").addClass("complete");
 
-					if (BigTree.localCurrentModule + 1 < BigTree.localTotalModules) {
-						BigTree.localDownloadModule(BigTree.localCurrentModule + 1);
-					}
-				}
-			},
-			data: {
-				external: <?=($external ? "true" : "false")?>,
-				form: BigTree.localModuleList[BigTree.localCurrentModule].id,
-				id: BigTree.localModuleList[BigTree.localCurrentModule].items[number],
-				index: number,
-				module: BigTree.localCurrentModule,
-			},
-			method: "POST",
-			url: "<?=ADMIN_ROOT?>ajax/dashboard/integrity-check/module/",
-		});
-	};
+                    if (!$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").html()) {
+                        $("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates")
+                            .append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span> No errors found in ' + BigTree.localModuleList[BigTree.localCurrentModule].module_name + '.</section></li>'));
+                    }
+
+                    if (BigTree.localCurrentModule + 1 < BigTree.localTotalModules) {
+                        BigTree.localDownloadModule(BigTree.localCurrentModule + 1);
+                    }
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                // Handle timeout or other errors
+                if (textStatus === "timeout" && retryCount < maxRetries) {
+                    // Retry the request if it's a timeout and retries are not exhausted
+                    console.warn(`Retrying item ${number} (Attempt ${retryCount + 2}/${maxRetries + 1})`);
+                    BigTree.localDownloadItem(number, retryCount + 1);
+                } else {
+                    // Log the failure and move to the next item
+                    console.error(`Failed to download item ${number} after ${retryCount + 1} attempts: ${textStatus} - ${errorThrown}`);
+
+                    // Move to the next item
+                    BigTree.localCurrentItem++;
+                    $("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_progress")
+                        .html((Math.round(BigTree.localCurrentItem / BigTree.localTotalItems * 10000) / 100) + "%");
+
+                    if (BigTree.localCurrentItem < BigTree.localTotalItems) {
+                        BigTree.localDownloadItem(BigTree.localCurrentItem);
+                    } else {
+                        $("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_progress").addClass("complete");
+
+                        if (!$("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates").html()) {
+                            $("#module_" + BigTree.localModuleList[BigTree.localCurrentModule].id + "_updates")
+                                .append($('<li><section class="integrity_errors"><span class="icon_small icon_small_done"></span> No errors found in ' + BigTree.localModuleList[BigTree.localCurrentModule].module_name + '.</section></li>'));
+                        }
+
+                        if (BigTree.localCurrentModule + 1 < BigTree.localTotalModules) {
+                            BigTree.localDownloadModule(BigTree.localCurrentModule + 1);
+                        }
+                    }
+                }
+            }
+        });
+    };
 
 	// Allow for resuming from completed page state
 	if (BigTree.localCurrentModule === 0 && BigTree.localCurrentItem === 0) {
