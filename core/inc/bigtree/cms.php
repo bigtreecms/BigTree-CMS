@@ -278,6 +278,7 @@
 			$route = false;
 			$additional_commands = "";
 			$x = count($path);
+			$max_depth = 5;
 
 			while ($x) {
 				$route = SQL::fetchSingle("SELECT new_route FROM bigtree_route_history WHERE old_route = ?", implode("/", array_slice($path, 0, $x)));
@@ -298,7 +299,7 @@
 				$page_data = SQL::fetch("SELECT id, template FROM bigtree_pages WHERE path = ?", $route);
 
 				// If this page was moved multiple times, it could have more than one entry in the route history
-				while ($route && !$page_data) {
+				while ($route && !$page_data && $max_depth--) {
 					$route = SQL::fetchSingle("SELECT new_route FROM bigtree_route_history WHERE old_route = ?", $route);
 
 					if ($route) {
@@ -1687,11 +1688,11 @@
 				return false;
 			} else {
 				header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
-				
+
 				if (!defined("BIGTREE_DO_NOT_CACHE")) {
 					define("BIGTREE_DO_NOT_CACHE", true);
 				}
-				
+
 				if (!defined("BIGTREE_URL_IS_404")) {
 					define("BIGTREE_URL_IS_404", true);
 				}
