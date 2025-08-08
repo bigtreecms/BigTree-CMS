@@ -943,6 +943,11 @@
 			$nav = [];
 			$find_children = [];
 
+			// Prevent getting subnavigation for unpublished pages
+			if (!is_numeric($parent)) {
+				return [];
+			}
+
 			// If we're asking for root (0) and in multi-site, use that site's root instead of the top-level root
 			if (!$explicit_zero && $parent === 0 && BIGTREE_SITE_TRUNK !== 0) {
 				$parent = BIGTREE_SITE_TRUNK;
