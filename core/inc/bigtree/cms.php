@@ -895,6 +895,10 @@
 
 			// If someone is requesting the link of the page they're already on we don't need to request it from the database.
 			if (!empty($bigtree["page"]["id"]) && $bigtree["page"]["id"] == $id) {
+				if (!empty($bigtree["preview"]) && !is_numeric($bigtree["page"]["id"])) {
+					return WWW_ROOT."_preview-pending/".$bigtree["page"]["id"]."/";
+				}
+
 				return static::linkForPath($bigtree["page"]["path"]);
 			} else {
 				// Otherwise we'll grab the page path from the db.

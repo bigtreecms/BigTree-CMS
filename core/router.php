@@ -1,12 +1,12 @@
 <?php
 	use JSMin\JSMin;
-	
+
 	/**
 	 * @global BigTreeAdmin $admin
 	 * @global array $bigtree
 	 * @global BigTreeCMS $cms
 	 */
-	
+
 	// Handle Javascript Minifying and Caching
 	if ($bigtree["path"][0] == "js") {
 		clearstatcache();
@@ -27,16 +27,16 @@
 			// If we have a newer Javascript file to include or we haven't cached yet, do it now.
 			if (!file_exists($cache_file) || $mtime > $last_modified) {
 				$data = "";
-				
+
 				if (!empty($bigtree["config"]["js"]["files"][$js_file]) && is_array($bigtree["config"]["js"]["files"][$js_file])) {
 					foreach ($bigtree["config"]["js"]["files"][$js_file] as $script) {
 						$data .= file_get_contents(SITE_ROOT."js/$script")."\n";
 					}
 				}
-				
+
 				// Replace www_root/ and Minify
 				$data = str_replace(array('$www_root','www_root/','$static_root','static_root/','$admin_root','admin_root/'),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT,ADMIN_ROOT,ADMIN_ROOT),$data);
-				
+
 				if (!empty($_GET) && is_array($_GET)) {
 					foreach ($_GET as $key => $val) {
 						if ($key != "bigtree_htaccess_url") {
@@ -44,20 +44,20 @@
 						}
 					}
 				}
-				
+
 				if (!empty($bigtree["config"]["js"]["vars"]) && is_array($bigtree["config"]["js"]["vars"])) {
 					foreach ($bigtree["config"]["js"]["vars"] as $key => $val) {
 						$data = str_replace('$'.$key,$val,$data);
 					}
 				}
-				
+
 				if (!empty($bigtree["config"]["js"]["minify"])) {
 					$data = JSMin::minify($data);
 				}
-				
+
 				BigTree::putFile($cache_file,$data);
 				header("Content-type: text/javascript");
-				
+
 				die($data);
 			} else {
 				// Added a line to .htaccess to hopefully give us IF_MODIFIED_SINCE when running as CGI
@@ -67,7 +67,7 @@
 				} else {
 					$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"] ?? "";
 				}
-				
+
 				if (empty($ims) || strtotime($ims) != $last_modified) {
 					header("Content-type: text/javascript");
 					header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
@@ -104,7 +104,7 @@
 			// If we have a newer CSS file to include or we haven't cached yet, do it now.
 			if (!file_exists($cache_file) || $mtime > $last_modified) {
 				$data = "";
-				
+
 				if (!empty($bigtree["config"]["css"]["files"][$css_file]) && is_array($bigtree["config"]["css"]["files"][$css_file])) {
 					// If we need LESS, load less.php
 					if (strpos(implode(" ", $bigtree["config"]["css"]["files"][$css_file]), "less") > -1) {
@@ -113,7 +113,7 @@
 						} else {
 							require_once SERVER_ROOT."vendor/oyejorge/less.php/lib/Less/Autoloader.php";
 						}
-						
+
 						Less_Autoloader::register();
 					}
 
@@ -126,7 +126,7 @@
 						} else {
 							// Normal CSS
 							$style = file_get_contents(SITE_ROOT."css/$style_file");
-							
+
 							if (!empty($bigtree["config"]["css"]["prefix"])) {
 								// Replace CSS3 easymode
 								$style = BigTree::formatCSS3($style);
@@ -136,22 +136,22 @@
 						$data .= $style."\n";
 					}
 				}
-				
+
 				// Should only loop once, not with every file
 				if (!empty($bigtree["config"]["css"]["vars"]) && is_array($bigtree["config"]["css"]["vars"])) {
 					foreach ($bigtree["config"]["css"]["vars"] as $key => $val) {
 						$data = str_replace('$'.$key,$val,$data);
 					}
 				}
-				
+
 				// Replace roots
 				$data = str_replace(array('$www_root','www_root/','$static_root','static_root/','$admin_root/','admin_root/'),array(WWW_ROOT,WWW_ROOT,STATIC_ROOT,STATIC_ROOT,ADMIN_ROOT,ADMIN_ROOT),$data);
-				
+
 				if (!empty($bigtree["config"]["css"]["minify"])) {
 					$minifier = new CSSMin;
 					$data = $minifier->run($data);
 				}
-				
+
 				BigTree::putFile($cache_file,$data);
 				header("Content-type: text/css");
 				die($data);
@@ -163,7 +163,7 @@
 				} else {
 					$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"] ?? "";
 				}
-				
+
 				if (empty($ims) || strtotime($ims) != $last_modified) {
 					header("Content-type: text/css");
 					header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
@@ -193,29 +193,29 @@
 				$style = $bigtree["config"]["placeholder"]["default"];
 				$size = explode("x", strtolower($bigtree["path"][2]));
 			}
-			
+
 			if (count($size) == 2) {
 				BigTree::placeholderImage($size[0], $size[1], $style["background_color"], $style["text_color"], $style["image"], $style["text"]);
 			}
 		} else {
 			$image_path = SITE_ROOT.implode("/", $bigtree["path"]);
 			$last_modified = filemtime($image_path);
-			
+
 			if (function_exists("apache_request_headers")) {
 				$headers = apache_request_headers();
 				$ims = $headers["If-Modified-Since"];
 			} else {
 				$ims = $_SERVER["HTTP_IF_MODIFIED_SINCE"];
 			}
-			
+
 			if (empty($ims) || strtotime($ims) != $last_modified) {
 				header("Last-Modified: ".gmdate("D, d M Y H:i:s", $last_modified).' GMT', true, 200);
-			
+
 				if (function_exists("mime_content_type")) {
 					$type = mime_content_type($image_path);
 				} else {
 					$extension = pathinfo($image_path, PATHINFO_EXTENSION);
-					
+
 					if ($extension == "jpg" || $extension == "jpeg") {
 						$type = "image/jpeg";
 					} elseif ($extension == "gif") {
@@ -226,7 +226,7 @@
 						$type = "image/svg+xml";
 					}
 				}
-				
+
 				header("Content-type: $type");
 				readfile($image_path);
 				die();
@@ -261,7 +261,7 @@
 		include BigTree::path("api.php");
 		die();
 	}
-	
+
 	// Handle AJAX calls.
 	if ($bigtree["path"][0] == "ajax" || ($bigtree["path"][0] == "*" && $bigtree["path"][2] == "ajax")) {
 		if ($bigtree["path"][0] == "*") {
@@ -272,8 +272,8 @@
 		} else {
 			$base_path = SERVER_ROOT;
 			list($inc,$commands) = BigTree::route($base_path."templates/ajax/",array_slice($bigtree["path"],1));
-		}		
-		
+		}
+
 		if (!file_exists($inc)) {
 			header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found");
 			die("File not found.");
@@ -328,7 +328,7 @@
 
 	// See if we're previewing changes.
 	$bigtree["preview"] = false;
-	
+
 	if (!empty($bigtree["path"][0]) && $bigtree["path"][0] == "_preview" && !empty($_SESSION["bigtree_admin"]["id"])) {
 		$npath = array();
 		foreach ($bigtree["path"] as $item) {
@@ -340,11 +340,11 @@
 		$bigtree["preview"] = true;
 		$bigtree["config"]["cache"] = false;
 		header("X-Robots-Tag: noindex");
-		
+
 		// Clean up
 		unset($npath);
 	}
-	
+
 	if (!empty($bigtree["path"][0]) && $bigtree["path"][0] == "_preview-pending" && !empty($_SESSION["bigtree_admin"]["id"])) {
 		$bigtree["preview"] = true;
 		$bigtree["commands"] = array();
@@ -354,10 +354,10 @@
 
 		define("BIGTREE_PREVIEWING_PENDING", true);
 	}
-	
+
 	// So we don't lose this.
 	define("BIGTREE_PREVIEWING",$bigtree["preview"]);
-	
+
 	if (!empty($bigtree["path"][0]) && $bigtree["path"][0] == "feeds") {
 		$route = $bigtree["path"][1];
 		$feed = $cms->getFeedByRoute($route);
@@ -368,13 +368,13 @@
 			die();
 		}
 	}
-	
+
 	// If we haven't already received our nav id through previewing...
 	if (empty($navid)) {
 		list($navid,$bigtree["commands"],$routed) = $cms->getNavId($bigtree["path"],$bigtree["preview"]);
 		$commands = $bigtree["commands"]; // Backwards compatibility
 	}
-	
+
 	// Pre-init a bunch of vars to keep away notices.
 	$bigtree["layout"] = "default";
 	if ($navid !== false) {
@@ -386,29 +386,34 @@
 			$routed = $template["routed"];
 		} else {
 			$bigtree["page"] = $cms->getPage($navid);
-		}
 
-		// If this is a different domain's site redirect to it
-		foreach (BigTreeCMS::$SiteRoots as $site_root => $site_data) {
-			if ($site_root === $bigtree["page"]["path"] && BIGTREE_SITE_TRUNK !== $site_data["trunk"]) {
-				BigTree::redirect($site_data["www_root"], "301");
-			} elseif (strpos($bigtree["page"]["path"], $site_root."/") === 0 && BIGTREE_SITE_TRUNK !== $site_data["trunk"]) {
-				$request = ltrim($_SERVER["REQUEST_URI"], "/");
-				$url = substr($request, strlen($site_root) + 1);
-				
-				BigTree::redirect($site_data["www_root"].$url, "301");
+			// If this is a different domain's site redirect to it
+			foreach (BigTreeCMS::$SiteRoots as $site_root => $site_data) {
+				if ($site_root === $bigtree["page"]["path"] && BIGTREE_SITE_TRUNK !== $site_data["trunk"]) {
+					BigTree::redirect($site_data["www_root"], "301");
+				} elseif (strpos($bigtree["page"]["path"], $site_root."/") === 0 && BIGTREE_SITE_TRUNK !== $site_data["trunk"]) {
+					$request = ltrim($_SERVER["REQUEST_URI"], "/");
+					$url = substr($request, strlen($site_root) + 1);
+
+					BigTree::redirect($site_data["www_root"].$url, "301");
+				}
 			}
 		}
 
-		$bigtree["page"]["link"] = WWW_ROOT.$bigtree["page"]["path"]."/";
+		if ($bigtree["preview"] && !is_numeric($navid)) {
+			$bigtree["page"]["link"] = WWW_ROOT."_preview-pending/".$navid."/";
+		} else {
+			$bigtree["page"]["link"] = WWW_ROOT.$bigtree["page"]["path"]."/";
+		}
+
 		$bigtree["resources"] = $bigtree["page"]["resources"];
 		$bigtree["callouts"] = $bigtree["page"]["callouts"];
 
 		// If this page should not be indexed, pass headers
-		if ($bigtree["page"]["seo_invisible"]) {
+		if (!empty($bigtree["page"]["seo_invisible"])) {
 			header("X-Robots-Tag: noindex");
 		}
-		
+
 		/* Backwards Compatibility */
 		$page = $bigtree["page"];
 		$resources = $bigtree["resources"];
@@ -422,17 +427,17 @@
 				}
 			}
 		}
-				
+
 		// Redirect lower if the template is !
 		if ($bigtree["page"]["template"] == "!") {
 			$nav = $cms->getNavByParent($bigtree["page"]["id"],1);
 			$first = current($nav);
-			
+
 			if (empty($first)) {
 				$nav = $cms->getHiddenNavByParent($bigtree["page"]["id"]);
 				$first = current($nav);
 			}
-			
+
 			BigTree::redirect($first["link"], 303);
 		}
 
@@ -451,13 +456,13 @@
 			if (empty($bigtree["page"]["path"])) {
 				$bigtree["commands"] = $bigtree["path"];
 			}
-			
+
 			if ($extension) {
 				list($inc,$commands) = BigTree::route(SERVER_ROOT."extensions/$extension/templates/routed/$template/", array_filter($bigtree["commands"]));
 			} else {
 				list($inc,$commands) = BigTree::route(SERVER_ROOT."templates/routed/".$bigtree["page"]["template"]."/", array_filter($bigtree["commands"]));
 			}
-			
+
 			$command_count = count($commands);
 
 			if ($command_count) {
@@ -465,11 +470,11 @@
 			} else {
 				$bigtree["routed_path"] = $bigtree["commands"];
 			}
-			
+
 			$bigtree["routed_inc"] = $inc;
 			$bigtree["commands"] = $commands;
 			$bigtree["module_path"] = $bigtree["routed_path"]; // Backwards compat
-			
+
 			// Get the pieces of the location so we can get header and footers. Take away the first 2 routes since they're templates/routed/.
 			$pieces = array_slice(explode("/",str_replace(SERVER_ROOT,"",$inc)),2);
 			if ($extension) {
@@ -524,7 +529,7 @@
 			"template" => "",
 			"path" => "sitemap",
 		];
-		
+
 		include SERVER_ROOT."templates/basic/_sitemap.php";
 	// We've got a 404, check for old routes or throw one.
 	} else {
@@ -539,7 +544,7 @@
 	// If we have a specific URL trailing slash behavior specified, ensure it's applied to the current request now that we've ruled out 404s
 	if (array_filter($bigtree["path"]) && !defined("BIGTREE_URL_IS_404")) {
 		$last_path_element = $bigtree["path"][count($bigtree["path"]) - 1];
-		
+
 		// If this is a "file", ignore the fact that there is or isn't a trailing slash
 		if (strpos($last_path_element, ".") === false) {
 			unset($_GET["bigtree_htaccess_url"]);
@@ -549,13 +554,13 @@
 			if (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "append" && !$bigtree["trailing_slash_present"]) {
 				BigTree::redirect(WWW_ROOT.implode("/",$bigtree["path"])."/".$query_string, "301");
 			} elseif (strtolower($bigtree["config"]["trailing_slash_behavior"]) == "remove" && $bigtree["trailing_slash_present"]) {
-				BigTree::redirect(WWW_ROOT.implode("/",$bigtree["path"]).$query_string, "301");		
+				BigTree::redirect(WWW_ROOT.implode("/",$bigtree["path"]).$query_string, "301");
 			}
 		}
 	}
-	
+
 	$bigtree["content"] = ob_get_clean();
-	
+
 	// Load the content again into the layout.
 	ob_start();
 
@@ -566,16 +571,16 @@
 	}
 
 	$bigtree["content"] = ob_get_clean();
-	
+
 	// Allow for special output filter functions.
 	$filter = null;
-	
+
 	if (!empty($bigtree["config"]["output_filter"])) {
 		$filter = $bigtree["config"]["output_filter"];
 	}
-	
+
 	ob_start($filter);
-	
+
 	// If we're in HTTPS, make sure all Javascript, images, and CSS are pulling from HTTPS
 	if (BigTreeCMS::$Secure) {
 		// Replace CSS includes
@@ -591,7 +596,7 @@
 			$bigtree["content"]
 		);
 	}
-	
+
 	// Load the BigTree toolbar if you're logged in to the admin via cookies but not yet via session.
 	if (isset($bigtree["page"]) && !empty($_COOKIE["bigtree_admin"]["email"]) && !empty($_SESSION["bigtree_admin"]["id"])) {
 		include_once BigTree::path("inc/bigtree/admin.php");
@@ -605,7 +610,7 @@
 			$admin = new BigTreeAdmin;
 		}
 	}
-	
+
 	/* To load the BigTree Bar, meet the following qualifications:
 	   - User is logged BigTree admin
 	   - User is logged into the BigTree admin FOR THIS PAGE
@@ -619,7 +624,7 @@
 		$show_preview_bar = false;
 		$return_link = "";
 		$bar_edit_link = "";
-		
+
 		if (!empty($_GET["bigtree_preview_return"])) {
 			$show_bar_default = false;
 			$show_preview_bar = true;
@@ -628,7 +633,7 @@
 
 		if (!empty($bigtree["bar_edit_link"])) {
 			$bar_edit_link_query = parse_url($bigtree["bar_edit_link"], PHP_URL_QUERY);
-			
+
 			if (!empty($bar_edit_link_query)) {
 				$bar_edit_link_query_parts = explode("&", $bar_edit_link_query);
 				$has_return_link = false;
@@ -657,7 +662,7 @@
 		}
 
 		if (defined("BIGTREE_URL_IS_404")) {
-			$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(array("http://","https://"),"//",$bigtree["config"]["admin_root"]).'ajax/bar.js/?show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;is_404=true"></script></body>',$bigtree["content"]);	
+			$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(array("http://","https://"),"//",$bigtree["config"]["admin_root"]).'ajax/bar.js/?show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;is_404=true"></script></body>',$bigtree["content"]);
 		} else {
 			$bigtree["content"] = str_ireplace('</body>','<script type="text/javascript" src="'.str_replace(array("http://","https://"),"//",$bigtree["config"]["admin_root"]).'ajax/bar.js/?previewing='.BIGTREE_PREVIEWING.'&amp;current_page_id='.$bigtree["page"]["id"].'&amp;show_bar='.$show_bar_default.'&amp;username='.$_SESSION["bigtree_admin"]["name"].'&amp;show_preview='.$show_preview_bar.'&amp;return_link='.$return_link.'&amp;custom_edit_link='.$bar_edit_link.'"></script></body>',$bigtree["content"]);
 		}
@@ -665,17 +670,17 @@
 		// Don't cache the page with the BigTree bar
 		$bigtree["config"]["cache"] = false;
 	}
-	
+
 	echo $bigtree["content"];
-	
+
 	// Write to the cache
 	if ($bigtree["config"]["cache"] && !defined("BIGTREE_DO_NOT_CACHE") && !count($_POST)) {
 		$cache = ob_get_flush();
-		
+
 		if (empty($bigtree["page"]["path"])) {
 			$bigtree["page"]["path"] = "!";
 		}
-		
+
 		$cache_file = (defined("BIGTREE_CACHE_FILE")) ? BIGTREE_CACHE_FILE : md5(json_encode($_GET));
 		BigTree::putFile(BIGTREE_CACHE_DIRECTORY.$cache_file.".page",$cache);
 	}
