@@ -944,7 +944,7 @@
 			$find_children = [];
 
 			// Prevent getting subnavigation for unpublished pages
-			if (!is_numeric($parent)) {
+			if (!is_numeric($parent) && !is_array($parent)) {
 				return [];
 			}
 
