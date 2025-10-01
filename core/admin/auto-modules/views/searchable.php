@@ -1,9 +1,9 @@
 <?php
 	BigTree::globalizeArray($bigtree["view"]);
-		
+
 	$m = BigTreeAutoModule::getModuleForView($bigtree["view"]);
 	$perm = $admin->checkAccess($m);
-	
+
 	if (isset($_GET["sort"])) {
 		$sort = "`".$_GET["sort"]."` ".$_GET["sort_direction"];
 	} elseif (isset($bigtree["view"]["settings"]["sort_column"])) {
@@ -33,7 +33,7 @@
 			$x = 0;
 			foreach ($fields as $key => $field) {
 				$x++;
-				
+
 				if ($key == $sort_column) {
 					$active = " ".strtolower($sort_direction);
 					if ($sort_direction == "ASC") {
@@ -53,7 +53,7 @@
 		<?php
 			}
 		?>
-		<span class="view_status">Status</span>
+		<span class="view_status"><a class="js-sort-column sort_column" href="ASC" name="_status_">Status<em></em></a></span>
 		<span class="view_action" style="width: <?=(count($bigtree["view"]["actions"]) * 40)?>px;"><?php if (count($bigtree["view"]["actions"]) > 1) { ?>Actions<?php } ?></span>
 	</header>
 	<ul id="results">
@@ -70,7 +70,7 @@
 		BigTree.localSearchQuery = escape($("#search").val());
 		$("#results").load("<?=ADMIN_ROOT?>ajax/auto-modules/views/searchable-page/?sort=" + escape(BigTree.localSortColumn) + "&sort_direction=" + escape(BigTree.localSortDirection) + "&page=1&view=<?=$bigtree["view"]["id"]?>&module=<?=$bigtree["module"]["route"]?>&search=" + BigTree.localSearchQuery);
 	};
-	
+
 	$(".table").on("click",".js-sort-column",function() {
 		BigTree.localSortDirection = BigTree.cleanHref($(this).attr("href"));
 		BigTree.localSortColumn = $(this).attr("name");

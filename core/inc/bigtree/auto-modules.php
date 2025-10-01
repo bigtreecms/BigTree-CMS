@@ -1404,7 +1404,7 @@
 				$sort_direction = $sort_pieces[1] ?? "";
 			}
 
-			if ($sort_field != "id") {
+			if ($sort_field != "id" && $sort_field !== "_status_") {
 				$x = 0;
 
 				if (isset($view["fields"][$sort_field]["numeric"]) && $view["fields"][$sort_field]["numeric"]) {
@@ -1428,6 +1428,14 @@
 				if ($convert_numeric) {
 					$sort_field = "CONVERT(".$sort_field.",SIGNED)";
 				}
+			} else if ($sort_field === "_status_") {
+				$sort_field = "
+					(CASE status
+						WHEN 'l' THEN 'Published'
+						WHEN 'i' THEN 'Inactive'
+						WHEN 'c' THEN 'Changed'
+						WHEN 'p' THEN 'Pending'
+					END)";
 			} else {
 				$sort_field = "CONVERT(id,UNSIGNED)";
 			}
@@ -1444,7 +1452,6 @@
 			} else {
 				$q = sqlquery($query." ORDER BY $sort_field $sort_direction LIMIT ".(($page - 1) * $per_page).",$per_page");
 			}
-			
 
 			while ($f = sqlfetch($q)) {
 				unset($f["hash"]);
