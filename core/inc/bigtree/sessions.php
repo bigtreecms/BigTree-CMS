@@ -114,9 +114,9 @@
 			session_set_cookie_params([
 				"lifetime" => 0,
 				"path" => str_replace(DOMAIN, "", WWW_ROOT),
-				"secure" => true,
+				"secure" => !empty($bigtree["config"]["ssl_only_session_cookie"]),
 				"httponly" => true,
-				"samesite" => "None"
+				"samesite" => !empty($bigtree["config"]["ssl_only_session_cookie"]) ? "None" : "Lax",
 			]);
 
 			session_start(array("gc_maxlifetime" => static::$Timeout));
