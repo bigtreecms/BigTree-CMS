@@ -1476,12 +1476,13 @@
 				fields - The fields to show in the CSV export (if type = csv).
 				parser - An optional parser function to run on the CSV export data (if type = csv).
 				view - A module view ID to use (if type = view).
+		        streaming - Whether to use streaming for CSV exports (defaults to false).
 
 			Returns:
 				The id of the report.
 		*/
 
-		public function createModuleReport($module, $title, $table, $type, $filters, $fields = "", $parser = "", $view = "") {
+		public function createModuleReport($module, $title, $table, $type, $filters, $fields = "", $parser = "", $view = "", $streaming = false) {
 			$context = BigTreeJSONDB::getSubset("modules", $module);
 			$id = $context->insert("reports", [
 				"title" => BigTree::safeEncode($title),
@@ -1490,7 +1491,8 @@
 				"filters" => $filters,
 				"fields" => $fields,
 				"parser" => $parser,
-				"view" => $view ?: null
+				"view" => $view ?: null,
+                "streaming" => (bool) $streaming,
 			]);
 
 			$this->track("jsondb -> module-reports", $id, "created");
@@ -9408,9 +9410,10 @@
 				fields - The fields to show in the CSV export (if type = csv).
 				parser - An optional parser function to run on the CSV export data (if type = csv).
 				view - A module view ID to use (if type = view).
+		        streaming - Whether to stream the CSV output directly to the browser (if type = csv).
 		*/
 
-		public function updateModuleReport($id, $title, $table, $type, $filters, $fields = "", $parser = "", $view = "") {
+		public function updateModuleReport($id, $title, $table, $type, $filters, $fields = "", $parser = "", $view = "", $streaming = false) {
 			$modules = BigTreeJSONDB::getAll("modules");
 
 			foreach ($modules as $module) {
@@ -9424,7 +9427,8 @@
 							"filters" => $filters,
 							"fields" => $fields,
 							"parser" => $parser,
-							"view" => $view ?: null
+							"view" => $view ?: null,
+                            "streaming" => (bool) $streaming,
 						]);
 					}
 				}

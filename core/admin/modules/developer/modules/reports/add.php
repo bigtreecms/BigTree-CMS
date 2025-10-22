@@ -32,6 +32,17 @@
 						<?php } ?>
 					</select>
 				</fieldset>
+
+                <fieldset id="enable_streaming">
+                    <label>Enable Streaming</label>
+                    <div class="contain">
+                        <select name="streaming" id="streaming_select">
+                            <option value="">No</option>
+                            <option value="on">Yes</option>
+                        </select>
+                    </div>
+                    <p class="note">For large data sets exceeding memory limits, streams data directly to the user as it's generated but does not support data parser functions or sorting by referenced table values.</p>
+                </fieldset>
 			</div>
 
 			<div class="right last">

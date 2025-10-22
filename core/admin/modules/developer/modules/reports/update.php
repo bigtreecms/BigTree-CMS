@@ -2,7 +2,7 @@
 	$admin->verifyCSRFToken();
 	
 	BigTree::globalizePOSTVars();
-	$admin->updateModuleReport(end($bigtree["commands"]),$title,$table,$type,$filters,$fields,$parser,$view);
+	$admin->updateModuleReport(end($bigtree["commands"]),$title, $table, $type, $filters, $fields, $parser ?? null, $view, !empty($streaming));
 	$admin->growl("Developer","Updated Module Report");
 	$action = $admin->getModuleActionForReport(end($bigtree["commands"]));
 

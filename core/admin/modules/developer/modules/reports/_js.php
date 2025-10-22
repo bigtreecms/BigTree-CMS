@@ -16,11 +16,22 @@
 		if (v == "csv") {
 			$("#filtered_view").hide();
 			$("#field_table").show();
+            $("#enable_streaming").show();
 		} else {
 			$("#filtered_view").show();
 			$("#field_table").hide();
+            $("#enable_streaming").hide();
 		}
 	});
+
+    $("#streaming_select").change(function(event) {
+        var v = $(this).val();
+        if (v == "on") {
+            $("#data_parser_function").hide();
+        } else {
+            $("#data_parser_function").show();
+        }
+    });
 	
 	$("#field_area").on("click","#field_table .icon_delete",function() {
 		var li = $(this).parents("li");
