@@ -1303,6 +1303,39 @@
 				$query .= " WHERE ".implode(" AND ",$where);
 			}
 
+			// If using stream function we're going to chunk to limit memory usage
+			if ($stream_function) {
+				$page = 0;
+
+				do {
+					$q = sqlquery($query." ORDER BY $sort_field $sort_direction, id ASC LIMIT ".($page * 10000).", 10000");
+					$rows = sqlrows($q);
+					$page++;
+
+					while ($f = sqlfetch($q)) {
+						$item = BigTree::untranslateArray($f);
+
+						foreach ($item as $key => $value) {
+							if (isset($poplists[$key])) {
+								$p = sqlfetch(sqlquery("SELECT `".$poplists[$key]["description"]."` FROM `".$poplists[$key]["table"]."` WHERE id = '".sqlescape($value)."'"));
+								$item[$key] = $p[$poplists[$key]["description"]];
+							}
+
+							if (isset($parsers[$key])) {
+								$item[$key] = BigTree::runParser($item,$value,$parsers[$key]);
+							}
+						}
+
+						$stream_function($item);
+					}
+
+				} while ($rows);
+
+				// If using a stream function we don't support parsers or poplist sorting and should have outputted to the buffer
+				return;
+			}
+
+			// Not using a stream function so memory is going to be limited to how much we can fit in the items array anyway
 			$q = sqlquery($query." ORDER BY $sort_field $sort_direction");
 
 			while ($f = sqlfetch($q)) {
@@ -1319,16 +1352,7 @@
 					}
 				}
 
-				if ($stream_function) {
-					call_user_func($stream_function, $item);
-				} else {
-					$items[] = $item;
-				}
-			}
-
-			// If using a stream function we don't support parsers or poplist sorting and should have outputted to the buffer
-			if ($stream_function) {
-				return [];
+				$items[] = $item;
 			}
 
 			// If the field we sort by was a poplist or parser, we need to resort.
