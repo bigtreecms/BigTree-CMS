@@ -1289,10 +1289,10 @@
 						// Date Range
 						} elseif ($filter["type"] == "date-range") {
 							if ($filters[$id]["start"]) {
-								$where[] = "`$id` >= '".sqlescape($filters[$id]["start"])."'";
+								$where[] = "`$id` >= '".date("Y-m-d H:i:s", strtotime($filters[$id]["start"]))."'";
 							}
 							if ($filters[$id]["end"]) {
-								$where[] = "`$id` <= '".sqlescape($filters[$id]["end"])."'";
+								$where[] = "`$id` <= '".date("Y-m-d H:i:s", strtotime($filters[$id]["end"]))."'";
 							}
 						}
 					}
