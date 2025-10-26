@@ -233,7 +233,7 @@
 
 		public static function cacheViewData($view) {
 			// See if we already have cached data.
-			if (sqlrows(sqlquery("SELECT id FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'"))) {
+			if (SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_module_view_cache WHERE view = '".$view["id"]."'")) {
 				return false;
 			}
 
