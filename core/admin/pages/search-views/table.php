@@ -1,16 +1,16 @@
 <?php
 	$mpage = ADMIN_ROOT.$module["route"]."/";
-	BigTree::globalizeArray($view);	
-	
+	BigTree::globalizeArray($view);
+
 	// Figure out the column width
 	$awidth = count($actions) * 40;
 	$available = 896 - $awidth;
 	$percol = floor($available / count($fields));
-	
+
 	foreach ($fields as $key => $field) {
 		$fields[$key]["width"] = $percol - 20;
 	}
-	
+
 	$items = BigTreeAutoModule::parseViewData($view,$items);
 ?>
 <div class="table"<?php if ($set_index == $total_sets) { ?> style="margin: 0;"<?php } ?>>
@@ -29,7 +29,7 @@
 	</header>
 	<ul id="results_table_<?=$view["id"]?>">
 		<?php foreach ($items as $item) { ?>
-		<li id="row_<?=$item["id"]?>"<?php if ($item["bigtree_pending"]) { ?> class="pending"<?php } ?><?php if (!empty($item["bigtree_changes"])) { ?> class="changes"<?php } ?>>
+		<li id="row_<?=$item["id"]?>"<?php if (!empty($item["bigtree_pending"])) { ?> class="pending"<?php } ?><?php if (!empty($item["bigtree_changes"])) { ?> class="changes"<?php } ?>>
 		<?php
 			$x = 0;
 			foreach ($fields as $key => $field) {
@@ -41,7 +41,7 @@
 		</section>
 		<?php
 			}
-	
+
 			foreach ($actions as $action => $data) {
 				$class = $admin->getActionClass($action,$item);
 				if ($data == "on") {
@@ -68,14 +68,14 @@
 <script>
 	$("#results_table_<?=$view["id"]?> .icon_edit").click(function() {
 		var href =  $(this).attr("href");
-		
+
 		if (href.substr(0, 1) == "#") {
 			document.location.href = "<?=$view["edit_url"]?>" + href.substr(1) + "/";
 
 			return false;
 		}
 	});
-			
+
 	$("#results_table_<?=$view["id"]?> .icon_delete").click(function() {
 		BigTreeDialog({
 			title: "Delete Item",
@@ -87,7 +87,7 @@
 				$(this).parents("li").remove();
 			},this)
 		});
-		
+
 		return false;
 	});
 	$("#results_table_<?=$view["id"]?> .icon_approve").click(function() {
