@@ -188,6 +188,8 @@
 
 				if (is_array($f)) {
 					$item[$key] = current($f);
+				} else if (empty($item[$key])) {
+					$item[$key] = ""; // Possibly a zero value from pending change, convert to empty string
 				}
 			}
 
