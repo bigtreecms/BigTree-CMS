@@ -101,8 +101,7 @@
 	$clean_columns = [];
 	
 	foreach ($_POST["columns"] as $column) {
-		if ($column["id"]) {
-			$column["id"] = $column["id"];
+		if (!empty($column["id"])) {
 			$clean_columns[] = $column;
 		}
 	}
