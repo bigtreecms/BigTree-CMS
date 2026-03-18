@@ -68,6 +68,10 @@
 				$existing_additional_data = $item["info"] ?? [];
 				
 				foreach ($field["settings"]["columns"] as $resource) {
+					if (empty($resource["id"])) {
+						continue;
+					}
+					
 					$current_value = $existing_additional_data[$resource["id"]] ?? "";
 					
 					if (!empty($current_value) && empty($resource["settings"]["ignore_timezones"])) {
