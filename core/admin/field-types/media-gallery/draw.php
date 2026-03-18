@@ -216,14 +216,12 @@
 </div>
 
 <script>
-	BigTree.hookReady(function() {
-		BigTreeMediaGallery({
-			selector: "#<?=$field["id"]?>",
-			key: "<?=$field["key"]?>",
-			list: "#<?=$field["id"]?>_list",
-			columns: <?=json_encode($columns)?>,
-			settings: <?=json_encode($media_settings)?>,
-			max: <?=$max?>
-		});
+	BigTreeMediaGallery({
+		selector: "#<?=$field["id"]?>",
+		key: "<?=$field["key"]?>",
+		list: "#<?=$field["id"]?>_list",
+		columns: <?=json_encode($columns)?>,
+		settings: <?=json_encode($media_settings)?>,
+		max: <?=$max?>
 	});
 </script>
