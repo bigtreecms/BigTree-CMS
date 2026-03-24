@@ -109,7 +109,8 @@
 
 		// Vimeo
 		} elseif (strpos($url, "vimeo.com") !== false) {
-			$url_pieces = explode("/", $url);
+			$parsed_url = parse_url($url);
+			$url_pieces = explode("/", $parsed_url["path"]);
 			$video_id = end($url_pieces);
 			$json = json_decode(BigTree::cURL("http://vimeo.com/api/v2/video/$video_id.json"), true);
 
