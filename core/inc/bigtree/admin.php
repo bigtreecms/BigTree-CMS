@@ -8245,15 +8245,15 @@
 				} elseif ($type == "ignored") {
 					$where = "ignored != '' AND (broken_url LIKE '%$s%' OR redirect_url LIKE '%$s%' OR get_vars LIKE '%$s%')";
 				} else {
-					$where = "ignored = '' AND (broken_url LIKE '%$s%' OR get_vars LIKE '%$s%') AND redirect_url = ''";
+					$where = "ignored = '' AND (broken_url LIKE '%$s%' OR get_vars LIKE '%$s%') AND (redirect_url = '' OR redirect_url IS NULL)";
 				}
 			} else {
 				if ($type == "301") {
-					$where = "ignored = '' AND redirect_url != ''";
+					$where = "ignored = '' AND (redirect_url IS NOT NULL AND redirect_url != '')";
 				} elseif ($type == "ignored") {
 					$where = "ignored != ''";
 				} else {
-					$where = "ignored = '' AND redirect_url = ''";
+					$where = "ignored = '' AND (redirect_url IS NULL OR redirect_url = '')";
 				}
 			}
 
