@@ -43,7 +43,8 @@
 <a name="0"></a>
 <div class="table">
 	<summary>
-		<h2 class="full">
+		<a class="button small" href="<?=ADMIN_ROOT?>ajax/dashboard/export-changes/?type=pages">Export CSV</a>
+		<h2>
 			<span class="pages"></span>
 			Pages
 		</h2>
@@ -110,7 +111,8 @@
 <a name="<?=$mod["id"]?>"></a>
 <div class="table">
 	<summary>
-		<h2 class="full">
+		<a class="button small" href="<?=ADMIN_ROOT?>ajax/dashboard/export-changes/?type=<?=urlencode($mod["id"])?>">Export CSV</a>
+		<h2>
 			<span class="modules"></span>
 			<?=$mod["name"]?>
 		</h2>
