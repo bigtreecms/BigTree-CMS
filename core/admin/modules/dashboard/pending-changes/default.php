@@ -63,8 +63,14 @@
 			foreach ($pages as $change) {
 				if (is_numeric($change["item_id"])) {
 					$page = $cms->getPendingPage($change["item_id"]);
+
+                    if (!$page) {
+                        continue;
+                    }
+
 					$preview_link = WWW_ROOT."_preview/".$page["path"]."/";
 					$edit_link = ADMIN_ROOT."pages/edit/".$change["item_id"]."/";
+
 					if (!$change["item_id"]) {
 						$page["nav_title"] = "Home";
 					}
