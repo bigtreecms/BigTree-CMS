@@ -4,27 +4,27 @@
 	 * @global array $bigtree
 	 * @global BigTreeCMS $cms
 	 */
-	
+
 	function _local_findPath($nav,$path,$last_link = "") {
 		global $bigtree,$breadcrumb;
 		foreach ($nav as $item) {
 			if (empty($item["link"])) {
 				$item["link"] = "";
 			}
-			
-			if ((strpos($path,$item["link"]."/") === 0 && $item["link"] != $last_link) || $path == $item["link"]) {				
+
+			if ((strpos($path,$item["link"]."/") === 0 && $item["link"] != $last_link) || $path == $item["link"]) {
 				$breadcrumb[] = array("title" => $item["title"],"link" => $item["link"]);
 				$bigtree["page"]["title"] = $item["title"] ?? $bigtree["page"]["title"];
 				$bigtree["page"]["title"] = $item["title_override"] ?? $bigtree["page"]["title"];
 				$bigtree["page"]["icon"] = $item["icon"] ?? $bigtree["page"]["icon"];
 				$bigtree["page"]["navigation"] = $item["children"] ?? $bigtree["page"]["navigation"];
-				
+
 				// Get the related dropdown menu
 				if (!empty($item["related"])) {
 					$bigtree["page"]["related"]["title"] = $bigtree["page"]["title"];
 					$bigtree["page"]["related"]["nav"] = $bigtree["page"]["navigation"];
 				}
-				
+
 				if (!empty($item["children"])) {
 					_local_findPath($item["children"],$path,$item["link"]);
 				}
@@ -81,12 +81,12 @@
 		if ($bigtree["page"]["title"] && !defined("BIGTREE_404")) {
 	?>
 	<h1>
-		<span class="page_icon <?=$bigtree["page"]["icon"]?>"><?php if ($bigtree["page"]["icon"] == "gravatar") { ?><img src="<?=BigTree::gravatar($bigtree["gravatar"])?>" alt="" /><?php } ?></span>
+		<span class="page_icon <?=$bigtree["page"]["icon"]?>"><?php if ($bigtree["page"]["icon"] == "gravatar") { ?><img src="<?=BigTree::gravatar($bigtree["gravatar"] ?? "")?>" alt="" /><?php } ?></span>
 		<?php
 			$x = 0;
 			foreach ($breadcrumb as $item) {
 				$x++;
-				
+
 		?>
 		<a href="<?=ADMIN_ROOT.$item["link"]?>/" class="<?php if ($x == 1) { ?> first<?php } if ($x == count($breadcrumb)) { ?> last<?php } ?>"><?=BigTree::safeEncode($item["title"])?></a>
 		<?php
@@ -114,7 +114,7 @@
 						if (empty($item["level"])) {
 							$item["level"] = 0;
 						}
-						
+
 						if ($item["level"] <= $admin->Level && empty($item["group"]) && empty($item["top_level_hidden"])) {
 				?>
 				<a href="<?=ADMIN_ROOT.$item["link"]?>/"><?=$item["title"]?></a>
@@ -137,14 +137,14 @@
 			$show_nav = true;
 		} else {
 			$show_nav = false;
-	
+
 			foreach ($bigtree["page"]["navigation"] as $item) {
 				if (empty($item["hidden"]) && empty($item["group"])) {
 					$show_nav = true;
 				}
 			}
 		}
-		
+
 		if ($show_nav && !defined("BIGTREE_404")) {
 	?>
 	<nav id="sub_nav">
@@ -163,15 +163,15 @@
 					}
 				}
 			}
-			
+
 			// Draw the nav.
 			foreach ($bigtree["page"]["navigation"] as $item) {
 				if (empty($item["hidden"]) && (empty($item["level"]) || $item["level"] <= $admin->Level)) {
 					$get_string = "";
-					
+
 					if (!empty($item["get_vars"]) && is_array($item["get_vars"])) {
 						$get_string = "?";
-						
+
 						foreach ($item["get_vars"] as $key => $val) {
 							$get_string .= "$key=".urlencode($val)."&";
 						}

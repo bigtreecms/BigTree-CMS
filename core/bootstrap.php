@@ -1,18 +1,18 @@
 <?php
 	if (!defined("BIGTREE_SITE_KEY")) {
 		define("BIGTREE_SITE_TRUNK", 0);
-		
+
 		// Set some config vars automatically and setup some globals.
 		$domain = rtrim($bigtree["config"]["domain"], "/");
 		$www_root = $bigtree["config"]["www_root"];
 		$static_root = isset($bigtree["config"]["static_root"]) ? $bigtree["config"]["static_root"] : $www_root;
 	}
-	
+
 	$server_root = isset($server_root) ? $server_root : str_replace("core/bootstrap.php", "", strtr(__FILE__, "\\", "/"));
 	$site_root = $server_root."site/";
 	$secure_root = str_replace("http://", "https://", $www_root);
 	$admin_root = $bigtree["config"]["admin_root"];
-	
+
 	define("WWW_ROOT", $www_root);
 	define("STATIC_ROOT", $static_root);
 	define("SECURE_ROOT", $secure_root);
@@ -76,7 +76,7 @@
 	}
 
 	include SERVER_ROOT."vendor/autoload.php";
-	
+
 	// Connect to MySQL and include the shorterner functions
 	include BigTree::path("inc/bigtree/sql.php");
 
@@ -84,15 +84,15 @@
 	if (version_compare(PHP_VERSION, "5.4.0") >= 0) {
 		include BigTree::path("inc/bigtree/sql-class.php");
 	}
-	
+
 	// Setup our connections as disconnected by default.
 	$bigtree["mysql_read_connection"] = "disconnected";
 	$bigtree["mysql_write_connection"] = "disconnected";
-	
+
 	if (!isset($bigtree["config"]["debug"])) {
 		$bigtree["config"]["debug"] = false;
 	}
-	
+
 	// Turn on debugging if we're in debug mode.
 	if ($bigtree["config"]["debug"] === "full") {
 		error_reporting(E_ALL);
@@ -139,17 +139,18 @@
 		"BigTree\\GraphQL\\JSON" => "inc/bigtree/GraphQL/JSON.php",
 		"BigTree\\GraphQL\\QueryService" => "inc/bigtree/GraphQL/QueryService.php",
 		"BigTree\\GraphQL\\TypeService" => "inc/bigtree/GraphQL/TypeService.php",
+		"BigTree\\WebAuthn" => "inc/bigtree/webauthn.php",
 		"S3" => "inc/lib/amazon-s3.php",
 		"CF_Authentication" => "inc/lib/rackspace/cloud.php",
 		"CSSMin" => "inc/lib/CSSMin.php",
 		"PHPMailer" => "inc/lib/phpmailer.php",
 		"PasswordHash" => "inc/lib/PasswordHash.php",
 		"TextStatistics" => "inc/lib/text-statistics.php",
-		"lessc" => "inc/lib/less-compiler.php"
+		"lessc" => "inc/lib/less-compiler.php",
 	);
 
 	spl_autoload_register("BigTree::classAutoLoader");
-	
+
 	// Load Up BigTree!
 	include BigTree::path("inc/bigtree/cms.php");
 	if (defined("BIGTREE_CUSTOM_BASE_CLASS") && BIGTREE_CUSTOM_BASE_CLASS) {
@@ -170,7 +171,7 @@
 	} else {
 		class BigTreeAdmin extends BigTreeAdminBase {};
 	}
-	
+
 	// If we're in the process of logging into sites
 	if (defined("BIGTREE_SITE_KEY") && isset($_GET["bigtree_login_redirect_session_key"])) {
 		BigTreeAdmin::loginSession($_GET["bigtree_login_redirect_session_key"]);
@@ -185,10 +186,10 @@
 		}
 	}
 	closedir($d);
-	
+
 	foreach ($custom_required_includes as $r) {
 		include $r;
 	}
-	
+
 	// Clean up
 	unset($d,$r,$custom_required_includes);

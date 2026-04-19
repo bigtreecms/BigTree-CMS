@@ -44,7 +44,7 @@
 					<label>Company</label>
 					<input type="text" name="company" value="<?=$company?>" tabindex="2" />
 				</fieldset>
-				
+
 				<fieldset>
 					<label for="profile_field_timezone">Timezone</label>
 					<select name="timezone" id="profile_field_timezone" tabindex="4">
@@ -78,9 +78,16 @@
 						?>
 					</select>
 				</fieldset>
-			</div>			
+			</div>
 		</section>
 		<footer>
+			<?php
+				if (BigTreeAdmin::passkeysEnabled()) {
+			?>
+			<a href="<?=ADMIN_ROOT?>users/profile/passkeys/" class="button" style="margin-right:.5em">Manage Passkeys</a>
+			<?php
+				}
+			?>
 			<input type="submit" class="blue" value="Update" />
 		</footer>
 	</form>

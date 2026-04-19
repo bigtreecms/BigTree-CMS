@@ -10435,4 +10435,252 @@
 
 			return $number;
 		}
+
+		// ─── Passkey / WebAuthn Methods ──────────────────────────────────────────
+
+		/*
+			Function: passkeysEnabled
+				Returns true if the server has the OpenSSL extension loaded, which
+				is required for WebAuthn signature verification and key handling.
+
+			Returns:
+				Boolean
+		*/
+		public static function passkeysEnabled() {
+			return extension_loaded("openssl");
+		}
+
+		/*
+			Function: getUserPasskeys
+				Returns all passkeys registered by a user.
+
+			Parameters:
+				user_id - The user's ID
+
+			Returns:
+				Array of passkey rows
+		*/
+		public static function getUserPasskeys($user_id) {
+			return SQL::fetchAll("SELECT * FROM bigtree_user_passkeys WHERE user = ? ORDER BY created_at DESC", $user_id);
+		}
+
+		/*
+			Function: getPasskeyByCredentialId
+				Looks up a passkey by its credential_id.
+
+			Parameters:
+				credential_id - The base64url credential ID from the browser
+
+			Returns:
+				Passkey row including public_key and sign_count, or false
+		*/
+		public static function getPasskeyByCredentialId($credential_id) {
+			return SQL::fetch("SELECT p.*, u.id AS user_id, u.email, u.name AS user_name,
+			                          u.level, u.permissions
+			                   FROM bigtree_user_passkeys p
+			                   JOIN bigtree_users u ON u.id = p.user
+			                   WHERE p.credential_id = ?", $credential_id);
+		}
+
+		/*
+			Function: createPasskey
+				Stores a newly registered passkey.
+
+			Parameters:
+				user_id       - The user's ID
+				credential_id - base64url credential ID
+				public_key    - PEM public key string
+				sign_count    - Initial sign count
+				name          - Human-readable label (e.g. "Touch ID on MacBook")
+				aaguid        - Authenticator AAGUID UUID string
+				transports    - Comma-separated transport list
+
+			Returns:
+				New passkey ID
+		*/
+		public static function createPasskey($user_id, $credential_id, $public_key, $sign_count, $name, $aaguid, $transports) {
+			return SQL::insert("bigtree_user_passkeys", [
+				"user"          => $user_id,
+				"credential_id" => $credential_id,
+				"public_key"    => $public_key,
+				"sign_count"    => $sign_count,
+				"name"          => $name,
+				"aaguid"        => $aaguid,
+				"transports"    => $transports,
+			]);
+		}
+
+		/*
+			Function: deletePasskey
+				Deletes a passkey owned by the given user.
+
+			Parameters:
+				id      - Passkey row ID
+				user_id - Must match the passkey's user to prevent cross-user deletion
+		*/
+		public static function deletePasskey($id, $user_id) {
+			SQL::delete("bigtree_user_passkeys", ["id" => $id, "user" => $user_id]);
+		}
+
+		/*
+			Function: updatePasskeyUsed
+				Updates the sign_count and last_used timestamp after a successful authentication.
+
+			Parameters:
+				id         - Passkey row ID
+				sign_count - New sign count from the authenticator
+		*/
+		public static function updatePasskeyUsed($id, $sign_count) {
+			SQL::update("bigtree_user_passkeys", $id, [
+				"sign_count" => $sign_count,
+				"last_used"  => date("Y-m-d H:i:s"),
+			]);
+		}
+
+		/*
+			Function: loginPasskey
+				Completes a WebAuthn authentication ceremony and establishes an admin session.
+				Mirrors the session-setup logic in BigTreeAdmin::login().
+
+			Parameters:
+				credential_id    - base64url credential ID returned by the browser
+				client_data_json - base64url clientDataJSON from the assertion
+				auth_data        - base64url authenticatorData from the assertion
+				signature        - base64url signature from the assertion
+				stay_logged_in   - Whether to set a persistent remember-me cookie
+				domain           - Optional domain redirect hint
+
+			Returns:
+				true on success (and redirects), false on failure
+		*/
+		public static function loginPasskey($credential_id, $client_data_json, $auth_data_b64, $signature, $stay_logged_in = false, $domain = null) {
+			global $bigtree;
+
+			// Look up the stored credential (includes the joined user row)
+			$passkey = static::getPasskeyByCredentialId($credential_id);
+
+			if (!$passkey) {
+				return false;
+			}
+
+			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE id = ?", $passkey["user"]);
+
+			if (!$user) {
+				return false;
+			}
+
+			// Check IP / user bans
+			$ip = ip2long(BigTree::remoteIP());
+
+			if (static::isIPBanned($ip) || static::isUserBanned($user["id"])) {
+				return false;
+			}
+
+			// Determine origin and RP ID from the current request
+			$parsed = parse_url(ADMIN_ROOT);
+			$origin = $parsed["scheme"] . "://" . $parsed["host"];
+			$rp_id  = $parsed["host"];
+
+			// Verify the WebAuthn assertion
+			try {
+				$response = [
+					"clientDataJSON"    => $client_data_json,
+					"authenticatorData" => $auth_data_b64,
+					"signature"         => $signature,
+				];
+				$new_sign_count = BigTree\WebAuthn::verifyAuthentication($response, $passkey, $origin, $rp_id);
+			} catch (Exception $e) {
+				BigTree::log("Passkey authentication failed for credential $credential_id: ".$e->getMessage());
+
+				return false;
+			}
+
+			// Update sign count and last-used timestamp
+			static::updatePasskeyUsed($passkey["id"], $new_sign_count);
+
+			// ── Session setup (mirrors BigTreeAdmin::login()) ──────────────────
+			$csrf_token       = base64_encode(openssl_random_pseudo_bytes(32));
+			$csrf_token_field = "__csrf_token_".BigTree::randomString(32)."__";
+			$chain            = uniqid("chain-", true);
+			$session          = uniqid("session-", true);
+
+			while (SQL::fetchSingle("SELECT id FROM bigtree_user_sessions WHERE chain = ?", $chain)) {
+				$chain = uniqid("chain-", true);
+			}
+
+			while (SQL::fetchSingle("SELECT id FROM bigtree_user_sessions WHERE id = ?", $session)) {
+				$session = uniqid("session-", true);
+			}
+
+			SQL::insert("bigtree_user_sessions", [
+				"id" => $session,
+				"chain" => $chain,
+				"email" => $user["email"],
+				"csrf_token" => $csrf_token,
+				"csrf_token_field" => $csrf_token_field,
+			]);
+
+			if (count($bigtree["config"]["sites"])) {
+				$cache_data = [
+					"user_id"        => $user["id"],
+					"session"        => $session,
+					"chain"          => $chain,
+					"stay_logged_in" => $stay_logged_in,
+					"login_redirect" => isset($_SESSION["bigtree_login_redirect"]) ? $_SESSION["bigtree_login_redirect"] : false,
+					"remaining_sites" => [],
+					"csrf_token"      => $csrf_token,
+					"csrf_token_field" => $csrf_token_field,
+				];
+
+				$all_ssl = true;
+				foreach ($bigtree["config"]["sites"] as $site_key => $site_configuration) {
+					$cache_data["remaining_sites"][$site_key] = $site_configuration["www_root"];
+					if (strpos($site_configuration["www_root"], "https://") !== 0) {
+						$all_ssl = false;
+					}
+				}
+
+				$cache_session_key = BigTreeCMS::cacheUnique("org.bigtreecms.login-session", $cache_data);
+
+				if (strpos(ADMIN_ROOT, "https://") === 0 && !$all_ssl) {
+					return str_replace("https://", "http://", ADMIN_ROOT)."login/cors/?key=".$cache_session_key;
+				} else {
+					return ADMIN_ROOT."login/cors/?key=".$cache_session_key;
+				}
+			} else {
+				$cookie_domain = str_replace(DOMAIN, "", WWW_ROOT);
+				$cookie_value  = json_encode([$session, $chain]);
+
+				setcookie('bigtree_admin[email]', $user["email"], strtotime("+1 month"), $cookie_domain, "", false, true);
+
+				if ($stay_logged_in) {
+					setcookie('bigtree_admin[login]', $cookie_value, strtotime("+1 month"), $cookie_domain, "", false, true);
+				}
+
+				$old_session_id = session_id();
+				session_regenerate_id();
+
+				if (!empty($bigtree["config"]["session_handler"]) && $bigtree["config"]["session_handler"] == "db") {
+					SQL::update("bigtree_sessions", $old_session_id, [
+						"id"           => session_id(),
+						"is_login"     => "on",
+						"logged_in_user" => $user["id"],
+					]);
+				}
+
+				$_SESSION["bigtree_admin"]["id"]           = $user["id"];
+				$_SESSION["bigtree_admin"]["email"]        = $user["email"];
+				$_SESSION["bigtree_admin"]["level"]        = $user["level"];
+				$_SESSION["bigtree_admin"]["name"]         = $user["name"];
+				$_SESSION["bigtree_admin"]["permissions"]  = json_decode($user["permissions"], true);
+				$_SESSION["bigtree_admin"]["csrf_token"]   = $csrf_token;
+				$_SESSION["bigtree_admin"]["csrf_token_field"] = $csrf_token_field;
+
+				if ($domain) {
+					return ADMIN_ROOT;
+				}
+
+				return isset($_SESSION["bigtree_login_redirect"]) ? $_SESSION["bigtree_login_redirect"] : ADMIN_ROOT;
+			}
+		}
 	}
