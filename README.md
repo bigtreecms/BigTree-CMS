@@ -20,6 +20,30 @@ We would love to have the community work with us on BigTree.  Guidelines are cur
 Changelog
 ---------
 
+### 4.6
+- NEW: Passkeys support
+- NEW: CSV export support for pending changes
+- UPDATED: Cache checking should be much faster in large cache tables
+- UPDATED: Improved memory efficiency for CSV exports of large data sets
+- UPDATED: Reports now support streaming data to the user through output buffer (as well as passing in a stream function to parse the data as it comes through)
+- UPDATED: Modules can now be sorted by the status column
+- UPDATED: Site integrity checker now supports retrying failed checks and fixes an error related to module index calculation
+- UPDATED: Site integrity checker performance is improved greatly
+- FIXED: Pending changes against deleted entries throwing warnings on the pending changes page
+- FIXED: 404 search page failing when redirect_url column is nullable
+- FIXED: Vimeo URL parsing for video fields not working when query vars are passed in
+- FIXED: Media gallery fields not working properly when switching templates (and several other warnings related to media galleries)
+- FIXED: Publishing pages with pending changes with database populated list fields storing a zero instead of an empty string
+- FIXED: Date range filters in reports when dates are set using am/pm styling
+- FIXED: Warnings when using date range filters in reports
+- FIXED: Local session cookies now properly set samesite = Lax, secure = false when not using ssl_only_session_cookie setting in config
+- FIXED: An error that would cause subnavigation to appear for unpublished pages
+- FIXED: Warnings that appeared when previewing pending pages
+- FIXED: Possible infinite recursion when checking old routes if a user later set the old route to the new route
+- FIXED: Session handler for PHP 8.4 compatibility
+- FIXED: Extension upgrades that are missing SQL revision keys
+- FIXED: JSON that was inserted into text / textarea fields turning into an array and not showing properly
+
 ### 4.5.13
 - FIXED: Site Integrity Checker failing to resume properly / check internal-link-only mode
 - FIXED: Simple HTML fields showing buttons for which the backend stripped the markup for
