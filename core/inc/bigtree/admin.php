@@ -10447,7 +10447,9 @@
 				Boolean
 		*/
 		public static function passkeysEnabled() {
-			return extension_loaded("openssl");
+			global $bigtree;
+
+			return strpos($bigtree["config"]["admin_root"], "https://") === 0 && extension_loaded("openssl");
 		}
 
 		/*
