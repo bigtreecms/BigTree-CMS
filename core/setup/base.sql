@@ -67,10 +67,13 @@ CREATE TABLE `bigtree_users` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`ema
 DROP TABLE IF EXISTS `bigtree_user_sessions`;
 CREATE TABLE `bigtree_user_sessions` (`id` varchar(1024) NOT NULL DEFAULT '', `email` varchar(1024) DEFAULT NULL, `chain` varchar(1024) DEFAULT NULL, `csrf_token` varchar(1024) DEFAULT NULL, `csrf_token_field` varchar(1024) DEFAULT NULL, PRIMARY KEY (`id`), KEY `email` (`email`), KEY `chain` (`chain`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
+DROP TABLE IF EXISTS `bigtree_user_passkeys`;
+CREATE TABLE `bigtree_user_passkeys` (`id` int(10) unsigned NOT NULL AUTO_INCREMENT, `user` int(10) unsigned NOT NULL, `credential_id` text NOT NULL, `public_key` text NOT NULL, `sign_count` int(10) unsigned NOT NULL DEFAULT '0', `name` varchar(255) NOT NULL DEFAULT '', `aaguid` varchar(36) NOT NULL DEFAULT '', `transports` varchar(255) NOT NULL DEFAULT '', `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, `last_used` datetime DEFAULT NULL, PRIMARY KEY (`id`), KEY `user_idx` (`user`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 INSERT INTO `bigtree_pages` (`id`, `trunk`, `parent`, `in_nav`, `nav_title`, `route`, `path`, `title`, `meta_keywords`, `meta_description`, `template`, `external`, `new_window`, `resources`, `archived`, `archived_inherited`, `position`, `created_at`, `updated_at`, `publish_at`, `expire_at`, `max_age`, `last_edited_by`, `ga_page_views`) VALUES (0,'on',-1,'on','BigTree Site','','','BigTree Site','','','home','','','{}','','',0,NOW(),NOW(),NULL,NULL,0,0,0);
 
 INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-storage','{"Service":"local"}');
-INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-revision','501');
+INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-revision','502');
 INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-security-policy','{"password":{"invitations": "on"}}');
 INSERT INTO `bigtree_settings` (`id`,`value`) VALUES ('bigtree-internal-deleted-users','{}');
 INSERT INTO `bigtree_settings` (`id`, `value`) VALUES ('bigtree-file-metadata-fields', '{}');
