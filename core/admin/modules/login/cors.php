@@ -1,5 +1,11 @@
 <?php
-	$cache_data = BigTreeCMS::cacheGet("org.bigtreecms.login-session", $_GET["key"]);
+	$key = $_GET["key"] ?? "";
+	$cache_data = BigTreeCMS::cacheGet("org.bigtreecms.login-session", $key) ?? [];
+
+	if (empty($cache_data["remaining_sites"])) {
+		BigTree::redirect(ADMIN_ROOT."login/");
+	}
+
 	$domains = array();
 	
 	foreach ($cache_data["remaining_sites"] as $site_key => $www_root) {
@@ -35,14 +41,14 @@
 			$("#login-domain").html(Domains[index]);
 			
 			$.ajax({
-				url: Domains[index] + "?<?php if (!BigTree::getIsSSL()) { ?>no_ssl&<?php } ?>bigtree_login_redirect_session_key=" + encodeURIComponent("<?=$_GET["key"]?>"),
+				url: Domains[index] + "?<?php if (!BigTree::getIsSSL()) { ?>no_ssl&<?php } ?>bigtree_login_redirect_session_key=" + encodeURIComponent(<?=json_encode($key)?>),
 				xhrFields: { withCredentials: true }
 			}).done(function() {
 				Completed++;
 				Failures = 0;
 
 				if (Completed === Total) {
-					document.location.href = "<?=ADMIN_ROOT?>login/cors-complete/?key=" + encodeURIComponent("<?=$_GET["key"]?>");
+					document.location.href = "<?=ADMIN_ROOT?>login/cors-complete/?key=" + encodeURIComponent(<?=json_encode($key)?>);
 				} else {
 					multiSiteLogin(Completed);
 				}
