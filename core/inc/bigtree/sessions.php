@@ -36,7 +36,7 @@
 		private $Exists = false;
 
 		// These aren't needed as the SQL class handles the connection
-		public function open(string $save_path, string $name) {
+		public function open($save_path, $session_name) {
 			return true;
 		}
 
@@ -44,8 +44,8 @@
 			return true;
 		}
 
-		public function read(string $id) {
-			$session = SQL::fetch("SELECT * FROM bigtree_sessions WHERE id = ?", $id);
+		public function read($session_id) {
+			$session = SQL::fetch("SELECT * FROM bigtree_sessions WHERE id = ?", $session_id);
 
 			if (!$session) {
 				return "";
@@ -55,33 +55,33 @@
 
 			// Invalidate a session that is too old's data
 			if ($session["last_accessed"] < time() - self::$Timeout) {
-				SQL::update("bigtree_sessions", $id, ["data" => "", "last_accessed" => time()]);
+				SQL::update("bigtree_sessions", $session_id, ["data" => "", "last_accessed" => time()]);
 
 				return "";
 			} else {
-				SQL::update("bigtree_sessions", $id, ["last_accessed" => time()]);
+				SQL::update("bigtree_sessions", $session_id, ["last_accessed" => time()]);
 
 				return $session["data"] ?? "";
 			}
 		}
 
-		public function write(string $id, string $data) {
+		public function write($session_id, $session_data) {
 			if (!$this->Exists) {
-				SQL::query("INSERT INTO bigtree_sessions (`id`, `last_accessed`, `data`, `ip_address`, `user_agent`) VALUES (?, ?, ?, ?, ?)", $id, time(), $data, BigTree::remoteIP(), $_SERVER["HTTP_USER_AGENT"]);
+				SQL::query("INSERT INTO bigtree_sessions (`id`, `last_accessed`, `data`, `ip_address`, `user_agent`) VALUES (?, ?, ?, ?, ?)", $session_id, time(), $session_data, BigTree::remoteIP(), $_SERVER["HTTP_USER_AGENT"]);
 			} else {
-				SQL::update("bigtree_sessions", $id, ["last_accessed" => time(), "data" => $data]);
+				SQL::update("bigtree_sessions", $session_id, ["last_accessed" => time(), "data" => $session_data]);
 			}
 
 			return true;
 		}
 
-		public function destroy(string $id) {
-			return SQL::delete("bigtree_sessions", $id);
+		public function destroy($session_id) {
+			return SQL::delete("bigtree_sessions", $session_id);
 		}
 
-		public function gc(int $max_age) {
+		public function gc($maxlifetime) {
 			// Return the number of deleted sessions, or false on error
-			$affected = SQL::query("DELETE FROM bigtree_sessions WHERE last_accessed < ?", time() - $max_age)->rows();
+			$affected = SQL::query("DELETE FROM bigtree_sessions WHERE last_accessed < ?", time() - $maxlifetime)->rows();
 
 			return $affected !== null ? $affected : false;
 		}
