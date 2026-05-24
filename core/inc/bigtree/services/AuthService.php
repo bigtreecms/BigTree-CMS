@@ -243,7 +243,235 @@
 			return $this->issueTokens($user, $request);
 		}
 
+		// — Password reset —
+
+		/**
+		 * POST /auth/forgot-password { email }
+		 * Always returns 204 regardless of whether the email exists (don't leak which
+		 * accounts are valid). On match, generates a reset hash and emails the user
+		 * a link to the SPA's reset page.
+		 */
+		public function forgotPassword(Request $request) {
+			global $bigtree;
+
+			$email = strtolower(trim((string)($request->body["email"] ?? "")));
+			if ($email === "") throw new BadRequestException("email required", "missing_email", 400);
+
+			$user = SQL::fetch("SELECT id, email, password FROM bigtree_users WHERE LOWER(email) = ?", $email);
+			if ($user) {
+				// Reset hash is unguessable without knowing the existing password hash + a microsecond timestamp.
+				$hash = md5(md5($user["password"]) . md5(uniqid("bigtree-hash" . microtime(true))));
+				SQL::update("bigtree_users", $user["id"], ["change_password_hash" => $hash]);
+				$this->sendResetEmail($user["email"], $hash);
+			}
+
+			// Constant-ish time: don't reveal whether the email was on file.
+			return Response::noContent();
+		}
+
+		/**
+		 * POST /auth/reset-password { token, password }
+		 * Consumes the token, applies the new password, and revokes all existing
+		 * sessions + refresh tokens (token_version bump).
+		 */
+		public function resetPassword(Request $request) {
+			$token = (string)($request->body["token"] ?? "");
+			$password = trim((string)($request->body["password"] ?? ""));
+
+			if ($token === "" || $password === "") {
+				throw new BadRequestException("token and password required", "missing_fields", 400);
+			}
+			if (!BigTreeAdmin::validatePassword($password)) {
+				throw new BadRequestException("Password does not meet policy requirements", "weak_password", 400);
+			}
+
+			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE change_password_hash = ?", $token);
+			if (!$user) {
+				throw new AuthenticationException("Invalid or expired reset token", "invalid_token", 401);
+			}
+
+			SQL::update("bigtree_users", $user["id"], [
+				"password" => password_hash($password, PASSWORD_DEFAULT),
+				"new_hash" => "on",
+				"change_password_hash" => "",
+			]);
+
+			// Bump token_version → invalidates all JWTs.
+			SQL::query("UPDATE bigtree_users SET token_version = token_version + 1 WHERE id = ?", $user["id"]);
+			TokenStore::revokeAllForUser((int)$user["id"]);
+
+			// Clear legacy sessions too so the user can re-login both surfaces cleanly.
+			SQL::delete("bigtree_sessions", ["logged_in_user" => $user["id"]]);
+			SQL::delete("bigtree_user_sessions", ["email" => $user["email"]]);
+
+			// Lift any active bans so the user can immediately log in.
+			SQL::query("UPDATE bigtree_login_bans SET expires = DATE_SUB(NOW(), INTERVAL 1 MINUTE) WHERE user = ?", $user["id"]);
+
+			return Response::noContent();
+		}
+
+		// — Passkey registration (authenticated) —
+
+		/**
+		 * GET /auth/passkey/register/options
+		 * Returns WebAuthn registration ceremony options + a server-stored challenge id.
+		 */
+		public function passkeyRegisterOptions(Request $request) {
+			global $bigtree;
+			$user_id = (int)$request->user->id;
+			$user = SQL::fetch("SELECT id, email, name FROM bigtree_users WHERE id = ?", $user_id);
+
+			$parsed = parse_url(ADMIN_ROOT);
+			$rp_id = $parsed["host"] ?? "";
+			$rp_name = $bigtree["config"]["domain_name"] ?? ($parsed["host"] ?? "BigTree");
+
+			$existing_ids = array_map(function ($p) { return $p["credential_id"]; }, BigTreeAdmin::getUserPasskeys($user_id));
+
+			$options = WebAuthn::getRegistrationOptions(
+				$rp_id, $rp_name, $user_id, $user["email"], $user["name"] ?: $user["email"], $existing_ids
+			);
+
+			$challenge_id = bin2hex(random_bytes(16));
+			SQL::insert("bigtree_passkey_challenges", [
+				"id" => $challenge_id,
+				"challenge" => $options["challenge"],
+				"user_id" => $user_id,
+				"purpose" => "register",
+			]);
+
+			// Don't leave the legacy session-stored copy lying around.
+			unset($_SESSION["bigtree_passkey_challenge"]);
+
+			return Response::ok([
+				"challenge_id" => $challenge_id,
+				"options" => $options,
+			]);
+		}
+
+		/**
+		 * POST /auth/passkey/register/verify { challenge_id, client_data_json, attestation_object, name? }
+		 * Verifies the attestation, stores the new credential.
+		 */
+		public function passkeyRegisterVerify(Request $request) {
+			$user_id = (int)$request->user->id;
+			$challenge_id = (string)($request->body["challenge_id"] ?? "");
+			$client_data_json = (string)($request->body["client_data_json"] ?? "");
+			$attestation_object = (string)($request->body["attestation_object"] ?? "");
+			$name = trim((string)($request->body["name"] ?? "")) ?: "Passkey";
+
+			if ($challenge_id === "" || $client_data_json === "" || $attestation_object === "") {
+				throw new BadRequestException("Missing passkey registration fields", "missing_fields", 400);
+			}
+
+			$challenge_row = SQL::fetch(
+				"SELECT * FROM bigtree_passkey_challenges WHERE id = ? AND consumed = 0 AND purpose = 'register' AND user_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL ? SECOND)",
+				$challenge_id, $user_id, self::PASSKEY_CHALLENGE_TTL
+			);
+			if (!$challenge_row) {
+				throw new AuthenticationException("Registration challenge invalid or expired", "invalid_challenge", 401);
+			}
+
+			$parsed = parse_url(ADMIN_ROOT);
+			$origin = ($parsed["scheme"] ?? "https") . "://" . ($parsed["host"] ?? "");
+			$rp_id = $parsed["host"] ?? "";
+
+			// Install the stored challenge where the WebAuthn library expects it.
+			$_SESSION["bigtree_passkey_challenge"] = $challenge_row["challenge"];
+
+			try {
+				$credential = WebAuthn::verifyRegistration([
+					"clientDataJSON" => $client_data_json,
+					"attestationObject" => $attestation_object,
+				], $origin, $rp_id);
+			} catch (Exception $e) {
+				BigTree::log("Passkey registration failed for user $user_id: " . $e->getMessage());
+				throw new BadRequestException("Passkey verification failed", "passkey_invalid", 400);
+			} finally {
+				unset($_SESSION["bigtree_passkey_challenge"]);
+			}
+
+			SQL::update("bigtree_passkey_challenges", $challenge_row["id"], ["consumed" => 1]);
+
+			$passkey_id = BigTreeAdmin::createPasskey(
+				$user_id,
+				$credential["credential_id"],
+				$credential["public_key"],
+				(int)($credential["sign_count"] ?? 0),
+				$name,
+				$credential["aaguid"] ?? "",
+				is_array($credential["transports"] ?? null) ? implode(",", $credential["transports"]) : (string)($credential["transports"] ?? "")
+			);
+
+			return Response::created([
+				"id" => (int)$passkey_id,
+				"name" => $name,
+				"credential_id" => $credential["credential_id"],
+				"aaguid" => $credential["aaguid"] ?? "",
+			], null);
+		}
+
+		/**
+		 * GET /auth/passkeys — list current user's passkeys.
+		 */
+		public function listPasskeys(Request $request) {
+			$rows = BigTreeAdmin::getUserPasskeys((int)$request->user->id);
+			return Response::ok(array_map(function ($p) {
+				return [
+					"id" => (int)$p["id"],
+					"name" => $p["name"],
+					"aaguid" => $p["aaguid"],
+					"transports" => $p["transports"],
+					"created_at" => $p["created_at"],
+					"last_used" => $p["last_used"],
+				];
+			}, $rows));
+		}
+
+		/**
+		 * DELETE /auth/passkeys/{id} — remove a passkey owned by the current user.
+		 */
+		public function deletePasskey(Request $request) {
+			$passkey_id = (int)$request->route_params["id"];
+			BigTreeAdmin::deletePasskey($passkey_id, (int)$request->user->id);
+			return Response::noContent();
+		}
+
 		// — Internal helpers —
+
+		private function sendResetEmail($to, $hash) {
+			global $bigtree;
+
+			$site_title = SQL::fetchSingle("SELECT nav_title FROM bigtree_pages WHERE id = 0") ?: "BigTree";
+			$login_root = ($bigtree["config"]["force_secure_login"] ?? false)
+				? str_replace("http://", "https://", ADMIN_ROOT) . "login/"
+				: ADMIN_ROOT . "login/";
+
+			// SPA reset URL takes precedence; falls back to legacy admin reset page.
+			$reset_url = ($bigtree["config"]["api"]["spa_reset_url"] ?? "")
+				?: ($login_root . "reset-password/$hash/");
+			$reset_url = str_replace("{token}", $hash, $reset_url);
+
+			$tmpl = BigTree::path("admin/email/reset-password.html");
+			$html = file_exists($tmpl) ? file_get_contents($tmpl) : "<p>Reset your password: <a href='{reset_link}'>{reset_link}</a></p>";
+			$html = str_ireplace([
+				"{www_root}", "{admin_root}", "{site_title}", "{reset_link}",
+			], [
+				WWW_ROOT, ADMIN_ROOT, $site_title, $reset_url,
+			], $html);
+
+			try {
+				$es = new \BigTreeEmailService();
+				if (!empty($es->Settings["bigtree_from"])) {
+					$host = $_SERVER["HTTP_HOST"] ?? str_replace(["http://www.", "https://www.", "http://", "https://"], "", DOMAIN);
+					$reply_to = "no-reply@" . str_replace("www.", "", $host);
+					$es->sendEmail("Reset Your Password", $html, $to, $es->Settings["bigtree_from"], "BigTree CMS", $reply_to);
+					return;
+				}
+			} catch (\Throwable $e) {
+				// fall through to BigTree::sendEmail
+			}
+			BigTree::sendEmail($to, "Reset Your Password", $html);
+		}
 
 		private function verifyPassword(array $user, $password) {
 			if (!empty($user["new_hash"])) {

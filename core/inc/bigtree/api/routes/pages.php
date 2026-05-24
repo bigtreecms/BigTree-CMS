@@ -31,6 +31,8 @@
 				"publish_at" => "string|max:32",
 				"expire_at" => "string|max:32",
 				"max_age" => "int|min:0",
+				"tags" => "array",
+				"open_graph" => "array",
 			],
 			"audit" => ["table" => "bigtree_pages", "type" => "created", "entry" => "%id%"],
 		],

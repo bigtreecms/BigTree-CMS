@@ -11,8 +11,11 @@
 			$body_rules = $route["body"] ?? null;
 			$query_rules = $route["query"] ?? null;
 			$strict_unknown = !($route["allow_unknown"] ?? false);
+			$is_multipart = !empty($route["multipart"]);
 
-			if (is_array($body_rules)) {
+			// Multipart bodies are validated by the handler (files live in $request->files,
+			// the rest of $_POST in $request->body but may contain JSON-encoded strings).
+			if (is_array($body_rules) && !$is_multipart) {
 				$request->body = Validator::validate($request->body, $body_rules, !$strict_unknown);
 			}
 			if (is_array($query_rules)) {

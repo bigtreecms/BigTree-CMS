@@ -33,4 +33,15 @@
 			"permission" => ["level" => 2],
 			"audit" => ["table" => "field-types", "type" => "deleted", "entry" => "%id%"],
 		],
+
+		"GET /field-types/{id}/schema" => [
+			"service" => [FieldTypeService::class, "schema"],
+			"permission" => ["level" => 0],
+		],
+
+		"POST /field-types/{id}/render" => [
+			"service" => [FieldTypeService::class, "render"],
+			"permission" => ["level" => 0],
+			"body" => ["field" => "array"],
+		],
 	];

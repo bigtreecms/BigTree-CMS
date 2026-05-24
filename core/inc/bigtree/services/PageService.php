@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Hooks;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
@@ -64,7 +65,7 @@
 			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
 			if (!$page) throw new NotFoundException("Page $id not found", "resource_not_found", 404);
 
-			$out = $this->present($page);
+			$out = $this->present($page, true);
 
 			if (!empty($request->query["fields"]) && strpos((string)$request->query["fields"], "lineage") !== false) {
 				$out["lineage"] = $this->lineage($id);
@@ -112,8 +113,14 @@
 			];
 
 			$id = (int)SQL::insert("bigtree_pages", $insert);
+
+			// Tags + open-graph wiring (mirrors legacy createPage).
+			$this->syncTags($id, $d["tags"] ?? null);
+			$this->syncOpenGraph($id, $d["open_graph"] ?? null);
+
 			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
-			return Response::created($this->present($page), null);
+			Hooks::fire("page.created", $page, ["user_id" => $request->user->id]);
+			return Response::created($this->present($page, true), null);
 		}
 
 		public function update(Request $request) {
@@ -156,8 +163,14 @@
 				SQL::update("bigtree_pages", $id, $update);
 			}
 
+			// Tags + open-graph: only touch if the caller included the keys, so a partial
+			// PATCH doesn't wipe existing tags/OG just because they weren't sent.
+			if (array_key_exists("tags", $d)) $this->syncTags($id, $d["tags"]);
+			if (array_key_exists("open_graph", $d)) $this->syncOpenGraph($id, $d["open_graph"]);
+
 			$fresh = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
-			return Response::ok($this->present($fresh));
+			Hooks::fire("page.updated", $fresh, ["user_id" => $request->user->id, "previous" => $page]);
+			return Response::ok($this->present($fresh, true));
 		}
 
 		public function delete(Request $request) {
@@ -167,7 +180,11 @@
 				throw new NotFoundException("Page $id not found", "resource_not_found", 404);
 			}
 			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+			// Clean up rel rows; FK ON DELETE CASCADE handles open_graph + revisions etc.
+			SQL::query("DELETE FROM bigtree_tags_rel WHERE `table` = 'bigtree_pages' AND entry = ?", $id);
+			SQL::query("DELETE FROM bigtree_open_graph WHERE `table` = 'bigtree_pages' AND entry = ?", $id);
 			$this->cascadeDelete($id, $page["path"]);
+			Hooks::fire("page.deleted", $page, ["user_id" => $request->user->id]);
 			return Response::noContent();
 		}
 
@@ -350,8 +367,105 @@
 			return $out;
 		}
 
-		private function present(array $p) {
+		// — Tag + Open Graph helpers —
+
+		/**
+		 * Replace the page's tag-rel rows with the given list of tag ids. Pass null
+		 * (don't include the "tags" key) to leave tags untouched on PATCH.
+		 */
+		private function syncTags($page_id, $tag_ids) {
+			if (!is_array($tag_ids)) return;
+
+			$tag_ids = array_values(array_unique(array_filter(array_map("intval", $tag_ids))));
+
+			$existing = SQL::fetchAllSingle("SELECT tag FROM bigtree_tags_rel WHERE `table` = 'bigtree_pages' AND entry = ?", $page_id);
+			$existing = array_map("intval", $existing);
+
+			$to_add = array_diff($tag_ids, $existing);
+			$to_remove = array_diff($existing, $tag_ids);
+
+			foreach ($to_add as $tag) {
+				// Confirm the tag exists before linking — silently skip orphan ids.
+				if (SQL::exists("bigtree_tags", $tag)) {
+					SQL::insert("bigtree_tags_rel", [
+						"table" => "bigtree_pages",
+						"entry" => (string)$page_id,
+						"tag" => (int)$tag,
+					]);
+				}
+			}
+			if ($to_remove) {
+				$placeholders = implode(",", array_fill(0, count($to_remove), "?"));
+				$args = array_merge([(string)$page_id], array_values($to_remove));
+				SQL::query("DELETE FROM bigtree_tags_rel WHERE `table` = 'bigtree_pages' AND entry = ? AND tag IN ($placeholders)", ...$args);
+			}
+
+			// Recompute usage counts for affected tags so the SPA sees fresh totals.
+			$affected = array_values(array_unique(array_merge($to_add, $to_remove)));
+			foreach ($affected as $t) {
+				$count = (int)SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_tags_rel WHERE tag = ?", $t);
+				SQL::update("bigtree_tags", $t, ["usage_count" => $count]);
+			}
+		}
+
+		/**
+		 * Upsert the bigtree_open_graph row for this page. Pass null (omit "open_graph"
+		 * key) to leave OG untouched on PATCH; pass [] to explicitly clear.
+		 */
+		private function syncOpenGraph($page_id, $og) {
+			if ($og === null) return;
+			SQL::delete("bigtree_open_graph", ["table" => "bigtree_pages", "entry" => $page_id]);
+			if (!is_array($og) || $og === []) return;
+
+			SQL::insert("bigtree_open_graph", [
+				"table" => "bigtree_pages",
+				"entry" => $page_id,
+				"title" => BigTree::safeEncode((string)($og["title"] ?? "")),
+				"description" => BigTree::safeEncode((string)($og["description"] ?? "")),
+				"type" => BigTree::safeEncode((string)($og["type"] ?? "")),
+				"image" => BigTree::safeEncode((string)($og["image"] ?? "")),
+				"image_width" => (int)($og["image_width"] ?? 0),
+				"image_height" => (int)($og["image_height"] ?? 0),
+			]);
+		}
+
+		private function loadTags($page_id) {
+			$rows = SQL::fetchAll(
+				"SELECT t.id, t.tag, t.route, t.usage_count
+				 FROM bigtree_tags t
+				 INNER JOIN bigtree_tags_rel r ON r.tag = t.id
+				 WHERE r.`table` = 'bigtree_pages' AND r.entry = ?",
+				$page_id
+			);
+			return array_map(function ($r) {
+				return [
+					"id" => (int)$r["id"],
+					"tag" => $r["tag"],
+					"route" => $r["route"],
+					"usage_count" => (int)$r["usage_count"],
+				];
+			}, $rows);
+		}
+
+		private function loadOpenGraph($page_id) {
+			$row = SQL::fetch(
+				"SELECT title, description, type, image, image_width, image_height
+				 FROM bigtree_open_graph WHERE `table` = 'bigtree_pages' AND entry = ?",
+				$page_id
+			);
+			if (!$row) return null;
 			return [
+				"title" => $row["title"],
+				"description" => $row["description"],
+				"type" => $row["type"],
+				"image" => $row["image"],
+				"image_width" => (int)$row["image_width"],
+				"image_height" => (int)$row["image_height"],
+			];
+		}
+
+		private function present(array $p, $include_associations = false) {
+			$out = [
 				"id" => (int)$p["id"],
 				"trunk" => $p["trunk"] === "on",
 				"parent" => (int)$p["parent"],
@@ -377,5 +491,10 @@
 				"created_at" => $p["created_at"],
 				"updated_at" => $p["updated_at"],
 			];
+			if ($include_associations) {
+				$out["tags"] = $this->loadTags((int)$p["id"]);
+				$out["open_graph"] = $this->loadOpenGraph((int)$p["id"]);
+			}
+			return $out;
 		}
 	}

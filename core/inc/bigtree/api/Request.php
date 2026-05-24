@@ -17,6 +17,7 @@
 
 		public $user;             // populated by Authenticate middleware: stdClass with id, email, name, level, permissions(decoded array), timezone, token_version
 		public $token_claims;     // raw JWT claims
+		public $files = [];       // normalized $_FILES for multipart uploads
 
 		public static function fromGlobals($path_segments_from_router) {
 			$req = new self();
@@ -47,6 +48,9 @@
 							$req->body = ["__json_error__" => json_last_error_msg()];
 						}
 					}
+				} elseif (stripos($content_type, "multipart/form-data") !== false) {
+					$req->body = $_POST;
+					$req->files = self::normalizeFiles($_FILES);
 				} else {
 					$req->body = $_POST;
 				}
@@ -91,5 +95,44 @@
 				return trim(substr($auth, 7));
 			}
 			return null;
+		}
+
+		public function file($name) {
+			return $this->files[$name] ?? null;
+		}
+
+		/**
+		 * Normalize $_FILES so single and multi-file uploads have the same shape.
+		 * Returns an associative array: name => [ ['name','tmp_name','type','size','error'], ... ]
+		 */
+		private static function normalizeFiles(array $files) {
+			$out = [];
+			foreach ($files as $name => $f) {
+				if (!is_array($f) || !isset($f["name"])) continue;
+				if (is_array($f["name"])) {
+					// HTML <input name="x[]" multiple> shape: f["name"][0], f["tmp_name"][0], ...
+					$count = count($f["name"]);
+					$list = [];
+					for ($i = 0; $i < $count; $i++) {
+						$list[] = [
+							"name" => $f["name"][$i] ?? "",
+							"tmp_name" => $f["tmp_name"][$i] ?? "",
+							"type" => $f["type"][$i] ?? "",
+							"size" => $f["size"][$i] ?? 0,
+							"error" => $f["error"][$i] ?? UPLOAD_ERR_NO_FILE,
+						];
+					}
+					$out[$name] = $list;
+				} else {
+					$out[$name] = [[
+						"name" => $f["name"],
+						"tmp_name" => $f["tmp_name"],
+						"type" => $f["type"] ?? "",
+						"size" => $f["size"] ?? 0,
+						"error" => $f["error"] ?? UPLOAD_ERR_NO_FILE,
+					]];
+				}
+			}
+			return $out;
 		}
 	}

@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Hooks;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
@@ -78,6 +79,9 @@
 			if ($user_level === "p" || ((int)$request->user->level) > 0) {
 				$id = BigTreeAutoModule::createItem($module["table"], $data, $mtm, $tags, null, $og);
 				$item = BigTreeAutoModule::getItem($module["table"], $id);
+				Hooks::fire("module_entry.created", [
+					"module" => $module_id, "table" => $module["table"], "id" => (int)$id, "item" => $item["item"] ?? $item,
+				], ["user_id" => $request->user->id]);
 				return Response::created($item["item"] ?? $item, null);
 			}
 
@@ -88,6 +92,9 @@
 			$pending_id = BigTreeAutoModule::createPendingItem(
 				$module_id, $module["table"], $data, $mtm, $tags, null, false, $og
 			);
+			Hooks::fire("module_entry.pending_created", [
+				"module" => $module_id, "table" => $module["table"], "pending_id" => (int)$pending_id,
+			], ["user_id" => $request->user->id]);
 			return Response::created(["pending_id" => $pending_id, "pending" => true], null);
 		}
 
@@ -112,10 +119,17 @@
 			$user_level = PermissionService::userModuleLevel($request->user, $module_id);
 			if ($user_level === "p" || ((int)$request->user->level) > 0) {
 				BigTreeAutoModule::updateItem($module["table"], $entry_id, $data, $mtm, $tags, $og);
-				return Response::ok(BigTreeAutoModule::getItem($module["table"], $entry_id));
+				$fresh = BigTreeAutoModule::getItem($module["table"], $entry_id);
+				Hooks::fire("module_entry.updated", [
+					"module" => $module_id, "table" => $module["table"], "id" => $entry_id, "item" => $fresh["item"] ?? $fresh,
+				], ["user_id" => $request->user->id]);
+				return Response::ok($fresh);
 			}
 
 			BigTreeAutoModule::submitChange($module_id, $module["table"], $entry_id, $data, $mtm, $tags, null, $og);
+			Hooks::fire("module_entry.pending_updated", [
+				"module" => $module_id, "table" => $module["table"], "id" => $entry_id,
+			], ["user_id" => $request->user->id]);
 			return Response::ok(["pending" => true]);
 		}
 
@@ -132,6 +146,9 @@
 			}
 
 			BigTreeAutoModule::deleteItem($module["table"], $entry_id);
+			Hooks::fire("module_entry.deleted", [
+				"module" => $module_id, "table" => $module["table"], "id" => $entry_id,
+			], ["user_id" => $request->user->id]);
 			return Response::noContent();
 		}
 

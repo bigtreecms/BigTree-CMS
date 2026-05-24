@@ -125,6 +125,39 @@
 			return "n";
 		}
 
+		/**
+		 * Resource folder permission: walks up the folder tree until an explicit
+		 * permission ("p" publisher / "e" editor / "n" none) is found, or returns
+		 * the default ("e") at root.
+		 *
+		 * Permission map lives at $user->permissions["resources"][$folder_id].
+		 * Values: "p" (publisher; can create), "e" (editor; can use), "n" (no access), "i" (inherit).
+		 */
+		public static function userFolderLevel($user, $folder_id) {
+			$level = self::extractLevel($user);
+			if ($level > 0) return "p";
+
+			$permissions = self::extractPermissions($user);
+			$current = (int)$folder_id;
+			$seen = [];
+
+			while (true) {
+				$perm = $permissions["resources"][$current] ?? null;
+				if ($perm && $perm !== "i") return $perm;
+				if ($current === 0) return "e"; // root default for non-admins
+				if (isset($seen[$current])) return "e"; // cycle safety
+				$seen[$current] = true;
+
+				$row = SQL::fetch("SELECT parent FROM bigtree_resource_folders WHERE id = ?", $current);
+				if (!$row) return "e";
+				$current = (int)$row["parent"];
+			}
+		}
+
+		public static function userHasFolderAccess($user, $folder_id, $min = "e") {
+			return self::rank(self::userFolderLevel($user, $folder_id)) >= self::rank($min);
+		}
+
 		public static function canModifyChildren($user, array $page) {
 			$level = self::extractLevel($user);
 			if ($level > 0) return true;

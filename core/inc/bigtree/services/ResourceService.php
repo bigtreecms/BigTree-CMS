@@ -1,6 +1,7 @@
 <?php
 	namespace BigTree\Services;
 
+	use BigTree\Api\Hooks;
 	use BigTree\Api\Pagination;
 	use BigTree\Api\Request;
 	use BigTree\Api\Response;
@@ -9,37 +10,65 @@
 	use BigTree\Api\Exceptions\AuthorizationException;
 	use BigTree;
 	use BigTreeAdmin;
+	use BigTreeCMS;
+	use BigTreeImage;
+	use BigTreeStorage;
 	use SQL;
 
 	/**
-	 * Media library: resource folders + resources + allocations + search.
+	 * Media library: folders + resources + uploads + crops + allocations.
 	 *
-	 * v1 scope: metadata CRUD + folder navigation + search + allocations.
-	 * Uploads/crops are deferred — they require multipart parsing + image processing
-	 * pipelines that the legacy admin handles via session-aware processField paths.
-	 * The SPA can POST a created resource record after performing its own upload
-	 * to a presigned URL (extension point for v2).
+	 * Folder permission ranks: "p" publisher (create/delete), "e" editor (use/move),
+	 * "n" no access. Enforced by PermissionService::userFolderLevel.
+	 *
+	 * Uploads accept multipart/form-data with a single "file" field plus optional
+	 * "folder" (id), "name" (display name), and "settings" (JSON string with crop/preset).
+	 *
+	 * Allocations track which content row currently uses which resource (so we can
+	 * cleanly find orphans and tell editors what would break if they delete a resource).
 	 */
 	class ResourceService {
+		const UPLOAD_MAX_BYTES = 268435456; // 256MB hard cap (in addition to PHP ini limit)
+
+		// — Folders —
+
 		public function listFolders(Request $request) {
 			$parent = (int)($request->query["parent"] ?? 0);
+			$this->enforceFolder($request->user, $parent, "e", "view");
+
 			$folders = SQL::fetchAll("SELECT id, parent, name FROM bigtree_resource_folders WHERE parent = ? ORDER BY name", $parent);
 			$resources = SQL::fetchAll(
-				"SELECT id, folder, file, name, type, mimetype, is_image, is_video, height, width, size, date FROM bigtree_resources WHERE folder = ? ORDER BY date DESC LIMIT 200",
+				"SELECT id, folder, file, name, type, mimetype, is_image, is_video, height, width, size, date
+				 FROM bigtree_resources WHERE folder = ? ORDER BY date DESC LIMIT 200",
 				$parent ?: null
 			);
+
+			// Permission-filter the folder list.
+			$me = $request->user;
+			$folders = array_values(array_filter($folders, function ($f) use ($me) {
+				return PermissionService::userFolderLevel($me, (int)$f["id"]) !== "n";
+			}));
+
 			return Response::ok([
 				"breadcrumb" => $this->folderBreadcrumb($parent),
-				"folders" => array_map(function ($f) {
-					return ["id" => (int)$f["id"], "parent" => (int)$f["parent"], "name" => $f["name"]];
+				"folders" => array_map(function ($f) use ($me) {
+					return [
+						"id" => (int)$f["id"],
+						"parent" => (int)$f["parent"],
+						"name" => $f["name"],
+						"access" => PermissionService::userFolderLevel($me, (int)$f["id"]),
+					];
 				}, $folders),
 				"resources" => array_map([$this, "presentResource"], $resources),
+				"access" => PermissionService::userFolderLevel($request->user, $parent),
 			]);
 		}
 
 		public function createFolder(Request $request) {
 			$d = $request->body;
 			$parent = (int)$d["parent"];
+			$this->enforceFolder($request->user, $parent, "p", "create folder inside");
+
 			$name = trim((string)$d["name"]);
 			if ($name === "") throw new BadRequestException("name required", "missing_name", 400);
 
@@ -48,19 +77,40 @@
 				"name" => htmlspecialchars($name),
 			]);
 			$row = SQL::fetch("SELECT id, parent, name FROM bigtree_resource_folders WHERE id = ?", $id);
-			return Response::created(["id" => (int)$row["id"], "parent" => (int)$row["parent"], "name" => $row["name"]], null);
+			return Response::created([
+				"id" => (int)$row["id"],
+				"parent" => (int)$row["parent"],
+				"name" => $row["name"],
+				"access" => "p",
+			], null);
 		}
 
 		public function updateFolder(Request $request) {
 			$id = (int)$request->route_params["id"];
 			$existing = SQL::fetch("SELECT * FROM bigtree_resource_folders WHERE id = ?", $id);
 			if (!$existing) throw new NotFoundException("Folder $id not found", "resource_not_found", 404);
+			$this->enforceFolder($request->user, $id, "p", "modify");
+
 			$update = [];
-			if (isset($request->body["name"])) $update["name"] = htmlspecialchars(trim((string)$request->body["name"]));
-			if (isset($request->body["parent"])) $update["parent"] = (int)$request->body["parent"];
+			if (isset($request->body["name"])) {
+				$update["name"] = htmlspecialchars(trim((string)$request->body["name"]));
+			}
+			if (isset($request->body["parent"])) {
+				$new_parent = (int)$request->body["parent"];
+				$this->enforceFolder($request->user, $new_parent, "p", "move folder into");
+				if ($this->isAncestor($id, $new_parent)) {
+					throw new BadRequestException("Cannot move a folder into its own descendant", "cyclic_move", 400);
+				}
+				$update["parent"] = $new_parent;
+			}
 			if ($update) SQL::update("bigtree_resource_folders", $id, $update);
+
 			$row = SQL::fetch("SELECT id, parent, name FROM bigtree_resource_folders WHERE id = ?", $id);
-			return Response::ok(["id" => (int)$row["id"], "parent" => (int)$row["parent"], "name" => $row["name"]]);
+			return Response::ok([
+				"id" => (int)$row["id"],
+				"parent" => (int)$row["parent"],
+				"name" => $row["name"],
+			]);
 		}
 
 		public function deleteFolder(Request $request) {
@@ -68,29 +118,42 @@
 			if (!SQL::exists("bigtree_resource_folders", $id)) {
 				throw new NotFoundException("Folder $id not found", "resource_not_found", 404);
 			}
-			// Children get their parent reset to 0 (orphan to root).
-			SQL::query("UPDATE bigtree_resource_folders SET parent = 0 WHERE parent = ?", $id);
-			SQL::query("UPDATE bigtree_resources SET folder = NULL WHERE folder = ?", $id);
+			$this->enforceFolder($request->user, $id, "p", "delete");
+
+			// Children get their parent reset to the deleted folder's parent (lift rather than orphan).
+			$parent = (int)SQL::fetchSingle("SELECT parent FROM bigtree_resource_folders WHERE id = ?", $id);
+			SQL::query("UPDATE bigtree_resource_folders SET parent = ? WHERE parent = ?", $parent, $id);
+			SQL::query("UPDATE bigtree_resources SET folder = ? WHERE folder = ?", $parent ?: null, $id);
 			SQL::delete("bigtree_resource_folders", $id);
 			return Response::noContent();
 		}
+
+		// — Resources —
 
 		public function getResource(Request $request) {
 			$id = (int)$request->route_params["id"];
 			$r = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
 			if (!$r) throw new NotFoundException("Resource $id not found", "resource_not_found", 404);
+			$this->enforceFolder($request->user, (int)$r["folder"], "e", "view resource in folder");
 			return Response::ok($this->presentResource($r, true));
 		}
 
 		public function updateResource(Request $request) {
 			$id = (int)$request->route_params["id"];
-			if (!SQL::exists("bigtree_resources", $id)) {
-				throw new NotFoundException("Resource $id not found", "resource_not_found", 404);
-			}
+			$existing = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
+			if (!$existing) throw new NotFoundException("Resource $id not found", "resource_not_found", 404);
+			$this->enforceFolder($request->user, (int)$existing["folder"], "e", "edit resource in folder");
+
 			$update = [];
-			if (isset($request->body["name"])) $update["name"] = htmlspecialchars(trim((string)$request->body["name"]));
-			if (isset($request->body["folder"])) $update["folder"] = (int)$request->body["folder"] ?: null;
+			if (isset($request->body["name"])) $update["name"] = BigTree::safeEncode(trim((string)$request->body["name"]));
 			if (isset($request->body["metadata"])) $update["metadata"] = json_encode($request->body["metadata"]);
+			if (array_key_exists("folder", $request->body)) {
+				$new_folder = (int)$request->body["folder"];
+				if ($new_folder !== (int)$existing["folder"]) {
+					$this->enforceFolder($request->user, $new_folder, "e", "move resource into");
+				}
+				$update["folder"] = $new_folder ?: null;
+			}
 			if ($update) {
 				$update["last_updated"] = "NOW()";
 				SQL::update("bigtree_resources", $id, $update);
@@ -100,10 +163,23 @@
 
 		public function deleteResource(Request $request) {
 			$id = (int)$request->route_params["id"];
-			if (!SQL::exists("bigtree_resources", $id)) {
-				throw new NotFoundException("Resource $id not found", "resource_not_found", 404);
+			$existing = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
+			if (!$existing) throw new NotFoundException("Resource $id not found", "resource_not_found", 404);
+			$this->enforceFolder($request->user, (int)$existing["folder"], "p", "delete resource in folder");
+
+			// Best-effort delete of the stored bytes; allocations and the row itself follow.
+			if (!empty($existing["file"])) {
+				try {
+					$storage = new BigTreeStorage();
+					$storage->delete($existing["file"]);
+				} catch (\Throwable $e) {
+					// File missing from storage isn't fatal — proceed with row delete.
+				}
 			}
+
+			SQL::query("DELETE FROM bigtree_resource_allocation WHERE resource = ?", $id);
 			SQL::delete("bigtree_resources", $id);
+			Hooks::fire("resource.deleted", $existing, ["user_id" => $request->user->id]);
 			return Response::noContent();
 		}
 
@@ -112,11 +188,171 @@
 			if ($q === "") return Response::ok([]);
 			$like = "%" . str_replace("%", "\\%", $q) . "%";
 			$rows = SQL::fetchAll(
-				"SELECT id, folder, file, name, type, mimetype, is_image, is_video, height, width, size, date FROM bigtree_resources WHERE name LIKE ? OR file LIKE ? ORDER BY date DESC LIMIT 50",
+				"SELECT id, folder, file, name, type, mimetype, is_image, is_video, height, width, size, date
+				 FROM bigtree_resources WHERE name LIKE ? OR file LIKE ? ORDER BY date DESC LIMIT 50",
 				$like, $like
 			);
+			// Filter to folders the user can at least view.
+			$me = $request->user;
+			$rows = array_values(array_filter($rows, function ($r) use ($me) {
+				return PermissionService::userFolderLevel($me, (int)$r["folder"]) !== "n";
+			}));
 			return Response::ok(array_map([$this, "presentResource"], $rows));
 		}
+
+		// — Upload (multipart) —
+
+		public function upload(Request $request) {
+			$folder = (int)($request->body["folder"] ?? 0);
+			$this->enforceFolder($request->user, $folder, "p", "upload to");
+
+			$file_set = $request->file("file");
+			if (!$file_set) throw new BadRequestException("Missing 'file' upload", "missing_file", 400);
+			$file = $file_set[0]; // single-file upload semantics for v1
+
+			$this->assertUploadOk($file);
+
+			$display_name = trim((string)($request->body["name"] ?? $file["name"]));
+			$settings = $this->decodeSettings($request->body["settings"] ?? null);
+
+			$mime = $this->detectMime($file["tmp_name"], $file["type"], $file["name"]);
+			$is_image = strpos($mime, "image/") === 0;
+			$is_video = strpos($mime, "video/") === 0;
+
+			$storage = new BigTreeStorage();
+			$location_type = $storage->Cloud ? "cloud" : "local";
+
+			// Image branch: BigTreeImage handles crops + thumbs + center crops if settings declare them.
+			if ($is_image && $this->shouldProcessAsImage($settings)) {
+				$image = new BigTreeImage($file["tmp_name"], $settings);
+				if ($image->Error) {
+					throw new BadRequestException("Image processing failed: " . $image->Error, "image_invalid", 400);
+				}
+				$image->filterGeneratableCrops();
+				$stored_path = $image->store($file["name"]);
+				if (!$stored_path) {
+					throw new BadRequestException("Storage refused image: " . ($image->Error ?: "unknown"), "storage_failed", 400);
+				}
+
+				$thumbs = $image->processThumbnails() ?: [];
+				$image->processCenterCrops();
+				$crops_meta = $image->processCrops() ?: [];
+
+				[$width, $height] = @getimagesize($file["tmp_name"]) ?: [null, null];
+				$id = $this->insertResource([
+					"folder" => $folder ?: null,
+					"file" => $stored_path,
+					"name" => $display_name,
+					"type" => pathinfo($file["name"], PATHINFO_EXTENSION),
+					"mimetype" => $mime,
+					"is_image" => "on",
+					"is_video" => "",
+					"md5" => @md5_file($file["tmp_name"]),
+					"size" => (int)$file["size"],
+					"width" => $width,
+					"height" => $height,
+					"crops" => $crops_meta,
+					"thumbs" => $thumbs,
+					"location" => $location_type,
+					"video_data" => [],
+					"metadata" => $settings["metadata"] ?? [],
+				]);
+				return Response::created($this->presentResource(SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id), true), null);
+			}
+
+			// Generic file branch: straight passthrough to BigTreeStorage::store.
+			$stored_path = $storage->store($file["tmp_name"], $file["name"], "files/resources/");
+			if (!$stored_path) {
+				throw new BadRequestException("Storage refused upload", "storage_failed", 400);
+			}
+
+			[$width, $height] = $is_image ? (@getimagesize($file["tmp_name"]) ?: [null, null]) : [null, null];
+			$id = $this->insertResource([
+				"folder" => $folder ?: null,
+				"file" => $stored_path,
+				"name" => $display_name,
+				"type" => pathinfo($file["name"], PATHINFO_EXTENSION),
+				"mimetype" => $mime,
+				"is_image" => $is_image ? "on" : "",
+				"is_video" => $is_video ? "on" : "",
+				"md5" => @md5_file($file["tmp_name"]),
+				"size" => (int)$file["size"],
+				"width" => $width,
+				"height" => $height,
+				"crops" => [],
+				"thumbs" => [],
+				"location" => $location_type,
+				"video_data" => [],
+				"metadata" => $settings["metadata"] ?? [],
+			]);
+
+			$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
+			Hooks::fire("resource.uploaded", $resource, ["user_id" => $request->user->id]);
+			return Response::created($this->presentResource($resource, true), null);
+		}
+
+		// — Crops —
+		// Generate a new crop from an existing image resource. Returns the crop file URL.
+
+		public function crop(Request $request) {
+			$id = (int)$request->route_params["id"];
+			$existing = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
+			if (!$existing) throw new NotFoundException("Resource $id not found", "resource_not_found", 404);
+			$this->enforceFolder($request->user, (int)$existing["folder"], "e", "crop resource in folder");
+
+			if ($existing["is_image"] !== "on") {
+				throw new BadRequestException("Resource is not an image", "not_an_image", 400);
+			}
+
+			$x = (int)$request->body["x"];
+			$y = (int)$request->body["y"];
+			$w = (int)$request->body["width"];
+			$h = (int)$request->body["height"];
+			$target_w = (int)($request->body["target_width"] ?? $w);
+			$target_h = (int)($request->body["target_height"] ?? $h);
+			$name_prefix = trim((string)($request->body["prefix"] ?? "crop-")) ?: "crop-";
+			$directory = trim((string)($request->body["directory"] ?? "files/resources/crops/"));
+
+			if ($w <= 0 || $h <= 0 || $target_w <= 0 || $target_h <= 0) {
+				throw new BadRequestException("width/height/target_width/target_height must be > 0", "bad_dimensions", 400);
+			}
+
+			$image = new BigTreeImage($existing["file"]);
+			if ($image->Error) {
+				throw new BadRequestException("Image processing failed: " . $image->Error, "image_invalid", 400);
+			}
+
+			$temp = $image->getTempFileName();
+			$image->crop($temp, $x, $y, $target_w, $target_h, $w, $h);
+
+			$storage = new BigTreeStorage();
+			$crop_name = $name_prefix . basename($existing["file"]);
+			$stored_path = $storage->replace($temp, $crop_name, $directory);
+			if (!$stored_path) {
+				throw new BadRequestException("Storage refused crop", "storage_failed", 400);
+			}
+
+			$crops = json_decode($existing["crops"] ?: "[]", true) ?: [];
+			$crops[] = [
+				"name" => $crop_name,
+				"prefix" => $name_prefix,
+				"directory" => $directory,
+				"width" => $target_w,
+				"height" => $target_h,
+				"file" => $stored_path,
+				"created_at" => date("Y-m-d H:i:s"),
+			];
+			SQL::update("bigtree_resources", $id, ["crops" => json_encode($crops), "last_updated" => "NOW()"]);
+
+			return Response::created([
+				"file" => $stored_path,
+				"width" => $target_w,
+				"height" => $target_h,
+				"prefix" => $name_prefix,
+			], null);
+		}
+
+		// — Allocations —
 
 		public function allocations(Request $request) {
 			$id = (int)$request->route_params["id"];
@@ -129,7 +365,136 @@
 			}, $rows));
 		}
 
+		public function allocate(Request $request) {
+			$id = (int)$request->route_params["id"];
+			if (!SQL::exists("bigtree_resources", $id)) {
+				throw new NotFoundException("Resource $id not found", "resource_not_found", 404);
+			}
+			$table = (string)$request->body["table"];
+			$entry = (string)$request->body["entry"];
+			if ($table === "" || $entry === "") {
+				throw new BadRequestException("table and entry required", "missing_fields", 400);
+			}
+
+			// Upsert: if the pair already exists, just refresh updated_at.
+			$existing = SQL::fetch(
+				"SELECT id FROM bigtree_resource_allocation WHERE `table` = ? AND entry = ? AND resource = ?",
+				$table, $entry, $id
+			);
+			if ($existing) {
+				SQL::update("bigtree_resource_allocation", $existing["id"], ["updated_at" => "NOW()"]);
+			} else {
+				SQL::insert("bigtree_resource_allocation", [
+					"table" => $table,
+					"entry" => $entry,
+					"resource" => $id,
+					"updated_at" => "NOW()",
+				]);
+			}
+			return Response::ok(["table" => $table, "entry" => $entry, "resource" => $id]);
+		}
+
+		public function deallocate(Request $request) {
+			$id = (int)$request->route_params["id"];
+			$table = (string)$request->body["table"];
+			$entry = (string)$request->body["entry"];
+			SQL::query(
+				"DELETE FROM bigtree_resource_allocation WHERE `table` = ? AND entry = ? AND resource = ?",
+				$table, $entry, $id
+			);
+			return Response::noContent();
+		}
+
 		// — helpers —
+
+		private function enforceFolder($user, $folder_id, $min, $action) {
+			if (!PermissionService::userHasFolderAccess($user, $folder_id, $min)) {
+				throw new AuthorizationException("Insufficient folder permission to $action ($min required)", "permission_denied", 403);
+			}
+		}
+
+		private function assertUploadOk(array $file) {
+			if (($file["error"] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+				throw new BadRequestException("Upload error: " . $this->uploadErrorMessage((int)$file["error"]), "upload_error", 400);
+			}
+			if (!is_uploaded_file($file["tmp_name"]) && !file_exists($file["tmp_name"])) {
+				throw new BadRequestException("Upload tmp file missing", "upload_error", 400);
+			}
+			if (($file["size"] ?? 0) <= 0) {
+				throw new BadRequestException("Empty upload", "empty_upload", 400);
+			}
+			if (($file["size"] ?? 0) > self::UPLOAD_MAX_BYTES) {
+				throw new BadRequestException("File too large", "file_too_large", 400);
+			}
+		}
+
+		private function uploadErrorMessage($code) {
+			switch ($code) {
+				case UPLOAD_ERR_INI_SIZE:
+				case UPLOAD_ERR_FORM_SIZE: return "File exceeds size limit (" . ini_get("upload_max_filesize") . ")";
+				case UPLOAD_ERR_PARTIAL: return "Upload was interrupted";
+				case UPLOAD_ERR_NO_FILE: return "No file sent";
+				case UPLOAD_ERR_NO_TMP_DIR: return "Server is missing tmp dir";
+				case UPLOAD_ERR_CANT_WRITE: return "Server could not write the upload";
+				case UPLOAD_ERR_EXTENSION: return "Upload blocked by a PHP extension";
+				default: return "Unknown upload error ($code)";
+			}
+		}
+
+		private function detectMime($tmp_path, $declared, $name) {
+			if (function_exists("mime_content_type")) {
+				$m = @mime_content_type($tmp_path);
+				if ($m) return $m;
+			}
+			if (is_string($declared) && $declared !== "") return $declared;
+			$ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+			$map = [
+				"jpg" => "image/jpeg", "jpeg" => "image/jpeg", "png" => "image/png",
+				"gif" => "image/gif", "webp" => "image/webp", "svg" => "image/svg+xml",
+				"pdf" => "application/pdf", "mp4" => "video/mp4", "webm" => "video/webm",
+			];
+			return $map[$ext] ?? "application/octet-stream";
+		}
+
+		private function decodeSettings($raw) {
+			if (is_array($raw)) return $raw;
+			if (is_string($raw) && $raw !== "") {
+				$d = json_decode($raw, true);
+				if (is_array($d)) return $d;
+			}
+			return [];
+		}
+
+		private function shouldProcessAsImage(array $settings) {
+			return !empty($settings["preset"])
+				|| !empty($settings["crops"])
+				|| !empty($settings["thumbs"])
+				|| !empty($settings["center_crops"])
+				|| !empty($settings["min_width"]) || !empty($settings["min_height"]);
+		}
+
+		private function insertResource(array $data) {
+			$data["date"] = date("Y-m-d H:i:s");
+			// Encode JSON columns
+			foreach (["crops", "thumbs", "video_data", "metadata"] as $k) {
+				if (is_array($data[$k] ?? null)) $data[$k] = json_encode($data[$k]);
+			}
+			return (int)SQL::insert("bigtree_resources", $data);
+		}
+
+		private function isAncestor($candidate_ancestor_id, $candidate_descendant_id) {
+			$current = (int)$candidate_descendant_id;
+			$seen = [];
+			while ($current > 0) {
+				if ($current === (int)$candidate_ancestor_id) return true;
+				if (isset($seen[$current])) return false;
+				$seen[$current] = true;
+				$row = SQL::fetch("SELECT parent FROM bigtree_resource_folders WHERE id = ?", $current);
+				if (!$row) return false;
+				$current = (int)$row["parent"];
+			}
+			return false;
+		}
 
 		private function folderBreadcrumb($folder_id) {
 			$out = [];
