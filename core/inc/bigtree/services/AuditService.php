@@ -1,0 +1,87 @@
+<?php
+	namespace BigTree\Services;
+
+	use BigTree\Api\Pagination;
+	use BigTree\Api\Request;
+	use BigTree\Api\Response;
+	use BigTree;
+	use SQL;
+
+	/**
+	 * Audit trail. Writes go through write(), reads through list().
+	 * Uses the existing bigtree_audit_trail schema unchanged; extra request context
+	 * lives in the sibling bigtree_audit_trail_context table.
+	 */
+	class AuditService {
+		public static function write($table, $entry, $type, $user_id, array $context = []) {
+			if (!$user_id || $table === "") return null;
+
+			$audit_id = (int)SQL::insert("bigtree_audit_trail", [
+				"table" => BigTree::safeEncode($table),
+				"user" => (int)$user_id,
+				"entry" => BigTree::safeEncode((string)$entry),
+				"date" => "NOW()",
+				"type" => BigTree::safeEncode($type),
+			]);
+
+			if ($audit_id && $context) {
+				SQL::insert("bigtree_audit_trail_context", [
+					"audit_id" => $audit_id,
+					"ip" => substr((string)($context["ip"] ?? ""), 0, 45),
+					"user_agent" => substr((string)($context["user_agent"] ?? ""), 0, 255),
+					"request_id" => substr((string)($context["request_id"] ?? ""), 0, 32),
+					"method" => substr((string)($context["method"] ?? ""), 0, 8),
+					"path" => substr((string)($context["path"] ?? ""), 0, 255),
+				]);
+			}
+
+			return $audit_id;
+		}
+
+		public function list(Request $request) {
+			$p = Pagination::offset($request, 100);
+			$include_context = !empty($request->query["include"]) && strpos((string)$request->query["include"], "context") !== false;
+
+			$where = [];
+			$args = [];
+			if (!empty($request->query["user"])) { $where[] = "a.user = ?"; $args[] = (int)$request->query["user"]; }
+			if (!empty($request->query["table"])) { $where[] = "a.`table` = ?"; $args[] = $request->query["table"]; }
+			if (!empty($request->query["entry"])) { $where[] = "a.entry = ?"; $args[] = $request->query["entry"]; }
+			if (!empty($request->query["start"])) { $where[] = "a.date >= ?"; $args[] = $request->query["start"]; }
+			if (!empty($request->query["end"])) { $where[] = "a.date <= ?"; $args[] = $request->query["end"]; }
+
+			$sql_where = $where ? " WHERE " . implode(" AND ", $where) : "";
+
+			$total = (int)SQL::fetchSingle(...array_merge(["SELECT COUNT(*) FROM bigtree_audit_trail a" . $sql_where], $args));
+
+			$select = $include_context
+				? "SELECT a.*, c.ip, c.user_agent, c.request_id, c.method, c.path FROM bigtree_audit_trail a LEFT JOIN bigtree_audit_trail_context c ON c.audit_id = a.id"
+				: "SELECT a.* FROM bigtree_audit_trail a";
+
+			$query = $select . $sql_where . " ORDER BY a.date DESC, a.id DESC LIMIT " . (int)$p["limit"] . " OFFSET " . (int)$p["offset"];
+			$rows = SQL::fetchAll(...array_merge([$query], $args));
+
+			$items = array_map(function ($r) use ($include_context) {
+				$out = [
+					"id" => (int)$r["id"],
+					"user" => (int)$r["user"],
+					"table" => $r["table"],
+					"entry" => $r["entry"],
+					"type" => $r["type"],
+					"date" => $r["date"],
+				];
+				if ($include_context) {
+					$out["context"] = [
+						"ip" => $r["ip"] ?? null,
+						"user_agent" => $r["user_agent"] ?? null,
+						"request_id" => $r["request_id"] ?? null,
+						"method" => $r["method"] ?? null,
+						"path" => $r["path"] ?? null,
+					];
+				}
+				return $out;
+			}, $rows);
+
+			return Response::ok($items, Pagination::offsetMeta($p["page"], $p["per_page"], $total));
+		}
+	}

@@ -151,6 +151,25 @@
 
 	spl_autoload_register("BigTree::classAutoLoader");
 
+	// PSR-4-style autoloader for the REST API (BigTree\Api\*) and domain services (BigTree\Services\*).
+	// Resolves with the custom-then-core override pattern via BigTree::path().
+	spl_autoload_register(function ($class) {
+		static $namespaces = [
+			"BigTree\\Api\\" => "inc/bigtree/api/",
+			"BigTree\\Services\\" => "inc/bigtree/services/",
+		];
+		foreach ($namespaces as $prefix => $base_dir) {
+			if (strncmp($class, $prefix, strlen($prefix)) !== 0) continue;
+			$relative = substr($class, strlen($prefix));
+			$path = $base_dir . str_replace("\\", "/", $relative) . ".php";
+			$resolved = BigTree::path($path);
+			if (file_exists($resolved)) {
+				include_once $resolved;
+				return;
+			}
+		}
+	});
+
 	// Load Up BigTree!
 	include BigTree::path("inc/bigtree/cms.php");
 	if (defined("BIGTREE_CUSTOM_BASE_CLASS") && BIGTREE_CUSTOM_BASE_CLASS) {
