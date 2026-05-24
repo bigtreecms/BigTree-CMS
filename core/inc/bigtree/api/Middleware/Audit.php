@@ -19,15 +19,26 @@
 	class Audit {
 		public function after(Request $request, Response $response) {
 			$decl = $request->route["audit"] ?? null;
-			if (!is_array($decl)) return;
-			if ($response->status < 200 || $response->status >= 300) return;
-			if (!$request->user) return;
+
+			if (!is_array($decl)) {
+				return;
+			}
+
+			if ($response->status < 200 || $response->status >= 300) {
+				return;
+			}
+
+			if (!$request->user) {
+				return;
+			}
 
 			$entry = $decl["entry"] ?? "%id%";
+
 			if (is_string($entry) && preg_match('/^%(\w+)%$/', $entry, $m)) {
 				$name = $m[1];
 				$entry = $request->route_params[$name]
 					?? ($request->body[$name] ?? null);
+
 				if ($entry === null && is_array($response->body) && isset($response->body["data"][$name])) {
 					$entry = $response->body["data"][$name];
 				}

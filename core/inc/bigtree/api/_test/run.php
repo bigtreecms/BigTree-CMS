@@ -14,6 +14,7 @@
 	require __DIR__ . "/TestCase.php";
 
 	$files = glob(__DIR__ . "/*Test.php");
+
 	if (!$files) {
 		echo "No tests found.\n";
 		exit(0);
@@ -25,10 +26,12 @@
 	}
 
 	$functions = get_defined_functions()["user"];
+
 	foreach ($functions as $fn) {
 		if (strpos($fn, "test_") === 0) {
 			T::$current = $fn;
 			echo "\n— $fn —\n";
+
 			try { $fn(); }
 			catch (Throwable $e) {
 				echo "  ! " . $e->getMessage() . "\n";

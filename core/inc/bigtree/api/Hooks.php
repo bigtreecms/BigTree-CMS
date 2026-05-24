@@ -31,21 +31,30 @@
 
 		public static function run($type, $context = "", $data = "", array $data_context = []) {
 			$registry = self::loadRegistry();
-			if (!$registry) return $data;
+
+			if (!$registry) {
+				return $data;
+			}
 
 			$bucket = null;
+
 			if ($context !== "" && isset($registry[$type][$context]) && is_array($registry[$type][$context])) {
 				$bucket = $registry[$type][$context];
 			} elseif ($context === "" && isset($registry[$type]) && is_array($registry[$type])) {
 				$bucket = $registry[$type];
 			}
-			if (!$bucket) return $data;
+
+			if (!$bucket) {
+				return $data;
+			}
 
 			$invoker = function ($hook_path, $data, $data_context) {
 				foreach ($data_context as $key => $value) {
 					$$key = $value;
 				}
+
 				include SERVER_ROOT . $hook_path;
+
 				return $data;
 			};
 
@@ -64,6 +73,7 @@
 		 * hooks are registered for the event).
 		 */
 		public static function fire($event, $data = null, array $data_context = []) {
+
 			return self::run("api." . $event, "", $data, $data_context);
 		}
 
@@ -73,19 +83,25 @@
 		}
 
 		private static function loadRegistry() {
-			if (self::$cache !== null) return self::$cache;
+			if (self::$cache !== null) {
+				return self::$cache;
+			}
 			$path = SERVER_ROOT . self::CACHE_FILE;
+
 			if (!file_exists($path)) {
 				// Don't auto-build here — the legacy admin builds this cache via
 				// BigTreeAdmin::cacheHooks() and we'd need its $this context. If
 				// the cache is missing, no hooks fire (and that's acceptable for
 				// API requests on a freshly-installed site).
 				self::$cache = [];
+
 				return [];
 			}
+
 			$raw = file_get_contents($path);
 			$decoded = json_decode($raw, true);
 			self::$cache = is_array($decoded) ? $decoded : [];
+
 			return self::$cache;
 		}
 	}

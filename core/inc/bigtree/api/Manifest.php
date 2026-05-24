@@ -7,7 +7,9 @@
 		private static $routes = null;
 
 		public static function load() {
-			if (self::$routes !== null) return self::$routes;
+			if (self::$routes !== null) {
+				return self::$routes;
+			}
 
 			$sources = self::sourceFiles();
 			$cache_path = SERVER_ROOT . self::CACHE_FILE;
@@ -16,16 +18,23 @@
 
 			if (file_exists($cache_path) && file_exists($cache_meta_path) && trim(file_get_contents($cache_meta_path)) === $current_mtime_signature) {
 				self::$routes = json_decode(file_get_contents($cache_path), true);
+
 				if (is_array(self::$routes)) {
 					// Restore callable arrays — JSON loses class string identity but ours are already strings.
+
 					return self::$routes;
 				}
 			}
 
 			$merged = [];
+
 			foreach ($sources as $file) {
 				$set = include $file;
-				if (!is_array($set)) continue;
+
+				if (!is_array($set)) {
+					continue;
+				}
+
 				foreach ($set as $key => $route) {
 					if ($route === false) {
 						unset($merged[$key]);
@@ -54,12 +63,15 @@
 			$files = [];
 
 			$core_dir = SERVER_ROOT . "core/inc/bigtree/api/routes/";
+
 			foreach (glob($core_dir . "*.php") ?: [] as $f) $files[] = $f;
 
 			$ext_dir = SERVER_ROOT . "extensions/";
+
 			foreach (glob($ext_dir . "*/api/routes/*.php") ?: [] as $f) $files[] = $f;
 
 			$custom_dir = SERVER_ROOT . "custom/inc/bigtree/api/routes/";
+
 			foreach (glob($custom_dir . "*.php") ?: [] as $f) $files[] = $f;
 
 			return $files;
@@ -67,6 +79,7 @@
 
 		private static function mtimeSignature(array $files) {
 			$sig = [];
+
 			foreach ($files as $f) $sig[] = $f . ":" . @filemtime($f);
 			return md5(implode("|", $sig));
 		}

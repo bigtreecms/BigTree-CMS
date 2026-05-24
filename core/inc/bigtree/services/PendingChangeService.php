@@ -36,6 +36,7 @@
 			], $args));
 
 			$items = array_map(function ($r) {
+
 				return [
 					"id" => (int)$r["id"],
 					"user" => (int)$r["user"],
@@ -55,7 +56,10 @@
 		public function get(Request $request) {
 			$id = (int)$request->route_params["id"];
 			$row = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $id);
-			if (!$row) throw new NotFoundException("Pending change $id not found", "resource_not_found", 404);
+
+			if (!$row) {
+				throw new NotFoundException("Pending change $id not found", "resource_not_found", 404);
+			}
 			$this->enforceVisibility($request->user, $row);
 
 			$row["changes"] = json_decode($row["changes"] ?: "[]", true);
@@ -64,13 +68,17 @@
 			$row["open_graph_changes"] = json_decode($row["open_graph_changes"] ?: "[]", true);
 			$row["id"] = (int)$row["id"];
 			$row["user"] = (int)$row["user"];
+
 			return Response::ok($row);
 		}
 
 		public function approve(Request $request) {
 			$id = (int)$request->route_params["id"];
 			$row = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $id);
-			if (!$row) throw new NotFoundException("Pending change $id not found", "resource_not_found", 404);
+
+			if (!$row) {
+				throw new NotFoundException("Pending change $id not found", "resource_not_found", 404);
+			}
 			$this->enforcePublisher($request->user, $row);
 
 			// Pages: out of scope for v1 SPA approval flow (PageService handles when migrated).
@@ -80,6 +88,7 @@
 
 			// Module entries
 			$module = $row["module"] ? BigTreeJSONDB::get("modules", $row["module"]) : null;
+
 			if (!$module) {
 				throw new BadRequestException("Cannot resolve module for this change", "module_unresolved", 400);
 			}
@@ -99,27 +108,44 @@
 		public function reject(Request $request) {
 			$id = (int)$request->route_params["id"];
 			$row = SQL::fetch("SELECT * FROM bigtree_pending_changes WHERE id = ?", $id);
-			if (!$row) throw new NotFoundException("Pending change $id not found", "resource_not_found", 404);
+
+			if (!$row) {
+				throw new NotFoundException("Pending change $id not found", "resource_not_found", 404);
+			}
 			$this->enforcePublisher($request->user, $row);
 
 			SQL::delete("bigtree_pending_changes", $id);
+
 			return Response::noContent();
 		}
 
 		// — helpers —
 
 		private function enforceVisibility($user, array $row) {
-			if ((int)$user->level >= 1) return;
-			if ((int)$row["user"] === (int)$user->id) return;
+			if ((int)$user->level >= 1) {
+				return;
+			}
+
+			if ((int)$row["user"] === (int)$user->id) {
+				return;
+			}
+
 			// Editors can see changes for items they have at least view access to.
-			if ($row["module"] && PermissionService::userHasModuleAccess($user, $row["module"], "v")) return;
+			if ($row["module"] && PermissionService::userHasModuleAccess($user, $row["module"], "v")) {
+				return;
+			}
 			throw new AuthorizationException("Not your pending change", "permission_denied", 403);
 		}
 
 		private function enforcePublisher($user, array $row) {
-			if ((int)$user->level >= 1) return;
+			if ((int)$user->level >= 1) {
+				return;
+			}
 			$module = $row["module"];
-			if ($module && PermissionService::userHasModuleAccess($user, $module, "p")) return;
+
+			if ($module && PermissionService::userHasModuleAccess($user, $module, "p")) {
+				return;
+			}
 			throw new AuthorizationException("Publisher access required", "permission_denied", 403);
 		}
 	}

@@ -20,6 +20,7 @@
 			$me = (int)$request->user->id;
 
 			$row = SQL::fetch("SELECT * FROM bigtree_locks WHERE `table` = ? AND item_id = ?", $table, $item_id);
+
 			if ($row && (int)$row["user"] !== $me && strtotime($row["last_accessed"]) > (time() - self::STALE_SECONDS)) {
 				$holder = SQL::fetch("SELECT id, name, email FROM bigtree_users WHERE id = ?", $row["user"]);
 				$conflict = new ConflictException("Locked by another user", "lock_held", 409);
@@ -48,19 +49,24 @@
 		public function refresh(Request $request) {
 			$lock_id = (int)$request->route_params["id"];
 			$row = SQL::fetch("SELECT * FROM bigtree_locks WHERE id = ?", $lock_id);
+
 			if (!$row || (int)$row["user"] !== (int)$request->user->id) {
 				throw new ConflictException("Lock not held by you", "lock_not_held", 409);
 			}
+
 			SQL::update("bigtree_locks", $lock_id, ["last_accessed" => "NOW()"]);
+
 			return Response::ok(["lock_id" => $lock_id, "expires_at" => date("c", time() + self::STALE_SECONDS)]);
 		}
 
 		public function release(Request $request) {
 			$lock_id = (int)$request->route_params["id"];
 			$row = SQL::fetch("SELECT * FROM bigtree_locks WHERE id = ?", $lock_id);
+
 			if ($row && (int)$row["user"] === (int)$request->user->id) {
 				SQL::delete("bigtree_locks", $lock_id);
 			}
+
 			return Response::noContent();
 		}
 	}

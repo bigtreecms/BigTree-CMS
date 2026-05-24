@@ -43,6 +43,7 @@
 
 			$r = Response::ok($data);
 			$r->header("Cache-Control", "private, max-age=15");
+
 			return $r;
 		}
 
@@ -54,7 +55,10 @@
 
 			foreach ($alerts as $page_id => $days_threshold) {
 				$days_threshold = (int)$days_threshold;
-				if ($days_threshold <= 0) continue;
+
+				if ($days_threshold <= 0) {
+					continue;
+				}
 				$row = SQL::fetch(
 					"SELECT id, nav_title, path, updated_at,
 					        DATEDIFF(NOW(), updated_at) AS age_days
@@ -62,6 +66,7 @@
 					 WHERE id = ? AND DATEDIFF(NOW(), updated_at) >= ?",
 					(int)$page_id, $days_threshold
 				);
+
 				if ($row) {
 					$out[] = [
 						"page_id" => (int)$row["id"],
@@ -78,6 +83,7 @@
 		}
 
 		public function integrity(Request $request) {
+
 			return Response::ok($this->integrityStats(true));
 		}
 
@@ -90,6 +96,7 @@
 				"%|$me_id|%", "%|$me_id|%"
 			);
 			$total_in = (int)SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_messages WHERE recipients LIKE ?", "%|$me_id|%");
+
 			return ["unread" => $unread, "total_in" => $total_in];
 		}
 
@@ -115,7 +122,9 @@
 				 WHERE user = ? ORDER BY date DESC, id DESC LIMIT ?",
 				$me_id, (int)$limit
 			);
+
 			return array_map(function ($r) {
+
 				return [
 					"id" => (int)$r["id"],
 					"table" => $r["table"],
@@ -127,6 +136,7 @@
 		}
 
 		private function fourOhFourStats() {
+
 			return [
 				"unresolved" => (int)SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE redirect_url = '' AND ignored = ''"),
 				"redirects" => (int)SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE redirect_url != '' AND ignored = ''"),
@@ -148,6 +158,7 @@
 			$valid_ids = array_flip(array_column($templates, "id"));
 			$missing = SQL::fetchAll("SELECT id, template FROM bigtree_pages WHERE template != ''");
 			$broken_pages = [];
+
 			foreach ($missing as $row) {
 				if (!isset($valid_ids[$row["template"]])) {
 					$broken_pages[] = ["id" => (int)$row["id"], "template" => $row["template"]];

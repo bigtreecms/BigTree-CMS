@@ -15,10 +15,12 @@
 				if ($expects_multipart && !$is_multipart) {
 					throw new BadRequestException("Expected multipart/form-data", "expected_multipart", 400);
 				}
+
 				if (!$expects_multipart && !$is_json) {
 					throw new BadRequestException("Expected Content-Type: application/json", "expected_json", 400);
 				}
 			}
+
 			return $next($request);
 		}
 	}

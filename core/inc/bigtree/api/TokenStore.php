@@ -18,6 +18,7 @@
 
 		public static function issueFamily($user_id, $ip, $user_agent) {
 			$family_id = bin2hex(random_bytes(16));
+
 			return self::issue($user_id, $family_id, $ip, $user_agent);
 		}
 
@@ -76,9 +77,12 @@
 		}
 
 		public static function revokeByRaw($raw) {
-			if (!is_string($raw) || $raw === "") return false;
+			if (!is_string($raw) || $raw === "") {
+				return false;
+			}
 			$hash = hash("sha256", $raw);
 			SQL::query("UPDATE bigtree_refresh_tokens SET revoked = 1 WHERE token_hash = ?", $hash);
+
 			return true;
 		}
 
@@ -95,6 +99,7 @@
 		}
 
 		public static function cookieOptions() {
+
 			return [
 				"expires" => time() + self::TTL_SECONDS,
 				"path" => rtrim(ADMIN_ROOT, "/") . "/api/v1/auth",
@@ -105,6 +110,7 @@
 		}
 
 		public static function clearCookieOptions() {
+
 			return [
 				"expires" => time() - 3600,
 				"path" => rtrim(ADMIN_ROOT, "/") . "/api/v1/auth",
@@ -115,6 +121,7 @@
 		}
 
 		private static function randomToken() {
+
 			return Jwt::base64url(random_bytes(32));
 		}
 	}

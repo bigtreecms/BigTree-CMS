@@ -22,6 +22,7 @@
 
 			$where = "";
 			$args = [];
+
 			if ($folder === "sent") {
 				$where = "sender = ?";
 				$args = [$me];
@@ -46,12 +47,14 @@
 				"SELECT COUNT(*) FROM bigtree_messages WHERE recipients LIKE ? AND (read_by NOT LIKE ? OR read_by IS NULL)",
 				"%|$me|%", "%|$me|%"
 			);
+
 			return Response::ok(["unread" => $count]);
 		}
 
 		public function get(Request $request) {
 			$id = (int)$request->route_params["id"];
 			$message = $this->loadAccessible($id, $request->user);
+
 			return Response::ok($this->present($message));
 		}
 
@@ -62,7 +65,10 @@
 			$message = preg_replace('/href="javascript:[^"]+"/', '', $message);
 			$message = str_replace(['href=javascript:', 'onclick='], '', $message);
 			$recipients = array_map("intval", (array)($d["recipients"] ?? []));
-			if (!$recipients) throw new BadRequestException("recipients required", "missing_recipients", 400);
+
+			if (!$recipients) {
+				throw new BadRequestException("recipients required", "missing_recipients", 400);
+			}
 
 			$send_to = "|" . implode("|", array_filter($recipients)) . "|";
 			$in_response_to = (int)($d["in_response_to"] ?? 0);
@@ -75,6 +81,7 @@
 				"date" => "NOW()",
 				"response_to" => $in_response_to,
 			]);
+
 			return Response::created($this->present(SQL::fetch("SELECT * FROM bigtree_messages WHERE id = ?", $id)), null);
 		}
 
@@ -83,10 +90,12 @@
 			$message = $this->loadAccessible($id, $request->user);
 			$me = (int)$request->user->id;
 			$read_by = $message["read_by"] ?? "";
+
 			if (strpos($read_by, "|$me|") === false) {
 				$read_by = ($read_by ?: "|") . "$me|";
 				SQL::update("bigtree_messages", $id, ["read_by" => $read_by]);
 			}
+
 			return Response::noContent();
 		}
 
@@ -94,15 +103,21 @@
 
 		private function loadAccessible($id, $user) {
 			$row = SQL::fetch("SELECT * FROM bigtree_messages WHERE id = ?", $id);
-			if (!$row) throw new NotFoundException("Message $id not found", "resource_not_found", 404);
+
+			if (!$row) {
+				throw new NotFoundException("Message $id not found", "resource_not_found", 404);
+			}
 			$me = (int)$user->id;
+
 			if ((int)$row["sender"] !== $me && strpos($row["recipients"] ?? "", "|$me|") === false) {
 				throw new AuthorizationException("Not your message", "permission_denied", 403);
 			}
+
 			return $row;
 		}
 
 		private function present(array $r) {
+
 			return [
 				"id" => (int)$r["id"],
 				"sender" => (int)$r["sender"],

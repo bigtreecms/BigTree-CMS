@@ -26,7 +26,10 @@
 			$module = $this->loadModule($module_id);
 			$view_id = (int)($request->query["view"] ?? 0);
 			$view = $view_id ? BigTreeAutoModule::getView($view_id) : BigTreeAutoModule::getViewForTable($module["table"]);
-			if (!$view) throw new NotFoundException("No view defined for module $module_id", "no_view", 404);
+
+			if (!$view) {
+				throw new NotFoundException("No view defined for module $module_id", "no_view", 404);
+			}
 
 			$page = (int)($request->query["page"] ?? 1);
 			$query = (string)($request->query["q"] ?? "");
@@ -35,6 +38,7 @@
 			$results = BigTreeAutoModule::getSearchResults($view, $page, $query, $sort, false);
 
 			$results["results"] = array_filter($results["results"] ?? [], function ($row) use ($request, $module) {
+
 				return PermissionService::userRowLevel($request->user, $module, $row) !== "n";
 			});
 
@@ -55,7 +59,10 @@
 			$module = $this->loadModule($module_id);
 
 			$pending = BigTreeAutoModule::getPendingItem($module["table"], $entry_id);
-			if (!$pending) throw new NotFoundException("Entry $entry_id not found", "resource_not_found", 404);
+
+			if (!$pending) {
+				throw new NotFoundException("Entry $entry_id not found", "resource_not_found", 404);
+			}
 
 			if (PermissionService::userRowLevel($request->user, $module, $pending["item"] ?? []) === "n") {
 				throw new AuthorizationException("Row access denied by group permissions", "permission_denied", 403);
@@ -82,6 +89,7 @@
 				Hooks::fire("module_entry.created", [
 					"module" => $module_id, "table" => $module["table"], "id" => (int)$id, "item" => $item["item"] ?? $item,
 				], ["user_id" => $request->user->id]);
+
 				return Response::created($item["item"] ?? $item, null);
 			}
 
@@ -95,6 +103,7 @@
 			Hooks::fire("module_entry.pending_created", [
 				"module" => $module_id, "table" => $module["table"], "pending_id" => (int)$pending_id,
 			], ["user_id" => $request->user->id]);
+
 			return Response::created(["pending_id" => $pending_id, "pending" => true], null);
 		}
 
@@ -104,7 +113,10 @@
 			$module = $this->loadModule($module_id);
 
 			$existing = BigTreeAutoModule::getPendingItem($module["table"], $entry_id);
-			if (!$existing) throw new NotFoundException("Entry $entry_id not found", "resource_not_found", 404);
+
+			if (!$existing) {
+				throw new NotFoundException("Entry $entry_id not found", "resource_not_found", 404);
+			}
 
 			if (PermissionService::userRowLevel($request->user, $module, $existing["item"] ?? []) === "n") {
 				throw new AuthorizationException("Row access denied by group permissions", "permission_denied", 403);
@@ -117,12 +129,14 @@
 			unset($data["__mtm__"], $data["__tags__"], $data["__open_graph__"]);
 
 			$user_level = PermissionService::userModuleLevel($request->user, $module_id);
+
 			if ($user_level === "p" || ((int)$request->user->level) > 0) {
 				BigTreeAutoModule::updateItem($module["table"], $entry_id, $data, $mtm, $tags, $og);
 				$fresh = BigTreeAutoModule::getItem($module["table"], $entry_id);
 				Hooks::fire("module_entry.updated", [
 					"module" => $module_id, "table" => $module["table"], "id" => $entry_id, "item" => $fresh["item"] ?? $fresh,
 				], ["user_id" => $request->user->id]);
+
 				return Response::ok($fresh);
 			}
 
@@ -130,6 +144,7 @@
 			Hooks::fire("module_entry.pending_updated", [
 				"module" => $module_id, "table" => $module["table"], "id" => $entry_id,
 			], ["user_id" => $request->user->id]);
+
 			return Response::ok(["pending" => true]);
 		}
 
@@ -139,7 +154,10 @@
 			$module = $this->loadModule($module_id);
 
 			$existing = BigTreeAutoModule::getPendingItem($module["table"], $entry_id);
-			if (!$existing) throw new NotFoundException("Entry $entry_id not found", "resource_not_found", 404);
+
+			if (!$existing) {
+				throw new NotFoundException("Entry $entry_id not found", "resource_not_found", 404);
+			}
 
 			if (PermissionService::userRowLevel($request->user, $module, $existing["item"] ?? []) === "n") {
 				throw new AuthorizationException("Row access denied by group permissions", "permission_denied", 403);
@@ -149,6 +167,7 @@
 			Hooks::fire("module_entry.deleted", [
 				"module" => $module_id, "table" => $module["table"], "id" => $entry_id,
 			], ["user_id" => $request->user->id]);
+
 			return Response::noContent();
 		}
 
@@ -157,9 +176,11 @@
 			$module = $this->loadModule($module_id);
 			$ids = array_map("intval", (array)$request->body["ids"]);
 			$pos = count($ids);
+
 			foreach ($ids as $id) {
 				SQL::update($module["table"], $id, ["position" => $pos--]);
 			}
+
 			return Response::noContent();
 		}
 
@@ -167,8 +188,14 @@
 
 		private function loadModule($id) {
 			$m = BigTreeJSONDB::get("modules", $id);
-			if (!$m) throw new NotFoundException("Module $id not found", "resource_not_found", 404);
-			if (empty($m["table"])) throw new BadRequestException("Module has no table configured", "no_table", 400);
+
+			if (!$m) {
+				throw new NotFoundException("Module $id not found", "resource_not_found", 404);
+			}
+
+			if (empty($m["table"])) {
+				throw new BadRequestException("Module has no table configured", "no_table", 400);
+			}
 			return $m;
 		}
 	}

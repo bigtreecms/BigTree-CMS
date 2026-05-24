@@ -28,17 +28,22 @@
 					$conds[] = "redirect_url = ''";
 					$conds[] = "ignored = ''";
 					break;
+
 				case "301":
 					$conds[] = "redirect_url != ''";
 					$conds[] = "ignored = ''";
 					break;
+
 				case "ignored":
 					$conds[] = "ignored = 'on'";
 					break;
+
 				default:
 					throw new BadRequestException("type must be 404, 301 or ignored", "bad_type", 400);
 			}
+
 			if ($site_key !== null) { $conds[] = "site_key = ?"; $args[] = $site_key; }
+
 			if ($q !== "") {
 				$conds[] = "(broken_url LIKE ? OR redirect_url LIKE ?)";
 				$like = "%" . str_replace("%", "\\%", $q) . "%";
@@ -69,33 +74,43 @@
 				"ignored" => "",
 				"site_key" => $site_key,
 			]);
+
 			return Response::created($this->present(SQL::fetch("SELECT * FROM bigtree_404s WHERE id = ?", $id)), null);
 		}
 
 		public function delete(Request $request) {
 			$id = (int)$request->route_params["id"];
+
 			if (!SQL::exists("bigtree_404s", $id)) {
 				throw new NotFoundException("404 $id not found", "resource_not_found", 404);
 			}
+
 			SQL::delete("bigtree_404s", $id);
+
 			return Response::noContent();
 		}
 
 		public function setRedirect(Request $request) {
 			$id = (int)$request->route_params["id"];
+
 			if (!SQL::exists("bigtree_404s", $id)) {
 				throw new NotFoundException("404 $id not found", "resource_not_found", 404);
 			}
+
 			SQL::update("bigtree_404s", $id, ["redirect_url" => (string)$request->body["url"], "ignored" => ""]);
+
 			return Response::ok($this->present(SQL::fetch("SELECT * FROM bigtree_404s WHERE id = ?", $id)));
 		}
 
 		public function ignore(Request $request) {
 			$id = (int)$request->route_params["id"];
+
 			if (!SQL::exists("bigtree_404s", $id)) {
 				throw new NotFoundException("404 $id not found", "resource_not_found", 404);
 			}
+
 			SQL::update("bigtree_404s", $id, ["ignored" => "on"]);
+
 			return Response::noContent();
 		}
 
@@ -105,18 +120,24 @@
 			$count = (int)SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = '' AND redirect_url = ''");
 			SQL::query("DELETE FROM bigtree_404s WHERE ignored = '' AND redirect_url = '' AND requests < 5");
 			$now = (int)SQL::fetchSingle("SELECT COUNT(*) FROM bigtree_404s WHERE ignored = '' AND redirect_url = ''");
+
 			return Response::ok(["before" => $count, "after" => $now, "deleted" => $count - $now]);
 		}
 
 		public function bulkDelete(Request $request) {
 			$ids = array_map("intval", (array)$request->body["ids"]);
-			if (!$ids) return Response::noContent();
+
+			if (!$ids) {
+				return Response::noContent();
+			}
 			$placeholders = implode(",", array_fill(0, count($ids), "?"));
 			SQL::query(...array_merge(["DELETE FROM bigtree_404s WHERE id IN ($placeholders)"], $ids));
+
 			return Response::noContent();
 		}
 
 		private function present(array $r) {
+
 			return [
 				"id" => (int)$r["id"],
 				"broken_url" => $r["broken_url"],

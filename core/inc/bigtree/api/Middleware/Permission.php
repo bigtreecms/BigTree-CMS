@@ -41,6 +41,7 @@
 					try { $this->enforce($sub, $request); return; }
 					catch (AuthorizationException $e) { /* try next */ }
 				}
+
 				throw new AuthorizationException("None of the alternative permissions matched", "permission_denied", 403);
 			}
 
@@ -48,43 +49,57 @@
 				if ($request->user->level < (int)$decl["level"]) {
 					throw new AuthorizationException("Requires level " . (int)$decl["level"], "permission_denied", 403);
 				}
+
 				return;
 			}
 
 			if (isset($decl["self"])) {
 				$param = $decl["self"];
 				$target = $request->route_params[$param] ?? ($request->body[$param] ?? null);
-				if ($target !== null && (int)$target === (int)$request->user->id) return;
-				if ($request->user->level >= 1) return;
+
+				if ($target !== null && (int)$target === (int)$request->user->id) {
+					return;
+				}
+
+				if ($request->user->level >= 1) {
+					return;
+				}
 				throw new AuthorizationException("Must be the same user or an admin", "permission_denied", 403);
 			}
 
 			if (isset($decl["module"])) {
 				$module = $this->resolveParam($decl["module"], $request);
 				$min = $decl["min"] ?? "v";
+
 				if (!PermissionService::userHasModuleAccess($request->user, $module, $min)) {
 					throw new AuthorizationException("Module access insufficient", "permission_denied", 403);
 				}
+
 				return;
 			}
 
 			if (isset($decl["page"])) {
 				$page_id = (int)$this->resolveParam($decl["page"], $request);
 				$min = $decl["min"] ?? "v";
+
 				if (!PermissionService::userHasPageAccess($request->user, $page_id, $min)) {
 					throw new AuthorizationException("Page access insufficient", "permission_denied", 403);
 				}
+
 				return;
 			}
 
 			if (isset($decl["callback"]) && is_array($decl["callback"])) {
 				[$class, $method] = $decl["callback"];
+
 				if (!class_exists($class) || !method_exists($class, $method)) {
 					throw new AuthorizationException("Permission callback missing", "permission_denied", 403);
 				}
+
 				if (!call_user_func([$class, $method], $request)) {
 					throw new AuthorizationException("Callback denied access", "permission_denied", 403);
 				}
+
 				return;
 			}
 
@@ -94,8 +109,10 @@
 		private function resolveParam($value, Request $request) {
 			if (is_string($value) && preg_match('/^%(\w+)%$/', $value, $m)) {
 				$name = $m[1];
+
 				return $request->route_params[$name] ?? ($request->body[$name] ?? ($request->query[$name] ?? null));
 			}
+
 			return $value;
 		}
 	}

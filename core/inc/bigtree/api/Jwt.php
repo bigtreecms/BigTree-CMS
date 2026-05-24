@@ -22,6 +22,7 @@
 			$p = self::base64url(json_encode($claims));
 			$signing_input = $h . "." . $p;
 			$sig = self::base64url(hash_hmac("sha256", $signing_input, $secret, true));
+
 			return $signing_input . "." . $sig;
 		}
 
@@ -49,8 +50,10 @@
 
 			$verified = false;
 			$computed = "";
+
 			foreach ($secrets as $candidate_secret) {
 				$computed = self::base64url(hash_hmac("sha256", $signing_input, $candidate_secret, true));
+
 				if (hash_equals($computed, $s64)) { $verified = true; break; }
 			}
 
@@ -73,18 +76,23 @@
 			}
 
 			$now = time();
+
 			if (!isset($claims["exp"]) || ($claims["exp"] + self::LEEWAY_SECONDS) < $now) {
 				throw new AuthenticationException("Token expired", "token_expired", 401);
 			}
+
 			if (isset($claims["nbf"]) && ($claims["nbf"] - self::LEEWAY_SECONDS) > $now) {
 				throw new AuthenticationException("Token not yet valid", "invalid_token", 401);
 			}
+
 			if (($claims["iss"] ?? null) !== $expected_iss) {
 				throw new AuthenticationException("Wrong issuer", "invalid_token", 401);
 			}
+
 			if (($claims["aud"] ?? null) !== $expected_aud) {
 				throw new AuthenticationException("Wrong audience", "invalid_token", 401);
 			}
+
 			if (!isset($claims["sub"])) {
 				throw new AuthenticationException("Missing subject", "invalid_token", 401);
 			}
@@ -93,12 +101,16 @@
 		}
 
 		public static function base64url($data) {
+
 			return rtrim(strtr(base64_encode($data), "+/", "-_"), "=");
 		}
 
 		public static function base64urlDecode($data) {
 			$pad = strlen($data) % 4;
-			if ($pad) $data .= str_repeat("=", 4 - $pad);
+
+			if ($pad) {
+				$data .= str_repeat("=", 4 - $pad);
+			}
 			return base64_decode(strtr($data, "-_", "+/"));
 		}
 
@@ -106,24 +118,30 @@
 		public static function secrets() {
 			global $bigtree;
 			$current = $bigtree["config"]["api"]["jwt_secret"] ?? "";
+
 			if ($current === "") {
 				throw new AuthenticationException("Server is missing config api.jwt_secret", "server_misconfigured", 500);
 			}
+
 			$previous = $bigtree["config"]["api"]["jwt_secret_previous"] ?? "";
+
 			return $previous !== "" ? [$current, $previous] : [$current];
 		}
 
 		public static function currentSecret() {
 			global $bigtree;
 			$s = $bigtree["config"]["api"]["jwt_secret"] ?? "";
+
 			if ($s === "") {
 				throw new AuthenticationException("Server is missing config api.jwt_secret", "server_misconfigured", 500);
 			}
+
 			return $s;
 		}
 
 		public static function permissionsHash($permissions) {
 			$normalized = is_array($permissions) ? json_encode($permissions) : (string)$permissions;
+
 			return substr(sha1($normalized), 0, 16);
 		}
 	}

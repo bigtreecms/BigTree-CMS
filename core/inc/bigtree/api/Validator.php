@@ -30,7 +30,9 @@
 				}
 
 				foreach ($rules_list as $rule) {
-					if ($rule === "required") continue;
+					if ($rule === "required") {
+						continue;
+					}
 					[$name, $arg] = array_pad(explode(":", $rule, 2), 2, null);
 					$err = self::checkRule($name, $arg, $value);
 					if ($err !== null) {
@@ -46,12 +48,16 @@
 			if (!$allow_unknown) {
 				$unknown = array_diff(array_keys($input), array_keys($rules));
 				foreach ($unknown as $k) {
-					if ($k === "__json_error__") continue;
+					if ($k === "__json_error__") {
+						continue;
+					}
 					$errors[] = ["code" => "validation_failed", "field" => $k, "message" => "Unknown field."];
 				}
 			} else {
 				foreach ($input as $k => $v) {
-					if (!isset($out[$k]) && $k !== "__json_error__") $out[$k] = $v;
+					if (!isset($out[$k]) && $k !== "__json_error__") {
+						$out[$k] = $v;
+					}
 				}
 			}
 
@@ -77,10 +83,14 @@
 				case "array":
 					return is_array($value) ? null : "Must be an array.";
 				case "min":
-					if (is_numeric($value)) return ((float)$value >= (float)$arg) ? null : "Must be at least $arg.";
+					if (is_numeric($value)) {
+						return ((float)$value >= (float)$arg) ? null : "Must be at least $arg.";
+					}
 					return (mb_strlen((string)$value) >= (int)$arg) ? null : "Must be at least $arg characters.";
 				case "max":
-					if (is_numeric($value)) return ((float)$value <= (float)$arg) ? null : "Must be at most $arg.";
+					if (is_numeric($value)) {
+						return ((float)$value <= (float)$arg) ? null : "Must be at most $arg.";
+					}
 					return (mb_strlen((string)$value) <= (int)$arg) ? null : "Must be at most $arg characters.";
 				case "in":
 				case "enum":
@@ -98,7 +108,9 @@
 				case "int":
 					return (int)$value;
 				case "bool":
-					if (is_bool($value)) return $value;
+					if (is_bool($value)) {
+						return $value;
+					}
 					return in_array($value, ["1", 1, "true", true], true);
 				default:
 					return $value;

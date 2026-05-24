@@ -27,6 +27,7 @@
 			if (ETag::check($request, $etag)) {
 				$r = Response::raw(304, []); $r->is_envelope = false; $r->body = null;
 				$r->header("ETag", $etag);
+
 				return $r;
 			}
 
@@ -36,22 +37,28 @@
 			$r = Response::ok($registry);
 			$r->header("ETag", $etag);
 			$r->header("Cache-Control", "private, max-age=300");
+
 			return $r;
 		}
 
 		public function get(Request $request) {
 			$id = (string)$request->route_params["id"];
 			$ft = BigTreeJSONDB::get("field-types", $id);
-			if (!$ft) throw new NotFoundException("Field type $id not found", "resource_not_found", 404);
+
+			if (!$ft) {
+				throw new NotFoundException("Field type $id not found", "resource_not_found", 404);
+			}
 			return Response::ok($ft);
 		}
 
 		public function create(Request $request) {
 			$d = $request->body;
 			$id = (string)$d["id"];
+
 			if (!ctype_alnum(str_replace(["-", "_"], "", $id)) || strlen($id) > 127) {
 				throw new BadRequestException("id must be alphanumeric (with - or _)", "invalid_id", 400);
 			}
+
 			if (BigTreeJSONDB::exists("field-types", $id)) {
 				throw new ConflictException("Field type $id already exists", "duplicate_id", 409);
 			}
@@ -62,13 +69,17 @@
 				"use_cases" => is_array($d["use_cases"] ?? null) ? $d["use_cases"] : [],
 				"self_draw" => !empty($d["self_draw"]) ? "on" : "",
 			]);
+
 			return Response::created(BigTreeJSONDB::get("field-types", $id), null);
 		}
 
 		public function update(Request $request) {
 			$id = (string)$request->route_params["id"];
 			$existing = BigTreeJSONDB::get("field-types", $id);
-			if (!$existing) throw new NotFoundException("Field type $id not found", "resource_not_found", 404);
+
+			if (!$existing) {
+				throw new NotFoundException("Field type $id not found", "resource_not_found", 404);
+			}
 			$d = $request->body;
 			$next = array_merge($existing, [
 				"name" => isset($d["name"]) ? BigTree::safeEncode($d["name"]) : $existing["name"],
@@ -76,15 +87,19 @@
 				"self_draw" => isset($d["self_draw"]) ? (!empty($d["self_draw"]) ? "on" : "") : ($existing["self_draw"] ?? ""),
 			]);
 			BigTreeJSONDB::update("field-types", $id, $next);
+
 			return Response::ok(BigTreeJSONDB::get("field-types", $id));
 		}
 
 		public function delete(Request $request) {
 			$id = (string)$request->route_params["id"];
+
 			if (!BigTreeJSONDB::exists("field-types", $id)) {
 				throw new NotFoundException("Field type $id not found", "resource_not_found", 404);
 			}
+
 			BigTreeJSONDB::delete("field-types", $id);
+
 			return Response::noContent();
 		}
 
@@ -103,12 +118,16 @@
 			if (isset($schemas[$id])) {
 				$r = Response::ok($schemas[$id]);
 				$r->header("Cache-Control", "private, max-age=300");
+
 				return $r;
 			}
 
 			// Fall back: custom or extension field type — registered in JSONDB.
 			$ft = BigTreeJSONDB::get("field-types", $id);
-			if (!$ft) throw new NotFoundException("Field type $id not found", "resource_not_found", 404);
+
+			if (!$ft) {
+				throw new NotFoundException("Field type $id not found", "resource_not_found", 404);
+			}
 
 			$r = Response::ok([
 				"id" => $id,
@@ -121,6 +140,7 @@
 				"render_fallback" => true,
 			]);
 			$r->header("Cache-Control", "private, max-age=60");
+
 			return $r;
 		}
 
@@ -144,6 +164,7 @@
 
 			$id = (string)$request->route_params["id"];
 			$path = $this->resolveDrawPath($id);
+
 			if (!$path) {
 				throw new NotFoundException("Field type $id has no draw template", "render_unavailable", 404);
 			}
@@ -164,12 +185,14 @@
 			];
 
 			ob_start();
+
 			try {
 				include $path;
 			} catch (\Throwable $e) {
 				ob_end_clean();
 				throw new BadRequestException("Render failed: " . $e->getMessage(), "render_error", 400);
 			}
+
 			$html = (string)ob_get_clean();
 
 			return Response::ok([
@@ -184,30 +207,47 @@
 		private function loadSchemas() {
 			$schemas = include SERVER_ROOT . "core/inc/bigtree/api/field-type-schemas.php";
 			$custom = SERVER_ROOT . "custom/inc/bigtree/api/field-type-schemas.php";
+
 			if (file_exists($custom)) {
 				$overrides = include $custom;
-				if (is_array($overrides)) $schemas = array_replace($schemas, $overrides);
+
+				if (is_array($overrides)) {
+					$schemas = array_replace($schemas, $overrides);
+				}
 			}
+
 			return is_array($schemas) ? $schemas : [];
 		}
 
 		private function resolveDrawPath($id) {
 			// Sanity: id must be a directory-safe name to prevent traversal.
-			if (!preg_match('/^[a-z0-9_-]+$/i', $id)) return null;
+			if (!preg_match('/^[a-z0-9_-]+$/i', $id)) {
+				return null;
+			}
 
 			// 1. Custom override path
 			$custom = SERVER_ROOT . "custom/admin/field-types/$id/draw.php";
-			if (file_exists($custom)) return $custom;
+
+			if (file_exists($custom)) {
+				return $custom;
+			}
 
 			// 2. Core built-in
 			$core = SERVER_ROOT . "core/admin/field-types/$id/draw.php";
-			if (file_exists($core)) return $core;
+
+			if (file_exists($core)) {
+				return $core;
+			}
 
 			// 3. Registered custom/extension type via JSONDB record
 			$ft = BigTreeJSONDB::get("field-types", $id);
+
 			if ($ft && !empty($ft["extension"])) {
 				$ext = SERVER_ROOT . "extensions/" . preg_replace('/[^a-z0-9._-]/i', '', $ft["extension"]) . "/field-types/$id/draw.php";
-				if (file_exists($ext)) return $ext;
+
+				if (file_exists($ext)) {
+					return $ext;
+				}
 			}
 
 			return null;

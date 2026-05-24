@@ -33,12 +33,20 @@
 
 			$defs = BigTreeJSONDB::getAll("settings");
 			$filtered = [];
+
 			foreach ($defs as $def) {
-				if (strpos($def["id"] ?? "", "bigtree-internal-") === 0) continue;
+				if (strpos($def["id"] ?? "", "bigtree-internal-") === 0) {
+					continue;
+				}
+
 				if ($q !== "") {
 					$hay = strtolower(($def["id"] ?? "") . " " . ($def["name"] ?? "") . " " . ($def["description"] ?? ""));
-					if (strpos($hay, strtolower($q)) === false) continue;
+
+					if (strpos($hay, strtolower($q)) === false) {
+						continue;
+					}
 				}
+
 				$filtered[] = $def;
 			}
 
@@ -47,6 +55,7 @@
 			$slice = array_slice($filtered, $p["offset"], $p["limit"]);
 
 			$items = array_map(function ($d) use ($include_encrypted) {
+
 				return $this->present($d, $include_encrypted);
 			}, $slice);
 
@@ -55,21 +64,28 @@
 
 		public function get(Request $request) {
 			$id = (string)$request->route_params["id"];
+
 			if (strpos($id, "bigtree-internal-") === 0) {
 				throw new AuthorizationException("Internal settings are not exposed via this API", "permission_denied", 403);
 			}
+
 			$include_encrypted = !empty($request->query["include_encrypted"]) && (int)$request->user->level >= 2;
 			$def = BigTreeJSONDB::get("settings", $id);
-			if (!$def) throw new NotFoundException("Setting $id not found", "resource_not_found", 404);
+
+			if (!$def) {
+				throw new NotFoundException("Setting $id not found", "resource_not_found", 404);
+			}
 			return Response::ok($this->present($def, $include_encrypted));
 		}
 
 		public function create(Request $request) {
 			$d = $request->body;
 			$id = (string)$d["id"];
+
 			if (strpos($id, "bigtree-internal-") === 0) {
 				throw new BadRequestException("Cannot create bigtree-internal- settings via API", "reserved_id", 400);
 			}
+
 			if (SQL::exists("bigtree_settings", $id) || BigTreeJSONDB::exists("settings", $id)) {
 				throw new ConflictException("Setting $id already exists", "duplicate_id", 409);
 			}
@@ -89,16 +105,22 @@
 			SQL::insert("bigtree_settings", ["id" => $id, "encrypted" => $encrypted, "value" => ""]);
 
 			$def = BigTreeJSONDB::get("settings", $id);
+
 			return Response::created($this->present($def, true), null);
 		}
 
 		public function update(Request $request) {
 			$id = (string)$request->route_params["id"];
+
 			if (strpos($id, "bigtree-internal-") === 0) {
 				throw new AuthorizationException("Internal settings cannot be modified via API", "permission_denied", 403);
 			}
+
 			$def = BigTreeJSONDB::get("settings", $id);
-			if (!$def) throw new NotFoundException("Setting $id not found", "resource_not_found", 404);
+
+			if (!$def) {
+				throw new NotFoundException("Setting $id not found", "resource_not_found", 404);
+			}
 
 			$d = $request->body;
 			$value_only = isset($d["value"]) && count(array_diff(array_keys($d), ["value"])) === 0;
@@ -107,31 +129,39 @@
 				if ((int)$request->user->level < 1) {
 					throw new AuthorizationException("Updating a value requires level:1", "permission_denied", 403);
 				}
+
 				$this->setValue($id, $def, $d["value"]);
 			} else {
 				if ((int)$request->user->level < 2) {
 					throw new AuthorizationException("Updating a setting definition requires level:2", "permission_denied", 403);
 				}
+
 				$this->updateDefinition($id, $def, $d);
+
 				if (array_key_exists("value", $d)) {
 					$this->setValue($d["id"] ?? $id, BigTreeJSONDB::get("settings", $d["id"] ?? $id), $d["value"]);
 				}
 			}
 
 			$fresh = BigTreeJSONDB::get("settings", $d["id"] ?? $id);
+
 			return Response::ok($this->present($fresh, true));
 		}
 
 		public function delete(Request $request) {
 			$id = (string)$request->route_params["id"];
+
 			if (strpos($id, "bigtree-internal-") === 0) {
 				throw new AuthorizationException("Internal settings cannot be deleted via API", "permission_denied", 403);
 			}
+
 			if (!BigTreeJSONDB::exists("settings", $id)) {
 				throw new NotFoundException("Setting $id not found", "resource_not_found", 404);
 			}
+
 			BigTreeJSONDB::delete("settings", $id);
 			SQL::delete("bigtree_settings", $id);
+
 			return Response::noContent();
 		}
 
@@ -140,6 +170,7 @@
 		private function setValue($id, array $def, $value) {
 			global $bigtree;
 			$json = json_encode($value);
+
 			if (!empty($def["encrypted"])) {
 				$key = $bigtree["config"]["settings_key"] ?? "";
 				SQL::query("UPDATE bigtree_settings SET value = AES_ENCRYPT(?, ?) WHERE id = ?", $json, $key, $id);
@@ -151,6 +182,7 @@
 		private function updateDefinition($old_id, array $existing, array $d) {
 			global $bigtree;
 			$new_id = $d["id"] ?? $old_id;
+
 			if ($new_id !== $old_id && BigTreeJSONDB::exists("settings", $new_id)) {
 				throw new ConflictException("Setting $new_id already exists", "duplicate_id", 409);
 			}
@@ -173,6 +205,7 @@
 			}
 
 			$key = $bigtree["config"]["settings_key"] ?? "";
+
 			if (!empty($existing["encrypted"]) && empty($d["encrypted"])) {
 				SQL::query("UPDATE bigtree_settings SET value = AES_DECRYPT(value, ?), encrypted = '' WHERE id = ?", $key, $new_id);
 			} elseif (empty($existing["encrypted"]) && !empty($d["encrypted"])) {
@@ -205,6 +238,7 @@
 				$out["value"] = null;
 				$out["value_omitted"] = true;
 			}
+
 			return $out;
 		}
 	}

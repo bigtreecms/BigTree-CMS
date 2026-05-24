@@ -20,7 +20,10 @@
 		public function handle(Request $request, callable $next) {
 			$route = $request->route;
 			$applies = (strpos($request->path, "/auth/") === 0) || !empty($route["rate_limit"]);
-			if (!$applies) return $next($request);
+
+			if (!$applies) {
+				return $next($request);
+			}
 
 			$limit = (int)($route["rate_limit"]["per_minute"] ?? self::DEFAULT_PER_MINUTE);
 			$bucket = "auth:ip:" . $request->ip . ":" . trim($request->path, "/");

@@ -28,6 +28,7 @@
 			}
 
 			$token = $request->bearer();
+
 			if (!$token) {
 				throw new AuthenticationException("Missing Bearer token", "missing_token", 401);
 			}
@@ -53,6 +54,7 @@
 			// Defense-in-depth: permissions hash must match the live row.
 			$permissions = json_decode($row["permissions"] ?: "[]", true) ?: [];
 			$live_phash = Jwt::permissionsHash($permissions);
+
 			if (($claims["phash"] ?? "") !== $live_phash) {
 				throw new AuthenticationException("Permission state changed; please re-login", "phash_mismatch", 401);
 			}

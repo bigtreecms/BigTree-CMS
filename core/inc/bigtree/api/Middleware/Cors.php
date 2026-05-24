@@ -15,6 +15,7 @@
 				$response = Response::raw(204, []);
 				$response->is_envelope = false;
 				$response->body = null;
+
 				if ($is_allowed) {
 					$response->header("Access-Control-Allow-Origin", $origin)
 						->header("Access-Control-Allow-Credentials", "true")
@@ -22,6 +23,7 @@
 						->header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Request-Id, If-None-Match")
 						->header("Access-Control-Max-Age", "600");
 				}
+
 				return $response;
 			}
 
@@ -40,11 +42,19 @@
 			global $bigtree;
 			$origins = [];
 			$root = rtrim($bigtree["config"]["www_root"] ?? "", "/");
-			if ($root) $origins[] = $root;
-			foreach (($bigtree["config"]["sites"] ?? []) as $site) {
-				if (!empty($site["www_root"])) $origins[] = rtrim($site["www_root"], "/");
+
+			if ($root) {
+				$origins[] = $root;
 			}
+
+			foreach (($bigtree["config"]["sites"] ?? []) as $site) {
+				if (!empty($site["www_root"])) {
+					$origins[] = rtrim($site["www_root"], "/");
+				}
+			}
+
 			$extra = $bigtree["config"]["api"]["cors_origins"] ?? [];
+
 			foreach ($extra as $o) $origins[] = rtrim($o, "/");
 			return array_values(array_unique($origins));
 		}

@@ -37,10 +37,13 @@
 
 			if (in_array($req->method, ["POST", "PUT", "PATCH", "DELETE"], true)) {
 				$content_type = $req->headers["content-type"] ?? "";
+
 				if (stripos($content_type, "application/json") !== false) {
 					$raw = file_get_contents("php://input");
+
 					if ($raw !== false && $raw !== "") {
 						$decoded = json_decode($raw, true);
+
 						if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
 							$req->body = $decoded;
 						} elseif (json_last_error() !== JSON_ERROR_NONE) {
@@ -61,6 +64,7 @@
 
 		private static function collectHeaders() {
 			$headers = [];
+
 			foreach ($_SERVER as $key => $value) {
 				if (strncmp($key, "HTTP_", 5) === 0) {
 					$name = strtolower(str_replace("_", "-", substr($key, 5)));
@@ -70,6 +74,7 @@
 					$headers[$name] = $value;
 				}
 			}
+
 			return $headers;
 		}
 
@@ -78,26 +83,33 @@
 			global $bigtree;
 			$trusted = $bigtree["config"]["api"]["trusted_proxies"] ?? [];
 			$remote = $_SERVER["REMOTE_ADDR"] ?? "0.0.0.0";
+
 			if (in_array($remote, $trusted, true) && !empty($_SERVER["HTTP_X_FORWARDED_FOR"])) {
 				$forwarded = explode(",", $_SERVER["HTTP_X_FORWARDED_FOR"]);
+
 				return trim($forwarded[0]);
 			}
+
 			return $remote;
 		}
 
 		public function header($name) {
+
 			return $this->headers[strtolower($name)] ?? null;
 		}
 
 		public function bearer() {
 			$auth = $this->header("authorization");
+
 			if ($auth && stripos($auth, "Bearer ") === 0) {
 				return trim(substr($auth, 7));
 			}
+
 			return null;
 		}
 
 		public function file($name) {
+
 			return $this->files[$name] ?? null;
 		}
 
@@ -107,12 +119,17 @@
 		 */
 		private static function normalizeFiles(array $files) {
 			$out = [];
+
 			foreach ($files as $name => $f) {
-				if (!is_array($f) || !isset($f["name"])) continue;
+				if (!is_array($f) || !isset($f["name"])) {
+					continue;
+				}
+
 				if (is_array($f["name"])) {
 					// HTML <input name="x[]" multiple> shape: f["name"][0], f["tmp_name"][0], ...
 					$count = count($f["name"]);
 					$list = [];
+
 					for ($i = 0; $i < $count; $i++) {
 						$list[] = [
 							"name" => $f["name"][$i] ?? "",
@@ -122,6 +139,7 @@
 							"error" => $f["error"][$i] ?? UPLOAD_ERR_NO_FILE,
 						];
 					}
+
 					$out[$name] = $list;
 				} else {
 					$out[$name] = [[
@@ -133,6 +151,7 @@
 					]];
 				}
 			}
+
 			return $out;
 		}
 	}

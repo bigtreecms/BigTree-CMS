@@ -40,6 +40,7 @@
 				];
 
 				$response = self::runPipeline($pipeline, $request, function (Request $r) {
+
 					return self::invokeHandler($r);
 				});
 
@@ -47,7 +48,6 @@
 				(new Middleware\Audit())->after($request, $response);
 
 				self::send($response, $request);
-
 			} catch (ApiException $e) {
 				self::sendError($e, $request);
 			} catch (Throwable $t) {
@@ -60,22 +60,27 @@
 
 		private static function runPipeline(array $pipeline, Request $request, callable $terminal) {
 			$next = $terminal;
+
 			foreach (array_reverse($pipeline) as $mw) {
 				$current = $next;
 				$next = function (Request $r) use ($mw, $current) {
+
 					return $mw->handle($r, $current);
 				};
 			}
+
 			return $next($request);
 		}
 
 		private static function invokeHandler(Request $request) {
 			$service = $request->route["service"] ?? null;
+
 			if (!is_array($service) || count($service) !== 2) {
 				throw new ApiException("Route has no service handler", "internal_error", 500);
 			}
 
 			[$class, $method] = $service;
+
 			if (!class_exists($class) || !method_exists($class, $method)) {
 				throw new ApiException("Service handler missing: $class::$method", "internal_error", 500);
 			}
@@ -86,9 +91,11 @@
 			if ($result instanceof Response) {
 				return $result;
 			}
+
 			if ($result === null) {
 				return Response::noContent();
 			}
+
 			return Response::ok($result);
 		}
 
@@ -124,7 +131,11 @@
 
 		private static function ensureRequestId() {
 			$incoming = $_SERVER["HTTP_X_REQUEST_ID"] ?? "";
-			if (preg_match('/^[A-Za-z0-9_\-]{8,64}$/', $incoming)) return $incoming;
+
+			if (preg_match('/^[A-Za-z0-9_\-]{8,64}$/', $incoming)) {
+				return $incoming;
+			}
+
 			return bin2hex(random_bytes(8));
 		}
 	}

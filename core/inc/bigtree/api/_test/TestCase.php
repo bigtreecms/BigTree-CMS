@@ -14,6 +14,7 @@
 
 		public static function ok($cond, $label) {
 			if ($cond) { self::$passed++; echo "  ✓ $label\n"; return; }
+
 			self::$failed++;
 			echo "  ✗ $label\n";
 			throw new RuntimeException("Assertion failed: $label");
@@ -27,10 +28,12 @@
 			try { $fn(); }
 			catch (\Throwable $e) {
 				if ($e instanceof $expected_class) { self::$passed++; echo "  ✓ $label\n"; return; }
+
 				self::$failed++;
 				echo "  ✗ $label (caught " . get_class($e) . ", expected $expected_class)\n";
 				throw new RuntimeException("Expected $expected_class, got " . get_class($e) . ": " . $e->getMessage());
 			}
+
 			self::$failed++;
 			echo "  ✗ $label (no exception thrown)\n";
 			throw new RuntimeException("Expected $expected_class, no exception thrown");

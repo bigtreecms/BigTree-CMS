@@ -14,7 +14,9 @@
 	 */
 	class AuditService {
 		public static function write($table, $entry, $type, $user_id, array $context = []) {
-			if (!$user_id || $table === "") return null;
+			if (!$user_id || $table === "") {
+				return null;
+			}
 
 			$audit_id = (int)SQL::insert("bigtree_audit_trail", [
 				"table" => BigTree::safeEncode($table),
@@ -44,10 +46,15 @@
 
 			$where = [];
 			$args = [];
+
 			if (!empty($request->query["user"])) { $where[] = "a.user = ?"; $args[] = (int)$request->query["user"]; }
+
 			if (!empty($request->query["table"])) { $where[] = "a.`table` = ?"; $args[] = $request->query["table"]; }
+
 			if (!empty($request->query["entry"])) { $where[] = "a.entry = ?"; $args[] = $request->query["entry"]; }
+
 			if (!empty($request->query["start"])) { $where[] = "a.date >= ?"; $args[] = $request->query["start"]; }
+
 			if (!empty($request->query["end"])) { $where[] = "a.date <= ?"; $args[] = $request->query["end"]; }
 
 			$sql_where = $where ? " WHERE " . implode(" AND ", $where) : "";
@@ -70,6 +77,7 @@
 					"type" => $r["type"],
 					"date" => $r["date"],
 				];
+
 				if ($include_context) {
 					$out["context"] = [
 						"ip" => $r["ip"] ?? null,
@@ -79,6 +87,7 @@
 						"path" => $r["path"] ?? null,
 					];
 				}
+
 				return $out;
 			}, $rows);
 

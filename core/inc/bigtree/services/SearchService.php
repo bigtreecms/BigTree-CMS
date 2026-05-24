@@ -31,7 +31,10 @@
 
 		public function search(Request $request) {
 			$q = trim((string)($request->query["q"] ?? ""));
-			if ($q === "") throw new BadRequestException("q required", "missing_query", 400);
+
+			if ($q === "") {
+				throw new BadRequestException("q required", "missing_query", 400);
+			}
 			$limit = max(1, min(50, (int)($request->query["limit"] ?? self::DEFAULT_PER_DOMAIN)));
 
 			$only = isset($request->query["types"])
@@ -46,21 +49,25 @@
 				$results["pages"] = $rows;
 				$counts["pages"] = count($rows);
 			}
+
 			if (in_array("tags", $only, true)) {
 				$rows = $this->searchTags($q, $limit);
 				$results["tags"] = $rows;
 				$counts["tags"] = count($rows);
 			}
+
 			if (in_array("users", $only, true) && (int)$request->user->level >= 1) {
 				$rows = $this->searchUsers($q, $limit);
 				$results["users"] = $rows;
 				$counts["users"] = count($rows);
 			}
+
 			if (in_array("modules", $only, true)) {
 				$rows = $this->searchModules($q, $limit, $request->user);
 				$results["modules"] = $rows;
 				$counts["modules"] = count($rows);
 			}
+
 			if (in_array("entries", $only, true)) {
 				$rows = $this->searchModuleEntries($q, $limit, $request->user);
 				$results["entries"] = $rows;
@@ -87,16 +94,23 @@
 				$like, $like, $limit * 3  // overfetch since permission-filter may drop some
 			);
 			$kept = [];
+
 			foreach ($rows as $r) {
-				if (PermissionService::userPageLevel($user, (int)$r["id"]) === "n") continue;
+				if (PermissionService::userPageLevel($user, (int)$r["id"]) === "n") {
+					continue;
+				}
 				$kept[] = [
 					"id" => (int)$r["id"],
 					"nav_title" => $r["nav_title"],
 					"path" => $r["path"],
 					"archived" => $r["archived"] === "on",
 				];
-				if (count($kept) >= $limit) break;
+
+				if (count($kept) >= $limit) {
+					break;
+				}
 			}
+
 			return $kept;
 		}
 
@@ -108,7 +122,9 @@
 				 ORDER BY usage_count DESC LIMIT ?",
 				$like, $like, $limit
 			);
+
 			return array_map(function ($r) {
+
 				return [
 					"id" => (int)$r["id"],
 					"tag" => $r["tag"],
@@ -126,7 +142,9 @@
 				 ORDER BY name ASC LIMIT ?",
 				$like, $like, $like, $limit
 			);
+
 			return array_map(function ($r) {
+
 				return [
 					"id" => (int)$r["id"],
 					"name" => $r["name"],
@@ -140,18 +158,28 @@
 			$all = BigTreeJSONDB::getAll("modules", "name", "ASC");
 			$ql = strtolower($q);
 			$kept = [];
+
 			foreach ($all as $m) {
-				if (!PermissionService::userHasModuleAccess($user, (int)$m["id"], "v")) continue;
+				if (!PermissionService::userHasModuleAccess($user, (int)$m["id"], "v")) {
+					continue;
+				}
 				$hay = strtolower(($m["name"] ?? "") . " " . ($m["route"] ?? ""));
-				if (strpos($hay, $ql) === false) continue;
+
+				if (strpos($hay, $ql) === false) {
+					continue;
+				}
 				$kept[] = [
 					"id" => (int)$m["id"],
 					"name" => $m["name"] ?? "",
 					"route" => $m["route"] ?? "",
 					"icon" => $m["icon"] ?? "",
 				];
-				if (count($kept) >= $limit) break;
+
+				if (count($kept) >= $limit) {
+					break;
+				}
 			}
+
 			return $kept;
 		}
 
@@ -162,12 +190,23 @@
 			$max_modules = 5; // cap how many modules we sweep to keep latency bounded
 
 			foreach ($all as $m) {
-				if ($module_count >= $max_modules) break;
-				if (!PermissionService::userHasModuleAccess($user, (int)$m["id"], "v")) continue;
-				if (empty($m["table"])) continue;
+				if ($module_count >= $max_modules) {
+					break;
+				}
+
+				if (!PermissionService::userHasModuleAccess($user, (int)$m["id"], "v")) {
+					continue;
+				}
+
+				if (empty($m["table"])) {
+					continue;
+				}
 
 				$view = \BigTreeAutoModule::getViewForTable($m["table"]);
-				if (!$view) continue;
+
+				if (!$view) {
+					continue;
+				}
 
 				$module_count++;
 
@@ -178,7 +217,10 @@
 				}
 
 				$items = array_slice($search["results"] ?? [], 0, self::MODULE_ENTRY_CAP);
-				if (!$items) continue;
+
+				if (!$items) {
+					continue;
+				}
 
 				$results[] = [
 					"module" => ["id" => (int)$m["id"], "name" => $m["name"] ?? "", "route" => $m["route"] ?? ""],

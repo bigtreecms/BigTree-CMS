@@ -3,6 +3,7 @@
 	use BigTree\Api\Exceptions\NotFoundException;
 
 	function _routes() {
+
 		return [
 			"GET /users" => ["service" => ["X", "y"]],
 			"GET /users/{id:int}" => ["service" => ["X", "y"]],

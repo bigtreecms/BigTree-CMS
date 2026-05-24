@@ -42,16 +42,19 @@
 			}
 
 			$ip = ip2long($request->ip) ?: null;
+
 			if (BigTreeAdmin::isIPBanned($ip)) {
 				throw new AuthorizationException("IP is temporarily banned", "ip_banned", 403);
 			}
 
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE LOWER(email) = ?", $email);
+
 			if ($user && BigTreeAdmin::isUserBanned($user["id"])) {
 				throw new AuthorizationException("User is temporarily banned", "user_banned", 403);
 			}
 
 			$ok = false;
+
 			if ($user) {
 				$ok = $this->verifyPassword($user, $password);
 			}
@@ -67,6 +70,7 @@
 
 			if ($two_factor_required) {
 				$mfa_token = $this->issueMfaPartial((int)$user["id"], $remember);
+
 				return Response::ok(["mfa_required" => true, "mfa_token" => $mfa_token]);
 			}
 
@@ -82,11 +86,13 @@
 			}
 
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE 2fa_login_token = ?", $mfa_token);
+
 			if (!$user) {
 				throw new AuthenticationException("Invalid or expired MFA token", "invalid_mfa_token", 401);
 			}
 
 			include_once BigTree::path("inc/lib/GoogleAuthenticator.php");
+
 			if (!GoogleAuthenticator::verifyCode($user["2fa_secret"], $code)) {
 				throw new AuthenticationException("Invalid 2FA code", "invalid_2fa_code", 401);
 			}
@@ -104,6 +110,7 @@
 			$rotation = TokenStore::rotate($cookie_value, $request->ip, $request->user_agent);
 
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE id = ?", $rotation["user_id"]);
+
 			if (!$user) {
 				throw new AuthenticationException("User no longer exists", "invalid_refresh_token", 401);
 			}
@@ -117,16 +124,20 @@
 				"user" => $this->publicUser($user),
 			]);
 			$response->cookie(TokenStore::COOKIE, $rotation["new_token"]["raw"], TokenStore::cookieOptions());
+
 			return $response;
 		}
 
 		public function logout(Request $request) {
 			$cookie_value = $_COOKIE[TokenStore::COOKIE] ?? "";
+
 			if ($cookie_value !== "") {
 				TokenStore::revokeByRaw($cookie_value);
 			}
+
 			$response = Response::noContent();
 			$response->cookie(TokenStore::COOKIE, "", TokenStore::clearCookieOptions());
+
 			return $response;
 		}
 
@@ -137,10 +148,12 @@
 
 			$response = Response::noContent();
 			$response->cookie(TokenStore::COOKIE, "", TokenStore::clearCookieOptions());
+
 			return $response;
 		}
 
 		public function me(Request $request) {
+
 			return Response::ok($this->publicUser([
 				"id" => $request->user->id,
 				"email" => $request->user->email,
@@ -195,17 +208,20 @@
 
 			$challenge_row = SQL::fetch("SELECT * FROM bigtree_passkey_challenges WHERE id = ? AND consumed = 0 AND purpose = 'auth' AND created_at >= DATE_SUB(NOW(), INTERVAL ? SECOND)",
 				$challenge_id, self::PASSKEY_CHALLENGE_TTL);
+
 			if (!$challenge_row) {
 				throw new AuthenticationException("Passkey challenge invalid or expired", "invalid_challenge", 401);
 			}
 
 			$passkey = BigTreeAdmin::getPasskeyByCredentialId($credential_id);
+
 			if (!$passkey) {
 				$this->recordFailedAttempt($ip, null);
 				throw new AuthenticationException("Unknown credential", "unknown_credential", 401);
 			}
 
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE id = ?", $passkey["user"]);
+
 			if (!$user) {
 				$this->recordFailedAttempt($ip, (int)$passkey["user"]);
 				throw new AuthenticationException("Credential's user no longer exists", "unknown_user", 401);
@@ -255,9 +271,13 @@
 			global $bigtree;
 
 			$email = strtolower(trim((string)($request->body["email"] ?? "")));
-			if ($email === "") throw new BadRequestException("email required", "missing_email", 400);
+
+			if ($email === "") {
+				throw new BadRequestException("email required", "missing_email", 400);
+			}
 
 			$user = SQL::fetch("SELECT id, email, password FROM bigtree_users WHERE LOWER(email) = ?", $email);
+
 			if ($user) {
 				// Reset hash is unguessable without knowing the existing password hash + a microsecond timestamp.
 				$hash = md5(md5($user["password"]) . md5(uniqid("bigtree-hash" . microtime(true))));
@@ -266,6 +286,7 @@
 			}
 
 			// Constant-ish time: don't reveal whether the email was on file.
+
 			return Response::noContent();
 		}
 
@@ -281,11 +302,13 @@
 			if ($token === "" || $password === "") {
 				throw new BadRequestException("token and password required", "missing_fields", 400);
 			}
+
 			if (!BigTreeAdmin::validatePassword($password)) {
 				throw new BadRequestException("Password does not meet policy requirements", "weak_password", 400);
 			}
 
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE change_password_hash = ?", $token);
+
 			if (!$user) {
 				throw new AuthenticationException("Invalid or expired reset token", "invalid_token", 401);
 			}
@@ -367,6 +390,7 @@
 				"SELECT * FROM bigtree_passkey_challenges WHERE id = ? AND consumed = 0 AND purpose = 'register' AND user_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL ? SECOND)",
 				$challenge_id, $user_id, self::PASSKEY_CHALLENGE_TTL
 			);
+
 			if (!$challenge_row) {
 				throw new AuthenticationException("Registration challenge invalid or expired", "invalid_challenge", 401);
 			}
@@ -415,7 +439,9 @@
 		 */
 		public function listPasskeys(Request $request) {
 			$rows = BigTreeAdmin::getUserPasskeys((int)$request->user->id);
+
 			return Response::ok(array_map(function ($p) {
+
 				return [
 					"id" => (int)$p["id"],
 					"name" => $p["name"],
@@ -433,6 +459,7 @@
 		public function deletePasskey(Request $request) {
 			$passkey_id = (int)$request->route_params["id"];
 			BigTreeAdmin::deletePasskey($passkey_id, (int)$request->user->id);
+
 			return Response::noContent();
 		}
 
@@ -461,36 +488,44 @@
 
 			try {
 				$es = new \BigTreeEmailService();
+
 				if (!empty($es->Settings["bigtree_from"])) {
 					$host = $_SERVER["HTTP_HOST"] ?? str_replace(["http://www.", "https://www.", "http://", "https://"], "", DOMAIN);
 					$reply_to = "no-reply@" . str_replace("www.", "", $host);
 					$es->sendEmail("Reset Your Password", $html, $to, $es->Settings["bigtree_from"], "BigTree CMS", $reply_to);
+
 					return;
 				}
 			} catch (\Throwable $e) {
 				// fall through to BigTree::sendEmail
 			}
+
 			BigTree::sendEmail($to, "Reset Your Password", $html);
 		}
 
 		private function verifyPassword(array $user, $password) {
 			if (!empty($user["new_hash"])) {
 				$ok = password_verify($password, $user["password"]);
+
 				if ($ok && password_needs_rehash($user["password"], PASSWORD_DEFAULT)) {
 					SQL::update("bigtree_users", $user["id"], ["password" => password_hash($password, PASSWORD_DEFAULT)]);
 				}
+
 				return $ok;
 			}
+
 			global $bigtree;
 			include_once BigTree::path("inc/lib/PasswordHash.php");
 			$phpass = new PasswordHash($bigtree["config"]["password_depth"] ?? 8, true);
 			$ok = $phpass->CheckPassword($password, $user["password"]);
+
 			if ($ok) {
 				SQL::update("bigtree_users", $user["id"], [
 					"password" => password_hash($password, PASSWORD_DEFAULT),
 					"new_hash" => "on",
 				]);
 			}
+
 			return $ok;
 		}
 
@@ -510,8 +545,10 @@
 					"SELECT COUNT(*) FROM bigtree_login_attempts WHERE user = ? AND timestamp >= DATE_SUB(NOW(), INTERVAL ? MINUTE)",
 					(int)$user_id, (int)$p["time"]
 				);
+
 				if ($count >= (int)$p["count"]) {
 					$existing = SQL::fetch("SELECT * FROM bigtree_login_bans WHERE user = ? AND expires >= NOW()", (int)$user_id);
+
 					if ($existing) {
 						SQL::query("UPDATE bigtree_login_bans SET expires = DATE_ADD(NOW(), INTERVAL ? MINUTE) WHERE id = ?", (int)$p["ban"], $existing["id"]);
 					} else {
@@ -527,8 +564,10 @@
 					"SELECT COUNT(*) FROM bigtree_login_attempts WHERE ip = ? AND timestamp >= DATE_SUB(NOW(), INTERVAL ? MINUTE)",
 					$ip, (int)$p["time"]
 				);
+
 				if ($count >= (int)$p["count"]) {
 					$existing = SQL::fetch("SELECT * FROM bigtree_login_bans WHERE ip = ? AND expires >= NOW()", $ip);
+
 					if ($existing) {
 						SQL::query("UPDATE bigtree_login_bans SET expires = DATE_ADD(NOW(), INTERVAL ? HOUR) WHERE id = ?", (int)$p["ban"], $existing["id"]);
 					} else {
@@ -541,6 +580,7 @@
 		private function issueMfaPartial($user_id, $remember) {
 			$token = bin2hex(random_bytes(16));
 			SQL::update("bigtree_users", $user_id, ["2fa_login_token" => $token]);
+
 			return $token;
 		}
 
@@ -555,6 +595,7 @@
 				"user" => $this->publicUser($user),
 			]);
 			$response->cookie(TokenStore::COOKIE, $refresh["raw"], TokenStore::cookieOptions());
+
 			return $response;
 		}
 
@@ -572,6 +613,7 @@
 				"tv" => (int)($user["token_version"] ?? 1),
 				"phash" => Jwt::permissionsHash($permissions),
 			];
+
 			return Jwt::encode($claims, Jwt::currentSecret());
 		}
 
@@ -585,6 +627,7 @@
 					"timezone" => $user["timezone"] ?? "",
 				];
 			}
+
 			return [
 				"id" => (int)$user["id"],
 				"email" => $user["email"],
@@ -597,13 +640,18 @@
 		private function enforceRefreshOrigin(Request $request) {
 			global $bigtree;
 			$origin = $request->header("origin");
+
 			if (!$origin) return; // server-to-server is permitted (curl); browser refreshes always send Origin.
 
 			$allowed = [];
 			$allowed[] = rtrim($bigtree["config"]["www_root"] ?? "", "/");
+
 			foreach (($bigtree["config"]["sites"] ?? []) as $site) {
-				if (!empty($site["www_root"])) $allowed[] = rtrim($site["www_root"], "/");
+				if (!empty($site["www_root"])) {
+					$allowed[] = rtrim($site["www_root"], "/");
+				}
 			}
+
 			foreach (($bigtree["config"]["api"]["cors_origins"] ?? []) as $o) $allowed[] = rtrim($o, "/");
 			$allowed = array_filter($allowed);
 

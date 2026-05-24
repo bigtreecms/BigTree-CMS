@@ -20,20 +20,27 @@
 			$dir = $sort[0] === "-" ? "DESC" : "ASC";
 			$col = ltrim($sort, "-");
 			$rows = BigTreeJSONDB::getAll("extensions", $col, $dir);
+
 			return Response::ok(array_map([$this, "present"], $rows));
 		}
 
 		public function get(Request $request) {
 			$id = (string)$request->route_params["id"];
 			$ext = BigTreeAdmin::getExtension($id);
-			if (!$ext) throw new NotFoundException("Extension $id not found", "resource_not_found", 404);
+
+			if (!$ext) {
+				throw new NotFoundException("Extension $id not found", "resource_not_found", 404);
+			}
 			return Response::ok($this->present($ext));
 		}
 
 		public function delete(Request $request) {
 			$id = (string)$request->route_params["id"];
 			$ext = BigTreeAdmin::getExtension($id);
-			if (!$ext) throw new NotFoundException("Extension $id not found", "resource_not_found", 404);
+
+			if (!$ext) {
+				throw new NotFoundException("Extension $id not found", "resource_not_found", 404);
+			}
 
 			$manifest = $ext["manifest"] ?? [];
 			$ext_id = $manifest["id"] ?? "";
@@ -46,22 +53,28 @@
 			foreach ($manifest["components"] ?? [] as $type => $list) {
 				if ($type === "tables") {
 					SQL::query("SET SESSION foreign_key_checks = 0");
+
 					foreach ((array)$list as $table => $_) {
 						SQL::query("DROP TABLE IF EXISTS `" . preg_replace('/[^a-zA-Z0-9_]/', '', $table) . "`");
 					}
+
 					SQL::query("SET SESSION foreign_key_checks = 1");
 				} else {
 					foreach ((array)$list as $item) {
-						if (isset($item["id"])) BigTreeJSONDB::delete(str_replace("_", "-", $type), $item["id"]);
+						if (isset($item["id"])) {
+							BigTreeJSONDB::delete(str_replace("_", "-", $type), $item["id"]);
+						}
 					}
 				}
 			}
 
 			BigTreeJSONDB::delete("extensions", $id);
+
 			return Response::noContent();
 		}
 
 		private function present(array $ext) {
+
 			return [
 				"id" => $ext["id"] ?? "",
 				"name" => $ext["name"] ?? ($ext["id"] ?? ""),
