@@ -35,7 +35,7 @@
 			}
 
 			$rows = SQL::fetchAll(...array_merge([
-				"SELECT id, parent, nav_title, route, in_nav, archived, position, template, external, updated_at
+				"SELECT id, parent, nav_title, route, in_nav, archived, position, template, external, trunk, updated_at
 				 FROM bigtree_pages WHERE " . $where . " ORDER BY position DESC, nav_title ASC",
 			], $args));
 
@@ -53,6 +53,7 @@
 					"route" => $r["route"],
 					"in_nav" => $r["in_nav"] === "on",
 					"archived" => $r["archived"] === "on",
+					"trunk" => $r["trunk"] === "on",
 					"position" => (int)$r["position"],
 					"template" => $r["template"],
 					"external" => $r["external"],
@@ -95,8 +96,13 @@
 			$parent_path = $parent ? SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $parent) : "";
 			$path = ($parent_path ? $parent_path . "/" : "") . $route;
 
+			// Only developers can flag a page as a site trunk. Silently strip the flag
+			// for non-dev callers so the request still succeeds (matches legacy createPage).
+			$trunk_requested = !empty($d["trunk"]);
+			$trunk_value = ($trunk_requested && (int)$request->user->level >= 2) ? "on" : "";
+
 			$insert = [
-				"trunk" => "",
+				"trunk" => $trunk_value,
 				"parent" => $parent,
 				"in_nav" => !empty($d["in_nav"]) ? "on" : "",
 				"nav_title" => BigTree::safeEncode($nav_title),
@@ -123,11 +129,25 @@
 
 			$id = (int)SQL::insert("bigtree_pages", $insert);
 
+			// If this new page takes over a previously-redirected route, the stale
+			// redirect would steal traffic — drop it. (Mirrors legacy createPage:1730.)
+			SQL::query("DELETE FROM bigtree_route_history WHERE old_route = ?", $path);
+
 			// Tags + open-graph wiring (mirrors legacy createPage).
 			$this->syncTags($id, $d["tags"] ?? null);
 			$this->syncOpenGraph($id, $d["open_graph"] ?? null);
 
+			// Trunk page added → multi-site path cache becomes stale.
+			if ($trunk_value === "on") $this->invalidateMultiSiteCache();
+
 			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+
+			// Fire the template's publish hook (legacy convention — extensions and
+			// templates can register a function that runs on every save).
+			$this->fireTemplatePublishHook(
+				$page["template"], (int)$id, $insert, $d["tags"] ?? [], $d["open_graph"] ?? []
+			);
+
 			Hooks::fire("page.created", $page, ["user_id" => $request->user->id]);
 
 			return Response::created($this->present($page, true), null);
@@ -162,12 +182,12 @@
 				$update["meta_description"] = (string)$d["meta_description"];
 			}
 
-			if (isset($d["seo_invisible"])) $update["seo_invisible"] = !empty($d["seo_invisible"]) {
-				? "on" : "";
+			if (isset($d["seo_invisible"])) {
+				$update["seo_invisible"] = !empty($d["seo_invisible"]) ? "on" : "";
 			}
 
-			if (isset($d["in_nav"])) $update["in_nav"] = !empty($d["in_nav"]) {
-				? "on" : "";
+			if (isset($d["in_nav"])) {
+				$update["in_nav"] = !empty($d["in_nav"]) ? "on" : "";
 			}
 
 			if (isset($d["template"])) {
@@ -178,8 +198,8 @@
 				$update["external"] = (string)$d["external"];
 			}
 
-			if (isset($d["new_window"])) $update["new_window"] = !empty($d["new_window"]) {
-				? "on" : "";
+			if (isset($d["new_window"])) {
+				$update["new_window"] = !empty($d["new_window"]) ? "on" : "";
 			}
 
 			if (isset($d["resources"])) {
@@ -198,13 +218,27 @@
 				$update["max_age"] = (int)$d["max_age"];
 			}
 
+			// Trunk flag is developer-only; non-devs silently can't change it.
+			$trunk_changed = false;
+			if (array_key_exists("trunk", $d) && (int)$request->user->level >= 2) {
+				$new_trunk = !empty($d["trunk"]) ? "on" : "";
+				if ($new_trunk !== $page["trunk"]) {
+					$update["trunk"] = $new_trunk;
+					$trunk_changed = true;
+				}
+			}
+
 			if (isset($d["route"]) && $d["route"] !== $page["route"]) {
 				$new_route = $this->uniqueRoute((int)$page["parent"], $d["route"], $id);
 				$update["route"] = $new_route;
 				$parent_path = $page["parent"] ? SQL::fetchSingle("SELECT path FROM bigtree_pages WHERE id = ?", $page["parent"]) : "";
 				$new_path = ($parent_path ? $parent_path . "/" : "") . $new_route;
 				$update["path"] = $new_path;
-				SQL::query("INSERT INTO bigtree_route_history (old_route, new_route) VALUES (?, ?)", $page["path"], $new_path);
+				// Drop any existing redirect that points AT the new path (something else
+				// used to live there) AND any old redirect from the page's prior path
+				// (we'll replace it). Then insert the fresh redirect.
+				SQL::query("DELETE FROM bigtree_route_history WHERE old_route = ? OR old_route = ?", $page["path"], $new_path);
+				SQL::insert("bigtree_route_history", ["old_route" => $page["path"], "new_route" => $new_path]);
 				$this->repathChildren($page["path"], $new_path);
 			}
 
@@ -212,6 +246,12 @@
 				$update["last_edited_by"] = $request->user->id;
 				$update["updated_at"] = "NOW()";
 				SQL::update("bigtree_pages", $id, $update);
+			}
+
+			// Multi-site cache must be invalidated if the trunk flag changed, OR if the
+			// route changed on a page that already IS a trunk (path map is keyed by path).
+			if ($trunk_changed || (isset($update["path"]) && $page["trunk"] === "on")) {
+				$this->invalidateMultiSiteCache();
 			}
 
 			// Tags + open-graph: only touch if the caller included the keys, so a partial
@@ -225,6 +265,13 @@
 			}
 
 			$fresh = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+
+			// Template publish hook fires on update too. Pass the merged update payload
+			// so the hook sees only what changed (matches legacy updatePage:9813).
+			$this->fireTemplatePublishHook(
+				$fresh["template"], $id, $update ?: [], $d["tags"] ?? [], $d["open_graph"] ?? []
+			);
+
 			Hooks::fire("page.updated", $fresh, ["user_id" => $request->user->id, "previous" => $page]);
 
 			return Response::ok($this->present($fresh, true));
@@ -243,6 +290,10 @@
 			SQL::query("DELETE FROM bigtree_tags_rel WHERE `table` = 'bigtree_pages' AND entry = ?", $id);
 			SQL::query("DELETE FROM bigtree_open_graph WHERE `table` = 'bigtree_pages' AND entry = ?", $id);
 			$this->cascadeDelete($id, $page["path"]);
+
+			// Deleting a trunk page changes the multi-site routing map.
+			if ($page["trunk"] === "on") $this->invalidateMultiSiteCache();
+
 			Hooks::fire("page.deleted", $page, ["user_id" => $request->user->id]);
 
 			return Response::noContent();
@@ -284,7 +335,39 @@
 			SQL::update("bigtree_pages", $id, ["parent" => $new_parent, "path" => $new_path, "updated_at" => "NOW()"]);
 			$this->repathChildren($page["path"], $new_path);
 
+			// Moving a trunk page changes the multi-site routing map (path-keyed).
+			if ($page["trunk"] === "on") $this->invalidateMultiSiteCache();
+
 			return Response::noContent();
+		}
+
+		/**
+		 * GET /pages/sites
+		 *
+		 * Returns the configured multi-site map so the SPA can render a "create page
+		 * under [site]" picker. In a single-site install this returns an empty array.
+		 * Each entry includes the trunk page id + its current path — the SPA can use
+		 * that path to display the site root, and the trunk id as the parent param
+		 * when creating pages under that site.
+		 */
+		public function sites(Request $request) {
+			global $bigtree;
+			$config = $bigtree["config"]["sites"] ?? [];
+			$out = [];
+			foreach ($config as $key => $site) {
+				$trunk_id = (int)($site["trunk"] ?? 0);
+				$trunk_row = $trunk_id ? SQL::fetch("SELECT id, path, nav_title FROM bigtree_pages WHERE id = ?", $trunk_id) : null;
+				$out[] = [
+					"key" => $key,
+					"domain" => $site["domain"] ?? "",
+					"www_root" => $site["www_root"] ?? "",
+					"static_root" => $site["static_root"] ?? ($site["www_root"] ?? ""),
+					"trunk_id" => $trunk_id,
+					"trunk_path" => $trunk_row["path"] ?? null,
+					"trunk_nav_title" => $trunk_row["nav_title"] ?? null,
+				];
+			}
+			return Response::ok($out);
 		}
 
 		public function reorder(Request $request) {
@@ -396,12 +479,29 @@
 			}
 		}
 
+		/**
+		 * Find a route that doesn't collide with another sibling page. At top level
+		 * (parent=0) the route additionally can't collide with one of BigTreeAdmin's
+		 * reserved top-level routes (ajax, css, feeds, js, sitemap.xml, _preview,
+		 * _preview-pending, etc.) or with a directory name under site/. We auto-suffix
+		 * with -2, -3, ... until clear (mirrors legacy createPage:1593-1612).
+		 */
 		private function uniqueRoute($parent, $base, $exclude_id = 0) {
-			$route = $base ?: "page";
+			$base = $base ?: "page";
+			$route = $base;
 			$x = 2;
+
+			// Reserved-route check at top level.
+			if ((int)$parent === 0) {
+				$reserved = \BigTreeAdmin::$ReservedTLRoutes ?? [];
+				$site_dirs = $this->reservedSiteDirectories();
+				while (in_array($route, $reserved, true) || in_array($route, $site_dirs, true)) {
+					$route = $base . "-" . $x++;
+				}
+			}
+
 			$args = [$parent, $route];
 			$sql = "SELECT id FROM bigtree_pages WHERE parent = ? AND route = ?";
-
 			if ($exclude_id) { $sql .= " AND id != ?"; $args[] = $exclude_id; }
 
 			while (SQL::fetchSingle(...array_merge([$sql], $args))) {
@@ -410,6 +510,76 @@
 			}
 
 			return $route;
+		}
+
+		/** Mirrors the legacy createPage check against directory entries in site/. */
+		private function reservedSiteDirectories() {
+			static $cached = null;
+			if ($cached !== null) return $cached;
+			$cached = [];
+			$site_dir = SERVER_ROOT . "site/";
+			if (is_dir($site_dir)) {
+				foreach (scandir($site_dir) ?: [] as $entry) {
+					if ($entry === "." || $entry === "..") continue;
+					if (is_dir($site_dir . $entry)) $cached[] = $entry;
+				}
+			}
+			return $cached;
+		}
+
+		/**
+		 * Wipe the multi-site path → site map cache. BigTreeCMS rebuilds it on next
+		 * frontend boot from bigtree_pages.trunk + $bigtree["config"]["sites"], so
+		 * deleting the file is enough; no manual rebuild needed.
+		 */
+		private function invalidateMultiSiteCache() {
+			$path = SERVER_ROOT . "cache/bigtree-multi-site-cache.json";
+			if (file_exists($path)) @unlink($path);
+		}
+
+		/**
+		 * Fire a template's publish hook with the legacy signature:
+		 *   function(string $table, int $entry_id, array $data, array $mtm, array $tags, array $open_graph)
+		 *
+		 * Hook is a function name string stored in the template's JSONDB entry under
+		 * hooks.publish. Failures are logged and swallowed — the page write already
+		 * succeeded and we don't want a buggy hook to make the API return 500 on a
+		 * successful save (matches legacy behavior; legacy lets the call_user_func
+		 * warning surface but doesn't abort the page write either).
+		 *
+		 * If the hook does want to signal an error visibly, it can throw a
+		 * BigTree\Api\Exceptions\ApiException — those bubble up through ErrorHandler.
+		 */
+		private function fireTemplatePublishHook($template_id, $page_id, array $data, $tags, $open_graph) {
+			if (!$template_id) return;
+
+			$template = \BigTreeJSONDB::get("templates", $template_id);
+			$hook = $template["hooks"]["publish"] ?? null;
+			if (!$hook) return;
+			if (!is_callable($hook)) {
+				// Legacy stores function names as strings; if the function isn't loaded
+				// (e.g. an extension that ships an autoloaded hook fn isn't installed
+				// in API context yet), log so the dev can investigate, but don't fail.
+				BigTree::log("Template publish hook for '$template_id' is not callable: " . print_r($hook, true));
+				return;
+			}
+
+			try {
+				call_user_func(
+					$hook,
+					"bigtree_pages",
+					(int)$page_id,
+					$data,
+					[],
+					is_array($tags) ? $tags : [],
+					is_array($open_graph) ? $open_graph : []
+				);
+			} catch (\BigTree\Api\Exceptions\ApiException $e) {
+				// Let API-aware hooks signal failure cleanly.
+				throw $e;
+			} catch (\Throwable $e) {
+				BigTree::log("Template publish hook for '$template_id' threw: " . $e->getMessage());
+			}
 		}
 
 		private function repathChildren($old_path, $new_path) {

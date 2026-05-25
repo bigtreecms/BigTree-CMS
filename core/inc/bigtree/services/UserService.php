@@ -127,8 +127,8 @@
 				$update["timezone"] = $d["timezone"];
 			}
 
-			if (isset($d["daily_digest"])) $update["daily_digest"] = !empty($d["daily_digest"]) {
-				? "on" : "";
+			if (isset($d["daily_digest"])) {
+				$update["daily_digest"] = !empty($d["daily_digest"]) ? "on" : "";
 			}
 
 			if (isset($d["alerts"]) && is_array($d["alerts"])) {

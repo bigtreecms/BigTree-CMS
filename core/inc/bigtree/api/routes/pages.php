@@ -12,6 +12,11 @@
 			"permission" => ["level" => 0],
 			"query" => ["q" => "required|string|max:200"],
 		],
+
+		"GET /pages/sites" => [
+			"service" => [PageService::class, "sites"],
+			"permission" => ["level" => 0],
+		],
 		"POST /pages" => [
 			"service" => [PageService::class, "create"],
 			"permission" => ["level" => 0],
@@ -33,6 +38,7 @@
 				"max_age" => "int|min:0",
 				"tags" => "array",
 				"open_graph" => "array",
+				"trunk" => "bool",
 			],
 			"audit" => ["table" => "bigtree_pages", "type" => "created", "entry" => "%id%"],
 		],

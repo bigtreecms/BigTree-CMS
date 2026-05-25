@@ -569,34 +569,27 @@
 		*/
 
 		public function checkAccess($module, $action = false) {
-			if (is_array($module)) {
-				$module = $module["id"];
-			}
+			$module_id = is_array($module) ? $module["id"] : $module;
 
+			// Action-level gate stays here — it's a legacy-specific guard against
+			// users exercising actions configured for a higher level than their own
+			// (e.g. a level-0 editor can't run a level-1-only action even if they
+			// have module access). The service doesn't model this since it's an
+			// admin-UI concept, not a permission-system concept.
 			if (is_array($action) && $action["level"] > $this->Level) {
 				return false;
 			}
 
-			if ($this->Level > 0) {
-				return true;
-			}
+			// Delegate the actual permission check so legacy admin and REST API
+			// can never drift on the "does this user have module access?" question.
+			// Parity verified by LegacyParityTest::test_parity_checkAccess_consistent.
+			$user = (object)[
+				"id" => $this->ID ?? 0,
+				"level" => $this->Level,
+				"permissions" => $this->Permissions,
+			];
 
-			if (!empty($this->Permissions["module"][$module]) && $this->Permissions["module"][$module] != "n") {
-				return true;
-			}
-
-			if (
-				!empty($this->Permissions["module_gbp"][$module]) &&
-				is_array($this->Permissions["module_gbp"][$module])
-			) {
-				foreach ($this->Permissions["module_gbp"][$module] as $p) {
-					if ($p != "n") {
-						return true;
-					}
-				}
-			}
-
-			return false;
+			return \BigTree\Services\PermissionService::userHasModuleAccess($user, $module_id, "v");
 		}
 
 		/*
@@ -8809,16 +8802,17 @@
 		*/
 
 		public function track($table, $entry, $type, $user = null) {
-			// If this is running fron cron or something, nobody is logged in so don't track.
-			if (isset($this->ID) || !is_null($user)) {
-				SQL::insert("bigtree_audit_trail", [
-					"table" => BigTree::safeEncode($table),
-					"user" => !is_null($user) ? $user : $this->ID,
-					"entry" => BigTree::safeEncode($entry),
-					"date" => "NOW()",
-					"type" => BigTree::safeEncode($type)
-				]);
+			// If this is running from cron or something, nobody is logged in so don't track.
+			$effective_user = !is_null($user) ? $user : ($this->ID ?? null);
+
+			if ($effective_user === null) {
+				return;
 			}
+
+			// Delegate to the API's AuditService::write so audit semantics are
+			// guaranteed identical between the legacy admin and the REST API. The
+			// no-op return-on-missing-user invariant is preserved by the early-return above.
+			\BigTree\Services\AuditService::write($table, $entry, $type, $effective_user);
 		}
 
 		/*
