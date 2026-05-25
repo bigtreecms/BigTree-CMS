@@ -33,6 +33,7 @@ export const router = createBrowserRouter(
 						},
 						{ path: "/dashboard", element: <Dashboard /> },
 						{ path: "/pages", element: <Pages /> },
+						{ path: "/pages/:parentId", element: <Pages /> },
 						{
 							path: "/modules",
 							element: <Placeholder title="Modules" />,

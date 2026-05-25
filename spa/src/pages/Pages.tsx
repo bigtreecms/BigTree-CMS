@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Edit, Eye, EyeOff, FileText, Move, Plus } from "lucide-react";
+import { useParams } from "react-router-dom";
+import { Archive, Edit, Eye, EyeOff, FileText, Move, Plus } from "lucide-react";
+import { CardEmpty } from "@/components/dashboard/CardEmpty";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageTable } from "@/components/pages/PageTable";
@@ -10,26 +12,32 @@ import { pagesApi, type PageListRow } from "@/api/endpoints/pages";
 import { relativeTime } from "@/lib/time";
 
 /**
- * Pages screen — initial table-view port of the prototype's `pages-screen.jsx`.
+ * Pages screen — table view for a page's direct children (supports drilling
+ * via /pages and /pages/:parentId).
  *
- * Scope of this first slice:
- *   - List children of the home page (parent=0). Drill-down to /pages/:id
- *     comes next.
- *   - Split into "Visible" (in_nav) and "Hidden" sections, matching the
- *     prototype.
- *   - Drag-to-reorder rows, optimistic with server commit.
- *   - Inline rename, optimistic with server commit.
- *   - Archive / restore toggle per row.
- *
- * Out of scope (next slices):
- *   - PageProperties drawer (read-only metadata panel)
- *   - Add subpage wizard (separate route /pages/new)
- *   - Page-level Edit, Revisions, Move actions in the header
- *   - Drill-in to a subpage to manage its children
+ *   - URL-driven parent (root at /pages or /pages/0, subfolders at /pages/123)
+ *   - Split into "Visible" (in_nav), "Hidden" (!in_nav), and "Archived" sections
+ *   - Drag-to-reorder (visible/hidden), inline rename, archive/restore (optimistic + server)
+ *   - Dynamic title + breadcrumb using page lineage when inside a subfolder
  */
 export const Pages = () => {
 	const queryClient = useQueryClient();
-	const parent = 0; // root for now
+	const { parentId } = useParams<{ parentId?: string }>();
+
+	// Derive a safe numeric parent from the route. Falls back to root (0).
+	const parent = (() => {
+		if (!parentId) return 0;
+		const n = parseInt(parentId, 10);
+		return Number.isFinite(n) && n >= 0 ? n : 0;
+	})();
+	const isRoot = parent === 0;
+
+	// Current folder info (for dynamic title + breadcrumb lineage) when viewing children of a page
+	const { data: currentPage } = useQuery({
+		queryKey: ["pages", "detail", parent],
+		queryFn: () => pagesApi.get(parent, { lineage: true }),
+		enabled: !isRoot,
+	});
 
 	const {
 		data: rows = [],
@@ -37,11 +45,12 @@ export const Pages = () => {
 		error,
 	} = useQuery({
 		queryKey: ["pages", "list", parent],
-		queryFn: () => pagesApi.list(parent, false),
+		queryFn: () => pagesApi.list(parent, true),
 	});
 
 	const visible = useMemo(() => rows.filter((r) => r.in_nav && !r.archived), [rows]);
 	const hidden = useMemo(() => rows.filter((r) => !r.in_nav && !r.archived), [rows]);
+	const archived = useMemo(() => rows.filter((r) => r.archived), [rows]);
 
 	const renameMutation = useMutation({
 		mutationFn: ({ id, nav_title }: { id: number; nav_title: string }) =>
@@ -108,6 +117,29 @@ export const Pages = () => {
 		},
 	});
 
+	const deleteMutation = useMutation({
+		mutationFn: (id: number) => pagesApi.delete(id),
+		onMutate: async (id) => {
+			await queryClient.cancelQueries({
+				queryKey: ["pages", "list", parent],
+			});
+			const previous = queryClient.getQueryData<PageListRow[]>(["pages", "list", parent]);
+			queryClient.setQueryData<PageListRow[]>(
+				["pages", "list", parent],
+				(old) => old?.filter((r) => r.id !== id) ?? []
+			);
+			return { previous };
+		},
+		onError: (_err, _vars, ctx) => {
+			if (ctx?.previous) queryClient.setQueryData(["pages", "list", parent], ctx.previous);
+		},
+		onSettled: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["pages", "list", parent],
+			});
+		},
+	});
+
 	// Newest update across all rows — used in the subtitle ("Updated 12 minutes ago").
 	const newestUpdate = useMemo(() => {
 		if (rows.length === 0) return null;
@@ -126,11 +158,24 @@ export const Pages = () => {
 		reorderMutation.mutate(merged);
 	}
 
+	// Dynamic title + breadcrumb based on current location in the page tree
+	const folderTitle = currentPage?.nav_title ?? "Home";
+	const breadcrumbItems = isRoot
+		? [{ label: "Pages" }, { label: "Home" }]
+		: [
+				{ label: "Pages", to: "/pages" },
+				...(currentPage?.lineage ?? []).map((anc) => ({
+					label: anc.nav_title,
+					to: `/pages/${anc.id}`,
+				})),
+				{ label: folderTitle },
+			];
+
 	return (
 		<div className="mx-auto max-w-screen-2xl px-6 py-4">
-			<Breadcrumb items={[{ label: "Pages" }, { label: "Home" }]} />
+			<Breadcrumb items={breadcrumbItems} />
 			<PageHead
-				title="Home"
+				title={folderTitle}
 				sub={
 					<>
 						<span className="font-mono">/</span> · {visible.length} visible ·{" "}
@@ -157,44 +202,88 @@ export const Pages = () => {
 				<div className="mt-6 text-[13px] text-text-3">Loading…</div>
 			) : (
 				<>
-					<div className="mt-1 flex items-center gap-2.5">
-						<span className="text-[12px] font-semibold uppercase tracking-[0.08em] text-text-3">
-							Subpages
-						</span>
-					</div>
+					{/* Only show section headers + tables when there is actual content */}
+					{(visible.length > 0 || hidden.length > 0 || archived.length > 0) && (
+						<>
+							<div className="mt-1 flex items-center gap-2.5">
+								<span className="text-[12px] font-semibold uppercase tracking-[0.08em] text-text-3">
+									Subpages
+								</span>
+							</div>
 
-					<PageTable
-						title="Visible"
-						icon={<FileText size={13} className="text-accent" />}
-						rows={visible}
-						onReorder={(ids) => handleReorder("visible", ids)}
-						onRename={(id, next) => renameMutation.mutate({ id, nav_title: next })}
-						onToggleArchive={(id) => {
-							const r = visible.find((x) => x.id === id);
-							if (r)
-								archiveMutation.mutate({
-									id,
-									archived: r.archived,
-								});
-						}}
-					/>
+							{visible.length > 0 && (
+								<PageTable
+									title="Visible"
+									icon={<FileText size={13} className="text-accent" />}
+									rows={visible}
+									onReorder={(ids) => handleReorder("visible", ids)}
+									onRename={(id, next) =>
+										renameMutation.mutate({ id, nav_title: next })
+									}
+									onToggleArchive={(id) => {
+										const r = visible.find((x) => x.id === id);
+										if (r)
+											archiveMutation.mutate({
+												id,
+												archived: r.archived,
+											});
+									}}
+								/>
+							)}
 
-					<PageTable
-						title="Hidden"
-						icon={<EyeOff size={13} className="text-text-3" />}
-						rows={hidden}
-						onReorder={(ids) => handleReorder("hidden", ids)}
-						onRename={(id, next) => renameMutation.mutate({ id, nav_title: next })}
-						onToggleArchive={(id) => {
-							const r = hidden.find((x) => x.id === id);
-							if (r)
-								archiveMutation.mutate({
-									id,
-									archived: r.archived,
-								});
-						}}
-						emptyLabel="No hidden pages."
-					/>
+							{hidden.length > 0 && (
+								<PageTable
+									title="Hidden"
+									icon={<EyeOff size={13} className="text-text-3" />}
+									rows={hidden}
+									onReorder={(ids) => handleReorder("hidden", ids)}
+									onRename={(id, next) =>
+										renameMutation.mutate({ id, nav_title: next })
+									}
+									onToggleArchive={(id) => {
+										const r = hidden.find((x) => x.id === id);
+										if (r)
+											archiveMutation.mutate({
+												id,
+												archived: r.archived,
+											});
+									}}
+									emptyLabel="No hidden pages."
+								/>
+							)}
+
+							{archived.length > 0 && (
+								<PageTable
+									title="Archived"
+									icon={<Archive size={13} className="text-text-3" />}
+									rows={archived}
+									onReorder={() => {}}
+									onRename={(id, next) =>
+										renameMutation.mutate({ id, nav_title: next })
+									}
+									onToggleArchive={(id) => {
+										const r = archived.find((x) => x.id === id);
+										if (r)
+											archiveMutation.mutate({
+												id,
+												archived: r.archived,
+											});
+									}}
+									leftActionLabel="Restore"
+									rightActionLabel="Delete"
+									onDelete={(id) => deleteMutation.mutate(id)}
+									allowReorder={false}
+								/>
+							)}
+						</>
+					)}
+
+					{/* Global empty state when the current page truly has no children */}
+					{visible.length === 0 && hidden.length === 0 && archived.length === 0 && (
+						<div className="mt-6">
+							<CardEmpty icon={FileText} label="No subpages yet." />
+						</div>
+					)}
 				</>
 			)}
 		</div>

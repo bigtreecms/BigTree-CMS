@@ -40,6 +40,7 @@
 			], $args));
 
 			$me = $request->user;
+
 			$items = array_filter(array_map(function ($r) use ($me) {
 				$level = PermissionService::userPageLevel($me, (int)$r["id"]);
 
@@ -49,18 +50,78 @@
 				return [
 					"id" => (int)$r["id"],
 					"parent" => (int)$r["parent"],
-					"nav_title" => $r["nav_title"],
+					"nav_title" => html_entity_decode((string)$r["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 					"route" => $r["route"],
 					"in_nav" => $r["in_nav"] === "on",
 					"archived" => $r["archived"] === "on",
 					"trunk" => $r["trunk"] === "on",
 					"position" => (int)$r["position"],
 					"template" => $r["template"],
-					"external" => $r["external"],
+					"external" => html_entity_decode((string)$r["external"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 					"updated_at" => $r["updated_at"],
 					"access" => $level,
+					"has_pending_change" => false,
 				];
 			}, $rows));
+
+			// Enrich with pending change state (used by the SPA to show "Changed" status)
+			$visibleIds = array_column($items, "id");
+
+			if ($visibleIds) {
+				$placeholders = implode(",", array_fill(0, count($visibleIds), "?"));
+				$pendingRows = SQL::fetchAll(
+					"SELECT DISTINCT item_id FROM bigtree_pending_changes 
+					 WHERE `table` = 'bigtree_pages' AND item_id IN ($placeholders)",
+					...$visibleIds
+				);
+				$hasPending = array_flip(array_map("intval", array_column($pendingRows, "item_id")));
+				
+				foreach ($items as &$it) {
+					$it["has_pending_change"] = isset($hasPending[$it["id"]]);
+				}
+			}
+
+			// Include "NEW" pending pages (drafts that only live in bigtree_pending_changes).
+			// These do not yet have a row in bigtree_pages.
+			$pendingNew = SQL::fetchAll(
+				"SELECT * FROM bigtree_pending_changes 
+				 WHERE pending_page_parent = ? AND `table` = 'bigtree_pages' AND type = 'NEW'",
+				$parent
+			);
+
+			foreach ($pendingNew as $pc) {
+				$changes = json_decode($pc["changes"] ?: "{}", true) ?: [];
+
+				$isArchived = !empty($changes["archived"]);
+				if (!$include_archived && $isArchived) {
+					continue;
+				}
+
+				$inNav = !empty($changes["in_nav"]);
+
+				// Permission for a brand-new pending page is based on the parent
+				$level = PermissionService::userPageLevel($me, $parent);
+				if ($level === "n") {
+					continue;
+				}
+
+				$items[] = [
+					"id" => (int)$pc["id"],
+					"parent" => $parent,
+					"nav_title" => html_entity_decode((string)($changes["nav_title"] ?? ""), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+					"route" => (string)($changes["route"] ?? ""),
+					"in_nav" => $inNav,
+					"archived" => $isArchived,
+					"trunk" => !empty($changes["trunk"]),
+					"position" => 999999, // New pending pages sort at the end for now
+					"template" => (string)($changes["template"] ?? ""),
+					"external" => html_entity_decode((string)($changes["external"] ?? ""), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+					"updated_at" => $pc["date"],
+					"access" => $level,
+					"pending" => true,
+					"pending_change_id" => (int)$pc["id"],
+				];
+			}
 
 			return Response::ok(array_values($items));
 		}
@@ -364,7 +425,7 @@
 					"static_root" => $site["static_root"] ?? ($site["www_root"] ?? ""),
 					"trunk_id" => $trunk_id,
 					"trunk_path" => $trunk_row["path"] ?? null,
-					"trunk_nav_title" => $trunk_row["nav_title"] ?? null,
+					"trunk_nav_title" => $trunk_row ? html_entity_decode((string)$trunk_row["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8') : null,
 				];
 			}
 			return Response::ok($out);
@@ -462,7 +523,7 @@
 				}
 				return [
 					"id" => (int)$r["id"],
-					"nav_title" => $r["nav_title"],
+					"nav_title" => html_entity_decode((string)$r["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 					"path" => $r["path"],
 					"archived" => $r["archived"] === "on",
 				];
@@ -623,7 +684,7 @@
 				}
 				array_unshift($out, [
 					"id" => (int)$row["id"],
-					"nav_title" => $row["nav_title"],
+					"nav_title" => html_entity_decode((string)$row["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 					"route" => $row["route"],
 				]);
 				$current = (int)$row["parent"];
@@ -749,15 +810,15 @@
 				"trunk" => $p["trunk"] === "on",
 				"parent" => (int)$p["parent"],
 				"in_nav" => $p["in_nav"] === "on",
-				"nav_title" => $p["nav_title"],
+				"nav_title" => html_entity_decode((string)$p["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 				"route" => $p["route"],
 				"path" => $p["path"],
-				"title" => $p["title"],
-				"meta_keywords" => $p["meta_keywords"],
-				"meta_description" => $p["meta_description"],
+				"title" => html_entity_decode((string)$p["title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+				"meta_keywords" => html_entity_decode((string)$p["meta_keywords"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+				"meta_description" => html_entity_decode((string)$p["meta_description"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 				"seo_invisible" => $p["seo_invisible"] === "on",
 				"template" => $p["template"],
-				"external" => $p["external"],
+				"external" => html_entity_decode((string)$p["external"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 				"new_window" => $p["new_window"] === "on",
 				"resources" => json_decode($p["resources"] ?: "{}", true) ?: new \stdClass(),
 				"archived" => $p["archived"] === "on",

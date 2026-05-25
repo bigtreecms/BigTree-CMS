@@ -25,6 +25,14 @@ interface PageTableProps {
 	enableFilters?: boolean;
 	/** Custom empty state — defaults to "No pages yet." */
 	emptyLabel?: string;
+	/** Whether drag-to-reorder is enabled. Defaults to true. */
+	allowReorder?: boolean;
+	/** Label for the left action column header (e.g. "Archive" or "Restore"). */
+	leftActionLabel?: string;
+	/** Label for the right action column header (e.g. "Edit" or "Delete"). */
+	rightActionLabel?: string;
+	/** Optional delete handler. When provided, the right action becomes a delete button. */
+	onDelete?: (id: number) => void;
 }
 
 export const PageTable = ({
@@ -36,6 +44,10 @@ export const PageTable = ({
 	onToggleArchive,
 	enableFilters = true,
 	emptyLabel,
+	allowReorder = true,
+	leftActionLabel,
+	rightActionLabel,
+	onDelete,
 }: PageTableProps) => {
 	const [filter, setFilter] = useState<Filter>("all");
 	const filtered =
@@ -43,11 +55,22 @@ export const PageTable = ({
 
 	// We pass a non-functional setter that mirrors the optimistic reorder back
 	// into the parent via onReorder. The actual list state lives upstream.
-	const drag = useDragReorder<PageListRow, number>(
+	const fullDrag = useDragReorder<PageListRow, number>(
 		filtered,
 		(next) => onReorder(next.map((r) => r.id)),
 		(orderedIds) => onReorder(orderedIds)
 	);
+
+	const drag = allowReorder
+		? fullDrag
+		: {
+				dragId: null,
+				overId: null,
+				onDragStart: () => {},
+				onDragOver: () => {},
+				onDrop: () => {},
+				onDragEnd: () => {},
+			};
 
 	return (
 		<div className="mt-7">
@@ -89,8 +112,8 @@ export const PageTable = ({
 					<span />
 					<span>Title</span>
 					<span>Status & updated</span>
-					<span>Archive</span>
-					<span>Edit</span>
+					<span>{leftActionLabel ?? "Archive"}</span>
+					<span>{rightActionLabel ?? "Edit"}</span>
 				</div>
 
 				{filtered.length === 0 ? (
@@ -105,6 +128,8 @@ export const PageTable = ({
 							drag={drag}
 							onRename={(next) => onRename(row.id, next)}
 							onToggleArchive={() => onToggleArchive(row.id)}
+							leftActionLabel={leftActionLabel}
+							onDelete={onDelete ? () => onDelete(row.id) : undefined}
 						/>
 					))
 				)}

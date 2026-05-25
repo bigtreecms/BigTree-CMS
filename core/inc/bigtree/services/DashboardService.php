@@ -72,7 +72,7 @@
 				if ($row) {
 					$out[] = [
 						"page_id" => (int)$row["id"],
-						"nav_title" => $row["nav_title"],
+						"nav_title" => html_entity_decode((string)$row["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 						"path" => $row["path"],
 						"updated_at" => $row["updated_at"],
 						"age_days" => (int)$row["age_days"],

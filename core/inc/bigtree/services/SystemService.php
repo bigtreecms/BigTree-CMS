@@ -121,7 +121,7 @@
 			$root = SQL::fetch("SELECT nav_title FROM bigtree_pages WHERE id = 0");
 
 			return Response::ok([
-				"nav_title" => $root["nav_title"] ?? "BigTree",
+				"nav_title" => html_entity_decode((string)($root["nav_title"] ?? "BigTree"), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 				"www_root" => $bigtree["config"]["www_root"] ?? "",
 			]);
 		}

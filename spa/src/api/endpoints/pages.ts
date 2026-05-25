@@ -22,6 +22,14 @@ export interface PageListRow {
 	external: string;
 	updated_at: string;
 	access: PageAccess;
+	/** True when there is an unpublished change in bigtree_pending_changes for this page. */
+	has_pending_change?: boolean;
+
+	/** Present when this item represents a brand new page that only exists as a pending draft (type=NEW in bigtree_pending_changes). */
+	pending_change_id?: number;
+
+	/** True for pending "NEW" page drafts that do not yet exist in bigtree_pages. */
+	pending?: boolean;
 }
 
 export interface PageDetail {

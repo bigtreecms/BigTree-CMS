@@ -103,7 +103,7 @@
 				}
 				$kept[] = [
 					"id" => (int)$r["id"],
-					"nav_title" => $r["nav_title"],
+					"nav_title" => html_entity_decode((string)$r["nav_title"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 					"path" => $r["path"],
 					"archived" => $r["archived"] === "on",
 				];

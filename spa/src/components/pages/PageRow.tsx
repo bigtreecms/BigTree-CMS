@@ -1,4 +1,4 @@
-import { Archive, Edit, FileText, GripVertical, RotateCcw } from "lucide-react";
+import { Archive, Edit, FileText, GripVertical, RotateCcw, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { PageListRow } from "@/api/endpoints/pages";
 import { EditableTitle } from "./EditableTitle";
@@ -21,9 +21,20 @@ interface PageRowProps {
 	drag: DragReorderApi<number>;
 	onRename: (next: string) => void;
 	onToggleArchive: () => void;
+	/** Optional override label for the left action column (used for title attribute on archived rows). */
+	leftActionLabel?: string;
+	/** Optional delete handler. When present, the right column renders a delete button instead of edit link. */
+	onDelete?: () => void;
 }
 
-export const PageRow = ({ row, drag, onRename, onToggleArchive }: PageRowProps) => {
+export const PageRow = ({
+	row,
+	drag,
+	onRename,
+	onToggleArchive,
+	leftActionLabel,
+	onDelete,
+}: PageRowProps) => {
 	const locked = row.access === "v" || row.access === "n"; // can't edit
 	const isDragging = drag.dragId === row.id;
 	const isDropTarget = drag.overId === row.id && drag.dragId !== row.id;
@@ -82,44 +93,59 @@ export const PageRow = ({ row, drag, onRename, onToggleArchive }: PageRowProps) 
 				type="button"
 				onClick={onToggleArchive}
 				className="grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
-				title={row.archived ? "Restore" : "Archive"}
+				title={leftActionLabel ?? (row.archived ? "Restore" : "Archive")}
 				disabled={locked}
 			>
 				{row.archived ? <RotateCcw size={14} /> : <Archive size={14} />}
 			</button>
 
-			{/* Edit */}
-			<Link
-				to={`/pages/${row.id}/edit`}
-				className="grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text"
-				title="Edit page"
-				aria-disabled={locked}
-				onClick={(e) => {
-					if (locked) {
-						e.preventDefault();
-					}
-				}}
-			>
-				<Edit size={14} />
-			</Link>
+			{/* Right action: Delete (if onDelete provided) or Edit link */}
+			{onDelete ? (
+				<button
+					type="button"
+					onClick={onDelete}
+					className="grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-danger disabled:cursor-not-allowed disabled:opacity-40"
+					title="Delete"
+					disabled={locked}
+				>
+					<Trash2 size={14} />
+				</button>
+			) : (
+				<Link
+					to={`/pages/${row.id}/edit`}
+					className="grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text"
+					title="Edit page"
+					aria-disabled={locked}
+					onClick={(e) => {
+						if (locked) {
+							e.preventDefault();
+						}
+					}}
+				>
+					<Edit size={14} />
+				</Link>
+			)}
 		</div>
 	);
 };
 
 /**
- * Derive a display status from the row. Today the API exposes archived +
- * publish_at/expire_at but doesn't directly tell us if there's a pending
- * change ("Draft"). When PageService starts including a pending-change flag
- * in the list payload, we'll extend this.
+ * Derive a display status from the row.
+ * The backend now includes `has_pending_change` (from bigtree_pending_changes)
+ * so we can show "Changed" for pages with unpublished edits.
  */
 const statusFor = (row: PageListRow): PageStatus => {
 	if (row.archived) {
 		return "archived";
 	}
+	if (row.pending) {
+		return "pending";
+	}
+	if (row.has_pending_change) {
+		return "changed";
+	}
 
-	// `updated_at` in the list rows isn't the publish_at field; we'd need that
-	// to detect scheduled status. For now everything non-archived shows as
-	// Published — Draft / Scheduled will follow once the list payload carries
-	// the necessary flags.
+	// Future: use publish_at / expire_at for "scheduled" once the list payload
+	// includes those fields.
 	return "published";
 };

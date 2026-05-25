@@ -2,7 +2,7 @@
  * Pill-shaped status badge matching the prototype's `.badge--{success|warn|info|...}`
  * styling. The colored dot + label combo signals state at a glance.
  */
-export type PageStatus = "published" | "draft" | "scheduled" | "archived";
+export type PageStatus = "published" | "draft" | "scheduled" | "archived" | "changed" | "pending";
 
 const VARIANTS: Record<PageStatus, { label: string; cls: string }> = {
 	published: {
@@ -11,6 +11,14 @@ const VARIANTS: Record<PageStatus, { label: string; cls: string }> = {
 	},
 	draft: {
 		label: "Draft",
+		cls: "bg-warn-bg text-warn",
+	},
+	changed: {
+		label: "Changed",
+		cls: "bg-warn-bg text-warn",
+	},
+	pending: {
+		label: "Pending",
 		cls: "bg-warn-bg text-warn",
 	},
 	scheduled: {
