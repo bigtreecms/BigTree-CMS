@@ -108,6 +108,24 @@
 			return Response::noContent();
 		}
 
+		/**
+		 * GET /system/site
+		 *
+		 * Lightweight site context for the SPA shell header:
+		 *   - nav_title of the root page (id 0) — matches legacy admin header exactly
+		 *   - www_root from config so "View site" links to the public frontend
+		 */
+		public function site(Request $request) {
+			global $bigtree;
+
+			$root = SQL::fetch("SELECT nav_title FROM bigtree_pages WHERE id = 0");
+
+			return Response::ok([
+				"nav_title" => $root["nav_title"] ?? "BigTree",
+				"www_root" => $bigtree["config"]["www_root"] ?? "",
+			]);
+		}
+
 		// — Database backups —
 
 		/**

@@ -19,7 +19,6 @@ export const Shell = () => {
 	return (
 		<div className="flex min-h-screen flex-col">
 			<TopBar
-				siteName="BigTree"
 				dark={dark}
 				onToggleDark={() => setDark((d) => !d)}
 				onOpenSearch={() => {

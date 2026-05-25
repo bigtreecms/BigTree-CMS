@@ -1,4 +1,8 @@
-import { Bell, ChevronDown, ChevronsUpDown, ExternalLink, Moon, Search, Sun } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/api/client";
+import { authApi } from "@/auth/endpoints";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { Bell, ChevronDown, ExternalLink, LogOut, Moon, Search, Sun } from "lucide-react";
 import { useAuthStore } from "@/auth/store";
 
 /**
@@ -10,13 +14,12 @@ import { useAuthStore } from "@/auth/store";
  */
 
 interface TopBarProps {
-	siteName: string;
 	dark: boolean;
 	onToggleDark: () => void;
 	onOpenSearch: () => void;
 }
 
-export const TopBar = ({ siteName, dark, onToggleDark, onOpenSearch }: TopBarProps) => {
+export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 	const user = useAuthStore((s) => s.user);
 	const initials = user?.name
 		? user.name
@@ -27,6 +30,14 @@ export const TopBar = ({ siteName, dark, onToggleDark, onOpenSearch }: TopBarPro
 				.join("")
 				.toUpperCase()
 		: "?";
+
+	const siteQ = useQuery({
+		queryKey: ["system", "site"],
+		queryFn: () => api.get<{ nav_title: string; www_root: string }>("/system/site"),
+		staleTime: Infinity,
+	});
+	const siteName = siteQ.data?.nav_title ?? "BigTree";
+	const wwwRoot = siteQ.data?.www_root || "/";
 
 	return (
 		<header className="sticky top-0 z-30 flex h-[52px] items-center gap-4 border-b border-border bg-surface px-5">
@@ -43,25 +54,20 @@ export const TopBar = ({ siteName, dark, onToggleDark, onOpenSearch }: TopBarPro
 						<path d="M12 2 4 12h4v8h8v-8h4L12 2Z" />
 					</svg>
 				</div>
-				<button
-					type="button"
-					className="flex cursor-pointer items-center gap-1 rounded-md p-1 pr-2 transition-colors hover:bg-hover"
-					title="Switch site"
-				>
-					<span className="text-[14px] font-semibold tracking-[-0.01em]">{siteName}</span>
-					<ChevronsUpDown size={13} className="text-text-3" />
-				</button>
+				<span className="text-[14px] font-semibold tracking-[-0.01em]">{siteName}</span>
 			</div>
 
 			<div className="h-[22px] w-px bg-border" />
 
-			<button
-				type="button"
+			<a
+				href={wwwRoot}
+				target="_blank"
+				rel="noopener noreferrer"
 				className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1 text-[12.5px] text-text-2 transition-colors hover:border-border-strong hover:bg-hover"
 			>
 				<ExternalLink size={13} />
 				<span>View site</span>
-			</button>
+			</a>
 
 			<div className="flex-1" />
 
@@ -95,19 +101,44 @@ export const TopBar = ({ siteName, dark, onToggleDark, onOpenSearch }: TopBarPro
 				<span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-danger" />
 			</button>
 
-			<button
-				type="button"
-				title="Account"
-				className="flex cursor-pointer items-center gap-2 rounded-md py-1 pl-1 pr-2 transition-colors hover:bg-hover"
-			>
-				<div className="grid h-6 w-6 place-items-center rounded bg-accent-soft text-[11px] font-semibold text-accent">
-					{initials}
-				</div>
-				<span className="text-[13px] font-medium">
-					{user?.name?.split(" ")[0] ?? "User"}
-				</span>
-				<ChevronDown size={12} className="text-text-3" />
-			</button>
+			<DropdownMenu.Root>
+				<DropdownMenu.Trigger asChild>
+					<button
+						type="button"
+						title="Account"
+						className="flex cursor-pointer items-center gap-2 rounded-md py-1 pl-1 pr-2 transition-colors hover:bg-hover"
+					>
+						<div className="grid h-6 w-6 place-items-center rounded bg-accent-soft text-[11px] font-semibold text-accent">
+							{initials}
+						</div>
+						<span className="text-[13px] font-medium">
+							{user?.name?.split(" ")[0] ?? "User"}
+						</span>
+						<ChevronDown size={12} className="text-text-3" />
+					</button>
+				</DropdownMenu.Trigger>
+				<DropdownMenu.Portal>
+					<DropdownMenu.Content
+						className="min-w-56 rounded-md border border-border bg-surface p-1 shadow-md z-50"
+						align="end"
+						sideOffset={6}
+					>
+						<div className="px-3 py-2 border-b border-border">
+							<div className="font-medium text-[13px]">{user?.name}</div>
+							<div className="text-text-3 text-[12px] truncate">{user?.email}</div>
+						</div>
+						<DropdownMenu.Item
+							className="flex cursor-pointer select-none items-center gap-2 rounded px-3 py-1.5 text-[13px] text-text-2 outline-none transition-colors hover:bg-hover hover:text-text data-[highlighted]:bg-hover data-[highlighted]:text-text"
+							onSelect={async () => {
+								await authApi.logout();
+							}}
+						>
+							<LogOut size={14} />
+							<span>Log out</span>
+						</DropdownMenu.Item>
+					</DropdownMenu.Content>
+				</DropdownMenu.Portal>
+			</DropdownMenu.Root>
 		</header>
 	);
 };
