@@ -30,6 +30,14 @@ export interface PageListRow {
 
 	/** True for pending "NEW" page drafts that do not yet exist in bigtree_pages. */
 	pending?: boolean;
+
+	/** ISO timestamp when the page is scheduled to be published (null if not scheduled). */
+	publish_at?: string | null;
+	/** ISO timestamp when the page is scheduled to expire (null if not set). */
+	expire_at?: string | null;
+
+	/** Server-computed flag indicating the page has a future publish_at (avoids client timezone issues). */
+	scheduled?: boolean;
 }
 
 export interface PageDetail {

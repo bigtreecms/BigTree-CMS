@@ -18,7 +18,7 @@ const VARIANTS: Record<PageStatus, { label: string; cls: string }> = {
 		cls: "bg-warn-bg text-warn",
 	},
 	pending: {
-		label: "Pending",
+		label: "Draft",
 		cls: "bg-warn-bg text-warn",
 	},
 	scheduled: {

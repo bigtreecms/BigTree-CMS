@@ -35,7 +35,7 @@
 			}
 
 			$rows = SQL::fetchAll(...array_merge([
-				"SELECT id, parent, nav_title, route, in_nav, archived, position, template, external, trunk, updated_at
+				"SELECT id, parent, nav_title, route, in_nav, archived, position, template, external, trunk, updated_at, publish_at, expire_at
 				 FROM bigtree_pages WHERE " . $where . " ORDER BY position DESC, nav_title ASC",
 			], $args));
 
@@ -59,6 +59,9 @@
 					"template" => $r["template"],
 					"external" => html_entity_decode((string)$r["external"], ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 					"updated_at" => $r["updated_at"],
+					"publish_at" => $r["publish_at"],
+					"expire_at" => $r["expire_at"],
+					"scheduled" => !empty($r["publish_at"]) && $r["publish_at"] > date("Y-m-d H:i:s"),
 					"access" => $level,
 					"has_pending_change" => false,
 				];
@@ -105,6 +108,9 @@
 					continue;
 				}
 
+				$publishAt = $changes["publish_at"] ?? null;
+				$isScheduled = $publishAt && $publishAt > date("Y-m-d H:i:s");
+
 				$items[] = [
 					"id" => (int)$pc["id"],
 					"parent" => $parent,
@@ -117,6 +123,8 @@
 					"template" => (string)($changes["template"] ?? ""),
 					"external" => html_entity_decode((string)($changes["external"] ?? ""), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 					"updated_at" => $pc["date"],
+					"publish_at" => $publishAt,
+					"scheduled" => $isScheduled,
 					"access" => $level,
 					"pending" => true,
 					"pending_change_id" => (int)$pc["id"],

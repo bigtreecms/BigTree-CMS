@@ -325,6 +325,7 @@ export const Pages = () => {
 										}
 									}}
 									allowReorder={false}
+									enableFilters={false}
 								/>
 							)}
 						</>

@@ -139,6 +139,8 @@ export const PageRow = ({
  * Derive a display status from the row.
  * The backend now includes `has_pending_change` (from bigtree_pending_changes)
  * so we can show "Changed" for pages with unpublished edits.
+ * New pending pages (type=NEW) use the "pending" status which displays as "Draft"
+ * to match the filter labels.
  */
 const statusFor = (row: PageListRow): PageStatus => {
 	if (row.archived) {
@@ -150,8 +152,9 @@ const statusFor = (row: PageListRow): PageStatus => {
 	if (row.has_pending_change) {
 		return "changed";
 	}
+	if (row.scheduled) {
+		return "scheduled";
+	}
 
-	// Future: use publish_at / expire_at for "scheduled" once the list payload
-	// includes those fields.
 	return "published";
 };

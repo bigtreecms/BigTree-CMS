@@ -145,10 +145,19 @@ const statusMatches = (row: PageListRow, f: Filter): boolean => {
 	}
 
 	if (f === "published") {
-		return !row.archived;
+		// A row can have a pending change (has_pending_change) and still be
+		// considered Published. It just can't be *completely* pending (the
+		// brand new pending pages...) or scheduled for a future publish_at.
+		return !row.archived && !row.pending && !row.scheduled;
 	}
 
-	// Draft / Scheduled detection needs additional fields from the API — for
-	// now these filters select nothing (placeholder pending the API addition).
+	if (f === "draft") {
+		return !!row.pending;
+	}
+
+	if (f === "scheduled") {
+		return !!row.scheduled;
+	}
+
 	return false;
 };
