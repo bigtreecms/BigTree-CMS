@@ -26,12 +26,14 @@
 		"POST /auth/refresh" => [
 			"service" => [AuthService::class, "refresh"],
 			"permission" => "public",
+			"body" => ["refresh_token" => "required|string|max:1024"],
 			"rate_limit" => ["per_minute" => 20],
 		],
 
 		"POST /auth/logout" => [
 			"service" => [AuthService::class, "logout"],
 			"permission" => "public",
+			"body" => ["refresh_token" => "string|max:1024"],
 		],
 
 		"POST /auth/logout-all" => [

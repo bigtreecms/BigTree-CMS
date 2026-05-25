@@ -1,0 +1,121 @@
+/* Design tokens — ported faithfully from the Claude Design prototype's
+   styles.css. We use Tailwind v4's @theme directive so these tokens become both
+   CSS custom properties AND Tailwind utility class values:
+
+     --color-accent: oklch(46% 0.11 155);
+
+   becomes available as `bg-accent`, `text-accent`, `border-accent`, etc., AND
+   as `var(--color-accent)` for raw CSS. The runtime theme switch (light/dark)
+   is driven by [data-theme="dark"] on <html>, which redefines the same
+   variables — Tailwind utilities just read the var so they switch automatically.
+
+   Naming: we keep the prototype's semantic names ("surface", "hover", "text-2",
+   etc.) rather than Tailwind's color-scale names. Surface != "neutral-50";
+   they're load-bearing semantic tokens.
+
+   Accent hue is a single variable (--accent-h) so the Tweaks panel can shift
+   the whole palette by changing one number. */
+
+@theme {
+	/* — Brand accent hue. The Tweaks panel can mutate --accent-h at runtime. */
+	--accent-h: 155;
+
+	/* — Font families */
+	--font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+	--font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+	/* — Radii. Prototype uses tight, small radii — keep the exact values. */
+	--radius-sm: 5px;
+	--radius-md: 7px;
+	--radius-lg: 10px;
+	--radius-xl: 14px;
+
+	/* — Density (row height + gap). Overridable via [data-density="..."]. */
+	--row-h: 36px;
+	--gap: 12px;
+
+	/* — Light theme is the default. Dark overrides in :root[data-theme="dark"]. */
+
+	/* Brand */
+	--color-accent: oklch(46% 0.11 var(--accent-h));
+	--color-accent-hover: oklch(40% 0.11 var(--accent-h));
+	--color-accent-soft: oklch(95% 0.04 var(--accent-h));
+	--color-accent-soft-2: oklch(90% 0.06 var(--accent-h));
+	--color-accent-fg: oklch(98% 0.01 var(--accent-h));
+	--color-accent-ring: oklch(46% 0.11 var(--accent-h) / 0.35);
+
+	/* Semantic surfaces */
+	--color-bg: oklch(99% 0.002 95);
+	--color-surface: #ffffff;
+	--color-surface-2: oklch(98% 0.003 95);
+	--color-surface-3: oklch(96% 0.004 95);
+	--color-hover: oklch(96% 0.004 95);
+	--color-border: oklch(91% 0.004 95);
+	--color-border-strong: oklch(85% 0.005 95);
+
+	/* Text hierarchy (1 = primary, 4 = quaternary/disabled) */
+	--color-text: oklch(20% 0.01 250);
+	--color-text-2: oklch(40% 0.012 250);
+	--color-text-3: oklch(58% 0.012 250);
+	--color-text-4: oklch(70% 0.01 250);
+
+	/* Status colors */
+	--color-success: oklch(55% 0.13 150);
+	--color-success-bg: oklch(96% 0.04 150);
+	--color-warn: oklch(70% 0.14 75);
+	--color-warn-bg: oklch(96% 0.04 75);
+	--color-danger: oklch(55% 0.18 25);
+	--color-danger-bg: oklch(96% 0.04 25);
+	--color-info: oklch(55% 0.13 240);
+	--color-info-bg: oklch(96% 0.03 240);
+
+	/* Shadows — subtle, professional. The 0.5px hairline trick is what
+	   gives every surface a faint edge in light mode. */
+	--shadow-sm: 0 1px 2px rgba(15, 20, 25, 0.04), 0 0 0 0.5px rgba(15, 20, 25, 0.04);
+	--shadow-md: 0 4px 12px rgba(15, 20, 25, 0.06), 0 0 0 0.5px rgba(15, 20, 25, 0.05);
+	--shadow-lg: 0 16px 40px rgba(15, 20, 25, 0.12), 0 0 0 0.5px rgba(15, 20, 25, 0.06);
+}
+
+/* — Dark theme. The @theme block above runs at build time; this runtime
+   override mutates the CSS variables when [data-theme="dark"] is set on
+   <html>. Tailwind utilities read the variables so they switch automatically.
+   Don't redeclare these inside @theme — that would make them static. */
+:root[data-theme="dark"] {
+	--color-bg: oklch(15% 0.006 250);
+	--color-surface: oklch(18% 0.008 250);
+	--color-surface-2: oklch(21% 0.008 250);
+	--color-surface-3: oklch(24% 0.009 250);
+	--color-hover: oklch(24% 0.009 250);
+	--color-border: oklch(28% 0.008 250);
+	--color-border-strong: oklch(34% 0.009 250);
+
+	--color-text: oklch(96% 0.005 250);
+	--color-text-2: oklch(78% 0.008 250);
+	--color-text-3: oklch(60% 0.01 250);
+	--color-text-4: oklch(48% 0.01 250);
+
+	--color-accent: oklch(70% 0.13 var(--accent-h));
+	--color-accent-hover: oklch(76% 0.13 var(--accent-h));
+	--color-accent-soft: oklch(28% 0.05 var(--accent-h));
+	--color-accent-soft-2: oklch(34% 0.07 var(--accent-h));
+	--color-accent-fg: oklch(12% 0.02 var(--accent-h));
+
+	--color-success-bg: oklch(28% 0.06 150);
+	--color-warn-bg: oklch(28% 0.06 75);
+	--color-danger-bg: oklch(28% 0.06 25);
+	--color-info-bg: oklch(28% 0.05 240);
+
+	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 0 0 0.5px rgba(255, 255, 255, 0.04);
+	--shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.05);
+	--shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(255, 255, 255, 0.06);
+}
+
+/* — Density overrides — the Tweaks panel sets [data-density] on <html>. */
+:root[data-density="compact"] {
+	--row-h: 30px;
+	--gap: 8px;
+}
+:root[data-density="comfy"] {
+	--row-h: 44px;
+	--gap: 16px;
+}

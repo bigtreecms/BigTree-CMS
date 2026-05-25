@@ -1,0 +1,7 @@
+/* BigTree Admin SPA — Tailwind v4 entry.
+   Order matters: tokens (@theme) must precede base. */
+
+@import "tailwindcss";
+
+@import "./tokens.css";
+@import "./base.css";

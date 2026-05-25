@@ -104,11 +104,20 @@
 		}
 
 		public function refresh(Request $request) {
-			$this->enforceRefreshOrigin($request);
+			// Refresh token now travels in the request body (was previously a
+			// cookie). The HttpOnly-cookie pattern had marginal XSS-resistance
+			// benefit on an admin tool (the access token in memory is just as
+			// dangerous if exfiltrated) and added real deployment friction —
+			// path matching across install prefixes, dev proxy gymnastics, etc.
+			// Bearer-in-Authorization + body-refresh-token is the standard SPA
+			// pattern; we lose CSRF concerns entirely along with the cookie.
+			$raw = (string)($request->body["refresh_token"] ?? "");
 
-			$cookie_value = $_COOKIE[TokenStore::COOKIE] ?? "";
-			$rotation = TokenStore::rotate($cookie_value, $request->ip, $request->user_agent);
+			if ($raw === "") {
+				throw new AuthenticationException("Missing refresh_token", "no_refresh_token", 401);
+			}
 
+			$rotation = TokenStore::rotate($raw, $request->ip, $request->user_agent);
 			$user = SQL::fetch("SELECT * FROM bigtree_users WHERE id = ?", $rotation["user_id"]);
 
 			if (!$user) {
@@ -117,28 +126,23 @@
 
 			$access = $this->issueAccessToken($user);
 
-			$response = Response::ok([
+			return Response::ok([
 				"access_token" => $access,
+				"refresh_token" => $rotation["new_token"]["raw"],
 				"token_type" => "Bearer",
 				"expires_in" => self::ACCESS_TTL,
 				"user" => $this->publicUser($user),
 			]);
-			$response->cookie(TokenStore::COOKIE, $rotation["new_token"]["raw"], TokenStore::cookieOptions());
-
-			return $response;
 		}
 
 		public function logout(Request $request) {
-			$cookie_value = $_COOKIE[TokenStore::COOKIE] ?? "";
+			$raw = (string)($request->body["refresh_token"] ?? "");
 
-			if ($cookie_value !== "") {
-				TokenStore::revokeByRaw($cookie_value);
+			if ($raw !== "") {
+				TokenStore::revokeByRaw($raw);
 			}
 
-			$response = Response::noContent();
-			$response->cookie(TokenStore::COOKIE, "", TokenStore::clearCookieOptions());
-
-			return $response;
+			return Response::noContent();
 		}
 
 		public function logoutAll(Request $request) {
@@ -146,10 +150,7 @@
 			SQL::query("UPDATE bigtree_users SET token_version = token_version + 1 WHERE id = ?", $user_id);
 			TokenStore::revokeAllForUser($user_id);
 
-			$response = Response::noContent();
-			$response->cookie(TokenStore::COOKIE, "", TokenStore::clearCookieOptions());
-
-			return $response;
+			return Response::noContent();
 		}
 
 		public function me(Request $request) {
@@ -600,15 +601,18 @@
 			$access = $this->issueAccessToken($user);
 			$refresh = TokenStore::issueFamily((int)$user["id"], $request->ip, $request->user_agent);
 
-			$response = Response::ok([
+			// Both tokens go in the body. The SPA persists them to localStorage.
+			// No cookie is set — there's no value in HttpOnly for the refresh
+			// token on an admin tool where XSS would already own the in-memory
+			// access token. Storing tokens client-side keeps deployment topology
+			// simple (no cookie path/domain dance) and is the de facto SPA pattern.
+			return Response::ok([
 				"access_token" => $access,
+				"refresh_token" => $refresh["raw"],
 				"token_type" => "Bearer",
 				"expires_in" => self::ACCESS_TTL,
 				"user" => $this->publicUser($user),
 			]);
-			$response->cookie(TokenStore::COOKIE, $refresh["raw"], TokenStore::cookieOptions());
-
-			return $response;
 		}
 
 		private function issueAccessToken(array $user) {
@@ -649,26 +653,9 @@
 			];
 		}
 
-		private function enforceRefreshOrigin(Request $request) {
-			global $bigtree;
-			$origin = $request->header("origin");
-
-			if (!$origin) return; // server-to-server is permitted (curl); browser refreshes always send Origin.
-
-			$allowed = [];
-			$allowed[] = rtrim($bigtree["config"]["www_root"] ?? "", "/");
-
-			foreach (($bigtree["config"]["sites"] ?? []) as $site) {
-				if (!empty($site["www_root"])) {
-					$allowed[] = rtrim($site["www_root"], "/");
-				}
-			}
-
-			foreach (($bigtree["config"]["api"]["cors_origins"] ?? []) as $o) $allowed[] = rtrim($o, "/");
-			$allowed = array_filter($allowed);
-
-			if (!in_array($origin, $allowed, true)) {
-				throw new AuthorizationException("Refresh origin not allowed", "origin_not_allowed", 403);
-			}
-		}
+		// enforceRefreshOrigin was removed: with localStorage-based refresh tokens
+		// there's no CSRF surface to defend. CSRF only applies to ambient
+		// credentials (cookies, basic-auth) the browser attaches automatically.
+		// A refresh token in a JSON body cannot be sent without explicit JS, and
+		// our CORS middleware already gates which origins can do that.
 	}
