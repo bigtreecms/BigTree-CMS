@@ -85,13 +85,15 @@
 
 		private function searchPages($q, $limit, $user) {
 			$like = "%" . str_replace("%", "\\%", $q) . "%";
+			// LIMIT needs an integer literal; ? substitution would quote it.
+			$overfetch = max(1, (int)$limit) * 3;
 			$rows = SQL::fetchAll(
 				"SELECT id, nav_title, path, archived
 				 FROM bigtree_pages
 				 WHERE (nav_title LIKE ? OR title LIKE ?)
 				 ORDER BY archived ASC, nav_title ASC
-				 LIMIT ?",
-				$like, $like, $limit * 3  // overfetch since permission-filter may drop some
+				 LIMIT $overfetch",
+				$like, $like
 			);
 			$kept = [];
 
@@ -116,11 +118,12 @@
 
 		private function searchTags($q, $limit) {
 			$like = "%" . str_replace("%", "\\%", strtolower($q)) . "%";
+			$limit = max(1, (int)$limit);
 			$rows = SQL::fetchAll(
 				"SELECT id, tag, route, usage_count FROM bigtree_tags
 				 WHERE tag LIKE ? OR metaphone LIKE ?
-				 ORDER BY usage_count DESC LIMIT ?",
-				$like, $like, $limit
+				 ORDER BY usage_count DESC LIMIT $limit",
+				$like, $like
 			);
 
 			return array_map(function ($r) {
@@ -136,11 +139,12 @@
 
 		private function searchUsers($q, $limit) {
 			$like = "%" . str_replace("%", "\\%", $q) . "%";
+			$limit = max(1, (int)$limit);
 			$rows = SQL::fetchAll(
 				"SELECT id, name, email, level FROM bigtree_users
 				 WHERE name LIKE ? OR email LIKE ? OR company LIKE ?
-				 ORDER BY name ASC LIMIT ?",
-				$like, $like, $like, $limit
+				 ORDER BY name ASC LIMIT $limit",
+				$like, $like, $like
 			);
 
 			return array_map(function ($r) {

@@ -206,8 +206,12 @@
 				throw new BadRequestException("Missing passkey verification fields", "missing_fields", 400);
 			}
 
-			$challenge_row = SQL::fetch("SELECT * FROM bigtree_passkey_challenges WHERE id = ? AND consumed = 0 AND purpose = 'auth' AND created_at >= DATE_SUB(NOW(), INTERVAL ? SECOND)",
-				$challenge_id, self::PASSKEY_CHALLENGE_TTL);
+			// INTERVAL needs an integer literal; ? would inject a quoted string.
+			$ttl = (int)self::PASSKEY_CHALLENGE_TTL;
+			$challenge_row = SQL::fetch(
+				"SELECT * FROM bigtree_passkey_challenges WHERE id = ? AND consumed = 0 AND purpose = 'auth' AND created_at >= DATE_SUB(NOW(), INTERVAL $ttl SECOND)",
+				$challenge_id
+			);
 
 			if (!$challenge_row) {
 				throw new AuthenticationException("Passkey challenge invalid or expired", "invalid_challenge", 401);
@@ -386,9 +390,10 @@
 				throw new BadRequestException("Missing passkey registration fields", "missing_fields", 400);
 			}
 
+			$ttl = (int)self::PASSKEY_CHALLENGE_TTL;
 			$challenge_row = SQL::fetch(
-				"SELECT * FROM bigtree_passkey_challenges WHERE id = ? AND consumed = 0 AND purpose = 'register' AND user_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL ? SECOND)",
-				$challenge_id, $user_id, self::PASSKEY_CHALLENGE_TTL
+				"SELECT * FROM bigtree_passkey_challenges WHERE id = ? AND consumed = 0 AND purpose = 'register' AND user_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL $ttl SECOND)",
+				$challenge_id, $user_id
 			);
 
 			if (!$challenge_row) {
@@ -538,21 +543,26 @@
 
 			$policy = $bigtree["security-policy"] ?? [];
 
+			// INTERVAL N MINUTE/HOUR can't take ? placeholders — they'd get quoted.
+			// Int-casting the policy values upstream makes string interpolation safe here.
+
 			// User-fail policy
 			if ($user_id && !empty($policy["user_fails"]) && count(array_filter((array)$policy["user_fails"])) === 3) {
 				$p = $policy["user_fails"];
+				$window = (int)$p["time"];
+				$ban_minutes = (int)$p["ban"];
 				$count = (int)SQL::fetchSingle(
-					"SELECT COUNT(*) FROM bigtree_login_attempts WHERE user = ? AND timestamp >= DATE_SUB(NOW(), INTERVAL ? MINUTE)",
-					(int)$user_id, (int)$p["time"]
+					"SELECT COUNT(*) FROM bigtree_login_attempts WHERE user = ? AND timestamp >= DATE_SUB(NOW(), INTERVAL $window MINUTE)",
+					(int)$user_id
 				);
 
 				if ($count >= (int)$p["count"]) {
 					$existing = SQL::fetch("SELECT * FROM bigtree_login_bans WHERE user = ? AND expires >= NOW()", (int)$user_id);
 
 					if ($existing) {
-						SQL::query("UPDATE bigtree_login_bans SET expires = DATE_ADD(NOW(), INTERVAL ? MINUTE) WHERE id = ?", (int)$p["ban"], $existing["id"]);
+						SQL::query("UPDATE bigtree_login_bans SET expires = DATE_ADD(NOW(), INTERVAL $ban_minutes MINUTE) WHERE id = ?", $existing["id"]);
 					} else {
-						SQL::query("INSERT INTO bigtree_login_bans (ip, user, expires) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL ? MINUTE))", $ip, (int)$user_id, (int)$p["ban"]);
+						SQL::query("INSERT INTO bigtree_login_bans (ip, user, expires) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL $ban_minutes MINUTE))", $ip, (int)$user_id);
 					}
 				}
 			}
@@ -560,18 +570,20 @@
 			// IP-fail policy
 			if (!empty($policy["ip_fails"]) && count(array_filter((array)$policy["ip_fails"])) === 3) {
 				$p = $policy["ip_fails"];
+				$window = (int)$p["time"];
+				$ban_hours = (int)$p["ban"];
 				$count = (int)SQL::fetchSingle(
-					"SELECT COUNT(*) FROM bigtree_login_attempts WHERE ip = ? AND timestamp >= DATE_SUB(NOW(), INTERVAL ? MINUTE)",
-					$ip, (int)$p["time"]
+					"SELECT COUNT(*) FROM bigtree_login_attempts WHERE ip = ? AND timestamp >= DATE_SUB(NOW(), INTERVAL $window MINUTE)",
+					$ip
 				);
 
 				if ($count >= (int)$p["count"]) {
 					$existing = SQL::fetch("SELECT * FROM bigtree_login_bans WHERE ip = ? AND expires >= NOW()", $ip);
 
 					if ($existing) {
-						SQL::query("UPDATE bigtree_login_bans SET expires = DATE_ADD(NOW(), INTERVAL ? HOUR) WHERE id = ?", (int)$p["ban"], $existing["id"]);
+						SQL::query("UPDATE bigtree_login_bans SET expires = DATE_ADD(NOW(), INTERVAL $ban_hours HOUR) WHERE id = ?", $existing["id"]);
 					} else {
-						SQL::query("INSERT INTO bigtree_login_bans (ip, expires) VALUES (?, DATE_ADD(NOW(), INTERVAL ? HOUR))", $ip, (int)$p["ban"]);
+						SQL::query("INSERT INTO bigtree_login_bans (ip, expires) VALUES (?, DATE_ADD(NOW(), INTERVAL $ban_hours HOUR))", $ip);
 					}
 				}
 			}

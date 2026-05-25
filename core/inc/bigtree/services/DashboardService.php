@@ -119,10 +119,15 @@
 		}
 
 		private function recentActivity($me_id, $limit) {
+			// LIMIT can't take a ? placeholder — BigTree's SQL::query substitutes
+			// ? with '<quoted value>' (escaped string literal), and MySQL rejects
+			// LIMIT '10'. Cast to int and interpolate directly; integer cast makes
+			// this safe from injection.
+			$limit = max(1, (int)$limit);
 			$rows = SQL::fetchAll(
 				"SELECT id, `table`, entry, type, date FROM bigtree_audit_trail
-				 WHERE user = ? ORDER BY date DESC, id DESC LIMIT ?",
-				$me_id, (int)$limit
+				 WHERE user = ? ORDER BY date DESC, id DESC LIMIT $limit",
+				$me_id
 			);
 
 			return array_map(function ($r) {

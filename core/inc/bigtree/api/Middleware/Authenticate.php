@@ -13,7 +13,11 @@
 	 * Performs ONE query: SELECT id, email, name, level, permissions, timezone, token_version FROM bigtree_users WHERE id = ?
 	 * Attaches the resulting user object to $request->user.
 	 *
-	 * Skipped when route declares permission => 'public' OR auth => false.
+	 * Auth is required for every route EXCEPT those that declare permission => 'public'.
+	 * (We previously also looked at an `auth` route flag, but that flag is unused in our
+	 * route manifests, and the original guard had a PHP precedence bug that caused this
+	 * middleware to skip auth on every route. Permission middleware then failed because
+	 * no user was loaded.)
 	 */
 	class Authenticate {
 		const ISS = "bigtree";
@@ -21,9 +25,10 @@
 
 		public function handle(Request $request, callable $next) {
 			$route = $request->route;
-			$requires_auth = !($route["auth"] ?? null) === false && ($route["permission"] ?? null) !== "public";
 
-			if (!$requires_auth) {
+			// Public routes (login, refresh, forgot/reset password, signed download tokens)
+			// run without a Bearer token. Everything else must carry one.
+			if (($route["permission"] ?? null) === "public") {
 				return $next($request);
 			}
 
