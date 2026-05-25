@@ -19,6 +19,12 @@
 	// REST API at /admin/api/v1/... — handed off to the stateless Kernel.
 	// No PHP session, no BigTreeAdmin constructor side-effects, no CSRF baggage.
 	if ($bigtree["path"][1] === "api" && $bigtree["path"][2] === "v1") {
+		if (file_exists("../custom/bootstrap.php")) {
+			include "../custom/bootstrap.php";
+		} else {
+			include "../core/bootstrap.php";
+		}
+	
 		require BigTree::path("inc/bigtree/api/Kernel.php");
 		BigTree\Api\Kernel::handle($bigtree["path"]);
 		die();
