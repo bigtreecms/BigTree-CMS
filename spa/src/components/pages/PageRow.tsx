@@ -23,12 +23,7 @@ interface PageRowProps {
 	onToggleArchive: () => void;
 }
 
-export function PageRow({
-	row,
-	drag,
-	onRename,
-	onToggleArchive,
-}: PageRowProps) {
+export const PageRow = ({ row, drag, onRename, onToggleArchive }: PageRowProps) => {
 	const locked = row.access === "v" || row.access === "n"; // can't edit
 	const isDragging = drag.dragId === row.id;
 	const isDropTarget = drag.overId === row.id && drag.dragId !== row.id;
@@ -47,9 +42,7 @@ export function PageRow({
 			{/* Grip */}
 			<span
 				className={`grid h-6 w-6 cursor-grab place-items-center rounded text-text-4 hover:bg-hover hover:text-text-2 active:cursor-grabbing ${
-					locked
-						? "cursor-default opacity-25 hover:bg-transparent hover:text-text-4"
-						: ""
+					locked ? "cursor-default opacity-25 hover:bg-transparent hover:text-text-4" : ""
 				}`}
 				title={locked ? "Locked" : "Drag to reorder"}
 				aria-hidden="true"
@@ -67,11 +60,7 @@ export function PageRow({
 					className="min-w-0 flex-1 outline-none"
 					onClick={(e) => {
 						// Don't navigate when the user double-clicks the inner editable span
-						if (
-							(e.target as HTMLElement).closest(
-								"[contenteditable='true']",
-							)
-						) {
+						if ((e.target as HTMLElement).closest("[contenteditable='true']")) {
 							e.preventDefault();
 						}
 					}}
@@ -106,14 +95,16 @@ export function PageRow({
 				title="Edit page"
 				aria-disabled={locked}
 				onClick={(e) => {
-					if (locked) e.preventDefault();
+					if (locked) {
+						e.preventDefault();
+					}
 				}}
 			>
 				<Edit size={14} />
 			</Link>
 		</div>
 	);
-}
+};
 
 /**
  * Derive a display status from the row. Today the API exposes archived +
@@ -121,11 +112,14 @@ export function PageRow({
  * change ("Draft"). When PageService starts including a pending-change flag
  * in the list payload, we'll extend this.
  */
-function statusFor(row: PageListRow): PageStatus {
-	if (row.archived) return "archived";
+const statusFor = (row: PageListRow): PageStatus => {
+	if (row.archived) {
+		return "archived";
+	}
+
 	// `updated_at` in the list rows isn't the publish_at field; we'd need that
 	// to detect scheduled status. For now everything non-archived shows as
 	// Published — Draft / Scheduled will follow once the list payload carries
 	// the necessary flags.
 	return "published";
-}
+};

@@ -12,7 +12,7 @@ import { useEffect } from "react";
  * unblock. Order of providers matters: QueryClient must be outside so route
  * components can use React Query.
  */
-export function App() {
+export const App = () => {
 	const hydrating = useAuthStore((s) => s.hydrating);
 
 	useEffect(() => {
@@ -30,4 +30,4 @@ export function App() {
 			{hydrating && null}
 		</QueryClientProvider>
 	);
-}
+};

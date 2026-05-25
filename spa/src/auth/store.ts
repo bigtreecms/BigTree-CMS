@@ -51,8 +51,7 @@ function loadPersisted(): PersistedAuth | null {
 		const raw = window.localStorage.getItem(STORAGE_KEY);
 		if (!raw) return null;
 		const parsed = JSON.parse(raw) as PersistedAuth;
-		if (!parsed.accessToken || !parsed.refreshToken || !parsed.user)
-			return null;
+		if (!parsed.accessToken || !parsed.refreshToken || !parsed.user) return null;
 		return parsed;
 	} catch {
 		return null;
@@ -80,12 +79,7 @@ interface AuthState {
 	 */
 	hydrating: boolean;
 
-	setSession: (
-		access: string,
-		refresh: string,
-		expiresInSeconds: number,
-		user: AuthUser,
-	) => void;
+	setSession: (access: string, refresh: string, expiresInSeconds: number, user: AuthUser) => void;
 	clear: () => void;
 	setHydrated: () => void;
 }

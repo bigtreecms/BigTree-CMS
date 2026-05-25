@@ -11,11 +11,16 @@ export interface BreadcrumbItem {
  * text (current location); earlier items are links if `to` is provided. Matches
  * the prototype's `.crumbs` styling — small, dense, chevron-separated.
  */
-export function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
+interface BreadcrumbProps {
+	items: BreadcrumbItem[];
+}
+
+export const Breadcrumb = ({ items }: BreadcrumbProps) => {
 	return (
 		<div className="flex items-center gap-1.5 text-[12px] text-text-3">
 			{items.map((it, i) => {
 				const isLast = i === items.length - 1;
+
 				return (
 					<span key={i} className="flex items-center gap-1.5">
 						{i > 0 && <ChevronRight size={11} className="text-text-4" />}
@@ -33,4 +38,4 @@ export function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
 			})}
 		</div>
 	);
-}
+};

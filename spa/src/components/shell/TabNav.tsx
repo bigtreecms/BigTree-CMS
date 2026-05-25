@@ -34,9 +34,12 @@ export const TABS: Tab[] = [
  * Tab navigation — sits under the TopBar. NavLink handles active state via
  * the `active` data attribute the prototype's CSS keys off of.
  */
-export function TabNav() {
+export const TabNav = () => {
 	return (
-		<nav className="flex items-center gap-0.5 border-b border-border bg-surface px-4" role="tablist">
+		<nav
+			className="flex items-center gap-0.5 border-b border-border bg-surface px-4"
+			role="tablist"
+		>
 			{TABS.map(({ id, label, path, icon: Icon }) => (
 				<NavLink
 					key={id}
@@ -58,4 +61,4 @@ export function TabNav() {
 			))}
 		</nav>
 	);
-}
+};

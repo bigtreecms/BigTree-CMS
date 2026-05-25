@@ -4,8 +4,9 @@ import { Edit, Eye, EyeOff, FileText, Move, Plus } from "lucide-react";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageTable } from "@/components/pages/PageTable";
+import { HeaderBtn } from "@/components/ui/HeaderBtn";
+import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { pagesApi, type PageListRow } from "@/api/endpoints/pages";
-import { ApiError } from "@/types/api";
 import { relativeTime } from "@/lib/time";
 
 /**
@@ -26,7 +27,7 @@ import { relativeTime } from "@/lib/time";
  *   - Page-level Edit, Revisions, Move actions in the header
  *   - Drill-in to a subpage to manage its children
  */
-export function Pages() {
+export const Pages = () => {
 	const queryClient = useQueryClient();
 	const parent = 0; // root for now
 
@@ -39,14 +40,8 @@ export function Pages() {
 		queryFn: () => pagesApi.list(parent, false),
 	});
 
-	const visible = useMemo(
-		() => rows.filter((r) => r.in_nav && !r.archived),
-		[rows],
-	);
-	const hidden = useMemo(
-		() => rows.filter((r) => !r.in_nav && !r.archived),
-		[rows],
-	);
+	const visible = useMemo(() => rows.filter((r) => r.in_nav && !r.archived), [rows]);
+	const hidden = useMemo(() => rows.filter((r) => !r.in_nav && !r.archived), [rows]);
 
 	const renameMutation = useMutation({
 		mutationFn: ({ id, nav_title }: { id: number; nav_title: string }) =>
@@ -56,25 +51,15 @@ export function Pages() {
 			await queryClient.cancelQueries({
 				queryKey: ["pages", "list", parent],
 			});
-			const previous = queryClient.getQueryData<PageListRow[]>([
-				"pages",
-				"list",
-				parent,
-			]);
+			const previous = queryClient.getQueryData<PageListRow[]>(["pages", "list", parent]);
 			queryClient.setQueryData<PageListRow[]>(
 				["pages", "list", parent],
-				(old) =>
-					old?.map((r) => (r.id === id ? { ...r, nav_title } : r)) ??
-					[],
+				(old) => old?.map((r) => (r.id === id ? { ...r, nav_title } : r)) ?? []
 			);
 			return { previous };
 		},
 		onError: (_err, _vars, ctx) => {
-			if (ctx?.previous)
-				queryClient.setQueryData(
-					["pages", "list", parent],
-					ctx.previous,
-				);
+			if (ctx?.previous) queryClient.setQueryData(["pages", "list", parent], ctx.previous);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({
@@ -84,8 +69,7 @@ export function Pages() {
 	});
 
 	const reorderMutation = useMutation({
-		mutationFn: (orderedIds: number[]) =>
-			pagesApi.reorder(parent, orderedIds),
+		mutationFn: (orderedIds: number[]) => pagesApi.reorder(parent, orderedIds),
 		// The drag hook already applied the new order to local state; we just
 		// re-fetch on settled to make sure server position values are reflected.
 		onError: () => {
@@ -107,26 +91,15 @@ export function Pages() {
 			await queryClient.cancelQueries({
 				queryKey: ["pages", "list", parent],
 			});
-			const previous = queryClient.getQueryData<PageListRow[]>([
-				"pages",
-				"list",
-				parent,
-			]);
+			const previous = queryClient.getQueryData<PageListRow[]>(["pages", "list", parent]);
 			queryClient.setQueryData<PageListRow[]>(
 				["pages", "list", parent],
-				(old) =>
-					old?.map((r) =>
-						r.id === id ? { ...r, archived: !archived } : r,
-					) ?? [],
+				(old) => old?.map((r) => (r.id === id ? { ...r, archived: !archived } : r)) ?? []
 			);
 			return { previous };
 		},
 		onError: (_err, _vars, ctx) => {
-			if (ctx?.previous)
-				queryClient.setQueryData(
-					["pages", "list", parent],
-					ctx.previous,
-				);
+			if (ctx?.previous) queryClient.setQueryData(["pages", "list", parent], ctx.previous);
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({
@@ -160,23 +133,17 @@ export function Pages() {
 				title="Home"
 				sub={
 					<>
-						<span className="font-mono">/</span> · {visible.length}{" "}
-						visible · {hidden.length} hidden
-						{newestUpdate ? (
-							<> · Updated {relativeTime(newestUpdate)}</>
-						) : null}
+						<span className="font-mono">/</span> · {visible.length} visible ·{" "}
+						{hidden.length} hidden
+						{newestUpdate ? <> · Updated {relativeTime(newestUpdate)}</> : null}
 					</>
 				}
 				actions={
 					<>
 						<HeaderBtn icon={<Eye size={13} />}>Preview</HeaderBtn>
-						<HeaderBtn icon={<FileText size={13} />}>
-							Revisions
-						</HeaderBtn>
+						<HeaderBtn icon={<FileText size={13} />}>Revisions</HeaderBtn>
 						<HeaderBtn icon={<Move size={13} />}>Move</HeaderBtn>
-						<HeaderBtn icon={<Edit size={13} />}>
-							Edit page
-						</HeaderBtn>
+						<HeaderBtn icon={<Edit size={13} />}>Edit page</HeaderBtn>
 						<HeaderBtn icon={<Plus size={13} />} primary>
 							Add subpage
 						</HeaderBtn>
@@ -201,9 +168,7 @@ export function Pages() {
 						icon={<FileText size={13} className="text-accent" />}
 						rows={visible}
 						onReorder={(ids) => handleReorder("visible", ids)}
-						onRename={(id, next) =>
-							renameMutation.mutate({ id, nav_title: next })
-						}
+						onRename={(id, next) => renameMutation.mutate({ id, nav_title: next })}
 						onToggleArchive={(id) => {
 							const r = visible.find((x) => x.id === id);
 							if (r)
@@ -219,9 +184,7 @@ export function Pages() {
 						icon={<EyeOff size={13} className="text-text-3" />}
 						rows={hidden}
 						onReorder={(ids) => handleReorder("hidden", ids)}
-						onRename={(id, next) =>
-							renameMutation.mutate({ id, nav_title: next })
-						}
+						onRename={(id, next) => renameMutation.mutate({ id, nav_title: next })}
 						onToggleArchive={(id) => {
 							const r = hidden.find((x) => x.id === id);
 							if (r)
@@ -236,54 +199,4 @@ export function Pages() {
 			)}
 		</div>
 	);
-}
-
-function HeaderBtn({
-	icon,
-	primary,
-	children,
-}: {
-	icon: React.ReactNode;
-	primary?: boolean;
-	children: React.ReactNode;
-}) {
-	return (
-		<button
-			type="button"
-			className={
-				primary
-					? "inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-accent px-2.5 py-1.5 text-[12.5px] font-medium text-accent-fg transition-colors hover:bg-accent-hover"
-					: "inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-[12.5px] font-medium text-text-2 transition-colors hover:border-border-strong hover:bg-hover"
-			}
-		>
-			{icon}
-			{children}
-		</button>
-	);
-}
-
-function ErrorPanel({ error }: { error: unknown }) {
-	const isApi = error instanceof ApiError;
-	return (
-		<div className="mt-6 rounded-md border border-danger/30 bg-danger-bg p-4 text-[13px]">
-			<div className="mb-1 font-semibold text-danger">
-				Failed to load pages
-			</div>
-			<div className="text-text-2">{(error as Error).message}</div>
-			{isApi && (
-				<dl className="mt-3 grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1 font-mono text-[11.5px] text-text-3">
-					<dt>status</dt>
-					<dd>{error.status}</dd>
-					<dt>code</dt>
-					<dd>{error.code}</dd>
-					{error.requestId && (
-						<>
-							<dt>request_id</dt>
-							<dd>{error.requestId}</dd>
-						</>
-					)}
-				</dl>
-			)}
-		</div>
-	);
-}
+};

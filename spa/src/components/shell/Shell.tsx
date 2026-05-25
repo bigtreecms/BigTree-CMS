@@ -9,7 +9,7 @@ import { applyTheme, resolveInitialTheme } from "@/lib/theme";
  * active route. The router uses this as the element for the authenticated
  * route subtree.
  */
-export function Shell() {
+export const Shell = () => {
 	const [dark, setDark] = useState(() => resolveInitialTheme() === "dark");
 
 	useEffect(() => {
@@ -32,4 +32,4 @@ export function Shell() {
 			</main>
 		</div>
 	);
-}
+};

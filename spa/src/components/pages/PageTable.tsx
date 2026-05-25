@@ -1,7 +1,8 @@
-import { type ReactNode, useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { PageListRow } from "@/api/endpoints/pages";
 import { PageRow } from "./PageRow";
 import { useDragReorder } from "@/hooks/useDragReorder";
+import { Chip } from "@/components/ui/Chip";
 
 /**
  * Section + table block for a list of page rows.
@@ -26,7 +27,7 @@ interface PageTableProps {
 	emptyLabel?: string;
 }
 
-export function PageTable({
+export const PageTable = ({
 	title,
 	icon,
 	rows,
@@ -35,19 +36,17 @@ export function PageTable({
 	onToggleArchive,
 	enableFilters = true,
 	emptyLabel,
-}: PageTableProps) {
+}: PageTableProps) => {
 	const [filter, setFilter] = useState<Filter>("all");
 	const filtered =
-		enableFilters && filter !== "all"
-			? rows.filter((r) => statusMatches(r, filter))
-			: rows;
+		enableFilters && filter !== "all" ? rows.filter((r) => statusMatches(r, filter)) : rows;
 
 	// We pass a non-functional setter that mirrors the optimistic reorder back
 	// into the parent via onReorder. The actual list state lives upstream.
 	const drag = useDragReorder<PageListRow, number>(
 		filtered,
 		(next) => onReorder(next.map((r) => r.id)),
-		(orderedIds) => onReorder(orderedIds),
+		(orderedIds) => onReorder(orderedIds)
 	);
 
 	return (
@@ -63,10 +62,7 @@ export function PageTable({
 				<span className="flex-1" />
 				{enableFilters && (
 					<div className="flex gap-1">
-						<Chip
-							active={filter === "all"}
-							onClick={() => setFilter("all")}
-						>
+						<Chip active={filter === "all"} onClick={() => setFilter("all")}>
 							All
 						</Chip>
 						<Chip
@@ -75,10 +71,7 @@ export function PageTable({
 						>
 							Published
 						</Chip>
-						<Chip
-							active={filter === "draft"}
-							onClick={() => setFilter("draft")}
-						>
+						<Chip active={filter === "draft"} onClick={() => setFilter("draft")}>
 							Draft
 						</Chip>
 						<Chip
@@ -118,37 +111,18 @@ export function PageTable({
 			</div>
 		</div>
 	);
-}
+};
 
-function Chip({
-	active,
-	onClick,
-	children,
-}: {
-	active: boolean;
-	onClick: () => void;
-	children: ReactNode;
-}) {
-	return (
-		<button
-			type="button"
-			onClick={onClick}
-			data-active={active}
-			className={`inline-flex cursor-pointer items-center gap-1 rounded-full border px-2 py-0.5 text-[11.5px] transition-colors ${
-				active
-					? "border-accent-soft-2 bg-accent-soft text-accent"
-					: "border-border bg-transparent text-text-3 hover:bg-hover"
-			}`}
-		>
-			{children}
-		</button>
-	);
-}
+const statusMatches = (row: PageListRow, f: Filter): boolean => {
+	if (f === "all") {
+		return true;
+	}
 
-function statusMatches(row: PageListRow, f: Filter): boolean {
-	if (f === "all") return true;
-	if (f === "published") return !row.archived;
+	if (f === "published") {
+		return !row.archived;
+	}
+
 	// Draft / Scheduled detection needs additional fields from the API — for
 	// now these filters select nothing (placeholder pending the API addition).
 	return false;
-}
+};

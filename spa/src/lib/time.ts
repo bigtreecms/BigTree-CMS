@@ -4,8 +4,7 @@
  */
 export function relativeTime(input: string | Date | null | undefined): string {
 	if (!input) return "";
-	const d =
-		typeof input === "string" ? new Date(input.replace(" ", "T")) : input;
+	const d = typeof input === "string" ? new Date(input.replace(" ", "T")) : input;
 	if (Number.isNaN(d.getTime())) return "";
 
 	const now = new Date();

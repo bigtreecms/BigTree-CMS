@@ -94,7 +94,7 @@ export const messagesApi = {
 			folder?: "in" | "sent";
 			page?: number;
 			per_page?: number;
-		} = {},
+		} = {}
 	) => api.get<Message[]>("/messages", { query: params }),
 	unreadCount: () => api.get<{ unread: number }>("/messages/unread-count"),
 };

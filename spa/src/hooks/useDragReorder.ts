@@ -30,13 +30,10 @@ export interface DragReorderApi<Id extends string | number> {
  * deliberately don't add an index signature — that would force every other
  * property on T to be `unknown`, which doesn't match real DTOs.
  */
-export function useDragReorder<
-	T extends { id: Id },
-	Id extends string | number = number,
->(
+export function useDragReorder<T extends { id: Id }, Id extends string | number = number>(
 	items: T[],
 	setItems: (next: T[]) => void,
-	onCommit?: (orderedIds: Id[]) => void,
+	onCommit?: (orderedIds: Id[]) => void
 ): DragReorderApi<Id> {
 	const [dragId, setDragId] = useState<Id | null>(null);
 	const [overId, setOverId] = useState<Id | null>(null);
@@ -57,7 +54,7 @@ export function useDragReorder<
 			e.preventDefault();
 			if (id !== overId) setOverId(id);
 		},
-		[overId],
+		[overId]
 	);
 
 	const onDrop = useCallback(
@@ -85,7 +82,7 @@ export function useDragReorder<
 			setDragId(null);
 			setOverId(null);
 		},
-		[dragId, overId, items, setItems, onCommit],
+		[dragId, overId, items, setItems, onCommit]
 	);
 
 	const onDragEnd = useCallback(() => {

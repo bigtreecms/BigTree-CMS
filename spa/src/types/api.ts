@@ -46,11 +46,7 @@ export class ApiError extends Error {
 	readonly errors: ApiFieldError[];
 	readonly requestId?: string;
 
-	constructor(
-		status: number,
-		payload: ApiErrorPayload | null,
-		fallback?: string,
-	) {
+	constructor(status: number, payload: ApiErrorPayload | null, fallback?: string) {
 		const errors = payload?.errors ?? [];
 		const first = errors[0];
 		const message = first?.message ?? fallback ?? `HTTP ${status}`;

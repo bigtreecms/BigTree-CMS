@@ -11,7 +11,7 @@ interface PageHeadProps {
  * Title block at the top of a screen: H1 + subtitle on the left, action
  * buttons on the right. Matches the prototype's `.page-head` styling.
  */
-export function PageHead({ title, sub, actions, badge }: PageHeadProps) {
+export const PageHead = ({ title, sub, actions, badge }: PageHeadProps) => {
 	return (
 		<div className="flex flex-wrap items-start justify-between gap-3 py-3">
 			<div className="min-w-0">
@@ -24,4 +24,4 @@ export function PageHead({ title, sub, actions, badge }: PageHeadProps) {
 			{actions && <div className="flex items-center gap-2">{actions}</div>}
 		</div>
 	);
-}
+};

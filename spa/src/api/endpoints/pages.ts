@@ -80,22 +80,13 @@ export const pagesApi = {
 	patch: (
 		id: number,
 		body: Partial<
-			Pick<
-				PageDetail,
-				| "nav_title"
-				| "title"
-				| "in_nav"
-				| "template"
-				| "external"
-				| "route"
-			>
-		>,
+			Pick<PageDetail, "nav_title" | "title" | "in_nav" | "template" | "external" | "route">
+		>
 	) => api.patch<PageDetail>(`/pages/${id}`, body),
 
 	archive: (id: number) => api.post<void>(`/pages/${id}/archive`),
 	unarchive: (id: number) => api.post<void>(`/pages/${id}/unarchive`),
 	delete: (id: number) => api.delete<void>(`/pages/${id}`),
 
-	reorder: (parent: number, ids: number[]) =>
-		api.post<void>(`/pages/${parent}/reorder`, { ids }),
+	reorder: (parent: number, ids: number[]) => api.post<void>(`/pages/${parent}/reorder`, { ids }),
 };

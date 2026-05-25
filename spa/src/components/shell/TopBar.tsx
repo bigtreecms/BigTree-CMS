@@ -16,7 +16,7 @@ interface TopBarProps {
 	onOpenSearch: () => void;
 }
 
-export function TopBar({ siteName, dark, onToggleDark, onOpenSearch }: TopBarProps) {
+export const TopBar = ({ siteName, dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 	const user = useAuthStore((s) => s.user);
 	const initials = user?.name
 		? user.name
@@ -33,7 +33,13 @@ export function TopBar({ siteName, dark, onToggleDark, onOpenSearch }: TopBarPro
 			{/* Brand */}
 			<div className="flex items-center gap-2.5">
 				<div className="grid h-[26px] w-[26px] place-items-center rounded-md bg-accent text-accent-fg">
-					<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+					<svg
+						width="14"
+						height="14"
+						viewBox="0 0 24 24"
+						fill="currentColor"
+						aria-hidden="true"
+					>
 						<path d="M12 2 4 12h4v8h8v-8h4L12 2Z" />
 					</svg>
 				</div>
@@ -97,9 +103,11 @@ export function TopBar({ siteName, dark, onToggleDark, onOpenSearch }: TopBarPro
 				<div className="grid h-6 w-6 place-items-center rounded bg-accent-soft text-[11px] font-semibold text-accent">
 					{initials}
 				</div>
-				<span className="text-[13px] font-medium">{user?.name?.split(" ")[0] ?? "User"}</span>
+				<span className="text-[13px] font-medium">
+					{user?.name?.split(" ")[0] ?? "User"}
+				</span>
 				<ChevronDown size={12} className="text-text-3" />
 			</button>
 		</header>
 	);
-}
+};

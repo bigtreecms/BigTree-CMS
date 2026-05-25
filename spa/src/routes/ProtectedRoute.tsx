@@ -8,7 +8,7 @@ import { useAuthStore } from "@/auth/store";
  * subtree or redirect to /login with the original path stashed in state so
  * the post-login flow can return the user where they were.
  */
-export function ProtectedRoute() {
+export const ProtectedRoute = () => {
 	const hydrating = useAuthStore((s) => s.hydrating);
 	const authenticated = useAuthStore((s) => !!s.accessToken && !!s.user);
 	const location = useLocation();
@@ -22,10 +22,8 @@ export function ProtectedRoute() {
 	}
 
 	if (!authenticated) {
-		return (
-			<Navigate to="/login" replace state={{ from: location.pathname }} />
-		);
+		return <Navigate to="/login" replace state={{ from: location.pathname }} />;
 	}
 
 	return <Outlet />;
-}
+};

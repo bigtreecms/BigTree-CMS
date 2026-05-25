@@ -23,8 +23,13 @@ const VARIANTS: Record<PageStatus, { label: string; cls: string }> = {
 	},
 };
 
-export function StatusBadge({ status }: { status: PageStatus }) {
+interface StatusBadgeProps {
+	status: PageStatus;
+}
+
+export const StatusBadge = ({ status }: StatusBadgeProps) => {
 	const v = VARIANTS[status];
+
 	return (
 		<span
 			className={`inline-flex items-center gap-1.5 rounded-full px-1.5 py-0.5 text-[11px] font-medium ${v.cls}`}
@@ -33,4 +38,4 @@ export function StatusBadge({ status }: { status: PageStatus }) {
 			{v.label}
 		</span>
 	);
-}
+};

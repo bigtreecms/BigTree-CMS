@@ -52,16 +52,15 @@ export default defineConfig(({ mode }) => {
 	} catch {
 		throw new Error(
 			`VITE_API_TARGET is not a valid URL: ${rawTarget}\n` +
-				`Expected something like http://localhost:8080/admin/api/v1`,
+				`Expected something like http://localhost:8080/admin/api/v1`
 		);
 	}
 
 	// One-line diagnostic so users can see at dev-server boot exactly what's
 	// being proxied — saves a lot of "is my .env even loaded?" confusion.
 	if (mode !== "production") {
-		// eslint-disable-next-line no-console
 		console.log(
-			`[vite] Proxying ${SPA_API_PREFIX}/* → ${origin}${pathPrefix}/*  (set via VITE_API_TARGET)`,
+			`[vite] Proxying ${SPA_API_PREFIX}/* → ${origin}${pathPrefix}/*  (set via VITE_API_TARGET)`
 		);
 	}
 
@@ -89,8 +88,7 @@ export default defineConfig(({ mode }) => {
 					// Strip the SPA's /admin/api/v1 prefix and replace with whatever
 					// path the configured target carries. Works for installs at root
 					// (pathPrefix = "/admin/api/v1") and subpath installs alike.
-					rewrite: (incoming) =>
-						pathPrefix + incoming.slice(SPA_API_PREFIX.length),
+					rewrite: (incoming) => pathPrefix + incoming.slice(SPA_API_PREFIX.length),
 					// No cookie plumbing here. Refresh tokens live in localStorage
 					// and travel in the request body — there's nothing for the proxy
 					// to rewrite. Login + remember-me + refresh-on-401 work the same
@@ -101,23 +99,19 @@ export default defineConfig(({ mode }) => {
 					// the browser with no clue where to look.
 					configure: (proxy) => {
 						proxy.on("error", (err, req) => {
-							// eslint-disable-next-line no-console
 							console.error(
 								`[vite proxy] ${req.method} ${req.url} → upstream error:`,
-								err.message,
+								err.message
 							);
 						});
 						proxy.on("proxyReq", (_proxyReq, req) => {
-							// eslint-disable-next-line no-console
 							console.log(`[vite proxy] → ${req.method} ${req.url}`);
 						});
 						proxy.on("proxyRes", (proxyRes, req) => {
 							const status = proxyRes.statusCode;
 							const label = status && status >= 400 ? "⚠" : "✓";
-							// eslint-disable-next-line no-console
-							console.log(
-								`[vite proxy] ${label} ${status} ${req.method} ${req.url}`,
-							);
+
+							console.log(`[vite proxy] ${label} ${status} ${req.method} ${req.url}`);
 						});
 					},
 				},
