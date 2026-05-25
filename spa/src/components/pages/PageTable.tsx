@@ -53,6 +53,31 @@ export const PageTable = ({
 	const filtered =
 		enableFilters && filter !== "all" ? rows.filter((r) => statusMatches(r, filter)) : rows;
 
+	const getEmptyMessage = () => {
+		const base = emptyLabel ?? "No pages yet.";
+
+		if (filter === "all" || !enableFilters) {
+			return base;
+		}
+
+		let filterLabel = "";
+		if (filter === "published") {
+			filterLabel = "Published";
+		} else if (filter === "draft") {
+			filterLabel = "Draft";
+		} else if (filter === "scheduled") {
+			filterLabel = "Scheduled";
+		}
+
+		if (!filterLabel) {
+			return base;
+		}
+
+		// Turn "No visible pages." into "No visible pages in Draft status."
+		const withoutTrailingPeriod = base.replace(/\.$/, "");
+		return `${withoutTrailingPeriod} in ${filterLabel} status.`;
+	};
+
 	// We pass a non-functional setter that mirrors the optimistic reorder back
 	// into the parent via onReorder. The actual list state lives upstream.
 	const fullDrag = useDragReorder<PageListRow, number>(
@@ -118,7 +143,7 @@ export const PageTable = ({
 
 				{filtered.length === 0 ? (
 					<div className="px-3 py-6 text-center text-[12.5px] text-text-3">
-						{emptyLabel ?? "No pages yet."}
+						{getEmptyMessage()}
 					</div>
 				) : (
 					filtered.map((row) => (

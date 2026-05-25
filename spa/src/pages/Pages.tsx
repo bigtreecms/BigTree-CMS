@@ -266,6 +266,7 @@ export const Pages = () => {
 											});
 										}
 									}}
+									emptyLabel="No visible pages."
 								/>
 							)}
 
