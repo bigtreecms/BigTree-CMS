@@ -76,7 +76,12 @@ async function refreshAccessToken(): Promise<boolean> {
 		const data = payload.data;
 		authStore
 			.getState()
-			.setSession(data.access_token, data.refresh_token, data.expires_in, data.user);
+			.setSession(
+				data.access_token,
+				data.refresh_token,
+				data.expires_in,
+				data.user,
+			);
 		return true;
 	} catch {
 		return false;
@@ -105,7 +110,8 @@ async function request<T>(path: string, opts: ApiCallOptions = {}): Promise<T> {
 
 	const method = opts.method ?? "GET";
 	const hasBody = opts.body !== undefined && method !== "GET";
-	if (hasBody && !headers["Content-Type"]) headers["Content-Type"] = "application/json";
+	if (hasBody && !headers["Content-Type"])
+		headers["Content-Type"] = "application/json";
 
 	const init: RequestInit = { method, headers, signal: opts.signal };
 	if (hasBody) {
@@ -164,14 +170,23 @@ export const api = {
 	get: <T>(path: string, opts?: Omit<ApiCallOptions, "method" | "body">) =>
 		request<T>(path, { ...opts, method: "GET" }),
 
-	post: <T>(path: string, body?: unknown, opts?: Omit<ApiCallOptions, "method" | "body">) =>
-		request<T>(path, { ...opts, method: "POST", body }),
+	post: <T>(
+		path: string,
+		body?: unknown,
+		opts?: Omit<ApiCallOptions, "method" | "body">,
+	) => request<T>(path, { ...opts, method: "POST", body }),
 
-	patch: <T>(path: string, body?: unknown, opts?: Omit<ApiCallOptions, "method" | "body">) =>
-		request<T>(path, { ...opts, method: "PATCH", body }),
+	patch: <T>(
+		path: string,
+		body?: unknown,
+		opts?: Omit<ApiCallOptions, "method" | "body">,
+	) => request<T>(path, { ...opts, method: "PATCH", body }),
 
-	delete: <T>(path: string, body?: unknown, opts?: Omit<ApiCallOptions, "method" | "body">) =>
-		request<T>(path, { ...opts, method: "DELETE", body }),
+	delete: <T>(
+		path: string,
+		body?: unknown,
+		opts?: Omit<ApiCallOptions, "method" | "body">,
+	) => request<T>(path, { ...opts, method: "DELETE", body }),
 
 	/**
 	 * Boot-time hydration. If we have a persisted access token, we assume it's

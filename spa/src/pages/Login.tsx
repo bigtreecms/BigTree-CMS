@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
+
+import { ApiError } from "@/types/api";
 import { authApi } from "@/auth/endpoints";
 import { useAuthStore } from "@/auth/store";
-import { ApiError } from "@/types/api";
+import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 const schema = z.object({
 	email: z.string().email("Enter a valid email"),
@@ -45,7 +46,11 @@ export function Login() {
 	async function onSubmit(values: FormValues) {
 		setServerError(null);
 		try {
-			const result = await authApi.login(values.email, values.password, values.remember);
+			const result = await authApi.login(
+				values.email,
+				values.password,
+				values.remember,
+			);
 			if ("mfa_required" in result) {
 				setMfa({ token: result.mfa_token });
 				return;
@@ -88,13 +93,22 @@ export function Login() {
 			<div className="w-full max-w-[360px] rounded-lg border border-border bg-surface p-6 shadow-md">
 				<div className="mb-5 flex items-center gap-2.5">
 					<div className="grid h-8 w-8 place-items-center rounded-md bg-accent text-accent-fg">
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+						<svg
+							width="16"
+							height="16"
+							viewBox="0 0 24 24"
+							fill="currentColor"
+						>
 							<path d="M12 2 4 12h4v8h8v-8h4L12 2Z" />
 						</svg>
 					</div>
 					<div>
-						<h1 className="text-[15px] font-semibold tracking-[-0.01em]">Sign in to BigTree</h1>
-						<p className="text-[12px] text-text-3">Use your admin credentials.</p>
+						<h1 className="text-[15px] font-semibold tracking-[-0.01em]">
+							Sign in to BigTree
+						</h1>
+						<p className="text-[12px] text-text-3">
+							Use your admin credentials.
+						</p>
 					</div>
 				</div>
 
@@ -105,8 +119,14 @@ export function Login() {
 				)}
 
 				{!mfa ? (
-					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-						<Field label="Email" error={form.formState.errors.email?.message}>
+					<form
+						onSubmit={form.handleSubmit(onSubmit)}
+						className="space-y-3"
+					>
+						<Field
+							label="Email"
+							error={form.formState.errors.email?.message}
+						>
 							<input
 								type="email"
 								autoComplete="email"
@@ -116,7 +136,10 @@ export function Login() {
 							/>
 						</Field>
 
-						<Field label="Password" error={form.formState.errors.password?.message}>
+						<Field
+							label="Password"
+							error={form.formState.errors.password?.message}
+						>
 							<input
 								type="password"
 								autoComplete="current-password"
@@ -126,7 +149,10 @@ export function Login() {
 						</Field>
 
 						<label className="flex cursor-pointer items-center gap-2 text-[12.5px] text-text-2">
-							<input type="checkbox" {...form.register("remember")} />
+							<input
+								type="checkbox"
+								{...form.register("remember")}
+							/>
 							Remember me
 						</label>
 
@@ -135,11 +161,16 @@ export function Login() {
 							disabled={form.formState.isSubmitting}
 							className="mt-1 w-full rounded-md bg-accent px-3 py-2 text-[13px] font-medium text-accent-fg transition-colors hover:bg-accent-hover disabled:opacity-60"
 						>
-							{form.formState.isSubmitting ? "Signing in…" : "Sign in"}
+							{form.formState.isSubmitting
+								? "Signing in…"
+								: "Sign in"}
 						</button>
 					</form>
 				) : (
-					<form onSubmit={mfaForm.handleSubmit(onSubmitMfa)} className="space-y-3">
+					<form
+						onSubmit={mfaForm.handleSubmit(onSubmitMfa)}
+						className="space-y-3"
+					>
 						<p className="text-[12.5px] text-text-2">
 							Enter the 6-digit code from your authenticator app.
 						</p>
@@ -157,7 +188,9 @@ export function Login() {
 							disabled={mfaForm.formState.isSubmitting}
 							className="w-full rounded-md bg-accent px-3 py-2 text-[13px] font-medium text-accent-fg transition-colors hover:bg-accent-hover disabled:opacity-60"
 						>
-							{mfaForm.formState.isSubmitting ? "Verifying…" : "Verify"}
+							{mfaForm.formState.isSubmitting
+								? "Verifying…"
+								: "Verify"}
 						</button>
 						<button
 							type="button"
@@ -184,9 +217,15 @@ function Field({
 }) {
 	return (
 		<label className="block">
-			<span className="mb-1 block text-[12px] font-medium text-text-2">{label}</span>
+			<span className="mb-1 block text-[12px] font-medium text-text-2">
+				{label}
+			</span>
 			{children}
-			{error && <span className="mt-1 block text-[11.5px] text-danger">{error}</span>}
+			{error && (
+				<span className="mt-1 block text-[11.5px] text-danger">
+					{error}
+				</span>
+			)}
 		</label>
 	);
 }

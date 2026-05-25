@@ -42,9 +42,18 @@ export function Dashboard() {
 
 	const [summaryQ, analyticsQ, pendingQ, messagesQ] = useQueries({
 		queries: [
-			{ queryKey: ["dashboard", "summary"], queryFn: dashboardApi.summary },
-			{ queryKey: ["dashboard", "analytics"], queryFn: dashboardApi.analytics },
-			{ queryKey: ["pending-changes", { mine: false }], queryFn: () => pendingChangesApi.list() },
+			{
+				queryKey: ["dashboard", "summary"],
+				queryFn: dashboardApi.summary,
+			},
+			{
+				queryKey: ["dashboard", "analytics"],
+				queryFn: dashboardApi.analytics,
+			},
+			{
+				queryKey: ["pending-changes", { mine: false }],
+				queryFn: () => pendingChangesApi.list(),
+			},
 			{
 				queryKey: ["messages", { folder: "in" }],
 				queryFn: () => messagesApi.list({ folder: "in", per_page: 10 }),
@@ -97,8 +106,12 @@ function DashCard({ icon: Icon, title, sub, action, children }: DashCardProps) {
 				<span className="grid h-[22px] w-[22px] place-items-center rounded-md bg-accent-soft text-accent">
 					<Icon size={14} />
 				</span>
-				<h2 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-text">{title}</h2>
-				{sub && <span className="text-[12.5px] text-text-3">{sub}</span>}
+				<h2 className="text-[12px] font-semibold uppercase tracking-[0.08em] text-text">
+					{title}
+				</h2>
+				{sub && (
+					<span className="text-[12.5px] text-text-3">{sub}</span>
+				)}
 				<span className="flex-1" />
 				{action}
 			</header>
@@ -108,7 +121,8 @@ function DashCard({ icon: Icon, title, sub, action, children }: DashCardProps) {
 }
 
 function CardError({ error }: { error: unknown }) {
-	const message = error instanceof ApiError ? error.message : "Failed to load.";
+	const message =
+		error instanceof ApiError ? error.message : "Failed to load.";
 	return <div className="text-[12.5px] text-danger">{message}</div>;
 }
 
@@ -122,7 +136,13 @@ function CardEmpty({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
 }
 
 /** Small inline accent-colored link button — matches prototype's `.link`. */
-function LinkBtn({ children, onClick }: { children: ReactNode; onClick?: () => void }) {
+function LinkBtn({
+	children,
+	onClick,
+}: {
+	children: ReactNode;
+	onClick?: () => void;
+}) {
 	return (
 		<button
 			type="button"
@@ -135,7 +155,13 @@ function LinkBtn({ children, onClick }: { children: ReactNode; onClick?: () => v
 }
 
 /** Compact secondary button used in card headers. */
-function SmallBtn({ children, onClick }: { children: ReactNode; onClick?: () => void }) {
+function SmallBtn({
+	children,
+	onClick,
+}: {
+	children: ReactNode;
+	onClick?: () => void;
+}) {
 	return (
 		<button
 			type="button"
@@ -161,8 +187,11 @@ function TrafficCard({
 	// Build the 14-day series from cache.two_week (keyed YYYYMMDD).
 	const series = useMemo(() => {
 		const twoWeek = data?.cache?.two_week;
+
 		if (!twoWeek) return null;
-		const entries = Object.entries(twoWeek).sort(([a], [b]) => a.localeCompare(b));
+		const entries = Object.entries(twoWeek).sort(([a], [b]) =>
+			a.localeCompare(b),
+		);
 		return entries.slice(-14).map(([yyyymmdd, visits]) => {
 			// "20260521" → "5/21"
 			const month = Number(yyyymmdd.slice(4, 6));
@@ -172,7 +201,7 @@ function TrafficCard({
 	}, [data]);
 
 	const total14d = useMemo(
-		() => (series ? series.reduce((s, d) => s + d.visits, 0) : 0),
+		() => (series ? series.reduce((s, d) => s + Number(d.visits), 0) : 0),
 		[series],
 	);
 
@@ -185,7 +214,10 @@ function TrafficCard({
 				series && (
 					<div className="flex items-center gap-3">
 						<span className="text-[12px] text-text-3 tabular-nums">
-							<b className="font-semibold text-text">{total14d.toLocaleString()}</b> total
+							<b className="font-semibold text-text">
+								{total14d.toLocaleString()}
+							</b>{" "}
+							total
 						</span>
 						<SmallBtn>
 							<ExternalLink size={12} />
@@ -202,7 +234,10 @@ function TrafficCard({
 			) : !data?.configured ? (
 				<div className="rounded-md border border-dashed border-border bg-surface-2 px-3.5 py-[14px] text-[12.5px] leading-[1.55] text-text-3">
 					Google Analytics isn't connected yet. Connect it in{" "}
-					<span className="font-mono text-text-2">Developer → Analytics</span> to see traffic.
+					<span className="font-mono text-text-2">
+						Developer → Analytics
+					</span>{" "}
+					to see traffic.
 				</div>
 			) : !series || series.length === 0 ? (
 				<CardEmpty
@@ -216,12 +251,18 @@ function TrafficCard({
 	);
 }
 
-function TrafficBars({ series }: { series: Array<{ date: string; visits: number }> }) {
+function TrafficBars({
+	series,
+}: {
+	series: Array<{ date: string; visits: number }>;
+}) {
 	const max = Math.max(...series.map((d) => d.visits), 1);
 	return (
 		<div
 			className="grid h-[200px] gap-1.5 pt-1"
-			style={{ gridTemplateColumns: `repeat(${series.length}, minmax(0, 1fr))` }}
+			style={{
+				gridTemplateColumns: `repeat(${series.length}, minmax(0, 1fr))`,
+			}}
 		>
 			{series.map((d) => {
 				const pct = (d.visits / max) * 100;
@@ -241,7 +282,9 @@ function TrafficBars({ series }: { series: Array<{ date: string; visits: number 
 								</span>
 							</div>
 						</div>
-						<div className="mt-1.5 text-center text-[10.5px] text-text-3 tabular-nums">{d.date}</div>
+						<div className="mt-1.5 text-center text-[10.5px] text-text-3 tabular-nums">
+							{d.date}
+						</div>
 					</div>
 				);
 			})}
@@ -264,7 +307,8 @@ function PendingChangesCard({
 }) {
 	const groups = useMemo(() => groupPendingByTable(pending), [pending]);
 	const totalPending =
-		summary?.pending_changes.publishable ?? groups.reduce((s, g) => s + g.count, 0);
+		summary?.pending_changes.publishable ??
+		groups.reduce((s, g) => s + g.count, 0);
 	const myPending = summary?.pending_changes.mine ?? 0;
 
 	return (
@@ -300,11 +344,15 @@ function PendingChangesCard({
 											<FileText size={14} />
 										</span>
 										<span className="min-w-0 flex-1 text-[13px] text-text">
-											<b className="font-semibold">{g.count}</b> change{g.count === 1 ? "" : "s"}{" "}
-											for {g.label}
+											<b className="font-semibold">
+												{g.count}
+											</b>{" "}
+											change{g.count === 1 ? "" : "s"} for{" "}
+											{g.label}
 										</span>
 										<LinkBtn>
-											View changes <ChevronRight size={11} />
+											View changes{" "}
+											<ChevronRight size={11} />
 										</LinkBtn>
 									</li>
 								))}
@@ -320,9 +368,11 @@ function PendingChangesCard({
 							<EmptyPending label="You have no changes awaiting a publisher's approval." />
 						) : (
 							<div className="rounded-md border border-border bg-surface px-3.5 py-3 text-[13px] text-text">
-								<b className="font-semibold">{myPending}</b> of your change
-								{myPending === 1 ? "" : "s"} {myPending === 1 ? "is" : "are"} waiting for a publisher
-								to review.
+								<b className="font-semibold">{myPending}</b> of
+								your change
+								{myPending === 1 ? "" : "s"}{" "}
+								{myPending === 1 ? "is" : "are"} waiting for a
+								publisher to review.
 							</div>
 						)}
 					</div>
@@ -342,7 +392,10 @@ function EmptyPending({ label }: { label: string }) {
 
 /** Group pending changes by table/module so we can show counts per category. */
 function groupPendingByTable(pending: PendingChange[]) {
-	const map = new Map<string, { key: string; label: string; count: number }>();
+	const map = new Map<
+		string,
+		{ key: string; label: string; count: number }
+	>();
 	for (const p of pending) {
 		const key = p.module ? `module:${p.module}` : `table:${p.table}`;
 		const label = humanizeTable(p.table);
@@ -381,7 +434,9 @@ function UnreadMessagesCard({
 	const unread = useMemo(
 		() =>
 			messages.filter(
-				(m) => m.recipients.includes(currentUserId) && !m.read_by.includes(currentUserId),
+				(m) =>
+					m.recipients.includes(currentUserId) &&
+					!m.read_by.includes(currentUserId),
 			),
 		[messages, currentUserId],
 	);
@@ -441,9 +496,15 @@ function MessagesTable({ messages }: { messages: Message[] }) {
 							</span>
 							<span>User #{m.sender}</span>
 						</span>
-						<span className="overflow-hidden text-ellipsis whitespace-nowrap">{m.subject}</span>
-						<span className="text-[12px] text-text-3 tabular-nums">{date}</span>
-						<span className="text-[12px] text-text-3 tabular-nums">{time}</span>
+						<span className="overflow-hidden text-ellipsis whitespace-nowrap">
+							{m.subject}
+						</span>
+						<span className="text-[12px] text-text-3 tabular-nums">
+							{date}
+						</span>
+						<span className="text-[12px] text-text-3 tabular-nums">
+							{time}
+						</span>
 						<LinkBtn>
 							View <ChevronRight size={11} />
 						</LinkBtn>
@@ -459,7 +520,10 @@ function splitDateTime(iso: string): { date: string; time: string } {
 		const d = new Date(iso.replace(" ", "T"));
 		if (Number.isNaN(d.getTime())) return { date: iso, time: "" };
 		const date = `${d.getMonth() + 1}/${d.getDate()}/${String(d.getFullYear()).slice(-2)}`;
-		const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+		const time = d.toLocaleTimeString([], {
+			hour: "numeric",
+			minute: "2-digit",
+		});
 		return { date, time };
 	} catch {
 		return { date: iso, time: "" };

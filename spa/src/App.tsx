@@ -1,10 +1,10 @@
-import { useEffect } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider } from "react-router-dom";
-import { router } from "@/routes";
-import { queryClient } from "@/lib/queryClient";
 import { api } from "@/api/client";
+import { queryClient } from "@/lib/queryClient";
+import { router } from "@/routes";
 import { useAuthStore } from "@/auth/store";
+import { useEffect } from "react";
 
 /**
  * Top-level component. On mount we kick off the auth boot probe (try the

@@ -1,8 +1,9 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { App } from "./App";
-import { bootstrapTheme } from "@/lib/theme";
 import "@/styles/index.css";
+
+import { App } from "./App";
+import { StrictMode } from "react";
+import { bootstrapTheme } from "@/lib/theme";
+import { createRoot } from "react-dom/client";
 
 // Apply theme + density + accent BEFORE React mounts so there's no flash.
 bootstrapTheme();

@@ -1,9 +1,11 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { Navigate, createBrowserRouter } from "react-router-dom";
+
+import { Dashboard } from "@/pages/Dashboard";
+import { Login } from "@/pages/Login";
+import { Pages } from "@/pages/Pages";
+import { Placeholder } from "@/pages/Placeholder";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { Shell } from "@/components/shell/Shell";
-import { Login } from "@/pages/Login";
-import { Dashboard } from "@/pages/Dashboard";
-import { Placeholder } from "@/pages/Placeholder";
 
 /**
  * Route tree.
@@ -25,15 +27,36 @@ export const router = createBrowserRouter(
 				{
 					element: <Shell />,
 					children: [
-						{ index: true, element: <Navigate to="/dashboard" replace /> },
+						{
+							index: true,
+							element: <Navigate to="/dashboard" replace />,
+						},
 						{ path: "/dashboard", element: <Dashboard /> },
-						{ path: "/pages", element: <Placeholder title="Pages" /> },
-						{ path: "/modules", element: <Placeholder title="Modules" /> },
-						{ path: "/files", element: <Placeholder title="Files" /> },
-						{ path: "/users", element: <Placeholder title="Users" /> },
-						{ path: "/settings", element: <Placeholder title="Settings" /> },
-						{ path: "/tags", element: <Placeholder title="Tags" /> },
-						{ path: "/developer", element: <Placeholder title="Developer" /> },
+						{ path: "/pages", element: <Pages /> },
+						{
+							path: "/modules",
+							element: <Placeholder title="Modules" />,
+						},
+						{
+							path: "/files",
+							element: <Placeholder title="Files" />,
+						},
+						{
+							path: "/users",
+							element: <Placeholder title="Users" />,
+						},
+						{
+							path: "/settings",
+							element: <Placeholder title="Settings" />,
+						},
+						{
+							path: "/tags",
+							element: <Placeholder title="Tags" />,
+						},
+						{
+							path: "/developer",
+							element: <Placeholder title="Developer" />,
+						},
 					],
 				},
 			],

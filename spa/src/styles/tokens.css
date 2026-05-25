@@ -21,7 +21,9 @@
 	--accent-h: 155;
 
 	/* — Font families */
-	--font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+	--font-sans:
+		"Geist", ui-sans-serif, system-ui, -apple-system, "Helvetica Neue",
+		sans-serif;
 	--font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
 	/* — Radii. Prototype uses tight, small radii — keep the exact values. */
@@ -71,9 +73,12 @@
 
 	/* Shadows — subtle, professional. The 0.5px hairline trick is what
 	   gives every surface a faint edge in light mode. */
-	--shadow-sm: 0 1px 2px rgba(15, 20, 25, 0.04), 0 0 0 0.5px rgba(15, 20, 25, 0.04);
-	--shadow-md: 0 4px 12px rgba(15, 20, 25, 0.06), 0 0 0 0.5px rgba(15, 20, 25, 0.05);
-	--shadow-lg: 0 16px 40px rgba(15, 20, 25, 0.12), 0 0 0 0.5px rgba(15, 20, 25, 0.06);
+	--shadow-sm:
+		0 1px 2px rgba(15, 20, 25, 0.04), 0 0 0 0.5px rgba(15, 20, 25, 0.04);
+	--shadow-md:
+		0 4px 12px rgba(15, 20, 25, 0.06), 0 0 0 0.5px rgba(15, 20, 25, 0.05);
+	--shadow-lg:
+		0 16px 40px rgba(15, 20, 25, 0.12), 0 0 0 0.5px rgba(15, 20, 25, 0.06);
 }
 
 /* — Dark theme. The @theme block above runs at build time; this runtime
@@ -105,9 +110,12 @@
 	--color-danger-bg: oklch(28% 0.06 25);
 	--color-info-bg: oklch(28% 0.05 240);
 
-	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 0 0 0.5px rgba(255, 255, 255, 0.04);
-	--shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.05);
-	--shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(255, 255, 255, 0.06);
+	--shadow-sm:
+		0 1px 2px rgba(0, 0, 0, 0.3), 0 0 0 0.5px rgba(255, 255, 255, 0.04);
+	--shadow-md:
+		0 4px 12px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.05);
+	--shadow-lg:
+		0 16px 40px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(255, 255, 255, 0.06);
 }
 
 /* — Density overrides — the Tweaks panel sets [data-density] on <html>. */

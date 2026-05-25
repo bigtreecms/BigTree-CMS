@@ -22,7 +22,11 @@ export const authApi = {
 	 * Submit credentials. Returns either a token bundle (immediate login) or
 	 * an mfa_required envelope (login continues via twoFactor()).
 	 */
-	login: async (email: string, password: string, remember = false): Promise<LoginResponse> => {
+	login: async (
+		email: string,
+		password: string,
+		remember = false,
+	): Promise<LoginResponse> => {
 		const data = await api.post<LoginResponse>(
 			"/auth/login",
 			{ email, password, remember },
@@ -31,13 +35,21 @@ export const authApi = {
 		if ("access_token" in data) {
 			useAuthStore
 				.getState()
-				.setSession(data.access_token, data.refresh_token, data.expires_in, data.user);
+				.setSession(
+					data.access_token,
+					data.refresh_token,
+					data.expires_in,
+					data.user,
+				);
 		}
 		return data;
 	},
 
 	/** Complete 2FA with the TOTP code. */
-	twoFactor: async (mfaToken: string, code: string): Promise<LoginTokenResponse> => {
+	twoFactor: async (
+		mfaToken: string,
+		code: string,
+	): Promise<LoginTokenResponse> => {
 		const data = await api.post<LoginTokenResponse>(
 			"/auth/2fa",
 			{ mfa_token: mfaToken, code },
@@ -45,7 +57,12 @@ export const authApi = {
 		);
 		useAuthStore
 			.getState()
-			.setSession(data.access_token, data.refresh_token, data.expires_in, data.user);
+			.setSession(
+				data.access_token,
+				data.refresh_token,
+				data.expires_in,
+				data.user,
+			);
 		return data;
 	},
 
@@ -53,9 +70,13 @@ export const authApi = {
 	logout: async (): Promise<void> => {
 		const refresh = useAuthStore.getState().refreshToken;
 		try {
-			await api.post<void>("/auth/logout", refresh ? { refresh_token: refresh } : undefined, {
-				skipAuth: true,
-			});
+			await api.post<void>(
+				"/auth/logout",
+				refresh ? { refresh_token: refresh } : undefined,
+				{
+					skipAuth: true,
+				},
+			);
 		} catch {
 			// best effort; even if the server call fails we still want to clear state locally
 		}
@@ -71,10 +92,18 @@ export const authApi = {
 	me: async (): Promise<AuthUser> => api.get<AuthUser>("/auth/me"),
 
 	forgotPassword: async (email: string): Promise<void> => {
-		await api.post<void>("/auth/forgot-password", { email }, { skipAuth: true });
+		await api.post<void>(
+			"/auth/forgot-password",
+			{ email },
+			{ skipAuth: true },
+		);
 	},
 
 	resetPassword: async (token: string, password: string): Promise<void> => {
-		await api.post<void>("/auth/reset-password", { token, password }, { skipAuth: true });
+		await api.post<void>(
+			"/auth/reset-password",
+			{ token, password },
+			{ skipAuth: true },
+		);
 	},
 };

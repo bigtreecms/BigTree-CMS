@@ -51,7 +51,8 @@ function loadPersisted(): PersistedAuth | null {
 		const raw = window.localStorage.getItem(STORAGE_KEY);
 		if (!raw) return null;
 		const parsed = JSON.parse(raw) as PersistedAuth;
-		if (!parsed.accessToken || !parsed.refreshToken || !parsed.user) return null;
+		if (!parsed.accessToken || !parsed.refreshToken || !parsed.user)
+			return null;
 		return parsed;
 	} catch {
 		return null;
@@ -103,7 +104,12 @@ export const useAuthStore = create<AuthState>((set) => ({
 
 	setSession: (access, refresh, expiresInSeconds, user) => {
 		const expiresAt = Date.now() + expiresInSeconds * 1000;
-		const next: PersistedAuth = { accessToken: access, refreshToken: refresh, expiresAt, user };
+		const next: PersistedAuth = {
+			accessToken: access,
+			refreshToken: refresh,
+			expiresAt,
+			user,
+		};
 		savePersisted(next);
 		set({ ...next, hydrating: false });
 	},

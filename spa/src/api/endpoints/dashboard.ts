@@ -89,7 +89,12 @@ export interface Message {
 }
 
 export const messagesApi = {
-	list: (params: { folder?: "in" | "sent"; page?: number; per_page?: number } = {}) =>
-		api.get<Message[]>("/messages", { query: params }),
+	list: (
+		params: {
+			folder?: "in" | "sent";
+			page?: number;
+			per_page?: number;
+		} = {},
+	) => api.get<Message[]>("/messages", { query: params }),
 	unreadCount: () => api.get<{ unread: number }>("/messages/unread-count"),
 };
