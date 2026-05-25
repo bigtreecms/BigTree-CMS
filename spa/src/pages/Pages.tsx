@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { Archive, Edit, Eye, EyeOff, FileText, Move, Plus } from "lucide-react";
@@ -8,6 +8,8 @@ import { PageHead } from "@/components/shell/PageHead";
 import { PageTable } from "@/components/pages/PageTable";
 import { HeaderBtn } from "@/components/ui/HeaderBtn";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { SuccessToast } from "@/components/ui/SuccessToast";
 import { pagesApi, type PageListRow } from "@/api/endpoints/pages";
 import { relativeTime } from "@/lib/time";
 
@@ -17,7 +19,7 @@ import { relativeTime } from "@/lib/time";
  *
  *   - URL-driven parent (root at /pages or /pages/0, subfolders at /pages/123)
  *   - Split into "Visible" (in_nav), "Hidden" (!in_nav), and "Archived" sections
- *   - Drag-to-reorder (visible/hidden), inline rename, archive/restore (optimistic + server)
+ *   - Drag-to-reorder (visible only), inline rename, archive/restore (optimistic + server)
  *   - Dynamic title + breadcrumb using page lineage when inside a subfolder
  */
 export const Pages = () => {
@@ -51,6 +53,33 @@ export const Pages = () => {
 	const visible = useMemo(() => rows.filter((r) => r.in_nav && !r.archived), [rows]);
 	const hidden = useMemo(() => rows.filter((r) => !r.in_nav && !r.archived), [rows]);
 	const archived = useMemo(() => rows.filter((r) => r.archived), [rows]);
+
+	interface PendingConfirm {
+		type: "archive" | "restore" | "delete";
+		id: number;
+		title: string;
+	}
+
+	const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null);
+
+	type Toast = {
+		id: number;
+		title: string;
+		description?: string;
+	};
+
+	const [toasts, setToasts] = useState<Toast[]>([]);
+
+	const showSuccessToast = (title: string, description?: string) => {
+		const id = Date.now();
+
+		setToasts((prev) => [...prev, { id, title, description }]);
+
+		// Auto-dismiss after 4.5 seconds
+		setTimeout(() => {
+			setToasts((prev) => prev.filter((t) => t.id !== id));
+		}, 4500);
+	};
 
 	const renameMutation = useMutation({
 		mutationFn: ({ id, nav_title }: { id: number; nav_title: string }) =>
@@ -115,6 +144,10 @@ export const Pages = () => {
 				queryKey: ["pages", "list", parent],
 			});
 		},
+		onSuccess: (_data, variables) => {
+			const isRestoring = variables.archived;
+			showSuccessToast(isRestoring ? "Page restored" : "Page archived");
+		},
 	});
 
 	const deleteMutation = useMutation({
@@ -137,6 +170,9 @@ export const Pages = () => {
 			queryClient.invalidateQueries({
 				queryKey: ["pages", "list", parent],
 			});
+		},
+		onSuccess: () => {
+			showSuccessToast("Page deleted");
 		},
 	});
 
@@ -222,11 +258,13 @@ export const Pages = () => {
 									}
 									onToggleArchive={(id) => {
 										const r = visible.find((x) => x.id === id);
-										if (r)
-											archiveMutation.mutate({
+										if (r) {
+											setPendingConfirm({
+												type: r.archived ? "restore" : "archive",
 												id,
-												archived: r.archived,
+												title: r.nav_title,
 											});
+										}
 									}}
 								/>
 							)}
@@ -236,19 +274,22 @@ export const Pages = () => {
 									title="Hidden"
 									icon={<EyeOff size={13} className="text-text-3" />}
 									rows={hidden}
-									onReorder={(ids) => handleReorder("hidden", ids)}
+									onReorder={() => {}}
 									onRename={(id, next) =>
 										renameMutation.mutate({ id, nav_title: next })
 									}
 									onToggleArchive={(id) => {
 										const r = hidden.find((x) => x.id === id);
-										if (r)
-											archiveMutation.mutate({
+										if (r) {
+											setPendingConfirm({
+												type: r.archived ? "restore" : "archive",
 												id,
-												archived: r.archived,
+												title: r.nav_title,
 											});
+										}
 									}}
 									emptyLabel="No hidden pages."
+									allowReorder={false}
 								/>
 							)}
 
@@ -263,15 +304,26 @@ export const Pages = () => {
 									}
 									onToggleArchive={(id) => {
 										const r = archived.find((x) => x.id === id);
-										if (r)
-											archiveMutation.mutate({
+										if (r) {
+											setPendingConfirm({
+												type: "restore",
 												id,
-												archived: r.archived,
+												title: r.nav_title,
 											});
+										}
 									}}
 									leftActionLabel="Restore"
 									rightActionLabel="Delete"
-									onDelete={(id) => deleteMutation.mutate(id)}
+									onDelete={(id) => {
+										const r = archived.find((x) => x.id === id);
+										if (r) {
+											setPendingConfirm({
+												type: "delete",
+												id,
+												title: r.nav_title,
+											});
+										}
+									}}
 									allowReorder={false}
 								/>
 							)}
@@ -285,6 +337,71 @@ export const Pages = () => {
 						</div>
 					)}
 				</>
+			)}
+
+			<ConfirmDialog
+				open={!!pendingConfirm}
+				onOpenChange={(open) => {
+					if (!open) {
+						setPendingConfirm(null);
+					}
+				}}
+				title={
+					pendingConfirm
+						? pendingConfirm.type === "delete"
+							? "Delete page"
+							: pendingConfirm.type === "restore"
+								? "Restore page"
+								: "Archive page"
+						: ""
+				}
+				description={
+					pendingConfirm
+						? `Are you sure you want to ${pendingConfirm.type} "${pendingConfirm.title}"?`
+						: ""
+				}
+				confirmLabel={
+					pendingConfirm
+						? pendingConfirm.type === "delete"
+							? "Delete"
+							: pendingConfirm.type === "restore"
+								? "Restore"
+								: "Archive"
+						: ""
+				}
+				variant={pendingConfirm?.type === "delete" ? "danger" : "default"}
+				onConfirm={() => {
+					if (pendingConfirm) {
+						if (pendingConfirm.type === "delete") {
+							deleteMutation.mutate(pendingConfirm.id);
+						} else {
+							const isRestoring = pendingConfirm.type === "restore";
+
+							archiveMutation.mutate({
+								id: pendingConfirm.id,
+								archived: isRestoring,
+							});
+						}
+
+						setPendingConfirm(null);
+					}
+				}}
+			/>
+
+			{/* Success toasts - rendered in top-right */}
+			{toasts.length > 0 && (
+				<div className="fixed right-6 top-20 z-[200] flex flex-col gap-3">
+					{toasts.map((toast) => (
+						<SuccessToast
+							key={toast.id}
+							title={toast.title}
+							description={toast.description}
+							onClose={() => {
+								setToasts((prev) => prev.filter((t) => t.id !== toast.id));
+							}}
+						/>
+					))}
+				</div>
 			)}
 		</div>
 	);

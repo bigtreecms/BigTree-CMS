@@ -21,6 +21,8 @@ interface PageRowProps {
 	drag: DragReorderApi<number>;
 	onRename: (next: string) => void;
 	onToggleArchive: () => void;
+	/** Whether drag-to-reorder is enabled for this table (from PageTable.allowReorder). */
+	allowReorder?: boolean;
 	/** Optional override label for the left action column (used for title attribute on archived rows). */
 	leftActionLabel?: string;
 	/** Optional delete handler. When present, the right column renders a delete button instead of edit link. */
@@ -32,10 +34,12 @@ export const PageRow = ({
 	drag,
 	onRename,
 	onToggleArchive,
+	allowReorder = true,
 	leftActionLabel,
 	onDelete,
 }: PageRowProps) => {
 	const locked = row.access === "v" || row.access === "n"; // can't edit
+	const canReorder = allowReorder && !locked;
 	const isDragging = drag.dragId === row.id;
 	const isDropTarget = drag.overId === row.id && drag.dragId !== row.id;
 
@@ -44,7 +48,7 @@ export const PageRow = ({
 			className={`grid h-[var(--row-h)] grid-cols-[28px_1fr_240px_56px_56px] items-center gap-x-3 border-b border-border px-2 pr-3 text-[13px] transition-colors last:border-b-0 hover:bg-surface-2 ${
 				isDragging ? "bg-accent-soft shadow-md" : ""
 			} ${isDropTarget ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""}`}
-			draggable={!locked}
+			draggable={canReorder}
 			onDragStart={(e) => drag.onDragStart(e, row.id)}
 			onDragOver={(e) => drag.onDragOver(e, row.id)}
 			onDrop={drag.onDrop}
@@ -52,10 +56,12 @@ export const PageRow = ({
 		>
 			{/* Grip */}
 			<span
-				className={`grid h-6 w-6 cursor-grab place-items-center rounded text-text-4 hover:bg-hover hover:text-text-2 active:cursor-grabbing ${
-					locked ? "cursor-default opacity-25 hover:bg-transparent hover:text-text-4" : ""
+				className={`grid h-6 w-6 place-items-center rounded text-text-4 ${
+					canReorder
+						? "cursor-grab hover:bg-hover hover:text-text-2 active:cursor-grabbing"
+						: "cursor-default opacity-25 hover:bg-transparent hover:text-text-4"
 				}`}
-				title={locked ? "Locked" : "Drag to reorder"}
+				title={canReorder ? "Drag to reorder" : "Reordering disabled for this section"}
 				aria-hidden="true"
 			>
 				<GripVertical size={14} />

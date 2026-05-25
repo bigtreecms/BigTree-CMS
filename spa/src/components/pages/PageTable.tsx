@@ -128,6 +128,7 @@ export const PageTable = ({
 							drag={drag}
 							onRename={(next) => onRename(row.id, next)}
 							onToggleArchive={() => onToggleArchive(row.id)}
+							allowReorder={allowReorder}
 							leftActionLabel={leftActionLabel}
 							onDelete={onDelete ? () => onDelete(row.id) : undefined}
 						/>

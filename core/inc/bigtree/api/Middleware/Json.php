@@ -16,7 +16,14 @@
 					throw new BadRequestException("Expected multipart/form-data", "expected_multipart", 400);
 				}
 
-				if (!$expects_multipart && !$is_json) {
+				$declares_body = isset($request->route["body"])
+					&& is_array($request->route["body"])
+					&& count($request->route["body"]) > 0;
+
+				// Only require JSON for routes that actually declare a body schema.
+				// Pure action endpoints (e.g. /archive, /unarchive) may be called
+				// with no body at all.
+				if (!$expects_multipart && $declares_body && !$is_json) {
 					throw new BadRequestException("Expected Content-Type: application/json", "expected_json", 400);
 				}
 			}
