@@ -196,15 +196,21 @@ export const Pages = () => {
 
 	// Dynamic title + breadcrumb based on current location in the page tree
 	const folderTitle = currentPage?.nav_title ?? "Home";
+	const lineage = currentPage?.lineage ?? [];
+
 	const breadcrumbItems = isRoot
 		? [{ label: "Pages" }, { label: "Home" }]
 		: [
 				{ label: "Pages", to: "/pages" },
-				...(currentPage?.lineage ?? []).map((anc) => ({
-					label: anc.nav_title,
-					to: `/pages/${anc.id}`,
-				})),
-				{ label: folderTitle },
+				{ label: "Home", to: "/pages" },
+				...lineage.map((anc, index) => {
+					const isLast = index === lineage.length - 1;
+
+					return {
+						label: anc.nav_title,
+						to: isLast ? undefined : `/pages/${anc.id}`,
+					};
+				}),
 			];
 
 	return (
