@@ -6,8 +6,8 @@ import { Bell, ChevronDown, ExternalLink, LogOut, Moon, Search, Sun } from "luci
 import { useAuthStore } from "@/auth/store";
 
 /**
- * Top bar — matches the prototype's `.topbar` layout:
- *   [logo] [site switcher] | [view site] ········ [search] [theme] [bell] [avatar]
+ * Top bar — site title (from root page nav_title), View Site link, global search
+ * trigger (opens ⌘K palette), theme toggle, notifications, and user menu.
  *
  * Stays sticky at the top with a hairline bottom border. Heights and spacing
  * come straight from the prototype (52px row).
