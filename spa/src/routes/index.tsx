@@ -3,6 +3,9 @@ import { Navigate, Outlet, createBrowserRouter } from "react-router-dom";
 import { Dashboard } from "@/pages/Dashboard";
 import { Files } from "@/pages/Files";
 import { Login } from "@/pages/Login";
+import { Modules } from "@/pages/Modules";
+import { ModuleEntry } from "@/pages/ModuleEntry";
+import { ModuleView } from "@/pages/ModuleView";
 import { Pages } from "@/pages/Pages";
 import { Placeholder } from "@/pages/Placeholder";
 import { Profile } from "@/pages/Profile";
@@ -68,11 +71,11 @@ export const router = createBrowserRouter(
 						{
 							path: "modules",
 							children: [
-								{ index: true, element: <Placeholder title="Modules" /> },
-								{ path: ":id", element: <Placeholder title="Module" /> },
+								{ index: true, element: <Modules /> },
+								{ path: ":id", element: <ModuleEntry /> },
 								{
 									path: ":id/view/:sid",
-									element: <Placeholder title="Module view" />,
+									element: <ModuleView />,
 								},
 								{
 									path: ":id/view/:sid/add",
