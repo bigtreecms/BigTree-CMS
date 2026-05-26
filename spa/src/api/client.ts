@@ -1,4 +1,4 @@
-import { ApiError, type ApiErrorPayload, type ApiSuccess } from "@/types/api";
+import { ApiError, type ApiErrorPayload, type ApiMeta, type ApiSuccess } from "@/types/api";
 import { authStore, type AuthUser } from "@/auth/store";
 
 /**
@@ -41,6 +41,11 @@ export interface ApiCallOptions {
 	skipRefresh?: boolean;
 	/** AbortSignal for cancellation (TanStack Query passes this). */
 	signal?: AbortSignal;
+	/**
+	 * When true, the promise resolves with the full envelope { data, meta }
+	 * instead of just the data. Useful for paginated endpoints.
+	 */
+	withMeta?: boolean;
 }
 
 function buildQuery(query: ApiCallOptions["query"]): string {
@@ -143,7 +148,16 @@ async function handleResponse<T>(
 	}
 
 	if (response.ok) {
-		const success = payload as ApiSuccess<T> | null;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const success = payload as ApiSuccess<any> | null;
+
+		if (opts.withMeta) {
+			return {
+				data: success?.data ?? undefined,
+				meta: success?.meta,
+			} as unknown as T;
+		}
+
 		return (success?.data as T) ?? (undefined as T);
 	}
 
@@ -172,6 +186,12 @@ export const api = {
 
 	delete: <T>(path: string, body?: unknown, opts?: Omit<ApiCallOptions, "method" | "body">) =>
 		request<T>(path, { ...opts, method: "DELETE", body }),
+
+	/**
+	 * Like `get`, but returns `{ data, meta }` so callers can access pagination info.
+	 */
+	getWithMeta: <T>(path: string, opts?: Omit<ApiCallOptions, "method" | "body">) =>
+		request<{ data: T; meta?: ApiMeta }>(path, { ...opts, method: "GET", withMeta: true }),
 
 	/**
 	 * Boot-time hydration. If we have a persisted access token, we assume it's

@@ -9,10 +9,9 @@ import { useEffect, useRef, useState } from "react";
 interface EditableTitleProps {
 	value: string;
 	onChange: (next: string) => void;
-	title?: string;
 }
 
-export const EditableTitle = ({ value, onChange, title }: EditableTitleProps) => {
+export const EditableTitle = ({ value, onChange }: EditableTitleProps) => {
 	const ref = useRef<HTMLSpanElement>(null);
 	const [editing, setEditing] = useState(false);
 
@@ -75,7 +74,6 @@ export const EditableTitle = ({ value, onChange, title }: EditableTitleProps) =>
 					ref.current?.blur();
 				}
 			}}
-			title={title ?? "Double-click to rename"}
 			className={`-mx-1 -my-0.5 cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap rounded px-1 py-0.5 font-medium text-text hover:bg-hover ${
 				editing ? "cursor-text bg-surface outline outline-2 outline-accent" : ""
 			}`}

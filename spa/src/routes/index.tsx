@@ -4,6 +4,7 @@ import { Dashboard } from "@/pages/Dashboard";
 import { Login } from "@/pages/Login";
 import { Pages } from "@/pages/Pages";
 import { Placeholder } from "@/pages/Placeholder";
+import { Users } from "@/pages/Users";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { Shell } from "@/components/shell/Shell";
 
@@ -44,7 +45,7 @@ export const router = createBrowserRouter(
 						},
 						{
 							path: "/users",
-							element: <Placeholder title="Users" />,
+							element: <Users />,
 						},
 						{
 							path: "/settings",
