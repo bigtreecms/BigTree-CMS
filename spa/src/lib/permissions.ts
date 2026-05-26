@@ -4,14 +4,16 @@ import type { PageAccess } from "@/api/endpoints/pages";
 /**
  * Numeric level conventions used throughout the BigTree admin:
  *
- *   0 — Normal:        per-resource access only
- *   1 — Editor:        full content access except settings & developer
- *   2 — Administrator: everything, including the Developer section
+ *   0 — Normal User:    per-resource access only (must be granted via the
+ *                       per-page / per-module / per-folder permissions tree)
+ *   1 — Administrator:  full content access (pages, modules, files, settings)
+ *   2 — Developer:      Administrator + the Developer section (templates,
+ *                       module designer, configure, debug, extensions)
  */
 export const LEVEL = {
 	NORMAL: 0,
-	EDITOR: 1,
-	ADMINISTRATOR: 2,
+	ADMINISTRATOR: 1,
+	DEVELOPER: 2,
 } as const;
 
 export type Level = (typeof LEVEL)[keyof typeof LEVEL];
@@ -20,14 +22,8 @@ export const isAdmin = (user: AuthUser | null | undefined): boolean => {
 	return !!user && user.level >= LEVEL.ADMINISTRATOR;
 };
 
-export const isEditor = (user: AuthUser | null | undefined): boolean => {
-	return !!user && user.level >= LEVEL.EDITOR;
-};
-
 export const isDeveloper = (user: AuthUser | null | undefined): boolean => {
-	// Developer = Administrator in BigTree's model. Kept as a named alias so
-	// future "developer-only" sub-grants can be plumbed without callers changing.
-	return isAdmin(user);
+	return !!user && user.level >= LEVEL.DEVELOPER;
 };
 
 export const hasLevel = (user: AuthUser | null | undefined, required: number): boolean => {

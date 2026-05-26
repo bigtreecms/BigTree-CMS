@@ -35,8 +35,7 @@
 			}
 
 			$rows = SQL::fetchAll(...array_merge([
-				"SELECT id, parent, nav_title, route, in_nav, archived, position, template, external, trunk, updated_at, publish_at, expire_at
-				 FROM bigtree_pages WHERE " . $where . " ORDER BY position DESC, nav_title ASC",
+				"SELECT id, parent, nav_title, route, in_nav, archived, position, template, external, trunk, updated_at, publish_at, expire_at, EXISTS (SELECT 1 FROM bigtree_pages c WHERE c.parent = bigtree_pages.id) AS has_children FROM bigtree_pages WHERE " . $where . " ORDER BY position DESC, nav_title ASC",
 			], $args));
 
 			$me = $request->user;
@@ -64,6 +63,7 @@
 					"scheduled" => !empty($r["publish_at"]) && $r["publish_at"] > date("Y-m-d H:i:s"),
 					"access" => $level,
 					"has_pending_change" => false,
+					"has_children" => (bool)$r["has_children"],
 				];
 			}, $rows));
 
@@ -126,6 +126,7 @@
 					"publish_at" => $publishAt,
 					"scheduled" => $isScheduled,
 					"access" => $level,
+					"has_children" => false,
 					"pending" => true,
 					"pending_change_id" => (int)$pc["id"],
 				];

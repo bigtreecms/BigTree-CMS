@@ -4,6 +4,8 @@ import { Dashboard } from "@/pages/Dashboard";
 import { Login } from "@/pages/Login";
 import { Pages } from "@/pages/Pages";
 import { Placeholder } from "@/pages/Placeholder";
+import { Profile } from "@/pages/Profile";
+import { UserEdit } from "@/pages/UserEdit";
 import { Users } from "@/pages/Users";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { Shell } from "@/components/shell/Shell";
@@ -99,11 +101,11 @@ export const router = createBrowserRouter(
 							path: "users",
 							children: [
 								{ index: true, element: <Users /> },
-								{ path: ":id/edit", element: <Placeholder title="Edit user" /> },
+								{ path: ":id/edit", element: <UserEdit /> },
 							],
 						},
 
-						{ path: "profile", element: <Placeholder title="Profile" /> },
+						{ path: "profile", element: <Profile /> },
 
 						{
 							path: "settings",
@@ -152,7 +154,7 @@ export const router = createBrowserRouter(
 						{
 							path: "developer",
 							element: (
-								<RequireLevel level={LEVEL.ADMINISTRATOR}>
+								<RequireLevel level={LEVEL.DEVELOPER}>
 									<Outlet />
 								</RequireLevel>
 							),

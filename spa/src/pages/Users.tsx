@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	ChevronDown,
@@ -12,21 +13,31 @@ import {
 	X,
 } from "lucide-react";
 
+import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Pager } from "@/components/ui/Pager";
 import { SubNav } from "@/components/ui/SubNav";
+import { TimezoneSelect } from "@/components/users/TimezoneSelect";
+import { isDeveloper } from "@/lib/permissions";
 import { toast } from "@/lib/toast";
-import { usersApi, type UserListItem, levelToLabel, labelToLevel } from "@/api/endpoints/users";
+import {
+	usersApi,
+	type UserListItem,
+	type UserLevelLabel,
+	levelToLabel,
+	labelToLevel,
+} from "@/api/endpoints/users";
 
 // Types
 interface User {
+	id: number;
 	first: string;
 	last: string;
 	email: string;
 	company: string;
-	level: "Administrator" | "Editor" | "Normal";
+	level: UserLevelLabel;
 }
 
 /** Map an API user item into the local UI shape (splitting name for the form). */
@@ -36,6 +47,7 @@ function mapApiUserToUi(user: UserListItem): User {
 	const last = parts.slice(1).join(" ");
 
 	return {
+		id: user.id,
 		first,
 		last,
 		email: user.email,
@@ -96,24 +108,26 @@ interface LevelBadgeProps {
 }
 
 const LevelBadge = ({ level }: LevelBadgeProps) => {
-	if (level === "Administrator") {
+	if (level === "Developer") {
 		return (
 			<span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-px text-[11px] font-medium text-accent">
-				<Key size={9} /> Administrator
+				<Key size={9} /> Developer
 			</span>
 		);
 	}
-	if (level === "Editor") {
+
+	if (level === "Administrator") {
 		return (
 			<span className="inline-flex items-center gap-1.5 rounded-full bg-info-bg px-2 py-px text-[11px] font-medium text-info">
 				<span className="inline-block h-1.5 w-1.5 rounded-full bg-current" />
-				Editor
+				Administrator
 			</span>
 		);
 	}
+
 	return (
 		<span className="inline-flex items-center rounded-full border border-border bg-surface-2 px-2 py-px text-[11px] font-medium text-text-3">
-			Normal
+			Normal User
 		</span>
 	);
 };
@@ -143,6 +157,8 @@ const Switch = ({ on, onChange, label }: SwitchProps) => (
 // Main component
 export const Users = () => {
 	const queryClient = useQueryClient();
+	const currentUser = useAuthStore((s) => s.user);
+	const navigate = useNavigate();
 
 	const [view, setView] = useState<View>("list");
 	const [query, setQuery] = useState("");
@@ -155,8 +171,11 @@ export const Users = () => {
 	const [last, setLast] = useState("");
 	const [email, setEmail] = useState("");
 	const [company, setCompany] = useState("");
-	const [level, setLevel] = useState<User["level"]>("Normal");
+	const [level, setLevel] = useState<User["level"]>("Normal User");
+	const [timezone, setTimezone] = useState("");
+	const [dailyDigest, setDailyDigest] = useState(true);
 	const [sendInvite, setSendInvite] = useState(true);
+	const [password, setPassword] = useState("");
 
 	const firstRef = useRef<HTMLInputElement>(null);
 
@@ -265,33 +284,38 @@ export const Users = () => {
 	};
 
 	const createUserMutation = useMutation({
-		mutationFn: (payload: {
-			first: string;
-			last: string;
-			email: string;
-			company: string;
-			level: User["level"];
-		}) => {
-			const name = `${payload.first.trim()} ${payload.last.trim()}`.trim();
+		mutationFn: () => {
+			const name = `${first.trim()} ${last.trim()}`.trim();
+
 			return usersApi.create({
-				email: payload.email,
+				email,
 				name,
-				company: payload.company || undefined,
-				level: labelToLevel(payload.level),
+				company: company || undefined,
+				level: labelToLevel(level),
+				timezone: timezone || undefined,
+				daily_digest: dailyDigest,
+				password: !sendInvite && password ? password : undefined,
 			});
 		},
-		onSuccess: () => {
+		onSuccess: (created) => {
 			queryClient.invalidateQueries({ queryKey: ["users"] });
-			toast.success("User created" + (sendInvite ? " — invite sent" : ""));
+			toast.success("User created" + (sendInvite ? " — invitation sent" : ""));
 
-			// Reset form and go back to list
+			// Reset form
 			setFirst("");
 			setLast("");
 			setEmail("");
 			setCompany("");
-			setLevel("Normal");
+			setLevel("Normal User");
+			setTimezone("");
+			setDailyDigest(true);
 			setSendInvite(true);
-			setView("list");
+			setPassword("");
+
+			navigate(`/users/${created.id}/edit`);
+		},
+		onError: () => {
+			toast.error("Failed to create user");
 		},
 	});
 
@@ -302,13 +326,7 @@ export const Users = () => {
 			return;
 		}
 
-		createUserMutation.mutate({
-			first,
-			last,
-			email,
-			company,
-			level,
-		});
+		createUserMutation.mutate();
 	};
 
 	const validAdd = first.trim() && last.trim() && /.+@.+\..+/.test(email);
@@ -442,11 +460,19 @@ export const Users = () => {
 							</div>
 						) : (
 							pageRows.map((u) => {
-								const id = `${u.first}-${u.last}`;
 								return (
 									<div
-										key={id}
-										className="grid grid-cols-1 gap-x-4 border-b border-border px-3.5 py-2 text-[13px] last:border-b-0 hover:bg-surface-2 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1.7fr)_minmax(0,1.4fr)_140px_74px] md:items-center md:py-1.5"
+										key={u.id}
+										role="button"
+										tabIndex={0}
+										onClick={() => navigate(`/users/${u.id}/edit`)}
+										onKeyDown={(e) => {
+											if (e.key === "Enter" || e.key === " ") {
+												e.preventDefault();
+												navigate(`/users/${u.id}/edit`);
+											}
+										}}
+										className="grid grid-cols-1 gap-x-4 border-b border-border px-3.5 py-2 text-[13px] last:border-b-0 hover:bg-surface-2 cursor-pointer md:grid-cols-[minmax(0,1.3fr)_minmax(0,1.7fr)_minmax(0,1.4fr)_140px_74px] md:items-center md:py-1.5"
 									>
 										{/* Name + Avatar */}
 										<div className="flex items-center gap-3 md:gap-2.5">
@@ -483,7 +509,10 @@ export const Users = () => {
 												type="button"
 												className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
 												title="Edit"
-												onClick={(e) => e.stopPropagation()}
+												onClick={(e) => {
+													e.stopPropagation();
+													navigate(`/users/${u.id}/edit`);
+												}}
 											>
 												<Edit size={15} />
 											</button>
@@ -590,17 +619,41 @@ export const Users = () => {
 								value={level}
 								onChange={(e) => setLevel(e.target.value as User["level"])}
 							>
-								<option value="Normal">Normal</option>
-								<option value="Editor">Editor</option>
+								<option value="Normal User">Normal User</option>
 								<option value="Administrator">Administrator</option>
+								{isDeveloper(currentUser) && (
+									<option value="Developer">Developer</option>
+								)}
 							</select>
 							<p className="mt-1 text-[12px] text-text-3">
+								{level === "Developer" &&
+									"Full access including the Developer section (templates, module designer, configure, debug)."}
 								{level === "Administrator" &&
-									"Full access — manage users, settings, and developer tools."}
-								{level === "Editor" &&
-									"Manage pages, modules, and files. Cannot edit settings."}
-								{level === "Normal" && "Edit assigned pages and modules only."}
+									"Manage pages, modules, files, settings, and other users."}
+								{level === "Normal User" &&
+									"Per-resource access only — set up grants after creation."}
 							</p>
+						</div>
+
+						<div>
+							<label className="mb-1 block text-[12px] font-medium text-text-2">
+								Timezone
+							</label>
+							<TimezoneSelect value={timezone} onChange={setTimezone} />
+						</div>
+
+						<div className="md:col-span-2">
+							<label className="flex items-center gap-2">
+								<input
+									type="checkbox"
+									checked={dailyDigest}
+									onChange={(e) => setDailyDigest(e.target.checked)}
+									className="h-4 w-4 cursor-pointer accent-accent"
+								/>
+								<span className="text-[12.5px] text-text-2">
+									Send daily digest email
+								</span>
+							</label>
 						</div>
 					</div>
 
@@ -611,17 +664,33 @@ export const Users = () => {
 								onChange={setSendInvite}
 								label="Send invite email"
 							/>
-							<div>
+							<div className="flex-1">
 								<div className="text-[12.5px] font-medium">
 									Send invitation email
 								</div>
 								<div className="text-[11.5px] text-text-3">
 									{sendInvite
-										? "User will receive a magic link to set their password."
-										: "Account created in a pending state."}
+										? "User receives an email to set their own password."
+										: "Set an initial password for the user below."}
 								</div>
 							</div>
 						</div>
+
+						{!sendInvite && (
+							<div className="mt-3">
+								<label className="mb-1 block text-[12px] font-medium text-text-2">
+									Initial password
+								</label>
+								<input
+									type="password"
+									autoComplete="new-password"
+									value={password}
+									onChange={(e) => setPassword(e.target.value)}
+									className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13.5px] focus:outline-none focus:ring-1 focus:ring-accent-ring"
+									placeholder="At least 8 characters"
+								/>
+							</div>
+						)}
 					</div>
 
 					<div className="flex justify-end gap-2 border-t border-border bg-surface-2 px-4 py-3">

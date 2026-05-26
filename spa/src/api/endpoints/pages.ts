@@ -25,6 +25,9 @@ export interface PageListRow {
 	/** True when there is an unpublished change in bigtree_pending_changes for this page. */
 	has_pending_change?: boolean;
 
+	/** Whether this page has any direct child pages (computed server-side via efficient EXISTS subquery on the parent index). */
+	has_children: boolean;
+
 	/** Present when this item represents a brand new page that only exists as a pending draft (type=NEW in bigtree_pending_changes). */
 	pending_change_id?: number;
 

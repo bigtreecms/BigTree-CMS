@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { api } from "@/api/client";
 import { authApi } from "@/auth/endpoints";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { Bell, ChevronDown, ExternalLink, LogOut, Moon, Search, Sun } from "lucide-react";
+import { Bell, ChevronDown, ExternalLink, LogOut, Moon, Search, Sun, User } from "lucide-react";
 import { useAuthStore } from "@/auth/store";
 
 /**
@@ -127,6 +128,15 @@ export const TopBar = ({ dark, onToggleDark, onOpenSearch }: TopBarProps) => {
 							<div className="font-medium text-[13px]">{user?.name}</div>
 							<div className="text-text-3 text-[12px] truncate">{user?.email}</div>
 						</div>
+						<DropdownMenu.Item asChild>
+							<Link
+								to="/profile"
+								className="flex cursor-pointer select-none items-center gap-2 rounded px-3 py-1.5 text-[13px] text-text-2 outline-none transition-colors hover:bg-hover hover:text-text data-[highlighted]:bg-hover data-[highlighted]:text-text"
+							>
+								<User size={14} />
+								<span>Profile</span>
+							</Link>
+						</DropdownMenu.Item>
 						<DropdownMenu.Item
 							className="flex cursor-pointer select-none items-center gap-2 rounded px-3 py-1.5 text-[13px] text-text-2 outline-none transition-colors hover:bg-hover hover:text-text data-[highlighted]:bg-hover data-[highlighted]:text-text"
 							onSelect={async () => {
