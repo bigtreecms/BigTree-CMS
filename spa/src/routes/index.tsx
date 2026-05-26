@@ -6,6 +6,8 @@ import { Login } from "@/pages/Login";
 import { Pages } from "@/pages/Pages";
 import { Placeholder } from "@/pages/Placeholder";
 import { Profile } from "@/pages/Profile";
+import { TagMerge } from "@/pages/TagMerge";
+import { Tags } from "@/pages/Tags";
 import { UserEdit } from "@/pages/UserEdit";
 import { Users } from "@/pages/Users";
 import { ProtectedRoute } from "./ProtectedRoute";
@@ -119,8 +121,8 @@ export const router = createBrowserRouter(
 						{
 							path: "tags",
 							children: [
-								{ index: true, element: <Placeholder title="Tags" /> },
-								{ path: "merge", element: <Placeholder title="Merge tags" /> },
+								{ index: true, element: <Tags /> },
+								{ path: "merge", element: <TagMerge /> },
 							],
 						},
 
