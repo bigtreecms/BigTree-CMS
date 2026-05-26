@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { File as FileIcon, Film, Folder, Image as ImageIcon, Search, X } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { UploadZone } from "@/components/files/UploadZone";
 
 import {
 	resourceFoldersApi,
@@ -15,6 +16,7 @@ import {
 import { resourcesApi } from "@/api/endpoints/resources";
 
 import { formatBytes } from "@/lib/bytes";
+import { toast } from "@/lib/toast";
 
 /**
  * Files / Resource Manager.
@@ -74,6 +76,7 @@ export const Files = () => {
 	const params = useParams<{ id?: string }>();
 	const folderId = params.id ? parseInt(params.id, 10) : 0;
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 
 	const [query, setQuery] = useState("");
 	const [debounced, setDebounced] = useState("");
@@ -107,6 +110,14 @@ export const Files = () => {
 	});
 
 	const contents = contentsQuery.data;
+	const access = contents?.access ?? "n";
+	const canUpload = access === "p";
+
+	const handleUploaded = useCallback(() => {
+		queryClient.invalidateQueries({ queryKey: FOLDER_CONTENTS_KEY(folderId) });
+		toast.success("File uploaded");
+	}, [queryClient, folderId]);
+
 	const breadcrumbItems = useMemo(() => {
 		const trail = [{ label: "Files", to: "/files" }];
 
@@ -236,6 +247,10 @@ export const Files = () => {
 			<Breadcrumb items={breadcrumbItems} />
 
 			<PageHead title="Files" sub={sub} />
+
+			{canUpload && !isSearching && (
+				<UploadZone folderId={folderId} onUploaded={handleUploaded} />
+			)}
 
 			<div className="mb-3 flex flex-wrap items-center gap-3">
 				<div className="relative max-w-md flex-1">
