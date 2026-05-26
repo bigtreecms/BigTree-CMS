@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, Plus, Search, Trash, X } from "lucide-react";
+import { GitMerge, Plus, Search, Trash, X } from "lucide-react";
 
 import { useAuthStore } from "@/auth/store";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
@@ -16,11 +16,13 @@ import { toast } from "@/lib/toast";
 
 /**
  * Tags list page. Mirrors the conventions used by Users.tsx — server-side
- * paginated DataTable, debounced search, inline add, per-row delete confirm.
+ * paginated DataTable, debounced search, inline add.
  *
- * Bulk selection drives the merge flow: select two-or-more rows then click
- * "Merge selected" to navigate to /tags/merge?from=1,2,3. The merge page
- * picks the target separately, so this page never needs to encode it.
+ * Per-row actions (Merge + Delete) match the legacy admin's pattern: each
+ * tag has its own Merge link that takes you to /tags/merge?from=ID where
+ * you pick the target. The API still accepts multiple source ids — that
+ * capability is exposed by hand-editing the URL — but the list UI deals in
+ * one source at a time.
  */
 
 const PER_PAGE = 25;
@@ -35,7 +37,6 @@ export const Tags = () => {
 
 	const [query, setQuery] = useState("");
 	const [page, setPage] = useState(1);
-	const [selected, setSelected] = useState<Set<number>>(new Set());
 	const [newTag, setNewTag] = useState("");
 	const [confirmDelete, setConfirmDelete] = useState<Tag | null>(null);
 
@@ -73,54 +74,14 @@ export const Tags = () => {
 
 	const deleteMutation = useMutation({
 		mutationFn: (id: number) => tagsApi.delete(id),
-		onSuccess: (_, id) => {
+		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["tags"] });
-			setSelected((prev) => {
-				const next = new Set(prev);
-				next.delete(id);
-
-				return next;
-			});
 			toast.success("Tag deleted");
 		},
 		onError: () => {
 			toast.error("Could not delete tag");
 		},
 	});
-
-	const toggleSelected = (id: number) => {
-		setSelected((prev) => {
-			const next = new Set(prev);
-
-			if (next.has(id)) {
-				next.delete(id);
-			} else {
-				next.add(id);
-			}
-
-			return next;
-		});
-	};
-
-	const allOnPageSelected = rows.length > 0 && rows.every((r) => selected.has(r.id));
-
-	const togglePageSelection = () => {
-		setSelected((prev) => {
-			const next = new Set(prev);
-
-			if (allOnPageSelected) {
-				for (const r of rows) {
-					next.delete(r.id);
-				}
-			} else {
-				for (const r of rows) {
-					next.add(r.id);
-				}
-			}
-
-			return next;
-		});
-	};
 
 	const submitNew = (event: React.FormEvent) => {
 		event.preventDefault();
@@ -133,35 +94,7 @@ export const Tags = () => {
 		createMutation.mutate(trimmed);
 	};
 
-	const goMerge = () => {
-		const ids = Array.from(selected);
-		navigate(`/tags/merge?from=${ids.join(",")}`);
-	};
-
 	const columns: DataTableColumn<Tag>[] = [
-		{
-			key: "select",
-			header: (
-				<input
-					type="checkbox"
-					className="cursor-pointer accent-accent"
-					checked={allOnPageSelected}
-					onChange={togglePageSelection}
-					aria-label="Select all on page"
-				/>
-			),
-			width: "32px",
-			cell: (tag) => (
-				<input
-					type="checkbox"
-					className="cursor-pointer accent-accent"
-					checked={selected.has(tag.id)}
-					onChange={() => toggleSelected(tag.id)}
-					onClick={(e) => e.stopPropagation()}
-					aria-label={`Select ${tag.tag}`}
-				/>
-			),
-		},
 		{
 			key: "tag",
 			header: "Name",
@@ -189,11 +122,23 @@ export const Tags = () => {
 		{
 			key: "actions",
 			header: "Actions",
-			width: "60px",
+			width: "84px",
 			align: "right",
 			headerAlign: "right",
 			cell: (tag) => (
 				<div className="flex items-center justify-end gap-1">
+					<button
+						type="button"
+						className="rounded p-1 text-text-3 hover:bg-hover hover:text-text disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-3"
+						title="Merge into another tag"
+						disabled={!canEdit}
+						onClick={(e) => {
+							e.stopPropagation();
+							navigate(`/tags/merge?from=${tag.id}`);
+						}}
+					>
+						<GitMerge size={15} />
+					</button>
 					<button
 						type="button"
 						className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-3"
@@ -215,22 +160,7 @@ export const Tags = () => {
 		<div className="mx-auto max-w-screen-2xl px-6 py-4">
 			<Breadcrumb items={[{ label: "Tags" }]} />
 
-			<PageHead
-				title="Tags"
-				sub={`${total} tag${total === 1 ? "" : "s"}`}
-				actions={
-					canEdit && selected.size >= 2 ? (
-						<button
-							type="button"
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-sm hover:bg-hover"
-							onClick={goMerge}
-						>
-							<ArrowRight size={14} />
-							Merge {selected.size} tags
-						</button>
-					) : undefined
-				}
-			/>
+			<PageHead title="Tags" sub={`${total} tag${total === 1 ? "" : "s"}`} />
 
 			{canEdit && (
 				<form
@@ -279,16 +209,6 @@ export const Tags = () => {
 						</button>
 					)}
 				</div>
-
-				{selected.size > 0 && (
-					<button
-						type="button"
-						className="text-[12px] text-text-3 hover:text-text"
-						onClick={() => setSelected(new Set())}
-					>
-						Clear selection ({selected.size})
-					</button>
-				)}
 
 				<div className="flex-1" />
 
