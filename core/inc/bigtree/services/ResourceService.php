@@ -295,8 +295,13 @@
 				$this->ensureListPreviewCrop($image);
 
 				$image->processThumbnails();
-				$image->processCenterCrops();
-				$image->processCrops();
+				// processCrops() handles exact-dimension crops + every top-level
+				// center_crop, and returns a registry of crops whose dimensions
+				// didn't match exactly. In the legacy admin the user draws those
+				// manually; for file-manager uploads we auto-center-crop them so
+				// every prefix we record actually has a file on disk.
+				$pending = $image->processCrops();
+				$this->autoProcessCropRegistry($image, is_array($pending) ? $pending : []);
 
 				[$crop_prefixes, $thumb_prefixes] = $this->buildResourcePrefixes($image);
 				// Internal-only crop; consumers shouldn't see it in the resource's crops map.
@@ -697,6 +702,89 @@
 				"width" => $size,
 				"height" => $size,
 			];
+		}
+
+		/**
+		 * Generate each crop in BigTreeImage::processCrops()'s pending registry
+		 * as a center crop, plus any thumbs / center_crops nested under it. The
+		 * legacy admin would hand these back to the browser for a manual draw;
+		 * for file-manager uploads we crop unattended so the recorded prefixes
+		 * always resolve to real files. The image MUST be larger than every
+		 * crop in the registry — `filterGeneratableCrops()` enforces that.
+		 */
+		private function autoProcessCropRegistry(BigTreeImage $image, array $registry) {
+			$retina = !empty($image->Settings["retina"]);
+			$directory = $image->Settings["directory"];
+
+			foreach ($registry as $crop) {
+				$width = (int)($crop["width"] ?? 0);
+				$height = (int)($crop["height"] ?? 0);
+
+				if ($width <= 0 || $height <= 0) {
+					continue;
+				}
+
+				if (!empty($crop["prefix"])) {
+					$temp = $image->getTempFileName();
+					$image->centerCrop($temp, $width, $height, $retina, !empty($crop["grayscale"]));
+					$image->Storage->replace(
+						$temp,
+						$crop["prefix"] . $image->StoredName,
+						$directory,
+						true,
+						$image->ForcingLocalReplace
+					);
+				}
+
+				if (is_array($crop["thumbs"] ?? null)) {
+					foreach ($crop["thumbs"] as $thumb) {
+						if (empty($thumb["prefix"])) {
+							continue;
+						}
+						// Scale the requested thumb against the crop's box, not
+						// the source image — matches the prefix dimensions we
+						// publish via buildResourcePrefixes / getThumbnailSize.
+						$size = $image->getThumbnailSize(
+							$thumb["width"] ?? 0,
+							$thumb["height"] ?? 0,
+							$width,
+							$height
+						);
+						$temp = $image->getTempFileName();
+						$image->thumbnail($temp, $size["width"], $size["height"], $retina, !empty($thumb["grayscale"]));
+						$image->Storage->replace(
+							$temp,
+							$thumb["prefix"] . $image->StoredName,
+							$directory,
+							true,
+							$image->ForcingLocalReplace
+						);
+					}
+				}
+
+				if (is_array($crop["center_crops"] ?? null)) {
+					foreach ($crop["center_crops"] as $center_crop) {
+						if (empty($center_crop["prefix"])) {
+							continue;
+						}
+						$temp = $image->getTempFileName();
+						$image->centerCrop(
+							$temp,
+							(int)($center_crop["width"] ?? 0),
+							(int)($center_crop["height"] ?? 0),
+							$retina,
+							!empty($center_crop["grayscale"])
+						);
+						$image->Storage->replace(
+							$temp,
+							$center_crop["prefix"] . $image->StoredName,
+							$directory,
+							true,
+							$image->ForcingLocalReplace
+						);
+					}
+				}
+			}
 		}
 
 		/**
