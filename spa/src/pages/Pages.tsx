@@ -9,7 +9,7 @@ import { PageTable } from "@/components/pages/PageTable";
 import { HeaderBtn } from "@/components/ui/HeaderBtn";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { SuccessToast } from "@/components/ui/SuccessToast";
+import { toast } from "@/lib/toast";
 import { pagesApi, type PageListRow } from "@/api/endpoints/pages";
 import { relativeTime } from "@/lib/time";
 
@@ -61,25 +61,6 @@ export const Pages = () => {
 	}
 
 	const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null);
-
-	type Toast = {
-		id: number;
-		title: string;
-		description?: string;
-	};
-
-	const [toasts, setToasts] = useState<Toast[]>([]);
-
-	const showSuccessToast = (title: string, description?: string) => {
-		const id = Date.now();
-
-		setToasts((prev) => [...prev, { id, title, description }]);
-
-		// Auto-dismiss after 4.5 seconds
-		setTimeout(() => {
-			setToasts((prev) => prev.filter((t) => t.id !== id));
-		}, 4500);
-	};
 
 	const renameMutation = useMutation({
 		mutationFn: ({ id, nav_title }: { id: number; nav_title: string }) =>
@@ -146,7 +127,7 @@ export const Pages = () => {
 		},
 		onSuccess: (_data, variables) => {
 			const isRestoring = variables.archived;
-			showSuccessToast(isRestoring ? "Page restored" : "Page archived");
+			toast.success(isRestoring ? "Page restored" : "Page archived");
 		},
 	});
 
@@ -172,7 +153,7 @@ export const Pages = () => {
 			});
 		},
 		onSuccess: () => {
-			showSuccessToast("Page deleted");
+			toast.success("Page deleted");
 		},
 	});
 
@@ -395,22 +376,6 @@ export const Pages = () => {
 					}
 				}}
 			/>
-
-			{/* Success toasts - rendered in top-right */}
-			{toasts.length > 0 && (
-				<div className="fixed right-6 top-20 z-[200] flex flex-col gap-3">
-					{toasts.map((toast) => (
-						<SuccessToast
-							key={toast.id}
-							title={toast.title}
-							description={toast.description}
-							onClose={() => {
-								setToasts((prev) => prev.filter((t) => t.id !== toast.id));
-							}}
-						/>
-					))}
-				</div>
-			)}
 		</div>
 	);
 };

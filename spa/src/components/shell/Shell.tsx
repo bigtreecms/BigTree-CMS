@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { TopBar } from "./TopBar";
 import { TabNav } from "./TabNav";
 import { QuickSearch } from "./QuickSearch";
+import { Toaster } from "@/components/ui/Toaster";
 import { applyTheme, resolveInitialTheme } from "@/lib/theme";
 
 /**
@@ -43,6 +44,8 @@ export const Shell = () => {
 			</main>
 
 			<QuickSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
+
+			<Toaster />
 		</div>
 	);
 };

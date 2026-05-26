@@ -16,7 +16,8 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Pager } from "@/components/ui/Pager";
-import { SuccessToast } from "@/components/ui/SuccessToast";
+import { SubNav } from "@/components/ui/SubNav";
+import { toast } from "@/lib/toast";
 import { usersApi, type UserListItem, levelToLabel, labelToLevel } from "@/api/endpoints/users";
 
 // Types
@@ -148,7 +149,6 @@ export const Users = () => {
 	const [page, setPage] = useState(1);
 	const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "name", dir: "asc" });
 	const [confirmDelete, setConfirmDelete] = useState<User | null>(null);
-	const [toasts, setToasts] = useState<Array<{ id: number; title: string }>>([]);
 
 	// Add User form state
 	const [first, setFirst] = useState("");
@@ -220,15 +220,6 @@ export const Users = () => {
 		}
 	}, [view]);
 
-	const addToast = (title: string) => {
-		const id = Date.now();
-		setToasts((t) => [...t, { id, title }]);
-
-		setTimeout(() => {
-			setToasts((t) => t.filter((x) => x.id !== id));
-		}, 3200);
-	};
-
 	const toggleSort = (key: SortKey) => {
 		setSort((s) => {
 			if (s.key === key) {
@@ -262,12 +253,14 @@ export const Users = () => {
 		},
 		onSuccess: (_, user) => {
 			queryClient.invalidateQueries({ queryKey: ["users"] });
-			addToast(`Deleted ${user.first} ${user.last}`);
+			toast.success(`Deleted ${user.first} ${user.last}`);
+		},
+		onError: () => {
+			toast.error("Failed to delete user");
 		},
 	});
 
 	const handleDelete = (user: User) => {
-		setConfirmDelete(null);
 		deleteUserMutation.mutate(user);
 	};
 
@@ -289,7 +282,7 @@ export const Users = () => {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["users"] });
-			addToast("User created" + (sendInvite ? " — invite sent" : ""));
+			toast.success("User created" + (sendInvite ? " — invite sent" : ""));
 
 			// Reset form and go back to list
 			setFirst("");
@@ -356,24 +349,15 @@ export const Users = () => {
 				}
 			/>
 
-			{/* Sub-nav — matches original BigTree + prototype exactly */}
-			<div className="mb-4 inline-flex rounded-md border border-border bg-surface p-0.5 text-[12.5px] font-medium">
-				<button
-					type="button"
-					className={`flex items-center gap-1.5 rounded px-3 py-1.5 transition-colors ${view === "list" ? "bg-accent-soft text-accent font-semibold" : "text-text-2 hover:bg-hover hover:text-text"}`}
-					onClick={() => setView("list")}
-				>
-					<span>View Users</span>
-				</button>
-				<button
-					type="button"
-					className={`flex items-center gap-1.5 rounded px-3 py-1.5 transition-colors ${view === "add" ? "bg-accent-soft text-accent font-semibold" : "text-text-2 hover:bg-hover hover:text-text"}`}
-					onClick={() => setView("add")}
-				>
-					<Plus size={13} />
-					<span>Add User</span>
-				</button>
-			</div>
+			<SubNav<View>
+				className="mb-4"
+				value={view}
+				onChange={setView}
+				items={[
+					{ value: "list", label: "View Users" },
+					{ value: "add", label: "Add User", icon: <Plus size={13} /> },
+				]}
+			/>
 
 			{view === "list" && (
 				<>
@@ -681,19 +665,6 @@ export const Users = () => {
 					variant="danger"
 					onConfirm={() => handleDelete(confirmDelete)}
 				/>
-			)}
-
-			{/* Toasts */}
-			{toasts.length > 0 && (
-				<div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
-					{toasts.map((t) => (
-						<SuccessToast
-							key={t.id}
-							title={t.title}
-							onClose={() => setToasts((ts) => ts.filter((x) => x.id !== t.id))}
-						/>
-					))}
-				</div>
 			)}
 		</div>
 	);
