@@ -347,6 +347,85 @@
 			return Response::created($this->presentResource($resource, true), null);
 		}
 
+		// — Managed videos —
+		// Port of core/admin/modules/files/process/video.php — paste a YouTube
+		// or Vimeo URL, pull oembed metadata, store the thumbnail as a local
+		// resource asset, insert a is_video=on resource row.
+
+		public function createManagedVideo(Request $request) {
+			$url = trim((string)($request->body["url"] ?? ""));
+			$folder = (int)($request->body["folder"] ?? 0);
+			$this->enforceFolder($request->user, $folder, "p", "create video in");
+
+			if ($url === "") {
+				throw new BadRequestException("url required", "missing_url", 400);
+			}
+
+			$video = $this->extractVideoMetadata($url);
+
+			// Pull the thumbnail down so we have a local preview asset.
+			if (empty($video["image"])) {
+				throw new BadRequestException(
+					"Could not retrieve a thumbnail for that video",
+					"video_thumbnail_unavailable",
+					400
+				);
+			}
+
+			$extension = strtolower(pathinfo(parse_url($video["image"], PHP_URL_PATH) ?: "", PATHINFO_EXTENSION)) ?: "jpg";
+			$tmp_dir = SITE_ROOT . "files/temporary/" . $request->user->id . "/";
+
+			if (!is_dir($tmp_dir)) {
+				@mkdir($tmp_dir, 0777, true);
+			}
+			$tmp_path = $tmp_dir . "video-" . $video["id"] . "-" . uniqid() . "." . $extension;
+
+			if (!BigTree::copyFile($video["image"], $tmp_path) || !file_exists($tmp_path)) {
+				throw new BadRequestException(
+					"Could not download the video thumbnail",
+					"video_thumbnail_download_failed",
+					400
+				);
+			}
+
+			[$thumb_width, $thumb_height] = @getimagesize($tmp_path) ?: [null, null];
+
+			$storage = new BigTreeStorage();
+			$stored_thumb = $storage->store($tmp_path, basename($tmp_path), "files/resources/");
+			@unlink($tmp_path);
+
+			if (!$stored_thumb) {
+				throw new BadRequestException("Storage refused video thumbnail", "storage_failed", 400);
+			}
+
+			// Update the metadata blob with the locally stored image URL so the
+			// admin always renders from our own storage, not the third party CDN.
+			$video["image"] = $stored_thumb;
+
+			$id = $this->insertResource([
+				"folder" => $folder ?: null,
+				"file" => $video["url"],
+				"name" => $video["title"] ?: $video["url"],
+				"type" => "video",
+				"mimetype" => null,
+				"is_image" => "",
+				"is_video" => "on",
+				"md5" => null,
+				"size" => null,
+				"width" => $video["width"] ?: $thumb_width,
+				"height" => $video["height"] ?: $thumb_height,
+				"crops" => [],
+				"thumbs" => [],
+				"location" => $video["service"],
+				"video_data" => $video,
+				"metadata" => [],
+			]);
+
+			$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
+
+			return Response::created($this->presentResource($resource, true), null);
+		}
+
 		// — Crops —
 		// Generate a new crop from an existing image resource. Returns the crop file URL.
 
@@ -601,6 +680,120 @@
 			}
 
 			return false;
+		}
+
+		/**
+		 * Parse a YouTube or Vimeo URL and fetch its metadata via the public
+		 * oembed/v2 endpoints. Returns the same shape the legacy admin built
+		 * (service, id, title, description, image, url, user_*, dimensions,
+		 * duration, embed) so existing `video_data` consumers keep working.
+		 */
+		private function extractVideoMetadata($url) {
+			if (strpos($url, "youtu.be") !== false || strpos($url, "youtube.com") !== false) {
+				return $this->extractYouTubeMetadata($url);
+			}
+
+			if (strpos($url, "vimeo.com") !== false) {
+				return $this->extractVimeoMetadata($url);
+			}
+
+			throw new BadRequestException(
+				"URL is not a recognized YouTube or Vimeo URL",
+				"invalid_video_url",
+				400
+			);
+		}
+
+		private function extractYouTubeMetadata($url) {
+			// Strip everything except the v= query param so quirky URLs (timestamps,
+			// playlists) still resolve to the canonical watch URL the regex expects.
+			$parsed = parse_url($url);
+
+			if (!empty($parsed["query"])) {
+				parse_str($parsed["query"], $params);
+
+				if (!empty($params["v"])) {
+					$url = ($parsed["scheme"] ?: "https") . "://" . $parsed["host"] . $parsed["path"] . "?v=" . $params["v"];
+				}
+			}
+
+			$pattern = '%(?:youtu\.be/|youtube\.com/(?:embed/|v/|.*v=))([\w-]{10,12})%';
+
+			if (!preg_match($pattern, $url, $matches)) {
+				throw new BadRequestException(
+					"Could not find a video id in the YouTube URL",
+					"invalid_video_url",
+					400
+				);
+			}
+
+			$video_id = $matches[1];
+			$oembed_raw = BigTree::cURL("https://www.youtube.com/oembed?url=" . urlencode("https://youtube.com/watch?v=" . $video_id));
+			$oembed = json_decode($oembed_raw, true);
+
+			if (empty($oembed["title"])) {
+				throw new BadRequestException(
+					"YouTube did not return metadata for that video",
+					"video_metadata_unavailable",
+					400
+				);
+			}
+
+			return [
+				"service" => "YouTube",
+				"id" => $video_id,
+				"title" => $oembed["title"],
+				"description" => null,
+				"image" => $oembed["thumbnail_url"] ?? null,
+				"url" => "https://youtube.com/watch?v=" . $video_id,
+				"user_id" => null,
+				"user_name" => $oembed["author_name"] ?? null,
+				"user_url" => $oembed["author_url"] ?? null,
+				"upload_date" => null,
+				"height" => null,
+				"width" => null,
+				"duration" => null,
+				"embed" => $oembed["html"] ?? null,
+			];
+		}
+
+		private function extractVimeoMetadata($url) {
+			$pieces = explode("/", rtrim($url, "/"));
+			$video_id = end($pieces);
+
+			if (!ctype_digit((string)$video_id)) {
+				throw new BadRequestException("Could not find a video id in the Vimeo URL", "invalid_video_url", 400);
+			}
+
+			$raw = BigTree::cURL("https://vimeo.com/api/v2/video/" . $video_id . ".json");
+			$data = json_decode($raw, true);
+
+			if (!is_array($data) || empty($data[0]["title"])) {
+				throw new BadRequestException(
+					"Vimeo did not return metadata for that video",
+					"video_metadata_unavailable",
+					400
+				);
+			}
+			$v = $data[0];
+			$image = $v["thumbnail_large"] ?: ($v["thumbnail_medium"] ?: ($v["thumbnail_small"] ?? null));
+
+			return [
+				"service" => "Vimeo",
+				"id" => (string)$video_id,
+				"title" => $v["title"],
+				"description" => $v["description"] ?? null,
+				"image" => $image,
+				"url" => $v["url"] ?? ("https://vimeo.com/" . $video_id),
+				"user_id" => $v["user_id"] ?? null,
+				"user_name" => $v["user_name"] ?? null,
+				"user_url" => $v["user_url"] ?? null,
+				"upload_date" => $v["upload_date"] ?? null,
+				"height" => $v["height"] ?? null,
+				"width" => $v["width"] ?? null,
+				"duration" => $v["duration"] ?? null,
+				"embed" => '<iframe src="https://player.vimeo.com/video/' . $video_id . '?byline=0&portrait=0" width="' . ($v["width"] ?? 640) . '" height="' . ($v["height"] ?? 360) . '" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>',
+			];
 		}
 
 		private function folderBreadcrumb($folder_id) {

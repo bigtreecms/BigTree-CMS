@@ -38,6 +38,15 @@
 			"multipart" => true,
 			"audit" => ["table" => "bigtree_resources", "type" => "uploaded", "entry" => "%id%"],
 		],
+		"POST /resources/video" => [
+			"service" => [ResourceService::class, "createManagedVideo"],
+			"permission" => ["level" => 0],
+			"body" => [
+				"url" => "required|string|max:500",
+				"folder" => "int|min:0",
+			],
+			"audit" => ["table" => "bigtree_resources", "type" => "created", "entry" => "%id%"],
+		],
 
 		// — Single resource —
 		"GET /resources/{id:int}" => [

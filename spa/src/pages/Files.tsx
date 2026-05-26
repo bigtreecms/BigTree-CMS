@@ -10,6 +10,7 @@ import {
 	Image as ImageIcon,
 	Search,
 	Trash,
+	Video,
 	X,
 } from "lucide-react";
 
@@ -20,6 +21,7 @@ import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { FileDetail } from "@/components/files/FileDetail";
 import { FolderEditor } from "@/components/files/FolderEditor";
 import { UploadZone } from "@/components/files/UploadZone";
+import { VideoCreator } from "@/components/files/VideoCreator";
 
 import {
 	resourceFoldersApi,
@@ -99,6 +101,7 @@ export const Files = () => {
 	const [confirmDeleteFolder, setConfirmDeleteFolder] = useState<ResourceFolderRow | null>(null);
 	// File detail SlideOver — null closed, otherwise the resource id to load.
 	const [detailResourceId, setDetailResourceId] = useState<number | null>(null);
+	const [videoCreatorOpen, setVideoCreatorOpen] = useState(false);
 
 	// Reset the search box when the folder changes.
 	useEffect(() => {
@@ -336,14 +339,24 @@ export const Files = () => {
 				sub={sub}
 				actions={
 					canCreateFolder && !isSearching ? (
-						<button
-							type="button"
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-sm hover:bg-hover"
-							onClick={() => setFolderEditor("new")}
-						>
-							<FolderPlus size={14} />
-							<span>New folder</span>
-						</button>
+						<>
+							<button
+								type="button"
+								className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-sm hover:bg-hover"
+								onClick={() => setVideoCreatorOpen(true)}
+							>
+								<Video size={14} />
+								<span>Add video</span>
+							</button>
+							<button
+								type="button"
+								className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-sm hover:bg-hover"
+								onClick={() => setFolderEditor("new")}
+							>
+								<FolderPlus size={14} />
+								<span>New folder</span>
+							</button>
+						</>
 					) : undefined
 				}
 			/>
@@ -427,6 +440,14 @@ export const Files = () => {
 					}
 				}}
 				folderQueryKey={FOLDER_CONTENTS_KEY(folderId)}
+			/>
+
+			<VideoCreator
+				open={videoCreatorOpen}
+				onOpenChange={setVideoCreatorOpen}
+				folderId={folderId}
+				invalidateKey={FOLDER_CONTENTS_KEY(folderId)}
+				onCreated={(resource) => setDetailResourceId(resource.id)}
 			/>
 		</div>
 	);

@@ -70,6 +70,11 @@ export interface CropResult {
 	prefix: string;
 }
 
+export interface CreateVideoPayload {
+	url: string;
+	folder?: number;
+}
+
 export const UPLOAD_PATH = "/resources/upload";
 
 export const resourcesApi = {
@@ -81,6 +86,12 @@ export const resourcesApi = {
 	delete: (id: number) => api.delete<void>(`/resources/${id}`),
 
 	search: (q: string) => api.get<ResourceSummary[]>("/resources/search", { query: { q } }),
+
+	/**
+	 * Create a managed-video resource from a YouTube or Vimeo URL. Server-side
+	 * pulls oembed metadata + thumbnail and inserts a is_video=on row.
+	 */
+	createVideo: (body: CreateVideoPayload) => api.post<ResourceDetail>("/resources/video", body),
 
 	crop: (id: number, body: CropPayload) => api.post<CropResult>(`/resources/${id}/crop`, body),
 
