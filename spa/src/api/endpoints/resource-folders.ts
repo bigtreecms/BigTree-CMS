@@ -50,6 +50,16 @@ export interface FolderContents {
 	access: FolderAccess;
 }
 
+export interface CreateFolderPayload {
+	parent: number;
+	name: string;
+}
+
+export interface UpdateFolderPayload {
+	name?: string;
+	parent?: number;
+}
+
 export const resourceFoldersApi = {
 	/** Full folder contents (folders + resources + breadcrumb). */
 	listContents: (parent: number = 0) =>
@@ -60,4 +70,11 @@ export const resourceFoldersApi = {
 		api
 			.get<FolderContents>("/resource-folders", { query: { parent } })
 			.then((res) => res.folders ?? []),
+
+	create: (body: CreateFolderPayload) => api.post<ResourceFolderRow>("/resource-folders", body),
+
+	update: (id: number, body: UpdateFolderPayload) =>
+		api.patch<ResourceFolderRow>(`/resource-folders/${id}`, body),
+
+	delete: (id: number) => api.delete<void>(`/resource-folders/${id}`),
 };

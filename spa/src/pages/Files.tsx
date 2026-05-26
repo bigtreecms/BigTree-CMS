@@ -1,0 +1,280 @@
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { File as FileIcon, Film, Folder, Image as ImageIcon, Search, X } from "lucide-react";
+
+import { Breadcrumb } from "@/components/shell/Breadcrumb";
+import { PageHead } from "@/components/shell/PageHead";
+import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+
+import {
+	resourceFoldersApi,
+	type ResourceFolderRow,
+	type ResourceSummary,
+} from "@/api/endpoints/resource-folders";
+import { resourcesApi } from "@/api/endpoints/resources";
+
+import { formatBytes } from "@/lib/bytes";
+
+/**
+ * Files / Resource Manager.
+ *
+ *   /files            → root folder (id = 0)
+ *   /files/folder/:id → that folder
+ *
+ * Folders and resources share one DataTable; rows are tagged with a `kind`
+ * discriminator so click handling can branch (folders navigate, files open
+ * a detail SlideOver). When the search box has content (debounced 200ms)
+ * the list is replaced by `/resources/search` results — folders are dropped
+ * from the listing in that mode to match the PHP admin.
+ */
+
+type Row =
+	| { kind: "folder"; folder: ResourceFolderRow }
+	| { kind: "file"; resource: ResourceSummary };
+
+const FOLDER_CONTENTS_KEY = (id: number) => ["resource-folders", "contents", id] as const;
+const RESOURCE_SEARCH_KEY = (q: string) => ["resources", "search", q] as const;
+
+const rowKey = (row: Row): string =>
+	row.kind === "folder" ? `f-${row.folder.id}` : `r-${row.resource.id}`;
+
+interface FileThumbProps {
+	resource: ResourceSummary;
+}
+
+const FileThumb = ({ resource }: FileThumbProps) => {
+	if (resource.is_image && resource.file) {
+		return (
+			<img
+				src={resource.file}
+				alt=""
+				className="h-9 w-9 rounded object-cover ring-1 ring-border"
+				loading="lazy"
+			/>
+		);
+	}
+
+	const Icon = resource.is_video ? Film : FileIcon;
+
+	return (
+		<span className="inline-grid h-9 w-9 place-items-center rounded bg-surface-2 text-text-3 ring-1 ring-border">
+			{resource.is_image ? <ImageIcon size={16} /> : <Icon size={16} />}
+		</span>
+	);
+};
+
+const FolderThumb = () => (
+	<span className="inline-grid h-9 w-9 place-items-center rounded bg-accent-soft text-accent ring-1 ring-border">
+		<Folder size={16} />
+	</span>
+);
+
+export const Files = () => {
+	const params = useParams<{ id?: string }>();
+	const folderId = params.id ? parseInt(params.id, 10) : 0;
+	const navigate = useNavigate();
+
+	const [query, setQuery] = useState("");
+	const [debounced, setDebounced] = useState("");
+
+	// Reset the search box when the folder changes.
+	useEffect(() => {
+		setQuery("");
+		setDebounced("");
+	}, [folderId]);
+
+	// Debounce the query so we don't fire a request on every keystroke.
+	useEffect(() => {
+		const h = setTimeout(() => setDebounced(query.trim()), 200);
+
+		return () => clearTimeout(h);
+	}, [query]);
+
+	const isSearching = debounced.length >= 2;
+
+	const contentsQuery = useQuery({
+		queryKey: FOLDER_CONTENTS_KEY(folderId),
+		queryFn: () => resourceFoldersApi.listContents(folderId),
+		placeholderData: keepPreviousData,
+	});
+
+	const searchQuery = useQuery({
+		queryKey: RESOURCE_SEARCH_KEY(debounced),
+		queryFn: () => resourcesApi.search(debounced),
+		enabled: isSearching,
+		placeholderData: keepPreviousData,
+	});
+
+	const contents = contentsQuery.data;
+	const breadcrumbItems = useMemo(() => {
+		const trail = [{ label: "Files", to: "/files" }];
+
+		if (folderId === 0) {
+			trail.push({ label: "Home", to: "/files" });
+
+			return trail;
+		}
+
+		// `breadcrumb` from the server is ancestor-first, ending with the current folder.
+		const fromServer = contents?.breadcrumb ?? [];
+		trail.push({ label: "Home", to: "/files" });
+
+		for (const piece of fromServer) {
+			trail.push({ label: piece.name, to: `/files/folder/${piece.id}` });
+		}
+
+		return trail;
+	}, [folderId, contents?.breadcrumb]);
+
+	const rows: Row[] = useMemo(() => {
+		if (isSearching) {
+			const list = searchQuery.data ?? [];
+
+			return list.map((r): Row => ({ kind: "file", resource: r }));
+		}
+
+		if (!contents) {
+			return [];
+		}
+
+		return [
+			...contents.folders.map((f): Row => ({ kind: "folder", folder: f })),
+			...contents.resources.map((r): Row => ({ kind: "file", resource: r })),
+		];
+	}, [isSearching, searchQuery.data, contents]);
+
+	const handleRowClick = (row: Row) => {
+		if (row.kind === "folder") {
+			navigate(`/files/folder/${row.folder.id}`);
+
+			return;
+		}
+
+		// File-detail SlideOver lands in a follow-up commit; for now open in a new tab.
+		if (row.resource.file) {
+			window.open(row.resource.file, "_blank", "noopener,noreferrer");
+		}
+	};
+
+	const columns: DataTableColumn<Row>[] = [
+		{
+			key: "icon",
+			header: "",
+			width: "56px",
+			cell: (row) =>
+				row.kind === "folder" ? <FolderThumb /> : <FileThumb resource={row.resource} />,
+		},
+		{
+			key: "name",
+			header: "Name",
+			width: "minmax(0,1.7fr)",
+			cell: (row) => (
+				<span
+					className="block truncate font-medium text-text"
+					title={row.kind === "folder" ? row.folder.name : row.resource.name}
+				>
+					{row.kind === "folder" ? row.folder.name : row.resource.name}
+				</span>
+			),
+		},
+		{
+			key: "type",
+			header: "Type",
+			width: "minmax(0,1fr)",
+			hideOnMobile: true,
+			cell: (row) =>
+				row.kind === "folder" ? (
+					<span className="text-text-3">folder</span>
+				) : (
+					<span className="truncate text-text-3" title={row.resource.mimetype}>
+						{row.resource.mimetype || row.resource.type || "—"}
+					</span>
+				),
+		},
+		{
+			key: "size",
+			header: "Size",
+			width: "140px",
+			hideOnMobile: true,
+			align: "right",
+			headerAlign: "right",
+			cell: (row) => {
+				if (row.kind === "folder") {
+					return <span className="text-text-3">—</span>;
+				}
+
+				const r = row.resource;
+
+				if (r.width && r.height) {
+					return (
+						<span className="tabular-nums text-text-3">
+							{r.width} × {r.height}
+						</span>
+					);
+				}
+
+				return <span className="tabular-nums text-text-3">{formatBytes(r.size)}</span>;
+			},
+		},
+	];
+
+	const loading =
+		(isSearching && searchQuery.isFetching && !searchQuery.data) ||
+		(!isSearching && contentsQuery.isLoading);
+
+	const totalCount = isSearching ? (searchQuery.data?.length ?? 0) : rows.length;
+
+	const sub = isSearching
+		? `${totalCount} result${totalCount === 1 ? "" : "s"} for “${debounced}”`
+		: contents
+			? `${contents.folders.length} folder${contents.folders.length === 1 ? "" : "s"}, ${contents.resources.length} file${contents.resources.length === 1 ? "" : "s"}`
+			: "Loading…";
+
+	return (
+		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+			<Breadcrumb items={breadcrumbItems} />
+
+			<PageHead title="Files" sub={sub} />
+
+			<div className="mb-3 flex flex-wrap items-center gap-3">
+				<div className="relative max-w-md flex-1">
+					<Search
+						size={14}
+						className="absolute left-3 top-1/2 -translate-y-1/2 text-text-3"
+					/>
+					<input
+						className="w-full rounded-md border border-border bg-surface py-1.5 pl-9 pr-9 text-[13.5px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
+						placeholder="Search files by name…"
+						value={query}
+						onChange={(e) => setQuery(e.target.value)}
+					/>
+					{query && (
+						<button
+							type="button"
+							className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+							onClick={() => setQuery("")}
+							aria-label="Clear search"
+						>
+							<X size={14} />
+						</button>
+					)}
+				</div>
+
+				<div className="flex-1" />
+			</div>
+
+			<DataTable<Row>
+				columns={columns}
+				rows={rows}
+				getRowKey={rowKey}
+				isLoading={loading}
+				loadingLabel={isSearching ? "Searching…" : "Loading files…"}
+				emptyLabel={
+					isSearching ? `No files match “${debounced}”.` : "This folder is empty."
+				}
+				onRowClick={handleRowClick}
+			/>
+		</div>
+	);
+};

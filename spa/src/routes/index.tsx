@@ -1,6 +1,7 @@
 import { Navigate, Outlet, createBrowserRouter } from "react-router-dom";
 
 import { Dashboard } from "@/pages/Dashboard";
+import { Files } from "@/pages/Files";
 import { Login } from "@/pages/Login";
 import { Pages } from "@/pages/Pages";
 import { Placeholder } from "@/pages/Placeholder";
@@ -89,11 +90,8 @@ export const router = createBrowserRouter(
 						{
 							path: "files",
 							children: [
-								{ index: true, element: <Placeholder title="Files" /> },
-								{
-									path: "folder/:id",
-									element: <Placeholder title="Folder" />,
-								},
+								{ index: true, element: <Files /> },
+								{ path: "folder/:id", element: <Files /> },
 							],
 						},
 
