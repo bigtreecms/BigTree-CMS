@@ -17,6 +17,7 @@ import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { FileDetail } from "@/components/files/FileDetail";
 import { FolderEditor } from "@/components/files/FolderEditor";
 import { UploadZone } from "@/components/files/UploadZone";
 
@@ -96,6 +97,8 @@ export const Files = () => {
 	// Folder editor SlideOver — `null` closed, `"new"` for create, or a folder row for rename.
 	const [folderEditor, setFolderEditor] = useState<"new" | ResourceFolderRow | null>(null);
 	const [confirmDeleteFolder, setConfirmDeleteFolder] = useState<ResourceFolderRow | null>(null);
+	// File detail SlideOver — null closed, otherwise the resource id to load.
+	const [detailResourceId, setDetailResourceId] = useState<number | null>(null);
 
 	// Reset the search box when the folder changes.
 	useEffect(() => {
@@ -190,10 +193,7 @@ export const Files = () => {
 			return;
 		}
 
-		// File-detail SlideOver lands in a follow-up commit; for now open in a new tab.
-		if (row.resource.file) {
-			window.open(row.resource.file, "_blank", "noopener,noreferrer");
-		}
+		setDetailResourceId(row.resource.id);
 	};
 
 	const columns: DataTableColumn<Row>[] = [
@@ -296,8 +296,21 @@ export const Files = () => {
 					);
 				}
 
-				// File row actions — the detail SlideOver lands in a follow-up commit.
-				return <div className="h-[26px]" aria-hidden="true" />;
+				return (
+					<div className="flex items-center justify-end gap-1">
+						<button
+							type="button"
+							className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+							title="View file"
+							onClick={(e) => {
+								e.stopPropagation();
+								setDetailResourceId(row.resource.id);
+							}}
+						>
+							<Edit size={15} />
+						</button>
+					</div>
+				);
 			},
 		},
 	];
@@ -405,6 +418,16 @@ export const Files = () => {
 					onConfirm={() => deleteFolderMutation.mutate(confirmDeleteFolder)}
 				/>
 			)}
+
+			<FileDetail
+				resourceId={detailResourceId}
+				onOpenChange={(open) => {
+					if (!open) {
+						setDetailResourceId(null);
+					}
+				}}
+				folderQueryKey={FOLDER_CONTENTS_KEY(folderId)}
+			/>
 		</div>
 	);
 };
