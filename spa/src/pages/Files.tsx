@@ -1,11 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
-import { File as FileIcon, Film, Folder, Image as ImageIcon, Search, X } from "lucide-react";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	Edit,
+	File as FileIcon,
+	Film,
+	Folder,
+	FolderPlus,
+	Image as ImageIcon,
+	Search,
+	Trash,
+	X,
+} from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { FolderEditor } from "@/components/files/FolderEditor";
 import { UploadZone } from "@/components/files/UploadZone";
 
 import {
@@ -81,6 +93,10 @@ export const Files = () => {
 	const [query, setQuery] = useState("");
 	const [debounced, setDebounced] = useState("");
 
+	// Folder editor SlideOver — `null` closed, `"new"` for create, or a folder row for rename.
+	const [folderEditor, setFolderEditor] = useState<"new" | ResourceFolderRow | null>(null);
+	const [confirmDeleteFolder, setConfirmDeleteFolder] = useState<ResourceFolderRow | null>(null);
+
 	// Reset the search box when the folder changes.
 	useEffect(() => {
 		setQuery("");
@@ -112,11 +128,23 @@ export const Files = () => {
 	const contents = contentsQuery.data;
 	const access = contents?.access ?? "n";
 	const canUpload = access === "p";
+	const canCreateFolder = access === "p";
 
 	const handleUploaded = useCallback(() => {
 		queryClient.invalidateQueries({ queryKey: FOLDER_CONTENTS_KEY(folderId) });
 		toast.success("File uploaded");
 	}, [queryClient, folderId]);
+
+	const deleteFolderMutation = useMutation({
+		mutationFn: (folder: ResourceFolderRow) => resourceFoldersApi.delete(folder.id),
+		onSuccess: (_, folder) => {
+			queryClient.invalidateQueries({ queryKey: FOLDER_CONTENTS_KEY(folderId) });
+			toast.success(`Deleted “${folder.name}”`);
+		},
+		onError: () => {
+			toast.error("Could not delete folder");
+		},
+	});
 
 	const breadcrumbItems = useMemo(() => {
 		const trail = [{ label: "Files", to: "/files" }];
@@ -228,6 +256,50 @@ export const Files = () => {
 				return <span className="tabular-nums text-text-3">{formatBytes(r.size)}</span>;
 			},
 		},
+		{
+			key: "actions",
+			header: "Actions",
+			width: "74px",
+			headerAlign: "right",
+			align: "right",
+			cell: (row) => {
+				if (row.kind === "folder") {
+					const canEdit = row.folder.access === "p";
+
+					return (
+						<div className="flex items-center justify-end gap-1">
+							<button
+								type="button"
+								className="rounded p-1 text-text-3 hover:bg-hover hover:text-text disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-3"
+								title="Rename folder"
+								disabled={!canEdit}
+								onClick={(e) => {
+									e.stopPropagation();
+									setFolderEditor(row.folder);
+								}}
+							>
+								<Edit size={15} />
+							</button>
+							<button
+								type="button"
+								className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-3"
+								title="Delete folder"
+								disabled={!canEdit}
+								onClick={(e) => {
+									e.stopPropagation();
+									setConfirmDeleteFolder(row.folder);
+								}}
+							>
+								<Trash size={15} />
+							</button>
+						</div>
+					);
+				}
+
+				// File row actions — the detail SlideOver lands in a follow-up commit.
+				return <div className="h-[26px]" aria-hidden="true" />;
+			},
+		},
 	];
 
 	const loading =
@@ -246,7 +318,22 @@ export const Files = () => {
 		<div className="mx-auto max-w-screen-2xl px-6 py-4">
 			<Breadcrumb items={breadcrumbItems} />
 
-			<PageHead title="Files" sub={sub} />
+			<PageHead
+				title="Files"
+				sub={sub}
+				actions={
+					canCreateFolder && !isSearching ? (
+						<button
+							type="button"
+							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-sm hover:bg-hover"
+							onClick={() => setFolderEditor("new")}
+						>
+							<FolderPlus size={14} />
+							<span>New folder</span>
+						</button>
+					) : undefined
+				}
+			/>
 
 			{canUpload && !isSearching && (
 				<UploadZone folderId={folderId} onUploaded={handleUploaded} />
@@ -290,6 +377,34 @@ export const Files = () => {
 				}
 				onRowClick={handleRowClick}
 			/>
+
+			<FolderEditor
+				open={folderEditor !== null}
+				onOpenChange={(open) => {
+					if (!open) {
+						setFolderEditor(null);
+					}
+				}}
+				parentId={folderId}
+				folder={folderEditor && folderEditor !== "new" ? folderEditor : null}
+				invalidateKey={FOLDER_CONTENTS_KEY(folderId)}
+			/>
+
+			{confirmDeleteFolder && (
+				<ConfirmDialog
+					open={true}
+					onOpenChange={(open) => {
+						if (!open) {
+							setConfirmDeleteFolder(null);
+						}
+					}}
+					title={`Delete “${confirmDeleteFolder.name}”?`}
+					description="Subfolders and files inside this folder will be moved up one level — they won't be deleted. This action cannot be undone."
+					confirmLabel="Delete folder"
+					variant="danger"
+					onConfirm={() => deleteFolderMutation.mutate(confirmDeleteFolder)}
+				/>
+			)}
 		</div>
 	);
 };
