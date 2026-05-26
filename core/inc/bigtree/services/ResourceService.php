@@ -732,7 +732,7 @@
 						$crop["prefix"] . $image->StoredName,
 						$directory,
 						true,
-						$image->ForcingLocalReplace
+						false
 					);
 				}
 
@@ -757,7 +757,7 @@
 							$thumb["prefix"] . $image->StoredName,
 							$directory,
 							true,
-							$image->ForcingLocalReplace
+							false
 						);
 					}
 				}
@@ -780,7 +780,7 @@
 							$center_crop["prefix"] . $image->StoredName,
 							$directory,
 							true,
-							$image->ForcingLocalReplace
+							false
 						);
 					}
 				}
