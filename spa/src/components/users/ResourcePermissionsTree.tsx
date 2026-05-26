@@ -2,7 +2,7 @@ import { Fragment, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
-import { resourceFoldersApi, type ResourceFolderSummary } from "@/api/endpoints/resource-folders";
+import { resourceFoldersApi, type ResourceFolderRow } from "@/api/endpoints/resource-folders";
 import type { PermissionCode, UserPermissions } from "@/api/endpoints/users";
 
 import { PermissionRadios, RESOURCE_PERMISSION_OPTIONS } from "./PermissionRadios";
@@ -67,6 +67,12 @@ interface FolderRowProps {
 	value: UserPermissions["resources"];
 	setPerm: (id: string, perm: PermissionCode) => void;
 	hideInheritForRoot?: boolean;
+	/**
+	 * Server-computed flag from `GET /resource-folders`. `false` collapses the
+	 * row to a leaf-aligned spacer; `undefined` (synthetic root) keeps the
+	 * expander since we never know the root's children up-front.
+	 */
+	hasChildren?: boolean;
 }
 
 const FolderRow = ({
@@ -77,10 +83,13 @@ const FolderRow = ({
 	value,
 	setPerm,
 	hideInheritForRoot,
+	hasChildren,
 }: FolderRowProps) => {
 	const [expanded, setExpanded] = useState(!!initiallyExpanded);
 	const idKey = String(id);
 	const current = value?.[idKey] ?? "";
+
+	const showExpander = hasChildren !== false;
 
 	return (
 		<div>
@@ -92,14 +101,18 @@ const FolderRow = ({
 				}}
 			>
 				<div className="flex items-center gap-1.5 min-w-0">
-					<button
-						type="button"
-						onClick={() => setExpanded((e) => !e)}
-						className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text"
-						aria-label={expanded ? "Collapse" : "Expand"}
-					>
-						{expanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-					</button>
+					{showExpander ? (
+						<button
+							type="button"
+							onClick={() => setExpanded((e) => !e)}
+							className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text"
+							aria-label={expanded ? "Collapse" : "Expand"}
+						>
+							{expanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+						</button>
+					) : (
+						<span className="inline-block w-[18px]" aria-hidden="true" />
+					)}
 
 					<span className="truncate text-text">{name}</span>
 				</div>
@@ -118,7 +131,7 @@ const FolderRow = ({
 				{hideInheritForRoot && <span aria-hidden="true" />}
 			</div>
 
-			{expanded && (
+			{showExpander && expanded && (
 				<FolderChildren parent={id} depth={depth + 1} value={value} setPerm={setPerm} />
 			)}
 		</div>
@@ -134,8 +147,8 @@ interface FolderChildrenProps {
 
 const FolderChildren = ({ parent, depth, value, setPerm }: FolderChildrenProps) => {
 	const { data, isLoading } = useQuery({
-		queryKey: ["resource-folders", "list", parent],
-		queryFn: () => resourceFoldersApi.list(parent),
+		queryKey: ["resource-folders", "subfolders", parent],
+		queryFn: () => resourceFoldersApi.listSubfolders(parent),
 	});
 
 	if (isLoading) {
@@ -157,7 +170,7 @@ const FolderChildren = ({ parent, depth, value, setPerm }: FolderChildrenProps) 
 
 	return (
 		<Fragment>
-			{rows.map((row: ResourceFolderSummary) => (
+			{rows.map((row: ResourceFolderRow) => (
 				<FolderRow
 					key={row.id}
 					id={row.id}
@@ -165,6 +178,7 @@ const FolderChildren = ({ parent, depth, value, setPerm }: FolderChildrenProps) 
 					depth={depth}
 					value={value}
 					setPerm={setPerm}
+					hasChildren={row.has_children}
 				/>
 			))}
 		</Fragment>

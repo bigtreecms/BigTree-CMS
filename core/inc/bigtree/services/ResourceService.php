@@ -36,7 +36,7 @@
 			$parent = (int)($request->query["parent"] ?? 0);
 			$this->enforceFolder($request->user, $parent, "e", "view");
 
-			$folders = SQL::fetchAll("SELECT id, parent, name FROM bigtree_resource_folders WHERE parent = ? ORDER BY name", $parent);
+			$folders = SQL::fetchAll("SELECT id, parent, name, EXISTS (SELECT 1 FROM bigtree_resource_folders c WHERE c.parent = bigtree_resource_folders.id) AS has_children FROM bigtree_resource_folders WHERE parent = ? ORDER BY name", $parent);
 			$resources = SQL::fetchAll(
 				"SELECT id, folder, file, name, type, mimetype, is_image, is_video, height, width, size, date
 				 FROM bigtree_resources WHERE folder = ? ORDER BY date DESC LIMIT 200",
@@ -53,11 +53,11 @@
 			return Response::ok([
 				"breadcrumb" => $this->folderBreadcrumb($parent),
 				"folders" => array_map(function ($f) use ($me) {
-
 					return [
 						"id" => (int)$f["id"],
 						"parent" => (int)$f["parent"],
 						"name" => $f["name"],
+						"has_children" => (bool)$f["has_children"],
 						"access" => PermissionService::userFolderLevel($me, (int)$f["id"]),
 					];
 				}, $folders),
