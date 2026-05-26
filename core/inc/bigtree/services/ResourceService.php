@@ -12,6 +12,7 @@
 	use BigTreeAdmin;
 	use BigTreeCMS;
 	use BigTreeImage;
+	use BigTreeJSONDB;
 	use BigTreeStorage;
 	use SQL;
 
@@ -272,26 +273,35 @@
 			$storage = new BigTreeStorage();
 			$location_type = $storage->Cloud ? "cloud" : "local";
 
-			// Image branch: BigTreeImage handles crops + thumbs + center crops if settings declare them.
-			if ($is_image && $this->shouldProcessAsImage($settings)) {
-				$image = new BigTreeImage($file["tmp_name"], $settings);
+			// Image branch: always run BigTreeImage so we generate the list-preview
+			// thumb the file manager expects, plus any thumbs/crops/center_crops
+			// from the default media preset. This mirrors
+			// core/admin/ajax/files/dropzone-upload-image.php.
+			if ($is_image) {
+				$image_settings = $this->buildImageUploadSettings($settings);
+				$image = new BigTreeImage($file["tmp_name"], $image_settings);
 
 				if ($image->Error) {
 					throw new BadRequestException("Image processing failed: " . $image->Error, "image_invalid", 400);
 				}
 
-				$image->filterGeneratableCrops();
 				$stored_path = $image->store($file["name"]);
 
 				if (!$stored_path) {
 					throw new BadRequestException("Storage refused image: " . ($image->Error ?: "unknown"), "storage_failed", 400);
 				}
 
-				$thumbs = $image->processThumbnails() ?: [];
-				$image->processCenterCrops();
-				$crops_meta = $image->processCrops() ?: [];
+				$image->filterGeneratableCrops();
+				$this->ensureListPreviewCrop($image);
 
-				[$width, $height] = @getimagesize($file["tmp_name"]) ?: [null, null];
+				$image->processThumbnails();
+				$image->processCenterCrops();
+				$image->processCrops();
+
+				[$crop_prefixes, $thumb_prefixes] = $this->buildResourcePrefixes($image);
+				// Internal-only crop; consumers shouldn't see it in the resource's crops map.
+				unset($crop_prefixes["list-preview/"]);
+
 				$id = $this->insertResource([
 					"folder" => $folder ?: null,
 					"file" => $stored_path,
@@ -302,16 +312,19 @@
 					"is_video" => "",
 					"md5" => @md5_file($file["tmp_name"]),
 					"size" => (int)$file["size"],
-					"width" => $width,
-					"height" => $height,
-					"crops" => $crops_meta,
-					"thumbs" => $thumbs,
+					"width" => $image->Width,
+					"height" => $image->Height,
+					"crops" => $crop_prefixes,
+					"thumbs" => $thumb_prefixes,
 					"location" => $location_type,
 					"video_data" => [],
 					"metadata" => $settings["metadata"] ?? [],
 				]);
 
-				return Response::created($this->presentResource(SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id), true), null);
+				$resource = SQL::fetch("SELECT * FROM bigtree_resources WHERE id = ?", $id);
+				Hooks::fire("resource.uploaded", $resource, ["user_id" => $request->user->id]);
+
+				return Response::created($this->presentResource($resource, true), null);
 			}
 
 			// Generic file branch: straight passthrough to BigTreeStorage::store.
@@ -636,13 +649,104 @@
 			return [];
 		}
 
-		private function shouldProcessAsImage(array $settings) {
+		/**
+		 * Compose the BigTreeImage settings dict for an image upload. Pulls the
+		 * default media preset from JSON config, layers in any caller-supplied
+		 * settings, and pins the storage directory. Mirrors the legacy admin's
+		 * dropzone-upload-image.php behavior.
+		 */
+		private function buildImageUploadSettings(array $user_settings) {
+			$media = BigTreeJSONDB::get("config", "media-settings");
+			$preset = is_array($media["presets"]["default"] ?? null) ? $media["presets"]["default"] : [];
 
-			return !empty($settings["preset"])
-				|| !empty($settings["crops"])
-				|| !empty($settings["thumbs"])
-				|| !empty($settings["center_crops"])
-				|| !empty($settings["min_width"]) || !empty($settings["min_height"]);
+			// Caller-supplied keys override the preset, then we force the directory.
+			$settings = array_merge($preset, $user_settings);
+			$settings["directory"] = $user_settings["directory"] ?? ($preset["directory"] ?? "files/resources/");
+
+			foreach (["crops", "thumbs", "center_crops"] as $key) {
+				if (!isset($settings[$key]) || !is_array($settings[$key])) {
+					$settings[$key] = [];
+				}
+			}
+
+			return $settings;
+		}
+
+		/**
+		 * Append the 100×100 `list-preview/` center crop that the file manager
+		 * uses for grid thumbnails. If the source image is smaller than 100px on
+		 * either side, fall back to a square sized to the smallest dimension so
+		 * we still get *something* rather than failing the upload.
+		 */
+		private function ensureListPreviewCrop(BigTreeImage $image) {
+			foreach ($image->Settings["center_crops"] as $crop) {
+				if (($crop["prefix"] ?? "") === "list-preview/") {
+					return;
+				}
+			}
+
+			$min_dim = min((int)$image->Width, (int)$image->Height);
+			$size = $min_dim > 0 && $min_dim < 100 ? $min_dim : 100;
+
+			$image->Settings["center_crops"][] = [
+				"prefix" => "list-preview/",
+				"width" => $size,
+				"height" => $size,
+			];
+		}
+
+		/**
+		 * Walk a BigTreeImage's processed settings to produce the prefix → size
+		 * maps stored in bigtree_resources.crops and bigtree_resources.thumbs.
+		 * Mirrors core/admin/modules/files/process/_resource-prefixes.php.
+		 */
+		private function buildResourcePrefixes(BigTreeImage $image) {
+			$crop_prefixes = [];
+			$thumb_prefixes = [];
+
+			foreach ($image->Settings["crops"] as $crop) {
+				if (!empty($crop["prefix"])) {
+					$crop_prefixes[$crop["prefix"]] = ["width" => $crop["width"], "height" => $crop["height"]];
+				}
+
+				if (is_array($crop["thumbs"] ?? null)) {
+					foreach ($crop["thumbs"] as $thumb) {
+						if (!empty($thumb["prefix"])) {
+							$crop_prefixes[$thumb["prefix"]] = $image->getThumbnailSize($thumb["width"], $thumb["height"], $crop["width"], $crop["height"]);
+						}
+					}
+				}
+
+				if (is_array($crop["center_crops"] ?? null)) {
+					foreach ($crop["center_crops"] as $center_crop) {
+						if (!empty($center_crop["prefix"])) {
+							$crop_prefixes[$center_crop["prefix"]] = ["width" => $center_crop["width"], "height" => $center_crop["height"]];
+						}
+					}
+				}
+			}
+
+			foreach ($image->Settings["center_crops"] as $crop) {
+				if (!empty($crop["prefix"])) {
+					$crop_prefixes[$crop["prefix"]] = ["width" => $crop["width"], "height" => $crop["height"]];
+				}
+
+				if (is_array($crop["thumbs"] ?? null)) {
+					foreach ($crop["thumbs"] as $thumb) {
+						if (!empty($thumb["prefix"])) {
+							$crop_prefixes[$thumb["prefix"]] = $image->getThumbnailSize($thumb["width"], $thumb["height"], $crop["width"], $crop["height"]);
+						}
+					}
+				}
+			}
+
+			foreach ($image->Settings["thumbs"] as $thumb) {
+				if (!empty($thumb["prefix"])) {
+					$thumb_prefixes[$thumb["prefix"]] = $image->getThumbnailSize($thumb["width"], $thumb["height"]);
+				}
+			}
+
+			return [$crop_prefixes, $thumb_prefixes];
 		}
 
 		private function insertResource(array $data) {
