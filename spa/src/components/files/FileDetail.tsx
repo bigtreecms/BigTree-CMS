@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	Copy,
+	Crop as CropIcon,
 	File as FileIcon,
 	Film,
 	Image as ImageIcon,
@@ -11,6 +12,7 @@ import {
 
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { SlideOver } from "@/components/ui/SlideOver";
+import { CropModal } from "@/components/files/CropModal";
 
 import {
 	resourcesApi,
@@ -43,6 +45,7 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 	const open = resourceId !== null;
 	const [name, setName] = useState("");
 	const [confirmDelete, setConfirmDelete] = useState(false);
+	const [cropOpen, setCropOpen] = useState(false);
 
 	const detailQuery = useQuery({
 		queryKey: resourceId ? RESOURCE_DETAIL_KEY(resourceId) : ["resources", "detail", "noop"],
@@ -189,12 +192,19 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 							allocations={allocationsQuery.data ?? []}
 						/>
 
-						{resource.is_image && resource.crops.length > 0 && (
-							<CropsList crops={resource.crops} />
+						{resource.is_image && (
+							<CropsSection
+								crops={resource.crops}
+								onAddCrop={() => setCropOpen(true)}
+							/>
 						)}
 					</div>
 				)}
 			</SlideOver>
+
+			{resource && resource.is_image && (
+				<CropModal open={cropOpen} onOpenChange={setCropOpen} resource={resource} />
+			)}
 
 			{confirmDelete && resource && (
 				<ConfirmDialog
@@ -335,39 +345,56 @@ const AllocationsList = ({ isLoading, allocations }: AllocationsListProps) => {
 	);
 };
 
-interface CropsListProps {
+interface CropsSectionProps {
 	crops: ResourceCrop[];
+	onAddCrop: () => void;
 }
 
-const CropsList = ({ crops }: CropsListProps) => {
+const CropsSection = ({ crops, onAddCrop }: CropsSectionProps) => {
 	return (
 		<section>
-			<h3 className="mb-1.5 text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
-				Crops
-			</h3>
+			<div className="mb-1.5 flex items-center justify-between">
+				<h3 className="text-[12px] font-semibold uppercase tracking-[0.06em] text-text-3">
+					Crops
+				</h3>
+				<button
+					type="button"
+					className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 text-[11.5px] hover:bg-hover"
+					onClick={onAddCrop}
+				>
+					<CropIcon size={11} />
+					Add crop
+				</button>
+			</div>
 
-			<ul className="grid grid-cols-2 gap-2">
-				{crops.map((c, i) => (
-					<li
-						key={`${c.file}-${i}`}
-						className="overflow-hidden rounded-md border border-border bg-surface"
-					>
-						<img
-							src={c.file}
-							alt=""
-							className="block aspect-video w-full object-cover"
-						/>
-						<div className="px-2 py-1.5 text-[11px]">
-							<div className="truncate text-text-2" title={c.name}>
-								{c.name}
+			{crops.length === 0 ? (
+				<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-2 text-[12.5px] text-text-3">
+					No saved crops yet.
+				</div>
+			) : (
+				<ul className="grid grid-cols-2 gap-2">
+					{crops.map((c, i) => (
+						<li
+							key={`${c.file}-${i}`}
+							className="overflow-hidden rounded-md border border-border bg-surface"
+						>
+							<img
+								src={c.file}
+								alt=""
+								className="block aspect-video w-full object-cover"
+							/>
+							<div className="px-2 py-1.5 text-[11px]">
+								<div className="truncate text-text-2" title={c.name}>
+									{c.name}
+								</div>
+								<div className="text-text-3 tabular-nums">
+									{c.width} × {c.height}
+								</div>
 							</div>
-							<div className="text-text-3 tabular-nums">
-								{c.width} × {c.height}
-							</div>
-						</div>
-					</li>
-				))}
-			</ul>
+						</li>
+					))}
+				</ul>
+			)}
 		</section>
 	);
 };
