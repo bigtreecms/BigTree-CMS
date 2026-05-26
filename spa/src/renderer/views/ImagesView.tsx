@@ -25,7 +25,7 @@ import { formatCellValue, parseViewActions } from "./viewHelpers";
  */
 
 interface ImagesViewProps {
-	moduleId: number;
+	moduleId: string;
 	view: ModuleView;
 }
 

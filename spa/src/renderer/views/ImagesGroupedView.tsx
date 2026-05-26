@@ -15,7 +15,7 @@ import { parseViewActions } from "./viewHelpers";
  */
 
 interface ImagesGroupedViewProps {
-	moduleId: number;
+	moduleId: string;
 	view: ModuleView;
 }
 

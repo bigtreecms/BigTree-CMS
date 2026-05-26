@@ -27,7 +27,7 @@ import { formatCellValue, parseViewActions } from "./viewHelpers";
  */
 
 interface NestedViewProps {
-	moduleId: number;
+	moduleId: string;
 	view: ModuleView;
 }
 
@@ -214,8 +214,8 @@ interface NestedRowProps {
 	fieldColumns: [string, { title: string }][];
 	builtins: { edit: boolean; delete: boolean };
 	custom: { key: string; name: string; route: string }[];
-	moduleId: number;
-	viewId: number;
+	moduleId: string;
+	viewId: string;
 }
 
 const NestedRow = ({

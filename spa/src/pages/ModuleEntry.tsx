@@ -27,23 +27,29 @@ interface ResolveResult {
 	from?: ModuleAction;
 }
 
-const resolveTarget = (moduleId: number, actions: ModuleAction[]): ResolveResult | null => {
+const resolveTarget = (moduleId: string, actions: ModuleAction[]): ResolveResult | null => {
 	if (actions.length === 0) {
 		return null;
 	}
 
 	for (const action of actions) {
 		if (action.view) {
-			return { to: `/modules/${moduleId}/view/${action.view}`, from: action };
+			return {
+				to: `/modules/${encodeURIComponent(moduleId)}/view/${encodeURIComponent(action.view)}`,
+				from: action,
+			};
 		}
 
 		if (action.report) {
-			return { to: `/modules/${moduleId}/report/${action.report}`, from: action };
+			return {
+				to: `/modules/${encodeURIComponent(moduleId)}/report/${encodeURIComponent(action.report)}`,
+				from: action,
+			};
 		}
 
 		if (action.form) {
 			return {
-				to: `/modules/${moduleId}/view/0/add`,
+				to: `/modules/${encodeURIComponent(moduleId)}/view/_/add`,
 				from: action,
 			};
 		}
@@ -54,23 +60,23 @@ const resolveTarget = (moduleId: number, actions: ModuleAction[]): ResolveResult
 
 export const ModuleEntry = () => {
 	const { id } = useParams<{ id: string }>();
-	const moduleId = id ? Number.parseInt(id, 10) : NaN;
+	const moduleId = id ?? "";
 	const navigate = useNavigate();
 
 	const moduleQuery = useQuery({
 		queryKey: ["modules", "detail", moduleId],
 		queryFn: () => modulesApi.get(moduleId),
-		enabled: Number.isFinite(moduleId),
+		enabled: moduleId !== "",
 	});
 
 	const actionsQuery = useQuery({
 		queryKey: ["modules", "actions", moduleId],
 		queryFn: () => modulesApi.actions(moduleId),
-		enabled: Number.isFinite(moduleId),
+		enabled: moduleId !== "",
 	});
 
 	const target =
-		actionsQuery.data && Number.isFinite(moduleId)
+		actionsQuery.data && moduleId !== ""
 			? resolveTarget(moduleId, actionsQuery.data)
 			: null;
 
@@ -80,7 +86,7 @@ export const ModuleEntry = () => {
 		}
 	}, [target, navigate]);
 
-	if (!Number.isFinite(moduleId)) {
+	if (moduleId === "") {
 		return <Navigate to="/modules" replace />;
 	}
 

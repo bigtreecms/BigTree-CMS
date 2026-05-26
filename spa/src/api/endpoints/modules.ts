@@ -5,6 +5,12 @@ import { api } from "@/api/client";
  * fields here to drive the module landing, designer, and per-user permission
  * tree. The full action/form/view config is fetched separately via the
  * `/modules/{id}/...` sub-resources when needed.
+ *
+ * ID note: all of these resources have *string* slug IDs in the legacy JSON
+ * storage (e.g. "modules-15c3df733b7e8c", "views-15c9cf24c0c358"). The API
+ * passes them through as strings; do not Number()-coerce or parseInt them
+ * on the client. Module entry IDs (eid) are the only genuine ints — those
+ * come from the real auto-increment row of each module's table.
  */
 
 export interface ModuleGbpConfig {
@@ -16,9 +22,9 @@ export interface ModuleGbpConfig {
 }
 
 export interface ModuleSummary {
-	id: number;
+	id: string;
 	name: string;
-	group: number | null;
+	group: string | null;
 	group_name: string;
 	class: string;
 	table: string;
@@ -31,7 +37,7 @@ export interface ModuleSummary {
 }
 
 export interface ModuleGroup {
-	id: number;
+	id: string;
 	name: string;
 	route?: string;
 	position?: number;
@@ -43,16 +49,16 @@ export interface ModuleGroup {
  * `in_nav` as a boolean to the SPA but keep the rest of the shape pass-through.
  */
 export interface ModuleAction {
-	id: number;
+	id: string;
 	name: string;
 	route: string;
 	class: string;
 	in_nav: boolean | string;
 	level: number;
 	position: number;
-	form: number | null;
-	view: number | null;
-	report: number | null;
+	form: string | null;
+	view: string | null;
+	report: string | null;
 }
 
 /**
@@ -88,7 +94,7 @@ export interface ModuleViewSettings {
 }
 
 export interface ModuleView {
-	id: number;
+	id: string;
 	title: string;
 	description?: string;
 	table: string;
@@ -96,7 +102,7 @@ export interface ModuleView {
 	settings?: ModuleViewSettings;
 	fields?: Record<string, ModuleViewFieldConfig>;
 	actions?: Record<string, string>;
-	related_form?: number | null;
+	related_form?: string | null;
 	preview_url?: string;
 	exclude_from_search?: string | boolean;
 }
@@ -119,12 +125,12 @@ export interface ModuleFormField {
 }
 
 export interface ModuleForm {
-	id: number;
+	id: string;
 	title: string;
 	table: string;
 	fields: ModuleFormField[];
 	default_position?: string;
-	return_view?: number | null;
+	return_view?: string | null;
 	return_url?: string;
 	open_graph?: boolean | string;
 	tagging?: boolean | string;
@@ -134,13 +140,16 @@ export interface ModuleForm {
 export const modulesApi = {
 	list: () => api.get<ModuleSummary[]>("/modules"),
 
-	get: (id: number) => api.get<ModuleSummary>(`/modules/${id}`),
+	get: (id: string) => api.get<ModuleSummary>(`/modules/${encodeURIComponent(id)}`),
 
 	listGroups: () => api.get<ModuleGroup[]>("/module-groups"),
 
-	actions: (id: number) => api.get<ModuleAction[]>(`/modules/${id}/actions`),
+	actions: (id: string) =>
+		api.get<ModuleAction[]>(`/modules/${encodeURIComponent(id)}/actions`),
 
-	views: (id: number) => api.get<ModuleView[]>(`/modules/${id}/views`),
+	views: (id: string) =>
+		api.get<ModuleView[]>(`/modules/${encodeURIComponent(id)}/views`),
 
-	forms: (id: number) => api.get<ModuleForm[]>(`/modules/${id}/forms`),
+	forms: (id: string) =>
+		api.get<ModuleForm[]>(`/modules/${encodeURIComponent(id)}/forms`),
 };

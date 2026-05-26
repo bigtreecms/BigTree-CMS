@@ -24,7 +24,7 @@
 			$me = $request->user;
 			$visible = array_filter($rows, function ($m) use ($me) {
 
-				return PermissionService::userHasModuleAccess($me, (int)$m["id"], "v");
+				return PermissionService::userHasModuleAccess($me, $m["id"], "v");
 			});
 
 			$enriched = array_map(function ($m) {
@@ -45,7 +45,7 @@
 		}
 
 		public function get(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->route_params["id"];
 			$m = BigTreeJSONDB::get("modules", $id);
 
 			if (!$m) {
@@ -78,7 +78,7 @@
 			}
 
 			$route = $this->uniqueModuleRoute($route);
-			$id = (int)BigTreeJSONDB::insert("modules", [
+			$id = BigTreeJSONDB::insert("modules", [
 				"name" => BigTree::safeEncode($d["name"]),
 				"group" => $d["group"] ?? null,
 				"class" => $d["class"] ?? "",
@@ -95,7 +95,7 @@
 		}
 
 		public function update(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->route_params["id"];
 			$existing = BigTreeJSONDB::get("modules", $id);
 
 			if (!$existing) {
@@ -119,7 +119,7 @@
 		}
 
 		public function delete(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->route_params["id"];
 
 			if (!BigTreeJSONDB::exists("modules", $id)) {
 				throw new NotFoundException("Module $id not found", "resource_not_found", 404);
@@ -132,7 +132,7 @@
 				$entries = BigTreeJSONDB::getAll($sub);
 
 				foreach ($entries as $e) {
-					if ((int)($e["module"] ?? 0) === $id) {
+					if (($e["module"] ?? "") == $id) {
 						BigTreeJSONDB::delete($sub, $e["id"]);
 					}
 				}
@@ -160,31 +160,31 @@
 		// BigTreeJSONDB::getSubset which scopes writes to the module's subtree.
 
 		public function actions(Request $request) {
-			$module = $this->loadModule((int)$request->route_params["id"]);
+			$module = $this->loadModule($request->route_params["id"]);
 
 			return Response::ok($this->sortByPosition($module["actions"] ?? []));
 		}
 
 		public function forms(Request $request) {
-			$module = $this->loadModule((int)$request->route_params["id"]);
+			$module = $this->loadModule($request->route_params["id"]);
 
 			return Response::ok(array_values($module["forms"] ?? []));
 		}
 
 		public function views(Request $request) {
-			$module = $this->loadModule((int)$request->route_params["id"]);
+			$module = $this->loadModule($request->route_params["id"]);
 
 			return Response::ok(array_values($module["views"] ?? []));
 		}
 
 		public function reports(Request $request) {
-			$module = $this->loadModule((int)$request->route_params["id"]);
+			$module = $this->loadModule($request->route_params["id"]);
 
 			return Response::ok(array_values($module["reports"] ?? []));
 		}
 
 		public function embedForms(Request $request) {
-			$module = $this->loadModule((int)$request->route_params["id"]);
+			$module = $this->loadModule($request->route_params["id"]);
 
 			return Response::ok(array_values($module["embed-forms"] ?? []));
 		}
@@ -192,7 +192,7 @@
 		// — Action CRUD —
 
 		public function createAction(Request $request) {
-			$module_id = (int)$request->route_params["id"];
+			$module_id = $request->route_params["id"];
 			$this->loadModule($module_id);
 			$d = $request->body;
 
@@ -215,9 +215,9 @@
 				"in_nav" => !empty($d["in_nav"]) ? "on" : "",
 				"class" => (string)($d["icon"] ?? ($d["class"] ?? "")),
 				"name" => BigTree::safeEncode((string)$d["name"]),
-				"form" => !empty($d["form"]) ? (int)$d["form"] : null,
-				"view" => !empty($d["view"]) ? (int)$d["view"] : null,
-				"report" => !empty($d["report"]) ? (int)$d["report"] : null,
+				"form" => !empty($d["form"]) ? $d["form"] : null,
+				"view" => !empty($d["view"]) ? $d["view"] : null,
+				"report" => !empty($d["report"]) ? $d["report"] : null,
 				"level" => (int)($d["level"] ?? 0),
 				"position" => $position,
 			]);
@@ -226,8 +226,8 @@
 		}
 
 		public function updateAction(Request $request) {
-			$module_id = (int)$request->route_params["id"];
-			$action_id = (int)$request->route_params["sid"];
+			$module_id = $request->route_params["id"];
+			$action_id = $request->route_params["sid"];
 			$module = $this->loadModule($module_id);
 
 			$existing = $this->findSub($module["actions"] ?? [], $action_id);
@@ -262,15 +262,15 @@
 			}
 
 			if (array_key_exists("form", $d)) {
-				$update["form"] = $d["form"] ? (int)$d["form"] : null;
+				$update["form"] = $d["form"] ? $d["form"] : null;
 			}
 
 			if (array_key_exists("view", $d)) {
-				$update["view"] = $d["view"] ? (int)$d["view"] : null;
+				$update["view"] = $d["view"] ? $d["view"] : null;
 			}
 
 			if (array_key_exists("report", $d)) {
-				$update["report"] = $d["report"] ? (int)$d["report"] : null;
+				$update["report"] = $d["report"] ? $d["report"] : null;
 			}
 
 			if (isset($d["position"])) {
@@ -294,8 +294,8 @@
 		}
 
 		public function deleteAction(Request $request) {
-			$module_id = (int)$request->route_params["id"];
-			$action_id = (int)$request->route_params["sid"];
+			$module_id = $request->route_params["id"];
+			$action_id = $request->route_params["sid"];
 			$module = $this->loadModule($module_id);
 			$existing = $this->findSub($module["actions"] ?? [], $action_id);
 
@@ -309,7 +309,7 @@
 			// Cascade: if this action referenced a form/view/report and no other action does, delete it too.
 			$siblings = array_values(array_filter($module["actions"] ?? [], function ($a) use ($action_id) {
 
-				return (int)$a["id"] !== $action_id;
+				return ($a["id"] ?? "") != $action_id;
 			}));
 
 			foreach (["form", "view", "report"] as $rel) {
@@ -326,7 +326,7 @@
 
 				if (!$still_referenced) {
 					$bucket = $rel . "s"; // form → forms, view → views, report → reports
-					$context->delete($bucket, (int)$target_id);
+					$context->delete($bucket, $target_id);
 				}
 			}
 
@@ -334,7 +334,7 @@
 		}
 
 		public function reorderActions(Request $request) {
-			$module_id = (int)$request->route_params["id"];
+			$module_id = $request->route_params["id"];
 			$this->loadModule($module_id);
 			$ids = array_map("intval", (array)$request->body["ids"]);
 			$context = BigTreeJSONDB::getSubset("modules", $module_id);
@@ -350,7 +350,7 @@
 		// — Form CRUD —
 
 		public function createForm(Request $request) {
-			$module_id = (int)$request->route_params["id"];
+			$module_id = $request->route_params["id"];
 			$this->loadModule($module_id);
 			$d = $request->body;
 
@@ -360,7 +360,7 @@
 				"table" => (string)($d["table"] ?? ""),
 				"fields" => $this->cleanFormFields($d["fields"] ?? []),
 				"default_position" => (string)($d["default_position"] ?? ""),
-				"return_view" => !empty($d["return_view"]) ? (int)$d["return_view"] : null,
+				"return_view" => !empty($d["return_view"]) ? $d["return_view"] : null,
 				"return_url" => BigTree::safeEncode((string)($d["return_url"] ?? "")),
 				"tagging" => !empty($d["tagging"]) ? "on" : "",
 				"open_graph" => !empty($d["open_graph"]) ? "on" : "",
@@ -375,8 +375,8 @@
 		}
 
 		public function updateForm(Request $request) {
-			$module_id = (int)$request->route_params["id"];
-			$form_id = (int)$request->route_params["sid"];
+			$module_id = $request->route_params["id"];
+			$form_id = $request->route_params["sid"];
 			$module = $this->loadModule($module_id);
 			$existing = $this->findSub($module["forms"] ?? [], $form_id);
 
@@ -406,7 +406,7 @@
 			}
 
 			if (array_key_exists("return_view", $d)) {
-				$update["return_view"] = $d["return_view"] ? (int)$d["return_view"] : null;
+				$update["return_view"] = $d["return_view"] ? $d["return_view"] : null;
 			}
 
 			if (isset($d["return_url"])) {
@@ -440,7 +440,7 @@
 				$title = (string)$d["title"];
 
 				foreach ($module["actions"] ?? [] as $action) {
-					if ((int)($action["form"] ?? 0) !== $form_id) {
+					if (($action["form"] ?? "") != $form_id) {
 						continue;
 					}
 
@@ -456,8 +456,8 @@
 		}
 
 		public function deleteForm(Request $request) {
-			$module_id = (int)$request->route_params["id"];
-			$form_id = (int)$request->route_params["sid"];
+			$module_id = $request->route_params["id"];
+			$form_id = $request->route_params["sid"];
 			$module = $this->loadModule($module_id);
 			$existing = $this->findSub($module["forms"] ?? [], $form_id);
 
@@ -469,8 +469,8 @@
 			$context->delete("forms", $form_id);
 
 			foreach ($module["actions"] ?? [] as $action) {
-				if ((int)($action["form"] ?? 0) === $form_id) {
-					$context->delete("actions", (int)$action["id"]);
+				if (($action["form"] ?? "") == $form_id) {
+					$context->delete("actions", $action["id"]);
 				}
 			}
 
@@ -480,7 +480,7 @@
 		// — View CRUD —
 
 		public function createView(Request $request) {
-			$module_id = (int)$request->route_params["id"];
+			$module_id = $request->route_params["id"];
 			$this->loadModule($module_id);
 			$d = $request->body;
 			$context = BigTreeJSONDB::getSubset("modules", $module_id);
@@ -493,7 +493,7 @@
 				"settings" => is_array($d["settings"] ?? null) ? $d["settings"] : [],
 				"fields" => is_array($d["fields"] ?? null) ? $d["fields"] : [],
 				"actions" => is_array($d["actions"] ?? null) ? $d["actions"] : [],
-				"related_form" => !empty($d["related_form"]) ? (int)$d["related_form"] : null,
+				"related_form" => !empty($d["related_form"]) ? $d["related_form"] : null,
 				"preview_url" => BigTree::safeEncode((string)($d["preview_url"] ?? "")),
 				"exclude_from_search" => !empty($d["exclude_from_search"]),
 			]);
@@ -506,8 +506,8 @@
 		}
 
 		public function updateView(Request $request) {
-			$module_id = (int)$request->route_params["id"];
-			$view_id = (int)$request->route_params["sid"];
+			$module_id = $request->route_params["id"];
+			$view_id = $request->route_params["sid"];
 			$module = $this->loadModule($module_id);
 			$existing = $this->findSub($module["views"] ?? [], $view_id);
 
@@ -549,7 +549,7 @@
 			}
 
 			if (array_key_exists("related_form", $d)) {
-				$update["related_form"] = $d["related_form"] ? (int)$d["related_form"] : null;
+				$update["related_form"] = $d["related_form"] ? $d["related_form"] : null;
 			}
 
 			if (isset($d["preview_url"])) {
@@ -573,8 +573,8 @@
 		}
 
 		public function deleteView(Request $request) {
-			$module_id = (int)$request->route_params["id"];
-			$view_id = (int)$request->route_params["sid"];
+			$module_id = $request->route_params["id"];
+			$view_id = $request->route_params["sid"];
 			$module = $this->loadModule($module_id);
 			$existing = $this->findSub($module["views"] ?? [], $view_id);
 
@@ -586,8 +586,8 @@
 			$context->delete("views", $view_id);
 
 			foreach ($module["actions"] ?? [] as $action) {
-				if ((int)($action["view"] ?? 0) === $view_id) {
-					$context->delete("actions", (int)$action["id"]);
+				if (($action["view"] ?? "") == $view_id) {
+					$context->delete("actions", $action["id"]);
 				}
 			}
 
@@ -597,7 +597,7 @@
 		// — Report CRUD —
 
 		public function createReport(Request $request) {
-			$module_id = (int)$request->route_params["id"];
+			$module_id = $request->route_params["id"];
 			$this->loadModule($module_id);
 			$d = $request->body;
 			$context = BigTreeJSONDB::getSubset("modules", $module_id);
@@ -609,7 +609,7 @@
 				"filters" => is_array($d["filters"] ?? null) ? $d["filters"] : [],
 				"fields" => $d["fields"] ?? "",
 				"parser" => (string)($d["parser"] ?? ""),
-				"view" => !empty($d["view"]) ? (int)$d["view"] : null,
+				"view" => !empty($d["view"]) ? $d["view"] : null,
 				"streaming" => !empty($d["streaming"]),
 			]);
 
@@ -617,8 +617,8 @@
 		}
 
 		public function updateReport(Request $request) {
-			$module_id = (int)$request->route_params["id"];
-			$report_id = (int)$request->route_params["sid"];
+			$module_id = $request->route_params["id"];
+			$report_id = $request->route_params["sid"];
 			$module = $this->loadModule($module_id);
 			$existing = $this->findSub($module["reports"] ?? [], $report_id);
 
@@ -656,7 +656,7 @@
 			}
 
 			if (array_key_exists("view", $d)) {
-				$update["view"] = $d["view"] ? (int)$d["view"] : null;
+				$update["view"] = $d["view"] ? $d["view"] : null;
 			}
 
 			if (array_key_exists("streaming", $d)) {
@@ -670,8 +670,8 @@
 		}
 
 		public function deleteReport(Request $request) {
-			$module_id = (int)$request->route_params["id"];
-			$report_id = (int)$request->route_params["sid"];
+			$module_id = $request->route_params["id"];
+			$report_id = $request->route_params["sid"];
 			$module = $this->loadModule($module_id);
 			$existing = $this->findSub($module["reports"] ?? [], $report_id);
 
@@ -683,8 +683,8 @@
 			$context->delete("reports", $report_id);
 
 			foreach ($module["actions"] ?? [] as $action) {
-				if ((int)($action["report"] ?? 0) === $report_id) {
-					$context->delete("actions", (int)$action["id"]);
+				if (($action["report"] ?? "") == $report_id) {
+					$context->delete("actions", $action["id"]);
 				}
 			}
 
@@ -694,7 +694,7 @@
 		// — Embed-form CRUD —
 
 		public function createEmbedForm(Request $request) {
-			$module_id = (int)$request->route_params["id"];
+			$module_id = $request->route_params["id"];
 			$this->loadModule($module_id);
 			$d = $request->body;
 			$context = BigTreeJSONDB::getSubset("modules", $module_id);
@@ -716,8 +716,8 @@
 		}
 
 		public function updateEmbedForm(Request $request) {
-			$module_id = (int)$request->route_params["id"];
-			$ef_id = (int)$request->route_params["sid"];
+			$module_id = $request->route_params["id"];
+			$ef_id = $request->route_params["sid"];
 			$module = $this->loadModule($module_id);
 			$existing = $this->findSub($module["embed-forms"] ?? [], $ef_id);
 
@@ -773,8 +773,8 @@
 		}
 
 		public function deleteEmbedForm(Request $request) {
-			$module_id = (int)$request->route_params["id"];
-			$ef_id = (int)$request->route_params["sid"];
+			$module_id = $request->route_params["id"];
+			$ef_id = $request->route_params["sid"];
 			$module = $this->loadModule($module_id);
 			$existing = $this->findSub($module["embed-forms"] ?? [], $ef_id);
 
@@ -800,7 +800,7 @@
 
 		private function getSubResource($module_id, $bucket, $sub_id) {
 			$module = BigTreeJSONDB::get("modules", $module_id);
-			$found = $this->findSub($module[$bucket] ?? [], (int)$sub_id);
+			$found = $this->findSub($module[$bucket] ?? [], $sub_id);
 
 			if (!$found) {
 				throw new NotFoundException("Sub-resource $sub_id not found", "resource_not_found", 404);
@@ -810,7 +810,7 @@
 
 		private function findSub(array $rows, $id) {
 			foreach ($rows as $row) {
-				if ((int)($row["id"] ?? 0) === (int)$id) {
+				if (($row["id"] ?? "") == $id) {
 					return $row;
 				}
 			}
@@ -881,7 +881,7 @@
 		}
 
 		public function getGroup(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->route_params["id"];
 			$g = BigTreeJSONDB::get("module-groups", $id);
 
 			if (!$g) {
@@ -892,7 +892,7 @@
 
 		public function createGroup(Request $request) {
 			$d = $request->body;
-			$id = (int)BigTreeJSONDB::insert("module-groups", [
+			$id = BigTreeJSONDB::insert("module-groups", [
 				"name" => BigTree::safeEncode($d["name"]),
 				"route" => $d["route"] ?? BigTreeCMS::urlify($d["name"]),
 				"position" => 0,
@@ -902,7 +902,7 @@
 		}
 
 		public function updateGroup(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->route_params["id"];
 			$existing = BigTreeJSONDB::get("module-groups", $id);
 
 			if (!$existing) {
@@ -918,7 +918,7 @@
 		}
 
 		public function deleteGroup(Request $request) {
-			$id = (int)$request->route_params["id"];
+			$id = $request->route_params["id"];
 
 			if (!BigTreeJSONDB::exists("module-groups", $id)) {
 				throw new NotFoundException("Module group $id not found", "resource_not_found", 404);
@@ -929,7 +929,7 @@
 			$modules = BigTreeJSONDB::getAll("modules");
 
 			foreach ($modules as $m) {
-				if ((int)($m["group"] ?? 0) === $id) {
+				if (($m["group"] ?? "") == $id) {
 					BigTreeJSONDB::update("modules", $m["id"], array_merge($m, ["group" => null]));
 				}
 			}
@@ -953,7 +953,7 @@
 		private function present(array $m, $group_name = "") {
 
 			return [
-				"id" => (int)$m["id"],
+				"id" => $m["id"],
 				"name" => $m["name"] ?? "",
 				"group" => $m["group"] ?? null,
 				"group_name" => $group_name,

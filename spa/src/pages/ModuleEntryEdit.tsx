@@ -24,8 +24,8 @@ import { toast } from "@/lib/toast";
  */
 export const ModuleEntryEdit = () => {
 	const { id, sid, eid } = useParams<{ id: string; sid: string; eid: string }>();
-	const moduleId = id ? Number.parseInt(id, 10) : NaN;
-	const viewId = sid ? Number.parseInt(sid, 10) : NaN;
+	const moduleId = id ?? "";
+	const viewId = sid ?? "";
 	const entryId = eid ? Number.parseInt(eid, 10) : NaN;
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
@@ -33,31 +33,31 @@ export const ModuleEntryEdit = () => {
 	const moduleQuery = useQuery({
 		queryKey: ["modules", "detail", moduleId],
 		queryFn: () => modulesApi.get(moduleId),
-		enabled: Number.isFinite(moduleId),
+		enabled: moduleId !== "",
 	});
 
 	const viewsQuery = useQuery({
 		queryKey: ["modules", "views", moduleId],
 		queryFn: () => modulesApi.views(moduleId),
-		enabled: Number.isFinite(moduleId),
+		enabled: moduleId !== "",
 	});
 
 	const formsQuery = useQuery({
 		queryKey: ["modules", "forms", moduleId],
 		queryFn: () => modulesApi.forms(moduleId),
-		enabled: Number.isFinite(moduleId),
+		enabled: moduleId !== "",
 	});
 
 	const entryQuery = useQuery({
 		queryKey: ["module-entries", moduleId, "detail", entryId],
 		queryFn: () => autoModulesApi.get(moduleId, entryId),
-		enabled: Number.isFinite(moduleId) && Number.isFinite(entryId),
+		enabled: moduleId !== "" && Number.isFinite(entryId),
 	});
 
 	const lock = useLock({
 		table: `module:${moduleId}`,
 		itemId: entryId,
-		enabled: Number.isFinite(moduleId) && Number.isFinite(entryId),
+		enabled: moduleId !== "" && Number.isFinite(entryId),
 	});
 
 	const updateMutation = useMutation({
@@ -66,19 +66,15 @@ export const ModuleEntryEdit = () => {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["module-entries", moduleId] });
 			toast.success("Entry saved");
-			navigate(`/modules/${moduleId}/view/${viewId}`);
+			navigate(`/modules/${encodeURIComponent(moduleId)}/view/${encodeURIComponent(viewId)}`);
 		},
 	});
 
-	if (
-		!Number.isFinite(moduleId) ||
-		!Number.isFinite(viewId) ||
-		!Number.isFinite(entryId)
-	) {
+	if (moduleId === "" || viewId === "" || !Number.isFinite(entryId)) {
 		return <Navigate to="/modules" replace />;
 	}
 
-	const view = viewsQuery.data?.find((v) => Number(v.id) === viewId);
+	const view = viewsQuery.data?.find((v) => v.id === viewId);
 	const form = resolveForm(view, formsQuery.data ?? []);
 	const initialValues = pickItemValues(entryQuery.data);
 
@@ -90,8 +86,15 @@ export const ModuleEntryEdit = () => {
 
 	const breadcrumbs = [
 		{ label: "Modules", to: "/modules" },
-		{ label: moduleQuery.data?.name ?? "…", to: `/modules/${moduleId}` },
-		...(view ? [{ label: view.title, to: `/modules/${moduleId}/view/${viewId}` }] : []),
+		{ label: moduleQuery.data?.name ?? "…", to: `/modules/${encodeURIComponent(moduleId)}` },
+		...(view
+			? [
+					{
+						label: view.title,
+						to: `/modules/${encodeURIComponent(moduleId)}/view/${encodeURIComponent(viewId)}`,
+					},
+				]
+			: []),
 		{ label: "Edit" },
 	];
 
@@ -122,7 +125,11 @@ export const ModuleEntryEdit = () => {
 					form={form}
 					initialValues={initialValues}
 					disabled={readOnly}
-					onCancel={() => navigate(`/modules/${moduleId}/view/${viewId}`)}
+					onCancel={() =>
+						navigate(
+							`/modules/${encodeURIComponent(moduleId)}/view/${encodeURIComponent(viewId)}`
+						)
+					}
 					submitLabel="Save"
 					onSubmit={async (values) => {
 						await updateMutation.mutateAsync(values);
@@ -142,7 +149,7 @@ const resolveForm = (
 	}
 
 	if (view?.related_form) {
-		const byId = forms.find((f) => Number(f.id) === Number(view.related_form));
+		const byId = forms.find((f) => f.id === view.related_form);
 
 		if (byId) {
 			return byId;

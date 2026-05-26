@@ -26,7 +26,7 @@ import { api } from "@/api/client";
 export type ModuleEntryRow = Record<string, unknown> & { id: number | string };
 
 export interface ModuleEntriesListResponse {
-	view: { id: number | null; title: string };
+	view: { id: string | null; title: string };
 	items: ModuleEntryRow[];
 	meta: {
 		page: number;
@@ -39,7 +39,7 @@ export interface ModuleEntriesListParams {
 	page?: number;
 	q?: string;
 	sort?: string;
-	view?: number;
+	view?: string;
 }
 
 export interface ModuleEntryDetail {
@@ -49,32 +49,43 @@ export interface ModuleEntryDetail {
 	[key: string]: unknown;
 }
 
+/**
+ * Note on IDs: `moduleId` is a string slug ("modules-..."); `entryId` is a
+ * real auto-increment row id from the module's underlying database table.
+ */
 export const autoModulesApi = {
-	list: (moduleId: number, params: ModuleEntriesListParams = {}) =>
-		api.get<ModuleEntriesListResponse>(`/modules/${moduleId}/entries`, {
-			query: {
-				page: params.page,
-				q: params.q,
-				sort: params.sort,
-				view: params.view,
-			},
-		}),
+	list: (moduleId: string, params: ModuleEntriesListParams = {}) =>
+		api.get<ModuleEntriesListResponse>(
+			`/modules/${encodeURIComponent(moduleId)}/entries`,
+			{
+				query: {
+					page: params.page,
+					q: params.q,
+					sort: params.sort,
+					view: params.view,
+				},
+			}
+		),
 
-	get: (moduleId: number, entryId: number) =>
-		api.get<ModuleEntryDetail>(`/modules/${moduleId}/entries/${entryId}`),
+	get: (moduleId: string, entryId: number) =>
+		api.get<ModuleEntryDetail>(
+			`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`
+		),
 
-	create: (moduleId: number, body: Record<string, unknown>) =>
-		api.post<ModuleEntryRow>(`/modules/${moduleId}/entries`, body),
+	create: (moduleId: string, body: Record<string, unknown>) =>
+		api.post<ModuleEntryRow>(`/modules/${encodeURIComponent(moduleId)}/entries`, body),
 
-	update: (moduleId: number, entryId: number, body: Record<string, unknown>) =>
+	update: (moduleId: string, entryId: number, body: Record<string, unknown>) =>
 		api.patch<ModuleEntryDetail | { pending: true }>(
-			`/modules/${moduleId}/entries/${entryId}`,
+			`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`,
 			body
 		),
 
-	delete: (moduleId: number, entryId: number) =>
-		api.delete<void>(`/modules/${moduleId}/entries/${entryId}`),
+	delete: (moduleId: string, entryId: number) =>
+		api.delete<void>(`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`),
 
-	reorder: (moduleId: number, ids: Array<number | string>) =>
-		api.post<void>(`/modules/${moduleId}/entries/reorder`, { ids }),
+	reorder: (moduleId: string, ids: Array<number | string>) =>
+		api.post<void>(`/modules/${encodeURIComponent(moduleId)}/entries/reorder`, {
+			ids,
+		}),
 };

@@ -43,7 +43,7 @@ import {
  */
 
 interface SearchableViewProps {
-	moduleId: number;
+	moduleId: string;
 	view: ModuleView;
 }
 

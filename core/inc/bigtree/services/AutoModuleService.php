@@ -22,10 +22,19 @@
 	 */
 	class AutoModuleService {
 		public function list(Request $request) {
-			$module_id = (int)$request->route_params["id"];
+			$module_id = $request->route_params["id"];
 			$module = $this->loadModule($module_id);
-			$view_id = (int)($request->query["view"] ?? 0);
-			$view = $view_id ? BigTreeAutoModule::getView($view_id) : BigTreeAutoModule::getViewForTable($module["table"]);
+			$view_id = $request->query["view"] ?? "";
+
+			if ($view_id) {
+				$view = BigTreeAutoModule::getView($view_id);
+			} elseif (!empty($module["table"])) {
+				$view = BigTreeAutoModule::getViewForTable($module["table"]);
+			} else {
+				$views = is_array($module["views"] ?? null) ? $module["views"] : [];
+				$first_id = $views ? ($views[0]["id"] ?? null) : null;
+				$view = $first_id ? BigTreeAutoModule::getView($first_id) : null;
+			}
 
 			if (!$view) {
 				throw new NotFoundException("No view defined for module $module_id", "no_view", 404);
@@ -54,7 +63,7 @@
 		}
 
 		public function get(Request $request) {
-			$module_id = (int)$request->route_params["id"];
+			$module_id = $request->route_params["id"];
 			$entry_id = (int)$request->route_params["eid"];
 			$module = $this->loadModule($module_id);
 
@@ -72,7 +81,7 @@
 		}
 
 		public function create(Request $request) {
-			$module_id = (int)$request->route_params["id"];
+			$module_id = $request->route_params["id"];
 			$module = $this->loadModule($module_id);
 
 			$data = $request->body;
@@ -108,7 +117,7 @@
 		}
 
 		public function update(Request $request) {
-			$module_id = (int)$request->route_params["id"];
+			$module_id = $request->route_params["id"];
 			$entry_id = (int)$request->route_params["eid"];
 			$module = $this->loadModule($module_id);
 
@@ -149,7 +158,7 @@
 		}
 
 		public function delete(Request $request) {
-			$module_id = (int)$request->route_params["id"];
+			$module_id = $request->route_params["id"];
 			$entry_id = (int)$request->route_params["eid"];
 			$module = $this->loadModule($module_id);
 
@@ -172,7 +181,7 @@
 		}
 
 		public function reorder(Request $request) {
-			$module_id = (int)$request->route_params["id"];
+			$module_id = $request->route_params["id"];
 			$module = $this->loadModule($module_id);
 			$ids = array_map("intval", (array)$request->body["ids"]);
 			$pos = count($ids);
@@ -193,9 +202,6 @@
 				throw new NotFoundException("Module $id not found", "resource_not_found", 404);
 			}
 
-			if (empty($m["table"])) {
-				throw new BadRequestException("Module has no table configured", "no_table", 400);
-			}
 			return $m;
 		}
 	}

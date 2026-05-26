@@ -3,7 +3,7 @@
 
 	return [
 		"GET /modules" => ["service" => [ModuleService::class, "list"], "permission" => ["level" => 0]],
-		"GET /modules/{id:int}" => [
+		"GET /modules/{id}" => [
 			"service" => [ModuleService::class, "get"],
 			"permission" => ["level" => 0],
 		],
@@ -23,13 +23,13 @@
 			],
 			"audit" => ["table" => "modules", "type" => "created", "entry" => "%id%"],
 		],
-		"PATCH /modules/{id:int}" => [
+		"PATCH /modules/{id}" => [
 			"service" => [ModuleService::class, "update"],
 			"permission" => ["level" => 2],
 			"allow_unknown" => true,
 			"audit" => ["table" => "modules", "type" => "updated", "entry" => "%id%"],
 		],
-		"DELETE /modules/{id:int}" => [
+		"DELETE /modules/{id}" => [
 			"service" => [ModuleService::class, "delete"],
 			"permission" => ["level" => 2],
 			"audit" => ["table" => "modules", "type" => "deleted", "entry" => "%id%"],
@@ -43,8 +43,8 @@
 
 		// — Sub-resources (reads visible to module:v, writes level:2) —
 
-		"GET /modules/{id:int}/actions" => ["service" => [ModuleService::class, "actions"], "permission" => ["module" => "%id%", "min" => "v"]],
-		"POST /modules/{id:int}/actions" => [
+		"GET /modules/{id}/actions" => ["service" => [ModuleService::class, "actions"], "permission" => ["module" => "%id%", "min" => "v"]],
+		"POST /modules/{id}/actions" => [
 			"service" => [ModuleService::class, "createAction"],
 			"permission" => ["level" => 2],
 			"body" => [
@@ -61,26 +61,26 @@
 			],
 			"audit" => ["table" => "module-actions", "type" => "created", "entry" => "%id%"],
 		],
-		"PATCH /modules/{id:int}/actions/{sid:int}" => [
+		"PATCH /modules/{id}/actions/{sid}" => [
 			"service" => [ModuleService::class, "updateAction"],
 			"permission" => ["level" => 2],
 			"allow_unknown" => true,
 			"audit" => ["table" => "module-actions", "type" => "updated", "entry" => "%sid%"],
 		],
-		"DELETE /modules/{id:int}/actions/{sid:int}" => [
+		"DELETE /modules/{id}/actions/{sid}" => [
 			"service" => [ModuleService::class, "deleteAction"],
 			"permission" => ["level" => 2],
 			"audit" => ["table" => "module-actions", "type" => "deleted", "entry" => "%sid%"],
 		],
-		"POST /modules/{id:int}/actions/reorder" => [
+		"POST /modules/{id}/actions/reorder" => [
 			"service" => [ModuleService::class, "reorderActions"],
 			"permission" => ["level" => 2],
 			"body" => ["ids" => "required|array"],
 			"audit" => ["table" => "module-actions", "type" => "reordered", "entry" => "%id%"],
 		],
 
-		"GET /modules/{id:int}/forms" => ["service" => [ModuleService::class, "forms"], "permission" => ["module" => "%id%", "min" => "v"]],
-		"POST /modules/{id:int}/forms" => [
+		"GET /modules/{id}/forms" => ["service" => [ModuleService::class, "forms"], "permission" => ["module" => "%id%", "min" => "v"]],
+		"POST /modules/{id}/forms" => [
 			"service" => [ModuleService::class, "createForm"],
 			"permission" => ["level" => 2],
 			"body" => [
@@ -96,20 +96,20 @@
 			],
 			"audit" => ["table" => "module-forms", "type" => "created", "entry" => "%id%"],
 		],
-		"PATCH /modules/{id:int}/forms/{sid:int}" => [
+		"PATCH /modules/{id}/forms/{sid}" => [
 			"service" => [ModuleService::class, "updateForm"],
 			"permission" => ["level" => 2],
 			"allow_unknown" => true,
 			"audit" => ["table" => "module-forms", "type" => "updated", "entry" => "%sid%"],
 		],
-		"DELETE /modules/{id:int}/forms/{sid:int}" => [
+		"DELETE /modules/{id}/forms/{sid}" => [
 			"service" => [ModuleService::class, "deleteForm"],
 			"permission" => ["level" => 2],
 			"audit" => ["table" => "module-forms", "type" => "deleted", "entry" => "%sid%"],
 		],
 
-		"GET /modules/{id:int}/views" => ["service" => [ModuleService::class, "views"], "permission" => ["module" => "%id%", "min" => "v"]],
-		"POST /modules/{id:int}/views" => [
+		"GET /modules/{id}/views" => ["service" => [ModuleService::class, "views"], "permission" => ["module" => "%id%", "min" => "v"]],
+		"POST /modules/{id}/views" => [
 			"service" => [ModuleService::class, "createView"],
 			"permission" => ["level" => 2],
 			"body" => [
@@ -126,20 +126,20 @@
 			],
 			"audit" => ["table" => "module-views", "type" => "created", "entry" => "%id%"],
 		],
-		"PATCH /modules/{id:int}/views/{sid:int}" => [
+		"PATCH /modules/{id}/views/{sid}" => [
 			"service" => [ModuleService::class, "updateView"],
 			"permission" => ["level" => 2],
 			"allow_unknown" => true,
 			"audit" => ["table" => "module-views", "type" => "updated", "entry" => "%sid%"],
 		],
-		"DELETE /modules/{id:int}/views/{sid:int}" => [
+		"DELETE /modules/{id}/views/{sid}" => [
 			"service" => [ModuleService::class, "deleteView"],
 			"permission" => ["level" => 2],
 			"audit" => ["table" => "module-views", "type" => "deleted", "entry" => "%sid%"],
 		],
 
-		"GET /modules/{id:int}/reports" => ["service" => [ModuleService::class, "reports"], "permission" => ["module" => "%id%", "min" => "v"]],
-		"POST /modules/{id:int}/reports" => [
+		"GET /modules/{id}/reports" => ["service" => [ModuleService::class, "reports"], "permission" => ["module" => "%id%", "min" => "v"]],
+		"POST /modules/{id}/reports" => [
 			"service" => [ModuleService::class, "createReport"],
 			"permission" => ["level" => 2],
 			"body" => [
@@ -154,20 +154,20 @@
 			],
 			"audit" => ["table" => "module-reports", "type" => "created", "entry" => "%id%"],
 		],
-		"PATCH /modules/{id:int}/reports/{sid:int}" => [
+		"PATCH /modules/{id}/reports/{sid}" => [
 			"service" => [ModuleService::class, "updateReport"],
 			"permission" => ["level" => 2],
 			"allow_unknown" => true,
 			"audit" => ["table" => "module-reports", "type" => "updated", "entry" => "%sid%"],
 		],
-		"DELETE /modules/{id:int}/reports/{sid:int}" => [
+		"DELETE /modules/{id}/reports/{sid}" => [
 			"service" => [ModuleService::class, "deleteReport"],
 			"permission" => ["level" => 2],
 			"audit" => ["table" => "module-reports", "type" => "deleted", "entry" => "%sid%"],
 		],
 
-		"GET /modules/{id:int}/embed-forms" => ["service" => [ModuleService::class, "embedForms"], "permission" => ["module" => "%id%", "min" => "v"]],
-		"POST /modules/{id:int}/embed-forms" => [
+		"GET /modules/{id}/embed-forms" => ["service" => [ModuleService::class, "embedForms"], "permission" => ["module" => "%id%", "min" => "v"]],
+		"POST /modules/{id}/embed-forms" => [
 			"service" => [ModuleService::class, "createEmbedForm"],
 			"permission" => ["level" => 2],
 			"body" => [
@@ -183,33 +183,33 @@
 			],
 			"audit" => ["table" => "module-embed-forms", "type" => "created", "entry" => "%id%"],
 		],
-		"PATCH /modules/{id:int}/embed-forms/{sid:int}" => [
+		"PATCH /modules/{id}/embed-forms/{sid}" => [
 			"service" => [ModuleService::class, "updateEmbedForm"],
 			"permission" => ["level" => 2],
 			"allow_unknown" => true,
 			"audit" => ["table" => "module-embed-forms", "type" => "updated", "entry" => "%sid%"],
 		],
-		"DELETE /modules/{id:int}/embed-forms/{sid:int}" => [
+		"DELETE /modules/{id}/embed-forms/{sid}" => [
 			"service" => [ModuleService::class, "deleteEmbedForm"],
 			"permission" => ["level" => 2],
 			"audit" => ["table" => "module-embed-forms", "type" => "deleted", "entry" => "%sid%"],
 		],
 
 		"GET /module-groups" => ["service" => [ModuleService::class, "listGroups"], "permission" => ["level" => 0]],
-		"GET /module-groups/{id:int}" => ["service" => [ModuleService::class, "getGroup"], "permission" => ["level" => 0]],
+		"GET /module-groups/{id}" => ["service" => [ModuleService::class, "getGroup"], "permission" => ["level" => 0]],
 		"POST /module-groups" => [
 			"service" => [ModuleService::class, "createGroup"],
 			"permission" => ["level" => 2],
 			"body" => ["name" => "required|string|max:255", "route" => "string|max:127"],
 			"audit" => ["table" => "module-groups", "type" => "created", "entry" => "%id%"],
 		],
-		"PATCH /module-groups/{id:int}" => [
+		"PATCH /module-groups/{id}" => [
 			"service" => [ModuleService::class, "updateGroup"],
 			"permission" => ["level" => 2],
 			"allow_unknown" => true,
 			"audit" => ["table" => "module-groups", "type" => "updated", "entry" => "%id%"],
 		],
-		"DELETE /module-groups/{id:int}" => [
+		"DELETE /module-groups/{id}" => [
 			"service" => [ModuleService::class, "deleteGroup"],
 			"permission" => ["level" => 2],
 			"audit" => ["table" => "module-groups", "type" => "deleted", "entry" => "%id%"],

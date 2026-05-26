@@ -18,7 +18,7 @@ import { formatCellValue, parseViewActions } from "./viewHelpers";
  */
 
 interface GroupedViewProps {
-	moduleId: number;
+	moduleId: string;
 	view: ModuleView;
 }
 

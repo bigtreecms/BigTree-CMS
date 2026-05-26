@@ -18,30 +18,30 @@ import { ViewRenderer } from "@/renderer/views/ViewRenderer";
  */
 export const ModuleView = () => {
 	const { id, sid } = useParams<{ id: string; sid: string }>();
-	const moduleId = id ? Number.parseInt(id, 10) : NaN;
-	const viewId = sid ? Number.parseInt(sid, 10) : NaN;
+	const moduleId = id ?? "";
+	const viewId = sid ?? "";
 
 	const moduleQuery = useQuery({
 		queryKey: ["modules", "detail", moduleId],
 		queryFn: () => modulesApi.get(moduleId),
-		enabled: Number.isFinite(moduleId),
+		enabled: moduleId !== "",
 	});
 
 	const viewsQuery = useQuery({
 		queryKey: ["modules", "views", moduleId],
 		queryFn: () => modulesApi.views(moduleId),
-		enabled: Number.isFinite(moduleId),
+		enabled: moduleId !== "",
 	});
 
-	if (!Number.isFinite(moduleId) || !Number.isFinite(viewId)) {
+	if (moduleId === "" || viewId === "") {
 		return <Navigate to="/modules" replace />;
 	}
 
-	const view = viewsQuery.data?.find((v) => Number(v.id) === viewId);
+	const view = viewsQuery.data?.find((v) => v.id === viewId);
 
 	const breadcrumbs = [
 		{ label: "Modules", to: "/modules" },
-		{ label: moduleQuery.data?.name ?? "…", to: `/modules/${moduleId}` },
+		{ label: moduleQuery.data?.name ?? "…", to: `/modules/${encodeURIComponent(moduleId)}` },
 		{ label: view?.title ?? "View" },
 	];
 

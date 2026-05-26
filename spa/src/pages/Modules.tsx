@@ -131,11 +131,11 @@ export const Modules = () => {
 	const grouped: GroupedModules[] = useMemo(() => {
 		const modules = modulesQuery.data ?? [];
 		const groups = groupsQuery.data ?? [];
-		const byGroupId = new Map<number, ModuleSummary[]>();
+		const byGroupId = new Map<string, ModuleSummary[]>();
 		const ungrouped: ModuleSummary[] = [];
 
 		for (const m of modules) {
-			if (m.group && m.group > 0) {
+			if (m.group) {
 				const bucket = byGroupId.get(m.group) ?? [];
 				bucket.push(m);
 				byGroupId.set(m.group, bucket);

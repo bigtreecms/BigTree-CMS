@@ -30,7 +30,7 @@ import { formatCellValue, parseViewActions } from "./viewHelpers";
  */
 
 interface DraggableViewProps {
-	moduleId: number;
+	moduleId: string;
 	view: ModuleView;
 }
 

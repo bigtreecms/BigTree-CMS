@@ -19,7 +19,7 @@ import { UnsupportedView } from "./UnsupportedView";
  */
 
 export interface ViewRendererProps {
-	moduleId: number;
+	moduleId: string;
 	view: ModuleView;
 }
 
