@@ -101,6 +101,36 @@ export interface ModuleView {
 	exclude_from_search?: string | boolean;
 }
 
+/**
+ * One field row inside a module form config. `settings` is per-type and
+ * intentionally loose — each FieldRenderer subcomponent reads the bits it
+ * needs and ignores the rest.
+ *
+ * The legacy storage sometimes stores `settings` as an empty array (`[]`)
+ * rather than an empty object — callers should normalize before reading
+ * keys off it.
+ */
+export interface ModuleFormField {
+	column: string;
+	title: string;
+	subtitle?: string;
+	type: string;
+	settings?: Record<string, unknown> | unknown[];
+}
+
+export interface ModuleForm {
+	id: number;
+	title: string;
+	table: string;
+	fields: ModuleFormField[];
+	default_position?: string;
+	return_view?: number | null;
+	return_url?: string;
+	open_graph?: boolean | string;
+	tagging?: boolean | string;
+	hooks?: unknown[] | Record<string, unknown>;
+}
+
 export const modulesApi = {
 	list: () => api.get<ModuleSummary[]>("/modules"),
 
@@ -111,4 +141,6 @@ export const modulesApi = {
 	actions: (id: number) => api.get<ModuleAction[]>(`/modules/${id}/actions`),
 
 	views: (id: number) => api.get<ModuleView[]>(`/modules/${id}/views`),
+
+	forms: (id: number) => api.get<ModuleForm[]>(`/modules/${id}/forms`),
 };

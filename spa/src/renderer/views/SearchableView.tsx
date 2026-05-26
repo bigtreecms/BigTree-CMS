@@ -12,8 +12,16 @@ import {
 	type ModuleEntriesListParams,
 	type ModuleEntryRow,
 } from "@/api/endpoints/auto-modules";
-import type { ModuleView, ModuleViewFieldConfig } from "@/api/endpoints/modules";
+import type { ModuleView } from "@/api/endpoints/modules";
 import { toast } from "@/lib/toast";
+
+import {
+	columnWidth,
+	formatCellValue,
+	formatSortParam,
+	parseSortSetting,
+	parseViewActions,
+} from "./viewHelpers";
 
 /**
  * Runtime for the `searchable` view type — the most common module view. Reads
@@ -38,120 +46,6 @@ interface SearchableViewProps {
 	moduleId: number;
 	view: ModuleView;
 }
-
-interface CustomAction {
-	key: string;
-	name: string;
-	route: string;
-	className?: string;
-}
-
-type BuiltinActionFlags = {
-	edit: boolean;
-	delete: boolean;
-};
-
-const parseViewActions = (
-	actions: Record<string, string> | undefined
-): { builtins: BuiltinActionFlags; custom: CustomAction[] } => {
-	const builtins: BuiltinActionFlags = { edit: false, delete: false };
-	const custom: CustomAction[] = [];
-
-	if (!actions) {
-		return { builtins, custom };
-	}
-
-	for (const [key, raw] of Object.entries(actions)) {
-		if (raw === "on") {
-			if (key === "edit") {
-				builtins.edit = true;
-			} else if (key === "delete") {
-				builtins.delete = true;
-			}
-
-			continue;
-		}
-
-		if (typeof raw === "string" && raw.startsWith("{")) {
-			try {
-				const parsed = JSON.parse(raw) as {
-					name?: string;
-					route?: string;
-					class?: string;
-				};
-
-				if (parsed.route) {
-					custom.push({
-						key,
-						name: parsed.name ?? key,
-						route: parsed.route,
-						className: parsed.class,
-					});
-				}
-			} catch {
-				// Malformed action JSON — ignore.
-			}
-		}
-	}
-
-	return { builtins, custom };
-};
-
-const parseSortSetting = (view: ModuleView): DataTableSort | undefined => {
-	const col = view.settings?.sort_column;
-
-	if (!col) {
-		return undefined;
-	}
-
-	const dir = (view.settings?.sort_direction ?? "ASC").toString().toUpperCase();
-
-	return { key: col, dir: dir === "DESC" ? "desc" : "asc" };
-};
-
-const formatSortParam = (sort: DataTableSort | undefined): string | undefined => {
-	if (!sort) {
-		return undefined;
-	}
-
-	return `${sort.key} ${sort.dir.toUpperCase()}`;
-};
-
-const columnWidth = (field: ModuleViewFieldConfig): string => {
-	const raw = field.width;
-
-	if (raw === undefined || raw === null || raw === "" || raw === "0") {
-		return "minmax(0,1fr)";
-	}
-
-	const px = typeof raw === "number" ? raw : Number.parseInt(raw, 10);
-
-	if (!Number.isFinite(px) || px <= 0) {
-		return "minmax(0,1fr)";
-	}
-
-	return `minmax(0, ${px}px)`;
-};
-
-const formatCellValue = (value: unknown): string => {
-	if (value === null || value === undefined) {
-		return "";
-	}
-
-	if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
-		return String(value);
-	}
-
-	if (Array.isArray(value)) {
-		return value.length === 0 ? "" : `${value.length} item${value.length === 1 ? "" : "s"}`;
-	}
-
-	try {
-		return JSON.stringify(value);
-	} catch {
-		return "";
-	}
-};
 
 export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 	const queryClient = useQueryClient();

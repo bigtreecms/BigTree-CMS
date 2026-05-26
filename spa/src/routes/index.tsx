@@ -3,8 +3,10 @@ import { Navigate, Outlet, createBrowserRouter } from "react-router-dom";
 import { Dashboard } from "@/pages/Dashboard";
 import { Files } from "@/pages/Files";
 import { Login } from "@/pages/Login";
-import { Modules } from "@/pages/Modules";
 import { ModuleEntry } from "@/pages/ModuleEntry";
+import { ModuleEntryAdd } from "@/pages/ModuleEntryAdd";
+import { ModuleEntryEdit } from "@/pages/ModuleEntryEdit";
+import { Modules } from "@/pages/Modules";
 import { ModuleView } from "@/pages/ModuleView";
 import { Pages } from "@/pages/Pages";
 import { Placeholder } from "@/pages/Placeholder";
@@ -79,11 +81,11 @@ export const router = createBrowserRouter(
 								},
 								{
 									path: ":id/view/:sid/add",
-									element: <Placeholder title="Add entry" />,
+									element: <ModuleEntryAdd />,
 								},
 								{
 									path: ":id/view/:sid/edit/:eid",
-									element: <Placeholder title="Edit entry" />,
+									element: <ModuleEntryEdit />,
 								},
 								{
 									path: ":id/report/:sid",
