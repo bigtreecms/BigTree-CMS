@@ -12,31 +12,34 @@ import type { ResourceSummary } from "@/api/endpoints/resource-folders";
  * one canonical reference.
  */
 
-/** Extra fields returned by `GET /resources/{id}` (vs the listing summary). */
-export interface ResourceCrop {
-	name: string;
+/**
+ * Single entry inside the `crops` or `thumbs` map. The server-side column is
+ * a JSON map of `prefix → { width, height, ... }` to match the legacy admin's
+ * shape; `presentResource()` augments each entry with a derived `file` URL
+ * (`prefixFile(originalFile, prefix)`) so the SPA can render uniformly without
+ * knowing the prefix-insertion mechanics.
+ *
+ * The optional fields are populated for user-added crops (from the crop
+ * endpoint) but absent for thumbnails generated at upload time.
+ */
+export interface ResourcePrefixedAsset {
 	prefix: string;
-	directory: string;
 	width: number;
 	height: number;
 	file: string;
-	created_at: string;
-}
-
-export interface ResourceThumb {
-	prefix?: string;
+	name?: string;
 	directory?: string;
-	width?: number;
-	height?: number;
-	file?: string;
+	created_at?: string;
 }
 
+/** Extra fields returned by `GET /resources/{id}` (vs the listing summary). */
 export interface ResourceDetail extends ResourceSummary {
 	location: string;
 	md5: string;
 	metadata: Record<string, unknown>;
-	crops: ResourceCrop[];
-	thumbs: ResourceThumb[];
+	/** prefix → asset map. Empty when there are no derived crops. */
+	crops: Record<string, ResourcePrefixedAsset>;
+	thumbs: Record<string, ResourcePrefixedAsset>;
 	video_data: Record<string, unknown>;
 }
 

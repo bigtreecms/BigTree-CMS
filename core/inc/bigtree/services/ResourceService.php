@@ -485,8 +485,12 @@
 				throw new BadRequestException("Storage refused crop", "storage_failed", 400);
 			}
 
-			$crops = json_decode($existing["crops"] ?: "[]", true) ?: [];
-			$crops[] = [
+			// crops is stored as a prefix → { width, height, ... } map to match the
+			// legacy admin's shape, so user-added crops key by prefix too. Re-cropping
+			// with the same prefix replaces the previous entry — that's intentional;
+			// it mirrors how the storage layer would overwrite the file anyway.
+			$crops = json_decode($existing["crops"] ?: "{}", true) ?: [];
+			$crops[$name_prefix] = [
 				"name" => $crop_name,
 				"prefix" => $name_prefix,
 				"directory" => $directory,
@@ -937,11 +941,43 @@
 				$base["location"] = $r["location"] ?? "";
 				$base["md5"] = $r["md5"] ?? "";
 				$base["metadata"] = json_decode($r["metadata"] ?? "{}", true) ?: new \stdClass();
-				$base["crops"] = json_decode($r["crops"] ?? "[]", true) ?: [];
-				$base["thumbs"] = json_decode($r["thumbs"] ?? "[]", true) ?: [];
+				$base["crops"] = $this->presentPrefixMap($r["file"], $r["crops"] ?? "{}");
+				$base["thumbs"] = $this->presentPrefixMap($r["file"], $r["thumbs"] ?? "{}");
 				$base["video_data"] = json_decode($r["video_data"] ?? "{}", true) ?: new \stdClass();
 			}
 
 			return $base;
+		}
+
+		/**
+		 * Decode a JSON prefix → {width, height, ...} column and augment each
+		 * entry with the derived file URL (`prefixFile(originalFile, prefix)`)
+		 * unless the row already carries its own `file` (user-added crops from
+		 * the crop endpoint store one explicitly). Returns the map verbatim if
+		 * the column is empty so the JSON envelope renders as `{}`, not `[]`.
+		 */
+		private function presentPrefixMap($source_file, $json_blob) {
+			$decoded = json_decode((string)$json_blob ?: "{}", true);
+
+			if (!is_array($decoded) || empty($decoded)) {
+				return new \stdClass();
+			}
+
+			$out = [];
+
+			foreach ($decoded as $prefix => $entry) {
+				if (!is_array($entry)) {
+					continue;
+				}
+				$entry["prefix"] = (string)$prefix;
+
+				if (empty($entry["file"]) && $source_file) {
+					$entry["file"] = BigTree::prefixFile($source_file, (string)$prefix);
+				}
+
+				$out[(string)$prefix] = $entry;
+			}
+
+			return $out ?: new \stdClass();
 		}
 	}

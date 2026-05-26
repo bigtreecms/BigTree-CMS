@@ -17,8 +17,8 @@ import { CropModal } from "@/components/files/CropModal";
 import {
 	resourcesApi,
 	type ResourceAllocation,
-	type ResourceCrop,
 	type ResourceDetail,
+	type ResourcePrefixedAsset,
 } from "@/api/endpoints/resources";
 import { formatBytes } from "@/lib/bytes";
 import { toast } from "@/lib/toast";
@@ -194,7 +194,7 @@ export const FileDetail = ({ resourceId, onOpenChange, folderQueryKey }: FileDet
 
 						{resource.is_image && (
 							<CropsSection
-								crops={resource.crops}
+								crops={resource.crops ?? {}}
 								onAddCrop={() => setCropOpen(true)}
 							/>
 						)}
@@ -346,11 +346,13 @@ const AllocationsList = ({ isLoading, allocations }: AllocationsListProps) => {
 };
 
 interface CropsSectionProps {
-	crops: ResourceCrop[];
+	crops: Record<string, ResourcePrefixedAsset>;
 	onAddCrop: () => void;
 }
 
 const CropsSection = ({ crops, onAddCrop }: CropsSectionProps) => {
+	const entries = Object.entries(crops ?? {});
+
 	return (
 		<section>
 			<div className="mb-1.5 flex items-center justify-between">
@@ -367,15 +369,15 @@ const CropsSection = ({ crops, onAddCrop }: CropsSectionProps) => {
 				</button>
 			</div>
 
-			{crops.length === 0 ? (
+			{entries.length === 0 ? (
 				<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-2 text-[12.5px] text-text-3">
 					No saved crops yet.
 				</div>
 			) : (
 				<ul className="grid grid-cols-2 gap-2">
-					{crops.map((c, i) => (
+					{entries.map(([prefix, c]) => (
 						<li
-							key={`${c.file}-${i}`}
+							key={prefix}
 							className="overflow-hidden rounded-md border border-border bg-surface"
 						>
 							<img
@@ -384,8 +386,8 @@ const CropsSection = ({ crops, onAddCrop }: CropsSectionProps) => {
 								className="block aspect-video w-full object-cover"
 							/>
 							<div className="px-2 py-1.5 text-[11px]">
-								<div className="truncate text-text-2" title={c.name}>
-									{c.name}
+								<div className="truncate text-text-2" title={c.name ?? prefix}>
+									{c.name ?? prefix}
 								</div>
 								<div className="text-text-3 tabular-nums">
 									{c.width} × {c.height}
