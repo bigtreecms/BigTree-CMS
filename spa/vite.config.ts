@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { viteStaticCopy } from "vite-plugin-static-copy";
 import path from "node:path";
 import { URL } from "node:url";
 
@@ -66,7 +67,44 @@ export default defineConfig(({ mode }) => {
 
 	return {
 		base: mode === "production" ? "/admin/spa/" : "/",
-		plugins: [react(), tailwindcss()],
+		plugins: [
+			react(),
+			tailwindcss(),
+			// Self-host TinyMCE. The Editor component loads tinymce.min.js via
+			// `tinymceScriptSrc`, which expects skins/themes/models/plugins/icons
+			// to be siblings of that script. Copying node_modules/tinymce/* into
+			// public/tinymce keeps everything inside one origin (no external CDN,
+			// no per-domain license key, works offline). HTMLField is the only
+			// consumer.
+			viteStaticCopy({
+				targets: [
+					{
+						src: "node_modules/tinymce/skins",
+						dest: "tinymce",
+					},
+					{
+						src: "node_modules/tinymce/themes",
+						dest: "tinymce",
+					},
+					{
+						src: "node_modules/tinymce/models",
+						dest: "tinymce",
+					},
+					{
+						src: "node_modules/tinymce/plugins",
+						dest: "tinymce",
+					},
+					{
+						src: "node_modules/tinymce/icons",
+						dest: "tinymce",
+					},
+					{
+						src: "node_modules/tinymce/tinymce.min.js",
+						dest: "tinymce",
+					},
+				],
+			}),
+		],
 		resolve: {
 			alias: {
 				"@": path.resolve(__dirname, "src"),

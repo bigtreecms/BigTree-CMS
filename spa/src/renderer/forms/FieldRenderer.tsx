@@ -1,14 +1,25 @@
+import { CalloutsField } from "@/renderer/fields/CalloutsField";
 import { CheckboxField } from "@/renderer/fields/CheckboxField";
 import { ColorField } from "@/renderer/fields/ColorField";
 import { DateLikeField } from "@/renderer/fields/DateField";
+import { GeocodingField } from "@/renderer/fields/GeocodingField";
 import { HiddenField } from "@/renderer/fields/HiddenField";
+import { HTMLField } from "@/renderer/fields/HTMLField";
+import { ImageField } from "@/renderer/fields/ImageField";
+import { LinkField } from "@/renderer/fields/LinkField";
+import { MatrixField } from "@/renderer/fields/MatrixField";
+import { MediaGalleryField } from "@/renderer/fields/MediaGalleryField";
 import { NumberField } from "@/renderer/fields/NumberField";
 import { RadioField } from "@/renderer/fields/RadioField";
+import { RelationField } from "@/renderer/fields/RelationField";
+import { ResourceReferenceField } from "@/renderer/fields/ResourceReferenceField";
 import { RouteField } from "@/renderer/fields/RouteField";
 import { SelectField } from "@/renderer/fields/SelectField";
 import { StubField } from "@/renderer/fields/StubField";
 import { TextField } from "@/renderer/fields/TextField";
 import { TextareaField } from "@/renderer/fields/TextareaField";
+import { UploadField } from "@/renderer/fields/UploadField";
+import { VideoField } from "@/renderer/fields/VideoField";
 import type { FieldComponentProps } from "@/renderer/fields/types";
 
 /**
@@ -17,14 +28,13 @@ import type { FieldComponentProps } from "@/renderer/fields/types";
  * doesn't allow editing. Adding a new type is purely a matter of importing
  * a component and adding a case here.
  *
- *  Implemented in Phase 7 Chunk A:
+ *  Implemented (all built-in BigTree field types):
  *    text, textarea, route, number, checkbox, list (select), radio,
- *    date, datetime, time, color, hidden
- *
- *  Deferred to later chunks (rendered via StubField for now):
- *    html, image, file, video, upload, media-gallery, callouts,
- *    many-to-many, one-to-many, matrix, geocoding, link, image-reference,
- *    file-reference, video-reference
+ *    date, datetime, time, color, hidden, html,
+ *    image, upload (file), video,
+ *    image-reference, file-reference, video-reference,
+ *    matrix, callouts, one-to-many, many-to-many,
+ *    link, geocoding, media-gallery
  */
 export const FieldRenderer = (props: FieldComponentProps) => {
 	const { field } = props;
@@ -65,6 +75,48 @@ export const FieldRenderer = (props: FieldComponentProps) => {
 
 		case "hidden":
 			return <HiddenField {...props} />;
+
+		case "html":
+			return <HTMLField {...props} />;
+
+		case "image":
+			return <ImageField {...props} />;
+
+		case "upload":
+			return <UploadField {...props} />;
+
+		case "video":
+			return <VideoField {...props} />;
+
+		case "image-reference":
+			return <ResourceReferenceField {...props} pickerType="image" />;
+
+		case "file-reference":
+			return <ResourceReferenceField {...props} pickerType="file" />;
+
+		case "video-reference":
+			return <ResourceReferenceField {...props} pickerType="video" />;
+
+		case "matrix":
+			return <MatrixField {...props} />;
+
+		case "callouts":
+			return <CalloutsField {...props} />;
+
+		case "one-to-many":
+			return <RelationField {...props} kind="one-to-many" />;
+
+		case "many-to-many":
+			return <RelationField {...props} kind="many-to-many" />;
+
+		case "link":
+			return <LinkField {...props} />;
+
+		case "geocoding":
+			return <GeocodingField {...props} />;
+
+		case "media-gallery":
+			return <MediaGalleryField {...props} />;
 
 		default:
 			return <StubField {...props} />;

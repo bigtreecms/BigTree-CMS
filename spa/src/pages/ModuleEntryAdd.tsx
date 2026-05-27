@@ -97,6 +97,7 @@ export const ModuleEntryAdd = () => {
 			) : (
 				<FormRenderer
 					form={form}
+					moduleId={moduleId}
 					onCancel={() =>
 						navigate(
 							`/modules/${encodeURIComponent(moduleId)}/view/${encodeURIComponent(viewId)}`

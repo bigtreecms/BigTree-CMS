@@ -189,6 +189,288 @@
 			return Response::ok(array_values($module["embed-forms"] ?? []));
 		}
 
+		/**
+		 * Resolve {id, title} options for a one-to-many or many-to-many form
+		 * field. Driven by the field's stored `settings` so the SPA does not
+		 * need to know — or be allowed to name — the underlying tables.
+		 *
+		 *   GET /modules/{id}/forms/{sid}/relation-options?column=&q=&ids=&entry=
+		 *
+		 * Modes:
+		 *   - default — return candidate options (filtered by ?q, capped at 250).
+		 *   - ?ids=   — return only the items whose id is in the comma list
+		 *               (used to fetch human titles for a known selection).
+		 *   - ?entry= — many-to-many only: return the items currently linked to
+		 *               entry N via the connecting table, in stored order.
+		 *
+		 * Returns:
+		 *   {
+		 *     items:    [{id, title}, ...],
+		 *     relation: { type: "one-to-many"|"many-to-many", sortable: bool }
+		 *   }
+		 *
+		 * `sortable` only applies to MTM and reflects whether the connecting
+		 * table has a `position` column (matches the legacy draw.php behavior
+		 * that toggles drag-reorder availability on the field).
+		 */
+		public function relationOptions(Request $request) {
+			$module_id = $request->route_params["id"];
+			$form_id = $request->route_params["sid"];
+			$column = (string)($request->query["column"] ?? "");
+
+			if ($column === "") {
+				throw new BadRequestException("`column` query param is required", "missing_column", 400);
+			}
+
+			$module = $this->loadModule($module_id);
+			$form = $this->findSub($module["forms"] ?? [], $form_id);
+
+			if (!$form) {
+				throw new NotFoundException("Form $form_id not found", "resource_not_found", 404);
+			}
+
+			$field = null;
+
+			foreach ((array)($form["fields"] ?? []) as $candidate) {
+				if (($candidate["column"] ?? "") === $column) {
+					$field = $candidate;
+
+					break;
+				}
+			}
+
+			if (!$field) {
+				throw new NotFoundException("Field `$column` not found in form $form_id", "resource_not_found", 404);
+			}
+
+			$type = (string)($field["type"] ?? "");
+
+			if ($type !== "one-to-many" && $type !== "many-to-many") {
+				throw new BadRequestException(
+					"Field `$column` is type `$type`, not a relation field",
+					"invalid_field_type",
+					400
+				);
+			}
+
+			$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+
+			$conn_table = "";
+
+			if ($type === "one-to-many") {
+				$table = (string)($settings["table"] ?? "");
+				$descriptor = (string)($settings["title_column"] ?? "");
+				$sort = (string)($settings["sort_by_column"] ?? "");
+				$sortable = false;
+			} else {
+				$table = (string)($settings["mtm-other-table"] ?? "");
+				$descriptor = (string)($settings["mtm-other-descriptor"] ?? "");
+				$sort = (string)($settings["mtm-sort"] ?? "");
+				$conn_table = (string)($settings["mtm-connecting-table"] ?? "");
+				$sortable = false;
+
+				if ($conn_table !== "") {
+					$conn = BigTree::describeTable($conn_table);
+
+					if ($conn && !empty($conn["columns"]["position"])) {
+						$sortable = true;
+					}
+				}
+			}
+
+			if ($table === "" || $descriptor === "") {
+				throw new BadRequestException(
+					"Field `$column` is missing table/descriptor settings",
+					"invalid_field_settings",
+					400
+				);
+			}
+
+			$schema = BigTree::describeTable($table);
+
+			if (!$schema || empty($schema["columns"])) {
+				throw new NotFoundException("Table `$table` not found", "resource_not_found", 404);
+			}
+
+			if (empty($schema["columns"][$descriptor])) {
+				throw new BadRequestException(
+					"Descriptor column `$descriptor` does not exist on `$table`",
+					"invalid_field_settings",
+					400
+				);
+			}
+
+			// Sort clause — validate against the column list so we never
+			// concatenate user-controlled text into the SQL. Default to the
+			// descriptor when the configured sort references a missing column.
+			$order_by = $this->safeOrderClause($sort, $schema["columns"], $descriptor);
+
+			$entry_raw = trim((string)($request->query["entry"] ?? ""));
+
+			// "Currently linked" mode (MTM only). Query the connecting table to
+			// discover which `other-id`s the entry already has — preserves the
+			// stored position when the connecting table is sortable.
+			if ($entry_raw !== "") {
+				if ($type !== "many-to-many") {
+					throw new BadRequestException(
+						"`?entry=` is only valid for many-to-many fields",
+						"invalid_request",
+						400
+					);
+				}
+
+				if (!ctype_digit($entry_raw)) {
+					throw new BadRequestException("`entry` must be a positive integer", "invalid_request", 400);
+				}
+
+				$entry_id = (int)$entry_raw;
+				$my_id_col = (string)($settings["mtm-my-id"] ?? "");
+				$other_id_col = (string)($settings["mtm-other-id"] ?? "");
+
+				if ($my_id_col === "" || $other_id_col === "" || $conn_table === "") {
+					throw new BadRequestException(
+						"Field `$column` is missing connecting-table settings",
+						"invalid_field_settings",
+						400
+					);
+				}
+
+				$conn_schema = BigTree::describeTable($conn_table);
+
+				if (!$conn_schema || empty($conn_schema["columns"][$my_id_col]) || empty($conn_schema["columns"][$other_id_col])) {
+					throw new BadRequestException(
+						"Connecting-table columns missing for field `$column`",
+						"invalid_field_settings",
+						400
+					);
+				}
+
+				$conn_order = $sortable ? "`position` DESC" : "`id` ASC";
+				$other_ids = SQL::fetchAllSingle(
+					"SELECT `$other_id_col` FROM `$conn_table` WHERE `$my_id_col` = ? ORDER BY $conn_order",
+					$entry_id
+				) ?: [];
+
+				if (empty($other_ids)) {
+					return Response::ok([
+						"items" => [],
+						"relation" => ["type" => $type, "sortable" => $sortable],
+					]);
+				}
+
+				$other_ids = array_values(array_map("intval", $other_ids));
+				$placeholders = implode(",", array_fill(0, count($other_ids), "?"));
+				$rows = SQL::fetchAll(
+					"SELECT `id`, `$descriptor` AS `title` FROM `$table` WHERE `id` IN ($placeholders)",
+					...$other_ids
+				) ?: [];
+
+				// Re-sort to match the stored order from the connecting table —
+				// IN() doesn't preserve it.
+				$by_id = [];
+
+				foreach ($rows as $row) {
+					$by_id[(int)$row["id"]] = (string)($row["title"] ?? "");
+				}
+
+				$items = [];
+
+				foreach ($other_ids as $id) {
+					if (isset($by_id[$id])) {
+						$items[] = ["id" => $id, "title" => $by_id[$id]];
+					}
+				}
+
+				return Response::ok([
+					"items" => $items,
+					"relation" => ["type" => $type, "sortable" => $sortable],
+				]);
+			}
+
+			$where = [];
+			$params = [];
+
+			$q = trim((string)($request->query["q"] ?? ""));
+
+			if ($q !== "") {
+				$where[] = "`$descriptor` LIKE ?";
+				$params[] = "%" . $q . "%";
+			}
+
+			$ids_raw = (string)($request->query["ids"] ?? "");
+
+			if ($ids_raw !== "") {
+				$ids = [];
+
+				foreach (explode(",", $ids_raw) as $piece) {
+					$piece = trim($piece);
+
+					if ($piece !== "" && ctype_digit($piece)) {
+						$ids[] = (int)$piece;
+					}
+				}
+
+				if (empty($ids)) {
+					// Asked for specific ids, all invalid — no rows match.
+					return Response::ok([
+						"items" => [],
+						"relation" => ["type" => $type, "sortable" => $sortable],
+					]);
+				}
+
+				$placeholders = implode(",", array_fill(0, count($ids), "?"));
+				$where[] = "`id` IN ($placeholders)";
+
+				foreach ($ids as $id) {
+					$params[] = $id;
+				}
+			}
+
+			$where_sql = $where ? "WHERE " . implode(" AND ", $where) : "";
+			$limit = $ids_raw !== "" ? "" : "LIMIT 250";
+			$sql = "SELECT `id`, `$descriptor` AS `title` FROM `$table` $where_sql ORDER BY $order_by $limit";
+			$rows = SQL::fetchAll($sql, ...$params);
+
+			$items = array_map(function ($row) {
+
+				return [
+					"id" => (int)$row["id"],
+					"title" => (string)($row["title"] ?? ""),
+				];
+			}, $rows ?: []);
+
+			return Response::ok([
+				"items" => $items,
+				"relation" => [
+					"type" => $type,
+					"sortable" => $sortable,
+				],
+			]);
+		}
+
+		/**
+		 * Build a safe ORDER BY clause from a settings-stored sort string. The
+		 * legacy admin allowed any sort expression (e.g. "name ASC"), so we
+		 * parse out the first identifier and validate it against the actual
+		 * column list before re-attaching the direction.
+		 */
+		private function safeOrderClause(string $raw, array $columns, string $fallback): string {
+			$trimmed = trim($raw);
+
+			if ($trimmed !== "") {
+				if (preg_match('/^`?([A-Za-z0-9_-]+)`?(?:\s+(ASC|DESC))?\s*$/i', $trimmed, $m)) {
+					$col = $m[1];
+					$dir = strtoupper($m[2] ?? "ASC");
+
+					if (!empty($columns[$col])) {
+						return "`$col` $dir";
+					}
+				}
+			}
+
+			return "`$fallback` ASC";
+		}
+
 		// — Action CRUD —
 
 		public function createAction(Request $request) {

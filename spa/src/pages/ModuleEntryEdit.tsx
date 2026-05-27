@@ -124,6 +124,8 @@ export const ModuleEntryEdit = () => {
 				<FormRenderer
 					form={form}
 					initialValues={initialValues}
+					moduleId={moduleId}
+					entryId={entryId}
 					disabled={readOnly}
 					onCancel={() =>
 						navigate(

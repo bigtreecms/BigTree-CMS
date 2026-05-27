@@ -137,6 +137,36 @@ export interface ModuleForm {
 	hooks?: unknown[] | Record<string, unknown>;
 }
 
+export interface RelationOption {
+	id: number;
+	title: string;
+}
+
+export interface RelationOptionsResponse {
+	items: RelationOption[];
+	relation: {
+		type: "one-to-many" | "many-to-many";
+		/**
+		 * MTM only — true when the connecting table has a `position` column.
+		 * Drives whether the field's selected-list shows reorder handles.
+		 */
+		sortable: boolean;
+	};
+}
+
+export interface RelationOptionsParams {
+	column: string;
+	q?: string;
+	ids?: Array<number | string>;
+	/**
+	 * Many-to-many only. When set, the server queries the connecting table
+	 * for the entry's current selections (in stored order) and returns those
+	 * items instead of the candidate list. OneToManyField does not need this
+	 * since its values live in the entry's own column.
+	 */
+	entry?: number;
+}
+
 export const modulesApi = {
 	list: () => api.get<ModuleSummary[]>("/modules"),
 
@@ -144,12 +174,24 @@ export const modulesApi = {
 
 	listGroups: () => api.get<ModuleGroup[]>("/module-groups"),
 
-	actions: (id: string) =>
-		api.get<ModuleAction[]>(`/modules/${encodeURIComponent(id)}/actions`),
+	actions: (id: string) => api.get<ModuleAction[]>(`/modules/${encodeURIComponent(id)}/actions`),
 
-	views: (id: string) =>
-		api.get<ModuleView[]>(`/modules/${encodeURIComponent(id)}/views`),
+	views: (id: string) => api.get<ModuleView[]>(`/modules/${encodeURIComponent(id)}/views`),
 
-	forms: (id: string) =>
-		api.get<ModuleForm[]>(`/modules/${encodeURIComponent(id)}/forms`),
+	forms: (id: string) => api.get<ModuleForm[]>(`/modules/${encodeURIComponent(id)}/forms`),
+
+	relationOptions: (moduleId: string, formId: string, params: RelationOptionsParams) =>
+		api.get<RelationOptionsResponse>(
+			`/modules/${encodeURIComponent(moduleId)}/forms/${encodeURIComponent(
+				formId
+			)}/relation-options`,
+			{
+				query: {
+					column: params.column,
+					q: params.q,
+					ids: params.ids && params.ids.length > 0 ? params.ids.join(",") : undefined,
+					entry: params.entry,
+				},
+			}
+		),
 };

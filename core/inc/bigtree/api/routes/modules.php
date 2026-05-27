@@ -108,6 +108,14 @@
 			"audit" => ["table" => "module-forms", "type" => "deleted", "entry" => "%sid%"],
 		],
 
+		// Relation-options lookup powers OneToManyField / ManyToManyField in the
+		// SPA. Read-only; gated by view access on the module so editors can fill
+		// in relation pickers without needing publisher rights.
+		"GET /modules/{id}/forms/{sid}/relation-options" => [
+			"service" => [ModuleService::class, "relationOptions"],
+			"permission" => ["module" => "%id%", "min" => "v"],
+		],
+
 		"GET /modules/{id}/views" => ["service" => [ModuleService::class, "views"], "permission" => ["module" => "%id%", "min" => "v"]],
 		"POST /modules/{id}/views" => [
 			"service" => [ModuleService::class, "createView"],
