@@ -85,6 +85,54 @@ export interface PageDetail {
 	lineage?: Array<{ id: number; nav_title: string; route: string }>;
 }
 
+/** Body shape for POST /pages and PATCH /pages/{id} edits. */
+export interface PageEditBody {
+	parent?: number;
+	nav_title?: string;
+	title?: string;
+	route?: string;
+	in_nav?: boolean;
+	meta_keywords?: string;
+	meta_description?: string;
+	seo_invisible?: boolean;
+	template?: string;
+	external?: string;
+	new_window?: boolean;
+	/** Field id → value map for the template's `resources`. */
+	resources?: Record<string, unknown>;
+	publish_at?: string | null;
+	expire_at?: string | null;
+	max_age?: number;
+	tags?: number[];
+	open_graph?: {
+		title?: string;
+		description?: string;
+		type?: string;
+		image?: string;
+		image_width?: number;
+		image_height?: number;
+	};
+	trunk?: boolean;
+}
+
+export interface PageRevision {
+	id: number;
+	page: number;
+	title: string;
+	author: number;
+	saved: boolean;
+	saved_description: string;
+	updated_at: string;
+}
+
+/** Search hit returned by GET /pages/search. */
+export interface PageSearchHit {
+	id: number;
+	nav_title: string;
+	path: string;
+	archived: boolean;
+}
+
 export const pagesApi = {
 	list: (parent: number, includeArchived = false) =>
 		api.get<PageListRow[]>("/pages", {
@@ -96,16 +144,27 @@ export const pagesApi = {
 			query: opts.lineage ? { fields: "lineage" } : undefined,
 		}),
 
-	patch: (
-		id: number,
-		body: Partial<
-			Pick<PageDetail, "nav_title" | "title" | "in_nav" | "template" | "external" | "route">
-		>
-	) => api.patch<PageDetail>(`/pages/${id}`, body),
+	search: (q: string) => api.get<PageSearchHit[]>("/pages/search", { query: { q } }),
+
+	create: (body: PageEditBody) => api.post<PageDetail>("/pages", body),
+
+	patch: (id: number, body: PageEditBody) => api.patch<PageDetail>(`/pages/${id}`, body),
 
 	archive: (id: number) => api.post<void>(`/pages/${id}/archive`),
 	unarchive: (id: number) => api.post<void>(`/pages/${id}/unarchive`),
 	delete: (id: number) => api.delete<void>(`/pages/${id}`),
 
+	move: (id: number, parent: number) => api.post<void>(`/pages/${id}/move`, { parent }),
+
 	reorder: (parent: number, ids: number[]) => api.post<void>(`/pages/${parent}/reorder`, { ids }),
+
+	revisions: {
+		list: (id: number) => api.get<PageRevision[]>(`/pages/${id}/revisions`),
+
+		save: (id: number, description: string) =>
+			api.post<{ id: number }>(`/pages/${id}/revisions`, { description }),
+
+		delete: (id: number, revisionId: number) =>
+			api.delete<void>(`/pages/${id}/revisions/${revisionId}`),
+	},
 };

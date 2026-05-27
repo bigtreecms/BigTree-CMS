@@ -1,0 +1,259 @@
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, Navigate, useParams } from "react-router-dom";
+import { ChevronLeft, Save, Trash } from "lucide-react";
+
+import { Breadcrumb } from "@/components/shell/Breadcrumb";
+import { PageHead } from "@/components/shell/PageHead";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { ErrorPanel } from "@/components/ui/ErrorPanel";
+
+import { pagesApi, type PageRevision } from "@/api/endpoints/pages";
+
+import { ApiError } from "@/types/api";
+import { toast } from "@/lib/toast";
+
+/**
+ * Revisions list for a single page.
+ *
+ *   GET    /pages/{id}/revisions             list
+ *   POST   /pages/{id}/revisions             save a new snapshot
+ *   DELETE /pages/{id}/revisions/{revision}  delete
+ *
+ * "Restore from revision" is intentionally absent — the legacy admin's
+ * use-revision flow rewrites the page's pending draft, but the new API
+ * doesn't yet expose that operation. Surfacing it here would be a half-baked
+ * feature; we'll wire it in when the server endpoint lands.
+ */
+export const PageRevisions = () => {
+	const { id: idParam } = useParams<{ id: string }>();
+	const id = Number(idParam);
+	const queryClient = useQueryClient();
+
+	const valid = Number.isFinite(id) && id > 0;
+
+	const pageQuery = useQuery({
+		queryKey: ["pages", "detail", id, { lineage: true }],
+		queryFn: () => pagesApi.get(id, { lineage: true }),
+		enabled: valid,
+	});
+
+	const revisionsQuery = useQuery({
+		queryKey: ["pages", "revisions", id],
+		queryFn: () => pagesApi.revisions.list(id),
+		enabled: valid,
+	});
+
+	const [description, setDescription] = useState("");
+	const [confirmDelete, setConfirmDelete] = useState<PageRevision | null>(null);
+
+	const saveMutation = useMutation({
+		mutationFn: () => pagesApi.revisions.save(id, description.trim()),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["pages", "revisions", id] });
+			setDescription("");
+			toast.success("Revision saved");
+		},
+		onError: (err) => {
+			const message =
+				err instanceof ApiError && err.message ? err.message : "Could not save revision";
+			toast.error(message);
+		},
+	});
+
+	const deleteMutation = useMutation({
+		mutationFn: (rev: PageRevision) => pagesApi.revisions.delete(id, rev.id),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["pages", "revisions", id] });
+			setConfirmDelete(null);
+			toast.success("Revision deleted");
+		},
+		onError: () => {
+			toast.error("Could not delete revision");
+		},
+	});
+
+	if (!valid) {
+		return <Navigate to="/pages" replace />;
+	}
+
+	if (pageQuery.isLoading || !pageQuery.data) {
+		return (
+			<div className="mx-auto max-w-screen-2xl px-6 py-4">
+				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
+					Loading…
+				</div>
+			</div>
+		);
+	}
+
+	if (pageQuery.error) {
+		return (
+			<div className="mx-auto max-w-screen-2xl px-6 py-4">
+				<ErrorPanel error={pageQuery.error} />
+			</div>
+		);
+	}
+
+	const page = pageQuery.data;
+	const lineage = page.lineage ?? [];
+	const revisions = revisionsQuery.data ?? [];
+	const saved = revisions.filter((r) => r.saved);
+	const unsaved = revisions.filter((r) => !r.saved);
+
+	const breadcrumbs = [
+		{ label: "Pages", to: "/pages" },
+		...lineage.map((p) => ({ label: p.nav_title, to: `/pages/${p.id}` })),
+		{ label: page.nav_title || "Page", to: `/pages/${page.id}/edit` },
+		{ label: "Revisions" },
+	];
+
+	return (
+		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+			<Breadcrumb items={breadcrumbs} />
+
+			<PageHead
+				title={`Revisions for ${page.nav_title || "page"}`}
+				sub={page.path}
+				actions={
+					<Link
+						to={`/pages/${page.id}/edit`}
+						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
+					>
+						<ChevronLeft size={13} />
+						Back to editor
+					</Link>
+				}
+			/>
+
+			<section className="mb-4 rounded-xl border border-border bg-surface p-4">
+				<h2 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.05em] text-text-3">
+					Save current version as revision
+				</h2>
+				<div className="flex flex-wrap items-end gap-2">
+					<label className="block min-w-[280px] flex-1">
+						<span className="mb-1 block text-[12px] font-medium text-text-2">
+							Short description{" "}
+							<span className="text-text-3">
+								(what's special about this version?)
+							</span>
+						</span>
+						<input
+							type="text"
+							className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] placeholder:text-text-3 focus:outline-none focus:ring-1 focus:ring-accent-ring"
+							value={description}
+							onChange={(e) => setDescription(e.target.value)}
+							placeholder="Optional"
+						/>
+					</label>
+					<button
+						type="button"
+						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+						onClick={() => saveMutation.mutate()}
+						disabled={saveMutation.isPending}
+					>
+						<Save size={13} />
+						{saveMutation.isPending ? "Saving…" : "Save revision"}
+					</button>
+				</div>
+			</section>
+
+			<RevisionSection
+				title="Saved revisions"
+				empty="No saved revisions yet. Use the form above to create one."
+				revisions={saved}
+				showDescription
+				onDelete={setConfirmDelete}
+			/>
+
+			<RevisionSection
+				title="Auto-saved revisions"
+				empty="No auto-saved revisions on file."
+				revisions={unsaved}
+				onDelete={setConfirmDelete}
+			/>
+
+			<p className="mt-4 text-[11.5px] text-text-3">
+				Restoring a revision back into the editor requires a server endpoint that hasn't
+				shipped yet. Until then this screen handles snapshot + delete only.
+			</p>
+
+			{confirmDelete && (
+				<ConfirmDialog
+					open={true}
+					onOpenChange={(open) => {
+						if (!open) {
+							setConfirmDelete(null);
+						}
+					}}
+					title="Delete revision?"
+					description={`This will permanently remove the snapshot from ${confirmDelete.updated_at}.`}
+					confirmLabel="Delete revision"
+					variant="danger"
+					onConfirm={() => deleteMutation.mutate(confirmDelete)}
+				/>
+			)}
+		</div>
+	);
+};
+
+interface RevisionSectionProps {
+	title: string;
+	empty: string;
+	revisions: PageRevision[];
+	showDescription?: boolean;
+	onDelete: (rev: PageRevision) => void;
+}
+
+const RevisionSection = ({
+	title,
+	empty,
+	revisions,
+	showDescription,
+	onDelete,
+}: RevisionSectionProps) => (
+	<section className="mb-4">
+		<h2 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.05em] text-text-3">
+			{title}
+		</h2>
+		{revisions.length === 0 ? (
+			<div className="rounded-md border border-dashed border-border bg-surface-2 px-3 py-4 text-center text-[12.5px] text-text-3">
+				{empty}
+			</div>
+		) : (
+			<ul className="divide-y divide-border overflow-hidden rounded-md border border-border bg-surface">
+				{revisions.map((rev) => (
+					<li
+						key={rev.id}
+						className="grid grid-cols-[minmax(0,1fr)_140px_60px] items-center gap-3 px-3 py-2 text-[12.5px]"
+					>
+						<div className="min-w-0">
+							<div className="truncate text-text-2">
+								{showDescription && rev.saved_description
+									? rev.saved_description
+									: rev.title || `Revision #${rev.id}`}
+							</div>
+							{!showDescription && rev.title && (
+								<div className="truncate text-[11px] text-text-3">{rev.title}</div>
+							)}
+						</div>
+						<div className="text-right text-[11px] tabular-nums text-text-3">
+							{rev.updated_at}
+						</div>
+						<div className="flex justify-end">
+							<button
+								type="button"
+								className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+								onClick={() => onDelete(rev)}
+								title="Delete revision"
+								aria-label="Delete revision"
+							>
+								<Trash size={13} />
+							</button>
+						</div>
+					</li>
+				))}
+			</ul>
+		)}
+	</section>
+);

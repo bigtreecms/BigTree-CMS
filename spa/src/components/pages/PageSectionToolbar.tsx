@@ -1,0 +1,123 @@
+import { Link } from "react-router-dom";
+import { Copy, Edit, FileText, List as PagesIcon, Move, Plus } from "lucide-react";
+
+/**
+ * Section-level subnav that sits between the breadcrumb/title and the wizard
+ * body on every page-section view (View Subpages, Add Subpage, Edit Page,
+ * Revisions, Move Page, Duplicate Page). Ports `.subnav--wide` from the
+ * design.
+ *
+ * Move / Duplicate aren't standalone routes in this SPA — Move opens a
+ * dialog and Duplicate isn't backed by an endpoint yet — so the parent
+ * supplies callbacks for those instead of `to` Link targets.
+ */
+type Action = "view" | "add" | "edit" | "revisions" | "move" | "duplicate";
+
+interface PageSectionToolbarProps {
+	active: Action;
+	pageId: number;
+	parentId: number;
+	onMove?: () => void;
+	onDuplicate?: () => void;
+}
+
+interface ItemSpec {
+	id: Action;
+	label: string;
+	icon: React.ReactNode;
+	to?: string;
+	onClick?: () => void;
+	disabled?: boolean;
+}
+
+export const PageSectionToolbar = ({
+	active,
+	pageId,
+	parentId,
+	onMove,
+	onDuplicate,
+}: PageSectionToolbarProps) => {
+	const items: ItemSpec[] = [
+		{
+			id: "view",
+			label: "View Subpages",
+			icon: <PagesIcon size={13} />,
+			to: `/pages/${pageId || parentId}`,
+		},
+		{
+			id: "add",
+			label: "Add Subpage",
+			icon: <Plus size={13} />,
+			to: `/pages/add/${pageId || parentId}`,
+		},
+		{
+			id: "edit",
+			label: "Edit Page",
+			icon: <Edit size={13} />,
+			to: pageId ? `/pages/${pageId}/edit` : undefined,
+			disabled: !pageId,
+		},
+		{
+			id: "revisions",
+			label: "Revisions",
+			icon: <FileText size={13} />,
+			to: pageId ? `/pages/${pageId}/edit/revisions` : undefined,
+			disabled: !pageId,
+		},
+		{
+			id: "move",
+			label: "Move Page",
+			icon: <Move size={13} />,
+			onClick: onMove,
+			disabled: !pageId || !onMove,
+		},
+		{
+			id: "duplicate",
+			label: "Duplicate Page",
+			icon: <Copy size={13} />,
+			onClick: onDuplicate,
+			disabled: true,
+		},
+	];
+
+	return (
+		<nav className="mb-4 flex items-stretch gap-0 overflow-x-auto rounded-md border border-border bg-surface px-1 py-1 text-[12.5px]">
+			{items.map((it) => {
+				const isActive = it.id === active;
+				const className = `inline-flex shrink-0 items-center gap-1.5 rounded px-3 py-1.5 transition-colors ${
+					isActive
+						? "bg-accent-soft font-medium text-accent"
+						: "text-text-2 hover:bg-hover hover:text-text"
+				} ${it.disabled ? "cursor-not-allowed opacity-40 hover:bg-transparent hover:text-text-2" : ""}`;
+
+				if (it.to && !it.disabled) {
+					return (
+						<Link
+							key={it.id}
+							to={it.to}
+							className={className}
+							aria-current={isActive ? "page" : undefined}
+						>
+							{it.icon}
+							<span>{it.label}</span>
+						</Link>
+					);
+				}
+
+				return (
+					<button
+						key={it.id}
+						type="button"
+						className={className}
+						onClick={it.onClick}
+						disabled={it.disabled}
+						aria-current={isActive ? "page" : undefined}
+					>
+						{it.icon}
+						<span>{it.label}</span>
+					</button>
+				);
+			})}
+		</nav>
+	);
+};

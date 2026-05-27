@@ -33,6 +33,8 @@ interface PageTableProps {
 	rightActionLabel?: string;
 	/** Optional delete handler. When provided, the right action becomes a delete button. */
 	onDelete?: (id: number) => void;
+	/** Optional move handler. When provided, a Move button column is shown between Archive and Edit. */
+	onMove?: (id: number) => void;
 }
 
 export const PageTable = ({
@@ -48,6 +50,7 @@ export const PageTable = ({
 	leftActionLabel,
 	rightActionLabel,
 	onDelete,
+	onMove,
 }: PageTableProps) => {
 	const [filter, setFilter] = useState<Filter>("all");
 	const filtered =
@@ -133,11 +136,12 @@ export const PageTable = ({
 			</div>
 
 			<div className="w-full overflow-hidden rounded-lg border border-border bg-surface">
-				<div className="grid h-[34px] grid-cols-[28px_1fr_240px_56px_56px] items-center gap-x-3 border-b border-border bg-surface-2 px-2 pr-3 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
+				<div className="grid h-[34px] grid-cols-[28px_1fr_240px_56px_56px_56px] items-center gap-x-3 border-b border-border bg-surface-2 px-2 pr-3 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
 					<span />
 					<span>Title</span>
 					<span>Status & updated</span>
 					<span>{leftActionLabel ?? "Archive"}</span>
+					<span>{onMove ? "Move" : ""}</span>
 					<span>{rightActionLabel ?? "Edit"}</span>
 				</div>
 
@@ -156,6 +160,7 @@ export const PageTable = ({
 							allowReorder={allowReorder}
 							leftActionLabel={leftActionLabel}
 							onDelete={onDelete ? () => onDelete(row.id) : undefined}
+							onMove={onMove ? () => onMove(row.id) : undefined}
 						/>
 					))
 				)}

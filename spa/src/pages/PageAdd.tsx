@@ -1,0 +1,261 @@
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+
+import { Breadcrumb } from "@/components/shell/Breadcrumb";
+import { PageHead } from "@/components/shell/PageHead";
+
+import { PageSummaryPanel } from "@/components/pages/PageSummaryPanel";
+import { PageSectionToolbar } from "@/components/pages/PageSectionToolbar";
+
+import { pagesApi, type PageEditBody } from "@/api/endpoints/pages";
+import { templatesApi } from "@/api/endpoints/templates";
+
+import { ApiError } from "@/types/api";
+import { toast } from "@/lib/toast";
+
+import { ContentTab, PropertiesTab, SeoTab, SharingTab, TabBar } from "./PageEdit";
+
+/**
+ * Add subpage screen — same four-tab structure as PageEdit, but powered by a
+ * fresh PageEditBody and a wizard-style footer (Back / Next Step / Create /
+ * Create & Publish). Mirrors the `add-subpage-screen.jsx` reference design.
+ *
+ * "Create & Publish" is currently identical to "Create" — the new API path
+ * has no separate publish flag; pages either save through (publisher) or
+ * become pending changes (editor). Once the API surfaces a publish_now=true
+ * option we'll wire the second button to it.
+ */
+
+type TabValue = "properties" | "content" | "seo" | "sharing";
+
+const PAGE_TABS: TabValue[] = ["properties", "content", "seo", "sharing"];
+
+const seedBody = (parent: number): PageEditBody => ({
+	parent,
+	nav_title: "",
+	title: "",
+	route: "",
+	in_nav: true,
+	template: "",
+	external: "",
+	new_window: false,
+	meta_keywords: "",
+	meta_description: "",
+	seo_invisible: false,
+	publish_at: null,
+	expire_at: null,
+	max_age: 0,
+	trunk: false,
+	resources: {},
+});
+
+export const PageAdd = () => {
+	const { parentId } = useParams<{ parentId: string }>();
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+
+	const parent = (() => {
+		if (!parentId) {
+			return 0;
+		}
+
+		const n = Number(parentId);
+
+		return Number.isFinite(n) && n >= 0 ? n : 0;
+	})();
+
+	const [body, setBody] = useState<PageEditBody>(() => seedBody(parent));
+	const [activeTab, setActiveTab] = useState<TabValue>("properties");
+	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+	const [generalError, setGeneralError] = useState<string | null>(null);
+
+	useEffect(() => {
+		setBody((prev) => ({ ...prev, parent }));
+	}, [parent]);
+
+	const templatesQuery = useQuery({
+		queryKey: ["templates", "list"],
+		queryFn: () => templatesApi.list(),
+	});
+
+	const templateQuery = useQuery({
+		queryKey: ["templates", "detail", body.template],
+		queryFn: () => templatesApi.get(body.template as string),
+		enabled: Boolean(body.template),
+	});
+
+	const parentQuery = useQuery({
+		queryKey: ["pages", "detail", parent, { lineage: true }],
+		queryFn: () => pagesApi.get(parent, { lineage: true }),
+		enabled: parent > 0,
+	});
+
+	const createMutation = useMutation({
+		mutationFn: () => pagesApi.create(body),
+		onSuccess: (page) => {
+			queryClient.invalidateQueries({ queryKey: ["pages", "list"] });
+			toast.success("Page created", { description: `“${page.nav_title}” saved.` });
+			navigate(`/pages/${page.id}/edit`);
+		},
+		onError: (err) => {
+			if (err instanceof ApiError) {
+				const fe = err.fieldErrors();
+
+				if (Object.keys(fe).length > 0) {
+					setFieldErrors(fe);
+				}
+
+				setGeneralError(err.message);
+			} else {
+				setGeneralError(err instanceof Error ? err.message : "Create failed");
+			}
+		},
+	});
+
+	const setBodyPatch = (patch: Partial<PageEditBody>) => {
+		setBody((prev) => ({ ...prev, ...patch }));
+	};
+
+	const handleSubmit = () => {
+		if (createMutation.isPending) {
+			return;
+		}
+
+		setGeneralError(null);
+		setFieldErrors({});
+		createMutation.mutate();
+	};
+
+	const lineage = parentQuery.data?.lineage ?? [];
+	const templateDisabled = Boolean(body.external && body.external.trim().length > 0);
+
+	const breadcrumbs = [
+		{ label: "Pages", to: "/pages" },
+		...lineage.map((p) => ({ label: p.nav_title, to: `/pages/${p.id}` })),
+		{ label: "Add subpage" },
+	];
+
+	const tabIndex = PAGE_TABS.indexOf(activeTab);
+	const isFirst = tabIndex === 0;
+	const isLast = tabIndex === PAGE_TABS.length - 1;
+	const canCreate = Boolean(body.nav_title && body.nav_title.trim().length > 0);
+
+	return (
+		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+			<Breadcrumb items={breadcrumbs} />
+
+			<PageHead
+				title={body.nav_title?.trim() || "New subpage"}
+				sub="Configure properties, then add content, SEO, and sharing metadata."
+				actions={
+					<Link
+						to={`/pages/${parent}`}
+						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
+					>
+						<X size={13} />
+						Cancel
+					</Link>
+				}
+			/>
+
+			<PageSummaryPanel page={parentQuery.data ?? null} />
+
+			<PageSectionToolbar active="add" pageId={parent > 0 ? parent : 0} parentId={parent} />
+
+			{generalError && (
+				<div className="mb-3 rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12.5px] text-danger">
+					{generalError}
+				</div>
+			)}
+
+			<form
+				onSubmit={(e) => {
+					e.preventDefault();
+					handleSubmit();
+				}}
+				className="mb-6 overflow-hidden rounded-lg border border-border bg-surface"
+			>
+				<TabBar value={activeTab} onChange={setActiveTab} />
+
+				<div className="flex flex-col gap-[18px] p-[22px]">
+					{activeTab === "properties" && (
+						<PropertiesTab
+							body={body}
+							templates={templatesQuery.data ?? []}
+							templateDisabled={templateDisabled}
+							fieldErrors={fieldErrors}
+							onPatch={setBodyPatch}
+						/>
+					)}
+
+					{activeTab === "content" && (
+						<ContentTab
+							body={body}
+							template={templateDisabled ? undefined : templateQuery.data}
+							loading={!templateDisabled && templateQuery.isLoading}
+							templateDisabled={templateDisabled}
+							fieldErrors={fieldErrors}
+							onChange={(resources) => setBodyPatch({ resources })}
+						/>
+					)}
+
+					{activeTab === "seo" && (
+						<SeoTab body={body} fieldErrors={fieldErrors} onPatch={setBodyPatch} />
+					)}
+
+					{activeTab === "sharing" && <SharingTab body={body} onPatch={setBodyPatch} />}
+				</div>
+
+				<div className="flex flex-wrap items-center gap-2 border-t border-border bg-surface-2 px-4 py-3">
+					{!isFirst && (
+						<button
+							type="button"
+							onClick={() => setActiveTab(PAGE_TABS[tabIndex - 1] ?? PAGE_TABS[0]!)}
+							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
+						>
+							<ChevronLeft size={13} />
+							Back
+						</button>
+					)}
+
+					<div className="flex-1" />
+
+					{!isLast && (
+						<button
+							type="button"
+							onClick={() =>
+								setActiveTab(
+									PAGE_TABS[tabIndex + 1] ?? PAGE_TABS[PAGE_TABS.length - 1]!
+								)
+							}
+							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
+						>
+							Next Step
+							<ChevronRight size={13} />
+						</button>
+					)}
+
+					<button
+						type="button"
+						onClick={handleSubmit}
+						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-50"
+						disabled={!canCreate || createMutation.isPending}
+					>
+						{createMutation.isPending ? "Creating…" : "Create"}
+					</button>
+
+					<button
+						type="submit"
+						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+						disabled={!canCreate || createMutation.isPending}
+						title="Same as Create — the API doesn't yet expose a separate publish-now flag."
+					>
+						{createMutation.isPending ? "Saving…" : "Create & Publish"}
+					</button>
+				</div>
+			</form>
+		</div>
+	);
+};

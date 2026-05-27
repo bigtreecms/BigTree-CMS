@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
-import { Archive, Edit, Eye, EyeOff, FileText, Move, Plus } from "lucide-react";
+import { Link, useParams } from "react-router-dom";
+import { Archive, Edit, Eye, EyeOff, FileText, Plus } from "lucide-react";
 import { CardEmpty } from "@/components/dashboard/CardEmpty";
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
 import { PageTable } from "@/components/pages/PageTable";
+import { MovePageDialog } from "@/components/pages/MovePageDialog";
 import { HeaderBtn } from "@/components/ui/HeaderBtn";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -61,6 +62,7 @@ export const Pages = () => {
 	}
 
 	const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null);
+	const [movingPage, setMovingPage] = useState<PageListRow | null>(null);
 
 	const renameMutation = useMutation({
 		mutationFn: ({ id, nav_title }: { id: number; nav_title: string }) =>
@@ -209,12 +211,31 @@ export const Pages = () => {
 				actions={
 					<>
 						<HeaderBtn icon={<Eye size={13} />}>Preview</HeaderBtn>
-						<HeaderBtn icon={<FileText size={13} />}>Revisions</HeaderBtn>
-						<HeaderBtn icon={<Move size={13} />}>Move</HeaderBtn>
-						<HeaderBtn icon={<Edit size={13} />}>Edit page</HeaderBtn>
-						<HeaderBtn icon={<Plus size={13} />} primary>
+						{!isRoot && (
+							<Link
+								to={`/pages/${parent}/edit/revisions`}
+								className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-sm hover:bg-hover"
+							>
+								<FileText size={13} />
+								Revisions
+							</Link>
+						)}
+						{!isRoot && (
+							<Link
+								to={`/pages/${parent}/edit`}
+								className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-sm hover:bg-hover"
+							>
+								<Edit size={13} />
+								Edit page
+							</Link>
+						)}
+						<Link
+							to={`/pages/add/${parent}`}
+							className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-fg hover:bg-accent-hover"
+						>
+							<Plus size={13} />
 							Add subpage
-						</HeaderBtn>
+						</Link>
 					</>
 				}
 			/>
@@ -254,6 +275,13 @@ export const Pages = () => {
 										}
 									}}
 									emptyLabel="No visible pages."
+									onMove={(id) => {
+										const r = visible.find((x) => x.id === id);
+
+										if (r) {
+											setMovingPage(r);
+										}
+									}}
 								/>
 							)}
 
@@ -278,6 +306,13 @@ export const Pages = () => {
 									}}
 									emptyLabel="No hidden pages."
 									allowReorder={false}
+									onMove={(id) => {
+										const r = hidden.find((x) => x.id === id);
+
+										if (r) {
+											setMovingPage(r);
+										}
+									}}
 								/>
 							)}
 
@@ -375,6 +410,17 @@ export const Pages = () => {
 						setPendingConfirm(null);
 					}
 				}}
+			/>
+
+			<MovePageDialog
+				open={movingPage !== null}
+				onOpenChange={(open) => {
+					if (!open) {
+						setMovingPage(null);
+					}
+				}}
+				page={movingPage}
+				invalidateKey={["pages", "list", parent]}
 			/>
 		</div>
 	);

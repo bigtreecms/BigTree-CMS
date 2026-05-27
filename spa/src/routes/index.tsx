@@ -8,6 +8,9 @@ import { ModuleEntryAdd } from "@/pages/ModuleEntryAdd";
 import { ModuleEntryEdit } from "@/pages/ModuleEntryEdit";
 import { Modules } from "@/pages/Modules";
 import { ModuleView } from "@/pages/ModuleView";
+import { PageAdd } from "@/pages/PageAdd";
+import { PageEdit } from "@/pages/PageEdit";
+import { PageRevisions } from "@/pages/PageRevisions";
 import { Pages } from "@/pages/Pages";
 import { Placeholder } from "@/pages/Placeholder";
 import { Profile } from "@/pages/Profile";
@@ -55,17 +58,15 @@ export const router = createBrowserRouter(
 								{ path: ":parentId", element: <Pages /> },
 								{
 									path: ":id/edit",
-									element: <Placeholder title="Edit page" />,
-									children: [
-										{
-											path: "revisions",
-											element: <Placeholder title="Page revisions" />,
-										},
-									],
+									element: <PageEdit />,
+								},
+								{
+									path: ":id/edit/revisions",
+									element: <PageRevisions />,
 								},
 								{
 									path: "add/:parentId",
-									element: <Placeholder title="Add page" />,
+									element: <PageAdd />,
 								},
 							],
 						},

@@ -1,0 +1,937 @@
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { Calendar, ChevronLeft, Save } from "lucide-react";
+
+import { Breadcrumb } from "@/components/shell/Breadcrumb";
+import { PageHead } from "@/components/shell/PageHead";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { ErrorPanel } from "@/components/ui/ErrorPanel";
+
+import { LinkFinder } from "@/components/pages/LinkFinder";
+import { MovePageDialog } from "@/components/pages/MovePageDialog";
+import { PageSectionToolbar } from "@/components/pages/PageSectionToolbar";
+import { PageSummaryPanel } from "@/components/pages/PageSummaryPanel";
+
+import { pagesApi, type PageDetail, type PageEditBody } from "@/api/endpoints/pages";
+import { resourceToFormField, templatesApi, type TemplateSummary } from "@/api/endpoints/templates";
+
+import { FieldRenderer } from "@/renderer/forms/FieldRenderer";
+import { FieldRow } from "@/renderer/forms/FieldRow";
+
+import { useLock } from "@/hooks/useLock";
+import { ApiError } from "@/types/api";
+import { toast } from "@/lib/toast";
+
+/**
+ * Page editor — four tabs (Properties / Content / SEO / Sharing) above a
+ * dynamic template-driven Content area. Layout is ported from the
+ * `add-subpage-screen.jsx` reference design but reused unchanged for edit so
+ * the two flows stay visually consistent.
+ *
+ * On submit, a single PATCH bundles every dirty field across all tabs. Field
+ * 422 errors are routed by `column` and shown under the corresponding input.
+ */
+
+type TabValue = "properties" | "content" | "seo" | "sharing";
+
+const PAGE_TABS: TabValue[] = ["properties", "content", "seo", "sharing"];
+
+const seedBody = (page: PageDetail): PageEditBody => ({
+	nav_title: page.nav_title,
+	title: page.title,
+	route: page.route,
+	in_nav: page.in_nav,
+	template: page.template,
+	external: page.external,
+	new_window: page.new_window,
+	meta_keywords: page.meta_keywords,
+	meta_description: page.meta_description,
+	seo_invisible: page.seo_invisible,
+	publish_at: page.publish_at,
+	expire_at: page.expire_at,
+	max_age: page.max_age,
+	trunk: page.trunk,
+	resources: (page.resources ?? {}) as Record<string, unknown>,
+	open_graph: page.open_graph ? { ...page.open_graph } : undefined,
+});
+
+export const PageEdit = () => {
+	const { id: idParam } = useParams<{ id: string }>();
+	const id = Number(idParam);
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+
+	const valid = Number.isFinite(id) && id > 0;
+
+	const pageQuery = useQuery({
+		queryKey: ["pages", "detail", id, { lineage: true }],
+		queryFn: () => pagesApi.get(id, { lineage: true }),
+		enabled: valid,
+	});
+
+	const templatesQuery = useQuery({
+		queryKey: ["templates", "list"],
+		queryFn: () => templatesApi.list(),
+	});
+
+	const templateId = pageQuery.data?.template;
+	const templateQuery = useQuery({
+		queryKey: ["templates", "detail", templateId],
+		queryFn: () => templatesApi.get(templateId as string),
+		enabled: Boolean(templateId),
+	});
+
+	const lock = useLock({
+		table: "bigtree_pages",
+		itemId: id,
+		title: pageQuery.data?.nav_title,
+		enabled: valid && Boolean(pageQuery.data),
+	});
+
+	const [body, setBody] = useState<PageEditBody | null>(null);
+	const [activeTab, setActiveTab] = useState<TabValue>("properties");
+	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+	const [generalError, setGeneralError] = useState<string | null>(null);
+	const [confirmDelete, setConfirmDelete] = useState(false);
+	const [movingOpen, setMovingOpen] = useState(false);
+
+	useEffect(() => {
+		if (pageQuery.data) {
+			setBody(seedBody(pageQuery.data));
+			setFieldErrors({});
+			setGeneralError(null);
+		}
+	}, [pageQuery.data]);
+
+	const saveMutation = useMutation({
+		mutationFn: (next: PageEditBody) => pagesApi.patch(id, next),
+		onSuccess: (updated) => {
+			queryClient.invalidateQueries({ queryKey: ["pages", "list"] });
+			queryClient.setQueryData(["pages", "detail", id, { lineage: true }], updated);
+			toast.success("Page saved");
+		},
+		onError: (err) => {
+			if (err instanceof ApiError) {
+				const fe = err.fieldErrors();
+
+				if (Object.keys(fe).length > 0) {
+					setFieldErrors(fe);
+				}
+
+				setGeneralError(err.message);
+			} else {
+				setGeneralError(err instanceof Error ? err.message : "Save failed");
+			}
+		},
+	});
+
+	const deleteMutation = useMutation({
+		mutationFn: () => pagesApi.delete(id),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["pages", "list"] });
+			toast.success("Page deleted");
+
+			if (pageQuery.data?.parent) {
+				navigate(`/pages/${pageQuery.data.parent}`);
+			} else {
+				navigate("/pages");
+			}
+		},
+		onError: () => {
+			toast.error("Could not delete page");
+		},
+	});
+
+	const setBodyPatch = (patch: Partial<PageEditBody>) => {
+		setBody((prev) => (prev ? { ...prev, ...patch } : prev));
+	};
+
+	const handleSave = () => {
+		if (!body || saveMutation.isPending || lock.ownedByOther) {
+			return;
+		}
+
+		setGeneralError(null);
+		setFieldErrors({});
+		saveMutation.mutate(body);
+	};
+
+	if (!valid) {
+		return <Navigate to="/pages" replace />;
+	}
+
+	if (pageQuery.isLoading || !pageQuery.data || !body) {
+		return (
+			<div className="mx-auto max-w-screen-2xl px-6 py-4">
+				<div className="rounded-xl border border-border bg-surface p-9 text-center text-[13px] text-text-3">
+					Loading page…
+				</div>
+			</div>
+		);
+	}
+
+	if (pageQuery.error) {
+		return (
+			<div className="mx-auto max-w-screen-2xl px-6 py-4">
+				<ErrorPanel error={pageQuery.error} />
+			</div>
+		);
+	}
+
+	const page = pageQuery.data;
+	const readOnly = lock.ownedByOther;
+	const lineage = page.lineage ?? [];
+
+	const breadcrumbs = [
+		{ label: "Pages", to: "/pages" },
+		...lineage.map((p) => ({ label: p.nav_title, to: `/pages/${p.id}` })),
+		{ label: "Edit" },
+	];
+
+	const templateDisabled = Boolean(body.external && body.external.trim().length > 0);
+
+	return (
+		<div className="mx-auto max-w-screen-2xl px-6 py-4">
+			<Breadcrumb items={breadcrumbs} />
+
+			<PageHead
+				title={page.nav_title || "Untitled page"}
+				sub="Edit the page's properties, content, SEO, and sharing metadata."
+				actions={
+					<button
+						type="button"
+						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-danger hover:bg-danger/5 disabled:opacity-50"
+						onClick={() => setConfirmDelete(true)}
+						disabled={readOnly}
+					>
+						Delete
+					</button>
+				}
+			/>
+
+			<PageSummaryPanel page={page} />
+
+			<PageSectionToolbar
+				active="edit"
+				pageId={page.id}
+				parentId={page.parent}
+				onMove={() => setMovingOpen(true)}
+			/>
+
+			{readOnly && (
+				<div className="mb-3 rounded-md border border-border bg-surface-2 px-3 py-2 text-[12.5px] text-text-2">
+					Locked by {lock.lockOwner?.name ?? "another user"} — editing is disabled.
+				</div>
+			)}
+
+			{generalError && (
+				<div className="mb-3 rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-[12.5px] text-danger">
+					{generalError}
+				</div>
+			)}
+
+			<form
+				onSubmit={(e) => {
+					e.preventDefault();
+					handleSave();
+				}}
+				className="mb-6 overflow-hidden rounded-lg border border-border bg-surface"
+			>
+				<TabBar value={activeTab} onChange={setActiveTab} />
+
+				<div className="flex flex-col gap-[18px] p-[22px]">
+					{activeTab === "properties" && (
+						<PropertiesTab
+							body={body}
+							templates={templatesQuery.data ?? []}
+							templateDisabled={templateDisabled}
+							fieldErrors={fieldErrors}
+							disabled={readOnly}
+							onPatch={setBodyPatch}
+						/>
+					)}
+
+					{activeTab === "content" && (
+						<ContentTab
+							body={body}
+							template={templateDisabled ? undefined : templateQuery.data}
+							loading={!templateDisabled && templateQuery.isLoading}
+							templateDisabled={templateDisabled}
+							fieldErrors={fieldErrors}
+							disabled={readOnly}
+							onChange={(resources) => setBodyPatch({ resources })}
+						/>
+					)}
+
+					{activeTab === "seo" && (
+						<SeoTab
+							body={body}
+							page={page}
+							fieldErrors={fieldErrors}
+							disabled={readOnly}
+							onPatch={setBodyPatch}
+						/>
+					)}
+
+					{activeTab === "sharing" && (
+						<SharingTab body={body} disabled={readOnly} onPatch={setBodyPatch} />
+					)}
+				</div>
+
+				<WizardFooter
+					activeTab={activeTab}
+					onSelect={setActiveTab}
+					primaryLabel={saveMutation.isPending ? "Saving…" : "Save changes"}
+					onPrimary={handleSave}
+					primaryDisabled={readOnly || saveMutation.isPending}
+					secondary={
+						<button
+							type="button"
+							onClick={() => navigate(`/pages/${page.parent}`)}
+							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] text-text-2 hover:bg-hover"
+						>
+							<ChevronLeft size={13} /> Back
+						</button>
+					}
+				/>
+			</form>
+
+			{confirmDelete && (
+				<ConfirmDialog
+					open={true}
+					onOpenChange={setConfirmDelete}
+					title={`Delete “${page.nav_title}”?`}
+					description="This removes the page and all of its descendants. The action cannot be undone."
+					confirmLabel="Delete page"
+					variant="danger"
+					onConfirm={() => deleteMutation.mutate()}
+				/>
+			)}
+
+			<MovePageDialog
+				open={movingOpen}
+				onOpenChange={setMovingOpen}
+				page={{ id: page.id, nav_title: page.nav_title, parent: page.parent }}
+				invalidateKey={["pages", "list", page.parent]}
+			/>
+		</div>
+	);
+};
+
+// — Shared sub-blocks (also consumed from PageAdd) —
+
+interface TabBarProps {
+	value: TabValue;
+	onChange: (next: TabValue) => void;
+}
+
+const TAB_LABELS: Record<TabValue, string> = {
+	properties: "Properties",
+	content: "Content",
+	seo: "SEO",
+	sharing: "Sharing",
+};
+
+export const TabBar = ({ value, onChange }: TabBarProps) => (
+	<div className="flex items-stretch gap-0 border-b border-border bg-surface-2 px-4">
+		{PAGE_TABS.map((tab) => {
+			const active = value === tab;
+
+			return (
+				<button
+					key={tab}
+					type="button"
+					onClick={() => onChange(tab)}
+					className={`relative whitespace-nowrap px-4 py-3 text-[13px] font-medium transition-colors ${
+						active
+							? "bg-surface text-text after:absolute after:inset-x-3 after:-bottom-px after:h-0.5 after:rounded after:bg-accent"
+							: "text-text-3 hover:text-text"
+					}`}
+					data-active={active}
+				>
+					{TAB_LABELS[tab]}
+				</button>
+			);
+		})}
+		<div className="flex-1" />
+		<LinkFinder />
+	</div>
+);
+
+interface PropertiesTabProps {
+	body: PageEditBody;
+	templates: TemplateSummary[];
+	templateDisabled: boolean;
+	fieldErrors: Record<string, string>;
+	disabled?: boolean;
+	onPatch: (patch: Partial<PageEditBody>) => void;
+}
+
+export const PropertiesTab = ({
+	body,
+	templates,
+	templateDisabled,
+	fieldErrors,
+	disabled,
+	onPatch,
+}: PropertiesTabProps) => (
+	<>
+		<div className="grid grid-cols-1 gap-[18px] md:grid-cols-2 md:gap-x-[22px]">
+			<Field label="Navigation Title" error={fieldErrors.nav_title}>
+				<input
+					className={INPUT}
+					value={body.nav_title ?? ""}
+					onChange={(e) => onPatch({ nav_title: e.target.value })}
+					placeholder="Shown in site nav and breadcrumbs"
+					disabled={disabled}
+				/>
+			</Field>
+
+			<Field
+				label="Page Title"
+				hint="(web browsers use this for their title bar)"
+				error={fieldErrors.title}
+			>
+				<input
+					className={INPUT}
+					value={body.title ?? ""}
+					onChange={(e) => onPatch({ title: e.target.value })}
+					placeholder={body.nav_title || "e.g. About us — Your Site"}
+					disabled={disabled}
+				/>
+			</Field>
+		</div>
+
+		<div className="grid grid-cols-1 gap-[18px] md:grid-cols-3 md:gap-x-[22px]">
+			<Field label="Publish At" hint="(blank = immediately)">
+				<DateInput
+					value={body.publish_at ?? ""}
+					onChange={(v) => onPatch({ publish_at: v || null })}
+					disabled={disabled}
+				/>
+			</Field>
+			<Field label="Expire At" hint="(blank = never)">
+				<DateInput
+					value={body.expire_at ?? ""}
+					onChange={(v) => onPatch({ expire_at: v || null })}
+					disabled={disabled}
+				/>
+			</Field>
+			<Field label="Content Max Age" hint="(before alerts)">
+				<select
+					className={INPUT}
+					value={body.max_age ?? 0}
+					onChange={(e) => onPatch({ max_age: Number(e.target.value) })}
+					disabled={disabled}
+				>
+					<option value={0}>No Limit</option>
+					<option value={30}>30 days</option>
+					<option value={90}>90 days</option>
+					<option value={180}>6 months</option>
+					<option value={365}>1 year</option>
+				</select>
+			</Field>
+		</div>
+
+		<div className="flex flex-wrap items-center gap-4 rounded-md border border-border bg-surface-2 px-3 py-2">
+			<Check
+				label="Visible in Navigation"
+				checked={Boolean(body.in_nav)}
+				onChange={(v) => onPatch({ in_nav: v })}
+				disabled={disabled}
+			/>
+			<Check
+				label="Trunk"
+				checked={Boolean(body.trunk)}
+				onChange={(v) => onPatch({ trunk: v })}
+				disabled={disabled}
+			/>
+		</div>
+
+		<div className="my-1 h-px bg-border" />
+
+		<div className="grid grid-cols-1 gap-[18px] md:grid-cols-2 md:gap-x-[22px]">
+			<Field label="Template" error={fieldErrors.template}>
+				<select
+					className={INPUT}
+					value={templateDisabled ? "" : (body.template ?? "")}
+					onChange={(e) => onPatch({ template: e.target.value })}
+					disabled={disabled || templateDisabled}
+				>
+					{templateDisabled && (
+						<option value="">— (overridden by External Link) —</option>
+					)}
+					{!templateDisabled && <option value="">— None —</option>}
+					{templates.map((t) => (
+						<option key={t.id} value={t.id}>
+							{t.name}
+						</option>
+					))}
+				</select>
+				{templateDisabled && (
+					<span className="mt-1 block text-[11px] text-warn">
+						Disabled while External Link is set.
+					</span>
+				)}
+			</Field>
+
+			<Field
+				label="External Link"
+				hint="(include http://, overrides template)"
+				error={fieldErrors.external}
+			>
+				<input
+					className={INPUT}
+					value={body.external ?? ""}
+					onChange={(e) => onPatch({ external: e.target.value })}
+					placeholder="https://"
+					disabled={disabled}
+				/>
+				<label className="mt-2 flex items-center gap-2 text-[12.5px] text-text-2">
+					<input
+						type="checkbox"
+						className="h-4 w-4 rounded border-border accent-accent"
+						checked={Boolean(body.new_window)}
+						onChange={(e) => onPatch({ new_window: e.target.checked })}
+						disabled={disabled || !body.external}
+					/>
+					Open in New Window
+				</label>
+			</Field>
+		</div>
+	</>
+);
+
+interface ContentTabProps {
+	body: PageEditBody;
+	template: TemplateSummary | undefined;
+	loading: boolean;
+	templateDisabled: boolean;
+	fieldErrors: Record<string, string>;
+	disabled?: boolean;
+	onChange: (resources: Record<string, unknown>) => void;
+}
+
+export const ContentTab = ({
+	body,
+	template,
+	loading,
+	templateDisabled,
+	fieldErrors,
+	disabled,
+	onChange,
+}: ContentTabProps) => {
+	const resources = (body.resources ?? {}) as Record<string, unknown>;
+
+	if (templateDisabled) {
+		return (
+			<>
+				<TemplateTag label="— External Link —" />
+				<NoResources reason="external" />
+			</>
+		);
+	}
+
+	if (loading) {
+		return (
+			<div className="rounded-md border border-dashed border-border bg-surface-2 p-4 text-center text-[12.5px] text-text-3">
+				Loading template…
+			</div>
+		);
+	}
+
+	if (!template) {
+		return (
+			<div className="rounded-md border border-dashed border-border bg-surface-2 p-4 text-[12.5px] text-text-3">
+				No template assigned. Pick one in the <strong>Properties</strong> tab.
+			</div>
+		);
+	}
+
+	if (template.resources.length === 0) {
+		return (
+			<>
+				<TemplateTag label={template.name} />
+				<NoResources reason="empty" />
+			</>
+		);
+	}
+
+	const setFieldValue = (resourceId: string, next: unknown) => {
+		onChange({ ...resources, [resourceId]: next });
+	};
+
+	return (
+		<>
+			<TemplateTag label={template.name} />
+			<div className="flex flex-col gap-[18px]">
+				{template.resources.map((resource) => {
+					const formField = resourceToFormField(resource);
+
+					return (
+						<FieldRow
+							key={resource.id}
+							field={formField}
+							error={fieldErrors[resource.id]}
+						>
+							<FieldRenderer
+								field={formField}
+								value={resources[resource.id]}
+								onChange={(next) => setFieldValue(resource.id, next)}
+								disabled={disabled}
+								error={fieldErrors[resource.id]}
+							/>
+						</FieldRow>
+					);
+				})}
+			</div>
+		</>
+	);
+};
+
+interface SeoTabProps {
+	body: PageEditBody;
+	page?: PageDetail;
+	fieldErrors: Record<string, string>;
+	disabled?: boolean;
+	onPatch: (patch: Partial<PageEditBody>) => void;
+}
+
+export const SeoTab = ({ body, page, fieldErrors, disabled, onPatch }: SeoTabProps) => {
+	const description = body.meta_description ?? "";
+	// Parent path → "/foo/bar/" — purely cosmetic so we approximate by stripping
+	// the page's own route from page.path. Falls back to "/".
+	const parentPath = computeParentPath(page);
+	const slugSuggest = (body.nav_title ?? "")
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-|-$/g, "");
+
+	return (
+		<>
+			<Field
+				label="URL Route"
+				hint="(leave blank to auto generate)"
+				error={fieldErrors.route}
+				wide
+			>
+				<div className="flex items-center gap-0 overflow-hidden rounded-md border border-border-strong bg-surface focus-within:border-accent focus-within:ring-1 focus-within:ring-accent-ring">
+					<span className="border-r border-border bg-surface-2 px-3 py-[7px] font-mono text-[12.5px] text-text-3">
+						{parentPath}
+					</span>
+					<input
+						className="flex-1 bg-transparent px-3 py-[7px] text-[13px] outline-none placeholder:text-text-3"
+						value={body.route ?? ""}
+						onChange={(e) => onPatch({ route: e.target.value })}
+						placeholder={slugSuggest || "auto-generated"}
+						disabled={disabled}
+					/>
+				</div>
+			</Field>
+
+			<Field label="Meta Description" error={fieldErrors.meta_description} wide>
+				<textarea
+					rows={5}
+					className={INPUT_TEXTAREA}
+					value={description}
+					onChange={(e) => onPatch({ meta_description: e.target.value })}
+					placeholder="Concise summary shown in search engine result snippets. Aim for 150–160 characters."
+					disabled={disabled}
+				/>
+				<span
+					className={`mt-1 block text-[11px] ${description.length > 160 ? "text-warn" : "text-text-3"}`}
+				>
+					{description.length} / 160 characters
+				</span>
+			</Field>
+
+			<Field
+				label="Meta Keywords"
+				hint="Most search engines ignore this."
+				error={fieldErrors.meta_keywords}
+				wide
+			>
+				<input
+					className={INPUT}
+					value={body.meta_keywords ?? ""}
+					onChange={(e) => onPatch({ meta_keywords: e.target.value })}
+					disabled={disabled}
+				/>
+			</Field>
+
+			<Check
+				label="Hide from search engines"
+				checked={Boolean(body.seo_invisible)}
+				onChange={(v) => onPatch({ seo_invisible: v })}
+				disabled={disabled}
+			/>
+		</>
+	);
+};
+
+interface SharingTabProps {
+	body: PageEditBody;
+	disabled?: boolean;
+	onPatch: (patch: Partial<PageEditBody>) => void;
+}
+
+export const SharingTab = ({ body, disabled, onPatch }: SharingTabProps) => {
+	const og = body.open_graph ?? {};
+
+	const setOg = (patch: Partial<NonNullable<PageEditBody["open_graph"]>>) => {
+		onPatch({ open_graph: { ...og, ...patch } });
+	};
+
+	return (
+		<>
+			<Field label="Open Graph Title" hint="(defaults to the page title if left empty)" wide>
+				<input
+					className={INPUT}
+					value={og.title ?? ""}
+					onChange={(e) => setOg({ title: e.target.value })}
+					disabled={disabled}
+				/>
+			</Field>
+
+			<Field
+				label="Open Graph Description"
+				hint="(defaults to the page's meta description if left empty)"
+				wide
+			>
+				<input
+					className={INPUT}
+					value={og.description ?? ""}
+					onChange={(e) => setOg({ description: e.target.value })}
+					disabled={disabled}
+				/>
+			</Field>
+
+			<div className="grid grid-cols-1 gap-[18px] md:grid-cols-2 md:gap-x-[22px]">
+				<Field label="Open Graph Type">
+					<select
+						className={INPUT}
+						value={og.type ?? ""}
+						onChange={(e) => setOg({ type: e.target.value })}
+						disabled={disabled}
+					>
+						<option value="">—</option>
+						<option value="website">website</option>
+						<option value="article">article</option>
+						<option value="profile">profile</option>
+						<option value="video.movie">video.movie</option>
+					</select>
+				</Field>
+				<Field label="Open Graph Image" hint="(min 1200×630)">
+					<input
+						className={INPUT}
+						value={og.image ?? ""}
+						onChange={(e) => setOg({ image: e.target.value })}
+						placeholder="https://"
+						disabled={disabled}
+					/>
+				</Field>
+			</div>
+		</>
+	);
+};
+
+// — Small visual primitives, kept local so the design ports cleanly without
+// inflating the shared components dir. —
+
+interface FieldProps {
+	label: string;
+	hint?: string;
+	children: React.ReactNode;
+	error?: string;
+	wide?: boolean;
+}
+
+export const Field = ({ label, hint, children, error, wide }: FieldProps) => (
+	<div className={`flex flex-col gap-1.5 ${wide ? "w-full" : ""}`}>
+		<span className="text-[11.5px] font-medium text-text-2">
+			{label}
+			{hint && <span className="ml-1 text-[11px] text-text-3">{hint}</span>}
+		</span>
+		{children}
+		{error && <span className="text-[11.5px] text-danger">{error}</span>}
+	</div>
+);
+
+interface CheckProps {
+	label: string;
+	checked: boolean;
+	onChange: (next: boolean) => void;
+	disabled?: boolean;
+}
+
+export const Check = ({ label, checked, onChange, disabled }: CheckProps) => (
+	<label className="inline-flex cursor-pointer items-center gap-2 text-[12.5px] text-text-2 has-[input:disabled]:cursor-not-allowed has-[input:disabled]:opacity-60">
+		<input
+			type="checkbox"
+			className="h-4 w-4 rounded border-border accent-accent"
+			checked={checked}
+			onChange={(e) => onChange(e.target.checked)}
+			disabled={disabled}
+		/>
+		{label}
+	</label>
+);
+
+interface DateInputProps {
+	value: string;
+	onChange: (next: string) => void;
+	disabled?: boolean;
+}
+
+export const DateInput = ({ value, onChange, disabled }: DateInputProps) => {
+	const normalized = value ? value.replace(" ", "T").slice(0, 16) : "";
+
+	return (
+		<div className="relative">
+			<input
+				type="datetime-local"
+				className={`${INPUT} pr-8 font-mono text-[12.5px]`}
+				value={normalized}
+				onChange={(e) => onChange(e.target.value)}
+				disabled={disabled}
+			/>
+			<Calendar
+				size={14}
+				className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-text-3"
+			/>
+		</div>
+	);
+};
+
+export const TemplateTag = ({ label }: { label: string }) => (
+	<div className="inline-flex items-center gap-2 self-start rounded-md border border-border bg-surface-2 px-2.5 py-1 text-[11px] uppercase tracking-[0.06em] text-text-3">
+		<span className="font-semibold text-text-3">Template:</span>
+		<span className="font-medium text-text-2">{label}</span>
+	</div>
+);
+
+export const NoResources = ({ reason }: { reason: "external" | "empty" | "redirect" }) => {
+	const message =
+		reason === "external"
+			? "This page redirects to an external URL — its content lives elsewhere."
+			: reason === "redirect"
+				? "Redirect templates pass the URL through to a lower page; there is no content to edit on this page itself."
+				: "This template has no fields configured.";
+
+	return (
+		<div className="grid place-items-center gap-2 rounded-md border border-dashed border-border bg-surface-2 px-4 py-12 text-center">
+			<div className="text-[13px] font-medium text-text-2">
+				There are no resources for the selected template.
+			</div>
+			<div className="max-w-md text-[12px] text-text-3">{message}</div>
+		</div>
+	);
+};
+
+interface WizardFooterProps {
+	activeTab: TabValue;
+	onSelect: (tab: TabValue) => void;
+	primaryLabel: string;
+	onPrimary: () => void;
+	primaryDisabled?: boolean;
+	secondary?: React.ReactNode;
+	wizardMode?: boolean;
+	onWizardCreate?: () => void;
+	createLabel?: string;
+}
+
+export const WizardFooter = ({
+	activeTab,
+	onSelect,
+	primaryLabel,
+	onPrimary,
+	primaryDisabled,
+	secondary,
+	wizardMode = false,
+	onWizardCreate,
+	createLabel,
+}: WizardFooterProps) => {
+	const index = PAGE_TABS.indexOf(activeTab);
+	const isFirst = index === 0;
+	const isLast = index === PAGE_TABS.length - 1;
+
+	return (
+		<div className="flex flex-wrap items-center gap-2 border-t border-border bg-surface-2 px-4 py-3">
+			{!isFirst && (
+				<button
+					type="button"
+					onClick={() => onSelect(PAGE_TABS[index - 1] ?? PAGE_TABS[0]!)}
+					className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
+				>
+					<ChevronLeft size={13} />
+					Back
+				</button>
+			)}
+
+			{secondary}
+
+			<div className="flex-1" />
+
+			{wizardMode && !isLast && (
+				<button
+					type="button"
+					onClick={() =>
+						onSelect(PAGE_TABS[index + 1] ?? PAGE_TABS[PAGE_TABS.length - 1]!)
+					}
+					className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
+				>
+					Next Step
+					<ChevronLeft size={13} className="rotate-180" />
+				</button>
+			)}
+
+			{wizardMode && onWizardCreate && (
+				<button
+					type="button"
+					onClick={onWizardCreate}
+					className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
+					disabled={primaryDisabled}
+				>
+					{createLabel ?? "Create"}
+				</button>
+			)}
+
+			<button
+				type="button"
+				onClick={onPrimary}
+				className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg disabled:opacity-50 hover:bg-accent-hover"
+				disabled={primaryDisabled}
+			>
+				<Save size={13} />
+				{primaryLabel}
+			</button>
+		</div>
+	);
+};
+
+// — Shared Tailwind tokens (re-used from FieldRenderer's INPUT_CLASS but
+// duplicated here to avoid a non-trivial import for two strings). —
+
+export const INPUT =
+	"w-full rounded-md border border-border-strong bg-surface px-2.5 py-[7px] text-[13px] text-text placeholder:text-text-3 focus:border-accent focus:outline-none focus:ring-[3px] focus:ring-accent-ring disabled:cursor-not-allowed disabled:opacity-60";
+
+export const INPUT_TEXTAREA =
+	"w-full min-h-[78px] rounded-md border border-border-strong bg-surface px-2.5 py-[7px] text-[13px] leading-6 text-text placeholder:text-text-3 focus:border-accent focus:outline-none focus:ring-[3px] focus:ring-accent-ring disabled:cursor-not-allowed disabled:opacity-60";
+
+const computeParentPath = (page?: PageDetail): string => {
+	if (!page) {
+		return "/";
+	}
+
+	const path = page.path ?? "";
+	const route = page.route ?? "";
+
+	if (path && route && path.endsWith(route)) {
+		const parent = path.slice(0, path.length - route.length);
+
+		return parent.endsWith("/") ? parent : parent + "/";
+	}
+
+	return path ? "/" + path.replace(/\/?$/, "/").replace(/^\/+/, "") : "/";
+};

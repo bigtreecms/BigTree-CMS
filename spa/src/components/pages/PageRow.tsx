@@ -1,4 +1,4 @@
-import { Archive, Edit, FileText, GripVertical, RotateCcw, Trash2 } from "lucide-react";
+import { Archive, Edit, FileText, GripVertical, Move, RotateCcw, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { PageListRow } from "@/api/endpoints/pages";
 import { EditableTitle } from "./EditableTitle";
@@ -27,6 +27,8 @@ interface PageRowProps {
 	leftActionLabel?: string;
 	/** Optional delete handler. When present, the right column renders a delete button instead of edit link. */
 	onDelete?: () => void;
+	/** Optional move-to-different-parent handler. When present, a Move button appears between Archive and Edit. */
+	onMove?: () => void;
 }
 
 export const PageRow = ({
@@ -37,6 +39,7 @@ export const PageRow = ({
 	allowReorder = true,
 	leftActionLabel,
 	onDelete,
+	onMove,
 }: PageRowProps) => {
 	const locked = row.access === "v" || row.access === "n"; // can't edit
 	const canReorder = allowReorder && !locked;
@@ -45,7 +48,7 @@ export const PageRow = ({
 
 	return (
 		<div
-			className={`grid h-[var(--row-h)] grid-cols-[28px_1fr_240px_56px_56px] items-center gap-x-3 border-b border-border px-2 pr-3 text-[13px] transition-colors last:border-b-0 hover:bg-surface-2 ${
+			className={`grid h-[var(--row-h)] grid-cols-[28px_1fr_240px_56px_56px_56px] items-center gap-x-3 border-b border-border px-2 pr-3 text-[13px] transition-colors last:border-b-0 hover:bg-surface-2 ${
 				isDragging ? "bg-accent-soft shadow-md" : ""
 			} ${isDropTarget ? "shadow-[inset_0_2px_0_0_var(--color-accent)]" : ""}`}
 			draggable={canReorder}
@@ -104,6 +107,22 @@ export const PageRow = ({
 			>
 				{row.archived ? <RotateCcw size={14} /> : <Archive size={14} />}
 			</button>
+
+			{/* Move */}
+			{onMove ? (
+				<button
+					type="button"
+					onClick={onMove}
+					className="grid h-7 w-7 place-items-center rounded-md border-0 bg-transparent text-text-3 transition-colors hover:bg-hover hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
+					title="Move to a different parent"
+					disabled={locked || row.archived}
+					aria-label="Move page"
+				>
+					<Move size={14} />
+				</button>
+			) : (
+				<span />
+			)}
 
 			{/* Right action: Delete (if onDelete provided) or Edit link */}
 			{onDelete ? (
