@@ -107,7 +107,11 @@ export const columnWidth = (field: ModuleViewFieldConfig): string => {
 		return "minmax(0,1fr)";
 	}
 
-	return `minmax(0, ${px}px)`;
+	// Treat the legacy pixel width as a minimum and a proportional weight so
+	// columns grow to fill the table when the configured widths total less
+	// than the available space. Without the `fr` max, the grid stops at the
+	// summed px widths and the trailing Actions column floats in the middle.
+	return `minmax(${px}px, ${px}fr)`;
 };
 
 export const formatCellValue = (value: unknown): string => {

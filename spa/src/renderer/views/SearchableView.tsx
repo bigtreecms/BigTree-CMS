@@ -1,6 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Edit, Search, Trash, X } from "lucide-react";
+import {
+	Archive,
+	ArrowRight,
+	Check,
+	Download,
+	Edit,
+	Eye,
+	Search,
+	Star,
+	Trash,
+	X,
+	type LucideIcon,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { DataTable, type DataTableColumn, type DataTableSort } from "@/components/ui/DataTable";
@@ -46,6 +58,32 @@ interface SearchableViewProps {
 	moduleId: string;
 	view: ModuleView;
 }
+
+const customActionIcons: Record<string, LucideIcon> = {
+	icon_view: Eye,
+	icon_export: Download,
+	icon_preview: Eye,
+	icon_approve: Check,
+	icon_archive: Archive,
+	icon_feature: Star,
+	icon_download: Download,
+};
+
+const iconForCustomAction = (className: string | undefined): LucideIcon => {
+	if (!className) {
+		return ArrowRight;
+	}
+
+	for (const token of className.split(/\s+/)) {
+		const match = customActionIcons[token];
+
+		if (match) {
+			return match;
+		}
+	}
+
+	return ArrowRight;
+};
 
 export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 	const queryClient = useQueryClient();
@@ -98,19 +136,28 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 	});
 
 	const columns: DataTableColumn<ModuleEntryRow>[] = useMemo(() => {
-		const cols: DataTableColumn<ModuleEntryRow>[] = fieldColumns.map(([key, field]) => ({
-			key,
-			header: field.title,
-			width: columnWidth(field),
-			sortable: true,
-			align: field.numeric ? "right" : "left",
-			headerAlign: field.numeric ? "right" : "left",
-			cell: (row) => (
-				<span className={field.numeric ? "tabular-nums text-text-2" : "text-text-2"}>
-					{formatCellValue(row[key])}
-				</span>
-			),
-		}));
+		// The view-cache rows returned by /modules/{id}/entries use positional
+		// keys (`column1`, `column2`, …) rather than the field name. See
+		// BigTreeAutoModule::getSearchResults — values are written in field
+		// definition order. We sort by the original field key so the server
+		// still understands the sort param.
+		const cols: DataTableColumn<ModuleEntryRow>[] = fieldColumns.map(([key, field], index) => {
+			const valueKey = `column${index + 1}`;
+
+			return {
+				key,
+				header: field.title,
+				width: columnWidth(field),
+				sortable: true,
+				align: field.numeric ? "right" : "left",
+				headerAlign: field.numeric ? "right" : "left",
+				cell: (row) => (
+					<span className={field.numeric ? "tabular-nums text-text-2" : "text-text-2"}>
+						{formatCellValue(row[valueKey])}
+					</span>
+				),
+			};
+		});
 
 		if (hasRowActions) {
 			const actionsCount = (builtins.edit ? 1 : 0) + (builtins.delete ? 1 : 0) + custom.length;
@@ -126,21 +173,23 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 					const canMutate = Number.isFinite(entryId) && entryId > 0;
 
 					return (
-						<div className="flex items-center justify-end gap-1">
-							{custom.map((action) => (
-								<Link
-									key={action.key}
-									to={`/modules/${moduleId}/view/${view.id}/${action.route}/${entryId}`}
-									className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
-									title={action.name}
-									aria-label={action.name}
-									onClick={(e) => e.stopPropagation()}
-								>
-									<span className="inline-block min-w-[14px] text-[11px] font-medium">
-										{action.name.slice(0, 2)}
-									</span>
-								</Link>
-							))}
+						<div className="flex w-full items-center justify-end gap-1">
+							{custom.map((action) => {
+								const Icon = iconForCustomAction(action.className);
+
+								return (
+									<Link
+										key={action.key}
+										to={`/modules/${moduleId}/view/${view.id}/${action.route}/${entryId}`}
+										className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+										title={action.name}
+										aria-label={action.name}
+										onClick={(e) => e.stopPropagation()}
+									>
+										<Icon size={15} />
+									</Link>
+								);
+							})}
 
 							{builtins.edit && (
 								<Link
