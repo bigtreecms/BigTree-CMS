@@ -55,7 +55,14 @@ export interface ModuleEntryDetail {
 /**
  * Note on IDs: `moduleId` is a string slug ("modules-..."); `entryId` is a
  * real auto-increment row id from the module's underlying database table.
+ *
+ * Note on `viewId`: the table correlation lives on the view, not the module.
+ * Entry-level calls pass the active view as `?view=` so the service can
+ * resolve the underlying table — modules with no top-level `table` will 404
+ * otherwise.
  */
+const viewQuery = (viewId?: string) => (viewId ? { view: viewId } : undefined);
+
 export const autoModulesApi = {
 	list: (moduleId: string, params: ModuleEntriesListParams = {}) =>
 		api.get<ModuleEntriesListResponse>(
@@ -70,22 +77,37 @@ export const autoModulesApi = {
 			}
 		),
 
-	get: (moduleId: string, entryId: number) =>
+	get: (moduleId: string, entryId: number, viewId?: string) =>
 		api.get<ModuleEntryDetail>(
-			`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`
+			`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`,
+			{ query: viewQuery(viewId) }
 		),
 
-	create: (moduleId: string, body: Record<string, unknown>) =>
-		api.post<ModuleEntryRow>(`/modules/${encodeURIComponent(moduleId)}/entries`, body),
+	create: (moduleId: string, body: Record<string, unknown>, viewId?: string) =>
+		api.post<ModuleEntryRow>(
+			`/modules/${encodeURIComponent(moduleId)}/entries`,
+			body,
+			{ query: viewQuery(viewId) }
+		),
 
-	update: (moduleId: string, entryId: number, body: Record<string, unknown>) =>
+	update: (
+		moduleId: string,
+		entryId: number,
+		body: Record<string, unknown>,
+		viewId?: string
+	) =>
 		api.patch<ModuleEntryDetail | { pending: true }>(
 			`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`,
-			body
+			body,
+			{ query: viewQuery(viewId) }
 		),
 
-	delete: (moduleId: string, entryId: number) =>
-		api.delete<void>(`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`),
+	delete: (moduleId: string, entryId: number, viewId?: string) =>
+		api.delete<void>(
+			`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`,
+			undefined,
+			{ query: viewQuery(viewId) }
+		),
 
 	reorder: (moduleId: string, ids: Array<number | string>, viewId?: string) =>
 		api.post<void>(`/modules/${encodeURIComponent(moduleId)}/entries/reorder`, {
@@ -93,22 +115,25 @@ export const autoModulesApi = {
 			...(viewId ? { view: viewId } : {}),
 		}),
 
-	archive: (moduleId: string, entryId: number) =>
+	archive: (moduleId: string, entryId: number, viewId?: string) =>
 		api.post<ModuleEntryFlagToggleResponse>(
 			`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}/archive`,
-			{}
+			{},
+			{ query: viewQuery(viewId) }
 		),
 
-	approve: (moduleId: string, entryId: number) =>
+	approve: (moduleId: string, entryId: number, viewId?: string) =>
 		api.post<ModuleEntryFlagToggleResponse>(
 			`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}/approve`,
-			{}
+			{},
+			{ query: viewQuery(viewId) }
 		),
 
-	feature: (moduleId: string, entryId: number) =>
+	feature: (moduleId: string, entryId: number, viewId?: string) =>
 		api.post<ModuleEntryFlagToggleResponse>(
 			`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}/feature`,
-			{}
+			{},
+			{ query: viewQuery(viewId) }
 		),
 };
 

@@ -49,8 +49,8 @@ export const ModuleEntryEdit = () => {
 	});
 
 	const entryQuery = useQuery({
-		queryKey: ["module-entries", moduleId, "detail", entryId],
-		queryFn: () => autoModulesApi.get(moduleId, entryId),
+		queryKey: ["module-entries", moduleId, "detail", entryId, viewId],
+		queryFn: () => autoModulesApi.get(moduleId, entryId, viewId),
 		enabled: moduleId !== "" && Number.isFinite(entryId),
 	});
 
@@ -62,7 +62,7 @@ export const ModuleEntryEdit = () => {
 
 	const updateMutation = useMutation({
 		mutationFn: (values: Record<string, unknown>) =>
-			autoModulesApi.update(moduleId, entryId, values),
+			autoModulesApi.update(moduleId, entryId, values, viewId),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["module-entries", moduleId] });
 			toast.success("Entry saved");

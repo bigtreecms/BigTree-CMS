@@ -49,7 +49,7 @@ export const ModuleEntryAdd = () => {
 
 	const createMutation = useMutation({
 		mutationFn: (values: Record<string, unknown>) =>
-			autoModulesApi.create(moduleId, values),
+			autoModulesApi.create(moduleId, values, viewId),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["module-entries", moduleId] });
 			toast.success("Entry created");

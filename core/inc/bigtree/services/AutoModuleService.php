@@ -81,8 +81,9 @@
 			$module_id = $request->route_params["id"];
 			$entry_id = (int)$request->route_params["eid"];
 			$module = $this->loadModule($module_id);
+			$table = $this->resolveTable($module, $request);
 
-			$pending = BigTreeAutoModule::getPendingItem($module["table"], $entry_id);
+			$pending = BigTreeAutoModule::getPendingItem($table, $entry_id);
 
 			if (!$pending) {
 				throw new NotFoundException("Entry $entry_id not found", "resource_not_found", 404);
@@ -98,6 +99,7 @@
 		public function create(Request $request) {
 			$module_id = $request->route_params["id"];
 			$module = $this->loadModule($module_id);
+			$table = $this->resolveTable($module, $request);
 
 			$data = $request->body;
 			$mtm = (array)($data["__mtm__"] ?? []);
@@ -108,10 +110,10 @@
 			$user_level = PermissionService::userModuleLevel($request->user, $module_id);
 
 			if ($user_level === "p" || ((int)$request->user->level) > 0) {
-				$id = BigTreeAutoModule::createItem($module["table"], $data, $mtm, $tags, null, $og);
-				$item = BigTreeAutoModule::getItem($module["table"], $id);
+				$id = BigTreeAutoModule::createItem($table, $data, $mtm, $tags, null, $og);
+				$item = BigTreeAutoModule::getItem($table, $id);
 				Hooks::fire("module_entry.created", [
-					"module" => $module_id, "table" => $module["table"], "id" => (int)$id, "item" => $item["item"] ?? $item,
+					"module" => $module_id, "table" => $table, "id" => (int)$id, "item" => $item["item"] ?? $item,
 				], ["user_id" => $request->user->id]);
 
 				return Response::created($item["item"] ?? $item, null);
@@ -122,10 +124,10 @@
 			}
 
 			$pending_id = BigTreeAutoModule::createPendingItem(
-				$module_id, $module["table"], $data, $mtm, $tags, null, false, $og
+				$module_id, $table, $data, $mtm, $tags, null, false, $og
 			);
 			Hooks::fire("module_entry.pending_created", [
-				"module" => $module_id, "table" => $module["table"], "pending_id" => (int)$pending_id,
+				"module" => $module_id, "table" => $table, "pending_id" => (int)$pending_id,
 			], ["user_id" => $request->user->id]);
 
 			return Response::created(["pending_id" => $pending_id, "pending" => true], null);
@@ -135,8 +137,9 @@
 			$module_id = $request->route_params["id"];
 			$entry_id = (int)$request->route_params["eid"];
 			$module = $this->loadModule($module_id);
+			$table = $this->resolveTable($module, $request);
 
-			$existing = BigTreeAutoModule::getPendingItem($module["table"], $entry_id);
+			$existing = BigTreeAutoModule::getPendingItem($table, $entry_id);
 
 			if (!$existing) {
 				throw new NotFoundException("Entry $entry_id not found", "resource_not_found", 404);
@@ -155,18 +158,18 @@
 			$user_level = PermissionService::userModuleLevel($request->user, $module_id);
 
 			if ($user_level === "p" || ((int)$request->user->level) > 0) {
-				BigTreeAutoModule::updateItem($module["table"], $entry_id, $data, $mtm, $tags, $og);
-				$fresh = BigTreeAutoModule::getItem($module["table"], $entry_id);
+				BigTreeAutoModule::updateItem($table, $entry_id, $data, $mtm, $tags, $og);
+				$fresh = BigTreeAutoModule::getItem($table, $entry_id);
 				Hooks::fire("module_entry.updated", [
-					"module" => $module_id, "table" => $module["table"], "id" => $entry_id, "item" => $fresh["item"] ?? $fresh,
+					"module" => $module_id, "table" => $table, "id" => $entry_id, "item" => $fresh["item"] ?? $fresh,
 				], ["user_id" => $request->user->id]);
 
 				return Response::ok($fresh);
 			}
 
-			BigTreeAutoModule::submitChange($module_id, $module["table"], $entry_id, $data, $mtm, $tags, null, $og);
+			BigTreeAutoModule::submitChange($module_id, $table, $entry_id, $data, $mtm, $tags, null, $og);
 			Hooks::fire("module_entry.pending_updated", [
-				"module" => $module_id, "table" => $module["table"], "id" => $entry_id,
+				"module" => $module_id, "table" => $table, "id" => $entry_id,
 			], ["user_id" => $request->user->id]);
 
 			return Response::ok(["pending" => true]);
@@ -176,8 +179,9 @@
 			$module_id = $request->route_params["id"];
 			$entry_id = (int)$request->route_params["eid"];
 			$module = $this->loadModule($module_id);
+			$table = $this->resolveTable($module, $request);
 
-			$existing = BigTreeAutoModule::getPendingItem($module["table"], $entry_id);
+			$existing = BigTreeAutoModule::getPendingItem($table, $entry_id);
 
 			if (!$existing) {
 				throw new NotFoundException("Entry $entry_id not found", "resource_not_found", 404);
@@ -187,9 +191,9 @@
 				throw new AuthorizationException("Row access denied by group permissions", "permission_denied", 403);
 			}
 
-			BigTreeAutoModule::deleteItem($module["table"], $entry_id);
+			BigTreeAutoModule::deleteItem($table, $entry_id);
 			Hooks::fire("module_entry.deleted", [
-				"module" => $module_id, "table" => $module["table"], "id" => $entry_id,
+				"module" => $module_id, "table" => $table, "id" => $entry_id,
 			], ["user_id" => $request->user->id]);
 
 			return Response::noContent();
@@ -210,23 +214,7 @@
 		public function reorder(Request $request) {
 			$module_id = $request->route_params["id"];
 			$module = $this->loadModule($module_id);
-			$view_id = (string)($request->body["view"] ?? "");
-
-			if ($view_id) {
-				$view = BigTreeAutoModule::getView($view_id);
-			} elseif (!empty($module["table"])) {
-				$view = BigTreeAutoModule::getViewForTable($module["table"]);
-			} else {
-				$views = is_array($module["views"] ?? null) ? $module["views"] : [];
-				$first_id = $views ? ($views[0]["id"] ?? null) : null;
-				$view = $first_id ? BigTreeAutoModule::getView($first_id) : null;
-			}
-
-			if (!$view || empty($view["table"])) {
-				throw new NotFoundException("No view/table resolvable for module $module_id", "no_view", 404);
-			}
-
-			$table = $view["table"];
+			$table = $this->resolveTable($module, $request);
 			$ids = array_map("intval", (array)$request->body["ids"]);
 			$pos = count($ids);
 
@@ -250,12 +238,7 @@
 			$module_id = $request->route_params["id"];
 			$entry_id = (int)$request->route_params["eid"];
 			$module = $this->loadModule($module_id);
-
-			if (empty($module["table"])) {
-				throw new NotFoundException("Module $module_id has no table", "no_table", 404);
-			}
-
-			$table = $module["table"];
+			$table = $this->resolveTable($module, $request);
 			$existing = BigTreeAutoModule::getPendingItem($table, $entry_id);
 
 			if (!$existing) {
@@ -293,5 +276,38 @@
 			}
 
 			return $m;
+		}
+
+		// Resolve the source table for an entry-level operation. Views own the
+		// `table` correlation in the current data model — the module-level
+		// `table` field is often empty. Callers should pass `view` in either
+		// the query string or body so we can resolve. Fallbacks: a view whose
+		// table matches `module["table"]`, or the module's first listed view.
+		private function resolveTable(array $module, Request $request): string {
+			$view_id = (string)($request->query["view"] ?? $request->body["view"] ?? "");
+
+			if ($view_id) {
+				$view = BigTreeAutoModule::getView($view_id);
+			} elseif (!empty($module["table"])) {
+				$view = BigTreeAutoModule::getViewForTable($module["table"]);
+			} else {
+				$views = is_array($module["views"] ?? null) ? $module["views"] : [];
+				$first_id = $views ? ($views[0]["id"] ?? null) : null;
+				$view = $first_id ? BigTreeAutoModule::getView($first_id) : null;
+			}
+
+			if ($view && !empty($view["table"])) {
+				return (string)$view["table"];
+			}
+
+			if (!empty($module["table"])) {
+				return (string)$module["table"];
+			}
+
+			throw new NotFoundException(
+				"No view/table resolvable for module {$module["id"]}",
+				"no_view",
+				404
+			);
 		}
 	}

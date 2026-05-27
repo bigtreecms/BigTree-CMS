@@ -92,7 +92,7 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 	const hasRowActions = builtinCount > 0 || custom.length > 0;
 
 	const deleteMutation = useMutation({
-		mutationFn: (entryId: number) => autoModulesApi.delete(moduleId, entryId),
+		mutationFn: (entryId: number) => autoModulesApi.delete(moduleId, entryId, view.id),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["module-entries", moduleId, view.id] });
 			toast.success("Entry deleted");

@@ -11,21 +11,25 @@
 			"service" => [AutoModuleService::class, "create"],
 			"permission" => ["module" => "%id%", "min" => "e"],
 			"allow_unknown" => true,
+			"query" => ["view" => "string|max:128"],
 			"audit" => ["table" => "module_entry", "type" => "created", "entry" => "%id%"],
 		],
 		"GET /modules/{id}/entries/{eid:int}" => [
 			"service" => [AutoModuleService::class, "get"],
 			"permission" => ["module" => "%id%", "min" => "v"],
+			"query" => ["view" => "string|max:128"],
 		],
 		"PATCH /modules/{id}/entries/{eid:int}" => [
 			"service" => [AutoModuleService::class, "update"],
 			"permission" => ["module" => "%id%", "min" => "e"],
 			"allow_unknown" => true,
+			"query" => ["view" => "string|max:128"],
 			"audit" => ["table" => "module_entry", "type" => "updated", "entry" => "%eid%"],
 		],
 		"DELETE /modules/{id}/entries/{eid:int}" => [
 			"service" => [AutoModuleService::class, "delete"],
 			"permission" => ["module" => "%id%", "min" => "p"],
+			"query" => ["view" => "string|max:128"],
 			"audit" => ["table" => "module_entry", "type" => "deleted", "entry" => "%eid%"],
 		],
 		"POST /modules/{id}/entries/reorder" => [
@@ -37,16 +41,19 @@
 		"POST /modules/{id}/entries/{eid:int}/archive" => [
 			"service" => [AutoModuleService::class, "toggleArchive"],
 			"permission" => ["module" => "%id%", "min" => "p"],
+			"query" => ["view" => "string|max:128"],
 			"audit" => ["table" => "module_entry", "type" => "archived", "entry" => "%eid%"],
 		],
 		"POST /modules/{id}/entries/{eid:int}/approve" => [
 			"service" => [AutoModuleService::class, "toggleApprove"],
 			"permission" => ["module" => "%id%", "min" => "p"],
+			"query" => ["view" => "string|max:128"],
 			"audit" => ["table" => "module_entry", "type" => "approved", "entry" => "%eid%"],
 		],
 		"POST /modules/{id}/entries/{eid:int}/feature" => [
 			"service" => [AutoModuleService::class, "toggleFeature"],
 			"permission" => ["module" => "%id%", "min" => "p"],
+			"query" => ["view" => "string|max:128"],
 			"audit" => ["table" => "module_entry", "type" => "featured", "entry" => "%eid%"],
 		],
 	];

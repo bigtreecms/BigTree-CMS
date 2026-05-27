@@ -43,19 +43,19 @@ export const BuiltinToggleButtons = ({
 	};
 
 	const archiveMutation = useMutation({
-		mutationFn: () => autoModulesApi.archive(moduleId, entryId),
+		mutationFn: () => autoModulesApi.archive(moduleId, entryId, viewId),
 		onSuccess,
 		onError: () => toast.error("Couldn't update archive state"),
 	});
 
 	const approveMutation = useMutation({
-		mutationFn: () => autoModulesApi.approve(moduleId, entryId),
+		mutationFn: () => autoModulesApi.approve(moduleId, entryId, viewId),
 		onSuccess,
 		onError: () => toast.error("Couldn't update approval state"),
 	});
 
 	const featureMutation = useMutation({
-		mutationFn: () => autoModulesApi.feature(moduleId, entryId),
+		mutationFn: () => autoModulesApi.feature(moduleId, entryId, viewId),
 		onSuccess,
 		onError: () => toast.error("Couldn't update feature state"),
 	});
