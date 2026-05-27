@@ -6,7 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
 import type { ModuleView } from "@/api/endpoints/modules";
 
-import { formatCellValue, parseViewActions } from "./viewHelpers";
+import { decodeHTMLEntities, formatCellValue, parseViewActions } from "./viewHelpers";
 
 /**
  * Runtime for the `grouped` view type. Entries are bucketed by a column
@@ -57,7 +57,8 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 
 		for (const row of rows) {
 			const raw = groupField ? row[groupField] : "";
-			const key = raw == null || raw === "" ? "—" : String(raw);
+			const key =
+				raw == null || raw === "" ? "—" : decodeHTMLEntities(String(raw));
 			const bucket = byGroup.get(key) ?? [];
 			bucket.push(row);
 			byGroup.set(key, bucket);

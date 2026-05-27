@@ -114,12 +114,36 @@ export const columnWidth = (field: ModuleViewFieldConfig): string => {
 	return `minmax(${px}px, ${px}fr)`;
 };
 
+// Legacy admin stores text in the database HTML-encoded (BigTree::safeEncode)
+// and the view cache holds those same encoded strings. React already escapes
+// when interpolating, so without decoding first the values render as
+// `Tom &amp; Jerry` instead of `Tom & Jerry`.
+let decodeEl: HTMLTextAreaElement | null = null;
+
+export const decodeHTMLEntities = (value: string): string => {
+	if (!value || value.indexOf("&") === -1) {
+		return value;
+	}
+
+	if (!decodeEl) {
+		decodeEl = document.createElement("textarea");
+	}
+
+	decodeEl.innerHTML = value;
+
+	return decodeEl.value;
+};
+
 export const formatCellValue = (value: unknown): string => {
 	if (value === null || value === undefined) {
 		return "";
 	}
 
-	if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+	if (typeof value === "string") {
+		return decodeHTMLEntities(value);
+	}
+
+	if (typeof value === "number" || typeof value === "boolean") {
 		return String(value);
 	}
 

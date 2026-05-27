@@ -1,27 +1,26 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Image as ImageIcon, Search, X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Edit, Image as ImageIcon, Search, Trash, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
 import type { ModuleView } from "@/api/endpoints/modules";
 
-import { formatCellValue, parseViewActions } from "./viewHelpers";
+import { type CustomViewAction, parseViewActions } from "./viewHelpers";
 
 /**
  * Runtime for the `images` view type — a grid of thumbnail cards.
  *
- *   - `view.settings.image` names the column holding the image URL.
+ *   - The image URL is always stored in `column1` of the view cache (the
+ *     legacy admin only caches the image column for `images` / `images-grouped`
+ *     views; the other fields configured in `view.fields` are not present in
+ *     the cache row, so no caption is shown).
  *   - `view.settings.prefix` is a filename prefix to prepend for previews
  *     (legacy "sml_" etc.); when set we splice it before the basename.
- *   - The other configured fields (`view.fields`) are shown as a caption
- *     underneath the thumbnail.
- *   - Clicking a card navigates to edit (when the edit action is enabled).
+ *   - Action icons (edit / delete / custom) render beneath each thumbnail,
+ *     mirroring the legacy admin.
  *
- * Drag-reorder + the per-row action gutter are deferred — image views in
- * the legacy admin show them inline on hover, but the grid layout makes the
- * action affordance less obvious in the SPA; clicking through to edit is the
- * primary affordance for now.
+ * Drag-reorder is deferred.
  */
 
 interface ImagesViewProps {
@@ -74,14 +73,9 @@ export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
 	});
 
 	const settings = view.settings as Record<string, unknown> | undefined;
-	const imageField = (settings?.image as string) || "image";
 	const prefix = (settings?.prefix as string) || "";
 
-	const { builtins } = useMemo(() => parseViewActions(view.actions), [view.actions]);
-	const captionColumns = useMemo(
-		() => Object.entries(view.fields ?? {}).filter(([key]) => key !== imageField),
-		[view.fields, imageField]
-	);
+	const { builtins, custom } = useMemo(() => parseViewActions(view.actions), [view.actions]);
 
 	const rows = listQuery.data?.items ?? [];
 
@@ -132,11 +126,13 @@ export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
 			) : (
 				<ImagesGrid
 					rows={rows}
-					imageField={imageField}
+					moduleId={moduleId}
+					viewId={view.id}
 					prefix={prefix}
-					captionColumns={captionColumns}
 					onClick={openEdit}
 					canEdit={builtins.edit}
+					canDelete={builtins.delete}
+					customActions={custom}
 				/>
 			)}
 		</>
@@ -145,62 +141,100 @@ export const ImagesView = ({ moduleId, view }: ImagesViewProps) => {
 
 interface ImagesGridProps {
 	rows: ModuleEntryRow[];
-	imageField: string;
+	moduleId: string;
+	viewId: string;
 	prefix: string;
-	captionColumns: [string, { title: string }][];
 	onClick: (row: ModuleEntryRow) => void;
 	canEdit: boolean;
+	canDelete: boolean;
+	customActions: CustomViewAction[];
 }
 
 export const ImagesGrid = ({
 	rows,
-	imageField,
+	moduleId,
+	viewId,
 	prefix,
-	captionColumns,
 	onClick,
 	canEdit,
+	canDelete,
+	customActions,
 }: ImagesGridProps) => {
+	const hasActions = canEdit || canDelete || customActions.length > 0;
+
 	return (
 		<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
 			{rows.map((row) => {
-				const src = expandImageUrl(row[imageField], prefix);
+				const src = expandImageUrl(row.column1, prefix);
 
 				return (
-					<button
+					<div
 						key={String(row.id)}
-						type="button"
-						className="group flex flex-col overflow-hidden rounded-lg border border-border bg-surface text-left transition-colors hover:border-border-strong hover:bg-surface-2 focus-visible:border-accent focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-ring disabled:cursor-default"
-						onClick={() => onClick(row)}
-						disabled={!canEdit}
+						className="group flex flex-col overflow-hidden rounded-lg border border-border bg-surface transition-colors hover:border-border-strong"
 					>
-						<div className="relative aspect-[4/3] w-full bg-surface-2">
-							{src ? (
-								<img
-									src={src}
-									alt=""
-									loading="lazy"
-									className="absolute inset-0 h-full w-full object-cover"
-								/>
-							) : (
-								<div className="absolute inset-0 grid place-items-center text-text-4">
-									<ImageIcon size={28} />
-								</div>
-							)}
-						</div>
+						<button
+							type="button"
+							className="block text-left focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent-ring disabled:cursor-default"
+							onClick={() => onClick(row)}
+							disabled={!canEdit}
+							aria-label="Edit"
+						>
+							<div className="relative aspect-[4/3] w-full bg-surface-2">
+								{src ? (
+									<img
+										src={src}
+										alt=""
+										loading="lazy"
+										className="absolute inset-0 h-full w-full object-cover"
+									/>
+								) : (
+									<div className="absolute inset-0 grid place-items-center text-text-4">
+										<ImageIcon size={28} />
+									</div>
+								)}
+							</div>
+						</button>
 
-						{captionColumns.length > 0 && (
-							<div className="flex flex-col gap-0.5 px-2.5 py-2 text-[12px]">
-								{captionColumns.map(([key], i) => (
-									<span
-										key={key}
-										className={i === 0 ? "font-medium text-text" : "text-text-3"}
+						{hasActions && (
+							<div className="flex items-center justify-end gap-1 border-t border-border bg-surface-2 px-2 py-1.5">
+								{customActions.map((action) => (
+									<Link
+										key={action.key}
+										to={`/modules/${moduleId}/view/${viewId}/${action.route}/${row.id}`}
+										className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+										title={action.name}
+										aria-label={action.name}
 									>
-										{formatCellValue(row[key])}
-									</span>
+										<span className="inline-block text-[11px] font-medium">
+											{action.name.slice(0, 2)}
+										</span>
+									</Link>
 								))}
+
+								{canEdit && (
+									<Link
+										to={`/modules/${moduleId}/view/${viewId}/edit/${row.id}`}
+										className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+										title="Edit"
+										aria-label="Edit"
+									>
+										<Edit size={14} />
+									</Link>
+								)}
+
+								{canDelete && (
+									<button
+										type="button"
+										className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"
+										title="Delete"
+										aria-label="Delete"
+									>
+										<Trash size={14} />
+									</button>
+								)}
 							</div>
 						)}
-					</button>
+					</div>
 				);
 			})}
 		</div>

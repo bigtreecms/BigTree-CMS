@@ -7,7 +7,7 @@ import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-module
 import type { ModuleView } from "@/api/endpoints/modules";
 
 import { ImagesGrid } from "./ImagesView";
-import { parseViewActions } from "./viewHelpers";
+import { decodeHTMLEntities, parseViewActions } from "./viewHelpers";
 
 /**
  * Runtime for `images-grouped` — combines GroupedView's section-per-bucket
@@ -37,35 +37,30 @@ export const ImagesGroupedView = ({ moduleId, view }: ImagesGroupedViewProps) =>
 	});
 
 	const settings = view.settings as Record<string, unknown> | undefined;
-	const imageField = (settings?.image as string) || "image";
 	const prefix = (settings?.prefix as string) || "";
-	const groupField =
-		(settings?.group_field as string) ||
-		(settings?.other_table_field as string) ||
-		(settings?.group_by as string) ||
-		"";
 
-	const { builtins } = useMemo(() => parseViewActions(view.actions), [view.actions]);
-	const captionColumns = useMemo(
-		() => Object.entries(view.fields ?? {}).filter(([key]) => key !== imageField),
-		[view.fields, imageField]
-	);
+	const { builtins, custom } = useMemo(() => parseViewActions(view.actions), [view.actions]);
 
 	const rows = listQuery.data?.items ?? [];
 
+	// The view cache always stores the bucket value in a fixed `group_field`
+	// column (see BigTreeAutoModule::cacheRecord), regardless of which source
+	// column the view's `settings.group_field` points at — so we read from
+	// that positional key, not the field name.
 	const groups = useMemo(() => {
 		const byGroup = new Map<string, ModuleEntryRow[]>();
 
 		for (const row of rows) {
-			const raw = groupField ? row[groupField] : "";
-			const key = raw == null || raw === "" ? "—" : String(raw);
+			const raw = row.group_field;
+			const key =
+				raw == null || raw === "" ? "—" : decodeHTMLEntities(String(raw));
 			const bucket = byGroup.get(key) ?? [];
 			bucket.push(row);
 			byGroup.set(key, bucket);
 		}
 
 		return Array.from(byGroup.entries()).sort(([a], [b]) => a.localeCompare(b));
-	}, [rows, groupField]);
+	}, [rows]);
 
 	const toggle = (key: string) => {
 		setCollapsed((prev) => {
@@ -155,11 +150,13 @@ export const ImagesGroupedView = ({ moduleId, view }: ImagesGroupedViewProps) =>
 									<div className="p-3">
 										<ImagesGrid
 											rows={items}
-											imageField={imageField}
+											moduleId={moduleId}
+											viewId={view.id}
 											prefix={prefix}
-											captionColumns={captionColumns}
 											onClick={openEdit}
 											canEdit={builtins.edit}
+											canDelete={builtins.delete}
+											customActions={custom}
 										/>
 									</div>
 								)}
