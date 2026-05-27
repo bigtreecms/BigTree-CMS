@@ -14,7 +14,8 @@ import type { ModuleView } from "@/api/endpoints/modules";
 import { useDragReorder } from "@/hooks/useDragReorder";
 import { toast } from "@/lib/toast";
 
-import { formatCellValue, parseViewActions } from "./viewHelpers";
+import { formatCellValue, iconForCustomAction, parseViewActions } from "./viewHelpers";
+import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
 
 /**
  * Runtime for the `draggable` view type. Flat list ordered by position; the
@@ -69,7 +70,7 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 	const rows = localRows ?? [];
 
 	const reorderMutation = useMutation({
-		mutationFn: (ids: Array<string | number>) => autoModulesApi.reorder(moduleId, ids),
+		mutationFn: (ids: Array<string | number>) => autoModulesApi.reorder(moduleId, ids, view.id),
 		onError: () => {
 			toast.error("Couldn't save the new order");
 			// Refetch to restore the server's truth.
@@ -91,7 +92,6 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 
 	const { builtins, custom } = useMemo(() => parseViewActions(view.actions), [view.actions]);
 	const fieldColumns = useMemo(() => Object.entries(view.fields ?? {}), [view.fields]);
-	const firstColKey = fieldColumns[0]?.[0];
 
 	const openEdit = (row: ModuleEntryRow) => {
 		if (!builtins.edit) {
@@ -175,32 +175,40 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 									</span>
 
 									<div className="flex min-w-0 flex-1 items-center gap-4">
-										{fieldColumns.map(([key]) => (
-											<span
-												key={key}
-												className={`truncate text-text-2 ${
-													key === firstColKey ? "font-medium text-text" : "flex-1"
-												}`}
-											>
-												{formatCellValue(r.row[key])}
-											</span>
-										))}
+										{fieldColumns.map(([key], index) => {
+											const valueKey = `column${index + 1}`;
+											const isFirst = index === 0;
+
+											return (
+												<span
+													key={key}
+													className={`truncate text-text-2 ${
+														isFirst ? "font-medium text-text" : "flex-1"
+													}`}
+												>
+													{formatCellValue(r.row[valueKey])}
+												</span>
+											);
+										})}
 									</div>
 
 									<div className="flex items-center gap-1">
-										{custom.map((action) => (
-											<Link
-												key={action.key}
-												to={`/modules/${moduleId}/view/${view.id}/${action.route}/${r.row.id}`}
-												className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
-												title={action.name}
-												onClick={(e) => e.stopPropagation()}
-											>
-												<span className="inline-block text-[11px] font-medium">
-													{action.name.slice(0, 2)}
-												</span>
-											</Link>
-										))}
+										{custom.map((action) => {
+											const Icon = iconForCustomAction(action.className);
+
+											return (
+												<Link
+													key={action.key}
+													to={`/modules/${moduleId}/view/${view.id}/${action.route}/${r.row.id}`}
+													className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+													title={action.name}
+													aria-label={action.name}
+													onClick={(e) => e.stopPropagation()}
+												>
+													<Icon size={15} />
+												</Link>
+											);
+										})}
 										{builtins.edit && (
 											<Link
 												to={`/modules/${moduleId}/view/${view.id}/edit/${r.row.id}`}
@@ -211,6 +219,12 @@ export const DraggableView = ({ moduleId, view }: DraggableViewProps) => {
 												<Edit size={15} />
 											</Link>
 										)}
+										<BuiltinToggleButtons
+											moduleId={moduleId}
+											viewId={view.id}
+											row={r.row}
+											builtins={builtins}
+										/>
 										{builtins.delete && (
 											<button
 												type="button"

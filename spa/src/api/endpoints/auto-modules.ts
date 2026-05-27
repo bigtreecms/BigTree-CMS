@@ -33,6 +33,9 @@ export interface ModuleEntriesListResponse {
 		per_page: number;
 		pages: number;
 	};
+	// Grouped/images-grouped only: maps the cached `group_field` value (often a
+	// foreign-key id) to the display title resolved from the view's `other_table`.
+	groups?: Record<string, string>;
 }
 
 export interface ModuleEntriesListParams {
@@ -84,8 +87,33 @@ export const autoModulesApi = {
 	delete: (moduleId: string, entryId: number) =>
 		api.delete<void>(`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}`),
 
-	reorder: (moduleId: string, ids: Array<number | string>) =>
+	reorder: (moduleId: string, ids: Array<number | string>, viewId?: string) =>
 		api.post<void>(`/modules/${encodeURIComponent(moduleId)}/entries/reorder`, {
 			ids,
+			...(viewId ? { view: viewId } : {}),
 		}),
+
+	archive: (moduleId: string, entryId: number) =>
+		api.post<ModuleEntryFlagToggleResponse>(
+			`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}/archive`,
+			{}
+		),
+
+	approve: (moduleId: string, entryId: number) =>
+		api.post<ModuleEntryFlagToggleResponse>(
+			`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}/approve`,
+			{}
+		),
+
+	feature: (moduleId: string, entryId: number) =>
+		api.post<ModuleEntryFlagToggleResponse>(
+			`/modules/${encodeURIComponent(moduleId)}/entries/${entryId}/feature`,
+			{}
+		),
 };
+
+export interface ModuleEntryFlagToggleResponse {
+	id: number;
+	column: "archived" | "approved" | "featured";
+	value: "" | "on";
+}

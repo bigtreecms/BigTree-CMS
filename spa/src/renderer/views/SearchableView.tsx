@@ -1,18 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-	Archive,
-	ArrowRight,
-	Check,
-	Download,
-	Edit,
-	Eye,
-	Search,
-	Star,
-	Trash,
-	X,
-	type LucideIcon,
-} from "lucide-react";
+import { Edit, Search, Trash, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { DataTable, type DataTableColumn, type DataTableSort } from "@/components/ui/DataTable";
@@ -31,9 +19,11 @@ import {
 	columnWidth,
 	formatCellValue,
 	formatSortParam,
+	iconForCustomAction,
 	parseSortSetting,
 	parseViewActions,
 } from "./viewHelpers";
+import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
 
 /**
  * Runtime for the `searchable` view type — the most common module view. Reads
@@ -58,32 +48,6 @@ interface SearchableViewProps {
 	moduleId: string;
 	view: ModuleView;
 }
-
-const customActionIcons: Record<string, LucideIcon> = {
-	icon_view: Eye,
-	icon_export: Download,
-	icon_preview: Eye,
-	icon_approve: Check,
-	icon_archive: Archive,
-	icon_feature: Star,
-	icon_download: Download,
-};
-
-const iconForCustomAction = (className: string | undefined): LucideIcon => {
-	if (!className) {
-		return ArrowRight;
-	}
-
-	for (const token of className.split(/\s+/)) {
-		const match = customActionIcons[token];
-
-		if (match) {
-			return match;
-		}
-	}
-
-	return ArrowRight;
-};
 
 export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 	const queryClient = useQueryClient();
@@ -119,7 +83,13 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 
 	const { builtins, custom } = useMemo(() => parseViewActions(view.actions), [view.actions]);
 	const fieldColumns = useMemo(() => Object.entries(view.fields ?? {}), [view.fields]);
-	const hasRowActions = builtins.edit || builtins.delete || custom.length > 0;
+	const builtinCount =
+		(builtins.edit ? 1 : 0) +
+		(builtins.delete ? 1 : 0) +
+		(builtins.archive ? 1 : 0) +
+		(builtins.approve ? 1 : 0) +
+		(builtins.feature ? 1 : 0);
+	const hasRowActions = builtinCount > 0 || custom.length > 0;
 
 	const deleteMutation = useMutation({
 		mutationFn: (entryId: number) => autoModulesApi.delete(moduleId, entryId),
@@ -160,7 +130,7 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 		});
 
 		if (hasRowActions) {
-			const actionsCount = (builtins.edit ? 1 : 0) + (builtins.delete ? 1 : 0) + custom.length;
+			const actionsCount = builtinCount + custom.length;
 
 			cols.push({
 				key: "__actions__",
@@ -202,6 +172,13 @@ export const SearchableView = ({ moduleId, view }: SearchableViewProps) => {
 									<Edit size={15} />
 								</Link>
 							)}
+
+							<BuiltinToggleButtons
+								moduleId={moduleId}
+								viewId={view.id}
+								row={row}
+								builtins={builtins}
+							/>
 
 							{builtins.delete && (
 								<button

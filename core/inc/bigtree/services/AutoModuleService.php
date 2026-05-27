@@ -51,7 +51,7 @@
 				return PermissionService::userRowLevel($request->user, $module, $row) !== "n";
 			});
 
-			return Response::ok([
+			$payload = [
 				"view" => ["id" => $view["id"] ?? null, "title" => $view["title"] ?? ""],
 				"items" => array_values($results["results"]),
 				"meta" => [
@@ -59,7 +59,22 @@
 					"per_page" => (int)($results["per_page"] ?? 0),
 					"pages" => (int)($results["pages"] ?? 0),
 				],
-			]);
+			];
+
+			// Grouped views need the cached numeric `group_field` resolved to a
+			// human-readable title (legacy reads from `other_table.title_field`).
+			// Keys are stringified so the JSON object preserves insertion order
+			// for the SPA, which iterates in the server-provided sort.
+			if (($view["type"] ?? "") === "grouped" || ($view["type"] ?? "") === "images-grouped") {
+				$groups = BigTreeAutoModule::getGroupsForView($view);
+				$payload["groups"] = [];
+
+				foreach ($groups as $key => $title) {
+					$payload["groups"][(string)$key] = $title;
+				}
+			}
+
+			return Response::ok($payload);
 		}
 
 		public function get(Request $request) {
@@ -180,17 +195,92 @@
 			return Response::noContent();
 		}
 
+		public function toggleArchive(Request $request) {
+			return $this->toggleFlag($request, "archived");
+		}
+
+		public function toggleApprove(Request $request) {
+			return $this->toggleFlag($request, "approved");
+		}
+
+		public function toggleFeature(Request $request) {
+			return $this->toggleFlag($request, "featured");
+		}
+
 		public function reorder(Request $request) {
 			$module_id = $request->route_params["id"];
 			$module = $this->loadModule($module_id);
+			$view_id = (string)($request->body["view"] ?? "");
+
+			if ($view_id) {
+				$view = BigTreeAutoModule::getView($view_id);
+			} elseif (!empty($module["table"])) {
+				$view = BigTreeAutoModule::getViewForTable($module["table"]);
+			} else {
+				$views = is_array($module["views"] ?? null) ? $module["views"] : [];
+				$first_id = $views ? ($views[0]["id"] ?? null) : null;
+				$view = $first_id ? BigTreeAutoModule::getView($first_id) : null;
+			}
+
+			if (!$view || empty($view["table"])) {
+				throw new NotFoundException("No view/table resolvable for module $module_id", "no_view", 404);
+			}
+
+			$table = $view["table"];
 			$ids = array_map("intval", (array)$request->body["ids"]);
 			$pos = count($ids);
 
 			foreach ($ids as $id) {
-				SQL::update($module["table"], $id, ["position" => $pos--]);
+				SQL::update($table, $id, ["position" => $pos--]);
+				BigTreeAutoModule::recacheItem($id, $table);
+			}
+
+			foreach (BigTreeAutoModule::getDependantViews($table) as $dep) {
+				BigTreeAutoModule::clearCache($dep["table"]);
 			}
 
 			return Response::noContent();
+		}
+
+		// Toggle one of the three legacy boolean columns (archived / approved /
+		// featured) on the module's source table. Mirrors the legacy admin
+		// ajax/auto-modules/views/{archive,approve,feature}.php — publisher only,
+		// gated by gbp row-level access, recaches the view-cache row on flip.
+		private function toggleFlag(Request $request, string $column) {
+			$module_id = $request->route_params["id"];
+			$entry_id = (int)$request->route_params["eid"];
+			$module = $this->loadModule($module_id);
+
+			if (empty($module["table"])) {
+				throw new NotFoundException("Module $module_id has no table", "no_table", 404);
+			}
+
+			$table = $module["table"];
+			$existing = BigTreeAutoModule::getPendingItem($table, $entry_id);
+
+			if (!$existing) {
+				throw new NotFoundException("Entry $entry_id not found", "resource_not_found", 404);
+			}
+
+			if (PermissionService::userRowLevel($request->user, $module, $existing["item"] ?? []) !== "p") {
+				throw new AuthorizationException("Publisher access required", "permission_denied", 403);
+			}
+
+			$current = (string)($existing["item"][$column] ?? "");
+			$next = $current ? "" : "on";
+
+			SQL::update($table, $entry_id, [$column => $next]);
+			BigTreeAutoModule::recacheItem($entry_id, $table);
+
+			Hooks::fire("module_entry.{$column}", [
+				"module" => $module_id, "table" => $table, "id" => $entry_id, "value" => $next,
+			], ["user_id" => $request->user->id]);
+
+			return Response::ok([
+				"id" => $entry_id,
+				"column" => $column,
+				"value" => $next,
+			]);
 		}
 
 		// — helpers —

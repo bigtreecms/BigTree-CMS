@@ -1,3 +1,13 @@
+import {
+	Archive,
+	ArrowRight,
+	Check,
+	Download,
+	Eye,
+	Star,
+	type LucideIcon,
+} from "lucide-react";
+
 import type { DataTableSort } from "@/components/ui/DataTable";
 import type { ModuleView, ModuleViewFieldConfig } from "@/api/endpoints/modules";
 
@@ -17,6 +27,9 @@ export interface CustomViewAction {
 export interface BuiltinViewActionFlags {
 	edit: boolean;
 	delete: boolean;
+	archive: boolean;
+	approve: boolean;
+	feature: boolean;
 }
 
 export interface ParsedViewActions {
@@ -31,7 +44,13 @@ export interface ParsedViewActions {
 export const parseViewActions = (
 	actions: Record<string, string> | undefined
 ): ParsedViewActions => {
-	const builtins: BuiltinViewActionFlags = { edit: false, delete: false };
+	const builtins: BuiltinViewActionFlags = {
+		edit: false,
+		delete: false,
+		archive: false,
+		approve: false,
+		feature: false,
+	};
 	const custom: CustomViewAction[] = [];
 
 	if (!actions) {
@@ -44,6 +63,12 @@ export const parseViewActions = (
 				builtins.edit = true;
 			} else if (key === "delete") {
 				builtins.delete = true;
+			} else if (key === "archive") {
+				builtins.archive = true;
+			} else if (key === "approve") {
+				builtins.approve = true;
+			} else if (key === "feature") {
+				builtins.feature = true;
 			}
 
 			continue;
@@ -86,6 +111,36 @@ export const parseSortSetting = (view: ModuleView): DataTableSort | undefined =>
 	return { key: col, dir: dir === "DESC" ? "desc" : "asc" };
 };
 
+// Map legacy admin CSS classes (e.g. `icon_view`, `icon_export`) onto Lucide
+// icons. Custom view actions store the class string in `class`; without this
+// the action renders as the first two letters of its name (e.g. "Re" for
+// "Report"). ArrowRight is the generic fallback when nothing matches.
+const customActionIcons: Record<string, LucideIcon> = {
+	icon_view: Eye,
+	icon_export: Download,
+	icon_preview: Eye,
+	icon_approve: Check,
+	icon_archive: Archive,
+	icon_feature: Star,
+	icon_download: Download,
+};
+
+export const iconForCustomAction = (className: string | undefined): LucideIcon => {
+	if (!className) {
+		return ArrowRight;
+	}
+
+	for (const token of className.split(/\s+/)) {
+		const match = customActionIcons[token];
+
+		if (match) {
+			return match;
+		}
+	}
+
+	return ArrowRight;
+};
+
 export const formatSortParam = (sort: DataTableSort | undefined): string | undefined => {
 	if (!sort) {
 		return undefined;
@@ -114,10 +169,12 @@ export const columnWidth = (field: ModuleViewFieldConfig): string => {
 	return `minmax(${px}px, ${px}fr)`;
 };
 
-// Legacy admin stores text in the database HTML-encoded (BigTree::safeEncode)
-// and the view cache holds those same encoded strings. React already escapes
-// when interpolating, so without decoding first the values render as
-// `Tom &amp; Jerry` instead of `Tom & Jerry`.
+// Legacy admin double-encodes by design: BigTree::safeEncode runs once at form
+// save (source table) and again when the view cache is rebuilt, so a literal
+// `Tom & Jerry` lands in the cache as `Tom &amp;amp; Jerry`. We unwind in a
+// loop until the textarea round-trip stops changing the string (capped to
+// avoid pathological input). The 5-iteration cap is well above the 2 passes
+// the codebase actually produces.
 let decodeEl: HTMLTextAreaElement | null = null;
 
 export const decodeHTMLEntities = (value: string): string => {
@@ -129,9 +186,20 @@ export const decodeHTMLEntities = (value: string): string => {
 		decodeEl = document.createElement("textarea");
 	}
 
-	decodeEl.innerHTML = value;
+	let current = value;
 
-	return decodeEl.value;
+	for (let i = 0; i < 5; i++) {
+		decodeEl.innerHTML = current;
+		const next = decodeEl.value;
+
+		if (next === current) {
+			break;
+		}
+
+		current = next;
+	}
+
+	return current;
 };
 
 export const formatCellValue = (value: unknown): string => {

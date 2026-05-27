@@ -6,13 +6,22 @@ import { Link, useNavigate } from "react-router-dom";
 import { autoModulesApi, type ModuleEntryRow } from "@/api/endpoints/auto-modules";
 import type { ModuleView } from "@/api/endpoints/modules";
 
-import { decodeHTMLEntities, formatCellValue, parseViewActions } from "./viewHelpers";
+import {
+	decodeHTMLEntities,
+	formatCellValue,
+	iconForCustomAction,
+	parseViewActions,
+} from "./viewHelpers";
+import { BuiltinToggleButtons } from "./BuiltinToggleButtons";
 
 /**
- * Runtime for the `grouped` view type. Entries are bucketed by a column
- * configured in `view.settings.group_field` (legacy admin reads it from
- * a few keys — `group_field`, `other_table_field`, `group_by`). Each
- * bucket is its own collapsible section.
+ * Runtime for the `grouped` view type. Rows are bucketed by their cached
+ * `group_field` column (populated by BigTreeAutoModule::cacheRecord from
+ * `view.settings.group_field`). The server returns a `groups` map that
+ * resolves the raw key (often a foreign-key id) to the display title via
+ * the view's `other_table` — without it, group headers would render as
+ * the bare numeric id. Section order follows the server map's insertion
+ * order so `ot_sort_field` is honored.
  *
  * Default expansion state: all expanded. Search hides empty groups.
  */
@@ -21,6 +30,15 @@ interface GroupedViewProps {
 	moduleId: string;
 	view: ModuleView;
 }
+
+// Legacy `_common-js.php` overrides the displayed title when grouping by one
+// of the built-in BigTree status columns — the cached value is "on" / "" and
+// not human-readable on its own.
+const specialGroupTitles: Record<string, Record<string, string>> = {
+	featured: { on: "Featured", "": "Normal" },
+	archived: { on: "Archived", "": "Active" },
+	approved: { on: "Approved", "": "Not Approved" },
+};
 
 export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 	const navigate = useNavigate();
@@ -40,32 +58,50 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 	});
 
 	const settings = view.settings as Record<string, unknown> | undefined;
-	const groupField =
-		(settings?.group_field as string) ||
-		(settings?.other_table_field as string) ||
-		(settings?.group_by as string) ||
-		"";
+	const groupField = (settings?.group_field as string) || "";
+	const titleOverrides = specialGroupTitles[groupField];
 
 	const { builtins, custom } = useMemo(() => parseViewActions(view.actions), [view.actions]);
 	const fieldColumns = useMemo(() => Object.entries(view.fields ?? {}), [view.fields]);
-	const firstColKey = fieldColumns[0]?.[0];
 
 	const rows = listQuery.data?.items ?? [];
+	const groupTitles = listQuery.data?.groups;
 
 	const groups = useMemo(() => {
-		const byGroup = new Map<string, ModuleEntryRow[]>();
+		const byGroup = new Map<string, { title: string; items: ModuleEntryRow[] }>();
+		const titleFor = (rawKey: string): string => {
+			const override = titleOverrides?.[rawKey];
 
-		for (const row of rows) {
-			const raw = groupField ? row[groupField] : "";
-			const key =
-				raw == null || raw === "" ? "—" : decodeHTMLEntities(String(raw));
-			const bucket = byGroup.get(key) ?? [];
-			bucket.push(row);
-			byGroup.set(key, bucket);
+			if (override !== undefined) {
+				return override;
+			}
+
+			const resolved = groupTitles?.[rawKey];
+
+			if (resolved !== undefined && resolved !== "") {
+				return decodeHTMLEntities(resolved);
+			}
+
+			return rawKey === "" ? "—" : decodeHTMLEntities(rawKey);
+		};
+
+		// Seed buckets in server-provided order so `ot_sort_field` is preserved.
+		if (groupTitles) {
+			for (const rawKey of Object.keys(groupTitles)) {
+				byGroup.set(rawKey, { title: titleFor(rawKey), items: [] });
+			}
 		}
 
-		return Array.from(byGroup.entries()).sort(([a], [b]) => a.localeCompare(b));
-	}, [rows, groupField]);
+		for (const row of rows) {
+			const raw = row.group_field;
+			const rawKey = raw == null ? "" : String(raw);
+			const bucket = byGroup.get(rawKey) ?? { title: titleFor(rawKey), items: [] };
+			bucket.items.push(row);
+			byGroup.set(rawKey, bucket);
+		}
+
+		return Array.from(byGroup.entries()).filter(([, { items }]) => items.length > 0);
+	}, [rows, groupTitles, titleOverrides]);
 
 	const toggle = (key: string) => {
 		setCollapsed((prev) => {
@@ -133,7 +169,7 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 				</div>
 			) : (
 				<div className="flex flex-col gap-4">
-					{groups.map(([groupKey, items]) => {
+					{groups.map(([groupKey, { title, items }]) => {
 						const isCollapsed = collapsed.has(groupKey);
 
 						return (
@@ -152,7 +188,7 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 										<ChevronDown size={13} className="text-text-3" />
 									)}
 									<h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text">
-										{groupKey}
+										{title}
 									</h3>
 									<span className="text-[11px] tabular-nums text-text-3">{items.length}</span>
 								</button>
@@ -168,32 +204,40 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 												onClick={() => openEdit(row)}
 											>
 												<div className="flex min-w-0 flex-1 items-center gap-4">
-													{fieldColumns.map(([key]) => (
-														<span
-															key={key}
-															className={`truncate text-text-2 ${
-																key === firstColKey ? "font-medium text-text" : "flex-1"
-															}`}
-														>
-															{formatCellValue(row[key])}
-														</span>
-													))}
+													{fieldColumns.map(([key], index) => {
+														const valueKey = `column${index + 1}`;
+														const isFirst = index === 0;
+
+														return (
+															<span
+																key={key}
+																className={`truncate text-text-2 ${
+																	isFirst ? "font-medium text-text" : "flex-1"
+																}`}
+															>
+																{formatCellValue(row[valueKey])}
+															</span>
+														);
+													})}
 												</div>
 
 												<div className="flex items-center gap-1">
-													{custom.map((action) => (
-														<Link
-															key={action.key}
-															to={`/modules/${moduleId}/view/${view.id}/${action.route}/${row.id}`}
-															className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
-															title={action.name}
-															onClick={(e) => e.stopPropagation()}
-														>
-															<span className="inline-block text-[11px] font-medium">
-																{action.name.slice(0, 2)}
-															</span>
-														</Link>
-													))}
+													{custom.map((action) => {
+														const Icon = iconForCustomAction(action.className);
+
+														return (
+															<Link
+																key={action.key}
+																to={`/modules/${moduleId}/view/${view.id}/${action.route}/${row.id}`}
+																className="rounded p-1 text-text-3 hover:bg-hover hover:text-text"
+																title={action.name}
+																aria-label={action.name}
+																onClick={(e) => e.stopPropagation()}
+															>
+																<Icon size={15} />
+															</Link>
+														);
+													})}
 													{builtins.edit && (
 														<Link
 															to={`/modules/${moduleId}/view/${view.id}/edit/${row.id}`}
@@ -204,6 +248,12 @@ export const GroupedView = ({ moduleId, view }: GroupedViewProps) => {
 															<Edit size={15} />
 														</Link>
 													)}
+													<BuiltinToggleButtons
+														moduleId={moduleId}
+														viewId={view.id}
+														row={row}
+														builtins={builtins}
+													/>
 													{builtins.delete && (
 														<button
 															type="button"

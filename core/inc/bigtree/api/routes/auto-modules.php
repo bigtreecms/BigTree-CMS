@@ -31,7 +31,22 @@
 		"POST /modules/{id}/entries/reorder" => [
 			"service" => [AutoModuleService::class, "reorder"],
 			"permission" => ["module" => "%id%", "min" => "p"],
-			"body" => ["ids" => "required|array"],
+			"body" => ["ids" => "required|array", "view" => "string|max:128"],
 			"audit" => ["table" => "module_entry", "type" => "reordered", "entry" => "%id%"],
+		],
+		"POST /modules/{id}/entries/{eid:int}/archive" => [
+			"service" => [AutoModuleService::class, "toggleArchive"],
+			"permission" => ["module" => "%id%", "min" => "p"],
+			"audit" => ["table" => "module_entry", "type" => "archived", "entry" => "%eid%"],
+		],
+		"POST /modules/{id}/entries/{eid:int}/approve" => [
+			"service" => [AutoModuleService::class, "toggleApprove"],
+			"permission" => ["module" => "%id%", "min" => "p"],
+			"audit" => ["table" => "module_entry", "type" => "approved", "entry" => "%eid%"],
+		],
+		"POST /modules/{id}/entries/{eid:int}/feature" => [
+			"service" => [AutoModuleService::class, "toggleFeature"],
+			"permission" => ["module" => "%id%", "min" => "p"],
+			"audit" => ["table" => "module_entry", "type" => "featured", "entry" => "%eid%"],
 		],
 	];
