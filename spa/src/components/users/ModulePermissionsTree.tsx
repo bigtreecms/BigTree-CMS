@@ -35,10 +35,11 @@ export const ModulePermissionsTree = ({ value, onChange }: ModulePermissionsTree
 	const grouped = useMemo(() => {
 		const modules = modulesQ.data ?? [];
 		const groups = groupsQ.data ?? [];
-		const byGroup = new Map<number, ModuleSummary[]>();
+		const byGroup = new Map<string, ModuleSummary[]>();
+		const UNGROUPED_KEY = "__ungrouped__";
 
 		for (const m of modules) {
-			const key = m.group ?? 0;
+			const key = m.group ?? UNGROUPED_KEY;
 			const list = byGroup.get(key) ?? [];
 			list.push(m);
 			byGroup.set(key, list);
@@ -58,22 +59,25 @@ export const ModulePermissionsTree = ({ value, onChange }: ModulePermissionsTree
 			}
 		}
 
-		const ungrouped = byGroup.get(0);
+		const ungrouped = byGroup.get(UNGROUPED_KEY);
 
 		if (ungrouped && ungrouped.length) {
-			ordered.push({ group: { id: 0, name: "— Ungrouped —" }, modules: ungrouped });
+			ordered.push({
+				group: { id: UNGROUPED_KEY, name: "— Ungrouped —" },
+				modules: ungrouped,
+			});
 		}
 
 		return ordered;
 	}, [modulesQ.data, groupsQ.data]);
 
-	const setPerm = (id: number, perm: PermissionCode) => {
+	const setPerm = (id: string, perm: PermissionCode) => {
 		const next = { ...(value ?? {}) };
 
 		if (perm === "" || perm === "i") {
-			delete next[String(id)];
+			delete next[id];
 		} else {
-			next[String(id)] = perm;
+			next[id] = perm;
 		}
 
 		onChange(next);
@@ -117,8 +121,7 @@ export const ModulePermissionsTree = ({ value, onChange }: ModulePermissionsTree
 						</div>
 
 						{modules.map((m) => {
-							const idKey = String(m.id);
-							const current = value?.[idKey] ?? "";
+							const current = value?.[m.id] ?? "";
 							const gbpEnabled = !!m.gbp?.enabled;
 
 							return (
