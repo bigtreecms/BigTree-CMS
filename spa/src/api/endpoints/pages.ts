@@ -166,5 +166,8 @@ export const pagesApi = {
 
 		delete: (id: number, revisionId: number) =>
 			api.delete<void>(`/pages/${id}/revisions/${revisionId}`),
+
+		restore: (id: number, revisionId: number) =>
+			api.post<void>(`/pages/${id}/revisions/${revisionId}/restore`, {}),
 	},
 };

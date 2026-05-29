@@ -116,6 +116,13 @@
 			"permission" => ["module" => "%id%", "min" => "v"],
 		],
 
+		// Dynamic list-field options (db / state / country) for the SPA SelectField.
+		// Read-only; gated by view access like relation-options.
+		"GET /modules/{id}/forms/{sid}/list-options" => [
+			"service" => [ModuleService::class, "listOptions"],
+			"permission" => ["module" => "%id%", "min" => "v"],
+		],
+
 		"GET /modules/{id}/views" => ["service" => [ModuleService::class, "views"], "permission" => ["module" => "%id%", "min" => "v"]],
 		"POST /modules/{id}/views" => [
 			"service" => [ModuleService::class, "createView"],

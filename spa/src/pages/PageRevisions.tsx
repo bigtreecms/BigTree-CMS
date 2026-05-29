@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { ChevronLeft, Save, Trash } from "lucide-react";
+import { ChevronLeft, RotateCcw, Save, Trash } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
@@ -16,14 +16,14 @@ import { toast } from "@/lib/toast";
 /**
  * Revisions list for a single page.
  *
- *   GET    /pages/{id}/revisions             list
- *   POST   /pages/{id}/revisions             save a new snapshot
- *   DELETE /pages/{id}/revisions/{revision}  delete
+ *   GET    /pages/{id}/revisions                  list
+ *   POST   /pages/{id}/revisions                  save a new snapshot
+ *   DELETE /pages/{id}/revisions/{revision}       delete
+ *   POST   /pages/{id}/revisions/{revision}/restore  restore onto the live page
  *
- * "Restore from revision" is intentionally absent — the legacy admin's
- * use-revision flow rewrites the page's pending draft, but the new API
- * doesn't yet expose that operation. Surfacing it here would be a half-baked
- * feature; we'll wire it in when the server endpoint lands.
+ * Restore overwrites the live page with the revision's content. The server
+ * first snapshots the current published state as an auto-revision, so a restore
+ * can itself be undone by restoring that snapshot.
  */
 export const PageRevisions = () => {
 	const { id: idParam } = useParams<{ id: string }>();
@@ -46,6 +46,7 @@ export const PageRevisions = () => {
 
 	const [description, setDescription] = useState("");
 	const [confirmDelete, setConfirmDelete] = useState<PageRevision | null>(null);
+	const [confirmRestore, setConfirmRestore] = useState<PageRevision | null>(null);
 
 	const saveMutation = useMutation({
 		mutationFn: () => pagesApi.revisions.save(id, description.trim()),
@@ -70,6 +71,22 @@ export const PageRevisions = () => {
 		},
 		onError: () => {
 			toast.error("Could not delete revision");
+		},
+	});
+
+	const restoreMutation = useMutation({
+		mutationFn: (rev: PageRevision) => pagesApi.revisions.restore(id, rev.id),
+		onSuccess: () => {
+			// Restore rewrites the live page and adds an auto-snapshot revision.
+			queryClient.invalidateQueries({ queryKey: ["pages", "revisions", id] });
+			queryClient.invalidateQueries({ queryKey: ["pages", "detail", id] });
+			setConfirmRestore(null);
+			toast.success("Revision restored to the live page");
+		},
+		onError: (err) => {
+			const message =
+				err instanceof ApiError && err.message ? err.message : "Could not restore revision";
+			toast.error(message);
 		},
 	});
 
@@ -164,6 +181,7 @@ export const PageRevisions = () => {
 				revisions={saved}
 				showDescription
 				onDelete={setConfirmDelete}
+				onRestore={setConfirmRestore}
 			/>
 
 			<RevisionSection
@@ -171,12 +189,8 @@ export const PageRevisions = () => {
 				empty="No auto-saved revisions on file."
 				revisions={unsaved}
 				onDelete={setConfirmDelete}
+				onRestore={setConfirmRestore}
 			/>
-
-			<p className="mt-4 text-[11.5px] text-text-3">
-				Restoring a revision back into the editor requires a server endpoint that hasn't
-				shipped yet. Until then this screen handles snapshot + delete only.
-			</p>
 
 			{confirmDelete && (
 				<ConfirmDialog
@@ -193,6 +207,21 @@ export const PageRevisions = () => {
 					onConfirm={() => deleteMutation.mutate(confirmDelete)}
 				/>
 			)}
+
+			{confirmRestore && (
+				<ConfirmDialog
+					open={true}
+					onOpenChange={(open) => {
+						if (!open) {
+							setConfirmRestore(null);
+						}
+					}}
+					title="Restore this revision?"
+					description={`The live page will be overwritten with the version from ${confirmRestore.updated_at}. The current version is snapshotted first, so you can undo this.`}
+					confirmLabel="Restore revision"
+					onConfirm={() => restoreMutation.mutate(confirmRestore)}
+				/>
+			)}
 		</div>
 	);
 };
@@ -203,6 +232,7 @@ interface RevisionSectionProps {
 	revisions: PageRevision[];
 	showDescription?: boolean;
 	onDelete: (rev: PageRevision) => void;
+	onRestore: (rev: PageRevision) => void;
 }
 
 const RevisionSection = ({
@@ -211,6 +241,7 @@ const RevisionSection = ({
 	revisions,
 	showDescription,
 	onDelete,
+	onRestore,
 }: RevisionSectionProps) => (
 	<section className="mb-4">
 		<h2 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.05em] text-text-3">
@@ -225,7 +256,7 @@ const RevisionSection = ({
 				{revisions.map((rev) => (
 					<li
 						key={rev.id}
-						className="grid grid-cols-[minmax(0,1fr)_140px_60px] items-center gap-3 px-3 py-2 text-[12.5px]"
+						className="grid grid-cols-[minmax(0,1fr)_140px_90px] items-center gap-3 px-3 py-2 text-[12.5px]"
 					>
 						<div className="min-w-0">
 							<div className="truncate text-text-2">
@@ -240,7 +271,16 @@ const RevisionSection = ({
 						<div className="text-right text-[11px] tabular-nums text-text-3">
 							{rev.updated_at}
 						</div>
-						<div className="flex justify-end">
+						<div className="flex justify-end gap-1">
+							<button
+								type="button"
+								className="rounded p-1 text-text-3 hover:bg-hover hover:text-accent"
+								onClick={() => onRestore(rev)}
+								title="Restore revision"
+								aria-label="Restore revision"
+							>
+								<RotateCcw size={13} />
+							</button>
 							<button
 								type="button"
 								className="rounded p-1 text-text-3 hover:bg-hover hover:text-danger"

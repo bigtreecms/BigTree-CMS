@@ -503,6 +503,117 @@
 		 * parse out the first identifier and validate it against the actual
 		 * column list before re-attaching the direction.
 		 */
+		/**
+		 * Resolve the options for a dynamic "list" field (the SPA SelectField).
+		 * Mirrors the legacy list field-type draw.php for the non-static list
+		 * types:
+		 *
+		 *   - db      → SELECT id + descriptor from the configured table
+		 *   - state   → BigTree::$StateList
+		 *   - country → BigTree::$CountryList
+		 *   - static  → the stored `list` (also handled client-side, returned here
+		 *               for completeness)
+		 *
+		 * Table/column names come from the developer-defined field settings and are
+		 * validated against the live schema before being used in SQL — never raw
+		 * client input. The legacy `parser` callback (arbitrary PHP) is intentionally
+		 * not run.
+		 */
+		public function listOptions(Request $request) {
+			$module_id = $request->route_params["id"];
+			$form_id = $request->route_params["sid"];
+			$column = (string)($request->query["column"] ?? "");
+
+			if ($column === "") {
+				throw new BadRequestException("`column` query param is required", "missing_column", 400);
+			}
+
+			$module = $this->loadModule($module_id);
+			$form = $this->findSub($module["forms"] ?? [], $form_id);
+
+			if (!$form) {
+				throw new NotFoundException("Form $form_id not found", "resource_not_found", 404);
+			}
+
+			$field = null;
+
+			foreach ((array)($form["fields"] ?? []) as $candidate) {
+				if (($candidate["column"] ?? "") === $column) {
+					$field = $candidate;
+
+					break;
+				}
+			}
+
+			if (!$field) {
+				throw new NotFoundException("Field `$column` not found in form $form_id", "resource_not_found", 404);
+			}
+
+			if ((string)($field["type"] ?? "") !== "list") {
+				throw new BadRequestException("Field `$column` is not a list field", "invalid_field_type", 400);
+			}
+
+			$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+			$list_type = (string)($settings["list_type"] ?? "static");
+			$options = [];
+
+			if ($list_type === "db") {
+				$options = $this->resolveDatabaseList($settings, $column);
+			} elseif ($list_type === "state") {
+				foreach (BigTree::$StateList as $abbr => $name) {
+					$options[] = ["value" => (string)$abbr, "label" => (string)$name];
+				}
+			} elseif ($list_type === "country") {
+				foreach (BigTree::$CountryList as $country) {
+					$options[] = ["value" => (string)$country, "label" => (string)$country];
+				}
+			} else {
+				$list = is_array($settings["list"] ?? null) ? $settings["list"] : [];
+
+				foreach ($list as $item) {
+					if (!is_array($item)) {
+						continue;
+					}
+
+					$value = (string)($item["key"] ?? $item["value"] ?? "");
+					$options[] = ["value" => $value, "label" => (string)($item["description"] ?? $item["label"] ?? $value)];
+				}
+			}
+
+			return Response::ok(["options" => $options]);
+		}
+
+		/** Run the validated SELECT behind a db-populated list. */
+		private function resolveDatabaseList(array $settings, string $column): array {
+			$table = (string)($settings["pop-table"] ?? "");
+			$descriptor = (string)($settings["pop-description"] ?? "");
+			$sort = (string)($settings["pop-sort"] ?? "");
+
+			if ($table === "" || $descriptor === "") {
+				throw new BadRequestException("Field `$column` is missing table/descriptor settings", "invalid_field_settings", 400);
+			}
+
+			$schema = BigTree::describeTable($table);
+
+			if (!$schema || empty($schema["columns"])) {
+				throw new NotFoundException("Table `$table` not found", "resource_not_found", 404);
+			}
+
+			if (empty($schema["columns"][$descriptor]) || empty($schema["columns"]["id"])) {
+				throw new BadRequestException("Field `$column` references columns that don't exist on `$table`", "invalid_field_settings", 400);
+			}
+
+			$order_by = $this->safeOrderClause($sort, $schema["columns"], $descriptor);
+			$options = [];
+			$query = \sqlquery("SELECT `id`, `$descriptor` AS `__label` FROM `$table` ORDER BY $order_by");
+
+			while ($row = \sqlfetch($query)) {
+				$options[] = ["value" => (string)$row["id"], "label" => (string)$row["__label"]];
+			}
+
+			return $options;
+		}
+
 		private function safeOrderClause(string $raw, array $columns, string $fallback): string {
 			$trimmed = trim($raw);
 

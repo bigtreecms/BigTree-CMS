@@ -12,15 +12,11 @@ import { settingsOf, type FieldComponentProps } from "./types";
  * and writes the result into `latitude` / `longitude` columns on the entry
  * row. The field itself never stores a value of its own.
  *
- * The new SPA API flow (BigTreeAutoModule::createItem via AutoModuleService)
- * does NOT invoke field processors — so geocoding currently does not fire on
- * save through the new path. This component is intentionally a read-only
- * panel that surfaces the configured source fields and is honest about the
- * "not wired up yet" status, rather than pretending to work.
- *
- * Follow-up to make this functional end-to-end: invoke
- * `BigTreeAdmin::processField` for geocoding fields in AutoModuleService
- * before passing data to createItem, OR run the geocode call client-side.
+ * AutoModuleService runs the geocoding processor on save (see
+ * applyGeocoding): it concatenates the configured source columns, geocodes the
+ * address, and writes `latitude` / `longitude` onto the entry. This component
+ * is a read-only panel that surfaces the configured source fields; the field
+ * has no value of its own.
  */
 interface GeocodingFieldSettings {
 	fields?: string[] | string;
@@ -69,11 +65,6 @@ export const GeocodingField = ({ field }: FieldComponentProps) => {
 					on save.
 				</p>
 			)}
-
-			<p className="mt-1.5 text-text-3/80">
-				Note: the SPA's save path does not yet invoke server-side field processors — lat/lng
-				won't update via this flow until that's wired up. Existing values are preserved.
-			</p>
 		</div>
 	);
 };

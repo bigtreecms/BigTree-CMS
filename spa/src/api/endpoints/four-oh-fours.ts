@@ -56,4 +56,15 @@ export const fourOhFoursApi = {
 	clearDead: () => api.post<ClearDeadResult>("/404s/clear-dead", {}),
 
 	bulkDelete: (ids: number[]) => api.post<void>("/404s/bulk-delete", { ids }),
+
+	importCsv: (file: File, siteKey?: string) => {
+		const form = new FormData();
+		form.append("file", file);
+
+		if (siteKey) {
+			form.append("site_key", siteKey);
+		}
+
+		return api.post<{ imported: number; skipped: number }>("/404s/import", form);
+	},
 };

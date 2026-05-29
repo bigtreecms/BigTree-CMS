@@ -227,6 +227,11 @@ export interface RelationOption {
 	title: string;
 }
 
+export interface ListOption {
+	value: string;
+	label: string;
+}
+
 export interface RelationOptionsResponse {
 	items: RelationOption[];
 	relation: {
@@ -441,5 +446,14 @@ export const modulesApi = {
 					entry: params.entry,
 				},
 			}
+		),
+
+	/** Resolve dynamic list-field options (db / state / country) for SelectField. */
+	listOptions: (moduleId: string, formId: string, column: string) =>
+		api.get<{ options: ListOption[] }>(
+			`/modules/${encodeURIComponent(moduleId)}/forms/${encodeURIComponent(
+				formId
+			)}/list-options`,
+			{ query: { column } }
 		),
 };

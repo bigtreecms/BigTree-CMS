@@ -136,6 +136,71 @@
 			return Response::noContent();
 		}
 
+		/**
+		 * Bulk-import 301 redirects from an uploaded CSV (one `from,to` pair per
+		 * row). Mirrors the legacy dashboard import: each row runs through
+		 * BigTreeAdmin::create301, which parses the source URL, de-dupes against
+		 * existing entries (updating rather than duplicating), converts internal
+		 * link targets to IPLs, and cleans stale route history. A header row whose
+		 * first cell looks like a label ("from"/"source"/"url") is skipped.
+		 */
+		public function importCsv(Request $request) {
+			$files = $request->file("file");
+			$file = is_array($files) ? ($files[0] ?? null) : null;
+
+			if (
+				!is_array($file)
+				|| ($file["error"] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK
+				|| empty($file["tmp_name"])
+			) {
+				throw new BadRequestException("No CSV file was uploaded.", "missing_file", 400);
+			}
+
+			$handle = fopen($file["tmp_name"], "r");
+
+			if ($handle === false) {
+				throw new BadRequestException("Could not read the uploaded file.", "unreadable_file", 400);
+			}
+
+			$site_key = trim((string)($request->body["site_key"] ?? "")) ?: null;
+			$admin = new \BigTreeAdmin();
+
+			$imported = 0;
+			$skipped = 0;
+			$row_num = 0;
+
+			while (($row = fgetcsv($handle, 0, ",", '"')) !== false) {
+				$row_num++;
+
+				if (!is_array($row) || count($row) < 2) {
+					$skipped++;
+
+					continue;
+				}
+
+				$from = trim((string)$row[0]);
+				$to = trim((string)$row[1]);
+
+				// Skip a leading header row.
+				if ($row_num === 1 && in_array(strtolower($from), ["from", "source", "url", "broken_url"], true)) {
+					continue;
+				}
+
+				if ($from === "" || $to === "") {
+					$skipped++;
+
+					continue;
+				}
+
+				$admin->create301($from, $to, $site_key);
+				$imported++;
+			}
+
+			fclose($handle);
+
+			return Response::ok(["imported" => $imported, "skipped" => $skipped]);
+		}
+
 		private function present(array $r) {
 
 			return [

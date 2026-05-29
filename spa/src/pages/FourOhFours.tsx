@@ -8,6 +8,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Pager } from "@/components/ui/Pager";
 import { SubNav } from "@/components/ui/SubNav";
+import { UploadButton } from "@/components/ui/UploadButton";
 
 import {
 	fourOhFoursApi,
@@ -28,8 +29,8 @@ import { toast } from "@/lib/toast";
  *     row into a small text input + save / cancel pair.
  *   - Bulk select via checkboxes + Bulk delete + Clear dead (server prune).
  *
- * CSV import — the legacy admin's bulk-upload tool — is intentionally
- * deferred. The plan tracks it as a follow-up to keep this surface bounded.
+ *   - CSV import (the legacy admin's bulk-upload tool): upload a `from,to` CSV
+ *     and each row is run through the server's create301 (dedupe + IPL).
  */
 
 const PER_PAGE = 25;
@@ -133,6 +134,18 @@ export const FourOhFours = () => {
 			toast.success(`Cleared ${result.deleted} dead 404${result.deleted === 1 ? "" : "s"}`);
 		},
 		onError: (err) => apiToast(err, "Could not clear dead 404s"),
+	});
+
+	const importMutation = useMutation({
+		mutationFn: (file: File) => fourOhFoursApi.importCsv(file),
+		onSuccess: (result) => {
+			invalidate();
+			toast.success(
+				`Imported ${result.imported} redirect${result.imported === 1 ? "" : "s"}` +
+					(result.skipped ? ` (${result.skipped} skipped)` : "")
+			);
+		},
+		onError: (err) => apiToast(err, "CSV import failed"),
 	});
 
 	const toggleRow = (id: number) => {
@@ -331,16 +344,26 @@ export const FourOhFours = () => {
 				title="Broken links"
 				sub={total === 1 ? "1 entry" : `${total.toLocaleString()} entries`}
 				actions={
-					type === "404" ? (
-						<button
-							type="button"
-							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
-							onClick={() => setConfirmClearDead(true)}
-						>
-							<Trash size={13} />
-							Clear dead
-						</button>
-					) : null
+					<>
+						<UploadButton
+							accept=".csv,text/csv"
+							disabled={importMutation.isPending}
+							onSelect={(file) => importMutation.mutate(file)}
+							label={importMutation.isPending ? "Importing…" : "Import CSV"}
+							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-60"
+						/>
+
+						{type === "404" && (
+							<button
+								type="button"
+								className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
+								onClick={() => setConfirmClearDead(true)}
+							>
+								<Trash size={13} />
+								Clear dead
+							</button>
+						)}
+					</>
 				}
 			/>
 

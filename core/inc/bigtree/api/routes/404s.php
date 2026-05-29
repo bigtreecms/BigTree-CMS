@@ -45,4 +45,10 @@
 			"body" => ["ids" => "required|array"],
 			"audit" => ["table" => "bigtree_404s", "type" => "bulk_deleted", "entry" => "0"],
 		],
+		"POST /404s/import" => [
+			"service" => [FourOhFourService::class, "importCsv"],
+			"permission" => ["level" => 1],
+			"multipart" => true,
+			"audit" => ["table" => "bigtree_404s", "type" => "imported", "entry" => "0"],
+		],
 	];

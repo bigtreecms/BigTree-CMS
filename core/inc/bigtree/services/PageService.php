@@ -512,6 +512,66 @@
 			return Response::noContent();
 		}
 
+		/**
+		 * Restore a saved/auto revision back onto the live page. The SPA edits
+		 * pages directly (there is no separate draft layer), so this overwrites
+		 * the page's content columns with the revision's. The current published
+		 * state is first snapshotted as an auto-revision so the restore is
+		 * reversible. Publisher access required.
+		 */
+		public function restoreRevision(Request $request) {
+			$id = (int)$request->route_params["id"];
+			$rev_id = (int)$request->route_params["rev_id"];
+			$this->enforce($request->user, $id, "p");
+
+			$page = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+
+			if (!$page) {
+				throw new NotFoundException("Page $id not found", "resource_not_found", 404);
+			}
+
+			$revision = SQL::fetch("SELECT * FROM bigtree_page_revisions WHERE id = ? AND page = ?", $rev_id, $id);
+
+			if (!$revision) {
+				throw new NotFoundException("Revision $rev_id not found for page $id", "resource_not_found", 404);
+			}
+
+			// Snapshot the current published state so the restore can be undone.
+			SQL::insert("bigtree_page_revisions", [
+				"page" => $id,
+				"title" => $page["title"],
+				"meta_description" => $page["meta_description"],
+				"template" => $page["template"],
+				"external" => $page["external"],
+				"new_window" => $page["new_window"],
+				"resources" => $page["resources"],
+				"author" => $request->user->id,
+				"saved" => "",
+				"saved_description" => "",
+				"resource_allocation" => "",
+				"has_deleted_resources" => "",
+			]);
+
+			$update = [
+				"title" => $revision["title"],
+				"meta_description" => $revision["meta_description"],
+				"template" => $revision["template"],
+				"external" => $revision["external"],
+				"new_window" => $revision["new_window"],
+				"resources" => $revision["resources"],
+				"last_edited_by" => $request->user->id,
+				"updated_at" => "NOW()",
+			];
+			SQL::update("bigtree_pages", $id, $update);
+
+			$fresh = SQL::fetch("SELECT * FROM bigtree_pages WHERE id = ?", $id);
+
+			$this->fireTemplatePublishHook($fresh["template"], $id, $update, [], []);
+			Hooks::fire("page.updated", $fresh, ["user_id" => $request->user->id, "previous" => $page]);
+
+			return Response::ok($this->present($fresh, true));
+		}
+
 		public function search(Request $request) {
 			$q = trim((string)($request->query["q"] ?? ""));
 

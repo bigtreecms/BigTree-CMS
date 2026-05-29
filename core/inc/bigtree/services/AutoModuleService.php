@@ -107,6 +107,8 @@
 			$og = (array)($data["__open_graph__"] ?? []);
 			unset($data["__mtm__"], $data["__tags__"], $data["__open_graph__"]);
 
+			$this->applyGeocoding($module, $table, $data);
+
 			$user_level = PermissionService::userModuleLevel($request->user, $module_id);
 
 			if ($user_level === "p" || ((int)$request->user->level) > 0) {
@@ -154,6 +156,8 @@
 			$tags = (array)($data["__tags__"] ?? []);
 			$og = (array)($data["__open_graph__"] ?? []);
 			unset($data["__mtm__"], $data["__tags__"], $data["__open_graph__"]);
+
+			$this->applyGeocoding($module, $table, $data);
 
 			$user_level = PermissionService::userModuleLevel($request->user, $module_id);
 
@@ -276,6 +280,73 @@
 			}
 
 			return $m;
+		}
+
+		/**
+		 * Run server-side field processors over the submitted entry data before it
+		 * is persisted. Currently this covers the "geocoding" field, which has no
+		 * value of its own: it concatenates its configured source columns into an
+		 * address, geocodes it, and writes `latitude` / `longitude` onto the row —
+		 * mirroring the legacy geocoding process.php.
+		 *
+		 * Unlike the legacy processor we do NOT clear existing coordinates when a
+		 * geocode fails (e.g. the address fields weren't included in a partial
+		 * update, or the service is unavailable); coordinates are only written on a
+		 * successful lookup.
+		 */
+		private function applyGeocoding(array $module, string $table, array &$data): void {
+			$form = null;
+
+			foreach ((array)($module["forms"] ?? []) as $candidate) {
+				if (($candidate["table"] ?? "") === $table) {
+					$form = $candidate;
+
+					break;
+				}
+			}
+
+			if (!$form) {
+				return;
+			}
+
+			foreach ((array)($form["fields"] ?? []) as $field) {
+				if (($field["type"] ?? "") !== "geocoding") {
+					continue;
+				}
+
+				$settings = is_array($field["settings"] ?? null) ? $field["settings"] : [];
+				$raw = $settings["fields"] ?? [];
+				$source_fields = is_array($raw) ? $raw : explode(",", (string)$raw);
+				$location = [];
+
+				foreach ($source_fields as $source_field) {
+					$source_field = trim((string)$source_field);
+
+					if ($source_field === "" || !isset($data[$source_field])) {
+						continue;
+					}
+
+					$value = $data[$source_field];
+
+					if (is_array($value)) {
+						$location = array_merge($location, $value);
+					} elseif ($value !== "") {
+						$location[] = $value;
+					}
+				}
+
+				if (!$location) {
+					continue;
+				}
+
+				$geocoder = new \BigTreeGeocoding();
+				$result = $geocoder->geocode(implode(", ", $location));
+
+				if ($result) {
+					$data["latitude"] = $result["latitude"];
+					$data["longitude"] = $result["longitude"];
+				}
+			}
 		}
 
 		// Resolve the source table for an entry-level operation. Views own the

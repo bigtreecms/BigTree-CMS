@@ -97,4 +97,9 @@
 			"permission" => ["level" => 0],
 			"audit" => ["table" => "bigtree_page_revisions", "type" => "deleted", "entry" => "%rev_id%"],
 		],
+		"POST /pages/{id:int}/revisions/{rev_id:int}/restore" => [
+			"service" => [PageService::class, "restoreRevision"],
+			"permission" => ["level" => 0],
+			"audit" => ["table" => "bigtree_pages", "type" => "revision_restored", "entry" => "%id%"],
+		],
 	];
