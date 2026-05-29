@@ -36,7 +36,7 @@ const ITEMS: DropdownItem[] = [
 	{ label: "Messages", to: "/messages", icon: Mail },
 	{ label: "Analytics", to: "/analytics", icon: Activity, adminOnly: true },
 	{ label: "404 Report", to: "/dashboard/404s", icon: Unlink, adminOnly: true },
-	{ label: "Site Integrity", to: "/system/integrity", icon: ShieldCheck, adminOnly: true },
+	{ label: "Site Integrity", to: "/dashboard/integrity", icon: ShieldCheck, adminOnly: true },
 ];
 
 const tabClass = (isActive: boolean) =>

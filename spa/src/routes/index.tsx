@@ -116,6 +116,14 @@ export const router = createBrowserRouter(
 										{ path: "301/import", element: <Import301 /> },
 									],
 								},
+								{
+									path: "integrity",
+									element: (
+										<RequireLevel level={LEVEL.ADMINISTRATOR}>
+											<SiteIntegrity />
+										</RequireLevel>
+									),
+								},
 							],
 						},
 
@@ -236,16 +244,6 @@ export const router = createBrowserRouter(
 								{ index: true, element: <PendingChanges /> },
 								{ path: ":id", element: <PendingChangeDetail /> },
 							],
-						},
-
-						{
-							path: "system",
-							element: (
-								<RequireLevel level={LEVEL.ADMINISTRATOR}>
-									<Outlet />
-								</RequireLevel>
-							),
-							children: [{ path: "integrity", element: <SiteIntegrity /> }],
 						},
 
 						{
