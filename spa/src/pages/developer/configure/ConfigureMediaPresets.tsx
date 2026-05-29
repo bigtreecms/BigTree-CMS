@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, Plus, Save, Trash } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, Save, Trash } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
-import { Field } from "@/components/ui/Field";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { MediaPresetEditor } from "@/components/developer/MediaPresetEditor";
 
 import { configureApi, type MediaPreset } from "@/api/endpoints/configure";
 
@@ -18,12 +18,10 @@ const inputClass =
 /**
  * Media presets — reusable image-field configurations.
  *
- * The legacy admin's preset editor is a Big modal that handles crops, thumbs,
- * center-crops, and per-crop output sizes. For this first SPA pass we expose
- * the common case (name + min dimensions + preview prefix) and round-trip the
- * advanced fields untouched so an existing preset stays intact when edited
- * here. For full crop/thumb editing the legacy modal still opens via the
- * deep-link at the top of the screen.
+ * Edits the full preset recipe natively (min dimensions, preview prefix, retina,
+ * crops with nested thumbnails / center sub-crops, top-level thumbnails, and
+ * center crops) via the MediaPresetEditor. The advanced fields used to be
+ * editable only on the legacy admin's crop modal.
  */
 export const ConfigureMediaPresets = () => {
 	const queryClient = useQueryClient();
@@ -33,6 +31,7 @@ export const ConfigureMediaPresets = () => {
 	});
 
 	const [presets, setPresets] = useState<MediaPreset[]>([]);
+	const [expanded, setExpanded] = useState<string | null>(null);
 	const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 	const [generalError, setGeneralError] = useState<string | null>(null);
 
@@ -59,16 +58,18 @@ export const ConfigureMediaPresets = () => {
 	});
 
 	const addPreset = () => {
+		const id = `tmp-${Date.now()}`;
 		setPresets((prev) => [
 			...prev,
 			{
-				id: `tmp-${Date.now()}`,
+				id,
 				name: "New preset",
 				min_width: "",
 				min_height: "",
 				preview_prefix: "",
 			} as MediaPreset,
 		]);
+		setExpanded(id);
 	};
 
 	const update = (id: string, patch: Partial<MediaPreset>) => {
@@ -87,25 +88,14 @@ export const ConfigureMediaPresets = () => {
 			title="Media presets"
 			sub="Reusable image-field configurations — minimum dimensions, crops, thumbnails. Save the dropdown of choices an editor sees on every image field."
 			actions={
-				<>
-					<a
-						href="/admin/developer/media/"
-						target="_blank"
-						rel="noreferrer"
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2 px-3 py-1.5 text-[12.5px] font-medium text-text hover:bg-hover"
-					>
-						Advanced editor
-						<ExternalLink size={12} />
-					</a>
-					<button
-						type="button"
-						onClick={addPreset}
-						className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
-					>
-						<Plus size={13} />
-						Add preset
-					</button>
-				</>
+				<button
+					type="button"
+					onClick={addPreset}
+					className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
+				>
+					<Plus size={13} />
+					Add preset
+				</button>
 			}
 		>
 			{detailQ.isLoading && <p className="text-[12.5px] text-text-3">Loading…</p>}
@@ -121,70 +111,55 @@ export const ConfigureMediaPresets = () => {
 			)}
 
 			<div className="space-y-3">
-				{presets.map((p) => (
-					<div key={p.id} className="rounded-xl border border-border bg-surface p-4">
-						<div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-							<Field label="Name">
+				{presets.map((p) => {
+					const isOpen = expanded === p.id;
+
+					return (
+						<div key={p.id} className="rounded-xl border border-border bg-surface">
+							<div className="flex items-center gap-2 p-3">
+								<button
+									type="button"
+									onClick={() => setExpanded(isOpen ? null : p.id)}
+									className="rounded p-0.5 text-text-3 hover:bg-hover hover:text-text"
+									aria-label={isOpen ? "Collapse" : "Expand"}
+									aria-expanded={isOpen}
+								>
+									{isOpen ? (
+										<ChevronDown size={15} />
+									) : (
+										<ChevronRight size={15} />
+									)}
+								</button>
+
 								<input
 									className={inputClass}
 									value={(p.name as string) ?? ""}
+									placeholder="Preset name"
 									onChange={(e) => update(p.id, { name: e.target.value })}
 								/>
-							</Field>
 
-							<Field label="Min width (px)">
-								<input
-									className={inputClass}
-									type="number"
-									min={0}
-									value={(p.min_width as string) ?? ""}
-									onChange={(e) =>
-										update(p.id, { min_width: e.target.value } as Partial<MediaPreset>)
-									}
-								/>
-							</Field>
+								<button
+									type="button"
+									onClick={() => setConfirmDelete(p.id)}
+									className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2 p-2 text-text-3 hover:bg-hover hover:text-danger"
+									title="Delete preset"
+									aria-label="Delete preset"
+								>
+									<Trash size={13} />
+								</button>
+							</div>
 
-							<Field label="Min height (px)">
-								<input
-									className={inputClass}
-									type="number"
-									min={0}
-									value={(p.min_height as string) ?? ""}
-									onChange={(e) =>
-										update(p.id, { min_height: e.target.value } as Partial<MediaPreset>)
-									}
-								/>
-							</Field>
-
-							<Field label="Preview prefix">
-								<input
-									className={inputClass}
-									value={(p.preview_prefix as string) ?? ""}
-									onChange={(e) =>
-										update(p.id, { preview_prefix: e.target.value } as Partial<MediaPreset>)
-									}
-								/>
-							</Field>
+							{isOpen && (
+								<div className="border-t border-border p-4">
+									<MediaPresetEditor
+										preset={p}
+										onChange={(patch) => update(p.id, patch)}
+									/>
+								</div>
+							)}
 						</div>
-
-						<div className="mt-3 flex items-center justify-between gap-3">
-							<p className="text-[11.5px] text-text-3">
-								Crops, thumbnails, and center-crops are round-tripped untouched. Use the
-								"Advanced editor" button above for the full crop builder.
-							</p>
-
-							<button
-								type="button"
-								onClick={() => setConfirmDelete(p.id)}
-								className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2 p-1.5 text-text-3 hover:bg-hover hover:text-danger"
-								title="Delete preset"
-								aria-label="Delete preset"
-							>
-								<Trash size={13} />
-							</button>
-						</div>
-					</div>
-				))}
+					);
+				})}
 			</div>
 
 			{presets.length > 0 && (

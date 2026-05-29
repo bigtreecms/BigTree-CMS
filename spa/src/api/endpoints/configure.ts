@@ -14,13 +14,15 @@ import { api } from "@/api/client";
  *   value.
  */
 
-export type EmailServiceId =
-	| "local"
-	| "smtp"
-	| "mandrill"
-	| "mailgun"
-	| "postmark"
-	| "sendgrid";
+/** Wrap a single file in a FormData payload under the field name the API expects. */
+const toFormData = (file: File): FormData => {
+	const form = new FormData();
+	form.append("file", file);
+
+	return form;
+};
+
+export type EmailServiceId = "local" | "smtp" | "mandrill" | "mailgun" | "postmark" | "sendgrid";
 
 export interface EmailConfig {
 	service: EmailServiceId;
@@ -66,12 +68,27 @@ export interface AnalyticsStatus {
 	verified: boolean;
 	property_id: string;
 	service_account: string;
-	setup_url: string;
 }
 
-export interface ServicesIndex {
-	[service: string]: { connected: boolean; identity: string } | string;
-	_setup_url_base: string;
+export interface ServiceState {
+	connected: boolean;
+	identity: string;
+	/** Stored client key/app id (not secret). */
+	key: string;
+	has_secret: boolean;
+	scope: string;
+	/** Whether this provider exposes an editable scope field. */
+	uses_scope: boolean;
+	test_environment: boolean;
+}
+
+export type ServicesIndex = Record<string, ServiceState>;
+
+export interface ServiceCredentials {
+	key: string;
+	secret: string;
+	scope?: string;
+	test_environment?: boolean;
 }
 
 export interface MediaPreset {
@@ -117,10 +134,28 @@ export const configureApi = {
 				`/system/configure/cloud-storage/${encodeURIComponent(provider)}`,
 				body
 			),
-		updateDefault: (body: { service: string; container?: string }) =>
+		updateDefault: (body: {
+			service: string;
+			container?: string;
+			cloudfront_distribution?: string;
+			cloudfront_domain?: string;
+			cloudfront_ssl?: string;
+		}) =>
 			api.put<{ default_service: string; default_container: string }>(
 				"/system/configure/cloud-storage/default",
 				body
+			),
+		/** Upload the Google service-account JSON / .p12 private key. */
+		uploadGoogleKey: (file: File) =>
+			api.post<CloudProviderState>(
+				"/system/configure/cloud-storage/google/private-key",
+				toFormData(file)
+			),
+		/** Begin the Google Cloud OAuth handshake; returns a URL to navigate to. */
+		startGoogleOAuth: () =>
+			api.post<{ launch_url: string }>(
+				"/system/configure/cloud-storage/google/oauth/start",
+				{}
 			),
 	},
 
@@ -128,17 +163,35 @@ export const configureApi = {
 		get: () => api.get<PaymentGatewayConfig>("/system/configure/payment-gateway"),
 		update: (body: PaymentGatewayConfig) =>
 			api.put<PaymentGatewayConfig>("/system/configure/payment-gateway", body),
+		/** Upload the LinkPoint .pem certificate. */
+		uploadLinkpointCertificate: (file: File) =>
+			api.post<PaymentGatewayConfig>(
+				"/system/configure/payment-gateway/linkpoint/certificate",
+				toFormData(file)
+			),
 	},
 
 	analytics: {
 		get: () => api.get<AnalyticsStatus>("/system/configure/analytics"),
 		disconnect: () => api.delete<void>("/system/configure/analytics"),
+		/** Upload the Google service-account JSON key. */
+		uploadCredentials: (file: File) =>
+			api.post<AnalyticsStatus>("/system/configure/analytics/credentials", toFormData(file)),
+		/** Set + verify the GA4 property ID against the uploaded credentials. */
+		setProperty: (property_id: string) =>
+			api.put<AnalyticsStatus>("/system/configure/analytics", { property_id }),
 	},
 
 	services: {
 		list: () => api.get<ServicesIndex>("/system/configure/services"),
 		disconnect: (service: string) =>
 			api.delete<void>(`/system/configure/services/${encodeURIComponent(service)}`),
+		/** Save credentials and begin the OAuth handshake; returns a URL to navigate to. */
+		startOAuth: (service: string, body: ServiceCredentials) =>
+			api.post<{ launch_url: string }>(
+				`/system/configure/services/${encodeURIComponent(service)}/oauth/start`,
+				body
+			),
 	},
 
 	mediaPresets: {

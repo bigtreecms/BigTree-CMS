@@ -6,6 +6,7 @@ import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Field } from "@/components/ui/Field";
 import { FormShell } from "@/components/ui/FormShell";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { UploadButton } from "@/components/ui/UploadButton";
 
 import {
 	configureApi,
@@ -30,7 +31,15 @@ const GATEWAYS: Array<{ id: PaymentGatewayId; label: string }> = [
 
 // Per-gateway field map. The legacy admin uses these exact key names so the
 // stored shape stays compatible with BigTreePaymentGateway consumers.
-const FIELDS: Record<PaymentGatewayId, Array<{ key: string; label: string; type?: "select"; options?: Array<{ value: string; label: string }> }>> = {
+const FIELDS: Record<
+	PaymentGatewayId,
+	Array<{
+		key: string;
+		label: string;
+		type?: "select";
+		options?: Array<{ value: string; label: string }>;
+	}>
+> = {
 	"": [],
 	"authorize.net": [
 		{ key: "authorize-api-login", label: "API login" },
@@ -101,8 +110,7 @@ const FIELDS: Record<PaymentGatewayId, Array<{ key: string; label: string; type?
 	],
 };
 
-const isMaskedKey = (key: string) =>
-	/secret|key|password|token|signature/i.test(key);
+const isMaskedKey = (key: string) => /secret|key|password|token|signature/i.test(key);
 
 export const ConfigurePaymentGateway = () => {
 	const queryClient = useQueryClient();
@@ -136,7 +144,27 @@ export const ConfigurePaymentGateway = () => {
 		},
 		onError: (err) => {
 			const msg =
-				err instanceof ApiError && err.message ? err.message : "Could not save payment gateway";
+				err instanceof ApiError && err.message
+					? err.message
+					: "Could not save payment gateway";
+			setGeneralError(msg);
+			toast.error(msg);
+		},
+	});
+
+	const certMutation = useMutation({
+		mutationFn: (file: File) => configureApi.paymentGateway.uploadLinkpointCertificate(file),
+		onSuccess: (fresh) => {
+			queryClient.setQueryData(["configure", "payment-gateway"], fresh);
+			setDraft({ service: fresh.service, settings: { ...(fresh.settings ?? {}) } });
+			toast.success("LinkPoint certificate uploaded");
+			setGeneralError(null);
+		},
+		onError: (err) => {
+			const msg =
+				err instanceof ApiError && err.message
+					? err.message
+					: "Could not upload certificate";
 			setGeneralError(msg);
 			toast.error(msg);
 		},
@@ -160,7 +188,7 @@ export const ConfigurePaymentGateway = () => {
 		setDraft({ ...draft, settings: { ...draft.settings, [key]: value } });
 	};
 
-	const fields = draft ? FIELDS[draft.service] ?? [] : [];
+	const fields = draft ? (FIELDS[draft.service] ?? []) : [];
 
 	return (
 		<ConfigureLayout
@@ -234,7 +262,11 @@ export const ConfigurePaymentGateway = () => {
 											type={masked ? "password" : "text"}
 											className={inputClass}
 											value={value}
-											placeholder={masked && isSet ? "•••••••• (stored, leave blank to keep)" : ""}
+											placeholder={
+												masked && isSet
+													? "•••••••• (stored, leave blank to keep)"
+													: ""
+											}
 											onChange={(e) => onChange(f.key, e.target.value)}
 											autoComplete="off"
 										/>
@@ -243,18 +275,26 @@ export const ConfigurePaymentGateway = () => {
 							})}
 
 							{draft.service === "linkpoint" && (
-								<p className="text-[11.5px] text-text-3">
-									LinkPoint certificate upload still lives on the legacy admin —{" "}
-									<a
-										className="text-accent underline"
-										href="/admin/developer/payment-gateway/linkpoint/"
-										target="_blank"
-										rel="noreferrer"
-									>
-										open it there
-									</a>{" "}
-									to set the .pem file.
-								</p>
+								<Field label="Certificate (.pem)">
+									<div className="flex items-center gap-3">
+										<UploadButton
+											accept=".pem,.crt,application/x-pem-file"
+											disabled={certMutation.isPending}
+											onSelect={(file) => certMutation.mutate(file)}
+											label={
+												certMutation.isPending
+													? "Uploading…"
+													: "Upload certificate"
+											}
+										/>
+
+										<span className="text-[12px] text-text-3">
+											{draft.settings["linkpoint-certificate"]
+												? `Stored: ${draft.settings["linkpoint-certificate"]}`
+												: "No certificate uploaded yet."}
+										</span>
+									</div>
+								</Field>
 							)}
 						</div>
 					)}

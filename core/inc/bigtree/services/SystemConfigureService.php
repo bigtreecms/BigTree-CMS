@@ -27,18 +27,12 @@
 	 *  - media-presets   → JSONDB("config", "media-settings")
 	 *  - file-metadata   → JSONDB("config", "file-metadata")
 	 *
-	 * OAuth handshakes (analytics, services) still happen on the legacy admin —
-	 * exposing them through the API requires upstream SDK work that's out of
-	 * scope for this pass. The GET endpoints return enough state for the SPA to
-	 * show connection status and let the user disconnect; reconnecting happens
-	 * via a deep-link to /admin/developer/{area}.
+	 * OAuth handshakes for the third-party "services" and Google Cloud Storage
+	 * are brokered through the SPA-aware flow in OAuthBrokerService (start →
+	 * launch → callback), so reconnecting no longer deep-links to the legacy
+	 * admin. Analytics uses a direct service-account upload (see uploadAnalyticsCredentials).
 	 */
 	class SystemConfigureService {
-
-		/** Providers the SPA shows in the Configure index card grid. */
-		private const SERVICES_AVAILABLE = [
-			"twitter", "instagram", "youtube", "flickr", "salesforce", "disqus", "facebook",
-		];
 
 		// — email —
 
@@ -153,27 +147,143 @@
 			]);
 		}
 
+		/**
+		 * Store the Google Cloud Storage private key the legacy admin collected
+		 * via /developer/cloud-storage/google/. Accepts the modern JSON key or
+		 * the older .p12 file; the absolute path is recorded on the google
+		 * provider settings so BigTreeCloudStorage can read it. The OAuth
+		 * handshake that follows is handled separately (Workstream B).
+		 */
+		public function uploadGoogleStorageKey(Request $request) {
+			$file = $this->requireUpload($request, "file");
+
+			$directory = SERVER_ROOT . "custom/";
+			$extension = strtolower(pathinfo($file["name"], PATHINFO_EXTENSION));
+			$target = $directory . "google-cloud-private-key." . ($extension === "json" ? "json" : "p12");
+
+			BigTree::moveFile($file["tmp_name"], $target);
+
+			$cloud = BigTreeCMS::getSetting("bigtree-internal-cloud-storage") ?: [];
+			$settings = is_array($cloud["google"] ?? null) ? $cloud["google"] : [];
+			$settings["private_key"] = $target;
+			$cloud["google"] = $settings;
+
+			BigTreeAdmin::updateInternalSettingValue("bigtree-internal-cloud-storage", $cloud, true);
+
+			return Response::ok([
+				"active" => !empty($settings["active"]),
+				"settings" => $this->maskCloudSecrets("google", $settings),
+			]);
+		}
+
+		/**
+		 * Set the default storage service and, for cloud services, provision the
+		 * bucket/container. Mirrors the legacy set-container flow:
+		 *
+		 *   - An explicit container name is adopted as-is. For Amazon we also wire
+		 *     the optional CloudFront distribution/domain/SSL and auto-detect the
+		 *     bucket region; for Rackspace we CDN-enable the container.
+		 *   - A blank container name auto-creates a unique bucket (up to 10 tries).
+		 *
+		 * Reuses BigTreeStorage / BigTreeCloudStorage so the credential handling,
+		 * bucket creation, and file-cache population match the canonical CMS code.
+		 */
 		public function updateCloudStorageDefault(Request $request) {
 			$service = (string)($request->body["service"] ?? "local");
-			$container = (string)($request->body["container"] ?? "");
+			$container = trim((string)($request->body["container"] ?? ""));
 
 			if (!in_array($service, ["local", "amazon", "rackspace", "google"], true)) {
 				throw new BadRequestException("Unknown storage service", "invalid_service", 400);
 			}
 
-			$storage = BigTreeCMS::getSetting("bigtree-internal-storage") ?: [];
-			$storage["Service"] = $service;
+			$storage = new \BigTreeStorage();
+			$storage->Settings->Service = $service;
 
-			if ($container !== "") {
-				$storage["Container"] = $container;
+			if ($service === "local") {
+				$storage->saveSettings();
+
+				return Response::ok([
+					"default_service" => "local",
+					"default_container" => (string)($storage->Settings->Container ?? ""),
+				]);
 			}
 
-			BigTreeAdmin::updateInternalSettingValue("bigtree-internal-storage", $storage, true);
+			$cloud = new \BigTreeCloudStorage($service);
+
+			if ($container !== "") {
+				$storage->Settings->Container = $container;
+				$this->wireExistingContainer($cloud, $service, $container, $request);
+			} else {
+				$created = $this->autoCreateContainer($cloud, $service);
+
+				if ($created === null) {
+					$error = !empty($cloud->Errors) ? end($cloud->Errors) : "Failed to create container.";
+
+					throw new BadRequestException(is_string($error) ? $error : "Failed to create container.", "container_create_failed", 400);
+				}
+
+				$storage->Settings->Container = $created;
+			}
+
+			$cloud->saveSettings();
+			$storage->saveSettings();
+
+			// Best-effort: populate the file cache the Files browser reads. Heavy
+			// for large buckets and non-fatal, so failures don't block the save.
+			try {
+				$resolved = $cloud->getContainer($storage->Settings->Container, true);
+
+				if ($resolved !== false) {
+					$cloud->resetCache($resolved);
+				}
+			} catch (\Throwable $e) {
+				// Swallow — the container is set; the cache can be rebuilt later.
+			}
 
 			return Response::ok([
 				"default_service" => $service,
-				"default_container" => $storage["Container"] ?? "",
+				"default_container" => (string)($storage->Settings->Container ?? ""),
 			]);
+		}
+
+		/** Adopt a user-supplied container, wiring CloudFront (Amazon) or CDN (Rackspace). */
+		private function wireExistingContainer($cloud, $service, $container, Request $request) {
+			if ($service === "rackspace") {
+				BigTree::cURL($cloud->RackspaceCDNEndpoint . "/" . $container, "", [
+					CURLOPT_PUT => true,
+					CURLOPT_HTTPHEADER => [
+						"X-Auth-Token: " . ($cloud->Settings["rackspace"]["token"] ?? ""),
+						"X-Cdn-Enabled: true",
+					],
+				]);
+			}
+
+			if ($service === "amazon") {
+				$cloud->Settings["amazon"]["cloudfront_distribution"] = (string)($request->body["cloudfront_distribution"] ?? "");
+				$cloud->Settings["amazon"]["cloudfront_domain"] = (string)($request->body["cloudfront_domain"] ?? "");
+				$cloud->Settings["amazon"]["cloudfront_ssl"] = (string)($request->body["cloudfront_ssl"] ?? "");
+				$cloud->Settings["amazon"]["region"] = $cloud->getS3BucketRegion($container);
+			}
+		}
+
+		/** Create a unique bucket, returning its name, or null after 10 failed tries. */
+		private function autoCreateContainer($cloud, $service) {
+			$attempts = 0;
+
+			while ($attempts < 10) {
+				$candidate = BigTreeCMS::urlify(uniqid("bigtree-container-", true));
+				$attempts++;
+
+				if ($service === "amazon" && $cloud->getS3BucketExists($candidate)) {
+					continue;
+				}
+
+				if ($cloud->createContainer($candidate, true)) {
+					return $candidate;
+				}
+			}
+
+			return null;
 		}
 
 		// — payment-gateway —
@@ -222,6 +332,41 @@
 			]);
 		}
 
+		/**
+		 * Store the LinkPoint .pem certificate the legacy admin collected via
+		 * /developer/payment-gateway/linkpoint/. The file lands in
+		 * custom/certificates/ (same location the legacy flow used) and the
+		 * resulting filename is recorded on the gateway settings.
+		 */
+		public function uploadLinkpointCertificate(Request $request) {
+			$file = $this->requireUpload($request, "file");
+
+			$directory = SERVER_ROOT . "custom/certificates/";
+
+			if (!is_dir($directory)) {
+				@mkdir($directory, 0755, true);
+			}
+
+			$filename = BigTree::getAvailableFileName($directory, $file["name"]);
+			BigTree::moveFile($file["tmp_name"], $directory . $filename);
+
+			$existing = BigTreeCMS::getSetting("bigtree-internal-payment-gateway") ?: [];
+			$settings = is_array($existing["settings"] ?? null) ? $existing["settings"] : [];
+			$settings["linkpoint-certificate"] = $filename;
+
+			$next = [
+				"service" => (string)($existing["service"] ?? "linkpoint"),
+				"settings" => $settings,
+			];
+
+			BigTreeAdmin::updateInternalSettingValue("bigtree-internal-payment-gateway", $next, true);
+
+			return Response::ok([
+				"service" => $next["service"],
+				"settings" => $this->maskGatewaySecrets($settings),
+			]);
+		}
+
 		// — analytics —
 
 		public function getAnalytics(Request $request) {
@@ -232,7 +377,6 @@
 				"verified" => !empty($settings["verified"]),
 				"property_id" => (string)($settings["property_id"] ?? ""),
 				"service_account" => (string)($credentials["client_email"] ?? ""),
-				"setup_url" => rtrim(ADMIN_ROOT, "/") . "/developer/analytics/",
 			]);
 		}
 
@@ -242,20 +386,78 @@
 			return Response::noContent();
 		}
 
+		/**
+		 * Accept the Google service-account JSON key the legacy admin used to
+		 * collect via /developer/analytics/upload-client-file. We validate the
+		 * shape, hand it to BigTreeGoogleAnalytics4::setCredentials (which stores
+		 * it on the setting), and report the service-account email back so the
+		 * SPA can prompt for a property ID next. Verification waits for the
+		 * property ID — see updateAnalytics().
+		 */
+		public function uploadAnalyticsCredentials(Request $request) {
+			$file = $this->requireUpload($request, "file");
+			$json = json_decode((string)@file_get_contents($file["tmp_name"]), true);
+
+			if (!is_array($json) || empty($json["private_key"]) || empty($json["client_email"]) || empty($json["client_id"])) {
+				throw new BadRequestException("That file is not a valid Google service-account key.", "invalid_credentials", 400);
+			}
+
+			$analytics = new \BigTreeGoogleAnalytics4();
+			$analytics->setCredentials($json);
+
+			return $this->getAnalytics($request);
+		}
+
+		/**
+		 * Set the GA4 property ID and verify it against the uploaded credentials.
+		 * Mirrors the legacy set-property-id flow: a property ID that doesn't
+		 * resolve is rejected so the SPA can keep the user on the form.
+		 */
+		public function updateAnalytics(Request $request) {
+			$property_id = trim((string)($request->body["property_id"] ?? ""));
+
+			if ($property_id === "") {
+				throw new BadRequestException("A property ID is required.", "missing_property_id", 400);
+			}
+
+			$settings = BigTreeCMS::getSetting("bigtree-internal-google-analytics-4") ?: [];
+
+			if (empty($settings["credentials"])) {
+				throw new BadRequestException("Upload a service-account key before setting a property ID.", "missing_credentials", 400);
+			}
+
+			$analytics = new \BigTreeGoogleAnalytics4();
+			$analytics->setPropertyID($property_id);
+
+			if (!$analytics->testCredentials()) {
+				throw new BadRequestException("That property ID could not be verified with the uploaded credentials.", "verification_failed", 400);
+			}
+
+			$analytics->setVerified();
+
+			return $this->getAnalytics($request);
+		}
+
 		// — services —
 
 		public function listServices(Request $request) {
 			$out = [];
 
-			foreach (self::SERVICES_AVAILABLE as $service) {
-				$settings = BigTreeCMS::getSetting("bigtree-internal-$service") ?: [];
+			foreach (OAuthBrokerService::SERVICES as $service => $def) {
+				$settings = BigTreeCMS::getSetting($def["setting"]) ?: [];
+
+				// "Connected" means the OAuth handshake finished (a token exists) —
+				// not merely that a key/secret was entered.
 				$out[$service] = [
-					"connected" => !empty($settings["connected"]) || !empty($settings["token"]) || !empty($settings["access_token"]) || !empty($settings["key"]),
+					"connected" => !empty($settings["token"]) || !empty($settings["access_token"]),
 					"identity" => $this->serviceIdentity($service, $settings),
+					"key" => (string)($settings["key"] ?? ""),
+					"has_secret" => !empty($settings["secret"]),
+					"scope" => (string)($settings["scope"] ?? ""),
+					"uses_scope" => !empty($def["scope"]),
+					"test_environment" => !empty($settings["test_environment"]),
 				];
 			}
-
-			$out["_setup_url_base"] = rtrim(ADMIN_ROOT, "/") . "/developer/services/";
 
 			return Response::ok($out);
 		}
@@ -263,11 +465,11 @@
 		public function disconnectService(Request $request) {
 			$service = (string)$request->route_params["service"];
 
-			if (!in_array($service, self::SERVICES_AVAILABLE, true)) {
+			if (!isset(OAuthBrokerService::SERVICES[$service])) {
 				throw new NotFoundException("Unknown service", "unknown_service", 404);
 			}
 
-			BigTreeAdmin::updateInternalSettingValue("bigtree-internal-$service", [], true);
+			BigTreeAdmin::updateInternalSettingValue(OAuthBrokerService::SERVICES[$service]["setting"], [], true);
 
 			return Response::noContent();
 		}
@@ -355,6 +557,26 @@
 
 		// — helpers —
 
+		/**
+		 * Pull the single uploaded file for a multipart route, normalized by
+		 * Request::normalizeFiles into a one-element list. Throws a 400 when
+		 * nothing usable was uploaded.
+		 */
+		private function requireUpload(Request $request, $field) {
+			$files = $request->file($field);
+			$file = is_array($files) ? ($files[0] ?? null) : null;
+
+			if (
+				!is_array($file)
+				|| ($file["error"] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK
+				|| empty($file["tmp_name"])
+			) {
+				throw new BadRequestException("No file was uploaded.", "missing_file", 400);
+			}
+
+			return $file;
+		}
+
 		private function maskCloudSecrets($provider, array $settings) {
 			$secret_keys = [
 				"amazon" => ["secret"],
@@ -397,13 +619,13 @@
 
 		private function serviceIdentity($service, array $settings) {
 			$candidates = [
-				"twitter" => ["screen_name", "username"],
-				"instagram" => ["username", "user", "user_id"],
-				"youtube" => ["channel_name", "channel_id"],
-				"flickr" => ["username", "user_id"],
-				"salesforce" => ["instance_url", "username"],
-				"disqus" => ["shortname", "username"],
-				"facebook" => ["page_name", "page_id"],
+				"twitter" => ["user_name", "screen_name", "username"],
+				"instagram" => ["user_name", "username", "user", "user_id"],
+				"youtube" => ["user_name", "channel_name", "channel_id"],
+				"flickr" => ["user_name", "username", "user_id"],
+				"salesforce" => ["user_name", "instance_url", "username"],
+				"disqus" => ["user_name", "shortname", "username"],
+				"facebook" => ["user_name", "page_name", "page_id"],
 			];
 
 			foreach ($candidates[$service] ?? [] as $key) {

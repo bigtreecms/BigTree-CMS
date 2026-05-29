@@ -1,4 +1,5 @@
 <?php
+	use BigTree\Services\OAuthBrokerService;
 	use BigTree\Services\SystemConfigureService;
 	use BigTree\Services\SystemService;
 
@@ -152,6 +153,12 @@
 			"allow_unknown" => true,
 			"audit" => ["table" => "bigtree_settings", "type" => "cloud_storage_configured", "entry" => "%provider%"],
 		],
+		"POST /system/configure/cloud-storage/google/private-key" => [
+			"service" => [SystemConfigureService::class, "uploadGoogleStorageKey"],
+			"permission" => ["level" => 2],
+			"multipart" => true,
+			"audit" => ["table" => "bigtree_settings", "type" => "cloud_storage_configured", "entry" => "bigtree-internal-cloud-storage"],
+		],
 
 		"GET /system/configure/payment-gateway" => [
 			"service" => [SystemConfigureService::class, "getPaymentGateway"],
@@ -163,10 +170,28 @@
 			"allow_unknown" => true,
 			"audit" => ["table" => "bigtree_settings", "type" => "payment_gateway_configured", "entry" => "bigtree-internal-payment-gateway"],
 		],
+		"POST /system/configure/payment-gateway/linkpoint/certificate" => [
+			"service" => [SystemConfigureService::class, "uploadLinkpointCertificate"],
+			"permission" => ["level" => 2],
+			"multipart" => true,
+			"audit" => ["table" => "bigtree_settings", "type" => "payment_gateway_configured", "entry" => "bigtree-internal-payment-gateway"],
+		],
 
 		"GET /system/configure/analytics" => [
 			"service" => [SystemConfigureService::class, "getAnalytics"],
 			"permission" => ["level" => 2],
+		],
+		"PUT /system/configure/analytics" => [
+			"service" => [SystemConfigureService::class, "updateAnalytics"],
+			"permission" => ["level" => 2],
+			"body" => ["property_id" => "required|string|max:64"],
+			"audit" => ["table" => "bigtree_settings", "type" => "analytics_configured", "entry" => "bigtree-internal-google-analytics-4"],
+		],
+		"POST /system/configure/analytics/credentials" => [
+			"service" => [SystemConfigureService::class, "uploadAnalyticsCredentials"],
+			"permission" => ["level" => 2],
+			"multipart" => true,
+			"audit" => ["table" => "bigtree_settings", "type" => "analytics_configured", "entry" => "bigtree-internal-google-analytics-4"],
 		],
 		"DELETE /system/configure/analytics" => [
 			"service" => [SystemConfigureService::class, "disconnectAnalytics"],
@@ -182,6 +207,30 @@
 			"service" => [SystemConfigureService::class, "disconnectService"],
 			"permission" => ["level" => 2],
 			"audit" => ["table" => "bigtree_settings", "type" => "service_disconnected", "entry" => "%service%"],
+		],
+
+		// OAuth broker. `start` is Bearer-authed and returns a launch URL; `launch`
+		// and `callback` are public browser-redirect endpoints authenticated by the
+		// signed token they carry (see OAuthBrokerService).
+		"POST /system/configure/services/{service}/oauth/start" => [
+			"service" => [OAuthBrokerService::class, "startService"],
+			"permission" => ["level" => 2],
+			"allow_unknown" => true,
+		],
+		"POST /system/configure/cloud-storage/google/oauth/start" => [
+			"service" => [OAuthBrokerService::class, "startGoogleStorage"],
+			"permission" => ["level" => 2],
+		],
+		"GET /system/configure/oauth/launch" => [
+			"service" => [OAuthBrokerService::class, "launch"],
+			"permission" => "public",
+			"query" => ["token" => "required|string|max:2048"],
+			"rate_limit" => ["per_minute" => 30],
+		],
+		"GET /system/configure/oauth/callback" => [
+			"service" => [OAuthBrokerService::class, "callback"],
+			"permission" => "public",
+			"rate_limit" => ["per_minute" => 30],
 		],
 
 		"GET /system/configure/media-presets" => [

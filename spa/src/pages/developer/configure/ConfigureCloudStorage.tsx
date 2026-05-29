@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, Save } from "lucide-react";
+import { Save } from "lucide-react";
 
 import { ConfigureLayout } from "@/components/developer/ConfigureLayout";
 import { Field } from "@/components/ui/Field";
 import { ErrorPanel } from "@/components/ui/ErrorPanel";
+import { UploadButton } from "@/components/ui/UploadButton";
 
 import { configureApi, type CloudProvider } from "@/api/endpoints/configure";
 
@@ -42,10 +44,30 @@ interface ProviderDraft {
 
 export const ConfigureCloudStorage = () => {
 	const queryClient = useQueryClient();
+	const [searchParams, setSearchParams] = useSearchParams();
 	const detailQ = useQuery({
 		queryKey: ["configure", "cloud-storage"],
 		queryFn: () => configureApi.cloudStorage.get(),
 	});
+
+	// Surface the OAuth broker's redirect result.
+	useEffect(() => {
+		const connected = searchParams.get("connected");
+		const error = searchParams.get("error");
+
+		if (connected) {
+			toast.success("Google Cloud Storage connected");
+		} else if (error) {
+			toast.error("Google Cloud connection failed.");
+		}
+
+		if (connected || error) {
+			searchParams.delete("connected");
+			searchParams.delete("error");
+			setSearchParams(searchParams, { replace: true });
+			queryClient.invalidateQueries({ queryKey: ["configure", "cloud-storage"] });
+		}
+	}, [searchParams, setSearchParams, queryClient]);
 
 	const [drafts, setDrafts] = useState<Record<CloudProvider, ProviderDraft>>({
 		amazon: {},
@@ -54,18 +76,25 @@ export const ConfigureCloudStorage = () => {
 	});
 	const [defaultService, setDefaultService] = useState<string>("local");
 	const [defaultContainer, setDefaultContainer] = useState<string>("");
+	const [cloudfront, setCloudfront] = useState({ distribution: "", domain: "", ssl: "" });
 	const [generalError, setGeneralError] = useState<string | null>(null);
 
 	useEffect(() => {
 		if (detailQ.data) {
+			const amazon = (detailQ.data.providers.amazon?.settings ?? {}) as ProviderDraft;
 			const next: Record<CloudProvider, ProviderDraft> = {
-				amazon: { ...(detailQ.data.providers.amazon?.settings as ProviderDraft) },
+				amazon: { ...amazon },
 				rackspace: { ...(detailQ.data.providers.rackspace?.settings as ProviderDraft) },
 				google: { ...(detailQ.data.providers.google?.settings as ProviderDraft) },
 			};
 			setDrafts(next);
 			setDefaultService(detailQ.data.default_service ?? "local");
 			setDefaultContainer(detailQ.data.default_container ?? "");
+			setCloudfront({
+				distribution: (amazon.cloudfront_distribution as string) ?? "",
+				domain: (amazon.cloudfront_domain as string) ?? "",
+				ssl: (amazon.cloudfront_ssl as string) ?? "",
+			});
 		}
 	}, [detailQ.data]);
 
@@ -90,6 +119,13 @@ export const ConfigureCloudStorage = () => {
 			configureApi.cloudStorage.updateDefault({
 				service: defaultService,
 				container: defaultContainer,
+				...(defaultService === "amazon"
+					? {
+							cloudfront_distribution: cloudfront.distribution,
+							cloudfront_domain: cloudfront.domain,
+							cloudfront_ssl: cloudfront.ssl,
+						}
+					: {}),
 			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["configure", "cloud-storage"] });
@@ -104,13 +140,45 @@ export const ConfigureCloudStorage = () => {
 		},
 	});
 
+	const googleKeyMutation = useMutation({
+		mutationFn: (file: File) => configureApi.cloudStorage.uploadGoogleKey(file),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["configure", "cloud-storage"] });
+			toast.success("Private key uploaded");
+			setGeneralError(null);
+		},
+		onError: (err) => {
+			const msg =
+				err instanceof ApiError && err.message
+					? err.message
+					: "Could not upload private key";
+			setGeneralError(msg);
+			toast.error(msg);
+		},
+	});
+
+	const googleOAuthMutation = useMutation({
+		mutationFn: () => configureApi.cloudStorage.startGoogleOAuth(),
+		onSuccess: ({ launch_url }) => {
+			window.location.href = launch_url;
+		},
+		onError: (err) => {
+			const msg =
+				err instanceof ApiError && err.message
+					? err.message
+					: "Could not start Google OAuth";
+			setGeneralError(msg);
+			toast.error(msg);
+		},
+	});
+
 	const update = (provider: CloudProvider, key: string, value: string) =>
 		setDrafts((prev) => ({ ...prev, [provider]: { ...prev[provider], [key]: value } }));
 
 	return (
 		<ConfigureLayout
 			title="Cloud storage"
-			sub="Credentials for the storage backend BigTree uploads files to. Bucket listing and CloudFront wiring still live on the legacy admin."
+			sub="Credentials for the storage backend BigTree uploads files to, plus default-service selection and bucket / CloudFront wiring."
 		>
 			{detailQ.isLoading && <p className="text-[12.5px] text-text-3">Loading…</p>}
 
@@ -121,7 +189,9 @@ export const ConfigureCloudStorage = () => {
 					{generalError && <ErrorPanel error={new Error(generalError)} />}
 
 					<div className="mb-4 rounded-xl border border-border bg-surface p-4">
-						<div className="mb-3 text-[12.5px] font-semibold text-text">Default storage service</div>
+						<div className="mb-3 text-[12.5px] font-semibold text-text">
+							Default storage service
+						</div>
 						<div className="flex items-end gap-3">
 							<div className="flex-1">
 								<Field label="Service">
@@ -166,25 +236,57 @@ export const ConfigureCloudStorage = () => {
 							</button>
 						</div>
 
+						{defaultService === "amazon" && (
+							<div className="mt-3 grid grid-cols-1 gap-3 border-t border-border pt-3 md:grid-cols-3">
+								<Field label="CloudFront distribution (optional)">
+									<input
+										className={inputClass}
+										value={cloudfront.distribution}
+										onChange={(e) =>
+											setCloudfront((c) => ({
+												...c,
+												distribution: e.target.value,
+											}))
+										}
+									/>
+								</Field>
+								<Field label="CloudFront domain (optional)">
+									<input
+										className={inputClass}
+										placeholder="d111111abcdef8.cloudfront.net"
+										value={cloudfront.domain}
+										onChange={(e) =>
+											setCloudfront((c) => ({ ...c, domain: e.target.value }))
+										}
+									/>
+								</Field>
+								<Field label="Serve CloudFront over SSL">
+									<select
+										className={inputClass}
+										value={cloudfront.ssl}
+										onChange={(e) =>
+											setCloudfront((c) => ({ ...c, ssl: e.target.value }))
+										}
+									>
+										<option value="">No</option>
+										<option value="on">Yes</option>
+									</select>
+								</Field>
+							</div>
+						)}
+
 						<p className="mt-2 text-[11.5px] text-text-3">
-							Only providers with stored credentials are pickable. Bucket auto-creation +
-							CloudFront wiring happens on the{" "}
-							<a
-								className="text-accent underline"
-								href="/admin/developer/cloud-storage/"
-								target="_blank"
-								rel="noreferrer"
-							>
-								legacy admin
-							</a>
-							.
+							Only providers with stored credentials are pickable. Leave the container
+							blank to auto-create a unique bucket.
 						</p>
 					</div>
 
 					<ProviderCard
 						title="Amazon S3"
 						active={detailQ.data.providers.amazon.active}
-						onSave={() => saveProviderMutation.mutate({ provider: "amazon", body: drafts.amazon })}
+						onSave={() =>
+							saveProviderMutation.mutate({ provider: "amazon", body: drafts.amazon })
+						}
 						saving={saveProviderMutation.isPending}
 					>
 						<Field label="AWS region">
@@ -214,7 +316,11 @@ export const ConfigureCloudStorage = () => {
 								type="password"
 								className={inputClass}
 								value={(drafts.amazon.secret as string) ?? ""}
-								placeholder={drafts.amazon.secret_set ? "•••••••• (stored, leave blank to keep)" : ""}
+								placeholder={
+									drafts.amazon.secret_set
+										? "•••••••• (stored, leave blank to keep)"
+										: ""
+								}
 								onChange={(e) => update("amazon", "secret", e.target.value)}
 								autoComplete="off"
 							/>
@@ -225,7 +331,10 @@ export const ConfigureCloudStorage = () => {
 						title="Rackspace Cloud Files"
 						active={detailQ.data.providers.rackspace.active}
 						onSave={() =>
-							saveProviderMutation.mutate({ provider: "rackspace", body: drafts.rackspace })
+							saveProviderMutation.mutate({
+								provider: "rackspace",
+								body: drafts.rackspace,
+							})
 						}
 						saving={saveProviderMutation.isPending}
 					>
@@ -234,7 +343,9 @@ export const ConfigureCloudStorage = () => {
 								type="password"
 								className={inputClass}
 								value={(drafts.rackspace.api_key as string) ?? ""}
-								placeholder={drafts.rackspace.api_key_set ? "•••••••• (stored)" : ""}
+								placeholder={
+									drafts.rackspace.api_key_set ? "•••••••• (stored)" : ""
+								}
 								onChange={(e) => update("rackspace", "api_key", e.target.value)}
 								autoComplete="off"
 							/>
@@ -264,21 +375,21 @@ export const ConfigureCloudStorage = () => {
 					<ProviderCard
 						title="Google Cloud Storage"
 						active={detailQ.data.providers.google.active}
-						onSave={() => saveProviderMutation.mutate({ provider: "google", body: drafts.google })}
+						onSave={() =>
+							saveProviderMutation.mutate({ provider: "google", body: drafts.google })
+						}
 						saving={saveProviderMutation.isPending}
 						footnote={
-							<>
-								OAuth handshake + private-key upload happen on the legacy admin —{" "}
-								<a
-									className="inline-flex items-center gap-1 text-accent underline"
-									href="/admin/developer/cloud-storage/google/"
-									target="_blank"
-									rel="noreferrer"
-								>
-									open it there <ExternalLink size={11} />
-								</a>
-								{" "}to complete activation.
-							</>
+							<button
+								type="button"
+								disabled={googleOAuthMutation.isPending}
+								onClick={() => googleOAuthMutation.mutate()}
+								className="inline-flex items-center gap-1.5 rounded-md border border-accent/40 px-3 py-1.5 text-[12.5px] font-medium text-accent hover:bg-accent/10 disabled:opacity-60"
+							>
+								{googleOAuthMutation.isPending
+									? "Starting…"
+									: "Complete activation (Google OAuth)"}
+							</button>
 						}
 					>
 						<Field label="Project ID">
@@ -300,7 +411,9 @@ export const ConfigureCloudStorage = () => {
 								type="password"
 								className={inputClass}
 								value={(drafts.google.client_secret as string) ?? ""}
-								placeholder={drafts.google.client_secret_set ? "•••••••• (stored)" : ""}
+								placeholder={
+									drafts.google.client_secret_set ? "•••••••• (stored)" : ""
+								}
 								onChange={(e) => update("google", "client_secret", e.target.value)}
 								autoComplete="off"
 							/>
@@ -309,8 +422,30 @@ export const ConfigureCloudStorage = () => {
 							<input
 								className={inputClass}
 								value={(drafts.google.certificate_email as string) ?? ""}
-								onChange={(e) => update("google", "certificate_email", e.target.value)}
+								onChange={(e) =>
+									update("google", "certificate_email", e.target.value)
+								}
 							/>
+						</Field>
+						<Field label="Private key (.json or .p12)">
+							<div className="flex items-center gap-3">
+								<UploadButton
+									accept=".json,.p12,application/json"
+									disabled={googleKeyMutation.isPending}
+									onSelect={(file) => googleKeyMutation.mutate(file)}
+									label={
+										googleKeyMutation.isPending
+											? "Uploading…"
+											: "Upload private key"
+									}
+								/>
+
+								<span className="text-[12px] text-text-3">
+									{drafts.google.private_key_set
+										? "Stored — upload again to replace."
+										: "No private key uploaded yet."}
+								</span>
+							</div>
 						</Field>
 					</ProviderCard>
 				</>
@@ -342,11 +477,7 @@ const ProviderCard = ({ title, active, saving, onSave, footnote, children }: Pro
 		<div className="space-y-3">{children}</div>
 
 		<div className="mt-4 flex items-center justify-between gap-3">
-			{footnote ? (
-				<p className="text-[11.5px] text-text-3">{footnote}</p>
-			) : (
-				<span />
-			)}
+			{footnote ? <p className="text-[11.5px] text-text-3">{footnote}</p> : <span />}
 
 			<button
 				type="button"
