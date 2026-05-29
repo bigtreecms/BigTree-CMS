@@ -5,6 +5,8 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { FileText, LayoutGrid, Search, Tag, Users, X } from "lucide-react";
 
 import { searchApi, type SearchResultGroups } from "@/api/endpoints/search";
+import { useAuthStore } from "@/auth/store";
+import { isAdmin } from "@/lib/permissions";
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- search results are heterogeneous (raw module cache rows, etc.) and intentionally rendered generically */
 
@@ -20,6 +22,8 @@ interface ActionableItem {
 }
 
 const GROUP_ORDER = ["pages", "modules", "entries", "tags", "users"] as const;
+/** Result groups only Administrators may navigate to (Tags / Users are level 1). */
+const ADMIN_ONLY_GROUPS = new Set<string>(["tags", "users"]);
 const GROUP_LABELS: Record<string, string> = {
 	pages: "Pages",
 	modules: "Modules",
@@ -30,6 +34,11 @@ const GROUP_LABELS: Record<string, string> = {
 
 export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 	const navigate = useNavigate();
+	const admin = isAdmin(useAuthStore((s) => s.user));
+	const visibleGroups = useMemo(
+		() => GROUP_ORDER.filter((g) => admin || !ADMIN_ONLY_GROUPS.has(g)),
+		[admin]
+	);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const [rawQuery, setRawQuery] = useState("");
 	const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -78,7 +87,7 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 		if (!groups) return [];
 		const list: ActionableItem[] = [];
 
-		for (const g of GROUP_ORDER) {
+		for (const g of visibleGroups) {
 			const arr = (groups as Record<string, unknown[]>)[g] ?? [];
 			for (const it of arr) {
 				list.push({
@@ -100,7 +109,7 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 			}
 		}
 		return list;
-	}, [groups, navigate, onClose]);
+	}, [groups, navigate, onClose, visibleGroups]);
 
 	// Keyboard nav (arrows + enter) only while open
 	useEffect(() => {
@@ -302,7 +311,7 @@ export const QuickSearch = ({ open, onClose }: QuickSearchProps) => {
 
 						{debouncedQuery && !isLoading && groups && (
 							<>
-								{GROUP_ORDER.map((gKey) => {
+								{visibleGroups.map((gKey) => {
 									const items = (groups as SearchResultGroups)[
 										gKey as keyof SearchResultGroups
 									];

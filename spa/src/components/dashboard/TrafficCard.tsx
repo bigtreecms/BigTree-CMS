@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Activity, ExternalLink } from "lucide-react";
 import { DashCard } from "./DashCard";
 import { CardError } from "./CardError";
@@ -6,6 +7,9 @@ import { CardEmpty } from "./CardEmpty";
 import { SmallBtn } from "./SmallBtn";
 import { TrafficBars } from "./TrafficBars";
 import type { AnalyticsResponse } from "@/api/endpoints/dashboard";
+import { buildTwoWeekSeries } from "@/lib/analytics";
+import { useAuthStore } from "@/auth/store";
+import { isAdmin } from "@/lib/permissions";
 
 interface TrafficCardProps {
 	data: AnalyticsResponse | undefined;
@@ -14,21 +18,11 @@ interface TrafficCardProps {
 }
 
 export const TrafficCard = ({ data, loading, error }: TrafficCardProps) => {
+	const navigate = useNavigate();
+	const admin = isAdmin(useAuthStore((s) => s.user));
+
 	// Build the 14-day series from cache.two_week (keyed YYYYMMDD).
-	const series = useMemo(() => {
-		const twoWeek = data?.cache?.two_week;
-
-		if (!twoWeek) return null;
-		const entries = Object.entries(twoWeek).sort(([a], [b]) => a.localeCompare(b));
-
-		return entries.slice(-14).map(([yyyymmdd, visits]) => {
-			// "20260521" → "5/21"
-			const month = Number(yyyymmdd.slice(4, 6));
-			const day = Number(yyyymmdd.slice(6, 8));
-
-			return { date: `${month}/${day}`, visits };
-		});
-	}, [data]);
+	const series = useMemo(() => buildTwoWeekSeries(data?.cache?.two_week), [data]);
 
 	const total14d = useMemo(
 		() => (series ? series.reduce((s, d) => s + Number(d.visits), 0) : 0),
@@ -47,10 +41,12 @@ export const TrafficCard = ({ data, loading, error }: TrafficCardProps) => {
 							<b className="font-semibold text-text">{total14d.toLocaleString()}</b>{" "}
 							total
 						</span>
-						<SmallBtn>
-							<ExternalLink size={12} />
-							View analytics
-						</SmallBtn>
+						{admin && (
+							<SmallBtn onClick={() => navigate("/analytics")}>
+								<ExternalLink size={12} />
+								View analytics
+							</SmallBtn>
+						)}
 					</div>
 				)
 			}

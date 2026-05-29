@@ -12,6 +12,14 @@
 				"q" => "string|max:200",
 			],
 		],
+		"GET /404s/export" => [
+			"service" => [FourOhFourService::class, "export"],
+			"permission" => ["level" => 1],
+			"query" => [
+				"type" => "string|in:404,301,ignored",
+				"site_key" => "string|max:255",
+			],
+		],
 		"POST /404s" => [
 			"service" => [FourOhFourService::class, "create"],
 			"permission" => ["level" => 1],

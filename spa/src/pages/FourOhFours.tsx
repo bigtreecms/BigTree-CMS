@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, EyeOff, Link2, Search, Trash, X } from "lucide-react";
+import { Check, Download, EyeOff, Link2, Plus, Search, Trash, Upload, X } from "lucide-react";
 
 import { Breadcrumb } from "@/components/shell/Breadcrumb";
 import { PageHead } from "@/components/shell/PageHead";
@@ -8,7 +9,6 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Pager } from "@/components/ui/Pager";
 import { SubNav } from "@/components/ui/SubNav";
-import { UploadButton } from "@/components/ui/UploadButton";
 
 import {
 	fourOhFoursApi,
@@ -17,33 +17,46 @@ import {
 } from "@/api/endpoints/four-oh-fours";
 
 import { ApiError } from "@/types/api";
+import { downloadCsv } from "@/lib/csv";
 import { toast } from "@/lib/toast";
 
 /**
- * /system/404s — broken link manager.
+ * /dashboard/404s — the 404 Report.
  *
- *   - SubNav for the three buckets the legacy admin exposes
- *     ("404" / "301" / "ignored"), with per-bucket counts inferred from the
- *     current page's `meta.total`.
+ *   Three route-driven buckets (passed in as `type`), each with its own URL,
+ *   title and breadcrumb:
+ *     - /dashboard/404s          → Active 404s
+ *     - /dashboard/404s/ignored  → Ignored 404s
+ *     - /dashboard/404s/301      → 301 Redirects
+ *
  *   - Per-row inline "Set redirect" editor: clicking the link icon swaps the
  *     row into a small text input + save / cancel pair.
  *   - Bulk select via checkboxes + Bulk delete + Clear dead (server prune).
- *
- *   - CSV import (the legacy admin's bulk-upload tool): upload a `from,to` CSV
- *     and each row is run through the server's create301 (dedupe + IPL).
+ *   - Every bucket can export its full contents to CSV. The 301 bucket also
+ *     offers a manual "Add 301" form and a guided "Import CSV" flow.
  */
 
 const PER_PAGE = 25;
 
+interface FourOhFoursProps {
+	type: FourOhFourType;
+}
+
 const TYPE_LABEL: Record<FourOhFourType, string> = {
-	"404": "404s",
-	"301": "Redirects",
-	ignored: "Ignored",
+	"404": "Active 404s",
+	ignored: "Ignored 404s",
+	"301": "301 Redirects",
 };
 
-export const FourOhFours = () => {
+const TYPE_ROUTE: Record<FourOhFourType, string> = {
+	"404": "/dashboard/404s",
+	ignored: "/dashboard/404s/ignored",
+	"301": "/dashboard/404s/301",
+};
+
+export const FourOhFours = ({ type }: FourOhFoursProps) => {
 	const queryClient = useQueryClient();
-	const [type, setType] = useState<FourOhFourType>("404");
+	const navigate = useNavigate();
 	const [search, setSearch] = useState("");
 	const [debounced, setDebounced] = useState("");
 	const [page, setPage] = useState(1);
@@ -68,6 +81,11 @@ export const FourOhFours = () => {
 		setEditingRedirectId(null);
 		setRedirectDraft("");
 	}, [type, page, debounced]);
+
+	// Switching buckets resets pagination back to the first page.
+	useEffect(() => {
+		setPage(1);
+	}, [type]);
 
 	const listQ = useQuery({
 		queryKey: ["404s", "list", { type, page, per_page: PER_PAGE, q: debounced }],
@@ -136,16 +154,29 @@ export const FourOhFours = () => {
 		onError: (err) => apiToast(err, "Could not clear dead 404s"),
 	});
 
-	const importMutation = useMutation({
-		mutationFn: (file: File) => fourOhFoursApi.importCsv(file),
-		onSuccess: (result) => {
-			invalidate();
-			toast.success(
-				`Imported ${result.imported} redirect${result.imported === 1 ? "" : "s"}` +
-					(result.skipped ? ` (${result.skipped} skipped)` : "")
+	const exportMutation = useMutation({
+		mutationFn: () => fourOhFoursApi.export(type),
+		onSuccess: (rows) => {
+			if (rows.length === 0) {
+				toast.error("Nothing to export.");
+
+				return;
+			}
+
+			downloadCsv(
+				`${type}-report-${new Date().toISOString().slice(0, 10)}.csv`,
+				["Requests", "Broken URL", "Query Variables", "Redirect", "Ignored"],
+				rows.map((r) => [
+					r.requests,
+					r.broken_url,
+					r.get_vars ? `?${r.get_vars}` : "",
+					r.redirect_url,
+					r.ignored ? "Yes" : "No",
+				])
 			);
+			toast.success(`Exported ${rows.length} ${rows.length === 1 ? "entry" : "entries"}`);
 		},
-		onError: (err) => apiToast(err, "CSV import failed"),
+		onError: (err) => apiToast(err, "CSV export failed"),
 	});
 
 	const toggleRow = (id: number) => {
@@ -338,20 +369,50 @@ export const FourOhFours = () => {
 
 	return (
 		<div className="mx-auto max-w-screen-2xl px-6 py-4">
-			<Breadcrumb items={[{ label: "System" }, { label: "Broken links (404s)" }]} />
+			<Breadcrumb
+				items={[
+					{ label: "Dashboard", to: "/dashboard" },
+					{ label: "404 Report", to: "/dashboard/404s" },
+					{ label: TYPE_LABEL[type] },
+				]}
+			/>
 
 			<PageHead
-				title="Broken links"
+				title={TYPE_LABEL[type]}
 				sub={total === 1 ? "1 entry" : `${total.toLocaleString()} entries`}
 				actions={
 					<>
-						<UploadButton
-							accept=".csv,text/csv"
-							disabled={importMutation.isPending}
-							onSelect={(file) => importMutation.mutate(file)}
-							label={importMutation.isPending ? "Importing…" : "Import CSV"}
+						<button
+							type="button"
 							className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover disabled:opacity-60"
-						/>
+							disabled={exportMutation.isPending}
+							onClick={() => exportMutation.mutate()}
+						>
+							<Download size={13} />
+							{exportMutation.isPending ? "Exporting…" : "Export CSV"}
+						</button>
+
+						{type === "301" && (
+							<>
+								<button
+									type="button"
+									className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12.5px] hover:bg-hover"
+									onClick={() => navigate("/dashboard/404s/301/import")}
+								>
+									<Upload size={13} />
+									Import CSV
+								</button>
+
+								<button
+									type="button"
+									className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[12.5px] font-medium text-accent-fg hover:bg-accent-hover"
+									onClick={() => navigate("/dashboard/404s/301/add")}
+								>
+									<Plus size={13} />
+									Add 301
+								</button>
+							</>
+						)}
 
 						{type === "404" && (
 							<button
@@ -371,14 +432,11 @@ export const FourOhFours = () => {
 				<SubNav<FourOhFourType>
 					items={[
 						{ value: "404", label: TYPE_LABEL["404"] },
-						{ value: "301", label: TYPE_LABEL["301"] },
 						{ value: "ignored", label: TYPE_LABEL.ignored },
+						{ value: "301", label: TYPE_LABEL["301"] },
 					]}
 					value={type}
-					onChange={(v) => {
-						setType(v);
-						setPage(1);
-					}}
+					onChange={(v) => navigate(TYPE_ROUTE[v])}
 				/>
 
 				<div className="relative max-w-md flex-1">

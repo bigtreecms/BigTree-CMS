@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Mail, ChevronRight } from "lucide-react";
 import { DashCard } from "./DashCard";
 import { CardError } from "./CardError";
@@ -20,6 +21,8 @@ export const UnreadMessagesCard = ({
 	loading,
 	error,
 }: UnreadMessagesCardProps) => {
+	const navigate = useNavigate();
+
 	// Filter to genuinely-unread inbox items: addressed to me AND not yet in read_by.
 	const unread = useMemo(
 		() =>
@@ -41,7 +44,7 @@ export const UnreadMessagesCard = ({
 						: `${unread.length} unread`
 			}
 			action={
-				<SmallBtn>
+				<SmallBtn onClick={() => navigate("/messages")}>
 					View all messages
 					<ChevronRight size={11} />
 				</SmallBtn>

@@ -20,6 +20,40 @@
 			$site_key = $request->query["site_key"] ?? null;
 			$q = trim((string)($request->query["q"] ?? ""));
 
+			[$where, $args] = $this->buildConditions($type, $site_key, $q);
+
+			$total = (int)SQL::fetchSingle(...array_merge(["SELECT COUNT(*) FROM bigtree_404s" . $where], $args));
+			$rows = SQL::fetchAll(...array_merge([
+				"SELECT * FROM bigtree_404s" . $where . " ORDER BY requests DESC, id DESC LIMIT " . (int)$p["limit"] . " OFFSET " . (int)$p["offset"],
+			], $args));
+
+			return Response::ok(array_map([$this, "present"], $rows), Pagination::offsetMeta($p["page"], $p["per_page"], $total));
+		}
+
+		/**
+		 * Unpaginated dump of every row for a bucket, used by the SPA's "Export
+		 * CSV" action (the SPA serializes the rows client-side, mirroring the
+		 * legacy dashboard's streamed CSV export).
+		 */
+		public function export(Request $request) {
+			$type = $request->query["type"] ?? "404";
+			$site_key = $request->query["site_key"] ?? null;
+
+			[$where, $args] = $this->buildConditions($type, $site_key, "");
+
+			$rows = SQL::fetchAll(...array_merge([
+				"SELECT * FROM bigtree_404s" . $where . " ORDER BY requests DESC, id DESC",
+			], $args));
+
+			return Response::ok(array_map([$this, "present"], $rows));
+		}
+
+		/**
+		 * Build the WHERE clause + bound args shared by list/export. `type`
+		 * selects the bucket (404 / 301 / ignored); `site_key` and `q` are
+		 * optional filters (`q` matches the broken or redirect URL).
+		 */
+		private function buildConditions(string $type, ?string $site_key, string $q): array {
 			$conds = [];
 			$args = [];
 
@@ -42,40 +76,43 @@
 					throw new BadRequestException("type must be 404, 301 or ignored", "bad_type", 400);
 			}
 
-			if ($site_key !== null) { $conds[] = "site_key = ?"; $args[] = $site_key; }
+			if ($site_key !== null) {
+				$conds[] = "site_key = ?";
+				$args[] = $site_key;
+			}
 
 			if ($q !== "") {
 				$conds[] = "(broken_url LIKE ? OR redirect_url LIKE ?)";
 				$like = "%" . str_replace("%", "\\%", $q) . "%";
-				$args[] = $like; $args[] = $like;
+				$args[] = $like;
+				$args[] = $like;
 			}
 
 			$where = $conds ? " WHERE " . implode(" AND ", $conds) : "";
 
-			$total = (int)SQL::fetchSingle(...array_merge(["SELECT COUNT(*) FROM bigtree_404s" . $where], $args));
-			$rows = SQL::fetchAll(...array_merge([
-				"SELECT * FROM bigtree_404s" . $where . " ORDER BY requests DESC, id DESC LIMIT " . (int)$p["limit"] . " OFFSET " . (int)$p["offset"],
-			], $args));
-
-			return Response::ok(array_map([$this, "present"], $rows), Pagination::offsetMeta($p["page"], $p["per_page"], $total));
+			return [$where, $args];
 		}
 
+		/**
+		 * Manually add a single 301 redirect. Runs through
+		 * BigTreeAdmin::create301 so the source URL is parsed (full URL or
+		 * domain-relative fragment), the site key inferred where possible, the
+		 * destination converted to an internal-page link, and any existing entry
+		 * for the same source updated rather than duplicated.
+		 */
 		public function create(Request $request) {
 			$d = $request->body;
 			$from = trim((string)$d["from"]);
-			$to = (string)$d["to"];
-			$site_key = $d["site_key"] ?? null;
+			$to = trim((string)$d["to"]);
+			$site_key = trim((string)($d["site_key"] ?? "")) ?: null;
 
-			$id = (int)SQL::insert("bigtree_404s", [
-				"broken_url" => $from,
-				"get_vars" => "",
-				"redirect_url" => $to,
-				"requests" => 0,
-				"ignored" => "",
-				"site_key" => $site_key,
-			]);
+			$admin = new \BigTreeAdmin();
+			$admin->create301($from, $to, $site_key);
 
-			return Response::created($this->present(SQL::fetch("SELECT * FROM bigtree_404s WHERE id = ?", $id)), null);
+			$parsed = \BigTreeAdmin::parse404SourceURL($from, $site_key);
+			$row = \BigTreeAdmin::getExisting404($parsed["url"], $parsed["get_vars"], $parsed["site_key"]);
+
+			return Response::created($this->present($row), null);
 		}
 
 		public function delete(Request $request) {
@@ -163,6 +200,7 @@
 			}
 
 			$site_key = trim((string)($request->body["site_key"] ?? "")) ?: null;
+			$first_row_titles = !empty($request->body["first_row_titles"]);
 			$admin = new \BigTreeAdmin();
 
 			$imported = 0;
@@ -181,8 +219,9 @@
 				$from = trim((string)$row[0]);
 				$to = trim((string)$row[1]);
 
-				// Skip a leading header row.
-				if ($row_num === 1 && in_array(strtolower($from), ["from", "source", "url", "broken_url"], true)) {
+				// Skip the first row when the user flagged it as column titles,
+				// or when it heuristically looks like a header.
+				if ($row_num === 1 && ($first_row_titles || in_array(strtolower($from), ["from", "source", "url", "broken_url"], true))) {
 					continue;
 				}
 

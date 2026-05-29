@@ -7,6 +7,7 @@ import { PendingChangesCard } from "@/components/dashboard/PendingChangesCard";
 import { UnreadMessagesCard } from "@/components/dashboard/UnreadMessagesCard";
 import { dashboardApi, messagesApi, pendingChangesApi } from "@/api/endpoints/dashboard";
 import { useAuthStore } from "@/auth/store";
+import { isAdmin } from "@/lib/permissions";
 
 /**
  * Dashboard — pixel port of the prototype's `dashboard-screen.jsx`.
@@ -23,6 +24,7 @@ import { useAuthStore } from "@/auth/store";
 export const Dashboard = () => {
 	const userName = useAuthStore((s) => s.user?.name);
 	const currentUserId = useAuthStore((s) => s.user?.id ?? 0);
+	const admin = isAdmin(useAuthStore((s) => s.user));
 	const firstName = userName?.split(" ")[0] ?? "there";
 
 	const [summaryQ, analyticsQ, pendingQ, messagesQ, alertsQ] = useQueries({
@@ -34,6 +36,9 @@ export const Dashboard = () => {
 			{
 				queryKey: ["dashboard", "analytics"],
 				queryFn: dashboardApi.analytics,
+				// /dashboard/analytics is Administrator-only (server returns 403 for
+				// level 0); don't fire it — and don't render the card — for non-admins.
+				enabled: admin,
 			},
 			{
 				queryKey: ["pending-changes", "list", { mine: false }],
@@ -56,11 +61,13 @@ export const Dashboard = () => {
 			<PageHead title="Dashboard" sub={`Welcome back, ${firstName}.`} />
 
 			<div className="flex flex-col gap-4">
-				<TrafficCard
-					data={analyticsQ.data}
-					loading={analyticsQ.isLoading}
-					error={analyticsQ.error}
-				/>
+				{admin && (
+					<TrafficCard
+						data={analyticsQ.data}
+						loading={analyticsQ.isLoading}
+						error={analyticsQ.error}
+					/>
+				)}
 				<PendingChangesCard
 					summary={summaryQ.data}
 					pending={pendingQ.data ?? []}

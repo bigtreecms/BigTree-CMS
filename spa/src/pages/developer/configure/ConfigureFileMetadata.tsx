@@ -21,6 +21,15 @@ const BUCKETS: Array<{ id: keyof FileMetadataConfig; label: string; hint: string
 	{ id: "video", label: "Videos", hint: "Asked on every video upload." },
 ];
 
+/** Adapt a stored file-metadata field into the designer's generic entry shape. */
+const toResource = (field: FileMetadataField): ResourceEntry => ({
+	id: field.id,
+	title: field.title,
+	subtitle: field.subtitle,
+	type: field.type,
+	settings: field.settings,
+});
+
 /** Normalize a designer entry back into the file-metadata storage shape. */
 const toField = (entry: ResourceEntry): FileMetadataField => ({
 	id: String(entry.id ?? ""),
@@ -105,7 +114,7 @@ export const ConfigureFileMetadata = () => {
 						</div>
 
 						<ResourceDesigner
-							resources={draft[b.id] as ResourceEntry[]}
+							resources={draft[b.id].map(toResource)}
 							onChange={(entries) => setBucket(b.id, entries)}
 							keyField="id"
 							useCase="settings"

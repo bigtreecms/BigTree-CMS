@@ -13,6 +13,7 @@ import { ConfigureIndex } from "@/pages/developer/configure/ConfigureIndex";
 import { ConfigureMediaPresets } from "@/pages/developer/configure/ConfigureMediaPresets";
 import { ConfigurePaymentGateway } from "@/pages/developer/configure/ConfigurePaymentGateway";
 import { ConfigureServices } from "@/pages/developer/configure/ConfigureServices";
+import { Analytics } from "@/pages/Analytics";
 import { Dashboard } from "@/pages/Dashboard";
 import { EmbedForm } from "@/pages/EmbedForm";
 import { Backups } from "@/pages/developer/Backups";
@@ -29,8 +30,10 @@ import { FeedEdit } from "@/pages/developer/FeedEdit";
 import { Feeds } from "@/pages/developer/Feeds";
 import { FieldTypeEdit } from "@/pages/developer/FieldTypeEdit";
 import { FieldTypes } from "@/pages/developer/FieldTypes";
+import { Create301 } from "@/pages/Create301";
 import { Files } from "@/pages/Files";
 import { FourOhFours } from "@/pages/FourOhFours";
+import { Import301 } from "@/pages/Import301";
 import { Login } from "@/pages/Login";
 import { MessageThread } from "@/pages/MessageThread";
 import { Messages } from "@/pages/Messages";
@@ -52,6 +55,7 @@ import { PageEdit } from "@/pages/PageEdit";
 import { PageRevisions } from "@/pages/PageRevisions";
 import { Pages } from "@/pages/Pages";
 import { PendingChangeDetail } from "@/pages/PendingChangeDetail";
+import { PendingChanges } from "@/pages/PendingChanges";
 import { SettingEdit } from "@/pages/SettingEdit";
 import { Settings } from "@/pages/Settings";
 import { SiteIntegrity } from "@/pages/SiteIntegrity";
@@ -90,7 +94,39 @@ export const router = createBrowserRouter(
 					children: [
 						{ index: true, element: <Navigate to="/dashboard" replace /> },
 
-						{ path: "dashboard", element: <Dashboard /> },
+						{
+							path: "dashboard",
+							children: [
+								{ index: true, element: <Dashboard /> },
+								{
+									path: "404s",
+									element: (
+										<RequireLevel level={LEVEL.ADMINISTRATOR}>
+											<Outlet />
+										</RequireLevel>
+									),
+									children: [
+										{ index: true, element: <FourOhFours type="404" /> },
+										{
+											path: "ignored",
+											element: <FourOhFours type="ignored" />,
+										},
+										{ path: "301", element: <FourOhFours type="301" /> },
+										{ path: "301/add", element: <Create301 /> },
+										{ path: "301/import", element: <Import301 /> },
+									],
+								},
+							],
+						},
+
+						{
+							path: "analytics",
+							element: (
+								<RequireLevel level={LEVEL.ADMINISTRATOR}>
+									<Analytics />
+								</RequireLevel>
+							),
+						},
 
 						{
 							path: "pages",
@@ -146,6 +182,11 @@ export const router = createBrowserRouter(
 
 						{
 							path: "users",
+							element: (
+								<RequireLevel level={LEVEL.ADMINISTRATOR}>
+									<Outlet />
+								</RequireLevel>
+							),
 							children: [
 								{ index: true, element: <Users /> },
 								{ path: ":id/edit", element: <UserEdit /> },
@@ -156,6 +197,11 @@ export const router = createBrowserRouter(
 
 						{
 							path: "settings",
+							element: (
+								<RequireLevel level={LEVEL.ADMINISTRATOR}>
+									<Outlet />
+								</RequireLevel>
+							),
 							children: [
 								{ index: true, element: <Settings /> },
 								{ path: ":id/edit", element: <SettingEdit /> },
@@ -164,6 +210,11 @@ export const router = createBrowserRouter(
 
 						{
 							path: "tags",
+							element: (
+								<RequireLevel level={LEVEL.ADMINISTRATOR}>
+									<Outlet />
+								</RequireLevel>
+							),
 							children: [
 								{ index: true, element: <Tags /> },
 								{ path: "merge", element: <TagMerge /> },
@@ -180,16 +231,21 @@ export const router = createBrowserRouter(
 						},
 
 						{
-							path: "pending-changes/:id",
-							element: <PendingChangeDetail />,
+							path: "pending-changes",
+							children: [
+								{ index: true, element: <PendingChanges /> },
+								{ path: ":id", element: <PendingChangeDetail /> },
+							],
 						},
 
 						{
 							path: "system",
-							children: [
-								{ path: "404s", element: <FourOhFours /> },
-								{ path: "integrity", element: <SiteIntegrity /> },
-							],
+							element: (
+								<RequireLevel level={LEVEL.ADMINISTRATOR}>
+									<Outlet />
+								</RequireLevel>
+							),
+							children: [{ path: "integrity", element: <SiteIntegrity /> }],
 						},
 
 						{

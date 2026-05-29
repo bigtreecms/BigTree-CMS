@@ -32,6 +32,21 @@ export interface ClearDeadResult {
 	deleted: number;
 }
 
+/**
+ * A configured site in a multi-site install (from `GET /pages/sites`). Empty in
+ * a single-site install — the 404 screens fall back to a plain, site-less form.
+ */
+export interface FourOhFourSite {
+	key: string;
+	domain: string;
+	www_root: string;
+}
+
+export interface ImportCsvOptions {
+	siteKey?: string;
+	firstRowTitles?: boolean;
+}
+
 export const fourOhFoursApi = {
 	list: (params: FourOhFoursListParams = {}) =>
 		api.getWithMeta<FourOhFour[]>("/404s", {
@@ -43,6 +58,15 @@ export const fourOhFoursApi = {
 				q: params.q,
 			},
 		}),
+
+	/** Unpaginated dump of a bucket, used to build the "Export CSV" download. */
+	export: (type: FourOhFourType, siteKey?: string) =>
+		api.get<FourOhFour[]>("/404s/export", {
+			query: { type, site_key: siteKey },
+		}),
+
+	/** Multi-site list (empty array in a single-site install). */
+	sites: () => api.get<FourOhFourSite[]>("/pages/sites"),
 
 	create: (body: { from: string; to: string; site_key?: string }) =>
 		api.post<FourOhFour>("/404s", body),
@@ -57,12 +81,16 @@ export const fourOhFoursApi = {
 
 	bulkDelete: (ids: number[]) => api.post<void>("/404s/bulk-delete", { ids }),
 
-	importCsv: (file: File, siteKey?: string) => {
+	importCsv: (file: File, opts: ImportCsvOptions = {}) => {
 		const form = new FormData();
 		form.append("file", file);
 
-		if (siteKey) {
-			form.append("site_key", siteKey);
+		if (opts.siteKey) {
+			form.append("site_key", opts.siteKey);
+		}
+
+		if (opts.firstRowTitles) {
+			form.append("first_row_titles", "1");
 		}
 
 		return api.post<{ imported: number; skipped: number }>("/404s/import", form);

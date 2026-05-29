@@ -13,6 +13,7 @@ import {
 } from "@/api/endpoints/dashboard";
 import { ApiError } from "@/types/api";
 import { toast } from "@/lib/toast";
+import { groupPendingByCategory, humanizeTable } from "@/lib/pendingChanges";
 
 interface PendingChangesCardProps {
 	summary: DashboardSummary | undefined;
@@ -29,9 +30,9 @@ export const PendingChangesCard = ({
 }: PendingChangesCardProps) => {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-	const groups = useMemo(() => groupPendingByTable(pending), [pending]);
+	const groups = useMemo(() => groupPendingByCategory(pending), [pending]);
 	const totalPending =
-		summary?.pending_changes.publishable ?? groups.reduce((s, g) => s + g.count, 0);
+		summary?.pending_changes.publishable ?? groups.reduce((s, g) => s + g.changes.length, 0);
 	const myPending = summary?.pending_changes.mine ?? 0;
 	const recent = pending.slice(0, 5);
 
@@ -78,7 +79,7 @@ export const PendingChangesCard = ({
 			sub={loading ? "Loading…" : `${totalPending} awaiting review`}
 			action={
 				groups.length > 0 ? (
-					<SmallBtn>
+					<SmallBtn onClick={() => navigate("/pending-changes")}>
 						{loading ? "…" : `${groups.length} categories`}
 						<ChevronRight size={11} />
 					</SmallBtn>
@@ -180,38 +181,4 @@ export const PendingChangesCard = ({
 			)}
 		</DashCard>
 	);
-};
-
-/** Group pending changes by table/module so we can show counts per category. */
-const groupPendingByTable = (pending: PendingChange[]) => {
-	const map = new Map<string, { key: string; label: string; count: number }>();
-
-	for (const p of pending) {
-		const key = p.module ? `module:${p.module}` : `table:${p.table}`;
-		const label = humanizeTable(p.table);
-		const cur = map.get(key);
-
-		if (cur) {
-			cur.count++;
-		} else {
-			map.set(key, { key, label, count: 1 });
-		}
-	}
-
-	return [...map.values()].sort((a, b) => b.count - a.count);
-};
-
-const humanizeTable = (table: string): string => {
-	if (table === "bigtree_pages") {
-		return "Pages";
-	}
-
-	if (table.startsWith("bigtree_")) {
-		return table
-			.slice("bigtree_".length)
-			.replace(/_/g, " ")
-			.replace(/\b\w/g, (c) => c.toUpperCase());
-	}
-
-	return table.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 };

@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { LinkBtn } from "./LinkBtn";
 import type { Message } from "@/api/endpoints/dashboard";
@@ -7,6 +8,8 @@ interface MessagesTableProps {
 }
 
 export const MessagesTable = ({ messages }: MessagesTableProps) => {
+	const navigate = useNavigate();
+
 	return (
 		<div className="overflow-hidden rounded-md border border-border">
 			<div className="grid h-[34px] grid-cols-[1.4fr_2fr_110px_80px_80px] items-center gap-x-3 border-b border-border bg-surface-2 px-3.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
@@ -38,7 +41,7 @@ export const MessagesTable = ({ messages }: MessagesTableProps) => {
 						</span>
 						<span className="text-[12px] text-text-3 tabular-nums">{date}</span>
 						<span className="text-[12px] text-text-3 tabular-nums">{time}</span>
-						<LinkBtn>
+						<LinkBtn onClick={() => navigate(`/messages/${m.id}`)}>
 							View <ChevronRight size={11} />
 						</LinkBtn>
 					</div>
